@@ -142,18 +142,29 @@ func TestFreeStateGateG8RejectsNonTrackTarget(t *testing.T) {
 	}
 }
 
-// The G8 refusal guidance names the selected candidate's track set
-// (mechanical runtime state), mirroring the G1/G7 fresh-reference hint.
-func TestFreeStateGateG8RefusalNamesSelectedCandidateTracks(t *testing.T) {
+// TIMING-1: the G8 refusal discloses its failed consistency conditions as
+// machine-readable vocabulary and no longer names the selected candidate's
+// track set — track identities are a content-blind red line (advisory ruling
+// #5 anti-abuse rule 1).
+func TestFreeStateGateG8RefusalIsStructuredAndContentBlind(t *testing.T) {
 	state := gateTestState(nil)
 	decision := gateTargetProposal(map[string]any{"kind": "track", "id": "1032"}, []string{"obs-mix"})
 	failed := evaluateFreeStateNeedsExperimentGate(state, decision)
-	message := freeStateNeedsExperimentGateFailureMessage(state, failed)
+	if !gateFailedIDs(failed, freeStateGateG8) {
+		t.Fatalf("wrong-target proposal did not fail G8 (failed=%v)", failed)
+	}
+	message := freeStateNeedsExperimentGateFailureMessage(state, decision, failed)
 	if !strings.Contains(message, "G8_target_consistency") {
 		t.Fatalf("refusal message omitted the G8 gate id: %q", message)
 	}
-	if !strings.Contains(message, "1007, 1012") {
-		t.Fatalf("refusal message omitted the selected candidate's tracks: %q", message)
+	if !strings.Contains(message, "target_not_from_frontier_candidate") {
+		t.Fatalf("refusal message omitted the failed condition: %q", message)
+	}
+	// Content-blind: no track identity from the fixture may appear.
+	for _, track := range []string{"1007", "1012", "1032"} {
+		if strings.Contains(message, track) {
+			t.Fatalf("refusal message leaked track identity %q: %q", track, message)
+		}
 	}
 }
 

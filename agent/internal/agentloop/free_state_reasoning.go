@@ -562,48 +562,149 @@ func messageLoopFreeStateCatalogAlreadyObserved(state *runState) bool {
 	return false
 }
 
-// freeStatePhaseDeferredFinalCandidateKeys are the content-free loop-state
-// marker keys recorded when the output gate bounces a needs_experiment
-// decision solely because the host phase did not admit it. The marker carries
-// the decision status family and the rejecting phase name only — never the
-// proposal, target, view, or dosage content — so it can ride the durable
-// free_state_reasoning_loop state like frontier_decision_round_granted and
-// inform a later neutral resubmission hint once the phase admits final
-// candidates.
+// TIMING-1 anti-abuse accounting keys ride the durable loop context the same
+// way the BOUNDARY-1 terminal-turn fields do: the agentloop output gate
+// records at the rejection boundary, and the chat-side continuation merge
+// keeps the counters monotonic across slices. Advisory ruling #5 anti-abuse
+// rules 1-3: an evidence-type G-gate bounce consumes no closure checkpoint
+// but is counted (admission_rejection_count, capped at two per loop); a
+// resubmitted proposal with an identical fingerprint and no new evidence
+// revision re-enters no ordinary loop — the terminal turn locks directly; the
+// second G-gate rejection locks the terminal turn and discloses the
+// accumulated structured gaps. All values are content-free counters and the
+// machine-readable gap records themselves.
 const (
-	freeStatePhaseDeferredFinalCandidateKey   = "phase_deferred_final_candidate"
-	freeStatePhaseDeferredFinalCandidateCount = "phase_deferred_final_candidate_count"
-	freeStatePhaseDeferredFinalCandidatePhase = "phase_deferred_final_candidate_phase"
+	freeStateAdmissionRejectionCountKey         = "admission_rejection_count"
+	freeStateAdmissionRejectionGapsKey          = "admission_rejection_gaps"
+	freeStateLastRejectedFingerprintKey         = "last_rejected_proposal_fingerprint"
+	freeStateLastRejectedEvidenceRevisionKey    = "last_rejected_evidence_revision"
+	freeStateAdmissionRejectionLimit            = 2
+	freeStateTerminalReasonAdmissionExhausted   = "admission_rejections_exhausted"
+	freeStateTerminalReasonDuplicateFingerprint = "duplicate_proposal_fingerprint"
 )
 
-// messageLoopFreeStateNotePhaseDeferredFinalCandidate records the marker on
-// the loop context at the final-gate rejection boundary. It fires only when
-// the rejection issue that the model actually received is the phase-decision
-// issue for a needs_experiment status: content-shaped rejections (judgment
-// boundary, proposal validation, G1-G8 admission gates) return a different
-// issue from the output gate and never set the marker.
-func messageLoopFreeStateNotePhaseDeferredFinalCandidate(state *runState, out messageLoopOutput, issue string) {
+// freeStateAdmissionRejectionCount reads the durable bounce counter.
+func freeStateAdmissionRejectionCount(state *runState) int {
+	if state == nil {
+		return 0
+	}
+	return messageLoopFreeStatePositiveInt(messageLoopFreeStateContext(state)[freeStateAdmissionRejectionCountKey])
+}
+
+// freeStateProposalFingerprint is the normalized hash of an improvement
+// proposal: JSON-canonical serialization (struct field order fixed, map keys
+// sorted) with the list-typed citation fields sorted, so a semantically
+// identical resubmission cannot escape the duplicate check by reordering
+// fields or citations (advisory rule: fix normalization/hash, never prompt).
+func freeStateProposalFingerprint(proposal *agentprotocol.ImprovementProposal) string {
+	if proposal == nil {
+		return ""
+	}
+	normalized := *proposal
+	normalized.EvidenceRefs = append([]string(nil), proposal.EvidenceRefs...)
+	sort.Strings(normalized.EvidenceRefs)
+	normalized.Limitations = append([]string(nil), proposal.Limitations...)
+	sort.Strings(normalized.Limitations)
+	normalized.NeedsResolution = append([]string(nil), proposal.NeedsResolution...)
+	sort.Strings(normalized.NeedsResolution)
+	data, err := json.Marshal(normalized)
+	if err != nil {
+		return ""
+	}
+	digest := sha256.Sum256(data)
+	return "proposal:" + hex.EncodeToString(digest[:12])
+}
+
+// messageLoopFreeStateEvidenceRevision reads the revision the anti-abuse
+// accounting compares against: the closure's current project revision, the
+// identity a fresh revision-bound citation must carry.
+func messageLoopFreeStateEvidenceRevision(state *runState) string {
+	if state == nil {
+		return ""
+	}
+	return strings.TrimSpace(firstMapText(messageLoopMapValue(state.input.Context["minimal_audio_closure"]), "project_revision"))
+}
+
+// lockFreeStateTerminalTurnInContext sets the BOUNDARY-1 terminal-turn latch
+// from the agentloop side (the same durable key the chat side locks) with a
+// TIMING-1 admission reason. Like the chat-side lock it is idempotent and
+// never clears; an existing lock and its reason always win, so the
+// budget-critical / last-checkpoint reservation is never downgraded or
+// swallowed by an admission rejection (advisory rule 4).
+func lockFreeStateTerminalTurnInContext(state *runState, reason string) {
+	if state == nil || strings.TrimSpace(reason) == "" {
+		return
+	}
+	loop := messageLoopMapValue(state.input.Context["free_state_reasoning_loop"])
+	if len(loop) == 0 || freeStateBool(loop[freeStateTerminalTurnLockedKey]) {
+		return
+	}
+	loop[freeStateTerminalTurnLockedKey] = true
+	loop["terminal_turn_reason"] = reason
+	state.input.Context["free_state_reasoning_loop"] = loop
+}
+
+// messageLoopFreeStateNoteAdmissionRejection records the anti-abuse
+// accounting at the final-gate bounce boundary. It fires only when the
+// rejection issue the model actually received is the G-gate structured-gap
+// refusal for an evidence-bearing needs_experiment decision (the message is
+// recomputed and compared, the same identity pattern the retired
+// phase-deferred marker used); content-shaped rejections (validation,
+// judgment boundary, settle-report shape) return a different issue and never
+// count.
+func messageLoopFreeStateNoteAdmissionRejection(state *runState, out messageLoopOutput, issue string) {
 	if state == nil || out.FreeStateDecision == nil || strings.TrimSpace(issue) == "" {
 		return
 	}
 	status := strings.ToLower(strings.TrimSpace(out.FreeStateDecision.Status))
-	if status != FreeStateNeedsExperiment {
+	if status != FreeStateNeedsExperiment && status != FreeStateImprovementProposal {
 		return
 	}
-	phaseIssue := messageLoopFreeStatePhaseDecisionIssue(state, status)
-	if phaseIssue == "" || phaseIssue != issue {
+	if out.FreeStateDecision.ImprovementProposal == nil {
+		return
+	}
+	failed := evaluateFreeStateNeedsExperimentGate(state, out.FreeStateDecision)
+	if len(failed) == 0 || freeStateNeedsExperimentGateFailureMessage(state, out.FreeStateDecision, failed) != issue {
 		return
 	}
 	loop := messageLoopMapValue(state.input.Context["free_state_reasoning_loop"])
 	if len(loop) == 0 {
 		return
 	}
-	loop[freeStatePhaseDeferredFinalCandidateKey] = true
-	loop[freeStatePhaseDeferredFinalCandidateCount] = messageLoopFreeStatePositiveInt(loop[freeStatePhaseDeferredFinalCandidateCount]) + 1
-	if phase := messageLoopFreeStateHostPhase(state); phase != "" {
-		loop[freeStatePhaseDeferredFinalCandidatePhase] = phase
+	previousCount := messageLoopFreeStatePositiveInt(loop[freeStateAdmissionRejectionCountKey])
+	previousFingerprint := strings.TrimSpace(messageLoopText(loop[freeStateLastRejectedFingerprintKey]))
+	previousRevision := strings.TrimSpace(messageLoopText(loop[freeStateLastRejectedEvidenceRevisionKey]))
+	currentRevision := messageLoopFreeStateEvidenceRevision(state)
+	fingerprint := freeStateProposalFingerprint(out.FreeStateDecision.ImprovementProposal)
+
+	// Advisory rule 2: identical fingerprint + no new evidence revision never
+	// re-enters the ordinary loop — lock the terminal turn directly.
+	duplicateResubmission := previousFingerprint != "" && fingerprint == previousFingerprint &&
+		previousRevision == currentRevision
+	// Advisory rule 3: the second G-gate rejection locks the terminal turn and
+	// discloses the accumulated gaps.
+	exhausted := previousCount+1 >= freeStateAdmissionRejectionLimit
+
+	gaps := append([]map[string]any(nil), messageLoopMapRows(loop[freeStateAdmissionRejectionGapsKey])...)
+	gap := freeStateAdmissionGap(state, out.FreeStateDecision, failed)
+	if data, err := json.Marshal(gap); err == nil {
+		row := map[string]any{}
+		if json.Unmarshal(data, &row) == nil {
+			gaps = append(gaps, row)
+		}
 	}
+	loop[freeStateAdmissionRejectionCountKey] = previousCount + 1
+	loop[freeStateAdmissionRejectionGapsKey] = gaps
+	loop[freeStateLastRejectedFingerprintKey] = fingerprint
+	loop[freeStateLastRejectedEvidenceRevisionKey] = currentRevision
 	state.input.Context["free_state_reasoning_loop"] = loop
+	if duplicateResubmission {
+		lockFreeStateTerminalTurnInContext(state, freeStateTerminalReasonDuplicateFingerprint)
+		return
+	}
+	if exhausted {
+		lockFreeStateTerminalTurnInContext(state, freeStateTerminalReasonAdmissionExhausted)
+	}
 }
 
 // BOUNDARY-1 terminal-turn reservation keys ride the durable loop context
@@ -957,8 +1058,12 @@ func messageLoopFreeStateOutputIssue(state *runState, out messageLoopOutput) str
 			if failed := evaluateFreeStateNeedsExperimentGate(state, out.FreeStateDecision); len(failed) > 0 {
 				// The single-usable-bundle weak gate is replaced by the seven-part
 				// admission gate (docs/FREE_STATE_NEEDS_EXPERIMENT_GATE_V1.md). Gate
-				// failure has exactly one legal exit: needs_observation.
-				return freeStateNeedsExperimentGateFailureMessage(state, failed)
+				// failure has exactly one legal exit: needs_observation. TIMING-1:
+				// the refusal carries the structured content-blind gap, and the
+				// anti-abuse accounting (admission_rejection_count / proposal
+				// fingerprint / terminal lock) is noted at the bounce boundary in
+				// message_loop.go.
+				return freeStateNeedsExperimentGateFailureMessage(state, out.FreeStateDecision, failed)
 			}
 		}
 	case FreeStateSatisfied, FreeStateDiagnosticComplete, FreeStateNoCandidateFound:

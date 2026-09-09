@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"vit-daw-agent/internal/audioclosure"
 	"vit-daw-agent/internal/experiment"
 )
 
@@ -45,8 +44,6 @@ func messageLoopNeutralFamilySystemPrompt(state *runState) string {
 	}
 	prefix += messageLoopFreeStateObservationSaturationDirective(state)
 	prefix += messageLoopCandidateFrontierDirective(state)
-	prefix += messageLoopFreeStatePhaseDeferredResubmissionDirective(state)
-	prefix += messageLoopFreeStateGateOpenDirective(state)
 	prefix += messageLoopFreeStateTerminalTurnDirective(state)
 	// GLM ruling (D2-2): the single-round prohibitions stay byte-identical on
 	// the default tier; only an explicitly admitted multi-round experiment
@@ -277,35 +274,26 @@ func messageLoopFreeStateWindowBudgetSentence(state *runState) string {
 		facts.roundsRemaining, facts.roundsTotal, facts.continuationsRemaining, facts.continuationsTotal)
 }
 
-// freeStateGateOpenSignal is the frozen one-shot gate-open sentence
-// (BOUNDARY-1 §2.1). Closed template: only the disclosed phase name is
-// slotted in; pinned by test.
-const freeStateGateOpenSignalFormat = "GATE OPEN (mechanical runtime state): the disclosed free_state_phase (%s) now admits a needs_experiment decision with one bounded improvement_proposal. This notice is shown once per loop; the observation and proposal choices remain your own."
-
-// messageLoopFreeStateGateOpenDirective renders the one-shot gate-open signal
-// when the chat-side loop armed it (needs_experiment_gate_open_pending) and
-// the current host phase still admits needs_experiment — it can never
-// surface while the phase would bounce the proposal again.
-func messageLoopFreeStateGateOpenDirective(state *runState) string {
+// messageLoopFreeStateHostPhase reads the closure host phase from the prompt
+// context (empty string when not disclosed).
+func messageLoopFreeStateHostPhase(state *runState) string {
 	if state == nil {
 		return ""
 	}
-	loop := messageLoopFreeStateContext(state)
-	if !freeStateBool(loop["needs_experiment_gate_open_pending"]) {
-		return ""
+	phase := strings.TrimSpace(firstMapText(state.input.Context, "free_state_phase"))
+	if phase == "" {
+		phase = strings.TrimSpace(messageLoopText(messageLoopMapValue(state.input.Context["minimal_audio_closure"])["phase"]))
 	}
-	phase := messageLoopFreeStateHostPhase(state)
-	parsed, ok := audioclosure.ParsePhase(phase)
-	if !ok || !audioclosure.IsFSPhase(parsed) || !audioclosure.AllowsDecisionStatus(parsed, FreeStateNeedsExperiment) {
-		return ""
-	}
-	return fmt.Sprintf(freeStateGateOpenSignalFormat, phase) + "\n\n"
+	return phase
 }
 
 // messageLoopFreeStateTerminalTurnDirective renders the frozen final-turn
 // sentence (BOUNDARY-1 §2.3c) with the window counters whenever the loop's
 // terminal-turn reservation is locked; the same sentence is the output-gate
-// bounce text on locked turns.
+// bounce text on locked turns. TIMING-1 advisory rule 3: when the lock
+// followed admission rejections, the directive additionally discloses the
+// accumulated structured gaps (machine slots, content-free) so the terminal
+// turn can still repair the proposal with real evidence.
 func messageLoopFreeStateTerminalTurnDirective(state *runState) string {
 	if state == nil || !messageLoopFreeStateTerminalTurnLocked(state) {
 		return ""
@@ -315,18 +303,60 @@ func messageLoopFreeStateTerminalTurnDirective(state *runState) string {
 	if ok {
 		header += fmt.Sprintf("closure rounds remaining: %d/%d; continuations remaining: %d/%d. ", facts.roundsRemaining, facts.roundsTotal, facts.continuationsRemaining, facts.continuationsTotal)
 	}
-	return header + freeStateTerminalTurnSentence + "\n\n"
+	directive := header + freeStateTerminalTurnSentence
+	if gaps := messageLoopFreeStateAccumulatedAdmissionGaps(state); len(gaps) > 0 {
+		directive += " ADMISSION GAPS ACCUMULATED (mechanical runtime state): " + strings.Join(gaps, " | ")
+	}
+	return directive + "\n\n"
+}
+
+// messageLoopFreeStateAccumulatedAdmissionGaps renders the durable
+// admission-rejection gap records as compact closed-template slots for the
+// terminal-turn directive: per rejection, the failed gate ids and the missing
+// conditions. Content-free: the records themselves carry only categories,
+// conditions, and evidence references.
+func messageLoopFreeStateAccumulatedAdmissionGaps(state *runState) []string {
+	if state == nil {
+		return nil
+	}
+	rows := messageLoopMapRows(messageLoopFreeStateContext(state)[freeStateAdmissionRejectionGapsKey])
+	out := make([]string, 0, len(rows))
+	for index, row := range rows {
+		parts := []string{fmt.Sprintf("rejection#%d", index+1)}
+		if ids := messageLoopStringList(row["failed_gate_ids"]); len(ids) > 0 {
+			parts = append(parts, "failed_gate_ids=["+strings.Join(ids, ",")+"]")
+		}
+		for _, missing := range messageLoopMapRows(row["missing"]) {
+			condition := strings.TrimSpace(messageLoopText(missing["condition"]))
+			gateID := strings.TrimSpace(messageLoopText(missing["gate_id"]))
+			if condition == "" {
+				continue
+			}
+			if gateID != "" {
+				condition = gateID + ":" + condition
+			}
+			parts = append(parts, condition)
+		}
+		if reference := strings.TrimSpace(messageLoopText(row["quotable_fresh_reference"])); reference != "" {
+			parts = append(parts, "quotable_fresh_reference="+reference)
+		}
+		out = append(out, strings.Join(parts, "; "))
+	}
+	return out
 }
 
 // messageLoopFreeStateContinuationBudgetDirective escalates convergence
 // pressure as the continuation budget drains while the loop is still in the
 // pre-proposal observation phase. BOUNDARY-1 §2.3b: the wording is
 // descriptive — it states what the mechanism does (checkpoints consumed, the
-// honest settle at the drained boundary, phase admission) and prices further
-// observations from the runtime counters; it issues no absolute output
-// commands. A terminal-turn-locked loop gets the dedicated terminal directive
-// instead, so this one stays silent there. It is steering text only: no
-// validator, admission gate, or runtime criterion reads it.
+// honest settle at the drained boundary, admission via the evidence gate) and
+// prices further observations from the runtime counters; it issues no
+// absolute output commands. A terminal-turn-locked loop gets the dedicated
+// terminal directive instead, so this one stays silent there. It is steering
+// text only: no validator, admission gate, or runtime criterion reads it.
+// TIMING-1: proposals are admissible in every closure phase; the former
+// phase-timing branches ("does not admit needs_experiment yet", "an early
+// proposal gets bounced by the phase gate") are retired with the phase gate.
 func messageLoopFreeStateContinuationBudgetDirective(state *runState) string {
 	if state == nil || !strings.EqualFold(messageLoopTaskContractKind(state), "improvement") {
 		return ""
@@ -352,29 +382,21 @@ func messageLoopFreeStateContinuationBudgetDirective(state *runState) string {
 			return ""
 		}
 	}
-	phase := messageLoopFreeStateHostPhase(state)
 	facts, factsOK := messageLoopFreeStateWindowBudgetFacts(state)
 	switch {
-	case budget-used <= 1 && phaseAtLeastTargetConfirmed(phase):
-		critical := fmt.Sprintf("CONTINUATION BUDGET CRITICAL (mechanical runtime state): %d of %d checkpoints are consumed", used, budget)
-		if factsOK {
-			critical += fmt.Sprintf("; closure rounds remaining: %d/%d; continuations remaining: %d/%d", facts.roundsRemaining, facts.roundsTotal, facts.continuationsRemaining, facts.continuationsTotal)
-		}
-		critical += ". When the budget drains, the runtime settles the task honestly at the observation boundary without a model decision. The closure host has confirmed a target, so a needs_experiment decision with one bounded improvement_proposal is admissible from the evidence already held; further observations consume window budget.\n\n"
-		return critical
 	case budget-used <= 1:
 		critical := fmt.Sprintf("CONTINUATION BUDGET CRITICAL (mechanical runtime state): %d of %d checkpoints are consumed", used, budget)
 		if factsOK {
 			critical += fmt.Sprintf("; closure rounds remaining: %d/%d; continuations remaining: %d/%d", facts.roundsRemaining, facts.roundsTotal, facts.continuationsRemaining, facts.continuationsTotal)
 		}
-		critical += fmt.Sprintf(". The closure host is still in phase %s, which does not admit needs_experiment yet: a proposal sent now would be bounced by the phase gate and the turn would be spent. When the budget drains, the runtime settles the task honestly at the observation boundary without a model decision. A needs_observation turn consumes a checkpoint; a terminal decision from the evidence already held ends the loop with a model-authored boundary.\n\n", phase)
+		critical += ". A needs_experiment decision with one bounded improvement_proposal is admissible from the evidence already held whenever the admission gate's evidence conditions hold; further observations consume window budget. When the budget drains, the runtime settles the task honestly at the observation boundary without a model decision. A needs_observation turn consumes a checkpoint; a terminal decision from the evidence already held ends the loop with a model-authored boundary.\n\n"
 		return critical
 	case used*2 >= budget:
 		warning := fmt.Sprintf("Continuation budget warning (mechanical runtime state): %d of %d checkpoints consumed", used, budget)
 		if factsOK {
 			warning += fmt.Sprintf("; closure rounds remaining: %d/%d; continuations remaining: %d/%d", facts.roundsRemaining, facts.roundsTotal, facts.continuationsRemaining, facts.continuationsTotal)
 		}
-		warning += fmt.Sprintf(". The closure host admits needs_experiment only after it confirms a target (current phase %s); an early proposal gets bounced by the phase gate and spends the turn. Every needs_observation turn consumes one checkpoint, and re-requesting views that already returned buys no new evidence.\n\n", phase)
+		warning += ". A proposal is admissible in any closure phase once its evidence citations satisfy the admission gate; a proposal whose citations do not satisfy it is returned a machine-readable gap and consumes no closure checkpoint. Every needs_observation turn consumes one checkpoint, and re-requesting views that already returned buys no new evidence.\n\n"
 		return warning
 	}
 	return ""
@@ -408,63 +430,6 @@ func messageLoopFreeStateObservationSaturationDirective(state *runState) string 
 `, facts)
 }
 
-// freeStatePhaseDeferredResubmissionHint is the closed, fixed resubmission
-// sentence. It cites one procedural fact only — an earlier final candidate
-// was deferred by the closure phase, which now admits final candidates — and
-// never carries domain, track, plug-in, dosage, or view content. The exact
-// text is pinned by test.
-const freeStatePhaseDeferredResubmissionHint = "An earlier final candidate was deferred only because the closure phase did not admit it at that time; the current phase now admits final candidates. Independently re-evaluate whether to submit a final candidate based on the evidence you hold, or end the turn honestly."
-
-// messageLoopFreeStatePhaseDeferredResubmissionDirective renders the neutral
-// resubmission hint when a prior needs_experiment decision was rejected only
-// by the host phase gate (phase_deferred_final_candidate loop marker) and the
-// current host phase now admits final candidates. Phase admission is read
-// from the same audioclosure decision policy the phase gate itself enforces,
-// so the hint can never surface while the phase would bounce the proposal
-// again. Steering text only: no validator, gate, or runtime criterion reads
-// it, and the re-evaluation stays entirely the model's own.
-func messageLoopFreeStatePhaseDeferredResubmissionDirective(state *runState) string {
-	if state == nil {
-		return ""
-	}
-	loop := messageLoopFreeStateContext(state)
-	if !freeStateBool(loop[freeStatePhaseDeferredFinalCandidateKey]) {
-		return ""
-	}
-	phase, ok := audioclosure.ParsePhase(messageLoopFreeStateHostPhase(state))
-	if !ok || !audioclosure.IsFSPhase(phase) {
-		return ""
-	}
-	if !audioclosure.AllowsDecisionStatus(phase, FreeStateNeedsExperiment) {
-		return ""
-	}
-	return freeStatePhaseDeferredResubmissionHint + "\n\n"
-}
-
-// messageLoopFreeStateHostPhase reads the closure host phase from the prompt
-// context (empty string when not disclosed).
-func messageLoopFreeStateHostPhase(state *runState) string {
-	if state == nil {
-		return ""
-	}
-	phase := strings.TrimSpace(firstMapText(state.input.Context, "free_state_phase"))
-	if phase == "" {
-		phase = strings.TrimSpace(messageLoopText(messageLoopMapValue(state.input.Context["minimal_audio_closure"])["phase"]))
-	}
-	return phase
-}
-
-// phaseAtLeastTargetConfirmed reports whether the host phase admits a bounded
-// improvement proposal (fs6_target_confirmed or later, excluding fs9 where the
-// loop is already settled).
-func phaseAtLeastTargetConfirmed(phase string) bool {
-	switch strings.ToLower(strings.TrimSpace(phase)) {
-	case "fs6_target_confirmed", "fs7_improvement_proposal", "fs8_experiment_verification":
-		return true
-	}
-	return false
-}
-
 func messageLoopFreeStatePositiveInt(raw any) int {
 	value := 0
 	switch v := raw.(type) {
@@ -483,9 +448,10 @@ func messageLoopFreeStatePositiveInt(raw any) int {
 
 // freeStateImprovementConvergenceGuidance keeps the model budget-aware during
 // an open improvement contract. The key constraint is that a needs_experiment
-// decision is only admissible once the closure host has established a
-// candidate frontier and confirmed a target: an early proposal gets bounced
-// by the host phase gate and the turn is wasted. Since D2-NEUTRAL3 the
+// decision is admitted by the G1-G8 evidence gate in every closure phase: a
+// proposal whose frontier/target evidence and fresh citations are not in
+// hand is bounced with a machine-readable gap (TIMING-1 accounting: no
+// closure checkpoint is consumed, but the bounce budget is small). Since D2-NEUTRAL3 the
 // guidance presents observation views fairly: catalog discovery is the first
 // step, view dimensions are chosen by the model from the material at hand,
 // and cross-dimension touring inside the budget is legal — no named fast-path
@@ -495,7 +461,7 @@ func freeStateImprovementConvergenceGuidance() string {
 	return `Continuation Budget and Fair Observation Selection for Open Improvement Contracts:
 
 - The free-state loop context discloses continuation_budget and continuation_used. The budget is small (typically 6 checkpoints total for the whole task, not per dimension). Every needs_observation turn you return consumes one checkpoint, and exhausting it settles the task at the observation boundary without ever exercising an improvement.
-- The closure host admits needs_experiment only after a candidate frontier is established and a target is confirmed. A proposal sent before that is bounced and the turn is wasted. Do not rush the proposal; rush the GATE PATH instead.
+- A needs_experiment proposal is admissible in every closure phase: admission is decided only by the G1-G8 evidence gate (project binding, capacity, project scan, a closed dimension, the candidate frontier, target-level evidence, fresh revision-bound citations, target consistency). A proposal whose evidence does not satisfy the gate is returned a machine-readable gap and consumes no closure checkpoint. Do not rush the proposal; rush the GATE PATH instead.
 - Make catalog discovery your first observation step: call ccb.observation_catalog before your first ccb.observation_request, and choose view dimensions yourself from the returned catalog and the material at hand — visible track identities and names, the user's listening goal, and any disclosed still-unobserved diagnostic dimensions. There is no default view sequence and no privileged dimension.
 - Choose dimensions by evidence, not by habit: visiting more than one diagnostic dimension within the budget is legal and is often necessary, because a single-dimension reading cannot show whether the audible problem lives elsewhere. What wastes the budget is re-requesting views that already returned, or observing after the target-level evidence you need is already in hand.
 - The gate path itself, whatever views you choose: a candidate frontier is built from observation facts that disclose track-level candidates, and a target is confirmed by a target-level track.* observation of one concrete candidate track. Once the target-level evidence for your chosen candidate is in hand, return final=true needs_experiment with one bounded improvement_proposal.v1 citing it.

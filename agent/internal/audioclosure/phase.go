@@ -206,13 +206,21 @@ type phaseDecisionPolicy struct {
 	TerminalDecisions bool
 }
 
+// TIMING-1 (2026-09-09, advisory ruling #5, direction 4b): the phase machine no
+// longer holds a second semantic admission standard for proposals. A
+// needs_experiment / improvement_proposal decision is admissible in every FS
+// phase; whether a concrete proposal is accepted is decided only by the G1-G8
+// evidence gate plus the existing content-blind, evidence-binding, authority,
+// and safety checks. The phase ladder keeps its observation-organization,
+// progress-disclosure, and budget-scheduling roles but has no proposal veto.
+// needs_observation / needs_action / terminal-family policies are unchanged.
 var phaseDecisionPolicies = map[Phase]phaseDecisionPolicy{
-	PhaseFS0SemanticEntry:       {NeedsObservation: true},
-	PhaseFS1ProjectBound:        {NeedsObservation: true},
-	PhaseFS2CapacityAssessed:    {NeedsObservation: true},
-	PhaseFS3ProjectScan:         {NeedsObservation: true},
-	PhaseFS4DiagnosticRound:     {NeedsObservation: true},
-	PhaseFS5CandidateFrontier:   {NeedsObservation: true},
+	PhaseFS0SemanticEntry:       {NeedsObservation: true, NeedsExperiment: true},
+	PhaseFS1ProjectBound:        {NeedsObservation: true, NeedsExperiment: true},
+	PhaseFS2CapacityAssessed:    {NeedsObservation: true, NeedsExperiment: true},
+	PhaseFS3ProjectScan:         {NeedsObservation: true, NeedsExperiment: true},
+	PhaseFS4DiagnosticRound:     {NeedsObservation: true, NeedsExperiment: true},
+	PhaseFS5CandidateFrontier:   {NeedsObservation: true, NeedsExperiment: true},
 	PhaseFS6TargetConfirmed:     {NeedsObservation: true, NeedsAction: true, NeedsExperiment: true},
 	PhaseFS7ImprovementProposal: {NeedsAction: true, NeedsExperiment: true},
 	// FS8 is the verification phase of a governed experiment.  The model may

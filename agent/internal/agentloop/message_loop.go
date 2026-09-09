@@ -632,7 +632,14 @@ func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Resu
 					issue+" "+freeStateTerminalTurnRetryDirective,
 					"no admissible final decision after one strengthened retry")
 			}
-			messageLoopFreeStateNotePhaseDeferredFinalCandidate(state, out, issue)
+			// TIMING-1 anti-abuse accounting: count the evidence-type G-gate
+			// bounce, latch the rejected proposal fingerprint, and lock the
+			// terminal turn on the second rejection or an identical-fingerprint
+			// resubmission without new evidence (advisory ruling #5 rules 1-3).
+			// The lock lands after the locked-turn check above, so this bounce
+			// keeps its ordinary gap feedback and the next turn is the terminal
+			// prompt; the budget-critical reservation is never downgraded.
+			messageLoopFreeStateNoteAdmissionRejection(state, out, issue)
 			state.input.Conversation = append(state.input.Conversation, llm.Message{Role: "user", Content: "<final_gate>" + issue + "</final_gate>"})
 			continue
 		}

@@ -115,15 +115,23 @@ func TestContinuationBudgetDirectiveEscalation(t *testing.T) {
 	if d := messageLoopFreeStateContinuationBudgetDirective(budgetState(3, 6)); d == "" || !strings.Contains(d, "Continuation budget warning") {
 		t.Fatalf("half-spent turn must carry the warning directive, got %q", d)
 	}
-	if d := messageLoopFreeStateContinuationBudgetDirective(budgetState(5, 6)); d == "" || !strings.Contains(d, "CONTINUATION BUDGET CRITICAL") || !strings.Contains(d, "does not admit needs_experiment yet") {
-		t.Fatalf("last-turn fs4 state must carry the descriptive phase-aware critical directive, got %q", d)
+	// TIMING-1: proposals are admissible in every closure phase, so the
+	// critical branch no longer splits on the host phase — fs4 and fs6 carry
+	// the same descriptive honesty about admission via the evidence gate.
+	for _, phase := range []string{"fs4_diagnostic_round", "fs6_target_confirmed"} {
+		d := messageLoopFreeStateContinuationBudgetDirective(budgetStateInPhase(5, 6, phase))
+		if d == "" || !strings.Contains(d, "CONTINUATION BUDGET CRITICAL") ||
+			!strings.Contains(strings.ToLower(d), "a needs_experiment decision with one bounded improvement_proposal is admissible") {
+			t.Fatalf("%s last-turn state must state the admissible proposal honestly, got %q", phase, d)
+		}
+		for _, retired := range []string{"does not admit needs_experiment yet", "bounced by the phase gate", "admits needs_experiment only after"} {
+			if strings.Contains(d, retired) {
+				t.Fatalf("%s critical directive kept the retired phase-timing claim %q: %q", phase, retired, d)
+			}
+		}
 	}
 	if strings.Contains(messageLoopFreeStateContinuationBudgetDirective(budgetState(5, 6)), "MUST") {
 		t.Fatal("critical directive must be descriptive pricing, not an absolute output command")
-	}
-	if d := messageLoopFreeStateContinuationBudgetDirective(budgetStateInPhase(5, 6, "fs6_target_confirmed")); d == "" || !strings.Contains(d, "CONTINUATION BUDGET CRITICAL") ||
-		!strings.Contains(d, "a needs_experiment decision with one bounded improvement_proposal is admissible") {
-		t.Fatalf("fs6 last-turn state must state the admissible proposal honestly, got %q", d)
 	}
 	// An admitted experiment spends continuations legitimately: no pressure.
 	experiment := budgetState(5, 6)

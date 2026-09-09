@@ -1,6 +1,7 @@
 package agentloop
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -450,74 +451,342 @@ func evaluateFreeStateNeedsExperimentGate(state *runState, decision *FreeStateDe
 	return failed
 }
 
-// freeStateNeedsExperimentGateFailureMessage words the admission-gate refusal.
-// When the revision-binding gates fail (G1 project binding, G7 fresh
-// revision-bound refs) it appends the fresh observation reference the ledger
-// currently holds, with the literal improvement_proposal.evidence_refs citation
-// shape — mechanical runtime state telling the retry which citation is quotable
-// now and how to write it, never domain guidance (20260829_205921: the model
-// re-quoted a stale pointer the catalog no longer served and burnt its turns;
-// MILESTONE-E2E 20260906: two admitted-path proposals were rejected on ref
-// format alone). G8 target consistency appends the selected candidate's track
-// set the same way: which tracks the frontier actually established, never
-// which track is "correct".
-func freeStateNeedsExperimentGateFailureMessage(state *runState, failed []string) string {
-	failedList := strings.Join(failed, ", ")
-	revisionBoundFailure := false
-	targetConsistencyFailure := false
-	for _, id := range failed {
-		if id == freeStateGateG1 || id == freeStateGateG7 {
-			revisionBoundFailure = true
-		}
-		if id == freeStateGateG8 {
-			targetConsistencyFailure = true
-		}
-	}
-	guidance := ""
-	if revisionBoundFailure {
-		if reference := freeStateLedgerFreshReference(state); reference != "" {
-			// DIAG3-2: MILESTONE-E2E rejections failed on citation format, not
-			// availability — the retry needs the literal field shape the gate
-			// matches, not just the ref value. Mechanical runtime state, never
-			// domain guidance.
-			guidance = fmt.Sprintf("; the fresh quotable observation reference is %s — cite it verbatim as an improvement_proposal.evidence_refs entry, e.g. [\"%s\"]", reference, reference)
-		}
-	}
-	if targetConsistencyFailure {
-		if tracks := freeStateSelectedCandidateTracks(state); len(tracks) > 0 {
-			guidance += fmt.Sprintf("; the frontier-selected candidate covers tracks [%s] — target the proposal at one of them and cite that track's own observations", strings.Join(tracks, ", "))
-		}
-	}
-	return fmt.Sprintf("needs_experiment requires the full admission gate; failed: %s%s; return needs_observation with the next bounded observation instead", failedList, guidance)
+// FreeStateAdmissionGapSchema is the TIMING-1 machine-readable G-gate
+// rejection gap schema. The gap carries only failure categories, the missing
+// evidence/freshness/binding condition fields, and evidence references the
+// model itself submitted or the ledger currently serves — never a domain,
+// track, plug-in, or dosage hint (content-blind red line, advisory ruling #5).
+const FreeStateAdmissionGapSchema = "free_state_admission_gap.v1"
+
+// FreeStateAdmissionMissingCondition is one gate's machine-readable gap: why
+// the gate failed (closed condition vocabulary) plus the evidence/freshness/
+// binding slots relevant to that condition.
+type FreeStateAdmissionMissingCondition struct {
+	GateID       string   `json:"gate_id"`
+	Condition    string   `json:"condition"`
+	EvidenceRefs []string `json:"evidence_refs,omitempty"`
+	Freshness    string   `json:"freshness,omitempty"`
+	Binding      string   `json:"binding,omitempty"`
 }
 
-// freeStateSelectedCandidateTracks lists the frontier-selected candidate's
-// track ids (deduplicated, frontier order) for the G8 refusal guidance.
-func freeStateSelectedCandidateTracks(state *runState) []string {
+// FreeStateAdmissionGap is the structured refusal a bounced evidence proposal
+// receives: the failed gate ids plus the per-gate missing conditions. It is
+// read-only feedback derived from the same context the gate itself checked;
+// it introduces no new verdict.
+type FreeStateAdmissionGap struct {
+	SchemaVersion string                            `json:"schema_version"`
+	FailedGateIDs []string                          `json:"failed_gate_ids"`
+	Missing       []FreeStateAdmissionMissingCondition `json:"missing,omitempty"`
+	// QuotableFreshReference is the ledger's current fresh observation
+	// reference ("obs_id@revision") when a revision-binding gate failed: which
+	// citation is quotable right now, as mechanical runtime state.
+	QuotableFreshReference string `json:"quotable_fresh_reference,omitempty"`
+}
+
+// freeStateAdmissionGap derives the structured gap for the failed gates. The
+// condition derivations re-read the same context fields the gate checks and
+// never change any verdict; gates without a dedicated derivation still report
+// their category through Missing with the generic condition.
+func freeStateAdmissionGap(state *runState, decision *FreeStateDecision, failed []string) FreeStateAdmissionGap {
+	gap := FreeStateAdmissionGap{SchemaVersion: FreeStateAdmissionGapSchema, FailedGateIDs: append([]string(nil), failed...)}
+	var proposal *agentprotocol.ImprovementProposal
+	if decision != nil {
+		proposal = decision.ImprovementProposal
+	}
+	for _, id := range failed {
+		switch id {
+		case freeStateGateG1:
+			condition, binding := gateG1MissingCondition(state)
+			if condition != "" {
+				gap.Missing = append(gap.Missing, FreeStateAdmissionMissingCondition{GateID: id, Condition: condition, Binding: binding})
+			}
+		case freeStateGateG2:
+			if condition := gateG2MissingCondition(state); condition != "" {
+				gap.Missing = append(gap.Missing, FreeStateAdmissionMissingCondition{GateID: id, Condition: condition, Binding: "free_state_capacity_assessment.capacity_level!=exceeds_free_state and selected_capability non-empty"})
+			}
+		case freeStateGateG3:
+			gap.Missing = append(gap.Missing, FreeStateAdmissionMissingCondition{GateID: id, Condition: "no_usable_project_scan_receipt", Binding: "observation_ledger receipt status ready|partial with a project/mix scan view in requested_views"})
+		case freeStateGateG4:
+			gap.Missing = append(gap.Missing, FreeStateAdmissionMissingCondition{GateID: id, Condition: "no_closed_diagnostic_dimension", Binding: "a diagnostic round with evidence_status=ready and no open unresolved_questions"})
+		case freeStateGateG5:
+			gap.Missing = append(gap.Missing, FreeStateAdmissionMissingCondition{GateID: id, Condition: "no_frontier_candidates", Binding: "minimal_audio_closure.hypothesis_frontier.candidates non-empty"})
+		case freeStateGateG6:
+			gap.Missing = append(gap.Missing, FreeStateAdmissionMissingCondition{GateID: id, Condition: gateG6MissingCondition(state), Binding: "a usable target-level observation for the frontier-selected candidate"})
+		case freeStateGateG7:
+			for _, missing := range gateG7MissingConditions(state, decision, failed) {
+				gap.Missing = append(gap.Missing, missing)
+			}
+		case freeStateGateG8:
+			for _, missing := range gateG8MissingConditions(state, proposal) {
+				gap.Missing = append(gap.Missing, missing)
+			}
+		}
+	}
+	for _, id := range failed {
+		if id == freeStateGateG1 || id == freeStateGateG7 {
+			if reference := freeStateLedgerFreshReference(state); reference != "" {
+				gap.QuotableFreshReference = reference
+				break
+			}
+		}
+	}
+	return gap
+}
+
+func gateG1MissingCondition(state *runState) (string, string) {
+	binding := "task_contract and minimal_audio_closure agree on project_uuid+project_revision"
 	if state == nil {
-		return nil
+		return "task_contract_missing", binding
+	}
+	contract := messageLoopMapValue(state.input.Context["task_contract"])
+	closure := messageLoopMapValue(state.input.Context["minimal_audio_closure"])
+	if len(contract) == 0 || len(closure) == 0 {
+		return "binding_context_missing", binding
+	}
+	contractUUID, contractRevision := firstMapText(contract, "project_uuid"), firstMapText(contract, "project_revision")
+	closureUUID, closureRevision := firstMapText(closure, "project_uuid"), firstMapText(closure, "project_revision")
+	if contractUUID == "" || contractRevision == "" || closureUUID == "" || closureRevision == "" {
+		return "binding_fields_empty", binding
+	}
+	if !strings.EqualFold(contractUUID, closureUUID) {
+		return "project_uuid_mismatch", binding
+	}
+	if !strings.EqualFold(contractRevision, closureRevision) {
+		return "project_revision_mismatch", binding
+	}
+	return "binding_failed", binding
+}
+
+func gateG2MissingCondition(state *runState) string {
+	if state == nil {
+		return "assessment_missing"
+	}
+	assessment := messageLoopMapValue(state.input.Context["free_state_capacity_assessment"])
+	if len(assessment) == 0 {
+		return "assessment_missing"
+	}
+	if strings.EqualFold(strings.TrimSpace(firstMapText(assessment, "capacity_level")), "exceeds_free_state") {
+		return "capacity_exceeds_free_state"
+	}
+	if strings.TrimSpace(firstMapText(assessment, "selected_capability")) == "" {
+		return "selected_capability_missing"
+	}
+	return "assessment_failed"
+}
+
+func gateG6MissingCondition(state *runState) string {
+	if state == nil {
+		return "no_target_level_observation_for_selected_candidate"
 	}
 	closure := messageLoopMapValue(state.input.Context["minimal_audio_closure"])
 	frontier := messageLoopMapValue(closure["hypothesis_frontier"])
 	selected := strings.TrimSpace(messageLoopText(frontier["candidate_id"]))
 	if selected == "" {
-		return nil
+		return "no_selected_candidate"
 	}
-	var tracks []string
-	seen := map[string]bool{}
+	allowed := 0
+	for _, candidate := range messageLoopMapRows(frontier["candidates"]) {
+		if strings.EqualFold(messageLoopText(candidate["id"]), selected) {
+			allowed += len(messageLoopStringList(candidate["track_ids"]))
+		}
+	}
+	if allowed == 0 {
+		return "no_target_tracks_for_selected_candidate"
+	}
+	return "no_target_level_observation_for_selected_candidate"
+}
+
+// gateG7MissingConditions mirrors gateG7's per-ref walk: every submitted ref
+// must resolve to ledger rows and every matched row must be fresh and bound to
+// the closure revision. The gap names the offending refs (the model's own
+// citations) and the revision the gate requires.
+func gateG7MissingConditions(state *runState, decision *FreeStateDecision, failed []string) []FreeStateAdmissionMissingCondition {
+	binding := "every improvement_proposal.evidence_refs entry resolves to a fresh, revision-bound observation receipt"
+	if state == nil {
+		return []FreeStateAdmissionMissingCondition{{GateID: freeStateGateG7, Condition: "gate_state_unavailable", Binding: binding}}
+	}
+	closure := messageLoopMapValue(state.input.Context["minimal_audio_closure"])
+	closureRevision := firstMapText(closure, "project_revision")
+	if closureRevision == "" {
+		return []FreeStateAdmissionMissingCondition{{GateID: freeStateGateG7, Condition: "closure_revision_missing", Freshness: "minimal_audio_closure.project_revision is empty", Binding: binding}}
+	}
+	var refs []string
+	if decision != nil && decision.ImprovementProposal != nil {
+		refs = decision.ImprovementProposal.EvidenceRefs
+	}
+	if len(refs) == 0 {
+		// The gap derivation runs against the same bounced decision the gate
+		// evaluated; with no refs on it the gate fails on emptiness.
+		return []FreeStateAdmissionMissingCondition{{GateID: freeStateGateG7, Condition: "evidence_refs_missing", Binding: binding}}
+	}
+	ledger := messageLoopMapValue(messageLoopFreeStateContext(state)["observation_ledger"])
+	receipts := messageLoopMapRows(ledger["receipts"])
+	available := messageLoopMapValue(ledger["available_views"])
+	var missing []FreeStateAdmissionMissingCondition
+	for _, ref := range refs {
+		ref = strings.TrimSpace(ref)
+		if ref == "" {
+			missing = append(missing, FreeStateAdmissionMissingCondition{GateID: freeStateGateG7, Condition: "evidence_ref_empty", EvidenceRefs: []string{ref}, Binding: binding})
+			continue
+		}
+		matched, fresh := false, true
+		for _, row := range receipts {
+			if !refMatchesLedgerRow(ref, row) {
+				continue
+			}
+			matched = true
+			if !freeStateReceiptFreshRevisionBound(row, closureRevision) {
+				fresh = false
+			}
+		}
+		for _, raw := range available {
+			view := messageLoopMapValue(raw)
+			if !refMatchesLedgerRow(ref, view) {
+				continue
+			}
+			matched = true
+			if !freeStateViewFreshRevisionBound(view, closureRevision) {
+				fresh = false
+			}
+		}
+		switch {
+		case !matched:
+			missing = append(missing, FreeStateAdmissionMissingCondition{GateID: freeStateGateG7, Condition: "unresolved_evidence_ref", EvidenceRefs: []string{ref}, Freshness: "requires project_revision=" + closureRevision, Binding: binding})
+		case !fresh:
+			missing = append(missing, FreeStateAdmissionMissingCondition{GateID: freeStateGateG7, Condition: "stale_or_unbound_evidence_ref", EvidenceRefs: []string{ref}, Freshness: "requires project_revision=" + closureRevision, Binding: binding})
+		}
+	}
+	if len(missing) == 0 {
+		missing = append(missing, FreeStateAdmissionMissingCondition{GateID: freeStateGateG7, Condition: "revision_binding_failed", Freshness: "requires project_revision=" + closureRevision, Binding: binding})
+	}
+	return missing
+}
+
+// gateG8MissingConditions reports which of G8's target-consistency conditions
+// failed, as condition vocabulary only. Track identities are deliberately not
+// disclosed: the gap stays content-blind (advisory ruling #5 anti-abuse rule 1).
+func gateG8MissingConditions(state *runState, proposal *agentprotocol.ImprovementProposal) []FreeStateAdmissionMissingCondition {
+	binding := "proposal target and evidence refs are consistent with the frontier-selected candidate and its target-level observations"
+	if state == nil {
+		return []FreeStateAdmissionMissingCondition{{GateID: freeStateGateG8, Condition: "gate_state_unavailable", Binding: binding}}
+	}
+	var conditions []string
+	var refs []string
+	if proposal == nil {
+		return []FreeStateAdmissionMissingCondition{{GateID: freeStateGateG8, Condition: "proposal_missing", Binding: binding}}
+	}
+	target := messageLoopMapValue(proposal.Target)
+	if !strings.EqualFold(strings.TrimSpace(messageLoopText(target["kind"])), "track") {
+		conditions = append(conditions, "target_not_track_kind")
+	}
+	trackID := strings.TrimSpace(firstMapText(target, "id", "track_id"))
+	if trackID == "" {
+		conditions = append(conditions, "target_id_missing")
+	}
+	closure := messageLoopMapValue(state.input.Context["minimal_audio_closure"])
+	frontier := messageLoopMapValue(closure["hypothesis_frontier"])
+	selected := strings.TrimSpace(messageLoopText(frontier["candidate_id"]))
+	fromFrontier := false
 	for _, candidate := range messageLoopMapRows(frontier["candidates"]) {
 		if !strings.EqualFold(messageLoopText(candidate["id"]), selected) {
 			continue
 		}
-		for _, trackID := range messageLoopStringList(candidate["track_ids"]) {
-			trackID = strings.TrimSpace(trackID)
-			if trackID != "" && !seen[trackID] {
-				seen[trackID] = true
-				tracks = append(tracks, trackID)
+		for _, id := range messageLoopStringList(candidate["track_ids"]) {
+			if strings.TrimSpace(id) == trackID {
+				fromFrontier = true
 			}
 		}
 	}
-	return tracks
+	if !fromFrontier {
+		conditions = append(conditions, "target_not_from_frontier_candidate")
+	}
+	ledger := messageLoopMapValue(messageLoopFreeStateContext(state)["observation_ledger"])
+	rows := append([]map[string]any(nil), messageLoopMapRows(ledger["receipts"])...)
+	for _, raw := range messageLoopMapValue(ledger["available_views"]) {
+		rows = append(rows, messageLoopMapValue(raw))
+	}
+	targetLevelBound := false
+	for _, row := range rows {
+		if freeStateReceiptUsable(row) && ledgerRowTrackTarget(row) == trackID {
+			targetLevelBound = true
+			break
+		}
+	}
+	if !targetLevelBound {
+		conditions = append(conditions, "no_target_level_observation_bound_to_target")
+	}
+	citedTarget := false
+	for _, ref := range proposal.EvidenceRefs {
+		ref = strings.TrimSpace(ref)
+		if ref == "" {
+			refs = append(refs, ref)
+			conditions = append(conditions, "evidence_ref_empty")
+			continue
+		}
+		matched := false
+		for _, row := range rows {
+			if !refMatchesLedgerRow(ref, row) {
+				continue
+			}
+			matched = true
+			owner := ledgerRowTrackTarget(row)
+			if owner != "" && owner != trackID {
+				refs = append(refs, ref)
+				conditions = append(conditions, "cross_track_evidence_contamination")
+			}
+			if owner == trackID {
+				citedTarget = true
+			}
+		}
+		if !matched {
+			refs = append(refs, ref)
+			conditions = append(conditions, "unresolved_evidence_ref")
+		}
+	}
+	if !citedTarget {
+		conditions = append(conditions, "no_target_own_observation_cited")
+	}
+	var missing []FreeStateAdmissionMissingCondition
+	seen := map[string]bool{}
+	for _, condition := range conditions {
+		if seen[condition] {
+			continue
+		}
+		seen[condition] = true
+		missing = append(missing, FreeStateAdmissionMissingCondition{GateID: freeStateGateG8, Condition: condition, EvidenceRefs: refs, Binding: binding})
+	}
+	if len(missing) == 0 {
+		missing = append(missing, FreeStateAdmissionMissingCondition{GateID: freeStateGateG8, Condition: "target_consistency_failed", Binding: binding})
+	}
+	return missing
+}
+
+// freeStateNeedsExperimentGateFailureMessage words the admission-gate refusal
+// as a closed template over the structured gap (TIMING-1 change 2): the
+// machine-readable gap JSON rides the message so both the model retry and the
+// artifact diagnostics can parse it. When a revision-binding gate failed
+// (G1/G7) the message keeps the fresh quotable observation reference and the
+// literal improvement_proposal.evidence_refs citation shape — mechanical
+// runtime state telling the retry which citation is quotable now and how to
+// write it, never domain guidance (20260829_205921: the model re-quoted a
+// stale pointer the catalog no longer served and burnt its turns;
+// MILESTONE-E2E 20260906: two admitted-path proposals were rejected on ref
+// format alone). G8 discloses its failed consistency conditions only; track
+// identities are no longer named (content-blind red line).
+func freeStateNeedsExperimentGateFailureMessage(state *runState, decision *FreeStateDecision, failed []string) string {
+	gap := freeStateAdmissionGap(state, decision, failed)
+	data, err := json.Marshal(gap)
+	if err != nil {
+		data = []byte(fmt.Sprintf("%+v", gap.FailedGateIDs))
+	}
+	guidance := ""
+	if gap.QuotableFreshReference != "" {
+		// DIAG3-2: the retry needs the literal field shape the gate matches,
+		// not just the ref value. Mechanical runtime state, never domain
+		// guidance.
+		guidance = fmt.Sprintf("; the fresh quotable observation reference is %s — cite it verbatim as an improvement_proposal.evidence_refs entry, e.g. [\"%s\"]", gap.QuotableFreshReference, gap.QuotableFreshReference)
+	}
+	return fmt.Sprintf("needs_experiment requires the full admission gate; structured gap=%s%s; return needs_observation with the next bounded observation instead", data, guidance)
 }
 
 // freeStateLedgerFreshReference returns the freshest quotable observation
@@ -702,9 +971,12 @@ func messageLoopFreeStatePhaseDecisionIssue(state *runState, status string) stri
 	if audioclosure.AllowsDecisionStatus(phase, status) {
 		return ""
 	}
-	// BOUNDARY-1 §2.2: the bounce sentence carries the recovery semantics —
-	// the refusal is procedural (the host phase has not confirmed a target
-	// yet), and the disclosed phase is the model-visible signal for when the
-	// gate opens. Closed template; pinned by test.
-	return fmt.Sprintf("the closure host is in phase %s which does not admit decision status %s; return needs_observation with the next bounded observation (or the phase-legal terminal boundary); the gate will admit needs_experiment once the host phase confirms a target (watch the disclosed free_state_phase)", phase, status)
+	// TIMING-1: needs_experiment/improvement_proposal are admitted in every FS
+	// phase (phaseDecisionPolicies), so this bounce can only fire for the
+	// remaining status families (needs_observation/needs_action outside their
+	// phases, unknown statuses). The refusal states the procedural fact only —
+	// which phase is active and which status it does not admit — with no
+	// proposal-timing recovery semantics (the gate-open clause is retired).
+	// Closed template; pinned by test.
+	return fmt.Sprintf("the closure host is in phase %s which does not admit decision status %s; return needs_observation with the next bounded observation (or the phase-legal terminal boundary)", phase, status)
 }

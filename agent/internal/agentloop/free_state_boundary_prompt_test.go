@@ -96,43 +96,35 @@ func TestTerminalTurnDirectiveRendersFrozenSentence(t *testing.T) {
 	}
 }
 
-// §2.1 gate-open signal matrix: rendered only while pending and the phase
-// admits needs_experiment; never while the phase would bounce the proposal.
-func TestGateOpenDirectiveMatrix(t *testing.T) {
-	render := func(loopMutate func(loop map[string]any), phase string) string {
-		return messageLoopFreeStateGateOpenDirective(boundaryPromptState(boundaryLoopContext(loopMutate), func(ctx map[string]any) {
-			ctx["free_state_phase"] = phase
-			messageLoopMapValue(ctx["minimal_audio_closure"])["phase"] = phase
-		}))
-	}
-	if got := render(func(loop map[string]any) { loop["needs_experiment_gate_open_pending"] = true }, "fs6_target_confirmed"); got == "" {
-		t.Fatal("pending signal at fs6 must render")
-	} else {
-		if !strings.Contains(got, "GATE OPEN (mechanical runtime state)") || !strings.Contains(got, "fs6_target_confirmed") ||
-			!strings.Contains(got, "This notice is shown once per loop") {
-			t.Fatalf("gate-open signal malformed: %q", got)
-		}
-	}
-	if got := render(func(loop map[string]any) { loop["needs_experiment_gate_open_pending"] = true }, "fs4_diagnostic_round"); got != "" {
-		t.Fatalf("pending signal at a pre-target phase must stay silent: %q", got)
-	}
-	if got := render(nil, "fs6_target_confirmed"); got != "" {
-		t.Fatalf("signal without the pending flag must stay silent: %q", got)
-	}
-}
+// TIMING-1: the gate-open signal is retired with the phase admission gate
+// (needs_experiment is admitted in every FS phase; there is no later gate
+// opening to signal). A loop context still carrying the retired pending flag
+// renders nothing.
 
-// §2.2: the phase bounce sentence carries the recovery semantics verbatim.
-func TestPhaseBounceSentenceCarriesRecoverySemantics(t *testing.T) {
+// TIMING-1: the phase bounce sentence no longer carries proposal-timing
+// recovery semantics. needs_experiment is admitted at fs4 (and every FS
+// phase); the bounce can still fire for the remaining status families
+// (needs_action outside its phases), stating the procedural fact only.
+func TestPhaseBounceSentenceConvergedAfterTimingGateRemoval(t *testing.T) {
 	state := boundaryPromptState(boundaryLoopContext(nil), func(ctx map[string]any) {
 		ctx["free_state_phase"] = "fs4_diagnostic_round"
 		messageLoopMapValue(ctx["minimal_audio_closure"])["phase"] = "fs4_diagnostic_round"
 	})
-	issue := messageLoopFreeStatePhaseDecisionIssue(state, "needs_experiment")
-	if !strings.Contains(issue, "the gate will admit needs_experiment once the host phase confirms a target (watch the disclosed free_state_phase)") {
-		t.Fatalf("bounce sentence missing the recovery semantics: %q", issue)
+	if issue := messageLoopFreeStatePhaseDecisionIssue(state, "needs_experiment"); issue != "" {
+		t.Fatalf("needs_experiment must not be phase-bounced at fs4: %q", issue)
 	}
-	if !strings.Contains(issue, "fs4_diagnostic_round") {
-		t.Fatalf("bounce sentence missing the phase name: %q", issue)
+	if issue := messageLoopFreeStatePhaseDecisionIssue(state, "improvement_proposal"); issue != "" {
+		t.Fatalf("improvement_proposal must not be phase-bounced at fs4: %q", issue)
+	}
+	issue := messageLoopFreeStatePhaseDecisionIssue(state, "needs_action")
+	if issue == "" {
+		t.Fatal("needs_action outside its phases must still bounce")
+	}
+	if !strings.Contains(issue, "fs4_diagnostic_round") || !strings.Contains(issue, "needs_action") {
+		t.Fatalf("bounce sentence missing the phase/status facts: %q", issue)
+	}
+	if strings.Contains(issue, "gate will admit") || strings.Contains(issue, "watch the disclosed free_state_phase") {
+		t.Fatalf("bounce sentence kept retired gate-open recovery semantics: %q", issue)
 	}
 }
 

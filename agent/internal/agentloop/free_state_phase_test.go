@@ -234,17 +234,25 @@ func TestM02IllegalPhaseTransitionsRejected(t *testing.T) {
 		!strings.Contains(err.Error(), "guard failed") {
 		t.Fatalf("spent continue_once allowance was not rejected: %v", err)
 	}
-	// Example 5 (decision side): a needs_experiment decision in an early phase
-	// is downgraded to needs_observation by the phase-aware decision check.
+	// Example 5 (TIMING-1 re-pin): needs_experiment/improvement_proposal are
+	// admitted in every FS phase — the timing gate is removed and the phase
+	// check can only still refuse the observation/action families outside
+	// their phases (needs_action below fs6).
 	early := &runState{input: Input{Context: map[string]any{
 		"free_state_reasoning_loop": map[string]any{"schema_version": "free_state_reasoning_loop.v1", "status": "observing", "original_intent": "inspect"},
 		"free_state_phase":          string(audioclosure.PhaseFS1ProjectBound),
 	}}}
-	if issue := messageLoopFreeStatePhaseDecisionIssue(early, FreeStateNeedsExperiment); !strings.Contains(issue, "needs_observation") {
-		t.Fatalf("early-phase needs_experiment was not downgraded: %q", issue)
+	if issue := messageLoopFreeStatePhaseDecisionIssue(early, FreeStateNeedsExperiment); issue != "" {
+		t.Fatalf("early-phase needs_experiment must not be phase-bounced: %q", issue)
+	}
+	if issue := messageLoopFreeStatePhaseDecisionIssue(early, FreeStateImprovementProposal); issue != "" {
+		t.Fatalf("early-phase improvement_proposal must not be phase-bounced: %q", issue)
 	}
 	if issue := messageLoopFreeStatePhaseDecisionIssue(early, FreeStateNeedsObservation); issue != "" {
 		t.Fatalf("needs_observation rejected in FS1: %q", issue)
+	}
+	if issue := messageLoopFreeStatePhaseDecisionIssue(early, FreeStateNeedsAction); issue == "" {
+		t.Fatal("needs_action below fs6 must still be phase-refused")
 	}
 	late := &runState{input: Input{Context: map[string]any{
 		"free_state_reasoning_loop": map[string]any{"schema_version": "free_state_reasoning_loop.v1", "status": "reasoning", "original_intent": "repair"},
@@ -301,8 +309,9 @@ func TestLegacyClosurePhaseMigratesForDecisionCheck(t *testing.T) {
 			t.Fatalf("%s: gate-passing needs_experiment was deadlocked by the phase check: %q", combination.legacyPhase, issue)
 		}
 	}
-	// An early legacy phase ("reasoning" migrates to FS4) still routes a
-	// needs_experiment decision back to needs_observation.
+	// TIMING-1 re-pin: an early legacy phase ("reasoning" migrates to FS4) no
+	// longer deadlocks a gate-passing needs_experiment — admission is decided
+	// by the G1-G8 evidence gate in every phase.
 	early := gateTestState(func(ctx map[string]any) {
 		closure := ctx["minimal_audio_closure"].(map[string]any)
 		closure["phase"] = "reasoning"
@@ -310,8 +319,8 @@ func TestLegacyClosurePhaseMigratesForDecisionCheck(t *testing.T) {
 	if migrated, ok := audioclosure.ParsePhase("reasoning"); !ok || migrated != audioclosure.PhaseFS4DiagnosticRound {
 		t.Fatalf("reasoning migration = %s/%v", migrated, ok)
 	}
-	if issue := messageLoopFreeStateOutputIssue(early, gateTestProposal(nil)); !strings.Contains(issue, "needs_observation") {
-		t.Fatalf("early-phase needs_experiment not downgraded: %q", issue)
+	if issue := messageLoopFreeStateOutputIssue(early, gateTestProposal(nil)); issue != "" {
+		t.Fatalf("early-phase gate-passing needs_experiment still bounced: %q", issue)
 	}
 }
 

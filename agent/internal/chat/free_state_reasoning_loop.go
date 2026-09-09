@@ -125,19 +125,18 @@ type freeStateReasoningLoop struct {
 	// frontier visible). Granted stays set so the ordinary honest settle
 	// applies at the next boundary if the model still returns no proposal.
 	FrontierDecisionRoundGranted bool `json:"frontier_decision_round_granted,omitempty"`
-	// PhaseDeferredFinalCandidate is the content-free marker for a
-	// needs_experiment decision the agentloop output gate rejected solely
-	// because the host phase did not admit it at that time (set at the
-	// final-gate rejection boundary, agentloop side). It carries the decision
-	// status family, a rejection counter, and the rejecting phase name — never
-	// proposal, target, view, or dosage content. The agentloop neutral-family
-	// prompt renders one fixed procedural resubmission hint from it once the
-	// current phase admits final candidates; the marker stays set for the
-	// loop's lifetime and dies with the loop, so it can never resurface on a
-	// different project revision or a new loop.
-	PhaseDeferredFinalCandidate      bool   `json:"phase_deferred_final_candidate,omitempty"`
-	PhaseDeferredFinalCandidateCount int    `json:"phase_deferred_final_candidate_count,omitempty"`
-	PhaseDeferredFinalCandidatePhase string `json:"phase_deferred_final_candidate_phase,omitempty"`
+	// TIMING-1 anti-abuse accounting (advisory ruling #5 rules 1-3), recorded
+	// agentloop-side at the G-gate bounce boundary and persisted here like the
+	// terminal-turn fields. AdmissionRejectionCount counts evidence-type
+	// proposal bounces (capped at two per loop); AdmissionRejectionGaps holds
+	// the structured content-blind gap records for the terminal-turn
+	// disclosure; LastRejectedProposalFingerprint/…EvidenceRevision detect the
+	// identical-resubmission-without-new-evidence shape that locks the
+	// terminal turn directly. All fields are content-free.
+	AdmissionRejectionCount         int           `json:"admission_rejection_count,omitempty"`
+	AdmissionRejectionGaps          []map[string]any `json:"admission_rejection_gaps,omitempty"`
+	LastRejectedProposalFingerprint string        `json:"last_rejected_proposal_fingerprint,omitempty"`
+	LastRejectedEvidenceRevision    string        `json:"last_rejected_evidence_revision,omitempty"`
 	// SettleRefusedRoundID records the round whose settle report was refused
 	// because its fresh post-action observation had not landed yet. In that
 	// race window the experiment projection can still show the round pre-action
@@ -163,17 +162,8 @@ type freeStateReasoningLoop struct {
 	// TerminalRetryCount bounds the strengthened terminal retry at one per
 	// loop. It is incremented agentloop-side (output-gate rejection boundary)
 	// and rides the durable loop through the continuation merge.
-	TerminalRetryCount int `json:"terminal_retry_count,omitempty"`
-	// NeedsExperimentGateOpenPending is the one-shot gate-open signal
-	// (BOUNDARY-1 §2.1): armed when the closure spine first mirrors a phase
-	// that admits needs_experiment (fs6+), rendered once by the neutral-family
-	// prompt, and cleared when the signaled turn's decision is recorded.
-	NeedsExperimentGateOpenPending bool `json:"needs_experiment_gate_open_pending,omitempty"`
-	// NeedsExperimentGateOpenSignaled is the sticky once-per-loop latch that
-	// keeps the gate-open signal one-shot even if the spine later walks back
-	// below fs6 and re-enters.
-	NeedsExperimentGateOpenSignaled bool    `json:"needs_experiment_gate_open_signaled,omitempty"`
-	LastError                       string  `json:"last_error,omitempty"`
+	TerminalRetryCount int    `json:"terminal_retry_count,omitempty"`
+	LastError          string `json:"last_error,omitempty"`
 	CreatedAt            time.Time `json:"created_at"`
 	UpdatedAt            time.Time `json:"updated_at"`
 }
@@ -325,18 +315,18 @@ func mergeFreeStateLoops(base, overlay freeStateReasoningLoop, overlayOK bool) f
 	if overlay.ObservationSaturationRounds > out.ObservationSaturationRounds {
 		out.ObservationSaturationRounds = overlay.ObservationSaturationRounds
 	}
-	// The phase-deferred final-candidate marker is sticky for the loop's
-	// lifetime: a transport copy that predates the rejection never clears it,
-	// the counter only moves forward, and the recorded phase is replaced only
-	// by a newer rejection.
-	if overlay.PhaseDeferredFinalCandidate {
-		out.PhaseDeferredFinalCandidate = true
-	}
-	if overlay.PhaseDeferredFinalCandidateCount > out.PhaseDeferredFinalCandidateCount {
-		out.PhaseDeferredFinalCandidateCount = overlay.PhaseDeferredFinalCandidateCount
-	}
-	if overlay.PhaseDeferredFinalCandidatePhase != "" && (overlayNewer || out.PhaseDeferredFinalCandidatePhase == "") {
-		out.PhaseDeferredFinalCandidatePhase = overlay.PhaseDeferredFinalCandidatePhase
+	// TIMING-1 anti-abuse accounting is one logical record written atomically
+	// at the agentloop rejection boundary: the counter only moves forward, and
+	// a newer rejection record (count, gaps, fingerprint, evidence revision)
+	// owns the whole set. A transport copy that predates the rejections never
+	// resurrects them.
+	if overlay.AdmissionRejectionCount > out.AdmissionRejectionCount {
+		out.AdmissionRejectionCount = overlay.AdmissionRejectionCount
+		out.AdmissionRejectionGaps = cloneFreeStateGapRows(overlay.AdmissionRejectionGaps)
+		out.LastRejectedProposalFingerprint = overlay.LastRejectedProposalFingerprint
+		out.LastRejectedEvidenceRevision = overlay.LastRejectedEvidenceRevision
+	} else if overlay.AdmissionRejectionCount == out.AdmissionRejectionCount && len(overlay.AdmissionRejectionGaps) > len(out.AdmissionRejectionGaps) {
+		out.AdmissionRejectionGaps = cloneFreeStateGapRows(overlay.AdmissionRejectionGaps)
 	}
 	// BOUNDARY-1 terminal-turn fields are sticky the same way: a transport
 	// copy that predates the lock never clears it, the reason is replaced only
@@ -350,12 +340,6 @@ func mergeFreeStateLoops(base, overlay freeStateReasoningLoop, overlayOK bool) f
 	}
 	if overlay.TerminalRetryCount > out.TerminalRetryCount {
 		out.TerminalRetryCount = overlay.TerminalRetryCount
-	}
-	// The gate-open signal latches once per loop. The pending delivery flag is
-	// chat-authoritative and deliberately not merged from a transport overlay:
-	// only the server-side clear (recordFreeStateDecision) retires it.
-	if overlay.NeedsExperimentGateOpenSignaled {
-		out.NeedsExperimentGateOpenSignaled = true
 	}
 	if len(overlay.AuditionSessionSnapshot) > 0 {
 		out.AuditionSessionSnapshot = cloneContext(overlay.AuditionSessionSnapshot)
@@ -421,6 +405,19 @@ func freeStateLoopOverlayNewer(base, overlay freeStateReasoningLoop) bool {
 		return false
 	}
 	return overlay.UpdatedAt.After(base.UpdatedAt)
+}
+
+// cloneFreeStateGapRows deep-copies the structured admission-gap records for
+// the durable merge (each row is a plain JSON map).
+func cloneFreeStateGapRows(rows []map[string]any) []map[string]any {
+	if len(rows) == 0 {
+		return nil
+	}
+	out := make([]map[string]any, 0, len(rows))
+	for _, row := range rows {
+		out = append(out, cloneContext(row))
+	}
+	return out
 }
 
 func freeStateLoopTerminal(status string) bool {
@@ -803,12 +800,6 @@ func (s *Server) recordFreeStateDecision(conversationID string, res agentloop.Re
 	decision := *res.FreeStateDecision
 	decision.RequestedViewIDs = append([]string(nil), res.FreeStateDecision.RequestedViewIDs...)
 	decision.Limitations = append([]string(nil), res.FreeStateDecision.Limitations...)
-	// BOUNDARY-1 §2.1: a recorded decision means the turn that carried the
-	// gate-open signal has been consumed; retire the pending flag (the sticky
-	// latch keeps the signal once per loop).
-	if loop.NeedsExperimentGateOpenPending {
-		loop.NeedsExperimentGateOpenPending = false
-	}
 	// DIAG3-3 retirement latch: a surfaced decision round counts against the
 	// notice's two-round window; a proposal-bearing decision retires it
 	// immediately. Either way the exhausted-budget honest settle semantics
@@ -2985,19 +2976,12 @@ func (s *Server) syncFreeStateSpine(state audioclosure.State) {
 		s.mu.Unlock()
 		return
 	}
-	// BOUNDARY-1 §2.1: the first mirror of a phase that admits
-	// needs_experiment (fs6+, excluding fs9) arms the one-shot gate-open
-	// signal. The sticky latch keeps it once per loop lifetime even if the
-	// spine later walks back below fs6; the pending flag is cleared when the
-	// signaled turn's decision is recorded.
+	// TIMING-1: the gate-open signal arming is retired with the phase
+	// admission gate (needs_experiment is admitted in every FS phase, so
+	// there is no "gate opens later" transition to signal). The spine mirror
+	// keeps only the observation-organization facts.
 	if phase, valid := audioclosure.ParsePhase(string(state.Phase)); valid {
 		loop.CurrentPhase = string(phase)
-		if !loop.NeedsExperimentGateOpenSignaled && !loop.NeedsExperimentGateOpenPending &&
-			audioclosure.IsFSPhase(phase) && phase != audioclosure.PhaseFS9Terminal &&
-			audioclosure.AllowsDecisionStatus(phase, agentloop.FreeStateNeedsExperiment) {
-			loop.NeedsExperimentGateOpenPending = true
-			loop.NeedsExperimentGateOpenSignaled = true
-		}
 	}
 	if len(state.DiagnosticRounds) > 0 {
 		loop.CurrentRoundID = state.DiagnosticRounds[len(state.DiagnosticRounds)-1].RoundID

@@ -136,7 +136,7 @@ func TestFreeStateTerminalTurnFieldsBackwardCompatibility(t *testing.T) {
 		t.Fatal(err)
 	}
 	if loop.TerminalTurnLocked || loop.TerminalTurnReason != "" || loop.TerminalRetryCount != 0 ||
-		loop.NeedsExperimentGateOpenPending || loop.NeedsExperimentGateOpenSignaled {
+		loop.AdmissionRejectionCount != 0 {
 		t.Fatalf("legacy record must default the new fields to zero values: %+v", loop)
 	}
 	if !freeStateLoopActive(loop) {
@@ -189,37 +189,28 @@ func TestAudioClosureMessageLoopBudgetReservesTerminalRetry(t *testing.T) {
 	}
 }
 
-// §2.1 gate-open signal: armed once when the spine first mirrors a phase that
-// admits needs_experiment; the sticky latch keeps it one-shot per loop even
-// after the pending flag is consumed or the spine walks back below fs6.
-func TestGateOpenSignalArmsOncePerLoop(t *testing.T) {
+// TIMING-1: the gate-open signal is retired with the phase admission gate.
+// The spine mirror keeps only the observation-organization facts (current
+// phase/round/queue); syncing any FS phase arms nothing.
+func TestSyncFreeStateSpineArmsNoGateSignalAfterTimingGateRemoval(t *testing.T) {
 	s := &Server{freeStateLoops: map[string]freeStateReasoningLoop{}}
 	loop := terminalTriggerLoop()
 	s.freeStateLoops[loop.ConversationID] = loop
-
-	s.syncFreeStateSpine(audioclosure.State{ConversationID: loop.ConversationID, Phase: audioclosure.PhaseFS4DiagnosticRound})
+	for _, phase := range []audioclosure.Phase{
+		audioclosure.PhaseFS4DiagnosticRound, audioclosure.PhaseFS6TargetConfirmed, audioclosure.PhaseFS7ImprovementProposal,
+	} {
+		s.syncFreeStateSpine(audioclosure.State{ConversationID: loop.ConversationID, Phase: phase})
+		stored, _ := s.freeStateLoop(loop.ConversationID)
+		if stored.CurrentPhase != string(phase) {
+			t.Fatalf("spine mirror dropped the phase %s: %+v", phase, stored)
+		}
+	}
 	stored, _ := s.freeStateLoop(loop.ConversationID)
-	if stored.NeedsExperimentGateOpenPending || stored.NeedsExperimentGateOpenSignaled {
-		t.Fatalf("pre-target phase must not arm the gate-open signal: %+v", stored)
-	}
-
-	s.syncFreeStateSpine(audioclosure.State{ConversationID: loop.ConversationID, Phase: audioclosure.PhaseFS6TargetConfirmed})
-	stored, _ = s.freeStateLoop(loop.ConversationID)
-	if !stored.NeedsExperimentGateOpenPending || !stored.NeedsExperimentGateOpenSignaled {
-		t.Fatalf("first fs6 mirror must arm the one-shot gate-open signal: %+v", stored)
-	}
-
-	// The signaled turn consumed the notice (recordFreeStateDecision clears
-	// the pending flag); a spine walk-back and re-entry must not re-arm it.
-	stored.NeedsExperimentGateOpenPending = false
-	s.storeFreeStateLoop(stored)
-	s.syncFreeStateSpine(audioclosure.State{ConversationID: loop.ConversationID, Phase: audioclosure.PhaseFS5CandidateFrontier})
-	s.syncFreeStateSpine(audioclosure.State{ConversationID: loop.ConversationID, Phase: audioclosure.PhaseFS7ImprovementProposal})
-	stored, _ = s.freeStateLoop(loop.ConversationID)
-	if stored.NeedsExperimentGateOpenPending {
-		t.Fatalf("gate-open signal re-armed after its one shot: %+v", stored)
-	}
-	if !stored.NeedsExperimentGateOpenSignaled {
-		t.Fatalf("sticky signaled latch must survive: %+v", stored)
+	data, _ := json.Marshal(freeStateLoopMap(stored))
+	for _, retired := range []string{"needs_experiment_gate_open_pending", "needs_experiment_gate_open_signaled"} {
+		if strings.Contains(string(data), retired) {
+			t.Fatalf("retired gate-open key %q written back: %s", retired, data)
+		}
 	}
 }
+
