@@ -32,6 +32,33 @@ type replayFixture struct {
 	ErrorAtTurn []int            `json:"completer_error_at_turn"`
 	ToolResults []map[string]any `json:"tool_results"`
 	Expected    map[string]any   `json:"expected"`
+	// Budget unpins the replay bed's loop budget (REPLAY-1 gap ①): absent it
+	// keeps the historical pinned default, so the M11–M17 fixtures replay
+	// unchanged; long-convergence fixtures (≥10 rounds) inject a larger one.
+	Budget *replayBudgetSpec `json:"budget,omitempty"`
+}
+
+type replayBudgetSpec struct {
+	MaxTurns             int `json:"max_turns,omitempty"`
+	MaxToolCalls         int `json:"max_tool_calls,omitempty"`
+	MaxConsecutiveErrors int `json:"max_consecutive_errors,omitempty"`
+}
+
+func (fx replayFixture) loopBudget() Budget {
+	budget := Budget{MaxTurns: 8, MaxToolCalls: 8, MaxConsecutiveErrors: 2}
+	if fx.Budget == nil {
+		return budget
+	}
+	if fx.Budget.MaxTurns > 0 {
+		budget.MaxTurns = fx.Budget.MaxTurns
+	}
+	if fx.Budget.MaxToolCalls > 0 {
+		budget.MaxToolCalls = fx.Budget.MaxToolCalls
+	}
+	if fx.Budget.MaxConsecutiveErrors > 0 {
+		budget.MaxConsecutiveErrors = fx.Budget.MaxConsecutiveErrors
+	}
+	return budget
 }
 
 type replayExecutor struct {
@@ -139,7 +166,7 @@ func (fx replayFixture) startReplay(executor *replayExecutor, responses []string
 	client := &fakeMessageCompleter{responses: responses, errors: errs}
 	loop := MessageLoop{
 		Client: client, Config: config.EngineConfig{BaseURL: "http://example.invalid", DefaultModel: "test", APIKey: "test"},
-		Executor: executor, Budget: Budget{MaxTurns: 8, MaxToolCalls: 8, MaxConsecutiveErrors: 2},
+		Executor: executor, Budget: fx.loopBudget(),
 	}
 	result := loop.Start(context.Background(), Input{
 		UserText: fx.Intent, Context: contextOverride, AllowedTools: []string{"ccb.observation_request"},

@@ -57,3 +57,18 @@ fixture 化纪律：从 transcript 抽取时不得把易变标识（轨道名等
 - L1/L2：`go test ./...` 全绿（确定性，无网络、无真模型）。
 - L3：ps1 脚本退出码 0（PASS 语义=协议不变量成立，不评模型策略质量——ADR §11 分离）。
 - L4：仅在 L1 新门实现并通过后进入；评审五层分离红线。
+
+## 5. REPLAY-1 4b 六场景离线重放（2026-09-09 追加，TIMING-1 验收前置）
+
+编号按 REPLAY-1 卡（参谋裁定 #5）指定为 M18–M23，作用域为本节 replay-2 族；§2 既有 M18（L3 真模型开放意图）/M19（L4 音频结果）为历史行，保持原义不改，两者以所在节区分。床：`agent/internal/agentloop/free_state_replay_4b_test.go` + fixture 家族 `agent/internal/agentloop/testdata/free_state_replay/timing1_*.json`（手工合成同构序列，green control 上下文镜像 `gateTestState`，provenance 记录 TIMING-1 行为源文件 sha256）。通道扩展：①Budget 经 fixture `budget` 字段注入（缺省仍 8/8/2，M11–M17 不变）；②≥10 轮长收敛序列（M22 腿 1：10 个不同 view set 观察 + 暂停探针，单 Start 11 次模型调用）；③continuation 接缝以 transient 暂停的 `Result.Continuation.Context`（chat 侧消费的同一切片）跨腿承载 durable loop 状态，`replayMergeLoopState` 模拟 chat 侧合并（host 拥有 closure/ledger，防滥用/终局键单调保持）。
+
+| # | 用例 | 测试 | fixture | 通过标准（全在场） |
+|---|---|---|---|---|
+| M18 | fs4 早交合格提案被受理（反钉 HARNESS-VER-1 R1/R2 死锁形态） | TestFreeStateReplayM18Fs4EarlyCompleteProposalAdmitted | timing1_m18_fs4_early_complete_proposal.json | 绿灯上下文 fs4 相位提案 1 轮受理为模型工件（needs_experiment+proposal、零弹回、零观察）；fs9 对照腿仍相位拒 needs_experiment 后模型自决 blocked |
+| M19 | fs4 不足提案得到内容盲缺口 | TestFreeStateReplayM19Fs4InsufficientProposalGetsContentBlindGap | timing1_m19_fs4_gap_content_blind.json | G7 拒收为结构化 gap（unresolved_evidence_ref+所需 revision+可引用新鲜参考），无域/轨道/插件/剂量暗示；count=1 不锁；resume 后模型自决 blocked |
+| M20 | 重复提案限流 | TestFreeStateReplayM20DuplicateFingerprintLocksTerminalPrompt | timing1_m20_duplicate_fingerprint_rate_limit.json | 同指纹同 revision 二交直接锁终局（reason=duplicate_proposal_fingerprint），下一模型调用即终局提示（含累积缺口 rejection#1/#2），零观察重入；resume 后模型自决 blocked |
+| M21 | revision 后修复 | TestFreeStateReplayM21NewEvidenceRevisionRepairAdmitted | timing1_m21_new_revision_repair.json | 腿间主机推进 rev-8（新目标级观察 obs-target-2@rev-8）后修复提案首轮受理为模型工件，零弹回、零终局提示，count 保持 1 |
+| M22 | 二次拒绝进模型终局（≥10 轮长收敛） | TestFreeStateReplayM22LongConvergenceTwoRejectionsModelSettles | timing1_m22_long_two_rejections_terminal.json | 腿 1 无 frontier 前缀 10 观察轮（11 次调用、budget 16）；腿 2 两次不同 G7 拒 → count=2 锁终局（reason=admission_rejections_exhausted）+累积缺口披露；腿 3 锁定终局轮内合法提案仍受理，模型以自身工件收尾，系统不代写 |
+| M23 | 终局预留不被弹回消耗 | TestFreeStateReplayM23TerminalReservationNotConsumedByBounce | timing1_m23_reservation_not_consumed.json | 预锁 budget_critical 预留经弹回不动摇（reason 不降级、窗口计数器 1/6 不变、指令两侧同价、零观察消耗、锁定轮不走普通记账）；强化重试后诚实兜底（fallback stop reason、无模型工件代写、终局轮先行可追溯） |
+
+断言含 TIMING-1 记账字段：`admission_rejection_count`、提案指纹（`last_rejected_proposal_fingerprint`/`proposal:` 前缀/受理工件指纹比对）、evidence revision（`last_rejected_evidence_revision`/rev-8 推进）、出口类型（模型工件 vs 系统兜底，逐场景判定）。验收命令：`go test ./internal/agentloop -run 'TestFreeStateReplay' -count=1` 与 `go test ./internal/agentloop ./internal/chat -count=1`（2026-09-09 均 exit 0）。
