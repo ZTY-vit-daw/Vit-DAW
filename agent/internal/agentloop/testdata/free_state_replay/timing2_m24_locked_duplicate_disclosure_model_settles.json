@@ -1,0 +1,125 @@
+{
+ "family": "timing2_m24",
+ "matrix_ids": [
+  "M24"
+ ],
+ "source": {
+  "artifact": "agent/internal/agentloop/ccb_model_prompt.go + free_state_gate.go + free_state_reasoning.go @ 1d9ecbf+TIMING-2 (BEHAVIOR-1 §5 H3 prescription); green control context mirrored from gateTestState (free_state_gate_test.go)",
+  "sha256": "bff82a8f62170eab649e8371690d2f0e3ad29bf989a717a090cd8adae509f59d",
+  "transform": "hand-synthesized isomorphic model-turn sequence: p03 R1 shape — first G7 bounce, identical resubmission locks the terminal turn (duplicate fingerprint), the locked turn resubmits the same fingerprint once more and receives the must-reject disclosure in the strengthened-retry feedback, then the model scripts an authored terminal instead of the fallback"
+ },
+ "intent": "检查一下当前工程有什么问题？",
+ "context": {
+  "task_contract": {
+   "kind": "improvement",
+   "project_uuid": "proj-1",
+   "project_revision": "rev-7"
+  },
+  "free_state_phase": "fs4_diagnostic_round",
+  "free_state_capacity_assessment": {
+   "schema_version": "free_state_capacity_assessment.v1",
+   "selected_capability": "project_mix",
+   "capacity_level": "normal"
+  },
+  "free_state_reasoning_loop": {
+   "schema_version": "free_state_reasoning_loop.v1",
+   "status": "reasoning",
+   "original_intent": "检查一下当前工程有什么问题？",
+   "observation_ledger": {
+    "receipts": [
+     {
+      "status": "ready",
+      "observation_id": "obs-mix",
+      "requested_views": [
+       "mix.frequency_relationship"
+      ],
+      "project_revision": "rev-7",
+      "freshness": {
+       "status": "fresh",
+       "project_revision": "rev-7"
+      }
+     },
+     {
+      "status": "ready",
+      "observation_id": "obs-target",
+      "requested_views": [
+       "track.timbre_frequency"
+      ],
+      "target_ref": {
+       "kind": "track",
+       "id": "1007"
+      },
+      "evidence_refs": [
+       "obs-target"
+      ],
+      "project_revision": "rev-7",
+      "freshness": {
+       "status": "fresh",
+       "project_revision": "rev-7"
+      }
+     }
+    ],
+    "available_views": {
+     "track:1007::track.timbre_frequency": {
+      "view_id": "track.timbre_frequency",
+      "status": "ready",
+      "observation_id": "obs-target",
+      "target_ref": {
+       "kind": "track",
+       "id": "1007"
+      },
+      "evidence_refs": [
+       "obs-target"
+      ],
+      "freshness": {
+       "status": "fresh",
+       "project_revision": "rev-7"
+      }
+     }
+    }
+   },
+   "diagnostic_rounds": [
+    {
+     "schema_version": "free_state_diagnostic_round.v1",
+     "round_id": "r_4b00000001",
+     "primary_dimension": "frequency_occupancy",
+     "priority_reason": "default_order",
+     "views_requested": [
+      "track.timbre_frequency"
+     ],
+     "evidence_status": "ready",
+     "project_revision": "rev-7"
+    }
+   ]
+  },
+  "minimal_audio_closure": {
+   "project_uuid": "proj-1",
+   "project_revision": "rev-7",
+   "phase": "fs4_diagnostic_round",
+   "hypothesis_frontier": {
+    "candidate_id": "candidate-1",
+    "candidates": [
+     {
+      "id": "candidate-1",
+      "track_ids": [
+       "1007",
+       "1012"
+      ]
+     }
+    ]
+   }
+  }
+ },
+ "responses": [
+  "{\"final\": true, \"reply\": \"The frontier target's fresh evidence supports one bounded gain experiment.\", \"free_state\": {\"schema_version\": \"free_state_decision.v1\", \"status\": \"needs_experiment\", \"evidence_status\": \"plausible\", \"summary\": \"target evidence supports a bounded improvement hypothesis\", \"improvement_proposal\": {\"schema_version\": \"improvement_proposal.v1\", \"target\": {\"kind\": \"track\", \"id\": \"1007\"}, \"evidence_refs\": [\"obs-ghost\"], \"improvement_intent\": \"make the bass relationship feel clearer\", \"hypothesis\": \"a small bounded change may improve separation\", \"expected_effect\": \"the relationship should be easier to compare\", \"action_domain\": \"track_gain\", \"action_kind\": \"bounded_gain_adjustment\", \"parameter_bounds\": {\"delta_db\": -0.5}, \"confidence\": 0.55}}, \"tool_calls\": []}",
+  "{\"final\": true, \"reply\": \"The frontier target's fresh evidence supports one bounded gain experiment.\", \"free_state\": {\"schema_version\": \"free_state_decision.v1\", \"status\": \"needs_experiment\", \"evidence_status\": \"plausible\", \"summary\": \"target evidence supports a bounded improvement hypothesis\", \"improvement_proposal\": {\"schema_version\": \"improvement_proposal.v1\", \"target\": {\"kind\": \"track\", \"id\": \"1007\"}, \"evidence_refs\": [\"obs-ghost\"], \"improvement_intent\": \"make the bass relationship feel clearer\", \"hypothesis\": \"a small bounded change may improve separation\", \"expected_effect\": \"the relationship should be easier to compare\", \"action_domain\": \"track_gain\", \"action_kind\": \"bounded_gain_adjustment\", \"parameter_bounds\": {\"delta_db\": -0.5}, \"confidence\": 0.55}}, \"tool_calls\": []}",
+  "{\"final\": true, \"reply\": \"The frontier target's fresh evidence supports one bounded gain experiment.\", \"free_state\": {\"schema_version\": \"free_state_decision.v1\", \"status\": \"needs_experiment\", \"evidence_status\": \"plausible\", \"summary\": \"target evidence supports a bounded improvement hypothesis\", \"improvement_proposal\": {\"schema_version\": \"improvement_proposal.v1\", \"target\": {\"kind\": \"track\", \"id\": \"1007\"}, \"evidence_refs\": [\"obs-ghost\"], \"improvement_intent\": \"make the bass relationship feel clearer\", \"hypothesis\": \"a small bounded change may improve separation\", \"expected_effect\": \"the relationship should be easier to compare\", \"action_domain\": \"track_gain\", \"action_kind\": \"bounded_gain_adjustment\", \"parameter_bounds\": {\"delta_db\": -0.5}, \"confidence\": 0.55}}, \"tool_calls\": []}",
+  "{\"final\": true, \"reply\": \"The resubmission is a rejected fingerprint, so the honest exit is an authored boundary.\", \"free_state\": {\"schema_version\": \"free_state_decision.v1\", \"status\": \"blocked\", \"evidence_status\": \"insufficient\", \"summary\": \"the rejected proposal cannot be repaired without new evidence inside the locked terminal turn\", \"limitations\": [\"admission gap unresolved\", \"duplicate fingerprint disclosure received\"]}, \"tool_calls\": []}"
+ ],
+ "tool_results": [],
+ "expected": {
+  "terminal_status": "blocked",
+  "model_settles_own_terminal": true,
+  "fallback_zero": true
+ }
+}

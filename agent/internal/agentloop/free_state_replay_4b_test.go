@@ -29,6 +29,13 @@ import (
 //     consumes it); replayMergeLoopState models the chat-side merge (host
 //     owns closure/ledger, the anti-abuse and terminal keys stay monotonic).
 //
+// TIMING-2 (advisory #6 v1.1) appends M24–M26 on the same bed with the
+// timing2_* fixture family: the locked-turn duplicate-fingerprint disclosure
+// steering the model to its own authored terminal (M24), the GATE PATH
+// standing row appearing with the missing mix scan receipt and exiting after
+// the host lands one (M25), and the ±disclosure A/B gate-verdict equivalence
+// with model-call count parity (M26).
+//
 // Any red here on TIMING-1 code is acceptance-failure evidence for TIMING-1,
 // not a fix target for this bed: production code is untouched by design.
 
@@ -496,5 +503,217 @@ func TestFreeStateReplayM23TerminalReservationNotConsumedByBounce(t *testing.T) 
 	}
 	if len(executor.calls) != 0 {
 		t.Fatalf("m23: the fallback path executed an observation (%d calls)", len(executor.calls))
+	}
+}
+
+// M24 (TIMING-2 ②): the locked-turn duplicate-fingerprint honesty disclosure.
+// The p03 R1 shape — first bounce, identical resubmission locks the terminal
+// turn, the locked turn resubmits the same fingerprint once more — now meets
+// the must-reject disclosure both in the locked-turn prompt and in the
+// strengthened-retry feedback, and the model scripts an authored terminal
+// instead of burning into the fallback. Exit = model artifact, fallback zero.
+func TestFreeStateReplayM24LockedDuplicateDisclosureModelSettles(t *testing.T) {
+	fx := loadReplayFixture(t, "timing2_m24_locked_duplicate_disclosure_model_settles.json")
+	executor := &replayExecutor{}
+	first, client := fx.startReplay(executor, fx.Responses[:3], []int{2}, fx.Context)
+	if first.StopReason != StopReasonTransientLLMError {
+		t.Fatalf("m24: first leg stop = %q, want %s (err=%q)", first.StopReason, StopReasonTransientLLMError, first.Error)
+	}
+	loop := replayLoopStateOf(t, first)
+	if !freeStateBool(loop[freeStateTerminalTurnLockedKey]) {
+		t.Fatal("m24: the identical resubmission must have locked the terminal turn")
+	}
+	if reason := messageLoopText(loop["terminal_turn_reason"]); reason != freeStateTerminalReasonDuplicateFingerprint {
+		t.Fatalf("m24: terminal lock reason = %q, want %s", reason, freeStateTerminalReasonDuplicateFingerprint)
+	}
+	fingerprint := messageLoopText(loop[freeStateLastRejectedFingerprintKey])
+	if !strings.HasPrefix(fingerprint, "proposal:") {
+		t.Fatalf("m24: rejected fingerprint not latched: %q", fingerprint)
+	}
+	// The locked-turn prompt carries the duplicate-fingerprint disclosure with
+	// the fingerprint slot (prompt-side directive).
+	lockedPrompt := replayCallPromptText(client, 2)
+	for _, needle := range []string{"TERMINAL TURN", "DUPLICATE FINGERPRINT", fingerprint} {
+		if !strings.Contains(lockedPrompt, needle) {
+			t.Fatalf("m24: locked-turn prompt missing %q", needle)
+		}
+	}
+	// The retry feedback after the same-fingerprint resubmission carries the
+	// disclosure with the fingerprint slot and the legal-output set.
+	resume := replayMergeLoopState(fx.Context, loop)
+	second, client2 := fx.startReplay(executor, fx.Responses[2:], nil, resume)
+	if second.FreeStateDecision == nil || second.FreeStateDecision.Status != FreeStateBlocked || second.StopReason != StopReasonDone {
+		t.Fatalf("m24: the model's authored terminal must settle the loop: %+v stop=%q (err=%q)",
+			second.FreeStateDecision, second.StopReason, second.Error)
+	}
+	if second.StopReason == FreeStateTerminalFallbackStopReason {
+		t.Fatal("m24: the disclosure round must not end in the system fallback")
+	}
+	retryFeedback := replayCallPromptText(client2, 1)
+	for _, needle := range []string{"DUPLICATE FINGERPRINT", fingerprint, "no_candidate_found", "the last turn of the loop"} {
+		if !strings.Contains(retryFeedback, needle) {
+			t.Fatalf("m24: retry feedback missing %q", needle)
+		}
+	}
+	if len(client2.calls) != 2 {
+		t.Fatalf("m24: locked-turn round model calls = %d, want 2 (resubmission bounce + authored terminal)", len(client2.calls))
+	}
+	if len(executor.calls) != 0 {
+		t.Fatalf("m24: the locked round executed an observation (%d calls)", len(executor.calls))
+	}
+}
+
+// M25 (TIMING-2 ①/③): the GATE PATH standing row appears while the ledger
+// holds no qualified mix scan receipt (naming both qualified views and the
+// project-structure contrast in the prompt AND in the G3 gap binding), and it
+// exits after the host lands a mix scan receipt — at which point the same
+// proposal is admitted as the model artifact.
+func TestFreeStateReplayM25GatePathDisclosureAppearsAndExits(t *testing.T) {
+	fx := loadReplayFixture(t, "timing2_m25_gate_path_disclosure_appears_exits.json")
+	executor := &replayExecutor{}
+	first, client := fx.startReplay(executor, fx.Responses[:2], []int{1}, fx.Context)
+	if first.StopReason != StopReasonTransientLLMError {
+		t.Fatalf("m25: first leg stop = %q, want %s (err=%q)", first.StopReason, StopReasonTransientLLMError, first.Error)
+	}
+	// Pre-proposal prompt: the standing GATE PATH row is present with both
+	// qualified view ids and the project-structure contrast.
+	prompt := replayCallPromptText(client, 0)
+	for _, needle := range []string{"GATE PATH (mechanical runtime state)", "mix.multitrack_relationship", "mix.frequency_relationship", "project.structure"} {
+		if !strings.Contains(prompt, needle) {
+			t.Fatalf("m25: pre-proposal prompt missing %q", needle)
+		}
+	}
+	if strings.Contains(prompt, "TERMINAL TURN") {
+		t.Fatal("m25: the unlocked round must not see a terminal prompt")
+	}
+	// The bounce is the G3-only structured gap whose binding names the views.
+	issue := replayTraceGapMessage(first)
+	if !strings.Contains(issue, "G3_project_scan") {
+		t.Fatalf("m25: the bounce is not the G3 gap: %q", issue)
+	}
+	gap := decodeAdmissionGap(t, issue)
+	found := false
+	for _, missing := range gap.Missing {
+		if missing.GateID == freeStateGateG3 {
+			found = true
+			for _, needle := range []string{"mix.multitrack_relationship", "mix.frequency_relationship", "project.structure"} {
+				if !strings.Contains(missing.Binding, needle) {
+					t.Fatalf("m25: G3 binding missing %q: %q", needle, missing.Binding)
+				}
+			}
+		}
+	}
+	if !found {
+		t.Fatalf("m25: gap missing the G3 condition: %+v", gap.Missing)
+	}
+	assertGapContentBlind(t, issue)
+	loop := replayLoopStateOf(t, first)
+	if count := messageLoopFreeStatePositiveInt(loop[freeStateAdmissionRejectionCountKey]); count != 1 {
+		t.Fatalf("m25: admission_rejection_count = %d, want 1", count)
+	}
+	if freeStateBool(loop[freeStateTerminalTurnLockedKey]) {
+		t.Fatal("m25: a single G3 bounce must not lock the terminal turn")
+	}
+	// Host lands the qualified mix scan receipt between slices.
+	advanced := replayCloneContext(fx.Context)
+	ledger := messageLoopMapValue(messageLoopMapValue(advanced["free_state_reasoning_loop"])["observation_ledger"])
+	ledger["receipts"] = append(messageLoopMapRows(ledger["receipts"]), map[string]any{
+		"status": "ready", "observation_id": "obs-mix-scan", "requested_views": []any{"mix.multitrack_relationship"},
+		"project_revision": "rev-7", "freshness": map[string]any{"status": "fresh", "project_revision": "rev-7"},
+	})
+	resume := replayMergeLoopState(advanced, loop)
+	second, client2 := fx.startReplay(executor, fx.Responses[1:], nil, resume)
+	if second.FreeStateDecision == nil || second.FreeStateDecision.Status != FreeStateNeedsExperiment ||
+		second.FreeStateDecision.ImprovementProposal == nil || second.StopReason != StopReasonDone {
+		t.Fatalf("m25: the repaired proposal was not admitted: %+v stop=%q (err=%q)",
+			second.FreeStateDecision, second.StopReason, second.Error)
+	}
+	if prompt := replayCallPromptText(client2, 0); strings.Contains(prompt, "GATE PATH (mechanical runtime state)") {
+		t.Fatal("m25: the GATE PATH row must exit after the qualified receipt landed")
+	}
+	if len(client2.calls) != 1 {
+		t.Fatalf("m25: repair round model calls = %d, want 1 (first-try admission)", len(client2.calls))
+	}
+	if len(executor.calls) != 0 {
+		t.Fatalf("m25: the scripted legs executed an observation (%d calls)", len(executor.calls))
+	}
+}
+
+// M26 (TIMING-2 v1.1 guard ①/④): the ±disclosure A/B. The same scripted
+// sequence replays on three contexts: plain (GATE PATH row present),
+// terminal-locked from start (row absent, terminal directive present), and
+// with a landed mix scan receipt (row absent, G3 flipped by the ledger). The
+// G-gate verdicts agree verbatim between the ±disclosure legs, and the
+// model-call counts agree across all three — the disclosure steers, it never
+// adjudicates or spends extra model turns at the replay layer.
+func TestFreeStateReplayM26DisclosureABGateVerdictsEquivalent(t *testing.T) {
+	fx := loadReplayFixture(t, "timing2_m26_ab_equivalence.json")
+	executor := &replayExecutor{}
+
+	legA, clientA := fx.startReplay(executor, fx.Responses, nil, fx.Context)
+	if legA.FreeStateDecision == nil || legA.FreeStateDecision.Status != FreeStateBlocked || legA.StopReason != StopReasonDone {
+		t.Fatalf("m26 leg A: terminal = %+v stop=%q (err=%q)", legA.FreeStateDecision, legA.StopReason, legA.Error)
+	}
+	if prompt := replayCallPromptText(clientA, 0); !strings.Contains(prompt, "GATE PATH (mechanical runtime state)") {
+		t.Fatal("m26 leg A: the GATE PATH row must be present on the scan-less ledger")
+	}
+	gateIDs := func(result Result) []string {
+		issue := replayTraceGapMessage(result)
+		if issue == "" {
+			t.Fatalf("m26: no structured gap in trace (err=%q)", result.Error)
+		}
+		return decodeAdmissionGap(t, issue).FailedGateIDs
+	}
+	verdictsA := gateIDs(legA)
+
+	// Leg B: the only difference is the terminal lock — a disclosure trigger
+	// that is not a gate input. The verdicts must agree verbatim.
+	lockedCtx := replayCloneContext(fx.Context)
+	messageLoopMapValue(lockedCtx["free_state_reasoning_loop"])[freeStateTerminalTurnLockedKey] = true
+	messageLoopMapValue(lockedCtx["free_state_reasoning_loop"])["terminal_turn_reason"] = "budget_critical"
+	legB, clientB := fx.startReplay(executor, fx.Responses, nil, lockedCtx)
+	if legB.FreeStateDecision == nil || legB.FreeStateDecision.Status != FreeStateBlocked || legB.StopReason != StopReasonDone {
+		t.Fatalf("m26 leg B: terminal = %+v stop=%q (err=%q)", legB.FreeStateDecision, legB.StopReason, legB.Error)
+	}
+	if prompt := replayCallPromptText(clientB, 0); strings.Contains(prompt, "GATE PATH (mechanical runtime state)") {
+		t.Fatal("m26 leg B: a locked turn must not render the GATE PATH row")
+	}
+	if prompt := replayCallPromptText(clientB, 0); !strings.Contains(prompt, "TERMINAL TURN") {
+		t.Fatal("m26 leg B: the locked turn must render the terminal directive")
+	}
+	verdictsB := gateIDs(legB)
+	if strings.Join(verdictsA, ",") != strings.Join(verdictsB, ",") {
+		t.Fatalf("m26: the disclosure toggle changed the gate verdicts: %v vs %v", verdictsA, verdictsB)
+	}
+
+	// Leg C: the ledger itself advanced (a gate input) — G3 flips and the row
+	// exits with it.
+	advancedCtx := replayCloneContext(fx.Context)
+	ledger := messageLoopMapValue(messageLoopMapValue(advancedCtx["free_state_reasoning_loop"])["observation_ledger"])
+	ledger["receipts"] = append(messageLoopMapRows(ledger["receipts"]), map[string]any{
+		"status": "ready", "observation_id": "obs-mix-scan", "requested_views": []any{"mix.multitrack_relationship"},
+		"project_revision": "rev-7", "freshness": map[string]any{"status": "fresh", "project_revision": "rev-7"},
+	})
+	legC, clientC := fx.startReplay(executor, fx.Responses, nil, advancedCtx)
+	if legC.FreeStateDecision == nil || legC.FreeStateDecision.Status != FreeStateBlocked || legC.StopReason != StopReasonDone {
+		t.Fatalf("m26 leg C: terminal = %+v stop=%q (err=%q)", legC.FreeStateDecision, legC.StopReason, legC.Error)
+	}
+	if prompt := replayCallPromptText(clientC, 0); strings.Contains(prompt, "GATE PATH (mechanical runtime state)") {
+		t.Fatal("m26 leg C: the GATE PATH row must exit after the receipt landed")
+	}
+	verdictsC := gateIDs(legC)
+	if strings.Join(verdictsC, ",") == strings.Join(verdictsA, ",") {
+		t.Fatalf("m26 control: the landed receipt must flip G3 (verdicts %v unchanged)", verdictsA)
+	}
+
+	// Model-call parity across all legs: the disclosure adds zero model turns
+	// at the replay layer (mechanical behavior only; the real-stack call-count
+	// comparison belongs to HARNESS-VER-3).
+	callsA, callsB, callsC := len(clientA.calls), len(clientB.calls), len(clientC.calls)
+	if callsA != callsB || callsB != callsC {
+		t.Fatalf("m26: model-call parity broken across ±disclosure legs: A=%d B=%d C=%d", callsA, callsB, callsC)
+	}
+	if len(executor.calls) != 0 {
+		t.Fatalf("m26: the scripted legs executed an observation (%d calls)", len(executor.calls))
 	}
 }

@@ -42,6 +42,7 @@ func messageLoopNeutralFamilySystemPrompt(state *runState) string {
 	if directive := messageLoopFreeStateContinuationBudgetDirective(state); directive != "" {
 		prefix += directive
 	}
+	prefix += messageLoopFreeStateGatePathDirective(state)
 	prefix += messageLoopFreeStateObservationSaturationDirective(state)
 	prefix += messageLoopCandidateFrontierDirective(state)
 	prefix += messageLoopFreeStateTerminalTurnDirective(state)
@@ -219,6 +220,64 @@ func messageLoopCandidateFrontierDirective(state *runState) string {
 	return messageLoopFreeStateJoinPromptSentences("The closure selected candidate "+selected+" and has already recorded its target-level observation; the minimal observation loop is closed.", messageLoopFreeStateWindowBudgetSentence(state), "Use needs_action only when that evidence supports a deterministic governed action; when it supports only a bounded improvement hypothesis, use needs_experiment with one bounded improvement_proposal.v1 citing the returned observation. Use blocked only for a concrete capability, freshness, authorization, or observation boundary.") + "\n\n"
 }
 
+// messageLoopFreeStateGatePathDirective is the TIMING-2 GATE PATH pre-disclosure:
+// a standing prompt row that names, in closed-template machine slots, which
+// admission-gate evidence the ledger still lacks and which observation views
+// would supply it. It is disclosure only — no evaluator, admission gate, or
+// phase-refusal path reads it, and its appearance/exit is driven solely by the
+// ledger/accounting machine state (advisory #6 v1.1 guards ①/③): FS loop
+// active, open improvement contract, no diagnostic-only mode, no locked
+// terminal turn, no proposal/action decision yet, and no running admitted
+// experiment. Zero phase conditions. The G3 row names the two qualified mix
+// scan view ids and states that a project-level structure view does not
+// satisfy the gate — the 7/7 view-selection drift BEHAVIOR-1 measured is a
+// naming problem, and the names are CCB catalog structure, not domain
+// content (advisory #6 question 2).
+func messageLoopFreeStateGatePathDirective(state *runState) string {
+	if state == nil || !messageLoopFreeStateActive(state) {
+		return ""
+	}
+	if !strings.EqualFold(messageLoopTaskContractKind(state), "improvement") {
+		return ""
+	}
+	if messageLoopFreeStateDiagnosticOnly(state) {
+		return ""
+	}
+	if messageLoopFreeStateTerminalTurnLocked(state) {
+		return ""
+	}
+	ctx := messageLoopFreeStateContext(state)
+	if decision := messageLoopMapValue(ctx["latest_decision"]); decision != nil {
+		switch strings.ToLower(strings.TrimSpace(messageLoopText(decision["status"]))) {
+		case FreeStateNeedsExperiment, FreeStateImprovementProposal, FreeStateNeedsAction:
+			return ""
+		}
+	}
+	if experiment := messageLoopMapValue(ctx["experiment"]); len(experiment) > 0 &&
+		strings.EqualFold(strings.TrimSpace(messageLoopText(experiment["status"])), "running") {
+		return ""
+	}
+	rows := make([]string, 0, 3)
+	if !gateG3(state) {
+		rows = append(rows, "G3_project_scan=no usable mix scan receipt in the observation ledger — a qualified view is mix.multitrack_relationship or mix.frequency_relationship; a project-level structure view such as project.structure does not satisfy this gate")
+	}
+	if !gateG5(state) {
+		rows = append(rows, "G5_frontier_established=no candidate frontier in the closure — candidates are built from observation facts that disclose track-level candidates")
+	}
+	closure := messageLoopMapValue(state.input.Context["minimal_audio_closure"])
+	frontier := messageLoopMapValue(closure["hypothesis_frontier"])
+	selected := strings.TrimSpace(messageLoopText(frontier["candidate_id"]))
+	if selected != "" && !gateG6(state) {
+		rows = append(rows, "G6_target_evidence=no usable target-level observation yet for the frontier-selected candidate — request a target-level track.* view on one of its candidate tracks")
+	}
+	if len(rows) == 0 {
+		return ""
+	}
+	return fmt.Sprintf(`GATE PATH (mechanical runtime state): the needs_experiment admission gate is still missing machine-checkable evidence: %s. A proposal whose evidence is not yet in the ledger will be refused by the gate with a machine-readable structured gap; walk the GATE PATH first (request the missing views with ccb.observation_request), then propose from the returned evidence.
+
+`, strings.Join(rows, " | "))
+}
+
 // messageLoopFreeStateJoinPromptSentences joins non-empty prompt fragments
 // with single spaces so an absent price sentence never leaves a double gap.
 func messageLoopFreeStateJoinPromptSentences(parts ...string) string {
@@ -306,6 +365,16 @@ func messageLoopFreeStateTerminalTurnDirective(state *runState) string {
 	directive := header + freeStateTerminalTurnSentence
 	if gaps := messageLoopFreeStateAccumulatedAdmissionGaps(state); len(gaps) > 0 {
 		directive += " ADMISSION GAPS ACCUMULATED (mechanical runtime state): " + strings.Join(gaps, " | ")
+	}
+	// TIMING-2 ②: when the lock latched a rejected proposal fingerprint that
+	// still matches the current evidence revision, the terminal turn also
+	// discloses that an identical resubmission will be refused as a duplicate
+	// fingerprint, and what the legal outputs are — machine state the model
+	// could not otherwise see (BEHAVIOR-1 H3: 0/5 self-authored terminals on
+	// the locked turn, 5/5 identical-fingerprint resubmissions into the
+	// fallback).
+	if disclosure := freeStateLockedDuplicateFingerprintDisclosure(state, nil); disclosure != "" {
+		directive += " " + disclosure
 	}
 	return directive + "\n\n"
 }

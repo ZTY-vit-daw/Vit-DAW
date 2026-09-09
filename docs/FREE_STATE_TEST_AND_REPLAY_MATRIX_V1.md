@@ -72,3 +72,15 @@ fixture 化纪律：从 transcript 抽取时不得把易变标识（轨道名等
 | M23 | 终局预留不被弹回消耗 | TestFreeStateReplayM23TerminalReservationNotConsumedByBounce | timing1_m23_reservation_not_consumed.json | 预锁 budget_critical 预留经弹回不动摇（reason 不降级、窗口计数器 1/6 不变、指令两侧同价、零观察消耗、锁定轮不走普通记账）；强化重试后诚实兜底（fallback stop reason、无模型工件代写、终局轮先行可追溯） |
 
 断言含 TIMING-1 记账字段：`admission_rejection_count`、提案指纹（`last_rejected_proposal_fingerprint`/`proposal:` 前缀/受理工件指纹比对）、evidence revision（`last_rejected_evidence_revision`/rev-8 推进）、出口类型（模型工件 vs 系统兜底，逐场景判定）。验收命令：`go test ./internal/agentloop -run 'TestFreeStateReplay' -count=1` 与 `go test ./internal/agentloop ./internal/chat -count=1`（2026-09-09 均 exit 0）。
+
+## 6. TIMING-2 三场景披露重放（2026-09-09 追加，TIMING-2 验收前置）
+
+编号 M24–M26，作用域为本节 replay-3 族（`timing2_*.json` fixture 家族，同一 4b 床与 continuation 接缝）；行为源为 BEHAVIOR-1 §5–§6 H2/H3 处方 + 参谋 #6 v1.1 五条护栏。护栏 ④（A/B 等价）由 M26 锁定：同一 fixture ±披露 → G 门判定逐条一致、G3 转合格 → 披露退场、调用数跨腿一致（replay 层仅锁机械行为；LLM 调用数的真栈比较归 HARNESS-VER-3）。
+
+| # | 用例 | 测试 | fixture | 通过标准（全在场） |
+|---|---|---|---|---|
+| M24 | 锁定轮指纹状态披露 → 模型自决终局 | TestFreeStateReplayM24LockedDuplicateDisclosureModelSettles | timing2_m24_locked_duplicate_disclosure_model_settles.json | p03 R1 形态：首弹回→同指纹二交锁终局→锁定轮再重交，锁定轮提示与强化重试反馈均含指纹槽（`proposal:` 值）与合法输出集（blocked/no_candidate_found 附 limitations）；模型脚本改道 authored 终局，出口=模型工件、fallback 零、零观察 |
+| M25 | 前置披露随 G3 状态出现/退场 | TestFreeStateReplayM25GatePathDisclosureAppearsAndExits | timing2_m25_gate_path_disclosure_appears_exits.json | 无 mix 扫描收据时常驻 GATE PATH 行在场（点名 `mix.multitrack_relationship`/`mix.frequency_relationship` + project.structure 不合格对照），G3-only 弹回 binding 同样点名双视图（内容盲断言在场）；主机补齐 mix 收据后 G3 行退场，同一提案首轮受理为模型工件 |
+| M26 | ±披露 A/B 等价（护栏①/④） | TestFreeStateReplayM26DisclosureABGateVerdictsEquivalent | timing2_m26_ab_equivalence.json | 同一脚本三腿重放：A 原生（披露在场）/B 预锁终局（披露退场、终局指令在场）/C 补齐收据（披露退场、G3 翻转）；A vs B G 门判定逐条一致；三腿模型调用数一致（披露零额外调用）；零观察 |
+
+断言含 TIMING-2 披露标记：`GATE PATH (mechanical runtime state)`（区别于 TIMING-1 前既有的 "rush the GATE PATH" 引导句）、`DUPLICATE FINGERPRINT LOCK`、G3 binding 双视图点名。纯 gap 模板（防滥用身份比较的重算对象）保持零披露注入——披露仅挂 outputIssue 包装层与终局 directive，由 `TestTIMING2LockedDuplicateDisclosureTriggerConditions` 钉死。验收命令：`go test ./internal/agentloop -run 'TestFreeStateReplay' -count=1`（M18–M26 九场景）与 `go test ./internal/agentloop ./internal/audioclosure ./internal/chat -count=1`（2026-09-09 均 exit 0）。

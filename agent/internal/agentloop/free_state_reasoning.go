@@ -615,6 +615,45 @@ func freeStateProposalFingerprint(proposal *agentprotocol.ImprovementProposal) s
 	return "proposal:" + hex.EncodeToString(digest[:12])
 }
 
+// freeStateDuplicateFingerprintDisclosureTemplate is the frozen TIMING-2
+// locked-turn honesty sentence (closed template; the single slot is the
+// machine fingerprint). Pinned by test.
+const freeStateDuplicateFingerprintDisclosureTemplate = "DUPLICATE FINGERPRINT LOCK (mechanical runtime state): the previously rejected proposal (fingerprint %s) resubmitted without a new evidence revision will be refused as a duplicate fingerprint. The legal outputs now are a new proposal that satisfies the admission gate, or an explicit terminal decision (for example blocked or no_candidate_found with limitations)."
+
+// freeStateLockedDuplicateFingerprintDisclosure renders the TIMING-2 locked-turn
+// duplicate-fingerprint honesty sentence: on a terminal-locked turn whose
+// latched rejected fingerprint still matches the current evidence revision,
+// the model is told that resubmitting that exact proposal will be refused as
+// a duplicate fingerprint, and what the legal outputs are. Machine slots
+// only (the fingerprint); the decision parameter additionally requires the
+// bounced decision to BE that same-fingerprint resubmission for the
+// gate-message variant. Pure disclosure: it never feeds a verdict, and the
+// anti-abuse accounting itself is untouched (on a locked turn the bounce
+// boundary takes the terminal branch before the ordinary note).
+func freeStateLockedDuplicateFingerprintDisclosure(state *runState, decision *FreeStateDecision) string {
+	if state == nil || !messageLoopFreeStateTerminalTurnLocked(state) {
+		return ""
+	}
+	loop := messageLoopFreeStateContext(state)
+	rejected := strings.TrimSpace(messageLoopText(loop[freeStateLastRejectedFingerprintKey]))
+	if rejected == "" {
+		return ""
+	}
+	rejectedRevision := strings.TrimSpace(messageLoopText(loop[freeStateLastRejectedEvidenceRevisionKey]))
+	if rejectedRevision == "" || rejectedRevision != messageLoopFreeStateEvidenceRevision(state) {
+		return ""
+	}
+	if decision != nil {
+		if decision.ImprovementProposal == nil {
+			return ""
+		}
+		if fingerprint := freeStateProposalFingerprint(decision.ImprovementProposal); fingerprint == "" || fingerprint != rejected {
+			return ""
+		}
+	}
+	return fmt.Sprintf(freeStateDuplicateFingerprintDisclosureTemplate, rejected)
+}
+
 // messageLoopFreeStateEvidenceRevision reads the revision the anti-abuse
 // accounting compares against: the closure's current project revision, the
 // identity a fresh revision-bound citation must carry.
@@ -1063,7 +1102,20 @@ func messageLoopFreeStateOutputIssue(state *runState, out messageLoopOutput) str
 				// anti-abuse accounting (admission_rejection_count / proposal
 				// fingerprint / terminal lock) is noted at the bounce boundary in
 				// message_loop.go.
-				return freeStateNeedsExperimentGateFailureMessage(state, out.FreeStateDecision, failed)
+				message := freeStateNeedsExperimentGateFailureMessage(state, out.FreeStateDecision, failed)
+				// TIMING-2 ②: on a locked turn, when the bounced decision IS the
+				// latched same-fingerprint resubmission at an unchanged evidence
+				// revision, the refusal the model receives also carries the
+				// duplicate-fingerprint disclosure — the strengthened retry's
+				// prompt embeds this issue, so the one retry tells the model the
+				// resubmission is futile and what the legal outputs are. The pure
+				// gap template above stays free of the accounting keys: the
+				// anti-abuse identity comparison recomputes it and must stay
+				// stable across the fingerprint latch (TIMING-1 pin).
+				if disclosure := freeStateLockedDuplicateFingerprintDisclosure(state, out.FreeStateDecision); disclosure != "" {
+					message += " " + disclosure
+				}
+				return message
 			}
 		}
 	case FreeStateSatisfied, FreeStateDiagnosticComplete, FreeStateNoCandidateFound:

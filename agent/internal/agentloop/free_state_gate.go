@@ -505,7 +505,12 @@ func freeStateAdmissionGap(state *runState, decision *FreeStateDecision, failed 
 				gap.Missing = append(gap.Missing, FreeStateAdmissionMissingCondition{GateID: id, Condition: condition, Binding: "free_state_capacity_assessment.capacity_level!=exceeds_free_state and selected_capability non-empty"})
 			}
 		case freeStateGateG3:
-			gap.Missing = append(gap.Missing, FreeStateAdmissionMissingCondition{GateID: id, Condition: "no_usable_project_scan_receipt", Binding: "observation_ledger receipt status ready|partial with a project/mix scan view in requested_views"})
+			// TIMING-2 ③: the binding names the two qualified mix scan views and
+			// states that a project-level structure view does not satisfy the
+			// gate — view ids and gate conditions are CCB catalog structure
+			// vocabulary, not domain content (advisory #6 question 2; the 7/7
+			// project.structure semantic mismatch BEHAVIOR-1 measured).
+			gap.Missing = append(gap.Missing, FreeStateAdmissionMissingCondition{GateID: id, Condition: "no_usable_project_scan_receipt", Binding: "observation_ledger receipt status ready|partial with a qualified mix scan view in requested_views: mix.multitrack_relationship or mix.frequency_relationship; a project-level structure view such as project.structure does not satisfy this gate"})
 		case freeStateGateG4:
 			gap.Missing = append(gap.Missing, FreeStateAdmissionMissingCondition{GateID: id, Condition: "no_closed_diagnostic_dimension", Binding: "a diagnostic round with evidence_status=ready and no open unresolved_questions"})
 		case freeStateGateG5:
