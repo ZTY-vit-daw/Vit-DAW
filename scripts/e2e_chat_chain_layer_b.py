@@ -546,7 +546,13 @@ def main() -> int:
         ok_trace, _ = bed.poll_dom(lambda: page.locator("section.trace-block").count() > 0, 60.0)
         steps_seen = 0
         live_updates = 0
+        # B3 取证位：live 块步数 meta 在执行期间的变更次数（步数流式增量的直接
+        # 证据）。think-line 的 live_updates 依赖 item 活动归属 turn（服务端
+        # attribution，AGENT-F4 域），链活期恒 0；步数增量由本位承载。
+        live_step_updates = 0
+        live_step_samples: list[str] = []
         last_activity_text = ""
+        last_live_step_text = ""
         loop_started = time.monotonic()
         busy_deadline = loop_started + args.terminal_budget
         dom_terminal_during_loop = False
@@ -564,6 +570,14 @@ def main() -> int:
             if activity_text and activity_text != last_activity_text:
                 live_updates += 1
                 last_activity_text = activity_text
+            live_step_metas = page.locator("section.trace-block.is-live .th-meta").all_inner_texts()
+            live_step_texts = [m.strip() for m in live_step_metas if re.match(r"^[1-9]\d*\s*步", m.strip())]
+            if live_step_texts:
+                joined = "|".join(live_step_texts)
+                live_step_samples.append(joined)
+                if joined != last_live_step_text:
+                    live_step_updates += 1
+                    last_live_step_text = joined
             bed.busy_samples.append({"wallclock": now_stamp(), **authority_state(bed)})
             loop_iteration += 1
             if loop_iteration % 10 == 0:
@@ -580,6 +594,8 @@ def main() -> int:
             trace_blocks=ok_trace,
             steps_seen=steps_seen,
             live_updates=live_updates,
+            live_step_updates=live_step_updates,
+            live_step_samples=live_step_samples,
             zero_step_sightings=bed.zero_step_sightings,
         )
 

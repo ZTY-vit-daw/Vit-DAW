@@ -326,12 +326,24 @@ try {
     if (-not $SkipLayerB) {
         Write-Step "Layer B: browser rendering/latency bed (playwright headless chromium)"
         $layerBConsole = Join-Path $RunRoot "layer_b_console.txt"
+        # -ChatBudgetSeconds must also widen layer B's T2 budget (approve1 ->
+        # card2 wait rides the same LLM-window latency as layer A's chat budget;
+        # known-issues #17-2: the 90s default nearly saturated in run 220854
+        # with T2=84.6s).
+        if ($ChatBudgetSeconds -gt 0) {
+            $layerBFlags += @("--t2-budget", ([string]$ChatBudgetSeconds))
+        }
         & python (Join-Path $ScriptsDir "e2e_chat_chain_layer_b.py") `
             --webui-url "http://127.0.0.1:7878/app/" `
             --agent-http "http://127.0.0.1:7878" `
             --out-dir (Join-Path $RunRoot "layer_b") `
             @layerBFlags 2>&1 | Tee-Object -FilePath $layerBConsole
         $layerBExit = $LASTEXITCODE
+        # known-issues #17-1: record the truth after an actual run - the init
+        # value "skipped-by-switch" used to leak into e2e1_summary.json even
+        # when layer B ran (run 220854 ran layer B but the summary claimed a
+        # skip; layer reports were the only source of truth).
+        $layerBStatus = "ran"
         Add-Prereq ("layer_b_exit=" + $layerBExit)
     }
     else {
@@ -422,7 +434,7 @@ finally {
         exit 2
     }
     $overallOk = ($layerAExit -eq 0)
-    if (-not $SkipLayerB -and $layerBStatus -eq "skipped-by-switch") {
+    if (-not $SkipLayerB) {
         $overallOk = $overallOk -and ($layerBExit -eq 0)
     }
     if ($overallOk) {

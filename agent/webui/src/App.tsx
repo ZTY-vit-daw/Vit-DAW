@@ -4326,6 +4326,7 @@ function MessageStream({
                   turn={turn}
                   activities={turnActivities(entry.turnId)}
                   authorityMode={authorityMode}
+                  turnMeta={turnEventMeta[entry.turnId]}
                 />
               ) : null;
             })()}

@@ -654,6 +654,11 @@ def build_report(started_at: str, conversation_id: str, segments: dict[str, dict
         f2_either = {"S9", "S10"}
     card_mismatches: list[str] = []
     variant_mismatches: list[str] = []
+    # B3 预授权（任务卡 2026-09-09-MANTEST-2-B3）：默认档对齐 -ExpectF2Fixed
+    # 档口径——S9/S10（判定后结算/采纳路径）受 D1-S1 正确语义支配（判定即结
+    # 算，apply=非法二次变更 409；F1 收到单 run4 实证红），默认档如实记录两可，
+    # 不作为门。
+    default_either = {"S9", "S10"}
     for name, row in segments.items():
         if f2_fixed:
             # The F2 shape table covers all twelve segments: S1-S8+S11+S12
@@ -668,6 +673,8 @@ def build_report(started_at: str, conversation_id: str, segments: dict[str, dict
                 variant_mismatches.append(f"{name} expected red (f1_fixed/{variant}), got green")
             continue
         if not expect_red:
+            if name in default_either:
+                continue
             if not row["ok"]:
                 variant_mismatches.append(f"{name} expected green, got red")
         else:

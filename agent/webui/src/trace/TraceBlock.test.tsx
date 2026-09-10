@@ -1,10 +1,11 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import type { ChatMessage } from "../types";
+import type { AgentEvent, ChatMessage } from "../types";
 import { emptyTrajectoryState, reduceTrajectoryEvents, trajectoryTurns } from "../trajectory";
 import { mockMultiRoundTrajectoryEvents, mockRollbackTrajectoryEvents } from "../trajectoryMock";
 import { defaultCollapsedForStatus, isLiveStatus, OptimisticTraceBlock, shouldShowOptimisticTrace, TraceBlock } from "./TraceBlock";
 import { groupMessagesByTurn, isUnboundActivity, latestRenderedTurnId, turnIsAnchored } from "./turnGroups";
+import type { TurnEventMeta } from "./turnEventMeta";
 
 function chat(partial: Partial<ChatMessage> & Pick<ChatMessage, "id" | "role" | "content">): ChatMessage {
   return { createdAt: 0, ...partial } as ChatMessage;
@@ -175,6 +176,89 @@ describe("乐观占位条（GUI-F2）", () => {
     expect(markup).toContain("trace-cursor");
     expect(markup).toContain('aria-live="polite"');
     expect(markup).not.toContain("is-collapsed");
+  });
+});
+
+describe("B3 零步终态驻留消灭 + 步数流式增量", () => {
+  // 真栈床 R3 取证（20260909_221101 全程 176 次目击）：chat 回合只有 kind=turn
+  // 壳节点（turn.started/completed 伴生投影），终局（waiting/completed）后轨迹块
+  // 以「0 步 0.0s」驻留全程。壳节点不是步——终态零步 meta 不得声称步数。
+  function shellTurnEvents(terminalType: string, terminalStatus: string): AgentEvent[] {
+    return [
+      { seq: 1, type: "trajectory.turn.started", item_id: "turn:run-b3", status: "running", payload: { schema_version: "vit.observable_trajectory.v1", trace_node_id: "turn:run-b3", turn_id: "run-b3", node_kind: "turn", phase: "framing", status: "running" } },
+      { seq: 2, type: terminalType, item_id: "turn:run-b3", status: terminalStatus, payload: { schema_version: "vit.observable_trajectory.v1", trace_node_id: "turn:run-b3", turn_id: "run-b3", node_kind: "turn", phase: "completed", status: terminalStatus, summary: "提案已进入待确认" } }
+    ];
+  }
+
+  function stepEvent(seq: number, running: boolean): AgentEvent {
+    return {
+      seq,
+      type: "trajectory.observation.recorded",
+      item_id: `trace-b3-${seq}`,
+      status: running ? "running" : "completed",
+      payload: { schema_version: "vit.observable_trajectory.v1", trace_node_id: `trace-b3-${seq}`, turn_id: "run-b3", node_kind: "observation", phase: "observing", status: running ? "running" : "completed", summary: `观察 ${seq}` }
+    };
+  }
+
+  it("终态壳回合（仅 kind=turn 壳节点）不以「0 步 0.0s」终态驻留", () => {
+    const state = reduceTrajectoryEvents(emptyTrajectoryState(), shellTurnEvents("trajectory.turn.completed", "waiting_for_user"));
+    const turn = trajectoryTurns(state)[0];
+    expect(turn.nodeIds.length).toBe(1); // 壳节点在场（块保留），但它不是步
+    const markup = renderToStaticMarkup(<TraceBlock state={state} turn={turn} activities={[]} />);
+    expect(markup).toContain("等待你的判断");
+    expect(markup).not.toContain("0 步");
+    expect(markup).not.toContain("0.0s");
+  });
+
+  it("终态零步回合带 item 活动足迹时以「N 项活动+真实时长」呈现（M12 证据块不虚称 0 步）", () => {
+    const state = reduceTrajectoryEvents(emptyTrajectoryState(), shellTurnEvents("trajectory.turn.completed", "waiting_for_user"));
+    const turn = trajectoryTurns(state)[0];
+    const turnMeta: TurnEventMeta = { turnKind: "", itemActivityCount: 2, itemActivityKeys: ["i1", "i2"], startedAt: 1_000, endedAt: 61_000 };
+    const markup = renderToStaticMarkup(<TraceBlock state={state} turn={turn} activities={[]} turnMeta={turnMeta} />);
+    expect(markup).toContain("2 项活动");
+    expect(markup).toContain("60.0s");
+    expect(markup).not.toContain("0 步");
+  });
+
+  it("执行中步数流式增量：live 回合有步节点即显「N 步」（此前恒 --，步数只在终局可见）", () => {
+    const state = reduceTrajectoryEvents(emptyTrajectoryState(), [
+      shellTurnEvents("trajectory.turn.completed", "completed")[0],
+      stepEvent(3, false),
+      stepEvent(4, true)
+    ]);
+    const turn = trajectoryTurns(state)[0];
+    expect(isLiveStatus(turn.status)).toBe(true);
+    const markup = renderToStaticMarkup(<TraceBlock state={state} turn={turn} activities={[]} />);
+    expect(markup).toContain(">2 步</span>");
+    expect(markup).not.toContain("0 步");
+  });
+
+  it("步数增量随节点单调：3 个步节点显 3 步（≥1 后不回落显示 0）", () => {
+    const state = reduceTrajectoryEvents(emptyTrajectoryState(), [
+      shellTurnEvents("trajectory.turn.completed", "completed")[0],
+      stepEvent(3, false),
+      stepEvent(4, false),
+      stepEvent(5, false)
+    ]);
+    const turn = trajectoryTurns(state)[0];
+    const markup = renderToStaticMarkup(<TraceBlock state={state} turn={turn} activities={[]} />);
+    expect(markup).toContain(">3 步</span>");
+  });
+
+  it("live 回合尚无步节点时保持 --，不虚报 0 步", () => {
+    const state = reduceTrajectoryEvents(emptyTrajectoryState(), [shellTurnEvents("trajectory.turn.completed", "completed")[0]]);
+    const turn = trajectoryTurns(state)[0];
+    expect(isLiveStatus(turn.status)).toBe(true);
+    const markup = renderToStaticMarkup(<TraceBlock state={state} turn={turn} activities={[]} />);
+    expect(markup).not.toContain("0 步");
+    expect(markup).toContain(">--</span>");
+  });
+
+  it("终态有步回合回执语义不变：N 步 + 时长", () => {
+    const state = reduceTrajectoryEvents(emptyTrajectoryState(), mockMultiRoundTrajectoryEvents);
+    const turn = trajectoryTurns(state)[0];
+    const markup = renderToStaticMarkup(<TraceBlock state={state} turn={turn} activities={[]} />);
+    expect(markup).toContain(" 步");
   });
 });
 

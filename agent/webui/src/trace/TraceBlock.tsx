@@ -4,6 +4,7 @@ import type { AuthorityMode, ChatMessage } from "../types";
 import type { TrajectoryNode, TrajectoryState, TrajectoryTurn } from "../trajectory";
 import { nodeKindLabel, phaseLabel, statusLabel } from "../trajectory/TrajectoryView";
 import { StateIcon, terminalClass } from "../taskTrajectory/details";
+import type { TurnEventMeta } from "./turnEventMeta";
 import "./trace.css";
 
 /** 完成后自动收起的停留时长（ms）——先让人看清完成态再收 */
@@ -42,6 +43,32 @@ function turnSpanMs(nodes: TrajectoryNode[], live: boolean): number {
   const first = nodes[0].createdAt;
   const last = nodes[nodes.length - 1].createdAt;
   return (live ? Date.now() : last) - first;
+}
+
+/** 顶部 meta 语义（B3，真栈床 R3 取证驱动）：
+ *  - live：步数随轨迹步事件流式增量（≥1 后不回落显示 0）；尚无步节点保持 --，不虚报 0 步；
+ *  - 终态有步：N 步 + 时长（回执语义不变）；
+ *  - 终态零步：壳节点（kind=turn）不是步——带 item 活动足迹（M12 证据块）显
+ *    「N 项活动 + 真实时长」，纯壳显 --。任何形态不再驻留「0 步 0.0s」。 */
+export function traceMetaParts(options: {
+  live: boolean;
+  stepCount: number;
+  stepSpanMs: number;
+  itemActivityCount: number;
+  itemActivitySpanMs: number | null;
+}): string[] {
+  if (options.live) {
+    return options.stepCount > 0 ? [`${options.stepCount} 步`] : ["--"];
+  }
+  if (options.stepCount > 0) {
+    return [`${options.stepCount} 步`, formatSeconds(options.stepSpanMs)];
+  }
+  if (options.itemActivityCount > 0) {
+    return options.itemActivitySpanMs !== null
+      ? [`${options.itemActivityCount} 项活动`, formatSeconds(options.itemActivitySpanMs)]
+      : [`${options.itemActivityCount} 项活动`];
+  }
+  return ["--"];
 }
 
 /** 回执行语义标签：live 只显「正在处理」，不加戏（2026-09-03 用户裁定口径） */
@@ -172,12 +199,14 @@ export function shouldShowOptimisticTrace(options: {
   return Boolean(last && last.role === "user" && !(last.turn_id ?? "").trim());
 }
 
-export function TraceBlock({ state, turn, activities, authorityMode = "manual_confirmation" }: {
+export function TraceBlock({ state, turn, activities, authorityMode = "manual_confirmation", turnMeta }: {
   state: TrajectoryState;
   turn: TrajectoryTurn;
   /** 该回合的 transient 活动（思考行素材；回合结束后活动已被清退） */
   activities: ChatMessage[];
   authorityMode?: AuthorityMode;
+  /** 该回合的事件足迹 meta（M12 证据：item 活动数/生命周期；缺省按无足迹处理） */
+  turnMeta?: TurnEventMeta;
 }) {
   const live = isLiveStatus(turn.status);
   const [collapsed, setCollapsed] = useState(() => defaultCollapsedForStatus(turn.status));
@@ -197,9 +226,16 @@ export function TraceBlock({ state, turn, activities, authorityMode = "manual_co
   const thinking = live ? activities[activities.length - 1] : undefined;
   const label = turnStatusLabel(turn.status);
   const sub = receiptSub(nodes);
-  const metaParts = live
-    ? ["--"]
-    : [`${nodes.length} 步`, formatSeconds(turnSpanMs(nodes, false))];
+  const metaParts = traceMetaParts({
+    live,
+    stepCount: nodes.length,
+    stepSpanMs: turnSpanMs(nodes, false),
+    itemActivityCount: turnMeta?.itemActivityCount ?? 0,
+    itemActivitySpanMs:
+      turnMeta && turnMeta.startedAt !== undefined && turnMeta.endedAt !== undefined
+        ? Math.max(0, turnMeta.endedAt - turnMeta.startedAt)
+        : null
+  });
 
   return (
     <section
