@@ -456,6 +456,19 @@ func (s *Server) requestAuditionJudgment(conversationID, sessionID string) {
 		}
 		return
 	}
+	// The prepare and telemetry paths can both get past the round check above
+	// inside the judgment request's write window; whoever lands second
+	// observes the request the first path already parked — that is the dedup
+	// success shape, recorded here instead of surfacing the historical
+	// "user judgment is already pending" rejection.
+	if fresh, ok := s.freeStateLoop(conversationID); ok && fresh.Experiment != nil {
+		if round, err := fresh.Experiment.CurrentRound(); err == nil && (round.UserJudgmentRequested || len(round.UserJudgmentEvidence) > 0) {
+			if s.logger != nil {
+				s.logger.Info("[audition] audition.ready double-fire deduplicated for %s; judgment request already pending", sessionID)
+			}
+			return
+		}
+	}
 	events, err := loop.Experiment.RequestUserJudgmentForSession("A/B audition required", sessionID, time.Now().UTC())
 	if err != nil {
 		if s.logger != nil {

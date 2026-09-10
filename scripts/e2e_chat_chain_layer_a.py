@@ -273,6 +273,7 @@ def main() -> int:
     parser.add_argument("--poll-interval", type=float, default=0.25)
     parser.add_argument("--kernel-project", default="", help="isolated kernel default_project.xml (pollution guard, hashed before/after)")
     parser.add_argument("--expect-red", action="store_true", help="evaluate segment shape against the RED baseline expectation")
+    parser.add_argument("--f1-fixed", action="store_true", help="evaluate segment shape against the post-F1 expectation: S8 judgment servable + S11 zero orphan closes are green, S9/S10 observed either way, F2/F3-owned segments keep their red state")
     args = parser.parse_args()
 
     out_dir = Path(args.out_dir)
@@ -336,7 +337,7 @@ def main() -> int:
         recorder.stop()
         recorder.dump()
         save_json(out_dir / "timeline.json", {"rows": timeline})
-        save_json(out_dir / "e2e_layer_a_report.json", build_report(started_at, conversation_id, segments, latencies, timeline, args.expect_red))
+        save_json(out_dir / "e2e_layer_a_report.json", build_report(started_at, conversation_id, segments, latencies, timeline, args.expect_red, f1_fixed=args.f1_fixed))
         return 2
     card1_id = str(card1.get("id"))
     record("S2", True, "green", interaction=card1_id, kind=card1.get("kind", card1.get("type")), chat_ms=latencies["S2_chat_ms"], card1_wait_ms=latencies["S2_card1_wait_ms"])
@@ -375,7 +376,7 @@ def main() -> int:
         recorder.stop()
         recorder.dump()
         save_json(out_dir / "timeline.json", {"rows": timeline})
-        save_json(out_dir / "e2e_layer_a_report.json", build_report(started_at, conversation_id, segments, latencies, timeline, args.expect_red))
+        save_json(out_dir / "e2e_layer_a_report.json", build_report(started_at, conversation_id, segments, latencies, timeline, args.expect_red, f1_fixed=args.f1_fixed))
         return 3
     card2_id = str(card2.get("id"))
     if args.approve_pacing > 0:
@@ -499,7 +500,12 @@ def main() -> int:
             "round_id": session.get("round_id"),
             "audition_session_id": session.get("session_id"),
             "project_revision": str(session.get("project_revision") or ""),
-            "heard_difference": "stand-in: heard a clear difference",
+            # The stand-in statement must ride the legal enum (yes/no/unsure):
+            # the free-text stand-in string never passed evidence validation and
+            # was only masked while the F1 orphan close killed the POST earlier
+            # in the bind path (20260910_091340: 409 unsupported
+            # heard_difference once S8 started reaching the validator).
+            "heard_difference": "yes",
             "preference": args.branch.lower(),
             "reason_tags": ["stand_in_e2e"],
             "free_text": "E2E stand-in judgment (machine walks the state machine; human-ear verdict is out of bed scope)",
@@ -596,13 +602,13 @@ def main() -> int:
     save_json(out_dir / "timeline.json", {"started_at": started_at, "finished_at": now_stamp(), "rows": timeline})
     record("S12", True, "green", artifacts=str(out_dir), note="event frame recording + responses + report written")
     chain_variant = "inline" if str(approve2.get("stop_reason") or "") == "done" else "scheduled"
-    report = build_report(started_at, conversation_id, segments, latencies, timeline, args.expect_red, chain_variant)
+    report = build_report(started_at, conversation_id, segments, latencies, timeline, args.expect_red, chain_variant, f1_fixed=args.f1_fixed)
     save_json(out_dir / "e2e_layer_a_report.json", report)
     print("LAYER_A_DONE " + json.dumps(report.get("shape_summary"), ensure_ascii=False), flush=True)
     return 0 if report["shape_summary"]["matches_expectation"] else 1
 
 
-def build_report(started_at: str, conversation_id: str, segments: dict[str, dict[str, Any]], latencies: dict[str, Any], timeline: list[dict[str, Any]], expect_red: bool, variant: str = "scheduled") -> dict[str, Any]:
+def build_report(started_at: str, conversation_id: str, segments: dict[str, dict[str, Any]], latencies: dict[str, Any], timeline: list[dict[str, Any]], expect_red: bool, variant: str = "scheduled", f1_fixed: bool = False) -> dict[str, Any]:
     # Card table (written from the B1 scheduled-variant repro): S5-S8 red.
     # The inline variant (approve2 stop=done) legitimately delivers the
     # terminal through the respond body + finalize node (B1 Q1 documents both
@@ -616,9 +622,32 @@ def build_report(started_at: str, conversation_id: str, segments: dict[str, dict
     else:
         variant_green = card_expected_green
         variant_red = card_expected_red
+    # Post-F1 shape (task card 2026-09-10-F1): the judgment-boundary exemption
+    # turns S8 (judgment POST servable) and S11 (zero owner_turn_closed) green
+    # in both variants. S9/S10 ride the settle/adoption path behind the
+    # judgment and are recorded honestly either way ("应随之或部分绿，如实记录");
+    # the F2-owned terminal delivery segments (S5/S6/S7 scheduled-variant)
+    # keep their red state until B1-F2 lands.
+    f1_green = set()
+    f1_red = set()
+    f1_either = set()
+    if f1_fixed:
+        f1_green = {"S8", "S11"}
+        f1_either = {"S9", "S10"}
+        if variant == "inline":
+            f1_green = f1_green | card_expected_green | {"S5", "S6", "S7"}
+        else:
+            f1_green = f1_green | card_expected_green
+            f1_red = {"S5", "S6", "S7"}
     card_mismatches: list[str] = []
     variant_mismatches: list[str] = []
     for name, row in segments.items():
+        if f1_fixed:
+            if name in f1_green and not row["ok"]:
+                variant_mismatches.append(f"{name} expected green (f1_fixed/{variant}), got red")
+            elif name in f1_red and row["ok"]:
+                variant_mismatches.append(f"{name} expected red (f1_fixed/{variant}), got green")
+            continue
         if not expect_red:
             if not row["ok"]:
                 variant_mismatches.append(f"{name} expected green, got red")
@@ -631,6 +660,14 @@ def build_report(started_at: str, conversation_id: str, segments: dict[str, dict
                 card_mismatches.append(f"{name} expected green, got red")
             elif name in card_expected_red and row["ok"]:
                 card_mismatches.append(f"{name} expected red (card table), got green")
+    shape_note = "inline variant delivers S5/S6/S7 through the respond body per B1 Q1; scheduled variant matches the card table directly"
+    if f1_fixed:
+        observed_either = {name: bool(segments[name]["ok"]) for name in sorted(f1_either) if name in segments}
+        shape_note = (
+            "post-F1 shape: S8 judgment servable + S11 zero orphan closes required green; "
+            f"S9/S10 observed honestly ({observed_either}); "
+            "F2-owned terminal delivery keeps its pre-F2 state"
+        )
     return {
         "layer": "A",
         "started_at": started_at,
@@ -641,12 +678,13 @@ def build_report(started_at: str, conversation_id: str, segments: dict[str, dict
         "latencies_ms": latencies,
         "shape_summary": {
             "expect_red": expect_red,
+            "f1_fixed": f1_fixed,
             "variant": variant,
             "card_table_mismatches": card_mismatches,
             "variant_aware_mismatches": variant_mismatches,
             "matches_expectation": (not variant_mismatches),
-            "card_table_exact_match": (not card_mismatches) and variant == "scheduled",
-            "note": "inline variant delivers S5/S6/S7 through the respond body per B1 Q1; scheduled variant matches the card table directly",
+            "card_table_exact_match": (not card_mismatches) and variant == "scheduled" and not f1_fixed,
+            "note": shape_note,
         },
         "timeline_rows": len(timeline),
     }

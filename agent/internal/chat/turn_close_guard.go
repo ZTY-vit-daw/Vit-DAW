@@ -125,8 +125,18 @@ func (s *Server) taskHasLiveContinuationOwner(conversationID string, goal agentr
 	if liveContinuation {
 		return true
 	}
-	if loop, ok := s.freeStateLoop(conversationID); ok && freeStateLoopActive(loop) && loop.GoalID == goal.GoalID {
-		return true
+	if loop, ok := s.freeStateLoop(conversationID); ok && loop.GoalID == goal.GoalID {
+		// A loop durably parked at the human-judgment boundary still owes the
+		// task its next semantic move — the guarded audition judgment POST —
+		// even though the boundary parks the loop with a blocked status so
+		// ordinary model turns cannot revive it. Reading that blocked residency
+		// as ownerless closed the task out from under the servable judgment
+		// path (2026-09-09 B1-DIAG Q2: rev9 owner_turn_closed → judgment POST
+		// 409); the boundary stays in the spare set while the anti-revival
+		// vocabulary itself is untouched.
+		if freeStateLoopActive(loop) || freeStateJudgmentBoundary(loop) {
+			return true
+		}
 	}
 	return false
 }

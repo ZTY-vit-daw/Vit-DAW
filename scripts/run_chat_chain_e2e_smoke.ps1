@@ -15,8 +15,11 @@ The repo default_project.xml hash is recorded before/after; its mutation is
 the same whitelisted runtime increment every smoke run (incl. B1-DIAG) makes.
 
 Exit codes: 0 = bed delivered with expected assertion shape (RED baseline shape
-when -ExpectRed, all-green otherwise); 1 = shape mismatch or assertion failure
-of the expected kind; 2 = environment/bed failure (see run dir prereq.txt).
+when -ExpectRed, post-F1 shape when -ExpectF1Fixed — layer A requires S8/S11
+green with S9/S10 observed honestly and F2-owned segments unchanged, layer B
+keeps its F2/F3-owned red table; all-green otherwise); 1 = shape mismatch or
+assertion failure of the expected kind; 2 = environment/bed failure (see run
+dir prereq.txt).
 #>
 [CmdletBinding()]
 param(
@@ -27,9 +30,11 @@ param(
     [string]$KernelExe = "",
     [string]$JudgmentBranch = "A",
     [switch]$ExpectRed,
+    [switch]$ExpectF1Fixed,
     [int]$WaitSeconds = 30,
     [int]$KernelDwellSeconds = 120,
-    [int]$ApprovePacingMs = 5000
+    [int]$ApprovePacingMs = 5000,
+    [int]$ChatBudgetSeconds = 0
 )
 
 Set-StrictMode -Version Latest
@@ -277,9 +282,21 @@ try {
         }
     }
 
-    $expectRedFlag = @()
+    if ($ExpectRed -and $ExpectF1Fixed) {
+        throw "-ExpectRed and -ExpectF1Fixed are mutually exclusive shape modes"
+    }
+    # Layer B's red table is F2/F3-owned (terminal delivery / refresh recovery)
+    # and is unaffected by the F1 judgment-boundary exemption, so -ExpectF1Fixed
+    # still evaluates layer B against the RED baseline table.
+    $layerAFlags = @()
+    $layerBFlags = @()
     if ($ExpectRed) {
-        $expectRedFlag = @("--expect-red")
+        $layerAFlags = @("--expect-red")
+        $layerBFlags = @("--expect-red")
+    }
+    if ($ExpectF1Fixed) {
+        $layerAFlags = @("--f1-fixed")
+        $layerBFlags = @("--expect-red")
     }
 
     # Layer order: B first, then A. A fresh browser session hydrates the
@@ -296,7 +313,7 @@ try {
             --webui-url "http://127.0.0.1:7878/app/" `
             --agent-http "http://127.0.0.1:7878" `
             --out-dir (Join-Path $RunRoot "layer_b") `
-            @expectRedFlag 2>&1 | Tee-Object -FilePath $layerBConsole
+            @layerBFlags 2>&1 | Tee-Object -FilePath $layerBConsole
         $layerBExit = $LASTEXITCODE
         Add-Prereq ("layer_b_exit=" + $layerBExit)
     }
@@ -306,13 +323,22 @@ try {
 
     Write-Step "Layer A: HTTP contract bed (S1-S12 + stand-in judgment)"
     $layerAConsole = Join-Path $RunRoot "layer_a_console.txt"
+    # S2's card wait rides the scheduler chain behind the first chat slice; the
+    # driver's default budget absorbs the calibrated round-1 latency (~52s) and
+    # -ChatBudgetSeconds widens it for slower LLM windows (latency variance is
+    # an environment class, not a segment shape).
+    $layerABudgetFlags = @()
+    if ($ChatBudgetSeconds -gt 0) {
+        $layerABudgetFlags = @("--chat-budget", ([string]$ChatBudgetSeconds))
+    }
     & python (Join-Path $ScriptsDir "e2e_chat_chain_layer_a.py") `
         --agent-http "http://127.0.0.1:7878" `
         --out-dir (Join-Path $RunRoot "layer_a") `
         --branch $JudgmentBranch `
         --approve-pacing ([double]($ApprovePacingMs / 1000.0)) `
         --kernel-project $RepoDefaultProject `
-        @expectRedFlag 2>&1 | Tee-Object -FilePath $layerAConsole
+        @layerABudgetFlags `
+        @layerAFlags 2>&1 | Tee-Object -FilePath $layerAConsole
     $layerAExit = $LASTEXITCODE
     Add-Prereq ("layer_a_exit=" + $layerAExit)
 }
@@ -363,6 +389,7 @@ finally {
     $summary = [ordered]@{
         run_root         = $RunRoot
         expect_red       = [bool]$ExpectRed
+        expect_f1_fixed  = [bool]$ExpectF1Fixed
         layer_a_exit     = $layerAExit
         layer_b_exit     = $layerBExit
         layer_b_status   = $layerBStatus

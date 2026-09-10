@@ -264,6 +264,18 @@ func (s *Server) requireTaskHumanJudgment(loop *freeStateReasoningLoop, interact
 	if loop == nil || loop.Experiment == nil || !s.hasTaskSemanticContract(loop.GoalID) {
 		return nil
 	}
+	goal := s.harness.RuntimeStatus(loop.GoalID)
+	// audition.ready reaches requestAuditionJudgment twice (prepare path and
+	// kernel telemetry path) inside the judgment request's write window. The
+	// transition table admits human_judgment_requested only from
+	// needs_experiment/improvement_proposal, so the latecomer used to die as a
+	// benign WARN. A task already parked at this experiment's judgment
+	// boundary is the success shape: rebind the projection and return.
+	if goal.Task != nil && goal.Task.SemanticState != nil &&
+		goal.Task.SemanticState.State == taskstate.StateHumanJudgmentRequired &&
+		goal.Task.SemanticState.ExperimentID == loop.Experiment.ID {
+		return loop.Experiment.BindTaskState(goal.Task.Contract.ContractID, goal.Task.SemanticState.State, goal.Task.SemanticState.Revision)
+	}
 	_, err := s.transitionTaskSemantic(loop.GoalID, taskstate.TransitionRequest{
 		Event: taskstate.EventHumanJudgmentRequested, Reason: reason, Summary: reason,
 		ExperimentID: loop.Experiment.ID, ProjectRevision: loop.Experiment.ProjectRevision,
@@ -272,7 +284,7 @@ func (s *Server) requireTaskHumanJudgment(loop *freeStateReasoningLoop, interact
 	if err != nil {
 		return err
 	}
-	goal := s.harness.RuntimeStatus(loop.GoalID)
+	goal = s.harness.RuntimeStatus(loop.GoalID)
 	return loop.Experiment.BindTaskState(goal.Task.Contract.ContractID, goal.Task.SemanticState.State, goal.Task.SemanticState.Revision)
 }
 
