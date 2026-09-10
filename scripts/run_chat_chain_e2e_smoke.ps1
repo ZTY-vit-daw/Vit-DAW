@@ -17,7 +17,12 @@ the same whitelisted runtime increment every smoke run (incl. B1-DIAG) makes.
 Exit codes: 0 = bed delivered with expected assertion shape (RED baseline shape
 when -ExpectRed, post-F1 shape when -ExpectF1Fixed — layer A requires S8/S11
 green with S9/S10 observed honestly and F2-owned segments unchanged, layer B
-keeps its F2/F3-owned red table; all-green otherwise); 1 = shape mismatch or
+keeps its F2/F3-owned red table; post-F2+F3 combined shape when -ExpectF2Fixed
+— layer A requires S5/S6/S7 green on the scheduled variant on top of the F1
+shape, layer B requires R4 and R5 (both halves: terminal survival via the F2
+conversation-graph node, dead-card guard via the F3 interaction guard) green
+in both variants with R3 recorded as B3-owned; all-green otherwise); 1 = shape
+mismatch or
 assertion failure of the expected kind; 2 = environment/bed failure (see run
 dir prereq.txt).
 #>
@@ -31,6 +36,7 @@ param(
     [string]$JudgmentBranch = "A",
     [switch]$ExpectRed,
     [switch]$ExpectF1Fixed,
+    [switch]$ExpectF2Fixed,
     [int]$WaitSeconds = 30,
     [int]$KernelDwellSeconds = 120,
     [int]$ApprovePacingMs = 5000,
@@ -285,6 +291,9 @@ try {
     if ($ExpectRed -and $ExpectF1Fixed) {
         throw "-ExpectRed and -ExpectF1Fixed are mutually exclusive shape modes"
     }
+    if ($ExpectF2Fixed -and ($ExpectRed -or $ExpectF1Fixed)) {
+        throw "-ExpectF2Fixed is mutually exclusive with -ExpectRed/-ExpectF1Fixed shape modes"
+    }
     # Layer B's red table is F2/F3-owned (terminal delivery / refresh recovery)
     # and is unaffected by the F1 judgment-boundary exemption, so -ExpectF1Fixed
     # still evaluates layer B against the RED baseline table.
@@ -297,6 +306,14 @@ try {
     if ($ExpectF1Fixed) {
         $layerAFlags = @("--f1-fixed")
         $layerBFlags = @("--expect-red")
+    }
+    if ($ExpectF2Fixed) {
+        # Post-F2+F3 combined shape: layer A requires S5/S6/S7 green on the
+        # scheduled variant on top of the F1 shape; layer B requires R4 and R5
+        # (both halves) green in both variants and R3 recorded as B3-owned
+        # (F3 receipt §5 pre-declared R5's dead-card half going green).
+        $layerAFlags = @("--f2-fixed")
+        $layerBFlags = @("--f2-fixed")
     }
 
     # Layer order: B first, then A. A fresh browser session hydrates the

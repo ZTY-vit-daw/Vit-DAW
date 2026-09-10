@@ -986,42 +986,144 @@ func (s *Server) runContinuationSchedulerOnce(ctx context.Context) error {
 	// 切片或待答交互则不动）。
 	if exists {
 		chainEnded := !s.goalHasLiveContinuationOwner(current.GoalID)
-		s.settleGoalAfterContinuationEnd(current.ConversationID, current.GoalID)
-		// 链终局可观测性（AGENT-F6）：终片后各门条件实值，供审计对账。
-		if s.logger != nil {
-			runtimeGoalStatus := ""
-			if s.harness != nil {
-				runtimeGoalStatus = string(s.harness.RuntimeStatus(current.GoalID).Status)
-			}
-			s.logger.Info("[f6.gate] conversation=%s goal=%s chainEnded=%t status=%s respGoal=%s runtimeGoal=%s",
-				current.ConversationID, current.GoalID, chainEnded, current.Status, chainResp.GoalStatus, runtimeGoalStatus)
-		}
-		// AGENT-F6：链终局投递。此前调度路径的最终 reply 被静默丢弃（多轮
-		// 执行后用户看不到任何结果）。判据以运行时 goal 终态为准：终片
-		// checkpoint 已终态（completed/cancelled/failed——结算期的
-		// displaced-cancel 瞬态会被随后修复为 completed，不能只认 completed）
-		// 且无后续链、goal 已落终态即投。waiting_interaction park 非终态、
-		// 且其 goal 也不终态，天然排除；测试执行器（无真实 resp）不投。
-		if chainEnded && continuationTerminalStatus(current.Status) && current.ConversationID != "" &&
-			(chainResp.ConversationID != "" || chainResp.GoalID != "") && s.harness != nil {
-			if goal := s.harness.RuntimeStatus(current.GoalID); goal.GoalID != "" {
-				switch goal.Status {
-				case agentruntime.StatusCompleted, agentruntime.StatusFailed, agentruntime.StatusCancelled, agentruntime.StatusStopped, agentruntime.StatusStable:
-					if chainResp.GoalStatus == "" ||
-						strings.EqualFold(strings.TrimSpace(chainResp.GoalStatus), string(agentruntime.StatusWaitingContinue)) ||
-						strings.EqualFold(strings.TrimSpace(chainResp.GoalStatus), string(agentruntime.StatusWaitingConfirmation)) ||
-						strings.EqualFold(strings.TrimSpace(chainResp.GoalStatus), string(agentruntime.StatusWaitingClarification)) {
-						chainResp.GoalStatus = string(goal.Status)
-					}
-					s.emitSchedulerChainResultEvent(current.ConversationID, chainResp, nil)
-				}
-			}
-		}
+		s.settleAndDeliverContinuationChainEnd(ctx, current, chainResp, chainEnded)
 	}
 	if err := s.persistContinuationState(); err != nil {
 		return fmt.Errorf("persist completed continuation: %w", err)
 	}
 	return nil
+}
+
+// settleAndDeliverContinuationChainEnd closes a scheduler slice's chain-end
+// bookkeeping: the F3 goal/task settle followed by the chain-terminal
+// delivery gate. The gate judges on the runtime goal status and the durable
+// record's lifecycle form. Two deliverable end shapes exist:
+//
+//   - AGENT-F6 terminal settle: the slice checkpoint reached a terminal
+//     lifecycle (completed/cancelled/failed — the settle-time displaced-cancel
+//     transient is repaired to completed afterwards, so completed alone would
+//     misjudge) and the goal landed on a settled form.
+//   - B1-F2 waiting park: the chain parked at an answerable interaction
+//     (goal waiting_confirmation/waiting_clarification). The park is a
+//     genuine user-facing wait whose final reply is the chain's last word
+//     ("等待试听确认") — B1-DIAG Q1: the terminal-only vocabulary silently
+//     dropped it, leaving every user-facing surface empty while the loop
+//     waited on the judgment POST. Two record forms reach it: the
+//     interaction-boundary park (waiting_interaction record) and the audition
+//     judgment park whose slice acked stop=done (record completed) while the
+//     loop parked the goal inside the slice (20260910_212325).
+//
+// Mid-chain slices, unanswerable legacy shells (goal still waiting_continue),
+// and the test executor (no real resp) deliver nothing.
+func (s *Server) settleAndDeliverContinuationChainEnd(ctx context.Context, current DurableContinuation, chainResp ChatResponse, chainEnded bool) {
+	if s == nil {
+		return
+	}
+	s.settleGoalAfterContinuationEnd(current.ConversationID, current.GoalID)
+	// 链终局可观测性（AGENT-F6）：终片后各门条件实值，供审计对账。
+	if s.logger != nil {
+		runtimeGoalStatus := ""
+		if s.harness != nil {
+			runtimeGoalStatus = string(s.harness.RuntimeStatus(current.GoalID).Status)
+		}
+		s.logger.Info("[f6.gate] conversation=%s goal=%s chainEnded=%t status=%s respGoal=%s runtimeGoal=%s",
+			current.ConversationID, current.GoalID, chainEnded, current.Status, chainResp.GoalStatus, runtimeGoalStatus)
+	}
+	if !chainEnded || current.ConversationID == "" ||
+		(chainResp.ConversationID == "" && chainResp.GoalID == "") || s.harness == nil {
+		return
+	}
+	goal := s.harness.RuntimeStatus(current.GoalID)
+	if goal.GoalID == "" {
+		return
+	}
+	switch {
+	case continuationTerminalStatus(current.Status) &&
+		(goal.Status == agentruntime.StatusCompleted || goal.Status == agentruntime.StatusFailed ||
+			goal.Status == agentruntime.StatusCancelled || goal.Status == agentruntime.StatusStopped ||
+			goal.Status == agentruntime.StatusStable):
+		s.normalizeChainResponseGoalStatus(chainResp, goal.Status)
+		s.deliverSchedulerChainTerminal(ctx, current.ConversationID, chainResp)
+	case (goal.Status == agentruntime.StatusWaitingConfirmation || goal.Status == agentruntime.StatusWaitingClarification) &&
+		(continuationTerminalStatus(current.Status) || current.Status == ContinuationWaitingInteraction):
+		// Answerable park. Two record forms reach it: the interaction-boundary
+		// park (waiting_interaction record) and — 20260910_212325 real-stack —
+		// the audition judgment park whose final slice acked stop=done (record
+		// completed) while the loop parked the goal at the judgment boundary
+		// inside the slice; keying the branch on the record form alone missed
+		// it and the waiting reply never reached any surface. The runtime goal
+		// status is the authority in both forms.
+		chainResp.GoalStatus = string(goal.Status)
+		if strings.TrimSpace(chainResp.Reply) == "" {
+			// The park slice's own reply is frequently empty; the terminal
+			// report ("实验调整已应用并完成观测评估，等待用户试听确认")
+			// lives on the loop's latest decision (B1-DIAG Q1 forensics).
+			chainResp.Reply = s.schedulerChainFallbackReply(current.ConversationID)
+		}
+		s.deliverSchedulerChainTerminal(ctx, current.ConversationID, chainResp)
+	}
+}
+
+// normalizeChainResponseGoalStatus overrides a non-authoritative response
+// goal status with the runtime goal's status: the runtime is the settle-time
+// truth (a slice's waiting_continue ack must not outlive the goal's terminal
+// form, and an empty status must not leak into the transport event).
+func (s *Server) normalizeChainResponseGoalStatus(chainResp ChatResponse, status agentruntime.GoalStatus) {
+	if chainResp.GoalStatus == "" ||
+		strings.EqualFold(strings.TrimSpace(chainResp.GoalStatus), string(agentruntime.StatusWaitingContinue)) ||
+		strings.EqualFold(strings.TrimSpace(chainResp.GoalStatus), string(agentruntime.StatusWaitingConfirmation)) ||
+		strings.EqualFold(strings.TrimSpace(chainResp.GoalStatus), string(agentruntime.StatusWaitingClarification)) {
+		chainResp.GoalStatus = string(status)
+	}
+}
+
+// schedulerChainFallbackReply resolves the terminal reply text for a parked
+// chain whose slice response carried none: the free-state loop's latest
+// decision summary is where the terminal report lives (B1-DIAG Q1).
+func (s *Server) schedulerChainFallbackReply(conversationID string) string {
+	loop, ok := s.freeStateLoop(conversationID)
+	if !ok || loop.LatestDecision == nil {
+		return ""
+	}
+	return strings.TrimSpace(loop.LatestDecision.Summary)
+}
+
+// deliverSchedulerChainTerminal emits the chain's terminal delivery: the
+// terminal reply is persisted into the project conversation graph first
+// (B1-DIAG Q3: vit nodes existed only on the HTTP finalize boundary, so
+// scheduler chain ends were invisible to the refresh hydration), then the
+// scheduler_chain transport event fires for the live conversation.
+func (s *Server) deliverSchedulerChainTerminal(ctx context.Context, conversationID string, resp ChatResponse) {
+	s.recordSchedulerChainTerminalNode(ctx, resp)
+	s.emitSchedulerChainResultEvent(conversationID, resp, nil)
+}
+
+// recordSchedulerChainTerminalNode writes the chain's terminal reply as a
+// conversation-graph vit node. The shape mirrors the HTTP finalize write
+// (finalizeInteractionChatResponse): chatResponseHistoryData metadata, plus
+// project result cards when the chain produced any. The persisted node is a
+// terminal REPORT, not an interaction offer: a waiting park's slice response
+// rides proposal/confirmation metadata (serving the live interaction), and
+// persisting it verbatim made the refresh hydration re-render the node as a
+// consumed interaction card whose text then merged away the scheduler_chain
+// bubble (real-stack run 20260910_202854: R4/R5 both red, the terminal only
+// visible as 改善性提案待确认/已处理 card chrome). The interaction itself stays
+// owned by the audition/proposal flow; the node keeps the terminal body.
+func (s *Server) recordSchedulerChainTerminalNode(ctx context.Context, resp ChatResponse) {
+	if s == nil || s.harness == nil || strings.TrimSpace(resp.Reply) == "" {
+		return
+	}
+	projectPath, _ := s.harness.CurrentProjectIdentity(ctx)
+	node := resp
+	node.NeedsConfirmation = false
+	node.ProposalPresentation = nil
+	node.InteractionRequests = nil
+	node.MessageKind = "assistant"
+	historyData := chatResponseHistoryData(node, map[string]any{"artifacts": artifactSummaryRows(node.Artifacts)})
+	if len(node.ProjectResultCards) > 0 {
+		historyData["project_result_cards"] = node.ProjectResultCards
+	}
+	s.harness.RecordConversationNodeForProjectWithData(ctx, projectPath, "vit", node.Reply, node.GoalID, node.RunID, historyData)
 }
 
 func (s *Server) acquireRuntimeStateLease() (*history.AgentRuntimeStateLock, error) {

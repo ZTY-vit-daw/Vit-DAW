@@ -274,6 +274,7 @@ def main() -> int:
     parser.add_argument("--kernel-project", default="", help="isolated kernel default_project.xml (pollution guard, hashed before/after)")
     parser.add_argument("--expect-red", action="store_true", help="evaluate segment shape against the RED baseline expectation")
     parser.add_argument("--f1-fixed", action="store_true", help="evaluate segment shape against the post-F1 expectation: S8 judgment servable + S11 zero orphan closes are green, S9/S10 observed either way, F2/F3-owned segments keep their red state")
+    parser.add_argument("--f2-fixed", action="store_true", help="evaluate segment shape against the post-F2 expectation (implies the F1 shape): S5/S6/S7 scheduled-variant terminal delivery + graph persistence + cold-read recovery are green on top of S8/S11; S9/S10 stay honestly observed")
     args = parser.parse_args()
 
     out_dir = Path(args.out_dir)
@@ -337,7 +338,7 @@ def main() -> int:
         recorder.stop()
         recorder.dump()
         save_json(out_dir / "timeline.json", {"rows": timeline})
-        save_json(out_dir / "e2e_layer_a_report.json", build_report(started_at, conversation_id, segments, latencies, timeline, args.expect_red, f1_fixed=args.f1_fixed))
+        save_json(out_dir / "e2e_layer_a_report.json", build_report(started_at, conversation_id, segments, latencies, timeline, args.expect_red, f1_fixed=args.f1_fixed, f2_fixed=args.f2_fixed))
         return 2
     card1_id = str(card1.get("id"))
     record("S2", True, "green", interaction=card1_id, kind=card1.get("kind", card1.get("type")), chat_ms=latencies["S2_chat_ms"], card1_wait_ms=latencies["S2_card1_wait_ms"])
@@ -376,7 +377,7 @@ def main() -> int:
         recorder.stop()
         recorder.dump()
         save_json(out_dir / "timeline.json", {"rows": timeline})
-        save_json(out_dir / "e2e_layer_a_report.json", build_report(started_at, conversation_id, segments, latencies, timeline, args.expect_red, f1_fixed=args.f1_fixed))
+        save_json(out_dir / "e2e_layer_a_report.json", build_report(started_at, conversation_id, segments, latencies, timeline, args.expect_red, f1_fixed=args.f1_fixed, f2_fixed=args.f2_fixed))
         return 3
     card2_id = str(card2.get("id"))
     if args.approve_pacing > 0:
@@ -602,13 +603,13 @@ def main() -> int:
     save_json(out_dir / "timeline.json", {"started_at": started_at, "finished_at": now_stamp(), "rows": timeline})
     record("S12", True, "green", artifacts=str(out_dir), note="event frame recording + responses + report written")
     chain_variant = "inline" if str(approve2.get("stop_reason") or "") == "done" else "scheduled"
-    report = build_report(started_at, conversation_id, segments, latencies, timeline, args.expect_red, chain_variant, f1_fixed=args.f1_fixed)
+    report = build_report(started_at, conversation_id, segments, latencies, timeline, args.expect_red, chain_variant, f1_fixed=args.f1_fixed, f2_fixed=args.f2_fixed)
     save_json(out_dir / "e2e_layer_a_report.json", report)
     print("LAYER_A_DONE " + json.dumps(report.get("shape_summary"), ensure_ascii=False), flush=True)
     return 0 if report["shape_summary"]["matches_expectation"] else 1
 
 
-def build_report(started_at: str, conversation_id: str, segments: dict[str, dict[str, Any]], latencies: dict[str, Any], timeline: list[dict[str, Any]], expect_red: bool, variant: str = "scheduled", f1_fixed: bool = False) -> dict[str, Any]:
+def build_report(started_at: str, conversation_id: str, segments: dict[str, dict[str, Any]], latencies: dict[str, Any], timeline: list[dict[str, Any]], expect_red: bool, variant: str = "scheduled", f1_fixed: bool = False, f2_fixed: bool = False) -> dict[str, Any]:
     # Card table (written from the B1 scheduled-variant repro): S5-S8 red.
     # The inline variant (approve2 stop=done) legitimately delivers the
     # terminal through the respond body + finalize node (B1 Q1 documents both
@@ -639,9 +640,27 @@ def build_report(started_at: str, conversation_id: str, segments: dict[str, dict
         else:
             f1_green = f1_green | card_expected_green
             f1_red = {"S5", "S6", "S7"}
+    # Post-F2 shape (task card 2026-09-10-F2): the scheduler delivery gate also
+    # delivers the answerable waiting park and persists the terminal reply as a
+    # conversation-graph vit node, so S5 (terminal event), S6 (graph message)
+    # and S7 (cold-read recovery) turn green on the scheduled variant too.
+    # Builds on the F1 shape: S8/S11 stay required-green; S9/S10 (settle/
+    # adoption behind the judgment, D1-S1 correct-semantics S9 red documented
+    # in the F1 receipt) stay honestly observed either way.
+    f2_green = set()
+    f2_either = set()
+    if f2_fixed:
+        f2_green = {"S1", "S2", "S3", "S4", "S12", "S8", "S11", "S5", "S6", "S7"}
+        f2_either = {"S9", "S10"}
     card_mismatches: list[str] = []
     variant_mismatches: list[str] = []
     for name, row in segments.items():
+        if f2_fixed:
+            # The F2 shape table covers all twelve segments: S1-S8+S11+S12
+            # required green, S9/S10 honestly observed either way.
+            if name in f2_green and not row["ok"]:
+                variant_mismatches.append(f"{name} expected green (f2_fixed/{variant}), got red")
+            continue
         if f1_fixed:
             if name in f1_green and not row["ok"]:
                 variant_mismatches.append(f"{name} expected green (f1_fixed/{variant}), got red")
@@ -661,7 +680,13 @@ def build_report(started_at: str, conversation_id: str, segments: dict[str, dict
             elif name in card_expected_red and row["ok"]:
                 card_mismatches.append(f"{name} expected red (card table), got green")
     shape_note = "inline variant delivers S5/S6/S7 through the respond body per B1 Q1; scheduled variant matches the card table directly"
-    if f1_fixed:
+    if f2_fixed:
+        observed_either = {name: bool(segments[name]["ok"]) for name in sorted(f2_either) if name in segments}
+        shape_note = (
+            "post-F2 shape: S5 terminal event + S6 graph persistence + S7 cold-read recovery green on the "
+            f"scheduled variant, on top of the F1 shape (S8/S11); S9/S10 observed honestly ({observed_either})"
+        )
+    elif f1_fixed:
         observed_either = {name: bool(segments[name]["ok"]) for name in sorted(f1_either) if name in segments}
         shape_note = (
             "post-F1 shape: S8 judgment servable + S11 zero orphan closes required green; "
@@ -679,11 +704,12 @@ def build_report(started_at: str, conversation_id: str, segments: dict[str, dict
         "shape_summary": {
             "expect_red": expect_red,
             "f1_fixed": f1_fixed,
+            "f2_fixed": f2_fixed,
             "variant": variant,
             "card_table_mismatches": card_mismatches,
             "variant_aware_mismatches": variant_mismatches,
             "matches_expectation": (not variant_mismatches),
-            "card_table_exact_match": (not card_mismatches) and variant == "scheduled" and not f1_fixed,
+            "card_table_exact_match": (not card_mismatches) and variant == "scheduled" and not f1_fixed and not f2_fixed,
             "note": shape_note,
         },
         "timeline_rows": len(timeline),

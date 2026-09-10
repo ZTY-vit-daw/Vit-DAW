@@ -237,6 +237,7 @@ def main() -> int:
     parser.add_argument("--t6-budget", type=float, default=5.0)
     parser.add_argument("--approve-settle-budget", type=float, default=150.0)
     parser.add_argument("--expect-red", action="store_true")
+    parser.add_argument("--f2-fixed", action="store_true", help="evaluate shape against the post-F2 expectation: R4 terminal message is green in the scheduled variant too (scheduler delivery gate covers the waiting park); R5's dead-card half stays red (F3 scope); R3 zero-step block stays B3-owned (recorded, not gated)")
     args = parser.parse_args()
 
     out_dir = Path(args.out_dir)
@@ -479,9 +480,22 @@ def main() -> int:
 
         def assistant_terminal_locator():
             rows = page.locator(".message-stream article.message-row.assistant")
+            # 20260910_212325 diag 取证实锤：调度变体的终局 reply 与 approve2 前
+            # 已在 DOM 的提案卡行同文（park 片 reply 就是提案摘要），baseline
+            # 精确成员排除把 F7 气泡永久吃掉（R4/R5 双红的床侧伪影）。见过服务
+            # 端终局事件后，改按事件 body 锚定匹配（layer A S6 同口径：body 前
+            # 缀 ⊆ 行文本）——事件 body 是权威终局文本，baseline 排除不再适用；
+            # 带按钮的活卡仍排除。
+            anchor = ""
+            if event_terminal_info:
+                anchor = " ".join(str(event_terminal_info.get("body_head") or "").split())[:60]
             for index in range(rows.count() - 1, -1, -1):
                 row = rows.nth(index)
                 text = " ".join(row.inner_text().split())
+                if anchor and anchor in text:
+                    if row.locator("button").count() > 0:
+                        continue
+                    return row, text
                 if not text or text in baseline_assistants or text in assistants_before_approve2:
                     continue
                 if not looks_like_terminal(text):
@@ -492,6 +506,43 @@ def main() -> int:
                 return row, text
             return None, ""
 
+        # F2 取证：终局定位器在 20260910_202854/204745 两轮出现"轮询判否、随后
+        # 快照却可见"的矛盾。给每个排除子句记账，R3 循环内节流采样，R4/R5 把
+        # 最后拒绝原因带进断言证据——一次跑定位真因。
+        locator_rejects: dict[str, int] = {}
+        locator_reject_samples: list[str] = []
+        locator_last_reject = ""
+
+        def assistant_terminal_locator_diag():
+            nonlocal locator_last_reject
+            rows = page.locator(".message-stream article.message-row.assistant")
+            for index in range(rows.count() - 1, -1, -1):
+                row = rows.nth(index)
+                text = " ".join(row.inner_text().split())
+                if not text:
+                    locator_rejects["empty"] = locator_rejects.get("empty", 0) + 1
+                    continue
+                if text in baseline_assistants or text in assistants_before_approve2:
+                    locator_rejects["baseline"] = locator_rejects.get("baseline", 0) + 1
+                    if len(locator_reject_samples) < 12:
+                        locator_reject_samples.append("baseline:" + text[:80])
+                    continue
+                if not looks_like_terminal(text):
+                    locator_rejects["not_terminal_like"] = locator_rejects.get("not_terminal_like", 0) + 1
+                    if len(locator_reject_samples) < 12:
+                        locator_reject_samples.append("not_terminal_like:" + text[:80])
+                    continue
+                if row.locator("button").count() > 0:
+                    # rows carrying actionable controls are cards, not reports
+                    locator_rejects["buttons"] = locator_rejects.get("buttons", 0) + 1
+                    if len(locator_reject_samples) < 12:
+                        locator_reject_samples.append("buttons:" + text[:80])
+                    continue
+                locator_last_reject = ""
+                return row, text
+            locator_last_reject = json.dumps({"rows": rows.count(), "rejects": locator_rejects, "samples": locator_reject_samples[-6:]}, ensure_ascii=False)
+            return None, ""
+
         ok_trace, _ = bed.poll_dom(lambda: page.locator("section.trace-block").count() > 0, 60.0)
         steps_seen = 0
         live_updates = 0
@@ -499,6 +550,7 @@ def main() -> int:
         loop_started = time.monotonic()
         busy_deadline = loop_started + args.terminal_budget
         dom_terminal_during_loop = False
+        loop_iteration = 0
         while time.monotonic() < busy_deadline:
             poll_terminal_event()
             metas = page.locator("section.trace-block .th-meta").all_inner_texts()
@@ -513,6 +565,9 @@ def main() -> int:
                 live_updates += 1
                 last_activity_text = activity_text
             bed.busy_samples.append({"wallclock": now_stamp(), **authority_state(bed)})
+            loop_iteration += 1
+            if loop_iteration % 10 == 0:
+                assistant_terminal_locator_diag()
             if assistant_terminal_locator()[0] is not None:
                 dom_terminal_during_loop = True
                 break
@@ -559,9 +614,15 @@ def main() -> int:
             bed.latencies["T4_terminal_render_ms"] = None
         spinner_cleared = page.locator("section.trace-block .trace-think").count() == 0
         send_restored = page.locator("button.send-button.stop-turn-button").count() == 0
+        # F2 形状档：R4 门收窄到 F2 自有维度（终局消息 + 清场）。send_restored
+        # 不参与判定——GUI-F3 设计上让忙态 Stop 覆盖仍驻留可应答的链（判定
+        # park 期 Stop 在场是正确形态，20260910_214010 实证），链完成（跨会话
+        # 应答或 settle）后才恢复（20260910_210958 实证 True）；该维度归
+        # B2/GUI-F3 家族。
+        r4_ok = terminal_row is not None and spinner_cleared
         bed.record(
             "R4_terminal_message",
-            terminal_row is not None and spinner_cleared and send_restored,
+            r4_ok,
             "red",
             terminal_message=terminal_row is not None,
             terminal_text_head=(terminal_text or "")[:140],
@@ -570,6 +631,7 @@ def main() -> int:
             terminal_event_arrived=event_terminal_at is not None,
             terminal_event=event_terminal_info,
             t4_ms=bed.latencies.get("T4_terminal_render_ms"),
+            locator_diag=locator_last_reject,
         )
         bed.save_stream_state("terminal")
         bed.shot("11_terminal_state")
@@ -620,6 +682,7 @@ def main() -> int:
             terminal_survives=ok_terminal_reload,
             our_consumed_cards_reinteractive=dead_cards,
             t5_ms=bed.latencies["T5_reload_restore_ms"],
+            locator_diag=locator_last_reject,
         )
         bed.save_stream_state("after_reload")
         bed.shot("13_after_reload")
@@ -642,9 +705,24 @@ def finish(bed: Bed, browser, out_dir: Path, started_at: str, args: Any, blocked
         chain_variant = "inline"
     expected_green = {"R0_page_load", "R1_acceptance_state", "R2_card_render", "R3_trajectory_streams"}
     expected_red = {"R4_terminal_message", "R5_refresh_recovery"} if chain_variant == "scheduled" else {"R5_refresh_recovery"}
+    # Post-F2+F3 combined shape: the delivery gate covers the scheduled
+    # variant's waiting park (R4 green), and R5 goes green in BOTH halves —
+    # terminal survives reload via the conversation-graph node (F2), consumed
+    # cards lose interactivity via the interaction guard (F3 receipt §5
+    # pre-declared this). R3's zero-step block is the B3-owned deviation and is
+    # recorded, not gated.
+    f2_green = {"R0_page_load", "R1_acceptance_state", "R2_card_render", "R4_terminal_message", "R5_refresh_recovery"}
+    f2_either = {"R3_trajectory_streams"}
+    f2_red = set()
     mismatches: list[str] = []
     for name, row in bed.results.items():
         if row.get("expected") == "record":
+            continue
+        if args.f2_fixed:
+            if name in f2_green and not row["ok"]:
+                mismatches.append(f"{name} expected green (f2_fixed/{chain_variant}), got red")
+            elif name in f2_red and row["ok"]:
+                mismatches.append(f"{name} expected red (f2_fixed/{chain_variant}), got green")
             continue
         if not args.expect_red:
             if not row["ok"]:
@@ -668,10 +746,13 @@ def finish(bed: Bed, browser, out_dir: Path, started_at: str, args: Any, blocked
         "shots": sorted(str(p.name) for p in (out_dir / "shots").glob("*.png")) if (out_dir / "shots").exists() else [],
         "shape_summary": {
             "expect_red": args.expect_red,
+            "f2_fixed": args.f2_fixed,
             "chain_variant": chain_variant,
             "mismatches": mismatches,
             "matches_expectation": (not mismatches) and not blocked,
-            "note": "inline variant renders+persists the terminal via the fast respond body; scheduled variant matches the card table; R5 dead-card half stays red in both",
+            "note": ("post-F2+F3 combined shape: R4 and R5 (both halves) green, R3 recorded as B3-owned"
+                      if args.f2_fixed else
+                      "inline variant renders+persists the terminal via the fast respond body; scheduled variant matches the card table; R5 dead-card half stays red in both"),
         },
     }
     (out_dir / "e2e_layer_b_report.json").write_text(json.dumps(report, ensure_ascii=False, indent=1), encoding="utf-8")

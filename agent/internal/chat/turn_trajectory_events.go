@@ -238,7 +238,11 @@ func (s *Server) emitSchedulerChainResultEvent(conversationID string, resp ChatR
 			"scheduler_chain": true,
 			// CONTRACT-1 settle_slice 标记（M12 定案）：调度链收尾切片的
 			// 终局显式自报种类，UI 按标记隐藏"0 步"块，不再猜测。
-			"turn_kind":          "settle_slice",
+			"turn_kind": "settle_slice",
+			// B1-F2：终局自报 goal 状态——waiting park 的补投递靠它把
+			// waiting_confirmation/waiting_clarification 与完成态区分开
+			//（状态同时也在事件 Status 位上）。
+			"goal_status":        status,
 			"stop_reason":        resp.StopReason,
 			"completed_steps":    resp.CompletedSteps,
 			"executed_count":     len(resp.ExecutedKernelReply),
