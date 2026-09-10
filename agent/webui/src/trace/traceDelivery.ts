@@ -57,6 +57,25 @@ export function appendChainResultMessages(current: ChatMessage[], incoming: Chat
   return [...current, ...additions];
 }
 
+// F3 面②：链终局到达是"链已收尾"的最早权威信号。忙态（agentTurnRunning）派生
+// 自 runtime status 的 goal/continuations 投影，只靠 8s 周期轮刷新时终局后停止
+// 按钮最长滞留 8s（B1 手测"stop=done 后转圈"的呈现面放大器）；轮询器据此谓词
+// 立即刷新 runtime status，忙态数秒内退场。只认 scheduler_chain 终局三型：
+// HTTP 路径的 turn.completed 已由响应体交付并自带 refreshState，不重复触发。
+export function hasChainTerminalDeliveryEvent(events: AgentEvent[]): boolean {
+  for (const event of events ?? []) {
+    const type = String(event?.type ?? "");
+    if (type !== "turn.completed" && type !== "turn.failed" && type !== "turn.stopped") {
+      continue;
+    }
+    const payload = (event.payload ?? {}) as Record<string, unknown>;
+    if (Boolean(payload.scheduler_chain)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 // GUI-F8：终局消息的渲染位置谓词——scheduler_chain 终局消息在消息流中移到
 // 孤儿轨迹块（实验轮块）之后渲染：用户消息 → 中间汇报 → 实验轨迹块 → 终局回复。
 export function isChainResultChatMessage(message: ChatMessage): boolean {

@@ -106,7 +106,16 @@ import { authorityContext, checkoutBlockedByState, continuationChainLive, isAgen
 import { agentEventPollBusy, createAgentEventPollIdleGate } from "./eventPolling";
 import { AuditionJudgeCard } from "./trajectory/TrajectoryAuditionPanel";
 import { TraceBlock, OptimisticTraceBlock, shouldShowOptimisticTrace } from "./trace/TraceBlock";
-import { appendChainResultMessages, chainResultMessagesFromEvents, isChainResultChatMessage } from "./trace/traceDelivery";
+import { appendChainResultMessages, chainResultMessagesFromEvents, hasChainTerminalDeliveryEvent, isChainResultChatMessage } from "./trace/traceDelivery";
+import {
+  forgetConsumedInteraction,
+  isConsumedInteractionStatus,
+  loadConsumedInteractionIDs,
+  pendingInteractionFromContinuations,
+  recordConsumedInteractions,
+  resolvedInteractionIdsFromEvents,
+  stampConsumedInteractionActions
+} from "./interactionGuard";
 import {
   classifyHistoryScopeChange,
   concreteWorkspacePath,
@@ -135,7 +144,6 @@ import type {
   MacroControl,
   MacroControlBinding,
   MultimodalRouteConfig,
-  RuntimeContinuation,
   RuntimeStatusResponse
 } from "./types";
 
@@ -347,7 +355,7 @@ function App() {
       return;
     }
     restoredMessageScopeRef.current = restoreKey;
-    const storedMessages = loadStoredConversationMessages(conversationID, scope);
+    const storedMessages = stampConsumedInteractionActions(loadStoredConversationMessages(conversationID, scope), loadConsumedInteractionIDs());
     if (storedMessages.length === 0) {
       return;
     }
@@ -411,6 +419,17 @@ function App() {
         }
         if (events.length > 0) {
           idleGate.markActive();
+          // F3 面②：server 权威撤卡事件（AGENT-F5）入持久已消费台账——重载后
+          // 水合过滤不依赖本浏览器是否亲手应答过。终局投递事件（scheduler_chain
+          // 三型）到达即刷新 runtime status，忙态（Stop Turn 锁）数秒内退场，
+          // 不再等 8s 周期轮；终局消息入流仍走下方 GUI-F7 路径。
+          const resolvedInteractionIDs = resolvedInteractionIdsFromEvents(events);
+          if (resolvedInteractionIDs.length > 0) {
+            recordConsumedInteractions(resolvedInteractionIDs);
+          }
+          if (hasChainTerminalDeliveryEvent(events)) {
+            void refreshState();
+          }
           if (shouldDebugAgentEvents(events)) {
             debugConfirmation("agent-events-polled", {
               conversation_id: conversationID,
@@ -453,7 +472,7 @@ function App() {
       cancelled = true;
       window.clearInterval(timer);
     };
-  }, [agentEventPolling, agentTurnRunning, auditionWaiting, conversationID, isSending, mode, respondingActionID]);
+  }, [agentEventPolling, agentTurnRunning, auditionWaiting, conversationID, isSending, mode, refreshState, respondingActionID]);
 
   // GUI-F5：轮询被空闲休眠停掉后，链中途再活（续跑切片醒来）必须重新拉起轮询，
   // 否则终局结果落在服务端无人来取（2026-09-04 会话 webui_mtmwwfax 的漏取形态）。
@@ -476,7 +495,7 @@ function App() {
     if (!nextScope || pausedHistoryScopeRef.current === nextScope) {
       return;
     }
-    const historyMessages = historyMessagesFromUIState(uiState);
+    const historyMessages = stampConsumedInteractionActions(historyMessagesFromUIState(uiState), loadConsumedInteractionIDs());
     const changeKind = classifyHistoryScopeChange({
       previousKey: historyScopeRef.current,
       previousConcretePath: historyScopeConcreteRef.current,
@@ -568,8 +587,8 @@ function App() {
     "--right-panel-width": `${rightPanelWidth}px`
   } as CSSProperties;
   const composerInteraction = useMemo(
-    () => latestComposerInteraction(messages, dismissedInteractionIDs) ?? backgroundPendingInteractionAction(runtimeStatus?.continuations ?? []),
-    [messages, dismissedInteractionIDs, runtimeStatus]
+    () => latestComposerInteraction(messages, dismissedInteractionIDs) ?? pendingInteractionFromContinuations(runtimeStatus?.continuations ?? [], conversationID),
+    [messages, dismissedInteractionIDs, runtimeStatus, conversationID]
   );
   const composerInteractionID = composerInteraction ? actionRenderID(composerInteraction) : "";
 
@@ -1030,6 +1049,10 @@ function App() {
     });
     if (!persistentMixBoard) {
       dismissInteractionCard(interactionID, renderID, interaction);
+      // F3 死卡守卫：点击即乐观记入持久已消费台账——56s 级慢响应在飞期间，
+      // 8s 周期 refreshState 的历史水合不会把 waiting_for_user 快照复活成
+      // 可交互卡（18:59 二次 approve 形态）。应答失败在 catch 里回滚。
+      recordConsumedInteractions([interactionID, renderID]);
     }
     const progressMessage = processingChatMessage(processingMessageID, interactionProcessingText(interaction, actionID, actionLabel), mode);
     if (!persistentMixBoard) {
@@ -1102,6 +1125,11 @@ function App() {
     } catch (interactionError) {
       const message = interactionError instanceof Error ? interactionError.message : "交互提交失败";
       setError(message);
+      // F3 死卡守卫：应答失败回滚乐观台账——交互可能仍在 server 侧 pending，
+      // 不得因台账残留把真待确认卡隐藏成幽灵。
+      if (!persistentMixBoard) {
+        forgetConsumedInteraction(interactionID, renderID);
+      }
       setActivities((current) => dismissActivityByID(current, processingMessageID));
       setMessages((current) => [...current, {
           id: uniqueID("interaction_err"),
@@ -6436,35 +6464,11 @@ function latestComposerInteraction(messages: ChatMessage[], dismissedIDs: string
   return null;
 }
 
-// GUI-F3：后台驻留交互的浮卡投影。调度侧续跑切片 park 在 waiting_interaction
-// 时没有 HTTP 响应通道（AGENT-F5 补了 interaction.pending 事件），这里从
-// runtime status 的 continuation pending_interaction 兜底投影——覆盖事件
-// 未达（含已驻留的旧交互）与刷新竞态两个窗口，应答后 pending 消失即自动撤卡。
-function backgroundPendingInteractionAction(continuations: RuntimeContinuation[]): JsonRecord | null {
-  for (let index = continuations.length - 1; index >= 0; index -= 1) {
-    const row = continuations[index];
-    if (String(row?.status ?? "").trim().toLowerCase() !== "waiting_interaction") {
-      continue;
-    }
-    const pending = asRecord(row.pending_interaction);
-    const interactionID = textValue(pending.interaction_id, "");
-    if (!interactionID) {
-      continue;
-    }
-    const requests = Array.isArray(pending.requests) ? pending.requests.map(asRecord) : [];
-    const request = requests.length > 0 ? requests[0] : {};
-    return {
-      ...request,
-      id: interactionID,
-      interaction_id: interactionID,
-      kind: textValue(pending.kind, textValue(request.kind, "")) || "confirmation",
-      type: textValue(request.type, "approval.requested"),
-      status: "waiting_for_user",
-      _ui_source: "interaction"
-    };
-  }
-  return null;
-}
+// GUI-F3/F3：后台驻留交互的浮卡投影移入 interactionGuard.pendingInteractionFromContinuations。
+// 调度侧续跑切片 park 在 waiting_interaction 时没有 HTTP 响应通道（AGENT-F5 补了
+// interaction.pending 事件），投影从 runtime status 的 continuation pending_interaction
+// 兜底——覆盖事件未达与刷新竞态两个窗口，应答后 pending 消失即自动撤卡；
+// F3 起按 conversation_id 归属过滤，他会话的 stale pending 卡不再挤占新会话 composer。
 
 function isComposerInteraction(action: JsonRecord): boolean {
 	if (textValue(action._ui_source, "") !== "interaction") {
@@ -6482,6 +6486,10 @@ function isComposerInteraction(action: JsonRecord): boolean {
     return false;
   }
   if (
+    // F3 死卡守卫：已消费/过期口径与 server "这个交互已处理或已过期"
+    // （server.go:4022）对齐——水合盖章（resolved）与既有状态形态
+    // （responded/expired 等）一律不再视为可交互。
+    isConsumedInteractionStatus(status) ||
     status.includes("complete") ||
     status.includes("done") ||
     status.includes("cancel") ||
@@ -6828,6 +6836,10 @@ export function statusLabel(value: unknown, fallback = ""): string {
   }
   if (["completed", "complete", "done", "ok", "success", "succeeded", "applied"].includes(status)) {
     return "已完成";
+  }
+  // F3：已消费/失效（server 4022 口径）——已决只读形态的可辨识标签
+  if (isConsumedInteractionStatus(status)) {
+    return "已处理";
   }
   if (status.includes("waiting") || status.includes("confirm") || status === "needs_confirmation" || status === "requires_confirmation") {
     return "待确认";
@@ -7216,6 +7228,10 @@ function actionBody(action: JsonRecord): string {
 function actionBadge(action: JsonRecord, source: string, status: string): string {
   if (isConfirmationAction(action)) {
     const resolvedStatus = textValue(action.status ?? action.stage, "").toLowerCase();
+    // F3 死卡守卫：已消费卡的已决只读形态要可辨识（对齐 server 4022 口径）
+    if (isConsumedInteractionStatus(resolvedStatus)) {
+      return "已处理";
+    }
     if (resolvedStatus.includes("complete") || resolvedStatus.includes("done")) {
       return "已确认";
     }

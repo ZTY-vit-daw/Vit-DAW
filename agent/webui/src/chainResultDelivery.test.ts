@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { chatMessageFromAgentEvent } from "./App";
 import { reduceAgentEventActivities } from "./messageLifecycle";
-import { chainResultMessagesFromEvents, isChainResultChatMessage, shouldRenderTraceBlockForTurn } from "./trace/traceDelivery";
+import {
+  chainResultMessagesFromEvents,
+  hasChainTerminalDeliveryEvent,
+  isChainResultChatMessage,
+  shouldRenderTraceBlockForTurn
+} from "./trace/traceDelivery";
 import { reduceTurnEventMeta } from "./trace/turnEventMeta";
 import type { AgentEvent } from "./types";
 import type { TrajectoryState, TrajectoryTurn, TrajectoryNode } from "./trajectory";
@@ -226,6 +231,34 @@ describe("turnEventMeta 接线冒烟", () => {
     const meta = reduceTurnEventMeta({}, events);
     expect(meta["run-m"]?.itemActivityCount).toBe(1);
     expect(meta["run-m"]?.turnKind).toBe("settle_slice");
+  });
+});
+
+// F3 钉②：终局到达（含迟到路径）忙态数秒清除——链终局事件是"链已收尾"的
+// 最早权威信号（消息入流由 GUI-F7 路径承担）；忙态（agentTurnRunning 派生自
+// runtime status 的 goal/continuations 投影）要靠立即刷新 runtime status 才能在
+// 数秒内退场，否则最长要等 8s 周期轮。谓词只认 scheduler_chain 终局三型：
+// HTTP 路径的 turn.completed 已由响应体本身交付并驱动 refreshState，不需再刷。
+describe("chain terminal arrival 请求即时 runtime 刷新 (F3)", () => {
+  it("scheduler_chain 终局三型任一到达 → true", () => {
+    expect(hasChainTerminalDeliveryEvent([chainResultEvent()])).toBe(true);
+    expect(hasChainTerminalDeliveryEvent([
+      chainResultEvent({ type: "turn.failed", status: "failed", body: "settle failed" })
+    ])).toBe(true);
+    expect(hasChainTerminalDeliveryEvent([
+      chainResultEvent({ type: "turn.stopped", status: "stopped", body: "stop_reason_demo" })
+    ])).toBe(true);
+  });
+
+  it("HTTP 路径 turn.completed（无 scheduler_chain 标记）→ false", () => {
+    expect(hasChainTerminalDeliveryEvent([chainResultEvent({ payload: {} })])).toBe(false);
+  });
+
+  it("非终局事件（item/切片边界 ack）→ false（scheduler_chain 标记只在终局投递事件上）", () => {
+    const sliceAck = chainResultEvent({ status: "waiting_continue", body: "slice 1 ack", payload: { scheduler_chain: false, turn_kind: "slice_boundary" } });
+    const item = { seq: 3, type: "item.completed", goal_id: "g", run_id: "r", item_id: "t1", status: "completed" } as AgentEvent;
+    expect(hasChainTerminalDeliveryEvent([sliceAck, item])).toBe(false);
+    expect(hasChainTerminalDeliveryEvent([])).toBe(false);
   });
 });
 
