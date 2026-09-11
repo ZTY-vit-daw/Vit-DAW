@@ -2496,6 +2496,10 @@ func (s *Server) recordGoalResult(conversationID string, res agentloop.Result) e
 	}
 	var pendingEvents []AgentEvent
 	autoContinuation := false
+	// Read before the s.mu section: authorityModeSnapshot takes s.mu itself,
+	// and this function holds it across the pending-event projection below.
+	pendingAutoApply := res.FreeStateDecision != nil && res.FreeStateDecision.ImprovementProposal != nil &&
+		s.authorityModeSnapshot() == authorityModeFull
 	s.mu.Lock()
 	if s.goalContinuations == nil {
 		s.goalContinuations = map[string]agentloop.Continuation{}
@@ -2554,6 +2558,10 @@ func (s *Server) recordGoalResult(conversationID string, res agentloop.Result) e
 			typed := candidate.ToPendingCandidate(conversationID, res.GoalID, res.RunID, "")
 			s.upsertPendingCandidate(typed)
 			s.pendingMixTicks[conversationID] = *candidate
+			// B6 缺陷③（goalrunner 投影面）：伴随改善提案的 mix-tick 候选在
+			// 完全访问下由 improvement-proposal 路由在同回合直接应用（无确认
+			// 卡），此投影事件不得承诺「等待你确认」；普通 mix-tick 候选即使
+			// 完全访问也仍等用户明确执行指令，保持待确认文案。
 			if s.logger != nil {
 				s.logger.Info("[mix.tick.pending] stored conversation=%s goal=%s run=%s %s observation=%s",
 					conversationID, res.GoalID, res.RunID, pendingMixTickLogSummary(*candidate), candidate.ObservationID)
@@ -2564,9 +2572,9 @@ func (s *Server) recordGoalResult(conversationID string, res agentloop.Result) e
 				RunID:    res.RunID,
 				ItemType: "mix_tick",
 				Status:   "pending_confirmation",
-				Title:    "混音单步待确认",
-				Body:     pendingMixTickEventBody(*candidate),
-				Payload:  typedPendingPayload(pendingMixTickEventPayload(*candidate, candidate.ObservationID), typed),
+				Title:    pendingMixTickEventTitleForMode(pendingAutoApply),
+				Body:     pendingMixTickEventBodyForMode(*candidate, pendingAutoApply),
+				Payload:  typedPendingPayload(pendingMixTickEventPayloadForMode(*candidate, candidate.ObservationID, pendingAutoApply), typed),
 			})
 		}
 		if treatment := res.ExecutionMemory.PendingMixTreatment; treatment != nil && strings.EqualFold(strings.TrimSpace(treatment.Status), "pending_confirmation") {

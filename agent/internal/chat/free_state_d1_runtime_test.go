@@ -854,7 +854,9 @@ func TestD1S1StaticEQProjectionCarriesAdmissionDomain(t *testing.T) {
 	if response.WorkflowData["action_domain"] != d1StaticEQDomain || response.WorkflowData["action_kind"] != d1StaticEQKind {
 		t.Fatalf("projection domain=%v kind=%v", response.WorkflowData["action_domain"], response.WorkflowData["action_kind"])
 	}
-	if !strings.Contains(response.Reply, "静态 EQ 频段参数已应用并回读") {
+	// B6：应用回复改为五要素动态生成（目标轨/参数/变更量与方向/针对的发
+	// 现/去哪看），不再消费静态模板文本。
+	if !strings.Contains(response.Reply, "已应用并回读验证") || !strings.Contains(response.Reply, "静态 EQ 频段增益") || !strings.Contains(response.Reply, "去哪看") {
 		t.Fatalf("reply=%q", response.Reply)
 	}
 	restored, ok := s.freeStateLoop(loop.ConversationID)

@@ -695,10 +695,10 @@ func (s *Server) projectD1Execution(loop freeStateReasoningLoop, session orchest
 		"readback_verified": receipt.Details["readback_verified"] == true, "evaluation_ready": verifiedPostAction,
 		"human_audition_ready": false, "human_confirmed": false, "ambiguous": false, "rolled_back": false, "settled": false,
 		"improvement_receipt": cloneContext(loop.D1Receipt)}
-	reply := "D1-S1 轨道增益参数已应用并回读验证。动作后新证据已单独记录；声学实质性、目标响应与人工判定仍待完成。"
-	if spec, ok := experiment.D1S1DomainSpecFor(loop.Experiment.Admission); ok && spec.AppliedReplyText != "" {
-		reply = spec.AppliedReplyText
-	}
+	// B6 缺陷①：应用回复由 chat 侧五要素 composer 动态生成（目标轨/参数/
+	// 变更量与方向/针对的发现/去哪看），不再消费实验域表的静态 AppliedReplyText
+	// ——静态模板泄漏内部代号（FAM3-S1）且预支「人工判定仍待完成」承诺。
+	reply := d1AppliedReportReply(loop, receiptMap)
 	response := ChatResponse{ConversationID: loop.ConversationID, GoalID: loop.GoalID, RunID: loop.RunID, Workflow: "free_state_d1_s1", WorkflowData: data,
 		Reply:      reply,
 		GoalStatus: string(agentruntime.StatusWaitingContinue), StopReason: "d1_post_action_evaluation_required"}

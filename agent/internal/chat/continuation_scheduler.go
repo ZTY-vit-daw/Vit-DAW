@@ -1043,6 +1043,10 @@ func (s *Server) settleAndDeliverContinuationChainEnd(ctx context.Context, curre
 			goal.Status == agentruntime.StatusCancelled || goal.Status == agentruntime.StatusStopped ||
 			goal.Status == agentruntime.StatusStable):
 		s.normalizeChainResponseGoalStatus(chainResp, goal.Status)
+		// B6 缺陷①②：完成态终局的用户面文本过护栏——内部代号（FAM/FS/D
+		// 阶段、投影缩写）剥除 +「人工判定仍待完成」类空头承诺剥除（判定
+		// 入口只由结算评估的 user_judgment_pending 建立，F1 语义）。
+		chainResp.Reply = s.sanitizeSettledChainReply(current, chainResp.Reply)
 		s.deliverSchedulerChainTerminal(ctx, current, chainResp)
 	case (goal.Status == agentruntime.StatusWaitingConfirmation || goal.Status == agentruntime.StatusWaitingClarification) &&
 		(continuationTerminalStatus(current.Status) || current.Status == ContinuationWaitingInteraction):
@@ -1060,6 +1064,9 @@ func (s *Server) settleAndDeliverContinuationChainEnd(ctx context.Context, curre
 			// lives on the loop's latest decision (B1-DIAG Q1 forensics).
 			chainResp.Reply = s.schedulerChainFallbackReply(current.ConversationID)
 		}
+		// B6 缺陷①：可应答 park 的终局同样不得泄漏内部代号；但其「等待试
+		// 听确认」是真实可服务的判定入口，判定承诺剥除不适用。
+		chainResp.Reply = s.sanitizeWaitingParkChainReply(current, chainResp.Reply)
 		s.deliverSchedulerChainTerminal(ctx, current, chainResp)
 	}
 }

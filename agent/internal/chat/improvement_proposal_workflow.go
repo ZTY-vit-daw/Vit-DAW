@@ -435,8 +435,12 @@ func (s *Server) routeAcceptedImprovementProposalNativeDomain(ctx context.Contex
 		candidate.Operation = d1BroadbandCompressionKind
 	}
 
-	s.storePendingMixTickCandidate(interaction.ConversationID, interaction.GoalID, interaction.RunID, candidate)
-	if authorityModeFromContext(requestContext) == experiment.AuthorityFull {
+	// B6 缺陷③：完全访问（自动应用）分支下，pending 表面的 display 不得承诺
+	// 「等待你确认」——存储与随后的直接执行在同一个调用链里，确认承诺与行为
+	// 不一致（2026-09-11 用户改判定性：无确认卡直接应用=正确行为，文案是缺陷）。
+	autoApply := authorityModeFromContext(requestContext) == experiment.AuthorityFull
+	s.storePendingMixTickCandidateForMode(interaction.ConversationID, interaction.GoalID, interaction.RunID, candidate, autoApply)
+	if autoApply {
 		response := s.executePendingMixTickCandidate(ctx, interaction.ConversationID, ChatRequest{ConversationID: interaction.ConversationID, Message: "full project access", Context: requestContext, AuthorityMode: authorityModeFull}, agentModeFromContext(requestContext), candidate)
 		response.NeedsConfirmation = false
 		response.WorkflowData = mergeContext(response.WorkflowData, map[string]any{"authority_mode": authorityModeFull, "full_access_auto_authorized": true, "proposal_confirmation": "policy_authorized"})

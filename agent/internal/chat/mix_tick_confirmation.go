@@ -476,6 +476,16 @@ func (s *Server) settlePendingMixTickDurable(conversationID, status, reason stri
 }
 
 func (s *Server) storePendingMixTickCandidate(conversationID, goalID, runID string, candidate agentloop.PendingMixTickCandidate) {
+	s.storePendingMixTickCandidateForMode(conversationID, goalID, runID, candidate, false)
+}
+
+// storePendingMixTickCandidateForMode branches the pending surface's display
+// wording by the authority mode the candidate is stored under (B6 缺陷③）：
+// manual confirmation keeps the「等待你确认」promise; full_project_access —
+// where the improvement-proposal route applies the tick immediately without a
+// confirmation card (user-ruled correct behavior, 2026-09-11 改判) — must not
+// promise a confirmation wait it will never hold.
+func (s *Server) storePendingMixTickCandidateForMode(conversationID, goalID, runID string, candidate agentloop.PendingMixTickCandidate, autoApply bool) {
 	if s == nil || strings.TrimSpace(conversationID) == "" || !strings.EqualFold(strings.TrimSpace(candidate.Status), "pending_confirmation") {
 		return
 	}
@@ -496,9 +506,9 @@ func (s *Server) storePendingMixTickCandidate(conversationID, goalID, runID stri
 		RunID:    runID,
 		ItemType: "mix_tick",
 		Status:   "pending_confirmation",
-		Title:    "混音单步待确认",
-		Body:     pendingMixTickEventBody(candidate),
-		Payload:  typedPendingPayload(pendingMixTickEventPayload(candidate, candidate.ObservationID), candidate.ToPendingCandidate(conversationID, goalID, runID, "")),
+		Title:    pendingMixTickEventTitleForMode(autoApply),
+		Body:     pendingMixTickEventBodyForMode(candidate, autoApply),
+		Payload:  typedPendingPayload(pendingMixTickEventPayloadForMode(candidate, candidate.ObservationID, autoApply), candidate.ToPendingCandidate(conversationID, goalID, runID, "")),
 	})
 }
 
@@ -625,7 +635,31 @@ func pendingMixTickHumanSummary(candidate agentloop.PendingMixTickCandidate) str
 }
 
 func pendingMixTickEventBody(candidate agentloop.PendingMixTickCandidate) string {
+	return pendingMixTickEventBodyForMode(candidate, false)
+}
+
+// pendingMixTickAutoApplyEventBody is the full-access display body form.
+func pendingMixTickAutoApplyEventBody(candidate agentloop.PendingMixTickCandidate) string {
+	return pendingMixTickEventBodyForMode(candidate, true)
+}
+
+// pendingMixTickEventBodyForMode branches the pending display body by the
+// authority mode it is stored under (B6 缺陷③)：manual 模式承诺等待确认；
+// 完全访问（自动应用）改述为直接应用，不再承诺确认等待。
+func pendingMixTickEventBodyForMode(candidate agentloop.PendingMixTickCandidate, autoApply bool) string {
+	if autoApply {
+		return pendingMixTickHumanSummary(candidate) + "，当前为完全访问模式：这一步将直接应用，不再等待逐条确认。"
+	}
 	return pendingMixTickHumanSummary(candidate) + "，正在等待你确认；确认前不会修改工程。"
+}
+
+// pendingMixTickEventTitleForMode keeps the pending event title consistent with
+// the branched body wording.
+func pendingMixTickEventTitleForMode(autoApply bool) string {
+	if autoApply {
+		return "混音单步（完全访问直接应用）"
+	}
+	return "混音单步待确认"
 }
 
 func pendingMixTickEventActionText(candidate agentloop.PendingMixTickCandidate) string {
@@ -651,6 +685,12 @@ func pendingMixTickTrackLabel(trackID string) string {
 }
 
 func pendingMixTickEventPayload(candidate agentloop.PendingMixTickCandidate, observationID string) map[string]any {
+	return pendingMixTickEventPayloadForMode(candidate, observationID, false)
+}
+
+// pendingMixTickEventPayloadForMode builds the pending payload with the
+// authority-mode-branched display block (B6 缺陷③）。
+func pendingMixTickEventPayloadForMode(candidate agentloop.PendingMixTickCandidate, observationID string, autoApply bool) map[string]any {
 	payload := map[string]any{
 		"operation":      candidate.Operation,
 		"track_id":       candidate.TrackID,
@@ -667,9 +707,9 @@ func pendingMixTickEventPayload(candidate agentloop.PendingMixTickCandidate, obs
 		payload["delta_db"] = candidate.DeltaDB
 	}
 	payload["display"] = map[string]any{
-		"title":   "混音单步待确认",
+		"title":   pendingMixTickEventTitleForMode(autoApply),
 		"summary": pendingMixTickHumanSummary(candidate),
-		"body":    pendingMixTickEventBody(candidate),
+		"body":    pendingMixTickEventBodyForMode(candidate, autoApply),
 	}
 	return payload
 }
