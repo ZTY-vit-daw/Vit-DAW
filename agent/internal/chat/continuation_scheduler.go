@@ -1043,7 +1043,7 @@ func (s *Server) settleAndDeliverContinuationChainEnd(ctx context.Context, curre
 			goal.Status == agentruntime.StatusCancelled || goal.Status == agentruntime.StatusStopped ||
 			goal.Status == agentruntime.StatusStable):
 		s.normalizeChainResponseGoalStatus(chainResp, goal.Status)
-		s.deliverSchedulerChainTerminal(ctx, current.ConversationID, chainResp)
+		s.deliverSchedulerChainTerminal(ctx, current, chainResp)
 	case (goal.Status == agentruntime.StatusWaitingConfirmation || goal.Status == agentruntime.StatusWaitingClarification) &&
 		(continuationTerminalStatus(current.Status) || current.Status == ContinuationWaitingInteraction):
 		// Answerable park. Two record forms reach it: the interaction-boundary
@@ -1060,7 +1060,7 @@ func (s *Server) settleAndDeliverContinuationChainEnd(ctx context.Context, curre
 			// lives on the loop's latest decision (B1-DIAG Q1 forensics).
 			chainResp.Reply = s.schedulerChainFallbackReply(current.ConversationID)
 		}
-		s.deliverSchedulerChainTerminal(ctx, current.ConversationID, chainResp)
+		s.deliverSchedulerChainTerminal(ctx, current, chainResp)
 	}
 }
 
@@ -1093,9 +1093,17 @@ func (s *Server) schedulerChainFallbackReply(conversationID string) string {
 // (B1-DIAG Q3: vit nodes existed only on the HTTP finalize boundary, so
 // scheduler chain ends were invisible to the refresh hydration), then the
 // scheduler_chain transport event fires for the live conversation.
-func (s *Server) deliverSchedulerChainTerminal(ctx context.Context, conversationID string, resp ChatResponse) {
-	s.recordSchedulerChainTerminalNode(ctx, resp)
-	s.emitSchedulerChainResultEvent(conversationID, resp, nil)
+// B5（尝试 #2 现场）：落图路径以链自己的 checkpoint 工作区为准——
+// CurrentProjectIdentity 在会话中途再激活后会指向别的工作区，按它落图
+// 会把终局写错工程或直接失败（20260911 手测：终局事件已投递而全盘
+// grep 终局文本零命中）。
+func (s *Server) deliverSchedulerChainTerminal(ctx context.Context, current DurableContinuation, resp ChatResponse) {
+	recordPath := firstNonEmpty(current.ProjectPath, s.activeWorkspacePath)
+	if strings.TrimSpace(recordPath) == "" && s.harness != nil {
+		recordPath, _ = s.harness.CurrentProjectIdentity(ctx)
+	}
+	s.recordSchedulerChainTerminalNode(ctx, recordPath, resp)
+	s.emitSchedulerChainResultEvent(current.ConversationID, resp, nil)
 }
 
 // recordSchedulerChainTerminalNode writes the chain's terminal reply as a
@@ -1109,21 +1117,63 @@ func (s *Server) deliverSchedulerChainTerminal(ctx context.Context, conversation
 // bubble (real-stack run 20260910_202854: R4/R5 both red, the terminal only
 // visible as 改善性提案待确认/已处理 card chrome). The interaction itself stays
 // owned by the audition/proposal flow; the node keeps the terminal body.
-func (s *Server) recordSchedulerChainTerminalNode(ctx context.Context, resp ChatResponse) {
+// B5：落图失败必须显式留痕——RecordConversationNodeForProjectWithData 失败时
+// 不返回 error 而是带 warnings 的摘要（F2 代码完全吞掉了这一信号，终局
+// 落图静默失败、刷新即丢）。失败不阻断终局事件投递（失败降级：活会话
+// 仍能看到终局，仅刷新水合缺节点），但 WARN 留痕可取证。
+func (s *Server) recordSchedulerChainTerminalNode(ctx context.Context, projectPath string, resp ChatResponse) bool {
 	if s == nil || s.harness == nil || strings.TrimSpace(resp.Reply) == "" {
-		return
+		return false
 	}
-	projectPath, _ := s.harness.CurrentProjectIdentity(ctx)
 	node := resp
 	node.NeedsConfirmation = false
 	node.ProposalPresentation = nil
 	node.InteractionRequests = nil
 	node.MessageKind = "assistant"
+	return s.recordConversationNodeChecked(ctx, projectPath, "scheduler_chain_terminal", "vit", node)
+}
+
+// recordConversationNodeChecked appends a conversation-graph node for resp
+// under projectPath and surfaces failure explicitly: the harness record API
+// reports errors as a warnings-carrying summary instead of an error value, so
+// the caller-side silent drop (B5 尝试 #2) becomes a WARN with the full
+// reason. kind "vit" rides the vit-checkpoint gate; non-vit kinds (e.g. the
+// workspace-switch notice) bind the project HEAD without a kernel snapshot.
+// Returns whether the node landed.
+func (s *Server) recordConversationNodeChecked(ctx context.Context, projectPath, purpose, kind string, node ChatResponse) bool {
+	if s.harness == nil {
+		return false
+	}
 	historyData := chatResponseHistoryData(node, map[string]any{"artifacts": artifactSummaryRows(node.Artifacts)})
 	if len(node.ProjectResultCards) > 0 {
 		historyData["project_result_cards"] = node.ProjectResultCards
 	}
-	s.harness.RecordConversationNodeForProjectWithData(ctx, projectPath, "vit", node.Reply, node.GoalID, node.RunID, historyData)
+	result := s.harness.RecordConversationNodeForProjectWithData(ctx, projectPath, kind, node.Reply, node.GoalID, node.RunID, historyData)
+	if failure := conversationNodeRecordFailure(result); failure != "" {
+		if s.logger != nil {
+			s.logger.Warn("[workspace] conversation node NOT recorded purpose=%s kind=%s project=%s conversation=%s goal=%s reply_len=%d failure=%s",
+				purpose, kind, projectPath, node.ConversationID, node.GoalID, len([]rune(node.Reply)), failure)
+		}
+		return false
+	}
+	return true
+}
+
+// conversationNodeRecordFailure extracts the record API's embedded failure
+// text: RecordConversationNodeForProjectWithData returns the project history
+// summary with a "conversation graph update failed: …" warning row instead of
+// an error when the append fails.
+func conversationNodeRecordFailure(result map[string]any) string {
+	warnings, ok := result["warnings"].([]string)
+	if !ok {
+		return ""
+	}
+	for _, warning := range warnings {
+		if strings.HasPrefix(warning, "conversation graph update failed:") {
+			return strings.TrimSpace(strings.TrimPrefix(warning, "conversation graph update failed:"))
+		}
+	}
+	return ""
 }
 
 func (s *Server) acquireRuntimeStateLease() (*history.AgentRuntimeStateLock, error) {

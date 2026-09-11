@@ -6718,6 +6718,13 @@ func (s *Server) activateCurrentProjectWorkspace(ctx context.Context) {
 	if sameIdentity && boundSessionID != "" && s.activeWorkspaceSessionID == boundSessionID {
 		return
 	}
+	// B5：跨身份切换（不同 uuid 或不同路径）会整体替换内存会话态。切换前
+	// 先对旧工作区的在飞链显式收尾（终局投递+落图+显式取消），禁止静默
+	// 孤儿化；可应答驻留不收尾（F1 口径）。同工程重开（同身份绑新 draft）
+	// 是既有的"丢弃未保存态"设计边界，不在本收尾范围。
+	if s.activeWorkspaceUUID != "" && !sameIdentity {
+		s.settleLiveChainsForWorkspaceSwitch(ctx, projectPath, projectUUID)
+	}
 	// Reopening the same project binds a new draft from Saved HEAD. Do not copy
 	// the previous unsaved in-memory runtime into that clean working session.
 	if s.activeWorkspaceUUID != "" && !(sameIdentity && boundSessionID != "" && boundSessionID != s.activeWorkspaceSessionID) {
@@ -6729,7 +6736,14 @@ func (s *Server) activateCurrentProjectWorkspace(ctx context.Context) {
 			sourcePath = s.activeWorkspacePath
 		}
 		if _, recoverErr := history.RecoverMissingProjectFork(sourcePath, parentProjectUUID, projectPath, projectUUID); recoverErr != nil && s.logger != nil {
-			s.logger.Warn("[workspace] parent history recovery failed parent=%s target=%s error=%v", parentProjectUUID, projectUUID, recoverErr)
+			// B5 症状③降级：父工程不可达（原件已移走/在 artifacts 深处）是
+			// 副本方案与人工整理的常态形态，不是恢复链路故障——Info 级跳过
+			// 留痕即可；其余错误保持 WARN 外显。恢复语义本身不变。
+			if strings.Contains(recoverErr.Error(), "not found") {
+				s.logger.Info("[workspace] parent history recovery skipped parent=%s target=%s reason=%v", parentProjectUUID, projectUUID, recoverErr)
+			} else {
+				s.logger.Warn("[workspace] parent history recovery failed parent=%s target=%s error=%v", parentProjectUUID, projectUUID, recoverErr)
+			}
 		}
 		if sourcePath == "" {
 			sourcePath = history.ProjectPathForUUID(projectPath, parentProjectUUID)
@@ -6911,6 +6925,9 @@ func (s *Server) restoreProjectAgentRuntimeStateLocked(state projectAgentRuntime
 	}
 	normalizedContinuations = reconcileDurableCapabilityRoutes(normalizedContinuations, s.capabilityRoutes)
 	s.durableContinuations = reconcileRestoredContinuations(normalizedContinuations)
+	// B5 恢复卫生：陈旧快照里的 runnable 续跑（进程早已死透）归一为终态，
+	// 消灭旧会话 live 态投影（#8 家族）。新鲜/时间戳不明的保持可恢复。
+	s.durableContinuations = foldStaleRestoredContinuations(s.durableContinuations, now, s.logger)
 	latestByGoal := map[string]DurableContinuation{}
 	for _, normalized := range s.durableContinuations {
 		if normalized.GoalID == "" || normalized.Status == ContinuationCompleted || normalized.Status == ContinuationCancelled || normalized.Status == ContinuationFailed {
@@ -7002,7 +7019,7 @@ func (s *Server) restoreProjectAgentRuntimeStateLocked(state projectAgentRuntime
 	s.conversationMemory = retireLegacyCapabilityExecutionMemory(nonNilMap(state.ConversationMemory))
 	s.pendingMixTicks = nonNilMap(state.PendingMixTicks)
 	s.pendingTreatments = nonNilMap(state.PendingTreatments)
-	s.freeStateLoops = nonNilMap(state.FreeStateLoops)
+	s.freeStateLoops = foldStaleRestoredFreeStateLoops(nonNilMap(state.FreeStateLoops), now, s.logger)
 	s.authorityMode = normalizeAuthorityModeOrDefault(state.AuthorityMode)
 	if s.audioClosures == nil {
 		s.audioClosures = audioclosure.NewMemoryStore()
@@ -7030,6 +7047,7 @@ func (s *Server) restoreProjectAgentRuntimeStateLocked(state projectAgentRuntime
 	s.pendingManager.Restore(retiredCandidates)
 	if s.harness != nil {
 		s.harness.RestoreRuntime(state.GoalRuntime)
+		s.foldStaleRestoredGoals(state.GoalRuntime.Goals, now)
 		s.reconcileRestoredTaskSemanticProjectionsLocked()
 	}
 }
