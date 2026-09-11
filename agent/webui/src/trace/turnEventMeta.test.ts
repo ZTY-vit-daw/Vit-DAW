@@ -65,7 +65,8 @@ describe("turnEventMeta 归约器（GUI-1：item 活动足迹与生命周期记�
     expect(meta["run_1"]?.turnKind).toBe("settle_slice");
   });
 
-  it("C0 双读：轨迹归属键优先 trajectory_turn_id，缺失回退 turn_id/run_id", () => {
+  it("C0 双读（B9 轮次键）：归属键优先 source_turn_id，缺失回退 trajectory_turn_id / turn_id / run_id", () => {
+    expect(trajectoryTurnIdOfEvent(event({ seq: 1, type: "turn.started", run_id: "run_a", turn_id: "run_b", trajectory_turn_id: "run_c", source_turn_id: "run_d" }))).toBe("run_d");
     expect(trajectoryTurnIdOfEvent(event({ seq: 1, type: "turn.started", run_id: "run_a", turn_id: "run_b", trajectory_turn_id: "run_c" }))).toBe("run_c");
     expect(trajectoryTurnIdOfEvent(event({ seq: 1, type: "turn.started", run_id: "run_a", turn_id: "run_b" }))).toBe("run_b");
     expect(trajectoryTurnIdOfEvent(event({ seq: 1, type: "turn.started", run_id: "run_a" }))).toBe("run_a");

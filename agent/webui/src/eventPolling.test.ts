@@ -54,6 +54,21 @@ describe("事件轮询空闲门（GUI-F5）", () => {
     expect(agentEventPollBusy(idleFlags)).toBe(false);
   });
 
+  // B9 症1（2026-09-11 mtwwegtp 取证）：free-state chat 链不进 goal/continuations
+  // 投影，goal 空闲判定下轮询在分片事件间歇 2s 休眠——63s 空窗+实验轨迹批量事件
+  // +终局全部滞留服务端，直到终局片段偶遇唤醒一次性补渲染。忙态补 trajectoryLive
+  // （客户端轨迹回合 running/pending 开放）：链执行期轮询常醒。
+  it("B9：轨迹回合开放（trajectoryLive）空轮询不停止——free-state 链活期常醒", () => {
+    expect(agentEventPollBusy({ ...idleFlags, trajectoryLive: true })).toBe(true);
+    expect(agentEventPollBusy({ ...idleFlags, agentTurnRunning: false, trajectoryLive: true })).toBe(true);
+    const gate = createAgentEventPollIdleGate();
+    for (let tick = 0; tick < 20; tick += 1) {
+      expect(gate.tickIdle(true)).toBe(false);
+    }
+    // 轨迹回合收口（终态）后恢复 4 拍休眠语义
+    expect(agentEventPollBusy({ ...idleFlags, trajectoryLive: false })).toBe(false);
+  });
+
   it("连续失败按 3 拍休眠，忙态下失败不累积", () => {
     const gate = createAgentEventPollIdleGate();
     expect(gate.tickError(true)).toBe(false);

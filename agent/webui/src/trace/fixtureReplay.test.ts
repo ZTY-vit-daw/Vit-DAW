@@ -113,12 +113,19 @@ describe("fixtures 组合回放：mtny2v9x 33 事件（实验流）", () => {
     expect(shouldRenderTraceBlockForTurn(state, experimentTurn!.id, meta)).toBe(true);
   });
 
-  it("C0 新流形态回放全绿：双写字段注入不改变归约结果", () => {
+  it("C0 新流形态（B9 统一面）：双写字段注入把 run 壳与实验轨迹归并为单一轮次回合", () => {
     const dual = withContract1DualWrite(events);
-    const before = reduceTrajectoryEvents(emptyTrajectoryState(), events);
-    const after = reduceTrajectoryEvents(emptyTrajectoryState(), dual);
-    expect(trajectoryTurns(after).map((turn) => turn.id)).toEqual(trajectoryTurns(before).map((turn) => turn.id));
-    expect(Object.keys(after.nodes)).toEqual(Object.keys(before.nodes));
+    const state = reduceTrajectoryEvents(emptyTrajectoryState(), dual);
+    const turns = trajectoryTurns(state);
+    // 全部事件 source_turn_id=run_6de5cc29fd0f9436 → 一个轮次键
+    expect(turns.map((turn) => turn.id)).toEqual(["run_6de5cc29fd0f9436"]);
+    // run 壳与实验节点都在同一回合内（节点本体一个不少）
+    expect(Object.keys(state.nodes).length).toBeGreaterThan(1);
+    const stepNodes = turns[0].nodeIds.filter((id) => state.nodes[id]?.kind !== "turn");
+    expect(stepNodes.length).toBeGreaterThan(0);
+    // 终局并入原块：seq20 的 trajectory.turn.completed（waiting_for_user）收口轮次
+    expect(turns[0].status).toBe("waiting_for_user");
+    expect(turns[0].roundScoped).toBe(true);
   });
 });
 

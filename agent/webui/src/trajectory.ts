@@ -104,6 +104,15 @@ export interface TrajectoryTurn {
   activeRoundId: string;
   outcome: TrajectoryEvaluation | string;
   stopped: boolean;
+  /** B9 统一面：轮次键来自 source_turn_id（CONTRACT-1 C0 消息归属域）的回合。
+   * 轮次域回合的终态只由 trajectory.turn.completed/failed/stopped 收口——
+   * 中途到达的完成态步节点不提前把回合收成回执（用户裁定：一轮对话一个
+   * 轨迹块，终局并入原块，下次输入才出新块）。旧流（无 source 字段）保持
+   * 按最新 seq 节点状态推进的既有语义。 */
+  roundScoped: boolean;
+  /** 轮次域回合的终局事件状态（空 = 轮次仍开放） */
+  terminalStatus: string;
+  terminalPhase: string;
 }
 
 export interface TrajectoryState {
@@ -126,6 +135,27 @@ export function trajectoryEventKey(event: AgentEvent): string {
 export function isTrajectoryEvent(event: AgentEvent): event is TrajectoryEvent {
   const payload = record(event.payload);
   return text(event.type).startsWith("trajectory.") && text(payload.schema_version) === trajectorySchemaVersion;
+}
+
+/** B9 统一面（轮次键）：一轮对话一个轨迹块。事件的轮次归属优先读
+ * source_turn_id——服务端对 run 级与实验级（free_state 域）事件统一回填拥有
+ * 它的 run（CONTRACT-1 C0 消息归属域），因此同一轮的 run 壳与实验轨迹节点
+ * 归并到同一轮次键下；缺失时回退既有轨迹归属链（旧流行为不变）。 */
+export function trajectoryRoundKeyOfEvent(event: AgentEvent): string {
+  const payload = record(event.payload);
+  return (
+    text(event.source_turn_id) ||
+    text(payload.turn_id) ||
+    text(event.trajectory_turn_id) ||
+    text(event.turn_id) ||
+    text(event.run_id) ||
+    text(event.goal_id)
+  );
+}
+
+/** 轮次域回合里是否仍有 running/pending 节点（壳或步）——轮次开放中 */
+export function hasLiveTrajectoryTurn(state: TrajectoryState): boolean {
+  return Object.values(state.turns).some((turn) => turn.status === "running" || turn.status === "pending");
 }
 
 export function emptyTrajectoryState(): TrajectoryState {
@@ -164,12 +194,13 @@ export function reduceTrajectoryEvents(
       continue;
     }
     const payload = record(event.payload);
-    // CONTRACT-1 C0 双读：轨迹归属优先读 trajectory_turn_id（双写期与 turn_id
-    // 等值），缺失回退旧字段；payload.turn_id 仍是实验级事件的最优先归属。
-    const turnId = text(payload.turn_id) || text(event.trajectory_turn_id) || text(event.turn_id) || text(event.run_id) || text(event.goal_id);
+    // B9 统一面：轮次键优先 source_turn_id（run 域），同轮的 run 壳与实验
+    // （free_state 域）轨迹节点归并为一个轨迹回合；旧流回退既有归属链。
+    const turnId = trajectoryRoundKeyOfEvent(event);
     if (!turnId) {
       continue;
     }
+    const roundScoped = Boolean(text(event.source_turn_id));
     const roundId = text(payload.round_id);
     const nodeId = text(payload.trace_node_id) || text(event.item_id) || key;
     const previousNode = next.nodes[nodeId];
@@ -202,7 +233,7 @@ export function reduceTrajectoryEvents(
     const mergedNode = previousNode ? mergeNode(previousNode, node) : node;
     next.nodes[nodeId] = mergedNode;
     const turn = next.turns[turnId] ?? emptyTurn(turnId);
-    next.turns[turnId] = updateTurn(turn, mergedNode, text(event.type), next.nodes);
+    next.turns[turnId] = updateTurn(turn, mergedNode, text(event.type), next.nodes, roundScoped);
     if (roundId) {
       const round = next.rounds[roundId] ?? emptyRound(roundId, turnId);
       next.rounds[roundId] = updateRound(round, mergedNode, text(event.type), next.nodes);
@@ -231,22 +262,58 @@ export function trajectoryNodesForRound(state: TrajectoryState, roundId: string)
 }
 
 function emptyTurn(id: string): TrajectoryTurn {
-  return { id, status: "pending", phase: "", nodeIds: [], roundIds: [], activeNodeId: "", activeRoundId: "", outcome: "", stopped: false };
+  return { id, status: "pending", phase: "", nodeIds: [], roundIds: [], activeNodeId: "", activeRoundId: "", outcome: "", stopped: false, roundScoped: false, terminalStatus: "", terminalPhase: "" };
 }
 
 function emptyRound(id: string, turnId: string): TrajectoryRound {
   return { id, turnId, status: "pending", phase: "", nodeIds: [], activeNodeId: "", evaluation: "", decision: "" };
 }
 
-function updateTurn(turn: TrajectoryTurn, node: TrajectoryNode, eventType: string, nodes: Record<string, TrajectoryNode>): TrajectoryTurn {
+function updateTurn(turn: TrajectoryTurn, node: TrajectoryNode, eventType: string, nodes: Record<string, TrajectoryNode>, roundScoped = false): TrajectoryTurn {
   const active = nodes[turn.activeNodeId];
   const isNewer = !active || node.seq >= active.seq;
   const stopped = turn.stopped || (isNewer && (eventType === "trajectory.turn.stopped" || node.status === "stopped"));
   const mayAdvance = isNewer && !turn.stopped;
+  const scoped = turn.roundScoped || roundScoped;
+  const terminalEventType = eventType === "trajectory.turn.completed" || eventType === "trajectory.turn.failed" || eventType === "trajectory.turn.stopped";
+  // 终局事件粘性捕获（不因当时尚未置 scoped 而漏记；仅在轮次域分支消费）
+  const terminalStatus = turn.terminalStatus || (terminalEventType ? node.status || "completed" : "");
+  const terminalPhase = turn.terminalStatus
+    ? turn.terminalPhase
+    : terminalEventType
+      ? node.phase || node.status || "completed"
+      : "";
+  let status: string;
+  let phase: string;
+  if (stopped) {
+    status = "stopped";
+    phase = "stopped";
+  } else if (scoped) {
+    if (terminalStatus) {
+      // 终局并入原块：轮次只由 trajectory.turn 终态事件收口
+      status = terminalStatus;
+      phase = terminalPhase;
+    } else {
+      // 轮次开放中：仍有 running/pending 节点（壳或步）即保持直播；全完成
+      // 节点按最新 seq 推进（终态事件未到前不虚报，也不提前收成回执）
+      const hasLiveNode = turn.nodeIds.concat([node.id]).some((id) => {
+        const candidate = id === node.id ? node : nodes[id];
+        return Boolean(candidate) && (candidate.status === "running" || candidate.status === "pending");
+      });
+      status = hasLiveNode ? "running" : mayAdvance ? node.status || turn.status : turn.status;
+      phase = hasLiveNode ? turn.phase || "framing" : mayAdvance ? node.phase || turn.phase : turn.phase;
+    }
+  } else {
+    status = mayAdvance ? node.status || turn.status : turn.status;
+    phase = mayAdvance ? node.phase || turn.phase : turn.phase;
+  }
   return {
     ...turn,
-    status: stopped ? "stopped" : mayAdvance ? node.status || turn.status : turn.status,
-    phase: stopped ? "stopped" : mayAdvance ? node.phase || turn.phase : turn.phase,
+    roundScoped: scoped,
+    terminalStatus,
+    terminalPhase,
+    status,
+    phase,
     nodeIds: appendUnique(turn.nodeIds, node.id),
     roundIds: node.roundId ? appendUnique(turn.roundIds, node.roundId) : turn.roundIds,
     activeNodeId: mayAdvance ? node.id : turn.activeNodeId,

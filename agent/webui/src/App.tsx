@@ -98,7 +98,7 @@ import {
   transientMessage,
   upsertActivity
 } from "./messageLifecycle";
-import { emptyTrajectoryState, reduceTrajectoryEvents, trajectoryTurns } from "./trajectory";
+import { emptyTrajectoryState, hasLiveTrajectoryTurn, reduceTrajectoryEvents, trajectoryTurns } from "./trajectory";
 import type { TrajectoryState } from "./trajectory";
 import { auditionSessions, emptyAuditionState, reduceAuditionEvents, type AuditionSession, type AuditionState } from "./audition";
 import { emptyTaskTrajectoryState, reduceTaskTrajectory } from "./taskTrajectory";
@@ -121,7 +121,8 @@ import {
   concreteWorkspacePath,
   historyScopeKeyFromParts,
   historyScopeKeyFromUIState,
-  historyScopePartsFromUIState
+  historyScopePartsFromUIState,
+  shouldAdoptStoredConversationOnScopeEvolution
 } from "./historyScope";
 import type { HistoryScopeChangeKind } from "./historyScope";
 import { buildMessageStreamRenderPlan, type MessageStreamEntry } from "./trace/renderPlan";
@@ -392,6 +393,10 @@ function App() {
   const liveContinuations = Array.isArray(runtimeStatus?.continuations) ? runtimeStatus.continuations : [];
   const agentTurnRunning =
     isAgentTurnRunning(currentGoalStatus, isSending) || continuationChainLive(liveContinuations, currentGoalStatus);
+  // B9 症1：free-state chat 链不进 goal/continuations 投影——轮询忙态补「轨迹
+  // 回合开放」位（壳节点自 trajectory.turn.started 开至终态事件），链执行期
+  // 轮询不再休眠（mtwwegtp 取证：63s 空窗+终局一次性补渲染的根因①）。
+  const trajectoryLive = hasLiveTrajectoryTurn(trajectoryState);
 
   useEffect(() => {
     if (!agentEventPolling) {
@@ -400,9 +405,9 @@ function App() {
     let cancelled = false;
     const idleGate = createAgentEventPollIdleGate();
     const poll = async () => {
-      // GUI-F5：忙态（发送/动作响应/试听等待/链活）任一为真时空轮询不累积空闲拍，
-      // 链活期终局结果不漏取；全部空闲才按 4 拍（连续失败 3 拍）休眠。
-      const pollBusy = agentEventPollBusy({ isSending, respondingActionID, auditionWaiting, agentTurnRunning });
+      // GUI-F5：忙态（发送/动作响应/试听等待/链活/轨迹回合开放）任一为真时空轮询
+      // 不累积空闲拍，链活期终局结果不漏取；全部空闲才按 4 拍（连续失败 3 拍）休眠。
+      const pollBusy = agentEventPollBusy({ isSending, respondingActionID, auditionWaiting, agentTurnRunning, trajectoryLive });
       try {
         const requestedSince = agentEventSeqRef.current;
         const response = await fetchAgentEvents(conversationID, requestedSince, 120);
@@ -472,16 +477,17 @@ function App() {
       cancelled = true;
       window.clearInterval(timer);
     };
-  }, [agentEventPolling, agentTurnRunning, auditionWaiting, conversationID, isSending, mode, refreshState, respondingActionID]);
+  }, [agentEventPolling, agentTurnRunning, auditionWaiting, conversationID, isSending, mode, refreshState, respondingActionID, trajectoryLive]);
 
   // GUI-F5：轮询被空闲休眠停掉后，链中途再活（续跑切片醒来）必须重新拉起轮询，
   // 否则终局结果落在服务端无人来取（2026-09-04 会话 webui_mtmwwfax 的漏取形态）。
+  // B9：轨迹回合开放（含 free-state chat 链形态）同样要拉起。
   useEffect(() => {
-    if (!agentTurnRunning) {
+    if (!agentTurnRunning && !trajectoryLive) {
       return;
     }
     setAgentEventPolling(true);
-  }, [agentTurnRunning]);
+  }, [agentTurnRunning, trajectoryLive]);
 
   // CONTRACT-3（2026-09-05）：会话内 scope 演进 ≠ 工程切换。
   // 旧实现把 state_dir/worktree/branch 等晚物化字段编进 scope 键，链首批
@@ -533,6 +539,26 @@ function App() {
       return;
     }
     if (changeKind === "evolution") {
+      // B9 症4（刷新后轨迹整体消失）：首拍 scope 未物化时 initial 分支已造新
+      // 随机会话 id，此演进拍回读真实 scope 的锚定存档 id——当前流尚无有效
+      // 消息（未劫持现役对话）即采纳，让 [conversationID] 效应重置游标并回放
+      // /agent/events 重建轨迹块。终局消息的服务端图水合不受会话 id 影响，
+      // 这正是「消息在、轨迹无」的分裂成因。
+      const storedScopedConversationID = loadStoredScopedConversationID(nextScope);
+      if (
+        shouldAdoptStoredConversationOnScopeEvolution({
+          storedConversationID: storedScopedConversationID,
+          currentConversationID: conversationID,
+          hasMeaningfulMessages: hasMeaningfulChatMessages(messages)
+        })
+      ) {
+        agentEventSeqRef.current = 0;
+        saveStoredScopedConversationID(nextScope, storedScopedConversationID);
+        scopedConversationRef.current = scopedConversationRuntimeKey(nextScope, storedScopedConversationID);
+        restoredMessageScopeRef.current = "";
+        setConversationID(storedScopedConversationID);
+        return;
+      }
       const previousScope = historyScopeRef.current;
       historyScopeRef.current = nextScope;
       scopedConversationRef.current = scopedConversationRuntimeKey(nextScope, conversationID);

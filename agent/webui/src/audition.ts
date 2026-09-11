@@ -84,7 +84,9 @@ export function reduceAuditionEvents(current: AuditionState, incoming: AgentEven
       lastEventType: text(event.type),
       error: text(payload.message) || text(payload.error) || (text(event.type) === "audition.failed" ? text(event.body) : ""),
       conversationID: text(rawSession.conversation_id) || text(event.conversation_id) || previous?.conversationID || "",
-      turnID: text(rawSession.turn_id) || text(payload.turn_id) || previous?.turnID || "",
+      // B9 统一面：判定卡锚定轮次域（source_turn_id=run）——与轨迹回合同键，
+      // 卡片才能挂进统一轨迹块所在的回合组；缺失回退会话原生 turn 域。
+      turnID: text(event.source_turn_id) || text(rawSession.turn_id) || text(payload.turn_id) || previous?.turnID || "",
       roundID: text(rawSession.round_id) || text(payload.round_id) || previous?.roundID || "",
       judgmentRequested: event.type === "trajectory.user_judgment.recorded" ? false : previous?.judgmentRequested || event.type === "trajectory.user_judgment.requested",
       judgmentRecorded: previous?.judgmentRecorded || event.type === "trajectory.user_judgment.recorded",

@@ -20,15 +20,23 @@ export interface TurnEventMeta {
 export type TurnEventMetaMap = Record<string, TurnEventMeta>;
 
 /**
- * 轨迹归属键（CONTRACT-1 C0 双读期）：优先 trajectory_turn_id，缺失回退
- * 旧 turn_id / run_id / goal_id（双写期 trajectory_turn_id 与 turn_id 等值，
- * 显式优先读新字段是为收窄期铺轨）。payload.turn_id 仍最优先——实验级事件
- * 的轨迹归属写在 payload 内。
+ * 轨迹归属键（B9 统一面）：优先 source_turn_id（轮次域=拥有该事件的 run，
+ * CONTRACT-1 C0 消息归属域）——与 reduceTrajectoryEvents 的轮次键对齐，
+ * 保证 meta 记账（活动足迹/turn_kind/生命周期）与轨迹回合同键。缺失回退
+ * trajectory_turn_id / payload.turn_id / 旧 turn_id / run_id / goal_id（旧流
+ * 行为不变）。
  */
 export function trajectoryTurnIdOfEvent(event: AgentEvent): string {
   const payload = event.payload as JsonRecord | undefined;
   const payloadTurnID = payload && typeof payload === "object" ? text(payload.turn_id) : "";
-  return text(payloadTurnID) || text(event.trajectory_turn_id) || text(event.turn_id) || text(event.run_id) || text(event.goal_id);
+  return (
+    text(event.source_turn_id) ||
+    payloadTurnID ||
+    text(event.trajectory_turn_id) ||
+    text(event.turn_id) ||
+    text(event.run_id) ||
+    text(event.goal_id)
+  );
 }
 
 export function emptyTurnEventMetaMap(): TurnEventMetaMap {

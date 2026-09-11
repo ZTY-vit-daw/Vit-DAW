@@ -115,3 +115,24 @@ export function classifyHistoryScopeChange(input: HistoryScopeChangeInput): Hist
   // 键变化但工作区坐标一致或单侧未物化 = 会话内演进（物化/晚到身份）
   return "evolution";
 }
+
+/**
+ * B9 症4（刷新后轨迹消失）：刷新挂载首拍 uiState scope 未物化（unsaved::root）
+ * 时，initial 分支会造一个新随机会话 id；下一拍演进到真实 scope 判 evolution
+ * （previousConcrete 未物化不满足 switch 条件）并保留该新 id——存档锚定 id 不
+ * 被回读，/agent/events 回放打到空缓冲，轨迹块全部消失（终局消息可独立存活：
+ * 服务端会话图水合路径不受影响）。evolution 分支在「当前流无有效消息且该 scope
+ * 存有锚定会话 id」时采纳存档 id，触发事件回放重建轨迹。有真实对话内容的
+ * 现役会话不采纳（不劫持活的 unsaved 会话）。
+ */
+export function shouldAdoptStoredConversationOnScopeEvolution(input: {
+  storedConversationID: string;
+  currentConversationID: string;
+  hasMeaningfulMessages: boolean;
+}): boolean {
+  return (
+    Boolean(input.storedConversationID) &&
+    input.storedConversationID !== input.currentConversationID &&
+    !input.hasMeaningfulMessages
+  );
+}

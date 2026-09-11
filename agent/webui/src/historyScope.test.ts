@@ -4,6 +4,7 @@ import {
   concreteWorkspacePath,
   historyScopeKeyFromParts,
   historyScopePartsFromUIState,
+  shouldAdoptStoredConversationOnScopeEvolution,
   type HistoryScopeParts
 } from "./historyScope";
 import {
@@ -250,5 +251,48 @@ describe("CONTRACT-3 history scope", () => {
       nextParts: after
     });
     expect(change).toBe("none");
+  });
+});
+
+// B9 症4（刷新后轨迹整体消失）：刷新挂载首拍 scope 未物化（unsaved::root）→
+// initial 分支造新随机会话 id → 演进到真实 scope 判 evolution 保留新 id →
+// 存档锚定 id 不被回读，事件回放打到空缓冲，轨迹块消失（终局消息走服务端图
+// 水合独立存活）。evolution 分支的采纳判定在此钉死。
+describe("B9 症4：scope 演进时采纳存档锚定会话 id（刷新轨迹水合）", () => {
+  it("空流 + 存档 id 存在且不同 → 采纳（刷新恢复形态）", () => {
+    expect(
+      shouldAdoptStoredConversationOnScopeEvolution({
+        storedConversationID: "webui_mtwwegtp",
+        currentConversationID: "webui_newrandom",
+        hasMeaningfulMessages: false
+      })
+    ).toBe(true);
+  });
+
+  it("当前流已有有效消息 → 不采纳（不劫持现役 unsaved 会话）", () => {
+    expect(
+      shouldAdoptStoredConversationOnScopeEvolution({
+        storedConversationID: "webui_mtwwegtp",
+        currentConversationID: "webui_newrandom",
+        hasMeaningfulMessages: true
+      })
+    ).toBe(false);
+  });
+
+  it("无存档 id / 存档与当前一致 → 不采纳", () => {
+    expect(
+      shouldAdoptStoredConversationOnScopeEvolution({
+        storedConversationID: "",
+        currentConversationID: "webui_newrandom",
+        hasMeaningfulMessages: false
+      })
+    ).toBe(false);
+    expect(
+      shouldAdoptStoredConversationOnScopeEvolution({
+        storedConversationID: "webui_mtwwegtp",
+        currentConversationID: "webui_mtwwegtp",
+        hasMeaningfulMessages: false
+      })
+    ).toBe(false);
   });
 });

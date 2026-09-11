@@ -37,6 +37,7 @@ param(
     [switch]$ExpectRed,
     [switch]$ExpectF1Fixed,
     [switch]$ExpectF2Fixed,
+    [switch]$B9FreeStateChat,
     [int]$WaitSeconds = 30,
     [int]$KernelDwellSeconds = 120,
     [int]$ApprovePacingMs = 5000,
@@ -147,6 +148,7 @@ $envFailure = $false
 $layerAExit = -1
 $layerBExit = -1
 $layerBStatus = "skipped-by-switch"
+$layerB9Exit = -1
 $AgentProcId = 0
 $KernelProcId = 0
 $repoProjectHashBefore = ""
@@ -370,6 +372,29 @@ try {
         @layerAFlags 2>&1 | Tee-Object -FilePath $layerAConsole
     $layerAExit = $LASTEXITCODE
     Add-Prereq ("layer_a_exit=" + $layerAExit)
+
+    # B9 layer (card B9, 2026-09-11): free-state default chat chain trace
+    # unified-surface scenario (manual test-3 form replay). Must run AFTER
+    # layer A: this layer switches authority to full access (mix_tick applies
+    # directly, replaying the 19:54 manual form); running it earlier would
+    # starve layer A of its manual confirmation cards. After layer A's
+    # stand-in judgment settles, the stack should be idle and the authority
+    # switch should not hit 409; a busy switch is recorded as env failure.
+    if ($B9FreeStateChat) {
+        Write-Step "Layer B9: free-state chat trace unified surface (playwright)"
+        $layerB9Console = Join-Path $RunRoot "layer_b9_console.txt"
+        $layerB9BudgetFlags = @()
+        if ($ChatBudgetSeconds -gt 0) {
+            $layerB9BudgetFlags = @("--chat-budget", ([string]$ChatBudgetSeconds))
+        }
+        & python (Join-Path $ScriptsDir "b9_free_state_chat_trace_smoke.py") `
+            --webui-url "http://127.0.0.1:7878/app/" `
+            --agent-http "http://127.0.0.1:7878" `
+            --out-dir (Join-Path $RunRoot "layer_b9") `
+            @layerB9BudgetFlags 2>&1 | Tee-Object -FilePath $layerB9Console
+        $layerB9Exit = $LASTEXITCODE
+        Add-Prereq ("layer_b9_exit=" + $layerB9Exit)
+    }
 }
 catch {
     Add-Prereq ("fatal=" + $_.Exception.Message)
@@ -422,6 +447,7 @@ finally {
         layer_a_exit     = $layerAExit
         layer_b_exit     = $layerBExit
         layer_b_status   = $layerBStatus
+        layer_b9_exit    = $layerB9Exit
         env_failure      = $envFailure
     }
     ($summary | ConvertTo-Json) | Out-File -FilePath (Join-Path $RunRoot "e2e1_summary.json") -Encoding utf8
@@ -436,6 +462,9 @@ finally {
     $overallOk = ($layerAExit -eq 0)
     if (-not $SkipLayerB) {
         $overallOk = $overallOk -and ($layerBExit -eq 0)
+    }
+    if ($B9FreeStateChat) {
+        $overallOk = $overallOk -and ($layerB9Exit -eq 0)
     }
     if ($overallOk) {
         Write-Host "E2E1_EXIT 0 (expected shape confirmed)" -ForegroundColor Green
