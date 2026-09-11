@@ -51,16 +51,34 @@ func (p *StaticEQVSPPort) commandName() string {
 	return staticEQActionCommand
 }
 
-// instantiatePayload builds the instantiate_plugin command. The identifier is
-// only attached when the action pins one; the real-plugin path carries
-// plugin_path and leaves the identifier empty, because the kernel resolves a
-// non-empty identifier exclusively against its known-plugin list (which an
-// uns-scanned host does not populate) and never falls back to the path.
+// Rack node placement the governed load requests from the kernel: the exact
+// geometry mirrors the F4 forensics payload (artifacts/F4/20260912_min/f1)
+// and the kernel's non-synth default zone, so an agent-loaded plugin renders
+// in the Godot rack exactly like a manual library drag.
+const (
+	rackNodeDefaultX    = 40.0
+	rackNodeDefaultY    = 500.0
+	rackNodeDefaultZone = "Z3"
+)
+
+// instantiatePayload builds the rack_add_node load command (F4A: the bare
+// instantiate_plugin insert never created a rack wrapper, so the Godot rack —
+// a state-driven view over track.rack.nodes — could not see agent-loaded
+// plugins; rack_add_node produces the rack-wrapped form a manual drag does).
+// The identifier is only attached when the action pins one; the real-plugin
+// path carries plugin_path and leaves the identifier empty, because the
+// kernel resolves a non-empty identifier exclusively against its known-plugin
+// list (which an uns-scanned host does not populate) and never falls back to
+// the path. The reply carries plugin_id/plugin_item_id like instantiate did,
+// so the Apply receipt flow is unchanged.
 func (p *StaticEQVSPPort) instantiatePayload(action orchestration.Action) map[string]any {
 	payload := map[string]any{
-		"cmd":           "instantiate_plugin",
-		"track_id":      action.TargetRef,
-		"base_revision": p.baseRevision,
+		"cmd":          "rack_add_node",
+		"track_id":     action.TargetRef,
+		"x":            rackNodeDefaultX,
+		"y":            rackNodeDefaultY,
+		"zone_id":      rackNodeDefaultZone,
+		"auto_connect": true,
 	}
 	if identifier := actionArgText(action, "plugin_identifier"); identifier != "" {
 		payload["plugin_identifier"] = identifier

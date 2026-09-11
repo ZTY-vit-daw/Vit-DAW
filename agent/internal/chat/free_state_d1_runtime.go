@@ -84,8 +84,8 @@ const d1StaticEQCapabilityID = "static_mix.static_eq.v0"
 
 // defaultD1StaticEQPluginIdentifier is the plan-layer default EQ instance
 // identifier used when the admission does not pin one. The StaticEQVSPPort
-// instantiates it through instantiate_plugin only when the target track has
-// no plugin_id yet.
+// loads it through rack_add_node only when the target track has no plugin_id
+// yet.
 const defaultD1StaticEQPluginIdentifier = "juce_eq"
 
 type d1JournalMutationPort struct {

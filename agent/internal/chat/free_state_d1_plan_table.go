@@ -698,7 +698,11 @@ func pluginParamWriteArgs(typedAction map[string]any, spec experiment.D1S1Domain
 // loaded on one track of a live plugin-graph read (the get_project_state
 // legacy reply — the same surface the bridge uses for shadow refreshes;
 // its track rows carry the plugin chain, unlike the revision-bound VSP
-// compact snapshot). Those rows expose only the display identity (name plus
+// compact snapshot). Since governed loads issue rack_add_node (F4A), a
+// loaded EQ no longer appears in the flat plugins array (only the rack
+// wrapper row does) — it lives under the nested rack.nodes — so the read
+// walks all three faces (plugins, rack_nodes, rack.nodes) like
+// daw.VisiblePluginRefs. Rows expose only the display identity (name plus
 // type), never the whitelist's identifier or path, so the folded name
 // comparison is the strongest identity the state can offer; a mismatched
 // same-named plugin still fails closed downstream because the port reads the
@@ -714,28 +718,25 @@ func d1ExistingPluginInstanceID(state map[string]any, trackID, pluginName string
 		if firstStringFromMap(row, "track_id", "id") != trackID {
 			continue
 		}
-		for _, plugin := range mapRowsFromAny(firstPresentInMap(row, "plugins", "rack_nodes")) {
-			name := strings.TrimSpace(firstStringFromMap(plugin, "plugin_name", "name", "display_name", "label"))
-			if !strings.EqualFold(name, pluginName) {
-				continue
-			}
-			if instanceID := firstStringFromMap(plugin, "plugin_item_id", "item_id", "plugin_id", "id", "node_id"); instanceID != "" {
-				return instanceID
+		pluginRows := [][]map[string]any{
+			mapRowsFromAny(row["plugins"]),
+			mapRowsFromAny(row["rack_nodes"]),
+		}
+		if rack, ok := row["rack"].(map[string]any); ok {
+			pluginRows = append(pluginRows, mapRowsFromAny(rack["nodes"]))
+		}
+		for _, rows := range pluginRows {
+			for _, plugin := range rows {
+				name := strings.TrimSpace(firstStringFromMap(plugin, "plugin_name", "name", "display_name", "label"))
+				if !strings.EqualFold(name, pluginName) {
+					continue
+				}
+				if instanceID := firstStringFromMap(plugin, "plugin_item_id", "item_id", "plugin_id", "id", "node_id"); instanceID != "" {
+					return instanceID
+				}
 			}
 		}
 		return ""
 	}
 	return ""
-}
-
-// firstPresentInMap returns the first key whose value is present (even when
-// nil), mirroring the shadow projection's plugin-array fallback between
-// "plugins" and "rack_nodes" row keys.
-func firstPresentInMap(row map[string]any, keys ...string) any {
-	for _, key := range keys {
-		if _, present := row[key]; present {
-			return row[key]
-		}
-	}
-	return nil
 }

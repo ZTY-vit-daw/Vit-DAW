@@ -27,7 +27,7 @@ func (f *fakeEQVSPClient) SendVSPLegacyCommandWithIDs(ctx context.Context, comma
 	f.requests = append(f.requests, requestID)
 	f.txs = append(f.txs, txID)
 	switch command["cmd"] {
-	case "instantiate_plugin":
+	case "rack_add_node":
 		if f.instantiateErr != "" {
 			return &kernel.VSPCommandResult{TransactionID: txID, LegacyReply: map[string]any{"status": "error", "message": f.instantiateErr}}, nil
 		}
@@ -38,7 +38,7 @@ func (f *fakeEQVSPClient) SendVSPLegacyCommandWithIDs(ctx context.Context, comma
 			f.instantiated[identifier] = pluginID
 			_ = pluginID
 		}
-		return &kernel.VSPCommandResult{TransactionID: txID, LegacyReply: map[string]any{"status": "ok", "plugin_id": pluginID}}, nil
+		return &kernel.VSPCommandResult{TransactionID: txID, LegacyReply: map[string]any{"status": "ok", "plugin_id": pluginID, "rack_item_id": "rack_1"}}, nil
 	case "get_plugin_parameters":
 		if f.readbackErr != "" {
 			return &kernel.VSPCommandResult{TransactionID: txID, LegacyReply: map[string]any{"status": "error", "message": f.readbackErr}}, nil
@@ -97,9 +97,16 @@ func TestStaticEQVSPPortAppliesWithCASAndReadback(t *testing.T) {
 		receipt.Details["before_readback_value"] != 0.0 || receipt.Details["plugin_instantiated_by_action"] != false {
 		t.Fatalf("readback metadata: %#v", receipt.Details)
 	}
+	// F4A nail 3 (reuse semantics, no regression): an action that carries a
+	// resolved plugin_id must issue zero load commands of either form.
+	for _, command := range client.commands {
+		if command["cmd"] == "rack_add_node" || command["cmd"] == "instantiate_plugin" {
+			t.Fatalf("reuse must not load a plugin: %#v", command)
+		}
+	}
 }
 
-func TestStaticEQVSPPortInstantiatesWhenPluginIDMissing(t *testing.T) {
+func TestStaticEQVSPPortLoadsRackNodeWhenPluginIDMissing(t *testing.T) {
 	client := &fakeEQVSPClient{fakeVSPClient: fakeVSPClient{snapshots: eqSnapshots()},
 		paramValues: map[string]float64{}, instantiated: map[string]string{}}
 	port := &StaticEQVSPPort{Client: client}
@@ -120,8 +127,74 @@ func TestStaticEQVSPPortInstantiatesWhenPluginIDMissing(t *testing.T) {
 	if receipt.Details["plugin_instantiated_by_action"] != true || receipt.Details["plugin_id"] != "plg_juce_eq_1" {
 		t.Fatalf("instantiation metadata: %#v", receipt.Details)
 	}
-	if client.commands[0]["cmd"] != "instantiate_plugin" || client.commands[0]["plugin_identifier"] != "juce_eq" {
-		t.Fatalf("expected instantiate command first: %#v", client.commands[0])
+	// F4A: the governed load issues rack_add_node (rack-wrapped form, visible
+	// in the Godot rack like a manual drag) with the geometry fields the
+	// kernel handler requires; the reply's plugin_id feeds the parameter write.
+	load := client.commands[0]
+	if load["cmd"] != "rack_add_node" || load["track_id"] != "t1" || load["plugin_identifier"] != "juce_eq" {
+		t.Fatalf("expected rack_add_node load first: %#v", load)
+	}
+	x, xOK := load["x"].(float64)
+	y, yOK := load["y"].(float64)
+	if !xOK || !yOK || load["zone_id"] != "Z3" || load["auto_connect"] != true {
+		t.Fatalf("rack_add_node load must carry numeric x/y, zone and auto_connect: %#v", load)
+	}
+	if x == 0 || y == 0 {
+		t.Fatalf("rack node placement must be a real canvas position, got x=%v y=%v", x, y)
+	}
+	if client.requests[0] != "execution:eq:a1:instantiate" {
+		t.Fatalf("load keeps its idempotency-key suffix: %v", client.requests)
+	}
+}
+
+// F4A nail 1: both identity forms load through rack_add_node with the same
+// geometry fields — the known-list identifier route and the real-plugin
+// plugin_path route (which must keep the identifier absent so the kernel
+// resolves by path).
+func TestStaticEQVSPPortLoadRackAddNodePayloadCoversBothIdentityForms(t *testing.T) {
+	identifierClient := &fakeEQVSPClient{fakeVSPClient: fakeVSPClient{snapshots: eqSnapshots()},
+		paramValues: map[string]float64{}, instantiated: map[string]string{}}
+	port := &StaticEQVSPPort{Client: identifierClient}
+	action := eqAction()
+	delete(action.Args, "plugin_id")
+	action.Args["plugin_identifier"] = "juce_eq"
+	set := orchestration.ActionSet{ID: "as", ProjectCutHash: "cut-eq", Actions: []orchestration.Action{action}}
+	if err := port.Preflight(context.Background(), set, eqCut()); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := port.Apply(context.Background(), action, "k"); err != nil {
+		t.Fatal(err)
+	}
+	identifierLoad := identifierClient.commands[0]
+	if identifierLoad["cmd"] != "rack_add_node" || identifierLoad["plugin_identifier"] != "juce_eq" {
+		t.Fatalf("identifier-form load: %#v", identifierLoad)
+	}
+	if _, ok := identifierLoad["x"].(float64); !ok {
+		t.Fatalf("identifier-form load must carry numeric x: %#v", identifierLoad)
+	}
+	if _, ok := identifierLoad["zone_id"].(string); !ok || identifierLoad["zone_id"] == "" {
+		t.Fatalf("identifier-form load must carry a zone: %#v", identifierLoad)
+	}
+
+	pathClient := newFakeNBVSPClient("p315_c1", "p315_c2", -24, 24, true)
+	pathPort := &StaticEQVSPPort{Client: pathClient}
+	pathAction := nbAction()
+	pathSet := orchestration.ActionSet{ProjectCutHash: "cut-eq", Actions: []orchestration.Action{pathAction}}
+	if err := pathPort.Preflight(context.Background(), pathSet, eqCut()); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := pathPort.Apply(context.Background(), pathAction, "k"); err != nil {
+		t.Fatal(err)
+	}
+	pathLoad := pathClient.commands[0]
+	if pathLoad["cmd"] != "rack_add_node" || pathLoad["plugin_path"] != "C:/plugins/Fixture EQ.vst3" {
+		t.Fatalf("path-form load: %#v", pathLoad)
+	}
+	if _, present := pathLoad["plugin_identifier"]; present {
+		t.Fatalf("path-form load must keep the identifier absent: %#v", pathLoad)
+	}
+	if _, ok := pathLoad["y"].(float64); !ok || pathLoad["auto_connect"] != true || pathLoad["zone_id"] == "" {
+		t.Fatalf("path-form load must carry y, auto_connect and zone: %#v", pathLoad)
 	}
 }
 
@@ -264,7 +337,7 @@ func (f *fakeNBVSPClient) SendVSPLegacyCommandWithIDs(_ context.Context, command
 	f.requests = append(f.requests, requestID)
 	f.txs = append(f.txs, txID)
 	switch command["cmd"] {
-	case "instantiate_plugin":
+	case "rack_add_node":
 		if _, hasIdentifier := command["plugin_identifier"]; hasIdentifier {
 			return &kernel.VSPCommandResult{TransactionID: txID, LegacyReply: map[string]any{"status": "error", "message": "identifier must stay empty on the path route"}}, nil
 		}

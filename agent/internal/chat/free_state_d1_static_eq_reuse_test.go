@@ -153,3 +153,68 @@ func TestD1StaticEQPlanReuseDoseGuardPinsOneBoundedInstance(t *testing.T) {
 		t.Fatalf("reuse must not bypass the admitted dose bound: err=%v", err)
 	}
 }
+
+// d1RackWrappedGraphReply reproduces the rack-wrapped track row the kernel
+// emits after a rack_add_node load (F4 forensics artifacts/F4/20260912_min/f1,
+// raw get_project_state track 1017): the EQ disappears from the flat plugins
+// array (only the "New Rack" wrapper row stays) and lives under the nested
+// rack.nodes with the full plugin_item_id/plugin_name key family.
+func d1RackWrappedGraphReply() map[string]any {
+	return map[string]any{
+		"status": "ok",
+		"tracks": []any{map[string]any{
+			"track_id": "1007", "track_name": "bass",
+			"plugins": []any{
+				map[string]any{"plugin_item_id": "1008", "item_id": "1008", "id": "1008", "name": "Volume & Pan Plugin", "type": "volume"},
+				map[string]any{"plugin_item_id": "1052", "item_id": "1052", "id": "1052", "name": "New Rack", "type": "rack"},
+			},
+			"rack": map[string]any{
+				"rack_item_id": "1052", "scope": "track",
+				"nodes": []any{map[string]any{
+					"node_id": "1053", "plugin_item_id": "1053", "item_id": "1053", "id": "1053", "plugin_id": "1053",
+					"name": "Fixture EQ", "plugin_name": "Fixture EQ", "type": "vst",
+					"zone_id": "Z3", "x": 40.0, "y": 500.0,
+				}},
+			},
+		}},
+	}
+}
+
+// Nail F4A-2: on a rack-wrapped project (the shape every governed load now
+// produces) discovery must still resolve the EQ instance — the read walks all
+// three faces (plugins, rack_nodes, nested rack.nodes) like VisiblePluginRefs,
+// so reuse keeps converging on the rack node instead of stacking another one.
+func TestD1StaticEQDiscoveryResolvesRackWrappedInstance(t *testing.T) {
+	graph := d1RackWrappedGraphReply()
+	if got := d1ExistingPluginInstanceID(graph, "1007", "Fixture EQ"); got != "1053" {
+		t.Fatalf("discovery must resolve the rack-wrapped instance: got %q", got)
+	}
+	// Discovery stays name-driven: the wrapper row itself is just another row.
+	if got := d1ExistingPluginInstanceID(graph, "1007", "New Rack"); got != "1052" {
+		t.Fatalf("wrapper rows resolve by their own name: got %q", got)
+	}
+	if got := d1ExistingPluginInstanceID(graph, "1012", "Fixture EQ"); got != "" {
+		t.Fatalf("other tracks never match: got %q", got)
+	}
+	// The flat rack_nodes face still resolves when a consumer reports that
+	// shape (mirroring the shadow projection's alternate row key).
+	flat := map[string]any{
+		"status": "ok",
+		"tracks": []any{map[string]any{
+			"track_id": "1007",
+			"rack_nodes": []any{map[string]any{"plugin_item_id": "1054", "id": "1054", "name": "Fixture EQ"}},
+		}},
+	}
+	if got := d1ExistingPluginInstanceID(flat, "1007", "Fixture EQ"); got != "1054" {
+		t.Fatalf("flat rack_nodes face must resolve: got %q", got)
+	}
+	// Mixed shape: a legacy bare instance and a rack-wrapped one on the same
+	// track resolve deterministically to the first face's match.
+	mixed := d1RackWrappedGraphReply()
+	bare := mapRowsFromAny(mixed["tracks"])[0]
+	bare["plugins"] = append(mapRowsFromAny(bare["plugins"]),
+		map[string]any{"plugin_item_id": "1040", "item_id": "1040", "id": "1040", "name": "Fixture EQ", "type": "vst"})
+	if got := d1ExistingPluginInstanceID(mixed, "1007", "Fixture EQ"); got != "1040" {
+		t.Fatalf("mixed shapes resolve deterministically from the plugins face first: got %q", got)
+	}
+}
