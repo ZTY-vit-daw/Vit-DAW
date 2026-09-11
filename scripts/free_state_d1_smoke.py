@@ -944,9 +944,20 @@ def persisted_task_semantic_state(state: dict[str, Any], conversation_id: str) -
     return {}
 
 
-def prepare_project(base_url: str, case: dict[str, Any], timeout: float) -> dict[str, Any]:
+def prepare_project(base_url: str, case: dict[str, Any], timeout: float, reuse_live_binding: bool = False) -> dict[str, Any]:
     project_path = str(Path(str(case["project_path"])).resolve())
-    invoke(base_url, "project.open", {"file_path": project_path, "project_path": project_path}, timeout, confirmed=True)
+    # A reopen is a state replacement: the kernel reloads the edit from disk,
+    # so plugin instances that only live in the current edit (or that the
+    # reload's save target does not reflect) disappear and the instance-id
+    # allocator restarts. A reuse round must keep the live plugin graph when
+    # the requested project is already the one bound, so the plan layer's
+    # instance discovery still sees the prior round's instance.
+    already_bound = False
+    if reuse_live_binding:
+        state = invoke(base_url, "project.state", {}, timeout)
+        already_bound = project_path_from_state(state).lower() == project_path.lower()
+    if not already_bound:
+        invoke(base_url, "project.open", {"file_path": project_path, "project_path": project_path}, timeout, confirmed=True)
     state = invoke(base_url, "project.state", {}, timeout)
     if project_path_from_state(state).lower() != project_path.lower():
         raise RuntimeError("live project binding does not match the public p01 project")
@@ -963,7 +974,7 @@ def prepare_project(base_url: str, case: dict[str, Any], timeout: float) -> dict
         total = int(analysis.get("dad_fact_total_count", 0) or 0)
         waveforms = rows(analysis.get("track_waveform_envelopes"))
         if status == "ready" and total > 0 and ready == total and len(waveforms) >= total:
-            return {"project_path": project_path, "dad_fact_status": status, "dad_fact_ready_count": ready, "dad_fact_total_count": total}
+            return {"project_path": project_path, "reused_live_binding": already_bound, "dad_fact_status": status, "dad_fact_ready_count": ready, "dad_fact_total_count": total}
         queue_status = first_text(analysis.get("analysis_queue_status")).lower()
         if not started and (status not in {"ready", "building", "queued", "pending", "running"} or queue_status == "missing"):
             invoke(base_url, "project.audio_analysis_start", {"retry_missing": True, "rebuild_from_project": True, "interval_ms": 50}, timeout)
@@ -1513,7 +1524,14 @@ def validate_d1(base_url: str, conversation_id: str, responses: list[dict[str, A
         require(first_text(by_id["candidate-a"].get(key)) != first_text(by_id["candidate-b"].get(key)), f"D1 A/B candidates share {key}")
 
     actions_before = request_json("GET", base_url.rstrip("/") + "/agent/actions?limit=200", None, timeout)
-    d1_actions_before = [item for item in rows(actions_before.get("actions")) if first_text(item.get("source")) == "free_state_d1_s1"]
+    # Journal cardinality is per experiment: scope to this run's goal so an
+    # agent that already executed an earlier experiment on the same live stack
+    # (the B10 --reuse-existing-project second round) still validates. Rows
+    # without a goal id stay counted — that is the conservative side.
+    run_goal_id = first_text(loop.get("goal_id"))
+    d1_actions_before = [item for item in rows(actions_before.get("actions"))
+                         if first_text(item.get("source")) == "free_state_d1_s1"
+                         and (not run_goal_id or first_text(item.get("goal_id")) in ("", run_goal_id))]
     require(len(d1_actions_before) == 1, "D1 journal must contain exactly one forward mutation")
     state_before = invoke(base_url, "project.state", {}, timeout)
     revision_before_select = project_revision(state_before)
@@ -1523,7 +1541,9 @@ def validate_d1(base_url: str, conversation_id: str, responses: list[dict[str, A
     request_json("POST", base_url.rstrip("/") + "/agent/audition/stop", {"conversation_id": conversation_id, "session_id": session_id}, timeout)
     state_after = invoke(base_url, "project.state", {}, timeout)
     actions_after = request_json("GET", base_url.rstrip("/") + "/agent/actions?limit=200", None, timeout)
-    d1_actions_after = [item for item in rows(actions_after.get("actions")) if first_text(item.get("source")) == "free_state_d1_s1"]
+    d1_actions_after = [item for item in rows(actions_after.get("actions"))
+                        if first_text(item.get("source")) == "free_state_d1_s1"
+                        and (not run_goal_id or first_text(item.get("goal_id")) in ("", run_goal_id))]
     require(project_revision(state_after) == revision_before_select, "audition.select changed the project revision")
     require(len(d1_actions_after) == len(d1_actions_before) == 1, "audition.select changed journal mutation cardinality")
 
@@ -2636,6 +2656,7 @@ def main() -> int:
     parser.add_argument("--agent-log", default="", help="path to the agent runtime log for evaluator-side observability checks (domain routing decisions, processor selection records)")
     parser.add_argument("--expect-processor-selection", default="", help="AGENT-1 milestone: require a processor_selection.v1 record for this action domain (processor_selection route) with its routing log lines present")
     parser.add_argument("--verify-settled", default="", help="verify a previously settled probe report after an agent restart (path to d1_smoke_report.json)")
+    parser.add_argument("--reuse-existing-project", action="store_true", help="B10 instance-reuse round: when the project workdir already exists (a previous experiment round on this live stack), reuse the project in place instead of materializing a fresh copy, so the second experiment plans against the plugin instances the first round left on the tracks")
     args = parser.parse_args()
     if args.multi_round_probe and args.settlement_probe:
         parser.error("--multi-round-probe cannot be combined with --settlement-probe")
@@ -2656,10 +2677,19 @@ def main() -> int:
     responses: list[dict[str, Any]] = []
     try:
         public_manifest, public_case = load_public_case(Path(args.public_manifest), args.public_case_id)
-        case = materialize_public_case(public_case, Path(args.project_workdir))
+        workdir = Path(args.project_workdir)
+        if args.reuse_existing_project and workdir.resolve().exists():
+            source_project = Path(str(public_case["project_path"])).resolve()
+            reused_project = workdir.resolve() / source_project.name
+            if not reused_project.is_file():
+                raise RuntimeError(f"reused D1 project workdir is missing the project file: {reused_project}")
+            case = dict(public_case)
+            case["project_path"] = str(reused_project)
+        else:
+            case = materialize_public_case(public_case, workdir)
         report["public_source_project"] = str(Path(str(public_case["project_path"])).resolve())
         report["material_qualification"] = qualify_material(case, stereo_balance=args.prompt_flavor == "pan", limiter=args.prompt_flavor == "limiter", gate=args.prompt_flavor == "gate", multiband=args.prompt_flavor == "multiband")
-        report["project_setup"] = prepare_project(args.agent_http, case, args.timeout_sec)
+        report["project_setup"] = prepare_project(args.agent_http, case, args.timeout_sec, reuse_live_binding=args.reuse_existing_project)
         report["started_at_epoch"] = time.time()
         ui_context_response = request_json("GET", args.agent_http.rstrip("/") + "/agent/ui/context", None, min(args.timeout_sec, 30))
         ui_context = ui_context_response.get("context") if isinstance(ui_context_response.get("context"), dict) else {}

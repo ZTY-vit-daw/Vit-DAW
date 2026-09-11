@@ -125,7 +125,7 @@ func TestD2MultiRoundPlanBuildersAcceptMultiRoundAdmission(t *testing.T) {
 	// historical stub path too.
 	eqLoop := d1StaticEQLoopForTest(t, "7")
 	eqState := map[string]any{"tracks": []any{map[string]any{"track_id": "vocal", "volume_db": -2.0}}}
-	eqPlan, err := d1PluginParamPlanWithBinding(eqLoop, agentloop.PendingMixTickCandidate{Operation: d1StaticEQKind, TrackID: "vocal"}, 7, "project-1", "epoch-1", "snapshot-7", eqState, nil)
+	eqPlan, err := d1PluginParamPlanWithBinding(eqLoop, agentloop.PendingMixTickCandidate{Operation: d1StaticEQKind, TrackID: "vocal"}, 7, "project-1", "epoch-1", "snapshot-7", eqState, nil, "")
 	if err != nil {
 		t.Fatalf("multi-round static_eq plan rejected: %v", err)
 	}

@@ -588,7 +588,17 @@ func d1StaticEQActionArgs(typedAction map[string]any, gainDB float64, binding *d
 // kernel commands. Legacy static_eq shapes stay locked by
 // TestD1S1TableDrivenBuildersReproduceLegacyPlans through the untouched
 // stub path.
-func d1PluginParamPlanWithBinding(loop freeStateReasoningLoop, candidate agentloop.PendingMixTickCandidate, stateRevision int64, projectUUID, projectEpoch, snapshotHash string, state map[string]any, writeBinding *d1PluginParamWhitelistBinding) (orchestration.FrozenPlan, error) {
+// d1PluginParamPlanWithBinding freezes one bounded plugin-parameter mutation.
+// existingPluginInstanceID is the caller's discovery result from the live
+// plugin graph (get_project_state): non-empty means a same-identity instance
+// already sits on the target track, so the plan targets it and the port skips
+// the instantiate command — reruns rewrite that instance's parameters
+// instead of stacking another one (the kernel persists the plugin graph, so
+// without this every session adds a fresh instance to the same track). Empty
+// keeps the historical instantiate path. The revision-bound VSP state itself
+// never carries plugin rows (the kernel's compact snapshot strips them), so
+// discovery cannot live inside this builder.
+func d1PluginParamPlanWithBinding(loop freeStateReasoningLoop, candidate agentloop.PendingMixTickCandidate, stateRevision int64, projectUUID, projectEpoch, snapshotHash string, state map[string]any, writeBinding *d1PluginParamWhitelistBinding, existingPluginInstanceID string) (orchestration.FrozenPlan, error) {
 	if loop.Experiment == nil || !loop.Experiment.Admission.IsD1S1() {
 		return orchestration.FrozenPlan{}, fmt.Errorf("active D1-S1 experiment is required")
 	}
@@ -614,6 +624,9 @@ func d1PluginParamPlanWithBinding(loop freeStateReasoningLoop, candidate agentlo
 		return orchestration.FrozenPlan{}, fmt.Errorf("%s execution requires a resolved experiment plugin whitelist binding", spec.ActionDomain)
 	}
 	args, paramID := pluginParamWriteArgs(loop.Experiment.Admission.TypedAction, spec, valueDB, writeBinding)
+	if writeBinding != nil && strings.TrimSpace(existingPluginInstanceID) != "" {
+		args["plugin_id"] = strings.TrimSpace(existingPluginInstanceID)
+	}
 	if loop.Experiment.Admission.IsD2MultiRound() {
 		if err := d2MultiRoundCheckProjectedCumulativeDelta(loop.Experiment, spec.AdmissionValueKey, valueDB); err != nil {
 			return orchestration.FrozenPlan{}, err
@@ -679,4 +692,50 @@ func pluginParamWriteArgs(typedAction map[string]any, spec experiment.D1S1Domain
 		args["target_semantics"] = spec.TargetSemantics
 	}
 	return args, paramID
+}
+
+// d1ExistingPluginInstanceID resolves the instance id of a plugin already
+// loaded on one track of a live plugin-graph read (the get_project_state
+// legacy reply — the same surface the bridge uses for shadow refreshes;
+// its track rows carry the plugin chain, unlike the revision-bound VSP
+// compact snapshot). Those rows expose only the display identity (name plus
+// type), never the whitelist's identifier or path, so the folded name
+// comparison is the strongest identity the state can offer; a mismatched
+// same-named plugin still fails closed downstream because the port reads the
+// bound parameter ids off the resolved instance. The first matching row wins
+// deterministically, making reuse a pure function of the graph read: replays
+// converge on one instance instead of stacking new ones.
+func d1ExistingPluginInstanceID(state map[string]any, trackID, pluginName string) string {
+	pluginName = strings.TrimSpace(pluginName)
+	if pluginName == "" {
+		return ""
+	}
+	for _, row := range mapRowsFromAny(state["tracks"]) {
+		if firstStringFromMap(row, "track_id", "id") != trackID {
+			continue
+		}
+		for _, plugin := range mapRowsFromAny(firstPresentInMap(row, "plugins", "rack_nodes")) {
+			name := strings.TrimSpace(firstStringFromMap(plugin, "plugin_name", "name", "display_name", "label"))
+			if !strings.EqualFold(name, pluginName) {
+				continue
+			}
+			if instanceID := firstStringFromMap(plugin, "plugin_item_id", "item_id", "plugin_id", "id", "node_id"); instanceID != "" {
+				return instanceID
+			}
+		}
+		return ""
+	}
+	return ""
+}
+
+// firstPresentInMap returns the first key whose value is present (even when
+// nil), mirroring the shadow projection's plugin-array fallback between
+// "plugins" and "rack_nodes" row keys.
+func firstPresentInMap(row map[string]any, keys ...string) any {
+	for _, key := range keys {
+		if _, present := row[key]; present {
+			return row[key]
+		}
+	}
+	return nil
 }

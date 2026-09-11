@@ -224,7 +224,7 @@ func TestD1S1LimiterPlanEmbedsWhitelistBinding(t *testing.T) {
 		ParamID:    "lim_ceiling",
 	}
 	plan, err := d1PluginParamPlanWithBinding(loop, agentloop.PendingMixTickCandidate{Operation: d1LimiterKind, TrackID: "vocal"}, 7, "project-1", "epoch-1", "snapshot-7",
-		map[string]any{"tracks": []any{map[string]any{"track_id": "vocal", "volume_db": -2.0}}}, binding)
+		map[string]any{"tracks": []any{map[string]any{"track_id": "vocal", "volume_db": -2.0}}}, binding, "")
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -239,7 +239,7 @@ func TestD1S1CompressionPlanEmbedsWhitelistBinding(t *testing.T) {
 		ParamIDCH2: "thr_b",
 	}
 	plan, err := d1PluginParamPlanWithBinding(loop, agentloop.PendingMixTickCandidate{Operation: d1BroadbandCompressionKind, TrackID: "vocal"}, 7, "project-1", "epoch-1", "snapshot-7",
-		map[string]any{"tracks": []any{map[string]any{"track_id": "vocal", "volume_db": -2.0}}}, binding)
+		map[string]any{"tracks": []any{map[string]any{"track_id": "vocal", "volume_db": -2.0}}}, binding, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -289,7 +289,7 @@ func TestD1S1GenericPluginPlanReproducesLegacyStaticEQPlans(t *testing.T) {
 		ParamID:     "p315_c1",
 		ParamIDCH2:  "p315_c2",
 		FrequencyHz: 400,
-	})
+	}, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -538,7 +538,7 @@ func TestD1S1DeEsserPlanEmbedsWhitelistBinding(t *testing.T) {
 		ParamID:    "deess_thresh",
 	}
 	plan, err := d1PluginParamPlanWithBinding(loop, agentloop.PendingMixTickCandidate{Operation: d1DeEsserKind, TrackID: "vocal"}, 7, "project-1", "epoch-1", "snapshot-7",
-		map[string]any{"tracks": []any{map[string]any{"track_id": "vocal", "volume_db": -2.0}}}, binding)
+		map[string]any{"tracks": []any{map[string]any{"track_id": "vocal", "volume_db": -2.0}}}, binding, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -580,7 +580,7 @@ func TestD1S1DeEsserPlanEmbedsWhitelistBinding(t *testing.T) {
 		map[string]any{"tracks": []any{map[string]any{"track_id": "vocal", "volume_db": -2.0}}}, &d1PluginParamWhitelistBinding{
 			Section: d1BroadbandCompressionDomain, PluginName: "Fixture Comp", PluginPath: "C:/plugins/Fixture Comp.vst3",
 			ParamID: "thr_a", ParamIDCH2: "thr_b",
-		})
+		}, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -801,7 +801,7 @@ func TestD1S1TransientPlanEmbedsWhitelistBinding(t *testing.T) {
 		ParamID:    "trans_attack",
 	}
 	plan, err := d1PluginParamPlanWithBinding(loop, agentloop.PendingMixTickCandidate{Operation: d1TransientShaperKind, TrackID: "vocal"}, 7, "project-1", "epoch-1", "snapshot-7",
-		map[string]any{"tracks": []any{map[string]any{"track_id": "vocal", "volume_db": -2.0}}}, binding)
+		map[string]any{"tracks": []any{map[string]any{"track_id": "vocal", "volume_db": -2.0}}}, binding, "")
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -477,7 +477,19 @@ func (s *Server) executeD1StaticEQ(ctx context.Context, conversationID string, r
 			return d1BlockedResponse(loop, "D1-S1 project changed while producing the before render"), true
 		}
 		state = afterRender
-		plan, err = d1PluginParamPlanWithBinding(loop, candidate, state.Revision, projectUUID, state.ProjectEpoch, state.SnapshotHash, state.LegacyState, binding)
+		// Instance reuse discovery: the revision-bound VSP snapshot never
+		// carries plugin rows (the kernel's compact snapshot strips them), so
+		// the live plugin graph is read through the same governed legacy
+		// surface the bridge uses for shadow refreshes. A read failure keeps
+		// the historical instantiate path instead of blocking the experiment.
+		existingPluginInstanceID := ""
+		graphCtx, graphCancel := context.WithTimeout(ctx, 10*time.Second)
+		graphReply, _, graphErr := s.kernel.SendCommand(graphCtx, map[string]any{"cmd": "get_project_state"})
+		graphCancel()
+		if graphErr == nil && strings.EqualFold(strings.TrimSpace(fmt.Sprint(graphReply["status"])), "ok") {
+			existingPluginInstanceID = d1ExistingPluginInstanceID(graphReply, candidate.TrackID, binding.PluginName)
+		}
+		plan, err = d1PluginParamPlanWithBinding(loop, candidate, state.Revision, projectUUID, state.ProjectEpoch, state.SnapshotHash, state.LegacyState, binding, existingPluginInstanceID)
 		if err != nil {
 			return d1BlockedResponse(loop, err.Error()), true
 		}
