@@ -103,6 +103,7 @@ powershell -ExecutionPolicy Bypass -File .\build_release.ps1
 - **投影是 peer 不是链**：任何实现/文档修改不得把 `DAD -> DOM -> MOM -> CCB` 写成管线；CCB 不做自动 view 选择，缺失/partial/stale 原样保留不升级 readiness。
 - **Context Runtime 优先消费投影自带的 `LLMContext`**，不得展开 raw package（多数投影 `do_not_include_raw_package=true`）。
 - **禁止 computer use 等主机控制指令**：agent 不得使用控制主机桌面/GUI 的手段（computer use、键鼠模拟截屏操作等）。
+- **手测入口=Godot 前端（用户裁定 2026-09-12）**：人工手测/目检的唯一启动途径是**用户从 Godot 拉起 DAW 前端，再从前端启动页进入目标工程**（agent 由此链路拉起）。决策侧为手测写步骤清单时必须按此途径书写——**禁止把 `dev_agent_smoke.ps1 -StartUI` 之类的冒测脚本入口当手测途径交给用户**（脚本栈仅供自动化烟测）。手测需要环境变量（如 `VIT_DAW_AUDITION_BLIND`）时，指导用户在拉起 Godot 的**同一 shell** 先设变量，保证 Godot 拉起的 agent 进程继承。
 - **agent 侧改动的验收门槛是端侧烟测**：Go/webui 单元测试全绿不等于可交付。交给用户验收前，改动必须通过按以下方式执行的端侧烟测：
   - **在真实运行栈上测**：由烟测脚本启动真实三件套——VitApp 内核、Godot 前端（`D:\Godot\project\vit-daw-frontend`）、构建并重启 Go agent（如 `scripts/dev_agent_smoke.ps1 -StartKernel -StartUI`）——然后通过 agent 的 HTTP/ZMQ 接口对运行中的栈做验证，不得只测 mock 或编译产物；
   - **复用现有 ps1 脚本体系**：新测试场景以扩展现有冒测脚本（加参数）或按同一模式新增脚本实现，不另起一套测试机制；只读检查参照 `scripts/g_runtime_readonly_smoke.ps1` 的白名单 GET 模式；
