@@ -16,6 +16,13 @@ import (
 )
 
 func (s *Server) handlePendingMixTickChat(ctx context.Context, conversationID string, req ChatRequest, mode string) (ChatResponse, bool) {
+	// B12-2：mounted A/B 卡的判定席在确认面之前。卡片存活期间「选 A / 选 B /
+	// 听不出差别 / 撤销这一步」是试听判定，不是新一轮微调指令——先于 pending
+	// 候选与结算拒绝分支处理，否则判定会被当成「待确认单步」的第二次确认。
+	// 卡片不在场时该分支直接落空，既有确认语义逐字零回退。
+	if response, handled := s.handleMixTickAuditionChat(ctx, conversationID, req, mode); handled {
+		return response, true
+	}
 	if s.freeStateRoundPendingSettlementForConversation(conversationID) {
 		// The applied experiment round has spent its single mutation budget and
 		// owes its settle report. Any mix-tick confirmation arriving now —
@@ -296,18 +303,41 @@ func (s *Server) executePendingMixTickCandidate(ctx context.Context, conversatio
 		}
 		return pendingMixTickErrorResponse(conversationID, mode, "生成待执行混音 tick 失败：没有 tick_id", propose, nil, executed)
 	}
-	apply, err := runTool(planner.ToolCall{
-		ID:     "apply_pending_mix_tick",
-		Tool:   "mix.apply_tick",
-		Args:   map[string]any{"tick_id": tickID, "track_id": candidate.TrackID},
-		Reason: "apply the confirmed pending mix tick",
-	}, true)
+	// B12-2 时序：apply 之前先渲染 before（当前态），apply 之后渲染 after——
+	// 与 D1 同序。整段由 runMixTickAuditionBracket 单点表达，故「before 先于
+	// mutation 提交」是结构性质；任一步失败都 fail-open 降级回文本确认，绝不
+	// 阻塞用户已确认的这一小步（卡面 ①③④）。
+	var apply executor.Result
+	auditionPlan := newMixTickAuditionPlan(conversationID, goal.GoalID, goal.RunID, projectPath, tickID, candidate,
+		s.mixTickAuditionLiveRevision(ctx),
+		func() string {
+			return firstNonEmpty(
+				firstStringFromMap(apply.Result, "after_revision", "applied_revision", "project_revision"),
+				s.mixTickAuditionLiveRevision(ctx),
+			)
+		})
+	audition, _ := s.runMixTickAuditionBracket(ctx, auditionPlan, func() error {
+		apply, err = runTool(planner.ToolCall{
+			ID:     "apply_pending_mix_tick",
+			Tool:   "mix.apply_tick",
+			Args:   map[string]any{"tick_id": tickID, "track_id": candidate.TrackID},
+			Reason: "apply the confirmed pending mix tick",
+		}, true)
+		if err != nil {
+			return err
+		}
+		if resultFailed(apply) {
+			return fmt.Errorf("%s", firstNonEmpty(apply.Error, "mix tick apply failed"))
+		}
+		return nil
+	})
 	if err != nil || resultFailed(apply) {
 		if s != nil && s.logger != nil {
 			s.logger.Warn("[mix.tick.pending] apply failed conversation=%s %s tick=%s err=%v result_error=%s", conversationID, pendingMixTickLogSummary(candidate), tickID, err, apply.Error)
 		}
 		return pendingMixTickErrorResponse(conversationID, mode, "执行混音 tick 失败", apply, err, executed)
 	}
+	auditionEntry := mixTickAuditionEntryFor(req, audition)
 	observeArgs := map[string]any{
 		"track_id":             candidate.TrackID,
 		"scope":                firstNonEmpty(cleanContextText(candidate.Fingerprint["target_scope"]), "selected_track"),
@@ -333,6 +363,7 @@ func (s *Server) executePendingMixTickCandidate(ctx context.Context, conversatio
 		}
 		s.expirePendingMixTick(conversationID)
 		reply := pendingMixTickReport(candidate, propose, apply, observe, "已执行，但重新观察失败。你仍然可以用项目撤销或 mix.rollback_tick 回滚。")
+		reply = appendMixTickAuditionClause(reply, auditionEntry)
 		return ChatResponse{
 			ConversationID:      conversationID,
 			AgentMode:           mode,
@@ -362,7 +393,7 @@ func (s *Server) executePendingMixTickCandidate(ctx context.Context, conversatio
 		AgentMode:           mode,
 		GoalID:              goal.GoalID,
 		RunID:               goal.RunID,
-		Reply:               pendingMixTickReport(candidate, propose, apply, observe, nextSuffix),
+		Reply:               appendMixTickAuditionClause(pendingMixTickReport(candidate, propose, apply, observe, nextSuffix), auditionEntry),
 		ExecutedKernelReply: executed,
 		ProjectResultCards:  projectResultCardsFromExecutedWithAB(executed, observe),
 		Artifacts:           artifactSummariesFromExecuted(executed),
@@ -370,6 +401,8 @@ func (s *Server) executePendingMixTickCandidate(ctx context.Context, conversatio
 		GoalSummary:         req.Message,
 		CompletedSteps:      3,
 		StopReason:          "mix_tick_applied_reobserved",
+		Workflow:            "mix_tick",
+		WorkflowData:        mergeContext(map[string]any{"mutation_performed": true}, map[string]any{"mix_tick_audition": mixTickAuditionProtocolStamp(audition)}),
 		ProjectHistory:      s.harness.ProjectHistorySummaryForProject(ctx, goal.GoalID, projectPath),
 	}
 }

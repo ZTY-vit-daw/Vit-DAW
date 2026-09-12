@@ -55,6 +55,7 @@ type Server struct {
 	auditionKernel                  auditionCommandClient
 	auditionCandidateDriver         auditionCandidateProjectDriver
 	auditionBlindDraw               func() bool // optional blind-session coin flip; nil draws from crypto/rand
+	mixTickAuditionRenderOverride   func(ctx context.Context, phase, projectRevision string, plan *mixTickAuditionPlan) (map[string]any, error)
 	eqKernelOverride                eqKernelTransport
 	semanticSettlementStateOverride semanticSettlementState
 	shadow                          *shadow.Project
@@ -90,6 +91,7 @@ type Server struct {
 	conversationGoals                  map[string]string
 	conversationMemory                 map[string]agentloop.ExecutionMemory
 	pendingMixTicks                    map[string]agentloop.PendingMixTickCandidate
+	mixTickAuditions                   map[string]*mixTickAuditionRecord
 	pendingTreatments                  map[string]agentloop.MixTreatmentPending
 	freeStateLoops                     map[string]freeStateReasoningLoop
 	audioClosures                      *audioclosure.MemoryStore
@@ -480,6 +482,7 @@ func New(kernelClient *kernel.Client, shadowProject *shadow.Project, logger *log
 		conversationGoals:                map[string]string{},
 		conversationMemory:               map[string]agentloop.ExecutionMemory{},
 		pendingMixTicks:                  map[string]agentloop.PendingMixTickCandidate{},
+		mixTickAuditions:                 map[string]*mixTickAuditionRecord{},
 		pendingTreatments:                map[string]agentloop.MixTreatmentPending{},
 		freeStateLoops:                   map[string]freeStateReasoningLoop{},
 		authorityMode:                    authorityModeManual,

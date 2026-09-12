@@ -389,6 +389,17 @@ func (s *Server) handleAuditionJudgment(w http.ResponseWriter, r *http.Request) 
 		writeJSON(w, http.StatusBadRequest, map[string]any{"status": "error", "error": err.Error()})
 		return
 	}
+	// B12-2：mounted 的 mix-tick A/B 卡在同一判定席应答，但落账在 mix_tick
+	// 确认面（不写 experiment evidence、不推进实验状态机）。该分支对所有不属于
+	// 它的会话返回 handled=false，故下方自由态路径逐字零回退。
+	if outcome, handled, mixErr := s.recordMixTickAuditionJudgment(r.Context(), request); handled {
+		if mixErr != nil {
+			writeJSON(w, http.StatusConflict, map[string]any{"status": "error", "error": mixErr.Error()})
+			return
+		}
+		writeJSON(w, http.StatusOK, map[string]any{"status": "ok", "mix_tick_audition": outcome})
+		return
+	}
 	evidence, err := s.recordFreeStateAuditionJudgment(r.Context(), request)
 	if err != nil {
 		writeJSON(w, http.StatusConflict, map[string]any{"status": "error", "error": err.Error()})

@@ -26,6 +26,33 @@ import (
 //     定则终局文案禁用待判定表述（完成态路径剥除该承诺，可应答 park 的
 //     「等待试听确认」措辞不受影响）。
 
+// mixTickAuditionTerminalClause is the B12-2 selective restoration of the b6
+// judgment wording (卡面 ⑤). b6 removed the pending-judgment promise because the
+// applied template pre-committed an entry it did not own. That reason no longer
+// holds on the manual path: the native mix-tick branch now mounts a real A/B
+// audition card (mix_tick_audition.go), so manual mode may state the servicable
+// entry again. The other states keep b6's discipline:
+//
+//   - manual, no card: the fail-open degradation is reported instead. Promising
+//     a comparison the run failed to build is the exact defect b6 removed.
+//   - full access: no confirmation-wait vocabulary. The b6 缺陷③ branch that
+//     turns "等待你确认" into "直接应用" on the full-access surface stays
+//     untouched (pendingMixTickEventBodyForMode). A mounted card is still named
+//     because it is a fact, not a promise — withholding a real entry would be
+//     the same class of defect b6 fixed, in the opposite direction.
+func mixTickAuditionTerminalClause(entry mixTickJudgmentEntry) string {
+	switch {
+	case entry.Manual && entry.Mounted:
+		return stripPendingHumanJudgmentClaims("A/B 试听已就绪：在试听卡里把两个版本各听一遍再选。选 B 表示保留这一步，选 A 表示撤销这一步；听不出差别也请直接选「听不出差别」。")
+	case entry.Manual:
+		return stripPendingHumanJudgmentClaims(mixTickAuditionDegradedLine(entry.Degraded))
+	case entry.Mounted:
+		return stripPendingHumanJudgmentClaims("A/B 试听已就绪：两个版本可以直接对比试听（当前为完全访问模式，这一步已直接应用）。判定同样决定这一步保留还是撤销。")
+	default:
+		return stripPendingHumanJudgmentClaims(mixTickAuditionDegradedLine(entry.Degraded))
+	}
+}
+
 // terminalInternalTermPattern matches the warehouse-internal codes that must
 // never surface in user-facing terminal text: FAM family ids (FAM3-S1), free
 // state tiers (FS0/FS2), D-phase ids (D1-S1/D2-1.5/D2-2), and the observation
