@@ -2229,19 +2229,25 @@ func freeStateObservationLedgerReceipt(observation *RecentObservation) map[strin
 	}
 	audit := messageLoopMapValue(observation.Summary["audit_receipt"])
 	return compactSelectedKeys(map[string]any{
-		"receipt_id":       firstMapText(audit, "receipt_id"),
-		"receipt_schema":   firstMapText(audit, "schema_version"),
-		"tool_call_id":     observation.ToolCallID,
-		"observation_id":   firstMapText(observation.Summary, "observation_id"),
-		"request_id":       firstMapText(observation.Summary, "request_id"),
-		"status":           firstMapText(observation.Summary, "status", "bundle_status"),
-		"requested_views":  messageLoopNormalizedViewIDs(messageLoopStringList(observation.Summary["requested_views"])),
-		"project_revision": firstNonEmpty(firstMapText(observation.Summary, "project_revision"), firstMapText(messageLoopMapValue(observation.Summary["project_binding"]), "project_revision")),
-		"freshness":        observation.Summary["freshness"],
-		"limitations":      observation.Summary["limitations"],
-		"evidence_refs":    observation.Summary["evidence_refs"],
-		"target_ref":       compactFreeStateObservationTarget(observation.Summary),
-	}, []string{"receipt_id", "receipt_schema", "tool_call_id", "observation_id", "request_id", "status", "requested_views", "project_revision", "freshness", "limitations", "evidence_refs", "target_ref"})
+		"receipt_id":      firstMapText(audit, "receipt_id"),
+		"receipt_schema":  firstMapText(audit, "schema_version"),
+		"tool_call_id":    observation.ToolCallID,
+		"observation_id":  firstMapText(observation.Summary, "observation_id"),
+		"request_id":      firstMapText(observation.Summary, "request_id"),
+		"status":          firstMapText(observation.Summary, "status", "bundle_status"),
+		"requested_views": messageLoopNormalizedViewIDs(messageLoopStringList(observation.Summary["requested_views"])),
+		// B13-A: the delivery facts ride the receipt row. Without them gateG3
+		// sees a nominal requested_views hit for a view the disclosure budget
+		// trimmed, and reports the opposite of what gateG5 observes on the same
+		// view. The marker strings stay verbatim ("<view_id>: omitted by
+		// disclosure budget"); no view content is inspected.
+		"rejection_reasons": firstNonNilValue(observation.Summary["omission_reasons"], audit["rejection_reasons"]),
+		"project_revision":  firstNonEmpty(firstMapText(observation.Summary, "project_revision"), firstMapText(messageLoopMapValue(observation.Summary["project_binding"]), "project_revision")),
+		"freshness":         observation.Summary["freshness"],
+		"limitations":       observation.Summary["limitations"],
+		"evidence_refs":     observation.Summary["evidence_refs"],
+		"target_ref":        compactFreeStateObservationTarget(observation.Summary),
+	}, []string{"receipt_id", "receipt_schema", "tool_call_id", "observation_id", "request_id", "status", "requested_views", "rejection_reasons", "project_revision", "freshness", "limitations", "evidence_refs", "target_ref"})
 }
 
 func compactFreeStateObservationTarget(summary map[string]any) map[string]any {

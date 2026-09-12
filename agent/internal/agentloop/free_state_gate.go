@@ -114,8 +114,46 @@ func freeStateReceiptUsable(row map[string]any) bool {
 	}
 }
 
-// gateG3 requires at least one usable project/mix-level scan receipt in the
-// observation ledger.
+// freeStateDisclosureBudgetMarker is the verbatim suffix the disclosure budget
+// appends when it drops a view to fit max_disclosure_bytes
+// (capabilitycontext/free_state_observation.go: viewID+": omitted by disclosure
+// budget"). The same strings reach this package as the bundle summary's
+// omission_reasons and as a receipt's rejection_reasons.
+const freeStateDisclosureBudgetMarker = "omitted by disclosure budget"
+
+// freeStateScanViewOmittedByDisclosureBudget reports whether a receipt marks
+// exactly this view id as trimmed by the disclosure budget. The comparison is
+// mechanical and content-blind: it reads the structural "<view_id>: <marker>"
+// reason shape only, so no view content, track identity, processor or dose is
+// inspected. Reasons carrying any other marker (stale/missing/deferred source
+// evidence, non-budget rejections) never disqualify a delivery.
+func freeStateScanViewOmittedByDisclosureBudget(row map[string]any, viewID string) bool {
+	viewID = strings.TrimSpace(viewID)
+	if viewID == "" {
+		return false
+	}
+	for _, reason := range messageLoopStringList(row["rejection_reasons"]) {
+		if !strings.Contains(reason, freeStateDisclosureBudgetMarker) {
+			continue
+		}
+		owner := reason
+		if idx := strings.Index(reason, ":"); idx >= 0 {
+			owner = reason[:idx]
+		}
+		if strings.EqualFold(strings.TrimSpace(owner), viewID) {
+			return true
+		}
+	}
+	return false
+}
+
+// gateG3 requires at least one usable project/mix-level scan receipt whose
+// qualified scan view was actually delivered. B13-A (2026-09-12): a receipt
+// whose only qualified scan view was trimmed by the CCB disclosure budget used
+// to pass G3 on the nominal requested_views hit while the frontier it feeds
+// (G5) could never pass — the same receipt yielded opposite facts. The gate now
+// requires delivery, so a status=partial receipt with every qualified scan view
+// trimmed fails both gates consistently.
 func gateG3(state *runState) bool {
 	ledger := messageLoopMapValue(messageLoopFreeStateContext(state)["observation_ledger"])
 	for _, row := range messageLoopMapRows(ledger["receipts"]) {
@@ -124,9 +162,13 @@ func gateG3(state *runState) bool {
 		}
 		for _, viewID := range messageLoopStringList(row["requested_views"]) {
 			for _, scan := range freeStateProjectScanViews {
-				if strings.EqualFold(strings.TrimSpace(viewID), scan) {
-					return true
+				if !strings.EqualFold(strings.TrimSpace(viewID), scan) {
+					continue
 				}
+				if freeStateScanViewOmittedByDisclosureBudget(row, scan) {
+					continue
+				}
+				return true
 			}
 		}
 	}
@@ -510,7 +552,10 @@ func freeStateAdmissionGap(state *runState, decision *FreeStateDecision, failed 
 			// gate — view ids and gate conditions are CCB catalog structure
 			// vocabulary, not domain content (advisory #6 question 2; the 7/7
 			// project.structure semantic mismatch BEHAVIOR-1 measured).
-			gap.Missing = append(gap.Missing, FreeStateAdmissionMissingCondition{GateID: id, Condition: "no_usable_project_scan_receipt", Binding: "observation_ledger receipt status ready|partial with a qualified mix scan view in requested_views: mix.multitrack_relationship or mix.frequency_relationship; a project-level structure view such as project.structure does not satisfy this gate"})
+			// B13-A: the binding also states the delivery requirement, so the
+			// bounce names the same fact the gate now judges (a disclosure-budget
+			// omission is a structural receipt reason string, not content).
+			gap.Missing = append(gap.Missing, FreeStateAdmissionMissingCondition{GateID: id, Condition: "no_delivered_project_scan_receipt", Binding: "observation_ledger receipt status ready|partial with a qualified mix scan view in requested_views: mix.multitrack_relationship or mix.frequency_relationship; a project-level structure view such as project.structure does not satisfy this gate, and the view must have been delivered — a receipt rejection reason marking that view as omitted by disclosure budget disqualifies it"})
 		case freeStateGateG4:
 			gap.Missing = append(gap.Missing, FreeStateAdmissionMissingCondition{GateID: id, Condition: "no_closed_diagnostic_dimension", Binding: "a diagnostic round with evidence_status=ready and no open unresolved_questions"})
 		case freeStateGateG5:
