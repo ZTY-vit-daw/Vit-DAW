@@ -1102,6 +1102,25 @@ func (s *Server) settleAndDeliverContinuationChainEnd(ctx context.Context, curre
 		}
 		chainResp.Reply = s.sanitizeWaitingParkChainReply(current, chainResp.Reply)
 		s.deliverSchedulerChainTerminal(ctx, current, chainResp)
+	case goal.Status == agentruntime.StatusWaitingContinue && s.freeStateLoopOwesExperimentOutcomeFor(current.ConversationID, current.GoalID) &&
+		(continuationTerminalStatus(current.Status) || current.Status == ContinuationWaitingInteraction):
+		// D1-STALL-1：预算/调度停摆而评估未完成的驻留投递。链条不再有下一片
+		// （预算耗尽或最后一拍停在评估步），但已准入回合仍欠它契约要求的受治
+		// 结果：应用后的方向性评估与随后的判定边界都还没发生。此前这一形态落
+		// 入静默分支，用户只看到 goal 被置完成、却没有 A/B 卡、没有终局汇报，
+		// 而 task 仍停在 needs_experiment（2026-09-12 18:52 真栈）。此处给出
+		// 显式人话回执：应用了什么+回读 / 针对的发现 / 评估未完成（这不是
+		// 完成）/ 说一句「继续」即可续跑。判据刻意只读回合欠账，不读循环的
+		// 呈现状态，与 settleGoalAfterContinuationEnd 和预算停止共用同一个
+		// freeStateLoopOwesExperimentOutcome，故两处不可能对「任务是否做完」
+		// 有分歧。判定驻留（PARK-1 分支）在本分支之前匹配，两者互斥。
+		chainResp.GoalStatus = string(goal.Status)
+		chainResp.Reply = s.owedEvaluationChainReply(current, chainResp.Reply)
+		if strings.TrimSpace(chainResp.Reply) == "" {
+			return
+		}
+		chainResp.Reply = s.sanitizeWaitingParkChainReply(current, chainResp.Reply)
+		s.deliverSchedulerChainTerminal(ctx, current, chainResp)
 	}
 }
 
@@ -1138,6 +1157,47 @@ func (s *Server) judgmentParkChainReply(current DurableContinuation, sliceReply 
 		return reply
 	}
 	return s.schedulerChainFallbackReply(current.ConversationID)
+}
+
+// owedEvaluationChainReply resolves the receipt body for a chain that stopped
+// while the applied round still owed its evaluation, with the same escalation
+// order the other parks use: the chat-side owed-evaluation composer first,
+// then the stopped slice's own reply, then the loop's latest decision summary.
+// Never returns empty while the loop is present, so the terminal is not
+// silently dropped.
+func (s *Server) owedEvaluationChainReply(current DurableContinuation, sliceReply string) string {
+	if loop, ok := s.freeStateLoop(current.ConversationID); ok {
+		if composed := strings.TrimSpace(d1OwedEvaluationReply(loop)); composed != "" {
+			return composed
+		}
+	}
+	if reply := strings.TrimSpace(sliceReply); reply != "" {
+		return reply
+	}
+	return s.schedulerChainFallbackReply(current.ConversationID)
+}
+
+// d1OwedEvaluationReply composes the explicit human-language receipt for the
+// D1-STALL-1 shape: the applied move is reported with the same five-element
+// vocabulary the applied turn and the judgment park use (d1AppliedSubject is
+// the single resolution of track/parameter/change/readback, so the three turns
+// cannot describe one move in three vocabularies), and the unfinished
+// evaluation is stated as what it is — unfinished automatic work, not a
+// completion — together with the entry that resumes it. It deliberately does
+// not promise an A/B card that was never created, and it runs through the
+// internal-code guardrail.
+func d1OwedEvaluationReply(loop freeStateReasoningLoop) string {
+	if loop.Experiment == nil {
+		return ""
+	}
+	trackLabel, wording, changeText, readbackText := d1AppliedSubject(loop, d1JudgmentParkReceipt(loop))
+	lines := []string{
+		"这一步已经应用好了：" + trackLabel + wording.Parameter + " " + firstNonEmpty(changeText, "已调整") + readbackText + "。",
+		"针对的发现：" + truncateTerminalFinding(d1FindingText(loop)) + "。",
+		"但这轮还没做完：改动后的评估没有得出结论，自动续跑也已经用完，所以既没有终局汇报，也还没有生成 A/B 试听卡。这一步没有被判定为完成。",
+		"你回一句“继续”，我就接着把这轮的评估做完，再把 A/B 试听卡给你做保留还是回滚的判定。",
+	}
+	return stripInternalTerminalTerms(strings.Join(lines, "\n"))
 }
 
 // normalizeChainResponseGoalStatus overrides a non-authoritative response

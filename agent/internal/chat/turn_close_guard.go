@@ -86,6 +86,18 @@ func (s *Server) settleGoalAfterContinuationEnd(conversationID, goalID string) {
 	if s.taskHasLiveContinuationOwner(conversationID, goal) {
 		return
 	}
+	// D1-STALL-1: a chain that stops without arming a next slice has not
+	// necessarily finished the task. An admitted experiment round parked at its
+	// post-apply evaluation step still owes the governed outcome its contract
+	// requires, so the goal must keep the resumable waiting_continue form a
+	// bare "继续" re-enters the chain from, instead of being rewritten to
+	// completed on top of a non-terminal needs_experiment task (2026-09-12
+	// 18:52 real stack: mix.tick applied, chain parked at
+	// d1_post_action_evaluation_required, goal completed with the task still
+	// needs_experiment — zero A/B card, zero judgment, no user-facing entry).
+	if s.freeStateLoopOwesExperimentOutcomeFor(conversationID, goal.GoalID) {
+		return
+	}
 	s.closeOrphanTaskAtTurnEnd(conversationID, goalID)
 	goal = s.harness.RuntimeStatus(goalID)
 	switch goal.Status {
@@ -139,6 +151,56 @@ func (s *Server) taskHasLiveContinuationOwner(conversationID string, goal agentr
 		}
 	}
 	return false
+}
+
+// freeStateLoopOwesExperimentOutcome reports whether the durable free-state
+// loop still owes the task the governed experiment outcome its contract
+// requires: the post-action evaluation of an applied round and/or the
+// human-judgment settlement that follows it. The predicate is deliberately
+// keyed on the ROUND's debt, never on the loop's presentation status: a round
+// whose intervention landed while its round decision did not is undecided work
+// whatever status the loop last carried, so any goal-terminal projection made
+// from the loop's status alone can bury the settlement the contract still owes
+// (freeStateLoopRoundPendingSettlement's own note: "projecting the goal
+// completed would permanently lose the settlement"). It is the goal/task
+// convergence authority the chain-end settle and the continuation-budget stop
+// both consult, so the two completion sites cannot disagree about whether the
+// task is finished.
+func freeStateLoopOwesExperimentOutcome(loop freeStateReasoningLoop) bool {
+	if loop.Experiment == nil {
+		return false
+	}
+	if loop.RequiresPostActionObservation {
+		// The applied-boundary debt bit: an executed mutation still awaits its
+		// mandatory fresh post-action booking.
+		return true
+	}
+	if freeStateJudgmentBoundary(loop) {
+		// A requested judgment without its evidence parks the experiment until
+		// the guarded audition judgment path settles the round.
+		return true
+	}
+	return freeStateLoopRoundSpentMutation(loop) ||
+		freeStateLoopRoundPendingSettlement(loop) ||
+		freeStateLoopRoundSettleRefused(loop) ||
+		freeStateLoopRoundOwesIntervention(loop)
+}
+
+// freeStateLoopOwesExperimentOutcomeFor resolves the conversation's durable
+// free-state loop and reports whether it still owes this goal the governed
+// experiment outcome. A conversation without a loop (legacy shell, non
+// free-state chain) owes nothing, and a loop bound to another goal is not this
+// goal's owner — the same identity discipline taskHasLiveContinuationOwner
+// applies.
+func (s *Server) freeStateLoopOwesExperimentOutcomeFor(conversationID, goalID string) bool {
+	if s == nil {
+		return false
+	}
+	loop, ok := s.freeStateLoop(conversationID)
+	if !ok || (strings.TrimSpace(goalID) != "" && loop.GoalID != goalID) {
+		return false
+	}
+	return freeStateLoopOwesExperimentOutcome(loop)
 }
 
 // settleClosureAfterOrphanTaskClose settles the conversation's active closure

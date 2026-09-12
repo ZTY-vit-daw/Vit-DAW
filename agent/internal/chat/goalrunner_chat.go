@@ -2817,9 +2817,26 @@ func (s *Server) recordGoalResult(conversationID string, res agentloop.Result) e
 		s.wakeContinuationScheduler()
 	}
 	if autoContinuationBudgetExhausted && s.harness != nil {
-		// The budget stop must be visible through the runtime interface: the
-		// goal settles instead of staying waiting_continue forever.
-		s.harness.SetGoalStatus(res.GoalID, agentruntime.StatusCompleted, nil)
+		if s.freeStateLoopOwesExperimentOutcomeFor(conversationID, res.GoalID) {
+			// D1-STALL-1: the spent continuation budget stops the SCHEDULE, it
+			// does not decide the experiment. A round still owing its governed
+			// outcome must not be projected as completed work — "waiting_continue
+			// plus an exhausted budget" is the budget-exhaustion state, not the
+			// completion state, and the three-state distinction (finished /
+			// waiting for the user / out of schedule) was collapsed into
+			// completed here. The goal keeps the resumable waiting_continue form
+			// (what shouldResumeGoalFromStatus admits, i.e. the entry a bare
+			// "继续" re-enters the chain from) and the chain-end delivery gate
+			// carries the explicit human-language receipt; this function cannot
+			// rewrite the reply itself (res is already a value copy by the time
+			// the budget stop is known), so the delivery gate stays the single
+			// user-facing authority.
+			s.harness.SetGoalStatus(res.GoalID, agentruntime.StatusWaitingContinue, nil)
+		} else {
+			// The budget stop must be visible through the runtime interface:
+			// the goal settles instead of staying waiting_continue forever.
+			s.harness.SetGoalStatus(res.GoalID, agentruntime.StatusCompleted, nil)
+		}
 	}
 	for _, pendingEvent := range pendingEvents {
 		s.emitAgentEvent(conversationID, pendingEvent)
