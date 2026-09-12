@@ -36,6 +36,10 @@ export interface AuditionSession {
   judgmentRequested: boolean;
   judgmentRecorded: boolean;
   judgmentEvidence: JsonRecord | null;
+  /** 盲态会话（B12-1）：模式标志，绝不表示哪个标签是哪一版——判定前 UI 必须保持中立措辞 */
+  blind: boolean;
+  /** 判定落账后的解盲披露（物理指派 + 对应动作结果）；判定前恒为 null */
+  blindDisclosure: JsonRecord | null;
   inspectedCandidateId: string;
   adoptedCandidateId: string;
   adoptionStatus: string;
@@ -91,6 +95,10 @@ export function reduceAuditionEvents(current: AuditionState, incoming: AgentEven
       judgmentRequested: event.type === "trajectory.user_judgment.recorded" ? false : previous?.judgmentRequested || event.type === "trajectory.user_judgment.requested",
       judgmentRecorded: previous?.judgmentRecorded || event.type === "trajectory.user_judgment.recorded",
       judgmentEvidence: previous?.judgmentEvidence || (event.type === "trajectory.user_judgment.recorded" ? record(record(payload.details).evidence) : null),
+      blind: flag(rawSession.blind) || previous?.blind === true,
+      // 解盲只可能来自判定落账后的披露：audition.blind_disclosure 事件（payload 顶层）
+      // 或恢复快照里的同名字段。判定前两者都不存在。
+      blindDisclosure: firstRecord(payload.blind_disclosure, rawSession.blind_disclosure, previous?.blindDisclosure),
       inspectedCandidateId: text(rawSession.inspected_candidate_id) || previous?.inspectedCandidateId || "",
       adoptedCandidateId: text(rawSession.adopted_candidate_id) || previous?.adoptedCandidateId || "",
       adoptionStatus: text(rawSession.adoption_status) || previous?.adoptionStatus || "",
@@ -120,6 +128,18 @@ function candidateFromAny(value: unknown): AuditionCandidate {
   };
 }
 function record(value: unknown): JsonRecord { return value && typeof value === "object" && !Array.isArray(value) ? value as JsonRecord : {}; }
+function firstRecord(...values: unknown[]): JsonRecord | null {
+  for (const value of values) {
+    const row = record(value);
+    if (Object.keys(row).length > 0) return row;
+  }
+  return null;
+}
+function flag(value: unknown): boolean {
+  if (value === true) return true;
+  if (typeof value === "string") return ["1", "true", "yes", "on"].includes(value.trim().toLowerCase());
+  return false;
+}
 function text(value: unknown): string { return typeof value === "string" ? value.trim() : value == null ? "" : String(value).trim(); }
 
 export function auditionCanInspect(candidate: AuditionCandidate): boolean {

@@ -54,6 +54,7 @@ type Server struct {
 	kernel                          *kernel.Client
 	auditionKernel                  auditionCommandClient
 	auditionCandidateDriver         auditionCandidateProjectDriver
+	auditionBlindDraw               func() bool // optional blind-session coin flip; nil draws from crypto/rand
 	eqKernelOverride                eqKernelTransport
 	semanticSettlementStateOverride semanticSettlementState
 	shadow                          *shadow.Project

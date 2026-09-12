@@ -73,7 +73,7 @@ func syncD1Receipt(loop *freeStateReasoningLoop) {
 	if rolledBack {
 		disposition = experiment.DispositionRollback
 		netOutcome = "rolled_back"
-	} else if humanConfirmed && judgment.Preference == experiment.PreferenceB && settled {
+	} else if humanConfirmed && auditionJudgmentSelectsPhysicalSide(judgment, round.CheckpointRef, auditionPhysicalAfter) && settled {
 		disposition = experiment.DispositionRetain
 		netOutcome = "improved"
 	} else if classification == experiment.ClassificationSubthreshold {

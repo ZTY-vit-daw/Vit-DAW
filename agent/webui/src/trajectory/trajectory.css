@@ -156,3 +156,15 @@
 .audition-candidate-actions button:disabled { opacity: .4; cursor: not-allowed; }
 .audition-inspected { color: #e3bd66; font-size: 12px; margin-top: 8px; }
 .audition-adopted { color: #78e6a1; font-size: 12px; margin-top: 6px; }
+
+/* B12-1 判定卡次级按钮（听不出差别 / 说不清·另有想法）与解盲态补充输入强调。
+   主形态仍是 A/B 直选即判定：次级按钮只是把「效果不足」与「无法判断」两条既有兜底
+   路径提到卡面上，不改四选一口径（设计稿 §Q3）。 */
+.card .vsec { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+.card .sbtn { border: 2px dashed var(--ink); border-radius: 2px; background: var(--white); color: var(--ink);
+  font-size: 12px; font-weight: 600; padding: 8px 4px; cursor: pointer; white-space: nowrap;
+  transition: border-color .15s, color .15s; }
+.card .sbtn:hover:not(:disabled) { border-color: var(--blue); color: var(--blue); }
+.card .sbtn:disabled { cursor: default; opacity: .55; }
+.card.settled .vsec { display: none; }
+.card .c-ask.supplement-open input { border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-soft); }

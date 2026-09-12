@@ -2,9 +2,11 @@ package chat
 
 import (
 	"context"
+	"crypto/rand"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -15,6 +17,50 @@ import (
 )
 
 const auditionSchemaVersion = "vit.kernel_audition.v1"
+
+// auditionBlindEnvVar is the minimal configuration entry for the blind A/B
+// tier (B12-3 batch protocol passes --blind through it). Unset/0 keeps the
+// historical non-blind default: canonical assignment, canonical settlement,
+// canonical panel copy, byte-for-byte.
+const auditionBlindEnvVar = "VIT_DAW_AUDITION_BLIND"
+
+const (
+	auditionPhysicalBefore = "before"
+	auditionPhysicalAfter  = "after"
+
+	auditionBlindDisclosureSchema = "vit.audition_blind_disclosure.v1"
+	auditionBlindDisclosureEvent  = "audition.blind_disclosure"
+
+	auditionCandidateA = "candidate-a"
+	auditionCandidateB = "candidate-b"
+)
+
+// auditionBlindEnabled reports whether the blind tier is configured. The draw
+// itself happens once per session (prepare), and only the boolean mode — never
+// the drawn assignment — reaches the session snapshot.
+func auditionBlindEnabled() bool {
+	switch strings.ToLower(strings.TrimSpace(os.Getenv(auditionBlindEnvVar))) {
+	case "1", "true", "yes", "on":
+		return true
+	}
+	return false
+}
+
+// drawAuditionBlind is the session-level coin flip behind the blind
+// assignment. Tests override Server.auditionBlindDraw for determinism.
+func (s *Server) drawAuditionBlind() bool {
+	if s != nil && s.auditionBlindDraw != nil {
+		return s.auditionBlindDraw()
+	}
+	var buffer [1]byte
+	if _, err := rand.Read(buffer[:]); err != nil {
+		// An unreadable entropy source must not silently turn a blind session
+		// into a canonical one: keep the physical order (documented degenerate
+		// draw) but the session still runs blind and still discloses.
+		return false
+	}
+	return buffer[0]&1 == 1
+}
 
 type auditionCommandClient interface {
 	AuditionPrepare(context.Context, kernel.AuditionSessionRequest) (*kernel.VSPCommandResult, error)
@@ -271,7 +317,13 @@ func (s *Server) handleAuditionJudgment(w http.ResponseWriter, r *http.Request) 
 		writeJSON(w, http.StatusConflict, map[string]any{"status": "error", "error": err.Error()})
 		return
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"status": "ok", "evidence": evidence})
+	response := map[string]any{"status": "ok", "evidence": evidence}
+	// Blind sessions answer with the un-blinding (physical assignment + the
+	// action it produced); non-blind responses stay byte-for-byte as before.
+	if disclosure := s.auditionBlindDisclosureForSession(request.ConversationID); len(disclosure) > 0 {
+		response["blind_disclosure"] = disclosure
+	}
+	writeJSON(w, http.StatusOK, response)
 }
 
 func (s *Server) prepareFreeStateAudition(ctx context.Context, loop *freeStateReasoningLoop) error {
@@ -342,6 +394,12 @@ func (s *Server) prepareFreeStateAudition(ctx context.Context, loop *freeStateRe
 		request.Candidates[1].CheckpointRef = treatmentCommit
 		request.Candidates[1].CommitID = treatmentCommit
 	}
+	// Blind mode is drawn once per session, and only the D1 render pair carries
+	// a physical assignment to exchange (the legacy checkpoint/experiment pair
+	// already identifies its own sides through source_kind). The draw itself
+	// stays out of the snapshot: the session records that it runs blind, never
+	// which render sits behind which label.
+	blind := false
 	if loop.Experiment.Admission.IsD1S1() {
 		before := firstMapFromAny(loop.D1State["before_render"])
 		if firstStringFromMap(before, "status") != "ready" || !validD1RenderFile(firstStringFromMap(before, "file_path")) {
@@ -351,13 +409,18 @@ func (s *Server) prepareFreeStateAudition(ctx context.Context, loop *freeStateRe
 		if renderErr != nil {
 			return renderErr
 		}
-		request.Candidates, renderErr = d1AuditionCandidates(before, after, baselineCommit, treatmentCommit, projectRef, projectUUID)
+		blindSwap := false
+		if auditionBlindEnabled() {
+			blind = true
+			blindSwap = s.drawAuditionBlind()
+		}
+		request.Candidates, renderErr = d1AuditionCandidatesForAssignment(before, after, baselineCommit, treatmentCommit, projectRef, projectUUID, blindSwap)
 		if renderErr != nil {
 			return renderErr
 		}
 	}
 	if s.auditionKernel == nil {
-		session := map[string]any{"session_id": sessionID, "conversation_id": loop.ConversationID, "status": "failed", "candidates": request.Candidates}
+		session := map[string]any{"session_id": sessionID, "conversation_id": loop.ConversationID, "status": "failed", "candidates": request.Candidates, "blind": blind}
 		s.emitAuditionEvent(loop.ConversationID, "audition.failed", session, map[string]any{"message": "kernel unavailable", "command": "audition.prepare"})
 		return fmt.Errorf("kernel unavailable")
 	}
@@ -367,6 +430,7 @@ func (s *Server) prepareFreeStateAudition(ctx context.Context, loop *freeStateRe
 		session = map[string]any{"session_id": sessionID, "conversation_id": loop.ConversationID, "status": "preparing", "candidates": request.Candidates}
 	}
 	s.enrichAuditionSession(session, loop, round, request)
+	session["blind"] = blind
 	if failure := auditionReplyError(result, callErr); failure != "" {
 		session["status"] = "failed"
 		loop.AuditionSessionID = sessionID
@@ -589,12 +653,36 @@ func (s *Server) recordFreeStateAuditionJudgment(ctx context.Context, request au
 	evidence := buildUserJudgmentEvidence(loop, round, request.SessionID, heard, preference, request.ReasonTags, request.FreeText)
 	evidence.ID = strings.TrimSpace(request.EvidenceID)
 	evidence.SupersedesID = strings.TrimSpace(request.SupersedesID)
+	// The physical direction of a blind session is resolved before the
+	// immutable evidence row lands: a row that cannot be mapped would settle an
+	// A/B preference with no physical direction, which is the exact
+	// retain/rollback inversion this path exists to prevent. Nothing about the
+	// mapping is recorded here — only its resolvability is checked.
+	auditionSession := cloneContext(loop.AuditionSessionSnapshot)
+	blindSession := auditionSessionIsBlind(auditionSession)
+	baselineRef := round.CheckpointRef
+	if blindSession && evidence.SupersedesID == "" && auditionPreferenceNeedsPhysicalDirection(heard, preference) {
+		if _, mapped := auditionPhysicalMappingForEvidence(evidence, baselineRef); !mapped {
+			return experiment.UserJudgmentEvidence{}, fmt.Errorf("blind audition session cannot resolve the physical candidate mapping from the recorded candidates; refusing to record preference %q without a physical direction", preference)
+		}
+	}
 	events, err := loop.Experiment.RecordUserJudgmentEvidence(evidence, time.Now().UTC())
 	if err != nil {
 		return experiment.UserJudgmentEvidence{}, err
 	}
 	if recordedRound, recordedErr := loop.Experiment.CurrentRound(); recordedErr == nil && len(recordedRound.UserJudgmentEvidence) > 0 {
 		evidence = recordedRound.UserJudgmentEvidence[len(recordedRound.UserJudgmentEvidence)-1]
+	}
+	if blindSession {
+		// The recorded judgment event carries the session's blind mode so the
+		// evidence projection states it; the physical assignment follows only
+		// after the action has landed (audition.blind_disclosure).
+		for index := range events {
+			if events[index].Payload.Details == nil {
+				events[index].Payload.Details = map[string]any{}
+			}
+			events[index].Payload.Details["blind"] = true
+		}
 	}
 	s.emitFreeStateExperimentEvents(events)
 	// A correction is a new immutable evidence row. It does not silently
@@ -630,10 +718,96 @@ func (s *Server) recordFreeStateAuditionJudgment(ctx context.Context, request au
 			return experiment.UserJudgmentEvidence{}, err
 		}
 	}
+	// The physical assignment is disclosed only now, after the action landed:
+	// before this point the mapping exists solely inside the evidence structure
+	// the settlement reads.
+	s.publishAuditionBlindDisclosure(&loop, auditionSession, evidence)
 	loop.UpdatedAt = time.Now().UTC()
 	s.storeFreeStateLoop(loop)
 	s.persistCurrentProjectWorkspace()
 	return evidence, nil
+}
+
+// auditionBlindDisclosureForSession reads back the disclosure persisted with the
+// session, for the judgment POST response.
+func (s *Server) auditionBlindDisclosureForSession(conversationID string) map[string]any {
+	loop, ok := s.freeStateLoop(conversationID)
+	if !ok {
+		return nil
+	}
+	return firstMapFromAny(loop.AuditionSessionSnapshot["blind_disclosure"])
+}
+
+// publishAuditionBlindDisclosure emits and persists the post-landing un-blinding
+// of a blind session. The event carries the session identity the panel already
+// reduces, plus the disclosure at the payload top level.
+func (s *Server) publishAuditionBlindDisclosure(loop *freeStateReasoningLoop, session map[string]any, evidence experiment.UserJudgmentEvidence) {
+	if loop == nil {
+		return
+	}
+	disclosure := auditionBlindDisclosure(loop, evidence)
+	if len(disclosure) == 0 {
+		return
+	}
+	eventSession := cloneContext(session)
+	if len(eventSession) == 0 {
+		eventSession = map[string]any{"session_id": evidence.AuditionSessionID, "conversation_id": loop.ConversationID}
+	}
+	eventSession["blind_disclosure"] = disclosure
+	// The recalibration branch clears the session binding; never revive it here.
+	if loop.AuditionSessionID != "" && len(loop.AuditionSessionSnapshot) > 0 &&
+		firstStringFromMap(loop.AuditionSessionSnapshot, "session_id") == firstStringFromMap(eventSession, "session_id") {
+		persisted := cloneContext(loop.AuditionSessionSnapshot)
+		persisted["blind_disclosure"] = disclosure
+		loop.AuditionSessionSnapshot = persisted
+	}
+	s.emitAuditionEvent(loop.ConversationID, auditionBlindDisclosureEvent, eventSession, map[string]any{"blind_disclosure": disclosure})
+}
+
+// auditionBlindDisclosure states what the two labels physically were and what
+// the recorded judgment therefore did. It is derived from the same conversion
+// the settlement uses, so the disclosed action is the settled action.
+func auditionBlindDisclosure(loop *freeStateReasoningLoop, evidence experiment.UserJudgmentEvidence) map[string]any {
+	if loop == nil || !auditionSessionIsBlind(loop.AuditionSessionSnapshot) {
+		return nil
+	}
+	mapping, mapped := auditionPhysicalMappingForEvidence(evidence, auditionBaselineRef(loop))
+	if !mapped {
+		return nil
+	}
+	disposition, _, _, err := auditionSettlementDisposition(loop, evidence)
+	if err != nil {
+		return nil
+	}
+	selected := ""
+	if evidence.Preference == experiment.PreferenceA || evidence.Preference == experiment.PreferenceB {
+		selected = string(evidence.Preference)
+	}
+	action := map[experiment.RoundDecision]string{
+		experiment.DecisionRetain:    "retain",
+		experiment.DecisionRollback:  "rollback",
+		experiment.DecisionNextRound: "next_round",
+		experiment.DecisionStopped:   "stopped",
+	}[disposition.Decision]
+	physical := mapping.sideOfLabel(evidence.Preference)
+	disclosure := map[string]any{
+		"schema_version":       auditionBlindDisclosureSchema,
+		"blind":                true,
+		"candidate_a_physical": mapping.sideA,
+		"candidate_b_physical": mapping.sideB,
+		"mapping_source":       mapping.source,
+		"selected":             selected,
+		"selected_physical":    physical,
+		"action":               action,
+		"disclosed_at":         time.Now().UTC().Format(time.RFC3339Nano),
+	}
+	switch {
+	case selected != "" && physical == auditionPhysicalAfter && disposition.Decision == experiment.DecisionRetain:
+		disclosure["summary"] = "你选的 " + strings.ToUpper(selected) + " 是改动后状态 · 已保留"
+	case selected != "" && physical == auditionPhysicalBefore && disposition.Decision == experiment.DecisionRollback:
+		disclosure["summary"] = "你选的 " + strings.ToUpper(selected) + " 是改动前状态 · 已回滚到改动前"
+	}
+	return disclosure
 }
 
 func buildUserJudgmentEvidence(loop freeStateReasoningLoop, round experiment.Round, sessionID string, heard experiment.HeardDifference, preference experiment.JudgmentPreference, reasonTags []string, freeText string) experiment.UserJudgmentEvidence {
@@ -743,6 +917,291 @@ func auditionCandidateSnapshot(session map[string]any, candidateID string) map[s
 	return map[string]any{"id": candidateID}
 }
 
+// auditionPhysicalMapping is the label -> physical D1 render assignment of one
+// audition session. It is derived, never stored in the session snapshot or the
+// event stream: before the judgment lands it lives only in the candidate rows
+// the evidence is built from (content-blind red line), and it is republished
+// only as the post-landing blind disclosure.
+type auditionPhysicalMapping struct {
+	sideA  string
+	sideB  string
+	source string
+}
+
+func (m auditionPhysicalMapping) resolved() bool {
+	return (m.sideA == auditionPhysicalBefore && m.sideB == auditionPhysicalAfter) ||
+		(m.sideA == auditionPhysicalAfter && m.sideB == auditionPhysicalBefore)
+}
+
+// sideOfLabel returns the physical render the given label (a/b) carries.
+func (m auditionPhysicalMapping) sideOfLabel(preference experiment.JudgmentPreference) string {
+	switch preference {
+	case experiment.PreferenceA:
+		return m.sideA
+	case experiment.PreferenceB:
+		return m.sideB
+	}
+	return ""
+}
+
+// labelCarryingSide returns the label that carries the given physical render.
+// Unresolved mappings answer the canonical assignment, which is the historical
+// non-blind behavior.
+func (m auditionPhysicalMapping) labelCarryingSide(side string) string {
+	if m.resolved() {
+		if m.sideA == side {
+			return auditionCandidateA
+		}
+		if m.sideB == side {
+			return auditionCandidateB
+		}
+	}
+	if side == auditionPhysicalBefore {
+		return auditionCandidateA
+	}
+	return auditionCandidateB
+}
+
+// auditionPhysicalMappingForEvidence resolves which physical render candidate A
+// and candidate B played, using only fields the judgment evidence already
+// carries (design §Q2: existing fields, zero extension). Key families are tried
+// most-stable first and must agree; a collision (both labels on one side, or two
+// families disagreeing) resolves to "unknown" so the settlement can fail closed
+// instead of picking a direction.
+func auditionPhysicalMappingForEvidence(evidence experiment.UserJudgmentEvidence, baselineRef string) (auditionPhysicalMapping, bool) {
+	sides := make([][2]string, 0, 3)
+	sides = append(sides, [2]string{
+		auditionRenderRevisionSide(evidence.CandidateARenderRevision),
+		auditionRenderRevisionSide(evidence.CandidateBRenderRevision),
+	})
+	sides = append(sides, [2]string{
+		auditionSourceRefSide(evidence.CandidateARef),
+		auditionSourceRefSide(evidence.CandidateBRef),
+	})
+	sides = append(sides, auditionCheckpointKeySides(evidence, baselineRef))
+	names := []string{"render_revision", "candidate_source_ref", "checkpoint_identity"}
+	resolved := auditionPhysicalMapping{}
+	for index, pair := range sides {
+		if pair[0] != "" && pair[0] == pair[1] {
+			// Both labels claim the same physical render: the provenance keys
+			// collided, so no direction is stable (card stop condition). Report
+			// unmapped instead of falling through to a weaker family.
+			return auditionPhysicalMapping{}, false
+		}
+		candidate := auditionPhysicalMapping{sideA: pair[0], sideB: pair[1], source: names[index]}
+		if !candidate.resolved() {
+			continue
+		}
+		if resolved.resolved() && (resolved.sideA != candidate.sideA || resolved.sideB != candidate.sideB) {
+			// Provenance families disagree: the physical direction is not
+			// stable, which is the card's stop condition. Report unmapped.
+			return auditionPhysicalMapping{}, false
+		}
+		if !resolved.resolved() {
+			// Most-stable-first: the first family that resolves names the
+			// mapping; later families only have to agree.
+			resolved = candidate
+		}
+	}
+	return resolved, resolved.resolved()
+}
+
+// auditionRenderRevisionSide reads the render phase out of a D1 render
+// revision (finishD1Render: "d1_render:<experiment>:<phase>:<revision>:<digest>").
+// This is the primary key family: the phase token is written by the render that
+// produced the audio, so it survives every label permutation.
+func auditionRenderRevisionSide(value string) string {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return ""
+	}
+	if strings.HasPrefix(value, "d1_render:") {
+		// d1_render:<experiment>:<phase>:<project_revision>:<digest>, and the
+		// experiment identity itself may contain colons (turn:<id>), so the
+		// phase is read from the tail instead of by position: the last
+		// before/after token followed by a 16 hex digit render digest.
+		parts := strings.Split(value, ":")
+		for index := len(parts) - 3; index >= 1; index-- {
+			if parts[index] != auditionPhysicalBefore && parts[index] != auditionPhysicalAfter {
+				continue
+			}
+			if index+2 < len(parts) && isHexDigest16(parts[index+2]) {
+				return parts[index]
+			}
+		}
+		for index := len(parts) - 1; index >= 1; index-- {
+			if parts[index] == auditionPhysicalBefore || parts[index] == auditionPhysicalAfter {
+				return parts[index]
+			}
+		}
+		return ""
+	}
+	if strings.HasPrefix(value, "render-") {
+		switch strings.TrimPrefix(value, "render-") {
+		case auditionPhysicalBefore:
+			return auditionPhysicalBefore
+		case auditionPhysicalAfter:
+			return auditionPhysicalAfter
+		}
+	}
+	return ""
+}
+
+func isHexDigest16(value string) bool {
+	if len(value) != 16 {
+		return false
+	}
+	for _, symbol := range strings.ToLower(value) {
+		if (symbol < '0' || symbol > '9') && (symbol < 'a' || symbol > 'f') {
+			return false
+		}
+	}
+	return true
+}
+
+// auditionSourceRefSide reads the phase out of the render file name
+// (ensureD1Render: "<phase>_revision_<project_revision>.wav").
+func auditionSourceRefSide(value string) string {
+	value = strings.ToLower(strings.TrimSpace(value))
+	switch {
+	case strings.Contains(value, auditionPhysicalBefore+"_revision_"):
+		return auditionPhysicalBefore
+	case strings.Contains(value, auditionPhysicalAfter+"_revision_"):
+		return auditionPhysicalAfter
+	}
+	return ""
+}
+
+// auditionCheckpointKeySides binds the labels to the round's baseline
+// checkpoint: the render taken at the baseline commit is the before render.
+func auditionCheckpointKeySides(evidence experiment.UserJudgmentEvidence, baselineRef string) [2]string {
+	baseline := auditionCheckpointIdentity(baselineRef)
+	if baseline == "" {
+		return [2]string{}
+	}
+	aMatches := auditionCheckpointIdentity(evidence.CandidateACheckpointRef) == baseline || auditionCheckpointIdentity(evidence.CandidateACommitID) == baseline
+	bMatches := auditionCheckpointIdentity(evidence.CandidateBCheckpointRef) == baseline || auditionCheckpointIdentity(evidence.CandidateBCommitID) == baseline
+	switch {
+	case aMatches && !bMatches:
+		return [2]string{auditionPhysicalBefore, auditionPhysicalAfter}
+	case bMatches && !aMatches:
+		return [2]string{auditionPhysicalAfter, auditionPhysicalBefore}
+	}
+	return [2]string{}
+}
+
+func auditionCheckpointIdentity(value string) string {
+	value = strings.TrimSpace(value)
+	if value == "" || strings.HasPrefix(value, "action:") {
+		return ""
+	}
+	return strings.TrimSpace(strings.TrimPrefix(value, "checkpoint:"))
+}
+
+// auditionSessionIsBlind reads the session-level blind mode flag. The flag names
+// the mode, never the assignment: a blind session whose draw kept the canonical
+// order is still blind, and the snapshot must not let a reader infer which
+// render sits behind which label.
+func auditionSessionIsBlind(session map[string]any) bool {
+	if len(session) == 0 {
+		return false
+	}
+	switch value := session["blind"].(type) {
+	case bool:
+		return value
+	case string:
+		switch strings.ToLower(strings.TrimSpace(value)) {
+		case "1", "true", "yes", "on":
+			return true
+		}
+	}
+	return false
+}
+
+// auditionPreferenceNeedsPhysicalDirection reports whether a judgment selects
+// one of the two heard candidates: only those authorize a retain/rollback and
+// therefore need a physical direction.
+func auditionPreferenceNeedsPhysicalDirection(heard experiment.HeardDifference, preference experiment.JudgmentPreference) bool {
+	return heard == experiment.HeardDifferenceYes && (preference == experiment.PreferenceA || preference == experiment.PreferenceB)
+}
+
+func auditionBaselineRef(loop *freeStateReasoningLoop) string {
+	if loop == nil || loop.Experiment == nil {
+		return ""
+	}
+	round, err := loop.Experiment.CurrentRound()
+	if err != nil {
+		return ""
+	}
+	return round.CheckpointRef
+}
+
+func auditionCandidateLetter(candidateID string) string {
+	switch candidateID {
+	case auditionCandidateA:
+		return "A"
+	case auditionCandidateB:
+		return "B"
+	}
+	return strings.ToUpper(strings.TrimSpace(candidateID))
+}
+
+// auditionJudgmentSelectsPhysicalSide reports whether the recorded judgment
+// selects the candidate that physically carries the given D1 render side.
+// Evidence without resolvable render provenance answers the historical label
+// semantics, so legacy non-blind receipts stay byte-for-byte.
+func auditionJudgmentSelectsPhysicalSide(evidence experiment.UserJudgmentEvidence, baselineRef, side string) bool {
+	if evidence.HeardDifference != experiment.HeardDifferenceYes ||
+		(evidence.Preference != experiment.PreferenceA && evidence.Preference != experiment.PreferenceB) {
+		return false
+	}
+	if mapping, mapped := auditionPhysicalMappingForEvidence(evidence, baselineRef); mapped {
+		return mapping.sideOfLabel(evidence.Preference) == side
+	}
+	if side == auditionPhysicalAfter {
+		return evidence.Preference == experiment.PreferenceB
+	}
+	return evidence.Preference == experiment.PreferenceA
+}
+
+// auditionSettlementDisposition is the single source of truth for the label ->
+// physical action conversion, shared by the settlement and by the post-landing
+// disclosure so the two can never drift.
+//
+// The historical mapping is label-level: preference B = retain the treatment,
+// preference A = roll back to the baseline. A blind session exchanged the
+// physical renders behind those fixed labels, so the disposition is recomputed
+// from the physical side the user's label actually carries. Non-blind evidence
+// resolves to the canonical assignment and reproduces the label-level answer
+// byte-for-byte; unmapped blind evidence fails closed rather than settling an
+// A/B preference without a direction.
+func auditionSettlementDisposition(loop *freeStateReasoningLoop, evidence experiment.UserJudgmentEvidence) (auditionJudgmentDisposition, auditionPhysicalMapping, bool, error) {
+	if loop == nil || loop.Experiment == nil {
+		return auditionJudgmentDisposition{}, auditionPhysicalMapping{}, false, fmt.Errorf("experiment session unavailable")
+	}
+	disposition := dispositionForUserJudgment(evidence)
+	if freeStateAdmissionRunsSingleRound(loop.Experiment.Admission) {
+		disposition = d1DispositionForUserJudgment(evidence)
+	}
+	if disposition.Decision != experiment.DecisionRetain && disposition.Decision != experiment.DecisionRollback {
+		return disposition, auditionPhysicalMapping{}, false, nil
+	}
+	mapping, mapped := auditionPhysicalMappingForEvidence(evidence, auditionBaselineRef(loop))
+	if !mapped {
+		if auditionSessionIsBlind(loop.AuditionSessionSnapshot) {
+			return disposition, mapping, false, fmt.Errorf("blind audition session cannot resolve the physical candidate mapping for preference %q; refusing to settle without a physical direction", evidence.Preference)
+		}
+		return disposition, mapping, false, nil
+	}
+	switch mapping.sideOfLabel(evidence.Preference) {
+	case auditionPhysicalAfter:
+		disposition = auditionJudgmentDisposition{Decision: experiment.DecisionRetain, Outcome: experiment.OutcomeImproved}
+	case auditionPhysicalBefore:
+		disposition = auditionJudgmentDisposition{Decision: experiment.DecisionRollback, Outcome: experiment.OutcomeRolledBack}
+	}
+	return disposition, mapping, true, nil
+}
+
 type auditionJudgmentDisposition struct {
 	Decision experiment.RoundDecision
 	Outcome  experiment.SettlementOutcome
@@ -791,6 +1250,42 @@ func annotateJudgmentDecision(events []trajectory.Event, actionKind, candidateID
 	events[0].Payload.Details["recoverable"] = true
 }
 
+// alignAuditionTargetResponseWithPhysicalSelection makes the round's target
+// response agree with the candidate the user physically confirmed.
+//
+// The experiment package derives that response from the label alone
+// (experiment/user_judgment.go:203-211 marks sufficient/confirmed for
+// preference B, and runtime.go:801 then refuses a retain decision unless the
+// response is sufficient). With fixed labels that is correct; once a blind
+// session exchanged the renders, confirming the treatment can arrive as
+// preference A, and the package-level write would leave the round describing
+// the opposite action. Only that swapped case is compensated here — the
+// canonical path already carries the response and returns immediately.
+func alignAuditionTargetResponseWithPhysicalSelection(loop *freeStateReasoningLoop, evidence experiment.UserJudgmentEvidence) error {
+	if loop == nil || loop.Experiment == nil {
+		return fmt.Errorf("experiment session unavailable")
+	}
+	round, err := loop.Experiment.CurrentRound()
+	if err != nil {
+		return err
+	}
+	if round.TargetResponse == nil {
+		return fmt.Errorf("retain settlement requires a target response")
+	}
+	if round.TargetResponse.Response == experiment.TargetSufficient {
+		return nil
+	}
+	index := len(loop.Experiment.Rounds) - 1
+	if index < 0 || loop.Experiment.Rounds[index].ID != round.ID {
+		return fmt.Errorf("retain settlement cannot locate the judged round")
+	}
+	round.TargetResponse.Response = experiment.TargetSufficient
+	round.TargetResponse.Outcome = trajectory.EvaluationHumanConfirmed
+	round.UpdatedAt = time.Now().UTC()
+	loop.Experiment.Rounds[index] = round
+	return nil
+}
+
 func (s *Server) applyFreeStateJudgmentOutcome(ctx context.Context, loop *freeStateReasoningLoop, evidence experiment.UserJudgmentEvidence) error {
 	if loop == nil || loop.Experiment == nil {
 		return fmt.Errorf("experiment session unavailable")
@@ -798,26 +1293,40 @@ func (s *Server) applyFreeStateJudgmentOutcome(ctx context.Context, loop *freeSt
 	// The tier predicate, not bare IsD1S1: a D2-2 multi-round admission is a
 	// domain member (IsD1S1()==true) that must keep the recalibration path.
 	singleRound := freeStateAdmissionRunsSingleRound(loop.Experiment.Admission)
-	disposition := dispositionForUserJudgment(evidence)
-	if singleRound {
-		disposition = d1DispositionForUserJudgment(evidence)
+	disposition, mapping, mapped, err := auditionSettlementDisposition(loop, evidence)
+	if err != nil {
+		return err
+	}
+	// The label the settlement names is the label that physically carries the
+	// acted-on render: canonical non-blind evidence resolves to candidate-B for
+	// retain and candidate-A for rollback exactly as before, while a swapped
+	// blind session names the label the user actually picked.
+	retainedLabel := mapping.labelCarryingSide(auditionPhysicalAfter)
+	rollbackLabel := mapping.labelCarryingSide(auditionPhysicalBefore)
+	if !mapped {
+		retainedLabel, rollbackLabel = auditionCandidateB, auditionCandidateA
 	}
 	switch disposition.Decision {
 	case experiment.DecisionRetain:
-		// Candidate B is the treatment already present in the active project.
-		// Retain is the explicit, recoverable adoption action for this G5 model.
-		events, err := loop.Experiment.DecideRound(experiment.DecisionRetain, "user preferred B; explicitly retained treatment candidate", time.Now().UTC())
+		// The retained candidate physically carries the treatment already
+		// present in the active project. Retain is the explicit, recoverable
+		// adoption action for this G5 model.
+		if err := alignAuditionTargetResponseWithPhysicalSelection(loop, evidence); err != nil {
+			return err
+		}
+		retainedLetter := auditionCandidateLetter(retainedLabel)
+		events, err := loop.Experiment.DecideRound(experiment.DecisionRetain, "user preferred "+retainedLetter+"; explicitly retained treatment candidate", time.Now().UTC())
 		if err != nil {
 			return err
 		}
-		annotateJudgmentDecision(events, "audition.retain_candidate", "candidate-b")
+		annotateJudgmentDecision(events, "audition.retain_candidate", retainedLabel)
 		s.emitFreeStateExperimentEvents(events)
 		if s.hasTaskSemanticContract(loop.GoalID) {
-			if err = s.settleTaskFromExperiment(loop, "user preferred B; treatment candidate retained", []string{evidence.ID}); err != nil {
+			if err = s.settleTaskFromExperiment(loop, "user preferred "+retainedLetter+"; treatment candidate retained", []string{evidence.ID}); err != nil {
 				return err
 			}
 		}
-		events, err = loop.Experiment.Settle(experiment.OutcomeImproved, "user preferred B; treatment candidate retained", time.Now().UTC())
+		events, err = loop.Experiment.Settle(experiment.OutcomeImproved, "user preferred "+retainedLetter+"; treatment candidate retained", time.Now().UTC())
 		if err != nil {
 			return err
 		}
@@ -828,7 +1337,7 @@ func (s *Server) applyFreeStateJudgmentOutcome(ctx context.Context, loop *freeSt
 		if err != nil {
 			return err
 		}
-		annotateJudgmentDecision(events, "audition.rollback_candidate", "candidate-a")
+		annotateJudgmentDecision(events, "audition.rollback_candidate", rollbackLabel)
 		s.emitFreeStateExperimentEvents(events)
 		rollbackEvents, err := s.rollbackFreeStateExperiment(ctx, loop)
 		if err != nil {

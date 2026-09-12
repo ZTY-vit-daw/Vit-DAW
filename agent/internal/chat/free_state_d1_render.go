@@ -16,7 +16,22 @@ import (
 
 const d1RenderSchema = "vit.free_state_d1_render.v1"
 
+// d1AuditionCandidates builds the canonical (non-blind) A/B pair: candidate A
+// carries the before render and candidate B the treatment render. Everything
+// that reads label semantics (settlement decisions, receipts, panel copy)
+// assumes this assignment unless the session explicitly declares a blind one.
 func d1AuditionCandidates(before, after map[string]any, baselineCommit, treatmentCommit, projectRef, projectUUID string) ([]kernel.AuditionCandidate, error) {
+	return d1AuditionCandidatesForAssignment(before, after, baselineCommit, treatmentCommit, projectRef, projectUUID, false)
+}
+
+// d1AuditionCandidatesForAssignment builds the A/B candidate pair. blindSwap
+// exchanges only the physical render behind the two fixed labels: the labels
+// stay A/B (the panel, the kernel contract, and the judgment protocol are
+// untouched), while candidate A then plays the treatment render and candidate B
+// the baseline render. The physical provenance travels in the existing
+// candidate fields (source_ref / render_revision / checkpoint identity), which
+// is what auditionPhysicalMappingForEvidence reads back at settlement.
+func d1AuditionCandidatesForAssignment(before, after map[string]any, baselineCommit, treatmentCommit, projectRef, projectUUID string, blindSwap bool) ([]kernel.AuditionCandidate, error) {
 	beforeRevision := firstStringFromMap(before, "project_revision")
 	afterRevision := firstStringFromMap(after, "project_revision")
 	if beforeRevision == "" || afterRevision == "" || beforeRevision == afterRevision {
@@ -27,9 +42,13 @@ func d1AuditionCandidates(before, after map[string]any, baselineCommit, treatmen
 			return nil, fmt.Errorf("D1-S1 %s A/B render provenance is incomplete", phase)
 		}
 	}
+	labelA, commitA, labelB, commitB := before, baselineCommit, after, treatmentCommit
+	if blindSwap {
+		labelA, commitA, labelB, commitB = after, treatmentCommit, before, baselineCommit
+	}
 	return []kernel.AuditionCandidate{
-		{ID: "candidate-a", Label: "A", SourceKind: "audio_file", SourceRef: firstStringFromMap(before, "file_path"), PreviewRef: "audio_file:" + firstStringFromMap(before, "sha256"), CheckpointRef: baselineCommit, CommitID: baselineCommit, ProjectPath: projectRef, ProjectUUID: projectUUID, ProjectRevision: beforeRevision, RenderRevision: firstStringFromMap(before, "render_revision"), PreviewRevision: firstStringFromMap(before, "preview_revision"), Scope: "target"},
-		{ID: "candidate-b", Label: "B", SourceKind: "audio_file", SourceRef: firstStringFromMap(after, "file_path"), PreviewRef: "audio_file:" + firstStringFromMap(after, "sha256"), CheckpointRef: treatmentCommit, CommitID: treatmentCommit, ProjectPath: projectRef, ProjectUUID: projectUUID, ProjectRevision: afterRevision, RenderRevision: firstStringFromMap(after, "render_revision"), PreviewRevision: firstStringFromMap(after, "preview_revision"), Scope: "target"},
+		{ID: "candidate-a", Label: "A", SourceKind: "audio_file", SourceRef: firstStringFromMap(labelA, "file_path"), PreviewRef: "audio_file:" + firstStringFromMap(labelA, "sha256"), CheckpointRef: commitA, CommitID: commitA, ProjectPath: projectRef, ProjectUUID: projectUUID, ProjectRevision: firstStringFromMap(labelA, "project_revision"), RenderRevision: firstStringFromMap(labelA, "render_revision"), PreviewRevision: firstStringFromMap(labelA, "preview_revision"), Scope: "target"},
+		{ID: "candidate-b", Label: "B", SourceKind: "audio_file", SourceRef: firstStringFromMap(labelB, "file_path"), PreviewRef: "audio_file:" + firstStringFromMap(labelB, "sha256"), CheckpointRef: commitB, CommitID: commitB, ProjectPath: projectRef, ProjectUUID: projectUUID, ProjectRevision: firstStringFromMap(labelB, "project_revision"), RenderRevision: firstStringFromMap(labelB, "render_revision"), PreviewRevision: firstStringFromMap(labelB, "preview_revision"), Scope: "target"},
 	}, nil
 }
 

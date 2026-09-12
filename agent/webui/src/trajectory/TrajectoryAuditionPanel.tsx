@@ -16,6 +16,18 @@ export function supplementJudgmentPayload(session: AuditionSession, freeText: st
   return judgmentPayload(session, "unsure", "unsure", freeText.trim());
 }
 
+/** 卡面次级按钮「听不出差别」：heard=no 直报（效果不足信号，走既有重校准/终止路径，非终局判词） */
+export function noDifferenceJudgmentPayload(session: AuditionSession): AuditionJudgmentPayload {
+  return judgmentPayload(session, "no", "unsure", "");
+}
+
+/** 判定落账后的解盲文案（B12-1）：只有承载 A/B 动作结果的披露才生成文案，其余结果条沿用既有措辞 */
+export function auditionBlindDisclosureText(session: AuditionSession): string {
+  const action = text(session.blindDisclosure?.action);
+  if (action !== "retain" && action !== "rollback") return "";
+  return text(session.blindDisclosure?.summary);
+}
+
 function judgmentPayload(session: AuditionSession, heardDifference: "yes" | "no" | "unsure", preference: "a" | "b" | "neither" | "equal" | "unsure", freeText: string): AuditionJudgmentPayload {
   return {
     conversation_id: session.conversationID,
@@ -41,6 +53,16 @@ export interface AuditionCardOutcome {
 /** 沉淀结果条推导：结算节点 > 已记录判断 > 判定模糊 > 底部输入框绕过卡面 */
 export function auditionCardOutcome(session: AuditionSession, settlement: AuditionSettlementOutcome, superseded: boolean): AuditionCardOutcome | null {
   const preference = text(session.judgmentEvidence?.preference);
+  // 盲态会话的顺序是随机的：结果条必须按解盲披露（物理指派 + 实际动作）说话，
+  // 不能再用「A=改动前」的固定文案。
+  // 披露只可能在判定落账后存在（后端在动作落地后才生成/发事件/落快照），
+  // 故此处无需再按 judgmentRecorded 设闸：即便 WebUI 重载后先收到恢复快照，
+  // 结果条也不会退回「A=改动前」的固定文案。
+  const disclosure = auditionBlindDisclosureText(session);
+  if (disclosure) {
+    const action = text(session.blindDisclosure?.action);
+    return { tone: action === "rollback" ? "yellow" : "blue", icon: action === "rollback" ? "undo" : "check", text: disclosure };
+  }
   if (settlement === "rolled_back") return { tone: "yellow", icon: "undo", text: "已裁决 · A 更好 → 已回滚到改动前" };
   if (settlement === "improved") return { tone: "blue", icon: "check", text: "已裁决 · B 更好 · 保留改动后" };
   if (session.judgmentRecorded && preference === "a") return { tone: "yellow", icon: "undo", text: "已裁决 · A 更好 → 已回滚到改动前" };
@@ -107,6 +129,7 @@ export function AuditionJudgeCard({
   onSubmitJudgment?: (payload: AuditionJudgmentPayload) => Promise<void>;
 }) {
   const [supplement, setSupplement] = useState("");
+  const [supplementOpen, setSupplementOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const settlement = auditionSettlementOutcome(trajectory, session);
   const outcome = auditionCardOutcome(session, settlement, superseded);
@@ -142,12 +165,21 @@ export function AuditionJudgeCard({
     if (!value) return;
     await submit(supplementJudgmentPayload(session, value));
   };
+  // 「说不清/另有想法」：展开既有 free_text 兜底并聚焦，判定口径不变（heard/preference 取中性 unsure）
+  const openSupplement = () => {
+    setSupplementOpen(true);
+    window.setTimeout(() => {
+      document.querySelector<HTMLInputElement>(`[data-audition-session="${session.id}"] input[aria-label="自定义补充输入"]`)?.focus();
+    }, 0);
+  };
   const selectCandidate = (candidate: AuditionCandidate) => {
     if (settled || busy || !auditionCanSelect(session, candidate)) return;
     void onSelect(session.id, candidate.id);
   };
   const playing = session.status === "playing";
   const isPlayingSide = (side: "a" | "b") => playing && activeSide === side;
+  // 盲态：顺序随机，判定前不得出现「改动前/改动后」这类物理指派措辞
+  const blind = session.blind && !settled;
 
   return (
     <section
@@ -161,6 +193,7 @@ export function AuditionJudgeCard({
         {badge && <span className="rtag">{badge}</span>}
         {summary && <span className="csum">{summary}</span>}
         {pending && <span className="chip">待判定</span>}
+        {blind && <span className="chip">盲测 · 顺序随机</span>}
       </div>
       {!settled && (
         <>
@@ -188,7 +221,9 @@ export function AuditionJudgeCard({
               const active = activeSide === side;
               const isPlaying = isPlayingSide(side);
               const stoppable = !busy && session.status !== "stopped";
-              const label = `改动${side === "a" ? "前" : "后"} · ${candidate.label || (side === "a" ? "original" : "processed")}`;
+              const label = blind
+                ? `${side.toUpperCase()} · ${candidate.label || "候选"}`
+                : `改动${side === "a" ? "前" : "后"} · ${candidate.label || (side === "a" ? "original" : "processed")}`;
               return (
                 <div
                   key={candidate.id || side}
@@ -236,12 +271,18 @@ export function AuditionJudgeCard({
       )}
       {canJudge && (
         <div className="vgrid">
-          <button type="button" className="vbtn" data-act="pickA" disabled={submitting || busy} onClick={() => { void submit(verdictJudgmentPayload(session, "a")); }}>A 更好 · 回滚</button>
-          <button type="button" className="vbtn" data-act="pickB" disabled={submitting || busy} onClick={() => { void submit(verdictJudgmentPayload(session, "b")); }}>B 更好 · 保留</button>
+          <button type="button" className="vbtn" data-act="pickA" disabled={submitting || busy} onClick={() => { void submit(verdictJudgmentPayload(session, "a")); }}>{blind ? "A 更好" : "A 更好 · 回滚"}</button>
+          <button type="button" className="vbtn" data-act="pickB" disabled={submitting || busy} onClick={() => { void submit(verdictJudgmentPayload(session, "b")); }}>{blind ? "B 更好" : "B 更好 · 保留"}</button>
         </div>
       )}
       {canJudge && (
-        <form className="c-ask" onSubmit={(event) => { event.preventDefault(); void sendSupplement(); }}>
+        <div className="vsec">
+          <button type="button" className="sbtn" data-act="noDifference" disabled={submitting || busy} onClick={() => { void submit(noDifferenceJudgmentPayload(session)); }}>听不出差别</button>
+          <button type="button" className="sbtn" data-act="explain" disabled={submitting || busy} onClick={openSupplement}>说不清 / 另有想法</button>
+        </div>
+      )}
+      {canJudge && (
+        <form className={["c-ask", supplementOpen ? "supplement-open" : ""].filter(Boolean).join(" ")} onSubmit={(event) => { event.preventDefault(); void sendSupplement(); }}>
           <input
             type="text"
             value={supplement}
