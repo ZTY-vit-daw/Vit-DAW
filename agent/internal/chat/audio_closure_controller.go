@@ -982,6 +982,150 @@ func audioClosureCandidateRows(summary map[string]any, viewID string) []map[stri
 	}
 }
 
+// freeStateDisclosureBudgetMarker is the verbatim suffix the CCB disclosure
+// budget appends when it drops a view to fit max_disclosure_bytes
+// (capabilitycontext/free_state_observation.go: viewID+": omitted by disclosure
+// budget"). B13-C reuses the marker and the structural match B13-A pinned in
+// agentloop (free_state_gate.go, freeStateScanViewOmittedByDisclosureBudget) so
+// the settlement wording and the G3 delivery verdict cannot disagree about the
+// same receipt fact.
+const freeStateDisclosureBudgetMarker = "omitted by disclosure budget"
+
+// freeStateCandidateScanViewIDs are the only views that can feed the hypothesis
+// frontier: audioClosureCandidateRows resolves candidates from exactly these
+// two (its switch arms; every other view id falls through to nil). This is a
+// view-id set, never evidence content.
+var freeStateCandidateScanViewIDs = []string{"mix.multitrack_relationship", "mix.frequency_relationship"}
+
+// freeStateCandidateSupply is the mechanical, content-blind classification of
+// what the free-state observation ledger actually delivered for the
+// candidate-producing scan views. It carries two independent facts so the
+// settlement reply can tell "the supply was cut before a candidate could be
+// built" apart from "the supply arrived and holds no candidate".
+type freeStateCandidateSupply struct {
+	// Delivered is set when a qualified scan view was actually disclosed and
+	// stands as that view's latest delivery fact.
+	Delivered bool
+	// Trimmed is set when a qualified scan view's latest delivery fact is a
+	// disclosure-budget omission.
+	Trimmed bool
+}
+
+// freeStateScanReceiptUsable mirrors agentloop's freeStateReceiptUsable (B13-A):
+// a receipt reports a delivery only when it executed or partially executed.
+func freeStateScanReceiptUsable(row map[string]any) bool {
+	switch strings.ToLower(strings.TrimSpace(firstStringFromMap(row, "status", "bundle_status"))) {
+	case "ready", "partial":
+		return true
+	default:
+		return false
+	}
+}
+
+// freeStateReceiptRequestedView reports whether the receipt nominally asked for
+// this view id.
+func freeStateReceiptRequestedView(row map[string]any, viewID string) bool {
+	for _, requested := range freeStateStringSlice(row["requested_views"]) {
+		if strings.EqualFold(strings.TrimSpace(requested), viewID) {
+			return true
+		}
+	}
+	return false
+}
+
+// freeStateReceiptViewReason returns the receipt's reason naming exactly this
+// view id, if any. The comparison is mechanical and content-blind: only the
+// structural "<view_id>: <reason>" form is read, so no view content, track
+// identity, processor or dose is inspected.
+func freeStateReceiptViewReason(row map[string]any, viewID string) (string, bool) {
+	viewID = strings.TrimSpace(viewID)
+	if viewID == "" {
+		return "", false
+	}
+	for _, reason := range freeStateStringSlice(row["rejection_reasons"]) {
+		owner := reason
+		if idx := strings.Index(reason, ":"); idx >= 0 {
+			owner = reason[:idx]
+		}
+		if strings.EqualFold(strings.TrimSpace(owner), viewID) {
+			return reason, true
+		}
+	}
+	return "", false
+}
+
+// freeStateScanViewOmittedByDisclosureBudget reports whether a receipt marks
+// exactly this view id as trimmed by the disclosure budget. It keeps B13-A's
+// predicate verdict verbatim: a reason carrying any other marker (stale,
+// missing, deferred or unavailable source evidence, non-budget rejections) is
+// an omission, never a trim.
+func freeStateScanViewOmittedByDisclosureBudget(row map[string]any, viewID string) bool {
+	reason, found := freeStateReceiptViewReason(row, viewID)
+	return found && strings.Contains(reason, freeStateDisclosureBudgetMarker)
+}
+
+// freeStateCandidateScanSupply classifies the ledger's candidate-source
+// delivery facts. Receipts are recorded in observation order, so for each scan
+// view the LAST receipt that asked for it decides that view's fact:
+//
+//   - a reason naming the view with the disclosure-budget marker is a trim, and
+//     is read on any receipt status: when the budget drops every requested view
+//     the bundle itself reports status=insufficient, so requiring ready|partial
+//     here would lose exactly the fully-cut shape (real stack: a minimal
+//     max_disclosure_bytes request returns one scan view, insufficient, with the
+//     marker);
+//   - a view omitted for any other cause (stale/missing/deferred/unavailable
+//     source evidence) is neither a delivery nor a trim;
+//   - otherwise the view counts as delivered when the receipt reports a usable
+//     execution (ready|partial) and as no fact at all when it does not.
+//
+// A view no receipt ever asked for contributes no fact.
+func freeStateCandidateScanSupply(ledger map[string]any) freeStateCandidateSupply {
+	supply := freeStateCandidateSupply{}
+	for _, viewID := range freeStateCandidateScanViewIDs {
+		fact := ""
+		for _, row := range freeStateMapRows(ledger["receipts"]) {
+			if !freeStateReceiptRequestedView(row, viewID) {
+				continue
+			}
+			if freeStateScanViewOmittedByDisclosureBudget(row, viewID) {
+				fact = "trimmed"
+				continue
+			}
+			if _, omitted := freeStateReceiptViewReason(row, viewID); omitted {
+				fact = "omitted"
+				continue
+			}
+			if !freeStateScanReceiptUsable(row) {
+				continue
+			}
+			fact = "delivered"
+		}
+		switch fact {
+		case "trimmed":
+			supply.Trimmed = true
+		case "delivered":
+			supply.Delivered = true
+		}
+	}
+	return supply
+}
+
+// freeStateCandidateSupplyForSettlement reads that classification off the
+// conversation's durable free-state observation ledger. A missing loop or a
+// ledger without usable receipts returns the zero value, which keeps the
+// pre-B13-C reply shape.
+func (s *Server) freeStateCandidateSupplyForSettlement(conversationID string) freeStateCandidateSupply {
+	if s == nil || strings.TrimSpace(conversationID) == "" {
+		return freeStateCandidateSupply{}
+	}
+	loop, ok := s.freeStateLoop(conversationID)
+	if !ok {
+		return freeStateCandidateSupply{}
+	}
+	return freeStateCandidateScanSupply(loop.ObservationLedger)
+}
+
 func audioClosureCandidateTracks(row map[string]any) ([]string, []string) {
 	ids := freeStateNormalizedViewIDs(freeStateStringSlice(row["track_ids"]))
 	names := []string{}
@@ -1157,7 +1301,7 @@ func (s *Server) audioClosureResponse(conversationID, mode string, state audiocl
 	if loop, ok := s.freeStateLoop(conversationID); ok {
 		admissionReceipt = cloneContext(loop.AdmissionReceipt)
 	}
-	reply := audioClosureSettlementReply(state.Settlement, s.visibleTrackCountForSettlementReply(state.Settlement))
+	reply := audioClosureSettlementReply(state.Settlement, s.visibleTrackCountForSettlementReply(state.Settlement), s.freeStateCandidateSupplyForSettlement(conversationID))
 	status := agentruntime.StatusCompleted
 	if state.Settlement.NeedsUserClarification {
 		status = agentruntime.StatusWaitingClarification
@@ -1347,7 +1491,17 @@ func audioClosureControllerErrorResponse(conversationID, mode string, err error)
 // relationships to find, and the generic wording reads as an unexplained dead
 // end after a full observation chain. visibleTrackCount < 0 means unknown and
 // keeps the generic wording.
-func audioClosureSettlementReply(settlement *audioclosure.Settlement, visibleTrackCount int) string {
+//
+// B13-C: an empty frontier has two mechanically distinct causes and the reply
+// must not merge them. When the candidate-producing scan view was dropped by
+// the disclosure budget the supply itself was cut, so the reply says so and
+// asks for a fresh observation instead of presenting a supply defect as a
+// product conclusion (B13 forensics §4.3). When a scan view was actually
+// delivered and the frontier is still empty, the project genuinely holds no
+// evidence-backed hypothesis yet. Both facts come from the observation ledger's
+// receipts and are read content-blind; when the ledger carries neither fact the
+// pre-existing wording is kept unchanged.
+func audioClosureSettlementReply(settlement *audioclosure.Settlement, visibleTrackCount int, supply freeStateCandidateSupply) string {
 	if settlement == nil {
 		return "本次声学闭环已结束。"
 	}
@@ -1360,8 +1514,14 @@ func audioClosureSettlementReply(settlement *audioclosure.Settlement, visibleTra
 	case audioclosure.StopDiagnosticComplete:
 		return "本次只读声学诊断已经完成；没有修改工程。"
 	case audioclosure.StopNoCandidateFound:
+		if supply.Trimmed {
+			return "本次观察的混音关系视图被披露预算裁剪，未能建立候选；建议重新观察。"
+		}
 		if visibleTrackCount == 1 {
 			return "当前工程只有 1 轨音频，不存在多轨混音关系问题；本轮轨道级观察（电平/频谱/动态/声像）也没有发现异常，因此没有可执行的改善建议。结论保留证据引用和未覆盖边界。"
+		}
+		if supply.Delivered {
+			return "当前工程暂无证据支持的待验证假设，建议换个方向或换轨。"
 		}
 		return "在已声明的观察范围内没有发现可信改善候选；结论保留证据引用和未覆盖边界。"
 	case audioclosure.StopCapabilityBlocked:

@@ -1729,6 +1729,16 @@ func freeStateObservationCompactReceipt(observation *agentloop.RecentObservation
 		"freshness":        cloneContext(firstMapFromAny(observation.Summary["freshness"])),
 		"limitations":      observation.Summary["limitations"],
 		"evidence_refs":    observation.Summary["evidence_refs"],
+		// B13-C: the disclosure-budget delivery fact must survive into this
+		// ledger row, exactly as B13-A had to add it to agentloop's
+		// freeStateObservationLedgerReceipt. The compact CCB bundle summary does
+		// not carry audit_receipt (agentloop/message_loop.go
+		// messageLoopCCBObservationSummary selects omission_reasons, not
+		// audit_receipt), so the bundle's omission_reasons is the live source and
+		// the full receipt is the durable fallback. Rows without any omission
+		// keep their previous shape: compactSelectedKeys-style emptiness pruning
+		// drops the key.
+		"rejection_reasons": firstNonNil(observation.Summary["omission_reasons"], audit["rejection_reasons"]),
 	})
 }
 
