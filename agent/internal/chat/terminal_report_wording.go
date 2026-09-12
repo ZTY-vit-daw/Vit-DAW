@@ -176,6 +176,28 @@ func d1AppliedReportReply(loop freeStateReasoningLoop, receipt map[string]any) s
 	if loop.Experiment == nil {
 		return stripInternalTerminalTerms("这一步参数调整已应用并回读验证。")
 	}
+	trackLabel, wording, changeText, readbackText := d1AppliedSubject(loop, receipt)
+	finding := d1FindingText(loop)
+
+	head := "已应用并回读验证：" + trackLabel + wording.Parameter + " " + firstNonEmpty(changeText, "已调整") + readbackText + "。"
+	body := strings.Join([]string{
+		head,
+		"针对的发现：" + truncateTerminalFinding(finding) + "。",
+		"去哪看：在 DAW 里选中 " + trackLabel + "，查看" + wording.WhereToLook + "即可确认这一步。",
+		"这一步是有界、可回滚的小步调整；如果听感不对，告诉我，我可以回滚。",
+	}, "\n")
+	return stripInternalTerminalTerms(body)
+}
+
+// d1AppliedSubject resolves the user-facing subject of a D1 bounded native
+// adjustment from the admitted experiment: the target track's recognizable
+// label, the per-domain parameter wording, and the signed change with its
+// readback before/after. Both the applied turn's report and the judgment park's
+// settle summary compose from this single resolution so the two turns can never
+// describe the same move with two different vocabularies. The receipt is the
+// applied intervention's own execution receipt; the loop's D1 projection carries
+// the layer statuses, not the domain readback values printed here.
+func d1AppliedSubject(loop freeStateReasoningLoop, receipt map[string]any) (string, d1UserFacingWording, string, string) {
 	admission := loop.Experiment.Admission
 	spec, specOK := experiment.D1S1DomainSpecFor(admission)
 	wording := d1UserFacingWording{Parameter: "参数", Unit: "", WhereToLook: "目标轨道的效果器/通道条参数", BeforeKey: "before_readback_value", AfterKey: "actual_readback_value"}
@@ -209,20 +231,73 @@ func d1AppliedReportReply(loop freeStateReasoningLoop, receipt map[string]any) s
 	case afterOK:
 		readbackText = "（回读 " + plainTerminalNumber(after, wording.Unit) + "）"
 	}
+	return trackLabel, wording, changeText, readbackText
+}
 
-	finding := strings.TrimSpace(firstNonEmpty(admission.Hypothesis, admission.ExpectedEffect, loop.OriginalIntent))
+// d1FindingText resolves the finding clause the applied move targets: the
+// admission hypothesis in the model's own words, falling back to its expected
+// effect and then to the user's original intent.
+func d1FindingText(loop freeStateReasoningLoop) string {
+	finding := strings.TrimSpace(firstNonEmpty(loop.Experiment.Admission.Hypothesis, loop.Experiment.Admission.ExpectedEffect, loop.OriginalIntent))
 	if finding == "" {
 		finding = "基于动作前观察证据选定的一个小步调整"
 	}
+	return finding
+}
 
-	head := "已应用并回读验证：" + trackLabel + wording.Parameter + " " + firstNonEmpty(changeText, "已调整") + readbackText + "。"
-	body := strings.Join([]string{
-		head,
-		"针对的发现：" + truncateTerminalFinding(finding) + "。",
-		"去哪看：在 DAW 里选中 " + trackLabel + "，查看" + wording.WhereToLook + "即可确认这一步。",
-		"这一步是有界、可回滚的小步调整；如果听感不对，告诉我，我可以回滚。",
-	}, "\n")
-	return stripInternalTerminalTerms(body)
+// d1JudgmentParkReply composes the settle summary delivered at the D1 judgment
+// park (PARK-1). The park turn is a scheduler slice, so its own reply is the
+// chain's pass-through line ("我还在继续处理这个任务"); the user therefore used
+// to receive the A/B audition card with zero text explaining what had been
+// applied or why a judgment was being asked for (goal_44cda25a real-stack
+// 17:55:07/17:55:08 forensics). This carries the b6 five-element spirit into the
+// park boundary: what was applied (parameter plus readback before/after), the
+// finding it targets, and the pointer to the A/B audition judgment card. It
+// deliberately avoids the hollow-claim vocabulary (the park IS the servicable
+// judgment entry) and runs through the internal-code guardrail.
+func d1JudgmentParkReply(loop freeStateReasoningLoop) string {
+	if loop.Experiment == nil {
+		return ""
+	}
+	trackLabel, wording, changeText, readbackText := d1AppliedSubject(loop, d1JudgmentParkReceipt(loop))
+	lines := []string{
+		"这一步已经应用好了：" + trackLabel + wording.Parameter + " " + firstNonEmpty(changeText, "已调整") + readbackText + "。",
+		"针对的发现：" + truncateTerminalFinding(d1FindingText(loop)) + "。",
+		"请你到上面的 A/B 试听卡里把两个版本各听一遍，然后告诉我你更喜欢哪一个——你的试听判定决定这一步是保留还是回滚；听不出差别也请直接选“听不出差别”。",
+	}
+	return stripInternalTerminalTerms(strings.Join(lines, "\n"))
+}
+
+// d1JudgmentParkReceipt resolves the readback source for the park summary: the
+// applied intervention's own execution receipt, i.e. the same map the applied
+// turn composed its five-element report from. The park's round is the earliest
+// round that requested a judgment without the judgment landing
+// (freeStateJudgmentBoundary's first clause); an experiment parked by a recorded
+// judgment falls through to the current round.
+func d1JudgmentParkReceipt(loop freeStateReasoningLoop) map[string]any {
+	if loop.Experiment == nil {
+		return nil
+	}
+	rounds := make([]experiment.Round, 0, len(loop.Experiment.Rounds))
+	for _, round := range loop.Experiment.Rounds {
+		if round.UserJudgmentRequested && len(round.UserJudgmentEvidence) == 0 {
+			rounds = append(rounds, round)
+		}
+	}
+	if len(rounds) == 0 {
+		current, err := loop.Experiment.CurrentRound()
+		if err != nil {
+			return nil
+		}
+		rounds = append(rounds, current)
+	}
+	for _, round := range rounds {
+		if len(round.Interventions) == 0 {
+			continue
+		}
+		return round.Interventions[len(round.Interventions)-1].Receipt
+	}
+	return nil
 }
 
 // truncateTerminalFinding bounds the model-authored finding clause; the

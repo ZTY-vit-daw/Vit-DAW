@@ -1019,8 +1019,22 @@ func (s *Server) runContinuationSchedulerOnce(ctx context.Context) error {
 //     judgment park whose slice acked stop=done (record completed) while the
 //     loop parked the goal inside the slice (20260910_212325).
 //
-// Mid-chain slices, unanswerable legacy shells (goal still waiting_continue),
-// and the test executor (no real resp) deliver nothing.
+//   - PARK-1 judgment park: the D1 experiment chain parked at the durable
+//     human-judgment boundary (round decision user_judgment_pending, judgment
+//     requested without the judgment landing) while the runtime goal stayed
+//     waiting_continue. The goal status never became an answerable waiting
+//     form — the judgment is answered out-of-band by the audition judgment
+//     POST, not by an in-chat interaction — so the two shapes above both
+//     missed it and the park turn delivered nothing: the A/B card appeared
+//     with zero text about what had been applied or why a judgment was asked
+//     for (goal_44cda25a, 17:55:07/17:55:08). The residency predicate is the
+//     same freeStateJudgmentBoundary the park itself was established with, so
+//     the task state machine and the text delivery cannot disagree about what
+//     counts as a park.
+//
+// Mid-chain slices, unanswerable legacy shells (goal still waiting_continue
+// without a judgment boundary), and the test executor (no real resp) deliver
+// nothing.
 func (s *Server) settleAndDeliverContinuationChainEnd(ctx context.Context, current DurableContinuation, chainResp ChatResponse, chainEnded bool) {
 	if s == nil {
 		return
@@ -1074,7 +1088,56 @@ func (s *Server) settleAndDeliverContinuationChainEnd(ctx context.Context, curre
 		// 听确认」是真实可服务的判定入口，判定承诺剥除不适用。
 		chainResp.Reply = s.sanitizeWaitingParkChainReply(current, chainResp.Reply)
 		s.deliverSchedulerChainTerminal(ctx, current, chainResp)
+	case goal.Status == agentruntime.StatusWaitingContinue && s.judgmentBoundaryParkFor(current.ConversationID) &&
+		(continuationTerminalStatus(current.Status) || current.Status == ContinuationWaitingInteraction):
+		// PARK-1：判定驻留（goal 停在 waiting_continue）的 settle 摘要投递。
+		// park 切片的自身回复是调度链过场话术（"我还在继续处理这个任务"），
+		// 直接照发等于没投；改由 chat 侧判定驻留 composer 生成五要素精神
+		// 的摘要（应用了什么+回读 / 针对的发现 / 请 A/B 试听判定），失败时
+		// 逐级退回过场回复与循环决策摘要，绝不静默丢终局。
+		chainResp.GoalStatus = string(goal.Status)
+		chainResp.Reply = s.judgmentParkChainReply(current, chainResp.Reply)
+		if strings.TrimSpace(chainResp.Reply) == "" {
+			return
+		}
+		chainResp.Reply = s.sanitizeWaitingParkChainReply(current, chainResp.Reply)
+		s.deliverSchedulerChainTerminal(ctx, current, chainResp)
 	}
+}
+
+// judgmentBoundaryParkFor reports whether the conversation's durable free-state
+// loop is parked at the human-judgment boundary. It is the delivery gate's sole
+// residency authority and delegates to freeStateJudgmentBoundary — the very
+// predicate recordGoalResult uses to retire the driving continuation at the
+// boundary — so "the loop is parked" has exactly one definition in the package.
+// A conversation with no loop (legacy shell, non-free-state chain) is not a
+// judgment park and keeps the silent branch.
+func (s *Server) judgmentBoundaryParkFor(conversationID string) bool {
+	if s == nil || strings.TrimSpace(conversationID) == "" {
+		return false
+	}
+	loop, ok := s.freeStateLoop(conversationID)
+	if !ok {
+		return false
+	}
+	return freeStateJudgmentBoundary(loop)
+}
+
+// judgmentParkChainReply resolves the park summary body with the same
+// escalation order the waiting park uses: the chat-side judgment-park composer
+// (five-element spirit) first, then the park slice's own reply, then the loop's
+// latest decision summary (B1-DIAG Q1). The composer is preferred because the
+// park slice is a scheduler slice whose reply is the chain's pass-through line.
+func (s *Server) judgmentParkChainReply(current DurableContinuation, sliceReply string) string {
+	if loop, ok := s.freeStateLoop(current.ConversationID); ok {
+		if composed := strings.TrimSpace(d1JudgmentParkReply(loop)); composed != "" {
+			return composed
+		}
+	}
+	if reply := strings.TrimSpace(sliceReply); reply != "" {
+		return reply
+	}
+	return s.schedulerChainFallbackReply(current.ConversationID)
 }
 
 // normalizeChainResponseGoalStatus overrides a non-authoritative response
