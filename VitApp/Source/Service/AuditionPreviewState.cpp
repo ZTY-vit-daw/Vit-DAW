@@ -202,7 +202,8 @@ Result StateMachine::markFailed (const std::string& sessionId)
     return success (session, "audition.failed");
 }
 
-Result StateMachine::select (const std::string& sessionId, const std::string& candidateId)
+Result StateMachine::select (const std::string& sessionId, const std::string& candidateId,
+                            std::optional<bool> previewPlaying)
 {
     std::lock_guard lock (mutex);
     const auto found = sessions.find (sessionId);
@@ -221,9 +222,14 @@ Result StateMachine::select (const std::string& sessionId, const std::string& ca
         return error ("candidate_not_ready", "audition.select requires a ready candidate");
 
     // This is the only mutation performed by select: session-local preview
-    // selection. Active Project Plane identity remains untouched.
+    // selection. Active Project Plane identity remains untouched. The resulting
+    // status reports the preview gate, which AUDITION-PLAY-1 decoupled from the
+    // project transport.
     session.activeCandidateId = candidate->id;
-    session.status = session.transport.isPlaying ? SessionStatus::playing : SessionStatus::ready;
+    // An omitted gate keeps the historical transport-following answer, so every
+    // pre-card caller stays byte-for-byte.
+    const auto previewGate = previewPlaying.value_or (session.transport.isPlaying);
+    session.status = previewGate ? SessionStatus::playing : SessionStatus::ready;
     ++session.stateRevision;
     return success (session, "audition.select.changed");
 }

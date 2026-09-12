@@ -158,6 +158,111 @@ int main()
     assert (activeProject->getProperty ("project_ref").toString() == "project:active");
     assert (activeProject->getProperty ("project_revision").toString() == "project-r17");
 
+// AUDITION-PLAY-1: `audition.select` is playback control for the preview plane.
+// It must open the gate on its own; the project transport stays a position
+// source only. `auto_start` explicitly false is the documented conservative
+// opt-out and keeps the pre-card behaviour byte-for-byte.
+constexpr bool auditionSelectAutoStarts = true;
+
+
+    // AUDITION-PLAY-1 regression pin: the real-stack defect was a silent click.
+    // The user pressed an A/B card while the project transport was stopped, so
+    // every select arrived with isPlaying=false and the preview gate stayed
+    // shut. The preview buffer is self-contained and the output processor
+    // clears the buffer itself, so select must not inherit transport.
+    assert (auditionSelectAutoStarts);
+    juce::Array<juce::String> stoppedEvents;
+    vit::AuditionPreviewService stoppedService (nullptr, {}, [&stoppedEvents] (const juce::String& event) { stoppedEvents.add (event); });
+    juce::DynamicObject stoppedPrepare;
+    stoppedPrepare.setProperty ("session_id", "stopped-session");
+    stoppedPrepare.setProperty ("conversation_id", "conversation-stopped");
+    stoppedPrepare.setProperty ("scope", "target");
+    stoppedPrepare.setProperty ("active_project_ref", "project:active");
+    stoppedPrepare.setProperty ("active_project_revision", "project-r17");
+    stoppedPrepare.setProperty ("timeline_revision", "timeline-r17");
+    stoppedPrepare.setProperty ("candidate_a", makeCandidate ("candidate-a", candidateA, "checkpoint:stopped-a", "branch:a", "worktree:a"));
+    stoppedPrepare.setProperty ("candidate_b", makeCandidate ("candidate-b", candidateB, "checkpoint:stopped-b", "branch:b", "worktree:b"));
+    const auto stoppedPrepared = juce::JSON::parse (stoppedService.handlePrepare (stoppedPrepare, {}));
+    assert (stoppedPrepared.getDynamicObject()->getProperty ("status").toString() == "ok");
+    assert (! stoppedService.getAudioPlaneForTesting().snapshot ("stopped-session").previewActive);
+    // Blind-telemetry pin at prepare: the preview ref names the Kernel buffer.
+    // The source render file name is a physical-mapping token, so no candidate
+    // row may echo it into the event stream.
+    auto* stoppedPreparedSession = stoppedPrepared.getDynamicObject()->getProperty ("session").getDynamicObject();
+    assert (stoppedPreparedSession != nullptr);
+    for (const auto& row : *stoppedPreparedSession->getProperty ("candidates").getArray())
+    {
+        auto* candidateRow = row.getDynamicObject();
+        assert (candidateRow != nullptr);
+        const auto ref = candidateRow->getProperty ("preview_ref").toString();
+        assert (ref.startsWith ("audio-buffer://"));
+        assert (ref.contains ("candidate-a") || ref.contains ("candidate-b"));
+        assert (! ref.contains ("before_revision") && ! ref.contains ("after_revision"));
+        assert (! ref.contains (".wav"));
+    }
+
+    juce::DynamicObject stoppedSelectA;
+    stoppedSelectA.setProperty ("session_id", "stopped-session");
+    stoppedSelectA.setProperty ("candidate_id", "candidate-a");
+    const auto stoppedSelectReply = juce::JSON::parse (stoppedService.handleSelect (stoppedSelectA, {}));
+    assert (stoppedSelectReply.getDynamicObject()->getProperty ("status").toString() == "ok");
+    // The select reply is what audition.select.changed republishes, so the same
+    // neutrality pin applies to the select path.
+    assert (! stoppedSelectReply.getDynamicObject()->getProperty ("session").toString().contains ("before_revision"));
+    assert (! stoppedSelectReply.getDynamicObject()->getProperty ("session").toString().contains ("after_revision"));
+    const auto stoppedPlayback = stoppedService.getAudioPlaneForTesting().snapshot ("stopped-session");
+    assert (stoppedPlayback.previewActive);
+    assert (stoppedPlayback.isPlaying);
+    assert (stoppedPlayback.candidateId == "candidate-a");
+    const auto stoppedBlock = stoppedService.getAudioPlaneForTesting().renderTestBlock ("stopped-session", "candidate-a", 0.0, 256);
+    assert (stoppedBlock.previewActive);
+    assert (stoppedBlock.rms > 0.18 && stoppedBlock.rms < 0.22);
+
+    juce::DynamicObject stoppedSelectB;
+    stoppedSelectB.setProperty ("session_id", "stopped-session");
+    stoppedSelectB.setProperty ("candidate_id", "candidate-b");
+    assert (juce::JSON::parse (stoppedService.handleSelect (stoppedSelectB, {})).getDynamicObject()->getProperty ("status").toString() == "ok");
+    const auto stoppedCrossfade = stoppedService.getAudioPlaneForTesting().renderTestBlock ("stopped-session", "candidate-b", stoppedBlock.endPositionSamples / 44100.0, 512);
+    assert (stoppedCrossfade.previewActive);
+    assert (stoppedCrossfade.crossfadeApplied);
+    assert (stoppedCrossfade.rms > 0.40);
+    assert (std::abs (stoppedBlock.rms - stoppedCrossfade.rms) > 0.15);
+    bool sawStoppedSelectEvent = false;
+    for (const auto& event : stoppedEvents)
+    {
+        const auto value = juce::JSON::parse (event);
+        auto* object = value.getDynamicObject();
+        if (object != nullptr && object->getProperty ("type").toString() == "audition.select.changed")
+            sawStoppedSelectEvent = true;
+    }
+    assert (sawStoppedSelectEvent);
+
+    juce::DynamicObject manualSelect;
+    manualSelect.setProperty ("session_id", "stopped-session");
+    manualSelect.setProperty ("candidate_id", "candidate-b");
+    manualSelect.setProperty ("auto_start", false);
+    // Transport semantics stay anchored: an explicit position update can still
+    // close the preview gate, and it leaves the session selectable.
+    juce::DynamicObject silentPosition;
+    silentPosition.setProperty ("session_id", "stopped-session");
+    silentPosition.setProperty ("position_seconds", 0.0);
+    silentPosition.setProperty ("is_playing", false);
+    assert (juce::JSON::parse (stoppedService.handlePosition (silentPosition, {})).getDynamicObject()->getProperty ("status").toString() == "ok");
+    assert (! stoppedService.getAudioPlaneForTesting().snapshot ("stopped-session").previewActive);
+    assert (juce::JSON::parse (stoppedService.handleSelect (manualSelect, {})).getDynamicObject()->getProperty ("status").toString() == "ok");
+    const auto manualPlayback = stoppedService.getAudioPlaneForTesting().snapshot ("stopped-session");
+    assert (! manualPlayback.previewActive);
+    assert (! manualPlayback.isPlaying);
+
+    // AUDITION-PLAY-1 pin (5): blind-tier telemetry must not carry the physical
+    // render file name. The preview plane is Kernel-owned and the ref names the
+    // Kernel buffer, never the source file.
+    bool leakedRenderName = false;
+    for (const auto& event : stoppedEvents)
+        if (event.contains ("before_revision") || event.contains ("after_revision"))
+            leakedRenderName = true;
+    assert (! leakedRenderName);
+
     juce::DynamicObject playRequest;
     playRequest.setProperty ("session_id", "service-session");
     playRequest.setProperty ("position_seconds", 0.0);

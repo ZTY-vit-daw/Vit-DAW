@@ -73,6 +73,28 @@ export function auditionCardOutcome(session: AuditionSession, settlement: Auditi
   return null;
 }
 
+/**
+ * 试听中状态文案（AUDITION-PLAY-1）：内核预览平面在出声时把会话状态置为
+ * playing 并回传 active_candidate_id，用户不再需要猜「点了到底响没响」。
+ * 盲态只报标签（A/B），绝不出现物理指派措辞。
+ */
+export function auditionPlaybackStatus(session: AuditionSession): string {
+  const tapes = session.candidates.map((candidate, index) => ({ candidate, side: tapeSide(candidate, index) }));
+  const side = sideOfCandidate(session.activeCandidateId, tapes);
+  const label = side ? side.toUpperCase() : "";
+  if (session.status === "playing") {
+    const candidate = session.candidates.find((item) => item.id === session.activeCandidateId);
+    const name = text(candidate?.label);
+    const shown = label && name && name.toUpperCase() !== label ? `候选 ${label} · ${name}` : label ? `候选 ${label}` : "当前候选";
+    return `试听中 · ${shown}`;
+  }
+  if (session.status === "stopped") return "已停止试听";
+  if (session.status === "ready" && session.activeCandidateId) {
+    return label ? `已选候选 ${label} · 待播放` : "已选候选 · 待播放";
+  }
+  return "";
+}
+
 /** round 徽标（第 N/M 轮），源自 trajectory rounds；无法定位时留空 */
 export function auditionRoundBadge(trajectory: TrajectoryState, session: AuditionSession): string {
   if (!session.roundID) return "";
@@ -177,6 +199,7 @@ export function AuditionJudgeCard({
     void onSelect(session.id, candidate.id);
   };
   const playing = session.status === "playing";
+  const playbackStatus = auditionPlaybackStatus(session);
   const isPlayingSide = (side: "a" | "b") => playing && activeSide === side;
   // 盲态：顺序随机，判定前不得出现「改动前/改动后」这类物理指派措辞
   const blind = session.blind && !settled;
@@ -194,7 +217,11 @@ export function AuditionJudgeCard({
         {summary && <span className="csum">{summary}</span>}
         {pending && <span className="chip">待判定</span>}
         {blind && <span className="chip">盲测 · 顺序随机</span>}
+        {playing && playbackStatus && <span className="chip chip-audition" data-audition-state="playing">{playbackStatus}</span>}
       </div>
+      <span className="sr-only" role="status" aria-live="polite" data-audition-playback-status={session.status}>
+        {playbackStatus}
+      </span>
       {!settled && (
         <>
           <div className="trust">

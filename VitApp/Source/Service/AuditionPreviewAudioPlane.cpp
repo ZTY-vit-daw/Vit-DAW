@@ -292,11 +292,19 @@ std::shared_ptr<juce::AudioBuffer<float>> AuditionPreviewAudioPlane::decodeAndRe
     return output;
 }
 
+// AUDITION-PLAY-1: the preview ref names the Kernel-owned buffer, never the file
+// it was decoded from. The source render file name is a physical-mapping token
+// ("before_revision_2.wav" / "after_revision_5.wav"), and every audition event
+// carries the session with its candidate rows, so a ref that echoed the file
+// name published the blind assignment into the event stream. The ref stays a
+// Kernel buffer identity plus the playback-neutral buffer facts.
 std::string AuditionPreviewAudioPlane::makePreviewRef (const std::string& sessionId,
                                                        const std::string& candidateId,
-                                                       const juce::File& source)
+                                                       double sampleRate,
+                                                       int channelCount)
 {
-    return "audio-buffer://" + sessionId + "/" + candidateId + "/" + source.getFileName().toStdString();
+    return "audio-buffer://" + sessionId + "/" + candidateId + ":" + std::to_string (channelCount)
+         + "ch@" + std::to_string (static_cast<std::int64_t> (sampleRate)) + "Hz";
 }
 
 std::string AuditionPreviewAudioPlane::makePreviewRevision (const juce::File& source,
@@ -357,7 +365,7 @@ AuditionPreviewAudioPlane::PrepareResult AuditionPreviewAudioPlane::prepare (con
         prepared.audio = std::static_pointer_cast<const juce::AudioBuffer<float>> (decoded);
         prepared.sampleRate = sampleRate;
         prepared.numSamples = decoded->getNumSamples();
-        prepared.previewRef = makePreviewRef (session.id, source.id, sourceFile);
+        prepared.previewRef = makePreviewRef (session.id, source.id, sampleRate, decoded->getNumChannels());
         prepared.previewRevision = makePreviewRevision (sourceFile, sampleRate, decoded->getNumChannels(), prepared.numSamples);
         candidatesDecoded.fetch_add (1, std::memory_order_relaxed);
         result.candidates.push_back ({ prepared.id, prepared.previewRef, prepared.previewRevision,

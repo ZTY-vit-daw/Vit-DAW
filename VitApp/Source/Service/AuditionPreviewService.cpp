@@ -280,20 +280,42 @@ juce::String AuditionPreviewService::handleSelect (const juce::DynamicObject& ob
     if (! audioPlane.isCandidatePrepared (sessionId.toStdString(), candidateId.toStdString()))
         return errorReply ("audition.select", "candidate_not_prepared", "audition.select requires a prepared Kernel audio source");
 
-    auto result = state.select (sessionId.toStdString(), candidateId.toStdString());
+    // AUDITION-PLAY-1: the project transport only supplies the anchor position.
+    // Preview playback is Kernel-owned: the preview buffer is self-contained and
+    // the global output processor takes the whole block over (buffer.clear()),
+    // so a stopped transport must not close the gate. Selecting a candidate is
+    // the user asking to hear it, and the optional payload field only exists so
+    // a caller can ask for the conservative silent select.
+    bool autoStart = auditionSelectAutoStartDefault;
+    if (object.hasProperty ("auto_start"))
+    {
+        const auto value = object.getProperty ("auto_start");
+        if (! value.isBool())
+            return errorReply ("audition.select", "validation_error", "auto_start must be boolean");
+        autoStart = static_cast<bool> (value);
+    }
+
+    // Transport state is the anchor only; it never decides the preview gate.
+    auto liveSession = state.status (sessionId.toStdString()).session.value_or (audition::Session {});
+    captureAuthoritativeTransport (liveSession);
+    const auto previewPlaying = autoStart;
+
+    auto result = state.select (sessionId.toStdString(), candidateId.toStdString(), previewPlaying);
     if (! result.ok || ! result.session.has_value())
         return resultToReply ("audition.select", result);
 
-    auto liveSession = *result.session;
-    captureAuthoritativeTransport (liveSession);
-    auto positioned = state.position (liveSession.id, liveSession.transport.positionSeconds, liveSession.transport.isPlaying);
+    if (! audioPlane.select (liveSession.id, candidateId.toStdString(),
+                             liveSession.transport.positionSeconds, previewPlaying))
+        return errorReply ("audition.select", "audio_source_switch_failed", "Kernel could not select the prepared audio source");
+
+    // Only the anchor position is synchronised from the project transport; the
+    // playback gate reported by the session is this select's preview gate, so
+    // the session status and the Kernel audio plane can never disagree (the
+    // UI reads the status). A caller that wants transport semantics to win
+    // sends audition.position with an explicit is_playing.
+    auto positioned = state.position (liveSession.id, liveSession.transport.positionSeconds, previewPlaying);
     if (! positioned.ok || ! positioned.session.has_value())
         return resultToReply ("audition.select", positioned);
-
-    const auto& session = *positioned.session;
-    if (! audioPlane.select (session.id, candidateId.toStdString(),
-                             session.transport.positionSeconds, session.transport.isPlaying))
-        return errorReply ("audition.select", "audio_source_switch_failed", "Kernel could not select the prepared audio source");
 
     result.session = positioned.session;
     result.message = "audition.select.changed";
@@ -429,6 +451,9 @@ juce::var AuditionPreviewService::sessionToVar (const audition::Session& session
 
     auto transport = std::make_unique<juce::DynamicObject>();
     transport->setProperty ("position_seconds", playback.previewActive ? playback.positionSeconds : session.transport.positionSeconds);
+    // AUDITION-PLAY-1: while the Kernel preview plane holds the output, the
+    // playback gate the UI must show is the preview's own, not the project
+    // transport's (selecting A/B is the user asking to hear the candidate).
     transport->setProperty ("is_playing", playback.previewActive ? playback.isPlaying : session.transport.isPlaying);
     transport->setProperty ("sample_rate", session.transport.sampleRate);
     transport->setProperty ("timeline_revision", juce::String (session.transport.timelineRevision.c_str()));

@@ -82,6 +82,9 @@ yarn-error.log*
 
 /.gocache/
 /.playwright-cli/
+# AUDITION-PLAY-1: agent-side runtime config (blind A/B tier switch etc.) is
+# runtime state, never committed.
+/VitApp/Workspace/agent_runtime_config.json
 /agent/backups/
 **/.vit_history/
 /agent/.playwright-cli/

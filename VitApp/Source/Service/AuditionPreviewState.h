@@ -110,7 +110,12 @@ public:
                                        int channelCount);
     Result markStale (const std::string& sessionId);
     Result markFailed (const std::string& sessionId);
-    Result select (const std::string& sessionId, const std::string& candidateId);
+    // previewPlaying is the Audition Preview Plane gate the Kernel audio plane
+    // was just opened with. It is not the project transport state: the preview
+    // plane renders its own buffer and stays independent of transport play/stop
+    // (AUDITION-PLAY-1). Callers that still follow transport omit it.
+    Result select (const std::string& sessionId, const std::string& candidateId,
+                   std::optional<bool> previewPlaying = std::nullopt);
     Result position (const std::string& sessionId,
                      std::optional<double> positionSeconds,
                      std::optional<bool> isPlaying);

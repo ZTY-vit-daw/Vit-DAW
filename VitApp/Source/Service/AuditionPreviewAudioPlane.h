@@ -125,7 +125,8 @@ private:
                                                                          std::string& error);
     static std::string makePreviewRef (const std::string& sessionId,
                                        const std::string& candidateId,
-                                       const juce::File& source);
+                                       double sampleRate,
+                                       int channelCount);
     static std::string makePreviewRevision (const juce::File& source,
                                              double sampleRate,
                                              int channelCount,

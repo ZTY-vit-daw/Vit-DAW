@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -35,15 +36,91 @@ const (
 	auditionCandidateB = "candidate-b"
 )
 
-// auditionBlindEnabled reports whether the blind tier is configured. The draw
-// itself happens once per session (prepare), and only the boolean mode — never
-// the drawn assignment — reaches the session snapshot.
-func auditionBlindEnabled() bool {
-	switch strings.ToLower(strings.TrimSpace(os.Getenv(auditionBlindEnvVar))) {
+// auditionBlindSettings answers whether the blind tier runs and which
+// configuration surface said so. The draw itself happens once per session
+// (prepare), and only the boolean mode — never the drawn assignment — reaches
+// the session snapshot.
+type auditionBlindSettings struct {
+	enabled bool
+	source  string
+}
+
+// auditionBlindConfig is the agent-side configuration surface for the blind A/B
+// tier (B12-3 `--blind` passthrough). Until this card the only switch was
+// VIT_DAW_AUDITION_BLIND, which the agent reads exactly once at process start —
+// a Godot-launched agent inherited an environment without it and the whole run
+// silently stayed canonical. The file surface is read at each prepare: no
+// process restart, no environment inheritance, no stale value.
+//
+// Path: $VIT_DAW_AGENT_ROOT (default D:/Vit_DAW) + VitApp/Workspace/agent_runtime_config.json
+// Shape: {"audition_blind": true}  — the environment variable wins when it is set.
+const (
+	auditionBlindConfigEnvRoot = "VIT_DAW_AGENT_ROOT"
+	auditionBlindConfigRoot    = "D:/Vit_DAW"
+	auditionBlindConfigRelPath = "VitApp/Workspace/agent_runtime_config.json"
+	auditionBlindConfigKey     = "audition_blind"
+)
+
+func auditionRootDir() string {
+	if root := strings.TrimSpace(os.Getenv(auditionBlindConfigEnvRoot)); root != "" {
+		return filepath.FromSlash(strings.ReplaceAll(root, "\\", "/"))
+	}
+	return filepath.FromSlash(auditionBlindConfigRoot)
+}
+
+func auditionBlindConfigPath() string {
+	return filepath.Join(auditionRootDir(), filepath.FromSlash(auditionBlindConfigRelPath))
+}
+
+func auditionTruthy(value string) bool {
+	switch strings.ToLower(strings.TrimSpace(value)) {
 	case "1", "true", "yes", "on":
 		return true
 	}
 	return false
+}
+
+// auditionBlindSettingsFor resolves the blind mode for the next session.
+// Precedence: VIT_DAW_AUDITION_BLIND, then the config file key. A missing file
+// or a config without the key keeps the historical non-blind default; a file
+// that cannot be parsed is reported as invalid instead of silently keeping the
+// default, because a blind run that quietly became canonical is worse than a
+// refused one.
+func auditionBlindSettingsFor() auditionBlindSettings {
+	source := "environment:" + auditionBlindEnvVar
+	if raw, ok := os.LookupEnv(auditionBlindEnvVar); ok && strings.TrimSpace(raw) != "" {
+		return auditionBlindSettings{enabled: auditionTruthy(raw), source: source}
+	}
+
+	path := auditionBlindConfigPath()
+	data, err := os.ReadFile(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return auditionBlindSettings{source: "default:absent"}
+		}
+		return auditionBlindSettings{source: "config_unreadable:" + path}
+	}
+	var config map[string]any
+	if err := json.Unmarshal(data, &config); err != nil {
+		return auditionBlindSettings{source: "config_invalid:" + path}
+	}
+	value, present := config[auditionBlindConfigKey]
+	if !present {
+		return auditionBlindSettings{enabled: false, source: "config:" + path}
+	}
+	switch typed := value.(type) {
+	case bool:
+		return auditionBlindSettings{enabled: typed, source: "config:" + path}
+	case string:
+		return auditionBlindSettings{enabled: auditionTruthy(typed), source: "config:" + path}
+	}
+	return auditionBlindSettings{source: "config_invalid:" + path}
+}
+
+// auditionBlindEnabled reports whether the blind tier is configured through any
+// surface.
+func auditionBlindEnabled() bool {
+	return auditionBlindSettingsFor().enabled
 }
 
 // drawAuditionBlind is the session-level coin flip behind the blind
@@ -410,9 +487,16 @@ func (s *Server) prepareFreeStateAudition(ctx context.Context, loop *freeStateRe
 			return renderErr
 		}
 		blindSwap := false
-		if auditionBlindEnabled() {
+		if settings := auditionBlindSettingsFor(); settings.enabled {
 			blind = true
 			blindSwap = s.drawAuditionBlind()
+			if s.logger != nil {
+				s.logger.Info("[audition] blind A/B tier enabled source=%s session=%s swapped=%v", settings.source, sessionID, blindSwap)
+			}
+		} else if s.logger != nil {
+			// The absent-blind witness: the previous run could only be diagnosed
+			// after the fact, from a candidate file name in the session snapshot.
+			s.logger.Info("[audition] blind A/B tier disabled source=%s session=%s", settings.source, sessionID)
 		}
 		request.Candidates, renderErr = d1AuditionCandidatesForAssignment(before, after, baselineCommit, treatmentCommit, projectRef, projectUUID, blindSwap)
 		if renderErr != nil {

@@ -15,6 +15,18 @@ namespace vit
 
 namespace te = tracktion;
 
+/**
+    AUDITION-PLAY-1: the missing `auto_start` payload field defaults to true.
+
+    `audition.select` is preview playback control: the Kernel preview buffer is
+    self-contained and the global output processor clears the block it renders,
+    so opening the preview gate never depends on the project transport. A caller
+    that wants the conservative pre-card behaviour (select changes the source but
+    stays silent until an explicit `audition.position is_playing=true`) sends
+    `auto_start: false`.
+*/
+inline constexpr bool auditionSelectAutoStartDefault = true;
+
 /** Kernel/JUCE command adapter for the real target-scope Audition Preview Plane. */
 class AuditionPreviewService final
 {
