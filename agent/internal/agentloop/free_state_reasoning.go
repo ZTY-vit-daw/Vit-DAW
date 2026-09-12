@@ -2125,6 +2125,27 @@ func freeStateObservationClosesTarget(state *runState, observation *RecentObserv
 	return false
 }
 
+// freeStateObservationDeliveryReasons returns the delivery-fact reason list a
+// live CCB bundle summary carries: the bundle's omission_reasons, falling back
+// to the audit receipt's rejection_reasons. This is exactly the source
+// freeStateObservationLedgerReceipt binds to a receipt row (B13-A), so the same
+// reasons reach the ledger whether they are read from the summary or the row.
+func freeStateObservationDeliveryReasons(summary map[string]any) any {
+	return firstNonNilValue(summary["omission_reasons"], messageLoopMapValue(summary["audit_receipt"])["rejection_reasons"])
+}
+
+// freeStateViewOmittedByDisclosureBudget reports whether a live CCB bundle
+// summary marks exactly this view id as trimmed by the disclosure budget. It
+// reuses B13-A's receipt predicate (freeStateScanViewOmittedByDisclosureBudget)
+// instead of restating its verdict, so the G3 delivery verdict, the G6 delivery
+// fact and the catalog row cannot disagree about the same trim. The comparison
+// stays mechanical and content-blind: only the structural "<view_id>: <marker>"
+// reason shape is read, never view content, track identity, processor or dose.
+func freeStateViewOmittedByDisclosureBudget(summary map[string]any, viewID string) bool {
+	return freeStateScanViewOmittedByDisclosureBudget(
+		map[string]any{"rejection_reasons": freeStateObservationDeliveryReasons(summary)}, viewID)
+}
+
 // mergeFreeStateObservationLedger appends the current model round to every
 // row so the model projection can fold older rounds into history instead of
 // replaying them. round is the model turn (state.turnsUsed) that recorded the
@@ -2164,6 +2185,23 @@ func mergeFreeStateObservationLedger(ledger map[string]any, observation *RecentO
 	}
 	recorded := 0
 	for _, viewID := range messageLoopNormalizedViewIDs(messageLoopStringList(observation.Summary["requested_views"])) {
+		// B13-D: a view the disclosure budget trimmed was never disclosed — the
+		// budget drops it before it reaches the payload, so Summary["views"]
+		// carries no entry for it and the status fallback below would restate
+		// the bundle's own status for a view that is not in the bundle at all.
+		// Recording that row let gateG6 bind the frontier-selected candidate's
+		// target to a view that was never delivered ("nominal hit vs actual
+		// delivery", the B13-A defect family). The verdict is deliberately
+		// status-independent: the trim marker alone decides, on any bundle
+		// status — a request the budget cuts entirely reports insufficient
+		// (capabilitycontext/free_state_observation.go: len(Views)==0) and never
+		// reaches this loop, so requiring ready|partial here would lose exactly
+		// the fully-cut shape (B13-C precedent). A trim is not a delivery and
+		// cannot retract one: an earlier round that really delivered the view
+		// keeps its own row, whose freshness/revision binding still governs G7.
+		if freeStateViewOmittedByDisclosureBudget(observation.Summary, viewID) {
+			continue
+		}
 		view := messageLoopMapValue(messageLoopMapValue(observation.Summary["views"])[viewID])
 		viewStatus := firstNonEmpty(firstMapText(view, "status"), status)
 		if !strings.EqualFold(viewStatus, "ready") && !strings.EqualFold(viewStatus, "partial") {

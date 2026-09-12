@@ -1526,6 +1526,29 @@ func freeStateNormalizedViewIDs(values []string) []string {
 	return out
 }
 
+// freeStateObservationDeliveryReasons returns the delivery-fact reason list a
+// live CCB bundle summary carries: the bundle's omission_reasons, falling back
+// to the audit receipt's rejection_reasons. This is exactly the source
+// freeStateObservationCompactReceipt binds to a ledger receipt row (B13-A here,
+// B13-C for the compact shape), so the same trim fact reaches the ledger
+// whether it is read from the summary or from the row.
+func freeStateObservationDeliveryReasons(summary map[string]any) any {
+	return firstNonNil(summary["omission_reasons"], firstMapFromAny(summary["audit_receipt"])["rejection_reasons"])
+}
+
+// freeStateViewOmittedByDisclosureBudget reports whether a live CCB bundle
+// summary marks exactly this view id as trimmed by the disclosure budget. It
+// reuses this package's B13-A predicate (freeStateScanViewOmittedByDisclosureBudget)
+// instead of restating its verdict, and mirrors agentloop's B13-D guard so the
+// in-flight projection and this authoritative persistence cannot disagree about
+// the same trim. The comparison stays mechanical and content-blind: only the
+// structural "<view_id>: <marker>" reason shape is read, never view content,
+// track identity, processor or dose.
+func freeStateViewOmittedByDisclosureBudget(summary map[string]any, viewID string) bool {
+	return freeStateScanViewOmittedByDisclosureBudget(
+		map[string]any{"rejection_reasons": freeStateObservationDeliveryReasons(summary)}, viewID)
+}
+
 func mergeFreeStateObservationLedger(ledger map[string]any, observation *agentloop.RecentObservation, round int) map[string]any {
 	ledger = cloneContext(ledger)
 	if len(ledger) == 0 {
@@ -1564,6 +1587,22 @@ func mergeFreeStateObservationLedger(ledger map[string]any, observation *agentlo
 	views := firstMapFromAny(observation.Summary["views"])
 	recorded := 0
 	for _, viewID := range freeStateNormalizedViewIDs(freeStateStringSlice(observation.Summary["requested_views"])) {
+		// B13-D: a view the disclosure budget trimmed was never disclosed — the
+		// budget drops it before it reaches the payload, so Summary["views"]
+		// carries no entry for it and the status fallback below would restate
+		// the bundle's own status for a view that is not in the bundle at all.
+		// This is the authoritative persistence of the observation ledger (the
+		// agentloop in-flight projection runs first, this merge runs at the HTTP
+		// boundary and wins), so without the guard a never-delivered view stays
+		// in the model-visible catalog and keeps satisfying the G6 target
+		// binding agentloop's write segment no longer fabricates. The verdict is
+		// deliberately status-independent: the trim marker alone decides, on any
+		// bundle status (B13-C precedent). A trim is not a delivery and cannot
+		// retract one: an earlier round that really delivered the view keeps its
+		// own row, whose freshness/revision binding still governs G7.
+		if freeStateViewOmittedByDisclosureBudget(observation.Summary, viewID) {
+			continue
+		}
 		view := firstMapFromAny(views[viewID])
 		viewStatus := firstNonEmpty(firstStringFromMap(view, "status"), firstStringFromMap(observation.Summary, "status"))
 		if !strings.EqualFold(viewStatus, "ready") && !strings.EqualFold(viewStatus, "partial") {
