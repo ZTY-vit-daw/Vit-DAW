@@ -10,6 +10,14 @@ add_executable(VitAuditionPreviewStateTests
 target_compile_features(VitAuditionPreviewStateTests PRIVATE cxx_std_20)
 target_include_directories(VitAuditionPreviewStateTests PRIVATE ../Source/Service)
 
+# B15: true manual-save semantics — the auto-persist gate that keeps
+# agent-governed VSP mutations out of the on-disk working copy.
+add_executable(VitWorkingCopyPersistPolicyTests
+    WorkingCopyPersistPolicyTests.cpp
+    ../Source/Service/VitWorkingCopyPersistPolicy.h)
+target_compile_features(VitWorkingCopyPersistPolicyTests PRIVATE cxx_std_20)
+target_include_directories(VitWorkingCopyPersistPolicyTests PRIVATE ../Source/Service)
+
 set(_g4_default_tracktion_engine "${CMAKE_CURRENT_SOURCE_DIR}/../../tracktion_engine")
 if(NOT EXISTS "${_g4_default_tracktion_engine}/CMakeLists.txt"
    AND EXISTS "D:/Vit_DAW/tracktion_engine/CMakeLists.txt")
@@ -94,6 +102,7 @@ endif()
 
 if(MSVC)
     target_compile_options(VitAuditionPreviewStateTests PRIVATE /W4 /permissive-)
+    target_compile_options(VitWorkingCopyPersistPolicyTests PRIVATE /W4 /permissive-)
     if(TARGET VitAuditionPreviewAudioPlaneTests)
         target_compile_options(VitAuditionPreviewAudioPlaneTests PRIVATE /W4 /permissive-)
     endif()
@@ -102,6 +111,7 @@ if(MSVC)
     endif()
 else()
     target_compile_options(VitAuditionPreviewStateTests PRIVATE -Wall -Wextra -Wpedantic)
+    target_compile_options(VitWorkingCopyPersistPolicyTests PRIVATE -Wall -Wextra -Wpedantic)
     if(TARGET VitAuditionPreviewAudioPlaneTests)
         target_compile_options(VitAuditionPreviewAudioPlaneTests PRIVATE -Wall -Wextra -Wpedantic)
     endif()
@@ -111,3 +121,4 @@ else()
 endif()
 
 add_test(NAME VitAuditionPreviewStateTests COMMAND VitAuditionPreviewStateTests)
+add_test(NAME VitWorkingCopyPersistPolicyTests COMMAND VitWorkingCopyPersistPolicyTests)

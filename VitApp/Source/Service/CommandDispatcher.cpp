@@ -2108,15 +2108,19 @@ CommandDispatcher::CommandDispatcher (EditGetter editGetter,
       getRealtimeData (std::move (realtimeDataProvider)),
       production (productionCoordinator)
 {
-    importService = std::make_unique<ImportService> (getEdit, saveProject, publishMessage, getCurrentProjectPath);
+    // B15: every service receives the governance-aware auto-persist funnel, not
+    // the raw callback. Explicit project.save lifecycle commands bypass this
+    // entirely (they go through ProjectService -> VitHeadlessService).
+    auto autoPersist = [this]() { return runAutoPersist(); };
+    importService = std::make_unique<ImportService> (getEdit, autoPersist, publishMessage, getCurrentProjectPath);
     generatedAssetService = std::make_unique<GeneratedAssetService> (getEdit,
-                                                                     saveProject,
+                                                                     autoPersist,
                                                                      getCurrentProjectPath,
                                                                      importService.get());
     jobEventService = std::make_unique<JobEventService> (getCurrentProjectPath);
-    projectAudioSettingsService = std::make_unique<ProjectAudioSettingsService> (getEdit, saveProject);
-    projectMarkerService = std::make_unique<ProjectMarkerService> (getEdit, saveProject);
-    trackGroupService = std::make_unique<TrackGroupService> (getEdit, saveProject);
+    projectAudioSettingsService = std::make_unique<ProjectAudioSettingsService> (getEdit, autoPersist);
+    projectMarkerService = std::make_unique<ProjectMarkerService> (getEdit, autoPersist);
+    trackGroupService = std::make_unique<TrackGroupService> (getEdit, autoPersist);
     projectService = std::make_unique<ProjectService> (std::move (reloadProjectAction),
                                                        std::move (recentProjectsReplyAction),
                                                        std::move (newBlankProjectReplyAction),
@@ -2124,16 +2128,35 @@ CommandDispatcher::CommandDispatcher (EditGetter editGetter,
                                                        std::move (saveProjectReplyAction),
                                                        std::move (saveAsProjectReplyAction),
                                                        std::move (saveProjectCopyReplyAction));
-    trackService = std::make_unique<TrackService> (getEdit, saveProject);
+    trackService = std::make_unique<TrackService> (getEdit, autoPersist);
     clipService = std::make_unique<ClipService> (getEdit);
     midiService = std::make_unique<MidiService> (getEdit);
-    transportAudioService = std::make_unique<TransportAudioService> (getEdit, saveProject, production);
-    pluginRackControlService = std::make_unique<PluginRackControlService> (getEdit, saveProject, getCurrentProjectPath);
+    transportAudioService = std::make_unique<TransportAudioService> (getEdit, autoPersist, production);
+    pluginRackControlService = std::make_unique<PluginRackControlService> (getEdit, autoPersist, getCurrentProjectPath);
     auditionPreviewService = std::make_unique<AuditionPreviewService> (engine, getEdit, publishMessage);
     registerBuiltinCommands();
 }
 
 CommandDispatcher::~CommandDispatcher() = default;
+
+bool CommandDispatcher::runAutoPersist() const
+{
+    if (workingCopyPersistPolicy.shouldDeferWorkingCopyWrite())
+    {
+        // Agent-governed mutation: the state already lives in memory and in the
+        // Project History blob the harness captures via
+        // project.snapshot_export; the on-disk .vit stays at the user's last
+        // manual save. Report success so the mutation itself is not rolled back
+        // — the deferral is the intended semantics, not a failure.
+        workingCopyPersistPolicy.noteDeferredWorkingCopyWrite();
+        juce::Logger::writeToLog ("CommandDispatcher: working-copy persist deferred to Project History "
+                                  "(agent-governed mutation, deferred_total="
+                                  + juce::String (workingCopyPersistPolicy.deferredWrites()) + ")");
+        return true;
+    }
+
+    return saveProject ? saveProject() : false;
+}
 
 juce::String CommandDispatcher::dispatch (const juce::var& command, const juce::String& rawPayload) const
 {
@@ -2148,6 +2171,12 @@ juce::String CommandDispatcher::dispatch (const juce::var& command, const juce::
 
     if (VspKernelReference::isVspEnvelope (*object))
     {
+        // B15: a VSP envelope means the request originates from the agent's
+        // governed execution plane (the Godot UI sends raw commands on the same
+        // channel). Everything dispatched underneath — including the legacy
+        // command the envelope unwraps to, and every auto-persist it triggers —
+        // is an agent-governed mutation, so the working copy must not advance.
+        const VitWorkingCopyPersistPolicy::GovernanceScope governanceScope (workingCopyPersistPolicy);
         return VspKernelReference::dispatchEnvelope (*object,
                                                      rawPayload,
                                                      [this] (const juce::var& legacyCommand, const juce::String& legacyRaw)
@@ -3393,7 +3422,7 @@ juce::String CommandDispatcher::handleSetTempo (const juce::DynamicObject& objec
     else
         return makeErrorReply ("Unable to access master tempo");
 
-    if (saveProject && ! saveProject())
+    if (! runAutoPersist())
         return makeErrorReply ("Tempo updated in memory but failed to save project");
 
     auto response = std::make_unique<juce::DynamicObject>();
@@ -3487,8 +3516,8 @@ juce::String CommandDispatcher::handleClearProject (const juce::DynamicObject&, 
     edit->dispatchPendingUpdatesSynchronously();
     transport.ensureContextAllocated (true);
 
-    if (saveProject)
-        saveProject();
+    if (! runAutoPersist())
+        juce::Logger::writeToLog ("CommandDispatcher: clear_project persist did not report success");
 
     juce::Logger::writeToLog ("CommandDispatcher: clear_project executed - all clips removed, transport reset.");
     return makeStatusReply ("ok", "Project cleared");

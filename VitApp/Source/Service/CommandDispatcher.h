@@ -7,6 +7,7 @@
 #include <JuceHeader.h>
 #include <tracktion_engine/tracktion_engine.h>
 
+#include "VitWorkingCopyPersistPolicy.h"
 #include "VspKernelReference.h"
 
 namespace vit
@@ -70,6 +71,17 @@ private:
 
     void registerBuiltinCommands();
 
+    /** B15 auto-persist funnel.
+     *
+     * Services call this (via the saveProject callback handed to them) after a
+     * successful mutation. Inside a VSP-enveloped, agent-governed mutation the
+     * working copy must not advance: the state is already captured by Project
+     * History (blob + commit) and the on-disk .vit stays at the user's last
+     * manual save. Outside governance the behaviour is byte-for-byte the
+     * previous callback.
+     */
+    bool runAutoPersist() const;
+
     juce::String handlePing (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleGetProjectState (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleSetTempo (const juce::DynamicObject&, const juce::String&) const;
@@ -81,6 +93,8 @@ private:
     juce::String handleProjectUndoState (const juce::DynamicObject&, const juce::String&) const;
     EditGetter getEdit;
     BoolAction saveProject;
+    /** Marked mutable because dispatch() is const and it owns the governance scope. */
+    mutable VitWorkingCopyPersistPolicy workingCopyPersistPolicy;
     PublishAction publishMessage;
     CurrentProjectPathGetter getCurrentProjectPath;
     RealtimeDataProvider getRealtimeData;
