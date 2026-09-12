@@ -963,6 +963,12 @@ func (s *Server) runContinuationSchedulerOnce(ctx context.Context) error {
 			return executionErr
 		}
 		s.setContinuationStatus(item.ContinuationID, ContinuationFailed, executionErr)
+		// AGENT-F5: a failed chain is a terminal too. This branch used to return
+		// before the delivery gate, so a dying slice produced zero turn.failed
+		// deliveries and zero conversation-graph nodes — the failure-path twin of
+		// the B1 "server holds a terminal, the user gets nothing" defect F2 fixed
+		// for the success path.
+		s.deliverSchedulerChainFailure(ctx, item.ContinuationID, chainResp, executionErr)
 		return executionErr
 	}
 	// recordGoalResult creates the next pending record, or a waiting interaction
@@ -1111,6 +1117,107 @@ func (s *Server) deliverSchedulerChainTerminal(ctx context.Context, current Dura
 	}
 	s.recordSchedulerChainTerminalNode(ctx, recordPath, resp)
 	s.emitSchedulerChainResultEvent(current.ConversationID, resp, nil)
+}
+
+// AGENT-F5（2026-09-10 F2 验收移交项①）：失败链终局投递。executionErr 路径
+// 此前在投递门之前 return，链失败时零 turn.failed 投递、零 vit 节点——失败形态
+// 复刻 B1"server 有终态、用户拿不到"（成功路径已由 F2 修复，失败路径是同族缺
+// 口）。失败终局复用 deliverSchedulerChainTerminal 的既有形状（先落图、再发
+// scheduler_chain 传输事件）与纯 assistant 汇报规整；正文不新增 LLM 调用，取本
+// 片自己的失败汇报与执行器错误文本，人话优先。
+//
+// 边界（不覆盖的形态）：ctx 取消/超时的执行错误不走这里——那是
+// releaseContinuationClaim 的瞬态释放（记录回到 pending 等重试），“链已死亡”
+// 的终局投递会对用户谎报（TestCancelledSliceReleaseDeliversNoTerminal 钉住）。
+// 到这里的都是 setContinuationStatus(ContinuationFailed) 已把该 goal 的全部记录
+// 收敛为失败终态、不存在后续重试或部分成功续跑的形态。
+func (s *Server) deliverSchedulerChainFailure(ctx context.Context, continuationID string, resp ChatResponse, failure error) {
+	if s == nil {
+		return
+	}
+	s.mu.Lock()
+	current, exists := s.durableContinuations[continuationID]
+	if exists {
+		current = cloneDurableContinuation(current)
+	}
+	s.mu.Unlock()
+	// Only the record that actually settled as failed owns the failure terminal:
+	// a record that a concurrent actor settled otherwise must not emit a stale
+	// "the chain died" event over its own terminal.
+	if !exists || current.Status != ContinuationFailed {
+		return
+	}
+	failureResp := schedulerChainFailureResponse(current, resp, failure)
+	if strings.TrimSpace(failureResp.Reply) == "" {
+		return
+	}
+	s.deliverSchedulerChainTerminal(ctx, current, failureResp)
+}
+
+// schedulerChainFailureResponse projects a failed slice into the terminal report
+// shape the delivery gate consumes. Identity falls back to the durable record:
+// the injected executor and the pre-handling executor failures return an empty
+// response, and an identity-less response would make emitSchedulerChainResultEvent
+// drop the terminal silently (goalID and runID both empty).
+func schedulerChainFailureResponse(current DurableContinuation, resp ChatResponse, failure error) ChatResponse {
+	out := resp
+	out.ConversationID = firstNonEmpty(strings.TrimSpace(out.ConversationID), strings.TrimSpace(current.ConversationID))
+	out.GoalID = firstNonEmpty(strings.TrimSpace(out.GoalID), strings.TrimSpace(current.GoalID))
+	out.RunID = firstNonEmpty(strings.TrimSpace(out.RunID), strings.TrimSpace(current.RunID))
+	detail := strings.TrimSpace(firstNonEmpty(out.Error, out.StopReason))
+	if detail == "" && failure != nil {
+		detail = strings.TrimSpace(failure.Error())
+	}
+	out.Error = firstNonEmpty(strings.TrimSpace(out.Error), detail)
+	out.GoalStatus = string(agentruntime.StatusFailed)
+	out.StopReason = firstNonEmpty(strings.TrimSpace(out.StopReason), agentloop.StopReasonFailed)
+	// The payload error keeps the raw detail; the user-facing body shows it with
+	// this file's own machine envelope stripped (see stripSchedulerChainFailureEnvelope).
+	out.Reply = schedulerChainFailureReply(strings.TrimSpace(out.Reply), stripSchedulerChainFailureEnvelope(detail))
+	return out
+}
+
+// schedulerChainFailureEnvelopePrefix is the envelope this file wraps around a
+// slice failure before returning it ("durable continuation failed: <reason>").
+// It is addressed at an operator reading a log line, so the user-facing failure
+// body strips it and keeps the reason itself.
+const schedulerChainFailureEnvelopePrefix = "durable continuation failed:"
+
+// stripSchedulerChainFailureEnvelope removes repeated failure envelopes and
+// leaves the reason. A detail consisting of nothing but the envelope is returned
+// as-is rather than emptied: an empty detail line would silently downgrade the
+// user surface to the bare lead sentence.
+func stripSchedulerChainFailureEnvelope(detail string) string {
+	stripped := strings.TrimSpace(detail)
+	for strings.HasPrefix(stripped, schedulerChainFailureEnvelopePrefix) {
+		stripped = strings.TrimSpace(strings.TrimPrefix(stripped, schedulerChainFailureEnvelopePrefix))
+	}
+	if stripped == "" {
+		return strings.TrimSpace(detail)
+	}
+	return stripped
+}
+
+// schedulerChainFailureLead is the human lead sentence of a failed chain
+// terminal. Its second clause reuses the settled-failure vocabulary the acoustic
+// closure settlement already ships (audioclosure.StopTaskFailed): the failure
+// reason and the evidence gathered so far are kept, not discarded.
+const schedulerChainFailureLead = "这条后台续跑链在执行中失败并已停止，任务尚未完成；失败原因与已有证据均已保留。"
+
+// schedulerChainFailureReply composes the user-facing body of a failed chain
+// terminal: the human lead, the failed slice's own last report when it produced
+// one, and the concrete failure detail. No LLM call is involved, and the B6
+// internal-code guardrail runs over the composed text so a failure detail
+// carrying a warehouse code never reaches a user surface.
+func schedulerChainFailureReply(sliceReply, detail string) string {
+	lines := []string{schedulerChainFailureLead}
+	if sliceReply != "" && sliceReply != detail {
+		lines = append(lines, "这一步收到的汇报："+sliceReply)
+	}
+	if detail != "" {
+		lines = append(lines, "失败详情："+detail)
+	}
+	return stripInternalTerminalTerms(strings.Join(lines, "\n"))
 }
 
 // recordSchedulerChainTerminalNode writes the chain's terminal reply as a
