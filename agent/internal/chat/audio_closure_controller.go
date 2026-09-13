@@ -943,6 +943,13 @@ func audioClosureCandidateViewIDs(summary map[string]any) []string {
 	if len(firstMapFromAny(summary["project_package"])) > 0 {
 		return []string{"mix.frequency_relationship"}
 	}
+	// B13-B: a durable package carrying only the MOM masking projection
+	// selects the masking view family. Strictly additive — the two conflict
+	// families above keep their precedence, so every shape that already
+	// resolved a view id still resolves the same one.
+	if masking := firstMapFromAny(firstMapFromAny(summary["mom_projection"])["masking_relationship"]); len(freeStateMapRows(masking["candidates"])) > 0 {
+		return []string{audioClosureMaskingViewID}
+	}
 	return nil
 }
 
@@ -951,8 +958,7 @@ func audioClosureCandidateRows(summary map[string]any, viewID string) []map[stri
 		MaxTextRunes: 900, MaxListItems: 8, MaxPreviewBytes: 6 * 1024, SkipPluginSemanticLoad: true,
 	})
 	facts := firstMapFromAny(conclusion["facts"])
-	rows := append(freeStateMapRows(facts["conflict_candidates"]), freeStateMapRows(facts["band_conflict_candidates"])...)
-	if len(rows) > 0 {
+	if rows := audioClosureCandidateFactRows(facts, viewID); len(rows) > 0 {
 		return rows
 	}
 	// Durable continuation compaction stores the authoritative conclusion
@@ -960,8 +966,7 @@ func audioClosureCandidateRows(summary map[string]any, viewID string) []map[stri
 	// before falling back to full acoustic-package shapes.
 	view := firstMapFromAny(firstMapFromAny(summary["views"])[viewID])
 	directFacts := firstMapFromAny(view["facts"])
-	rows = append(freeStateMapRows(directFacts["conflict_candidates"]), freeStateMapRows(directFacts["band_conflict_candidates"])...)
-	if len(rows) > 0 {
+	if rows := audioClosureCandidateFactRows(directFacts, viewID); len(rows) > 0 {
 		return rows
 	}
 	// Persisted observations are full acoustic packages rather than CCB view
@@ -977,9 +982,89 @@ func audioClosureCandidateRows(summary map[string]any, viewID string) []map[stri
 			return rows
 		}
 		return freeStateMapRows(firstMapFromAny(summary["project_package"])["conflict_candidates"])
+	case audioClosureMaskingViewID:
+		// The MOM masking projection is already a compact directional candidate
+		// projection. The durable package names its rows under the same
+		// "candidates" family the conclusion facts use, so the same mapper
+		// serves both shapes.
+		masking := firstMapFromAny(firstMapFromAny(summary["mom_projection"])["masking_relationship"])
+		return audioClosureMaskingCandidateRows(freeStateMapRows(masking["candidates"]))
 	default:
 		return nil
 	}
+}
+
+// audioClosureMaskingViewID is the MOM relative energetic masking risk view
+// (model_version vit_relative_energetic_masking_risk.v1). Its conclusion facts
+// carry the directional candidate rows under their own "candidates" key family
+// instead of the conflict views' conflict_candidates / band_conflict_candidates.
+const audioClosureMaskingViewID = "mix.masking_relationship"
+
+// audioClosureCandidateFactRows reads the candidate rows a conclusion facts map
+// carries for one view id. Conflict views keep their two-family reading
+// verbatim. The key family is view-scoped, never generic: the masking family is
+// read for exactly the masking view id, so a "candidates" array belonging to
+// any other view is not this view's candidate family and is never turned into a
+// candidate.
+func audioClosureCandidateFactRows(facts map[string]any, viewID string) []map[string]any {
+	if len(facts) == 0 {
+		return nil
+	}
+	if rows := append(freeStateMapRows(facts["conflict_candidates"]), freeStateMapRows(facts["band_conflict_candidates"])...); len(rows) > 0 {
+		return rows
+	}
+	if viewID != audioClosureMaskingViewID {
+		return nil
+	}
+	return audioClosureMaskingCandidateRows(freeStateMapRows(facts["candidates"]))
+}
+
+// audioClosureMaskingCandidateRows maps MOM masking candidate rows into the
+// field family audioClosureCandidates reads. The MOM masking projection names
+// the directional pair explicitly (masker_*/target_*) and its band as band_id,
+// while the frontier extractor reads region/band plus a track row array. The
+// mapping is mechanical and content-blind: both sides of the pair are carried
+// as the candidate's track set (target first — it is the track the directional
+// row is about), band_id becomes the region, and every other MOM key,
+// including the measured margins (median/p90/max_margin_db), stays verbatim
+// under its own name. No target, processor, parameter, dose or domain label is
+// introduced, and rows carrying no directional pair (MOM's own
+// {"omitted_items": N} truncation sentinel) produce no candidate.
+func audioClosureMaskingCandidateRows(rows []map[string]any) []map[string]any {
+	out := make([]map[string]any, 0, len(rows))
+	for _, row := range rows {
+		targetID := firstStringFromMap(row, "target_track_id")
+		maskerID := firstStringFromMap(row, "masker_track_id")
+		if targetID == "" && maskerID == "" {
+			continue
+		}
+		mapped := make(map[string]any, len(row)+2)
+		for key, value := range row {
+			mapped[key] = value
+		}
+		if band := firstStringFromMap(row, "band_id"); band != "" {
+			mapped["band"] = band
+			mapped["region"] = band
+		}
+		tracks := make([]any, 0, 2)
+		if targetID != "" {
+			tracks = append(tracks, audioClosureMaskingTrackRow(targetID, firstStringFromMap(row, "target_track_name")))
+		}
+		if maskerID != "" && maskerID != targetID {
+			tracks = append(tracks, audioClosureMaskingTrackRow(maskerID, firstStringFromMap(row, "masker_track_name")))
+		}
+		mapped["tracks"] = tracks
+		out = append(out, mapped)
+	}
+	return out
+}
+
+func audioClosureMaskingTrackRow(trackID, trackName string) map[string]any {
+	row := map[string]any{"track_id": trackID}
+	if trackName != "" {
+		row["name"] = trackName
+	}
+	return row
 }
 
 // freeStateDisclosureBudgetMarker is the verbatim suffix the CCB disclosure
@@ -993,9 +1078,13 @@ const freeStateDisclosureBudgetMarker = "omitted by disclosure budget"
 
 // freeStateCandidateScanViewIDs are the only views that can feed the hypothesis
 // frontier: audioClosureCandidateRows resolves candidates from exactly these
-// two (its switch arms; every other view id falls through to nil). This is a
-// view-id set, never evidence content.
-var freeStateCandidateScanViewIDs = []string{"mix.multitrack_relationship", "mix.frequency_relationship"}
+// three (its switch arms; every other view id falls through to nil). This is a
+// view-id set, never evidence content. B13-B (2026-09-13) added
+// mix.masking_relationship: MOM's masking projection was already producing
+// directional candidate rows (912.vit: coverage.candidate_count=138) while the
+// extractor had no arm for it, so a project whose frequency candidates had been
+// resolved away reached the frontier empty and G5 refused it.
+var freeStateCandidateScanViewIDs = []string{"mix.multitrack_relationship", "mix.frequency_relationship", audioClosureMaskingViewID}
 
 // freeStateCandidateSupply is the mechanical, content-blind classification of
 // what the free-state observation ledger actually delivered for the

@@ -943,8 +943,13 @@ func TestAudioClosureBoundaryProbesExtractorDeclaredFrontierFamiliesWhenEmpty(t 
 	if len(state.Frontier.Candidates) == 0 {
 		t.Fatalf("frontier did not establish from the extractor-declared probe rows: %+v", state.Frontier)
 	}
-	if state.ModelObservationCount()+2 != len(state.Observations) {
-		t.Fatalf("frontier-feed rows must be duty-accounted: model=%d total=%d", state.ModelObservationCount(), len(state.Observations))
+	// The pinned invariant is duty-accounting: exactly one booked row per
+	// extractor-declared probe family sits on the duty side, never the model
+	// side. The count follows the declaration (B13-B grew it to three) instead
+	// of a literal, so a stray row still fails here.
+	if state.ModelObservationCount()+len(freeStateMixCandidateProbeViewIDs) != len(state.Observations) {
+		t.Fatalf("frontier-feed rows must be duty-accounted: model=%d total=%d duty-families=%d",
+			state.ModelObservationCount(), len(state.Observations), len(freeStateMixCandidateProbeViewIDs))
 	}
 }
 

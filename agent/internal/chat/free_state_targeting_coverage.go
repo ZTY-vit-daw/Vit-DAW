@@ -60,8 +60,10 @@ const (
 // exactly these families and nothing else: the mapping is the extractor's
 // own declared dependency — never a model choice, a domain preference, or a
 // sealed hint. A probe that yields no candidates leaves the frontier empty
-// and the honest closure unchanged.
-var freeStateMixCandidateProbeViewIDs = []string{"mix.multitrack_relationship", "mix.frequency_relationship"}
+// and the honest closure unchanged. B13-B (2026-09-13) keeps this set equal to
+// chat's freeStateCandidateScanViewIDs and to audioClosureCandidateRows' switch
+// arms; the three declarations are one dependency and must move together.
+var freeStateMixCandidateProbeViewIDs = []string{"mix.multitrack_relationship", "mix.frequency_relationship", "mix.masking_relationship"}
 
 // freeStateObservationIsDutyBooked reports whether an observation was booked
 // by the loop's deterministic duty pass. Live bookings carry the marker on
