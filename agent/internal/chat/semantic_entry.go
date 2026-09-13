@@ -13,6 +13,7 @@ import (
 	"vit-daw-agent/internal/config"
 	"vit-daw-agent/internal/llm"
 	"vit-daw-agent/internal/orchestrationcontroller"
+	agentruntime "vit-daw-agent/internal/runtime"
 )
 
 const (
@@ -366,6 +367,33 @@ func semanticEntryFloatValue(value any) float64 {
 	}
 }
 
+// semanticEntryUnresolvedReply is the only user-facing wording of the
+// unclassified-request fallback（CONFIRM-CHAT-1 措辞护栏）。旧实现把模型生成的
+// 诊断串（英文）原样贴到 Reply：用户答一个「需要」，拿到的是
+// "The user request '需要' is too underspecified to determine whether they want
+// discussion, observation, or control."（goal_20c9933c，912.vit，2026-09-12
+// 22:4x）。诊断串是内部判据，只进日志与审计面；用户面必须是中文引导，并且在
+// 确认可能仍在场时把用户指回确认通道（而不是让用户以为系统完全不认识他）。
+func semanticEntryUnresolvedReply(err error) string {
+	if err != nil {
+		// 路由/分类链路自身失败：不能冒充「我没听懂你的话」——用户说得没错，
+		// 是这一次没能走完分类。内部原因只进日志。
+		return "这次请求没能走完意图分类（内部原因已记入日志），没有修改工程。你可以再说一次，或者说得更具体一点：想让我观察什么、调整哪条轨道、往哪个方向调。"
+	}
+	return "我没太明白你的意思——是想继续刚才的确认，还是提个新要求？如果是继续刚才的确认，直接回「需要」或「可以执行」；如果是新的调整，请说清楚要动哪条轨道、往哪个方向调。"
+}
+
+// semanticEntryUnresolvedGoalStatus keeps the machine contract: a classification
+// that asks the user a question is an answerable clarification boundary, not a
+// finished turn; a service-side routing failure keeps its previous terminal
+// shape so失败投递语义（F5）逐字不变。
+func semanticEntryUnresolvedGoalStatus(decision *semanticEntryDecision, err error) string {
+	if err == nil && decision != nil && decision.Route == semanticEntryRouteUnresolved {
+		return string(agentruntime.StatusWaitingClarification)
+	}
+	return "completed"
+}
+
 func semanticEntryUnresolvedResponse(conversationID, mode string, decision *semanticEntryDecision, err error) ChatResponse {
 	reason := "The Agent could not classify this request safely. Please clarify whether you want discussion, read-only observation, an explicit control operation, or open acoustic treatment."
 	status := "rejected"
@@ -384,9 +412,35 @@ func semanticEntryUnresolvedResponse(conversationID, mode string, decision *sema
 	if err != nil {
 		workflowData["error"] = err.Error()
 	}
+	// CONFIRM-CHAT-1：诊断串 reason 只留在 WorkflowData["decision"] 与日志面
+	// （审计/复现用），不再作为用户面文案。
+	workflowData["diagnostic_reason"] = reason
 	return ChatResponse{
-		ConversationID: conversationID, AgentMode: mode, Reply: reason,
+		ConversationID: conversationID, AgentMode: mode, Reply: semanticEntryUnresolvedReply(err),
 		Workflow: "semantic_entry", WorkflowData: workflowData,
-		GoalStatus: "completed", StopReason: stopReason,
+		GoalStatus: semanticEntryUnresolvedGoalStatus(decision, err), StopReason: stopReason,
 	}
+}
+
+// semanticEntryUnresolvedChatResponse is the server-side entry point: it keeps
+// the同一份 response shape and additionally writes the internal diagnostic to
+// the log (the model's own rejection reason never reaches the user surface).
+func (s *Server) semanticEntryUnresolvedChatResponse(conversationID, mode string, decision *semanticEntryDecision, err error) ChatResponse {
+	resp := semanticEntryUnresolvedResponse(conversationID, mode, decision, err)
+	if s != nil && s.logger != nil {
+		diagnostic := cleanContextText(resp.WorkflowData["diagnostic_reason"])
+		route := ""
+		confidence := 0.0
+		if decision != nil {
+			route = decision.Route
+			confidence = decision.Confidence
+		}
+		cause := ""
+		if err != nil {
+			cause = err.Error()
+		}
+		s.logger.Warn("[semantic.entry] unresolved fallback conversation=%s stop=%s route=%s confidence=%.2f err=%q diagnostic=%q",
+			conversationID, resp.StopReason, route, confidence, cause, diagnostic)
+	}
+	return resp
 }

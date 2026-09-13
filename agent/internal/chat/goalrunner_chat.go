@@ -222,14 +222,14 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 			chatContext = mergeContext(chatContext, map[string]any{"semantic_entry_unavailable": true})
 		}
 		if err == nil && decision.Route == semanticEntryRouteUnresolved {
-			return semanticEntryUnresolvedResponse(conversationID, mode, &decision, nil), true
+			return s.semanticEntryUnresolvedChatResponse(conversationID, mode, &decision, nil), true
 		}
 		if err == nil {
 			var routingIdentity CapabilityRouteRecord
 			chatContext, routingIdentity = s.ensureCapabilityRoutingTask(userText, chatContext)
 			decision, routingIdentity, err = s.planObservationFirstCapabilityRoute(ctx, conversationID, userText, chatContext, decision, routingIdentity)
 			if err != nil {
-				return semanticEntryUnresolvedResponse(conversationID, mode, &decision, err), true
+				return s.semanticEntryUnresolvedChatResponse(conversationID, mode, &decision, err), true
 			}
 			if routingIdentity.ShortCircuit != nil {
 				// AGENT-F3：容量评估事实已完全回答的请求（含空工程观察）在此

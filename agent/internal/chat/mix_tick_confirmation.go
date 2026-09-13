@@ -108,7 +108,9 @@ func (s *Server) handlePendingMixTickChat(ctx context.Context, conversationID st
 			s.logger.Info("[mix.tick.pending] discussion continued without execution conversation=%s message=%q %s", conversationID, req.Message, pendingMixTickLogSummary(candidate))
 		}
 		return ChatResponse{}, false
-	case confirmation.Kind == actionworkflow.DecisionReject:
+	// CONFIRM-CHAT-1：自然否定（不用/不要/先不/不需要/算了…）与书面取消指令同
+	// 路由。取消必须先于肯定是判定，且"不要"必须在"要"之前被吃掉。
+	case confirmation.Kind == actionworkflow.DecisionReject || messageNaturalMixTickCancel(req.Message):
 		if s != nil && s.logger != nil {
 			s.logger.Info("[mix.tick.pending] rejected conversation=%s message=%q %s", conversationID, req.Message, pendingMixTickLogSummary(candidate))
 		}
@@ -128,9 +130,11 @@ func (s *Server) handlePendingMixTickChat(ctx context.Context, conversationID st
 		}
 		s.expirePendingMixTick(conversationID)
 		return ChatResponse{}, false
-	case confirmation.Kind == actionworkflow.DecisionAccept:
+	// CONFIRM-CHAT-1：自然肯定（需要/要/好的/好/行/是的/对/嗯/没问题…）与书面
+	// 明确指令同路由——系统问句用「需要」发问，就必须认「需要」作答。
+	case confirmation.Kind == actionworkflow.DecisionAccept || messageNaturalMixTickApproval(req.Message):
 		if s != nil && s.logger != nil {
-			s.logger.Info("[mix.tick.pending] explicit confirmation routed conversation=%s %s observation=%s", conversationID, pendingMixTickLogSummary(candidate), candidate.ObservationID)
+			s.logger.Info("[mix.tick.pending] explicit confirmation routed conversation=%s message=%q %s observation=%s", conversationID, req.Message, pendingMixTickLogSummary(candidate), candidate.ObservationID)
 		}
 		s.transitionActivePendingCandidate(conversationID, "mix_tick", agentprotocol.PendingStatusAccepted, "user confirmed pending mix tick")
 		s.completeAnsweredMixTickParks(conversationID, candidate)
@@ -145,17 +149,31 @@ func (s *Server) handlePendingMixTickChat(ctx context.Context, conversationID st
 			})
 		}
 		return s.executePendingMixTickCandidate(ctx, conversationID, req, mode, candidate), true
-	case messageAmbiguousMixTickApproval(req.Message):
+	// 歧义面：CONFIRM-CHAT-1 新增两类「读不懂但不是新请求」的作答——问句复述
+	// （要不要/是否/可不可以…）与极短应答（≤6 字、无动作/目标词、无数字英文）。
+	// 两者都保持歧义停止原因与中文追问，并按 B6「卡必须在场」把可应答卡重新立
+	// 起来。messageAmbiguousMixTickApproval 这一支在本 switch 里已基本被前面的
+	// 必然是分支接走（可以/好/行/需要/ok/yes），保留它只为 plugin_prep 等同一谓
+	// 词的其他调用面逐字零回退。
+	case messageAmbiguousMixTickApproval(req.Message) || messageEchoesMixTickConfirmQuestion(req.Message) || messageBareShortPendingReply(req.Message):
 		if s != nil && s.logger != nil {
-			s.logger.Info("[mix.tick.pending] ambiguous confirmation held conversation=%s message=%q %s", conversationID, req.Message, pendingMixTickLogSummary(candidate))
+			observed := "ambiguous"
+			switch {
+			case messageEchoesMixTickConfirmQuestion(req.Message):
+				observed = "question_echo"
+			case messageBareShortPendingReply(req.Message):
+				observed = "unreadable_short_reply"
+			}
+			s.logger.Info("[mix.tick.pending] ambiguous confirmation held conversation=%s kind=%s message=%q %s", conversationID, observed, req.Message, pendingMixTickLogSummary(candidate))
 		}
-		return ChatResponse{
+		hold := ChatResponse{
 			ConversationID: conversationID,
 			AgentMode:      mode,
-			Reply:          fmt.Sprintf("我还没有执行。刚才待确认的是：%s。要执行请明确说“可以执行”；如果只是继续讨论，我会保持不动。", pendingMixTickHumanSummary(candidate)),
+			Reply:          mixTickPendingHoldReply(candidate, req.Message),
 			GoalStatus:     "completed",
 			StopReason:     "ambiguous_mix_tick_confirmation",
-		}, true
+		}
+		return s.attachPendingMixTickAnswerCard(hold, conversationID, firstStringFromMap(req.Context, "goal_id"), firstStringFromMap(req.Context, "run_id"), candidate), true
 	default:
 		if s != nil && s.logger != nil {
 			s.logger.Info("[mix.tick.pending] expired on context shift conversation=%s message=%q %s", conversationID, req.Message, pendingMixTickLogSummary(candidate))
@@ -780,6 +798,9 @@ func messageRevisesPendingMixTick(message string) bool {
 	return messageRevisesPendingMixTreatment(message)
 }
 
+// messageAmbiguousMixTickApproval is the legacy held-answer surface. CONFIRM-CHAT-1
+// 之后 mix_tick 确认面把「需要」判成必然是（自然肯定 case 先于本函数），此处保留
+// 该词是为了 plugin_prep 等同一谓词的其他调用面行为逐字零回退。
 func messageAmbiguousMixTickApproval(message string) bool {
 	text := strings.ToLower(strings.TrimSpace(message))
 	if text == "" {
@@ -791,6 +812,202 @@ func messageAmbiguousMixTickApproval(message string) bool {
 	default:
 		return false
 	}
+}
+
+// ---- CONFIRM-CHAT-1（2026-09-13）：确认对话的自然作答 ----
+//
+// 待确认问句是自然中文发出的（「…确认后我就执行，需要我直接做吗？」），用户的
+// 作答必然属于同一套自然词。旧接受表只有「可以执行/确认/执行吧」这类书面明确
+// 指令，而系统问句自己用的动词（需要/要不要/是否）反而不在可接受集里——接口
+// 自相矛盾：答「需要」不是被拒，而是整个确认面落空，消息继续走到语义入口被判
+// 成无法分类的新请求，用户拿到英文诊断串（goal_20c9933c，912.vit，2026-09-12
+// 22:4x）。本表把这条闭环补上，口径是**机械匹配**（不含模型自由文本推导）：
+//
+//   - 肯定是/否定是/问句复述三张闭合词表；
+//   - 作答前的规范化：去首尾空白与标点、剥一层语气助词（的/了/啊/呀/吧/呢…）、
+//     叠词算一次（「好的好的」「嗯嗯」）；
+//   - 应答一致性规则：待确认问句模板使用的动词本身（需要/要/是/可以/能/行/好/
+//     对）进入必然是表；问句形态的复述（要不要/是否/可不可以/能不能/行不行/
+//     好不好…）也进入可接受集——它不再被当作新请求，但它是提问不是同意，因此
+//     停在歧义面（中文追问 + 卡在场），绝不据此改工程（fail-closed）；
+//   - 否定优先于肯定判定（「不要」≠「要」）。
+
+const mixTickAnswerParticleCutset = "的了啊呀吧呢哦嘛噢嗯哈"
+
+var mixTickPendingAffirmativeAnswers = map[string]struct{}{
+	"需要": {}, "要": {}, "是": {}, "是的": {}, "对": {}, "对的": {}, "嗯": {},
+	"好": {}, "好的": {}, "行": {}, "可以": {}, "没问题": {}, "同意": {}, "确定": {}, "确认": {},
+}
+
+var mixTickPendingNegativeAnswers = map[string]struct{}{
+	"不用": {}, "不要": {}, "不需要": {}, "不用了": {}, "不要了": {}, "算了": {},
+	"先不": {}, "先不用": {}, "暂时不": {}, "暂时不用": {}, "别": {}, "别了": {},
+	"不": {}, "不必": {}, "没必要": {}, "取消": {}, "停": {}, "否": {},
+}
+
+var mixTickPendingQuestionEchoes = map[string]struct{}{
+	"要不要": {}, "是否": {}, "可不可以": {}, "能不能": {}, "行不行": {}, "好不好": {},
+	"可以吗": {}, "需要吗": {}, "对吗": {}, "确认吗": {},
+}
+
+func normalizeMixTickBareAnswer(message string) string {
+	text := strings.ToLower(strings.TrimSpace(message))
+	text = strings.Trim(text, " \t\r\n。．，,、；;：:！!？?~～…·")
+	return strings.TrimSpace(text)
+}
+
+// matchMixTickAnswerTable matches a bare answer against one closed table. Only
+// exact stems count: a sentence that happens to contain 「需要」 is a new request
+// or a revision, never a one-word confirmation.
+func matchMixTickAnswerTable(message string, table map[string]struct{}) bool {
+	if len(table) == 0 {
+		return false
+	}
+	text := normalizeMixTickBareAnswer(message)
+	if text == "" {
+		return false
+	}
+	if _, ok := table[text]; ok {
+		return true
+	}
+	if stem := strings.TrimRight(text, mixTickAnswerParticleCutset); stem != "" && stem != text {
+		if _, ok := table[stem]; ok {
+			return true
+		}
+	}
+	runes := []rune(text)
+	if len(runes) >= 2 && len(runes)%2 == 0 {
+		half := string(runes[:len(runes)/2])
+		if half == string(runes[len(runes)/2:]) {
+			if _, ok := table[half]; ok {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// messageNaturalMixTickApproval reports a bare natural affirmative answer to a
+// pending confirmation. Negation wins: 「不要」 is a cancellation, never a 「要」.
+func messageNaturalMixTickApproval(message string) bool {
+	if matchMixTickAnswerTable(message, mixTickPendingNegativeAnswers) {
+		return false
+	}
+	return matchMixTickAnswerTable(message, mixTickPendingAffirmativeAnswers)
+}
+
+// messageNaturalMixTickCancel reports a bare natural negative answer.
+func messageNaturalMixTickCancel(message string) bool {
+	return matchMixTickAnswerTable(message, mixTickPendingNegativeAnswers)
+}
+
+// messageEchoesMixTickConfirmQuestion reports a bare repetition of the pending
+// question's verb form. It is an answer (not a new request) but it does not
+// assert consent, so the confirmation stays held and the project untouched.
+func messageEchoesMixTickConfirmQuestion(message string) bool {
+	return matchMixTickAnswerTable(message, mixTickPendingQuestionEchoes)
+}
+
+// mixTickPendingHoldReply keeps the existing ambiguous wording verbatim (the
+// 「要执行请明确说“可以执行”」 sentence is a pinned contract) and names the natural
+// forms the surface now accepts, so the ask and the accepted answers match.
+func mixTickPendingHoldReply(candidate agentloop.PendingMixTickCandidate, message string) string {
+	prefix := fmt.Sprintf("我还没有执行。刚才待确认的是：%s。要执行请明确说“可以执行”；如果只是继续讨论，我会保持不动。", pendingMixTickHumanSummary(candidate))
+	switch {
+	case messageEchoesMixTickConfirmQuestion(message):
+		return prefix + "（这句是问句，我没有把它当成同意；确认执行也可以直接回「需要」「好的」「行」。）"
+	case messageAmbiguousMixTickApproval(message):
+		return prefix + "（要执行直接回「需要」或「好的」这类自然肯定。）"
+	default:
+		return prefix + "（这句我没读成作答，没有改动工程；确认执行回「需要」，不执行回「取消」。）"
+	}
+}
+
+// messageBareShortPendingReply reports a reply that is too short to be a new
+// request and carries no action/target/observation word: an unreadable answer
+// to the live confirmation. It must hold (with the card in场) rather than
+// silently expire the candidate and fall through to semantic entry.
+func messageBareShortPendingReply(message string) bool {
+	text := strings.ToLower(strings.TrimSpace(message))
+	if text == "" {
+		return false
+	}
+	runes := []rune(text)
+	if len(runes) > 6 {
+		return false
+	}
+	for _, r := range runes {
+		if (r >= '0' && r <= '9') || (r >= 'a' && r <= 'z') {
+			return false
+		}
+	}
+	return !textHasAny(text,
+		"把", "帮", "改", "调", "换", "加", "减", "看", "听", "分析", "为什么", "为啥", "解释",
+		"混音", "轨道", "声像", "声相", "电平", "音量", "增益", "响度", "压缩", "均衡", "试听", "渲染", "保存", "撤销",
+	)
+}
+
+// pendingMixTickInteractionForConversation finds the newest stored mix-tick
+// confirmation card of the conversation, so a re-surfaced card resolves through
+// the same interaction id the respond surface already knows.
+func (s *Server) pendingMixTickInteractionForConversation(conversationID string) (PendingInteraction, bool) {
+	if s == nil || strings.TrimSpace(conversationID) == "" {
+		return PendingInteraction{}, false
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	var newest PendingInteraction
+	found := false
+	for _, interaction := range s.interactions {
+		if interaction.ConversationID != conversationID ||
+			(!strings.EqualFold(interaction.Kind, "mix_tick_confirmation") && !strings.EqualFold(interaction.Type, "mix_tick_confirmation")) {
+			continue
+		}
+		if !found || interaction.CreatedAt.After(newest.CreatedAt) {
+			newest, found = interaction, true
+		}
+	}
+	return newest, found
+}
+
+// pendingMixTickAnswerCard returns the answerable confirmation card for a still
+// pending candidate: the stored one when it is on file (no new store, no side
+// effects), otherwise a freshly minted card that is stored so the respond
+// surface can resolve it.
+func (s *Server) pendingMixTickAnswerCard(conversationID, goalID, runID string, candidate agentloop.PendingMixTickCandidate) (AgentInteractionRequest, bool) {
+	if s == nil || strings.TrimSpace(conversationID) == "" || strings.TrimSpace(candidate.TrackID) == "" {
+		return AgentInteractionRequest{}, false
+	}
+	if stored, ok := s.pendingMixTickInteractionForConversation(conversationID); ok {
+		if request, requestOK := pendingInteractionConfirmationRequest(stored); requestOK {
+			return request, true
+		}
+	}
+	request := mixTickInteractionRequest(conversationID, goalID, runID, candidate)
+	s.storePendingInteraction(request, request.Payload)
+	return request, true
+}
+
+// attachPendingMixTickAnswerCard re-surfaces the answerable card on a turn that
+// does not consume the pending candidate. 取证结论（CONFIRM-CHAT-1）：发射面在
+// chat 侧没问题——落盘必发 mix_tick.pending 事件（timeline 面），候选产生回合
+// 也随响应投递 approve/cancel 卡；缺口在**作答回合**：未被消费的作答只回文本、
+// 卡不在场，用户（或只读 chat 响应的驱动）失去可点入口。与 goalrunner_chat.go
+// 的 bare-continue 先例同类，故修在 chat 侧；webui 渲染面读 interaction_requests
+// （App.tsx assistantMessageFromResponse）无需改动。
+func (s *Server) attachPendingMixTickAnswerCard(resp ChatResponse, conversationID, goalID, runID string, candidate agentloop.PendingMixTickCandidate) ChatResponse {
+	if len(resp.InteractionRequests) > 0 {
+		return resp
+	}
+	request, ok := s.pendingMixTickAnswerCard(conversationID, goalID, runID, candidate)
+	if !ok {
+		return resp
+	}
+	resp.InteractionRequests = append(resp.InteractionRequests, request)
+	if s != nil && s.logger != nil {
+		s.logger.Info("[mix.tick.pending] answerable card kept in force conversation=%s interaction=%s %s", conversationID, request.ID, pendingMixTickLogSummary(candidate))
+	}
+	return resp
 }
 
 func messageKeepsMixTickDiscussion(message string) bool {
