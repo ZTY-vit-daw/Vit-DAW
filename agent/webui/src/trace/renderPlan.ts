@@ -32,6 +32,29 @@ import type { TurnEventMetaMap } from "./turnEventMeta";
 //
 //   一个渲染组只承载一个轨迹块（B9「一轮对话一个轨迹块」不变）；同一槽位出现
 //   多个候选回合时（B9 之前的双域形态），最早开始的回合占位，其余保持流尾兜底。
+//
+// UI-FOLLOW-2（2026-09-13 真栈水合实测，E2E-WEBUI-1 渲染面红 + 归档会话复算）：
+// 上面两条判据在真栈数据上各有一个独立缺陷，都会产出同一个用户症状「块坠到
+// 对话流最底」：
+//
+//   ① **水合消息时刻比回合起始晚 2 ms**：用户消息的 createdAt 走 Project History
+//      水合路径（服务端图节点盖章，实测 2026-09-13T04:26:17.1423557Z），而同回合
+//      的 turnEventMeta.startedAt 来自事件流（trajectory.turn.started，
+//      2026-09-13T04:26:17.1403545Z）。严格 `<= ` 判据因此把该回合**自己**的开启
+//      用户消息排除在候选之外：单回合会话退化成零候选 → 流尾孤儿块；多回合会话
+//      静默往前滑一格（挂到上一个回合的用户消息下）。容差
+//      TURN_SLOT_ANCHOR_TOLERANCE_MS 只吸收「同一回合两条人机同源时间戳的盖章
+//      先后差」，不把下一回合的用户消息拉进来。
+//   ② **同一 run_id 承载多条用户消息**：真栈实测 run_bab2dcdacb41bdc1 同时挂在
+//      12:26:17 / 12:27:15 / 12:27:50 三条 ask 节点上（同一 goal 的连续追问共用
+//      run）。groupMessagesByTurn 把它们并成一个渲染组（B9 语义不变），但旧实现
+//      把块放在「组内全部用户消息之后」——组内的后两条追问因此被排到块上方，
+//      块连带坠到整条对话流的最后一条用户消息之下（DOM 实证：块 flowIndex 11，
+//      最后一条用户消息在 10）。修法是**组内槽位细分**：块只跟组内开启该回合的
+//      那条用户消息，组内其余用户消息（以及组内汇报）落到块之后。
+//
+// 两条修法都不放松既有语义：身份锚定仍然优先、无证据仍不猜（回落流尾）、
+// M12 谓词与 B9「一组一块」不变。
 
 export type MessageStreamEntry =
   | { kind: "messages"; key: string; messages: ChatMessage[] }
@@ -46,12 +69,32 @@ export interface MessageStreamRenderPlan {
   chainResultMessages: ChatMessage[];
 }
 
-/** 对话回合槽位：一个用户消息 = 一个回合开启点（锚定位落在该消息的渲染组上） */
+/**
+ * 回合槽位锚定的时钟容差（UI-FOLLOW-2，2026-09-13 真栈实测 +2 ms）。
+ *
+ * 同一回合的两条时间戳来自同一 agent 进程但不同盖章点：回合起始取事件流
+ * （trajectory.turn.started.created_at），用户消息取会话图节点
+ * （graph node created_at，比前者晚约 2 ms）。50 ms 是「同一回合内盖章先后差」
+ * 的量级（实测 2 ms，留两个数量级余量），远小于两回合之间的间隔（用户输入
+ * 间隔为秒级），因此不会把下一回合的用户消息误判成本回合的开启消息。
+ */
+export const TURN_SLOT_ANCHOR_TOLERANCE_MS = 50;
+
+/** 对话回合槽位：一个用户消息 = 一个回合开启点（锚定位落在该消息的渲染位置上） */
 interface MessageRoundSlot {
-  /** 该用户消息所在渲染组的键——轨迹块插到这一组的用户条目之后 */
+  /** 该用户消息所在渲染组的键——轨迹块插到这条消息之后 */
   groupKey: string;
-  /** 用户消息落库时刻（客户端时钟；agent 与本机同源，回合事件时间与之可直接比较） */
+  /** 该用户消息在组内「用户消息」序列中的序号（0 = 组内第一条用户消息） */
+  userIndex: number;
+  /** 用户消息落库时刻（服务端图节点盖章；agent 与本机同源，可与回合事件时间直接比较） */
   startedAt: number;
+}
+
+/** 轨迹块落位：渲染组 + 组内用户消息序号（-1 = 组内无用户消息，块落在组首） */
+interface MessageRoundAnchor {
+  groupKey: string;
+  userIndex: number;
+  turnId: string;
 }
 
 export function buildMessageStreamRenderPlan(options: {
@@ -69,50 +112,51 @@ export function buildMessageStreamRenderPlan(options: {
     (turn) => turn.nodeIds.length > 0 && shouldRenderTraceBlockForTurn(trajectory, turn.id, turnEventMeta)
   );
 
-  // ① 身份锚定：消息组的 turn_id 命中轨迹回合 id
-  const turnIdByGroup = new Map<string, string>();
-  const anchoredTurnIds = new Set<string>();
-  for (const group of groups) {
-    if (!group.turnId) {
-      continue;
-    }
-    const turn = renderTurns.find((candidate) => candidate.id === group.turnId);
-    if (turn && !anchoredTurnIds.has(turn.id)) {
-      turnIdByGroup.set(group.key, turn.id);
-      anchoredTurnIds.add(turn.id);
-    }
-  }
-
-  // ② 回合槽位锚定：身份不同源时按「回合起始时刻所属的对话回合」入位
+  // 锚定（UI-FOLLOW-2：落位从「组」细化为「组 + 组内用户消息序号」）：
+  //   ① 身份锚定优先（消息组携带该回合 id，既有语义逐字保留）；
+  //   ② 身份不同源时按回合槽位（不晚于回合起始 + 容差的最后一条用户消息）入位。
   const slots = messageRoundSlots(groups);
-  const occupiedGroupKeys = new Set(turnIdByGroup.keys());
+  const anchorByGroupKey = new Map<string, MessageRoundAnchor>();
   const orphanTurnIds: string[] = [];
   for (const turn of renderTurns) {
-    if (anchoredTurnIds.has(turn.id)) {
-      continue;
-    }
-    const groupKey = anchorGroupKeyForTurn(slots, turnStartedAtMs(turnEventMeta, turn.id));
-    if (!groupKey || occupiedGroupKeys.has(groupKey)) {
+    const anchor = anchorForTurn(groups, slots, turn.id, turnStartedAtMs(turnEventMeta, turn.id));
+    if (!anchor || anchorByGroupKey.has(anchor.groupKey)) {
       orphanTurnIds.push(turn.id);
       continue;
     }
-    turnIdByGroup.set(groupKey, turn.id);
-    occupiedGroupKeys.add(groupKey);
+    anchorByGroupKey.set(anchor.groupKey, anchor);
   }
 
   const entries: MessageStreamEntry[] = [];
   for (const group of groups) {
+    const anchor = anchorByGroupKey.get(group.key);
     const userMessages = group.messages.filter((message) => message.role === "user");
-    if (userMessages.length > 0) {
-      entries.push({ kind: "messages", key: `${group.key}:user`, messages: userMessages });
+    const restMessages = group.messages.filter((message) => message.role !== "user");
+    if (!anchor) {
+      if (userMessages.length > 0) {
+        entries.push({ kind: "messages", key: `${group.key}:user`, messages: userMessages });
+      }
+      if (restMessages.length > 0) {
+        entries.push({ kind: "messages", key: `${group.key}:rest`, messages: restMessages });
+      }
+      continue;
     }
-    const turnId = turnIdByGroup.get(group.key);
-    if (turnId) {
-      entries.push({ kind: "trace", key: `${group.key}:trace`, turnId });
+    // 组内没有用户消息可依附（纯汇报组，身份锚定命中）：块落在组首，既有行为不变。
+    if (userMessages.length === 0) {
+      entries.push({ kind: "trace", key: `${group.key}:trace`, turnId: anchor.turnId });
+      if (group.messages.length > 0) {
+        entries.push({ kind: "messages", key: `${group.key}:rest`, messages: group.messages });
+      }
+      continue;
     }
-    const turnMessages = group.messages.filter((message) => message.role !== "user");
-    if (turnMessages.length > 0) {
-      entries.push({ kind: "messages", key: `${group.key}:rest`, messages: turnMessages });
+    // 锚定用户消息及其之前的组内用户消息在块上方；其余（组内后续用户消息 + 汇报）
+    // 落到块下方。单用户消息组与既有输出逐字一致（tail 只剩原 rest）。
+    const splitAt = Math.min(Math.max(anchor.userIndex, 0), userMessages.length - 1) + 1;
+    entries.push({ kind: "messages", key: `${group.key}:user`, messages: userMessages.slice(0, splitAt) });
+    entries.push({ kind: "trace", key: `${group.key}:trace`, turnId: anchor.turnId });
+    const tailMessages = [...userMessages.slice(splitAt), ...restMessages];
+    if (tailMessages.length > 0) {
+      entries.push({ kind: "messages", key: `${group.key}:rest`, messages: tailMessages });
     }
   }
 
@@ -128,14 +172,17 @@ export function buildMessageStreamRenderPlan(options: {
 function messageRoundSlots(groups: MessageTurnGroup[]): MessageRoundSlot[] {
   const slots: MessageRoundSlot[] = [];
   for (const group of groups) {
+    let userIndex = 0;
     for (const message of group.messages) {
       if (message.role !== "user") {
         continue;
       }
       const startedAt = Number(message.createdAt);
       if (Number.isFinite(startedAt)) {
-        slots.push({ groupKey: group.key, startedAt });
+        slots.push({ groupKey: group.key, userIndex, startedAt });
       }
+      // 序号按「组内用户消息」计数（与渲染切分口径一致），时刻缺失不影响定位。
+      userIndex += 1;
     }
   }
   return slots;
@@ -147,16 +194,45 @@ function turnStartedAtMs(turnEventMeta: TurnEventMetaMap | undefined, turnId: st
   return typeof startedAt === "number" && Number.isFinite(startedAt) ? startedAt : Number.NaN;
 }
 
-/** 回合槽位锚定：起始时刻之前的最后一个用户消息所在组（无证据/无槽位 → 空串） */
-function anchorGroupKeyForTurn(slots: MessageRoundSlot[], startedAt: number): string {
-  if (!Number.isFinite(startedAt)) {
-    return "";
+/**
+ * 轨迹块落位（UI-FOLLOW-1 两级锚定 + UI-FOLLOW-2 容差与组内槽位细分）。
+ * 返回 null = 无锚定证据 → 调用方按流尾兜底（不猜归属）。
+ */
+function anchorForTurn(
+  groups: MessageTurnGroup[],
+  slots: MessageRoundSlot[],
+  turnId: string,
+  startedAt: number
+): MessageRoundAnchor | null {
+  // ① 身份锚定优先：组内消息携带该回合 id（同源命名空间，最强证据）。
+  const ownGroup = groups.find((group) => group.turnId === turnId);
+  if (ownGroup) {
+    const ownSlots = slots.filter((slot) => slot.groupKey === ownGroup.key);
+    if (ownSlots.length === 0) {
+      // 组内只有汇报消息（无用户消息）：块落在组首（既有行为不变）。
+      return { groupKey: ownGroup.key, userIndex: -1, turnId };
+    }
+    // 同 run 多用户消息（真栈实测：一个 run_id 挂三条 ask 节点）：块只跟组内
+    // 开启该回合的那条用户消息——取不晚于「回合起始 + 容差」的最后一条；
+    // 全部晚于回合起始时（同一 run 的后续追问）取组内第一条。块绝不越过组内
+    // 后续用户消息坠到流尾。
+    const withinTurn = Number.isFinite(startedAt)
+      ? ownSlots.filter((slot) => slot.startedAt <= startedAt + TURN_SLOT_ANCHOR_TOLERANCE_MS)
+      : [];
+    const chosen = withinTurn.length > 0 ? withinTurn[withinTurn.length - 1] : ownSlots[0];
+    return { groupKey: chosen.groupKey, userIndex: chosen.userIndex, turnId };
   }
-  let groupKey = "";
+
+  // ② 回合槽位锚定：身份不同源时，取不晚于「回合起始 + 容差」的最后一条用户消息。
+  //    无证据（无 startedAt / 无候选槽位）不猜归属 → null → 流尾兜底。
+  if (!Number.isFinite(startedAt)) {
+    return null;
+  }
+  let chosen: MessageRoundSlot | null = null;
   for (const slot of slots) {
-    if (slot.startedAt <= startedAt) {
-      groupKey = slot.groupKey;
+    if (slot.startedAt <= startedAt + TURN_SLOT_ANCHOR_TOLERANCE_MS) {
+      chosen = slot;
     }
   }
-  return groupKey;
+  return chosen ? { groupKey: chosen.groupKey, userIndex: chosen.userIndex, turnId } : null;
 }
