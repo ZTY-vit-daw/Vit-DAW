@@ -407,7 +407,39 @@ const DOM_PROBE = () => {
       position: getComputedStyle(composer).position,
       bottom: getComputedStyle(composer).bottom,
       zIndex: getComputedStyle(composer).zIndex
-    } : null
+    } : null,
+    // PLANBAR-1 (2026-09-13): the plan bar is a sibling of the composer inside
+    // .composer-dock, so the T6 design slot ("above the input box") is a real
+    // viewport-coordinate fact: bar bottom vs composer top. Measured here with
+    // the same getBoundingClientRect the user's own screen shows.
+    dock: document.querySelector(".composer-dock")
+      ? (() => {
+          const dockRect = document.querySelector(".composer-dock").getBoundingClientRect();
+          return { top: dockRect.top, bottom: dockRect.bottom, height: dockRect.height, children: Array.from(document.querySelector(".composer-dock").children).map((el) => typeof el.className === "string" ? el.className : el.tagName) };
+        })()
+      : null,
+    planBar: (() => {
+      const bar = document.querySelector(".plan-bar");
+      if (!bar) return null;
+      const rect = bar.getBoundingClientRect();
+      return {
+        cls: typeof bar.className === "string" ? bar.className : "",
+        phase: bar.getAttribute("data-plan-phase"),
+        taskId: bar.getAttribute("data-task-id"),
+        text: (bar.textContent || "").replace(/\s+/g, " ").trim().slice(0, 80),
+        parentCls: bar.parentElement && typeof bar.parentElement.className === "string" ? bar.parentElement.className : "",
+        top: rect.top,
+        bottom: rect.bottom,
+        height: rect.height,
+        position: getComputedStyle(bar).position,
+        zIndex: getComputedStyle(bar).zIndex,
+        opacity: getComputedStyle(bar).opacity,
+        spinning: Boolean(bar.querySelector("svg.spin")),
+        composerTop: composerTop,
+        gapToComposerTop: composerTop === null ? null : composerTop - rect.bottom,
+        occludedByComposer: composerTop === null ? null : rect.bottom > composerTop
+      };
+    })()
   };
 };
 
@@ -555,6 +587,81 @@ function checkA3(sample) {
   return { failures, notes };
 }
 
+// PLANBAR-1: the bar must render above the input box (T6 design slot), and a
+// finished task must clear the surface instead of staying on screen.
+function checkB1(sample) {
+  const failures = [];
+  const notes = [];
+  const bar = sample.planBar;
+  if (!bar) {
+    failures.push("B1: .plan-bar did not render on the injected task state -- the T6 slot cannot be measured");
+    return { failures, notes };
+  }
+  notes.push(
+    "plan bar phase=" + bar.phase + " cls=\"" + bar.cls + "\" top=" + bar.top.toFixed(1) +
+    " bottom=" + bar.bottom.toFixed(1) + " height=" + bar.height.toFixed(1) +
+    " position=" + bar.position + " z-index=" + bar.zIndex + " parent=\"" + bar.parentCls + "\""
+  );
+  if (!/composer-dock/.test(bar.parentCls)) {
+    failures.push("B1: the plan bar is not inside .composer-dock (parent=\"" + bar.parentCls + "\") -- it left the T6 slot chain");
+  }
+  if (sample.composer === null) {
+    failures.push("B1: .composer did not render, so bar-vs-composer coordinates cannot be compared");
+    return { failures, notes };
+  }
+  notes.push(
+    "composer top=" + sample.composer.top.toFixed(1) + " bottom=" + sample.composer.bottom.toFixed(1) +
+    " -- distance from bar bottom to composer top=" + bar.gapToComposerTop.toFixed(1) + "px"
+  );
+  if (bar.bottom > sample.composer.top) {
+    failures.push(
+      "B1 position: the plan bar renders BELOW the composer top (bar bottom=" + bar.bottom.toFixed(1) +
+      ", composer top=" + sample.composer.top.toFixed(1) + ", overlap=" +
+      (bar.bottom - sample.composer.top).toFixed(1) + "px) -- the T6 design slot is above the input box"
+    );
+  }
+  if (sample.dock) {
+    notes.push(
+      "dock column: height=" + sample.dock.height.toFixed(1) + " top=" + sample.dock.top.toFixed(1) +
+      " children=[" + sample.dock.children.join(", ") + "]"
+    );
+    if (String(sample.dock.children[0] || "").indexOf("plan-bar") < 0) {
+      failures.push("B1: the plan bar is not the first child of .composer-dock (children=[" + sample.dock.children.join(", ") + "]) -- flex order is what guarantees bar.bottom <= composer.top");
+    }
+  } else {
+    failures.push("B1: .composer-dock is not in the DOM -- the bottom stack that seats the bar above the composer is missing");
+  }
+  return { failures, notes };
+}
+
+function checkB2(retractResult) {
+  const failures = [];
+  const notes = [];
+  if (!retractResult || !retractResult.appeared) {
+    failures.push("B2: a settled task did not render a plan bar at all, so the retraction could not be observed");
+    return { failures, notes };
+  }
+  const bar = retractResult.sample ? retractResult.sample.planBar : null;
+  if (bar) {
+    notes.push("settled bar at first sample: phase=" + bar.phase + " cls=\"" + bar.cls + "\" gapToComposerTop=" + (bar.gapToComposerTop === null ? "n/a" : bar.gapToComposerTop.toFixed(1) + "px"));
+    if (bar.phase !== "terminal") {
+      failures.push("B2: a settled task rendered as phase=" + bar.phase + " instead of terminal");
+    }
+    if (bar.spinning) {
+      failures.push("B2: a settled task still renders a live spinner icon");
+    }
+    if (bar.bottom > (retractResult.sample.composer ? retractResult.sample.composer.top : Infinity)) {
+      failures.push("B2 position: the settled bar also renders below the composer top");
+    }
+  }
+  if (!retractResult.retracted) {
+    failures.push("B2 lifecycle: the plan bar stayed on screen after the task settled (no retraction within the wait window) -- the user's ruling is that the bar stops when the task ends");
+  } else {
+    notes.push("retraction observed: the settled bar left the DOM inside the wait window (dwell " + "6s + fade)");
+  }
+  return { failures, notes };
+}
+
 // --------------------------------------------------------------- main flow
 
 async function main() {
@@ -634,6 +741,69 @@ async function main() {
     });
   };
 
+  // PLANBAR-1: the archived conversation carries no task runtime state, so the
+  // plan bar would never render in the replay passes. The trajectory below is
+  // the agent's own schema (vit.task_runtime_trajectory.v1); it is fulfilled at
+  // the network layer for GET /agent/runtime/status, and the chain-live signal
+  // (goal.status) is patched on the real /agent/ui/state response. Everything
+  // else -- bundle, agent process, DOM, composer, layout -- stays real.
+  const planBarTaskFixture = (state) => {
+    const stamp = "2026-09-13T12:30:00Z";
+    const settled = state === "settled";
+    return {
+      schema_version: "vit.task_runtime_trajectory.v1",
+      task: {
+        task_id: "task_e2e_planbar1",
+        goal_id: "goal_e2e_planbar1",
+        run_id: "run_e2e_planbar1",
+        original_intent: "PLANBAR-1 rendered-surface smoke: the plan bar must sit above the input box and stop when the task ends.",
+        status: settled ? "completed" : "running",
+        updated_at: stamp
+      },
+      run: {
+        run_id: "run_e2e_planbar1",
+        current_slice_id: "slice_e2e_planbar1",
+        current_turn_id: "run_e2e_planbar1",
+        slices: [{ slice_id: "slice_e2e_planbar1", sequence: 1, max_turns: 4, status: "running" }],
+        turns: [{ turn_id: "run_e2e_planbar1", slice_id: "slice_e2e_planbar1", sequence: 1, source: "user", status: "running" }]
+      },
+      semantic: {
+        state: state,
+        revision: settled ? 9 : 8,
+        project_revision: "revision-e2e",
+        summary: "PLANBAR-1 rendered-surface smoke state.",
+        updated_at: stamp
+      },
+      continuation: {},
+      capability_route: { capacity_assessment: { selected_capability: "free_state", capacity_level: "within_free_state" } },
+      transitions: [],
+      updated_at: stamp
+    };
+  };
+
+  const installTaskState = async (context, trajectory, goalStatus) => {
+    await context.route("**/agent/runtime/status*", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json; charset=utf-8",
+        body: JSON.stringify({
+          status: "ok",
+          service: "VitAgent",
+          kernel: { connected: true, status: "ok" },
+          goal: { status: goalStatus },
+          task_trajectory: trajectory
+        })
+      });
+    });
+    // The real ui/state response, with only the chain-live signal patched: the
+    // bar's live phase is driven by agentTurnRunning, which reads goal.status.
+    await context.route("**/agent/ui/state*", async (route) => {
+      const response = await route.fetch();
+      const body = await response.json().catch(() => ({}));
+      await route.fulfill({ response, json: { ...body, goal: { ...(body.goal || {}), status: goalStatus } } });
+    });
+  };
+
   const runPass = async (name, options) => {
     const context = await browser.newContext({ viewport });
     if (options.replay !== false) {
@@ -673,6 +843,26 @@ async function main() {
     writeFileSync(join(outDir, "dom-" + name + ".json"), JSON.stringify(sample, null, 2), "utf-8");
     await context.close();
     return sample;
+  };
+
+  // Two dedicated passes: one measures the T6 slot with a running task, one
+  // observes a settled task leaving the screen. Both sample the DOM the browser
+  // really rendered (DOM_PROBE), not a model of it.
+  const runPlanBarPass = async (name, options) => {
+    const context = await browser.newContext({ viewport });
+    await installTaskState(context, planBarTaskFixture(options.state), options.goalStatus);
+    const page = await context.newPage();
+    await page.goto(agentBase + "/app/?conversation_id=" + encodeURIComponent(conversationId), { waitUntil: "domcontentloaded" });
+    const appeared = await page.waitForSelector(".plan-bar", { timeout: options.appearTimeoutMs }).then(() => true).catch(() => false);
+    const sample = await page.evaluate(DOM_PROBE);
+    await page.screenshot({ path: join(outDir, "dom-" + name + ".png") });
+    writeFileSync(join(outDir, "dom-" + name + ".json"), JSON.stringify(sample, null, 2), "utf-8");
+    let retracted = null;
+    if (options.expectRetract) {
+      retracted = await page.waitForSelector(".plan-bar", { state: "detached", timeout: options.retractTimeoutMs }).then(() => true).catch(() => false);
+    }
+    await context.close();
+    return { appeared, sample, retracted };
   };
 
   const assess = (prefix, sample) => {
@@ -751,6 +941,25 @@ async function main() {
   report.passes.A4 = hydrationPass;
   log("A4", hydrationPass ? "PASS" : "FAIL");
 
+  // ------------------------------------------------------------- PLANBAR-1
+  report.planbar_task_state_source = "injected at the network layer for GET /agent/runtime/status (vit.task_runtime_trajectory.v1); chain-live signal patched on the real /agent/ui/state";
+  const record = (id, result) => {
+    report.assertions.push({ id, pass: result.failures.length === 0, failures: result.failures, notes: result.notes });
+    report.passes[id] = result.failures.length === 0;
+    log(id, result.failures.length === 0 ? "PASS" : "FAIL");
+    for (const note of result.notes) log("   note:", note);
+    for (const failure of result.failures) log("   fail:", failure);
+  };
+
+  const liveBar = await runPlanBarPass("planbar-live", { state: "observation_in_progress", goalStatus: "running", appearTimeoutMs: 15000, expectRetract: false, retractTimeoutMs: 0 });
+  report.planbar_live = { appeared: liveBar.appeared, bar: liveBar.sample ? liveBar.sample.planBar : null };
+  record("planbar-live-B1", checkB1(liveBar.sample));
+
+  const settledBar = await runPlanBarPass("planbar-settled", { state: "settled", goalStatus: "running", appearTimeoutMs: 15000, expectRetract: true, retractTimeoutMs: 20000 });
+  report.planbar_settled = { appeared: settledBar.appeared, retracted: settledBar.retracted, bar: settledBar.sample ? settledBar.sample.planBar : null };
+  record("planbar-settled-B1", checkB1(settledBar.sample));
+  record("planbar-settled-B2", checkB2(settledBar));
+
   report.finished_at = new Date().toISOString();
   report.events_served_from_fixture = seededEventsRequests;
   const failed = Object.entries(report.passes).filter(([, ok]) => !ok).map(([id]) => id);
@@ -768,7 +977,7 @@ async function main() {
 // Exported so a control run can exercise the very same probe and assertion
 // functions against a deliberately healthy state (proof that a red result is a
 // real finding and not an artefact of the probe itself).
-export { DOM_PROBE, checkA1, checkA2, checkA3 };
+export { DOM_PROBE, checkA1, checkA2, checkA3, checkB1, checkB2 };
 
 // Run only when this file is the process entry point, so importing it as a
 // library (the control run does) has no side effects.

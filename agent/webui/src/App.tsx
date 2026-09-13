@@ -275,6 +275,9 @@ function App() {
   const [error, setError] = useState("");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const composerRef = useRef<HTMLFormElement | null>(null);
+  // PLANBAR-1：输入框停靠列（规划条 + composer）。消息流要预留的底部空间是
+  // 整列的高度，不是 composer 一家的高度——否则栏出现时会盖住最后一条内容。
+  const composerDockRef = useRef<HTMLDivElement | null>(null);
   const noticeRef = useRef<HTMLDivElement | null>(null);
   const workspaceRef = useRef<HTMLElement | null>(null);
   const historyScopeRef = useRef("");
@@ -632,12 +635,18 @@ function App() {
   useEffect(() => {
     const measureBottomInset = () => {
       const composerHeight = composerRef.current?.getBoundingClientRect().height ?? 0;
+      // PLANBAR-1：停靠列（规划条 + composer）才是底部浮层整体，取两者的
+      // 最大值——栏出现/展开/收起都会触发 ResizeObserver，预留随之一致。
+      const dockHeight = composerDockRef.current?.getBoundingClientRect().height ?? 0;
       const noticeHeight = noticeRef.current?.getBoundingClientRect().height ?? 0;
-      const nextInset = Math.max(132, Math.ceil(composerHeight + noticeHeight + 36));
+      const nextInset = Math.max(132, Math.ceil(Math.max(dockHeight, composerHeight) + noticeHeight + 36));
       setMessageBottomInset((current) => (Math.abs(current - nextInset) > 1 ? nextInset : current));
     };
     measureBottomInset();
     const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(measureBottomInset);
+    if (composerDockRef.current) {
+      observer?.observe(composerDockRef.current);
+    }
     if (composerRef.current) {
       observer?.observe(composerRef.current);
     }
@@ -1326,41 +1335,47 @@ function App() {
         </div>
       )}
 
-      <PlanBar
-        snapshot={taskTrajectoryState.snapshot}
-        goal={asRecord(uiState?.goal)}
-        plan={asRecord(uiState?.agent_plan)}
-      />
+      {/* GUI-T6 设计位（PLANBAR-1 修复）：规划条与输入框同挂 .composer-dock 停靠
+          列——列向 flex 保证栏底边恒在 composer 顶边之上；栏留在面板流内时会被
+          composer 的绝对定位浮层压住（缺陷①的形态）。停靠列整体高度即消息流预留。 */}
+      <div className="composer-dock" ref={composerDockRef}>
+        <PlanBar
+          snapshot={taskTrajectoryState.snapshot}
+          goal={asRecord(uiState?.goal)}
+          plan={asRecord(uiState?.agent_plan)}
+          chainLive={agentTurnRunning || trajectoryLive}
+        />
 
-      <Composer
-        composerRef={composerRef}
-        input={input}
-        setInput={setInput}
-        pendingArtifacts={pendingArtifacts}
-        pendingMacroControls={pendingMacroRefs}
-        mode={mode}
-        agentTurnRunning={agentTurnRunning}
-        stopTurnBusy={stopTurnBusy}
-        isSending={isSending}
-        isUploading={isUploading}
-        interactionAction={composerInteraction}
-        respondingActionID={respondingActionID}
-        authorityMode={authorityMode}
-        authorityLocked={authorityBusy || agentTurnRunning}
-        onAuthorityModeChange={handleAuthorityModeChange}
-        onSubmit={handleSend}
-        onUploadClick={() => fileInputRef.current?.click()}
-        onModeChange={setMode}
-        onStopTurn={handleStopTurn}
-        onInteractionAction={handleInteractionAction}
-        onInvoke={invokeDawAction}
-        onSelectArtifact={(id) => {
-          setSelectedArtifactID(id);
-          setActiveTab("media");
-        }}
-        onRemoveArtifact={removePendingArtifact}
-        onRemoveMacroControl={removePendingMacroControl}
-      />
+        <Composer
+          composerRef={composerRef}
+          input={input}
+          setInput={setInput}
+          pendingArtifacts={pendingArtifacts}
+          pendingMacroControls={pendingMacroRefs}
+          mode={mode}
+          agentTurnRunning={agentTurnRunning}
+          stopTurnBusy={stopTurnBusy}
+          isSending={isSending}
+          isUploading={isUploading}
+          interactionAction={composerInteraction}
+          respondingActionID={respondingActionID}
+          authorityMode={authorityMode}
+          authorityLocked={authorityBusy || agentTurnRunning}
+          onAuthorityModeChange={handleAuthorityModeChange}
+          onSubmit={handleSend}
+          onUploadClick={() => fileInputRef.current?.click()}
+          onModeChange={setMode}
+          onStopTurn={handleStopTurn}
+          onInteractionAction={handleInteractionAction}
+          onInvoke={invokeDawAction}
+          onSelectArtifact={(id) => {
+            setSelectedArtifactID(id);
+            setActiveTab("media");
+          }}
+          onRemoveArtifact={removePendingArtifact}
+          onRemoveMacroControl={removePendingMacroControl}
+        />
+      </div>
 
       {hiddenFileInput}
     </section>

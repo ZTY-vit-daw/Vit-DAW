@@ -4,7 +4,27 @@
    点击展开为任务规划详情（内容样式复用 taskTrajectory.css 族）。
    ============================================================ */
 
-.plan-bar{margin:0 14px 6px;border:1px solid var(--line);border-radius:3px;background:var(--white);color:var(--ink)}
+/* ── T6 设计位：规划条挂在输入框上方（PLANBAR-1 缺陷①的根因与修法） ────────
+   实现事实：.composer 是 styles.css:2923 的绝对定位浮层（bottom:22px、
+   z-index:30）。规划条若留在 .conversation-panel 的普通流里，就落到面板最底部——
+   正是浮层占据的位置，于是被压在输入框后方（活栈证据：栏 top=865/bottom=894 vs
+   composer 764-878，occludedByComposer=true）。
+   修法：两者同挂底部停靠列 .composer-dock（列向 flex，DOM 序=几何序）。栏在列中
+   先于 composer ⇒ 栏底边 + gap 恒 ≤ composer 顶边；装订由 flex 布局保证，不依赖
+   运行时量测。停靠列沿用 composer 原来的 22px 底部/左右偏移，composer 本体视口
+   位置不变；.composer-dock > .composer 以特异性（0,2,0 > styles.css .composer 的
+   0,1,0）中性化其自身绝对定位，与样式表加载顺序无关。
+   停靠列整体高度是消息流预留底部空间（App.tsx messageBottomInset）的量测源——
+   栏出现时预留随之增长，不会把最后一条内容压到栏下。 */
+.composer-dock{position:absolute;right:22px;bottom:22px;left:22px;z-index:30;
+  display:flex;flex-direction:column;align-items:stretch;gap:6px;
+  max-height:calc(100% - 44px);pointer-events:none}
+.composer-dock > *{pointer-events:auto}
+.composer-dock > .composer{position:relative;top:auto;right:auto;bottom:auto;left:auto;
+  z-index:auto;min-height:0;margin:0;max-height:none}
+
+/* 栏与 composer 齐平：左右内缩由停靠列给，竖向间距由 gap 给 */
+.plan-bar{margin:0;border:1px solid var(--line);border-radius:3px;background:var(--white);color:var(--ink)}
 
 /* 单行收起态 */
 .plan-bar-head{display:flex;align-items:center;gap:8px;width:100%;padding:6px 9px;
@@ -24,6 +44,12 @@
 .plan-bar.is-waiting .plan-bar-head > svg{color:#8a6400}
 .plan-bar.is-warning .plan-bar-head > svg{color:var(--red)}
 .plan-bar.is-terminal .plan-bar-head > svg{color:var(--muted)}
+/* 无活链支撑的非终态（陈旧恢复形态）：灰态，不声称「正在观察」 */
+.plan-bar.is-stale .plan-bar-head > svg{color:var(--muted)}
+
+/* 收起（PLANBAR-1 缺陷②）：终态/陈旧态先淡出（is-retiring），到时由
+   PlanBar.tsx 的时间表卸载——栏不在执行结束后常驻 */
+.plan-bar.is-retiring{opacity:0;transition:opacity .4s ease;pointer-events:none}
 
 /* 展开体：grid 收起动画（DOM 常在） */
 .plan-bar-body{display:grid;grid-template-rows:0fr;transition:grid-template-rows .28s ease}
@@ -32,10 +58,10 @@
 .plan-bar.is-open .plan-bar-body-in{padding:2px 9px 10px}
 
 @media (max-width: 560px) {
-  .plan-bar{margin:0 8px 6px}
   .plan-bar-step{display:none}
 }
 
 @media (prefers-reduced-motion:reduce){
   .plan-bar-body,.plan-bar-chev{transition:none}
+  .plan-bar.is-retiring{transition:none}
 }
