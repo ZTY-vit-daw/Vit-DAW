@@ -4,7 +4,7 @@ import type { AuthorityMode, ChatMessage } from "../types";
 import type { TrajectoryNode, TrajectoryState, TrajectoryTurn } from "../trajectory";
 import { nodeKindLabel, phaseLabel, statusLabel } from "../trajectory/TrajectoryView";
 import { StateIcon, terminalClass } from "../taskTrajectory/details";
-import type { TurnEventMeta } from "./turnEventMeta";
+import { turnDurationSplit, type TurnEventMeta } from "./turnEventMeta";
 import "./trace.css";
 
 /** 完成后自动收起的停留时长（ms）——先让人看清完成态再收 */
@@ -56,19 +56,38 @@ export function traceMetaParts(options: {
   stepSpanMs: number;
   itemActivityCount: number;
   itemActivitySpanMs: number | null;
+  /**
+   * 驻留等待时长（ms，CONT-STALL-1）。null/缺省/0 时渲染逐字不变：没有驻留段
+   * 的回合不多一个词。>0 时工作时长显式标注为「执行」，驻留单列为
+   * 「等待续跑」——「执行 55s，等待续跑 203s」就是这两个词。
+   */
+  parkMs?: number | null;
 }): string[] {
-  if (options.live) {
-    return options.stepCount > 0 ? [`${options.stepCount} 步`] : ["--"];
+  const base = (() => {
+    if (options.live) {
+      return options.stepCount > 0 ? [`${options.stepCount} 步`] : ["--"];
+    }
+    if (options.stepCount > 0) {
+      return [`${options.stepCount} 步`, formatSeconds(options.stepSpanMs)];
+    }
+    if (options.itemActivityCount > 0) {
+      return options.itemActivitySpanMs !== null
+        ? [`${options.itemActivityCount} 项活动`, formatSeconds(options.itemActivitySpanMs)]
+        : [`${options.itemActivityCount} 项活动`];
+    }
+    return ["--"];
+  })();
+  const parkMs = options.parkMs ?? null;
+  if (options.live || parkMs === null || !Number.isFinite(parkMs) || parkMs <= 0) {
+    return base;
   }
-  if (options.stepCount > 0) {
-    return [`${options.stepCount} 步`, formatSeconds(options.stepSpanMs)];
+  const parkPart = `等待续跑 ${formatSeconds(parkMs)}`;
+  const last = base[base.length - 1];
+  // 末位是时长时把它标成「执行」，否则（--/仅活动数）只追加驻留段。
+  if (/^\d+(\.\d+)?s$/.test(last)) {
+    return [...base.slice(0, -1), `执行 ${last}`, parkPart];
   }
-  if (options.itemActivityCount > 0) {
-    return options.itemActivitySpanMs !== null
-      ? [`${options.itemActivityCount} 项活动`, formatSeconds(options.itemActivitySpanMs)]
-      : [`${options.itemActivityCount} 项活动`];
-  }
-  return ["--"];
+  return [...base, parkPart];
 }
 
 /** 回执行语义标签：live 只显「正在处理」，不加戏（2026-09-03 用户裁定口径） */
@@ -226,15 +245,15 @@ export function TraceBlock({ state, turn, activities, authorityMode = "manual_co
   const thinking = live ? activities[activities.length - 1] : undefined;
   const label = turnStatusLabel(turn.status);
   const sub = receiptSub(nodes);
+  // 工作/驻留分离（CONT-STALL-1）：item 活动时长只取工作片终点，驻留等待单列。
+  const split = turnDurationSplit(turnMeta);
   const metaParts = traceMetaParts({
     live,
     stepCount: nodes.length,
     stepSpanMs: turnSpanMs(nodes, false),
     itemActivityCount: turnMeta?.itemActivityCount ?? 0,
-    itemActivitySpanMs:
-      turnMeta && turnMeta.startedAt !== undefined && turnMeta.endedAt !== undefined
-        ? Math.max(0, turnMeta.endedAt - turnMeta.startedAt)
-        : null
+    itemActivitySpanMs: split.workMs,
+    parkMs: split.parkMs
   });
 
   return (

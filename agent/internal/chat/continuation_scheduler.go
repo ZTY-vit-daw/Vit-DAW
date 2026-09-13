@@ -44,6 +44,106 @@ func durableContinuationInvocationID(ctx context.Context) string {
 	return strings.TrimSpace(value)
 }
 
+// continuationStallLogInterval throttles the "durable work exists but the
+// scheduler cannot take it" report. The condition is stable by nature — an
+// unclaimable record stays unclaimable — so an unthrottled line would repeat on
+// every 250 ms tick and bury the slice logs it is meant to sit beside.
+const continuationStallLogInterval = 5 * time.Second
+
+// logContinuationStall reports, rate limited per reason, that the scheduler saw
+// drivable-looking durable work and could not advance it. Before CONT-STALL-1
+// every one of these paths returned silently, which is why a 203-second dead
+// park left no trace at all.
+func (s *Server) logContinuationStall(reason, format string, args ...any) {
+	if s == nil || s.logger == nil {
+		return
+	}
+	now := time.Now()
+	s.continuationStallLogMu.Lock()
+	repeated := reason == s.continuationStallLogReason && now.Sub(s.continuationStallLogAt) < continuationStallLogInterval
+	if !repeated {
+		s.continuationStallLogReason = reason
+		s.continuationStallLogAt = now
+	}
+	s.continuationStallLogMu.Unlock()
+	if repeated {
+		return
+	}
+	s.logger.Warn("[continuation.stall] reason="+reason+" "+format, args...)
+}
+
+// continuationDrivableCount reports how many durable records the scheduler
+// considers drivable right now (pending, or an expired claimed/running lease).
+// Caller must hold s.mu.
+func (s *Server) continuationDrivableCountLocked(now time.Time) int {
+	count := 0
+	for _, item := range s.durableContinuations {
+		switch item.Status {
+		case ContinuationPending:
+			count++
+		case ContinuationClaimed, ContinuationRunning:
+			if item.LeaseExpiresAt.IsZero() || !now.Before(item.LeaseExpiresAt) {
+				count++
+			}
+		}
+	}
+	return count
+}
+
+// continuationDrivableWorkCount is the lock-taking form of
+// continuationDrivableCountLocked for callers outside the server lock.
+func (s *Server) continuationDrivableWorkCount() int {
+	if s == nil {
+		return 0
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.continuationDrivableCountLocked(time.Now().UTC())
+}
+
+// continuationNonTerminalCount reports every durable record that still claims
+// future work (including answerable parks). Caller must hold s.mu.
+func (s *Server) continuationNonTerminalCountLocked() int {
+	count := 0
+	for _, item := range s.durableContinuations {
+		if !continuationTerminalStatus(item.Status) {
+			count++
+		}
+	}
+	return count
+}
+
+// continuationAnswerablePark reports whether a record is parked at an
+// interaction a user can actually answer. The pending-interaction payload the
+// answerable parks write carries the interaction identity (pendingInteractionFromResult:
+// interaction_id plus the request rows); the payloads the fail-closed guards
+// write carry only {status, reason}. That difference is exactly what separates
+// "the chain is waiting for the user" — intended, no alarm — from
+// "the chain is waiting for nothing" — the CONT-STALL-1 dead park.
+func continuationAnswerablePark(item DurableContinuation) bool {
+	if item.Status != ContinuationWaitingInteraction {
+		return false
+	}
+	if strings.TrimSpace(firstStringFromMap(item.PendingInteraction, "interaction_id")) != "" {
+		return true
+	}
+	return item.PendingInteraction["requests"] != nil
+}
+
+// continuationUnparkedNonTerminalCountLocked counts the non-terminal records
+// that are NOT answerable parks: the ones a silent scheduler would strand.
+// Caller must hold s.mu.
+func (s *Server) continuationUnparkedNonTerminalCountLocked() int {
+	count := 0
+	for _, item := range s.durableContinuations {
+		if continuationTerminalStatus(item.Status) || continuationAnswerablePark(item) {
+			continue
+		}
+		count++
+	}
+	return count
+}
+
 const (
 	continuationRuntimeSchema             = "vit_durable_continuation.v1"
 	continuationLeaseDuration             = 2 * time.Minute
@@ -610,7 +710,15 @@ func (s *Server) wakeContinuationScheduler() {
 	}
 	s.mu.Unlock()
 	if !hasScheduledWork || (!executorConfigured && strings.TrimSpace(activeWorkspaceUUID) == "") {
+		if s.logger != nil {
+			s.logger.Info("[continuation.wake] declined has_scheduled_work=%t executor=%t workspace=%s",
+				hasScheduledWork, executorConfigured, firstNonEmpty(activeWorkspaceUUID, "<none>"))
+		}
 		return
+	}
+	if s.logger != nil {
+		s.logger.Info("[continuation.wake] has_scheduled_work=true executor=%t workspace=%s",
+			executorConfigured, firstNonEmpty(activeWorkspaceUUID, "<none>"))
 	}
 	s.startContinuationScheduler()
 	select {
@@ -799,17 +907,31 @@ func (s *Server) claimNextContinuation(now time.Time) (DurableContinuation, bool
 		}
 		return left.CreatedAt.Before(right.CreatedAt)
 	})
+	skippedStatus, skippedLease, skippedProject := 0, 0, 0
+	skipDetail := ""
 	for _, id := range ids {
 		item := s.durableContinuations[id]
 		if item.Status != ContinuationPending &&
 			!(item.Status == ContinuationClaimed || item.Status == ContinuationRunning) {
+			skippedStatus++
+			if skipDetail == "" {
+				// Name the record the scheduler could not take. A record that
+				// armed as pending and reads as waiting_interaction on the next
+				// tick is the CONT-STALL-1 shape, and the quarantine reason
+				// recorded by the restore pass says which guard did it.
+				skipDetail = fmt.Sprintf("id=%s status=%s goal=%s conversation=%s project=%s pending_status=%s pending_reason=%s",
+					item.ContinuationID, item.Status, item.GoalID, item.ConversationID, item.ProjectUUID,
+					firstStringFromMap(item.PendingInteraction, "status"), firstStringFromMap(item.PendingInteraction, "reason"))
+			}
 			continue
 		}
 		if (item.Status == ContinuationClaimed || item.Status == ContinuationRunning) &&
 			!item.LeaseExpiresAt.IsZero() && now.Before(item.LeaseExpiresAt) {
+			skippedLease++
 			continue
 		}
 		if item.ProjectUUID != "" && s.activeWorkspaceUUID != "" && item.ProjectUUID != s.activeWorkspaceUUID {
+			skippedProject++
 			continue
 		}
 		item.Status = ContinuationClaimed
@@ -826,7 +948,25 @@ func (s *Server) claimNextContinuation(now time.Time) (DurableContinuation, bool
 		item.LastError = ""
 		item.UpdatedAt = now
 		s.durableContinuations[id] = cloneDurableContinuation(item)
+		if s.logger != nil {
+			s.logger.Info("[continuation.claim] claimed id=%s goal=%s conversation=%s attempt=%d lease_until=%s",
+				item.ContinuationID, item.GoalID, item.ConversationID, item.Attempt, item.LeaseExpiresAt.UTC().Format(time.RFC3339))
+		}
 		return cloneDurableContinuation(item), true
+	}
+	if nonTerminal := s.continuationNonTerminalCountLocked(); nonTerminal > 0 {
+		// Nothing claimable although records still claim future work. An
+		// answerable park is the intended "waiting for the user" form and must
+		// not raise the alarm; anything else is a record the scheduler can
+		// never take, which is the CONT-STALL-1 dead park and must be loud.
+		if stranded := s.continuationUnparkedNonTerminalCountLocked(); stranded > 0 {
+			s.logContinuationStall("no-claimable-record",
+				"non_terminal=%d stranded=%d skipped_status=%d skipped_live_lease=%d skipped_project=%d workspace=%s first_skip=[%s]",
+				nonTerminal, stranded, skippedStatus, skippedLease, skippedProject, firstNonEmpty(s.activeWorkspaceUUID, "<none>"), skipDetail)
+		} else if s.logger != nil {
+			s.logger.Info("[continuation.park] answerable park holds the chain non_terminal=%d skipped_status=%d workspace=%s",
+				nonTerminal, skippedStatus, firstNonEmpty(s.activeWorkspaceUUID, "<none>"))
+		}
 	}
 	return DurableContinuation{}, false
 }
@@ -890,6 +1030,10 @@ func (s *Server) runContinuationSchedulerOnce(ctx context.Context) error {
 	// the continuation closed as unrecoverable. Wait for the request; its
 	// completion persists and wakes the scheduler again.
 	if s.invocationsActive() {
+		if drivable := s.continuationDrivableWorkCount(); drivable > 0 {
+			s.logContinuationStall("invocations-active",
+				"drivable=%d: a request-boundary invocation still owns the in-memory runtime state", drivable)
+		}
 		return nil
 	}
 	s.schedulerExecutionMu.Lock()
@@ -897,6 +1041,10 @@ func (s *Server) runContinuationSchedulerOnce(ctx context.Context) error {
 	stateLock, err := s.acquireRuntimeStateLease()
 	if err != nil {
 		if errors.Is(err, history.ErrAgentRuntimeStateLocked) {
+			if drivable := s.continuationDrivableWorkCount(); drivable > 0 {
+				s.logContinuationStall("runtime-state-lease-held",
+					"drivable=%d: another process owns the project runtime state lease", drivable)
+			}
 			return nil
 		}
 		return err
@@ -905,6 +1053,7 @@ func (s *Server) runContinuationSchedulerOnce(ctx context.Context) error {
 		if stateLock != nil {
 			_ = stateLock.Release()
 		}
+		s.logContinuationStall("runtime-state-reload-failed", "err=%v", err)
 		return err
 	}
 	item, ok := s.claimNextContinuation(time.Now().UTC())

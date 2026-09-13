@@ -5,7 +5,7 @@ import { emptyTrajectoryState, reduceTrajectoryEvents, trajectoryTurns } from ".
 import { mockMultiRoundTrajectoryEvents, mockRollbackTrajectoryEvents } from "../trajectoryMock";
 import { defaultCollapsedForStatus, isLiveStatus, OptimisticTraceBlock, shouldShowOptimisticTrace, TraceBlock } from "./TraceBlock";
 import { groupMessagesByTurn, isUnboundActivity, latestRenderedTurnId, turnIsAnchored } from "./turnGroups";
-import type { TurnEventMeta } from "./turnEventMeta";
+import { reduceTurnEventMeta, type TurnEventMeta } from "./turnEventMeta";
 
 function chat(partial: Partial<ChatMessage> & Pick<ChatMessage, "id" | "role" | "content">): ChatMessage {
   return { createdAt: 0, ...partial } as ChatMessage;
@@ -218,6 +218,39 @@ describe("B3 零步终态驻留消灭 + 步数流式增量", () => {
     expect(markup).toContain("2 项活动");
     expect(markup).toContain("60.0s");
     expect(markup).not.toContain("0 步");
+  });
+
+  // CONT-STALL-1 口径钉：驻留等待不得计成执行时长，两者必须分开呈现。
+  it("驻留终点在场时工作时长与等待续跑分行呈现（不再把驻留墙钟算成执行时长）", () => {
+    const state = reduceTrajectoryEvents(emptyTrajectoryState(), shellTurnEvents("trajectory.turn.completed", "waiting_for_user"));
+    const turn = trajectoryTurns(state)[0];
+    // 真栈形态（goal_5b9cb1a9e48ace5b）：工作 55.0s，其后驻留 203.5s。meta 走
+    // 真实归约器，不手搓字段——归约口径一旦回退成「驻留并进 endedAt」，这里
+    // 就会重新渲染出 258.5s 的执行时长。
+    const turnMeta = reduceTurnEventMeta({}, [
+      { seq: 1, type: "turn.started", source_turn_id: "run-b3", created_at: "2026-09-12T22:53:11.745Z" },
+      { seq: 2, type: "item.started", source_turn_id: "run-b3", item_id: "i1", logical_message_id: "agent_item:run-b3:i1", created_at: "2026-09-12T22:53:26.993Z" },
+      { seq: 3, type: "item.completed", source_turn_id: "run-b3", item_id: "i1", logical_message_id: "agent_item:run-b3:i1", created_at: "2026-09-12T22:53:27.018Z" },
+      { seq: 4, type: "item.started", source_turn_id: "run-b3", item_id: "i2", logical_message_id: "agent_item:run-b3:i2", created_at: "2026-09-12T22:53:44.839Z" },
+      { seq: 5, type: "turn.completed", source_turn_id: "run-b3", created_at: "2026-09-12T22:54:06.557Z" },
+      { seq: 6, type: "trajectory.turn.stopped", source_turn_id: "run-b3", created_at: "2026-09-12T22:57:30.069Z" }
+    ])["run-b3"];
+    const markup = renderToStaticMarkup(<TraceBlock state={state} turn={turn} activities={[]} turnMeta={turnMeta} />);
+    expect(markup).toContain("2 项活动");
+    expect(markup).toContain("执行 54.8s");
+    expect(markup).toContain("等待续跑 203.5s");
+    // 旧口径的反向锁定：258.3s 的驻留墙钟不得作为执行时长出现。
+    expect(markup).not.toContain("258.3s");
+  });
+
+  it("无驻留段的回合 meta 逐字不变（不多一个词、不虚报等待）", () => {
+    const state = reduceTrajectoryEvents(emptyTrajectoryState(), shellTurnEvents("trajectory.turn.completed", "waiting_for_user"));
+    const turn = trajectoryTurns(state)[0];
+    const turnMeta: TurnEventMeta = { turnKind: "", itemActivityCount: 2, itemActivityKeys: ["i1", "i2"], startedAt: 1_000, endedAt: 61_000 };
+    const markup = renderToStaticMarkup(<TraceBlock state={state} turn={turn} activities={[]} turnMeta={turnMeta} />);
+    expect(markup).toContain("60.0s");
+    expect(markup).not.toContain("等待续跑");
+    expect(markup).not.toContain("执行 ");
   });
 
   it("执行中步数流式增量：live 回合有步节点即显「N 步」（此前恒 --，步数只在终局可见）", () => {

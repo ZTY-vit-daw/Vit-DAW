@@ -866,7 +866,27 @@ func restoreCapabilityRoutes(routes map[string]CapabilityRouteRecord) map[string
 func reconcileDurableCapabilityRoutes(items map[string]DurableContinuation, routes map[string]CapabilityRouteRecord) map[string]DurableContinuation {
 	for id, item := range items {
 		contextAssessment := capacityAssessmentFromAny(item.Continuation.Context[capacityAssessmentContextKey])
-		hasCapacityState := item.CapacityAssessment != nil || contextAssessment != nil || item.CapabilityEntryPlan != nil || item.Continuation.Context[capabilityRouteContextKey] != nil
+		// CONT-STALL-1: "capacity state" means the things a validated task route
+		// has to cover — the capacity assessment and the capability entry plan.
+		// The bare capability_route_decision identity is NOT capacity state: it
+		// is the route itself, and restoreCapabilityRoutes (this index's own
+		// validator) refuses to index any record without a valid assessment, so
+		// an assessment-less identity can never have a "validated task route" by
+		// construction. Counting the raw context key as capacity state therefore
+		// guaranteed a permanent, silent dead park for every checkpoint that
+		// carried only a routing identity. 2026-09-13 09:02 real stack
+		// (goal_a36712edacc9cb50, same-type prompt "把低音轨/bass 提 1dB"): the
+		// slice armed a pending checkpoint at 09:04:09, and the scheduler's own
+		// reload 250 ms later fail-closed it into waiting_interaction —
+		// "durable capacity state has no validated task route" — because
+		// capability_routes was empty while the continuation context carried
+		// capability_route_decision (controller=direct_typed_action,
+		// semantic_entry.route=explicit_control, no assessment, no entry plan).
+		// A waiting_interaction record is never claimed, so the chain parked for
+		// good with the turn's own "我还在继续处理这个任务" still standing.
+		contextEntryPlan := item.Continuation.Context[capabilityEntryPlanContextKey] != nil
+		hasCapacityState := item.CapacityAssessment != nil || contextAssessment != nil ||
+			item.CapabilityEntryPlan != nil || contextEntryPlan
 		route, hasRoute := routes[item.TaskID]
 		if !hasRoute {
 			if hasCapacityState && item.Status != ContinuationCompleted && item.Status != ContinuationCancelled && item.Status != ContinuationFailed {

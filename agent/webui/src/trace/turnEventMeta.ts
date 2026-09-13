@@ -14,7 +14,54 @@ export interface TurnEventMeta {
   itemActivityCount: number;
   itemActivityKeys: string[];
   startedAt?: number;
+  /**
+   * 工作片终点：turn.completed / turn.failed（及其轨迹孪生）的 created_at。
+   * 这是「执行时长」的终点，不是回合在时间轴上的最后一点。
+   */
   endedAt?: number;
+  /**
+   * 驻留终点：turn.stopped / trajectory.turn.stopped 的 created_at。
+   *
+   * CONT-STALL-1（2026-09-12 22:53 真栈，goal_5b9cb1a9e48ace5b）：切片在
+   * 22:54:06 以 waiting_continue 结束并在驻留里空了 203.5 s，用户 22:57:30
+   * 手动停止才补上 trajectory.turn.stopped。该事件与 turn.completed 同属一个
+   * turn（source_turn_id 相同），此前被并进 endedAt 取 max，于是
+   * endedAt-startedAt = 258.3 s 被当成执行时长呈现（「258 秒执行记录」），
+   * 203 s 的驻留等待被计成工作。驻留是等待，不是执行：工作片终点与驻留终点
+   * 必须分开记账，消费侧才能「执行 55s，等待续跑 203s」地分行呈现。
+   */
+  residencyEndedAt?: number;
+}
+
+/**
+ * 工作/驻留时长拆分（唯一真源）。口径：
+ *  - 有工作终局：workMs = endedAt - startedAt；驻留终点更晚时
+ *    parkMs = residencyEndedAt - endedAt。
+ *  - 无工作终局但有驻留终点（真·运行中被停止）：整段到停止为止都是工作，
+ *    parkMs = null。
+ *  - 两者皆无：无法记账，两个字段都是 null（不虚报 0）。
+ */
+export interface TurnDurationSplit {
+  workMs: number | null;
+  parkMs: number | null;
+}
+
+export function turnDurationSplit(meta?: TurnEventMeta): TurnDurationSplit {
+  if (!meta || meta.startedAt === undefined) {
+    return { workMs: null, parkMs: null };
+  }
+  const started = meta.startedAt;
+  if (meta.endedAt !== undefined) {
+    const workMs = Math.max(0, meta.endedAt - started);
+    if (meta.residencyEndedAt !== undefined && meta.residencyEndedAt > meta.endedAt) {
+      return { workMs, parkMs: meta.residencyEndedAt - meta.endedAt };
+    }
+    return { workMs, parkMs: null };
+  }
+  if (meta.residencyEndedAt !== undefined) {
+    return { workMs: Math.max(0, meta.residencyEndedAt - started), parkMs: null };
+  }
+  return { workMs: null, parkMs: null };
 }
 
 export type TurnEventMetaMap = Record<string, TurnEventMeta>;
@@ -74,12 +121,20 @@ export function reduceTurnEventMeta(current: TurnEventMetaMap, events: AgentEven
       }
     }
     if (
-      type === "turn.completed" || type === "turn.failed" || type === "turn.stopped" ||
-      type === "trajectory.turn.completed" || type === "trajectory.turn.failed" || type === "trajectory.turn.stopped"
+      type === "turn.completed" || type === "turn.failed" ||
+      type === "trajectory.turn.completed" || type === "trajectory.turn.failed"
     ) {
       const at = eventCreatedAt(event);
       if (at !== undefined && at !== meta.endedAt) {
         meta = { ...meta, endedAt: meta.endedAt !== undefined ? Math.max(meta.endedAt, at) : at };
+        changed = true;
+      }
+    }
+    // 驻留终局单独记账：turn.stopped 收尾的是一段等待，不是一片工作。
+    if (type === "turn.stopped" || type === "trajectory.turn.stopped") {
+      const at = eventCreatedAt(event);
+      if (at !== undefined && at !== meta.residencyEndedAt) {
+        meta = { ...meta, residencyEndedAt: meta.residencyEndedAt !== undefined ? Math.max(meta.residencyEndedAt, at) : at };
         changed = true;
       }
     }

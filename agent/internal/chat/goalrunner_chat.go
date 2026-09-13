@@ -2604,6 +2604,16 @@ func (s *Server) recordGoalResult(conversationID string, res agentloop.Result) e
 		}
 	}
 	autoContinuationBudgetExhausted := false
+	// CONT-STALL-1 observability: the arming decision used to be invisible. The
+	// 2026-09-12 22:54 real stack parked 203 s with a zero-event, zero-log gap
+	// between the slice's turn.completed and the user's manual stop, and no
+	// surface could say whether the next slice was armed, parked at an
+	// unanswerable boundary, or dropped. Capture the decision's inputs here so
+	// the single [continuation.arm] line below can be reconciled against the
+	// scheduler's own [continuation.claim] lines.
+	armedDurableID := ""
+	armedDurableStatus := ""
+	armRequiresUserInteraction := false
 	if res.Continuation != nil {
 		// The planner continuation carries the slice-start request context, while
 		// recordFreeStateDecision may have imported newer CCB evidence into the
@@ -2616,6 +2626,8 @@ func (s *Server) recordGoalResult(conversationID string, res agentloop.Result) e
 			})
 		}
 		durable := durableContinuationFromResult(conversationID, res, time.Now().UTC())
+		armedDurableID = durable.ContinuationID
+		armRequiresUserInteraction = continuationRequiresUserInteraction(res)
 		res.Continuation.ContinuationID = durable.ContinuationID
 		durable.ProjectPath = s.activeWorkspacePath
 		durable.ProjectUUID = s.activeWorkspaceUUID
@@ -2788,6 +2800,12 @@ func (s *Server) recordGoalResult(conversationID string, res agentloop.Result) e
 			s.durableContinuations[continuationID] = cloneDurableContinuation(durable)
 		}
 	}
+	if armedDurableID != "" {
+		// Final lifecycle form, after every guard above (judgment-boundary
+		// completion, duplicate-checkpoint inheritance, continuation-budget
+		// stop) has had its say: this is the form the scheduler will judge.
+		armedDurableStatus = string(s.durableContinuations[armedDurableID].Status)
+	}
 	s.mu.Unlock()
 	// Persist before waking the worker. This is the ordering that makes a
 	// request boundary harmless: a crash after this point leaves recoverable
@@ -2815,6 +2833,21 @@ func (s *Server) recordGoalResult(conversationID string, res agentloop.Result) e
 	}
 	if autoContinuation {
 		s.wakeContinuationScheduler()
+	}
+	if s.logger != nil {
+		// One line per slice boundary: what the checkpoint life cycle became,
+		// whether the scheduler was woken for it, and which of the guards above
+		// decided that. A slice that ends waiting_continue without a scheduled
+		// next slice is exactly the CONT-STALL-1 shape, and this line names
+		// which guard produced it instead of leaving a silent gap.
+		owesOutcome := false
+		if res.Continuation != nil {
+			owesOutcome = s.freeStateLoopOwesExperimentOutcomeFor(conversationID, res.GoalID)
+		}
+		s.logger.Info("[continuation.arm] conversation=%s goal=%s status=%s stop=%s limit=%s continuation=%t durable=%s lifecycle=%s scheduled=%t budget_stop=%t requires_user_interaction=%t owes_outcome=%t",
+			conversationID, res.GoalID, res.Status, res.StopReason, res.LimitType,
+			res.Continuation != nil, armedDurableID, firstNonEmpty(armedDurableStatus, "none"),
+			autoContinuation, autoContinuationBudgetExhausted, armRequiresUserInteraction, owesOutcome)
 	}
 	if autoContinuationBudgetExhausted && s.harness != nil {
 		if s.freeStateLoopOwesExperimentOutcomeFor(conversationID, res.GoalID) {

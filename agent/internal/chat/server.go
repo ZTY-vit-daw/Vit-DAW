@@ -87,6 +87,9 @@ type Server struct {
 	continuationPersist                func() error
 	schedulerExecutionMu               sync.Mutex
 	activeRuntimeInvocations           int
+	continuationStallLogMu             sync.Mutex
+	continuationStallLogAt             time.Time
+	continuationStallLogReason         string
 	lastWorkspaceRecoveryAttempt       time.Time
 	conversationGoals                  map[string]string
 	conversationMemory                 map[string]agentloop.ExecutionMemory
