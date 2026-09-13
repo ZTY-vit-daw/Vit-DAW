@@ -665,6 +665,16 @@ func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Resu
 				state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: "pan clarification normalized to pending treatment"})
 				return r.complete(state, reply)
 			}
+			// FULLACCESS-AUTONOMY-1 guardrail: under an explicit full project access
+			// grant a direction/selection/dose question is bounced once (the prompt
+			// directive already states who owns the choice). Request-object
+			// ambiguity and genuine boundaries fall through untouched, and the
+			// bounce is bounded to one per turn so the turn can never be trapped.
+			if issue := messageLoopFullAccessDirectionClarificationIssue(state, out); issue != "" {
+				if messageLoopFullAccessDirectionClarificationBounce(state, issue, raw) {
+					continue
+				}
+			}
 			question := firstNonEmpty(out.ClarificationQuestion, out.Reply, "请告诉我这次要编辑的具体目标。")
 			question = messageLoopClarificationQuestion(state, question)
 			state.trace = append(state.trace, planner.TraceEvent{Kind: "clarification", Message: question})
@@ -3762,7 +3772,12 @@ func (l *MessageLoop) assembly(state *runState, snapshotJSON string) promptrunti
 }
 
 func (l *MessageLoop) assemblyNeutralFamilySelection(state *runState, snapshotJSON string) promptruntime.Assembly {
-	system := messageLoopNeutralFamilySystemPrompt(state)
+	// FULLACCESS-AUTONOMY-1: this is the production assembly path for every
+	// active free-state turn (messageLoopNeedsNeutralFamilyProjection mirrors
+	// messageLoopFreeStateActive), so the full-access autonomy directive must be
+	// appended here as well as inside messageLoopSystemPrompt. It renders "" for
+	// every manual/ordinary turn, keeping those prompts byte-identical.
+	system := messageLoopNeutralFamilySystemPrompt(state) + messageLoopFullAccessAutonomyRules(state)
 	user := fmt.Sprintf("Current acoustic goal: %s\nGoalID: %s\nRunID: %s\nRemaining tool calls this run: %d\nNeutral context snapshot JSON:\n%s",
 		strings.TrimSpace(state.input.UserText), state.goal.GoalID, state.goal.RunID,
 		state.budget.MaxToolCalls-state.toolCallsUsed, snapshotJSON)
@@ -4149,7 +4164,11 @@ func messageLoopSystemPrompt(state *runState) string {
 	// An active free-state turn is always model-owned observation/family
 	// reasoning. Keep the general Agent and typed-control examples outside it.
 	if messageLoopFreeStateActive(state) {
-		return messageLoopNeutralFamilySystemPrompt(state)
+		// FULLACCESS-AUTONOMY-1: the full-access autonomy contract is the same on
+		// either prompt path, so the free-state neutral-family prompt carries the
+		// same directive. It renders "" for every manual/ordinary turn, which
+		// keeps both prompts byte-identical to their previous wording.
+		return messageLoopNeutralFamilySystemPrompt(state) + messageLoopFullAccessAutonomyRules(state)
 	}
 	catalog := ""
 	allowed := ""
@@ -4172,6 +4191,11 @@ Read-only acoustic observation:
 - Do not append mix_treatment_pending and do not ask whether to continue executing. Summarize observed facts, missing or partial evidence, and state that no pending action was created.`
 		}
 	}
+	// FULLACCESS-AUTONOMY-1: full project access owns execution (observe -> decide the
+	// direction and dose inside the admitted domain table -> execute -> explain -> hand
+	// over to the user's A/B audition). The directive renders "" for every
+	// manual/ordinary turn, so those prompts stay byte-identical.
+	modeRules += messageLoopFullAccessAutonomyRules(state)
 	prompt := fmt.Sprintf(`You are Ask Vit's DAW ReAct runtime inside Vit-DAW.
 Return ONLY strict JSON in one of these shapes:
 {"final":true,"reply":"short final user-facing reply","tool_calls":[]}
