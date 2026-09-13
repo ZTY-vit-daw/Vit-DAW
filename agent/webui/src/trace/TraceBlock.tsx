@@ -135,12 +135,19 @@ function TraceStep({ node, next, live, authorityMode }: {
   const [open, setOpen] = useState(false);
   const rows = detailRows(node);
   const isMut = node.kind === "action";
-  const statusClass =
-    node.status === "running" ? "is-running" :
-    node.status === "pending" ? "is-pending" :
-    node.status === "failed" ? "is-failed" : "is-plain";
+  // UI-FOLLOW-1 终局定格（2026-09-12 用户裁定③）：回合终态是服务端权威事实
+  // （turn 家族终局事件）。终态回合里仍标着 running/pending 的步，是「没等到
+  // 自己终局」的悬置标记——终局后它不得继续转圈/排队，降级为静态「未收口」
+  // （is-unresolved 无 CSS 规则 = 基础墨点，不动画；详情仍可点开）。
+  const markOpenEnded = node.status === "running" || node.status === "pending";
+  const unresolved = markOpenEnded && !live;
+  const statusClass = markOpenEnded
+    ? unresolved ? "is-unresolved" : node.status === "running" ? "is-running" : "is-pending"
+    : node.status === "failed" ? "is-failed" : "is-plain";
   const duration = stepDurationMs(node, next, live);
-  const durationLabel = node.status === "running" ? "进行中" : node.status === "pending" ? "排队中" : formatSeconds(duration ?? 0);
+  const durationLabel = unresolved
+    ? "未收口"
+    : node.status === "running" ? "进行中" : node.status === "pending" ? "排队中" : formatSeconds(duration ?? 0);
   return (
     <div
       className={["trace-step", statusClass, isMut ? "is-mut" : "", open ? "is-open" : ""].filter(Boolean).join(" ")}
@@ -162,7 +169,7 @@ function TraceStep({ node, next, live, authorityMode }: {
           <span className="trace-gloss">{nodeKindLabel(node.kind)}</span>
           {isMut && authorityMode === "full_project_access" && <span className="trace-mutg">完全档 · 直接执行</span>}
         </span>
-        <span className={`trace-dur ${node.status === "running" ? "is-live" : ""}`}>{durationLabel}</span>
+        <span className={`trace-dur ${node.status === "running" && !unresolved ? "is-live" : ""}`}>{durationLabel}</span>
         {rows.length > 0 && (
           <span className="trace-chev" aria-hidden="true"><ChevronRight size={11} /></span>
         )}

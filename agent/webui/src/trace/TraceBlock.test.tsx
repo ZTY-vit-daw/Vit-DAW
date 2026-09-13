@@ -349,3 +349,51 @@ describe("turnGroups 分组", () => {
     expect(latestRenderedTurnId([], new Set(), [])).toBe("");
   });
 });
+
+// UI-FOLLOW-1（2026-09-12 用户产品裁定③）：执行轨迹的转圈/排队不得在终局后仍
+// 悬置。回合终态是服务端权威事实（turn 家族终局事件），终态回合里仍标着
+// running/pending 的步节点是「没等到自己终局」的悬置标记——终局后它们必须
+// 降级为静态「未收口」，不得继续转圈。
+describe("UI-FOLLOW-1 终局定格：回合终态后不留转圈/排队标记", () => {
+  function turnEvents(withTerminal: boolean): AgentEvent[] {
+    const base = [
+      { seq: 1, type: "trajectory.turn.started", item_id: "turn:run-follow", status: "running", payload: { schema_version: "vit.observable_trajectory.v1", trace_node_id: "turn:run-follow", turn_id: "run-follow", node_kind: "turn", phase: "framing", status: "running" } },
+      { seq: 2, type: "trajectory.observation.recorded", item_id: "obs-live", status: "running", payload: { schema_version: "vit.observable_trajectory.v1", trace_node_id: "obs-live", turn_id: "run-follow", node_kind: "observation", phase: "observing", status: "running", summary: "正在观察掩蔽关系" } },
+      { seq: 3, type: "trajectory.round.started", item_id: "queue-pending", status: "pending", payload: { schema_version: "vit.observable_trajectory.v1", trace_node_id: "queue-pending", turn_id: "run-follow", node_kind: "decision", phase: "deciding", status: "pending", summary: "等待排队执行" } }
+    ];
+    if (!withTerminal) {
+      return base as AgentEvent[];
+    }
+    return [...base, { seq: 4, type: "trajectory.turn.completed", item_id: "turn:run-follow", status: "completed", payload: { schema_version: "vit.observable_trajectory.v1", trace_node_id: "turn:run-follow", turn_id: "run-follow", node_kind: "turn", phase: "completed", status: "completed" } }] as AgentEvent[];
+  }
+
+  it("终态回合里未收到终局的步：呈现「未收口」静态标记，不再转圈/排队", () => {
+    const state = reduceTrajectoryEvents(emptyTrajectoryState(), turnEvents(true));
+    const turn = trajectoryTurns(state)[0];
+    expect(isLiveStatus(turn.status)).toBe(false);
+    const markup = renderToStaticMarkup(<TraceBlock state={state} turn={turn} activities={[]} />);
+    expect(markup).toContain("trace-block is-terminal is-collapsed");
+    expect(markup).toContain("执行完成");
+    expect(markup).not.toContain("trace-step is-running");
+    expect(markup).not.toContain("trace-step is-pending");
+    expect(markup).not.toContain("trace-dur is-live");
+    expect(markup).not.toContain("进行中");
+    expect(markup).not.toContain("排队中");
+    expect(markup).not.toContain("trace-think");
+    expect(markup).toContain("trace-step is-unresolved");
+    expect(markup).toContain("未收口");
+  });
+
+  it("live 回合零回退：步节点照旧转圈/排队（终态定格不误伤进行中回合）", () => {
+    const state = reduceTrajectoryEvents(emptyTrajectoryState(), turnEvents(false));
+    const turn = trajectoryTurns(state)[0];
+    expect(isLiveStatus(turn.status)).toBe(true);
+    const markup = renderToStaticMarkup(<TraceBlock state={state} turn={turn} activities={[]} />);
+    expect(markup).toContain("trace-step is-running");
+    expect(markup).toContain("trace-step is-pending");
+    expect(markup).toContain("trace-dur is-live");
+    expect(markup).toContain("进行中");
+    expect(markup).toContain("排队中");
+  });
+});
+

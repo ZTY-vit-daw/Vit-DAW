@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
 import { buildMessageStreamRenderPlan } from "./renderPlan";
 import { emptyTrajectoryState, reduceTrajectoryEvents, type TrajectoryState } from "../trajectory";
 import { reduceTurnEventMeta, type TurnEventMeta } from "./turnEventMeta";
@@ -124,3 +125,88 @@ describe("renderPlan × fixtures 组合回放前的 meta 接线", () => {
     expect(shape).toEqual(["messages", "trace:run_1"]);
   });
 });
+
+// UI-FOLLOW-1（2026-09-12 用户产品裁定）：轨迹块与状态行跟随对话——轨迹块是
+// 「每回合消息的附属组件」（回合内实时更新、回合结束定格为该回合的终态行），
+// 只有「确实没有回合附属位」时才允许流尾兜底。
+//
+// 缺陷形态（真栈手测命中）：轨迹回合的身份键与消息携带的 turn_id 常不在同一
+// 命名空间（轮次域 run_/turn:free_state_ 对 chat 的 turn_ 域，失败链更可能只有
+// 一条不带 id 的乐观用户消息），身份匹配失败时旧实现把轨迹块一律追加到条目
+// 序列尾——「执行完成 N 步」这一行连着步数轨迹坠到整条对话流最底部、被输入框
+// 浮层压住。修法：新增回合槽位锚定（以用户消息为界切出的对话回合，取起始时刻
+// 之前的最后一个用户消息所在组），身份锚定优先级不变。
+describe("UI-FOLLOW-1 回合附属锚定：身份不匹配时按回合槽位入位", () => {
+  const T0 = Date.parse("2026-09-13T10:00:00.000Z");
+
+  function turnStarted(turnId: string, seq: number, at: number): AgentEvent {
+    return { seq, type: "turn.started", source_turn_id: turnId, created_at: new Date(at).toISOString() } as AgentEvent;
+  }
+
+  function traceEvents(turnId: string, seqBase: number, at: number): AgentEvent[] {
+    const at0 = new Date(at).toISOString();
+    const at1 = new Date(at + 1000).toISOString();
+    const at2 = new Date(at + 5000).toISOString();
+    return [
+      { seq: seqBase, type: "trajectory.turn.started", item_id: `turn:${turnId}`, created_at: at0, payload: { schema_version: "vit.observable_trajectory.v1", trace_node_id: `turn:${turnId}`, turn_id: turnId, node_kind: "turn", phase: "framing", status: "running" } },
+      { seq: seqBase + 1, type: "trajectory.observation.recorded", item_id: `obs:${turnId}`, created_at: at1, payload: { schema_version: "vit.observable_trajectory.v1", trace_node_id: `obs:${turnId}`, turn_id: turnId, node_kind: "observation", phase: "observing", status: "completed", summary: "观察已完成" } },
+      { seq: seqBase + 2, type: "trajectory.turn.failed", item_id: `turn:${turnId}`, created_at: at2, payload: { schema_version: "vit.observable_trajectory.v1", trace_node_id: `turn:${turnId}`, turn_id: turnId, node_kind: "turn", phase: "failed", status: "failed" } }
+    ] as AgentEvent[];
+  }
+
+  const shapeOf = (plan: ReturnType<typeof buildMessageStreamRenderPlan>) =>
+    plan.entries.map((entry) => entry.kind === "trace"
+      ? `trace:${entry.turnId}`
+      : `messages:${entry.messages.map((message) => message.id).join(",")}`);
+
+  it("失败链形态（消息不带轨迹回合 id）：轨迹块挂到该回合的用户消息之后（新输出上方），不再坠流尾", () => {
+    const turnId = "run_failed_chain";
+    const trajectory = reduceTrajectoryEvents(emptyTrajectoryState(), traceEvents(turnId, 2, T0 + 800));
+    const meta = reduceTurnEventMeta({}, [turnStarted(turnId, 1, T0 + 500)]);
+    const messages = [
+      chat({ id: "u1", role: "user", content: "把当前工程混得更好一点", createdAt: T0 }),
+      chat({ id: "e1", role: "system", content: "这条后台续跑链在执行中失败并已停止", status: "error", createdAt: T0 + 20_000 })
+    ];
+    const plan = buildMessageStreamRenderPlan({ messages, trajectory, turnEventMeta: meta });
+    expect(shapeOf(plan)).toEqual(["messages:u1", `trace:${turnId}`, "messages:e1"]);
+    expect(plan.orphanTurnIds).toEqual([]);
+  });
+
+  it("两轮跟随：第二轮轨迹块随第二轮用户消息下移，第一轮轨迹块留在自己的回合位（不迁移）", () => {
+    const turn1 = "run_round_1";
+    const turn2 = "run_round_2";
+    const trajectory = reduceTrajectoryEvents(emptyTrajectoryState(), [
+      ...traceEvents(turn1, 2, T0 + 800),
+      ...traceEvents(turn2, 11, T0 + 60_800)
+    ]);
+    const meta = reduceTurnEventMeta({}, [turnStarted(turn1, 1, T0 + 500), turnStarted(turn2, 10, T0 + 60_500)]);
+    const messages = [
+      chat({ id: "u1", role: "user", content: "第一问", createdAt: T0 }),
+      chat({ id: "a1", role: "assistant", content: "第一轮中间汇报", turn_id: "turn_x1", createdAt: T0 + 30_000 }),
+      chat({ id: "u2", role: "user", content: "第二问", createdAt: T0 + 60_000 }),
+      chat({ id: "a2", role: "assistant", content: "第二轮中间汇报", turn_id: "turn_x2", createdAt: T0 + 90_000 })
+    ];
+    const plan = buildMessageStreamRenderPlan({ messages, trajectory, turnEventMeta: meta });
+    expect(shapeOf(plan)).toEqual([
+      "messages:u1", `trace:${turn1}`, "messages:a1",
+      "messages:u2", `trace:${turn2}`, "messages:a2"
+    ]);
+    expect(plan.orphanTurnIds).toEqual([]);
+  });
+
+  it("数据线：App.tsx 把 turnEventMeta 喂给渲染计划（这条线断了锚定会静默退化回流尾）", () => {
+    const appSource = readFileSync(new URL("../App.tsx", import.meta.url), "utf8");
+    expect(appSource).toMatch(/buildMessageStreamRenderPlan\(\{\s*messages:[^)]*turnEventMeta/);
+    expect(appSource).toMatch(/<MessageStream[\s\S]*?turnEventMeta=\{turnEventMeta\}/);
+  });
+
+  it("无起始时刻证据：不猜归属，保持流尾兜底（缺证据时零回退）", () => {
+    const turnId = "run_no_timing";
+    const trajectory = reduceTrajectoryEvents(emptyTrajectoryState(), traceEvents(turnId, 2, T0 + 800));
+    const messages = [chat({ id: "u1", role: "user", content: "继续", createdAt: T0 })];
+    const plan = buildMessageStreamRenderPlan({ messages, trajectory });
+    expect(shapeOf(plan)).toEqual(["messages:u1", `trace:${turnId}`]);
+    expect(plan.orphanTurnIds).toEqual([turnId]);
+  });
+});
+
