@@ -13,6 +13,14 @@ import (
 
 const workingSessionsDirName = ".sessions"
 
+// Reopen boundary (PROJ-OPEN-RESUME-1): a session started by an explicit
+// project open keeps its project state but not the agent conversation that
+// belongs to the previous draft. The surfaces that are dropped are archived
+// next to the session so the history stays queryable.
+const archiveDirName = "archive"
+const archiveManifestFileName = "manifest.json"
+const reopenArchiveSchemaVersion = "vit_project_reopen_archive.v1"
+
 type WorkingSession struct {
 	SchemaVersion  string    `json:"schema_version"`
 	SessionID      string    `json:"session_id"`
@@ -26,6 +34,23 @@ type WorkingSession struct {
 	ForkedToPath   string    `json:"forked_to_path,omitempty"`
 	ForkedToUUID   string    `json:"forked_to_uuid,omitempty"`
 	BaseGeneration string    `json:"base_generation,omitempty"`
+	// ReopenReset is set only when this session was opened through the project
+	// reopen boundary and an inherited agent conversation/runtime state was
+	// archived and blanked. Absent on older records and on sessions that
+	// inherited nothing: an absent value means "no reopen reset".
+	ReopenReset *WorkingSessionReopenReset `json:"reopen_reset,omitempty"`
+}
+
+// WorkingSessionReopenReset records the reopen boundary decision so a later
+// reader can find the archived pre-reopen conversation without guessing.
+type WorkingSessionReopenReset struct {
+	SchemaVersion   string    `json:"schema_version"`
+	BaseGeneration  string    `json:"base_generation,omitempty"`
+	AppliedAt       time.Time `json:"applied_at"`
+	ArchiveDir      string    `json:"archive_dir"`
+	ArchivedNodes   int       `json:"archived_graph_nodes"`
+	ArchivedRuntime bool      `json:"archived_runtime_state"`
+	RetiredSessions int       `json:"retired_sessions,omitempty"`
 }
 
 func EnsureWorkingSession(projectPath, projectUUID string) (WorkingSession, error) {
@@ -168,10 +193,14 @@ func ensureWorkingSessionAtGeneration(projectPath, projectUUID, generationID str
 			generationID = head.GenerationID
 		}
 	}
+	// reopenedFromSavePoint records that the seed copy below is the immutable
+	// workspace of a manual save point rather than the live canonical history.
+	reopenedFromSavePoint := false
 	if generationID != "" {
 		candidate := savedGenerationWorkspace(canonical, generationID)
 		if dirExists(candidate) {
 			baseDir = candidate
+			reopenedFromSavePoint = true
 		}
 	}
 	sessionID := "session_" + time.Now().UTC().Format("20060102T150405") + "_" + shortID()
@@ -184,11 +213,42 @@ func ensureWorkingSessionAtGeneration(projectPath, projectUUID, generationID str
 	} else if err := os.MkdirAll(workspaceDir, 0o755); err != nil {
 		return WorkingSession{}, err
 	}
+	// PROJ-OPEN-RESUME-1: opening a project returns the PROJECT to its last
+	// manual save point; it does not hand the previous draft's agent
+	// conversation back as live context. The seeded copy above is the save
+	// point snapshot, so the two agent-conversation surfaces it carries
+	// (conversation graph + agent runtime state) are archived next to the new
+	// session and blanked here. Project history (commits, objects, refs,
+	// worktrees, media) is deliberately kept: only the live conversation is
+	// reset, and the archive keeps the record queryable.
+	var reopenReset *WorkingSessionReopenReset
+	if forceNew && reopenedFromSavePoint {
+		reset, resetErr := archiveReopenedAgentState(sessionRoot, workspaceDir, canonical, generationID)
+		if resetErr != nil {
+			return WorkingSession{}, resetErr
+		}
+		retired, retireErr := retireSupersededWorkingSessions(canonical, sessionRoot)
+		if retireErr != nil {
+			return WorkingSession{}, retireErr
+		}
+		if reset == nil && retired > 0 {
+			reset = &WorkingSessionReopenReset{
+				SchemaVersion:  reopenArchiveSchemaVersion,
+				BaseGeneration: generationID,
+				AppliedAt:      time.Now().UTC(),
+			}
+		}
+		if reset != nil {
+			reset.RetiredSessions = retired
+			reopenReset = reset
+		}
+	}
 	now := time.Now().UTC()
 	session := WorkingSession{
 		SchemaVersion: "vit_project_working_session.v1", SessionID: sessionID,
 		ProjectPath: canonical.ProjectPath, ProjectUUID: canonical.ProjectUUID,
-		WorkspaceDir: workspaceDir, Status: "active", CreatedAt: now, UpdatedAt: now, BaseGeneration: generationID,
+		WorkspaceDir: workspaceDir, Status: "active", CreatedAt: now, UpdatedAt: now,
+		BaseGeneration: generationID, ReopenReset: reopenReset,
 	}
 	if err := writeWorkspaceIdentity(workspaceDir, canonical.ProjectPath, canonical.ProjectUUID); err != nil {
 		return WorkingSession{}, err
@@ -218,6 +278,195 @@ func markRecoverableWorkingSessions(repo Repo) {
 		session.UpdatedAt = now
 		_ = writeWorkingSession(session)
 	}
+}
+
+// archivedSessionAgentState reports what one archive step captured.
+type archivedSessionAgentState struct {
+	ArchiveDir      string
+	GraphNodes      int
+	GraphArchived   bool
+	RuntimeArchived bool
+}
+
+// archiveReopenedAgentState applies the reopen boundary to a freshly seeded
+// session workspace: the agent conversation surfaces inherited from the save
+// point are archived next to the session and the live copies are blanked.
+// A nil result means the save point carried no agent conversation at all, so
+// the reopen was clean without any reset.
+func archiveReopenedAgentState(sessionRoot, workspaceDir string, repo Repo, generationID string) (*WorkingSessionReopenReset, error) {
+	archived, err := archiveSessionAgentState(sessionRoot, workspaceDir, repo, generationID, "project_reopen_save_point", true)
+	if err != nil {
+		return nil, err
+	}
+	if !archived.GraphArchived && !archived.RuntimeArchived {
+		return nil, nil
+	}
+	return &WorkingSessionReopenReset{
+		SchemaVersion:   reopenArchiveSchemaVersion,
+		BaseGeneration:  generationID,
+		AppliedAt:       time.Now().UTC(),
+		ArchiveDir:      archived.ArchiveDir,
+		ArchivedNodes:   archived.GraphNodes,
+		ArchivedRuntime: archived.RuntimeArchived,
+	}, nil
+}
+
+// archiveSessionAgentState copies a session workspace's agent conversation
+// surfaces into <sessionRoot>/archive and rewrites the live copies. The archive
+// is write-once: the first capture is the record of what the reopen dropped, so
+// a later reopen of the same session cannot overwrite it. blankGraph stays
+// false for superseded sessions, whose graph is left dormant on disk and only
+// stops being reachable as live context.
+func archiveSessionAgentState(sessionRoot, workspaceDir string, repo Repo, generationID, reason string, blankGraph bool) (archivedSessionAgentState, error) {
+	out := archivedSessionAgentState{}
+	stateDir := filepath.Join(workspaceDir, "state")
+	graphPath := filepath.Join(stateDir, conversationGraphFile)
+	runtimePath := filepath.Join(stateDir, agentRuntimeStateFile)
+	graphRaw, graphErr := os.ReadFile(graphPath)
+	if graphErr != nil && !errors.Is(graphErr, os.ErrNotExist) {
+		return out, graphErr
+	}
+	_, runtimeErr := os.ReadFile(runtimePath)
+	if runtimeErr != nil && !errors.Is(runtimeErr, os.ErrNotExist) {
+		return out, runtimeErr
+	}
+	if graphErr != nil && runtimeErr != nil {
+		return out, nil
+	}
+	archiveDir := filepath.Join(sessionRoot, archiveDirName)
+	if err := os.MkdirAll(archiveDir, 0o755); err != nil {
+		return out, err
+	}
+	out.ArchiveDir = archiveDir
+	if graphErr == nil {
+		inherited := ConversationGraph{}
+		_ = json.Unmarshal(graphRaw, &inherited)
+		out.GraphNodes = len(inherited.Nodes)
+		if _, err := copyFileIfAbsent(graphPath, filepath.Join(archiveDir, conversationGraphFile)); err != nil {
+			return out, err
+		}
+		out.GraphArchived = true
+	}
+	if runtimeErr == nil {
+		if _, err := copyFileIfAbsent(runtimePath, filepath.Join(archiveDir, agentRuntimeStateFile)); err != nil {
+			return out, err
+		}
+		out.RuntimeArchived = true
+	}
+	manifestPath := filepath.Join(archiveDir, archiveManifestFileName)
+	if !fileExists(manifestPath) {
+		if err := writeJSON(manifestPath, map[string]any{
+			"schema_version":         reopenArchiveSchemaVersion,
+			"reason":                 reason,
+			"archived_at":            time.Now().UTC(),
+			"base_generation":        generationID,
+			"graph_nodes":            out.GraphNodes,
+			"graph_archived":         out.GraphArchived,
+			"runtime_state_archived": out.RuntimeArchived,
+			"source_workspace":       workspaceDir,
+			"record":                 "agent conversation dropped at the project reopen boundary (PROJ-OPEN-RESUME-1)",
+		}); err != nil {
+			return out, err
+		}
+	}
+	if blankGraph && graphErr == nil {
+		if err := writeBlankConversationGraph(workspaceDir, repo.ProjectPath, repo.ProjectUUID); err != nil {
+			return out, err
+		}
+	}
+	if runtimeErr == nil {
+		if err := writeBlankAgentRuntimeState(stateDir, repo.ProjectPath, repo.ProjectUUID, generationID, archiveDir); err != nil {
+			return out, err
+		}
+	}
+	return out, nil
+}
+
+// retireSupersededWorkingSessions archives and neutralizes the draft state of
+// every other session of the same project. The sessions stay on disk and keep
+// their recovery_available marking, but a pre-reopen draft can no longer be
+// selected as live context by RecoverWorkingSession, and the continuation
+// scanner has no record left to keep reporting against a project that was just
+// reopened at its save point (the 912 stall WARN residue).
+func retireSupersededWorkingSessions(repo Repo, currentSessionRoot string) (int, error) {
+	entries, err := os.ReadDir(workingSessionsRoot(repo))
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return 0, nil
+		}
+		return 0, err
+	}
+	current := filepath.Clean(currentSessionRoot)
+	retired := 0
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			continue
+		}
+		sessionRoot := filepath.Join(workingSessionsRoot(repo), entry.Name())
+		if strings.EqualFold(filepath.Clean(sessionRoot), current) {
+			continue
+		}
+		session, readErr := readWorkingSession(sessionRoot)
+		if readErr != nil || !sameProjectPath(session.ProjectPath, repo.ProjectPath) || !dirExists(session.WorkspaceDir) {
+			continue
+		}
+		if session.Status != "active" && session.Status != "recovery_available" {
+			continue
+		}
+		archived, archiveErr := archiveSessionAgentState(sessionRoot, session.WorkspaceDir, repo, session.BaseGeneration, "superseded_by_project_reopen", false)
+		if archiveErr != nil {
+			return retired, archiveErr
+		}
+		if archived.RuntimeArchived {
+			retired++
+		}
+	}
+	return retired, nil
+}
+
+// writeBlankConversationGraph writes the empty conversation the reopened
+// session starts from. Project history (commits/objects/refs/worktrees) stays
+// in place; only the conversation nodes are dropped.
+func writeBlankConversationGraph(workspaceDir, projectPath, projectUUID string) error {
+	sessionRepo := Repo{
+		ProjectPath: projectPath, ProjectUUID: projectUUID,
+		HistoryDir: workspaceDir, StateDir: filepath.Join(workspaceDir, "state"),
+	}
+	return writeConversationGraph(sessionRepo, ConversationGraph{Nodes: []ConversationNode{}})
+}
+
+// writeBlankAgentRuntimeState resets the session runtime state to an empty
+// record that still names the project it belongs to, and points at the archive
+// holding the state it replaced.
+func writeBlankAgentRuntimeState(stateDir, projectPath, projectUUID, generationID, archiveDir string) error {
+	if err := os.MkdirAll(stateDir, 0o755); err != nil {
+		return err
+	}
+	now := time.Now().UTC()
+	blank := map[string]any{
+		"schema_version": "vit_project_agent_runtime.v1",
+		"project_path":   projectPath,
+		"project_uuid":   safeName(projectUUID),
+		"saved_at":       now,
+		"reopen_reset": map[string]any{
+			"schema_version":  reopenArchiveSchemaVersion,
+			"base_generation": generationID,
+			"applied_at":      now,
+			"archive_dir":     archiveDir,
+			"record":          "pre-reopen agent runtime state archived at the project reopen boundary",
+		},
+	}
+	return writeJSON(filepath.Join(stateDir, agentRuntimeStateFile), blank)
+}
+
+func copyFileIfAbsent(src, dst string) (bool, error) {
+	if fileExists(dst) {
+		return false, nil
+	}
+	if err := copyFile(src, dst); err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 func WorkingSessionID(projectPath string) string {

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -143,7 +144,12 @@ func TestProjectWorkspaceRestartRetiresPersistedLegacyB3Authority(t *testing.T) 
 	}
 }
 
-func TestSameProjectReopenLoadsSavedConversationAndLeavesUnsavedDraft(t *testing.T) {
+// PROJ-OPEN-RESUME-1 (user ruling 2026-09-13): reopening a project returns the
+// PROJECT to its last manual save point. The agent conversation recorded before
+// that save point is NOT restored as live context — neither the conversation
+// that was in the save point nor the unsaved draft on top of it comes back.
+// The dropped conversation stays queryable in the session archive.
+func TestSameProjectReopenStartsBlankAndArchivesSavedConversation(t *testing.T) {
 	root := t.TempDir()
 	projectPath := filepath.Join(root, "B1.vit")
 	const projectUUID = "vitproj_same_path_reopen"
@@ -159,6 +165,13 @@ func TestSameProjectReopenLoadsSavedConversationAndLeavesUnsavedDraft(t *testing
 	server.conversations["saved"] = []llm.Message{{Role: "user", Content: "B1 complete"}}
 	server.mu.Unlock()
 	server.persistCurrentProjectWorkspace()
+	checkpoint, err := history.Checkpoint(map[string]any{"project_path": projectPath, "message": "B1 complete", "source": "test"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := history.AppendConversationNode(map[string]any{"project_path": projectPath, "kind": "ask", "commit_id": checkpoint["commit_id"], "text": "B1 complete"}); err != nil {
+		t.Fatal(err)
+	}
 	prepared, err := history.PrepareWorkingSessionSave(projectPath, projectUUID, "save")
 	if err != nil {
 		t.Fatal(err)
@@ -176,12 +189,24 @@ func TestSameProjectReopenLoadsSavedConversationAndLeavesUnsavedDraft(t *testing
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := history.OpenWorkingSessionAtGeneration(projectPath, projectUUID, head.GenerationID); err != nil {
+	reopened, err := history.OpenWorkingSessionAtGeneration(projectPath, projectUUID, head.GenerationID)
+	if err != nil {
 		t.Fatal(err)
 	}
 	server.activateCurrentProjectWorkspace(context.Background())
-	if len(server.conversations["saved"]) != 1 || len(server.conversations["unsaved"]) != 0 {
-		t.Fatalf("saved/draft boundary was not restored: %#v", server.conversations)
+	if len(server.conversations) != 0 {
+		t.Fatalf("reopen carried pre-save-point conversation into the live session: %#v", server.conversations)
+	}
+	runtimeData, err := history.ReadAgentRuntimeState(projectPath, projectUUID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(string(runtimeData), "B1 complete") || strings.Contains(string(runtimeData), "draft") {
+		t.Fatalf("reopen inherited pre-save-point runtime state: %s", runtimeData)
+	}
+	archivedGraph, err := os.ReadFile(filepath.Join(filepath.Dir(reopened.WorkspaceDir), "archive", "conversation_graph.json"))
+	if err != nil || !strings.Contains(string(archivedGraph), "B1 complete") {
+		t.Fatalf("save-point conversation was not archived: data=%s err=%v", archivedGraph, err)
 	}
 }
 

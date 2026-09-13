@@ -670,15 +670,320 @@ func TestOpenLegacyProjectRepairsSavedBoundaryFromProjectTimestamp(t *testing.T)
 	if session.BaseGeneration == "" {
 		t.Fatalf("legacy project did not receive a Saved Generation: %+v", session)
 	}
-	assertConversationTexts(t, readConversationGraphOrDefault(mustOpenRepo(t, projectPath)), []string{"B1 complete"})
+	// PROJ-OPEN-RESUME-1: the repaired save boundary is a save point, so the
+	// reopened session starts blank; the pre-boundary conversation stays
+	// queryable in the session archive and in the Saved Generation itself.
+	assertConversationTexts(t, readConversationGraphOrDefault(mustOpenRepo(t, projectPath)), nil)
+	assertConversationTexts(t, readArchivedGraph(t, filepath.Dir(session.WorkspaceDir)), []string{"B1 complete"})
 	head, err := SavedHeadForProject(projectPath, projectUUID)
 	if err != nil || head.GenerationID != session.BaseGeneration {
 		t.Fatalf("saved head=%+v session=%+v err=%v", head, session, err)
 	}
+	generationGraph := ConversationGraph{}
+	if err := readJSON(filepath.Join(savedGenerationWorkspace(repo, session.BaseGeneration), "state", conversationGraphFile), &generationGraph); err != nil {
+		t.Fatal(err)
+	}
+	assertConversationTexts(t, generationGraph, []string{"B1 complete"})
 	backups, err := filepath.Glob(filepath.Join(root, DirName, legacySavedBoundaryBackupsDirName, projectUUID+"_*"))
 	if err != nil || len(backups) != 1 {
 		t.Fatalf("legacy repair backup missing: %v err=%v", backups, err)
 	}
+}
+
+// --- PROJ-OPEN-RESUME-1 ---------------------------------------------------
+//
+// User ruling (2026-09-13): the agent conversation recorded before a manual
+// save point must not come back as live context when the project is reopened.
+// The unit pins below move the RED/GREEN boundary for:
+//   * a reopen that has a save point      -> live conversation blank, old draft
+//     archived and queryable, stranded continuations retired;
+//   * a reopen that has no save point     -> unchanged clean start;
+//   * a page refresh of the same session  -> unchanged (no reset, no re-bind).
+
+const reopenArchiveTestFile = "manifest.json"
+
+func writeReopenDraftState(t *testing.T, projectPath, projectUUID, continuationID string) {
+	t.Helper()
+	data, err := json.Marshal(map[string]any{
+		"schema_version": "vit_project_agent_runtime.v1",
+		"project_path":   projectPath,
+		"project_uuid":   projectUUID,
+		"conversations": map[string]any{
+			"chat_pre": []any{map[string]any{"role": "user", "content": "pre-save-point user turn"}},
+		},
+		"durable_continuations": map[string]any{
+			continuationID: map[string]any{"status": "running", "conversation_id": "chat_pre"},
+		},
+		"goal_runtime": map[string]any{
+			"goals": []any{map[string]any{"status": "waiting_continue"}},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := WriteAgentRuntimeState(projectPath, projectUUID, data); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func readArchivedGraph(t *testing.T, sessionRoot string) ConversationGraph {
+	t.Helper()
+	graph := ConversationGraph{}
+	if err := readJSON(filepath.Join(sessionRoot, archiveDirName, conversationGraphFile), &graph); err != nil {
+		t.Fatalf("archived conversation graph unreadable in %s: %v", sessionRoot, err)
+	}
+	return graph
+}
+
+// TestProjectReopenAfterSavePointStartsBlankAndArchivesPreSavePointConversation
+// is the card's primary pin: a save point exists, the project is reopened, and
+// the reopened session must not carry the save-point conversation as live
+// context while the archived copy stays queryable.
+func TestProjectReopenAfterSavePointStartsBlankAndArchivesPreSavePointConversation(t *testing.T) {
+	root := t.TempDir()
+	projectPath := filepath.Join(root, "912.vit")
+	if err := os.WriteFile(projectPath, []byte("912 project"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	const projectUUID = "vitproj_reopen_save_point"
+	BindProjectIdentity(projectPath, projectUUID)
+	first, err := EnsureWorkingSession(projectPath, projectUUID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	commit, err := Checkpoint(map[string]any{"project_path": projectPath, "message": "pre-save-point baseline", "source": "test"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, text := range []string{"pre-save-point user turn", "pre-save-point agent reply"} {
+		if _, err := AppendConversationNode(map[string]any{
+			"project_path": projectPath, "kind": "vit", "commit_id": commit["commit_id"], "text": text,
+		}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	writeReopenDraftState(t, projectPath, projectUUID, "cont_stranded")
+	prepared, err := PrepareWorkingSessionSave(projectPath, projectUUID, "save")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := CommitPreparedWorkingSession(projectPath, projectUUID, projectPath, projectUUID,
+		fmt.Sprint(prepared["prepare_id"]), fmt.Sprint(prepared["generation_id"]), "save"); err != nil {
+		t.Fatal(err)
+	}
+	head, err := SavedHeadForProject(projectPath, projectUUID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	generationID := head.GenerationID
+	if generationID == "" {
+		t.Fatal("save point did not produce a generation")
+	}
+	repo, err := canonicalRepo(projectPath, projectUUID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Control: the save-point generation itself does hold the conversation. The
+	// reopen must not delete it; it must stop being live context.
+	generationGraph := ConversationGraph{}
+	if err := readJSON(filepath.Join(savedGenerationWorkspace(repo, generationID), "state", conversationGraphFile), &generationGraph); err != nil {
+		t.Fatal(err)
+	}
+	assertConversationTexts(t, generationGraph, []string{"pre-save-point user turn", "pre-save-point agent reply"})
+
+	reopened, err := OpenWorkingSessionAtGeneration(projectPath, projectUUID, generationID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if reopened.SessionID == first.SessionID {
+		t.Fatalf("reopen reused the pre-save-point session: %+v", reopened)
+	}
+	if reopened.BaseGeneration != generationID {
+		t.Fatalf("reopened session base generation=%q want=%q", reopened.BaseGeneration, generationID)
+	}
+
+	// 1. the live conversation of the reopened session is blank.
+	liveGraph := readConversationGraphOrDefault(mustOpenRepo(t, projectPath))
+	assertConversationTexts(t, liveGraph, nil)
+	if messages := conversationMessagesForGraph(liveGraph); len(messages) != 0 {
+		t.Fatalf("reopened session hydrated %d messages: %+v", len(messages), messages)
+	}
+	// 2. the same surface the GUI hydrates from /agent/state?detail=full.
+	status, err := Status(map[string]any{"project_path": projectPath})
+	if err != nil {
+		t.Fatal(err)
+	}
+	statusGraph, ok := status["conversation_graph"].(ConversationGraph)
+	if !ok {
+		t.Fatalf("status conversation_graph type=%T", status["conversation_graph"])
+	}
+	assertConversationTexts(t, statusGraph, nil)
+	statusMessages, _ := status["conversation_messages"].([]ConversationMessage)
+	if len(statusMessages) != 0 {
+		t.Fatalf("reopened project history carried %d messages: %+v", len(statusMessages), statusMessages)
+	}
+	// 3. the inherited runtime state is blank and carries no pending work.
+	runtimeData, err := ReadAgentRuntimeState(projectPath, projectUUID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if runtimeStateHasPendingWork(runtimeData) {
+		t.Fatalf("reopened session inherited pending work: %s", runtimeData)
+	}
+	if strings.Contains(string(runtimeData), "cont_stranded") {
+		t.Fatalf("reopened session inherited the pre-save-point continuation: %s", runtimeData)
+	}
+	// 4. the pre-save-point conversation is archived inside the new session and
+	//    still queryable (no data loss).
+	sessionRoot := filepath.Dir(reopened.WorkspaceDir)
+	assertConversationTexts(t, readArchivedGraph(t, sessionRoot), []string{"pre-save-point user turn", "pre-save-point agent reply"})
+	archivedRuntime, err := os.ReadFile(filepath.Join(sessionRoot, archiveDirName, agentRuntimeStateFile))
+	if err != nil || !strings.Contains(string(archivedRuntime), "cont_stranded") {
+		t.Fatalf("archived runtime state missing the pre-save-point continuation: data=%s err=%v", archivedRuntime, err)
+	}
+	manifest := map[string]any{}
+	if err := readJSON(filepath.Join(sessionRoot, archiveDirName, reopenArchiveTestFile), &manifest); err != nil {
+		t.Fatal(err)
+	}
+	if fmt.Sprint(manifest["base_generation"]) != generationID {
+		t.Fatalf("archive manifest base_generation=%v want=%s", manifest["base_generation"], generationID)
+	}
+	if nodes, _ := manifest["graph_nodes"].(float64); int(nodes) != 2 {
+		t.Fatalf("archive manifest graph_nodes=%v want=2", manifest["graph_nodes"])
+	}
+	if reopened.ReopenReset == nil || reopened.ReopenReset.BaseGeneration != generationID {
+		t.Fatalf("session did not record the reopen reset: %+v", reopened.ReopenReset)
+	}
+	// 5. a stranded pre-save-point continuation can no longer be resumed as live
+	//    context, and the superseded session is still explicitly recoverable.
+	if recovered, ok, err := RecoverWorkingSession(projectPath, projectUUID); err != nil {
+		t.Fatal(err)
+	} else if ok {
+		t.Fatalf("pre-save-point session was resumed as live context after reopen: %+v", recovered)
+	}
+	superseded, err := readWorkingSession(filepath.Dir(first.WorkspaceDir))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if superseded.Status != "recovery_available" {
+		t.Fatalf("superseded session status=%q want recovery_available", superseded.Status)
+	}
+	supersededRuntime, err := os.ReadFile(filepath.Join(filepath.Dir(first.WorkspaceDir), archiveDirName, agentRuntimeStateFile))
+	if err != nil || !strings.Contains(string(supersededRuntime), "cont_stranded") {
+		t.Fatalf("superseded session state was not archived: data=%s err=%v", supersededRuntime, err)
+	}
+}
+
+// TestProjectReopenWithoutSavePointStaysClean pins the JOURNEY-1 premise: with
+// no save point the reopen is already clean, and the reopen boundary must not
+// regress it (in particular it must not invent an archive or a reset marker).
+func TestProjectReopenWithoutSavePointStaysClean(t *testing.T) {
+	projectPath := filepath.Join(t.TempDir(), "no-save-point.vit")
+	if err := os.WriteFile(projectPath, []byte("project"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	const projectUUID = "vitproj_reopen_without_save_point"
+	BindProjectIdentity(projectPath, projectUUID)
+	first, err := EnsureWorkingSession(projectPath, projectUUID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	commit, err := Checkpoint(map[string]any{"project_path": projectPath, "message": "unsaved draft", "source": "test"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := AppendConversationNode(map[string]any{
+		"project_path": projectPath, "kind": "ask", "commit_id": commit["commit_id"], "text": "unsaved draft turn",
+	}); err != nil {
+		t.Fatal(err)
+	}
+	writeReopenDraftState(t, projectPath, projectUUID, "cont_unsaved")
+
+	reopened, err := OpenWorkingSessionAtGeneration(projectPath, projectUUID, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if reopened.SessionID == first.SessionID {
+		t.Fatalf("reopen reused the unsaved session: %+v", reopened)
+	}
+	if reopened.BaseGeneration != "" {
+		t.Fatalf("reopen without a save point invented a generation: %+v", reopened)
+	}
+	if reopened.ReopenReset != nil {
+		t.Fatalf("reopen without a save point recorded a reset: %+v", reopened.ReopenReset)
+	}
+	if _, err := os.Stat(filepath.Join(filepath.Dir(reopened.WorkspaceDir), archiveDirName)); !os.IsNotExist(err) {
+		t.Fatalf("reopen without a save point created an archive: %v", err)
+	}
+	assertConversationTexts(t, readConversationGraphOrDefault(mustOpenRepo(t, projectPath)), nil)
+	runtimeData, err := ReadAgentRuntimeState(projectPath, projectUUID)
+	if err == nil && runtimeStateHasPendingWork(runtimeData) {
+		t.Fatalf("reopen without a save point inherited pending work: %s", runtimeData)
+	}
+}
+
+// TestSameSessionColdReadKeepsConversation is the F2 boundary: a page refresh
+// reads the very same bound session and must keep its conversation, with no
+// reset and no rebind.
+func TestSameSessionColdReadKeepsConversation(t *testing.T) {
+	root := t.TempDir()
+	projectPath := filepath.Join(root, "refresh.vit")
+	if err := os.WriteFile(projectPath, []byte("project"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	const projectUUID = "vitproj_same_session_refresh"
+	BindProjectIdentity(projectPath, projectUUID)
+	if _, err := EnsureWorkingSession(projectPath, projectUUID); err != nil {
+		t.Fatal(err)
+	}
+	commit, err := Checkpoint(map[string]any{"project_path": projectPath, "message": "refresh baseline", "source": "test"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := AppendConversationNode(map[string]any{
+		"project_path": projectPath, "kind": "vit", "commit_id": commit["commit_id"], "text": "live turn before refresh",
+	}); err != nil {
+		t.Fatal(err)
+	}
+	before, err := EnsureWorkingSession(projectPath, projectUUID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	sessionsBefore := countProjectSessionDirs(t, root, projectUUID)
+
+	// The refresh is a cold read of the same session: no forceNew, no generation.
+	after, err := EnsureWorkingSessionAtGeneration(projectPath, projectUUID, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if after.SessionID != before.SessionID {
+		t.Fatalf("cold read rebound the session: before=%s after=%s", before.SessionID, after.SessionID)
+	}
+	if after.ReopenReset != nil {
+		t.Fatalf("cold read recorded a reopen reset: %+v", after.ReopenReset)
+	}
+	assertConversationTexts(t, readConversationGraphOrDefault(mustOpenRepo(t, projectPath)), []string{"live turn before refresh"})
+	if sessionsAfter := countProjectSessionDirs(t, root, projectUUID); sessionsAfter != sessionsBefore {
+		t.Fatalf("cold read created a session dir: before=%d after=%d", sessionsBefore, sessionsAfter)
+	}
+}
+
+func countProjectSessionDirs(t *testing.T, root, projectUUID string) int {
+	t.Helper()
+	entries, err := os.ReadDir(filepath.Join(root, DirName, workingSessionsDirName, projectUUID))
+	if err != nil {
+		if os.IsNotExist(err) {
+			return 0
+		}
+		t.Fatal(err)
+	}
+	count := 0
+	for _, entry := range entries {
+		if entry.IsDir() {
+			count++
+		}
+	}
+	return count
 }
 
 func assertConversationTexts(t *testing.T, graph ConversationGraph, want []string) {
