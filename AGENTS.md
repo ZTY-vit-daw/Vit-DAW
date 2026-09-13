@@ -108,6 +108,7 @@ powershell -ExecutionPolicy Bypass -File .\build_release.ps1
   - **在真实运行栈上测**：由烟测脚本启动真实三件套——VitApp 内核、Godot 前端（`D:\Godot\project\vit-daw-frontend`）、构建并重启 Go agent（如 `scripts/dev_agent_smoke.ps1 -StartKernel -StartUI`）——然后通过 agent 的 HTTP/ZMQ 接口对运行中的栈做验证，不得只测 mock 或编译产物；
   - **复用现有 ps1 脚本体系**：新测试场景以扩展现有冒测脚本（加参数）或按同一模式新增脚本实现，不另起一套测试机制；只读检查参照 `scripts/g_runtime_readonly_smoke.ps1` 的白名单 GET 模式；
   - **通过标准**：脚本以退出码 0（PASS）结束，方视为达到用户验收门槛。
+  - **渲染面与用户旅程门槛（用户裁定 2026-09-13）**：现有烟测只断言 agent 的 HTTP/ZMQ 接口面，不覆盖 webui 渲染结果与用户旅程——**不得把用户手测当第一道功能验证**。webui 改动（呈现/布局/交互）须过渲染面端侧烟测（浏览器级 DOM 断言，建设卡 E2E-WEBUI-1）；demo 关键旅程（工程打开→权限→实验→装载→A/B）由旅程烟测脚本覆盖（建设卡 JOURNEY-1）。两层层级就位前，涉渲染面与用户旅程的改动必须在回执中**显式声明端测覆盖边界**，由决策侧裁定是否足以交付。
 
 ## 6. 健康检查命令
 
