@@ -1910,12 +1910,32 @@ func (h *Harness) enforceAgentProcessorLoadGate(req InvokeRequest, spec tools.Co
 		return nil
 	}
 	auth, ok := req.Context[semanticPluginSelectionAuthorizationContextKey].(semanticPluginSelectionAuthorization)
-	if !ok || auth.TrackID == "" || auth.PluginPath == "" || auth.PluginIdentifier == "" {
-		return fmt.Errorf("pca_load_gate: missing non-forgeable exact selection authorization")
-	}
 	trackID := strings.TrimSpace(firstString(cmd, "track_id", "target_track_id", "selected_track_id"))
 	pluginPath := strings.TrimSpace(firstString(cmd, "plugin_path", "path", "file_path", "plugin_file", "source_path"))
 	identifier := strings.TrimSpace(firstString(cmd, "plugin_identifier", "identifier", "file_or_identifier"))
+	if !ok || auth.TrackID == "" || auth.PluginPath == "" || auth.PluginIdentifier == "" {
+		// Full project access is the user's standing grant of autonomous
+		// execution, so an exact load that names one current PCA-admitted
+		// processor must not dead-end on the absence of a manual selection.
+		// The server resolves that exact identity, path, and pre-load binary
+		// fingerprint from the promoted PCA catalog, so the authorization
+		// stays non-forgeable and the checks below still run unchanged.
+		if !explicitFullProjectAccess(req.Context) {
+			return fmt.Errorf("pca_load_gate: missing non-forgeable exact selection authorization")
+		}
+		resolved, err := authorizeFullProjectAccessLoad(trackID, pluginPath, identifier)
+		if err != nil {
+			return err
+		}
+		auth = resolved
+		if pluginPath == "" {
+			// The caller named only the identifier; dispatch the exact admitted
+			// path that was just verified so the Kernel cannot resolve another.
+			cmd["plugin_path"] = resolved.PluginPath
+		}
+		pluginPath = resolved.PluginPath
+		identifier = resolved.PluginIdentifier
+	}
 	if trackID != auth.TrackID || !strings.EqualFold(pluginPath, auth.PluginPath) || !strings.EqualFold(identifier, auth.PluginIdentifier) {
 		return fmt.Errorf("pca_load_gate: exact identifier, path, or track changed after authorization")
 	}
@@ -1946,6 +1966,134 @@ func (h *Harness) enforceAgentProcessorLoadGate(req InvokeRequest, spec tools.Co
 		return fmt.Errorf("pca_load_gate: attestation changed before load")
 	}
 	return nil
+}
+
+// fullProjectAccessAdmissionUnavailable reports the exact "no current
+// PCA-admitted processor matched" reason inside a stable pca_load_gate prefix.
+func fullProjectAccessAdmissionUnavailable(reason string) error {
+	if strings.TrimSpace(reason) == "" {
+		reason = "no_promoted_attestation_matched"
+	}
+	return fmt.Errorf("pca_load_gate: autonomous full-access load rejected: %s", reason)
+}
+
+// authorizeFullProjectAccessLoad mints the in-process authorization object for
+// one exact plug-in load requested under authority=full_project_access.
+//
+// The Agent may not load a processor that is not currently admitted, and the
+// selection it names must resolve to exactly one promoted PCA identity whose
+// installed binary still matches its recorded fingerprint. Nothing here reads
+// selection facts from the request: subject key, family, installed path,
+// attestation id, and the pre-load fingerprint all come from the promoted PCA
+// catalog, which is why the resulting authorization is not client-forgeable.
+// Ambiguity (an identifier matching several promoted identities) fails closed.
+func authorizeFullProjectAccessLoad(trackID, pluginPath, identifier string) (semanticPluginSelectionAuthorization, error) {
+	identifier = strings.TrimSpace(identifier)
+	if identifier == "" {
+		return semanticPluginSelectionAuthorization{}, fmt.Errorf("pca_load_gate: full project access load requires an exact plugin_identifier; the selection must be resolvable against the authoritative PCA catalog")
+	}
+	records, err := promotedProcessorAuthorizationRecords(identifier, pluginPath)
+	if err != nil {
+		return semanticPluginSelectionAuthorization{}, err
+	}
+	matches := make([]semanticPluginSelectionAuthorization, 0, 1)
+	seen := map[string]bool{}
+	for _, record := range records {
+		fingerprint, err := processorattestation.FingerprintPath(record.PluginPath)
+		if err != nil {
+			continue
+		}
+		if !strings.EqualFold(fingerprint, record.BinaryFingerprint) {
+			continue
+		}
+		exact := semanticPluginSelectionAuthorization{
+			TrackID: strings.TrimSpace(trackID), PluginPath: record.PluginPath, PluginIdentifier: record.PluginIdentifier,
+			ProcessorFamily: record.ProcessorFamily, SubjectKey: record.SubjectKey,
+			BinaryFingerprint: record.BinaryFingerprint, AttestationID: record.AttestationID,
+		}
+		key := strings.Join([]string{strings.ToLower(record.PluginPath), strings.ToLower(record.ProcessorFamily), strings.ToLower(record.SubjectKey)}, "\x00")
+		if seen[key] {
+			continue
+		}
+		seen[key] = true
+		matches = append(matches, exact)
+	}
+	if len(matches) == 0 {
+		return semanticPluginSelectionAuthorization{}, fullProjectAccessAdmissionUnavailable("no_promoted_current_pca_admission_for_identifier")
+	}
+	if len(matches) > 1 {
+		return semanticPluginSelectionAuthorization{}, fmt.Errorf("pca_load_gate: full project access load requires one exact processor identity; %q resolves to %d promoted identities", identifier, len(matches))
+	}
+	if strings.TrimSpace(trackID) == "" {
+		return semanticPluginSelectionAuthorization{}, fmt.Errorf("pca_load_gate: full project access load requires an exact track_id")
+	}
+	return matches[0], nil
+}
+
+func promotedProcessorAuthorizationRecords(identifier, pluginPath string) ([]semanticPluginSelectionAuthorization, error) {
+	identifier = strings.TrimSpace(identifier)
+	pluginPath = strings.TrimSpace(pluginPath)
+	records := make([]semanticPluginSelectionAuthorization, 0, 2)
+	collect := func(subject processorattestation.Subject, fingerprint, family, attestationID string) {
+		if subject.InstalledPath == "" {
+			return
+		}
+		records = append(records, semanticPluginSelectionAuthorization{
+			PluginPath: subject.InstalledPath, PluginIdentifier: subject.Identifier, ProcessorFamily: strings.ToLower(strings.TrimSpace(family)),
+			SubjectKey: subject.SubjectKey, BinaryFingerprint: fingerprint, AttestationID: attestationID,
+		})
+	}
+	store, err := processorattestation.NewStore("")
+	if err != nil {
+		return nil, fmt.Errorf("pca_load_gate: authoritative PCA store unavailable: %w", err)
+	}
+	library, _, err := store.Read()
+	if err != nil {
+		return nil, fmt.Errorf("pca_load_gate: authoritative PCA query failed: %w", err)
+	}
+	for _, attestation := range library.Attestations {
+		if attestation.Status != processorattestation.StatusPromoted || !promotedProcessorIdentityMatches(attestation.Subject, identifier, pluginPath) {
+			continue
+		}
+		collect(attestation.Subject, attestation.BinaryFingerprint, attestation.ProcessorFamily, attestation.AttestationID)
+	}
+	storeV2, err := processorattestation.NewStoreV2("")
+	if err != nil {
+		return nil, fmt.Errorf("pca_load_gate: authoritative PCA store unavailable: %w", err)
+	}
+	libraryV2, _, err := storeV2.Read()
+	if err != nil {
+		return nil, fmt.Errorf("pca_load_gate: authoritative PCA query failed: %w", err)
+	}
+	for _, attestation := range libraryV2.Attestations {
+		if attestation.Status != processorattestation.StatusPromoted || !promotedProcessorIdentityMatches(attestation.Subject, identifier, pluginPath) {
+			continue
+		}
+		collect(attestation.Subject, attestation.BinaryFingerprint, attestation.ProcessorFamily, attestation.AttestationID)
+	}
+	return records, nil
+}
+
+// promotedProcessorIdentityMatches binds a promoted record to the requested
+// identifier, and to the requested path when the caller pinned one. A pinned
+// path that disagrees with the admitted record is a mismatch, never a silent
+// reassignment.
+func promotedProcessorIdentityMatches(subject processorattestation.Subject, identifier, pluginPath string) bool {
+	if subject.Identifier == "" || !strings.EqualFold(strings.TrimSpace(subject.Identifier), identifier) {
+		return false
+	}
+	if pluginPath != "" && !strings.EqualFold(normalizePluginPathForCompare(subject.InstalledPath), normalizePluginPathForCompare(pluginPath)) {
+		return false
+	}
+	return true
+}
+
+func normalizePluginPathForCompare(path string) string {
+	path = strings.TrimSpace(path)
+	if path == "" {
+		return ""
+	}
+	return strings.ReplaceAll(filepath.Clean(path), "\\", "/")
 }
 
 func broadMixObserveFirstWriteGuard(requestContext map[string]any, spec tools.CommandSpec, cmd map[string]any) error {

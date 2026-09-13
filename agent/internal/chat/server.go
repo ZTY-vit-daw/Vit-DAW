@@ -1451,6 +1451,7 @@ func (s *Server) handleInvoke(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusConflict, harness.InvokeResponse{Status: "error", Tool: req.Tool, Error: "authority_mode_not_active: " + err.Error(), Result: map[string]any{"error_code": "authority_mode_not_active"}})
 		return
 	}
+	s.stampInvokeAuthorityMode(&req)
 	if guard, blocked := s.checkoutGuard(req); blocked {
 		writeJSON(w, http.StatusConflict, harness.InvokeResponse{Status: "error", Tool: req.Tool, CommandName: firstNonEmpty(fmt.Sprint(req.Command["cmd"]), req.Tool), Error: "checkout_blocked_while_agent_running", Result: guard})
 		return

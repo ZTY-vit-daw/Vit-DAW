@@ -86,17 +86,50 @@ func (s *Server) bindChatAuthorityMode(requested string, ctx map[string]any) (ma
 }
 
 func (s *Server) validateInvokeAuthority(ctx map[string]any) error {
+	_, err := s.resolvedInvokeAuthority(ctx)
+	return err
+}
+
+// resolvedInvokeAuthority returns the authority mode one invoke is entitled to
+// run under. When the caller asserts a mode, that assertion must agree with the
+// server's own authority state; a full-access claim that the user never granted
+// through the authority control is rejected here rather than downstream.
+func (s *Server) resolvedInvokeAuthority(ctx map[string]any) (string, error) {
 	if ctx == nil || !boolValue(ctx["authority_mode_explicit"]) {
-		return nil
+		return "", nil
 	}
 	requested, err := normalizeAuthorityMode(firstStringFromMap(ctx, "authority_mode", "permission_mode"))
 	if err != nil {
-		return err
+		return "", err
 	}
 	if requested == authorityModeFull && s.authorityModeSnapshot() != authorityModeFull {
-		return fmt.Errorf("full_project_access must be selected through the authority control before invoking an action")
+		return "", fmt.Errorf("full_project_access must be selected through the authority control before invoking an action")
 	}
-	return nil
+	return requested, nil
+}
+
+// stampInvokeAuthorityMode binds the server's own authority state onto the
+// harness context of one invoke.
+//
+// The authority control is server-owned: /agent/authority is the only place a
+// mode is granted, and no request body can grant one. Execution-time gates that
+// must know whether the user granted autonomous execution (the PCA load gate is
+// the strictest of them) therefore read the mode from here instead of asking
+// every transport caller to restate a permission it does not own. A caller that
+// does assert a mode keeps its own value: that assertion was validated by
+// validateInvokeAuthority before this runs, so it can only agree or be absent.
+func (s *Server) stampInvokeAuthorityMode(req *harness.InvokeRequest) {
+	if s == nil || req == nil {
+		return
+	}
+	if strings.TrimSpace(firstStringFromMap(req.Context, "authority_mode", "permission_mode")) != "" {
+		return
+	}
+	mode := s.authorityModeSnapshot()
+	if strings.TrimSpace(mode) == "" {
+		return
+	}
+	req.Context = mergeContext(req.Context, map[string]any{"authority_mode": mode, "authority_mode_explicit": true})
 }
 
 func (s *Server) authorityModeChangeBlocked() (agentruntime.Goal, bool) {

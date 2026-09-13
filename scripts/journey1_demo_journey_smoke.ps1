@@ -679,11 +679,9 @@ try {
     $phaseA["a2_bass_plugin_count_after"] = $bassPluginsAfter
     $phaseA["a2_plugin_rack_plugin_rows"] = $rackPluginsAfter
     $phaseA["a2_plugin_rack_rows"] = $rackRowsAfter
-    $a2PluginLanded = ($bassPluginsAfter -gt $bassPluginsBefore) -or ($rackPluginsAfter -gt 0)
-    $a2Red = ($gateDenials -gt 0) -or (-not $a2PluginLanded)
-    $phaseA["a2_plugin_landed"] = $a2PluginLanded
-    $phaseA["a2_red"] = $a2Red
-    Add-Prereq ("a2_state=" + $(if ($a2Red) { "RED" } else { "GREEN" }) + " pca_load_gate_denials=" + $gateDenials + " bass_plugin_count_before=" + $bassPluginsBefore + " bass_plugin_count_after=" + $bassPluginsAfter + " rack_plugin_rows=" + $rackPluginsAfter)
+    $a2JourneyLanded = ($bassPluginsAfter -gt $bassPluginsBefore) -or ($rackPluginsAfter -gt 0)
+    $phaseA["a2_journey_turn_plugin_landed"] = $a2JourneyLanded
+    $phaseA["a2_plugin_landed"] = $a2JourneyLanded
 
     # ---- A2b: deterministic load-authorization probe.
     # The journey itself is a model-branch-dependent path (a run can end on a
@@ -697,10 +695,16 @@ try {
     $probeBefore = Get-LogLineCount -Path (Join-Path $PhaseADir "agent_last.log") -Pattern "stage=pca_processor_load_gate"
     $probeResponse = $null
     $probeErrorBody = ""
+    $probeDenied = $false
+    $probeStatus = ""
+    $probeError = ""
     if (-not [string]::IsNullOrWhiteSpace($bassTrackID)) {
         $probeBody = @{
             tool      = "rack_add_node"
-            command   = @{ cmd = "rack_add_node"; plugin_identifier = $EqPluginIdentifier; track_id = $bassTrackID; x = 0; y = 0; zone_id = "journey1_zone" }
+            # zone_id is a Kernel signal-zone whitelist (Z1/Z2/Z3); the earlier
+            # "journey1_zone" value never reached that validator because the PCA
+            # load gate rejected the probe first (PCA-FULLACCESS-1 receipt).
+            command   = @{ cmd = "rack_add_node"; plugin_identifier = $EqPluginIdentifier; track_id = $bassTrackID; x = 0; y = 0; zone_id = "Z3" }
             source    = "journey1_driver"
             confirmed = $true
         }
@@ -717,10 +721,51 @@ try {
         if (-not [string]::IsNullOrWhiteSpace($probeErrorBody)) { $probeErrorBody | Set-Content -LiteralPath (Join-Path $PhaseADir "a2_direct_rack_add_node_error.json") -Encoding UTF8 }
     }
     $probeAfter = Get-LogLineCount -Path (Join-Path $PhaseADir "agent_last.log") -Pattern "stage=pca_processor_load_gate"
-    $probeStatus = ""
-    $probeError = ""
     if ($null -ne $probeResponse) { $probeStatus = [string]$probeResponse.status; $probeError = [string]$probeResponse.error }
     $probeDenied = ($probeAfter -gt $probeBefore) -or ($probeStatus -eq "error")
+    # Landing evidence comes from the request whose reply IS the Kernel's own
+    # answer: a rack_add_node that returns a plugin instance id with
+    # plugin_instance_ready=true has landed. /agent/ui/state is deliberately NOT
+    # used here: the VSP execution path does not run afterKernelReply, so the
+    # Agent shadow (and therefore the UI projection) is not refreshed by an
+    # out-of-band probe and still reports plugin_count=0 (PCA-FULLACCESS-1
+    # receipt, run ...20260913_pca_fullaccess_4). That projection gap is a
+    # separate observation and is not what A2 asserts.
+    $probePluginID = ""
+    $probeInstanceReady = $false
+    $probeGraphDiff = ""
+    if ($null -ne $probeResponse) {
+        $probeResult = $probeResponse.result
+        if ($null -ne $probeResult) {
+            $idProp = $probeResult.PSObject.Properties["plugin_id"]
+            if ($null -ne $idProp -and $null -ne $idProp.Value) { $probePluginID = [string]$idProp.Value }
+            $readyProp = $probeResult.PSObject.Properties["plugin_instance_ready"]
+            if ($null -ne $readyProp -and $null -ne $readyProp.Value) { $probeInstanceReady = [bool]$readyProp.Value }
+            foreach ($name in @("graph_last_diff_kind", "graph_last_diff_summary")) {
+                $diffProp = $probeResult.PSObject.Properties[$name]
+                if ($null -ne $diffProp -and -not [string]::IsNullOrWhiteSpace([string]$diffProp.Value)) {
+                    if (-not [string]::IsNullOrWhiteSpace($probeGraphDiff)) { $probeGraphDiff = $probeGraphDiff + "|" }
+                    $probeGraphDiff = $probeGraphDiff + [string]$diffProp.Value
+                }
+            }
+        }
+    }
+    $probePluginLanded = (-not [string]::IsNullOrWhiteSpace($probePluginID)) -and $probeInstanceReady
+    $phaseA["a2_direct_probe_plugin_id"] = $probePluginID
+    $phaseA["a2_direct_probe_plugin_instance_ready"] = $probeInstanceReady
+    $phaseA["a2_direct_probe_graph_diff"] = $probeGraphDiff
+    $phaseA["a2_direct_probe_plugin_landed"] = $probePluginLanded
+    Add-Prereq ("a2_direct_probe_landed=" + $probePluginLanded + " plugin_id=" + $probePluginID + " instance_ready=" + $probeInstanceReady + " graph_diff=" + $probeGraphDiff)
+
+    # A2 verdict (evaluated after the probe, which is what carries it): the
+    # journey turn is model-branch-dependent (a run can end on a mix_tick dose
+    # without ever attempting a load), so the assertion holds when the
+    # deterministic probe was denied zero times AND the Kernel's own reply to
+    # that probe shows the plugin loaded. The journey-turn half stays reported.
+    $a2Red = $probeDenied -or (-not $probePluginLanded)
+    $phaseA["a2_direct_probe_denied"] = $probeDenied
+    $phaseA["a2_red"] = $a2Red
+    Add-Prereq ("a2_state=" + $(if ($a2Red) { "RED" } else { "GREEN" }) + " pca_load_gate_denials=" + $gateDenials + " probe_denied=" + $probeDenied + " probe_landed=" + $probePluginLanded + " journey_turn_landed=" + $a2JourneyLanded)
     $phaseA["a2_direct_probe_track_id"] = $bassTrackID
     $phaseA["a2_direct_probe_plugin"] = $EqPluginIdentifier
     $phaseA["a2_direct_probe_status"] = $probeStatus
@@ -925,7 +970,7 @@ try {
     if ($SkipReopen) { $a4State = "not_observable" } else { $a4State = [string]$phaseB["a4_state"] }
     $assertions = [ordered]@{
         a1_no_direction_asking = [ordered]@{ state = $a1State; basis = "delivered text (chat slices + event title/body): option-marker count / ask vocabulary" }
-        a2_load_path_works     = [ordered]@{ state = $(if ($a2Red) { "red" } else { "green" }); basis = "bass track plugin_count growth in the journey turn, cross-checked by the direct rack.add_node authorization probe" }
+        a2_load_path_works     = [ordered]@{ state = $(if ($a2Red) { "red" } else { "green" }); basis = "deterministic half: the direct rack.add_node probe is not denied by the PCA load gate AND the Kernel's own reply carries a ready plugin instance (plugin_id + plugin_instance_ready); journey-turn half (bass plugin_count growth) reported separately in a2_journey_turn_plugin_landed" }
         a3_experiment_chain    = [ordered]@{ state = $a3State; basis = "proposal -> applied -> readback -> mix_tick/audition card on the conversation event stream" }
         a4_session_clean       = [ordered]@{ state = $a4State; basis = "phase B reopen after a phase A save point: does the live reopened conversation carry pre-save-point history (graph nodes / messages), and did a stall WARN scan run" }
     }
