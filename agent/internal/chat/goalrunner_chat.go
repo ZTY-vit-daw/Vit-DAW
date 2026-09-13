@@ -125,6 +125,16 @@ func isMultiPluginLoadIntent(message string) bool {
 }
 func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, req ChatRequest, cfg config.EngineConfig) (resp ChatResponse, handled bool) {
 	started := time.Now()
+	// FALLBACK-2：切片边界是唯一同时握有 agentloop.Result（含终局 fallback 轨迹）
+	// 与将要交付的 ChatResponse 的位置。把决策层终局判别折成一枚只读回执挂在
+	// WorkflowData 上，调度器结算时只读回执、不猜；其它失败形态零变化。res 因此
+	// 上提到函数头（各分支仍按原样赋值）。
+	var res agentloop.Result
+	defer func() {
+		if handled {
+			resp = bindSchedulerChainDecisionReceipt(resp, res)
+		}
+	}()
 	defer func() {
 		if s != nil && s.logger != nil && handled {
 			s.logger.Info("[timing] agent_loop_chat total_ms=%d conversation=%s goal=%s mode=%s status=%s stop=%s completed_steps=%d executed=%d",
@@ -340,7 +350,6 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 		}
 	}
 
-	var res agentloop.Result
 	if isContinueMessage(req.Message) {
 		cont, ok := s.goalContinuationForConversation(conversationID)
 		if !ok {

@@ -1440,13 +1440,437 @@ func schedulerChainFailureResponse(current DurableContinuation, resp ChatRespons
 	if detail == "" && failure != nil {
 		detail = strings.TrimSpace(failure.Error())
 	}
-	out.Error = firstNonEmpty(strings.TrimSpace(out.Error), detail)
+	// FALLBACK-2 ② detail 护链：结算 reason 与执行器状态枚举共用同一个字面量
+	// （audioclosure.StopTaskFailed / agentloop.StopReasonFailed / runtime
+	// StatusFailed 都是 "failed"），于是 firstNonEmpty(out.Error, out.StopReason)
+	// 会让状态枚举直接充当用户面失败详情。枚举只做最后兜底，且兜底必须是中文
+	// 状态词；此前按 决策层原文 → 结算 summary → 执行器文案 的顺序回补。
+	userDetail := stripSchedulerChainFailureEnvelope(detail)
+	if schedulerChainStatusEnumLiteral(userDetail) {
+		userDetail = schedulerChainFailureEnumFallback(out, failure)
+	}
+	// The payload error keeps the raw detail (and, when the slice carried a
+	// decision-layer original, that complete text — FALLBACK-2 ④：不截断）；the
+	// user-facing body shows the envelope-stripped form.
+	out.Error = firstNonEmpty(strings.TrimSpace(out.Error), schedulerChainDecisionLayerText(out), detail)
 	out.GoalStatus = string(agentruntime.StatusFailed)
 	out.StopReason = firstNonEmpty(strings.TrimSpace(out.StopReason), agentloop.StopReasonFailed)
-	// The payload error keeps the raw detail; the user-facing body shows it with
-	// this file's own machine envelope stripped (see stripSchedulerChainFailureEnvelope).
-	out.Reply = schedulerChainFailureReply(strings.TrimSpace(out.Reply), stripSchedulerChainFailureEnvelope(detail))
+	if receipt, graded := schedulerChainDecisionReceiptFromResponse(out); graded {
+		// FALLBACK-2 ①：决策层终局不冒充执行器故障。
+		gates := schedulerChainDecisionGates(out)
+		out.Reply = schedulerChainDecisionReply(strings.TrimSpace(out.Reply), receipt,
+			schedulerChainDecisionGapLines(gates), schedulerChainDecisionNextStep(gates))
+		return out
+	}
+	out.Reply = schedulerChainFailureReply(strings.TrimSpace(out.Reply), userDetail)
 	return out
+}
+
+// ─── FALLBACK-2（2026-09-13）：终局分级与诚实结算 ─────────────────────────
+//
+// 缺陷（FALLBACK-1 回执 §4 六级降级链）：agentloop 的终局 fallback 把「门拒绝
+// G4/G5/G6/G8（决定不可采）」与「JSON 解不开（模型协议失败）」压成同一个停机级，
+// 链切片收口时再被 fmt.Errorf("durable continuation failed: %s",
+// firstNonEmpty(Error, StopReason)) 压成 Go error，最后本文件的 firstNonEmpty 链
+// 让状态枚举字面量 "failed" 充当用户面失败详情——用户拿到
+// 「这条后台续跑链在执行中失败并已停止…失败详情：failed」（912.vit 两条 vit
+// 节点原文），而决策层原文在内部三处完好保存。
+//
+// 修法（决策侧四条裁定，全部落在 chat 结算侧）：
+//  1. 用户面三态分级：协议失败 / 决定不可采（门拒绝）/ 真执行失败；
+//  2. detail 护链：枚举字面量不得充当失败详情，兜底用中文状态词；
+//  3. stop reason 常量不重命名（agentloop 冻结面）——本文件只读既有字段；
+//  4. durable.LastError 保留完整决策层原文，不截断。
+//
+// 判别输入的来源（全部是既有文本，零 agentloop 改动）：
+//   - agentloop.Result.Trace 的终局 fallback final_gate 事件（哪个层拒绝的，
+//     runAgentLoopChat 在切片边界把它折成回执挂到 WorkflowData）；
+//   - WorkflowData["free_state_reasoning_loop"] 的 admission_rejection_gaps /
+//     admission_receipt / last_error / latest_decision（结构化 gap 原文）；
+//   - WorkflowData["minimal_audio_closure"].settlement（闭包结算 summary）。
+const (
+	// schedulerChainDecisionReceiptKey 是终局判别回执在 ChatResponse.WorkflowData
+	// 上的键。回执由 runAgentLoopChat 从 agentloop.Result 的既有 Trace 派生，
+	// 调度器只读它、不猜：没有回执的失败终局就是普通执行失败。
+	schedulerChainDecisionReceiptKey = "chain_failure_decision"
+	// schedulerChainDecisionReceiptSchema 是回执 schema 版本。
+	schedulerChainDecisionReceiptSchema = "scheduler_chain_failure_decision.v1"
+	// schedulerChainDecisionFamilyUnparsed：终局输出在解析/修复层就没能成为
+	// 一个 JSON 对象（真模型协议失败，可重试）。
+	schedulerChainDecisionFamilyUnparsed = "terminal_output_unparsed"
+	// schedulerChainDecisionFamilyRefused：终局输出是可解析的决策，被准入门
+	// （G1-G8）拒绝（决定不可采，不是执行故障）。
+	schedulerChainDecisionFamilyRefused = "proposal_not_admitted"
+)
+
+// schedulerChainTerminalFallbackTracePrefix 是 agentloop 终局 fallback 写在
+// Result.Trace 上的 final_gate 事件前缀（messageLoopTerminalFallbackResult）。
+// chat 只读这一既有文本，不改 agentloop。
+const schedulerChainTerminalFallbackTracePrefix = "terminal-turn fallback: "
+
+// schedulerChainFailureDetailFallbackStatus 是枚举兜底的最后一跳：中文状态词，
+// 永不是裸枚举。
+const schedulerChainFailureDetailFallbackStatus = "执行失败（未提供更多详情）"
+
+// schedulerChainDecisionReceipt is the decision-layer receipt a slice carries
+// when its turn ended in the agentloop terminal fallback. It is deliberately
+// minimal: the family that decides the user-facing wording, plus the decision
+// layer's own reason text.
+type schedulerChainDecisionReceipt struct {
+	SchemaVersion string `json:"schema_version"`
+	Family        string `json:"family"`
+	Detail        string `json:"detail,omitempty"`
+}
+
+// schedulerChainDecisionReceiptFromResult derives the receipt from the
+// agentloop result's terminal-fallback trace event. Only a failed slice whose
+// trace carries the fallback event is graded; every other failure keeps the
+// F5 execution-failure semantics verbatim.
+func schedulerChainDecisionReceiptFromResult(res agentloop.Result) (schedulerChainDecisionReceipt, bool) {
+	if res.Status != agentruntime.StatusFailed {
+		return schedulerChainDecisionReceipt{}, false
+	}
+	detail := ""
+	for _, event := range res.Trace {
+		if !strings.EqualFold(strings.TrimSpace(event.Kind), "final_gate") {
+			continue
+		}
+		message := strings.TrimSpace(event.Message)
+		if !strings.HasPrefix(message, schedulerChainTerminalFallbackTracePrefix) {
+			continue
+		}
+		detail = strings.TrimSpace(strings.TrimPrefix(message, schedulerChainTerminalFallbackTracePrefix))
+	}
+	if detail == "" {
+		return schedulerChainDecisionReceipt{}, false
+	}
+	family, known := schedulerChainTerminalFallbackFamily(detail)
+	if !known {
+		// Fail-safe: a fallback reason outside the closed vocabulary this file
+		// knows must not be graded into a claim the evidence does not support.
+		// The terminal keeps the F5 execution-failure wording instead.
+		return schedulerChainDecisionReceipt{}, false
+	}
+	return schedulerChainDecisionReceipt{
+		SchemaVersion: schedulerChainDecisionReceiptSchema,
+		Family:        family,
+		Detail:        detail,
+	}, true
+}
+
+// schedulerChainTerminalFallbackFamily maps the agentloop terminal-turn
+// fallback reason onto the two closed families. The reasons are the fallback's
+// own vocabulary (BOUNDARY-1 §3.2 parse layer / §1.3 admission layer):
+//
+//	parse layer    -> the raw output never became one JSON object
+//	admission layer-> a parseable decision the gates (G1-G8) refused
+//
+// An unrecognized wording reports known=false (never a guessed family).
+func schedulerChainTerminalFallbackFamily(detail string) (string, bool) {
+	lowered := strings.ToLower(strings.TrimSpace(detail))
+	switch {
+	case strings.Contains(lowered, "unparseable"), strings.Contains(lowered, "not one clean json object"):
+		return schedulerChainDecisionFamilyUnparsed, true
+	case strings.Contains(lowered, "no admissible final decision"):
+		return schedulerChainDecisionFamilyRefused, true
+	}
+	return "", false
+}
+
+// bindSchedulerChainDecisionReceipt attaches the receipt to a slice response
+// whose turn ended in the terminal fallback. Any other response is returned
+// untouched.
+func bindSchedulerChainDecisionReceipt(resp ChatResponse, res agentloop.Result) ChatResponse {
+	receipt, ok := schedulerChainDecisionReceiptFromResult(res)
+	if !ok {
+		return resp
+	}
+	data, err := json.Marshal(receipt)
+	if err != nil {
+		return resp
+	}
+	row := map[string]any{}
+	if json.Unmarshal(data, &row) != nil {
+		return resp
+	}
+	if resp.WorkflowData == nil {
+		resp.WorkflowData = map[string]any{}
+	}
+	resp.WorkflowData[schedulerChainDecisionReceiptKey] = row
+	return resp
+}
+
+// schedulerChainDecisionReceiptFromResponse reads the receipt back. A response
+// without a well-formed receipt is not graded (fail-safe: the F5 wording stays).
+func schedulerChainDecisionReceiptFromResponse(resp ChatResponse) (schedulerChainDecisionReceipt, bool) {
+	row := firstMapFromAny(resp.WorkflowData[schedulerChainDecisionReceiptKey])
+	if len(row) == 0 {
+		return schedulerChainDecisionReceipt{}, false
+	}
+	family := firstStringFromMap(row, "family")
+	switch family {
+	case schedulerChainDecisionFamilyUnparsed, schedulerChainDecisionFamilyRefused:
+	default:
+		return schedulerChainDecisionReceipt{}, false
+	}
+	return schedulerChainDecisionReceipt{
+		SchemaVersion: firstStringFromMap(row, "schema_version"),
+		Family:        family,
+		Detail:        firstStringFromMap(row, "detail"),
+	}, true
+}
+
+// schedulerChainMapValue reads a nested map that may be a plain map or a typed
+// struct: the closure settlement rides WorkflowData as audioclosure.Settlement.
+func schedulerChainMapValue(value any) map[string]any {
+	if row, ok := value.(map[string]any); ok {
+		return row
+	}
+	data, err := json.Marshal(value)
+	if err != nil {
+		return nil
+	}
+	row := map[string]any{}
+	if json.Unmarshal(data, &row) != nil {
+		return nil
+	}
+	return row
+}
+
+// schedulerChainDecisionLayerText is the decision layer's own original text in
+// precedence order, verbatim and never truncated (FALLBACK-2 ④). The closure
+// settlement summary and the durable loop's last_error are the two surfaces that
+// carry the agentloop terminal fallback's complete sentence
+// ("terminal turn produced no admissible final decision after one strengthened
+// retry", the same text the two 912.vit goals kept internally); the receipt's
+// own detail is the shorter fallback label and only stands in when neither
+// survived. This is what the durable record keeps as the chain's failure reason
+// and what the payload error carries; the user-facing body is what gets graded.
+func schedulerChainDecisionLayerText(resp ChatResponse) string {
+	if summary := schedulerChainClosureSettlementSummary(resp); summary != "" {
+		return summary
+	}
+	if text := schedulerChainLoopDecisionLayerText(resp); text != "" {
+		return text
+	}
+	if receipt, ok := schedulerChainDecisionReceiptFromResponse(resp); ok {
+		if detail := strings.TrimSpace(receipt.Detail); detail != "" {
+			return detail
+		}
+	}
+	return ""
+}
+
+func schedulerChainClosureSettlementSummary(resp ChatResponse) string {
+	for _, row := range []map[string]any{
+		schedulerChainMapValue(resp.WorkflowData["settlement"]),
+		schedulerChainMapValue(schedulerChainMapValue(resp.WorkflowData[audioClosureContextKey])["settlement"]),
+	} {
+		if summary := firstStringFromMap(row, "summary"); summary != "" {
+			return summary
+		}
+	}
+	return ""
+}
+
+func schedulerChainLoopDecisionLayerText(resp ChatResponse) string {
+	loop := firstMapFromAny(resp.WorkflowData["free_state_reasoning_loop"])
+	if len(loop) == 0 {
+		return ""
+	}
+	if text := firstStringFromMap(loop, "last_error"); text != "" {
+		return text
+	}
+	return firstStringFromMap(firstMapFromAny(loop["latest_decision"]), "summary")
+}
+
+// schedulerChainStatusEnumLiteral reports whether text is nothing but a status
+// enum value (goal status / stop reason vocabulary). Such a value describes the
+// executor's state, never the decision layer's reason, and must not stand in as
+// a user-facing failure detail.
+func schedulerChainStatusEnumLiteral(text string) bool {
+	switch strings.ToLower(strings.TrimSpace(text)) {
+	case "", "failed", "cancelled", "canceled", "stopped", "completed", "stable", "idle",
+		"waiting_continue", "waiting_confirmation", "waiting_clarification":
+		return true
+	}
+	return false
+}
+
+// schedulerChainFailureEnumFallback resolves the detail when the legacy chain
+// would have used a bare status enum: the full decision-layer original first,
+// then the executor's own text, and only then a Chinese status word.
+func schedulerChainFailureEnumFallback(resp ChatResponse, failure error) string {
+	candidates := []string{schedulerChainDecisionLayerText(resp)}
+	if failure != nil {
+		candidates = append(candidates, failure.Error())
+	}
+	for _, candidate := range candidates {
+		candidate = stripSchedulerChainFailureEnvelope(candidate)
+		if candidate != "" && !schedulerChainStatusEnumLiteral(candidate) {
+			return candidate
+		}
+	}
+	return schedulerChainFailureDetailFallbackStatus
+}
+
+// schedulerChainDecisionGates collects the structured admission-gap gate ids
+// (free_state_admission_gap.v1). The accumulated rejection gaps are the
+// terminal-turn disclosure; the receipt's gate ids are the fallback when no
+// gap record survived the merge. Content-blind: ids and condition slots only.
+func schedulerChainDecisionGates(resp ChatResponse) []string {
+	loop := firstMapFromAny(resp.WorkflowData["free_state_reasoning_loop"])
+	if len(loop) == 0 {
+		return nil
+	}
+	gates := []string{}
+	seen := map[string]bool{}
+	appendGate := func(gate string) {
+		gate = strings.TrimSpace(gate)
+		if gate == "" || seen[gate] {
+			return
+		}
+		seen[gate] = true
+		gates = append(gates, gate)
+	}
+	for _, gap := range freeStateMapRows(loop["admission_rejection_gaps"]) {
+		for _, missing := range freeStateMapRows(gap["missing"]) {
+			appendGate(firstStringFromMap(missing, "gate_id"))
+		}
+		for _, gate := range schedulerChainStringRows(gap["failed_gate_ids"]) {
+			appendGate(gate)
+		}
+	}
+	if len(gates) == 0 {
+		for _, gate := range schedulerChainStringRows(firstMapFromAny(loop["admission_receipt"])["failed_gate_ids"]) {
+			appendGate(gate)
+		}
+	}
+	return gates
+}
+
+func schedulerChainStringRows(value any) []string {
+	switch rows := value.(type) {
+	case []string:
+		return append([]string(nil), rows...)
+	case []any:
+		out := make([]string, 0, len(rows))
+		for _, row := range rows {
+			if text := cleanContextText(row); text != "" {
+				out = append(out, text)
+			}
+		}
+		return out
+	}
+	return nil
+}
+
+// schedulerChainDecisionGapLines renders the structured gate refusals in human
+// words. Unknown ids keep their raw id rather than dropping the disclosure.
+func schedulerChainDecisionGapLines(gates []string) []string {
+	lines := []string{}
+	seen := map[string]bool{}
+	for _, gate := range gates {
+		line := schedulerChainGateHumanLine(gate)
+		if line == "" {
+			line = "准入门没有通过：" + strings.TrimSpace(gate)
+		}
+		if seen[line] {
+			continue
+		}
+		seen[line] = true
+		lines = append(lines, line)
+		if len(lines) == schedulerChainDecisionGapLineLimit {
+			break
+		}
+	}
+	return lines
+}
+
+const schedulerChainDecisionGapLineLimit = 3
+
+func schedulerChainGateHumanLine(gateID string) string {
+	switch strings.ToUpper(strings.TrimSpace(gateID)) {
+	case "G1_PROJECT_BINDING":
+		return "提案绑定的工程版本与当前工程对不上"
+	case "G2_CAPACITY_ASSESSED":
+		return "这一步超出了当前任务能自动推进的范围"
+	case "G3_PROJECT_SCAN":
+		return "还没有拿到合格的工程扫描证据"
+	case "G4_DIMENSION_CLOSED":
+		return "还没有一个证据齐全、没有遗留疑问的诊断维度可以下手"
+	case "G5_FRONTIER_ESTABLISHED":
+		return "还没有建立起可比较的候选（前沿为空）"
+	case "G6_TARGET_EVIDENCE":
+		return "缺少针对目标轨道自身的可用观察证据"
+	case "G7_FRESH_REVISION_BOUND_REFS":
+		return "引用的证据不是当前修订下的新鲜证据"
+	case "G8_TARGET_CONSISTENCY":
+		return "提案的目标与已有候选和证据对不上"
+	}
+	return ""
+}
+
+// schedulerChainDecisionNextStep names the honest next move. G1/G2/G8 are
+// direction problems (realign the proposal), the evidence gates are observation
+// problems.
+func schedulerChainDecisionNextStep(gates []string) string {
+	observation, redirect := false, false
+	for _, gate := range gates {
+		switch strings.ToUpper(strings.TrimSpace(gate)) {
+		case "G1_PROJECT_BINDING", "G2_CAPACITY_ASSESSED", "G8_TARGET_CONSISTENCY":
+			redirect = true
+		default:
+			observation = true
+		}
+	}
+	switch {
+	case observation && redirect:
+		return "需要更多观察，或换一个方向"
+	case redirect:
+		return "换一个方向"
+	default:
+		return "需要更多观察"
+	}
+}
+
+func schedulerChainDecisionGuidanceLine(nextStep string) string {
+	switch nextStep {
+	case "换一个方向":
+		return "这不是执行故障——换一个方向：让提案对准已有的候选和证据，再试一次。"
+	case "需要更多观察，或换一个方向":
+		return "这不是执行故障——需要更多观察，或换一个方向：先补证据，或者换一条路，我再重新给出提案。"
+	default:
+		return "这不是执行故障——需要更多观察：先补一轮针对这个目标的证据，我再重新给出提案。"
+	}
+}
+
+// schedulerChainDecisionReply composes the graded decision-terminal body. The
+// F5 execution-failure lead is deliberately absent: nothing was executed and
+// nothing failed to execute — the experiment decision did not become
+// admissible, and saying "the chain failed while executing" is exactly the
+// dishonesty this grading removes.
+func schedulerChainDecisionReply(sliceReply string, receipt schedulerChainDecisionReceipt, gapLines []string, nextStep string) string {
+	var lines []string
+	switch receipt.Family {
+	case schedulerChainDecisionFamilyUnparsed:
+		lines = append(lines,
+			"这次实验决策的输出格式无法解析，这条后台续跑链已经停下；已有的观察与证据都已保留。",
+			"这不是执行故障——可以重试：直接说「继续」，我会重新走一遍这一步。")
+	default:
+		reason := strings.Join(gapLines, "；")
+		if reason == "" {
+			reason = "这一步的决定没有通过准入门检查"
+		}
+		lines = append(lines,
+			"这次实验提案没有被采纳，这条后台续跑链已经停下；已有的观察与证据都已保留。",
+			"没有被采纳的原因："+reason+"。",
+			schedulerChainDecisionGuidanceLine(nextStep))
+	}
+	if sliceReply != "" {
+		lines = append(lines, "这一步收到的汇报："+sliceReply)
+	}
+	return stripInternalTerminalTerms(strings.Join(lines, "\n"))
 }
 
 // schedulerChainFailureEnvelopePrefix is the envelope this file wraps around a
@@ -1667,7 +2091,7 @@ func (s *Server) executeDurableContinuationWithResult(ctx context.Context, item 
 		return resp, fmt.Errorf("durable continuation was not handled by agent loop")
 	}
 	if strings.TrimSpace(resp.Error) != "" || resp.GoalStatus == string(agentruntime.StatusFailed) {
-		return resp, fmt.Errorf("durable continuation failed: %s", firstNonEmpty(resp.Error, resp.StopReason, "unknown failure"))
+		return resp, fmt.Errorf("durable continuation failed: %s", schedulerChainFailureReason(resp))
 	}
 	// An interaction boundary reached inside a scheduler-driven slice must
 	// stay durably visible. The HTTP path surfaces these requests on the chat
@@ -1681,6 +2105,25 @@ func (s *Server) executeDurableContinuationWithResult(ctx context.Context, item 
 		s.parkClaimedContinuationAtInteraction(item, chatResponsePendingInteraction(resp))
 	}
 	return resp, nil
+}
+
+// schedulerChainFailureReason is the reason this file wraps in the operator
+// envelope ("durable continuation failed: <reason>"). The envelope is what
+// setContinuationStatus writes into the durable record's last_error, so it must
+// carry the decision layer's complete original text rather than the status enum
+// the legacy firstNonEmpty chain fell through to (FALLBACK-2 ④：durable.LastError
+// 保留完整决策层原文，不截断).
+func schedulerChainFailureReason(resp ChatResponse) string {
+	if text := strings.TrimSpace(resp.Error); text != "" {
+		return text
+	}
+	if text := schedulerChainDecisionLayerText(resp); text != "" {
+		return text
+	}
+	if text := stripSchedulerChainFailureEnvelope(resp.StopReason); text != "" && !schedulerChainStatusEnumLiteral(text) {
+		return text
+	}
+	return schedulerChainFailureDetailFallbackStatus
 }
 
 // interactionBoundaryChatResponse reports whether a chat response stops at a
