@@ -123,6 +123,8 @@ func (s *Server) emitChatTurnTrajectoryTerminal(conversationID, goalID, runID st
 	if turnID == "" {
 		return
 	}
+	// TRAJ-DUAL-1：自由态实验回合壳与本壳同点、同闸门收口（见下方注释）。
+	s.closeFreeStateExperimentTrajectoryShells(conversationID, turnID, goalID, runID, status, summary)
 	// Only close a node this path opened: free-state-suppressed turns never
 	// emitted a started node, and a stale live block must not be resurrected.
 	if !s.hasChatTurnTrajectoryNodeEvent(conversationID, trajectory.EventTurnStarted, turnID) {
@@ -132,6 +134,116 @@ func (s *Server) emitChatTurnTrajectoryTerminal(conversationID, goalID, runID st
 		if s.hasChatTurnTrajectoryNodeEvent(conversationID, terminal, turnID) {
 			return
 		}
+	}
+	s.emitChatTurnTrajectoryNodeTerminal(conversationID, turnID, goalID, runID, chatTurnTrajectoryNodeID(turnID), status, summary)
+}
+
+// chatTurnTrajectoryFreeStateTurnPrefix is the free-state experiment turn
+// namespace. experiment.NewTurn is called with TurnID "turn:"+loop.LoopID
+// (free_state_experiment_runtime.go) and every loop id is minted as
+// "free_state_"+randomID (free_state_reasoning_loop.go), so the experiment turn
+// shell always lands under this prefix.
+const chatTurnTrajectoryFreeStateTurnPrefix = "turn:free_state_"
+
+// TRAJ-DUAL-1（2026-09-13）：自由态实验回合壳的终局闭合。
+//
+// 取证（artifacts/b12_1_blind/forensics/events.json，run_5ef8d61bc9b78e20）：
+// 实验回合壳由 experiment.Turn.StartEvents 在准入时开启（trajectory.turn.started，
+// node_kind=turn，payload.turn_id=turn:{loopID}），但它的终局路线只有 Stop() 的
+// trajectory.turn.stopped——正常收口路径 Settle() 只发 trajectory.settled
+// （node_kind=settlement），而消费面（webui trajectory.ts B9 统一面）的轮次终态
+// **只由 trajectory.turn.completed/failed/stopped 收口**。于是闸门生效的那一半
+// 分支（循环已存在 ⇒ 消息域壳被 :94 抑制）下，整个会话回合在轨迹流里拿不到任何
+// turn 家族终局——轨迹块永不闭合（前端悬置 spinner 的服务端根）。
+//
+// 收口点刻意选在消息域壳的同一处、同一闸门之后：transport turn 终局本身已受
+// AGENT-F6 的「waiting_continue + 活续跑链」抑制约束，因此实验壳只在整轮真正
+// 收尾（含调度链终片）时闭合，不新增任何时序面。
+func (s *Server) closeFreeStateExperimentTrajectoryShells(conversationID, currentTurnID, goalID, runID string, status trajectory.Status, summary string) {
+	for _, shellTurnID := range s.openChatFreeStateExperimentTurnIDs(conversationID, currentTurnID) {
+		s.emitChatTurnTrajectoryNodeTerminal(conversationID, shellTurnID, goalID, runID, shellTurnID, status, summary)
+	}
+}
+
+// openChatFreeStateExperimentTurnIDs returns the payload turn ids of free-state
+// experiment turn shells that this conversation has opened and not yet closed.
+//
+// 两路取证并集，因为实验壳必须能被找到两次：
+//  1. 会话持久循环当前的实验回合（生产真相；循环被清退后这条会落空）；
+//  2. 事件流里已开启的 turn:free_state_* 壳（循环重启/清退后仍能收口）。
+//
+// 壳的身份一律取 payload.turn_id：实验壳的 trace_node_id / item_id 是
+// experiment/runtime.go 的运行期随机串（newID("trace")），按 item_id 永远找不到
+// 它——这正是消息域壳的 hasChatTurnTrajectoryNodeEvent 守卫看不见实验壳的原因
+// （两个壳活在两个 turn_id 命名空间：裸 runID 与 turn:{loopID}）。
+func (s *Server) openChatFreeStateExperimentTurnIDs(conversationID, currentTurnID string) []string {
+	if s == nil || strings.TrimSpace(conversationID) == "" {
+		return nil
+	}
+	events := s.agentEventsSinceForControl(conversationID)
+	candidates := []string{}
+	if loop, ok := s.freeStateLoop(conversationID); ok && loop.Experiment != nil {
+		candidates = append(candidates, chatTurnTrajectoryNodeID(loop.LoopID))
+	}
+	for _, event := range events {
+		if event.Type != string(trajectory.EventTurnStarted) {
+			continue
+		}
+		if strings.TrimSpace(firstStringFromMap(event.Payload, "node_kind")) != string(trajectory.NodeTurn) {
+			continue
+		}
+		if id := strings.TrimSpace(firstStringFromMap(event.Payload, "turn_id")); strings.HasPrefix(id, chatTurnTrajectoryFreeStateTurnPrefix) {
+			candidates = append(candidates, id)
+		}
+	}
+	currentTurnID = strings.TrimSpace(currentTurnID)
+	out := []string{}
+	seen := map[string]bool{}
+	for _, candidate := range candidates {
+		turnID := strings.TrimSpace(candidate)
+		if turnID == "" || turnID == currentTurnID || seen[turnID] {
+			continue
+		}
+		seen[turnID] = true
+		if !hasChatTrajectoryPayloadNode(events, trajectory.EventTurnStarted, turnID) {
+			continue
+		}
+		closed := false
+		for _, terminal := range []trajectory.EventType{trajectory.EventTurnCompleted, trajectory.EventTurnFailed, trajectory.EventTurnStopped} {
+			if hasChatTrajectoryPayloadNode(events, terminal, turnID) {
+				closed = true
+				break
+			}
+		}
+		if closed {
+			continue
+		}
+		out = append(out, turnID)
+	}
+	return out
+}
+
+// hasChatTrajectoryPayloadNode matches a projected trajectory event by its
+// payload turn id (the shell identity), independent of the node id.
+func hasChatTrajectoryPayloadNode(events []AgentEvent, eventType trajectory.EventType, turnID string) bool {
+	for _, event := range events {
+		if event.Type != string(eventType) {
+			continue
+		}
+		if strings.TrimSpace(firstStringFromMap(event.Payload, "turn_id")) == strings.TrimSpace(turnID) {
+			return true
+		}
+	}
+	return false
+}
+
+// emitChatTurnTrajectoryNodeTerminal publishes one turn-family terminal for a
+// trajectory turn node. Callers own the "is this node open?" decision, so the
+// free-state shell (opened by another domain, matched by payload turn id) and
+// the message-scope shell (opened here, matched by item id) can both use it.
+func (s *Server) emitChatTurnTrajectoryNodeTerminal(conversationID, turnID, goalID, runID, nodeID string, status trajectory.Status, summary string) {
+	if s == nil || strings.TrimSpace(conversationID) == "" {
+		return
 	}
 	eventType := trajectory.EventTurnCompleted
 	phase := "completed"
@@ -145,11 +257,11 @@ func (s *Server) emitChatTurnTrajectoryTerminal(conversationID, goalID, runID st
 	}
 	event := trajectory.Event{
 		Type: eventType, ConversationID: conversationID,
-		GoalID: goalID, RunID: runID, ItemID: chatTurnTrajectoryNodeID(turnID),
+		GoalID: goalID, RunID: runID, ItemID: nodeID,
 		Title: chatTurnPhaseTitle(phase),
 		Payload: trajectory.Payload{
 			SchemaVersion: trajectory.SchemaVersion,
-			TurnID:        turnID, TraceNodeID: chatTurnTrajectoryNodeID(turnID),
+			TurnID:        turnID, TraceNodeID: nodeID,
 			NodeKind: trajectory.NodeTurn, Phase: phase, Status: status,
 			Summary: strings.TrimSpace(summary),
 		},
