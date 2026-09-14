@@ -87,7 +87,11 @@ describe("fixtures 组合回放：mto15xxx 15 事件（M12 复现形态）", () 
       trajectory,
       turnEventMeta: meta
     });
-    const shape = plan.entries.map((entry) => entry.kind === "trace" ? `trace:${entry.turnId}` : `messages:${entry.messages.map((message) => message.id).join(",")}`);
+    const shape = plan.entries.map((entry) => entry.kind === "trace"
+      ? `trace:${entry.turnId}`
+      : entry.kind === "receipt"
+        ? `receipt:${entry.turnId}`
+        : `messages:${entry.messages.map((message) => message.id).join(",")}`);
     expect(shape).toEqual(["messages:u1", `trace:${runId}`, "messages:a1"]);
     expect(plan.chainResultMessages).toHaveLength(1);
   });

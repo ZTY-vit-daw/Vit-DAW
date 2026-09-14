@@ -136,6 +136,20 @@ import {
   roundTurnShell,
   type RoundStepMap
 } from "./trace/roundSteps";
+// TRAJ-IMPL-3（设计 §2.3 分期一② + §7 裁定 C）：终局回执行台账——只在**终态收口**
+// 写入一行摘要（状态/步数/活动数/执行时长/等待时长/started_at，不复述正文），刷新后
+// 为活态中不存在的回合渲染静态收起收据行（同键活态优先）。chat 域与协议零接触。
+import {
+  collectTerminalTurnReceipts,
+  loadTurnReceipts,
+  mergeTurnReceipts,
+  persistTurnReceipts,
+  saveTurnReceipts,
+  turnReceiptsEqual,
+  turnReceiptsStorageKey,
+  type TurnReceipt
+} from "./trace/turnReceipts";
+import { TurnReceiptRow } from "./trace/TurnReceiptRow";
 import { PlanBar } from "./composer/PlanBar";
 import { isUnboundActivity } from "./trace/turnGroups";
 import type {
@@ -282,6 +296,9 @@ function App() {
   const [dismissedInteractionIDs, setDismissedInteractionIDs] = useState<string[]>([]);
   const [messageBottomInset, setMessageBottomInset] = useState(156);
   const [agentEventPolling, setAgentEventPolling] = useState(false);
+  // TRAJ-IMPL-3：终局回执行台账（本会话内存视图；权威副本在 localStorage，
+  // 每次 scope 就绪时读一次，终态收口时写一行）
+  const [turnReceipts, setTurnReceipts] = useState<TurnReceipt[]>([]);
   const [transportBusy, setTransportBusy] = useState(false);
   const [error, setError] = useState("");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -300,9 +317,19 @@ function App() {
   const pausedHistoryScopeRef = useRef("");
   const restoredMessageScopeRef = useRef("");
   const skipNextStoredMessageSaveRef = useRef("");
+  // 台账水合只读一次（键 = conversationID + scope）：键变化即重读，同键不重复读
+  const restoredReceiptScopeRef = useRef("");
+  const turnReceiptsRef = useRef<TurnReceipt[]>([]);
   const mediaScopeRef = useRef("");
   const agentEventSeqRef = useRef(0);
   const macroValueOverridesRef = useRef<Record<string, MacroValueOverride>>({});
+
+  // TRAJ-IMPL-3：台账视图的唯一写入口——ref 与 state 同步推进（写侧按 ref 比较是否
+  // 有变化，渲染按 state；两者不同步会导致重复写 localStorage 或渲染滞后一拍）。
+  const applyTurnReceipts = useCallback((next: TurnReceipt[]) => {
+    turnReceiptsRef.current = next;
+    setTurnReceipts(next);
+  }, []);
 
   const refreshState = useCallback(async () => {
     const runtimeRequest = fetchRuntimeStatus().catch(async (runtimeError) => {
@@ -356,6 +383,10 @@ function App() {
     setTaskTrajectoryState(emptyTaskTrajectoryState());
     setAuditionState(emptyAuditionState());
     setAgentEventPolling(true);
+    // TRAJ-IMPL-3：换会话即清台账视图（分桶键含 conversationID+scope，不会串桶；
+    // 清空只为不在新会话里闪现上一会话的回执行）。
+    turnReceiptsRef.current = [];
+    setTurnReceipts([]);
   }, [conversationID]);
 
   useEffect(() => {
@@ -603,6 +634,59 @@ function App() {
       return resolveHistorySyncMessages({ changeKind, current, historyMessages });
     });
   }, [conversationID, uiState]);
+
+  // TRAJ-IMPL-3（设计 §2.3）：**水合读取**终局回执行台账。
+  //
+  // 位置在 scope 解析效应**之后**：同一个提交里 scope 效应先把 scopedConversationRef
+  // 钉到「本 scope × 本会话」，本效应紧接着就能读到台账——否则刷新后要多等一拍
+  // （最多 8s 的 uiState 轮询）才把回执行画回来，而「刷新后立刻还在」正是本卡的验收面。
+  //
+  // 时序与消息存档同一条（scope 就绪、且当前会话就是该 scope 锚定的会话时读一次）：
+  // 换会话/换工作区都会换键，因此自然重读，不需要额外的清理分支。台账缺失
+  // （换浏览器/清缓存/从未写过）时读出空表——**不编造回执行**，正文气泡照旧
+  // （设计 §2.3 边界声明）。
+  useEffect(() => {
+    const scope = historyScopeKeyFromUIState(uiState);
+    if (!scope) {
+      return;
+    }
+    if (scopedConversationRef.current !== scopedConversationRuntimeKey(scope, conversationID)) {
+      return;
+    }
+    const restoreKey = turnReceiptsStorageKey(conversationID, scope);
+    if (restoredReceiptScopeRef.current === restoreKey) {
+      return;
+    }
+    restoredReceiptScopeRef.current = restoreKey;
+    applyTurnReceipts(loadTurnReceipts(conversationID, scope));
+  }, [applyTurnReceipts, conversationID, uiState]);
+
+  // TRAJ-IMPL-3（设计 §2.3 + §4）：**终态收口才写台账**。收口判据复用 TRAJ-IMPL-2 的
+  // 回合收口规则（roundTurnStatus：waiting_* 切片边界算没结束 → 不写；live 一律不写；
+  // settle_slice 等 M12 隐藏回合同样不写，噪音不得经台账在刷新后复活）。
+  //
+  // 写侧走 saveTurnReceipts（读—并—写），权威副本是**落盘台账**而不是内存视图：
+  // 刷新后的第一笔收口若只按内存合并，就会把上一页写下、活态已不存在的回执行整桶冲掉
+  // ——而「那些行还在」正是台账存在的理由（首轮渲染面门实测命中：E1 水合相位红）。
+  // 效应幂等：同一回合重复收口只刷新同一行（同键去重），无变化时不碰 localStorage。
+  useEffect(() => {
+    const scope = historyScopeKeyFromUIState(uiState);
+    if (!scope || !conversationID) {
+      return;
+    }
+    if (scopedConversationRef.current !== scopedConversationRuntimeKey(scope, conversationID)) {
+      return;
+    }
+    const closed = collectTerminalTurnReceipts({ trajectory: trajectoryState, turnEventMeta, roundSteps });
+    if (closed.length === 0) {
+      return;
+    }
+    const merged = saveTurnReceipts(conversationID, scope, closed);
+    if (turnReceiptsEqual(merged, turnReceiptsRef.current)) {
+      return;
+    }
+    applyTurnReceipts(merged);
+  }, [applyTurnReceipts, conversationID, roundSteps, trajectoryState, turnEventMeta, uiState]);
 
   useEffect(() => {
     const nextScope = mediaScopeKeyFromUIState(uiState);
@@ -1318,6 +1402,7 @@ function App() {
         trajectory={trajectoryState}
         turnEventMeta={turnEventMeta}
         roundSteps={roundSteps}
+        receipts={turnReceipts}
         audition={auditionState}
         auditionBusySessionID={auditionBusySessionID}
         onAuditionSelect={handleAuditionSelect}
@@ -4218,6 +4303,7 @@ function MessageStream({
   trajectory,
   turnEventMeta,
   roundSteps,
+  receipts,
   audition,
   auditionBusySessionID,
   authorityMode,
@@ -4242,6 +4328,8 @@ function MessageStream({
   turnEventMeta: TurnEventMetaMap;
   /** TRAJ-IMPL-2：回合内 item 步账（容器证据 + 步混排 + 活动线去重） */
   roundSteps: RoundStepMap;
+  /** TRAJ-IMPL-3：终局回执行台账行（活态缺失回合的水合收据，同键活态优先） */
+  receipts: TurnReceipt[];
   audition: AuditionState;
   auditionBusySessionID: string;
   authorityMode: AuthorityMode;
@@ -4321,7 +4409,9 @@ function MessageStream({
   // 回合分组渲染（GUI-1/G2：分组+锚定+孤儿+终局顺序抽为纯函数 buildMessageStreamRenderPlan，
   // 固化 用户消息→中间汇报→轨迹块→…→终局回复 的顺序，设计基线 GUI-T2/T3 + GUI-F8）
   const visibleMessages = messages.filter((message) => !shouldHideMessageForComposerOverlay(message, hiddenActionID));
-  const plan = buildMessageStreamRenderPlan({ messages: visibleMessages, trajectory, turnEventMeta, roundSteps });
+  // TRAJ-IMPL-3：台账行一并进计划——活态中不存在的回合渲染静态收起收据行（同键去重
+  // 在计划入口完成），落位复用同一个两级锚定。
+  const plan = buildMessageStreamRenderPlan({ messages: visibleMessages, trajectory, turnEventMeta, roundSteps, receipts });
   const knownTurnIds = new Set(trajectoryTurns(trajectory).map((turn) => turn.id));
   const turnActivities = (turnId: string) => activities.filter((activity) => (activity.turn_id ?? "").trim() === turnId);
   // 活动线只承载非回合活动（上传/调用等）；回合内活动并入回合单活动面。TRAJ-IMPL-2
@@ -4369,9 +4459,10 @@ function MessageStream({
     const turnId = groupKey.slice("turn:".length);
     return sessions.filter((session) => session.turnID === turnId);
   };
-  // 组内条目 key 形如 <组key>:user|:trace|:rest；孤儿块与终局尾巴不属组
+  // 组内条目 key 形如 <组key>:user|:trace|:rest|:receipt；孤儿条目（轨迹块/收据行）
+  // 与终局尾巴不属组——组尾判定（试听判定卡挂靠）因此不会把孤儿行当组尾。
   const entryGroupKey = (entry: MessageStreamEntry): string =>
-    entry.kind === "trace" && entry.key.startsWith("orphan:") ? "" : entry.key.replace(/:(user|trace|rest)$/, "");
+    entry.key.startsWith("orphan:") ? "" : entry.key.replace(/:(user|trace|rest|receipt)$/, "");
 
   return (
     <div className="message-stream">
@@ -4380,7 +4471,10 @@ function MessageStream({
         const isGroupEnd = groupKey !== "" && (index + 1 >= plan.entries.length || entryGroupKey(plan.entries[index + 1]) !== groupKey);
         return (
           <Fragment key={entry.key}>
-            {entry.kind === "messages" ? entry.messages.map(renderMessage) : (() => {
+            {entry.kind === "messages" ? entry.messages.map(renderMessage) : entry.kind === "receipt" ? (
+              // TRAJ-IMPL-3 §2.3：活态缺失回合的静态收起回执行（台账水合产物）
+              <TurnReceiptRow receipt={entry.receipt} />
+            ) : (() => {
               // TRAJ-IMPL-2 §2.1-2：无 trajectory 回合记录的回合（纯 chat 执行期）由 item
               // 步账撑起同一个容器——回合壳只承载身份与状态，轨迹步为空是事实而非缺陷。
               const round = roundSteps[entry.turnId];
@@ -11514,6 +11608,13 @@ export function migrateStoredConversationScope(previousScope: string, nextScope:
     return;
   }
   saveStoredScopedConversationID(nextScope, continuingConversationID);
+  // TRAJ-IMPL-3：回执行台账与消息存档同一条迁移语义（scope 演进 = 同一会话换桶，
+  // 旧桶保留作回退不删除）。漏了这一步，scope 演进后的刷新会看不见演进前的回执行。
+  const previousReceipts = loadTurnReceipts(continuingConversationID, previousScope);
+  if (previousReceipts.length > 0) {
+    const mergedReceipts = mergeTurnReceipts(loadTurnReceipts(continuingConversationID, nextScope), previousReceipts);
+    persistTurnReceipts(continuingConversationID, nextScope, mergedReceipts);
+  }
   const previousMessages = loadStoredConversationMessages(continuingConversationID, previousScope);
   if (previousMessages.length === 0) {
     return;

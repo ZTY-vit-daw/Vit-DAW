@@ -157,7 +157,9 @@ describe("UI-FOLLOW-1 回合附属锚定：身份不匹配时按回合槽位入�
   const shapeOf = (plan: ReturnType<typeof buildMessageStreamRenderPlan>) =>
     plan.entries.map((entry) => entry.kind === "trace"
       ? `trace:${entry.turnId}`
-      : `messages:${entry.messages.map((message) => message.id).join(",")}`);
+      : entry.kind === "receipt"
+        ? `receipt:${entry.turnId}`
+        : `messages:${entry.messages.map((message) => message.id).join(",")}`);
 
   it("失败链形态（消息不带轨迹回合 id）：轨迹块挂到该回合的用户消息之后（新输出上方），不再坠流尾", () => {
     const turnId = "run_failed_chain";
@@ -250,7 +252,9 @@ describe("UI-FOLLOW-2 轨迹块坠底：水合时刻晚 2 ms（成因①）+ 同
   const shapeOf = (plan: ReturnType<typeof buildMessageStreamRenderPlan>) =>
     plan.entries.map((entry) => entry.kind === "trace"
       ? `trace:${entry.turnId}`
-      : `messages:${entry.messages.map((message) => message.id).join(",")}`);
+      : entry.kind === "receipt"
+        ? `receipt:${entry.turnId}`
+        : `messages:${entry.messages.map((message) => message.id).join(",")}`);
 
   /** E2E-WEBUI-1 断言 1 的语义：块之后必须还有用户消息（它没离开自己的回合槽位） */
   const hasUserMessageAfterBlock = (plan: ReturnType<typeof buildMessageStreamRenderPlan>): boolean => {

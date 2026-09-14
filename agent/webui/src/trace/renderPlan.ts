@@ -5,6 +5,7 @@ import { groupMessagesByTurn, type MessageTurnGroup } from "./turnGroups";
 import { isChainResultChatMessage, shouldRenderTraceBlockForTurn } from "./traceDelivery";
 import { roundStartSeq, roundStepTurnIds, shouldRenderRoundContainer, type RoundStepMap } from "./roundSteps";
 import type { TurnEventMetaMap } from "./turnEventMeta";
+import { liveTurnIdsOf, receiptsForHydration, type TurnReceipt } from "./turnReceipts";
 
 // GUI-1/G2（渲染计划抽取）：MessageStream 的「回合分组 + 轨迹块锚定 + 孤儿块 +
 // 终局消息归位」从 JSX 里抽为纯函数，固化目标顺序（GUI-F8 定案）：
@@ -65,16 +66,33 @@ import type { TurnEventMetaMap } from "./turnEventMeta";
 // 成立即出块；实验轨迹步降格为步来源之一。M12 settle_slice 隐藏谓词
 // （shouldRenderTraceBlockForTurn 整段）**逐字保留、零改动**——放宽不得让结算切片
 // 噪音回归（验收含「settle_slice 仍隐藏」钉）。
+//
+// TRAJ-IMPL-3（2026-09-14，设计 §2.3 分期一② 问题③活态/水合不一致 + §7 裁定 C）：
+// 上面两级锚定解决的是「活态块落在哪」，而刷新后活态本身不存在（trajectory 事件是
+// transient，重载后 traceIndexes 空）——块整块消失。本卡把**终局回执行台账**
+// （trace/turnReceipts.ts，localStorage `vit.turn_receipts.v1`）里的行当作同一类
+// 候选：活态中不存在的回合渲染一行**静态收起回执行**（kind="receipt"）。
+//
+// 三条不变量：
+//   ① **落位复用同一条两级锚定**（身份锚定优先 → 槽位时刻 + 50ms 容差），不收据另造规则；
+//   ② **同键活态优先**：回合键在活态（trajectory.turns ∪ roundSteps）里存在时不渲染收据行
+//      （去重在 receiptsForHydration 入口完成，见 trace/turnReceipts.ts）；
+//   ③ **一个渲染组只承载一个条目**（B9）：活态块候选先占组，收据抢不到组时退流尾
+//      （orphanReceiptTurnIds）——不丢行、不挤掉活态。
 
 export type MessageStreamEntry =
   | { kind: "messages"; key: string; messages: ChatMessage[] }
-  | { kind: "trace"; key: string; turnId: string };
+  | { kind: "trace"; key: string; turnId: string }
+  // TRAJ-IMPL-3 §2.3：活态缺失回合的静态收起回执行（水合路径产物）
+  | { kind: "receipt"; key: string; turnId: string; receipt: TurnReceipt };
 
 export interface MessageStreamRenderPlan {
   /** 有序渲染条目（不含流尾终局回复——见 chainResultMessages） */
   entries: MessageStreamEntry[];
   /** 未能挂进任何回合组、追加渲染在条目序列尾的轨迹回合 */
   orphanTurnIds: string[];
+  /** 同上，但落位的是水合收据行（TRAJ-IMPL-3）：与轨迹块分开记账，孤儿轨迹语义不变 */
+  orphanReceiptTurnIds: string[];
   /** 调度链终局消息：渲染在整个条目序列（含孤儿块）之后 */
   chainResultMessages: ChatMessage[];
 }
@@ -113,8 +131,13 @@ export function buildMessageStreamRenderPlan(options: {
   turnEventMeta?: TurnEventMetaMap;
   /** TRAJ-IMPL-2：回合内 item 步账（谓词放宽的第二个证据源；缺省时行为逐字不变） */
   roundSteps?: RoundStepMap;
+  /**
+   * TRAJ-IMPL-3 §2.3：终局回执行台账行（刷新后活态缺失回合的静态收起回执行）。
+   * 缺省/空表时行为逐字不变；同键活态优先由 receiptsForHydration 在入口处去重。
+   */
+  receipts?: TurnReceipt[];
 }): MessageStreamRenderPlan {
-  const { messages, trajectory, turnEventMeta, roundSteps } = options;
+  const { messages, trajectory, turnEventMeta, roundSteps, receipts } = options;
   const chainResultMessages = messages.filter(isChainResultChatMessage);
   const flowMessages = chainResultMessages.length > 0 ? messages.filter((message) => !isChainResultChatMessage(message)) : messages;
   const groups = groupMessagesByTurn(flowMessages);
@@ -125,9 +148,16 @@ export function buildMessageStreamRenderPlan(options: {
   // 锚定（UI-FOLLOW-2：落位从「组」细化为「组 + 组内用户消息序号」）：
   //   ① 身份锚定优先（消息组携带该回合 id，既有语义逐字保留）；
   //   ② 身份不同源时按回合槽位（不晚于回合起始 + 容差的最后一条用户消息）入位。
+  // 水合收据候选（TRAJ-IMPL-3 §2.3）：活态中**不存在**的回合才补静态收起回执行
+  // （同键活态优先，去重发生在入口 receiptsForHydration）。它们与轨迹块候选共用
+  // 同一套两级锚定——收据行的落位不是第二套规则，是 UI-FOLLOW-1/2 同一条路径。
+  const receiptRows = receiptsForHydration({ receipts, liveTurnIds: liveTurnIdsOf(trajectory, roundSteps) });
+  const receiptByTurnId = new Map(receiptRows.map((row) => [row.turnId, row]));
+
   const slots = messageRoundSlots(groups);
   const anchorByGroupKey = new Map<string, MessageRoundAnchor>();
   const orphanTurnIds: string[] = [];
+  const orphanReceiptTurnIds: string[] = [];
   for (const turnId of renderTurns) {
     const anchor = anchorForTurn(groups, slots, turnId, turnStartedAtMs(turnEventMeta, turnId));
     if (!anchor || anchorByGroupKey.has(anchor.groupKey)) {
@@ -136,6 +166,22 @@ export function buildMessageStreamRenderPlan(options: {
     }
     anchorByGroupKey.set(anchor.groupKey, anchor);
   }
+  // 收据候选排在轨迹块候选**之后**：一个渲染组只承载一个块（B9），活态块先占位，
+  // 收据抢不到组时退流尾（不丢，也不挤掉活态——同键去重之外的第二道保护）。
+  for (const row of receiptRows) {
+    const anchor = anchorForTurn(groups, slots, row.turnId, receiptStartedAtMs(row));
+    if (!anchor || anchorByGroupKey.has(anchor.groupKey)) {
+      orphanReceiptTurnIds.push(row.turnId);
+      continue;
+    }
+    anchorByGroupKey.set(anchor.groupKey, anchor);
+  }
+  const anchoredEntry = (turnId: string, groupKey: string): MessageStreamEntry => {
+    const receipt = receiptByTurnId.get(turnId);
+    return receipt
+      ? { kind: "receipt", key: `${groupKey}:receipt`, turnId, receipt }
+      : { kind: "trace", key: `${groupKey}:trace`, turnId };
+  };
 
   const entries: MessageStreamEntry[] = [];
   for (const group of groups) {
@@ -153,7 +199,7 @@ export function buildMessageStreamRenderPlan(options: {
     }
     // 组内没有用户消息可依附（纯汇报组，身份锚定命中）：块落在组首，既有行为不变。
     if (userMessages.length === 0) {
-      entries.push({ kind: "trace", key: `${group.key}:trace`, turnId: anchor.turnId });
+      entries.push(anchoredEntry(anchor.turnId, group.key));
       if (group.messages.length > 0) {
         entries.push({ kind: "messages", key: `${group.key}:rest`, messages: group.messages });
       }
@@ -163,7 +209,7 @@ export function buildMessageStreamRenderPlan(options: {
     // 落到块下方。单用户消息组与既有输出逐字一致（tail 只剩原 rest）。
     const splitAt = Math.min(Math.max(anchor.userIndex, 0), userMessages.length - 1) + 1;
     entries.push({ kind: "messages", key: `${group.key}:user`, messages: userMessages.slice(0, splitAt) });
-    entries.push({ kind: "trace", key: `${group.key}:trace`, turnId: anchor.turnId });
+    entries.push(anchoredEntry(anchor.turnId, group.key));
     const tailMessages = [...userMessages.slice(splitAt), ...restMessages];
     if (tailMessages.length > 0) {
       entries.push({ kind: "messages", key: `${group.key}:rest`, messages: tailMessages });
@@ -174,8 +220,14 @@ export function buildMessageStreamRenderPlan(options: {
   for (const turnId of orphanTurnIds) {
     entries.push({ kind: "trace", key: `orphan:${turnId}`, turnId });
   }
+  for (const turnId of orphanReceiptTurnIds) {
+    const receipt = receiptByTurnId.get(turnId);
+    if (receipt) {
+      entries.push({ kind: "receipt", key: `orphan:receipt:${turnId}`, turnId, receipt });
+    }
+  }
 
-  return { entries, orphanTurnIds, chainResultMessages };
+  return { entries, orphanTurnIds, orphanReceiptTurnIds, chainResultMessages };
 }
 
 /**
@@ -243,6 +295,15 @@ function messageRoundSlots(groups: MessageTurnGroup[]): MessageRoundSlot[] {
     }
   }
   return slots;
+}
+
+/**
+ * 收据行起始时刻（槽位锚定证据源）：台账行的 started_at（与 turnEventMeta.startedAt
+ * 同域同源）。无证据（0/非有限）返回 NaN——**不猜归属**，只走身份锚定，否则退流尾。
+ */
+function receiptStartedAtMs(receipt: TurnReceipt): number {
+  const startedAt = receipt.startedAt;
+  return typeof startedAt === "number" && Number.isFinite(startedAt) && startedAt > 0 ? startedAt : Number.NaN;
 }
 
 /** 轨迹回合起始时刻（唯一证据源：turnEventMeta.startedAt；缺证据返回 NaN） */

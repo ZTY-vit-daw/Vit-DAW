@@ -84,6 +84,17 @@
   font-size:12.5px;color:var(--ink)}
 .trace-wait-line span{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
+/* 终局回执行行（TRAJ-IMPL-3 §2.3）：活态缺失回合的**静态收起**形态——不是活块：
+   不可展开、无转圈、无游标、无呼吸；行式与终态块头部同族（点色 + 墨字 + 等宽 meta）。 */
+.trace-receipt{background:transparent;border:0}
+.trace-receipt-head{display:flex;align-items:center;gap:8px;min-width:0;padding:7px 10px}
+.trace-receipt-head>svg{flex:none}
+.trace-receipt.is-terminal .trace-receipt-head>svg{color:var(--muted)}
+.trace-receipt.is-warning .trace-receipt-head>svg{color:var(--red)}
+.trace-receipt-label{font-size:12.5px;font-weight:700;white-space:nowrap}
+.trace-receipt-meta{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font:600 10.5px Consolas,"SFMono-Regular",Menlo,monospace;color:var(--muted)}
+
 @media (prefers-reduced-motion:reduce){
   .trace-wrap,.trace-chev,.th-chev,.trace-detail{transition:none}
   .trace-step.is-running .trace-node,.trace-think .trace-node,

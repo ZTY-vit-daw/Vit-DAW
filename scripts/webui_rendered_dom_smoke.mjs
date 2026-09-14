@@ -425,6 +425,32 @@ const DOM_PROBE = () => {
       cls: typeof el.className === "string" ? el.className : "",
       text: (el.textContent || "").replace(/\s+/g, " ").trim()
     })),
+    // TRAJ-IMPL-3 (design section 2.3): the static collapsed receipt row is the only
+    // trace-shaped surface a refreshed page can show for a turn whose live state is
+    // gone, so it is sampled as its own element set. Sampled after the stream was
+    // scrolled to its real bottom, so the composer-overlap fact is the worst case.
+    receipts: Array.from(stream ? stream.querySelectorAll(".trace-receipt") : []).map((el) => {
+      const rect = el.getBoundingClientRect();
+      return {
+        turnId: el.getAttribute("data-turn-id") || "",
+        status: el.getAttribute("data-receipt-status") || "",
+        cls: typeof el.className === "string" ? el.className : "",
+        text: (el.textContent || "").replace(/\s+/g, " ").trim(),
+        buttons: el.querySelectorAll("button").length,
+        cursors: el.querySelectorAll(".trace-cursor").length,
+        flowIndex: flowIndex(el),
+        top: rect.top,
+        bottom: rect.bottom,
+        occludedByComposer: composerTop === null ? null : rect.bottom > composerTop
+      };
+    }),
+    // The ledger itself. Its storage key is namespaced by conversation+scope, so the
+    // probe finds it by prefix instead of rebuilding the app's key encoding.
+    receiptLedger: (() => {
+      const key = Object.keys(localStorage).find((item) => item.indexOf("vit.turn_receipts.v1") === 0);
+      if (!key) return null;
+      return { key: key, raw: localStorage.getItem(key) || "" };
+    })(),
     localStorageKeys: Object.keys(localStorage),
     composerCss: composer ? {
       position: getComputedStyle(composer).position,
@@ -938,6 +964,130 @@ function checkB2(retractResult) {
   return { failures, notes };
 }
 
+// TRAJ-IMPL-3 (design section 2.3, card 2026-09-14): the PERSISTENCE shape is a turn
+// that runs, produces item steps and then REACHES ITS TERMINAL EVENT -- the moment the
+// close-out path writes one receipt row. The archived transcript has no terminal
+// item-only turn, so the boundary events are seeded for a NEW turn id and replayed
+// through the very same GET /agent/events contract the app polls (same device as the
+// TRAJ-IMPL-1/2 passes). The work slice is exactly 30 s, so the rendered row is a
+// deterministic string ("执行完成 · 2 步 · 30.0s") rather than a moving target.
+function terminalTurnFixtureEvents(options) {
+  const now = Date.now();
+  const runId = options.turnId;
+  const base = Number(options.baseSeq) || 400;
+  const at = (offsetMs) => new Date(now - 40_000 + offsetMs).toISOString();
+  const common = { conversation_id: conversationId, goal_id: runId, run_id: runId, turn_id: runId, source_turn_id: runId };
+  return [
+    { ...common, seq: base + 1, type: "turn.started", item_type: "turn", status: "running", created_at: at(0) },
+    // Two tool calls of one run. Faithful to the forensic event shape: item_id is
+    // reused across calls of the same run, logical_message_id tells them apart.
+    { ...common, seq: base + 2, type: "item.started", item_id: "tool_step_1", logical_message_id: "agent_item:" + runId + ":tool_step_1", item_type: "daw_action", status: "running", created_at: at(1_000), payload: { tool: "ccb.observation_catalog" } },
+    { ...common, seq: base + 3, type: "item.completed", item_id: "tool_step_1", logical_message_id: "agent_item:" + runId + ":tool_step_1", item_type: "daw_action", status: "completed", created_at: at(3_000), payload: { command_name: "ccb_observation_catalog" } },
+    { ...common, seq: base + 4, type: "item.started", item_id: "tool_step_1", logical_message_id: "agent_item:" + runId + ":tool_step_2", item_type: "daw_action", status: "running", created_at: at(5_000), payload: { tool: "mix_tick" } },
+    { ...common, seq: base + 5, type: "item.completed", item_id: "tool_step_1", logical_message_id: "agent_item:" + runId + ":tool_step_2", item_type: "daw_action", status: "completed", created_at: at(9_000), payload: { command_name: "mix_tick" } },
+    // Terminal event: the step count and the work slice of the receipt are fixed here
+    // (2 steps, 30.0 s) -- no waiting, so park_ms must stay null.
+    { ...common, seq: base + 6, type: "turn.completed", item_type: "turn", status: "completed", created_at: at(30_000) }
+  ];
+}
+
+const RECEIPT_ROW_FIELDS = ["activity_count", "park_ms", "started_at", "status", "step_count", "turn_id", "work_ms"];
+
+function parseReceiptLedger(raw) {
+  if (typeof raw !== "string" || raw === "") return null;
+  try {
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+// E1 (TRAJ-IMPL-3, the card's rendered-surface claim): "after a refresh the terminal
+// receipt row is still there (hydrated from the ledger while the live state is gone)".
+//
+// The pass runs twice in ONE browser context: phase 1 drives the seeded turn to its
+// terminal event (the receipt is written, the live block is on screen and the row must
+// NOT be duplicated next to it), phase 2 reloads the page with a stream that no longer
+// carries that turn (trajectory events are transient by protocol) -- live state gone,
+// ledger still in localStorage. The row must be back on screen, display-only, carrying
+// state/counts/duration and no message body.
+function checkE1(result, options) {
+  const failures = [];
+  const notes = [];
+  const ledger = parseReceiptLedger(result.ledgerRaw);
+  if (!ledger) {
+    failures.push("E1 ledger: no vit.turn_receipts.v1 payload in localStorage after the seeded turn reached its terminal event");
+  } else {
+    notes.push("ledger key=" + (result.ledgerRawKey || "(unknown)") + " rows=" + ((ledger.receipts || []).length));
+    const row = (ledger.receipts || []).find((item) => item && item.turn_id === options.turnId) || null;
+    if (!row) {
+      failures.push("E1 ledger: no row for turn " + options.turnId + " (rows: [" + (ledger.receipts || []).map((item) => item && item.turn_id).join(", ") + "]) -- the terminal close-out must write exactly one row");
+    } else {
+      const fields = Object.keys(row).sort().join(",");
+      if (fields !== RECEIPT_ROW_FIELDS.join(",")) {
+        failures.push("E1 ledger fields: expected exactly [" + RECEIPT_ROW_FIELDS.join(", ") + "], got [" + fields + "] -- the row carries state/counts/duration only, never message text");
+      }
+      notes.push(
+        "row: status=" + row.status + " step_count=" + row.step_count + " activity_count=" + row.activity_count +
+        " work_ms=" + row.work_ms + " park_ms=" + row.park_ms + " started_at=" + row.started_at
+      );
+      if (row.status !== "completed") failures.push("E1 ledger status: expected completed, got " + row.status);
+      if (row.step_count !== options.expectStepCount) failures.push("E1 ledger step_count: expected " + options.expectStepCount + ", got " + row.step_count);
+      if (row.activity_count !== options.expectActivityCount) failures.push("E1 ledger activity_count: expected " + options.expectActivityCount + ", got " + row.activity_count);
+      if (row.work_ms !== options.expectWorkMs) failures.push("E1 ledger work_ms: expected " + options.expectWorkMs + ", got " + row.work_ms);
+      if (row.park_ms !== null) failures.push("E1 ledger park_ms: this turn has no residency segment, so park_ms must stay null, got " + row.park_ms);
+      if (typeof row.started_at !== "number" || !(row.started_at > 0)) failures.push("E1 ledger started_at: expected the turn's start epoch ms, got " + row.started_at);
+    }
+    if (/[\u4e00-\u9fff]/.test(result.ledgerRaw)) {
+      failures.push("E1 ledger text: the stored ledger contains CJK text -- the receipt must carry state/counts/duration only (message body belongs to the bubble)");
+    }
+  }
+
+  // Phase 1: live state present -> the live surface wins, the receipt row must not double it.
+  const liveBlock = (result.live.blocks || []).find((block) => block.turnId === options.turnId) || null;
+  if (!liveBlock) {
+    failures.push("E1 live phase: the seeded turn rendered no .trace-block, so the same-key dedup could not be observed");
+  }
+  const liveRow = (result.live.receipts || []).find((row) => row.turnId === options.turnId) || null;
+  if (liveRow) {
+    failures.push("E1 same-key dedup: the receipt row renders while the turn's live block is on screen ('" + liveRow.text + "') -- a live turn must not be shown twice");
+  } else {
+    notes.push("live phase: block present, no receipt row for the same key");
+  }
+
+  // Phase 2: live state gone -> the ledger is the only thing that can bring the row back.
+  const blockAfterReload = (result.hydrated.blocks || []).find((block) => block.turnId === options.turnId) || null;
+  if (blockAfterReload) {
+    failures.push("E1 hydration phase: the turn's live block is still rendered after the reload -- the pass would not be testing hydration (premise broken)");
+  }
+  const rowAfterReload = (result.hydrated.receipts || []).find((row) => row.turnId === options.turnId) || null;
+  if (!rowAfterReload) {
+    failures.push(
+      "E1 hydration: after the reload the terminal receipt row is GONE (no .trace-receipt[data-turn-id=" + options.turnId + "] in the rendered DOM; rows on screen: [" +
+      (result.hydrated.receipts || []).map((row) => row.turnId).join(", ") + "]) -- the ledger must hydrate the receipt of a turn whose live state no longer exists (design section 2.3)"
+    );
+  } else {
+    notes.push("hydrated row: cls=\"" + rowAfterReload.cls + "\" text=\"" + rowAfterReload.text + "\" occludedByComposer=" + rowAfterReload.occludedByComposer);
+    if (rowAfterReload.text !== options.expectText) {
+      failures.push("E1 hydration text: expected \"" + options.expectText + "\", got \"" + rowAfterReload.text + "\"");
+    }
+    if (rowAfterReload.buttons > 0) {
+      failures.push("E1 hydration: the receipt row renders a button (" + rowAfterReload.buttons + ") -- user ruling C keeps it a static single line (details are phase two)");
+    }
+    if (rowAfterReload.cursors > 0) {
+      failures.push("E1 hydration: the receipt row renders a live cursor (" + rowAfterReload.cursors + ") -- a persisted receipt is not live");
+    }
+    if (/is-live/.test(rowAfterReload.cls)) {
+      failures.push("E1 hydration: the receipt row carries is-live (cls=\"" + rowAfterReload.cls + "\") -- it is the collapsed static form");
+    }
+    if (rowAfterReload.occludedByComposer === true) {
+      failures.push("E1 hydration: the receipt row is covered by the composer (bottom=" + rowAfterReload.bottom.toFixed(1) + " > composer top=" + (result.hydrated.composer ? result.hydrated.composer.top.toFixed(1) : "n/a") + ") -- the persisted row must be readable");
+    }
+  }
+  return { failures, notes };
+}
+
 // --------------------------------------------------------------- main flow
 
 async function main() {
@@ -1197,6 +1347,54 @@ async function main() {
     return { appeared, first, second, seeded };
   };
 
+  // TRAJ-IMPL-3: two phases inside ONE browser context. The ledger lives in
+  // localStorage; localStorage surviving a page load while the in-memory live state
+  // does not is exactly the production situation this card is about -- so phase 2 must
+  // NOT use a fresh context (that would clear the ledger and prove nothing).
+  const runReceiptPass = async (name, options) => {
+    const context = await browser.newContext({ viewport });
+    const seeded = terminalTurnFixtureEvents({ turnId: options.turnId, baseSeq: options.baseSeq });
+    await installReplay(context, { extraEvents: seeded });
+    const page = await context.newPage();
+    await page.goto(agentBase + "/app/?conversation_id=" + encodeURIComponent(conversationId), { waitUntil: "domcontentloaded" });
+    const appeared = await page
+      .waitForSelector('.trace-block[data-turn-id="' + options.turnId + '"]', { timeout: options.appearTimeoutMs })
+      .then(() => true)
+      .catch(() => false);
+    // The write is an effect of the terminal event: wait for the ledger payload itself
+    // instead of sleeping a guessed amount.
+    const ledgerRaw = await page
+      .waitForFunction(
+        (prefix) => {
+          const key = Object.keys(localStorage).find((item) => item.indexOf(prefix) === 0);
+          return key ? localStorage.getItem(key) : null;
+        },
+        "vit.turn_receipts.v1",
+        { timeout: options.settleTimeoutMs }
+      )
+      .then((handle) => handle.jsonValue())
+      .catch(() => null);
+    const ledgerKey = await page
+      .evaluate(() => Object.keys(localStorage).find((item) => item.indexOf("vit.turn_receipts.v1") === 0) || "")
+      .catch(() => "");
+    await page.waitForTimeout(600);
+    const live = await page.evaluate(DOM_PROBE);
+    await page.screenshot({ path: join(outDir, "dom-" + name + "-live.png") });
+    writeFileSync(join(outDir, "dom-" + name + "-live.json"), JSON.stringify(live, null, 2), "utf-8");
+
+    // Phase 2: same context (localStorage kept), but the stream no longer carries this
+    // turn -- after a reload its transient events are simply not there any more.
+    await context.unroute("**/agent/events*");
+    await installReplay(context, { extraEvents: [] });
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(2500);
+    const hydrated = await page.evaluate(DOM_PROBE);
+    await page.screenshot({ path: join(outDir, "dom-" + name + "-hydrated.png") });
+    writeFileSync(join(outDir, "dom-" + name + "-hydrated.json"), JSON.stringify(hydrated, null, 2), "utf-8");
+    await context.close();
+    return { appeared, live, hydrated, ledgerRaw, ledgerRawKey: ledgerKey, seeded };
+  };
+
   const assess = (prefix, sample) => {
     for (const [groupId, fn] of [["A1", checkA1], ["A2", checkA2], ["A3", checkA3]]) {
       const { failures, notes } = fn(sample);
@@ -1327,6 +1525,32 @@ async function main() {
     expectStepTexts: ["已完成 可用观察视图清单", "已完成 混音调整", "weird.custom_tool"]
   }));
 
+  // ------------------------------------------------------------- TRAJ-IMPL-3
+  report.receipt_events_source =
+    "archived stream + seeded events for a NEW turn id that reaches its terminal event (two item steps, " +
+    "turn.completed = the close-out moment), replayed for GET /agent/events; the hydration phase re-serves " +
+    "the archived stream only and keeps localStorage in the same browser context";
+  const receiptPass = await runReceiptPass("receipts", {
+    turnId: "run_e2e_receipt1", baseSeq: 400, appearTimeoutMs: 15000, settleTimeoutMs: 15000
+  });
+  report.receipts = {
+    turn_id: "run_e2e_receipt1",
+    appeared: receiptPass.appeared,
+    ledger_key: receiptPass.ledgerRawKey,
+    ledger_raw: receiptPass.ledgerRaw,
+    live_rows: (receiptPass.live.receipts || []).map((row) => ({ turnId: row.turnId, text: row.text })),
+    hydrated_rows: (receiptPass.hydrated.receipts || []).map((row) => ({ turnId: row.turnId, text: row.text })),
+    hydrated_blocks: (receiptPass.hydrated.blocks || []).map((block) => block.turnId),
+    seeded_events: receiptPass.seeded
+  };
+  record("receipts-E1", checkE1(receiptPass, {
+    turnId: "run_e2e_receipt1",
+    expectStepCount: 2,
+    expectActivityCount: 2,
+    expectWorkMs: 30000,
+    expectText: "执行完成 · 2 步 · 30.0s"
+  }));
+
   report.finished_at = new Date().toISOString();
   report.events_served_from_fixture = seededEventsRequests;
   const failed = Object.entries(report.passes).filter(([, ok]) => !ok).map(([id]) => id);
@@ -1344,7 +1568,7 @@ async function main() {
 // Exported so a control run can exercise the very same probe and assertion
 // functions against a deliberately healthy state (proof that a red result is a
 // real finding and not an artefact of the probe itself).
-export { DOM_PROBE, checkA1, checkA2, checkA3, checkB1, checkB2, checkC1, checkD1, residencyFixtureEvents, chatOnlyItemStepsFixtureEvents };
+export { DOM_PROBE, checkA1, checkA2, checkA3, checkB1, checkB2, checkC1, checkD1, checkE1, residencyFixtureEvents, chatOnlyItemStepsFixtureEvents, terminalTurnFixtureEvents };
 
 // Run only when this file is the process entry point, so importing it as a
 // library (the control run does) has no side effects.

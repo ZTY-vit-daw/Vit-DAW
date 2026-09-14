@@ -53,7 +53,11 @@ describe("钉A 渲染谓词放宽：无实验回合的执行期也出容器（F2
       turnEventMeta: reduceTurnEventMeta({}, events),
       roundSteps: reduceRoundSteps(emptyRoundStepMap(), events)
     });
-    expect(plan.entries.map((entry) => entry.kind === "trace" ? `trace:${entry.turnId}` : `messages:${entry.messages.map((message) => message.id).join(",")}`))
+    expect(plan.entries.map((entry) => entry.kind === "trace"
+      ? `trace:${entry.turnId}`
+      : entry.kind === "receipt"
+        ? `receipt:${entry.turnId}`
+        : `messages:${entry.messages.map((message) => message.id).join(",")}`))
       .toEqual(["messages:u1", `trace:${RUN}`, "messages:a1"]);
     expect(plan.orphanTurnIds).toEqual([]);
   });
