@@ -312,11 +312,20 @@ const DOM_PROBE = () => {
     }));
     const label = (el.querySelector(".th-label")?.textContent || "").trim();
     const meta = (el.querySelector(".th-meta")?.textContent || "").replace(/\s+/g, " ").trim();
+    // TRAJ-IMPL-1 (design section 2.4-2): the explicit residency row. Sampled as
+    // its own element so the assertion never depends on how the flex gap
+    // separates the head meta spans in textContent.
+    const waitRow = el.querySelector(".trace-wait");
+    const wait = waitRow ? (waitRow.textContent || "").replace(/\s+/g, " ").trim() : "";
     return {
       turnId: el.getAttribute("data-turn-id") || "",
       cls: typeof el.className === "string" ? el.className : "",
       label,
       meta,
+      wait,
+      hasWaitRow: Boolean(waitRow),
+      waitButtons: waitRow ? waitRow.querySelectorAll("button").length : 0,
+      cursors: el.querySelectorAll(".trace-cursor").length,
       steps,
       flowIndex: flowIndex(el),
       top: rect.top,
@@ -357,6 +366,7 @@ const DOM_PROBE = () => {
   const lastContentRect = lastContent ? lastContent.getBoundingClientRect() : null;
   return {
     url: location.href,
+    sampledAtMs: Date.now(),
     conversationId: new URLSearchParams(location.search).get("conversation_id"),
     naturalScrollTop: natural.scrollTop,
     naturalBlocks: natural.blocks,
@@ -634,6 +644,168 @@ function checkB1(sample) {
   return { failures, notes };
 }
 
+// ------------------------------------------------------------------- TRAJ-IMPL-1
+
+// TRAJ-IMPL-1 (design section 2.4, card 2026-09-14): the residency shape is a
+// turn that is still live while its work slice has already closed -- the slice
+// ended with waiting_continue (turn.completed landed) and the turn's terminal
+// event has not arrived. The archived transcript contains no such turn, so the
+// boundary events are seeded for a NEW turn id and replayed through the very
+// same GET /agent/events contract the app polls. The elapsed counters are
+// derived by the app from the event timestamps; nothing here waits 55 seconds
+// and nothing is patched inside the page.
+function residencyFixtureEvents(options) {
+  const now = Date.now();
+  const startedAt = new Date(now - 60_000).toISOString();
+  const endedAt = new Date(now - 5_000).toISOString();
+  const runId = options.turnId;
+  const base = Number(options.baseSeq) || 100;
+  const events = [
+    {
+      seq: base + 1, type: "turn.started", conversation_id: conversationId,
+      goal_id: runId, run_id: runId, turn_id: runId, source_turn_id: runId,
+      item_type: "turn", status: "running", created_at: startedAt
+    },
+    {
+      seq: base + 2, type: "trajectory.turn.started", conversation_id: conversationId,
+      goal_id: runId, run_id: runId, turn_id: runId, source_turn_id: runId,
+      item_id: "turn:" + runId, status: "running", created_at: startedAt,
+      payload: {
+        schema_version: "vit.observable_trajectory.v1", trace_node_id: "turn:" + runId,
+        turn_id: runId, node_kind: "turn", phase: "framing", status: "running"
+      }
+    },
+    {
+      seq: base + 3, type: "trajectory.observation.recorded", conversation_id: conversationId,
+      goal_id: runId, run_id: runId, turn_id: runId, source_turn_id: runId,
+      item_id: "obs:" + runId, status: "completed", created_at: endedAt,
+      payload: {
+        schema_version: "vit.observable_trajectory.v1", trace_node_id: "obs:" + runId,
+        turn_id: runId, node_kind: "observation", phase: "observing", status: "completed",
+        summary: "频率关系观察"
+      }
+    },
+    // The work slice ends here (slice boundary, waiting_continue). The turn's
+    // own terminal event (trajectory.turn.completed) is deliberately absent:
+    // that is exactly the residency window the design describes.
+    {
+      seq: base + 4, type: "turn.completed", conversation_id: conversationId,
+      goal_id: runId, run_id: runId, turn_id: runId, source_turn_id: runId,
+      item_type: "turn", status: "waiting_continue", created_at: endedAt,
+      payload: { turn_kind: "slice_boundary", goal_status: "waiting_continue" }
+    }
+  ];
+  if (options.judgment) {
+    // Same turn, unresolved A/B judgment card: the trajectory-side record of a
+    // judgement request that has not been answered (status waiting_for_user,
+    // no trajectory.user_judgment.recorded for the same session).
+    events.push({
+      seq: base + 5, type: "trajectory.user_judgment.requested", conversation_id: conversationId,
+      goal_id: runId, run_id: runId, turn_id: runId, source_turn_id: runId,
+      item_id: "judgment:" + runId, status: "waiting_for_user", created_at: endedAt,
+      payload: {
+        schema_version: "vit.observable_trajectory.v1", trace_node_id: "judgment:" + runId,
+        turn_id: runId, node_kind: "user_judgment", phase: "user_judgment",
+        status: "waiting_for_user", summary: "static_eq · A/B 试听判定",
+        details: { audition_session_id: "audition:" + runId }
+      }
+    });
+  }
+  return events;
+}
+
+function parseWaitSeconds(text) {
+  const match = String(text || "").match(/已等\s*(\d+)s/);
+  return match ? Number(match[1]) : null;
+}
+
+function parseWorkSeconds(meta) {
+  const match = String(meta || "").match(/已工作\s*(\d+)s/);
+  return match ? Number(match[1]) : null;
+}
+
+// C1 residency: the seeded live-at-slice-boundary turn must render an explicit
+// waiting row whose wording matches the object it is waiting for, whose clock
+// advances once per second, and whose head meta keeps 已工作 frozen at the
+// closed work slice (waiting must never be counted as work). The row is
+// display-only: user ruling B keeps the 「继续」 button out.
+function checkC1(result, options) {
+  const failures = [];
+  const notes = [];
+  if (!result.appeared) {
+    failures.push("C1: the seeded residency turn (" + options.turnId + ") never rendered a .trace-block");
+    return { failures, notes };
+  }
+  const blockOf = (sample) => ((sample && sample.blocks) || []).find((block) => block.turnId === options.turnId) || null;
+  const first = blockOf(result.first);
+  const second = blockOf(result.second);
+  if (!first || !second) {
+    failures.push(
+      "C1: the seeded residency block left the DOM between the two samples (first=" + Boolean(first) +
+      ", second=" + Boolean(second) + ")"
+    );
+    return { failures, notes };
+  }
+  notes.push(
+    "turn=" + options.turnId + " cls=\"" + first.cls + "\" meta=\"" + first.meta + "\" wait=\"" + first.wait + "\""
+  );
+  if (!/(^|\s)is-live(\s|$)/.test(first.cls)) {
+    failures.push(
+      "C1: the residency block is not live (cls=\"" + first.cls + "\") -- a turn parked at a slice boundary " +
+      "before its terminal event must stay live"
+    );
+  }
+  const expected = new RegExp("^" + options.expectText + "（已等 \\d+s）$");
+  if (!expected.test(first.wait || "")) {
+    failures.push(
+      "C1 waiting row: expected \"" + options.expectText + "（已等 Xs）\" in the rendered residency row, got \"" +
+      (first.wait || "(no .trace-wait row)")
+      + "\" -- the wording must name the object being awaited"
+    );
+  }
+  const firstElapsed = parseWaitSeconds(first.wait);
+  const secondElapsed = parseWaitSeconds(second.wait);
+  if (firstElapsed === null || secondElapsed === null) {
+    failures.push(
+      "C1 waiting clock: could not read the elapsed seconds from the two samples (\"" + (first.wait || "") +
+      "\" / \"" + (second.wait || "") + "\")"
+    );
+  } else if (secondElapsed > firstElapsed) {
+    notes.push(
+      "waiting clock advanced by the app's own per-second timer: 已等 " + firstElapsed + "s -> " + secondElapsed +
+      "s across the " + ((result.second.sampledAtMs - result.first.sampledAtMs) / 1000).toFixed(1) + "s gap between samples"
+    );
+  } else {
+    failures.push(
+      "C1 waiting clock: the waiting row did not advance between two samples ~1.5s apart (已等 " + firstElapsed +
+      "s -> " + secondElapsed + "s)"
+    );
+  }
+  const workFirst = parseWorkSeconds(first.meta);
+  const workSecond = parseWorkSeconds(second.meta);
+  if (workFirst === null) {
+    failures.push("C1 head meta: no 已工作 Xs in the live head meta (\"" + first.meta + "\")");
+  } else if (workSecond === null || workSecond !== workFirst) {
+    failures.push(
+      "C1 head meta: 已工作 must stay frozen at the closed work slice while parked, got " + workFirst +
+      "s -> " + (workSecond === null ? "n/a" : workSecond + "s")
+    );
+  } else {
+    notes.push("head meta 已工作 " + workFirst + "s stayed frozen across both samples (waiting is not counted as work)");
+  }
+  if ((first.cursors || 0) > 0) {
+    failures.push(
+      "C1: the residency block still renders a live cursor (" + first.cursors + ") -- waiting must not be dressed up as work"
+    );
+  }
+  if ((first.waitButtons || 0) > 0) {
+    failures.push(
+      "C1: the waiting row renders a button (" + first.waitButtons + ") -- user ruling B keeps it a display-only row"
+    );
+  }
+  return { failures, notes };
+}
+
 function checkB2(retractResult) {
   const failures = [];
   const notes = [];
@@ -722,20 +894,31 @@ async function main() {
   log("browser:", label, version);
 
   let seededEventsRequests = 0;
-  const installReplay = async (context) => {
+  const installReplay = async (context, options = {}) => {
+    // TRAJ-IMPL-1: a pass may append seeded boundary events (the residency shape)
+    // to the archived stream. The archived stream itself is never edited: the
+    // extra events are carried here and listed in the report.
+    const extraEvents = Array.isArray(options.extraEvents) ? options.extraEvents : [];
+    const all = [...(eventsFixture.events || []), ...extraEvents];
+    // The app advances its since-cursor from next_seq, so a merged stream must
+    // report the merged maximum. For the archived-only stream this is exactly
+    // the value the fixture already carried.
+    const nextSeq = all.reduce(
+      (maximum, event) => Math.max(maximum, Number(event.seq) || 0),
+      Number(eventsFixture.next_seq) || 0
+    );
     await context.route("**/agent/events*", async (route) => {
       seededEventsRequests += 1;
-      // Serve the archived events with the same since/limit contract the agent
+      // Serve the events with the same since/limit contract the agent
       // implements, so the app's incremental polling works exactly as it does
       // against the real endpoint.
       const requestURL = new URL(route.request().url());
       const since = Number(requestURL.searchParams.get("since") || "0");
       const limit = Number(requestURL.searchParams.get("limit") || "120");
-      const all = eventsFixture.events || [];
       const body = JSON.stringify({
         status: eventsFixture.status || "ok",
         events: all.filter((event) => Number(event.seq) > since).slice(0, limit),
-        next_seq: eventsFixture.next_seq ?? all.length
+        next_seq: nextSeq
       });
       await route.fulfill({ status: 200, contentType: "application/json; charset=utf-8", body });
     });
@@ -865,6 +1048,30 @@ async function main() {
     return { appeared, sample, retracted };
   };
 
+  // TRAJ-IMPL-1: one pass per waiting object (continuation / unresolved A/B
+  // judgment). Each samples the DOM twice ~1.5s apart so the per-second clock is
+  // observed on the rendered surface instead of being taken on faith.
+  const runResidencyPass = async (name, options) => {
+    const context = await browser.newContext({ viewport });
+    const seeded = residencyFixtureEvents({ turnId: options.turnId, baseSeq: options.baseSeq, judgment: options.judgment });
+    await installReplay(context, { extraEvents: seeded });
+    const page = await context.newPage();
+    await page.goto(agentBase + "/app/?conversation_id=" + encodeURIComponent(conversationId), { waitUntil: "domcontentloaded" });
+    const appeared = await page
+      .waitForSelector('.trace-block[data-turn-id="' + options.turnId + '"]', { timeout: options.appearTimeoutMs })
+      .then(() => true)
+      .catch(() => false);
+    await page.waitForTimeout(600);
+    const first = await page.evaluate(DOM_PROBE);
+    await page.screenshot({ path: join(outDir, "dom-" + name + ".png") });
+    writeFileSync(join(outDir, "dom-" + name + ".json"), JSON.stringify(first, null, 2), "utf-8");
+    await page.waitForTimeout(1500);
+    const second = await page.evaluate(DOM_PROBE);
+    writeFileSync(join(outDir, "dom-" + name + "-later.json"), JSON.stringify(second, null, 2), "utf-8");
+    await context.close();
+    return { appeared, first, second, seeded };
+  };
+
   const assess = (prefix, sample) => {
     for (const [groupId, fn] of [["A1", checkA1], ["A2", checkA2], ["A3", checkA3]]) {
       const { failures, notes } = fn(sample);
@@ -960,6 +1167,28 @@ async function main() {
   record("planbar-settled-B1", checkB1(settledBar.sample));
   record("planbar-settled-B2", checkB2(settledBar));
 
+  // ------------------------------------------------------------- TRAJ-IMPL-1
+  report.residency_events_source =
+    "archived stream + seeded slice-boundary events for a new turn id, replayed for GET /agent/events " +
+    "(live turn, work slice closed by turn.completed, terminal event absent = the residency window)";
+  const residencyContinuation = await runResidencyPass("residency-continuation", {
+    turnId: "run_e2e_residency1", baseSeq: 100, judgment: false, appearTimeoutMs: 15000
+  });
+  report.residency_continuation = {
+    appeared: residencyContinuation.appeared,
+    seeded_events: residencyContinuation.seeded
+  };
+  record("residency-C1", checkC1(residencyContinuation, { turnId: "run_e2e_residency1", expectText: "等待续跑" }));
+
+  const residencyAudition = await runResidencyPass("residency-audition", {
+    turnId: "run_e2e_residency2", baseSeq: 200, judgment: true, appearTimeoutMs: 15000
+  });
+  report.residency_audition = {
+    appeared: residencyAudition.appeared,
+    seeded_events: residencyAudition.seeded
+  };
+  record("residency-audition-C1", checkC1(residencyAudition, { turnId: "run_e2e_residency2", expectText: "等待你的试听判定" }));
+
   report.finished_at = new Date().toISOString();
   report.events_served_from_fixture = seededEventsRequests;
   const failed = Object.entries(report.passes).filter(([, ok]) => !ok).map(([id]) => id);
@@ -977,7 +1206,7 @@ async function main() {
 // Exported so a control run can exercise the very same probe and assertion
 // functions against a deliberately healthy state (proof that a red result is a
 // real finding and not an artefact of the probe itself).
-export { DOM_PROBE, checkA1, checkA2, checkA3, checkB1, checkB2 };
+export { DOM_PROBE, checkA1, checkA2, checkA3, checkB1, checkB2, checkC1, residencyFixtureEvents };
 
 // Run only when this file is the process entry point, so importing it as a
 // library (the control run does) has no side effects.

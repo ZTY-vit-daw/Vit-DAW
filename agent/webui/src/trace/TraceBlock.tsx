@@ -10,6 +10,22 @@ import "./trace.css";
 /** 完成后自动收起的停留时长（ms）——先让人看清完成态再收 */
 export const autoCollapseDelayMs = 900;
 
+/** live 计时器节拍（ms，TRAJ-IMPL-1 §2.4-1/2）：每秒推进「已工作 / 已等」 */
+export const liveClockTickMs = 1000;
+
+/**
+ * 每秒时钟（TRAJ-IMPL-1）。live 期驱动「已工作 Xs / 已等 Xs」推进；返回取消器，
+ * 组件卸载（或 live 退场）时必须调用——不留悬空 interval。
+ * 不依赖 DOM（用全局 setInterval），node 环境可用 fake timers 直接钉节拍与清理。
+ */
+export function startSecondClock(
+  onTick: (nowMs: number) => void,
+  intervalMs: number = liveClockTickMs
+): () => void {
+  const timer = setInterval(() => onTick(Date.now()), intervalMs);
+  return () => clearInterval(timer);
+}
+
 export function isLiveStatus(status: string): boolean {
   return status === "running" || status === "pending";
 }
@@ -22,6 +38,79 @@ export function defaultCollapsedForStatus(status: string): boolean {
 function formatSeconds(ms: number): string {
   if (!Number.isFinite(ms) || ms < 0) return "--";
   return `${(ms / 1000).toFixed(1)}s`;
+}
+
+/** 整秒时长（live 计时器口径，TRAJ-IMPL-1 §2.4-1/2）：向下取整——每秒推进一格。
+ *  负值（时钟回拨 / 开始时刻在未来）与非法值钳到 0s，不虚报负时长。 */
+export function formatElapsedSeconds(ms: number): string {
+  if (!Number.isFinite(ms) || ms <= 0) return "0s";
+  return `${Math.floor(ms / 1000)}s`;
+}
+
+/** 驻留等待对象（§2.4-2 文案分支，2026-09-14 用户澄清）：同回合有未决 A/B 判定卡
+ *  → 等的是人的试听判定；其余 → 等的是续跑（欠收尾评估 / 手动停止后恢复）。 */
+export type ResidencyKind = "audition_judgment" | "continuation";
+
+/**
+ * 驻留判定（§2.4-2，只读消费 turnEventMeta，归约器零改动）：live 且工作片终点
+ * 已到（切片以 waiting_continue 收尾、turn.completed 落地）而回合终局事件未到
+ * → 驻留期。驻留终点（turn.stopped）已到的不算驻留——那一段等待已经结束。
+ */
+export function residencyActive(options: { live: boolean; turnMeta?: TurnEventMeta }): boolean {
+  if (!options.live) return false;
+  const endedAt = options.turnMeta?.endedAt;
+  if (endedAt === undefined || !Number.isFinite(endedAt)) return false;
+  const residencyEndedAt = options.turnMeta?.residencyEndedAt;
+  return residencyEndedAt === undefined || residencyEndedAt <= endedAt;
+}
+
+/**
+ * live 头部「已工作」时长（§2.4-1，startedAt 为唯一真源）：
+ *  - 工作片未收尾（endedAt 未到）：now - startedAt，每秒推进；
+ *  - 工作片已收尾（驻留/等待中）：冻结在 endedAt - startedAt——等待不得计成工作
+ *    （CONT-STALL-1 口径延伸：驻留墙钟不得冒充执行时长）；
+ *  - 无 startedAt 证据：null（不显示、不造默认值）。
+ */
+export function liveWorkElapsedMs(options: { turnMeta?: TurnEventMeta; nowMs: number }): number | null {
+  const startedAt = options.turnMeta?.startedAt;
+  if (startedAt === undefined || !Number.isFinite(startedAt)) return null;
+  const endedAt = options.turnMeta?.endedAt;
+  if (endedAt === undefined || !Number.isFinite(endedAt)) return options.nowMs - startedAt;
+  return endedAt - startedAt;
+}
+
+/**
+ * 同回合未决 A/B 判定卡（§2.4-2 文案分支的判据，只读消费该回合的轨迹节点）：
+ * user_judgment 节点处于等待/运行态，且没有同一 audition 会话的落账节点
+ * （trajectory.user_judgment.recorded / completed）把它解掉。判定卡与轨迹回合
+ * 同键（audition.ts 的 turnID 同样取 source_turn_id），所以「同回合」= 同 nodeIds。
+ */
+export function hasPendingAuditionJudgment(state: TrajectoryState, turn: TrajectoryTurn): boolean {
+  const nodes = turn.nodeIds
+    .map((id) => state.nodes[id])
+    .filter((node): node is TrajectoryNode => Boolean(node))
+    .filter((node) => node.kind === "user_judgment");
+  if (nodes.length === 0) return false;
+  const waiting = (node: TrajectoryNode) => ["waiting_for_user", "pending", "running"].includes(node.status.toLowerCase());
+  const settled = (node: TrajectoryNode) => node.eventType === "trajectory.user_judgment.recorded" || node.status.toLowerCase() === "completed";
+  const sessionOf = (node: TrajectoryNode) => {
+    const value = node.details?.audition_session_id;
+    return typeof value === "string" ? value.trim() : "";
+  };
+  return nodes.some((node) => {
+    if (!waiting(node)) return false;
+    const session = sessionOf(node);
+    return !nodes.some((other) =>
+      settled(other) && other.seq >= node.seq && (session === "" || sessionOf(other) === session)
+    );
+  });
+}
+
+/** 驻留显式行文案（§2.4-2 + 2026-09-14 用户澄清）：等待对象决定用词；只做显示行，
+ *  不加「继续」按钮（用户裁定 B，设计 §7）。 */
+export function residencyLineText(options: { kind: ResidencyKind; elapsedMs: number }): string {
+  const label = options.kind === "audition_judgment" ? "等待你的试听判定" : "等待续跑";
+  return `${label}（已等 ${formatElapsedSeconds(options.elapsedMs)}）`;
 }
 
 function stepDurationMs(node: TrajectoryNode, next: TrajectoryNode | undefined, live: boolean): number | null {
@@ -62,10 +151,21 @@ export function traceMetaParts(options: {
    * 「等待续跑」——「执行 55s，等待续跑 203s」就是这两个词。
    */
   parkMs?: number | null;
+  /**
+   * live 头部「已工作」时长（ms，TRAJ-IMPL-1 §2.4-1）：非负有限值且 live 时在步数
+   * 之后追加「已工作 Xs」（整秒，每秒推进）。缺省/null/NaN（无 startedAt 证据）
+   * 时 live 输出逐字不变——不造默认值。
+   */
+  liveWorkMs?: number | null;
 }): string[] {
   const base = (() => {
     if (options.live) {
-      return options.stepCount > 0 ? [`${options.stepCount} 步`] : ["--"];
+      const liveBase = options.stepCount > 0 ? [`${options.stepCount} 步`] : ["--"];
+      const liveWorkMs = options.liveWorkMs ?? null;
+      if (liveWorkMs === null || !Number.isFinite(liveWorkMs)) {
+        return liveBase;
+      }
+      return [...liveBase, `已工作 ${formatElapsedSeconds(liveWorkMs)}`];
     }
     if (options.stepCount > 0) {
       return [`${options.stepCount} 步`, formatSeconds(options.stepSpanMs)];
@@ -237,6 +337,16 @@ export function TraceBlock({ state, turn, activities, authorityMode = "manual_co
   const live = isLiveStatus(turn.status);
   const [collapsed, setCollapsed] = useState(() => defaultCollapsedForStatus(turn.status));
   const wasLive = useRef(live);
+  // TRAJ-IMPL-1 §2.4-1/2：live 期每秒时钟（驱动「已工作 / 已等」推进）。终态不需要
+  // 节拍；卸载或 live 退场即经 startSecondClock 的取消器清理，不留悬空 interval。
+  const [nowMs, setNowMs] = useState(() => Date.now());
+  useEffect(() => {
+    if (!live) {
+      return undefined;
+    }
+    setNowMs(Date.now());
+    return startSecondClock(setNowMs);
+  }, [live]);
 
   // 输出完成 → 自动收起（先停留一拍让人看清完成态）
   useEffect(() => {
@@ -254,13 +364,23 @@ export function TraceBlock({ state, turn, activities, authorityMode = "manual_co
   const sub = receiptSub(nodes);
   // 工作/驻留分离（CONT-STALL-1）：item 活动时长只取工作片终点，驻留等待单列。
   const split = turnDurationSplit(turnMeta);
+  // 驻留期（§2.4-2）：等待是显式的一行，不冒充工作——live 思考行退场、等待行上场；
+  // 文案按等待对象区分（同回合未决 A/B 判定卡 → 等待你的试听判定）。
+  const residency = residencyActive({ live, turnMeta });
+  const waitLine = residency
+    ? residencyLineText({
+        kind: hasPendingAuditionJudgment(state, turn) ? "audition_judgment" : "continuation",
+        elapsedMs: nowMs - (turnMeta?.endedAt ?? nowMs)
+      })
+    : null;
   const metaParts = traceMetaParts({
     live,
     stepCount: nodes.length,
     stepSpanMs: turnSpanMs(nodes, false),
     itemActivityCount: turnMeta?.itemActivityCount ?? 0,
     itemActivitySpanMs: split.workMs,
-    parkMs: split.parkMs
+    parkMs: split.parkMs,
+    liveWorkMs: live ? liveWorkElapsedMs({ turnMeta, nowMs }) : null
   });
 
   return (
@@ -284,13 +404,21 @@ export function TraceBlock({ state, turn, activities, authorityMode = "manual_co
       </button>
       <div className="trace-wrap"><div>
         <div className="trace-inner">
-          {live && (
+          {live && !residency && (
             <div className="trace-think" aria-live="polite">
               <span className="trace-node" aria-hidden="true" />
               <div className="trace-think-line">
                 <span>{thinking?.content ?? "正在处理…"}</span>
                 <span className="trace-cursor" aria-hidden="true" />
               </div>
+            </div>
+          )}
+          {/* 驻留显式行（§2.4-2）：静态墨点 + 每秒推进的已等时长，无转圈/游标，
+              不把自己装成正在处理；只做显示行，不加「继续」按钮（用户裁定 B）。 */}
+          {waitLine !== null && (
+            <div className="trace-wait">
+              <span className="trace-node" aria-hidden="true" />
+              <div className="trace-wait-line"><span>{waitLine}</span></div>
             </div>
           )}
           {nodes.map((node, index) => (

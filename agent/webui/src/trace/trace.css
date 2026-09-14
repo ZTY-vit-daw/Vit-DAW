@@ -76,6 +76,14 @@
   animation:trace-blink 1.1s steps(2,start) infinite}
 @keyframes trace-blink{to{visibility:hidden}}
 
+/* 驻留显式行（TRAJ-IMPL-1 §2.4-2）：等待不是工作——静态墨点 + 明确计时文案，
+   无旋转、无游标、无呼吸（不冒充 live 处理）；缩进与思考行一致。 */
+.trace-wait{position:relative;padding:6px 0 7px 22px}
+.trace-wait .trace-node{background:transparent;border:2px solid var(--muted);top:9px}
+.trace-wait-line{display:flex;align-items:center;gap:6px;min-width:0;
+  font-size:12.5px;color:var(--ink)}
+.trace-wait-line span{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
 @media (prefers-reduced-motion:reduce){
   .trace-wrap,.trace-chev,.th-chev,.trace-detail{transition:none}
   .trace-step.is-running .trace-node,.trace-think .trace-node,

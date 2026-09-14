@@ -1,11 +1,11 @@
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { AgentEvent, ChatMessage } from "../types";
 import { emptyTrajectoryState, reduceTrajectoryEvents, trajectoryTurns } from "../trajectory";
 import { mockMultiRoundTrajectoryEvents, mockRollbackTrajectoryEvents } from "../trajectoryMock";
-import { defaultCollapsedForStatus, isLiveStatus, OptimisticTraceBlock, shouldShowOptimisticTrace, TraceBlock } from "./TraceBlock";
+import { defaultCollapsedForStatus, isLiveStatus, OptimisticTraceBlock, shouldShowOptimisticTrace, startSecondClock, TraceBlock, traceMetaParts } from "./TraceBlock";
 import { groupMessagesByTurn, isUnboundActivity, latestRenderedTurnId, turnIsAnchored } from "./turnGroups";
-import { reduceTurnEventMeta, type TurnEventMeta } from "./turnEventMeta";
+import { reduceTurnEventMeta, turnDurationSplit, type TurnEventMeta } from "./turnEventMeta";
 
 function chat(partial: Partial<ChatMessage> & Pick<ChatMessage, "id" | "role" | "content">): ChatMessage {
   return { createdAt: 0, ...partial } as ChatMessage;
@@ -396,4 +396,240 @@ describe("UI-FOLLOW-1 终局定格：回合终态后不留转圈/排队标记", 
     expect(markup).toContain("排队中");
   });
 });
+// TRAJ-IMPL-1（设计 docs/TRAJECTORY_PRESENTATION_REDESIGN_V1.md §2.4 三件，2026-09-14）：
+// ① live 头部「已工作 Xs」每秒推进；② 驻留显式行（文案按等待对象区分，不加「继续」
+// 按钮）；③ 终态句式「执行 Xs，等待续跑 Ys」冻结为契约。事件形态取自 CONT-STALL-1
+// 真栈驻留记账（工作片以 turn.completed 收尾、回合终局事件未到），只读消费既有
+// turnEventMeta（归约器零改动）。
+describe("TRAJ-IMPL-1 §2.4 时长语义三件", () => {
+  const T0 = Date.parse("2026-09-14T10:00:00.000Z");
+  const RUN = "run-traj-impl-1";
+  const SCHEMA = "vit.observable_trajectory.v1";
+  const at = (ms: number) => new Date(ms).toISOString();
 
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  /** 回合壳（running）：live 形态的轨迹证据 */
+  function shellEvent(seq: number): AgentEvent {
+    return {
+      seq,
+      type: "trajectory.turn.started",
+      item_id: `turn:${RUN}`,
+      source_turn_id: RUN,
+      payload: { schema_version: SCHEMA, trace_node_id: `turn:${RUN}`, turn_id: RUN, node_kind: "turn", phase: "framing", status: "running" }
+    };
+  }
+
+  function stepEvent(seq: number): AgentEvent {
+    return {
+      seq,
+      type: "trajectory.observation.recorded",
+      item_id: "obs-traj-1",
+      source_turn_id: RUN,
+      payload: { schema_version: SCHEMA, trace_node_id: "obs-traj-1", turn_id: RUN, node_kind: "observation", phase: "observing", status: "completed", summary: "频率关系观察" }
+    };
+  }
+
+  /** 工作相位：turn.started + 壳 + 一步，工作片尚未收尾（无 endedAt） */
+  function workingEvents(): AgentEvent[] {
+    return [
+      { seq: 1, type: "turn.started", source_turn_id: RUN, created_at: at(T0) },
+      shellEvent(2),
+      stepEvent(3)
+    ];
+  }
+
+  /** 驻留形态：工作片以 turn.completed 收尾（切片 waiting_continue 边界），
+   *  回合终局事件（trajectory.turn.completed）未到 → live 且 endedAt 已到 */
+  function residencyEvents(options: { workMs?: number; judgment?: "pending" | "recorded" } = {}): AgentEvent[] {
+    const workMs = options.workMs ?? 55_000;
+    const events: AgentEvent[] = [
+      { seq: 1, type: "turn.started", source_turn_id: RUN, created_at: at(T0) },
+      shellEvent(2),
+      stepEvent(3),
+      { seq: 4, type: "turn.completed", source_turn_id: RUN, created_at: at(T0 + workMs) }
+    ];
+    if (options.judgment) {
+      events.push({
+        seq: 5,
+        type: "trajectory.user_judgment.requested",
+        item_id: "judgment-traj-1",
+        source_turn_id: RUN,
+        payload: {
+          schema_version: SCHEMA,
+          trace_node_id: "judgment-traj-1",
+          turn_id: RUN,
+          node_kind: "user_judgment",
+          phase: "user_judgment",
+          status: "waiting_for_user",
+          summary: "static_eq · A/B 试听判定",
+          details: { audition_session_id: "audition-traj-1" }
+        }
+      });
+    }
+    if (options.judgment === "recorded") {
+      events.push({
+        seq: 6,
+        type: "trajectory.user_judgment.recorded",
+        item_id: "judgment-traj-1-recorded",
+        source_turn_id: RUN,
+        payload: {
+          schema_version: SCHEMA,
+          trace_node_id: "judgment-traj-1-recorded",
+          turn_id: RUN,
+          node_kind: "user_judgment",
+          phase: "user_judgment",
+          status: "completed",
+          details: { audition_session_id: "audition-traj-1" }
+        }
+      });
+    }
+    return events;
+  }
+
+  /** 终局形态（真栈 goal_5b9cb1a9e48ace5b）：壳回合 + item 活动足迹，工作片收尾
+   *  后驻留 parkMs，驻留终点（trajectory.turn.stopped）收口 */
+  function settledEvents(workMs: number, parkMs: number): AgentEvent[] {
+    return [
+      { seq: 1, type: "turn.started", source_turn_id: RUN, created_at: at(T0) },
+      shellEvent(2),
+      { seq: 3, type: "item.started", source_turn_id: RUN, item_id: "i1", logical_message_id: `agent_item:${RUN}:i1`, created_at: at(T0 + 1_000) },
+      { seq: 4, type: "item.completed", source_turn_id: RUN, item_id: "i1", logical_message_id: `agent_item:${RUN}:i1`, created_at: at(T0 + 2_000) },
+      { seq: 5, type: "turn.completed", source_turn_id: RUN, created_at: at(T0 + workMs) },
+      {
+        seq: 6,
+        type: "trajectory.turn.stopped",
+        item_id: `turn:${RUN}`,
+        source_turn_id: RUN,
+        created_at: at(T0 + workMs + parkMs),
+        payload: { schema_version: SCHEMA, trace_node_id: `turn:${RUN}`, turn_id: RUN, node_kind: "turn", phase: "stopped", status: "stopped" }
+      }
+    ];
+  }
+
+  /** 渲染该回合（时钟以 fake system time 注入；静态渲染不执行 effect） */
+  function renderTurn(events: AgentEvent[], nowMs: number) {
+    const state = reduceTrajectoryEvents(emptyTrajectoryState(), events);
+    const turn = trajectoryTurns(state)[0];
+    const turnMeta = reduceTurnEventMeta({}, events)[RUN];
+    vi.setSystemTime(nowMs);
+    const markup = renderToStaticMarkup(
+      <TraceBlock state={state} turn={turn} activities={[]} turnMeta={turnMeta} />
+    );
+    return { state, turn, turnMeta, markup };
+  }
+
+  it("钉1 驻留显式行在场：live + 工作片终点已到 + 回合未终局 → 块内「等待续跑（已等 Xs）」", () => {
+    const { turn, markup } = renderTurn(residencyEvents(), T0 + 70_000);
+    expect(isLiveStatus(turn.status)).toBe(true);
+    expect(markup).toContain("trace-wait");
+    expect(markup).toContain("等待续跑（已等 15s）");
+    // 用户裁定 B（§7）：只做显示行，不加「继续」按钮
+    expect(markup).not.toContain("继续");
+    // 等待不冒充工作：驻留期不渲染 live 思考行/游标，也不沿用「正在处理…」话术
+    expect(markup).not.toContain("trace-think");
+    expect(markup).not.toContain("正在处理…");
+  });
+
+  it("钉2a 文案分支：同回合有未决 A/B 判定卡 → 「等待你的试听判定（已等 Xs）」", () => {
+    const { markup } = renderTurn(residencyEvents({ judgment: "pending" }), T0 + 70_000);
+    expect(markup).toContain("等待你的试听判定（已等 15s）");
+    expect(markup).not.toContain("等待续跑");
+  });
+
+  it("钉2b 文案分支：判定已落账 → 回到「等待续跑（已等 Xs）」，不把已决判定称作未决", () => {
+    const { markup } = renderTurn(residencyEvents({ judgment: "recorded" }), T0 + 70_000);
+    expect(markup).toContain("等待续跑（已等 15s）");
+    expect(markup).not.toContain("等待你的试听判定");
+  });
+
+  it("钉3 live 头部「已工作 Xs」每秒推进（fake timers；startedAt 为唯一真源）", () => {
+    const five = renderTurn(workingEvents(), T0 + 5_000);
+    expect(five.markup).toContain("已工作 5s");
+    // 步数流式语义不回退（既有钉：live 有步显 N 步）
+    expect(five.markup).toContain(">1 步</span>");
+    const six = renderTurn(workingEvents(), T0 + 6_000);
+    expect(six.markup).toContain("已工作 6s");
+    expect(six.markup).not.toContain("已工作 5s");
+  });
+
+  it("钉3b 每秒时钟：1s 节拍推进 + 卸载即取消（无泄漏）——组件以它驱动 nowMs", () => {
+    vi.setSystemTime(T0);
+    const ticks: number[] = [];
+    const stop = startSecondClock((nowMs) => ticks.push(nowMs));
+    vi.advanceTimersByTime(3_000);
+    expect(ticks).toEqual([T0 + 1_000, T0 + 2_000, T0 + 3_000]);
+    stop();
+    vi.advanceTimersByTime(5_000);
+    expect(ticks).toHaveLength(3);
+  });
+
+  it("钉4 终态句式逐字冻结：「执行 Xs，等待续跑 Ys」（traceMetaParts 现产，补钉钉住）", () => {
+    const events = settledEvents(54_800, 203_500);
+    const turnMeta = reduceTurnEventMeta({}, events)[RUN];
+    const split = turnDurationSplit(turnMeta);
+    expect(split).toEqual({ workMs: 54_800, parkMs: 203_500 });
+    const parts = traceMetaParts({
+      live: false,
+      stepCount: 0,
+      stepSpanMs: 0,
+      itemActivityCount: 2,
+      itemActivitySpanMs: split.workMs,
+      parkMs: split.parkMs
+    });
+    expect(parts).toEqual(["2 项活动", "执行 54.8s", "等待续跑 203.5s"]);
+    const { markup } = renderTurn(events, T0 + 300_000);
+    expect(markup).toContain("执行 54.8s");
+    expect(markup).toContain("等待续跑 203.5s");
+    // 终态不再有 live 驻留行（只有终态句式）
+    expect(markup).not.toContain("trace-wait");
+  });
+
+  it("钉5 无驻留段不多个词：终态只显工作时长；live 工作相位不出现等待用词", () => {
+    const settled = renderTurn(settledEvents(60_000, 0), T0 + 120_000);
+    expect(settled.markup).not.toContain("等待续跑");
+    expect(settled.markup).not.toContain("已等");
+    expect(settled.markup).not.toContain("已工作");
+    const working = renderTurn(workingEvents(), T0 + 5_000);
+    expect(working.markup).toContain("已工作 5s");
+    expect(working.markup).not.toContain("等待续跑");
+    expect(working.markup).not.toContain("等待你的试听判定");
+    expect(working.markup).not.toContain("已等");
+    expect(working.markup).not.toContain("trace-wait");
+  });
+
+  it("钉6 无 startedAt 不显示「已工作」（不造默认值）；驻留行只按 endedAt 记账", () => {
+    const { turn, state } = renderTurn(residencyEvents(), T0 + 70_000);
+    const markup = renderToStaticMarkup(
+      <TraceBlock
+        state={state}
+        turn={turn}
+        activities={[]}
+        turnMeta={{ turnKind: "", itemActivityCount: 0, itemActivityKeys: [], endedAt: T0 + 55_000 }}
+      />
+    );
+    expect(markup).not.toContain("已工作");
+    expect(markup).toContain("等待续跑（已等 15s）");
+  });
+
+  it("钉7 工作相位（endedAt 未到）不显示驻留行", () => {
+    const { markup } = renderTurn(workingEvents(), T0 + 5_000);
+    expect(markup).not.toContain("trace-wait");
+    expect(markup).not.toContain("已等");
+  });
+
+  it("钉8 驻留期「已工作」冻结在工作片长度：等待不得把工作时长撑大", () => {
+    const early = renderTurn(residencyEvents(), T0 + 70_000);
+    expect(early.markup).toContain("已工作 55s");
+    expect(early.markup).toContain("等待续跑（已等 15s）");
+    const later = renderTurn(residencyEvents(), T0 + 100_000);
+    expect(later.markup).toContain("已工作 55s");
+    expect(later.markup).toContain("等待续跑（已等 45s）");
+    expect(later.markup).not.toContain("已工作 100s");
+  });
+});

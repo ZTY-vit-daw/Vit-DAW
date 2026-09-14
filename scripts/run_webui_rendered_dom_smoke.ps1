@@ -84,15 +84,52 @@ function Wait-HttpReady {
     return $false
 }
 
-# Newest session commit directory under a .vit_history root. The archived graph
-# references real commit objects; the agent's history reader silently drops
-# nodes whose commit object is missing, so the smoke must hand them over.
+# The archived graph references real commit objects; the agent's history reader
+# silently drops nodes whose commit object is missing, so the smoke must hand
+# them over. The objects it needs are named by the graph fixture itself.
+# Read as UTF-8 explicitly: Windows PowerShell 5.1 decodes a BOM-less file with
+# the ANSI code page, which mangles the fixture's CJK node texts badly enough to
+# break ConvertFrom-Json. The commit ids themselves are plain ASCII, so they are
+# extracted with a regex over the decoded text (no JSON parser involved).
+function Get-GraphCommitIds {
+    param([string]$GraphFixture)
+    $ids = New-Object System.Collections.Generic.List[string]
+    if ([string]::IsNullOrWhiteSpace($GraphFixture) -or -not (Test-Path -LiteralPath $GraphFixture)) { return $ids }
+    $raw = Get-Content -LiteralPath $GraphFixture -Raw -Encoding UTF8
+    if ([string]::IsNullOrWhiteSpace($raw)) { return $ids }
+    foreach ($match in [regex]::Matches($raw, '"commit_id"\s*:\s*"([^"]+)"')) {
+        $commitId = $match.Groups[1].Value.Trim()
+        if ($commitId -ne "" -and -not $ids.Contains($commitId)) { $ids.Add($commitId) }
+    }
+    return $ids
+}
+
+# TRAJ-IMPL-1 (2026-09-14): "newest non-empty commits directory" is NOT the right
+# pick. Any later session directory holding different commit objects makes every
+# archived node get skipped, and the smoke then dies on its own hydration
+# precondition (exit 2 -- an environment failure, not a finding about the webui).
+# Resolve by content first: the directory that actually holds the fixture's own
+# commit ids wins; recency is only the fallback (and the whole fallback is the
+# old behaviour when no required id is known).
 function Find-SessionCommitDir {
-    param([string]$HistoryRoot)
+    param([string]$HistoryRoot, [string[]]$RequiredCommitIds = @())
     if ([string]::IsNullOrWhiteSpace($HistoryRoot) -or -not (Test-Path -LiteralPath $HistoryRoot)) { return "" }
     $candidates = Get-ChildItem -LiteralPath $HistoryRoot -Recurse -Directory -Filter "commits" -ErrorAction SilentlyContinue |
         Where-Object { $_.FullName -like "*\.sessions\*" } |
         Sort-Object LastWriteTime -Descending
+    $best = ""
+    $bestHits = 0
+    foreach ($candidate in $candidates) {
+        $count = @(Get-ChildItem -LiteralPath $candidate.FullName -File -ErrorAction SilentlyContinue).Count
+        if ($count -eq 0) { continue }
+        if ($RequiredCommitIds.Count -eq 0) { return $candidate.FullName }
+        $hits = 0
+        foreach ($commitId in $RequiredCommitIds) {
+            if (Test-Path -LiteralPath (Join-Path $candidate.FullName ($commitId + ".json"))) { $hits += 1 }
+        }
+        if ($hits -gt $bestHits) { $bestHits = $hits; $best = $candidate.FullName }
+    }
+    if ($bestHits -gt 0) { return $best }
     foreach ($candidate in $candidates) {
         $count = @(Get-ChildItem -LiteralPath $candidate.FullName -File -ErrorAction SilentlyContinue).Count
         if ($count -gt 0) { return $candidate.FullName }
@@ -134,6 +171,22 @@ try {
     Add-Prereq ("head=" + (& git -C $RepoRoot rev-parse HEAD))
     Add-Prereq ("git_status=" + ((& git -C $RepoRoot status --short) -join " ; "))
     Add-Prereq ("http_port=" + $HttpPort)
+    # AGENTS.md section 9: another session's stack owns the default bridge ports
+    # (ZMQ 5555/5556, Godot UDP 4444/4445) whenever it runs the real three-piece
+    # stack. The agent refuses to start when it cannot bind its command UDP port,
+    # so a gate run must record which ports it will actually own. The overrides
+    # come from the documented VIT_AGENT_* environment variables and are unset by
+    # default (agent defaults below).
+    $bridgeEnv = @()
+    foreach ($bridgeName in @("VIT_AGENT_ZMQ_REQ_URL", "VIT_AGENT_ZMQ_SUB_URL", "VIT_AGENT_UDP_TO_GODOT", "VIT_AGENT_UDP_FROM_GODOT")) {
+        $bridgeValue = [Environment]::GetEnvironmentVariable($bridgeName, "Process")
+        if (-not [string]::IsNullOrWhiteSpace($bridgeValue)) { $bridgeEnv += ($bridgeName + "=" + $bridgeValue) }
+    }
+    if ($bridgeEnv.Count -eq 0) {
+        Add-Prereq "bridge_ports=agent defaults (zmq 5555/5556, udp 4444/4445)"
+    } else {
+        Add-Prereq ("bridge_ports=" + ($bridgeEnv -join " "))
+    }
     Add-Prereq ("conversation_id=" + $ConversationId)
     Add-Prereq ("started=" + (Get-Date -Format "o"))
 
@@ -193,15 +246,21 @@ try {
     Add-Prereq ("events_fixture=" + $EventsFixture + " sha256=" + (Get-FileHash -Algorithm SHA256 -LiteralPath $EventsFixture).Hash)
     Add-Prereq ("smoke_script=" + $SmokeScript + " sha256=" + (Get-FileHash -Algorithm SHA256 -LiteralPath $SmokeScript).Hash)
 
+    $graphCommitIds = @(Get-GraphCommitIds -GraphFixture $GraphFixture)
     if ([string]::IsNullOrWhiteSpace($CommitDirs)) {
-        $sessionCommits = Find-SessionCommitDir -HistoryRoot $UserHistoryRoot
+        $sessionCommits = Find-SessionCommitDir -HistoryRoot $UserHistoryRoot -RequiredCommitIds $graphCommitIds
         if (-not [string]::IsNullOrWhiteSpace($sessionCommits)) { $CommitDirs = $sessionCommits }
     }
     if ([string]::IsNullOrWhiteSpace($CommitDirs)) {
         Write-Note "no archived session commit directory found; the smoke will report how many graph nodes it had to skip"
     } else {
         Add-Prereq ("commit_dirs=" + $CommitDirs)
-        Write-Ok ("archived commit objects: " + $CommitDirs)
+        $commitHits = 0
+        foreach ($commitId in $graphCommitIds) {
+            if (Test-Path -LiteralPath (Join-Path $CommitDirs ($commitId + ".json"))) { $commitHits += 1 }
+        }
+        Add-Prereq ("graph_commit_ids=" + $graphCommitIds.Count + " matched_in_commit_dirs=" + $commitHits)
+        Write-Ok ("archived commit objects: " + $CommitDirs + " (" + $commitHits + "/" + $graphCommitIds.Count + " required objects present)")
     }
 
     # Playwright may already be on the host through npx even though the repo
@@ -281,10 +340,22 @@ try {
 
     $reportPath = Join-Path $RunRoot "webui_rendered_dom_report.json"
     if (Test-Path -LiteralPath $reportPath) {
-        $report = Get-Content -LiteralPath $reportPath -Raw | ConvertFrom-Json
-        Add-Prereq ("verdict=" + $report.verdict)
-        Add-Prereq ("failed_groups=" + (($report.failed_groups) -join ","))
-        Add-Prereq ("browser=" + $report.browser + " " + $report.browser_version)
+        try {
+            # UTF-8 explicitly, and never fatal: the smoke's own exit code is the
+            # delivery decision. Windows PowerShell 5.1 decodes a BOM-less file
+            # with the ANSI code page, which corrupts the CJK assertion notes and
+            # can make them unparseable (observed 2026-09-14: smoke_exit=0 with
+            # report verdict=pass, yet the wrapper reported env_failure because
+            # this very read threw). A report that cannot be read is recorded as
+            # lost evidence, not as a verdict.
+            $report = Get-Content -LiteralPath $reportPath -Raw -Encoding UTF8 | ConvertFrom-Json
+            Add-Prereq ("verdict=" + $report.verdict)
+            Add-Prereq ("failed_groups=" + (($report.failed_groups) -join ","))
+            Add-Prereq ("browser=" + $report.browser + " " + $report.browser_version)
+        }
+        catch {
+            Add-Prereq ("report_read_error=" + $_.Exception.Message)
+        }
     }
     Write-Host ""
     Write-Host ("ARTIFACT_RUN_ROOT " + $RunRoot)
