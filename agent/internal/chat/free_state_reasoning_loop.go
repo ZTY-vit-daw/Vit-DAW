@@ -2394,15 +2394,55 @@ func reservePostActionObservationSlice(loop *freeStateReasoningLoop) {
 // post-apply chain (2026-08-28 09:30 smoke: applied at 4/6, three scheduler
 // enqueues burned the budget to 7/6 with no reserve on that path, blocking
 // before any fresh bundle landed).
+//
+// TRAJ-AUTO-SETTLE-1: the same floor now also covers the applied round whose
+// post-action observation was booked inside the respond chain
+// (RequiresPostActionObservation=false) — the round still owes the tail of the
+// same chain (materiality/target evaluation -> judgment boundary), and that
+// tail is machine work, not user work.
 const freeStateD1PostApplySliceNeed = 3
+
+// freeStateLoopOwesAutoSettlement reports whether the durable free-state loop
+// still owes governed MACHINE work the scheduler may resume on its own: the
+// applied round's settlement tail (post-action observation, materiality/target
+// evaluation, and the judgment boundary that closes it) with no pending
+// human-judgment card. It is freeStateLoopOwesExperimentOutcome minus the
+// judgment park, and the subtraction is the whole point of the distinction the
+// product ruling requires (TRAJ-AUTO-SETTLE-1): a round parked at the
+// human-judgment boundary owes its outcome to the user's ears — the guarded
+// audition judgment POST is the only thing that can settle it — so no automatic
+// slice may be armed for it, and the park keeps delivering its five-element
+// judgment summary (PARK-1). Everything else in the owed set is the machine's
+// own back office: asking the user to type "继续" for it is the design smell
+// this predicate exists to remove.
+func freeStateLoopOwesAutoSettlement(loop freeStateReasoningLoop) bool {
+	if freeStateJudgmentBoundary(loop) {
+		return false
+	}
+	return freeStateLoopOwesExperimentOutcome(loop)
+}
 
 // reserveD1PostApplySlices grants the phase-scoped D1 post-apply budget floor
 // at the applied boundary: continuation_budget is raised to used+need once per
 // applied round. It changes scheduling only — the post-action evidence gates
 // (revision-bound eligibility, explicit-fresh CCB verification) are untouched,
 // so the extra slices can still only carry governed turns.
+//
+// Admission (TRAJ-AUTO-SETTLE-1): the applied-boundary debt bit admits the
+// floor as before; the second clause admits the SAME applied round when its
+// post-action observation was already booked inside the respond chain but the
+// round still owes the machine settlement tail. That tail is not user work:
+// without the floor the continuation budget starves it, recordGoalResult stops
+// the schedule at the budget with every durable record of the goal terminalized
+// (goalrunner_chat.go), and the chain-end delivery gate hands the user the
+// D1-STALL-1 receipt asking them to type "继续" so the machine can finish its
+// own evaluation. A judgment park is refused here (freeStateLoopOwesAutoSettlement
+// subtracts it): the user's ears stay in charge of that wait.
 func reserveD1PostApplySlices(loop *freeStateReasoningLoop) {
-	if loop == nil || loop.PostApplyBudgetReserved || !loop.RequiresPostActionObservation || loop.ContinuationBudget <= 0 {
+	if loop == nil || loop.PostApplyBudgetReserved || loop.ContinuationBudget <= 0 {
+		return
+	}
+	if !loop.RequiresPostActionObservation && !freeStateLoopOwesAutoSettlement(*loop) {
 		return
 	}
 	if floor := loop.ContinuationUsed + freeStateD1PostApplySliceNeed; floor > loop.ContinuationBudget {

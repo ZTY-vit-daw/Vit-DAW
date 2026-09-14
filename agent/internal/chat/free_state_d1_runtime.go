@@ -694,6 +694,15 @@ func (s *Server) projectD1Execution(loop freeStateReasoningLoop, session orchest
 		// this respond parks the goal. Grant its phase-scoped budget floor here
 		// so pre-apply consumption cannot starve it.
 		reserveD1PostApplySlices(&loop)
+	} else if receipt.Status == "applied" && freeStateLoopOwesAutoSettlement(loop) {
+		// TRAJ-AUTO-SETTLE-1：观察已在响应链内确定性入账的形态下，回合仍欠同一
+		// 段 chain 的尾段（materiality/目标评估 -> 判定边界）。尾段是纯机器工作，
+		// 但此前拿不到地板：预算走满即预算停止，该 goal 的 durable 记录被全部
+		// terminal 化，链终局于是向用户索要一句「继续」——把机器欠账转嫁成用户
+		// 交互（卡面 ①类）。这里授同一段地板，让调度器自动续跑结算片；判定驻留
+		// （有未决 A/B 卡）由 freeStateLoopOwesAutoSettlement 排除——那时唯一能
+		// 收口的是用户的判定 POST，不是自动切片。
+		reserveD1PostApplySlices(&loop)
 	}
 	loop.Status = "re_evaluating"
 	loop.DecisionPhase = freeStatePhasePostActionEvaluation
