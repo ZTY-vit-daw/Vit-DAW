@@ -4429,14 +4429,20 @@ function MessageStream({
   const plan = buildMessageStreamRenderPlan({ messages: visibleMessages, trajectory, turnEventMeta, roundSteps, receipts });
   const knownTurnIds = new Set(trajectoryTurns(trajectory).map((turn) => turn.id));
   const turnActivities = (turnId: string) => activities.filter((activity) => (activity.turn_id ?? "").trim() === turnId);
+  const sessions = auditionSessions(audition);
   // 活动线只承载非回合活动（上传/调用等）；回合内活动并入回合单活动面。TRAJ-IMPL-2
   // 把「归属」判据从回合 id 扩到**事件身份**（item 步账的钥匙）：item 已经落在某个
   // 回合容器里，就不该在流底 lane 再出现一次（设计 §2.1-5）；turn_id 跨命名空间的
   // 直连活动（如上传）照旧留在 lane。
   const roundBoundKeys = roundActivityBoundKeys(roundSteps);
-  const laneActivities = activities.filter((activity) => isUnboundActivity(activity, knownTurnIds, roundBoundKeys));
+  // AUDITION-LANE-1（2026-09-14）：audition.* 活动行归属会话回合域（判定卡锚定域，
+  // messageLifecycle.activityTurnIDOfEvent 与 audition.ts:93 同键）——该族活动的呈现
+  // 面是判定卡区域（准备/忙碌态卡面已显形，AUDITION-UNSTICK-1），不再落流底 lane；
+  // 无回合归属的活动（上传等）照旧留 lane。
+  const sessionBoundTurnIds = new Set(sessions.map((session) => session.turnID).filter(Boolean));
+  const laneBoundTurnIds = new Set([...knownTurnIds, ...sessionBoundTurnIds]);
+  const laneActivities = activities.filter((activity) => isUnboundActivity(activity, laneBoundTurnIds, roundBoundKeys));
 
-  const sessions = auditionSessions(audition);
   const turnFirstSeq = (turnId: string): number => {
     const turn = trajectory.turns[turnId];
     if (!turn || turn.nodeIds.length === 0) return Number.MAX_SAFE_INTEGER;

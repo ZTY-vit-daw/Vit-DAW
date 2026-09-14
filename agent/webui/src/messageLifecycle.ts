@@ -291,6 +291,28 @@ export function eventTurnID(event: AgentEvent): string {
   return text(event.turn_id ?? event.run_id ?? event.goal_id);
 }
 
+/**
+ * AUDITION-LANE-1（2026-09-14）：活动行的回合归属键——与轨迹/判定卡同口径
+ * （trajectoryTurnIdOfEvent / audition.ts:93：source_turn_id 优先）。C0 双写后
+ * trajectory 系事件的 turn_id 还是实验域而轮次键已是 run 域，活动行按旧
+ * eventTurnID 归属就跨命名空间判 unbound，落流底 lane 且轮次终局清退匹配不上。
+ * audition.* 事件不带任何事件级 turn 字段（服务端 emitAuditionEvent 不设
+ * GoalID/RunID/TurnID），回合域只在会话快照 payload.session.turn_id——按
+ * audition.ts:93 同键回退。其余事件保持既有 eventTurnID 链（旧流行为不变）。
+ */
+export function activityTurnIDOfEvent(event: AgentEvent): string {
+  const sourceTurn = text(event.source_turn_id);
+  if (sourceTurn) {
+    return sourceTurn;
+  }
+  const transportTurn = eventTurnID(event);
+  if (transportTurn || !text(event.type).startsWith("audition.")) {
+    return transportTurn;
+  }
+  const payload = record(event.payload);
+  return text(record(payload.session).turn_id) || text(payload.turn_id);
+}
+
 export function eventLogicalMessageID(event: AgentEvent): string {
   return text(event.logical_message_id) || [eventTurnID(event), text(event.item_id), text(event.type)].filter(Boolean).join(":");
 }
@@ -303,7 +325,7 @@ export function reduceAgentEventActivities(
   let next = current.filter(isTransientMessage);
   for (const event of events) {
     const eventType = text(event.type);
-    const turnID = eventTurnID(event);
+    const turnID = activityTurnIDOfEvent(event);
     const logicalID = eventLogicalMessageID(event);
     // GUI-1：轨迹回合终结事件与顶层 turn 终结同等清场——否则链终局清场后
     // 到达的 trajectory.turn.completed 会再产一条「已完成」残留活动（15 事件
@@ -327,11 +349,26 @@ export function reduceAgentEventActivities(
     if (!created) {
       continue;
     }
+    let activityTurn = turnID;
+    if (!activityTurn && eventType.startsWith("audition.")) {
+      // AUDITION-LANE-1 会话回合记忆：真栈形态下 telemetry 类 audition 事件
+      // （prepare.started/candidate.ready）的会话快照不带 turn_id，只有 agent 侧
+      // 发出的事件带（2026-09-05 fixture 实证）——晚到事件继承同会话（同
+      // source_id）已绑定的回合域，audition.ts:93 previous?.turnID 的活动侧对应。
+      activityTurn = next.find((row) => row.source_id === created.source_id && text(row.turn_id))?.turn_id ?? "";
+    }
     const message = transientMessage({
       ...created,
-      turn_id: created.turn_id || turnID,
+      turn_id: created.turn_id || activityTurn,
       logical_message_id: created.logical_message_id || logicalID
     });
+    if (activityTurn && eventType.startsWith("audition.")) {
+      // 回填：携带回合域的事件到达前，同会话早到活动已以空回合入账——不回填的话
+      // 半族活动仍按 unbound 落流底 lane，整族同键才算归属干净。
+      next = next.map((row) =>
+        row.source_id === message.source_id && !text(row.turn_id) ? { ...row, turn_id: activityTurn } : row
+      );
+    }
     next = upsertActivity(next, message);
   }
   return next.sort((left, right) => left.createdAt - right.createdAt);

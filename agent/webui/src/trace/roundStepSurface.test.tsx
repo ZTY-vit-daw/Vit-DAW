@@ -10,6 +10,7 @@ import { TraceBlock } from "./TraceBlock";
 import { isUnboundActivity } from "./turnGroups";
 import { reduceTurnEventMeta } from "./turnEventMeta";
 import { reduceAgentEventActivities } from "../messageLifecycle";
+import { auditionSessions, emptyAuditionState, reduceAuditionEvents } from "../audition";
 
 // TRAJ-IMPL-2（设计 docs/TRAJECTORY_PRESENTATION_REDESIGN_V1.md §2.1 + §7 裁定 A）：
 // **回合单活动面**的端到端钉（纯函数 → 渲染计划 → 渲染面 → 活动线）。
@@ -189,6 +190,35 @@ describe("钉D 活动线去重：已归属回合的 item 活动从流底 lane �
     expect(activities.every((activity) => activity.turn_id === RUN)).toBe(true);
     expect(rounds[RUN].steps).toHaveLength(3);
   });
+
+  // AUDITION-LANE-1（2026-09-14 手测「底下很多个 kernel audition 在执行」）：audition.*
+  // 活动行归属会话回合域（audition.ts:93 同键）后，lane 绑定集并入试听会话回合
+  // （判定卡锚定域）——该族活动不再落流底 lane；无回合归属活动（上传）照旧。
+  it("AUDITION-LANE-1：audition 活动归属会话回合域后不落流底 lane；上传照旧", () => {
+    const SID = "audition:turn:free_state_x:round-1";
+    const SESSION_TURN = "turn:free_state_x";
+    const auditionEvents: AgentEvent[] = [
+      { seq: 1, type: "audition.prepare.started", item_id: SID, item_type: "audition", status: "preparing", title: "Kernel audition", logical_message_id: `audition:${SID}:audition.prepare.started`, created_at: at(T0), payload: { schema_version: "vit.kernel_audition.v1", session: { session_id: SID, conversation_id: "c1", status: "preparing" } } },
+      { seq: 2, type: "audition.candidate.ready", item_id: SID, item_type: "audition", status: "preparing", title: "Kernel audition", logical_message_id: `audition:${SID}:audition.candidate.ready`, created_at: at(T0 + 1_000), payload: { schema_version: "vit.kernel_audition.v1", session: { session_id: SID, conversation_id: "c1", status: "preparing" } } },
+      { seq: 3, type: "audition.ready", item_id: SID, item_type: "audition", status: "ready", title: "Kernel audition", logical_message_id: `audition:${SID}:audition.ready`, created_at: at(T0 + 2_000), payload: { schema_version: "vit.kernel_audition.v1", session: { session_id: SID, conversation_id: "c1", status: "ready", turn_id: SESSION_TURN } } }
+    ] as AgentEvent[];
+    const activities = reduceAgentEventActivities([], auditionEvents, (event) => chatMessageFromAgentEvent(event, "default"));
+    expect(activities).toHaveLength(3);
+    // C0 新流形态：轨迹回合是 run 域（实验轨迹归并），会话回合域不在 knownTurnIds 里——
+    // 判定卡锚定域（audition 会话回合）并入 lane 绑定集（App.tsx AUDITION-LANE-1 同一组合）。
+    const knownTurnIds = new Set(["run_9"]);
+    const sessionBoundTurnIds = new Set(
+      auditionSessions(reduceAuditionEvents(emptyAuditionState(), auditionEvents)).map((session) => session.turnID).filter(Boolean)
+    );
+    expect(sessionBoundTurnIds.has(SESSION_TURN)).toBe(true);
+    const laneBoundTurnIds = new Set([...knownTurnIds, ...sessionBoundTurnIds]);
+    for (const activity of activities) {
+      expect(isUnboundActivity(activity, knownTurnIds)).toBe(true);        // 旧判据（缺陷现场）：unbound → 落 lane
+      expect(isUnboundActivity(activity, laneBoundTurnIds)).toBe(false);   // 新判据：归属会话回合 → 不落 lane
+    }
+    const upload = chat({ id: "upload-1", role: "system", content: "正在上传素材…", createdAt: T0 + 3_000 });
+    expect(isUnboundActivity(upload, laneBoundTurnIds)).toBe(true);
+  });
 });
 
 describe("钉E 数据线：App.tsx 把步账喂进计划/渲染/活动线（这条线断了会静默退回旧形态）", () => {
@@ -197,7 +227,8 @@ describe("钉E 数据线：App.tsx 把步账喂进计划/渲染/活动线（这�
   it("归约接线 + 计划传参 + 渲染传参 + lane 过滤四段都在", () => {
     expect(appSource).toMatch(/setRoundSteps\(\(current\) => reduceRoundSteps\(current, events\)\)/);
     expect(appSource).toMatch(/buildMessageStreamRenderPlan\(\{\s*messages:[^)]*roundSteps/);
-    expect(appSource).toMatch(/isUnboundActivity\(activity, knownTurnIds, roundBoundKeys\)/);
+    expect(appSource).toMatch(/isUnboundActivity\(activity, laneBoundTurnIds, roundBoundKeys\)/);
+    expect(appSource).toMatch(/sessionBoundTurnIds/);
     expect(appSource).toMatch(/itemSteps=\{round\?\.steps\}/);
     expect(appSource).toMatch(/totalStepCount=\{round\?\.totalStepCount\}/);
     expect(appSource).toMatch(/trajectory\.turns\[entry\.turnId\] \?\? roundTurnShell\(round\)/);

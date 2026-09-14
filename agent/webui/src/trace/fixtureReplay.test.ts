@@ -6,6 +6,7 @@ import { chatMessageFromAgentEvent } from "../App";
 import { chainResultMessagesFromEvents, shouldRenderTraceBlockForTurn } from "./traceDelivery";
 import { buildMessageStreamRenderPlan } from "./renderPlan";
 import { reduceTurnEventMeta } from "./turnEventMeta";
+import { isUnboundActivity } from "./turnGroups";
 import type { AgentEvent, ChatMessage } from "../types";
 
 const fixturesDir = new URL("./__fixtures__/", import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1");
@@ -130,6 +131,30 @@ describe("fixtures 组合回放：mtny2v9x 33 事件（实验流）", () => {
     // 终局并入原块：seq20 的 trajectory.turn.completed（waiting_for_user）收口轮次
     expect(turns[0].status).toBe("waiting_for_user");
     expect(turns[0].roundScoped).toBe(true);
+  });
+
+  // AUDITION-LANE-1（2026-09-14 手测命中）：真栈 audition 事件不携带事件级 turn 字段，
+  // 回合域只在 seq29 的 payload.session.turn_id——活动行按会话回合域归属（含早到回填），
+  // 旧流形态下该回合在轨迹域里存在 → 整族 bound，不再落流底 lane。
+  it("AUDITION-LANE-1 回放：audition 活动整族归属会话回合域，不落流底 lane", () => {
+    const activities = reduceAgentEventActivities([], events, activityFactory);
+    const auditionActivities = activities.filter((activity) => (activity.source_id ?? "").includes("audition:"));
+    expect(auditionActivities.length).toBeGreaterThanOrEqual(3);
+    for (const activity of auditionActivities) {
+      expect(activity.turn_id).toBe("turn:free_state_6464f768689e59d9");
+    }
+    const trajectory = reduceTrajectoryEvents(emptyTrajectoryState(), events);
+    const knownTurnIds = new Set(trajectoryTurns(trajectory).map((turn) => turn.id));
+    for (const activity of auditionActivities) {
+      expect(isUnboundActivity(activity, knownTurnIds)).toBe(false);
+    }
+  });
+
+  it("AUDITION-LANE-1 回放（C0 新流形态）：判定活动按 source_turn_id 绑定 run 轮次", () => {
+    const dual = withContract1DualWrite(events);
+    const judgment = dual.filter((event) => event.type === "trajectory.user_judgment.requested");
+    const activities = reduceAgentEventActivities([], judgment, activityFactory);
+    expect(activities.map((activity) => activity.turn_id)).toEqual(["run_6de5cc29fd0f9436"]);
   });
 });
 
