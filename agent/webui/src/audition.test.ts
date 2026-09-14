@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { auditionCanSelect, auditionSettlementOutcome, emptyAuditionState, reduceAuditionEvents } from "./audition";
+import { auditionCanSelect, auditionPreparing, auditionSettlementOutcome, emptyAuditionState, reduceAuditionEvents } from "./audition";
 import { emptyTrajectoryState, reduceTrajectoryEvents } from "./trajectory";
 import type { AgentEvent } from "./types";
 
@@ -72,5 +72,84 @@ describe("audition settlement outcome", () => {
     ready.payload!.session = { ...(ready.payload!.session as Record<string, unknown>), conversation_id: "conversation-1", turn_id: "turn-1", round_id: "round-1" };
     const audition = reduceAuditionEvents(emptyAuditionState(), [ready]);
     expect(auditionSettlementOutcome(emptyTrajectoryState(), audition.sessions["audition-1"])).toBe("");
+  });
+});
+
+// AUDITION-UNSTICK-1（卡 2026-09-14）：stopped 态锁死选择的单元钉。
+// 用户事件流铁证（seq20-30）：点 A 播放 → audition.stopped ×2 → 会话 stopped，
+// 旧 auditionCanSelect 只认 ready|playing——A/B 全部不可选且无反馈=「点 B 卡住」。
+// 修复后 stopped 放行（点击即经服务端同参 audition.prepare 重落座回 ready 再
+// select 重启播放）；stale/failed 仍拒；候选 preparing 仍拒。
+describe("AUDITION-UNSTICK-1 选择门", () => {
+  const readyCandidates = [
+    { id: "candidate-a", label: "A", status: "ready", preview_ref: "preview:a" },
+    { id: "candidate-b", label: "B", status: "ready", preview_ref: "preview:b" }
+  ];
+
+  it("stopped 会话可选择候选（点击即重启播放）", () => {
+    const state = reduceAuditionEvents(emptyAuditionState(), [
+      event("audition.ready", "ready", readyCandidates, 1),
+      event("audition.stopped", "stopped", readyCandidates, 2)
+    ]);
+    const session = state.sessions["audition-1"];
+    expect(session.status).toBe("stopped");
+    for (const candidate of session.candidates) {
+      expect(auditionCanSelect(session, candidate)).toBe(true);
+    }
+  });
+
+  it("stale / failed 会话仍不可选（终态不放行）", () => {
+    for (const terminal of ["stale", "failed"]) {
+      const state = reduceAuditionEvents(emptyAuditionState(), [
+        event("audition.ready", "ready", readyCandidates, 1),
+        event("audition." + terminal, terminal, readyCandidates, 2)
+      ]);
+      const session = state.sessions["audition-1"];
+      expect(session.status).toBe(terminal);
+      expect(auditionCanSelect(session, session.candidates[0])).toBe(false);
+    }
+  });
+
+  it("候选 preparing 时不可选（准备期选择门保持）", () => {
+    const state = reduceAuditionEvents(emptyAuditionState(), [
+      event("audition.prepare", "preparing", [
+        { id: "candidate-a", label: "A", status: "ready", preview_ref: "preview:a" },
+        { id: "candidate-b", label: "B", status: "preparing" }
+      ], 1)
+    ]);
+    const session = state.sessions["audition-1"];
+    expect(auditionCanSelect(session, session.candidates[0])).toBe(false);
+    expect(auditionCanSelect(session, session.candidates[1])).toBe(false);
+  });
+});
+
+// 准备期显形判定（目标 3 的数据面）：会话或任一候选仍在 preparing 即为准备期。
+const unstuckReadyCandidates = [
+  { id: "candidate-a", label: "A", status: "ready", preview_ref: "preview:a" },
+  { id: "candidate-b", label: "B", status: "ready", preview_ref: "preview:b" }
+];
+
+describe("AUDITION-UNSTICK-1 准备期判定", () => {
+  it("会话 preparing 或任一候选 preparing 都算准备期", () => {
+    const preparing = reduceAuditionEvents(emptyAuditionState(), [
+      event("audition.prepare", "preparing", [
+        { id: "candidate-a", label: "A", status: "preparing" },
+        { id: "candidate-b", label: "B", status: "preparing" }
+      ], 1)
+    ]);
+    expect(auditionPreparing(preparing.sessions["audition-1"])).toBe(true);
+
+    const halfReady = reduceAuditionEvents(emptyAuditionState(), [
+      event("audition.prepare", "preparing", [
+        { id: "candidate-a", label: "A", status: "ready", preview_ref: "preview:a" },
+        { id: "candidate-b", label: "B", status: "preparing" }
+      ], 1)
+    ]);
+    expect(auditionPreparing(halfReady.sessions["audition-1"])).toBe(true);
+  });
+
+  it("双候选 ready 的会话不算准备期", () => {
+    const state = reduceAuditionEvents(emptyAuditionState(), [event("audition.ready", "ready", unstuckReadyCandidates, 1)]);
+    expect(auditionPreparing(state.sessions["audition-1"])).toBe(false);
   });
 });

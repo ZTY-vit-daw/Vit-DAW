@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { auditionCanSelect, auditionSessions, auditionSettlementOutcome, type AuditionCandidate, type AuditionSession, type AuditionState, type AuditionSettlementOutcome } from "../audition";
+import { auditionCanSelect, auditionPreparing, auditionSelectBlockedReason, auditionSessions, auditionSettlementOutcome, type AuditionCandidate, type AuditionSession, type AuditionState, type AuditionSettlementOutcome } from "../audition";
 import type { TrajectoryState } from "../trajectory";
 import { trajectoryRounds, trajectoryTurns } from "../trajectory";
 import type { AuditionJudgmentPayload } from "../lib/api";
@@ -82,13 +82,16 @@ export function auditionPlaybackStatus(session: AuditionSession): string {
   const tapes = session.candidates.map((candidate, index) => ({ candidate, side: tapeSide(candidate, index) }));
   const side = sideOfCandidate(session.activeCandidateId, tapes);
   const label = side ? side.toUpperCase() : "";
+  // AUDITION-UNSTICK-1：准备期显形——候选渲染/预热进行中时明确说出来，
+  // 不留一块无反馈的空白（用户读作轨迹计时停了=像死机）。
+  if (auditionPreparing(session)) return "正在准备 A/B 试听…";
   if (session.status === "playing") {
     const candidate = session.candidates.find((item) => item.id === session.activeCandidateId);
     const name = text(candidate?.label);
     const shown = label && name && name.toUpperCase() !== label ? `候选 ${label} · ${name}` : label ? `候选 ${label}` : "当前候选";
     return `试听中 · ${shown}`;
   }
-  if (session.status === "stopped") return "已停止试听";
+  if (session.status === "stopped") return "已停止试听 · 点击 A/B 可重新播放";
   if (session.status === "ready" && session.activeCandidateId) {
     return label ? `已选候选 ${label} · 待播放` : "已选候选 · 待播放";
   }
@@ -203,6 +206,11 @@ export function AuditionJudgeCard({
   const isPlayingSide = (side: "a" | "b") => playing && activeSide === side;
   // 盲态：顺序随机，判定前不得出现「改动前/改动后」这类物理指派措辞
   const blind = session.blind && !settled;
+  // AUDITION-UNSTICK-1：准备期与在途必须显形（不许无反馈空白）；stopped 状态
+  // 明说「点击可重新播放」，与放行的选择门对齐。
+  const preparing = !settled && auditionPreparing(session);
+  const busyPending = !settled && busy;
+  const blockedReason = auditionSelectBlockedReason(session, busy, settled);
 
   return (
     <section
@@ -217,7 +225,12 @@ export function AuditionJudgeCard({
         {summary && <span className="csum">{summary}</span>}
         {pending && <span className="chip">待判定</span>}
         {blind && <span className="chip">盲测 · 顺序随机</span>}
+        {preparing && <span className="chip chip-audition" data-audition-state="preparing">{playbackStatus}</span>}
+        {busyPending && <span className="chip chip-audition" data-audition-state="busy">正在切换…</span>}
         {playing && playbackStatus && <span className="chip chip-audition" data-audition-state="playing">{playbackStatus}</span>}
+        {!playing && !preparing && !busyPending && playbackStatus && (
+          <span className="chip chip-audition" data-audition-state={session.status}>{playbackStatus}</span>
+        )}
       </div>
       <span className="sr-only" role="status" aria-live="polite" data-audition-playback-status={session.status}>
         {playbackStatus}
@@ -236,7 +249,15 @@ export function AuditionJudgeCard({
                   const tape = tapes.find((item) => item.side === side);
                   const switchable = tape ? !settled && !busy && auditionCanSelect(session, tape.candidate) : false;
                   return (
-                    <button key={side} type="button" className={activeSide === side ? "on" : ""} disabled={!switchable} onClick={() => tape && selectCandidate(tape.candidate)}>
+                    <button
+                      key={side}
+                      type="button"
+                      className={activeSide === side ? "on" : ""}
+                      disabled={!switchable}
+                      title={!switchable ? blockedReason : undefined}
+                      aria-label={!switchable ? `${side.toUpperCase()}（${blockedReason}）` : `切换到 ${side.toUpperCase()}`}
+                      onClick={() => tape && selectCandidate(tape.candidate)}
+                    >
                       {side.toUpperCase()}
                     </button>
                   );
@@ -273,6 +294,7 @@ export function AuditionJudgeCard({
                     className="pbtn"
                     aria-label={`${isPlaying ? "停止" : "播放"} ${label}`}
                     disabled={isPlaying ? !stoppable : !selectable}
+                    title={isPlaying ? (!stoppable ? "正在处理你的上一次操作…" : undefined) : (!selectable ? blockedReason : undefined)}
                     onClick={(event) => {
                       event.stopPropagation();
                       if (isPlaying) {

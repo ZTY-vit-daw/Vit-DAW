@@ -355,7 +355,7 @@ func (s *Server) handleAuditionCommand(w http.ResponseWriter, r *http.Request, a
 		}
 		// Selecting A/B is playback control only. It never records preference
 		// and never settles the Experiment Round.
-		result, err = s.auditionKernel.AuditionSelect(r.Context(), request.SessionID, request.CandidateID)
+		result, err = s.selectAuditionCandidate(r.Context(), request)
 	case "stop":
 		result, err = s.auditionKernel.AuditionStop(r.Context(), request.SessionID)
 	}
@@ -376,6 +376,84 @@ func (s *Server) handleAuditionCommand(w http.ResponseWriter, r *http.Request, a
 	s.persistCurrentProjectWorkspace()
 	s.emitAuditionEvent(request.ConversationID, eventType, session, nil)
 	writeJSON(w, http.StatusOK, map[string]any{"status": "ok", "session": session})
+}
+
+// AUDITION-UNSTICK-1 (2026-09-14): the Kernel state machine rejects
+// audition.select on a stopped session ("audition_not_ready"), which used to
+// dead-lock the webui A/B card after the user pressed stop -- every candidate
+// control became an unresponsive dead click. Recover by re-seating the SAME
+// session through the existing audition.prepare command (the state machine's
+// only reset path: it overwrites the session wholesale, and the rebuilt
+// candidate list carries the already-resolved preview refs, so it lands ready
+// without a new warm-up round trip from the UI). No Kernel protocol or
+// state-machine change is involved, and the blind assignment is preserved
+// because the candidates are rebuilt verbatim from the Kernel's own session
+// snapshot. The recovery only runs when the agent snapshot AND the Kernel
+// agree the session is stopped; every other shape falls through to the plain
+// select with its historical error surface (and a failed re-seat degrades to
+// that same surface, never to a silent no-op).
+func (s *Server) selectAuditionCandidate(ctx context.Context, request auditionActionRequest) (*kernel.VSPCommandResult, error) {
+	if !s.auditionSnapshotStopped(request.ConversationID, request.SessionID) {
+		return s.auditionKernel.AuditionSelect(ctx, request.SessionID, request.CandidateID)
+	}
+	statusResult, statusErr := s.auditionKernel.AuditionStatus(ctx, request.SessionID)
+	kernelSession := auditionReplySession(statusResult)
+	if statusErr != nil || !strings.EqualFold(firstStringFromMap(kernelSession, "status"), "stopped") {
+		return s.auditionKernel.AuditionSelect(ctx, request.SessionID, request.CandidateID)
+	}
+	reseat, reseatErr := s.auditionKernel.AuditionPrepare(ctx, auditionReseatRequest(request.ConversationID, kernelSession))
+	if reseatErr == nil && auditionReplyError(reseat, nil) == "" {
+		recovered := auditionReplySession(reseat)
+		s.updateAuditionSessionSnapshot(request.ConversationID, recovered)
+		eventType := "audition.prepare"
+		if strings.EqualFold(firstStringFromMap(recovered, "status"), "ready") {
+			eventType = "audition.ready"
+		}
+		s.emitAuditionEvent(request.ConversationID, eventType, recovered, map[string]any{"command": "audition.prepare", "recovered_from": "stopped"})
+	}
+	return s.auditionKernel.AuditionSelect(ctx, request.SessionID, request.CandidateID)
+}
+
+// auditionSnapshotStopped is the cheap first gate: the agent's own projection
+// of the session (updated on every audition event) must already say stopped
+// before any extra Kernel round trip is spent on the recovery path.
+func (s *Server) auditionSnapshotStopped(conversationID, sessionID string) bool {
+	loop, ok := s.freeStateLoop(conversationID)
+	if !ok {
+		return false
+	}
+	if loop.AuditionSessionID != sessionID {
+		return false
+	}
+	return strings.EqualFold(firstStringFromMap(loop.AuditionSessionSnapshot, "status"), "stopped")
+}
+
+// auditionReseatRequest rebuilds an audition.prepare request from the Kernel's
+// serialized session so the re-seat keeps the exact same candidates (preview
+// refs included), project anchor, transport anchor and blind order.
+func auditionReseatRequest(conversationID string, session map[string]any) kernel.AuditionSessionRequest {
+	activePlane := firstMapFromAny(session["active_project_plane"])
+	transport := firstMapFromAny(session["transport"])
+	request := kernel.AuditionSessionRequest{
+		ConversationID:        firstNonEmpty(conversationID, firstStringFromMap(session, "conversation_id")),
+		SessionID:             firstStringFromMap(session, "session_id"),
+		Scope:                 firstStringFromMap(session, "scope"),
+		ActiveProjectRef:      firstStringFromMap(activePlane, "project_ref"),
+		ActiveProjectRevision: firstStringFromMap(activePlane, "project_revision"),
+		TimelineRevision:      firstStringFromMap(transport, "timeline_revision"),
+	}
+	for _, row := range firstMapRows(session["candidates"]) {
+		request.Candidates = append(request.Candidates, kernel.AuditionCandidate{
+			ID: firstStringFromMap(row, "id"), Label: firstStringFromMap(row, "label"),
+			SourceKind: firstStringFromMap(row, "source_kind"), SourceRef: firstStringFromMap(row, "source_ref"),
+			PreviewRef: firstStringFromMap(row, "preview_ref"), CheckpointRef: firstStringFromMap(row, "checkpoint_ref"),
+			CommitID: firstStringFromMap(row, "commit_id"), BranchRef: firstStringFromMap(row, "branch_ref"),
+			WorktreeRef: firstStringFromMap(row, "worktree_ref"), ProjectPath: firstStringFromMap(row, "project_path"),
+			ProjectUUID: firstStringFromMap(row, "project_uuid"), ProjectRevision: firstStringFromMap(row, "project_revision"),
+			RenderRevision: firstStringFromMap(row, "render_revision"), PreviewRevision: firstStringFromMap(row, "preview_revision"),
+		})
+	}
+	return request
 }
 
 func (s *Server) handleAuditionJudgment(w http.ResponseWriter, r *http.Request) {

@@ -36,6 +36,10 @@
 //                    real-scope anchor bucket preset must restore the anchored
 //                    conversation (mapping not overwritten, trace blocks with
 //                    data-turn-id and the A/B judge card rendered)
+//   G1 audition   -- AUDITION-UNSTICK-1: a stopped A/B session must not dead-lock
+//                    its controls (click restarts playback server-side), and a
+//                    preparing session must say 「正在准备 A/B 试听…」 with the
+//                    controls disabled but carrying their reason
 //
 // Exit code: 0 = every group passed (delivery gate), 1 = at least one failed
 // (pre-fix red, with the failing group recorded in the report).
@@ -509,7 +513,25 @@ const DOM_PROBE = () => {
       Object.keys(localStorage)
         .filter((key) => key.indexOf("ask_vit_conversation_id_scope") === 0)
         .map((key) => [key, localStorage.getItem(key) || ""])
-    )
+    ),
+    // AUDITION-UNSTICK-1: the A/B card's own controls are first-class citizens of
+    // the rendered surface. Sampled per card so the stopped/preparing shapes can
+    // be asserted on real DOM facts (disabled attributes, reasons, chips).
+    auditionControls: Array.from(document.querySelectorAll("[data-audition-session]")).map((card) => ({
+      session: card.getAttribute("data-audition-session") || "",
+      status: card.getAttribute("data-status") || "",
+      text: (card.textContent || "").replace(/\s+/g, " ").trim().slice(0, 120),
+      switchButtons: Array.from(card.querySelectorAll(".ab-sw button")).map((button) => ({
+        text: (button.textContent || "").trim(),
+        disabled: button.disabled,
+        title: button.getAttribute("title") || ""
+      })),
+      playButtons: Array.from(card.querySelectorAll(".pbtn")).map((button) => ({
+        disabled: button.disabled,
+        title: button.getAttribute("title") || ""
+      })),
+      chips: Array.from(card.querySelectorAll(".c-head .chip")).map((chip) => (chip.textContent || "").trim())
+    }))
   };
 };
 
@@ -1163,6 +1185,69 @@ function checkE1(result, options) {
 // and the events endpoint is conversation-strict like the real agent. The app
 // must restore the anchored conversation id (not regenerate one), replay
 // /agent/events under it, and render the trace blocks and the A/B card.
+// AUDITION-UNSTICK-1 (card 2026-09-14): the user-hit shapes are a session the
+// user STOPPED (event flow seq20-30: prepare -> ready -> select A playing ->
+// stopped, after which every candidate control was a dead click) and a session
+// still PREPARING (candidates warming, no ready echo yet -- the visual void the
+// user read as "the trajectory timer froze"). Both are seeded as boundary events
+// for NEW session ids and replayed through the same GET /agent/events contract;
+// the assertions are render-only (control enablement, reasons, chips). The
+// server-side stopped->ready recovery itself is covered by the Go handler test
+// with the kernel contract faked at the VSP boundary (no kernel in this stack).
+function auditionUnstickFixtureEvents(options) {
+  const now = Date.now();
+  const startedAt = new Date(now - 70_000).toISOString();
+  const midAt = new Date(now - 40_000).toISOString();
+  const stoppedAt = new Date(now - 10_000).toISOString();
+  const base = Number(options.baseSeq) || 600;
+  const common = { conversation_id: conversationId, goal_id: options.turnId, run_id: options.turnId, turn_id: options.turnId, source_turn_id: options.turnId };
+  const readySession = (sessionId, status, activeCandidateId, candidateStatus) => ({
+    session_id: sessionId, conversation_id: conversationId, turn_id: options.turnId, round_id: "round-1",
+    project_revision: "revision-e2e", status, active_candidate_id: activeCandidateId,
+    candidates: [
+      { id: "candidate-a", label: "A", status: candidateStatus, preview_ref: "preview-a" },
+      { id: "candidate-b", label: "B", status: candidateStatus, preview_ref: "preview-b" }
+    ]
+  });
+  return [
+    { ...common, seq: base + 1, type: "turn.started", item_type: "turn", status: "running", created_at: startedAt },
+    {
+      ...common, seq: base + 2, type: "audition.ready", item_id: options.stoppedSession, status: "ready", created_at: midAt,
+      payload: { schema_version: "vit.kernel_audition.v1", session: readySession(options.stoppedSession, "ready", "", "ready") }
+    },
+    {
+      ...common, seq: base + 3, type: "trajectory.user_judgment.requested", item_id: "judgment:" + options.turnId, status: "waiting_for_user", created_at: midAt,
+      payload: {
+        schema_version: "vit.observable_trajectory.v1", trace_node_id: "judgment:" + options.turnId, turn_id: options.turnId,
+        node_kind: "user_judgment", phase: "user_judgment", status: "waiting_for_user",
+        summary: "static_eq · A/B 试听判定", details: { audition_session_id: options.stoppedSession }
+      }
+    },
+    {
+      ...common, seq: base + 4, type: "audition.selected", item_id: options.stoppedSession, status: "playing", created_at: midAt,
+      payload: { schema_version: "vit.kernel_audition.v1", session: readySession(options.stoppedSession, "playing", "candidate-a", "ready") }
+    },
+    {
+      ...common, seq: base + 5, type: "audition.stopped", item_id: options.stoppedSession, status: "stopped", created_at: stoppedAt,
+      payload: { schema_version: "vit.kernel_audition.v1", session: readySession(options.stoppedSession, "stopped", "candidate-a", "ready") }
+    },
+    {
+      ...common, seq: base + 6, type: "audition.prepare", item_id: options.preparingSession, status: "preparing", created_at: stoppedAt,
+      payload: {
+        schema_version: "vit.kernel_audition.v1",
+        session: {
+          session_id: options.preparingSession, conversation_id: conversationId, turn_id: options.turnId, round_id: "round-2",
+          project_revision: "revision-e2e", status: "preparing",
+          candidates: [
+            { id: "candidate-a", label: "A", status: "preparing" },
+            { id: "candidate-b", label: "B", status: "preparing" }
+          ]
+        }
+      }
+    }
+  ];
+}
+
 function checkF1(result, options) {
   const failures = [];
   const notes = [];
@@ -1212,6 +1297,71 @@ function checkF1(result, options) {
     }
     if (card.text.indexOf("待判定") < 0) {
       failures.push("F1 audition: the rendered card is not in the waiting-for-judgment form (expected 待判定, text=\"" + card.text + "\")");
+    }
+  }
+  return { failures, notes };
+}
+
+// AUDITION-UNSTICK-1: G1 pins the two user-hit shapes on the rendered surface.
+//   * stopped session -- the A/B controls must NOT be dead clicks: the switch
+//     buttons and both play buttons render enabled (a click restarts playback
+//     through the server-side stopped->ready recovery), and the card states the
+//     stopped status instead of falling silent.
+//   * preparing session -- the card must say 「正在准备 A/B 试听…」 explicitly and
+//     keep the A/B controls in place but disabled WITH the reason attached, so
+//     the warm-up window is visibly alive instead of reading as a frozen stack.
+// Render-only by design: this stack has no kernel behind the agent, so the
+// select round-trip belongs to the Go handler test at the VSP boundary.
+function checkG1(result, options) {
+  const failures = [];
+  const notes = [];
+  const sample = result.sample;
+  const controls = sample.auditionControls || [];
+  const stopped = controls.find((card) => card.session === options.stoppedSession) || null;
+  if (!stopped) {
+    failures.push(
+      "G1 stopped: no A/B card rendered for session " + options.stoppedSession +
+      " (cards: [" + controls.map((card) => card.session).join(", ") + "])"
+    );
+  } else {
+    notes.push("stopped card: status=" + stopped.status + " chips=[" + stopped.chips.join(" | ") + "]");
+    if (stopped.status !== "stopped") {
+      failures.push("G1 stopped: card data-status=" + stopped.status + " instead of stopped");
+    }
+    for (const button of stopped.switchButtons) {
+      if (button.disabled) {
+        failures.push(
+          "G1 stopped: switch button " + button.text + " is disabled -- after a stop the user must be able to pick " +
+          "either candidate again (the dead-click defect)"
+        );
+      }
+    }
+    for (const [index, button] of stopped.playButtons.entries()) {
+      if (button.disabled) {
+        failures.push("G1 stopped: play button #" + (index + 1) + " is disabled -- clicking it must restart that candidate");
+      }
+    }
+    if (!stopped.chips.some((chip) => chip.indexOf("已停止") >= 0)) {
+      failures.push("G1 stopped: the card does not state the stopped status (chips: [" + stopped.chips.join(" | ") + "])");
+    }
+  }
+  const preparing = controls.find((card) => card.session === options.preparingSession) || null;
+  if (!preparing) {
+    failures.push(
+      "G1 preparing: no A/B card rendered for session " + options.preparingSession +
+      " (cards: [" + controls.map((card) => card.session).join(", ") + "])"
+    );
+  } else {
+    notes.push("preparing card: status=" + preparing.status + " chips=[" + preparing.chips.join(" | ") + "]");
+    if (!preparing.chips.some((chip) => chip.indexOf("正在准备") >= 0)) {
+      failures.push("G1 preparing: the card does not show 「正在准备 A/B 试听…」 (chips: [" + preparing.chips.join(" | ") + "]) -- the warm-up window must be explicit");
+    }
+    for (const button of preparing.switchButtons) {
+      if (!button.disabled) {
+        failures.push("G1 preparing: switch button " + button.text + " is enabled while candidates are still preparing");
+      } else if (!button.title) {
+        failures.push("G1 preparing: disabled switch button " + button.text + " carries no reason -- a disabled control must explain itself");
+      }
     }
   }
   return { failures, notes };
@@ -1760,6 +1910,34 @@ async function main() {
     expectAuditionSession: "audition:run_e2e_bareboot1"
   }));
 
+  // ------------------------------------------------------- AUDITION-UNSTICK-1
+  report.audition_unstick_events_source =
+    "archived stream + seeded audition boundary events (stopped-after-playing session + preparing session) " +
+    "replayed for GET /agent/events; assertions are render-only (no kernel behind this agent, the select " +
+    "round-trip is covered by the Go handler test)";
+  const unstickContext = await browser.newContext({ viewport });
+  const unstickSeeded = auditionUnstickFixtureEvents({
+    turnId: "run_e2e_unstick1", baseSeq: 600,
+    stoppedSession: "audition:run_e2e_unstick1:stopped", preparingSession: "audition:run_e2e_unstick1:preparing"
+  });
+  await installReplay(unstickContext, { extraEvents: unstickSeeded, strictConversation: true });
+  const unstickPage = await unstickContext.newPage();
+  await unstickPage.goto(agentBase + "/app/?conversation_id=" + encodeURIComponent(conversationId), { waitUntil: "domcontentloaded" });
+  const unstickAppeared = await unstickPage
+    .waitForSelector('[data-audition-session="audition:run_e2e_unstick1:stopped"]', { timeout: 15000 })
+    .then(() => true)
+    .catch(() => false);
+  await unstickPage.waitForTimeout(1500);
+  const unstickSample = await unstickPage.evaluate(DOM_PROBE);
+  await unstickPage.screenshot({ path: join(outDir, "dom-audition-unstick.png") });
+  writeFileSync(join(outDir, "dom-audition-unstick.json"), JSON.stringify(unstickSample, null, 2), "utf-8");
+  await unstickContext.close();
+  report.audition_unstick = { appeared: unstickAppeared, seeded_events: unstickSeeded };
+  record("audition-unstick-G1", checkG1({ appeared: unstickAppeared, sample: unstickSample }, {
+    stoppedSession: "audition:run_e2e_unstick1:stopped",
+    preparingSession: "audition:run_e2e_unstick1:preparing"
+  }));
+
   report.finished_at = new Date().toISOString();
   report.events_served_from_fixture = seededEventsRequests;
   const failed = Object.entries(report.passes).filter(([, ok]) => !ok).map(([id]) => id);
@@ -1777,7 +1955,7 @@ async function main() {
 // Exported so a control run can exercise the very same probe and assertion
 // functions against a deliberately healthy state (proof that a red result is a
 // real finding and not an artefact of the probe itself).
-export { DOM_PROBE, checkA1, checkA2, checkA3, checkB1, checkB2, checkC1, checkD1, checkE1, checkF1, residencyFixtureEvents, chatOnlyItemStepsFixtureEvents, terminalTurnFixtureEvents, auditionFixtureEvents };
+export { DOM_PROBE, checkA1, checkA2, checkA3, checkB1, checkB2, checkC1, checkD1, checkE1, checkF1, checkG1, residencyFixtureEvents, chatOnlyItemStepsFixtureEvents, terminalTurnFixtureEvents, auditionFixtureEvents, auditionUnstickFixtureEvents };
 
 // Run only when this file is the process entry point, so importing it as a
 // library (the control run does) has no side effects.

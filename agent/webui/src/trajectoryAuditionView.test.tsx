@@ -19,12 +19,12 @@ function sessionFromEvents(events: AgentEvent[]): AuditionSession {
   return session;
 }
 
-function renderCard(session: AuditionSession, extras?: { trajectory?: ReturnType<typeof emptyTrajectoryState>; superseded?: boolean }) {
+function renderCard(session: AuditionSession, extras?: { trajectory?: ReturnType<typeof emptyTrajectoryState>; superseded?: boolean; busySessionID?: string }) {
   return renderToStaticMarkup(
     <AuditionJudgeCard
       trajectory={extras?.trajectory ?? emptyTrajectoryState()}
       session={session}
-      busySessionID=""
+      busySessionID={extras?.busySessionID ?? ""}
       superseded={extras?.superseded ?? false}
       onSelect={async () => {}}
       onStop={async () => {}}
@@ -156,5 +156,68 @@ describe("round 徽标与 mono 摘要（源自 trajectory rounds / user_judgment
     const session = sessionFromEvents([ready]);
     expect(auditionRoundBadge(emptyTrajectoryState(), session)).toBe("");
     expect(auditionChangeSummary(emptyTrajectoryState(), session)).toBe("");
+  });
+});
+
+// AUDITION-UNSTICK-1（卡 2026-09-14）：stopped 态锁死 + 准备期无显形的渲染钉。
+// 用户手测：「AB卡我可以播放A，但是再点B就卡住了无法点击」——stopped 后 A/B
+// 控件全部 disabled 且无原因；prepare 期界面空白像死机。修复后：stopped 可点
+// （点击经服务端重落座重启播放）；准备期显「正在准备 A/B 试听…」且按钮禁用带
+// 原因；在途显「正在切换…」。
+describe("AUDITION-UNSTICK-1 A/B 卡控制面", () => {
+  const stoppedEvents = [
+    ready,
+    requested,
+    { ...ready, seq: 3, type: "audition.selected", payload: { schema_version: "vit.kernel_audition.v1", session: { ...((ready.payload as { session: Record<string, unknown> }).session), status: "playing", active_candidate_id: "candidate-a" } } },
+    { ...ready, seq: 4, type: "audition.stopped", payload: { schema_version: "vit.kernel_audition.v1", session: { ...((ready.payload as { session: Record<string, unknown> }).session), status: "stopped", active_candidate_id: "candidate-a" } } }
+  ];
+
+  it("stopped 会话的 A/B 切换与播放按钮不再禁用（点击即重启播放）", () => {
+    const markup = renderCard(sessionFromEvents(stoppedEvents));
+    expect(markup).toContain('data-status="stopped"');
+    const switchButtons = markup.match(/<button[^>]*type="button"[^>]*>\s*[AB]\s*<\/button>/g) || [];
+    expect(switchButtons.length).toBeGreaterThanOrEqual(2);
+    for (const button of switchButtons) {
+      expect(button).not.toContain("disabled");
+    }
+    const playButtons = markup.match(/class="pbtn"[^>]*/g) || [];
+    for (const button of playButtons) {
+      expect(button).not.toContain("disabled");
+    }
+  });
+
+  it("stopped 会话的卡片显式陈述已停止状态", () => {
+    const markup = renderCard(sessionFromEvents(stoppedEvents));
+    expect(markup).toContain("已停止试听");
+  });
+
+  it("准备期显「正在准备 A/B 试听…」且 A/B 按钮禁用带原因", () => {
+    const preparingEvent: AgentEvent = {
+      ...ready, seq: 1, type: "audition.prepare", status: "preparing",
+      payload: {
+        schema_version: "vit.kernel_audition.v1",
+        session: {
+          session_id: "audition-ready", conversation_id: "conversation-1", turn_id: "turn-1", round_id: "round-1",
+          status: "preparing",
+          candidates: [
+            { id: "candidate-a", label: "A", status: "preparing" },
+            { id: "candidate-b", label: "B", status: "preparing" }
+          ]
+        }
+      }
+    };
+    const markup = renderCard(sessionFromEvents([preparingEvent]));
+    expect(markup).toContain("正在准备 A/B 试听…");
+    const switchButtons = markup.match(/<button[^>]*type="button"[^>]*>\s*[AB]\s*<\/button>/g) || [];
+    expect(switchButtons.length).toBeGreaterThanOrEqual(2);
+    for (const button of switchButtons) {
+      expect(button).toContain("disabled");
+      expect(button).toContain("正在准备");
+    }
+  });
+
+  it("选择在途显 busy（正在切换…）", () => {
+    const markup = renderCard(sessionFromEvents([ready, requested]), { busySessionID: "audition-ready" });
+    expect(markup).toContain("正在切换…");
   });
 });

@@ -22,6 +22,9 @@ type fakeAuditionKernel struct {
 	selectCalls     []string
 	prepareError    error
 	selectError     error
+	// AUDITION-UNSTICK-1: the status reply the fake serves for AuditionStatus
+	// (nil = keep the historical "no result" answer).
+	statusSession map[string]any
 }
 
 func (f *fakeAuditionKernel) AuditionPrepare(_ context.Context, request kernel.AuditionSessionRequest) (*kernel.VSPCommandResult, error) {
@@ -36,7 +39,10 @@ func (f *fakeAuditionKernel) AuditionPrepare(_ context.Context, request kernel.A
 	}}}, nil
 }
 func (f *fakeAuditionKernel) AuditionStatus(_ context.Context, sessionID string) (*kernel.VSPCommandResult, error) {
-	return nil, nil
+	if f.statusSession == nil {
+		return nil, nil
+	}
+	return &kernel.VSPCommandResult{LegacyReply: map[string]any{"status": "ok", "session": f.statusSession}}, nil
 }
 func (f *fakeAuditionKernel) AuditionSelect(_ context.Context, sessionID, candidateID string) (*kernel.VSPCommandResult, error) {
 	f.selectCalls = append(f.selectCalls, sessionID+":"+candidateID)
@@ -203,6 +209,92 @@ func TestAuditionSelectRejectsCandidateBeforeReady(t *testing.T) {
 	server.handleAuditionSelect(recorder, request)
 	if recorder.Code != http.StatusConflict || len(fake.selectCalls) != 1 {
 		t.Fatalf("status=%d calls=%v body=%s", recorder.Code, fake.selectCalls, recorder.Body.String())
+	}
+}
+
+// AUDITION-UNSTICK-1 (2026-09-14): the kernel's audition.select rejects a
+// stopped session, which used to dead-lock the webui A/B card ("I can play A
+// but clicking B does nothing"). The select endpoint must re-seat the SAME
+// session through audition.prepare (the state machine's only reset path, no
+// kernel protocol change) before selecting, and must emit the recovery
+// transition as an agent event so the UI follows stopped -> ready -> selected.
+func TestStoppedAuditionSelectRepreparsSessionBeforeSelect(t *testing.T) {
+	fake := &fakeAuditionKernel{statusSession: map[string]any{
+		"session_id": "session-stopped", "conversation_id": "conversation-audition", "scope": "target", "status": "stopped",
+		"active_project_plane": map[string]any{"plane": "active_project", "project_ref": "project:active", "project_revision": "rev-7"},
+		"transport":            map[string]any{"timeline_revision": "rev-7", "is_playing": false},
+		"candidates": []any{
+			map[string]any{"id": "candidate-a", "label": "A", "source_kind": "checkpoint", "source_ref": "checkpoint:c7", "preview_ref": "preview-a", "checkpoint_ref": "c7", "commit_id": "c7", "project_path": "project:active", "project_revision": "rev-7", "status": "ready"},
+			map[string]any{"id": "candidate-b", "label": "B", "source_kind": "experiment", "source_ref": "action:a7", "preview_ref": "preview-b", "project_path": "project:active", "project_revision": "rev-7", "status": "ready"},
+		},
+	}}
+	server := New(nil, nil, nil)
+	server.auditionKernel = fake
+	server.auditionCandidateDriver = newCandidateDriverForTest(auditionProjectPathForTest(t))
+	loop := auditionReadyLoop(t)
+	loop.AuditionSessionID = "session-stopped"
+	loop.AuditionSessionSnapshot = map[string]any{"session_id": "session-stopped", "status": "stopped"}
+	server.storeFreeStateLoop(loop)
+
+	request := httptest.NewRequest(http.MethodPost, "/agent/audition/select", bytes.NewBufferString(`{"conversation_id":"conversation-audition","session_id":"session-stopped","candidate_id":"candidate-b"}`))
+	recorder := httptest.NewRecorder()
+	server.handleAuditionSelect(recorder, request)
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("status=%d body=%s", recorder.Code, recorder.Body.String())
+	}
+	if len(fake.prepareRequests) != 1 {
+		t.Fatalf("stopped select must re-seat the session via audition.prepare first, prepare calls=%d", len(fake.prepareRequests))
+	}
+	reseat := fake.prepareRequests[0]
+	if reseat.SessionID != "session-stopped" || reseat.Scope != "target" || reseat.ActiveProjectRef != "project:active" || reseat.ActiveProjectRevision != "rev-7" || reseat.TimelineRevision != "rev-7" {
+		t.Fatalf("reseat request lost the kernel session anchor: %+v", reseat)
+	}
+	if len(reseat.Candidates) != 2 || reseat.Candidates[0].PreviewRef != "preview-a" || reseat.Candidates[1].PreviewRef != "preview-b" {
+		t.Fatalf("reseat request must keep the resolved preview refs verbatim: %+v", reseat.Candidates)
+	}
+	if len(fake.selectCalls) != 1 || fake.selectCalls[0] != "session-stopped:candidate-b" {
+		t.Fatalf("select calls=%v", fake.selectCalls)
+	}
+	events, _ := server.agentEventsSince(loop.ConversationID, 0, 100)
+	recovered, selected := false, false
+	for _, event := range events {
+		if event.Type == "audition.prepare" || event.Type == "audition.ready" {
+			if event.Payload["recovered_from"] == "stopped" {
+				recovered = true
+			}
+		}
+		if event.Type == "audition.selected" {
+			selected = true
+		}
+	}
+	if !recovered || !selected {
+		t.Fatalf("recovery transition not observable: recovered=%v selected=%v events=%+v", recovered, selected, events)
+	}
+}
+
+// The recovery must stay OFF the hot path: a live (non-stopped) session select
+// goes straight to the kernel with no extra status/prepare round trips.
+func TestLiveAuditionSelectDoesNotReseat(t *testing.T) {
+	fake := &fakeAuditionKernel{statusSession: map[string]any{"session_id": "session-live", "status": "ready"}}
+	server := New(nil, nil, nil)
+	server.auditionKernel = fake
+	server.auditionCandidateDriver = newCandidateDriverForTest(auditionProjectPathForTest(t))
+	loop := auditionReadyLoop(t)
+	loop.AuditionSessionID = "session-live"
+	loop.AuditionSessionSnapshot = map[string]any{"session_id": "session-live", "status": "ready"}
+	server.storeFreeStateLoop(loop)
+
+	request := httptest.NewRequest(http.MethodPost, "/agent/audition/select", bytes.NewBufferString(`{"conversation_id":"conversation-audition","session_id":"session-live","candidate_id":"candidate-a"}`))
+	recorder := httptest.NewRecorder()
+	server.handleAuditionSelect(recorder, request)
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("status=%d body=%s", recorder.Code, recorder.Body.String())
+	}
+	if len(fake.prepareRequests) != 0 {
+		t.Fatalf("live select must not re-prepare, prepare calls=%d", len(fake.prepareRequests))
+	}
+	if len(fake.selectCalls) != 1 {
+		t.Fatalf("select calls=%v", fake.selectCalls)
 	}
 }
 

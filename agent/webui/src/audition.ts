@@ -116,7 +116,37 @@ export function auditionSessions(state: AuditionState): AuditionSession[] {
 }
 
 export function auditionCanSelect(session: AuditionSession, candidate: AuditionCandidate): boolean {
-  return (session.status === "ready" || session.status === "playing") && candidate.status === "ready" && Boolean(candidate.previewRef);
+  // AUDITION-UNSTICK-1（2026-09-14）：stopped 会话放行选择——点击即重启播放。
+  // 内核 audition.select 拒 stopped（audition_not_ready），服务端在 select 前
+  // 用同参 audition.prepare 把会话重落座回 ready 再 select（既有内核命令，
+  // 协议与状态机契约不动）；盲态物理指派随候选原样重建不被重抽。
+  // stale/failed 是终态，仍拒。
+  return (session.status === "ready" || session.status === "playing" || session.status === "stopped")
+    && candidate.status === "ready" && Boolean(candidate.previewRef);
+}
+
+/**
+ * AUDITION-UNSTICK-1：准备期判定——会话仍在 preparing，或任一候选还在
+ * preparing（渲染/预热进行中）。此窗口 UI 必须显形「正在准备 A/B 试听…」，
+ * 不能留一块无反馈的空白（用户读作执行轨迹计时停了=像死机）。
+ */
+export function auditionPreparing(session: AuditionSession): boolean {
+  return session.status === "preparing" || session.candidates.some((candidate) => candidate.status === "preparing");
+}
+
+/**
+ * AUDITION-UNSTICK-1：A/B 控件不可用时的显式原因（禁用不许是死点）。
+ * 返回空串=控件可用，无需说明。
+ */
+export function auditionSelectBlockedReason(session: AuditionSession, busy: boolean, settled: boolean): string {
+  if (settled) return "判定已落定，试听已结束";
+  if (busy) return "正在处理你的上一次操作…";
+  if (auditionPreparing(session)) return "正在准备 A/B 试听…";
+  if (session.status === "stale" || session.status === "failed") return "试听会话已失效，无法再播放";
+  if (!session.candidates.some((candidate) => candidate.status === "ready" && Boolean(candidate.previewRef))) {
+    return "候选音频尚未就绪";
+  }
+  return "";
 }
 
 function candidateFromAny(value: unknown): AuditionCandidate {
