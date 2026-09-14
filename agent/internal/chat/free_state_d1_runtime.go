@@ -701,6 +701,25 @@ func (s *Server) projectD1Execution(loop freeStateReasoningLoop, session orchest
 	loop.UpdatedAt = time.Now().UTC()
 	syncD1Receipt(&loop)
 	s.storeFreeStateLoop(loop)
+	if receipt.Status == "applied" && loop.Experiment.Admission.IsD1S1() {
+		// D1-AUDITION-GAP-1: mount the A/B audition card the moment the
+		// intervention lands, not only at the judgment boundary. The user's
+		// product ruling is "I only do the A/B listening" — every intervention
+		// applied to the project must end in an A/B card whatever happens to
+		// the chain afterwards. The 2026-09-13 22:58 real stack (goal_c7ecb4fb)
+		// stranded exactly there: the apply turn completed the goal before the
+		// evaluation slice ran, the round never reached its judgment boundary,
+		// and no audition.* event ever fired. prepareFreeStateAudition is the
+		// existing D1 mounting face (before render from loop.D1State, after
+		// render at the applied revision, audition.ready + judgment request);
+		// it is idempotent per session (loop.AuditionSessionID early-exit) and
+		// the boundary-time call double-fire-deduplicates, so mounting here
+		// cannot duplicate the card. Fail-open like B12-2: a degraded mount
+		// never blocks the already-applied step.
+		if auditionErr := s.prepareFreeStateAudition(ctx, &loop); auditionErr != nil && s.logger != nil {
+			s.logger.Warn("[audition] post-apply mount degraded conversation=%s goal=%s err=%v", loop.ConversationID, loop.GoalID, auditionErr)
+		}
+	}
 	data := map[string]any{"schema_version": experiment.ImprovementReceiptSchema, "status": receipt.Status, "mutation_performed": receipt.Status == "applied",
 		"action_domain": admissionDomain, "action_kind": admissionKind, "execution_id": session.Execution.ID,
 		"execution_receipt": receiptMap, "verification": session.Execution.VerificationResult, "parameter_applied": receipt.Status == "applied",

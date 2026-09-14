@@ -2623,6 +2623,12 @@ func (s *Server) recordGoalResult(conversationID string, res agentloop.Result) e
 	armedDurableID := ""
 	armedDurableStatus := ""
 	armRequiresUserInteraction := false
+	// D1-AUDITION-GAP-1: set when a completed turn lands while the round still
+	// owes its governed outcome; the goal correction itself runs AFTER s.mu is
+	// released (SetGoalStatus takes the harness lock, and the owed predicate
+	// must be read from the raw loop map while the mutex is already held —
+	// calling freeStateLoopOwesExperimentOutcomeFor in here self-deadlocks).
+	completedOverOwedOutcome := false
 	if res.Continuation != nil {
 		// The planner continuation carries the slice-start request context, while
 		// recordFreeStateDecision may have imported newer CCB evidence into the
@@ -2786,27 +2792,52 @@ func (s *Server) recordGoalResult(conversationID string, res agentloop.Result) e
 		}
 		autoContinuation = durable.Status == ContinuationPending
 	} else {
-		delete(s.goalContinuations, res.GoalID)
-		terminalStatus := ContinuationCompleted
-		switch res.Status {
-		case agentruntime.StatusCancelled, agentruntime.StatusStopped:
-			terminalStatus = ContinuationCancelled
-		case agentruntime.StatusFailed:
-			terminalStatus = ContinuationFailed
+		// D1-AUDITION-GAP-1: a turn that reports completed while the admitted
+		// experiment round still owes its governed outcome (post-action
+		// evaluation and/or judgment settlement) must not terminate the goal.
+		// agentloop's Runner.complete finalizes unconditionally and has no D1
+		// debt check (2026-09-13 22:58 real stack, goal_c7ecb4fb: the apply
+		// turn completed at 22:58:36.9 with the round still needs_experiment —
+		// the settle slice then found d1_post_action_evaluation_required owed
+		// with no goal left to resume, the round stranded, and no A/B card ever
+		// mounted). waiting_continue keeps shouldResumeGoalFromStatus' bare
+		// "继续" entry alive, the delivery gate's D1-STALL-1 branch carries the
+		// explicit owed-evaluation receipt, and the durable set keeps its live
+		// forms instead of being terminalized underneath a resumable goal.
+		// The owed predicate is read from the raw loop map (this whole block
+		// runs under s.mu; freeStateLoopOwesExperimentOutcomeFor would take the
+		// same mutex and deadlock) with the same goal-identity discipline the
+		// helper applies.
+		owedOutcome := false
+		if loopRow, loopExists := s.freeStateLoops[conversationID]; loopExists &&
+			(strings.TrimSpace(res.GoalID) == "" || loopRow.GoalID == res.GoalID) {
+			owedOutcome = freeStateLoopOwesExperimentOutcome(loopRow)
 		}
-		now := time.Now().UTC()
-		for continuationID, durable := range s.durableContinuations {
-			if durable.GoalID != res.GoalID || durable.Status == ContinuationCompleted || durable.Status == ContinuationCancelled || durable.Status == ContinuationFailed {
-				continue
+		if res.Status == agentruntime.StatusCompleted && owedOutcome {
+			completedOverOwedOutcome = true
+		} else {
+			delete(s.goalContinuations, res.GoalID)
+			terminalStatus := ContinuationCompleted
+			switch res.Status {
+			case agentruntime.StatusCancelled, agentruntime.StatusStopped:
+				terminalStatus = ContinuationCancelled
+			case agentruntime.StatusFailed:
+				terminalStatus = ContinuationFailed
 			}
-			durable.Status = terminalStatus
-			durable.LeaseOwner = ""
-			durable.LeaseExpiresAt = time.Time{}
-			durable.UpdatedAt = now
-			if terminalStatus == ContinuationFailed {
-				durable.LastError = firstNonEmpty(res.Error, res.FailureReason)
+			now := time.Now().UTC()
+			for continuationID, durable := range s.durableContinuations {
+				if durable.GoalID != res.GoalID || durable.Status == ContinuationCompleted || durable.Status == ContinuationCancelled || durable.Status == ContinuationFailed {
+					continue
+				}
+				durable.Status = terminalStatus
+				durable.LeaseOwner = ""
+				durable.LeaseExpiresAt = time.Time{}
+				durable.UpdatedAt = now
+				if terminalStatus == ContinuationFailed {
+					durable.LastError = firstNonEmpty(res.Error, res.FailureReason)
+				}
+				s.durableContinuations[continuationID] = cloneDurableContinuation(durable)
 			}
-			s.durableContinuations[continuationID] = cloneDurableContinuation(durable)
 		}
 	}
 	if armedDurableID != "" {
@@ -2816,6 +2847,16 @@ func (s *Server) recordGoalResult(conversationID string, res agentloop.Result) e
 		armedDurableStatus = string(s.durableContinuations[armedDurableID].Status)
 	}
 	s.mu.Unlock()
+	// D1-AUDITION-GAP-1 (outside s.mu; the flag was decided under the lock):
+	// restore the goal to the resumable waiting_continue form instead of
+	// letting the runner's unconditional complete() strand the owed round.
+	if completedOverOwedOutcome && s.harness != nil {
+		s.harness.SetGoalStatus(res.GoalID, agentruntime.StatusWaitingContinue, nil)
+		if s.logger != nil {
+			s.logger.Info("[continuation.owed] completed turn withheld conversation=%s goal=%s: the round still owes its governed experiment outcome; goal restored to waiting_continue",
+				conversationID, res.GoalID)
+		}
+	}
 	// Persist before waking the worker. This is the ordering that makes a
 	// request boundary harmless: a crash after this point leaves recoverable
 	// pending work in the project runtime snapshot.
