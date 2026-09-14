@@ -359,7 +359,22 @@ func capabilityRouteWasExplicit(record CapabilityRouteRecord) bool {
 // refreshCapabilityRouteForRevision re-observes structure inside the same
 // Task. It never calls semantic entry again and never changes original intent.
 func (s *Server) refreshCapabilityRouteForRevision(ctx context.Context, conversationID string, requestContext map[string]any) (map[string]any, error) {
-	previous := s.previousCapabilityRoute(firstStringFromMap(requestContext, "task_id"), conversationID)
+	// CONT-STALL-2: the conversation-level fallback of previousCapabilityRoute
+	// would return the newest validated route of *another* task in this
+	// conversation (2026-09-13 22:59 real stack, session webui_mtzxugg8,
+	// cont_8061dbfd: the first goal's free-state loop was active, so the second
+	// request never ran the semantic entry and arrived with no task id — the
+	// fallback injected the first goal's route+assessment, durableContinuation-
+	// FromResult lifted that foreign assessment into the second goal's durable
+	// capacity state, and the index lookup routes[item.TaskID] could never
+	// match, so every reload fail-closed the checkpoint into a permanent
+	// waiting_interaction dead park). Refresh is same-task only: a request
+	// without a task id gets no route injected at all.
+	taskID := firstStringFromMap(requestContext, "task_id")
+	if taskID == "" {
+		return requestContext, nil
+	}
+	previous := s.previousCapabilityRoute(taskID, conversationID)
 	if previous.SchemaVersion != capabilityRouteSchema || previous.Assessment == nil {
 		return requestContext, nil
 	}
@@ -613,6 +628,20 @@ func capabilityRouteReason(assessment FreeStateCapacityAssessment) string {
 }
 
 func contextWithCapabilityRoute(requestContext map[string]any, record CapabilityRouteRecord) map[string]any {
+	out := cloneContext(requestContext)
+	// CONT-STALL-2: an identity swap must not leave the previous route's
+	// capacity state behind. An assessment-less identity (the explicit_control
+	// family — planObservationFirstCapabilityRoute never stores those, so the
+	// index can never hold a validated route for them) inheriting a stale
+	// free_state_capacity_assessment would make durableContinuationFromResult
+	// arm the new task with capacity state the index cannot answer for, and
+	// every reload would fail-close it into the waiting_interaction dead park.
+	if record.Assessment == nil {
+		delete(out, capacityAssessmentContextKey)
+	}
+	if record.EntryPlan == nil {
+		delete(out, capabilityEntryPlanContextKey)
+	}
 	values := map[string]any{capabilityRouteContextKey: capabilityRouteRecordMap(record)}
 	if record.Assessment != nil {
 		values[capacityAssessmentContextKey] = *record.Assessment
@@ -626,7 +655,7 @@ func contextWithCapabilityRoute(requestContext map[string]any, record Capability
 	if record.EntryPlan != nil {
 		values[capabilityEntryPlanContextKey] = *record.EntryPlan
 	}
-	return mergeContext(requestContext, values)
+	return mergeContext(out, values)
 }
 
 func (s *Server) storeCapabilityRoute(record CapabilityRouteRecord) {
@@ -863,6 +892,41 @@ func restoreCapabilityRoutes(routes map[string]CapabilityRouteRecord) map[string
 	return out
 }
 
+// continuationOwnsContextCapacityState reports whether the capacity-state keys
+// in a continuation's context belong to THIS continuation's task. The only
+// writer of free_state_capacity_assessment / capability_entry_plan into a
+// context is contextWithCapabilityRoute, which always writes the matching
+// capability_route_decision identity alongside them. CONT-STALL-2 (2026-09-13
+// 22:59 real stack + 2026-09-14 09:41 same-type reproduction): conversation
+// level fallbacks (bindActiveOrchestrationController's owner restoration, the
+// refresh path) seed the conversation's NEWEST validated route into a NEW
+// goal's request context; durableContinuationFromResult then lifts that
+// foreign assessment into the new task's durable capacity state while the
+// index holds no route for the new task id — every reload fail-closed it
+// into a permanent waiting_interaction dead park. A route identity in the
+// context that names a different task/goal therefore marks the riding
+// capacity state as foreign: it must not be counted as this record's own.
+func continuationOwnsContextCapacityState(item DurableContinuation) bool {
+	raw, ok := item.Continuation.Context[capabilityRouteContextKey]
+	if !ok || raw == nil {
+		// No identity in the context: nothing contradicts ownership.
+		return true
+	}
+	switch typed := raw.(type) {
+	case map[string]any:
+		routeTask := firstStringFromMap(typed, "task_id")
+		routeGoal := firstStringFromMap(typed, "goal_id")
+		if routeTask == "" && routeGoal == "" {
+			return true
+		}
+		return (routeTask == "" || routeTask == item.TaskID) && (routeGoal == "" || routeGoal == item.GoalID)
+	case CapabilityRouteRecord:
+		return typed.TaskID == item.TaskID && typed.GoalID == item.GoalID
+	default:
+		return true
+	}
+}
+
 func reconcileDurableCapabilityRoutes(items map[string]DurableContinuation, routes map[string]CapabilityRouteRecord) map[string]DurableContinuation {
 	for id, item := range items {
 		contextAssessment := capacityAssessmentFromAny(item.Continuation.Context[capacityAssessmentContextKey])
@@ -885,8 +949,13 @@ func reconcileDurableCapabilityRoutes(items map[string]DurableContinuation, rout
 		// A waiting_interaction record is never claimed, so the chain parked for
 		// good with the turn's own "我还在继续处理这个任务" still standing.
 		contextEntryPlan := item.Continuation.Context[capabilityEntryPlanContextKey] != nil
-		hasCapacityState := item.CapacityAssessment != nil || contextAssessment != nil ||
-			item.CapabilityEntryPlan != nil || contextEntryPlan
+		// CONT-STALL-2: capacity state counts only when the context's route
+		// identity belongs to this record's own task/goal. A foreign identity
+		// (the conversation-level injection paths) makes the riding assessment
+		// foreign too — the index can never validate this task against it.
+		ownsContextState := continuationOwnsContextCapacityState(item)
+		hasCapacityState := ownsContextState && (item.CapacityAssessment != nil || contextAssessment != nil ||
+			item.CapabilityEntryPlan != nil || contextEntryPlan)
 		route, hasRoute := routes[item.TaskID]
 		if !hasRoute {
 			if hasCapacityState && item.Status != ContinuationCompleted && item.Status != ContinuationCancelled && item.Status != ContinuationFailed {
