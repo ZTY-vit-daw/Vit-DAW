@@ -1,8 +1,9 @@
 import type { ChatMessage } from "../types";
-import type { TrajectoryState } from "../trajectory";
+import type { TrajectoryState, TrajectoryTurn } from "../trajectory";
 import { trajectoryTurns } from "../trajectory";
 import { groupMessagesByTurn, type MessageTurnGroup } from "./turnGroups";
 import { isChainResultChatMessage, shouldRenderTraceBlockForTurn } from "./traceDelivery";
+import { roundStartSeq, roundStepTurnIds, shouldRenderRoundContainer, type RoundStepMap } from "./roundSteps";
 import type { TurnEventMetaMap } from "./turnEventMeta";
 
 // GUI-1/G2（渲染计划抽取）：MessageStream 的「回合分组 + 轨迹块锚定 + 孤儿块 +
@@ -55,6 +56,15 @@ import type { TurnEventMetaMap } from "./turnEventMeta";
 //
 // 两条修法都不放松既有语义：身份锚定仍然优先、无证据仍不猜（回落流尾）、
 // M12 谓词与 B9「一组一块」不变。
+//
+// TRAJ-IMPL-2（2026-09-14，设计 §2.1-2 问题①可见性错绑）：上面全部修法都建立在
+// 「该回合确实有一个轨迹块要渲染」之上，而旧谓词把**容器的存在性**绑在实验准入
+// 的产物上（trajectory 回合 + 非空节点）——纯 chat 回合执行 31s、item.* 明明在场，
+// 却连容器都没有，进度只能落在流底活动线（F2）。本卡把谓词放宽为「回合有任一活动
+// 证据即有容器」：轨迹壳节点 / 轨迹步 / item 步 / turnEventMeta.startedAt 任一条
+// 成立即出块；实验轨迹步降格为步来源之一。M12 settle_slice 隐藏谓词
+// （shouldRenderTraceBlockForTurn 整段）**逐字保留、零改动**——放宽不得让结算切片
+// 噪音回归（验收含「settle_slice 仍隐藏」钉）。
 
 export type MessageStreamEntry =
   | { kind: "messages"; key: string; messages: ChatMessage[] }
@@ -101,16 +111,16 @@ export function buildMessageStreamRenderPlan(options: {
   messages: ChatMessage[];
   trajectory: TrajectoryState;
   turnEventMeta?: TurnEventMetaMap;
+  /** TRAJ-IMPL-2：回合内 item 步账（谓词放宽的第二个证据源；缺省时行为逐字不变） */
+  roundSteps?: RoundStepMap;
 }): MessageStreamRenderPlan {
-  const { messages, trajectory, turnEventMeta } = options;
+  const { messages, trajectory, turnEventMeta, roundSteps } = options;
   const chainResultMessages = messages.filter(isChainResultChatMessage);
   const flowMessages = chainResultMessages.length > 0 ? messages.filter((message) => !isChainResultChatMessage(message)) : messages;
   const groups = groupMessagesByTurn(flowMessages);
 
   // 渲染哪些回合：谓词逐字沿用（M12 item 活动足迹 / settle_slice 标记证据链）
-  const renderTurns = trajectoryTurns(trajectory).filter(
-    (turn) => turn.nodeIds.length > 0 && shouldRenderTraceBlockForTurn(trajectory, turn.id, turnEventMeta)
-  );
+  const renderTurns = renderTurnCandidates(trajectory, turnEventMeta, roundSteps);
 
   // 锚定（UI-FOLLOW-2：落位从「组」细化为「组 + 组内用户消息序号」）：
   //   ① 身份锚定优先（消息组携带该回合 id，既有语义逐字保留）；
@@ -118,10 +128,10 @@ export function buildMessageStreamRenderPlan(options: {
   const slots = messageRoundSlots(groups);
   const anchorByGroupKey = new Map<string, MessageRoundAnchor>();
   const orphanTurnIds: string[] = [];
-  for (const turn of renderTurns) {
-    const anchor = anchorForTurn(groups, slots, turn.id, turnStartedAtMs(turnEventMeta, turn.id));
+  for (const turnId of renderTurns) {
+    const anchor = anchorForTurn(groups, slots, turnId, turnStartedAtMs(turnEventMeta, turnId));
     if (!anchor || anchorByGroupKey.has(anchor.groupKey)) {
-      orphanTurnIds.push(turn.id);
+      orphanTurnIds.push(turnId);
       continue;
     }
     anchorByGroupKey.set(anchor.groupKey, anchor);
@@ -166,6 +176,53 @@ export function buildMessageStreamRenderPlan(options: {
   }
 
   return { entries, orphanTurnIds, chainResultMessages };
+}
+
+/**
+ * 渲染候选回合（TRAJ-IMPL-2 谓词放宽，设计 §2.1-2）：容器存在性 = 回合有**任一活动证据**。
+ *
+ *   ① 轨迹回合：nodeIds 非空 + M12 证据链（shouldRenderTraceBlockForTurn）——逐字保留；
+ *   ② item 步回合（无 trajectory 回合记录，如纯 chat 回合的 31s 执行）：活动足迹
+ *      （item 步）或回合起始时刻即证据；M12 的同一证据链由 shouldRenderRoundContainer
+ *      重述（settle_slice 标记 + 无足迹 + 短寿命回退，常量取自 traceDelivery 不另立口径）。
+ *
+ * 两类候选按**回合起始 seq** 混排（同一事件流 seq 域）——锚定顺序因此与事件序一致，
+ * 单回合只占一个渲染位（B9「一轮对话一个轨迹块」），后到者保持流尾兜底。
+ */
+function renderTurnCandidates(
+  trajectory: TrajectoryState,
+  turnEventMeta: TurnEventMetaMap | undefined,
+  roundSteps: RoundStepMap | undefined
+): string[] {
+  const candidates: Array<{ turnId: string; order: number }> = [];
+  for (const turn of trajectoryTurns(trajectory)) {
+    if (turn.nodeIds.length > 0 && shouldRenderTraceBlockForTurn(trajectory, turn.id, turnEventMeta)) {
+      candidates.push({ turnId: turn.id, order: turnStartSeq(trajectory, turn) });
+    }
+  }
+  for (const turnId of roundStepTurnIds(roundSteps)) {
+    // 有轨迹回合记录的回合由 ① 按 M12 谓词裁定（含 settle_slice 隐藏），不重复候选。
+    if (trajectory.turns?.[turnId]) {
+      continue;
+    }
+    if (!shouldRenderRoundContainer({ round: roundSteps?.[turnId], meta: turnEventMeta?.[turnId] })) {
+      continue;
+    }
+    candidates.push({ turnId, order: roundStartSeq(roundSteps![turnId]) });
+  }
+  return candidates.sort((left, right) => left.order - right.order).map((candidate) => candidate.turnId);
+}
+
+/** 轨迹回合起始 seq（与 item 步账同域；无节点证据的回合排到最后） */
+function turnStartSeq(state: TrajectoryState, turn: TrajectoryTurn): number {
+  let minimum = Number.MAX_SAFE_INTEGER;
+  for (const nodeId of turn.nodeIds ?? []) {
+    const seq = state.nodes?.[nodeId]?.seq;
+    if (typeof seq === "number" && Number.isFinite(seq) && seq < minimum) {
+      minimum = seq;
+    }
+  }
+  return minimum;
 }
 
 /** 对话回合槽位：用户消息是回合的唯一开启者（相邻无 turn_id 消息并组语义不变） */

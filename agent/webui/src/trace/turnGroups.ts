@@ -58,7 +58,26 @@ export function latestRenderedTurnId(groups: MessageTurnGroup[], knownTurnIds: S
 }
 
 /** 活动是否属于非回合类（上传/调用等）——这些留在活动线，回合内活动并入轨迹思考行 */
-export function isUnboundActivity(activity: ChatMessage, knownTurnIds: Set<string>): boolean {
+export function isUnboundActivity(
+  activity: ChatMessage,
+  knownTurnIds: Set<string>,
+  roundBoundKeys?: Set<string>
+): boolean {
   const turnId = (activity.turn_id ?? "").trim();
-  return !turnId || !knownTurnIds.has(turnId);
+  if (turnId && knownTurnIds.has(turnId)) {
+    return false;
+  }
+  // TRAJ-IMPL-2（设计 §2.1-5 活动线去重）：已并入回合块的 item 活动不再进流底活动线。
+  // 跨命名空间时活动的 turn_id（chat 域 run_/turn_ 混写）判不出归属——收口判据因此换成
+  // **事件身份**（逻辑消息 id / 活动 id，roundActivityBoundKeys 产出），与「这个 item 步
+  // 已经落在某个回合容器里」是同一件事。无回合归属的活动（上传等）照旧留在 lane。
+  if (roundBoundKeys && roundBoundKeys.size > 0) {
+    for (const key of [activity.logical_message_id, activity.id, activity.source_id]) {
+      const value = (key ?? "").trim();
+      if (value && roundBoundKeys.has(value)) {
+        return false;
+      }
+    }
+  }
+  return true;
 }

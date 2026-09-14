@@ -4,6 +4,7 @@ import type { AuthorityMode, ChatMessage } from "../types";
 import type { TrajectoryNode, TrajectoryState, TrajectoryTurn } from "../trajectory";
 import { nodeKindLabel, phaseLabel, statusLabel } from "../trajectory/TrajectoryView";
 import { StateIcon, terminalClass } from "../taskTrajectory/details";
+import { mergeTraceAndRoundSteps, type RoundStep } from "./roundSteps";
 import { turnDurationSplit, type TurnEventMeta } from "./turnEventMeta";
 import "./trace.css";
 
@@ -113,6 +114,17 @@ export function residencyLineText(options: { kind: ResidencyKind; elapsedMs: num
   return `${label}（已等 ${formatElapsedSeconds(options.elapsedMs)}）`;
 }
 
+/**
+ * 步种类脚注（TRAJ-IMPL-2）：轨迹节点族沿用 trajectory 域的 nodeKindLabel；item 步
+ * （kind=activity）是本卡新增的回合内工具步，给它一个人话脚注——nodeKindLabel 表在
+ * trajectory 域，本卡文件域不含它，因此在这里补一张最小的补充表（其余 kind 逐字不变）。
+ */
+const extraKindLabels: Record<string, string> = { activity: "工具步骤" };
+
+function stepKindLabel(kind: string): string {
+  return extraKindLabels[kind] ?? nodeKindLabel(kind);
+}
+
 function stepDurationMs(node: TrajectoryNode, next: TrajectoryNode | undefined, live: boolean): number | null {
   if (node.status === "running" || node.status === "pending") return null;
   const end = next ? next.createdAt : live ? Date.now() : node.createdAt;
@@ -157,10 +169,17 @@ export function traceMetaParts(options: {
    * 时 live 输出逐字不变——不造默认值。
    */
   liveWorkMs?: number | null;
+  /**
+   * 滚动窗口丢弃的步数（TRAJ-IMPL-2 §6.2）：>0 时步数后标注「较早 N 步已省略」——
+   * 窗口截断是事实，不能在计数上假装没发生。缺省/0 时输出逐字不变。
+   */
+  omittedStepCount?: number;
 }): string[] {
+  const omittedStepCount = options.omittedStepCount ?? 0;
+  const stepCountLabel = stepCountText(options.stepCount, omittedStepCount);
   const base = (() => {
     if (options.live) {
-      const liveBase = options.stepCount > 0 ? [`${options.stepCount} 步`] : ["--"];
+      const liveBase = options.stepCount > 0 ? [stepCountLabel] : ["--"];
       const liveWorkMs = options.liveWorkMs ?? null;
       if (liveWorkMs === null || !Number.isFinite(liveWorkMs)) {
         return liveBase;
@@ -168,7 +187,7 @@ export function traceMetaParts(options: {
       return [...liveBase, `已工作 ${formatElapsedSeconds(liveWorkMs)}`];
     }
     if (options.stepCount > 0) {
-      return [`${options.stepCount} 步`, formatSeconds(options.stepSpanMs)];
+      return [stepCountLabel, formatSeconds(options.stepSpanMs)];
     }
     if (options.itemActivityCount > 0) {
       return options.itemActivitySpanMs !== null
@@ -188,6 +207,14 @@ export function traceMetaParts(options: {
     return [...base.slice(0, -1), `执行 ${last}`, parkPart];
   }
   return [...base, parkPart];
+}
+
+/** 步数文案：窗口截断时显式标注被省略的更早步数（总计数不因窗口缩水） */
+function stepCountText(stepCount: number, omittedStepCount: number): string {
+  if (omittedStepCount > 0) {
+    return `${stepCount} 步（较早 ${omittedStepCount} 步已省略）`;
+  }
+  return `${stepCount} 步`;
 }
 
 /** 回执行语义标签：live 只显「正在处理」，不加戏（2026-09-03 用户裁定口径） */
@@ -265,8 +292,8 @@ function TraceStep({ node, next, live, authorityMode }: {
       <span className="trace-node" aria-hidden="true" />
       <div className="trace-srow">
         <span className="trace-act">
-          {node.title || node.eventType || nodeKindLabel(node.kind)}
-          <span className="trace-gloss">{nodeKindLabel(node.kind)}</span>
+          {node.title || node.eventType || stepKindLabel(node.kind)}
+          <span className="trace-gloss">{stepKindLabel(node.kind)}</span>
           {isMut && authorityMode === "full_project_access" && <span className="trace-mutg">完全档 · 直接执行</span>}
         </span>
         <span className={`trace-dur ${node.status === "running" && !unresolved ? "is-live" : ""}`}>{durationLabel}</span>
@@ -325,7 +352,7 @@ export function shouldShowOptimisticTrace(options: {
   return Boolean(last && last.role === "user" && !(last.turn_id ?? "").trim());
 }
 
-export function TraceBlock({ state, turn, activities, authorityMode = "manual_confirmation", turnMeta }: {
+export function TraceBlock({ state, turn, activities, authorityMode = "manual_confirmation", turnMeta, itemSteps, totalStepCount }: {
   state: TrajectoryState;
   turn: TrajectoryTurn;
   /** 该回合的 transient 活动（思考行素材；回合结束后活动已被清退） */
@@ -333,6 +360,14 @@ export function TraceBlock({ state, turn, activities, authorityMode = "manual_co
   authorityMode?: AuthorityMode;
   /** 该回合的事件足迹 meta（M12 证据：item 活动数/生命周期；缺省按无足迹处理） */
   turnMeta?: TurnEventMeta;
+  /**
+   * 回合内 item 步（TRAJ-IMPL-2 §2.1-1/3）：item 工具步还原成的进度步，按 createdAt
+   * 与轨迹步混排内联同一容器（行形态复用 TraceStep，kind=activity）。缺省空数组时
+   * 渲染逐字不变——既有调用面零回退。
+   */
+  itemSteps?: RoundStep[];
+  /** 该回合步的总计数（滚动窗口外仍计入；缺省=窗口内步数即总数） */
+  totalStepCount?: number;
 }) {
   const live = isLiveStatus(turn.status);
   const [collapsed, setCollapsed] = useState(() => defaultCollapsedForStatus(turn.status));
@@ -358,7 +393,11 @@ export function TraceBlock({ state, turn, activities, authorityMode = "manual_co
     return undefined;
   }, [live]);
 
-  const nodes = turnStepNodes(state, turn);
+  // 步序混排（§2.1-3）：item 步与轨迹步按 createdAt 内联同一容器；无 item 步时
+  // mergeTraceAndRoundSteps 原样返回轨迹步，既有渲染逐字不变。
+  const windowSteps = itemSteps ?? [];
+  const nodes = mergeTraceAndRoundSteps(turnStepNodes(state, turn), windowSteps);
+  const omittedStepCount = Math.max(0, (totalStepCount ?? windowSteps.length) - windowSteps.length);
   const thinking = live ? activities[activities.length - 1] : undefined;
   const label = turnStatusLabel(turn.status);
   const sub = receiptSub(nodes);
@@ -380,7 +419,8 @@ export function TraceBlock({ state, turn, activities, authorityMode = "manual_co
     itemActivityCount: turnMeta?.itemActivityCount ?? 0,
     itemActivitySpanMs: split.workMs,
     parkMs: split.parkMs,
-    liveWorkMs: live ? liveWorkElapsedMs({ turnMeta, nowMs }) : null
+    liveWorkMs: live ? liveWorkElapsedMs({ turnMeta, nowMs }) : null,
+    omittedStepCount
   });
 
   return (

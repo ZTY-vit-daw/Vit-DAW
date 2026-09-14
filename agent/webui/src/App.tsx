@@ -127,6 +127,15 @@ import {
 import type { HistoryScopeChangeKind } from "./historyScope";
 import { buildMessageStreamRenderPlan, type MessageStreamEntry } from "./trace/renderPlan";
 import { emptyTurnEventMetaMap, reduceTurnEventMeta, type TurnEventMetaMap } from "./trace/turnEventMeta";
+// TRAJ-IMPL-2（设计 §2.1）：回合步账——item 工具步还原为回合内进度步，容器存在性与
+// 实验准入解耦；活动线按「已归属回合」收窄（streamRoundBoundKeys）。
+import {
+  emptyRoundStepMap,
+  reduceRoundSteps,
+  roundActivityBoundKeys,
+  roundTurnShell,
+  type RoundStepMap
+} from "./trace/roundSteps";
 import { PlanBar } from "./composer/PlanBar";
 import { isUnboundActivity } from "./trace/turnGroups";
 import type {
@@ -247,6 +256,8 @@ function App() {
   // GUI-1/M12：item 活动足迹与 turn_kind 标记账本（活动会被回合清退、item 又不
   // 投影为轨迹节点，回合完成后只剩这里能证明「这个回合发生过什么」）
   const [turnEventMeta, setTurnEventMeta] = useState<TurnEventMetaMap>(emptyTurnEventMetaMap);
+  // TRAJ-IMPL-2：回合内 item 步账（与 trajectory/turnEventMeta 同键增量归约）
+  const [roundSteps, setRoundSteps] = useState<RoundStepMap>(emptyRoundStepMap);
   const [taskTrajectoryState, setTaskTrajectoryState] = useState(emptyTaskTrajectoryState);
   const [auditionState, setAuditionState] = useState(emptyAuditionState);
   const [auditionBusySessionID, setAuditionBusySessionID] = useState("");
@@ -341,6 +352,7 @@ function App() {
     agentEventSeqRef.current = 0;
     setTrajectoryState(emptyTrajectoryState());
     setTurnEventMeta(emptyTurnEventMetaMap());
+    setRoundSteps(emptyRoundStepMap());
     setTaskTrajectoryState(emptyTaskTrajectoryState());
     setAuditionState(emptyAuditionState());
     setAgentEventPolling(true);
@@ -456,6 +468,7 @@ function App() {
           ));
           setTrajectoryState((current) => reduceTrajectoryEvents(current, events));
           setTurnEventMeta((current) => reduceTurnEventMeta(current, events));
+          setRoundSteps((current) => reduceRoundSteps(current, events));
           setAuditionState((current) => reduceAuditionEvents(current, events));
           // GUI-F7：scheduler_chain 终局事件的回复直接入 messages（正式气泡）。
           // 不能走 activities——归约器对 turn.completed 只清场不产消息，且活动
@@ -1304,6 +1317,7 @@ function App() {
         activities={activities}
         trajectory={trajectoryState}
         turnEventMeta={turnEventMeta}
+        roundSteps={roundSteps}
         audition={auditionState}
         auditionBusySessionID={auditionBusySessionID}
         onAuditionSelect={handleAuditionSelect}
@@ -4203,6 +4217,7 @@ function MessageStream({
   activities,
   trajectory,
   turnEventMeta,
+  roundSteps,
   audition,
   auditionBusySessionID,
   authorityMode,
@@ -4225,6 +4240,8 @@ function MessageStream({
   activities: ChatMessage[];
   trajectory: TrajectoryState;
   turnEventMeta: TurnEventMetaMap;
+  /** TRAJ-IMPL-2：回合内 item 步账（容器证据 + 步混排 + 活动线去重） */
+  roundSteps: RoundStepMap;
   audition: AuditionState;
   auditionBusySessionID: string;
   authorityMode: AuthorityMode;
@@ -4304,11 +4321,15 @@ function MessageStream({
   // 回合分组渲染（GUI-1/G2：分组+锚定+孤儿+终局顺序抽为纯函数 buildMessageStreamRenderPlan，
   // 固化 用户消息→中间汇报→轨迹块→…→终局回复 的顺序，设计基线 GUI-T2/T3 + GUI-F8）
   const visibleMessages = messages.filter((message) => !shouldHideMessageForComposerOverlay(message, hiddenActionID));
-  const plan = buildMessageStreamRenderPlan({ messages: visibleMessages, trajectory, turnEventMeta });
+  const plan = buildMessageStreamRenderPlan({ messages: visibleMessages, trajectory, turnEventMeta, roundSteps });
   const knownTurnIds = new Set(trajectoryTurns(trajectory).map((turn) => turn.id));
   const turnActivities = (turnId: string) => activities.filter((activity) => (activity.turn_id ?? "").trim() === turnId);
-  // 活动线只承载非回合活动（上传/调用等）；回合内活动并入轨迹思考行
-  const laneActivities = activities.filter((activity) => isUnboundActivity(activity, knownTurnIds));
+  // 活动线只承载非回合活动（上传/调用等）；回合内活动并入回合单活动面。TRAJ-IMPL-2
+  // 把「归属」判据从回合 id 扩到**事件身份**（item 步账的钥匙）：item 已经落在某个
+  // 回合容器里，就不该在流底 lane 再出现一次（设计 §2.1-5）；turn_id 跨命名空间的
+  // 直连活动（如上传）照旧留在 lane。
+  const roundBoundKeys = roundActivityBoundKeys(roundSteps);
+  const laneActivities = activities.filter((activity) => isUnboundActivity(activity, knownTurnIds, roundBoundKeys));
 
   const sessions = auditionSessions(audition);
   const turnFirstSeq = (turnId: string): number => {
@@ -4360,7 +4381,10 @@ function MessageStream({
         return (
           <Fragment key={entry.key}>
             {entry.kind === "messages" ? entry.messages.map(renderMessage) : (() => {
-              const turn = trajectory.turns[entry.turnId];
+              // TRAJ-IMPL-2 §2.1-2：无 trajectory 回合记录的回合（纯 chat 执行期）由 item
+              // 步账撑起同一个容器——回合壳只承载身份与状态，轨迹步为空是事实而非缺陷。
+              const round = roundSteps[entry.turnId];
+              const turn = trajectory.turns[entry.turnId] ?? roundTurnShell(round);
               return turn ? (
                 <TraceBlock
                   state={trajectory}
@@ -4368,6 +4392,8 @@ function MessageStream({
                   activities={turnActivities(entry.turnId)}
                   authorityMode={authorityMode}
                   turnMeta={turnEventMeta[entry.turnId]}
+                  itemSteps={round?.steps}
+                  totalStepCount={round?.totalStepCount}
                 />
               ) : null;
             })()}

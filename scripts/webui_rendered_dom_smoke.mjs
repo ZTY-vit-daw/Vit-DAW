@@ -308,7 +308,12 @@ const DOM_PROBE = () => {
     const rect = el.getBoundingClientRect();
     const steps = Array.from(el.querySelectorAll(".trace-step")).map((step) => ({
       cls: typeof step.className === "string" ? step.className : "",
-      duration: (step.querySelector(".trace-dur")?.textContent || "").trim()
+      duration: (step.querySelector(".trace-dur")?.textContent || "").trim(),
+      // TRAJ-IMPL-2: the step's own wording. It is what carries the human-readable
+      // title ruling (design section 7 A), so the assertion reads it from the DOM
+      // instead of inferring it from the head meta.
+      text: (step.querySelector(".trace-act")?.textContent || "").replace(/\s+/g, " ").trim(),
+      gloss: (step.querySelector(".trace-gloss")?.textContent || "").trim()
     }));
     const label = (el.querySelector(".th-label")?.textContent || "").trim();
     const meta = (el.querySelector(".th-meta")?.textContent || "").replace(/\s+/g, " ").trim();
@@ -412,6 +417,14 @@ const DOM_PROBE = () => {
           paddingBottom: getComputedStyle(stream).paddingBottom
         }
       : null,
+    // TRAJ-IMPL-2 (design section 2.1-5): the flow-bottom activity lane is where
+    // un-owned activities (uploads, calls) still live. Items that already sit
+    // inside a round block must NOT appear here a second time, so the lane is
+    // sampled explicitly.
+    laneItems: Array.from(document.querySelectorAll(".activity-lane-item")).map((el) => ({
+      cls: typeof el.className === "string" ? el.className : "",
+      text: (el.textContent || "").replace(/\s+/g, " ").trim()
+    })),
     localStorageKeys: Object.keys(localStorage),
     composerCss: composer ? {
       position: getComputedStyle(composer).position,
@@ -712,6 +725,97 @@ function residencyFixtureEvents(options) {
     });
   }
   return events;
+}
+
+// TRAJ-IMPL-2 (design section 2.1, card 2026-09-14): the defect shape is a turn
+// with NO experiment trajectory at all -- a pure chat turn whose item.* events are
+// in the stream while "container exists" was still bound to "experiment admitted".
+// The archived transcript contains no such turn (every archived turn has a
+// trajectory shell), so the boundary events are seeded for a NEW turn id and
+// replayed through the very same GET /agent/events contract the app polls.
+//
+// Deliberately faithful to the real event shape (forensic evidence, 2026-09-11 and
+// 2026-09-13 fixtures): every tool call of one run reuses item_id "tool_step_1",
+// item.started carries payload.tool and item.completed carries payload.command_name
+// (different spellings of the same action). No terminal event is seeded: the turn is
+// observed during execution, which is exactly the window the card is about.
+function chatOnlyItemStepsFixtureEvents(options) {
+  const now = Date.now();
+  const runId = options.turnId;
+  const base = Number(options.baseSeq) || 300;
+  const at = (offsetMs) => new Date(now - 30_000 + offsetMs).toISOString();
+  const common = { conversation_id: conversationId, goal_id: runId, run_id: runId, turn_id: runId, source_turn_id: runId };
+  return [
+    { ...common, seq: base + 1, type: "turn.started", item_type: "turn", status: "running", created_at: at(0) },
+    { ...common, seq: base + 2, type: "item.started", item_id: "tool_step_1", item_type: "daw_action", status: "running", created_at: at(1_000), payload: { tool: "ccb.observation_catalog", command_raw: { tool: "ccb.observation_catalog" } } },
+    { ...common, seq: base + 3, type: "item.completed", item_id: "tool_step_1", item_type: "daw_action", status: "completed", created_at: at(2_500), payload: { command_name: "ccb_observation_catalog" } },
+    { ...common, seq: base + 4, type: "item.started", item_id: "tool_step_1", item_type: "daw_action", status: "running", created_at: at(4_000), payload: { tool: "mix_tick" } },
+    { ...common, seq: base + 5, type: "item.completed", item_id: "tool_step_1", item_type: "daw_action", status: "completed", created_at: at(6_000), payload: { command_name: "mix_tick" } },
+    // Unmapped identifier: user ruling A keeps it verbatim (the mapping table is a
+    // living table), so the assertion pins "a step rendered with its own wording".
+    { ...common, seq: base + 6, type: "item.started", item_id: "tool_step_1", item_type: "daw_action", status: "running", created_at: at(8_000), payload: { tool: "weird.custom_tool" } }
+  ];
+}
+
+// D1: during execution of a turn that has NO experiment trajectory, a round block
+// must exist with the item steps inlined under their human-readable titles, and
+// those same items must not ALSO sit in the flow-bottom activity lane.
+function checkD1(result, options) {
+  const failures = [];
+  const notes = [];
+  const sample = result.sample;
+  if (!result.appeared) {
+    failures.push(
+      "D1: the seeded non-experiment turn (" + options.turnId + ") rendered no .trace-block -- item.* evidence " +
+      "alone must be enough for a round container (design section 2.1-2)"
+    );
+    return { failures, notes };
+  }
+  const block = (sample.blocks || []).find((item) => item.turnId === options.turnId) || null;
+  if (!block) {
+    failures.push("D1: block for " + options.turnId + " left the DOM between the wait and the sample");
+    return { failures, notes };
+  }
+  notes.push(
+    "turn=" + options.turnId + " cls=\"" + block.cls + "\" label=\"" + block.label + "\" meta=\"" + block.meta +
+    "\" steps=" + block.steps.length + " stepTexts=[" + block.steps.map((step) => step.text).join(" | ") + "]"
+  );
+  if (!/(^|\s)is-live(\s|$)/.test(block.cls)) {
+    failures.push(
+      "D1: the running non-experiment turn is not live (cls=\"" + block.cls + "\") -- the container must appear " +
+      "during execution, not only after the turn settles"
+    );
+  }
+  if (!/\d+\s*步/.test(block.meta)) {
+    failures.push("D1 head meta: expected an N 步 count during execution, got \"" + block.meta + "\"");
+  }
+  for (const expected of options.expectStepTexts) {
+    if (!block.steps.some((step) => step.text.indexOf(expected) >= 0)) {
+      failures.push(
+        "D1 step wording: no rendered item step carries \"" + expected + "\" (rendered: [" +
+        block.steps.map((step) => step.text).join(" | ") + "]) -- item steps must be inlined with human-readable " +
+        "titles (user ruling A: mapped to Chinese, unmapped shown verbatim)"
+      );
+    }
+  }
+  if (!block.steps.some((step) => step.gloss === "工具步骤")) {
+    failures.push("D1: no rendered item step carries the 工具步骤 kind gloss (got [" + block.steps.map((step) => step.gloss).join(" | ") + "])");
+  }
+  // Lane dedup (design section 2.1-5). Every activity in this pass belongs to a turn
+  // that renders as a round block -- the archived stream's items belong to the
+  // archived trajectory turn, the seeded ones to the seeded item turn -- so the
+  // flow-bottom lane must be empty. Before this change the seeded item sat there as
+  // "正在执行：工程操作" while its step was invisible everywhere.
+  const laneTexts = (sample.laneItems || []).map((item) => item.text);
+  if (laneTexts.length > 0) {
+    failures.push(
+      "D1 lane dedup: the flow-bottom activity lane still renders " + laneTexts.length + " item(s) ([" +
+      laneTexts.join(" | ") + "]) -- items already inlined in the round block must not be shown a second time " +
+      "(design section 2.1-5)"
+    );
+  }
+  notes.push("activity lane at sample time: [" + laneTexts.join(" | ") + "] (empty = owned items stayed in the round block)");
+  return { failures, notes };
 }
 
 function parseWaitSeconds(text) {
@@ -1051,6 +1155,27 @@ async function main() {
   // TRAJ-IMPL-1: one pass per waiting object (continuation / unresolved A/B
   // judgment). Each samples the DOM twice ~1.5s apart so the per-second clock is
   // observed on the rendered surface instead of being taken on faith.
+  // TRAJ-IMPL-2: one pass for the non-experiment turn (item.* events only, no
+  // trajectory record at all). Sampled once, during execution (no terminal event is
+  // seeded), which is exactly the window the card is about.
+  const runItemStepsPass = async (name, options) => {
+    const context = await browser.newContext({ viewport });
+    const seeded = chatOnlyItemStepsFixtureEvents({ turnId: options.turnId, baseSeq: options.baseSeq });
+    await installReplay(context, { extraEvents: seeded });
+    const page = await context.newPage();
+    await page.goto(agentBase + "/app/?conversation_id=" + encodeURIComponent(conversationId), { waitUntil: "domcontentloaded" });
+    const appeared = await page
+      .waitForSelector('.trace-block[data-turn-id="' + options.turnId + '"]', { timeout: options.appearTimeoutMs })
+      .then(() => true)
+      .catch(() => false);
+    await page.waitForTimeout(800);
+    const sample = await page.evaluate(DOM_PROBE);
+    await page.screenshot({ path: join(outDir, "dom-" + name + ".png") });
+    writeFileSync(join(outDir, "dom-" + name + ".json"), JSON.stringify(sample, null, 2), "utf-8");
+    await context.close();
+    return { appeared, sample, seeded };
+  };
+
   const runResidencyPass = async (name, options) => {
     const context = await browser.newContext({ viewport });
     const seeded = residencyFixtureEvents({ turnId: options.turnId, baseSeq: options.baseSeq, judgment: options.judgment });
@@ -1189,6 +1314,19 @@ async function main() {
   };
   record("residency-audition-C1", checkC1(residencyAudition, { turnId: "run_e2e_residency2", expectText: "等待你的试听判定" }));
 
+  // ------------------------------------------------------------- TRAJ-IMPL-2
+  report.itemsteps_events_source =
+    "archived stream + seeded item.* events for a turn with NO trajectory record (pure chat execution window, " +
+    "terminal event deliberately absent), replayed for GET /agent/events";
+  const itemStepsPass = await runItemStepsPass("itemsteps-live", {
+    turnId: "run_e2e_itemsteps1", baseSeq: 300, appearTimeoutMs: 15000
+  });
+  report.itemsteps = { appeared: itemStepsPass.appeared, seeded_events: itemStepsPass.seeded };
+  record("itemsteps-D1", checkD1(itemStepsPass, {
+    turnId: "run_e2e_itemsteps1",
+    expectStepTexts: ["已完成 可用观察视图清单", "已完成 混音调整", "weird.custom_tool"]
+  }));
+
   report.finished_at = new Date().toISOString();
   report.events_served_from_fixture = seededEventsRequests;
   const failed = Object.entries(report.passes).filter(([, ok]) => !ok).map(([id]) => id);
@@ -1206,7 +1344,7 @@ async function main() {
 // Exported so a control run can exercise the very same probe and assertion
 // functions against a deliberately healthy state (proof that a red result is a
 // real finding and not an artefact of the probe itself).
-export { DOM_PROBE, checkA1, checkA2, checkA3, checkB1, checkB2, checkC1, residencyFixtureEvents };
+export { DOM_PROBE, checkA1, checkA2, checkA3, checkB1, checkB2, checkC1, checkD1, residencyFixtureEvents, chatOnlyItemStepsFixtureEvents };
 
 // Run only when this file is the process entry point, so importing it as a
 // library (the control run does) has no side effects.
