@@ -591,6 +591,13 @@ function App() {
       // 消息（未劫持现役对话）即采纳，让 [conversationID] 效应重置游标并回放
       // /agent/events 重建轨迹块。终局消息的服务端图水合不受会话 id 影响，
       // 这正是「消息在、轨迹无」的分裂成因。
+      //
+      // CONV-ID-BOOT-1 勘察结论（2026-09-14，卡内要求查明本路径为何没兜住
+      // 裸启动形态）：采纳守卫的「当前流无有效消息」被开机问候误触——
+      // messagesOrIntro 克隆问候的 id 是 intro_<ts>_<rand>，而
+      // hasMeaningfulChatMessages 旧排除只匹配整串 "intro"，问候被计成有效
+      // 消息，守卫在裸启动上永远拒绝采纳，fall-through 迁移随即覆写真实
+      // scope 桶（修复在 hasMeaningfulChatMessages + 迁移/写回双守卫）。
       const storedScopedConversationID = loadStoredScopedConversationID(nextScope);
       if (
         shouldAdoptStoredConversationOnScopeEvolution({
@@ -599,6 +606,7 @@ function App() {
           hasMeaningfulMessages: hasMeaningfulChatMessages(messages)
         })
       ) {
+        historyScopeRef.current = nextScope;
         agentEventSeqRef.current = 0;
         saveStoredScopedConversationID(nextScope, storedScopedConversationID);
         scopedConversationRef.current = scopedConversationRuntimeKey(nextScope, storedScopedConversationID);
@@ -772,6 +780,13 @@ function App() {
       return;
     }
     if (scopedConversationRef.current !== scopedConversationRuntimeKey(scope, conversationID)) {
+      return;
+    }
+    // CONV-ID-BOOT-1（2026-09-14）：运行时写回不得覆写指向其他会话的锚定。
+    // 显式「新会话」由 handleNewConversation 直接写入（用户意图优先），不经
+    // 此路径；这里只做「当前锚定 == 运行会话或为空」的幂等同步。
+    const anchoredConversationID = loadStoredScopedConversationID(scope);
+    if (anchoredConversationID && anchoredConversationID !== conversationID) {
       return;
     }
     saveStoredScopedConversationID(scope, conversationID);
@@ -11607,7 +11622,15 @@ export function migrateStoredConversationScope(previousScope: string, nextScope:
   if (!continuingConversationID) {
     return;
   }
-  saveStoredScopedConversationID(nextScope, continuingConversationID);
+  // CONV-ID-BOOT-1（2026-09-14）：新桶已锚定到「另一个会话」时不得覆写锚定。
+  // 首拍 scope 未物化造出的随机会话 id 走到这里，会把真实 scope 桶里用户
+  // 上一会话的锚整个抹掉——刷新后裸启动再也回不到原会话（轨迹块/A-B 卡/
+  // 收据全灭）。空桶或同值重写照常落锚；消息与台账按 (会话 id, scope) 分桶
+  // 迁移，不碰被锚定会话自己的数据。
+  const existingNextAnchor = loadStoredScopedConversationID(nextScope);
+  if (!existingNextAnchor || existingNextAnchor === continuingConversationID) {
+    saveStoredScopedConversationID(nextScope, continuingConversationID);
+  }
   // TRAJ-IMPL-3：回执行台账与消息存档同一条迁移语义（scope 演进 = 同一会话换桶，
   // 旧桶保留作回退不删除）。漏了这一步，scope 演进后的刷新会看不见演进前的回执行。
   const previousReceipts = loadTurnReceipts(continuingConversationID, previousScope);
@@ -11639,9 +11662,14 @@ function messagesOrIntro(messages: ChatMessage[]): ChatMessage[] {
   return [{ ...initialMessage, id: uniqueID("intro"), createdAt: Date.now() }];
 }
 
-function hasMeaningfulChatMessages(messages: ChatMessage[]): boolean {
+export function hasMeaningfulChatMessages(messages: ChatMessage[]): boolean {
   return messages.some((message) => {
-    if (message.id === "intro" && message.role === "assistant") {
+    // CONV-ID-BOOT-1（2026-09-14）：开机问候由 messagesOrIntro 克隆成
+    // intro_<ts>_<rand>（不是整串 "intro"）。旧排除只匹配整串 id，问候被计成
+    // 有效消息，演进拍的采纳守卫（不劫持现役会话）因此在裸启动上永远误触：
+    // 存档锚定不被回读，fall-through 迁移把真实 scope 桶覆写成新随机会话 id
+    // ——刷新后轨迹块/A-B 卡/收据全灭的独占根因。
+    if (message.role === "assistant" && (message.id === "intro" || message.id.startsWith("intro_"))) {
       return false;
     }
     return textValue(message.content, "").trim() !== "" || (message.actions?.length ?? 0) > 0 || (message.artifacts?.length ?? 0) > 0;

@@ -32,6 +32,10 @@
 //                    residency segment exists
 //   A4 hydration  -- A1..A3 still hold after a page reload re-hydrates from
 //                    the agent (fresh browser context, empty localStorage)
+//   F1 bare boot  -- CONV-ID-BOOT-1: /app/ with NO conversation_id and only the
+//                    real-scope anchor bucket preset must restore the anchored
+//                    conversation (mapping not overwritten, trace blocks with
+//                    data-turn-id and the A/B judge card rendered)
 //
 // Exit code: 0 = every group passed (delivery gate), 1 = at least one failed
 // (pre-fix red, with the failing group recorded in the report).
@@ -488,7 +492,24 @@ const DOM_PROBE = () => {
         gapToComposerTop: composerTop === null ? null : composerTop - rect.bottom,
         occludedByComposer: composerTop === null ? null : rect.bottom > composerTop
       };
-    })()
+    })(),
+    // CONV-ID-BOOT-1: the A/B judge card is a first-class survivor of a refresh -- the
+    // card is keyed by its audition session, sampled as its own element set so the
+    // bare-boot pass can assert its presence without inferring it from the trace DOM.
+    auditionCards: Array.from(document.querySelectorAll("[data-audition-session]")).map((el) => ({
+      session: el.getAttribute("data-audition-session") || "",
+      status: el.getAttribute("data-status") || "",
+      cls: typeof el.className === "string" ? el.className : "",
+      text: (el.textContent || "").replace(/\s+/g, " ").trim().slice(0, 80)
+    })),
+    // CONV-ID-BOOT-1: the scoped conversation-id anchor buckets, WITH values. The
+    // whole defect this gate pass pins is "a bare boot overwrites the anchor with a
+    // fresh random id", so the probe must read the values, not just the key names.
+    scopeBuckets: Object.fromEntries(
+      Object.keys(localStorage)
+        .filter((key) => key.indexOf("ask_vit_conversation_id_scope") === 0)
+        .map((key) => [key, localStorage.getItem(key) || ""])
+    )
   };
 };
 
@@ -993,6 +1014,52 @@ function terminalTurnFixtureEvents(options) {
 
 const RECEIPT_ROW_FIELDS = ["activity_count", "park_ms", "started_at", "status", "step_count", "turn_id", "work_ms"];
 
+// CONV-ID-BOOT-1 (card 2026-09-14): the refresh-loss shape the user hit is a turn
+// parked waiting for the A/B audition judgment. The archived transcript has no
+// audition events, so the boundary events are seeded for a NEW turn id and replayed
+// through the same GET /agent/events contract: an open turn, an audition.ready
+// session with candidates A/B, and the unresolved user_judgment.requested that ties
+// them together. No terminal event -- the turn is still waiting, exactly the state
+// whose refresh used to lose the trace block, the A/B card and the receipts.
+function auditionFixtureEvents(options) {
+  const now = Date.now();
+  const startedAt = new Date(now - 60_000).toISOString();
+  const endedAt = new Date(now - 5_000).toISOString();
+  const runId = options.turnId;
+  const sessionId = "audition:" + runId;
+  const base = Number(options.baseSeq) || 500;
+  const common = { conversation_id: conversationId, goal_id: runId, run_id: runId, turn_id: runId, source_turn_id: runId };
+  return [
+    { ...common, seq: base + 1, type: "turn.started", item_type: "turn", status: "running", created_at: startedAt },
+    {
+      ...common, seq: base + 2, type: "trajectory.turn.started", item_id: "turn:" + runId, status: "running", created_at: startedAt,
+      payload: { schema_version: "vit.observable_trajectory.v1", trace_node_id: "turn:" + runId, turn_id: runId, node_kind: "turn", phase: "framing", status: "running" }
+    },
+    {
+      ...common, seq: base + 3, type: "audition.ready", item_id: sessionId, status: "ready", created_at: endedAt,
+      payload: {
+        schema_version: "vit.kernel_audition.v1",
+        session: {
+          session_id: sessionId, conversation_id: conversationId, turn_id: runId, round_id: "round-1",
+          project_revision: "revision-e2e", status: "ready",
+          candidates: [
+            { id: "candidate-a", label: "A", status: "ready", preview_ref: "a" },
+            { id: "candidate-b", label: "B", status: "ready", preview_ref: "b" }
+          ]
+        }
+      }
+    },
+    {
+      ...common, seq: base + 4, type: "trajectory.user_judgment.requested", item_id: "judgment:" + runId, status: "waiting_for_user", created_at: endedAt,
+      payload: {
+        schema_version: "vit.observable_trajectory.v1", trace_node_id: "judgment:" + runId, turn_id: runId,
+        node_kind: "user_judgment", phase: "user_judgment", status: "waiting_for_user",
+        summary: "static_eq · A/B 试听判定", details: { audition_session_id: sessionId }
+      }
+    }
+  ];
+}
+
 function parseReceiptLedger(raw) {
   if (typeof raw !== "string" || raw === "") return null;
   try {
@@ -1088,6 +1155,68 @@ function checkE1(result, options) {
   return { failures, notes };
 }
 
+// CONV-ID-BOOT-1: F1 is the bare-boot + preset-anchor pass -- the exact refresh
+// condition from the live probe (20260914_refresh_view). localStorage is seeded
+// with ONLY the real-scope anchor bucket (the unsaved placeholder bucket stays
+// empty, as it is on the user's machine only when the scope materialized during
+// the previous session), the page opens /app/ with NO conversation_id parameter,
+// and the events endpoint is conversation-strict like the real agent. The app
+// must restore the anchored conversation id (not regenerate one), replay
+// /agent/events under it, and render the trace blocks and the A/B card.
+function checkF1(result, options) {
+  const failures = [];
+  const notes = [];
+  const sample = result.sample;
+  if (!result.realScopeKey) {
+    failures.push("F1 setup: the URL-bound learning context never materialized a real scope bucket -- the bare-boot pass cannot assert the anchor");
+    return { failures, notes };
+  }
+  const anchored = (sample.scopeBuckets || {})[result.realScopeKey] || "";
+  notes.push("anchor bucket " + result.realScopeKey + " -> \"" + anchored + "\" (expected " + options.conversationId + ")");
+  if (anchored !== options.conversationId) {
+    failures.push(
+      "F1 anchor: the bare boot OVERWROTE the stored scope mapping -- bucket now holds \"" + anchored +
+      "\" instead of \"" + options.conversationId + "\". This is the defect the card pins: a fresh random id replaces the " +
+      "anchored conversation, so every refresh loses the trajectory blocks, the A/B cards and the receipts"
+    );
+  }
+  if (!result.appeared || (sample.blocks || []).length === 0) {
+    failures.push(
+      "F1 trace: no .trace-block rendered on the bare boot (appeared=" + result.appeared + ") -- the events replay never " +
+      "ran under the anchored conversation id"
+    );
+  } else {
+    const turnIds = (sample.blocks || []).map((block) => block.turnId).filter(Boolean);
+    notes.push("trace blocks rendered on the bare boot: [" + turnIds.join(", ") + "]");
+    for (const expectedTurn of options.expectTurnIds) {
+      if (!turnIds.includes(expectedTurn)) {
+        failures.push("F1 trace: expected turn " + expectedTurn + " to render after the bare-boot restore, got [" + turnIds.join(", ") + "]");
+      }
+    }
+    for (const block of sample.blocks) {
+      if (!block.turnId) {
+        failures.push("F1 trace: a rendered .trace-block carries no data-turn-id");
+      }
+    }
+  }
+  const card = (sample.auditionCards || []).find((item) => item.session === options.expectAuditionSession) || null;
+  if (!card) {
+    failures.push(
+      "F1 audition: no A/B judge card with data-audition-session=" + options.expectAuditionSession +
+      " on the bare boot (cards on screen: [" + (sample.auditionCards || []).map((item) => item.session).join(", ") + "])"
+    );
+  } else {
+    notes.push("A/B card rendered: session=" + card.session + " status=" + card.status + " text=\"" + card.text + "\"");
+    if (card.text.indexOf("A/B 快速对比") < 0) {
+      failures.push("F1 audition: the rendered card does not carry the A/B 快速对比 surface (text=\"" + card.text + "\")");
+    }
+    if (card.text.indexOf("待判定") < 0) {
+      failures.push("F1 audition: the rendered card is not in the waiting-for-judgment form (expected 待判定, text=\"" + card.text + "\")");
+    }
+  }
+  return { failures, notes };
+}
+
 // --------------------------------------------------------------- main flow
 
 async function main() {
@@ -1161,18 +1290,25 @@ async function main() {
       (maximum, event) => Math.max(maximum, Number(event.seq) || 0),
       Number(eventsFixture.next_seq) || 0
     );
+    // CONV-ID-BOOT-1: strictConversation mirrors the real agent's contract -- the
+    // events endpoint serves only the asked-for conversation. Without it a bare
+    // boot that regenerated a random id would still be handed the archived stream
+    // and the defect would hide behind a rendered trajectory under the WRONG id.
+    const strictConversation = options.strictConversation === true;
     await context.route("**/agent/events*", async (route) => {
       seededEventsRequests += 1;
       // Serve the events with the same since/limit contract the agent
       // implements, so the app's incremental polling works exactly as it does
       // against the real endpoint.
       const requestURL = new URL(route.request().url());
+      const askedConversation = requestURL.searchParams.get("conversation_id") || "";
       const since = Number(requestURL.searchParams.get("since") || "0");
       const limit = Number(requestURL.searchParams.get("limit") || "120");
+      const mismatch = strictConversation && askedConversation !== conversationId;
       const body = JSON.stringify({
         status: eventsFixture.status || "ok",
-        events: all.filter((event) => Number(event.seq) > since).slice(0, limit),
-        next_seq: nextSeq
+        events: mismatch ? [] : all.filter((event) => Number(event.seq) > since).slice(0, limit),
+        next_seq: mismatch ? 0 : nextSeq
       });
       await route.fulfill({ status: 200, contentType: "application/json; charset=utf-8", body });
     });
@@ -1395,6 +1531,57 @@ async function main() {
     return { appeared, live, hydrated, ledgerRaw, ledgerRawKey: ledgerKey, seeded };
   };
 
+  // CONV-ID-BOOT-1: the bare-boot pass. Phase 1 learns this run's real scope
+  // bucket key empirically from a URL-bound context (the key is the app's own
+  // stableIDPart encoding of the draft project path, which is run-specific and
+  // 96-char truncated -- deriving it by hand here would duplicate app logic).
+  // Phase 2 seeds ONLY that bucket with the archived conversation id in a fresh
+  // context and opens /app/ bare. The events endpoint is conversation-strict in
+  // both phases, mirroring the real agent: a regenerated random id gets an empty
+  // buffer, exactly like the user's live refresh.
+  const runBareBootPass = async (name, options) => {
+    const seeded = auditionFixtureEvents({ turnId: options.turnId, baseSeq: options.baseSeq });
+    const learnContext = await browser.newContext({ viewport });
+    await installReplay(learnContext, { extraEvents: seeded, strictConversation: true });
+    const learnPage = await learnContext.newPage();
+    await learnPage.goto(agentBase + "/app/?conversation_id=" + encodeURIComponent(conversationId), { waitUntil: "domcontentloaded" });
+    const learnedBlock = await learnPage
+      .waitForSelector('.trace-block[data-turn-id="' + options.turnId + '"]', { timeout: options.appearTimeoutMs })
+      .then(() => true)
+      .catch(() => false);
+    await learnPage.waitForTimeout(1500);
+    const learned = await learnPage.evaluate(() =>
+      Object.fromEntries(
+        Object.keys(localStorage)
+          .filter((key) => key.indexOf("ask_vit_conversation_id_scope") === 0)
+          .map((key) => [key, localStorage.getItem(key) || ""])
+      )
+    );
+    await learnContext.close();
+    const realScopeKey = Object.keys(learned).find((key) => key !== "ask_vit_conversation_id_scope:unsaved_root") || "";
+    const realScopeAnchored = learned[realScopeKey] || "";
+
+    const context = await browser.newContext({ viewport });
+    await installReplay(context, { extraEvents: seeded, strictConversation: true });
+    if (realScopeKey) {
+      await context.addInitScript(([key, value]) => {
+        localStorage.setItem(key, value);
+      }, [realScopeKey, conversationId]);
+    }
+    const page = await context.newPage();
+    await page.goto(agentBase + "/app/", { waitUntil: "domcontentloaded" });
+    const appeared = await page
+      .waitForSelector('.trace-block[data-turn-id="' + options.turnId + '"]', { timeout: options.appearTimeoutMs })
+      .then(() => true)
+      .catch(() => false);
+    await page.waitForTimeout(2500);
+    const sample = await page.evaluate(DOM_PROBE);
+    await page.screenshot({ path: join(outDir, "dom-" + name + ".png") });
+    writeFileSync(join(outDir, "dom-" + name + ".json"), JSON.stringify(sample, null, 2), "utf-8");
+    await context.close();
+    return { appeared, sample, realScopeKey, realScopeAnchored, learned, learningSawSeededTurn: learnedBlock, seeded };
+  };
+
   const assess = (prefix, sample) => {
     for (const [groupId, fn] of [["A1", checkA1], ["A2", checkA2], ["A3", checkA3]]) {
       const { failures, notes } = fn(sample);
@@ -1551,6 +1738,28 @@ async function main() {
     expectText: "执行完成 · 2 步 · 30.0s"
   }));
 
+  // ---------------------------------------------------------- CONV-ID-BOOT-1
+  report.bareboot_events_source =
+    "archived stream + seeded waiting-for-judgment events (open turn + audition.ready A/B + unresolved " +
+    "user_judgment.requested) replayed conversation-strict for GET /agent/events; the bare context presets ONLY the " +
+    "real-scope anchor bucket learned by the URL-bound context in the same run";
+  const bareBootPass = await runBareBootPass("bareboot", {
+    turnId: "run_e2e_bareboot1", baseSeq: 500, appearTimeoutMs: 15000
+  });
+  report.bareboot = {
+    turn_id: "run_e2e_bareboot1",
+    real_scope_key: bareBootPass.realScopeKey,
+    learning_context_anchor: bareBootPass.realScopeAnchored,
+    learning_saw_seeded_turn: bareBootPass.learningSawSeededTurn,
+    appeared: bareBootPass.appeared,
+    seeded_events: bareBootPass.seeded
+  };
+  record("bareboot-F1", checkF1(bareBootPass, {
+    conversationId,
+    expectTurnIds: ["run_bab2dcdacb41bdc1", "run_e2e_bareboot1"],
+    expectAuditionSession: "audition:run_e2e_bareboot1"
+  }));
+
   report.finished_at = new Date().toISOString();
   report.events_served_from_fixture = seededEventsRequests;
   const failed = Object.entries(report.passes).filter(([, ok]) => !ok).map(([id]) => id);
@@ -1568,7 +1777,7 @@ async function main() {
 // Exported so a control run can exercise the very same probe and assertion
 // functions against a deliberately healthy state (proof that a red result is a
 // real finding and not an artefact of the probe itself).
-export { DOM_PROBE, checkA1, checkA2, checkA3, checkB1, checkB2, checkC1, checkD1, checkE1, residencyFixtureEvents, chatOnlyItemStepsFixtureEvents, terminalTurnFixtureEvents };
+export { DOM_PROBE, checkA1, checkA2, checkA3, checkB1, checkB2, checkC1, checkD1, checkE1, checkF1, residencyFixtureEvents, chatOnlyItemStepsFixtureEvents, terminalTurnFixtureEvents, auditionFixtureEvents };
 
 // Run only when this file is the process entry point, so importing it as a
 // library (the control run does) has no side effects.
