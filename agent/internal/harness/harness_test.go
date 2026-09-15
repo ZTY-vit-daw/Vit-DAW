@@ -427,6 +427,7 @@ type fakeVSPKernelClient struct {
 	vspCommands    []string
 	vspLegacyCmds  []string
 	commandReplies []*kernel.VSPCommandResult
+	snapshotScopes []string
 }
 
 func (f *fakeVSPKernelClient) SendVSPCommand(_ context.Context, command string, args map[string]any) (*kernel.VSPCommandResult, error) {
@@ -454,6 +455,7 @@ func (f *fakeVSPKernelClient) SendVSPLegacyCommand(_ context.Context, cmd map[st
 }
 
 func (f *fakeVSPKernelClient) VSPStateSnapshot(_ context.Context, scope string) (*kernel.VSPStateResult, error) {
+	f.snapshotScopes = append(f.snapshotScopes, scope)
 	if len(f.snapshots) > 0 {
 		reply := f.snapshots[0]
 		f.snapshots = f.snapshots[1:]
@@ -1236,6 +1238,65 @@ func TestInvokeMutatingCommandUsesVSPCommandDeltaAndResync(t *testing.T) {
 	resync := testMap(t, resp.Result["state_resync"])
 	if fmt.Sprint(resync["revision"]) != "11" {
 		t.Fatalf("state_resync = %+v", resync)
+	}
+}
+
+// VSP-SHADOW-REFRESH-1: the VSP execution path must honor spec.RefreshAfter
+// with the same shadow refresh the legacy path performs in afterKernelReply.
+// The fake leaves the delta queue empty, so VSPStateDelta reports a no-op
+// delta with no embedded legacy state and the resync/Initialize fast path
+// cannot run — exactly the shape observed after out-of-band rack loads.
+func TestInvokeVSPRefreshAfterCommandRefreshesShadowWithoutDeltaChain(t *testing.T) {
+	beforeTracks := []any{
+		map[string]any{"track_id": "track_1", "track_name": "Lead", "track_type": "hybrid", "is_audio_track": true},
+	}
+	afterTracks := append(append([]any{}, beforeTracks...), map[string]any{"track_id": "track_2", "track_name": "Harmony", "track_type": "hybrid", "is_audio_track": true})
+	kernel := &fakeVSPKernelClient{
+		snapshots: []*kernel.VSPStateResult{
+			fakeVSPSnapshot(10, "project.timeline", beforeTracks),
+			fakeVSPSnapshot(11, "project.timeline", afterTracks),
+		},
+		commandReplies: []*kernel.VSPCommandResult{
+			fakeVSPCommandReply("track.create", "add_track", map[string]any{"status": "ok", "track_id": "track_2", "track_name": "Harmony"}),
+		},
+	}
+	h := NewWithSender(kernel, shadow.New(nil), nil)
+
+	resp, err := h.Invoke(context.Background(), InvokeRequest{Tool: "track.add", Args: map[string]any{"track_name": "Harmony"}, Source: "test"})
+	if err != nil || resp.Status != "ok" {
+		t.Fatalf("track.add = status=%q result=%+v err=%v", resp.Status, resp.Result, err)
+	}
+	if len(kernel.snapshotScopes) != 2 {
+		t.Fatalf("VSP snapshot calls = %d (%+v); want 2 (before-state probe + RefreshAfter shadow refresh)", len(kernel.snapshotScopes), kernel.snapshotScopes)
+	}
+	if len(kernel.commands) != 0 {
+		t.Fatalf("legacy SendCommand used for refresh: %+v", kernel.commands)
+	}
+	tracks := mapRowsFromAny(h.shadow.Summary()["tracks"])
+	if len(tracks) != 2 {
+		t.Fatalf("shadow not refreshed after RefreshAfter VSP command: tracks=%+v", tracks)
+	}
+}
+
+// VSP-SHADOW-REFRESH-1 guard: commands without RefreshAfter must not gain any
+// extra state snapshot traffic on the VSP path.
+func TestInvokeVSPCommandWithoutRefreshAfterSkipsShadowRefresh(t *testing.T) {
+	kernel := &fakeVSPKernelClient{
+		commandReplies: []*kernel.VSPCommandResult{
+			fakeVSPCommandReply("kernel.ping", "ping", map[string]any{"status": "ok"}),
+		},
+	}
+	h := NewWithSender(kernel, shadow.New(nil), nil)
+
+	resp, err := h.Invoke(context.Background(), InvokeRequest{Tool: "project.ping", Source: "test"})
+	if err != nil || resp.Status != "ok" {
+		t.Fatalf("project.ping = status=%q result=%+v err=%v", resp.Status, resp.Result, err)
+	}
+	if len(kernel.snapshotScopes) != 0 {
+		t.Fatalf("ping (no RefreshAfter, no mutation) triggered %d VSP snapshot calls: %+v", len(kernel.snapshotScopes), kernel.snapshotScopes)
+	}
+	if len(kernel.commands) != 0 {
+		t.Fatalf("legacy SendCommand used: %+v", kernel.commands)
 	}
 }
 

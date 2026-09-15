@@ -1617,6 +1617,15 @@ func (h *Harness) afterKernelReplyVSP(ctx context.Context, spec tools.CommandSpe
 	if spec.CommandName == "get_plugin_parameters" || spec.CommandName == "plugin_grabber_explain_controls" {
 		h.ObservePluginParametersReply(reply)
 	}
+	// VSP-SHADOW-REFRESH-1: keep the RefreshAfter shadow-refresh contract equal
+	// on both execution paths. The delta/resync observation below is an
+	// optimization and can come back empty (e.g. no-op delta after an
+	// out-of-band rack load), so the explicit refresh must not depend on it.
+	// refreshShadow itself prefers the VSP read-only state channel, so it never
+	// touches the CAS-coordinated command channel.
+	if spec.RefreshAfter {
+		h.refreshShadow(ctx, spec.CommandName)
+	}
 	if h.shadow != nil && observed != nil && observed.OK() && len(observed.LegacyState) > 0 {
 		h.shadow.Initialize(vspLegacyStateWithBinding(observed))
 		return
