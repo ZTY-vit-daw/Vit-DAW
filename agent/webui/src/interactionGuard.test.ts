@@ -157,6 +157,38 @@ describe("interaction.resolved 事件提取", () => {
   });
 });
 
+// MSG-REVIVE-1 钉②：回放后到的 resolved 事件必须能重盖已渲染流。裸开
+//（storage 全灭）形态水合先于回放：图快照的 waiting_for_user 卡已渲染成
+// 可交互卡，而台账此时为空；回放把 resolved 事件送达后，若只补台账不重盖
+// 流，已 resolve 的交互会复活成死卡（点击报「交互已过期」，2026-09-15
+// 用户手测形态）。提取→盖章的组合就是轮询路径的重盖链。
+describe("MSG-REVIVE-1 回放补盖：resolved 事件重盖已渲染流", () => {
+  it("水合先渲染、回放后到的 resolved 事件把复活卡转为只读", () => {
+    const rendered = [hydratedMessage([waitingInteractionAction("interaction_r3_mixtick", { kind: "mix_tick_confirmation", type: "mix_tick_confirmation" })])];
+    const events: AgentEvent[] = [
+      { seq: 18, type: "interaction.resolved", payload: { interaction_id: "interaction_r3_mixtick", kind: "mix_tick_confirmation" } } as AgentEvent,
+      { seq: 19, type: "mix_tick.pending", payload: { track_id: "1007" } } as AgentEvent
+    ];
+    const resolved = resolvedInteractionIdsFromEvents(events);
+    expect(resolved).toEqual(["interaction_r3_mixtick"]);
+    const stamped = stampConsumedInteractionActions(rendered, resolved);
+    const action = stamped[0]?.actions?.[0] as JsonRecord;
+    expect(String(action.status)).toBe("resolved");
+    expect(String(action.resolved_action_id)).toBe("consumed_interaction_guard");
+    expect(action.actions).toEqual([]);
+    expect(isConsumedInteractionStatus(String(action.status))).toBe(true);
+  });
+
+  it("resolved id 未命中当前流时零变化（引用相等，正常形态零开销）", () => {
+    const rendered = [hydratedMessage([waitingInteractionAction("interaction_live1")])];
+    const events: AgentEvent[] = [
+      { seq: 1, type: "interaction.resolved", payload: { interaction_id: "interaction_other" } } as AgentEvent
+    ];
+    const stamped = stampConsumedInteractionActions(rendered, resolvedInteractionIdsFromEvents(events));
+    expect(stamped).toBe(rendered);
+  });
+});
+
 // 台账解析：localStorage 里的消费记录必须是可清洗的（旧形状/脏数据不入集）。
 describe("已消费台账解析", () => {
   it("接受字符串数组与 {id} 记录数组，剔除空白与坏行", () => {

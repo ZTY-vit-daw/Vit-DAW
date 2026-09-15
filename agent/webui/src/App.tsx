@@ -477,6 +477,12 @@ function App() {
           const resolvedInteractionIDs = resolvedInteractionIdsFromEvents(events);
           if (resolvedInteractionIDs.length > 0) {
             recordConsumedInteractions(resolvedInteractionIDs);
+            // MSG-REVIVE-1：台账只在水合边界盖章——裸开（storage 全灭）时水合
+            // 先于回放到达，快照形态（waiting_for_user）已渲染成可交互卡，
+            // 台账补齐后若不重盖已渲染流，已 resolve 的交互会复活成死卡
+            //（点击报「交互已过期」）。resolved 事件是服务端权威撤卡信号，
+            // 盖章幂等且未命中零拷贝，对正常形态无行为变化。
+            setMessages((current) => stampConsumedInteractionActions(current, resolvedInteractionIDs));
           }
           if (hasChainTerminalDeliveryEvent(events)) {
             void refreshState();
@@ -627,6 +633,13 @@ function App() {
         saveStoredScopedConversationID(nextScope, anchorScopedConversationID);
         scopedConversationRef.current = scopedConversationRuntimeKey(nextScope, anchorScopedConversationID);
         restoredMessageScopeRef.current = "";
+        // MSG-REVIVE-1：采纳服务端会话身份时工程历史消息同批并入——裸开
+        //（storage 全灭）形态此路径是消息的唯一恢复入口：首拍 scope 未物化
+        // 时 initial 已在 unsaved 桶造了空流，此处跳过合并就是「轨迹/A-B 卡
+        // 重建（回放）、消息全灭（桶+回放面都无正文）」的分裂形态。合并用
+        // evolution 保流语义，不劫持现役对话（采纳守卫已保证当前流无有效
+        // 消息）。
+        setMessages((current) => resolveHistorySyncMessages({ changeKind: "evolution", current, historyMessages }));
         setConversationID(anchorScopedConversationID);
         return;
       }

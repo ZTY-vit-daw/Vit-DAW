@@ -1,0 +1,22 @@
+{
+  "id": "c_20260915T062825_956cab84",
+  "message": "Conversation ask",
+  "created_at": "2026-09-15T06:28:25.5667173Z",
+  "project_path": "D:\\Godot\\project\\vit-daw-frontend\\912.vit",
+  "project_uuid": "vitproj_9ecc5ab9a454400192086c628c07b966",
+  "branch": "main",
+  "goal_id": "goal_cb4ac06ddb410e24",
+  "run_id": "run_2577decba4d612be",
+  "source": "conversation_graph",
+  "checkpoint_kind": "manual",
+  "project_file": {
+    "path": "912.vit",
+    "sha256": "34f5083b697ca223f36afb98d23ee373e4f94a55e5730e9e1a4d102353f8a3e3",
+    "size": 12183,
+    "kind": "project_snapshot"
+  },
+  "files": null,
+  "semantic_summary": {
+    "source": "manifest_only"
+  }
+}

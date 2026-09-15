@@ -66,6 +66,14 @@ const agentBase = arg("agent-base", env("AGENT_BASE", "http://127.0.0.1:7897")).
 const conversationId = arg("conversation-id", env("CONVERSATION_ID", "webui_mtzba6wf"));
 const graphFixturePath = arg("graph-fixture", env("GRAPH_FIXTURE", join(here, "fixtures", "webui_rendered_dom", "webui_rendered_dom_graph.fixture.json")));
 const eventsFixturePath = arg("events-fixture", env("EVENTS_FIXTURE", join(here, "fixtures", "webui_rendered_dom", "webui_rendered_dom_events.fixture.json")));
+// MSG-REVIVE-1: the r3 forensic capture (conversation webui_mu2aized, normal-
+// permission mix-tick chain) is its OWN transcript, seeded over the draft graph
+// for the H1 pass only. The commit objects it references ship inside the
+// fixture directory so the pass never depends on the user's history tree.
+const msgConversationId = arg("msg-conversation-id", env("MSG_CONVERSATION_ID", "webui_mu2aized"));
+const msgGraphFixturePath = arg("msg-graph-fixture", env("MSG_GRAPH_FIXTURE", join(here, "fixtures", "webui_rendered_dom", "msg_revive_graph.fixture.json")));
+const msgEventsFixturePath = arg("msg-events-fixture", env("MSG_EVENTS_FIXTURE", join(here, "fixtures", "webui_rendered_dom", "msg_revive_events.fixture.json")));
+const msgCommitDirs = arg("msg-commit-dirs", env("MSG_COMMIT_DIRS", join(here, "fixtures", "webui_rendered_dom", "msg_revive_commits")));
 const outDir = arg("out-dir", env("OUT_DIR", join(here, "..", "artifacts", "e2e_webui1", "adhoc")));
 const pwModulePath = arg("playwright-module", env("PW_MODULE", ""));
 // Directories holding the archived session's real commit objects. The archived
@@ -210,7 +218,7 @@ async function getJSON(path) {
 
 // ------------------------------------------------------- agent-side seeding
 
-function seedConversation(graphFixture, state) {
+function seedConversation(graphFixture, state, commitDirsOverride) {
   const history = state.project_history || {};
   const draftDir = dirname(history.project_path || "");
   const historyDir = history.history_dir || join(draftDir, ".vit_history");
@@ -226,7 +234,7 @@ function seedConversation(graphFixture, state) {
   const skipped = [];
   let previousCommitId = "";
   for (const node of allNodes) {
-    const archivedCommit = findArchivedCommit(node.commit_id, historyDir);
+    const archivedCommit = findArchivedCommit(node.commit_id, historyDir, commitDirsOverride);
     if (!archivedCommit) {
       skipped.push({ id: node.id, commit_id: node.commit_id });
       continue;
@@ -266,11 +274,12 @@ function seedConversation(graphFixture, state) {
 // Archived commit objects are the real ones the session wrote. They are read
 // from the session's own commit directory (--commit-dirs) or, on a re-run,
 // from the already-seeded draft history.
-function findArchivedCommit(commitId, historyDir) {
+function findArchivedCommit(commitId, historyDir, commitDirsOverride) {
   if (!commitId) return null;
+  const searchDirs = Array.isArray(commitDirsOverride) && commitDirsOverride.length ? commitDirsOverride : commitDirs;
   const candidates = [
     join(historyDir, "commits", commitId + ".json"),
-    ...commitDirs.map((dir) => join(dir, commitId + ".json"))
+    ...searchDirs.map((dir) => join(dir, commitId + ".json"))
   ];
   for (const candidate of candidates) {
     if (!existsSync(candidate)) continue;
@@ -531,7 +540,24 @@ const DOM_PROBE = () => {
         title: button.getAttribute("title") || ""
       })),
       chips: Array.from(card.querySelectorAll(".c-head .chip")).map((chip) => (chip.textContent || "").trim())
-    }))
+    })),
+    // MSG-REVIVE-1: the revived interaction card is a first-class rendered fact.
+    // The composer projects the latest pending interaction as
+    // .composer-interaction-shell wrapping an .action-card.interactive whose
+    // .action-buttons row is exactly what the user clicks before seeing
+    // 「交互已过期」. Sampled as its own element set so the bare-boot pass can
+    // assert NO interactive card survives for interactions the event stream
+    // already resolved (server-authoritative withdrawal).
+    interactiveCards: Array.from(document.querySelectorAll(".action-card.interactive")).map((el) => ({
+      text: (el.textContent || "").replace(/\s+/g, " ").trim().slice(0, 140),
+      buttons: el.querySelectorAll(".action-buttons button").length,
+      inComposerShell: Boolean(el.closest(".composer-interaction-shell"))
+    })),
+    composerInteractionShell: Boolean(document.querySelector(".composer-interaction-shell")),
+    // The consumed-interaction ledger (F3 face-2 guard) is a plain localStorage
+    // list; reading the raw value shows whether the event replay repopulated it
+    // after the empty-storage boot.
+    consumedLedger: window.localStorage.getItem("ask_vit_consumed_interactions") || ""
   };
 };
 
@@ -1367,6 +1393,103 @@ function checkG1(result, options) {
   return { failures, notes };
 }
 
+// MSG-REVIVE-1 (2026-09-15): the user-hit form is the empty-storage bare boot
+// (webview panel destroy/recreate lost ALL localStorage, not just the mapping).
+// Everything recoverable must come from the server faces:
+//   M1 -- the mix-tick chain's message bubbles (user ask + terminal report)
+//         hydrate from the project conversation graph;
+//   M2 -- interactions the event stream already resolved (interaction.resolved
+//         seq18/21) must NOT render as interactive cards: the graph snapshot
+//         still says waiting_for_user and the local consumed-interaction ledger
+//         died with the storage, so the render decision must respect the
+//         server-authoritative withdrawal (the click-deadlock the user hit was
+//         the revived card answering 「交互已过期」);
+//   M3 -- REFRESH-VANISH-2 zero-regression: the same bare boot still rebuilds
+//         the trajectory blocks and the A/B cards from the replayed stream.
+function checkH1(result, options) {
+  const failures = [];
+  const notes = [];
+  const sample = result.sample;
+  if (!result.seeded || result.seeded.commitsWritten === 0) {
+    failures.push(
+      "H1 setup: the r3-shaped graph did not seed into the draft history (nodes written=" +
+      (result.seeded ? result.seeded.commitsWritten : "n/a") + ") -- the pass would measure nothing"
+    );
+  } else {
+    notes.push("graph seeded: nodes=" + result.seeded.commitsWritten + " skipped=" + result.seeded.nodesSkipped.length);
+  }
+  if (!result.realScopeKey) {
+    failures.push("H1 setup: the URL-bound learning context never materialized a real scope bucket -- the identity assertion cannot run");
+  }
+  const anchored = (sample.scopeBuckets || {})[result.realScopeKey || ""] || "";
+  if (result.realScopeKey && anchored !== options.conversationId) {
+    failures.push(
+      "H1 identity: the real scope bucket holds \"" + anchored + "\" instead of the server conversation \"" +
+      options.conversationId + "\" -- the continuation anchor (REFRESH-VANISH-2) is what makes every other assertion meaningful"
+    );
+  } else if (result.realScopeKey) {
+    notes.push("identity: scope bucket -> " + options.conversationId + " (server anchor adopted on the bare boot)");
+  }
+  // M1: message bubbles from the project graph
+  const userTexts = (sample.userMessages || []).map((message) => message.text);
+  const assistantTexts = (sample.assistantMessages || []).map((message) => message.text);
+  for (const expected of options.expectUserTexts) {
+    if (!userTexts.some((text) => text.indexOf(expected) >= 0)) {
+      failures.push(
+        "H1 M1: the archived user message \"" + expected + "\" is NOT in the rendered flow (user rows: [" +
+        userTexts.join(" | ") + "]) -- on an empty-storage bare boot the conversation messages must hydrate from the project history"
+      );
+    } else {
+      notes.push("M1 user bubble rendered: \"" + expected + "\"");
+    }
+  }
+  for (const expected of options.expectAssistantTexts) {
+    if (!assistantTexts.some((text) => text.indexOf(expected) >= 0)) {
+      failures.push(
+        "H1 M1: the mix-tick chain terminal report (\"" + expected + "\"...) is NOT in the rendered flow (assistant rows: [" +
+        assistantTexts.join(" | ") + "]) -- the chain's output message must survive the restart through the project history"
+      );
+    } else {
+      notes.push("M1 assistant bubble rendered: \"" + expected + "\"");
+    }
+  }
+  // M2: no interactive card for server-resolved interactions
+  const interactive = sample.interactiveCards || [];
+  if (interactive.length > 0) {
+    failures.push(
+      "H1 M2: " + interactive.length + " interactive action card(s) rendered on the bare boot (" +
+      JSON.stringify(interactive) +
+      ") -- interactions already resolved in the event stream (interaction.resolved) must not revive: the graph snapshot says waiting_for_user and the local ledger died with the storage, so the renderer must respect the server-authoritative withdrawal"
+    );
+  } else {
+    notes.push("M2 zero interactive cards on the bare boot after the replay settled");
+  }
+  const ledger = sample.consumedLedger || "";
+  for (const interactionID of options.expectResolvedInteractionIDs) {
+    if (ledger.indexOf(interactionID) < 0) {
+      failures.push(
+        "H1 M2 ledger: the replay did not record interaction " + interactionID +
+        " as consumed (ledger=\"" + ledger.slice(0, 120) + "\") -- the interaction.resolved events must feed the durable consumed ledger even on an empty-storage boot"
+      );
+    }
+  }
+  if (ledger) {
+    notes.push("consumed ledger after replay: " + ledger.slice(0, 160));
+  }
+  // M3: REFRESH-VANISH-2 zero-regression
+  if (!result.appeared || (sample.blocks || []).length === 0) {
+    failures.push("H1 M3: no .trace-block rendered on the bare boot -- the REFRESH-VANISH-2 replay rebuild regressed");
+  } else {
+    notes.push("M3 trace blocks rebuilt: [" + (sample.blocks || []).map((block) => block.turnId).join(", ") + "]");
+  }
+  if ((sample.auditionCards || []).length === 0) {
+    failures.push("H1 M3: no A/B audition card rendered on the bare boot -- the replayed audition events must still rebuild the cards");
+  } else {
+    notes.push("M3 audition cards rebuilt: " + (sample.auditionCards || []).length + " card(s)");
+  }
+  return { failures, notes };
+}
+
 // --------------------------------------------------------------- main flow
 
 async function main() {
@@ -1392,6 +1515,10 @@ async function main() {
 
   const graphFixture = JSON.parse(readFileSync(graphFixturePath, "utf-8"));
   const eventsFixture = JSON.parse(readFileSync(eventsFixturePath, "utf-8"));
+  // MSG-REVIVE-1: the r3 capture body used by the H1 pass (its own replay
+  // fixture and its own conversation id -- see installReplay options).
+  const msgGraphFixture = JSON.parse(readFileSync(msgGraphFixturePath, "utf-8"));
+  const msgEventsFixture = JSON.parse(readFileSync(msgEventsFixturePath, "utf-8"));
   const replayBody = JSON.stringify({
     status: eventsFixture.status || "ok",
     events: eventsFixture.events || [],
@@ -1427,18 +1554,22 @@ async function main() {
   log("browser:", label, version);
 
   let seededEventsRequests = 0;
+  // MSG-REVIVE-1: baseFixture/conversation default to the archived mtzba6wf
+  // stream; the H1 pass passes the r3 capture body and its own conversation id.
   const installReplay = async (context, options = {}) => {
     // TRAJ-IMPL-1: a pass may append seeded boundary events (the residency shape)
     // to the archived stream. The archived stream itself is never edited: the
     // extra events are carried here and listed in the report.
+    const baseFixture = options.baseFixture || eventsFixture;
+    const replayConversationID = options.conversationId || conversationId;
     const extraEvents = Array.isArray(options.extraEvents) ? options.extraEvents : [];
-    const all = [...(eventsFixture.events || []), ...extraEvents];
+    const all = [...(baseFixture.events || []), ...extraEvents];
     // The app advances its since-cursor from next_seq, so a merged stream must
     // report the merged maximum. For the archived-only stream this is exactly
     // the value the fixture already carried.
     const nextSeq = all.reduce(
       (maximum, event) => Math.max(maximum, Number(event.seq) || 0),
-      Number(eventsFixture.next_seq) || 0
+      Number(baseFixture.next_seq) || 0
     );
     // CONV-ID-BOOT-1: strictConversation mirrors the real agent's contract -- the
     // events endpoint serves only the asked-for conversation. Without it a bare
@@ -1454,9 +1585,9 @@ async function main() {
       const askedConversation = requestURL.searchParams.get("conversation_id") || "";
       const since = Number(requestURL.searchParams.get("since") || "0");
       const limit = Number(requestURL.searchParams.get("limit") || "120");
-      const mismatch = strictConversation && askedConversation !== conversationId;
+      const mismatch = strictConversation && askedConversation !== replayConversationID;
       const body = JSON.stringify({
-        status: eventsFixture.status || "ok",
+        status: baseFixture.status || "ok",
         events: mismatch ? [] : all.filter((event) => Number(event.seq) > since).slice(0, limit),
         next_seq: mismatch ? 0 : nextSeq
       });
@@ -1524,6 +1655,19 @@ async function main() {
       const response = await route.fetch();
       const body = await response.json().catch(() => ({}));
       await route.fulfill({ response, json: { ...body, goal: { ...(body.goal || {}), status: goalStatus } } });
+    });
+  };
+
+  // MSG-REVIVE-1: the server-side identity anchor. The user's hit had the real
+  // agent still running with the conversation's continuation rows durable in
+  // runtime status; the isolated agent has none, so the completed row is
+  // appended to the REAL runtime/status response (everything else stays real).
+  const installContinuationAnchors = async (context, rows) => {
+    await context.route("**/agent/runtime/status*", async (route) => {
+      const response = await route.fetch();
+      const body = await response.json().catch(() => ({}));
+      const continuations = [...(Array.isArray(body.continuations) ? body.continuations : []), ...rows];
+      await route.fulfill({ response, json: { ...body, continuations } });
     });
   };
 
@@ -1732,6 +1876,95 @@ async function main() {
     return { appeared, sample, realScopeKey, realScopeAnchored, learned, learningSawSeededTurn: learnedBlock, seeded };
   };
 
+  // MSG-REVIVE-1: the empty-storage bare boot over the r3-shaped transcript.
+  // Phase 1 re-seeds the draft history with the r3 conversation graph (the
+  // normal-permission mix-tick chain, interaction-carrying proposal node) and
+  // learns this run's real scope bucket key from a URL-bound context. Phase 2
+  // is the user's exact form: a fresh context with NO localStorage at all, bare
+  // /app/, and only the server faces (continuation anchor + graph + replayed
+  // events) to recover from. The events endpoint is conversation-strict, so a
+  // random regenerated id gets an empty buffer exactly like the live agent.
+  const runMsgRevivePass = async (name, options) => {
+    const state = await getJSON("/agent/ui/state");
+    const seeded = seedConversation(msgGraphFixture, state, [msgCommitDirs]);
+    const anchorRows = [
+      {
+        conversation_id: msgConversationId,
+        status: "completed",
+        project_path: (state.project_history || {}).project_path || "",
+        project_uuid: (state.project_history || {}).project_uuid || "",
+        updated_at: "2026-09-15T06:30:40Z",
+        goal_id: "goal_cb4ac06ddb410e24",
+        run_id: "run_2577decba4d612be"
+      }
+    ];
+    const learnContext = await browser.newContext({ viewport });
+    await installReplay(learnContext, { baseFixture: msgEventsFixture, conversationId: msgConversationId, strictConversation: true });
+    await installContinuationAnchors(learnContext, anchorRows);
+    const learnPage = await learnContext.newPage();
+    await learnPage.goto(agentBase + "/app/?conversation_id=" + encodeURIComponent(msgConversationId), { waitUntil: "domcontentloaded" });
+    await learnPage.waitForTimeout(2500);
+    const learned = await learnPage.evaluate(() =>
+      Object.fromEntries(
+        Object.keys(localStorage)
+          .filter((key) => key.indexOf("ask_vit_conversation_id_scope") === 0)
+          .map((key) => [key, localStorage.getItem(key) || ""])
+      )
+    );
+    await learnContext.close();
+    const realScopeKey = Object.keys(learned).find((key) => key !== "ask_vit_conversation_id_scope:unsaved_root") || "";
+
+    const context = await browser.newContext({ viewport });
+    await installReplay(context, { baseFixture: msgEventsFixture, conversationId: msgConversationId, strictConversation: true });
+    await installContinuationAnchors(context, anchorRows);
+    // The live shape the user actually hit: the panel boots BEFORE the agent's
+    // workspace identity lands in ui/state (the decision-side probe observed the
+    // unsaved bucket and the real bucket coexisting after the reopen), so the
+    // first tick sees an unmaterialized scope ("unsaved::root"), mints a random
+    // conversation id, and only the NEXT tick walks the evolution ->
+    // server-anchor adoption path (REFRESH-VANISH-2). Serving the first
+    // ui/state response with the workspace identity stripped reproduces that
+    // sequence deterministically; from the second request on, the real response
+    // passes through untouched.
+    let uiStateRequests = 0;
+    const uiStateHandler = async (route) => {
+      uiStateRequests += 1;
+      const response = await route.fetch();
+      if (uiStateRequests <= (options.blindUiStateTicks || 0)) {
+        const body = await response.json().catch(() => ({}));
+        await route.fulfill({
+          response,
+          json: { ...body, project_history: {}, project: {}, ui_context: {} }
+        });
+        return;
+      }
+      await context.unroute("**/agent/ui/state*", uiStateHandler);
+      await route.fulfill({ response });
+    };
+    await context.route("**/agent/ui/state*", uiStateHandler);
+    const page = await context.newPage();
+    await page.goto(agentBase + "/app/", { waitUntil: "domcontentloaded" });
+    const appeared = await page
+      .waitForSelector(".trace-block", { timeout: options.appearTimeoutMs })
+      .then(() => true)
+      .catch(() => false);
+    await page.waitForTimeout(options.settleMs);
+    const sample = await page.evaluate(DOM_PROBE);
+    await page.screenshot({ path: join(outDir, "dom-" + name + ".png"), fullPage: false });
+    writeFileSync(join(outDir, "dom-" + name + ".json"), JSON.stringify(sample, null, 2), "utf-8");
+    // A late sample after one more uiState poll cycle (~8s cadence): reported
+    // as a note, not asserted -- it documents whether the periodic history-sync
+    // merge eventually heals the stream on its own, which is exactly how long
+    // the user-visible defect window is.
+    await page.waitForTimeout(options.lateSettleMs || 0);
+    const late = options.lateSettleMs ? await page.evaluate(DOM_PROBE) : null;
+    if (late) {
+      writeFileSync(join(outDir, "dom-" + name + "-late.json"), JSON.stringify(late, null, 2), "utf-8");
+    }
+    await context.close();
+    return { appeared, sample, late, seeded, realScopeKey, learned, anchorRows };
+  };
+
   const assess = (prefix, sample) => {
     for (const [groupId, fn] of [["A1", checkA1], ["A2", checkA2], ["A3", checkA3]]) {
       const { failures, notes } = fn(sample);
@@ -1936,6 +2169,46 @@ async function main() {
   record("audition-unstick-G1", checkG1({ appeared: unstickAppeared, sample: unstickSample }, {
     stoppedSession: "audition:run_e2e_unstick1:stopped",
     preparingSession: "audition:run_e2e_unstick1:preparing"
+  }));
+
+  // ------------------------------------------------------------- MSG-REVIVE-1
+  // Runs LAST: its phase 1 re-seeds the draft conversation graph with the r3
+  // capture, so every group that asserts against the archived mtzba6wf graph
+  // must have completed first.
+  report.msgrevive_events_source =
+    "r3 forensic capture (conversation " + msgConversationId + ", normal-permission mix-tick chain, 41 events incl. " +
+    "mix_tick.pending / mix_tick.confirmation.routed / two interaction.resolved) replayed conversation-strict; the r3-shaped " +
+    "graph (7 nodes, interaction-carrying proposal node with a waiting_for_user send-time snapshot) is re-seeded over the " +
+    "draft history; /agent/runtime/status gets the conversation's completed continuation row appended as the server-side " +
+    "identity anchor; phase 2 opens /app/ in a fresh context with NO localStorage at all";
+  const msgRevivePass = await runMsgRevivePass("msgrevive", {
+    appearTimeoutMs: 25000,
+    settleMs: 5000,
+    lateSettleMs: 20000,
+    blindUiStateTicks: 1
+  });
+  report.msgrevive = {
+    conversation_id: msgConversationId,
+    seeded: {
+      commits_written: msgRevivePass.seeded ? msgRevivePass.seeded.commitsWritten : 0,
+      nodes_skipped: msgRevivePass.seeded ? msgRevivePass.seeded.nodesSkipped : []
+    },
+    real_scope_key: msgRevivePass.realScopeKey,
+    learning_anchor: msgRevivePass.learned[msgRevivePass.realScopeKey] || "",
+    appeared: msgRevivePass.appeared,
+    late_sample_summary: msgRevivePass.late
+      ? {
+          user_messages: (msgRevivePass.late.userMessages || []).length,
+          assistant_messages: (msgRevivePass.late.assistantMessages || []).length,
+          interactive_cards: (msgRevivePass.late.interactiveCards || []).length
+        }
+      : null
+  };
+  record("msgrevive-H1", checkH1(msgRevivePass, {
+    conversationId: msgConversationId,
+    expectUserTexts: ["检查一下当前工程有什么问题", "可以执行"],
+    expectAssistantTexts: ["已在「bass」轨"],
+    expectResolvedInteractionIDs: ["interaction_756c9bd8111b0d6e", "interaction_855170be9aac6b30"]
   }));
 
   report.finished_at = new Date().toISOString();
