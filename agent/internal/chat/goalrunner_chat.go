@@ -3252,7 +3252,10 @@ func (s *Server) agentLoopToolContext(mode, userText string, requestContext map[
 	capabilities := agentLoopCapabilityNames(userText, requestContext)
 	if len(capabilities) == 0 {
 		return agentLoopToolContext{
-			CatalogSummary: s.harness.ModelCatalogSummary(),
+			// PCA-AUTONOMY-CATALOG-1: an explicit full-access turn appends the
+			// fingerprint-verified promoted catalog so autonomous selection
+			// stops guessing identifiers; every other turn stays byte-identical.
+			CatalogSummary: appendFullAccessAdmittedCatalog(s.harness.ModelCatalogSummary(), requestContext),
 			AllowedTools:   toolNamesForAgentLoop(s.harness, mode),
 		}
 	}
@@ -3264,7 +3267,7 @@ func (s *Server) agentLoopToolContext(mode, userText string, requestContext map[
 	if strings.TrimSpace(summary) == "" {
 		summary = s.harness.ModelCatalogSummary()
 	}
-	return agentLoopToolContext{CatalogSummary: summary, AllowedTools: allowed}
+	return agentLoopToolContext{CatalogSummary: appendFullAccessAdmittedCatalog(summary, requestContext), AllowedTools: allowed}
 }
 
 func toolNamesForAgentLoop(h *harness.Harness, mode string) []string {
