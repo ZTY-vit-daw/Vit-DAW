@@ -392,14 +392,52 @@ func (s *Server) handleAuditionCommand(w http.ResponseWriter, r *http.Request, a
 // agree the session is stopped; every other shape falls through to the plain
 // select with its historical error surface (and a failed re-seat degrades to
 // that same surface, never to a silent no-op).
+//
+// AUDITION-RESEAT-1 (2026-09-15): the agent snapshot half of that contract
+// does not survive the terminal-turn shape. A waiting_confirmation goal keeps
+// its post-action evaluation slice in the scheduler, and every resume entry
+// (prepareFreeStateReasoningContext) plus every turn merge
+// (recordFreeStateDecision) writes the slice-start loop copy back over the
+// server loop -- including a non-empty audition snapshot captured BEFORE the
+// user's stop, regressing the stopped projection to ready. The first gate
+// then reads live, the plain select reaches a genuinely stopped Kernel
+// session, and the refusal is surfaced verbatim: the 2026-09-15 webui_mu228fc5
+// run saw exactly that 14 times with zero re-seats and zero log lines. The
+// Kernel is therefore the only authority for the stopped question: when the
+// plain select is refused, the refusal is re-examined against the Kernel's
+// own session state (one extra status round trip on the refusal path only --
+// the hot path stays at one select) and a Kernel-confirmed stopped session is
+// re-seated regardless of what the agent snapshot says. The agent-snapshot
+// gate remains as the cheap short-circuit for the already-correct shape.
 func (s *Server) selectAuditionCandidate(ctx context.Context, request auditionActionRequest) (*kernel.VSPCommandResult, error) {
+	var refusalResult *kernel.VSPCommandResult
+	var refusalErr error
 	if !s.auditionSnapshotStopped(request.ConversationID, request.SessionID) {
+		result, err := s.auditionKernel.AuditionSelect(ctx, request.SessionID, request.CandidateID)
+		if auditionReplyError(result, err) == "" {
+			return result, err
+		}
+		refusalResult, refusalErr = result, err
+		if s.logger != nil {
+			s.logger.Warn("[audition] select refused while the agent snapshot said live conversation=%s session=%s%s; probing the kernel before surfacing the refusal",
+				request.ConversationID, request.SessionID, s.auditionSnapshotGateDiagnostics(request.ConversationID, request.SessionID))
+		}
+	}
+	kernelSession := s.auditionKernelStoppedSession(ctx, request.SessionID)
+	if kernelSession == nil {
+		if refusalResult != nil || refusalErr != nil {
+			if s.logger != nil {
+				s.logger.Info("[audition] kernel does not confirm stopped; surfacing the raw select refusal session=%s conversation=%s", request.SessionID, request.ConversationID)
+			}
+			return refusalResult, refusalErr
+		}
+		if s.logger != nil {
+			s.logger.Info("[audition] agent snapshot said stopped but the kernel does not confirm; falling through to the plain select session=%s conversation=%s", request.SessionID, request.ConversationID)
+		}
 		return s.auditionKernel.AuditionSelect(ctx, request.SessionID, request.CandidateID)
 	}
-	statusResult, statusErr := s.auditionKernel.AuditionStatus(ctx, request.SessionID)
-	kernelSession := auditionReplySession(statusResult)
-	if statusErr != nil || !strings.EqualFold(firstStringFromMap(kernelSession, "status"), "stopped") {
-		return s.auditionKernel.AuditionSelect(ctx, request.SessionID, request.CandidateID)
+	if s.logger != nil {
+		s.logger.Info("[audition] kernel confirms stopped; reseating session=%s conversation=%s candidate=%s", request.SessionID, request.ConversationID, request.CandidateID)
 	}
 	reseat, reseatErr := s.auditionKernel.AuditionPrepare(ctx, auditionReseatRequest(request.ConversationID, kernelSession))
 	if reseatErr == nil && auditionReplyError(reseat, nil) == "" {
@@ -410,13 +448,17 @@ func (s *Server) selectAuditionCandidate(ctx context.Context, request auditionAc
 			eventType = "audition.ready"
 		}
 		s.emitAuditionEvent(request.ConversationID, eventType, recovered, map[string]any{"command": "audition.prepare", "recovered_from": "stopped"})
+	} else if s.logger != nil {
+		s.logger.Warn("[audition] reseat failed session=%s conversation=%s err=%v; degrading to the plain select surface", request.SessionID, request.ConversationID, reseatErr)
 	}
 	return s.auditionKernel.AuditionSelect(ctx, request.SessionID, request.CandidateID)
 }
 
 // auditionSnapshotStopped is the cheap first gate: the agent's own projection
 // of the session (updated on every audition event) must already say stopped
-// before any extra Kernel round trip is spent on the recovery path.
+// before any extra Kernel round trip is spent on the recovery path. It is
+// advisory only -- see AUDITION-RESEAT-1 above for the write-back shapes that
+// can regress it while the Kernel session is really stopped.
 func (s *Server) auditionSnapshotStopped(conversationID, sessionID string) bool {
 	loop, ok := s.freeStateLoop(conversationID)
 	if !ok {
@@ -426,6 +468,36 @@ func (s *Server) auditionSnapshotStopped(conversationID, sessionID string) bool 
 		return false
 	}
 	return strings.EqualFold(firstStringFromMap(loop.AuditionSessionSnapshot, "status"), "stopped")
+}
+
+// auditionSnapshotGateDiagnostics names all three gate inputs (loop presence,
+// session binding, snapshot status) for the refusal log line, so a field
+// failure can be pinned to a gate from the agent log alone instead of another
+// zero-evidence deadlock.
+func (s *Server) auditionSnapshotGateDiagnostics(conversationID, sessionID string) string {
+	loop, ok := s.freeStateLoop(conversationID)
+	if !ok {
+		return " gate=loop_missing"
+	}
+	return fmt.Sprintf(" gate=loop_present session_bound=%t snapshot_status=%q", loop.AuditionSessionID == sessionID, firstStringFromMap(loop.AuditionSessionSnapshot, "status"))
+}
+
+// auditionKernelStoppedSession returns the Kernel's serialized session only
+// when the Kernel itself reports it stopped; nil (with a log anchor) for every
+// other answer, including a failed status probe.
+func (s *Server) auditionKernelStoppedSession(ctx context.Context, sessionID string) map[string]any {
+	statusResult, statusErr := s.auditionKernel.AuditionStatus(ctx, sessionID)
+	if statusErr != nil {
+		if s.logger != nil {
+			s.logger.Warn("[audition] kernel status probe failed session=%s err=%v", sessionID, statusErr)
+		}
+		return nil
+	}
+	session := auditionReplySession(statusResult)
+	if !strings.EqualFold(firstStringFromMap(session, "status"), "stopped") {
+		return nil
+	}
+	return session
 }
 
 // auditionReseatRequest rebuilds an audition.prepare request from the Kernel's
