@@ -124,7 +124,7 @@ import {
   historyScopePartsFromUIState,
   shouldAdoptStoredConversationOnScopeEvolution
 } from "./historyScope";
-import type { HistoryScopeChangeKind } from "./historyScope";
+import type { HistoryScopeChangeKind, HistoryScopeParts } from "./historyScope";
 import { buildMessageStreamRenderPlan, type MessageStreamEntry } from "./trace/renderPlan";
 import { emptyTurnEventMetaMap, reduceTurnEventMeta, type TurnEventMetaMap } from "./trace/turnEventMeta";
 // TRAJ-IMPL-2（设计 §2.1）：回合步账——item 工具步还原为回合内进度步，容器存在性与
@@ -566,7 +566,12 @@ function App() {
       setActivities([]);
     }
     if (changeKind === "switch" || changeKind === "initial") {
-      const nextConversationID = conversationIDFromURL() || loadStoredScopedConversationID(nextScope) || createConversationID();
+      const nextConversationID = resolveScopedConversationID({
+        urlConversationID: conversationIDFromURL(),
+        storedScopedConversationID: loadStoredScopedConversationID(nextScope),
+        serverConversationID: serverConversationIDFromContinuations(runtimeStatus?.continuations, nextParts),
+        freshConversationID: createConversationID()
+      });
       historyScopeRef.current = nextScope;
       saveStoredScopedConversationID(nextScope, nextConversationID);
       scopedConversationRef.current = scopedConversationRuntimeKey(nextScope, nextConversationID);
@@ -598,20 +603,31 @@ function App() {
       // hasMeaningfulChatMessages 旧排除只匹配整串 "intro"，问候被计成有效
       // 消息，守卫在裸启动上永远拒绝采纳，fall-through 迁移随即覆写真实
       // scope 桶（修复在 hasMeaningfulChatMessages + 迁移/写回双守卫）。
-      const storedScopedConversationID = loadStoredScopedConversationID(nextScope);
+      //
+      // REFRESH-VANISH-2（2026-09-15）：锚定候选在本地存档之外增加服务端兜底
+      // 档——空 storage 裸开（webview 面板销毁重建丢 localStorage）时本地锚定
+      // 缺失，改用 runtimeStatus.continuations 投影里该 scope 的权威会话身份；
+      // 采纳后 [conversationID] 效应重置游标并以 since=0 全量回放 /agent/events，
+      // 轨迹块/A-B 卡重建（本地锚定在位时候选=存档值，storage 正常形态零变化）。
+      const anchorScopedConversationID = resolveScopedConversationID({
+        urlConversationID: "",
+        storedScopedConversationID: loadStoredScopedConversationID(nextScope),
+        serverConversationID: serverConversationIDFromContinuations(runtimeStatus?.continuations, nextParts),
+        freshConversationID: ""
+      });
       if (
         shouldAdoptStoredConversationOnScopeEvolution({
-          storedConversationID: storedScopedConversationID,
+          storedConversationID: anchorScopedConversationID,
           currentConversationID: conversationID,
           hasMeaningfulMessages: hasMeaningfulChatMessages(messages)
         })
       ) {
         historyScopeRef.current = nextScope;
         agentEventSeqRef.current = 0;
-        saveStoredScopedConversationID(nextScope, storedScopedConversationID);
-        scopedConversationRef.current = scopedConversationRuntimeKey(nextScope, storedScopedConversationID);
+        saveStoredScopedConversationID(nextScope, anchorScopedConversationID);
+        scopedConversationRef.current = scopedConversationRuntimeKey(nextScope, anchorScopedConversationID);
         restoredMessageScopeRef.current = "";
-        setConversationID(storedScopedConversationID);
+        setConversationID(anchorScopedConversationID);
         return;
       }
       const previousScope = historyScopeRef.current;
@@ -641,7 +657,9 @@ function App() {
       });
       return resolveHistorySyncMessages({ changeKind, current, historyMessages });
     });
-  }, [conversationID, uiState]);
+    // REFRESH-VANISH-2：服务端兜底身份来自 runtimeStatus（与 uiState 同一
+    // refreshState 的 allSettled 提交到达）；入依赖保证晚到的一拍也能取到。
+  }, [conversationID, runtimeStatus, uiState]);
 
   // TRAJ-IMPL-3（设计 §2.3）：**水合读取**终局回执行台账。
   //
@@ -11714,6 +11732,68 @@ export function saveStoredScopedConversationID(scope: string, conversationID: st
   } catch {
     // Scoped local history is best-effort; the backend Project History remains authoritative.
   }
+}
+
+// REFRESH-VANISH-2（2026-09-15）：空 storage 裸开（Godot webview 面板销毁重建丢
+// localStorage 的用户形态）时的服务端会话身份兜底。服务端没有「当前会话」直读面，
+// 但 runtimeStatus.continuations 投影行携带 conversation_id + project_path/uuid +
+// updated_at——按 scope 匹配取最新行即得权威会话身份；事件缓冲（/agent/events）按
+// 该 id 键控，采纳它即可经 since=0 全量回放重建轨迹块/A-B 卡（消息面走 uiState
+// 服务端历史恢复、不依赖本地 storage，这正是「消息在、轨迹无」的分裂成因）。
+export function serverConversationIDFromContinuations(continuations: unknown, parts: HistoryScopeParts): string {
+  if (!Array.isArray(continuations)) {
+    return "";
+  }
+  const scopePath = normalizeServerContinuationPath(parts.projectPath || parts.rootProjectPath);
+  const scopeUUID = (parts.projectUUID || "").trim().toLowerCase();
+  if (!scopePath && !scopeUUID) {
+    return "";
+  }
+  let bestID = "";
+  let bestAt = "";
+  for (const raw of continuations) {
+    const row = asRecord(raw);
+    const conversationID = textValue(row.conversation_id, "").trim();
+    if (!conversationID) {
+      continue;
+    }
+    const rowPath = normalizeServerContinuationPath(row.project_path);
+    const rowUUID = textValue(row.project_uuid, "").trim().toLowerCase();
+    const scopeMatched = (scopePath !== "" && rowPath === scopePath) || (scopeUUID !== "" && rowUUID === scopeUUID);
+    if (!scopeMatched) {
+      continue;
+    }
+    const updatedAt = textValue(row.updated_at, "");
+    // 同刻并列时按会话 id 决胜：选择只由数据决定，不依赖服务端列表顺序。
+    if (!bestID || updatedAt > bestAt || (updatedAt === bestAt && conversationID > bestID)) {
+      bestID = conversationID;
+      bestAt = updatedAt;
+    }
+  }
+  return bestID;
+}
+
+function normalizeServerContinuationPath(value: unknown): string {
+  return textValue(value, "").trim().replace(/\\/g, "/").replace(/\/+$/, "").toLowerCase();
+}
+
+// REFRESH-VANISH-2：scope 会话身份的统一解析链（initial/switch 引导与 evolution
+// 锚定候选共用）。优先级：URL 绑定 > 本地锚定 > 服务端兜底 > 新建。服务端兜底
+// 只在本地映射缺失时生效（storage 正常形态零行为变化）；evolution 调用侧传
+// url="" fresh=""，把链退化为「本地锚定 || 服务端兜底」的锚定候选。
+export function resolveScopedConversationID(input: {
+  urlConversationID: string;
+  storedScopedConversationID: string;
+  serverConversationID: string;
+  freshConversationID: string;
+}): string {
+  for (const value of [input.urlConversationID, input.storedScopedConversationID, input.serverConversationID, input.freshConversationID]) {
+    const trimmed = value.trim();
+    if (trimmed) {
+      return trimmed;
+    }
+  }
+  return "";
 }
 
 function conversationMessagesStorageKey(conversationID: string, scope = ""): string {
