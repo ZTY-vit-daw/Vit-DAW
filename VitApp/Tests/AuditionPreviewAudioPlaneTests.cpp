@@ -1,12 +1,29 @@
 #include "../Source/Service/AuditionPreviewAudioPlane.h"
 #include "../Source/Service/AuditionPreviewService.h"
 
-#include <cassert>
 #include <cmath>
+#include <cstdio>
+#include <cstdlib>
 #include <memory>
+
+// AUDITION-REL-1: Release defines NDEBUG, which compiles plain assert() out.
+// This test's setup side effects (directory creation, WAV data write) and its
+// null-pointer guards lived inside assert(), so in Release the candidates were
+// never written, prepare failed, and the service-reply derefs ran unguarded
+// into a deterministic 0xC0000005 (NamedValueSet::operator[] on a null this).
+// Checks here must stay active in every configuration: they abort with a
+// message instead of vanishing under /DNDEBUG.
+#define VIT_CHECK(expression) \
+    ((expression) ? void() : vitFailCheck (__FILE__, __LINE__, #expression))
 
 namespace
 {
+
+[[noreturn]] void vitFailCheck (const char* file, int line, const char* expression)
+{
+    std::fprintf (stderr, "%s:%d: check failed: %s\n", file, line, expression);
+    std::abort();
+}
 
 juce::File writeConstantWave (const juce::File& directory, const juce::String& name, float value)
 {
@@ -21,11 +38,12 @@ juce::File writeConstantWave (const juce::File& directory, const juce::String& n
         buffer.setSample (0, sample, value);
 
     auto stream = std::unique_ptr<juce::OutputStream> (file.createOutputStream());
-    assert (stream != nullptr);
+    VIT_CHECK (stream != nullptr);
     auto writer = std::unique_ptr<juce::AudioFormatWriter> (
         juce::WavAudioFormat().createWriterFor (stream.release(), sampleRate, 1, 16, {}, 0));
-    assert (writer != nullptr);
-    assert (writer->writeFromAudioSampleBuffer (buffer, 0, buffer.getNumSamples()));
+    VIT_CHECK (writer != nullptr);
+    const bool wrote = writer->writeFromAudioSampleBuffer (buffer, 0, buffer.getNumSamples());
+    VIT_CHECK (wrote);
     return file;
 }
 
@@ -57,56 +75,56 @@ int main()
 {
     const auto directory = juce::File::getSpecialLocation (juce::File::tempDirectory)
         .getNonexistentChildFile ("vit-audition-audio-plane", {}, true);
-    assert (directory.createDirectory());
+    VIT_CHECK (directory.createDirectory());
     const auto candidateA = writeConstantWave (directory, "candidate-a.wav", 0.20f);
     const auto candidateB = writeConstantWave (directory, "candidate-b.wav", -0.60f);
 
     vit::AuditionPreviewAudioPlane plane (nullptr);
     auto session = makeSession (candidateA, candidateB);
     const auto prepared = plane.prepare (session);
-    assert (prepared.ok);
-    assert (prepared.candidates.size() == 2);
-    assert (plane.isCandidatePrepared (session.id, "candidate-a"));
-    assert (plane.isCandidatePrepared (session.id, "candidate-b"));
-    assert (! prepared.candidates[0].previewRef.empty());
-    assert (! prepared.candidates[1].previewRevision.empty());
+    VIT_CHECK (prepared.ok);
+    VIT_CHECK (prepared.candidates.size() == 2);
+    VIT_CHECK (plane.isCandidatePrepared (session.id, "candidate-a"));
+    VIT_CHECK (plane.isCandidatePrepared (session.id, "candidate-b"));
+    VIT_CHECK (! prepared.candidates[0].previewRef.empty());
+    VIT_CHECK (! prepared.candidates[1].previewRevision.empty());
 
-    assert (plane.select (session.id, "candidate-a", 0.0, true));
+    VIT_CHECK (plane.select (session.id, "candidate-a", 0.0, true));
     const auto a = plane.renderTestBlock (session.id, "candidate-a", 0.0, 256);
-    assert (a.previewActive);
-    assert (a.candidateId == "candidate-a");
-    assert (a.startPositionSamples == 0);
-    assert (a.endPositionSamples == 256);
-    assert (a.rms > 0.18 && a.rms < 0.22);
+    VIT_CHECK (a.previewActive);
+    VIT_CHECK (a.candidateId == "candidate-a");
+    VIT_CHECK (a.startPositionSamples == 0);
+    VIT_CHECK (a.endPositionSamples == 256);
+    VIT_CHECK (a.rms > 0.18 && a.rms < 0.22);
 
-    assert (plane.select (session.id, "candidate-b", 256.0 / 44100.0, true));
+    VIT_CHECK (plane.select (session.id, "candidate-b", 256.0 / 44100.0, true));
     const auto b = plane.renderTestBlock (session.id, "candidate-b", 256.0 / 44100.0, 512);
-    assert (b.previewActive);
-    assert (b.candidateId == "candidate-b");
-    assert (b.startPositionSamples == a.endPositionSamples);
-    assert (b.endPositionSamples == a.endPositionSamples + 512);
-    assert (b.crossfadeApplied);
-    assert (b.rms > 0.40);
-    assert (std::abs (a.rms - b.rms) > 0.15);
+    VIT_CHECK (b.previewActive);
+    VIT_CHECK (b.candidateId == "candidate-b");
+    VIT_CHECK (b.startPositionSamples == a.endPositionSamples);
+    VIT_CHECK (b.endPositionSamples == a.endPositionSamples + 512);
+    VIT_CHECK (b.crossfadeApplied);
+    VIT_CHECK (b.rms > 0.40);
+    VIT_CHECK (std::abs (a.rms - b.rms) > 0.15);
 
     const auto diagnostics = plane.diagnostics();
-    assert (diagnostics.candidatesDecoded == 2);
-    assert (diagnostics.sourceSwitchRequests == 2);
-    assert (diagnostics.audioBlocksRendered == 2);
-    assert (diagnostics.renderRequests == 0);
-    assert (diagnostics.checkoutRequests == 0);
-    assert (diagnostics.projectOpenRequests == 0);
-    assert (diagnostics.kernelReloadRequests == 0);
+    VIT_CHECK (diagnostics.candidatesDecoded == 2);
+    VIT_CHECK (diagnostics.sourceSwitchRequests == 2);
+    VIT_CHECK (diagnostics.audioBlocksRendered == 2);
+    VIT_CHECK (diagnostics.renderRequests == 0);
+    VIT_CHECK (diagnostics.checkoutRequests == 0);
+    VIT_CHECK (diagnostics.projectOpenRequests == 0);
+    VIT_CHECK (diagnostics.kernelReloadRequests == 0);
 
     const auto snapshot = plane.snapshot (session.id);
-    assert (snapshot.prepared);
-    assert (snapshot.candidateId == "candidate-b");
-    assert (snapshot.positionSeconds > 0.0);
+    VIT_CHECK (snapshot.prepared);
+    VIT_CHECK (snapshot.candidateId == "candidate-b");
+    VIT_CHECK (snapshot.positionSeconds > 0.0);
 
     plane.invalidate (session.id);
     const auto invalidated = plane.snapshot (session.id);
-    assert (! invalidated.previewActive);
-    assert (! invalidated.isPlaying);
+    VIT_CHECK (! invalidated.previewActive);
+    VIT_CHECK (! invalidated.isPlaying);
 
     juce::Array<juce::String> events;
     vit::AuditionPreviewService service (nullptr, {}, [&events] (const juce::String& event) { events.add (event); });
@@ -137,26 +155,26 @@ int main()
     request.setProperty ("candidate_b", makeCandidate ("candidate-b", candidateB, "checkpoint:b", "branch:b", "worktree:b"));
     const auto preparedReply = juce::JSON::parse (service.handlePrepare (request, {}));
     auto* preparedObject = preparedReply.getDynamicObject();
-    assert (preparedObject != nullptr && preparedObject->getProperty ("status").toString() == "ok");
+    VIT_CHECK (preparedObject != nullptr && preparedObject->getProperty ("status").toString() == "ok");
     auto* preparedSession = preparedObject->getProperty ("session").getDynamicObject();
-    assert (preparedSession != nullptr && preparedSession->getProperty ("status").toString() == "ready");
+    VIT_CHECK (preparedSession != nullptr && preparedSession->getProperty ("status").toString() == "ready");
     auto* preparedA = preparedSession->getProperty ("candidate_a").getDynamicObject();
-    assert (preparedA != nullptr && preparedA->getProperty ("preview_ref").toString().startsWith ("audio-buffer://"));
-    assert (preparedA->getProperty ("preview_revision").toString().isNotEmpty());
-    assert (! events.isEmpty());
+    VIT_CHECK (preparedA != nullptr && preparedA->getProperty ("preview_ref").toString().startsWith ("audio-buffer://"));
+    VIT_CHECK (preparedA->getProperty ("preview_revision").toString().isNotEmpty());
+    VIT_CHECK (! events.isEmpty());
     const auto lastEventValue = juce::JSON::parse (events.getLast());
     auto* lastEvent = lastEventValue.getDynamicObject();
-    assert (lastEvent != nullptr && lastEvent->getProperty ("type").toString() == "audition.ready");
+    VIT_CHECK (lastEvent != nullptr && lastEvent->getProperty ("type").toString() == "audition.ready");
 
     juce::DynamicObject selectRequest;
     selectRequest.setProperty ("session_id", "service-session");
     selectRequest.setProperty ("candidate_id", "candidate-b");
     const auto selectReply = juce::JSON::parse (service.handleSelect (selectRequest, {}));
     auto* selectedSession = selectReply.getDynamicObject()->getProperty ("session").getDynamicObject();
-    assert (selectedSession->getProperty ("active_candidate_id").toString() == "candidate-b");
+    VIT_CHECK (selectedSession->getProperty ("active_candidate_id").toString() == "candidate-b");
     auto* activeProject = selectedSession->getProperty ("active_project_plane").getDynamicObject();
-    assert (activeProject->getProperty ("project_ref").toString() == "project:active");
-    assert (activeProject->getProperty ("project_revision").toString() == "project-r17");
+    VIT_CHECK (activeProject->getProperty ("project_ref").toString() == "project:active");
+    VIT_CHECK (activeProject->getProperty ("project_revision").toString() == "project-r17");
 
 // AUDITION-PLAY-1: `audition.select` is playback control for the preview plane.
 // It must open the gate on its own; the project transport stays a position
@@ -170,7 +188,7 @@ constexpr bool auditionSelectAutoStarts = true;
     // every select arrived with isPlaying=false and the preview gate stayed
     // shut. The preview buffer is self-contained and the output processor
     // clears the buffer itself, so select must not inherit transport.
-    assert (auditionSelectAutoStarts);
+    VIT_CHECK (auditionSelectAutoStarts);
     juce::Array<juce::String> stoppedEvents;
     vit::AuditionPreviewService stoppedService (nullptr, {}, [&stoppedEvents] (const juce::String& event) { stoppedEvents.add (event); });
     juce::DynamicObject stoppedPrepare;
@@ -183,50 +201,50 @@ constexpr bool auditionSelectAutoStarts = true;
     stoppedPrepare.setProperty ("candidate_a", makeCandidate ("candidate-a", candidateA, "checkpoint:stopped-a", "branch:a", "worktree:a"));
     stoppedPrepare.setProperty ("candidate_b", makeCandidate ("candidate-b", candidateB, "checkpoint:stopped-b", "branch:b", "worktree:b"));
     const auto stoppedPrepared = juce::JSON::parse (stoppedService.handlePrepare (stoppedPrepare, {}));
-    assert (stoppedPrepared.getDynamicObject()->getProperty ("status").toString() == "ok");
-    assert (! stoppedService.getAudioPlaneForTesting().snapshot ("stopped-session").previewActive);
+    VIT_CHECK (stoppedPrepared.getDynamicObject()->getProperty ("status").toString() == "ok");
+    VIT_CHECK (! stoppedService.getAudioPlaneForTesting().snapshot ("stopped-session").previewActive);
     // Blind-telemetry pin at prepare: the preview ref names the Kernel buffer.
     // The source render file name is a physical-mapping token, so no candidate
     // row may echo it into the event stream.
     auto* stoppedPreparedSession = stoppedPrepared.getDynamicObject()->getProperty ("session").getDynamicObject();
-    assert (stoppedPreparedSession != nullptr);
+    VIT_CHECK (stoppedPreparedSession != nullptr);
     for (const auto& row : *stoppedPreparedSession->getProperty ("candidates").getArray())
     {
         auto* candidateRow = row.getDynamicObject();
-        assert (candidateRow != nullptr);
+        VIT_CHECK (candidateRow != nullptr);
         const auto ref = candidateRow->getProperty ("preview_ref").toString();
-        assert (ref.startsWith ("audio-buffer://"));
-        assert (ref.contains ("candidate-a") || ref.contains ("candidate-b"));
-        assert (! ref.contains ("before_revision") && ! ref.contains ("after_revision"));
-        assert (! ref.contains (".wav"));
+        VIT_CHECK (ref.startsWith ("audio-buffer://"));
+        VIT_CHECK (ref.contains ("candidate-a") || ref.contains ("candidate-b"));
+        VIT_CHECK (! ref.contains ("before_revision") && ! ref.contains ("after_revision"));
+        VIT_CHECK (! ref.contains (".wav"));
     }
 
     juce::DynamicObject stoppedSelectA;
     stoppedSelectA.setProperty ("session_id", "stopped-session");
     stoppedSelectA.setProperty ("candidate_id", "candidate-a");
     const auto stoppedSelectReply = juce::JSON::parse (stoppedService.handleSelect (stoppedSelectA, {}));
-    assert (stoppedSelectReply.getDynamicObject()->getProperty ("status").toString() == "ok");
+    VIT_CHECK (stoppedSelectReply.getDynamicObject()->getProperty ("status").toString() == "ok");
     // The select reply is what audition.select.changed republishes, so the same
     // neutrality pin applies to the select path.
-    assert (! stoppedSelectReply.getDynamicObject()->getProperty ("session").toString().contains ("before_revision"));
-    assert (! stoppedSelectReply.getDynamicObject()->getProperty ("session").toString().contains ("after_revision"));
+    VIT_CHECK (! stoppedSelectReply.getDynamicObject()->getProperty ("session").toString().contains ("before_revision"));
+    VIT_CHECK (! stoppedSelectReply.getDynamicObject()->getProperty ("session").toString().contains ("after_revision"));
     const auto stoppedPlayback = stoppedService.getAudioPlaneForTesting().snapshot ("stopped-session");
-    assert (stoppedPlayback.previewActive);
-    assert (stoppedPlayback.isPlaying);
-    assert (stoppedPlayback.candidateId == "candidate-a");
+    VIT_CHECK (stoppedPlayback.previewActive);
+    VIT_CHECK (stoppedPlayback.isPlaying);
+    VIT_CHECK (stoppedPlayback.candidateId == "candidate-a");
     const auto stoppedBlock = stoppedService.getAudioPlaneForTesting().renderTestBlock ("stopped-session", "candidate-a", 0.0, 256);
-    assert (stoppedBlock.previewActive);
-    assert (stoppedBlock.rms > 0.18 && stoppedBlock.rms < 0.22);
+    VIT_CHECK (stoppedBlock.previewActive);
+    VIT_CHECK (stoppedBlock.rms > 0.18 && stoppedBlock.rms < 0.22);
 
     juce::DynamicObject stoppedSelectB;
     stoppedSelectB.setProperty ("session_id", "stopped-session");
     stoppedSelectB.setProperty ("candidate_id", "candidate-b");
-    assert (juce::JSON::parse (stoppedService.handleSelect (stoppedSelectB, {})).getDynamicObject()->getProperty ("status").toString() == "ok");
+    VIT_CHECK (juce::JSON::parse (stoppedService.handleSelect (stoppedSelectB, {})).getDynamicObject()->getProperty ("status").toString() == "ok");
     const auto stoppedCrossfade = stoppedService.getAudioPlaneForTesting().renderTestBlock ("stopped-session", "candidate-b", stoppedBlock.endPositionSamples / 44100.0, 512);
-    assert (stoppedCrossfade.previewActive);
-    assert (stoppedCrossfade.crossfadeApplied);
-    assert (stoppedCrossfade.rms > 0.40);
-    assert (std::abs (stoppedBlock.rms - stoppedCrossfade.rms) > 0.15);
+    VIT_CHECK (stoppedCrossfade.previewActive);
+    VIT_CHECK (stoppedCrossfade.crossfadeApplied);
+    VIT_CHECK (stoppedCrossfade.rms > 0.40);
+    VIT_CHECK (std::abs (stoppedBlock.rms - stoppedCrossfade.rms) > 0.15);
     bool sawStoppedSelectEvent = false;
     for (const auto& event : stoppedEvents)
     {
@@ -235,7 +253,7 @@ constexpr bool auditionSelectAutoStarts = true;
         if (object != nullptr && object->getProperty ("type").toString() == "audition.select.changed")
             sawStoppedSelectEvent = true;
     }
-    assert (sawStoppedSelectEvent);
+    VIT_CHECK (sawStoppedSelectEvent);
 
     juce::DynamicObject manualSelect;
     manualSelect.setProperty ("session_id", "stopped-session");
@@ -247,12 +265,12 @@ constexpr bool auditionSelectAutoStarts = true;
     silentPosition.setProperty ("session_id", "stopped-session");
     silentPosition.setProperty ("position_seconds", 0.0);
     silentPosition.setProperty ("is_playing", false);
-    assert (juce::JSON::parse (stoppedService.handlePosition (silentPosition, {})).getDynamicObject()->getProperty ("status").toString() == "ok");
-    assert (! stoppedService.getAudioPlaneForTesting().snapshot ("stopped-session").previewActive);
-    assert (juce::JSON::parse (stoppedService.handleSelect (manualSelect, {})).getDynamicObject()->getProperty ("status").toString() == "ok");
+    VIT_CHECK (juce::JSON::parse (stoppedService.handlePosition (silentPosition, {})).getDynamicObject()->getProperty ("status").toString() == "ok");
+    VIT_CHECK (! stoppedService.getAudioPlaneForTesting().snapshot ("stopped-session").previewActive);
+    VIT_CHECK (juce::JSON::parse (stoppedService.handleSelect (manualSelect, {})).getDynamicObject()->getProperty ("status").toString() == "ok");
     const auto manualPlayback = stoppedService.getAudioPlaneForTesting().snapshot ("stopped-session");
-    assert (! manualPlayback.previewActive);
-    assert (! manualPlayback.isPlaying);
+    VIT_CHECK (! manualPlayback.previewActive);
+    VIT_CHECK (! manualPlayback.isPlaying);
 
     // AUDITION-PLAY-1 pin (5): blind-tier telemetry must not carry the physical
     // render file name. The preview plane is Kernel-owned and the ref names the
@@ -261,31 +279,31 @@ constexpr bool auditionSelectAutoStarts = true;
     for (const auto& event : stoppedEvents)
         if (event.contains ("before_revision") || event.contains ("after_revision"))
             leakedRenderName = true;
-    assert (! leakedRenderName);
+    VIT_CHECK (! leakedRenderName);
 
     juce::DynamicObject playRequest;
     playRequest.setProperty ("session_id", "service-session");
     playRequest.setProperty ("position_seconds", 0.0);
     playRequest.setProperty ("is_playing", true);
     const auto playReply = juce::JSON::parse (service.handlePosition (playRequest, {}));
-    assert (playReply.getDynamicObject()->getProperty ("status").toString() == "ok");
+    VIT_CHECK (playReply.getDynamicObject()->getProperty ("status").toString() == "ok");
     const auto servicePlayback = service.getAudioPlaneForTesting().snapshot ("service-session");
-    assert (servicePlayback.previewActive && servicePlayback.isPlaying && servicePlayback.candidateId == "candidate-b");
+    VIT_CHECK (servicePlayback.previewActive && servicePlayback.isPlaying && servicePlayback.candidateId == "candidate-b");
 
     juce::DynamicObject staleRequest;
     staleRequest.setProperty ("session_id", "service-session");
     service.handleStale (staleRequest, {});
-    assert (! service.getAudioPlaneForTesting().snapshot ("service-session").previewActive);
-    assert (juce::JSON::parse (service.handleSelect (selectRequest, {})).getDynamicObject()->getProperty ("status").toString() == "error");
+    VIT_CHECK (! service.getAudioPlaneForTesting().snapshot ("service-session").previewActive);
+    VIT_CHECK (juce::JSON::parse (service.handleSelect (selectRequest, {})).getDynamicObject()->getProperty ("status").toString() == "error");
 
     juce::DynamicObject explicitRequest;
     explicitRequest.setProperty ("session_id", "service-session");
     explicitRequest.setProperty ("candidate_id", "candidate-b");
-    assert (juce::JSON::parse (service.handleInspectCandidate (explicitRequest, {})).getDynamicObject()->getProperty ("code").toString() == "capability_not_supported");
-    assert (juce::JSON::parse (service.handleApplyCandidate (explicitRequest, {})).getDynamicObject()->getProperty ("code").toString() == "capability_not_supported");
+    VIT_CHECK (juce::JSON::parse (service.handleInspectCandidate (explicitRequest, {})).getDynamicObject()->getProperty ("code").toString() == "capability_not_supported");
+    VIT_CHECK (juce::JSON::parse (service.handleApplyCandidate (explicitRequest, {})).getDynamicObject()->getProperty ("code").toString() == "capability_not_supported");
 
     const auto serviceDiagnostics = service.getAudioPlaneForTesting().diagnostics();
-    assert (serviceDiagnostics.renderRequests == 0 && serviceDiagnostics.checkoutRequests == 0
+    VIT_CHECK (serviceDiagnostics.renderRequests == 0 && serviceDiagnostics.checkoutRequests == 0
             && serviceDiagnostics.projectOpenRequests == 0 && serviceDiagnostics.kernelReloadRequests == 0);
 
     directory.deleteRecursively();
