@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -156,4 +157,143 @@ func TestAuthorityEndpointPersistsExplicitMode(t *testing.T) {
 	if restarted.authorityMode != authorityModeFull {
 		t.Fatalf("restored authority mode=%q", restarted.authorityMode)
 	}
+}
+
+// AUTHORITY-LOST-1: 用户「启动后切换至完全访问，输入后运行却成了普通权限」的
+// 命中形态之一——切换 POST 先于内核发布工程身份到达（workspace 未激活，
+// activate 空转、persist 空转，磁盘无 full 记录），工程身份就绪后的第一次完整
+// 激活从磁盘旧值 restore，把进程内显式切换吞掉。显式切换必须跨该激活存活。
+func TestAuthoritySwitchBeforeWorkspaceIdentitySurvivesRestore(t *testing.T) {
+	s := New(nil, shadow.New(nil), nil)
+	switchBody := bytes.NewBufferString(`{"authority_mode":"full_project_access"}`)
+	switchReq := httptest.NewRequest(http.MethodPost, "/agent/authority", switchBody)
+	switchReq.Header.Set("Content-Type", "application/json")
+	switchResp := httptest.NewRecorder()
+	s.Routes().ServeHTTP(switchResp, switchReq)
+	if switchResp.Code != http.StatusOK {
+		t.Fatalf("switch status=%d body=%s", switchResp.Code, switchResp.Body.String())
+	}
+	projectPath := filepath.Join(t.TempDir(), "Late.vit")
+	if err := os.WriteFile(projectPath, []byte("stable"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	// 工程身份随后就绪：下一个 GET 走完整激活路径，磁盘仍是旧 manual 形态。
+	s.shadow.Initialize(map[string]any{"status": "ok", "project_path": projectPath, "project_uuid": "vitproj_late"})
+	getResp := httptest.NewRecorder()
+	s.Routes().ServeHTTP(getResp, httptest.NewRequest(http.MethodGet, "/agent/authority", nil))
+	if getResp.Code != http.StatusOK {
+		t.Fatalf("get status=%d body=%s", getResp.Code, getResp.Body.String())
+	}
+	var payload struct {
+		AuthorityMode string `json:"authority_mode"`
+	}
+	if err := json.Unmarshal(getResp.Body.Bytes(), &payload); err != nil {
+		t.Fatal(err)
+	}
+	if payload.AuthorityMode != authorityModeFull {
+		t.Fatalf("authority mode after late workspace activation=%q want %q", payload.AuthorityMode, authorityModeFull)
+	}
+	bound, err := s.bindChatAuthorityMode("", map[string]any{"conversation_id": "chat-late"})
+	if err != nil || firstStringFromMap(bound, "authority_mode") != authorityModeFull {
+		t.Fatalf("bound=%+v err=%v", bound, err)
+	}
+}
+
+// AUTHORITY-LOST-1 第二命中面：切换已写入内存、persist 尚未落盘的竞态窗口内，
+// continuation scheduler 的磁盘重放（reloadActiveRuntimeState）不得把显式
+// 切换翻回磁盘旧值。bind 写内存与 POST 同源，覆盖 bind 翻转面。
+func TestAuthoritySwitchHoldsAcrossSchedulerDiskReload(t *testing.T) {
+	projectPath := filepath.Join(t.TempDir(), "Reload.vit")
+	if err := os.WriteFile(projectPath, []byte("stable"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	project := shadow.New(nil)
+	project.Initialize(map[string]any{"status": "ok", "project_path": projectPath, "project_uuid": "vitproj_reload"})
+	s := New(nil, project, nil)
+	s.activateCurrentProjectWorkspace(context.Background())
+	s.persistCurrentProjectWorkspace() // 磁盘停留 manual（切换前的权威形态）
+	if _, err := s.bindChatAuthorityMode(authorityModeFull, map[string]any{"conversation_id": "chat-reload"}); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.reloadActiveRuntimeState(); err != nil {
+		t.Fatal(err)
+	}
+	s.mu.Lock()
+	mode := s.authorityMode
+	s.mu.Unlock()
+	if mode != authorityModeFull {
+		t.Fatalf("authority mode after scheduler disk reload=%q want %q", mode, authorityModeFull)
+	}
+}
+
+// 冻结语义零回退：goal 运行中切换必须保持 409 且内存模式不变。
+func TestAuthorityModeChangeBlockedWhileGoalRunning(t *testing.T) {
+	s := New(nil, shadow.New(nil), nil)
+	goal := s.harness.BeginGoal("running turn")
+	if status := s.harness.RuntimeStatus(goal.GoalID).Status; status != agentruntime.StatusRunning {
+		t.Fatalf("goal status=%q want running", status)
+	}
+	body := bytes.NewBufferString(`{"authority_mode":"full_project_access"}`)
+	req := httptest.NewRequest(http.MethodPost, "/agent/authority", body)
+	req.Header.Set("Content-Type", "application/json")
+	resp := httptest.NewRecorder()
+	s.Routes().ServeHTTP(resp, req)
+	if resp.Code != http.StatusConflict {
+		t.Fatalf("status=%d body=%s", resp.Code, resp.Body.String())
+	}
+	if !strings.Contains(resp.Body.String(), "authority_mode_change_blocked") {
+		t.Fatalf("missing error_code body=%s", resp.Body.String())
+	}
+	s.mu.Lock()
+	mode := s.authorityMode
+	s.mu.Unlock()
+	if mode != authorityModeManual {
+		t.Fatalf("authority mode=%q want manual", mode)
+	}
+}
+
+// 显式权限是 per-workspace 状态：跨工程身份切换不得把工程 A 的 full 带进
+// 工程 B（B 磁盘旧值 manual 仍权威）。
+func TestAuthorityExplicitSwitchDoesNotLeakAcrossProjectIdentity(t *testing.T) {
+	projectA := filepath.Join(t.TempDir(), "IdentA.vit")
+	if err := os.WriteFile(projectA, []byte("stable"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	projectB := filepath.Join(t.TempDir(), "IdentB.vit")
+	if err := os.WriteFile(projectB, []byte("stable"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	s := New(nil, shadow.New(nil), nil)
+	s.shadow.Initialize(map[string]any{"status": "ok", "project_path": projectA, "project_uuid": "vitproj_ident_a"})
+	if resp := authorityPostForTest(s, authorityModeFull); resp.Code != http.StatusOK {
+		t.Fatalf("switch status=%d body=%s", resp.Code, resp.Body.String())
+	}
+	if mode := authorityGetForTest(s); mode != authorityModeFull {
+		t.Fatalf("project A authority=%q", mode)
+	}
+	s.shadow.Initialize(map[string]any{"status": "ok", "project_path": projectB, "project_uuid": "vitproj_ident_b"})
+	if mode := authorityGetForTest(s); mode != authorityModeManual {
+		t.Fatalf("project B authority=%q want manual (explicit mode must not leak across identity)", mode)
+	}
+}
+
+func authorityPostForTest(s *Server, mode string) *httptest.ResponseRecorder {
+	body := bytes.NewBufferString(`{"authority_mode":"` + mode + `"}`)
+	req := httptest.NewRequest(http.MethodPost, "/agent/authority", body)
+	req.Header.Set("Content-Type", "application/json")
+	resp := httptest.NewRecorder()
+	s.Routes().ServeHTTP(resp, req)
+	return resp
+}
+
+func authorityGetForTest(s *Server) string {
+	resp := httptest.NewRecorder()
+	s.Routes().ServeHTTP(resp, httptest.NewRequest(http.MethodGet, "/agent/authority", nil))
+	var payload struct {
+		AuthorityMode string `json:"authority_mode"`
+	}
+	if err := json.Unmarshal(resp.Body.Bytes(), &payload); err != nil {
+		return ""
+	}
+	return payload.AuthorityMode
 }

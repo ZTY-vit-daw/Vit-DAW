@@ -81,6 +81,7 @@ func (s *Server) bindChatAuthorityMode(requested string, ctx map[string]any) (ma
 	}
 	s.mu.Lock()
 	s.authorityMode = mode
+	s.authorityModeExplicit = true
 	s.mu.Unlock()
 	return mergeContext(ctx, map[string]any{"authority_mode": mode, "authority_mode_explicit": true}), nil
 }
@@ -156,6 +157,12 @@ func (s *Server) handleAuthorityMode(w http.ResponseWriter, r *http.Request) {
 	case http.MethodGet:
 		writeJSON(w, http.StatusOK, map[string]any{"status": "ok", "authority_mode": s.authorityModeSnapshot()})
 	case http.MethodPost:
+		// AUTHORITY-LOST-1: the switch owns the authoritative in-memory
+		// runtime state between the write and the persist. The continuation
+		// scheduler's disk reload must not replay a stale snapshot over that
+		// window, so this request counts as a continuation-sensitive
+		// invocation for its whole duration (same posture as chat/turn stop).
+		defer s.beginContinuationSensitiveInvocation()()
 		var req struct {
 			AuthorityMode string `json:"authority_mode"`
 		}
@@ -169,13 +176,25 @@ func (s *Server) handleAuthorityMode(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if goal, blocked := s.authorityModeChangeBlocked(); blocked {
+			if s.logger != nil {
+				s.logger.Warn("[authority] switch rejected mode=%s goal=%s status=%s", mode, goal.GoalID, goal.Status)
+			}
 			writeJSON(w, http.StatusConflict, map[string]any{"status": "error", "error_code": "authority_mode_change_blocked", "error": "authority mode cannot change while an Agent Turn is running", "goal_id": goal.GoalID, "goal_status": goal.Status})
 			return
 		}
 		s.mu.Lock()
 		s.authorityMode = mode
+		s.authorityModeExplicit = true
+		workspaceReady := s.activeWorkspaceUUID != ""
 		s.mu.Unlock()
-		s.persistCurrentProjectWorkspace()
+		persistErr := s.persistCurrentProjectWorkspaceChecked()
+		if s.logger != nil {
+			if persistErr != nil {
+				s.logger.Warn("[authority] switch accepted mode=%s workspace_ready=%t persist_failed error=%v (kept in memory; restore preserves it, next persist writes it)", mode, workspaceReady, persistErr)
+			} else {
+				s.logger.Info("[authority] switch accepted mode=%s workspace_ready=%t", mode, workspaceReady)
+			}
+		}
 		writeJSON(w, http.StatusOK, map[string]any{"status": "ok", "authority_mode": mode})
 	default:
 		writeJSON(w, http.StatusMethodNotAllowed, map[string]any{"status": "error", "error": "GET or POST required"})

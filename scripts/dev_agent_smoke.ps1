@@ -16,6 +16,7 @@ param(
     [switch]$NoChatSmoke,
     [switch]$NoStripSilenceSmoke,
     [switch]$MixSmoke,
+    [switch]$AuthoritySmoke,
     [switch]$Strict,
     [int]$WaitSeconds = 20
 )
@@ -550,6 +551,71 @@ if ($null -eq $state -or $state.status -ne "ok") {
 }
 Write-Ok ("tool_count=" + [string]$state.tool_count)
 Write-Host ("shadow.initialized=" + [string]$state.shadow.initialized + " track_count=" + [string]$state.shadow.track_count)
+
+if ($AuthoritySmoke) {
+    # AUTHORITY-LOST-1: switch full access, hold it across activation/reload
+    # surfaces, then prove the input chain still binds full access with no
+    # confirmation card. The deterministic probe is the /smoke authority chat
+    # command (server-owned authority, no LLM randomness in the assertion).
+    Write-Step "Authority lifecycle smoke"
+    $authorityBefore = Invoke-Json -Method GET -Uri ($AgentHttp.TrimEnd("/") + "/agent/authority") -TimeoutSec 60
+    Write-Host ("authority before: " + [string]$authorityBefore.authority_mode)
+    if ($null -eq $authorityBefore -or $authorityBefore.status -ne "ok") {
+        throw "GET /agent/authority did not return ok"
+    }
+    $authoritySwitch = Invoke-Json -Method POST -Uri ($AgentHttp.TrimEnd("/") + "/agent/authority") -Body @{
+        authority_mode = "full_project_access"
+    } -TimeoutSec 15
+    if ($null -eq $authoritySwitch -or $authoritySwitch.status -ne "ok" -or [string]$authoritySwitch.authority_mode -ne "full_project_access") {
+        throw ("authority switch failed: " + ($authoritySwitch | ConvertTo-Json -Depth 6 -Compress))
+    }
+    Write-Ok "authority switched to full_project_access"
+    # Hold window: activation requests plus a scheduler-tick-sized wait must
+    # not flip the in-memory mode back to a stale persisted value.
+    $holdDeadline = (Get-Date).AddSeconds(8)
+    while ((Get-Date) -lt $holdDeadline) {
+        $null = Invoke-Json -Method GET -Uri ($AgentHttp.TrimEnd("/") + "/agent/runtime/status") -TimeoutSec 60
+        Start-Sleep -Milliseconds 800
+    }
+    $authorityHeld = Invoke-Json -Method GET -Uri ($AgentHttp.TrimEnd("/") + "/agent/authority") -TimeoutSec 60
+    if ([string]$authorityHeld.authority_mode -ne "full_project_access") {
+        throw ("authority mode flipped after hold window: " + [string]$authorityHeld.authority_mode)
+    }
+    Write-Ok "authority held full_project_access across activation window"
+    $authorityConversation = "dev_authority_smoke_" + (Get-Date -Format "yyyyMMdd_HHmmss")
+    $authorityChat = Invoke-Json -Method POST -Uri ($AgentHttp.TrimEnd("/") + "/agent/chat") -Body @{
+        conversation_id = $authorityConversation
+        message = "/smoke authority"
+        context = @{
+            agent_mode = "chat"
+        }
+    } -TimeoutSec ([Math]::Max(30, $WaitSeconds))
+    Write-Host ("authority chat stop_reason=" + [string]$authorityChat.stop_reason + " reply=" + [string]$authorityChat.reply)
+    if ([string]$authorityChat.stop_reason -ne "authority_smoke_ok" -or -not (([string]$authorityChat.reply).Contains("bound=full_project_access"))) {
+        throw ("authority input-chain probe did not bind full access: " + ($authorityChat | ConvertTo-Json -Depth 8 -Compress))
+    }
+    if ([bool]$authorityChat.needs_confirmation) {
+        throw "authority smoke turn raised a confirmation card under full access"
+    }
+    Write-Ok "input chain binds full_project_access with no confirmation card"
+    if (-not [string]::IsNullOrWhiteSpace($AgentLog) -and (Test-Path -LiteralPath $AgentLog)) {
+        $authorityLogLines = @(Select-String -LiteralPath $AgentLog -Pattern "\[authority\] switch accepted" -ErrorAction SilentlyContinue)
+        if ($authorityLogLines.Count -lt 1) {
+            Fail-Or-Warn "authority switch log anchor missing from agent_last.log (log may have rotated)"
+        }
+        else {
+            Write-Ok ("authority switch log anchor present (" + [string]$authorityLogLines.Count + " lines)")
+        }
+    }
+    # Restore the pre-smoke mode so the shared workspace keeps its prior state.
+    $authorityRestore = Invoke-Json -Method POST -Uri ($AgentHttp.TrimEnd("/") + "/agent/authority") -Body @{
+        authority_mode = [string]$authorityBefore.authority_mode
+    } -TimeoutSec 60
+    if ($null -eq $authorityRestore -or $authorityRestore.status -ne "ok") {
+        throw "failed to restore authority mode after smoke"
+    }
+    Write-Ok ("authority restored to " + [string]$authorityRestore.authority_mode)
+}
 
 Write-Step "Strip Silence tool catalog"
 $toolsResp = Invoke-Json -Method GET -Uri ($AgentHttp.TrimEnd("/") + "/agent/tools") -TimeoutSec 10

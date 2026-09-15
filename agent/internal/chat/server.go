@@ -115,6 +115,15 @@ type Server struct {
 	activeWorkspaceUUID                string
 	activeWorkspaceSessionID           string
 	authorityMode                      string
+	// authorityModeExplicit marks an in-process authority selection (authority
+	// control switch or a chat turn's binding). Both restore surfaces — the
+	// workspace activation path and the scheduler's disk reload — replay the
+	// durable snapshot over in-memory state; an explicit selection must survive
+	// those replays (AUTHORITY-LOST-1), or a switch that has not reached disk
+	// yet is silently flipped back to the stale persisted mode. Cleared when
+	// the workspace identity changes: the mode is per-workspace and never
+	// leaks across projects. Not persisted: a restart restores disk authority.
+	authorityModeExplicit bool
 }
 
 type PendingPlan struct {
@@ -4907,6 +4916,9 @@ func (s *Server) handleDevChatCommand(ctx context.Context, conversationID string
 	if msg == "/smoke range_context" {
 		return smokeRangeContextResponse(conversationID, req.Context), true
 	}
+	if msg == "/smoke authority" {
+		return smokeAuthorityResponse(conversationID, req.Context, s.authorityModeSnapshot()), true
+	}
 	tool, args, confirmed, ok, err := parseChatToolCommand(msg)
 	if !ok {
 		return ChatResponse{}, false
@@ -5046,8 +5058,28 @@ func (s *Server) startGoalUISmoke(conversationID string, chatContext map[string]
 	return resp
 }
 
-func smokeRangeContextResponse(conversationID string, chatContext map[string]any) ChatResponse {
-	checks := []string{}
+// smokeAuthorityResponse reports the authority mode a freshly bound chat turn
+// runs under: the binding handleChat produced (context) next to the server
+// snapshot it fell back to. AUTHORITY-LOST-1's real-stack smoke uses this as
+// the deterministic input-chain probe.
+func smokeAuthorityResponse(conversationID string, chatContext map[string]any, snapshot string) ChatResponse {
+	bound := firstStringFromMap(chatContext, "authority_mode", "permission_mode")
+	if strings.TrimSpace(bound) == "" {
+		return ChatResponse{
+			ConversationID: conversationID,
+			Reply:          "authority smoke: bound= server=" + snapshot,
+			StopReason:     "authority_smoke_unbound",
+			Error:          "bound context carries no authority mode",
+		}
+	}
+	return ChatResponse{
+		ConversationID: conversationID,
+		Reply:          "authority smoke: bound=" + bound + " server=" + snapshot,
+		StopReason:     "authority_smoke_ok",
+	}
+}
+
+func smokeRangeContextResponse(conversationID string, chatContext map[string]any) ChatResponse {	checks := []string{}
 	failures := []string{}
 	if ranges := contextClipRangeRows(chatContext["selected_clip_ranges"]); len(ranges) > 0 {
 		checks = append(checks, "top_level")
@@ -6786,6 +6818,16 @@ func (s *Server) activateCurrentProjectWorkspace(ctx context.Context) {
 	// 是既有的"丢弃未保存态"设计边界，不在本收尾范围。
 	if s.activeWorkspaceUUID != "" && !sameIdentity {
 		s.settleLiveChainsForWorkspaceSwitch(ctx, projectPath, projectUUID)
+		// AUTHORITY-LOST-1: the explicit-mode latch is per-workspace. Crossing a
+		// project identity boundary drops it so project A's full access cannot
+		// leak into project B; B's persisted mode is authoritative again.
+		s.mu.Lock()
+		previousExplicit := s.authorityModeExplicit
+		s.authorityModeExplicit = false
+		s.mu.Unlock()
+		if previousExplicit && s.logger != nil {
+			s.logger.Info("[authority] explicit latch dropped on identity switch from_uuid=%s to_uuid=%s", s.activeWorkspaceUUID, projectUUID)
+		}
 	}
 	// Reopening the same project binds a new draft from Saved HEAD. Do not copy
 	// the previous unsaved in-memory runtime into that clean working session.
@@ -7082,7 +7124,21 @@ func (s *Server) restoreProjectAgentRuntimeStateLocked(state projectAgentRuntime
 	s.pendingMixTicks = nonNilMap(state.PendingMixTicks)
 	s.pendingTreatments = nonNilMap(state.PendingTreatments)
 	s.freeStateLoops = foldStaleRestoredFreeStateLoops(nonNilMap(state.FreeStateLoops), now, s.logger)
-	s.authorityMode = normalizeAuthorityModeOrDefault(state.AuthorityMode)
+	// AUTHORITY-LOST-1: restoring the durable snapshot must not undo an
+	// in-process explicit selection. A switch (or turn binding) that raced a
+	// persist failure or a not-yet-activated workspace keeps its in-memory
+	// mode here, and the next persist writes it to disk.
+	restoredAuthority := normalizeAuthorityModeOrDefault(state.AuthorityMode)
+	if s.authorityModeExplicit {
+		if s.logger != nil {
+			s.logger.Info("[authority] restore kept explicit mode=%s disk=%s", normalizeAuthorityModeOrDefault(s.authorityMode), restoredAuthority)
+		}
+	} else {
+		if s.logger != nil {
+			s.logger.Info("[authority] restore adopted disk mode=%s", restoredAuthority)
+		}
+		s.authorityMode = restoredAuthority
+	}
 	if s.audioClosures == nil {
 		s.audioClosures = audioclosure.NewMemoryStore()
 	}
