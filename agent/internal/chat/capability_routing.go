@@ -492,7 +492,7 @@ func capacityFactsFromProjectState(state map[string]any, requestScope string) Ca
 		if contextBool(track, "is_audio_track") || strings.Contains(strings.ToLower(firstStringFromMap(track, "track_type", "type")), "audio") || strings.Contains(strings.ToLower(firstStringFromMap(track, "track_type", "type")), "hybrid") {
 			facts.ActiveAudioTrackCount++
 		}
-		facts.PluginCount += capacityMaxInt(len(capacityRows(firstNonNilCapacityValue(track["plugins"], track["rack"]))), intNumber(track["plugin_count"]))
+		facts.PluginCount += capacityMaxInt(len(uiTrackPluginRows(track)), intNumber(track["plugin_count"]))
 		facts.AutomationLaneCount += capacityCountCollection(firstNonNilCapacityValue(track["automation_lanes"], track["automation"], track["envelopes"], track["automation_lane_count"]))
 		facts.RoutingEdgeCount += capacityCountCollection(firstNonNilCapacityValue(track["sends"], track["outputs"], track["routes"], track["routing"], track["routing_edge_count"]))
 		groupMemberships := capacityCountCollection(firstNonNilCapacityValue(track["track_group_ids"], track["group_ids"], track["track_groups"]))

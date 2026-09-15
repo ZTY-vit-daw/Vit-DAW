@@ -676,9 +676,11 @@ try {
         $rackRowsAfter = @(Get-NamedChildren $uiAfter.plugin_rack.rack).Count
     }
     $phaseA["a2_pca_load_gate_denials"] = $gateDenials
-    $phaseA["a2_bass_plugin_count_after"] = $bassPluginsAfter
-    $phaseA["a2_plugin_rack_plugin_rows"] = $rackPluginsAfter
-    $phaseA["a2_plugin_rack_rows"] = $rackRowsAfter
+    # Journey-turn counts (pre-probe) keep their own keys; the canonical
+    # a2_*_after keys are written after the deterministic load probe below.
+    $phaseA["a2_bass_plugin_count_after_turn"] = $bassPluginsAfter
+    $phaseA["a2_plugin_rack_plugin_rows_after_turn"] = $rackPluginsAfter
+    $phaseA["a2_plugin_rack_rows_after_turn"] = $rackRowsAfter
     $a2JourneyLanded = ($bassPluginsAfter -gt $bassPluginsBefore) -or ($rackPluginsAfter -gt 0)
     $phaseA["a2_journey_turn_plugin_landed"] = $a2JourneyLanded
     $phaseA["a2_plugin_landed"] = $a2JourneyLanded
@@ -725,12 +727,13 @@ try {
     $probeDenied = ($probeAfter -gt $probeBefore) -or ($probeStatus -eq "error")
     # Landing evidence comes from the request whose reply IS the Kernel's own
     # answer: a rack_add_node that returns a plugin instance id with
-    # plugin_instance_ready=true has landed. /agent/ui/state is deliberately NOT
-    # used here: the VSP execution path does not run afterKernelReply, so the
-    # Agent shadow (and therefore the UI projection) is not refreshed by an
-    # out-of-band probe and still reports plugin_count=0 (PCA-FULLACCESS-1
-    # receipt, run ...20260913_pca_fullaccess_4). That projection gap is a
-    # separate observation and is not what A2 asserts.
+    # plugin_instance_ready=true has landed. /agent/ui/state is additionally
+    # checked after the probe (UI-PLUGIN-COUNT-1): the VSP write path refreshes
+    # the shadow (VSP-SHADOW-REFRESH-1) and the chat projection now derives
+    # plugin rows and plugin_count from rack.nodes, so the projection must show
+    # the loaded plugin -- the old "out-of-band probe leaves plugin_count=0"
+    # gap (PCA-FULLACCESS-1 receipt, run ...20260913_pca_fullaccess_4) is what
+    # this check guards against.
     $probePluginID = ""
     $probeInstanceReady = $false
     $probeGraphDiff = ""
@@ -757,15 +760,45 @@ try {
     $phaseA["a2_direct_probe_plugin_landed"] = $probePluginLanded
     Add-Prereq ("a2_direct_probe_landed=" + $probePluginLanded + " plugin_id=" + $probePluginID + " instance_ready=" + $probeInstanceReady + " graph_diff=" + $probeGraphDiff)
 
+    # ---- A2 (post-probe): the UI projection reflects the loaded plugin
+    # (UI-PLUGIN-COUNT-1). After the probe lands, the shadow has already
+    # refreshed on the VSP write path and the chat projection derives plugin
+    # rows from rack.nodes, so /agent/ui/state must show them. plugin_rack
+    # follows the UI selection, so the bass track is selected through the same
+    # /agent/ui/context endpoint the Godot frontend uses before the projection
+    # is read.
+    $uiPostProbe = $null
+    try {
+        Invoke-JsonUtf8 -Method POST -Url ($base + "/agent/ui/context") -Body @{ selected_track_name = $BassTrackName } -TimeoutSec 30 | Out-Null
+    } catch { }
+    try { $uiPostProbe = Invoke-JsonGet -Url ($base + "/agent/ui/state") -TimeoutSec 60 } catch { }
+    Save-Json -Value $uiPostProbe -Path (Join-Path $PhaseADir "ui_state_post_probe.json")
+    $bassPostProbe = Get-TrackFromUIState -UIState $uiPostProbe -Name $BassTrackName
+    $bassPluginsPostProbe = Get-TrackPluginCount -Track $bassPostProbe
+    $rackPluginsPostProbe = 0
+    $rackRowsPostProbe = 0
+    if ($null -ne $uiPostProbe -and $null -ne $uiPostProbe.plugin_rack) {
+        $rackPluginsPostProbe = @(Get-NamedChildren $uiPostProbe.plugin_rack.plugins).Count
+        $rackRowsPostProbe = @(Get-NamedChildren $uiPostProbe.plugin_rack.rack).Count
+    }
+    $phaseA["a2_bass_plugin_count_after"] = $bassPluginsPostProbe
+    $phaseA["a2_plugin_rack_plugin_rows"] = $rackPluginsPostProbe
+    $phaseA["a2_plugin_rack_rows"] = $rackRowsPostProbe
+    $phaseA["a2_ui_projection_post_probe_fetched"] = ($null -ne $uiPostProbe)
+    $a2ProjectionLanded = ($bassPluginsPostProbe -ge 1) -and ($rackPluginsPostProbe -ge 1)
+    $phaseA["a2_ui_projection_landed"] = $a2ProjectionLanded
+    Add-Prereq ("a2_ui_projection_post_probe bass_count=" + $bassPluginsPostProbe + " plugin_rows=" + $rackPluginsPostProbe + " fetched=" + ($null -ne $uiPostProbe))
+
     # A2 verdict (evaluated after the probe, which is what carries it): the
     # journey turn is model-branch-dependent (a run can end on a mix_tick dose
     # without ever attempting a load), so the assertion holds when the
     # deterministic probe was denied zero times AND the Kernel's own reply to
-    # that probe shows the plugin loaded. The journey-turn half stays reported.
-    $a2Red = $probeDenied -or (-not $probePluginLanded)
+    # that probe shows the plugin loaded AND (UI-PLUGIN-COUNT-1) the UI
+    # projection shows the loaded plugin. The journey-turn half stays reported.
+    $a2Red = $probeDenied -or (-not $probePluginLanded) -or ($probePluginLanded -and (-not $a2ProjectionLanded))
     $phaseA["a2_direct_probe_denied"] = $probeDenied
     $phaseA["a2_red"] = $a2Red
-    Add-Prereq ("a2_state=" + $(if ($a2Red) { "RED" } else { "GREEN" }) + " pca_load_gate_denials=" + $gateDenials + " probe_denied=" + $probeDenied + " probe_landed=" + $probePluginLanded + " journey_turn_landed=" + $a2JourneyLanded)
+    Add-Prereq ("a2_state=" + $(if ($a2Red) { "RED" } else { "GREEN" }) + " pca_load_gate_denials=" + $gateDenials + " probe_denied=" + $probeDenied + " probe_landed=" + $probePluginLanded + " ui_projection_landed=" + $a2ProjectionLanded + " journey_turn_landed=" + $a2JourneyLanded)
     $phaseA["a2_direct_probe_track_id"] = $bassTrackID
     $phaseA["a2_direct_probe_plugin"] = $EqPluginIdentifier
     $phaseA["a2_direct_probe_status"] = $probeStatus

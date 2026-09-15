@@ -1071,6 +1071,7 @@ func (s *Server) handleUIState(w http.ResponseWriter, r *http.Request) {
 	goal := s.harness.RuntimeStatus("")
 	uiContext := s.uiContextSnapshot()
 	state := mergeUIContext(s.harness.UserStateSummary(r.Context()), uiContext)
+	projection := uiStateProjection(state)
 	macroControls := uiMacroControls(state)
 	projectHistory := s.harness.ProjectHistorySummaryForProject(r.Context(), goal.GoalID, firstStringFromMap(state, "project_path", "current_project_path"))
 	scope := currentArtifactScope(projectHistory, state)
@@ -1085,10 +1086,10 @@ func (s *Server) handleUIState(w http.ResponseWriter, r *http.Request) {
 		"status":           "ok",
 		"project":          uiProjectState(state),
 		"transport":        uiTransportState(state),
-		"tracks":           mapRowsFromAny(state["tracks"]),
-		"selected_track":   uiSelectedTrack(state),
+		"tracks":           mapRowsFromAny(projection["tracks"]),
+		"selected_track":   uiSelectedTrack(projection),
 		"selected_plugin":  uiSelectedPlugin(state),
-		"plugin_rack":      uiPluginRack(state),
+		"plugin_rack":      uiPluginRack(projection),
 		"macro_controls":   macroControls,
 		"ui_context":       uiContext,
 		"goal":             goal,
@@ -1904,13 +1905,66 @@ func uiSelectedPlugin(state map[string]any) map[string]any {
 	}
 }
 
+// uiTrackPluginRows extracts a track's plugin rows with the harness
+// visiblePluginRefs posture: the explicit plugins and rack_nodes arrays first,
+// then the rack graph's nodes array. The kernel compact-snapshot track
+// whitelist carries plugin rows only inside rack, so skipping the graph leaves
+// every out-of-band load invisible to the UI projection. Rows without a
+// plugin id are skipped and an id already seen on the track counts once.
+func uiTrackPluginRows(track map[string]any) []map[string]any {
+	out := make([]map[string]any, 0)
+	seen := map[string]bool{}
+	appendRows := func(rows []map[string]any) {
+		for _, row := range rows {
+			id := firstStringFromMap(row, "plugin_id", "plugin_item_id", "node_id", "item_id", "id")
+			if id == "" || seen[id] {
+				continue
+			}
+			seen[id] = true
+			out = append(out, row)
+		}
+	}
+	appendRows(mapRowsFromAny(track["plugins"]))
+	appendRows(mapRowsFromAny(track["rack_nodes"]))
+	if rack := firstMapFromAny(track["rack"]); len(rack) > 0 {
+		appendRows(mapRowsFromAny(rack["nodes"]))
+	}
+	return out
+}
+
+// uiStateProjection returns the state with track rows replaced by projected
+// clones whose plugin_count is derived through uiTrackPluginRows: the shadow's
+// own rows stay authoritative and untouched, and the snapshot's rack-only
+// plugin state still reaches /agent/ui/state consumers as a count.
+func uiStateProjection(state map[string]any) map[string]any {
+	rows := mapRowsFromAny(state["tracks"])
+	if len(rows) == 0 {
+		return state
+	}
+	projected := make([]map[string]any, 0, len(rows))
+	for _, row := range rows {
+		clone := cloneContext(row)
+		if clone == nil {
+			clone = map[string]any{}
+		}
+		clone["plugin_count"] = capacityMaxInt(len(uiTrackPluginRows(clone)), intNumber(clone["plugin_count"]))
+		projected = append(projected, clone)
+	}
+	out := make(map[string]any, len(state)+1)
+	for key, value := range state {
+		out[key] = value
+	}
+	out["tracks"] = projected
+	return out
+}
+
 func uiPluginRack(state map[string]any) map[string]any {
 	selected := uiSelectedTrack(state)
 	if len(selected) == 0 {
 		return map[string]any{"track": nil, "plugins": []map[string]any{}, "rack": nil}
 	}
 	selectedPluginID := firstStringFromMap(state, "selected_plugin_id", "plugin_id")
-	plugins := mapRowsFromAny(selected["plugins"])
+	plugins := uiTrackPluginRows(selected)
 	markedPlugins := make([]map[string]any, 0, len(plugins))
 	for _, plugin := range plugins {
 		row := cloneContext(plugin)
