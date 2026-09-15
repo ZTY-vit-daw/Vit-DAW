@@ -43,6 +43,7 @@ param(
     [int]$ChainBudgetSeconds = 300,
     [int]$PollSeconds = 5,
     [int]$MaxNudges = 2,
+    [int]$SettleWatchSeconds = 0,
     [string]$PromptBase64 = ""
 )
 
@@ -282,6 +283,78 @@ try {
             continue
         }
         break
+    }
+
+    # TRAJ-AUTO-SETTLE-2 settle-tail watch: the D1-AUDITION-GAP verdict above is
+    # decided the moment the intervention lands and the A/B card mounts, but the
+    # round still owes its settlement tail (evaluation -> judgment request).
+    # With -SettleWatchSeconds > 0 the stack stays up past the verdict so the
+    # synthetic settle checkpoint can be observed end to end: armed at the
+    # applied boundary (or the completed boundary), claimed by the scheduler,
+    # the judgment request reaching the user (user_judgment_requested in the
+    # persisted loop / judgment events), and zero owed continue receipts.
+    # Purely additive observation; the verdict and exit codes are unchanged.
+    # ASCII-only block: this BOM-less ps1 is read as ANSI (same discipline as
+    # the prompts above), so the owed-receipt marker is decoded via From-B64.
+    if ($SettleWatchSeconds -gt 0 -and $applied) {
+        $OwedReceiptPattern = From-B64 "5L2g5Zue5LiA5Y+l"
+        Write-Step ("Settle-tail watch (" + $SettleWatchSeconds + "s)")
+        $settleLogPath = Join-Path $RunRoot "settle_watch_log.txt"
+        $deadline = (Get-Date).AddSeconds($SettleWatchSeconds)
+        while ((Get-Date) -lt $deadline) {
+            Start-Sleep -Seconds $PollSeconds
+            $logLines = @(Read-LogLines -Path $AgentLog)
+            $logLines | Set-Content -LiteralPath $settleLogPath -Encoding UTF8
+            $armedIds = @()
+            foreach ($line in ($logLines | Where-Object { $_ -match "\[continuation\.settle\] armed" })) {
+                if ($line -match "durable=(cont_[0-9a-f]+)") { $armedIds += $Matches[1] }
+            }
+            foreach ($line in ($logLines | Where-Object { $_ -match "settle_checkpoint=true" })) {
+                if ($line -match "durable=(cont_[0-9a-f]+)") { $armedIds += $Matches[1] }
+            }
+            $claimedIds = @()
+            foreach ($line in ($logLines | Where-Object { $_ -match "\[continuation\.claim\] claimed" })) {
+                if ($line -match "claimed id=(cont_[0-9a-f]+)") { $claimedIds += $Matches[1] }
+            }
+            $settleClaimed = @($armedIds | Where-Object { $claimedIds -contains $_ } | Select-Object -Unique)
+            $timeline["settle_armed_ids"] = (($armedIds | Select-Object -Unique) -join ",")
+            $timeline["settle_claimed_ids"] = ($settleClaimed -join ",")
+            $timeline["judgment_rejected_count"] = @($logLines | Where-Object { $_ -match "user judgment request rejected" }).Count
+            $timeline["owed_continue_receipts"] = @($logLines | Where-Object { $_ -match $OwedReceiptPattern }).Count
+            $runtimeState = Read-RuntimeStateJson -DraftRoot $AgentDrafts
+            $judgmentRequested = $false
+            $humanReady = $false
+            if ($null -ne $runtimeState) {
+                $loops = $runtimeState.free_state_reasoning_loops
+                if ($null -ne $loops) {
+                    $rows = @()
+                    if ($loops -is [System.Array]) { $rows = @($loops) }
+                    else { $rows = @($loops.PSObject.Properties | ForEach-Object { $_.Value }) }
+                    foreach ($row in $rows) {
+                        $exp = $row.experiment
+                        if ($null -eq $exp) { continue }
+                        foreach ($rd in @($exp.rounds)) {
+                            if ($rd.user_judgment_requested -eq $true) { $judgmentRequested = $true }
+                            $tr = $rd.experiment_target_response
+                            if ($null -ne $tr -and [string]$tr.outcome -match "human_audition_ready") { $humanReady = $true }
+                        }
+                    }
+                }
+            }
+            $timeline["judgment_requested_in_state"] = $judgmentRequested
+            $timeline["human_audition_ready_in_state"] = $humanReady
+            try {
+                $eventsResponse = Invoke-Json -Method GET -Url ($base + "/agent/events?conversation_id=" + $conversationID + "&since=0&limit=400") -Body $null -TimeoutSec 30
+                $judgmentEvents = @(@($eventsResponse.events) | Where-Object { $_.type -like "*user_judgment*" })
+                $timeline["judgment_events"] = $judgmentEvents.Count
+            } catch { }
+            if ($settleClaimed.Count -gt 0 -and ($judgmentRequested -or $humanReady -or $timeline["judgment_events"] -gt 0)) {
+                $timeline["settle_tail_closed_at"] = (Get-Date -Format "o")
+                Write-Ok ("settle tail closed: claimed=" + ($settleClaimed -join ",") + " judgment_requested=" + $judgmentRequested + " human_ready=" + $humanReady)
+                break
+            }
+        }
+        if (-not $timeline.Contains("settle_tail_closed_at")) { Write-Info "settle watch ended without observing full closure; see settle_watch_log.txt and timeline" }
     }
 
     # Mechanical confirmation from the persisted runtime state: the loop's

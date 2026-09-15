@@ -710,6 +710,17 @@ func (s *Server) projectD1Execution(loop freeStateReasoningLoop, session orchest
 	loop.UpdatedAt = time.Now().UTC()
 	syncD1Receipt(&loop)
 	s.storeFreeStateLoop(loop)
+	if receipt.Status == "applied" && freeStateLoopOwesAutoSettlement(loop) {
+		// TRAJ-AUTO-SETTLE-2: the applied receipt is the moment the round's
+		// settlement debt becomes true. When the runner already finalized the
+		// goal during the turn's LLM phase (the 2026-09-14/15 real-stack
+		// interleaving: goal result fires not-owing, the intervention books
+		// afterwards in this respond phase, no further goal result ever comes),
+		// this is the only boundary that can still give the SETTLE-1 floor a
+		// checkpoint to spend. No-op for a live goal or an already-latched
+		// loop; the judgment park never arms.
+		s.armOwedSettlementCheckpointAtAppliedBoundary(loop)
+	}
 	if receipt.Status == "applied" && loop.Experiment.Admission.IsD1S1() {
 		// D1-AUDITION-GAP-1: mount the A/B audition card the moment the
 		// intervention lands, not only at the judgment boundary. The user's

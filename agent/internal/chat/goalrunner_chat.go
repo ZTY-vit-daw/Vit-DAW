@@ -2809,12 +2809,29 @@ func (s *Server) recordGoalResult(conversationID string, res agentloop.Result) e
 		// same mutex and deadlock) with the same goal-identity discipline the
 		// helper applies.
 		owedOutcome := false
+		owedLoop := freeStateReasoningLoop{}
 		if loopRow, loopExists := s.freeStateLoops[conversationID]; loopExists &&
 			(strings.TrimSpace(res.GoalID) == "" || loopRow.GoalID == res.GoalID) {
 			owedOutcome = freeStateLoopOwesExperimentOutcome(loopRow)
+			owedLoop = loopRow
 		}
 		if res.Status == agentruntime.StatusCompleted && owedOutcome {
 			completedOverOwedOutcome = true
+			// TRAJ-AUTO-SETTLE-2: the SETTLE-1 floor fixed budget starvation,
+			// not checkpoint starvation. The 2026-09-14 real stack (twice:
+			// webui_mu228fc5 / webui_mu23pryg) closed the apply turn as
+			// status=completed stop=done continuation=false — the last slice
+			// arms nothing, so the floor had no record to spend its budget on
+			// and the settlement tail (evaluation -> judgment boundary) only
+			// ran if the user typed "继续". For the machine-owed subset of this
+			// same boundary, synthesize the settle checkpoint here so the
+			// scheduler can close the tail on its own; the judgment park is
+			// refused inside (the user's ears own that wait).
+			if settle := s.armOwedSettlementCheckpointLocked(conversationID, res, owedLoop); settle != nil {
+				armedDurableID = settle.ContinuationID
+				armedDurableStatus = string(settle.Status)
+				autoContinuation = true
+			}
 		} else {
 			delete(s.goalContinuations, res.GoalID)
 			terminalStatus := ContinuationCompleted
@@ -2894,10 +2911,13 @@ func (s *Server) recordGoalResult(conversationID string, res agentloop.Result) e
 		if res.Continuation != nil {
 			owesOutcome = s.freeStateLoopOwesExperimentOutcomeFor(conversationID, res.GoalID)
 		}
-		s.logger.Info("[continuation.arm] conversation=%s goal=%s status=%s stop=%s limit=%s continuation=%t durable=%s lifecycle=%s scheduled=%t budget_stop=%t requires_user_interaction=%t owes_outcome=%t",
+		// TRAJ-AUTO-SETTLE-2: a durable id on a continuation=false result is the
+		// synthetic settle checkpoint; the flag keeps the line self-describing.
+		settleCheckpoint := res.Continuation == nil && armedDurableID != ""
+		s.logger.Info("[continuation.arm] conversation=%s goal=%s status=%s stop=%s limit=%s continuation=%t durable=%s lifecycle=%s scheduled=%t budget_stop=%t requires_user_interaction=%t owes_outcome=%t settle_checkpoint=%t",
 			conversationID, res.GoalID, res.Status, res.StopReason, res.LimitType,
 			res.Continuation != nil, armedDurableID, firstNonEmpty(armedDurableStatus, "none"),
-			autoContinuation, autoContinuationBudgetExhausted, armRequiresUserInteraction, owesOutcome)
+			autoContinuation, autoContinuationBudgetExhausted, armRequiresUserInteraction, owesOutcome, settleCheckpoint)
 	}
 	if autoContinuationBudgetExhausted && s.harness != nil {
 		if s.freeStateLoopOwesExperimentOutcomeFor(conversationID, res.GoalID) {
@@ -2925,6 +2945,198 @@ func (s *Server) recordGoalResult(conversationID string, res agentloop.Result) e
 		s.emitAgentEvent(conversationID, pendingEvent)
 	}
 	return persistErr
+}
+
+// settleCheckpointMarker rides the synthetic settle checkpoint's continuation
+// context (TRAJ-AUTO-SETTLE-2). A durable record whose continuation carries it
+// — in ANY status — is the once-per-goal latch: terminal records never reopen,
+// so the marker cannot be un-armed, and a consumed settle checkpoint still
+// refuses re-arming (the anti-self-perpetuation bound).
+const settleCheckpointMarker = "d1_settle_checkpoint"
+
+// goalHasSettleCheckpointLocked reports whether this goal already received its
+// synthetic settle checkpoint. Caller holds s.mu.
+func (s *Server) goalHasSettleCheckpointLocked(goalID string) bool {
+	for _, item := range s.durableContinuations {
+		if item.GoalID == goalID && contextBool(item.Continuation.Context, settleCheckpointMarker) {
+			return true
+		}
+	}
+	return false
+}
+
+// armOwedSettlementCheckpointLocked synthesizes the durable "settle checkpoint"
+// for a round that still owes its machine settlement tail while the ordinary
+// chain cannot carry it anymore (TRAJ-AUTO-SETTLE-2). TRAJ-AUTO-SETTLE-1
+// granted the tail a phase-scoped budget floor at the applied boundary, but
+// the floor is scheduling headroom only — it is spent through durable
+// checkpoints, and the real stacks (2026-09-14 twice, 2026-09-15 once) never
+// produced one: the last slice either completed without arming a runner
+// continuation, or the runner finalized the goal during the turn's LLM phase
+// before the intervention receipt booked in the respond phase. This is the
+// missing record: a pending checkpoint in the same shape the arm path produces
+// (original intent as driving text, loop snapshot context, internal-resume
+// marker), claimable by the ordinary scheduler.
+//
+// Guards, in order (all fail-closed to nil — no checkpoint, existing honest
+// fallbacks keep their jurisdiction):
+//   - the loop must be active and not yet latched: a durable carrying the
+//     settle marker (any status) is the once-per-goal bound. A settle slice
+//     that itself closes still owing (e.g. an evaluation without a conclusion)
+//     must stop at a queryable cause — waiting_continue plus the chain-end
+//     delivery gate's owed receipt — never re-arm;
+//   - a judgment park never arms (freeStateLoopOwesAutoSettlement subtracts
+//     it): the guarded audition judgment POST is the only thing that may
+//     settle that wait;
+//   - a goal that already owns a live automatic slice needs no bridge, and a
+//     duplicate delivery of the same slice result is refused by the
+//     deterministic checkpoint id;
+//   - the SETTLE-1 floor is granted idempotently, then the checkpoint must
+//     fit inside it (used+1 <= budget). Past the budget edge the existing
+//     budget stop and owed receipt stay the honest answer — the latch is not
+//     burned on refusal.
+//
+// Caller holds s.mu; the loop row is a map copy, mutated here and stored back.
+func (s *Server) armOwedSettlementCheckpointLocked(conversationID string, res agentloop.Result, loop freeStateReasoningLoop) *DurableContinuation {
+	if s == nil || !freeStateLoopActive(loop) || s.goalHasSettleCheckpointLocked(res.GoalID) {
+		return nil
+	}
+	if !freeStateLoopOwesAutoSettlement(loop) {
+		return nil
+	}
+	if _, occupied := s.goalContinuations[res.GoalID]; occupied {
+		return nil
+	}
+	for _, item := range s.durableContinuations {
+		if item.GoalID == res.GoalID && continuationRunnableStatus(item.Status) {
+			return nil
+		}
+	}
+	continuationID := continuationIDForResult(res)
+	if _, exists := s.durableContinuations[continuationID]; exists {
+		return nil
+	}
+	reserveD1PostApplySlices(&loop)
+	if loop.ContinuationUsed+1 > loop.ContinuationBudget {
+		return nil
+	}
+	now := time.Now().UTC()
+	originalIntent := firstNonEmpty(res.OriginalIntent, loop.OriginalIntent)
+	goalID := firstNonEmpty(res.GoalID, loop.GoalID)
+	runID := firstNonEmpty(res.RunID, loop.RunID)
+	// The restore pass (normalizeRestoredDurableContinuation) quarantines any
+	// runnable record with an empty slice identity ("durable task/run/slice
+	// identity is incomplete") into an unanswerable recovery park. The applied
+	// boundary has no runner slice to cite, so derive a stable one from the
+	// round whose settlement this checkpoint owes.
+	settleSliceID := firstNonEmpty(res.SliceID, "d1-settle-"+strings.TrimSpace(loop.CurrentRoundID), "d1-settle")
+	settleTurnID := firstNonEmpty(res.TurnID, settleSliceID)
+	settleContinuation := agentloop.Continuation{
+		ContinuationID: continuationID,
+		GoalID:         goalID,
+		RunID:          runID,
+		TaskID:         res.TaskID,
+		SliceID:        settleSliceID,
+		TurnID:         settleTurnID,
+		OriginalIntent: originalIntent,
+		UserText:       loop.OriginalIntent,
+		Summary:        "d1 owed-settlement tail",
+		Context: map[string]any{
+			"free_state_internal_resume":       true,
+			"free_state_reasoning_loop":        freeStateLoopMap(loop),
+			"requires_post_action_observation": loop.RequiresPostActionObservation,
+			settleCheckpointMarker:             true,
+		},
+	}
+	durable := DurableContinuation{
+		SchemaVersion:    continuationRuntimeSchema,
+		ContinuationID:   continuationID,
+		TaskID:           firstNonEmpty(res.TaskID, settleContinuation.TaskID),
+		GoalID:           goalID,
+		ConversationID:   conversationID,
+		RunID:            runID,
+		CurrentSliceID:   settleSliceID,
+		CurrentTurnID:    settleTurnID,
+		OriginalIntent:   originalIntent,
+		Continuation:     settleContinuation,
+		ProjectPath:      s.activeWorkspacePath,
+		ProjectUUID:      s.activeWorkspaceUUID,
+		ProjectSessionID: s.activeWorkspaceSessionID,
+		Status:           ContinuationPending,
+		CreatedAt:        now,
+		UpdatedAt:        now,
+	}
+	s.bindDurableTaskSemanticState(&durable)
+	loop.ContinuationUsed++
+	loop.UpdatedAt = now
+	s.freeStateLoops[conversationID] = loop
+	s.durableContinuations[continuationID] = cloneDurableContinuation(durable)
+	s.goalContinuations[goalID] = settleContinuation
+	return &durable
+}
+
+// armOwedSettlementCheckpointAtAppliedBoundary is the applied-boundary entry
+// for the settle checkpoint (TRAJ-AUTO-SETTLE-2). The completed-over-owed
+// boundary in recordGoalResult covers the shape where the round already owes
+// when the goal result fires; the 2026-09-14/15 real stacks (twice each)
+// showed the other interleaving: the runner finalizes the goal during the
+// turn's LLM phase (status=completed stop=done, round not yet owing — the
+// intervention receipt is still in flight), the improvement-proposal route
+// then books the applied intervention in the same turn's respond phase, and
+// no further goal result ever fires — the round owes its settlement tail with
+// the chain already dead. That debt becomes true here, at the applied
+// boundary, so the checkpoint is armed here for exactly that shape:
+//
+//   - the goal must already sit in the runner's completed form (the ordinary
+//     chain cannot carry the tail anymore). A goal still running or parked
+//     waiting_* is left to the turn boundary's own arming — the completed
+//     boundary above then covers its completion;
+//   - a completed goal is not resumable (shouldResumeGoalFromStatus), so the
+//     same correction D1-AUDITION-GAP-1 applies at its boundary — restore
+//     waiting_continue — happens here BEFORE the A/B mount can park the goal,
+//     keeping the scheduler's settle slice a legal resume.
+//
+// Exactly-once across both entry points is guaranteed by the settle-marker
+// durable latch and the live-owner guards inside the core.
+func (s *Server) armOwedSettlementCheckpointAtAppliedBoundary(loop freeStateReasoningLoop) {
+	if s == nil || s.harness == nil || strings.TrimSpace(loop.GoalID) == "" {
+		return
+	}
+	goal := s.harness.RuntimeStatus(loop.GoalID)
+	if goal.Status != agentruntime.StatusCompleted {
+		return
+	}
+	s.mu.Lock()
+	stored, exists := s.freeStateLoops[loop.ConversationID]
+	if !exists || !freeStateLoopActive(stored) || s.goalHasSettleCheckpointLocked(stored.GoalID) || !freeStateLoopOwesAutoSettlement(stored) {
+		s.mu.Unlock()
+		return
+	}
+	settle := s.armOwedSettlementCheckpointLocked(loop.ConversationID, agentloop.Result{
+		GoalID:         stored.GoalID,
+		RunID:          stored.RunID,
+		OriginalIntent: stored.OriginalIntent,
+	}, stored)
+	s.mu.Unlock()
+	if settle == nil {
+		return
+	}
+	// The D1-AUDITION-GAP-1 correction, at the boundary where the debt became
+	// true: the apply landed over a goal the runner had already completed, and
+	// a completed goal cannot be resumed by the scheduler's settle slice.
+	s.harness.SetGoalStatus(settle.GoalID, agentruntime.StatusWaitingContinue, nil)
+	if err := s.persistContinuationState(); err != nil && s.logger != nil {
+		s.logger.Warn("[continuation.settle] applied-boundary arm failed to persist: err=%v", err)
+	}
+	if s.logger != nil {
+		used, budget := 0, 0
+		if after, ok := s.freeStateLoop(loop.ConversationID); ok {
+			used, budget = after.ContinuationUsed, after.ContinuationBudget
+		}
+		s.logger.Info("[continuation.settle] armed at the applied boundary conversation=%s goal=%s durable=%s used=%d budget=%d",
+			loop.ConversationID, settle.GoalID, settle.ContinuationID, used, budget)
+	}
+	s.wakeContinuationScheduler()
 }
 
 func (s *Server) agentLoopExecutionMemoryForConversation(conversationID string) agentloop.ExecutionMemory {
