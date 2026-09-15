@@ -444,6 +444,87 @@ func TestOpenRecoversPreparedSaveAsAfterPostSaveNotificationIsLost(t *testing.T)
 	assertConversationTexts(t, readConversationGraphOrDefault(mustOpenRepo(t, targetPath)), []string{"B1 complete", "B2 complete"})
 }
 
+// TestOpenRecoversStuckSameProjectPrepareWhenKernelCommitWasLost pins the
+// REOPEN-LEAK-1 shape observed in journey sampling R6 (20260914_193843): the
+// kernel save embeds its own Agent generation into the .vit file before the
+// Agent-side commit of that prepare runs, and that commit can be lost (R6: a
+// transient Windows rename failure swallowed as project_workspace_warning).
+// The stuck prepare keeps status "prepared", the generation has no saved
+// workspace, and a reopen that trusts the embedded generation would seed the
+// live session from the canonical draft history while skipping the
+// PROJ-OPEN-RESUME-1 archive boundary. The prepared-save recovery on open
+// must therefore also match a prepare that belongs to the project being
+// opened, even though the kernel reports an unrelated parent_project_uuid
+// (the previously open project, not the save source).
+func TestOpenRecoversStuckSameProjectPrepareWhenKernelCommitWasLost(t *testing.T) {
+	root := t.TempDir()
+	projectPath := filepath.Join(root, "912.vit")
+	if err := os.WriteFile(projectPath, []byte("912 project"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	const projectUUID = "vitproj_reopen_leak"
+	const parentUUID = "vitproj_reopen_leak_unrelated_parent"
+	BindProjectIdentity(projectPath, projectUUID)
+	if _, err := EnsureWorkingSession(projectPath, projectUUID); err != nil {
+		t.Fatal(err)
+	}
+	commit, err := Checkpoint(map[string]any{"project_path": projectPath, "message": "pre-save-point baseline", "source": "test"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := AppendConversationNode(map[string]any{
+		"project_path": projectPath, "kind": "vit", "commit_id": commit["commit_id"], "text": "pre-save-point agent reply",
+	}); err != nil {
+		t.Fatal(err)
+	}
+	writeReopenDraftState(t, projectPath, projectUUID, "cont_stranded")
+	// The kernel save's prepare: its commit is lost, so it stays "prepared"
+	// while the .vit already embeds its generation id.
+	kernelPrepared, err := PrepareWorkingSessionSave(projectPath, projectUUID, "save")
+	if err != nil {
+		t.Fatal(err)
+	}
+	// The manual pair commits a different generation (R6: prepare_19d07191
+	// committed at 11:40:25.514 while prepare_c240bd60 stayed prepared).
+	manualPrepared, err := PrepareWorkingSessionSave(projectPath, projectUUID, "manual")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := CommitPreparedWorkingSession(projectPath, projectUUID, projectPath, projectUUID,
+		fmt.Sprint(manualPrepared["prepare_id"]), fmt.Sprint(manualPrepared["generation_id"]), "manual"); err != nil {
+		t.Fatal(err)
+	}
+	kernelGeneration := fmt.Sprint(kernelPrepared["generation_id"])
+	head, err := SavedHeadForProject(projectPath, projectUUID)
+	if err != nil || head.GenerationID == kernelGeneration {
+		t.Fatalf("manual save must own SAVED_HEAD before the reopen: head=%+v err=%v", head, err)
+	}
+	// Reopen with the stuck kernel generation embedded and an unrelated parent
+	// project UUID, exactly as the kernel reports it on open_project.
+	recovered, err := RecoverPreparedSaveOnOpen(projectPath, projectUUID, "", parentUUID, kernelGeneration, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if recovered["recovered"] != true || recovered["recovery_reason"] != "prepared_save_committed_on_open" {
+		t.Fatalf("stuck same-project prepare was not recovered on open: %+v", recovered)
+	}
+	if head, err := SavedHeadForProject(projectPath, projectUUID); err != nil || head.GenerationID != kernelGeneration {
+		t.Fatalf("recovered head=%+v err=%v want generation=%s", head, err, kernelGeneration)
+	}
+	// The reopen itself must go through the PROJ-OPEN-RESUME-1 boundary: the
+	// live conversation starts blank and the pre-save-point draft is archived.
+	reopened, err := OpenWorkingSessionAtGeneration(projectPath, projectUUID, kernelGeneration)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if reopened.BaseGeneration != kernelGeneration || reopened.ReopenReset == nil {
+		t.Fatalf("reopen did not bind the recovered save point: base=%q reset=%+v", reopened.BaseGeneration, reopened.ReopenReset)
+	}
+	liveGraph := readConversationGraphOrDefault(mustOpenRepo(t, projectPath))
+	assertConversationTexts(t, liveGraph, nil)
+	assertConversationTexts(t, readArchivedGraph(t, filepath.Dir(reopened.WorkspaceDir)), []string{"pre-save-point agent reply"})
+}
+
 func TestRecoverMatchingProjectHistoryAdoptsExactSnapshotIntoCurrentUUID(t *testing.T) {
 	root := t.TempDir()
 	projectPath := filepath.Join(root, "legacy.vit")

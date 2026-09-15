@@ -245,7 +245,7 @@ func RecoverPreparedSaveOnOpen(targetPath, targetUUID, sourcePath, sourceUUID, g
 	if sourcePath != "" && !sameProjectPath(sourcePath, targetPath) {
 		prepareRoots = append(prepareRoots, filepath.Join(filepath.Dir(sourcePath), DirName, savePreparesDirName))
 	}
-	prepared, err := findPreparedSave(prepareRoots, prepareID, generationID, sourceUUID)
+	prepared, err := findPreparedSave(prepareRoots, prepareID, generationID, sourceUUID, targetUUID)
 	if err != nil {
 		return nil, err
 	}
@@ -267,7 +267,24 @@ func RecoverPreparedSaveOnOpen(targetPath, targetUUID, sourcePath, sourceUUID, g
 	return result, err
 }
 
-func findPreparedSave(roots []string, prepareID, generationID, sourceUUID string) (PreparedSave, error) {
+// preparedBelongsToRecoveryTarget reports whether a prepared save can be
+// committed into the project being opened. The fork case (Save As) carries the
+// SOURCE project's generation inside the target file, so the prepare must
+// belong to the source. A same-project save whose commit was lost
+// (REOPEN-LEAK-1: the kernel embeds the generation into the .vit before the
+// agent-side commit, and that commit can fail) must match on the target
+// identity: the kernel's parent_project_uuid is the previously open project,
+// not the save source, so requiring the source match alone would strand the
+// stuck prepare and reopen the project off the live draft history instead of
+// its save point.
+func preparedBelongsToRecoveryTarget(preparedUUID, sourceUUID, targetUUID string) bool {
+	if preparedUUID == targetUUID {
+		return true
+	}
+	return sourceUUID != "" && preparedUUID == sourceUUID
+}
+
+func findPreparedSave(roots []string, prepareID, generationID, sourceUUID, targetUUID string) (PreparedSave, error) {
 	seen := map[string]bool{}
 	for _, root := range roots {
 		root = filepath.Clean(strings.TrimSpace(root))
@@ -278,7 +295,8 @@ func findPreparedSave(roots []string, prepareID, generationID, sourceUUID string
 		if prepareID != "" {
 			prepared := PreparedSave{}
 			if err := readJSON(filepath.Join(root, safeName(prepareID), "prepare.json"), &prepared); err == nil {
-				if prepared.Status == "prepared" && prepared.GenerationID == generationID && (sourceUUID == "" || prepared.ProjectUUID == sourceUUID) {
+				if prepared.Status == "prepared" && prepared.GenerationID == generationID &&
+					preparedBelongsToRecoveryTarget(prepared.ProjectUUID, sourceUUID, targetUUID) {
 					return prepared, nil
 				}
 			}
@@ -299,7 +317,8 @@ func findPreparedSave(roots []string, prepareID, generationID, sourceUUID string
 			if err := readJSON(filepath.Join(root, entry.Name(), "prepare.json"), &prepared); err != nil {
 				continue
 			}
-			if prepared.Status == "prepared" && prepared.GenerationID == generationID && (sourceUUID == "" || prepared.ProjectUUID == sourceUUID) {
+			if prepared.Status == "prepared" && prepared.GenerationID == generationID &&
+				preparedBelongsToRecoveryTarget(prepared.ProjectUUID, sourceUUID, targetUUID) {
 				return prepared, nil
 			}
 		}
