@@ -32,12 +32,35 @@ todo → doing → done(待验收) ─ ruling pass   → 归档 done（卡内回
 - **决策侧（Windows）**：全仓权限；裁定与归档落在 `rulings/` 与卡内
 - **冲突规则**：push 前 `pull --rebase`；coord 冲突以卡内"最后回填时间"较新者为准手工合并后重推
 
-## 4. 轮询（双端对称，本协议的引擎）
+## 4. 唤醒机制：watcher 事件驱动（零 token 待机），心跳兜底
 
-- 每约 30 分钟、工作窗 09:00–23:59：`git fetch origin && git pull --rebase`（网络失败本轮放弃，不算事件）
-- **执行侧重叠职责**：`todo/` 有可领卡（依赖满足、无 `[等待用户]` 标记）→ 领取开工；`doing/` 卡所属分支有待处理评审意见 → 处理
-- **决策侧重叠职责**：`done/` 有未验收卡 → 验收（审 `port/*` 分支 diff + 本地复验可验证项 + 写 ruling + 归档）；`blocked/`、`decisions/` 有新项 → 处置或汇总给用户
+**架构**：双端各跑一个纯 shell 后台守望循环（不消耗 LLM token）——每 60 秒 `git ls-remote` 比对远端指纹（主仓 + transfer 仓），**发现变化即退出，退出唤醒本端会话**；被唤醒的会话处理完变更后必须重启 watcher。git push 即事件，无轮询等待。
+
+**watcher 命令（决策侧 Windows，Git Bash，以 run_in_background 启动）**：
+
+```bash
+cd /d/Vit_DAW || exit 1
+snap() { { git ls-remote origin 2>/dev/null; git ls-remote https://github.com/ZTY-vit-daw/transfer.git 2>/dev/null; } | sort | sha1sum | cut -d' ' -f1; }
+LAST=$(snap); [ -z "$LAST" ] && LAST=SKIP
+while true; do
+  touch .git/watcher_alive
+  sleep 60
+  CUR=$(snap); [ -z "$CUR" ] && continue
+  if [ "$LAST" = "SKIP" ]; then LAST=$CUR; continue; fi
+  [ "$CUR" != "$LAST" ] && { echo CHANGE_DETECTED; exit 0; }
+  LAST=$CUR
+done
+```
+
+**执行侧（Mac）同规格**：主仓路径换成 `~/Vit-DAW`，`sha1sum` 换成 `shasum`；watcher 唤醒后先 `git pull --rebase` 再看 `coord/` 变化。
+
+**心跳兜底（双端，每 2 小时）**：检查 `.git/watcher_alive` 修改时间，超 5 分钟未更新 = watcher 已死 → 按 §4 命令重启；随后做一次完整状态轮询作为兜底。LLM 空转成本从每 30 分钟一次降为每 2 小时一次且通常只做自愈检查。
+
+**唤醒后的职责（双端对称）**：
+- **执行侧**：`todo/` 有可领卡（依赖满足、无 `[等待用户]`）→ 领取开工；自己 `doing/` 卡有新评审意见 → 处理；`transfer/` 有新文件 → 按命名归位并确认
+- **决策侧**：`done/` 有未验收卡 → 验收（审 `port/*` 分支 diff + 本地复验可验证项 + 写 ruling + 归档）；`blocked/`、`decisions/` 新项 → 处置或汇总给用户；transfer 有到达件 → 汇报
 - 需要真实栈/用户在场的验收（AGENTS §5 烟测门槛类）**不自动执行**，卡内标注 `[等待真栈验收]` 由用户在场时触发
+- 处理完毕**必须重启本端 watcher**（这是唤醒会话的最后一步）
 
 ## 5. 卡片模板
 
@@ -61,3 +84,15 @@ todo → doing → done(待验收) ─ ruling pass   → 归档 done（卡内回
 ## 7. 变更权
 
 本协议由决策侧维护；执行侧发现协议缺陷走 blocked 上报，不自行改协议。
+
+## 8. transfer 仓：双端临时传输带（PC↔Mac 文件通道）
+
+- 专用私有仓 `ZTY-vit-daw/transfer`（与主仓分离，避免论文/素材污染代码史），双端各自 clone 一份
+- 用途：论文材料、参考资料、demo 素材等**主仓外内容**的双端传递；`git push` 即触发对端 watcher 唤醒
+- 规则：文件放 `inbox-pc/`（PC 投递）或 `inbox-mac/`（Mac 投递）目录，文件名带日期；接收端 watcher 唤醒后汇报到达件并移入 `received/`；**非归档**——确认取走后定期清理；单文件 >100MB 不走此仓（GitHub 限制），改走 SSH scp（§9）
+
+## 9. SSH 直控与大文件（Layer 3，待 Mac 侧一次性配置后生效）
+
+- Mac 开启远程登录并配置决策侧公钥后，决策侧可直接 ssh/scp/rsync 驱动 Mac（拉码、构建、派活、传大文件）
+- 大文件（>100MB）一律 SSH 直传，不走任何网盘或第三方
+- 该层就位后，Mac 侧 watcher/心跳亦可由决策侧远程维护，用户无需在 Mac 侧开口
