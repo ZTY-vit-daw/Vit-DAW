@@ -22,11 +22,11 @@
 - **历史记录**：基线、验证记录、审计、ADR、设计草案快照等纯记录性文档。保留原位，可查证当时的设计决策，**不得当作现状**。
 - **已废弃**：内容已被实现超越且会误导 agent 的文档，已迁至 `docs/archive/`。
 
-汇总：`docs/` 顶层共 120 份现行/历史文档（现行 54 / 历史记录 66），另有 `docs/archive/` 已废弃文档 4 份；两者合计 124 份。`docs/vsp/` 子目录 13 份文档单独索引（见末节）。
+汇总：`docs/` 顶层共 121 份现行/历史文档（现行 55 / 历史记录 66），另有 `docs/archive/` 已废弃文档 4 份；两者合计 125 份。`docs/vsp/` 子目录 13 份文档单独索引（见末节）。
 
 ---
 
-## 一、现行（54）
+## 一、现行（55）
 
 ### 观察投影与上下文
 
@@ -101,6 +101,7 @@
 | [LITERATURE_ENGINEERING_BORROW_2026-09-07.md](docs/LITERATURE_ENGINEERING_BORROW_2026-09-07.md) | 文献工程借点清单（开发动作域，2026-09-07）：RIME/DAWZY/LLM2Fx 五条候选 L1–L5（失败语义/axis 单源化/freshness 不变式/护栏审计/fail-closed 硬化）；现行参考，状态随卡片推进更新，落地后迁历史记录 |
 | [PORT_AUDIT_2026-09.md](docs/PORT_AUDIT_2026-09.md) | Mac 移植审计报告（PORT-AUDIT-1，2026-09-15）：六项勘察、层 A–D 工时表（16.5–25 人日）、风险 R1–R9、§5 修正开工顺序、§7 真机待办回填位；移植期现行计划来源 |
 | [MAC_SESSION_HANDOVER_2026-09-16.md](docs/MAC_SESSION_HANDOVER_2026-09-16.md) | Mac 执行会话移交文档（MAC-HANDOVER-1，2026-09-16）：双端协作模型、首次开仓自检、协作协议（port/* 分支、回执、验收门槛）、U5 环境清单、不在仓库内的内容；Mac 侧首次开仓必读 |
+| [MAC_OPEN_RECEIPT_2026-09-16.md](docs/MAC_OPEN_RECEIPT_2026-09-16.md) | Mac 开仓回执（MAC-OPEN-1，2026-09-16，port/c1-plugin-scan-paths 分支）：自检 2/3、阻断项 B-1（tracktion_engine pin 上游不可达）/B-2（tmp_sodium_* 裸 gitlink 残留）上报、C1 交付回执、U5 环境绕行记录；待决策侧裁定 |
 
 ### 跨端契约与运维
 
