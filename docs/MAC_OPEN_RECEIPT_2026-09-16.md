@@ -60,3 +60,15 @@
 2. B-2：`tmp_sodium_*` 裸 gitlink 是否清理
 3. harness 2 例 mac 既有失败是否开排查卡
 4. C1 验收（本分支 `port/c1-plugin-scan-paths`，commits：`c40c876` C1 实现 + 本回执）
+
+## 6. 附录（2026-09-16 晚补充）：插件安装核查 + 用户范围裁定
+
+**用户裁定（U2 收窄）**：mac 侧定位为**展示机**，只安装 Waves 系列；PA（5 主体）与 FabFilter（3 主体）不装。校准面由 31 主体收窄为 **23 主体（全部 Waves）**——C3 执行计划与 PCA 白名单 mac 预期需按此口径调整，U1 自动免除。
+
+只读核查结果（均文件系统层，未做宿主加载）：
+
+- `WaveShell1-VST3 17.1.42` 装于 `/Library/Audio/Plug-Ins/VST3/`（另有 ARA 变体 shell）；**universal 二进制（x86_64 + arm64）**，arm64 内核原生可载
+- 插件内容在 `/Applications/Waves/Plug-Ins V17/`（259 条目）：**12 个目标 bundle 全部在位**——C1/C4/C6/L1/L2/LinMB/DeEsser/RDeEsser/Sibilance/Smack Attack/TransX + Primary Source Expander（=审计清单中的 PSE）
+- 许可：`~Library/Application Support/Waves/Licenses/*.wle` 显示 Ultimate 套装、Full License、Native 平台、无过期 → 23 主体授权覆盖
+- 签名注意（关联 R9）：shell 为 **adhoc/linker-signed**，非开发者签名/公证；dev 期未签名内核加载预期无碍，公证分发期需重估
+- 待真机项：shell 内枚举（哪 23 个 VST3 子插件实际暴露）需真实宿主扫描（A5/C3），文件层无法替代
