@@ -4,7 +4,8 @@
 
 本节记录需要随开发推进更新的动态事实；长期协作规则见仓库根目录 [AGENTS.md](AGENTS.md)。具体运行日志和完整验收证据仍以 `C:\Users\timoz\.zcode\workspace\default\queue\reports\` 下对应报告为准。
 
-- **仓库**：`D:\Vit_DAW`；最近已知 HEAD 为 `e52b52d`。读取本文件时必须重新核对 `git rev-parse HEAD` 与 `git status --short`，不得把此处快照当作实时 Git 状态。
+- **仓库**：`D:\Vit_DAW`；远程私有仓 `https://github.com/ZTY-vit-daw/Vit-DAW.git`（2026-09-16 首推；推送前完成历史清洗，**全部 commit 哈希与旧记录不可比**，含 30 分支/10 标签）。读取本文件时必须重新核对 `git rev-parse HEAD` 与 `git status --short`，不得把此处快照当作实时 Git 状态。
+- **移植主线（2026-09-16 起）**：Mac 移植启动。U4 已裁定（推私有仓）、D1 已完成（大文件剥离 + `.gitmodules` + 全量推送）；Mac 执行侧按 [docs/MAC_SESSION_HANDOVER_2026-09-16.md](docs/MAC_SESSION_HANDOVER_2026-09-16.md) 开工，工作计划见 [docs/PORT_AUDIT_2026-09.md](docs/PORT_AUDIT_2026-09.md)。
 - **工作树**：2026-09-06 gate 记录为多条未提交代码线并存（DIAG3-1/2/3、MILESTONE-B-1、PCA-1 等）；已有改动是权威输入，禁止丢弃。验收通过后按代码线分批提交，再领取重叠文件域的新卡。
 - **模型 B**：双预算与 bounded mix probe 已通过单测和真栈进度验证；p01 已证明覆盖/候选供给不再触发旧的 model evidence ceiling。p03 已走到 proposal accepted、domain route、`processor_selection` 和真实插件装载 mutation。
 - **当前阻塞**：PCA-1 的规划期准入契约修补已完成代码与局部测试，但 2026-09-06 首轮真栈被 CPU 瞬态中断，p03 三轮及 p01 回归尚待有效运行证据。模型 B 端到端里程碑在出现 evaluator 通过且真实栈 exit 0 前仍不得标记完成。
@@ -21,11 +22,11 @@
 - **历史记录**：基线、验证记录、审计、ADR、设计草案快照等纯记录性文档。保留原位，可查证当时的设计决策，**不得当作现状**。
 - **已废弃**：内容已被实现超越且会误导 agent 的文档，已迁至 `docs/archive/`。
 
-汇总：`docs/` 顶层共 118 份现行/历史文档（现行 52 / 历史记录 66），另有 `docs/archive/` 已废弃文档 4 份；两者合计 122 份。`docs/vsp/` 子目录 13 份文档单独索引（见末节）。
+汇总：`docs/` 顶层共 120 份现行/历史文档（现行 54 / 历史记录 66），另有 `docs/archive/` 已废弃文档 4 份；两者合计 124 份。`docs/vsp/` 子目录 13 份文档单独索引（见末节）。
 
 ---
 
-## 一、现行（52）
+## 一、现行（54）
 
 ### 观察投影与上下文
 
@@ -98,6 +99,8 @@
 | [G0_C2_BASELINE_2026-08-17.md](docs/G0_C2_BASELINE_2026-08-17.md) | G0 基线记录；AGENTS.md §6 健康检查命令的权威来源（白名单收录） |
 | [REPO_OPTIMIZATION_TODO_2026-08-22.md](docs/REPO_OPTIMIZATION_TODO_2026-08-22.md) | 本轮仓库优化任务清单 T1–T11（白名单收录） |
 | [LITERATURE_ENGINEERING_BORROW_2026-09-07.md](docs/LITERATURE_ENGINEERING_BORROW_2026-09-07.md) | 文献工程借点清单（开发动作域，2026-09-07）：RIME/DAWZY/LLM2Fx 五条候选 L1–L5（失败语义/axis 单源化/freshness 不变式/护栏审计/fail-closed 硬化）；现行参考，状态随卡片推进更新，落地后迁历史记录 |
+| [PORT_AUDIT_2026-09.md](docs/PORT_AUDIT_2026-09.md) | Mac 移植审计报告（PORT-AUDIT-1，2026-09-15）：六项勘察、层 A–D 工时表（16.5–25 人日）、风险 R1–R9、§5 修正开工顺序、§7 真机待办回填位；移植期现行计划来源 |
+| [MAC_SESSION_HANDOVER_2026-09-16.md](docs/MAC_SESSION_HANDOVER_2026-09-16.md) | Mac 执行会话移交文档（MAC-HANDOVER-1，2026-09-16）：双端协作模型、首次开仓自检、协作协议（port/* 分支、回执、验收门槛）、U5 环境清单、不在仓库内的内容；Mac 侧首次开仓必读 |
 
 ### 跨端契约与运维
 
