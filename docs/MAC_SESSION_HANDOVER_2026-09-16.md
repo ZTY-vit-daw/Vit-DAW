@@ -10,6 +10,7 @@
 - **Windows 侧（`D:\Vit_DAW`）= 决策侧 + 主开发线**：任务卡派发、验收、main 分支日常提交。
 - **Mac 侧（本机 clone）= 移植执行侧**：按 PORT_AUDIT 层 A–D 执行移植卡，在 `port/*` 分支上工作。
 - **git 私有仓是唯一同步通道**：`https://github.com/ZTY-vit-daw/Vit-DAW.git`（私有）。Mac 侧的一切交付物通过 branch + commit + push 到达 Windows 侧；Windows 侧的验收裁定通过 main（merge）或分支上的评审意见到达 Mac 侧。**用户只负责触发会话，不负责转述内容。**
+- **coord/ 是双端协作现行权威（2026-09-16 起）**：卡片状态机（todo/doing/done/blocked）、轮询约定、裁定与决策记录见 [coord/PROTOCOL.md](../coord/PROTOCOL.md)；定时轮询模式下会话由双端各自的工作区自动化驱动，用户不再逐次触发。
 - 用户在 Windows 侧说"验收"时，决策侧会看你在远程分支上的实际 diff、命令退出码与日志工件，不看自述。
 
 ## 1. 首次开仓（照抄执行）
