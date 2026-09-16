@@ -22,8 +22,10 @@
 
 ### PC 端（决策侧部署时补记）
 
-- watcher v2 命令见 PROTOCOL §4（Git Bash / sha1sum / `/d/Vit_DAW`）
-- 部署 = 在 Windows 机器 `~/.zcode/workspace/default/AGENTS.md` 写入与本文件口令表一致的路由（决策侧执行，用户在场确认）
+- watcher v2 命令见 PROTOCOL §4（Git Bash / sha1sum / `/d/Vit_DAW`）；心跳自动化为只报告模式（2h，含 watcher 自愈）
+- 口令路由已写入 Windows `~/.zcode/workspace/default/AGENTS.md`（2026-09-16，用户在场）
+- **「开工 <卡ID>」PC 侧语义（用户确认 2026-09-16）**：授权启动该卡验收流程，pass/rework 由证据决定，口令≠必须通过；验收流程内的写操作（ruling 文件、卡片归档、合入 main、cherry-pick）均含于该次授权，无需逐项再批
+- **多卡规则（用户确认 2026-09-16）**：默认一条对话流一张卡（对齐"一任务一会话"纪律）；仅当用户明确点名多卡（如「开工 A2 C4」）才作为单条流的多卡授权
 
 ## 硬性护栏（任何口令下双端共同遵守）
 

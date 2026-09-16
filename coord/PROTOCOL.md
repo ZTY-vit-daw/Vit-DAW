@@ -59,7 +59,7 @@ done
 
 v2 修复说明：v1 中网络失败时 `ls-remote` 空输出经管道被哈希为"空指纹"（`da39a3ee...`），网络恢复后真指纹≠空指纹 → 假触发唤醒（2026-09-16 实测一次，远端零变更）。v2 以 NETFAIL 守卫拒绝半成功快照——两个 ls-remote 任一为空即视为本轮无效。**已按 v1 启动 watcher 的会话请用本节命令重启。**
 
-**执行侧（Mac）同规格**：主仓路径换成 `~/Vit-DAW`，`sha1sum` 换成 `shasum`；watcher 唤醒后先 `git pull --rebase` 再看 `coord/` 变化。
+**执行侧（Mac）同规格**：主仓实际路径 `~/Documents/Vit-DAW`，`sha1sum` 换成 `shasum`；watcher 唤醒后先 `git pull --rebase` 再看 `coord/` 变化。
 
 **心跳兜底（双端，每 2 小时）**：检查 `.git/watcher_alive` 修改时间，超 5 分钟未更新 = watcher 已死 → 按 §4 命令重启；随后做一次完整状态轮询作为兜底。LLM 空转成本从每 30 分钟一次降为每 2 小时一次且通常只做自愈检查。
 
