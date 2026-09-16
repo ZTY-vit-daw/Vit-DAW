@@ -99,8 +99,8 @@ v2 修复说明：v1 中网络失败时 `ls-remote` 空输出经管道被哈希�
 - 用途：论文材料、参考资料、demo 素材等**主仓外内容**的双端传递；`git push` 即触发对端 watcher 唤醒
 - 规则：文件放 `inbox-pc/`（PC 投递）或 `inbox-mac/`（Mac 投递）目录，文件名带日期；接收端 watcher 唤醒后汇报到达件并移入 `received/`；**非归档**——确认取走后定期清理；单文件 >100MB 不走此仓（GitHub 限制），改走 SSH scp（§9）
 
-## 9. SSH 直控与大文件（Layer 3，待 Mac 侧一次性配置后生效）
+## 9. SSH 直控与大文件（Layer 3，2026-09-16 已生效）
 
-- Mac 开启远程登录并配置决策侧公钥后，决策侧可直接 ssh/scp/rsync 驱动 Mac（拉码、构建、派活、传大文件）
-- 大文件（>100MB）一律 SSH 直传，不走任何网盘或第三方
-- 该层就位后，Mac 侧 watcher/心跳亦可由决策侧远程维护，用户无需在 Mac 侧开口
+- 通道：决策侧 → `ssh -i ~/.ssh/vit_daw_mac TimoZTY@192.168.1.138`（LAN；公钥经 transfer 仓投递、用户批准后由 Mac 装入，回执见 transfer `received/`）
+- 用途：远程只读核查（仓库状态/watcher 存活/环境）、驱动构建、scp/rsync 传 >100MB 大文件；对 Mac 工作树的写操作须 Mac 会话知情或用户批准（report-first 同样适用于 SSH 面）
+- Mac 侧 watcher/环境维护可由决策侧远程执行，用户无需在 Mac 侧开口
