@@ -54,7 +54,7 @@
   </VALUE>
   <VALUE name="audio_device_setup">
     <DEVICESETUP deviceType="Windows Audio" audioOutputDeviceName="&#25196;&#22768;&#22120; (USB AUDIO  CODEC)"
-                 audioInputDeviceName="Line (USB AUDIO  CODEC)" audioDeviceRate="48000.0"
+                 audioInputDeviceName="Line (USB AUDIO  CODEC)" audioDeviceRate="44100.0"
                  audioDeviceBufferSize="480"/>
   </VALUE>
   <VALUE name="audiosettings_DirectSound">

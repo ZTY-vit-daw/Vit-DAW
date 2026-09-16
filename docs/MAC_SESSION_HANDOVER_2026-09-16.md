@@ -26,7 +26,7 @@ git clone --recurse-submodules https://github.com/ZTY-vit-daw/Vit-DAW.git
 # ③ 开仓自检（全部通过才算开仓成功，结果记入首个回执）
 cd Vit-DAW
 git log --oneline -1                     # 应为本文档入库的 commit 或其后续
-git submodule status                     # tracktion_engine 应为 0981e7ce...（无 + 前缀）
+git submodule status                     # tracktion_engine 应为 bae0331...（私有镜像 pin，无 + 前缀）
 cd agent && go build ./... ; echo $?     # 应 exit 0（darwin 交叉编译已审计验证）
 ```
 
@@ -39,7 +39,7 @@ cd agent && go build ./... ; echo $?     # 应 exit 0（darwin 交叉编译已�
 - **私有仓于 2026-09-16 首推**。推送前做了一次历史清洗（`git filter-repo` 剥离 `VitApp/build/` 与全部 >50MB 历史 blob），因此**全部 commit 哈希与清洗前不同**；网上不存在旧哈希，不要试图找。
 - 远程现有 30 个分支 + 10 个标签 + main 主干。**日常只基于 main 开工**；其余 `codex/*`、`backup/*` 分支是历史工作线的归档快照（已重写为干净历史），仅供参考，不要基于它们开发。
 - `spectrum_data.exr`（227MB 旧测试频谱图）已移出跟踪（用户裁定）；`.gitignore` 的 `*.exr`/`*.wav` 规则接管。**永远不要再把大文件（>50MB）提交进仓**——GitHub 单文件 100MB 硬上限，且会重新污染历史。
-- `tracktion_engine` 是 submodule（pinned `0981e7ce`，公共上游）。升级它需要决策侧拍板，执行侧不得自行改 pin。
+- `tracktion_engine` 是 submodule，URL 指向**私有自包含镜像** `ZTY-vit-daw/tracktion_engine`（pinned `bae0331`，2026-09-16 起；原公共上游改写历史除名了旧 pin，事件与裁定见 `coord/decisions/`）。升级它需要决策侧重新制作快照并重 pin，执行侧不得自行改 pin。
 - Windows 侧本地有一个 `archive/pre-filter-history` 分支（清洗前旧历史，纯本地保险）；它在远程**不存在也不该存在**，Mac 侧无需关心。
 
 ## 3. 必读文件与顺序
