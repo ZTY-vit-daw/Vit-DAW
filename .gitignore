@@ -88,6 +88,7 @@ yarn-error.log*
 /agent/backups/
 **/.vit_history/
 /agent/.playwright-cli/
+/design/gui/.playwright-cli/
 /agent/output/
 /agent/*.json
 /agent/*.txt
