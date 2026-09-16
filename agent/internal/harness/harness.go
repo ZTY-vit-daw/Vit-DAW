@@ -8581,16 +8581,6 @@ func pluginScanReplyError(reply map[string]any, fallback string) error {
 	return fmt.Errorf("%s", firstNonEmpty(firstString(reply, "message"), firstString(reply, "error"), fallback))
 }
 
-func defaultPluginScanPaths() []string {
-	if commonProgramFiles := strings.TrimSpace(os.Getenv("CommonProgramFiles")); commonProgramFiles != "" {
-		return []string{filepath.Join(commonProgramFiles, "VST3")}
-	}
-	if programFiles := strings.TrimSpace(os.Getenv("ProgramFiles")); programFiles != "" {
-		return []string{filepath.Join(programFiles, "Common Files", "VST3")}
-	}
-	return []string{`C:\Program Files\Common Files\VST3`}
-}
-
 func normalizePluginInventoryRows(rows []map[string]any) []map[string]any {
 	out := make([]map[string]any, 0, len(rows))
 	for _, row := range rows {
