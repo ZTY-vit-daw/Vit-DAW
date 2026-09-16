@@ -20,8 +20,9 @@
 - watcher 指纹命令用 `shasum`（非 sha1sum）；网络代理已配（git 全局 `http.https://github.com.proxy=127.0.0.1:7890`），无需环境变量
 - 2h 心跳自动化为工作区级定时任务（只报告模式，跨流存活，自愈重启 watcher）
 
-### PC 端（决策侧部署时补记）
+### PC 端（2026-09-16 部署完成）
 
+- **新对话流以口令激活（与 Mac 侧对称，用户裁定 2026-09-16）**：PC 端专属注记、机器事实与备用提示词见 [BOOTSTRAP-PC.md](BOOTSTRAP-PC.md)
 - watcher v2 命令见 PROTOCOL §4（Git Bash / sha1sum / `/d/Vit_DAW`）；定时任务已移除（2026-09-16 用户裁定），watcher 由口令「值班」自愈
 - 口令路由已写入 Windows `~/.zcode/workspace/default/AGENTS.md`（2026-09-16，用户在场）
 - **「开工 <卡ID>」PC 侧语义（用户确认 2026-09-16）**：授权启动该卡验收流程，pass/rework 由证据决定，口令≠必须通过；验收流程内的写操作（ruling 文件、卡片归档、合入 main、cherry-pick）均含于该次授权，无需逐项再批
