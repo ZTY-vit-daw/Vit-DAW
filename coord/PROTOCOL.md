@@ -36,21 +36,28 @@ todo → doing → done(待验收) ─ ruling pass   → 归档 done（卡内回
 
 **架构**：双端各跑一个纯 shell 后台守望循环（不消耗 LLM token）——每 60 秒 `git ls-remote` 比对远端指纹（主仓 + transfer 仓），**发现变化即退出，退出唤醒本端会话**；被唤醒的会话处理完变更后必须重启 watcher。git push 即事件，无轮询等待。
 
-**watcher 命令（决策侧 Windows，Git Bash，以 run_in_background 启动）**：
+**watcher 命令（决策侧 Windows，Git Bash，以 run_in_background 启动；v2——修复网络恢复假触发）**：
 
 ```bash
 cd /d/Vit_DAW || exit 1
-snap() { { git ls-remote origin 2>/dev/null; git ls-remote https://github.com/ZTY-vit-daw/transfer.git 2>/dev/null; } | sort | sha1sum | cut -d' ' -f1; }
-LAST=$(snap); [ -z "$LAST" ] && LAST=SKIP
+snap() {
+  a=$(git ls-remote origin 2>/dev/null)
+  b=$(git ls-remote https://github.com/ZTY-vit-daw/transfer.git 2>/dev/null)
+  { [ -n "$a" ] && [ -n "$b" ]; } || { echo NETFAIL; return; }
+  printf '%s\n%s\n' "$a" "$b" | sha1sum | cut -d' ' -f1
+}
+LAST=$(snap); [ "$LAST" = "NETFAIL" ] && LAST=SKIP
 while true; do
   touch .git/watcher_alive
   sleep 60
-  CUR=$(snap); [ -z "$CUR" ] && continue
+  CUR=$(snap); [ "$CUR" = "NETFAIL" ] && continue
   if [ "$LAST" = "SKIP" ]; then LAST=$CUR; continue; fi
-  [ "$CUR" != "$LAST" ] && { echo CHANGE_DETECTED; exit 0; }
+  [ "$CUR" != "$LAST" ] && { echo CHANGE_DETECTED: $CUR; exit 0; }
   LAST=$CUR
 done
 ```
+
+v2 修复说明：v1 中网络失败时 `ls-remote` 空输出经管道被哈希为"空指纹"（`da39a3ee...`），网络恢复后真指纹≠空指纹 → 假触发唤醒（2026-09-16 实测一次，远端零变更）。v2 以 NETFAIL 守卫拒绝半成功快照——两个 ls-remote 任一为空即视为本轮无效。**已按 v1 启动 watcher 的会话请用本节命令重启。**
 
 **执行侧（Mac）同规格**：主仓路径换成 `~/Vit-DAW`，`sha1sum` 换成 `shasum`；watcher 唤醒后先 `git pull --rebase` 再看 `coord/` 变化。
 
