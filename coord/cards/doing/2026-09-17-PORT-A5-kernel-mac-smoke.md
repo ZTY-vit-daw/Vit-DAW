@@ -7,6 +7,6 @@
 - 文件域：`scripts/`（新 mac 冒测脚本，复用 C4 白名单 GET 模式与 ps1 体系既有模式，命名对齐惯例）；**不改 `VitApp/Source`**（若探明必须内核侧 shutdown 命令面 → 停止条件上交开卡）；`agent/` 如需最小接线改动须列明并最小化
 - 验收标准：① mac 真实栈（内核+agent 两件，Godot 前端不在本卡）冒测脚本 exit 0：起内核 → agent 起动并探活（/health 等白名单）→ ZMQ 命令面至少一条真实命令往返（如 project/state 类只读命令）→ 停内核（停止方式与退出码记录）；② 插件扫描 child-process 跑通并产出 23 Waves 主体清单（R2 首验结论显式：WaveShell1-VST3 枚举成功/失败及形态）；③ 工件独立目录（run ID + 内核/agent 日志 + lsof 证据）；④ 失败按类型记录（环境中断 / 功能失败分开，AGENTS §8）
 - 停止条件：需改内核代码才能起停/探活 → 上交开卡（本卡以验证为主）；WaveShell 枚举失败 → 保留证据转 blocked（R2 预案：升级 tracktion/JUCE 或补丁另开卡）；发现内核 mac 运行时崩溃 → 记录栈与复现条件上交
-- 领取：
+- 领取：2026-09-17 20:05 CST（Mac 执行流，用户直令「开工 A5」，BOOTSTRAP 口令表授权）/ origin/main `4208de89e9173297ece2c7e65d8a5ed5f06e3363`（叠加同机并行 HARNESS-FIX-1 流的 blocked 协调提交 b9b5466 之上领取；按 PROTOCOL §3 在独立 worktree `/tmp/vit-a5-worktree` 开工，主工作树让渡给 HARNESS-FIX-1 流）/ 分支 `port/a5-kernel-mac-smoke`
 - 回执：
 - 验收：
