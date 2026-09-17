@@ -1220,7 +1220,7 @@ juce::String TransportAudioService::handleStartRender (const juce::DynamicObject
     if (object.hasProperty ("use_master_plugins"))
         useMasterPlugins = static_cast<bool> (object.getProperty ("use_master_plugins"));
 
-    return production->startOfflineRender (*edit, juce::File (path), startSec, endSec, bitDepth, useMasterPlugins);
+    return production->startOfflineRender (*edit, juce::File (path), startSec, endSec, bitDepth, useMasterPlugins, {}, {});
 }
 
 juce::String TransportAudioService::handleL2RenderProbe (const juce::DynamicObject& object, const juce::String&) const

@@ -61,14 +61,17 @@ public:
 
     bool isRendering() const noexcept { return rendering.load(); }
 
+    // No default argument here: clang rejects a `= {}` default argument whose
+    // nested type carries NSDMIs while the enclosing class is still incomplete
+    // (MSVC accepts). Callers that want no probe pass L2RenderProbeRequest{}.
     juce::String startOfflineRender (te::Edit& edit,
                                      const juce::File& destFile,
                                      double rangeStartSeconds,
                                      double rangeEndSeconds,
                                      int bitDepth,
                                      bool useMasterPlugins,
-                                     const juce::BigInteger& tracksToDo = {},
-                                     L2RenderProbeRequest probeRequest = {});
+                                     const juce::BigInteger& tracksToDo,
+                                     L2RenderProbeRequest probeRequest);
 
     juce::String startCompressorDualTapProbe (te::Edit& edit,
                                               CompressorDualTapProbeRequest request);

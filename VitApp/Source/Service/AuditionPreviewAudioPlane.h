@@ -144,7 +144,32 @@ private:
 
     mutable std::mutex sessionsMutex;
     std::unordered_map<std::string, std::shared_ptr<RuntimeSession>> sessions;
+#if defined(_WIN32)
     std::atomic<std::shared_ptr<RuntimeSession>> activeSession;
+#else
+    // PORT-A3: Apple libc++ has no std::atomic<std::shared_ptr<T>> (P0718).
+    // MSVC implements that specialization with an internal spinlock, so this
+    // short-spinlock holder preserves the effective store/load semantics.
+    // The memory-order arguments are accepted and ignored: the spinlock's
+    // full barrier provides at least acquire/release ordering.
+    struct ActiveSessionSlot
+    {
+        void store (const std::shared_ptr<RuntimeSession>& session,
+                    std::memory_order = std::memory_order_seq_cst)
+        {
+            const juce::SpinLock::ScopedLockType lock (spin);
+            slot = session;
+        }
+        std::shared_ptr<RuntimeSession> load (std::memory_order = std::memory_order_seq_cst) const
+        {
+            const juce::SpinLock::ScopedLockType lock (spin);
+            return slot;
+        }
+        mutable juce::SpinLock spin;
+        std::shared_ptr<RuntimeSession> slot;
+    };
+    ActiveSessionSlot activeSession;
+#endif
     std::atomic<std::uint64_t> candidatesDecoded { 0 };
     std::atomic<std::uint64_t> sourceSwitchRequests { 0 };
     std::atomic<std::uint64_t> audioBlocksRendered { 0 };

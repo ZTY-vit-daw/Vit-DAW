@@ -4,7 +4,9 @@
 #include <algorithm>
 #include <chrono>
 #include <cstdlib>
+#if defined(_WIN32)
 #include <windows.h>
+#endif
 #include <atomic>
 #include <cmath>
 #include <cstring>
@@ -64,14 +66,14 @@ enum class PoolMode
 
 std::mutex gMutex;
 std::mutex gDiagLogMutex;
-std::map<std::string, std::vector<HANDLE>> gHandles;
+std::map<std::string, std::vector<void*>> gHandles;
 std::map<std::string, uint64_t>            gGen;
 
 struct RetiredHandle
 {
     std::string key;
     uint64_t gen = 0;
-    HANDLE handle = nullptr;
+    void* handle = nullptr;
     std::chrono::steady_clock::time_point releaseAt;
 };
 
@@ -93,8 +95,10 @@ void cleanupRetiredHandlesUnlocked()
             ++it;
             continue;
         }
+#if defined(_WIN32)
         if (it->handle)
             CloseHandle (it->handle);
+#endif
         it = gRetiredHandles.erase (it);
     }
 }
@@ -105,7 +109,7 @@ juce::String makeBakeKey (const juce::String& trackId, const juce::String& clipI
     return key.isNotEmpty() ? key : trackId.trim();
 }
 
-juce::String sanitiseBakeKeyForShm (juce::String key)
+[[maybe_unused]] juce::String sanitiseBakeKeyForShm (juce::String key)
 {
     key = key.trim();
     if (key.isEmpty())
@@ -166,7 +170,7 @@ bool isGen(const juce::String& id, uint64_t gen)
     return it != gGen.end() && it->second == gen;
 }
 
-bool storeHandle(const juce::String& id, uint64_t gen, HANDLE h)
+[[maybe_unused]] bool storeHandle(const juce::String& id, uint64_t gen, void* h)
 {
     std::lock_guard<std::mutex> lock(gMutex);
     cleanupRetiredHandlesUnlocked();
@@ -186,7 +190,7 @@ bool storeHandle(const juce::String& id, uint64_t gen, HANDLE h)
     return true;
 }
 
-size_t handleCountForGen (const juce::String& id, uint64_t gen)
+[[maybe_unused]] size_t handleCountForGen (const juce::String& id, uint64_t gen)
 {
     std::lock_guard<std::mutex> lock(gMutex);
     auto key = id.toStdString();
@@ -239,7 +243,7 @@ QualityStats collectQualityStats (const float* data, size_t count)
     return stats;
 }
 
-QualityDecision decideSpectralQuality (const QualityStats& readerStats,
+[[maybe_unused]] QualityDecision decideSpectralQuality (const QualityStats& readerStats,
                                        const QualityStats& fftInputStats,
                                        const QualityStats& fftOutputStats,
                                        const QualityStats& tileStats,
@@ -268,7 +272,7 @@ QualityDecision decideSpectralQuality (const QualityStats& readerStats,
     return { "ready", "ok" };
 }
 
-void setQualityStatsProperties (juce::DynamicObject& obj,
+[[maybe_unused]] void setQualityStatsProperties (juce::DynamicObject& obj,
                                 const juce::String& prefix,
                                 const QualityStats& stats)
 {
@@ -621,8 +625,8 @@ void TiledSpectrogramBaker::startBake(juce::String filePath,
             int prevPeakBinL = -1, prevPeakBinR = -1;
             float driftSumBinL = 0.0f, driftSumBinR = 0.0f;
             int driftCountL = 0, driftCountR = 0;
-            int activeFrameCount = 0;
-            int silentFrameCount = 0;
+            [[maybe_unused]] int activeFrameCount = 0;
+            [[maybe_unused]] int silentFrameCount = 0;
             QualityStats readerStats;
             QualityStats fftInputStats;
             QualityStats fftOutputStats;
@@ -909,18 +913,19 @@ void TiledSpectrogramBaker::startBake(juce::String filePath,
                     " avg_peak_jump_bin_R=" + juce::String(avgJumpR, 3));
             }
 
-            const double totalDurationSec = bakeTotalSamples > 0
+            [[maybe_unused]] const double totalDurationSec = bakeTotalSamples > 0
                 ? ((double) bakeTotalSamples / sr)
                 : 0.0;
             const int64_t tileRemainingSamples = juce::jmax<int64_t> (0, bakeTotalSamples - tileStartSample);
             const int64_t tileValidSamples = juce::jmin<int64_t> (tileSpanSamples, tileRemainingSamples);
-            const double tileDurationSec = tileValidSamples > 0
+            [[maybe_unused]] const double tileDurationSec = tileValidSamples > 0
                 ? ((double) tileValidSamples / sr)
                 : 0.0;
-            const double tileContentStartSeconds = sourceOffsetSeconds + ((double) tileStartSample / sr);
-            const auto tileStats = collectQualityStats (tile.data(), tile.size());
+            [[maybe_unused]] const double tileContentStartSeconds = sourceOffsetSeconds + ((double) tileStartSample / sr);
+            [[maybe_unused]] const auto tileStats = collectQualityStats (tile.data(), tile.size());
 
             // Write tile to shared memory
+#if defined(_WIN32)
             auto sessionId = bakeKey + ":" + juce::String ((int64) gen);
             auto shm = "Vit_Waveform_" + sanitiseBakeKeyForShm (bakeKey) + "_g" + juce::String ((int64) gen) + "_" + juce::String(tileIndex);
             auto bytes = (SIZE_T)(tile.size() * sizeof(float));
@@ -1039,6 +1044,16 @@ void TiledSpectrogramBaker::startBake(juce::String filePath,
                 setQualityStatsProperties (*obj, "shm_postwrite_", shmStats);
                 publish(juce::JSON::toString(juce::var(obj.release())));
             }
+#else
+            // PORT-A3: shm publishing uses the Windows mapping API; the POSIX
+            // publisher is A1 scope. Skip the shared-memory write and the
+            // tile_ready event (it would advertise a segment that does not
+            // exist on this platform).
+            writeDiagLog("[baker.lifecycle] publish_skipped key=" + bakeKey
+                         + " gen=" + juce::String((int64) gen)
+                         + " tile_index=" + juce::String(tileIndex)
+                         + " reason=shm_unsupported_platform");
+#endif
         }
     }).detach();
 }
