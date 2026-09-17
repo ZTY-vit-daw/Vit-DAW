@@ -1,0 +1,19 @@
+# PORT-A3：mac CMake 试编译整备（内核首次 darwin 编译）
+
+- 优先级 / 预估 / 依赖：P1 / 1-2 天（PORT_AUDIT 层 A，R1 消解点）/ 无——**当前最高优先，内核一切后续卡的前置**
+- 模型分级：L3 / GLM-5.3（首次 mac 编译，未知面大；如需构建系统大改方案先上交讨论）
+- 目标：VitApp 内核在 mac（clang / Xcode CLT）下 CMake configure + 编译通过：clang 警告/错误清理、libsodium `GLOB_RECURSE`（VitApp/cmake/libsodium_bundle/CMakeLists.txt:9）mac 实证或改显式源列表、VitApp/Tests 目标同步可编译。审计前置已核：路径全走 `juce::File`、无 WASAPI/ASIO 直接引用（音频面由 JUCE 抽象，真机行为归 A5）——预期阻塞集中在构建系统与编译警告
+- 文件域：`VitApp/CMakeLists.txt`、`VitApp/cmake/**`、`VitApp/Source/**`、`VitApp/Tests/**`（Source/Tests 仅限编译通过所需最小改动：头包含、显式类型转换、平台 `#if` 守卫；不改运行语义）；不触碰 `agent/` 与 `scripts/`
+- 验收标准：① mac 本机 cmake configure + build 核心目标 exit 0（build 目录与运行态写独立临时目录，AGENTS §10）；② libsodium mac 编译方式有实证结论（GLOB 原样可用 / 改显式源列表，附证据）；③ Tests 目标 mac 编译通过（或记录首个不可达点转 blocked）；④ Windows 零回退：改动一律平台守卫包住，Windows 分支逻辑零变化，由决策侧 PC 会话复编译确认；⑤ 构建命令与退出码入回执
+- 停止条件：需改运行语义才能编译过 → blocked；发现 mac 无等价物的 Windows-only 依赖（库/API）→ 列清单上交决策侧
+- 领取：2026-09-17 下午（Mac 执行流，用户直令「开工 A3」）/ origin/main `30307e14c2a6cad40f853c7c9bd1ed07fb1103b6` / 分支 `port/a3-mac-cmake`
+- 回执：实现 commit `f3a4cd3`（分支 `port/a3-mac-cmake`，已推送待验收合并；9 文件 +101/-26，全部在卡面文件域内）。验证（本机 darwin/arm64，Apple clang 21.0.0 / CMake 4.4.3 / Xcode CLT，构建目录 `/tmp/vit-a3-build/*` 独立临时目录，AGENTS §10）：
+  - **验收①** VitApp configure exit 0 + `make -j8 VitApp` exit 0——juce+tracktion+ZeroMQ(FetchContent v4.3.5/v4.10.0)+sodium+VitApp 全链，产物 `VitApp_artefacts/Debug/VitApp`（Mach-O 64-bit arm64 可执行档，106MB Debug 全符号）。**内核首次 darwin 编译+链接达成**。
+  - **验收②** libsodium `GLOB_RECURSE` mac 实证**原样可用**：GLOB 命中 119 个 .c，119/119 编译产出 libsodium.a（1.05MB），`_sodium_init`/`_sodium_version_string` 符号导出确认；无需改显式源列表（SIMD 内建 .c 因 HAVE_* 未定义编为空 TU，与 MSVC 路径同构）。
+  - **验收③** Tests 工程 configure exit 0 + build exit 0，4/4 可执行档产出（StateTests/PersistPolicy/AudioPlane/RenderWatchdog）；**超出门槛**：4/4 运行 exit 0（AudioPlane/RenderWatchdog 为真实 tracktion Engine headless 运行）。
+  - **验收⑤** 命令与退出码：`cmake <src> -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug`（0）、`make -j8 VitApp`（0）、Tests 同构 configure（0）+ `make -j8`（0）、4 测试运行（0×4）。
+  - **验收④（Windows 零回退，自检面）**：所有 Source 改动均 `#if defined(_WIN32)` 守卫且守卫内零编辑（发布块字节不变）；`HANDLE`→`void*` 为 winnt.h 恒等 typedef；`[[maybe_unused]]` 纯属性（MSVC C++20 接受）；startOfflineRender 默认实参去除后两调用点显式 `{}` 与原默认取值一致；CMake `LANGUAGES C CXX` 平台中立（MSVC 同样适用，且顺带修复 PC 上 CMake 4.x 全新 configure 的同型潜伏失败）。**PC 复编译确认归决策侧**。
+  - **改动明细**：① VitApp/CMakeLists.txt + Tests/CMakeLists.txt 顶层 `LANGUAGES CXX`→`C CXX`（CMake 4.x 下 libsodium 子工程顶层作用域启用 C 时缺 `CMAKE_C_COMPILE_OBJECT`，generate 失败）；② 两 Baker shm 发布块 + windows.h + SharedMemoryTester 整类守卫（非 Windows 侧显式降级：发布 skip + `publish_skipped` 日志，POSIX 发布归 A1）；③ startOfflineRender 去嵌套类型默认实参（clang/MSVC 差异，CWG 1397 族）；④ AuditionPreviewAudioPlane 的 `std::atomic<shared_ptr>`（Apple libc++ 无 P0718 特化）非 Windows 侧 juce::SpinLock 等效 shim（MSVC 本尊即自旋锁实现，调用点零改动）。
+  - **重大发现（镜像缺陷，影响双平台，已按 A4 卡条款走独立分支上交）**：tracktion_engine 镜像缺 `modules/juce/extras/Build/`（JUCE 全部 CMake 辅助脚本）——根因是镜像 `.gitignore` 的 `build*/` 在大小写不敏感 FS 上吞掉 `Build/`；**PC 侧全新 configure 也会同样 fatal**（此前仅靠热构建目录未暴露）。juce pin `563331e` 已被上游历史改写除名（commit/archive 双 404），无从取回本尊；内联模块源码与 8.0.12 tag 有 140 文件真实差异（含 WaveShell 修复载荷，不可整树替换）。已推送镜像补丁分支 `restore-juce-extras-build` @`b439749`（44 文件，源自 juce 8.0.12 tag tarball `extras/Build/`，SHA256 `dec1a8ba…7cf102`；.gitignore 负向规则防重蹈；MIRROR_PROVENANCE.md 注记全链）。**本机验收构建即基于该分支内容**；主仓 submodule gitlink 保持 bae0331 未动，决策侧审阅合并镜像分支并重 pin 后，本卡产物即为纯 pin 可复现。
+  - 端测覆盖边界声明（AGENTS §5）：本卡验证 = 编译面 + Tests 运行面；未含 VitApp 进程在真实栈的启动/通信冒测（ZMQ 网关、音频设备、shm 发布链路）——归 A5 内核 mac 冒测卡。既有 clang 风格警告（shadow/sign/float-conversion 等，baker/CommandDispatcher/L3 等）非编译阻断、未触碰，如需清零另开卡。
+- 验收：
