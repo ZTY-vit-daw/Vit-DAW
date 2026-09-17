@@ -35,5 +35,18 @@
   2. 或推翻方案 A 改走方案 B（两测试夹具隔离，固化现状语义）→ 本分支作废。
 
   - 端测边界声明：本卡验收口径为单元级（①②③④），未含真实栈烟测；改动限于命令规范化阶段 zone 解析路径，HTTP/ZMQ 接口面无变化，是否补真栈烟测由决策侧裁定。
+- 回执（rework 续作，2026-09-17，Mac 执行侧）：**done——按裁定扩域改写 harness_test.go:1925-1961 一例并整包零失败达成**。更名 `TestPluginLoadToRackInstrumentDefaultsToZ2FromScannedPluginInventory` → `TestPluginLoadToRackInstrumentDefaultsToZ3WithoutSemanticIndex`：索引缺失 → 默认 Z3；scan 应答桩移除（fakeKernel 零应答即"不应被调用"哨兵，`SendCommand` 落 commands 记录，断言 `kernel.commands` 为空）；净 +6/−18 仅该一例，其余测试未触碰。分支 `port/harness-fix-1` 新增 commit **c7e901c**（已推，基于实现 e4dc881）。
+
+  ## 验收对照（rework 轮，本机 darwin/arm64 干净机器：无 `~/.vit/plugin_semantics.json`、`VIT_PLUGIN_SEMANTICS_PATH` 未设）
+
+  | 验收项 | 结果 |
+  |---|---|
+  | ① FLAKY-1 两测试 `-count=1` | **PASS**（exit 0） |
+  | ② `go test ./internal/harness -count=1` 整包 | **PASS（exit 0，零失败）**——blocked 轮唯一失败例已由改写消解，无新增 |
+  | ③ `go build ./...` / `go vet ./internal/harness/` | 双 exit 0 |
+  | ④ 原始输出 | `Export/harness-fix-1-20260917/rework-*.txt`（two-tests / full-package / go-build / go-vet / red-baseline；Export/ gitignored，可 SSH 只读核查） |
+  | ⑤ 新语义固化 | 改写后测试断言 Z3 + `kernel.commands` 为空；红绿对照：基线 04fa36d（兜底在场，独立 worktree）上该测试 **FAIL**（exit 1，`scan_plugins` 副作用被哨兵捕获，rework-red-baseline.txt）→ 本分支 PASS |
+
+  - 端测边界声明：rework 轮沿用裁定三（单元级验收足够），未含真实栈烟测；真栈 zone 解析行为验证并入 C3。
 - 验收：
 - 关联：取证见 `coord/cards/done/2026-09-16-PORT-MAC-HARNESS-FLAKY-1.md`（证据矩阵与三变体对照）；`Get()` 模糊兜底跨插件错配隐患（index.go:253）**不在本卡**，登记为独立待裁项
