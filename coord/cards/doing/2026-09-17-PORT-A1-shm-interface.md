@@ -10,6 +10,6 @@
 - 文件域：`VitApp/Source/Service/SharedMemory*`（新接口 + 双平台实现 + 3 使用点）；涉 `VitApp/Tests/**` 列明；不改 `agent/**`
 - 验收标准：① Windows 行为逐项对照零回退（段创建/写入/世代更替/清理路径）；② mac 编译过（A3 就位）；③ SharedMemoryTester 在 mac 真机跑通一次发布 → Go 侧 `shm_darwin` 读回的**跨进程真实验证**（run ID、命令、工件目录入回执）；④ 段名方案与映射关系记录在案
 - 停止条件：接口设计需要改 Go 侧读取契约 → 停（契约冻结）；对照中发现 Windows 侧语义本身缺陷 → blocked 上交
-- 领取：
+- 领取：2026-09-17 晚（Mac 执行流，用户直令「开工 A1」，BOOTSTRAP 口令表授权）/ origin/main `57ee038cde78ab851259113319e79b0c5c832f0b`（工作树干净）/ 分支 `port/a1-shm-interface`
 - 回执：
 - 验收：
