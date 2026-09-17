@@ -14,4 +14,4 @@
   5. AGENTS §10 核查：全部运行时状态在独立 mktemp 目录，运行后 `git status` 仅本卡新增文件，源码树零污染。
   6. 运行时观察（非缺陷）：无内核时 /agent/state 每次调用重试内核拨号（VSP snapshot + legacy 各 ~252ms connection refused 后 200，总计 ~0.5s/次）；agent HTTP 面与内核 ZMQ 面解耦良好，无内核可完整探活。
   端测边界声明：本冒测覆盖 agent HTTP 白名单探活面（ps1 1:1 口径）；ZMQ 5555/5556 为内核向 connect-out、不在 ps1 白名单内故未纳入；未涉及 webui 渲染面与用户旅程面（本卡无相关改动）。
-- 验收：
+- 验收：**pass**（裁定 [2026-09-17-C4-pass.md](../../rulings/2026-09-17-C4-pass.md)，决策侧隔离 worktree 四项独立复验全过）；实现 `560ddef` cherry-pick 入 main `8e198a5`，随裁定批推送
