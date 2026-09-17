@@ -47,4 +47,4 @@
   - 本卡零源码改动（工作树除卡片外干净）；实验经 `VIT_PLUGIN_SEMANTICS_PATH` 环境变量隔离，未触碰机器全局 `~/.vit/`；无实现 commit
   - 测试命令：`go test ./internal/harness -run 'TestFullProjectAccessDoesNotDisplaceExplicitSelectionAuthorization|TestAgentProcessorLoadGateRechecksPCAAndBlocksBypass' -count=1`（A: exit 1 / B: exit 0 / C: exit 1）+ 整包 exit 1（仅既有 2 例）
   - 端测边界声明：本卡为纯单元级取证，无生产改动，不涉渲染面/旅程/真实栈烟测
-- 验收：
+- 验收：**pass**（裁定 [2026-09-17-FLAKY1-pass.md](../../rulings/2026-09-17-FLAKY1-pass.md)，决策侧复现变体 A + 三锚点核实 + 工件抽查）；修复方案 A 定案转卡 [PORT-HARNESS-FIX-1](../todo/2026-09-17-PORT-HARNESS-FIX-1-zero-kernel-side-effect.md)；模糊兜底错配隐患登记独立待裁
