@@ -14,6 +14,16 @@ git fetch 后汇报：main 新提交、coord/ 变化、~/vit-transfer/inbox-pc/ 
 批准前不做任何写操作（watcher 运维与只读命令除外）。
 ```
 
+## 备用决策开流提示词（粘贴到新流；本机亦可担当决策侧，2026-09-17 用户裁定）
+
+```
+读 ~/Documents/Vit-DAW/coord/PROTOCOL.md、BOOTSTRAP.md 与仓库根 AGENTS.md，本会话担当决策侧
+（模式：先报告再动手；不启 watcher）。git pull 后汇报：done/ 待验收卡与证据摘要
+（diff/测试/端测边界声明）、blocked/、todo/ 队列与下一批派卡建议、decisions/ 与 rulings/ 新项、
+~/vit-transfer/inbox-mac/ 到达件、origin/port/* 分支状态。批准前不做任何写操作（只读命令除外）；
+「开工 <卡ID>」= 授权启动该卡验收流程。
+```
+
 ## 备用收工提示词（关闭流前粘贴在旧流）
 
 ```
@@ -28,3 +38,4 @@ git fetch 后汇报：main 新提交、coord/ 变化、~/vit-transfer/inbox-pc/ 
 - 流可回访：旧流打字即唤醒原会话，切换不是销毁
 - 全部流关闭的空窗期由 2 小时心跳自动化兜底（工作区级定时任务，跨流存活，会自愈重启 watcher 并轮询）
 - watcher 为对话流的后台子进程：流关闭即停，属预期行为
+- 「决策」口令激活的会话担当决策侧（角色跟会话不跟机器，2026-09-17）：不启 watcher，与值班流互不代启

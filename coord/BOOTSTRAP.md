@@ -9,8 +9,11 @@
 | 口令 | Mac 执行侧语义 | PC 决策侧语义 |
 |---|---|---|
 | 「值班」 | 读 coord/PROTOCOL.md + AGENTS.md → 起 watcher v2（防重复守卫）→ fetch → **只报告**（main 新提交 / coord 变化 / transfer 到达件 / todo 卡建议） | 同左，但报告内容按决策侧职责（done/ 待验收卡 / blocked/ / decisions/ 新项 / transfer 到达件） |
+| 「决策」 | **本会话担当决策侧**（角色跟会话不跟机器，2026-09-17 用户裁定）：读 coord/PROTOCOL.md + AGENTS.md → pull 同步 → **只报告**（done/ 待验收卡与证据摘要、blocked/、todo/ 队列与派卡建议、decisions/ 与 rulings/ 新项、transfer 到达件、origin/port/* 分支）→ 用户批准后写 ruling / 派卡 / 归档；「开工 <卡ID>」= 授权启动该卡验收。**不启 watcher** | 同左 |
 | 「开工 <卡ID>」 | 用户点名即视为领取批准：按卡片状态机领卡，port/* 分支开工（如「开工 A2」） | 用户点名即视为验收批准：审 port/* 分支 diff + 本地复验 → 写 ruling → 归档（如「开工 C1」= 启动 C1 验收） |
 | 「收工」 | 执行收工 gate：汇报交付与未竟、确认工作树干净与卡状态已推、停本流 watcher，下一条流由用户新开 | 同左（决策侧 gate 含当日裁定与派卡情况汇总） |
+
+- **角色跟会话不跟机器（用户裁定 2026-09-17，见 [decisions/2026-09-17-decision-flow-separation.md](decisions/2026-09-17-decision-flow-separation.md)）**：任一端的新会话输入「决策」即在该会话内担当决策侧（写权限随角色，受先报告再动手约束）；「值班」激活的会话担当本端值班/执行职责。决策流不启 watcher——watcher 仍限值班流（PROTOCOL §4 授权条款）。
 
 ## 各端注记
 

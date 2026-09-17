@@ -30,6 +30,7 @@ todo → doing → done(待验收) ─ ruling pass   → 归档 done（卡内回
 
 - **执行侧（Mac）**：`coord/cards/` 内的卡片状态变更可直接推 main——**这是执行侧唯一允许直接推 main 的路径**；其余一切改动（代码/文档/索引）一律走 `port/*` 分支等验收
 - **决策侧（Windows）**：全仓权限；裁定与归档落在 `rulings/` 与卡内
+- **角色跟会话不跟机器（用户裁定 2026-09-17，见 [decisions/2026-09-17-decision-flow-separation.md](decisions/2026-09-17-decision-flow-separation.md)）**：决策侧会话可经口令「决策」在任一端激活，写权限随角色（在该会话内享有本节决策侧全仓权限）；执行侧纪律不变。决策流不启 watcher——watcher 仍限值班流（§4 授权条款）。Mac/Windows 仍为两端默认分工（上两条）
 - **冲突规则**：push 前 `pull --rebase`；coord 冲突以卡内"最后回填时间"较新者为准手工合并后重推
 
 ## 4. 唤醒机制：watcher 事件驱动（零 token 待机），心跳兜底
