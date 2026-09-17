@@ -8790,7 +8790,7 @@ func flattenCommandParams(cmd map[string]any) {
 
 func (h *Harness) resolveImplicitTargets(ctx context.Context, spec tools.CommandSpec, cmd map[string]any, requestContext map[string]any) error {
 	normalizeCommandArgs(spec, cmd, requestContext)
-	h.resolveRackAddNodeZone(ctx, spec, cmd)
+	resolveRackAddNodeZone(spec, cmd)
 
 	if err := h.resolveMacroTargets(ctx, spec, cmd, requestContext); err != nil {
 		return fmt.Errorf("%s could not resolve macro target: %w", spec.ToolName, err)
@@ -8954,7 +8954,7 @@ func normalizeCommandArgs(spec tools.CommandSpec, cmd map[string]any, requestCon
 	}
 }
 
-func (h *Harness) resolveRackAddNodeZone(ctx context.Context, spec tools.CommandSpec, cmd map[string]any) {
+func resolveRackAddNodeZone(spec tools.CommandSpec, cmd map[string]any) {
 	if spec.CommandName != "rack_add_node" {
 		return
 	}
@@ -8962,7 +8962,7 @@ func (h *Harness) resolveRackAddNodeZone(ctx context.Context, spec tools.Command
 		applyRackPluginZone(cmd, instrument)
 		return
 	}
-	if entry, ok := h.rackPluginSemanticEntry(ctx, firstString(cmd, "plugin_path")); ok {
+	if entry, ok := rackPluginSemanticEntry(firstString(cmd, "plugin_path")); ok {
 		applyRackPluginZone(cmd, pluginSemanticEntryIsInstrument(entry))
 		return
 	}
@@ -8983,7 +8983,7 @@ func applyRackPluginZone(cmd map[string]any, instrument bool) {
 	}
 }
 
-func (h *Harness) rackPluginSemanticEntry(ctx context.Context, pluginPath string) (pluginsemantics.Entry, bool) {
+func rackPluginSemanticEntry(pluginPath string) (pluginsemantics.Entry, bool) {
 	pluginPath = strings.TrimSpace(pluginPath)
 	if pluginPath == "" {
 		return pluginsemantics.Entry{}, false
@@ -8993,23 +8993,7 @@ func (h *Harness) rackPluginSemanticEntry(ctx context.Context, pluginPath string
 			return entry, true
 		}
 	}
-	if h == nil || h.kernel == nil {
-		return pluginsemantics.Entry{}, false
-	}
-	reply, err := h.listAvailablePlugins(ctx, map[string]any{"limit": 2000})
-	if err != nil {
-		return pluginsemantics.Entry{}, false
-	}
-	rows := mapRowsFromAny(reply["plugins"])
-	if len(rows) == 0 {
-		rows = mapRowsFromAny(reply["entries"])
-	}
-	if len(rows) == 0 {
-		return pluginsemantics.Entry{}, false
-	}
-	idx := pluginsemantics.Build(rows, time.Now().UTC())
-	entry, ok := pluginsemantics.Get(idx, pluginPath)
-	return entry, ok
+	return pluginsemantics.Entry{}, false
 }
 
 func rackPluginMetadataIsInstrument(row map[string]any) (bool, bool) {
