@@ -19,4 +19,4 @@
     | 资源清理 | defer UnmapViewOfFile + CloseHandle | defer Munmap + Close(fd)；fd 以 O_RDONLY 打开，读端不可能改写内核段 |
   - 平台发现（本机实证探针，影响 A1）：① **macOS shm_open 段名上限 31 字符（含前导 `/`，PSHMNAMLEN）**——内核现有命名 `Vit_AudioFeature_waveform_<bakekey>_g<gen>_<tile>` 光前缀即 27 字符，必然超限。**[给 A1 的硬约束：mac 侧内核发布段名 ≤30 正名字符（短前缀或哈希方案）]**；② shm 存储按 16KiB 粒度取整（8B 请求→fstat 16384；16385→32768；1MiB→1MiB），首次 ftruncate 后再次截断返回 EINVAL；单 tile 数据量 = framesPerTile×6×4B 常超 16KiB，但 shm_open 无总量上限（1MiB 实测 OK），粒度取整仅浪费尾部空间，不构成阻断。
   - 端测覆盖边界声明（AGENTS §5）：本卡验证 = 交叉编译面 + 真实 POSIX shm 段单测；未含真实栈端侧烟测——内核尚无 darwin 侧 shm 发布端（A1 未开工），端到端读链路须由 A1 落地后 A5 内核 mac 冒测覆盖。由决策侧裁定是否足以交付。
-- 验收：
+- 验收：**pass**（裁定 [2026-09-17-A2-pass.md](../../rulings/2026-09-17-A2-pass.md)，决策侧隔离 worktree 十项复验全过：四平台构建/vet/11 例真实 POSIX shm 单测/整包无新增失败/gofmt/零污染）；实现 `6a54aa2` cherry-pick 入 main `c1b54f3`，随裁定批推送
