@@ -6,6 +6,6 @@
 - 文件域：`VitApp/CMakeLists.txt`、`VitApp/cmake/**`、`VitApp/Source/**`、`VitApp/Tests/**`（Source/Tests 仅限编译通过所需最小改动：头包含、显式类型转换、平台 `#if` 守卫；不改运行语义）；不触碰 `agent/` 与 `scripts/`
 - 验收标准：① mac 本机 cmake configure + build 核心目标 exit 0（build 目录与运行态写独立临时目录，AGENTS §10）；② libsodium mac 编译方式有实证结论（GLOB 原样可用 / 改显式源列表，附证据）；③ Tests 目标 mac 编译通过（或记录首个不可达点转 blocked）；④ Windows 零回退：改动一律平台守卫包住，Windows 分支逻辑零变化，由决策侧 PC 会话复编译确认；⑤ 构建命令与退出码入回执
 - 停止条件：需改运行语义才能编译过 → blocked；发现 mac 无等价物的 Windows-only 依赖（库/API）→ 列清单上交决策侧
-- 领取：
+- 领取：2026-09-17 下午（Mac 执行流，用户直令「开工 A3」）/ origin/main `30307e14c2a6cad40f853c7c9bd1ed07fb1103b6` / 分支 `port/a3-mac-cmake`
 - 回执：
 - 验收：
