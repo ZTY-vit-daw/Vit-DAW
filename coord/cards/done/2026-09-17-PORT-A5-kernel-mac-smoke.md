@@ -15,4 +15,4 @@
   - **验收③（工件）** `/tmp/vit-a5-artifacts/run7-pass-20260917-2112/` 与 `run8-exit0-20260917-2119/`（互不覆盖）：summary.json（schema `dev.agent.smoke.mac.v1`）、kernel/agent 全量日志、逐探针 JSON、扫描状态轨迹、ps 采样、lsof 三份（端口/活体 shm/残留探测）、run_meta（HEAD+dirty 计数+双 bin sha256）。
   - **验收④（失败分类，AGENTS §8）** run7 前共 5 次未过，均非栈功能失败：run1 会话后台命令 120s 默认超时截杀（环境中断）；run2 脚本缺陷（lsof 无监听退出码 1 × pipefail 静默击杀）；run3 worktree 子模块空（环境配置，补 --tracktion-dir）；run4 探针输出格式假设错误（zmq4 Msg 无 String()，改 Frames）；run5/6 bash 3.2 全角字符粘变量名 + $() 子 shell wait 失效 + summary 漏 int()（脚本缺陷）。**栈本体自 run4 起全绿**（ping→pong 首证）。
   - 端测覆盖边界声明（AGENTS §5）：本卡验证面=内核 mac 起停 + ZMQ 三端口面（5555 命令往返/5556 遥测/5557 日志）+ agent HTTP 白名单 + agent→内核 invoke 往返 + 插件扫描 child-process + WaveShell R2 枚举 + shm 残留；未含：Godot 前端（不在卡面）、Waves 主体 instantiate 实加载/重探针（归 C3）、webui 渲染与用户旅程面（本卡无相关改动）。
-- 验收：
+- 验收：**pass**（裁定 [2026-09-17-A5-pass.md](../../rulings/2026-09-17-A5-pass.md)，决策侧全模式独立复跑 exit 0：8/8 门槛、719 Waves 主体 0 失败、kernel_stop=SIGTERM:143:1，与执行侧 run7 逐项一致）；实现取文件域入 main `79d4757`；R2 降级（枚举面已证）、R9 首证、A1 平台发现闭环采纳——**层 A 收官**
