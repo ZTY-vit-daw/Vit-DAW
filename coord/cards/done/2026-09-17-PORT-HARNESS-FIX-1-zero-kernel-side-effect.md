@@ -48,5 +48,5 @@
   | ⑤ 新语义固化 | 改写后测试断言 Z3 + `kernel.commands` 为空；红绿对照：基线 04fa36d（兜底在场，独立 worktree）上该测试 **FAIL**（exit 1，`scan_plugins` 副作用被哨兵捕获，rework-red-baseline.txt）→ 本分支 PASS |
 
   - 端测边界声明：rework 轮沿用裁定三（单元级验收足够），未含真实栈烟测；真栈 zone 解析行为验证并入 C3。
-- 验收：
+- 验收：**pass**（rework 终验，裁定 [2026-09-17-HARNESSFIX1-pass.md](../../rulings/2026-09-17-HARNESSFIX1-pass.md)；决策侧隔离复验：整包零失败——mac harness 包首次全绿）；`e4dc881`+`c7e901c` cherry-pick 入 main `ec81506`+`0f7270f`
 - 关联：取证见 `coord/cards/done/2026-09-16-PORT-MAC-HARNESS-FLAKY-1.md`（证据矩阵与三变体对照）；`Get()` 模糊兜底跨插件错配隐患（index.go:253）**不在本卡**，登记为独立待裁项
