@@ -230,6 +230,9 @@ set(VITAPP_SOURCE_FILES
     Source/Service/VitProductionCoordinator.h
     Source/Service/SharedMemoryTester.cpp
     Source/Service/SharedMemoryTester.h
+    Source/Service/SharedMemorySegment.h
+    Source/Service/SharedMemorySegmentWindows.cpp
+    Source/Service/SharedMemorySegmentPosix.cpp
     Source/Service/AudioFeatureService.cpp
     Source/Service/AudioFeatureService.h
     Source/Service/AudioFeatureTypes.cpp

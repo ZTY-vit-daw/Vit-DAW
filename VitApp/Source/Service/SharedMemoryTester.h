@@ -1,8 +1,8 @@
 #pragma once
 
-#if defined(_WIN32)
-#include <windows.h>
-#endif
+#include "SharedMemorySegment.h"
+
+#include <memory>
 
 namespace vit
 {
@@ -14,9 +14,7 @@ public:
     static void releaseTestMemory();
 
 private:
-#if defined(_WIN32)
-    static HANDLE testMappingHandle;
-#endif
+    static std::unique_ptr<ISharedMemorySegment> testSegment;
 };
 
 } // namespace vit

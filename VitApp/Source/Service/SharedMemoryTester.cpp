@@ -3,33 +3,28 @@
 namespace vit
 {
 
-#if defined(_WIN32)
-
-HANDLE SharedMemoryTester::testMappingHandle = nullptr;
+std::unique_ptr<ISharedMemorySegment> SharedMemoryTester::testSegment;
 
 void SharedMemoryTester::createTestMemory()
 {
-    if (testMappingHandle != nullptr)
+    if (testSegment != nullptr)
         return;
 
-    testMappingHandle = CreateFileMappingA(INVALID_HANDLE_VALUE,
-                                           nullptr,
-                                           PAGE_READWRITE,
-                                           0,
-                                           sizeof(float) * 10,
-                                           "Vit_Waveform_Test");
+    std::string errorDetail;
+    testSegment = ISharedMemorySegment::createAndMap (std::string ("Vit_Waveform_Test"),
+                                                      sizeof (float) * 10,
+                                                      errorDetail);
 
-    if (testMappingHandle == nullptr)
+    if (testSegment == nullptr)
         return;
 
-    auto* data = static_cast<float*> (MapViewOfFile(testMappingHandle,
-                                                    FILE_MAP_ALL_ACCESS,
-                                                    0,
-                                                    0,
-                                                    sizeof(float) * 10));
+    auto* data = static_cast<float*> (testSegment->writableData());
 
     if (data == nullptr)
+    {
+        testSegment.reset();
         return;
+    }
 
     data[0] = 1.1f;
     data[1] = 2.2f;
@@ -42,26 +37,12 @@ void SharedMemoryTester::createTestMemory()
     data[8] = 9.9f;
     data[9] = 10.0f;
 
-    UnmapViewOfFile(data);
+    testSegment->unmapView();
 }
 
 void SharedMemoryTester::releaseTestMemory()
 {
-    if (testMappingHandle != nullptr)
-    {
-        CloseHandle(testMappingHandle);
-        testMappingHandle = nullptr;
-    }
+    testSegment.reset();
 }
-
-#else
-
-// PORT-A3: Windows test segment only; POSIX publishing is A1 scope.
-// No-op stubs keep Main.cpp's call sites linkable on non-Windows builds.
-
-void SharedMemoryTester::createTestMemory() {}
-void SharedMemoryTester::releaseTestMemory() {}
-
-#endif
 
 } // namespace vit

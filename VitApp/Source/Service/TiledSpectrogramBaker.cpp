@@ -1,12 +1,11 @@
 #include "TiledSpectrogramBaker.h"
 #include "AudioFeatureTypes.h"
+#include "SharedMemorySegment.h"
 #include "../Core/VitPaths.h"
 #include <algorithm>
 #include <chrono>
 #include <cstdlib>
-#if defined(_WIN32)
-#include <windows.h>
-#endif
+#include <memory>
 #include <atomic>
 #include <cmath>
 #include <cstring>
@@ -66,18 +65,18 @@ enum class PoolMode
 
 std::mutex gMutex;
 std::mutex gDiagLogMutex;
-std::map<std::string, std::vector<void*>> gHandles;
+std::map<std::string, std::vector<std::unique_ptr<ISharedMemorySegment>>> gHandles;
 std::map<std::string, uint64_t>            gGen;
 
-struct RetiredHandle
+struct RetiredSegment
 {
     std::string key;
     uint64_t gen = 0;
-    void* handle = nullptr;
+    std::unique_ptr<ISharedMemorySegment> segment;
     std::chrono::steady_clock::time_point releaseAt;
 };
 
-std::vector<RetiredHandle> gRetiredHandles;
+std::vector<RetiredSegment> gRetiredSegments;
 
 size_t handleCountUnlocked (const std::string& key)
 {
@@ -85,21 +84,17 @@ size_t handleCountUnlocked (const std::string& key)
     return it == gHandles.end() ? 0u : it->second.size();
 }
 
-void cleanupRetiredHandlesUnlocked()
+void cleanupRetiredSegmentsUnlocked()
 {
     const auto now = std::chrono::steady_clock::now();
-    for (auto it = gRetiredHandles.begin(); it != gRetiredHandles.end();)
+    for (auto it = gRetiredSegments.begin(); it != gRetiredSegments.end();)
     {
         if (it->releaseAt > now)
         {
             ++it;
             continue;
         }
-#if defined(_WIN32)
-        if (it->handle)
-            CloseHandle (it->handle);
-#endif
-        it = gRetiredHandles.erase (it);
+        it = gRetiredSegments.erase (it);
     }
 }
 
@@ -142,22 +137,22 @@ struct StereoRelationAcc
 uint64_t beginGen(const juce::String& id)
 {
     std::lock_guard<std::mutex> lock(gMutex);
-    cleanupRetiredHandlesUnlocked();
+    cleanupRetiredSegmentsUnlocked();
     auto key = id.toStdString();
     auto& gen = gGen[key]; ++gen;
     auto& handles = gHandles[key];
     const auto releasedCount = handles.size();
     const auto releaseAt = std::chrono::steady_clock::now() + std::chrono::milliseconds (kRetiredHandleGraceMs);
-    for (auto h : handles)
+    for (auto& h : handles)
     {
         if (h)
-            gRetiredHandles.push_back ({ key, gen - 1, h, releaseAt });
+            gRetiredSegments.push_back ({ key, gen - 1, std::move (h), releaseAt });
     }
     handles.clear();
     writeDiagLog ("[baker.lifecycle] begin_gen key=" + id
                   + " gen=" + juce::String ((int64) gen)
                   + " retired_handles=" + juce::String ((int) releasedCount)
-                  + " retired_total=" + juce::String ((int) gRetiredHandles.size())
+                  + " retired_total=" + juce::String ((int) gRetiredSegments.size())
                   + " grace_ms=" + juce::String (kRetiredHandleGraceMs)
                   + " active_keys=" + juce::String ((int) gHandles.size()));
     return gen;
@@ -170,21 +165,23 @@ bool isGen(const juce::String& id, uint64_t gen)
     return it != gGen.end() && it->second == gen;
 }
 
-[[maybe_unused]] bool storeHandle(const juce::String& id, uint64_t gen, void* h)
+[[maybe_unused]] bool storeSegment(const juce::String& id, uint64_t gen, std::unique_ptr<ISharedMemorySegment> segment)
 {
+    if (!segment)
+        return false;
     std::lock_guard<std::mutex> lock(gMutex);
-    cleanupRetiredHandlesUnlocked();
+    cleanupRetiredSegmentsUnlocked();
     auto key = id.toStdString();
     auto it  = gGen.find(key);
     if (it == gGen.end() || it->second != gen)
     {
-        writeDiagLog ("[baker.lifecycle] store_handle_reject key=" + id
+        writeDiagLog ("[baker.lifecycle] store_segment_reject key=" + id
                       + " gen=" + juce::String ((int64) gen)
                       + " current_gen=" + juce::String (it == gGen.end() ? -1 : (int64) it->second));
         return false;
     }
-    gHandles[key].push_back(h);
-    writeDiagLog ("[baker.lifecycle] store_handle key=" + id
+    gHandles[key].push_back(std::move(segment));
+    writeDiagLog ("[baker.lifecycle] store_segment key=" + id
                   + " gen=" + juce::String ((int64) gen)
                   + " handle_count=" + juce::String ((int) gHandles[key].size()));
     return true;
@@ -925,47 +922,33 @@ void TiledSpectrogramBaker::startBake(juce::String filePath,
             [[maybe_unused]] const auto tileStats = collectQualityStats (tile.data(), tile.size());
 
             // Write tile to shared memory
-#if defined(_WIN32)
             auto sessionId = bakeKey + ":" + juce::String ((int64) gen);
-            auto shm = "Vit_Waveform_" + sanitiseBakeKeyForShm (bakeKey) + "_g" + juce::String ((int64) gen) + "_" + juce::String(tileIndex);
-            auto bytes = (SIZE_T)(tile.size() * sizeof(float));
-            HANDLE h   = CreateFileMappingA(
-                INVALID_HANDLE_VALUE, nullptr, PAGE_READWRITE,
-                0, (DWORD)bytes, shm.toRawUTF8());
-            if (!h)
+            auto descriptiveName = "Vit_Waveform_" + sanitiseBakeKeyForShm (bakeKey)
+                + "_g" + juce::String ((int64) gen) + "_" + juce::String(tileIndex);
+            auto shm = juce::String (ISharedMemorySegment::platformPublishedName (descriptiveName.toStdString()));
+            auto bytes = tile.size() * sizeof(float);
+            std::string segmentError;
+            auto segment = ISharedMemorySegment::createAndMap (descriptiveName.toStdString(), bytes, segmentError);
+            if (!segment)
             {
                 writeDiagLog(
-                    "[baker.lifecycle] create_mapping_failed key=" + bakeKey
+                    "[baker.lifecycle] segment_create_failed key=" + bakeKey
                     + " gen=" + juce::String ((int64) gen)
                     + " track_id=" + trackId
                     + " clip_id=" + clipId
-                    + " tile_index=" + juce::String (tileIndex)
+                    + " tile_index=" + juce::String(tileIndex)
                     + " bytes=" + juce::String ((int64) bytes)
                     + " shm=" + shm
-                    + " win_error=" + juce::String ((int) GetLastError()));
+                    + " detail=" + segmentError);
                 continue;
             }
-            auto* mapped = (float*)MapViewOfFile(h, FILE_MAP_ALL_ACCESS, 0, 0, bytes);
-            if (!mapped)
-            {
-                writeDiagLog(
-                    "[baker.lifecycle] map_view_failed key=" + bakeKey
-                    + " gen=" + juce::String ((int64) gen)
-                    + " track_id=" + trackId
-                    + " clip_id=" + clipId
-                    + " tile_index=" + juce::String (tileIndex)
-                    + " bytes=" + juce::String ((int64) bytes)
-                    + " shm=" + shm
-                    + " win_error=" + juce::String ((int) GetLastError()));
-                CloseHandle(h);
-                continue;
-            }
+            auto* mapped = (float*)segment->writableData();
             std::memset(mapped, 0, bytes);
             std::memcpy(mapped, tile.data(), tile.size() * sizeof(float));
             const auto shmStats = collectQualityStats (mapped, tile.size());
-            UnmapViewOfFile(mapped);
+            segment->unmapView();
 
-            if (!storeHandle(bakeKey, gen, h)) { CloseHandle(h); return; }
+            if (!storeSegment(bakeKey, gen, std::move(segment))) return;
             const auto handleCount = handleCountForGen (bakeKey, gen);
             const auto quality = decideSpectralQuality (readerStats,
                                                         fftInputStats,
@@ -1044,16 +1027,6 @@ void TiledSpectrogramBaker::startBake(juce::String filePath,
                 setQualityStatsProperties (*obj, "shm_postwrite_", shmStats);
                 publish(juce::JSON::toString(juce::var(obj.release())));
             }
-#else
-            // PORT-A3: shm publishing uses the Windows mapping API; the POSIX
-            // publisher is A1 scope. Skip the shared-memory write and the
-            // tile_ready event (it would advertise a segment that does not
-            // exist on this platform).
-            writeDiagLog("[baker.lifecycle] publish_skipped key=" + bakeKey
-                         + " gen=" + juce::String((int64) gen)
-                         + " tile_index=" + juce::String(tileIndex)
-                         + " reason=shm_unsupported_platform");
-#endif
         }
     }).detach();
 }

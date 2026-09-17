@@ -18,6 +18,16 @@ add_executable(VitWorkingCopyPersistPolicyTests
 target_compile_features(VitWorkingCopyPersistPolicyTests PRIVATE cxx_std_20)
 target_include_directories(VitWorkingCopyPersistPolicyTests PRIVATE ../Source/Service)
 
+# PORT-A1: publisher-side shm segment interface — platform name policy and
+# create/write/unmap/release lifecycle (Win32 mapping semantics / POSIX
+# shm_open+ftruncate+mmap). Pure std, no juce/tracktion linkage.
+add_executable(VitSharedMemorySegmentTests
+    SharedMemorySegmentTests.cpp
+    ../Source/Service/SharedMemorySegmentWindows.cpp
+    ../Source/Service/SharedMemorySegmentPosix.cpp)
+target_compile_features(VitSharedMemorySegmentTests PRIVATE cxx_std_20)
+target_include_directories(VitSharedMemorySegmentTests PRIVATE ../Source/Service)
+
 set(_g4_default_tracktion_engine "${CMAKE_CURRENT_SOURCE_DIR}/../../tracktion_engine")
 if(NOT EXISTS "${_g4_default_tracktion_engine}/CMakeLists.txt"
    AND EXISTS "D:/Vit_DAW/tracktion_engine/CMakeLists.txt")
@@ -103,6 +113,7 @@ endif()
 if(MSVC)
     target_compile_options(VitAuditionPreviewStateTests PRIVATE /W4 /permissive-)
     target_compile_options(VitWorkingCopyPersistPolicyTests PRIVATE /W4 /permissive-)
+    target_compile_options(VitSharedMemorySegmentTests PRIVATE /W4 /permissive-)
     if(TARGET VitAuditionPreviewAudioPlaneTests)
         target_compile_options(VitAuditionPreviewAudioPlaneTests PRIVATE /W4 /permissive-)
     endif()
@@ -112,6 +123,7 @@ if(MSVC)
 else()
     target_compile_options(VitAuditionPreviewStateTests PRIVATE -Wall -Wextra -Wpedantic)
     target_compile_options(VitWorkingCopyPersistPolicyTests PRIVATE -Wall -Wextra -Wpedantic)
+    target_compile_options(VitSharedMemorySegmentTests PRIVATE -Wall -Wextra -Wpedantic)
     if(TARGET VitAuditionPreviewAudioPlaneTests)
         target_compile_options(VitAuditionPreviewAudioPlaneTests PRIVATE -Wall -Wextra -Wpedantic)
     endif()
@@ -122,3 +134,4 @@ endif()
 
 add_test(NAME VitAuditionPreviewStateTests COMMAND VitAuditionPreviewStateTests)
 add_test(NAME VitWorkingCopyPersistPolicyTests COMMAND VitWorkingCopyPersistPolicyTests)
+add_test(NAME VitSharedMemorySegmentTests COMMAND VitSharedMemorySegmentTests)
