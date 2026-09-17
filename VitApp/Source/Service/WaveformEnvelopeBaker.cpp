@@ -20,7 +20,9 @@
 #include <thread>
 #include <utility>
 #include <vector>
+#if defined(_WIN32)
 #include <windows.h>
+#endif
 
 namespace vit
 {
@@ -38,7 +40,7 @@ constexpr int kRetiredHandleGraceMs = 120000;
 
 std::mutex gMutex;
 std::mutex gDiagLogMutex;
-std::map<std::string, std::vector<HANDLE>> gHandles;
+std::map<std::string, std::vector<void*>> gHandles;
 std::map<std::string, uint64_t> gGen;
 
 struct BakeSummary
@@ -79,7 +81,7 @@ struct RetiredHandle
 {
     std::string key;
     uint64_t gen = 0;
-    HANDLE handle = nullptr;
+    void* handle = nullptr;
     std::chrono::steady_clock::time_point releaseAt;
 };
 
@@ -274,7 +276,7 @@ double waveformDbFromLinear (double value)
     return juce::jmax (kSilenceDb, 20.0 * std::log10 (value));
 }
 
-juce::String sanitiseBakeKeyForShm (juce::String key)
+[[maybe_unused]] juce::String sanitiseBakeKeyForShm (juce::String key)
 {
     key = key.trim();
     if (key.isEmpty())
@@ -310,8 +312,10 @@ void cleanupRetiredHandlesUnlocked()
             ++it;
             continue;
         }
+#if defined(_WIN32)
         if (it->handle)
             CloseHandle (it->handle);
+#endif
         it = gRetiredHandles.erase (it);
     }
 }
@@ -346,7 +350,7 @@ bool isGen (const juce::String& id, uint64_t gen)
     return it != gGen.end() && it->second == gen;
 }
 
-bool storeHandle (const juce::String& id, uint64_t gen, HANDLE h)
+[[maybe_unused]] bool storeHandle (const juce::String& id, uint64_t gen, void* h)
 {
     std::lock_guard<std::mutex> lock (gMutex);
     cleanupRetiredHandlesUnlocked();
@@ -515,7 +519,7 @@ QualityStats collectQualityStats (const float* data, size_t count)
     return stats;
 }
 
-QualityDecision decideWaveformQuality (const QualityStats& inputStats,
+[[maybe_unused]] QualityDecision decideWaveformQuality (const QualityStats& inputStats,
                                        const QualityStats& outputStats,
                                        const QualityStats& shmStats,
                                        int64_t audioSampleCount,
@@ -533,7 +537,7 @@ QualityDecision decideWaveformQuality (const QualityStats& inputStats,
     return { "ready", "ok" };
 }
 
-void setQualityStatsProperties (juce::DynamicObject& obj,
+[[maybe_unused]] void setQualityStatsProperties (juce::DynamicObject& obj,
                                 const juce::String& prefix,
                                 const QualityStats& stats)
 {
@@ -544,7 +548,7 @@ void setQualityStatsProperties (juce::DynamicObject& obj,
     obj.setProperty (prefix + "nan_inf_count", (int64) stats.nanInfCount);
 }
 
-void stampIdentityProperties (juce::DynamicObject& obj,
+[[maybe_unused]] void stampIdentityProperties (juce::DynamicObject& obj,
                               const juce::String& trackId,
                               const juce::String& clipId,
                               const juce::String& sourceId,
@@ -801,7 +805,7 @@ void WaveformEnvelopeBaker::startBake (juce::String filePath,
                 tileValidSamples64,
                 (int64_t) (std::numeric_limits<int>::max)());
             const double tileDurationSec = (double) tileValidSamples / sr;
-            const double tileContentStartSeconds = sourceOffsetSeconds + ((double) tileStartSample / sr);
+            [[maybe_unused]] const double tileContentStartSeconds = sourceOffsetSeconds + ((double) tileStartSample / sr);
             juce::AudioBuffer<float> buffer (2, tileValidSamples);
             buffer.clear();
             const bool logTileRead = tileIndex == 0 || tileIndex + 1 == totalTiles || ((tileIndex + 1) % 25) == 0;
@@ -884,6 +888,7 @@ void WaveformEnvelopeBaker::startBake (juce::String filePath,
             aggregateNanInfCount += outputStats.nanInfCount;
             aggregateSumAbs += outputStats.sumAbs;
             aggregateMaxAbs = juce::jmax (aggregateMaxAbs, outputStats.maxAbs);
+#if defined(_WIN32)
             const auto sessionId = bakeKey + ":" + juce::String ((int64) gen);
             const auto shm = "Vit_AudioFeature_waveform_"
                 + sanitiseBakeKeyForShm (bakeKey)
@@ -983,6 +988,17 @@ void WaveformEnvelopeBaker::startBake (juce::String filePath,
                 setQualityStatsProperties (*obj, "shm_postwrite_", shmStats);
                 publish (juce::JSON::toString (juce::var (obj.release())));
             }
+#else
+            // PORT-A3: shm publishing uses the Windows mapping API; the POSIX
+            // publisher is A1 scope. Skip the shared-memory write and the
+            // audio_feature_data_ready event (it would advertise a segment
+            // that does not exist on this platform).
+            writeDiagLog ("[waveform_envelope.lifecycle] publish_skipped key=" + bakeKey
+                          + " gen=" + juce::String ((int64) gen)
+                          + " tile_index=" + juce::String (tileIndex)
+                          + " reason=shm_unsupported_platform");
+            const auto handleCount = handleCountForGen (bakeKey, gen);
+#endif
             completedTiles = tileIndex + 1;
             {
                 auto summary = baseBakeSummary (bakeKey,

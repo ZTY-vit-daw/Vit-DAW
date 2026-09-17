@@ -3,6 +3,8 @@
 namespace vit
 {
 
+#if defined(_WIN32)
+
 HANDLE SharedMemoryTester::testMappingHandle = nullptr;
 
 void SharedMemoryTester::createTestMemory()
@@ -51,5 +53,15 @@ void SharedMemoryTester::releaseTestMemory()
         testMappingHandle = nullptr;
     }
 }
+
+#else
+
+// PORT-A3: Windows test segment only; POSIX publishing is A1 scope.
+// No-op stubs keep Main.cpp's call sites linkable on non-Windows builds.
+
+void SharedMemoryTester::createTestMemory() {}
+void SharedMemoryTester::releaseTestMemory() {}
+
+#endif
 
 } // namespace vit

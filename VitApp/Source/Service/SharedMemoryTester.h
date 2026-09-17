@@ -1,6 +1,8 @@
 #pragma once
 
+#if defined(_WIN32)
 #include <windows.h>
+#endif
 
 namespace vit
 {
@@ -12,7 +14,9 @@ public:
     static void releaseTestMemory();
 
 private:
+#if defined(_WIN32)
     static HANDLE testMappingHandle;
+#endif
 };
 
 } // namespace vit
