@@ -2,11 +2,12 @@
 
 - 建立：2026-09-16，用户直令入仓；同日用户裁定「双端同一套口令中枢」后，**口令权威定义上移至 [BOOTSTRAP.md](BOOTSTRAP.md)**，本文件只保留 Mac 端专属内容与备用提示词
 - 用法：首选在新流输入口令（工作区级 `~/.zcode/workspace/default/AGENTS.md` 调度中枢路由到 BOOTSTRAP.md）；下方长提示词为**备用**（工作区文件缺失/未生效时粘贴用）
+- PC 侧开发习惯：PC 用户级调度规则快照见 [PC-AGENTS-SNAPSHOT.md](PC-AGENTS-SNAPSHOT.md)（2026-09-17 用户直令入仓）——**纪律/节奏/任务流原则按快照遵守**（一任务一会话、review 看 diff 等），「资源与路由」为 PC 机器事实仅参考
 
 ## 备用开流提示词（粘贴到新流）
 
 ```
-读 ~/Documents/Vit-DAW/coord/PROTOCOL.md 与 AGENTS.md，担当 Mac 执行侧值班（模式：先报告再动手）。
+读 ~/Documents/Vit-DAW/coord/PROTOCOL.md、AGENTS.md 与 PC-AGENTS-SNAPSHOT.md，担当 Mac 执行侧值班（模式：先报告再动手）。
 检查 ~/Documents/Vit-DAW/.git/watcher_alive：超过 5 分钟未更新才启动 §4 watcher v2
 （run_in_background；主仓实际路径 ~/Documents/Vit-DAW，指纹命令用 shasum），
 若已有存活 watcher 则不重复启动，直接汇报。
