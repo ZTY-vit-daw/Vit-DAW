@@ -70,6 +70,54 @@ D:\Vit_DAW\scripts\dev_agent_smoke.ps1 -RepoRoot D:\Vit_DAW -RestartAgent -NoCha
 D:\Vit_DAW\scripts\dev_agent_smoke.ps1 -RepoRoot D:\Vit_DAW -SkipBuild -NoChatSmoke
 ```
 
+## G Runtime Read-Only Smoke (mac)
+
+Path:
+
+```bash
+~/Documents/Vit-DAW/scripts/g_runtime_readonly_smoke_mac.sh
+```
+
+Purpose:
+
+- mac port of the `g_runtime_readonly_smoke.ps1` whitelist GET probe mode
+  (PORT-C4). Verifies the VitAgent HTTP liveness face with four read-only GET
+  probes: `/health`, `/agent/runtime/status`, `/agent/state`,
+  `/agent/events`. The script self-scans its own source for non-GET request
+  construction and fails closed before issuing any request.
+- Emits a `g.readonly.runtime.smoke.v1` summary JSON on stdout (same schema
+  and field extraction as the ps1 version); exit code 0 means every
+  whitelisted GET returned a 2xx status.
+- Probe list is 1:1 with the ps1 whitelist. One documented difference: the
+  events probe sends `?conversation_id=<probe>&limit=200` because the real
+  agent contract answers HTTP 400 without a conversation id; the ps1's bare
+  `?limit=200` only satisfies `g_runtime_readonly_fixture_server.py`, which
+  ignores all query parameters.
+
+Common commands:
+
+```bash
+# Full chain on mac: build agent, start it with all runtime state isolated
+# in a fresh temp dir (AGENTS §10), wait for /health, probe, stop the agent.
+~/Documents/Vit-DAW/scripts/g_runtime_readonly_smoke_mac.sh --start-agent --timeout 30
+
+# Fast check against an already running agent (ps1-equivalent probe mode).
+~/Documents/Vit-DAW/scripts/g_runtime_readonly_smoke_mac.sh --agent-http http://127.0.0.1:7878
+
+# Equivalence check against the GET-only fixture server.
+python3 scripts/g_runtime_readonly_fixture_server.py --port 7879 &
+~/Documents/Vit-DAW/scripts/g_runtime_readonly_smoke_mac.sh --agent-http http://127.0.0.1:7879
+```
+
+Notes:
+
+- With no VitApp kernel running, `/agent/state` still returns 200 but retries
+  the kernel dial on every call (~0.5s per probe on mac, connection refused);
+  pass a larger `--timeout` when in doubt.
+- Each run keeps its artifacts (per-endpoint bodies, agent log, binary
+  checksum) under a fresh mktemp workdir printed to stderr; previous runs are
+  never overwritten.
+
 ## B1 Gain Staging Agent Smokes
 
 Paths:
