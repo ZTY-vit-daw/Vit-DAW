@@ -1922,22 +1922,10 @@ func TestPluginLoadToRackInstrumentOverridesPlannerZ3(t *testing.T) {
 	}
 }
 
-func TestPluginLoadToRackInstrumentDefaultsToZ2FromScannedPluginInventory(t *testing.T) {
+func TestPluginLoadToRackInstrumentDefaultsToZ3WithoutSemanticIndex(t *testing.T) {
 	t.Setenv("VIT_PLUGIN_SEMANTICS_PATH", filepath.Join(t.TempDir(), "missing_plugin_semantics.json"))
 	surgePath := `C:\Program Files\Common Files\VST3\Surge Synth Team\Surge XT.vst3\Contents\x86_64-win\Surge XT.vst3`
-	kernel := &fakeKernelClient{replies: []map[string]any{
-		{
-			"status": "ok",
-			"plugins": []any{
-				map[string]any{
-					"name":          "Surge XT",
-					"category":      "Instrument|Synth",
-					"path":          surgePath,
-					"is_instrument": true,
-				},
-			},
-		},
-	}}
+	kernel := &fakeKernelClient{}
 	h := New(nil, nil, nil)
 	h.kernel = kernel
 	cmd, spec, err := h.resolveCommand(InvokeRequest{
@@ -1952,11 +1940,11 @@ func TestPluginLoadToRackInstrumentDefaultsToZ2FromScannedPluginInventory(t *tes
 	}); err != nil {
 		t.Fatalf("resolveImplicitTargets: %v", err)
 	}
-	if got := cmd["zone_id"]; got != "Z2" {
-		t.Fatalf("zone_id = %#v, want Z2; cmd=%+v", got, cmd)
+	if got := cmd["zone_id"]; got != "Z3" {
+		t.Fatalf("zone_id = %#v, want default Z3; cmd=%+v", got, cmd)
 	}
-	if len(kernel.commands) != 1 || kernel.commands[0]["cmd"] != "scan_plugins" {
-		t.Fatalf("kernel commands = %+v", kernel.commands)
+	if len(kernel.commands) != 0 {
+		t.Fatalf("kernel commands = %+v, want zero kernel side effects during normalization", kernel.commands)
 	}
 }
 
