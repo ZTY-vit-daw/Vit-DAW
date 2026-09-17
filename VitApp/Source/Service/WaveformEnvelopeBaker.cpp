@@ -2,6 +2,7 @@
 
 #include "AudioFeatureTypes.h"
 #include "OfflineAudioReadCoordinator.h"
+#include "SharedMemorySegment.h"
 #include "../Core/VitPaths.h"
 
 #include <algorithm>
@@ -15,14 +16,12 @@
 #include <functional>
 #include <limits>
 #include <map>
+#include <memory>
 #include <mutex>
 #include <string>
 #include <thread>
 #include <utility>
 #include <vector>
-#if defined(_WIN32)
-#include <windows.h>
-#endif
 
 namespace vit
 {
@@ -40,7 +39,7 @@ constexpr int kRetiredHandleGraceMs = 120000;
 
 std::mutex gMutex;
 std::mutex gDiagLogMutex;
-std::map<std::string, std::vector<void*>> gHandles;
+std::map<std::string, std::vector<std::unique_ptr<ISharedMemorySegment>>> gHandles;
 std::map<std::string, uint64_t> gGen;
 
 struct BakeSummary
@@ -77,15 +76,15 @@ std::map<std::string, BakeSummary> gBakeSummaries;
 
 void writeDiagLog (const juce::String& line);
 
-struct RetiredHandle
+struct RetiredSegment
 {
     std::string key;
     uint64_t gen = 0;
-    void* handle = nullptr;
+    std::unique_ptr<ISharedMemorySegment> segment;
     std::chrono::steady_clock::time_point releaseAt;
 };
 
-std::vector<RetiredHandle> gRetiredHandles;
+std::vector<RetiredSegment> gRetiredSegments;
 
 struct QueuedWaveformBake
 {
@@ -302,38 +301,34 @@ size_t handleCountUnlocked (const std::string& key)
     return it == gHandles.end() ? 0u : it->second.size();
 }
 
-void cleanupRetiredHandlesUnlocked()
+void cleanupRetiredSegmentsUnlocked()
 {
     const auto now = std::chrono::steady_clock::now();
-    for (auto it = gRetiredHandles.begin(); it != gRetiredHandles.end();)
+    for (auto it = gRetiredSegments.begin(); it != gRetiredSegments.end();)
     {
         if (it->releaseAt > now)
         {
             ++it;
             continue;
         }
-#if defined(_WIN32)
-        if (it->handle)
-            CloseHandle (it->handle);
-#endif
-        it = gRetiredHandles.erase (it);
+        it = gRetiredSegments.erase (it);
     }
 }
 
 uint64_t beginGen (const juce::String& id)
 {
     std::lock_guard<std::mutex> lock (gMutex);
-    cleanupRetiredHandlesUnlocked();
+    cleanupRetiredSegmentsUnlocked();
     auto key = id.toStdString();
     auto& gen = gGen[key];
     ++gen;
     auto& handles = gHandles[key];
     const auto releaseAt = std::chrono::steady_clock::now() + std::chrono::milliseconds (kRetiredHandleGraceMs);
     const auto releasedCount = handles.size();
-    for (auto h : handles)
+    for (auto& h : handles)
     {
         if (h)
-            gRetiredHandles.push_back ({ key, gen - 1, h, releaseAt });
+            gRetiredSegments.push_back ({ key, gen - 1, std::move (h), releaseAt });
     }
     handles.clear();
     gBakeSummaries.erase (key);
@@ -350,15 +345,17 @@ bool isGen (const juce::String& id, uint64_t gen)
     return it != gGen.end() && it->second == gen;
 }
 
-[[maybe_unused]] bool storeHandle (const juce::String& id, uint64_t gen, void* h)
+[[maybe_unused]] bool storeSegment (const juce::String& id, uint64_t gen, std::unique_ptr<ISharedMemorySegment> segment)
 {
+    if (! segment)
+        return false;
     std::lock_guard<std::mutex> lock (gMutex);
-    cleanupRetiredHandlesUnlocked();
+    cleanupRetiredSegmentsUnlocked();
     auto key = id.toStdString();
     const auto it = gGen.find (key);
     if (it == gGen.end() || it->second != gen)
         return false;
-    gHandles[key].push_back (h);
+    gHandles[key].push_back (std::move (segment));
     return true;
 }
 
@@ -888,48 +885,32 @@ void WaveformEnvelopeBaker::startBake (juce::String filePath,
             aggregateNanInfCount += outputStats.nanInfCount;
             aggregateSumAbs += outputStats.sumAbs;
             aggregateMaxAbs = juce::jmax (aggregateMaxAbs, outputStats.maxAbs);
-#if defined(_WIN32)
             const auto sessionId = bakeKey + ":" + juce::String ((int64) gen);
-            const auto shm = "Vit_AudioFeature_waveform_"
+            const auto descriptiveName = "Vit_AudioFeature_waveform_"
                 + sanitiseBakeKeyForShm (bakeKey)
                 + "_g" + juce::String ((int64) gen)
                 + "_" + juce::String (tileIndex);
-            const auto bytes = (SIZE_T) (envelope.size() * sizeof (float));
-            HANDLE h = CreateFileMappingA (INVALID_HANDLE_VALUE,
-                                           nullptr,
-                                           PAGE_READWRITE,
-                                           0,
-                                           (DWORD) bytes,
-                                           shm.toRawUTF8());
-            if (! h)
+            const auto shm = juce::String (ISharedMemorySegment::platformPublishedName (descriptiveName.toStdString()));
+            const auto bytes = envelope.size() * sizeof (float);
+            std::string segmentError;
+            auto segment = ISharedMemorySegment::createAndMap (descriptiveName.toStdString(), bytes, segmentError);
+            if (! segment)
             {
-                writeDiagLog ("[waveform_envelope.lifecycle] create_mapping_failed key=" + bakeKey
+                writeDiagLog ("[waveform_envelope.lifecycle] segment_create_failed key=" + bakeKey
                               + " gen=" + juce::String ((int64) gen)
                               + " tile_index=" + juce::String (tileIndex)
-                              + " win_error=" + juce::String ((int) GetLastError()));
+                              + " shm=" + shm
+                              + " detail=" + segmentError);
                 continue;
             }
 
-            auto* mapped = (float*) MapViewOfFile (h, FILE_MAP_ALL_ACCESS, 0, 0, bytes);
-            if (! mapped)
-            {
-                writeDiagLog ("[waveform_envelope.lifecycle] map_view_failed key=" + bakeKey
-                              + " gen=" + juce::String ((int64) gen)
-                              + " tile_index=" + juce::String (tileIndex)
-                              + " win_error=" + juce::String ((int) GetLastError()));
-                CloseHandle (h);
-                continue;
-            }
-
+            auto* mapped = (float*) segment->writableData();
             std::memcpy (mapped, envelope.data(), envelope.size() * sizeof (float));
             const auto shmStats = collectQualityStats (mapped, envelope.size());
-            UnmapViewOfFile (mapped);
+            segment->unmapView();
 
-            if (! storeHandle (bakeKey, gen, h))
-            {
-                CloseHandle (h);
+            if (! storeSegment (bakeKey, gen, std::move (segment)))
                 return;
-            }
 
             const auto handleCount = handleCountForGen (bakeKey, gen);
             const auto quality = decideWaveformQuality (inputStats,
@@ -988,17 +969,6 @@ void WaveformEnvelopeBaker::startBake (juce::String filePath,
                 setQualityStatsProperties (*obj, "shm_postwrite_", shmStats);
                 publish (juce::JSON::toString (juce::var (obj.release())));
             }
-#else
-            // PORT-A3: shm publishing uses the Windows mapping API; the POSIX
-            // publisher is A1 scope. Skip the shared-memory write and the
-            // audio_feature_data_ready event (it would advertise a segment
-            // that does not exist on this platform).
-            writeDiagLog ("[waveform_envelope.lifecycle] publish_skipped key=" + bakeKey
-                          + " gen=" + juce::String ((int64) gen)
-                          + " tile_index=" + juce::String (tileIndex)
-                          + " reason=shm_unsupported_platform");
-            const auto handleCount = handleCountForGen (bakeKey, gen);
-#endif
             completedTiles = tileIndex + 1;
             {
                 auto summary = baseBakeSummary (bakeKey,
