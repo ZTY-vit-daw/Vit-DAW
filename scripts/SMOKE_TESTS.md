@@ -118,6 +118,60 @@ Notes:
   checksum) under a fresh mktemp workdir printed to stderr; previous runs are
   never overwritten.
 
+## Kernel+Agent Mac Smoke (PORT-A5)
+
+Path:
+
+```bash
+~/Documents/Vit-DAW/scripts/dev_agent_smoke_mac.sh
+```
+
+Purpose:
+
+- mac minimal equivalent of `dev_agent_smoke.ps1` for the real two-process
+  stack (VitApp kernel + Go agent; Godot frontend out of scope).
+- Builds the kernel (cmake+make into the run workdir) and agent, starts both
+  with all runtime state isolated under a fake VitApp root inside the workdir
+  (AGENTS §10; the source tree is never touched), then verifies:
+  kernel ZMQ listeners 5555/5556/5557 owned by the kernel pid; the C4
+  whitelist GETs against the agent; a direct kernel ZMQ `ping`; the
+  agent->kernel ZMQ round-trip via `POST /agent/invoke` `project.state`;
+  a `scan_plugins` child-process sweep of `/Library/Audio/Plug-Ins/VST3`
+  (R9: `out_of_process=true` + `--PluginScan:` child ps samples + kernel log
+  anchor); and the Waves WaveShell R2 gate (`plugin_list_available` with at
+  least `--expected-waves` Waves bodies enumerated).
+- Records the kernel stop method and exit code (A1 platform finding: SIGTERM
+  yields 143 without JUCE shutdown) and reproduces/then-unlinks the POSIX shm
+  residue via a `shm_open(O_CREAT|O_EXCL)` EEXIST probe.
+- Emits a `dev.agent.smoke.mac.v1` summary JSON; exit 0 requires every gate
+  to pass. Failures are classified env vs functional in the error line.
+
+Common commands:
+
+```bash
+# Full chain on mac: build kernel+agent, run the stack, scan, stop.
+~/Documents/Vit-DAW/scripts/dev_agent_smoke_mac.sh
+
+# In an isolated git worktree whose tracktion_engine submodule is empty,
+# point at any checkout of the pinned commit:
+~/Documents/Vit-DAW/scripts/dev_agent_smoke_mac.sh \
+  --tracktion-dir ~/Documents/Vit-DAW/tracktion_engine
+
+# Reuse an already-built kernel binary (sha256+mtime recorded).
+~/Documents/Vit-DAW/scripts/dev_agent_smoke_mac.sh --kernel-bin <path>/VitApp
+```
+
+Notes:
+
+- The full WaveShell1-VST3 sweep takes several minutes (the mac 17.1 shell
+  enumerates ~719 plugin bodies through the child scanner); the default
+  `--scan-timeout 600` covers it. The tracktion master scan timeout can be
+  shortened with `TRACKTION_PLUGIN_SCAN_TIMEOUT_MS` in the caller's
+  environment (the kernel inherits it).
+- Each run keeps its artifacts (kernel/agent logs, per-probe JSON, scan
+  trajectory, lsof evidence, summary) under a fresh mktemp workdir printed to
+  stderr; previous runs are never overwritten.
+
 ## B1 Gain Staging Agent Smokes
 
 Paths:
