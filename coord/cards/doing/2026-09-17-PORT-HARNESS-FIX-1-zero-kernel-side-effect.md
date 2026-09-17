@@ -7,7 +7,7 @@
 - 文件域：`agent/internal/harness/harness.go`（仅该兜底块删除及其必要收尾）；**不改动** `pluginsemantics/index.go` 的模糊兜底（另行决策）；不改两测试文件（方案 A 下应原样通过）
 - 验收标准：① 干净机器（无 `~/.vit/plugin_semantics.json`、不设 `VIT_PLUGIN_SEMANTICS_PATH`）上述两测试 `-count=1` PASS；② `go test ./internal/harness -count=1` 整包**零失败**（FLAKY-1 两例消失、无新增）；③ `go build ./...` 与 `go vet ./internal/harness/` exit 0；④ 失败输出与命令入回执
 - 停止条件：删除兜底引发其它测试依赖该路径的失败且非夹具可解 → 停下上报（不许为凑通过改测试语义）；发现 zone 解析在别处依赖同一兜底 → 列锚点上交
-- 领取：
+- 领取：2026-09-17（Mac 执行侧，用户口令「开工 HARNESS-FIX-1」）/ origin/main=04fa36d49d7c4866520b3990ddd9c0a863bca630（工作树干净，无并行流，主工作树）/ 分支 port/harness-fix-1
 - 回执：
 - 验收：
 - 关联：取证见 `coord/cards/done/2026-09-16-PORT-MAC-HARNESS-FLAKY-1.md`（证据矩阵与三变体对照）；`Get()` 模糊兜底跨插件错配隐患（index.go:253）**不在本卡**，登记为独立待裁项
