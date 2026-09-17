@@ -4,8 +4,9 @@
 - 模型分级：L2 / GLM-5.3（改动小但涉 PCA 门控邻近语义，谨慎执行）
 - 决策定案（方案 A·生产根治，FLAKY-1 回执三案择一，决策侧 2026-09-17 裁定）：删除 `rackPluginSemanticEntry` 的内核兜底（`agent/internal/harness/harness.go:8996-9012` 索引缺失时 `listAvailablePlugins`→`scan_plugins` 路径），索引未命中走既有默认 Z3 分支（harness.go:8969-8971）。**接受 tradeoff**：无索引机器上乐器 zone（Z2）不再经内核清单解析、默认落 Z3——zone 解析的正路是校准（C2/C3）或显式装载流建立索引，不是规范化阶段的内核副作用
 - 目标：恢复「被 PCA 门控拒绝的命令在规范化阶段零内核副作用」不变量；FLAKY-1 两测试（`TestFullProjectAccessDoesNotDisplaceExplicitSelectionAuthorization` / `TestAgentProcessorLoadGateRechecksPCAAndBlocksBypass`）在**无任何夹具的干净机器**上通过
-- 文件域：`agent/internal/harness/harness.go`（仅该兜底块删除及其必要收尾）；**不改动** `pluginsemantics/index.go` 的模糊兜底（另行决策）；不改两测试文件（方案 A 下应原样通过）
-- 验收标准：① 干净机器（无 `~/.vit/plugin_semantics.json`、不设 `VIT_PLUGIN_SEMANTICS_PATH`）上述两测试 `-count=1` PASS；② `go test ./internal/harness -count=1` 整包**零失败**（FLAKY-1 两例消失、无新增）；③ `go build ./...` 与 `go vet ./internal/harness/` exit 0；④ 失败输出与命令入回执
+- 文件域：`agent/internal/harness/harness.go`（仅该兜底块删除及其必要收尾）；**不改动** `pluginsemantics/index.go` 的模糊兜底（另行决策）；~~不改两测试文件~~ → **rework 扩域（裁定 [2026-09-17-HARNESSFIX1-rework.md](../../rulings/2026-09-17-HARNESSFIX1-rework.md)）**：`harness_test.go` **仅限 :1925-1961 一例**按方案 A 新语义改写规格断言并更名（索引缺失→默认 Z3 + `kernel.commands` 为空；scan 应答桩改"不应被调用"哨兵或移除），其余测试不触碰
+- 验收标准：① 干净机器（无 `~/.vit/plugin_semantics.json`、不设 `VIT_PLUGIN_SEMANTICS_PATH`）上述两测试 `-count=1` PASS；② `go test ./internal/harness -count=1` 整包**零失败**（FLAKY-1 两例消失、改写后规格测试 PASS、无新增）；③ `go build ./...` 与 `go vet ./internal/harness/` exit 0；④ 失败输出与命令入回执；⑤ 改写后测试固化新语义（Z3 + 零内核命令）
+- 返工意见（2026-09-17 决策侧）：blocked 处置=维持方案 A + 扩域改写不删（决策侧已独立复验红绿对照与整包恰 1 例）；同分支 `port/harness-fix-1` 续作；端测边界裁定：单元级验收足够（真栈 zone 解析验证并入 C3）
 - 停止条件：删除兜底引发其它测试依赖该路径的失败且非夹具可解 → 停下上报（不许为凑通过改测试语义）；发现 zone 解析在别处依赖同一兜底 → 列锚点上交
 - 领取：2026-09-17（Mac 执行侧，用户口令「开工 HARNESS-FIX-1」）/ origin/main=04fa36d49d7c4866520b3990ddd9c0a863bca630（工作树干净，无并行流，主工作树）/ 分支 port/harness-fix-1
 - 回执：**blocked（2026-09-17，Mac 执行侧）——方案 A 实现完成且不变量恢复（FLAKY-1 两例干净机器 PASS、build/vet exit 0），但整包验收②出现 1 例新增失败：`TestPluginLoadToRackInstrumentDefaultsToZ2FromScannedPluginInventory`（harness_test.go:1925-1961）恰是被删兜底的功能规格测试，非夹具可解，命中停止条件上交。实现 commit e4dc881（分支 port/harness-fix-1，已推）待决策扩域处置。**
