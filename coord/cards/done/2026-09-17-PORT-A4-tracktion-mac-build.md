@@ -13,4 +13,4 @@
   - **验收③** 命令与退出码如上（configure 0 / build 0）；日志 `/tmp/vit-a4-build/build-vitapp.log`（0 error；1042 条 warning 为 A3 已记录既有风格警告，非阻断未触碰）。
   - 环境事实注记：子模块 `modules/juce` 为 vendored 内联（镜像 bae0331 提交说明），无嵌套子模块拉取面；卡面"submodule @bae0331"为重 pin 前旧值，实际 pin b439749（3009ca2）。
   - 端测覆盖边界声明（AGENTS §5）：本卡验证 = 编译面 + 链接面；未含 VitApp 进程运行冒测与真机音频行为（归 A5）；Tests 编译+运行 A3 已覆盖不重跑；WaveShell mac 枚举/加载不在本卡（A5 真机）。零源码改动 ⇒ Windows 零回归自明。
-- 验收：
+- 验收：**pass**（裁定 [2026-09-17-A4-pass.md](../../rulings/2026-09-17-A4-pass.md)，决策侧工件抽查：nm undefined tracktion=0 独立证实、日志零真实 error）；零改动纯验证卡无实现合入；A3 纯 pin 可复现验证点闭合

@@ -19,4 +19,4 @@
   - **平台语义发现（供 A5/决策侧）** ①SIGTERM 下内核无优雅退出（实测 exit 143，JUCE shutdown 不触发）→ releaseTestMemory 不执行 → POSIX shm 段存留至重启/覆盖；内核 CommandDispatcher/VitHeadlessService 无 shutdown 命令面（grep 无果）——真实栈的内核停止方式与优雅退出归 A5 定义；②macOS POSIX shm 不落 `/private/var/tmp` 可见文件（伪文件系统，lsof PSXSHM 可见），跨机核验须用 lsof/读链路而非目录列举。
   - **并发事故记录（协作层须知）** 领取提交 `7ceff63` 因**另一会话在同一主工作树并行领取 A4**（其 claim `2baabd2` 先落 main、其 checkout port/a4 致我的提交落错分支、我随后 checkout 又抢走共享 HEAD）——已无损失修复：a4 分支还原 `2baabd2`、main fast-forward 至 `7ceff63`、主树 checkout 交还、本卡全部工作转隔离 worktree `/tmp/vit-a1-worktree` 完成。**建议**：同机多执行流并存时各用独立 git worktree（协议未禁止并行流，但主工作树单 HEAD 是客观踩踏面）。
   - 端测覆盖边界声明（AGENTS §5）：本卡验证面=内核 darwin 编译链接 + Tests 运行 + **内核发布↔Go 冻结读回跨进程**；未含：真实音频 bake 全旅程（audio_feature_data_ready 经 ZMQ 至 agent 材料化；baker 发布块与 Tester 共用同一接口与 POSIX 实现，接口级已覆盖）、Windows 真机复验——前者归 A5 真栈卡，后者归决策侧 PC 复编译。
-- 验收：
+- 验收：**pass**（裁定 [2026-09-17-A1-pass.md](../../rulings/2026-09-17-A1-pass.md)，决策侧独立复验：内核构建 exit 0、Tests 5/5、真内核发布→Go 冻结读回逐位相等（lsof PSXSHM 16384 实证））；实现取文件域入 main `0ea259a`；PC 复编译确认待 PC 会话（与 A3 累计两卡）；层 A 四卡闭环
