@@ -13,6 +13,6 @@
 - 文件域：`~/Documents/vit-daw-frontend/`（仓外重建与配置）+ 主仓 `scripts/`（mac 侧组装/校验脚本如需，命名对齐惯例）+ 工件目录；**不改** Godot 源仓文件内容（PC 侧资产只读）；`agent/`、`VitApp/Source` 零触碰
 - 验收标准：①重建核对记录（sha256+状态清单比对）；②extension_list.cfg 双注册证据 + CefTexture 可见；③双 import 退出码记录（首轮 134+二轮 0 为预期形态，其他形态按类型记录）；④start_page 候选→实盘二进制核对表；⑤导出预设 diff + templates 边界声明；⑥用户手测清单成品；⑦工件目录 run ID/各段日志
 - 停止条件：运输包核对失败（哈希不符/缺件）→ blocked 上交；二轮 import 仍崩或 CEF 类不注册 → 对照 B2P 手册 §4 坑位排查，仍败按类型转 blocked（B1 环境事实升级处置由决策侧裁定）；发现需改前端 .gd 逻辑才能起栈 → 域外上报（B3 域已验收，改动需新卡授权）
-- 领取：
+- 领取：2026-09-19 00:05 CST（Mac 执行流，用户直令「开工 PORT-B4B」，PC 侧确认 B4A 已完成推送）/ origin/main `d04d01fc0867c6f2215f0ff841f85fb575e1bd4d`（B4A done 回执之后；工作树干净单流）/ 分支 `port/b4b-frontend-on-mac`（仓外重建为主，仓内如需脚本再走分支）
 - 回执：
 - 验收：
