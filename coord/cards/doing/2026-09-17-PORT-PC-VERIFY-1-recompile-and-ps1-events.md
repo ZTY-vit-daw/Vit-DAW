@@ -8,6 +8,6 @@
 - 文件域：子项 A 只读验证（零源码改动）；子项 B 仅 `scripts/g_runtime_readonly_smoke.ps1`
 - 验收标准：A 与 B 各自 exit 0 证据（命令+退出码）入回执；B 附 ps1↔mac 对照说明
 - 停止条件：MSVC 编译失败且原因在守卫块内语义（非明显笔误）→ blocked 上交由决策侧裁定
-- 领取：
+- 领取：2026-09-18 12:00 CST（PC 执行流，用户直令「开工 PORT-PC-VERIFY-1」，L1/flash）/ origin/main `af3384179afbce59ea79e4590ca4171250dcaaec` / 分支 `port/pc-verify-1`（子项 B 实现）+ `pcverify-main-sync`（coord 推送用临时分支，推 HEAD:main；独立 worktree `D:/Vit_DAW_worktrees/pc-verify-1`，PROTOCOL §3）。主工作树孤儿改动 `agent/cmd/vitagent/main.go`（领取前已存在，10+/3-，归属待定）本卡全程不触碰不提交。子项 A 编译用主工作树源码 + 全新 build 目录 `VitApp/build-pcverify1`（VitApp/agent 源码在 `ad5d2e2a`..`af338417` 间零差异，含 `d33f933`/`0ea259a`/`79d4757`）
 - 回执：
 - 验收：
