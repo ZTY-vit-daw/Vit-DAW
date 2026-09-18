@@ -5,17 +5,30 @@
 #include <public.sdk/source/vst/hosting/module.h>
 
 #include <algorithm>
-#ifndef NOMINMAX
- #define NOMINMAX
-#endif
-#include <windows.h>
-#include <bcrypt.h>
 #include <cmath>
+#include <cstdint>
 #include <iostream>
 #include <string>
 #include <vector>
-#include <io.h>
-#include <fcntl.h>
+#if defined(_WIN32)
+ #ifndef NOMINMAX
+  #define NOMINMAX
+ #endif
+ #include <windows.h>
+ #include <bcrypt.h>
+ #include <io.h>
+ #include <fcntl.h>
+#else
+ // macOS observation host: the bcrypt/io.h CRT surface is replaced by
+ // CommonCrypto and the POSIX dup/open family. std::filesystem drives the
+ // bundle-directory fingerprint walk that single-file Windows shells never
+ // needed.
+ #include <CommonCrypto/CommonDigest.h>
+ #include <fcntl.h>
+ #include <unistd.h>
+ #include <filesystem>
+ #include <system_error>
+#endif
 
 namespace
 {
@@ -60,6 +73,7 @@ public:
     ScopedPluginStdoutSilencer()
     {
         std::cout.flush();
+#if defined(_WIN32)
         saved = _dup (_fileno (stdout));
         if (saved < 0)
             return;
@@ -72,6 +86,20 @@ public:
         }
         _dup2 (nullFile, _fileno (stdout));
         _close (nullFile);
+#else
+        saved = dup (fileno (stdout));
+        if (saved < 0)
+            return;
+        const auto nullFile = ::open ("/dev/null", O_WRONLY);
+        if (nullFile < 0)
+        {
+            ::close (saved);
+            saved = -1;
+            return;
+        }
+        ::dup2 (nullFile, fileno (stdout));
+        ::close (nullFile);
+#endif
         active = true;
     }
 
@@ -80,8 +108,13 @@ public:
         if (active)
         {
             std::cout.flush();
+#if defined(_WIN32)
             _dup2 (saved, _fileno (stdout));
             _close (saved);
+#else
+            ::dup2 (saved, fileno (stdout));
+            ::close (saved);
+#endif
         }
     }
 
@@ -116,39 +149,202 @@ bool boolProperty (const Object& object, const char* name, bool fallback = false
     return value.isBool() ? static_cast<bool> (value) : fallback;
 }
 
-juce::String hashBytes (const void* data, size_t size)
+// Incremental SHA-256 over the platform crypto primitive: BCrypt on Windows,
+// CommonCrypto on macOS. Both emit the same digest; only the framing below
+// decides cross-platform fingerprint stability.
+class Sha256Digest
 {
-    BCRYPT_ALG_HANDLE algorithm = nullptr;
-    BCRYPT_HASH_HANDLE hash = nullptr;
-    DWORD hashLength = 0;
-    DWORD bytesWritten = 0;
-    if (BCryptOpenAlgorithmProvider (&algorithm, BCRYPT_SHA256_ALGORITHM, nullptr, 0) != 0
-        || BCryptGetProperty (algorithm, BCRYPT_HASH_LENGTH, reinterpret_cast<PUCHAR> (&hashLength), sizeof (hashLength), &bytesWritten, 0) != 0)
+public:
+    Sha256Digest()
     {
+#if defined(_WIN32)
+        valid = BCryptOpenAlgorithmProvider (&algorithm, BCRYPT_SHA256_ALGORITHM, nullptr, 0) == 0
+            && BCryptCreateHash (algorithm, &hash, nullptr, 0, nullptr, 0, 0) == 0;
+#else
+        valid = CC_SHA256_Init (&context) == 1;
+#endif
+    }
+
+    ~Sha256Digest()
+    {
+#if defined(_WIN32)
+        if (hash != nullptr)
+            BCryptDestroyHash (hash);
         if (algorithm != nullptr)
             BCryptCloseAlgorithmProvider (algorithm, 0);
-        return {};
+#endif
     }
-    std::vector<unsigned char> digest (hashLength);
-    const auto status = BCryptCreateHash (algorithm, &hash, nullptr, 0, nullptr, 0, 0) == 0
-        && BCryptHashData (hash, reinterpret_cast<PUCHAR> (const_cast<void*> (data)), static_cast<ULONG> (size), 0) == 0
-        && BCryptFinishHash (hash, digest.data(), hashLength, 0) == 0;
-    if (hash != nullptr)
-        BCryptDestroyHash (hash);
-    BCryptCloseAlgorithmProvider (algorithm, 0);
-    if (! status)
-        return {};
+
+    bool update (const void* data, size_t size)
+    {
+        if (! valid)
+            return false;
+#if defined(_WIN32)
+        return BCryptHashData (hash, reinterpret_cast<PUCHAR> (const_cast<void*> (data)),
+                               static_cast<ULONG> (size), 0) == 0;
+#else
+        return CC_SHA256_Update (&context, data, static_cast<CC_LONG> (size)) == 1;
+#endif
+    }
+
+    bool finish (unsigned char (&digest)[32])
+    {
+        if (! valid)
+            return false;
+#if defined(_WIN32)
+        return BCryptFinishHash (hash, digest, sizeof (digest), 0) == 0;
+#else
+        return CC_SHA256_Final (digest, &context) == 1;
+#endif
+    }
+
+    Sha256Digest (const Sha256Digest&) = delete;
+    Sha256Digest& operator= (const Sha256Digest&) = delete;
+
+private:
+    bool valid = false;
+#if defined(_WIN32)
+    BCRYPT_ALG_HANDLE algorithm = nullptr;
+    BCRYPT_HASH_HANDLE hash = nullptr;
+#else
+    CC_SHA256_CTX context {};
+#endif
+};
+
+juce::String encodeDigest (const unsigned char (&digest)[32])
+{
     juce::String encoded;
     for (const auto byte : digest)
         encoded += juce::String::toHexString (static_cast<int> (byte)).paddedLeft ('0', 2);
     return "sha256:" + encoded;
 }
 
-juce::String fileHash (const juce::File& file)
+juce::String hashBytes (const void* data, size_t size)
 {
+    Sha256Digest digest;
+    unsigned char result[32];
+    if (! digest.update (data, size) || ! digest.finish (result))
+        return {};
+    return encodeDigest (result);
+}
+
+#if ! defined(_WIN32)
+// Mirrors the Go processor attestation FingerprintPath bundle grammar exactly:
+// the domain tag "vit-pca-bundle-v1\0", then for every regular file in sorted
+// path order a big-endian length-framed slash-separated relative path and a
+// big-endian size-framed byte payload. Symlinks anywhere in the bundle are
+// rejected fail-closed, matching the Go admission-side behaviour (R4).
+juce::String bundleHash (const juce::File& bundleRoot, juce::String& failureReason)
+{
+    namespace fs = std::filesystem;
+    std::error_code error;
+    const fs::path root = fs::path (bundleRoot.getFullPathName().toStdString());
+    std::vector<fs::path> files;
+    for (fs::recursive_directory_iterator it (root, fs::directory_options::none, error), end;
+         ! error && it != end;
+         it.increment (error))
+    {
+        const auto status = it->symlink_status (error);
+        if (error)
+            break;
+        if (status.type() == fs::file_type::symlink)
+        {
+            failureReason = "bundle contains symlink " + juce::String (it->path().string());
+            return {};
+        }
+        if (status.type() == fs::file_type::regular)
+            files.push_back (it->path());
+    }
+    if (error)
+    {
+        failureReason = "bundle walk failed: " + juce::String (error.message());
+        return {};
+    }
+    if (files.empty())
+    {
+        failureReason = "bundle contains no regular files";
+        return {};
+    }
+    std::sort (files.begin(), files.end());
+    Sha256Digest digest;
+    const char domainTag[] = "vit-pca-bundle-v1";
+    if (! digest.update (domainTag, sizeof (domainTag))) // includes the trailing NUL
+    {
+        failureReason = "digest domain tag failed";
+        return {};
+    }
+    for (const auto& file : files)
+    {
+        const auto relative = fs::relative (file, root, error).generic_string();
+        if (error)
+        {
+            failureReason = "bundle relative path failed for " + juce::String (file.string());
+            return {};
+        }
+        const auto frameLength = [&] (uint64_t value)
+        {
+            unsigned char frame[8] {};
+            for (int index = 0; index < 8; ++index)
+                frame[index] = static_cast<unsigned char> (value >> (56 - 8 * index));
+            return digest.update (frame, sizeof (frame));
+        };
+        if (! frameLength (relative.size()) || ! digest.update (relative.data(), relative.size()))
+        {
+            failureReason = "digest path frame failed for " + juce::String (file.string());
+            return {};
+        }
+        juce::MemoryBlock bytes;
+        juce::File input (file.string());
+        std::unique_ptr<juce::FileInputStream> stream (input.createInputStream());
+        // readIntoMemoryBlock returns the byte count: 0 is a legitimate
+        // success for empty marker files such as the macOS "Icon\r".
+        if (stream == nullptr || stream->readIntoMemoryBlock (bytes) < 0)
+        {
+            failureReason = "bundle file unreadable: " + input.getFullPathName();
+            return {};
+        }
+        if (! frameLength (bytes.getSize()) || ! digest.update (bytes.getData(), bytes.getSize()))
+        {
+            failureReason = "digest payload frame failed for " + input.getFullPathName();
+            return {};
+        }
+    }
+    unsigned char result[32];
+    if (! digest.finish (result))
+    {
+        failureReason = "digest finish failed";
+        return {};
+    }
+    return encodeDigest (result);
+}
+#endif
+
+juce::String fileHash (const juce::File& file, juce::String* failureReason = nullptr)
+{
+#if ! defined(_WIN32)
+    if (file.isDirectory())
+    {
+        // macOS VST3 shells are bundle directories; the single-file stream
+        // below only applies to the Windows file-form shells.
+        juce::String reason;
+        const auto fingerprint = bundleHash (file, reason);
+        if (fingerprint.isEmpty())
+        {
+            if (failureReason != nullptr)
+                *failureReason = reason;
+            std::cerr << "pluginprobe worker: installation fingerprint failed for "
+                      << file.getFullPathName() << ": " << reason << std::endl;
+        }
+        return fingerprint;
+    }
+#endif
     std::unique_ptr<juce::FileInputStream> stream (file.createInputStream());
     if (stream == nullptr)
+    {
+        if (failureReason != nullptr)
+            *failureReason = "file unreadable: " + file.getFullPathName();
         return {};
+    }
     juce::MemoryBlock bytes;
     stream->readIntoMemoryBlock (bytes);
     return hashBytes (bytes.getData(), bytes.getSize());
@@ -269,7 +465,9 @@ private:
         if (path.isEmpty())
             return error ("plugin_path_required", "load requires plugin_path");
         pluginFile = juce::File (path);
-        if (! pluginFile.existsAsFile())
+        // macOS VST3 shells are bundle directories; Windows shells are single
+        // files. Both forms are accepted observation targets.
+        if (! pluginFile.existsAsFile() && ! pluginFile.isDirectory())
             return error ("plugin_not_found", "VST3 file does not exist: " + pluginFile.getFullPathName());
         if (! pluginFile.hasFileExtension (".vst3"))
             return error ("not_vst3", "only .vst3 files are supported by this worker");
@@ -443,7 +641,7 @@ private:
         return classes;
     }
 
-    juce::var snapshot() const
+    juce::var snapshot()
     {
         auto result = makeObject();
         auto identity = makeObject();
@@ -453,7 +651,11 @@ private:
         set (identity, "version", description.version);
         set (identity, "format", "VST3");
         set (identity, "install_path", pluginFile.getFullPathName());
-        set (identity, "file_fingerprint", fileHash (pluginFile));
+        juce::String fingerprintFailure;
+        const auto installationFingerprint = fileHash (pluginFile, &fingerprintFailure);
+        if (installationFingerprint.isEmpty() && fingerprintFailure.isNotEmpty())
+            addLog ("installation fingerprint rejected: " + fingerprintFailure);
+        set (identity, "file_fingerprint", installationFingerprint);
         set (identity, "juce_unique_id", juce::String::toHexString (description.uniqueId));
         set (identity, "juce_identifier", description.createIdentifierString());
         set (identity, "class_ids", classInfoSnapshot());
@@ -561,7 +763,9 @@ private:
             plugin.reset();
         }
         description = {};
-        pluginFile = {};
+        // AppleClang rejects `= {}` against juce::File's assignment set; the
+        // default-constructed invalid File is the intended reset either way.
+        pluginFile = juce::File();
         addLog ("plugin unloaded");
         auto result = makeObject();
         set (result, "unloaded", true);

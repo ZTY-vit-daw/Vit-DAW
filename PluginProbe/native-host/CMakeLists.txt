@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.22)
 
 # This target is deliberately separate from VitApp.  It links only the JUCE
 # VST3 hosting components and never starts, connects to, or mutates Vit.
-project(PluginProbeVST3Host VERSION 0.1.0 LANGUAGES CXX)
+project(PluginProbeVST3Host VERSION 0.1.0 LANGUAGES C CXX)
 
 set(PLUGINPROBE_TRACKTION_ENGINE_DIR "${CMAKE_CURRENT_LIST_DIR}/../../tracktion_engine" CACHE PATH
     "Path to the bundled Tracktion/JUCE source tree")
@@ -28,10 +28,28 @@ juce_add_gui_app(pluginprobe_vst3_witness
     COMPANY_NAME "Vit-DAW")
 
 target_compile_features(pluginprobe_vst3_worker PRIVATE cxx_std_20)
-target_sources(pluginprobe_vst3_worker PRIVATE
-    src/main.cpp
-    "${PLUGINPROBE_TRACKTION_ENGINE_DIR}/modules/juce/modules/juce_audio_processors_headless/format_types/VST3_SDK/public.sdk/source/vst/hosting/module.cpp"
-    "${PLUGINPROBE_TRACKTION_ENGINE_DIR}/modules/juce/modules/juce_audio_processors_headless/format_types/VST3_SDK/public.sdk/source/vst/hosting/module_win32.cpp")
+
+# The VST3 hosting helper that exposes VST3::Hosting::Module has one platform
+# loader per OS. Windows shells are single files; macOS shells are bundles
+# loaded through CFBundle, which needs Objective-C++ compiled with ARC.
+set(PLUGINPROBE_VST3_HOSTING_DIR
+    "${PLUGINPROBE_TRACKTION_ENGINE_DIR}/modules/juce/modules/juce_audio_processors_headless/format_types/VST3_SDK/public.sdk/source/vst/hosting")
+if (WIN32)
+    target_sources(pluginprobe_vst3_worker PRIVATE
+        src/main.cpp
+        "${PLUGINPROBE_VST3_HOSTING_DIR}/module.cpp"
+        "${PLUGINPROBE_VST3_HOSTING_DIR}/module_win32.cpp")
+elseif (APPLE)
+    enable_language(OBJCXX)
+    target_sources(pluginprobe_vst3_worker PRIVATE
+        src/main.cpp
+        "${PLUGINPROBE_VST3_HOSTING_DIR}/module.cpp"
+        "${PLUGINPROBE_VST3_HOSTING_DIR}/module_mac.mm")
+    set_source_files_properties("${PLUGINPROBE_VST3_HOSTING_DIR}/module_mac.mm"
+        PROPERTIES COMPILE_FLAGS "-fobjc-arc")
+else()
+    message(FATAL_ERROR "PluginProbe native host has no platform module loader for this platform")
+endif()
 
 target_compile_features(pluginprobe_vst3_witness PRIVATE cxx_std_20)
 target_sources(pluginprobe_vst3_witness PRIVATE
@@ -53,14 +71,26 @@ target_compile_definitions(pluginprobe_vst3_witness PRIVATE
     JUCE_APPLICATION_NAME_STRING="$<TARGET_PROPERTY:pluginprobe_vst3_witness,JUCE_PRODUCT_NAME>"
     JUCE_APPLICATION_VERSION_STRING="$<TARGET_PROPERTY:pluginprobe_vst3_witness,JUCE_VERSION>")
 
-target_link_libraries(pluginprobe_vst3_worker PRIVATE
-    juce::juce_audio_processors_headless
-    juce::juce_audio_formats
-    juce::juce_events
-    bcrypt
-    juce::juce_recommended_config_flags
-    juce::juce_recommended_lto_flags
-    juce::juce_recommended_warning_flags)
+# bcrypt is the Windows SHA-256 primitive; on macOS the worker hashes through
+# CommonCrypto, which ships inside libSystem and needs no explicit link.
+if (WIN32)
+    target_link_libraries(pluginprobe_vst3_worker PRIVATE
+        juce::juce_audio_processors_headless
+        juce::juce_audio_formats
+        juce::juce_events
+        bcrypt
+        juce::juce_recommended_config_flags
+        juce::juce_recommended_lto_flags
+        juce::juce_recommended_warning_flags)
+else()
+    target_link_libraries(pluginprobe_vst3_worker PRIVATE
+        juce::juce_audio_processors_headless
+        juce::juce_audio_formats
+        juce::juce_events
+        juce::juce_recommended_config_flags
+        juce::juce_recommended_lto_flags
+        juce::juce_recommended_warning_flags)
+endif()
 
 target_link_libraries(pluginprobe_vst3_witness PRIVATE
     juce::juce_audio_processors
