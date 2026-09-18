@@ -8,6 +8,6 @@
 - 文件域：`scripts/pca_calibration_chain_mac.sh`（平台分支适配，保持两端可重复；**不得**借机重构）；如适配量超出平台分支级别（需结构性改写）→ 停止上交，不自行新起脚本
 - 验收标准：① 孤儿改动归属结论 + 考古证据（命令与输出）；② PC 全链 exit 0 + run ID + 各段日志 + PC 白名单草稿 JSON；③ PC↔mac 逐主体对照表（体数差异定位到族）；④ PC `~/.vit` before/after 哈希与 delta 语义说明
 - 停止条件：脚本 PC 适配需结构性重写 → 上交由决策侧裁定拆卡；探针/认证失败按 AGENTS §8 分类记录；`~/.vit` 出现非取代语义 delta → 快照回滚 + blocked
-- 领取：
+- 领取：2026-09-18 18:45 +0800 / origin/main db55f861（领取时 HEAD=db55f861，工作树仅 M agent/cmd/vitagent/main.go 即前置义务调查对象）/ 分支 port/c2-pc-rerun（独立 worktree D:/Vit_DAW_worktrees/c2-pc-rerun）
 - 回执：
 - 验收：
