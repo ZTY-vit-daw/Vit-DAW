@@ -1,6 +1,4 @@
-env = SConscript("../godot-cpp/SConstruct")
-
-env.add_source_files(env.modules_sources, "src/*.cpp")
+env = SConscript("../godot-cpp/SConstruct", {"api_version": "4.6"})
 
 env_shared = env.Clone()
 env_shared.Append(CPPDEFINES=["VIT_EXTENSION_EXPORTS"])
@@ -12,7 +10,9 @@ library_name = "vit_extension.{}.{}.{}{}".format(
     env["SHLIBSUFFIX"],
 )
 
-env_shared.SharedLibrary(
-    target="#extension/bin/{}".format(library_name),
-    source=env.modules_sources,
+library = env_shared.SharedLibrary(
+    target="#bin/{}".format(library_name),
+    source=Glob("src/*.cpp"),
 )
+
+Default(library)
