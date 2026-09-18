@@ -248,6 +248,10 @@ AGENT_STOP_RECORD=""
 OUTCOME="env_failure"
 FATAL_MSG=""
 EXIT_CODE=2
+KERNEL_BIN=""
+AGENT_BIN=""
+KERNEL_SHA=""
+AGENT_SHA=""
 
 log() { echo "[$(date '+%H:%M:%S')] $*" >&2; }
 step() { echo "" >&2; echo "== $*" >&2; }
@@ -279,6 +283,173 @@ with open(sys.argv[1], "r", encoding="utf-8") as f:
 print(eval(sys.argv[2], {"d": d}))
 PY
 }
+
+# ------------------------------------------------- stack teardown (early-bound)
+# Defined before the first possible fatal_env so the EXIT trap below can always
+# run teardown + fingerprints + report, even when the journey aborts in
+# preflight (LLM guard) or mid-phase.
+
+port_listener_pid() {
+  lsof -nP -iTCP:"$1" -sTCP:LISTEN -t 2>/dev/null | head -1 || true
+}
+
+stop_process() {
+  # stop_process <pid> — SIGTERM + grace, then SIGKILL; fills STOP_RECORD.
+  local pid="$1" start elapsed code signal="SIGTERM"
+  kill -TERM "$pid" 2>/dev/null || true
+  start=$SECONDS
+  while kill -0 "$pid" 2>/dev/null; do
+    (( SECONDS - start < STOP_GRACE_SECONDS )) || { kill -KILL "$pid" 2>/dev/null || true; signal="SIGTERM+SIGKILL"; break; }
+    sleep 1
+  done
+  wait "$pid" 2>/dev/null
+  code=$?
+  elapsed=$((SECONDS - start))
+  STOP_RECORD="${signal}:${code}:${elapsed}"
+}
+# (no errexit anywhere: journey assertions must not abort the run — verdicts and
+# teardown always run; fatal_env is the only early exit path)
+
+stop_stack() {
+  # stop_stack <phase-tag> — agent first, then kernel, then port release wait.
+  local tag="$1" port busy
+  [[ -z "$AGENT_PID" ]] || {
+    log "stopping agent (pid $AGENT_PID, phase $tag)..."
+    stop_process "$AGENT_PID"
+    AGENT_STOP_RECORD="$STOP_RECORD"
+    log "agent stop: $AGENT_STOP_RECORD"
+  }
+  AGENT_PID=""
+  [[ -z "$KERNEL_PID" ]] || {
+    log "stopping kernel (pid $KERNEL_PID, phase $tag)..."
+    stop_process "$KERNEL_PID"
+    KERNEL_STOP_RECORD="$STOP_RECORD"
+    log "kernel stop: $KERNEL_STOP_RECORD (A1 finding: SIGTERM exit 143 expected)"
+  }
+  KERNEL_PID=""
+  local deadline=$((SECONDS + 30))
+  while (( SECONDS < deadline )); do
+    busy=""
+    for port in "$AGENT_HTTP_PORT" "$KERNEL_PORT_REQ" "$ZMQ_PUB_PORT" "$ZMQ_LOG_PORT"; do
+      [[ -n "$(port_listener_pid "$port")" ]] && busy="$busy $port"
+    done
+    [[ -z "$busy" ]] && break
+    sleep 1
+  done
+  for port in "$AGENT_HTTP_PORT" "$KERNEL_PORT_REQ" "$ZMQ_PUB_PORT" "$ZMQ_LOG_PORT"; do
+    [[ -n "$(port_listener_pid "$port")" ]] && prereq "port_still_busy_after_${tag}=$port"
+  done
+}
+
+cleanup() {
+  local rc=$?
+  trap - EXIT INT TERM
+  step "Teardown"
+  stop_stack "final"
+  prereq "repo_default_project_sha256_after=$(file_sha256 "$REPO_DEFAULT_PROJECT")"
+  prereq "repo_settings_sha256_after=$(file_sha256 "$REPO_SETTINGS_XML")"
+  prereq "user_project_sha256_after=$(file_sha256 "$PROJECT_SOURCE")"
+  prereq "user_history_fingerprint_after=$(python3 - "$USER_HISTORY_DIR" <<'PY'
+import hashlib, os, sys
+root = sys.argv[1]
+if not os.path.isdir(root):
+    print("absent"); raise SystemExit
+h = hashlib.sha256()
+for dirpath, dirnames, filenames in sorted(os.walk(root)):
+    dirnames.sort()
+    for name in sorted(filenames):
+        p = os.path.join(dirpath, name)
+        st = os.stat(p)
+        h.update(("%s:%d:%s;" % (p[len(root):], st.st_size, st.st_mtime)).encode("utf-8"))
+print(h.hexdigest())
+PY
+)"
+  prereq "finished=$(date '+%Y-%m-%dT%H:%M:%S%z')"
+  python3 - "$REPORT_PATH" "$WORKDIR" "$RUN_ID" "$PROJECT_SOURCE" "$COPY_PROJECT" \
+    "$KERNEL_BIN" "$AGENT_BIN" "$PROMPT_TEXT" "$OUTCOME" "$FATAL_MSG" \
+    "$KERNEL_STOP_RECORD" "$AGENT_STOP_RECORD" "$KERNEL_SHA" "$AGENT_SHA" <<'PY'
+import json, os, sys
+
+(out, workdir, run_id, project_source, copy_project, kernel_bin, agent_bin,
+ prompt, outcome, fatal_msg, kernel_stop, agent_stop, kernel_sha, agent_sha) = sys.argv[1:15]
+
+def load(path, default=None):
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return default
+
+def loadl(path):
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return [json.loads(line) for line in f if line.strip()]
+    except Exception:
+        return []
+
+def frag(name):
+    for sub in ("phase_a", "phase_b", ""):
+        p = os.path.join(workdir, sub, name) if sub else os.path.join(workdir, name)
+        if os.path.isfile(p):
+            return load(p)
+    return None
+
+prereq = []
+if os.path.isfile(os.path.join(workdir, "prereq.txt")):
+    prereq = [l.rstrip("\n") for l in open(os.path.join(workdir, "prereq.txt"), encoding="utf-8") if l.strip()]
+
+report = {
+    "schema_version": "vit_demo_journey_driver.mac.v1",
+    "card": "PORT-JOURNEY-1-MAC",
+    "run_root": workdir,
+    "run_id": run_id,
+    "project_source": project_source,
+    "copy_project": copy_project,
+    "kernel_exe": kernel_bin,
+    "kernel_sha256": kernel_sha,
+    "agent_binary": agent_bin,
+    "agent_sha256": agent_sha,
+    "prompt": prompt,
+    "verdict": outcome,
+    "fatal": fatal_msg,
+    "assertions": frag("assertions.json") or {},
+    "five_segments": (frag("assertions.json") or {}).get("five_segments", {}),
+    "phase_a": {
+        "load": frag("step_load.json"),
+        "authority": frag("authority_response.json"),
+        "chat_slices": loadl(os.path.join(workdir, "phase_a", "slices.jsonl")),
+        "a1": frag("a1_analysis.json"),
+        "a2_probe": frag("a2_probe.json"),
+        "a2_projection": frag("a2_projection.json"),
+        "a3": frag("a3_audition.json"),
+        "save_chain": frag("save_chain.json"),
+        "sessions_after_load": frag("sessions_after_load.json"),
+        "sessions_after_turn": frag("sessions_after_turn.json"),
+    },
+    "phase_b": frag("reopen.json"),
+    "kernel_stop": {"record": kernel_stop},
+    "agent_stop": {"record": agent_stop},
+    "prereq": prereq,
+}
+try:
+    with open(out, "w", encoding="utf-8") as f:
+        json.dump(report, f, ensure_ascii=False, indent=2)
+    print("report written: %s" % out, file=sys.stderr)
+except Exception as e:
+    print("report write failed: %s" % e, file=sys.stderr)
+PY
+  [[ -n "$OUTPUT_PATH" ]] && { mkdir -p "$(dirname "$OUTPUT_PATH")"; cp "$REPORT_PATH" "$OUTPUT_PATH" 2>/dev/null || true; }
+  log "workdir: $WORKDIR"
+  case "$OUTCOME" in
+    all_green) EXIT_CODE=0 ;;
+    assertions_red|journey_inconclusive) EXIT_CODE=1 ;;
+    *) EXIT_CODE=2 ;;
+  esac
+  echo "" >&2
+  echo "JOURNEY1_MAC_VERDICT $OUTCOME" >&2
+  exit "$EXIT_CODE"
+}
+trap cleanup EXIT INT TERM
 
 # ---------------------------------------------------------------- preflight
 AGENT_HTTP_ADDR="${AGENT_HTTP#http://}"
@@ -356,10 +527,7 @@ prereq "user_history_fingerprint_before=$USER_HISTORY_FP_BEFORE"
 prereq "repo_default_project_sha256_before=$(file_sha256 "$REPO_DEFAULT_PROJECT")"
 prereq "repo_settings_sha256_before=$(file_sha256 "$REPO_SETTINGS_XML")"
 
-step "Preflight: ports 7878/5555/5556/5557 must be free (stack ownership)"
-port_listener_pid() {
-  lsof -nP -iTCP:"$1" -sTCP:LISTEN -t 2>/dev/null | head -1 || true
-}
+step "Preflight: ports $AGENT_HTTP_PORT/$KERNEL_PORT_REQ/$ZMQ_PUB_PORT/$ZMQ_LOG_PORT must be free (stack ownership)"
 for port in "$AGENT_HTTP_PORT" "$KERNEL_PORT_REQ" "$ZMQ_PUB_PORT" "$ZMQ_LOG_PORT"; do
   pid="$(port_listener_pid "$port")"
   [[ -z "$pid" ]] || fatal_env "port $port already has a listener (pid $pid); AGENTS §9 single-owner rule"
@@ -512,162 +680,6 @@ start_stack() {
   prereq "phase_${tag_lower}_kernel_pid=$KERNEL_PID agent_pid=$AGENT_PID"
   log "agent up (pid $AGENT_PID, $AGENT_HTTP)"
 }
-
-stop_process() {
-  # stop_process <pid> — SIGTERM + grace, then SIGKILL; fills STOP_RECORD.
-  local pid="$1" start elapsed code signal="SIGTERM"
-  kill -TERM "$pid" 2>/dev/null || true
-  start=$SECONDS
-  while kill -0 "$pid" 2>/dev/null; do
-    (( SECONDS - start < STOP_GRACE_SECONDS )) || { kill -KILL "$pid" 2>/dev/null || true; signal="SIGTERM+SIGKILL"; break; }
-    sleep 1
-  done
-  wait "$pid" 2>/dev/null
-  code=$?
-  elapsed=$((SECONDS - start))
-  STOP_RECORD="${signal}:${code}:${elapsed}"
-}
-# (no errexit anywhere: journey assertions must not abort the run — verdicts and
-# teardown always run; fatal_env is the only early exit path)
-
-stop_stack() {
-  # stop_stack <phase-tag> — agent first, then kernel, then port release wait.
-  local tag="$1" port busy
-  [[ -z "$AGENT_PID" ]] || {
-    log "stopping agent (pid $AGENT_PID, phase $tag)..."
-    stop_process "$AGENT_PID"
-    AGENT_STOP_RECORD="$STOP_RECORD"
-    log "agent stop: $AGENT_STOP_RECORD"
-  }
-  AGENT_PID=""
-  [[ -z "$KERNEL_PID" ]] || {
-    log "stopping kernel (pid $KERNEL_PID, phase $tag)..."
-    stop_process "$KERNEL_PID"
-    KERNEL_STOP_RECORD="$STOP_RECORD"
-    log "kernel stop: $KERNEL_STOP_RECORD (A1 finding: SIGTERM exit 143 expected)"
-  }
-  KERNEL_PID=""
-  local deadline=$((SECONDS + 30))
-  while (( SECONDS < deadline )); do
-    busy=""
-    for port in "$AGENT_HTTP_PORT" "$KERNEL_PORT_REQ" "$ZMQ_PUB_PORT" "$ZMQ_LOG_PORT"; do
-      [[ -n "$(port_listener_pid "$port")" ]] && busy="$busy $port"
-    done
-    [[ -z "$busy" ]] && break
-    sleep 1
-  done
-  for port in "$AGENT_HTTP_PORT" "$KERNEL_PORT_REQ" "$ZMQ_PUB_PORT" "$ZMQ_LOG_PORT"; do
-    [[ -n "$(port_listener_pid "$port")" ]] && prereq "port_still_busy_after_${tag}=$port"
-  done
-}
-
-# ---------------------------------------------------------------- teardown
-cleanup() {
-  local rc=$?
-  trap - EXIT INT TERM
-  step "Teardown"
-  stop_stack "final"
-  prereq "repo_default_project_sha256_after=$(file_sha256 "$REPO_DEFAULT_PROJECT")"
-  prereq "repo_settings_sha256_after=$(file_sha256 "$REPO_SETTINGS_XML")"
-  prereq "user_project_sha256_after=$(file_sha256 "$PROJECT_SOURCE")"
-  prereq "user_history_fingerprint_after=$(python3 - "$USER_HISTORY_DIR" <<'PY'
-import hashlib, os, sys
-root = sys.argv[1]
-if not os.path.isdir(root):
-    print("absent"); raise SystemExit
-h = hashlib.sha256()
-for dirpath, dirnames, filenames in sorted(os.walk(root)):
-    dirnames.sort()
-    for name in sorted(filenames):
-        p = os.path.join(dirpath, name)
-        st = os.stat(p)
-        h.update(("%s:%d:%s;" % (p[len(root):], st.st_size, st.st_mtime)).encode("utf-8"))
-print(h.hexdigest())
-PY
-)"
-  prereq "finished=$(date '+%Y-%m-%dT%H:%M:%S%z')"
-  python3 - "$REPORT_PATH" "$WORKDIR" "$RUN_ID" "$PROJECT_SOURCE" "$COPY_PROJECT" \
-    "$KERNEL_BIN" "$AGENT_BIN" "$PROMPT_TEXT" "$OUTCOME" "$FATAL_MSG" \
-    "$KERNEL_STOP_RECORD" "$AGENT_STOP_RECORD" "$KERNEL_SHA" "$AGENT_SHA" <<'PY'
-import json, os, sys
-
-(out, workdir, run_id, project_source, copy_project, kernel_bin, agent_bin,
- prompt, outcome, fatal_msg, kernel_stop, agent_stop, kernel_sha, agent_sha) = sys.argv[1:15]
-
-def load(path, default=None):
-    try:
-        with open(path, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:
-        return default
-
-def loadl(path):
-    try:
-        with open(path, "r", encoding="utf-8") as f:
-            return [json.loads(line) for line in f if line.strip()]
-    except Exception:
-        return []
-
-def frag(name):
-    for sub in ("phase_a", "phase_b", ""):
-        p = os.path.join(workdir, sub, name) if sub else os.path.join(workdir, name)
-        if os.path.isfile(p):
-            return load(p)
-    return None
-
-prereq = []
-if os.path.isfile(os.path.join(workdir, "prereq.txt")):
-    prereq = [l.rstrip("\n") for l in open(os.path.join(workdir, "prereq.txt"), encoding="utf-8") if l.strip()]
-
-report = {
-    "schema_version": "vit_demo_journey_driver.mac.v1",
-    "card": "PORT-JOURNEY-1-MAC",
-    "run_root": workdir,
-    "run_id": run_id,
-    "project_source": project_source,
-    "copy_project": copy_project,
-    "kernel_exe": kernel_bin,
-    "kernel_sha256": kernel_sha,
-    "agent_binary": agent_bin,
-    "agent_sha256": agent_sha,
-    "prompt": prompt,
-    "verdict": outcome,
-    "fatal": fatal_msg,
-    "assertions": frag("assertions.json") or {},
-    "five_segments": (frag("assertions.json") or {}).get("five_segments", {}),
-    "phase_a": {
-        "load": frag("step_load.json"),
-        "authority": frag("authority_response.json"),
-        "chat_slices": loadl(os.path.join(workdir, "phase_a", "slices.jsonl")),
-        "a1": frag("a1_analysis.json"),
-        "a2_probe": frag("a2_probe.json"),
-        "a2_projection": frag("a2_projection.json"),
-        "a3": frag("a3_audition.json"),
-        "save_chain": frag("save_chain.json"),
-        "sessions_after_load": frag("sessions_after_load.json"),
-        "sessions_after_turn": frag("sessions_after_turn.json"),
-    },
-    "phase_b": frag("reopen.json"),
-    "kernel_stop": {"record": kernel_stop},
-    "agent_stop": {"record": agent_stop},
-    "prereq": prereq,
-}
-with open(out, "w", encoding="utf-8") as f:
-    json.dump(report, f, ensure_ascii=False, indent=2)
-print("report written: %s" % out, file=sys.stderr)
-PY
-  [[ -n "$OUTPUT_PATH" ]] && { mkdir -p "$(dirname "$OUTPUT_PATH")"; cp "$REPORT_PATH" "$OUTPUT_PATH" 2>/dev/null || true; }
-  log "workdir: $WORKDIR"
-  case "$OUTCOME" in
-    all_green) EXIT_CODE=0 ;;
-    assertions_red|journey_inconclusive) EXIT_CODE=1 ;;
-    *) EXIT_CODE=2 ;;
-  esac
-  echo "" >&2
-  echo "JOURNEY1_MAC_VERDICT $OUTCOME" >&2
-  exit "$EXIT_CODE"
-}
-trap cleanup EXIT INT TERM
 
 # ================================================================ PHASE A
 start_stack "A" "$WORKDIR/phase_a"
