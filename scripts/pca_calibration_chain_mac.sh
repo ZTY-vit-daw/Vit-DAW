@@ -55,6 +55,18 @@
 # preserved for blocked) vs functional (enumeration/draft/certification/readonly
 # assertion failures). All artifacts land under the run workdir, printed to
 # stderr.
+#
+# PORT-C2-PCR platform branches (2026-09-18, single script, both ends): the
+# chain also runs on PC Git Bash (MINGW64). Platform differences are isolated
+# to branches guarded by uname (never shared-path rewrites): tool set
+# (sha256sum/netstat vs shasum/lsof), mixed-form paths (D:/...) for every
+# argument handed to a native binary, the MSVC multi-config kernel build
+# (default Visual Studio generator + cmake --build), the ZMQ port-owner
+# assertion via the MSYS winpid mapping, and the Windows selection semantics:
+# several WaveShell generations coexist in the PC VST3 dir, so same-name
+# inventory entries are deduplicated (newest shell wins) and a family with a
+# single Mono-or-Stereo variant is a recorded machine fact instead of a
+# selection failure (darwin keeps the strict Mono+Stereo pair requirement).
 
 set -euo pipefail
 
@@ -63,7 +75,7 @@ AGENT_HTTP="http://127.0.0.1:7878"
 KERNEL_BIN_ARG=""
 SKIP_AGENT_BUILD=0
 AGENT_BIN_ARG=""
-VST3_DIR="/Library/Audio/Plug-Ins/VST3"
+VST3_DIR=""
 EXPECTED_SUBJECTS=23
 SCAN_TIMEOUT_SECONDS=900
 CERTIFY_TIMEOUT_SECONDS=420
@@ -73,6 +85,7 @@ WORKDIR_ARG=""
 OUTPUT_PATH=""
 TRACKTION_DIR=""
 CMAKE_PROXY=""
+FETCH_SRC_SPECS=""
 
 ZMQ_PUB_PORT=5556
 ZMQ_LOG_PORT=5557
@@ -99,7 +112,9 @@ Options:
   --skip-agent-build      With --agent-bin: do not build the agent
   --agent-bin PATH        Agent binary to start (only with --skip-agent-build)
   --vst3-dir PATH         VST3 search path for the probe scan
-                          (default /Library/Audio/Plug-Ins/VST3)
+                          (platform default: /Library/Audio/Plug-Ins/VST3 on
+                          darwin, C:/Program Files/Common Files/VST3 on
+                          Windows/Git Bash)
   --expected-subjects N   Minimum matched Waves subjects for the probe gate
                           (default 23, U2 narrowed scope)
   --scan-timeout SECONDS  Probe scan + semantic index build timeout (default 900)
@@ -115,6 +130,11 @@ Options:
   --cmake-proxy URL       HTTP(S) proxy for the kernel cmake FetchContent
                           downloads only (e.g. http://127.0.0.1:7890 when
                           github tarballs are unreachable directly)
+  --fetch-src NAME=PATH   Use PATH as the FetchContent source dir for NAME
+                          (e.g. --fetch-src LIBZMQ=D:/cache/libzmq-src);
+                          repeatable; offline override — no download is
+                          attempted for that dependency (same pinned version
+                          is the caller's responsibility)
   --output PATH           Also write the summary JSON to PATH
   -h, --help              Show this help
 EOF
@@ -136,6 +156,7 @@ while [[ $# -gt 0 ]]; do
     --workdir) WORKDIR_ARG="$2"; shift 2 ;;
     --tracktion-dir) TRACKTION_DIR="$2"; shift 2 ;;
     --cmake-proxy) CMAKE_PROXY="$2"; shift 2 ;;
+    --fetch-src) FETCH_SRC_SPECS+="${2}"$'\n'; shift 2 ;;
     --output) OUTPUT_PATH="$2"; shift 2 ;;
     -h|--help) usage; exit 0 ;;
     *) echo "unknown argument: $1" >&2; usage >&2; exit 2 ;;
@@ -155,12 +176,54 @@ fail_functional() {
   exit 1
 }
 
-for tool in go cmake make python3 lsof pgrep shasum curl; do
-  command -v "$tool" >/dev/null 2>&1 || fail_env "required tool not found: $tool"
-done
+# --------------------------------------------------------- platform branches
+PLATFORM="$(uname -s)"
+case "$PLATFORM" in
+  Darwin)
+    PLATFORM_TAG="mac"
+    PY="python3"
+    SHASUM=(shasum -a 256)
+    ;;
+  MINGW*|MSYS*|CYGWIN*)
+    PLATFORM_TAG="win"
+    # Real interpreter only: the WindowsApps python3 alias is an unreliable
+    # stub on this class of machines (intermittent rc=49, no output).
+    PY="python"
+    SHASUM=(sha256sum)
+    # Native binaries (cmake/go/python/VitApp/VitAgent) cannot resolve MSYS
+    # /d/-style paths; every path crossing the bash/native boundary stays in
+    # mixed form (D:/...) via cygpath -m.
+    REPO_ROOT="$(cygpath -m "$REPO_ROOT")"
+    ;;
+  *)
+    fail_env "unsupported platform: $PLATFORM (supported: Darwin, MINGW/MSYS Git Bash)"
+    ;;
+esac
+[[ -n "$VST3_DIR" ]] || VST3_DIR="$(
+  if [[ "$PLATFORM_TAG" == "mac" ]]; then
+    echo "/Library/Audio/Plug-Ins/VST3"
+  else
+    echo "C:/Program Files/Common Files/VST3"
+  fi
+)"
 
-RUN_ID="pca_calibration_chain_mac_$(date '+%Y%m%d-%H%M%S')"
-WORKDIR="${WORKDIR_ARG:-$(mktemp -d "${TMPDIR:-/tmp}/pca_calibration_chain_mac.XXXXXXXX")}"
+if [[ "$PLATFORM_TAG" == "mac" ]]; then
+  for tool in go cmake make python3 lsof pgrep shasum curl; do
+    command -v "$tool" >/dev/null 2>&1 || fail_env "required tool not found: $tool"
+  done
+else
+  for tool in go cmake python curl sha256sum netstat cygpath; do
+    command -v "$tool" >/dev/null 2>&1 || fail_env "required tool not found: $tool"
+  done
+fi
+
+RUN_ID="pca_calibration_chain_${PLATFORM_TAG}_$(date '+%Y%m%d-%H%M%S')"
+if [[ "$PLATFORM_TAG" == "mac" ]]; then
+  WORKDIR="${WORKDIR_ARG:-$(mktemp -d "${TMPDIR:-/tmp}/pca_calibration_chain_mac.XXXXXXXX")}"
+else
+  # MSYS /tmp is invisible to native binaries; default into the Windows temp.
+  WORKDIR="${WORKDIR_ARG:-$(mktemp -d "$(cygpath -m "${TEMP:-/tmp}")/pca_calibration_chain_win.XXXXXXXX")}"
+fi
 mkdir -p "$WORKDIR"/{build,bin,http,logs,probe,cert}
 KERNEL_ROOT="$WORKDIR/kernel_root"
 mkdir -p "$KERNEL_ROOT"
@@ -202,7 +265,7 @@ trap cleanup EXIT INT TERM
 
 json_field() {
   # json_field <file> <python expr against d> — small JSON extraction helper.
-  python3 - "$1" "$2" <<'PY'
+  "$PY" - "$1" "$2" <<'PY'
 import json, sys
 with open(sys.argv[1], "r", encoding="utf-8") as f:
     d = json.load(f)
@@ -210,11 +273,19 @@ print(eval(sys.argv[2], {"d": d}))
 PY
 }
 
-port_listener_pid() {
-  # lsof exits 1 when no listener matches; with pipefail that must not kill
-  # the harness (empty output == "no listener" is the expected free-port case).
-  lsof -nP -iTCP:"$1" -sTCP:LISTEN -t 2>/dev/null | head -1 || true
-}
+if [[ "$PLATFORM_TAG" == "mac" ]]; then
+  port_listener_pid() {
+    # lsof exits 1 when no listener matches; with pipefail that must not kill
+    # the harness (empty output == "no listener" is the expected free-port case).
+    lsof -nP -iTCP:"$1" -sTCP:LISTEN -t 2>/dev/null | head -1 || true
+  }
+else
+  port_listener_pid() {
+    # Windows PID (for the owner assertion via the MSYS winpid mapping); the
+    # LISTENING state keyword is not localized on any Windows locale.
+    netstat -ano | awk -v p="$1" '$1=="TCP" && $4=="LISTENING" { n=split($2,a,":"); if (a[n]==p) { print $5; exit } }'
+  }
+fi
 
 assert_ports_free() {
   local port
@@ -238,13 +309,17 @@ assert_ports_free
 # Machine-local calibration state landing dirs (card acceptance ③): record the
 # pre-run state so the receipt can show exactly what this run created.
 VIT_HOME="$HOME/.vit"
+if [[ "$PLATFORM_TAG" != "mac" ]]; then
+  VIT_HOME="$(cygpath -m "$VIT_HOME")"
+fi
 snapshot_vit_state() {
   local out="$1"
   {
     echo "snapshot_at=$(date '+%Y-%m-%dT%H:%M:%S%z')"
+    echo "platform=$PLATFORM_TAG"
     if [[ -d "$VIT_HOME" ]]; then
       (cd "$VIT_HOME" && find . -maxdepth 5 -type f | sort | while read -r f; do
-        printf '%s  %s\n' "$(shasum -a 256 "$f" | cut -d' ' -f1)" "$f"
+        printf '%s  %s\n' "$("${SHASUM[@]}" "$f" | cut -d' ' -f1)" "$f"
       done)
     else
       echo "absent: $VIT_HOME did not exist before this run"
@@ -269,17 +344,23 @@ KERNEL_BIN=""
 if [[ -n "$KERNEL_BIN_ARG" ]]; then
   [[ -x "$KERNEL_BIN_ARG" ]] || fail_env "kernel binary is not executable: $KERNEL_BIN_ARG"
   KERNEL_BIN="$KERNEL_BIN_ARG"
-  shasum -a 256 "$KERNEL_BIN" > "$WORKDIR/kernel_bin.sha256"
-  stat -f "kernel_bin_mtime=%Sm kernel_bin_size=%z" "$KERNEL_BIN" > "$WORKDIR/kernel_bin.stat"
+  "${SHASUM[@]}" "$KERNEL_BIN" > "$WORKDIR/kernel_bin.sha256"
+  if [[ "$PLATFORM_TAG" == "mac" ]]; then
+    stat -f "kernel_bin_mtime=%Sm kernel_bin_size=%z" "$KERNEL_BIN" > "$WORKDIR/kernel_bin.stat"
+  else
+    stat -c "kernel_bin_mtime=%y kernel_bin_size=%s" "$KERNEL_BIN" > "$WORKDIR/kernel_bin.stat"
+  fi
   log "using provided kernel binary: $KERNEL_BIN (sha256/mtime recorded)"
 else
   if [[ -z "$TRACKTION_DIR" ]]; then
     TRACKTION_DIR="$REPO_ROOT/tracktion_engine"
   fi
+  if [[ "$PLATFORM_TAG" != "mac" ]]; then
+    TRACKTION_DIR="$(cygpath -m "$TRACKTION_DIR")"
+  fi
   if [[ ! -f "$TRACKTION_DIR/CMakeLists.txt" ]]; then
     fail_env "tracktion_engine not usable at $TRACKTION_DIR (submodule not checked out? pass --tracktion-dir pointing at a checkout of the pinned commit)"
   fi
-  log "building VitApp kernel (cmake+make, sources at $REPO_ROOT/VitApp, tracktion at $TRACKTION_DIR)..."
   CMAKE_ENV=()
   if [[ -n "$CMAKE_PROXY" ]]; then
     # Scoped to the kernel build only: FetchContent tarball downloads honor
@@ -287,21 +368,53 @@ else
     CMAKE_ENV=("HTTPS_PROXY=$CMAKE_PROXY" "HTTP_PROXY=$CMAKE_PROXY" "https_proxy=$CMAKE_PROXY" "http_proxy=$CMAKE_PROXY")
     log "kernel build downloads routed through $CMAKE_PROXY"
   fi
-  if ! env ${CMAKE_ENV[@]+"${CMAKE_ENV[@]}"} cmake -S "$REPO_ROOT/VitApp" -B "$WORKDIR/build/vitapp" -G "Unix Makefiles" \
-        -DCMAKE_BUILD_TYPE=Debug \
+  if [[ "$PLATFORM_TAG" == "mac" ]]; then
+    CMAKE_CONFIGURE_ARGS=(-G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug)
+  else
+    # MSVC default generator (multi-config, auto-selects the installed Visual
+    # Studio); CMAKE_BUILD_TYPE is meaningless there — config picked at build.
+    CMAKE_CONFIGURE_ARGS=()
+  fi
+  FETCH_CONTENT_DEFINES=()
+  while IFS= read -r spec; do
+    [[ -n "$spec" ]] || continue
+    name="${spec%%=*}"
+    path="${spec#*=}"
+    [[ "$name" != "$spec" && -n "$name" && -n "$path" ]] \
+      || fail_env "--fetch-src expects NAME=PATH, got: $spec"
+    [[ -d "$path" ]] || fail_env "--fetch-src source dir does not exist: $path"
+    if [[ "$PLATFORM_TAG" != "mac" ]]; then
+      path="$(cygpath -m "$path")"
+    fi
+    FETCH_CONTENT_DEFINES+=("-DFETCHCONTENT_SOURCE_DIR_${name}=${path}")
+    log "fetch-src override: FETCHCONTENT_SOURCE_DIR_${name} -> $path"
+  done <<< "$FETCH_SRC_SPECS"
+  log "building VitApp kernel (cmake, sources at $REPO_ROOT/VitApp, tracktion at $TRACKTION_DIR)..."
+  if ! env ${CMAKE_ENV[@]+"${CMAKE_ENV[@]}"} cmake -S "$REPO_ROOT/VitApp" -B "$WORKDIR/build/vitapp" \
+        ${CMAKE_CONFIGURE_ARGS[@]+"${CMAKE_CONFIGURE_ARGS[@]}"} \
+        ${FETCH_CONTENT_DEFINES[@]+"${FETCH_CONTENT_DEFINES[@]}"} \
         -DVIT_TRACKTION_ENGINE_DIR="$TRACKTION_DIR" \
         > "$WORKDIR/logs/kernel_configure.log" 2>&1; then
     tail -20 "$WORKDIR/logs/kernel_configure.log" >&2
     fail_env "kernel cmake configure failed (see $WORKDIR/logs/kernel_configure.log)"
   fi
-  if ! make -C "$WORKDIR/build/vitapp" -j"$(sysctl -n hw.ncpu)" VitApp \
-        > "$WORKDIR/logs/kernel_build.log" 2>&1; then
-    tail -20 "$WORKDIR/logs/kernel_build.log" >&2
-    fail_env "kernel make failed (see $WORKDIR/logs/kernel_build.log)"
+  if [[ "$PLATFORM_TAG" == "mac" ]]; then
+    if ! make -C "$WORKDIR/build/vitapp" -j"$(sysctl -n hw.ncpu)" VitApp \
+          > "$WORKDIR/logs/kernel_build.log" 2>&1; then
+      tail -20 "$WORKDIR/logs/kernel_build.log" >&2
+      fail_env "kernel make failed (see $WORKDIR/logs/kernel_build.log)"
+    fi
+    KERNEL_BIN="$WORKDIR/build/vitapp/VitApp_artefacts/Debug/VitApp"
+  else
+    if ! cmake --build "$WORKDIR/build/vitapp" --config Debug --target VitApp -j "$(nproc)" \
+          > "$WORKDIR/logs/kernel_build.log" 2>&1; then
+      tail -20 "$WORKDIR/logs/kernel_build.log" >&2
+      fail_env "kernel cmake --build failed (see $WORKDIR/logs/kernel_build.log)"
+    fi
+    KERNEL_BIN="$WORKDIR/build/vitapp/VitApp_artefacts/Debug/VitApp.exe"
   fi
-  KERNEL_BIN="$WORKDIR/build/vitapp/VitApp_artefacts/Debug/VitApp"
   [[ -x "$KERNEL_BIN" ]] || fail_env "kernel binary not found after build: $KERNEL_BIN"
-  shasum -a 256 "$KERNEL_BIN" > "$WORKDIR/kernel_bin.sha256"
+  "${SHASUM[@]}" "$KERNEL_BIN" > "$WORKDIR/kernel_bin.sha256"
   log "kernel built: $KERNEL_BIN"
 fi
 
@@ -312,12 +425,13 @@ if [[ "$SKIP_AGENT_BUILD" -eq 1 ]]; then
   AGENT_BIN="$AGENT_BIN_ARG"
 else
   [[ -z "$AGENT_BIN_ARG" ]] || fail_env "--agent-bin is only valid together with --skip-agent-build"
-  log "building agent (go build)..."
-  (cd "$REPO_ROOT/agent" && go build -o "$WORKDIR/bin/vitagent" ./cmd/vitagent) \
-    || fail_env "go build agent failed"
   AGENT_BIN="$WORKDIR/bin/vitagent"
+  [[ "$PLATFORM_TAG" != "mac" ]] && AGENT_BIN="$WORKDIR/bin/vitagent.exe"
+  log "building agent (go build)..."
+  (cd "$REPO_ROOT/agent" && go build -o "$AGENT_BIN" ./cmd/vitagent) \
+    || fail_env "go build agent failed"
 fi
-shasum -a 256 "$AGENT_BIN" > "$WORKDIR/agent_bin.sha256" || true
+"${SHASUM[@]}" "$AGENT_BIN" > "$WORKDIR/agent_bin.sha256" || true
 
 # ---------------------------------------------------------------- start kernel
 log "starting kernel (cwd=$KERNEL_ROOT)..."
@@ -342,7 +456,15 @@ done
 [[ -n "$(port_listener_pid "$KERNEL_PORT_REQ")" ]] || fail_functional "kernel ZMQ REQ port $KERNEL_PORT_REQ not listening within ${STARTUP_TIMEOUT_SECONDS}s"
 for port in "$KERNEL_PORT_REQ" "$ZMQ_PUB_PORT" "$ZMQ_LOG_PORT"; do
   listener_pid="$(port_listener_pid "$port")"
-  [[ "$listener_pid" == "$KERNEL_PID" ]] || fail_functional "port $port listener pid $listener_pid != kernel pid $KERNEL_PID"
+  if [[ "$PLATFORM_TAG" == "mac" ]]; then
+    [[ "$listener_pid" == "$KERNEL_PID" ]] || fail_functional "port $port listener pid $listener_pid != kernel pid $KERNEL_PID"
+  else
+    # $! is an MSYS pid while netstat reports Windows pids; compare through
+    # the /proc winpid mapping of the kernel process.
+    KERNEL_WINPID="$(cat "/proc/$KERNEL_PID/winpid" 2>/dev/null || true)"
+    [[ -n "$KERNEL_WINPID" ]] || fail_env "cannot resolve winpid for kernel pid $KERNEL_PID (/proc/$KERNEL_PID/winpid missing)"
+    [[ "$listener_pid" == "$KERNEL_WINPID" ]] || fail_functional "port $port listener pid $listener_pid != kernel winpid $KERNEL_WINPID (msys pid $KERNEL_PID)"
+  fi
 done
 log "kernel ZMQ ports listening (REQ $KERNEL_PORT_REQ / PUB $ZMQ_PUB_PORT / log $ZMQ_LOG_PORT), owner pid $KERNEL_PID"
 
@@ -404,6 +526,11 @@ HTTP_CODE="$(curl -sS --max-time "$((SCAN_TIMEOUT_SECONDS + 120))" -o "$WORKDIR/
   || fail_functional "plugin.semantic_build_index not ok: $(head -c 400 "$WORKDIR/http/semantic_build_index.json")"
 PLUGIN_COUNT="$(json_field "$WORKDIR/http/semantic_build_index.json" 'int(d.get("result",{}).get("plugin_count",0))')"
 INDEX_PATH="$(json_field "$WORKDIR/http/semantic_build_index.json" 'str(d.get("result",{}).get("index_path",""))')"
+if [[ "$PLATFORM_TAG" != "mac" ]]; then
+  # The native agent reports a Windows path; normalize for the bash-side
+  # existence check and copy below.
+  INDEX_PATH="$(cygpath -u "$INDEX_PATH" 2>/dev/null || echo "$INDEX_PATH")"
+fi
 log "semantic index built: plugin_count=$PLUGIN_COUNT index_path=$INDEX_PATH"
 [[ -f "$INDEX_PATH" ]] || fail_functional "semantic index file missing at $INDEX_PATH"
 cp "$INDEX_PATH" "$WORKDIR/probe/plugin_semantics_index.json"
@@ -419,11 +546,18 @@ fi
 # promoted subjects; the U2 "23" vs the 24 enumerated bodies reconciliation is
 # recorded in the draft (superset covers any PC-side 23-subset).
 log "selecting promoted subjects from the semantic index (U2 narrowed scope)..."
-python3 - "$WORKDIR/probe/plugin_semantics_index.json" "$WORKDIR/probe/selected_subjects.json" <<'PY'
+"$PY" - "$WORKDIR/probe/plugin_semantics_index.json" "$WORKDIR/probe/selected_subjects.json" <<'PY'
 import json, re, sys
 
 index_path, out_path = sys.argv[1], sys.argv[2]
 index = json.load(open(index_path, encoding="utf-8"))
+IS_WIN = sys.platform.startswith("win")
+
+def shell_rank(entry):
+    # Windows: several WaveShell generations coexist in the VST3 dir; prefer
+    # the newest (WaveShell1-VST3 17.1 > 16.7 > ...). Non-shell paths rank lowest.
+    m = re.search(r"WaveShell\d?-VST3\S*\s(\d+(?:\.\d+)?)", str(entry.get("plugin_path", "")))
+    return float(m.group(1)) if m else -1.0
 
 # family key -> (exact-name regex, processor family for PCA certification)
 MANIFEST = [
@@ -443,11 +577,36 @@ MANIFEST = [
 
 subjects = []
 problems = []
+notes = []
 for key, pattern, family in MANIFEST:
     hits = [e for e in index.get("entries", []) if re.match(pattern, str(e.get("name", "")))]
+    if IS_WIN and hits:
+        # Dedup same-name duplicates coming from coexisting WaveShell
+        # generations: keep one body per inventory name, newest shell wins.
+        by_name = {}
+        for e in hits:
+            name = str(e.get("name", ""))
+            rank = (shell_rank(e), str(e.get("plugin_path", "")))
+            if name not in by_name:
+                by_name[name] = (rank, e)
+            elif rank > by_name[name][0]:
+                notes.append(f"family {key}: {name}: kept {e.get('plugin_path')} (dropped {by_name[name][1].get('plugin_path')})")
+                by_name[name] = (rank, e)
+            else:
+                notes.append(f"family {key}: {name}: kept {by_name[name][1].get('plugin_path')} (dropped {e.get('plugin_path')})")
+        hits = [entry for _, entry in sorted(by_name.values(), key=lambda t: str(t[1].get("name", "")))]
     variants = sorted(str(e.get("name", "")) for e in hits)
-    if len(hits) != 2 or not any(v.endswith(" Mono") for v in variants) or not any(v.endswith(" Stereo") for v in variants):
-        problems.append(f"family {key}: expected exactly one Mono + one Stereo, got {variants}")
+    if IS_WIN:
+        # A family enumerating a single Mono-or-Stereo variant is a machine
+        # fact to record (candidate source of the U2-recorded 23-subject PC
+        # count), not a selection failure; darwin keeps the strict pair rule.
+        ok = 1 <= len(hits) <= 2 and all(v.endswith((" Mono", " Stereo")) for v in variants)
+        if ok and len(hits) == 1:
+            notes.append(f"family {key}: single-variant machine fact — only {variants[0]} enumerated on this machine")
+    else:
+        ok = len(hits) == 2 and any(v.endswith(" Mono") for v in variants) and any(v.endswith(" Stereo") for v in variants)
+    if not ok:
+        problems.append(f"family {key}: expected plain Mono/Stereo variant bodies, got {variants}")
         continue
     for entry in hits:
         subjects.append({
@@ -467,12 +626,14 @@ for key, pattern, family in MANIFEST:
 subjects.sort(key=lambda s: (s["processor_family"], s["name"]))
 json.dump({
     "schema_version": "pca.calibration_chain.selected_subjects.v1",
+    "platform": sys.platform,
     "manifest_families": len(MANIFEST),
     "selected_count": len(subjects),
     "problems": problems,
+    "enumeration_notes": notes,
     "subjects": subjects,
 }, open(out_path, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
-print(f"selected={len(subjects)} problems={len(problems)}")
+print(f"selected={len(subjects)} problems={len(problems)} notes={len(notes)}")
 for p in problems:
     print("PROBLEM:", p, file=sys.stderr)
 PY
@@ -490,7 +651,7 @@ log "subject selection: $SELECTED_COUNT subjects across 12 U2 families"
 
 # ----------------------------------------------------------- whitelist draft
 log "writing whitelist draft (PC-schema aligned)..."
-python3 - "$WORKDIR/probe/selected_subjects.json" "$WORKDIR/whitelist_draft.json" "$WORKDIR/probe/plugin_semantics_index.json" <<'PY'
+"$PY" - "$WORKDIR/probe/selected_subjects.json" "$WORKDIR/whitelist_draft.json" "$WORKDIR/probe/plugin_semantics_index.json" <<'PY'
 import json, sys
 
 subjects_path, draft_path, index_path = sys.argv[1], sys.argv[2], sys.argv[3]
@@ -525,12 +686,14 @@ for s in subjects:
 draft = {
     "schema_version": "pca.calibration_chain.whitelist_draft.v1",
     "draft_status": "draft_for_decision_side_adoption",
+    "platform": selection.get("platform", "unknown"),
     "subject_count": len(rows),
     "u2_scope": {
         "narrowing": "2026-09-16 user ruling: mac is the Waves-only demo machine; 5 PA + 3 FabFilter subjects are not installed",
         "families": 12,
         "superset_source": f"machine semantic index ({len(index.get('entries', []))} entries) built by plugin.semantic_build_index",
     },
+    "enumeration_notes": selection.get("enumeration_notes", []),
     "reconciliation_note": (
         "U2 records the mac calibration face as 23 Waves subjects described as the 12 families' "
         "Mono/Stereo variants. This machine's kernel inventory resolves those 12 plain families to "
@@ -570,7 +733,7 @@ log "whitelist draft written: $WORKDIR/whitelist_draft.json ($DRAFT_COUNT subjec
 # stores. A load-stage failure is the R2 stop condition (evidence preserved).
 log "PCA re-certification: $SELECTED_COUNT subjects (per-subject timeout ${CERTIFY_TIMEOUT_SECONDS}s)..."
 CERT_EXIT=0
-python3 - "$WORKDIR/probe/selected_subjects.json" "$WORKDIR/cert" "$AGENT_HTTP" "$CERTIFY_TIMEOUT_SECONDS" <<'PY' || CERT_EXIT=$?
+"$PY" - "$WORKDIR/probe/selected_subjects.json" "$WORKDIR/cert" "$AGENT_HTTP" "$CERTIFY_TIMEOUT_SECONDS" <<'PY' || CERT_EXIT=$?
 import json, sys, time, urllib.error, urllib.request
 
 subjects_path, cert_dir, agent_http, timeout_s = sys.argv[1], sys.argv[2], sys.argv[3], int(sys.argv[4])
@@ -693,7 +856,7 @@ log "PCA re-certification: $CERTIFIED_COUNT/$SELECTED_COUNT certified (failure_k
 
 # ------------------------------------------------------ finalize the draft
 log "finalizing whitelist draft with PCA conclusions..."
-python3 - "$WORKDIR/whitelist_draft.json" "$WORKDIR/cert/certification_summary.json" "$WORKDIR/whitelist_draft_final.json" <<'PY'
+"$PY" - "$WORKDIR/whitelist_draft.json" "$WORKDIR/cert/certification_summary.json" "$WORKDIR/whitelist_draft_final.json" <<'PY'
 import json, sys
 
 draft_path, cert_path, final_path = sys.argv[1], sys.argv[2], sys.argv[3]
@@ -746,7 +909,7 @@ done
 
 log "readonly smoke: certification candidates (promoted assertion) + PCA store parse..."
 READONLY_OK=0
-python3 - "$WORKDIR/probe/selected_subjects.json" "$WORKDIR/http" "$AGENT_HTTP" "$HOME/.vit" "$WORKDIR/readonly_verification.json" <<'PY' || READONLY_OK=$?
+"$PY" - "$WORKDIR/probe/selected_subjects.json" "$WORKDIR/http" "$AGENT_HTTP" "$VIT_HOME" "$WORKDIR/readonly_verification.json" <<'PY' || READONLY_OK=$?
 import json, os, sys
 
 subjects_path, http_dir, agent_http, vit_home, out_path = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5]
@@ -856,14 +1019,15 @@ snapshot_vit_state "$WORKDIR/vit_state_after.txt"
 
 # ---------------------------------------------------------------- summary
 SUMMARY_FILE="$WORKDIR/summary.json"
-python3 - "$SUMMARY_FILE" "$RUN_ID" "$WORKDIR" \
+"$PY" - "$SUMMARY_FILE" "$RUN_ID" "$WORKDIR" \
   "$KERNEL_STOP_RECORD" "$AGENT_STOP_RECORD" \
   "$PLUGIN_COUNT" "$SELECTED_COUNT" "$DRAFT_COUNT" "$CERTIFIED_COUNT" "$CERT_FAILURE_KIND" \
-  "$READONLY_OK" "$FAIL_CLASSIFICATION" <<'PY'
+  "$READONLY_OK" "$FAIL_CLASSIFICATION" "$PLATFORM_TAG" <<'PY'
 import json, sys
 
 (out, run_id, workdir, kernel_stop, agent_stop, plugin_count, selected_count,
- draft_count, certified_count, cert_failure_kind, readonly_ok, fail_class) = sys.argv[1:13]
+ draft_count, certified_count, cert_failure_kind, readonly_ok, fail_class,
+ platform_tag) = sys.argv[1:14]
 
 readonly_report = {}
 try:
@@ -884,6 +1048,7 @@ gates = {
 }
 summary = {
     "schema_version": "pca.calibration_chain.mac.v1",
+    "platform": platform_tag,
     "run_id": run_id,
     "overall_status": "PASS" if all(gates.values()) else "FAIL",
     "failure_kind": fail_class or ("none" if all(gates.values()) else "functional"),
@@ -908,7 +1073,7 @@ cat "$SUMMARY_FILE"
 [[ -n "$OUTPUT_PATH" ]] && { mkdir -p "$(dirname "$OUTPUT_PATH")"; cp "$SUMMARY_FILE" "$OUTPUT_PATH"; }
 log "workdir: $WORKDIR"
 
-if [[ -n "$FAIL_CLASSIFICATION" ]] || ! python3 -c '
+if [[ -n "$FAIL_CLASSIFICATION" ]] || ! "$PY" -c '
 import json, sys
 d = json.load(open(sys.argv[1]))
 sys.exit(0 if all(d["gates"].values()) else 1)' "$SUMMARY_FILE"; then
