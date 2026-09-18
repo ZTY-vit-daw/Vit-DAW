@@ -8,6 +8,6 @@
 - 文件域：`scripts/journey1_demo_journey_smoke_mac.sh`（新增）+ `scripts/SMOKE_TESTS.md`（补条目）；不改 ps1 原文；`agent/`、`VitApp/` 零触碰（接口缺口→域外上报）
 - 验收标准：①mac 真栈（内核+agent 真实起停、ZMQ/HTTP 面）权威 run exit 0；②五段显式断言证据（各段 JSON/断言输出入工件）；③§8 运行账目（有效轮次/失败分类/止损状态如实）；④语义对照表+SMOKE_TESTS 条目；⑤工件目录（run ID/全量日志/各段 JSON/双 bin sha256/HEAD 与 dirty 记录）
 - 停止条件：LLM 环境缺失→blocked；止损线触发→停转卡；PC 旅程语义与 mac 栈接口现状不兼容→证据上交由决策侧裁定扩域或调口径；GUI 面不在本卡（用户手测已覆盖渲染面，本卡走 agent 面）
-- 领取：
+- 领取：2026-09-19 / origin/main d26fb08（领取提交 9b4f540+da142f9）/ 分支 port/journey1-mac（独立 worktree 开工）
 - 回执：
 - 验收：
