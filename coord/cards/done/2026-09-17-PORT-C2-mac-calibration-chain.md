@@ -16,4 +16,4 @@
   - **失败分类（AGENTS §8）**：run1 环境中断类——FetchContent 拉 libzmq 直连被墙失败（代理注记过时，curl 实测 7890 已通）→ 脚本加 `--cmake-proxy`（仅内核构建注入，平台中立保留默认直连）；run2 脚本缺陷——Go 结构体双 import 字段必序列化致 v2 零值 `promoted:null` 被 `len()` 击杀（首个主体已认证成功后崩溃，留 v1 store 1 条记录，即上 stale 来源）；run3 全绿。
   - **端测覆盖边界声明（AGENTS §5）**：已覆盖=真实双件栈（内核 mac 起停/ZMQ/扫描）+ agent HTTP 全链 + 24 Waves 主体**真实实例化加载**与 typed 控制面 + PCA 重认证/晋升/只读断言；**未覆盖**=Godot 前端（不在卡面）、webui 渲染与用户旅程（本卡无相关改动）、pluginprobe 原生观察宿主（`PluginProbe/native-host` 现仅 Windows——`module_win32.cpp`+bcrypt；本链以认证 runner 的真实加载+typed inspect 为加载证据，观察级参数面探针归 C3 口径）、experimentplugins v5 域钉白名单的 mac 采纳（草稿已附对照，待决策侧裁定）。
   - **平台可重复性**：脚本 mac 首跑；PC 侧可经 Git Bash + `--vst3-dir "C:/Program Files/Common Files/VST3"` 复用同一模式（lsof/stat -f 为 darwin 依赖，PC 跑通前不宣称两端已验证）。
-- 验收：
+- 验收：pass（2026-09-18，ruling [2026-09-18-C2-pass.md](../../rulings/2026-09-18-C2-pass.md)：工件级+状态级核验全过（diff 域/六门 summary/`~/.vit` 双 store/25 收据/identifier 锚点）；**23vs24 裁定：采纳 24 为 mac 校准面不裁剪**（U2 语义=全部 Waves，23 系 PC 计数事实）；`309e640` 已 cherry-pick 入 main；复验 worktree `/tmp/vit-c2-worktree` 已清理）
