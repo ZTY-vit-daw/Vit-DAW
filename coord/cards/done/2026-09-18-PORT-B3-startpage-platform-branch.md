@@ -19,4 +19,4 @@
   ④ **解析检查**：`godot --headless --check-only --script res://app/startup/start_page.gd` 活树+worktree 双处 **exit 0**；
   ⑤ **证据投递**：transfer `inbox-pc/2026-09-18-PORT-B3-*` 9 文件（3×format-patch+双 check-only 日志+pre/post 探针日志+探针脚本+README）已推远端 `82e85b3`（本地先落 93666ba，push 前因远端前进 pull --rebase 改写为 82e85b3；网络间歇期多轮 HTTP/1.1 重试后 23:00 推成）。主仓 done 提交 `3e64c5d7`（rebase 上 Mac 侧 B2P done 之上）同窗推成。
   边界：脚本级验证覆盖路径解析/分支选择/文案；**启动行为（真栈 spawn）未运行** `[等待真栈验收]`（手测入口按用户裁定=Godot 前端拉起）；mac 臂候选路径基于 A3/A5/B1 记录布局，未真机实跑（归 B4）。worktree 保留待验收后清理（PROTOCOL §3）。停止条件未触发
-- 验收：
+- 验收：pass（2026-09-18，ruling [2026-09-18-B3-pass.md](../../rulings/2026-09-18-B3-pass.md)：patch 逐段审过（Windows 臂逐字保留、桥 guard=B6 裁定落地）；R1 结论采认（顺序 fallback 无 4445 冲突）；决策侧亲测 B3PROBE 行 diff 空、ERROR 差异判定良性（活树 vs worktree 的他文件开发态）；**关键事实：Godot 工程 git 版控无 remote，B4 同步按 patch/整仓拷贝**；mac 臂真机实跑归 B4；worktree 清理移交 PC 下轮值班）
