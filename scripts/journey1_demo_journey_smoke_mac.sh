@@ -555,33 +555,26 @@ prereq "copy_project=$COPY_PROJECT"
 prereq "copy_project_sha256=$(file_sha256 "$COPY_PROJECT")"
 cp "$REPO_DEFAULT_PROJECT" "$KERNEL_WORKSPACE/default_project.xml"
 
-# ---- stems provisioning (mac machine fact, run-1 forensics) -----------------
+# ---- stems provisioning (mac machine fact, run-1/2 forensics) ---------------
 # The 912.vit demo project was authored on the PC and its six stem clips store
-# PC-absolute fixture paths (D:\Vit_DAW\temp\semantic-processor-agent-project-
-# smoke-v1\fixtures\...\cases\spv1_p01\stems\*.wav). The mac kernel resolves
-# them relative to the copy project dir; without the audio the offline render
-# probes never leave "building" and the engine stays in "Engine is busy
-# rendering", rejecting rack_add_node / save_project (run 1 root cause). The
-# fixture generator (scripts/semantic_processor_project_smoke_fixtures.py)
-# derives stems from PC-local source audio that is not in the repo, so mac
-# materializes equivalent audio (20 s / 44.1 kHz / stereo PCM16, deterministic
-# synthetic content per stem) at the exact literal path the kernel resolves.
+# PC-absolute fixture paths (D:\Vit_DAW\temp\...). On mac the kernel resolves
+# each stored string as ONE filename (backslashes included) directly under the
+# copy project dir — run 2 forensics: the warm bakes report "clip source file
+# missing" unless a file literally named "D:\...\stems\bass.wav" exists there.
+# Without the audio the offline renders hang until the kernel render watchdog
+# force-clears the busy flag, so every rack_add_node / save (the model's own
+# loads included) is rejected with "Engine is busy rendering". The fixture
+# generator (scripts/semantic_processor_project_smoke_fixtures.py) derives
+# stems from PC-local source audio that is not in the repo, so mac
+# materializes equivalent audio (20 s / 44.1 kHz / stereo PCM16,
+# deterministic synthetic content per stem) at those exact literal filenames.
 # --stems-dir overrides with real wav files named <stem>.wav.
-step "Provision demo stems at the stored fixture path (mac machine fact)"
-STEMS_TARGET_PARENT='D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems'
-if [[ -n "$STEMS_DIR_ARG" ]]; then
-  for stem in bass drums guitar other piano vocals; do
-    [[ -f "$STEMS_DIR_ARG/$stem.wav" ]] || fatal_env "--stems-dir missing $STEMS_DIR_ARG/$stem.wav"
-  done
-  mkdir -p "$PROJECT_DIR/$STEMS_TARGET_PARENT"
-  cp "$STEMS_DIR_ARG"/*.wav "$PROJECT_DIR/$STEMS_TARGET_PARENT/"
-  prereq "stems_provisioned=copy from $STEMS_DIR_ARG"
-else
-  python3 - "$PROJECT_DIR/$STEMS_TARGET_PARENT" > "$WORKDIR/stems_provisioning.txt" <<'PY'
+step "Provision demo stems at the stored fixture filenames (mac machine fact)"
+STEMS_STORED_PREFIX='D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems'
+python3 - "$PROJECT_DIR" "$STEMS_STORED_PREFIX" "$STEMS_DIR_ARG" > "$WORKDIR/stems_provisioning.txt" <<'PY'
 import math, os, struct, sys, wave
 
-target = sys.argv[1]
-os.makedirs(target, exist_ok=True)
+project_dir, stored_prefix, stems_dir = sys.argv[1], sys.argv[2], sys.argv[3]
 RATE, SECONDS, TAU = 44100, 20.0, math.tau
 
 def lcg(seed):
@@ -636,14 +629,26 @@ def vocals(t, rng):
     return 0.3 * (math.sin(TAU * f0 * t) + 0.5 * math.sin(TAU * 2 * f0 * t)
                   + 0.25 * math.sin(TAU * 3 * f0 * t)) * (0.65 + 0.35 * math.sin(TAU * 0.8 * t))
 
-for name, fn, maker in (("bass", bass, mono), ("drums", drums, stereo),
-                        ("guitar", guitar, stereo), ("other", other, mono),
-                        ("piano", piano, mono), ("vocals", vocals, mono)):
-    path = os.path.join(target, name + ".wav")
-    if os.path.isfile(path):
+PLAN = (("bass", bass, mono), ("drums", drums, stereo), ("guitar", guitar, stereo),
+        ("other", other, mono), ("piano", piano, mono), ("vocals", vocals, mono))
+for name, fn, maker in PLAN:
+    # ONE filename per stem: the stored path string verbatim (backslashes
+    # included) relative to the copy project dir — byte-identical to what
+    # the kernel asks the filesystem for.
+    target = os.path.join(project_dir, stored_prefix + "\\" + name + ".wav")
+    if os.path.isfile(target):
         print("exists", name)
         continue
-    with wave.open(path, "wb") as w:
+    if stems_dir:
+        source = os.path.join(stems_dir, name + ".wav")
+        if not os.path.isfile(source):
+            print("MISSING_SOURCE", name, source)
+            continue
+        with open(source, "rb") as src, open(target, "wb") as dst:
+            dst.write(src.read())
+        print("copied", name, os.path.getsize(target), "bytes")
+        continue
+    with wave.open(target, "wb") as w:
         w.setnchannels(2)
         w.setsampwidth(2)
         w.setframerate(RATE)
@@ -651,14 +656,14 @@ for name, fn, maker in (("bass", bass, mono), ("drums", drums, stereo),
         for left, right in maker(fn):
             chunks.append(struct.pack("<hh", int(left * 32767), int(right * 32767)))
         w.writeframes(b"".join(chunks))
-    print("wrote", name, os.path.getsize(path), "bytes")
+    print("wrote", name, os.path.getsize(target), "bytes")
 PY
-  cat "$WORKDIR/stems_provisioning.txt" >&2
-  for stem in bass drums guitar other piano vocals; do
-    [[ -f "$PROJECT_DIR/$STEMS_TARGET_PARENT/$stem.wav" ]] || fatal_env "stems provisioning failed for $stem.wav"
-  done
-  prereq "stems_provisioned=synthesized (20s/44.1kHz/stereo PCM16, deterministic per-stem content)"
-fi
+cat "$WORKDIR/stems_provisioning.txt" >&2
+grep -q "MISSING_SOURCE" "$WORKDIR/stems_provisioning.txt" && fatal_env "stems provisioning: --stems-dir missing a source wav"
+for stem in bass drums guitar other piano vocals; do
+  [[ -f "$PROJECT_DIR/$STEMS_STORED_PREFIX\\$stem.wav" ]] || fatal_env "stems provisioning failed for $stem.wav"
+done
+prereq "stems_provisioned=stored-path literal filenames under the copy project dir"
 
 # ---------------------------------------------------------------- binaries
 KERNEL_BIN=""
