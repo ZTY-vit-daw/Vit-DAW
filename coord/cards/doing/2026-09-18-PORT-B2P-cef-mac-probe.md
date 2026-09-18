@@ -11,6 +11,6 @@
 - 文件域：探针工作区 `~/Documents/vit-b2p-probe/`（仓外，自备工件目录）；仓内唯一产出 = `docs/CEF_MAC_PROBE_2026-09.md`（走 port/* 分支）；上游 zip 与 framework 不入任何仓
 - 验收标准：①本地 HTML 出图证据（PNG + 渲染路径标注）；②helper 进程 ps 证据 + 干净退出证据；③渲染路径记录（Metal/软件，实测为准）；④手册草稿入分支（含 B2 正式集成步骤清单）；⑤工件目录：run ID、探针工程副本、日志、截图、下载记录（重试/代理使用如实记录）
 - 停止条件：上游 v1.15.4 无 mac 资产或 framework 损坏（校验不过/架构不符）→ 上交证据（审计"已确认可用"失效，升级决策侧）；CEF 在 arm64+Godot4.6 组合崩溃 → 按类型记录证据转 blocked（R3 兑现为实际阻塞）；下载持续失败（网络）→ 按环境中断记录，不判功能结论
-- 领取：
+- 领取：2026-09-18 22:13 CST / origin/main=e8d11e05cdea339478787559e2b973f73a23992d / 分支 port/b2p-cef-mac-probe（独立 worktree ~/Documents/vit-b2p-worktree）
 - 回执：
 - 验收：
