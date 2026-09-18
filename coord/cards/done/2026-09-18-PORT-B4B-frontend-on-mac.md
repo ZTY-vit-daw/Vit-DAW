@@ -58,4 +58,4 @@
   - 进程/端口态：`ps aux | grep -E "VitApp|vitagent|CEF"`、`lsof -nP -iTCP -sTCP:LISTEN | grep -E "5555|5556|5557|7878"`
   - 前端仓状态：`cd ~/Documents/vit-daw-frontend && git status --short`（预期：`.godot/` 等运行态外无源码改动）
   - 主仓 `VitApp/Workspace` tracked 文件（Settings.xml 等）被内核写入属**预期变更**，非污染，勿 reset
-- 验收：pass（2026-09-19，ruling [2026-09-19-B4B-pass.md](../../rulings/2026-09-19-B4B-pass.md)：决策侧实盘抽验全过（sha256/dylib 哈希=B1/双注册/候选表/双二进制）；双 import 0/0 形态偏差采认（B1 引擎首崩范围收窄入档）；主仓零改动无 cherry-pick；**手测清单已转用户，[等待真栈验收]**）
+- 验收：pass（2026-09-19，ruling [2026-09-19-B4B-pass.md](../../rulings/2026-09-19-B4B-pass.md)：决策侧实盘抽验全过（sha256/dylib 哈希=B1/双注册/候选表/双二进制）；双 import 0/0 形态偏差采认（B1 引擎首崩范围收窄入档）；主仓零改动无 cherry-pick；手测清单已转用户）。**真栈手测 PASS（2026-09-19 用户执行确认：DAW 起栈与运行无问题）**；用户后续诉求"Godot 项目管理器可见工程"已由决策侧本地处置（写入 `~/Library/Application Support/Godot/projects.cfg` 注册工程 section+favorite=true，格式对齐引擎 ProjectList::add_project 源码并经引擎 ConfigFile 解析验证——机器本地编辑器配置，不入仓）
