@@ -246,6 +246,79 @@ Notes:
   stores, receipts) is the designed landing location; pre/post hashes are
   recorded per run.
 
+## Journey 1 Demo Journey Mac (PORT-JOURNEY-1-MAC)
+
+Path:
+
+```bash
+~/Documents/Vit-DAW/scripts/journey1_demo_journey_smoke_mac.sh
+```
+
+Purpose:
+
+- Mac port of the PC demo-journey driver
+  `scripts/journey1_demo_journey_smoke.ps1` (the JOURNEY-1 authority): one
+  script, one demo journey over the real two-process stack (VitApp kernel +
+  Go agent on the A5/C2 harness pattern; the Godot frontend is out of scope —
+  the agent HTTP face drives everything, same as the ps1). Five explicit
+  segment assertions per the card framing — S1 project open (copy of the
+  912.vit demo project loaded through `open_project` via `/agent/invoke`,
+  tracks + bass visible), S2 authority (`/agent/authority` echoes
+  `full_project_access`), S3 experiment (the Chinese demo prompt
+  「帮低音轨做个均衡实验，然后让我试听」 through `/agent/chat` as a real
+  LLM turn; delivered text must be substantive and direction-asking-free,
+  ps1 A1), S4 load (deterministic `rack_add_node` probe of a promoted mac PCA
+  subject — default `C1 comp Mono`, the U2 machine fact replaces the PC
+  bx_hybrid V2 static EQ — not denied by the PCA load gate, plugin_id +
+  plugin_instance_ready in the Kernel's reply, UI projection shows the
+  plugin; ps1 A2), S5 audition (audition.*/mix_tick event or
+  audition_session_id on the conversation surface; ps1 A3). After the phase A
+  save point the stack is torn down and the copy project reopened: the live
+  reopened conversation must not carry pre-save-point history and must leave
+  no continuation-stall WARN (ps1 A4).
+- LLM precondition: the script preflights `~/.vit/config.json` (or
+  `VIT_AGENT_LLM_*`/`OPENAI_*` env) and refuses to run (exit 2) when the
+  engine config is incomplete — no stub replies. The API key never reaches
+  logs or artifacts; only has_api_key/model/base-host are recorded.
+- Isolation contract identical to the ps1: the user project and its
+  `.vit_history` are read-only and fingerprinted before/after; only a byte
+  copy inside the run workdir is operated on; `VIT_PROJECT_XML` redirects the
+  kernel default project; `VIT_HISTORY_DRAFT_ROOT` +
+  `VIT_ORCHESTRATION_STORE_PATH` isolate agent state; the kernel runs under a
+  fake VitApp root in the workdir; fresh mktemp workdir per run.
+- Emits a `vit_demo_journey_driver.mac.v1` report (`journey1_report.json`,
+  assertions a1–a4 + five segments + per-phase evidence + prereq lines);
+  exit 0 requires everything green (ps1 parity: 0 green / 1 red or
+  inconclusive / 2 environment or load-path failure).
+- §8 discipline is card-level (pre-declared): at most 3 valid runs per
+  attempt; two consecutive failures at the same deterministic breakpoint stop
+  the reruns.
+
+Common commands:
+
+```bash
+# Full journey on mac: build agent, reuse/build kernel, run both phases.
+~/Documents/Vit-DAW/scripts/journey1_demo_journey_smoke_mac.sh
+
+# Reuse an already-built kernel binary (sha256+mtime recorded).
+~/Documents/Vit-DAW/scripts/journey1_demo_journey_smoke_mac.sh \
+  --kernel-bin ~/Documents/Vit-DAW/VitApp/build/VitApp_artefacts/Debug/VitApp
+
+# Skip phase B (A4 becomes not_observable -> exit 1 journey_inconclusive).
+~/Documents/Vit-DAW/scripts/journey1_demo_journey_smoke_mac.sh --skip-reopen
+```
+
+Notes:
+
+- The experiment segment needs a working LLM config (`~/.vit/config.json`,
+  same schema as PC: baseUrl/apiKey/defaultModel) — the preflight fails fast
+  otherwise.
+- The full journey takes roughly 2–5 minutes beyond stack start (kernel
+  dwell, the LLM turn budget of 480 s, reopen dwell 20 s); each run keeps its
+  artifacts (per-step JSON under `phase_a/`/`phase_b/`, both binary sha256s,
+  agent/kernel logs, prereq.txt, report) under a fresh mktemp workdir printed
+  to stderr.
+
 ## B1 Gain Staging Agent Smokes
 
 Paths:
