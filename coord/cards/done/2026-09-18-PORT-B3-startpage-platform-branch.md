@@ -12,5 +12,11 @@
 - 停止条件：start_page.gd 现状与 B6/审计锚点严重不符（结构变了/桥逻辑不在预期位置）→ 上交现场证据由决策侧重定卡面；发现桥剔除会破坏 PC 发布链（PC 臂也被迫改动）→ 停止上交（本卡只动 mac 臂）；需改 vitagent/内核侧配合 → 域外上报
 - 领取：2026-09-18 22:27 CST / origin/main=5347a4349f0c7b4207cc0b4c89cf5c0f7cc12f90c（fetch 两次网络失败——连接重置/443 超时，此为本地 remote-tracking 引用值）/ 分支 port/b3-start-page（Godot 仓 D:\Godot\project\vit-daw-frontend，基 HEAD c7bcd29）
 - 领取前状态记录（AGENTS §12）：Godot 工作树已有多文件未提交改动，含本卡文件域内 start_page.gd（+89 行引擎启动重试/PID 跟踪开发态，详见回执）；不整理不回退，作为权威输入叠加本卡改动
-- 回执：
+- 回执：Godot 仓 `D:\Godot\project\vit-daw-frontend` 分支 `port/b3-start-page`（独立 worktree `D:\Godot\vit-b3-worktree`，基 c7bcd29，主工作树零 checkout 操作）：`e4b0ca1` 领取前开发态快照（§12 权威输入，+89 行未提交改动原样入档）→ `546c2ac` B3 主体 → `9fd4820` 文案补漏；B3 净 diff `app/startup/start_page.gd` +96/−29 单文件。**工程 git 版控=是，但无 remote**——B4 同步需 patch/整仓拷贝。五项验收：
+  ① **R1 前置检查**：`_try_boot_local_bridge_if_needed()`（现场 :332-381，锚点漂移结构相符）= **顺序 fallback 非无条件并行**（先探 vitagent 就绪→vitagent 候选存在即 spawn 并 return→无候选才落 python 桥段），4445 双绑风险不存在；处置=guard return 直接剔 mac 臂，无需先改条件分支；
+  ② **mac 臂**：`_is_mac_platform()`（`OS.get_name()=="macOS"`）平台分支——可执行名 `VitApp`/`vitagent`/`vsphub` 无后缀（B1 命名事实）、mac dev root 缺省 `~/Documents/Vit-DAW`、内核 dev 候选 `build{,_release}/VitApp_artefacts/{Release,Debug}/VitApp`（A3/A5 布局）、python 桥段 mac 整段不可达（B6 裁定）、:116/:314/:390 三处文案平台化。配套小改逐项列明：vsphub 候选 mac 臂（前瞻；vitagent hub 注册默认可选 `VIT_AGENT_VSP_HUB_REQUIRED=false`，无 hub 的 mac 栈=A5 形态仍可起）+ 两处 warning 文案；
+  ③ **PC 回归**：版本中立 headless 探针（Godot 4.6.1 console，`--script` SceneTree，默认/同根 VIT_DAW_DEV_ROOT/异根三态全量候选 dump+dev 文案）pre/post **B3PROBE 行 diff 空**、双 run exit 0；另探针证 Windows 可执行名与 :116 文案格式化输出与原字面串**逐字节一致**；
+  ④ **解析检查**：`godot --headless --check-only --script res://app/startup/start_page.gd` 活树+worktree 双处 **exit 0**；
+  ⑤ **证据投递**：transfer `inbox-pc/2026-09-18-PORT-B3-*` 9 文件（3×format-patch+双 check-only 日志+pre/post 探针日志+探针脚本+README）commit `93666ba`；push 网络中断重试中（连接重置，HTTP/1.1 已试），成功后本卡补注。
+  边界：脚本级验证覆盖路径解析/分支选择/文案；**启动行为（真栈 spawn）未运行** `[等待真栈验收]`（手测入口按用户裁定=Godot 前端拉起）；mac 臂候选路径基于 A3/A5/B1 记录布局，未真机实跑（归 B4）。worktree 保留待验收后清理（PROTOCOL §3）。停止条件未触发
 - 验收：
