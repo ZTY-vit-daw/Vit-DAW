@@ -149,14 +149,18 @@ func startVSPHubRegistration(ctx context.Context, logger *logx.Logger, hubURL st
 				}
 				return
 			}
-			if required {
+			// The launcher spawns VitAgent right after the kernel process; the kernel
+			// binds its ZMQ endpoints only after audio/project init, so registrations
+			// during that window fail with retryable 502s. Required mode retries for a
+			// bounded grace period before treating the hub as unavailable.
+			if required && attempt >= requiredRegistrationAttempts {
 				if logger != nil {
-					logger.Error("required VSP Hub registration failed url=%s error=%v", hubURL, err)
+					logger.Error("required VSP Hub registration failed url=%s attempts=%d error=%v", hubURL, attempt, err)
 				}
 				stop()
 				return
 			}
-			if logger != nil && (attempt == 1 || attempt%10 == 0) {
+			if logger != nil && (attempt == 1 || attempt%10 == 0 || required) {
 				logger.Warn("VSP Hub registration pending url=%s attempt=%d error=%v", hubURL, attempt, err)
 			}
 			select {
@@ -177,6 +181,9 @@ func minDuration(a, b time.Duration) time.Duration {
 	}
 	return b
 }
+
+// 30 attempts x 2s interval: required-mode grace window for kernel cold boot.
+const requiredRegistrationAttempts = 30
 
 func envString(key, fallback string) string {
 	if v := strings.TrimSpace(os.Getenv(key)); v != "" {
