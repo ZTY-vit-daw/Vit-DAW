@@ -32,6 +32,7 @@ todo → doing → done(待验收) ─ ruling pass   → 归档 done（卡内回
 - **决策侧（Windows）**：全仓权限；裁定与归档落在 `rulings/` 与卡内
 - **角色跟会话不跟机器（用户裁定 2026-09-17，见 [decisions/2026-09-17-decision-flow-separation.md](decisions/2026-09-17-decision-flow-separation.md)）**：决策侧会话可经口令「决策」在任一端激活，写权限随角色（在该会话内享有本节决策侧全仓权限）；执行侧纪律不变。决策流不启 watcher——watcher 仍限值班流（§4 授权条款）。Mac/Windows 仍为两端默认分工（上两条）
 - **冲突规则**：push 前 `pull --rebase`；coord 冲突以卡内"最后回填时间"较新者为准手工合并后重推
+- **执行侧推 main 的推送纪律（2026-09-18 增补，C3 推送范围事故后）**：推 main 前必须确认待推提交**仅含 `coord/` 变更**。`pull --rebase` 后若本地 main 混入了实现提交（rebase 副本），禁止 `HEAD:main` 整推——改用把卡片提交 cherry-pick 到干净 `origin/main` 之上再推，或只推 `port/*` 分支；实现进 main 一律经决策侧验收 cherry-pick
 - **同机并行执行流各用独立 git worktree（2026-09-17 裁定，A1 领取事故后）**：主工作树单 HEAD 是客观踩踏面——多执行流同机并行时，各流领取后在独立 `git worktree add` 中开工，不共用主工作树；主工作树归单流/值班场景。执行侧保留的复验 worktree 在对应卡验收后由决策侧清理
 
 ## 4. 唤醒机制：watcher 事件驱动（零 token 待机），心跳兜底

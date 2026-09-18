@@ -8,4 +8,4 @@
 - 停止条件：发现 bridge 存在 Go 侧未覆盖且无法判定可否迁移的运行时职能 → 上交证据由决策侧裁定，不自行下"可退役"结论
 - 领取：2026-09-18 18:34 CST / origin/main=05ddda4f10bf8dee9a89384411b63236cd1ef50c / 分支 port/b6-python-bridge-assessment
 - 回执：port/b6-python-bridge-assessment @ bd9654f（docs/PYTHON_BRIDGE_RETIREMENT_ASSESSMENT_2026-09.md，109 行）。结论=建议 mac 侧退役：Go agent 12/12 职能全覆盖零空白（agent/internal/bridge 为 python 桥完整移植+超集，env/端口/envelope 契约兼容），VSP 收口报告:108 权威口径佐证，停止条件未触发。证据边界：Godot 工程不在 Mac，start_page.gd 事实引 PORT_AUDIT §1.3(d)；R1=桥拉起确切条件待 B3 现场确认（B3 文件域内）。零代码改动，无需真栈验收
-- 验收：
+- 验收：pass + 结论采纳（2026-09-18，ruling [2026-09-18-B6-pass.md](../../rulings/2026-09-18-B6-pass.md)：**决策=mac 侧退役**；B3 设计输入生效——无 python 运行时 mac 化子项，必含 start_page.gd 桥拉起条件前置检查（4445 互斥 R1）；文档卫生两处随 B3 收口由决策侧修订；报告 bd9654f 已 cherry-pick 入 main 904dd06）
