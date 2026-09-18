@@ -113,6 +113,7 @@ KERNEL_BIN_ARG=""
 SKIP_AGENT_BUILD=0
 AGENT_BIN_ARG=""
 PROJECT_SOURCE="$HOME/Documents/vit-daw-frontend/912.vit"
+STEMS_DIR_ARG=""
 PROBE_PLUGIN_IDENTIFIER="VST3-C1 comp Mono-10456661-65e94c5e"
 BASS_TRACK_NAME="bass"
 ZONE_ID="Z3"
@@ -158,6 +159,11 @@ Options:
   --agent-bin PATH        Agent binary to start (only with --skip-agent-build)
   --project-source PATH   Demo project to copy (default
                           ~/Documents/vit-daw-frontend/912.vit)
+  --stems-dir PATH        Directory with real <stem>.wav files (bass/drums/
+                          guitar/other/piano/vocals) to place at the fixture
+                          path the project stores; default synthesizes
+                          equivalent 20s/44.1kHz stereo stems (mac machine
+                          fact: the PC fixture audio is not in the repo)
   --probe-plugin-identifier ID
                           PCA-promoted plugin for the S4 deterministic load
                           probe (default "VST3-C1 comp Mono-10456661-65e94c5e";
@@ -190,6 +196,7 @@ while [[ $# -gt 0 ]]; do
     --skip-agent-build) SKIP_AGENT_BUILD=1; shift ;;
     --agent-bin) AGENT_BIN_ARG="$2"; shift 2 ;;
     --project-source) PROJECT_SOURCE="$2"; shift 2 ;;
+    --stems-dir) STEMS_DIR_ARG="$2"; shift 2 ;;
     --probe-plugin-identifier) PROBE_PLUGIN_IDENTIFIER="$2"; shift 2 ;;
     --bass-track-name) BASS_TRACK_NAME="$2"; shift 2 ;;
     --turn-budget-seconds) TURN_BUDGET_SECONDS="$2"; shift 2 ;;
@@ -540,6 +547,111 @@ prereq "copy_project=$COPY_PROJECT"
 prereq "copy_project_sha256=$(file_sha256 "$COPY_PROJECT")"
 cp "$REPO_DEFAULT_PROJECT" "$KERNEL_WORKSPACE/default_project.xml"
 
+# ---- stems provisioning (mac machine fact, run-1 forensics) -----------------
+# The 912.vit demo project was authored on the PC and its six stem clips store
+# PC-absolute fixture paths (D:\Vit_DAW\temp\semantic-processor-agent-project-
+# smoke-v1\fixtures\...\cases\spv1_p01\stems\*.wav). The mac kernel resolves
+# them relative to the copy project dir; without the audio the offline render
+# probes never leave "building" and the engine stays in "Engine is busy
+# rendering", rejecting rack_add_node / save_project (run 1 root cause). The
+# fixture generator (scripts/semantic_processor_project_smoke_fixtures.py)
+# derives stems from PC-local source audio that is not in the repo, so mac
+# materializes equivalent audio (20 s / 44.1 kHz / stereo PCM16, deterministic
+# synthetic content per stem) at the exact literal path the kernel resolves.
+# --stems-dir overrides with real wav files named <stem>.wav.
+step "Provision demo stems at the stored fixture path (mac machine fact)"
+STEMS_TARGET_PARENT='D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems'
+if [[ -n "$STEMS_DIR_ARG" ]]; then
+  for stem in bass drums guitar other piano vocals; do
+    [[ -f "$STEMS_DIR_ARG/$stem.wav" ]] || fatal_env "--stems-dir missing $STEMS_DIR_ARG/$stem.wav"
+  done
+  mkdir -p "$PROJECT_DIR/$STEMS_TARGET_PARENT"
+  cp "$STEMS_DIR_ARG"/*.wav "$PROJECT_DIR/$STEMS_TARGET_PARENT/"
+  prereq "stems_provisioned=copy from $STEMS_DIR_ARG"
+else
+  python3 - "$PROJECT_DIR/$STEMS_TARGET_PARENT" > "$WORKDIR/stems_provisioning.txt" <<'PY'
+import math, os, struct, sys, wave
+
+target = sys.argv[1]
+os.makedirs(target, exist_ok=True)
+RATE, SECONDS, TAU = 44100, 20.0, math.tau
+
+def lcg(seed):
+    state = seed
+    while True:
+        state = (state * 1103515245 + 12345) & 0x7FFFFFFF
+        yield state
+
+def frames(fn):
+    out = []
+    rng = lcg(0x9E3779B1)
+    for i in range(int(RATE * SECONDS)):
+        t = i / RATE
+        out.append(max(-0.95, min(0.95, fn(t, rng))))
+    return out
+
+def mono(fn):
+    data = frames(fn)
+    return [(s, s) for s in data]
+
+def stereo(fn):
+    data = frames(fn)
+    return [(s, 0.85 * s) for s in data]
+
+def bass(t, rng):
+    return 0.42 * math.sin(TAU * 55 * t) * (0.7 + 0.3 * math.sin(TAU * 0.5 * t)) \
+         + 0.18 * math.sin(TAU * 110 * t)
+
+def drums(t, rng):
+    beat = t % 0.5
+    env = math.exp(-18.0 * beat)
+    noise = (next(rng) / 0x7FFFFFFF - 0.5) * 2.0
+    kick = math.sin(TAU * 60 * beat) * math.exp(-9.0 * beat)
+    return 0.28 * noise * env + 0.5 * kick
+
+def guitar(t, rng):
+    note = [196.0, 247.0, 294.0, 392.0][int(t / 1.25) % 4]
+    env = math.exp(-1.6 * (t % 1.25))
+    return 0.34 * env * (math.sin(TAU * note * t) + 0.4 * math.sin(TAU * 2 * note * t))
+
+def other(t, rng):
+    return 0.22 * math.sin(TAU * 165 * t) * (0.6 + 0.4 * math.sin(TAU * 0.23 * t)) \
+         + 0.10 * math.sin(TAU * 330 * t)
+
+def piano(t, rng):
+    chord = [262.0, 330.0, 392.0]
+    env = math.exp(-0.9 * (t % 2.5))
+    return 0.26 * env * sum(math.sin(TAU * f * t) for f in chord) / 3.0
+
+def vocals(t, rng):
+    f0 = 196.0
+    return 0.3 * (math.sin(TAU * f0 * t) + 0.5 * math.sin(TAU * 2 * f0 * t)
+                  + 0.25 * math.sin(TAU * 3 * f0 * t)) * (0.65 + 0.35 * math.sin(TAU * 0.8 * t))
+
+for name, fn, maker in (("bass", bass, mono), ("drums", drums, stereo),
+                        ("guitar", guitar, stereo), ("other", other, mono),
+                        ("piano", piano, mono), ("vocals", vocals, mono)):
+    path = os.path.join(target, name + ".wav")
+    if os.path.isfile(path):
+        print("exists", name)
+        continue
+    with wave.open(path, "wb") as w:
+        w.setnchannels(2)
+        w.setsampwidth(2)
+        w.setframerate(RATE)
+        chunks = []
+        for left, right in maker(fn):
+            chunks.append(struct.pack("<hh", int(left * 32767), int(right * 32767)))
+        w.writeframes(b"".join(chunks))
+    print("wrote", name, os.path.getsize(path), "bytes")
+PY
+  cat "$WORKDIR/stems_provisioning.txt" >&2
+  for stem in bass drums guitar other piano vocals; do
+    [[ -f "$PROJECT_DIR/$STEMS_TARGET_PARENT/$stem.wav" ]] || fatal_env "stems provisioning failed for $stem.wav"
+  done
+  prereq "stems_provisioned=synthesized (20s/44.1kHz/stereo PCM16, deterministic per-stem content)"
+fi
+
 # ---------------------------------------------------------------- binaries
 KERNEL_BIN=""
 if [[ -n "$KERNEL_BIN_ARG" ]]; then
@@ -619,6 +731,35 @@ http_json() {
       -X "$method" "$url" 2>/dev/null)" || return 1
   fi
   printf '%s' "$code"
+}
+
+BUSY_RETRY_SECONDS=5
+BUSY_RETRY_MAX=12
+
+invoke_json_busy_retry() {
+  # invoke_json_busy_retry <method> <url> <body-file> <out-file> [timeout]
+  # Retries (5s x up to 12 = 60s window) while the reply is a kernel
+  # "Engine is busy rendering" rejection (offline renders hold the engine;
+  # the kernel marks such replies retryable=false per-command but the driver
+  # may legitimately wait for the render window to pass — assertions are
+  # unchanged). Any other outcome returns immediately; prints the final HTTP
+  # code, transport failure returns 1.
+  local method="$1" url="$2" body="$3" out="$4" timeout="${5:-60}" code attempt
+  for attempt in $(seq 0 "$BUSY_RETRY_MAX"); do
+    if code="$(http_json "$method" "$url" "$body" "$out" "$timeout")"; then
+      if grep -q 'Engine is busy rendering' "$out" 2>/dev/null; then
+        if (( attempt < BUSY_RETRY_MAX )); then
+          info "kernel busy rendering — retry $((attempt + 1))/$BUSY_RETRY_MAX in ${BUSY_RETRY_SECONDS}s"
+          sleep "$BUSY_RETRY_SECONDS"
+          continue
+        fi
+      fi
+      printf '%s' "$code"
+      return 0
+    else
+      return 1
+    fi
+  done
 }
 
 # ---------------------------------------------------------------- stack control
@@ -1005,7 +1146,7 @@ print(json.dumps({"tool": "rack_add_node",
                               "track_id": sys.argv[2], "x": 0, "y": 0, "zone_id": sys.argv[3]},
                   "source": "journey1_mac_driver", "confirmed": True}, ensure_ascii=False))
 PY
-  if code="$(http_json POST "$AGENT_HTTP/agent/invoke" "$WORKDIR/bodies/probe.json" "$WORKDIR/phase_a/a2_direct_rack_add_node_response.json" 180)"; then
+  if code="$(invoke_json_busy_retry POST "$AGENT_HTTP/agent/invoke" "$WORKDIR/bodies/probe.json" "$WORKDIR/phase_a/a2_direct_rack_add_node_response.json" 180)"; then
     [[ "$code" =~ ^2 ]] || PROBE_ERROR_BODY="$(head -c 4000 "$WORKDIR/phase_a/a2_direct_rack_add_node_response.json")"
   else
     PROBE_ERROR_BODY="transport failure"
@@ -1187,7 +1328,7 @@ SAVE_FINAL_STATUS="none"
 save_invoke() {
   # save_invoke <tool> <json-body-file> <out-file>: POST and record status.
   local tool="$1" body="$2" out="$3" code status
-  if code="$(http_json POST "$AGENT_HTTP/agent/invoke" "$body" "$out" 300)"; then
+  if code="$(invoke_json_busy_retry POST "$AGENT_HTTP/agent/invoke" "$body" "$out" 300)"; then
     [[ "$code" =~ ^2 ]] || status="http_$code" 
   else
     status="transport_failed"
