@@ -1,0 +1,24 @@
+# PORT-PC-VERIFY-1：PC 复编译确认（A3+A1）+ ps1 events 探针契约修复
+
+- 优先级 / 预估 / 依赖：P2 / 0.5 天（PC 侧执行，验收尾欠 + 域外缺陷小修合并一张零星卡）/ 无
+- 模型分级：L1 / flash（机械验证 + 微修复；MSVC/CMake 报错若涉语义判断再升级）
+- 背景：① A3/A1 两卡改动均为平台守卫式，但 Windows 复编译确认按裁定归 PC 会话（累计两卡待闭合）；② C4 验收发现 `scripts/g_runtime_readonly_smoke.ps1` 的 events 探针裸 `?limit=200` 对真实 agent 必 400（chat/events.go 契约要求 conversation_id）——ps1 版潜伏缺陷，mac 版已修正
+- 子项 A（复编译确认）：`D:\Vit_DAW` 拉最新 main（含 `d33f933`/`0ea259a`/`79d4757` 等），VitApp CMake 全新 configure + build exit 0（重点验证 A3 的 `LANGUAGES C CXX` 与守卫块、A1 的 SharedMemorySegment 接口在 MSVC 下编译）；agent `go build ./...` exit 0；结果回执本卡（发现编译失败 → 附原始错误转 blocked，不许自行改 VitApp 代码）
+- 子项 B（ps1 events 修复）：`g_runtime_readonly_smoke.ps1` events 探针补 `conversation_id=<probe>&`（对照 mac 版 `g_runtime_readonly_smoke_mac.sh` 与 SMOKE_TESTS.md 说明）；改后对 fixture server 与真实 agent 各验一次 exit 0
+- 文件域：子项 A 只读验证（零源码改动）；子项 B 仅 `scripts/g_runtime_readonly_smoke.ps1`
+- 验收标准：A 与 B 各自 exit 0 证据（命令+退出码）入回执；B 附 ps1↔mac 对照说明
+- 停止条件：MSVC 编译失败且原因在守卫块内语义（非明显笔误）→ blocked 上交由决策侧裁定
+- 领取：2026-09-18 12:00 CST（PC 执行流，用户直令「开工 PORT-PC-VERIFY-1」，L1/flash）/ origin/main `af3384179afbce59ea79e4590ca4171250dcaaec` / 分支 `port/pc-verify-1`（子项 B 实现）+ `pcverify-main-sync`（coord 推送用临时分支，推 HEAD:main；独立 worktree `D:/Vit_DAW_worktrees/pc-verify-1`，PROTOCOL §3）。主工作树孤儿改动 `agent/cmd/vitagent/main.go`（领取前已存在，10+/3-，归属待定）本卡全程不触碰不提交。子项 A 编译用主工作树源码 + 全新 build 目录 `VitApp/build-pcverify1`（VitApp/agent 源码在 `ad5d2e2a`..`af338417` 间零差异，含 `d33f933`/`0ea259a`/`79d4757`）
+- 回执：2026-09-18 12:25 CST 自验完成 doing→done。**实现 commit `cd734d12` @ 分支 `port/pc-verify-1`（已推送，待决策验收合并；单文件 `scripts/g_runtime_readonly_smoke.ps1` +5/−1，在卡面文件域内）**。**孤儿改动声明**：主工作树 `agent/cmd/vitagent/main.go`（领取前已存在，10+/3-，归属待定）全程未触碰/未提交/未回退，不纳入本卡 diff。**端测覆盖边界声明（AGENTS §5）**：验证栈=单进程真 agent（隔离状态目录，无内核/Godot 三件套）；本卡为只读复编译确认 + 只读冒测脚本微修复，探针为纯 HTTP GET 面（与 webui 渲染面无关），不触发 E2E-WEBUI-1/JOURNEY-1 门槛。
+  - **子项 A（复编译确认，零源码改动）——全部 exit 0**：
+    - configure：`cmake -S VitApp -B VitApp/cmake-build-pcverify1` exit 0（51.3s；CMake 4.3.0-rc2 + MSVC 19.50.35726，C/CXX 双编译器识别）。**A3 锚点生效**：`VitApp/CMakeLists.txt:3` `project(VitApp VERSION 1.0.0 LANGUAGES C CXX)` + `:6-8` CMake≥4.0 `CMAKE_POLICY_VERSION_MINIMUM` 守卫——CMake 4.x 全新 configure 潜伏失败已闭合
+    - build：`cmake --build … --config Release --parallel` exit 0（产物 `VitApp_artefacts/Release/VitApp.exe` 30.6MB sha1 `81800d71…`；日志 0 error）。**A1 锚点生效**：`SharedMemorySegment.h`/`SharedMemorySegmentWindows.cpp`/`SharedMemoryTester.cpp`/两 Baker 在 MSVC 下编译通过；warning 构成 C4819×1172（代码页）+ C4996×5 + C4244×4 + C4267×2 + C4319×1，A1 触碰文件上的非 4819 警告（getenv/double→float，行 386-423/620）均在 A1 diff 块（1-12/66-190/922-1042）之外，属预存在
+    - Tests 独立工程（`VitApp/Tests` standalone project）：configure + build 于 Release/Debug 双配置各 exit 0；**5/5 测试 exit 0（两配置均过）**：AuditionPreviewState / WorkingCopyPersistPolicy / **SharedMemorySegment（A1 新增）** / AudioPlane / RenderWatchdog（后两者真实 tracktion headless）。注：Release 下 assert 可被 NDEBUG 剥除，故补 **Debug 口径重跑（断言活性）**，同样 5/5 exit 0
+    - agent：worktree @`af338417` 干净源 `cd agent && go build ./...` exit 0（主工作树 agent 源含孤儿改动，不作为本卡证据）
+  - **子项 B（ps1 events 修复）——红绿对照**：
+    - 红：未修复 ps1 对真 agent **exit 1**（`/agent/events` HTTP 400，`red_unfixed_ps1.log`）；裸 curl `?limit=200`→400、`?conversation_id=…&limit=200`→200（契约实锤，对应 `agent/internal/chat/events.go`）
+    - 绿：修复后 ps1 对 **fixture server exit 0** + **真 agent exit 0**（同实例对照）。真 agent 二进制取自干净 worktree 构建（sha1 `d676bb11…`），端口 17978，`VIT_ORCHESTRATION_STORE_PATH` 隔离 + `-vsp-hub-url ""`（镜像 mac 链配方）；用后进程已停、端口已释放
+    - **ps1↔mac 对照**：与 `g_runtime_readonly_smoke_mac.sh` 同款修法——查询构造一致（`?conversation_id=<probe>&limit=200`：mac `readonly_get` ↔ ps1 `Get-ReadonlyJson`）、probe 默认值一致（`g-readonly-smoke-probe`：mac `--conversation-id` ↔ ps1 `-ConversationId`）、limit=200 保留（真 agent 事件缓冲 500 上限内）一致；ps1 自带 harness 守卫（POST/-Body 自扫描）对新源通过（绿测实际运行即证）
+  - **工件**：`Export/pc-verify-1-20260918/`（configure/build/tests 全部日志、红测日志、curl 契约探针、两份 green_summary.json、run_meta.txt、agent_bin.sha1）
+  - **上报决策侧**：①`scripts/SMOKE_TESTS.md`（L91-95「ps1 裸 ？limit=200」差异段）与 mac 脚本头注对照表（L15-21）因本卡修复而过时，两处均在本卡文件域外，建议随验收一笔文档同步；②`port/pc-verify-1` 待验收合并 main；③B 的真 agent 为单进程栈（无内核），符合本卡「冒测脚本微修复」定位，如需全套三件栈口径请裁定是否补跑
+- 验收：
