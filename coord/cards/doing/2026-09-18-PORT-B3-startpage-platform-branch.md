@@ -10,6 +10,7 @@
 - **证据携带（决策侧规定，仓外工程专用）**：Godot 工程若是 git 仓 → 建分支 `port/b3-start-page` 提交，回执报 repo 路径+分支+commit hash，并将 `git format-patch` 产物投 transfer 仓 `inbox-pc/`（带日期）；若非 git 仓 → 改动文件 unified diff 投 transfer。两种方式都必须附 `godot --headless --check-only`（或等价 GDScript 解析检查）输出。**回执同时报告工程是否 git 版控**（决策侧规划 B4/前端登 mac 用）
 - 验收标准：①前置检查结论（拉起条件现状 + 处置动作）；②mac 臂 diff（平台分支 + 桥剔除 + 文案）；③PC 回归证据（Windows 臂路径解析/启动行为不变的脚本级验证）；④语法/解析检查 exit 0；⑤证据（patch/diff + 检查输出）已投 transfer
 - 停止条件：start_page.gd 现状与 B6/审计锚点严重不符（结构变了/桥逻辑不在预期位置）→ 上交现场证据由决策侧重定卡面；发现桥剔除会破坏 PC 发布链（PC 臂也被迫改动）→ 停止上交（本卡只动 mac 臂）；需改 vitagent/内核侧配合 → 域外上报
-- 领取：
+- 领取：2026-09-18 22:27 CST / origin/main=5347a4349f0c7b4207cc0b4c89cf5c0f7cc12f90c（fetch 两次网络失败——连接重置/443 超时，此为本地 remote-tracking 引用值）/ 分支 port/b3-start-page（Godot 仓 D:\Godot\project\vit-daw-frontend，基 HEAD c7bcd29）
+- 领取前状态记录（AGENTS §12）：Godot 工作树已有多文件未提交改动，含本卡文件域内 start_page.gd（+89 行引擎启动重试/PID 跟踪开发态，详见回执）；不整理不回退，作为权威输入叠加本卡改动
 - 回执：
 - 验收：
