@@ -6,6 +6,6 @@
 - 文件域：`extension/`（SConstruct mac 适配如需、vit_extension.gdextension）；godot-cpp 为根级未跟踪依赖；不改 Godot 工程（仓外）、不改 `agent/`、`VitApp/`
 - 验收标准：① godot-cpp pin 记录（tag+commit hash）；② scons 双 target exit 0 + 产物路径/大小/sha256；③ .gdextension macos 条目 diff；④ Godot 4.6 headless 加载 exit 0 且扩展注册无 error（日志入工件）；⑤ 工件目录：run ID + 构建/加载日志 + 产物哈希
 - 停止条件：godot-cpp 4.6 与现有 SConstruct 构建面不兼容需非平凡改造 → 最小适配方案上交；headless 加载扩展报错 → 按类型记录证据转 blocked；需动仓外 Godot 工程才能验证 → 上交
-- 领取：
+- 领取：2026-09-18 20:58 CST / origin/main d67048535d8be85c547f34c0abcffdf11b912a60 / port/b1-vit-extension-mac
 - 回执：
 - 验收：
