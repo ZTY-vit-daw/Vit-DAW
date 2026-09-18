@@ -12,14 +12,14 @@
 #   | GET /health                        | GET /health                         |
 #   | GET /agent/runtime/status          | GET /agent/runtime/status           |
 #   | GET /agent/state                   | GET /agent/state                    |
-#   | GET /agent/events?limit=200        | GET /agent/events                   |
-#   |                                    |   ?conversation_id=<probe>&limit=200|
+#   | GET /agent/events                  | GET /agent/events                   |
+#   |   ?conversation_id=<probe>&limit=200 (both, ps1 parity since          |
+#   |   PORT-PC-VERIFY-1 2026-09-18; -ConversationId / --conversation-id)   |
 #
-#   The events probe adds conversation_id because the real agent contract
-#   (agent/internal/chat/events.go) answers HTTP 400 without it; the ps1's
-#   bare "?limit=200" query only satisfies g_runtime_readonly_fixture_server.py,
-#   which ignores all query parameters. limit=200 stays within the real
-#   agent's event buffer cap (500).
+#   The events probe sends conversation_id on both platforms because the real
+#   agent contract (agent/internal/chat/events.go) answers HTTP 400 without
+#   it; the fixture server ignores query parameters either way. limit=200
+#   stays within the real agent's event buffer cap (500).
 #
 # Usage:
 #   Probe an already running agent (ps1-equivalent mode):

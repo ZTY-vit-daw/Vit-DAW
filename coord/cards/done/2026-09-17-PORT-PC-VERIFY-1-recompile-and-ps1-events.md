@@ -21,4 +21,4 @@
     - **ps1↔mac 对照**：与 `g_runtime_readonly_smoke_mac.sh` 同款修法——查询构造一致（`?conversation_id=<probe>&limit=200`：mac `readonly_get` ↔ ps1 `Get-ReadonlyJson`）、probe 默认值一致（`g-readonly-smoke-probe`：mac `--conversation-id` ↔ ps1 `-ConversationId`）、limit=200 保留（真 agent 事件缓冲 500 上限内）一致；ps1 自带 harness 守卫（POST/-Body 自扫描）对新源通过（绿测实际运行即证）
   - **工件**：`Export/pc-verify-1-20260918/`（configure/build/tests 全部日志、红测日志、curl 契约探针、两份 green_summary.json、run_meta.txt、agent_bin.sha1）
   - **上报决策侧**：①`scripts/SMOKE_TESTS.md`（L91-95「ps1 裸 ？limit=200」差异段）与 mac 脚本头注对照表（L15-21）因本卡修复而过时，两处均在本卡文件域外，建议随验收一笔文档同步；②`port/pc-verify-1` 待验收合并 main；③B 的真 agent 为单进程栈（无内核），符合本卡「冒测脚本微修复」定位，如需全套三件栈口径请裁定是否补跑
-- 验收：
+- 验收：pass（2026-09-18，ruling [2026-09-18-PCVERIFY1-pass.md](../../rulings/2026-09-18-PCVERIFY1-pass.md)：B diff 域内双端对齐、红绿对照双记录；A 按回执审计（PC 本地工件 Mac 不可达，边界已注明）；上报三项裁定=文档两处随验收同步+cherry-pick 入 main+三件栈无需补跑；`cd734d12` 已 cherry-pick；孤儿改动 main.go 移交下轮 PC 值班核对）

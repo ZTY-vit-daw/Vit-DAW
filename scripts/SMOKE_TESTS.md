@@ -88,11 +88,13 @@ Purpose:
 - Emits a `g.readonly.runtime.smoke.v1` summary JSON on stdout (same schema
   and field extraction as the ps1 version); exit code 0 means every
   whitelisted GET returned a 2xx status.
-- Probe list is 1:1 with the ps1 whitelist. One documented difference: the
-  events probe sends `?conversation_id=<probe>&limit=200` because the real
-  agent contract answers HTTP 400 without a conversation id; the ps1's bare
-  `?limit=200` only satisfies `g_runtime_readonly_fixture_server.py`, which
-  ignores all query parameters.
+- Probe list is 1:1 with the ps1 whitelist. The events probe sends
+  `?conversation_id=<probe>&limit=200` on both platforms (ps1
+  `-ConversationId`, mac `--conversation-id`, same default
+  `g-readonly-smoke-probe`) because the real agent contract
+  (`agent/internal/chat/events.go`) answers HTTP 400 without a conversation
+  id; the fixture server ignores query parameters either way (ps1 parity
+  fixed in PORT-PC-VERIFY-1, 2026-09-18).
 
 Common commands:
 
