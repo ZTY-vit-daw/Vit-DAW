@@ -11,6 +11,6 @@
 - 文件域：Godot 工程只读打包（零文件改动）+ worktree 清理；主仓仅卡片状态变更
 - 验收标准：①tarball <100MB + sha256 入 README；②bundle（或增量替代+说明）；③README 三节齐（status/log/diffstat+哈希+排除清单）；④已推 transfer（回执报 commit）；⑤worktree 已移除证据
 - 停止条件：排除 godot_cef/bin 后仍 >100MB → 上交候选排除清单由决策侧裁定（不得擅自拆包或塞主仓）；打包期间活树被并行改动 → 记录重做快照
-- 领取：
+- 领取：2026-09-18 23:20 / origin/main f3479ac0 / 分支 main（仅 coord/ 卡片状态变更，符合 PROTOCOL §3 执行侧直推路径）；派发消息所附决策侧追加排除清单（2026-09-18 深夜裁定）并入执行依据
 - 回执：
 - 验收：
