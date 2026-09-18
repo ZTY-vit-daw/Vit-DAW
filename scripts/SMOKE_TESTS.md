@@ -313,6 +313,15 @@ Notes:
 - The experiment segment needs a working LLM config (`~/.vit/config.json`,
   same schema as PC: baseUrl/apiKey/defaultModel) — the preflight fails fast
   otherwise.
+- Three mac machine-fact adaptations the ps1 got implicitly from the PC repo
+  environment (run-1/2 forensics; journey semantics unchanged): ① the 912
+  stems store PC-absolute fixture paths and the kernel resolves each stored
+  string as ONE literal filename under the copy project dir — the driver
+  synthesizes equivalent 20 s/44.1 kHz stereo stems there (`--stems-dir` for
+  real audio); ② the mac fake-root kernel starts with a cold plugin list, so
+  the driver drives one `plugin.semantic_build_index` scan (~4-5 min for the
+  719-body WaveShell sweep) before the journey; ③ kernel "Engine is busy
+  rendering" replies are retried (5 s x 12) around the probe/save steps.
 - The full journey takes roughly 2–5 minutes beyond stack start (kernel
   dwell, the LLM turn budget of 480 s, reopen dwell 20 s); each run keeps its
   artifacts (per-step JSON under `phase_a/`/`phase_b/`, both binary sha256s,
