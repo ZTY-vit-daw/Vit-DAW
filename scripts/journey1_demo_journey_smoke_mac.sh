@@ -114,6 +114,8 @@ SKIP_AGENT_BUILD=0
 AGENT_BIN_ARG=""
 PROJECT_SOURCE="$HOME/Documents/vit-daw-frontend/912.vit"
 STEMS_DIR_ARG=""
+VST3_DIR="/Library/Audio/Plug-Ins/VST3"
+SCAN_TIMEOUT_SECONDS=900
 PROBE_PLUGIN_IDENTIFIER="VST3-C1 comp Mono-10456661-65e94c5e"
 BASS_TRACK_NAME="bass"
 ZONE_ID="Z3"
@@ -164,6 +166,10 @@ Options:
                           path the project stores; default synthesizes
                           equivalent 20s/44.1kHz stereo stems (mac machine
                           fact: the PC fixture audio is not in the repo)
+  --vst3-dir PATH         VST3 directory for the kernel plugin warm-up scan
+                          (default /Library/Audio/Plug-Ins/VST3)
+  --scan-timeout SECONDS  Plugin scan timeout (default 900; the mac WaveShell
+                          17.1 sweep takes several minutes)
   --probe-plugin-identifier ID
                           PCA-promoted plugin for the S4 deterministic load
                           probe (default "VST3-C1 comp Mono-10456661-65e94c5e";
@@ -197,6 +203,8 @@ while [[ $# -gt 0 ]]; do
     --agent-bin) AGENT_BIN_ARG="$2"; shift 2 ;;
     --project-source) PROJECT_SOURCE="$2"; shift 2 ;;
     --stems-dir) STEMS_DIR_ARG="$2"; shift 2 ;;
+    --vst3-dir) VST3_DIR="$2"; shift 2 ;;
+    --scan-timeout) SCAN_TIMEOUT_SECONDS="$2"; shift 2 ;;
     --probe-plugin-identifier) PROBE_PLUGIN_IDENTIFIER="$2"; shift 2 ;;
     --bass-track-name) BASS_TRACK_NAME="$2"; shift 2 ;;
     --turn-budget-seconds) TURN_BUDGET_SECONDS="$2"; shift 2 ;;
@@ -950,6 +958,32 @@ if os.path.isdir(root):
                          "has_workspace": os.path.isdir(os.path.join(s, "workspace"))})
 json.dump(rows, open(out, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
 PY
+
+# ---- plugin list warm-up (mac machine fact, sanity forensics) ---------------
+# The ps1 kernel ran with the run dir under the repo tree, so PC VitPaths
+# climbed from the run dir up to the repo's CMakeLists.txt root and the kernel
+# used the REPO workspace's warm plugin database (the ps1 fingerprints
+# repo default_project.xml + Settings.xml before/after for exactly this
+# reason). The mac fake-root isolation (A5/C2) is stricter — every kernel
+# process starts with a cold knownPluginList, so rack_add_node cannot resolve
+# any identifier ("plugin_identifier not found in known plugin list"). One
+# agent-face semantic index build (the C2 pattern) drives the kernel
+# child-process scan over the VST3 dir and leaves the journey with a warm
+# list for both the deterministic probe and the model's own loads.
+step "PHASE A warm-up: kernel plugin scan (plugin.semantic_build_index over $VST3_DIR, may take minutes)"
+python3 - "$VST3_DIR" > "$WORKDIR/bodies/scan.json" <<'PY'
+import json, sys
+print(json.dumps({"tool": "plugin.semantic_build_index", "args": {"paths": [sys.argv[1]]},
+                  "confirmed": True, "source": "journey1_mac_driver"}, ensure_ascii=False))
+PY
+code="$(http_json POST "$AGENT_HTTP/agent/invoke" "$WORKDIR/bodies/scan.json" "$WORKDIR/phase_a/semantic_build_index.json" "$((SCAN_TIMEOUT_SECONDS + 120))")" \
+  || fatal_env "plugin scan invoke transport failed"
+[[ "$code" =~ ^2 ]] || fatal_env "plugin scan invoke returned HTTP $code (see phase_a/semantic_build_index.json)"
+SCAN_STATUS="$(json_field "$WORKDIR/phase_a/semantic_build_index.json" 'str(d.get("status",""))')"
+SCAN_COUNT="$(json_field "$WORKDIR/phase_a/semantic_build_index.json" 'int(d.get("result",{}).get("plugin_count",0))' 2>/dev/null || echo 0)"
+prereq "phase_a_plugin_scan_status=$SCAN_STATUS plugin_count=$SCAN_COUNT"
+[[ "$SCAN_STATUS" == "ok" ]] || fatal_env "plugin scan not ok: $(head -c 300 "$WORKDIR/phase_a/semantic_build_index.json")"
+(( SCAN_COUNT > 0 )) || fatal_env "plugin scan enumerated 0 plugins"
 
 # ---- S2: authority ----------------------------------------------------------
 step "PHASE A / S2 authority: full project access"
