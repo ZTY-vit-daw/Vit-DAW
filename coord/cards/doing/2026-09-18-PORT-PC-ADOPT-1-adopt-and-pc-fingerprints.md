@@ -9,6 +9,6 @@
 - 文件域：A=`agent/cmd/vitagent/main.go`（仅收编既有 diff）；B=`PluginProbe/`（driver 平台适配如需）；C=工件落 PC 本地目录，对照终稿 JSON 投 transfer 仓 `inbox-pc/`（带日期）回传 mac
 - 验收标准：A：分支单 commit、diff 逐行=孤儿 diff、message 含溯源；B：MSVC 构建 exit 0 + 12 族（或 24 体）指纹 JSON + run ID/各段日志；C：12 族对照表全有 verdict + 终稿已投 transfer
 - 停止条件：MSVC 编译 win32 面失败（C3 等价论证失效）→ 附原始错误转 blocked；不一致族 >1/3 → 停止上交对照证据由决策侧裁定口径；孤儿 diff 在开工前已被改动/消失 → 停止上报
-- 领取：
+- 领取：2026-09-18 21:20 CST / origin/main dddf6455（领取时 HEAD=dddf6455，工作树仅 M agent/cmd/vitagent/main.go 即 A 段收编对象，diff 已逐行核对与 C2-PCR 回执一致 10+/3-）/ 分支 port/pc-adopt-1（独立 worktree D:/Vit_DAW_worktrees/pc-adopt-1）
 - 回执：
 - 验收：
