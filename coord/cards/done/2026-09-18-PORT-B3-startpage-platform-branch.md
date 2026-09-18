@@ -17,6 +17,6 @@
   ② **mac 臂**：`_is_mac_platform()`（`OS.get_name()=="macOS"`）平台分支——可执行名 `VitApp`/`vitagent`/`vsphub` 无后缀（B1 命名事实）、mac dev root 缺省 `~/Documents/Vit-DAW`、内核 dev 候选 `build{,_release}/VitApp_artefacts/{Release,Debug}/VitApp`（A3/A5 布局）、python 桥段 mac 整段不可达（B6 裁定）、:116/:314/:390 三处文案平台化。配套小改逐项列明：vsphub 候选 mac 臂（前瞻；vitagent hub 注册默认可选 `VIT_AGENT_VSP_HUB_REQUIRED=false`，无 hub 的 mac 栈=A5 形态仍可起）+ 两处 warning 文案；
   ③ **PC 回归**：版本中立 headless 探针（Godot 4.6.1 console，`--script` SceneTree，默认/同根 VIT_DAW_DEV_ROOT/异根三态全量候选 dump+dev 文案）pre/post **B3PROBE 行 diff 空**、双 run exit 0；另探针证 Windows 可执行名与 :116 文案格式化输出与原字面串**逐字节一致**；
   ④ **解析检查**：`godot --headless --check-only --script res://app/startup/start_page.gd` 活树+worktree 双处 **exit 0**；
-  ⑤ **证据投递**：transfer `inbox-pc/2026-09-18-PORT-B3-*` 9 文件（3×format-patch+双 check-only 日志+pre/post 探针日志+探针脚本+README）commit `93666ba`；push 网络中断重试中（连接重置，HTTP/1.1 已试），成功后本卡补注。
+  ⑤ **证据投递**：transfer `inbox-pc/2026-09-18-PORT-B3-*` 9 文件（3×format-patch+双 check-only 日志+pre/post 探针日志+探针脚本+README）已推远端 `82e85b3`（本地先落 93666ba，push 前因远端前进 pull --rebase 改写为 82e85b3；网络间歇期多轮 HTTP/1.1 重试后 23:00 推成）。主仓 done 提交 `3e64c5d7`（rebase 上 Mac 侧 B2P done 之上）同窗推成。
   边界：脚本级验证覆盖路径解析/分支选择/文案；**启动行为（真栈 spawn）未运行** `[等待真栈验收]`（手测入口按用户裁定=Godot 前端拉起）；mac 臂候选路径基于 A3/A5/B1 记录布局，未真机实跑（归 B4）。worktree 保留待验收后清理（PROTOCOL §3）。停止条件未触发
 - 验收：
