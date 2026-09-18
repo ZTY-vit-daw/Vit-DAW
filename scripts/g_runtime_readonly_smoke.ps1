@@ -4,6 +4,7 @@
 param(
     [string]$AgentHttp = "http://127.0.0.1:7878",
     [int]$TimeoutSeconds = 5,
+    [string]$ConversationId = "g-readonly-smoke-probe",
     [string]$OutputPath = ""
 )
 
@@ -43,7 +44,10 @@ function Get-ReadonlyJson {
     }
     $uri = $BaseUrl.TrimEnd("/") + $Path
     if ($Path -eq "/agent/events") {
-        $uri += "?limit=200"
+        # The real agent contract (agent/internal/chat/events.go) answers HTTP
+        # 400 without a conversation id; the fixture server ignores query
+        # parameters. limit=200 stays within the real agent's event buffer cap.
+        $uri += "?conversation_id=$ConversationId&limit=200"
     }
     $response = Invoke-WebRequest -UseBasicParsing -Method GET -Uri $uri -TimeoutSec $TimeoutSeconds
     if ($response.StatusCode -lt 200 -or $response.StatusCode -ge 300) {
