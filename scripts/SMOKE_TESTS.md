@@ -172,6 +172,78 @@ Notes:
   trajectory, lsof evidence, summary) under a fresh mktemp workdir printed to
   stderr; previous runs are never overwritten.
 
+## PCA Calibration Chain Mac (PORT-C2)
+
+Path:
+
+```bash
+~/Documents/Vit-DAW/scripts/pca_calibration_chain_mac.sh
+```
+
+Purpose:
+
+- One-key mac calibration chain over the real two-process stack (VitApp
+  kernel + Go agent), the mac equivalent of the PC-side calibration-chain
+  pattern (`b1_2_source_calibration_agent_smoke.py` /
+  `b1_2_strict_reference_calibration_agent_smoke.py` stack driving on top of
+  the PORT-A5 harness): ① stack up (kernel under a fake VitApp root in the
+  run workdir + agent with isolated state, `/health`, agent->kernel
+  `project.state` round-trip); ② probe — one agent invoke
+  `plugin.semantic_build_index` over the VST3 dir (kernel child-process scan)
+  landing the machine-local semantic index at `~/.vit/plugin_semantics.json`;
+  ③ whitelist draft — selects the U2-narrowed Waves subjects (12 plain
+  families x Mono/Stereo = 24 bodies on this machine; U2 records 23, the
+  reconciliation note lives in the draft) and emits a PC-schema-aligned
+  `whitelist_draft.json` (certification-candidate fields + Entry identity
+  fields + probe conclusions + schema comparison note); ④ PCA
+  re-certification — per subject `POST /agent/processor-certification/start`
+  (consent `temporary_track_apply_readback_restore`) polling the job to
+  completion; receipts land under `~/.vit/pca_certifications/<job>/` and the
+  attestations import into `~/.vit/processor_control_attestations.v{1,2}.json`
+  with promoted status; ⑤ readonly smoke — the C4/A5 whitelist GETs plus
+  `GET /agent/processor-certification/candidates?family=all` asserting every
+  subject promoted for its manifest family, and a read-only parse of the PCA
+  stores; the stack is stopped and `~/.vit` pre/post hashes are recorded.
+- Emits a `pca.calibration_chain.mac.v1` summary JSON; exit 0 requires every
+  gate to pass. Failures are classified env vs `functional_subject_load`
+  (a promoted subject failed to instantiate/load — the R2 stop condition,
+  evidence preserved for a blocked handover) vs functional
+  (enumeration/draft/certification/readonly).
+- The pluginprobe native observation host is not used
+  (PluginProbe/native-host is Windows-only today); the certification runner
+  itself performs the real load + typed inspect/apply/restore on a disposable
+  track, which is the load evidence this chain needs.
+
+Common commands:
+
+```bash
+# Full chain on mac: build kernel+agent, probe, draft, re-certify, readonly smoke.
+~/Documents/Vit-DAW/scripts/pca_calibration_chain_mac.sh
+
+# In an isolated git worktree (empty submodule) with FetchContent downloads
+# needing a proxy to reach the github tarballs:
+~/Documents/Vit-DAW/scripts/pca_calibration_chain_mac.sh \
+  --tracktion-dir ~/Documents/Vit-DAW/tracktion_engine \
+  --cmake-proxy http://127.0.0.1:7890
+
+# Reuse an already-built kernel binary (sha256+mtime recorded).
+~/Documents/Vit-DAW/scripts/pca_calibration_chain_mac.sh --kernel-bin <path>/VitApp
+```
+
+Notes:
+
+- The scan step takes several minutes (the mac 17.1 WaveShell enumerates
+  ~719 bodies through the child scanner; `--scan-timeout 900` covers it) and
+  the certification loop runs one disposable-track job per subject
+  (`--certify-timeout 420` per subject, 24 subjects → expect tens of minutes).
+- Each run keeps its artifacts (kernel/agent logs, per-phase JSON, the
+  whitelist draft and its final post-certification revision, per-subject
+  certification records, readonly verification, summary) under a fresh mktemp
+  workdir printed to stderr; previous runs are never overwritten. The
+  machine-local `~/.vit` state this chain creates (semantic index, PCA
+  stores, receipts) is the designed landing location; pre/post hashes are
+  recorded per run.
+
 ## B1 Gain Staging Agent Smokes
 
 Paths:
