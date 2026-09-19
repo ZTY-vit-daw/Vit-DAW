@@ -212,8 +212,8 @@ stop_process() {
     (( SECONDS - start < 10 )) || { kill -KILL "$pid" 2>/dev/null || true; signal="SIGTERM+SIGKILL"; break; }
     sleep 1
   done
-  wait "$pid" 2>/dev/null
-  code=$?
+  code=0
+  wait "$pid" 2>/dev/null || code=$?
   elapsed=$((SECONDS - start))
   STOP_RECORD="${signal}:${code}:${elapsed}"
 }
@@ -485,9 +485,9 @@ PY
   done
   printf '%s' "$polled" > "${prefix}_settled_goal.txt"
   http_json GET "$AGENT_HTTP/agent/events?conversation_id=$(python3 -c 'import urllib.parse,sys; print(urllib.parse.quote(sys.argv[1], safe=""))' "$conv")&since=0&limit=500" "" "${prefix}_events.json" 60 >/dev/null || true
-  python3 - "$prefix" "$polled" <<'SETTLE_PY'
+  python3 - "$prefix" "$polled" "$WORKDIR/bodies/settle_poll.json" <<'SETTLE_PY'
 import json, sys
-prefix, settled_goal = sys.argv[1:3]
+prefix, settled_goal, status_path = sys.argv[1:4]
 placeholder = "我还在继续处理这个任务，完成后再向你汇报。"
 raw = json.load(open(f"{prefix}.json", encoding="utf-8"))
 events = {}
@@ -530,6 +530,39 @@ out["settled_from"] = "continuation+events (mac chat_settle anchor)"
 out["raw_stop_reason"] = raw.get("stop_reason", "")
 out["raw_reply"] = raw.get("reply", "")
 out["delivered_event_count"] = len(delivered)
+if settled_goal == "waiting_confirmation":
+    # mac sliced-turn anchor: the raw response is the initial sliced reply
+    # whose needs_confirmation stays False while the durable continuation
+    # holds the real pending interaction. Derive the confirmation surface
+    # from the authoritative runtime status so the settled JSON stays
+    # self-consistent with the mapped stop_reason — the synchronous PC
+    # response carries these fields on the same object (ps1 parity).
+    pending = None
+    try:
+        status = json.load(open(status_path, encoding="utf-8"))
+        conversation_id = str(raw.get("conversation_id") or "")
+        for cont in status.get("continuations") or []:
+            if conversation_id and str(cont.get("conversation_id") or "") != conversation_id:
+                continue
+            interaction = cont.get("pending_interaction")
+            if isinstance(interaction, dict) and "confirmation" in str(interaction.get("kind", "")):
+                pending = interaction
+                break
+    except Exception:
+        pending = None
+    if pending is not None:
+        out["needs_confirmation"] = True
+        settled_events = list(out.get("typed_events") or [])
+        settled_events.append({
+            "event_type": "PendingCandidate",
+            "source": "settled_pending_interaction",
+            "interaction_id": pending.get("interaction_id"),
+            "kind": pending.get("kind"),
+        })
+        out["typed_events"] = settled_events
+        settled_plan_id = str(pending.get("plan_id") or pending.get("proposal_id") or "").strip()
+        if settled_plan_id:
+            out["plan_id"] = settled_plan_id
 if not out.get("executed_kernel_reply") and tool_rows:
     out["executed_kernel_reply"] = tool_rows
 json.dump(out, open(f"{prefix}_settled.json", "w", encoding="utf-8"), ensure_ascii=False, indent=2)

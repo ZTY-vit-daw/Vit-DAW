@@ -186,8 +186,8 @@ stop_process() {
     (( SECONDS - start < 10 )) || { kill -KILL "$pid" 2>/dev/null || true; signal="SIGTERM+SIGKILL"; break; }
     sleep 1
   done
-  wait "$pid" 2>/dev/null
-  code=$?
+  code=0
+  wait "$pid" 2>/dev/null || code=$?
   elapsed=$((SECONDS - start))
   STOP_RECORD="${signal}:${code}:${elapsed}"
 }
@@ -755,15 +755,31 @@ def kernel_prepared(latest):
             or request_id.startswith("kernel_prepared_"))
 
 if kernel_prepared(latest):
+    # feature_snapshot.track_waveform_envelopes keeps one row per request, so
+    # a track's bake history legitimately holds partial/missing rows next to
+    # the finished one (both the SMOKE-MAC-1 artifact and the SMOKE-MAC-2
+    # reruns show [partial 1/20, ready 20/20, missing] for the 96 s material).
+    # The readiness contract is therefore per-track existence of a ready row,
+    # not every-row-ready; required fields are checked on that ready row.
     rows = snapshot.get("track_waveform_envelopes") or []
     if len(rows) < 1:
         fail("kernel-prepared feature_snapshot missing track_waveform_envelopes")
+    ready_by_track = {}
     for row in rows:
-        if str(row.get("status")) != "ready":
-            fail(f"kernel-prepared track waveform row is not ready: {row}")
+        if str(row.get("status")) == "ready":
+            ready_by_track.setdefault(str(row.get("track_id") or ""), []).append(row)
+    for tid in expected:
+        ready_rows = ready_by_track.get(tid) or []
+        if not ready_rows:
+            row_shapes = json.dumps(
+                [{"track_id": r.get("track_id"), "status": r.get("status"),
+                  "tiles": f"{r.get('tile_count_seen')}/{r.get('tile_count_expected')}"}
+                 for r in rows], ensure_ascii=False)
+            fail(f"kernel-prepared track {tid} has no ready waveform row: rows={row_shapes}")
+        row = ready_rows[-1]
         for key in ("track_id", "clip_id", "request_id", "source_revision"):
             if not str(row.get(key) or ""):
-                fail(f"kernel-prepared track waveform row missing {key}")
+                fail(f"kernel-prepared track waveform row missing {key}: {row}")
 else:
     requested = {(r or {}).get("feature_type") for r in (latest.get("requested_features") or []) if isinstance(r, dict)}
     for feat in ("waveform_envelope", "spectral_field"):

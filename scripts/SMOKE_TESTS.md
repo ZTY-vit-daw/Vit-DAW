@@ -471,6 +471,50 @@ Purpose:
   `band_analysis_triggered`, which would mean B4 redundantly re-triggered
   audio analysis after readiness was already satisfied.
 
+## Experiment-Chain py Group (mac) (PORT-SMOKE-MAC-2)
+
+Path:
+
+```bash
+~/Documents/Vit-DAW/scripts/run_experiment_chain_py_group_smoke_mac.sh \
+  --kernel-bin <VitApp kernel binary> \
+  [--items 01,02,03,04,04b,05] \
+  [--artifact-root ~/Documents/vit-smoke-mac2-artifacts]
+```
+
+Purpose:
+
+- mac driver for the PC experiment-chain py group (the five
+  `*_agent_smoke.py` files above stay untouched; only the stack plumbing is
+  adapted): each item runs on its own two-piece stack — the kernel binary is
+  copied into an isolated `kernel_root` per run so the py's
+  `cwd=binary-dir` stack start keeps `VIT_PROJECT_XML`/workspace state inside
+  the run dir, and the agent is built from the checkout and copied per run
+  with `VIT_HISTORY_DRAFT_ROOT`/`VIT_ORCHESTRATION_STORE_PATH`/
+  `VIT_MIXBOARD_ROOT` routed to the run dir.
+- Item map: `01` b1_group_reset (self-started stack, 17878), `02`
+  b1_2_source_calibration (17879), `03` b1_3_full_gain_staging (17880), `04`
+  b1_2_a4_multiclip (driver stack on 7878; the PC docs' user-provided
+  "post-a4-project.vit" is built deterministically first via
+  `clip.import_audio` + `clip.split` + `project.save_as`), `04b` the
+  `--full-b1` message variant of 04, `05` b4_low_end_relation (driver stack,
+  the py builds its own fixture from the tracked `test_100hz_10s.wav` /
+  `test_target_3s.wav`).
+- LLM turns rely on `~/.vit/config.json` / `VIT_AGENT_LLM_*` env; the
+  preflight records presence only and the key never reaches artifacts.
+- First authoritative mac run (2026-09-20, `pychain_driver_20260920-000915`
+  + 04 reruns): 01/03/05 exit 0; 02 red — the B1.2 standalone turn is routed
+  to the governed `project_mix_workflow` whose v1 controller is
+  intentionally unregistered (`projectMixWorkflowV1Available` returns false
+  in `agent/internal/chat/orchestration_controller_host.go`), so the turn
+  ends `capability_unavailable` without a pending confirmation (03 proves
+  the same B1.2 semantics succeed in the chained B1.1→B1.2 context); 04 red
+  in three rounds (default ×2 + full-b1 ×1) — the bare "进行B1.2"/"执行B1"
+  messages resolve to `semantic_entry` `unresolved` (waiting_clarification),
+  while the fixture build itself succeeds. Both reds are py-session-design
+  vs current-agent-capability mismatches that reproduce identically on the
+  PC with the same agent code; handed to the decision side with the card.
+
 ## VSP Hub Extension Smoke
 
 Path:
