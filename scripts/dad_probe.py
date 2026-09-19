@@ -47,13 +47,51 @@ def float_stats(values: Iterable[float]) -> Dict[str, Any]:
     }
 
 
+def posix_shm_name(memory_name: str) -> str:
+    # Kernel SharedMemorySegmentPosix publishes unprefixed names (the exact
+    # string the Windows side opens via tagname); the POSIX object resolves as
+    # "/<published>". multiprocessing.shared_memory.SharedMemory prepends the
+    # slash itself regardless of the input form, so the bare published name
+    # must be passed through — a pre-slashed name would resolve to "//name",
+    # a different object that never matches the kernel segment (empirical:
+    # C shm_open("/X") vs SharedMemory(name="X") attach OK, name="/X") -> ENOENT).
+    return memory_name.strip().lstrip("/")
+
+
+def read_posix_shared_float32(memory_name: str, byte_count: int) -> List[float]:
+    # POSIX counterpart of the tagname read below, aligned with the kernel's
+    # SharedMemorySegmentPosix publisher and the harness shm_darwin reader:
+    # attach an existing segment read-only-by-use, fail closed when the fstat
+    # extent is smaller than the requested range (darwin rounds shm storage up
+    # to 16 KiB and fstat reports the rounded extent, so only a logical
+    # shortfall fails here), then close without unlinking — the kernel owns
+    # the segment lifetime. multiprocessing.shared_memory is used instead of a
+    # direct libc call because shm_open is variadic and ctypes passes the mode
+    # argument under the wrong ABI on darwin arm64, which creates segments
+    # with garbage permission bits.
+    from multiprocessing import shared_memory
+
+    segment = shared_memory.SharedMemory(name=posix_shm_name(memory_name))
+    try:
+        if segment.size < byte_count:
+            raise ValueError(
+                f"shared memory {memory_name} too small: have {segment.size} bytes, need {byte_count}"
+            )
+        data = bytes(segment.buf[:byte_count])
+    finally:
+        segment.close()
+    return [item[0] for item in struct.iter_unpack("<f", data)]
+
+
 def read_shared_float32(memory_name: str, float_count: int) -> List[float]:
     if not memory_name or float_count <= 0:
         raise ValueError("shared memory name and positive float_count are required")
     byte_count = float_count * 4
-    with mmap.mmap(-1, byte_count, tagname=memory_name, access=mmap.ACCESS_READ) as mm:
-        data = mm.read(byte_count)
-    return [item[0] for item in struct.iter_unpack("<f", data)]
+    if sys.platform == "win32":
+        with mmap.mmap(-1, byte_count, tagname=memory_name, access=mmap.ACCESS_READ) as mm:
+            data = mm.read(byte_count)
+        return [item[0] for item in struct.iter_unpack("<f", data)]
+    return read_posix_shared_float32(memory_name, byte_count)
 
 
 def expected_float_count(event: Dict[str, Any]) -> int:
@@ -776,9 +814,30 @@ def self_test() -> int:
     memory_name = "Vit_DADProbeSelfTest"
     values = [0.0, 0.25, -0.5, float("nan"), 1.0]
     payload = b"".join(struct.pack("<f", value) for value in values)
-    with mmap.mmap(-1, len(payload), tagname=memory_name, access=mmap.ACCESS_WRITE) as mm:
-        mm.write(payload)
+    if sys.platform == "win32":
+        with mmap.mmap(-1, len(payload), tagname=memory_name, access=mmap.ACCESS_WRITE) as mm:
+            mm.write(payload)
         observed = read_shared_float32(memory_name, len(values))
+    else:
+        # Create the POSIX segment the same way the kernel publisher does
+        # (shm_open O_CREAT + one ftruncate); a stale leftover from an unclean
+        # run is cleared by a best-effort unlink first. The segment is created
+        # under the same slash-prefixed name the reader resolves.
+        from multiprocessing import shared_memory
+
+        try:
+            shared_memory.SharedMemory(name=posix_shm_name(memory_name)).unlink()
+        except FileNotFoundError:
+            pass
+        segment = shared_memory.SharedMemory(create=True, size=len(payload), name=posix_shm_name(memory_name))
+        try:
+            segment.buf[: len(payload)] = payload
+        finally:
+            segment.close()
+        try:
+            observed = read_shared_float32(memory_name, len(values))
+        finally:
+            shared_memory.SharedMemory(name=posix_shm_name(memory_name)).unlink()
     stats = float_stats(observed)
     ok = stats["sample_count"] == 5 and stats["nonzero_count"] == 3 and stats["nan_inf_count"] == 1
     report = {"schema_version": "dad_probe_self_test.v1", "status": "ready" if ok else "failed", "stats": stats}

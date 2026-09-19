@@ -207,8 +207,8 @@ stop_process() {
     (( SECONDS - start < 10 )) || { kill -KILL "$pid" 2>/dev/null || true; signal="SIGTERM+SIGKILL"; break; }
     sleep 1
   done
-  wait "$pid" 2>/dev/null
-  code=$?
+  code=0
+  wait "$pid" 2>/dev/null || code=$?
   elapsed=$((SECONDS - start))
   STOP_RECORD="${signal}:${code}:${elapsed}"
 }
