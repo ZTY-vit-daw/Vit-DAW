@@ -49,7 +49,7 @@
 #   |   clip.fade.read/gain.read/set + asserts)  | route+value asserts           |
 #   | Observe turn (read-only assert + bridge    | identical + snapshot assert   |
 #   |   readiness) + authoritative snapshot      |   at the mac mixboard root    |
-#   | Multitrack MOM observe (v1.4 intent,       | identical (same JSON fields)  |
+#   | Multitrack MOM observe (v1.5 intent,       | identical (same JSON fields)  |
 #   |   coverage>=2, llm_context guard)          |                               |
 #   | Confirm-tick block behind pending_candidate| identical (unreachable in the |
 #   |   null check                               | default path on both sides)   |
@@ -594,7 +594,7 @@ print(json.dumps({
     "names": names,
     "propose": count("mix.propose_tick", "mix_propose_tick"),
     "apply": count("mix.apply_tick", "mix_apply_tick"),
-    "observe": count("mix.observe", "mix_observe", "mix.request_observation", "mix_request_observation"),
+    "observe": count("mix.observe", "mix_observe", "mix.request_observation", "mix_request_observation", "ccb.observation_catalog", "ccb_observation_catalog"),
     "derive": count("mix.derive", "mix_derive"),
     "daw_invoke": count("daw.invoke", "daw_invoke"),
     "track_volume": count("track.volume", "track_volume"),
@@ -1089,7 +1089,7 @@ resp = json.load(open(sys.argv[1], encoding="utf-8"))
 counts = json.load(open(sys.argv[2], encoding="utf-8"))
 stop_reason = sys.argv[3]
 if counts["observe"] < 1:
-    sys.exit("FAIL: expected vocal focus route to include mix.observe")
+    sys.exit("FAIL: expected vocal focus route to include mix.observe/ccb.observation_catalog")
 if stop_reason == "needs_confirmation":
     if resp.get("needs_confirmation") is not True:
         sys.exit("FAIL: needs_confirmation stop reason without needs_confirmation=true")

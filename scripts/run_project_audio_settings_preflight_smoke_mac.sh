@@ -386,6 +386,7 @@ set +e
   --req-url "tcp://127.0.0.1:$ZMQ_REQ_PORT" \
   --training-folder "$TRAINING_FOLDER" \
   --project-path "$TEMP_PROJECT_PATH" \
+  --legacy-template "$REPO_DEFAULT_PROJECT" \
   --output "$PROBE_OUTPUT" \
   --req-timeout-ms "$REQ_TIMEOUT_MS" 2>&1 | tee "$PROBE_LOG"
 PROBE_EXIT="${PIPESTATUS[0]}"

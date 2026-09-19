@@ -6,7 +6,7 @@
 # least two real audio materials through the agent tool face, then drive the
 # deterministic mix.observe tool chain (NO LLM chat turns): immediate
 # acoustic-package lifecycle capture, retrying full-project observation until
-# every imported track reports ready acoustics, MOM v1.4 multitrack
+# every imported track reports ready acoustics, MOM v1.5 multitrack
 # projection shape, feature-snapshot readiness reasons, L3 coverage
 # non-regression, and the loudness/peak/headroom rankings.
 #
@@ -39,7 +39,7 @@
 #   | Immediate + retrying mix.observe loop      | identical (0.75s then 2s     |
 #   |                                            | backoff, same deadline       |
 #   |                                            | clamp max(10,min(T,120)))    |
-#   | MOM v1.4 / track acoustics / readiness     | identical field checks       |
+#   | MOM v1.5 / track acoustics / readiness     | identical field checks       |
 #   |   reasons / coverage / rankings asserts    | (ported 1:1 into python)     |
 #   | AgentLog tail into artifacts               | same (agent_last.log)        |
 #   | summary vit_live_material_observation_     | .mac.v1 + run meta (§8)      |
@@ -658,7 +658,7 @@ TRACKS_COUNT="$(json_field "$WORKDIR/bodies/full_assert.json" 'd["track_count"]'
 (( TRACKS_COUNT >= MATERIAL_COUNT )) || fail_functional "observed track count $TRACKS_COUNT < imported material count $MATERIAL_COUNT"
 [[ "$ISSUE_COUNT" == "0" ]] || fail_functional "full_project acoustic readiness did not complete after $ATTEMPT attempts: $(json_field "$WORKDIR/bodies/track_issues.json" '"; ".join(d)')"
 
-# MOM v1.4 + readiness reasons + coverage + rankings (ported 1:1)
+# MOM v1.5 + readiness reasons + coverage + rankings (ported 1:1)
 python3 - "$WORKDIR/http/mix_observe_full_project.json" "$WORKDIR/acoustic_package_status_immediate.json" "$EXPECTED_TRACK_IDS" "$MATERIAL_COUNT" <<'PY' || fail_functional "full-project observation assertions failed (see stderr)"
 import json, sys
 
@@ -683,11 +683,11 @@ def num(v):
 result = resp.get("result") or {}
 obs = result.get("observation") or {}
 
-# --- Assert-MOMV13MultitrackProjection (checks mom_version v1.4)
+# --- Assert-MOMV13MultitrackProjection (checks mom_version v1.5)
 projection = obs.get("mom_projection")
 if projection is None:
     fail("missing mom_projection")
-if str(projection.get("mom_version")) != "v1.4":
+if str(projection.get("mom_version")) != "v1.5":
     fail(f"unexpected mom_version {projection.get('mom_version')}")
 if str(projection.get("intent")) != "project_multitrack_relation_observation":
     fail(f"unexpected MOM intent {projection.get('intent')}")
@@ -838,7 +838,7 @@ for key in ("masking_analysis", "reference_match", "lufs_analysis"):
         fail(f"deep acoustic deferred capabilities missing from readiness: {key}")
 
 limits = readiness["project_limitations"]
-for required in ("lufs_analysis_deferred_phase_5", "masking_analysis_deferred_phase_5",
+for required in ("lufs_analysis_deferred_phase_5", "masking_analysis_not_ready_on_current_project_cut",
                  "reference_match_deferred_phase_5", "post_fx_probe_unavailable_phase_4_1"):
     if required not in limits:
         fail(f"project limitations missing {required}. limitations={limits}")
@@ -871,7 +871,7 @@ for key in ("loudness_ranking", "peak_ranking", "headroom_risk"):
     if len(rows) < material_count:
         fail(f"ranking {key} has fewer rows than imported materials: {len(rows)} < {material_count}")
 
-print("ok: MOM v1.4 + readiness reasons + coverage + rankings assertions passed")
+print("ok: MOM v1.5 + readiness reasons + coverage + rankings assertions passed")
 sys.exit(0)
 PY
 

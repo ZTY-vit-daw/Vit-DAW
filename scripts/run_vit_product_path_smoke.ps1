@@ -2818,13 +2818,13 @@ try {
 		$summary["tool_route"] = $tools
 		Assert-ToolPresent -Tools $tools -Aliases @("mix.propose_tick", "mix_propose_tick") -Label "mix.propose_tick"
 		Assert-ToolPresent -Tools $tools -Aliases @("mix.apply_tick", "mix_apply_tick") -Label "mix.apply_tick"
-		Assert-ToolPresent -Tools $tools -Aliases @("mix.observe", "mix_observe", "mix.request_observation", "mix_request_observation") -Label "reobserve"
+		Assert-ToolPresent -Tools $tools -Aliases @("mix.observe", "mix_observe", "mix.request_observation", "mix_request_observation", "ccb.observation_catalog", "ccb_observation_catalog") -Label "reobserve"
 		Assert-ToolAbsent -Tools $tools -Aliases @("daw.invoke", "daw_invoke") -Label "daw.invoke"
 		Assert-ToolAbsent -Tools $tools -Aliases @("track.volume", "track_volume") -Label "track.volume"
 		$toolCounts = [ordered]@{
 			propose = Count-ExecutedToolGroup -Rows $confirmRows -Aliases @("mix.propose_tick", "mix_propose_tick")
 			apply = Count-ExecutedToolGroup -Rows $confirmRows -Aliases @("mix.apply_tick", "mix_apply_tick")
-			observe = Count-ExecutedToolGroup -Rows $confirmRows -Aliases @("mix.observe", "mix_observe", "mix.request_observation", "mix_request_observation")
+			observe = Count-ExecutedToolGroup -Rows $confirmRows -Aliases @("mix.observe", "mix_observe", "mix.request_observation", "mix_request_observation", "ccb.observation_catalog", "ccb_observation_catalog")
 			daw_invoke = Count-ExecutedToolGroup -Rows $confirmRows -Aliases @("daw.invoke", "daw_invoke")
 			track_volume = Count-ExecutedToolGroup -Rows $confirmRows -Aliases @("track.volume", "track_volume")
 		}
@@ -2897,7 +2897,7 @@ try {
     $focusRows = @(Get-OptionalProperty -Object $focus -Name "executed_kernel_reply")
     $focusTools = Tool-Names -Rows $focusRows
     $focusCounts = [ordered]@{
-        observe = Count-ExecutedToolGroup -Rows $focusRows -Aliases @("mix.observe", "mix_observe", "mix.request_observation", "mix_request_observation")
+        observe = Count-ExecutedToolGroup -Rows $focusRows -Aliases @("mix.observe", "mix_observe", "mix.request_observation", "mix_request_observation", "ccb.observation_catalog", "ccb_observation_catalog")
         derive = Count-ExecutedToolGroup -Rows $focusRows -Aliases @("mix.derive", "mix_derive")
         propose = Count-ExecutedToolGroup -Rows $focusRows -Aliases @("mix.propose_tick", "mix_propose_tick")
         apply = Count-ExecutedToolGroup -Rows $focusRows -Aliases @("mix.apply_tick", "mix_apply_tick")
@@ -2905,7 +2905,7 @@ try {
         track_volume = Count-ExecutedToolGroup -Rows $focusRows -Aliases @("track.volume", "track_volume")
     }
     if ([int]$focusCounts.observe -lt 1) {
-        Fail ("Expected vocal focus route to include mix.observe. route=" + ($focusTools -join " -> "))
+        Fail ("Expected vocal focus route to include mix.observe/ccb.observation_catalog. route=" + ($focusTools -join " -> "))
     }
     if ($focusStopReason -eq "needs_confirmation") {
         if (-not [bool](Get-OptionalProperty -Object $focus -Name "needs_confirmation")) {
@@ -3011,7 +3011,7 @@ try {
     $clarifyTools = Tool-Names -Rows $clarifyConfirmRows
     Assert-ToolPresent -Tools $clarifyTools -Aliases @("mix.propose_tick", "mix_propose_tick") -Label "vocal clarification mix.propose_tick"
     Assert-ToolPresent -Tools $clarifyTools -Aliases @("mix.apply_tick", "mix_apply_tick") -Label "vocal clarification mix.apply_tick"
-    Assert-ToolPresent -Tools $clarifyTools -Aliases @("mix.observe", "mix_observe", "mix.request_observation", "mix_request_observation") -Label "vocal clarification reobserve"
+    Assert-ToolPresent -Tools $clarifyTools -Aliases @("mix.observe", "mix_observe", "mix.request_observation", "mix_request_observation", "ccb.observation_catalog", "ccb_observation_catalog") -Label "vocal clarification reobserve"
     Assert-ToolAbsent -Tools $clarifyTools -Aliases @("daw.invoke", "daw_invoke") -Label "vocal clarification daw.invoke"
     Assert-ToolAbsent -Tools $clarifyTools -Aliases @("track.volume", "track_volume") -Label "vocal clarification track.volume"
     $clarifyConfirmReply = [string](Get-OptionalProperty -Object $clarifyConfirm -Name "reply")

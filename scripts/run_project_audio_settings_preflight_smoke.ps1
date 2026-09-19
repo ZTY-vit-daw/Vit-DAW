@@ -85,6 +85,10 @@ function ConvertTo-JsonFile {
 $RepoRoot = (Resolve-Path -LiteralPath $RepoRoot).Path
 $KernelExe = Resolve-KernelExe -Root $RepoRoot -Explicit $KernelExe
 $TrainingFolder = (Resolve-Path -LiteralPath $TrainingFolder).Path
+$LegacyTemplate = Join-Path $RepoRoot "VitApp\Workspace\default_project.xml"
+if (-not (Test-Path -LiteralPath $LegacyTemplate)) {
+    Fail ("Legacy plain-XML project template not found: " + $LegacyTemplate)
+}
 
 $stamp = Get-Date -Format "yyyyMMdd_HHmmss"
 $artifactDir = Join-Path $RepoRoot ("VitApp\Workspace\Artifacts\smoke\project_audio_preflight_" + $stamp)
@@ -152,6 +156,7 @@ try {
         "--req-url", ("tcp://127.0.0.1:" + $ZmqReqPort),
         "--training-folder", $TrainingFolder,
         "--project-path", $tempProjectPath,
+        "--legacy-template", $LegacyTemplate,
         "--output", $probeOutput,
         "--req-timeout-ms", ([string]([Math]::Max(30000, $TimeoutSeconds * 1000)))
     )
