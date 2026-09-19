@@ -27,4 +27,4 @@
     - **验收⑤两件套回归 PASS**：run `dev_agent_smoke_mac_20260919-200044`（A5 原脚本、不带 hub、`-vsp-hub-url ""`）exit 0 全 8 gate 绿——legacy 通道无损（GET 面/ZMQ ping/project.state/插件扫描 719 Waves 主体 completed/R9 子进程 131 采样/A1 shm 残留复现为预期平台特征）；工件 `/private/tmp/vsphub1-artifacts/stage2_a5_regression_workdir/`。
     - 收尾端口全空（5555/5556/5557/7878/8787 无监听）。**全部验收标准①-⑥齐备，自验完成转 done 待决策验收。**
   - 端测覆盖边界声明：本卡全部证据来自真实三进程栈（external-kernel 与全栈两形态各一遍）；前端面 headless 探针已覆盖 ws 数据通道，编辑器 UI 面未覆盖（用户手测闸门，翻回后首启建议目检 ws 状态与告警面板）。
-- 验收：
+- 验收：pass（2026-09-19，ruling [2026-09-19-VSPHUB1-pass.md](../../rulings/2026-09-19-VSPHUB1-pass.md)：六项全过——全栈 run 八门全 true（决策侧直读 summary）、A5 回归 exit 0、有界重试两向首证、只读往返 10 检查、前端翻回逐字节复归（决策侧 0 diff 复核）；bb26c54 已 cherry-pick f5f9e30；**三件套成为 mac 可用栈形态**；编辑器首启目检=建议项非闸门）
