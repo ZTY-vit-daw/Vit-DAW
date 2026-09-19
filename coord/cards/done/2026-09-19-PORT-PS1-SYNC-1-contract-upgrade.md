@@ -31,4 +31,4 @@
     3. **文件域偏差说明**：卡面枚举 8 文件，实际触达 9 文件+SMOKE_TESTS.md——A②/B③ 断言物理载体为 `scripts/` 下 2 个 probe py（ps1/_mac.sh 均委托驱动，决策侧锚点描述的 ET.parse 即在其中）；SMOKE_TESTS.md 为验收③明确要求。均在 scripts/ 域内、最小 diff。
     4. **工作树遗留运行时状态**：烟测内核（cwd=exe 目录→repo Workspace）照既有基础设施行为改写了 `VitApp/Workspace/default_project.xml`（新 vitproj uuid/导入轨道记账，并清掉 HEAD 中更早 semantic-processor 烟测的 fixture 残留）——纯运行时记账非实现工作，未入任何 commit；按 §5 未擅自还原，处置（还原/入 run-state 管理）留决策侧。
   - **push 状态**：分支 push 因 GitHub 连接故障（Connection reset/443 不通）暂挂，coord 收尾后统一重试；如仍不通留待网络恢复后补推（本地 commit 完好）。
-- 验收：
+- 验收：**pass（交付面，按停止条件"单件上交、其余继续"口径）**（2026-09-19 PC 决策侧，[rulings/2026-09-19-PS1SYNC1-pass.md](../../rulings/2026-09-19-PS1SYNC1-pass.md)）——A/B/C 三件 PC run exit 0 工件亲核；F 断言双端落地+方向两轮实测证实；四项上交裁定：F PC 跑绿拆 PORT-PS1-SETTLE-1（todo/ 在位）、第五项腐化修复追认（锚点亲验 project_package.go:433）、文件域偏差追认、default_project.xml 保持现状不提交（A② 模板耦合脆弱性备案）。实现已 cherry-pick 入 main
