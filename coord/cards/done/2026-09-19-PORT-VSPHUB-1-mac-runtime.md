@@ -22,6 +22,9 @@
     - 环境注记：卡领取时 5555/7878 被用户 10:44 编辑器会话遗留栈（pid 89803/89804）持有且 Godot 编辑器（pid 97623，18:15 起）存活——按 §9 未动，取证 `/private/tmp/vsphub1-artifacts/leftover_stack_forensics.txt`，采 external-kernel 形态（复用内核只连不占，收尾断言 untouched）。
   - **交付⑤（ws 通道+翻回）**：ENABLE=1 强开连通成立（ws state=open、transport=vsp.hub.websocket、内核签发会话、ws 帧 527ms、零 HTTP 回退）；翻回=**fix5 默认值翻回**（移除 macOS 默认关分支，对 9987c5a^ 逐字一致；理由：根因（hub 缺位）已由①消除，条件形态会留永久双臂分叉与 Windows 面新风险；ENABLE 开关功成身退，WS_DISABLE 安静开关保留）+ fix6 两处还原无条件 push_warning（对 b55c2b7^ 逐字一致）——Windows 臂零变化由逐字一致证明。复验：两文件 check-only exit 0；**翻回后不设 ENABLE** 重跑 ws 活体探针 exit 0（默认即通，0 条 TCP no-delay 告警）。前端仓单独 commit `08ecdb3`（branch port/b7b-cef-webview-host，本地仓无远端）；编辑器内手测归用户闸门。
   - **交付⑥（冒测入口+条目）**：`scripts/vsp_hub_three_piece_smoke_mac.sh`（941 行，含 --external-kernel/--ws-probe/--skip-bounded-fail）+ SMOKE_TESTS.md 条目；实现 commit `bb26c54`（port/vsphub1-mac-runtime 已推 origin）。
-  - **待补（端口释放后，两命令即成）**：验收①全栈形态（自有内核起停+端口归属+停栈记录，`vsp_hub_three_piece_smoke_mac.sh --ws-probe`）与验收⑤两件套回归（`dev_agent_smoke_mac.sh --kernel-bin <主仓内核>`，不带 hub 的 A5 形态）。**[等待用户:关闭 Godot 编辑器（pid 97623）与其 10:44 内核/agent 遗留栈（pid 89803/89804）以释放 5555——内核 ZMQ 端点为编译期常量无法并行]**
-  - 端测覆盖边界声明：本卡全部证据来自真实三进程栈（外部内核形态）；未覆盖=自有内核形态的起停/端口归属段与 A5 两件套回归（上述待补项）；前端面 headless 探针已覆盖 ws 数据通道，编辑器 UI 面未覆盖（用户手测闸门）。
+  - **待补→已补（2026-09-19 20:05 CST，用户关闭编辑器释放端口后）**：
+    - **验收①全栈形态 PASS**：run `vsp_hub_three_piece_mac_20260919-195832`（`--kernel-bin` 复用主仓内核 fd0d3d84…，脚本自起自停）exit 0 全 gate 绿——自有内核 pid 3620 起停+5555/5556/5557 端口归属、负例先导段复现（61s/29 pending/attempts=30）、注册链+只读往返 10 检查+ws 探针全过；停栈记录 agent SIGTERM:0:1 / hub SIGTERM:0:1 / kernel SIGTERM:143:1（143=A1 已知平台特征，预期）；工件 `/private/tmp/vsphub1-artifacts/stage2_fullstack_workdir/`。
+    - **验收⑤两件套回归 PASS**：run `dev_agent_smoke_mac_20260919-200044`（A5 原脚本、不带 hub、`-vsp-hub-url ""`）exit 0 全 8 gate 绿——legacy 通道无损（GET 面/ZMQ ping/project.state/插件扫描 719 Waves 主体 completed/R9 子进程 131 采样/A1 shm 残留复现为预期平台特征）；工件 `/private/tmp/vsphub1-artifacts/stage2_a5_regression_workdir/`。
+    - 收尾端口全空（5555/5556/5557/7878/8787 无监听）。**全部验收标准①-⑥齐备，自验完成转 done 待决策验收。**
+  - 端测覆盖边界声明：本卡全部证据来自真实三进程栈（external-kernel 与全栈两形态各一遍）；前端面 headless 探针已覆盖 ws 数据通道，编辑器 UI 面未覆盖（用户手测闸门，翻回后首启建议目检 ws 状态与告警面板）。
 - 验收：
