@@ -27,4 +27,4 @@
     - **①-04（三轮两形态）**：裸代号消息「进行B1.2」×2/「执行B1」×1 稳定 semantic_entry unresolved（waiting_clarification，confidence 0.3-0.4）；a4 fixture 确定性构造本身成功（2 轨+1 多 clip 轨）。同为 py 会话设计 vs semantic_entry 面错配。
   - **§8 运行账目**：②③各 2 轮（run1=退出码卫生 bug 非功能败）；⑥3 轮（run1=驱动合成缺陷已修）；⑤3 轮（逐层断言错配）；④1 轮（授权上限）；⑦2 轮（run1=D 名字 bug 已修）；①01/03/05 各 1 轮、02 1 轮、04 3 轮。全部红因均有工件证据（RUN_LEDGER.md 逐段回指）；环境中断 0 例。
   - **端测覆盖边界（AGENTS §5）**：已覆盖=真实两件套（内核+agent 真实起停）×真实 LLM 轮×py/脚本逐段显式断言×DAD shm 面（D）×L2 realtime（E，⑦ 内 Godot headless）；未覆盖=GUI/渲染面、vsphub 三件套路径、稳定性比例（绿=存在一条成功路径）。
-- 验收：
+- 验收：pass（2026-09-20，ruling [2026-09-20-SMOKEMAC2-pass.md](../../rulings/2026-09-20-SMOKEMAC2-pass.md)：交付面 pass，五段全执行账目亲核；四项裁定——⑥④⑦-pp 步=LLM 语义族随强引擎（与 SETTLE-2 同前置）、⑤=断言错配族开 PS1-SYNC-2、①02/04=已知会话设计错配（B1.2 覆盖由 03 承担）；**D+E 双修复均获运行验证，⑦前六步全绿**；e6c493b 已 cherry-pick 9be5711）
