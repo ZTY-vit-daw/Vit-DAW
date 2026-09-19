@@ -328,6 +328,86 @@ Notes:
   agent/kernel logs, prereq.txt, report) under a fresh mktemp workdir printed
   to stderr.
 
+## VSP Hub Three-Piece Stack Smoke Mac (PORT-VSPHUB-1)
+
+Path:
+
+```bash
+~/Documents/Vit-DAW/scripts/vsp_hub_three_piece_smoke_mac.sh
+```
+
+Purpose:
+
+- mac three-piece stack smoke over the A5 harness pattern (VitApp kernel +
+  vsphub + Go agent): builds kernel + agent + vsphub, starts all three with
+  runtime state isolated in a fresh temp workdir (AGENTS §10), and gates:
+  ① kernel ZMQ listeners 5555/5556/5557 owned by the kernel pid; ② a negative
+  required-mode pre-phase — an agent with `VIT_AGENT_VSP_HUB_REQUIRED=true`
+  and NO hub must log retryable `registration pending` lines and then
+  self-stop at the documented 30x2s bound (`required VSP Hub registration
+  failed ... attempts=30`); ③ the agent starts BEFORE the hub so the bounded
+  retry window is captured, then the hub comes up on 8787 (health + port
+  owner) and registration must succeed — agent log line
+  `VitAgent registered with VSP Hub` + hub `/vsp/status` session
+  (`role=agent client_id=vit.agent.official`, kernel-signed session id);
+  ④ a bash/python port of `codex_vsp_readonly_probe.ps1`: health, capability
+  advertisement (extension role gets state.snapshot/event.poll, not
+  command.request), `session.hello` (role=extension read_only) →
+  `extension.register` → status listing → `state.snapshot` round-tripped
+  through the hub to the kernel (payload ok + no internal track-id leak) →
+  `event.poll` → `extension.unregister` → status cleanup; ⑤ optional
+  `--ws-probe`: drives the frontend repo's Godot headless
+  `vsp_realtime_ws_live_probe.gd` against the live hub — the adapter must
+  subscribe over `ws://127.0.0.1:8787/vsp/stream` (state=open,
+  `subscription_transport=vsp.hub.websocket`) and receive realtime frames
+  with zero HTTP fallback; ⑥ teardown with per-process stop records and a
+  port-drain assert.
+- `--external-kernel` variant: no kernel is built/started/stopped — the hub
+  and the agent connect to an ALREADY-RUNNING kernel on 5555/5556 (observed
+  and recorded, never touched; the kernel gate becomes an observation plus an
+  untouched-after-teardown assert). Use it when the fixed kernel ports are
+  legitimately owned by another live stack (e.g. the user's open Godot
+  editor); pass `--agent-http`/`--udp-*` on alternate ports.
+- Emits a `vsp.hub.three_piece.smoke.mac.v1` summary JSON; exit 0 requires
+  every enabled gate to pass. Failures are classified env (ports, build)
+  vs functional (registration, probe checks).
+
+Common commands:
+
+```bash
+# Full three-piece run: build kernel+agent+hub, bounded-fail pre-phase,
+# stack up, registration, read-only roundtrip, teardown.
+~/Documents/Vit-DAW/scripts/vsp_hub_three_piece_smoke_mac.sh
+
+# Same with the Godot ws live probe (needs the frontend repo + Godot binary).
+~/Documents/Vit-DAW/scripts/vsp_hub_three_piece_smoke_mac.sh --ws-probe
+
+# Ride an already-running kernel (e.g. the editor's stack holds 5555):
+~/Documents/Vit-DAW/scripts/vsp_hub_three_piece_smoke_mac.sh \
+  --external-kernel --agent-http http://127.0.0.1:7879 \
+  --udp-to-godot 14444 --udp-from-godot 14445
+
+# Reuse a built kernel binary (sha256+mtime recorded) and skip the ~70s
+# bounded-fail pre-phase.
+~/Documents/Vit-DAW/scripts/vsp_hub_three_piece_smoke_mac.sh \
+  --kernel-bin ~/Documents/Vit-DAW/VitApp/build/VitApp_artefacts/Debug/VitApp \
+  --skip-bounded-fail
+```
+
+Notes:
+
+- The product-path hub binary lands at `<repo>/agent/bin/vsphub` (gitignored;
+  the start_page autostart candidate) — build it with
+  `cd agent && go build -o bin/vsphub ./cmd/vsphub`; the smoke script builds
+  its own copy in the run workdir and records both sha256s.
+- The bounded-fail pre-phase takes ~60-70 s (30 attempts x 2 s); skip it with
+  `--skip-bounded-fail` during iteration.
+- The ws probe launches a second Godot instance headless against the frontend
+  project; the adapter ws channel is default-on since the fix5 flip-back
+  (PORT-VSPHUB-1), so no env is required — the script still exports
+  `VIT_GUI_VSP_REALTIME_WS_ENABLE=1` (pre-flip probe compatibility, a no-op
+  after the flip).
+
 ## B1 Gain Staging Agent Smokes
 
 Paths:
