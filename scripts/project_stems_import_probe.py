@@ -230,41 +230,34 @@ def run_probe(args: argparse.Namespace) -> int:
         created_clip_ids = strings(imported.get("created_clip_ids"))
         if len(created_track_ids) != readable_count or len(created_clip_ids) != readable_count:
             raise RuntimeError("created ID counts do not match readable file count")
-        if imported.get("analysis_deferred") is not True:
-            raise RuntimeError("default stems import should defer audio analysis")
-        if str(imported.get("baking_status", "")).lower() != "deferred":
-            raise RuntimeError("default stems import should report baking_status=deferred")
+        if imported.get("analysis_deferred") is not False:
+            raise RuntimeError("default stems import should queue audio analysis (defer_audio_analysis is opt-in)")
+        if str(imported.get("baking_status", "")).lower() != "running":
+            raise RuntimeError("default stems import should report baking_status=running")
+        if str(imported.get("background_analysis_status", "")).lower() != "running":
+            raise RuntimeError("default stems import should report background_analysis_status=running")
         if int(imported.get("analysis_jobs_created") or 0) != 0:
-            raise RuntimeError("default stems import should not create analysis jobs")
-        if import_summary.get("analysis_deferred") is not True:
-            raise RuntimeError("default stems import summary should report analysis_deferred=true")
-        if int(import_summary.get("analysis_jobs_created") or 0) != 0:
-            raise RuntimeError("default stems import summary should report zero analysis jobs")
-        analysis_job_id = str(imported.get("analysis_job_id") or import_summary.get("analysis_job_id") or "")
-        if not analysis_job_id:
-            raise RuntimeError("default stems import should return analysis_job_id for deferred background analysis")
-        if str(imported.get("analysis_queue_status", "")).lower() != "queued":
-            raise RuntimeError("default stems import should queue deferred audio analysis")
-        if int(imported.get("analysis_jobs_queued") or 0) != readable_count * EXPECTED_IMPORT_FEATURES_PER_CLIP:
+            raise RuntimeError("default stems import should not create immediate analysis jobs")
+        expected_queued_jobs = readable_count * EXPECTED_IMPORT_FEATURES_PER_CLIP
+        if int(imported.get("analysis_jobs_queued") or 0) != expected_queued_jobs:
             raise RuntimeError(
                 "default stems import should queue "
                 f"{EXPECTED_IMPORT_FEATURES_PER_CLIP} background analysis jobs per clip"
             )
+        if import_summary.get("analysis_deferred") is not False:
+            raise RuntimeError("default stems import summary should report analysis_deferred=false")
+        if int(import_summary.get("analysis_jobs_queued") or 0) != expected_queued_jobs:
+            raise RuntimeError("default stems import summary should report queued analysis jobs")
+        analysis_job_id = str(imported.get("analysis_job_id") or import_summary.get("analysis_job_id") or "")
+        if not analysis_job_id:
+            raise RuntimeError("default stems import should return analysis_job_id for queued background analysis")
+        if str(imported.get("analysis_queue_status", "")).lower() != "running":
+            raise RuntimeError("default stems import should auto-run the queued audio analysis job")
         initial_analysis_job = require_analysis_job("training_stems_import_folder_as_stems", imported)
-        if str(initial_analysis_job.get("analysis_queue_status", "")).lower() != "queued":
-            raise RuntimeError("initial analysis job should be queued")
+        if str(initial_analysis_job.get("analysis_queue_status", "")).lower() != "running":
+            raise RuntimeError("initial analysis job should be auto-started (running)")
         if int(initial_analysis_job.get("submitted_feature_jobs") or 0) != 0:
-            raise RuntimeError("initial deferred analysis job should not have submitted feature jobs")
-
-        queued_status = call("analysis_status_queued", {
-            "cmd": "project.audio_analysis_status",
-            "analysis_job_id": analysis_job_id,
-        })
-        queued_job = require_analysis_job("analysis_status_queued", queued_status)
-        if int(queued_job.get("submitted_clips") or 0) != 0:
-            raise RuntimeError("queued analysis status should report zero submitted clips")
-        if int(queued_job.get("total_clips") or 0) != readable_count:
-            raise RuntimeError("queued analysis status total_clips should match imported clips")
+            raise RuntimeError("initial auto-started analysis job should not have submitted feature jobs yet")
 
         analysis_started = call("analysis_start_throttled", {
             "cmd": "project.audio_analysis_start",
@@ -274,7 +267,9 @@ def run_probe(args: argparse.Namespace) -> int:
         })
         started_job = require_analysis_job("analysis_start_throttled", analysis_started)
         if str(started_job.get("analysis_queue_status", "")).lower() != "running":
-            raise RuntimeError("analysis start should move job to running")
+            raise RuntimeError("analysis start should keep the auto-started job running")
+        if int(started_job.get("total_clips") or 0) != readable_count:
+            raise RuntimeError("throttled analysis job total_clips should match imported clips")
 
         time.sleep(0.7)
         throttled_status = call("analysis_status_after_throttle_window", {
@@ -359,6 +354,15 @@ def run_probe(args: argparse.Namespace) -> int:
             "training_preflight_tracks_to_create": locals().get("tracks_to_create"),
             "training_import_tracks_created": locals().get("tracks_created"),
             "training_import_clips_created": locals().get("clips_created"),
+            "analysis_deferred": (
+                replies.get("training_stems_import_folder_as_stems", {}).get("analysis_deferred")
+            ),
+            "analysis_baking_status": (
+                replies.get("training_stems_import_folder_as_stems", {}).get("baking_status")
+            ),
+            "analysis_jobs_queued": (
+                replies.get("training_stems_import_folder_as_stems", {}).get("analysis_jobs_queued")
+            ),
             "analysis_job_id": locals().get("analysis_job_id"),
             "expected_import_features_per_clip": EXPECTED_IMPORT_FEATURES_PER_CLIP,
             "analysis_throttled_submitted_clips": locals().get("submitted_clips"),

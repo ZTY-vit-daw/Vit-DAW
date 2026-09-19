@@ -621,8 +621,14 @@ Purpose:
 - Start or reuse the live VitApp kernel.
 - Create a temporary project and verify default project audio settings:
   48 kHz / 24-bit / WAV/BWF.
-- Set a mismatch example, save it to a temporary `.tracktionedit`, reopen it,
-  and verify the project audio settings persisted.
+- Set a mismatch example, save it to a temporary `.vit`, assert the saved file
+  starts with the `VIT1` container magic (`.vit` is always an app-bound
+  encrypted container), reopen it, and verify the project audio settings
+  persisted through the reopen round-trip.
+- Verify the legacy fallback by opening a plain-XML legacy fixture derived
+  from `VitApp/Workspace/default_project.xml` with `VIT_AUDIO_SETTINGS`
+  stripped (`--legacy-template`): settings default to 48 kHz / 24-bit /
+  WAV/BWF with `migration_state=defaulted_from_legacy`.
 - Run `project.import_preflight` and `media.inspect_files` against the
   development stems folder without writing tracks or clips.
 - Save a full JSON artifact with command replies, compact summaries, mismatch
@@ -659,6 +665,12 @@ Purpose:
   `project.import_folder_as_stems`.
 - Verify the import creates one audio track and one aligned clip per readable
   file in one kernel command.
+- Verify the default import queues background analysis (`defer_audio_analysis`
+  is opt-in): `analysis_deferred=false`, `baking_status=running`,
+  `analysis_jobs_queued` = 2 per readable clip, a non-empty
+  `analysis_job_id` with `analysis_queue_status=running`, then verify the
+  throttled start on that auto-running job (1 clip / 2 features then
+  `paused`) and cancel semantics.
 - Verify created track and clip IDs are visible immediately after import and
   still visible after reopening the saved project.
 - Run a read-only sealed-folder preflight when the sealed folder exists.
@@ -747,7 +759,11 @@ Purpose:
 - Send the full-project mix conversation through agent HTTP after the Godot
   project lifecycle is up.
 - Verify the pending/confirm route:
-  `mix.propose_tick -> mix.apply_tick -> mix.observe`.
+  `mix.propose_tick -> mix.apply_tick -> <reobserve>` where the reobserve
+  step is counted through the observation alias group
+  (`mix.observe`/`mix_observe`/`mix.request_observation`/
+  `mix_request_observation`/`ccb.observation_catalog`/
+  `ccb_observation_catalog`).
 - Verify no `daw.invoke` or direct `track.volume` appears on the confirmation
   path.
 - Save a smoke artifact folder containing `processes`, `ports`,
@@ -761,7 +777,8 @@ Purpose:
   later explicit confirmation.
 - Verify the vocal focus relationship path with "make the lead vocal more
   forward": the turn may finish as `done` or `needs_clarification`, but it must
-  route through `mix.observe` and `mix.derive` and must not call
+  route through the observation alias group (`mix.observe` family or
+  `ccb.observation_catalog`) and `mix.derive` and must not call
   `mix.apply_tick`, `daw.invoke`, or direct `track.volume`.
 - Keep `summary.json` compact; full raw chat responses remain in
   `chat_observe.json`, `chat_confirm.json`, `chat_no_pending.json`, and
@@ -846,7 +863,7 @@ Purpose:
   including `test_100hz_10s.wav`, `Paper Crown.mp3`, root-level MP3 files, and a
   repo demo OGG when present.
 - Directly invoke `mix.observe scope=full_project` through agent HTTP.
-- Verify read-only full-project observe returns MOM `v1.4` with
+- Verify read-only full-project observe returns MOM `v1.5` with
   `project_multitrack_relation_observation`, compact multitrack projection, and
   no pending/confirmation request.
 - Verify every imported track has a ready lightweight acoustic package with
@@ -944,7 +961,8 @@ Purpose:
   start an isolated VitApp kernel, run the cross-platform probe
   `scripts/project_audio_preflight_probe.py` over kernel ZMQ, require report
   status `passed` (defaults 48 kHz/24-bit WAV/BWF, CD Export delivery preset,
-  mismatch settings round-trip through save/reopen, legacy project
+  mismatch settings round-trip through save/reopen with the `VIT1` container
+  magic asserted on the saved `.vit`, legacy plain-XML template
   defaulted_from_legacy fallback, import preflight over the training folder).
 - Kernel runs under a fake VitApp root with `VIT_PROJECT_XML` redirected into
   the run dir (repo tree never written, AGENTS §10); artifacts land under
@@ -981,9 +999,10 @@ Purpose:
 
 - mac equivalent of `run_project_stems_import_smoke.ps1`: isolated kernel +
   the cross-platform probe `scripts/project_stems_import_probe.py` — stems
-  preflight, deferred `project.import_folder_as_stems` (analysis_deferred,
-  queued jobs), throttled analysis start (1 clip / expected features),
-  cancel, project state visibility after import AND reopen, optional sealed
+  preflight, default `project.import_folder_as_stems` queues background
+  analysis (`analysis_deferred=false`, jobs queued, auto-running job),
+  throttled analysis start on that job (1 clip / expected features), cancel,
+  project state visibility after import AND reopen, optional sealed
   read-only preflight.
 - Same isolation/artifact conventions as the preflight mac script above
   (`project_stems_import_smoke_wrapper.mac.v1`); default timeout 180 s,
@@ -1110,7 +1129,7 @@ Purpose:
   immediate acoustic-package lifecycle capture (`acoustic_package_status.v0`
   shape + artifact on disk), retrying full-project observation until every
   imported track reports ready acoustics (peak/rms/headroom/crest +
-  primary clip identity), MOM v1.4 multitrack projection shape (no raw
+  primary clip identity), MOM v1.5 multitrack projection shape (no raw
   package leak), feature-snapshot readiness reasons (bridge rows with
   request-id consistency, deep-source capabilities, phase-5 limitations),
   L3 coverage non-regression vs the immediate capture, and

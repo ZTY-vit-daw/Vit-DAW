@@ -111,8 +111,11 @@ def recommended_presets(reply: Dict[str, Any]) -> List[Dict[str, Any]]:
     return []
 
 
-def write_legacy_project_without_audio_settings(source_path: Path, legacy_path: Path) -> None:
-    shutil.copyfile(source_path, legacy_path)
+def write_legacy_project_without_audio_settings(template_path: Path, legacy_path: Path) -> None:
+    # The kernel saves .vit as a VIT1 app-bound encrypted container, so the
+    # legacy fixture must be derived from a plain-XML project template instead
+    # of stripping sections out of the saved container.
+    shutil.copyfile(template_path, legacy_path)
     tree = ET.parse(legacy_path)
     root = tree.getroot()
     removed = 0
@@ -121,7 +124,7 @@ def write_legacy_project_without_audio_settings(source_path: Path, legacy_path: 
             root.remove(child)
             removed += 1
     if removed <= 0:
-        raise RuntimeError("could not create legacy fixture: VIT_AUDIO_SETTINGS was not present in saved project")
+        raise RuntimeError("could not create legacy fixture: VIT_AUDIO_SETTINGS was not present in legacy template")
     tree.write(legacy_path, encoding="utf-8", xml_declaration=True)
 
 
@@ -134,6 +137,9 @@ def run_probe(args: argparse.Namespace) -> int:
     training_folder = Path(args.training_folder).resolve()
     if not training_folder.is_dir():
         raise RuntimeError(f"training folder does not exist: {training_folder}")
+    legacy_template = Path(args.legacy_template).resolve()
+    if not legacy_template.is_file():
+        raise RuntimeError(f"legacy plain-XML project template does not exist: {legacy_template}")
 
     context = zmq.Context()
     req = context.socket(zmq.REQ)
@@ -213,6 +219,12 @@ def run_probe(args: argparse.Namespace) -> int:
         )
 
         save_as = call("save_as_project", {"cmd": "save_as_project", "file_path": str(project_path)})
+        with open(project_path, "rb") as saved_project_file:
+            saved_container_magic = saved_project_file.read(4).decode("ascii", errors="replace")
+        if saved_container_magic != "VIT1":
+            raise RuntimeError(
+                f"saved .vit is not a VIT1 app-bound encrypted container (magic={saved_container_magic!r})"
+            )
         reopen = call("open_saved_project", {"cmd": "open_project", "file_path": str(project_path)})
         reopened_settings = call("reopened_get_audio_settings", {"cmd": "project.get_audio_settings"})
         if int(audio_setting(reopened_settings, "sample_rate_hz", 0)) != args.mismatch_sample_rate:
@@ -221,7 +233,7 @@ def run_probe(args: argparse.Namespace) -> int:
             raise RuntimeError("saved/reopened record_bit_depth did not persist")
 
         legacy_project_path = project_path.with_name(project_path.stem + "_legacy_no_audio_settings" + project_path.suffix)
-        write_legacy_project_without_audio_settings(project_path, legacy_project_path)
+        write_legacy_project_without_audio_settings(legacy_template, legacy_project_path)
         legacy_open = call("open_legacy_project_without_audio_settings", {
             "cmd": "open_project",
             "file_path": str(legacy_project_path),
@@ -313,6 +325,7 @@ def run_probe(args: argparse.Namespace) -> int:
             "default_record_file_type": "WAV/BWF",
             "cd_export_preset_is_delivery_not_default": locals().get("cd_export", {}).get("role") == "delivery_export"
                 and not bool(locals().get("cd_export", {}).get("default_project_working_spec")),
+            "saved_vit_container_magic": locals().get("saved_container_magic"),
             "saved_reopened_sample_rate_hz": args.mismatch_sample_rate,
             "saved_reopened_record_bit_depth": 16,
             "legacy_fallback_sample_rate_hz": (
@@ -362,6 +375,8 @@ def main() -> int:
     parser.add_argument("--training-folder", required=True)
     parser.add_argument("--project-path", required=True)
     parser.add_argument("--output", required=True)
+    parser.add_argument("--legacy-template", required=True,
+                        help="plain-XML project template (with VIT_AUDIO_SETTINGS) used to build the legacy fixture")
     parser.add_argument("--req-timeout-ms", type=int, default=30000)
     parser.add_argument("--mismatch-sample-rate", type=int, default=44100)
     return run_probe(parser.parse_args())

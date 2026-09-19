@@ -226,7 +226,7 @@ function Assert-MOMV13MultitrackProjection {
     if ($null -eq $projection) {
         Fail ($Label + " missing mom_projection")
     }
-    if ([string](Get-OptionalProperty -Object $projection -Name "mom_version") -ne "v1.4") {
+    if ([string](Get-OptionalProperty -Object $projection -Name "mom_version") -ne "v1.5") {
         Fail ($Label + " unexpected mom_version")
     }
     if ([string](Get-OptionalProperty -Object $projection -Name "intent") -ne "project_multitrack_relation_observation") {
@@ -1018,7 +1018,7 @@ function Assert-AcousticReadinessReasons {
         Fail ("deep acoustic deferred capabilities missing from readiness: " + ($deepCaps | ConvertTo-Json -Depth 8 -Compress))
     }
     $limits = @((Get-OptionalProperty -Object $Readiness -Name "project_limitations"))
-    foreach ($required in @("lufs_analysis_deferred_phase_5", "masking_analysis_deferred_phase_5", "reference_match_deferred_phase_5", "post_fx_probe_unavailable_phase_4_1")) {
+    foreach ($required in @("lufs_analysis_deferred_phase_5", "masking_analysis_not_ready_on_current_project_cut", "reference_match_deferred_phase_5", "post_fx_probe_unavailable_phase_4_1")) {
         if ($limits -notcontains $required) {
             Fail ("project limitations missing " + $required + ". limitations=" + ($limits -join ","))
         }
