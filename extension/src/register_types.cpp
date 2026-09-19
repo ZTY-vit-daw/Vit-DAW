@@ -1,4 +1,5 @@
 #include "register_types.h"
+#include "vit_webview_host.h"
 #include "vit_waveform_reader.h"
 
 #include <godot_cpp/core/defs.hpp>
@@ -12,6 +13,7 @@ void initialize_vit_extension_module(ModuleInitializationLevel p_level) {
     }
 
     ClassDB::register_class<VitWaveformReader>();
+    ClassDB::register_class<VitWebViewHost>();
 }
 
 void uninitialize_vit_extension_module(ModuleInitializationLevel p_level) {

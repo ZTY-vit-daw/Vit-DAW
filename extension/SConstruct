@@ -1,7 +1,23 @@
+import os
+
 env = SConscript("../godot-cpp/SConstruct", {"api_version": "4.6"})
 
 env_shared = env.Clone()
 env_shared.Append(CPPDEFINES=["VIT_EXTENSION_EXPORTS"])
+
+# vit_webview_host.cpp compiles to a no-op stub unless the vendored WebView2
+# SDK headers are present (PORT-B7A wiring, aligned with the PC working tree).
+webview2_include = os.path.join("third_party", "webview2", "include")
+env_shared.Append(CPPPATH=[
+    "src/",
+    "../godot-cpp/include",
+    "../godot-cpp/gen/include",
+])
+if os.path.exists(os.path.join(webview2_include, "WebView2.h")):
+    env_shared.Append(CPPPATH=[webview2_include])
+    env_shared.Append(CPPDEFINES=["VIT_WITH_WEBVIEW2"])
+    if env["platform"] == "windows":
+        env_shared.Append(LIBS=["ole32", "user32", "gdi32", "dcomp"])
 
 library_name = "vit_extension.{}.{}.{}{}".format(
     env["platform"],
