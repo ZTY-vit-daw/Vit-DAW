@@ -11,6 +11,6 @@
 - 文件域：`extension/`（新增 cpp/h/SConstruct 接线/契约文档）；不改 Godot 工程、不改 `agent/`、`VitApp/`
 - 验收标准：①分支单 commit diff=工作树原样（无重排无重写）；②Windows 构建 exit 0 + 类注册证据；③契约文档覆盖调用面全集；④审计一致性核对记录
 - 停止条件：源码含不该入仓内容（凭据/密钥/绝对路径密写）→ 剥离后上报；构建失败且原因在收编源码内语义（非接线）→ blocked 上交；发现 webview host 有第二份变体（overlay/别的宿主类）→ 一并列明上报决策侧定收编范围
-- 领取：
+- 领取：2026-09-19 09:58 / origin/main=ec6460cbe2a58222cff7860066ebd5349f4b1c65（pull --rebase 后 Already up to date） / 分支 port/b7a-webview-host
 - 回执：
 - 验收：
