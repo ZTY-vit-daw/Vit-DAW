@@ -51,7 +51,8 @@ param(
     [string]$ProjectPackageSourceProjectPath = "",
     [string]$ProjectPackageRequiredHistoryText = "",
     [string]$ProjectPackageArtifactDir = "",
-    [int]$TimeoutSeconds = 60
+    [int]$TimeoutSeconds = 60,
+    [int]$ChatSettleSeconds = 300
 )
 
 Set-StrictMode -Version Latest
@@ -1125,11 +1126,157 @@ function Invoke-AgentChat {
             }
         }
     }
-    return Invoke-Json -Method POST -Uri ($AgentHttp.TrimEnd("/") + "/agent/chat") -Body @{
+    $rawResponse = Invoke-Json -Method POST -Uri ($AgentHttp.TrimEnd("/") + "/agent/chat") -Body @{
         conversation_id = $ConversationID
         message = $Message
         context = $context
     } -TimeoutSec 240
+    return Wait-ChatTurnSettled -Raw $rawResponse -ConversationID $ConversationID -SettleSeconds $ChatSettleSeconds
+}
+
+function Wait-ChatTurnSettled {
+    # mac agent_chat_ctx settle anchor (run_vit_product_path_smoke_mac.sh):
+    # when a turn is sliced out (goal_status=waiting_continue /
+    # stop_reason=limit_reached), poll the durable continuation via
+    # /agent/runtime/status until goal.status reaches a terminal value, then
+    # synthesize the settled response from /agent/events. Assertions read the
+    # returned object; the raw sliced response is preserved on it as raw_*.
+    param(
+        [object]$Raw,
+        [string]$ConversationID,
+        [int]$SettleSeconds
+    )
+    if ([string](Get-OptionalProperty -Object $Raw -Name "goal_status") -ne "waiting_continue") {
+        return $Raw
+    }
+    Write-WarnLine ("chat turn sliced out (waiting_continue/limit_reached) - waiting for the durable continuation to settle (budget " + $SettleSeconds + "s, conversation " + $ConversationID + ")")
+    $terminalGoals = @("completed", "failed", "stopped", "cancelled", "waiting_confirmation", "waiting_clarification")
+    $settledGoal = ""
+    $deadline = (Get-Date).AddSeconds($SettleSeconds)
+    while ((Get-Date) -lt $deadline) {
+        Start-Sleep -Seconds 5
+        try {
+            $poll = Invoke-Json -Method GET -Uri ($AgentHttp.TrimEnd("/") + "/agent/runtime/status") -TimeoutSec 30
+            $pollGoal = Get-OptionalProperty -Object $poll -Name "goal"
+            $polledStatus = [string](Get-OptionalProperty -Object $pollGoal -Name "status")
+            if ($polledStatus -ne $settledGoal) {
+                $settledGoal = $polledStatus
+                Write-WarnLine ("settle poll: goal=" + $settledGoal)
+            }
+        }
+        catch {
+            continue
+        }
+        if ($terminalGoals -contains $settledGoal) {
+            break
+        }
+    }
+    $events = $null
+    try {
+        $encodedConversationID = [System.Uri]::EscapeDataString($ConversationID)
+        $events = Invoke-Json -Method GET -Uri ($AgentHttp.TrimEnd("/") + "/agent/events?conversation_id=" + $encodedConversationID + "&since=0&limit=500") -TimeoutSec 60
+    }
+    catch { }
+    $placeholder = "我还在继续处理这个任务，完成后再向你汇报。"
+    $delivered = @()
+    $turnCompletedTexts = @()
+    $toolRows = @()
+    foreach ($agentEvent in @((Get-OptionalProperty -Object $events -Name "events"))) {
+        if ($null -eq $agentEvent) {
+            continue
+        }
+        $parts = @()
+        foreach ($fieldName in @("title", "body", "summary")) {
+            $fieldValue = [string](Get-OptionalProperty -Object $agentEvent -Name $fieldName)
+            if (-not [string]::IsNullOrWhiteSpace($fieldValue)) {
+                $parts += $fieldValue
+            }
+        }
+        if ($parts.Count -gt 0) {
+            $delivered += ($parts -join " | ")
+        }
+        if ([string](Get-OptionalProperty -Object $agentEvent -Name "type") -eq "turn.completed") {
+            $completedText = @()
+            foreach ($fieldName in @("title", "body")) {
+                $fieldValue = [string](Get-OptionalProperty -Object $agentEvent -Name $fieldName)
+                if (-not [string]::IsNullOrWhiteSpace($fieldValue)) {
+                    $completedText += $fieldValue
+                }
+            }
+            if ($completedText.Count -gt 0) {
+                $turnCompletedTexts += ($completedText -join " ")
+            }
+        }
+        $sources = @($agentEvent)
+        $payload = Get-OptionalProperty -Object $agentEvent -Name "payload"
+        if ($null -ne $payload) {
+            $sources += $payload
+        }
+        foreach ($source in $sources) {
+            $toolName = [string](Get-OptionalProperty -Object $source -Name "tool")
+            if ([string]::IsNullOrWhiteSpace($toolName)) {
+                $toolName = [string](Get-OptionalProperty -Object $source -Name "command_name")
+            }
+            if ([string]::IsNullOrWhiteSpace($toolName)) {
+                $toolName = [string](Get-OptionalProperty -Object $source -Name "command")
+            }
+            if (-not [string]::IsNullOrWhiteSpace($toolName)) {
+                $alreadyListed = $false
+                foreach ($row in $toolRows) {
+                    if ([string]$row["tool"] -eq $toolName) {
+                        $alreadyListed = $true
+                        break
+                    }
+                }
+                if (-not $alreadyListed) {
+                    $toolRows += @{ tool = $toolName }
+                }
+            }
+        }
+    }
+    $replyCandidates = @()
+    foreach ($text in ($delivered + $turnCompletedTexts)) {
+        if (-not $text.Contains($placeholder)) {
+            $replyCandidates += $text
+        }
+    }
+    $settledReply = [string](Get-OptionalProperty -Object $Raw -Name "reply")
+    if ($replyCandidates.Count -gt 0) {
+        $settledReply = $replyCandidates[$replyCandidates.Count - 1]
+    }
+    $stopReasonMap = @{
+        waiting_confirmation = "needs_confirmation"
+        waiting_clarification = "needs_clarification"
+        completed = "done"
+    }
+    $settledStopReason = [string](Get-OptionalProperty -Object $Raw -Name "stop_reason")
+    if ($stopReasonMap.Contains($settledGoal)) {
+        $settledStopReason = $stopReasonMap[$settledGoal]
+    }
+    $settledGoalStatus = $settledGoal
+    if ([string]::IsNullOrWhiteSpace($settledGoalStatus)) {
+        $settledGoalStatus = "settle_timeout"
+    }
+    $rawStopReasonValue = [string](Get-OptionalProperty -Object $Raw -Name "stop_reason")
+    $rawReplyValue = [string](Get-OptionalProperty -Object $Raw -Name "reply")
+    $settled = $Raw
+    $settled | Add-Member -Force -MemberType NoteProperty -Name "stop_reason" -Value $settledStopReason
+    $settled | Add-Member -Force -MemberType NoteProperty -Name "goal_status" -Value $settledGoalStatus
+    $settled | Add-Member -Force -MemberType NoteProperty -Name "reply" -Value $settledReply
+    $settled | Add-Member -Force -MemberType NoteProperty -Name "settled_from" -Value "continuation+events (pc chat_settle anchor, mac-aligned)"
+    $settled | Add-Member -Force -MemberType NoteProperty -Name "raw_stop_reason" -Value $rawStopReasonValue
+    $settled | Add-Member -Force -MemberType NoteProperty -Name "raw_reply" -Value $rawReplyValue
+    $settled | Add-Member -Force -MemberType NoteProperty -Name "delivered_event_count" -Value $delivered.Count
+    $rawToolRows = @(Get-OptionalProperty -Object $Raw -Name "executed_kernel_reply" | Where-Object { $null -ne $_ })
+    if ($rawToolRows.Count -eq 0 -and $toolRows.Count -gt 0) {
+        $settled | Add-Member -Force -MemberType NoteProperty -Name "executed_kernel_reply" -Value $toolRows
+    }
+    if ($null -eq (Get-OptionalProperty -Object $Raw -Name "typed_events")) {
+        # mac parity: assertions treat a settled response without typed_events
+        # as an empty list (resp.get("typed_events") or []).
+        $settled | Add-Member -Force -MemberType NoteProperty -Name "typed_events" -Value @()
+    }
+    return $settled
 }
 
 function Assert-StatusOk {
@@ -1475,7 +1622,7 @@ function Assert-ResponseMOMMultitrackObservation {
 function Get-AcousticPackageStatusFromResponse {
 	param([object]$Response)
 	foreach ($event in @((Get-OptionalProperty -Object $Response -Name "typed_events"))) {
-		$state = Get-OptionalProperty -Object $event -Name "state"
+		$state = Get-OptionalProperty -Object $agentEvent -Name "state"
 		if ([string](Get-OptionalProperty -Object $state -Name "schema_version") -eq "acoustic_package_status.v0") {
 			return $state
 		}
@@ -2920,7 +3067,9 @@ try {
     }
     if ($focusStopReason -eq "done" -and [int]$focusCounts.derive -lt 1) {
         $focusReply = [string](Get-OptionalProperty -Object $focus -Name "reply")
-        $safeNoopDone = ($focusReply -match "can't|cannot|not reliably|No mix action|no mix action|not safe|not identified|partial")
+        # no-op reply markers: the original English set plus the settled-turn
+        # honest capability-boundary wording a durable continuation can deliver.
+        $safeNoopDone = ($focusReply -match "can't|cannot|not reliably|No mix action|no mix action|not safe|not identified|partial|能力边界|无法安全|无法可靠|不能可靠|证据不足")
         if (-not $safeNoopDone) {
             Fail ("Expected completed vocal focus route to include mix.derive unless it is an explicit no-op/clarification reply. route=" + ($focusTools -join " -> "))
         }
