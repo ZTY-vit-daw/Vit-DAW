@@ -780,6 +780,17 @@ Purpose:
   route through the observation alias group (`mix.observe` family or
   `ccb.observation_catalog`) and `mix.derive` and must not call
   `mix.apply_tick`, `daw.invoke`, or direct `track.volume`.
+- chat settle waiting (PC alignment with the mac `chat_settle` anchor,
+  PORT-PS1-SETTLE-1): a chat POST may end sliced out (`goal_status=
+  waiting_continue` / `stop_reason=limit_reached`) with the continuation
+  placeholder while the durable continuation finishes the turn
+  asynchronously. `Invoke-AgentChat` then polls `/agent/runtime/status`
+  until the goal reaches a terminal status and reads the settled reply +
+  effective stop reason from the `/agent/events` surface
+  (`-ChatSettleSeconds`, default 300). Assertions read the settled
+  response; the raw sliced response is preserved on it as `raw_stop_reason`
+  / `raw_reply`. Un-sliced turns return the POST response unchanged (zero
+  overhead).
 - Keep `summary.json` compact; full raw chat responses remain in
   `chat_observe.json`, `chat_confirm.json`, `chat_no_pending.json`, and
   `chat_vocal_focus.json`.
@@ -812,6 +823,9 @@ Notes:
   checks; they are not the default product path.
 - By default, processes started by this script are stopped at the end. Use
   `-KeepProcesses` to leave them running for manual inspection.
+- `-ChatSettleSeconds <n>` (default 300) bounds the settle wait for a
+  sliced-out chat turn's durable continuation (see the chat settle waiting
+  bullet above); it only applies to turns that were actually sliced out.
 - `-CompressorControlAgentOnly` keeps the full Godot-owned lifecycle and binary
   verification, then checks the compressor-control tool catalog, API-2500 topology and one
   reversible apply/readback/restore cycle, plus L2 limiter rejection. Its
