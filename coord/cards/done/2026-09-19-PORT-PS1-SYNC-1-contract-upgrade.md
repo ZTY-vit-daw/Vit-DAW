@@ -29,5 +29,6 @@
     1. **F⑤ PC 跑绿阻塞于驱动面缺口**：PC ps1 `Invoke-AgentChat` 单发 POST 无 settle 等待，而 vocal focus 回合在新终态路由下确定性超 max_turns 切片进 durable continuation（mac 同现象已在 PORT-SMOKE-MAC-1 以 `--chat-settle-seconds`（默认 300s）解决并文档化于 SMOKE_TESTS.md mac 条目；PC 体系内 settle 先例：`d1_audition_gap_smoke.ps1` 事件轮询+deadline 习惯形）。按卡面"不动其他段"未擅自改 chat 驱动；建议扩域授权 PC ps1 补同款 settle 等待（预计一处函数级小改）后 F⑤ 可复跑。
     2. **第五项腐化修复请复核**（超出卡面 C 项枚举但同类同域最小机械升级）：⑥ readiness 限制词 `masking_analysis_deferred_phase_5` → `masking_analysis_not_ready_on_current_project_cut`（`agent/internal/mixboard/project_package.go:433` 条件发射，38ecd24b 起无条件词已移除；ps1:1021 + _mac.sh:841 双端同步）。
     3. **文件域偏差说明**：卡面枚举 8 文件，实际触达 9 文件+SMOKE_TESTS.md——A②/B③ 断言物理载体为 `scripts/` 下 2 个 probe py（ps1/_mac.sh 均委托驱动，决策侧锚点描述的 ET.parse 即在其中）；SMOKE_TESTS.md 为验收③明确要求。均在 scripts/ 域内、最小 diff。
+    4. **工作树遗留运行时状态**：烟测内核（cwd=exe 目录→repo Workspace）照既有基础设施行为改写了 `VitApp/Workspace/default_project.xml`（新 vitproj uuid/导入轨道记账，并清掉 HEAD 中更早 semantic-processor 烟测的 fixture 残留）——纯运行时记账非实现工作，未入任何 commit；按 §5 未擅自还原，处置（还原/入 run-state 管理）留决策侧。
   - **push 状态**：分支 push 因 GitHub 连接故障（Connection reset/443 不通）暂挂，coord 收尾后统一重试；如仍不通留待网络恢复后补推（本地 commit 完好）。
 - 验收：
