@@ -818,3 +818,282 @@ Notes:
 - By default, processes started by this script are stopped at the end. Use
   `-KeepProcesses` to leave the imported material project running for manual
   inspection.
+
+## AB Result Smoke (mac) (PORT-SMOKE-MAC-1)
+
+Path:
+
+```bash
+~/Documents/Vit-DAW/scripts/run_ab_result_smoke_mac.sh
+```
+
+Purpose:
+
+- mac equivalent of `run_ab_result_smoke.ps1` — the AGENTS §6 health-check
+  core (MOM v1.4 AB result smoke). Thin `go test` wrapper over
+  `./internal/mixboard ./internal/mom ./internal/chat` with the identical
+  9-test `-run` pattern, `-count=1`. No stack is started.
+- Keeps per-run artifacts (run meta with HEAD+dirty, full go test log,
+  `summary.json` with schema `ab_result_smoke.mac.v1`) under
+  `~/Documents/vit-smoke-mac1-artifacts/<run_id>/` (overridable); the ps1
+  wrote no artifacts.
+
+Common commands:
+
+```bash
+~/Documents/Vit-DAW/scripts/run_ab_result_smoke_mac.sh
+~/Documents/Vit-DAW/scripts/run_ab_result_smoke_mac.sh --repo-root <checkout> --workdir <dir>
+```
+
+Notes:
+
+- Exit 0 = the selected MOM AB-result tests passed (anchor for the
+  PORT-SMOKE-MAC-1 suite).
+
+## Project Audio Settings + Preflight Smoke (mac) (PORT-SMOKE-MAC-1)
+
+Path:
+
+```bash
+~/Documents/Vit-DAW/scripts/run_project_audio_settings_preflight_smoke_mac.sh
+```
+
+Purpose:
+
+- mac equivalent of `run_project_audio_settings_preflight_smoke.ps1`:
+  start an isolated VitApp kernel, run the cross-platform probe
+  `scripts/project_audio_preflight_probe.py` over kernel ZMQ, require report
+  status `passed` (defaults 48 kHz/24-bit WAV/BWF, CD Export delivery preset,
+  mismatch settings round-trip through save/reopen, legacy project
+  defaulted_from_legacy fallback, import preflight over the training folder).
+- Kernel runs under a fake VitApp root with `VIT_PROJECT_XML` redirected into
+  the run dir (repo tree never written, AGENTS §10); artifacts land under
+  `~/Documents/vit-smoke-mac1-artifacts/<run_id>/` with
+  `project_audio_settings_preflight_smoke_wrapper.mac.v1` summary.
+- mac machine fact: the PC training folder (`E:\BaiduNetdiskDownload\…`) is
+  not on this machine — the default synthesizes 4 deterministic stems in the
+  run dir (same JOURNEY-1-MAC wave-synthesis pattern); pass
+  `--training-folder` to use real audio.
+
+Common commands:
+
+```bash
+~/Documents/Vit-DAW/scripts/run_project_audio_settings_preflight_smoke_mac.sh
+~/Documents/Vit-DAW/scripts/run_project_audio_settings_preflight_smoke_mac.sh \
+  --kernel-bin <path>/VitApp --training-folder <real-audio-dir>
+```
+
+Notes:
+
+- Needs `python3` + pyzmq (`pip3 install --user pyzmq`).
+- Kernel build (when no `--kernel-bin`) needs `--tracktion-dir` when the
+  checkout's submodule is empty.
+
+## Project Stems Import Smoke (mac) (PORT-SMOKE-MAC-1)
+
+Path:
+
+```bash
+~/Documents/Vit-DAW/scripts/run_project_stems_import_smoke_mac.sh
+```
+
+Purpose:
+
+- mac equivalent of `run_project_stems_import_smoke.ps1`: isolated kernel +
+  the cross-platform probe `scripts/project_stems_import_probe.py` — stems
+  preflight, deferred `project.import_folder_as_stems` (analysis_deferred,
+  queued jobs), throttled analysis start (1 clip / expected features),
+  cancel, project state visibility after import AND reopen, optional sealed
+  read-only preflight.
+- Same isolation/artifact conventions as the preflight mac script above
+  (`project_stems_import_smoke_wrapper.mac.v1`); default timeout 180 s,
+  synthetic 4-stem training folder, `--sealed-folder` optional (missing =
+  skipped, like the ps1 tolerating a missing sealed folder).
+
+Common commands:
+
+```bash
+~/Documents/Vit-DAW/scripts/run_project_stems_import_smoke_mac.sh
+~/Documents/Vit-DAW/scripts/run_project_stems_import_smoke_mac.sh --sealed-folder <dir>
+```
+
+Notes:
+
+- Needs pyzmq; `--reuse-kernel` attaches to an existing 5555 listener,
+  otherwise a busy port is an environment failure (AGENTS §9).
+
+## Mix Single-Tick E2E Smoke (mac) (PORT-SMOKE-MAC-1)
+
+Path:
+
+```bash
+~/Documents/Vit-DAW/scripts/run_mix_single_tick_e2e_mac.sh
+```
+
+Purpose:
+
+- mac equivalent of `run_mix_single_tick_e2e.ps1` over the real two-process
+  stack: two-track fixture (repo `test_100hz_10s.wav` +
+  `test_target_3s.wav`), then three real LLM chat turns — observe
+  ("帮我看整体混音，只建议一个小幅音量调整，先等我确认，不要用插件"),
+  unresolved vocal clarification guard ("让主唱更靠前" → needs_clarification,
+  no pending), confirmation ("可以执行" → mix_tick_applied_reobserved with
+  propose/apply/reobserve route, no daw.invoke/track.volume, and the
+  `[mix.tick.pending]` stored/routed/applied agent-log patterns).
+- L3-incomplete read-only branch preserved (observe may legitimately stay
+  read-only while L3 builds; confirmation then expects
+  `no_pending_mix_tick_candidate`).
+- Stack + isolation per the A5/C2/JOURNEY-1-MAC pattern (fake kernel root,
+  `VIT_PROJECT_XML` copy, agent draft-root/orchestration-store isolation,
+  `-vsp-hub-url ""`, ports must be free); busy-retry 5 s × 12 on
+  "Engine is busy rendering" replies (mac machine fact). LLM config
+  preflight refuses to run without a complete engine config (no stubs; key
+  never logged).
+- chat_settle anchor (mac machine fact, JOURNEY-1-MAC waiting_continue
+  precedent): a chat POST may end `limit_reached` with the continuation
+  placeholder while the durable continuation finishes the turn
+  asynchronously; the driver waits for the goal to settle
+  (`--chat-settle-seconds`, default 300) and reads the settled reply +
+  effective stop_reason from the conversation events surface. Assertions
+  and needles are unchanged.
+
+Common commands:
+
+```bash
+~/Documents/Vit-DAW/scripts/run_mix_single_tick_e2e_mac.sh
+~/Documents/Vit-DAW/scripts/run_mix_single_tick_e2e_mac.sh --kernel-bin <path>/VitApp
+```
+
+Notes:
+
+- Exit 0/1/2 = green / assertion red / environment. §8: ≤3 valid runs,
+  same-breakpoint two-failure stop-loss.
+
+## Product-Path Lifecycle + Mix Smoke (mac) (PORT-SMOKE-MAC-1)
+
+Path:
+
+```bash
+~/Documents/Vit-DAW/scripts/run_vit_product_path_smoke_mac.sh
+```
+
+Purpose:
+
+- mac equivalent of `run_vit_product_path_smoke.ps1` default path over the
+  real two-process stack: fixture project (Lead Vocal + Track 2), the clip
+  fade/gain agent closed loop (UI context, pending gain set, stale-
+  confirmation-clearing read, fade set 0.15/0.25 s round-trip), read-only
+  product observe (no pending event / no confirmation + acoustic bridge
+  readiness + authoritative mixboard feature snapshot), Chinese multitrack
+  MOM observation (project target, full_project scope,
+  project_multitrack_relation_observation intent, coverage ≥ 2,
+  do_not_include_raw_package), no-pending confirmation guard, vocal focus
+  relationship observation, and the vocal clarification loop
+  (ask → "Track 1 是主唱" answer → confirm with AB Result).
+- Declared mac adaptation: the ps1's Godot-owned lifecycle + VSP Hub health
+  assertions are replaced by a DIRECT two-piece start (hub not ported to mac
+  yet — PORT-VSPHUB-1 in parallel); chat context reports the truthful
+  `agent_http_after_direct_stack_lifecycle` interaction path. The ps1's
+  confirm-tick block stays unreachable-by-construction (observe is asserted
+  read-only) on both platforms. Mixboard feature snapshot asserted at the
+  run dir (`VIT_MIXBOARD_ROOT` redirection).
+
+Common commands:
+
+```bash
+~/Documents/Vit-DAW/scripts/run_vit_product_path_smoke_mac.sh
+~/Documents/Vit-DAW/scripts/run_vit_product_path_smoke_mac.sh --kernel-bin <path>/VitApp
+```
+
+Notes:
+
+- Real LLM turns (same preflight as JOURNEY-1-MAC). §8: ≤3 valid runs.
+- Same chat_settle anchor as the mix single-tick mac script (sliced-out
+  turns wait for their durable continuation and read the settled outcome
+  from the events surface).
+- Artifacts: per-turn chat JSON (+ `_settled` variants), events JSON, route
+  lists, snapshot copies, `vit_product_path_smoke.mac.v1` summary with all
+  stop reasons.
+
+## Live Material Observation Smoke (mac) (PORT-SMOKE-MAC-1)
+
+Path:
+
+```bash
+~/Documents/Vit-DAW/scripts/run_live_material_observation_smoke_mac.sh
+```
+
+Purpose:
+
+- mac equivalent of `run_live_material_observation_smoke.ps1` —
+  deterministic `mix.observe` tool chain (NO LLM): import ≥2 real materials,
+  immediate acoustic-package lifecycle capture (`acoustic_package_status.v0`
+  shape + artifact on disk), retrying full-project observation until every
+  imported track reports ready acoustics (peak/rms/headroom/crest +
+  primary clip identity), MOM v1.4 multitrack projection shape (no raw
+  package leak), feature-snapshot readiness reasons (bridge rows with
+  request-id consistency, deep-source capabilities, phase-5 limitations),
+  L3 coverage non-regression vs the immediate capture, and
+  loudness/peak/headroom rankings.
+- mac machine facts: `Paper Crown.mp3` is PC-only and mac repo roots carry
+  no mp3s — pass `--material-path` (repeatable) for the second material
+  (default candidates still include the repo 100 Hz fixture and the
+  tracktion `edm_song.ogg`, probing `--tracktion-dir`); the acoustic status
+  artifact lands at the run dir via `VIT_MIXBOARD_ROOT`.
+
+Common commands:
+
+```bash
+~/Documents/Vit-DAW/scripts/run_live_material_observation_smoke_mac.sh \
+  --material-path ~/Documents/Vit-DAW/test_100hz_10s.wav \
+  --material-path ~/Documents/Vit-DAW/tracktion_engine/examples/DemoRunner/resources/edm_song.ogg
+```
+
+Notes:
+
+- Exit 0/1/2 = green / assertion red / environment. §8: ≤3 valid runs.
+
+## Observation v1 Acceptance Smoke (mac) (PORT-SMOKE-MAC-1)
+
+Path:
+
+```bash
+~/Documents/Vit-DAW/scripts/run_observation_v1_acceptance_smoke_mac.sh
+```
+
+Purpose:
+
+- mac equivalent of `run_observation_v1_acceptance_smoke.ps1` — the
+  acceptance orchestrator, fail-fast like the ps1: Godot headless parse
+  (mac Godot.app + `~/Documents/vit-daw-frontend`), observation Go
+  regression set (6 packages), DAD L3 package smoke + L2 render probe smoke
+  (kernel + cross-platform `dad_probe.py`, same feature strings and summary
+  validations), L2 realtime observation smoke (seeded snapshot + Godot
+  headless `--script scripts/l2_realtime_observation_probe.gd` + the
+  ready/live/deferred matrix asserts), then the sibling mac AB result and
+  product-path scripts.
+- KNOWN mac interface gap (declared, evidence-first): `dad_probe.py` reads
+  kernel shared memory via Windows-only `mmap(tagname=…)` — on macOS the
+  read raises, the probe marks the feature
+  `failed("shared_memory_read_failed")`, and the two DAD steps are expected
+  to fail until a POSIX-shm reader lands (outside this card's file domain).
+  The script still runs them once as-is for evidence; `--skip-kernel-smokes`
+  exercises the remaining steps.
+
+Common commands:
+
+```bash
+# full chain (DAD steps currently expected-fail on mac — evidence run)
+~/Documents/Vit-DAW/scripts/run_observation_v1_acceptance_smoke_mac.sh
+
+# everything except the shm-dependent DAD steps
+~/Documents/Vit-DAW/scripts/run_observation_v1_acceptance_smoke_mac.sh --skip-dad-smokes
+
+# skip all three kernel smokes (DAD L3 + L2 render + L2 realtime)
+~/Documents/Vit-DAW/scripts/run_observation_v1_acceptance_smoke_mac.sh --skip-kernel-smokes
+```
+
+Notes:
+
+- Needs pyzmq; per-step logs and `observation_v1_acceptance_smoke.mac.v1`
+  summary (steps[] with exit codes) under the run dir.
