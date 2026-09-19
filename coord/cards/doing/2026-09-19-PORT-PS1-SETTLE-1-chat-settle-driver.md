@@ -11,6 +11,6 @@
 - 验收标准：①diff 函数级最小（不重构不动其他段）；②F⑤ 权威 run exit 0（§8 ≤3 轮、两败止损，AGENTS §8/§9 工件纪律）；③SMOKE_TESTS.md 同步；④工件（run ID/日志/退出码）
 - 停止条件：settle 等待就位后 vocal focus 仍不收敛（`limit_reached` 持续）→ 取证上交（可能涉 agent 续跑/settle 语义，域外）；需改 agent/内核代码才能绿 → 立即域外上报；环境中断如实记录
 - 附注（PS1-SYNC-1 ruling 备案）：A② legacy 模板耦合 `VitApp/Workspace/default_project.xml` 须含 VIT_AUDIO_SETTINGS，本卡不处理，跑 A 脚本无关
-- 领取：
+- 领取：2026-09-19 / origin/main bf61eb9941b0638a94948690073c916304fd6648 / 分支 port/ps1-settle-1（主工作树领取前已有：VitApp/Workspace/default_project.xml 烟测运行时改写〔已入账保留项〕+ extension 构建产物 + godot-cpp/ untracked，均非本卡 diff）
 - 回执：
 - 验收：
