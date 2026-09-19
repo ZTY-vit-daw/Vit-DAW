@@ -13,6 +13,6 @@
 - 文件域：`scripts/`（冒测入口）+ 前端仓（fix5/fix6 翻回，单独 commit 供审计区分）；不改 `agent/` 源码（vsphub 运行时缺口若需改代码 → 域外上报另卡）；`VitApp/` 零触碰
 - 验收标准：①三件套冒测 exit 0（run ID/各段日志/端口归属/停栈记录）；②required 注册成功 + hub 在册证据；③VSP 只读往返证据；④ws 通道连通证据 + fix5/fix6 翻回 diff（Windows 臂逐字保留）；⑤两件套回归（不带 hub 的 A5 形态仍 exit 0，legacy 通道无损）；⑥工件目录齐备（含 vsphub sha256/HEAD/dirty）
 - 停止条件：vsphub mac 运行时崩溃/端口绑定失败 → 按类型取证转 blocked（SHM/平台缺陷另开修复卡）；required 注册两败同断点 → §8 止损转卡；发现必须改 agent/vsphub 源码才能跑通 → 域外上报；前端 ws 翻回导致 Windows 面风险 → 不翻回、保留 env 强开并上报裁定
-- 领取：
+- 领取：2026-09-19 18:52 CST / origin/main=0f554357f054ccf4efb9dee914659cc8cebdac6e / 分支 port/vsphub1-mac-runtime（独立 worktree）
 - 回执：
 - 验收：
