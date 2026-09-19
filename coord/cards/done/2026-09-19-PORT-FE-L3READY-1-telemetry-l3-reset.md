@@ -25,4 +25,4 @@
     live 行为面回归无损：live 断言与 runB 全对的同一验证块全过 + AB result（mixboard/MOM/chat 9 测试）绿。
   - 端测覆盖边界（AGENTS §5）：已覆盖=⑦ L2 realtime 相位 headless 真跑（真 Godot 4.6 + 前端仓真工程）红绿对照 + headless parse + go 回归 + AB result；未覆盖=DAD 两步（POSIX shm 读取器缺口，上交 D 域）、product-path（F 域，PS1-SYNC-1 裁定中）、GUI/渲染面、PC 侧实机复验（前端仓本地无远端，决策侧直审 diff；PC 受益性由代码同源+同步栈确定性论证承载）。
   - 运行账目（§8 同款纪律）：L2 realtime 相位 3 轮（1 红 2 绿）；主仓零触碰（工作树仅领取前既存运行态两文件 Settings.xml/default_project.xml）；前端仓既有未跟踪 `VitApp/`（agent 相对路径日志污染，领取时已记录）未触碰。
-- 验收：
+- 验收：pass（2026-09-19，ruling [2026-09-19-FEL3READY1-pass.md](../../rulings/2026-09-19-FEL3READY1-pass.md)：三定性证据采信（**"PC 保留"口径修正入档——跨平台潜在缺陷，PC 同版必同红，与 A/B/C/F 同族**）；修复平台中立三处审查通过；红绿对照决策侧亲核（211448 failed / 213141 passed，live+AB 回归全绿）；E 项闭合，⑦ 只差 D；SMOKE-MAC-2 前置全满足）
