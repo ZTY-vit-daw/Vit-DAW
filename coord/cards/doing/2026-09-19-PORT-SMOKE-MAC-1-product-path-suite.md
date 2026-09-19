@@ -15,6 +15,6 @@
 - 文件域：`scripts/`（新增 ≤7 个 `_mac.sh`）+ `scripts/SMOKE_TESTS.md`（补条目）；不改 ps1 原文；`agent/`、`VitApp/` 零触碰（接口缺口→域外上报）
 - 验收标准：①7 件各权威 run exit 0 + 断言证据入工件；②§8 运行账目（逐脚本轮次/分类/止损状态）；③语义对照表；④SMOKE_TESTS.md 7 条目；⑤工件目录（run ID/日志/各段 JSON/双 bin sha256/HEAD 与 dirty）
 - 停止条件：某脚本语义与 mac 栈接口现状不兼容 → 单件上交证据（其余件不受阻继续）；同断点两败止损；发现需改 agent/内核 → 域外上报；PC 侧脚本本身已腐化（跑不动/与现实现不符）→ 记录上交裁定
-- 领取：
+- 领取：2026-09-19 / origin/main e84027945142f063dd478664ca758d5d87f5e67a / 分支 port/smoke-mac-1（独立 worktree ~/Documents/Vit-DAW-smoke-mac1；主工作树另有并行流 PORT-VSPHUB-1 在跑两件套栈占 5555/5556/5557/7878，本卡栈运行窗口待端口空窗）
 - 回执：
 - 验收：
