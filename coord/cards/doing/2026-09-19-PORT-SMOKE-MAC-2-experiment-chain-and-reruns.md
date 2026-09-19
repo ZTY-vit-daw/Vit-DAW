@@ -12,6 +12,6 @@
 - 文件域：`scripts/`（dad_probe.py POSIX 分支 + 复跑所需的最小脚本修补 + SMOKE_TESTS.md 条目）；前端仓零触碰（`port/fe-l3ready-1` 检出态直接用）；`agent/`、`VitApp/` 零触碰（接口缺口域外上报）
 - 验收标准：①py 组 5 件各权威 run exit 0 + SMOKE_TESTS 条目；②②③⑤⑥ 复跑 exit 0；③④ 补跑结果（绿=收口/红=取证上交）；④dad_probe POSIX 分支 diff（Windows 路径逐字不动）+ mac 侧 DAD 两步过；⑤⑦ 全量 exit 0；⑥§8 运行账目 + 工件目录（run ID/日志/各段 JSON/HEAD 与 dirty）
 - 停止条件：py 组某件语义与 mac 栈不兼容 → 单件上交其余继续；DAD POSIX 读取器实现遇段名/权限语义不明 → 取证上交不猜；⑦ DAD 仍红且红因在读取器之外 → 取证上交；需改 agent/内核/前端 → 域外上报
-- 领取：
+- 领取：2026-09-19 / origin/main 86eb6661615551ee6756bc69fc67704d62b4a8aa / 分支 port/smoke-mac-2（独立 worktree ~/Documents/Vit-DAW-smoke-mac2；主工作树仅存已入账的 VitApp 两文件烟测遗留改动，非本卡 diff；前端仓 port/fe-l3ready-1 @9044d80 检出态已核实；639c8af 已在 main 已核实）
 - 回执：
 - 验收：
