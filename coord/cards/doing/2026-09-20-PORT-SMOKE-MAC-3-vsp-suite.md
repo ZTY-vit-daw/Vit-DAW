@@ -13,6 +13,6 @@
 - 文件域：`scripts/`（新增 ≤5 个 mac 等价物 + SMOKE_TESTS.md）；ps1 原文零改动；`agent/`、`VitApp/`、前端仓零触碰
 - 验收标准：①五件各权威 run exit 0（三件套栈、run ID/各段日志/端口归属/hub 注册证据）；②语义对照表；③SMOKE_TESTS 5 条目；④工件目录（§8 账目/双 bin+hub sha256/HEAD 与 dirty）
 - 停止条件：某件语义与 mac 三件套现状不兼容 → 单件取证上交其余继续；vsphub 运行时在五件场景暴露缺陷 → 取证转 blocked（hub 侧修复另卡）；需改 agent/vsphub 源码 → 域外上报
-- 领取：
+- 领取：2026-09-20 18:12 / origin/main 4826248379367db4a9bb99b11178e2740a1fd27d / 分支 port/smoke-mac-3（主工作树；领取前已有 VitApp/Workspace/{Settings.xml,default_project.xml} 内核运行态改写〔SETTLE-1 回执在案的既有已知项，非本卡 diff〕；本卡为唯一 Mac 栈使用者，doing/ 中 SETTLE-1 为 PC 侧卡）
 - 回执：
 - 验收：
