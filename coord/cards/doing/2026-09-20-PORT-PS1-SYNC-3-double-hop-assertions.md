@@ -12,6 +12,6 @@
 - 验收标准：①④ 双跳断言 diff（两次确认语义分层：提案面/工具面）；②⑤ vocal focus 断言 diff（needs_confirmation 正路径+derive 断言废弃理由注释）；③PC ④⑤ 各权威 run exit 0 工件（§8 ≤3 轮、同断点两败止损）；④SMOKE_TESTS.md 同步
 - 停止条件：双跳链断言在新设计下仍红且红因在断言语义之外 → 取证上交（届时指向 agent 侧，另开卡）；需改 agent/内核才能绿 → 立即域外上报；环境中断如实记录
 - 附注：mac 侧 ④⑤ 复跑不在本卡（mac 自行安排，可并入其复跑批次）；双端断言语义必须一致
-- 领取：
+- 领取：2026-09-20 19:30 / PC 执行侧（GLM-5.3） / origin/main=07d0e732f96674865b9d629fa82d88fcf635bdef / 分支 port/ps1-sync-3 / 领取时工作树：M VitApp/Workspace/default_project.xml（烟测已知保留项）、D coord/cards/doing/{2026-09-19-PORT-PS1-SETTLE-1,2026-09-20-PORT-PS1-SYNC-2}（决策侧 done 归档的 doing 删除遗留，不代提交）、?? coord/runs/ + extension 构建产物 + godot-cpp/（均域外不动）
 - 回执：
 - 验收：
