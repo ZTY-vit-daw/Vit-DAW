@@ -805,8 +805,19 @@ def bridge_row(name):
         if not str(row.get("source_revision") or "") and not str(row.get("source_hash") or ""):
             fail(f"acoustic feature {name} request_id mismatch without source revision/hash: got={row_req} expected={request_id}")
     if status in ("ready", "partial"):
-        if not row_req:
-            fail(f"ready acoustic feature {name} missing request_id")
+        # PORT-SMOKE-MAC-4 run-1 evidence: DAD L3 offline-analyzer rows
+        # (source=kernel_l3_offline_analyzer — band_energy_summary,
+        # stereo_relation_summary) carry content-fingerprint provenance
+        # (source_revision + clip_revision) and no request_id; kernel tile
+        # rows keep request_id. A ready/partial row must stay traceable by
+        # EITHER provenance family (same exemption family the request_id
+        # mismatch check below already accepts).
+        if not (row_req
+                or str(row.get("source_revision") or "")
+                or str(row.get("source_hash") or "")
+                or str(row.get("clip_revision") or "")
+                or str(row.get("source_fingerprint") or "")):
+            fail(f"ready acoustic feature {name} missing request_id and content-fingerprint provenance (source_revision/source_hash/clip_revision/source_fingerprint)")
         if not str(row.get("source") or ""):
             fail(f"ready acoustic feature {name} missing source")
         if name == "spectrogram_tiles":
