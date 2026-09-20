@@ -568,14 +568,18 @@ Start-Sleep -Milliseconds 750
 Write-Step "Run chat observe turn"
 $conversationID = "mix_single_tick_e2e_" + (Get-Date -Format "yyyyMMdd_HHmmss")
 $observeMessage = Join-UnicodeChars @(0x5E2E, 0x6211, 0x770B, 0x6574, 0x4F53, 0x6DF7, 0x97F3, 0xFF0C, 0x53EA, 0x5EFA, 0x8BAE, 0x4E00, 0x4E2A, 0x5C0F, 0x5E45, 0x97F3, 0x91CF, 0x8C03, 0x6574, 0xFF0C, 0x5148, 0x7B49, 0x6211, 0x786E, 0x8BA4, 0xFF0C, 0x4E0D, 0x8981, 0x7528, 0x63D2, 0x4EF6)
+# Confirmation-request wording needle group (PORT-PS1-SYNC-2): the flash
+# engine has been observed asking with plain "确认" (先等你确认/请确认/待确认)
+# without ever writing 执行/继续, so the semantic group is {执行, 继续, 确认}.
 $executeNeedle = Join-UnicodeChars @(0x6267, 0x884C)
 $continueNeedle = Join-UnicodeChars @(0x7EE7, 0x7EED)
+$confirmNeedle = Join-UnicodeChars @(0x786E, 0x8BA4)
 $observe = Invoke-AgentChat -ConversationID $conversationID -Message $observeMessage
 $observeStop = [string](Get-OptionalProperty -Object $observe -Name "stop_reason")
 Assert-InSet -Actual $observeStop -Expected @("done", "needs_confirmation") -Label "observe turn stop_reason"
 $observeReply = [string](Get-OptionalProperty -Object $observe -Name "reply")
 $readOnlyDueToIncompleteL3 = $false
-if (($observeReply -notmatch [regex]::Escape($executeNeedle)) -and ($observeReply -notmatch [regex]::Escape($continueNeedle))) {
+if (($observeReply -notmatch [regex]::Escape($executeNeedle)) -and ($observeReply -notmatch [regex]::Escape($continueNeedle)) -and ($observeReply -notmatch [regex]::Escape($confirmNeedle))) {
     if (($observeReply -match "L3|深度|spectrogram") -and ($observeReply -match "building|partial|未完整|未完成|不可靠|还在构建|正在构建")) {
         $readOnlyDueToIncompleteL3 = $true
         Write-Ok "observe stayed read-only while L3 acoustic package was incomplete"

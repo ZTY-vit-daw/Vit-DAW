@@ -875,19 +875,50 @@ function Test-KernelPreparedLatestRequest {
 }
 
 function Assert-KernelPreparedTrackWaveformRows {
-	param([object]$Snapshot)
+	param(
+		[object]$Snapshot,
+		[string[]]$ExpectedTrackIDs
+	)
 	$rows = @((Get-OptionalProperty -Object $Snapshot -Name "track_waveform_envelopes"))
 	if ($rows.Count -lt 1) {
 		Fail "kernel-prepared feature_snapshot missing track_waveform_envelopes"
 	}
+	# track_waveform_envelopes keeps one row per request, so a track's bake
+	# history legitimately holds partial/missing rows next to the finished one
+	# (SMOKE-MAC artifacts show [partial 1/20, ready 20/20, missing] for the
+	# 96 s material). The readiness contract is therefore per-track existence
+	# of a ready row, not every-row-ready; required fields are checked on that
+	# ready row (PORT-PS1-SYNC-2, synced with _mac.sh).
+	$readyByTrack = @{}
 	foreach ($row in $rows) {
-		$status = [string](Get-OptionalProperty -Object $row -Name "status")
-		if ($status -ne "ready") {
-			Fail ("kernel-prepared track waveform row is not ready: " + ($row | ConvertTo-Json -Depth 8 -Compress))
+		if ([string](Get-OptionalProperty -Object $row -Name "status") -eq "ready") {
+			$rowTrackID = [string](Get-OptionalProperty -Object $row -Name "track_id")
+			if (-not $readyByTrack.ContainsKey($rowTrackID)) {
+				$readyByTrack[$rowTrackID] = @()
+			}
+			$readyByTrack[$rowTrackID] += $row
 		}
+	}
+	foreach ($trackID in $ExpectedTrackIDs) {
+		$readyRows = @()
+		if ($readyByTrack.ContainsKey($trackID)) {
+			$readyRows = @($readyByTrack[$trackID])
+		}
+		if ($readyRows.Count -lt 1) {
+			$rowShapes = @()
+			foreach ($row in $rows) {
+				$rowShapes += ("track={0} status={1} tiles={2}/{3}" -f `
+					[string](Get-OptionalProperty -Object $row -Name "track_id"), `
+					[string](Get-OptionalProperty -Object $row -Name "status"), `
+					[string](Get-OptionalProperty -Object $row -Name "tile_count_seen"), `
+					[string](Get-OptionalProperty -Object $row -Name "tile_count_expected"))
+			}
+			Fail ("kernel-prepared track " + $trackID + " has no ready waveform row. rows=" + ($rowShapes -join "; "))
+		}
+		$readyRow = $readyRows[$readyRows.Count - 1]
 		foreach ($key in @("track_id", "clip_id", "request_id", "source_revision")) {
-			if ([string]::IsNullOrWhiteSpace([string](Get-OptionalProperty -Object $row -Name $key))) {
-				Fail ("kernel-prepared track waveform row missing " + $key + ": " + ($row | ConvertTo-Json -Depth 8 -Compress))
+			if ([string]::IsNullOrWhiteSpace([string](Get-OptionalProperty -Object $readyRow -Name $key))) {
+				Fail ("kernel-prepared track waveform row missing " + $key + ": " + ($readyRow | ConvertTo-Json -Depth 8 -Compress))
 			}
 		}
 	}
@@ -988,7 +1019,10 @@ function Test-DadQualityGateReason {
 }
 
 function Assert-AcousticReadinessReasons {
-	param([object]$Readiness)
+	param(
+		[object]$Readiness,
+		[string[]]$ExpectedTrackIDs
+	)
 	$snapshot = Get-OptionalProperty -Object $Readiness -Name "feature_snapshot"
 	$latest = Get-OptionalProperty -Object $snapshot -Name "latest_request"
 	$requestID = [string](Get-OptionalProperty -Object $latest -Name "request_id")
@@ -996,7 +1030,7 @@ function Assert-AcousticReadinessReasons {
 		Fail "feature_snapshot.latest_request.request_id missing"
 	}
 	if (Test-KernelPreparedLatestRequest -LatestRequest $latest) {
-		Assert-KernelPreparedTrackWaveformRows -Snapshot $snapshot
+		Assert-KernelPreparedTrackWaveformRows -Snapshot $snapshot -ExpectedTrackIDs $ExpectedTrackIDs
 	}
 	else {
 		Assert-RequestedFeature -LatestRequest $latest -FeatureType "waveform_envelope"
@@ -1229,7 +1263,7 @@ try {
     Assert-MOMV13MultitrackProjection -Observation $obs -Label "mix.observe full_project"
     Assert-TrackAcousticsReady -Tracks $tracks -ExpectedTrackIDs $expectedTrackIDs
     $readiness = Build-AcousticReadiness -Observation $obs
-    Assert-AcousticReadinessReasons -Readiness $readiness
+    Assert-AcousticReadinessReasons -Readiness $readiness -ExpectedTrackIDs $expectedTrackIDs
     $summary["acoustic_readiness"] = $readiness
     ConvertTo-JsonFile -Value $readiness -Path (Join-Path $ArtifactDir "acoustic_readiness.json")
     $afterWaitStatus = Get-AcousticPackageStatusFromResponse -Response $observe
