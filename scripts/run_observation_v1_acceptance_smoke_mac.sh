@@ -646,6 +646,23 @@ ok "AB result smoke passed"
 # ---------------------------------------------------------------- step 7
 if [[ "$SKIP_PRODUCT_PATH" -ne 1 ]]; then
   step "Product-path smoke (mac two-piece adaptation of the ps1 lifecycle step)"
+  # The DAD/L2 kernel's job is done here; the product-path step brings its own
+  # two-piece stack on the same fixed kernel ports (5555/5556/5557). Stop ours
+  # first or the sibling's preflight fails on the AGENTS §9 single-owner rule
+  # (PORT-SMOKE-MAC-4 evidence: five consecutive runs exit 2 with "port 5555
+  # already has a listener (pid …)" before this stop existed).
+  if [[ -n "$KERNEL_PID" ]]; then
+    log "stopping DAD/L2 kernel (pid $KERNEL_PID) before the product-path stack..."
+    kill -TERM "$KERNEL_PID" 2>/dev/null || true
+    local_killer_wait_i=0
+    while (( local_killer_wait_i < 10 )) && kill -0 "$KERNEL_PID" 2>/dev/null; do
+      sleep 1
+      local_killer_wait_i=$(( local_killer_wait_i + 1 ))
+    done
+    kill -0 "$KERNEL_PID" 2>/dev/null && kill -KILL "$KERNEL_PID" 2>/dev/null || true
+    wait "$KERNEL_PID" 2>/dev/null || true
+    KERNEL_PID=""
+  fi
   set +e
   bash "$SCRIPT_DIR/run_vit_product_path_smoke_mac.sh" --repo-root "$REPO_ROOT" \
     --artifact-root "$ARTIFACT_ROOT" \
