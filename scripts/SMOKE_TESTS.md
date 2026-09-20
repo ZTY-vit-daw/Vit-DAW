@@ -1393,6 +1393,12 @@ Notes:
 
 - Exit 0/1/2 = green / assertion red / environment. §8: ≤3 valid runs,
   same-breakpoint two-failure stop-loss.
+- PORT-SMOKE-MAC-4 N=5 statistics (2026-09-20, flash): **2/5** exit 0 — the
+  three red rounds are all honest-termination LLM semantic branches on the
+  observe/vocal guard turns (capability-boundary done ×2, 「已完成
+  ccb_observation_request」variant ×1); green rounds carry the full double-hop
+  chain evidence. Evidence root `~/Documents/vit-smoke-mac4-artifacts/`
+  (RUN_LEDGER.md).
 
 ## Product-Path Lifecycle + Mix Smoke (mac) (PORT-SMOKE-MAC-1)
 
@@ -1445,6 +1451,15 @@ Notes:
   from the events surface; `--chat-settle-seconds` default 720 since
   PORT-PS1-SYNC-2 — reasoning-model heavy replies occasionally exceed
   300 s).
+- PORT-SMOKE-MAC-4 N=5 statistics (2026-09-20, flash): **0/5** valid rounds
+  exit 0 — four LLM semantic reds (goal=failed no-admissible-decision ×2,
+  ask 「已完成」+settle 未收敛, vocal focus limit_reached) plus one compound
+  red (legitimate static_eq improvement proposal × machine-local
+  `~/.vit/free_state_experiment_plugins.json` not configured → hop-2
+  `d1_execution_blocked`); one env round (LLM service >240 s POST timeout)
+  excluded with evidence and replaced. Green-path evidence for the
+  double-hop chain lives on the ④ twin and the ⑦ embedded runs. Evidence
+  root `~/Documents/vit-smoke-mac4-artifacts/` (RUN_LEDGER.md).
 - Artifacts: per-turn chat JSON (+ `_settled` variants), events JSON, route
   lists, snapshot copies, `vit_product_path_smoke.mac.v1` summary with all
   stop reasons.
@@ -1476,6 +1491,17 @@ Purpose:
   (default candidates still include the repo 100 Hz fixture and the
   tracktion `edm_song.ogg`, probing `--tracktion-dir`); the acoustic status
   artifact lands at the run dir via `VIT_MIXBOARD_ROOT`.
+- Bridge-row provenance families (PORT-SMOKE-MAC-4, run-1 evidence): DAD L3
+  offline-analyzer rows (`source=kernel_l3_offline_analyzer` —
+  band_energy_summary / stereo_relation_summary) carry content-fingerprint
+  provenance (`source_revision` + `clip_revision`) and no `request_id`;
+  kernel tile rows keep `request_id`. A ready/partial bridge row must be
+  traceable by EITHER family — the ps1 twin still asserts the
+  request_id-only form on that layer and has never executed it (PC green
+  runs took the else branch); the mac assertion is the corrected semantic.
+- PORT-SMOKE-MAC-4 N=5 statistics (2026-09-20): **5/5** exit 0 (run 1
+  voided on the provenance assertion mismatch above, fixed @8650a22).
+  Evidence root `~/Documents/vit-smoke-mac4-artifacts/` (RUN_LEDGER.md).
 
 Common commands:
 
@@ -1533,3 +1559,17 @@ Notes:
 
 - Needs pyzmq; per-step logs and `observation_v1_acceptance_smoke.mac.v1`
   summary (steps[] with exit codes) under the run dir.
+- Step-7 kernel handoff (PORT-SMOKE-MAC-4, five-run evidence): the DAD/L2
+  kernel is stopped explicitly BEFORE the embedded product-path step — the
+  sibling script brings its own two-piece stack on the same fixed ports
+  (5555/5556/5557) and its single-owner preflight would otherwise fail
+  every run (before this stop existed, MAC-2's run only passed it because
+  its kernel happened to die first).
+- PORT-SMOKE-MAC-4 N=5 statistics (2026-09-20, full run, no skips, flash):
+  **4/5** valid rounds exit 0 — one red is the product-path step's vocal
+  clarify ask landing `done` with the full EQ proposal text instead of the
+  needs_confirmation face (LLM semantic branch); one env round (kernel
+  stuck initialising the Tracktion device manager, port never ready within
+  60 s) excluded with evidence and replaced. First batch of 5 runs voided
+  on the step-7 kernel handoff defect above (fixed @ce495c9). Evidence
+  root `~/Documents/vit-smoke-mac4-artifacts/` (RUN_LEDGER.md).
