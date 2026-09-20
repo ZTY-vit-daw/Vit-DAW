@@ -241,7 +241,17 @@ function Wait-ChatTurnSettled {
     )
     $rawStopReasonEarly = [string](Get-OptionalProperty -Object $Raw -Name "stop_reason")
     $rawGoalStatus = [string](Get-OptionalProperty -Object $Raw -Name "goal_status")
-    if ($rawGoalStatus -ne "waiting_continue" -and $rawStopReasonEarly -ne "limit_reached") {
+    # Double-hop refinement (PORT-PS1-SYNC-3): a genuine agent-loop slice always
+    # carries stop_reason=limit_reached (runner.pause). A synchronous terminal
+    # park can also arrive with goal_status=waiting_continue plus a meaningful
+    # stop_reason — the D1 applied turn (d1_post_action_evaluation_required,
+    # workflow free_state_d1_s1) is exactly that shape. Such a response is
+    # complete, not sliced: polling for a terminal goal would hang until the
+    # continuation scheduler's evaluation slices finish (or remap the stop
+    # reason through an audition judgment), so return it as-is.
+    $genuinelySliced = ($rawStopReasonEarly -eq "limit_reached") -or
+        (($rawGoalStatus -eq "waiting_continue") -and [string]::IsNullOrWhiteSpace($rawStopReasonEarly))
+    if (-not $genuinelySliced) {
         return $Raw
     }
     Write-WarnLine ("chat turn sliced out (waiting_continue/limit_reached) - waiting for the durable continuation to settle (budget " + $SettleSeconds + "s, conversation " + $ConversationID + ")")
@@ -677,6 +687,79 @@ function Assert-AnyToolAbsent {
     }
 }
 
+function Get-ConfirmationFaceKinds {
+    # Double-hop layering (PORT-PS1-SYNC-3): collect the confirmation-face
+    # kinds a response exposes. An unsliced parking response carries them on
+    # interaction_requests[].kind; a settle-synthesized response rebuilds the
+    # pending interaction as a typed_events row whose kind is the interaction
+    # kind. The generic typed-candidate marker ("PendingCandidate") is not a
+    # face kind and is skipped.
+    param([object]$Response)
+    $kinds = @()
+    foreach ($request in @(Get-OptionalProperty -Object $Response -Name "interaction_requests")) {
+        $kind = [string](Get-OptionalProperty -Object $request -Name "kind")
+        if (-not [string]::IsNullOrWhiteSpace($kind)) {
+            $kinds += $kind
+        }
+    }
+    foreach ($typedEvent in @(Get-OptionalProperty -Object $Response -Name "typed_events")) {
+        $kind = [string](Get-OptionalProperty -Object $typedEvent -Name "kind")
+        if (-not [string]::IsNullOrWhiteSpace($kind) -and $kind -ne "PendingCandidate") {
+            $kinds += $kind
+        }
+    }
+    return $kinds
+}
+
+function Assert-BoundedMixTickPayload {
+    # Hop-1 parks a concrete bounded tick (agent side: pendingMixTickEventPayload
+    # + validatePendingMixTickCandidate): a non-empty track target, a native
+    # operation, and for the numeric domains a non-zero bounded delta
+    # (|delta_db| <= 2, |delta_pan| <= 0.15, -1 <= target_pan <= 1). The EQ /
+    # broadband-compression domains carry their bounds in the admission, not in
+    # this payload, so only the target and operation are checked there.
+    param(
+        [object]$Response,
+        [string]$Label
+    )
+    $payload = $null
+    foreach ($request in @(Get-OptionalProperty -Object $Response -Name "interaction_requests")) {
+        $row = Get-OptionalProperty -Object $request -Name "payload"
+        if ($null -ne $row) {
+            $payload = $row
+            break
+        }
+    }
+    if ($null -eq $payload) {
+        Fail ($Label + ": no interaction payload on the response")
+    }
+    $trackID = [string](Get-OptionalProperty -Object $payload -Name "track_id")
+    if ([string]::IsNullOrWhiteSpace($trackID)) {
+        Fail ($Label + ": payload track_id is empty")
+    }
+    $operation = [string](Get-OptionalProperty -Object $payload -Name "operation")
+    Assert-InSet -Actual $operation -Expected @("track_gain_adjust", "track_pan_adjust", "track_pan_set", "static_eq_band_adjust", "broadband_threshold_adjust") -Label ($Label + " operation")
+    if ($operation -eq "track_gain_adjust") {
+        $deltaDB = [double](Get-OptionalProperty -Object $payload -Name "delta_db")
+        if ($deltaDB -eq 0 -or [math]::Abs($deltaDB) -gt 2) {
+            Fail ($Label + ": delta_db out of the bounded non-zero +/-2 range: " + $deltaDB)
+        }
+    }
+    elseif ($operation -eq "track_pan_adjust") {
+        $deltaPan = [double](Get-OptionalProperty -Object $payload -Name "delta_pan")
+        if ($deltaPan -eq 0 -or [math]::Abs($deltaPan) -gt 0.15) {
+            Fail ($Label + ": delta_pan out of the bounded non-zero +/-0.15 range: " + $deltaPan)
+        }
+    }
+    elseif ($operation -eq "track_pan_set") {
+        $targetPan = [double](Get-OptionalProperty -Object $payload -Name "target_pan")
+        if ($targetPan -lt -1 -or $targetPan -gt 1) {
+            Fail ($Label + ": target_pan out of the -1..+1 range: " + $targetPan)
+        }
+    }
+    return $trackID
+}
+
 $RepoRoot = Resolve-RepoRoot -Explicit $RepoRoot
 $ScriptsDir = Join-Path $RepoRoot "scripts"
 $WorkspaceDir = Join-Path $RepoRoot "VitApp\Workspace"
@@ -799,7 +882,15 @@ $continueNeedle = Join-UnicodeChars @(0x7EE7, 0x7EED)
 $confirmNeedle = Join-UnicodeChars @(0x786E, 0x8BA4)
 $observe = Invoke-AgentChat -ConversationID $conversationID -Message $observeMessage
 $observeStop = [string](Get-OptionalProperty -Object $observe -Name "stop_reason")
-Assert-InSet -Actual $observeStop -Expected @("done", "needs_confirmation") -Label "observe turn stop_reason"
+# Double-hop contract (PORT-PS1-SYNC-3, user ruling 2026-09-20): the observe
+# turn parks at the improvement-PROPOSAL confirmation face (hop 1), never at a
+# directly executable mix tick. stop_reason is the direct form
+# (improvement_proposal_confirmation_required, workflow improvement_proposal)
+# or the settle-mapped form (needs_confirmation from goal waiting_confirmation).
+# The legacy "done" form belonged to the single-hop flow and is no longer a
+# pass outcome; the classic "[mix.tick.pending] stored" wait moved to hop 1
+# because the bounded tick is only stored once the proposal is confirmed.
+Assert-InSet -Actual $observeStop -Expected @("needs_confirmation", "improvement_proposal_confirmation_required") -Label "observe turn stop_reason"
 $observeReply = [string](Get-OptionalProperty -Object $observe -Name "reply")
 $readOnlyDueToIncompleteL3 = $false
 if (($observeReply -notmatch [regex]::Escape($executeNeedle)) -and ($observeReply -notmatch [regex]::Escape($continueNeedle)) -and ($observeReply -notmatch [regex]::Escape($confirmNeedle))) {
@@ -812,13 +903,14 @@ if (($observeReply -notmatch [regex]::Escape($executeNeedle)) -and ($observeRepl
     }
 }
 if (-not $readOnlyDueToIncompleteL3) {
-    $storedLine = Wait-LogPattern -LogPath $AgentLog -Pattern ("[mix.tick.pending] stored conversation=" + $conversationID) -TimeoutSeconds 10
-    if (($storedLine -notmatch [regex]::Escape("track=" + $track2ID)) -and
-        ($storedLine -notmatch [regex]::Escape("track " + $track2ID)) -and
-        ($storedLine -notmatch [regex]::Escape("target=track:" + $track2ID))) {
-        Fail ("pending candidate did not target Track 2. line=" + $storedLine)
+    if (-not [bool](Get-OptionalProperty -Object $observe -Name "needs_confirmation")) {
+        Fail "observe parked without needs_confirmation=true on the proposal face"
     }
-    Write-Ok ("pending candidate stored: " + $storedLine)
+    $observeFaceKinds = Get-ConfirmationFaceKinds -Response $observe
+    if ($observeFaceKinds -notcontains "improvement_proposal_confirmation") {
+        Fail ("observe confirmation face: got [" + ($observeFaceKinds -join ", ") + "], want improvement_proposal_confirmation (hop 1, proposal face)")
+    }
+    Write-Ok ("observe parked on the improvement-proposal face (hop 1): " + $observeStop)
 }
 
 Write-Step "Run unresolved vocal clarification guard"
@@ -839,36 +931,82 @@ $unexpectedVocalPending = Select-String -Path $AgentLog -Pattern ("[mix.tick.pen
 if ($null -ne $unexpectedVocalPending) {
     Fail ("unresolved vocal clarification stored pending unexpectedly: " + $unexpectedVocalPending.Line)
 }
+# Still valid under the double-hop workflow (PORT-PS1-SYNC-3): a clarification
+# answer produces no candidate at all, so no mix tick may be stored for this
+# conversation — the bounded tick only exists after a confirmed improvement
+# proposal, which this unresolved vocal ask never reaches.
 Write-Ok ("unresolved vocal asks clarification without pending: " + $vocalReply)
 
-Write-Step "Run confirmation turn"
+Write-Step "Run double-hop confirmation chain (proposal, then tool application)"
 $confirmMessage = Join-UnicodeChars @(0x53EF, 0x4EE5, 0x6267, 0x884C)
+$confirm2Stop = ""
+$hop2Reply = ""
 $confirm = Invoke-AgentChat -ConversationID $conversationID -Message $confirmMessage
 $confirmStop = [string](Get-OptionalProperty -Object $confirm -Name "stop_reason")
 if ($readOnlyDueToIncompleteL3) {
     Assert-Equals -Actual $confirmStop -Expected "no_pending_mix_tick_candidate" -Label "confirmation stop_reason"
-    $tools = @()
     Write-Ok "confirmation correctly found no pending tick after incomplete L3 read-only observe"
 }
 else {
-    Assert-Equals -Actual $confirmStop -Expected "mix_tick_applied_reobserved" -Label "confirmation stop_reason"
-    $executed = Get-OptionalProperty -Object $confirm -Name "executed_kernel_reply"
-    $tools = Tool-Names -Rows $executed
-    Assert-AnyToolPresent -Tools $tools -Aliases @("mix.propose_tick", "mix_propose_tick") -Label "mix.propose_tick"
-    Assert-AnyToolPresent -Tools $tools -Aliases @("mix.apply_tick", "mix_apply_tick") -Label "mix.apply_tick"
-    Assert-AnyToolPresent -Tools $tools -Aliases @("mix.observe", "mix_observe", "mix.request_observation", "mix_request_observation") -Label "re-observation tool"
-    Assert-AnyToolAbsent -Tools $tools -Aliases @("daw.invoke", "daw_invoke") -Label "daw.invoke"
-    Assert-AnyToolAbsent -Tools $tools -Aliases @("track.volume", "track_volume") -Label "track.volume"
+    # Hop 1 — the user confirms the improvement PROPOSAL. The agent then issues
+    # the tool application (workflow mix_tick) and asks for its own execution
+    # confirmation; nothing has been applied yet (product ruling 2026-09-20:
+    # the two confirmations have different semantics, each on its own face).
+    Assert-Equals -Actual $confirmStop -Expected "improvement_proposal_native_tool_confirmation_required" -Label "hop-1 confirmation stop_reason"
+    Assert-Equals -Actual ([string](Get-OptionalProperty -Object $confirm -Name "workflow")) -Expected "mix_tick" -Label "hop-1 workflow"
+    if (-not [bool](Get-OptionalProperty -Object $confirm -Name "needs_confirmation")) {
+        Fail "hop-1 response did not carry needs_confirmation=true on the tool face"
+    }
+    $hop1FaceKinds = Get-ConfirmationFaceKinds -Response $confirm
+    if ($hop1FaceKinds -notcontains "mix_tick_confirmation") {
+        Fail ("hop-1 confirmation face: got [" + ($hop1FaceKinds -join ", ") + "], want mix_tick_confirmation (hop 2, tool face)")
+    }
+    $hop1TrackID = Assert-BoundedMixTickPayload -Response $confirm -Label "hop-1 pending tick"
+    $storedLine = Wait-LogPattern -LogPath $AgentLog -Pattern ("[mix.tick.pending] stored conversation=" + $conversationID) -TimeoutSeconds 10
+    Write-Ok ("hop-1 confirmed the proposal; bounded tick parked on the tool face (track " + $hop1TrackID + "): " + $storedLine)
 
+    # Hop 2 — the user confirms the TOOL APPLICATION. The D1 chain applies the
+    # bounded move, readback-verifies it, and parks the round at its
+    # post-action evaluation boundary (workflow free_state_d1_s1). The legacy
+    # single-hop anchors (mix_tick_applied_reobserved stop, the
+    # propose/apply/reobserve tool route, and the
+    # "[mix.tick.pending] applied and reobserved" log wait) belonged to the
+    # pre-double-hop execution path and are gone by design: the D1 dispatch
+    # returns before that log line is ever reached.
+    $confirm2 = Invoke-AgentChat -ConversationID $conversationID -Message $confirmMessage
+    $confirm2Stop = [string](Get-OptionalProperty -Object $confirm2 -Name "stop_reason")
+    Assert-Equals -Actual $confirm2Stop -Expected "d1_post_action_evaluation_required" -Label "hop-2 confirmation stop_reason"
+    Assert-Equals -Actual ([string](Get-OptionalProperty -Object $confirm2 -Name "workflow")) -Expected "free_state_d1_s1" -Label "hop-2 workflow"
+    $hop2Data = Get-OptionalProperty -Object $confirm2 -Name "workflow_data"
+    if ($null -eq $hop2Data) {
+        Fail "hop-2 response carried no workflow_data"
+    }
+    if (([bool](Get-OptionalProperty -Object $hop2Data -Name "mutation_performed")) -ne $true) {
+        Fail "hop-2 did not perform the mutation (workflow_data.mutation_performed != true)"
+    }
+    if (([bool](Get-OptionalProperty -Object $hop2Data -Name "readback_verified")) -ne $true) {
+        Fail "hop-2 did not verify the applied value by readback (workflow_data.readback_verified != true)"
+    }
+    $hop2Reply = [string](Get-OptionalProperty -Object $confirm2 -Name "reply")
+    # Raw CJK literal is safe: this file carries a UTF-8 BOM (PS1-SYNC-2).
+    if (-not $hop2Reply.Contains("已应用并回读验证")) {
+        Fail ("hop-2 reply did not report the applied+readback-verified outcome: " + $hop2Reply)
+    }
     $routeLine = Wait-LogPattern -LogPath $AgentLog -Pattern ("[mix.tick.pending] explicit confirmation routed conversation=" + $conversationID) -TimeoutSeconds 10
-    $appliedLine = Wait-LogPattern -LogPath $AgentLog -Pattern ("[mix.tick.pending] applied and reobserved conversation=" + $conversationID) -TimeoutSeconds 10
-    Write-Ok ("confirmation routed: " + $routeLine)
-    Write-Ok ("applied and reobserved: " + $appliedLine)
+    Write-Ok ("hop-2 confirmation routed: " + $routeLine)
+    Write-Ok ("hop-2 applied and readback-verified, parked at the d1 terminal: " + $hop2Reply)
 }
 
 Write-Step "Summary"
 Write-Host ("conversation: " + $conversationID)
-Write-Host ("route: " + ($tools -join " -> "))
+Write-Host ("observe stop_reason: " + $observeStop + " (proposal face)")
+Write-Host ("hop-1 stop_reason: " + $confirmStop + " (tool face)")
+if (-not $readOnlyDueToIncompleteL3) {
+    Write-Host ("hop-2 stop_reason: " + $confirm2Stop + " (workflow free_state_d1_s1)")
+}
 Write-Host ("observe reply: " + $observeReply)
-Write-Host ("confirm reply: " + [string](Get-OptionalProperty -Object $confirm -Name "reply"))
-Write-Ok "mix single tick E2E passed"
+Write-Host ("hop-1 reply: " + [string](Get-OptionalProperty -Object $confirm -Name "reply"))
+if (-not $readOnlyDueToIncompleteL3) {
+    Write-Host ("hop-2 reply: " + $hop2Reply)
+}
+Write-Ok "mix single tick E2E passed (double-hop: proposal confirmation -> tool application confirmation)"

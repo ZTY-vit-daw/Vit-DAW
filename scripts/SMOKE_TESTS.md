@@ -929,27 +929,52 @@ Purpose:
 - Create a fresh test project.
 - Import `test_100hz_10s.wav` and `test_target_3s.wav`.
 - Ask the natural-language full-project mix question.
-- Verify a pending mix tick is stored for Track 2.
-- Confirm execution with natural language.
-- Verify the deterministic route:
-  `mix.propose_tick -> mix.apply_tick -> mix.observe`.
-- Verify the confirmation path does not use `daw.invoke` or `track.volume`
-  directly.
+- Double-hop confirmation contract (PORT-PS1-SYNC-3, user ruling 2026-09-20:
+  the two confirmations have different semantics and each sits on its own
+  face):
+  - Observe turn parks on the improvement-PROPOSAL confirmation face (hop 1) —
+    stop_reason `improvement_proposal_confirmation_required` (direct form) or
+    `needs_confirmation` (settle-mapped form), `needs_confirmation=true`, and
+    the `improvement_proposal_confirmation` face kind on
+    interaction_requests/typed_events. Nothing is stored or applied yet.
+  - First confirmation ("可以执行") confirms the proposal; the agent then
+    issues the tool application — stop_reason
+    `improvement_proposal_native_tool_confirmation_required`, `workflow=
+    mix_tick`, `needs_confirmation=true`, `mix_tick_confirmation` face kind,
+    and a concrete bounded tick payload (non-empty track, native operation,
+    non-zero |delta_db| ≤ 2 / |delta_pan| ≤ 0.15 / target_pan in [-1,1]).
+    This is also when `[mix.tick.pending] stored` is logged — the legacy
+    observe-stage stored wait is gone.
+  - Second confirmation applies the tool request through the D1 chain —
+    stop_reason `d1_post_action_evaluation_required`, `workflow=
+    free_state_d1_s1`, `workflow_data.mutation_performed=true`,
+    `workflow_data.readback_verified=true`, and a reply reporting
+    已应用并回读验证 (applied + readback-verified). The single-hop anchors
+    (`mix_tick_applied_reobserved` stop, the propose/apply/reobserve tool
+    route, and the `[mix.tick.pending] applied and reobserved` log wait)
+    belonged to the pre-double-hop execution path and are retired.
+- The unresolved vocal clarification guard keeps asserting that a
+  clarification answer stores no pending mix tick (a bounded tick only exists
+  after a confirmed improvement proposal).
 - Observe-reply confirmation wording is a needle group {执行, 继续, 确认}
   (PORT-PS1-SYNC-2: the flash engine has been observed asking with plain
   "确认" — 先等你确认/请确认/待确认 — without ever writing 执行/继续). A
   needle hit counts as the confirmation request; a miss is admissible only on
   the L3-incomplete read-only branch (reply mentions L3/深度/spectrogram being
-  built/partial).
+  built/partial), where the confirmation then expects
+  `no_pending_mix_tick_candidate`.
 - chat settle waiting (PORT-PS1-SYNC-2, ported from the product-path SETTLE-1
-  anchor / the mac `agent_chat_settled` twin): a sliced-out observe turn
-  (`goal_status=waiting_continue` / `stop_reason=limit_reached`) is polled via
-  `/agent/runtime/status` until terminal, then the settled reply + effective
-  stop reason are synthesized from `/agent/events`
-  (`-ChatSettleSeconds`, default 720); a settled `waiting_confirmation` goal
-  additionally derives `needs_confirmation=true` and a PendingCandidate typed
-  event from the runtime status continuation's `pending_interaction` (mac
-  parity).
+  anchor / the mac `agent_chat_settled` twin): a genuinely sliced-out turn
+  (`stop_reason=limit_reached`, or `goal_status=waiting_continue` with an
+  empty stop reason — PORT-PS1-SYNC-3 narrowed trigger: a waiting_continue
+  park with a meaningful stop reason such as the D1 terminal
+  `d1_post_action_evaluation_required` is a complete response and is returned
+  as-is) is polled via `/agent/runtime/status` until terminal, then the
+  settled reply + effective stop reason are synthesized from
+  `/agent/events` (`-ChatSettleSeconds`, default 720); a settled
+  `waiting_confirmation` goal additionally derives `needs_confirmation=true`
+  and a PendingCandidate typed event from the runtime status continuation's
+  `pending_interaction` (mac parity).
 
 Common commands:
 
@@ -996,12 +1021,11 @@ Purpose:
 - Create the deterministic two-track fixture through the live agent/kernel path.
 - Send the full-project mix conversation through agent HTTP after the Godot
   project lifecycle is up.
-- Verify the pending/confirm route:
-  `mix.propose_tick -> mix.apply_tick -> <reobserve>` where the reobserve
-  step is counted through the observation alias group
-  (`mix.observe`/`mix_observe`/`mix.request_observation`/
-  `mix_request_observation`/`ccb.observation_catalog`/
-  `ccb_observation_catalog`).
+- The confirm-tick block after the read-only observe is
+  unreachable-by-construction on both platforms (the observe is asserted
+  read-only with no pending candidate, so `$summary["pending_candidate"]`
+  stays null); its legacy single-hop route assertions are dormant code, kept
+  for the historical structure.
 - Verify no `daw.invoke` or direct `track.volume` appears on the confirmation
   path.
 - Save a smoke artifact folder containing `processes`, `ports`,
@@ -1014,10 +1038,27 @@ Purpose:
   route. If a next candidate is generated, it must remain pending and require a
   later explicit confirmation.
 - Verify the vocal focus relationship path with "make the lead vocal more
-  forward": the turn may finish as `done` or `needs_clarification`, but it must
-  route through the observation alias group (`mix.observe` family or
-  `ccb.observation_catalog`) and `mix.derive` and must not call
-  `mix.apply_tick`, `daw.invoke`, or direct `track.volume`.
+  forward" (PORT-PS1-SYNC-3 double-hop contract): the POSITIVE path settles on
+  the improvement-PROPOSAL confirmation face — stop_reason
+  `needs_confirmation` (settle-mapped) or
+  `improvement_proposal_confirmation_required` (direct) with
+  `needs_confirmation=true`, a PendingCandidate typed event, and the
+  `improvement_proposal_confirmation` face kind. `done` /
+  `needs_clarification` remain honest outcomes (explicit no-op /
+  capability-boundary / clarification reply). The turn must route through the
+  observation alias group (`mix.observe` family or `ccb.observation_catalog`)
+  and must NOT call `mix.derive`, `mix.apply_tick`, `daw.invoke`, or direct
+  `track.volume`: the ④ probe (PS1-SYNC-2) proved derive/apply only run after
+  both confirmations, so the old "pending route includes mix.derive"
+  assertions are inverted — deriving or mutating before any confirmation is
+  the failure condition.
+- Vocal clarification loop drives the ④-style double-hop confirmation chain
+  (PORT-PS1-SYNC-3): the "Track 1 是主唱" answer parks on the proposal face
+  (or lands an honest `done`), the first 可以执行 must land on the tool face
+  (`improvement_proposal_native_tool_confirmation_required`, workflow
+  `mix_tick`, bounded tick payload), and the second 可以执行 must apply +
+  readback-verify and park at `d1_post_action_evaluation_required` (workflow
+  `free_state_d1_s1`).
 - chat settle waiting (PC alignment with the mac `chat_settle` anchor,
   PORT-PS1-SETTLE-1): a chat POST may end sliced out (`goal_status=
   waiting_continue` / `stop_reason=limit_reached`) with the continuation
@@ -1296,12 +1337,19 @@ Purpose:
 
 - mac equivalent of `run_mix_single_tick_e2e.ps1` over the real two-process
   stack: two-track fixture (repo `test_100hz_10s.wav` +
-  `test_target_3s.wav`), then three real LLM chat turns — observe
+  `test_target_3s.wav`), then real LLM chat turns — observe
   ("帮我看整体混音，只建议一个小幅音量调整，先等我确认，不要用插件"),
   unresolved vocal clarification guard ("让主唱更靠前" → needs_clarification,
-  no pending), confirmation ("可以执行" → mix_tick_applied_reobserved with
-  propose/apply/reobserve route, no daw.invoke/track.volume, and the
-  `[mix.tick.pending]` stored/routed/applied agent-log patterns).
+  no pending), and the PORT-PS1-SYNC-3 double-hop confirmation chain: the
+  first 可以执行 confirms the improvement proposal and must land on the tool
+  face (`improvement_proposal_native_tool_confirmation_required`, workflow
+  `mix_tick`, `mix_tick_confirmation` face kind, bounded tick payload,
+  `[mix.tick.pending] stored` logged at this hop); the second 可以执行
+  applies + readback-verifies and parks at `d1_post_action_evaluation_
+  required` (workflow `free_state_d1_s1`, mutation_performed=true,
+  readback_verified=true, reply 已应用并回读验证,
+  `[mix.tick.pending] explicit confirmation routed`). Identical semantics to
+  the ps1 twin (双端同步).
 - L3-incomplete read-only branch preserved (observe may legitimately stay
   read-only while L3 builds; confirmation then expects
   `no_pending_mix_tick_candidate`).
@@ -1312,12 +1360,12 @@ Purpose:
   preflight refuses to run without a complete engine config (no stubs; key
   never logged).
 - chat_settle anchor (mac machine fact, JOURNEY-1-MAC waiting_continue
-  precedent): a chat POST may end `limit_reached` with the continuation
-  placeholder while the durable continuation finishes the turn
-  asynchronously; the driver waits for the goal to settle
-  (`--chat-settle-seconds`, default 300) and reads the settled reply +
-  effective stop_reason from the conversation events surface. Assertions
-  are unchanged; the observe-reply confirmation needle group is
+  precedent): a genuinely sliced-out turn (`stop_reason=limit_reached`, or
+  `goal_status=waiting_continue` with an empty stop reason —
+  PORT-PS1-SYNC-3 narrowed trigger, PC parity) waits for the goal to settle
+  (`--chat-settle-seconds`, default 720, aligned with the ps1 twin) and reads
+  the settled reply + effective stop_reason from the conversation events
+  surface. The observe-reply confirmation needle group is
   {执行, 继续, 确认} (PORT-PS1-SYNC-2, synced with the ps1).
 
 Common commands:
@@ -1351,8 +1399,14 @@ Purpose:
   MOM observation (project target, full_project scope,
   project_multitrack_relation_observation intent, coverage ≥ 2,
   do_not_include_raw_package), no-pending confirmation guard, vocal focus
-  relationship observation, and the vocal clarification loop
-  (ask → "Track 1 是主唱" answer → confirm with AB Result).
+  relationship observation (PORT-PS1-SYNC-3: the positive path settles on the
+  improvement-proposal confirmation face; derive/apply before any confirmation
+  is the failure condition — ④ twin semantics), and the vocal clarification
+  loop driving the ④-style double-hop confirmation chain
+  (ask → "Track 1 是主唱" answer parks on the proposal face → first 可以执行
+  lands on the mix_tick tool face with a bounded tick payload → second
+  可以执行 applies + readback-verifies and parks at
+  `d1_post_action_evaluation_required`, workflow `free_state_d1_s1`).
 - Declared mac adaptation: the ps1's Godot-owned lifecycle + VSP Hub health
   assertions are replaced by a DIRECT two-piece start (hub not ported to mac
   yet — PORT-VSPHUB-1 in parallel); chat context reports the truthful

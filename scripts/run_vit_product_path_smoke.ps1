@@ -1150,7 +1150,18 @@ function Wait-ChatTurnSettled {
         [string]$ConversationID,
         [int]$SettleSeconds
     )
-    if ([string](Get-OptionalProperty -Object $Raw -Name "goal_status") -ne "waiting_continue") {
+    $rawStopReasonEarly = [string](Get-OptionalProperty -Object $Raw -Name "stop_reason")
+    $rawGoalStatus = [string](Get-OptionalProperty -Object $Raw -Name "goal_status")
+    # Double-hop refinement (PORT-PS1-SYNC-3, ④ twin parity): a genuine
+    # agent-loop slice always carries stop_reason=limit_reached. A synchronous
+    # terminal park can also arrive with goal_status=waiting_continue plus a
+    # meaningful stop_reason (the D1 applied turn: d1_post_action_evaluation_
+    # required, workflow free_state_d1_s1) — that response is complete, not
+    # sliced, and must be returned as-is instead of being polled for a terminal
+    # goal the evaluation slices may only reach much later.
+    $genuinelySliced = ($rawStopReasonEarly -eq "limit_reached") -or
+        (($rawGoalStatus -eq "waiting_continue") -and [string]::IsNullOrWhiteSpace($rawStopReasonEarly))
+    if (-not $genuinelySliced) {
         return $Raw
     }
     Write-WarnLine ("chat turn sliced out (waiting_continue/limit_reached) - waiting for the durable continuation to settle (budget " + $SettleSeconds + "s, conversation " + $ConversationID + ")")
@@ -1824,6 +1835,102 @@ function Count-ExecutedToolGroup {
         }
     }
     return $count
+}
+
+function Get-ConfirmationFaceKinds {
+    # Double-hop layering (PORT-PS1-SYNC-3, ④ twin parity): collect the
+    # confirmation-face kinds a response exposes. An unsliced parking response
+    # carries them on interaction_requests[].kind; a settle-synthesized
+    # response rebuilds the pending interaction as a typed_events row whose
+    # kind is the interaction kind. The generic typed-candidate marker
+    # ("PendingCandidate") is not a face kind and is skipped.
+    param([object]$Response)
+    $kinds = @()
+    foreach ($request in @(Get-OptionalProperty -Object $Response -Name "interaction_requests")) {
+        $kind = [string](Get-OptionalProperty -Object $request -Name "kind")
+        if (-not [string]::IsNullOrWhiteSpace($kind)) {
+            $kinds += $kind
+        }
+    }
+    foreach ($typedEvent in @(Get-OptionalProperty -Object $Response -Name "typed_events")) {
+        $kind = [string](Get-OptionalProperty -Object $typedEvent -Name "kind")
+        if (-not [string]::IsNullOrWhiteSpace($kind) -and $kind -ne "PendingCandidate") {
+            $kinds += $kind
+        }
+    }
+    return $kinds
+}
+
+function Assert-Equals {
+    param(
+        [string]$Actual,
+        [string]$Expected,
+        [string]$Label
+    )
+    if ($Actual -ne $Expected) {
+        Fail ($Label + ": got '" + $Actual + "', want '" + $Expected + "'")
+    }
+}
+
+function Assert-InSet {
+    param(
+        [string]$Actual,
+        [string[]]$Expected,
+        [string]$Label
+    )
+    if ($Expected -notcontains $Actual) {
+        Fail ($Label + ": got '" + $Actual + "', want one of [" + ($Expected -join ", ") + "]")
+    }
+}
+
+function Assert-BoundedMixTickPayload {
+    # Hop-1 parks a concrete bounded tick (agent side: pendingMixTickEventPayload
+    # + validatePendingMixTickCandidate — ④ twin parity): a non-empty track
+    # target, a native operation, and for the numeric domains a non-zero
+    # bounded delta (|delta_db| <= 2, |delta_pan| <= 0.15,
+    # -1 <= target_pan <= 1). The EQ / broadband-compression domains carry
+    # their bounds in the admission, not in this payload, so only the target
+    # and operation are checked there.
+    param(
+        [object]$Response,
+        [string]$Label
+    )
+    $payload = $null
+    foreach ($request in @(Get-OptionalProperty -Object $Response -Name "interaction_requests")) {
+        $row = Get-OptionalProperty -Object $request -Name "payload"
+        if ($null -ne $row) {
+            $payload = $row
+            break
+        }
+    }
+    if ($null -eq $payload) {
+        Fail ($Label + ": no interaction payload on the response")
+    }
+    $trackID = [string](Get-OptionalProperty -Object $payload -Name "track_id")
+    if ([string]::IsNullOrWhiteSpace($trackID)) {
+        Fail ($Label + ": payload track_id is empty")
+    }
+    $operation = [string](Get-OptionalProperty -Object $payload -Name "operation")
+    Assert-InSet -Actual $operation -Expected @("track_gain_adjust", "track_pan_adjust", "track_pan_set", "static_eq_band_adjust", "broadband_threshold_adjust") -Label ($Label + " operation")
+    if ($operation -eq "track_gain_adjust") {
+        $deltaDB = [double](Get-OptionalProperty -Object $payload -Name "delta_db")
+        if ($deltaDB -eq 0 -or [math]::Abs($deltaDB) -gt 2) {
+            Fail ($Label + ": delta_db out of the bounded non-zero +/-2 range: " + $deltaDB)
+        }
+    }
+    elseif ($operation -eq "track_pan_adjust") {
+        $deltaPan = [double](Get-OptionalProperty -Object $payload -Name "delta_pan")
+        if ($deltaPan -eq 0 -or [math]::Abs($deltaPan) -gt 0.15) {
+            Fail ($Label + ": delta_pan out of the bounded non-zero +/-0.15 range: " + $deltaPan)
+        }
+    }
+    elseif ($operation -eq "track_pan_set") {
+        $targetPan = [double](Get-OptionalProperty -Object $payload -Name "target_pan")
+        if ($targetPan -lt -1 -or $targetPan -gt 1) {
+            Fail ($Label + ": target_pan out of the -1..+1 range: " + $targetPan)
+        }
+    }
+    return $trackID
 }
 
 function Wait-LogPattern {
@@ -3100,7 +3207,13 @@ try {
     ConvertTo-JsonFile -Value $focus -Path (Join-Path $ArtifactDir "chat_vocal_focus.json")
     $summary["stop_reasons"]["vocal_focus"] = [string](Get-OptionalProperty -Object $focus -Name "stop_reason")
     $focusStopReason = [string]$focus.stop_reason
-    $acceptedFocusStopReason = @("done", "needs_clarification", "needs_confirmation") -contains $focusStopReason
+    # Double-hop contract (PORT-PS1-SYNC-3, user ruling 2026-09-20): the
+    # POSITIVE path settles on the improvement-PROPOSAL confirmation face
+    # (hop 1) — stop_reason needs_confirmation (settle-mapped form) or
+    # improvement_proposal_confirmation_required (direct form). done /
+    # needs_clarification remain honest outcomes (capability boundary /
+    # clarification question) but are not the positive path.
+    $acceptedFocusStopReason = @("needs_confirmation", "improvement_proposal_confirmation_required", "done", "needs_clarification") -contains $focusStopReason
     if (-not $acceptedFocusStopReason) {
         Fail ("vocal focus turn stop_reason=" + [string]$focus.stop_reason)
     }
@@ -3123,34 +3236,45 @@ try {
     if ([int]$focusCounts.observe -lt 1) {
         Fail ("Expected vocal focus route to include mix.observe/ccb.observation_catalog. route=" + ($focusTools -join " -> "))
     }
-    if ($focusStopReason -eq "needs_confirmation") {
+    $focusProposalFace = $false
+    if (($focusStopReason -eq "needs_confirmation") -or ($focusStopReason -eq "improvement_proposal_confirmation_required")) {
+        $focusProposalFace = $true
         if (-not [bool](Get-OptionalProperty -Object $focus -Name "needs_confirmation")) {
-            Fail "Vocal focus returned needs_confirmation stop reason without needs_confirmation=true"
+            Fail "Vocal focus parked on the proposal face without needs_confirmation=true"
         }
         if ($focusPendingCandidateCount -lt 1) {
-            Fail "Vocal focus needs_confirmation did not include a PendingCandidate typed event"
+            Fail "Vocal focus proposal face did not include a PendingCandidate typed event"
         }
-        if ([int]$focusCounts.derive -lt 1) {
-            Fail ("Expected vocal focus pending route to include mix.derive. route=" + ($focusTools -join " -> "))
+        $focusFaceKinds = Get-ConfirmationFaceKinds -Response $focus
+        if ($focusFaceKinds -notcontains "improvement_proposal_confirmation") {
+            Fail ("Vocal focus confirmation face: got [" + ($focusFaceKinds -join ", ") + "], want improvement_proposal_confirmation (hop 1, proposal face)")
         }
     }
-    if ($focusStopReason -eq "done" -and [int]$focusCounts.derive -lt 1) {
+    # Derive/mutation abandonment rationale (PORT-PS1-SYNC-3): the ④ probe
+    # (conv mix_single_tick_e2e_20260920_182906, PS1-SYNC-2) proved that
+    # mix.derive and mix.apply only run AFTER both confirmations — at proposal
+    # parking time nothing derives and nothing mutates. The old assertions
+    # demanding mix.derive on the pending/completed route encoded the classic
+    # single-hop flow and are inverted here: deriving or mutating before any
+    # confirmation is now the failure condition.
+    if ([int]$focusCounts.derive -ne 0 -or [int]$focusCounts.apply -ne 0 -or [int]$focusCounts.daw_invoke -ne 0 -or [int]$focusCounts.track_volume -ne 0) {
+        Fail ("Vocal focus route derived or mutated before any confirmation. counts=" + ($focusCounts | ConvertTo-Json -Compress))
+    }
+    if ($focusStopReason -eq "done") {
         $focusReply = [string](Get-OptionalProperty -Object $focus -Name "reply")
         # no-op reply markers: the original English set plus the settled-turn
         # honest capability-boundary wording a durable continuation can deliver.
         $safeNoopDone = ($focusReply -match "can't|cannot|not reliably|No mix action|no mix action|not safe|not identified|partial|能力边界|无法安全|无法可靠|不能可靠|证据不足")
         if (-not $safeNoopDone) {
-            Fail ("Expected completed vocal focus route to include mix.derive unless it is an explicit no-op/clarification reply. route=" + ($focusTools -join " -> "))
+            Fail ("Expected a completed vocal focus turn to be an explicit no-op/capability-boundary reply. reply=" + $focusReply)
         }
-    }
-    if ([int]$focusCounts.apply -ne 0 -or [int]$focusCounts.daw_invoke -ne 0 -or [int]$focusCounts.track_volume -ne 0) {
-        Fail ("Vocal focus route mutated the project unexpectedly. counts=" + ($focusCounts | ConvertTo-Json -Compress))
     }
     $summary["focus_relationship"] = [ordered]@{
         conversation_id = $focusConversationID
         message = $focusMessage
         stop_reason = $focusStopReason
         accepted_stop_reason = $acceptedFocusStopReason
+        proposal_face = $focusProposalFace
         tool_route = $focusTools
         tool_counts = $focusCounts
         pending_candidate_count = $focusPendingCandidateCount
@@ -3199,57 +3323,90 @@ try {
     $clarifyAnswer = Invoke-AgentChat -ConversationID $clarifyConversationID -Message $vocalAnswerMessage
     ConvertTo-JsonFile -Value $clarifyAnswer -Path (Join-Path $ArtifactDir "chat_vocal_clarify_answer.json")
     $clarifyAnswerStop = [string](Get-OptionalProperty -Object $clarifyAnswer -Name "stop_reason")
-    $acceptedClarifyAnswerStop = @("done", "needs_confirmation") -contains $clarifyAnswerStop
+    # Double-hop (PORT-PS1-SYNC-3): naming the vocal track releases the
+    # improvement proposal, which parks on the proposal face (hop 1) — the
+    # settle-mapped needs_confirmation form or the direct
+    # improvement_proposal_confirmation_required form. done remains an honest
+    # no-op capability boundary. The legacy "[mix.tick.pending] stored" wait
+    # and the events-surface mix_tick.pending requirement encoded the
+    # single-hop flow: the bounded tick is only stored at hop 1, after the
+    # proposal is confirmed, so they are replaced by the proposal-face checks.
+    $acceptedClarifyAnswerStop = @("needs_confirmation", "improvement_proposal_confirmation_required", "done") -contains $clarifyAnswerStop
     if (-not $acceptedClarifyAnswerStop) {
         Fail ("vocal clarification answer stop_reason=" + $clarifyAnswerStop + " reply=" + [string](Get-OptionalProperty -Object $clarifyAnswer -Name "reply"))
     }
-    if ($clarifyAnswerStop -eq "needs_confirmation" -and -not [bool](Get-OptionalProperty -Object $clarifyAnswer -Name "needs_confirmation")) {
-        Fail "vocal clarification answer returned needs_confirmation stop reason without needs_confirmation=true"
-    }
-    [void](Wait-LogPattern -LogPath $AgentLog -Pattern ("[mix.tick.pending] stored conversation=" + $clarifyConversationID) -TimeoutSeconds 15)
-    $clarifyAnswerEvents = Invoke-Json -Method GET -Uri ($AgentHttp.TrimEnd("/") + "/agent/events?conversation_id=" + [uri]::EscapeDataString($clarifyConversationID) + "&since=0&limit=40") -TimeoutSec 10
-    ConvertTo-JsonFile -Value $clarifyAnswerEvents -Path (Join-Path $ArtifactDir "events_vocal_clarify_after_answer.json")
-    $clarifyPendingCandidate = $null
-    foreach ($event in @($clarifyAnswerEvents.events)) {
-        if ([string]$event.type -eq "mix_tick.pending") {
-            $clarifyPendingCandidate = $event.payload
+    $clarifyProposalFace = $false
+    if (($clarifyAnswerStop -eq "needs_confirmation") -or ($clarifyAnswerStop -eq "improvement_proposal_confirmation_required")) {
+        $clarifyProposalFace = $true
+        if (-not [bool](Get-OptionalProperty -Object $clarifyAnswer -Name "needs_confirmation")) {
+            Fail "vocal clarification answer parked on the proposal face without needs_confirmation=true"
+        }
+        $clarifyFaceKinds = Get-ConfirmationFaceKinds -Response $clarifyAnswer
+        if ($clarifyFaceKinds -notcontains "improvement_proposal_confirmation") {
+            Fail ("vocal clarification answer confirmation face: got [" + ($clarifyFaceKinds -join ", ") + "], want improvement_proposal_confirmation (hop 1, proposal face)")
         }
     }
-    if ($null -eq $clarifyPendingCandidate) {
-        Fail "vocal clarification answer did not produce a pending mix tick"
-    }
+    $clarifyAnswerEvents = Invoke-Json -Method GET -Uri ($AgentHttp.TrimEnd("/") + "/agent/events?conversation_id=" + [uri]::EscapeDataString($clarifyConversationID) + "&since=0&limit=40") -TimeoutSec 10
+    ConvertTo-JsonFile -Value $clarifyAnswerEvents -Path (Join-Path $ArtifactDir "events_vocal_clarify_after_answer.json")
 
+    # Confirmation chain (④ double-hop style, PORT-PS1-SYNC-3): hop 1 confirms
+    # the proposal and must land on the tool face; hop 2 confirms the tool
+    # application and must apply + readback-verify, parking at the d1 terminal.
     $clarifyConfirm = Invoke-AgentChat -ConversationID $clarifyConversationID -Message $confirmMessage
     ConvertTo-JsonFile -Value $clarifyConfirm -Path (Join-Path $ArtifactDir "chat_vocal_clarify_confirm.json")
     $clarifyConfirmStop = [string](Get-OptionalProperty -Object $clarifyConfirm -Name "stop_reason")
-    if ($clarifyConfirmStop -ne "mix_tick_applied_reobserved") {
-        Fail ("vocal clarification confirm stop_reason=" + $clarifyConfirmStop)
+    $clarifyConfirm2Stop = ""
+    if (-not $clarifyProposalFace) {
+        if ($clarifyConfirmStop -ne "no_pending_mix_tick_candidate") {
+            Fail ("vocal clarification confirm stop_reason=" + $clarifyConfirmStop)
+        }
     }
-    $clarifyConfirmRows = @(Get-OptionalProperty -Object $clarifyConfirm -Name "executed_kernel_reply")
-    $clarifyTools = Tool-Names -Rows $clarifyConfirmRows
-    Assert-ToolPresent -Tools $clarifyTools -Aliases @("mix.propose_tick", "mix_propose_tick") -Label "vocal clarification mix.propose_tick"
-    Assert-ToolPresent -Tools $clarifyTools -Aliases @("mix.apply_tick", "mix_apply_tick") -Label "vocal clarification mix.apply_tick"
-    Assert-ToolPresent -Tools $clarifyTools -Aliases @("mix.observe", "mix_observe", "mix.request_observation", "mix_request_observation", "ccb.observation_catalog", "ccb_observation_catalog") -Label "vocal clarification reobserve"
-    Assert-ToolAbsent -Tools $clarifyTools -Aliases @("daw.invoke", "daw_invoke") -Label "vocal clarification daw.invoke"
-    Assert-ToolAbsent -Tools $clarifyTools -Aliases @("track.volume", "track_volume") -Label "vocal clarification track.volume"
-    $clarifyConfirmReply = [string](Get-OptionalProperty -Object $clarifyConfirm -Name "reply")
-    if ($clarifyConfirmReply -notmatch "AB Result") {
-        Fail ("vocal clarification confirmation reply did not include AB Result: " + $clarifyConfirmReply)
+    else {
+        Assert-Equals -Actual $clarifyConfirmStop -Expected "improvement_proposal_native_tool_confirmation_required" -Label "vocal clarification hop-1 stop_reason"
+        Assert-Equals -Actual ([string](Get-OptionalProperty -Object $clarifyConfirm -Name "workflow")) -Expected "mix_tick" -Label "vocal clarification hop-1 workflow"
+        if (-not [bool](Get-OptionalProperty -Object $clarifyConfirm -Name "needs_confirmation")) {
+            Fail "vocal clarification hop-1 did not carry needs_confirmation=true on the tool face"
+        }
+        $clarifyHop1FaceKinds = Get-ConfirmationFaceKinds -Response $clarifyConfirm
+        if ($clarifyHop1FaceKinds -notcontains "mix_tick_confirmation") {
+            Fail ("vocal clarification hop-1 face: got [" + ($clarifyHop1FaceKinds -join ", ") + "], want mix_tick_confirmation")
+        }
+        [void](Assert-BoundedMixTickPayload -Response $clarifyConfirm -Label "vocal clarification hop-1 pending tick")
+
+        $clarifyConfirm2 = Invoke-AgentChat -ConversationID $clarifyConversationID -Message $confirmMessage
+        ConvertTo-JsonFile -Value $clarifyConfirm2 -Path (Join-Path $ArtifactDir "chat_vocal_clarify_confirm2.json")
+        $clarifyConfirm2Stop = [string](Get-OptionalProperty -Object $clarifyConfirm2 -Name "stop_reason")
+        Assert-Equals -Actual $clarifyConfirm2Stop -Expected "d1_post_action_evaluation_required" -Label "vocal clarification hop-2 stop_reason"
+        Assert-Equals -Actual ([string](Get-OptionalProperty -Object $clarifyConfirm2 -Name "workflow")) -Expected "free_state_d1_s1" -Label "vocal clarification hop-2 workflow"
+        $clarifyHop2Data = Get-OptionalProperty -Object $clarifyConfirm2 -Name "workflow_data"
+        if ($null -eq $clarifyHop2Data) {
+            Fail "vocal clarification hop-2 response carried no workflow_data"
+        }
+        if (([bool](Get-OptionalProperty -Object $clarifyHop2Data -Name "mutation_performed")) -ne $true) {
+            Fail "vocal clarification hop-2 did not perform the mutation (workflow_data.mutation_performed != true)"
+        }
+        if (([bool](Get-OptionalProperty -Object $clarifyHop2Data -Name "readback_verified")) -ne $true) {
+            Fail "vocal clarification hop-2 did not verify the applied value by readback (workflow_data.readback_verified != true)"
+        }
+        $clarifyConfirmReply = [string](Get-OptionalProperty -Object $clarifyConfirm2 -Name "reply")
+        if (-not $clarifyConfirmReply.Contains("已应用并回读验证")) {
+            Fail ("vocal clarification hop-2 reply did not report the applied+readback-verified outcome: " + $clarifyConfirmReply)
+        }
     }
     $summary["stop_reasons"]["vocal_clarification_ask"] = $clarifyAskStop
     $summary["stop_reasons"]["vocal_clarification_answer"] = $clarifyAnswerStop
     $summary["stop_reasons"]["vocal_clarification_confirm"] = $clarifyConfirmStop
+    $summary["stop_reasons"]["vocal_clarification_confirm2"] = $clarifyConfirm2Stop
     $summary["vocal_clarification_loop"] = [ordered]@{
         conversation_id = $clarifyConversationID
         ask_message = $vocalForwardMessage
         answer_message = $vocalAnswerMessage
         ask_stop_reason = $clarifyAskStop
         answer_stop_reason = $clarifyAnswerStop
+        answer_proposal_face = $clarifyProposalFace
         confirm_stop_reason = $clarifyConfirmStop
-        pending_candidate = $clarifyPendingCandidate
-        tool_route = $clarifyTools
-        before_after = Compact-BeforeAfter -Confirm $clarifyConfirm
-        full_response_files = @("chat_vocal_clarify_ask.json", "chat_vocal_clarify_answer.json", "chat_vocal_clarify_confirm.json")
+        confirm2_stop_reason = $clarifyConfirm2Stop
+        full_response_files = @("chat_vocal_clarify_ask.json", "chat_vocal_clarify_answer.json", "chat_vocal_clarify_confirm.json", "chat_vocal_clarify_confirm2.json")
     }
 
     $summary["status"] = "passed"

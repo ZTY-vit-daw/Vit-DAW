@@ -468,9 +468,19 @@ PY
   code="$(http_json POST "$AGENT_HTTP/agent/chat" "$WORKDIR/bodies/chat.json" "${prefix}.json" "$CHAT_TIMEOUT_SEC")" \
     || fail_env "chat transport failed (conversation $conv)"
   [[ "$code" =~ ^2 ]] || fail_env "chat returned HTTP $code (conversation $conv)"
-  local goal_status
+  local goal_status stop_reason_early
   goal_status="$(json_field "${prefix}.json" 'str(d.get("goal_status",""))')"
-  if [[ "$goal_status" != "waiting_continue" ]]; then
+  stop_reason_early="$(json_field "${prefix}.json" 'str(d.get("stop_reason",""))')"
+  # Double-hop refinement (PORT-PS1-SYNC-3, PC parity): a genuine agent-loop
+  # slice always carries stop_reason=limit_reached; a synchronous terminal park
+  # can arrive with goal_status=waiting_continue plus a meaningful stop_reason
+  # (the D1 applied turn: d1_post_action_evaluation_required, workflow
+  # free_state_d1_s1). That response is complete, not sliced — return it
+  # as-is instead of polling for a goal the evaluation slices settle later.
+  local genuinely_sliced=0
+  if [[ "$stop_reason_early" == "limit_reached" ]]; then genuinely_sliced=1; fi
+  if [[ "$goal_status" == "waiting_continue" && -z "$stop_reason_early" ]]; then genuinely_sliced=1; fi
+  if [[ "$genuinely_sliced" -eq 0 ]]; then
     cp "${prefix}.json" "${prefix}_settled.json"
     return 0
   fi
@@ -605,6 +615,77 @@ wait_log_pattern() {
 
 route_helpers() {
   : # (reserved: shared route-assert helpers live in route_counts below)
+}
+
+confirmation_face_kinds() {
+  # confirmation_face_kinds <response.json> — prints one confirmation-face kind
+  # per line (PORT-PS1-SYNC-3 double-hop layering, ④ twin parity). An unsliced
+  # parking response carries the face on interaction_requests[].kind; a
+  # settle-synthesized response rebuilds it as a typed_events row whose kind
+  # is the interaction kind. "PendingCandidate" is not a face kind.
+  python3 - "$1" <<'PY'
+import json, sys
+d = json.load(open(sys.argv[1], encoding="utf-8"))
+kinds = []
+for row in d.get("interaction_requests") or []:
+    if isinstance(row, dict):
+        kind = str(row.get("kind") or "")
+        if kind:
+            kinds.append(kind)
+for row in d.get("typed_events") or []:
+    if isinstance(row, dict):
+        kind = str(row.get("kind") or "")
+        if kind and kind != "PendingCandidate":
+            kinds.append(kind)
+print("\n".join(kinds))
+PY
+}
+
+assert_bounded_mix_tick_payload() {
+  # assert_bounded_mix_tick_payload <response.json> <label> — hop-1 parks a
+  # concrete bounded tick (agent: pendingMixTickEventPayload +
+  # validatePendingMixTickCandidate, ④ twin parity): non-empty track, a native
+  # operation, and for the numeric domains a non-zero bounded delta
+  # (|delta_db| <= 2, |delta_pan| <= 0.15, -1 <= target_pan <= 1). Prints the
+  # target track id on success.
+  python3 - "$1" "$2" <<'PY'
+import json, sys
+d = json.load(open(sys.argv[1], encoding="utf-8"))
+label = sys.argv[2]
+payload = None
+for row in d.get("interaction_requests") or []:
+    if isinstance(row, dict) and isinstance(row.get("payload"), dict):
+        payload = row["payload"]
+        break
+if payload is None:
+    sys.exit(f"FAIL: {label}: no interaction payload on the response")
+track = str(payload.get("track_id") or "").strip()
+if not track:
+    sys.exit(f"FAIL: {label}: payload track_id is empty")
+op = str(payload.get("operation") or "")
+native = {"track_gain_adjust", "track_pan_adjust", "track_pan_set",
+          "static_eq_band_adjust", "broadband_threshold_adjust"}
+if op not in native:
+    sys.exit(f"FAIL: {label}: operation '{op}' not in the native set {sorted(native)}")
+def num(key):
+    try:
+        return float(payload.get(key))
+    except (TypeError, ValueError):
+        return 0.0
+if op == "track_gain_adjust":
+    v = num("delta_db")
+    if v == 0 or abs(v) > 2:
+        sys.exit(f"FAIL: {label}: delta_db out of the bounded non-zero +/-2 range: {v}")
+elif op == "track_pan_adjust":
+    v = num("delta_pan")
+    if v == 0 or abs(v) > 0.15:
+        sys.exit(f"FAIL: {label}: delta_pan out of the bounded non-zero +/-0.15 range: {v}")
+elif op == "track_pan_set":
+    v = num("target_pan")
+    if v < -1 or v > 1:
+        sys.exit(f"FAIL: {label}: target_pan out of the -1..+1 range: {v}")
+print(track)
+PY
 }
 
 route_counts() {
@@ -1115,8 +1196,13 @@ FOCUS_CONVERSATION_ID="product_path_vocal_focus_$(date '+%Y%m%d_%H%M%S')"
 agent_chat_ctx "$FOCUS_CONVERSATION_ID" "$VOCAL_FOCUS_MESSAGE" "-" "$WORKDIR/http/chat_vocal_focus"
 FOCUS_STOP="$(json_field "$WORKDIR/http/chat_vocal_focus_settled.json" 'str(d.get("stop_reason",""))')"
 record_stop_reason vocal_focus "$FOCUS_STOP"
+# Double-hop contract (PORT-PS1-SYNC-3, user ruling 2026-09-20): the POSITIVE
+# path settles on the improvement-PROPOSAL confirmation face (hop 1) —
+# needs_confirmation (settle-mapped) or improvement_proposal_confirmation_
+# required (direct form). done / needs_clarification remain honest outcomes
+# (capability boundary / clarification question) but are not the positive path.
 case "$FOCUS_STOP" in
-  done|needs_clarification|needs_confirmation) ;;
+  needs_confirmation|improvement_proposal_confirmation_required|done|needs_clarification) ;;
   *) fail_functional "vocal focus turn stop_reason=$FOCUS_STOP" ;;
 esac
 route_counts "$WORKDIR/http/chat_vocal_focus_settled.json" > "$WORKDIR/bodies/focus_counts.json"
@@ -1127,26 +1213,42 @@ counts = json.load(open(sys.argv[2], encoding="utf-8"))
 stop_reason = sys.argv[3]
 if counts["observe"] < 1:
     sys.exit("FAIL: expected vocal focus route to include mix.observe/ccb.observation_catalog")
-if stop_reason == "needs_confirmation":
+proposal_face = stop_reason in ("needs_confirmation", "improvement_proposal_confirmation_required")
+if proposal_face:
     if resp.get("needs_confirmation") is not True:
-        sys.exit("FAIL: needs_confirmation stop reason without needs_confirmation=true")
+        sys.exit("FAIL: proposal-face stop reason without needs_confirmation=true")
     pending_events = sum(1 for e in (resp.get("typed_events") or [])
                          if isinstance(e, dict) and str(e.get("event_type")) == "PendingCandidate")
     if pending_events < 1:
-        sys.exit("FAIL: needs_confirmation did not include a PendingCandidate typed event")
-    if counts["derive"] < 1:
-        sys.exit("FAIL: expected pending route to include mix.derive")
-if stop_reason == "done" and counts["derive"] < 1:
+        sys.exit("FAIL: proposal face did not include a PendingCandidate typed event")
+    kinds = []
+    for row in resp.get("interaction_requests") or []:
+        if isinstance(row, dict) and str(row.get("kind") or ""):
+            kinds.append(str(row["kind"]))
+    for row in resp.get("typed_events") or []:
+        if isinstance(row, dict):
+            kind = str(row.get("kind") or "")
+            if kind and kind != "PendingCandidate":
+                kinds.append(kind)
+    if "improvement_proposal_confirmation" not in kinds:
+        sys.exit(f"FAIL: vocal focus confirmation face: got {kinds}, want improvement_proposal_confirmation (hop 1, proposal face)")
+# Derive/mutation abandonment rationale (PORT-PS1-SYNC-3): the ④ probe (conv
+# mix_single_tick_e2e_20260920_182906, PS1-SYNC-2) proved that mix.derive and
+# mix.apply only run AFTER both confirmations — at proposal parking time
+# nothing derives and nothing mutates. The old assertions demanding mix.derive
+# on the pending/completed route encoded the classic single-hop flow and are
+# inverted here: deriving or mutating before any confirmation is the failure.
+if counts["derive"] != 0 or counts["apply"] != 0 or counts["daw_invoke"] != 0 or counts["track_volume"] != 0:
+    sys.exit(f"FAIL: vocal focus route derived or mutated before any confirmation: {counts}")
+if stop_reason == "done":
     reply = str(resp.get("reply") or "")
     safe_noop = any(k in reply for k in ("can't", "cannot", "not reliably", "No mix action",
                                          "no mix action", "not safe", "not identified", "partial"))
     if not safe_noop:
-        sys.exit("FAIL: completed route without mix.derive and without an explicit no-op reply")
-if counts["apply"] != 0 or counts["daw_invoke"] != 0 or counts["track_volume"] != 0:
-    sys.exit(f"FAIL: vocal focus route mutated the project unexpectedly: {counts}")
+        sys.exit("FAIL: completed turn without an explicit no-op/capability-boundary reply")
 sys.exit(0)
 PY
-ok "vocal focus relationship observation passed"
+ok "vocal focus relationship observation passed (proposal_face=$FOCUS_STOP)"
 
 # ------------------------------------------------------- vocal clarification
 step "Vocal clarification loop"
@@ -1187,40 +1289,74 @@ CLARIFY_ASK_PENDING="$(json_field "$WORKDIR/http/events_vocal_clarify_after_ask.
 agent_chat_ctx "$CLARIFY_CONVERSATION_ID" "$VOCAL_ANSWER_MESSAGE" "-" "$WORKDIR/http/chat_vocal_clarify_answer"
 CLARIFY_ANSWER_STOP="$(json_field "$WORKDIR/http/chat_vocal_clarify_answer_settled.json" 'str(d.get("stop_reason",""))')"
 record_stop_reason vocal_clarification_answer "$CLARIFY_ANSWER_STOP"
+# Double-hop (PORT-PS1-SYNC-3): naming the vocal track releases the
+# improvement proposal, which parks on the proposal face (hop 1) — the
+# settle-mapped needs_confirmation form or the direct
+# improvement_proposal_confirmation_required form. done remains an honest
+# no-op capability boundary. The legacy "[mix.tick.pending] stored" wait and
+# the events-surface mix_tick.pending requirement encoded the single-hop flow:
+# the bounded tick is only stored at hop 1, after the proposal is confirmed.
 case "$CLARIFY_ANSWER_STOP" in
-  done|needs_confirmation) ;;
+  needs_confirmation|improvement_proposal_confirmation_required|done) ;;
   *) fail_functional "vocal clarification answer stop_reason=$CLARIFY_ANSWER_STOP reply=$(json_field "$WORKDIR/http/chat_vocal_clarify_answer.json" 'str(d.get("reply",""))')" ;;
 esac
-if [[ "$CLARIFY_ANSWER_STOP" == "needs_confirmation" ]]; then
-  [[ "$(json_field "$WORKDIR/http/chat_vocal_clarify_answer_settled.json" 'str(d.get("needs_confirmation","")).lower()')" == "true" ]] \
-    || fail_functional "vocal clarification answer returned needs_confirmation stop reason without needs_confirmation=true"
-fi
-wait_log_pattern "[mix.tick.pending] stored conversation=$CLARIFY_CONVERSATION_ID" 15 >/dev/null
+CLARIFY_PROPOSAL_FACE=0
+case "$CLARIFY_ANSWER_STOP" in
+  needs_confirmation|improvement_proposal_confirmation_required)
+    CLARIFY_PROPOSAL_FACE=1
+    [[ "$(json_field "$WORKDIR/http/chat_vocal_clarify_answer_settled.json" 'str(d.get("needs_confirmation","")).lower()')" == "true" ]] \
+      || fail_functional "vocal clarification answer parked on the proposal face without needs_confirmation=true"
+    confirmation_face_kinds "$WORKDIR/http/chat_vocal_clarify_answer_settled.json" > "$WORKDIR/bodies/clarify_answer_face_kinds.txt"
+    grep -qx "improvement_proposal_confirmation" "$WORKDIR/bodies/clarify_answer_face_kinds.txt" \
+      || fail_functional "vocal clarification answer confirmation face: got [$(paste -sd, - "$WORKDIR/bodies/clarify_answer_face_kinds.txt")], want improvement_proposal_confirmation (hop 1, proposal face)"
+    ;;
+esac
 events_get "$CLARIFY_CONVERSATION_ID" 0 40 "$WORKDIR/http/events_vocal_clarify_after_answer.json"
-CLARIFY_PENDING_COUNT="$(json_field "$WORKDIR/http/events_vocal_clarify_after_answer.json" 'sum(1 for e in (d.get("events") or []) if str(e.get("type","")) == "mix_tick.pending")')"
-[[ "$CLARIFY_PENDING_COUNT" != "0" ]] \
-  || fail_functional "vocal clarification answer did not produce a pending mix tick"
 
+# Confirmation chain (④ double-hop style, PORT-PS1-SYNC-3): hop 1 confirms
+# the proposal and must land on the tool face; hop 2 confirms the tool
+# application and must apply + readback-verify, parking at the d1 terminal.
 agent_chat_ctx "$CLARIFY_CONVERSATION_ID" "$CONFIRM_MESSAGE" "-" "$WORKDIR/http/chat_vocal_clarify_confirm"
 CLARIFY_CONFIRM_STOP="$(json_field "$WORKDIR/http/chat_vocal_clarify_confirm_settled.json" 'str(d.get("stop_reason",""))')"
 record_stop_reason vocal_clarification_confirm "$CLARIFY_CONFIRM_STOP"
-[[ "$CLARIFY_CONFIRM_STOP" == "mix_tick_applied_reobserved" ]] \
-  || fail_functional "vocal clarification confirm stop_reason=$CLARIFY_CONFIRM_STOP"
-route_counts "$WORKDIR/http/chat_vocal_clarify_confirm_settled.json" > "$WORKDIR/bodies/clarify_confirm_counts.json"
-python3 - "$WORKDIR/bodies/clarify_confirm_counts.json" <<'PY' || fail_functional "vocal clarification confirm route assertions failed: $(cat "$WORKDIR/bodies/clarify_confirm_counts.json")"
+CLARIFY_CONFIRM2_STOP=""
+if [[ "$CLARIFY_PROPOSAL_FACE" -eq 0 ]]; then
+  [[ "$CLARIFY_CONFIRM_STOP" == "no_pending_mix_tick_candidate" ]] \
+    || fail_functional "vocal clarification confirm stop_reason=$CLARIFY_CONFIRM_STOP"
+else
+  [[ "$CLARIFY_CONFIRM_STOP" == "improvement_proposal_native_tool_confirmation_required" ]] \
+    || fail_functional "vocal clarification hop-1 stop_reason=$CLARIFY_CONFIRM_STOP want improvement_proposal_native_tool_confirmation_required"
+  [[ "$(json_field "$WORKDIR/http/chat_vocal_clarify_confirm_settled.json" 'str(d.get("workflow",""))')" == "mix_tick" ]] \
+    || fail_functional "vocal clarification hop-1 workflow=$(json_field "$WORKDIR/http/chat_vocal_clarify_confirm_settled.json" 'str(d.get("workflow",""))') want mix_tick"
+  [[ "$(json_field "$WORKDIR/http/chat_vocal_clarify_confirm_settled.json" 'str(d.get("needs_confirmation","")).lower()')" == "true" ]] \
+    || fail_functional "vocal clarification hop-1 did not carry needs_confirmation=true on the tool face"
+  confirmation_face_kinds "$WORKDIR/http/chat_vocal_clarify_confirm_settled.json" > "$WORKDIR/bodies/clarify_hop1_face_kinds.txt"
+  grep -qx "mix_tick_confirmation" "$WORKDIR/bodies/clarify_hop1_face_kinds.txt" \
+    || fail_functional "vocal clarification hop-1 face: got [$(paste -sd, - "$WORKDIR/bodies/clarify_hop1_face_kinds.txt")], want mix_tick_confirmation"
+  assert_bounded_mix_tick_payload "$WORKDIR/http/chat_vocal_clarify_confirm_settled.json" "vocal clarification hop-1 pending tick" \
+    > "$WORKDIR/bodies/clarify_hop1_track.txt" 2>"$WORKDIR/bodies/clarify_hop1_payload_err.txt" \
+    || fail_functional "$(cat "$WORKDIR/bodies/clarify_hop1_payload_err.txt" 2>/dev/null || echo 'vocal clarification hop-1 pending tick payload check failed')"
+
+  agent_chat_ctx "$CLARIFY_CONVERSATION_ID" "$CONFIRM_MESSAGE" "-" "$WORKDIR/http/chat_vocal_clarify_confirm2"
+  CLARIFY_CONFIRM2_STOP="$(json_field "$WORKDIR/http/chat_vocal_clarify_confirm2_settled.json" 'str(d.get("stop_reason",""))')"
+  record_stop_reason vocal_clarification_confirm2 "$CLARIFY_CONFIRM2_STOP"
+  [[ "$CLARIFY_CONFIRM2_STOP" == "d1_post_action_evaluation_required" ]] \
+    || fail_functional "vocal clarification hop-2 stop_reason=$CLARIFY_CONFIRM2_STOP want d1_post_action_evaluation_required"
+  [[ "$(json_field "$WORKDIR/http/chat_vocal_clarify_confirm2_settled.json" 'str(d.get("workflow",""))')" == "free_state_d1_s1" ]] \
+    || fail_functional "vocal clarification hop-2 workflow=$(json_field "$WORKDIR/http/chat_vocal_clarify_confirm2_settled.json" 'str(d.get("workflow",""))') want free_state_d1_s1"
+  python3 - "$WORKDIR/http/chat_vocal_clarify_confirm2_settled.json" <<'PY' || fail_functional "vocal clarification hop-2 applied/readback assertions failed"
 import json, sys
-c = json.load(open(sys.argv[1], encoding="utf-8"))
-if c["propose"] < 1: sys.exit("FAIL: mix.propose_tick missing")
-if c["apply"] < 1: sys.exit("FAIL: mix.apply_tick missing")
-if c["observe"] < 1: sys.exit("FAIL: reobserve missing")
-if c["daw_invoke"] != 0: sys.exit("FAIL: daw.invoke present")
-if c["track_volume"] != 0: sys.exit("FAIL: track.volume present")
-sys.exit(0)
+d = json.load(open(sys.argv[1], encoding="utf-8"))
+data = d.get("workflow_data") or {}
+if data.get("mutation_performed") is not True:
+    sys.exit("FAIL: hop-2 did not perform the mutation (workflow_data.mutation_performed != true)")
+if data.get("readback_verified") is not True:
+    sys.exit("FAIL: hop-2 did not verify the applied value by readback (workflow_data.readback_verified != true)")
+if "已应用并回读验证" not in str(d.get("reply") or ""):
+    sys.exit(f"FAIL: hop-2 reply did not report the applied+readback-verified outcome: {d.get('reply')}")
 PY
-CLARIFY_CONFIRM_REPLY="$(json_field "$WORKDIR/http/chat_vocal_clarify_confirm_settled.json" 'str(d.get("reply",""))')"
-[[ "$CLARIFY_CONFIRM_REPLY" == *"AB Result"* ]] \
-  || fail_functional "vocal clarification confirmation reply did not include AB Result: $CLARIFY_CONFIRM_REPLY"
-ok "vocal clarification loop (ask -> answer -> confirm with AB Result) passed"
+fi
+ok "vocal clarification loop (ask -> answer -> double-hop confirm) passed"
 
 OUTCOME="all_green"
 ok "product-path lifecycle + mix smoke passed (mac two-piece adaptation)"
