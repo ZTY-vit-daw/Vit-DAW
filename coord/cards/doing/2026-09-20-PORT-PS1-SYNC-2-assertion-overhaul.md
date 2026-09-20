@@ -12,6 +12,6 @@
 - 文件域：`scripts/`（⑤⑥④ 的 ps1 与 _mac.sh 各处 needle/断言/默认值 + SMOKE_TESTS.md 相应描述）；`agent/`、`VitApp/`、前端仓零触碰
 - 验收标准：①⑤ 断言块重设计 diff（含静态审读笔记：新断言↔实际 schema 字段对照表）；②needle 扩容 diff（双端四文件）；③settle 默认值变更 diff；④PC ⑤⑥④ 三件 exit 0 工件（run ID/日志）；⑤SMOKE_TESTS.md 同步
 - 停止条件：⑥ vocal focus 在新 needle+窗口下仍两败同断点 → 取证上交（届时红因排除脚本面后指向 agent 续跑语义，另开 agent 侧卡）；⑤ 新断言与 schema 仍有未预见层 → 逐层记录按轮推进；需改 agent/内核 → 域外上报
-- 领取：
+- 领取：2026-09-20 18:15 / PC 执行侧（GLM-5.3） / origin/main=4826248379367db4a9bb99b11178e2740a1fd27d / 分支 port/ps1-sync-2 / 领取时工作树：M VitApp/Workspace/default_project.xml（烟测已知保留项）、D coord/cards/doing/2026-09-19-PORT-PS1-SETTLE-1-chat-settle-driver.md（决策侧遗留，不代提交）、?? coord/runs/ + extension 构建产物 + godot-cpp/（均域外不动）
 - 回执：
 - 验收：
