@@ -528,7 +528,10 @@ SETTLE_PY
 
 wait_log_pattern() {
   # wait_log_pattern <pattern> <timeout-sec> — prints the first matching line
-  local pattern="$1" timeout="$2" deadline=$((SECONDS + timeout)) line
+  # (split declaration: bash 3.2 + set -u expands a later assignment in one
+  # `local` line before earlier locals in that line exist)
+  local pattern="$1" timeout="$2" line
+  local deadline=$((SECONDS + timeout))
   while (( SECONDS < deadline )); do
     if [[ -f "$AGENT_LOG" ]]; then
       line="$(grep -F "$pattern" "$AGENT_LOG" 2>/dev/null | head -1)"
