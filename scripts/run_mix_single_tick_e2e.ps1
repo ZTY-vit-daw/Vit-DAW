@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
     [string]$RepoRoot = "",
     [string]$AgentHttp = "http://127.0.0.1:7878",
@@ -15,7 +15,12 @@ param(
     [switch]$NoStartKernel,
     [switch]$StartUI,
     [int]$WaitSeconds = 30,
-    [int]$ChatTimeoutSec = 240
+    [int]$ChatTimeoutSec = 240,
+    # 720s default (PORT-PS1-SYNC-2): reasoning-model turns occasionally run a
+    # heavy reply past 300s; measured stable at 720s (2026-09-20 flash A/B
+    # experiment — pro showed no capability premium, only ~6x latency, so the
+    # settle window grows while the engine stays flash).
+    [int]$ChatSettleSeconds = 720
 )
 
 Set-StrictMode -Version Latest
@@ -209,13 +214,229 @@ function Invoke-AgentChat {
         [string]$ConversationID,
         [string]$Message
     )
-    return Invoke-Json -Method POST -Uri ($AgentHttp.TrimEnd("/") + "/agent/chat") -Body @{
+    $rawResponse = Invoke-Json -Method POST -Uri ($AgentHttp.TrimEnd("/") + "/agent/chat") -Body @{
         conversation_id = $ConversationID
         message = $Message
         context = @{
             agent_mode = "chat"
         }
     } -TimeoutSec $ChatTimeoutSec
+    return Wait-ChatTurnSettled -Raw $rawResponse -ConversationID $ConversationID -SettleSeconds $ChatSettleSeconds
+}
+
+function Wait-ChatTurnSettled {
+    # chat_settle anchor (PORT-PS1-SYNC-2, ported from
+    # run_vit_product_path_smoke.ps1 SETTLE-1 / the mac agent_chat_settled
+    # twin): when a turn is sliced out (goal_status=waiting_continue /
+    # stop_reason=limit_reached), poll the durable continuation via
+    # /agent/runtime/status until goal.status reaches a terminal value, then
+    # synthesize the settled response from /agent/events. Assertions read the
+    # returned object; the raw sliced response is preserved on it as raw_*.
+    # Trigger accepts either slice marker: run 1 of the 2026-09-20 PC rerun
+    # surfaced a raw stop_reason=limit_reached observe turn.
+    param(
+        [object]$Raw,
+        [string]$ConversationID,
+        [int]$SettleSeconds
+    )
+    $rawStopReasonEarly = [string](Get-OptionalProperty -Object $Raw -Name "stop_reason")
+    $rawGoalStatus = [string](Get-OptionalProperty -Object $Raw -Name "goal_status")
+    if ($rawGoalStatus -ne "waiting_continue" -and $rawStopReasonEarly -ne "limit_reached") {
+        return $Raw
+    }
+    Write-WarnLine ("chat turn sliced out (waiting_continue/limit_reached) - waiting for the durable continuation to settle (budget " + $SettleSeconds + "s, conversation " + $ConversationID + ")")
+    $terminalGoals = @("completed", "failed", "stopped", "cancelled", "waiting_confirmation", "waiting_clarification")
+    $settledGoal = ""
+    $deadline = (Get-Date).AddSeconds($SettleSeconds)
+    while ((Get-Date) -lt $deadline) {
+        Start-Sleep -Seconds 5
+        try {
+            $poll = Invoke-Json -Method GET -Uri ($AgentHttp.TrimEnd("/") + "/agent/runtime/status") -TimeoutSec 30
+            $pollGoal = Get-OptionalProperty -Object $poll -Name "goal"
+            $polledStatus = [string](Get-OptionalProperty -Object $pollGoal -Name "status")
+            if ($polledStatus -ne $settledGoal) {
+                $settledGoal = $polledStatus
+                Write-WarnLine ("settle poll: goal=" + $settledGoal)
+            }
+        }
+        catch {
+            continue
+        }
+        if ($terminalGoals -contains $settledGoal) {
+            break
+        }
+    }
+    $events = $null
+    try {
+        $encodedConversationID = [System.Uri]::EscapeDataString($ConversationID)
+        $events = Invoke-Json -Method GET -Uri ($AgentHttp.TrimEnd("/") + "/agent/events?conversation_id=" + $encodedConversationID + "&since=0&limit=500") -TimeoutSec 60
+    }
+    catch { }
+    # Code-point literal (file has no UTF-8 BOM; raw CJK would be misread
+    # under the PS 5.1 ANSI code page — same convention as the turn messages).
+    $placeholder = Join-UnicodeChars @(0x6211, 0x8FD8, 0x5728, 0x7EE7, 0x7EED, 0x5904, 0x7406, 0x8FD9, 0x4E2A, 0x4EFB, 0x52A1, 0xFF0C, 0x5B8C, 0x6210, 0x540E, 0x518D, 0x5411, 0x4F60, 0x6C47, 0x62A5, 0x3002)
+    $delivered = @()
+    $turnCompletedTexts = @()
+    $toolRows = @()
+    foreach ($agentEvent in @((Get-OptionalProperty -Object $events -Name "events"))) {
+        if ($null -eq $agentEvent) {
+            continue
+        }
+        $parts = @()
+        foreach ($fieldName in @("title", "body", "summary")) {
+            $fieldValue = [string](Get-OptionalProperty -Object $agentEvent -Name $fieldName)
+            if (-not [string]::IsNullOrWhiteSpace($fieldValue)) {
+                $parts += $fieldValue
+            }
+        }
+        if ($parts.Count -gt 0) {
+            $delivered += ($parts -join " | ")
+        }
+        if ([string](Get-OptionalProperty -Object $agentEvent -Name "type") -eq "turn.completed") {
+            $completedText = @()
+            foreach ($fieldName in @("title", "body")) {
+                $fieldValue = [string](Get-OptionalProperty -Object $agentEvent -Name $fieldName)
+                if (-not [string]::IsNullOrWhiteSpace($fieldValue)) {
+                    $completedText += $fieldValue
+                }
+            }
+            if ($completedText.Count -gt 0) {
+                $turnCompletedTexts += ($completedText -join " ")
+            }
+        }
+        $sources = @($agentEvent)
+        $payload = Get-OptionalProperty -Object $agentEvent -Name "payload"
+        if ($null -ne $payload) {
+            $sources += $payload
+        }
+        foreach ($source in $sources) {
+            $toolName = [string](Get-OptionalProperty -Object $source -Name "tool")
+            if ([string]::IsNullOrWhiteSpace($toolName)) {
+                $toolName = [string](Get-OptionalProperty -Object $source -Name "command_name")
+            }
+            if ([string]::IsNullOrWhiteSpace($toolName)) {
+                $toolName = [string](Get-OptionalProperty -Object $source -Name "command")
+            }
+            if (-not [string]::IsNullOrWhiteSpace($toolName)) {
+                $alreadyListed = $false
+                foreach ($row in $toolRows) {
+                    if ([string]$row["tool"] -eq $toolName) {
+                        $alreadyListed = $true
+                        break
+                    }
+                }
+                if (-not $alreadyListed) {
+                    $toolRows += @{ tool = $toolName }
+                }
+            }
+        }
+    }
+    $replyCandidates = @()
+    foreach ($text in ($delivered + $turnCompletedTexts)) {
+        if (-not $text.Contains($placeholder)) {
+            $replyCandidates += $text
+        }
+    }
+    $settledReply = [string](Get-OptionalProperty -Object $Raw -Name "reply")
+    if ($replyCandidates.Count -gt 0) {
+        $settledReply = $replyCandidates[$replyCandidates.Count - 1]
+    }
+    $stopReasonMap = @{
+        waiting_confirmation = "needs_confirmation"
+        waiting_clarification = "needs_clarification"
+        completed = "done"
+    }
+    $settledStopReason = [string](Get-OptionalProperty -Object $Raw -Name "stop_reason")
+    if ($stopReasonMap.Contains($settledGoal)) {
+        $settledStopReason = $stopReasonMap[$settledGoal]
+    }
+    $settledGoalStatus = $settledGoal
+    if ([string]::IsNullOrWhiteSpace($settledGoalStatus)) {
+        $settledGoalStatus = "settle_timeout"
+    }
+    # Faithful completion (PORT-PS1-SYNC-2 run-2 fix, same as the product-path
+    # twin): a waiting_confirmation settled turn carries needs_confirmation=true
+    # and its pending candidate as a typed event in the unsliced response.
+    $settledNeedsConfirmation = [bool](Get-OptionalProperty -Object $Raw -Name "needs_confirmation")
+    if ($settledGoal -eq "waiting_confirmation") {
+        $settledNeedsConfirmation = $true
+    }
+    $rawStopReasonValue = [string](Get-OptionalProperty -Object $Raw -Name "stop_reason")
+    $rawReplyValue = [string](Get-OptionalProperty -Object $Raw -Name "reply")
+    $settled = $Raw
+    $settled | Add-Member -Force -MemberType NoteProperty -Name "stop_reason" -Value $settledStopReason
+    $settled | Add-Member -Force -MemberType NoteProperty -Name "goal_status" -Value $settledGoalStatus
+    $settled | Add-Member -Force -MemberType NoteProperty -Name "reply" -Value $settledReply
+    $settled | Add-Member -Force -MemberType NoteProperty -Name "settled_from" -Value "continuation+events (pc chat_settle anchor, mac-aligned)"
+    $settled | Add-Member -Force -MemberType NoteProperty -Name "raw_stop_reason" -Value $rawStopReasonValue
+    $settled | Add-Member -Force -MemberType NoteProperty -Name "raw_reply" -Value $rawReplyValue
+    $settled | Add-Member -Force -MemberType NoteProperty -Name "delivered_event_count" -Value $delivered.Count
+    if ($settledGoal -eq "waiting_confirmation") {
+        $settled | Add-Member -Force -MemberType NoteProperty -Name "needs_confirmation" -Value $settledNeedsConfirmation
+        # mac parity (run_vit_product_path_smoke_mac.sh settle anchor): the
+        # raw sliced reply keeps needs_confirmation=false while the durable
+        # continuation holds the real pending interaction. Derive the
+        # confirmation surface from /agent/runtime/status continuations so
+        # the settled object stays self-consistent with the mapped
+        # stop_reason, exactly like the mac twin's pending_interaction walk.
+        try {
+            $statusSnapshot = Invoke-Json -Method GET -Uri ($AgentHttp.TrimEnd("/") + "/agent/runtime/status") -TimeoutSec 30
+            $pendingInteraction = $null
+            foreach ($continuationRow in @(Get-OptionalProperty -Object $statusSnapshot -Name "continuations")) {
+                $continuationConversationID = [string](Get-OptionalProperty -Object $continuationRow -Name "conversation_id")
+                if (-not [string]::IsNullOrWhiteSpace($ConversationID) -and $continuationConversationID -ne $ConversationID) {
+                    continue
+                }
+                $interaction = Get-OptionalProperty -Object $continuationRow -Name "pending_interaction"
+                if ($null -ne $interaction -and (([string](Get-OptionalProperty -Object $interaction -Name "kind")).Contains("confirmation"))) {
+                    $pendingInteraction = $interaction
+                    break
+                }
+            }
+            if ($null -ne $pendingInteraction) {
+                # null-filter the base list: @($null) in PowerShell is a
+                # one-element array holding null (run-3 lesson), and the
+                # typed-event assertions dot into every row; the mac twin
+                # filters with isinstance(e, dict) for the same reason.
+                $typedEventRows = @(Get-OptionalProperty -Object $settled -Name "typed_events" | Where-Object { $null -ne $_ })
+                # pscustomobject, not [ordered]: PS 5.1 StrictMode throws
+                # PropertyNotFoundStrict on dot access of OrderedDictionary
+                # keys, and the assertions read $typedEvent.event_type.
+                $pendingEvent = [pscustomobject]@{
+                    event_type = "PendingCandidate"
+                    source = "settled_pending_interaction"
+                    interaction_id = [string](Get-OptionalProperty -Object $pendingInteraction -Name "interaction_id")
+                    kind = [string](Get-OptionalProperty -Object $pendingInteraction -Name "kind")
+                }
+                $typedEventRows += $pendingEvent
+                $settled | Add-Member -Force -MemberType NoteProperty -Name "typed_events" -Value $typedEventRows
+                $settledPlanID = ([string](Get-OptionalProperty -Object $pendingInteraction -Name "plan_id")).Trim()
+                $settledProposalID = ([string](Get-OptionalProperty -Object $pendingInteraction -Name "proposal_id")).Trim()
+                if (-not [string]::IsNullOrWhiteSpace($settledPlanID)) {
+                    $settled | Add-Member -Force -MemberType NoteProperty -Name "plan_id" -Value $settledPlanID
+                }
+                elseif (-not [string]::IsNullOrWhiteSpace($settledProposalID)) {
+                    $settled | Add-Member -Force -MemberType NoteProperty -Name "plan_id" -Value $settledProposalID
+                }
+            }
+            else {
+                Write-WarnLine ("settle: no pending confirmation interaction in /agent/runtime/status for conversation " + $ConversationID)
+            }
+        }
+        catch {
+            Write-WarnLine ("settle: pending-interaction derivation failed: " + $_.Exception.Message)
+        }
+    }
+    $rawToolRows = @(Get-OptionalProperty -Object $Raw -Name "executed_kernel_reply" | Where-Object { $null -ne $_ })
+    if ($rawToolRows.Count -eq 0 -and $toolRows.Count -gt 0) {
+        $settled | Add-Member -Force -MemberType NoteProperty -Name "executed_kernel_reply" -Value $toolRows
+    }
+    if ($null -eq (Get-OptionalProperty -Object $Raw -Name "typed_events")) {
+        # mac parity: assertions treat a settled response without typed_events
+        # as an empty list.
+        $settled | Add-Member -Force -MemberType NoteProperty -Name "typed_events" -Value @()
+    }
+    return $settled
 }
 
 function Assert-StatusOk {
@@ -569,8 +790,10 @@ Write-Step "Run chat observe turn"
 $conversationID = "mix_single_tick_e2e_" + (Get-Date -Format "yyyyMMdd_HHmmss")
 $observeMessage = Join-UnicodeChars @(0x5E2E, 0x6211, 0x770B, 0x6574, 0x4F53, 0x6DF7, 0x97F3, 0xFF0C, 0x53EA, 0x5EFA, 0x8BAE, 0x4E00, 0x4E2A, 0x5C0F, 0x5E45, 0x97F3, 0x91CF, 0x8C03, 0x6574, 0xFF0C, 0x5148, 0x7B49, 0x6211, 0x786E, 0x8BA4, 0xFF0C, 0x4E0D, 0x8981, 0x7528, 0x63D2, 0x4EF6)
 # Confirmation-request wording needle group (PORT-PS1-SYNC-2): the flash
-# engine has been observed asking with plain "确认" (先等你确认/请确认/待确认)
-# without ever writing 执行/继续, so the semantic group is {执行, 继续, 确认}.
+# engine has been observed asking with plain "confirm" (0x786E 0x8BA4, as in
+# "wait for my confirmation / please confirm / pending confirmation") without
+# ever writing the execute/continue pair, so the semantic group is
+# {execute (0x6267 0x884C), continue (0x7EE7 0x7EED), confirm (0x786E 0x8BA4)}.
 $executeNeedle = Join-UnicodeChars @(0x6267, 0x884C)
 $continueNeedle = Join-UnicodeChars @(0x7EE7, 0x7EED)
 $confirmNeedle = Join-UnicodeChars @(0x786E, 0x8BA4)
