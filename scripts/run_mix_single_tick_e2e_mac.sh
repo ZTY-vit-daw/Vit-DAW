@@ -3,8 +3,10 @@
 #
 # Mac port of scripts/run_mix_single_tick_e2e.ps1: the mix single-tick
 # E2E — build a two-track fixture project through the agent tool face, then
-# three real LLM chat turns (observe -> vocal clarification guard -> explicit
-# confirmation) with stop_reason / route / agent-log assertions.
+# real LLM chat turns (observe -> vocal clarification guard -> double-hop
+# confirmation: proposal confirmation, then tool-application confirmation)
+# with stop_reason / confirmation-face / workflow / agent-log assertions
+# (PORT-PS1-SYNC-3 double-hop contract).
 #
 #   | ps1 (run_mix_single_tick_e2e.ps1)         | mac (this script)              |
 #   |--------------------------------------------|--------------------------------|
@@ -77,7 +79,11 @@ TRACK1_PATH=""
 TRACK2_PATH=""
 WAIT_SECONDS=30
 CHAT_TIMEOUT_SEC=240
-CHAT_SETTLE_SECONDS=300
+# 720s default (PORT-PS1-SYNC-2, aligned with the ps1 twin and the product-path
+# mac twin): reasoning-model turns occasionally run a heavy reply past 300s;
+# measured stable at 720s. (This twin had kept 300 when the SYNC-2 sweep
+# raised the other three files.)
+CHAT_SETTLE_SECONDS=720
 KEEP_PROCESSES=0
 WORKDIR_ARG=""
 TRACKTION_DIR=""
@@ -116,7 +122,7 @@ Options:
   --wait-seconds N        Startup wait (default 30)
   --chat-timeout-sec N    /agent/chat timeout (default 240)
   --chat-settle-seconds N Budget for waiting a sliced-out turn's durable
-                          continuation to settle (default 300)
+                          continuation to settle (default 720)
   --keep-processes        Do not stop the stack this run started
   --workdir PATH          Reuse PATH as the run artifact dir
   --tracktion-dir PATH    tracktion_engine source dir (kernel build only)
@@ -469,9 +475,19 @@ agent_chat_settled() {
   # assertions run against <prefix>_settled.json (raw response preserved).
   local conv="$1" message="$2" prefix="$3"
   agent_chat "$conv" "$message" "$prefix"
-  local goal_status
+  local goal_status stop_reason_early
   goal_status="$(json_field "${prefix}.json" 'str(d.get("goal_status",""))')"
-  if [[ "$goal_status" != "waiting_continue" ]]; then
+  stop_reason_early="$(json_field "${prefix}.json" 'str(d.get("stop_reason",""))')"
+  # Double-hop refinement (PORT-PS1-SYNC-3, PC parity): a genuine agent-loop
+  # slice always carries stop_reason=limit_reached; a synchronous terminal park
+  # can arrive with goal_status=waiting_continue plus a meaningful stop_reason
+  # (the D1 applied turn: d1_post_action_evaluation_required, workflow
+  # free_state_d1_s1). That response is complete, not sliced — return it as-is
+  # instead of polling for a goal the evaluation slices settle much later.
+  local genuinely_sliced=0
+  if [[ "$stop_reason_early" == "limit_reached" ]]; then genuinely_sliced=1; fi
+  if [[ "$goal_status" == "waiting_continue" && -z "$stop_reason_early" ]]; then genuinely_sliced=1; fi
+  if [[ "$genuinely_sliced" -eq 0 ]]; then
     cp "${prefix}.json" "${prefix}_settled.json"
     return 0
   fi
@@ -593,6 +609,78 @@ for row in rows:
         if name:
             out.append(name)
 print("\n".join(out))
+PY
+}
+
+confirmation_face_kinds() {
+  # confirmation_face_kinds <response.json> — prints one confirmation-face kind
+  # per line (PORT-PS1-SYNC-3 double-hop layering). An unsliced parking
+  # response carries the face on interaction_requests[].kind; a settle-
+  # synthesized response rebuilds it as a typed_events row whose kind is the
+  # interaction kind. The generic "PendingCandidate" marker is not a face kind.
+  python3 - "$1" <<'PY'
+import json, sys
+d = json.load(open(sys.argv[1], encoding="utf-8"))
+kinds = []
+for row in d.get("interaction_requests") or []:
+    if isinstance(row, dict):
+        kind = str(row.get("kind") or "")
+        if kind:
+            kinds.append(kind)
+for row in d.get("typed_events") or []:
+    if isinstance(row, dict):
+        kind = str(row.get("kind") or "")
+        if kind and kind != "PendingCandidate":
+            kinds.append(kind)
+print("\n".join(kinds))
+PY
+}
+
+assert_bounded_mix_tick_payload() {
+  # assert_bounded_mix_tick_payload <response.json> <label> — hop-1 parks a
+  # concrete bounded tick (agent: pendingMixTickEventPayload +
+  # validatePendingMixTickCandidate): non-empty track, a native operation, and
+  # for the numeric domains a non-zero bounded delta (|delta_db| <= 2,
+  # |delta_pan| <= 0.15, -1 <= target_pan <= 1). EQ / broadband-compression
+  # bounds live in the admission, so only target+operation are checked there.
+  # Prints the target track id on success.
+  python3 - "$1" "$2" <<'PY'
+import json, sys
+d = json.load(open(sys.argv[1], encoding="utf-8"))
+label = sys.argv[2]
+payload = None
+for row in d.get("interaction_requests") or []:
+    if isinstance(row, dict) and isinstance(row.get("payload"), dict):
+        payload = row["payload"]
+        break
+if payload is None:
+    sys.exit(f"FAIL: {label}: no interaction payload on the response")
+track = str(payload.get("track_id") or "").strip()
+if not track:
+    sys.exit(f"FAIL: {label}: payload track_id is empty")
+op = str(payload.get("operation") or "")
+native = {"track_gain_adjust", "track_pan_adjust", "track_pan_set",
+          "static_eq_band_adjust", "broadband_threshold_adjust"}
+if op not in native:
+    sys.exit(f"FAIL: {label}: operation '{op}' not in the native set {sorted(native)}")
+def num(key):
+    try:
+        return float(payload.get(key))
+    except (TypeError, ValueError):
+        return 0.0
+if op == "track_gain_adjust":
+    v = num("delta_db")
+    if v == 0 or abs(v) > 2:
+        sys.exit(f"FAIL: {label}: delta_db out of the bounded non-zero +/-2 range: {v}")
+elif op == "track_pan_adjust":
+    v = num("delta_pan")
+    if v == 0 or abs(v) > 0.15:
+        sys.exit(f"FAIL: {label}: delta_pan out of the bounded non-zero +/-0.15 range: {v}")
+elif op == "track_pan_set":
+    v = num("target_pan")
+    if v < -1 or v > 1:
+        sys.exit(f"FAIL: {label}: target_pan out of the -1..+1 range: {v}")
+print(track)
 PY
 }
 
@@ -741,9 +829,17 @@ step "Run chat observe turn"
 CONVERSATION_ID="mix_single_tick_e2e_$(date '+%Y%m%d_%H%M%S')"
 agent_chat_settled "$CONVERSATION_ID" "$OBSERVE_MESSAGE" "$WORKDIR/http/chat_observe"
 OBSERVE_STOP="$(json_field "$WORKDIR/http/chat_observe_settled.json" 'str(d.get("stop_reason",""))')"
+# Double-hop contract (PORT-PS1-SYNC-3, user ruling 2026-09-20): the observe
+# turn parks at the improvement-PROPOSAL confirmation face (hop 1), never at a
+# directly executable mix tick. stop_reason is the direct form
+# (improvement_proposal_confirmation_required, workflow improvement_proposal)
+# or the settle-mapped form (needs_confirmation from goal waiting_confirmation).
+# The legacy "done" form belonged to the single-hop flow; the classic
+# "[mix.tick.pending] stored" wait moved to hop 1 because the bounded tick is
+# only stored once the proposal is confirmed.
 case "$OBSERVE_STOP" in
-  done|needs_confirmation) ;;
-  *) fail_functional "observe turn stop_reason: got '$OBSERVE_STOP', want 'done' or 'needs_confirmation' (settled_from=$(json_field "$WORKDIR/http/chat_observe_settled.json" 'str(d.get("settled_from",""))'))" ;;
+  needs_confirmation|improvement_proposal_confirmation_required) ;;
+  *) fail_functional "observe turn stop_reason: got '$OBSERVE_STOP', want 'needs_confirmation' or 'improvement_proposal_confirmation_required' (settled_from=$(json_field "$WORKDIR/http/chat_observe_settled.json" 'str(d.get("settled_from",""))'))" ;;
 esac
 OBSERVE_REPLY="$(json_field "$WORKDIR/http/chat_observe_settled.json" 'str(d.get("reply",""))')"
 READONLY_DUE_TO_INCOMPLETE_L3=0
@@ -763,11 +859,12 @@ PY
   fi
 fi
 if [[ "$READONLY_DUE_TO_INCOMPLETE_L3" -eq 0 ]]; then
-  STORED_LINE="$(wait_log_pattern "[mix.tick.pending] stored conversation=$CONVERSATION_ID" 10)"
-  if [[ "$STORED_LINE" != *"track=$TRACK2_ID"* && "$STORED_LINE" != *"track $TRACK2_ID"* && "$STORED_LINE" != *"target=track:$TRACK2_ID"* ]]; then
-    fail_functional "pending candidate did not target Track 2. line=$STORED_LINE"
-  fi
-  ok "pending candidate stored: $STORED_LINE"
+  [[ "$(json_field "$WORKDIR/http/chat_observe_settled.json" 'str(d.get("needs_confirmation"))')" == "True" ]] \
+    || fail_functional "observe parked without needs_confirmation=true on the proposal face"
+  confirmation_face_kinds "$WORKDIR/http/chat_observe_settled.json" > "$WORKDIR/bodies/observe_face_kinds.txt"
+  grep -qx "improvement_proposal_confirmation" "$WORKDIR/bodies/observe_face_kinds.txt" \
+    || fail_functional "observe confirmation face: got [$(paste -sd, - "$WORKDIR/bodies/observe_face_kinds.txt")], want improvement_proposal_confirmation (hop 1, proposal face)"
+  ok "observe parked on the improvement-proposal face (hop 1): $OBSERVE_STOP"
 fi
 
 # ---------------------------------------------------------------- vocal guard
@@ -785,50 +882,86 @@ fi
 if [[ -f "$AGENT_LOG" ]] && grep -Fq "[mix.tick.pending] stored conversation=$VOCAL_CONVERSATION_ID" "$AGENT_LOG" 2>/dev/null; then
   fail_functional "unresolved vocal clarification stored pending unexpectedly: $(grep -F "[mix.tick.pending] stored conversation=$VOCAL_CONVERSATION_ID" "$AGENT_LOG" | head -1)"
 fi
+# Still valid under the double-hop workflow (PORT-PS1-SYNC-3): a clarification
+# answer produces no candidate at all, so no mix tick may be stored for this
+# conversation — the bounded tick only exists after a confirmed improvement
+# proposal, which this unresolved vocal ask never reaches.
 ok "unresolved vocal asks clarification without pending: $VOCAL_REPLY"
 
-# ---------------------------------------------------------------- confirm turn
-step "Run confirmation turn"
+# ------------------------------------------------- double-hop confirmation chain
+step "Run double-hop confirmation chain (proposal, then tool application)"
+HOP2_STOP=""
+HOP2_REPLY=""
 agent_chat_settled "$CONVERSATION_ID" "$CONFIRM_MESSAGE" "$WORKDIR/http/chat_confirm"
 CONFIRM_STOP="$(json_field "$WORKDIR/http/chat_confirm_settled.json" 'str(d.get("stop_reason",""))')"
 if [[ "$READONLY_DUE_TO_INCOMPLETE_L3" -eq 1 ]]; then
   [[ "$CONFIRM_STOP" == "no_pending_mix_tick_candidate" ]] \
     || fail_functional "confirmation stop_reason: got '$CONFIRM_STOP', want 'no_pending_mix_tick_candidate'"
   ok "confirmation correctly found no pending tick after incomplete L3 read-only observe"
-  ROUTE=""
 else
-  [[ "$CONFIRM_STOP" == "mix_tick_applied_reobserved" ]] \
-    || fail_functional "confirmation stop_reason: got '$CONFIRM_STOP', want 'mix_tick_applied_reobserved' (settled_from=$(json_field "$WORKDIR/http/chat_confirm_settled.json" 'str(d.get("settled_from",""))'))"
-  tool_names_of "$WORKDIR/http/chat_confirm_settled.json" > "$WORKDIR/bodies/confirm_route.txt"
-  ROUTE="$(python3 -c 'print(" -> ".join(l.rstrip("\n") for l in open(sys.argv[1]) if l.strip()))' "$WORKDIR/bodies/confirm_route.txt")"
-  assert_any_present() {
-    local label="$1"; shift
-    local alias found=0
-    for alias in "$@"; do grep -qx "$alias" "$WORKDIR/bodies/confirm_route.txt" && { found=1; break; }; done
-    (( found )) || fail_functional "Expected $label in executed route. route=$ROUTE"
-  }
-  assert_any_absent() {
-    local label="$1"; shift
-    local alias
-    for alias in "$@"; do grep -qx "$alias" "$WORKDIR/bodies/confirm_route.txt" && fail_functional "Unexpected $label in executed route. route=$ROUTE"; done
-  }
-  assert_any_present "mix.propose_tick" mix.propose_tick mix_propose_tick
-  assert_any_present "mix.apply_tick" mix.apply_tick mix_apply_tick
-  assert_any_present "re-observation tool" mix.observe mix_observe mix.request_observation mix_request_observation
-  assert_any_absent "daw.invoke" daw.invoke daw_invoke
-  assert_any_absent "track.volume" track.volume track_volume
+  # Hop 1 — the user confirms the improvement PROPOSAL. The agent then issues
+  # the tool application (workflow mix_tick) and asks for its own execution
+  # confirmation; nothing has been applied yet (product ruling 2026-09-20: the
+  # two confirmations have different semantics, each on its own face).
+  [[ "$CONFIRM_STOP" == "improvement_proposal_native_tool_confirmation_required" ]] \
+    || fail_functional "hop-1 confirmation stop_reason: got '$CONFIRM_STOP', want 'improvement_proposal_native_tool_confirmation_required' (settled_from=$(json_field "$WORKDIR/http/chat_confirm_settled.json" 'str(d.get("settled_from",""))'))"
+  [[ "$(json_field "$WORKDIR/http/chat_confirm_settled.json" 'str(d.get("workflow",""))')" == "mix_tick" ]] \
+    || fail_functional "hop-1 workflow: got '$(json_field "$WORKDIR/http/chat_confirm_settled.json" 'str(d.get("workflow",""))')', want 'mix_tick'"
+  [[ "$(json_field "$WORKDIR/http/chat_confirm_settled.json" 'str(d.get("needs_confirmation"))')" == "True" ]] \
+    || fail_functional "hop-1 response did not carry needs_confirmation=true on the tool face"
+  confirmation_face_kinds "$WORKDIR/http/chat_confirm_settled.json" > "$WORKDIR/bodies/hop1_face_kinds.txt"
+  grep -qx "mix_tick_confirmation" "$WORKDIR/bodies/hop1_face_kinds.txt" \
+    || fail_functional "hop-1 confirmation face: got [$(paste -sd, - "$WORKDIR/bodies/hop1_face_kinds.txt")], want mix_tick_confirmation (hop 2, tool face)"
+  HOP1_TRACK="$(assert_bounded_mix_tick_payload "$WORKDIR/http/chat_confirm_settled.json" "hop-1 pending tick" 2>"$WORKDIR/bodies/hop1_payload_err.txt")" \
+    || fail_functional "$(cat "$WORKDIR/bodies/hop1_payload_err.txt" 2>/dev/null || echo 'hop-1 pending tick payload check failed')"
+  # the bounded tick is stored at hop-1 routing (storePendingMixTickCandidateForMode)
+  STORED_LINE="$(wait_log_pattern "[mix.tick.pending] stored conversation=$CONVERSATION_ID" 10)"
+  ok "hop-1 confirmed the proposal; bounded tick parked on the tool face (track $HOP1_TRACK): $STORED_LINE"
+
+  # Hop 2 — the user confirms the TOOL APPLICATION. The D1 chain applies the
+  # bounded move, readback-verifies it, and parks the round at its
+  # post-action evaluation boundary (workflow free_state_d1_s1). The legacy
+  # single-hop anchors (mix_tick_applied_reobserved stop, the
+  # propose/apply/reobserve tool route, and the
+  # "[mix.tick.pending] applied and reobserved" log wait) belonged to the
+  # pre-double-hop execution path and are gone by design: the D1 dispatch
+  # returns before that log line is ever reached.
+  agent_chat_settled "$CONVERSATION_ID" "$CONFIRM_MESSAGE" "$WORKDIR/http/chat_confirm2"
+  HOP2_STOP="$(json_field "$WORKDIR/http/chat_confirm2_settled.json" 'str(d.get("stop_reason",""))')"
+  HOP2_REPLY="$(json_field "$WORKDIR/http/chat_confirm2_settled.json" 'str(d.get("reply",""))')"
+  [[ "$HOP2_STOP" == "d1_post_action_evaluation_required" ]] \
+    || fail_functional "hop-2 confirmation stop_reason: got '$HOP2_STOP', want 'd1_post_action_evaluation_required' (settled_from=$(json_field "$WORKDIR/http/chat_confirm2_settled.json" 'str(d.get("settled_from",""))'))"
+  [[ "$(json_field "$WORKDIR/http/chat_confirm2_settled.json" 'str(d.get("workflow",""))')" == "free_state_d1_s1" ]] \
+    || fail_functional "hop-2 workflow: got '$(json_field "$WORKDIR/http/chat_confirm2_settled.json" 'str(d.get("workflow",""))')', want 'free_state_d1_s1'"
+  python3 - "$WORKDIR/http/chat_confirm2_settled.json" <<'PY' || fail_functional "hop-2 applied/readback assertions failed"
+import json, sys
+d = json.load(open(sys.argv[1], encoding="utf-8"))
+data = d.get("workflow_data") or {}
+if data.get("mutation_performed") is not True:
+    sys.exit("FAIL: hop-2 did not perform the mutation (workflow_data.mutation_performed != true)")
+if data.get("readback_verified") is not True:
+    sys.exit("FAIL: hop-2 did not verify the applied value by readback (workflow_data.readback_verified != true)")
+if "已应用并回读验证" not in str(d.get("reply") or ""):
+    sys.exit(f"FAIL: hop-2 reply did not report the applied+readback-verified outcome: {d.get('reply')}")
+PY
   wait_log_pattern "[mix.tick.pending] explicit confirmation routed conversation=$CONVERSATION_ID" 10 >/dev/null
-  wait_log_pattern "[mix.tick.pending] applied and reobserved conversation=$CONVERSATION_ID" 10 >/dev/null
-  ok "confirmation routed + applied and reobserved (route: $ROUTE)"
+  ok "hop-2 applied and readback-verified, parked at the d1 terminal: $HOP2_REPLY"
 fi
 
 step "Summary"
 {
   echo "conversation: $CONVERSATION_ID"
-  echo "route: $ROUTE"
+  echo "observe stop_reason: $OBSERVE_STOP (proposal face)"
+  echo "hop-1 stop_reason: $CONFIRM_STOP (tool face)"
+  if [[ "$READONLY_DUE_TO_INCOMPLETE_L3" -eq 0 ]]; then
+    echo "hop-2 stop_reason: $HOP2_STOP (workflow free_state_d1_s1)"
+  fi
   echo "observe reply: $OBSERVE_REPLY"
-  echo "confirm reply: $(json_field "$WORKDIR/http/chat_confirm_settled.json" 'str(d.get("reply",""))')"
+  echo "hop-1 reply: $(json_field "$WORKDIR/http/chat_confirm_settled.json" 'str(d.get("reply",""))')"
+  if [[ "$READONLY_DUE_TO_INCOMPLETE_L3" -eq 0 ]]; then
+    echo "hop-2 reply: $HOP2_REPLY"
+  fi
 } >&2
 OUTCOME="all_green"
-ok "mix single tick E2E passed"
+ok "mix single tick E2E passed (double-hop: proposal confirmation -> tool application confirmation)"
 exit 0
