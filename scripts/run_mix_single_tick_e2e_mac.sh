@@ -872,21 +872,36 @@ step "Run unresolved vocal clarification guard"
 VOCAL_CONVERSATION_ID="mix_single_tick_vocal_clarify_$(date '+%Y%m%d_%H%M%S')"
 agent_chat_settled "$VOCAL_CONVERSATION_ID" "$VOCAL_MESSAGE" "$WORKDIR/http/chat_vocal_guard"
 VOCAL_STOP="$(json_field "$WORKDIR/http/chat_vocal_guard_settled.json" 'str(d.get("stop_reason",""))')"
-[[ "$VOCAL_STOP" == "needs_clarification" ]] \
-  || fail_functional "unresolved vocal stop_reason: got '$VOCAL_STOP', want 'needs_clarification'"
 VOCAL_REPLY="$(json_field "$WORKDIR/http/chat_vocal_guard_settled.json" 'str(d.get("reply",""))')"
-VOCAL_REPLY_LC="$(python3 -c 'import sys; print(sys.argv[1].lower())' "$VOCAL_REPLY")"
-if [[ "$VOCAL_REPLY" != *"哪条"* && "$VOCAL_REPLY" != *"哪一条"* && "$VOCAL_REPLY" != *"哪一轨"* && "$VOCAL_REPLY_LC" != *"which track"* ]]; then
-  fail_functional "unresolved vocal reply did not ask which track is vocal: $VOCAL_REPLY"
-fi
+# Branch tolerance (PORT-PS1-SYNC-3, PC round-2 evidence 2026-09-20): under
+# the free-state workflow the ambiguous vocal ask may either (a) ask which
+# track is vocal (needs_clarification — the classic clarify-first contract,
+# still pinned strictly by the ⑤ product-path vocal clarification loop) or
+# (b) run the evidence loop, infer a candidate track spectrally, and park on
+# the improvement-proposal face. Both branches must leave the project
+# untouched with NO stored mix tick — the counter-assertion below stays
+# strict either way.
+case "$VOCAL_STOP" in
+  needs_clarification)
+    VOCAL_REPLY_LC="$(python3 -c 'import sys; print(sys.argv[1].lower())' "$VOCAL_REPLY")"
+    if [[ "$VOCAL_REPLY" != *"哪条"* && "$VOCAL_REPLY" != *"哪一条"* && "$VOCAL_REPLY" != *"哪一轨"* && "$VOCAL_REPLY_LC" != *"which track"* ]]; then
+      fail_functional "unresolved vocal reply did not ask which track is vocal: $VOCAL_REPLY"
+    fi
+    ;;
+  needs_confirmation|improvement_proposal_confirmation_required)
+    [[ "$(json_field "$WORKDIR/http/chat_vocal_guard_settled.json" 'str(d.get("needs_confirmation","")).lower()')" == "true" ]] \
+      || fail_functional "vocal ask parked on the proposal face without needs_confirmation=true"
+    ;;
+  *) fail_functional "unresolved vocal stop_reason: got '$VOCAL_STOP', want needs_clarification or a proposal-face park" ;;
+esac
 if [[ -f "$AGENT_LOG" ]] && grep -Fq "[mix.tick.pending] stored conversation=$VOCAL_CONVERSATION_ID" "$AGENT_LOG" 2>/dev/null; then
   fail_functional "unresolved vocal clarification stored pending unexpectedly: $(grep -F "[mix.tick.pending] stored conversation=$VOCAL_CONVERSATION_ID" "$AGENT_LOG" | head -1)"
 fi
-# Still valid under the double-hop workflow (PORT-PS1-SYNC-3): a clarification
-# answer produces no candidate at all, so no mix tick may be stored for this
-# conversation — the bounded tick only exists after a confirmed improvement
-# proposal, which this unresolved vocal ask never reaches.
-ok "unresolved vocal asks clarification without pending: $VOCAL_REPLY"
+# Still valid under the double-hop workflow (PORT-PS1-SYNC-3): neither branch
+# of the ambiguous vocal ask may store a mix tick — a clarification produces
+# no candidate at all, and a parked improvement proposal stores its bounded
+# tick only after the proposal is confirmed, which this guard never does.
+ok "unresolved vocal ask left no pending tick ($VOCAL_STOP): $VOCAL_REPLY"
 
 # ------------------------------------------------- double-hop confirmation chain
 step "Run double-hop confirmation chain (proposal, then tool application)"

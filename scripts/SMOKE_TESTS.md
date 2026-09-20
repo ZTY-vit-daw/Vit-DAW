@@ -953,9 +953,15 @@ Purpose:
     (`mix_tick_applied_reobserved` stop, the propose/apply/reobserve tool
     route, and the `[mix.tick.pending] applied and reobserved` log wait)
     belonged to the pre-double-hop execution path and are retired.
-- The unresolved vocal clarification guard keeps asserting that a
-  clarification answer stores no pending mix tick (a bounded tick only exists
-  after a confirmed improvement proposal).
+- The unresolved vocal clarification guard (PORT-PS1-SYNC-3 branch tolerance,
+  round-2 evidence): the ambiguous vocal ask may either ask which track is
+  vocal (`needs_clarification`, with the which-track wording check) or run the
+  free-state evidence loop and park on the improvement-proposal face
+  (`needs_confirmation` / direct form with `needs_confirmation=true`); the
+  strict clarify-first contract stays pinned by the ⑤ product-path vocal
+  clarification loop. Either branch must store NO pending mix tick — the
+  counter-assertion stays strict (a bounded tick only exists after a confirmed
+  improvement proposal).
 - Observe-reply confirmation wording is a needle group {执行, 继续, 确认}
   (PORT-PS1-SYNC-2: the flash engine has been observed asking with plain
   "确认" — 先等你确认/请确认/待确认 — without ever writing 执行/继续). A
@@ -1339,8 +1345,9 @@ Purpose:
   stack: two-track fixture (repo `test_100hz_10s.wav` +
   `test_target_3s.wav`), then real LLM chat turns — observe
   ("帮我看整体混音，只建议一个小幅音量调整，先等我确认，不要用插件"),
-  unresolved vocal clarification guard ("让主唱更靠前" → needs_clarification,
-  no pending), and the PORT-PS1-SYNC-3 double-hop confirmation chain: the
+  unresolved vocal clarification guard ("让主唱更靠前" → needs_clarification
+  with the which-track wording, or a proposal-face park — PORT-PS1-SYNC-3
+  branch tolerance; either way no pending mix tick stored), and the PORT-PS1-SYNC-3 double-hop confirmation chain: the
   first 可以执行 confirms the improvement proposal and must land on the tool
   face (`improvement_proposal_native_tool_confirmation_required`, workflow
   `mix_tick`, `mix_tick_confirmation` face kind, bounded tick payload,
