@@ -1261,6 +1261,15 @@ function Wait-ChatTurnSettled {
     if ([string]::IsNullOrWhiteSpace($settledGoalStatus)) {
         $settledGoalStatus = "settle_timeout"
     }
+    # Faithful completion (PORT-PS1-SYNC-2 run-2 fix): the unsliced response
+    # for a waiting_confirmation turn carries needs_confirmation=true plus the
+    # pending candidate as a typed event; reconstruct both for the settled
+    # view (flag from the settled goal, candidate from /agent/state's
+    # pending_candidates snapshot for this conversation).
+    $settledNeedsConfirmation = [bool](Get-OptionalProperty -Object $Raw -Name "needs_confirmation")
+    if ($settledGoal -eq "waiting_confirmation") {
+        $settledNeedsConfirmation = $true
+    }
     $rawStopReasonValue = [string](Get-OptionalProperty -Object $Raw -Name "stop_reason")
     $rawReplyValue = [string](Get-OptionalProperty -Object $Raw -Name "reply")
     $settled = $Raw
@@ -1271,6 +1280,62 @@ function Wait-ChatTurnSettled {
     $settled | Add-Member -Force -MemberType NoteProperty -Name "raw_stop_reason" -Value $rawStopReasonValue
     $settled | Add-Member -Force -MemberType NoteProperty -Name "raw_reply" -Value $rawReplyValue
     $settled | Add-Member -Force -MemberType NoteProperty -Name "delivered_event_count" -Value $delivered.Count
+    if ($settledGoal -eq "waiting_confirmation") {
+        $settled | Add-Member -Force -MemberType NoteProperty -Name "needs_confirmation" -Value $settledNeedsConfirmation
+        # mac parity (run_vit_product_path_smoke_mac.sh settle anchor): the
+        # raw sliced reply keeps needs_confirmation=false while the durable
+        # continuation holds the real pending interaction. Derive the
+        # confirmation surface from /agent/runtime/status continuations so
+        # the settled object stays self-consistent with the mapped
+        # stop_reason, exactly like the mac twin's pending_interaction walk.
+        try {
+            $statusSnapshot = Invoke-Json -Method GET -Uri ($AgentHttp.TrimEnd("/") + "/agent/runtime/status") -TimeoutSec 30
+            $pendingInteraction = $null
+            foreach ($continuationRow in @(Get-OptionalProperty -Object $statusSnapshot -Name "continuations")) {
+                $continuationConversationID = [string](Get-OptionalProperty -Object $continuationRow -Name "conversation_id")
+                if (-not [string]::IsNullOrWhiteSpace($ConversationID) -and $continuationConversationID -ne $ConversationID) {
+                    continue
+                }
+                $interaction = Get-OptionalProperty -Object $continuationRow -Name "pending_interaction"
+                if ($null -ne $interaction -and (([string](Get-OptionalProperty -Object $interaction -Name "kind")).Contains("confirmation"))) {
+                    $pendingInteraction = $interaction
+                    break
+                }
+            }
+            if ($null -ne $pendingInteraction) {
+                # null-filter the base list: @($null) in PowerShell is a
+                # one-element array holding null (run-3 lesson), and the
+                # typed-event assertions dot into every row; the mac twin
+                # filters with isinstance(e, dict) for the same reason.
+                $typedEventRows = @(Get-OptionalProperty -Object $settled -Name "typed_events" | Where-Object { $null -ne $_ })
+                # pscustomobject, not [ordered]: PS 5.1 StrictMode throws
+                # PropertyNotFoundStrict on dot access of OrderedDictionary
+                # keys, and the assertions read $typedEvent.event_type.
+                $pendingEvent = [pscustomobject]@{
+                    event_type = "PendingCandidate"
+                    source = "settled_pending_interaction"
+                    interaction_id = [string](Get-OptionalProperty -Object $pendingInteraction -Name "interaction_id")
+                    kind = [string](Get-OptionalProperty -Object $pendingInteraction -Name "kind")
+                }
+                $typedEventRows += $pendingEvent
+                $settled | Add-Member -Force -MemberType NoteProperty -Name "typed_events" -Value $typedEventRows
+                $settledPlanID = ([string](Get-OptionalProperty -Object $pendingInteraction -Name "plan_id")).Trim()
+                $settledProposalID = ([string](Get-OptionalProperty -Object $pendingInteraction -Name "proposal_id")).Trim()
+                if (-not [string]::IsNullOrWhiteSpace($settledPlanID)) {
+                    $settled | Add-Member -Force -MemberType NoteProperty -Name "plan_id" -Value $settledPlanID
+                }
+                elseif (-not [string]::IsNullOrWhiteSpace($settledProposalID)) {
+                    $settled | Add-Member -Force -MemberType NoteProperty -Name "plan_id" -Value $settledProposalID
+                }
+            }
+            else {
+                Write-WarnLine ("settle: no pending confirmation interaction in /agent/runtime/status for conversation " + $ConversationID)
+            }
+        }
+        catch {
+            Write-WarnLine ("settle: pending-interaction derivation failed: " + $_.Exception.Message)
+        }
+    }
     $rawToolRows = @(Get-OptionalProperty -Object $Raw -Name "executed_kernel_reply" | Where-Object { $null -ne $_ })
     if ($rawToolRows.Count -eq 0 -and $toolRows.Count -gt 0) {
         $settled | Add-Member -Force -MemberType NoteProperty -Name "executed_kernel_reply" -Value $toolRows

@@ -491,9 +491,9 @@ agent_chat_settled() {
   printf '%s' "$polled" > "${prefix}_settled_goal.txt"
   local events_code
   events_code="$(http_json GET "$AGENT_HTTP/agent/events?conversation_id=$(python3 -c 'import urllib.parse,sys; print(urllib.parse.quote(sys.argv[1], safe=""))' "$conv")&since=0&limit=500" "" "${prefix}_events.json" 60)" || true
-  python3 - "$prefix" "$polled" "$PLACEHOLDER_REPLY_NEEDLE" <<'SETTLE_PY'
+  python3 - "$prefix" "$polled" "$PLACEHOLDER_REPLY_NEEDLE" "$WORKDIR/bodies/settle_poll.json" <<'SETTLE_PY'
 import json, sys
-prefix, settled_goal, placeholder = sys.argv[1:4]
+prefix, settled_goal, placeholder, status_path = sys.argv[1:5]
 raw = json.load(open(f"{prefix}.json", encoding="utf-8"))
 events = {}
 try:
@@ -526,6 +526,35 @@ out["settled_from"] = "continuation+events (mac chat_settle anchor)"
 out["raw_stop_reason"] = raw.get("stop_reason", "")
 out["raw_reply"] = raw.get("reply", "")
 out["delivered_event_count"] = len(delivered)
+if settled_goal == "waiting_confirmation":
+    # PORT-PS1-SYNC-2 mac parity with run_vit_product_path_smoke_mac.sh: the
+    # raw sliced reply keeps needs_confirmation=false while the durable
+    # continuation holds the real pending interaction; derive the
+    # confirmation surface from the runtime status so the settled JSON stays
+    # self-consistent with the mapped stop_reason.
+    pending = None
+    try:
+        status = json.load(open(status_path, encoding="utf-8"))
+        conversation_id = str(raw.get("conversation_id") or "")
+        for cont in status.get("continuations") or []:
+            if conversation_id and str(cont.get("conversation_id") or "") != conversation_id:
+                continue
+            interaction = cont.get("pending_interaction")
+            if isinstance(interaction, dict) and "confirmation" in str(interaction.get("kind", "")):
+                pending = interaction
+                break
+    except Exception:
+        pending = None
+    if pending is not None:
+        out["needs_confirmation"] = True
+        settled_events = list(out.get("typed_events") or [])
+        settled_events.append({
+            "event_type": "PendingCandidate",
+            "source": "settled_pending_interaction",
+            "interaction_id": pending.get("interaction_id"),
+            "kind": pending.get("kind"),
+        })
+        out["typed_events"] = settled_events
 json.dump(out, open(f"{prefix}_settled.json", "w", encoding="utf-8"), ensure_ascii=False, indent=2)
 SETTLE_PY
 }

@@ -762,6 +762,15 @@ Purpose:
   needle hit counts as the confirmation request; a miss is admissible only on
   the L3-incomplete read-only branch (reply mentions L3/深度/spectrogram being
   built/partial).
+- chat settle waiting (PORT-PS1-SYNC-2, ported from the product-path SETTLE-1
+  anchor / the mac `agent_chat_settled` twin): a sliced-out observe turn
+  (`goal_status=waiting_continue` / `stop_reason=limit_reached`) is polled via
+  `/agent/runtime/status` until terminal, then the settled reply + effective
+  stop reason are synthesized from `/agent/events`
+  (`-ChatSettleSeconds`, default 720); a settled `waiting_confirmation` goal
+  additionally derives `needs_confirmation=true` and a PendingCandidate typed
+  event from the runtime status continuation's `pending_interaction` (mac
+  parity).
 
 Common commands:
 
