@@ -28,4 +28,4 @@
   - **端测覆盖边界声明（AGENTS §5）**：全部证据来自真实三进程栈（内核+vsphub+agent，每件独立起停）；⑤ 的 ws 消费走 Godot headless 探针（前端适配器数据通道）；编辑器 UI 面/渲染面未覆盖（本卡无 webui/渲染改动；手测入口归用户闸门）。LLM 零参与（纯协议/栈确定性断言，JOURNEY 先验不适用，无 key 入工件）。
   - **工件**：`~/Documents/vit-smoke-mac3-artifacts/<run_id>/` ×6（run_meta 含 HEAD+dirty+脚本 sha、双 bin sha256、gates.env、各探针 JSON、hub 状态/日志、lsof 证据、停栈记录、summary.json）；控制台日志 `/tmp/mac3_p{1..5}_run{1,2}.log`。SMOKE_TESTS.md 五条目（套件节+逐件 Purpose/Common commands/Notes）已入实现 commit。
   - 卡片处置：验收①②③④全达成（五件 exit 0+对照表+5 条目+工件账目），**mv done 待决策验收**。
-- 验收：
+- 验收：pass（2026-09-20，ruling [2026-09-20-SMOKEMAC3-pass.md](../../rulings/2026-09-20-SMOKEMAC3-pass.md)：五件全绿工件亲核（lifecycle summary=PASS 直读）、栈/二进制账目严格（端口归属+sha256 核对+§9 复用合规）、websocket stdlib 客户端实现采认、未移植边界显式声明；b246305 已 cherry-pick 入 main；**现行套件 PC-only 项清零，mac 全绿达 15 件**）
