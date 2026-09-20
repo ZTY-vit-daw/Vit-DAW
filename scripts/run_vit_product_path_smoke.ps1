@@ -52,7 +52,11 @@ param(
     [string]$ProjectPackageRequiredHistoryText = "",
     [string]$ProjectPackageArtifactDir = "",
     [int]$TimeoutSeconds = 60,
-    [int]$ChatSettleSeconds = 300
+    # 720s default (PORT-PS1-SYNC-2): reasoning-model turns occasionally run a
+    # heavy reply past 300s; measured stable at 720s (mac 2026-09-20 flash
+    # A/B experiment — pro showed no capability premium, only ~6x latency,
+    # so the settle window grows while the engine stays flash).
+    [int]$ChatSettleSeconds = 720
 )
 
 Set-StrictMode -Version Latest

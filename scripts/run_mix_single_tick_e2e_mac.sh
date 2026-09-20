@@ -92,8 +92,12 @@ ZMQ_LOG_PORT=5557
 OBSERVE_MESSAGE="帮我看整体混音，只建议一个小幅音量调整，先等我确认，不要用插件"
 VOCAL_MESSAGE="让主唱更靠前"
 CONFIRM_MESSAGE="可以执行"
+# Confirmation-request wording needle group (PORT-PS1-SYNC-2): the flash
+# engine has been observed asking with plain "确认" (先等你确认/请确认/待确认)
+# without ever writing 执行/继续, so the semantic group is {执行, 继续, 确认}.
 EXECUTE_NEEDLE="执行"
 CONTINUE_NEEDLE="继续"
+CONFIRM_NEEDLE="确认"
 
 usage() {
   cat <<'EOF'
@@ -714,7 +718,7 @@ case "$OBSERVE_STOP" in
 esac
 OBSERVE_REPLY="$(json_field "$WORKDIR/http/chat_observe_settled.json" 'str(d.get("reply",""))')"
 READONLY_DUE_TO_INCOMPLETE_L3=0
-if [[ "$OBSERVE_REPLY" != *"$EXECUTE_NEEDLE"* && "$OBSERVE_REPLY" != *"$CONTINUE_NEEDLE"* ]]; then
+if [[ "$OBSERVE_REPLY" != *"$EXECUTE_NEEDLE"* && "$OBSERVE_REPLY" != *"$CONTINUE_NEEDLE"* && "$OBSERVE_REPLY" != *"$CONFIRM_NEEDLE"* ]]; then
   if python3 - "$WORKDIR/http/chat_observe_settled.json" <<'PY'
 import json, sys
 reply = str(json.load(open(sys.argv[1], encoding="utf-8")).get("reply", ""))

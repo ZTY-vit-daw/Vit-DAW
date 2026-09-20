@@ -756,6 +756,12 @@ Purpose:
   `mix.propose_tick -> mix.apply_tick -> mix.observe`.
 - Verify the confirmation path does not use `daw.invoke` or `track.volume`
   directly.
+- Observe-reply confirmation wording is a needle group {执行, 继续, 确认}
+  (PORT-PS1-SYNC-2: the flash engine has been observed asking with plain
+  "确认" — 先等你确认/请确认/待确认 — without ever writing 执行/继续). A
+  needle hit counts as the confirmation request; a miss is admissible only on
+  the L3-incomplete read-only branch (reply mentions L3/深度/spectrogram being
+  built/partial).
 
 Common commands:
 
@@ -831,7 +837,9 @@ Purpose:
   asynchronously. `Invoke-AgentChat` then polls `/agent/runtime/status`
   until the goal reaches a terminal status and reads the settled reply +
   effective stop reason from the `/agent/events` surface
-  (`-ChatSettleSeconds`, default 300). Assertions read the settled
+  (`-ChatSettleSeconds`, default 720 — PORT-PS1-SYNC-2: reasoning-model
+  turns occasionally run a heavy reply past 300 s; measured stable at
+  720 s on the 2026-09-20 flash A/B experiment). Assertions read the settled
   response; the raw sliced response is preserved on it as `raw_stop_reason`
   / `raw_reply`. Un-sliced turns return the POST response unchanged (zero
   overhead).
@@ -867,9 +875,10 @@ Notes:
   checks; they are not the default product path.
 - By default, processes started by this script are stopped at the end. Use
   `-KeepProcesses` to leave them running for manual inspection.
-- `-ChatSettleSeconds <n>` (default 300) bounds the settle wait for a
-  sliced-out chat turn's durable continuation (see the chat settle waiting
-  bullet above); it only applies to turns that were actually sliced out.
+- `-ChatSettleSeconds <n>` (default 720, PORT-PS1-SYNC-2) bounds the settle
+  wait for a sliced-out chat turn's durable continuation (see the chat settle
+  waiting bullet above); it only applies to turns that were actually sliced
+  out.
 - `-CompressorControlAgentOnly` keeps the full Godot-owned lifecycle and binary
   verification, then checks the compressor-control tool catalog, API-2500 topology and one
   reversible apply/readback/restore cycle, plus L2 limiter rejection. Its
@@ -928,6 +937,14 @@ Purpose:
   peak, RMS, headroom, crest, primary clip id/name, and source path.
 - Verify loudness, peak, and headroom-risk rankings include the imported
   material tracks.
+- Verify feature-snapshot readiness reasons for kernel-prepared requests
+  (PORT-PS1-SYNC-2): `track_waveform_envelopes` keeps one row per request, so
+  a track's bake history legitimately holds partial/missing rows next to the
+  finished one — the readiness contract is per-track existence of a ready
+  row (with track_id/clip_id/request_id/source_revision on that row), not
+  every-row-ready; bridge rows (`spectrogram_tiles`/
+  `band_energy_summary`/`stereo_relation_summary`) keep request-id
+  consistency with explicit reasons on non-ready statuses.
 - Save compact artifacts: `summary.json`, `imports.json`, `track_acoustics.json`,
   `rankings.json`, and the raw `mix_observe_full_project.json`.
 
@@ -1112,7 +1129,8 @@ Purpose:
   asynchronously; the driver waits for the goal to settle
   (`--chat-settle-seconds`, default 300) and reads the settled reply +
   effective stop_reason from the conversation events surface. Assertions
-  and needles are unchanged.
+  are unchanged; the observe-reply confirmation needle group is
+  {执行, 继续, 确认} (PORT-PS1-SYNC-2, synced with the ps1).
 
 Common commands:
 
@@ -1167,7 +1185,9 @@ Notes:
 - Real LLM turns (same preflight as JOURNEY-1-MAC). §8: ≤3 valid runs.
 - Same chat_settle anchor as the mix single-tick mac script (sliced-out
   turns wait for their durable continuation and read the settled outcome
-  from the events surface).
+  from the events surface; `--chat-settle-seconds` default 720 since
+  PORT-PS1-SYNC-2 — reasoning-model heavy replies occasionally exceed
+  300 s).
 - Artifacts: per-turn chat JSON (+ `_settled` variants), events JSON, route
   lists, snapshot copies, `vit_product_path_smoke.mac.v1` summary with all
   stop reasons.
@@ -1188,8 +1208,10 @@ Purpose:
   shape + artifact on disk), retrying full-project observation until every
   imported track reports ready acoustics (peak/rms/headroom/crest +
   primary clip identity), MOM v1.5 multitrack projection shape (no raw
-  package leak), feature-snapshot readiness reasons (bridge rows with
-  request-id consistency, deep-source capabilities, phase-5 limitations),
+  package leak), feature-snapshot readiness reasons (kernel-prepared
+  waveform rows are per-request history — per-track existence of a ready
+  row is the contract; bridge rows with request-id consistency,
+  deep-source capabilities, phase-5 limitations),
   L3 coverage non-regression vs the immediate capture, and
   loudness/peak/headroom rankings.
 - mac machine facts: `Paper Crown.mp3` is PC-only and mac repo roots carry

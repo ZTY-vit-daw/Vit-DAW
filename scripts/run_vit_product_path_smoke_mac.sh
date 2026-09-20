@@ -75,7 +75,11 @@ SKIP_AGENT_BUILD=0
 AGENT_BIN_ARG=""
 WAIT_SECONDS=60
 CHAT_TIMEOUT_SEC=240
-CHAT_SETTLE_SECONDS=300
+# 720s default (PORT-PS1-SYNC-2): reasoning-model turns occasionally run a
+# heavy reply past 300s; measured stable at 720s (2026-09-20 flash A/B
+# experiment — pro showed no capability premium, only ~6x latency, so the
+# settle window grows while the engine stays flash).
+CHAT_SETTLE_SECONDS=720
 KEEP_PROCESSES=0
 WORKDIR_ARG=""
 TRACKTION_DIR=""
@@ -110,7 +114,7 @@ Options:
   --wait-seconds N        Startup wait (default 60)
   --chat-timeout-sec N    /agent/chat timeout (default 240)
   --chat-settle-seconds N Budget for waiting a sliced-out turn's durable
-                          continuation to settle (default 300)
+                          continuation to settle (default 720)
   --keep-processes        Do not stop the stack this run started
   --workdir PATH          Reuse PATH as the run artifact dir
   --tracktion-dir PATH    tracktion_engine source dir (kernel build only)
