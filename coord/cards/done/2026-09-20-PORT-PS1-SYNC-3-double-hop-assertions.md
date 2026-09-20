@@ -26,4 +26,4 @@
   - 验收④（SMOKE_TESTS.md）：同步六处——PC④ 双跳契约全段+守卫分支容忍+settle 触发收窄、PC⑤ vocal focus 正路径+derive 反转+主 confirm 块不可达口径+clarify 循环双跳与 ask 分支容忍、mac④ 双跳+守卫容忍+settle 720、mac⑤ 同款口径。
   - 双端 diff 清单：scripts/run_mix_single_tick_e2e.ps1（+188/-32 区）、run_mix_single_tick_e2e_mac.sh、run_vit_product_path_smoke.ps1、run_vit_product_path_smoke_mac.sh、SMOKE_TESTS.md；agent/、VitApp/、前端仓零触碰（只读取证：improvement_proposal_workflow.go/mix_tick_confirmation.go/free_state_d1_runtime.go/server.go 路由序）。
   - 纪律记录：flash 口径全程未换模型（deepseek-v4-flash，~/.vit/config.json 未动）；default_project.xml 烟测改写未提交未还原（已知保留项）；决策侧 doing 删除遗留未代提交；工件与 console 日志 coord/runs/PORT-PS1-SYNC-3/（7 份，未提交，SYNC-2 惯例）；每轮 run 用新工件目录（product_path_20260920_{200035(锁竞态弃),200812,202134,203153}）。
-- 验收：
+- 验收：**pass**（2026-09-20 PC 决策侧，[rulings/2026-09-20-PS1SYNC3-pass.md](../../rulings/2026-09-20-PS1SYNC3-pass.md)）——四验收项全亲验：④ 双跳链 console 逐跳核（提案面→工具面 stored 锚→回读 0→-0.5dB→d1）；⑤ summary passed+vocal focus settled 实证+derive 反转 A/B 直接证据（run3 derive=0 新断言绿旧必红）；分支容忍两处为真实行为分支非套绿（反断言保持严格）；§8 合格。两观察项入档（agent 侧 goal=failed 未复发待观察；clarify-first 非确定性=已知行为方差）。实现已 cherry-pick 入 main
