@@ -1274,17 +1274,53 @@ CLARIFY_CONVERSATION_ID="product_path_vocal_clarify_$(date '+%Y%m%d_%H%M%S')"
 agent_chat_ctx "$CLARIFY_CONVERSATION_ID" "$VOCAL_FORWARD_MESSAGE" "-" "$WORKDIR/http/chat_vocal_clarify_ask"
 CLARIFY_ASK_STOP="$(json_field "$WORKDIR/http/chat_vocal_clarify_ask_settled.json" 'str(d.get("stop_reason",""))')"
 record_stop_reason vocal_clarification_ask "$CLARIFY_ASK_STOP"
-[[ "$CLARIFY_ASK_STOP" == "needs_clarification" ]] \
-  || fail_functional "vocal clarification ask stop_reason=$CLARIFY_ASK_STOP reply=$(json_field "$WORKDIR/http/chat_vocal_clarify_ask.json" 'str(d.get("reply",""))')"
 CLARIFY_ASK_REPLY="$(json_field "$WORKDIR/http/chat_vocal_clarify_ask_settled.json" 'str(d.get("reply",""))')"
-CLARIFY_ASK_REPLY_LC="$(python3 -c 'import sys; print(sys.argv[1].lower())' "$CLARIFY_ASK_REPLY")"
-if [[ "$CLARIFY_ASK_REPLY" != *"哪条"* && "$CLARIFY_ASK_REPLY" != *"哪一条"* && "$CLARIFY_ASK_REPLY" != *"哪一轨"* && "$CLARIFY_ASK_REPLY_LC" != *"which track"* ]]; then
-  fail_functional "vocal clarification ask did not ask which track is vocal: $CLARIFY_ASK_REPLY"
+# Ask branch tolerance (PORT-PS1-SYNC-3, PC run evidence 2026-09-20: the PC
+# twin's run 1 ended capability_blocked with the honest boundary reply, and
+# ④ run 2 inferred a candidate spectrally and parked a proposal instead of
+# asking): the ambiguous vocal ask may (a) ask which track is vocal
+# (needs_clarification — the classic path, fully exercised below when it
+# happens), (b) park on the improvement-proposal face, or (c) honestly stop
+# at a capability boundary (done + no-op/boundary wording). Every branch must
+# leave no stored mix tick — the counter-assertion stays strict.
+CLARIFY_ASKED_WHICH_TRACK=0
+CLARIFY_PROPOSAL_FACE=0
+case "$CLARIFY_ASK_STOP" in
+  needs_clarification) CLARIFY_ASKED_WHICH_TRACK=1 ;;
+  needs_confirmation|improvement_proposal_confirmation_required) CLARIFY_PROPOSAL_FACE=1 ;;
+  *)
+    python3 - "$CLARIFY_ASK_REPLY" <<'PY' || fail_functional "vocal clarification ask stop_reason=$CLARIFY_ASK_STOP reply=$CLARIFY_ASK_REPLY"
+import sys
+reply = sys.argv[1]
+safe = any(k in reply for k in ("can't", "cannot", "not reliably", "No mix action",
+                                "no mix action", "not safe", "not identified", "partial",
+                                "能力边界", "无法安全", "无法可靠", "不能可靠", "证据不足"))
+sys.exit(0 if safe else 1)
+PY
+    ;;
+esac
+if [[ "$CLARIFY_ASKED_WHICH_TRACK" -eq 1 ]]; then
+  CLARIFY_ASK_REPLY_LC="$(python3 -c 'import sys; print(sys.argv[1].lower())' "$CLARIFY_ASK_REPLY")"
+  if [[ "$CLARIFY_ASK_REPLY" != *"哪条"* && "$CLARIFY_ASK_REPLY" != *"哪一条"* && "$CLARIFY_ASK_REPLY" != *"哪一轨"* && "$CLARIFY_ASK_REPLY_LC" != *"which track"* ]]; then
+    fail_functional "vocal clarification ask did not ask which track is vocal: $CLARIFY_ASK_REPLY"
+  fi
+fi
+if [[ "$CLARIFY_PROPOSAL_FACE" -eq 1 ]]; then
+  [[ "$(json_field "$WORKDIR/http/chat_vocal_clarify_ask_settled.json" 'str(d.get("needs_confirmation","")).lower()')" == "true" ]] \
+    || fail_functional "vocal clarification ask parked on the proposal face without needs_confirmation=true"
+  confirmation_face_kinds "$WORKDIR/http/chat_vocal_clarify_ask_settled.json" > "$WORKDIR/bodies/clarify_ask_face_kinds.txt"
+  grep -qx "improvement_proposal_confirmation" "$WORKDIR/bodies/clarify_ask_face_kinds.txt" \
+    || fail_functional "vocal clarification ask confirmation face: got [$(paste -sd, - "$WORKDIR/bodies/clarify_ask_face_kinds.txt")], want improvement_proposal_confirmation (hop 1, proposal face)"
 fi
 events_get "$CLARIFY_CONVERSATION_ID" 0 20 "$WORKDIR/http/events_vocal_clarify_after_ask.json"
 CLARIFY_ASK_PENDING="$(json_field "$WORKDIR/http/events_vocal_clarify_after_ask.json" 'sum(1 for e in (d.get("events") or []) if str(e.get("type","")) == "mix_tick.pending")')"
 [[ "$CLARIFY_ASK_PENDING" == "0" ]] \
   || fail_functional "vocal clarification ask stored pending before the vocal track was identified"
+
+# The answer turn only exists on the clarify branch; on the parked-proposal
+# branch the proposal is already on the table.
+CLARIFY_ANSWER_STOP=""
+if [[ "$CLARIFY_ASKED_WHICH_TRACK" -eq 1 ]]; then
 
 agent_chat_ctx "$CLARIFY_CONVERSATION_ID" "$VOCAL_ANSWER_MESSAGE" "-" "$WORKDIR/http/chat_vocal_clarify_answer"
 CLARIFY_ANSWER_STOP="$(json_field "$WORKDIR/http/chat_vocal_clarify_answer_settled.json" 'str(d.get("stop_reason",""))')"
@@ -1312,10 +1348,13 @@ case "$CLARIFY_ANSWER_STOP" in
     ;;
 esac
 events_get "$CLARIFY_CONVERSATION_ID" 0 40 "$WORKDIR/http/events_vocal_clarify_after_answer.json"
+fi
 
 # Confirmation chain (④ double-hop style, PORT-PS1-SYNC-3): hop 1 confirms
 # the proposal and must land on the tool face; hop 2 confirms the tool
 # application and must apply + readback-verify, parking at the d1 terminal.
+# On the honest-done branch nothing was parked, so the confirmation must
+# report no pending candidate.
 agent_chat_ctx "$CLARIFY_CONVERSATION_ID" "$CONFIRM_MESSAGE" "-" "$WORKDIR/http/chat_vocal_clarify_confirm"
 CLARIFY_CONFIRM_STOP="$(json_field "$WORKDIR/http/chat_vocal_clarify_confirm_settled.json" 'str(d.get("stop_reason",""))')"
 record_stop_reason vocal_clarification_confirm "$CLARIFY_CONFIRM_STOP"

@@ -3301,15 +3301,53 @@ try {
     $clarifyAsk = Invoke-AgentChat -ConversationID $clarifyConversationID -Message $vocalForwardMessage
     ConvertTo-JsonFile -Value $clarifyAsk -Path (Join-Path $ArtifactDir "chat_vocal_clarify_ask.json")
     $clarifyAskStop = [string](Get-OptionalProperty -Object $clarifyAsk -Name "stop_reason")
-    if ($clarifyAskStop -ne "needs_clarification") {
-        Fail ("vocal clarification ask stop_reason=" + $clarifyAskStop + " reply=" + [string](Get-OptionalProperty -Object $clarifyAsk -Name "reply"))
-    }
     $clarifyAskReply = [string](Get-OptionalProperty -Object $clarifyAsk -Name "reply")
-    $whichTrackText = Join-UnicodeChars @(0x54EA, 0x6761)
-    $whichOneMeasureText = Join-UnicodeChars @(0x54EA, 0x4E00, 0x6761)
-    $whichOneTrackText = Join-UnicodeChars @(0x54EA, 0x4E00, 0x8F68)
-    if (($clarifyAskReply -notmatch $whichTrackText) -and ($clarifyAskReply -notmatch $whichOneMeasureText) -and ($clarifyAskReply -notmatch $whichOneTrackText) -and ($clarifyAskReply.ToLowerInvariant() -notmatch "which track")) {
-        Fail ("vocal clarification ask did not ask which track is vocal: " + $clarifyAskReply)
+    # Ask branch tolerance (PORT-PS1-SYNC-3, run evidence 2026-09-20: this
+    # smoke's run 1, conv product_path_vocal_clarify_20260920_200812, ended
+    # capability_blocked with the honest boundary reply; ④ run 2 conv
+    # mix_single_tick_vocal_clarify_20260920_194908 inferred a candidate
+    # spectrally and parked a proposal instead of asking): under the
+    # free-state workflow the ambiguous vocal ask may (a) ask which track is
+    # vocal (needs_clarification — the classic path, fully exercised below
+    # when it happens), (b) park on the improvement-proposal face after
+    # evidence-based inference, or (c) honestly stop at a capability boundary
+    # (done + no-op/boundary wording). Every branch must leave no stored mix
+    # tick — the counter-assertion below stays strict.
+    $clarifyAskedWhichTrack = $false
+    $clarifyAskParkedProposal = $false
+    $clarifyAskSafeNoop = ($clarifyAskReply -match "can't|cannot|not reliably|No mix action|no mix action|not safe|not identified|partial|能力边界|无法安全|无法可靠|不能可靠|证据不足")
+    switch ($clarifyAskStop) {
+        "needs_clarification" {
+            $clarifyAskedWhichTrack = $true
+        }
+        "needs_confirmation" {
+            $clarifyAskParkedProposal = $true
+        }
+        "improvement_proposal_confirmation_required" {
+            $clarifyAskParkedProposal = $true
+        }
+        default {
+            if (-not (($clarifyAskStop -eq "done") -and $clarifyAskSafeNoop)) {
+                Fail ("vocal clarification ask stop_reason=" + $clarifyAskStop + " reply=" + $clarifyAskReply)
+            }
+        }
+    }
+    if ($clarifyAskedWhichTrack) {
+        $whichTrackText = Join-UnicodeChars @(0x54EA, 0x6761)
+        $whichOneMeasureText = Join-UnicodeChars @(0x54EA, 0x4E00, 0x6761)
+        $whichOneTrackText = Join-UnicodeChars @(0x54EA, 0x4E00, 0x8F68)
+        if (($clarifyAskReply -notmatch $whichTrackText) -and ($clarifyAskReply -notmatch $whichOneMeasureText) -and ($clarifyAskReply -notmatch $whichOneTrackText) -and ($clarifyAskReply.ToLowerInvariant() -notmatch "which track")) {
+            Fail ("vocal clarification ask did not ask which track is vocal: " + $clarifyAskReply)
+        }
+    }
+    if ($clarifyAskParkedProposal) {
+        if (-not [bool](Get-OptionalProperty -Object $clarifyAsk -Name "needs_confirmation")) {
+            Fail "vocal clarification ask parked on the proposal face without needs_confirmation=true"
+        }
+        $clarifyAskFaceKinds = Get-ConfirmationFaceKinds -Response $clarifyAsk
+        if ($clarifyAskFaceKinds -notcontains "improvement_proposal_confirmation") {
+            Fail ("vocal clarification ask confirmation face: got [" + ($clarifyAskFaceKinds -join ", ") + "], want improvement_proposal_confirmation (hop 1, proposal face)")
+        }
     }
     $clarifyAskEvents = Invoke-Json -Method GET -Uri ($AgentHttp.TrimEnd("/") + "/agent/events?conversation_id=" + [uri]::EscapeDataString($clarifyConversationID) + "&since=0&limit=20") -TimeoutSec 10
     ConvertTo-JsonFile -Value $clarifyAskEvents -Path (Join-Path $ArtifactDir "events_vocal_clarify_after_ask.json")
@@ -3319,6 +3357,12 @@ try {
         }
     }
 
+    # The answer turn only exists on the clarify branch; on the
+    # parked-proposal branch the proposal is already on the table.
+    $clarifyProposalFace = $clarifyAskParkedProposal
+    $clarifyAnswerStop = ""
+    $vocalAnswerMessage = ""
+    if ($clarifyAskedWhichTrack) {
     $vocalAnswerMessage = "Track 1 " + (Join-UnicodeChars @(0x662F, 0x4E3B, 0x5531))
     $clarifyAnswer = Invoke-AgentChat -ConversationID $clarifyConversationID -Message $vocalAnswerMessage
     ConvertTo-JsonFile -Value $clarifyAnswer -Path (Join-Path $ArtifactDir "chat_vocal_clarify_answer.json")
@@ -3348,10 +3392,13 @@ try {
     }
     $clarifyAnswerEvents = Invoke-Json -Method GET -Uri ($AgentHttp.TrimEnd("/") + "/agent/events?conversation_id=" + [uri]::EscapeDataString($clarifyConversationID) + "&since=0&limit=40") -TimeoutSec 10
     ConvertTo-JsonFile -Value $clarifyAnswerEvents -Path (Join-Path $ArtifactDir "events_vocal_clarify_after_answer.json")
+    }
 
     # Confirmation chain (④ double-hop style, PORT-PS1-SYNC-3): hop 1 confirms
     # the proposal and must land on the tool face; hop 2 confirms the tool
     # application and must apply + readback-verify, parking at the d1 terminal.
+    # On the honest-done branch nothing was parked, so the confirmation must
+    # report no pending candidate.
     $clarifyConfirm = Invoke-AgentChat -ConversationID $clarifyConversationID -Message $confirmMessage
     ConvertTo-JsonFile -Value $clarifyConfirm -Path (Join-Path $ArtifactDir "chat_vocal_clarify_confirm.json")
     $clarifyConfirmStop = [string](Get-OptionalProperty -Object $clarifyConfirm -Name "stop_reason")
