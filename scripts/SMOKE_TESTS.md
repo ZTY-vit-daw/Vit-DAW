@@ -1059,12 +1059,19 @@ Purpose:
   assertions are inverted — deriving or mutating before any confirmation is
   the failure condition.
 - Vocal clarification loop drives the ④-style double-hop confirmation chain
-  (PORT-PS1-SYNC-3): the "Track 1 是主唱" answer parks on the proposal face
-  (or lands an honest `done`), the first 可以执行 must land on the tool face
+  (PORT-PS1-SYNC-3). The ambiguous ask is branch-tolerant (run evidence
+  2026-09-20: capability_blocked honest done; ④ run 2: inferred proposal
+  park): it may ask which track is vocal (`needs_clarification`, then the
+  "Track 1 是主唱" answer parks on the proposal face or lands an honest
+  `done`), park an inferred improvement proposal directly, or honestly stop
+  at a capability boundary (`done` + no-op wording) — every branch must
+  store NO mix tick at ask time. The confirmations then follow: the first
+  可以执行 must land on the tool face
   (`improvement_proposal_native_tool_confirmation_required`, workflow
   `mix_tick`, bounded tick payload), and the second 可以执行 must apply +
   readback-verify and park at `d1_post_action_evaluation_required` (workflow
-  `free_state_d1_s1`).
+  `free_state_d1_s1`); the honest-done branch expects
+  `no_pending_mix_tick_candidate`.
 - chat settle waiting (PC alignment with the mac `chat_settle` anchor,
   PORT-PS1-SETTLE-1): a chat POST may end sliced out (`goal_status=
   waiting_continue` / `stop_reason=limit_reached`) with the continuation
@@ -1409,10 +1416,11 @@ Purpose:
   relationship observation (PORT-PS1-SYNC-3: the positive path settles on the
   improvement-proposal confirmation face; derive/apply before any confirmation
   is the failure condition — ④ twin semantics), and the vocal clarification
-  loop driving the ④-style double-hop confirmation chain
-  (ask → "Track 1 是主唱" answer parks on the proposal face → first 可以执行
-  lands on the mix_tick tool face with a bounded tick payload → second
-  可以执行 applies + readback-verifies and parks at
+  loop driving the ④-style double-hop confirmation chain with the same
+  ask-branch tolerance as the PC twin (clarify → "Track 1 是主唱" answer, or
+  an inferred proposal park, or an honest capability-boundary done; then
+  first 可以执行 lands on the mix_tick tool face with a bounded tick
+  payload → second 可以执行 applies + readback-verifies and parks at
   `d1_post_action_evaluation_required`, workflow `free_state_d1_s1`).
 - Declared mac adaptation: the ps1's Godot-owned lifecycle + VSP Hub health
   assertions are replaced by a DIRECT two-piece start (hub not ported to mac
