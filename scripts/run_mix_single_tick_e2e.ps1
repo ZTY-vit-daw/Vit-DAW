@@ -918,24 +918,38 @@ $vocalConversationID = "mix_single_tick_vocal_clarify_" + (Get-Date -Format "yyy
 $vocalMessage = Join-UnicodeChars @(0x8BA9, 0x4E3B, 0x5531, 0x66F4, 0x9760, 0x524D)
 $vocalClarify = Invoke-AgentChat -ConversationID $vocalConversationID -Message $vocalMessage
 $vocalStop = [string](Get-OptionalProperty -Object $vocalClarify -Name "stop_reason")
-Assert-Equals -Actual $vocalStop -Expected "needs_clarification" -Label "unresolved vocal stop_reason"
 $vocalReply = [string](Get-OptionalProperty -Object $vocalClarify -Name "reply")
-$whichTrackText = Join-UnicodeChars @(0x54EA, 0x6761)
-$whichOneMeasureText = Join-UnicodeChars @(0x54EA, 0x4E00, 0x6761)
-$whichOneTrackText = Join-UnicodeChars @(0x54EA, 0x4E00, 0x8F68)
-$whichTrackEnglish = "which track"
-if (($vocalReply -notmatch $whichTrackText) -and ($vocalReply -notmatch $whichOneMeasureText) -and ($vocalReply -notmatch $whichOneTrackText) -and ($vocalReply.ToLowerInvariant() -notmatch $whichTrackEnglish)) {
-    Fail ("unresolved vocal reply did not ask which track is vocal: " + $vocalReply)
+# Branch tolerance (PORT-PS1-SYNC-3, round-2 evidence 2026-09-20 conv
+# mix_single_tick_vocal_clarify_20260920_194908): under the free-state
+# workflow the ambiguous vocal ask may either (a) ask which track is vocal
+# (needs_clarification — the classic clarify-first contract, still pinned
+# strictly by the ⑤ product-path vocal clarification loop) or (b) run the
+# evidence loop, infer a candidate track spectrally, and park on the
+# improvement-proposal face (needs_confirmation / the direct form). Both
+# branches must leave the project untouched with NO stored mix tick — that
+# counter-assertion below stays strict either way.
+Assert-InSet -Actual $vocalStop -Expected @("needs_clarification", "needs_confirmation", "improvement_proposal_confirmation_required") -Label "unresolved vocal stop_reason"
+if ($vocalStop -eq "needs_clarification") {
+    $whichTrackText = Join-UnicodeChars @(0x54EA, 0x6761)
+    $whichOneMeasureText = Join-UnicodeChars @(0x54EA, 0x4E00, 0x6761)
+    $whichOneTrackText = Join-UnicodeChars @(0x54EA, 0x4E00, 0x8F68)
+    $whichTrackEnglish = "which track"
+    if (($vocalReply -notmatch $whichTrackText) -and ($vocalReply -notmatch $whichOneMeasureText) -and ($vocalReply -notmatch $whichOneTrackText) -and ($vocalReply.ToLowerInvariant() -notmatch $whichTrackEnglish)) {
+        Fail ("unresolved vocal reply did not ask which track is vocal: " + $vocalReply)
+    }
+}
+elseif (-not [bool](Get-OptionalProperty -Object $vocalClarify -Name "needs_confirmation")) {
+    Fail "vocal ask parked on the proposal face without needs_confirmation=true"
 }
 $unexpectedVocalPending = Select-String -Path $AgentLog -Pattern ("[mix.tick.pending] stored conversation=" + $vocalConversationID) -SimpleMatch -ErrorAction SilentlyContinue | Select-Object -First 1
 if ($null -ne $unexpectedVocalPending) {
     Fail ("unresolved vocal clarification stored pending unexpectedly: " + $unexpectedVocalPending.Line)
 }
-# Still valid under the double-hop workflow (PORT-PS1-SYNC-3): a clarification
-# answer produces no candidate at all, so no mix tick may be stored for this
-# conversation — the bounded tick only exists after a confirmed improvement
-# proposal, which this unresolved vocal ask never reaches.
-Write-Ok ("unresolved vocal asks clarification without pending: " + $vocalReply)
+# Still valid under the double-hop workflow (PORT-PS1-SYNC-3): neither branch
+# of the ambiguous vocal ask may store a mix tick — a clarification produces
+# no candidate at all, and a parked improvement proposal stores its bounded
+# tick only after the proposal is confirmed, which this guard never does.
+Write-Ok ("unresolved vocal ask left no pending tick (" + $vocalStop + "): " + $vocalReply)
 
 Write-Step "Run double-hop confirmation chain (proposal, then tool application)"
 $confirmMessage = Join-UnicodeChars @(0x53EF, 0x4EE5, 0x6267, 0x884C)
