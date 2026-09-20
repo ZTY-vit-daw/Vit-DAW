@@ -408,6 +408,185 @@ Notes:
   `VIT_GUI_VSP_REALTIME_WS_ENABLE=1` (pre-flip probe compatibility, a no-op
   after the flip).
 
+## VSP Five-Piece Smoke Suite Mac (PORT-SMOKE-MAC-3)
+
+Mac ports of the five PC-only VSP smoke/probe scripts, all on the
+three-piece stack basis (VitApp kernel + vsphub + Go agent, the PORT-VSPHUB-1
+recipe: kernel under a fake VitApp root, agent started BEFORE the hub with
+`VIT_AGENT_VSP_HUB_REQUIRED=true` so the bounded-retry window is evidenced,
+then vsphub with registration-success gates). Every script builds agent+hub
+into the run workdir, records kernel/agent/hub sha256 (kernel reused via
+`--kernel-bin` or built), asserts port ownership (5555/5556/5557 kernel,
+7878 agent, 8787 hub), runs its piece probe, tears the stack down with stop
+records + a port-drain assert, and emits a per-piece `*.mac.v1` summary
+JSON; exit 0 requires every gate to pass. Failures are classified env
+(exit 3) vs functional (exit 1). Artifacts land under
+`~/Documents/vit-smoke-mac3-artifacts/<run_id>/` (AGENTS §10; the PC
+originals ①②④ are pure probes against an externally started hub, ③ against
+a running stack, ⑤ is a full lifecycle driver — on mac the stack is part of
+each authoritative run per the card's three-piece口径).
+
+### VSP Hub Extension Smoke Mac (piece 1/5)
+
+Path:
+
+```bash
+~/Documents/Vit-DAW/scripts/vsp_hub_extension_smoke_mac.sh
+```
+
+Purpose:
+
+- Mac port of `vsp_hub_extension_smoke.ps1`: a third-party extension
+  (`client_id=third.party.extension.smoke`, role=extension) registers
+  through the hub, appears in `/vsp/status`, is DENIED `command.request`
+  (HTTP 403 + `error.code=permission_denied`), unregisters, and is removed
+  from `/vsp/status`.
+- `--check-kernel-routes` (ps1 `-CheckKernelRoutes`) additionally drives
+  `session.hello` (kernel-issued session id) and `state.snapshot`
+  (payload ok) through the hub to the kernel.
+
+Common commands:
+
+```bash
+~/Documents/Vit-DAW/scripts/vsp_hub_extension_smoke_mac.sh --check-kernel-routes \
+  --kernel-bin ~/Documents/Vit-DAW/VitApp/build/VitApp_artefacts/Debug/VitApp
+```
+
+### Codex VSP Read-Only Probe Mac (piece 2/5)
+
+Path:
+
+```bash
+~/Documents/Vit-DAW/scripts/codex_vsp_readonly_probe_mac.sh
+```
+
+Purpose:
+
+- Mac port of `codex_vsp_readonly_probe.ps1`: connects as
+  `client_id=codex.agent.local` role=extension read_only; verifies
+  `/health`, the read-only extension capability advertisement
+  (state.snapshot+event.poll, no command.request), `session.hello` →
+  `extension.register` → status listing → `state.snapshot` (payload ok, no
+  internal track-id leak for project.timeline) → `event.poll` (event_id) →
+  `extension.unregister` in a finally → status cleanup. Same 10 check names
+  as the ps1 (`codex_*`).
+- `--hub-only` (ps1 `-HubOnly`) skips the kernel-routed reads;
+  `--client-id/--client-version/--scope/--timeout` mirror the ps1 params.
+
+Common commands:
+
+```bash
+~/Documents/Vit-DAW/scripts/codex_vsp_readonly_probe_mac.sh \
+  --kernel-bin ~/Documents/Vit-DAW/VitApp/build/VitApp_artefacts/Debug/VitApp
+~/Documents/Vit-DAW/scripts/codex_vsp_readonly_probe_mac.sh --hub-only \
+  --kernel-bin ~/Documents/Vit-DAW/VitApp/build/VitApp_artefacts/Debug/VitApp
+```
+
+### VSP Phase 4 Hub HTTP Asset Smoke Mac (piece 3/5)
+
+Path:
+
+```bash
+~/Documents/Vit-DAW/scripts/vsp_phase4_hub_http_asset_smoke_mac.sh
+```
+
+Purpose:
+
+- Thin wrapper (the ⑦ dad_probe precedent) that starts the three-piece
+  stack and runs the UNTOUCHED cross-platform
+  `scripts/vsp_phase4_hub_http_asset_smoke.py` against the live hub: asset
+  caps advertisement, hello feature flags, `track.create`,
+  `legacy.command` `import_audio` (temp wav), `asset.reference` +
+  `asset.manifest` platform-neutral no-big-json guards, then
+  `remove_clips`/`track.delete` cleanup. The py's own exit 0 + JSON
+  summary is asserted and archived.
+- `--timeout SECONDS` maps to the py flags with the PC driver's
+  `max(30,N)`/`max(60000,N*1000)` arithmetic.
+
+Common commands:
+
+```bash
+~/Documents/Vit-DAW/scripts/vsp_phase4_hub_http_asset_smoke_mac.sh \
+  --kernel-bin ~/Documents/Vit-DAW/VitApp/build/VitApp_artefacts/Debug/VitApp
+```
+
+### VSP Hub WebSocket Smoke Mac (piece 4/5)
+
+Path:
+
+```bash
+~/Documents/Vit-DAW/scripts/vsp_hub_websocket_smoke_mac.sh
+```
+
+Purpose:
+
+- Mac port of `vsp_hub_websocket_smoke.ps1`: drives VSP envelopes over
+  `ws://127.0.0.1:8787/vsp/stream`. The ps1 uses .NET's ClientWebSocket;
+  mac python3 has no websocket library, so the probe embeds a minimal
+  RFC 6455 client over stdlib sockets (handshake with
+  Sec-WebSocket-Accept verification, masked text frames, fragment
+  reassembly, ping->pong).
+- Checks: ws `session.hello` → ack with
+  `hub.transport_binding=vsp.hub.websocket` (`--check-kernel-routes`),
+  `extension.register` over ws with a client-supplied session id, status
+  listing with `transport=vsp.hub.websocket`, `extension.unregister` ack
+  with `payload.removed=true`, status cleanup. `event.notification`
+  frames are skipped (counted) while waiting, as in the ps1.
+
+Common commands:
+
+```bash
+~/Documents/Vit-DAW/scripts/vsp_hub_websocket_smoke_mac.sh --check-kernel-routes \
+  --kernel-bin ~/Documents/Vit-DAW/VitApp/build/VitApp_artefacts/Debug/VitApp
+```
+
+### VSP Hub Product Lifecycle Smoke Mac (piece 5/5)
+
+Path:
+
+```bash
+~/Documents/Vit-DAW/scripts/run_vsp_hub_lifecycle_smoke_mac.sh
+```
+
+Purpose:
+
+- Mac port of `run_vsp_hub_lifecycle_smoke.ps1` on the three-piece basis:
+  the PC's Godot-start_page autostart step is replaced by the VSPHUB-1
+  recipe stack start (same fixed ports, same required registration), and
+  every post-start lifecycle gate is ported 1:1 — port ownership with
+  running-exe path AND sha256 verification against the expected binaries
+  (8787 hub / 7878 agent / 5555+5556 kernel), listeners snapshot,
+  `/health` + `/vsp/status` (vsp.hub.http advertised,
+  `vit.agent.official` role=agent session), the Godot headless realtime
+  ws consumption probe (`--skip-ws-probe` to skip), the untouched
+  `vsp_phase4_hub_http_asset_smoke.py` against the live hub
+  (`--skip-hub-http-asset-smoke`, ps1 `-SkipHubHttpAssetSmoke`), teardown
+  with stop records + port-drain assert, and a
+  `vsp.hub.lifecycle.smoke.mac.v1` summary.
+- Product-path binary evidence: the run records the sha256 of
+  `agent/bin/{vitagent,vsphub}` when present (never writes them).
+
+Common commands:
+
+```bash
+~/Documents/Vit-DAW/scripts/run_vsp_hub_lifecycle_smoke_mac.sh \
+  --kernel-bin ~/Documents/Vit-DAW/VitApp/build/VitApp_artefacts/Debug/VitApp
+~/Documents/Vit-DAW/scripts/run_vsp_hub_lifecycle_smoke_mac.sh \
+  --kernel-bin ~/Documents/Vit-DAW/VitApp/build/VitApp_artefacts/Debug/VitApp \
+  --skip-ws-probe --skip-hub-http-asset-smoke
+```
+
+Notes:
+
+- PC-only scope NOT ported (out of the mac three-piece card scope): the
+  Godot start_page autostart lifecycle itself, `-Reuse*` switches, the
+  60-track playback smoke, and the GUI health / GUI architecture audit
+  probes (those need the Godot frontend in the loop as stack owner).
+- Per-piece §8 discipline (pre-declared on the card): deterministic
+  protocol/lifecycle gates — at most 3 valid runs per piece, success =
+  a single authoritative run exit 0 with every gate green;
+  same-breakpoint two-failure stop-loss.
+
 ## B1 Gain Staging Agent Smokes
 
 Paths:
