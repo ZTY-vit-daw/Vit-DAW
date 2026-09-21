@@ -11,6 +11,6 @@
 - 文件域：agent/internal/chat/（事件发射点，定位后收窄）；如做兜底则 scripts/run_vit_product_path_smoke.ps1 settle 段+④ 脚本同款
 - 验收：①红测试；②agent 全量+webui 回归绿；③⑤ 真栈该段过（整轮 exit 0 受 F5/F3 修复影响，允许分段验证记录）
 - 停止条件：事件发射点跨层（内核侧）→ 上交扩域
-- 领取：
+- 领取：2026-09-21 晚窗 / PC 执行侧 GLM-5.3 / origin/main=8e6e253d / 分支 fix/f2-surface-reply
 - 回执：
 - 验收：
