@@ -13,6 +13,6 @@
 - 文件域：定位后收窄（预期 agent/internal/mixboard、装配层，可能涉 VitApp 桥面——跨层则拆子卡）；scripts/run_vit_product_path_smoke.ps1 断言段
 - 验收：①双写路径定位报告；②红测试；③回归绿；④⑤ 真栈该段过
 - 停止条件：装配点在内核 C++ 深处且改动影响渲染主链 → 上交拆卡
-- 领取：
+- 领取：2026-09-21 PC 执行侧（GLM-5.3 / L2）。领取时 HEAD=origin/main=8e6e253d；工作树已有 diff：VitApp/Workspace/default_project.xml（运行时工程状态，不动）+ F2 卡 mv（另一会话）；untracked：coord/runs/、extension 构建产物、godot-cpp/。分支 fix/f5-snapshot-freshness。
 - 回执：
 - 验收：
