@@ -11,6 +11,6 @@
 - 文件域：`~/.vit/`（机器本地白名单）+ `scripts/`（如需构建/校验脚本，最小化）+ 工件目录；`agent/`、`VitApp/`、前端仓零触碰
 - 验收标准：①白名单文件+逐字段溯源表（实测来源可回指）；②agent 读取校验证据；③④⑤ 各 ×5 运行账目（run ID/退出码/逐轮归类/成功率）+ 与 MAC-4 基线的对照表；④假说判定结论；⑤工件齐备（LLM key 零入工件，flash 口径）
 - 停止条件：bands 参数面实测发现 C3 工件不含所需 param_id 粒度 → 改用 pluginprobe/reprobe 现跑提取（C3 驱动在 main），仍不行则上交；白名单就位后 agent 读取报错 → 取证上交；复跑暴露 mac 脚本新缺陷 → 修补列明该轮作废重跑
-- 领取：
+- 领取：2026-09-21 11:05 CST（Mac 执行流，用户直令「开工 PORT-WL-1」，BOOTSTRAP 口令表授权）/ origin/main `03dba62622474232f0d08b8d144d0a678f32d5be` / 主工作树直跑（本卡预期零仓库代码改动：白名单落 `~/.vit/` 机器本地，构建/校验工具与工件落 `~/Documents/vit-wl1-artifacts/`，仓库内仅本卡状态变更——"scripts/ 如需"按最小化裁定为不需要入仓）。领取时工作树已有 diff：`VitApp/Workspace/Settings/Settings.xml`、`VitApp/Workspace/default_project.xml`（MAC-4 时期运行时残留，非本卡产物，不触碰）。复跑归类对齐 117e930 五形态族谱（正路径=提案面停车；F1 能力边界/F2 中间态/F3 无可采纳/F4 done 不停车/F5 复合环境单列）
 - 回执：
 - 验收：
