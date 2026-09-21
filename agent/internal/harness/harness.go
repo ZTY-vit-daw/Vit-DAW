@@ -7070,12 +7070,96 @@ func finalizeMixboardFeatureSnapshotAfterWait(cmd map[string]any, packet map[str
 func writeMixboardFeatureSnapshotFile(path string, snapshot map[string]any, packet map[string]any) {
 	promoteMixboardBridgeRowsForPacket(snapshot, packet)
 	normalizeMixboardBridgeRowsForPacket(snapshot, packet)
+	annotateMixboardSnapshotFreshness(snapshot, packet)
 	data, err := json.MarshalIndent(snapshot, "", "\t")
 	if err != nil {
 		return
 	}
+	payload := append(data, '\n')
 	_ = os.MkdirAll(filepath.Dir(path), 0o755)
-	_ = os.WriteFile(path, append(data, '\n'), 0o644)
+	tmp := path + ".tmp"
+	if err := os.WriteFile(tmp, payload, 0o644); err != nil {
+		_ = os.WriteFile(path, payload, 0o644)
+		return
+	}
+	if err := os.Rename(tmp, path); err != nil {
+		_ = os.Remove(tmp)
+		_ = os.WriteFile(path, payload, 0o644)
+	}
+}
+
+// annotateMixboardSnapshotFreshness 是前台铃机制的写侧标注：每次快照落盘
+// （无论哪条写路径发布 latest_request）都在同一笔写入里为所有声学桥行自写
+// 新鲜度标注——属于当前铃的行标 current，属于旧铃的行标 stale 并以
+// superseded_by_request 指向当前铃，无铃归属但携带材料身份的行标
+// material_reuse。读侧不做推断：分叉行靠此处落下的标注披露。
+func annotateMixboardSnapshotFreshness(snapshot map[string]any, packet map[string]any) {
+	if len(snapshot) == 0 {
+		return
+	}
+	bell, _ := snapshot["latest_request"].(map[string]any)
+	if len(bell) == 0 {
+		bell = packet
+	}
+	if len(bell) == 0 || firstString(bell, "request_id") == "" {
+		return
+	}
+	for _, key := range []string{
+		"spectrogram_tiles",
+		"band_energy_summary",
+		"stereo_relation_summary",
+		"loudness_summary",
+		"waveform_envelope",
+		"l2_render_probe",
+	} {
+		row, _ := snapshot[key].(map[string]any)
+		annotateMixboardRowFreshness(row, bell)
+	}
+	for _, key := range []string{
+		"spectrogram_tile_rows",
+		"band_energy_summaries",
+		"stereo_relation_summaries",
+		"loudness_summaries",
+		"l2_render_probes",
+		"track_waveform_envelopes",
+	} {
+		for _, row := range mapRowsFromAny(snapshot[key]) {
+			annotateMixboardRowFreshness(row, bell)
+		}
+	}
+}
+
+func annotateMixboardRowFreshness(row map[string]any, bell map[string]any) {
+	if len(row) == 0 || len(bell) == 0 {
+		return
+	}
+	switch strings.ToLower(strings.TrimSpace(firstString(row, "status"))) {
+	case "", "missing":
+		// 占位行不参与分叉语义：它们以 status+reason 披露，不冒充任何铃。
+		return
+	}
+	bellID := firstString(bell, "request_id")
+	rowID := firstString(row, "request_id")
+	switch {
+	case rowID == bellID:
+		row["freshness"] = "current"
+		delete(row, "superseded_by_request")
+		delete(row, "superseded_at")
+	case rowID == "":
+		if mixboardFeatureRowHasMaterialIdentity(row) {
+			row["freshness"] = "material_reuse"
+			if firstString(row, "reused_for_request") != bellID {
+				row["reused_for_request"] = bellID
+				row["reused_at"] = time.Now().UTC().Format(time.RFC3339Nano)
+			}
+		}
+	default:
+		row["freshness"] = "stale"
+		if firstString(row, "superseded_by_request") != bellID {
+			row["superseded_by_request"] = bellID
+			row["superseded_at"] = time.Now().UTC().Format(time.RFC3339Nano)
+		}
+	}
 }
 
 func normalizeMixboardBridgeRowsForPacket(snapshot map[string]any, packet map[string]any) {
@@ -7123,6 +7207,9 @@ func normalizeMixboardBridgeRowForPacket(row map[string]any, packet map[string]a
 		rowRequestID := firstString(out, "request_id")
 		if rowRequestID == "" || materialBridgeRequestIDBelongsToLatest(rowRequestID, requestID, target) {
 			out["request_id"] = requestID
+			if rowRequestID != "" && rowRequestID != requestID {
+				out["origin_request_id"] = rowRequestID
+			}
 		}
 		stampBridgeRowTarget(out, target)
 		return out
@@ -7131,6 +7218,9 @@ func normalizeMixboardBridgeRowForPacket(row map[string]any, packet map[string]a
 		out := cloneAnyMap(row)
 		out["status"] = status
 		out["feature_type"] = featureType
+		if rowRequestID := firstString(out, "request_id"); rowRequestID != "" && rowRequestID != requestID {
+			out["origin_request_id"] = rowRequestID
+		}
 		out["request_id"] = requestID
 		stampBridgeRowTarget(out, target)
 		if status == "missing" && firstString(out, "reason") == "" {

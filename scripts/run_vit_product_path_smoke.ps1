@@ -1291,6 +1291,40 @@ function Wait-ChatTurnSettled {
     $settled | Add-Member -Force -MemberType NoteProperty -Name "raw_stop_reason" -Value $rawStopReasonValue
     $settled | Add-Member -Force -MemberType NoteProperty -Name "raw_reply" -Value $rawReplyValue
     $settled | Add-Member -Force -MemberType NoteProperty -Name "delivered_event_count" -Value $delivered.Count
+    # FIX-F2-SURFACE-REPLY fallback (double insurance): a needs_clarification
+    # settle whose synthesized reply still carries no question feature must not
+    # stand in for the user-visible question (the ⑤ R1 failure captured the
+    # last tool step title instead). Fall back to the parked checkpoint's
+    # pending reply on /agent/runtime/status. Question features are built from
+    # code points (PS 5.1 ANSI code page safety, same convention as the
+    # placeholder).
+    $questionFeaturePattern = "[" + [string][char]0x3F + [string][char]0xFF1F + "]"
+    if ($settledStopReason -eq "needs_clarification" -and ($settledReply -notmatch $questionFeaturePattern)) {
+        try {
+            $clarifyStatus = Invoke-Json -Method GET -Uri ($AgentHttp.TrimEnd("/") + "/agent/runtime/status") -TimeoutSec 30
+            foreach ($continuationRow in @(Get-OptionalProperty -Object $clarifyStatus -Name "continuations")) {
+                $continuationConversationID = [string](Get-OptionalProperty -Object $continuationRow -Name "conversation_id")
+                if (-not [string]::IsNullOrWhiteSpace($ConversationID) -and $continuationConversationID -ne $ConversationID) {
+                    continue
+                }
+                $pendingInteraction = Get-OptionalProperty -Object $continuationRow -Name "pending_interaction"
+                if ($null -eq $pendingInteraction) {
+                    continue
+                }
+                $pendingReply = [string](Get-OptionalProperty -Object $pendingInteraction -Name "reply")
+                if ([string]::IsNullOrWhiteSpace($pendingReply)) {
+                    continue
+                }
+                if ($pendingReply -match $questionFeaturePattern) {
+                    $settledReply = $pendingReply
+                    $settled | Add-Member -Force -MemberType NoteProperty -Name "reply" -Value $settledReply
+                    $settled | Add-Member -Force -MemberType NoteProperty -Name "clarify_reply_source" -Value "runtime_status_pending_interaction"
+                    break
+                }
+            }
+        }
+        catch { }
+    }
     if ($settledGoal -eq "waiting_confirmation") {
         $settled | Add-Member -Force -MemberType NoteProperty -Name "needs_confirmation" -Value $settledNeedsConfirmation
         # mac parity (run_vit_product_path_smoke_mac.sh settle anchor): the
@@ -1524,6 +1558,22 @@ function Assert-RequestedFeature {
 	}
 }
 
+function Test-BridgeSnapshotRowFork {
+	param(
+		[object]$Row,
+		[string]$ExpectedRequestID
+	)
+	$rowRequestID = [string](Get-OptionalProperty -Object $Row -Name "request_id")
+	if ([string]::IsNullOrWhiteSpace($ExpectedRequestID) -or [string]::IsNullOrWhiteSpace($rowRequestID) -or $rowRequestID -eq $ExpectedRequestID) {
+		return $null
+	}
+	$freshness = [string](Get-OptionalProperty -Object $Row -Name "freshness")
+	if (-not [string]::IsNullOrWhiteSpace($freshness)) {
+		return $null
+	}
+	return $rowRequestID
+}
+
 function Assert-BridgeSnapshotRow {
 	param(
 		[object]$Snapshot,
@@ -1537,8 +1587,13 @@ function Assert-BridgeSnapshotRow {
 		Fail ($Label + " acoustic feature " + $Name + " missing status")
 	}
 	$rowRequestID = [string](Get-OptionalProperty -Object $row -Name "request_id")
-	if (-not [string]::IsNullOrWhiteSpace($ExpectedRequestID) -and -not [string]::IsNullOrWhiteSpace($rowRequestID) -and $rowRequestID -ne $ExpectedRequestID) {
-		Fail ($Label + " acoustic feature " + $Name + " request_id mismatch: got=" + $rowRequestID + " expected=" + $ExpectedRequestID)
+	$forkedRequestID = Test-BridgeSnapshotRowFork -Row $row -ExpectedRequestID $ExpectedRequestID
+	if ($null -ne $forkedRequestID) {
+		Fail ($Label + " acoustic feature " + $Name + " unannotated fork: row belongs to old request " + $forkedRequestID + ", latest=" + $ExpectedRequestID + " (writing layer must stamp freshness at write time)")
+	}
+	$freshness = [string](Get-OptionalProperty -Object $row -Name "freshness")
+	if (-not [string]::IsNullOrWhiteSpace($freshness) -and $rowRequestID -ne $ExpectedRequestID) {
+		Write-WarnLine ($Label + " acoustic feature " + $Name + " annotated fork disclosed: row belongs to request " + $rowRequestID + " freshness=" + $freshness + " latest=" + $ExpectedRequestID)
 	}
 	if ($status -in @("ready", "partial")) {
 		if ([string]::IsNullOrWhiteSpace($rowRequestID)) {
@@ -1578,15 +1633,47 @@ function Assert-BridgeSnapshotRow {
 function Assert-FeatureSnapshotAcousticBridgeReadiness {
 	param(
 		[object]$Snapshot,
-		[string]$Label
+		[string]$Label,
+		[string]$SnapshotPath = ""
 	)
-	$latest = Get-OptionalProperty -Object $Snapshot -Name "latest_request"
-	$requestID = [string](Get-OptionalProperty -Object $latest -Name "request_id")
-	if ([string]::IsNullOrWhiteSpace($requestID)) {
-		Fail ($Label + " feature_snapshot.latest_request.request_id missing")
+	$maxAttempts = 1
+	if (-not [string]::IsNullOrWhiteSpace($SnapshotPath)) {
+		$maxAttempts = 3
 	}
-	Assert-RequestedFeature -LatestRequest $latest -FeatureType "waveform_envelope"
-	Assert-RequestedFeature -LatestRequest $latest -FeatureType "spectral_field"
+	$attempt = 0
+	while ($true) {
+		$latest = Get-OptionalProperty -Object $Snapshot -Name "latest_request"
+		$requestID = [string](Get-OptionalProperty -Object $latest -Name "request_id")
+		if ([string]::IsNullOrWhiteSpace($requestID)) {
+			Fail ($Label + " feature_snapshot.latest_request.request_id missing")
+		}
+		Assert-RequestedFeature -LatestRequest $latest -FeatureType "waveform_envelope"
+		Assert-RequestedFeature -LatestRequest $latest -FeatureType "spectral_field"
+		$unannotated = @()
+		foreach ($name in @("spectrogram_tiles", "band_energy_summary", "stereo_relation_summary")) {
+			$row = Get-OptionalProperty -Object $Snapshot -Name $name
+			if ($null -ne (Test-BridgeSnapshotRowFork -Row $row -ExpectedRequestID $requestID)) {
+				$unannotated += $name
+			}
+		}
+		if ($unannotated.Count -eq 0) {
+			break
+		}
+		$attempt++
+		if ($attempt -ge $maxAttempts) {
+			$detail = ""
+			if (-not [string]::IsNullOrWhiteSpace($SnapshotPath)) {
+				$detail = " after " + [string]($attempt - 1) + " bounded re-read(s) of " + $SnapshotPath
+			}
+			Fail ($Label + " unannotated acoustic bridge fork" + $detail + ": rows " + ($unannotated -join ",") + " belong to old requests without freshness annotation; latest_request=" + $requestID)
+		}
+		Write-WarnLine ($Label + " unannotated fork rows " + ($unannotated -join ",") + " observed (attempt " + [string]$attempt + "), bounded re-read to settle transient window...")
+		Start-Sleep -Milliseconds 600
+		$Snapshot = Read-JsonFile -Path $SnapshotPath
+		if ($null -eq $Snapshot) {
+			Fail ($Label + " bounded re-read failed to parse snapshot at " + $SnapshotPath)
+		}
+	}
 	foreach ($name in @("spectrogram_tiles", "band_energy_summary", "stereo_relation_summary")) {
 		Assert-BridgeSnapshotRow -Snapshot $Snapshot -Name $name -ExpectedRequestID $requestID -Label $Label
 	}
@@ -1770,7 +1857,7 @@ function Assert-AuthoritativeFeatureSnapshotPath {
 		Fail ("authoritative mixboard feature snapshot missing: " + $authoritative)
 	}
 	$snapshot = Read-JsonFile -Path $authoritative
-	Assert-FeatureSnapshotAcousticBridgeReadiness -Snapshot $snapshot -Label "authoritative snapshot"
+	Assert-FeatureSnapshotAcousticBridgeReadiness -Snapshot $snapshot -Label "authoritative snapshot" -SnapshotPath $authoritative
 	Copy-Item -LiteralPath $authoritative -Destination (Join-Path $ArtifactDir "authoritative_mixboard_feature_snapshot.json") -Force
 	$out = [ordered]@{
 		authoritative_path = $authoritative
