@@ -12,6 +12,6 @@
 - 文件域：agent/internal/agentloop/free_state_gate.go + free_state_reasoning.go（terminal turn 段）+ 测试
 - 验收：①红测试修前红/修后绿；②现有 gate 全家回归绿；③④⑤ 各 1 轮真栈（存在性）；④方案甲若裁定通过另含 G4 条件 diff+相位机一致性核对
 - 停止条件：需动防滥用规则或相位机守卫才能绿 → 域外上交
-- 领取：
+- 领取：2026-09-21 晚窗 / PC 执行侧 GLM-5.3 / origin/main=e36338ac / 分支 fix/f3-g4-semantics
 - 回执：
 - 验收：
