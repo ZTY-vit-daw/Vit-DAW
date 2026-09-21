@@ -922,6 +922,11 @@ Path:
 D:\Vit_DAW\scripts\run_mix_single_tick_e2e.ps1
 ```
 
+N=5 statistical baseline (PORT-PS1-N5-1, 2026-09-21, flash): 3/5 green on PC;
+both reds were model terminal-state variance (F2 interim-state slice / F4
+done-without-parking), not contract changes — per-round assertion contract
+stays deterministic, see the coord card ledger for the family breakdown.
+
 Purpose:
 
 - Build/restart or reuse `VitAgent`.
@@ -1008,6 +1013,12 @@ Path:
 ```powershell
 D:\Vit_DAW\scripts\run_vit_product_path_smoke.ps1
 ```
+
+N=5 statistical baseline (PORT-PS1-N5-1, 2026-09-21, flash): 3/5 green on PC;
+vocal focus parked on the proposal face in 4/4 rounds that reached it (the
+amplifier-hypothesis target stays 100%); the two reds were outside the vocal
+focus turn (clarify-ask goal=failed F3, acoustic-bridge request_id race F5) —
+per-round assertion contract stays deterministic, see the coord card ledger.
 
 Purpose:
 
