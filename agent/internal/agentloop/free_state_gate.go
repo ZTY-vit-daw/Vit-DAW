@@ -147,14 +147,11 @@ func freeStateScanViewOmittedByDisclosureBudget(row map[string]any, viewID strin
 	return false
 }
 
-// gateG3 requires at least one usable project/mix-level scan receipt whose
-// qualified scan view was actually delivered. B13-A (2026-09-12): a receipt
-// whose only qualified scan view was trimmed by the CCB disclosure budget used
-// to pass G3 on the nominal requested_views hit while the frontier it feeds
-// (G5) could never pass — the same receipt yielded opposite facts. The gate now
-// requires delivery, so a status=partial receipt with every qualified scan view
-// trimmed fails both gates consistently.
-func gateG3(state *runState) bool {
+// freeStateLedgerHasUsableScan reports whether the fresh observation ledger
+// holds at least one usable qualified project/mix scan receipt. Extracted from
+// gateG3 so gateG5's same-slice fallback (FIX-GATE-FRESHNESS-1) shares the
+// exact semantics.
+func freeStateLedgerHasUsableScan(state *runState) bool {
 	ledger := messageLoopMapValue(messageLoopFreeStateContext(state)["observation_ledger"])
 	for _, row := range messageLoopMapRows(ledger["receipts"]) {
 		if !freeStateReceiptUsable(row) {
@@ -173,6 +170,17 @@ func gateG3(state *runState) bool {
 		}
 	}
 	return false
+}
+
+// gateG3 requires at least one usable project/mix-level scan receipt whose
+// qualified scan view was actually delivered. B13-A (2026-09-12): a receipt
+// whose only qualified scan view was trimmed by the CCB disclosure budget used
+// to pass G3 on the nominal requested_views hit while the frontier it feeds
+// (G5) could never pass — the same receipt yielded opposite facts. The gate now
+// requires delivery, so a status=partial receipt with every qualified scan view
+// trimmed fails both gates consistently.
+func gateG3(state *runState) bool {
+	return freeStateLedgerHasUsableScan(state)
 }
 
 // gateG4 requires at least one closed diagnostic dimension: a round record
@@ -202,7 +210,42 @@ func gateG4(state *runState) bool {
 func gateG5(state *runState) bool {
 	closure := messageLoopMapValue(state.input.Context["minimal_audio_closure"])
 	frontier := messageLoopMapValue(closure["hypothesis_frontier"])
-	return len(messageLoopMapRows(frontier["candidates"])) > 0
+	if len(messageLoopMapRows(frontier["candidates"])) > 0 {
+		return true
+	}
+	// FIX-GATE-FRESHNESS-1 (2026-09-21): same-slice lag completion — when the
+	// qualifying scan itself was delivered inside the current slice, its
+	// candidate rows have not folded into the frontier projection yet (the
+	// fold runs at the slice boundary). A usable qualified scan receipt in the
+	// fresh ledger means the fold will derive candidates from that same
+	// receipt (audioClosureCandidates), so the frontier is established for
+	// admission purposes. Over-admission stays bounded: G6/G8 still require
+	// the target-level evidence regardless of this fallback.
+	return freeStateLedgerHasUsableScan(state)
+}
+
+// messageLoopFreshTrackObservationTarget returns the track id of the freshest
+// usable track-targeted observation, or "" — the track whose candidate the
+// slice-boundary fold is about to select (FIX-GATE-FRESHNESS-1's lag
+// completion view over state.recentObservation, mirroring
+// messageLoopFreeStateCandidateTargetObserved's usability semantics).
+func messageLoopFreshTrackObservationTarget(state *runState) string {
+	if state == nil || state.recentObservation == nil {
+		return ""
+	}
+	observation := state.recentObservation
+	if !messageLoopIsCCBObservationRequestName(firstNonEmpty(observation.Tool, observation.CommandName)) {
+		return ""
+	}
+	status := strings.ToLower(strings.TrimSpace(messageLoopText(observation.Summary["status"])))
+	if status != "ready" && status != "partial" {
+		return ""
+	}
+	target := messageLoopMapValue(observation.Summary["target_ref"])
+	if !strings.EqualFold(messageLoopText(target["kind"]), "track") {
+		return ""
+	}
+	return strings.TrimSpace(messageLoopText(target["id"]))
 }
 
 // gateG6 requires target-level usable evidence for the selected candidate.
@@ -213,16 +256,31 @@ func gateG6(state *runState) bool {
 	closure := messageLoopMapValue(state.input.Context["minimal_audio_closure"])
 	frontier := messageLoopMapValue(closure["hypothesis_frontier"])
 	selected := strings.TrimSpace(messageLoopText(frontier["candidate_id"]))
-	if selected == "" {
-		return false
-	}
 	allowedTracks := map[string]bool{}
 	for _, candidate := range messageLoopMapRows(frontier["candidates"]) {
-		if !strings.EqualFold(messageLoopText(candidate["id"]), selected) {
+		if selected != "" && !strings.EqualFold(messageLoopText(candidate["id"]), selected) {
 			continue
 		}
 		for _, trackID := range messageLoopStringList(candidate["track_ids"]) {
 			allowedTracks[trackID] = true
+		}
+	}
+	if len(allowedTracks) == 0 {
+		// FIX-GATE-FRESHNESS-1 (2026-09-21): an empty selection (or an empty
+		// pre-fold frontier) is the same-slice lag window — the server-side
+		// fold writes the candidate_id selection only at the slice boundary,
+		// so a proposal following its target-level observation inside one
+		// slice reads a pre-fold snapshot here (PORT-PS1-N5-1 conv
+		// mix_single_tick_e2e_20260921_102317: chain-complete proposal bounced
+		// with no_selected_candidate one slice before the fold landed). The
+		// fresh track-targeted observation the fold will consume establishes
+		// the candidate-to-be track set instead — the same rescue the
+		// progression check applies via targetObservedNow
+		// (messageLoopFreeStateCandidateProgressionIssue). With a live
+		// selection this branch never weakens the gate: the selected
+		// candidate's tracks were collected by the loop above.
+		if target := messageLoopFreshTrackObservationTarget(state); target != "" {
+			allowedTracks[target] = true
 		}
 	}
 	if len(allowedTracks) == 0 {
@@ -341,13 +399,24 @@ func gateG8(state *runState, proposal *agentprotocol.ImprovementProposal) bool {
 	selected := strings.TrimSpace(messageLoopText(frontier["candidate_id"]))
 	fromFrontier := false
 	for _, candidate := range messageLoopMapRows(frontier["candidates"]) {
-		if !strings.EqualFold(messageLoopText(candidate["id"]), selected) {
+		if selected != "" && !strings.EqualFold(messageLoopText(candidate["id"]), selected) {
 			continue
 		}
 		for _, id := range messageLoopStringList(candidate["track_ids"]) {
 			if strings.TrimSpace(id) == trackID {
 				fromFrontier = true
 			}
+		}
+	}
+	if !fromFrontier && selected == "" {
+		// FIX-GATE-FRESHNESS-1 (2026-09-21): empty pre-fold frontier — the
+		// fresh track-targeted observation is the candidate-to-be (the fold
+		// derives its candidate from the same observation rows), so a
+		// proposal on that exact track is frontier-consistent. A proposal on
+		// any other track stays rejected here, and cross-track citation
+		// contamination stays rejected by assertion 3 below.
+		if trackID == messageLoopFreshTrackObservationTarget(state) {
+			fromFrontier = true
 		}
 	}
 	if !fromFrontier {

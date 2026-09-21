@@ -52,11 +52,23 @@ func gateVariantRoundNotClosed(ctx map[string]any) {
 func gateVariantNoFrontier(ctx map[string]any) {
 	closure := ctx["minimal_audio_closure"].(map[string]any)
 	closure["hypothesis_frontier"] = map[string]any{}
+	// FIX-GATE-FRESHNESS-1 (2026-09-21): a usable scan receipt in the fresh
+	// ledger now establishes the frontier for admission purposes (the slice
+	// fold derives candidates from that same receipt), so the no-frontier
+	// variant must also drop the scan receipt — otherwise it reproduces the
+	// same-slice lag window the fix intentionally admits.
+	gateVariantTargetOnlyLedger(ctx)
 }
 
-func gateVariantNoSelectedCandidate(ctx map[string]any) {
+// gateVariantDanglingSelectedCandidate points the folded selection at an id
+// no candidate carries. FIX-GATE-FRESHNESS-1 renamed the old
+// no_selected_candidate variant: an empty selection with candidates and
+// target-level ledger evidence is the same-slice lag window the fix admits
+// (PORT-PS1-N5-1 R4); the selection-integrity rejection that stays is the
+// dangling-reference form.
+func gateVariantDanglingSelectedCandidate(ctx map[string]any) {
 	frontier := ctx["minimal_audio_closure"].(map[string]any)["hypothesis_frontier"].(map[string]any)
-	delete(frontier, "candidate_id")
+	frontier["candidate_id"] = "candidate-missing"
 }
 
 func gateVariantNoTargetEvidence(ctx map[string]any) {
@@ -111,7 +123,7 @@ func TestM06GateRejectsEachMissingCondition(t *testing.T) {
 		{"no_closed_dimension", freeStateGateG4, gateVariantNoRounds},
 		{"dimension_not_closed", freeStateGateG4, gateVariantRoundNotClosed},
 		{"no_frontier", freeStateGateG5, gateVariantNoFrontier},
-		{"no_selected_candidate", freeStateGateG6, gateVariantNoSelectedCandidate},
+		{"dangling_selected_candidate", freeStateGateG6, gateVariantDanglingSelectedCandidate},
 		{"no_target_evidence", freeStateGateG6, gateVariantNoTargetEvidence},
 		{"stale_evidence_ref", freeStateGateG7, gateVariantStaleTargetReceipt},
 		{"revision_unbound_evidence_ref", freeStateGateG7, gateVariantOldRevisionTargetReceipt},
