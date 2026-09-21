@@ -2147,6 +2147,11 @@ func chatResponsePendingInteraction(resp ChatResponse) map[string]any {
 		"stop_reason": resp.StopReason,
 		"workflow":    resp.Workflow,
 	}
+	// FIX-F2-SURFACE-REPLY: keep the park's user-visible reply (the clarify
+	// question) on the pending payload so the parked surface can render it.
+	if parkReply := strings.TrimSpace(resp.Reply); parkReply != "" {
+		pending["reply"] = parkReply
+	}
 	if strings.TrimSpace(resp.PlanID) != "" {
 		pending["plan_id"] = resp.PlanID
 	}

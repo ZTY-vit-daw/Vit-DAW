@@ -381,6 +381,39 @@ function Wait-ChatTurnSettled {
     $settled | Add-Member -Force -MemberType NoteProperty -Name "raw_stop_reason" -Value $rawStopReasonValue
     $settled | Add-Member -Force -MemberType NoteProperty -Name "raw_reply" -Value $rawReplyValue
     $settled | Add-Member -Force -MemberType NoteProperty -Name "delivered_event_count" -Value $delivered.Count
+    # FIX-F2-SURFACE-REPLY fallback (double insurance, same as the product-path
+    # twin): a needs_clarification settle whose synthesized reply still carries
+    # no question feature must not stand in for the user-visible question. Fall
+    # back to the parked checkpoint's pending reply on /agent/runtime/status.
+    # Question features are built from code points (PS 5.1 ANSI code page
+    # safety, same convention as the placeholder).
+    $questionFeaturePattern = "[" + [string][char]0x3F + [string][char]0xFF1F + "]"
+    if ($settledStopReason -eq "needs_clarification" -and ($settledReply -notmatch $questionFeaturePattern)) {
+        try {
+            $clarifyStatus = Invoke-Json -Method GET -Uri ($AgentHttp.TrimEnd("/") + "/agent/runtime/status") -TimeoutSec 30
+            foreach ($continuationRow in @(Get-OptionalProperty -Object $clarifyStatus -Name "continuations")) {
+                $continuationConversationID = [string](Get-OptionalProperty -Object $continuationRow -Name "conversation_id")
+                if (-not [string]::IsNullOrWhiteSpace($ConversationID) -and $continuationConversationID -ne $ConversationID) {
+                    continue
+                }
+                $pendingInteraction = Get-OptionalProperty -Object $continuationRow -Name "pending_interaction"
+                if ($null -eq $pendingInteraction) {
+                    continue
+                }
+                $pendingReply = [string](Get-OptionalProperty -Object $pendingInteraction -Name "reply")
+                if ([string]::IsNullOrWhiteSpace($pendingReply)) {
+                    continue
+                }
+                if ($pendingReply -match $questionFeaturePattern) {
+                    $settledReply = $pendingReply
+                    $settled | Add-Member -Force -MemberType NoteProperty -Name "reply" -Value $settledReply
+                    $settled | Add-Member -Force -MemberType NoteProperty -Name "clarify_reply_source" -Value "runtime_status_pending_interaction"
+                    break
+                }
+            }
+        }
+        catch { }
+    }
     if ($settledGoal -eq "waiting_confirmation") {
         $settled | Add-Member -Force -MemberType NoteProperty -Name "needs_confirmation" -Value $settledNeedsConfirmation
         # mac parity (run_vit_product_path_smoke_mac.sh settle anchor): the
