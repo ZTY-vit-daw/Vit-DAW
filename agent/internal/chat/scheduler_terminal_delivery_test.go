@@ -302,3 +302,141 @@ func TestColdReadHydrationCompatibleWithoutTerminalNode(t *testing.T) {
 		}
 	}
 }
+
+// The deterministic clarify question from the ⑤ R1 durable evidence
+// (goal_continuations/goal_b702…/trace[21]): the model asked exactly this and
+// the settle synthesis never saw it.
+const clarifyParkQuestion = "需要先确认哪条是主唱轨。请告诉我主唱是 Track 几，或把主唱轨重命名为 vocal / 主唱后让我重新观察。"
+
+// F2-SURFACE-REPLY pin (1): a scheduler slice that parks at the clarification
+// boundary must deliver the clarify question as the turn-level terminal body.
+// ⑤ R1 real-stack shape (conv product_path_vocal_clarify_20260921_201033): the
+// slice paused with Result.Reply = the question (durable trace[21]),
+// recordGoalResult parked the child checkpoint as waiting_interaction while
+// goalContinuations stayed armed for answerability, and the delivery gate's
+// live-owner predicate then reported the chain alive — the question died
+// without any turn-level event and the settle synthesis fell back to the last
+// tool step title ("已完成 ccb_observation_request") as the reply.
+func TestClarifyParkSliceEndDeliversQuestionAsTurnEventBody(t *testing.T) {
+	s, projectPath := schedulerTerminalServerForTest(t)
+	s.harness.EnsureGoal("goal-f2", "run-f2", "让主唱更靠前")
+	s.harness.SetGoalStatus("goal-f2", agentruntime.StatusWaitingClarification, nil)
+
+	// The slice's tool step already delivered its item body (the step title the
+	// settle synthesis wrongly captured); the turn-level terminal under test
+	// must not be that text.
+	s.emitAgentEvent("conversation-f2", AgentEvent{
+		Type: "item.completed", GoalID: "goal-f2", RunID: "run-f2", ItemID: "tool_step_1",
+		ItemType: "daw_action", Status: "ok", Title: "观察请求", Body: "已完成 ccb_observation_request",
+	})
+
+	// recordGoalResult's park shape: the child checkpoint is waiting_interaction
+	// (its pending payload carries no question — pendingInteractionFromResult
+	// only extracts executed interaction_requests) and goalContinuations stays
+	// armed so the user's answer can resume the checkpoint.
+	child := DurableContinuation{
+		ContinuationID: "cont_f2_clarify_child", GoalID: "goal-f2", RunID: "run-f2",
+		ConversationID: "conversation-f2", OriginalIntent: "让主唱更靠前",
+		Status: ContinuationWaitingInteraction,
+		PendingInteraction: map[string]any{
+			"status": "waiting_clarification", "stop_reason": "needs_clarification", "limit_type": "",
+		},
+	}
+	child.Continuation.ContinuationID = child.ContinuationID
+	claimed := DurableContinuation{
+		ContinuationID: "cont_f2_clarify_slice", GoalID: "goal-f2", RunID: "run-f2",
+		ConversationID: "conversation-f2", OriginalIntent: "让主唱更靠前",
+		Status: ContinuationCompleted,
+	}
+	s.mu.Lock()
+	s.durableContinuations[child.ContinuationID] = cloneDurableContinuation(child)
+	s.durableContinuations[claimed.ContinuationID] = cloneDurableContinuation(claimed)
+	s.goalContinuations["goal-f2"] = child.Continuation
+	s.mu.Unlock()
+
+	// The scheduler caller's exact bookkeeping: chainEnded from the live-owner
+	// predicate, then the delivery gate. chainResp carries the slice's own
+	// reply — the deterministic clarify question.
+	chainResp := ChatResponse{
+		ConversationID: "conversation-f2", GoalID: "goal-f2", RunID: "run-f2",
+		GoalStatus: string(agentruntime.StatusWaitingClarification),
+		StopReason: agentloop.StopReasonNeedsClarification, Reply: clarifyParkQuestion,
+	}
+	chainEnded := !s.goalHasLiveContinuationOwner("goal-f2")
+	s.settleAndDeliverContinuationChainEnd(context.Background(), claimed, chainResp, chainEnded)
+
+	events, _ := s.agentEventsSince("conversation-f2", 0, 64)
+	var delivered *AgentEvent
+	for index := range events {
+		event := events[index]
+		if event.Type != "turn.completed" || event.ItemID != "chain_result" {
+			continue
+		}
+		delivered = &event
+		break
+	}
+	if delivered == nil {
+		t.Fatalf("clarify park must deliver a turn-level terminal carrying the question: %+v", events)
+	}
+	if delivered.Body != clarifyParkQuestion {
+		t.Fatalf("clarify-park terminal body must be the user-visible question, not the tool step title: %q", delivered.Body)
+	}
+	if marked, _ := delivered.Payload["scheduler_chain"].(bool); !marked {
+		t.Fatalf("clarify-park terminal must carry the scheduler_chain marker: %+v", delivered.Payload)
+	}
+	if delivered.Status != string(agentruntime.StatusWaitingClarification) {
+		t.Fatalf("clarify-park terminal must annotate the waiting status, got %q", delivered.Status)
+	}
+	if !schedulerTerminalHydrationContains(t, s, projectPath, clarifyParkQuestion) {
+		t.Fatalf("clarify-park question must land in the conversation graph: %+v", schedulerTerminalHydratedMessages(t, s, projectPath))
+	}
+	// The park stays answerable: delivery must not retire the armed checkpoint.
+	s.mu.Lock()
+	_, armed := s.goalContinuations["goal-f2"]
+	s.mu.Unlock()
+	if !armed {
+		t.Fatal("clarify park must stay resumable after delivery (goalContinuations armed)")
+	}
+	if status := s.harness.RuntimeStatus("goal-f2").Status; status != agentruntime.StatusWaitingClarification {
+		t.Fatalf("clarify park must stay answerable after delivery, got %s", status)
+	}
+}
+
+// F2-SURFACE-REPLY pin (2): the parked checkpoint's durable pending payload
+// must carry the park's user-visible reply (the clarify question) so
+// /agent/runtime status consumers — including the smoke settle fallback — can
+// read it. The ⑤ R1 durable record carried only {status, stop_reason,
+// limit_type} with no question.
+func TestClarifyParkPendingInteractionCarriesQuestion(t *testing.T) {
+	s, _ := schedulerTerminalServerForTest(t)
+	s.harness.EnsureGoal("goal-f2", "run-f2", "让主唱更靠前")
+	res := agentloop.Result{
+		GoalID: "goal-f2", RunID: "run-f2", TaskID: "task-f2", SliceID: "slice-f2", TurnID: "turn-f2",
+		OriginalIntent: "让主唱更靠前", Status: agentruntime.StatusWaitingClarification,
+		StopReason: agentloop.StopReasonNeedsClarification,
+		Reply:               clarifyParkQuestion,
+		ClarificationQuestion: clarifyParkQuestion,
+		Continuation: &agentloop.Continuation{
+			GoalID: "goal-f2", RunID: "run-f2", TaskID: "task-f2", SliceID: "slice-f2", TurnID: "turn-f2",
+			OriginalIntent: "让主唱更靠前", UserText: "让主唱更靠前", Summary: "让主唱更靠前",
+		},
+	}
+	if err := s.recordGoalResult("conversation-f2", res); err != nil {
+		t.Fatal(err)
+	}
+	s.mu.Lock()
+	var parked *DurableContinuation
+	for _, item := range s.durableContinuations {
+		if item.Status == ContinuationWaitingInteraction {
+			clone := cloneDurableContinuation(item)
+			parked = &clone
+		}
+	}
+	s.mu.Unlock()
+	if parked == nil {
+		t.Fatal("clarify park result must store a waiting_interaction checkpoint")
+	}
+	if reply, _ := parked.PendingInteraction["reply"].(string); reply != clarifyParkQuestion {
+		t.Fatalf("parked pending payload must carry the clarify question for the runtime status surface: %+v", parked.PendingInteraction)
+	}
+}

@@ -66,8 +66,19 @@ func (s *Server) goalHasLiveContinuationOwner(goalID string) bool {
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	if _, armed := s.goalContinuations[goalID]; armed {
-		return true
+	if legacy, armed := s.goalContinuations[goalID]; armed {
+		// The armed legacy entry may be the parked interaction checkpoint
+		// itself (recordGoalResult arms goalContinuations for a
+		// waiting_interaction record so the user's answer can resume it). The
+		// scheduler never claims such a record — only the answer path completes
+		// it — so it is not a live automatic slice owner. Treating it as live
+		// kept the delivery gate silent for clarify/confirm parks and the
+		// park's final user-visible reply never reached any turn-level event
+		// (FIX-F2-SURFACE-REPLY, ⑤ R1: the settle synthesis fell back to the
+		// last tool step title). Unknown arm shapes keep counting as live.
+		if durable, found := s.durableContinuations[continuationIDForContinuation(legacy)]; !found || durable.Status != ContinuationWaitingInteraction {
+			return true
+		}
 	}
 	for _, item := range s.durableContinuations {
 		if item.GoalID != goalID {

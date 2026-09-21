@@ -2657,6 +2657,17 @@ func (s *Server) recordGoalResult(conversationID string, res agentloop.Result) e
 				"stop_reason": res.StopReason,
 				"limit_type":  res.LimitType,
 			})
+			// FIX-F2-SURFACE-REPLY: the park's user-visible reply (the clarify
+			// question) must survive on the pending payload — the executed
+			// interaction_requests extraction above has no path for the
+			// deterministic clarify parks, and the ⑤ R1 durable record carried
+			// only status/stop_reason/limit_type, leaving the runtime status
+			// surface with no question to render or fall back to.
+			if strings.TrimSpace(firstStringFromMap(durable.PendingInteraction, "reply")) == "" {
+				if parkReply := strings.TrimSpace(firstNonEmpty(res.ClarificationQuestion, res.Reply)); parkReply != "" {
+					durable.PendingInteraction["reply"] = parkReply
+				}
+			}
 			// The durable human-judgment boundary is answered out-of-band by
 			// the guarded audition judgment POST, never by a chat interaction:
 			// once the round is durably parked there, the driving
