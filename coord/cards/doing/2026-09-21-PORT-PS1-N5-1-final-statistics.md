@@ -11,6 +11,6 @@
 - 文件域：**零代码改动预期**（若轮内暴露脚本缺陷，最小修复走独立 commit 并在回执列明）；SMOKE_TESTS.md 如需补 N=5 统计口径一行
 - 验收标准：①10 轮 RUN_LEDGER（逐轮 run ID/退出码/终态）；②两件达标判定（≥4/5）与不达标轮族谱定性；③§8 账目合规；④工件齐备
 - 停止条件：连续环境故障（端口栈/文件锁）≥3 次暂停上交；发现需改断言/agent 才能绿 → 域外上报（本卡是统计卡不是修复卡）
-- 领取：
+- 领取：2026-09-21 10:08 / PC 执行侧（GLM-5.3） / origin/main=117e9307f0cacfd2246e75442951ec08af912e8d / 分支 port/ps1-n5-1 / 领取时工作树：M VitApp/Workspace/default_project.xml（烟测已知保留项）、?? coord/runs/ + extension/ 构建产物 + godot-cpp/（均域外不动）；引擎口径已核：~/.vit/config.json defaultModel=deepseek-v4-flash（不动）；~/.vit/free_state_experiment_plugins.json v5 在位（本卡"白名单在位"列前提实证）
 - 回执：
 - 验收：
