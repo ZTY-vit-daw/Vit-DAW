@@ -31,15 +31,15 @@
 
 ## 三、附带事项
 
-- **PORT-WL-1（doing/，mac 侧）**：回执回来后拼三列对照表第三列（N5-1 done 卡表格 WL-1 列）。
-- **N5-1 勘误（2026-09-22 已落卡面）**：④ R4 的 F4 归因=「G 门滞后假弹回前缀+模型终态选择复合」非纯模型方差——mac 拼表 ④ F4 行按此口径；数字结论（PC ④ 3/5、⑤ 3/5）不变。
+- **PORT-WL-1（已验收 pass，2026-09-22 晚；第三列已由 mac 自行拼入 N5-1 表）**：假说判定=放大器成立（停车 0/5→4/5、⑤ 与 PC 拉平 3/5=3/5）。验收四裁定：⑤ F2 残差**不开新卡**——由本包 §一.2 的 F2 修复（已在 main）+ settle 兜底移植吸收（该项由"建议"**升级为必做**，mac ④ 残差主族 F2×2 即此），复测仍现族再开卡；pro 对照**暂缓一步**（先吸收五补丁+脚本移植后复测，有残差再升一线）；static_eq/broadband 补齐=开卡 **PORT-WL-EQ-1**（todo/，mac 侧）；LLM 60s 超时+CoreAudio 卡顿=登记 mac 环境已知项。**mac 下一步顺序：拉 main（29efd6fa 或其后）→ §二 脚本移植 → ④⑤ 复测（对照 WL-1 基线出修复前后差）**。
+- **N5-1 勘误（2026-09-22 已落卡面）**：④ R4 的 F4 归因=「G 门滞后假弹回前缀+模型终态选择复合」非纯模型方差——WL-1 列的 ④ F4×1（R5）同样按此口径读取（mac 基线 296ad46 在 GATE-FRESHNESS 修复前）；数字结论（PC ④ 3/5、⑤ 3/5；WL-1 ④ 2/5、⑤ 3/5）不变。
 - **FIX-GD-TELEMETRY-BELL-1（todo/，新开卡）**：Godot 前端第三写者标注补齐——Godot 工程经 PORT-B4B 移植 mac，该卡执行时 mac 前端仓需同步（附注在卡内）。
 - **FIX-FRONTIER-FOLD-1（已验收合入 main，2026-09-22 晚增补）**：折叠确定性修复 + GATE-FRESHNESS 合入，随 main 一次性到达 mac——
   - 语义：①G 门 G5/G6/G8 空前沿/空选择新鲜域兜底（FIX-GATE-FRESHNESS-1，8653a25a 经 056b6d88 甲后重放，与 F3 甲 OR 语义共存证明在卡回执）；②折叠生成/选择不对称修复（3cd08f21）：轨道级 usable 观察（target_ref.kind=track）结论行无内嵌轨道 ID 时仍折候选（轨道=观察 target，派生 ID 式零变动）——"证据已入账=事实已登记"。
   - mac 动作：均为共享 Go 代码，拉 main 即生效；**无脚本跟随项**（词表零变动、mac 脚本零消费，2026-09-22 grep 复核）。验证口径：`go test ./internal/agentloop/... ./internal/chat/... -count=1`（含 free_state_gate_freshness_test.go 共存红测试组随代码走）+ ④⑤ 各 1 轮（存在性）。
   - 交互注记：FOLD 修后"轨道级观察→候选折叠→提案准入"链路对齐，mac ⑤ 若曾见 gap=[G5,G6,G8] 形态，拉 main 后应显著减少（PC 真栈 20260922_182036→204302 前后对照在案）。
 
-## 四、PC 侧状态（2026-09-22 晚 FOLD-1 验收后更新）
+## 四、PC 侧状态（2026-09-22 晚 WL-1 验收后更新）
 
-- main = e359260c + F2(b184e5d9) + F5(eeb589ac) + F3乙(6d799909) + F3甲(58469f23) + 验收/勘误 coord 提交 + FOLD-1 merge cac20769（含 8653a25a GATE-FRESHNESS 与 3cd08f21 折叠修复）；五补丁并树决策侧复跑 agent 84 包 ok/0 FAIL + webui 324/324。
-- 五卡验收 pass 全归档 done/（F2/F5/F3乙甲/GATE-FRESHNESS-1/FOLD-1）；GATE-FRESHNESS-1 合并后 ⑤ 复核由 FOLD-1 轮 ⑤ exit 0 满足。
+- main = e359260c + F2(b184e5d9) + F5(eeb589ac) + F3乙(6d799909) + F3甲(58469f23) + 验收/勘误 coord 提交 + FOLD-1 merge cac20769（含 8653a25a GATE-FRESHNESS 与 3cd08f21 折叠修复）+ mac 侧 WL-1 回执/拼表（a42ea04e/29efd6fa）+ WL-1 验收提交；五补丁并树决策侧复跑 agent 84 包 ok/0 FAIL + webui 324/324。
+- 六卡验收 pass 全归档 done/（F2/F5/F3乙甲/GATE-FRESHNESS-1/FOLD-1/WL-1）；GATE-FRESHNESS-1 合并后 ⑤ 复核由 FOLD-1 轮 ⑤ exit 0 满足。todo/ 待领：FIX-GD-TELEMETRY-BELL-1（Godot 仓）、PORT-WL-EQ-1（mac 侧）。
