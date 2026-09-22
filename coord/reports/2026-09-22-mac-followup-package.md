@@ -25,18 +25,21 @@
 
 ## 二、建议执行顺序
 
-1. mac 先拉**当前 main**（F2/F5/F3 已在）：跑 §一.2/.3/.4 的 Go 测试与脚本移植；
-2. 等 PC 侧 FOLD-1 合入推送后再拉一次（GATE-FRESHNESS 到位）：跑 §一.1；
-3. 回归：mac ④⑤ 各 1 轮（存在性口径）+ `go test ./... -count=1`（mac 平台分支测试）。
+1. （2026-09-22 晚更新）FOLD-1 已验收合入 main——mac **拉一次 main 即五补丁全齐**（F2/F5/F3乙甲/GATE-FRESHNESS/FOLD），先跑 `go test ./... -count=1` 确认并树绿（PC 决策侧已复跑 84 包 ok）；
+2. 脚本移植：§一.2（F2 settle 兜底，建议）+ §一.3（F5 断言语义，**必需**——mac .sh:770 旧严格语义对 F5 标注代码会误红）；
+3. 回归：mac ④⑤ 各 1 轮（存在性口径）+ GATE/FOLD 共享代码行为抽查（§一.1/.FOLD 段验证口径）。
 
 ## 三、附带事项
 
 - **PORT-WL-1（doing/，mac 侧）**：回执回来后拼三列对照表第三列（N5-1 done 卡表格 WL-1 列）。
 - **N5-1 勘误（2026-09-22 已落卡面）**：④ R4 的 F4 归因=「G 门滞后假弹回前缀+模型终态选择复合」非纯模型方差——mac 拼表 ④ F4 行按此口径；数字结论（PC ④ 3/5、⑤ 3/5）不变。
 - **FIX-GD-TELEMETRY-BELL-1（todo/，新开卡）**：Godot 前端第三写者标注补齐——Godot 工程经 PORT-B4B 移植 mac，该卡执行时 mac 前端仓需同步（附注在卡内）。
-- **FIX-FRONTIER-FOLD-1（doing/，PC 执行中）**：折叠确定性修复，回执后另行小转交。
+- **FIX-FRONTIER-FOLD-1（已验收合入 main，2026-09-22 晚增补）**：折叠确定性修复 + GATE-FRESHNESS 合入，随 main 一次性到达 mac——
+  - 语义：①G 门 G5/G6/G8 空前沿/空选择新鲜域兜底（FIX-GATE-FRESHNESS-1，8653a25a 经 056b6d88 甲后重放，与 F3 甲 OR 语义共存证明在卡回执）；②折叠生成/选择不对称修复（3cd08f21）：轨道级 usable 观察（target_ref.kind=track）结论行无内嵌轨道 ID 时仍折候选（轨道=观察 target，派生 ID 式零变动）——"证据已入账=事实已登记"。
+  - mac 动作：均为共享 Go 代码，拉 main 即生效；**无脚本跟随项**（词表零变动、mac 脚本零消费，2026-09-22 grep 复核）。验证口径：`go test ./internal/agentloop/... ./internal/chat/... -count=1`（含 free_state_gate_freshness_test.go 共存红测试组随代码走）+ ④⑤ 各 1 轮（存在性）。
+  - 交互注记：FOLD 修后"轨道级观察→候选折叠→提案准入"链路对齐，mac ⑤ 若曾见 gap=[G5,G6,G8] 形态，拉 main 后应显著减少（PC 真栈 20260922_182036→204302 前后对照在案）。
 
-## 四、PC 侧状态（本转交包组装时）
+## 四、PC 侧状态（2026-09-22 晚 FOLD-1 验收后更新）
 
-- main = e359260c + F2(b184e5d9) + F5(eeb589ac) + F3乙(6d799909) + F3甲(58469f23) + 本 coord 提交；共存树决策侧复跑 agent 84 包 ok/0 FAIL + webui 324/324。
-- 四卡验收 pass 归档 done/（GATE-FRESHNESS-1 验收含 ⑤ exit-0 替代认定=成立）；8653a25a 合入归 FOLD-1。
+- main = e359260c + F2(b184e5d9) + F5(eeb589ac) + F3乙(6d799909) + F3甲(58469f23) + 验收/勘误 coord 提交 + FOLD-1 merge cac20769（含 8653a25a GATE-FRESHNESS 与 3cd08f21 折叠修复）；五补丁并树决策侧复跑 agent 84 包 ok/0 FAIL + webui 324/324。
+- 五卡验收 pass 全归档 done/（F2/F5/F3乙甲/GATE-FRESHNESS-1/FOLD-1）；GATE-FRESHNESS-1 合并后 ⑤ 复核由 FOLD-1 轮 ⑤ exit 0 满足。
