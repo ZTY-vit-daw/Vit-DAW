@@ -46,6 +46,8 @@
     | ⑤ F4 done 不停车 | 0 | 0 | **0** |
     | ⑤ F5 复合（单列） | 1（声学桥 request_id 竞态） | 1（白名单缺失） | **0** |
 
+  - **【修复后复测注记 2026-09-23，决策侧据 mac 跟随回执拼入】** mac 在五补丁+脚本移植树（5678a79+bbd0dbf，flash+白名单，驱动镜像 WL-1）复测 ④⑤×5 对照 WL-1 列：**④ 2/5→4/4**（R4 环境批另计：起栈 chat 传输失败——F2×2/F4×1 红轮族全吸收）；**⑤ 3/5 持平但族迁移**（F3/F5复合清零；新形态 clarify 链失败×1〔FORENSIC-MAC-CLARIFY-CHAIN-1 取证中〕+F4×1）；停车率 4/5→3/5。补丁实效直接证据：三个停车轮 reply 均天然含问句（Go 层 F2 直供，脚本兜底零替换）。数字详证=[2026-09-23-mac-followup-f5f2-receipt.md](../../reports/2026-09-23-mac-followup-f5f2-receipt.md)——本表三列保持修复前基线不动，修复后列供论文另行成表。
+
   - §8 账目：两件各 5 轮固定无加跑；轮内作废重跑 0（零脚本缺陷修复）；环境中断 0 轮（轮间 taskkill 清 ④ 栈残留×5 均为轮后处置，不影响退出码；⑤ 各轮栈自清）；连续环境故障 0（未触 ≥3 暂停线）；LLM key 零入工件（events JSON grep=0，工件均脚本生成 chat/tool JSON）；引擎=deepseek-v4-flash 全程（~/.vit/config.json 未动）。测试 HEAD=7b8bb1cc（=origin/main 117e9307 代码树，SMOKE_TESTS.md 行在 10 轮全完成后才写）。
   - 纪律记录：agent/、VitApp/、前端仓零触碰；default_project.xml 烟测改写未提交未还原（已知保留项）；断言零改动（双跳断言即被测契约，本卡 10 轮未改任何断言——R4 声学桥红也未改，如实记账）。
 - **勘误（2026-09-22，决策会话补记，供 mac 拼三列对照表）**：④ R4 的 F4 归因由"模型终态选择类"增补为"**G 门滞后假弹回前缀+模型终态选择复合**"——取证=run4_R4_forensic_timeline.json（coord/runs/PORT-PS1-N5-1/）+ FIX-GATE-FRESHNESS-1 卡背景（模型两轮观测后提案被 G6/G8 假弹→二次弹回语义反转→散文退化 F4）；修复=FIX-GATE-FRESHNESS-1（G5/G6/G8 空前沿新鲜域兜底）。数字结论（④ 3/5、⑤ 3/5、vocal focus 4/4）不变，仅归因口径修正。另注：SMOKE_TESTS.md 统计口径两行在分支 port/ps1-n5-1（59ccc8e1）未落 main，如需落 main 另行裁定。

@@ -1,0 +1,12 @@
+# FIX-TEST-CTXSYMLINK-1：contextruntime 快照路径测试 darwin /var 符号链接兼容
+
+- 优先级 / 预估 / 依赖：P3 / 0.2 天 / mac 跟随回执 2026-09-23 裁定请求 4（§11 登记→开卡处置；确定性平台既有失败，mac 全量测试常红一项）
+- 模型分级：L0-L1 / GLM-5.3 flash 可接（单测试函数最小修）
+- **背景（mac 回执 §一）**：`internal/contextruntime` `TestDefaultSnapshotPathFindsVitAppFromNestedWorkdir`（context_test.go:537）在 macOS 失败——`/var`→`/private/var` 符号链接致 `DefaultSnapshotPath()` 返回值与 want 字面比较不等（chdir/t.TempDir 解析差）。PC 侧同测试绿（84 包一致）；该包近史无代码变更、五补丁域不含——确定性平台既有问题，非本轮回归。证据 gotest_full_5678a79.log（mac 工件）。
+- 目标：路径比较改符号链接等价判定——两侧经 `filepath.EvalSymlinks` 归一后比较（或 `os.SameFile` 等价判据）；**不得弱化测试语义**（嵌套 workdir 向上找到 VitApp/Workspace 的行为断言保持）；EvalSymlinks 失败时的回退语义明确
+- 文件域：`agent/internal/contextruntime/context_test.go`（单文件，测试侧）；零生产代码改动
+- 验收：①PC `go test ./internal/contextruntime -count=1` 绿；②mac 同命令绿（mac 执行侧复跑或回执带退出码）；③其余路径断言不回归（包内其它测试绿）
+- 停止条件：发现生产代码 DefaultSnapshotPath 本身依赖未解析路径语义 → 上交（说明为何测试侧等价判据不适用）
+- 领取：
+- 回执：
+- 验收：

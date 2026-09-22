@@ -27,7 +27,7 @@
 
 1. （2026-09-22 晚更新）FOLD-1 已验收合入 main——mac **拉一次 main 即五补丁全齐**（F2/F5/F3乙甲/GATE-FRESHNESS/FOLD）+ mac 脚本移植（bbd0dbf2）也在 main，先跑 `go test ./... -count=1` 确认并树绿（PC 决策侧已复跑 84 包 ok）；
 2. ~~脚本移植~~ **已完成（bbd0dbf2，PC 决策侧 diff 审查+bash -n 复核通过 ff 入 main）**：§一.2 F2 settle 兜底 + §一.3 F5 断言语义；
-3. **当前唯一待办=mac ④⑤ 真栈复测**（建议 N=5 与 WL-1 基线对照出修复前后差，供三列表升级为"修复后"列；vocal clarify 段 reply 含问句原文 + 声学桥双写窗观察为重点段）。
+3. ~~mac ④⑤ 真栈复测~~ **已完成（2026-09-23 回执，决策侧验收通过）**：④ **2/5→4/4**（红轮族全吸收，R4 环境批另计）；⑤ **3/5 持平但族迁移**（F3/F5复合清零；clarify 链失败×1+F4×1 新形态）；F2 修复直供实证（停车轮 reply 天然含问句、兜底零替换）；F5 断言实跑零误报零漏报。**后续裁定（2026-09-23）**：a) 新形态 clarify 链失败=开卡 **FORENSIC-MAC-CLARIFY-CHAIN-1**（todo/，mac 侧只读取证，P1——F2 修复面邻域回归优先排除）；b) pro 升线**资格成立但排在取证卡后**（R3 若判基础设施缺陷→先修复复测再测引擎差，判别力才干净；若判模型方差→pro 直接上）；c) ④ R4 chat 传输失败并入 mac 环境已知项；d) contextruntime /var 符号链接测试失败=开卡 **FIX-TEST-CTXSYMLINK-1**（todo/，P3 测试侧最小修）。数字详证见 [2026-09-23-mac-followup-f5f2-receipt.md](2026-09-23-mac-followup-f5f2-receipt.md)。
 
 ## 三、附带事项
 
