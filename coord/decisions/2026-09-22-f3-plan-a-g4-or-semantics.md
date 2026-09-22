@@ -1,0 +1,7 @@
+# 决策记录：FIX-F3-G4-SEMANTICS 方案甲 = G4 对 improvement 类提案对齐脊柱 FS5 守卫 OR 语义（用户裁定 2026-09-22「支持改呈或逻辑」）
+
+- **背景**：FORENSIC-45-FAMILIES 定责（F3 族）证明三重缺陷：①工作流 §6 认知政策"有界实验只需 plausible 证据"与 G4"提案前必须有已闭合诊断维度"规则冲突；②G4 条件非模型可主动执行（诊断轮闭合=服务端折叠）；③锁死轮禁工具→G4 永不可补→提案出口结构性不可达（绿轮 capability_blocked 认输通过、红轮真提案被杀的反向激励实证：201633 vs 103431）。且脊柱相位机 FS4→FS5 守卫（agent/internal/audioclosure/phase.go:168）已含 OR 语义——门 G4 比脊柱自守卫更严，不对齐。方案乙（停车披露）已先行落地；甲为 G4 本体修正，裁定问题上交用户。
+- **用户裁定（2026-09-22，F3 执行会话内完成裁决）**：**支持甲（OR 逻辑）**——G4 对 improvement 类提案收窄为 OR 三析取：**已闭合诊断维度 ∨ 可用交付扫描收据（G3=脊柱 ScanUsable 臂）∨ 台账目标级证据（G6=脊柱 TargetEvidence 臂）**；diagnosticOnly 模式维持全量严格 G4（诊断任务永不采 improvement 提案，诊断模式审计方看到严格门）。
+- **实现**：`gateG4ImprovementProposal = gateG4 ∨ (¬diagnosticOnly ∧ (gateG3 ∨ gateG6))`（agent/internal/agentloop/free_state_gate.go）。**门 ID 与 condition 词表零变动**（`no_closed_diagnostic_dimension` 保持逐字不变，仅 gap Binding 扩写三析取说明）——mac 脚本/夹具/grading 消费方零影响。门保持 phase-blind（TIMING-1：相位梯无提案否决权，门不替脊柱断言任何转换；G6 臂=脊柱 FS6 TargetEvidence，语义方向=门不严于脊柱）。
+- **决策侧验收核对（2026-09-22，本会话）**：diff 逐行核对成立——OR 三析取与裁定一致；Condition 字符串与 GateID 未动（diff 内直接核验）；phase.go:168 对照在案；防滥用规则 2/3 未触碰；乙停车夹具改 G3-only 的论证成立（甲后 G4-only 结构性不可达：G4 失败蕴含 G3∧G6 同败）。
+- **派生**：甲无需另派实施卡——实现已随 F3 执行会话落地（分支 fix/f3-g4-semantics 51686265），本会话验收通过后随乙一并 cherry-pick 入 main（乙 31d35f8d→main 侧新 SHA、甲 51686265→main 侧新 SHA，分列可回滚）。mac 跟随见 [2026-09-22-mac-followup-package.md](../reports/2026-09-22-mac-followup-package.md)。
