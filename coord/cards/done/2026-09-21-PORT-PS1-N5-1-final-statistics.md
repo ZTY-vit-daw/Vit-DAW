@@ -27,24 +27,24 @@
     - R4 `product_path_20260921_104355` exit 1 **F5 复合与环境（单列不算失败族，红轮照计——镜像 MAC-4 白名单 F5 轮计入 0/5 口径）**——未及 vocal focus；Chinese multitrack observe 声学桥断言：band_energy_summary.request_id=mixboard_* vs latest_request=kernel_prepared_spectral_field_1016（kernel/mixboard 双备谱路径瞬态竞态；工件 authoritative 快照终态一致 ready，非模型终态族）。
     - R5 `product_path_20260921_104638` exit 0（pass line 锚定：passed+Summary+栈自清；该轮 shell 包装未挂 exit 捕获，日志终局无异常块）**正路径**——提案面（track 1007 presence band 提案）。
     - **判定：3/5 绿，不达标**。**vocal focus 停车率 4/4**（R1/R2/R3/R5 凡跑到该阶段全停提案面；R4 未及）→ PC 口径 7/7 延伸 11/11。
-  - **三列对照表骨架**（行=族谱标签；MAC-4 列取自 mac 通报 §二，④ 的 3 红轮与 ⑤ 的 5 红轮各 1 轮族谱通报未点名、标 ? 待 mac RUN_LEDGER 拼入；WL-1 列留空待 mac 回执）：
+  - **三列对照表骨架**（行=族谱标签；MAC-4 列取自 mac 通报 §二，④ 的 3 红轮与 ⑤ 的 5 红轮各 1 轮族谱通报未点名、标 ? 待 mac RUN_LEDGER 拼入；**WL-1 列已由 mac 执行流 2026-09-22 拼入**——统计批 10 轮全 flash 遥测实证，run 级证据 `~/Documents/vit-wl1-artifacts/RUN_LEDGER.md`，假说判定=放大器成立：vocal focus 停车率 0/5→4/5、⑤ 通过率与 PC-N5 拉平 3/5=3/5；WL-1 批基线=领取时 HEAD 296ad46（agent 代码与 MAC-4 同树，白名单为唯一功能差量）——对照口径干净）：
 
     | 族谱标签 | PC-N5（flash+白名单在位） | MAC-4（flash+无白名单） | WL-1（flash+白名单，mac） |
     |---|---|---|---|
-    | ④ 通过率 | **3/5** | 2/5 | 待拼 |
-    | ④ 正路径 | 3 | 2 | 待拼 |
-    | ④ F1 能力边界 | 0 | 2 | 待拼 |
-    | ④ F2 中间态 | 1 | ? | 待拼 |
-    | ④ F3 无可采纳 | 0 | ? | 待拼 |
-    | ④ F4 done 不停车 | 1（勘误：带门滞后假弹回前缀，复合归因） | 0（⑦ 传导 1 例非 ④⑤） | 待拼 |
-    | ④ F5 复合（单列） | 0 | 0 | 待拼 |
-    | ⑤ 通过率 | **3/5** | 0/5 | 待拼 |
-    | ⑤ 正路径（vocal focus 停车） | 3（停车率 4/4） | 0 | 待拼 |
-    | ⑤ F1 能力边界 | 0 | 0 | 待拼 |
-    | ⑤ F2 中间态 | 0 | ≥1 | 待拼 |
-    | ⑤ F3 无可采纳 | 1（clarify ask 子回合） | 2 | 待拼 |
-    | ⑤ F4 done 不停车 | 0 | 0 | 待拼 |
-    | ⑤ F5 复合（单列） | 1（声学桥 request_id 竞态） | 1（白名单缺失） | 待拼 |
+    | ④ 通过率 | **3/5** | 2/5 | **2/5** |
+    | ④ 正路径 | 3 | 2 | **2** |
+    | ④ F1 能力边界 | 0 | 2 | **0** |
+    | ④ F2 中间态 | 1 | ? | **2**（observe settle 未收敛） |
+    | ④ F3 无可采纳 | 0 | ? | **0** |
+    | ④ F4 done 不停车 | 1（勘误：带门滞后假弹回前缀，复合归因） | 0（⑦ 传导 1 例非 ④⑤） | **1**（vocal 守卫轮 done） |
+    | ④ F5 复合（单列） | 0 | 0 | **0**（环境批另计：CoreAudio×3+LLM>60s×5，见 WL-1 RUN_LEDGER §二） |
+    | ⑤ 通过率 | **3/5** | 0/5 | **3/5** |
+    | ⑤ 正路径（vocal focus 停车） | 3（停车率 4/4） | 0 | **3（停车率 4/5，R4 一轮 F2）** |
+    | ⑤ F1 能力边界 | 0 | 0 | **0** |
+    | ⑤ F2 中间态 | 0 | ≥1 | **2**（R3 clarify ask+R4 vocal focus） |
+    | ⑤ F3 无可采纳 | 1（clarify ask 子回合） | 2 | **0** |
+    | ⑤ F4 done 不停车 | 0 | 0 | **0** |
+    | ⑤ F5 复合（单列） | 1（声学桥 request_id 竞态） | 1（白名单缺失） | **0** |
 
   - §8 账目：两件各 5 轮固定无加跑；轮内作废重跑 0（零脚本缺陷修复）；环境中断 0 轮（轮间 taskkill 清 ④ 栈残留×5 均为轮后处置，不影响退出码；⑤ 各轮栈自清）；连续环境故障 0（未触 ≥3 暂停线）；LLM key 零入工件（events JSON grep=0，工件均脚本生成 chat/tool JSON）；引擎=deepseek-v4-flash 全程（~/.vit/config.json 未动）。测试 HEAD=7b8bb1cc（=origin/main 117e9307 代码树，SMOKE_TESTS.md 行在 10 轮全完成后才写）。
   - 纪律记录：agent/、VitApp/、前端仓零触碰；default_project.xml 烟测改写未提交未还原（已知保留项）；断言零改动（双跳断言即被测契约，本卡 10 轮未改任何断言——R4 声学桥红也未改，如实记账）。
