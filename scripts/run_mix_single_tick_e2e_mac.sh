@@ -507,9 +507,9 @@ agent_chat_settled() {
   printf '%s' "$polled" > "${prefix}_settled_goal.txt"
   local events_code
   events_code="$(http_json GET "$AGENT_HTTP/agent/events?conversation_id=$(python3 -c 'import urllib.parse,sys; print(urllib.parse.quote(sys.argv[1], safe=""))' "$conv")&since=0&limit=500" "" "${prefix}_events.json" 60)" || true
-  python3 - "$prefix" "$polled" "$PLACEHOLDER_REPLY_NEEDLE" "$WORKDIR/bodies/settle_poll.json" <<'SETTLE_PY'
+  python3 - "$prefix" "$polled" "$PLACEHOLDER_REPLY_NEEDLE" "$WORKDIR/bodies/settle_poll.json" "$AGENT_HTTP" <<'SETTLE_PY'
 import json, sys
-prefix, settled_goal, placeholder, status_path = sys.argv[1:5]
+prefix, settled_goal, placeholder, status_path, agent_http = sys.argv[1:6]
 raw = json.load(open(f"{prefix}.json", encoding="utf-8"))
 events = {}
 try:
@@ -542,6 +542,33 @@ out["settled_from"] = "continuation+events (mac chat_settle anchor)"
 out["raw_stop_reason"] = raw.get("stop_reason", "")
 out["raw_reply"] = raw.get("reply", "")
 out["delivered_event_count"] = len(delivered)
+# FIX-F2-SURFACE-REPLY fallback (double insurance, ps1 parity): a
+# needs_clarification settle whose synthesized reply still carries no
+# question feature must not stand in for the user-visible question. Fall
+# back to the parked checkpoint's pending reply on /agent/runtime/status.
+# Question features are code points U+003F / U+FF1F.
+if out["stop_reason"] == "needs_clarification" and not any(ch in settled_reply for ch in ("\u003f", "\uff1f")):
+    try:
+        import urllib.request
+        with urllib.request.urlopen(f"{agent_http.rstrip('/')}/agent/runtime/status", timeout=30) as resp:
+            clarify_status = json.loads(resp.read().decode("utf-8"))
+        conversation_id = str(raw.get("conversation_id") or "")
+        for cont in clarify_status.get("continuations") or []:
+            if conversation_id and str(cont.get("conversation_id") or "") != conversation_id:
+                continue
+            interaction = cont.get("pending_interaction")
+            if not isinstance(interaction, dict):
+                continue
+            pending_reply = str(interaction.get("reply") or "")
+            if not pending_reply.strip():
+                continue
+            if any(ch in pending_reply for ch in ("\u003f", "\uff1f")):
+                settled_reply = pending_reply
+                out["reply"] = settled_reply
+                out["clarify_reply_source"] = "runtime_status_pending_interaction"
+                break
+    except Exception:
+        pass
 if settled_goal == "waiting_confirmation":
     # PORT-PS1-SYNC-2 mac parity with run_vit_product_path_smoke_mac.sh: the
     # raw sliced reply keeps needs_confirmation=false while the durable

@@ -499,9 +499,9 @@ PY
   done
   printf '%s' "$polled" > "${prefix}_settled_goal.txt"
   http_json GET "$AGENT_HTTP/agent/events?conversation_id=$(python3 -c 'import urllib.parse,sys; print(urllib.parse.quote(sys.argv[1], safe=""))' "$conv")&since=0&limit=500" "" "${prefix}_events.json" 60 >/dev/null || true
-  python3 - "$prefix" "$polled" "$WORKDIR/bodies/settle_poll.json" <<'SETTLE_PY'
+  python3 - "$prefix" "$polled" "$WORKDIR/bodies/settle_poll.json" "$AGENT_HTTP" <<'SETTLE_PY'
 import json, sys
-prefix, settled_goal, status_path = sys.argv[1:4]
+prefix, settled_goal, status_path, agent_http = sys.argv[1:5]
 placeholder = "我还在继续处理这个任务，完成后再向你汇报。"
 raw = json.load(open(f"{prefix}.json", encoding="utf-8"))
 events = {}
@@ -544,6 +544,34 @@ out["settled_from"] = "continuation+events (mac chat_settle anchor)"
 out["raw_stop_reason"] = raw.get("stop_reason", "")
 out["raw_reply"] = raw.get("reply", "")
 out["delivered_event_count"] = len(delivered)
+# FIX-F2-SURFACE-REPLY fallback (double insurance, ps1 parity): a
+# needs_clarification settle whose synthesized reply still carries no
+# question feature must not stand in for the user-visible question (the
+# ⑤ R1 failure captured the last tool step title instead). Fall back to
+# the parked checkpoint's pending reply on /agent/runtime/status.
+# Question features are code points U+003F / U+FF1F.
+if out["stop_reason"] == "needs_clarification" and not any(ch in settled_reply for ch in ("\u003f", "\uff1f")):
+    try:
+        import urllib.request
+        with urllib.request.urlopen(f"{agent_http.rstrip('/')}/agent/runtime/status", timeout=30) as resp:
+            clarify_status = json.loads(resp.read().decode("utf-8"))
+        conversation_id = str(raw.get("conversation_id") or "")
+        for cont in clarify_status.get("continuations") or []:
+            if conversation_id and str(cont.get("conversation_id") or "") != conversation_id:
+                continue
+            interaction = cont.get("pending_interaction")
+            if not isinstance(interaction, dict):
+                continue
+            pending_reply = str(interaction.get("reply") or "")
+            if not pending_reply.strip():
+                continue
+            if any(ch in pending_reply for ch in ("\u003f", "\uff1f")):
+                settled_reply = pending_reply
+                out["reply"] = settled_reply
+                out["clarify_reply_source"] = "runtime_status_pending_interaction"
+                break
+    except Exception:
+        pass
 if settled_goal == "waiting_confirmation":
     # mac sliced-turn anchor: the raw response is the initial sliced reply
     # whose needs_confirmation stays False while the durable continuation
@@ -751,6 +779,21 @@ def fail(msg):
     print(f"FAIL: {msg}", file=sys.stderr)
     sys.exit(1)
 
+def warn(msg):
+    print(f"warn: {msg}", file=sys.stderr)
+
+def row_fork_request_id(row, expected_request_id):
+    # ps1 parity (Test-BridgeSnapshotRowFork, FIX-F5-SNAPSHOT-FRESHNESS): a
+    # row belonging to an older request is a fork; a freshness-stamped fork is
+    # a write-layer-annotated snapshot line (disclosed, not failed), an
+    # unannotated one means the writing layer skipped the annotation → fail.
+    row_request_id = str(row.get("request_id") or "")
+    if not expected_request_id or not row_request_id or row_request_id == expected_request_id:
+        return None
+    if str(row.get("freshness") or "").strip():
+        return None
+    return row_request_id
+
 def bridge_snapshot_check(snapshot, label):
     latest = (snapshot or {}).get("latest_request") or {}
     request_id = str(latest.get("request_id") or "")
@@ -766,8 +809,12 @@ def bridge_snapshot_check(snapshot, label):
         if not status:
             fail(f"{label} acoustic feature {name} missing status")
         row_req = str(row.get("request_id") or "")
-        if request_id and row_req and row_req != request_id:
-            fail(f"{label} acoustic feature {name} request_id mismatch: got={row_req} expected={request_id}")
+        forked_request_id = row_fork_request_id(row, request_id)
+        if forked_request_id is not None:
+            fail(f"{label} acoustic feature {name} unannotated fork: row belongs to old request {forked_request_id}, latest={request_id} (writing layer must stamp freshness at write time)")
+        freshness = str(row.get("freshness") or "")
+        if freshness.strip() and row_req != request_id:
+            warn(f"{label} acoustic feature {name} annotated fork disclosed: row belongs to request {row_req} freshness={freshness} latest={request_id}")
         if status in ("ready", "partial"):
             if not row_req:
                 fail(f"{label} ready acoustic feature {name} missing request_id")
