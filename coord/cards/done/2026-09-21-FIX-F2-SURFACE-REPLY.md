@@ -12,7 +12,7 @@
 - 验收：①红测试；②agent 全量+webui 回归绿；③⑤ 真栈该段过（整轮 exit 0 受 F5/F3 修复影响，允许分段验证记录）
 - 停止条件：事件发射点跨层（内核侧）→ 上交扩域
 - 领取：2026-09-21 晚窗 / PC 执行侧 GLM-5.3 / origin/main=8e6e253d / 分支 fix/f2-surface-reply
-- 回执：2026-09-21 晚窗 / PC 执行侧 GLM-5.3 / 分支 fix/f2-surface-reply commit 1177a9c0（**push 遇 GitHub 故障暂挂**：connection reset/443 不通 ×2，本地完好待补推）。
+- 回执：2026-09-21 晚窗 / PC 执行侧 GLM-5.3 / 分支 fix/f2-surface-reply commit 1177a9c0（push 曾遇 GitHub 故障（connection reset/443 不通 ×4），长退避重试后**已全部推送成功**：分支 fix/f2-surface-reply → origin，coord 回执 main 8b9a043c → origin；回执首记"暂挂待补推"由本行更正）。
   - **缺陷机制复核（未跨层，chat 侧）**：agentloop 正确 pause（Result.Reply=问句，durable trace[21] 实证）；缺陷在呈现路径两处——① `goalHasLiveContinuationOwner` 把 parked armed checkpoint（recordGoalResult 对 waiting_interaction 记录保持 goalContinuations armed 以便用户答复后续跑）误判为活链 → 投递门 `chainEnded=false` 永远静默，`emitSchedulerChainResultEvent`（turn.completed/chain_result）永不发射，问句死在 chainResp；② `pendingInteractionFromResult` 只认 executed interaction_requests，clarify park 的 durable pending payload 丢 reply（取证 record 逐字复现={status,stop_reason,limit_type}）。
   - **修复**：谓词对齐自身 docstring——armed 且对应 durable waiting_interaction 记录=非自动切片持有者（调度器从不 claim 该状态），park 经 B1-F2 既有分支投递 turn.completed(body=问句) 落会话图且保持可答复；recordGoalResult/chatResponsePendingInteraction 补 pending payload `reply`（runtime status 面可读）。断言零改动（⑤ clarify ask 双跳断言未碰）；content-blind 红线未碰。
   - **①红测试**：2 枚修前红实证（逐字复现取证形态：事件面只剩 item body=「已完成 ccb_observation_request」；pending payload 无 reply）→修后绿：TestClarifyParkSliceEndDeliversQuestionAsTurnEventBody / TestClarifyParkPendingInteractionCarriesQuestion（scheduler_terminal_delivery_test.go）。
