@@ -17,9 +17,9 @@
     - R1 `20260921_101048` exit 1 **F2 中间态**——observe 绿（提案面）→vocal 守卫 settle 后 waiting_clarification 但 reply=「已完成 ccb_observation_request」无"哪条轨"问句（run1 log）。
     - R2 `20260921_101536` exit 0 **正路径**——提案面→hop-1 工具面（stored Track 1010 -0.50dB）→hop-2 d1_post_action_evaluation_required（回读 0→-0.5dB）。
     - R3 `20260921_101925` exit 0 **正路径**——同上双跳全链（Track 1007 -0.50dB）。
-    - R4 `20260921_102317` exit 1 **F4 done 不停车**——observe 完整提案散文「建议候选是把 Track 2 降低 1 dB，等你在确认环节点头后再动…不涉及任何插件」但 stop_reason=done/needs_confirmation=false（run4 log+run4_..._seq12_evidence.json，目标终态应为提案面）。
+    - R4 `20260921_102317` exit 1 **F4 done 不停车**——observe 完整提案散文「建议候选是把 Track 2 降低 1 dB，等你在确认环节点头后再动…不涉及任何插件」但 stop_reason=done/needs_confirmation=false（run4 log+run4_..._seq12_evidence.json，目标终态应为提案面）。**【勘误 2026-09-22】本轮 F4 带 G 门滞后假弹回前缀**：取证时间线（run4_R4_forensic_timeline.json，FIX-GATE-FRESHNESS-1 卡背景引证）证明模型两轮观测后提案被 G6/G8 读折叠前快照假弹（R4 滞后窗），二次弹回语义反转后才散文退化 F4——归因=基础设施前缀+模型终态选择复合，非纯模型终态方差；修复=FIX-GATE-FRESHNESS-1（8653a25a，G5/G6/G8 空前沿兜底，随 FIX-FRONTIER-FOLD-1 合入 main）。
     - R5 `20260921_102626` exit 0 **正路径**——同上双跳全链（Track 1007 -0.50dB）。
-    - **判定：3/5 绿，不达标**。红轮 F2×1+F4×1 均模型终态选择类；无环境类、无同断点两败。
+    - **判定：3/5 绿，不达标**。红轮 F2×1+F4×1；F2=呈现路径缺陷（FIX-F2-SURFACE-REPLY 已修，模型零责），F4=门滞后假弹回前缀+模型终态选择复合（见 R4 行勘误）——两红均非纯模型方差，mac 拼表时 ④ F4 行请按"复合（门滞后前缀）"口径读取；无环境类、无同断点两败。
   - **RUN_LEDGER ⑤ run_vit_product_path_smoke.ps1 ×5**（run ID=工件目录 product_path_*；工件在 VitApp/Workspace/Artifacts/smoke/ 各轮新目录不覆盖）：
     - R1 `product_path_20260921_103115` exit 0 **正路径**——vocal focus settle→needs_confirmation 提案面（presence 频段提升提案）。
     - R2 `product_path_20260921_103431` exit 0 **正路径**——提案面（Lead Vocal presence 提升+A/B 提案）。
@@ -36,7 +36,7 @@
     | ④ F1 能力边界 | 0 | 2 | 待拼 |
     | ④ F2 中间态 | 1 | ? | 待拼 |
     | ④ F3 无可采纳 | 0 | ? | 待拼 |
-    | ④ F4 done 不停车 | 1 | 0（⑦ 传导 1 例非 ④⑤） | 待拼 |
+    | ④ F4 done 不停车 | 1（勘误：带门滞后假弹回前缀，复合归因） | 0（⑦ 传导 1 例非 ④⑤） | 待拼 |
     | ④ F5 复合（单列） | 0 | 0 | 待拼 |
     | ⑤ 通过率 | **3/5** | 0/5 | 待拼 |
     | ⑤ 正路径（vocal focus 停车） | 3（停车率 4/4） | 0 | 待拼 |
@@ -48,4 +48,5 @@
 
   - §8 账目：两件各 5 轮固定无加跑；轮内作废重跑 0（零脚本缺陷修复）；环境中断 0 轮（轮间 taskkill 清 ④ 栈残留×5 均为轮后处置，不影响退出码；⑤ 各轮栈自清）；连续环境故障 0（未触 ≥3 暂停线）；LLM key 零入工件（events JSON grep=0，工件均脚本生成 chat/tool JSON）；引擎=deepseek-v4-flash 全程（~/.vit/config.json 未动）。测试 HEAD=7b8bb1cc（=origin/main 117e9307 代码树，SMOKE_TESTS.md 行在 10 轮全完成后才写）。
   - 纪律记录：agent/、VitApp/、前端仓零触碰；default_project.xml 烟测改写未提交未还原（已知保留项）；断言零改动（双跳断言即被测契约，本卡 10 轮未改任何断言——R4 声学桥红也未改，如实记账）。
+- **勘误（2026-09-22，决策会话补记，供 mac 拼三列对照表）**：④ R4 的 F4 归因由"模型终态选择类"增补为"**G 门滞后假弹回前缀+模型终态选择复合**"——取证=run4_R4_forensic_timeline.json（coord/runs/PORT-PS1-N5-1/）+ FIX-GATE-FRESHNESS-1 卡背景（模型两轮观测后提案被 G6/G8 假弹→二次弹回语义反转→散文退化 F4）；修复=FIX-GATE-FRESHNESS-1（G5/G6/G8 空前沿新鲜域兜底）。数字结论（④ 3/5、⑤ 3/5、vocal focus 4/4）不变，仅归因口径修正。另注：SMOKE_TESTS.md 统计口径两行在分支 port/ps1-n5-1（59ccc8e1）未落 main，如需落 main 另行裁定。
 - 验收：
