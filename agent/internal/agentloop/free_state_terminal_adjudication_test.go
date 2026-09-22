@@ -75,11 +75,20 @@ func terminalAdjudicationContext(mutate func(ctx map[string]any)) map[string]any
 	return ctx
 }
 
-// terminalAdjudicationNoClosedDimension reproduces the F3 shape exactly: G4 is
-// the only failing gate (no diagnostic dimension has closed).
-func terminalAdjudicationNoClosedDimension(ctx map[string]any) {
+// terminalAdjudicationUndeliveredScan is the post-甲 reproducible F3 shape: a
+// sole evidence-completeness rejection (G3 — the scan receipt is unusable,
+// every other gate including the OR-relaxed G4 passes). 方案甲 made a G4-only
+// failure structurally unreachable (G4 now fails only when G3 and G6 fail
+// too), so the parking path is pinned on the G3 form.
+func terminalAdjudicationUndeliveredScan(ctx map[string]any) {
 	loop := ctx["free_state_reasoning_loop"].(map[string]any)
-	delete(loop, "diagnostic_rounds")
+	ledger := loop["observation_ledger"].(map[string]any)
+	for _, row := range ledger["receipts"].([]any) {
+		receipt := row.(map[string]any)
+		if receipt["observation_id"] == "obs-mix" {
+			receipt["status"] = "rejected"
+		}
+	}
 }
 
 const terminalAdjudicationProposalJSON = `{"final": true, "reply": "The frontier target's fresh evidence supports one bounded gain experiment.", "free_state": {"schema_version": "free_state_decision.v1", "status": "needs_experiment", "evidence_status": "plausible", "summary": "target evidence supports a bounded improvement hypothesis", "improvement_proposal": {"schema_version": "improvement_proposal.v1", "target": {"kind": "track", "id": "1007"}, "evidence_refs": ["obs-target"], "improvement_intent": "make the bass relationship feel clearer", "hypothesis": "a small bounded change may improve separation", "expected_effect": "the relationship should be easier to compare", "action_domain": "track_gain", "action_kind": "bounded_gain_adjustment", "parameter_bounds": {"delta_db": -0.5}, "confidence": 0.55}}}`
@@ -89,7 +98,8 @@ const terminalAdjudicationCapabilityBlockedJSON = `{"final": true, "reply": "The
 // Red test (pre-fix red): the locked-turn complete proposal rejected solely by
 // G4 must complete with its decision so the chat side can park it on the
 // proposal confirmation face — not die in the terminal fallback.
-func TestTerminalCompleteProposalG4SoleRejectionParksForUserAdjudication(t *testing.T) {
+func TestTerminalCompleteProposalEvidenceCompletenessSoleRejectionParks(t *testing.T) {
+	// Post-甲 fixture: G3 (scan receipt unusable) is the sole failing gate.
 	client := &fakeMessageCompleter{responses: []string{terminalAdjudicationProposalJSON, terminalAdjudicationProposalJSON}}
 	loop := &MessageLoop{
 		Client: client,
@@ -99,7 +109,7 @@ func TestTerminalCompleteProposalG4SoleRejectionParksForUserAdjudication(t *test
 	res := loop.Start(context.Background(), Input{
 		UserText:     "please improve this project",
 		AllowedTools: []string{"ccb.observation_request"},
-		Context:      terminalAdjudicationContext(terminalAdjudicationNoClosedDimension),
+		Context:      terminalAdjudicationContext(terminalAdjudicationUndeliveredScan),
 	})
 	if res.FreeStateDecision == nil || res.FreeStateDecision.ImprovementProposal == nil ||
 		res.FreeStateDecision.Status != FreeStateNeedsExperiment {
@@ -126,7 +136,7 @@ func TestTerminalCapabilityBlockedStillSettlesAsModelDecision(t *testing.T) {
 	res := loop.Start(context.Background(), Input{
 		UserText:     "improve the mix",
 		AllowedTools: []string{"ccb.observation_request"},
-		Context:      terminalAdjudicationContext(terminalAdjudicationNoClosedDimension),
+		Context:      terminalAdjudicationContext(terminalAdjudicationUndeliveredScan),
 	})
 	if res.FreeStateDecision == nil || res.FreeStateDecision.Status != FreeStateCapabilityBlocked {
 		t.Fatalf("capability_blocked must settle as the model's own decision, got decision=%+v stop=%q err=%q",
@@ -140,7 +150,7 @@ func TestTerminalCapabilityBlockedStillSettlesAsModelDecision(t *testing.T) {
 // Anti-abuse rules 2/3 untouched: parking neither counts as an admission
 // bounce nor clears the lock, and unlocked turns keep the ordinary gap bounce.
 func TestTerminalParkingKeepsAntiAbuseAccounting(t *testing.T) {
-	state := &runState{input: Input{Context: terminalAdjudicationContext(terminalAdjudicationNoClosedDimension)}}
+	state := &runState{input: Input{Context: terminalAdjudicationContext(terminalAdjudicationUndeliveredScan)}}
 	if issue := messageLoopFreeStateOutputIssue(state, gateTestProposal(nil)); issue != "" {
 		t.Fatalf("locked turn must park the complete G4-only proposal, got issue %q", issue)
 	}
@@ -153,11 +163,47 @@ func TestTerminalParkingKeepsAntiAbuseAccounting(t *testing.T) {
 	}
 	// The same G4 failure on an unlocked turn keeps today's bounce semantics.
 	unlocked := &runState{input: Input{Context: terminalAdjudicationContext(func(ctx map[string]any) {
-		terminalAdjudicationNoClosedDimension(ctx)
+		terminalAdjudicationUndeliveredScan(ctx)
 		delete(ctx["free_state_reasoning_loop"].(map[string]any), "terminal_turn_locked")
 	})}}
 	if issue := messageLoopFreeStateOutputIssue(unlocked, gateTestProposal(nil)); !strings.Contains(issue, "needs_experiment requires the full admission gate") {
 		t.Fatalf("unlocked turn must keep the ordinary G-gate bounce, got %q", issue)
+	}
+}
+
+// Red test (pre-change red, FIX-F3-G4-SEMANTICS 方案甲, user ruling 2026-09-22):
+// G4 for improvement proposals mirrors the closure spine's own FS5 guard OR
+// semantics (audioclosure/phase.go: "an established frontier and a closed
+// dimension (or a unique scan-level candidate)"). A complete proposal on a
+// state with NO closed diagnostic dimension — but a delivered scan, a frontier,
+// and target-level evidence — must pass the admission gate. Pre-change this is
+// exactly the G4-only rejection that killed run 201633.
+func TestG4ImprovementProposalAlignsSpineOrSemantics(t *testing.T) {
+	state := gateTestState(gateVariantNoRounds) // scan + frontier + target evidence intact, no closed dimension
+	failed := evaluateFreeStateNeedsExperimentGate(state, gateTestProposal(nil).FreeStateDecision)
+	for _, id := range failed {
+		if id == freeStateGateG4 {
+			t.Fatalf("G4 must not fail on the scan/target OR arms (failed=%v)", failed)
+		}
+	}
+	if issue := messageLoopFreeStateOutputIssue(state, gateTestProposal(nil)); issue != "" {
+		t.Fatalf("proposal with scan+target basis must be admitted without a closed dimension: %q", issue)
+	}
+	// The strict closed-dimension predicate itself still fails here: the spine's
+	// DimensionClosed disjunct is false; the OR arms carry the admission, and a
+	// diagnostic-only loop keeps the strict gate (it never admits proposals).
+	if gateG4(state) {
+		t.Fatal("the strict dimension-closed predicate must still fail without a closed dimension")
+	}
+	diagnosticOnly := gateTestState(func(ctx map[string]any) {
+		gateVariantNoRounds(ctx)
+		ctx["free_state_diagnostic_only"] = true
+	})
+	if gateG4ImprovementProposal(diagnosticOnly) {
+		t.Fatal("diagnostic-only mode keeps the full closed-dimension gate")
+	}
+	if !gateG4ImprovementProposal(state) {
+		t.Fatal("improvement mode must admit via the OR arms")
 	}
 }
 
@@ -170,13 +216,13 @@ func TestTerminalGateRejectedFallbackStopReasonIsHonest(t *testing.T) {
 		name   string
 		mutate func(ctx map[string]any)
 	}{
-		{"g7_unresolved_evidence_ref", func(ctx map[string]any) {}}, // gateTestProposal cites obs-target; mutate below
-		{"g1_binding_mismatch_with_g4", func(ctx map[string]any) {
+		{"g7_unresolved_evidence_ref", func(ctx map[string]any) {}}, // proposal cites obs-target; staled below
+		{"g1_binding_mismatch", func(ctx map[string]any) {
 			ctx["task_contract"] = map[string]any{"kind": "improvement", "project_uuid": "proj-1", "project_revision": "rev-stale"}
 		}},
 	}
 	for _, tc := range cases {
-		ctx := terminalAdjudicationContext(terminalAdjudicationNoClosedDimension)
+		ctx := terminalAdjudicationContext(terminalAdjudicationUndeliveredScan)
 		tc.mutate(ctx)
 		if tc.name == "g7_unresolved_evidence_ref" {
 			// G7-only failure: all gates pass except the evidence ref freshness
@@ -225,7 +271,7 @@ func TestTerminalGateRejectedFallbackStopReasonIsHonest(t *testing.T) {
 	res := loop.Start(context.Background(), Input{
 		UserText:     "improve the mix",
 		AllowedTools: []string{"ccb.observation_catalog"},
-		Context:      terminalAdjudicationContext(terminalAdjudicationNoClosedDimension),
+		Context:      terminalAdjudicationContext(terminalAdjudicationUndeliveredScan),
 	})
 	if res.StopReason != FreeStateTerminalFallbackStopReason {
 		t.Fatalf("inadmissible-shape output keeps the unparseable fallback label, got %q", res.StopReason)

@@ -229,6 +229,34 @@ func gateG4(state *runState) bool {
 	return false
 }
 
+// gateG4ImprovementProposal is FIX-F3-G4-SEMANTICS 方案甲 (user ruling
+// 2026-09-22: "支持改呈或逻辑"): the improvement-proposal admission G4 mirrors
+// the closure spine's own FS5 guard OR semantics (audioclosure/phase.go: "an
+// established frontier and a closed dimension (or a unique scan-level
+// candidate)"): a closed diagnostic dimension, OR a usable delivered scan the
+// candidate can derive from (gateG3's predicate — the spine's ScanUsable
+// disjunct), OR target-level evidence already booked in the ledger (gateG6's
+// predicate — the spine's TargetEvidence). The workflow §6 cognitive policy
+// admits bounded experiments on plausible evidence; the strict
+// closed-dimension-only reading made the admission gate stricter than the
+// spine's own guard and, combined with the terminal-turn tool ban, made the
+// proposal exit structurally unreachable (run 201633 vs the capability_blocked
+// concession of 103431). The gate stays phase-blind by design (TIMING-1: the
+// phase ladder holds no proposal veto); the spine keeps advancing FS4→FS5 only
+// through its own guard, so the gate never asserts a spine transition the
+// guard would refuse. Diagnostic-only loops keep the full closed-dimension
+// predicate — they never admit improvement proposals, and any diagnostic-mode
+// audit caller sees the strict gate.
+func gateG4ImprovementProposal(state *runState) bool {
+	if gateG4(state) {
+		return true
+	}
+	if state != nil && messageLoopFreeStateDiagnosticOnly(state) {
+		return false
+	}
+	return gateG3(state) || gateG6(state)
+}
+
 // gateG5 requires an established candidate frontier.
 func gateG5(state *runState) bool {
 	closure := messageLoopMapValue(state.input.Context["minimal_audio_closure"])
@@ -509,7 +537,7 @@ func evaluateFreeStateNeedsExperimentGate(state *runState, decision *FreeStateDe
 		freeStateGateG1: gateG1(state),
 		freeStateGateG2: gateG2(state),
 		freeStateGateG3: gateG3(state),
-		freeStateGateG4: gateG4(state),
+		freeStateGateG4: gateG4ImprovementProposal(state),
 		freeStateGateG5: gateG5(state),
 		freeStateGateG6: gateG6(state),
 		freeStateGateG7: gateG7(state, refs),
@@ -588,7 +616,11 @@ func freeStateAdmissionGap(state *runState, decision *FreeStateDecision, failed 
 			// omission is a structural receipt reason string, not content).
 			gap.Missing = append(gap.Missing, FreeStateAdmissionMissingCondition{GateID: id, Condition: "no_delivered_project_scan_receipt", Binding: "observation_ledger receipt status ready|partial with a qualified mix scan view in requested_views: mix.multitrack_relationship or mix.frequency_relationship; a project-level structure view such as project.structure does not satisfy this gate, and the view must have been delivered — a receipt rejection reason marking that view as omitted by disclosure budget disqualifies it"})
 		case freeStateGateG4:
-			gap.Missing = append(gap.Missing, FreeStateAdmissionMissingCondition{GateID: id, Condition: "no_closed_diagnostic_dimension", Binding: "a diagnostic round with evidence_status=ready and no open unresolved_questions"})
+			// 方案甲 (user ruling 2026-09-22): the binding names the OR arms the
+			// gate now mirrors from the spine FS5 guard; the condition key keeps
+			// the closed vocabulary (scripts/mac/fixtures reference it) and stays
+			// literally true — this gap only fires when every arm failed.
+			gap.Missing = append(gap.Missing, FreeStateAdmissionMissingCondition{GateID: id, Condition: "no_closed_diagnostic_dimension", Binding: "at least one of: a diagnostic round with evidence_status=ready and no open unresolved_questions, or a usable delivered project/mix scan receipt (the spine FS5 scan-level candidate disjunct), or a usable target-level observation in the ledger (G6's condition)"})
 		case freeStateGateG5:
 			gap.Missing = append(gap.Missing, FreeStateAdmissionMissingCondition{GateID: id, Condition: "no_frontier_candidates", Binding: "minimal_audio_closure.hypothesis_frontier.candidates non-empty"})
 		case freeStateGateG6:
