@@ -902,12 +902,21 @@ func audioClosureCandidates(existing []audioclosure.Candidate, observations []*a
 			continue
 		}
 		observationID := firstStringFromMap(observation.Summary, "observation_id")
+		observationTrackID := audioClosureObservationTargetTrackID(observation.Summary)
 		for _, viewID := range audioClosureCandidateViewIDs(observation.Summary) {
 			rows := audioClosureCandidateRows(observation.Summary, viewID)
 			for _, row := range rows {
 				trackIDs, trackNames := audioClosureCandidateTracks(row)
 				if len(trackIDs) == 0 {
-					continue
+					// The row carries no inline track set, but a usable
+					// track-target observation has already registered its
+					// target track as fact: fold the candidate on that
+					// structural fallback so the folding window stays
+					// aligned with audioClosureSelectedCandidate.
+					if observationTrackID == "" {
+						continue
+					}
+					trackIDs = freeStateNormalizedViewIDs([]string{observationTrackID})
 				}
 				issueType := firstStringFromMap(row, "type", "issue_type", "status")
 				region := firstStringFromMap(row, "region", "band")
@@ -1237,16 +1246,27 @@ func audioClosureCandidateID(observationID, viewID, issueType, region string, tr
 	return "candidate:" + hex.EncodeToString(digest[:8])
 }
 
+// audioClosureObservationTargetTrackID returns the track id a track-target
+// observation's target_ref names, or "" when the observation is not scoped to
+// a single track. Candidate folding and candidate selection read the same
+// structural field here so the registration window stays symmetric.
+func audioClosureObservationTargetTrackID(summary map[string]any) string {
+	target := firstMapFromAny(summary["target_ref"])
+	if !strings.EqualFold(firstStringFromMap(target, "kind", "target_kind"), "track") {
+		return ""
+	}
+	return firstStringFromMap(target, "id", "track_id", "target_id")
+}
+
 func audioClosureSelectedCandidate(candidates []audioclosure.Candidate, observations []*agentloop.RecentObservation) string {
 	for _, observation := range observations {
 		if !freeStateUsableObservation(observation) {
 			continue
 		}
-		target := firstMapFromAny(observation.Summary["target_ref"])
-		if !strings.EqualFold(firstStringFromMap(target, "kind", "target_kind"), "track") {
+		trackID := audioClosureObservationTargetTrackID(observation.Summary)
+		if trackID == "" {
 			continue
 		}
-		trackID := firstStringFromMap(target, "id", "track_id", "target_id")
 		for _, candidate := range candidates {
 			if freeStateContainsString(candidate.TrackIDs, trackID) {
 				return candidate.ID
