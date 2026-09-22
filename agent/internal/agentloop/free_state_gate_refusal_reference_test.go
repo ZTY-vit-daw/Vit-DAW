@@ -58,6 +58,11 @@ func TestGateRefusalFeedbackStaysLeanOutsideRevisionBoundGates(t *testing.T) {
 		closure := messageLoopMapValue(ctx["minimal_audio_closure"])
 		frontier := messageLoopMapValue(closure["hypothesis_frontier"])
 		frontier["candidates"] = []any{}
+		// FIX-GATE-FRESHNESS-1 (2026-09-21): a usable scan receipt in the
+		// fresh ledger now establishes the frontier (same-slice lag
+		// completion), so the scope-control fixture must drop the scan too
+		// for G5 to genuinely fail.
+		gateVariantTargetOnlyLedger(ctx)
 	})
 	out := gateTestProposal(nil)
 	issue := messageLoopFreeStateOutputIssue(state, out)
