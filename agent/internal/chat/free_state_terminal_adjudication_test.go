@@ -30,7 +30,7 @@ func terminalAdjudicationChatContext() map[string]any {
 			"observation_ledger": map[string]any{
 				"receipts": []any{
 					map[string]any{
-						"status": "ready", "observation_id": "obs-mix", "requested_views": []any{"mix.frequency_relationship"},
+						"status": "rejected", "observation_id": "obs-mix", "requested_views": []any{"mix.frequency_relationship"},
 						"project_revision": "rev-7", "freshness": map[string]any{"status": "fresh", "project_revision": "rev-7"},
 					},
 					map[string]any{
@@ -47,7 +47,10 @@ func terminalAdjudicationChatContext() map[string]any {
 					},
 				},
 			},
-			// No diagnostic_rounds: G4 is the only failing gate.
+			// 方案甲 post-state: G4 passes via the spine-aligned OR arms (scan/
+			// target evidence), so the reproducible sole evidence-completeness
+			// rejection is G3 — the scan receipt is unusable.
+			// (obs-mix is rejected below, after this literal.)
 		},
 		"minimal_audio_closure": map[string]any{
 			"project_uuid": "proj-1", "project_revision": "rev-7",
@@ -164,8 +167,8 @@ func TestFreeStateTerminalAdjudicationParksProposalNotCapabilityBlocked(t *testi
 	if len(stored.TerminalAdjudication) == 0 {
 		t.Fatal("parking must latch the terminal adjudication disclosure on the loop")
 	}
-	if ids := adjudicationStringList(stored.TerminalAdjudication, "failed_gate_ids"); len(ids) != 1 || ids[0] != "G4_dimension_closed" {
-		t.Fatalf("adjudication disclosure failed_gate_ids = %v, want [G4_dimension_closed]", ids)
+	if ids := adjudicationStringList(stored.TerminalAdjudication, "failed_gate_ids"); len(ids) != 1 || ids[0] != "G3_project_scan" {
+		t.Fatalf("adjudication disclosure failed_gate_ids = %v, want [G3_project_scan]", ids)
 	}
 	open := adjudicationRowList(stored.TerminalAdjudication, "open_dimensions")
 	if len(open) != 1 {
@@ -215,7 +218,7 @@ func TestImprovementProposalResponseCarriesAdjudicationDisclosure(t *testing.T) 
 	loop := terminalAdjudicationChatLoop()
 	loop.TerminalAdjudication = map[string]any{
 		"schema_version":       "free_state_terminal_adjudication.v1",
-		"failed_gate_ids":      []any{"G4_dimension_closed"},
+		"failed_gate_ids":      []any{"G3_project_scan"},
 		"open_dimensions":      []any{map[string]any{"dimension": string(audioclosure.DimensionFrequencyOccupancy), "status": "open"}},
 		"terminal_turn_reason": FreeStateTerminalReasonBudgetCritical,
 	}

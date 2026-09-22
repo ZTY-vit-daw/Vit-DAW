@@ -39,14 +39,21 @@ func gateVariantNoRounds(ctx map[string]any) {
 	delete(loop, "diagnostic_rounds")
 }
 
-func gateVariantRoundNotClosed(ctx map[string]any) {
+// gateVariantNoProposalEvidenceBasis removes every G4 OR arm (FIX-F3-G4-SEMANTICS
+// 方案甲): no closed diagnostic dimension, no usable delivered scan receipt,
+// no target-level available view. Only then does the improvement-proposal G4
+// fail — the closed-dimension disjunct plus both spine-aligned alternates.
+func gateVariantNoProposalEvidenceBasis(ctx map[string]any) {
 	loop := ctx["free_state_reasoning_loop"].(map[string]any)
-	loop["diagnostic_rounds"] = []any{map[string]any{
-		"schema_version": "free_state_diagnostic_round.v1", "round_id": "r_gate00000002",
-		"primary_dimension": "frequency_occupancy", "priority_reason": "default_order",
-		"views_requested": []any{"track.timbre_frequency"}, "evidence_status": "ready",
-		"unresolved_questions": []any{"which track owns the masking"}, "project_revision": "rev-7",
-	}}
+	delete(loop, "diagnostic_rounds")
+	ledger := loop["observation_ledger"].(map[string]any)
+	for _, row := range ledger["receipts"].([]any) {
+		receipt := row.(map[string]any)
+		if receipt["observation_id"] == "obs-mix" {
+			receipt["status"] = "rejected"
+		}
+	}
+	ledger["available_views"] = map[string]any{}
 }
 
 func gateVariantNoFrontier(ctx map[string]any) {
@@ -108,8 +115,11 @@ func TestM06GateRejectsEachMissingCondition(t *testing.T) {
 		{"missing_capacity_assessment", freeStateGateG2, gateVariantNoCapacity},
 		{"capacity_blocked", freeStateGateG2, gateVariantCapacityBlocked},
 		{"missing_project_scan", freeStateGateG3, gateVariantTargetOnlyLedger},
-		{"no_closed_dimension", freeStateGateG4, gateVariantNoRounds},
-		{"dimension_not_closed", freeStateGateG4, gateVariantRoundNotClosed},
+		// 方案甲: the improvement-proposal G4 fails only when every OR arm is
+		// missing (no closed dimension AND no usable scan AND no target-level
+		// evidence) — the dimension-only variants now pass via the spine-aligned
+		// alternates (see TestG4ImprovementProposalAlignsSpineOrSemantics).
+		{"no_evidence_basis_for_proposal", freeStateGateG4, gateVariantNoProposalEvidenceBasis},
 		{"no_frontier", freeStateGateG5, gateVariantNoFrontier},
 		{"no_selected_candidate", freeStateGateG6, gateVariantNoSelectedCandidate},
 		{"no_target_evidence", freeStateGateG6, gateVariantNoTargetEvidence},
