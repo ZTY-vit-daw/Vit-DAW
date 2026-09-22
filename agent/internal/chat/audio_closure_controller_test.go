@@ -420,6 +420,36 @@ func TestAudioClosureBuildsCandidatesFromCompactedViewFacts(t *testing.T) {
 	}
 }
 
+// FIX-FRONTIER-FOLD-1: a usable track-target observation whose conclusion rows
+// carry no inline track ids must still fold a candidate — the observation's
+// target_ref track is the registered fact, so the folding window stays aligned
+// with audioClosureSelectedCandidate (which selects by that same target_ref).
+func TestAudioClosureFoldsTrackTargetRowsWithoutInlineTrackIDs(t *testing.T) {
+	observation := &agentloop.RecentObservation{Tool: "ccb.observation_request", Status: "ready", Summary: map[string]any{
+		"status": "ready", "observation_id": "obs-track-target", "requested_views": []any{"mix.multitrack_relationship"},
+		"target_ref": map[string]any{"kind": "track", "id": "1007", "label": "Bass"},
+		"views": map[string]any{"mix.multitrack_relationship": map[string]any{
+			"status": "ready", "facts": map[string]any{"band_conflict_candidates": []any{
+				map[string]any{"band": "bass", "status": "candidate"},
+			}},
+		}},
+	}}
+	candidates := audioClosureCandidates(nil, []*agentloop.RecentObservation{observation})
+	if len(candidates) != 1 {
+		t.Fatalf("track-target observation without inline track ids folded %d candidates: %+v", len(candidates), candidates)
+	}
+	candidate := candidates[0]
+	if len(candidate.TrackIDs) != 1 || candidate.TrackIDs[0] != "1007" {
+		t.Fatalf("candidate track set = %+v, want the observation target track 1007", candidate.TrackIDs)
+	}
+	if want := audioClosureCandidateID("obs-track-target", "mix.multitrack_relationship", "candidate", "bass", []string{"1007"}); candidate.ID != want {
+		t.Fatalf("candidate ID = %s, want derived id %s", candidate.ID, want)
+	}
+	if selected := audioClosureSelectedCandidate(candidates, []*agentloop.RecentObservation{observation}); selected != candidate.ID {
+		t.Fatalf("audioClosureSelectedCandidate = %q, want %q", selected, candidate.ID)
+	}
+}
+
 func TestAudioClosureBuildsCandidateFrontierThenSelectsTarget(t *testing.T) {
 	server := audioClosureTestServer()
 	ctx, state := prepareAudioClosureTestState(t, server)
