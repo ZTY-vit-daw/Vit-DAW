@@ -475,10 +475,13 @@ func TestFreeStateReplayM23TerminalReservationNotConsumedByBounce(t *testing.T) 
 	}
 	// After the one strengthened retry the loop settles through the honest
 	// fallback: no ghostwritten model decision, terminal turn first.
+	// FIX-F3-G4-SEMANTICS: the locked turn's output was a complete proposal
+	// the gates refused (unresolved evidence refs), so the honest verdict is
+	// gate-rejected — not unparseable.
 	resume := replayMergeLoopState(fx.Context, loop)
 	second, client2 := fx.startReplay(executor, fx.Responses[1:], nil, resume)
-	if second.StopReason != FreeStateTerminalFallbackStopReason {
-		t.Fatalf("m23: fallback stop = %q, want %s (err=%q)", second.StopReason, FreeStateTerminalFallbackStopReason, second.Error)
+	if second.StopReason != FreeStateTerminalGateRejectedStopReason {
+		t.Fatalf("m23: fallback stop = %q, want %s (err=%q)", second.StopReason, FreeStateTerminalGateRejectedStopReason, second.Error)
 	}
 	if second.FreeStateDecision != nil {
 		t.Fatalf("m23: the system ghostwrote a model decision on the fallback: %+v", second.FreeStateDecision)

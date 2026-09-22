@@ -126,7 +126,7 @@
  "tool_results": [],
  "expected": {
   "terminal_lock_reason": "budget_critical",
-  "fallback_stop_reason": "free_state_terminal_turn_unparseable",
+  "fallback_stop_reason": "free_state_terminal_turn_gate_rejected",
   "admission_rejection_count": 0
  }
 }

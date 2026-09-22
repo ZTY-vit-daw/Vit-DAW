@@ -162,8 +162,16 @@ type freeStateReasoningLoop struct {
 	// TerminalRetryCount bounds the strengthened terminal retry at one per
 	// loop. It is incremented agentloop-side (output-gate rejection boundary)
 	// and rides the durable loop through the continuation merge.
-	TerminalRetryCount int    `json:"terminal_retry_count,omitempty"`
-	LastError          string `json:"last_error,omitempty"`
+	TerminalRetryCount int `json:"terminal_retry_count,omitempty"`
+	// TerminalAdjudication is the FIX-F3-G4-SEMANTICS 方案乙 parking
+	// disclosure latched when a terminal-locked loop's complete proposal was
+	// refused only by the evidence-completeness gates (G3-G6): failed gate
+	// ids, the diagnostic queue's open dimensions, and the lock reason. The
+	// proposal parks on the confirmation face with this disclosure for the
+	// user to adjudicate; no experiment admission is constructed and the
+	// terminal lock never clears (parking is not re-entry).
+	TerminalAdjudication map[string]any `json:"terminal_adjudication,omitempty"`
+	LastError           string          `json:"last_error,omitempty"`
 	CreatedAt            time.Time `json:"created_at"`
 	UpdatedAt            time.Time `json:"updated_at"`
 }
@@ -177,6 +185,38 @@ func freeStateLoopActive(loop freeStateReasoningLoop) bool {
 		return false
 	default:
 		return true
+	}
+}
+
+// freeStateTerminalAdjudicationSchema is the FIX-F3-G4-SEMANTICS 方案乙
+// parking disclosure schema riding the loop and the confirmation face's
+// workflow_data.
+const freeStateTerminalAdjudicationSchema = "free_state_terminal_adjudication.v1"
+
+// freeStateTerminalAdjudicationDisclosure builds the 方案乙 parking
+// disclosure from mechanical runtime state only: the failed gate ids plus the
+// diagnostic queue's open dimensions (dimension ids and queue statuses are
+// closed machine vocabulary — the content-blind red line holds; no track,
+// plug-in, dosage, or view content is disclosed).
+func freeStateTerminalAdjudicationDisclosure(loop freeStateReasoningLoop, failedGateIDs []string) map[string]any {
+	openDimensions := []map[string]any{}
+	if loop.PriorityQueue != nil {
+		for _, entry := range loop.PriorityQueue.Entries {
+			if entry.Status != audioclosure.QueueOpen {
+				continue
+			}
+			openDimensions = append(openDimensions, map[string]any{
+				"dimension":       string(entry.Dimension),
+				"priority_reason": string(entry.PriorityReason),
+				"status":          string(entry.Status),
+			})
+		}
+	}
+	return map[string]any{
+		"schema_version":       freeStateTerminalAdjudicationSchema,
+		"failed_gate_ids":      append([]string(nil), failedGateIDs...),
+		"open_dimensions":      openDimensions,
+		"terminal_turn_reason": strings.TrimSpace(loop.TerminalTurnReason),
 	}
 }
 
@@ -340,6 +380,11 @@ func mergeFreeStateLoops(base, overlay freeStateReasoningLoop, overlayOK bool) f
 	}
 	if overlay.TerminalRetryCount > out.TerminalRetryCount {
 		out.TerminalRetryCount = overlay.TerminalRetryCount
+	}
+	// The 方案乙 parking disclosure is latched at the same authoritative
+	// boundary that owns the lock; an older transport copy never erases it.
+	if len(overlay.TerminalAdjudication) > 0 {
+		out.TerminalAdjudication = cloneContext(overlay.TerminalAdjudication)
 	}
 	if len(overlay.AuditionSessionSnapshot) > 0 {
 		out.AuditionSessionSnapshot = cloneContext(overlay.AuditionSessionSnapshot)
@@ -898,8 +943,13 @@ func (s *Server) recordFreeStateDecision(conversationID string, res agentloop.Re
 	if decision.ObservationID != "" && !freeStateContainsString(loop.ObservationIDs, decision.ObservationID) {
 		loop.ObservationIDs = append(loop.ObservationIDs, decision.ObservationID)
 	}
-	switch strings.ToLower(strings.TrimSpace(decision.Status)) {
-	case agentloop.FreeStateNeedsAction:
+		// FIX-F3-G4-SEMANTICS 方案乙 parking latch: set inside the
+		// needs_experiment case; the post-switch experiment construction must
+		// skip a parked proposal (no experiment admission — the user
+		// adjudicates at the confirmation face).
+		terminalAdjudicationParking := false
+		switch strings.ToLower(strings.TrimSpace(decision.Status)) {
+		case agentloop.FreeStateNeedsAction:
 		selected, target, resolved := freeStateResolveActionObservation(loop, decision, observations)
 		if !resolved {
 			// A family decision without an unambiguous cited observation must not
@@ -960,7 +1010,19 @@ func (s *Server) recordFreeStateDecision(conversationID string, res agentloop.Re
 			gateAudit = agentloop.AuditFreeStateNeedsExperimentGate(auditContext, &decision)
 			gateRejected = len(auditContext) > 0 && !gateAudit.Passed
 		}
-		if decision.ImprovementProposal == nil || proposalInvalid || gateRejected {
+		// FIX-F3-G4-SEMANTICS 方案乙: a terminal-locked loop's complete proposal
+		// refused only by the evidence-completeness gates (G3-G6) parks for
+		// user adjudication instead of capability-blocking. The locked turn
+		// banned every tool, so those gates are structurally unclosable there;
+		// killing the honest proposal was the F3 reverse incentive (201633
+		// died as gate-rejected while 103431's capability_blocked concession
+		// passed). Parking keeps the honest admission receipt below and
+		// constructs no experiment admission or FS7 advance: the user's
+		// confirmation-surface decision is the adjudication of the missing
+		// evidence completeness.
+		terminalAdjudicationParking = gateRejected && loop.TerminalTurnLocked &&
+			agentloop.FreeStateFailedGatesAllEvidenceCompleteness(gateAudit.FailedGateIDs)
+		if decision.ImprovementProposal == nil || proposalInvalid || (gateRejected && !terminalAdjudicationParking) {
 			blocked := decision
 			blocked.Status = agentloop.FreeStateCapabilityBlocked
 			blocked.EvidenceStatus = "insufficient"
@@ -988,8 +1050,9 @@ func (s *Server) recordFreeStateDecision(conversationID string, res agentloop.Re
 		// The agentloop G1-G7 gate has accepted this decision (it would have
 		// been rejected otherwise), which is the evidence that the FS7 guard
 		// (GatePassed) holds. Advance the closure spine to FS7/FS8 from the
-		// admitted decision.
-		if s != nil && s.audioClosures != nil {
+		// admitted decision. A 方案乙 park never advances the spine: its gate
+		// verdict was a refusal, and asserting GatePassed here would be false.
+		if !terminalAdjudicationParking && s != nil && s.audioClosures != nil {
 			if closure, tracked := s.audioClosures.ActiveForConversation(conversationID); tracked && !closure.Terminal() {
 				// The FS2 capacity guard is derived from the durable capability
 				// route record (scheduler-driven turns do not carry the HTTP
@@ -1024,6 +1087,9 @@ func (s *Server) recordFreeStateDecision(conversationID string, res agentloop.Re
 			loop.RequiresPostActionObservation = false
 		}
 		s.upsertPendingCandidate(proposal.ToPendingCandidate(conversationID, res.GoalID, res.RunID, time.Now().UTC().Format(time.RFC3339Nano)))
+		if terminalAdjudicationParking {
+			loop.TerminalAdjudication = freeStateTerminalAdjudicationDisclosure(loop, gateAudit.FailedGateIDs)
+		}
 	case agentloop.FreeStateNeedsObservation:
 		loop.Status = "observing"
 		loop.DecisionPhase = resolvedFreeStateDecisionPhase(loop)
@@ -1040,9 +1106,14 @@ func (s *Server) recordFreeStateDecision(conversationID string, res agentloop.Re
 		loop.Status = "blocked"
 		loop.LastError = firstNonEmpty(decision.StopReason, strings.Join(decision.Limitations, "; "), decision.Summary)
 	}
-	if strings.EqualFold(strings.TrimSpace(decision.Status), agentloop.FreeStateNeedsExperiment) ||
-		strings.EqualFold(strings.TrimSpace(decision.Status), agentloop.FreeStateImprovementProposal) ||
-		(strings.EqualFold(strings.TrimSpace(decision.Status), agentloop.FreeStateNeedsAction) && s.hasTaskSemanticContract(loop.GoalID)) {
+	// 方案乙 park: a parked proposal constructs no experiment admission —
+	// the gate refusal stands in the admission receipt and the user's
+	// confirmation-surface decision replaces the missing evidence
+	// completeness. Everything else keeps the ordinary experiment lifecycle.
+	if !terminalAdjudicationParking &&
+		(strings.EqualFold(strings.TrimSpace(decision.Status), agentloop.FreeStateNeedsExperiment) ||
+			strings.EqualFold(strings.TrimSpace(decision.Status), agentloop.FreeStateImprovementProposal) ||
+			(strings.EqualFold(strings.TrimSpace(decision.Status), agentloop.FreeStateNeedsAction) && s.hasTaskSemanticContract(loop.GoalID))) {
 		if loop.Experiment == nil {
 			if err := s.startFreeStateExperiment(&loop, decision, res.GoalID, res.RunID); err != nil {
 				loop.Status = "blocked"

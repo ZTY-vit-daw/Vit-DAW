@@ -30,6 +30,37 @@ var freeStateGateOrder = []string{
 	freeStateGateG5, freeStateGateG6, freeStateGateG7, freeStateGateG8,
 }
 
+// freeStateEvidenceCompletenessGateIDs is the evidence-completeness gate
+// family: failures meaning "the diagnostic evidence is not complete yet"
+// (project scan, closed dimension, candidate frontier, target evidence), as
+// opposed to binding (G1), capacity (G2), freshness/revision (G7), or
+// target-consistency (G8) violations.
+var freeStateEvidenceCompletenessGateIDs = map[string]bool{
+	freeStateGateG3: true,
+	freeStateGateG4: true,
+	freeStateGateG5: true,
+	freeStateGateG6: true,
+}
+
+// FreeStateFailedGatesAllEvidenceCompleteness reports whether every failed
+// gate belongs to the evidence-completeness family. Classification reads gate
+// ids only — content-blind by construction (FIX-F3-G4-SEMANTICS 方案乙:
+// on a locked terminal turn a complete proposal refused only by this family
+// parks for user adjudication instead of dying in the terminal fallback,
+// because the locked turn bans the tools that could ever close those gates).
+
+func FreeStateFailedGatesAllEvidenceCompleteness(failed []string) bool {
+	if len(failed) == 0 {
+		return false
+	}
+	for _, id := range failed {
+		if !freeStateEvidenceCompletenessGateIDs[id] {
+			return false
+		}
+	}
+	return true
+}
+
 // FreeStateGateAudit is a read-only explanation of the G1-G7 admission
 // evaluation. It is intentionally separate from the model decision so a
 // missing or malformed proposal can still be reported at the capability
