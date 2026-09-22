@@ -764,6 +764,14 @@ const (
 // decision and never counts as a success exit.
 const FreeStateTerminalFallbackStopReason = "free_state_terminal_turn_unparseable"
 
+// FreeStateTerminalGateRejectedStopReason marks the same honest fallback when
+// the locked turn's output WAS an admissible decision shape (a complete
+// proposal or a terminal status) that the admission gates refused: parseable,
+// complete, gate-rejected. FIX-F3-G4-SEMANTICS: the old single
+// "unparseable" verdict mislabeled exactly this case (run 201633 — two valid
+// complete proposals died as "unparseable").
+const FreeStateTerminalGateRejectedStopReason = "free_state_terminal_turn_gate_rejected"
+
 // freeStateTerminalTurnSentence is the frozen final-turn directive
 // (BOUNDARY-1 §2.3c). Closed template: no domain, track, plugin, dosage, or
 // view content; pinned by test.
@@ -878,14 +886,18 @@ func messageLoopFreeStateTerminalRawUnparseable(raw string) bool {
 
 // messageLoopTerminalFallbackResult finishes a terminal-turn-locked slice
 // with the BOUNDARY-1 §1.3 honest fallback: no admissible final decision
-// after the one strengthened retry. The three-piece evidence (original
-// response, retry prompt, fallback reason) lands in the artifact diagnostic
-// log, and the result carries the dedicated fallback stop reason so the chat
-// side routes it into today's honest settle — never a success exit.
-func messageLoopTerminalFallbackResult(r *Runner, state *runState, fingerprint, raw, retryPrompt, detail string) Result {
+// after the one strengthened retry. stopReason separates the two honest
+// verdicts: unparseable (no admissible decision shape was produced) versus
+// gate-rejected (a complete admissible decision the admission gates refused —
+// FIX-F3-G4-SEMANTICS: the single "unparseable" label misreported exactly that
+// case). The three-piece evidence (original response, retry prompt, fallback
+// reason) lands in the artifact diagnostic log, and the result carries the
+// dedicated fallback stop reason so the chat side routes it into today's
+// honest settle — never a success exit.
+func messageLoopTerminalFallbackResult(r *Runner, state *runState, fingerprint, raw, retryPrompt, stopReason, detail string) Result {
 	appendMessageLoopDiagnostic(messageLoopDiagnostic{
 		Stage:             "free_state_terminal_fallback",
-		Error:             FreeStateTerminalFallbackStopReason + ": " + detail,
+		Error:             stopReason + ": " + detail,
 		GoalID:            state.goal.GoalID,
 		RunID:             state.goal.RunID,
 		ConversationID:    messageLoopConversationID(state),
@@ -896,7 +908,7 @@ func messageLoopTerminalFallbackResult(r *Runner, state *runState, fingerprint, 
 	state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: "terminal-turn fallback: " + detail})
 	state.modelProtocolFailure = true
 	res := r.fail(state, fmt.Errorf("terminal turn produced no admissible final decision after one strengthened retry"))
-	res.StopReason = FreeStateTerminalFallbackStopReason
+	res.StopReason = stopReason
 	return res
 }
 
@@ -1095,6 +1107,26 @@ func messageLoopFreeStateOutputIssue(state *runState, out messageLoopOutput) str
 			// boundary, the per-round single intervention budget, and the
 			// execution-layer base revision match.
 			if failed := evaluateFreeStateNeedsExperimentGate(state, out.FreeStateDecision); len(failed) > 0 {
+				// FIX-F3-G4-SEMANTICS 方案乙: on the locked terminal turn a
+				// complete proposal refused only by the evidence-completeness
+				// family (G3-G6) parks instead of bouncing. The locked turn
+				// bans every tool, so those gates are structurally
+				// unclosable here; the bounce → strengthened-retry → fallback
+				// chain killed exactly this honest output as
+				// "unparseable" (run 201633) while the green round's
+				// capability_blocked concession passed (run 103431) — a
+				// reverse incentive. Parking changes no anti-abuse accounting:
+				// the locked-turn branch in message_loop.go never notes an
+				// admission rejection, the lock stays latched (parking is not
+				// re-entry), and the decision flows the ordinary admitted
+				// path so the chat side surfaces it on the proposal
+				// confirmation face with the open-dimensions disclosure for
+				// the user to adjudicate.
+				if messageLoopFreeStateTerminalTurnLocked(state) &&
+					freeStateTerminalDecisionAdmitted(out.FreeStateDecision) &&
+					FreeStateFailedGatesAllEvidenceCompleteness(failed) {
+					return ""
+				}
 				// The single-usable-bundle weak gate is replaced by the seven-part
 				// admission gate (docs/FREE_STATE_NEEDS_EXPERIMENT_GATE_V1.md). Gate
 				// failure has exactly one legal exit: needs_observation. TIMING-1:

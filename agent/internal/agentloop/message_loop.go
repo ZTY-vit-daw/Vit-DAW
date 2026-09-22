@@ -541,7 +541,7 @@ func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Resu
 				})
 				state.trace = append(state.trace, planner.TraceEvent{Kind: "planner_error", Message: repairErr.Error(), Reply: repairedRaw})
 				if messageLoopFreeStateTerminalTurnLocked(state) {
-					return messageLoopTerminalFallbackResult(r, state, assembly.Fingerprint, raw, messageLoopJSONRepairRetryPrompt, "terminal turn output was unparseable after the strengthened JSON repair retry")
+					return messageLoopTerminalFallbackResult(r, state, assembly.Fingerprint, raw, messageLoopJSONRepairRetryPrompt, FreeStateTerminalFallbackStopReason, "terminal turn output was unparseable after the strengthened JSON repair retry")
 				}
 				return r.fail(state, fmt.Errorf("Agent 返回的计划格式不完整，自动修复也失败了"))
 			}
@@ -559,7 +559,7 @@ func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Resu
 				})
 				state.trace = append(state.trace, planner.TraceEvent{Kind: "planner_error", Message: parseRepairErr.Error(), Reply: repairedRaw})
 				if messageLoopFreeStateTerminalTurnLocked(state) {
-					return messageLoopTerminalFallbackResult(r, state, assembly.Fingerprint, raw, messageLoopJSONRepairRetryPrompt, "terminal turn output was unparseable after the strengthened JSON repair retry")
+					return messageLoopTerminalFallbackResult(r, state, assembly.Fingerprint, raw, messageLoopJSONRepairRetryPrompt, FreeStateTerminalFallbackStopReason, "terminal turn output was unparseable after the strengthened JSON repair retry")
 				}
 				return r.fail(state, fmt.Errorf("Agent 返回的计划格式不完整，自动修复也没有得到可执行计划"))
 			}
@@ -597,6 +597,7 @@ func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Resu
 			}
 			return messageLoopTerminalFallbackResult(r, state, assembly.Fingerprint, raw,
 				freeStateTerminalTurnSentence+" "+freeStateTerminalTurnRetryDirective,
+				FreeStateTerminalFallbackStopReason,
 				"terminal turn raw output was not one clean JSON object after one strengthened retry")
 		}
 		if strings.TrimSpace(out.FailureReason) != "" {
@@ -628,8 +629,16 @@ func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Resu
 					state.input.Conversation = append(state.input.Conversation, llm.Message{Role: "user", Content: "<final_gate>" + retryPrompt + "</final_gate>"})
 					continue
 				}
+				// FIX-F3-G4-SEMANTICS: an admissible decision shape (a complete
+				// proposal or a terminal status) refused at this boundary was
+				// parseable — report it as gate-rejected, not unparseable.
+				fallbackStopReason := FreeStateTerminalFallbackStopReason
+				if out.FreeStateDecision != nil && freeStateTerminalDecisionAdmitted(out.FreeStateDecision) {
+					fallbackStopReason = FreeStateTerminalGateRejectedStopReason
+				}
 				return messageLoopTerminalFallbackResult(r, state, assembly.Fingerprint, raw,
 					issue+" "+freeStateTerminalTurnRetryDirective,
+					fallbackStopReason,
 					"no admissible final decision after one strengthened retry")
 			}
 			// TIMING-1 anti-abuse accounting: count the evidence-type G-gate

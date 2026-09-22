@@ -138,7 +138,17 @@ func (s *Server) improvementProposalResponse(conversationID, mode string, res ag
 			return response
 		}
 	}
-	if authorityModeFromContext(requestContext) == experiment.AuthorityFull {
+	// FIX-F3-G4-SEMANTICS 方案乙: a terminal-adjudication park is a gate-refused
+	// proposal surfaced for the user's explicit ruling. The full-access
+	// auto-authorization policy (B6 ③) covers admitted proposals only, so the
+	// confirmation card is always presented for a parked one.
+	parkedForAdjudication := false
+	var adjudicationDisclosure map[string]any
+	if adjudicationLoop, loopOK := s.freeStateLoop(conversationID); loopOK && len(adjudicationLoop.TerminalAdjudication) > 0 {
+		parkedForAdjudication = true
+		adjudicationDisclosure = cloneContext(adjudicationLoop.TerminalAdjudication)
+	}
+	if authorityModeFromContext(requestContext) == experiment.AuthorityFull && !parkedForAdjudication {
 		interactionRequest := improvementProposalInteractionRequest(conversationID, res.GoalID, res.RunID, resp.Reply, candidate, requestContext)
 		interaction := PendingInteraction{ID: interactionRequest.ID, Kind: interactionRequest.Kind, Type: interactionRequest.Type, Source: interactionRequest.Source, Workflow: interactionRequest.Workflow, ConversationID: conversationID, GoalID: res.GoalID, RunID: res.RunID, RequestContext: cloneContext(requestContext), Payload: cloneContext(interactionRequest.Payload), Data: cloneContext(interactionRequest.Data)}
 		s.transitionActivePendingCandidate(conversationID, "improvement_proposal", agentprotocol.PendingStatusAccepted, "full_project_access")
@@ -159,6 +169,21 @@ func (s *Server) improvementProposalResponse(conversationID, mode string, res ag
 		"proposal":           agentprotocol.ToMap(proposal),
 		"request_context":    requestContext,
 	}, candidate)
+	if parkedForAdjudication {
+		// 方案乙: the dimensions-not-closed disclosure rides the confirmation
+		// face (workflow_data.open_dimensions + terminal_adjudication) so the
+		// user adjudicates the evidence-completeness gap in view.
+		resp.WorkflowData = mergeContext(resp.WorkflowData, map[string]any{
+			"open_dimensions":       adjudicationDisclosure["open_dimensions"],
+			"terminal_adjudication": cloneContext(adjudicationDisclosure),
+		})
+		failedIDs := adjudicationGateIDText(adjudicationDisclosure)
+		suffix := "证据完备类门未通过，维度未闭合；确认后按受控执行域推进，取消则不修改工程。"
+		if len(failedIDs) > 0 {
+			suffix = "证据完备类门（" + failedIDs + "）未通过，维度未闭合；确认后按受控执行域推进，取消则不修改工程。"
+		}
+		resp.Reply = strings.TrimSpace(resp.Reply) + "（维度未闭合披露：" + suffix + "）"
+	}
 	resp.TypedEvents = append(resp.TypedEvents, agentprotocol.ToMap(agentprotocol.NewEvent(candidate, candidate.Source)))
 	req := improvementProposalInteractionRequest(conversationID, res.GoalID, res.RunID, resp.Reply, candidate, requestContext)
 	resp.InteractionRequests = []AgentInteractionRequest{req}
@@ -172,6 +197,19 @@ func (s *Server) improvementProposalResponse(conversationID, mode string, res ag
 		resp.Error = err.Error()
 	}
 	return resp
+}
+
+// adjudicationGateIDText renders the parking disclosure's failed gate ids as
+// display text, whatever slice shape the durable JSON round-trip left.
+func adjudicationGateIDText(disclosure map[string]any) string {
+	values, _ := disclosure["failed_gate_ids"].([]any)
+	parts := make([]string, 0, len(values))
+	for _, value := range values {
+		if text, ok := value.(string); ok && strings.TrimSpace(text) != "" {
+			parts = append(parts, strings.TrimSpace(text))
+		}
+	}
+	return strings.Join(parts, "、")
 }
 
 func improvementProposalInteractionRequest(conversationID, goalID, runID, reply string, candidate agentprotocol.PendingCandidate, requestContext map[string]any) AgentInteractionRequest {
