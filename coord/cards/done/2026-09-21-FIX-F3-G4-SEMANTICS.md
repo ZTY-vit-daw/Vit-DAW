@@ -1,0 +1,24 @@
+# FIX-F3-G4-SEMANTICS：G4 语义修正——消解"认知政策 vs 诊断脊柱"规则冲突与锁死轮出口陷阱
+
+- 优先级 / 预估 / 依赖：P1 / 1 天 / 取证定责 FORENSIC-45-FAMILIES（完整失败链+绿红对照在案）；**用户已裁定修 G4（2026-09-21 会话）**
+- 模型分级：L2 / GLM-5.3（门语义修正=准入门核心，红测试先行）
+- **背景（已定责）**：锁死轮上模型的完整合规提案（needs_experiment+improvement_proposal.v1，诚实标注未闭合维度）两次被 gap=[G4_dimension_closed] 唯一拒绝→terminal fallback 判死。三重缺陷实证：①规则冲突——工作流 §6 认知政策"有界实验只需 plausible 证据"vs G4"提案前必须有已闭合诊断维度"，模型按前者精神提案被后者条文处死；②G4 条件非模型可主动执行的动作（诊断轮闭合=服务端折叠的模式识别）；③锁死轮禁工具→G4 永不可补→"最后通牒"指令的提案出口结构性不可达（反向激励：绿轮 103431 选 capability_blocked 认输通过，红轮 201633 交真提案被杀）。另证：相位机 FS4→FS5 守卫已含 OR 语义（DimensionClosed **或** 扫描唯一候选）——门 G4 比脊柱自守卫更严，不对齐。
+- 目标（两方案，甲待设计裁定、乙为推荐立即项）：
+  1. **方案乙（推荐先行，契约保持最小修）**：锁死终局轮上，若提案完整且失败门仅属证据完备类（G3-G6），提案照常停上提案确认面并附"维度未闭合"披露（workflow_data 带 open_dimensions）——由用户在确认面裁决；防滥用规则 2/3 不动（停车≠重入，不计弹回）。消反向激励。
+  2. **方案甲（G4 本体修正，需产品裁定）**：G4 对 improvement 类提案收窄——对齐脊柱 FS5 守卫的 OR 语义（已闭合维度 **或** 扫描派生唯一候选 **或** 目标级证据已入台账[G6 已查]）；诊断模式任务维持全量 G4。裁定问题：**有界改善实验是否应以"已闭合诊断维度"为前置**（§6 精神=否；脊柱守卫=部分是；现行 G4=是）。
+  3. 红测试：F3 场景复现（锁死轮+完整提案+G4 唯一拒绝）——修前 failed/修后按方案停车或采纳；绿轮 103431 行为（capability_blocked）回归不破坏
+  4. 同步：fallback 措辞 terminal_turn_unparseable 失实修正（本案=gate-rejected 非不可解析）
+- §8：content-blind 红线不破（乙的 open_dimensions 披露=结构性字段；甲的 OR 条件=既有脊柱词表）；弹回词表双端同步（mac 跟随）
+- 文件域：agent/internal/agentloop/free_state_gate.go + free_state_reasoning.go（terminal turn 段）+ 测试
+- 验收：①红测试修前红/修后绿；②现有 gate 全家回归绿；③④⑤ 各 1 轮真栈（存在性）；④方案甲若裁定通过另含 G4 条件 diff+相位机一致性核对
+- 停止条件：需动防滥用规则或相位机守卫才能绿 → 域外上交
+- 领取：2026-09-21 晚窗 / PC 执行侧 GLM-5.3 / origin/main=e36338ac / 分支 fix/f3-g4-semantics
+- 回执：2026-09-22 晚窗 / PC 执行侧（GLM-5.3）/ 实现分支 fix/f3-g4-semantics 已推（31d35f8d，9 文件 +684/-23）；coord 领取 166d313a。
+  - **方案乙实现（双端）**：agentloop 输出门（free_state_reasoning.go 门拒分支）——锁死终局轮上完整提案（freeStateTerminalDecisionAdmitted）且失败门 ⊆{G3,G4,G5,G6}（新共享分类器 FreeStateFailedGatesAllEvidenceCompleteness，纯门 ID 判定=content-blind）→ 不再弹回/重试/fallback，照常放行走采纳路径；防滥用规则 2/3 原样不动（锁死轮本就不走计数分支，停车不增计数、锁不清除=停车≠重入）。chat 侧（free_state_reasoning_loop.go recordFreeStateDecision 二道门审计）——同条件（loop.TerminalTurnLocked+审计 failed ⊆{G3..G6}）跳过 capability_blocked 改停车：loop.Status=awaiting_experiment + upsertPendingCandidate + 新字段 loop.TerminalAdjudication（schema free_state_terminal_adjudication.v1：failed_gate_ids/open_dimensions[队列 open 维度，结构性字段]/terminal_turn_reason，合并 sticky）；**显式不推 FS7（不假断言 GatePassed）、不建实验准入（不假断言 AdmissionValid）**——用户确认面裁决=证据完备性的裁决者；improvement_proposal_workflow.go——停车提案带 workflow_data.open_dimensions+terminal_adjudication 披露、回复附「维度未闭合披露」句；**authority=full 也不自动路由**（B6 ③ 裁定范围=已准入提案；门拒提案必须用户亲自裁决）。
+  - **fallback 措辞修正**：新常量 FreeStateTerminalGateRejectedStopReason=free_state_terminal_turn_gate_rejected——锁死轮输出是可解析完整决策形态而被门拒时用之（message_loop.go issue 路径按 freeStateTerminalDecisionAdmitted 分流）；解析失败/形态不合法路径保留 unparseable。m23 断言+夹具同步（obs-ghost 引用=gate-rejected 非不可解析，fixture 仅 1 行）。
+  - **红测试**（free_state_terminal_adjudication_test.go ×2 包）：修前红=agentloop 3 红（F3 场景复现：锁死轮+完整提案+gateTestState 删 diagnostic_rounds=G4 唯一拒→修前 unparseable 判死无决策/修后带决策完成且只耗 1 次模型调用；防滥用计数不动；措辞双态 G1/G7 拒→gate_rejected、needs_observation 形态→unparseable）+chat 2 红（二道门审计修前 capability_blocked 杀停车/披露缺失）；绿轮守卫（capability_blocked 终局=模型自己的决策完成态、域外失败弹回保留、无锁死门拒仍 capability_blocked）修前修后均绿。
+  - **回归**：agentloop 包全绿；go test ./... exit 0（84 包 ok）；go build ./... exit 0；webui vitest 324/324。
+  - **真栈（存在性）**：④ run_vit_product_path→run_mix_single_tick_e2e：run1 红=observe 轮模型只给 NL 建议（"Track 2 下调 1.5dB 请回复确认"）无结构化提案 done——events 面取证，N5-1 已知模型终态方差族（非本卡域）；run2 **exit 0** 双跳全链绿（提案面 needs_confirmation→工具面 Track 1010 -0.50dB→应用回读 0→-0.5dB→d1 终态）。⑤ run_vit_product_path_smoke：run1 红在 clarify-ask（gap=[G4,G5,G6,G8]——无前沿态提案结构性撞 G8；G8∉停车族**不停车=契约正确**；同轮实证新 stop reason 真栈生效（debug jsonl: free_state_terminal_turn_gate_rejected）+vocal focus 提案面停车绿）；run2 红在 vocal-focus（gap=[G8]-only no_target_own_observation_cited，换断点，同为模型提案质量分支、修复域外）；run3 **exit 0**（vocal focus+clarify 双停车 waiting_confirmation，全段 ok）。日志 coord/runs/FIX-F3-G4-SEMANTICS/（不提交），工件目录 VitApp/Workspace/Artifacts/smoke/。
+  - **域与协调呈报**：(1) 文件域扩展——卡面原域只列 agentloop 两文件，实际乙需 chat 侧配合（chat 二道门审计会杀掉 agentloop 放行的停车提案；替代=agentloop 自建确认面=更大契约变更），已按最小扩展落 chat 两文件；停止条件（防滥用规则/相位机守卫）未触碰。(2) FIX-GATE-FRESHNESS-1（8653a25a 未合入 main）与本卡同域（free_state_gate.go+测试），合并时序请决策侧定。(3) mac 跟随注记——stop reason 词表新增 gate_rejected 一词，双端脚本 grep 均未枚举 terminal stop reason，mac 无需强制跟随；若 mac 侧后续新增断言需用同名常量。(4) 全访问不自动路由为乙的推定实现（卡面"由用户在确认面裁决"无条件），如需按 authority=full 放行可再调。
+  - **方案甲裁定问题（呈用户，未裁定未实现）**：有界改善实验是否应以「已闭合诊断维度」为前置？三口径冲突=工作流 §6 认知政策（否，plausible 即可）/脊柱 FS4→FS5 守卫（OR：已闭合维度∨扫描派生唯一候选）/现行 G4（是，唯一路径）。甲=G4 对 improvement 类提案对齐脊柱 OR 语义（已闭合维度∨扫描唯一候选∨目标级证据已入台账[G6 已查]），诊断模式维持全量 G4；裁定通过另做 G4 条件 diff+相位机一致性核对（本卡验收④追加项）。乙已先行消锁死轮反向激励；甲裁定决定非锁死轮上 G4 是否仍拦（本案真栈红轮 gap 含 G5/G8 提示无前沿态提案是下一个语义争点）。
+- 验收：见回执（①红测试修前红/修后绿✓；②gate 全家+agent 全量+webui 绿✓；③④⑤ 真栈 ④ 1/5→run2 exit 0、⑤ 3 轮取证 run3 exit 0，两轮红均归类修复域外模型方差族并留证✓；④甲未裁定不适用）。
