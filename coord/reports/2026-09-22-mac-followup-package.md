@@ -12,11 +12,11 @@
 
 ### 2. FIX-F2-SURFACE-REPLY — 分支 `fix/f2-surface-reply` @ 1177a9c0（main 侧 b184e5d9，已入 main）
 - **语义**：clarify-park 终态事件承载问句——`goalHasLiveContinuationOwner` 谓词对齐（parked armed checkpoint 不算活切片归属）使 turn.completed(body=问句) 得以发射；pending payload/durable pending 补 `reply`；④⑤ 脚本兜底（needs_clarification 且合成 reply 无问句特征→读 runtime status pending reply；⑤ 兜底在 F5 分支）。
-- **mac 动作**：Go 侧拉 main 即生效。**建议移植脚本兜底**：`run_vit_product_path_smoke_mac.sh` 的 settle reply 取行（:533 `reply_candidates[-1]`）与 ④ 同款存在"抓工具步标题"风险类——按 PC ps1 同款条件兜底（问句特征=U+003F/U+FF1F，mac 无 PS5.1 ANSI 陷阱）。验证口径：移植后 ⑤ vocal clarify 段 1 轮（reply 含问句原文）。
+- **mac 动作**：Go 侧拉 main 即生效。~~建议移植脚本兜底~~ **已移植（2026-09-22 晚，mac 提交 bbd0dbf2 经 PC 决策侧验收 ff 入 main）**：④⑤ 两脚本 SETTLE_PY 兜底（needs_clarification+无问句特征→runtime status pending reply，marker `clarify_reply_source` 双端同名）。验证口径：⑤ vocal clarify 段 1 轮（reply 含问句原文）——归入 §二.3 复测。
 
 ### 3. FIX-F5-SNAPSHOT-FRESHNESS — 分支 `fix/f5-snapshot-freshness` @ 4e4d850d（main 侧 eeb589ac，已入 main）
 - **语义**：声学桥快照前台铃标注+原子发布——落盘单点 `writeMixboardFeatureSnapshotFile` 同笔写入标注（current / stale+superseded_by_request / material_reuse）+tmp+rename；断言对象从"不存在分叉"改"不存在**未标注**分叉"+有界重读 600ms×2。
-- **mac 动作（必需）**：`run_vit_product_path_smoke_mac.sh:770` 仍是严格 `request_id mismatch → fail` 旧语义——**拉取 F5 标注代码后，有标注的 stale 分叉行会在 mac ⑤ 误红**。移植 PC ps1 同款：有 `freshness` 字段的分叉行降为披露（warn），无标注分叉行照 fail；可选 `-SnapshotPath` 有界重读同款。验证口径：移植后 ⑤ 1-2 轮 exit 0（含一次声学桥双写窗观察）。
+- **mac 动作（必需）**：~~:770 旧严格语义~~ **已移植（2026-09-22 晚，bbd0dbf2）**：`row_fork_request_id` 谓词与 PC `Test-BridgeSnapshotRowFork` 同款——未标注分叉 fail（消息形态同 PC）/标注分叉 warn 披露。**边界（决策侧复核接受）**：有界重读未移植——mac 调用点为内存/HTTP 投影快照无文件路径，与 PC 响应投影场景同位（PC 该场景同样无重读源、未标注即 Fail 视为永久披露）；若日后 mac ⑤ 增加文件路径断言再随之移植。验证口径归入 §二.3 复测（含声学桥双写窗观察）。
 
 ### 4. FIX-F3-G4-SEMANTICS — 分支 `fix/f3-g4-semantics` @ 31d35f8d(乙)+51686265(甲)（main 侧 6d799909+58469f23，已入 main，分列可回滚）
 - **语义（乙）**：锁死终局轮完整提案仅被证据完备类门（G3-G6）拒时→停车提案确认面+open_dimensions 披露由用户裁决（防滥用 2/3 不动，停车≠重入不计弹回）；fallback 措辞分裂新 stop reason `free_state_terminal_turn_gate_rejected`（旧 `free_state_terminal_turn_unparseable` 保留给真不可解析形态）。
@@ -25,9 +25,9 @@
 
 ## 二、建议执行顺序
 
-1. （2026-09-22 晚更新）FOLD-1 已验收合入 main——mac **拉一次 main 即五补丁全齐**（F2/F5/F3乙甲/GATE-FRESHNESS/FOLD），先跑 `go test ./... -count=1` 确认并树绿（PC 决策侧已复跑 84 包 ok）；
-2. 脚本移植：§一.2（F2 settle 兜底，建议）+ §一.3（F5 断言语义，**必需**——mac .sh:770 旧严格语义对 F5 标注代码会误红）；
-3. 回归：mac ④⑤ 各 1 轮（存在性口径）+ GATE/FOLD 共享代码行为抽查（§一.1/.FOLD 段验证口径）。
+1. （2026-09-22 晚更新）FOLD-1 已验收合入 main——mac **拉一次 main 即五补丁全齐**（F2/F5/F3乙甲/GATE-FRESHNESS/FOLD）+ mac 脚本移植（bbd0dbf2）也在 main，先跑 `go test ./... -count=1` 确认并树绿（PC 决策侧已复跑 84 包 ok）；
+2. ~~脚本移植~~ **已完成（bbd0dbf2，PC 决策侧 diff 审查+bash -n 复核通过 ff 入 main）**：§一.2 F2 settle 兜底 + §一.3 F5 断言语义；
+3. **当前唯一待办=mac ④⑤ 真栈复测**（建议 N=5 与 WL-1 基线对照出修复前后差，供三列表升级为"修复后"列；vocal clarify 段 reply 含问句原文 + 声学桥双写窗观察为重点段）。
 
 ## 三、附带事项
 
