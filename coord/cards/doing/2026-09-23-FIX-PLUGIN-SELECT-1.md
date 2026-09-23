@@ -18,6 +18,6 @@
 - 文件域：`agent/internal/chat/`（白名单加载/free_state_d1_plan_table admission+绑定/improvement_proposal_workflow）+ `agent/internal/experimentplugins/`（schema）+ 测试；零内核/零 G 门/零 webui 预期（如披露需 webui 面调整，列明后最小化）
 - 验收：①红测试修前红/修后绿；②agent 全量+webui 绿；③PC spot exit 0；④mac 多候选腿 exit 0；⑤回执记两端 HEAD+两端白名单版本
 - 停止条件：发现选择流必须动 G 门或 PCA 认证面才能绿 → 域外上交；webui 披露面超出最小改动 → 拆子卡上交
-- 领取：
+- 领取：2026-09-23T20:02:30+08:00 PC 执行会话（GLM-5.3 L2）；main@8edd6557（pull --ff-only 后 Already up to date）；分支 port/fix-plugin-select-1（自 main 新建）；领取时 git status：M VitApp/Workspace/default_project.xml（运行时残留，非本卡 diff）+ extension/godot-cpp 构建产物未跟踪（非本卡 diff）
 - 回执：
 - 验收：
