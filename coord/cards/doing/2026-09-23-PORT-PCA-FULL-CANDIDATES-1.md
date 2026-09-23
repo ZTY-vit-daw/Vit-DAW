@@ -15,6 +15,6 @@
 - 文件域：`scripts/`（构建器入仓）+ 机器本地白名单/工件；零 agent 代码改动预期（机制已族无关）；schema 改动=域外上交
 - 验收：①七族 v6 白名单+全量溯源（每条目↔认证收据/探测可回指，排除项记因）②构建器入仓（脚本+用法注释+溯源输出形态）③多族自选腿证据链（≥2 非 EQ 族或如实记录未触达）④overlay 全族回归+非成员 spot ⑤回执两端 HEAD+白名单版本/哈希+候选计数表
 - 停止条件：某族参数锚定大面积不可派生（>半数主体）→ 记录上交（可能需认证补测另开卡）；构建器入仓遇 scripts/ 域冲突 → 上交
-- 领取：
+- 领取：2026-09-23 23:37 CST / origin/main=3ddf8aad4ad58b0627a2cb1d8c602d7b58c6f1b8（fetch 后本地=远端一致，pull --rebase 因两 Workspace 运行时残留被拒按先例 ff-only 确认 already up to date）/ 分支 port/whitelist-builder-1（仓库改动）；领取时工作树残留：M VitApp/Workspace/Settings/.xml + default_project.xml + ?? .zcodeignore + ?? VitApp/Workspace/Artifacts/（运行时状态，不碰）
 - 回执：
 - 验收：
