@@ -106,6 +106,6 @@ v2 修复说明：v1 中网络失败时 `ls-remote` 空输出经管道被哈希�
 
 ## 9. SSH 直控与大文件（Layer 3，2026-09-16 已生效）
 
-- 通道：决策侧 → `ssh -i ~/.ssh/vit_daw_mac TimoZTY@192.168.1.138`（LAN；公钥经 transfer 仓投递、用户批准后由 Mac 装入，回执见 transfer `received/`）
+- 通道：决策侧 → `ssh -i ~/.ssh/vit_daw_mac TimoZTY@TimoZTYdeMacBook-Air.local`（LAN mDNS 主机名，**优先**——不受 DHCP 换址影响；2026-09-23 实测 IP 由 .138 漂移为 .131 致 scp 失败，mDNS 一直可达；当前 IP 192.168.1.131 可作回退；公钥经 transfer 仓投递、用户批准后由 Mac 装入，回执见 transfer `received/`）
 - 用途：远程只读核查（仓库状态/watcher 存活/环境）、驱动构建、scp/rsync 传 >100MB 大文件；对 Mac 工作树的写操作须 Mac 会话知情或用户批准（report-first 同样适用于 SSH 面）
 - Mac 侧环境维护可由决策侧远程执行；watcher 仅限**只读状态核查**——启停 Mac watcher 不在远程权限内，只能由用户在 Mac 侧对话流激活（2026-09-16 裁定，见 decisions/2026-09-16-watcher-user-confirm.md）
