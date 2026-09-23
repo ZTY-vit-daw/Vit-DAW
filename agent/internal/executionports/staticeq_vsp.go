@@ -65,12 +65,13 @@ const (
 // instantiate_plugin insert never created a rack wrapper, so the Godot rack —
 // a state-driven view over track.rack.nodes — could not see agent-loaded
 // plugins; rack_add_node produces the rack-wrapped form a manual drag does).
-// The identifier is only attached when the action pins one; the real-plugin
-// path carries plugin_path and leaves the identifier empty, because the
-// kernel resolves a non-empty identifier exclusively against its known-plugin
-// list (which an uns-scanned host does not populate) and never falls back to
-// the path. The reply carries plugin_id/plugin_item_id like instantiate did,
-// so the Apply receipt flow is unchanged.
+// The identifier is attached whenever the action pins one; since
+// FIX-D1-PLUGIDENT-1 the whitelist-bound plan always pins it, because shell
+// carriers (e.g. WaveShell) expose hundreds of members behind one
+// plugin_path and the kernel resolves a non-empty identifier exclusively
+// against its known-plugin list (which an unscanned host does not populate)
+// and never falls back to the path. The reply carries plugin_id/plugin_item_id
+// like instantiate did, so the Apply receipt flow is unchanged.
 func (p *StaticEQVSPPort) instantiatePayload(action orchestration.Action) map[string]any {
 	payload := map[string]any{
 		"cmd":          "rack_add_node",
