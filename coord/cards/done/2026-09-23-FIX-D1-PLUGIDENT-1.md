@@ -12,5 +12,10 @@
 - 验收：①红测试修前红/修后绿；②agent 全量+webui 绿；③PC 真栈插件写 spot exit 0；④mac EQ 腿回归 exit 0（回执带两端 HEAD）
 - 停止条件：内核语义需改动才能双端绿 → 域外上交（附红测试证据）
 - 领取：2026-09-23 / origin/main=5c16ef67f24724db609c0309484377b37d8ba898（零入站提交，与发卡基线一致；工作树仅 VitApp/Workspace 两运行时残留文件，非本卡 diff）/ 分支 port/fix-d1-plugident
-- 回执：
+- 回执：**完成（mac 执行侧自验通过，待决策验收）**。实现 commit=**1c27006**（port/fix-d1-plugident，已推 origin；领取 main@dde70c1←发卡基线 5c16ef6 零入站）。工件=~/Documents/vit-plugident1-artifacts/。
+  ① 红绿：红测试×2（free_state_d1_plugident_test.go，每 builder 一枚：static_eq legacy 形+表驱动 PluginBound 形，后者经 resolveD1PluginParamWhitelistBinding 产出 binding 证明 identifier 源自白名单 section）修前运行时断言红（args 只有 path+name 无 identifier，red_before_fix.txt）、修后绿（green_after_fix.txt）；stub 路径（juce_eq 默认）回归断言随测不变。
+  ② 实现：d1PluginParamWhitelistBinding 增 PluginIdentifier 字段+七处 resolver 填充（static_eq 包裹层+comp/deess/transient/lim/gate/mbc）+两处 args map（d1StaticEQActionArgs:585 与 pluginParamWriteArgs:690 各一行）；同步翻转 7 处八月 v5 时代旧断言"must not carry a known-list identifier"→"携带且=白名单值"（plan_table_test/s2×3/fam4/fam5/fam6/static_eq_reuse，fixture 补 identifier）——旧断言锁定的正是本卡裁定推翻的缺口纪律，属同文件域随修。**零端口/零内核改动**（staticeq_vsp.go:83 空串等同缺席语义核验在案）；端口 :68-73 注释描述的"real-plugin path leaves identifier empty"已过时但域外未动，建议决策侧合入时顺手更新。
+  ③ 验收②：go build ./... exit 0；go test ./... 除 internal/contextruntime 一枚**既有环境失败**（TestDefaultSnapshotPathFindsVitAppFromNestedWorkdir，macOS /var vs /private/var 符号链接，已隔离复跑+领取基线 dde70c1 临时 worktree 复现排除与本卡关联，原始输出在 go_test_full.txt）全绿；webui npm run test 324/324 exit 0。
+  ④ 验收④ mac 旅程回归（原命令原素材 journey1_demo_journey_smoke_mac.sh --stems-dir ~/Desktop/cases/spv1_p01/stems）：**exit 0，9/9 all_green**（a1-a4+s1-s5，journey1_report.json）。模型 EQ 路径首次走完：FrozenPlan args 实证携带 plugin_identifier=VST3-Q10 Stereo-10456661-3a8f251e（orchestration_v1.json）→rack_add_node ok（rack_item_id 1039，WavesVST3UI Q10 component_create success 壳内 CID 精确匹配）→set_plugin_param succeeded（param 17=-1.5）→readback_verified=true→A/B 试听事件全链（intervention.applied+observation.recorded×2+audition.ready×2）。**plugin_path is ambiguous 事件 1→0**（基线 run1_workdir 对照）、capability_blocked=0。§8 纪律：N=1 主跑即成未用加跑，无 LLM 超时/CoreAudio 卡顿记录，warm-up knownPluginList 填充正常无 identifier-not-found 红点（section8_discipline.md+journey_evidence.md）。
+  范围外如实记录：PC 真栈 spot=合入后 PC 侧补验（决策侧安排）；本卡未动内核 C++。两端 HEAD：领取 dde70c1（基线 5c16ef6）/完成 1c27006。
 - 验收：
