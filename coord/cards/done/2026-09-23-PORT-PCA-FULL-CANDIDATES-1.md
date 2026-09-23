@@ -39,4 +39,4 @@
     溯源+备份+验证+两轮 journey；LLM key 零入工件已扫描）
   - **补充事实**：mac v1 store（rev 7）本已含 C1 comp M/S promoted（broadband_compressor），
     补晋升无需 import；agent 重建 23:38 sha=e4552df0…；两 Workspace 运行时残留全程未碰
-- 验收：
+- 验收：**pass（2026-09-24 Mac 决策会话，[rulings/2026-09-24-PORT-PCA-FULL-CANDIDATES-1-pass.md](../../rulings/2026-09-24-PORT-PCA-FULL-CANDIDATES-1-pass.md)）**——五验收独立核证：白名单 v6 实核 23 条目七族齐（sha 324ee2ac 一致+broadband 共享单参形态 keys 实证）；构建器 461 行经决策侧 cherry-pick 入 main=c9dbeb1；overlay 11 PASS（含三候选备份回归）；journey run2 all_green+披露 6 次+零拒绝签名+S4 探针 C1 comp Mono 实例化成功（非 EQ 族真栈证据）+非 EQ 未触达如实记录（配方指向 EQ）；溯源 159 行 4 排除各带 S2 覆盖轴事实。用户裁定"全量可选"落地：mac 候选面 3→23
