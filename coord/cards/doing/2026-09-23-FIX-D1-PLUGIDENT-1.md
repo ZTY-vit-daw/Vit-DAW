@@ -11,6 +11,6 @@
 - 文件域：`agent/internal/chat/free_state_d1_plan_table.go`（+测试）；预期零端口/零内核改动（如被迫动则按目标 3 上交）
 - 验收：①红测试修前红/修后绿；②agent 全量+webui 绿；③PC 真栈插件写 spot exit 0；④mac EQ 腿回归 exit 0（回执带两端 HEAD）
 - 停止条件：内核语义需改动才能双端绿 → 域外上交（附红测试证据）
-- 领取：
+- 领取：2026-09-23 / origin/main=5c16ef67f24724db609c0309484377b37d8ba898（零入站提交，与发卡基线一致；工作树仅 VitApp/Workspace 两运行时残留文件，非本卡 diff）/ 分支 port/fix-d1-plugident
 - 回执：
 - 验收：
