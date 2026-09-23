@@ -21,7 +21,8 @@ import (
 func d1ReuseBindingForTest() *d1PluginParamWhitelistBinding {
 	return &d1PluginParamWhitelistBinding{
 		Section: d1StaticEQDomain, PluginName: "Fixture EQ", PluginPath: "C:/plugins/Fixture EQ.vst3",
-		ParamID: "p315_c1", ParamIDCH2: "p315_c2", FrequencyHz: 400,
+		PluginIdentifier: "fixture-eq",
+		ParamID:          "p315_c1", ParamIDCH2: "p315_c2", FrequencyHz: 400,
 	}
 }
 
@@ -96,8 +97,8 @@ func TestD1StaticEQPlanReusesExistingWhitelistInstance(t *testing.T) {
 		args["param_id_ch2"] != "p315_c2" || args["target_value"] != -1.0 || args["plugin_path"] != "C:/plugins/Fixture EQ.vst3" {
 		t.Fatalf("reuse must keep the normalized write payload intact: args=%+v", args)
 	}
-	if _, present := args["plugin_identifier"]; present {
-		t.Fatalf("real-plugin action must not carry a known-list identifier: %+v", args)
+	if got := args["plugin_identifier"]; got != "fixture-eq" {
+		t.Fatalf("reuse must keep the whitelisted plugin identifier pinned: %+v", args)
 	}
 }
 
@@ -201,7 +202,7 @@ func TestD1StaticEQDiscoveryResolvesRackWrappedInstance(t *testing.T) {
 	flat := map[string]any{
 		"status": "ok",
 		"tracks": []any{map[string]any{
-			"track_id": "1007",
+			"track_id":   "1007",
 			"rack_nodes": []any{map[string]any{"plugin_item_id": "1054", "id": "1054", "name": "Fixture EQ"}},
 		}},
 	}

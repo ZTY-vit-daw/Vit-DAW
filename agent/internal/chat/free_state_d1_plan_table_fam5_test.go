@@ -218,10 +218,11 @@ func TestResolveD1PluginParamBindingForGateExpander(t *testing.T) {
 func TestD1S1GatePlanEmbedsWhitelistBinding(t *testing.T) {
 	loop := d1GateLoopForTest(t, "7")
 	binding := &d1PluginParamWhitelistBinding{
-		Section:    d1GateExpanderDomain,
-		PluginName: "Fixture Gate",
-		PluginPath: "C:/plugins/Fixture Gate.vst3",
-		ParamID:    "gate_range",
+		Section:          d1GateExpanderDomain,
+		PluginName:       "Fixture Gate",
+		PluginPath:       "C:/plugins/Fixture Gate.vst3",
+		PluginIdentifier: "fixture-gate",
+		ParamID:          "gate_range",
 	}
 	plan, err := d1PluginParamPlanWithBinding(loop, agentloop.PendingMixTickCandidate{Operation: d1GateExpanderKind, TrackID: "vocal"}, 7, "project-1", "epoch-1", "snapshot-7",
 		map[string]any{"tracks": []any{map[string]any{"track_id": "vocal", "volume_db": -2.0}}}, binding, "")
@@ -249,8 +250,8 @@ func TestD1S1GatePlanEmbedsWhitelistBinding(t *testing.T) {
 	if _, present := action.Args["frequency_hz"]; present {
 		t.Fatalf("gate action must not carry an EQ frequency: %+v", action.Args)
 	}
-	if _, present := action.Args["plugin_identifier"]; present {
-		t.Fatalf("real-plugin action must not carry a known-list identifier: %+v", action.Args)
+	if got := action.Args["plugin_identifier"]; got != "fixture-gate" {
+		t.Fatalf("whitelist-bound action must pin the whitelisted plugin identifier: %+v", action.Args)
 	}
 	for _, want := range []string{"free_state:d1_s1", "action:gate_range_adjust"} {
 		if !containsStringFold(plan.ProjectCut.ContractVersions, want) {
