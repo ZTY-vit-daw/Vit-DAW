@@ -23,4 +23,4 @@
   - **修复建议单行（另卡）**：repair 解析成功但返回 needs_clarification 且闭包在案时不直接 pause——先追加一次禁-clarify 强化 repair（或剥离该字段按不可恢复降级），仍违令才 557 判死；repair 成功分支补 raw 落诊断。
   - **证据边界**：repair 输出原文未落 durable 面（形态由下游行为反推，置信度高非直证）；R2/R4 repair 原文同边界；PC 引擎一致性由 PC 回函背书。durable 存储未被轮转，全部原件在档。
   - 端测边界声明：本卡=纯只读取证，无运行栈改动，无端测适用面。
-- 验收：
+- 验收：**pass（2026-09-24 Mac 决策会话，[rulings/2026-09-24-FORENSIC-CLARIFY-1-pass.md](../../rulings/2026-09-24-FORENSIC-CLARIFY-1-pass.md)）**——三验收全过且决策侧独立核证：判死策略入库时间（ee0fac4=09-16，早 F2 五天）经 git log -S 实证=①排除铁证；557 行条件与 message_loop.go:4322 禁令原文逐字核对；秒级时间线（42.2s→parse_failed→10.3s repair→判死→failed）五步各有证据指针；双方差定责（原始畸形+repair 违令，缺一不失败）逻辑成立；证据边界（repair 原文未落 durable=反推高置信）如实声明。归族 repair-clarify 协议违约判死成立；修复建议开卡 FIX-REPAIR-CLARIFY-DEATH-1；⑤弱协因（夹具无主唱标注）反馈素材面
