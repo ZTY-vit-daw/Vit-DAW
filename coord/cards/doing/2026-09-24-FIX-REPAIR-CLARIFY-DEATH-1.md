@@ -10,6 +10,6 @@
 - 文件域：`agent/internal/chat/audio_closure_controller.go` + `agent/internal/chat/message_loop.go`（repair 分支）+ 测试；不改 durable schema（诊断落既有遥测/日志面）
 - 验收：①红测试修前红/修后绿（双方差复现+二次合规继续两态）②agent 全量+webui 绿 ③10 轮 spot（或与下轮统计批合并观测）零新形态 ④回执两端 HEAD
 - 停止条件：软化需动 durable schema 或 prompt 协议层大改 → 上交拆卡；与 settle/F2 面发现纠缠 → 上交
-- 领取：
+- 领取：2026-09-24 / origin/main=56f0ef9（本地 main 与远端同步 0/0，=发卡基线）/ port/fix-repair-clarify-death；领取时 status 两 Workspace 残留（Settings.xml + default_project.xml 运行时状态）+ .zcodeignore/VitApp/Workspace/Artifacts/ 未跟踪，均不碰
 - 回执：
 - 验收：
