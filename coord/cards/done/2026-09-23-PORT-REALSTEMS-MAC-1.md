@@ -24,4 +24,4 @@
   - **约束核查**：断言零改动 ✓（journey 脚本零 diff，git status 仅两残留文件）；stems 零入仓 ✓（仅 ~/Desktop/cases+run workdir）；LLM key 零入工件 ✓（`sk-` 模式全工件 0 匹配，run_meta 仅 has_api_key 布尔）；④⑤ 合成夹具未动 ✓；隔离契约 ✓（912.vit/.vit_history 只读指纹同值，内核假根运行）。
   - **运行纪律执行**：N=1 主跑（run_discipline.txt 跑前落盘）；成功条件达成（exit 0+9 断言全绿）；无失败轮次（no_candidate_found/capability_blocked/断言红/崩溃/环境中断分类面：本轮唯一 capability_blocked=模型轨迹内 static_eq 白名单缺口，即目标②的裁定输入本体，非旅程断言失败）；已知环境项（LLM 60s 超时/CoreAudio 卡顿）本轮未出现。
   - **交接注记（决策侧裁量）**：旅程断言面全绿与模型轨迹 capability_blocked 并存是本轮最重要的结构事实——S3/S4 断言语义不依赖模型完成 EQ 实验（S4=确定性探针），故 all_green ≠ 模型实验路径通。EQ-1 若升 P1 并配置 static_eq，真实素材轮的模型路径才可能走完『假设→实验→装载→A/B』全链。
-- 验收：
+- 验收：**pass（2026-09-23 Mac 决策会话，[rulings/2026-09-23-PORT-REALSTEMS-MAC-1-pass.md](../../rulings/2026-09-23-PORT-REALSTEMS-MAC-1-pass.md)）**——决策侧独立复算非采信回执：6×copied+字面路径音频与桌面 stems 6/6 逐字节一致+9/9 断言全绿+verdict→exit 0 映射实核；ff-only 改道理由复核成立；观察表引用文本与 events.json 逐字吻合。三项裁定落地：EQ-1 升 P1（卡面已修订+旅程回归验收）；masking 独立缺口登记；开源就绪 backlog 两件登记（decisions/2026-09-23）。流程备忘：领取提交应一次含完整 mv（本次 todo 删除悬到回执提交才闭合，终态正确）
