@@ -12,5 +12,11 @@
 - 验收：① 前端仓分支 diff（mac 分支+Windows 面不变，逐行可审）；② 路线 2 证据：设置页截图（真实路径+扫描完成状态）或前端控制台/内核日志（scan ok+列表填充）；③ EQ 全链证据：装载成功+参数应用回读+A/B 事件（日志指针）；④ 回执：前端仓 commit hash+分支名、两端 HEAD（主仓领取/完成 hash）、§8 纪律（EQ 轮 N=1、模型未动机化 EQ 可加跑一轮、两轮未触发如实记录不硬凑）
 - 停止条件：扫描 ok 但 EQ 链在**新**红点失败 → 如实记录红点与形态 mv blocked 上交（不扩域自修）；设置模态 mac 侧暴露更深问题（路径修复后仍不可扫）→ 同样上交
 - 领取：2026-09-23 17:48 / origin/main=05163d0（=发卡基线，无入站变更） / 前端仓分支 port/fe-scanpath-mac（基于前端仓 tip 9044d80=port/fe-l3ready-1，main+9 层叠 port 链）；主仓领取时 HEAD=05163d0、status=两 Workspace 残留+.zcodeignore+Artifacts/（运行状态不碰）；前端仓基线 HEAD=9044d80、status=.vit_agent/.vit_history/VitApp/ 三未跟踪运行时目录（不碰）
-- 回执：
-- 验收：
+- 回执：（执行侧 2026-09-23 18:0x 前端修复完成 + 决策侧机器态清污补记 + 用户端到端验证 2026-09-23 ~18:4x 全绿）
+  - **前端修复**：前端仓 `port/fe-scanpath-mac` @`a9890ba`（后 ff 入前端仓 main）——macOS 分支装系统级+用户级 VST3 标准目录（HOME 展开+存在性过滤+双空提示），Windows 环境变量链逐字保留；`godot --headless --check-only` 语法过+无头行为验证单项。
+  - **路线2首验受阻于两层卡外机器态（决策侧取证清污，非前端修复缺陷）**：
+    ① `VitApp/Workspace/Settings/Settings.xml` 的 `knownPluginList64` 被 PC 继承条目污染（994 条 `C:\Program Files\...` 路径幽灵条目按名字遮蔽 mac 扫描结果，mac 形态标识串进不了表）→ 决策侧清空插件表（备份入 `~/Documents/vit-handtest-forensics-20260923/Settings.xml.bak-before-pclist-clean`）；
+    ② 首次扫描被取消（设置页按钮扫描中再点=取消）触发 JUCE 崩溃隔离——主壳 `WaveShell1-VST3 17.1.vst3` 被 `<BLACKLISTED>` 拉黑+死蹬 pedal 损坏，后续扫描全部秒跳过 → 决策侧删黑名单条目+清 pedal（备份 `Settings.xml.bak-before-blacklist-clean`）。
+  - **终验（用户在场，路线2全绿）**：清污后一次扫描走完（主壳 719 成员入表，mac 标识串形态）→ 聊天 EQ 请求 → **模型 EQ 全链在前端入口首次走通**（假设→准入→Q10 装载→参数应用→A/B）。持久化重启免扫验证未单独执行（可选步骤，knownPluginList64 落盘机制已在取证中实证）。
+  - 两端 HEAD：主仓 05163d0（本卡零主仓代码改动）；前端仓 9044d80→a9890ba（ff 入 main）。
+- 验收：**pass（2026-09-23 Mac 决策会话，[rulings/2026-09-23-FIX-FE-SCANPATH-MAC-1-pass.md](../../rulings/2026-09-23-FIX-FE-SCANPATH-MAC-1-pass.md)）**——前端修复合格（diff 可审+Windows 面不动）；路线2端到端经两层机器态清污后用户在场全绿；机器态两层根因（PC 幽灵条目/取消即拉黑）转长线卡 FIX-KERNEL-PLUGINLIST-HYGIENE-1；叙事抢跑登记 decisions/
