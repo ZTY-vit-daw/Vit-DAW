@@ -22,6 +22,13 @@
 // and v6, and fails closed on every other schema_version. Duplicate
 // plugin_identifier values inside one family are corrupt: admission
 // membership must always resolve exactly one entry.
+//
+// FIX-BROADBAND-SHARED-1 (PORT-PCA-FULL-CANDIDATES-1 decision A) widens only
+// the broadband_compression entry: beside the historical dual ch1/ch2 pair it
+// also accepts the single shared threshold_param_id form (field name aligned
+// with the de_esser v5 precedent; mac-side Waves comps expose one shared
+// Threshold). The two forms are mutually exclusive — both pinned or neither
+// pinned fails closed.
 package experimentplugins
 
 import (
@@ -66,17 +73,34 @@ type StaticEQPlugin struct {
 	Bands            []Band `json:"bands"`
 }
 
-// BroadbandCompressionPlugin 是 broadband_compression 域的白名单插件：双通道
-// threshold 参数（PA 系 ch A/B 为独立参数，一次动作单批同写两通道 = 单
-// revision 前进）。与 static_eq 的 band 概念不同，这里没有频点维度。
+// BroadbandCompressionPlugin 是 broadband_compression 域的白名单条目，两种
+// 互斥形态（FIX-BROADBAND-SHARED-1，决策点 A）：双通道 threshold 参数对
+// （threshold_param_id_ch1/ch2，PA 系 ch A/B 为独立参数，一次动作单批同写
+// 两通道 = 单 revision 前进）或单个共享 threshold 参数
+// （threshold_param_id，字段名与 de_esser 对齐；mac 12 个 Waves comp 实测
+// 全为单共享 Threshold），一次动作单条目批写（FAM1-S1 语义）。两种形态都
+// 缺或都有 fail-closed。与 static_eq 的 band 概念不同，这里没有频点维度。
 type BroadbandCompressionPlugin struct {
 	PluginName          string `json:"plugin_name"`
 	Manufacturer        string `json:"manufacturer"`
 	Format              string `json:"format"`
 	PluginIdentifier    string `json:"plugin_identifier"`
 	PluginPath          string `json:"plugin_path"`
-	ThresholdParamIDCH1 string `json:"threshold_param_id_ch1"`
-	ThresholdParamIDCH2 string `json:"threshold_param_id_ch2"`
+	ThresholdParamID    string `json:"threshold_param_id,omitempty"`
+	ThresholdParamIDCH1 string `json:"threshold_param_id_ch1,omitempty"`
+	ThresholdParamIDCH2 string `json:"threshold_param_id_ch2,omitempty"`
+}
+
+// ThresholdParamPair returns the entry's normalized write shape: the shared
+// parameter id with an empty ch2 for single-form entries (one-entry batch
+// write, FAM1-S1 semantics), or the ch1/ch2 pair for dual-form entries. Load
+// validation guarantees exactly one form is pinned, so the empty-shared
+// discriminator is total.
+func (p BroadbandCompressionPlugin) ThresholdParamPair() (paramID, paramIDCH2 string) {
+	if p.ThresholdParamID != "" {
+		return p.ThresholdParamID, ""
+	}
+	return p.ThresholdParamIDCH1, p.ThresholdParamIDCH2
 }
 
 // DeEsserPlugin 是 de_esser 域的白名单插件：单个共享 threshold 参数（FabFilter
@@ -569,14 +593,16 @@ func (w Whitelist) ValidateStaticEQAdmission(lib processorattestation.Library, p
 }
 
 // BroadbandThresholdParams returns the selected whitelisted plugin's
-// dual-channel threshold parameter ids for one broadband_compression
-// execution.
+// threshold write shape in pair terms: the ch1/ch2 ids for dual-form entries,
+// or the shared parameter id with an empty ch2 for single-form entries
+// (FIX-BROADBAND-SHARED-1).
 func (w Whitelist) BroadbandThresholdParams(pluginIdentifier string) (thresholdCH1, thresholdCH2 string, err error) {
 	selected, err := w.SelectBroadbandCompression(pluginIdentifier)
 	if err != nil {
 		return "", "", err
 	}
-	return selected.ThresholdParamIDCH1, selected.ThresholdParamIDCH2, nil
+	thresholdCH1, thresholdCH2 = selected.ThresholdParamPair()
+	return thresholdCH1, thresholdCH2, nil
 }
 
 // ValidateCompressionAdmission mirrors ValidateStaticEQAdmission for the
@@ -761,14 +787,23 @@ func validateBroadbandCompressionPlugin(plugin BroadbandCompressionPlugin) error
 		{"format", plugin.Format},
 		{"plugin_identifier", plugin.PluginIdentifier},
 		{"plugin_path", plugin.PluginPath},
-		{"threshold_param_id_ch1", plugin.ThresholdParamIDCH1},
-		{"threshold_param_id_ch2", plugin.ThresholdParamIDCH2},
 	} {
 		if missing.value == "" {
 			return fmt.Errorf("broadband_compression %s must be non-empty", missing.field)
 		}
 	}
-	if plugin.ThresholdParamIDCH1 == plugin.ThresholdParamIDCH2 {
+	switch {
+	case plugin.ThresholdParamID != "" && (plugin.ThresholdParamIDCH1 != "" || plugin.ThresholdParamIDCH2 != ""):
+		return fmt.Errorf("broadband_compression entry must pin either threshold_param_id (shared) or threshold_param_id_ch1/threshold_param_id_ch2 (dual), not both forms")
+	case plugin.ThresholdParamID != "":
+		return nil
+	case plugin.ThresholdParamIDCH1 == "" && plugin.ThresholdParamIDCH2 == "":
+		return fmt.Errorf("broadband_compression entry must pin threshold_param_id (shared) or both threshold_param_id_ch1 and threshold_param_id_ch2 (dual)")
+	case plugin.ThresholdParamIDCH1 == "":
+		return fmt.Errorf("broadband_compression threshold_param_id_ch1 must be non-empty")
+	case plugin.ThresholdParamIDCH2 == "":
+		return fmt.Errorf("broadband_compression threshold_param_id_ch2 must be non-empty")
+	case plugin.ThresholdParamIDCH1 == plugin.ThresholdParamIDCH2:
 		return fmt.Errorf("broadband_compression threshold_param_id_ch1 must differ from threshold_param_id_ch2")
 	}
 	return nil

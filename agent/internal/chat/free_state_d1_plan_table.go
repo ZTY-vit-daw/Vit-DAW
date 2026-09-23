@@ -32,7 +32,8 @@ type d1StaticEQWhitelistBinding struct {
 // resolution shared by every PluginBound domain: which whitelisted plugin file
 // to instantiate and which parameter ids to write under one idempotency key —
 // a ch1/ch2 pair for dual-channel carriers, a single shared parameter id for
-// single-channel ones (empty ParamIDCH2, FAM1-S1 de_esser). static_eq
+// single-channel ones (empty ParamIDCH2: FAM1-S1 de_esser and
+// FIX-BROADBAND-SHARED-1 shared-form broadband entries). static_eq
 // resolutions are mapped into this shape after the legacy band resolver ran;
 // broadband_compression and de_esser resolve directly.
 type d1PluginParamWhitelistBinding struct {
@@ -90,7 +91,9 @@ func resolveD1PluginParamWhitelistBinding(typedAction map[string]any) (*d1Plugin
 // the domains apart while keeping the class wording aligned. FIX-PLUGIN-
 // SELECT-1: the pinned plugin_identifier is a membership selection over the
 // v6 candidate list (non-members fail closed) and the binding resolves to the
-// selected entry.
+// selected entry. FIX-BROADBAND-SHARED-1: the selected entry's threshold form
+// decides the write shape — dual ch pair or the single shared parameter id
+// (one-entry batch, FAM1-S1 semantics).
 func resolveD1BroadbandCompressionWhitelistBinding(typedAction map[string]any) (*d1PluginParamWhitelistBinding, error) {
 	const label = d1BroadbandCompressionDomain
 	whitelist, err := d1StaticEQWhitelistLoader()
@@ -114,13 +117,18 @@ func resolveD1BroadbandCompressionWhitelistBinding(typedAction map[string]any) (
 	if err := whitelist.ValidateCompressionAdmission(library, compression.PluginIdentifier); err != nil {
 		return nil, fmt.Errorf("%s experiment was refused by the PCA admission check: %w", label, err)
 	}
+	// FIX-BROADBAND-SHARED-1: a shared-form entry (single threshold_param_id)
+	// resolves to a one-entry batch write (empty ch2), a dual-form entry keeps
+	// the ch pair — the normalized binding carries both shapes the port
+	// already accepts.
+	paramID, paramIDCH2 := compression.ThresholdParamPair()
 	return &d1PluginParamWhitelistBinding{
 		Section:          label,
 		PluginName:       compression.PluginName,
 		PluginPath:       compression.PluginPath,
 		PluginIdentifier: compression.PluginIdentifier,
-		ParamID:          compression.ThresholdParamIDCH1,
-		ParamIDCH2:       compression.ThresholdParamIDCH2,
+		ParamID:          paramID,
+		ParamIDCH2:       paramIDCH2,
 	}, nil
 }
 
