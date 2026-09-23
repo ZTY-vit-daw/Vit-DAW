@@ -1,6 +1,6 @@
 # FIX-D1-PLUGIDENT-1：D1 插件写路径 normalized-batch 计划 args 补发 plugin_identifier（WaveShell 成员可达）
 
-- 优先级 / 预估 / 依赖：P1 / 0.3 天 / PORT-WL-EQ-1 回执上交 (b)（mac EQ 装载受阻定位于此；用户 2026-09-23 呈报）；**跨族缺口非 EQ 专属**
+- 优先级 / 预估 / 依赖：P1 / 0.3 天 / PORT-WL-EQ-1 回执上交 (b)（mac EQ 装载受阻定位于此；用户 2026-09-23 呈报）；**跨族缺口非 EQ 专属**；**执行侧=mac（用户裁定 2026-09-23"让他开始修"）**——本卡为共享仓 Go 代码改动，mac 直接在仓内分支执行；目标 3 的 PC 真栈 spot **改为合入后 PC 侧补验**（mac 无法运行 PC 栈；风险已降级为预期绿，补验由决策侧在合入验收时安排）
 - 模型分级：L2 / GLM-5.3（端口/内核解析语义边界，红测试先行）
 - **背景（回执取证+决策侧代码复核在案；2026-09-23 用户质询后二次修正）**：白名单绑定路径的计划 args 只发 `plugin_path`+`plugin_name` 漏发 `plugin_identifier`，而 binding.Plugin 里有该字段（admission 层六族都在用，free_state_d1_plan_table.go:102-408）。**PC 侧事实修正：PC 开发环节一直能控制 Waves 效果器**——老路径全部带 identifier 纪律（C2 动态装载 `c2_dynamic_plugin_load.go:213` path+name+identifier 三件套齐发、plugin grabber、PCA 认证链；PC 语义索引 1982 条 VST3 标识含 Q10 Stereo/Mono、Sibilance、Smack Attack 等 WaveShell 成员稳定 CID，C2-PCR 24 主体认证含 Waves 成员）；内核 stable-CID 成员装载正是为此在 PC 上开发（waves-vst3-cid-fix 2026-07-27，两端 pin 均含）。**本缺陷=最新路径（自由态 D1 白名单绑定，八月 v5 时代）丢掉了老路径已有的 identifier 纪律**：D1 白名单 PC 七族碰巧全独立插件（path 即唯一）故 PC 侧不可见；mac 六族全 Waves 壳内成员，path 指向壳内数百成员，内核对无 identifier 的壳路径 fail-closed（正确防御）→ mac EQ 装载/A-B 未走完。两处同病：`d1StaticEQActionArgs`（free_state_d1_plan_table.go:573 args map）与共享 `pluginParamWriteArgs`（:676 args map，compression/de_esser/transient/limiter/gate/multiband 共用）。端口 `staticeq_vsp.go:83-84` identifier 存在即透传，零改动。已有实例复写路径（:627 plugin_id 直达）不受影响——缺口只在全新 instantiate。
 - 目标：
