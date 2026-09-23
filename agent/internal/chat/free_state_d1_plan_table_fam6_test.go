@@ -239,10 +239,11 @@ func TestResolveD1PluginParamBindingForMultiband(t *testing.T) {
 func TestD1S1MultibandPlanEmbedsWhitelistBinding(t *testing.T) {
 	loop := d1MultibandLoopForTest(t, "7")
 	binding := &d1PluginParamWhitelistBinding{
-		Section:    d1MultibandDomain,
-		PluginName: "Fixture MBC",
-		PluginPath: "C:/plugins/Fixture MBC.vst3",
-		ParamID:    "mb_high_threshold",
+		Section:          d1MultibandDomain,
+		PluginName:       "Fixture MBC",
+		PluginPath:       "C:/plugins/Fixture MBC.vst3",
+		PluginIdentifier: "fixture-mbc",
+		ParamID:          "mb_high_threshold",
 	}
 	plan, err := d1PluginParamPlanWithBinding(loop, agentloop.PendingMixTickCandidate{Operation: d1MultibandKind, TrackID: "vocal"}, 7, "project-1", "epoch-1", "snapshot-7",
 		map[string]any{"tracks": []any{map[string]any{"track_id": "vocal", "volume_db": -2.0}}}, binding, "")
@@ -270,8 +271,8 @@ func TestD1S1MultibandPlanEmbedsWhitelistBinding(t *testing.T) {
 	if _, present := action.Args["frequency_hz"]; present {
 		t.Fatalf("multiband action must not carry an EQ frequency: %+v", action.Args)
 	}
-	if _, present := action.Args["plugin_identifier"]; present {
-		t.Fatalf("real-plugin action must not carry a known-list identifier: %+v", action.Args)
+	if got := action.Args["plugin_identifier"]; got != "fixture-mbc" {
+		t.Fatalf("whitelist-bound action must pin the whitelisted plugin identifier: %+v", action.Args)
 	}
 	for _, want := range []string{"free_state:d1_s1", "action:multiband_band_threshold_adjust"} {
 		if !containsStringFold(plan.ProjectCut.ContractVersions, want) {

@@ -218,10 +218,11 @@ func TestResolveD1PluginParamBindingForLimiter(t *testing.T) {
 func TestD1S1LimiterPlanEmbedsWhitelistBinding(t *testing.T) {
 	loop := d1LimiterLoopForTest(t, "7")
 	binding := &d1PluginParamWhitelistBinding{
-		Section:    d1LimiterDomain,
-		PluginName: "Fixture Limiter",
-		PluginPath: "C:/plugins/Fixture Limiter.vst3",
-		ParamID:    "lim_ceiling",
+		Section:          d1LimiterDomain,
+		PluginName:       "Fixture Limiter",
+		PluginPath:       "C:/plugins/Fixture Limiter.vst3",
+		PluginIdentifier: "fixture-limiter",
+		ParamID:          "lim_ceiling",
 	}
 	plan, err := d1PluginParamPlanWithBinding(loop, agentloop.PendingMixTickCandidate{Operation: d1LimiterKind, TrackID: "vocal"}, 7, "project-1", "epoch-1", "snapshot-7",
 		map[string]any{"tracks": []any{map[string]any{"track_id": "vocal", "volume_db": -2.0}}}, binding, "")
@@ -249,8 +250,8 @@ func TestD1S1LimiterPlanEmbedsWhitelistBinding(t *testing.T) {
 	if _, present := action.Args["frequency_hz"]; present {
 		t.Fatalf("limiter action must not carry an EQ frequency: %+v", action.Args)
 	}
-	if _, present := action.Args["plugin_identifier"]; present {
-		t.Fatalf("real-plugin action must not carry a known-list identifier: %+v", action.Args)
+	if got := action.Args["plugin_identifier"]; got != "fixture-limiter" {
+		t.Fatalf("whitelist-bound action must pin the whitelisted plugin identifier: %+v", action.Args)
 	}
 	for _, want := range []string{"free_state:d1_s1", "action:limiter_ceiling_adjust"} {
 		if !containsStringFold(plan.ProjectCut.ContractVersions, want) {

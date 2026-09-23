@@ -36,12 +36,13 @@ type d1StaticEQWhitelistBinding struct {
 // resolutions are mapped into this shape after the legacy band resolver ran;
 // broadband_compression and de_esser resolve directly.
 type d1PluginParamWhitelistBinding struct {
-	Section     string  // whitelist section label, e.g. "static_eq"
-	PluginName  string  `json:"-"`
-	PluginPath  string  `json:"-"`
-	ParamID     string  // ch1 parameter id (fingerprint + journal identity)
-	ParamIDCH2  string  // paired channel written in the same batch
-	FrequencyHz float64 // static_eq provenance only; 0 for other domains
+	Section          string  // whitelist section label, e.g. "static_eq"
+	PluginName       string  `json:"-"`
+	PluginPath       string  `json:"-"`
+	PluginIdentifier string  `json:"-"` // whitelist CID; kernel resolves shell paths by this, fail-closed without one (FIX-D1-PLUGIDENT-1)
+	ParamID          string  // ch1 parameter id (fingerprint + journal identity)
+	ParamIDCH2       string  // paired channel written in the same batch
+	FrequencyHz      float64 // static_eq provenance only; 0 for other domains
 }
 
 // resolveD1PluginParamWhitelistBinding turns any admitted PluginBound typed
@@ -74,12 +75,13 @@ func resolveD1PluginParamWhitelistBinding(typedAction map[string]any) (*d1Plugin
 		return nil, err
 	}
 	return &d1PluginParamWhitelistBinding{
-		Section:     "static_eq",
-		PluginName:  binding.Plugin.PluginName,
-		PluginPath:  binding.Plugin.PluginPath,
-		ParamID:     binding.Band.GainParamIDCH1,
-		ParamIDCH2:  binding.Band.GainParamIDCH2,
-		FrequencyHz: binding.FrequencyHz,
+		Section:          "static_eq",
+		PluginName:       binding.Plugin.PluginName,
+		PluginPath:       binding.Plugin.PluginPath,
+		PluginIdentifier: binding.Plugin.PluginIdentifier,
+		ParamID:          binding.Band.GainParamIDCH1,
+		ParamIDCH2:       binding.Band.GainParamIDCH2,
+		FrequencyHz:      binding.FrequencyHz,
 	}, nil
 }
 
@@ -111,11 +113,12 @@ func resolveD1BroadbandCompressionWhitelistBinding(typedAction map[string]any) (
 		return nil, fmt.Errorf("%s experiment was refused by the PCA admission check: %w", label, err)
 	}
 	return &d1PluginParamWhitelistBinding{
-		Section:    label,
-		PluginName: compression.PluginName,
-		PluginPath: compression.PluginPath,
-		ParamID:    compression.ThresholdParamIDCH1,
-		ParamIDCH2: compression.ThresholdParamIDCH2,
+		Section:          label,
+		PluginName:       compression.PluginName,
+		PluginPath:       compression.PluginPath,
+		PluginIdentifier: compression.PluginIdentifier,
+		ParamID:          compression.ThresholdParamIDCH1,
+		ParamIDCH2:       compression.ThresholdParamIDCH2,
 	}, nil
 }
 
@@ -155,10 +158,11 @@ func resolveD1DeEsserWhitelistBinding(typedAction map[string]any) (*d1PluginPara
 		return nil, fmt.Errorf("%s experiment was refused by the PCA admission check: %w", label, err)
 	}
 	return &d1PluginParamWhitelistBinding{
-		Section:    label,
-		PluginName: deEsser.PluginName,
-		PluginPath: deEsser.PluginPath,
-		ParamID:    deEsser.ThresholdParamID,
+		Section:          label,
+		PluginName:       deEsser.PluginName,
+		PluginPath:       deEsser.PluginPath,
+		PluginIdentifier: deEsser.PluginIdentifier,
+		ParamID:          deEsser.ThresholdParamID,
 	}, nil
 }
 
@@ -251,10 +255,11 @@ func resolveD1TransientShaperWhitelistBinding(typedAction map[string]any) (*d1Pl
 		return nil, fmt.Errorf("%s experiment was refused by the PCA admission check: %w", label, err)
 	}
 	return &d1PluginParamWhitelistBinding{
-		Section:    label,
-		PluginName: transient.PluginName,
-		PluginPath: transient.PluginPath,
-		ParamID:    transient.AttackParamID,
+		Section:          label,
+		PluginName:       transient.PluginName,
+		PluginPath:       transient.PluginPath,
+		PluginIdentifier: transient.PluginIdentifier,
+		ParamID:          transient.AttackParamID,
 	}, nil
 }
 
@@ -305,10 +310,11 @@ func resolveD1LimiterWhitelistBinding(typedAction map[string]any) (*d1PluginPara
 		return nil, fmt.Errorf("%s experiment was refused by the PCA admission check: %w", label, err)
 	}
 	return &d1PluginParamWhitelistBinding{
-		Section:    label,
-		PluginName: limiter.PluginName,
-		PluginPath: limiter.PluginPath,
-		ParamID:    limiter.CeilingParamID,
+		Section:          label,
+		PluginName:       limiter.PluginName,
+		PluginPath:       limiter.PluginPath,
+		PluginIdentifier: limiter.PluginIdentifier,
+		ParamID:          limiter.CeilingParamID,
 	}, nil
 }
 
@@ -359,10 +365,11 @@ func resolveD1GateExpanderWhitelistBinding(typedAction map[string]any) (*d1Plugi
 		return nil, fmt.Errorf("%s experiment was refused by the PCA admission check: %w", label, err)
 	}
 	return &d1PluginParamWhitelistBinding{
-		Section:    label,
-		PluginName: gate.PluginName,
-		PluginPath: gate.PluginPath,
-		ParamID:    gate.RangeParamID,
+		Section:          label,
+		PluginName:       gate.PluginName,
+		PluginPath:       gate.PluginPath,
+		PluginIdentifier: gate.PluginIdentifier,
+		ParamID:          gate.RangeParamID,
 	}, nil
 }
 
@@ -426,10 +433,11 @@ func resolveD1MultibandWhitelistBinding(typedAction map[string]any) (*d1PluginPa
 		return nil, fmt.Errorf("%s experiment was refused by the PCA admission check: %w", label, err)
 	}
 	return &d1PluginParamWhitelistBinding{
-		Section:    label,
-		PluginName: multiband.PluginName,
-		PluginPath: multiband.PluginPath,
-		ParamID:    multiband.BandThresholdParamIDs[bandIndex],
+		Section:          label,
+		PluginName:       multiband.PluginName,
+		PluginPath:       multiband.PluginPath,
+		PluginIdentifier: multiband.PluginIdentifier,
+		ParamID:          multiband.BandThresholdParamIDs[bandIndex],
 	}, nil
 }
 
@@ -570,13 +578,14 @@ func d1StaticEQActionArgs(typedAction map[string]any, gainDB float64, binding *d
 	}
 	paramID := binding.Band.GainParamIDCH1
 	return map[string]any{
-		"write_mode":   executionports.WriteModeNormalizedBatchV1,
-		"plugin_path":  binding.Plugin.PluginPath,
-		"plugin_name":  binding.Plugin.PluginName,
-		"param_id":     paramID,
-		"param_id_ch2": binding.Band.GainParamIDCH2,
-		"target_value": gainDB,
-		"frequency_hz": binding.FrequencyHz,
+		"write_mode":        executionports.WriteModeNormalizedBatchV1,
+		"plugin_path":       binding.Plugin.PluginPath,
+		"plugin_name":       binding.Plugin.PluginName,
+		"plugin_identifier": binding.Plugin.PluginIdentifier,
+		"param_id":          paramID,
+		"param_id_ch2":      binding.Band.GainParamIDCH2,
+		"target_value":      gainDB,
+		"frequency_hz":      binding.FrequencyHz,
 	}, paramID
 }
 
@@ -673,11 +682,12 @@ func pluginParamWriteArgs(typedAction map[string]any, spec experiment.D1S1Domain
 	}
 	paramID := writeBinding.ParamID
 	args := map[string]any{
-		"write_mode":   executionports.WriteModeNormalizedBatchV1,
-		"plugin_path":  writeBinding.PluginPath,
-		"plugin_name":  writeBinding.PluginName,
-		"param_id":     paramID,
-		"target_value": valueDB,
+		"write_mode":        executionports.WriteModeNormalizedBatchV1,
+		"plugin_path":       writeBinding.PluginPath,
+		"plugin_name":       writeBinding.PluginName,
+		"plugin_identifier": writeBinding.PluginIdentifier,
+		"param_id":          paramID,
+		"target_value":      valueDB,
 	}
 	// Single-channel domains (FAM1-S1 de_esser) carry no ch2: the action args
 	// omit the key entirely (GLM ruling on D2-FAM1-S1 ③, correction b); the

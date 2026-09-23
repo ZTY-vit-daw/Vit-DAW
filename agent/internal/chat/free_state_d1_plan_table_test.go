@@ -223,8 +223,8 @@ func TestD1S1StaticEQPlanEmbedsWhitelistBinding(t *testing.T) {
 		action.Args["target_value"] != -1.0 || action.Args["frequency_hz"] != 400.0 {
 		t.Fatalf("binding args=%+v", action.Args)
 	}
-	if _, present := action.Args["plugin_identifier"]; present {
-		t.Fatalf("real-plugin action must not carry a known-list identifier: %+v", action.Args)
+	if got := action.Args["plugin_identifier"]; got != "fixture-eq" {
+		t.Fatalf("whitelist-bound action must pin the whitelisted plugin identifier: %+v", action.Args)
 	}
 }
 

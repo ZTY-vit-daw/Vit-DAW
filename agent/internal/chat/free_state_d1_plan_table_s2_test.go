@@ -232,11 +232,12 @@ func TestResolveD1PluginParamBindingForCompression(t *testing.T) {
 func TestD1S1CompressionPlanEmbedsWhitelistBinding(t *testing.T) {
 	loop := d1CompressionLoopForTest(t, "7")
 	binding := &d1PluginParamWhitelistBinding{
-		Section:    d1BroadbandCompressionDomain,
-		PluginName: "Fixture Comp",
-		PluginPath: "C:/plugins/Fixture Comp.vst3",
-		ParamID:    "thr_a",
-		ParamIDCH2: "thr_b",
+		Section:          d1BroadbandCompressionDomain,
+		PluginName:       "Fixture Comp",
+		PluginPath:       "C:/plugins/Fixture Comp.vst3",
+		PluginIdentifier: "fixture-comp",
+		ParamID:          "thr_a",
+		ParamIDCH2:       "thr_b",
 	}
 	plan, err := d1PluginParamPlanWithBinding(loop, agentloop.PendingMixTickCandidate{Operation: d1BroadbandCompressionKind, TrackID: "vocal"}, 7, "project-1", "epoch-1", "snapshot-7",
 		map[string]any{"tracks": []any{map[string]any{"track_id": "vocal", "volume_db": -2.0}}}, binding, "")
@@ -261,8 +262,8 @@ func TestD1S1CompressionPlanEmbedsWhitelistBinding(t *testing.T) {
 	if _, present := action.Args["frequency_hz"]; present {
 		t.Fatalf("compression action must not carry an EQ frequency: %+v", action.Args)
 	}
-	if _, present := action.Args["plugin_identifier"]; present {
-		t.Fatalf("real-plugin action must not carry a known-list identifier: %+v", action.Args)
+	if got := action.Args["plugin_identifier"]; got != "fixture-comp" {
+		t.Fatalf("whitelist-bound action must pin the whitelisted plugin identifier: %+v", action.Args)
 	}
 	for _, want := range []string{"free_state:d1_s1", "action:broadband_threshold_adjust"} {
 		if !containsStringFold(plan.ProjectCut.ContractVersions, want) {
@@ -532,10 +533,11 @@ func TestResolveD1PluginParamBindingForDeEsser(t *testing.T) {
 func TestD1S1DeEsserPlanEmbedsWhitelistBinding(t *testing.T) {
 	loop := d1DeEsserLoopForTest(t, "7")
 	binding := &d1PluginParamWhitelistBinding{
-		Section:    d1DeEsserDomain,
-		PluginName: "Fixture DeEss",
-		PluginPath: "C:/plugins/Fixture DeEss.vst3",
-		ParamID:    "deess_thresh",
+		Section:          d1DeEsserDomain,
+		PluginName:       "Fixture DeEss",
+		PluginPath:       "C:/plugins/Fixture DeEss.vst3",
+		PluginIdentifier: "fixture-deess",
+		ParamID:          "deess_thresh",
 	}
 	plan, err := d1PluginParamPlanWithBinding(loop, agentloop.PendingMixTickCandidate{Operation: d1DeEsserKind, TrackID: "vocal"}, 7, "project-1", "epoch-1", "snapshot-7",
 		map[string]any{"tracks": []any{map[string]any{"track_id": "vocal", "volume_db": -2.0}}}, binding, "")
@@ -565,8 +567,8 @@ func TestD1S1DeEsserPlanEmbedsWhitelistBinding(t *testing.T) {
 	if _, present := action.Args["frequency_hz"]; present {
 		t.Fatalf("de_esser action must not carry an EQ frequency: %+v", action.Args)
 	}
-	if _, present := action.Args["plugin_identifier"]; present {
-		t.Fatalf("real-plugin action must not carry a known-list identifier: %+v", action.Args)
+	if got := action.Args["plugin_identifier"]; got != "fixture-deess" {
+		t.Fatalf("whitelist-bound action must pin the whitelisted plugin identifier: %+v", action.Args)
 	}
 	for _, want := range []string{"free_state:d1_s1", "action:de_esser_threshold_adjust"} {
 		if !containsStringFold(plan.ProjectCut.ContractVersions, want) {
@@ -795,10 +797,11 @@ func TestResolveD1PluginParamBindingForTransient(t *testing.T) {
 func TestD1S1TransientPlanEmbedsWhitelistBinding(t *testing.T) {
 	loop := d1TransientLoopForTest(t, "7")
 	binding := &d1PluginParamWhitelistBinding{
-		Section:    d1TransientShaperDomain,
-		PluginName: "Fixture Transient",
-		PluginPath: "C:/plugins/Fixture Transient.vst3",
-		ParamID:    "trans_attack",
+		Section:          d1TransientShaperDomain,
+		PluginName:       "Fixture Transient",
+		PluginPath:       "C:/plugins/Fixture Transient.vst3",
+		PluginIdentifier: "fixture-transient",
+		ParamID:          "trans_attack",
 	}
 	plan, err := d1PluginParamPlanWithBinding(loop, agentloop.PendingMixTickCandidate{Operation: d1TransientShaperKind, TrackID: "vocal"}, 7, "project-1", "epoch-1", "snapshot-7",
 		map[string]any{"tracks": []any{map[string]any{"track_id": "vocal", "volume_db": -2.0}}}, binding, "")
@@ -826,8 +829,8 @@ func TestD1S1TransientPlanEmbedsWhitelistBinding(t *testing.T) {
 	if _, present := action.Args["frequency_hz"]; present {
 		t.Fatalf("transient action must not carry an EQ frequency: %+v", action.Args)
 	}
-	if _, present := action.Args["plugin_identifier"]; present {
-		t.Fatalf("real-plugin action must not carry a known-list identifier: %+v", action.Args)
+	if got := action.Args["plugin_identifier"]; got != "fixture-transient" {
+		t.Fatalf("whitelist-bound action must pin the whitelisted plugin identifier: %+v", action.Args)
 	}
 	for _, want := range []string{"free_state:d1_s1", "action:transient_attack_adjust"} {
 		if !containsStringFold(plan.ProjectCut.ContractVersions, want) {
