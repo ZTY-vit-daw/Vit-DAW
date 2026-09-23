@@ -14,6 +14,6 @@
 - 验收：①两段扩展+溯源表扩行（字段↔实测来源可回指）；②overlay 复验+⑤ spot 轮工件；③**旅程回归工件**（对照基线的 capability_blocked 消失证据或如实记录未触发）；④回执写回 coord 记两端 HEAD
 - 停止条件：mac 实测环境无 EQ 主体可用 → 如实声明留空上交（该族继续 not configured 是诚实边界非缺陷）；认证 runner 无 EQ 覆盖形态且参数化扩展超出最小范围 → 停止上交（processorattestation 已定义 FamilyStaticEQ+upsert/bell+eq_regression_receipt，预期无需大改）；**broadband 形态决策点上交**：若 mac 117 个 dynamics 主体中确无 ch1≠ch2 双阈值形态，留空上交并由决策侧裁定"找主体 vs 演进 v5 schema"（不硬凑）
 - **领取注记（2026-09-23 决策侧）**：领取提交应一次含完整 mv（todo 删除+doing 新增同批——REALSTEMS 领取提交教训）；`build_whitelist.py` 在 `~/Documents/vit-wl1-artifacts/` 工件目录复用（入仓产品化是独立 backlog，本卡不做）
-- 领取：
+- 领取：2026-09-23 13:47 CST / origin/main=1cd9368（领取时本地 HEAD 同值，零入站提交；--rebase 因两 Workspace 残留文件被拒，按 REALSTEMS 先例核验零入站后等价无操作）/ main（零代码改动卡，coord 卡片流直接在 main 走；领取时 status 仅两 Workspace 运行时残留文件，不属本卡 diff）
 - 回执：
 - 验收：
