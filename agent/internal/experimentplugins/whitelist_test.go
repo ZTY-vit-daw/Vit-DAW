@@ -32,10 +32,7 @@ func fixtureStaticEQPlugin() StaticEQPlugin {
 }
 
 func fixtureWhitelist() Whitelist {
-	return Whitelist{SchemaVersion: SchemaVersion, StaticEQ: func() *StaticEQPlugin {
-		plugin := fixtureStaticEQPlugin()
-		return &plugin
-	}()}
+	return Whitelist{SchemaVersion: SchemaVersion, StaticEQ: StaticEQPlugins{fixtureStaticEQPlugin()}}
 }
 
 func writeFixture(t *testing.T, name, content string) string {
@@ -65,7 +62,7 @@ func TestLoadAllowsMissingStaticEQ(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if loaded.SchemaVersion != SchemaVersion || loaded.StaticEQ != nil {
+	if loaded.SchemaVersion != SchemaVersion || len(loaded.StaticEQ) != 0 {
 		t.Fatalf("empty whitelist=%+v", loaded)
 	}
 }
@@ -93,16 +90,13 @@ func TestLoadRejectsMalformedFiles(t *testing.T) {
 			`{"schema_version":%q,"static_eq":{"plugin_name":"x","manufacturer":"m","format":"VST3","plugin_identifier":"i","plugin_path":"p","bands":[{"center_hz":100,"gain_param_id_ch1":"a","gain_param_id_ch2":"b"}],"surprise":1}}`,
 			SchemaVersion)},
 		{"wrong_schema_version", marshalOrPanic(Whitelist{
-			SchemaVersion: "vit.free_state_experiment_plugins.v0", StaticEQ: func() *StaticEQPlugin {
-				plugin := fixtureStaticEQPlugin()
-				return &plugin
-			}(),
+			SchemaVersion: "vit.free_state_experiment_plugins.v0", StaticEQ: StaticEQPlugins{fixtureStaticEQPlugin()},
 		})},
 		{"trailing_content", marshalOrPanic(fixtureWhitelist()) + "\n{}"},
-		{"static_eq_without_bands_key", marshalOrPanic(Whitelist{SchemaVersion: SchemaVersion, StaticEQ: &StaticEQPlugin{
+		{"static_eq_without_bands_key", marshalOrPanic(Whitelist{SchemaVersion: SchemaVersion, StaticEQ: StaticEQPlugins{StaticEQPlugin{
 			PluginName: "Example EQ", Manufacturer: "Example", Format: "VST3",
 			PluginIdentifier: "example-eq", PluginPath: fixturePluginPath,
-		}})},
+		}}})},
 		{"empty_bands_array", marshalWhitelistWithBands(t, nil)},
 		{"duplicate_center_hz", marshalWhitelistWithBands(t, []Band{
 			{CenterHz: 100, GainParamIDCH1: "a", GainParamIDCH2: "b"},
@@ -167,7 +161,7 @@ func TestLoadRejectsEmptyStaticEQFields(t *testing.T) {
 	for _, clear := range clears {
 		t.Run(clear.name, func(t *testing.T) {
 			whitelist := fixtureWhitelist()
-			clear.clear(whitelist.StaticEQ)
+			clear.clear(&whitelist.StaticEQ[0])
 			path := writeFixture(t, clear.name+".json", marshalOrPanic(whitelist))
 			if _, err := Load(path); err == nil {
 				t.Fatalf("empty %s was accepted", clear.name)
@@ -183,7 +177,7 @@ func marshalWhitelistWithBands(t *testing.T, bands []Band) string {
 	t.Helper()
 	plugin := fixtureStaticEQPlugin()
 	plugin.Bands = bands
-	return marshalOrPanic(Whitelist{SchemaVersion: SchemaVersion, StaticEQ: &plugin})
+	return marshalOrPanic(Whitelist{SchemaVersion: SchemaVersion, StaticEQ: StaticEQPlugins{plugin}})
 }
 
 func marshalOrPanic(whitelist Whitelist) string {
@@ -211,7 +205,7 @@ func TestNearestStaticEQBandResolution(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			band, err := whitelist.NearestStaticEQBand(test.frequencyHz)
+			band, err := whitelist.NearestStaticEQBand(test.frequencyHz, "")
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -221,7 +215,7 @@ func TestNearestStaticEQBandResolution(t *testing.T) {
 		})
 	}
 	unconfigured := Whitelist{}
-	if _, err := unconfigured.NearestStaticEQBand(100); !errors.Is(err, ErrNotConfigured) {
+	if _, err := unconfigured.NearestStaticEQBand(100, ""); !errors.Is(err, ErrNotConfigured) {
 		t.Fatalf("unconfigured err=%v want ErrNotConfigured", err)
 	}
 }
@@ -236,7 +230,7 @@ func promotedStaticEQLibrary(t *testing.T, subject processorattestation.Subject,
 		Coverage:          []processorattestation.Coverage{{Action: "upsert", Shape: "bell"}},
 		Evidence: []processorattestation.EvidenceRef{{
 			ReceiptID: "receipt-1", Kind: "eq_regression_receipt",
-			SHA256: "sha256:" + strings.Repeat("b", 64),
+			SHA256:     "sha256:" + strings.Repeat("b", 64),
 			ObservedAt: now.Add(-time.Hour),
 		}},
 	}, now)
@@ -269,7 +263,7 @@ func whitelistOnDisk(t *testing.T) (Whitelist, string) {
 		t.Fatal(err)
 	}
 	whitelist := fixtureWhitelist()
-	whitelist.StaticEQ.PluginPath = pluginPath
+	whitelist.StaticEQ[0].PluginPath = pluginPath
 	return whitelist, pluginPath
 }
 
@@ -280,7 +274,7 @@ func TestValidateStaticEQAdmissionAcceptsPromotedMatchingBinary(t *testing.T) {
 		t.Fatal(err)
 	}
 	lib := promotedStaticEQLibrary(t, admissionSubject(pluginPath), fingerprint)
-	if err := whitelist.ValidateStaticEQAdmission(lib); err != nil {
+	if err := whitelist.ValidateStaticEQAdmission(lib, ""); err != nil {
 		t.Fatalf("promoted matching binary rejected: %v", err)
 	}
 }
@@ -302,7 +296,7 @@ func admissionRejectionChecks(t *testing.T, err error) {
 func TestValidateStaticEQAdmissionRejectsFingerprintMismatch(t *testing.T) {
 	whitelist, _ := whitelistOnDisk(t)
 	staleFingerprint := "sha256:" + strings.Repeat("a", 64)
-	err := whitelist.ValidateStaticEQAdmission(promotedStaticEQLibrary(t, admissionSubject(whitelist.StaticEQ.PluginPath), staleFingerprint))
+	err := whitelist.ValidateStaticEQAdmission(promotedStaticEQLibrary(t, admissionSubject(whitelist.StaticEQ[0].PluginPath), staleFingerprint), "")
 	admissionRejectionChecks(t, err)
 	if !strings.Contains(err.Error(), "binary_fingerprint_changed") {
 		t.Fatalf("err=%v must contain the query reason", err)
@@ -315,7 +309,7 @@ func TestValidateStaticEQAdmissionRejectsUnknownProcessor(t *testing.T) {
 		Name: "Other EQ", Manufacturer: "Other", Format: "VST3",
 		Identifier: "other-eq", InstalledPath: "/elsewhere.vst3",
 	}, "sha256:"+strings.Repeat("c", 64))
-	err := whitelist.ValidateStaticEQAdmission(lib)
+	err := whitelist.ValidateStaticEQAdmission(lib, "")
 	admissionRejectionChecks(t, err)
 	if !strings.Contains(err.Error(), "no_attestation") {
 		t.Fatalf("err=%v must contain the query reason", err)
@@ -324,11 +318,11 @@ func TestValidateStaticEQAdmissionRejectsUnknownProcessor(t *testing.T) {
 
 func TestValidateStaticEQAdmissionWrapsFingerprintFailure(t *testing.T) {
 	whitelist := fixtureWhitelist()
-	whitelist.StaticEQ.PluginPath = filepath.Join(t.TempDir(), "absent.vst3")
+	whitelist.StaticEQ[0].PluginPath = filepath.Join(t.TempDir(), "absent.vst3")
 	err := whitelist.ValidateStaticEQAdmission(promotedStaticEQLibrary(t, processorattestation.Subject{
 		Name: "Example EQ", Manufacturer: "Example", Format: "VST3",
-		Identifier: "example-eq", InstalledPath: whitelist.StaticEQ.PluginPath,
-	}, "sha256:"+strings.Repeat("d", 64)))
+		Identifier: "example-eq", InstalledPath: whitelist.StaticEQ[0].PluginPath,
+	}, "sha256:"+strings.Repeat("d", 64)), "")
 	if err == nil {
 		t.Fatal("fingerprint failure was swallowed")
 	}
@@ -342,7 +336,7 @@ func TestValidateStaticEQAdmissionWrapsFingerprintFailure(t *testing.T) {
 
 func TestValidateStaticEQAdmissionRequiresConfiguration(t *testing.T) {
 	whitelist := Whitelist{}
-	if err := whitelist.ValidateStaticEQAdmission(processorattestation.Library{}); !errors.Is(err, ErrNotConfigured) {
+	if err := whitelist.ValidateStaticEQAdmission(processorattestation.Library{}, ""); !errors.Is(err, ErrNotConfigured) {
 		t.Fatalf("unconfigured err=%v want ErrNotConfigured", err)
 	}
 }

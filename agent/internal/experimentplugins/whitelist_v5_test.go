@@ -29,10 +29,10 @@ func fixtureLimiterPlugin() LimiterPlugin {
 func TestLoadParsesV5FileWithLimiterSectionRoundTrip(t *testing.T) {
 	whitelist := Whitelist{
 		SchemaVersion:   SchemaVersion,
-		StaticEQ:        func() *StaticEQPlugin { plugin := fixtureStaticEQPlugin(); return &plugin }(),
-		DeEsser:         func() *DeEsserPlugin { plugin := fixtureDeEsserPlugin(); return &plugin }(),
-		TransientShaper: func() *TransientShaperPlugin { plugin := fixtureTransientShaperPlugin(); return &plugin }(),
-		Limiter:         func() *LimiterPlugin { plugin := fixtureLimiterPlugin(); return &plugin }(),
+		StaticEQ:        StaticEQPlugins{fixtureStaticEQPlugin()},
+		DeEsser:         DeEsserPlugins{fixtureDeEsserPlugin()},
+		TransientShaper: TransientShaperPlugins{fixtureTransientShaperPlugin()},
+		Limiter:         LimiterPlugins{fixtureLimiterPlugin()},
 	}
 	path := writeFixture(t, "whitelist_v5.json", marshalOrPanic(whitelist))
 	loaded, err := Load(path)
@@ -47,14 +47,14 @@ func TestLoadParsesV5FileWithLimiterSectionRoundTrip(t *testing.T) {
 func TestLoadAllowsV5FileWithOnlyLimiterSection(t *testing.T) {
 	whitelist := Whitelist{
 		SchemaVersion: SchemaVersion,
-		Limiter:       func() *LimiterPlugin { plugin := fixtureLimiterPlugin(); return &plugin }(),
+		Limiter:       LimiterPlugins{fixtureLimiterPlugin()},
 	}
 	path := writeFixture(t, "whitelist_limiter_only.json", marshalOrPanic(whitelist))
 	loaded, err := Load(path)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if loaded.Limiter == nil || loaded.Limiter.CeilingParamID != "ceiling_shared" {
+	if len(loaded.Limiter) != 1 || loaded.Limiter[0].CeilingParamID != "ceiling_shared" {
 		t.Fatalf("limiter-only whitelist=%+v", loaded)
 	}
 }
@@ -112,11 +112,7 @@ func TestValidateLimiterAdmissionClasses(t *testing.T) {
 	}
 	whitelist := Whitelist{
 		SchemaVersion: SchemaVersion,
-		Limiter: func() *LimiterPlugin {
-			plugin := fixtureLimiterPlugin()
-			plugin.PluginPath = pluginPath
-			return &plugin
-		}(),
+		Limiter:       LimiterPlugins{func() LimiterPlugin { plugin := fixtureLimiterPlugin(); plugin.PluginPath = pluginPath; return plugin }()},
 	}
 	subject := processorattestation.Subject{Name: "Fixture Limiter", Manufacturer: "Example", Format: "VST3", Identifier: "fixture-limiter", InstalledPath: pluginPath}
 	promotedLibraryV2 := func(fingerprint string) processorattestation.LibraryV2 {
@@ -146,35 +142,35 @@ func TestValidateLimiterAdmissionClasses(t *testing.T) {
 		}
 	}
 
-	if err := whitelist.ValidateLimiterAdmission(promotedLibraryV2(fingerprint)); err != nil {
+	if err := whitelist.ValidateLimiterAdmission(promotedLibraryV2(fingerprint), ""); err != nil {
 		t.Fatalf("promoted matching binary rejected: %v", err)
 	}
 
-	staleErr := whitelist.ValidateLimiterAdmission(promotedLibraryV2("sha256:" + strings.Repeat("e", 64)))
+	staleErr := whitelist.ValidateLimiterAdmission(promotedLibraryV2("sha256:"+strings.Repeat("e", 64)), "")
 	if staleErr == nil || !strings.HasPrefix(staleErr.Error(), "experiment plugin whitelist: limiter plugin is not PCA-promoted") ||
 		!strings.Contains(staleErr.Error(), "Fixture Limiter") || !strings.Contains(staleErr.Error(), "binary_fingerprint_changed") {
 		t.Fatalf("fingerprint mismatch class wrong: %v", staleErr)
 	}
 
-	unknownErr := whitelist.ValidateLimiterAdmission(processorattestation.LibraryV2{SchemaVersion: processorattestation.LibrarySchemaV2})
+	unknownErr := whitelist.ValidateLimiterAdmission(processorattestation.LibraryV2{SchemaVersion: processorattestation.LibrarySchemaV2}, "")
 	if unknownErr == nil || !strings.Contains(unknownErr.Error(), "no_attestation") {
 		t.Fatalf("unknown subject class wrong: %v", unknownErr)
 	}
 
 	unconfigured := Whitelist{}
-	if err := unconfigured.ValidateLimiterAdmission(processorattestation.LibraryV2{}); !errors.Is(err, ErrLimiterNotConfigured) {
+	if err := unconfigured.ValidateLimiterAdmission(processorattestation.LibraryV2{}, ""); !errors.Is(err, ErrLimiterNotConfigured) {
 		t.Fatalf("unconfigured limiter err=%v want ErrLimiterNotConfigured", err)
 	}
 
 	absent := Whitelist{
 		SchemaVersion: SchemaVersion,
-		Limiter: func() *LimiterPlugin {
+		Limiter: LimiterPlugins{func() LimiterPlugin {
 			plugin := fixtureLimiterPlugin()
 			plugin.PluginPath = filepath.Join(t.TempDir(), "absent.vst3")
-			return &plugin
-		}(),
+			return plugin
+		}()},
 	}
-	fingerprintErr := absent.ValidateLimiterAdmission(promotedLibraryV2("sha256:" + strings.Repeat("9", 64)))
+	fingerprintErr := absent.ValidateLimiterAdmission(promotedLibraryV2("sha256:"+strings.Repeat("9", 64)), "")
 	if fingerprintErr == nil || !errors.Is(fingerprintErr, os.ErrNotExist) {
 		t.Fatalf("fingerprint failure must wrap the filesystem error: %v", fingerprintErr)
 	}

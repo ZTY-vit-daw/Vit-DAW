@@ -44,6 +44,7 @@ func messageLoopNeutralFamilySystemPrompt(state *runState) string {
 	}
 	prefix += messageLoopFreeStateGatePathDirective(state)
 	prefix += messageLoopFreeStateObservationSaturationDirective(state)
+	prefix += messageLoopPluginCandidateDirective(state)
 	prefix += messageLoopCandidateFrontierDirective(state)
 	prefix += messageLoopFreeStateTerminalTurnDirective(state)
 	// GLM ruling (D2-2): the single-round prohibitions stay byte-identical on
@@ -498,6 +499,58 @@ func messageLoopFreeStateObservationSaturationDirective(state *runState) string 
 	return fmt.Sprintf(`OBSERVATION SATURATION (mechanical runtime state): %s. The per-track primary observation duty is closed: observing covered targets again adds no new coverage. The legal exits are unchanged — a needs_experiment turn with one bounded improvement_proposal citing evidence already in the ledger, or an honest terminal boundary (no_candidate_found / capability_blocked). This notice is runtime state only; the judgment and the choice stay yours.
 
 `, facts)
+}
+
+// messageLoopPluginCandidateDirective renders the FIX-PLUGIN-SELECT-1 bounded
+// plugin-candidate disclosure: for every whitelist family that carries more
+// than one certified candidate, the structural identity rows the model needs
+// to make its own selection. The directive appears only when the disclosure
+// rides the loop context (multi-candidate machines); single-candidate
+// machines keep a byte-identical prompt. The selection is enforced at the
+// admission (whitelist membership, fail-closed on non-members and on a
+// missing selection); this text only discloses the admissible set and binds
+// the model's plugin_identifier echo to the needs_experiment proposal.
+func messageLoopPluginCandidateDirective(state *runState) string {
+	if state == nil {
+		return ""
+	}
+	disclosure := messageLoopMapValue(messageLoopFreeStateContext(state)["plugin_candidate_disclosure"])
+	if len(disclosure) == 0 {
+		return ""
+	}
+	families := messageLoopMapRows(disclosure["families"])
+	if len(families) == 0 {
+		return ""
+	}
+	rows := make([]string, 0, len(families))
+	for _, family := range families {
+		domain := strings.TrimSpace(messageLoopText(family["action_domain"]))
+		candidates := messageLoopMapRows(family["candidates"])
+		parts := make([]string, 0, len(candidates))
+		for _, candidate := range candidates {
+			name := strings.TrimSpace(messageLoopText(candidate["name"]))
+			manufacturer := strings.TrimSpace(messageLoopText(candidate["manufacturer"]))
+			identifier := strings.TrimSpace(messageLoopText(candidate["identifier"]))
+			if identifier == "" {
+				continue
+			}
+			label := name
+			if manufacturer != "" {
+				label = name + " (" + manufacturer + ")"
+			}
+			parts = append(parts, label+" identifier="+identifier)
+		}
+		if domain == "" || len(parts) == 0 {
+			continue
+		}
+		rows = append(rows, domain+": "+strings.Join(parts, "; "))
+	}
+	if len(rows) == 0 {
+		return ""
+	}
+	return fmt.Sprintf(`PLUGIN CANDIDATES (machine whitelist state): more than one certified plug-in candidate is admitted for these action domains — %s. When you return needs_experiment for one of these action domains you MUST choose one of that domain's disclosed candidates yourself and copy its identifier verbatim into that proposal's parameter_bounds.plugin_identifier; a missing choice or a value outside the disclosed set is refused fail-closed at the admission. This identifier echo is the only place a plug-in identity may appear in your output: the prohibition on naming plug-ins, vendors, products, paths, or parameter ids still applies everywhere else, including reply and free_state.summary.
+
+`, strings.Join(rows, " | "))
 }
 
 func messageLoopFreeStatePositiveInt(raw any) int {

@@ -94,10 +94,10 @@ func axisCoverageTransientFixture(t *testing.T) axisCoverageFixture {
 	}
 	fixture.Whitelist = experimentplugins.Whitelist{
 		SchemaVersion: experimentplugins.SchemaVersion,
-		TransientShaper: &experimentplugins.TransientShaperPlugin{
+		TransientShaper: experimentplugins.TransientShaperPlugins{experimentplugins.TransientShaperPlugin{
 			PluginName: "SPL Transient Designer Plus", Manufacturer: "Plugin Alliance", Format: "VST3",
 			PluginIdentifier: fixture.SPL.Identifier, PluginPath: fixture.SPL.InstalledPath, AttackParamID: "1098151019",
-		},
+		}},
 	}
 	previous := d1StaticEQWhitelistLoader
 	d1StaticEQWhitelistLoader = func() (experimentplugins.Whitelist, error) {
@@ -206,8 +206,8 @@ func TestPluginRecommendationSelectionResponseDisclosesAxisCoverage(t *testing.T
 	}
 	res := agentloop.Result{GoalID: "goal-1", RunID: "run-1", Status: "completed"}
 	resp := server.pluginRecommendationSelectionResponse("conversation-1", agentModeDefault, map[string]any{
-		"selected_track_id":                          "1012",
-		"free_state_semantic_processor_intent":       axisCoverageFrozenTransientIntent("envelope_emphasis"),
+		"selected_track_id":                           "1012",
+		"free_state_semantic_processor_intent":        axisCoverageFrozenTransientIntent("envelope_emphasis"),
 		pluginRecommendationAxisCoverageDisclosureKey: disclosure,
 	}, res, plan, candidates)
 	payload := firstMapFromAny(resp.WorkflowData["axis_coverage_disclosure"])

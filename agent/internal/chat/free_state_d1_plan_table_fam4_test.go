@@ -39,14 +39,14 @@ func d1LimiterWhitelistFixtureOnDisk(t *testing.T) d1LimiterWhitelistFixture {
 	fixture := d1LimiterWhitelistFixture{
 		Whitelist: experimentplugins.Whitelist{
 			SchemaVersion: experimentplugins.SchemaVersion,
-			Limiter: &experimentplugins.LimiterPlugin{
+			Limiter: experimentplugins.LimiterPlugins{experimentplugins.LimiterPlugin{
 				PluginName:       "Fixture Limiter",
 				Manufacturer:     "Fixture",
 				Format:           "VST3",
 				PluginIdentifier: "fixture-limiter",
 				PluginPath:       pluginPath,
 				CeilingParamID:   "lim_ceiling",
-			},
+			}},
 		},
 		PluginPath:  pluginPath,
 		Fingerprint: fingerprint,

@@ -30,8 +30,8 @@ func fixtureGateExpanderPlugin() GateExpanderPlugin {
 func TestLoadParsesV5FileWithGateExpanderSectionRoundTrip(t *testing.T) {
 	whitelist := Whitelist{
 		SchemaVersion: SchemaVersion,
-		Limiter:       func() *LimiterPlugin { plugin := fixtureLimiterPlugin(); return &plugin }(),
-		GateExpander:  func() *GateExpanderPlugin { plugin := fixtureGateExpanderPlugin(); return &plugin }(),
+		Limiter:       LimiterPlugins{fixtureLimiterPlugin()},
+		GateExpander:  GateExpanderPlugins{fixtureGateExpanderPlugin()},
 	}
 	path := writeFixture(t, "whitelist_v5_gate.json", marshalOrPanic(whitelist))
 	loaded, err := Load(path)
@@ -45,15 +45,15 @@ func TestLoadParsesV5FileWithGateExpanderSectionRoundTrip(t *testing.T) {
 
 func TestLoadAllowsV5FileWithOnlyGateExpanderSection(t *testing.T) {
 	whitelist := Whitelist{
-		SchemaVersion:  SchemaVersion,
-		GateExpander:   func() *GateExpanderPlugin { plugin := fixtureGateExpanderPlugin(); return &plugin }(),
+		SchemaVersion: SchemaVersion,
+		GateExpander:  GateExpanderPlugins{fixtureGateExpanderPlugin()},
 	}
 	path := writeFixture(t, "whitelist_gate_only.json", marshalOrPanic(whitelist))
 	loaded, err := Load(path)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if loaded.GateExpander == nil || loaded.GateExpander.RangeParamID != "range_shared" {
+	if len(loaded.GateExpander) != 1 || loaded.GateExpander[0].RangeParamID != "range_shared" {
 		t.Fatalf("gate-only whitelist=%+v", loaded)
 	}
 }
@@ -110,11 +110,11 @@ func TestValidateGateExpanderAdmissionClasses(t *testing.T) {
 	}
 	whitelist := Whitelist{
 		SchemaVersion: SchemaVersion,
-		GateExpander: func() *GateExpanderPlugin {
+		GateExpander: GateExpanderPlugins{func() GateExpanderPlugin {
 			plugin := fixtureGateExpanderPlugin()
 			plugin.PluginPath = pluginPath
-			return &plugin
-		}(),
+			return plugin
+		}()},
 	}
 	subject := processorattestation.Subject{Name: "Fixture Gate", Manufacturer: "Example", Format: "VST3", Identifier: "fixture-gate", InstalledPath: pluginPath}
 	promotedLibraryV2 := func(fingerprint string) processorattestation.LibraryV2 {
@@ -144,35 +144,35 @@ func TestValidateGateExpanderAdmissionClasses(t *testing.T) {
 		}
 	}
 
-	if err := whitelist.ValidateGateExpanderAdmission(promotedLibraryV2(fingerprint)); err != nil {
+	if err := whitelist.ValidateGateExpanderAdmission(promotedLibraryV2(fingerprint), ""); err != nil {
 		t.Fatalf("promoted matching binary rejected: %v", err)
 	}
 
-	staleErr := whitelist.ValidateGateExpanderAdmission(promotedLibraryV2("sha256:" + strings.Repeat("e", 64)))
+	staleErr := whitelist.ValidateGateExpanderAdmission(promotedLibraryV2("sha256:"+strings.Repeat("e", 64)), "")
 	if staleErr == nil || !strings.HasPrefix(staleErr.Error(), "experiment plugin whitelist: gate_expander plugin is not PCA-promoted") ||
 		!strings.Contains(staleErr.Error(), "Fixture Gate") || !strings.Contains(staleErr.Error(), "binary_fingerprint_changed") {
 		t.Fatalf("fingerprint mismatch class wrong: %v", staleErr)
 	}
 
-	unknownErr := whitelist.ValidateGateExpanderAdmission(processorattestation.LibraryV2{SchemaVersion: processorattestation.LibrarySchemaV2})
+	unknownErr := whitelist.ValidateGateExpanderAdmission(processorattestation.LibraryV2{SchemaVersion: processorattestation.LibrarySchemaV2}, "")
 	if unknownErr == nil || !strings.Contains(unknownErr.Error(), "no_attestation") {
 		t.Fatalf("unknown subject class wrong: %v", unknownErr)
 	}
 
 	unconfigured := Whitelist{}
-	if err := unconfigured.ValidateGateExpanderAdmission(processorattestation.LibraryV2{}); !errors.Is(err, ErrGateExpanderNotConfigured) {
+	if err := unconfigured.ValidateGateExpanderAdmission(processorattestation.LibraryV2{}, ""); !errors.Is(err, ErrGateExpanderNotConfigured) {
 		t.Fatalf("unconfigured gate_expander err=%v want ErrGateExpanderNotConfigured", err)
 	}
 
 	absent := Whitelist{
 		SchemaVersion: SchemaVersion,
-		GateExpander: func() *GateExpanderPlugin {
+		GateExpander: GateExpanderPlugins{func() GateExpanderPlugin {
 			plugin := fixtureGateExpanderPlugin()
 			plugin.PluginPath = filepath.Join(t.TempDir(), "absent.vst3")
-			return &plugin
-		}(),
+			return plugin
+		}()},
 	}
-	fingerprintErr := absent.ValidateGateExpanderAdmission(promotedLibraryV2("sha256:" + strings.Repeat("9", 64)))
+	fingerprintErr := absent.ValidateGateExpanderAdmission(promotedLibraryV2("sha256:"+strings.Repeat("9", 64)), "")
 	if fingerprintErr == nil || !errors.Is(fingerprintErr, os.ErrNotExist) {
 		t.Fatalf("fingerprint failure must wrap the filesystem error: %v", fingerprintErr)
 	}

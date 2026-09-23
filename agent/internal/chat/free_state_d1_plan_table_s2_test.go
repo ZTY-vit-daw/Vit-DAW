@@ -44,7 +44,7 @@ func d1CompressionWhitelistFixtureOnDisk(t *testing.T) d1CompressionWhitelistFix
 	fixture := d1CompressionWhitelistFixture{
 		Whitelist: experimentplugins.Whitelist{
 			SchemaVersion: experimentplugins.SchemaVersion,
-			BroadbandCompression: &experimentplugins.BroadbandCompressionPlugin{
+			BroadbandCompression: experimentplugins.BroadbandCompressionPlugins{experimentplugins.BroadbandCompressionPlugin{
 				PluginName:          "Fixture Comp",
 				Manufacturer:        "Fixture",
 				Format:              "VST3",
@@ -52,7 +52,7 @@ func d1CompressionWhitelistFixtureOnDisk(t *testing.T) d1CompressionWhitelistFix
 				PluginPath:          pluginPath,
 				ThresholdParamIDCH1: "thr_a",
 				ThresholdParamIDCH2: "thr_b",
-			},
+			}},
 		},
 		PluginPath:  pluginPath,
 		Fingerprint: fingerprint,
@@ -355,14 +355,14 @@ func d1DeEsserWhitelistFixtureOnDisk(t *testing.T) d1DeEsserWhitelistFixture {
 	fixture := d1DeEsserWhitelistFixture{
 		Whitelist: experimentplugins.Whitelist{
 			SchemaVersion: experimentplugins.SchemaVersion,
-			DeEsser: &experimentplugins.DeEsserPlugin{
+			DeEsser: experimentplugins.DeEsserPlugins{experimentplugins.DeEsserPlugin{
 				PluginName:       "Fixture DeEss",
 				Manufacturer:     "Fixture",
 				Format:           "VST3",
 				PluginIdentifier: "fixture-deess",
 				PluginPath:       pluginPath,
 				ThresholdParamID: "deess_thresh",
-			},
+			}},
 		},
 		PluginPath:  pluginPath,
 		Fingerprint: fingerprint,
@@ -618,14 +618,14 @@ func d1TransientWhitelistFixtureOnDisk(t *testing.T) d1TransientWhitelistFixture
 	fixture := d1TransientWhitelistFixture{
 		Whitelist: experimentplugins.Whitelist{
 			SchemaVersion: experimentplugins.SchemaVersion,
-			TransientShaper: &experimentplugins.TransientShaperPlugin{
+			TransientShaper: experimentplugins.TransientShaperPlugins{experimentplugins.TransientShaperPlugin{
 				PluginName:       "Fixture Transient",
 				Manufacturer:     "Fixture",
 				Format:           "VST3",
 				PluginIdentifier: "fixture-transient",
 				PluginPath:       pluginPath,
 				AttackParamID:    "trans_attack",
-			},
+			}},
 		},
 		PluginPath:  pluginPath,
 		Fingerprint: fingerprint,

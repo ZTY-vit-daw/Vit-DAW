@@ -398,6 +398,11 @@ func messageLoopFreeStatePromptContext(state *runState) map[string]any {
 		// state disclosure; it rides the compact projection so the structured
 		// ledger JSON and the prompt directive stay consistent.
 		"observation_saturation_notice",
+		// FIX-PLUGIN-SELECT-1: the bounded plugin-candidate disclosure rides
+		// the compact projection for the same consistency reason — the
+		// structured JSON and the prompt directive must never disagree about
+		// which candidates a multi-candidate family admits.
+		"plugin_candidate_disclosure",
 	})
 	if target := messageLoopMapValue(source["target_ref"]); len(target) > 0 {
 		// Family selection has no need for a loaded-instance identity. Keep only

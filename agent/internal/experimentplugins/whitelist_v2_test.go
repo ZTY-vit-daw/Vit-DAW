@@ -30,8 +30,8 @@ func fixtureBroadbandCompressionPlugin() BroadbandCompressionPlugin {
 func TestLoadParsesV2FileWithBothSectionsRoundTrip(t *testing.T) {
 	whitelist := Whitelist{
 		SchemaVersion:        SchemaVersion,
-		StaticEQ:             func() *StaticEQPlugin { plugin := fixtureStaticEQPlugin(); return &plugin }(),
-		BroadbandCompression: func() *BroadbandCompressionPlugin { plugin := fixtureBroadbandCompressionPlugin(); return &plugin }(),
+		StaticEQ:             StaticEQPlugins{fixtureStaticEQPlugin()},
+		BroadbandCompression: BroadbandCompressionPlugins{fixtureBroadbandCompressionPlugin()},
 	}
 	path := writeFixture(t, "whitelist_v2.json", marshalOrPanic(whitelist))
 	loaded, err := Load(path)
@@ -46,7 +46,7 @@ func TestLoadParsesV2FileWithBothSectionsRoundTrip(t *testing.T) {
 func TestLoadAllowsV2FileWithOnlyCompressionSection(t *testing.T) {
 	whitelist := Whitelist{
 		SchemaVersion:        SchemaVersion,
-		BroadbandCompression: func() *BroadbandCompressionPlugin { plugin := fixtureBroadbandCompressionPlugin(); return &plugin }(),
+		BroadbandCompression: BroadbandCompressionPlugins{fixtureBroadbandCompressionPlugin()},
 	}
 	path := writeFixture(t, "whitelist_compression_only.json", marshalOrPanic(whitelist))
 	loaded, err := Load(path)
@@ -56,7 +56,7 @@ func TestLoadAllowsV2FileWithOnlyCompressionSection(t *testing.T) {
 	if loaded.StaticEQ != nil || loaded.BroadbandCompression == nil {
 		t.Fatalf("compression-only whitelist=%+v", loaded)
 	}
-	ch1, ch2, err := loaded.BroadbandThresholdParams()
+	ch1, ch2, err := loaded.BroadbandThresholdParams("")
 	if err != nil || ch1 != "thresh_a" || ch2 != "thresh_b" {
 		t.Fatalf("threshold params=%q/%q err=%v", ch1, ch2, err)
 	}
@@ -118,11 +118,11 @@ func TestValidateCompressionAdmissionClasses(t *testing.T) {
 	}
 	whitelist := Whitelist{
 		SchemaVersion: SchemaVersion,
-		BroadbandCompression: func() *BroadbandCompressionPlugin {
+		BroadbandCompression: BroadbandCompressionPlugins{func() BroadbandCompressionPlugin {
 			plugin := fixtureBroadbandCompressionPlugin()
 			plugin.PluginPath = pluginPath
-			return &plugin
-		}(),
+			return plugin
+		}()},
 	}
 	subject := processorattestation.Subject{Name: "Fixture Comp", Manufacturer: "Example", Format: "VST3", Identifier: "fixture-comp", InstalledPath: pluginPath}
 	promotedLibrary := func(fingerprint string) processorattestation.Library {
@@ -152,11 +152,11 @@ func TestValidateCompressionAdmissionClasses(t *testing.T) {
 		}
 	}
 
-	if err := whitelist.ValidateCompressionAdmission(promotedLibrary(fingerprint)); err != nil {
+	if err := whitelist.ValidateCompressionAdmission(promotedLibrary(fingerprint), ""); err != nil {
 		t.Fatalf("promoted matching binary rejected: %v", err)
 	}
 
-	staleErr := whitelist.ValidateCompressionAdmission(promotedLibrary("sha256:" + strings.Repeat("e", 64)))
+	staleErr := whitelist.ValidateCompressionAdmission(promotedLibrary("sha256:"+strings.Repeat("e", 64)), "")
 	if staleErr == nil || !strings.HasPrefix(staleErr.Error(), "experiment plugin whitelist: broadband_compression plugin is not PCA-promoted") ||
 		!strings.Contains(staleErr.Error(), "Fixture Comp") || !strings.Contains(staleErr.Error(), "binary_fingerprint_changed") {
 		t.Fatalf("fingerprint mismatch class wrong: %v", staleErr)
@@ -164,29 +164,29 @@ func TestValidateCompressionAdmissionClasses(t *testing.T) {
 
 	// An empty-but-valid library (what a missing store file decodes to in
 	// production) leaves every subject without a record -> no_attestation.
-	unknownErr := whitelist.ValidateCompressionAdmission(processorattestation.Library{SchemaVersion: processorattestation.LibrarySchema})
+	unknownErr := whitelist.ValidateCompressionAdmission(processorattestation.Library{SchemaVersion: processorattestation.LibrarySchema}, "")
 	if unknownErr == nil || !strings.Contains(unknownErr.Error(), "no_attestation") {
 		t.Fatalf("unknown subject class wrong: %v", unknownErr)
 	}
 
 	unconfigured := Whitelist{}
-	if err := unconfigured.ValidateCompressionAdmission(processorattestation.Library{}); !errors.Is(err, ErrCompressionNotConfigured) {
+	if err := unconfigured.ValidateCompressionAdmission(processorattestation.Library{}, ""); !errors.Is(err, ErrCompressionNotConfigured) {
 		t.Fatalf("unconfigured compression err=%v want ErrCompressionNotConfigured", err)
 	}
-	ch1, ch2, err := unconfigured.BroadbandThresholdParams()
+	ch1, ch2, err := unconfigured.BroadbandThresholdParams("")
 	if err == nil || !errors.Is(err, ErrCompressionNotConfigured) || ch1 != "" || ch2 != "" {
 		t.Fatalf("unconfigured threshold params=(%q,%q,%v)", ch1, ch2, err)
 	}
 
 	absent := Whitelist{
 		SchemaVersion: SchemaVersion,
-		BroadbandCompression: func() *BroadbandCompressionPlugin {
+		BroadbandCompression: BroadbandCompressionPlugins{func() BroadbandCompressionPlugin {
 			plugin := fixtureBroadbandCompressionPlugin()
 			plugin.PluginPath = filepath.Join(t.TempDir(), "absent.vst3")
-			return &plugin
-		}(),
+			return plugin
+		}()},
 	}
-	fingerprintErr := absent.ValidateCompressionAdmission(promotedLibrary("sha256:" + strings.Repeat("9", 64)))
+	fingerprintErr := absent.ValidateCompressionAdmission(promotedLibrary("sha256:"+strings.Repeat("9", 64)), "")
 	if fingerprintErr == nil || !errors.Is(fingerprintErr, os.ErrNotExist) {
 		t.Fatalf("fingerprint failure must wrap the filesystem error: %v", fingerprintErr)
 	}
@@ -210,13 +210,10 @@ func fixtureDeEsserPlugin() DeEsserPlugin {
 
 func TestLoadParsesV3FileWithDeEsserSectionRoundTrip(t *testing.T) {
 	whitelist := Whitelist{
-		SchemaVersion: SchemaVersion,
-		StaticEQ:      func() *StaticEQPlugin { plugin := fixtureStaticEQPlugin(); return &plugin }(),
-		BroadbandCompression: func() *BroadbandCompressionPlugin {
-			plugin := fixtureBroadbandCompressionPlugin()
-			return &plugin
-		}(),
-		DeEsser: func() *DeEsserPlugin { plugin := fixtureDeEsserPlugin(); return &plugin }(),
+		SchemaVersion:        SchemaVersion,
+		StaticEQ:             StaticEQPlugins{fixtureStaticEQPlugin()},
+		BroadbandCompression: BroadbandCompressionPlugins{fixtureBroadbandCompressionPlugin()},
+		DeEsser:              DeEsserPlugins{fixtureDeEsserPlugin()},
 	}
 	path := writeFixture(t, "whitelist_v3.json", marshalOrPanic(whitelist))
 	loaded, err := Load(path)
@@ -231,14 +228,14 @@ func TestLoadParsesV3FileWithDeEsserSectionRoundTrip(t *testing.T) {
 func TestLoadAllowsV3FileWithOnlyDeEsserSection(t *testing.T) {
 	whitelist := Whitelist{
 		SchemaVersion: SchemaVersion,
-		DeEsser:       func() *DeEsserPlugin { plugin := fixtureDeEsserPlugin(); return &plugin }(),
+		DeEsser:       DeEsserPlugins{fixtureDeEsserPlugin()},
 	}
 	path := writeFixture(t, "whitelist_deesser_only.json", marshalOrPanic(whitelist))
 	loaded, err := Load(path)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if loaded.DeEsser == nil || loaded.DeEsser.ThresholdParamID != "thresh_shared" {
+	if len(loaded.DeEsser) != 1 || loaded.DeEsser[0].ThresholdParamID != "thresh_shared" {
 		t.Fatalf("de_esser-only whitelist=%+v", loaded)
 	}
 }
@@ -296,11 +293,7 @@ func TestValidateDeEsserAdmissionClasses(t *testing.T) {
 	}
 	whitelist := Whitelist{
 		SchemaVersion: SchemaVersion,
-		DeEsser: func() *DeEsserPlugin {
-			plugin := fixtureDeEsserPlugin()
-			plugin.PluginPath = pluginPath
-			return &plugin
-		}(),
+		DeEsser:       DeEsserPlugins{func() DeEsserPlugin { plugin := fixtureDeEsserPlugin(); plugin.PluginPath = pluginPath; return plugin }()},
 	}
 	subject := processorattestation.Subject{Name: "Fixture DeEss", Manufacturer: "Example", Format: "VST3", Identifier: "fixture-deess", InstalledPath: pluginPath}
 	promotedLibraryV2 := func(fingerprint string) processorattestation.LibraryV2 {
@@ -330,11 +323,11 @@ func TestValidateDeEsserAdmissionClasses(t *testing.T) {
 		}
 	}
 
-	if err := whitelist.ValidateDeEsserAdmission(promotedLibraryV2(fingerprint)); err != nil {
+	if err := whitelist.ValidateDeEsserAdmission(promotedLibraryV2(fingerprint), ""); err != nil {
 		t.Fatalf("promoted matching binary rejected: %v", err)
 	}
 
-	staleErr := whitelist.ValidateDeEsserAdmission(promotedLibraryV2("sha256:" + strings.Repeat("e", 64)))
+	staleErr := whitelist.ValidateDeEsserAdmission(promotedLibraryV2("sha256:"+strings.Repeat("e", 64)), "")
 	if staleErr == nil || !strings.HasPrefix(staleErr.Error(), "experiment plugin whitelist: de_esser plugin is not PCA-promoted") ||
 		!strings.Contains(staleErr.Error(), "Fixture DeEss") || !strings.Contains(staleErr.Error(), "binary_fingerprint_changed") {
 		t.Fatalf("fingerprint mismatch class wrong: %v", staleErr)
@@ -342,25 +335,25 @@ func TestValidateDeEsserAdmissionClasses(t *testing.T) {
 
 	// An empty-but-valid v2 library (what a missing store file decodes to in
 	// production) leaves every subject without a record -> no_attestation.
-	unknownErr := whitelist.ValidateDeEsserAdmission(processorattestation.LibraryV2{SchemaVersion: processorattestation.LibrarySchemaV2})
+	unknownErr := whitelist.ValidateDeEsserAdmission(processorattestation.LibraryV2{SchemaVersion: processorattestation.LibrarySchemaV2}, "")
 	if unknownErr == nil || !strings.Contains(unknownErr.Error(), "no_attestation") {
 		t.Fatalf("unknown subject class wrong: %v", unknownErr)
 	}
 
 	unconfigured := Whitelist{}
-	if err := unconfigured.ValidateDeEsserAdmission(processorattestation.LibraryV2{}); !errors.Is(err, ErrDeEsserNotConfigured) {
+	if err := unconfigured.ValidateDeEsserAdmission(processorattestation.LibraryV2{}, ""); !errors.Is(err, ErrDeEsserNotConfigured) {
 		t.Fatalf("unconfigured de_esser err=%v want ErrDeEsserNotConfigured", err)
 	}
 
 	absent := Whitelist{
 		SchemaVersion: SchemaVersion,
-		DeEsser: func() *DeEsserPlugin {
+		DeEsser: DeEsserPlugins{func() DeEsserPlugin {
 			plugin := fixtureDeEsserPlugin()
 			plugin.PluginPath = filepath.Join(t.TempDir(), "absent.vst3")
-			return &plugin
-		}(),
+			return plugin
+		}()},
 	}
-	fingerprintErr := absent.ValidateDeEsserAdmission(promotedLibraryV2("sha256:" + strings.Repeat("9", 64)))
+	fingerprintErr := absent.ValidateDeEsserAdmission(promotedLibraryV2("sha256:"+strings.Repeat("9", 64)), "")
 	if fingerprintErr == nil || !errors.Is(fingerprintErr, os.ErrNotExist) {
 		t.Fatalf("fingerprint failure must wrap the filesystem error: %v", fingerprintErr)
 	}
@@ -386,10 +379,10 @@ func fixtureTransientShaperPlugin() TransientShaperPlugin {
 func TestLoadParsesV4FileWithTransientShaperSectionRoundTrip(t *testing.T) {
 	whitelist := Whitelist{
 		SchemaVersion:        SchemaVersion,
-		StaticEQ:             func() *StaticEQPlugin { plugin := fixtureStaticEQPlugin(); return &plugin }(),
-		BroadbandCompression: func() *BroadbandCompressionPlugin { plugin := fixtureBroadbandCompressionPlugin(); return &plugin }(),
-		DeEsser:              func() *DeEsserPlugin { plugin := fixtureDeEsserPlugin(); return &plugin }(),
-		TransientShaper:      func() *TransientShaperPlugin { plugin := fixtureTransientShaperPlugin(); return &plugin }(),
+		StaticEQ:             StaticEQPlugins{fixtureStaticEQPlugin()},
+		BroadbandCompression: BroadbandCompressionPlugins{fixtureBroadbandCompressionPlugin()},
+		DeEsser:              DeEsserPlugins{fixtureDeEsserPlugin()},
+		TransientShaper:      TransientShaperPlugins{fixtureTransientShaperPlugin()},
 	}
 	path := writeFixture(t, "whitelist_v4.json", marshalOrPanic(whitelist))
 	loaded, err := Load(path)
@@ -404,14 +397,14 @@ func TestLoadParsesV4FileWithTransientShaperSectionRoundTrip(t *testing.T) {
 func TestLoadAllowsV4FileWithOnlyTransientShaperSection(t *testing.T) {
 	whitelist := Whitelist{
 		SchemaVersion:   SchemaVersion,
-		TransientShaper: func() *TransientShaperPlugin { plugin := fixtureTransientShaperPlugin(); return &plugin }(),
+		TransientShaper: TransientShaperPlugins{fixtureTransientShaperPlugin()},
 	}
 	path := writeFixture(t, "whitelist_transient_only.json", marshalOrPanic(whitelist))
 	loaded, err := Load(path)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if loaded.TransientShaper == nil || loaded.TransientShaper.AttackParamID != "attack_shared" {
+	if len(loaded.TransientShaper) != 1 || loaded.TransientShaper[0].AttackParamID != "attack_shared" {
 		t.Fatalf("transient-only whitelist=%+v", loaded)
 	}
 }
@@ -469,11 +462,11 @@ func TestValidateTransientShaperAdmissionClasses(t *testing.T) {
 	}
 	whitelist := Whitelist{
 		SchemaVersion: SchemaVersion,
-		TransientShaper: func() *TransientShaperPlugin {
+		TransientShaper: TransientShaperPlugins{func() TransientShaperPlugin {
 			plugin := fixtureTransientShaperPlugin()
 			plugin.PluginPath = pluginPath
-			return &plugin
-		}(),
+			return plugin
+		}()},
 	}
 	subject := processorattestation.Subject{Name: "Fixture Transient", Manufacturer: "Example", Format: "VST3", Identifier: "fixture-transient", InstalledPath: pluginPath}
 	promotedLibraryV2 := func(fingerprint string) processorattestation.LibraryV2 {
@@ -503,11 +496,11 @@ func TestValidateTransientShaperAdmissionClasses(t *testing.T) {
 		}
 	}
 
-	if err := whitelist.ValidateTransientShaperAdmission(promotedLibraryV2(fingerprint)); err != nil {
+	if err := whitelist.ValidateTransientShaperAdmission(promotedLibraryV2(fingerprint), ""); err != nil {
 		t.Fatalf("promoted matching binary rejected: %v", err)
 	}
 
-	staleErr := whitelist.ValidateTransientShaperAdmission(promotedLibraryV2("sha256:" + strings.Repeat("e", 64)))
+	staleErr := whitelist.ValidateTransientShaperAdmission(promotedLibraryV2("sha256:"+strings.Repeat("e", 64)), "")
 	if staleErr == nil || !strings.HasPrefix(staleErr.Error(), "experiment plugin whitelist: transient_shaper plugin is not PCA-promoted") ||
 		!strings.Contains(staleErr.Error(), "Fixture Transient") || !strings.Contains(staleErr.Error(), "binary_fingerprint_changed") {
 		t.Fatalf("fingerprint mismatch class wrong: %v", staleErr)
@@ -515,25 +508,25 @@ func TestValidateTransientShaperAdmissionClasses(t *testing.T) {
 
 	// An empty-but-valid v2 library (what a missing store file decodes to in
 	// production) leaves every subject without a record -> no_attestation.
-	unknownErr := whitelist.ValidateTransientShaperAdmission(processorattestation.LibraryV2{SchemaVersion: processorattestation.LibrarySchemaV2})
+	unknownErr := whitelist.ValidateTransientShaperAdmission(processorattestation.LibraryV2{SchemaVersion: processorattestation.LibrarySchemaV2}, "")
 	if unknownErr == nil || !strings.Contains(unknownErr.Error(), "no_attestation") {
 		t.Fatalf("unknown subject class wrong: %v", unknownErr)
 	}
 
 	unconfigured := Whitelist{}
-	if err := unconfigured.ValidateTransientShaperAdmission(processorattestation.LibraryV2{}); !errors.Is(err, ErrTransientShaperNotConfigured) {
+	if err := unconfigured.ValidateTransientShaperAdmission(processorattestation.LibraryV2{}, ""); !errors.Is(err, ErrTransientShaperNotConfigured) {
 		t.Fatalf("unconfigured transient_shaper err=%v want ErrTransientShaperNotConfigured", err)
 	}
 
 	absent := Whitelist{
 		SchemaVersion: SchemaVersion,
-		TransientShaper: func() *TransientShaperPlugin {
+		TransientShaper: TransientShaperPlugins{func() TransientShaperPlugin {
 			plugin := fixtureTransientShaperPlugin()
 			plugin.PluginPath = filepath.Join(t.TempDir(), "absent.vst3")
-			return &plugin
-		}(),
+			return plugin
+		}()},
 	}
-	fingerprintErr := absent.ValidateTransientShaperAdmission(promotedLibraryV2("sha256:" + strings.Repeat("9", 64)))
+	fingerprintErr := absent.ValidateTransientShaperAdmission(promotedLibraryV2("sha256:"+strings.Repeat("9", 64)), "")
 	if fingerprintErr == nil || !errors.Is(fingerprintErr, os.ErrNotExist) {
 		t.Fatalf("fingerprint failure must wrap the filesystem error: %v", fingerprintErr)
 	}

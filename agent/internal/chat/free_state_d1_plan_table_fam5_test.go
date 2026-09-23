@@ -39,14 +39,14 @@ func d1GateWhitelistFixtureOnDisk(t *testing.T) d1GateWhitelistFixture {
 	fixture := d1GateWhitelistFixture{
 		Whitelist: experimentplugins.Whitelist{
 			SchemaVersion: experimentplugins.SchemaVersion,
-			GateExpander: &experimentplugins.GateExpanderPlugin{
+			GateExpander: experimentplugins.GateExpanderPlugins{experimentplugins.GateExpanderPlugin{
 				PluginName:       "Fixture Gate",
 				Manufacturer:     "Fixture",
 				Format:           "VST3",
 				PluginIdentifier: "fixture-gate",
 				PluginPath:       pluginPath,
 				RangeParamID:     "gate_range",
-			},
+			}},
 		},
 		PluginPath:  pluginPath,
 		Fingerprint: fingerprint,

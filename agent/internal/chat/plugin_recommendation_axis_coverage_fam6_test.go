@@ -14,7 +14,7 @@ import (
 // The D2-FAM6-S1 multiband governance fixture reproduces the FAM4-S2
 // 20260902_082924 wall shape in the multiband family: Lindell MBC is
 // family-promoted and covers the frozen band_dynamics axis, but
-// axisCoverageWhitelistIdentifier had no multiband_dynamics case, so the
+// axisCoverageWhitelistIdentifiers had no multiband_dynamics case, so the
 // whitelist-form gate emptied the offered set and the honest empty-set
 // response would stop the chain before any selection or load.
 func axisCoverageMultibandFixture(t *testing.T) (processorattestation.Subject, []pluginRecommendationCandidate) {
@@ -60,11 +60,11 @@ func axisCoverageMultibandFixture(t *testing.T) (processorattestation.Subject, [
 	d1StaticEQWhitelistLoader = func() (experimentplugins.Whitelist, error) {
 		return experimentplugins.Whitelist{
 			SchemaVersion: experimentplugins.SchemaVersion,
-			Multiband: &experimentplugins.MultibandPlugin{
+			Multiband: experimentplugins.MultibandPlugins{experimentplugins.MultibandPlugin{
 				PluginName: "Lindell MBC", Manufacturer: "Plugin Alliance", Format: "VST3",
 				PluginIdentifier: mbc.Identifier, PluginPath: mbc.InstalledPath,
 				BandThresholdParamIDs: []string{"22950807", "1782596387", "2112130249"},
-			},
+			}},
 		}, nil
 	}
 	t.Cleanup(func() { d1StaticEQWhitelistLoader = previous })
@@ -124,19 +124,19 @@ func TestAxisCoverageWhitelistIdentifierResolvesMultibandSection(t *testing.T) {
 	d1StaticEQWhitelistLoader = func() (experimentplugins.Whitelist, error) {
 		return experimentplugins.Whitelist{
 			SchemaVersion: experimentplugins.SchemaVersion,
-			Multiband: &experimentplugins.MultibandPlugin{
+			Multiband: experimentplugins.MultibandPlugins{experimentplugins.MultibandPlugin{
 				PluginName: "Lindell MBC", Manufacturer: "Plugin Alliance", Format: "VST3",
 				PluginIdentifier: "VST3-Lindell MBC-e2c119ce-a6b1eb75", PluginPath: "C:/plugins/Lindell MBC.vst3",
 				BandThresholdParamIDs: []string{"22950807", "1782596387", "2112130249"},
-			},
+			}},
 		}, nil
 	}
 	t.Cleanup(func() { d1StaticEQWhitelistLoader = previous })
-	identifier, err := axisCoverageWhitelistIdentifier(processorattestation.FamilyMultiband)
+	identifierSet, err := axisCoverageWhitelistIdentifiers(processorattestation.FamilyMultiband)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if identifier != "VST3-Lindell MBC-e2c119ce-a6b1eb75" {
-		t.Fatalf("multiband whitelist identifier=%q", identifier)
+	if !identifierSet["VST3-Lindell MBC-e2c119ce-a6b1eb75"] {
+		t.Fatalf("multiband whitelist identifiers=%v", identifierSet)
 	}
 }
