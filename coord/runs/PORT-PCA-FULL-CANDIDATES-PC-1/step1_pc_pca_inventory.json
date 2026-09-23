@@ -1,0 +1,1351 @@
+{
+ "card": "PORT-PCA-FULL-CANDIDATES-PC-1",
+ "step": "step1_inventory",
+ "generated_at": "2026-09-23T22:54:12",
+ "machine": "PC (win32)",
+ "sources": {
+  "pca_certifications": {
+   "dir": "C:/Users/timoz/.vit/pca_certifications",
+   "jobs": 24,
+   "all_passed": true
+  },
+  "attestation_store": {
+   "file": "C:\\Users\\timoz\\.vit\\processor_control_attestations.v2.json",
+   "revision": 53,
+   "receipts": 53,
+   "distinct_subjects": 36,
+   "promoted": 36
+  },
+  "whitelist_v5": {
+   "file": "C:\\Users\\timoz\\.vit\\free_state_experiment_plugins.json",
+   "entries": 7
+  },
+  "semantic_index": {
+   "file": "C:\\Users\\timoz\\.vit\\plugin_semantics.json",
+   "entries": 991,
+   "summary": {
+    "analyzer": 22,
+    "compressor": 2,
+    "delay": 26,
+    "distortion": 84,
+    "dynamics": 187,
+    "eq": 146,
+    "filter": 11,
+    "instrument": 22,
+    "limiter": 2,
+    "meter": 4,
+    "modulation": 44,
+    "pitch": 22,
+    "reverb": 59,
+    "synth": 4,
+    "unknown": 356
+   }
+  }
+ },
+ "frozen_axis_rule": {
+  "static_eq": "增益带",
+  "de_esser": "threshold",
+  "transient_shaper": "attack",
+  "limiter": "ceiling",
+  "gate_expander": "range",
+  "multiband": "band thresholds",
+  "broadband_compression": "threshold"
+ },
+ "axis_name_map": {
+  "threshold": {
+   "job_role": "threshold",
+   "attestation_axis": "threshold_sensitivity"
+  },
+  "ceiling": {
+   "job_role": "ceiling",
+   "attestation_axis": "output_ceiling"
+  },
+  "range": {
+   "job_role": "range",
+   "attestation_axis": "attenuation_floor"
+  },
+  "attack": {
+   "job_role": "attack / attack_duration",
+   "attestation_axis": "envelope_timing (近轴 envelope_emphasis)"
+  },
+  "band_thresholds": {
+   "job_role": "band_key=band_N + role=gain/attack",
+   "attestation_axis": "band_dynamics + band_timing"
+  }
+ },
+ "family_counts": {
+  "broadband_compression": {
+   "n/a": 2,
+   "total": 2
+  },
+  "gate_expander": {
+   "fail": 2,
+   "total": 5,
+   "pass": 3
+  },
+  "multiband": {
+   "pass": 10,
+   "total": 10
+  },
+  "de_esser": {
+   "pass": 6,
+   "total": 9,
+   "ambiguous": 1,
+   "fail": 2
+  },
+  "limiter": {
+   "pass": 6,
+   "total": 7,
+   "fail": 1
+  },
+  "transient_shaper": {
+   "ambiguous": 3,
+   "total": 5,
+   "pass": 2
+  }
+ },
+ "subjects": [
+  {
+   "identifier": "VST3-C1 comp Mono-695648d-65e94c5e",
+   "name": "C1 comp Mono",
+   "form": "Mono",
+   "manufacturer": "Waves",
+   "family": "compressor",
+   "whitelist_family": "broadband_compression",
+   "pca_job": "pca_job_5a5e6a0d01d10fc0",
+   "promoted": false,
+   "promoted_at": null,
+   "certified": true,
+   "cert_status": "passed",
+   "certified_roles": [
+    "attack",
+    "threshold"
+   ],
+   "anchors": [
+    {
+     "role": "threshold",
+     "param_id": "7",
+     "band": null
+    },
+    {
+     "role": "attack",
+     "param_id": "1",
+     "band": null
+    }
+   ],
+   "attestation_axes": null,
+   "axis_verdict": "n/a",
+   "axis_detail": "compressor 族不在七实验族轴规则内（broadband 映射待决策）",
+   "v5_entry": false,
+   "semantic_index_hit": true,
+   "semantic_category": "Fx|Dynamics"
+  },
+  {
+   "identifier": "VST3-C1 comp Stereo-695648d-65ffd264",
+   "name": "C1 comp Stereo",
+   "form": "Stereo",
+   "manufacturer": "Waves",
+   "family": "compressor",
+   "whitelist_family": "broadband_compression",
+   "pca_job": "pca_job_77e417f30e7ad4af",
+   "promoted": false,
+   "promoted_at": null,
+   "certified": true,
+   "cert_status": "passed",
+   "certified_roles": [
+    "attack",
+    "threshold"
+   ],
+   "anchors": [
+    {
+     "role": "threshold",
+     "param_id": "7",
+     "band": null
+    },
+    {
+     "role": "attack",
+     "param_id": "1",
+     "band": null
+    }
+   ],
+   "attestation_axes": null,
+   "axis_verdict": "n/a",
+   "axis_detail": "compressor 族不在七实验族轴规则内（broadband 映射待决策）",
+   "v5_entry": false,
+   "semantic_index_hit": true,
+   "semantic_category": "Fx|Dynamics"
+  },
+  {
+   "identifier": "VST3-C1 comp-gate Stereo-695648d-dcbcdf58",
+   "name": "C1 comp-gate Stereo",
+   "form": "Stereo",
+   "manufacturer": "Waves",
+   "family": "gate_expander",
+   "whitelist_family": "gate_expander",
+   "pca_job": null,
+   "promoted": true,
+   "promoted_at": "2026-08-07T12:28:56.8357082Z",
+   "certified": false,
+   "cert_status": null,
+   "certified_roles": null,
+   "anchors": null,
+   "attestation_axes": [
+    "output_normalization",
+    "state_timing"
+   ],
+   "axis_verdict": "fail",
+   "axis_detail": "认证角色/轴不含 range（output_normalization,state_timing）",
+   "v5_entry": false,
+   "semantic_index_hit": true,
+   "semantic_category": "Fx|Dynamics"
+  },
+  {
+   "identifier": "VST3-C1 gate Stereo-695648d-6ffb1e2e",
+   "name": "C1 gate Stereo",
+   "form": "Stereo",
+   "manufacturer": "Waves",
+   "family": "gate_expander",
+   "whitelist_family": "gate_expander",
+   "pca_job": null,
+   "promoted": true,
+   "promoted_at": "2026-08-07T12:19:39.5383929Z",
+   "certified": false,
+   "cert_status": null,
+   "certified_roles": null,
+   "anchors": null,
+   "attestation_axes": [
+    "output_normalization",
+    "state_timing"
+   ],
+   "axis_verdict": "fail",
+   "axis_detail": "认证角色/轴不含 range（output_normalization,state_timing）",
+   "v5_entry": false,
+   "semantic_index_hit": true,
+   "semantic_category": "Fx|Dynamics"
+  },
+  {
+   "identifier": "VST3-C4 Mono-695648d-bfaad650",
+   "name": "C4 Mono",
+   "form": "Mono",
+   "manufacturer": "Waves",
+   "family": "multiband_dynamics",
+   "whitelist_family": "multiband",
+   "pca_job": "pca_job_f0716b534ca02b0c",
+   "promoted": true,
+   "promoted_at": "2026-09-18T11:17:38.1903076Z",
+   "certified": true,
+   "cert_status": "passed",
+   "certified_roles": [
+    "attack",
+    "gain"
+   ],
+   "anchors": [
+    {
+     "role": "gain",
+     "param_id": "8",
+     "band": "band_1"
+    },
+    {
+     "role": "attack",
+     "param_id": "10",
+     "band": "band_1"
+    }
+   ],
+   "attestation_axes": [
+    "band_dynamics",
+    "band_timing"
+   ],
+   "axis_verdict": "pass",
+   "axis_detail": "roles=- att=['band_dynamics']",
+   "v5_entry": false,
+   "semantic_index_hit": true,
+   "semantic_category": "Fx|Dynamics - Multiband"
+  },
+  {
+   "identifier": "VST3-C4 Stereo-695648d-b6c57c5a",
+   "name": "C4 Stereo",
+   "form": "Stereo",
+   "manufacturer": "Waves",
+   "family": "multiband_dynamics",
+   "whitelist_family": "multiband",
+   "pca_job": "pca_job_b6a2c9bcee4ea80b",
+   "promoted": true,
+   "promoted_at": "2026-09-18T11:17:44.719059Z",
+   "certified": true,
+   "cert_status": "passed",
+   "certified_roles": [
+    "attack",
+    "gain"
+   ],
+   "anchors": [
+    {
+     "role": "gain",
+     "param_id": "8",
+     "band": "band_1"
+    },
+    {
+     "role": "attack",
+     "param_id": "10",
+     "band": "band_1"
+    }
+   ],
+   "attestation_axes": [
+    "band_dynamics",
+    "band_timing"
+   ],
+   "axis_verdict": "pass",
+   "axis_detail": "roles=- att=['band_dynamics']",
+   "v5_entry": false,
+   "semantic_index_hit": true,
+   "semantic_category": "Fx|Dynamics - Multiband"
+  },
+  {
+   "identifier": "VST3-C6 Mono-695648d-aeaa61f1",
+   "name": "C6 Mono",
+   "form": "Mono",
+   "manufacturer": "Waves",
+   "family": "multiband_dynamics",
+   "whitelist_family": "multiband",
+   "pca_job": "pca_job_3609a45fb89ba4f0",
+   "promoted": true,
+   "promoted_at": "2026-09-18T11:17:50.9119323Z",
+   "certified": true,
+   "cert_status": "passed",
+   "certified_roles": [
+    "attack",
+    "gain"
+   ],
+   "anchors": [
+    {
+     "role": "gain",
+     "param_id": "11",
+     "band": "band_1"
+    },
+    {
+     "role": "attack",
+     "param_id": "13",
+     "band": "band_1"
+    }
+   ],
+   "attestation_axes": [
+    "band_dynamics",
+    "band_timing"
+   ],
+   "axis_verdict": "pass",
+   "axis_detail": "roles=- att=['band_dynamics']",
+   "v5_entry": false,
+   "semantic_index_hit": true,
+   "semantic_category": "Fx|Dynamics - Multiband"
+  },
+  {
+   "identifier": "VST3-C6 Stereo-695648d-a5c507fb",
+   "name": "C6 Stereo",
+   "form": "Stereo",
+   "manufacturer": "Waves",
+   "family": "multiband_dynamics",
+   "whitelist_family": "multiband",
+   "pca_job": "pca_job_61305f42eb74c89b",
+   "promoted": true,
+   "promoted_at": "2026-09-18T11:17:57.197374Z",
+   "certified": true,
+   "cert_status": "passed",
+   "certified_roles": [
+    "attack",
+    "gain"
+   ],
+   "anchors": [
+    {
+     "role": "gain",
+     "param_id": "11",
+     "band": "band_1"
+    },
+    {
+     "role": "attack",
+     "param_id": "13",
+     "band": "band_1"
+    }
+   ],
+   "attestation_axes": [
+    "band_dynamics",
+    "band_timing"
+   ],
+   "axis_verdict": "pass",
+   "axis_detail": "roles=- att=['band_dynamics']",
+   "v5_entry": false,
+   "semantic_index_hit": true,
+   "semantic_category": "Fx|Dynamics - Multiband"
+  },
+  {
+   "identifier": "VST3-C6-SideChain Mono-695648d-adb67e9f",
+   "name": "C6-SideChain Mono",
+   "form": "Mono",
+   "manufacturer": "Waves",
+   "family": "multiband_dynamics",
+   "whitelist_family": "multiband",
+   "pca_job": null,
+   "promoted": true,
+   "promoted_at": "2026-08-07T12:29:18.3139587Z",
+   "certified": false,
+   "cert_status": null,
+   "certified_roles": null,
+   "anchors": null,
+   "attestation_axes": [
+    "band_dynamics",
+    "band_timing"
+   ],
+   "axis_verdict": "pass",
+   "axis_detail": "roles=- att=['band_dynamics']",
+   "v5_entry": false,
+   "semantic_index_hit": true,
+   "semantic_category": "Fx|Dynamics - Multiband"
+  },
+  {
+   "identifier": "VST3-C6-SideChain Stereo-695648d-adcd049f",
+   "name": "C6-SideChain Stereo",
+   "form": "Stereo",
+   "manufacturer": "Waves",
+   "family": "multiband_dynamics",
+   "whitelist_family": "multiband",
+   "pca_job": null,
+   "promoted": true,
+   "promoted_at": "2026-08-07T12:29:20.0046087Z",
+   "certified": false,
+   "cert_status": null,
+   "certified_roles": null,
+   "anchors": null,
+   "attestation_axes": [
+    "band_dynamics",
+    "band_timing"
+   ],
+   "axis_verdict": "pass",
+   "axis_detail": "roles=- att=['band_dynamics']",
+   "v5_entry": false,
+   "semantic_index_hit": true,
+   "semantic_category": "Fx|Dynamics - Multiband"
+  },
+  {
+   "identifier": "VST3-DeEsser Mono-695648d-fff9b4fa",
+   "name": "DeEsser Mono",
+   "form": "Mono",
+   "manufacturer": "Waves",
+   "family": "de_esser",
+   "whitelist_family": "de_esser",
+   "pca_job": "pca_job_9c1c220660187f9b",
+   "promoted": true,
+   "promoted_at": "2026-09-18T11:16:45.8958236Z",
+   "certified": true,
+   "cert_status": "passed",
+   "certified_roles": [
+    "detector_filter",
+    "threshold"
+   ],
+   "anchors": [
+    {
+     "role": "detector_filter",
+     "param_id": "2",
+     "band": null
+    },
+    {
+     "role": "threshold",
+     "param_id": "0",
+     "band": null
+    }
+   ],
+   "attestation_axes": [
+    "detector_focus",
+    "threshold_sensitivity"
+   ],
+   "axis_verdict": "pass",
+   "axis_detail": "roles=['threshold'] att=['threshold_sensitivity']",
+   "v5_entry": false,
+   "semantic_index_hit": true,
+   "semantic_category": "Fx|Dynamics"
+  },
+  {
+   "identifier": "VST3-DeEsser Stereo-695648d-103b00",
+   "name": "DeEsser Stereo",
+   "form": "Stereo",
+   "manufacturer": "Waves",
+   "family": "de_esser",
+   "whitelist_family": "de_esser",
+   "pca_job": "pca_job_7425bc728093fe3d",
+   "promoted": true,
+   "promoted_at": "2026-09-18T11:16:51.3832529Z",
+   "certified": true,
+   "cert_status": "passed",
+   "certified_roles": [
+    "detector_filter",
+    "threshold"
+   ],
+   "anchors": [
+    {
+     "role": "detector_filter",
+     "param_id": "2",
+     "band": null
+    },
+    {
+     "role": "threshold",
+     "param_id": "0",
+     "band": null
+    }
+   ],
+   "attestation_axes": [
+    "detector_focus",
+    "threshold_sensitivity"
+   ],
+   "axis_verdict": "pass",
+   "axis_detail": "roles=['threshold'] att=['threshold_sensitivity']",
+   "v5_entry": false,
+   "semantic_index_hit": true,
+   "semantic_category": "Fx|Dynamics"
+  },
+  {
+   "identifier": "VST3-HUM Audio Devices LAAL-9ad16879-6ed9dfca",
+   "name": "HUM Audio Devices LAAL",
+   "form": "Mono",
+   "manufacturer": "Plugin Alliance",
+   "family": "limiter",
+   "whitelist_family": "limiter",
+   "pca_job": null,
+   "promoted": true,
+   "promoted_at": "2026-08-07T12:28:54.4774622Z",
+   "certified": false,
+   "cert_status": null,
+   "certified_roles": null,
+   "anchors": null,
+   "attestation_axes": [
+    "input_drive",
+    "output_ceiling"
+   ],
+   "axis_verdict": "pass",
+   "axis_detail": "roles=- att=['output_ceiling']",
+   "v5_entry": false,
+   "semantic_index_hit": true,
+   "semantic_category": "Fx|Dynamics"
+  },
+  {
+   "identifier": "VST3-L1 limiter Mono-695648d-191aefbc",
+   "name": "L1 limiter Mono",
+   "form": "Mono",
+   "manufacturer": "Waves",
+   "family": "limiter",
+   "whitelist_family": "limiter",
+   "pca_job": "pca_job_e2f19f2b5b0e6118",
+   "promoted": true,
+   "promoted_at": "2026-09-18T11:17:20.9749296Z",
+   "certified": true,
+   "cert_status": "passed",
+   "certified_roles": [
+    "ceiling",
+    "threshold"
+   ],
+   "anchors": [
+    {
+     "role": "threshold",
+     "param_id": "2",
+     "band": null
+    },
+    {
+     "role": "ceiling",
+     "param_id": "1",
+     "band": null
+    }
+   ],
+   "attestation_axes": [
+    "output_ceiling",
+    "protection_intensity"
+   ],
+   "axis_verdict": "pass",
+   "axis_detail": "roles=['ceiling'] att=['output_ceiling']",
+   "v5_entry": false,
+   "semantic_index_hit": true,
+   "semantic_category": "Fx|Dynamics"
+  },
+  {
+   "identifier": "VST3-L1 limiter Stereo-695648d-193175bc",
+   "name": "L1 limiter Stereo",
+   "form": "Stereo",
+   "manufacturer": "Waves",
+   "family": "limiter",
+   "whitelist_family": "limiter",
+   "pca_job": "pca_job_0a48d5608e16845a",
+   "promoted": true,
+   "promoted_at": "2026-09-18T11:17:25.0276676Z",
+   "certified": true,
+   "cert_status": "passed",
+   "certified_roles": [
+    "ceiling",
+    "threshold"
+   ],
+   "anchors": [
+    {
+     "role": "threshold",
+     "param_id": "2",
+     "band": null
+    },
+    {
+     "role": "ceiling",
+     "param_id": "1",
+     "band": null
+    }
+   ],
+   "attestation_axes": [
+    "output_ceiling",
+    "protection_intensity"
+   ],
+   "axis_verdict": "pass",
+   "axis_detail": "roles=['ceiling'] att=['output_ceiling']",
+   "v5_entry": false,
+   "semantic_index_hit": true,
+   "semantic_category": "Fx|Dynamics"
+  },
+  {
+   "identifier": "VST3-L2 Mono-695648d-1faa9b11",
+   "name": "L2 Mono",
+   "form": "Mono",
+   "manufacturer": "Waves",
+   "family": "limiter",
+   "whitelist_family": "limiter",
+   "pca_job": "pca_job_a87298079a5bf374",
+   "promoted": true,
+   "promoted_at": "2026-09-18T11:17:29.0607522Z",
+   "certified": true,
+   "cert_status": "passed",
+   "certified_roles": [
+    "ceiling",
+    "threshold"
+   ],
+   "anchors": [
+    {
+     "role": "threshold",
+     "param_id": "0",
+     "band": null
+    },
+    {
+     "role": "ceiling",
+     "param_id": "1",
+     "band": null
+    }
+   ],
+   "attestation_axes": [
+    "output_ceiling",
+    "protection_intensity"
+   ],
+   "axis_verdict": "pass",
+   "axis_detail": "roles=['ceiling'] att=['output_ceiling']",
+   "v5_entry": false,
+   "semantic_index_hit": true,
+   "semantic_category": "Fx|Dynamics"
+  },
+  {
+   "identifier": "VST3-L2 Stereo-695648d-16c5411b",
+   "name": "L2 Stereo",
+   "form": "Stereo",
+   "manufacturer": "Waves",
+   "family": "limiter",
+   "whitelist_family": "limiter",
+   "pca_job": "pca_job_04d183a71343cedb",
+   "promoted": true,
+   "promoted_at": "2026-09-18T11:17:33.1196486Z",
+   "certified": true,
+   "cert_status": "passed",
+   "certified_roles": [
+    "ceiling",
+    "threshold"
+   ],
+   "anchors": [
+    {
+     "role": "threshold",
+     "param_id": "0",
+     "band": null
+    },
+    {
+     "role": "ceiling",
+     "param_id": "1",
+     "band": null
+    }
+   ],
+   "attestation_axes": [
+    "output_ceiling",
+    "protection_intensity"
+   ],
+   "axis_verdict": "pass",
+   "axis_detail": "roles=['ceiling'] att=['output_ceiling']",
+   "v5_entry": false,
+   "semantic_index_hit": true,
+   "semantic_category": "Fx|Dynamics"
+  },
+  {
+   "identifier": "VST3-LinMB Mono-695648d-fb0308ec",
+   "name": "LinMB Mono",
+   "form": "Mono",
+   "manufacturer": "Waves",
+   "family": "multiband_dynamics",
+   "whitelist_family": "multiband",
+   "pca_job": "pca_job_14f3d76d6f2925ac",
+   "promoted": true,
+   "promoted_at": "2026-09-18T11:18:02.9785585Z",
+   "certified": true,
+   "cert_status": "passed",
+   "certified_roles": [
+    "attack",
+    "gain"
+   ],
+   "anchors": [
+    {
+     "role": "gain",
+     "param_id": "2",
+     "band": "band_1"
+    },
+    {
+     "role": "attack",
+     "param_id": "4",
+     "band": "band_1"
+    }
+   ],
+   "attestation_axes": [
+    "band_dynamics",
+    "band_timing"
+   ],
+   "axis_verdict": "pass",
+   "axis_detail": "roles=- att=['band_dynamics']",
+   "v5_entry": false,
+   "semantic_index_hit": true,
+   "semantic_category": "Fx|Dynamics - Multiband"
+  },
+  {
+   "identifier": "VST3-LinMB Stereo-695648d-fb1f93e3",
+   "name": "LinMB Stereo",
+   "form": "Stereo",
+   "manufacturer": "Waves",
+   "family": "multiband_dynamics",
+   "whitelist_family": "multiband",
+   "pca_job": "pca_job_8c3dda7b9747ac11",
+   "promoted": true,
+   "promoted_at": "2026-09-18T11:18:09.1677854Z",
+   "certified": true,
+   "cert_status": "passed",
+   "certified_roles": [
+    "attack",
+    "gain"
+   ],
+   "anchors": [
+    {
+     "role": "gain",
+     "param_id": "2",
+     "band": "band_1"
+    },
+    {
+     "role": "attack",
+     "param_id": "4",
+     "band": "band_1"
+    }
+   ],
+   "attestation_axes": [
+    "band_dynamics",
+    "band_timing"
+   ],
+   "axis_verdict": "pass",
+   "axis_detail": "roles=- att=['band_dynamics']",
+   "v5_entry": false,
+   "semantic_index_hit": true,
+   "semantic_category": "Fx|Dynamics - Multiband"
+  },
+  {
+   "identifier": "VST3-Lindell 354E-29cc5525-3250ca0e",
+   "name": "Lindell 354E",
+   "form": "Mono",
+   "manufacturer": "Plugin Alliance",
+   "family": "multiband_dynamics",
+   "whitelist_family": "multiband",
+   "pca_job": null,
+   "promoted": true,
+   "promoted_at": "2026-08-07T12:29:27.2600215Z",
+   "certified": false,
+   "cert_status": null,
+   "certified_roles": null,
+   "anchors": null,
+   "attestation_axes": [
+    "band_dynamics",
+    "band_timing"
+   ],
+   "axis_verdict": "pass",
+   "axis_detail": "roles=- att=['band_dynamics']",
+   "v5_entry": false,
+   "semantic_index_hit": true,
+   "semantic_category": "Fx|Dynamics"
+  },
+  {
+   "identifier": "VST3-Lindell MBC-e2c119ce-a6b1eb75",
+   "name": "Lindell MBC",
+   "form": "Mono",
+   "manufacturer": "Plugin Alliance",
+   "family": "multiband_dynamics",
+   "whitelist_family": "multiband",
+   "pca_job": null,
+   "promoted": true,
+   "promoted_at": "2026-08-07T12:29:25.3219558Z",
+   "certified": false,
+   "cert_status": null,
+   "certified_roles": null,
+   "anchors": null,
+   "attestation_axes": [
+    "band_dynamics",
+    "band_timing"
+   ],
+   "axis_verdict": "pass",
+   "axis_detail": "roles=- att=['band_dynamics']",
+   "v5_entry": true,
+   "semantic_index_hit": true,
+   "semantic_category": "Fx|Dynamics"
+  },
+  {
+   "identifier": "VST3-PSE Mono-695648d-b943518d",
+   "name": "PSE Mono",
+   "form": "Mono",
+   "manufacturer": "Waves",
+   "family": "gate_expander",
+   "whitelist_family": "gate_expander",
+   "pca_job": "pca_job_599d25df0ab7632c",
+   "promoted": true,
+   "promoted_at": "2026-09-18T11:17:12.9281166Z",
+   "certified": true,
+   "cert_status": "passed",
+   "certified_roles": [
+    "range",
+    "sidechain_highpass"
+   ],
+   "anchors": [
+    {
+     "role": "sidechain_highpass",
+     "param_id": "2",
+     "band": null
+    },
+    {
+     "role": "range",
+     "param_id": "6",
+     "band": null
+    }
+   ],
+   "attestation_axes": [
+    "attenuation_floor",
+    "detector_focus"
+   ],
+   "axis_verdict": "pass",
+   "axis_detail": "roles=['range'] att=['attenuation_floor']",
+   "v5_entry": false,
+   "semantic_index_hit": true,
+   "semantic_category": "Fx|Dynamics"
+  },
+  {
+   "identifier": "VST3-PSE Stereo-695648d-be50dbac",
+   "name": "PSE Stereo",
+   "form": "Stereo",
+   "manufacturer": "Waves",
+   "family": "gate_expander",
+   "whitelist_family": "gate_expander",
+   "pca_job": "pca_job_c2d051131aad7c22",
+   "promoted": true,
+   "promoted_at": "2026-09-18T11:17:17.0294553Z",
+   "certified": true,
+   "cert_status": "passed",
+   "certified_roles": [
+    "range",
+    "sidechain_highpass"
+   ],
+   "anchors": [
+    {
+     "role": "sidechain_highpass",
+     "param_id": "2",
+     "band": null
+    },
+    {
+     "role": "range",
+     "param_id": "6",
+     "band": null
+    }
+   ],
+   "attestation_axes": [
+    "attenuation_floor",
+    "detector_focus"
+   ],
+   "axis_verdict": "pass",
+   "axis_detail": "roles=['range'] att=['attenuation_floor']",
+   "v5_entry": false,
+   "semantic_index_hit": true,
+   "semantic_category": "Fx|Dynamics"
+  },
+  {
+   "identifier": "VST3-Pro-DS-831d2251-cba24108",
+   "name": "Pro-DS",
+   "form": "Mono",
+   "manufacturer": "FabFilter",
+   "family": "de_esser",
+   "whitelist_family": "de_esser",
+   "pca_job": null,
+   "promoted": true,
+   "promoted_at": "2026-08-07T12:19:40.9048032Z",
+   "certified": false,
+   "cert_status": null,
+   "certified_roles": null,
+   "anchors": null,
+   "attestation_axes": [
+    "detector_focus",
+    "sibilance_reduction"
+   ],
+   "axis_verdict": "ambiguous",
+   "axis_detail": "v5_anchor=True near_axis=[] cov=['detector_focus', 'sibilance_reduction']",
+   "v5_entry": true,
+   "semantic_index_hit": true,
+   "semantic_category": "Fx|Dynamics"
+  },
+  {
+   "identifier": "VST3-Pro-G-38fcf5ad-5a6e43a2",
+   "name": "Pro-G",
+   "form": "Mono",
+   "manufacturer": "FabFilter",
+   "family": "gate_expander",
+   "whitelist_family": "gate_expander",
+   "pca_job": null,
+   "promoted": true,
+   "promoted_at": "2026-08-07T12:28:59.1792382Z",
+   "certified": false,
+   "cert_status": null,
+   "certified_roles": null,
+   "anchors": null,
+   "attestation_axes": [
+    "attenuation_floor",
+    "detector_focus"
+   ],
+   "axis_verdict": "pass",
+   "axis_detail": "roles=- att=['attenuation_floor']",
+   "v5_entry": true,
+   "semantic_index_hit": true,
+   "semantic_category": "Fx|Dynamics"
+  },
+  {
+   "identifier": "VST3-Pro-L 2-9890e876-45398b95",
+   "name": "Pro-L 2",
+   "form": "Mono",
+   "manufacturer": "FabFilter",
+   "family": "limiter",
+   "whitelist_family": "limiter",
+   "pca_job": null,
+   "promoted": true,
+   "promoted_at": "2026-08-07T12:28:55.6443252Z",
+   "certified": false,
+   "cert_status": null,
+   "certified_roles": null,
+   "anchors": null,
+   "attestation_axes": [
+    "input_drive",
+    "output_ceiling"
+   ],
+   "axis_verdict": "pass",
+   "axis_detail": "roles=- att=['output_ceiling']",
+   "v5_entry": true,
+   "semantic_index_hit": true,
+   "semantic_category": "Fx|Dynamics"
+  },
+  {
+   "identifier": "VST3-RDeEsser Mono-695648d-e383e66d",
+   "name": "RDeEsser Mono",
+   "form": "Mono",
+   "manufacturer": "Waves",
+   "family": "de_esser",
+   "whitelist_family": "de_esser",
+   "pca_job": "pca_job_8c18792d5bdc9ee2",
+   "promoted": true,
+   "promoted_at": "2026-09-18T11:16:56.8505224Z",
+   "certified": true,
+   "cert_status": "passed",
+   "certified_roles": [
+    "detector_filter",
+    "reduction_range"
+   ],
+   "anchors": [
+    {
+     "role": "detector_filter",
+     "param_id": "1",
+     "band": null
+    },
+    {
+     "role": "reduction_range",
+     "param_id": "3",
+     "band": null
+    }
+   ],
+   "attestation_axes": [
+    "detector_focus",
+    "sibilance_reduction"
+   ],
+   "axis_verdict": "fail",
+   "axis_detail": "认证角色/轴不含 threshold（detector_filter,reduction_range）",
+   "v5_entry": false,
+   "semantic_index_hit": true,
+   "semantic_category": "Fx|Dynamics"
+  },
+  {
+   "identifier": "VST3-RDeEsser Stereo-695648d-e39a6c6d",
+   "name": "RDeEsser Stereo",
+   "form": "Stereo",
+   "manufacturer": "Waves",
+   "family": "de_esser",
+   "whitelist_family": "de_esser",
+   "pca_job": "pca_job_02cc0b2bfc5533ac",
+   "promoted": true,
+   "promoted_at": "2026-09-18T11:17:00.8344Z",
+   "certified": true,
+   "cert_status": "passed",
+   "certified_roles": [
+    "detector_filter",
+    "reduction_range"
+   ],
+   "anchors": [
+    {
+     "role": "detector_filter",
+     "param_id": "1",
+     "band": null
+    },
+    {
+     "role": "reduction_range",
+     "param_id": "3",
+     "band": null
+    }
+   ],
+   "attestation_axes": [
+    "detector_focus",
+    "sibilance_reduction"
+   ],
+   "axis_verdict": "fail",
+   "axis_detail": "认证角色/轴不含 threshold（detector_filter,reduction_range）",
+   "v5_entry": false,
+   "semantic_index_hit": true,
+   "semantic_category": "Fx|Dynamics"
+  },
+  {
+   "identifier": "VST3-SPL Transient Designer Plus-95d14fc6-671d42ff",
+   "name": "SPL Transient Designer Plus",
+   "form": "Mono",
+   "manufacturer": "Plugin Alliance",
+   "family": "transient_shaper",
+   "whitelist_family": "transient_shaper",
+   "pca_job": null,
+   "promoted": true,
+   "promoted_at": "2026-08-07T12:29:12.0393274Z",
+   "certified": false,
+   "cert_status": null,
+   "certified_roles": null,
+   "anchors": null,
+   "attestation_axes": [
+    "detector_focus",
+    "envelope_emphasis"
+   ],
+   "axis_verdict": "ambiguous",
+   "axis_detail": "v5_anchor=True near_axis=['envelope_emphasis'] cov=['detector_focus', 'envelope_emphasis']",
+   "v5_entry": true,
+   "semantic_index_hit": true,
+   "semantic_category": "Fx|Dynamics"
+  },
+  {
+   "identifier": "VST3-Sibilance Mono-695648d-f15fcaf9",
+   "name": "Sibilance Mono",
+   "form": "Mono",
+   "manufacturer": "Waves",
+   "family": "de_esser",
+   "whitelist_family": "de_esser",
+   "pca_job": "pca_job_145ea8bfcec1e854",
+   "promoted": true,
+   "promoted_at": "2026-09-18T11:17:04.9253566Z",
+   "certified": true,
+   "cert_status": "passed",
+   "certified_roles": [
+    "reduction_range",
+    "threshold"
+   ],
+   "anchors": [
+    {
+     "role": "reduction_range",
+     "param_id": "3",
+     "band": null
+    },
+    {
+     "role": "threshold",
+     "param_id": "2",
+     "band": null
+    }
+   ],
+   "attestation_axes": [
+    "sibilance_reduction",
+    "threshold_sensitivity"
+   ],
+   "axis_verdict": "pass",
+   "axis_detail": "roles=['threshold'] att=['threshold_sensitivity']",
+   "v5_entry": false,
+   "semantic_index_hit": true,
+   "semantic_category": "Fx|Dynamics"
+  },
+  {
+   "identifier": "VST3-Sibilance Stereo-695648d-f17650f9",
+   "name": "Sibilance Stereo",
+   "form": "Stereo",
+   "manufacturer": "Waves",
+   "family": "de_esser",
+   "whitelist_family": "de_esser",
+   "pca_job": "pca_job_3e6f7f50ad8428a8",
+   "promoted": true,
+   "promoted_at": "2026-09-18T11:17:08.8434992Z",
+   "certified": true,
+   "cert_status": "passed",
+   "certified_roles": [
+    "reduction_range",
+    "threshold"
+   ],
+   "anchors": [
+    {
+     "role": "reduction_range",
+     "param_id": "3",
+     "band": null
+    },
+    {
+     "role": "threshold",
+     "param_id": "2",
+     "band": null
+    }
+   ],
+   "attestation_axes": [
+    "sibilance_reduction",
+    "threshold_sensitivity"
+   ],
+   "axis_verdict": "pass",
+   "axis_detail": "roles=['threshold'] att=['threshold_sensitivity']",
+   "v5_entry": false,
+   "semantic_index_hit": true,
+   "semantic_category": "Fx|Dynamics"
+  },
+  {
+   "identifier": "VST3-Sibilance-Live Mono-695648d-16e9caf9",
+   "name": "Sibilance-Live Mono",
+   "form": "Mono",
+   "manufacturer": "Waves",
+   "family": "de_esser",
+   "whitelist_family": "de_esser",
+   "pca_job": null,
+   "promoted": true,
+   "promoted_at": "2026-08-07T12:29:08.9447348Z",
+   "certified": false,
+   "cert_status": null,
+   "certified_roles": null,
+   "anchors": null,
+   "attestation_axes": [
+    "sibilance_reduction",
+    "threshold_sensitivity"
+   ],
+   "axis_verdict": "pass",
+   "axis_detail": "roles=- att=['threshold_sensitivity']",
+   "v5_entry": false,
+   "semantic_index_hit": true,
+   "semantic_category": "Fx|Dynamics"
+  },
+  {
+   "identifier": "VST3-Sibilance-Live Stereo-695648d-170050f9",
+   "name": "Sibilance-Live Stereo",
+   "form": "Stereo",
+   "manufacturer": "Waves",
+   "family": "de_esser",
+   "whitelist_family": "de_esser",
+   "pca_job": null,
+   "promoted": true,
+   "promoted_at": "2026-08-07T12:29:04.1554749Z",
+   "certified": false,
+   "cert_status": null,
+   "certified_roles": null,
+   "anchors": null,
+   "attestation_axes": [
+    "sibilance_reduction",
+    "threshold_sensitivity"
+   ],
+   "axis_verdict": "pass",
+   "axis_detail": "roles=- att=['threshold_sensitivity']",
+   "v5_entry": false,
+   "semantic_index_hit": true,
+   "semantic_category": "Fx|Dynamics"
+  },
+  {
+   "identifier": "VST3-Smack Attack Mono-695648d-eac19648",
+   "name": "Smack Attack Mono",
+   "form": "Mono",
+   "manufacturer": "Waves",
+   "family": "transient_shaper",
+   "whitelist_family": "transient_shaper",
+   "pca_job": "pca_job_9b7053f161c8e75b",
+   "promoted": true,
+   "promoted_at": "2026-09-18T11:18:14.787322Z",
+   "certified": true,
+   "cert_status": "passed",
+   "certified_roles": [
+    "attack_duration",
+    "output_gain"
+   ],
+   "anchors": [
+    {
+     "role": "output_gain",
+     "param_id": "9",
+     "band": null
+    },
+    {
+     "role": "attack_duration",
+     "param_id": "2",
+     "band": null
+    }
+   ],
+   "attestation_axes": [
+    "envelope_timing",
+    "output_normalization"
+   ],
+   "axis_verdict": "pass",
+   "axis_detail": "roles=['attack_duration'] att=['envelope_timing']",
+   "v5_entry": false,
+   "semantic_index_hit": true,
+   "semantic_category": "Fx|Dynamics"
+  },
+  {
+   "identifier": "VST3-Smack Attack Stereo-695648d-ead81c48",
+   "name": "Smack Attack Stereo",
+   "form": "Stereo",
+   "manufacturer": "Waves",
+   "family": "transient_shaper",
+   "whitelist_family": "transient_shaper",
+   "pca_job": "pca_job_fb3a1f3d4c66552b",
+   "promoted": true,
+   "promoted_at": "2026-09-18T11:18:20.9975228Z",
+   "certified": true,
+   "cert_status": "passed",
+   "certified_roles": [
+    "attack_duration",
+    "output_gain"
+   ],
+   "anchors": [
+    {
+     "role": "output_gain",
+     "param_id": "9",
+     "band": null
+    },
+    {
+     "role": "attack_duration",
+     "param_id": "2",
+     "band": null
+    }
+   ],
+   "attestation_axes": [
+    "envelope_timing",
+    "output_normalization"
+   ],
+   "axis_verdict": "pass",
+   "axis_detail": "roles=['attack_duration'] att=['envelope_timing']",
+   "v5_entry": false,
+   "semantic_index_hit": true,
+   "semantic_category": "Fx|Dynamics"
+  },
+  {
+   "identifier": "VST3-TransX Wide Mono-695648d-bcc8f2f6",
+   "name": "TransX Wide Mono",
+   "form": "Mono",
+   "manufacturer": "Waves",
+   "family": "transient_shaper",
+   "whitelist_family": "transient_shaper",
+   "pca_job": "pca_job_f652312856637dd7",
+   "promoted": true,
+   "promoted_at": "2026-09-18T11:18:26.9682151Z",
+   "certified": true,
+   "cert_status": "passed",
+   "certified_roles": [
+    "output_gain",
+    "transient_range"
+   ],
+   "anchors": [
+    {
+     "role": "transient_range",
+     "param_id": "1",
+     "band": null
+    },
+    {
+     "role": "output_gain",
+     "param_id": "0",
+     "band": null
+    }
+   ],
+   "attestation_axes": [
+    "envelope_emphasis",
+    "output_normalization"
+   ],
+   "axis_verdict": "ambiguous",
+   "axis_detail": "v5_anchor=False near_axis=['envelope_emphasis'] cov=['envelope_emphasis', 'output_normalization']",
+   "v5_entry": false,
+   "semantic_index_hit": true,
+   "semantic_category": "Fx|Dynamics"
+  },
+  {
+   "identifier": "VST3-TransX Wide Stereo-695648d-bcdf78f6",
+   "name": "TransX Wide Stereo",
+   "form": "Stereo",
+   "manufacturer": "Waves",
+   "family": "transient_shaper",
+   "whitelist_family": "transient_shaper",
+   "pca_job": "pca_job_9f4f259576c0e47f",
+   "promoted": true,
+   "promoted_at": "2026-09-18T11:18:32.9828695Z",
+   "certified": true,
+   "cert_status": "passed",
+   "certified_roles": [
+    "output_gain",
+    "transient_range"
+   ],
+   "anchors": [
+    {
+     "role": "transient_range",
+     "param_id": "1",
+     "band": null
+    },
+    {
+     "role": "output_gain",
+     "param_id": "0",
+     "band": null
+    }
+   ],
+   "attestation_axes": [
+    "envelope_emphasis",
+    "output_normalization"
+   ],
+   "axis_verdict": "ambiguous",
+   "axis_detail": "v5_anchor=False near_axis=['envelope_emphasis'] cov=['envelope_emphasis', 'output_normalization']",
+   "v5_entry": false,
+   "semantic_index_hit": true,
+   "semantic_category": "Fx|Dynamics"
+  },
+  {
+   "identifier": "VST3-bx_limiter True Peak-3b68be96-f93a2d5c",
+   "name": "bx_limiter True Peak",
+   "form": "Mono",
+   "manufacturer": "Plugin Alliance",
+   "family": "limiter",
+   "whitelist_family": "limiter",
+   "pca_job": null,
+   "promoted": true,
+   "promoted_at": "2026-08-07T12:28:53.2313422Z",
+   "certified": false,
+   "cert_status": null,
+   "certified_roles": null,
+   "anchors": null,
+   "attestation_axes": [
+    "input_drive",
+    "output_normalization"
+   ],
+   "axis_verdict": "fail",
+   "axis_detail": "认证角色/轴不含 ceiling（input_drive,output_normalization）",
+   "v5_entry": false,
+   "semantic_index_hit": true,
+   "semantic_category": "Fx|Dynamics"
+  }
+ ]
+}
