@@ -18,21 +18,21 @@ import (
 // threshold id per band, no ch pair.
 func fixtureMultibandPlugin() MultibandPlugin {
 	return MultibandPlugin{
-		PluginName:             "Fixture MBC",
-		Manufacturer:           "Example",
-		Format:                 "VST3",
-		PluginIdentifier:       "fixture-mbc",
-		PluginPath:             "/plugins/example-mbc.vst3",
-		BandThresholdParamIDs:  []string{"low_threshold", "mid_threshold", "high_threshold"},
+		PluginName:            "Fixture MBC",
+		Manufacturer:          "Example",
+		Format:                "VST3",
+		PluginIdentifier:      "fixture-mbc",
+		PluginPath:            "/plugins/example-mbc.vst3",
+		BandThresholdParamIDs: []string{"low_threshold", "mid_threshold", "high_threshold"},
 	}
 }
 
 func TestLoadParsesV5FileWithMultibandSectionRoundTrip(t *testing.T) {
 	whitelist := Whitelist{
 		SchemaVersion: SchemaVersion,
-		Limiter:       func() *LimiterPlugin { plugin := fixtureLimiterPlugin(); return &plugin }(),
-		GateExpander:  func() *GateExpanderPlugin { plugin := fixtureGateExpanderPlugin(); return &plugin }(),
-		Multiband:     func() *MultibandPlugin { plugin := fixtureMultibandPlugin(); return &plugin }(),
+		Limiter:       LimiterPlugins{fixtureLimiterPlugin()},
+		GateExpander:  GateExpanderPlugins{fixtureGateExpanderPlugin()},
+		Multiband:     MultibandPlugins{fixtureMultibandPlugin()},
 	}
 	path := writeFixture(t, "whitelist_v5_multiband.json", marshalOrPanic(whitelist))
 	loaded, err := Load(path)
@@ -47,14 +47,14 @@ func TestLoadParsesV5FileWithMultibandSectionRoundTrip(t *testing.T) {
 func TestLoadAllowsV5FileWithOnlyMultibandSection(t *testing.T) {
 	whitelist := Whitelist{
 		SchemaVersion: SchemaVersion,
-		Multiband:     func() *MultibandPlugin { plugin := fixtureMultibandPlugin(); return &plugin }(),
+		Multiband:     MultibandPlugins{fixtureMultibandPlugin()},
 	}
 	path := writeFixture(t, "whitelist_multiband_only.json", marshalOrPanic(whitelist))
 	loaded, err := Load(path)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if loaded.Multiband == nil || len(loaded.Multiband.BandThresholdParamIDs) != 3 {
+	if len(loaded.Multiband) != 1 || len(loaded.Multiband[0].BandThresholdParamIDs) != 3 {
 		t.Fatalf("multiband-only whitelist=%+v", loaded)
 	}
 }
@@ -114,11 +114,11 @@ func TestValidateMultibandAdmissionClasses(t *testing.T) {
 	}
 	whitelist := Whitelist{
 		SchemaVersion: SchemaVersion,
-		Multiband: func() *MultibandPlugin {
+		Multiband: MultibandPlugins{func() MultibandPlugin {
 			plugin := fixtureMultibandPlugin()
 			plugin.PluginPath = pluginPath
-			return &plugin
-		}(),
+			return plugin
+		}()},
 	}
 	subject := processorattestation.Subject{Name: "Fixture MBC", Manufacturer: "Example", Format: "VST3", Identifier: "fixture-mbc", InstalledPath: pluginPath}
 	promotedLibraryV2 := func(fingerprint string) processorattestation.LibraryV2 {
@@ -148,35 +148,35 @@ func TestValidateMultibandAdmissionClasses(t *testing.T) {
 		}
 	}
 
-	if err := whitelist.ValidateMultibandAdmission(promotedLibraryV2(fingerprint)); err != nil {
+	if err := whitelist.ValidateMultibandAdmission(promotedLibraryV2(fingerprint), ""); err != nil {
 		t.Fatalf("promoted matching binary rejected: %v", err)
 	}
 
-	staleErr := whitelist.ValidateMultibandAdmission(promotedLibraryV2("sha256:" + strings.Repeat("e", 64)))
+	staleErr := whitelist.ValidateMultibandAdmission(promotedLibraryV2("sha256:"+strings.Repeat("e", 64)), "")
 	if staleErr == nil || !strings.HasPrefix(staleErr.Error(), "experiment plugin whitelist: multiband plugin is not PCA-promoted") ||
 		!strings.Contains(staleErr.Error(), "Fixture MBC") || !strings.Contains(staleErr.Error(), "binary_fingerprint_changed") {
 		t.Fatalf("fingerprint mismatch class wrong: %v", staleErr)
 	}
 
-	unknownErr := whitelist.ValidateMultibandAdmission(processorattestation.LibraryV2{SchemaVersion: processorattestation.LibrarySchemaV2})
+	unknownErr := whitelist.ValidateMultibandAdmission(processorattestation.LibraryV2{SchemaVersion: processorattestation.LibrarySchemaV2}, "")
 	if unknownErr == nil || !strings.Contains(unknownErr.Error(), "no_attestation") {
 		t.Fatalf("unknown subject class wrong: %v", unknownErr)
 	}
 
 	unconfigured := Whitelist{}
-	if err := unconfigured.ValidateMultibandAdmission(processorattestation.LibraryV2{}); !errors.Is(err, ErrMultibandNotConfigured) {
+	if err := unconfigured.ValidateMultibandAdmission(processorattestation.LibraryV2{}, ""); !errors.Is(err, ErrMultibandNotConfigured) {
 		t.Fatalf("unconfigured multiband err=%v want ErrMultibandNotConfigured", err)
 	}
 
 	absent := Whitelist{
 		SchemaVersion: SchemaVersion,
-		Multiband: func() *MultibandPlugin {
+		Multiband: MultibandPlugins{func() MultibandPlugin {
 			plugin := fixtureMultibandPlugin()
 			plugin.PluginPath = filepath.Join(t.TempDir(), "absent.vst3")
-			return &plugin
-		}(),
+			return plugin
+		}()},
 	}
-	fingerprintErr := absent.ValidateMultibandAdmission(promotedLibraryV2("sha256:" + strings.Repeat("9", 64)))
+	fingerprintErr := absent.ValidateMultibandAdmission(promotedLibraryV2("sha256:"+strings.Repeat("9", 64)), "")
 	if fingerprintErr == nil || !errors.Is(fingerprintErr, os.ErrNotExist) {
 		t.Fatalf("fingerprint failure must wrap the filesystem error: %v", fingerprintErr)
 	}

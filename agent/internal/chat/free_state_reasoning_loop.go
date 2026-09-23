@@ -114,6 +114,16 @@ type freeStateReasoningLoop struct {
 	// rounds without a proposal or on the first needs_experiment decision;
 	// the exhausted-budget honest settle semantics are untouched.
 	ObservationSaturationNotice map[string]any `json:"observation_saturation_notice,omitempty"`
+	// PluginCandidateDisclosure is the FIX-PLUGIN-SELECT-1 proposal-time
+	// bounded disclosure: the whitelist families that carry more than one
+	// certified candidate (schema v6), each with structural identity fields
+	// only (name/manufacturer/format/identifier plus the family capability
+	// face — never the local plugin_path or parameter ids). It is refreshed
+	// from the machine whitelist at every prepareFreeStateReasoningContext
+	// boundary; nil on single-candidate machines so the prompt stays
+	// byte-identical. The admission (whitelist membership) stays the
+	// fail-closed authority; this field is guidance only.
+	PluginCandidateDisclosure map[string]any `json:"plugin_candidate_disclosure,omitempty"`
 	// ObservationSaturationRounds counts the completed decision rounds since
 	// the saturation notice was injected; it is the retirement latch.
 	ObservationSaturationRounds int `json:"observation_saturation_rounds,omitempty"`
@@ -133,10 +143,10 @@ type freeStateReasoningLoop struct {
 	// disclosure; LastRejectedProposalFingerprint/…EvidenceRevision detect the
 	// identical-resubmission-without-new-evidence shape that locks the
 	// terminal turn directly. All fields are content-free.
-	AdmissionRejectionCount         int           `json:"admission_rejection_count,omitempty"`
+	AdmissionRejectionCount         int              `json:"admission_rejection_count,omitempty"`
 	AdmissionRejectionGaps          []map[string]any `json:"admission_rejection_gaps,omitempty"`
-	LastRejectedProposalFingerprint string        `json:"last_rejected_proposal_fingerprint,omitempty"`
-	LastRejectedEvidenceRevision    string        `json:"last_rejected_evidence_revision,omitempty"`
+	LastRejectedProposalFingerprint string           `json:"last_rejected_proposal_fingerprint,omitempty"`
+	LastRejectedEvidenceRevision    string           `json:"last_rejected_evidence_revision,omitempty"`
 	// SettleRefusedRoundID records the round whose settle report was refused
 	// because its fresh post-action observation had not landed yet. In that
 	// race window the experiment projection can still show the round pre-action
@@ -171,9 +181,9 @@ type freeStateReasoningLoop struct {
 	// user to adjudicate; no experiment admission is constructed and the
 	// terminal lock never clears (parking is not re-entry).
 	TerminalAdjudication map[string]any `json:"terminal_adjudication,omitempty"`
-	LastError           string          `json:"last_error,omitempty"`
-	CreatedAt            time.Time `json:"created_at"`
-	UpdatedAt            time.Time `json:"updated_at"`
+	LastError            string         `json:"last_error,omitempty"`
+	CreatedAt            time.Time      `json:"created_at"`
+	UpdatedAt            time.Time      `json:"updated_at"`
 }
 
 func freeStateLoopActive(loop freeStateReasoningLoop) bool {
@@ -295,6 +305,11 @@ func (s *Server) prepareFreeStateReasoningContext(conversationID, userText strin
 	// the lock lands before the next model slice runs and the reserved
 	// checkpoint can only be spent on a terminal-family output.
 	s.evaluateFreeStateTerminalTurnTrigger(&loop)
+	// FIX-PLUGIN-SELECT-1: refresh the bounded plugin-candidate disclosure
+	// from the machine whitelist at the same boundary (nil on loader failure
+	// or single-candidate machines; the admission remains the fail-closed
+	// authority at execution time).
+	loop.PluginCandidateDisclosure = buildFreeStatePluginCandidateDisclosure()
 	loop.UpdatedAt = time.Now().UTC()
 	s.storeFreeStateLoop(loop)
 	return mergeContext(requestContext, map[string]any{"free_state_reasoning_loop": freeStateLoopMap(loop)}), true
@@ -943,13 +958,13 @@ func (s *Server) recordFreeStateDecision(conversationID string, res agentloop.Re
 	if decision.ObservationID != "" && !freeStateContainsString(loop.ObservationIDs, decision.ObservationID) {
 		loop.ObservationIDs = append(loop.ObservationIDs, decision.ObservationID)
 	}
-		// FIX-F3-G4-SEMANTICS 方案乙 parking latch: set inside the
-		// needs_experiment case; the post-switch experiment construction must
-		// skip a parked proposal (no experiment admission — the user
-		// adjudicates at the confirmation face).
-		terminalAdjudicationParking := false
-		switch strings.ToLower(strings.TrimSpace(decision.Status)) {
-		case agentloop.FreeStateNeedsAction:
+	// FIX-F3-G4-SEMANTICS 方案乙 parking latch: set inside the
+	// needs_experiment case; the post-switch experiment construction must
+	// skip a parked proposal (no experiment admission — the user
+	// adjudicates at the confirmation face).
+	terminalAdjudicationParking := false
+	switch strings.ToLower(strings.TrimSpace(decision.Status)) {
+	case agentloop.FreeStateNeedsAction:
 		selected, target, resolved := freeStateResolveActionObservation(loop, decision, observations)
 		if !resolved {
 			// A family decision without an unambiguous cited observation must not

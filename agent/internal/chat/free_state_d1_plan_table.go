@@ -87,7 +87,10 @@ func resolveD1PluginParamWhitelistBinding(typedAction map[string]any) (*d1Plugin
 
 // resolveD1BroadbandCompressionWhitelistBinding mirrors the static_eq gate for
 // the compression whitelist section with its own label so upstream can tell
-// the domains apart while keeping the class wording aligned.
+// the domains apart while keeping the class wording aligned. FIX-PLUGIN-
+// SELECT-1: the pinned plugin_identifier is a membership selection over the
+// v6 candidate list (non-members fail closed) and the binding resolves to the
+// selected entry.
 func resolveD1BroadbandCompressionWhitelistBinding(typedAction map[string]any) (*d1PluginParamWhitelistBinding, error) {
 	const label = d1BroadbandCompressionDomain
 	whitelist, err := d1StaticEQWhitelistLoader()
@@ -97,19 +100,18 @@ func resolveD1BroadbandCompressionWhitelistBinding(typedAction map[string]any) (
 		}
 		return nil, fmt.Errorf("%s experiment whitelist is invalid: %w", label, err)
 	}
-	compression := whitelist.BroadbandCompression
-	if compression == nil {
-		return nil, fmt.Errorf("%s experiment is not configured: %w", label, experimentplugins.ErrCompressionNotConfigured)
-	}
-	pinned := firstStringFromMap(typedAction, "plugin_identifier")
-	if pinned != "" && !strings.EqualFold(pinned, compression.PluginIdentifier) {
-		return nil, fmt.Errorf("%s admission pinned plugin_identifier %q but the experiment plugin whitelist admits %q", label, pinned, compression.PluginIdentifier)
+	compression, err := whitelist.SelectBroadbandCompression(firstStringFromMap(typedAction, "plugin_identifier"))
+	if err != nil {
+		if errors.Is(err, experimentplugins.ErrCompressionNotConfigured) {
+			return nil, fmt.Errorf("%s experiment is not configured: %w", label, experimentplugins.ErrCompressionNotConfigured)
+		}
+		return nil, err
 	}
 	library, err := d1StaticEQAttestationReader()
 	if err != nil {
 		return nil, fmt.Errorf("%s experiment could not evaluate its PCA admission: %w", label, err)
 	}
-	if err := whitelist.ValidateCompressionAdmission(library); err != nil {
+	if err := whitelist.ValidateCompressionAdmission(library, compression.PluginIdentifier); err != nil {
 		return nil, fmt.Errorf("%s experiment was refused by the PCA admission check: %w", label, err)
 	}
 	return &d1PluginParamWhitelistBinding{
@@ -142,19 +144,18 @@ func resolveD1DeEsserWhitelistBinding(typedAction map[string]any) (*d1PluginPara
 		}
 		return nil, fmt.Errorf("%s experiment whitelist is invalid: %w", label, err)
 	}
-	deEsser := whitelist.DeEsser
-	if deEsser == nil {
-		return nil, fmt.Errorf("%s experiment is not configured: %w", label, experimentplugins.ErrDeEsserNotConfigured)
-	}
-	pinned := firstStringFromMap(typedAction, "plugin_identifier")
-	if pinned != "" && !strings.EqualFold(pinned, deEsser.PluginIdentifier) {
-		return nil, fmt.Errorf("%s admission pinned plugin_identifier %q but the experiment plugin whitelist admits %q", label, pinned, deEsser.PluginIdentifier)
+	deEsser, err := whitelist.SelectDeEsser(firstStringFromMap(typedAction, "plugin_identifier"))
+	if err != nil {
+		if errors.Is(err, experimentplugins.ErrDeEsserNotConfigured) {
+			return nil, fmt.Errorf("%s experiment is not configured: %w", label, experimentplugins.ErrDeEsserNotConfigured)
+		}
+		return nil, err
 	}
 	library, err := d1DeEsserAttestationReader()
 	if err != nil {
 		return nil, fmt.Errorf("%s experiment could not evaluate its PCA admission: %w", label, err)
 	}
-	if err := whitelist.ValidateDeEsserAdmission(library); err != nil {
+	if err := whitelist.ValidateDeEsserAdmission(library, deEsser.PluginIdentifier); err != nil {
 		return nil, fmt.Errorf("%s experiment was refused by the PCA admission check: %w", label, err)
 	}
 	return &d1PluginParamWhitelistBinding{
@@ -239,19 +240,18 @@ func resolveD1TransientShaperWhitelistBinding(typedAction map[string]any) (*d1Pl
 		}
 		return nil, fmt.Errorf("%s experiment whitelist is invalid: %w", label, err)
 	}
-	transient := whitelist.TransientShaper
-	if transient == nil {
-		return nil, fmt.Errorf("%s experiment is not configured: %w", label, experimentplugins.ErrTransientShaperNotConfigured)
-	}
-	pinned := firstStringFromMap(typedAction, "plugin_identifier")
-	if pinned != "" && !strings.EqualFold(pinned, transient.PluginIdentifier) {
-		return nil, fmt.Errorf("%s admission pinned plugin_identifier %q but the experiment plugin whitelist admits %q", label, pinned, transient.PluginIdentifier)
+	transient, err := whitelist.SelectTransientShaper(firstStringFromMap(typedAction, "plugin_identifier"))
+	if err != nil {
+		if errors.Is(err, experimentplugins.ErrTransientShaperNotConfigured) {
+			return nil, fmt.Errorf("%s experiment is not configured: %w", label, experimentplugins.ErrTransientShaperNotConfigured)
+		}
+		return nil, err
 	}
 	library, err := d1TransientShaperAttestationReader()
 	if err != nil {
 		return nil, fmt.Errorf("%s experiment could not evaluate its PCA admission: %w", label, err)
 	}
-	if err := whitelist.ValidateTransientShaperAdmission(library); err != nil {
+	if err := whitelist.ValidateTransientShaperAdmission(library, transient.PluginIdentifier); err != nil {
 		return nil, fmt.Errorf("%s experiment was refused by the PCA admission check: %w", label, err)
 	}
 	return &d1PluginParamWhitelistBinding{
@@ -294,19 +294,18 @@ func resolveD1LimiterWhitelistBinding(typedAction map[string]any) (*d1PluginPara
 		}
 		return nil, fmt.Errorf("%s experiment whitelist is invalid: %w", label, err)
 	}
-	limiter := whitelist.Limiter
-	if limiter == nil {
-		return nil, fmt.Errorf("%s experiment is not configured: %w", label, experimentplugins.ErrLimiterNotConfigured)
-	}
-	pinned := firstStringFromMap(typedAction, "plugin_identifier")
-	if pinned != "" && !strings.EqualFold(pinned, limiter.PluginIdentifier) {
-		return nil, fmt.Errorf("%s admission pinned plugin_identifier %q but the experiment plugin whitelist admits %q", label, pinned, limiter.PluginIdentifier)
+	limiter, err := whitelist.SelectLimiter(firstStringFromMap(typedAction, "plugin_identifier"))
+	if err != nil {
+		if errors.Is(err, experimentplugins.ErrLimiterNotConfigured) {
+			return nil, fmt.Errorf("%s experiment is not configured: %w", label, experimentplugins.ErrLimiterNotConfigured)
+		}
+		return nil, err
 	}
 	library, err := d1LimiterAttestationReader()
 	if err != nil {
 		return nil, fmt.Errorf("%s experiment could not evaluate its PCA admission: %w", label, err)
 	}
-	if err := whitelist.ValidateLimiterAdmission(library); err != nil {
+	if err := whitelist.ValidateLimiterAdmission(library, limiter.PluginIdentifier); err != nil {
 		return nil, fmt.Errorf("%s experiment was refused by the PCA admission check: %w", label, err)
 	}
 	return &d1PluginParamWhitelistBinding{
@@ -349,19 +348,18 @@ func resolveD1GateExpanderWhitelistBinding(typedAction map[string]any) (*d1Plugi
 		}
 		return nil, fmt.Errorf("%s experiment whitelist is invalid: %w", label, err)
 	}
-	gate := whitelist.GateExpander
-	if gate == nil {
-		return nil, fmt.Errorf("%s experiment is not configured: %w", label, experimentplugins.ErrGateExpanderNotConfigured)
-	}
-	pinned := firstStringFromMap(typedAction, "plugin_identifier")
-	if pinned != "" && !strings.EqualFold(pinned, gate.PluginIdentifier) {
-		return nil, fmt.Errorf("%s admission pinned plugin_identifier %q but the experiment plugin whitelist admits %q", label, pinned, gate.PluginIdentifier)
+	gate, err := whitelist.SelectGateExpander(firstStringFromMap(typedAction, "plugin_identifier"))
+	if err != nil {
+		if errors.Is(err, experimentplugins.ErrGateExpanderNotConfigured) {
+			return nil, fmt.Errorf("%s experiment is not configured: %w", label, experimentplugins.ErrGateExpanderNotConfigured)
+		}
+		return nil, err
 	}
 	library, err := d1GateExpanderAttestationReader()
 	if err != nil {
 		return nil, fmt.Errorf("%s experiment could not evaluate its PCA admission: %w", label, err)
 	}
-	if err := whitelist.ValidateGateExpanderAdmission(library); err != nil {
+	if err := whitelist.ValidateGateExpanderAdmission(library, gate.PluginIdentifier); err != nil {
 		return nil, fmt.Errorf("%s experiment was refused by the PCA admission check: %w", label, err)
 	}
 	return &d1PluginParamWhitelistBinding{
@@ -406,13 +404,12 @@ func resolveD1MultibandWhitelistBinding(typedAction map[string]any) (*d1PluginPa
 		}
 		return nil, fmt.Errorf("%s experiment whitelist is invalid: %w", label, err)
 	}
-	multiband := whitelist.Multiband
-	if multiband == nil {
-		return nil, fmt.Errorf("%s experiment is not configured: %w", label, experimentplugins.ErrMultibandNotConfigured)
-	}
-	pinned := firstStringFromMap(typedAction, "plugin_identifier")
-	if pinned != "" && !strings.EqualFold(pinned, multiband.PluginIdentifier) {
-		return nil, fmt.Errorf("%s admission pinned plugin_identifier %q but the experiment plugin whitelist admits %q", label, pinned, multiband.PluginIdentifier)
+	multiband, err := whitelist.SelectMultiband(firstStringFromMap(typedAction, "plugin_identifier"))
+	if err != nil {
+		if errors.Is(err, experimentplugins.ErrMultibandNotConfigured) {
+			return nil, fmt.Errorf("%s experiment is not configured: %w", label, experimentplugins.ErrMultibandNotConfigured)
+		}
+		return nil, err
 	}
 	bandIndex := 0
 	if value, present := typedAction["band_index"]; present {
@@ -429,7 +426,7 @@ func resolveD1MultibandWhitelistBinding(typedAction map[string]any) (*d1PluginPa
 	if err != nil {
 		return nil, fmt.Errorf("%s experiment could not evaluate its PCA admission: %w", label, err)
 	}
-	if err := whitelist.ValidateMultibandAdmission(library); err != nil {
+	if err := whitelist.ValidateMultibandAdmission(library, multiband.PluginIdentifier); err != nil {
 		return nil, fmt.Errorf("%s experiment was refused by the PCA admission check: %w", label, err)
 	}
 	return &d1PluginParamWhitelistBinding{
@@ -447,6 +444,9 @@ func resolveD1MultibandWhitelistBinding(typedAction map[string]any) (*d1PluginPa
 // whitelist, not PCA-promoted, attestation store unreadable, and an admission
 // that pins an identifier outside the whitelist. An eligibility ruling here
 // gates execution only; it never changes what the domain validators enforce.
+// FIX-PLUGIN-SELECT-1: the pinned plugin_identifier selects one member of the
+// v6 candidate list (non-members fail closed) and the band resolves inside
+// the selected entry's bands.
 func resolveD1StaticEQWhitelistBinding(typedAction map[string]any) (*d1StaticEQWhitelistBinding, error) {
 	whitelist, err := d1StaticEQWhitelistLoader()
 	if err != nil {
@@ -455,12 +455,12 @@ func resolveD1StaticEQWhitelistBinding(typedAction map[string]any) (*d1StaticEQW
 		}
 		return nil, fmt.Errorf("static_eq experiment whitelist is invalid: %w", err)
 	}
-	if whitelist.StaticEQ == nil {
-		return nil, fmt.Errorf("static_eq experiment is not configured: %w", experimentplugins.ErrNotConfigured)
-	}
-	pinned := firstStringFromMap(typedAction, "plugin_identifier")
-	if pinned != "" && !strings.EqualFold(pinned, whitelist.StaticEQ.PluginIdentifier) {
-		return nil, fmt.Errorf("static_eq admission pinned plugin_identifier %q but the experiment plugin whitelist admits %q", pinned, whitelist.StaticEQ.PluginIdentifier)
+	plugin, err := whitelist.SelectStaticEQ(firstStringFromMap(typedAction, "plugin_identifier"))
+	if err != nil {
+		if errors.Is(err, experimentplugins.ErrNotConfigured) {
+			return nil, fmt.Errorf("static_eq experiment is not configured: %w", experimentplugins.ErrNotConfigured)
+		}
+		return nil, err
 	}
 	frequency, ok := treatmentNumber(typedAction, "frequency_hz")
 	if !ok || frequency < 20 || frequency > 20000 {
@@ -470,14 +470,14 @@ func resolveD1StaticEQWhitelistBinding(typedAction map[string]any) (*d1StaticEQW
 	if err != nil {
 		return nil, fmt.Errorf("static_eq experiment could not evaluate its PCA admission: %w", err)
 	}
-	if err := whitelist.ValidateStaticEQAdmission(library); err != nil {
+	if err := whitelist.ValidateStaticEQAdmission(library, plugin.PluginIdentifier); err != nil {
 		return nil, fmt.Errorf("static_eq experiment was refused by the PCA admission check: %w", err)
 	}
-	band, err := whitelist.NearestStaticEQBand(frequency)
+	band, err := plugin.NearestBand(frequency)
 	if err != nil {
 		return nil, fmt.Errorf("static_eq experiment whitelist has no usable band: %w", err)
 	}
-	return &d1StaticEQWhitelistBinding{Plugin: *whitelist.StaticEQ, Band: band, FrequencyHz: frequency}, nil
+	return &d1StaticEQWhitelistBinding{Plugin: plugin, Band: band, FrequencyHz: frequency}, nil
 }
 
 // d1SubstituteFingerprint fills a domain fingerprint template's markers. A

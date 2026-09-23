@@ -49,50 +49,52 @@ func axisCoverageFrozenSemanticIntent(requestContext map[string]any) (map[string
 	return intent, true
 }
 
-// axisCoverageWhitelistIdentifier resolves the exact machine-local whitelist
-// plugin identifier for the family. An absent section (or absent whitelist
-// file) yields "" — no candidate can then be whitelist-form eligible, which
-// surfaces as the honest empty set rather than an error. A corrupt whitelist
-// fails closed.
-func axisCoverageWhitelistIdentifier(family string) (string, error) {
+// axisCoverageWhitelistIdentifiers resolves the machine-local whitelist
+// plugin identifiers for the family (v6 candidate lists may carry more than
+// one; a v5-shaped section yields its single identifier). An absent section
+// (or absent whitelist file) yields no identifiers — no candidate can then
+// be whitelist-form eligible, which surfaces as the honest empty set rather
+// than an error. A corrupt whitelist fails closed.
+func axisCoverageWhitelistIdentifiers(family string) (map[string]bool, error) {
 	whitelist, err := d1StaticEQWhitelistLoader()
 	if err != nil {
 		if errors.Is(err, experimentplugins.ErrNotConfigured) {
-			return "", nil
+			return nil, nil
 		}
-		return "", fmt.Errorf("axis coverage governance could not read the experiment plugin whitelist: %w", err)
+		return nil, fmt.Errorf("axis coverage governance could not read the experiment plugin whitelist: %w", err)
 	}
+	identifiers := map[string]bool{}
 	switch family {
 	case processorattestation.FamilyStaticEQ:
-		if whitelist.StaticEQ != nil {
-			return whitelist.StaticEQ.PluginIdentifier, nil
+		for _, entry := range whitelist.StaticEQ {
+			identifiers[entry.PluginIdentifier] = true
 		}
 	case processorattestation.FamilyBroadbandCompressor:
-		if whitelist.BroadbandCompression != nil {
-			return whitelist.BroadbandCompression.PluginIdentifier, nil
+		for _, entry := range whitelist.BroadbandCompression {
+			identifiers[entry.PluginIdentifier] = true
 		}
 	case processorattestation.FamilyDeEsser:
-		if whitelist.DeEsser != nil {
-			return whitelist.DeEsser.PluginIdentifier, nil
+		for _, entry := range whitelist.DeEsser {
+			identifiers[entry.PluginIdentifier] = true
 		}
 	case processorattestation.FamilyTransient:
-		if whitelist.TransientShaper != nil {
-			return whitelist.TransientShaper.PluginIdentifier, nil
+		for _, entry := range whitelist.TransientShaper {
+			identifiers[entry.PluginIdentifier] = true
 		}
 	case processorattestation.FamilyLimiter:
-		if whitelist.Limiter != nil {
-			return whitelist.Limiter.PluginIdentifier, nil
+		for _, entry := range whitelist.Limiter {
+			identifiers[entry.PluginIdentifier] = true
 		}
 	case processorattestation.FamilyGateExpander:
-		if whitelist.GateExpander != nil {
-			return whitelist.GateExpander.PluginIdentifier, nil
+		for _, entry := range whitelist.GateExpander {
+			identifiers[entry.PluginIdentifier] = true
 		}
 	case processorattestation.FamilyMultiband:
-		if whitelist.Multiband != nil {
-			return whitelist.Multiband.PluginIdentifier, nil
+		for _, entry := range whitelist.Multiband {
+			identifiers[entry.PluginIdentifier] = true
 		}
 	}
-	return "", nil
+	return identifiers, nil
 }
 
 // axisCoverageGovernedPluginRecommendationCandidates applies the three-way
@@ -126,13 +128,13 @@ func axisCoverageGovernedPluginRecommendationCandidates(candidates []pluginRecom
 	if err != nil {
 		return nil, nil, fmt.Errorf("frozen semantic intent cannot govern recommendation eligibility: %w", err)
 	}
-	whitelistIdentifier, err := axisCoverageWhitelistIdentifier(requirement.ProcessorFamily)
+	whitelistIdentifiers, err := axisCoverageWhitelistIdentifiers(requirement.ProcessorFamily)
 	if err != nil {
 		return nil, nil, err
 	}
 	out := make([]pluginRecommendationCandidate, 0, len(candidates))
 	for _, candidate := range candidates {
-		if whitelistIdentifier == "" || !strings.EqualFold(strings.TrimSpace(candidate.Identifier), strings.TrimSpace(whitelistIdentifier)) {
+		if len(whitelistIdentifiers) == 0 || !whitelistIdentifiers[strings.TrimSpace(candidate.Identifier)] {
 			continue
 		}
 		result, queryErr := processorattestation.QueryInstalled(processorattestation.InstalledSubject{Subject: processorattestation.Subject{

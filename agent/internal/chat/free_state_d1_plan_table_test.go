@@ -44,7 +44,7 @@ func d1TableWriteWhitelistFixture(t *testing.T) d1TableWhitelistFixture {
 	fixture := d1TableWhitelistFixture{
 		Whitelist: experimentplugins.Whitelist{
 			SchemaVersion: experimentplugins.SchemaVersion,
-			StaticEQ: &experimentplugins.StaticEQPlugin{
+			StaticEQ: experimentplugins.StaticEQPlugins{experimentplugins.StaticEQPlugin{
 				PluginName:       "Fixture EQ",
 				Manufacturer:     "Fixture",
 				Format:           "VST3",
@@ -54,7 +54,7 @@ func d1TableWriteWhitelistFixture(t *testing.T) d1TableWhitelistFixture {
 					{CenterHz: 100, GainParamIDCH1: "p100_c1", GainParamIDCH2: "p100_c2"},
 					{CenterHz: 315, GainParamIDCH1: "p315_c1", GainParamIDCH2: "p315_c2"},
 					{CenterHz: 4000, GainParamIDCH1: "p4000_c1", GainParamIDCH2: "p4000_c2"},
-				},
+				}},
 			},
 		},
 		PluginPath:  pluginPath,

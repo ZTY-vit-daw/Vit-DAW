@@ -39,14 +39,14 @@ func d1MultibandWhitelistFixtureOnDisk(t *testing.T) d1MultibandWhitelistFixture
 	fixture := d1MultibandWhitelistFixture{
 		Whitelist: experimentplugins.Whitelist{
 			SchemaVersion: experimentplugins.SchemaVersion,
-			Multiband: &experimentplugins.MultibandPlugin{
+			Multiband: experimentplugins.MultibandPlugins{experimentplugins.MultibandPlugin{
 				PluginName:            "Fixture MBC",
 				Manufacturer:          "Fixture",
 				Format:                "VST3",
 				PluginIdentifier:      "fixture-mbc",
 				PluginPath:            pluginPath,
 				BandThresholdParamIDs: []string{"mb_low_threshold", "mb_mid_threshold", "mb_high_threshold"},
-			},
+			}},
 		},
 		PluginPath:  pluginPath,
 		Fingerprint: fingerprint,

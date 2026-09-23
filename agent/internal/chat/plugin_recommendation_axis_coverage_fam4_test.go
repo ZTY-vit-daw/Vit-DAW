@@ -13,7 +13,7 @@ import (
 
 // The D2-FAM4-S2 limiter governance fixture reproduces the 20260902_082924
 // main-run wall: Pro-L 2 is family-promoted and covers the frozen
-// output_ceiling axis, but axisCoverageWhitelistIdentifier had no limiter
+// output_ceiling axis, but axisCoverageWhitelistIdentifiers had no limiter
 // case, so the whitelist-form gate emptied the offered set and the honest
 // empty-set response stopped the chain before any selection or load.
 func axisCoverageLimiterFixture(t *testing.T) (processorattestation.Subject, []pluginRecommendationCandidate) {
@@ -59,10 +59,10 @@ func axisCoverageLimiterFixture(t *testing.T) (processorattestation.Subject, []p
 	d1StaticEQWhitelistLoader = func() (experimentplugins.Whitelist, error) {
 		return experimentplugins.Whitelist{
 			SchemaVersion: experimentplugins.SchemaVersion,
-			Limiter: &experimentplugins.LimiterPlugin{
+			Limiter: experimentplugins.LimiterPlugins{experimentplugins.LimiterPlugin{
 				PluginName: "Pro-L 2", Manufacturer: "FabFilter", Format: "VST3",
 				PluginIdentifier: proL.Identifier, PluginPath: proL.InstalledPath, CeilingParamID: "18",
-			},
+			}},
 		}, nil
 	}
 	t.Cleanup(func() { d1StaticEQWhitelistLoader = previous })
@@ -122,18 +122,18 @@ func TestAxisCoverageWhitelistIdentifierResolvesGateExpanderSection(t *testing.T
 	d1StaticEQWhitelistLoader = func() (experimentplugins.Whitelist, error) {
 		return experimentplugins.Whitelist{
 			SchemaVersion: experimentplugins.SchemaVersion,
-			GateExpander: &experimentplugins.GateExpanderPlugin{
+			GateExpander: experimentplugins.GateExpanderPlugins{experimentplugins.GateExpanderPlugin{
 				PluginName: "Pro-G", Manufacturer: "FabFilter", Format: "VST3",
 				PluginIdentifier: "VST3-Pro-G-38fcf5ad-5a6e43a2", PluginPath: "C:/plugins/FabFilter Pro-G.vst3", RangeParamID: "4",
-			},
+			}},
 		}, nil
 	}
 	t.Cleanup(func() { d1StaticEQWhitelistLoader = previous })
-	identifier, err := axisCoverageWhitelistIdentifier(processorattestation.FamilyGateExpander)
+	identifierSet, err := axisCoverageWhitelistIdentifiers(processorattestation.FamilyGateExpander)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if identifier != "VST3-Pro-G-38fcf5ad-5a6e43a2" {
-		t.Fatalf("gate_expander whitelist identifier=%q", identifier)
+	if !identifierSet["VST3-Pro-G-38fcf5ad-5a6e43a2"] {
+		t.Fatalf("gate_expander whitelist identifiers=%v", identifierSet)
 	}
 }

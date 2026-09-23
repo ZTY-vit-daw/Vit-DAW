@@ -64,7 +64,7 @@ func TestPluginBoundPlanArgsCarryWhitelistPluginIdentifier(t *testing.T) {
 		t.Fatal(err)
 	}
 	args := plan.ActionSet.Actions[0].Args
-	if got := args["plugin_identifier"]; got != fixture.Whitelist.BroadbandCompression.PluginIdentifier {
+	if got := args["plugin_identifier"]; got != fixture.Whitelist.BroadbandCompression[0].PluginIdentifier {
 		t.Fatalf("PluginBound plan must pin the whitelist plugin identifier for shell carriers: args=%+v", args)
 	}
 

@@ -14,6 +14,14 @@
 // same v5 revision then gained the gate_expander section (FAM5-S1) and the
 // multiband section (FAM6-S1): a per-band threshold id list (Lindell MBC,
 // pluginprobe 2026-09-02), per the same reuse-one-version coordination.
+//
+// Schema v6 (FIX-PLUGIN-SELECT-1) evolves every family value from one object
+// to a candidate entry array — the entry shape is identical to v5
+// field-for-field. The loader accepts v5 (a single object normalizes to a
+// single-element list, preserving the historical single-candidate behavior)
+// and v6, and fails closed on every other schema_version. Duplicate
+// plugin_identifier values inside one family are corrupt: admission
+// membership must always resolve exactly one entry.
 package experimentplugins
 
 import (
@@ -30,7 +38,14 @@ import (
 	"vit-daw-agent/internal/processorattestation"
 )
 
-const SchemaVersion = "vit.free_state_experiment_plugins.v5"
+// SchemaVersion is the canonical in-memory (and v6 wire) schema version: a
+// loaded whitelist always reports this version regardless of whether it came
+// from a v5 or a v6 file.
+const SchemaVersion = "vit.free_state_experiment_plugins.v6"
+
+// SchemaVersionV5 is the legacy single-object-per-family wire form the loader
+// still accepts (each configured family normalizes to a one-element list).
+const SchemaVersionV5 = "vit.free_state_experiment_plugins.v5"
 
 const freeStateExperimentPluginsFileName = "free_state_experiment_plugins.json"
 
@@ -128,15 +143,107 @@ type MultibandPlugin struct {
 	BandThresholdParamIDs []string `json:"band_threshold_param_ids"`
 }
 
+// StaticEQPlugins is the v6 static_eq candidate list. Its decoder accepts the
+// v6 array form and the v5 single-object form (one-element list) with the
+// same unknown-field strictness the v5 loader enforced.
+type StaticEQPlugins []StaticEQPlugin
+
+// BroadbandCompressionPlugins is the v6 broadband_compression candidate list.
+type BroadbandCompressionPlugins []BroadbandCompressionPlugin
+
+// DeEsserPlugins is the v6 de_esser candidate list.
+type DeEsserPlugins []DeEsserPlugin
+
+// TransientShaperPlugins is the v6 transient_shaper candidate list.
+type TransientShaperPlugins []TransientShaperPlugin
+
+// LimiterPlugins is the v6 limiter candidate list.
+type LimiterPlugins []LimiterPlugin
+
+// GateExpanderPlugins is the v6 gate_expander candidate list.
+type GateExpanderPlugins []GateExpanderPlugin
+
+// MultibandPlugins is the v6 multiband candidate list.
+type MultibandPlugins []MultibandPlugin
+
+func (p *StaticEQPlugins) UnmarshalJSON(data []byte) error {
+	entries, err := unmarshalFamilyEntries[StaticEQPlugin](data)
+	*p = entries
+	return err
+}
+
+func (p *BroadbandCompressionPlugins) UnmarshalJSON(data []byte) error {
+	entries, err := unmarshalFamilyEntries[BroadbandCompressionPlugin](data)
+	*p = entries
+	return err
+}
+
+func (p *DeEsserPlugins) UnmarshalJSON(data []byte) error {
+	entries, err := unmarshalFamilyEntries[DeEsserPlugin](data)
+	*p = entries
+	return err
+}
+
+func (p *TransientShaperPlugins) UnmarshalJSON(data []byte) error {
+	entries, err := unmarshalFamilyEntries[TransientShaperPlugin](data)
+	*p = entries
+	return err
+}
+
+func (p *LimiterPlugins) UnmarshalJSON(data []byte) error {
+	entries, err := unmarshalFamilyEntries[LimiterPlugin](data)
+	*p = entries
+	return err
+}
+
+func (p *GateExpanderPlugins) UnmarshalJSON(data []byte) error {
+	entries, err := unmarshalFamilyEntries[GateExpanderPlugin](data)
+	*p = entries
+	return err
+}
+
+func (p *MultibandPlugins) UnmarshalJSON(data []byte) error {
+	entries, err := unmarshalFamilyEntries[MultibandPlugin](data)
+	*p = entries
+	return err
+}
+
+// unmarshalFamilyEntries decodes one whitelist family in either wire form:
+// the v6 entry array or the v5 single object (normalized to a one-element
+// list). null decodes to a nil list (section absent). Unknown fields stay
+// rejected inside every entry.
+func unmarshalFamilyEntries[T any](data []byte) ([]T, error) {
+	trimmed := bytes.TrimSpace(data)
+	if len(trimmed) == 0 || string(trimmed) == "null" {
+		return nil, nil
+	}
+	if trimmed[0] == '[' {
+		decoder := json.NewDecoder(bytes.NewReader(data))
+		decoder.DisallowUnknownFields()
+		var entries []T
+		if err := decoder.Decode(&entries); err != nil {
+			return nil, err
+		}
+		return entries, nil
+	}
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	var single T
+	if err := decoder.Decode(&single); err != nil {
+		return nil, err
+	}
+	return []T{single}, nil
+}
+
 type Whitelist struct {
 	SchemaVersion        string                      `json:"schema_version"`
-	StaticEQ             *StaticEQPlugin             `json:"static_eq,omitempty"`
-	BroadbandCompression *BroadbandCompressionPlugin `json:"broadband_compression,omitempty"`
-	DeEsser              *DeEsserPlugin              `json:"de_esser,omitempty"`
-	TransientShaper      *TransientShaperPlugin      `json:"transient_shaper,omitempty"`
-	Limiter              *LimiterPlugin              `json:"limiter,omitempty"`
-	GateExpander         *GateExpanderPlugin         `json:"gate_expander,omitempty"`
-	Multiband            *MultibandPlugin            `json:"multiband,omitempty"`
+	StaticEQ             StaticEQPlugins             `json:"static_eq,omitempty"`
+	BroadbandCompression BroadbandCompressionPlugins `json:"broadband_compression,omitempty"`
+	DeEsser              DeEsserPlugins              `json:"de_esser,omitempty"`
+	TransientShaper      TransientShaperPlugins      `json:"transient_shaper,omitempty"`
+	Limiter              LimiterPlugins              `json:"limiter,omitempty"`
+	GateExpander         GateExpanderPlugins         `json:"gate_expander,omitempty"`
+	Multiband            MultibandPlugins            `json:"multiband,omitempty"`
 }
 
 var ErrNotConfigured = errors.New("experiment plugin whitelist: static_eq plugin is not configured")
@@ -178,45 +285,230 @@ func Load(path string) (Whitelist, error) {
 	if err := decoder.Decode(&struct{}{}); !errors.Is(err, io.EOF) {
 		return Whitelist{}, fmt.Errorf("experiment plugin whitelist: invalid %s: trailing JSON content", path)
 	}
-	if whitelist.SchemaVersion != SchemaVersion {
-		return Whitelist{}, fmt.Errorf("experiment plugin whitelist: invalid %s: schema_version must be %q but got %q", path, SchemaVersion, whitelist.SchemaVersion)
+	switch whitelist.SchemaVersion {
+	case SchemaVersion:
+	case SchemaVersionV5:
+		// Compatibility valve: the v5 wire form loads with identical
+		// semantics (each single object becomes a one-element candidate
+		// list) and the loaded whitelist is canonicalized to v6.
+		whitelist.SchemaVersion = SchemaVersion
+	default:
+		return Whitelist{}, fmt.Errorf("experiment plugin whitelist: invalid %s: schema_version must be %q or %q but got %q", path, SchemaVersion, SchemaVersionV5, whitelist.SchemaVersion)
 	}
-	if whitelist.StaticEQ != nil {
-		if err := validateStaticEQPlugin(*whitelist.StaticEQ); err != nil {
+	for _, plugin := range whitelist.StaticEQ {
+		if err := validateStaticEQPlugin(plugin); err != nil {
 			return Whitelist{}, fmt.Errorf("experiment plugin whitelist: invalid %s: %w", path, err)
 		}
 	}
-	if whitelist.BroadbandCompression != nil {
-		if err := validateBroadbandCompressionPlugin(*whitelist.BroadbandCompression); err != nil {
+	for _, plugin := range whitelist.BroadbandCompression {
+		if err := validateBroadbandCompressionPlugin(plugin); err != nil {
 			return Whitelist{}, fmt.Errorf("experiment plugin whitelist: invalid %s: %w", path, err)
 		}
 	}
-	if whitelist.DeEsser != nil {
-		if err := validateDeEsserPlugin(*whitelist.DeEsser); err != nil {
+	for _, plugin := range whitelist.DeEsser {
+		if err := validateDeEsserPlugin(plugin); err != nil {
 			return Whitelist{}, fmt.Errorf("experiment plugin whitelist: invalid %s: %w", path, err)
 		}
 	}
-	if whitelist.TransientShaper != nil {
-		if err := validateTransientShaperPlugin(*whitelist.TransientShaper); err != nil {
+	for _, plugin := range whitelist.TransientShaper {
+		if err := validateTransientShaperPlugin(plugin); err != nil {
 			return Whitelist{}, fmt.Errorf("experiment plugin whitelist: invalid %s: %w", path, err)
 		}
 	}
-	if whitelist.Limiter != nil {
-		if err := validateLimiterPlugin(*whitelist.Limiter); err != nil {
+	for _, plugin := range whitelist.Limiter {
+		if err := validateLimiterPlugin(plugin); err != nil {
 			return Whitelist{}, fmt.Errorf("experiment plugin whitelist: invalid %s: %w", path, err)
 		}
 	}
-	if whitelist.GateExpander != nil {
-		if err := validateGateExpanderPlugin(*whitelist.GateExpander); err != nil {
+	for _, plugin := range whitelist.GateExpander {
+		if err := validateGateExpanderPlugin(plugin); err != nil {
 			return Whitelist{}, fmt.Errorf("experiment plugin whitelist: invalid %s: %w", path, err)
 		}
 	}
-	if whitelist.Multiband != nil {
-		if err := validateMultibandPlugin(*whitelist.Multiband); err != nil {
+	for _, plugin := range whitelist.Multiband {
+		if err := validateMultibandPlugin(plugin); err != nil {
 			return Whitelist{}, fmt.Errorf("experiment plugin whitelist: invalid %s: %w", path, err)
+		}
+	}
+	for _, family := range []struct {
+		label       string
+		identifiers []string
+	}{
+		{"static_eq", staticEQIdentifiers(whitelist.StaticEQ)},
+		{"broadband_compression", broadbandCompressionIdentifiers(whitelist.BroadbandCompression)},
+		{"de_esser", deEsserIdentifiers(whitelist.DeEsser)},
+		{"transient_shaper", transientShaperIdentifiers(whitelist.TransientShaper)},
+		{"limiter", limiterIdentifiers(whitelist.Limiter)},
+		{"gate_expander", gateExpanderIdentifiers(whitelist.GateExpander)},
+		{"multiband", multibandIdentifiers(whitelist.Multiband)},
+	} {
+		seen := map[string]bool{}
+		for index, identifier := range family.identifiers {
+			if seen[identifier] {
+				return Whitelist{}, fmt.Errorf("experiment plugin whitelist: invalid %s: %s entry %d duplicates plugin_identifier %q", path, family.label, index, identifier)
+			}
+			seen[identifier] = true
 		}
 	}
 	return whitelist, nil
+}
+
+func staticEQIdentifiers(entries StaticEQPlugins) []string {
+	out := make([]string, 0, len(entries))
+	for _, entry := range entries {
+		out = append(out, entry.PluginIdentifier)
+	}
+	return out
+}
+
+func broadbandCompressionIdentifiers(entries BroadbandCompressionPlugins) []string {
+	out := make([]string, 0, len(entries))
+	for _, entry := range entries {
+		out = append(out, entry.PluginIdentifier)
+	}
+	return out
+}
+
+func deEsserIdentifiers(entries DeEsserPlugins) []string {
+	out := make([]string, 0, len(entries))
+	for _, entry := range entries {
+		out = append(out, entry.PluginIdentifier)
+	}
+	return out
+}
+
+func transientShaperIdentifiers(entries TransientShaperPlugins) []string {
+	out := make([]string, 0, len(entries))
+	for _, entry := range entries {
+		out = append(out, entry.PluginIdentifier)
+	}
+	return out
+}
+
+func limiterIdentifiers(entries LimiterPlugins) []string {
+	out := make([]string, 0, len(entries))
+	for _, entry := range entries {
+		out = append(out, entry.PluginIdentifier)
+	}
+	return out
+}
+
+func gateExpanderIdentifiers(entries GateExpanderPlugins) []string {
+	out := make([]string, 0, len(entries))
+	for _, entry := range entries {
+		out = append(out, entry.PluginIdentifier)
+	}
+	return out
+}
+
+func multibandIdentifiers(entries MultibandPlugins) []string {
+	out := make([]string, 0, len(entries))
+	for _, entry := range entries {
+		out = append(out, entry.PluginIdentifier)
+	}
+	return out
+}
+
+// selectFamilyEntry is the shared membership core behind every per-family
+// Select method: one candidate resolves with or without a pin (a wrong pin
+// keeps the historical exact-equality refusal wording); more than one
+// candidate requires the pin and names the admitted set on refusal.
+func selectFamilyEntry[T any](label, pinned string, entries []T, notConfigured error, identifierOf func(T) string) (T, error) {
+	var zero T
+	if len(entries) == 0 {
+		return zero, notConfigured
+	}
+	if len(entries) == 1 {
+		identifier := identifierOf(entries[0])
+		if pinned == "" || strings.EqualFold(strings.TrimSpace(pinned), identifier) {
+			return entries[0], nil
+		}
+		return zero, fmt.Errorf("%s admission pinned plugin_identifier %q but the experiment plugin whitelist admits %q", label, pinned, identifier)
+	}
+	identifiers := make([]string, 0, len(entries))
+	for _, entry := range entries {
+		identifiers = append(identifiers, identifierOf(entry))
+	}
+	if pinned == "" {
+		return zero, fmt.Errorf("%s admission requires a pinned plugin_identifier to select among %d admitted candidates", label, len(entries))
+	}
+	for _, entry := range entries {
+		if strings.EqualFold(strings.TrimSpace(pinned), identifierOf(entry)) {
+			return entry, nil
+		}
+	}
+	quoted := make([]string, 0, len(identifiers))
+	for _, identifier := range identifiers {
+		quoted = append(quoted, fmt.Sprintf("%q", identifier))
+	}
+	return zero, fmt.Errorf("%s admission pinned plugin_identifier %q but the experiment plugin whitelist admits one of: %s", label, pinned, strings.Join(quoted, ", "))
+}
+
+// SelectStaticEQ resolves the static_eq candidate the admission pinned: the
+// pinned identifier must be a list member (case-insensitive); an empty pin
+// resolves the only entry of a single-candidate family and is ambiguous
+// (refused) when the family carries more than one candidate.
+func (w Whitelist) SelectStaticEQ(pluginIdentifier string) (StaticEQPlugin, error) {
+	return selectFamilyEntry("static_eq", pluginIdentifier, w.StaticEQ, ErrNotConfigured, func(p StaticEQPlugin) string { return p.PluginIdentifier })
+}
+
+// SelectBroadbandCompression mirrors SelectStaticEQ for broadband_compression.
+func (w Whitelist) SelectBroadbandCompression(pluginIdentifier string) (BroadbandCompressionPlugin, error) {
+	return selectFamilyEntry("broadband_compression", pluginIdentifier, w.BroadbandCompression, ErrCompressionNotConfigured, func(p BroadbandCompressionPlugin) string { return p.PluginIdentifier })
+}
+
+// SelectDeEsser mirrors SelectStaticEQ for de_esser.
+func (w Whitelist) SelectDeEsser(pluginIdentifier string) (DeEsserPlugin, error) {
+	return selectFamilyEntry("de_esser", pluginIdentifier, w.DeEsser, ErrDeEsserNotConfigured, func(p DeEsserPlugin) string { return p.PluginIdentifier })
+}
+
+// SelectTransientShaper mirrors SelectStaticEQ for transient_shaper.
+func (w Whitelist) SelectTransientShaper(pluginIdentifier string) (TransientShaperPlugin, error) {
+	return selectFamilyEntry("transient_shaper", pluginIdentifier, w.TransientShaper, ErrTransientShaperNotConfigured, func(p TransientShaperPlugin) string { return p.PluginIdentifier })
+}
+
+// SelectLimiter mirrors SelectStaticEQ for limiter.
+func (w Whitelist) SelectLimiter(pluginIdentifier string) (LimiterPlugin, error) {
+	return selectFamilyEntry("limiter", pluginIdentifier, w.Limiter, ErrLimiterNotConfigured, func(p LimiterPlugin) string { return p.PluginIdentifier })
+}
+
+// SelectGateExpander mirrors SelectStaticEQ for gate_expander.
+func (w Whitelist) SelectGateExpander(pluginIdentifier string) (GateExpanderPlugin, error) {
+	return selectFamilyEntry("gate_expander", pluginIdentifier, w.GateExpander, ErrGateExpanderNotConfigured, func(p GateExpanderPlugin) string { return p.PluginIdentifier })
+}
+
+// SelectMultiband mirrors SelectStaticEQ for multiband.
+func (w Whitelist) SelectMultiband(pluginIdentifier string) (MultibandPlugin, error) {
+	return selectFamilyEntry("multiband", pluginIdentifier, w.Multiband, ErrMultibandNotConfigured, func(p MultibandPlugin) string { return p.PluginIdentifier })
+}
+
+// NearestBand maps one admitted frequency onto this plugin's nearest band
+// center (ties prefer the lower center).
+func (p StaticEQPlugin) NearestBand(frequencyHz float64) (Band, error) {
+	if len(p.Bands) == 0 {
+		return Band{}, ErrNotConfigured
+	}
+	best := p.Bands[0]
+	bestDistance := math.Abs(best.CenterHz - frequencyHz)
+	for _, band := range p.Bands[1:] {
+		distance := math.Abs(band.CenterHz - frequencyHz)
+		if distance < bestDistance || (distance == bestDistance && band.CenterHz < best.CenterHz) {
+			best = band
+			bestDistance = distance
+		}
+	}
+	return best, nil
+}
+
+// NearestStaticEQBand selects the static_eq entry with the same membership
+// rule the admission uses, then maps the frequency onto that entry's nearest
+// band center.
+func (w Whitelist) NearestStaticEQBand(frequencyHz float64, pluginIdentifier string) (Band, error) {
+	selected, err := w.SelectStaticEQ(pluginIdentifier)
+	if err != nil {
+		return Band{}, err
+	}
+	return selected.NearestBand(frequencyHz)
 }
 
 func validateStaticEQPlugin(plugin StaticEQPlugin) error {
@@ -258,53 +550,50 @@ func validateStaticEQPlugin(plugin StaticEQPlugin) error {
 	return nil
 }
 
-func (w Whitelist) NearestStaticEQBand(frequencyHz float64) (Band, error) {
-	if w.StaticEQ == nil {
-		return Band{}, ErrNotConfigured
-	}
-	best := w.StaticEQ.Bands[0]
-	bestDistance := math.Abs(best.CenterHz - frequencyHz)
-	for _, band := range w.StaticEQ.Bands[1:] {
-		distance := math.Abs(band.CenterHz - frequencyHz)
-		if distance < bestDistance || (distance == bestDistance && band.CenterHz < best.CenterHz) {
-			best = band
-			bestDistance = distance
-		}
-	}
-	return best, nil
-}
-
-func (w Whitelist) ValidateStaticEQAdmission(lib processorattestation.Library) error {
-	if w.StaticEQ == nil {
+// ValidateStaticEQAdmission runs the PCA admission predicate for the entry
+// the pluginIdentifier selects (empty pin = the only entry of a
+// single-candidate family, exactly the pre-v6 behavior).
+func (w Whitelist) ValidateStaticEQAdmission(lib processorattestation.Library, pluginIdentifier string) error {
+	if len(w.StaticEQ) == 0 {
 		return ErrNotConfigured
+	}
+	selected, err := w.SelectStaticEQ(pluginIdentifier)
+	if err != nil {
+		return err
 	}
 	return w.validateSectionAdmission(
 		"static_eq",
-		w.StaticEQ.PluginName, w.StaticEQ.Manufacturer, w.StaticEQ.Format, w.StaticEQ.PluginIdentifier, w.StaticEQ.PluginPath,
+		selected.PluginName, selected.Manufacturer, selected.Format, selected.PluginIdentifier, selected.PluginPath,
 		processorattestation.FamilyStaticEQ, lib,
 	)
 }
 
-// BroadbandThresholdParams returns the whitelisted dual-channel threshold
-// parameter ids for one broadband_compression execution.
-func (w Whitelist) BroadbandThresholdParams() (thresholdCH1, thresholdCH2 string, err error) {
-	if w.BroadbandCompression == nil {
-		return "", "", ErrCompressionNotConfigured
+// BroadbandThresholdParams returns the selected whitelisted plugin's
+// dual-channel threshold parameter ids for one broadband_compression
+// execution.
+func (w Whitelist) BroadbandThresholdParams(pluginIdentifier string) (thresholdCH1, thresholdCH2 string, err error) {
+	selected, err := w.SelectBroadbandCompression(pluginIdentifier)
+	if err != nil {
+		return "", "", err
 	}
-	return w.BroadbandCompression.ThresholdParamIDCH1, w.BroadbandCompression.ThresholdParamIDCH2, nil
+	return selected.ThresholdParamIDCH1, selected.ThresholdParamIDCH2, nil
 }
 
 // ValidateCompressionAdmission mirrors ValidateStaticEQAdmission for the
 // broadband_compression whitelist section: same subject construction, same
 // v1 library predicate family path, and a distinguishable not-PCA-promoted
 // prefix naming this domain.
-func (w Whitelist) ValidateCompressionAdmission(lib processorattestation.Library) error {
-	if w.BroadbandCompression == nil {
+func (w Whitelist) ValidateCompressionAdmission(lib processorattestation.Library, pluginIdentifier string) error {
+	if len(w.BroadbandCompression) == 0 {
 		return ErrCompressionNotConfigured
+	}
+	selected, err := w.SelectBroadbandCompression(pluginIdentifier)
+	if err != nil {
+		return err
 	}
 	return w.validateSectionAdmission(
 		"broadband_compression",
-		w.BroadbandCompression.PluginName, w.BroadbandCompression.Manufacturer, w.BroadbandCompression.Format, w.BroadbandCompression.PluginIdentifier, w.BroadbandCompression.PluginPath,
+		selected.PluginName, selected.Manufacturer, selected.Format, selected.PluginIdentifier, selected.PluginPath,
 		processorattestation.FamilyBroadbandCompressor, lib,
 	)
 }
@@ -314,13 +603,17 @@ func (w Whitelist) ValidateCompressionAdmission(lib processorattestation.Library
 // ruling on D2-FAM1-S1 (Form A dispatch) this predicate takes the v2
 // attestation library; the subject construction and boundary wording stay
 // identical to the v1 sections.
-func (w Whitelist) ValidateDeEsserAdmission(lib processorattestation.LibraryV2) error {
-	if w.DeEsser == nil {
+func (w Whitelist) ValidateDeEsserAdmission(lib processorattestation.LibraryV2, pluginIdentifier string) error {
+	if len(w.DeEsser) == 0 {
 		return ErrDeEsserNotConfigured
+	}
+	selected, err := w.SelectDeEsser(pluginIdentifier)
+	if err != nil {
+		return err
 	}
 	return w.validateSectionAdmissionV2(
 		"de_esser",
-		w.DeEsser.PluginName, w.DeEsser.Manufacturer, w.DeEsser.Format, w.DeEsser.PluginIdentifier, w.DeEsser.PluginPath,
+		selected.PluginName, selected.Manufacturer, selected.Format, selected.PluginIdentifier, selected.PluginPath,
 		processorattestation.FamilyDeEsser, lib,
 	)
 }
@@ -329,13 +622,17 @@ func (w Whitelist) ValidateDeEsserAdmission(lib processorattestation.LibraryV2) 
 // transient_shaper whitelist section: same subject construction, same v2
 // library predicate path (transient_shaper is a PCA v2 family), and a
 // distinguishable not-PCA-promoted prefix naming this domain.
-func (w Whitelist) ValidateTransientShaperAdmission(lib processorattestation.LibraryV2) error {
-	if w.TransientShaper == nil {
+func (w Whitelist) ValidateTransientShaperAdmission(lib processorattestation.LibraryV2, pluginIdentifier string) error {
+	if len(w.TransientShaper) == 0 {
 		return ErrTransientShaperNotConfigured
+	}
+	selected, err := w.SelectTransientShaper(pluginIdentifier)
+	if err != nil {
+		return err
 	}
 	return w.validateSectionAdmissionV2(
 		"transient_shaper",
-		w.TransientShaper.PluginName, w.TransientShaper.Manufacturer, w.TransientShaper.Format, w.TransientShaper.PluginIdentifier, w.TransientShaper.PluginPath,
+		selected.PluginName, selected.Manufacturer, selected.Format, selected.PluginIdentifier, selected.PluginPath,
 		processorattestation.FamilyTransient, lib,
 	)
 }
@@ -344,13 +641,17 @@ func (w Whitelist) ValidateTransientShaperAdmission(lib processorattestation.Lib
 // limiter whitelist section: same subject construction, same v2 library
 // predicate path (limiter is a PCA v2 family), and a distinguishable
 // not-PCA-promoted prefix naming this domain.
-func (w Whitelist) ValidateLimiterAdmission(lib processorattestation.LibraryV2) error {
-	if w.Limiter == nil {
+func (w Whitelist) ValidateLimiterAdmission(lib processorattestation.LibraryV2, pluginIdentifier string) error {
+	if len(w.Limiter) == 0 {
 		return ErrLimiterNotConfigured
+	}
+	selected, err := w.SelectLimiter(pluginIdentifier)
+	if err != nil {
+		return err
 	}
 	return w.validateSectionAdmissionV2(
 		"limiter",
-		w.Limiter.PluginName, w.Limiter.Manufacturer, w.Limiter.Format, w.Limiter.PluginIdentifier, w.Limiter.PluginPath,
+		selected.PluginName, selected.Manufacturer, selected.Format, selected.PluginIdentifier, selected.PluginPath,
 		processorattestation.FamilyLimiter, lib,
 	)
 }
@@ -359,13 +660,17 @@ func (w Whitelist) ValidateLimiterAdmission(lib processorattestation.LibraryV2) 
 // gate_expander whitelist section: same subject construction, same v2 library
 // predicate path (gate_expander is a PCA v2 family), and a distinguishable
 // not-PCA-promoted prefix naming this domain.
-func (w Whitelist) ValidateGateExpanderAdmission(lib processorattestation.LibraryV2) error {
-	if w.GateExpander == nil {
+func (w Whitelist) ValidateGateExpanderAdmission(lib processorattestation.LibraryV2, pluginIdentifier string) error {
+	if len(w.GateExpander) == 0 {
 		return ErrGateExpanderNotConfigured
+	}
+	selected, err := w.SelectGateExpander(pluginIdentifier)
+	if err != nil {
+		return err
 	}
 	return w.validateSectionAdmissionV2(
 		"gate_expander",
-		w.GateExpander.PluginName, w.GateExpander.Manufacturer, w.GateExpander.Format, w.GateExpander.PluginIdentifier, w.GateExpander.PluginPath,
+		selected.PluginName, selected.Manufacturer, selected.Format, selected.PluginIdentifier, selected.PluginPath,
 		processorattestation.FamilyGateExpander, lib,
 	)
 }
@@ -374,13 +679,17 @@ func (w Whitelist) ValidateGateExpanderAdmission(lib processorattestation.Librar
 // multiband whitelist section: same subject construction, same v2 library
 // predicate path (multiband_dynamics is a PCA v2 family), and a
 // distinguishable not-PCA-promoted prefix naming this domain.
-func (w Whitelist) ValidateMultibandAdmission(lib processorattestation.LibraryV2) error {
-	if w.Multiband == nil {
+func (w Whitelist) ValidateMultibandAdmission(lib processorattestation.LibraryV2, pluginIdentifier string) error {
+	if len(w.Multiband) == 0 {
 		return ErrMultibandNotConfigured
+	}
+	selected, err := w.SelectMultiband(pluginIdentifier)
+	if err != nil {
+		return err
 	}
 	return w.validateSectionAdmissionV2(
 		"multiband",
-		w.Multiband.PluginName, w.Multiband.Manufacturer, w.Multiband.Format, w.Multiband.PluginIdentifier, w.Multiband.PluginPath,
+		selected.PluginName, selected.Manufacturer, selected.Format, selected.PluginIdentifier, selected.PluginPath,
 		processorattestation.FamilyMultiband, lib,
 	)
 }
