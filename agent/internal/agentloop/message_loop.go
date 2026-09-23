@@ -563,6 +563,62 @@ func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Resu
 				}
 				return r.fail(state, fmt.Errorf("Agent 返回的计划格式不完整，自动修复也没有得到可执行计划"))
 			}
+			// FIX-REPAIR-CLARIFY-DEATH-1: a successful repair's raw output is
+			// itself evidence. The forensic boundary showed repair outputs were
+			// never persisted, so the actual repaired form had to be inferred
+			// from downstream behavior.
+			appendMessageLoopDiagnostic(messageLoopDiagnostic{
+				Stage:             "repair_succeeded",
+				GoalID:            state.goal.GoalID,
+				RunID:             state.goal.RunID,
+				ConversationID:    messageLoopConversationID(state),
+				PromptFingerprint: assembly.Fingerprint,
+				Raw:               repairedRaw,
+			})
+			// FIX-REPAIR-CLARIFY-DEATH-1: under an active audio closure the
+			// repair contract forbids clarification shapes. A repair that
+			// parses but returns one gets exactly one reinforced repair before
+			// the NeedsClarification pause — and the chat-layer protocol-death
+			// classification behind it — may stand.
+			if repairedOut.NeedsClarification && messageLoopAudioClosureActive(state) {
+				appendMessageLoopDiagnostic(messageLoopDiagnostic{
+					Stage:             "repair_clarify_violation",
+					Error:             "closure repair returned a prohibited needs_clarification object; one reinforced repair precedes the protocol-death classification",
+					GoalID:            state.goal.GoalID,
+					RunID:             state.goal.RunID,
+					ConversationID:    messageLoopConversationID(state),
+					PromptFingerprint: assembly.Fingerprint,
+					Raw:               repairedRaw,
+				})
+				state.trace = append(state.trace, planner.TraceEvent{Kind: "planner_repair", Message: "closure repair violated the no-clarification contract; one reinforced repair follows"})
+				reinforcedRaw, reinforceErr := l.repairOutputClarifyReinforced(ctx, state, raw, err, assembly.Fingerprint)
+				state.turnsUsed++
+				reinforceDiag := messageLoopDiagnostic{
+					Stage:             "repair_clarify_reinforce",
+					GoalID:            state.goal.GoalID,
+					RunID:             state.goal.RunID,
+					ConversationID:    messageLoopConversationID(state),
+					PromptFingerprint: assembly.Fingerprint,
+				}
+				if reinforceErr != nil {
+					reinforceDiag.Error = "reinforced repair call failed: " + reinforceErr.Error()
+				} else {
+					reinforceDiag.Raw = reinforcedRaw
+					reinforcedOut, reinforcedParseErr := parseMessageLoopOutput(reinforcedRaw)
+					switch {
+					case reinforcedParseErr != nil:
+						reinforceDiag.Error = "reinforced repair output unparseable: " + reinforcedParseErr.Error()
+					case reinforcedOut.NeedsClarification:
+						reinforceDiag.Error = "reinforced repair still returned a prohibited needs_clarification object; protocol-death classification stands"
+						repairedRaw, repairedOut = reinforcedRaw, reinforcedOut
+						state.trace = append(state.trace, planner.TraceEvent{Kind: "planner_repair", Message: "reinforced closure repair still returned a clarification"})
+					default:
+						repairedRaw, repairedOut = reinforcedRaw, reinforcedOut
+						state.trace = append(state.trace, planner.TraceEvent{Kind: "planner_repair", Message: "reinforced closure repair recovered a compliant output"})
+					}
+				}
+				appendMessageLoopDiagnostic(reinforceDiag)
+			}
 			raw = repairedRaw
 			out = repairedOut
 			state.modelProtocolRepairs++
@@ -4340,6 +4396,44 @@ Do not add markdown fences, comments, prose, multiple objects, or a needs_clarif
 		Messages: messages,
 		Metadata: llm.RequestMetadata{
 			Source:            "message_loop_repair",
+			ConversationID:    messageLoopConversationID(state),
+			GoalID:            state.goal.GoalID,
+			PromptFingerprint: fingerprint,
+		},
+	})
+}
+
+// repairOutputClarifyReinforced is the FIX-REPAIR-CLARIFY-DEATH-1 second
+// attempt after a closure-mode repair parsed but still returned a prohibited
+// needs_clarification object: the ban is restated explicitly and the previous
+// violation is named, so the model gets one bounded chance to recover the
+// original output before the chat-layer protocol-death classification.
+func (l *MessageLoop) repairOutputClarifyReinforced(ctx context.Context, state *runState, raw string, parseErr error, fingerprint string) (string, error) {
+	if l == nil || l.Client == nil {
+		return "", fmt.Errorf("agent message loop LLM client is nil")
+	}
+	rawJSON, _ := json.Marshal(strings.TrimSpace(raw))
+	repairSystem := `You repair one MinimalAudioClosure MessageLoop output after a repair contract violation.
+The original user intent and target are already durably owned by the closure. A previous repair attempt was given this same raw output and violated the contract by returning a needs_clarification object — that form is strictly prohibited and was a protocol violation.
+Repair JSON syntax only; never ask the user to restate the task and never invent a clarification; never return needs_clarification or a clarification_question field.
+Return ONLY one strict JSON object. Preserve a recoverable final, tool_calls, semantic_action, or free_state decision exactly.
+If the semantic content cannot be recovered from the raw output, return exactly:
+{"final":false,"failure_reason":"model_protocol_failure","reply":"","tool_calls":[]}
+Do not add markdown fences, comments, prose, multiple objects, or a needs_clarification field.`
+	messages := []llm.Message{
+		{
+			Role:    "system",
+			Content: repairSystem,
+		},
+		{
+			Role:    "user",
+			Content: fmt.Sprintf("The previous output failed to parse: %s\nA repair attempt on it returned a prohibited needs_clarification object; produce the compliant repair now.\nRaw output as a JSON string:\n%s", parseErr, string(rawJSON)),
+		},
+	}
+	return llm.CompleteText(ctx, l.Client, l.Config, llm.Request{
+		Messages: messages,
+		Metadata: llm.RequestMetadata{
+			Source:            "message_loop_repair_clarify_reinforce",
 			ConversationID:    messageLoopConversationID(state),
 			GoalID:            state.goal.GoalID,
 			PromptFingerprint: fingerprint,
