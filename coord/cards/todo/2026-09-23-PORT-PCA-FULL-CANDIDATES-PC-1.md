@@ -11,6 +11,6 @@
   4. 回执：两端 HEAD+PC 白名单版本/哈希+候选计数表+溯源指针
 - 验收：①盘点表（24 主体↔族↔覆盖轴全可回指）②v6 白名单+溯源+排除项记因 ③overlay 全族回归+非成员 spot ④自选腿证据链 ⑤回执齐备
 - 停止条件：某族认证覆盖与实验轴大面积不对口（候选=1 的族如实保持单候选并记因——机制上单候选合法，只是无选择面）；构建器在 PC 路径/编码不适配 → 上修补构建器（域内小改列明）
-- 领取：
-- 回执：
+- 领取：2026-09-23 步 1 盘点先行领取（HEAD `2b5b1513`，领取时工作树已有改动=default_project.xml+他卡工件，与本卡无重叠；零代码改动）
+- 回执：**步 1 完成**（步 2-4 待 AUTOSWEEP 合并后收窄执行）。工件 `coord/runs/PORT-PCA-FULL-CANDIDATES-PC-1/`（step1_pc_pca_inventory.md 报告 + .json 机读 38 主体全表 + step1_parse.py 可重跑）。要点：24 job 全 pass=12 插件族系×M/S 全 Waves 同壳；晋升真源=attestation store 36 主体全 promoted（22/24 认证主体在册，**C1 comp M/S 认证 pass 未晋升**=compressor 族无 store 消费方，证据实质完整仅收据元数据字段缺失）；严格可派生候选 **27**（de_esser 6/limiter 6/gate 3/transient 2/multiband 10/static_eq 0/broadband 0），歧义 4+决策 2 项上交：①EQ 预期落空（PC 库 0 static_eq 主体，bx_hybrid/Vertigo 非 promoted——legacy 保留待裁）②compressor→broadband 映射+C1 comp 补晋升（+2 候选，threshold=7 锚现成）③attack 轴边界（TransX/SPL，transient 2→5）④Pro-DS 轴判定（de_esser 6→7）；AUTOSWEEP 校准输入=轴命名双层映射+族内角色正例+记因排除模式（族对轴未覆盖三类）+语义桶计数（eq146/dynamics187/unknown356）
 - 验收：
