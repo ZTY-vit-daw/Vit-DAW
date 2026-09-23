@@ -16,5 +16,27 @@
 - 验收：①七族 v6 白名单+全量溯源（每条目↔认证收据/探测可回指，排除项记因）②构建器入仓（脚本+用法注释+溯源输出形态）③多族自选腿证据链（≥2 非 EQ 族或如实记录未触达）④overlay 全族回归+非成员 spot ⑤回执两端 HEAD+白名单版本/哈希+候选计数表
 - 停止条件：某族参数锚定大面积不可派生（>半数主体）→ 记录上交（可能需认证补测另开卡）；构建器入仓遇 scripts/ 域冲突 → 上交
 - 领取：2026-09-23 23:37 CST / origin/main=3ddf8aad4ad58b0627a2cb1d8c602d7b58c6f1b8（fetch 后本地=远端一致，pull --rebase 因两 Workspace 运行时残留被拒按先例 ff-only 确认 already up to date）/ 分支 port/whitelist-builder-1（仓库改动）；领取时工作树残留：M VitApp/Workspace/Settings/.xml + default_project.xml + ?? .zcodeignore + ?? VitApp/Workspace/Artifacts/（运行时状态，不碰）
-- 回执：
+- 回执：（2026-09-24 00:1x CST 自验完成，待决策验收）
+  - **两端 HEAD**：决策侧发卡=3ddf8aa；mac 执行侧 main=5469d58（领取 commit），
+    构建器 commit=a1f2df6（port/whitelist-builder-1，已推 origin）
+  - **白名单版本/哈希**：v6 全候选 23 条目落位 ~/.vit，sha256=324ee2ac03a181d1ebf386481948061e38ad08067ab8701d4eb5ff21beb51496；
+    三候选版备份 sha256=38176f05…（工件 backup/，演示回滚网，overlay 回归可加载）
+  - **候选计数表**：static_eq 3（承接）+ broadband_compression 2（C1 comp M/S 共享单参
+    threshold=7，探测+PC 盘点+收据三方一致）+ de_esser 4 + limiter 4 + multiband 6 +
+    gate 2 + transient 2 = **23**；排除 4 记因（RDeEsser M/S=coverage 无
+    threshold_sensitivity；TransX Wide M/S=envelope_emphasis≠envelope_timing 裁定③；
+    RDeEsser 探测面实有 Threshold id=4、TransX 无 attack 命名参数——探测+收据侧事实
+    一并入溯源行）。卡面 ~27 预期按实际可派生数如实
+  - **验收五件**：①whitelist_v6_full_staged.json+provenance_table_v6_full.json
+    （159 行，身份 S1=S2 逐条+锚 S3+收据 S4 xcheck 14 条 MATCH）②scripts/build_whitelist_v6_full.py
+    入仓 a1f2df6（五源溯源+broadband 共享单参+ch 对形态 fail-closed）③journey run2
+    9/9 all_green 五环证据链（run1 占位分支如实记录；非 EQ 族模型未触达如实记录
+    ——配方指向 EQ；非 EQ 真栈证据=S4 探针 C1 comp Mono rack ok+投影落面+overlay
+    六族 admission）④verify/verify_run.log（七族 membership 23/23+活 store admission+
+    空 pin/非成员 spot+broadband 共享单参+三候选回归，exit 0；包内全量回归 ok）
+    ⑤本回执计数表+两端 HEAD
+  - **工件根**：~/Documents/vit-pca-full-candidates-artifacts/（RUN_LEDGER+probe 48 快照+
+    溯源+备份+验证+两轮 journey；LLM key 零入工件已扫描）
+  - **补充事实**：mac v1 store（rev 7）本已含 C1 comp M/S promoted（broadband_compressor），
+    补晋升无需 import；agent 重建 23:38 sha=e4552df0…；两 Workspace 运行时残留全程未碰
 - 验收：
