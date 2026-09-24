@@ -11,6 +11,6 @@
 - 约束：零主仓代码改动；白名单/内核二进制/前端仓按各腿口径；LLM key 与 token 值零入工件；§8 纪律照旧（sweep/journey 轮）
 - 验收：①二进制双重建+备份哈希 ②HYGIENE 四细腿证据（日志/行为各带指针）③47 例处置计数+白名单新版本+溯源+overlay/journey ④contextruntime mac 绿回执 ⑤前端仓同步 commit+加载确认 ⑥回执两端 HEAD
 - 停止条件：腿 2 构造陈旧条目样本影响真实 Settings 无法还原 → 弃腿 2①如实记录（其余照跑）；token 武装后 47 例处置大面积 failed（>1/3）→ 取证上交；前端同步遇 WIP 冲突 → 分账记录上交
-- 领取：
+- 领取：2026-09-24（mac 执行侧）/ origin/main=e90aea6（与发卡基线一致）/ 分支=main（coord-only，零主仓代码改动卡）；领取时 HEAD=e90aea6，工作树残留：`M VitApp/Workspace/Settings/Settings.xml`、`M VitApp/Workspace/default_project.xml`、`?? .zcodeignore`、`?? VitApp/Workspace/Artifacts/`（均不碰）
 - 回执：
 - 验收：
