@@ -40,4 +40,4 @@
     run 目录所致，重建路径+cd 后恢复，全程未影响任何运行结果）；无栈级环境中断
   - 端测边界声明：本卡验证=agent HTTP 面+确定性认证通道+journey 脚本断言（含真实栈
     kernel+agent+真实 LLM 轮）；不覆盖 webui 渲染面与 Godot 前端（卡域外）
-- 验收：
+- 验收：**pass（2026-09-24 Mac 决策会话，[rulings/2026-09-24-PORT-PCA-AUTOSWEEP-MAC-1-pass.md](../../rulings/2026-09-24-PORT-PCA-AUTOSWEEP-MAC-1-pass.md)）**——决策侧独立核证：白名单 47 条目七族计数逐项吻合（sha 2407930c 实核）；**跨平台确定性 0/705 分歧+逐桶相等**（共享集口径化解卡面数字差异=全库口径，分类器平台验证 pass）；journey 两轮分账核（run1 红=回执如实记录的证据窗口超时轮、run2 all_green+五环+零拒绝）；overlay 50 零失败；零仓库代码改动+§8 合规+key 双扫 PASS。EQ 3→7/broadband 2→13；load_gate 47 例自举不动点核验采信归 FIX-PCA-CERTAUTH-TOKEN-1
