@@ -532,7 +532,14 @@ func TestDefaultSnapshotPathFindsVitAppFromNestedWorkdir(t *testing.T) {
 	if err := os.Chdir(nested); err != nil {
 		t.Fatalf("chdir nested: %v", err)
 	}
-	want := filepath.Join(root, "VitApp", "Workspace", "Logs", "agent_context_snapshots.jsonl")
+	// darwin temp roots sit behind a symlink (/var -> /private/var) that the
+	// chdir already resolved, so build the expectation from the resolved
+	// directory; on EvalSymlinks failure the raw path compares unchanged.
+	resolved := nested
+	if evaluated, err := filepath.EvalSymlinks(nested); err == nil {
+		resolved = evaluated
+	}
+	want := filepath.Join(resolved, "Logs", "agent_context_snapshots.jsonl")
 	if got := DefaultSnapshotPath(); got != want {
 		t.Fatalf("DefaultSnapshotPath() = %q want %q", got, want)
 	}
