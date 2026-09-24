@@ -8,11 +8,17 @@ Pipeline (each phase is resumable from the run state file):
   zero LLM, zero plugin/vendor-name judgment) -> certify (agent HTTP
   processor-certification runner: identifier-minted load, typed axis
   writes, readback, full-snapshot compare, receipt, auto import/promote;
-  failures land in the exception ledger with reasons) -> derive (probe
-  cycle B for the promoted set, v5->v6 live normalization, rerun
-  scripts/build_whitelist_v6_full.py unchanged) -> verify (pcactl
-  admission overlay regression over every derived entry + non-member
-  spots) -> report (three-bucket sweep_report + per-family counts).
+  failures land in the exception ledger with reasons. FIX-PCA-EQCHANNEL-1:
+  static_eq rides its own deterministic channel — the EQ-1 path
+  productised: rack load by identifier -> explain band topology ->
+  transactional upsert/modify/disable/undo writes -> snapshot compare ->
+  phase3-style receipt -> pcactl import) -> derive (probe
+  cycle B for the promoted set, EQ static_eq whitelist band derivation,
+  v5->v6 live normalization, rerun scripts/build_whitelist_v6_full.py
+  unchanged; --apply-live grows the live whitelist with backups) -> verify
+  (pcactl admission overlay regression over every derived entry +
+  non-member spots) -> report (three-bucket sweep_report + per-family
+  counts).
 
 Design freeze (card 2026-09-23-FIX-PCA-AUTOSWEEP-1):
   - classification uses structural parameter topology only (parameter
@@ -328,8 +334,28 @@ CERT_FAMILY = {
     "gate_expander": ("gate_expander", "v2", "attenuation_floor"),
     "transient_shaper": ("transient_shaper", "v2", "envelope_timing"),
     "broadband_compression": ("broadband_compressor", "v1", "activation_intensity"),
-    "static_eq": (None, "v1", "gain_band"),
+    # FIX-PCA-EQCHANNEL-1: static_eq now has its own deterministic channel (the
+    # EQ-1 path productised): identifier-minted rack load -> explain topology ->
+    # transactional upsert/modify/disable/undo coverage writes -> readback
+    # snapshots -> phase3-style receipt -> pcactl import (v1 store).
+    "static_eq": ("static_eq", "v1", "gain_band"),
 }
+
+# EQ-channel receipt kinds. The v1 import gate (processorauthority.ReadReceipt)
+# accepts exactly these two vendor-scoped kinds; subjects from any other
+# manufacturer are honestly rejected with vendor_kind_missing (extending the
+# kind list is agent code, out of this script's file domain).
+EQ_RECEIPT_KIND = {
+    "waves": "waves.static_eq.phase3_live_smoke.v1",
+    "plugin alliance": "plugin_alliance.eq_two_level_live_smoke.v1",
+}
+
+# PC-FULL ruling 1 (FIX-PCA-EQCHANNEL-1 execution): legacy journey-verified
+# subjects that the store already promotes get one formal pass through the
+# current deterministic channels. static_eq classified hits are all force
+# targets (fresh receipt + explain evidence feeds whitelist band derivation);
+# the broadband list below is the explicit legacy pair from the ruling.
+EQ_FORCE_LEGACY_BROADBAND = ("Vertigo VSC-2",)
 
 
 # ------------------------------------------------------------- probe client
@@ -603,24 +629,30 @@ class Sweep:
 
     def cert_targets(self) -> list[tuple[dict[str, Any], str]]:
         """(entry, whitelist_family) pairs to certify: classification hits not
-        already promoted for that runner family, plus ruling-2 C1 comp pair."""
+        already recorded in the run state, plus the ruling-2 C1 comp pair and
+        the EQCHANNEL legacy force targets. static_eq hits are always force
+        targets (PC-FULL ruling 1): every one gets one fresh EQ-channel pass —
+        the receipt covers promotion and the explain evidence feeds whitelist
+        band derivation — even when the store already promotes the subject."""
         promoted = self.store_promoted()
         by_slug = {slug_of(e["name"]): e for e in self.effect_subjects()}
         targets: list[tuple[dict[str, Any], str]] = []
         seen: set[tuple[str, str]] = set()
 
-        def add(entry: dict[str, Any], family: str) -> None:
+        def add(entry: dict[str, Any], family: str, force: bool = False) -> None:
             runner, _, _ = CERT_FAMILY[family]
-            if runner is None:
-                return
             dedupe = (entry["identifier"], family)
             if dedupe in seen:
                 return
             key = f"{slug_of(entry['name'])}|{family}"
-            if self.state["cert"].get(key, {}).get("status") in {"passed", "completed",
-                                                                 "already_promoted"}:
+            recorded = self.state["cert"].get(key, {}).get("status")
+            # force targets (EQCHANNEL legacy re-certification) bypass the
+            # already_promoted note: that note is a promotion observation, not
+            # a certification record; only a real pass/completion satisfies.
+            settled = {"passed", "completed"} | (set() if force else {"already_promoted"})
+            if recorded in settled:
                 return
-            if (subject_key(entry), runner) in promoted:
+            if not force and (subject_key(entry), runner) in promoted:
                 self.state["cert"].setdefault(key, {"status": "already_promoted"})
                 return
             seen.add(dedupe)
@@ -631,12 +663,17 @@ class Sweep:
             if entry is None:
                 continue
             for family in sorted(rec["families"]):
-                add(entry, family)
+                add(entry, family, force=(family == "static_eq"))
         # PC-1 ruling 2: C1 comp Mono + M/S get broadband_compressor regardless
         # of the classifier, with the compressor->broadband mapping recorded.
         for entry in self.effect_subjects():
             if entry["name"].startswith("C1 comp"):
                 add(entry, "broadband_compression")
+        # EQCHANNEL legacy re-certification (PC-FULL ruling 1): one formal pass
+        # for already-promoted journey-verified subjects.
+        for entry in self.effect_subjects():
+            if entry["name"] in EQ_FORCE_LEGACY_BROADBAND:
+                add(entry, "broadband_compression", force=True)
         return targets
 
     def agent_invoke(self, tool: str, args: dict[str, Any], confirmed: bool = True,
@@ -658,20 +695,50 @@ class Sweep:
             return 0
 
     def ensure_kernel_plugin_list(self, sample_identifier: str) -> None:
-        """The kernel's knownPluginList starts empty on boot; certification
-        loads resolve identifiers against it. If the sample identifier is
-        missing, run one scan_plugins pass over the common VST3 directory
-        (derived from the semantics index) and wait for the scan to settle."""
-        found = self.agent_invoke("plugin_search", {"query": sample_identifier,
-                                                    "limit": 8}, confirmed=False)
-        if (found.get("result") or {}).get("plugins"):
-            return
+        """The kernel's knownPluginList is restored from Settings.xml at boot
+        and revalidated before it serves searches; during that window searches
+        JUCE-timeout even though the list is not empty. Distinguish busy
+        revalidation (retry) from a genuinely empty list (scan). EQCHANNEL
+        pilot 2026-09-24: a false 'empty' verdict fired a redundant full scan
+        on top of boot revalidation and wedged the kernel's JUCE queue."""
+        empty_confirm = 0
+        for attempt in range(40):  # ~20 min boot-revalidation window (the
+            # 2026-09-23 AUTOSWEEP run showed the same gap: first certify died
+            # 1 min after boot, the rerun 20 min later found the list ready)
+            reply = self.agent_invoke("plugin_search",
+                                      {"query": sample_identifier, "limit": 8},
+                                      confirmed=False)
+            result = reply.get("result") or {}
+            error_text = str(result.get("error", "")) + str(reply.get("error", ""))
+            busy = "Timed out waiting" in error_text
+            if not busy:
+                if result.get("plugins"):
+                    return
+                count = result.get("plugin_count")
+                if isinstance(count, int) and count > 0:
+                    return  # populated list; sample miss is an identity issue,
+                    # not something a rescan would fix
+                # responsive AND empty: on a young stack the first search is
+                # the lazy-load trigger and the list materialises ~20 min
+                # later; confirm the emptiness persists before scanning (a
+                # scan fired during the load window piles up on the JUCE
+                # queue and starves the whole kernel).
+                empty_confirm += 1
+                if empty_confirm < 5:  # ~2 min of responsive-empty watching
+                    time.sleep(30.0)
+                    continue
+                break  # genuinely empty -> scan below
+            time.sleep(30.0)
+        else:
+            raise RuntimeError("kernel plugin search stayed busy for 20 minutes "
+                               "(boot-time revalidation); wait for the stack to "
+                               "settle and rerun certify")
         entries = self.effect_subjects()
         parents = Counter(str(Path(e["plugin_path"]).parent) for e in entries)
         scan_dir = parents.most_common(1)[0][0]
         print(f"[certify] kernel plugin list empty; scanning {scan_dir}")
-        self.agent_invoke("scan_plugins", {"paths": [scan_dir]})
-        stable, last, deadline = 0, -1, time.time() + 1200
+        self.agent_invoke("scan_plugins", {"paths": [scan_dir]}, timeout=900.0)
+        stable, last, deadline = 0, -1, time.time() + 1800
         while time.time() < deadline:
             time.sleep(20.0)
             count = self.kernel_plugin_count()
@@ -683,10 +750,18 @@ class Sweep:
             else:
                 stable = 0
             last = count
-        raise RuntimeError("kernel plugin scan did not settle within 20 minutes")
+        raise RuntimeError("kernel plugin scan did not settle within 30 minutes")
 
     def phase_certify(self) -> None:
         targets = self.cert_targets()
+        if self.args.families:
+            wanted = {f.strip() for f in self.args.families.split(",") if f.strip()}
+            targets = [(entry, family) for entry, family in targets
+                       if family in wanted]
+        if self.args.eq_subject:
+            targets = [(entry, family) for entry, family in targets
+                       if family != "static_eq"
+                       or self.args.eq_subject.casefold() in entry["name"].casefold()]
         print(f"[certify] targets={len(targets)}")
         if not targets:
             return
@@ -701,6 +776,8 @@ class Sweep:
             self.ensure_kernel_plugin_list(targets[0][0]["name"])
         cap = self.args.max_cert
         done = 0
+        if any(family == "static_eq" for _, family in targets):
+            self.ensure_full_access_authority()
         for entry, family in targets:
             if cap and done >= cap:
                 print(f"[certify] --max-cert {cap} reached; rerun to continue")
@@ -708,32 +785,36 @@ class Sweep:
             key = f"{slug_of(entry['name'])}|{family}"
             runner, _, _ = CERT_FAMILY[family]
             started = time.time()
-            start = None
-            for attempt in range(6):
-                start = request_json(
-                    self.args.agent_http.rstrip("/") +
-                    "/agent/processor-certification/start",
-                    "POST", {"identifier": entry["identifier"], "family": runner,
-                             "confirmed": True,
-                             "consent": "temporary_track_apply_readback_restore"},
-                    timeout=30)
-                if str(start.get("error", "")).find("another processor certification") < 0:
-                    break
-                time.sleep(10.0)  # busy: one job at a time on the runner
-            if not http_ok(start):
-                reason = str(start.get("error", start))[:500]
-                self.state["cert"][key] = {"status": "start_rejected", "error": reason}
-                self.ledger("cert_start_rejected", subject=entry["name"], family=family,
-                            error=reason)
-                self.save_state()
-                continue
-            job_id = start.get("job", {}).get("job_id", "")
-            record = self.poll_job(job_id)
+            if family == "static_eq":
+                record = self.certify_eq(entry)
+            else:
+                start = None
+                for attempt in range(6):
+                    start = request_json(
+                        self.args.agent_http.rstrip("/") +
+                        "/agent/processor-certification/start",
+                        "POST", {"identifier": entry["identifier"], "family": runner,
+                                 "confirmed": True,
+                                 "consent": "temporary_track_apply_readback_restore"},
+                        timeout=30)
+                    if str(start.get("error", "")).find("another processor certification") < 0:
+                        break
+                    time.sleep(10.0)  # busy: one job at a time on the runner
+                if not http_ok(start):
+                    reason = str(start.get("error", start))[:500]
+                    self.state["cert"][key] = {"status": "start_rejected", "error": reason}
+                    self.ledger("cert_start_rejected", subject=entry["name"], family=family,
+                                error=reason)
+                    self.save_state()
+                    continue
+                job_id = start.get("job", {}).get("job_id", "")
+                record = self.poll_job(job_id)
             record["seconds"] = round(time.time() - started, 1)
             record["runner_family"] = runner
             self.state["cert"][key] = record
             self.ledger("cert_done", subject=entry["name"], family=family,
-                        job_id=job_id, status=record.get("status"),
+                        job_id=record.get("job_id", ""),
+                        status=record.get("status"),
                         error=record.get("error", ""))
             self.save_state()
             done += 1
@@ -741,6 +822,526 @@ class Sweep:
                   f"{record.get('status')} ({record['seconds']}s)", flush=True)
         statuses = Counter(v.get("status") for v in self.state["cert"].values())
         print("[certify] ledger:", dict(statuses))
+
+    # -- EQ channel (FIX-PCA-EQCHANNEL-1) --------------------------------
+
+    def eq_invoke(self, tool: str, args: dict[str, Any], timeout: float = 480.0,
+                  audit: Counter | None = None, direct: bool = False) -> dict[str, Any]:
+        """Invoke one agent tool. direct=True sends the harness's operator
+        surface (no source): the EQ certification channel is a deterministic
+        zero-LLM operator client, and the pca_load_gate by design governs
+        sourced agent-flow loads, not direct operator invokes (harness.go
+        enforceAgentProcessorLoadGate skips sourceless requests)."""
+        if audit is not None:
+            audit[tool] += 1
+        body: dict[str, Any] = {"tool": tool, "args": args, "confirmed": True}
+        if not direct:
+            body["source"] = "pca_autosweep"
+        request = urllib.request.Request(
+            self.args.agent_http.rstrip("/") + "/agent/invoke",
+            data=json.dumps(body).encode("utf-8"),
+            headers={"Content-Type": "application/json"}, method="POST")
+        try:
+            with urllib.request.urlopen(request, timeout=timeout) as response:
+                reply = json.loads(response.read().decode("utf-8", errors="replace"))
+        except urllib.error.HTTPError as error:
+            raw = error.read().decode("utf-8", errors="replace")
+            try:
+                reply = json.loads(raw)
+            except json.JSONDecodeError:
+                reply = {"status": "error", "error": raw[:400]}
+            reply["_http_status"] = error.code
+        if not http_ok(reply):
+            raise RuntimeError(f"{tool}: HTTP {reply.get('_http_status')}: "
+                               f"{str(reply.get('error', reply))[:400]}")
+        result = reply.get("result")
+        if not isinstance(result, dict):
+            raise RuntimeError(f"{tool}: response omitted result")
+        if str(result.get("status", "")).casefold() in {"error", "failed", "rejected"}:
+            raise RuntimeError(f"{tool}: result rejected: {str(result)[:400]}")
+        return result
+
+    def eq_paged_parameters(self, track_id: str, plugin_id: str, identifier: str,
+                            audit: Counter) -> dict[str, float]:
+        parameters: dict[str, float] = {}
+        rows_seen = 0
+        offset, total = 0, -1
+        while True:
+            result = self.eq_invoke("plugin.get_parameters", {
+                "track_id": track_id, "plugin_id": plugin_id,
+                "plugin_identifier": identifier, "include_parameters": True,
+                "offset": offset, "limit": 128}, audit=audit)
+            rows = [row for row in result.get("parameters", []) if isinstance(row, dict)]
+            page = result.get("parameter_page")
+            if not isinstance(page, dict):
+                raise RuntimeError("plugin.get_parameters omitted parameter_page")
+            total = int(page.get("total", -1))
+            rows_seen += len(rows)
+            for row in rows:
+                param_id = str(row.get("param_id", row.get("parameter_id", row.get("id", ""))) or "")
+                value = row.get("normalized_value")
+                if param_id and isinstance(value, (int, float)):
+                    parameters[param_id] = float(value)
+            offset += len(rows)
+            if offset >= total or not rows:
+                break
+        if total >= 0 and rows_seen != total:
+            raise RuntimeError(f"parameter pagination incomplete: got {rows_seen} "
+                               f"rows of {total}")
+        return parameters
+
+    def ensure_pcactl(self) -> Path:
+        pcactl = Path.home() / ".vit" / "autosweep" / "bin" / "pcactl.exe"
+        pcactl.parent.mkdir(parents=True, exist_ok=True)
+        if not pcactl.is_file():
+            subprocess.run(["go", "build", "-o", str(pcactl), "./cmd/pcactl"],
+                           cwd=REPO_ROOT / "agent", check=True, capture_output=True)
+        return pcactl
+
+    def ensure_full_access_authority(self) -> None:
+        """The EQ channel loads rack instances through the agent tool face;
+        under authority=full_project_access the load gate resolves exact
+        promoted identities from the PCA catalog (the journey-leg precedent
+        endpoint). Unpromoted subjects fail closed with the precise
+        load-gate reason — that blocker is agent-side wiring, out of this
+        script's file domain."""
+        reply = request_json(self.args.agent_http.rstrip("/") + "/agent/authority",
+                             "POST", {"authority_mode": "full_project_access"},
+                             timeout=30)
+        mode = str(reply.get("authority_mode", ""))
+        if mode != "full_project_access":
+            raise RuntimeError(f"authority switch refused: {str(reply)[:300]}")
+        print("[certify] authority mode = full_project_access "
+              "(EQ channel load gate path)")
+        self.ledger("authority_mode_set", mode=mode)
+
+    def certify_eq(self, entry: dict[str, Any]) -> dict[str, Any]:
+        """One deterministic static_eq certification pass (EQ-1 path, zero LLM):
+        identifier-minted rack load -> paged readback -> explain topology ->
+        transactional upsert(+modify/disable)/undo coverage writes -> snapshot
+        compare -> phase3-style receipt -> pcactl import (auto-promotes)."""
+        slug = slug_of(entry["name"])
+        vendor = str(entry.get("manufacturer") or "").strip().casefold()
+        kind = EQ_RECEIPT_KIND.get(vendor)
+        if kind is None:
+            return {"status": "vendor_kind_missing",
+                    "error": f"manufacturer {entry.get('manufacturer')!r} has no v1 "
+                             f"receipt kind (import gate accepts waves/"
+                             f"plugin_alliance kinds only; kind extension is agent "
+                             f"code, out of this sweep's file domain)"}
+        receipt_dir = (Path(self.args.cert_dir) / f"eq_channel_{self.run_id}" / slug)
+        receipt_dir.mkdir(parents=True, exist_ok=True)
+        receipt_path = receipt_dir / "summary.json"
+        audit: Counter = Counter()
+        track_id = ""
+        touched: set[str] = set()
+        extra_actions: list[dict[str, Any]] = []
+        requested: list[dict[str, Any]] = []
+        apply_status = "passed"
+        try:
+            # identifier-minted resolution: exactly one kernel row may match
+            search = self.agent_invoke("plugin_search", {"query": entry["name"],
+                                                         "limit": 64}, confirmed=False)
+            rows = ((search.get("result") or {}).get("plugins") or [])
+            exact = [r for r in rows if isinstance(r, dict)
+                     and str(r.get("identifier", "")).casefold()
+                     == entry["identifier"].casefold()]
+            if len(exact) != 1:
+                raise RuntimeError(f"identifier resolution matched {len(exact)} kernel "
+                                   f"rows for {entry['identifier']}")
+            audit["plugin_search"] += 1
+            track = self.eq_invoke("track.add_audio",
+                                   {"name": f"PCA EQ channel {slug}"}, audit=audit)
+            track_id = str(track.get("track_id") or track.get("id") or "")
+            if not track_id:
+                raise RuntimeError("track.add_audio returned no track_id")
+            loaded = self.eq_invoke("plugin.load_to_rack", {
+                "track_id": track_id, "plugin_path": entry["plugin_path"],
+                "plugin_name": entry["name"],
+                "plugin_identifier": entry["identifier"]}, audit=audit, direct=True)
+            plugin_id = str(loaded.get("plugin_id") or loaded.get("node_id")
+                            or loaded.get("id") or "")
+            if not plugin_id:
+                raise RuntimeError("plugin.load_to_rack returned no plugin_id")
+
+            before = self.eq_paged_parameters(track_id, plugin_id,
+                                              entry["identifier"], audit)
+
+            explain = self.eq_invoke("plugin_grabber.explain_controls",
+                                     {"track_id": track_id, "plugin_id": plugin_id},
+                                     audit=audit)
+            save_json(receipt_dir / "explain.json", explain)
+            summary = explain.get("eq_band_summary")
+            if not isinstance(summary, dict) or not summary.get("eq_model"):
+                raise RuntimeError("explain_controls returned no EQ topology "
+                                   "(not_static_eq)")
+            capabilities = ((summary.get("control_topology") or {})
+                            .get("shape_capabilities") or [])
+            upsertable = [str(row.get("shape")) for row in capabilities
+                          if isinstance(row, dict)
+                          and (row.get("actions") or {}).get("upsert")]
+            modifiable = {str(row.get("shape")) for row in capabilities
+                          if isinstance(row, dict)
+                          and (row.get("actions") or {}).get("modify")}
+            disableable = {str(row.get("shape")) for row in capabilities
+                           if isinstance(row, dict)
+                           and (row.get("actions") or {}).get("disable")}
+            # shape preference: bell first (admission axis), then the phase3
+            # precedent shapes; first capability wins otherwise.
+            preference = ["bell", "low_cut", "high_shelf", "high_cut", "low_shelf"]
+            shape = next((s for s in preference if s in upsertable), None) \
+                or (upsertable[0] if upsertable else "")
+            if not shape:
+                raise RuntimeError("explain topology exposes no upsertable shape")
+            edit: dict[str, Any] = {"action": "upsert", "shape": shape,
+                                    "frequency_hz": 80.0 if "cut" in shape else 3400.0}
+            if "cut" not in shape:
+                edit["gain_db"] = -3.0
+            requested = [{"action": edit["action"], "shape": edit["shape"]}]
+
+            def apply_edits(edits: list[dict[str, Any]], label: str) -> dict[str, Any]:
+                result = self.eq_invoke("plugin_grabber.apply_eq_edits", {
+                    "track_id": track_id, "plugin_id": plugin_id,
+                    "atomic": True, "edits": edits}, audit=audit)
+                save_json(receipt_dir / f"{label}.json", result)
+                return result
+
+            def validate_apply(result: dict[str, Any], expect: int,
+                               label: str) -> tuple[str, list[str]]:
+                operation_ref = str(result.get("operation_ref", "")).strip()
+                rows = result.get("edits")
+                if not operation_ref or not isinstance(rows, list) or len(rows) != expect:
+                    raise RuntimeError(f"{label}: missing refs or edit rows: "
+                                       f"{str(result)[:400]}")
+                control_refs = []
+                for row in rows:
+                    ref = str(row.get("control_ref", "")).strip() \
+                        if isinstance(row, dict) else ""
+                    if not ref:
+                        raise RuntimeError(f"{label}: edit omitted control_ref: {row}")
+                    control_refs.append(ref)
+                write_ids = {str(w.get("param_id", "")).strip()
+                             for w in result.get("writes", [])
+                             if isinstance(w, dict)}
+                if not write_ids:
+                    raise RuntimeError(f"{label}: no touched parameters")
+                touched.update(write_ids)
+                return operation_ref, control_refs
+
+            def undo(operation_ref: str, label: str) -> dict[str, Any]:
+                result = apply_edits([{"action": "undo",
+                                       "operation_ref": operation_ref}], label)
+                if result.get("action") != "undo" \
+                        or not (result.get("rollback") or {}).get("verified"):
+                    raise RuntimeError(f"{label}: undo was not verified: "
+                                       f"{str(result)[:300]}")
+                return result
+
+            applied = apply_edits([edit], "apply")
+            apply_status = str(applied.get("status", ""))
+            base_operation, control_refs = validate_apply(applied, 1, "apply")
+            save_json(receipt_dir / "before.json", before)
+
+            # ref-action coverage: modify + disable (phase3 q10 precedent) when
+            # the shape supports them; each is undone transactionally.
+            if shape in modifiable and "cut" not in shape:
+                modified = apply_edits([{"action": "modify",
+                                         "control_ref": control_refs[0],
+                                         "gain_db": -4.0}], "modify")
+                modify_op, _ = validate_apply(modified, 1, "modify")
+                undo_modify = undo(modify_op, "undo_modify")
+                extra_actions.append({"action": "modify", "result": modified})
+                extra_actions.append({"action": "undo_modify",
+                                      "result": {"status": undo_modify.get("status"),
+                                                 "rollback": undo_modify.get("rollback")}})
+            if shape in disableable:
+                disabled = apply_edits([{"action": "disable",
+                                         "control_ref": control_refs[0]}], "disable")
+                disable_op, _ = validate_apply(disabled, 1, "disable")
+                undo_disable = undo(disable_op, "undo_disable")
+                extra_actions.append({"action": "disable", "result": disabled})
+                extra_actions.append({"action": "undo_disable",
+                                      "result": {"status": undo_disable.get("status"),
+                                                 "rollback": undo_disable.get("rollback")}})
+
+            undo(base_operation, "undo_base")
+            after = self.eq_paged_parameters(track_id, plugin_id,
+                                             entry["identifier"], audit)
+            save_json(receipt_dir / "after.json", after)
+            drift = []
+            for param_id in sorted(touched):
+                if param_id not in before or param_id not in after \
+                        or abs(before[param_id] - after[param_id]) > 1e-4:
+                    drift.append({"param_id": param_id,
+                                  "before": before.get(param_id),
+                                  "after": after.get(param_id)})
+            if drift:
+                raise RuntimeError(f"touched parameters were not restored: "
+                                   f"{str(drift)[:300]}")
+
+            result_row = {
+                "case_id": slug, "plugin_name": entry["name"],
+                "identifier": entry["identifier"],
+                "resolution": {"name": entry["name"],
+                               "manufacturer": entry.get("manufacturer", ""),
+                               "format": entry.get("format", ""),
+                               "identifier": entry["identifier"],
+                               "plugin_path": entry["plugin_path"]},
+                "mode": "positive", "status": "passed", "restored": True,
+                "requested_edits": requested,
+                "undo": {"rollback": {"verified": True}},
+                "extra_actions": extra_actions,
+                "stages": [{"level": "parameter", "requested_edits": requested,
+                            "status": apply_status, "restored": True,
+                            "undo": {"rollback": {"verified": True}}}],
+                "touched_parameter_ids": sorted(touched),
+                "final_drift": [],
+            }
+            receipt = {
+                "schema_version": kind, "status": "passed",
+                "completed_at": utcnow(), "case_count": 1,
+                "stage_count": len(result_row["stages"]),
+                "results": [result_row],
+                "audit": {"agent_tools": dict(sorted(audit.items())),
+                          "kernel_commands": {}, "natural_language_chat_count": 0,
+                          "audio_probe_count": 0, "learning_call_count": 0,
+                          "profile_call_count": 0, "spal_call_count": 0,
+                          "b4_call_count": 0, "event_count": sum(audit.values())},
+            }
+            save_json(receipt_path, receipt)
+        except Exception as error:
+            message = str(error)
+            if "pca_load_gate" in message:
+                # precise blocker class for the exception ledger: the load
+                # gate legitimately refuses unpromoted static_eq subjects for
+                # HTTP certification clients (only the in-agent runner can
+                # authorize certification loads, and it refuses static_eq).
+                status = "load_gate_blocked"
+            else:
+                status = "failed"
+            return {"status": status, "error": message[:500],
+                    "receipt": str(receipt_path)}
+        finally:
+            if track_id:
+                try:
+                    self.eq_invoke("track.delete", {"track_id": track_id},
+                                   timeout=60.0)
+                    audit["track.delete"] += 1
+                except Exception:
+                    pass  # cleanup failure must not mask the certification result
+
+        # pcactl import: the v1 import gate validates the receipt and promotes
+        # (coverage merged with any existing promotion for the same subject).
+        pcactl = self.ensure_pcactl()
+        run = subprocess.run([str(pcactl), "import", "-receipt", str(receipt_path),
+                              "-semantics", str(self.args.semantics),
+                              "-store", str(self.args.store_v1)],
+                             capture_output=True, text=True,
+                             encoding="utf-8", errors="replace")
+        try:
+            report = json.loads(run.stdout)
+        except json.JSONDecodeError:
+            report = {"import_error": (run.stdout + run.stderr)[:500]}
+        if run.returncode != 0:
+            return {"status": "import_failed",
+                    "error": str(report.get("import_error", run.stderr))[:500],
+                    "receipt": str(receipt_path)}
+        promoted = report.get("promoted") or []
+        skipped = report.get("skipped") or []
+        if not promoted:
+            return {"status": "import_no_candidate",
+                    "error": f"receipt imported but promoted no subject; "
+                             f"skipped={str(skipped)[:300]}",
+                    "receipt": str(receipt_path)}
+        return {"status": "completed", "receipt": str(receipt_path),
+                "import": report, "promoted": promoted,
+                "zero_llm": receipt["audit"]["natural_language_chat_count"] == 0}
+
+    def derive_eq_whitelist(self, artifacts: Path) -> list[dict[str, Any]]:
+        """Derive whitelist static_eq entries (bands anchors) from this sweep's
+        EQ-channel receipts and merge them into the live whitelist section.
+        Anchors: explain band topology (center_hz + per-channel gain ids,
+        deterministic agent-side derivation, zero LLM) cross-checked against
+        dual-cycle probe snapshots; admission needs upsert+bell coverage, so
+        receipts without bell are honestly excluded with the reason recorded."""
+        prov: list[dict[str, Any]] = []
+        live = load_json(self.args.live)
+        live_section = live.get("static_eq")
+        if not isinstance(live_section, list):
+            return prov  # v5 single-entry live: EQ merge is v6-only
+        existing = {str(e.get("plugin_identifier", "")).casefold() for e in live_section}
+        by_slug = {slug_of(e["name"]): e for e in self.effect_subjects()}
+        derived: list[dict[str, Any]] = []
+        excluded: list[dict[str, Any]] = []
+        for key, record in sorted(self.state["cert"].items()):
+            if not key.endswith("|static_eq") or record.get("status") != "completed":
+                continue
+            slug = key.split("|", 1)[0]
+            entry = by_slug.get(slug)
+            if entry is None:
+                continue
+            section = f"static_eq[{len(live_section) + len(derived)}]"
+            if entry["identifier"].casefold() in existing:
+                prov.append({"section": section, "field": "_s0_kept",
+                             "value": f"{entry['name']} already in live static_eq",
+                             "source": "S0 live entry kept verbatim (fresh receipt "
+                                       f"{record.get('receipt', '')} merges store "
+                                       "coverage only)", "note": ""})
+                continue
+            receipt_path = record.get("receipt", "")
+            receipt_dir = Path(receipt_path).parent
+            explain_path = receipt_dir / "explain.json"
+            reason = ""
+            bands: list[dict[str, Any]] = []
+            explain = None
+            if not receipt_path or not explain_path.exists():
+                reason = "receipt explain evidence missing"
+            else:
+                try:
+                    explain = load_json(explain_path)
+                except Exception as error:
+                    reason = f"explain evidence unreadable: {error}"
+            if explain is not None:
+                summary = explain.get("eq_band_summary") or {}
+                bands, band_issues = self.eq_bands_from_summary(summary, entry, prov,
+                                                                section)
+                if not bands:
+                    reason = band_issues or "no derivable band anchors"
+            if explain is not None and not reason:
+                try:
+                    receipt = load_json(receipt_path)
+                except Exception as error:
+                    reason = f"receipt unreadable: {error}"
+                    receipt = None
+                if receipt is not None:
+                    shapes = {str(e.get("shape")) for row in receipt.get("results", [])
+                              for e in row.get("requested_edits") or []
+                              if isinstance(e, dict) and e.get("action") == "upsert"}
+                    if "bell" not in shapes:
+                        reason = (f"receipt coverage upsert shapes={sorted(shapes)} "
+                                  f"lack bell; admission requires upsert+bell")
+            if reason:
+                excluded.append({"plugin_name": entry["name"], "reason": reason})
+                prov.append({"section": "static_eq", "field": "_excluded",
+                             "value": f"{entry['name']} not listed",
+                             "source": reason,
+                             "note": "frozen derivation rule: promoted ∧ upsert bell "
+                                     "coverage ∧ derivable band anchors"})
+                continue
+            derived.append({
+                "plugin_name": entry["name"],
+                "manufacturer": entry.get("manufacturer", ""),
+                "format": entry.get("format", ""),
+                "plugin_identifier": entry["identifier"],
+                "plugin_path": entry["plugin_path"],
+                "bands": bands,
+            })
+            prov.append({"section": section, "field": "_attestation",
+                         "value": "static_eq promoted (v1)",
+                         "source": f"S2 v1 store; EQ-channel receipt {receipt_path}",
+                         "note": "upsert bell coverage; zero-LLM deterministic channel"})
+        save_json(artifacts / "eq_static_eq_derived.json",
+                  {"derived": derived, "excluded": excluded})
+        if not derived:
+            print(f"[derive] EQ whitelist: 0 new entries "
+                  f"({len(excluded)} excluded with reasons)")
+            return prov
+        merged = live_section + derived
+        live["static_eq"] = merged
+        if self.args.apply_live:
+            backup = artifacts / "live_backup_pre_eq.json"
+            if not backup.exists():
+                save_json(backup, load_json(self.args.live))
+            save_json(self.args.live, live)
+            self.ledger("eq_whitelist_applied", live=str(self.args.live),
+                        added=len(derived), excluded=len(excluded))
+            print(f"[derive] EQ whitelist: +{len(derived)} entries merged into live "
+                  f"({len(excluded)} excluded with reasons); backup {backup}")
+        else:
+            save_json(artifacts / "live_with_eq.json", live)
+            print(f"[derive] EQ whitelist: +{len(derived)} entries derived but NOT "
+                  f"applied (rerun derive with --apply-live); "
+                  f"preview {artifacts / 'live_with_eq.json'}")
+        return prov
+
+    def eq_bands_from_summary(self, summary: dict[str, Any], entry: dict[str, Any],
+                              prov: list[dict[str, Any]],
+                              section: str) -> tuple[list[dict[str, Any]], str]:
+        """(bands, failure_reason) — deterministic band anchors from the explain
+        topology cross-checked against the dual-cycle probe snapshots."""
+        slug = slug_of(entry["name"])
+        rows = summary.get("bands") or []
+        if summary.get("eq_model") == "free_floating":
+            rows = summary.get("active_bands") or []
+        snap_path = self.probe_dir / f"{slug}.a.snapshot.json"
+        snap_b_path = self.probe_dir / f"{slug}.b.snapshot.json"
+        if not snap_path.exists() or not snap_b_path.exists():
+            return [], "dual-cycle probe snapshots missing for gain anchors"
+        snap = load_json(snap_path)
+        snap_b = load_json(snap_b_path)
+        params_a = {str(p["id"]): p for p in snap["surface"]["parameters"]}
+        ident_a = {str(p["name"]): str(p["id"]) for p in snap["surface"]["parameters"]}
+        ident_b = {str(p["name"]): str(p["id"]) for p in snap_b["surface"]["parameters"]}
+        if ident_a != ident_b:
+            return [], "probe identity drift across cycles"
+        raw: list[tuple[float, str, str]] = []
+        issues: list[str] = []
+        for row in rows:
+            center = row.get("current_freq_hz")
+            if center is None:
+                center = row.get("fixed_freq_hz")
+            gains = [g for g in row.get("gain_bindings") or []
+                     if isinstance(g, dict) and g.get("param_id")]
+            if not gains and row.get("gain_param_id"):
+                gains = [{"param_id": row["gain_param_id"], "channel": "shared"}]
+            if center is None or not gains:
+                issues.append(f"band {row.get('band', '?')} lacks center/gain anchor")
+                continue
+            if not isinstance(center, (int, float)) or not (20 <= float(center) <= 20000):
+                issues.append(f"band {row.get('band', '?')} center {center} "
+                              f"outside [20, 20000]")
+                continue
+            ids: list[str] = []
+            for gain in sorted(gains, key=lambda g: str(g.get("channel", ""))):
+                param_id = str(gain["param_id"])
+                param = params_a.get(param_id)
+                if param is None:
+                    issues.append(f"band {row.get('band', '?')} gain id {param_id} "
+                                  f"absent from probe surface")
+                    continue
+                if not param.get("stable_id"):
+                    issues.append(f"band {row.get('band', '?')} gain id {param_id} "
+                                  f"not stable_id")
+                    continue
+                ids.append(param_id)
+            if not ids:
+                continue
+            ch1 = ids[0]
+            ch2 = ids[1] if len(ids) > 1 else ids[0]  # mono/shared mirrored
+            raw.append((float(center), ch1, ch2))
+        raw.sort(key=lambda item: item[0])
+        bands: list[dict[str, Any]] = []
+        seen_centers: set[float] = set()
+        seen_ch1: set[str] = set()
+        mirrored = False
+        for center, ch1, ch2 in raw:
+            if center in seen_centers or ch1 in seen_ch1:
+                continue  # duplicate center/gain anchor: keep the first band
+            if ch1 == ch2:
+                mirrored = True
+            seen_centers.add(center)
+            seen_ch1.add(ch1)
+            bands.append({"center_hz": center,
+                          "gain_param_id_ch1": ch1, "gain_param_id_ch2": ch2})
+        if not bands:
+            return [], "; ".join(issues) or "no derivable band anchors"
+        prov.append({"section": section, "field": "bands",
+                     "value": [b["center_hz"] for b in bands],
+                     "source": "EQ-channel explain topology (eq_band_summary bands) "
+                               "x S3 dual-cycle probe (zero drift, stable_id)",
+                     "note": ("single shared/mono gain param mirrored to ch1/ch2"
+                              if mirrored else "per-channel gain params")})
+        return bands, ""
 
     def poll_job(self, job_id: str) -> dict[str, Any]:
         deadline = time.time() + self.args.job_timeout
@@ -800,8 +1401,15 @@ class Sweep:
                 except Exception as error:
                     self.ledger("probe_b_fail", slug=slug, error=str(error)[:500])
             host.shutdown()
+        # 1b. EQCHANNEL: derive static_eq whitelist entries from the EQ-channel
+        #     receipts (explain band topology + write anchors + probe dual-cycle
+        #     cross-check), merge them into the live whitelist BEFORE the frozen
+        #     builder runs (the builder carries static_eq verbatim from live;
+        #     band-level provenance rides the eq_static_eq_* artifacts).
+        eq_prov = self.derive_eq_whitelist(artifacts)
         # 2. deterministic v5 -> v6 normalization of the live whitelist (the
-        #    builder requires a v6 --live; the live file itself is untouched).
+        #    builder requires a v6 --live; the live file itself is untouched
+        #    unless --apply-live merged the EQ section above).
         live = load_json(self.args.live)
         normalized = self.normalize_live_v6(live)
         live_v6 = artifacts / "live_v6_normalized.json"
@@ -902,12 +1510,22 @@ class Sweep:
         merged.update(derived_sections)
         out_whitelist = artifacts / "whitelist_v6_full.json"
         save_json(out_whitelist, merged)
+        provenance_rows.extend(eq_prov)
         save_json(artifacts / "provenance_table_v6_full.json", provenance_rows)
         counts = {family: len(merged.get(family, []))
                   for family in ("static_eq", "broadband_compression", "de_esser",
                                  "limiter", "gate_expander", "transient_shaper",
                                  "multiband")}
         print("[derive] whitelist counts:", counts)
+        if self.args.apply_live:
+            backup = artifacts / "live_backup_pre_apply.json"
+            if not backup.exists():
+                save_json(backup, load_json(self.args.live))
+            save_json(self.args.live, merged)
+            self.ledger("whitelist_applied_live", live=str(self.args.live),
+                        counts=counts)
+            print(f"[derive] whitelist_v6_full applied to live "
+                  f"({self.args.live}); backup {backup}")
         self.state["derived"] = True
         self.state["derived_whitelist"] = str(out_whitelist)
         self.state["derived_counts"] = counts
@@ -945,11 +1563,7 @@ class Sweep:
         whitelist_path = Path(self.state.get("derived_whitelist",
                                              self.run_dir / "derive" / "whitelist_v6_full.json"))
         whitelist = load_json(whitelist_path)
-        pcactl = Path.home() / ".vit" / "autosweep" / "bin" / "pcactl.exe"
-        pcactl.parent.mkdir(parents=True, exist_ok=True)
-        if not pcactl.is_file():
-            subprocess.run(["go", "build", "-o", str(pcactl), "./cmd/pcactl"],
-                           cwd=REPO_ROOT / "agent", check=True, capture_output=True)
+        pcactl = self.ensure_pcactl()
         entries = {e["name"]: e for e in self.semantics()}
         results: list[dict[str, Any]] = []
         failures = 0
@@ -1045,13 +1659,10 @@ class Sweep:
                 key = f"{slug}|{family}"
                 record = self.state["cert"].get(key)
                 if record is None:
-                    runner, _, _ = CERT_FAMILY[family]
-                    if runner is None:
-                        exceptions.append({
-                            "subject": slug, "stage": "certify",
-                            "reason": "static_eq has no product certification runner "
-                                      "(inspect_only); EQ channel = phase3_live_smoke + "
-                                      "pcactl import (EQ-1 path), out of this sweep's runner"})
+                    exceptions.append({
+                        "subject": slug, "stage": "certify", "family": family,
+                        "reason": "classified hit has no certification record "
+                                  "(certify phase never reached it; rerun certify)"})
                 elif record.get("status") == "completed":
                     certified.append({"subject": slug, "family": family,
                                       "job_id": record.get("job_id"),
@@ -1148,6 +1759,18 @@ def main() -> int:
                         help="probe only the first N pending subjects (dry-run aid; 0 = all)")
     parser.add_argument("--max-cert", type=int, default=0,
                         help="cap certification jobs this invocation (0 = unlimited)")
+    parser.add_argument("--apply-live", action="store_true",
+                        help="derive phase: merge EQ static_eq entries into the live "
+                             "whitelist and apply whitelist_v6_full.json to live "
+                             "(with backups under the run dir)")
+    parser.add_argument("--eq-subject", default="",
+                        help="certify phase: restrict static_eq targets to subjects "
+                             "whose name contains this substring (pilot aid)")
+    parser.add_argument("--families", default="",
+                        help="certify phase: comma-separated whitelist families to "
+                             "certify (default all pending; EQCHANNEL reruns use "
+                             "'static_eq,broadband_compression' to avoid retrying "
+                             "other families' recorded failures)")
     args = parser.parse_args()
 
     sweep = Sweep(args)

@@ -1,14 +1,14 @@
 {
   "schema_version": "pca_autosweep.sweep_report.v1",
   "run_id": "20260924_005622",
-  "generated_at": "2026-09-23T21:06:00+00:00",
+  "generated_at": "2026-09-24T04:53:33+00:00",
   "totals": {
     "library_effect_subjects": 974,
     "probe_ok": 970,
     "probe_fail": 4,
     "classified_hits": 242,
-    "certified_this_sweep": 55,
-    "exceptions": 187
+    "certified_this_sweep": 63,
+    "exceptions": 180
   },
   "family_counts": {
     "multiband": {
@@ -44,14 +44,14 @@
     "broadband_compression": {
       "classified_hits": 51,
       "promoted_now": 56,
-      "certified_this_sweep": 33,
+      "certified_this_sweep": 34,
       "whitelist_derived": 24
     },
     "static_eq": {
       "classified_hits": 68,
-      "promoted_now": 0,
-      "certified_this_sweep": 0,
-      "whitelist_derived": 1
+      "promoted_now": 15,
+      "certified_this_sweep": 7,
+      "whitelist_derived": 6
     }
   },
   "bucket_classified": [
@@ -8856,11 +8856,32 @@
       "runner_family": "broadband_compressor"
     },
     {
+      "subject": "API-550A_Stereo",
+      "family": "static_eq",
+      "job_id": null,
+      "summary_path": null,
+      "runner_family": "static_eq"
+    },
+    {
+      "subject": "AudioTrack_Mono",
+      "family": "static_eq",
+      "job_id": null,
+      "summary_path": null,
+      "runner_family": "static_eq"
+    },
+    {
       "subject": "AudioTrack_Mono",
       "family": "gate_expander",
       "job_id": "pca_job_35ec0ad32373db66",
       "summary_path": "C:\\Users\\timoz\\.vit\\pca_certifications\\pca_job_35ec0ad32373db66\\summary.json",
       "runner_family": "gate_expander"
+    },
+    {
+      "subject": "AudioTrack_Stereo",
+      "family": "static_eq",
+      "job_id": null,
+      "summary_path": null,
+      "runner_family": "static_eq"
     },
     {
       "subject": "AudioTrack_Stereo",
@@ -8990,10 +9011,24 @@
     },
     {
       "subject": "L316_Mono",
+      "family": "static_eq",
+      "job_id": null,
+      "summary_path": null,
+      "runner_family": "static_eq"
+    },
+    {
+      "subject": "L316_Mono",
       "family": "limiter",
       "job_id": "pca_job_b83873b0140252b2",
       "summary_path": "C:\\Users\\timoz\\.vit\\pca_certifications\\pca_job_b83873b0140252b2\\summary.json",
       "runner_family": "limiter"
+    },
+    {
+      "subject": "L316_Stereo",
+      "family": "static_eq",
+      "job_id": null,
+      "summary_path": null,
+      "runner_family": "static_eq"
     },
     {
       "subject": "L316_Stereo",
@@ -9036,6 +9071,13 @@
       "job_id": "pca_job_1ececed2b355498e",
       "summary_path": "C:\\Users\\timoz\\.vit\\pca_certifications\\pca_job_1ececed2b355498e\\summary.json",
       "runner_family": "broadband_compressor"
+    },
+    {
+      "subject": "Lindell_80_Channel",
+      "family": "static_eq",
+      "job_id": null,
+      "summary_path": null,
+      "runner_family": "static_eq"
     },
     {
       "subject": "Lindell_SBC",
@@ -9136,6 +9178,13 @@
       "runner_family": "broadband_compressor"
     },
     {
+      "subject": "Vertigo_VSC-2",
+      "family": "broadband_compression",
+      "job_id": "pca_job_5407a94f28e575f8",
+      "summary_path": "C:\\Users\\timoz\\.vit\\pca_certifications\\pca_job_5407a94f28e575f8\\summary.json",
+      "runner_family": "broadband_compressor"
+    },
+    {
       "subject": "Vertigo_VSS-2",
       "family": "broadband_compression",
       "job_id": "pca_job_80bfdd9ac7f09053",
@@ -9206,6 +9255,13 @@
       "runner_family": "broadband_compressor"
     },
     {
+      "subject": "bx_hybrid_V2",
+      "family": "static_eq",
+      "job_id": null,
+      "summary_path": null,
+      "runner_family": "static_eq"
+    },
+    {
       "subject": "bx_townhouse_Buss_Compressor",
       "family": "broadband_compression",
       "job_id": "pca_job_29c42753d15b165f",
@@ -9231,47 +9287,38 @@
     {
       "subject": "ADPTR_Utopia",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "API-550A_Mono",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
-    },
-    {
-      "subject": "API-550A_Stereo",
-      "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "Abbey_Road_TG_Mastering_Live_Mono",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "Abbey_Road_TG_Mastering_Live_Stereo",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "Abbey_Road_TG_Mastering_Mono",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "Abbey_Road_TG_Mastering_Stereo",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
-    },
-    {
-      "subject": "AudioTrack_Mono",
-      "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
-    },
-    {
-      "subject": "AudioTrack_Stereo",
-      "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "Bettermaker_Bus_Compressor_DSP",
@@ -9468,12 +9515,14 @@
     {
       "subject": "EMO-Q4_Mono",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "EMO-Q4_Stereo",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "F6-RTA_Mono",
@@ -9484,7 +9533,8 @@
     {
       "subject": "F6-RTA_Mono",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "F6-RTA_Stereo",
@@ -9495,7 +9545,8 @@
     {
       "subject": "F6-RTA_Stereo",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "F6_Mono",
@@ -9506,7 +9557,8 @@
     {
       "subject": "F6_Mono",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "F6_Stereo",
@@ -9517,7 +9569,8 @@
     {
       "subject": "F6_Stereo",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "FreeEQ8",
@@ -9572,16 +9625,6 @@
       "reason": "invoke plugin_grabber.inspect_multiband failed: unsupported_multiband_maximizer: no provable supported multiband dynamics topology"
     },
     {
-      "subject": "L316_Mono",
-      "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
-    },
-    {
-      "subject": "L316_Stereo",
-      "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
-    },
-    {
       "subject": "L360_5.0",
       "stage": "certify",
       "family": "limiter",
@@ -9608,22 +9651,26 @@
     {
       "subject": "LinEQ_Broadband_Mono",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "LinEQ_Broadband_Stereo",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "LinEQ_Lowband_Mono",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "LinEQ_Lowband_Stereo",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "Lindell_50_Channel",
@@ -9634,17 +9681,14 @@
     {
       "subject": "Lindell_50_Channel",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "Lindell_69_Channel",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
-    },
-    {
-      "subject": "Lindell_80_Channel",
-      "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin_grabber.apply_eq_edits: HTTP 400: shape_not_provably_reachable: upsert bell: requested shape bell at 3400 Hz is not provably reachable in any section; available shapes: [bell low_cut]"
     },
     {
       "subject": "Lindell_80_Channel",
@@ -9673,27 +9717,32 @@
     {
       "subject": "MannyM_EQ_Mono",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "MannyM_EQ_Stereo",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "Morphoder_Mono",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "Morphoder_Mono_Stereo",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "Morphoder_Stereo",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "MultiMod_Rack_Mono",
@@ -9704,7 +9753,8 @@
     {
       "subject": "MultiMod_Rack_Mono",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "MultiMod_Rack_Mono_Stereo",
@@ -9715,7 +9765,8 @@
     {
       "subject": "MultiMod_Rack_Mono_Stereo",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "MultiMod_Rack_Stereo",
@@ -9726,7 +9777,8 @@
     {
       "subject": "MultiMod_Rack_Stereo",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "NEOLD_U17",
@@ -9749,12 +9801,14 @@
     {
       "subject": "OVox_Mono_Stereo",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "OVox_Stereo",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "PSE_Mono",
@@ -9795,12 +9849,14 @@
     {
       "subject": "Pro-Q_3",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "manufacturer 'FabFilter' has no v1 receipt kind (import gate accepts waves/plugin_alliance kinds only; kind extension is agent code, out of this sweep's file domain)"
     },
     {
       "subject": "Pro-R",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "manufacturer 'FabFilter' has no v1 receipt kind (import gate accepts waves/plugin_alliance kinds only; kind extension is agent code, out of this sweep's file domain)"
     },
     {
       "subject": "Pro_Audio_DSP_DSM_V3",
@@ -9811,57 +9867,68 @@
     {
       "subject": "Q10_Mono",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "Q10_Stereo",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "Q3_Mono",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "Q3_Stereo",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "Q4_Mono",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "Q4_Stereo",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "Q6_Mono",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "Q6_Stereo",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "Q8_Mono",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "Q8_Stereo",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "RChannel_Mono",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "RChannel_Mono",
@@ -9872,7 +9939,8 @@
     {
       "subject": "RChannel_Mono_Stereo",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "RChannel_Mono_Stereo",
@@ -9883,7 +9951,8 @@
     {
       "subject": "RChannel_Stereo",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "RChannel_Stereo",
@@ -9894,22 +9963,26 @@
     {
       "subject": "REQ_4_Mono",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "REQ_4_Stereo",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "REQ_6_Mono",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "REQ_6_Stereo",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "RipLink",
@@ -9949,12 +10022,14 @@
     {
       "subject": "Saphira_Mono",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "Saphira_Stereo",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "Saturn_2",
@@ -9965,7 +10040,8 @@
     {
       "subject": "Swivel_Audio_HitStrip",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "Swivel_Audio_HitStrip",
@@ -9976,7 +10052,8 @@
     {
       "subject": "TBTECH_Cenozoix_Compressor",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: full project access load requires one exact processor identity; \"VST3-TBTECH Cenozoix Compressor-ae9d39c4-c8c84a6\" resolves to 2 promoted identities"
     },
     {
       "subject": "TBTECH_Kirchhoff-EQ",
@@ -9987,12 +10064,14 @@
     {
       "subject": "TBTECH_Kirchhoff-EQ",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "TBTECH_Trinity_Shaper",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "TDR_Nova",
@@ -10003,27 +10082,32 @@
     {
       "subject": "TDR_Nova",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "manufacturer 'Tokyo Dawn Labs' has no v1 receipt kind (import gate accepts waves/plugin_alliance kinds only; kind extension is agent code, out of this sweep's file domain)"
     },
     {
       "subject": "TRACT_LinPhase_Mono",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "TRACT_LinPhase_Stereo",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "TRACT_Mono",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "TRACT_Stereo",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "Timeless_3",
@@ -10241,19 +10325,16 @@
       "reason": "invoke plugin_grabber.inspect_de_esser failed: unsupported_gate_expander: no provable supported De-esser stage/control-path topology"
     },
     {
-      "subject": "bx_hybrid_V2",
-      "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
-    },
-    {
       "subject": "bx_hybrid_V2_mix",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "bx_panEQ",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "bx_rockrack_V3",
@@ -10264,7 +10345,8 @@
     {
       "subject": "bx_tonebox",
       "stage": "certify",
-      "reason": "static_eq has no product certification runner (inspect_only); EQ channel = phase3_live_smoke + pcactl import (EQ-1 path), out of this sweep's runner"
+      "family": "static_eq",
+      "reason": "plugin.load_to_rack: HTTP 400: pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"
     },
     {
       "subject": "elysia_mpressor",
@@ -10284,14 +10366,5 @@
     "probe_dir": "C:\\Users\\timoz\\.vit\\autosweep\\20260924_005622\\probe",
     "state": "D:\\Vit_DAW\\coord\\runs\\FIX-PCA-AUTOSWEEP-1\\20260924_005622\\state.json",
     "ledger": "D:\\Vit_DAW\\coord\\runs\\FIX-PCA-AUTOSWEEP-1\\20260924_005622\\run_ledger.jsonl"
-  },
-  "journey_leg": {
-    "run2": "all_green",
-    "selected": "Pro-C 2",
-    "selected_identifier": "VST3-Pro-C 2-f1a6549f-763029ad",
-    "a2_probe": "CLA-2A Mono",
-    "gate_denials": 0,
-    "proposal_applied": true,
-    "audition_events": true
   }
 }

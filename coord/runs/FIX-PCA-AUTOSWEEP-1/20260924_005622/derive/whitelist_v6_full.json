@@ -34,6 +34,166 @@
           "gain_param_id_ch2": "843605575"
         }
       ]
+    },
+    {
+      "plugin_name": "API-550A Stereo",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-API-550A Stereo-695648d-874091cb",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "bands": [
+        {
+          "center_hz": 50.0,
+          "gain_param_id_ch1": "4",
+          "gain_param_id_ch2": "4"
+        },
+        {
+          "center_hz": 400.0,
+          "gain_param_id_ch1": "2",
+          "gain_param_id_ch2": "2"
+        },
+        {
+          "center_hz": 5000.0,
+          "gain_param_id_ch1": "0",
+          "gain_param_id_ch2": "0"
+        }
+      ]
+    },
+    {
+      "plugin_name": "AudioTrack Mono",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-AudioTrack Mono-695648d-bfe085c2",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "bands": [
+        {
+          "center_hz": 63.0,
+          "gain_param_id_ch1": "2",
+          "gain_param_id_ch2": "2"
+        },
+        {
+          "center_hz": 250.0,
+          "gain_param_id_ch1": "7",
+          "gain_param_id_ch2": "7"
+        },
+        {
+          "center_hz": 993.0,
+          "gain_param_id_ch1": "12",
+          "gain_param_id_ch2": "12"
+        },
+        {
+          "center_hz": 4000.0,
+          "gain_param_id_ch1": "17",
+          "gain_param_id_ch2": "17"
+        }
+      ]
+    },
+    {
+      "plugin_name": "AudioTrack Stereo",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-AudioTrack Stereo-695648d-bff70bc2",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "bands": [
+        {
+          "center_hz": 63.0,
+          "gain_param_id_ch1": "2",
+          "gain_param_id_ch2": "2"
+        },
+        {
+          "center_hz": 250.0,
+          "gain_param_id_ch1": "7",
+          "gain_param_id_ch2": "7"
+        },
+        {
+          "center_hz": 993.0,
+          "gain_param_id_ch1": "12",
+          "gain_param_id_ch2": "12"
+        },
+        {
+          "center_hz": 4000.0,
+          "gain_param_id_ch1": "17",
+          "gain_param_id_ch2": "17"
+        }
+      ]
+    },
+    {
+      "plugin_name": "L316 Mono",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-L316 Mono-695648d-fb756ef",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "bands": [
+        {
+          "center_hz": 100.0,
+          "gain_param_id_ch1": "10",
+          "gain_param_id_ch2": "10"
+        },
+        {
+          "center_hz": 200.0,
+          "gain_param_id_ch1": "16",
+          "gain_param_id_ch2": "16"
+        },
+        {
+          "center_hz": 400.0,
+          "gain_param_id_ch1": "22",
+          "gain_param_id_ch2": "22"
+        },
+        {
+          "center_hz": 800.0,
+          "gain_param_id_ch1": "28",
+          "gain_param_id_ch2": "28"
+        },
+        {
+          "center_hz": 1600.0,
+          "gain_param_id_ch1": "34",
+          "gain_param_id_ch2": "34"
+        },
+        {
+          "center_hz": 3200.0,
+          "gain_param_id_ch1": "40",
+          "gain_param_id_ch2": "40"
+        }
+      ]
+    },
+    {
+      "plugin_name": "L316 Stereo",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-L316 Stereo-695648d-15d2d3f2",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "bands": [
+        {
+          "center_hz": 100.0,
+          "gain_param_id_ch1": "10",
+          "gain_param_id_ch2": "10"
+        },
+        {
+          "center_hz": 200.0,
+          "gain_param_id_ch1": "16",
+          "gain_param_id_ch2": "16"
+        },
+        {
+          "center_hz": 400.0,
+          "gain_param_id_ch1": "22",
+          "gain_param_id_ch2": "22"
+        },
+        {
+          "center_hz": 800.0,
+          "gain_param_id_ch1": "28",
+          "gain_param_id_ch2": "28"
+        },
+        {
+          "center_hz": 1600.0,
+          "gain_param_id_ch1": "34",
+          "gain_param_id_ch2": "34"
+        },
+        {
+          "center_hz": 3200.0,
+          "gain_param_id_ch1": "40",
+          "gain_param_id_ch2": "40"
+        }
+      ]
     }
   ],
   "broadband_compression": [

@@ -1,83 +1,83 @@
-=== family view broadband_compressor (jobs=38) ===
+=== family view broadband_compressor (jobs=39) ===
 OK wrote D:\Vit_DAW\coord\runs\FIX-PCA-AUTOSWEEP-1\20260924_005622\derive\whitelist_v6_broadband_compression.json
-  static_eq=1 (S0 carryover)
+  static_eq=6 (S0 carryover)
   de_esser=6
   transient_shaper=2
   limiter=9
   gate_expander=3
   multiband=8
   broadband_compression=24
-  total entries=53
+  total entries=58
 provenance rows: 445 -> D:\Vit_DAW\coord\runs\FIX-PCA-AUTOSWEEP-1\20260924_005622\derive\provenance_broadband_compression.json
 
 --- stderr ---
 
 === family view de_esser (jobs=7) ===
 OK wrote D:\Vit_DAW\coord\runs\FIX-PCA-AUTOSWEEP-1\20260924_005622\derive\whitelist_v6_de_esser.json
-  static_eq=1 (S0 carryover)
+  static_eq=6 (S0 carryover)
   de_esser=6
   transient_shaper=2
   limiter=9
   gate_expander=3
   multiband=8
   broadband_compression=24
-  total entries=53
+  total entries=58
 provenance rows: 431 -> D:\Vit_DAW\coord\runs\FIX-PCA-AUTOSWEEP-1\20260924_005622\derive\provenance_de_esser.json
 
 --- stderr ---
 
 === family view gate_expander (jobs=9) ===
 OK wrote D:\Vit_DAW\coord\runs\FIX-PCA-AUTOSWEEP-1\20260924_005622\derive\whitelist_v6_gate_expander.json
-  static_eq=1 (S0 carryover)
+  static_eq=6 (S0 carryover)
   de_esser=6
   transient_shaper=2
   limiter=9
   gate_expander=3
   multiband=8
   broadband_compression=24
-  total entries=53
+  total entries=58
 provenance rows: 429 -> D:\Vit_DAW\coord\runs\FIX-PCA-AUTOSWEEP-1\20260924_005622\derive\provenance_gate_expander.json
 
 --- stderr ---
 
 === family view limiter (jobs=18) ===
 OK wrote D:\Vit_DAW\coord\runs\FIX-PCA-AUTOSWEEP-1\20260924_005622\derive\whitelist_v6_limiter.json
-  static_eq=1 (S0 carryover)
+  static_eq=6 (S0 carryover)
   de_esser=6
   transient_shaper=2
   limiter=9
   gate_expander=3
   multiband=8
   broadband_compression=24
-  total entries=53
+  total entries=58
 provenance rows: 436 -> D:\Vit_DAW\coord\runs\FIX-PCA-AUTOSWEEP-1\20260924_005622\derive\provenance_limiter.json
 
 --- stderr ---
 
 === family view multiband_dynamics (jobs=6) ===
 OK wrote D:\Vit_DAW\coord\runs\FIX-PCA-AUTOSWEEP-1\20260924_005622\derive\whitelist_v6_multiband.json
-  static_eq=1 (S0 carryover)
+  static_eq=6 (S0 carryover)
   de_esser=6
   transient_shaper=2
   limiter=9
   gate_expander=3
   multiband=8
   broadband_compression=24
-  total entries=53
+  total entries=58
 provenance rows: 427 -> D:\Vit_DAW\coord\runs\FIX-PCA-AUTOSWEEP-1\20260924_005622\derive\provenance_multiband.json
 
 --- stderr ---
 
 === family view transient_shaper (jobs=4) ===
 OK wrote D:\Vit_DAW\coord\runs\FIX-PCA-AUTOSWEEP-1\20260924_005622\derive\whitelist_v6_transient_shaper.json
-  static_eq=1 (S0 carryover)
+  static_eq=6 (S0 carryover)
   de_esser=6
   transient_shaper=2
   limiter=9
   gate_expander=3
   multiband=8
   broadband_compression=24
-  total entries=53
+  total entries=58
 provenance rows: 429 -> D:\Vit_DAW\coord\runs\FIX-PCA-AUTOSWEEP-1\20260924_005622\derive\provenance_transient_shaper.json
 
 --- stderr ---

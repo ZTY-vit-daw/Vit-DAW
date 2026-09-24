@@ -7,6 +7,41 @@
     "effective_status": "promoted"
   },
   {
+    "family": "static_eq",
+    "name": "API-550A Stereo",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "static_eq",
+    "name": "AudioTrack Mono",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "static_eq",
+    "name": "AudioTrack Stereo",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "static_eq",
+    "name": "L316 Mono",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "static_eq",
+    "name": "L316 Stereo",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
     "family": "broadband_compression",
     "name": "C1 comp Mono",
     "eligible": true,
