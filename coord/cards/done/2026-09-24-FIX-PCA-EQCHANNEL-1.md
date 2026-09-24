@@ -1,0 +1,27 @@
+# FIX-PCA-EQCHANNEL-1：EQ 族认证通道接入 autosweep（68 分类命中 → 认证 → 白名单多候选）
+
+- 优先级 / 预估 / 依赖：P1 / 0.3-0.5 天 / FIX-PCA-AUTOSWEEP-1 验收遗留（例外队列 68 条 static_eq 命中无 runner）；用户 2026-09-23"各族多少能用"问题在 EQ 族的收尾
+- 模型分级：L1 / GLM-5.3 flash 可接（复用 autosweep 骨架+EQ-1 确定性认证通道）
+- **执行侧（PC 侧卡；mac 侧 EQ 已三候选无需跟随，但通道为共享脚本两端可用）**
+- **背景**：autosweep 认证扫的 runner 面覆盖 v2 store 五族（de_esser/transient/limiter/gate/multiband）+broadband（v1），**static_eq 无通道**——68 个分类命中全部滞留例外队列；EQ-1 时期 Q10 走的是"零 LLM phase3_live_smoke 收据+pcactl import"专用通道（未并入 sweep）。
+- 目标：
+  1. `scripts/pca_autosweep.py` certify 相增 static_eq 通道：EQ-1 确定性路径批量化（identifier 实例化→增益带覆盖写 upsert/modify/disable/undo→回读→快照→phase3 式收据→import 晋升；零 LLM/零手编红线同卡面）
+  2. 重跑 certify+derive（幂等 state.json 续跑）：EQ 候选从 1（bx_hybrid legacy S0）扩至命中集；**bx_hybrid/Vertigo legacy 补认证**（PC-FULL 裁定①的执行落点——sweep 扫全库含 legacy 条目）
+  3. EQ 多候选自选验证腿（五环口径，同 BROADBAND/PLUGIN-SELECT 先例）
+  4. sweep_report 例外队列中 static_eq 桶清零或残余记因
+- 文件域：`scripts/pca_autosweep.py`（+测试/自检输出）；零 agent 代码改动预期
+- 验收：①EQ 通道收据抽核 ≥3（含 ≥1 Waves 壳 EQ + bx_hybrid legacy 补认证）零 LLM；②白名单 EQ 族多候选+溯源；③overlay 回归；④EQ 自选腿五环 exit 0；⑤例外队列 static_eq 处置记录
+- 停止条件：EQ 带结构参数锚派生大面积失败（>半数）→ 记录上交（可能需带面探测扩展）
+- 领取：2026-09-24 PC 执行侧（GLM-5.3 ZCode 会话）领取。HEAD=9a618f8c（07a90b01 之后，git pull --ff-only 至 9a618f8c，含新开卡 PORT-PCA-AUTOSWEEP-MAC-1 无文件域冲突）；领取时 git status：既有未跟踪工件（coord/runs 多目录、extension obj、godot-cpp）+ VitApp/Workspace/default_project.xml 既有改动，与本卡文件域（scripts/pca_autosweep.py）零重叠。
+- 回执：2026-09-24 PC 执行侧（GLM-5.3 ZCode）执行完成 mv doing→done 待验收。实现 HEAD=本收口 commit（领取 9a618f8c 之后 main 直接提交，无分支——沿 AUTOSWEEP 同族卡惯例）；run ID=FIX-PCA-AUTOSWEEP-1/20260924_005622 续跑（EQ 相幂等并入既有 sweep state）。
+  - **实现**（文件域内零 agent 代码改动达成）：scripts/pca_autosweep.py ——①certify 相 static_eq 确定性通道（EQ-1 路径批量化：plugin_search 精确解析→track.add_audio→load_to_rack→分页参数快照→explain_controls 拓扑→apply_eq_edits upsert(+modify/disable)/undo 事务回滚→before/after 快照比对→phase3 式收据→pcactl import 自动晋升）；②EQ 白名单 bands 派生（explain 拓扑 center_hz+每通道 gain id × S3 双周期探测零漂移 stable_id 交叉核对；upsert bell coverage 缺失/带锚不可派生→如实不入列记因）+ --apply-live（双备份）；③legacy 强制目标（PC-FULL 裁定①：68 命中含 bx_hybrid V2 全量重认证 + Vertigo VSC-2 broadband 走既有 runner 形式补齐）；④--families/--eq-subject 过滤；⑤ensure_kernel_plugin_list 忙/空分流修正（见环境事件）；⑥report 相 static_eq no-runner 例外分支移除。
+  - **验收①（超额）**：EQ 通道收据 **7/7 全检零 LLM**（natural_language_chat_count=0、audio_probe=0、b4=0、工具面严格 6 个确定性工具）——含 ≥1 Waves 壳 EQ ×5（API-550A/AudioTrack M+S/L316 M+S）+ **bx_hybrid V2 legacy 补认证**（plugin_alliance 收据种类）；API-550A 晋升条目 evidence 合并携带 2026-07-27 legacy 与 2026-09-24 新收据，coverage={upsert,modify,undo}×bell。收据根 ~/.vit/pca_certifications/eq_channel_20260924_005622/。
+  - **验收②**：白名单 static_eq **1→6**（bx_hybrid S0 保留 + API-550A Stereo/AudioTrack Mono/Stereo/L316 Mono/Stereo 新派生；Lindell 80 Channel 如实不入列——带面无 center/gain 锚记因）；溯源 provenance_table_v6_full.json static_eq 13 行（bands×S3×explain 交叉核对 + _attestation 收据指针 + _excluded + _s0_kept）；live 白名单 --apply-live 落地（live_backup_pre_eq/pre_apply 双备份）。Vertigo VSC-2 白名单仍被 ^Threshold$ 锚点排除（A/B 双形态，既有 fail-closed 记因不变）。
+  - **验收③**：verify overlay 回归 **61 检 0 败**（6 static_eq 准入 upsert+bell + 52 其它族 + 3 non-member spot）。
+  - **验收④**：journey EQ 自选腿 run4（默认演示提示词）**all_green exit 0**，五环=披露（6 候选>1 披露面激活）→模型自选（improvement_proposal.parameter_bounds.plugin_identifier=VST3-bx_hybrid V2 显式 pin）→准入（gate 零拒绝）→绑定（d1 static_eq 条目 315Hz 最近带 ch1/ch2=白名单逐字一致）→写链（实例化+双通道 -1.5dB 回读核证+revision 3→4+audition 卡）。run1-3 红如实记录（run1 直写路线；run2/3 同签名两连=mix_treatment 确认路径对 plugin_treatment 设计性退役 mix_treatment_confirmation.go:279，改默认提示词后 goal 内 trajectory 链全绿；L316 双族晋升探针被防歧义闸正确拒绝=harness 设计行为）。
+  - **验收⑤**：例外队列 static_eq 68 命中全处置——7 certified + 57 load_gate_blocked（56 无晋升 + 1 跨族歧义 fail-closed）+ 3 vendor_kind_missing（FabFilter×2/TDR×1，v1 导入门只收 waves/PA 收据种类）+ 1 shape_not_provably_reachable；上轮 68 条"no runner"滞留清零。
+  - **【上交决策侧】**：57 例未晋升 static_eq 的 load gate 结构性阻断——harness certification 授权白名单已含 static_eq（harness.go:1956）但无入口铸授权（runner 入口 processor_certification_entry.go:419 拒 static_eq；full-access 路要求先晋升=循环依赖；HTTP invoke 强制 source=http server.go:1463）。可选修法=token-only 认证授权入口（~40-60 行 agent 改动，需授权文件域）；落地后 --phase certify --families static_eq 幂等续跑自动吸收（retry 语义已就位）。详见 ACCEPT_EVIDENCE.md 上交节。
+  - **环境事件**（ENV_NOTES.md）：内核插件库开机重验证窗口 ~20-40 分钟（上轮 ledger 19:26/19:46 双 certify phase_start 佐证）；窗口内探测会叠加阻塞（两次 wedge 后确立"静默等待"纪律）；bash 反斜杠路径陷阱踩坑一次已按 §5 记录。
+  - 工件指针：coord/runs/FIX-PCA-EQCHANNEL-1/（ACCEPT_EVIDENCE.md 全证据 / ENV_NOTES.md / journey_report_journey1-4.json / 各相控制台日志；journey1-4/ 工作区留机器本地）；sweep 续跑工件并入 FIX-PCA-AUTOSWEEP-1/20260924_005622/{run_ledger.jsonl,sweep_report.*,derive/*}（state.json 留机器本地惯例）。
+  - 测试：py_compile 通过；sweep certify/derive/verify/report 各相 exit 0；journey4 exit 0 all_green。
+- 验收：
