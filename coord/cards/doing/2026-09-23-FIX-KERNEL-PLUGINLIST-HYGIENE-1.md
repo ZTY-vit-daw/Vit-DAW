@@ -12,6 +12,6 @@
 - 文件域：`VitApp/Source/Service/PluginRackControlService.cpp`（协调器+列表加载路径）；如涉及 `CommandDispatcher.cpp` 取消命令路径列明；前端仓 UI 提示为可选子项（列明则允许）
 - 验收：①构造含不存在路径条目的 Settings 启动→日志显示清理且条目数正确；②扫描中取消→重扫不跳过（黑名单无新增、pedal 干净、部分成果保留）；③取消与 kill -9 崩溃两形态对照——崩溃仍触发隔离（防御不弱化）；④双端回归：mac 真栈扫描全量+装载 spot；PC 侧同测（决策侧安排）
 - 停止条件：取消/崩溃语义在 JUCE 层无法区分（隔离在 juce::PluginDirectoryScanner 内部）→ 上交方案选项（pedal 预写策略绕开/升级 JUCE/自管隔离表），不硬改第三方
-- 领取：
+- 领取：2026-09-24 / origin/main 6774b9fba197386e771f2faf47b9c6d2d2b9c62e / port/fix-kernel-hygiene（独立 worktree D:/Vit_DAW_worktrees/kernel-pluginlist-hygiene，PC 执行会话 B）
 - 回执：
 - 验收：
