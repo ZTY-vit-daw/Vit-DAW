@@ -13,5 +13,31 @@
 - 验收：①mac sweep_report 三桶+七族表（与 PC 对照结论）②新晋升计数+认证收据抽样可回指 ③白名单新版本+溯源（含 EQ 族增长或如实记录）④overlay+journey 验证腿证据链 ⑤回执两端 HEAD（决策侧发卡=07a90b0 后最新 main）
 - 停止条件：分桶与 PC 大面积不一致（>1/3 族）→ 停下取证上交（工具平台缺陷嫌疑）；sweep 认证步崩溃/环境中断 → 按 §8 记录；白名单派生需手编才能进 → 不手编，如实少列
 - 领取：2026-09-24 16:09 CST / origin/main=8f76d1ce042bbd6c40a7955ff53dfa863ece45a3（=发卡基线，无入站新提交）/ 分支=main（coord-only 直推，PROTOCOL §3）；领取时工作树残留：M Settings.xml + M default_project.xml（两 Workspace 运行时状态，不碰）+ ?? .zcodeignore + ?? VitApp/Workspace/Artifacts/
-- 回执：
+- 回执：（2026-09-24 19:0x CST 自验完成，待决策验收；工件根 ~/Documents/vit-autosweep-mac-artifacts/）
+  - **两端 HEAD**：决策侧发卡=8f76d1c；mac 执行侧领取提交 892919e+82555fc（coord-only，main）；
+    本回执收口提交=（本次 mv done 提交，见 git log）；仓库零代码改动（工具原样执行）
+  - **①mac sweep_report**：run 20260924_161642（16:16-16:47，七相全过）——705 主体
+    probe 705/705 零超时；三桶 classified 185 命中/certified 45/exceptions 118 全记因；
+    七族表 static_eq 53/broadband 18/limiter 29/transient 29/multiband 23/de_esser 16/gate 17
+  - **②PC 对照**（PC_COMPARISON.md）：共享 705 主体（mac 全库=PC 970 子集，PC 独有 265=
+    非 Waves 厂商）**逐主体族集合分歧 0/705、七族计数逐桶相等**——卡面 PC 数字（68/51/…）
+    为全库口径，增量全来自 PC 独有主体；分类器跨平台确定性验证 pass（非停止条件情形）
+  - **③白名单再生长**：23→47 条目（sha 324ee2ac→2407930c），EQ 3→7/broadband 2→13/
+    limiter 4→9/multiband 6→8/de_esser 4→6/gate 2→2/transient 2→2；promoted pairs 28→73；
+    四源零手编（derive 相=frozen builder 原样复跑+EQ 通道收据派生 +4/排除 0 记因）；
+    溯源 sweep_run…/derive/ 全套+backup/ 跑前版哈希
+  - **④验证腿**：sweep verify 相 overlay 50 检查零失败（47 成员+3 非成员 spot 拒绝）；
+    journey 原命令原素材两轮——run1 exit 1（红点=证据捕获窗口 /agent/ui/state GET 超时+
+    占位分支，分类记录），**run2 exit 0 all_green red=0**；五环证据链
+    （journey/run2_evidence_chain.json）：披露 45/45 七族零泄漏→自选 Q10 Stereo→零拒绝→
+    FrozenPlan 绑定→set_plugin_param succeeded（D2-1 有界 EQ 带调整，applied_revision 4）
+    +确定性探针 C1 comp Mono instance_ready+audition 卡挂载；LLM key 零入工件（实值+模式双扫 PASS）
+  - **例外/上交项**：static_eq load_gate 47 例与 PC 57 例同机制（server.go:1456 缺省
+    source 补 "http"→gate 生效→无 admission 主体循环依赖，FIX-PCA-CERTAUTH-TOKEN-1 域）；
+    自举不动点核验：47 例零主体在任一族有晋升，幂等重跑无可吸收——token 入口解锁后
+    由决策侧处置；runner 判定不支持 60 例（detector 边界记因，bucket_exceptions 可查）
+  - **环境事件**：会话 Bash 工具一度 "spawn /bin/zsh ENOENT"（持久 CWD 指向已迁移的
+    run 目录所致，重建路径+cd 后恢复，全程未影响任何运行结果）；无栈级环境中断
+  - 端测边界声明：本卡验证=agent HTTP 面+确定性认证通道+journey 脚本断言（含真实栈
+    kernel+agent+真实 LLM 轮）；不覆盖 webui 渲染面与 Godot 前端（卡域外）
 - 验收：
