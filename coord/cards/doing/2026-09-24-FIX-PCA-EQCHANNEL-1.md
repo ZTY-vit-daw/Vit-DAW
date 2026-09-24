@@ -12,6 +12,6 @@
 - 文件域：`scripts/pca_autosweep.py`（+测试/自检输出）；零 agent 代码改动预期
 - 验收：①EQ 通道收据抽核 ≥3（含 ≥1 Waves 壳 EQ + bx_hybrid legacy 补认证）零 LLM；②白名单 EQ 族多候选+溯源；③overlay 回归；④EQ 自选腿五环 exit 0；⑤例外队列 static_eq 处置记录
 - 停止条件：EQ 带结构参数锚派生大面积失败（>半数）→ 记录上交（可能需带面探测扩展）
-- 领取：
+- 领取：2026-09-24 PC 执行侧（GLM-5.3 ZCode 会话）领取。HEAD=9a618f8c（07a90b01 之后，git pull --ff-only 至 9a618f8c，含新开卡 PORT-PCA-AUTOSWEEP-MAC-1 无文件域冲突）；领取时 git status：既有未跟踪工件（coord/runs 多目录、extension obj、godot-cpp）+ VitApp/Workspace/default_project.xml 既有改动，与本卡文件域（scripts/pca_autosweep.py）零重叠。
 - 回执：
 - 验收：
