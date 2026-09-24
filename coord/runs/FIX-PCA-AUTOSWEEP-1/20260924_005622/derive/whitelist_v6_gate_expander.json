@@ -194,6 +194,1419 @@
           "gain_param_id_ch2": "40"
         }
       ]
+    },
+    {
+      "plugin_name": "ADPTR Utopia",
+      "manufacturer": "Plugin Alliance",
+      "format": "VST3",
+      "plugin_identifier": "VST3-ADPTR Utopia-124f78d9-2e1319e9",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\ADPTR Utopia.vst3",
+      "bands": [
+        {
+          "center_hz": 20.0,
+          "gain_param_id_ch1": "1350490878",
+          "gain_param_id_ch2": "1350490878"
+        },
+        {
+          "center_hz": 34.4,
+          "gain_param_id_ch1": "163598178",
+          "gain_param_id_ch2": "163598178"
+        },
+        {
+          "center_hz": 134.0,
+          "gain_param_id_ch1": "192227329",
+          "gain_param_id_ch2": "192227329"
+        },
+        {
+          "center_hz": 178.0,
+          "gain_param_id_ch1": "1379120029",
+          "gain_param_id_ch2": "1379120029"
+        },
+        {
+          "center_hz": 462.0,
+          "gain_param_id_ch1": "220856480",
+          "gain_param_id_ch2": "220856480"
+        },
+        {
+          "center_hz": 1470.0,
+          "gain_param_id_ch1": "1407749180",
+          "gain_param_id_ch2": "1407749180"
+        },
+        {
+          "center_hz": 2370.0,
+          "gain_param_id_ch1": "249485631",
+          "gain_param_id_ch2": "249485631"
+        },
+        {
+          "center_hz": 6200.0,
+          "gain_param_id_ch1": "1436378331",
+          "gain_param_id_ch2": "1436378331"
+        },
+        {
+          "center_hz": 19600.0,
+          "gain_param_id_ch1": "278114782",
+          "gain_param_id_ch2": "278114782"
+        },
+        {
+          "center_hz": 20000.0,
+          "gain_param_id_ch1": "1465007482",
+          "gain_param_id_ch2": "1465007482"
+        }
+      ]
+    },
+    {
+      "plugin_name": "API-550A Mono",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-API-550A Mono-695648d-872a0bcb",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "bands": [
+        {
+          "center_hz": 50.0,
+          "gain_param_id_ch1": "4",
+          "gain_param_id_ch2": "4"
+        },
+        {
+          "center_hz": 400.0,
+          "gain_param_id_ch1": "2",
+          "gain_param_id_ch2": "2"
+        },
+        {
+          "center_hz": 5000.0,
+          "gain_param_id_ch1": "0",
+          "gain_param_id_ch2": "0"
+        }
+      ]
+    },
+    {
+      "plugin_name": "EMO-Q4 Mono",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-EMO-Q4 Mono-695648d-150ca2d6",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "bands": [
+        {
+          "center_hz": 92.0,
+          "gain_param_id_ch1": "2",
+          "gain_param_id_ch2": "2"
+        },
+        {
+          "center_hz": 351.0,
+          "gain_param_id_ch1": "7",
+          "gain_param_id_ch2": "7"
+        },
+        {
+          "center_hz": 2890.0,
+          "gain_param_id_ch1": "12",
+          "gain_param_id_ch2": "12"
+        },
+        {
+          "center_hz": 10992.0,
+          "gain_param_id_ch1": "17",
+          "gain_param_id_ch2": "17"
+        }
+      ]
+    },
+    {
+      "plugin_name": "F6-RTA Mono",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-F6-RTA Mono-695648d-52bed370",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "bands": [
+        {
+          "center_hz": 45.0,
+          "gain_param_id_ch1": "12",
+          "gain_param_id_ch2": "12"
+        },
+        {
+          "center_hz": 125.0,
+          "gain_param_id_ch1": "24",
+          "gain_param_id_ch2": "24"
+        },
+        {
+          "center_hz": 353.0,
+          "gain_param_id_ch1": "36",
+          "gain_param_id_ch2": "36"
+        },
+        {
+          "center_hz": 1000.0,
+          "gain_param_id_ch1": "48",
+          "gain_param_id_ch2": "48"
+        },
+        {
+          "center_hz": 2868.0,
+          "gain_param_id_ch1": "60",
+          "gain_param_id_ch2": "60"
+        },
+        {
+          "center_hz": 8000.0,
+          "gain_param_id_ch1": "72",
+          "gain_param_id_ch2": "72"
+        }
+      ]
+    },
+    {
+      "plugin_name": "F6-RTA Stereo",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-F6-RTA Stereo-695648d-52d55f75",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "bands": [
+        {
+          "center_hz": 45.0,
+          "gain_param_id_ch1": "15",
+          "gain_param_id_ch2": "15"
+        },
+        {
+          "center_hz": 125.0,
+          "gain_param_id_ch1": "28",
+          "gain_param_id_ch2": "28"
+        },
+        {
+          "center_hz": 353.0,
+          "gain_param_id_ch1": "41",
+          "gain_param_id_ch2": "41"
+        },
+        {
+          "center_hz": 1000.0,
+          "gain_param_id_ch1": "54",
+          "gain_param_id_ch2": "54"
+        },
+        {
+          "center_hz": 2868.0,
+          "gain_param_id_ch1": "67",
+          "gain_param_id_ch2": "67"
+        },
+        {
+          "center_hz": 8000.0,
+          "gain_param_id_ch1": "80",
+          "gain_param_id_ch2": "80"
+        }
+      ]
+    },
+    {
+      "plugin_name": "F6 Mono",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-F6 Mono-695648d-d394ca66",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "bands": [
+        {
+          "center_hz": 45.0,
+          "gain_param_id_ch1": "12",
+          "gain_param_id_ch2": "12"
+        },
+        {
+          "center_hz": 125.0,
+          "gain_param_id_ch1": "24",
+          "gain_param_id_ch2": "24"
+        },
+        {
+          "center_hz": 353.0,
+          "gain_param_id_ch1": "36",
+          "gain_param_id_ch2": "36"
+        },
+        {
+          "center_hz": 1000.0,
+          "gain_param_id_ch1": "48",
+          "gain_param_id_ch2": "48"
+        },
+        {
+          "center_hz": 2868.0,
+          "gain_param_id_ch1": "60",
+          "gain_param_id_ch2": "60"
+        },
+        {
+          "center_hz": 8000.0,
+          "gain_param_id_ch1": "72",
+          "gain_param_id_ch2": "72"
+        }
+      ]
+    },
+    {
+      "plugin_name": "F6 Stereo",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-F6 Stereo-695648d-caaf7070",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "bands": [
+        {
+          "center_hz": 45.0,
+          "gain_param_id_ch1": "15",
+          "gain_param_id_ch2": "15"
+        },
+        {
+          "center_hz": 125.0,
+          "gain_param_id_ch1": "28",
+          "gain_param_id_ch2": "28"
+        },
+        {
+          "center_hz": 353.0,
+          "gain_param_id_ch1": "41",
+          "gain_param_id_ch2": "41"
+        },
+        {
+          "center_hz": 1000.0,
+          "gain_param_id_ch1": "54",
+          "gain_param_id_ch2": "54"
+        },
+        {
+          "center_hz": 2868.0,
+          "gain_param_id_ch1": "67",
+          "gain_param_id_ch2": "67"
+        },
+        {
+          "center_hz": 8000.0,
+          "gain_param_id_ch1": "80",
+          "gain_param_id_ch2": "80"
+        }
+      ]
+    },
+    {
+      "plugin_name": "LinEQ Lowband Mono",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-LinEQ Lowband Mono-695648d-f99f12c6",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "bands": [
+        {
+          "center_hz": 32.0,
+          "gain_param_id_ch1": "2",
+          "gain_param_id_ch2": "2"
+        },
+        {
+          "center_hz": 140.0,
+          "gain_param_id_ch1": "7",
+          "gain_param_id_ch2": "7"
+        },
+        {
+          "center_hz": 603.0,
+          "gain_param_id_ch1": "12",
+          "gain_param_id_ch2": "12"
+        }
+      ]
+    },
+    {
+      "plugin_name": "LinEQ Lowband Stereo",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-LinEQ Lowband Stereo-695648d-f9b598c6",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "bands": [
+        {
+          "center_hz": 32.0,
+          "gain_param_id_ch1": "2",
+          "gain_param_id_ch2": "2"
+        },
+        {
+          "center_hz": 140.0,
+          "gain_param_id_ch1": "7",
+          "gain_param_id_ch2": "7"
+        },
+        {
+          "center_hz": 603.0,
+          "gain_param_id_ch1": "12",
+          "gain_param_id_ch2": "12"
+        }
+      ]
+    },
+    {
+      "plugin_name": "Lindell 50 Channel",
+      "manufacturer": "Plugin Alliance",
+      "format": "VST3",
+      "plugin_identifier": "VST3-Lindell 50 Channel-bdb0cd9a-a685f975",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\Lindell 50 Channel.vst3",
+      "bands": [
+        {
+          "center_hz": 100.0,
+          "gain_param_id_ch1": "1294159527",
+          "gain_param_id_ch2": "1294159527"
+        },
+        {
+          "center_hz": 240.0,
+          "gain_param_id_ch1": "1785941439",
+          "gain_param_id_ch2": "1785941439"
+        },
+        {
+          "center_hz": 800.0,
+          "gain_param_id_ch1": "1992341403",
+          "gain_param_id_ch2": "1992341403"
+        },
+        {
+          "center_hz": 5000.0,
+          "gain_param_id_ch1": "1208630681",
+          "gain_param_id_ch2": "1208630681"
+        },
+        {
+          "center_hz": 20000.0,
+          "gain_param_id_ch1": "1624505613",
+          "gain_param_id_ch2": "1624505613"
+        }
+      ]
+    },
+    {
+      "plugin_name": "MannyM EQ Mono",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-MannyM EQ Mono-695648d-15c698d8",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "bands": [
+        {
+          "center_hz": 140.0,
+          "gain_param_id_ch1": "1",
+          "gain_param_id_ch2": "1"
+        },
+        {
+          "center_hz": 400.0,
+          "gain_param_id_ch1": "4",
+          "gain_param_id_ch2": "4"
+        },
+        {
+          "center_hz": 3200.0,
+          "gain_param_id_ch1": "7",
+          "gain_param_id_ch2": "7"
+        },
+        {
+          "center_hz": 15000.0,
+          "gain_param_id_ch1": "10",
+          "gain_param_id_ch2": "10"
+        }
+      ]
+    },
+    {
+      "plugin_name": "MannyM EQ Stereo",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-MannyM EQ Stereo-695648d-15dd1ed8",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "bands": [
+        {
+          "center_hz": 140.0,
+          "gain_param_id_ch1": "1",
+          "gain_param_id_ch2": "1"
+        },
+        {
+          "center_hz": 400.0,
+          "gain_param_id_ch1": "4",
+          "gain_param_id_ch2": "4"
+        },
+        {
+          "center_hz": 3200.0,
+          "gain_param_id_ch1": "7",
+          "gain_param_id_ch2": "7"
+        },
+        {
+          "center_hz": 15000.0,
+          "gain_param_id_ch1": "10",
+          "gain_param_id_ch2": "10"
+        }
+      ]
+    },
+    {
+      "plugin_name": "Morphoder Mono/Stereo",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-Morphoder Mono/Stereo-695648d-84463721",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "bands": [
+        {
+          "center_hz": 215.0,
+          "gain_param_id_ch1": "30",
+          "gain_param_id_ch2": "30"
+        },
+        {
+          "center_hz": 646.0,
+          "gain_param_id_ch1": "34",
+          "gain_param_id_ch2": "34"
+        },
+        {
+          "center_hz": 1680.0,
+          "gain_param_id_ch1": "38",
+          "gain_param_id_ch2": "38"
+        },
+        {
+          "center_hz": 4307.0,
+          "gain_param_id_ch1": "42",
+          "gain_param_id_ch2": "42"
+        },
+        {
+          "center_hz": 10939.0,
+          "gain_param_id_ch1": "46",
+          "gain_param_id_ch2": "46"
+        }
+      ]
+    },
+    {
+      "plugin_name": "Morphoder Mono",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-Morphoder Mono-695648d-841cec21",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "bands": [
+        {
+          "center_hz": 215.0,
+          "gain_param_id_ch1": "31",
+          "gain_param_id_ch2": "31"
+        },
+        {
+          "center_hz": 646.0,
+          "gain_param_id_ch1": "35",
+          "gain_param_id_ch2": "35"
+        },
+        {
+          "center_hz": 1680.0,
+          "gain_param_id_ch1": "39",
+          "gain_param_id_ch2": "39"
+        },
+        {
+          "center_hz": 4307.0,
+          "gain_param_id_ch1": "43",
+          "gain_param_id_ch2": "43"
+        },
+        {
+          "center_hz": 10939.0,
+          "gain_param_id_ch1": "47",
+          "gain_param_id_ch2": "47"
+        }
+      ]
+    },
+    {
+      "plugin_name": "Morphoder Stereo",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-Morphoder Stereo-695648d-84337221",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "bands": [
+        {
+          "center_hz": 215.0,
+          "gain_param_id_ch1": "32",
+          "gain_param_id_ch2": "32"
+        },
+        {
+          "center_hz": 646.0,
+          "gain_param_id_ch1": "36",
+          "gain_param_id_ch2": "36"
+        },
+        {
+          "center_hz": 1680.0,
+          "gain_param_id_ch1": "40",
+          "gain_param_id_ch2": "40"
+        },
+        {
+          "center_hz": 4307.0,
+          "gain_param_id_ch1": "44",
+          "gain_param_id_ch2": "44"
+        },
+        {
+          "center_hz": 10939.0,
+          "gain_param_id_ch1": "48",
+          "gain_param_id_ch2": "48"
+        }
+      ]
+    },
+    {
+      "plugin_name": "MultiMod Rack Mono/Stereo",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-MultiMod Rack Mono/Stereo-695648d-fc939a97",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "bands": [
+        {
+          "center_hz": 125.0,
+          "gain_param_id_ch1": "112",
+          "gain_param_id_ch2": "112"
+        },
+        {
+          "center_hz": 1000.0,
+          "gain_param_id_ch1": "115",
+          "gain_param_id_ch2": "115"
+        },
+        {
+          "center_hz": 5024.0,
+          "gain_param_id_ch1": "64",
+          "gain_param_id_ch2": "64"
+        },
+        {
+          "center_hz": 6145.0,
+          "gain_param_id_ch1": "118",
+          "gain_param_id_ch2": "118"
+        }
+      ]
+    },
+    {
+      "plugin_name": "MultiMod Rack Mono",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-MultiMod Rack Mono-695648d-fc6a4f97",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "bands": [
+        {
+          "center_hz": 125.0,
+          "gain_param_id_ch1": "106",
+          "gain_param_id_ch2": "106"
+        },
+        {
+          "center_hz": 1000.0,
+          "gain_param_id_ch1": "109",
+          "gain_param_id_ch2": "109"
+        },
+        {
+          "center_hz": 5024.0,
+          "gain_param_id_ch1": "64",
+          "gain_param_id_ch2": "64"
+        },
+        {
+          "center_hz": 6145.0,
+          "gain_param_id_ch1": "112",
+          "gain_param_id_ch2": "112"
+        }
+      ]
+    },
+    {
+      "plugin_name": "MultiMod Rack Stereo",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-MultiMod Rack Stereo-695648d-fc80d597",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "bands": [
+        {
+          "center_hz": 125.0,
+          "gain_param_id_ch1": "112",
+          "gain_param_id_ch2": "112"
+        },
+        {
+          "center_hz": 1000.0,
+          "gain_param_id_ch1": "115",
+          "gain_param_id_ch2": "115"
+        },
+        {
+          "center_hz": 5024.0,
+          "gain_param_id_ch1": "64",
+          "gain_param_id_ch2": "64"
+        },
+        {
+          "center_hz": 6145.0,
+          "gain_param_id_ch1": "118",
+          "gain_param_id_ch2": "118"
+        }
+      ]
+    },
+    {
+      "plugin_name": "OVox Mono/Stereo",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-OVox Mono/Stereo-695648d-a631084f",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "bands": [
+        {
+          "center_hz": 126.0,
+          "gain_param_id_ch1": "151",
+          "gain_param_id_ch2": "151"
+        },
+        {
+          "center_hz": 525.0,
+          "gain_param_id_ch1": "156",
+          "gain_param_id_ch2": "156"
+        },
+        {
+          "center_hz": 1904.0,
+          "gain_param_id_ch1": "161",
+          "gain_param_id_ch2": "161"
+        },
+        {
+          "center_hz": 6598.0,
+          "gain_param_id_ch1": "166",
+          "gain_param_id_ch2": "166"
+        }
+      ]
+    },
+    {
+      "plugin_name": "OVox Stereo",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-OVox Stereo-695648d-ac233a52",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "bands": [
+        {
+          "center_hz": 126.0,
+          "gain_param_id_ch1": "151",
+          "gain_param_id_ch2": "151"
+        },
+        {
+          "center_hz": 525.0,
+          "gain_param_id_ch1": "156",
+          "gain_param_id_ch2": "156"
+        },
+        {
+          "center_hz": 1904.0,
+          "gain_param_id_ch1": "161",
+          "gain_param_id_ch2": "161"
+        },
+        {
+          "center_hz": 6598.0,
+          "gain_param_id_ch1": "166",
+          "gain_param_id_ch2": "166"
+        }
+      ]
+    },
+    {
+      "plugin_name": "Q10 Mono",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-Q10 Mono-695648d-35819aff",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "bands": [
+        {
+          "center_hz": 31.0,
+          "gain_param_id_ch1": "2",
+          "gain_param_id_ch2": "2"
+        },
+        {
+          "center_hz": 62.0,
+          "gain_param_id_ch1": "7",
+          "gain_param_id_ch2": "7"
+        },
+        {
+          "center_hz": 125.0,
+          "gain_param_id_ch1": "12",
+          "gain_param_id_ch2": "12"
+        },
+        {
+          "center_hz": 250.0,
+          "gain_param_id_ch1": "17",
+          "gain_param_id_ch2": "17"
+        },
+        {
+          "center_hz": 500.0,
+          "gain_param_id_ch1": "22",
+          "gain_param_id_ch2": "22"
+        },
+        {
+          "center_hz": 1000.0,
+          "gain_param_id_ch1": "27",
+          "gain_param_id_ch2": "27"
+        },
+        {
+          "center_hz": 2000.0,
+          "gain_param_id_ch1": "32",
+          "gain_param_id_ch2": "32"
+        },
+        {
+          "center_hz": 4000.0,
+          "gain_param_id_ch1": "37",
+          "gain_param_id_ch2": "37"
+        },
+        {
+          "center_hz": 8000.0,
+          "gain_param_id_ch1": "42",
+          "gain_param_id_ch2": "42"
+        },
+        {
+          "center_hz": 16000.0,
+          "gain_param_id_ch1": "47",
+          "gain_param_id_ch2": "47"
+        }
+      ]
+    },
+    {
+      "plugin_name": "Q10 Stereo",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-Q10 Stereo-695648d-3a8f251e",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "bands": [
+        {
+          "center_hz": 31.0,
+          "gain_param_id_ch1": "2",
+          "gain_param_id_ch2": "2"
+        },
+        {
+          "center_hz": 62.0,
+          "gain_param_id_ch1": "7",
+          "gain_param_id_ch2": "7"
+        },
+        {
+          "center_hz": 125.0,
+          "gain_param_id_ch1": "12",
+          "gain_param_id_ch2": "12"
+        },
+        {
+          "center_hz": 250.0,
+          "gain_param_id_ch1": "17",
+          "gain_param_id_ch2": "17"
+        },
+        {
+          "center_hz": 500.0,
+          "gain_param_id_ch1": "22",
+          "gain_param_id_ch2": "22"
+        },
+        {
+          "center_hz": 1000.0,
+          "gain_param_id_ch1": "27",
+          "gain_param_id_ch2": "27"
+        },
+        {
+          "center_hz": 2000.0,
+          "gain_param_id_ch1": "32",
+          "gain_param_id_ch2": "32"
+        },
+        {
+          "center_hz": 4000.0,
+          "gain_param_id_ch1": "37",
+          "gain_param_id_ch2": "37"
+        },
+        {
+          "center_hz": 8000.0,
+          "gain_param_id_ch1": "42",
+          "gain_param_id_ch2": "42"
+        },
+        {
+          "center_hz": 16000.0,
+          "gain_param_id_ch1": "47",
+          "gain_param_id_ch2": "47"
+        }
+      ]
+    },
+    {
+      "plugin_name": "Q3 Mono",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-Q3 Mono-695648d-3c0d7f3d",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "bands": [
+        {
+          "center_hz": 31.0,
+          "gain_param_id_ch1": "2",
+          "gain_param_id_ch2": "2"
+        },
+        {
+          "center_hz": 62.0,
+          "gain_param_id_ch1": "7",
+          "gain_param_id_ch2": "7"
+        },
+        {
+          "center_hz": 125.0,
+          "gain_param_id_ch1": "12",
+          "gain_param_id_ch2": "12"
+        }
+      ]
+    },
+    {
+      "plugin_name": "Q3 Stereo",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-Q3 Stereo-695648d-33282547",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "bands": [
+        {
+          "center_hz": 31.0,
+          "gain_param_id_ch1": "2",
+          "gain_param_id_ch2": "2"
+        },
+        {
+          "center_hz": 62.0,
+          "gain_param_id_ch1": "7",
+          "gain_param_id_ch2": "7"
+        },
+        {
+          "center_hz": 125.0,
+          "gain_param_id_ch1": "12",
+          "gain_param_id_ch2": "12"
+        }
+      ]
+    },
+    {
+      "plugin_name": "Q4 Mono",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-Q4 Mono-695648d-5ece7f3d",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "bands": [
+        {
+          "center_hz": 31.0,
+          "gain_param_id_ch1": "2",
+          "gain_param_id_ch2": "2"
+        },
+        {
+          "center_hz": 62.0,
+          "gain_param_id_ch1": "7",
+          "gain_param_id_ch2": "7"
+        },
+        {
+          "center_hz": 125.0,
+          "gain_param_id_ch1": "12",
+          "gain_param_id_ch2": "12"
+        },
+        {
+          "center_hz": 250.0,
+          "gain_param_id_ch1": "17",
+          "gain_param_id_ch2": "17"
+        }
+      ]
+    },
+    {
+      "plugin_name": "Q4 Stereo",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-Q4 Stereo-695648d-55e92547",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "bands": [
+        {
+          "center_hz": 31.0,
+          "gain_param_id_ch1": "2",
+          "gain_param_id_ch2": "2"
+        },
+        {
+          "center_hz": 62.0,
+          "gain_param_id_ch1": "7",
+          "gain_param_id_ch2": "7"
+        },
+        {
+          "center_hz": 125.0,
+          "gain_param_id_ch1": "12",
+          "gain_param_id_ch2": "12"
+        },
+        {
+          "center_hz": 250.0,
+          "gain_param_id_ch1": "17",
+          "gain_param_id_ch2": "17"
+        }
+      ]
+    },
+    {
+      "plugin_name": "Q6 Mono",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-Q6 Mono-695648d-a4507f3d",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "bands": [
+        {
+          "center_hz": 31.0,
+          "gain_param_id_ch1": "2",
+          "gain_param_id_ch2": "2"
+        },
+        {
+          "center_hz": 62.0,
+          "gain_param_id_ch1": "7",
+          "gain_param_id_ch2": "7"
+        },
+        {
+          "center_hz": 125.0,
+          "gain_param_id_ch1": "12",
+          "gain_param_id_ch2": "12"
+        },
+        {
+          "center_hz": 250.0,
+          "gain_param_id_ch1": "17",
+          "gain_param_id_ch2": "17"
+        },
+        {
+          "center_hz": 500.0,
+          "gain_param_id_ch1": "22",
+          "gain_param_id_ch2": "22"
+        },
+        {
+          "center_hz": 1000.0,
+          "gain_param_id_ch1": "27",
+          "gain_param_id_ch2": "27"
+        }
+      ]
+    },
+    {
+      "plugin_name": "Q6 Stereo",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-Q6 Stereo-695648d-9b6b2547",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "bands": [
+        {
+          "center_hz": 31.0,
+          "gain_param_id_ch1": "2",
+          "gain_param_id_ch2": "2"
+        },
+        {
+          "center_hz": 62.0,
+          "gain_param_id_ch1": "7",
+          "gain_param_id_ch2": "7"
+        },
+        {
+          "center_hz": 125.0,
+          "gain_param_id_ch1": "12",
+          "gain_param_id_ch2": "12"
+        },
+        {
+          "center_hz": 250.0,
+          "gain_param_id_ch1": "17",
+          "gain_param_id_ch2": "17"
+        },
+        {
+          "center_hz": 500.0,
+          "gain_param_id_ch1": "22",
+          "gain_param_id_ch2": "22"
+        },
+        {
+          "center_hz": 1000.0,
+          "gain_param_id_ch1": "27",
+          "gain_param_id_ch2": "27"
+        }
+      ]
+    },
+    {
+      "plugin_name": "Q8 Mono",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-Q8 Mono-695648d-e9d27f3d",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "bands": [
+        {
+          "center_hz": 31.0,
+          "gain_param_id_ch1": "2",
+          "gain_param_id_ch2": "2"
+        },
+        {
+          "center_hz": 62.0,
+          "gain_param_id_ch1": "7",
+          "gain_param_id_ch2": "7"
+        },
+        {
+          "center_hz": 125.0,
+          "gain_param_id_ch1": "12",
+          "gain_param_id_ch2": "12"
+        },
+        {
+          "center_hz": 250.0,
+          "gain_param_id_ch1": "17",
+          "gain_param_id_ch2": "17"
+        },
+        {
+          "center_hz": 500.0,
+          "gain_param_id_ch1": "22",
+          "gain_param_id_ch2": "22"
+        },
+        {
+          "center_hz": 1000.0,
+          "gain_param_id_ch1": "27",
+          "gain_param_id_ch2": "27"
+        },
+        {
+          "center_hz": 2000.0,
+          "gain_param_id_ch1": "32",
+          "gain_param_id_ch2": "32"
+        },
+        {
+          "center_hz": 4000.0,
+          "gain_param_id_ch1": "37",
+          "gain_param_id_ch2": "37"
+        }
+      ]
+    },
+    {
+      "plugin_name": "Q8 Stereo",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-Q8 Stereo-695648d-e0ed2547",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "bands": [
+        {
+          "center_hz": 31.0,
+          "gain_param_id_ch1": "2",
+          "gain_param_id_ch2": "2"
+        },
+        {
+          "center_hz": 62.0,
+          "gain_param_id_ch1": "7",
+          "gain_param_id_ch2": "7"
+        },
+        {
+          "center_hz": 125.0,
+          "gain_param_id_ch1": "12",
+          "gain_param_id_ch2": "12"
+        },
+        {
+          "center_hz": 250.0,
+          "gain_param_id_ch1": "17",
+          "gain_param_id_ch2": "17"
+        },
+        {
+          "center_hz": 500.0,
+          "gain_param_id_ch1": "22",
+          "gain_param_id_ch2": "22"
+        },
+        {
+          "center_hz": 1000.0,
+          "gain_param_id_ch1": "27",
+          "gain_param_id_ch2": "27"
+        },
+        {
+          "center_hz": 2000.0,
+          "gain_param_id_ch1": "32",
+          "gain_param_id_ch2": "32"
+        },
+        {
+          "center_hz": 4000.0,
+          "gain_param_id_ch1": "37",
+          "gain_param_id_ch2": "37"
+        }
+      ]
+    },
+    {
+      "plugin_name": "RChannel Mono/Stereo",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-RChannel Mono/Stereo-695648d-4dcaaed2",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "bands": [
+        {
+          "center_hz": 60.0,
+          "gain_param_id_ch1": "1",
+          "gain_param_id_ch2": "1"
+        },
+        {
+          "center_hz": 500.0,
+          "gain_param_id_ch1": "2",
+          "gain_param_id_ch2": "2"
+        },
+        {
+          "center_hz": 3500.0,
+          "gain_param_id_ch1": "3",
+          "gain_param_id_ch2": "3"
+        },
+        {
+          "center_hz": 8000.0,
+          "gain_param_id_ch1": "4",
+          "gain_param_id_ch2": "4"
+        }
+      ]
+    },
+    {
+      "plugin_name": "RChannel Mono",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-RChannel Mono-695648d-4da163d2",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "bands": [
+        {
+          "center_hz": 60.0,
+          "gain_param_id_ch1": "1",
+          "gain_param_id_ch2": "1"
+        },
+        {
+          "center_hz": 500.0,
+          "gain_param_id_ch1": "2",
+          "gain_param_id_ch2": "2"
+        },
+        {
+          "center_hz": 3500.0,
+          "gain_param_id_ch1": "3",
+          "gain_param_id_ch2": "3"
+        },
+        {
+          "center_hz": 8000.0,
+          "gain_param_id_ch1": "4",
+          "gain_param_id_ch2": "4"
+        }
+      ]
+    },
+    {
+      "plugin_name": "RChannel Stereo",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-RChannel Stereo-695648d-4db7e9d2",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "bands": [
+        {
+          "center_hz": 60.0,
+          "gain_param_id_ch1": "1",
+          "gain_param_id_ch2": "1"
+        },
+        {
+          "center_hz": 500.0,
+          "gain_param_id_ch1": "2",
+          "gain_param_id_ch2": "2"
+        },
+        {
+          "center_hz": 3500.0,
+          "gain_param_id_ch1": "3",
+          "gain_param_id_ch2": "3"
+        },
+        {
+          "center_hz": 8000.0,
+          "gain_param_id_ch1": "4",
+          "gain_param_id_ch2": "4"
+        }
+      ]
+    },
+    {
+      "plugin_name": "REQ 4 Mono",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-REQ 4 Mono-695648d-998811a",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "bands": [
+        {
+          "center_hz": 60.0,
+          "gain_param_id_ch1": "2",
+          "gain_param_id_ch2": "2"
+        },
+        {
+          "center_hz": 125.0,
+          "gain_param_id_ch1": "7",
+          "gain_param_id_ch2": "7"
+        },
+        {
+          "center_hz": 3500.0,
+          "gain_param_id_ch1": "12",
+          "gain_param_id_ch2": "12"
+        },
+        {
+          "center_hz": 8000.0,
+          "gain_param_id_ch1": "17",
+          "gain_param_id_ch2": "17"
+        }
+      ]
+    },
+    {
+      "plugin_name": "REQ 4 Stereo",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-REQ 4 Stereo-695648d-9b50c11",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "bands": [
+        {
+          "center_hz": 60.0,
+          "gain_param_id_ch1": "2",
+          "gain_param_id_ch2": "2"
+        },
+        {
+          "center_hz": 125.0,
+          "gain_param_id_ch1": "7",
+          "gain_param_id_ch2": "7"
+        },
+        {
+          "center_hz": 3500.0,
+          "gain_param_id_ch1": "12",
+          "gain_param_id_ch2": "12"
+        },
+        {
+          "center_hz": 8000.0,
+          "gain_param_id_ch1": "17",
+          "gain_param_id_ch2": "17"
+        }
+      ]
+    },
+    {
+      "plugin_name": "REQ 6 Mono",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-REQ 6 Mono-695648d-111a8158",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "bands": [
+        {
+          "center_hz": 60.0,
+          "gain_param_id_ch1": "2",
+          "gain_param_id_ch2": "2"
+        },
+        {
+          "center_hz": 125.0,
+          "gain_param_id_ch1": "7",
+          "gain_param_id_ch2": "7"
+        },
+        {
+          "center_hz": 500.0,
+          "gain_param_id_ch1": "12",
+          "gain_param_id_ch2": "12"
+        },
+        {
+          "center_hz": 1000.0,
+          "gain_param_id_ch1": "17",
+          "gain_param_id_ch2": "17"
+        },
+        {
+          "center_hz": 3500.0,
+          "gain_param_id_ch1": "22",
+          "gain_param_id_ch2": "22"
+        },
+        {
+          "center_hz": 8000.0,
+          "gain_param_id_ch1": "27",
+          "gain_param_id_ch2": "27"
+        }
+      ]
+    },
+    {
+      "plugin_name": "REQ 6 Stereo",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-REQ 6 Stereo-695648d-11370c4f",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "bands": [
+        {
+          "center_hz": 60.0,
+          "gain_param_id_ch1": "2",
+          "gain_param_id_ch2": "2"
+        },
+        {
+          "center_hz": 125.0,
+          "gain_param_id_ch1": "7",
+          "gain_param_id_ch2": "7"
+        },
+        {
+          "center_hz": 500.0,
+          "gain_param_id_ch1": "12",
+          "gain_param_id_ch2": "12"
+        },
+        {
+          "center_hz": 1000.0,
+          "gain_param_id_ch1": "17",
+          "gain_param_id_ch2": "17"
+        },
+        {
+          "center_hz": 3500.0,
+          "gain_param_id_ch1": "22",
+          "gain_param_id_ch2": "22"
+        },
+        {
+          "center_hz": 8000.0,
+          "gain_param_id_ch1": "27",
+          "gain_param_id_ch2": "27"
+        }
+      ]
+    },
+    {
+      "plugin_name": "Saphira Mono",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-Saphira Mono-695648d-14d40b87",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "bands": [
+        {
+          "center_hz": 73.0,
+          "gain_param_id_ch1": "28",
+          "gain_param_id_ch2": "28"
+        },
+        {
+          "center_hz": 130.0,
+          "gain_param_id_ch1": "12",
+          "gain_param_id_ch2": "12"
+        },
+        {
+          "center_hz": 200.0,
+          "gain_param_id_ch1": "16",
+          "gain_param_id_ch2": "16"
+        },
+        {
+          "center_hz": 8026.0,
+          "gain_param_id_ch1": "36",
+          "gain_param_id_ch2": "36"
+        },
+        {
+          "center_hz": 12078.0,
+          "gain_param_id_ch1": "40",
+          "gain_param_id_ch2": "40"
+        }
+      ]
+    },
+    {
+      "plugin_name": "Saphira Stereo",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-Saphira Stereo-695648d-14ea918d",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "bands": [
+        {
+          "center_hz": 73.0,
+          "gain_param_id_ch1": "28",
+          "gain_param_id_ch2": "28"
+        },
+        {
+          "center_hz": 130.0,
+          "gain_param_id_ch1": "12",
+          "gain_param_id_ch2": "12"
+        },
+        {
+          "center_hz": 200.0,
+          "gain_param_id_ch1": "16",
+          "gain_param_id_ch2": "16"
+        },
+        {
+          "center_hz": 8026.0,
+          "gain_param_id_ch1": "36",
+          "gain_param_id_ch2": "36"
+        },
+        {
+          "center_hz": 12078.0,
+          "gain_param_id_ch1": "40",
+          "gain_param_id_ch2": "40"
+        }
+      ]
+    },
+    {
+      "plugin_name": "Swivel Audio HitStrip",
+      "manufacturer": "Plugin Alliance",
+      "format": "VST3",
+      "plugin_identifier": "VST3-Swivel Audio HitStrip-f8faf077-ae424e29",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\Swivel Audio HitStrip.vst3",
+      "bands": [
+        {
+          "center_hz": 999.998,
+          "gain_param_id_ch1": "1630",
+          "gain_param_id_ch2": "1630"
+        }
+      ]
+    },
+    {
+      "plugin_name": "bx_hybrid V2 mix",
+      "manufacturer": "Plugin Alliance",
+      "format": "VST3",
+      "plugin_identifier": "VST3-bx_hybrid V2 mix-9f10b933-c12b654b",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\bx_hybrid V2 mix.vst3",
+      "bands": [
+        {
+          "center_hz": 63.0,
+          "gain_param_id_ch1": "827090503",
+          "gain_param_id_ch2": "827090503"
+        },
+        {
+          "center_hz": 89.0,
+          "gain_param_id_ch1": "826430279",
+          "gain_param_id_ch2": "826430279"
+        },
+        {
+          "center_hz": 315.0,
+          "gain_param_id_ch1": "827092295",
+          "gain_param_id_ch2": "827092295"
+        },
+        {
+          "center_hz": 3150.0,
+          "gain_param_id_ch1": "827156039",
+          "gain_param_id_ch2": "827156039"
+        },
+        {
+          "center_hz": 6300.0,
+          "gain_param_id_ch1": "826830151",
+          "gain_param_id_ch2": "826830151"
+        },
+        {
+          "center_hz": 11200.0,
+          "gain_param_id_ch1": "826828359",
+          "gain_param_id_ch2": "826828359"
+        }
+      ]
+    },
+    {
+      "plugin_name": "bx_panEQ",
+      "manufacturer": "Plugin Alliance",
+      "format": "VST3",
+      "plugin_identifier": "VST3-bx_panEQ-91aa39c6-eb0959ff",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\bx_panEQ.vst3",
+      "bands": [
+        {
+          "center_hz": 4840.0,
+          "gain_param_id_ch1": "1111977521",
+          "gain_param_id_ch2": "1111977521"
+        }
+      ]
     }
   ],
   "de_esser": [

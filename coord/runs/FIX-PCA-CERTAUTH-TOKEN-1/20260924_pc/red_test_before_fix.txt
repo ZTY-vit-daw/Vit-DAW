@@ -1,0 +1,5 @@
+--- FAIL: TestCertificationTokenArmsUnpromotedStaticEQCertificationLoad (0.02s)
+    processor_load_gate_certauth_token_test.go:66: armed certification load resp={Status:error AgentActionID: Tool:plugin.load_to_rack CommandName:rack_add_node RiskLevel:confirm RequiresConfirmation:false Preview: UndoLabel: Result:map[] ProjectHistory:map[] Error:pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier} err=pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier
+FAIL
+FAIL	vit-daw-agent/internal/harness	0.198s
+FAIL

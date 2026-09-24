@@ -429,3 +429,75 @@
 {"ts": "2026-09-24T04:53:29+00:00", "event": "phase_done", "phase": "verify"}
 {"ts": "2026-09-24T04:53:32+00:00", "event": "phase_start", "phase": "report"}
 {"ts": "2026-09-24T04:53:33+00:00", "event": "phase_done", "phase": "report"}
+{"ts": "2026-09-24T13:47:21+00:00", "event": "phase_start", "phase": "certify"}
+{"ts": "2026-09-24T13:47:59+00:00", "event": "authority_mode_set", "mode": "full_project_access"}
+{"ts": "2026-09-24T13:49:07+00:00", "event": "cert_done", "subject": "ADPTR Utopia", "family": "static_eq", "job_id": "", "status": "completed", "error": ""}
+{"ts": "2026-09-24T13:50:14+00:00", "event": "cert_done", "subject": "API-550A Mono", "family": "static_eq", "job_id": "", "status": "completed", "error": ""}
+{"ts": "2026-09-24T13:50:56+00:00", "event": "cert_done", "subject": "Abbey Road TG Mastering Live Mono", "family": "static_eq", "job_id": "", "status": "failed", "error": "plugin_grabber.apply_eq_edits: HTTP 400: unplanned_parameter_change: unplanned parameter changes: 45; full preimage restored"}
+{"ts": "2026-09-24T13:51:37+00:00", "event": "cert_done", "subject": "Abbey Road TG Mastering Live Stereo", "family": "static_eq", "job_id": "", "status": "failed", "error": "plugin_grabber.apply_eq_edits: HTTP 400: unplanned_parameter_change: unplanned parameter changes: 93; full preimage restored"}
+{"ts": "2026-09-24T13:52:28+00:00", "event": "cert_done", "subject": "Abbey Road TG Mastering Mono", "family": "static_eq", "job_id": "", "status": "failed", "error": "plugin_grabber.apply_eq_edits: HTTP 400: unplanned_parameter_change: unplanned parameter changes: 45; full preimage restored"}
+{"ts": "2026-09-24T13:53:07+00:00", "event": "cert_done", "subject": "Abbey Road TG Mastering Stereo", "family": "static_eq", "job_id": "", "status": "failed", "error": "plugin_grabber.apply_eq_edits: HTTP 400: unplanned_parameter_change: unplanned parameter changes: 93; full preimage restored"}
+{"ts": "2026-09-24T13:54:58+00:00", "event": "cert_done", "subject": "EMO-Q4 Mono", "family": "static_eq", "job_id": "", "status": "completed", "error": ""}
+{"ts": "2026-09-24T13:57:04+00:00", "event": "cert_done", "subject": "EMO-Q4 Stereo", "family": "static_eq", "job_id": "", "status": "completed", "error": ""}
+{"ts": "2026-09-24T13:59:24+00:00", "event": "cert_done", "subject": "F6-RTA Mono", "family": "static_eq", "job_id": "", "status": "completed", "error": ""}
+{"ts": "2026-09-24T14:00:50+00:00", "event": "cert_done", "subject": "F6-RTA Stereo", "family": "static_eq", "job_id": "", "status": "completed", "error": ""}
+{"ts": "2026-09-24T14:02:21+00:00", "event": "cert_done", "subject": "F6 Mono", "family": "static_eq", "job_id": "", "status": "completed", "error": ""}
+{"ts": "2026-09-24T14:03:39+00:00", "event": "cert_done", "subject": "F6 Stereo", "family": "static_eq", "job_id": "", "status": "completed", "error": ""}
+{"ts": "2026-09-24T14:04:09+00:00", "event": "cert_done", "subject": "LinEQ Broadband Mono", "family": "static_eq", "job_id": "", "status": "failed", "error": "plugin_grabber.apply_eq_edits: HTTP 400: atomic_execution_failed: parameter 27 did not reach requested freq after 12 bounded corrections: requested=3400 actual=3445 tolerance=8.5; full preimage restored"}
+{"ts": "2026-09-24T14:04:41+00:00", "event": "cert_done", "subject": "LinEQ Broadband Stereo", "family": "static_eq", "job_id": "", "status": "failed", "error": "plugin_grabber.apply_eq_edits: HTTP 400: atomic_execution_failed: parameter 27 did not reach requested freq after 12 bounded corrections: requested=3400 actual=3445 tolerance=8.5; full preimage restored"}
+{"ts": "2026-09-24T14:05:45+00:00", "event": "cert_done", "subject": "LinEQ Lowband Mono", "family": "static_eq", "job_id": "", "status": "completed", "error": ""}
+{"ts": "2026-09-24T14:06:49+00:00", "event": "cert_done", "subject": "LinEQ Lowband Stereo", "family": "static_eq", "job_id": "", "status": "completed", "error": ""}
+{"ts": "2026-09-24T14:07:43+00:00", "event": "cert_done", "subject": "Lindell 50 Channel", "family": "static_eq", "job_id": "", "status": "completed", "error": ""}
+{"ts": "2026-09-24T14:08:15+00:00", "event": "cert_done", "subject": "Lindell 69 Channel", "family": "static_eq", "job_id": "", "status": "failed", "error": "plugin_grabber.apply_eq_edits: HTTP 400: shape_not_provably_reachable: upsert bell: requested shape bell at 3400 Hz is not provably reachable in any section; available shapes: [bell low_cut]"}
+{"ts": "2026-09-24T14:09:19+00:00", "event": "cert_done", "subject": "MannyM EQ Mono", "family": "static_eq", "job_id": "", "status": "completed", "error": ""}
+{"ts": "2026-09-24T14:10:23+00:00", "event": "cert_done", "subject": "MannyM EQ Stereo", "family": "static_eq", "job_id": "", "status": "completed", "error": ""}
+{"ts": "2026-09-24T14:11:26+00:00", "event": "cert_done", "subject": "Morphoder Mono", "family": "static_eq", "job_id": "", "status": "completed", "error": ""}
+{"ts": "2026-09-24T14:12:30+00:00", "event": "cert_done", "subject": "Morphoder Mono/Stereo", "family": "static_eq", "job_id": "", "status": "completed", "error": ""}
+{"ts": "2026-09-24T14:13:35+00:00", "event": "cert_done", "subject": "Morphoder Stereo", "family": "static_eq", "job_id": "", "status": "completed", "error": ""}
+{"ts": "2026-09-24T14:15:10+00:00", "event": "cert_done", "subject": "MultiMod Rack Mono", "family": "static_eq", "job_id": "", "status": "completed", "error": ""}
+{"ts": "2026-09-24T14:16:38+00:00", "event": "cert_done", "subject": "MultiMod Rack Mono/Stereo", "family": "static_eq", "job_id": "", "status": "completed", "error": ""}
+{"ts": "2026-09-24T14:18:29+00:00", "event": "cert_done", "subject": "MultiMod Rack Stereo", "family": "static_eq", "job_id": "", "status": "completed", "error": ""}
+{"ts": "2026-09-24T14:19:59+00:00", "event": "cert_done", "subject": "OVox Mono/Stereo", "family": "static_eq", "job_id": "", "status": "completed", "error": ""}
+{"ts": "2026-09-24T14:21:23+00:00", "event": "cert_done", "subject": "OVox Stereo", "family": "static_eq", "job_id": "", "status": "completed", "error": ""}
+{"ts": "2026-09-24T14:21:23+00:00", "event": "cert_done", "subject": "Pro-Q 3", "family": "static_eq", "job_id": "", "status": "vendor_kind_missing", "error": "manufacturer 'FabFilter' has no v1 receipt kind (import gate accepts waves/plugin_alliance kinds only; kind extension is agent code, out of this sweep's file domain)"}
+{"ts": "2026-09-24T14:21:23+00:00", "event": "cert_done", "subject": "Pro-R", "family": "static_eq", "job_id": "", "status": "vendor_kind_missing", "error": "manufacturer 'FabFilter' has no v1 receipt kind (import gate accepts waves/plugin_alliance kinds only; kind extension is agent code, out of this sweep's file domain)"}
+{"ts": "2026-09-24T14:22:41+00:00", "event": "cert_done", "subject": "Q10 Mono", "family": "static_eq", "job_id": "", "status": "completed", "error": ""}
+{"ts": "2026-09-24T14:24:00+00:00", "event": "cert_done", "subject": "Q10 Stereo", "family": "static_eq", "job_id": "", "status": "completed", "error": ""}
+{"ts": "2026-09-24T14:25:18+00:00", "event": "cert_done", "subject": "Q3 Mono", "family": "static_eq", "job_id": "", "status": "completed", "error": ""}
+{"ts": "2026-09-24T14:26:38+00:00", "event": "cert_done", "subject": "Q3 Stereo", "family": "static_eq", "job_id": "", "status": "completed", "error": ""}
+{"ts": "2026-09-24T14:27:57+00:00", "event": "cert_done", "subject": "Q4 Mono", "family": "static_eq", "job_id": "", "status": "completed", "error": ""}
+{"ts": "2026-09-24T14:29:17+00:00", "event": "cert_done", "subject": "Q4 Stereo", "family": "static_eq", "job_id": "", "status": "completed", "error": ""}
+{"ts": "2026-09-24T14:30:37+00:00", "event": "cert_done", "subject": "Q6 Mono", "family": "static_eq", "job_id": "", "status": "completed", "error": ""}
+{"ts": "2026-09-24T14:31:59+00:00", "event": "cert_done", "subject": "Q6 Stereo", "family": "static_eq", "job_id": "", "status": "completed", "error": ""}
+{"ts": "2026-09-24T14:33:20+00:00", "event": "cert_done", "subject": "Q8 Mono", "family": "static_eq", "job_id": "", "status": "completed", "error": ""}
+{"ts": "2026-09-24T14:34:41+00:00", "event": "cert_done", "subject": "Q8 Stereo", "family": "static_eq", "job_id": "", "status": "completed", "error": ""}
+{"ts": "2026-09-24T14:36:03+00:00", "event": "cert_done", "subject": "RChannel Mono", "family": "static_eq", "job_id": "", "status": "completed", "error": ""}
+{"ts": "2026-09-24T14:37:26+00:00", "event": "cert_done", "subject": "RChannel Mono/Stereo", "family": "static_eq", "job_id": "", "status": "completed", "error": ""}
+{"ts": "2026-09-24T14:38:50+00:00", "event": "cert_done", "subject": "RChannel Stereo", "family": "static_eq", "job_id": "", "status": "completed", "error": ""}
+{"ts": "2026-09-24T14:40:15+00:00", "event": "cert_done", "subject": "REQ 4 Mono", "family": "static_eq", "job_id": "", "status": "completed", "error": ""}
+{"ts": "2026-09-24T14:41:37+00:00", "event": "cert_done", "subject": "REQ 4 Stereo", "family": "static_eq", "job_id": "", "status": "completed", "error": ""}
+{"ts": "2026-09-24T14:42:53+00:00", "event": "cert_done", "subject": "REQ 6 Mono", "family": "static_eq", "job_id": "", "status": "completed", "error": ""}
+{"ts": "2026-09-24T14:44:01+00:00", "event": "cert_done", "subject": "REQ 6 Stereo", "family": "static_eq", "job_id": "", "status": "completed", "error": ""}
+{"ts": "2026-09-24T14:45:18+00:00", "event": "cert_done", "subject": "Saphira Mono", "family": "static_eq", "job_id": "", "status": "completed", "error": ""}
+{"ts": "2026-09-24T14:46:39+00:00", "event": "cert_done", "subject": "Saphira Stereo", "family": "static_eq", "job_id": "", "status": "completed", "error": ""}
+{"ts": "2026-09-24T14:47:53+00:00", "event": "cert_done", "subject": "Swivel Audio HitStrip", "family": "static_eq", "job_id": "", "status": "completed", "error": ""}
+{"ts": "2026-09-24T14:48:17+00:00", "event": "cert_done", "subject": "TBTECH Cenozoix Compressor", "family": "static_eq", "job_id": "", "status": "load_gate_blocked", "error": "plugin.load_to_rack: HTTP 400: pca_load_gate: full project access load requires one exact processor identity; \"VST3-TBTECH Cenozoix Compressor-ae9d39c4-c8c84a6\" resolves to 2 promoted identities"}
+{"ts": "2026-09-24T14:50:57+00:00", "event": "cert_done", "subject": "TBTECH Kirchhoff-EQ", "family": "static_eq", "job_id": "", "status": "completed", "error": ""}
+{"ts": "2026-09-24T14:51:38+00:00", "event": "cert_done", "subject": "TBTECH Trinity Shaper", "family": "static_eq", "job_id": "", "status": "failed", "error": "plugin_grabber.apply_eq_edits: HTTP 400: shape_not_provably_reachable: upsert low_cut: requested shape low_cut at 80 Hz is not provably reachable in any section; available shapes: [high_cut low_cut]"}
+{"ts": "2026-09-24T14:51:38+00:00", "event": "cert_done", "subject": "TDR Nova", "family": "static_eq", "job_id": "", "status": "vendor_kind_missing", "error": "manufacturer 'Tokyo Dawn Labs' has no v1 receipt kind (import gate accepts waves/plugin_alliance kinds only; kind extension is agent code, out of this sweep's file domain)"}
+{"ts": "2026-09-24T14:52:10+00:00", "event": "cert_done", "subject": "TRACT LinPhase Mono", "family": "static_eq", "job_id": "", "status": "failed", "error": "explain topology exposes no upsertable shape"}
+{"ts": "2026-09-24T14:52:42+00:00", "event": "cert_done", "subject": "TRACT LinPhase Stereo", "family": "static_eq", "job_id": "", "status": "failed", "error": "explain topology exposes no upsertable shape"}
+{"ts": "2026-09-24T14:53:14+00:00", "event": "cert_done", "subject": "TRACT Mono", "family": "static_eq", "job_id": "", "status": "failed", "error": "explain topology exposes no upsertable shape"}
+{"ts": "2026-09-24T14:53:47+00:00", "event": "cert_done", "subject": "TRACT Stereo", "family": "static_eq", "job_id": "", "status": "failed", "error": "explain topology exposes no upsertable shape"}
+{"ts": "2026-09-24T14:55:06+00:00", "event": "cert_done", "subject": "bx_hybrid V2 mix", "family": "static_eq", "job_id": "", "status": "completed", "error": ""}
+{"ts": "2026-09-24T14:56:26+00:00", "event": "cert_done", "subject": "bx_panEQ", "family": "static_eq", "job_id": "", "status": "completed", "error": ""}
+{"ts": "2026-09-24T14:57:30+00:00", "event": "cert_done", "subject": "bx_tonebox", "family": "static_eq", "job_id": "", "status": "completed", "error": ""}
+{"ts": "2026-09-24T14:57:30+00:00", "event": "phase_done", "phase": "certify"}
+{"ts": "2026-09-24T15:05:49+00:00", "event": "phase_start", "phase": "derive"}
+{"ts": "2026-09-24T15:08:27+00:00", "event": "phase_done", "phase": "derive"}
+{"ts": "2026-09-24T15:08:40+00:00", "event": "phase_start", "phase": "derive"}
+{"ts": "2026-09-24T15:08:41+00:00", "event": "eq_whitelist_applied", "live": "C:\\Users\\timoz\\.vit\\free_state_experiment_plugins.json", "added": 42, "excluded": 4}
+{"ts": "2026-09-24T15:08:52+00:00", "event": "whitelist_applied_live", "live": "C:\\Users\\timoz\\.vit\\free_state_experiment_plugins.json", "counts": {"static_eq": 48, "broadband_compression": 24, "de_esser": 6, "limiter": 9, "gate_expander": 3, "transient_shaper": 2, "multiband": 8}}
+{"ts": "2026-09-24T15:08:52+00:00", "event": "phase_done", "phase": "derive"}
+{"ts": "2026-09-24T15:08:52+00:00", "event": "phase_start", "phase": "verify"}
+{"ts": "2026-09-24T15:08:55+00:00", "event": "phase_done", "phase": "verify"}

@@ -18,4 +18,5 @@
   - **不动面确认**：铃发明时序（`_ensure_mixboard_kernel_feature_request` 未触碰）、750ms debounce（`_schedule_mixboard_feature_snapshot_write` 未触碰）、tmp+rename 落盘（仅插入标注调用）、agent 仓零改动。
   - **边界注记**：①键集镜像 agent 排除面——`l3_acoustic_*`/`realtime_*` 键 agent 侧即不标注，Godot 同样不标（preserve 这些键的行仍无标注，与 agent 现状一致；如需扩大标注面属决策侧扩域）。②消费方安全：Godot 读侧走 `.get()` 增量键（mix_client 经 agent 请求面不直读磁盘快照），无严格校验。③mac 双端：需同步 mac 前端仓（PORT-B4B 同源），待用户转交。④手测（Godot 拉起入口抽查真栈落盘）可选补做，验收②已按卡面"自动皆可"由 probe 覆盖。
   - **diff 归属**：Godot 仓 `telemetry_manager.gd` 领取前已有他人未提交改动（`_mixboard_feature_rows_same_material` 材料同源判定约 18 行，Save As 主题），本卡未触碰；两改动共存同文件，提交时需分账。本卡新增：telemetry_manager.gd 标注块（约 +83 行）+ 新 probe 文件（untracked）。
-- 验收：
+- 验收：**pass（2026-09-24 PC 决策会话）**——①决策侧实核 Godot 仓：telemetry_manager.gd 标注块在位（键集常量+_annotate 调用+三段语义 grep 命中）、probe 文件在案。②设计符合性：键集与 agent `annotateMixboardSnapshotFreshness` 逐项镜像、材料身份字段同款、占位行跳过、preserve 采纳行统一过 pass——第三写者与 agent 同笔同款标注达成。③红绿证据采信（12 败全为标注断言、preserve 断言全过；绿+确定性重复 exit 0；走真实落盘路径）。④不动面与边界注记采信（铃时序/debounce/tmp+rename 未触碰；l3/realtime 键集镜像 agent 排除面=双端一致）。**待办移交**：Godot 仓提交分账（标注块 vs 他人 18 行 WIP——执行侧/用户处理）；mac 前端仓同步（PORT-B4B 同源）随转交；手测抽查可选。
+

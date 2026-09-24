@@ -1,0 +1,49 @@
+{
+	"band_energy_summaries": [],
+	"band_energy_summary": {
+		"status": "missing"
+	},
+	"latest_request": {
+		"created_at": "2026-09-24T12:00:00",
+		"request_id": "kernel_prepared_waveform_envelope_probe_clip_a",
+		"resolved_target": {
+			"clip_id": "probe_clip_a",
+			"source_path": "D:/probe_media/clip_a.wav",
+			"track_id": "probe_track_1"
+		},
+		"schema_version": "mixboard_feature_request.v1",
+		"source_kind": "kernel_prepared_telemetry",
+		"status": "materialized",
+		"updated_at": "2026-09-24T12:00:00"
+	},
+	"loudness_summaries": [],
+	"loudness_summary": {
+		"status": "missing"
+	},
+	"schema_version": "mixboard_feature_snapshot.v1",
+	"spectrogram_tile_rows": [],
+	"spectrogram_tiles": {
+		"status": "missing"
+	},
+	"stereo_relation_summaries": [],
+	"stereo_relation_summary": {
+		"status": "missing"
+	},
+	"track_waveform_envelopes": [
+		{
+			"clip_id": "probe_clip_a",
+			"feature_type": "waveform_envelope",
+			"freshness": "material_reuse",
+			"request_id": "",
+			"reused_at": "2026-09-24T13:42:20Z",
+			"reused_for_request": "kernel_prepared_waveform_envelope_probe_clip_a",
+			"source_revision": "probe_rev_77",
+			"status": "ready",
+			"track_id": "probe_track_1"
+		}
+	],
+	"updated_at": "2026-09-24T13:42:20",
+	"waveform_envelope": {
+		"status": "missing"
+	}
+}

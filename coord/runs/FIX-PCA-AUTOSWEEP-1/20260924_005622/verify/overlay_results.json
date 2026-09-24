@@ -42,6 +42,300 @@
     "effective_status": "promoted"
   },
   {
+    "family": "static_eq",
+    "name": "ADPTR Utopia",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "static_eq",
+    "name": "API-550A Mono",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "static_eq",
+    "name": "EMO-Q4 Mono",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "static_eq",
+    "name": "F6-RTA Mono",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "static_eq",
+    "name": "F6-RTA Stereo",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "static_eq",
+    "name": "F6 Mono",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "static_eq",
+    "name": "F6 Stereo",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "static_eq",
+    "name": "LinEQ Lowband Mono",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "static_eq",
+    "name": "LinEQ Lowband Stereo",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "static_eq",
+    "name": "Lindell 50 Channel",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "static_eq",
+    "name": "MannyM EQ Mono",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "static_eq",
+    "name": "MannyM EQ Stereo",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "static_eq",
+    "name": "Morphoder Mono/Stereo",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "static_eq",
+    "name": "Morphoder Mono",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "static_eq",
+    "name": "Morphoder Stereo",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "static_eq",
+    "name": "MultiMod Rack Mono/Stereo",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "static_eq",
+    "name": "MultiMod Rack Mono",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "static_eq",
+    "name": "MultiMod Rack Stereo",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "static_eq",
+    "name": "OVox Mono/Stereo",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "static_eq",
+    "name": "OVox Stereo",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "static_eq",
+    "name": "Q10 Mono",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "static_eq",
+    "name": "Q10 Stereo",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "static_eq",
+    "name": "Q3 Mono",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "static_eq",
+    "name": "Q3 Stereo",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "static_eq",
+    "name": "Q4 Mono",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "static_eq",
+    "name": "Q4 Stereo",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "static_eq",
+    "name": "Q6 Mono",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "static_eq",
+    "name": "Q6 Stereo",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "static_eq",
+    "name": "Q8 Mono",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "static_eq",
+    "name": "Q8 Stereo",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "static_eq",
+    "name": "RChannel Mono/Stereo",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "static_eq",
+    "name": "RChannel Mono",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "static_eq",
+    "name": "RChannel Stereo",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "static_eq",
+    "name": "REQ 4 Mono",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "static_eq",
+    "name": "REQ 4 Stereo",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "static_eq",
+    "name": "REQ 6 Mono",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "static_eq",
+    "name": "REQ 6 Stereo",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "static_eq",
+    "name": "Saphira Mono",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "static_eq",
+    "name": "Saphira Stereo",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "static_eq",
+    "name": "Swivel Audio HitStrip",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "static_eq",
+    "name": "bx_hybrid V2 mix",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "static_eq",
+    "name": "bx_panEQ",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
     "family": "broadband_compression",
     "name": "C1 comp Mono",
     "eligible": true,
