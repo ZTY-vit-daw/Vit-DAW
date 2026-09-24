@@ -1,5 +1,6 @@
 #include "PluginRackControlService.h"
 
+#include "PluginListHygiene.h"
 #include "TiledSpectrogramBaker.h"
 
 #include "../Core/VitAIGCJobRuntime.h"
@@ -1700,6 +1701,7 @@ private:
             }
 
             const auto deadMansPedal = paths::getSettingsDirectory().getChildFile ("plugin_scan_dead_mans_pedal.txt");
+            juce::StringArray blacklistAtScannerStart;
             {
                 juce::PluginDirectoryScanner scanner (manager->knownPluginList,
                                                        *formatToScan,
@@ -1708,6 +1710,10 @@ private:
                                                        deadMansPedal,
                                                        false);
                 scanner.setFilesOrIdentifiersToScan (files);
+                // Snapshot AFTER the scanner consumed any pre-existing crash
+                // pedal: those blacklistings are crash defence and must
+                // survive a later user cancel.
+                blacklistAtScannerStart = manager->knownPluginList.getBlacklistedFiles();
 
                 bool moreFiles = true;
                 int completed = 0;
@@ -1734,8 +1740,19 @@ private:
 
             if (threadShouldExit())
             {
+                // User-initiated cancel only: threadShouldExit() is set by
+                // cancel(), the coordinator-level dichotomy decision. A real
+                // crash never reaches this epilogue, so its pedal residue
+                // keeps blacklisting the crashed file on the next scan.
+                const auto rolledBack = applyUserCancelledScanCleanup (manager->knownPluginList,
+                                                                       blacklistAtScannerStart,
+                                                                       deadMansPedal);
+                juce::Logger::writeToLog ("PluginScanCoordinator: scan " + activeScanID + " cancelled"
+                                          + (rolledBack.isEmpty()
+                                                 ? juce::String()
+                                                 : "; blacklist rolled back: " + rolledBack.joinIntoString (", "))
+                                          + "; dead-man's pedal cleared");
                 finish ("cancelled", "Plugin scan was cancelled");
-                juce::Logger::writeToLog ("PluginScanCoordinator: scan " + activeScanID + " cancelled");
                 return;
             }
 
@@ -1776,12 +1793,19 @@ private:
 
 PluginRackControlService::PluginRackControlService (EditGetter editGetter,
                                                     SaveProjectAction saveProjectAction,
-                                                    CurrentProjectPathGetter currentProjectPathGetter)
+                                                    CurrentProjectPathGetter currentProjectPathGetter,
+                                                    te::Engine* engineForStartupHygiene)
     : getEdit (std::move (editGetter)),
       saveProject (std::move (saveProjectAction)),
       getCurrentProjectPath (std::move (currentProjectPathGetter)),
       pluginScanCoordinator (std::make_unique<PluginScanCoordinator>())
 {
+    // Lazy startup cleanup of the loaded knownPluginList64: the dispatcher is
+    // constructed once the engine (and PluginManager::initialise's Settings.xml
+    // load) is up. Idempotent, identical on both platforms, removes only
+    // entries whose file path no longer exists.
+    if (engineForStartupHygiene != nullptr)
+        cleanStalePluginListEntries (engineForStartupHygiene->getPluginManager().knownPluginList);
 }
 
 PluginRackControlService::~PluginRackControlService() = default;

@@ -22,7 +22,8 @@ public:
 
     PluginRackControlService (EditGetter editGetter,
                               SaveProjectAction saveProjectAction,
-                              CurrentProjectPathGetter currentProjectPathGetter);
+                              CurrentProjectPathGetter currentProjectPathGetter,
+                              te::Engine* engineForStartupHygiene = nullptr);
     ~PluginRackControlService();
 
     juce::String handleSetPluginParam (const juce::DynamicObject&, const juce::String&) const;

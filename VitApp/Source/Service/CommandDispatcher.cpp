@@ -2132,7 +2132,7 @@ CommandDispatcher::CommandDispatcher (EditGetter editGetter,
     clipService = std::make_unique<ClipService> (getEdit);
     midiService = std::make_unique<MidiService> (getEdit);
     transportAudioService = std::make_unique<TransportAudioService> (getEdit, autoPersist, production);
-    pluginRackControlService = std::make_unique<PluginRackControlService> (getEdit, autoPersist, getCurrentProjectPath);
+    pluginRackControlService = std::make_unique<PluginRackControlService> (getEdit, autoPersist, getCurrentProjectPath, engine);
     auditionPreviewService = std::make_unique<AuditionPreviewService> (engine, getEdit, publishMessage);
     registerBuiltinCommands();
 }

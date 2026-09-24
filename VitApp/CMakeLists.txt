@@ -220,6 +220,8 @@ set(VITAPP_SOURCE_FILES
       Source/Service/TrackGroupService.h
       Source/Service/PluginRackControlService.cpp
     Source/Service/PluginRackControlService.h
+    Source/Service/PluginListHygiene.cpp
+    Source/Service/PluginListHygiene.h
     Source/Service/TrackService.cpp
     Source/Service/TrackService.h
     Source/Service/TransportAudioService.cpp

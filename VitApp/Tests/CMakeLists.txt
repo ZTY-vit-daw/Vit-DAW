@@ -105,6 +105,23 @@ if(EXISTS "${VIT_TRACKTION_ENGINE_DIR}/CMakeLists.txt")
         sodium
         juce::juce_recommended_config_flags)
     add_test(NAME VitRenderWatchdogTests COMMAND VitRenderWatchdogTests)
+
+    # FIX-KERNEL-PLUGINLIST-HYGIENE-1: plugin-list hygiene acceptance tests
+    # (startup lazy cleanup / user-cancel epilogue / crash-contrast defence).
+    # JUCE-only: KnownPluginList + PluginDirectoryScanner, no tracktion linkage.
+    juce_add_console_app(VitPluginListHygieneTests PRODUCT_NAME "VitPluginListHygieneTests")
+    juce_generate_juce_header(VitPluginListHygieneTests)
+    target_sources(VitPluginListHygieneTests PRIVATE
+        PluginListHygieneTests.cpp
+        ../Source/Service/PluginListHygiene.cpp
+        ../Source/Service/PluginListHygiene.h)
+    target_compile_features(VitPluginListHygieneTests PRIVATE cxx_std_20)
+    target_include_directories(VitPluginListHygieneTests PRIVATE ../Source)
+    target_compile_definitions(VitPluginListHygieneTests PRIVATE JUCE_USE_CURL=0 JUCE_WEB_BROWSER=0 JUCE_PLUGINHOST_VST3=1)
+    target_link_libraries(VitPluginListHygieneTests PRIVATE
+        juce::juce_audio_processors
+        juce::juce_recommended_config_flags)
+    add_test(NAME VitPluginListHygieneTests COMMAND VitPluginListHygieneTests)
 else()
     message(FATAL_ERROR
         "Tracktion Engine not found. Set -DVIT_TRACKTION_ENGINE_DIR=<path> to a populated Tracktion Engine checkout.")
@@ -120,6 +137,9 @@ if(MSVC)
     if(TARGET VitRenderWatchdogTests)
         target_compile_options(VitRenderWatchdogTests PRIVATE /W4 /permissive-)
     endif()
+    if(TARGET VitPluginListHygieneTests)
+        target_compile_options(VitPluginListHygieneTests PRIVATE /W4 /permissive-)
+    endif()
 else()
     target_compile_options(VitAuditionPreviewStateTests PRIVATE -Wall -Wextra -Wpedantic)
     target_compile_options(VitWorkingCopyPersistPolicyTests PRIVATE -Wall -Wextra -Wpedantic)
@@ -129,6 +149,9 @@ else()
     endif()
     if(TARGET VitRenderWatchdogTests)
         target_compile_options(VitRenderWatchdogTests PRIVATE -Wall -Wextra -Wpedantic)
+    endif()
+    if(TARGET VitPluginListHygieneTests)
+        target_compile_options(VitPluginListHygieneTests PRIVATE -Wall -Wextra -Wpedantic)
     endif()
 endif()
 
