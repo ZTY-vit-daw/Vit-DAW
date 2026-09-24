@@ -1,0 +1,3055 @@
+[
+  {
+    "section": "static_eq",
+    "field": "_carryover",
+    "value": "1 entries verbatim",
+    "source": "S0 live v6 (sha256 ac7da8edf742e26d…); provenance chain of prior cards applies unchanged",
+    "note": "候选面全量派生卡不动 EQ 已锚定条目"
+  },
+  {
+    "section": "de_esser[0]",
+    "field": "plugin_name",
+    "value": "DeEsser Mono",
+    "source": "S1 semantic index; byte-equal to S2 attestation subject",
+    "note": ""
+  },
+  {
+    "section": "de_esser[0]",
+    "field": "manufacturer",
+    "value": "Waves",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "de_esser[0]",
+    "field": "format",
+    "value": "VST3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "de_esser[0]",
+    "field": "plugin_identifier",
+    "value": "VST3-DeEsser Mono-695648d-fff9b4fa",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "de_esser[0]",
+    "field": "plugin_path",
+    "value": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "de_esser[0]",
+    "field": "threshold_param_id",
+    "value": "0",
+    "source": "S3 dual-cycle probe (zero drift): param 'Threshold' id=0",
+    "note": ""
+  },
+  {
+    "section": "de_esser[0]",
+    "field": "_attestation",
+    "value": "pca2_e581e0b27cba9e8134f8b7cd",
+    "source": "S2 v2 store promotion; coverage=[detector_focus,threshold_sensitivity]",
+    "note": "status=promoted family=de_esser"
+  },
+  {
+    "section": "de_esser[1]",
+    "field": "plugin_name",
+    "value": "DeEsser Stereo",
+    "source": "S1 semantic index; byte-equal to S2 attestation subject",
+    "note": ""
+  },
+  {
+    "section": "de_esser[1]",
+    "field": "manufacturer",
+    "value": "Waves",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "de_esser[1]",
+    "field": "format",
+    "value": "VST3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "de_esser[1]",
+    "field": "plugin_identifier",
+    "value": "VST3-DeEsser Stereo-695648d-103b00",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "de_esser[1]",
+    "field": "plugin_path",
+    "value": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "de_esser[1]",
+    "field": "threshold_param_id",
+    "value": "0",
+    "source": "S3 dual-cycle probe (zero drift): param 'Threshold' id=0",
+    "note": ""
+  },
+  {
+    "section": "de_esser[1]",
+    "field": "_attestation",
+    "value": "pca2_0f7e1ff871b462afb7637ded",
+    "source": "S2 v2 store promotion; coverage=[detector_focus,threshold_sensitivity]",
+    "note": "status=promoted family=de_esser"
+  },
+  {
+    "section": "de_esser[2]",
+    "field": "plugin_name",
+    "value": "Sibilance Mono",
+    "source": "S1 semantic index; byte-equal to S2 attestation subject",
+    "note": ""
+  },
+  {
+    "section": "de_esser[2]",
+    "field": "manufacturer",
+    "value": "Waves",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "de_esser[2]",
+    "field": "format",
+    "value": "VST3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "de_esser[2]",
+    "field": "plugin_identifier",
+    "value": "VST3-Sibilance Mono-695648d-f15fcaf9",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "de_esser[2]",
+    "field": "plugin_path",
+    "value": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "de_esser[2]",
+    "field": "threshold_param_id",
+    "value": "2",
+    "source": "S3 dual-cycle probe (zero drift): param 'Threshold' id=2",
+    "note": ""
+  },
+  {
+    "section": "de_esser[2]",
+    "field": "_attestation",
+    "value": "pca2_30d484c12f11fe4e1d6cce7f",
+    "source": "S2 v2 store promotion; coverage=[sibilance_reduction,threshold_sensitivity]",
+    "note": "status=promoted family=de_esser"
+  },
+  {
+    "section": "de_esser[3]",
+    "field": "plugin_name",
+    "value": "Sibilance Stereo",
+    "source": "S1 semantic index; byte-equal to S2 attestation subject",
+    "note": ""
+  },
+  {
+    "section": "de_esser[3]",
+    "field": "manufacturer",
+    "value": "Waves",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "de_esser[3]",
+    "field": "format",
+    "value": "VST3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "de_esser[3]",
+    "field": "plugin_identifier",
+    "value": "VST3-Sibilance Stereo-695648d-f17650f9",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "de_esser[3]",
+    "field": "plugin_path",
+    "value": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "de_esser[3]",
+    "field": "threshold_param_id",
+    "value": "2",
+    "source": "S3 dual-cycle probe (zero drift): param 'Threshold' id=2",
+    "note": ""
+  },
+  {
+    "section": "de_esser[3]",
+    "field": "_attestation",
+    "value": "pca2_2db1a9f204b028cd5ef2cb55",
+    "source": "S2 v2 store promotion; coverage=[sibilance_reduction,threshold_sensitivity]",
+    "note": "status=promoted family=de_esser"
+  },
+  {
+    "section": "de_esser[4]",
+    "field": "plugin_name",
+    "value": "Sibilance-Live Mono",
+    "source": "S1 semantic index; byte-equal to S2 attestation subject",
+    "note": ""
+  },
+  {
+    "section": "de_esser[4]",
+    "field": "manufacturer",
+    "value": "Waves",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "de_esser[4]",
+    "field": "format",
+    "value": "VST3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "de_esser[4]",
+    "field": "plugin_identifier",
+    "value": "VST3-Sibilance-Live Mono-695648d-16e9caf9",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "de_esser[4]",
+    "field": "plugin_path",
+    "value": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "de_esser[4]",
+    "field": "threshold_param_id",
+    "value": "1",
+    "source": "S3 dual-cycle probe (zero drift): param 'Threshold' id=1",
+    "note": ""
+  },
+  {
+    "section": "de_esser[4]",
+    "field": "_attestation",
+    "value": "pca2_6013fdefb7e7e5b46c62498e",
+    "source": "S2 v2 store promotion; coverage=[sibilance_reduction,threshold_sensitivity]",
+    "note": "status=promoted family=de_esser"
+  },
+  {
+    "section": "de_esser[5]",
+    "field": "plugin_name",
+    "value": "Sibilance-Live Stereo",
+    "source": "S1 semantic index; byte-equal to S2 attestation subject",
+    "note": ""
+  },
+  {
+    "section": "de_esser[5]",
+    "field": "manufacturer",
+    "value": "Waves",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "de_esser[5]",
+    "field": "format",
+    "value": "VST3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "de_esser[5]",
+    "field": "plugin_identifier",
+    "value": "VST3-Sibilance-Live Stereo-695648d-170050f9",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "de_esser[5]",
+    "field": "plugin_path",
+    "value": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "de_esser[5]",
+    "field": "threshold_param_id",
+    "value": "1",
+    "source": "S3 dual-cycle probe (zero drift): param 'Threshold' id=1",
+    "note": ""
+  },
+  {
+    "section": "de_esser[5]",
+    "field": "_attestation",
+    "value": "pca2_f1b5956684d9e50d0a02433f",
+    "source": "S2 v2 store promotion; coverage=[sibilance_reduction,threshold_sensitivity]",
+    "note": "status=promoted family=de_esser"
+  },
+  {
+    "section": "de_esser",
+    "field": "_excluded",
+    "value": "Pro-DS not listed",
+    "source": "S2 coverage [detector_focus,sibilance_reduction] lacks axis ['threshold_sensitivity']; probe '^Threshold$' → 'Threshold' id=1; no local S4 receipt",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "de_esser",
+    "field": "_excluded",
+    "value": "RDeEsser Mono not listed",
+    "source": "S2 coverage [detector_focus,sibilance_reduction] lacks axis ['threshold_sensitivity']; probe '^Threshold$' → 'Threshold' id=4; no local S4 receipt",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "de_esser",
+    "field": "_excluded",
+    "value": "RDeEsser Stereo not listed",
+    "source": "S2 coverage [detector_focus,sibilance_reduction] lacks axis ['threshold_sensitivity']; probe '^Threshold$' → 'Threshold' id=4; no local S4 receipt",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "de_esser",
+    "field": "_excluded",
+    "value": "TBTECH Cenozoix Compressor not listed",
+    "source": "S2 coverage [detector_focus,sibilance_reduction] lacks axis ['threshold_sensitivity']; probe '^Threshold$' → 'Threshold' id=1576; no local S4 receipt",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "transient_shaper[0]",
+    "field": "plugin_name",
+    "value": "Smack Attack Mono",
+    "source": "S1 semantic index; byte-equal to S2 attestation subject",
+    "note": ""
+  },
+  {
+    "section": "transient_shaper[0]",
+    "field": "manufacturer",
+    "value": "Waves",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "transient_shaper[0]",
+    "field": "format",
+    "value": "VST3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "transient_shaper[0]",
+    "field": "plugin_identifier",
+    "value": "VST3-Smack Attack Mono-695648d-eac19648",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "transient_shaper[0]",
+    "field": "plugin_path",
+    "value": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "transient_shaper[0]",
+    "field": "attack_param_id",
+    "value": "2",
+    "source": "S3 dual-cycle probe (zero drift): param 'AttackDuration' id=2",
+    "note": ""
+  },
+  {
+    "section": "transient_shaper[0]",
+    "field": "attack_param_id_xcheck",
+    "value": "2",
+    "source": "S4 receipt write role=attack_duration",
+    "note": "MATCH probe anchor"
+  },
+  {
+    "section": "transient_shaper[0]",
+    "field": "_attestation",
+    "value": "pca2_bf6fe4c5627069d9c697f9c9",
+    "source": "S2 v2 store promotion; coverage=[envelope_timing,output_normalization]",
+    "note": "status=promoted family=transient_shaper; receipts=1"
+  },
+  {
+    "section": "transient_shaper[1]",
+    "field": "plugin_name",
+    "value": "Smack Attack Stereo",
+    "source": "S1 semantic index; byte-equal to S2 attestation subject",
+    "note": ""
+  },
+  {
+    "section": "transient_shaper[1]",
+    "field": "manufacturer",
+    "value": "Waves",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "transient_shaper[1]",
+    "field": "format",
+    "value": "VST3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "transient_shaper[1]",
+    "field": "plugin_identifier",
+    "value": "VST3-Smack Attack Stereo-695648d-ead81c48",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "transient_shaper[1]",
+    "field": "plugin_path",
+    "value": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "transient_shaper[1]",
+    "field": "attack_param_id",
+    "value": "2",
+    "source": "S3 dual-cycle probe (zero drift): param 'AttackDuration' id=2",
+    "note": ""
+  },
+  {
+    "section": "transient_shaper[1]",
+    "field": "attack_param_id_xcheck",
+    "value": "2",
+    "source": "S4 receipt write role=attack_duration",
+    "note": "MATCH probe anchor"
+  },
+  {
+    "section": "transient_shaper[1]",
+    "field": "_attestation",
+    "value": "pca2_64fb4be0a12f92f894a06714",
+    "source": "S2 v2 store promotion; coverage=[envelope_timing,output_normalization]",
+    "note": "status=promoted family=transient_shaper; receipts=1"
+  },
+  {
+    "section": "transient_shaper",
+    "field": "_excluded",
+    "value": "SPL Transient Designer Plus not listed",
+    "source": "S2 coverage [detector_focus,envelope_emphasis] lacks axis ['envelope_timing']; probe '^AttackDuration$' → no surface match; no local S4 receipt",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "transient_shaper",
+    "field": "_excluded",
+    "value": "TransX Wide Mono not listed",
+    "source": "S2 coverage [envelope_emphasis,output_normalization] lacks axis ['envelope_timing']; probe '^AttackDuration$' → no surface match; S4 receipts 1 passed",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "transient_shaper",
+    "field": "_excluded",
+    "value": "TransX Wide Stereo not listed",
+    "source": "S2 coverage [envelope_emphasis,output_normalization] lacks axis ['envelope_timing']; probe '^AttackDuration$' → no surface match; S4 receipts 1 passed",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "limiter[0]",
+    "field": "plugin_name",
+    "value": "L1 limiter Mono",
+    "source": "S1 semantic index; byte-equal to S2 attestation subject",
+    "note": ""
+  },
+  {
+    "section": "limiter[0]",
+    "field": "manufacturer",
+    "value": "Waves",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "limiter[0]",
+    "field": "format",
+    "value": "VST3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "limiter[0]",
+    "field": "plugin_identifier",
+    "value": "VST3-L1 limiter Mono-695648d-191aefbc",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "limiter[0]",
+    "field": "plugin_path",
+    "value": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "limiter[0]",
+    "field": "ceiling_param_id",
+    "value": "1",
+    "source": "S3 dual-cycle probe (zero drift): param 'Ceiling' id=1",
+    "note": ""
+  },
+  {
+    "section": "limiter[0]",
+    "field": "_attestation",
+    "value": "pca2_dcb4161be5682bf3bff5f6ef",
+    "source": "S2 v2 store promotion; coverage=[output_ceiling,protection_intensity]",
+    "note": "status=promoted family=limiter"
+  },
+  {
+    "section": "limiter[1]",
+    "field": "plugin_name",
+    "value": "L1 limiter Stereo",
+    "source": "S1 semantic index; byte-equal to S2 attestation subject",
+    "note": ""
+  },
+  {
+    "section": "limiter[1]",
+    "field": "manufacturer",
+    "value": "Waves",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "limiter[1]",
+    "field": "format",
+    "value": "VST3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "limiter[1]",
+    "field": "plugin_identifier",
+    "value": "VST3-L1 limiter Stereo-695648d-193175bc",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "limiter[1]",
+    "field": "plugin_path",
+    "value": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "limiter[1]",
+    "field": "ceiling_param_id",
+    "value": "1",
+    "source": "S3 dual-cycle probe (zero drift): param 'Ceiling' id=1",
+    "note": ""
+  },
+  {
+    "section": "limiter[1]",
+    "field": "_attestation",
+    "value": "pca2_77b0c040b59fb75ce1efbd55",
+    "source": "S2 v2 store promotion; coverage=[output_ceiling,protection_intensity]",
+    "note": "status=promoted family=limiter"
+  },
+  {
+    "section": "limiter[2]",
+    "field": "plugin_name",
+    "value": "L1+ Ultramaximizer Stereo",
+    "source": "S1 semantic index; byte-equal to S2 attestation subject",
+    "note": ""
+  },
+  {
+    "section": "limiter[2]",
+    "field": "manufacturer",
+    "value": "Waves",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "limiter[2]",
+    "field": "format",
+    "value": "VST3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "limiter[2]",
+    "field": "plugin_identifier",
+    "value": "VST3-L1+ Ultramaximizer Stereo-695648d-56929f2c",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "limiter[2]",
+    "field": "plugin_path",
+    "value": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "limiter[2]",
+    "field": "ceiling_param_id",
+    "value": "3",
+    "source": "S3 dual-cycle probe (zero drift): param 'Ceiling' id=3",
+    "note": ""
+  },
+  {
+    "section": "limiter[2]",
+    "field": "_attestation",
+    "value": "pca2_1af96a6ca4a97ec653d7c894",
+    "source": "S2 v2 store promotion; coverage=[output_ceiling,protection_intensity]",
+    "note": "status=promoted family=limiter"
+  },
+  {
+    "section": "limiter[3]",
+    "field": "plugin_name",
+    "value": "L2 Mono",
+    "source": "S1 semantic index; byte-equal to S2 attestation subject",
+    "note": ""
+  },
+  {
+    "section": "limiter[3]",
+    "field": "manufacturer",
+    "value": "Waves",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "limiter[3]",
+    "field": "format",
+    "value": "VST3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "limiter[3]",
+    "field": "plugin_identifier",
+    "value": "VST3-L2 Mono-695648d-1faa9b11",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "limiter[3]",
+    "field": "plugin_path",
+    "value": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "limiter[3]",
+    "field": "ceiling_param_id",
+    "value": "1",
+    "source": "S3 dual-cycle probe (zero drift): param 'Ceiling Slider' id=1",
+    "note": ""
+  },
+  {
+    "section": "limiter[3]",
+    "field": "_attestation",
+    "value": "pca2_332539cee26d3c6052fd6968",
+    "source": "S2 v2 store promotion; coverage=[output_ceiling,protection_intensity]",
+    "note": "status=promoted family=limiter"
+  },
+  {
+    "section": "limiter[4]",
+    "field": "plugin_name",
+    "value": "L2 Stereo",
+    "source": "S1 semantic index; byte-equal to S2 attestation subject",
+    "note": ""
+  },
+  {
+    "section": "limiter[4]",
+    "field": "manufacturer",
+    "value": "Waves",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "limiter[4]",
+    "field": "format",
+    "value": "VST3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "limiter[4]",
+    "field": "plugin_identifier",
+    "value": "VST3-L2 Stereo-695648d-16c5411b",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "limiter[4]",
+    "field": "plugin_path",
+    "value": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "limiter[4]",
+    "field": "ceiling_param_id",
+    "value": "1",
+    "source": "S3 dual-cycle probe (zero drift): param 'Ceiling Slider' id=1",
+    "note": ""
+  },
+  {
+    "section": "limiter[4]",
+    "field": "_attestation",
+    "value": "pca2_609ce53ead3a4b1ed93c76e3",
+    "source": "S2 v2 store promotion; coverage=[output_ceiling,protection_intensity]",
+    "note": "status=promoted family=limiter"
+  },
+  {
+    "section": "limiter[5]",
+    "field": "plugin_name",
+    "value": "L2-SC Mono",
+    "source": "S1 semantic index; byte-equal to S2 attestation subject",
+    "note": ""
+  },
+  {
+    "section": "limiter[5]",
+    "field": "manufacturer",
+    "value": "Waves",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "limiter[5]",
+    "field": "format",
+    "value": "VST3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "limiter[5]",
+    "field": "plugin_identifier",
+    "value": "VST3-L2-SC Mono-695648d-e9c2c30b",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "limiter[5]",
+    "field": "plugin_path",
+    "value": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "limiter[5]",
+    "field": "ceiling_param_id",
+    "value": "1",
+    "source": "S3 dual-cycle probe (zero drift): param 'Ceiling Slider' id=1",
+    "note": ""
+  },
+  {
+    "section": "limiter[5]",
+    "field": "_attestation",
+    "value": "pca2_7296f61073f5127315c2102c",
+    "source": "S2 v2 store promotion; coverage=[output_ceiling,protection_intensity]",
+    "note": "status=promoted family=limiter"
+  },
+  {
+    "section": "limiter[6]",
+    "field": "plugin_name",
+    "value": "L2-SC Stereo",
+    "source": "S1 semantic index; byte-equal to S2 attestation subject",
+    "note": ""
+  },
+  {
+    "section": "limiter[6]",
+    "field": "manufacturer",
+    "value": "Waves",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "limiter[6]",
+    "field": "format",
+    "value": "VST3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "limiter[6]",
+    "field": "plugin_identifier",
+    "value": "VST3-L2-SC Stereo-695648d-e9df4e02",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "limiter[6]",
+    "field": "plugin_path",
+    "value": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "limiter[6]",
+    "field": "ceiling_param_id",
+    "value": "1",
+    "source": "S3 dual-cycle probe (zero drift): param 'Ceiling Slider' id=1",
+    "note": ""
+  },
+  {
+    "section": "limiter[6]",
+    "field": "_attestation",
+    "value": "pca2_f17106a67b41d2851bf4345a",
+    "source": "S2 v2 store promotion; coverage=[output_ceiling,protection_intensity]",
+    "note": "status=promoted family=limiter"
+  },
+  {
+    "section": "limiter[7]",
+    "field": "plugin_name",
+    "value": "L316 Mono",
+    "source": "S1 semantic index; byte-equal to S2 attestation subject",
+    "note": ""
+  },
+  {
+    "section": "limiter[7]",
+    "field": "manufacturer",
+    "value": "Waves",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "limiter[7]",
+    "field": "format",
+    "value": "VST3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "limiter[7]",
+    "field": "plugin_identifier",
+    "value": "VST3-L316 Mono-695648d-fb756ef",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "limiter[7]",
+    "field": "plugin_path",
+    "value": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "limiter[7]",
+    "field": "ceiling_param_id",
+    "value": "1",
+    "source": "S3 dual-cycle probe (zero drift): param 'Ceiling' id=1",
+    "note": ""
+  },
+  {
+    "section": "limiter[7]",
+    "field": "_attestation",
+    "value": "pca2_06f0130f260561a6f453117d",
+    "source": "S2 v2 store promotion; coverage=[output_ceiling,protection_intensity]",
+    "note": "status=promoted family=limiter"
+  },
+  {
+    "section": "limiter[8]",
+    "field": "plugin_name",
+    "value": "L316 Stereo",
+    "source": "S1 semantic index; byte-equal to S2 attestation subject",
+    "note": ""
+  },
+  {
+    "section": "limiter[8]",
+    "field": "manufacturer",
+    "value": "Waves",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "limiter[8]",
+    "field": "format",
+    "value": "VST3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "limiter[8]",
+    "field": "plugin_identifier",
+    "value": "VST3-L316 Stereo-695648d-15d2d3f2",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "limiter[8]",
+    "field": "plugin_path",
+    "value": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "limiter[8]",
+    "field": "ceiling_param_id",
+    "value": "1",
+    "source": "S3 dual-cycle probe (zero drift): param 'Ceiling' id=1",
+    "note": ""
+  },
+  {
+    "section": "limiter[8]",
+    "field": "_attestation",
+    "value": "pca2_80b279bd39e82afa3ad177d6",
+    "source": "S2 v2 store promotion; coverage=[output_ceiling,protection_intensity]",
+    "note": "status=promoted family=limiter"
+  },
+  {
+    "section": "limiter",
+    "field": "_excluded",
+    "value": "DTS Neural Mono2Stereo Mono/Stereo not listed",
+    "source": "S2 coverage [input_drive,output_normalization] lacks axis ['output_ceiling']; probe '^Ceiling( Slider)?$' → no surface match; no local S4 receipt",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "limiter",
+    "field": "_excluded",
+    "value": "HUM Audio Devices LAAL not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no ceiling_param_id param ('^Ceiling( Slider)?$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "limiter",
+    "field": "_excluded",
+    "value": "L3 UltraMaximizer Mono not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no ceiling_param_id param ('^Ceiling( Slider)?$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "limiter",
+    "field": "_excluded",
+    "value": "L3 UltraMaximizer Stereo not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no ceiling_param_id param ('^Ceiling( Slider)?$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "limiter",
+    "field": "_excluded",
+    "value": "L3-LL Ultra Mono not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no ceiling_param_id param ('^Ceiling( Slider)?$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "limiter",
+    "field": "_excluded",
+    "value": "L3-LL Ultra Stereo not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no ceiling_param_id param ('^Ceiling( Slider)?$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "limiter",
+    "field": "_excluded",
+    "value": "L4 Ultramaximizer Mono not listed",
+    "source": "S2 coverage [peak_mode,protection_intensity] lacks axis ['output_ceiling']; probe '^Ceiling( Slider)?$' → 'Ceiling' id=3; no local S4 receipt",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "limiter",
+    "field": "_excluded",
+    "value": "L4 Ultramaximizer Stereo not listed",
+    "source": "S2 coverage [peak_mode,protection_intensity] lacks axis ['output_ceiling']; probe '^Ceiling( Slider)?$' → 'Ceiling' id=4; no local S4 receipt",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "limiter",
+    "field": "_excluded",
+    "value": "Pro-L 2 not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no ceiling_param_id param ('^Ceiling( Slider)?$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "limiter",
+    "field": "_excluded",
+    "value": "Spherix Limiter 7.1.2 not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no ceiling_param_id param ('^Ceiling( Slider)?$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "limiter",
+    "field": "_excluded",
+    "value": "Spherix Limiter 7.1.4 not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no ceiling_param_id param ('^Ceiling( Slider)?$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "limiter",
+    "field": "_excluded",
+    "value": "bx_limiter True Peak not listed",
+    "source": "S2 coverage [input_drive,output_normalization] lacks axis ['output_ceiling']; probe '^Ceiling( Slider)?$' → 'Ceiling' id=1416131187; no local S4 receipt",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "gate_expander[0]",
+    "field": "plugin_name",
+    "value": "PSE Mono",
+    "source": "S1 semantic index; byte-equal to S2 attestation subject",
+    "note": ""
+  },
+  {
+    "section": "gate_expander[0]",
+    "field": "manufacturer",
+    "value": "Waves",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "gate_expander[0]",
+    "field": "format",
+    "value": "VST3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "gate_expander[0]",
+    "field": "plugin_identifier",
+    "value": "VST3-PSE Mono-695648d-b943518d",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "gate_expander[0]",
+    "field": "plugin_path",
+    "value": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "gate_expander[0]",
+    "field": "range_param_id",
+    "value": "6",
+    "source": "S3 dual-cycle probe (zero drift): param 'Range' id=6",
+    "note": ""
+  },
+  {
+    "section": "gate_expander[0]",
+    "field": "_attestation",
+    "value": "pca2_51d287bb6d1714713da5a2dc",
+    "source": "S2 v2 store promotion; coverage=[attenuation_floor,detector_focus]",
+    "note": "status=promoted family=gate_expander"
+  },
+  {
+    "section": "gate_expander[1]",
+    "field": "plugin_name",
+    "value": "PSE Stereo",
+    "source": "S1 semantic index; byte-equal to S2 attestation subject",
+    "note": ""
+  },
+  {
+    "section": "gate_expander[1]",
+    "field": "manufacturer",
+    "value": "Waves",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "gate_expander[1]",
+    "field": "format",
+    "value": "VST3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "gate_expander[1]",
+    "field": "plugin_identifier",
+    "value": "VST3-PSE Stereo-695648d-be50dbac",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "gate_expander[1]",
+    "field": "plugin_path",
+    "value": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "gate_expander[1]",
+    "field": "range_param_id",
+    "value": "6",
+    "source": "S3 dual-cycle probe (zero drift): param 'Range' id=6",
+    "note": ""
+  },
+  {
+    "section": "gate_expander[1]",
+    "field": "_attestation",
+    "value": "pca2_d5a8feaf8cdf4567a45e12a9",
+    "source": "S2 v2 store promotion; coverage=[attenuation_floor,detector_focus]",
+    "note": "status=promoted family=gate_expander"
+  },
+  {
+    "section": "gate_expander[2]",
+    "field": "plugin_name",
+    "value": "Pro-G",
+    "source": "S1 semantic index; byte-equal to S2 attestation subject",
+    "note": ""
+  },
+  {
+    "section": "gate_expander[2]",
+    "field": "manufacturer",
+    "value": "FabFilter",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "gate_expander[2]",
+    "field": "format",
+    "value": "VST3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "gate_expander[2]",
+    "field": "plugin_identifier",
+    "value": "VST3-Pro-G-38fcf5ad-5a6e43a2",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "gate_expander[2]",
+    "field": "plugin_path",
+    "value": "C:\\Program Files\\Common Files\\VST3\\FabFilter\\FabFilter Pro-G.vst3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "gate_expander[2]",
+    "field": "range_param_id",
+    "value": "4",
+    "source": "S3 dual-cycle probe (zero drift): param 'Range' id=4",
+    "note": ""
+  },
+  {
+    "section": "gate_expander[2]",
+    "field": "_attestation",
+    "value": "pca2_2c5397864320ad7312a8ed57",
+    "source": "S2 v2 store promotion; coverage=[attenuation_floor,detector_focus]",
+    "note": "status=promoted family=gate_expander"
+  },
+  {
+    "section": "gate_expander",
+    "field": "_excluded",
+    "value": "AudioTrack Mono not listed",
+    "source": "S2 coverage [output_normalization,state_timing] lacks axis ['attenuation_floor']; probe '^Range$' → no surface match; no local S4 receipt",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "gate_expander",
+    "field": "_excluded",
+    "value": "AudioTrack Stereo not listed",
+    "source": "S2 coverage [output_normalization,state_timing] lacks axis ['attenuation_floor']; probe '^Range$' → no surface match; no local S4 receipt",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "gate_expander",
+    "field": "_excluded",
+    "value": "C1 comp-gate Mono not listed",
+    "source": "S2 coverage [output_normalization,state_timing] lacks axis ['attenuation_floor']; probe '^Range$' → no surface match; no local S4 receipt",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "gate_expander",
+    "field": "_excluded",
+    "value": "C1 comp-gate Stereo not listed",
+    "source": "S2 coverage [output_normalization,state_timing] lacks axis ['attenuation_floor']; probe '^Range$' → no surface match; no local S4 receipt",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "gate_expander",
+    "field": "_excluded",
+    "value": "C1 gate Mono not listed",
+    "source": "S2 coverage [output_normalization,state_timing] lacks axis ['attenuation_floor']; probe '^Range$' → no surface match; no local S4 receipt",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "gate_expander",
+    "field": "_excluded",
+    "value": "C1 gate Stereo not listed",
+    "source": "S2 coverage [output_normalization,state_timing] lacks axis ['attenuation_floor']; probe '^Range$' → no surface match; no local S4 receipt",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "gate_expander",
+    "field": "_excluded",
+    "value": "bx_console AMEK 200 not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no range_param_id param ('^Range$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "gate_expander",
+    "field": "_excluded",
+    "value": "bx_console AMEK 9099 not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no range_param_id param ('^Range$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "gate_expander",
+    "field": "_excluded",
+    "value": "bx_console SSL 9000 J not listed",
+    "source": "S2 coverage [detector_focus,direction_mode] lacks axis ['attenuation_floor']; probe '^Range$' → no surface match; no local S4 receipt",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "multiband[0]",
+    "field": "plugin_name",
+    "value": "C4 Mono",
+    "source": "S1 semantic index; byte-equal to S2 attestation subject",
+    "note": ""
+  },
+  {
+    "section": "multiband[0]",
+    "field": "manufacturer",
+    "value": "Waves",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "multiband[0]",
+    "field": "format",
+    "value": "VST3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "multiband[0]",
+    "field": "plugin_identifier",
+    "value": "VST3-C4 Mono-695648d-bfaad650",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "multiband[0]",
+    "field": "plugin_path",
+    "value": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "multiband[0]",
+    "field": "band_threshold_param_ids",
+    "value": [
+      "14",
+      "21",
+      "28",
+      "35"
+    ],
+    "source": "S3 dual-cycle probe (zero drift): ['Band 1 Thresh', 'Band 2 Thresh', 'Band 3 Thresh', 'Band 4 Thresh']",
+    "note": "band threshold ids probe-derived"
+  },
+  {
+    "section": "multiband[0]",
+    "field": "_attestation",
+    "value": "pca2_2049c123058bf1b6f06ac289",
+    "source": "S2 v2 store promotion; coverage=[band_dynamics,band_timing]",
+    "note": "status=promoted family=multiband_dynamics"
+  },
+  {
+    "section": "multiband[1]",
+    "field": "plugin_name",
+    "value": "C4 Stereo",
+    "source": "S1 semantic index; byte-equal to S2 attestation subject",
+    "note": ""
+  },
+  {
+    "section": "multiband[1]",
+    "field": "manufacturer",
+    "value": "Waves",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "multiband[1]",
+    "field": "format",
+    "value": "VST3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "multiband[1]",
+    "field": "plugin_identifier",
+    "value": "VST3-C4 Stereo-695648d-b6c57c5a",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "multiband[1]",
+    "field": "plugin_path",
+    "value": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "multiband[1]",
+    "field": "band_threshold_param_ids",
+    "value": [
+      "14",
+      "21",
+      "28",
+      "35"
+    ],
+    "source": "S3 dual-cycle probe (zero drift): ['Band 1 Thresh', 'Band 2 Thresh', 'Band 3 Thresh', 'Band 4 Thresh']",
+    "note": "band threshold ids probe-derived"
+  },
+  {
+    "section": "multiband[1]",
+    "field": "_attestation",
+    "value": "pca2_8c6cef08d91eb3f79e33e51c",
+    "source": "S2 v2 store promotion; coverage=[band_dynamics,band_timing]",
+    "note": "status=promoted family=multiband_dynamics"
+  },
+  {
+    "section": "multiband[2]",
+    "field": "plugin_name",
+    "value": "C6 Mono",
+    "source": "S1 semantic index; byte-equal to S2 attestation subject",
+    "note": ""
+  },
+  {
+    "section": "multiband[2]",
+    "field": "manufacturer",
+    "value": "Waves",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "multiband[2]",
+    "field": "format",
+    "value": "VST3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "multiband[2]",
+    "field": "plugin_identifier",
+    "value": "VST3-C6 Mono-695648d-aeaa61f1",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "multiband[2]",
+    "field": "plugin_path",
+    "value": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "multiband[2]",
+    "field": "band_threshold_param_ids",
+    "value": [
+      "10",
+      "19",
+      "26",
+      "33",
+      "40",
+      "47"
+    ],
+    "source": "S3 dual-cycle probe (zero drift): ['Band 1 Threshold', 'Band 2 Threshold', 'Band 3 Threshold', 'Band 4 Threshold', 'Band 5 Threshold', 'Band 6 Threshold']",
+    "note": "band threshold ids probe-derived"
+  },
+  {
+    "section": "multiband[2]",
+    "field": "_attestation",
+    "value": "pca2_40c86bfa0f6a650f98d41eb5",
+    "source": "S2 v2 store promotion; coverage=[band_dynamics,band_timing]",
+    "note": "status=promoted family=multiband_dynamics"
+  },
+  {
+    "section": "multiband[3]",
+    "field": "plugin_name",
+    "value": "C6 Stereo",
+    "source": "S1 semantic index; byte-equal to S2 attestation subject",
+    "note": ""
+  },
+  {
+    "section": "multiband[3]",
+    "field": "manufacturer",
+    "value": "Waves",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "multiband[3]",
+    "field": "format",
+    "value": "VST3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "multiband[3]",
+    "field": "plugin_identifier",
+    "value": "VST3-C6 Stereo-695648d-a5c507fb",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "multiband[3]",
+    "field": "plugin_path",
+    "value": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "multiband[3]",
+    "field": "band_threshold_param_ids",
+    "value": [
+      "10",
+      "19",
+      "26",
+      "33",
+      "40",
+      "47"
+    ],
+    "source": "S3 dual-cycle probe (zero drift): ['Band 1 Threshold', 'Band 2 Threshold', 'Band 3 Threshold', 'Band 4 Threshold', 'Band 5 Threshold', 'Band 6 Threshold']",
+    "note": "band threshold ids probe-derived"
+  },
+  {
+    "section": "multiband[3]",
+    "field": "_attestation",
+    "value": "pca2_adc74ade75d9ce62627f5a61",
+    "source": "S2 v2 store promotion; coverage=[band_dynamics,band_timing]",
+    "note": "status=promoted family=multiband_dynamics"
+  },
+  {
+    "section": "multiband[4]",
+    "field": "plugin_name",
+    "value": "C6-SideChain Mono",
+    "source": "S1 semantic index; byte-equal to S2 attestation subject",
+    "note": ""
+  },
+  {
+    "section": "multiband[4]",
+    "field": "manufacturer",
+    "value": "Waves",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "multiband[4]",
+    "field": "format",
+    "value": "VST3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "multiband[4]",
+    "field": "plugin_identifier",
+    "value": "VST3-C6-SideChain Mono-695648d-adb67e9f",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "multiband[4]",
+    "field": "plugin_path",
+    "value": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "multiband[4]",
+    "field": "band_threshold_param_ids",
+    "value": [
+      "10",
+      "20",
+      "28",
+      "36",
+      "44",
+      "52"
+    ],
+    "source": "S3 dual-cycle probe (zero drift): ['Band 1 Threshold', 'Band 2 Threshold', 'Band 3 Threshold', 'Band 4 Threshold', 'Band 5 Threshold', 'Band 6 Threshold']",
+    "note": "band threshold ids probe-derived"
+  },
+  {
+    "section": "multiband[4]",
+    "field": "_attestation",
+    "value": "pca2_172287eaea275ccdeb48513c",
+    "source": "S2 v2 store promotion; coverage=[band_dynamics,band_timing]",
+    "note": "status=promoted family=multiband_dynamics"
+  },
+  {
+    "section": "multiband[5]",
+    "field": "plugin_name",
+    "value": "C6-SideChain Stereo",
+    "source": "S1 semantic index; byte-equal to S2 attestation subject",
+    "note": ""
+  },
+  {
+    "section": "multiband[5]",
+    "field": "manufacturer",
+    "value": "Waves",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "multiband[5]",
+    "field": "format",
+    "value": "VST3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "multiband[5]",
+    "field": "plugin_identifier",
+    "value": "VST3-C6-SideChain Stereo-695648d-adcd049f",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "multiband[5]",
+    "field": "plugin_path",
+    "value": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "multiband[5]",
+    "field": "band_threshold_param_ids",
+    "value": [
+      "10",
+      "20",
+      "28",
+      "36",
+      "44",
+      "52"
+    ],
+    "source": "S3 dual-cycle probe (zero drift): ['Band 1 Threshold', 'Band 2 Threshold', 'Band 3 Threshold', 'Band 4 Threshold', 'Band 5 Threshold', 'Band 6 Threshold']",
+    "note": "band threshold ids probe-derived"
+  },
+  {
+    "section": "multiband[5]",
+    "field": "_attestation",
+    "value": "pca2_7d92abc469b9550c8e76cd35",
+    "source": "S2 v2 store promotion; coverage=[band_dynamics,band_timing]",
+    "note": "status=promoted family=multiband_dynamics"
+  },
+  {
+    "section": "multiband[6]",
+    "field": "plugin_name",
+    "value": "LinMB Mono",
+    "source": "S1 semantic index; byte-equal to S2 attestation subject",
+    "note": ""
+  },
+  {
+    "section": "multiband[6]",
+    "field": "manufacturer",
+    "value": "Waves",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "multiband[6]",
+    "field": "format",
+    "value": "VST3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "multiband[6]",
+    "field": "plugin_identifier",
+    "value": "VST3-LinMB Mono-695648d-fb0308ec",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "multiband[6]",
+    "field": "plugin_path",
+    "value": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "multiband[6]",
+    "field": "band_threshold_param_ids",
+    "value": [
+      "8",
+      "15",
+      "22",
+      "29",
+      "36"
+    ],
+    "source": "S3 dual-cycle probe (zero drift): ['Band 1 Thresh', 'Band 2 Thresh', 'Band 3 Thresh', 'Band 4 Thresh', 'Band 5 Thresh']",
+    "note": "band threshold ids probe-derived"
+  },
+  {
+    "section": "multiband[6]",
+    "field": "_attestation",
+    "value": "pca2_ff4ee7e60e82d242c8578700",
+    "source": "S2 v2 store promotion; coverage=[band_dynamics,band_timing]",
+    "note": "status=promoted family=multiband_dynamics"
+  },
+  {
+    "section": "multiband[7]",
+    "field": "plugin_name",
+    "value": "LinMB Stereo",
+    "source": "S1 semantic index; byte-equal to S2 attestation subject",
+    "note": ""
+  },
+  {
+    "section": "multiband[7]",
+    "field": "manufacturer",
+    "value": "Waves",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "multiband[7]",
+    "field": "format",
+    "value": "VST3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "multiband[7]",
+    "field": "plugin_identifier",
+    "value": "VST3-LinMB Stereo-695648d-fb1f93e3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "multiband[7]",
+    "field": "plugin_path",
+    "value": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "multiband[7]",
+    "field": "band_threshold_param_ids",
+    "value": [
+      "8",
+      "15",
+      "22",
+      "29",
+      "36"
+    ],
+    "source": "S3 dual-cycle probe (zero drift): ['Band 1 Thresh', 'Band 2 Thresh', 'Band 3 Thresh', 'Band 4 Thresh', 'Band 5 Thresh']",
+    "note": "band threshold ids probe-derived"
+  },
+  {
+    "section": "multiband[7]",
+    "field": "_attestation",
+    "value": "pca2_e58f27a1b54891d194b2c977",
+    "source": "S2 v2 store promotion; coverage=[band_dynamics,band_timing]",
+    "note": "status=promoted family=multiband_dynamics"
+  },
+  {
+    "section": "multiband",
+    "field": "_excluded",
+    "value": "Lindell 354E not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no band threshold params ('^Band (\\\\d+) Thresh(old)?$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "multiband",
+    "field": "_excluded",
+    "value": "Lindell MBC not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no band threshold params ('^Band (\\\\d+) Thresh(old)?$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression[0]",
+    "field": "plugin_name",
+    "value": "C1 comp Mono",
+    "source": "S1 semantic index; byte-equal to S2 attestation subject",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[0]",
+    "field": "manufacturer",
+    "value": "Waves",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[0]",
+    "field": "format",
+    "value": "VST3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[0]",
+    "field": "plugin_identifier",
+    "value": "VST3-C1 comp Mono-695648d-65e94c5e",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[0]",
+    "field": "plugin_path",
+    "value": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[0]",
+    "field": "threshold_param_id",
+    "value": "7",
+    "source": "S3 dual-cycle probe (zero drift): param 'Threshold' id=7 single shared",
+    "note": "FIX-BROADBAND-SHARED-1 shared single-param form (decision A)"
+  },
+  {
+    "section": "broadband_compression[0]",
+    "field": "_attestation",
+    "value": "pca1_62344b04b9d22b9ebfb3f4bc",
+    "source": "S2 v1 store promotion; coverage=[activation_intensity,transient_timing]",
+    "note": "status=promoted family=broadband_compressor"
+  },
+  {
+    "section": "broadband_compression[1]",
+    "field": "plugin_name",
+    "value": "C1 comp Stereo",
+    "source": "S1 semantic index; byte-equal to S2 attestation subject",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[1]",
+    "field": "manufacturer",
+    "value": "Waves",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[1]",
+    "field": "format",
+    "value": "VST3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[1]",
+    "field": "plugin_identifier",
+    "value": "VST3-C1 comp Stereo-695648d-65ffd264",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[1]",
+    "field": "plugin_path",
+    "value": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[1]",
+    "field": "threshold_param_id",
+    "value": "7",
+    "source": "S3 dual-cycle probe (zero drift): param 'Threshold' id=7 single shared",
+    "note": "FIX-BROADBAND-SHARED-1 shared single-param form (decision A)"
+  },
+  {
+    "section": "broadband_compression[1]",
+    "field": "_attestation",
+    "value": "pca1_360dc76b73ad0907e091332a",
+    "source": "S2 v1 store promotion; coverage=[activation_intensity,transient_timing]",
+    "note": "status=promoted family=broadband_compressor"
+  },
+  {
+    "section": "broadband_compression[2]",
+    "field": "plugin_name",
+    "value": "C1 comp-gate Mono",
+    "source": "S1 semantic index; byte-equal to S2 attestation subject",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[2]",
+    "field": "manufacturer",
+    "value": "Waves",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[2]",
+    "field": "format",
+    "value": "VST3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[2]",
+    "field": "plugin_identifier",
+    "value": "VST3-C1 comp-gate Mono-695648d-dca65958",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[2]",
+    "field": "plugin_path",
+    "value": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[2]",
+    "field": "threshold_param_id",
+    "value": "16",
+    "source": "S3 dual-cycle probe (zero drift): param 'Threshold' id=16 single shared",
+    "note": "FIX-BROADBAND-SHARED-1 shared single-param form (decision A)"
+  },
+  {
+    "section": "broadband_compression[2]",
+    "field": "_attestation",
+    "value": "pca1_0c6e239b2efede74ff8fdb7c",
+    "source": "S2 v1 store promotion; coverage=[activation_intensity,transient_timing]",
+    "note": "status=promoted family=broadband_compressor"
+  },
+  {
+    "section": "broadband_compression[3]",
+    "field": "plugin_name",
+    "value": "C1 comp-gate Stereo",
+    "source": "S1 semantic index; byte-equal to S2 attestation subject",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[3]",
+    "field": "manufacturer",
+    "value": "Waves",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[3]",
+    "field": "format",
+    "value": "VST3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[3]",
+    "field": "plugin_identifier",
+    "value": "VST3-C1 comp-gate Stereo-695648d-dcbcdf58",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[3]",
+    "field": "plugin_path",
+    "value": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[3]",
+    "field": "threshold_param_id",
+    "value": "16",
+    "source": "S3 dual-cycle probe (zero drift): param 'Threshold' id=16 single shared",
+    "note": "FIX-BROADBAND-SHARED-1 shared single-param form (decision A)"
+  },
+  {
+    "section": "broadband_compression[3]",
+    "field": "_attestation",
+    "value": "pca1_cf2f53a56b60dbe8748c2a81",
+    "source": "S2 v1 store promotion; coverage=[activation_intensity,transient_timing]",
+    "note": "status=promoted family=broadband_compressor"
+  },
+  {
+    "section": "broadband_compression[4]",
+    "field": "plugin_name",
+    "value": "C1 comp-sc Mono",
+    "source": "S1 semantic index; byte-equal to S2 attestation subject",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[4]",
+    "field": "manufacturer",
+    "value": "Waves",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[4]",
+    "field": "format",
+    "value": "VST3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[4]",
+    "field": "plugin_identifier",
+    "value": "VST3-C1 comp-sc Mono-695648d-191c5964",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[4]",
+    "field": "plugin_path",
+    "value": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[4]",
+    "field": "threshold_param_id",
+    "value": "8",
+    "source": "S3 dual-cycle probe (zero drift): param 'Threshold' id=8 single shared",
+    "note": "FIX-BROADBAND-SHARED-1 shared single-param form (decision A)"
+  },
+  {
+    "section": "broadband_compression[4]",
+    "field": "_attestation",
+    "value": "pca1_c4147b7475d4ab20723dae8d",
+    "source": "S2 v1 store promotion; coverage=[activation_intensity,transient_timing]",
+    "note": "status=promoted family=broadband_compressor"
+  },
+  {
+    "section": "broadband_compression[5]",
+    "field": "plugin_name",
+    "value": "C1 comp-sc Stereo",
+    "source": "S1 semantic index; byte-equal to S2 attestation subject",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[5]",
+    "field": "manufacturer",
+    "value": "Waves",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[5]",
+    "field": "format",
+    "value": "VST3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[5]",
+    "field": "plugin_identifier",
+    "value": "VST3-C1 comp-sc Stereo-695648d-1932df64",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[5]",
+    "field": "plugin_path",
+    "value": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[5]",
+    "field": "threshold_param_id",
+    "value": "8",
+    "source": "S3 dual-cycle probe (zero drift): param 'Threshold' id=8 single shared",
+    "note": "FIX-BROADBAND-SHARED-1 shared single-param form (decision A)"
+  },
+  {
+    "section": "broadband_compression[5]",
+    "field": "_attestation",
+    "value": "pca1_5c442aac7188ee317cb37a35",
+    "source": "S2 v1 store promotion; coverage=[activation_intensity,transient_timing]",
+    "note": "status=promoted family=broadband_compressor"
+  },
+  {
+    "section": "broadband_compression[6]",
+    "field": "plugin_name",
+    "value": "DPR-402 Mono",
+    "source": "S1 semantic index; byte-equal to S2 attestation subject",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[6]",
+    "field": "manufacturer",
+    "value": "Waves",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[6]",
+    "field": "format",
+    "value": "VST3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[6]",
+    "field": "plugin_identifier",
+    "value": "VST3-DPR-402 Mono-695648d-12144a9b",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[6]",
+    "field": "plugin_path",
+    "value": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[6]",
+    "field": "threshold_param_id",
+    "value": "2",
+    "source": "S3 dual-cycle probe (zero drift): param 'Threshold' id=2 single shared",
+    "note": "FIX-BROADBAND-SHARED-1 shared single-param form (decision A)"
+  },
+  {
+    "section": "broadband_compression[6]",
+    "field": "_attestation",
+    "value": "pca1_697679dba73de78a0bdbcd1c",
+    "source": "S2 v1 store promotion; coverage=[activation_intensity,transient_timing]",
+    "note": "status=promoted family=broadband_compressor"
+  },
+  {
+    "section": "broadband_compression[7]",
+    "field": "plugin_name",
+    "value": "H-Comp Mono",
+    "source": "S1 semantic index; byte-equal to S2 attestation subject",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[7]",
+    "field": "manufacturer",
+    "value": "Waves",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[7]",
+    "field": "format",
+    "value": "VST3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[7]",
+    "field": "plugin_identifier",
+    "value": "VST3-H-Comp Mono-695648d-fb691fe7",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[7]",
+    "field": "plugin_path",
+    "value": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[7]",
+    "field": "threshold_param_id",
+    "value": "0",
+    "source": "S3 dual-cycle probe (zero drift): param 'Threshold' id=0 single shared",
+    "note": "FIX-BROADBAND-SHARED-1 shared single-param form (decision A)"
+  },
+  {
+    "section": "broadband_compression[7]",
+    "field": "_attestation",
+    "value": "pca1_060593b771ed1734e9a59bc5",
+    "source": "S2 v1 store promotion; coverage=[activation_intensity,transient_timing]",
+    "note": "status=promoted family=broadband_compressor"
+  },
+  {
+    "section": "broadband_compression[8]",
+    "field": "plugin_name",
+    "value": "H-Comp Stereo",
+    "source": "S1 semantic index; byte-equal to S2 attestation subject",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[8]",
+    "field": "manufacturer",
+    "value": "Waves",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[8]",
+    "field": "format",
+    "value": "VST3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[8]",
+    "field": "plugin_identifier",
+    "value": "VST3-H-Comp Stereo-695648d-fb7fabec",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[8]",
+    "field": "plugin_path",
+    "value": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[8]",
+    "field": "threshold_param_id",
+    "value": "0",
+    "source": "S3 dual-cycle probe (zero drift): param 'Threshold' id=0 single shared",
+    "note": "FIX-BROADBAND-SHARED-1 shared single-param form (decision A)"
+  },
+  {
+    "section": "broadband_compression[8]",
+    "field": "_attestation",
+    "value": "pca1_d5118b26f86cc000689dc1e0",
+    "source": "S2 v1 store promotion; coverage=[activation_intensity,transient_timing]",
+    "note": "status=promoted family=broadband_compressor"
+  },
+  {
+    "section": "broadband_compression[9]",
+    "field": "plugin_name",
+    "value": "Kramer PIE Mono",
+    "source": "S1 semantic index; byte-equal to S2 attestation subject",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[9]",
+    "field": "manufacturer",
+    "value": "Waves",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[9]",
+    "field": "format",
+    "value": "VST3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[9]",
+    "field": "plugin_identifier",
+    "value": "VST3-Kramer PIE Mono-695648d-3434d7ff",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[9]",
+    "field": "plugin_path",
+    "value": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[9]",
+    "field": "threshold_param_id",
+    "value": "1",
+    "source": "S3 dual-cycle probe (zero drift): param 'Threshold' id=1 single shared",
+    "note": "FIX-BROADBAND-SHARED-1 shared single-param form (decision A)"
+  },
+  {
+    "section": "broadband_compression[9]",
+    "field": "_attestation",
+    "value": "pca1_d5db51121dea06ccd5c9f558",
+    "source": "S2 v1 store promotion; coverage=[activation_intensity,transfer_severity]",
+    "note": "status=promoted family=broadband_compressor"
+  },
+  {
+    "section": "broadband_compression[10]",
+    "field": "plugin_name",
+    "value": "Kramer PIE Stereo",
+    "source": "S1 semantic index; byte-equal to S2 attestation subject",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[10]",
+    "field": "manufacturer",
+    "value": "Waves",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[10]",
+    "field": "format",
+    "value": "VST3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[10]",
+    "field": "plugin_identifier",
+    "value": "VST3-Kramer PIE Stereo-695648d-344b5dff",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[10]",
+    "field": "plugin_path",
+    "value": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[10]",
+    "field": "threshold_param_id",
+    "value": "1",
+    "source": "S3 dual-cycle probe (zero drift): param 'Threshold' id=1 single shared",
+    "note": "FIX-BROADBAND-SHARED-1 shared single-param form (decision A)"
+  },
+  {
+    "section": "broadband_compression[10]",
+    "field": "_attestation",
+    "value": "pca1_4e20e1ef2ee94f9c8cec5589",
+    "source": "S2 v1 store promotion; coverage=[activation_intensity,transfer_severity]",
+    "note": "status=promoted family=broadband_compressor"
+  },
+  {
+    "section": "broadband_compression[11]",
+    "field": "plugin_name",
+    "value": "Lindell 254E",
+    "source": "S1 semantic index; byte-equal to S2 attestation subject",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[11]",
+    "field": "manufacturer",
+    "value": "Plugin Alliance",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[11]",
+    "field": "format",
+    "value": "VST3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[11]",
+    "field": "plugin_identifier",
+    "value": "VST3-Lindell 254E-9587e624-324d090d",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[11]",
+    "field": "plugin_path",
+    "value": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\Lindell 254E.vst3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[11]",
+    "field": "threshold_param_id",
+    "value": "55",
+    "source": "S3 dual-cycle probe (zero drift): param 'Threshold' id=55 single shared",
+    "note": "FIX-BROADBAND-SHARED-1 shared single-param form (decision A)"
+  },
+  {
+    "section": "broadband_compression[11]",
+    "field": "_attestation",
+    "value": "pca1_a0a3f022b02e3328b904a2fb",
+    "source": "S2 v1 store promotion; coverage=[activation_intensity,transfer_severity]",
+    "note": "status=promoted family=broadband_compressor"
+  },
+  {
+    "section": "broadband_compression[12]",
+    "field": "plugin_name",
+    "value": "Lindell SBC",
+    "source": "S1 semantic index; byte-equal to S2 attestation subject",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[12]",
+    "field": "manufacturer",
+    "value": "Plugin Alliance",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[12]",
+    "field": "format",
+    "value": "VST3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[12]",
+    "field": "plugin_identifier",
+    "value": "VST3-Lindell SBC-52082708-a6b7eb75",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[12]",
+    "field": "plugin_path",
+    "value": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\Lindell SBC.vst3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[12]",
+    "field": "threshold_param_id",
+    "value": "458490955",
+    "source": "S3 dual-cycle probe (zero drift): param 'Threshold' id=458490955 single shared",
+    "note": "FIX-BROADBAND-SHARED-1 shared single-param form (decision A)"
+  },
+  {
+    "section": "broadband_compression[12]",
+    "field": "_attestation",
+    "value": "pca1_ab470518e9a4b6445853a135",
+    "source": "S2 v1 store promotion; coverage=[activation_intensity]",
+    "note": "status=promoted family=broadband_compressor"
+  },
+  {
+    "section": "broadband_compression[13]",
+    "field": "plugin_name",
+    "value": "Pro-C 2",
+    "source": "S1 semantic index; byte-equal to S2 attestation subject",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[13]",
+    "field": "manufacturer",
+    "value": "FabFilter",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[13]",
+    "field": "format",
+    "value": "VST3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[13]",
+    "field": "plugin_identifier",
+    "value": "VST3-Pro-C 2-f1a6549f-763029ad",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[13]",
+    "field": "plugin_path",
+    "value": "C:\\Program Files\\Common Files\\VST3\\FabFilter\\FabFilter Pro-C 2.vst3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[13]",
+    "field": "threshold_param_id",
+    "value": "1",
+    "source": "S3 dual-cycle probe (zero drift): param 'Threshold' id=1 single shared",
+    "note": "FIX-BROADBAND-SHARED-1 shared single-param form (decision A)"
+  },
+  {
+    "section": "broadband_compression[13]",
+    "field": "_attestation",
+    "value": "pca1_ccf143bc9bf73f8ee8753d97",
+    "source": "S2 v1 store promotion; coverage=[activation_intensity]",
+    "note": "status=promoted family=broadband_compressor"
+  },
+  {
+    "section": "broadband_compression[14]",
+    "field": "plugin_name",
+    "value": "RCompressor Mono",
+    "source": "S1 semantic index; byte-equal to S2 attestation subject",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[14]",
+    "field": "manufacturer",
+    "value": "Waves",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[14]",
+    "field": "format",
+    "value": "VST3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[14]",
+    "field": "plugin_identifier",
+    "value": "VST3-RCompressor Mono-695648d-16ac3c80",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[14]",
+    "field": "plugin_path",
+    "value": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[14]",
+    "field": "threshold_param_id",
+    "value": "1",
+    "source": "S3 dual-cycle probe (zero drift): param 'Threshold' id=1 single shared",
+    "note": "FIX-BROADBAND-SHARED-1 shared single-param form (decision A)"
+  },
+  {
+    "section": "broadband_compression[14]",
+    "field": "_attestation",
+    "value": "pca1_7471b71d87e641fa58b80f71",
+    "source": "S2 v1 store promotion; coverage=[activation_intensity,transient_timing]",
+    "note": "status=promoted family=broadband_compressor"
+  },
+  {
+    "section": "broadband_compression[15]",
+    "field": "plugin_name",
+    "value": "RCompressor Stereo",
+    "source": "S1 semantic index; byte-equal to S2 attestation subject",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[15]",
+    "field": "manufacturer",
+    "value": "Waves",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[15]",
+    "field": "format",
+    "value": "VST3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[15]",
+    "field": "plugin_identifier",
+    "value": "VST3-RCompressor Stereo-695648d-16c2c280",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[15]",
+    "field": "plugin_path",
+    "value": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[15]",
+    "field": "threshold_param_id",
+    "value": "1",
+    "source": "S3 dual-cycle probe (zero drift): param 'Threshold' id=1 single shared",
+    "note": "FIX-BROADBAND-SHARED-1 shared single-param form (decision A)"
+  },
+  {
+    "section": "broadband_compression[15]",
+    "field": "_attestation",
+    "value": "pca1_5f4ce0e9b1ac929ea5756e4d",
+    "source": "S2 v1 store promotion; coverage=[activation_intensity,transient_timing]",
+    "note": "status=promoted family=broadband_compressor"
+  },
+  {
+    "section": "broadband_compression[16]",
+    "field": "plugin_name",
+    "value": "Shadow Hills OptoMax",
+    "source": "S1 semantic index; byte-equal to S2 attestation subject",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[16]",
+    "field": "manufacturer",
+    "value": "Plugin Alliance",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[16]",
+    "field": "format",
+    "value": "VST3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[16]",
+    "field": "plugin_identifier",
+    "value": "VST3-Shadow Hills OptoMax-571db02c-57bf355a",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[16]",
+    "field": "plugin_path",
+    "value": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\Shadow Hills OptoMax.vst3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[16]",
+    "field": "threshold_param_id",
+    "value": "1330931826",
+    "source": "S3 dual-cycle probe (zero drift): param 'Threshold' id=1330931826 single shared",
+    "note": "FIX-BROADBAND-SHARED-1 shared single-param form (decision A)"
+  },
+  {
+    "section": "broadband_compression[16]",
+    "field": "_attestation",
+    "value": "pca1_3115f21585adf9edd6e10ecb",
+    "source": "S2 v1 store promotion; coverage=[activation_intensity]",
+    "note": "status=promoted family=broadband_compressor"
+  },
+  {
+    "section": "broadband_compression[17]",
+    "field": "plugin_name",
+    "value": "TBTECH Cenozoix Compressor",
+    "source": "S1 semantic index; byte-equal to S2 attestation subject",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[17]",
+    "field": "manufacturer",
+    "value": "Plugin Alliance",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[17]",
+    "field": "format",
+    "value": "VST3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[17]",
+    "field": "plugin_identifier",
+    "value": "VST3-TBTECH Cenozoix Compressor-ae9d39c4-c8c84a6",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[17]",
+    "field": "plugin_path",
+    "value": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\TBTECH Cenozoix Compressor.vst3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[17]",
+    "field": "threshold_param_id",
+    "value": "1576",
+    "source": "S3 dual-cycle probe (zero drift): param 'Threshold' id=1576 single shared",
+    "note": "FIX-BROADBAND-SHARED-1 shared single-param form (decision A)"
+  },
+  {
+    "section": "broadband_compression[17]",
+    "field": "_attestation",
+    "value": "pca1_8e80231848f5fea502472aad",
+    "source": "S2 v1 store promotion; coverage=[activation_intensity]",
+    "note": "status=promoted family=broadband_compressor"
+  },
+  {
+    "section": "broadband_compression[18]",
+    "field": "plugin_name",
+    "value": "Unfiltered Audio SpecOps",
+    "source": "S1 semantic index; byte-equal to S2 attestation subject",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[18]",
+    "field": "manufacturer",
+    "value": "Plugin Alliance",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[18]",
+    "field": "format",
+    "value": "VST3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[18]",
+    "field": "plugin_identifier",
+    "value": "VST3-Unfiltered Audio SpecOps-d5dccea9-f7bad819",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[18]",
+    "field": "plugin_path",
+    "value": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\Unfiltered Audio SpecOps.vst3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[18]",
+    "field": "threshold_param_id",
+    "value": "458490955",
+    "source": "S3 dual-cycle probe (zero drift): param 'Threshold' id=458490955 single shared",
+    "note": "FIX-BROADBAND-SHARED-1 shared single-param form (decision A)"
+  },
+  {
+    "section": "broadband_compression[18]",
+    "field": "_attestation",
+    "value": "pca1_f120d23c5d2fc6b850801c88",
+    "source": "S2 v1 store promotion; coverage=[activation_intensity,transient_timing]",
+    "note": "status=promoted family=broadband_compressor"
+  },
+  {
+    "section": "broadband_compression[19]",
+    "field": "plugin_name",
+    "value": "Unfiltered Audio Zip",
+    "source": "S1 semantic index; byte-equal to S2 attestation subject",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[19]",
+    "field": "manufacturer",
+    "value": "Plugin Alliance",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[19]",
+    "field": "format",
+    "value": "VST3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[19]",
+    "field": "plugin_identifier",
+    "value": "VST3-Unfiltered Audio Zip-2ddbbdbf-12059919",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[19]",
+    "field": "plugin_path",
+    "value": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\Unfiltered Audio Zip.vst3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[19]",
+    "field": "threshold_param_id",
+    "value": "458490955",
+    "source": "S3 dual-cycle probe (zero drift): param 'Threshold' id=458490955 single shared",
+    "note": "FIX-BROADBAND-SHARED-1 shared single-param form (decision A)"
+  },
+  {
+    "section": "broadband_compression[19]",
+    "field": "_attestation",
+    "value": "pca1_674691e140c8357fa1e64077",
+    "source": "S2 v1 store promotion; coverage=[activation_intensity,transfer_severity]",
+    "note": "status=promoted family=broadband_compressor"
+  },
+  {
+    "section": "broadband_compression[20]",
+    "field": "plugin_name",
+    "value": "ZamComp",
+    "source": "S1 semantic index; byte-equal to S2 attestation subject",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[20]",
+    "field": "manufacturer",
+    "value": "Damien Zammit",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[20]",
+    "field": "format",
+    "value": "VST3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[20]",
+    "field": "plugin_identifier",
+    "value": "VST3-ZamComp-a56638f7-4513e632",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[20]",
+    "field": "plugin_path",
+    "value": "C:\\Program Files\\Common Files\\VST3\\zam-plugins-4.5-win64\\zam-plugins-4.5\\ZamComp.vst3\\Contents\\x86_64-win\\ZamComp.vst3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[20]",
+    "field": "threshold_param_id",
+    "value": "7",
+    "source": "S3 dual-cycle probe (zero drift): param 'Threshold' id=7 single shared",
+    "note": "FIX-BROADBAND-SHARED-1 shared single-param form (decision A)"
+  },
+  {
+    "section": "broadband_compression[20]",
+    "field": "_attestation",
+    "value": "pca1_514446b2b5a9c8c792555860",
+    "source": "S2 v1 store promotion; coverage=[activation_intensity,transfer_severity]",
+    "note": "status=promoted family=broadband_compressor"
+  },
+  {
+    "section": "broadband_compression[21]",
+    "field": "plugin_name",
+    "value": "ZamCompX2",
+    "source": "S1 semantic index; byte-equal to S2 attestation subject",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[21]",
+    "field": "manufacturer",
+    "value": "Damien Zammit",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[21]",
+    "field": "format",
+    "value": "VST3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[21]",
+    "field": "plugin_identifier",
+    "value": "VST3-ZamCompX2-d8e8a4f7-a370e632",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[21]",
+    "field": "plugin_path",
+    "value": "C:\\Program Files\\Common Files\\VST3\\zam-plugins-4.5-win64\\zam-plugins-4.5\\ZamCompX2.vst3\\Contents\\x86_64-win\\ZamCompX2.vst3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[21]",
+    "field": "threshold_param_id",
+    "value": "7",
+    "source": "S3 dual-cycle probe (zero drift): param 'Threshold' id=7 single shared",
+    "note": "FIX-BROADBAND-SHARED-1 shared single-param form (decision A)"
+  },
+  {
+    "section": "broadband_compression[21]",
+    "field": "_attestation",
+    "value": "pca1_6833ff6b7a10585792d11954",
+    "source": "S2 v1 store promotion; coverage=[activation_intensity,transfer_severity]",
+    "note": "status=promoted family=broadband_compressor"
+  },
+  {
+    "section": "broadband_compression[22]",
+    "field": "plugin_name",
+    "value": "ZamDynamicEQ",
+    "source": "S1 semantic index; byte-equal to S2 attestation subject",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[22]",
+    "field": "manufacturer",
+    "value": "Damien Zammit",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[22]",
+    "field": "format",
+    "value": "VST3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[22]",
+    "field": "plugin_identifier",
+    "value": "VST3-ZamDynamicEQ-ac4fa121-62fe1c32",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[22]",
+    "field": "plugin_path",
+    "value": "C:\\Program Files\\Common Files\\VST3\\zam-plugins-4.5-win64\\zam-plugins-4.5\\ZamDynamicEQ.vst3\\Contents\\x86_64-win\\ZamDynamicEQ.vst3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[22]",
+    "field": "threshold_param_id",
+    "value": "7",
+    "source": "S3 dual-cycle probe (zero drift): param 'Threshold' id=7 single shared",
+    "note": "FIX-BROADBAND-SHARED-1 shared single-param form (decision A)"
+  },
+  {
+    "section": "broadband_compression[22]",
+    "field": "_attestation",
+    "value": "pca1_ec5182b3ac151e89cf98e1bf",
+    "source": "S2 v1 store promotion; coverage=[activation_intensity,transfer_severity]",
+    "note": "status=promoted family=broadband_compressor"
+  },
+  {
+    "section": "broadband_compression[23]",
+    "field": "plugin_name",
+    "value": "elysia mpressor",
+    "source": "S1 semantic index; byte-equal to S2 attestation subject",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[23]",
+    "field": "manufacturer",
+    "value": "Plugin Alliance",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[23]",
+    "field": "format",
+    "value": "VST3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[23]",
+    "field": "plugin_identifier",
+    "value": "VST3-elysia mpressor-e4fd29ee-5c2868d",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[23]",
+    "field": "plugin_path",
+    "value": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\elysia mpressor.vst3",
+    "source": "S1 = S2 cross-checked",
+    "note": ""
+  },
+  {
+    "section": "broadband_compression[23]",
+    "field": "threshold_param_id",
+    "value": "1416131173",
+    "source": "S3 dual-cycle probe (zero drift): param 'Threshold' id=1416131173 single shared",
+    "note": "FIX-BROADBAND-SHARED-1 shared single-param form (decision A)"
+  },
+  {
+    "section": "broadband_compression[23]",
+    "field": "_attestation",
+    "value": "pca1_62c210bae9459b6d26591c3d",
+    "source": "S2 v1 store promotion; coverage=[activation_intensity,transfer_severity]",
+    "note": "status=promoted family=broadband_compressor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "ADPTR Sculpt not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no threshold_param_id param ('^Threshold$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "AMEK Mastering Compressor not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no threshold_param_id param ('^Threshold$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "API-2500 Mono not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no threshold_param_id param ('^Threshold$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "API-2500 Stereo not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no threshold_param_id param ('^Threshold$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "Acme Opticom XLA-3 not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no threshold_param_id param ('^Threshold$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "Bettermaker C502V DSP not listed",
+    "source": "S2 coverage [transfer_severity] lacks axis ['activation_intensity']; probe '^Threshold$' → no surface match; no local S4 receipt",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "CLA-2A Mono not listed",
+    "source": "S2 coverage [parallel_balance] lacks axis ['activation_intensity']; probe '^Threshold$' → no surface match; no local S4 receipt",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "CLA-2A Stereo not listed",
+    "source": "S2 coverage [parallel_balance] lacks axis ['activation_intensity']; probe '^Threshold$' → no surface match; no local S4 receipt",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "CLA-76 Stereo not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no threshold_param_id param ('^Threshold$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "DPR-402 Stereo not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no threshold_param_id param ('^Threshold$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "Lindell 69 Channel not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no threshold_param_id param ('^Threshold$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "MV2 Stereo not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no threshold_param_id param ('^Threshold$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "Maag MAGNUM-K not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no threshold_param_id param ('^Threshold$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "Millennia TCL-2 not listed",
+    "source": "S2 coverage [recovery_motion,transient_timing] lacks axis ['activation_intensity']; probe '^Threshold$' → no surface match; no local S4 receipt",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "NEOLD U2A not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no threshold_param_id param ('^Threshold$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "Purple Audio MC 77 not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no threshold_param_id param ('^Threshold$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "SPL IRON not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no threshold_param_id param ('^Threshold$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "SSLComp Mono not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no threshold_param_id param ('^Threshold$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "SSLComp Stereo not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no threshold_param_id param ('^Threshold$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "Shadow Hills Class A Mastering Comp not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no threshold_param_id param ('^Threshold$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "Shadow Hills Mastering Compressor not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no threshold_param_id param ('^Threshold$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "Spherix Compressor 7.1.2 not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no threshold_param_id param ('^Threshold$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "Spherix Compressor 7.1.4 not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no threshold_param_id param ('^Threshold$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "Vertigo VSC-2 not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no threshold_param_id param ('^Threshold$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "Vertigo VSS-2 not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no threshold_param_id param ('^Threshold$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "bx_console SSL 4000 E not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no threshold_param_id param ('^Threshold$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "bx_console SSL 4000 G not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no threshold_param_id param ('^Threshold$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "bx_glue not listed",
+    "source": "S2 coverage [transfer_severity,transient_timing] lacks axis ['activation_intensity']; probe '^Threshold$' → 'Threshold' id=1416131144; no local S4 receipt",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "bx_townhouse Buss Compressor not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no threshold_param_id param ('^Threshold$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "elysia alpha compressor V2 not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no threshold_param_id param ('^Threshold$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "elysia alpha master not listed",
+    "source": "S2 coverage [recovery_motion,transient_timing] lacks axis ['activation_intensity']; probe '^Threshold$' → no surface match; no local S4 receipt",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "elysia alpha mix not listed",
+    "source": "S2 coverage [recovery_motion,transient_timing] lacks axis ['activation_intensity']; probe '^Threshold$' → 'Threshold' id=1416131121; no local S4 receipt",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  }
+]

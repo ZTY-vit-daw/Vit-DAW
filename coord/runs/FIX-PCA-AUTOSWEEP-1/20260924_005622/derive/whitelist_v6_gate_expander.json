@@ -1,0 +1,517 @@
+{
+  "schema_version": "vit.free_state_experiment_plugins.v6",
+  "static_eq": [
+    {
+      "plugin_name": "bx_hybrid V2",
+      "manufacturer": "Plugin Alliance",
+      "format": "VST3",
+      "plugin_identifier": "VST3-bx_hybrid V2-d0ef306f-c141eb4b",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\bx_hybrid V2.vst3",
+      "bands": [
+        {
+          "center_hz": 63,
+          "gain_param_id_ch1": "827090503",
+          "gain_param_id_ch2": "843867719"
+        },
+        {
+          "center_hz": 315,
+          "gain_param_id_ch1": "827092295",
+          "gain_param_id_ch2": "843869511"
+        },
+        {
+          "center_hz": 3150,
+          "gain_param_id_ch1": "827156039",
+          "gain_param_id_ch2": "843933255"
+        },
+        {
+          "center_hz": 6300,
+          "gain_param_id_ch1": "826830151",
+          "gain_param_id_ch2": "843607367"
+        },
+        {
+          "center_hz": 11200,
+          "gain_param_id_ch1": "826828359",
+          "gain_param_id_ch2": "843605575"
+        }
+      ]
+    }
+  ],
+  "de_esser": [
+    {
+      "plugin_name": "DeEsser Mono",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-DeEsser Mono-695648d-fff9b4fa",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "threshold_param_id": "0"
+    },
+    {
+      "plugin_name": "DeEsser Stereo",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-DeEsser Stereo-695648d-103b00",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "threshold_param_id": "0"
+    },
+    {
+      "plugin_name": "Sibilance Mono",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-Sibilance Mono-695648d-f15fcaf9",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "threshold_param_id": "2"
+    },
+    {
+      "plugin_name": "Sibilance Stereo",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-Sibilance Stereo-695648d-f17650f9",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "threshold_param_id": "2"
+    },
+    {
+      "plugin_name": "Sibilance-Live Mono",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-Sibilance-Live Mono-695648d-16e9caf9",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "threshold_param_id": "1"
+    },
+    {
+      "plugin_name": "Sibilance-Live Stereo",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-Sibilance-Live Stereo-695648d-170050f9",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "threshold_param_id": "1"
+    }
+  ],
+  "transient_shaper": [
+    {
+      "plugin_name": "Smack Attack Mono",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-Smack Attack Mono-695648d-eac19648",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "attack_param_id": "2"
+    },
+    {
+      "plugin_name": "Smack Attack Stereo",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-Smack Attack Stereo-695648d-ead81c48",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "attack_param_id": "2"
+    }
+  ],
+  "limiter": [
+    {
+      "plugin_name": "L1 limiter Mono",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-L1 limiter Mono-695648d-191aefbc",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "ceiling_param_id": "1"
+    },
+    {
+      "plugin_name": "L1 limiter Stereo",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-L1 limiter Stereo-695648d-193175bc",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "ceiling_param_id": "1"
+    },
+    {
+      "plugin_name": "L1+ Ultramaximizer Stereo",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-L1+ Ultramaximizer Stereo-695648d-56929f2c",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "ceiling_param_id": "3"
+    },
+    {
+      "plugin_name": "L2 Mono",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-L2 Mono-695648d-1faa9b11",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "ceiling_param_id": "1"
+    },
+    {
+      "plugin_name": "L2 Stereo",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-L2 Stereo-695648d-16c5411b",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "ceiling_param_id": "1"
+    },
+    {
+      "plugin_name": "L2-SC Mono",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-L2-SC Mono-695648d-e9c2c30b",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "ceiling_param_id": "1"
+    },
+    {
+      "plugin_name": "L2-SC Stereo",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-L2-SC Stereo-695648d-e9df4e02",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "ceiling_param_id": "1"
+    },
+    {
+      "plugin_name": "L316 Mono",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-L316 Mono-695648d-fb756ef",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "ceiling_param_id": "1"
+    },
+    {
+      "plugin_name": "L316 Stereo",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-L316 Stereo-695648d-15d2d3f2",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "ceiling_param_id": "1"
+    }
+  ],
+  "gate_expander": [
+    {
+      "plugin_name": "PSE Mono",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-PSE Mono-695648d-b943518d",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "range_param_id": "6"
+    },
+    {
+      "plugin_name": "PSE Stereo",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-PSE Stereo-695648d-be50dbac",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "range_param_id": "6"
+    },
+    {
+      "plugin_name": "Pro-G",
+      "manufacturer": "FabFilter",
+      "format": "VST3",
+      "plugin_identifier": "VST3-Pro-G-38fcf5ad-5a6e43a2",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\FabFilter\\FabFilter Pro-G.vst3",
+      "range_param_id": "4"
+    }
+  ],
+  "multiband": [
+    {
+      "plugin_name": "C4 Mono",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-C4 Mono-695648d-bfaad650",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "band_threshold_param_ids": [
+        "14",
+        "21",
+        "28",
+        "35"
+      ]
+    },
+    {
+      "plugin_name": "C4 Stereo",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-C4 Stereo-695648d-b6c57c5a",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "band_threshold_param_ids": [
+        "14",
+        "21",
+        "28",
+        "35"
+      ]
+    },
+    {
+      "plugin_name": "C6 Mono",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-C6 Mono-695648d-aeaa61f1",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "band_threshold_param_ids": [
+        "10",
+        "19",
+        "26",
+        "33",
+        "40",
+        "47"
+      ]
+    },
+    {
+      "plugin_name": "C6 Stereo",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-C6 Stereo-695648d-a5c507fb",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "band_threshold_param_ids": [
+        "10",
+        "19",
+        "26",
+        "33",
+        "40",
+        "47"
+      ]
+    },
+    {
+      "plugin_name": "C6-SideChain Mono",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-C6-SideChain Mono-695648d-adb67e9f",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "band_threshold_param_ids": [
+        "10",
+        "20",
+        "28",
+        "36",
+        "44",
+        "52"
+      ]
+    },
+    {
+      "plugin_name": "C6-SideChain Stereo",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-C6-SideChain Stereo-695648d-adcd049f",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "band_threshold_param_ids": [
+        "10",
+        "20",
+        "28",
+        "36",
+        "44",
+        "52"
+      ]
+    },
+    {
+      "plugin_name": "LinMB Mono",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-LinMB Mono-695648d-fb0308ec",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "band_threshold_param_ids": [
+        "8",
+        "15",
+        "22",
+        "29",
+        "36"
+      ]
+    },
+    {
+      "plugin_name": "LinMB Stereo",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-LinMB Stereo-695648d-fb1f93e3",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "band_threshold_param_ids": [
+        "8",
+        "15",
+        "22",
+        "29",
+        "36"
+      ]
+    }
+  ],
+  "broadband_compression": [
+    {
+      "plugin_name": "C1 comp Mono",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-C1 comp Mono-695648d-65e94c5e",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "threshold_param_id": "7"
+    },
+    {
+      "plugin_name": "C1 comp Stereo",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-C1 comp Stereo-695648d-65ffd264",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "threshold_param_id": "7"
+    },
+    {
+      "plugin_name": "C1 comp-gate Mono",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-C1 comp-gate Mono-695648d-dca65958",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "threshold_param_id": "16"
+    },
+    {
+      "plugin_name": "C1 comp-gate Stereo",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-C1 comp-gate Stereo-695648d-dcbcdf58",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "threshold_param_id": "16"
+    },
+    {
+      "plugin_name": "C1 comp-sc Mono",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-C1 comp-sc Mono-695648d-191c5964",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "threshold_param_id": "8"
+    },
+    {
+      "plugin_name": "C1 comp-sc Stereo",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-C1 comp-sc Stereo-695648d-1932df64",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "threshold_param_id": "8"
+    },
+    {
+      "plugin_name": "DPR-402 Mono",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-DPR-402 Mono-695648d-12144a9b",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "threshold_param_id": "2"
+    },
+    {
+      "plugin_name": "H-Comp Mono",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-H-Comp Mono-695648d-fb691fe7",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "threshold_param_id": "0"
+    },
+    {
+      "plugin_name": "H-Comp Stereo",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-H-Comp Stereo-695648d-fb7fabec",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "threshold_param_id": "0"
+    },
+    {
+      "plugin_name": "Kramer PIE Mono",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-Kramer PIE Mono-695648d-3434d7ff",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "threshold_param_id": "1"
+    },
+    {
+      "plugin_name": "Kramer PIE Stereo",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-Kramer PIE Stereo-695648d-344b5dff",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "threshold_param_id": "1"
+    },
+    {
+      "plugin_name": "Lindell 254E",
+      "manufacturer": "Plugin Alliance",
+      "format": "VST3",
+      "plugin_identifier": "VST3-Lindell 254E-9587e624-324d090d",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\Lindell 254E.vst3",
+      "threshold_param_id": "55"
+    },
+    {
+      "plugin_name": "Lindell SBC",
+      "manufacturer": "Plugin Alliance",
+      "format": "VST3",
+      "plugin_identifier": "VST3-Lindell SBC-52082708-a6b7eb75",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\Lindell SBC.vst3",
+      "threshold_param_id": "458490955"
+    },
+    {
+      "plugin_name": "Pro-C 2",
+      "manufacturer": "FabFilter",
+      "format": "VST3",
+      "plugin_identifier": "VST3-Pro-C 2-f1a6549f-763029ad",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\FabFilter\\FabFilter Pro-C 2.vst3",
+      "threshold_param_id": "1"
+    },
+    {
+      "plugin_name": "RCompressor Mono",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-RCompressor Mono-695648d-16ac3c80",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "threshold_param_id": "1"
+    },
+    {
+      "plugin_name": "RCompressor Stereo",
+      "manufacturer": "Waves",
+      "format": "VST3",
+      "plugin_identifier": "VST3-RCompressor Stereo-695648d-16c2c280",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "threshold_param_id": "1"
+    },
+    {
+      "plugin_name": "Shadow Hills OptoMax",
+      "manufacturer": "Plugin Alliance",
+      "format": "VST3",
+      "plugin_identifier": "VST3-Shadow Hills OptoMax-571db02c-57bf355a",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\Shadow Hills OptoMax.vst3",
+      "threshold_param_id": "1330931826"
+    },
+    {
+      "plugin_name": "TBTECH Cenozoix Compressor",
+      "manufacturer": "Plugin Alliance",
+      "format": "VST3",
+      "plugin_identifier": "VST3-TBTECH Cenozoix Compressor-ae9d39c4-c8c84a6",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\TBTECH Cenozoix Compressor.vst3",
+      "threshold_param_id": "1576"
+    },
+    {
+      "plugin_name": "Unfiltered Audio SpecOps",
+      "manufacturer": "Plugin Alliance",
+      "format": "VST3",
+      "plugin_identifier": "VST3-Unfiltered Audio SpecOps-d5dccea9-f7bad819",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\Unfiltered Audio SpecOps.vst3",
+      "threshold_param_id": "458490955"
+    },
+    {
+      "plugin_name": "Unfiltered Audio Zip",
+      "manufacturer": "Plugin Alliance",
+      "format": "VST3",
+      "plugin_identifier": "VST3-Unfiltered Audio Zip-2ddbbdbf-12059919",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\Unfiltered Audio Zip.vst3",
+      "threshold_param_id": "458490955"
+    },
+    {
+      "plugin_name": "ZamComp",
+      "manufacturer": "Damien Zammit",
+      "format": "VST3",
+      "plugin_identifier": "VST3-ZamComp-a56638f7-4513e632",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\zam-plugins-4.5-win64\\zam-plugins-4.5\\ZamComp.vst3\\Contents\\x86_64-win\\ZamComp.vst3",
+      "threshold_param_id": "7"
+    },
+    {
+      "plugin_name": "ZamCompX2",
+      "manufacturer": "Damien Zammit",
+      "format": "VST3",
+      "plugin_identifier": "VST3-ZamCompX2-d8e8a4f7-a370e632",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\zam-plugins-4.5-win64\\zam-plugins-4.5\\ZamCompX2.vst3\\Contents\\x86_64-win\\ZamCompX2.vst3",
+      "threshold_param_id": "7"
+    },
+    {
+      "plugin_name": "ZamDynamicEQ",
+      "manufacturer": "Damien Zammit",
+      "format": "VST3",
+      "plugin_identifier": "VST3-ZamDynamicEQ-ac4fa121-62fe1c32",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\zam-plugins-4.5-win64\\zam-plugins-4.5\\ZamDynamicEQ.vst3\\Contents\\x86_64-win\\ZamDynamicEQ.vst3",
+      "threshold_param_id": "7"
+    },
+    {
+      "plugin_name": "elysia mpressor",
+      "manufacturer": "Plugin Alliance",
+      "format": "VST3",
+      "plugin_identifier": "VST3-elysia mpressor-e4fd29ee-5c2868d",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\elysia mpressor.vst3",
+      "threshold_param_id": "1416131173"
+    }
+  ]
+}

@@ -1,0 +1,104 @@
+{
+  "schema_version": "vit.free_state_experiment_plugins.v6",
+  "static_eq": [
+    {
+      "plugin_name": "bx_hybrid V2",
+      "manufacturer": "Plugin Alliance",
+      "format": "VST3",
+      "plugin_identifier": "VST3-bx_hybrid V2-d0ef306f-c141eb4b",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\bx_hybrid V2.vst3",
+      "bands": [
+        {
+          "center_hz": 63,
+          "gain_param_id_ch1": "827090503",
+          "gain_param_id_ch2": "843867719"
+        },
+        {
+          "center_hz": 315,
+          "gain_param_id_ch1": "827092295",
+          "gain_param_id_ch2": "843869511"
+        },
+        {
+          "center_hz": 3150,
+          "gain_param_id_ch1": "827156039",
+          "gain_param_id_ch2": "843933255"
+        },
+        {
+          "center_hz": 6300,
+          "gain_param_id_ch1": "826830151",
+          "gain_param_id_ch2": "843607367"
+        },
+        {
+          "center_hz": 11200,
+          "gain_param_id_ch1": "826828359",
+          "gain_param_id_ch2": "843605575"
+        }
+      ]
+    }
+  ],
+  "broadband_compression": [
+    {
+      "plugin_name": "Vertigo VSC-2",
+      "manufacturer": "Plugin Alliance",
+      "format": "VST3",
+      "plugin_identifier": "VST3-Vertigo VSC-2-7e4e7243-aaeea0d",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\Vertigo VSC-2.vst3",
+      "threshold_param_id_ch1": "1416131121",
+      "threshold_param_id_ch2": "1416131122"
+    }
+  ],
+  "de_esser": [
+    {
+      "plugin_name": "Pro-DS",
+      "manufacturer": "FabFilter",
+      "format": "VST3",
+      "plugin_identifier": "VST3-Pro-DS-831d2251-cba24108",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\FabFilter\\FabFilter Pro-DS.vst3",
+      "threshold_param_id": "1"
+    }
+  ],
+  "transient_shaper": [
+    {
+      "plugin_name": "SPL Transient Designer Plus",
+      "manufacturer": "Plugin Alliance",
+      "format": "VST3",
+      "plugin_identifier": "VST3-SPL Transient Designer Plus-95d14fc6-671d42ff",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\SPL Transient Designer Plus.vst3",
+      "attack_param_id": "1098151019"
+    }
+  ],
+  "limiter": [
+    {
+      "plugin_name": "Pro-L 2",
+      "manufacturer": "FabFilter",
+      "format": "VST3",
+      "plugin_identifier": "VST3-Pro-L 2-9890e876-45398b95",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\FabFilter\\FabFilter Pro-L 2.vst3",
+      "ceiling_param_id": "18"
+    }
+  ],
+  "gate_expander": [
+    {
+      "plugin_name": "Pro-G",
+      "manufacturer": "FabFilter",
+      "format": "VST3",
+      "plugin_identifier": "VST3-Pro-G-38fcf5ad-5a6e43a2",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\FabFilter\\FabFilter Pro-G.vst3",
+      "range_param_id": "4"
+    }
+  ],
+  "multiband": [
+    {
+      "plugin_name": "Lindell MBC",
+      "manufacturer": "Plugin Alliance",
+      "format": "VST3",
+      "plugin_identifier": "VST3-Lindell MBC-e2c119ce-a6b1eb75",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\Lindell MBC.vst3",
+      "band_threshold_param_ids": [
+        "22950807",
+        "1782596387",
+        "2112130249"
+      ]
+    }
+  ]
+}

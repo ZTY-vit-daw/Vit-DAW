@@ -1,0 +1,443 @@
+[
+  {
+    "section": "static_eq",
+    "field": "_carryover",
+    "value": "1 entries verbatim",
+    "source": "S0 live v6 (sha256 ac7da8edf742e26d…); provenance chain of prior cards applies unchanged",
+    "note": "候选面全量派生卡不动 EQ 已锚定条目"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "ADPTR Sculpt not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no threshold_param_id param ('^Threshold$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "AMEK Mastering Compressor not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no threshold_param_id param ('^Threshold$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "API-2500 Mono not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no threshold_param_id param ('^Threshold$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "API-2500 Stereo not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no threshold_param_id param ('^Threshold$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "Acme Opticom XLA-3 not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no threshold_param_id param ('^Threshold$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "Bettermaker C502V DSP not listed",
+    "source": "S2 coverage [transfer_severity] lacks axis ['activation_intensity']; probe '^Threshold$' → no surface match; S4 receipts 1 passed",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "CLA-2A Mono not listed",
+    "source": "S2 coverage [parallel_balance] lacks axis ['activation_intensity']; probe '^Threshold$' → no surface match; S4 receipts 1 passed",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "CLA-2A Stereo not listed",
+    "source": "S2 coverage [parallel_balance] lacks axis ['activation_intensity']; probe '^Threshold$' → no surface match; no local S4 receipt",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "CLA-76 Stereo not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no threshold_param_id param ('^Threshold$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "DPR-402 Stereo not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no threshold_param_id param ('^Threshold$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "Lindell 69 Channel not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no threshold_param_id param ('^Threshold$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "MV2 Stereo not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no threshold_param_id param ('^Threshold$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "Maag MAGNUM-K not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no threshold_param_id param ('^Threshold$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "Millennia TCL-2 not listed",
+    "source": "S2 coverage [recovery_motion,transient_timing] lacks axis ['activation_intensity']; probe '^Threshold$' → no surface match; S4 receipts 1 passed",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "NEOLD U2A not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no threshold_param_id param ('^Threshold$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "Purple Audio MC 77 not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no threshold_param_id param ('^Threshold$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "SPL IRON not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no threshold_param_id param ('^Threshold$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "SSLComp Mono not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no threshold_param_id param ('^Threshold$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "SSLComp Stereo not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no threshold_param_id param ('^Threshold$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "Shadow Hills Class A Mastering Comp not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no threshold_param_id param ('^Threshold$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "Shadow Hills Mastering Compressor not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no threshold_param_id param ('^Threshold$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "Spherix Compressor 7.1.2 not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no threshold_param_id param ('^Threshold$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "Spherix Compressor 7.1.4 not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no threshold_param_id param ('^Threshold$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "Vertigo VSC-2 not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no threshold_param_id param ('^Threshold$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "Vertigo VSS-2 not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no threshold_param_id param ('^Threshold$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "bx_console SSL 4000 E not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no threshold_param_id param ('^Threshold$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "bx_console SSL 4000 G not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no threshold_param_id param ('^Threshold$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "bx_glue not listed",
+    "source": "S2 coverage [transfer_severity,transient_timing] lacks axis ['activation_intensity']; probe '^Threshold$' → 'Threshold' id=1416131144; S4 receipts 1 passed",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "bx_townhouse Buss Compressor not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no threshold_param_id param ('^Threshold$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "elysia alpha compressor V2 not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no threshold_param_id param ('^Threshold$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "elysia alpha master not listed",
+    "source": "S2 coverage [recovery_motion,transient_timing] lacks axis ['activation_intensity']; probe '^Threshold$' → no surface match; S4 receipts 1 passed",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "broadband_compression",
+    "field": "_excluded",
+    "value": "elysia alpha mix not listed",
+    "source": "S2 coverage [recovery_motion,transient_timing] lacks axis ['activation_intensity']; probe '^Threshold$' → 'Threshold' id=1416131121; S4 receipts 1 passed",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "de_esser",
+    "field": "_excluded",
+    "value": "Pro-DS not listed",
+    "source": "S2 coverage [detector_focus,sibilance_reduction] lacks axis ['threshold_sensitivity']; probe '^Threshold$' → 'Threshold' id=1; no local S4 receipt",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "de_esser",
+    "field": "_excluded",
+    "value": "RDeEsser Mono not listed",
+    "source": "S2 coverage [detector_focus,sibilance_reduction] lacks axis ['threshold_sensitivity']; probe '^Threshold$' → 'Threshold' id=4; S4 receipts 1 passed",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "de_esser",
+    "field": "_excluded",
+    "value": "RDeEsser Stereo not listed",
+    "source": "S2 coverage [detector_focus,sibilance_reduction] lacks axis ['threshold_sensitivity']; probe '^Threshold$' → 'Threshold' id=4; S4 receipts 1 passed",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "de_esser",
+    "field": "_excluded",
+    "value": "TBTECH Cenozoix Compressor not listed",
+    "source": "S2 coverage [detector_focus,sibilance_reduction] lacks axis ['threshold_sensitivity']; probe '^Threshold$' → 'Threshold' id=1576; S4 receipts 1 passed",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "gate_expander",
+    "field": "_excluded",
+    "value": "AudioTrack Mono not listed",
+    "source": "S2 coverage [output_normalization,state_timing] lacks axis ['attenuation_floor']; probe '^Range$' → no surface match; S4 receipts 1 passed",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "gate_expander",
+    "field": "_excluded",
+    "value": "AudioTrack Stereo not listed",
+    "source": "S2 coverage [output_normalization,state_timing] lacks axis ['attenuation_floor']; probe '^Range$' → no surface match; S4 receipts 1 passed",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "gate_expander",
+    "field": "_excluded",
+    "value": "C1 comp-gate Mono not listed",
+    "source": "S2 coverage [output_normalization,state_timing] lacks axis ['attenuation_floor']; probe '^Range$' → no surface match; S4 receipts 1 passed",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "gate_expander",
+    "field": "_excluded",
+    "value": "C1 comp-gate Stereo not listed",
+    "source": "S2 coverage [output_normalization,state_timing] lacks axis ['attenuation_floor']; probe '^Range$' → no surface match; no local S4 receipt",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "gate_expander",
+    "field": "_excluded",
+    "value": "C1 gate Mono not listed",
+    "source": "S2 coverage [output_normalization,state_timing] lacks axis ['attenuation_floor']; probe '^Range$' → no surface match; S4 receipts 1 passed",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "gate_expander",
+    "field": "_excluded",
+    "value": "C1 gate Stereo not listed",
+    "source": "S2 coverage [output_normalization,state_timing] lacks axis ['attenuation_floor']; probe '^Range$' → no surface match; no local S4 receipt",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "gate_expander",
+    "field": "_excluded",
+    "value": "bx_console AMEK 200 not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no range_param_id param ('^Range$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "gate_expander",
+    "field": "_excluded",
+    "value": "bx_console AMEK 9099 not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no range_param_id param ('^Range$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "gate_expander",
+    "field": "_excluded",
+    "value": "bx_console SSL 9000 J not listed",
+    "source": "S2 coverage [detector_focus,direction_mode] lacks axis ['attenuation_floor']; probe '^Range$' → no surface match; S4 receipts 1 passed",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "limiter",
+    "field": "_excluded",
+    "value": "DTS Neural Mono2Stereo Mono/Stereo not listed",
+    "source": "S2 coverage [input_drive,output_normalization] lacks axis ['output_ceiling']; probe '^Ceiling( Slider)?$' → no surface match; S4 receipts 1 passed",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "limiter",
+    "field": "_excluded",
+    "value": "HUM Audio Devices LAAL not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no ceiling_param_id param ('^Ceiling( Slider)?$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "limiter",
+    "field": "_excluded",
+    "value": "L3 UltraMaximizer Mono not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no ceiling_param_id param ('^Ceiling( Slider)?$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "limiter",
+    "field": "_excluded",
+    "value": "L3 UltraMaximizer Stereo not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no ceiling_param_id param ('^Ceiling( Slider)?$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "limiter",
+    "field": "_excluded",
+    "value": "L3-LL Ultra Mono not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no ceiling_param_id param ('^Ceiling( Slider)?$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "limiter",
+    "field": "_excluded",
+    "value": "L3-LL Ultra Stereo not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no ceiling_param_id param ('^Ceiling( Slider)?$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "limiter",
+    "field": "_excluded",
+    "value": "L4 Ultramaximizer Mono not listed",
+    "source": "S2 coverage [peak_mode,protection_intensity] lacks axis ['output_ceiling']; probe '^Ceiling( Slider)?$' → 'Ceiling' id=3; S4 receipts 1 passed",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "limiter",
+    "field": "_excluded",
+    "value": "L4 Ultramaximizer Stereo not listed",
+    "source": "S2 coverage [peak_mode,protection_intensity] lacks axis ['output_ceiling']; probe '^Ceiling( Slider)?$' → 'Ceiling' id=4; S4 receipts 1 passed",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "limiter",
+    "field": "_excluded",
+    "value": "Pro-L 2 not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no ceiling_param_id param ('^Ceiling( Slider)?$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "limiter",
+    "field": "_excluded",
+    "value": "Spherix Limiter 7.1.2 not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no ceiling_param_id param ('^Ceiling( Slider)?$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "limiter",
+    "field": "_excluded",
+    "value": "Spherix Limiter 7.1.4 not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no ceiling_param_id param ('^Ceiling( Slider)?$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "limiter",
+    "field": "_excluded",
+    "value": "bx_limiter True Peak not listed",
+    "source": "S2 coverage [input_drive,output_normalization] lacks axis ['output_ceiling']; probe '^Ceiling( Slider)?$' → 'Ceiling' id=1416131187; no local S4 receipt",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "multiband",
+    "field": "_excluded",
+    "value": "Lindell 354E not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no band threshold params ('^Band (\\\\d+) Thresh(old)?$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "multiband",
+    "field": "_excluded",
+    "value": "Lindell MBC not listed",
+    "source": "S2 axis coverage pass but probe surface exposes no band threshold params ('^Band (\\\\d+) Thresh(old)?$')",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "transient_shaper",
+    "field": "_excluded",
+    "value": "SPL Transient Designer Plus not listed",
+    "source": "S2 coverage [detector_focus,envelope_emphasis] lacks axis ['envelope_timing']; probe '^AttackDuration$' → no surface match; no local S4 receipt",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "transient_shaper",
+    "field": "_excluded",
+    "value": "TransX Wide Mono not listed",
+    "source": "S2 coverage [envelope_emphasis,output_normalization] lacks axis ['envelope_timing']; probe '^AttackDuration$' → no surface match; S4 receipts 1 passed",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  },
+  {
+    "section": "transient_shaper",
+    "field": "_excluded",
+    "value": "TransX Wide Stereo not listed",
+    "source": "S2 coverage [envelope_emphasis,output_normalization] lacks axis ['envelope_timing']; probe '^AttackDuration$' → no surface match; S4 receipts 1 passed",
+    "note": "frozen derivation rule: promoted ∧ axis coverage ∧ derivable anchor"
+  }
+]

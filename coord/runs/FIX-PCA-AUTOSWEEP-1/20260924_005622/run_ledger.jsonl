@@ -1,0 +1,328 @@
+{"ts": "2026-09-23T16:56:22+00:00", "event": "phase_start", "phase": "preflight"}
+{"ts": "2026-09-23T16:56:22+00:00", "event": "phase_done", "phase": "preflight"}
+{"ts": "2026-09-23T16:56:37+00:00", "event": "phase_start", "phase": "probe"}
+{"ts": "2026-09-23T16:57:08+00:00", "event": "phase_done", "phase": "probe"}
+{"ts": "2026-09-23T17:02:21+00:00", "event": "phase_start", "phase": "probe"}
+{"ts": "2026-09-23T17:05:28+00:00", "event": "probe_fail", "slug": "Abbey_Road_Studio_3_5.1_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T17:07:28+00:00", "event": "probe_fail", "slug": "Abbey_Road_Studio_3_7.1_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T17:09:28+00:00", "event": "probe_fail", "slug": "Abbey_Road_Studio_3_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T17:12:55+00:00", "event": "probe_fail", "slug": "B360_Mono_Quad", "error": "timed out"}
+{"ts": "2026-09-23T17:17:10+00:00", "event": "probe_fail", "slug": "CLA_Bass_Mono_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T17:2x:00Z", "event": "cert_done", "subject": "CLA-2A Mono", "family": "broadband_compression", "job_id": "pca_job_423cad8b1076bb69", "status": "completed", "error": "", "note": "manual channel validation job (promoted pca1_4c57fae84939ade25eddb9b0); before batch certify phase"}
+{"ts": "2026-09-23T17:19:10+00:00", "event": "probe_fail", "slug": "CLA_Bass_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T17:21:17+00:00", "event": "probe_fail", "slug": "CLA_EchoSphere_Mono_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T17:23:17+00:00", "event": "probe_fail", "slug": "CLA_EchoSphere_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T17:26:04+00:00", "event": "probe_fail", "slug": "CLA-2A_Mono", "error": "timed out"}
+{"ts": "2026-09-23T17:28:04+00:00", "event": "probe_fail", "slug": "CLA-2A_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T17:30:04+00:00", "event": "probe_fail", "slug": "CLA-3A_Mono", "error": "timed out"}
+{"ts": "2026-09-23T17:32:04+00:00", "event": "probe_fail", "slug": "CLA-3A_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T17:35:08+00:00", "event": "probe_fail", "slug": "DeEsser_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T17:38:21+00:00", "event": "probe_fail", "slug": "EKramer_VC_Mono_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T17:40:21+00:00", "event": "probe_fail", "slug": "EKramer_VC_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T17:42:59+00:00", "event": "probe_fail", "slug": "Feedback_Hunter_Mono", "error": "timed out"}
+{"ts": "2026-09-23T17:44:59+00:00", "event": "probe_fail", "slug": "Feedback_Hunter_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T17:45:02+00:00", "event": "probe_fail", "slug": "FreeEQ8", "error": "plugin_not_found: VST3 file does not exist: C:\\Program Files\\Common Files\\VST3\\FreeEQ8.vst3"}
+{"ts": "2026-09-23T17:47:38+00:00", "event": "probe_fail", "slug": "GTR_Stomp_6_Mono", "error": "timed out"}
+{"ts": "2026-09-23T17:48:37+00:00", "event": "phase_start", "phase": "probe"}
+{"ts": "2026-09-23T17:50:39+00:00", "event": "probe_fail", "slug": "Abbey_Road_Studio_3_7.1_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T17:50:39+00:00", "event": "probe_fail", "slug": "Abbey_Road_Studio_3_5.1_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T17:50:39+00:00", "event": "probe_fail", "slug": "Abbey_Road_Studio_3_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T17:50:39+00:00", "event": "probe_fail", "slug": "B360_Mono_Quad", "error": "timed out"}
+{"ts": "2026-09-23T17:52:39+00:00", "event": "probe_fail", "slug": "CLA_Bass_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T17:52:39+00:00", "event": "probe_fail", "slug": "CLA_EchoSphere_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T17:52:39+00:00", "event": "probe_fail", "slug": "CLA_EchoSphere_Mono_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T17:52:39+00:00", "event": "probe_fail", "slug": "CLA_Bass_Mono_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T17:54:39+00:00", "event": "probe_fail", "slug": "CLA-3A_Mono", "error": "timed out"}
+{"ts": "2026-09-23T17:54:39+00:00", "event": "probe_fail", "slug": "CLA-3A_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T17:54:39+00:00", "event": "probe_fail", "slug": "CLA-2A_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T17:54:39+00:00", "event": "probe_fail", "slug": "CLA-2A_Mono", "error": "timed out"}
+{"ts": "2026-09-23T17:56:39+00:00", "event": "probe_fail", "slug": "Feedback_Hunter_Mono", "error": "timed out"}
+{"ts": "2026-09-23T17:56:39+00:00", "event": "probe_fail", "slug": "EKramer_VC_Mono_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T17:56:39+00:00", "event": "probe_fail", "slug": "EKramer_VC_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T17:56:39+00:00", "event": "probe_fail", "slug": "DeEsser_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T17:56:41+00:00", "event": "probe_fail", "slug": "FreeEQ8", "error": "plugin_not_found: VST3 file does not exist: C:\\Program Files\\Common Files\\VST3\\FreeEQ8.vst3"}
+{"ts": "2026-09-23T17:58:39+00:00", "event": "probe_fail", "slug": "Feedback_Hunter_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T17:58:50+00:00", "event": "probe_fail", "slug": "GTR_Stomp_6_Mono_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T17:58:50+00:00", "event": "probe_fail", "slug": "GTR_Stomp_6_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T17:59:12+00:00", "event": "probe_fail", "slug": "IDX_Intelligent_Dynamics_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T18:00:50+00:00", "event": "probe_fail", "slug": "GTR_Stomp_6_Mono", "error": "timed out"}
+{"ts": "2026-09-23T18:01:11+00:00", "event": "probe_fail", "slug": "IDX_Intelligent_Dynamics_Mono", "error": "timed out"}
+{"ts": "2026-09-23T18:01:30+00:00", "event": "probe_fail", "slug": "InPhase_Live_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T18:01:45+00:00", "event": "probe_fail", "slug": "Jeesonic_EQ_Pro", "error": "plugin_not_found: VST3 file does not exist: C:\\Program Files\\Common Files\\VST3\\Jeesonic EQ Pro.vst3"}
+{"ts": "2026-09-23T18:01:55+00:00", "event": "probe_fail", "slug": "Kaleidoscopes_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T18:03:30+00:00", "event": "probe_fail", "slug": "InPhase_Live_Mono", "error": "timed out"}
+{"ts": "2026-09-23T18:03:52+00:00", "event": "probe_fail", "slug": "Kaleidoscopes_Mono_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T18:03:55+00:00", "event": "probe_fail", "slug": "Kaleidoscopes_Mono", "error": "timed out"}
+{"ts": "2026-09-23T18:04:36+00:00", "event": "probe_fail", "slug": "MannyM_Tone_Shaper_Mono", "error": "timed out"}
+{"ts": "2026-09-23T18:06:02+00:00", "event": "probe_fail", "slug": "L3_MultiMaximizer_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T18:06:04+00:00", "event": "probe_fail", "slug": "L3_MultiMaximizer_Mono", "error": "timed out"}
+{"ts": "2026-09-23T18:06:39+00:00", "event": "probe_fail", "slug": "MannyM_Tone_Shaper_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T18:07:56+00:00", "event": "probe_fail", "slug": "REQ_4_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T18:08:07+00:00", "event": "probe_fail", "slug": "L316_Mono", "error": "timed out"}
+{"ts": "2026-09-23T18:08:40+00:00", "event": "probe_fail", "slug": "Maserati_DRM_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T18:09:42+00:00", "event": "probe_fail", "slug": "Q-Capture_Mono", "error": "timed out"}
+{"ts": "2026-09-23T18:10:13+00:00", "event": "probe_fail", "slug": "Scheps_Parallel_Particles_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T18:10:39+00:00", "event": "probe_fail", "slug": "Maserati_DRM_Mono", "error": "timed out"}
+{"ts": "2026-09-23T18:10:43+00:00", "event": "probe_fail", "slug": "Maserati_VX1_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T18:11:58+00:00", "event": "probe_fail", "slug": "REQ_2_Mono", "error": "timed out"}
+{"ts": "2026-09-23T18:12:43+00:00", "event": "probe_fail", "slug": "Maserati_VX1_Mono_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T18:13:01+00:00", "event": "probe_fail", "slug": "Vocal_Bender_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T18:13:59+00:00", "event": "probe_fail", "slug": "REQ_4_Mono", "error": "timed out"}
+{"ts": "2026-09-23T18:14:15+00:00", "event": "probe_fail", "slug": "Scheps_Omni_Channel_2_Mono", "error": "timed out"}
+{"ts": "2026-09-23T18:15:19+00:00", "event": "probe_fail", "slug": "WLM_Plus_Mono", "error": "timed out"}
+{"ts": "2026-09-23T18:15:20+00:00", "event": "probe_fail", "slug": "PAZ-_Frequency_Mono", "error": "timed out"}
+{"ts": "2026-09-23T18:16:16+00:00", "event": "probe_fail", "slug": "Scheps_Parallel_Particles_Mono", "error": "timed out"}
+{"ts": "2026-09-23T18:17:27+00:00", "event": "probe_fail", "slug": "WLM_Plus_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T18:17:54+00:00", "event": "probe_fail", "slug": "REQ_2_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T18:17:58+00:00", "event": "probe_fail", "slug": "RipLink", "error": "normalize native snapshot: native snapshot has no plugin name or parameters"}
+{"ts": "2026-09-23T18:18:59+00:00", "event": "probe_fail", "slug": "Vocal_Bender_Mono", "error": "timed out"}
+{"ts": "2026-09-23T18:20:07+00:00", "event": "probe_fail", "slug": "Scheps_Omni_Channel_2_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T18:21:18+00:00", "event": "probe_fail", "slug": "WLM_Plus_5.1", "error": "timed out"}
+{"ts": "2026-09-23T18:21:28+00:00", "event": "probe_fail", "slug": "ZL_Compressor", "error": "plugin_not_found: VST3 file does not exist: C:\\Program Files\\Common Files\\VST3\\ZL Compressor.vst3"}
+{"ts": "2026-09-23T18:22:40+00:00", "event": "probe_fail", "slug": "TrueVerb_Mono_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T18:25:10+00:00", "event": "probe_fail", "slug": "WLM_Plus_5.0", "error": "timed out"}
+{"ts": "2026-09-23T18:25:22+00:00", "event": "phase_done", "phase": "probe"}
+{"ts": "2026-09-23T18:25:48+00:00", "event": "phase_start", "phase": "probe"}
+{"ts": "2026-09-23T18:34:17+00:00", "event": "phase_start", "phase": "probe"}
+{"ts": "2026-09-23T18:36:50+00:00", "event": "probe_fail", "slug": "B360_Mono_Quad", "error": "timed out"}
+{"ts": "2026-09-23T18:36:50+00:00", "event": "probe_fail", "slug": "Abbey_Road_Studio_3_7.1_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T18:36:50+00:00", "event": "probe_fail", "slug": "Abbey_Road_Studio_3_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T18:36:50+00:00", "event": "probe_fail", "slug": "Abbey_Road_Studio_3_5.1_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T18:39:20+00:00", "event": "probe_fail", "slug": "CLA_EchoSphere_Mono_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T18:39:20+00:00", "event": "probe_fail", "slug": "CLA_EchoSphere_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T18:39:20+00:00", "event": "probe_fail", "slug": "CLA_Bass_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T18:39:20+00:00", "event": "probe_fail", "slug": "CLA_Bass_Mono_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T18:41:50+00:00", "event": "probe_fail", "slug": "CLA-3A_Mono", "error": "timed out"}
+{"ts": "2026-09-23T18:41:50+00:00", "event": "probe_fail", "slug": "CLA-3A_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T18:41:50+00:00", "event": "probe_fail", "slug": "CLA-2A_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T18:41:50+00:00", "event": "probe_fail", "slug": "CLA-2A_Mono", "error": "timed out"}
+{"ts": "2026-09-23T18:44:20+00:00", "event": "probe_fail", "slug": "EKramer_VC_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T18:44:20+00:00", "event": "probe_fail", "slug": "Feedback_Hunter_Mono", "error": "timed out"}
+{"ts": "2026-09-23T18:44:20+00:00", "event": "probe_fail", "slug": "EKramer_VC_Mono_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T18:44:20+00:00", "event": "probe_fail", "slug": "DeEsser_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T18:44:21+00:00", "event": "probe_fail", "slug": "FreeEQ8", "error": "plugin_not_found: VST3 file does not exist: C:\\Program Files\\Common Files\\VST3\\FreeEQ8.vst3"}
+{"ts": "2026-09-23T18:46:14+00:00", "event": "phase_start", "phase": "probe"}
+{"ts": "2026-09-23T18:48:17+00:00", "event": "probe_fail", "slug": "Abbey_Road_Studio_3_5.1_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T18:50:17+00:00", "event": "probe_fail", "slug": "Abbey_Road_Studio_3_7.1_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T18:52:17+00:00", "event": "probe_fail", "slug": "Abbey_Road_Studio_3_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T18:54:17+00:00", "event": "probe_fail", "slug": "B360_Mono_Quad", "error": "timed out"}
+{"ts": "2026-09-23T18:56:17+00:00", "event": "probe_fail", "slug": "CLA_Bass_Mono_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T18:58:17+00:00", "event": "probe_fail", "slug": "CLA_Bass_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T19:00:17+00:00", "event": "probe_fail", "slug": "CLA_EchoSphere_Mono_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T19:01:39+00:00", "event": "probe_fail", "slug": "CLA_EchoSphere_Stereo", "error": "[WinError 10054] 远程主机强迫关闭了一个现有的连接。"}
+{"ts": "2026-09-23T19:01:41+00:00", "event": "probe_fail", "slug": "CLA-2A_Mono", "error": "<urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>"}
+{"ts": "2026-09-23T19:01:43+00:00", "event": "probe_fail", "slug": "CLA-2A_Stereo", "error": "<urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>"}
+{"ts": "2026-09-23T19:01:45+00:00", "event": "probe_fail", "slug": "CLA-3A_Mono", "error": "<urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>"}
+{"ts": "2026-09-23T19:01:47+00:00", "event": "probe_fail", "slug": "CLA-3A_Stereo", "error": "<urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>"}
+{"ts": "2026-09-23T19:01:49+00:00", "event": "probe_fail", "slug": "DeEsser_Stereo", "error": "<urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>"}
+{"ts": "2026-09-23T19:01:51+00:00", "event": "probe_fail", "slug": "EKramer_VC_Mono_Stereo", "error": "<urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>"}
+{"ts": "2026-09-23T19:01:53+00:00", "event": "probe_fail", "slug": "EKramer_VC_Stereo", "error": "<urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>"}
+{"ts": "2026-09-23T19:01:59+00:00", "event": "phase_start", "phase": "probe"}
+{"ts": "2026-09-23T19:03:29+00:00", "event": "probe_fail", "slug": "Abbey_Road_Studio_3_5.1_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T19:03:29+00:00", "event": "phase_done", "phase": "probe"}
+{"ts": "2026-09-23T19:03:59+00:00", "event": "phase_start", "phase": "probe"}
+{"ts": "2026-09-23T19:05:29+00:00", "event": "probe_fail", "slug": "Abbey_Road_Studio_3_5.1_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T19:05:29+00:00", "event": "phase_done", "phase": "probe"}
+{"ts": "2026-09-23T19:10:37+00:00", "event": "phase_start", "phase": "probe"}
+{"ts": "2026-09-23T19:12:10+00:00", "event": "probe_fail", "slug": "Abbey_Road_Studio_3_5.1_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T19:12:10+00:00", "event": "probe_fail", "slug": "Abbey_Road_Studio_3_7.1_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T19:13:40+00:00", "event": "probe_fail", "slug": "Abbey_Road_Studio_3_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T19:13:40+00:00", "event": "probe_fail", "slug": "B360_Mono_Quad", "error": "timed out"}
+{"ts": "2026-09-23T19:15:10+00:00", "event": "probe_fail", "slug": "CLA_Bass_Mono_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T19:15:10+00:00", "event": "probe_fail", "slug": "CLA_Bass_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T19:16:40+00:00", "event": "probe_fail", "slug": "CLA_EchoSphere_Mono_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T19:16:40+00:00", "event": "probe_fail", "slug": "CLA_EchoSphere_Stereo", "error": "timed out"}
+{"ts": "2026-09-23T19:21:17+00:00", "event": "phase_start", "phase": "probe"}
+{"ts": "2026-09-23T19:21:28+00:00", "event": "probe_fail", "slug": "FreeEQ8", "error": "plugin_not_found: VST3 file does not exist: C:\\Program Files\\Common Files\\VST3\\FreeEQ8.vst3"}
+{"ts": "2026-09-23T19:21:31+00:00", "event": "probe_fail", "slug": "Jeesonic_EQ_Pro", "error": "plugin_not_found: VST3 file does not exist: C:\\Program Files\\Common Files\\VST3\\Jeesonic EQ Pro.vst3"}
+{"ts": "2026-09-23T19:21:44+00:00", "event": "probe_fail", "slug": "RipLink", "error": "normalize native snapshot: native snapshot has no plugin name or parameters"}
+{"ts": "2026-09-23T19:21:48+00:00", "event": "probe_fail", "slug": "ZL_Compressor", "error": "plugin_not_found: VST3 file does not exist: C:\\Program Files\\Common Files\\VST3\\ZL Compressor.vst3"}
+{"ts": "2026-09-23T19:21:50+00:00", "event": "phase_done", "phase": "probe"}
+{"ts": "2026-09-23T19:25:22+00:00", "event": "phase_start", "phase": "classify"}
+{"ts": "2026-09-23T19:25:34+00:00", "event": "phase_done", "phase": "classify"}
+{"ts": "2026-09-23T19:26:00+00:00", "event": "phase_start", "phase": "certify"}
+{"ts": "2026-09-23T19:46:22+00:00", "event": "phase_start", "phase": "certify"}
+{"ts": "2026-09-23T19:47:08+00:00", "event": "cert_done", "subject": "ADPTR Sculpt", "family": "broadband_compression", "job_id": "pca_job_459181cd6a767e4d", "status": "completed", "error": ""}
+{"ts": "2026-09-23T19:47:41+00:00", "event": "cert_done", "subject": "API-2500 Mono", "family": "broadband_compression", "job_id": "pca_job_097a383826948008", "status": "completed", "error": ""}
+{"ts": "2026-09-23T19:48:17+00:00", "event": "cert_done", "subject": "AudioTrack Mono", "family": "gate_expander", "job_id": "pca_job_35ec0ad32373db66", "status": "completed", "error": ""}
+{"ts": "2026-09-23T19:48:53+00:00", "event": "cert_done", "subject": "AudioTrack Stereo", "family": "gate_expander", "job_id": "pca_job_b43ca0aa9285c065", "status": "completed", "error": ""}
+{"ts": "2026-09-23T19:49:17+00:00", "event": "cert_done", "subject": "Bettermaker Bus Compressor DSP", "family": "broadband_compression", "job_id": "pca_job_c5ef06bae9d2151b", "status": "failed", "error": "no preferred compressor binding had a reversible measured target"}
+{"ts": "2026-09-23T19:49:50+00:00", "event": "cert_done", "subject": "Bettermaker C502V DSP", "family": "broadband_compression", "job_id": "pca_job_a95277fd6b4b3879", "status": "completed", "error": ""}
+{"ts": "2026-09-23T19:50:14+00:00", "event": "cert_done", "subject": "Bettermaker Mastering Compressor DSP", "family": "broadband_compression", "job_id": "pca_job_de45e2fcc54857e3", "status": "failed", "error": "no preferred compressor binding had a reversible measured target"}
+{"ts": "2026-09-23T19:50:50+00:00", "event": "cert_done", "subject": "C1 comp-gate Mono", "family": "gate_expander", "job_id": "pca_job_b8399264fee9372f", "status": "completed", "error": ""}
+{"ts": "2026-09-23T19:51:24+00:00", "event": "cert_done", "subject": "C1 comp-sc Mono", "family": "broadband_compression", "job_id": "pca_job_b8b4801bfb3d3bde", "status": "completed", "error": ""}
+{"ts": "2026-09-23T19:52:00+00:00", "event": "cert_done", "subject": "C1 comp-sc Stereo", "family": "broadband_compression", "job_id": "pca_job_936bff73baa611ef", "status": "completed", "error": ""}
+{"ts": "2026-09-23T19:52:36+00:00", "event": "cert_done", "subject": "C1 gate Mono", "family": "gate_expander", "job_id": "pca_job_62bf48ab9642065d", "status": "completed", "error": ""}
+{"ts": "2026-09-23T19:52:54+00:00", "event": "cert_done", "subject": "C1 gate Mono", "family": "transient_shaper", "job_id": "pca_job_0bd460bb8904504f", "status": "failed", "error": "invoke plugin_grabber.inspect_transient_shaper failed: unsupported_gate_expander: no provable supported transient-shaper envelope topology"}
+{"ts": "2026-09-23T19:53:15+00:00", "event": "cert_done", "subject": "C1 gate Stereo", "family": "transient_shaper", "job_id": "pca_job_1004f424cdb0f939", "status": "failed", "error": "invoke plugin_grabber.inspect_transient_shaper failed: unsupported_gate_expander: no provable supported transient-shaper envelope topology"}
+{"ts": "2026-09-23T19:53:33+00:00", "event": "cert_done", "subject": "C360 5.0", "family": "limiter", "job_id": "pca_job_b51aa0f5ff123010", "status": "failed", "error": "invoke plugin_grabber.inspect_limiter failed: unresolved_limiter_surface: no provable supported limiter stage/control-path topology"}
+{"ts": "2026-09-23T19:53:54+00:00", "event": "cert_done", "subject": "C360 5.1", "family": "limiter", "job_id": "pca_job_48edab7f7acea08c", "status": "failed", "error": "invoke plugin_grabber.inspect_limiter failed: unresolved_limiter_surface: no provable supported limiter stage/control-path topology"}
+{"ts": "2026-09-23T19:54:12+00:00", "event": "cert_done", "subject": "CLA MixHub Lite Mono", "family": "de_esser", "job_id": "pca_job_2d2325af6f95110b", "status": "failed", "error": "invoke plugin_grabber.inspect_de_esser failed: unsupported_gate_expander: no provable supported De-esser stage/control-path topology"}
+{"ts": "2026-09-23T19:54:42+00:00", "event": "cert_done", "subject": "CLA MixHub Lite Mono", "family": "gate_expander", "job_id": "pca_job_d8877730af691e60", "status": "failed", "error": "invoke plugin_grabber.apply_gate_expander_controls failed: unplanned_parameter_change: unplanned_parameter_change: unplanned parameter changes: 28; full preimage restored"}
+{"ts": "2026-09-23T19:55:00+00:00", "event": "cert_done", "subject": "CLA MixHub Lite Stereo", "family": "de_esser", "job_id": "pca_job_cf6a47c3dc70fe82", "status": "failed", "error": "invoke plugin_grabber.inspect_de_esser failed: unsupported_gate_expander: no provable supported De-esser stage/control-path topology"}
+{"ts": "2026-09-23T19:55:30+00:00", "event": "cert_done", "subject": "CLA MixHub Lite Stereo", "family": "gate_expander", "job_id": "pca_job_33ce17b0f3b43cd5", "status": "failed", "error": "invoke plugin_grabber.apply_gate_expander_controls failed: unplanned_parameter_change: unplanned_parameter_change: unplanned parameter changes: 55; full preimage restored"}
+{"ts": "2026-09-23T19:55:48+00:00", "event": "cert_done", "subject": "CLA MixHub Mono", "family": "de_esser", "job_id": "pca_job_8fcf83bf331400bc", "status": "failed", "error": "invoke plugin_grabber.inspect_de_esser failed: unsupported_gate_expander: no provable supported De-esser stage/control-path topology"}
+{"ts": "2026-09-23T19:56:18+00:00", "event": "cert_done", "subject": "CLA MixHub Mono", "family": "gate_expander", "job_id": "pca_job_d0c993f73db02937", "status": "failed", "error": "invoke plugin_grabber.apply_gate_expander_controls failed: unplanned_parameter_change: unplanned_parameter_change: unplanned parameter changes: 28; full preimage restored"}
+{"ts": "2026-09-23T19:56:37+00:00", "event": "cert_done", "subject": "CLA MixHub Stereo", "family": "de_esser", "job_id": "pca_job_3e1f33fb08053be7", "status": "failed", "error": "invoke plugin_grabber.inspect_de_esser failed: unsupported_gate_expander: no provable supported De-esser stage/control-path topology"}
+{"ts": "2026-09-23T19:57:07+00:00", "event": "cert_done", "subject": "CLA MixHub Stereo", "family": "gate_expander", "job_id": "pca_job_59c385a93276f1b7", "status": "failed", "error": "invoke plugin_grabber.apply_gate_expander_controls failed: unplanned_parameter_change: unplanned_parameter_change: unplanned parameter changes: 55; full preimage restored"}
+{"ts": "2026-09-23T19:57:28+00:00", "event": "cert_done", "subject": "Clarity Vx Pro Mono", "family": "multiband", "job_id": "pca_job_f8d4295369a43202", "status": "failed", "error": "invoke plugin_grabber.inspect_multiband failed: unresolved_crossover_order: no provable supported multiband dynamics topology"}
+{"ts": "2026-09-23T19:57:46+00:00", "event": "cert_done", "subject": "Clarity Vx Pro Stereo", "family": "multiband", "job_id": "pca_job_f40ebfd91a85e807", "status": "failed", "error": "invoke plugin_grabber.inspect_multiband failed: unresolved_crossover_order: no provable supported multiband dynamics topology"}
+{"ts": "2026-09-23T19:58:07+00:00", "event": "cert_done", "subject": "Curves AQ Live Mono", "family": "transient_shaper", "job_id": "pca_job_2621a663bb563ba7", "status": "failed", "error": "invoke plugin_grabber.inspect_transient_shaper failed: unsupported_multiband_dynamics: no provable supported transient-shaper envelope topology"}
+{"ts": "2026-09-23T19:58:25+00:00", "event": "cert_done", "subject": "Curves AQ Live Stereo", "family": "transient_shaper", "job_id": "pca_job_fdd2c2035dccd1aa", "status": "failed", "error": "invoke plugin_grabber.inspect_transient_shaper failed: unsupported_multiband_dynamics: no provable supported transient-shaper envelope topology"}
+{"ts": "2026-09-23T19:58:46+00:00", "event": "cert_done", "subject": "Curves AQ Mono", "family": "transient_shaper", "job_id": "pca_job_befcaa0e036e80c7", "status": "failed", "error": "invoke plugin_grabber.inspect_transient_shaper failed: unsupported_multiband_dynamics: no provable supported transient-shaper envelope topology"}
+{"ts": "2026-09-23T19:59:04+00:00", "event": "cert_done", "subject": "Curves AQ Stereo", "family": "transient_shaper", "job_id": "pca_job_2a8538ae3c08a4f9", "status": "failed", "error": "invoke plugin_grabber.inspect_transient_shaper failed: unsupported_multiband_dynamics: no provable supported transient-shaper envelope topology"}
+{"ts": "2026-09-23T19:59:25+00:00", "event": "cert_done", "subject": "Curves Resolve Live Mono", "family": "transient_shaper", "job_id": "pca_job_15acb03935557637", "status": "failed", "error": "invoke plugin_grabber.inspect_transient_shaper failed: unsupported_multiband_dynamics: no provable supported transient-shaper envelope topology"}
+{"ts": "2026-09-23T19:59:43+00:00", "event": "cert_done", "subject": "Curves Resolve Live Stereo", "family": "transient_shaper", "job_id": "pca_job_522876de8de9919c", "status": "failed", "error": "invoke plugin_grabber.inspect_transient_shaper failed: unsupported_multiband_dynamics: no provable supported transient-shaper envelope topology"}
+{"ts": "2026-09-23T20:00:04+00:00", "event": "cert_done", "subject": "Curves Resolve Mono", "family": "transient_shaper", "job_id": "pca_job_dc2635d3650f3dcd", "status": "failed", "error": "invoke plugin_grabber.inspect_transient_shaper failed: unsupported_multiband_dynamics: no provable supported transient-shaper envelope topology"}
+{"ts": "2026-09-23T20:00:25+00:00", "event": "cert_done", "subject": "Curves Resolve Stereo", "family": "transient_shaper", "job_id": "pca_job_6ecea51ab3eb89dd", "status": "failed", "error": "invoke plugin_grabber.inspect_transient_shaper failed: unsupported_multiband_dynamics: no provable supported transient-shaper envelope topology"}
+{"ts": "2026-09-23T20:01:01+00:00", "event": "cert_done", "subject": "DPR-402 Mono", "family": "broadband_compression", "job_id": "pca_job_7420913db351b764", "status": "completed", "error": ""}
+{"ts": "2026-09-23T20:01:34+00:00", "event": "cert_done", "subject": "DPR-402 Stereo", "family": "broadband_compression", "job_id": "pca_job_6e454af3a3f788b6", "status": "completed", "error": ""}
+{"ts": "2026-09-23T20:01:56+00:00", "event": "cert_done", "subject": "DTS Neural DownMix 5.1 to 2.0 5.1/Stereo", "family": "limiter", "job_id": "pca_job_e39bd15faf0d6d9a", "status": "failed", "error": "invoke plugin_grabber.inspect_limiter failed: unsupported_clipper: no provable supported limiter stage/control-path topology"}
+{"ts": "2026-09-23T20:02:14+00:00", "event": "cert_done", "subject": "DTS Neural DownMix 5.1 to St 5.1", "family": "limiter", "job_id": "pca_job_92850662343ae8d1", "status": "failed", "error": "invoke plugin_grabber.inspect_limiter failed: unsupported_clipper: no provable supported limiter stage/control-path topology"}
+{"ts": "2026-09-23T20:02:35+00:00", "event": "cert_done", "subject": "DTS Neural DownMix 7.1 to 2.0 7.1/Stereo", "family": "limiter", "job_id": "pca_job_961d949df4f375d3", "status": "failed", "error": "invoke plugin_grabber.inspect_limiter failed: unsupported_clipper: no provable supported limiter stage/control-path topology"}
+{"ts": "2026-09-23T20:02:53+00:00", "event": "cert_done", "subject": "DTS Neural DownMix 7.1 to 5.1+2 7.1", "family": "limiter", "job_id": "pca_job_2d87cb1e395b29c0", "status": "failed", "error": "invoke plugin_grabber.inspect_limiter failed: unsupported_clipper: no provable supported limiter stage/control-path topology"}
+{"ts": "2026-09-23T20:03:14+00:00", "event": "cert_done", "subject": "DTS Neural DownMix 7.1 to 5.1 7.1/5.1", "family": "limiter", "job_id": "pca_job_498ee96bf4c4d693", "status": "failed", "error": "invoke plugin_grabber.inspect_limiter failed: unsupported_clipper: no provable supported limiter stage/control-path topology"}
+{"ts": "2026-09-23T20:03:35+00:00", "event": "cert_done", "subject": "DTS Neural DownMix 7.1 to St 7.1", "family": "limiter", "job_id": "pca_job_affeaa6469607cf0", "status": "failed", "error": "invoke plugin_grabber.inspect_limiter failed: unsupported_clipper: no provable supported limiter stage/control-path topology"}
+{"ts": "2026-09-23T20:04:11+00:00", "event": "cert_done", "subject": "DTS Neural Mono2Stereo Mono/Stereo", "family": "limiter", "job_id": "pca_job_c8b24af9f75bf4ef", "status": "completed", "error": ""}
+{"ts": "2026-09-23T20:04:29+00:00", "event": "cert_done", "subject": "EMO-D5 Mono", "family": "de_esser", "job_id": "pca_job_11aff7f843ed943b", "status": "failed", "error": "invoke plugin_grabber.inspect_de_esser failed: unsupported_gate_expander: no provable supported De-esser stage/control-path topology"}
+{"ts": "2026-09-23T20:04:50+00:00", "event": "cert_done", "subject": "EMO-D5 Stereo", "family": "de_esser", "job_id": "pca_job_084b77e0e7f8b8f9", "status": "failed", "error": "invoke plugin_grabber.inspect_de_esser failed: unsupported_gate_expander: no provable supported De-esser stage/control-path topology"}
+{"ts": "2026-09-23T20:05:08+00:00", "event": "cert_done", "subject": "F6-RTA Mono", "family": "multiband", "job_id": "pca_job_b687d04f538cf09d", "status": "failed", "error": "invoke plugin_grabber.inspect_multiband failed: not_multiband_dynamics: no provable supported multiband dynamics topology"}
+{"ts": "2026-09-23T20:05:29+00:00", "event": "cert_done", "subject": "F6-RTA Stereo", "family": "multiband", "job_id": "pca_job_9b7ecc88092133f9", "status": "failed", "error": "invoke plugin_grabber.inspect_multiband failed: not_multiband_dynamics: no provable supported multiband dynamics topology"}
+{"ts": "2026-09-23T20:05:50+00:00", "event": "cert_done", "subject": "F6 Mono", "family": "multiband", "job_id": "pca_job_aa155e3ea55a04aa", "status": "failed", "error": "invoke plugin_grabber.inspect_multiband failed: not_multiband_dynamics: no provable supported multiband dynamics topology"}
+{"ts": "2026-09-23T20:06:11+00:00", "event": "cert_done", "subject": "F6 Stereo", "family": "multiband", "job_id": "pca_job_0e37cefa2068063c", "status": "failed", "error": "invoke plugin_grabber.inspect_multiband failed: not_multiband_dynamics: no provable supported multiband dynamics topology"}
+{"ts": "2026-09-23T20:06:47+00:00", "event": "cert_done", "subject": "H-Comp Mono", "family": "broadband_compression", "job_id": "pca_job_8e1230c913727814", "status": "completed", "error": ""}
+{"ts": "2026-09-23T20:07:24+00:00", "event": "cert_done", "subject": "H-Comp Stereo", "family": "broadband_compression", "job_id": "pca_job_eb596084ab810d40", "status": "completed", "error": ""}
+{"ts": "2026-09-23T20:07:45+00:00", "event": "cert_done", "subject": "JJP-Drums Mono", "family": "transient_shaper", "job_id": "pca_job_b421e844cebe9ed1", "status": "failed", "error": "no preferred v2 binding had a reversible measured target"}
+{"ts": "2026-09-23T20:08:09+00:00", "event": "cert_done", "subject": "JJP-Drums Mono/Stereo", "family": "transient_shaper", "job_id": "pca_job_83ddb06b60bcdc31", "status": "failed", "error": "no preferred v2 binding had a reversible measured target"}
+{"ts": "2026-09-23T20:08:33+00:00", "event": "cert_done", "subject": "JJP-Drums Stereo", "family": "transient_shaper", "job_id": "pca_job_e7f694efc7cdf5b0", "status": "failed", "error": "no preferred v2 binding had a reversible measured target"}
+{"ts": "2026-09-23T20:08:57+00:00", "event": "cert_done", "subject": "JJP-Guitars Mono/Stereo", "family": "transient_shaper", "job_id": "pca_job_1e321eae323343a5", "status": "failed", "error": "no preferred v2 binding had a reversible measured target"}
+{"ts": "2026-09-23T20:09:21+00:00", "event": "cert_done", "subject": "JJP-Guitars Stereo", "family": "transient_shaper", "job_id": "pca_job_e257a27d85104d19", "status": "failed", "error": "no preferred v2 binding had a reversible measured target"}
+{"ts": "2026-09-23T20:09:57+00:00", "event": "cert_done", "subject": "Kramer PIE Mono", "family": "broadband_compression", "job_id": "pca_job_20bb53288ea640d6", "status": "completed", "error": ""}
+{"ts": "2026-09-23T20:10:30+00:00", "event": "cert_done", "subject": "Kramer PIE Stereo", "family": "broadband_compression", "job_id": "pca_job_9eaa92ca9db32928", "status": "completed", "error": ""}
+{"ts": "2026-09-23T20:11:06+00:00", "event": "cert_done", "subject": "L1+ Ultramaximizer Stereo", "family": "limiter", "job_id": "pca_job_0bd6a9051deace22", "status": "completed", "error": ""}
+{"ts": "2026-09-23T20:11:42+00:00", "event": "cert_done", "subject": "L2-SC Mono", "family": "limiter", "job_id": "pca_job_e9bc93b3c4a21fcc", "status": "completed", "error": ""}
+{"ts": "2026-09-23T20:12:15+00:00", "event": "cert_done", "subject": "L2-SC Stereo", "family": "limiter", "job_id": "pca_job_3222d65d313687b2", "status": "completed", "error": ""}
+{"ts": "2026-09-23T20:12:36+00:00", "event": "cert_done", "subject": "L3-LL Multi Mono", "family": "multiband", "job_id": "pca_job_ec0b863cd7cee885", "status": "failed", "error": "invoke plugin_grabber.inspect_multiband failed: unsupported_multiband_maximizer: no provable supported multiband dynamics topology"}
+{"ts": "2026-09-23T20:12:54+00:00", "event": "cert_done", "subject": "L3-LL Multi Stereo", "family": "multiband", "job_id": "pca_job_b785319018ce33eb", "status": "failed", "error": "invoke plugin_grabber.inspect_multiband failed: unsupported_multiband_maximizer: no provable supported multiband dynamics topology"}
+{"ts": "2026-09-23T20:13:31+00:00", "event": "cert_done", "subject": "L3-LL Ultra Mono", "family": "limiter", "job_id": "pca_job_f469dc5a1c7987bf", "status": "completed", "error": ""}
+{"ts": "2026-09-23T20:14:07+00:00", "event": "cert_done", "subject": "L3-LL Ultra Stereo", "family": "limiter", "job_id": "pca_job_ca4432dd2c0062a5", "status": "completed", "error": ""}
+{"ts": "2026-09-23T20:14:40+00:00", "event": "cert_done", "subject": "L316 Mono", "family": "limiter", "job_id": "pca_job_b83873b0140252b2", "status": "completed", "error": ""}
+{"ts": "2026-09-23T20:15:16+00:00", "event": "cert_done", "subject": "L316 Stereo", "family": "limiter", "job_id": "pca_job_db008cff6b9aba83", "status": "completed", "error": ""}
+{"ts": "2026-09-23T20:15:37+00:00", "event": "cert_done", "subject": "L360 5.0", "family": "limiter", "job_id": "pca_job_7d37abe8e6c02f62", "status": "failed", "error": "invoke plugin_grabber.inspect_limiter failed: unresolved_limiter_surface: no provable supported limiter stage/control-path topology"}
+{"ts": "2026-09-23T20:15:55+00:00", "event": "cert_done", "subject": "L360 5.1", "family": "limiter", "job_id": "pca_job_c481fb5e854e70bc", "status": "failed", "error": "invoke plugin_grabber.inspect_limiter failed: unresolved_limiter_surface: no provable supported limiter stage/control-path topology"}
+{"ts": "2026-09-23T20:16:16+00:00", "event": "cert_done", "subject": "L3 MultiMaximizer Mono", "family": "multiband", "job_id": "pca_job_a11dd00eb2825f25", "status": "failed", "error": "invoke plugin_grabber.inspect_multiband failed: unsupported_multiband_maximizer: no provable supported multiband dynamics topology"}
+{"ts": "2026-09-23T20:16:34+00:00", "event": "cert_done", "subject": "L3 MultiMaximizer Stereo", "family": "multiband", "job_id": "pca_job_6ec85b2cede300c0", "status": "failed", "error": "invoke plugin_grabber.inspect_multiband failed: unsupported_multiband_maximizer: no provable supported multiband dynamics topology"}
+{"ts": "2026-09-23T20:17:10+00:00", "event": "cert_done", "subject": "L3 UltraMaximizer Mono", "family": "limiter", "job_id": "pca_job_ea7cea7b3ea8c366", "status": "completed", "error": ""}
+{"ts": "2026-09-23T20:17:46+00:00", "event": "cert_done", "subject": "L3 UltraMaximizer Stereo", "family": "limiter", "job_id": "pca_job_e270ba6deec4b019", "status": "completed", "error": ""}
+{"ts": "2026-09-23T20:18:22+00:00", "event": "cert_done", "subject": "L4 Ultramaximizer Mono", "family": "limiter", "job_id": "pca_job_c4305e29efd10d3a", "status": "completed", "error": ""}
+{"ts": "2026-09-23T20:18:56+00:00", "event": "cert_done", "subject": "L4 Ultramaximizer Stereo", "family": "limiter", "job_id": "pca_job_2657ebdcfd3354e9", "status": "completed", "error": ""}
+{"ts": "2026-09-23T20:19:17+00:00", "event": "cert_done", "subject": "Lindell 50 Channel", "family": "multiband", "job_id": "pca_job_733ad9077124cef6", "status": "failed", "error": "invoke plugin_grabber.inspect_multiband failed: unsupported_multiband_maximizer: no provable supported multiband dynamics topology"}
+{"ts": "2026-09-23T20:19:53+00:00", "event": "cert_done", "subject": "Lindell 69 Channel", "family": "broadband_compression", "job_id": "pca_job_1ececed2b355498e", "status": "completed", "error": ""}
+{"ts": "2026-09-23T20:20:11+00:00", "event": "cert_done", "subject": "Lindell 80 Channel", "family": "gate_expander", "job_id": "pca_job_18ace9cc9f54ba2a", "status": "failed", "error": "invoke plugin_grabber.inspect_gate_expander failed: unsupported_broadband_compressor: no provable supported hard-gate or downward-expander stage topology"}
+{"ts": "2026-09-23T20:20:47+00:00", "event": "cert_done", "subject": "Lindell SBC", "family": "broadband_compression", "job_id": "pca_job_83263945a641db00", "status": "completed", "error": ""}
+{"ts": "2026-09-23T20:21:08+00:00", "event": "cert_done", "subject": "Maag MAGNUM-K", "family": "de_esser", "job_id": "pca_job_0ec1fe29c4b8e538", "status": "failed", "error": "invoke plugin_grabber.inspect_de_esser failed: unsupported_multiband_dynamics: no provable supported De-esser stage/control-path topology"}
+{"ts": "2026-09-23T20:21:26+00:00", "event": "cert_done", "subject": "MannyM Distortion Mono", "family": "transient_shaper", "job_id": "pca_job_311c101427491413", "status": "failed", "error": "invoke plugin_grabber.inspect_transient_shaper failed: unresolved_transient_shaper_surface: no provable supported transient-shaper envelope topology"}
+{"ts": "2026-09-23T20:21:47+00:00", "event": "cert_done", "subject": "MannyM Distortion Stereo", "family": "transient_shaper", "job_id": "pca_job_b50a524ce4e1ea83", "status": "failed", "error": "invoke plugin_grabber.inspect_transient_shaper failed: unresolved_transient_shaper_surface: no provable supported transient-shaper envelope topology"}
+{"ts": "2026-09-23T20:22:23+00:00", "event": "cert_done", "subject": "Millennia TCL-2", "family": "broadband_compression", "job_id": "pca_job_6d7f833b456d6370", "status": "completed", "error": ""}
+{"ts": "2026-09-23T20:22:41+00:00", "event": "cert_done", "subject": "MultiMod Rack Mono", "family": "multiband", "job_id": "pca_job_d9a6ec38b4836e0c", "status": "failed", "error": "invoke plugin_grabber.inspect_multiband failed: unresolved_band_local_crossovers: no provable supported multiband dynamics topology"}
+{"ts": "2026-09-23T20:23:02+00:00", "event": "cert_done", "subject": "MultiMod Rack Mono/Stereo", "family": "multiband", "job_id": "pca_job_42d4cd1775ea9420", "status": "failed", "error": "invoke plugin_grabber.inspect_multiband failed: unresolved_band_local_crossovers: no provable supported multiband dynamics topology"}
+{"ts": "2026-09-23T20:23:21+00:00", "event": "cert_done", "subject": "MultiMod Rack Stereo", "family": "multiband", "job_id": "pca_job_3e8e6cd880a4ebc5", "status": "failed", "error": "invoke plugin_grabber.inspect_multiband failed: unresolved_band_local_crossovers: no provable supported multiband dynamics topology"}
+{"ts": "2026-09-23T20:23:42+00:00", "event": "cert_done", "subject": "NEOLD U17", "family": "transient_shaper", "job_id": "pca_job_fa284f41ca6848b7", "status": "failed", "error": "invoke plugin_grabber.inspect_transient_shaper failed: unsupported_broadband_compressor: no provable supported transient-shaper envelope topology"}
+{"ts": "2026-09-23T20:24:03+00:00", "event": "cert_done", "subject": "NEOLD V76U73", "family": "transient_shaper", "job_id": "pca_job_164b9b4330426370", "status": "failed", "error": "invoke plugin_grabber.inspect_transient_shaper failed: unresolved_transient_shaper_surface: no provable supported transient-shaper envelope topology"}
+{"ts": "2026-09-23T20:24:24+00:00", "event": "cert_done", "subject": "NEOLD WUNDERLICH", "family": "broadband_compression", "job_id": "pca_job_bf72729c8e42d459", "status": "failed", "error": "invoke plugin_grabber.inspect_compressor failed: not_compressor: no provable supported broadband compressor stage/control-path topology"}
+{"ts": "2026-09-23T20:24:42+00:00", "event": "cert_done", "subject": "PSE Mono", "family": "de_esser", "job_id": "pca_job_abcc1f51d84bf4c9", "status": "failed", "error": "invoke plugin_grabber.inspect_de_esser failed: unsupported_broadband_compressor: no provable supported De-esser stage/control-path topology"}
+{"ts": "2026-09-23T20:25:03+00:00", "event": "cert_done", "subject": "PSE Stereo", "family": "de_esser", "job_id": "pca_job_dbbee6d9777a5443", "status": "failed", "error": "invoke plugin_grabber.inspect_de_esser failed: unsupported_broadband_compressor: no provable supported De-esser stage/control-path topology"}
+{"ts": "2026-09-23T20:25:39+00:00", "event": "cert_done", "subject": "Pro-C 2", "family": "broadband_compression", "job_id": "pca_job_9fe8a46a59d180d3", "status": "completed", "error": ""}
+{"ts": "2026-09-23T20:26:00+00:00", "event": "cert_done", "subject": "Pro-C 2", "family": "de_esser", "job_id": "pca_job_9a1fac53515ac81d", "status": "failed", "error": "invoke plugin_grabber.inspect_de_esser failed: unsupported_broadband_compressor: no provable supported De-esser stage/control-path topology"}
+{"ts": "2026-09-23T20:26:18+00:00", "event": "cert_done", "subject": "Pro-G", "family": "de_esser", "job_id": "pca_job_9ddab61f9498bfca", "status": "failed", "error": "invoke plugin_grabber.inspect_de_esser failed: unsupported_broadband_compressor: no provable supported De-esser stage/control-path topology"}
+{"ts": "2026-09-23T20:26:39+00:00", "event": "cert_done", "subject": "Pro-MB", "family": "multiband", "job_id": "pca_job_fb55300715b573a7", "status": "failed", "error": "invoke plugin_grabber.inspect_multiband failed: unresolved_band_local_crossovers: no provable supported multiband dynamics topology"}
+{"ts": "2026-09-23T20:26:57+00:00", "event": "cert_done", "subject": "Pro-Q 3", "family": "multiband", "job_id": "pca_job_ae846f80331006be", "status": "failed", "error": "invoke plugin_grabber.inspect_multiband failed: not_multiband_dynamics: no provable supported multiband dynamics topology"}
+{"ts": "2026-09-23T20:27:18+00:00", "event": "cert_done", "subject": "Pro Audio DSP DSM V3", "family": "multiband", "job_id": "pca_job_87154e45b9ac1e00", "status": "failed", "error": "invoke plugin_grabber.inspect_multiband failed: not_multiband_dynamics: no provable supported multiband dynamics topology"}
+{"ts": "2026-09-23T20:27:36+00:00", "event": "cert_done", "subject": "RChannel Mono", "family": "gate_expander", "job_id": "pca_job_f9c7f15b667b19d5", "status": "failed", "error": "invoke plugin_grabber.inspect_gate_expander failed: unsupported_multiband_dynamics: no provable supported hard-gate or downward-expander stage topology"}
+{"ts": "2026-09-23T20:27:57+00:00", "event": "cert_done", "subject": "RChannel Mono/Stereo", "family": "gate_expander", "job_id": "pca_job_62319cfb4fad951a", "status": "failed", "error": "invoke plugin_grabber.inspect_gate_expander failed: unsupported_multiband_dynamics: no provable supported hard-gate or downward-expander stage topology"}
+{"ts": "2026-09-23T20:28:16+00:00", "event": "cert_done", "subject": "RChannel Stereo", "family": "gate_expander", "job_id": "pca_job_0b3ebf9877a1e809", "status": "failed", "error": "invoke plugin_grabber.inspect_gate_expander failed: unsupported_multiband_dynamics: no provable supported hard-gate or downward-expander stage topology"}
+{"ts": "2026-09-23T20:28:52+00:00", "event": "cert_done", "subject": "RCompressor Mono", "family": "broadband_compression", "job_id": "pca_job_f44801c9bc12a477", "status": "completed", "error": ""}
+{"ts": "2026-09-23T20:29:28+00:00", "event": "cert_done", "subject": "RCompressor Stereo", "family": "broadband_compression", "job_id": "pca_job_e66ce03874892b57", "status": "completed", "error": ""}
+{"ts": "2026-09-23T20:29:49+00:00", "event": "cert_done", "subject": "SPL Attacker Plus", "family": "transient_shaper", "job_id": "pca_job_ec574596b169fb38", "status": "failed", "error": "invoke plugin_grabber.inspect_transient_shaper failed: unresolved_transient_shaper_surface: no provable supported transient-shaper envelope topology"}
+{"ts": "2026-09-23T20:30:22+00:00", "event": "cert_done", "subject": "SSLComp Mono", "family": "broadband_compression", "job_id": "pca_job_2b3d7c3b4678de6f", "status": "completed", "error": ""}
+{"ts": "2026-09-23T20:30:58+00:00", "event": "cert_done", "subject": "SSLComp Stereo", "family": "broadband_compression", "job_id": "pca_job_f565842dbd5122bb", "status": "completed", "error": ""}
+{"ts": "2026-09-23T20:31:19+00:00", "event": "cert_done", "subject": "SSL EV2 Channel Mono", "family": "de_esser", "job_id": "pca_job_cf8b41fd228f4705", "status": "failed", "error": "invoke plugin_grabber.inspect_de_esser failed: unsupported_gate_expander: no provable supported De-esser stage/control-path topology"}
+{"ts": "2026-09-23T20:31:52+00:00", "event": "cert_done", "subject": "SSL EV2 Channel Mono", "family": "gate_expander", "job_id": "pca_job_a99087fbfe8548df", "status": "failed", "error": "complete parameter snapshot restore failed for 1 parameters"}
+{"ts": "2026-09-23T20:32:13+00:00", "event": "cert_done", "subject": "SSL EV2 Channel Stereo", "family": "de_esser", "job_id": "pca_job_85ee748656660bcd", "status": "failed", "error": "invoke plugin_grabber.inspect_de_esser failed: unsupported_gate_expander: no provable supported De-esser stage/control-path topology"}
+{"ts": "2026-09-23T20:32:40+00:00", "event": "cert_done", "subject": "SSL EV2 Channel Stereo", "family": "gate_expander", "job_id": "pca_job_aa60121365b7bc74", "status": "failed", "error": "invoke plugin_grabber.apply_gate_expander_controls failed: unplanned_parameter_change: unplanned_parameter_change: unplanned parameter changes: 26; full preimage restored"}
+{"ts": "2026-09-23T20:33:01+00:00", "event": "cert_done", "subject": "Saturn 2", "family": "de_esser", "job_id": "pca_job_a7894b685b2cc08e", "status": "failed", "error": "invoke plugin_grabber.inspect_de_esser failed: unsupported_multiband_dynamics: no provable supported De-esser stage/control-path topology"}
+{"ts": "2026-09-23T20:33:35+00:00", "event": "cert_done", "subject": "Shadow Hills Class A Mastering Comp", "family": "broadband_compression", "job_id": "pca_job_694bcdcea939b9fd", "status": "completed", "error": ""}
+{"ts": "2026-09-23T20:34:11+00:00", "event": "cert_done", "subject": "Spherix Compressor 7.1.2", "family": "broadband_compression", "job_id": "pca_job_b0d1ee8782b8163d", "status": "completed", "error": ""}
+{"ts": "2026-09-23T20:34:47+00:00", "event": "cert_done", "subject": "Spherix Compressor 7.1.4", "family": "broadband_compression", "job_id": "pca_job_31ddf0f7b05d5bb6", "status": "completed", "error": ""}
+{"ts": "2026-09-23T20:35:23+00:00", "event": "cert_done", "subject": "Spherix Limiter 7.1.2", "family": "limiter", "job_id": "pca_job_447ebe3a8e3161c3", "status": "completed", "error": ""}
+{"ts": "2026-09-23T20:35:59+00:00", "event": "cert_done", "subject": "Spherix Limiter 7.1.4", "family": "limiter", "job_id": "pca_job_d39b9a422ce32af2", "status": "completed", "error": ""}
+{"ts": "2026-09-23T20:36:17+00:00", "event": "cert_done", "subject": "Swivel Audio HitStrip", "family": "de_esser", "job_id": "pca_job_04f478d902e6320c", "status": "failed", "error": "invoke plugin_grabber.inspect_de_esser failed: unsupported_gate_expander: no provable supported De-esser stage/control-path topology"}
+{"ts": "2026-09-23T20:36:53+00:00", "event": "cert_done", "subject": "TBTECH Cenozoix Compressor", "family": "de_esser", "job_id": "pca_job_24262d36f12bdacf", "status": "completed", "error": ""}
+{"ts": "2026-09-23T20:37:14+00:00", "event": "cert_done", "subject": "TBTECH Kirchhoff-EQ", "family": "multiband", "job_id": "pca_job_4b092297e378e978", "status": "failed", "error": "invoke plugin_grabber.inspect_multiband failed: not_multiband_dynamics: no provable supported multiband dynamics topology"}
+{"ts": "2026-09-23T20:37:35+00:00", "event": "cert_done", "subject": "TDR Nova", "family": "multiband", "job_id": "pca_job_c04fc808eebfd68d", "status": "failed", "error": "invoke plugin_grabber.inspect_multiband failed: not_multiband_dynamics: no provable supported multiband dynamics topology"}
+{"ts": "2026-09-23T20:37:56+00:00", "event": "cert_done", "subject": "Timeless 3", "family": "de_esser", "job_id": "pca_job_e7dc1d3ca0babade", "status": "failed", "error": "invoke plugin_grabber.inspect_de_esser failed: unsupported_broadband_compressor: no provable supported De-esser stage/control-path topology"}
+{"ts": "2026-09-23T20:38:17+00:00", "event": "cert_done", "subject": "TransX Multi Mono", "family": "multiband", "job_id": "pca_job_c236e11cff334610", "status": "failed", "error": "invoke plugin_grabber.inspect_multiband failed: unresolved_multiband_cells: no provable supported multiband dynamics topology"}
+{"ts": "2026-09-23T20:38:36+00:00", "event": "cert_done", "subject": "TransX Multi Stereo", "family": "multiband", "job_id": "pca_job_971285ddc6563924", "status": "failed", "error": "invoke plugin_grabber.inspect_multiband failed: unresolved_multiband_cells: no provable supported multiband dynamics topology"}
+{"ts": "2026-09-23T20:39:12+00:00", "event": "cert_done", "subject": "Unfiltered Audio SpecOps", "family": "broadband_compression", "job_id": "pca_job_a94ac6dfb8599d7a", "status": "completed", "error": ""}
+{"ts": "2026-09-23T20:39:48+00:00", "event": "cert_done", "subject": "Vertigo VSS-2", "family": "broadband_compression", "job_id": "pca_job_80bfdd9ac7f09053", "status": "completed", "error": ""}
+{"ts": "2026-09-23T20:40:06+00:00", "event": "cert_done", "subject": "Vocal Bender Mono", "family": "transient_shaper", "job_id": "pca_job_b4f95465a2e90496", "status": "failed", "error": "invoke plugin_grabber.inspect_transient_shaper failed: unresolved_transient_shaper_surface: no provable supported transient-shaper envelope topology"}
+{"ts": "2026-09-23T20:40:27+00:00", "event": "cert_done", "subject": "Vocal Bender Stereo", "family": "transient_shaper", "job_id": "pca_job_8b82b6b09052a5d2", "status": "failed", "error": "invoke plugin_grabber.inspect_transient_shaper failed: unresolved_transient_shaper_surface: no provable supported transient-shaper envelope topology"}
+{"ts": "2026-09-23T20:40:45+00:00", "event": "cert_done", "subject": "Vocal Rider Live Mono", "family": "transient_shaper", "job_id": "pca_job_4e0a251dd0e5b70a", "status": "failed", "error": "invoke plugin_grabber.inspect_transient_shaper failed: unresolved_transient_shaper_surface: no provable supported transient-shaper envelope topology"}
+{"ts": "2026-09-23T20:41:06+00:00", "event": "cert_done", "subject": "Vocal Rider Live Stereo", "family": "transient_shaper", "job_id": "pca_job_5e2aff2fcf3dba9a", "status": "failed", "error": "invoke plugin_grabber.inspect_transient_shaper failed: unresolved_transient_shaper_surface: no provable supported transient-shaper envelope topology"}
+{"ts": "2026-09-23T20:41:24+00:00", "event": "cert_done", "subject": "Vocal Rider Mono", "family": "transient_shaper", "job_id": "pca_job_bc4e3821f4db2b85", "status": "failed", "error": "invoke plugin_grabber.inspect_transient_shaper failed: unresolved_transient_shaper_surface: no provable supported transient-shaper envelope topology"}
+{"ts": "2026-09-23T20:41:45+00:00", "event": "cert_done", "subject": "Vocal Rider Stereo", "family": "transient_shaper", "job_id": "pca_job_5986cdabeb137c47", "status": "failed", "error": "invoke plugin_grabber.inspect_transient_shaper failed: unresolved_transient_shaper_surface: no provable supported transient-shaper envelope topology"}
+{"ts": "2026-09-23T20:42:03+00:00", "event": "cert_done", "subject": "Volcano 3", "family": "de_esser", "job_id": "pca_job_bf9423ccccd107ea", "status": "failed", "error": "invoke plugin_grabber.inspect_de_esser failed: unsupported_broadband_compressor: no provable supported De-esser stage/control-path topology"}
+{"ts": "2026-09-23T20:42:24+00:00", "event": "cert_done", "subject": "WLM Meter 5.0", "family": "limiter", "job_id": "pca_job_d37913da5d8e08b1", "status": "failed", "error": "invoke plugin_grabber.inspect_limiter failed: not_limiter: no provable supported limiter stage/control-path topology"}
+{"ts": "2026-09-23T20:42:42+00:00", "event": "cert_done", "subject": "WLM Meter 5.1", "family": "limiter", "job_id": "pca_job_140b37027c5e99c3", "status": "failed", "error": "invoke plugin_grabber.inspect_limiter failed: not_limiter: no provable supported limiter stage/control-path topology"}
+{"ts": "2026-09-23T20:43:04+00:00", "event": "cert_done", "subject": "WLM Meter Mono", "family": "limiter", "job_id": "pca_job_b25812750c9f9c00", "status": "failed", "error": "invoke plugin_grabber.inspect_limiter failed: not_limiter: no provable supported limiter stage/control-path topology"}
+{"ts": "2026-09-23T20:43:25+00:00", "event": "cert_done", "subject": "WLM Meter Stereo", "family": "limiter", "job_id": "pca_job_df5c0aa216a0cbf8", "status": "failed", "error": "invoke plugin_grabber.inspect_limiter failed: not_limiter: no provable supported limiter stage/control-path topology"}
+{"ts": "2026-09-23T20:43:46+00:00", "event": "cert_done", "subject": "WLM Plus 5.0", "family": "limiter", "job_id": "pca_job_ed2333adde832dfa", "status": "failed", "error": "invoke plugin_grabber.inspect_limiter failed: unresolved_limiter_surface: no provable supported limiter stage/control-path topology"}
+{"ts": "2026-09-23T20:44:04+00:00", "event": "cert_done", "subject": "WLM Plus 5.1", "family": "limiter", "job_id": "pca_job_684c310c461bc0e2", "status": "failed", "error": "invoke plugin_grabber.inspect_limiter failed: unresolved_limiter_surface: no provable supported limiter stage/control-path topology"}
+{"ts": "2026-09-23T20:44:25+00:00", "event": "cert_done", "subject": "WLM Plus Mono", "family": "limiter", "job_id": "pca_job_41f6e4d4be698985", "status": "failed", "error": "invoke plugin_grabber.inspect_limiter failed: unresolved_limiter_surface: no provable supported limiter stage/control-path topology"}
+{"ts": "2026-09-23T20:44:46+00:00", "event": "cert_done", "subject": "WLM Plus Stereo", "family": "limiter", "job_id": "pca_job_27e2173ad91d6c63", "status": "failed", "error": "invoke plugin_grabber.inspect_limiter failed: unresolved_limiter_surface: no provable supported limiter stage/control-path topology"}
+{"ts": "2026-09-23T20:45:04+00:00", "event": "cert_done", "subject": "Waves Harmony Mono/Stereo", "family": "transient_shaper", "job_id": "pca_job_62354cc94ccaaf9c", "status": "failed", "error": "invoke plugin_grabber.inspect_transient_shaper failed: unresolved_transient_shaper_surface: no provable supported transient-shaper envelope topology"}
+{"ts": "2026-09-23T20:45:25+00:00", "event": "cert_done", "subject": "Waves Harmony Stereo", "family": "transient_shaper", "job_id": "pca_job_0458f66fc6882d01", "status": "failed", "error": "invoke plugin_grabber.inspect_transient_shaper failed: unresolved_transient_shaper_surface: no provable supported transient-shaper envelope topology"}
+{"ts": "2026-09-23T20:45:43+00:00", "event": "cert_done", "subject": "ZaMultiComp", "family": "multiband", "job_id": "pca_job_43c578f7b5424657", "status": "failed", "error": "invoke plugin_grabber.inspect_multiband failed: not_multiband_dynamics: no provable supported multiband dynamics topology"}
+{"ts": "2026-09-23T20:46:04+00:00", "event": "cert_done", "subject": "ZaMultiCompX2", "family": "multiband", "job_id": "pca_job_f93a8ed9aa619d2d", "status": "failed", "error": "invoke plugin_grabber.inspect_multiband failed: not_multiband_dynamics: no provable supported multiband dynamics topology"}
+{"ts": "2026-09-23T20:46:40+00:00", "event": "cert_done", "subject": "ZamComp", "family": "broadband_compression", "job_id": "pca_job_6facc262840e2931", "status": "completed", "error": ""}
+{"ts": "2026-09-23T20:47:16+00:00", "event": "cert_done", "subject": "ZamCompX2", "family": "broadband_compression", "job_id": "pca_job_3b5beb6fca75031d", "status": "completed", "error": ""}
+{"ts": "2026-09-23T20:47:52+00:00", "event": "cert_done", "subject": "ZamDynamicEQ", "family": "broadband_compression", "job_id": "pca_job_b36bf0bbd848d4d8", "status": "completed", "error": ""}
+{"ts": "2026-09-23T20:48:11+00:00", "event": "cert_done", "subject": "ZamGate", "family": "broadband_compression", "job_id": "pca_job_ee462ff6a40e2fa9", "status": "failed", "error": "invoke plugin_grabber.inspect_compressor failed: unsupported_gate_expander: no provable supported broadband compressor stage/control-path topology"}
+{"ts": "2026-09-23T20:48:32+00:00", "event": "cert_done", "subject": "ZamGateX2", "family": "broadband_compression", "job_id": "pca_job_1363a4b924bebde2", "status": "failed", "error": "invoke plugin_grabber.inspect_compressor failed: unsupported_gate_expander: no provable supported broadband compressor stage/control-path topology"}
+{"ts": "2026-09-23T20:48:53+00:00", "event": "cert_done", "subject": "bx_XL V3", "family": "limiter", "job_id": "pca_job_7d239cd02e3761de", "status": "failed", "error": "invoke plugin_grabber.inspect_limiter failed: unsupported_multiband_dynamics: no provable supported limiter stage/control-path topology"}
+{"ts": "2026-09-23T20:49:20+00:00", "event": "cert_done", "subject": "bx_aura", "family": "gate_expander", "job_id": "pca_job_fd8f2077707cd3e8", "status": "failed", "error": "invoke plugin_grabber.apply_gate_expander_controls failed: direction_value_unavailable: direction label \"Duck\" is not Gate or downward Expander evidence"}
+{"ts": "2026-09-23T20:49:38+00:00", "event": "cert_done", "subject": "bx_clipper", "family": "limiter", "job_id": "pca_job_7a36ce9430df4ae4", "status": "failed", "error": "invoke plugin_grabber.inspect_limiter failed: unsupported_clipper: no provable supported limiter stage/control-path topology"}
+{"ts": "2026-09-23T20:49:59+00:00", "event": "cert_done", "subject": "bx_console AMEK 200", "family": "de_esser", "job_id": "pca_job_d221eca8b7fb4a5c", "status": "failed", "error": "invoke plugin_grabber.inspect_de_esser failed: unsupported_gate_expander: no provable supported De-esser stage/control-path topology"}
+{"ts": "2026-09-23T20:50:35+00:00", "event": "cert_done", "subject": "bx_console AMEK 200", "family": "gate_expander", "job_id": "pca_job_c4b1d51d20502c1c", "status": "completed", "error": ""}
+{"ts": "2026-09-23T20:50:53+00:00", "event": "cert_done", "subject": "bx_console AMEK 9099", "family": "de_esser", "job_id": "pca_job_eac99b9bddf344d2", "status": "failed", "error": "invoke plugin_grabber.inspect_de_esser failed: unsupported_gate_expander: no provable supported De-esser stage/control-path topology"}
+{"ts": "2026-09-23T20:51:29+00:00", "event": "cert_done", "subject": "bx_console AMEK 9099", "family": "gate_expander", "job_id": "pca_job_04e0c5e4a3de2b83", "status": "completed", "error": ""}
+{"ts": "2026-09-23T20:51:50+00:00", "event": "cert_done", "subject": "bx_console Focusrite SC", "family": "de_esser", "job_id": "pca_job_bd1b5229282674eb", "status": "failed", "error": "invoke plugin_grabber.inspect_de_esser failed: unsupported_gate_expander: no provable supported De-esser stage/control-path topology"}
+{"ts": "2026-09-23T20:52:20+00:00", "event": "cert_done", "subject": "bx_console N", "family": "broadband_compression", "job_id": "pca_job_31e4c28b41f208cc", "status": "failed", "error": "invoke plugin_grabber.apply_compressor_controls failed: stale_restore_ref: restore_ref generation c2t1_8bfaa83b2d39c82c662789e6 does not match current c2t1_7d65fde53664df2070e90820"}
+{"ts": "2026-09-23T20:52:42+00:00", "event": "cert_done", "subject": "bx_console N", "family": "de_esser", "job_id": "pca_job_0c9f8eee7bc3b2f0", "status": "failed", "error": "invoke plugin_grabber.inspect_de_esser failed: unsupported_gate_expander: no provable supported De-esser stage/control-path topology"}
+{"ts": "2026-09-23T20:53:18+00:00", "event": "cert_done", "subject": "bx_console SSL 4000 E", "family": "broadband_compression", "job_id": "pca_job_e41df21040f21f14", "status": "completed", "error": ""}
+{"ts": "2026-09-23T20:53:36+00:00", "event": "cert_done", "subject": "bx_console SSL 4000 E", "family": "de_esser", "job_id": "pca_job_c879f8343bc0af1f", "status": "failed", "error": "invoke plugin_grabber.inspect_de_esser failed: unsupported_gate_expander: no provable supported De-esser stage/control-path topology"}
+{"ts": "2026-09-23T20:54:12+00:00", "event": "cert_done", "subject": "bx_console SSL 4000 G", "family": "broadband_compression", "job_id": "pca_job_f8fdbd9cf02361b9", "status": "completed", "error": ""}
+{"ts": "2026-09-23T20:54:33+00:00", "event": "cert_done", "subject": "bx_console SSL 4000 G", "family": "de_esser", "job_id": "pca_job_ab3492c1f3b94f8c", "status": "failed", "error": "invoke plugin_grabber.inspect_de_esser failed: unsupported_gate_expander: no provable supported De-esser stage/control-path topology"}
+{"ts": "2026-09-23T20:54:54+00:00", "event": "cert_done", "subject": "bx_console SSL 9000 J", "family": "de_esser", "job_id": "pca_job_5295da2330616197", "status": "failed", "error": "invoke plugin_grabber.inspect_de_esser failed: unsupported_gate_expander: no provable supported De-esser stage/control-path topology"}
+{"ts": "2026-09-23T20:55:27+00:00", "event": "cert_done", "subject": "bx_console SSL 9000 J", "family": "gate_expander", "job_id": "pca_job_a6b35086af7a667c", "status": "completed", "error": ""}
+{"ts": "2026-09-23T20:56:03+00:00", "event": "cert_done", "subject": "bx_glue", "family": "broadband_compression", "job_id": "pca_job_e590151dba9e09d5", "status": "completed", "error": ""}
+{"ts": "2026-09-23T20:56:24+00:00", "event": "cert_done", "subject": "bx_rockrack V3", "family": "gate_expander", "job_id": "pca_job_de87fb2644025761", "status": "failed", "error": "invoke plugin_grabber.inspect_gate_expander failed: unsupported_multiband_dynamics: no provable supported hard-gate or downward-expander stage topology"}
+{"ts": "2026-09-23T20:57:00+00:00", "event": "cert_done", "subject": "bx_townhouse Buss Compressor", "family": "broadband_compression", "job_id": "pca_job_29c42753d15b165f", "status": "completed", "error": ""}
+{"ts": "2026-09-23T20:57:33+00:00", "event": "cert_done", "subject": "elysia alpha master", "family": "broadband_compression", "job_id": "pca_job_0108681cdad50280", "status": "completed", "error": ""}
+{"ts": "2026-09-23T20:58:10+00:00", "event": "cert_done", "subject": "elysia alpha mix", "family": "broadband_compression", "job_id": "pca_job_3da12caae7681194", "status": "completed", "error": ""}
+{"ts": "2026-09-23T20:58:31+00:00", "event": "cert_done", "subject": "elysia mpressor", "family": "gate_expander", "job_id": "pca_job_a4320aaa7868133c", "status": "failed", "error": "invoke plugin_grabber.inspect_gate_expander failed: unsupported_broadband_compressor: no provable supported hard-gate or downward-expander stage topology"}
+{"ts": "2026-09-23T20:58:49+00:00", "event": "cert_done", "subject": "elysia nvelope", "family": "transient_shaper", "job_id": "pca_job_871cfafd0f25fb81", "status": "failed", "error": "invoke plugin_grabber.inspect_transient_shaper failed: unsupported_dual_band_mode: no provable supported transient-shaper envelope topology"}
+{"ts": "2026-09-23T20:59:25+00:00", "event": "cert_done", "subject": "C1 comp-gate Mono", "family": "broadband_compression", "job_id": "pca_job_5bcf6171fdea12f8", "status": "completed", "error": ""}
+{"ts": "2026-09-23T21:00:01+00:00", "event": "cert_done", "subject": "C1 comp-gate Stereo", "family": "broadband_compression", "job_id": "pca_job_5ca78b191ee34311", "status": "completed", "error": ""}
+{"ts": "2026-09-23T21:00:01+00:00", "event": "phase_done", "phase": "certify"}
+{"ts": "2026-09-23T21:00:08+00:00", "event": "phase_start", "phase": "derive"}
+{"ts": "2026-09-23T21:04:10+00:00", "event": "phase_start", "phase": "derive"}
+{"ts": "2026-09-23T21:04:11+00:00", "event": "derive_cert_view", "jobs_kept": 82, "view": "C:\\Users\\timoz\\.vit\\autosweep\\20260924_005622\\cert_view"}
+{"ts": "2026-09-23T21:05:04+00:00", "event": "phase_start", "phase": "derive"}
+{"ts": "2026-09-23T21:05:24+00:00", "event": "phase_start", "phase": "derive"}
+{"ts": "2026-09-23T21:05:34+00:00", "event": "phase_done", "phase": "derive"}
+{"ts": "2026-09-23T21:05:40+00:00", "event": "phase_start", "phase": "verify"}
+{"ts": "2026-09-23T21:05:54+00:00", "event": "phase_start", "phase": "verify"}
+{"ts": "2026-09-23T21:05:56+00:00", "event": "phase_done", "phase": "verify"}
+{"ts": "2026-09-23T21:06:00+00:00", "event": "phase_start", "phase": "report"}
+{"ts": "2026-09-23T21:06:00+00:00", "event": "phase_done", "phase": "report"}

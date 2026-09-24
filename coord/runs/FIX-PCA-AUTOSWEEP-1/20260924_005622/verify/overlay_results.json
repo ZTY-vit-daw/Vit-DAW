@@ -1,0 +1,391 @@
+[
+  {
+    "family": "static_eq",
+    "name": "bx_hybrid V2",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "broadband_compression",
+    "name": "C1 comp Mono",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "broadband_compression",
+    "name": "C1 comp Stereo",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "broadband_compression",
+    "name": "C1 comp-gate Mono",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "broadband_compression",
+    "name": "C1 comp-gate Stereo",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "broadband_compression",
+    "name": "C1 comp-sc Mono",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "broadband_compression",
+    "name": "C1 comp-sc Stereo",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "broadband_compression",
+    "name": "DPR-402 Mono",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "broadband_compression",
+    "name": "H-Comp Mono",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "broadband_compression",
+    "name": "H-Comp Stereo",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "broadband_compression",
+    "name": "Kramer PIE Mono",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "broadband_compression",
+    "name": "Kramer PIE Stereo",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "broadband_compression",
+    "name": "Lindell 254E",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "broadband_compression",
+    "name": "Lindell SBC",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "broadband_compression",
+    "name": "Pro-C 2",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "broadband_compression",
+    "name": "RCompressor Mono",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "broadband_compression",
+    "name": "RCompressor Stereo",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "broadband_compression",
+    "name": "Shadow Hills OptoMax",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "broadband_compression",
+    "name": "TBTECH Cenozoix Compressor",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "broadband_compression",
+    "name": "Unfiltered Audio SpecOps",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "broadband_compression",
+    "name": "Unfiltered Audio Zip",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "broadband_compression",
+    "name": "ZamComp",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "broadband_compression",
+    "name": "ZamCompX2",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "broadband_compression",
+    "name": "ZamDynamicEQ",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "broadband_compression",
+    "name": "elysia mpressor",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "de_esser",
+    "name": "DeEsser Mono",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "de_esser",
+    "name": "DeEsser Stereo",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "de_esser",
+    "name": "Sibilance Mono",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "de_esser",
+    "name": "Sibilance Stereo",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "de_esser",
+    "name": "Sibilance-Live Mono",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "de_esser",
+    "name": "Sibilance-Live Stereo",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "gate_expander",
+    "name": "PSE Mono",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "gate_expander",
+    "name": "PSE Stereo",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "gate_expander",
+    "name": "Pro-G",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "limiter",
+    "name": "L1 limiter Mono",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "limiter",
+    "name": "L1 limiter Stereo",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "limiter",
+    "name": "L1+ Ultramaximizer Stereo",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "limiter",
+    "name": "L2 Mono",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "limiter",
+    "name": "L2 Stereo",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "limiter",
+    "name": "L2-SC Mono",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "limiter",
+    "name": "L2-SC Stereo",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "limiter",
+    "name": "L316 Mono",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "limiter",
+    "name": "L316 Stereo",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "multiband",
+    "name": "C4 Mono",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "multiband",
+    "name": "C4 Stereo",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "multiband",
+    "name": "C6 Mono",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "multiband",
+    "name": "C6 Stereo",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "multiband",
+    "name": "C6-SideChain Mono",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "multiband",
+    "name": "C6-SideChain Stereo",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "multiband",
+    "name": "LinMB Mono",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "multiband",
+    "name": "LinMB Stereo",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "transient_shaper",
+    "name": "Smack Attack Mono",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "transient_shaper",
+    "name": "Smack Attack Stereo",
+    "eligible": true,
+    "reason": "promoted_action_covered",
+    "effective_status": "promoted"
+  },
+  {
+    "family": "_non_member_spot",
+    "name": "Abbey Road Chambers Mono",
+    "eligible": false,
+    "reason": "no_attestation"
+  },
+  {
+    "family": "_non_member_spot",
+    "name": "Abbey Road Chambers Mono/Stereo",
+    "eligible": false,
+    "reason": "no_attestation"
+  },
+  {
+    "family": "_non_member_spot",
+    "name": "Abbey Road Chambers Stereo",
+    "eligible": false,
+    "reason": "no_attestation"
+  }
+]
