@@ -1934,7 +1934,17 @@ func (h *Harness) enforceAgentProcessorLoadGate(req InvokeRequest, spec tools.Co
 		}
 		resolved, err := authorizeFullProjectAccessLoad(trackID, pluginPath, identifier)
 		if err != nil {
-			return err
+			// Only the "no current promoted admission" failure may fall back to
+			// the token-only certification entry: infrastructure failures and
+			// ambiguous identities stay closed.
+			if !errors.Is(err, errFullProjectAccessUnpromoted) {
+				return err
+			}
+			certAuth, certErr := authorizeCertificationTokenLoad(trackID, pluginPath, identifier)
+			if certErr != nil {
+				return err
+			}
+			resolved = certAuth
 		}
 		auth = resolved
 		if pluginPath == "" {
@@ -1977,13 +1987,88 @@ func (h *Harness) enforceAgentProcessorLoadGate(req InvokeRequest, spec tools.Co
 	return nil
 }
 
+// errFullProjectAccessUnpromoted marks the full-access resolution failure that
+// means "this exact identity has no current promoted admission" — the one
+// failure the token-only certification entry may fall back from.
+var errFullProjectAccessUnpromoted = errors.New("pca_load_gate: autonomous full-access load rejected")
+
 // fullProjectAccessAdmissionUnavailable reports the exact "no current
 // PCA-admitted processor matched" reason inside a stable pca_load_gate prefix.
 func fullProjectAccessAdmissionUnavailable(reason string) error {
 	if strings.TrimSpace(reason) == "" {
 		reason = "no_promoted_attestation_matched"
 	}
-	return fmt.Errorf("pca_load_gate: autonomous full-access load rejected: %s", reason)
+	return fmt.Errorf("%w: %s", errFullProjectAccessUnpromoted, reason)
+}
+
+const (
+	certificationAuthorizationTokenEnv  = "VIT_PCA_CERTAUTH_TOKEN"
+	certificationAuthorizationTokenFile = "pca_certauth.token"
+)
+
+// certificationAuthorizationTokenArmed reports whether the operator armed the
+// token-only certification authorization entry. Nothing in any request can arm
+// it: the token lives in the agent process environment or the local file
+// system only (FIX-PCA-CERTAUTH-TOKEN-1).
+func certificationAuthorizationTokenArmed() bool {
+	if strings.TrimSpace(os.Getenv(certificationAuthorizationTokenEnv)) != "" {
+		return true
+	}
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return false
+	}
+	content, err := os.ReadFile(filepath.Join(home, ".vit", certificationAuthorizationTokenFile))
+	return err == nil && strings.TrimSpace(string(content)) != ""
+}
+
+// authorizeCertificationTokenLoad mints the certification-surface
+// authorization for one exact unpromoted subject. The static_eq certification
+// channel runs outside the in-agent runner and its subjects cannot be promoted
+// before certification (the full-access path would require exactly that
+// promotion), so the operator's armed local token is the boundary that admits
+// the load. The identity never comes from the request: identifier, installed
+// path, subject key, and fingerprint are resolved here from the semantic
+// library and pinned. The authorization is Certification=true — a load into
+// the certification channel only, never a promotion or a runtime grant.
+func authorizeCertificationTokenLoad(trackID, pluginPath, identifier string) (semanticPluginSelectionAuthorization, error) {
+	identifier = strings.TrimSpace(identifier)
+	if identifier == "" || strings.TrimSpace(trackID) == "" {
+		return semanticPluginSelectionAuthorization{}, fmt.Errorf("pca_load_gate: certification token load requires an exact plugin_identifier and track_id")
+	}
+	if !certificationAuthorizationTokenArmed() {
+		return semanticPluginSelectionAuthorization{}, fmt.Errorf("pca_load_gate: certification authorization token not armed")
+	}
+	index, err := pluginsemantics.Load("")
+	if err != nil {
+		return semanticPluginSelectionAuthorization{}, fmt.Errorf("pca_load_gate: certification token load failed: semantic library unavailable: %w", err)
+	}
+	var entry pluginsemantics.Entry
+	matches := 0
+	for _, candidate := range index.Entries {
+		if strings.EqualFold(strings.TrimSpace(candidate.Identifier), identifier) {
+			entry, matches = candidate, matches+1
+		}
+	}
+	if matches != 1 {
+		return semanticPluginSelectionAuthorization{}, fmt.Errorf("pca_load_gate: certification token load requires one exact semantic identity for %q (matched %d)", identifier, matches)
+	}
+	if pluginPath != "" && !strings.EqualFold(normalizePluginPathForCompare(entry.PluginPath), normalizePluginPathForCompare(pluginPath)) {
+		return semanticPluginSelectionAuthorization{}, fmt.Errorf("pca_load_gate: certification token load path mismatch for %q", identifier)
+	}
+	fingerprint, err := processorattestation.FingerprintPath(entry.PluginPath)
+	if err != nil {
+		return semanticPluginSelectionAuthorization{}, fmt.Errorf("pca_load_gate: certification token load fingerprint unavailable: %w", err)
+	}
+	subjectKey, err := processorattestation.BuildSubjectKey(processorattestation.Subject{Name: entry.Name, Manufacturer: entry.Manufacturer, Format: entry.Format, Identifier: entry.Identifier, InstalledPath: entry.PluginPath})
+	if err != nil {
+		return semanticPluginSelectionAuthorization{}, fmt.Errorf("pca_load_gate: certification token load identity unavailable: %w", err)
+	}
+	return semanticPluginSelectionAuthorization{
+		TrackID: strings.TrimSpace(trackID), PluginPath: entry.PluginPath, PluginIdentifier: entry.Identifier,
+		ProcessorFamily: processorattestation.FamilyStaticEQ, SubjectKey: subjectKey,
+		BinaryFingerprint: fingerprint, Certification: true,
+	}, nil
 }
 
 // authorizeFullProjectAccessLoad mints the in-process authorization object for
