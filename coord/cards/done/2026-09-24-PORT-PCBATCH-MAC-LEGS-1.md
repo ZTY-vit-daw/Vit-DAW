@@ -19,4 +19,4 @@
   - **腿4 CTXSYMLINK 复跑+全量 ✓**：`go test ./internal/contextruntime -count=1` exit 0（darwin /var 归一化 mac 绿灯确认）；全量 `go test ./... -count=1` **exit 0，84 包 0 FAIL 首次达成**（full_go_test.log+summary.txt）。
   - **腿5 前端同步 ✗（源未达 mac，上交）**：PC 已提交 telemetry_manager.gd 标注块+probe 未到达 mac 任何渠道——transfer 远端/主仓全分支/GitHub org 仓清单/coord 工件四路核查均无（leg5_frontend/CHANNEL_AUDIT.md 含时间线与两方案上交点：B3 同款 format-patch 经 transfer 投递或 SSH scp）。按"以 PC 已提交块为界"要求不自行重实现。
   - **机器终态**：live Settings=719 暖表/黑名单空/pedal 清；白名单 v6 全库 83 在用。未跟踪新增：coord/runs/FIX-PCA-AUTOSWEEP-1/20260925_mac/（sweep run 状态，入库与否归决策侧）、PluginProbe/native-host/build/（构建产物）。两 port 分支待验收 cherry-pick。停止条件触发情况：仅腿 5 渠道缺失上交；其余未触发。
-- 验收：
+- 验收：**pass（2026-09-25 Mac 决策会话，[rulings/2026-09-25-PORT-PCBATCH-MAC-LEGS-1-pass.md](../../rulings/2026-09-25-PORT-PCBATCH-MAC-LEGS-1-pass.md)）**——五腿：①②③④ 独立核证全过（白名单 83/EQ43 实核+双二进制 sha 亲验+contextruntime 决策侧亲跑绿+overlay 86/0+journey all_green+HYGIENE 四腿行为绿）；腿 5 渠道缺失四路核查采信如实上交（转 PC 投递）。两缺陷发现双开卡（HYGIENE-BUNDLE P1 mac 阻断/HARNESS-SCANPOLL P2）；两 port 分支经审查 cherry-pick 入 main（3f08251+ebd0428）；47 例吸收终态=certify 53 目标 39 completed/10 failed 记因/4 歧义 fail-closed 采信；84 包 0 FAIL mac 首达入档
