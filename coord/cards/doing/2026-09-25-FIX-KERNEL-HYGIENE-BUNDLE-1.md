@@ -11,6 +11,6 @@
 - 文件域：`VitApp/Source/Service/PluginListHygiene.cpp`（谓词行）+`VitApp/Tests/PluginListHygieneTests.cpp`（bundle 形态断言）；零其他
 - 验收：①红绿（bundle 双态+Windows 回归）②构建+ctest 绿 ③mac 重启两次零清理+免扫装载证据 ④回执两端 HEAD
 - 停止条件：谓词语义外发现 HYGIENE 其他 mac 形态缺陷 → 一并取证上交不扩域
-- 领取：
+- 领取：2026-09-26 02:54 / origin/main=af4c0459bef57409b75e40cc34288a9b9d08bba5（与发卡基线一致）/ port/fix-hygiene-bundle
 - 回执：
 - 验收：
