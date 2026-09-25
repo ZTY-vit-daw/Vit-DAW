@@ -978,7 +978,14 @@ PY
 step "PHASE A warm-up: kernel plugin scan (plugin.semantic_build_index over $VST3_DIR, may take minutes)"
 python3 - "$VST3_DIR" > "$WORKDIR/bodies/scan.json" <<'PY'
 import json, sys
-print(json.dumps({"tool": "plugin.semantic_build_index", "args": {"paths": [sys.argv[1]]},
+# scan_poll_interval_ms 2000: the harness default 250ms status polling runs on
+# the kernel's JUCE message thread (ZmqGateway logs every reply) and starves
+# out-of-process shell-probe result collection — the main WaveShell probe hit
+# the scan watchdog at BOTH 600s and 1800s under 250ms polling, while a quiet
+# 3s-poll scan completes 719 plugins in ~5 min (PORT-PCBATCH-MAC-LEGS-1
+# forensics 2026-09-25). Assertions unchanged; server-honoured cadence knob.
+print(json.dumps({"tool": "plugin.semantic_build_index",
+                  "args": {"paths": [sys.argv[1]], "scan_poll_interval_ms": 2000},
                   "confirmed": True, "source": "journey1_mac_driver"}, ensure_ascii=False))
 PY
 code="$(http_json POST "$AGENT_HTTP/agent/invoke" "$WORKDIR/bodies/scan.json" "$WORKDIR/phase_a/semantic_build_index.json" "$((SCAN_TIMEOUT_SECONDS + 120))")" \
