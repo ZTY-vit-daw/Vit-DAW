@@ -1,0 +1,9 @@
+run root already exists; each run needs a fresh artifact directory: D:/Vit_DAW/artifacts/journey1/bbshared_20260923
+ËùÔÚÎ»ÖÃ D:\Vit_DAW\scripts\journey1_demo_journey_smoke.ps1:343 ×Ö·û: 40
++ ... $RunRoot) { throw ("run root already exists; each run needs a fresh a ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (run root alread...shared_20260923:String) [], RuntimeException
+    + FullyQualifiedErrorId : run root already exists; each run needs a fresh artifact directory: D:/Vit_DAW/artifacts 
+   /journey1/bbshared_20260923
+ 
+JOURNEY_EXIT=1

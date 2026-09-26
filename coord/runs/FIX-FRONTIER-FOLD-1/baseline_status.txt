@@ -1,0 +1,10 @@
+ M VitApp/Workspace/default_project.xml
+ M agent/internal/chat/audio_closure_controller.go
+ M agent/internal/chat/audio_closure_controller_test.go
+?? coord/cards/doing/2026-09-22-FIX-FRONTIER-FOLD-1.md
+?? coord/runs/
+?? extension/.sconsign.dblite
+?? extension/src/register_types.windows.template_debug.x86_64.obj
+?? extension/src/vit_waveform_reader.windows.template_debug.x86_64.obj
+?? extension/src/vit_webview_host.windows.template_debug.x86_64.obj
+?? godot-cpp/

@@ -1,0 +1,7 @@
+# vit-daw-agent/internal/experimentplugins [vit-daw-agent/internal/experimentplugins.test]
+internal\experimentplugins\whitelist_broadband_shared_test.go:33:3: unknown field ThresholdParamID in struct literal of type BroadbandCompressionPlugin
+internal\experimentplugins\whitelist_broadband_shared_test.go:80:32: dual.ThresholdParamPair undefined (type BroadbandCompressionPlugin has no field or method ThresholdParamPair)
+internal\experimentplugins\whitelist_broadband_shared_test.go:87:38: shared.ThresholdParamPair undefined (type BroadbandCompressionPlugin has no field or method ThresholdParamPair)
+internal\experimentplugins\whitelist_broadband_shared_test.go:121:65: p.ThresholdParamID undefined (type *BroadbandCompressionPlugin has no field or method ThresholdParamID)
+FAIL	vit-daw-agent/internal/experimentplugins [build failed]
+FAIL

@@ -1,0 +1,5 @@
+--- FAIL: TestScanAvailablePluginRowsDefaultPollCadenceSparesKernelMessageThread (2.20s)
+    harness_test.go:2120: default cadence issued 8 plugin_scan_status polls within 2.2002612s; want <= 1 (default interval must be >= 2s)
+FAIL
+FAIL	vit-daw-agent/internal/harness	2.298s
+FAIL

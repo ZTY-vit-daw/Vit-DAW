@@ -1,0 +1,6 @@
+# vit-daw-agent/internal/agentloop
+# [vit-daw-agent/internal/agentloop]
+vet.exe: internal\agentloop\ccb_model_prompt_plugin_candidates_test.go:34:15: undefined: messageLoopPluginCandidateDirective
+# vit-daw-agent/internal/chat
+# [vit-daw-agent/internal/chat]
+vet.exe: internal\chat\free_state_d1_plugin_select_test.go:64:36: undefined: experimentplugins.StaticEQPlugins

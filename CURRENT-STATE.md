@@ -22,17 +22,18 @@
 - **历史记录**：基线、验证记录、审计、ADR、设计草案快照等纯记录性文档。保留原位，可查证当时的设计决策，**不得当作现状**。
 - **已废弃**：内容已被实现超越且会误导 agent 的文档，已迁至 `docs/archive/`。
 
-汇总：`docs/` 顶层共 121 份现行/历史文档（现行 55 / 历史记录 66），另有 `docs/archive/` 已废弃文档 4 份；两者合计 125 份。`docs/vsp/` 子目录 13 份文档单独索引（见末节）。
+汇总：`docs/` 顶层共 122 份现行/历史文档（现行 56 / 历史记录 66），另有 `docs/archive/` 已废弃文档 4 份；两者合计 126 份。`docs/vsp/` 子目录 13 份文档单独索引（见末节）。
 
 ---
 
-## 一、现行（55）
+## 一、现行（56）
 
 ### 观察投影与上下文
 
 | 文档 | 说明 |
 |---|---|
 | [OBSERVATION_PROJECTION_MANIFEST.md](docs/OBSERVATION_PROJECTION_MANIFEST.md) | 观察投影拓扑 ground truth（DAD + peer 投影，AGENTS.md 白名单收录） |
+| [AGENTIC_OBSERVATION_ROADMAP_2026-09-25.md](docs/AGENTIC_OBSERVATION_ROADMAP_2026-09-25.md) | Agentic Observation 架构路线图（AGENTIC-OBSERVATION 蓝图，2026-09-25）：**规划未实现**，中期检查收口版本之后全部开发的现行计划来源——统一 ref schema、多维坐标集、物化索引与 audio-grep、四层前缀与可变窗口、音频编译器三层、质询-确权协议、memory 系统、两线五段一汇合排程与质量门 G1–G3；各组件进入实现时随卡片更新状态标注 |
 | [COM_V1_CONTRACT.md](docs/COM_V1_CONTRACT.md) | Compression Observation Model 契约（`com.projection.v1`，COM-1 已实现） |
 | [COM_V1_TEST_CONTRACT.md](docs/COM_V1_TEST_CONTRACT.md) | COM v1 测试契约（COM-1–COM-5 测试已实现） |
 | [DOM_V1_CONTRACT.md](docs/DOM_V1_CONTRACT.md) | Dynamics Observation Model 契约（`dom.projection.v1`，source_only 已落地） |

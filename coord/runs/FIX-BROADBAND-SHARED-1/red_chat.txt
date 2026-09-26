@@ -1,0 +1,4 @@
+# vit-daw-agent/internal/chat [vit-daw-agent/internal/chat.test]
+internal\chat\free_state_d1_plan_table_broadband_shared_test.go:47:5: unknown field ThresholdParamID in struct literal of type experimentplugins.BroadbandCompressionPlugin
+FAIL	vit-daw-agent/internal/chat [build failed]
+FAIL

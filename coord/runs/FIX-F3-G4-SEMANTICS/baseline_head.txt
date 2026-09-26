@@ -1,0 +1,26 @@
+166d313ae8fd0d68aa54619281a89d8ccb278053
+ M VitApp/Workspace/default_project.xml
+ M agent/internal/agentloop/free_state_gate.go
+ M agent/internal/agentloop/free_state_reasoning.go
+ M agent/internal/agentloop/free_state_replay_4b_test.go
+ M agent/internal/agentloop/message_loop.go
+ M agent/internal/agentloop/testdata/free_state_replay/timing1_m23_reservation_not_consumed.json
+ M agent/internal/chat/free_state_reasoning_loop.go
+ M agent/internal/chat/improvement_proposal_workflow.go
+?? agent/internal/agentloop/free_state_terminal_adjudication_test.go
+?? agent/internal/chat/free_state_terminal_adjudication_test.go
+?? coord/runs/
+?? extension/.sconsign.dblite
+?? extension/src/register_types.windows.template_debug.x86_64.obj
+?? extension/src/vit_waveform_reader.windows.template_debug.x86_64.obj
+?? extension/src/vit_webview_host.windows.template_debug.x86_64.obj
+?? godot-cpp/
+ VitApp/Workspace/default_project.xml               | 153 +------------
+ agent/internal/agentloop/free_state_gate.go        |  31 +++
+ agent/internal/agentloop/free_state_reasoning.go   |  46 +++-
+ .../agentloop/free_state_replay_4b_test.go         |   7 +-
+ agent/internal/agentloop/message_loop.go           |  13 +-
+ .../timing1_m23_reservation_not_consumed.json      | 244 ++++++++++-----------
+ agent/internal/chat/free_state_reasoning_loop.go   |  91 +++++++-
+ .../internal/chat/improvement_proposal_workflow.go |  40 +++-
+ 8 files changed, 339 insertions(+), 286 deletions(-)

@@ -1,0 +1,75 @@
+run_root=D:\Vit_DAW\artifacts\journey1\pcplugsel1_20260923
+head=e3ceb8b847b92bcec4c7a661c929f8610d3bd02c
+git_status= M VitApp/Workspace/default_project.xml ;  M agent/internal/agentloop/ccb_model_prompt.go ;  M agent/internal/agentloop/free_state_reasoning.go ;  M agent/internal/chat/free_state_d1_plan_table.go ;  M agent/internal/chat/free_state_d1_plan_table_fam4_test.go ;  M agent/internal/chat/free_state_d1_plan_table_fam5_test.go ;  M agent/internal/chat/free_state_d1_plan_table_fam6_test.go ;  M agent/internal/chat/free_state_d1_plan_table_s2_test.go ;  M agent/internal/chat/free_state_d1_plan_table_test.go ;  M agent/internal/chat/free_state_d1_plugident_test.go ;  M agent/internal/chat/free_state_reasoning_loop.go ;  M agent/internal/chat/plugin_recommendation_axis_coverage.go ;  M agent/internal/chat/plugin_recommendation_axis_coverage_fam4_test.go ;  M agent/internal/chat/plugin_recommendation_axis_coverage_fam6_test.go ;  M agent/internal/chat/plugin_recommendation_axis_coverage_test.go ;  M agent/internal/experimentplugins/whitelist.go ;  M agent/internal/experimentplugins/whitelist_test.go ;  M agent/internal/experimentplugins/whitelist_v2_test.go ;  M agent/internal/experimentplugins/whitelist_v5_gate_test.go ;  M agent/internal/experimentplugins/whitelist_v5_multiband_test.go ;  M agent/internal/experimentplugins/whitelist_v5_test.go ; ?? agent/internal/agentloop/ccb_model_prompt_plugin_candidates_test.go ; ?? agent/internal/chat/free_state_d1_plugin_select_test.go ; ?? agent/internal/chat/free_state_plugin_candidate_disclosure.go ; ?? agent/internal/experimentplugins/whitelist_v6_test.go ; ?? coord/runs/ ; ?? extension/.sconsign.dblite ; ?? extension/src/register_types.windows.template_debug.x86_64.obj ; ?? extension/src/vit_waveform_reader.windows.template_debug.x86_64.obj ; ?? extension/src/vit_webview_host.windows.template_debug.x86_64.obj ; ?? godot-cpp/
+project_source=D:\Godot\project\vit-daw-frontend\912.vit
+user_project_sha256_before=F6CA36FA080D97E7B91CBAC755E7D2096393D453140E10563771466EB774D8BD
+user_history_fingerprint_before=EBD12840103FF6BCB539311D9EA40A836AFA7B9EB621AC820F3C2A3B1B6EC769
+repo_default_project_sha256_before=9A6C774E970EFE4E4F72765D026D90A21111E2A8AC04DFC5766E2301313768ED
+repo_settings_sha256_before=FF86975B034D49AB5C53B53EBD910F01B4E88B4E680A90C1C990DA2EF6856658
+
+== Prereq: ports 7878/5555/5556 must be free (stack ownership)
+port_free=7878
+port_free=5555
+port_free=5556
+
+== Isolate: copy the project and the kernel default XML into the run dir
+copy_project=D:\Vit_DAW\artifacts\journey1\pcplugsel1_20260923\project\journey1_912.vit
+copy_project_sha256=F6CA36FA080D97E7B91CBAC755E7D2096393D453140E10563771466EB774D8BD
+
+== Build VitAgent (isolated binary in the run dir)
+agent_binary=D:\Vit_DAW\artifacts\journey1\pcplugsel1_20260923\bin\VitAgent.journey1.exe size=34391040 mtime=2026-09-23T20:31:11.1426550+08:00 sha256=DE9973413601A73C5F245716605312AC506D3521AF0E3620815CF7B202209E0F
+kernel_binary=D:\Vit_DAW\VitApp\build\VitApp_artefacts\Release\VitApp.exe mtime=2026-09-12T18:48:37.9197531+08:00
+
+== PHASE A: start the real stack (kernel + agent)
+phase_a_kernel_pid=15708 agent_pid=21904
+phase_a_shadow_initialized=True track_count=0
+
+== Kernel warm-up dwell 15s
+
+== PHASE A step 1: load the copy project (kernel open_project via agent tool face)
+phase_a_load_status=ok command=open_project error=
+phase_a_tracks=bass,drums,guitar,other,piano,vocals
+phase_a_bass_present=True bass_plugin_count_before=0 project_uuid=vitproj_9ecc5ab9a454400192086c628c07b966
+phase_a_sessions_after_load=session_20260923T123128_88d528f1
+
+== PHASE A step 2: authority = full project access
+phase_a_authority_mode=full_project_access
+
+== PHASE A step 3: send the demo prompt and let the chain run
+phase_a_slice_0_status=waiting_continue stop=limit_reached
+ok: slice 0: goal_status=waiting_continue stop=limit_reached
+info: poll goal=running
+info: poll goal=running
+info: poll goal=running
+info: poll goal=running
+info: poll goal=running
+info: poll goal=completed
+
+== PHASE A evidence capture (ui state / events / actions / audition / durable state)
+a1_state=green option_marker_count=0 ask_words=·½Ïò question_mark=False substantive_texts=11 first_reply_placeholder=True
+a2_direct_probe_landed=True plugin_id=1040 instance_ready=True graph_diff=node_add|Added rack node bx_hybrid V2
+a2_ui_projection_post_probe bass_count=1 plugin_rows=1 fetched=True
+a2_state=GREEN pca_load_gate_denials=0 probe_denied=False probe_landed=True ui_projection_landed=True journey_turn_landed=False
+a2_direct_probe track=1007 plugin=VST3-bx_hybrid V2-d0ef306f-c141eb4b status=ok gate_denial_delta=0 error=
+a3_audition_events= mix_tick_events= audition_session_seen=False card_mounted=False proposal_applied=False A3=RED
+
+== PHASE A step 4: manual save (creates the save point for assertion 4)
+phase_a_save_prepare status=ok prepare_id=prepare_8bbbe4df generation=save_20260923T123217_8bbbe4df
+phase_a_save_project status=ok error=
+phase_a_copy_project_sha256_after_save=02AB6913DF60F95A3EEC61DF4478C59836FF12311D6AFFBF6C783FB5FCCE35B9
+
+== PHASE B: teardown, then reopen the same copy project (session-cleanliness control)
+phase_b_kernel_pid=19120 agent_pid=14876
+phase_b_load_status=ok error=
+
+== PHASE B dwell 20s so the reopen path can restore or not restore
+a4_state=green live_session=session_20260923T123223_10cbf12b graph_nodes=0 messages=0 commit_count=2 pre_savepoint_carried=False resumed_session_dirs=session_20260923T123128_88d528f1,session_20260923T123217_92212248,session_20260923T123217_93b7ced1 fresh_session_dirs=session_20260923T123223_10cbf12b rewritten_files=13 stall_warn=0
+
+== Teardown
+repo_default_project_sha256_after=9A6C774E970EFE4E4F72765D026D90A21111E2A8AC04DFC5766E2301313768ED
+repo_settings_sha256_after=FF86975B034D49AB5C53B53EBD910F01B4E88B4E680A90C1C990DA2EF6856658
+user_project_sha256_after=F6CA36FA080D97E7B91CBAC755E7D2096393D453140E10563771466EB774D8BD
+user_history_fingerprint_after=EBD12840103FF6BCB539311D9EA40A836AFA7B9EB621AC820F3C2A3B1B6EC769
+finished=2026-09-23T20:32:47.7447642+08:00
+
+JOURNEY1_VERDICT assertions_red

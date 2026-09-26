@@ -94,3 +94,10 @@ yarn-error.log*
 /agent/*.txt
 /agent/*.exe
 /agent/*.bak
+
+# -----------------------------
+# Godot GDExtension deps & build artifacts (external clones, 2026-09-26)
+# -----------------------------
+/godot-cpp/
+/extension/.sconsign.dblite
+/extension/src/*.obj

@@ -1,0 +1,4 @@
+path= C:\Users\timoz\.vit\free_state_experiment_plugins.json
+schema_version=vit.free_state_experiment_plugins.v6 broadband_entries=1
+broadband[0] identifier=VST3-Vertigo VSC-2-7e4e7243-aaeea0d name=Vertigo VSC-2 shared="" ch1="1416131121" ch2="1416131122" pair=("1416131121","1416131122")
+accessor=("1416131121","1416131122") err=<nil>

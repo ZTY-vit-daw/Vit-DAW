@@ -1,0 +1,14 @@
+# vit-daw-agent/internal/experimentplugins [vit-daw-agent/internal/experimentplugins.test]
+internal\experimentplugins\whitelist_v6_test.go:37:33: undefined: SchemaVersionV5
+internal\experimentplugins\whitelist_v6_test.go:51:9: invalid argument: loaded.StaticEQ (variable of type *StaticEQPlugin) for built-in len
+internal\experimentplugins\whitelist_v6_test.go:52:67: invalid argument: loaded.StaticEQ (variable of type *StaticEQPlugin) for built-in len
+internal\experimentplugins\whitelist_v6_test.go:54:72: cannot index loaded.StaticEQ (variable of type *StaticEQPlugin)
+internal\experimentplugins\whitelist_v6_test.go:55:73: cannot index loaded.StaticEQ (variable of type *StaticEQPlugin)
+internal\experimentplugins\whitelist_v6_test.go:63:18: undefined: SchemaVersionV5
+internal\experimentplugins\whitelist_v6_test.go:64:18: undefined: StaticEQPlugins
+internal\experimentplugins\whitelist_v6_test.go:65:18: undefined: DeEsserPlugins
+internal\experimentplugins\whitelist_v6_test.go:72:9: invalid argument: loaded.StaticEQ (variable of type *StaticEQPlugin) for built-in len
+internal\experimentplugins\whitelist_v6_test.go:72:38: invalid argument: loaded.DeEsser (variable of type *DeEsserPlugin) for built-in len
+internal\experimentplugins\whitelist_v6_test.go:72:38: too many errors
+FAIL	vit-daw-agent/internal/experimentplugins [build failed]
+FAIL

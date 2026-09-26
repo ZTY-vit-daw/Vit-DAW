@@ -1,0 +1,22 @@
+FIX-HARNESS-SCANPOLL-1 PC 侧证据索引（2026-09-26）
+====================================================
+
+实现 commit：62b256bd（分支 port/fix-harness-scanpoll，已推 origin）
+实现基线：main a44a8494（领取 7563b235 + merge 1c24e455）
+收口 commit：main 2ffef98a（卡 doing→done + 回执，仅 coord 变更）
+
+改动面：agent/internal/harness/harness.go（默认轮询 250→2000ms，常量 defaultPluginScanPollIntervalMS）+ harness_test.go（红测试 TestScanAvailablePluginRowsDefaultPollCadenceSparesKernelMessageThread）——两文件 +54/-1
+
+证据文件：
+- red_default_poll_cadence.txt   修前红：2.2s 窗口 8 polls（250ms 节奏），exit=1
+- green_harness_package.txt      修后 harness 包全绿 15.3s，exit=0
+- go_full_agent.txt              agent 全量 84 包 ok 0 FAIL，exit=0
+- webui_tests.txt                webui 28 文件 324 测全过，exit=0
+
+红绿口径：桩内核恒答 scanning，被测=无旋钮走默认值的轮询节奏；
+断言=2.2s 窗口 plugin_scan_status ≤1 poll 且首 poll ≥1500ms。
+修前 250ms 默认 → 8 polls（红）；修后 2000ms 默认 → 0-1 polls（绿，计时器不早火，确定性成立）。
+
+未覆盖（声明）：真栈 journey 扫描段实证（卡面验收③）按路由转交 mac——
+口径=旋钮回默认值下完成一轮 journey，扫描 warm-up 不再看门狗超时。
+PC 侧未起真栈（mac 在跑 HYGIENE 卡收口后的栈窗口，§9 错峰纪律）。

@@ -1,0 +1,7 @@
+166d313ae8fd0d68aa54619281a89d8ccb278053
+ VitApp/Workspace/default_project.xml               | 153 ++-------------------
+ .../chat/scheduler_terminal_delivery_test.go       |   1 -
+ agent/internal/harness/harness.go                  |  92 ++++++++++++-
+ .../doing/2026-09-21-FIX-F5-SNAPSHOT-FRESHNESS.md  |   6 +
+ scripts/run_vit_product_path_smoke.ps1             |  73 ++++++++--
+ 5 files changed, 171 insertions(+), 154 deletions(-)
