@@ -14,7 +14,10 @@ bool pluginListEntryIsPathValidated (const juce::PluginDescription& description)
 
 bool defaultPluginPathExists (const juce::String& fileOrIdentifier)
 {
-    return juce::File (fileOrIdentifier).existsAsFile();
+    // mac VST3s are bundle DIRECTORIES (.vst3/), Windows ones single files;
+    // existence must accept either form or every mac entry looks stale
+    // (FIX-KERNEL-HYGIENE-BUNDLE-1: startup wiped 719/719 valid entries).
+    return juce::File (fileOrIdentifier).exists();
 }
 
 PluginListHygieneReport cleanStalePluginListEntries (

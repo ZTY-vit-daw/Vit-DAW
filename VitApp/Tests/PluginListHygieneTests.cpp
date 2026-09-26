@@ -68,22 +68,38 @@ void runStartupCleanupTest (const juce::File& directory)
     VIT_CHECK (list.getBlacklistedFiles().size() == 3);
 
     // Decision-level guard: only absolute-path VST3 entries are validated.
+    // JUCE's File::isAbsolutePath recognises "X:" drive letters only under
+    // JUCE_WINDOWS, so a PC-transplant path is path-validated (and therefore
+    // removable) on Windows only; on mac the gate conservatively keeps the
+    // identifier it cannot classify. Production semantics are unchanged —
+    // these expectations just make the suite platform-accurate (the suite
+    // was authored and first run on PC, FIX-KERNEL-HYGIENE-BUNDLE-1 mac run).
     VIT_CHECK (vit::pluginListEntryIsPathValidated (keptReal));
-    VIT_CHECK (vit::pluginListEntryIsPathValidated (ghostPcPath));
     VIT_CHECK (! vit::pluginListEntryIsPathValidated (builtIn));
     VIT_CHECK (! vit::pluginListEntryIsPathValidated (vst3NonPath));
+   #if JUCE_WINDOWS
+    VIT_CHECK (vit::pluginListEntryIsPathValidated (ghostPcPath));
+    const int expectedTypesRemoved = 2;
+    const int expectedTypesAfter = 3;
+   #else
+    VIT_CHECK (! vit::pluginListEntryIsPathValidated (ghostPcPath));
+    const int expectedTypesRemoved = 1;
+    const int expectedTypesAfter = 4;
+   #endif
 
     const auto report = vit::cleanStalePluginListEntries (list);
 
     VIT_CHECK (report.typesBefore == 5);
-    VIT_CHECK (report.typesRemoved == 2);
+    VIT_CHECK (report.typesRemoved == expectedTypesRemoved);
     VIT_CHECK (report.blacklistBefore == 3);
     VIT_CHECK (report.blacklistRemoved == 1);
     VIT_CHECK (report.removedTypePaths.contains (directory.getChildFile ("ghost.vst3").getFullPathName()));
+   #if JUCE_WINDOWS
     VIT_CHECK (report.removedTypePaths.contains ("C:\\Program Files\\Ghost\\g.vst3"));
+   #endif
     VIT_CHECK (report.removedBlacklistPaths.contains (directory.getChildFile ("ghost.vst3").getFullPathName()));
 
-    VIT_CHECK (list.getNumTypes() == 3);
+    VIT_CHECK (list.getNumTypes() == expectedTypesAfter);
     VIT_CHECK (list.getTypeForFile (realFile.getFullPathName()) != nullptr);
     VIT_CHECK (list.getTypeForFile ("volume") != nullptr);
     VIT_CHECK (list.getTypeForFile ("not-a-path") != nullptr);
@@ -98,7 +114,43 @@ void runStartupCleanupTest (const juce::File& directory)
     // Idempotent: a second pass over the cleaned list changes nothing.
     const auto secondPass = vit::cleanStalePluginListEntries (list);
     VIT_CHECK (secondPass.typesRemoved == 0 && secondPass.blacklistRemoved == 0);
-    VIT_CHECK (list.getNumTypes() == 3 && list.getBlacklistedFiles().size() == 2);
+    VIT_CHECK (list.getNumTypes() == expectedTypesAfter && list.getBlacklistedFiles().size() == 2);
+}
+
+// ---------------------------------------------------------------------------
+// FIX-KERNEL-HYGIENE-BUNDLE-1: on mac every VST3 is a bundle DIRECTORY
+// (Foo.vst3/Contents/MacOS/Foo), so the existence predicate must be
+// form-agnostic. A .vst3 directory (mac bundle) and a .vst3 single file
+// (Windows) both survive startup cleanup; only paths that exist as neither
+// file nor directory are removed. The blacklist walks the same predicate.
+// ---------------------------------------------------------------------------
+void runBundleFormCleanupTest (const juce::File& directory)
+{
+    VIT_CHECK (directory.createDirectory());
+    const auto macBundle = directory.getChildFile ("MacBundle.vst3");
+    VIT_CHECK (macBundle.createDirectory());
+    const auto windowsFile = directory.getChildFile ("WindowsSingle.vst3");
+    VIT_CHECK (windowsFile.create());
+    const auto ghostBundle = directory.getChildFile ("GhostBundle.vst3").getFullPathName();
+
+    juce::KnownPluginList list;
+    list.addType (makeVst3Entry ("Mac Bundle Directory", macBundle.getFullPathName()));
+    list.addType (makeVst3Entry ("Windows Single File", windowsFile.getFullPathName()));
+    list.addType (makeVst3Entry ("Ghost Bundle Path", ghostBundle));
+    list.addToBlacklist (macBundle.getFullPathName());
+    list.addToBlacklist (ghostBundle);
+
+    const auto report = vit::cleanStalePluginListEntries (list);
+
+    VIT_CHECK (report.typesRemoved == 1);
+    VIT_CHECK (report.removedTypePaths.contains (ghostBundle));
+    VIT_CHECK (list.getTypeForFile (macBundle.getFullPathName()) != nullptr);
+    VIT_CHECK (list.getTypeForFile (windowsFile.getFullPathName()) != nullptr);
+    VIT_CHECK (list.getTypeForFile (ghostBundle) == nullptr);
+
+    VIT_CHECK (report.blacklistRemoved == 1);
+    VIT_CHECK (list.getBlacklistedFiles().contains (macBundle.getFullPathName()));
+    VIT_CHECK (! list.getBlacklistedFiles().contains (ghostBundle));
 }
 
 // ---------------------------------------------------------------------------
@@ -187,6 +239,7 @@ int main()
     VIT_CHECK (directory.createDirectory());
 
     runStartupCleanupTest (directory.getChildFile ("startup-cleanup"));
+    runBundleFormCleanupTest (directory.getChildFile ("bundle-form"));
     runUserCancelCleanupTest (directory.getChildFile ("user-cancel"));
     runCrashContrastTest (directory.getChildFile ("crash-contrast"));
 
