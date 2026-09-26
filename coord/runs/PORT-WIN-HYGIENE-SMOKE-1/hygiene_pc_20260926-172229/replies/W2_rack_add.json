@@ -1,0 +1,39 @@
+{
+  "status": "ok",
+  "message": "Rack node added",
+  "track_id": "1007",
+  "rack_item_id": "1012",
+  "plugin_id": "1013",
+  "plugin_item_id": "1013",
+  "plugin_name": "Jeesonic EQ Pro",
+  "plugin_identifier": "VST3-Jeesonic EQ Pro-b63d06bf-9620aaa8",
+  "zone_id": "Z3",
+  "clip_scope": "track",
+  "template_role": "eq",
+  "plugin_instance_ready": true,
+  "plugin_load_state": "name=Jeesonic EQ Pro id=1013 format=VST3 path=C:\\Program Files\\Common Files\\VST3\\Jeesonic EQ Pro.vst3 enabled=true processing=true edit_should_load_plugins=true async=false load_error=",
+  "x": 0.0,
+  "y": 0.0,
+  "graph_revision": 1,
+  "graph_active_revision": 1,
+  "graph_pending_revision": 0,
+  "graph_last_retired_revision": 0,
+  "graph_retired_snapshot_count": 0,
+  "graph_last_diff_kind": "node_add",
+  "graph_last_diff_summary": "Added rack node Jeesonic EQ Pro",
+  "graph_publish_mode": "context_rebuild_idle",
+  "graph_lifecycle_state": "active",
+  "graph_recent_changes": [
+    {
+      "revision": 1,
+      "kind": "node_add",
+      "summary": "Added rack node Jeesonic EQ Pro",
+      "track_id": "1007",
+      "rack_item_id": "1012",
+      "node_id": "1013",
+      "source_id": "",
+      "dest_id": "",
+      "timestamp_ms": 1790414565378
+    }
+  ]
+}

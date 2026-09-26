@@ -1,0 +1,23 @@
+no_running_kernel_at_start=confirmed
+no_pedal_at_start=confirmed
+project_copy_sha256=9a6c774e970efe4e4f72765d026d90a21111e2a8ac04dfc5766e2301313768ed (source project never written; VIT_PROJECT_XML redirect)
+info: settings knownPluginList64 entries=994; warm-list retention floor=95%=944
+kernel_W1_pid=428 winlog=/d/Vit_DAW/VitApp/Workspace/Logs/VitHeadlessServer2026-09-26_17-22-30.log (copied to /d/Vit_DAW/coord/runs/PORT-WIN-HYGIENE-SMOKE-1/hygiene_pc_20260926-172229/logs/kernel_W1.log; will re-copy at leg end)
+W1_list_count=994 (settings file: 994, floor: 944)
+ok: LEG W1: warm list retained 994/994 entries (no mass cleanup; mac defect form would collapse toward 0)
+ok: LEG W1: no PluginListHygiene cleanup line (zero removals — table fully warm-valid)
+kernel_W1_stop=taskkill(winpid=8408) elapsed=0s
+kernel_W2_pid=474 winlog=/d/Vit_DAW/VitApp/Workspace/Logs/VitHeadlessServer2026-09-26_17-22-41.log (copied to /d/Vit_DAW/coord/runs/PORT-WIN-HYGIENE-SMOKE-1/hygiene_pc_20260926-172229/logs/kernel_W2.log; will re-copy at leg end)
+W2_spot_identifier=VST3-Jeesonic EQ Pro-b63d06bf-9620aaa8
+W2_add_track status=ok track_id=1007
+W2_rack_add status=ok plugin_id=1013 error=Rack node added
+ok: LEG W2: load spot landed without any rescan (status=ok plugin_id=1013; scan_plugins commands in log: 0)
+kernel_W2_stop=taskkill(winpid=11724) elapsed=0s
+W3_base_count=994
+kernel_W3b_pid=531 winlog=/d/Vit_DAW/VitApp/Workspace/Logs/VitHeadlessServer2026-09-26_17-22-47.log (copied to /d/Vit_DAW/coord/runs/PORT-WIN-HYGIENE-SMOKE-1/hygiene_pc_20260926-172229/logs/kernel_W3b.log; will re-copy at leg end)
+W3_list_count=994 (base: 994)
+ok: LEG W3: restart kept the list identical (994 == 994; removed=0)
+ok: LEG W3: zero cleanup lines on restart (removed=0)
+ok: LEG W3: zero scan commands executed on restart (table trusted from disk)
+kernel_W3b_stop=taskkill(winpid=26712) elapsed=0s
+finished=2026-09-26 17:23:03

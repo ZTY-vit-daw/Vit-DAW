@@ -1,0 +1,19 @@
+{
+  "schema_version": "vit_kernel_pluginlist_hygiene_smoke.pc.v1",
+  "card": "PORT-WIN-HYGIENE-SMOKE-1",
+  "run_id": "hygiene_pc_20260926-172229",
+  "run_root": "D:/Vit_DAW/coord/runs/PORT-WIN-HYGIENE-SMOKE-1/hygiene_pc_20260926-172229",
+  "legs_requested": "W1,W2,W3",
+  "ok_count": 6,
+  "red_count": 0,
+  "ok": [
+    "LEG W1: warm list retained 994/994 entries (no mass cleanup; mac defect form would collapse toward 0)",
+    "LEG W1: no PluginListHygiene cleanup line (zero removals — table fully warm-valid)",
+    "LEG W2: load spot landed without any rescan (status=ok plugin_id=1013; scan_plugins commands in log: 0)",
+    "LEG W3: restart kept the list identical (994 == 994; removed=0)",
+    "LEG W3: zero cleanup lines on restart (removed=0)",
+    "LEG W3: zero scan commands executed on restart (table trusted from disk)"
+  ],
+  "red": [],
+  "verdict": "all_green"
+}

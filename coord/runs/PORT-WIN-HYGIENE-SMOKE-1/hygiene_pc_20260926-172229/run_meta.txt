@@ -1,0 +1,10 @@
+run_id=hygiene_pc_20260926-172229
+started_at=2026-09-26 17:22:29
+repo_head=c2f490b0183f941a83658854ac7d02d9ace5f2be
+kernel_bin=/d/Vit_DAW/VitApp/cmake-build-pcverify1/VitApp_artefacts/Release/VitApp.exe
+kernel_sha256=39f9cb3da7320b3bc5cc432ff6c27ad38e2f4dc44d2e72079c4d77f10167cdb4
+kernel_mtime=2026-09-26 16:57:22
+vst3_dir=C:/Program Files/Common Files/VST3
+legs=W1,W2,W3
+real_settings=/d/Vit_DAW/VitApp/Workspace/Settings/Settings.xml
+real_settings_sha256=ff86975b034d49ab5c53b53ebd910f01b4e88b4e680a90c1c990da2ef6856658
