@@ -42,13 +42,25 @@ func Build(input Input) Projection {
 	issues := []Issue{}
 	trackFacts := []TrackFact{}
 	for _, track := range tracks {
-		fact, factIssues := buildTrackFact(track)
+		fact, factIssues := buildTrackFact(track, input.AcousticEvidenceByTrack)
 		applyTrackFactToSummary(&summary, fact)
 		issues = append(issues, factIssues...)
 		if len(trackFacts) < maxTrackFacts {
 			trackFacts = append(trackFacts, fact)
 		}
 	}
+	// L2-1-TIM-1 structural assertion pass (design §3.1 hook). Runs before the
+	// risk summary so assertion fails count as warning risk; referees never
+	// take corrective action here — results only add warning issues and
+	// limitation codes.
+	assertions := Evaluate(AssertInput{
+		TrackFacts:          trackFacts,
+		ProjectSampleRateHz: projectSampleRateHz(input.AudioSettings),
+		RackSummaries:       input.RackSummaries,
+		KnownPluginPaths:    input.KnownPluginPaths,
+		CeilingDBFS:         levelCeilingDBFS(input.CeilingDBFS),
+	})
+	issues = append(issues, assertionIssues(assertions, issues, trackFacts)...)
 	if declaredTrackCount == 0 {
 		issues = append(issues, Issue{
 			Code:         "no_project_tracks",
@@ -65,6 +77,15 @@ func Build(input Input) Projection {
 	coverage := buildCoverage(summary)
 	risk := buildRiskSummary(issues)
 	limitations := buildLimitations(summary, coverage, len(tracks), issuesCapped, len(trackFacts) < len(tracks))
+	// The level ceiling assertion is single-sided by design (sample peak only);
+	// the standing limitation keeps that boundary visible instead of implying
+	// true-peak compliance.
+	limitations = appendUniqueString(limitations, codeCeilingSamplePeakOnly)
+	for _, row := range assertions {
+		if row.Status == AssertionStatusNotEvaluable {
+			limitations = appendUniqueString(limitations, row.Code)
+		}
+	}
 	for _, limitation := range authoritativeDADLimitations(summary, input.AuthoritativeState) {
 		limitations = appendUniqueString(limitations, limitation)
 	}
@@ -80,6 +101,7 @@ func Build(input Input) Projection {
 		RiskSummary:      risk,
 		Issues:           issues,
 		TrackFacts:       trackFacts,
+		Assertions:       assertions,
 		EvidenceRefs:     evidenceRefs("mix.read:project.tracks.summary", "mix.read:project.acoustic.tracks", "mix.read:project.limitations", "dad:track_waveform_envelopes"),
 		Limitations:      limitations,
 		GeneratedAt:      strings.TrimSpace(input.CreatedAt),
@@ -270,10 +292,11 @@ func boolValue(value any) (bool, bool) {
 	return false, false
 }
 
-func buildTrackFact(track map[string]any) (TrackFact, []Issue) {
+func buildTrackFact(track map[string]any, evidenceByTrack map[string]map[string]any) (TrackFact, []Issue) {
 	primary := mapValue(track["primary_clip"])
 	acoustic := mapValue(track["acoustic"])
 	trackID := firstNonEmpty(text(track["track_id"]), text(track["id"]))
+	evidence := evidenceByTrack[trackID]
 	trackName := firstNonEmpty(text(track["track_name"]), text(track["name"]), trackID)
 	clipID := firstNonEmpty(fieldString(primary, "clip_id", "id", "item_id"), fieldString(acoustic, "primary_clip_id", "clip_id"))
 	clipName := firstNonEmpty(fieldString(primary, "clip_name", "name"), fieldString(acoustic, "primary_clip_name", "clip_name", "name"), clipID)
@@ -355,6 +378,7 @@ func buildTrackFact(track map[string]any) (TrackFact, []Issue) {
 		value := round3(headroomDB)
 		fact.HeadroomDB = &value
 	}
+	fact.NanCount, fact.InfCount = nonfiniteCounts(acoustic, evidence)
 	issues := issuesForTrack(fact, hasPeak, peakDBFS, hasRMS, rmsDBFS, hasHeadroom, headroomDB)
 	for _, issue := range issues {
 		fact.RiskCodes = appendUniqueString(fact.RiskCodes, issue.Code)
@@ -642,6 +666,85 @@ func buildLimitations(summary TechnicalSummary, coverage TechnicalCoverage, obse
 	return evidenceRefs(limits...)
 }
 
+// nonfiniteCounts reads the L3 passthrough keys (nan_count/inf_count) from the
+// track acoustic row first, falling back to the observation evidence map the
+// mixboard assembly carries. Absent keys stay nil: not_evaluable, never zero.
+func nonfiniteCounts(acoustic, evidence map[string]any) (nan, inf *int) {
+	read := func(row map[string]any, key string) *int {
+		if row == nil {
+			return nil
+		}
+		if value, ok := numberFromAny(row[key]); ok {
+			count := int(value)
+			return &count
+		}
+		return nil
+	}
+	nan = read(acoustic, "nan_count")
+	if nan == nil {
+		nan = read(evidence, "nan_count")
+	}
+	inf = read(acoustic, "inf_count")
+	if inf == nil {
+		inf = read(evidence, "inf_count")
+	}
+	return nan, inf
+}
+
+// projectSampleRateHz extracts the project audio settings sample rate for the
+// AS-SR asserter; missing or non-positive settings keep it nil so the whole
+// asserter reports not_evaluable.
+func projectSampleRateHz(audioSettings map[string]any) *float64 {
+	if rate := firstPositiveNumber(audioSettings, "sample_rate_hz", "sample_rate"); rate > 0 {
+		return &rate
+	}
+	return nil
+}
+
+// levelCeilingDBFS resolves the AS-PEAK ceiling: profile override when given,
+// the -1.0 dBFS default otherwise (RLM profile integration is future work and
+// deliberately not a v1 dependency).
+func levelCeilingDBFS(override *float64) float64 {
+	if override != nil && *override != 0 {
+		return *override
+	}
+	return defaultCeilingDB
+}
+
+// assertionIssues turns fail rows into warning issues. A fail that reuses an
+// existing issue code (possible_clipping_or_no_headroom) never opens a second
+// issue for the same track+code.
+func assertionIssues(results []AssertionResult, existing []Issue, facts []TrackFact) []Issue {
+	names := map[string]string{}
+	for _, fact := range facts {
+		names[fact.TrackID] = fact.TrackName
+	}
+	seen := map[string]bool{}
+	for _, issue := range existing {
+		seen[issue.Code+"::"+issue.TrackID] = true
+	}
+	out := []Issue{}
+	for _, row := range results {
+		if row.Status != AssertionStatusFail || row.Code == "" {
+			continue
+		}
+		key := row.Code + "::" + row.TrackID
+		if seen[key] {
+			continue
+		}
+		seen[key] = true
+		out = append(out, Issue{
+			Code:         row.Code,
+			Severity:     SeverityWarning,
+			TrackID:      row.TrackID,
+			TrackName:    names[row.TrackID],
+			Detail:       assertionIssueDetail(row),
+			EvidenceRefs: row.EvidenceRefs,
+		})
+	}
+	return out
+}
+
 func BuildLLMContext(proj Projection) LLMContext {
 	facts := []map[string]any{
 		{
@@ -664,11 +767,12 @@ func BuildLLMContext(proj Projection) LLMContext {
 			"acoustic":      proj.Coverage.AcousticPackage,
 		},
 		{
-			"layer":         "technical_risk",
-			"status":        proj.Status,
-			"overall_risk":  proj.RiskSummary.OverallRisk,
-			"issue_count":   proj.RiskSummary.IssueCount,
-			"primary_codes": proj.RiskSummary.PrimaryCodes,
+			"layer":            "technical_risk",
+			"status":           proj.Status,
+			"overall_risk":     proj.RiskSummary.OverallRisk,
+			"issue_count":      proj.RiskSummary.IssueCount,
+			"primary_codes":    proj.RiskSummary.PrimaryCodes,
+			"assertion_counts": AssertionCounts(proj.Assertions),
 		},
 	}
 	if len(proj.Issues) > 0 {
@@ -732,8 +836,12 @@ func ContextProjection(proj Projection) map[string]any {
 		"risk_summary":       proj.RiskSummary,
 		"issue_excerpt":      compactIssues(proj.Issues, 12),
 		"track_fact_excerpt": compactTrackFacts(proj.TrackFacts, 24),
-		"limitations":        proj.Limitations,
-		"llm_context":        proj.LLMContext,
+		"assertion_summary": map[string]any{
+			"counts":     AssertionCounts(proj.Assertions),
+			"fail_codes": AssertionFailCodes(proj.Assertions, 8),
+		},
+		"limitations": proj.Limitations,
+		"llm_context": proj.LLMContext,
 	}
 }
 
