@@ -11,6 +11,6 @@
 - 文件域：`agent/internal/harness/`（轮询点）+测试；不改内核/协议
 - 验收：①红绿 ②全量绿 ③mac journey 扫描段实证（旋钮默认值下完成）④回执两端 HEAD
 - 停止条件：修复需协议/内核配合（增量化需内核面改动）→ 上交拆卡
-- 领取：
+- 领取：2026-09-26 PC 执行侧（L2/GLM-5.3）/ origin/main=7563b235（领取时 HEAD=当前 main 顶）/ 分支 port/fix-harness-scanpoll；领取时工作树遗留：M CURRENT-STATE.md、M VitApp/Workspace/default_project.xml、coord/runs/ 多卡未跟踪工件——均他卡/运行时域，本卡零接触；本卡新增 diff 将限于 agent/internal/harness/
 - 回执：
 - 验收：
