@@ -22,7 +22,7 @@
 - **历史记录**：基线、验证记录、审计、ADR、设计草案快照等纯记录性文档。保留原位，可查证当时的设计决策，**不得当作现状**。
 - **已废弃**：内容已被实现超越且会误导 agent 的文档，已迁至 `docs/archive/`。
 
-汇总：`docs/` 顶层共 122 份现行/历史文档（现行 56 / 历史记录 66），另有 `docs/archive/` 已废弃文档 4 份；两者合计 126 份。`docs/vsp/` 子目录 13 份文档单独索引（见末节）。
+汇总：`docs/` 顶层共 123 份现行/历史文档（现行 57 / 历史记录 66），另有 `docs/archive/` 已废弃文档 4 份；两者合计 127 份。`docs/vsp/` 子目录 13 份文档单独索引（见末节）。
 
 ---
 
@@ -34,6 +34,7 @@
 |---|---|
 | [OBSERVATION_PROJECTION_MANIFEST.md](docs/OBSERVATION_PROJECTION_MANIFEST.md) | 观察投影拓扑 ground truth（DAD + peer 投影，AGENTS.md 白名单收录） |
 | [AGENTIC_OBSERVATION_ROADMAP_2026-09-25.md](docs/AGENTIC_OBSERVATION_ROADMAP_2026-09-25.md) | Agentic Observation 架构路线图（AGENTIC-OBSERVATION 蓝图，2026-09-25）：**规划未实现**，中期检查收口版本之后全部开发的现行计划来源——统一 ref schema、多维坐标集、物化索引与 audio-grep、四层前缀与可变窗口、音频编译器三层、质询-确权协议、memory 系统、两线五段一汇合排程与质量门 G1–G3；各组件进入实现时随卡片更新状态标注 |
+| [TIM_ASSERTER_V1_DESIGN.md](docs/TIM_ASSERTER_V1_DESIGN.md) | TIM 结构断言器 v1 设计（L2-1-TIM-DESIGN-1 产出，2026-09-26）：**规划未实现**，D8 编译器第一层承载者——TIM 现状盘点（`tim.projection.v0`）+ 5 断言器五要素（信号卫生/电平上限/采样率一致性/路由完整性/插件合法性，v1 全 agent 侧零内核改动）+ 实现锚点 + 红测试 T1-T9 + 端侧烟测草案 + 内核腿缺口清单 8 项；实现卡 L2-1-TIM-1 依赖本文档 |
 | [COM_V1_CONTRACT.md](docs/COM_V1_CONTRACT.md) | Compression Observation Model 契约（`com.projection.v1`，COM-1 已实现） |
 | [COM_V1_TEST_CONTRACT.md](docs/COM_V1_TEST_CONTRACT.md) | COM v1 测试契约（COM-1–COM-5 测试已实现） |
 | [DOM_V1_CONTRACT.md](docs/DOM_V1_CONTRACT.md) | Dynamics Observation Model 契约（`dom.projection.v1`，source_only 已落地） |
