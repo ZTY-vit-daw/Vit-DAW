@@ -171,6 +171,12 @@ func newWithSender(sender KernelSender, shadowProject *shadow.Project, logger *l
 			j = persistent
 		}
 	}
+	if logger != nil {
+		// Route [tim.assert] fail rows through the agent logger (WARN lines
+		// echo to stdout and land in agent_last.log, design §1.4). tim itself
+		// stays nil-silent and pure.
+		tim.AssertWarnLogger = func(line string) { logger.Warn("%s", line) }
+	}
 	return &Harness{
 		kernel:          sender,
 		shadow:          shadowProject,
