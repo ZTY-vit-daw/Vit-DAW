@@ -37,6 +37,11 @@ type Projection struct {
 	EvidenceRefs   []string            `json:"evidence_refs,omitempty"`
 	Limitations    []string            `json:"limitations,omitempty"`
 	GeneratedAt    string              `json:"generated_at,omitempty"`
+	// DeliveryProfile is the v1 delivery-profile slot (L2-1-RLM-1). Build does
+	// not populate it (render-chain wiring is a later card): absent on all
+	// current records, and records without it load and behave exactly as
+	// before. nil marshals to no field, keeping old JSON byte-identical.
+	DeliveryProfile *DeliveryProfile `json:"delivery_profile,omitempty"`
 }
 
 type Summary struct {
