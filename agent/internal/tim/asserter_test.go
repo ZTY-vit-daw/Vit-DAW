@@ -2,6 +2,7 @@ package tim
 
 import (
 	"encoding/json"
+	"strings"
 	"testing"
 )
 
@@ -447,5 +448,66 @@ func TestBuildLLMContextCarriesAssertionCounts(t *testing.T) {
 	}
 	if !proj.LLMContext.DoNotIncludeRawPackage {
 		t.Fatalf("raw package disclosure flag regressed")
+	}
+}
+
+// L2-1-TIM-SMOKE-1: the warn-logger hook contract, both states. The injected
+// state is what the harness wiring relies on; the nil state keeps Build silent
+// and pure for library and test use.
+
+func withAssertWarnLogger(t *testing.T, hook func(string)) {
+	t.Helper()
+	prev := AssertWarnLogger
+	AssertWarnLogger = hook
+	t.Cleanup(func() { AssertWarnLogger = prev })
+}
+
+func TestAssertWarnLoggerInjectedEmitsFailLines(t *testing.T) {
+	captured := []string{}
+	withAssertWarnLogger(t, func(line string) { captured = append(captured, line) })
+	Build(Input{ProjectPackage: map[string]any{
+		"track_count": 1,
+		"tracks": []any{map[string]any{
+			"track_id": "t1", "clip_count": 1,
+			"primary_clip": map[string]any{"clip_id": "c1", "current_source_path": "/a/b.wav"},
+			"acoustic":    map[string]any{"status": "ready", "nan_count": 2, "peak_dbfs": -6.0},
+		}},
+	}})
+	if len(captured) == 0 {
+		t.Fatalf("no [tim.assert] lines captured with hook injected")
+	}
+	for _, line := range captured {
+		if !strings.HasPrefix(line, "[tim.assert] ") {
+			t.Fatalf("line lacks [tim.assert] prefix: %s", line)
+		}
+		if !strings.Contains(line, "status=fail") {
+			t.Fatalf("non-fail line emitted: %s", line)
+		}
+	}
+	joined := strings.Join(captured, "\n")
+	if !strings.Contains(joined, "asserter=signal_hygiene") || !strings.Contains(joined, "code=assert_signal_nonfinite") {
+		t.Fatalf("expected signal_hygiene fail line missing: %s", joined)
+	}
+	if !strings.Contains(joined, "track=t1") || !strings.Contains(joined, "value=2") || !strings.Contains(joined, "threshold=0") {
+		t.Fatalf("fail line key=value fields incomplete: %s", joined)
+	}
+}
+
+func TestAssertWarnLoggerNilStaysSilent(t *testing.T) {
+	withAssertWarnLogger(t, nil)
+	proj := Build(Input{ProjectPackage: map[string]any{
+		"track_count": 1,
+		"tracks": []any{map[string]any{
+			"track_id": "t1", "clip_count": 1,
+			"primary_clip": map[string]any{"clip_id": "c1", "current_source_path": "/a/b.wav"},
+			"acoustic":    map[string]any{"status": "ready", "nan_count": 2, "peak_dbfs": -6.0},
+		}},
+	}})
+	if AssertWarnLogger != nil {
+		t.Fatalf("nil hook was overwritten during Build")
+	}
+	row := assertionResultBy(t, proj, "signal_hygiene", "signal_nonfinite", "t1")
+	if row.Status != AssertionStatusFail {
+		t.Fatalf("nil hook changed the verdict: %#v", row)
 	}
 }
