@@ -17,6 +17,18 @@ type Input struct {
 	// project binding/topology and DAD completion state. It is never copied to
 	// the model projection; TIM may use it only after the binding is proven.
 	AuthoritativeState map[string]any
+	// Assertion inputs (L2-1-TIM-1). All optional and read-only; missing
+	// evidence yields not_evaluable assertion rows, never pass.
+	AudioSettings    map[string]any
+	RackSummaries    []RackSummary
+	KnownPluginPaths map[string]bool
+	// CeilingDBFS overrides the default -1.0 dBFS level ceiling when a profile
+	// (e.g. RLM true_peak_max) supplies one; nil keeps the default.
+	CeilingDBFS *float64
+	// AcousticEvidenceByTrack carries per-track L3 passthrough keys (nan_count,
+	// inf_count) keyed by track ID; used only when the compact acoustic row in
+	// ProjectPackage does not already carry them.
+	AcousticEvidenceByTrack map[string]map[string]any
 }
 
 type Projection struct {
@@ -30,6 +42,7 @@ type Projection struct {
 	RiskSummary      RiskSummary       `json:"risk_summary"`
 	Issues           []Issue           `json:"issues,omitempty"`
 	TrackFacts       []TrackFact       `json:"track_facts,omitempty"`
+	Assertions       []AssertionResult `json:"assertions,omitempty"`
 	EvidenceRefs     []string          `json:"evidence_refs,omitempty"`
 	Limitations      []string          `json:"limitations,omitempty"`
 	LLMContext       LLMContext        `json:"llm_context"`
@@ -114,7 +127,11 @@ type TrackFact struct {
 	RMSDBFS              *float64 `json:"rms_dbfs,omitempty"`
 	PeakDBFS             *float64 `json:"peak_dbfs,omitempty"`
 	HeadroomDB           *float64 `json:"headroom_db,omitempty"`
-	RiskCodes            []string `json:"risk_codes,omitempty"`
+	// NanCount/InfCount carry the L3 nonfinite passthrough evidence when the
+	// acoustic row (or the observation evidence map) exposes it.
+	NanCount  *int     `json:"nan_count,omitempty"`
+	InfCount  *int     `json:"inf_count,omitempty"`
+	RiskCodes []string `json:"risk_codes,omitempty"`
 }
 
 type LLMContext struct {

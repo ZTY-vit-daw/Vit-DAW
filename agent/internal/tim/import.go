@@ -79,6 +79,7 @@ func BuildFromImportRows(input ImportInput) Projection {
 		MixSessionID:       strings.TrimSpace(input.MixSessionID),
 		CreatedAt:          strings.TrimSpace(input.CreatedAt),
 		ProjectPackage:     projectPackage,
+		AudioSettings:      input.AudioSettings,
 		SourceCapabilities: input.SourceCapabilities,
 	})
 	if reported := firstPositiveInt(input.Summary, "tracks_created", "created_track_count", "created_tracks", "track_count", "tracks_to_create"); reported > len(tracks) {

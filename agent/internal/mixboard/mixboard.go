@@ -19,6 +19,7 @@ import (
 	"vit-daw-agent/internal/dom"
 	"vit-daw-agent/internal/fxm"
 	"vit-daw-agent/internal/mom"
+	"vit-daw-agent/internal/pluginsemantics"
 	"vit-daw-agent/internal/projectstore"
 	"vit-daw-agent/internal/tim"
 )
@@ -4028,7 +4029,74 @@ func timInputFromObservation(obs ObservationPacket, req Request) tim.Input {
 		AcousticPackageStatus: obs.AcousticPackageStatus,
 		SourceCapabilities:    stringMapToAnyMap(obs.SourceCapabilities),
 		AuthoritativeState:    authoritativeTIMState(obs, req),
+		// L2-1-TIM-1 assertion legs (design §3.1 input assembly): project audio
+		// settings for the sample-rate asserter, per-track rack digests for the
+		// routing/plugin asserters, the agent-side plugin semantics index as
+		// the known-plugin table, and per-track L3 nonfinite passthrough keys.
+		// All read-only; missing evidence degrades to not_evaluable in TIM.
+		AudioSettings:           timAudioSettings(req.ProjectState),
+		RackSummaries:           tim.RackSummariesFromProjectState(req.ProjectState),
+		KnownPluginPaths:        knownTIMPluginPaths(),
+		AcousticEvidenceByTrack: timAcousticEvidenceByTrack(obs),
 	}
+}
+
+func timAudioSettings(state map[string]any) map[string]any {
+	if settings := mapValue(state["audio_settings"]); len(settings) > 0 {
+		return settings
+	}
+	return mapValue(mapValue(state["project"])["audio_settings"])
+}
+
+// knownTIMPluginPaths loads the agent-side plugin semantics index as the
+// known-plugin table (design AS-PLUGIN: agent index over a new kernel
+// command). A missing or unreadable index returns nil so the plugin legality
+// assertion reports not_evaluable instead of fabricating fails.
+func knownTIMPluginPaths() map[string]bool {
+	index, err := pluginsemantics.Load("")
+	if err != nil {
+		return nil
+	}
+	paths := make(map[string]bool)
+	for _, entry := range index.Entries {
+		if path := strings.TrimSpace(entry.PluginPath); path != "" {
+			paths[path] = true
+		}
+	}
+	return paths
+}
+
+// timAcousticEvidenceByTrack copies the per-track L3 nonfinite passthrough
+// keys (nan_count/inf_count) out of the observation feature snapshot rows.
+func timAcousticEvidenceByTrack(obs ObservationPacket) map[string]map[string]any {
+	snapshot := mapValue(obs.GlobalSummary["feature_snapshot"])
+	if len(snapshot) == 0 {
+		return nil
+	}
+	out := map[string]map[string]any{}
+	for _, row := range mapRowsAny(snapshot["track_waveform_envelopes"]) {
+		trackID := cleanAnyString(row["track_id"])
+		if trackID == "" {
+			continue
+		}
+		evidence := map[string]any{}
+		for _, key := range []string{"nan_count", "inf_count"} {
+			if value, ok := row[key]; ok && value != nil {
+				evidence[key] = value
+			}
+		}
+		if len(evidence) == 0 {
+			continue
+		}
+		if existing := out[trackID]; len(existing) > 0 {
+			for key, value := range evidence {
+				existing[key] = value
+			}
+			continue
+		}
+		out[trackID] = evidence
+	}
+	return out
 }
 
 // authoritativeTIMState is deliberately a small internal summary. The full
