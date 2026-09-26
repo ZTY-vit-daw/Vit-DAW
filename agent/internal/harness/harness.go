@@ -8667,6 +8667,14 @@ func (h *Harness) searchAvailablePlugins(ctx context.Context, cmd map[string]any
 	}, nil
 }
 
+// defaultPluginScanPollIntervalMS caps the plugin_scan_status cadence when the
+// caller supplies no interval: each poll is dispatched to the kernel's JUCE
+// message thread (ZmqGateway full-payload reply + log flush), and the historical
+// 250ms default starved out-of-shell scan collection (FIX-HARNESS-SCANPOLL-1;
+// 600s/1800s watchdog forensics in coord/runs, silent 3s-poll counterproof).
+// 2000ms mirrors the journey driver knob validated on both ends.
+const defaultPluginScanPollIntervalMS = 2000
+
 func (h *Harness) scanAvailablePluginRows(ctx context.Context, cmd map[string]any) ([]map[string]any, []string, error) {
 	if h == nil || h.kernel == nil {
 		return nil, nil, fmt.Errorf("plugin inventory requires a kernel client")
@@ -8705,7 +8713,7 @@ func (h *Harness) scanAvailablePluginRows(ctx context.Context, cmd map[string]an
 	}
 	pollMS := int(numberFromAny(firstNonNil(cmd["scan_poll_interval_ms"], cmd["poll_interval_ms"])))
 	if pollMS <= 0 {
-		pollMS = 250
+		pollMS = defaultPluginScanPollIntervalMS
 	}
 	pollInterval := time.Duration(pollMS) * time.Millisecond
 	if pollInterval < 10*time.Millisecond {
