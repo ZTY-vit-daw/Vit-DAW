@@ -58,6 +58,29 @@ struct FineTransientEvent
     double sustainDbfs = -160.0;
 };
 
+// Discovery-layer primitives (L2-2-SEG-1, scope guard): deterministic per-frame
+// features feeding section discovery - onset events, an onset density curve and
+// an energy-domain novelty curve on the existing L3 frame grid. Boundary
+// picking, section naming and SSM computation are explicitly out of scope for
+// v1; every parameter below is a fixed compile-time constant and is echoed in
+// the published payload so downstream consumers can compare runs (the K5/K7
+// bounded-parameter determinism precedent).
+constexpr double kSegOnsetRiseDb = 3.0; // same rise criterion as the fine transient detector
+constexpr int kSegOnsetPublishLimit = 1024; // event disclosure cap; density uses the full scan
+constexpr double kSegDensityWindowSeconds = 1.0;
+
+struct SegmentationPrimitives
+{
+    // Full unbounded onset scan; the published event list is capped separately
+    // so the density curve never inherits the disclosure truncation.
+    std::vector<int> onsetFrameIndices;
+    std::vector<double> onsetRiseDb;
+    std::vector<double> novelty; // half-wave rectified linear rms difference
+    double maxNovelty = 0.0;
+    double meanNovelty = 0.0;
+    bool evaluable = false;
+};
+
 struct BoundedDistribution
 {
     int count = 0;
@@ -133,11 +156,13 @@ struct L3Analysis
     double balanceDb = 0.0;
     double correlation = 1.0;
     std::vector<FrameObservation> frames;
+    std::vector<double> frameRmsLinear; // novelty source; the dB clamp would erase sub-floor differences
     double noiseFloorEstimateDbfs = -160.0;
     double noiseFloorP10Dbfs = -160.0;
     double noiseFloorP50Dbfs = -160.0;
     std::vector<FineFrequencyEvent> frequencyEvents;
     std::vector<FineTransientEvent> transientEvents;
+    SegmentationPrimitives segmentation;
     std::array<BoundedDistribution, 6> bandTimeDistributions {};
     std::array<BoundedDistribution, 6> bandCrestDistributions {};
 };
@@ -302,6 +327,48 @@ int bandIndexForHz (double hz, const std::array<BandAccumulator, 6>& bands)
     return -1;
 }
 
+// Discovery-layer derivation. Runs after the frame sweep in the same
+// serialized worker, straight sequential loops over the in-memory frame
+// sequence - no concurrency, no reduction-order ambiguity, so replaying the
+// same source yields identical output (the K1 serialized-pool determinism
+// contract). The onset criterion mirrors the fine transient detector (rise of
+// kSegOnsetRiseDb against the previous frame plus a local peak against the
+// next frame) but keeps its own unbounded scan so the existing 128-event
+// transient list and its consumers are untouched.
+void deriveSegmentationPrimitives (L3Analysis& analysis)
+{
+    auto& seg = analysis.segmentation;
+    const auto& frames = analysis.frames;
+    if (frames.size() < 2 || analysis.frameRmsLinear.size() != frames.size())
+        return; // evaluable stays false; publish carries an explicit not_evaluable state
+
+    for (int i = 1; i + 1 < (int) frames.size(); ++i)
+    {
+        const auto& current = frames[(size_t) i];
+        const double riseDb = current.rmsDbfs - frames[(size_t) (i - 1)].rmsDbfs;
+        if (riseDb >= kSegOnsetRiseDb && current.rmsDbfs >= frames[(size_t) (i + 1)].rmsDbfs)
+        {
+            seg.onsetFrameIndices.push_back (i);
+            seg.onsetRiseDb.push_back (riseDb);
+        }
+    }
+
+    seg.novelty.assign (frames.size(), 0.0);
+    double noveltySum = 0.0;
+    for (size_t i = 1; i < frames.size(); ++i)
+    {
+        const double difference = analysis.frameRmsLinear[i] - analysis.frameRmsLinear[i - 1];
+        if (difference > 0.0)
+        {
+            seg.novelty[i] = difference;
+            noveltySum += difference;
+            seg.maxNovelty = juce::jmax (seg.maxNovelty, difference);
+        }
+    }
+    seg.meanNovelty = noveltySum / (double) frames.size();
+    seg.evaluable = true;
+}
+
 juce::String balanceStateForDb (double balanceDb)
 {
     if (! std::isfinite (balanceDb))
@@ -393,6 +460,7 @@ void finishEvidence (L3Analysis& analysis, const juce::String& extraReason = {})
     }
 
     deriveFineEvidence (analysis);
+    deriveSegmentationPrimitives (analysis);
 }
 
 std::unique_ptr<juce::DynamicObject> makeSourceIdentity (const AudioFeatureBakeRequest& request,
@@ -721,6 +789,130 @@ void publishLoudnessSummary (const AudioFeatureBakeRequest& request,
 	publish (payload);
 }
 
+// Discovery-layer primitives publication. The payload always publishes - also
+// for degenerate sources - with explicit not_evaluable sub-states, so an
+// absent feature is never conflated with a silent empty one. All derivation
+// parameters are echoed as comparability keys (A3-style measurement
+// comparability: same window_ms/hop_ms/method/version implies comparable
+// runs).
+void publishSegmentationPrimitives (const AudioFeatureBakeRequest& request,
+                                    const L3Analysis& analysis,
+                                    const L3AcousticAnalyzer::PublishCallback& publish)
+{
+    if (! publish)
+        return;
+
+    const auto& seg = analysis.segmentation;
+    const auto& frames = analysis.frames;
+    const bool ready = analysis.evidence.status == "ready" && seg.evaluable;
+    const juce::String subStatus = ready ? "ready" : "not_evaluable";
+
+    auto obj = std::make_unique<juce::DynamicObject>();
+    stampCommon (*obj, request, analysis, AudioFeatureType::SegmentationPrimitives);
+    obj->setProperty ("frame_count", (int64) analysis.fftFrameCount);
+    obj->setProperty ("window_ms", analysis.frameWindowMs);
+    obj->setProperty ("hop_ms", analysis.frameHopMs);
+    obj->setProperty ("primitives_scope", "onset_density+energy_novelty_v1_no_boundary_picking");
+
+    {
+        auto onsets = std::make_unique<juce::DynamicObject>();
+        onsets->setProperty ("status", subStatus);
+        onsets->setProperty ("method", "rms_frame_local_peak_rise_v1");
+        onsets->setProperty ("rise_threshold_db", kSegOnsetRiseDb);
+        onsets->setProperty ("window_ms", analysis.frameWindowMs);
+        onsets->setProperty ("hop_ms", analysis.frameHopMs);
+        onsets->setProperty ("detected_count", (int64) seg.onsetFrameIndices.size());
+        onsets->setProperty ("publish_limit", kSegOnsetPublishLimit);
+        onsets->setProperty ("truncated", seg.onsetFrameIndices.size() > (size_t) kSegOnsetPublishLimit);
+        juce::Array<juce::var> events;
+        const size_t publishedCount = std::min (seg.onsetFrameIndices.size(), (size_t) kSegOnsetPublishLimit);
+        for (size_t k = 0; ready && k < publishedCount; ++k)
+        {
+            const auto frameIndex = (size_t) seg.onsetFrameIndices[k];
+            auto row = std::make_unique<juce::DynamicObject>();
+            row->setProperty ("onset_seconds", frames[frameIndex].startSeconds);
+            row->setProperty ("frame_index", seg.onsetFrameIndices[k]);
+            row->setProperty ("onset_dbfs", frames[frameIndex].rmsDbfs);
+            row->setProperty ("rise_db", seg.onsetRiseDb[k]);
+            events.add (juce::var (row.release()));
+        }
+        onsets->setProperty ("published_count", (int64) publishedCount);
+        onsets->setProperty ("events", events);
+        onsets->setProperty ("evidence_refs", juce::Array<juce::var> { "dad.l3.segmentation_primitives.onset_events" });
+        obj->setProperty ("onset_events", juce::var (onsets.release()));
+    }
+
+    {
+        auto density = std::make_unique<juce::DynamicObject>();
+        density->setProperty ("status", subStatus);
+        density->setProperty ("method", "sliding_window_onset_count_v1");
+        density->setProperty ("window_seconds", kSegDensityWindowSeconds);
+        density->setProperty ("hop_seconds", analysis.frameHopMs / 1000.0);
+        density->setProperty ("frame_count", (int64) frames.size());
+        juce::Array<juce::var> densityFrames;
+        if (ready && ! frames.empty())
+        {
+            // Sliding window over the FULL onset scan (a per-frame indicator
+            // plus prefix sums), so the curve is unaffected by the event list
+            // disclosure cap. One entry per L3 frame - same grid as the rest
+            // of the L3 features.
+            const int windowFrames = juce::jmax (1, (int) std::llround (
+                kSegDensityWindowSeconds / juce::jmax (1.0e-6, analysis.frameHopMs / 1000.0)));
+            density->setProperty ("window_frames", windowFrames);
+            std::vector<int64> prefix (frames.size() + 1, 0);
+            for (const auto frameIndex : seg.onsetFrameIndices)
+                ++prefix[(size_t) frameIndex + 1];
+            for (size_t i = 0; i < frames.size(); ++i)
+                prefix[i + 1] += prefix[i];
+            for (size_t i = 0; i < frames.size(); ++i)
+            {
+                const auto windowStart = (size_t) juce::jmax (0, (int) i + 1 - windowFrames);
+                const int64 count = prefix[i + 1] - prefix[windowStart];
+                auto row = std::make_unique<juce::DynamicObject>();
+                row->setProperty ("start_seconds", frames[i].startSeconds);
+                row->setProperty ("end_seconds", frames[i].endSeconds);
+                row->setProperty ("onset_count", count);
+                row->setProperty ("onsets_per_second", (double) count / kSegDensityWindowSeconds);
+                densityFrames.add (juce::var (row.release()));
+            }
+        }
+        else
+        {
+            density->setProperty ("window_frames", 0);
+        }
+        density->setProperty ("frames", densityFrames);
+        density->setProperty ("evidence_refs", juce::Array<juce::var> { "dad.l3.segmentation_primitives.onset_density" });
+        obj->setProperty ("onset_density", juce::var (density.release()));
+    }
+
+    {
+        auto novelty = std::make_unique<juce::DynamicObject>();
+        novelty->setProperty ("status", subStatus);
+        novelty->setProperty ("method", "short_window_energy_difference_v1");
+        novelty->setProperty ("novelty_domain", "linear_rms_halfwave_difference");
+        novelty->setProperty ("window_ms", analysis.frameWindowMs);
+        novelty->setProperty ("hop_ms", analysis.frameHopMs);
+        novelty->setProperty ("frame_count", (int64) frames.size());
+        novelty->setProperty ("max_novelty", seg.maxNovelty);
+        novelty->setProperty ("mean_novelty", seg.meanNovelty);
+        juce::Array<juce::var> noveltyFrames;
+        for (size_t i = 0; ready && i < seg.novelty.size() && i < frames.size(); ++i)
+        {
+            auto row = std::make_unique<juce::DynamicObject>();
+            row->setProperty ("start_seconds", frames[i].startSeconds);
+            row->setProperty ("end_seconds", frames[i].endSeconds);
+            row->setProperty ("novelty", seg.novelty[i]);
+            noveltyFrames.add (juce::var (row.release()));
+        }
+        novelty->setProperty ("frames", noveltyFrames);
+        novelty->setProperty ("evidence_refs", juce::Array<juce::var> { "dad.l3.segmentation_primitives.energy_novelty" });
+        obj->setProperty ("energy_novelty", juce::var (novelty.release()));
+    }
+
+	const auto payload = juce::JSON::toString (juce::var (obj.release()), true);
+	publish (payload);
+}
+
 L3Analysis analyzeFile (const AudioFeatureBakeRequest& request)
 {
     L3Analysis analysis;
@@ -865,11 +1057,15 @@ L3Analysis analyzeFile (const AudioFeatureBakeRequest& request)
         FrameObservation frame;
         frame.startSeconds = (double) pos / sr;
         frame.endSeconds = (double) (pos + valid) / sr;
-        frame.rmsDbfs = dbFromLinear (frameSumSquares > 0.0 ? std::sqrt (frameSumSquares / (double) juce::jmax (1, valid * channelsForEvidence)) : 0.0);
+        const double frameRmsLinearValue = frameSumSquares > 0.0
+            ? std::sqrt (frameSumSquares / (double) juce::jmax (1, valid * channelsForEvidence))
+            : 0.0;
+        frame.rmsDbfs = dbFromLinear (frameRmsLinearValue);
         frame.peakDbfs = dbFromLinear (framePeakAbs);
         for (size_t band = 0; band < frameBandEnergy.size(); ++band)
             frame.bandDbfs[band] = dbFromEnergy (frameBandEnergy[band]);
         analysis.frames.push_back (frame);
+        analysis.frameRmsLinear.push_back (frameRmsLinearValue);
         ++analysis.fftFrameCount;
     }
 
@@ -888,6 +1084,8 @@ void publishSummaries (const AudioFeatureBakeRequest& request,
         publishStereoSummary (request, analysis, publish);
     if (requested == AudioFeatureType::LoudnessSummary || requested == AudioFeatureType::L3AcousticSummary)
         publishLoudnessSummary (request, analysis, publish);
+    if (requested == AudioFeatureType::SegmentationPrimitives)
+        publishSegmentationPrimitives (request, analysis, publish);
 }
 
 juce::ThreadPool& l3AnalysisPool()

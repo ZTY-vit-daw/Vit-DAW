@@ -122,6 +122,26 @@ if(EXISTS "${VIT_TRACKTION_ENGINE_DIR}/CMakeLists.txt")
         juce::juce_audio_processors
         juce::juce_recommended_config_flags)
     add_test(NAME VitPluginListHygieneTests COMMAND VitPluginListHygieneTests)
+
+    # L2-2-SEG-1: segmentation primitives v1 — deterministic replay, structural
+    # onset/novelty contents, and explicit not_evaluable states. JUCE-only
+    # linkage (L3AcousticAnalyzer + AudioFeatureTypes), no tracktion.
+    juce_add_console_app(VitSegmentationPrimitivesTests PRODUCT_NAME "VitSegmentationPrimitivesTests")
+    juce_generate_juce_header(VitSegmentationPrimitivesTests)
+    target_sources(VitSegmentationPrimitivesTests PRIVATE
+        SegmentationPrimitivesTests.cpp
+        ../Source/Service/L3AcousticAnalyzer.cpp
+        ../Source/Service/L3AcousticAnalyzer.h
+        ../Source/Service/AudioFeatureTypes.cpp
+        ../Source/Service/AudioFeatureTypes.h)
+    target_compile_features(VitSegmentationPrimitivesTests PRIVATE cxx_std_20)
+    target_include_directories(VitSegmentationPrimitivesTests PRIVATE ../Source)
+    target_compile_definitions(VitSegmentationPrimitivesTests PRIVATE JUCE_USE_CURL=0 JUCE_WEB_BROWSER=0)
+    target_link_libraries(VitSegmentationPrimitivesTests PRIVATE
+        juce::juce_dsp
+        juce::juce_audio_utils
+        juce::juce_recommended_config_flags)
+    add_test(NAME VitSegmentationPrimitivesTests COMMAND VitSegmentationPrimitivesTests)
 else()
     message(FATAL_ERROR
         "Tracktion Engine not found. Set -DVIT_TRACKTION_ENGINE_DIR=<path> to a populated Tracktion Engine checkout.")
@@ -140,6 +160,9 @@ if(MSVC)
     if(TARGET VitPluginListHygieneTests)
         target_compile_options(VitPluginListHygieneTests PRIVATE /W4 /permissive-)
     endif()
+    if(TARGET VitSegmentationPrimitivesTests)
+        target_compile_options(VitSegmentationPrimitivesTests PRIVATE /W4 /permissive-)
+    endif()
 else()
     target_compile_options(VitAuditionPreviewStateTests PRIVATE -Wall -Wextra -Wpedantic)
     target_compile_options(VitWorkingCopyPersistPolicyTests PRIVATE -Wall -Wextra -Wpedantic)
@@ -152,6 +175,9 @@ else()
     endif()
     if(TARGET VitPluginListHygieneTests)
         target_compile_options(VitPluginListHygieneTests PRIVATE -Wall -Wextra -Wpedantic)
+    endif()
+    if(TARGET VitSegmentationPrimitivesTests)
+        target_compile_options(VitSegmentationPrimitivesTests PRIVATE -Wall -Wextra -Wpedantic)
     endif()
 endif()
 

@@ -196,7 +196,8 @@ void AudioFeatureService::requestBake (AudioFeatureBakeRequest request,
     if (request.featureType == AudioFeatureType::BandEnergySummary
         || request.featureType == AudioFeatureType::StereoRelationSummary
         || request.featureType == AudioFeatureType::LoudnessSummary
-        || request.featureType == AudioFeatureType::L3AcousticSummary)
+        || request.featureType == AudioFeatureType::L3AcousticSummary
+        || request.featureType == AudioFeatureType::SegmentationPrimitives)
     {
         L3AcousticAnalyzer::startAnalyze (std::move (request), std::move (publishCallback));
         return;
