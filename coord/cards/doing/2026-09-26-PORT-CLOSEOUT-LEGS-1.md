@@ -10,6 +10,6 @@
 - 约束：零主仓代码改动（旋钮回撤是 scripts/ 仓库改动走 port/* 分支+决策侧合入）；token/key 零入工件；§8 照旧
 - 验收：①默认旋钮 journey 全绿证据+回撤后冒烟绿 ②前端仓 commit+加载确认+sha 注记 ③回执两端 HEAD
 - 停止条件：默认旋钮下扫描段看门狗复发 → 取证上交（PC 修复未吸收 mac 形态）；前端目标路径与 PC 仓结构冲突 → 记录上交
-- 领取：
+- 领取：2026-09-26 13:29 +0800 / origin/main=b46c1fd（HEAD 同基线；领取前工作树既有：M Settings.xml+default_project.xml（运行时状态）、?? VitApp/Workspace/Artifacts/、?? coord/runs/FIX-PCA-AUTOSWEEP-1/20260925_mac/，均与本卡无关不动）/ 分支：scripts 回撤=port/closeout-knob-revert；前端仓=port/leg5-telemetry-probe（领取时拟定）
 - 回执：
 - 验收：
