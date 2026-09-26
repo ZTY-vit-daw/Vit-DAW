@@ -14,3 +14,4 @@
 - 验收：①view 目录 ≥10 个 view 逐一列出（键名/内容/裁剪/锚点）②参数化基线结论（现状零参数化或列出例外）③缺口清单 ≥6 条带锚点 ④报告入库
 - 停止条件：view 体系分多层入口盘点不完 → 成稿部分+剩余层列明上交
 - 领取：2026-09-27 夜间托管 / origin/main a5196303f6c756f7baec8eb66a48582c73dc5fec / 报告分支 port/ccb-view-recon-1（卡回执直推 main）
+- 回执：报告 coord/runs/CCB-VIEW-RECON-1/CCB_VIEW_INVENTORY.md @ port/ccb-view-recon-1（自 main 2a7ad99 拉出）；零代码改动（工作树无源码 diff，仅新增报告文件）。验收对照：①18 view 逐一列出（≥10）✓ ②参数化基线=尺度零参数化+选择面 5 参数（view_ids/target/freshness_class/max_disclosure_bytes/max_items）✓ ③缺口 7 条带锚点（≥6）✓ ④报告入库 ✓。机检：22 处锚点 sed 抽验全命中；文件域=仅 coord/runs/CCB-VIEW-RECON-1/。互证：L1-1 报告 §2.F/§3 I2/I3/I5/§4 已交叉标注。发现要点：GetViewsForDimension（按维度反查 view）全库仅测试调用无生产接线——L1-3 即席查询可复用为目录谓词入口。
