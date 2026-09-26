@@ -2079,6 +2079,51 @@ func TestScanAvailablePluginRowsHonorsContextCancellationWhilePolling(t *testing
 	}
 }
 
+// alwaysScanningKernel pins an async plugin scan in the "scanning" state so the
+// default poll cadence is the only behavior under observation.
+type alwaysScanningKernel struct {
+	commands    int
+	firstPollAt time.Time
+}
+
+func (k *alwaysScanningKernel) SendCommand(_ context.Context, cmd map[string]any) (map[string]any, string, error) {
+	k.commands++
+	if firstString(cmd, "cmd") == "plugin_scan_status" && k.firstPollAt.IsZero() {
+		k.firstPollAt = time.Now()
+	}
+	return map[string]any{"status": "scanning", "scan_id": "scan-cadence"}, "", nil
+}
+
+func TestScanAvailablePluginRowsDefaultPollCadenceSparesKernelMessageThread(t *testing.T) {
+	// FIX-HARNESS-SCANPOLL-1: each plugin_scan_status poll is dispatched to the
+	// kernel's JUCE message thread (ZmqGateway full-payload reply + log flush),
+	// so the default cadence must stay at the driver-knob value (>= 2s). The old
+	// 250ms default starved out-of-shell scan collection and tripped the
+	// 600s/1800s watchdogs during journey warm-up.
+	kernel := &alwaysScanningKernel{}
+	h := New(nil, nil, nil)
+	h.kernel = kernel
+
+	start := time.Now()
+	ctx, cancel := context.WithTimeout(context.Background(), 2200*time.Millisecond)
+	defer cancel()
+	_, _, err := h.scanAvailablePluginRows(ctx, map[string]any{})
+	if !errors.Is(err, context.DeadlineExceeded) {
+		t.Fatalf("error=%v, want context.DeadlineExceeded", err)
+	}
+	elapsed := time.Since(start)
+	polls := kernel.commands - 1 // first command is the scan_plugins kick-off
+	if polls < 0 {
+		t.Fatalf("kernel commands=%d, want at least the scan_plugins kick-off", kernel.commands)
+	}
+	if polls > 1 {
+		t.Fatalf("default cadence issued %d plugin_scan_status polls within %v; want <= 1 (default interval must be >= 2s)", polls, elapsed)
+	}
+	if polls == 1 && kernel.firstPollAt.Sub(start) < 1500*time.Millisecond {
+		t.Fatalf("first plugin_scan_status poll after %v; want >= 1500ms (default interval must be >= 2s)", kernel.firstPollAt.Sub(start))
+	}
+}
+
 func TestPluginParametersPublicResultIsCompact(t *testing.T) {
 	h := New(nil, nil, nil)
 	result := h.publicResult(tools.CommandSpec{CommandName: "get_plugin_parameters"}, nil, map[string]any{
