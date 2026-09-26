@@ -1,6 +1,6 @@
 # PORT-FE-ALIGN-1：PC 前端仓治理与双端对齐——基线厘清 + leg5 并入 +（待批）远程建立
 
-- 优先级 / 预估 / 依赖：P1 / 0.5 天 / rulings/2026-09-26-PORT-CLOSEOUT-LEGS-1-pass.md 遗留②；**前置用户决策 D-FE-REMOTE：前端仓是否建私有远程**（2026-09-26 备份发现该仓零远程=单点故障，bundle 是唯一异地副本）
+- 优先级 / 预估 / 依赖：P1 / 0.5 天 / rulings/2026-09-26-PORT-CLOSEOUT-LEGS-1-pass.md 遗留②；**D-FE-REMOTE 已批准（用户 2026-09-26"可以"）——目标 3 转正式执行项**
 - 模型分级：L1（分支/提交整理需谨慎，flash 可接但验收从严）/ 建议 GLM 亲自或强督导
 - **执行侧（PC 侧卡，文件域=D:\Godot\project\vit-daw-frontend，仓库外）**
 - 现状快照（2026-09-26 决策侧备份时点）：分支 `codex/auto-mix-session-entry`（HEAD 4f631a8，GD-TELEMETRY-BELL-1）；32 项未提交改动（M 含 telemetry_manager.gd/GlobalSettingsModal/start_page 等 + D 一批 archive 大文件）；15 项 untracked（12 个手测工程目录 + 3 个新 probe 脚本）；未提交面已备份至 `D:\Vit_DAW_backup\`（patch+status+probes）
