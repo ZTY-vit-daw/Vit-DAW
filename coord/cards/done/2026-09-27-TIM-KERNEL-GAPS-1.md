@@ -12,3 +12,4 @@
 - 验收：①设计 §5 清单逐项覆盖（8 项±以文档为准）②每项四要素齐 ③共性前置识别 ≥1 组 ④报告入库
 - 停止条件：设计 §5 与文档实际清单不符（分支未合入等）→ 停止上交，不按错误清单展开
 - 领取：2026-09-27 夜间托管 / origin/main 83473dd / 报告分支 port/tim-kernel-gaps-1（卡回执直推 main）；停止条件核查：docs/TIM_ASSERTER_V1_DESIGN.md §5 在位且为 8 项清单（:190-201），与卡面预期一致，未触发
+- 回执：报告 coord/runs/TIM-KERNEL-GAPS-1/KERNEL_GAP_EXPANSION.md @ port/tim-kernel-gaps-1（自 main b104ca3 拉出）；零代码改动（仅新增报告文件）。验收对照：①§5 八项逐项展开 ✓ ②每项四要素（锚点/工作量含依据/依赖/排卡建议）✓ ③共性前置三组（A 披露扩展/B L3 证据字段/C 断言器 v2 框架已建成）✓ ④报告入库 ✓。机检：16 处锚点 sed 抽验，3 处行号漂移已修正（plugins:3312/rack:3314/createProjectStatePluginsArray:897）。发现要点：设计文档 item 8"aux_send 全库零命中"需修正——Tracktion 引擎自带 AuxSendPlugin（tracktion_AuxSend.h:14+），缺的是 VitApp 披露面非路由能力；设计文档 L3 行号锚点相对当前 HEAD 漂移约 +70 行（本报告已用复核锚点）。排卡建议六张（卫生小卡→披露扩展→true peak→实时削波→LUFS(D9-gated)→aux 拓扑）。
