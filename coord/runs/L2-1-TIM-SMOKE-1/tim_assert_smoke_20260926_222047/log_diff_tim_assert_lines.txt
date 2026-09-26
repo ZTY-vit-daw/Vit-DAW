@@ -1,0 +1,11 @@
+﻿2026-09-26T22:21:07 [WARN] VSP realtime publish pending failures=2041 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-26T22:21:07 [WARN] VSP realtime publish pending failures=2041 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-26T22:21:12 [WARN] VSP realtime publish pending failures=2061 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-26T22:21:12 [WARN] VSP realtime publish pending failures=2061 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-26T22:21:14 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=260 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-26T22:21:15 [WARN] [tim.assert] asserter=signal_hygiene check=clipping_headroom status=fail track=2952 value=-0.009 threshold=-0.1 code=possible_clipping_or_no_headroom
+2026-09-26T22:21:15 [WARN] [tim.assert] asserter=level_ceiling check=ceiling status=fail track=2952 value=-0.009 threshold=-1 code=assert_level_ceiling_exceeded
+2026-09-26T22:21:15 [WARN] [tim.assert] asserter=signal_hygiene check=clipping_headroom status=fail track=2952 value=-0.009 threshold=-0.1 code=possible_clipping_or_no_headroom
+2026-09-26T22:21:15 [WARN] [tim.assert] asserter=level_ceiling check=ceiling status=fail track=2952 value=-0.009 threshold=-1 code=assert_level_ceiling_exceeded
+2026-09-26T22:21:17 [WARN] VSP realtime publish pending failures=2081 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-26T22:21:17 [WARN] VSP realtime publish pending failures=2081 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.

@@ -1,0 +1,19 @@
+﻿{
+    "run_id":  "tim_assert_smoke_20260926_220853",
+    "card":  "L2-1-TIM-SMOKE-1",
+    "started_at":  "2026-09-26T14:08:53.8559956Z",
+    "command_line":  "",
+    "repo_head":  "4426903e31b9bf3bbf1e30b3eb5460c8a0d4738b",
+    "repo_status":  "M VitApp/Workspace/default_project.xml;  M agent/internal/harness/harness.go;  M agent/internal/tim/asserter_test.go; R  coord/cards/todo/2026-09-27-L2-1-TIM-SMOKE-1.md -\u003e coord/cards/doing/2026-09-27-L2-1-TIM-SMOKE-1.md; ?? agent/internal/harness/tim_assert_wiring_test.go; ?? coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/journey/; ?? coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/journey2/; ?? coord/runs/FIX-PCA-EQCHANNEL-1/journey1/; ?? coord/runs/FIX-PCA-EQCHANNEL-1/journey2/; ?? coord/runs/FIX-PCA-EQCHANNEL-1/journey3/; ?? coord/runs/FIX-PCA-EQCHANNEL-1/journey4/; ?? coord/runs/L2-1-TIM-SMOKE-1/; ?? coord/runs/PORT-WIN-HYGIENE-SMOKE-1/hygiene_pc_20260926-170105/; ?? coord/runs/PORT-WIN-HYGIENE-SMOKE-1/hygiene_pc_20260926-172229/project/; ?? coord/runs/PORT-WIN-HYGIENE-SMOKE-1/hygiene_pc_20260926-172229/replies/W1_list.json; ?? coord/runs/PORT-WIN-HYGIENE-SMOKE-1/hygiene_pc_20260926-172229/replies/W2_list.json; ?? coord/runs/PORT-WIN-HYGIENE-SMOKE-1/hygiene_pc_20260926-172229/replies/W3_list.json; ?? coord/runs/PORT-WIN-HYGIENE-SMOKE-1/hygiene_pc_20260926-172229/settings_states/; ?? scripts/tim_assert_smoke.ps1",
+    "stack_mode":  "",
+    "fixture":  {
+
+                },
+    "assertions_block":  {
+
+                         },
+    "log_diff":  {
+
+                 },
+    "verdict":  "stack_bringup_failed"
+}

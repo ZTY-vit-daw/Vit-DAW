@@ -1,0 +1,4 @@
+﻿2026-09-26T22:24:54 [WARN] [tim.assert] asserter=signal_hygiene check=clipping_headroom status=fail track=2957 value=-0.009 threshold=-0.1 code=possible_clipping_or_no_headroom
+2026-09-26T22:24:54 [WARN] [tim.assert] asserter=level_ceiling check=ceiling status=fail track=2957 value=-0.009 threshold=-1 code=assert_level_ceiling_exceeded
+2026-09-26T22:24:54 [WARN] [tim.assert] asserter=signal_hygiene check=clipping_headroom status=fail track=2957 value=-0.009 threshold=-0.1 code=possible_clipping_or_no_headroom
+2026-09-26T22:24:54 [WARN] [tim.assert] asserter=level_ceiling check=ceiling status=fail track=2957 value=-0.009 threshold=-1 code=assert_level_ceiling_exceeded

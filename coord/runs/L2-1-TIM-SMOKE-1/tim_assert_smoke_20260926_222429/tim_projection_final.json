@@ -1,0 +1,692 @@
+﻿{
+    "schema_version":  "tim.projection.v0",
+    "tim_version":  "v0",
+    "observation_id":  "obs_20260926T142454_110f398a9eeb",
+    "mix_session_id":  "tim_assert_smoke_20260926_222429",
+    "status":  "partial",
+    "technical_summary":  {
+                              "track_count":  7,
+                              "clip_count":  11,
+                              "source_present_count":  7,
+                              "playback_valid_count":  7,
+                              "acoustic_ready_track_count":  7,
+                              "pcm_source_count":  7,
+                              "format_family_counts":  {
+                                                           "pcm_like_or_lossless":  7
+                                                       }
+                          },
+    "coverage":  {
+                     "source_path":  {
+                                         "status":  "ready",
+                                         "known_count":  7,
+                                         "total_count":  7
+                                     },
+                     "playback_validity":  {
+                                               "status":  "ready",
+                                               "known_count":  7,
+                                               "total_count":  7
+                                           },
+                     "format_family":  {
+                                           "status":  "ready",
+                                           "known_count":  7,
+                                           "total_count":  7
+                                       },
+                     "sample_rate":  {
+                                         "status":  "missing",
+                                         "known_count":  0,
+                                         "total_count":  7,
+                                         "missing_count":  7
+                                     },
+                     "bit_depth":  {
+                                       "status":  "missing",
+                                       "known_count":  0,
+                                       "total_count":  7,
+                                       "missing_count":  7
+                                   },
+                     "channel_count":  {
+                                           "status":  "missing",
+                                           "known_count":  0,
+                                           "total_count":  7,
+                                           "missing_count":  7
+                                       },
+                     "acoustic_package":  {
+                                              "status":  "ready",
+                                              "known_count":  7,
+                                              "total_count":  7
+                                          }
+                 },
+    "risk_summary":  {
+                         "overall_risk":  "medium",
+                         "issue_count":  3,
+                         "by_severity":  {
+                                             "warning":  3
+                                         },
+                         "primary_codes":  [
+                                               "possible_clipping_or_no_headroom",
+                                               "assert_level_ceiling_exceeded"
+                                           ]
+                     },
+    "issues":  [
+                   {
+                       "code":  "possible_clipping_or_no_headroom",
+                       "severity":  "warning",
+                       "track_id":  "2957",
+                       "track_name":  "Track 7",
+                       "clip_id":  "2961",
+                       "clip_name":  "tim_assert_near_full_scale_11844_1790432680132",
+                       "detail":  "Peak is at or above -0.1 dBFS in the acoustic summary.",
+                       "evidence_refs":  [
+                                             "mix.read:project.tracks.summary",
+                                             "mix.read:project.acoustic.tracks"
+                                         ]
+                   },
+                   {
+                       "code":  "possible_clipping_or_no_headroom",
+                       "severity":  "warning",
+                       "track_id":  "2957",
+                       "track_name":  "Track 7",
+                       "clip_id":  "2961",
+                       "clip_name":  "tim_assert_near_full_scale_11844_1790432680132",
+                       "detail":  "Headroom is below 0.1 dB in the acoustic summary.",
+                       "evidence_refs":  [
+                                             "mix.read:project.tracks.summary",
+                                             "mix.read:project.acoustic.tracks"
+                                         ]
+                   },
+                   {
+                       "code":  "assert_level_ceiling_exceeded",
+                       "severity":  "warning",
+                       "track_id":  "2957",
+                       "track_name":  "Track 7",
+                       "detail":  "Structural assertion level_ceiling/ceiling failed on track 2957 (value=-0.009 threshold=-1).",
+                       "evidence_refs":  [
+                                             "mix.read:project.tracks.summary",
+                                             "mix.read:project.acoustic.tracks"
+                                         ]
+                   }
+               ],
+    "track_facts":  [
+                        {
+                            "track_id":  "1007",
+                            "track_name":  "bass",
+                            "clip_id":  "1011",
+                            "clip_name":  "bass",
+                            "clip_count":  5,
+                            "length_seconds":  20,
+                            "source_present":  true,
+                            "source_status":  "present",
+                            "playback_source_status":  "valid",
+                            "source_extension":  "wav",
+                            "format_family":  "pcm_like_or_lossless",
+                            "acoustic_status":  "ready",
+                            "rms_dbfs":  -30.256,
+                            "peak_dbfs":  -15.873,
+                            "headroom_db":  15.873
+                        },
+                        {
+                            "track_id":  "1012",
+                            "track_name":  "drums",
+                            "clip_id":  "1016",
+                            "clip_name":  "drums",
+                            "clip_count":  1,
+                            "length_seconds":  20,
+                            "source_present":  true,
+                            "source_status":  "present",
+                            "playback_source_status":  "valid",
+                            "source_extension":  "wav",
+                            "format_family":  "pcm_like_or_lossless",
+                            "acoustic_status":  "ready",
+                            "rms_dbfs":  -20.94,
+                            "peak_dbfs":  -5.328,
+                            "headroom_db":  5.328
+                        },
+                        {
+                            "track_id":  "1017",
+                            "track_name":  "guitar",
+                            "clip_id":  "1021",
+                            "clip_name":  "guitar",
+                            "clip_count":  1,
+                            "length_seconds":  20,
+                            "source_present":  true,
+                            "source_status":  "present",
+                            "playback_source_status":  "valid",
+                            "source_extension":  "wav",
+                            "format_family":  "pcm_like_or_lossless",
+                            "acoustic_status":  "ready",
+                            "rms_dbfs":  -31.817,
+                            "peak_dbfs":  -11.567,
+                            "headroom_db":  11.567
+                        },
+                        {
+                            "track_id":  "1022",
+                            "track_name":  "other",
+                            "clip_id":  "1026",
+                            "clip_name":  "other",
+                            "clip_count":  1,
+                            "length_seconds":  20,
+                            "source_present":  true,
+                            "source_status":  "present",
+                            "playback_source_status":  "valid",
+                            "source_extension":  "wav",
+                            "format_family":  "pcm_like_or_lossless",
+                            "acoustic_status":  "ready",
+                            "rms_dbfs":  -22.683,
+                            "peak_dbfs":  -5.604,
+                            "headroom_db":  5.604
+                        },
+                        {
+                            "track_id":  "1027",
+                            "track_name":  "piano",
+                            "clip_id":  "1031",
+                            "clip_name":  "piano",
+                            "clip_count":  1,
+                            "length_seconds":  20,
+                            "source_present":  true,
+                            "source_status":  "present",
+                            "playback_source_status":  "valid",
+                            "source_extension":  "wav",
+                            "format_family":  "pcm_like_or_lossless",
+                            "acoustic_status":  "ready",
+                            "rms_dbfs":  -27.619,
+                            "peak_dbfs":  -8.61,
+                            "headroom_db":  8.61
+                        },
+                        {
+                            "track_id":  "1032",
+                            "track_name":  "vocals",
+                            "clip_id":  "1036",
+                            "clip_name":  "vocals",
+                            "clip_count":  1,
+                            "length_seconds":  20,
+                            "source_present":  true,
+                            "source_status":  "present",
+                            "playback_source_status":  "valid",
+                            "source_extension":  "wav",
+                            "format_family":  "pcm_like_or_lossless",
+                            "acoustic_status":  "ready",
+                            "rms_dbfs":  -19.843,
+                            "peak_dbfs":  -5.22,
+                            "headroom_db":  5.22
+                        },
+                        {
+                            "track_id":  "2957",
+                            "track_name":  "Track 7",
+                            "clip_id":  "2961",
+                            "clip_name":  "tim_assert_near_full_scale_11844_1790432680132",
+                            "clip_count":  1,
+                            "length_seconds":  2.2,
+                            "source_present":  true,
+                            "source_status":  "present",
+                            "playback_source_status":  "valid",
+                            "source_extension":  "wav",
+                            "format_family":  "pcm_like_or_lossless",
+                            "acoustic_status":  "ready",
+                            "rms_dbfs":  -3.019,
+                            "peak_dbfs":  -0.009,
+                            "headroom_db":  0.009,
+                            "risk_codes":  [
+                                               "possible_clipping_or_no_headroom"
+                                           ]
+                        }
+                    ],
+    "assertions":  [
+                       {
+                           "asserter":  "signal_hygiene",
+                           "check":  "signal_nonfinite",
+                           "status":  "not_evaluable",
+                           "track_id":  "1007",
+                           "code":  "assert_signal_nonfinite_not_evaluable",
+                           "evidence_refs":  [
+                                                 "mix.read:project.tracks.summary",
+                                                 "mix.read:project.acoustic.tracks"
+                                             ]
+                       },
+                       {
+                           "asserter":  "signal_hygiene",
+                           "check":  "clipping_headroom",
+                           "status":  "pass",
+                           "track_id":  "1007",
+                           "value":  -15.873,
+                           "threshold":  -0.1,
+                           "evidence_refs":  [
+                                                 "mix.read:project.tracks.summary",
+                                                 "mix.read:project.acoustic.tracks"
+                                             ]
+                       },
+                       {
+                           "asserter":  "signal_hygiene",
+                           "check":  "signal_nonfinite",
+                           "status":  "not_evaluable",
+                           "track_id":  "1012",
+                           "code":  "assert_signal_nonfinite_not_evaluable",
+                           "evidence_refs":  [
+                                                 "mix.read:project.tracks.summary",
+                                                 "mix.read:project.acoustic.tracks"
+                                             ]
+                       },
+                       {
+                           "asserter":  "signal_hygiene",
+                           "check":  "clipping_headroom",
+                           "status":  "pass",
+                           "track_id":  "1012",
+                           "value":  -5.328,
+                           "threshold":  -0.1,
+                           "evidence_refs":  [
+                                                 "mix.read:project.tracks.summary",
+                                                 "mix.read:project.acoustic.tracks"
+                                             ]
+                       },
+                       {
+                           "asserter":  "signal_hygiene",
+                           "check":  "signal_nonfinite",
+                           "status":  "not_evaluable",
+                           "track_id":  "1017",
+                           "code":  "assert_signal_nonfinite_not_evaluable",
+                           "evidence_refs":  [
+                                                 "mix.read:project.tracks.summary",
+                                                 "mix.read:project.acoustic.tracks"
+                                             ]
+                       },
+                       {
+                           "asserter":  "signal_hygiene",
+                           "check":  "clipping_headroom",
+                           "status":  "pass",
+                           "track_id":  "1017",
+                           "value":  -11.567,
+                           "threshold":  -0.1,
+                           "evidence_refs":  [
+                                                 "mix.read:project.tracks.summary",
+                                                 "mix.read:project.acoustic.tracks"
+                                             ]
+                       },
+                       {
+                           "asserter":  "signal_hygiene",
+                           "check":  "signal_nonfinite",
+                           "status":  "not_evaluable",
+                           "track_id":  "1022",
+                           "code":  "assert_signal_nonfinite_not_evaluable",
+                           "evidence_refs":  [
+                                                 "mix.read:project.tracks.summary",
+                                                 "mix.read:project.acoustic.tracks"
+                                             ]
+                       },
+                       {
+                           "asserter":  "signal_hygiene",
+                           "check":  "clipping_headroom",
+                           "status":  "pass",
+                           "track_id":  "1022",
+                           "value":  -5.604,
+                           "threshold":  -0.1,
+                           "evidence_refs":  [
+                                                 "mix.read:project.tracks.summary",
+                                                 "mix.read:project.acoustic.tracks"
+                                             ]
+                       },
+                       {
+                           "asserter":  "signal_hygiene",
+                           "check":  "signal_nonfinite",
+                           "status":  "not_evaluable",
+                           "track_id":  "1027",
+                           "code":  "assert_signal_nonfinite_not_evaluable",
+                           "evidence_refs":  [
+                                                 "mix.read:project.tracks.summary",
+                                                 "mix.read:project.acoustic.tracks"
+                                             ]
+                       },
+                       {
+                           "asserter":  "signal_hygiene",
+                           "check":  "clipping_headroom",
+                           "status":  "pass",
+                           "track_id":  "1027",
+                           "value":  -8.61,
+                           "threshold":  -0.1,
+                           "evidence_refs":  [
+                                                 "mix.read:project.tracks.summary",
+                                                 "mix.read:project.acoustic.tracks"
+                                             ]
+                       },
+                       {
+                           "asserter":  "signal_hygiene",
+                           "check":  "signal_nonfinite",
+                           "status":  "not_evaluable",
+                           "track_id":  "1032",
+                           "code":  "assert_signal_nonfinite_not_evaluable",
+                           "evidence_refs":  [
+                                                 "mix.read:project.tracks.summary",
+                                                 "mix.read:project.acoustic.tracks"
+                                             ]
+                       },
+                       {
+                           "asserter":  "signal_hygiene",
+                           "check":  "clipping_headroom",
+                           "status":  "pass",
+                           "track_id":  "1032",
+                           "value":  -5.22,
+                           "threshold":  -0.1,
+                           "evidence_refs":  [
+                                                 "mix.read:project.tracks.summary",
+                                                 "mix.read:project.acoustic.tracks"
+                                             ]
+                       },
+                       {
+                           "asserter":  "signal_hygiene",
+                           "check":  "signal_nonfinite",
+                           "status":  "not_evaluable",
+                           "track_id":  "2957",
+                           "code":  "assert_signal_nonfinite_not_evaluable",
+                           "evidence_refs":  [
+                                                 "mix.read:project.tracks.summary",
+                                                 "mix.read:project.acoustic.tracks"
+                                             ]
+                       },
+                       {
+                           "asserter":  "signal_hygiene",
+                           "check":  "clipping_headroom",
+                           "status":  "fail",
+                           "track_id":  "2957",
+                           "value":  -0.009,
+                           "threshold":  -0.1,
+                           "code":  "possible_clipping_or_no_headroom",
+                           "evidence_refs":  [
+                                                 "mix.read:project.tracks.summary",
+                                                 "mix.read:project.acoustic.tracks"
+                                             ]
+                       },
+                       {
+                           "asserter":  "level_ceiling",
+                           "check":  "ceiling",
+                           "status":  "pass",
+                           "track_id":  "1007",
+                           "value":  -15.873,
+                           "threshold":  -1,
+                           "evidence_refs":  [
+                                                 "mix.read:project.tracks.summary",
+                                                 "mix.read:project.acoustic.tracks"
+                                             ]
+                       },
+                       {
+                           "asserter":  "level_ceiling",
+                           "check":  "ceiling",
+                           "status":  "pass",
+                           "track_id":  "1012",
+                           "value":  -5.328,
+                           "threshold":  -1,
+                           "evidence_refs":  [
+                                                 "mix.read:project.tracks.summary",
+                                                 "mix.read:project.acoustic.tracks"
+                                             ]
+                       },
+                       {
+                           "asserter":  "level_ceiling",
+                           "check":  "ceiling",
+                           "status":  "pass",
+                           "track_id":  "1017",
+                           "value":  -11.567,
+                           "threshold":  -1,
+                           "evidence_refs":  [
+                                                 "mix.read:project.tracks.summary",
+                                                 "mix.read:project.acoustic.tracks"
+                                             ]
+                       },
+                       {
+                           "asserter":  "level_ceiling",
+                           "check":  "ceiling",
+                           "status":  "pass",
+                           "track_id":  "1022",
+                           "value":  -5.604,
+                           "threshold":  -1,
+                           "evidence_refs":  [
+                                                 "mix.read:project.tracks.summary",
+                                                 "mix.read:project.acoustic.tracks"
+                                             ]
+                       },
+                       {
+                           "asserter":  "level_ceiling",
+                           "check":  "ceiling",
+                           "status":  "pass",
+                           "track_id":  "1027",
+                           "value":  -8.61,
+                           "threshold":  -1,
+                           "evidence_refs":  [
+                                                 "mix.read:project.tracks.summary",
+                                                 "mix.read:project.acoustic.tracks"
+                                             ]
+                       },
+                       {
+                           "asserter":  "level_ceiling",
+                           "check":  "ceiling",
+                           "status":  "pass",
+                           "track_id":  "1032",
+                           "value":  -5.22,
+                           "threshold":  -1,
+                           "evidence_refs":  [
+                                                 "mix.read:project.tracks.summary",
+                                                 "mix.read:project.acoustic.tracks"
+                                             ]
+                       },
+                       {
+                           "asserter":  "level_ceiling",
+                           "check":  "ceiling",
+                           "status":  "fail",
+                           "track_id":  "2957",
+                           "value":  -0.009,
+                           "threshold":  -1,
+                           "code":  "assert_level_ceiling_exceeded",
+                           "evidence_refs":  [
+                                                 "mix.read:project.tracks.summary",
+                                                 "mix.read:project.acoustic.tracks"
+                                             ]
+                       },
+                       {
+                           "asserter":  "sample_rate",
+                           "check":  "consistency",
+                           "status":  "not_evaluable",
+                           "code":  "assert_sample_rate_not_evaluable",
+                           "evidence_refs":  [
+                                                 "mix.read:project.tracks.summary",
+                                                 "mix.read:project.acoustic.tracks"
+                                             ]
+                       },
+                       {
+                           "asserter":  "routing",
+                           "check":  "dead_end",
+                           "status":  "not_evaluable",
+                           "code":  "assert_routing_not_evaluable",
+                           "evidence_refs":  [
+                                                 "mix.read:project.tracks.summary"
+                                             ]
+                       },
+                       {
+                           "asserter":  "routing",
+                           "check":  "cycle",
+                           "status":  "not_evaluable",
+                           "code":  "assert_routing_not_evaluable",
+                           "evidence_refs":  [
+                                                 "mix.read:project.tracks.summary"
+                                             ]
+                       },
+                       {
+                           "asserter":  "plugin_legality",
+                           "check":  "known_path",
+                           "status":  "not_evaluable",
+                           "code":  "assert_plugin_legality_not_evaluable",
+                           "evidence_refs":  [
+                                                 "mix.read:project.tracks.summary"
+                                             ]
+                       }
+                   ],
+    "evidence_refs":  [
+                          "mix.read:project.tracks.summary",
+                          "mix.read:project.acoustic.tracks",
+                          "mix.read:project.limitations",
+                          "dad:track_waveform_envelopes"
+                      ],
+    "limitations":  [
+                        "source_sample_rate_not_fully_exposed_by_project_state",
+                        "pcm_bit_depth_not_fully_exposed_by_project_state",
+                        "source_channel_count_not_fully_exposed_by_project_state",
+                        "assert_level_ceiling_sample_peak_only",
+                        "assert_signal_nonfinite_not_evaluable",
+                        "assert_sample_rate_not_evaluable",
+                        "assert_routing_not_evaluable",
+                        "assert_plugin_legality_not_evaluable"
+                    ],
+    "llm_context":  {
+                        "summary_md":  "TIM v0 status=partial risk=medium tracks=7 clips=11 issues=3. Source/sample/channel facts are evidence-only; unknown fields must be reported as limitations, not inferred.",
+                        "compact_facts":  [
+                                              {
+                                                  "clip_count":  11,
+                                                  "compressed_sources":  0,
+                                                  "format_families":  {
+                                                                          "pcm_like_or_lossless":  7
+                                                                      },
+                                                  "layer":  "technical_summary",
+                                                  "playback_invalid":  0,
+                                                  "source_missing":  0,
+                                                  "source_unknown":  0,
+                                                  "status":  "partial",
+                                                  "track_count":  7
+                                              },
+                                              {
+                                                  "acoustic":  {
+                                                                   "known_count":  7,
+                                                                   "status":  "ready",
+                                                                   "total_count":  7
+                                                               },
+                                                  "bit_depth":  {
+                                                                    "known_count":  0,
+                                                                    "missing_count":  7,
+                                                                    "status":  "missing",
+                                                                    "total_count":  7
+                                                                },
+                                                  "channel_count":  {
+                                                                        "known_count":  0,
+                                                                        "missing_count":  7,
+                                                                        "status":  "missing",
+                                                                        "total_count":  7
+                                                                    },
+                                                  "layer":  "technical_coverage",
+                                                  "sample_rate":  {
+                                                                      "known_count":  0,
+                                                                      "missing_count":  7,
+                                                                      "status":  "missing",
+                                                                      "total_count":  7
+                                                                  },
+                                                  "status":  "partial"
+                                              },
+                                              {
+                                                  "assertion_counts":  {
+                                                                           "fail":  2,
+                                                                           "not_evaluable":  11,
+                                                                           "pass":  12
+                                                                       },
+                                                  "issue_count":  3,
+                                                  "layer":  "technical_risk",
+                                                  "overall_risk":  "medium",
+                                                  "primary_codes":  [
+                                                                        "possible_clipping_or_no_headroom",
+                                                                        "assert_level_ceiling_exceeded"
+                                                                    ],
+                                                  "status":  "partial"
+                                              },
+                                              {
+                                                  "issues":  [
+                                                                 {
+                                                                     "clip_id":  "2961",
+                                                                     "clip_name":  "tim_assert_near_full_scale_11844_1790432680132",
+                                                                     "code":  "possible_clipping_or_no_headroom",
+                                                                     "detail":  "Peak is at or above -0.1 dBFS in the acoustic summary.",
+                                                                     "severity":  "warning",
+                                                                     "track_id":  "2957",
+                                                                     "track_name":  "Track 7"
+                                                                 },
+                                                                 {
+                                                                     "clip_id":  "2961",
+                                                                     "clip_name":  "tim_assert_near_full_scale_11844_1790432680132",
+                                                                     "code":  "possible_clipping_or_no_headroom",
+                                                                     "detail":  "Headroom is below 0.1 dB in the acoustic summary.",
+                                                                     "severity":  "warning",
+                                                                     "track_id":  "2957",
+                                                                     "track_name":  "Track 7"
+                                                                 },
+                                                                 {
+                                                                     "clip_id":  "",
+                                                                     "clip_name":  "",
+                                                                     "code":  "assert_level_ceiling_exceeded",
+                                                                     "detail":  "Structural assertion level_ceiling/ceiling failed on track 2957 (value=-0.009 threshold=-1).",
+                                                                     "severity":  "warning",
+                                                                     "track_id":  "2957",
+                                                                     "track_name":  "Track 7"
+                                                                 }
+                                                             ],
+                                                  "layer":  "technical_issue_excerpt",
+                                                  "status":  "partial"
+                                              }
+                                          ],
+                        "do_not_include_raw_package":  true,
+                        "evidence_refs":  [
+                                              "mix.read:project.tracks.summary",
+                                              "mix.read:project.acoustic.tracks",
+                                              "mix.read:project.limitations",
+                                              "dad:track_waveform_envelopes"
+                                          ],
+                        "quality_summary":  {
+                                                "coverage":  {
+                                                                 "acoustic_package":  {
+                                                                                          "known_count":  7,
+                                                                                          "status":  "ready",
+                                                                                          "total_count":  7
+                                                                                      },
+                                                                 "bit_depth":  {
+                                                                                   "known_count":  0,
+                                                                                   "missing_count":  7,
+                                                                                   "status":  "missing",
+                                                                                   "total_count":  7
+                                                                               },
+                                                                 "channel_count":  {
+                                                                                       "known_count":  0,
+                                                                                       "missing_count":  7,
+                                                                                       "status":  "missing",
+                                                                                       "total_count":  7
+                                                                                   },
+                                                                 "format_family":  {
+                                                                                       "known_count":  7,
+                                                                                       "status":  "ready",
+                                                                                       "total_count":  7
+                                                                                   },
+                                                                 "playback_validity":  {
+                                                                                           "known_count":  7,
+                                                                                           "status":  "ready",
+                                                                                           "total_count":  7
+                                                                                       },
+                                                                 "sample_rate":  {
+                                                                                     "known_count":  0,
+                                                                                     "missing_count":  7,
+                                                                                     "status":  "missing",
+                                                                                     "total_count":  7
+                                                                                 },
+                                                                 "source_path":  {
+                                                                                     "known_count":  7,
+                                                                                     "status":  "ready",
+                                                                                     "total_count":  7
+                                                                                 }
+                                                             },
+                                                "issue_count":  3,
+                                                "overall_risk":  "medium",
+                                                "schema_version":  "tim.projection.v0",
+                                                "status":  "partial"
+                                            },
+                        "limitation_notes":  [
+                                                 "source_sample_rate_not_fully_exposed_by_project_state",
+                                                 "pcm_bit_depth_not_fully_exposed_by_project_state",
+                                                 "source_channel_count_not_fully_exposed_by_project_state",
+                                                 "assert_level_ceiling_sample_peak_only",
+                                                 "assert_signal_nonfinite_not_evaluable",
+                                                 "assert_sample_rate_not_evaluable",
+                                                 "assert_routing_not_evaluable",
+                                                 "assert_plugin_legality_not_evaluable"
+                                             ],
+                        "suggested_next_step":  "Report missing technical facts explicitly, then proceed with conservative organization or listening tasks."
+                    },
+    "generated_at":  "2026-09-26T14:24:54.6399321Z"
+}
