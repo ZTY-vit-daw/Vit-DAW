@@ -353,7 +353,7 @@ try {
                         $line = $lines[$i]
                         # A scheduler-driven slice FOR GOAL 2 (not goal 1's chain):
                         # its own agent_loop_chat line or chain-end gate line.
-                        $isGoal2Slice = (($line -like "*agent_loop_chat*" -or $line -like "*[f6.gate]*") -and $line -like ("*goal=" + $goal2ID + "*"))
+                        $isGoal2Slice = (($line -like "*agent_loop_chat*" -or $line.Contains("[f6.gate]")) -and $line -like ("*goal=" + $goal2ID + "*"))
                         if ($isGoal2Slice) { $goal2SliceLine = $line; break }
                     }
                     if ($goal2SliceLine -ne "") { break }

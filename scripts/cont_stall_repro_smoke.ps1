@@ -323,14 +323,14 @@ try {
                 $lines = @(Read-LogLines -Path $AgentLog)
                 for ($i = $logIndexAtEnd; $i -lt $lines.Count; $i++) {
                     $line = $lines[$i]
-                    $isClaim = $line -like "*[continuation.claim] claimed*"
+                    $isClaim = $line.Contains("[continuation.claim] claimed")
                     # Baseline (pre-observability) builds have no
                     # [continuation.claim] line, so a scheduler slice's own logs
                     # are the arming evidence there: an agent_loop_chat for this
                     # goal, or the chain-end gate line. Both are emitted only by
                     # a scheduler-driven slice.
                     $isSlice = ($line -like "*agent_loop_chat*" -and $line -like ("*goal=" + $chatGoalID + "*")) -or
-                               ($line -like "*[f6.gate]*" -and $line -like ("*goal=" + $chatGoalID + "*"))
+                               ($line.Contains("[f6.gate]") -and $line -like ("*goal=" + $chatGoalID + "*"))
                     if ($isClaim -or $isSlice) { $claimLine = $line; $claimStamp = LogStamp -Line $line; break }
                 }
                 if ($claimLine -ne "") { break }
@@ -437,7 +437,7 @@ try {
     $timeline["turn_terminal_events"] = $turnTerminals.Count
     $timeline["turn_stopped_events"] = $turnStops.Count
 
-    $obs = @(Read-LogLines -Path $AgentLog | Where-Object { $_ -like "*[continuation.arm]*" -or $_ -like "*[continuation.wake]*" -or $_ -like "*[continuation.claim]*" -or $_ -like "*[continuation.stall]*" })
+    $obs = @(Read-LogLines -Path $AgentLog | Where-Object { $_.Contains("[continuation.arm]") -or $_.Contains("[continuation.wake]") -or $_.Contains("[continuation.claim]") -or $_.Contains("[continuation.stall]") })
     $obs | Set-Content -LiteralPath (Join-Path $RunRoot "continuation_log.txt") -Encoding UTF8
     $timeline["continuation_log_lines"] = $obs.Count
 
@@ -473,13 +473,10 @@ catch {
     $stack = [string]$_.ScriptStackTrace
     Add-Prereq ("fatal=" + $detail)
     Add-Prereq ("fatal_type=" + $_.Exception.GetType().FullName)
-    Add-Prereq ("fatal_where=" + ($where -replace "?
-", " | "))
-    Add-Prereq ("fatal_stack=" + ($stack -replace "?
-", " | "))
+    Add-Prereq ("fatal_where=" + ($where -replace "\r?\n", " | "))
+    Add-Prereq ("fatal_stack=" + ($stack -replace "\r?\n", " | "))
     Write-Bad ("fatal: " + $detail)
-    Write-Bad ("at: " + ($where -replace "?
-", " | "))
+    Write-Bad ("at: " + ($where -replace "\r?\n", " | "))
 }
 finally {
     Write-Step "Teardown"
