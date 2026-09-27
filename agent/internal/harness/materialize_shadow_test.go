@@ -131,6 +131,60 @@ func runMatCShadowBattery(t *testing.T, mode string) (map[string][]byte, matCSha
 	return observables, summary
 }
 
+// TestMaterializeShadowMeasurementCarriedRound：MAT-D2 合成盲区补测——MAT-C
+// 电池的观察包 MixPackage 恒空，MixPackage 测量回退轴在合成面永不激活（真栈
+// S2 红形态因此漏网）。本用例补一个带测量的观察轮：snapshot 目标键空 +
+// current_metrics.waveform 命中 → 物化侧登记 measurement_carried+non_precomputable
+// 注记，ZeroDivergence 闸门排除该行并单列计数——ShadowMeasurementCarriedExcluded>=1
+// 且 ShadowDivergences==0（分歧行已入排除计数，不静默）。
+func TestMaterializeShadowMeasurementCarriedRound(t *testing.T) {
+	previous, had := os.LookupEnv("VIT_DAW_MATERIALIZATION")
+	if err := os.Setenv("VIT_DAW_MATERIALIZATION", "shadow"); err != nil {
+		t.Fatal(err)
+	}
+	if had {
+		t.Cleanup(func() { _ = os.Setenv("VIT_DAW_MATERIALIZATION", previous) })
+	} else {
+		t.Cleanup(func() { _ = os.Unsetenv("VIT_DAW_MATERIALIZATION") })
+	}
+
+	h := NewWithSender(nil, nil, nil) // shadow flag → 物化层接线；shadow project/logger 缺省即可
+	if h.materializeStore == nil {
+		t.Fatalf("shadow 态物化库未接线")
+	}
+
+	// 回退激活轮：目标 T3；snapshot 无 T3 目标键行；MixPackage 测量命中。
+	observation := mixboard.ObservationPacket{
+		ObservationID: "obs_matd2_h1", MixSessionID: "mix_matd2", Status: "ready",
+		TargetRef:      mixboard.TargetRef{Kind: "track", ID: "T3"},
+		ProjectPackage: map[string]any{"project_revision": "r1"},
+		GlobalSummary: map[string]any{"feature_snapshot": map[string]any{
+			"schema_version": "mixboard_feature_snapshot.v1",
+		}},
+		MixPackage: map[string]any{"current_metrics": map[string]any{
+			"waveform": map[string]any{
+				"status": "ready", "track_id": "T3", "source_revision": "sr_live",
+				"rms_dbfs": -18.0, "peak_dbfs": -4.0, "headroom_db": -0.4,
+				"duration_seconds": 12.0, "sample_rate": 48000.0, "channel_count": 2,
+				"analyzed_sample_count": 576000, "window_ms": 200.0, "hop_ms": 100.0,
+				"time_segments": []any{map[string]any{"start_seconds": 0.0, "end_seconds": 12.0, "rms_dbfs": -18.0, "peak_dbfs": -4.0}},
+			},
+		}},
+	}
+	projection := dom.Build(mixboard.DOMInputFromObservation(observation, mixboard.Request{}))
+	observation.DOMProjection = &projection
+
+	h.materializeObserveRound(&observation)
+
+	m := h.materializeStore.Metrics()
+	if m.ShadowMeasurementCarriedExcluded < 1 {
+		t.Fatalf("回退激活轮应产生排除计数 ShadowMeasurementCarriedExcluded>=1: got=%d", m.ShadowMeasurementCarriedExcluded)
+	}
+	if m.ShadowDivergences != 0 {
+		t.Fatalf("measurement_carried 行被闸门排除后 ShadowDivergences 应为 0: got=%d", m.ShadowDivergences)
+	}
+}
+
 // TestMaterializationOffIsByteIdentical：off vs shadow 两态，既有可观察面逐字节
 // 一致（三态 flag 的 off=现状，§7.1）；shadow 态物化非空（非空性守卫）。
 func TestMaterializationOffIsByteIdentical(t *testing.T) {

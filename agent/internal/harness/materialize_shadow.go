@@ -13,7 +13,10 @@ package harness
 //  1. RecomputeLazy——白名单 precomputable kind 从输入域 lazy 重算回填；
 //  2. fxm/com 观察产物登记（F9：随观察落盘，不预计算）；
 //  3. ReconcileShadow——观察路径现算的 dom 产物 vs 物化行逐行 hash 对账，
-//     分歧入 Metrics.ShadowDivergences（§7.2 切换闸门仪表）。
+//     分歧入 Metrics.ShadowDivergences（§7.2 切换闸门仪表）。MAT-D2 登记型：
+//     经 MixPackage 测量回退轴激活的 dom 行（DOMRowFromObservation 判定）标记
+//     non_precomputable+measurement_carried，闸门排除并单列计数
+//     ShadowMeasurementCarriedExcluded（与物化侧不同源——DepInputs 不携带测量）。
 //
 // 只写物化库（h.materializeStore）与只读 harness 状态——既有可观察面零触碰。
 
@@ -107,7 +110,14 @@ func (h *Harness) materializeObserveRound(obs *mixboard.ObservationPacket) {
 	if obs.DOMProjection != nil {
 		trackID := strings.TrimSpace(obs.TargetRef.ID)
 		if strings.EqualFold(strings.TrimSpace(obs.TargetRef.Kind), "track") && trackID != "" {
-			if row, ok := materialize.DOMRowFromProjection(trackID, *obs.DOMProjection); ok {
+			if row, ok := materialize.DOMRowFromObservation(trackID, obs); ok {
+				if materialize.IsMeasurementCarried(row) && h.logger != nil {
+					// MAT-D2 登记型可见性：回退轴激活行登记 non_precomputable+
+					// measurement_carried 并被闸门排除——INFO 级（登记处置，
+					// 不是分歧告警面；计数在 shadow_round 行单列）。
+					h.logger.Info("[materialize] measurement_carried_excluded kind=dom track=%s observation_id=%s (MixPackage 测量回退轴激活：登记 non_precomputable，对账闸门排除)",
+						trackID, obs.ObservationID)
+				}
 				divergences, details := h.materializeStore.ReconcileShadowDetailed([]materialize.Row{row})
 				if divergences > 0 && h.logger != nil {
 					// MAT-D 取证面：真栈分歧逐行 WARN（坐标+两侧 hash+两侧
@@ -160,7 +170,10 @@ func mapValueAny(value any) map[string]any {
 // ShadowDivergences 经日志可见且==0、脏传播 invalidations 计数可观测——
 // metrics 只读面，不消费读端，不越界验 on 态）。行格式：
 //
-//	[materialize] shadow_round observation_id=... kinds=dom:inv=1,arr=0,rec=2,ups=3,unch=0;tom:... shadow_divergences=0 reconcile_rows=2 dropped_changes=0 recovery_skipped_rows=0
+//	[materialize] shadow_round observation_id=... kinds=dom:inv=1,arr=0,rec=2,ups=3,unch=0;tom:... shadow_divergences=0 reconcile_rows=2 dropped_changes=0 recovery_skipped_rows=0 measurement_carried_excluded=0
+//
+// 末段 measurement_carried_excluded 是 MAT-D2 登记型单列计数（回退轴激活行
+// 被闸门排除的累计——分歧行已入排除计数，不静默）。
 func (h *Harness) logMaterializeRoundMetrics(obs *mixboard.ObservationPacket) {
 	if h.logger == nil || h.materializeStore == nil {
 		return
@@ -181,8 +194,8 @@ func (h *Harness) logMaterializeRoundMetrics(obs *mixboard.ObservationPacket) {
 	if obs != nil {
 		observationID = obs.ObservationID
 	}
-	h.logger.Info("[materialize] shadow_round observation_id=%s kinds=%s shadow_divergences=%d reconcile_rows=%d dropped_changes=%d recovery_skipped_rows=%d",
-		observationID, strings.Join(parts, ";"), m.ShadowDivergences, m.ReconcileRows, m.DroppedChanges, m.RecoverySkippedRows)
+	h.logger.Info("[materialize] shadow_round observation_id=%s kinds=%s shadow_divergences=%d reconcile_rows=%d dropped_changes=%d recovery_skipped_rows=%d measurement_carried_excluded=%d",
+		observationID, strings.Join(parts, ";"), m.ShadowDivergences, m.ReconcileRows, m.DroppedChanges, m.RecoverySkippedRows, m.ShadowMeasurementCarriedExcluded)
 }
 
 // materializeDepInputs 从 harness 状态装配适配器输入束：shadow Summary（tom

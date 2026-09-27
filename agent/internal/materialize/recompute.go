@@ -223,8 +223,17 @@ func (s *Store) ReconcileShadowDetailed(fresh []Row) (int, []ShadowDivergenceDet
 	s.mu.RUnlock()
 
 	divergences := 0
+	excluded := 0
 	var details []ShadowDivergenceDetail
 	for _, row := range fresh {
+		// MAT-D2 登记型闸门排除：measurement_carried 行（观察轮 dom 输入经
+		// MixPackage 测量回退轴激活——与物化侧不同源，DepInputs 不携带测量）
+		// 不参与对账：跳过比对、计数单列（addMeasurementCarriedExcluded，
+		// 不静默）、不计分歧、不进 ReconcileRows（比对行数只数真比过的行）。
+		if IsMeasurementCarried(row) {
+			excluded++
+			continue
+		}
 		if err := row.Ref.Validate(); err != nil {
 			// 现算侧行化产出非法坐标=对账输入缺陷，计分歧（fail-visible）。
 			divergences++
@@ -254,8 +263,12 @@ func (s *Store) ReconcileShadowDetailed(fresh []Row) (int, []ShadowDivergenceDet
 			})
 		}
 	}
-	// 比对行数与分歧同源累计（MAT-D：零分歧的非空洞证据）。
-	s.metrics.addReconcileRows(int64(len(fresh)))
+	// 比对行数与分歧同源累计（MAT-D：零分歧的非空洞证据；排除行不计入——
+	// 它们没有参与比对，计数单列）。
+	s.metrics.addReconcileRows(int64(len(fresh) - excluded))
+	if excluded > 0 {
+		s.metrics.addMeasurementCarriedExcluded(int64(excluded))
+	}
 	if divergences > 0 {
 		s.metrics.addShadowDivergence(int64(divergences))
 	}
