@@ -52,20 +52,20 @@ PluginListHygieneReport cleanStalePluginListEntries (
         }
     report.blacklistRemoved = report.removedBlacklistPaths.size();
 
+    // TIM-KERNEL-HYGIENE-1 (Item 5): stamp every run — including zero-removal
+    // runs — so the disclosure block can distinguish "ran, removed nothing"
+    // from "never ran" without inferring from counts.
+    report.completedAtISO = juce::Time::getCurrentTime().toISO8601 (true);
+
     if (report.typesRemoved > 0 || report.blacklistRemoved > 0)
     {
         // One summary line per run, never one line per entry: a transplanted
         // Settings.xml can carry ~1000 ghost entries and must not flood the log.
-        auto paths = report.removedTypePaths;
-        paths.addArray (report.removedBlacklistPaths);
-        const auto summary = paths.size() <= 3
-            ? paths.joinIntoString (", ")
-            : paths[0] + ", " + paths[1] + ", ... +" + juce::String (paths.size() - 2) + " more";
         juce::Logger::writeToLog ("PluginListHygiene: removed "
                                   + juce::String (report.typesRemoved) + " stale type entries (of "
                                   + juce::String (report.typesBefore) + ") and "
                                   + juce::String (report.blacklistRemoved) + " stale blacklist entries (of "
-                                  + juce::String (report.blacklistBefore) + "): " + summary);
+                                  + juce::String (report.blacklistBefore) + "): " + pluginListHygieneRemovedSummary (report));
     }
 
     return report;
@@ -95,6 +95,36 @@ juce::StringArray applyUserCancelledScanCleanup (
         list.removeFromBlacklist (blacklisted);
 
     return rolledBack;
+}
+
+// TIM-KERNEL-HYGIENE-1 (Item 5): flood-safe removed-paths summary shared by
+// the log line and the disclosure block — at most three entries, then
+// "+ N more", so a transplanted Settings.xml with ~1000 ghosts cannot flood
+// either surface.
+juce::String pluginListHygieneRemovedSummary (const PluginListHygieneReport& report)
+{
+    auto paths = report.removedTypePaths;
+    paths.addArray (report.removedBlacklistPaths);
+    if (paths.isEmpty())
+        return {};
+    if (paths.size() <= 3)
+        return paths.joinIntoString (", ");
+    return paths[0] + ", " + paths[1] + ", ... +" + juce::String (paths.size() - 2) + " more";
+}
+
+juce::DynamicObject* pluginListHygieneStateObject (const PluginListHygieneReport& report,
+                                                   bool cleanupRan)
+{
+    auto obj = std::make_unique<juce::DynamicObject>();
+    obj->setProperty ("cleanup_ran", cleanupRan);
+    obj->setProperty ("types_before", report.typesBefore);
+    obj->setProperty ("types_removed", report.typesRemoved);
+    obj->setProperty ("blacklist_before", report.blacklistBefore);
+    obj->setProperty ("blacklist_removed", report.blacklistRemoved);
+    obj->setProperty ("removed_total", report.typesRemoved + report.blacklistRemoved);
+    obj->setProperty ("completed_at", cleanupRan ? report.completedAtISO : juce::String());
+    obj->setProperty ("removed_summary", pluginListHygieneRemovedSummary (report));
+    return obj.release();
 }
 
 } // namespace vit

@@ -1803,12 +1803,27 @@ PluginRackControlService::PluginRackControlService (EditGetter editGetter,
     // Lazy startup cleanup of the loaded knownPluginList64: the dispatcher is
     // constructed once the engine (and PluginManager::initialise's Settings.xml
     // load) is up. Idempotent, identical on both platforms, removes only
-    // entries whose file path no longer exists.
+    // entries whose file path no longer exists. The report is kept for the
+    // get_project_state hygiene disclosure (TIM-KERNEL-HYGIENE-1 Item 5).
     if (engineForStartupHygiene != nullptr)
-        cleanStalePluginListEntries (engineForStartupHygiene->getPluginManager().knownPluginList);
+    {
+        lastPluginListHygieneReport =
+            cleanStalePluginListEntries (engineForStartupHygiene->getPluginManager().knownPluginList);
+        pluginListHygieneRan = true;
+    }
 }
 
 PluginRackControlService::~PluginRackControlService() = default;
+
+const PluginListHygieneReport& PluginRackControlService::getLastPluginListHygieneReport() const
+{
+    return lastPluginListHygieneReport;
+}
+
+bool PluginRackControlService::hasPluginListHygieneReport() const
+{
+    return pluginListHygieneRan;
+}
 juce::String PluginRackControlService::handleSetPluginParam (const juce::DynamicObject& object, const juce::String&) const
 {
     auto* edit = getEdit != nullptr ? getEdit() : nullptr;

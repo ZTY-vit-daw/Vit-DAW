@@ -101,6 +101,11 @@ struct L3Evidence
     double coverageRatio = 0.0;
     int64 nonzeroCount = 0;
     double sumAbs = 0.0;
+    // TIM-KERNEL-HYGIENE-1 (Item 2): signed accumulation for the DC-offset
+    // disclosure. Nan/inf samples early-return below and never contribute.
+    double sumSigned = 0.0;
+    double dcOffset = 0.0;
+    double dcOffsetRatio = 0.0;
     double maxAbs = 0.0;
     int64 nanCount = 0;
     int64 infCount = 0;
@@ -125,6 +130,7 @@ struct L3Evidence
         if (absValue > 0.0)
             ++nonzeroCount;
         sumAbs += absValue;
+        sumSigned += (double) value;
         maxAbs = juce::jmax (maxAbs, absValue);
     }
 };
@@ -433,6 +439,13 @@ void finishEvidence (L3Analysis& analysis, const juce::String& extraReason = {})
         ? juce::jlimit (0.0, 1.0, (double) e.analyzedSampleCount / (double) e.expectedSampleCount)
         : 0.0;
 
+    // DC offset = signed mean over the finite samples actually summed (the
+    // nan/inf guards skip the accumulation, so they are excluded here too);
+    // the ratio is the absolute mean. No finite samples keeps both at 0.
+    const auto finiteSampleCount = e.analyzedSampleCount - e.nanCount - e.infCount;
+    e.dcOffset = finiteSampleCount > 0 ? e.sumSigned / (double) finiteSampleCount : 0.0;
+    e.dcOffsetRatio = std::abs (e.dcOffset);
+
     if (extraReason.isNotEmpty())
         e.reasons.addIfNotAlreadyThere (extraReason);
     if (e.expectedSampleCount <= 0 || e.analyzedSampleCount <= 0)
@@ -514,6 +527,8 @@ std::unique_ptr<juce::DynamicObject> makeEvidenceObject (const L3Evidence& evide
     obj->setProperty ("coverage_ratio", evidence.coverageRatio);
     obj->setProperty ("nonzero_count", (int64) evidence.nonzeroCount);
     obj->setProperty ("sum_abs", evidence.sumAbs);
+    obj->setProperty ("dc_offset", evidence.dcOffset);
+    obj->setProperty ("dc_offset_ratio", evidence.dcOffsetRatio);
     obj->setProperty ("max_abs", evidence.maxAbs);
     obj->setProperty ("nan_count", (int64) evidence.nanCount);
     obj->setProperty ("inf_count", (int64) evidence.infCount);
@@ -593,6 +608,8 @@ void stampCommon (juce::DynamicObject& obj,
     obj.setProperty ("coverage_seconds", analysis.evidence.durationSeconds * analysis.evidence.coverageRatio);
     obj.setProperty ("nonzero_count", (int64) analysis.evidence.nonzeroCount);
     obj.setProperty ("sum_abs", analysis.evidence.sumAbs);
+    obj.setProperty ("dc_offset", analysis.evidence.dcOffset);
+    obj.setProperty ("dc_offset_ratio", analysis.evidence.dcOffsetRatio);
     obj.setProperty ("max_abs", analysis.evidence.maxAbs);
     obj.setProperty ("nan_count", (int64) analysis.evidence.nanCount);
     obj.setProperty ("inf_count", (int64) analysis.evidence.infCount);

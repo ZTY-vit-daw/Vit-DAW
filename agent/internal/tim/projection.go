@@ -59,6 +59,7 @@ func Build(input Input) Projection {
 		RackSummaries:       input.RackSummaries,
 		KnownPluginPaths:    input.KnownPluginPaths,
 		CeilingDBFS:         levelCeilingDBFS(input.CeilingDBFS),
+		PluginListHygiene:   input.PluginListHygiene,
 	})
 	issues = append(issues, assertionIssues(assertions, issues, trackFacts)...)
 	if declaredTrackCount == 0 {
@@ -379,6 +380,7 @@ func buildTrackFact(track map[string]any, evidenceByTrack map[string]map[string]
 		fact.HeadroomDB = &value
 	}
 	fact.NanCount, fact.InfCount = nonfiniteCounts(acoustic, evidence)
+	fact.DCOffset = dcOffsetValue(acoustic, evidence)
 	issues := issuesForTrack(fact, hasPeak, peakDBFS, hasRMS, rmsDBFS, hasHeadroom, headroomDB)
 	for _, issue := range issues {
 		fact.RiskCodes = appendUniqueString(fact.RiskCodes, issue.Code)
@@ -689,6 +691,26 @@ func nonfiniteCounts(acoustic, evidence map[string]any) (nan, inf *int) {
 		inf = read(evidence, "inf_count")
 	}
 	return nan, inf
+}
+
+// dcOffsetValue reads the L3 DC-offset passthrough key (signed mean of the
+// finite samples, linear full-scale units) from the track acoustic row
+// first, falling back to the observation evidence map. Absent key stays nil:
+// the AS-SIG P3 assertion reports not_evaluable, never zero.
+func dcOffsetValue(acoustic, evidence map[string]any) *float64 {
+	read := func(row map[string]any) *float64 {
+		if row == nil {
+			return nil
+		}
+		if value, ok := numberFromAny(row["dc_offset"]); ok {
+			return &value
+		}
+		return nil
+	}
+	if offset := read(acoustic); offset != nil {
+		return offset
+	}
+	return read(evidence)
 }
 
 // projectSampleRateHz extracts the project audio settings sample rate for the

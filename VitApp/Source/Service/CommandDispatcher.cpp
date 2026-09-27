@@ -3396,6 +3396,17 @@ juce::String CommandDispatcher::handleGetProjectState (const juce::DynamicObject
     response->setProperty ("observability", VitGraphTrace::createObservabilitySnapshot (effectiveProjectFile, *edit));
     response->setProperty ("project_health", VitProjectHealthCheck::createReport (effectiveProjectFile, *edit));
     response->setProperty ("export_policy", VitProjectHealthCheck::createExportPolicy (effectiveProjectFile, *edit));
+    // TIM-KERNEL-HYGIENE-1 (Item 5): read-only disclosure of the startup
+    // plugin-list cleanup summary (counts + flood-safe path summary + stamp);
+    // zero-removal runs report explicit zeros, never-ran reports cleanup_ran
+    // = false. No cleanup or load action is triggered here.
+    if (pluginRackControlService != nullptr)
+    {
+        response->setProperty ("plugin_list_hygiene",
+            juce::var (pluginListHygieneStateObject (
+                pluginRackControlService->getLastPluginListHygieneReport(),
+                pluginRackControlService->hasPluginListHygieneReport())));
+    }
     appendGraphRevisionProperties (*response, *edit);
     return juce::JSON::toString (juce::var (response.release()));
 }

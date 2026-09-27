@@ -232,6 +232,82 @@ void runCrashContrastTest (const juce::File& directory)
 
 } // namespace
 
+// ---------------------------------------------------------------------------
+// TIM-KERNEL-HYGIENE-1 (Item 5): the startup cleanup report must be
+// serializable into the get_project_state disclosure block — counts always
+// present (zero cleanup = explicit 0), flood-safe path summary shared with
+// the log line, ISO-8601 completed_at on every run, and an explicit
+// never-ran form so consumers can tell "ran, removed nothing" apart from
+// "never ran".
+// ---------------------------------------------------------------------------
+void runHygieneStateObjectTest (const juce::File& directory)
+{
+    VIT_CHECK (directory.createDirectory());
+    const auto realFile = directory.getChildFile ("real.vst3");
+    VIT_CHECK (realFile.create());
+
+    juce::KnownPluginList list;
+    list.addType (makeVst3Entry ("Real One", realFile.getFullPathName()));
+    list.addToBlacklist (directory.getChildFile ("gone.vst3").getFullPathName());
+
+    // Ran with something to remove.
+    const auto report = vit::cleanStalePluginListEntries (list);
+    VIT_CHECK (report.typesRemoved == 0);
+    VIT_CHECK (report.blacklistRemoved == 1);
+    VIT_CHECK (report.completedAtISO.isNotEmpty());
+    VIT_CHECK (report.completedAtISO.contains ("T")); // ISO-8601 shape
+
+    auto* object = vit::pluginListHygieneStateObject (report, true);
+    VIT_CHECK (object != nullptr);
+    if (object != nullptr)
+    {
+        VIT_CHECK ((bool) object->getProperty ("cleanup_ran") == true);
+        VIT_CHECK ((int) object->getProperty ("types_before") == 1);
+        VIT_CHECK ((int) object->getProperty ("types_removed") == 0);
+        VIT_CHECK ((int) object->getProperty ("blacklist_before") == 1);
+        VIT_CHECK ((int) object->getProperty ("blacklist_removed") == 1);
+        VIT_CHECK ((int) object->getProperty ("removed_total") == 1);
+        VIT_CHECK (object->getProperty ("completed_at").toString() == report.completedAtISO);
+        VIT_CHECK (object->getProperty ("removed_summary").toString().isNotEmpty());
+    }
+
+    // Ran again over the already-clean list: explicit zero form.
+    const auto cleanReport = vit::cleanStalePluginListEntries (list);
+    auto* cleanObject = vit::pluginListHygieneStateObject (cleanReport, true);
+    VIT_CHECK (cleanObject != nullptr);
+    if (cleanObject != nullptr)
+    {
+        VIT_CHECK ((bool) cleanObject->getProperty ("cleanup_ran") == true);
+        VIT_CHECK ((int) cleanObject->getProperty ("removed_total") == 0);
+        VIT_CHECK ((int) cleanObject->getProperty ("types_removed") == 0);
+        VIT_CHECK ((int) cleanObject->getProperty ("blacklist_removed") == 0);
+        VIT_CHECK (cleanObject->getProperty ("completed_at").toString() == cleanReport.completedAtISO);
+    }
+
+    // Flood-safe summary: more than three removed paths collapses to the
+    // first two plus "+ N more" (the log-line policy, now shared).
+    vit::PluginListHygieneReport flood;
+    flood.typesRemoved = 5;
+    for (int i = 0; i < 5; ++i)
+        flood.removedTypePaths.add ("/ghost/" + juce::String (i) + ".vst3");
+    const auto summary = vit::pluginListHygieneRemovedSummary (flood);
+    VIT_CHECK (summary.contains ("/ghost/0.vst3"));
+    VIT_CHECK (summary.contains ("/ghost/1.vst3"));
+    VIT_CHECK (summary.contains ("+3 more"));
+    VIT_CHECK (! summary.contains ("/ghost/2.vst3"));
+
+    // Never-ran form: empty stamp, explicit zeros, cleanup_ran=false.
+    vit::PluginListHygieneReport neverRan;
+    auto* neverObject = vit::pluginListHygieneStateObject (neverRan, false);
+    VIT_CHECK (neverObject != nullptr);
+    if (neverObject != nullptr)
+    {
+        VIT_CHECK ((bool) neverObject->getProperty ("cleanup_ran") == false);
+        VIT_CHECK (neverObject->getProperty ("completed_at").toString().isEmpty());
+        VIT_CHECK ((int) neverObject->getProperty ("removed_total") == 0);
+    }
+}
+
 int main()
 {
     const auto directory = juce::File::getSpecialLocation (juce::File::tempDirectory)
@@ -242,6 +318,7 @@ int main()
     runBundleFormCleanupTest (directory.getChildFile ("bundle-form"));
     runUserCancelCleanupTest (directory.getChildFile ("user-cancel"));
     runCrashContrastTest (directory.getChildFile ("crash-contrast"));
+    runHygieneStateObjectTest (directory.getChildFile ("hygiene-state-object"));
 
     directory.deleteRecursively();
     std::printf ("PluginListHygieneTests: all checks passed\n");

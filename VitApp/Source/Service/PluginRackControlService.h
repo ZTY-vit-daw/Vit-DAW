@@ -6,6 +6,8 @@
 #include <JuceHeader.h>
 #include <tracktion_engine/tracktion_engine.h>
 
+#include "PluginListHygiene.h"
+
 namespace vit
 {
 
@@ -54,6 +56,12 @@ public:
     juce::String handleRackRemoveConnection (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleRackSetNodeClipScope (const juce::DynamicObject&, const juce::String&) const;
 
+    // TIM-KERNEL-HYGIENE-1 (Item 5): the startup plugin-list cleanup report,
+    // kept so get_project_state can disclose it (read-only; zero-removal runs
+    // still count as ran).
+    const PluginListHygieneReport& getLastPluginListHygieneReport() const;
+    bool hasPluginListHygieneReport() const;
+
 private:
     static juce::String makeStatusReply (const juce::String& status, const juce::String& message);
     static juce::String makeErrorReply (const juce::String& message);
@@ -62,6 +70,8 @@ private:
     SaveProjectAction saveProject;
     CurrentProjectPathGetter getCurrentProjectPath;
     std::unique_ptr<PluginScanCoordinator> pluginScanCoordinator;
+    PluginListHygieneReport lastPluginListHygieneReport;
+    bool pluginListHygieneRan = false;
 };
 
 } // namespace vit
