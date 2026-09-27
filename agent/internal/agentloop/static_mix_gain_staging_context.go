@@ -18,7 +18,12 @@ func (l *MessageLoop) preflightStaticMixGainStagingContextPack(ctx context.Conte
 	if state == nil || state.pendingToolCall != nil || len(state.pendingToolQueue) > 0 {
 		return false, Result{}
 	}
-	if !messageLoopGainStagingCapabilityRequest(state.input.UserText) || messageLoopHasGainStagingContextPack(state) {
+	// E16 freshness gate (FIX-STALE-SAMPLES-1): a pack built earlier in this
+	// run short-circuits only while the project revision it was built at still
+	// matches the currently visible one; a same-run project change invalidates
+	// the pack and the preflight rebuilds instead of reusing stale input.
+	if !messageLoopGainStagingCapabilityRequest(state.input.UserText) ||
+		(messageLoopHasGainStagingContextPack(state) && !messageLoopGainStagingPackStale(state)) {
 		return false, Result{}
 	}
 	if !messageLoopHasUsableMixObservation(state) && !messageLoopHasAnyMixObservationAttempt(state) {
@@ -159,9 +164,15 @@ func (l *MessageLoop) preflightStaticMixGainStagingContextPack(ctx context.Conte
 		Role:    "user",
 		Content: "<capability_context_pack>" + string(data) + "</capability_context_pack>",
 	})
+	// The pack marker records the project revision it was built at so the E16
+	// freshness gate above can invalidate it after a same-run project change.
+	packBuiltMessage := capabilitycontext.GainStagingCapabilityID + " default pack built"
+	if revision := messageLoopGainStagingProjectRevision(state); revision != "" {
+		packBuiltMessage += " project_revision=" + revision
+	}
 	state.trace = append(state.trace, planner.TraceEvent{
 		Kind:    "capability_context_pack",
-		Message: capabilitycontext.GainStagingCapabilityID + " default pack built",
+		Message: packBuiltMessage,
 	})
 	return false, Result{}
 }
@@ -1854,6 +1865,53 @@ func messageLoopHasGainStagingContextPack(state *runState) bool {
 		}
 	}
 	return false
+}
+
+// messageLoopGainStagingProjectRevision returns the project revision currently
+// visible to B1 from the latest project state ("" = no revision visibility).
+func messageLoopGainStagingProjectRevision(state *runState) string {
+	projectState := messageLoopGainStagingProjectState(state)
+	if len(projectState) == 0 {
+		return ""
+	}
+	return firstMapText(projectState, "project_revision", "revision")
+}
+
+// messageLoopGainStagingPackBuiltProjectRevision extracts the project revision
+// recorded on the latest B1 pack trace event ("" = pack built without revision
+// visibility, including pack markers from before the E16 fix).
+func messageLoopGainStagingPackBuiltProjectRevision(state *runState) string {
+	if state == nil {
+		return ""
+	}
+	const marker = "project_revision="
+	for i := len(state.trace) - 1; i >= 0; i-- {
+		event := state.trace[i]
+		if event.Kind != "capability_context_pack" || !strings.Contains(event.Message, capabilitycontext.GainStagingCapabilityID) {
+			continue
+		}
+		if idx := strings.Index(event.Message, marker); idx >= 0 {
+			return strings.TrimSpace(event.Message[idx+len(marker):])
+		}
+		return ""
+	}
+	return ""
+}
+
+// messageLoopGainStagingPackStale is the E16 invalidation hook: the pack is
+// stale once the currently visible project revision differs from the revision
+// it was built at. When neither side exposes a revision, staleness cannot be
+// proven and the legacy reuse-without-invalidation behavior stands (§11).
+func messageLoopGainStagingPackStale(state *runState) bool {
+	if state == nil || !messageLoopHasGainStagingContextPack(state) {
+		return false
+	}
+	builtRevision := messageLoopGainStagingPackBuiltProjectRevision(state)
+	currentRevision := messageLoopGainStagingProjectRevision(state)
+	if builtRevision == "" && currentRevision == "" {
+		return false
+	}
+	return builtRevision != currentRevision
 }
 
 func messageLoopGainStagingHasProjectTracks(state *runState) bool {
