@@ -171,9 +171,9 @@ func (p *matCSynthProject) applyL3Arrival(trackID, requestID string) map[string]
 }
 
 // 事件：render 终态（批 3 全 kind 保守标脏）。
-func (p *matCSynthProject) applyRenderJob(jobID string) (string, string, string) {
+func (p *matCSynthProject) applyRenderJob(jobID string) [3]string {
 	p.revision = p.revision + "r"
-	return jobID, "render_done", "out.wav"
+	return [3]string{jobID, "render_done", "out.wav"}
 }
 
 // 事件：未知域收据（宁多勿漏兜底）。
@@ -667,14 +667,14 @@ func TestRegisteredRowsFromObservation(t *testing.T) {
 	if domRow.Ref.Snapshot != snapshotTokenCurrent {
 		t.Fatalf("precomputable 行 snapshot 应为稳定实例 token %q: got=%q", snapshotTokenCurrent, domRow.Ref.Snapshot)
 	}
-	fxmRows := FXMRowsFromObservation(observationID, fxmReadyProjectionFixture())
+	fxmRows := FXMRowsFromObservation(observationID, fxmReadyProjectionFixturePtr())
 	if len(fxmRows) != 1 || fxmRows[0].Ref.Kind != "fxm" {
 		t.Fatalf("fxm 登记行数/坐标不符: %+v", fxmRows)
 	}
 	if fxmRows[0].Ref.Snapshot != observationID {
 		t.Fatalf("registered 行 snapshot 应为 observation_id: got=%q", fxmRows[0].Ref.Snapshot)
 	}
-	comRows := COMRowsFromObservation(observationID, comReadyProjectionFixture())
+	comRows := COMRowsFromObservation(observationID, comReadyProjectionFixturePtr())
 	if len(comRows) != 1 || comRows[0].Ref.Kind != "com" {
 		t.Fatalf("com 登记行数/坐标不符: %+v", comRows)
 	}
@@ -849,6 +849,18 @@ func domReadyProjectionFixture() dom.Projection {
 			},
 		},
 	})
+}
+
+// fxmReadyProjectionFixture 产一个 ready 态 fxm 投影指针（真实字段，行化只读标量）。
+func fxmReadyProjectionFixturePtr() *fxm.Projection {
+	projection := fxmReadyProjectionFixture()
+	return &projection
+}
+
+// comReadyProjectionFixture 产一个 ready 态 com 投影指针（真实字段，行化只读标量）。
+func comReadyProjectionFixturePtr() *com.Projection {
+	projection := comReadyProjectionFixture()
+	return &projection
 }
 
 // fxmReadyProjectionFixture 产一个 ready 态 fxm 投影（真实字段，行化只读标量）。

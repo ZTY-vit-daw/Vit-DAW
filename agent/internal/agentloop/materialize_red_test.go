@@ -34,11 +34,11 @@ func TestB1PackSurvivesProjectChangeInRun(t *testing.T) {
 		executed: []map[string]any{
 			{"tool": "project.state", "result": map[string]any{
 				"project_revision": "r1",
-				"tracks": []map[string]any{{"track_id": "T3", "track_name": "lead", "volume_db": 0.0}},
+				"tracks":           []map[string]any{{"track_id": "T3", "track_name": "lead", "volume_db": 0.0}},
 			}},
 			{"tool": "project.state", "result": map[string]any{
 				"project_revision": "r2",
-				"tracks": []map[string]any{{"track_id": "T3", "track_name": "lead", "volume_db": -6.0}},
+				"tracks":           []map[string]any{{"track_id": "T3", "track_name": "lead", "volume_db": -6.0}},
 			}},
 		},
 	}

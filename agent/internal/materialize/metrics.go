@@ -42,6 +42,8 @@ type metricsState struct {
 	mu      sync.Mutex
 	perKind map[string]*KindMetrics
 	dropped int64
+	// shadowDivergences 是影子对账累计分歧行数（§7.1，MAT-C ReconcileShadow）。
+	shadowDivergences int64
 }
 
 func (m *metricsState) lock(kind string) *KindMetrics {
@@ -115,13 +117,22 @@ func (m *metricsState) addDrop() {
 	m.dropped++
 }
 
+// addShadowDivergence 累计影子对账分歧（§7.1：shadow 态每轮 observe 后现算
+// 产物 vs 物化行逐行 hash 比的分歧计数；切换闸门 ShadowDivergences==0 的依据）。
+func (m *metricsState) addShadowDivergence(n int64) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.shadowDivergences += n
+}
+
 // snapshot 返回深拷贝（外部改动不回写内部计数）。
 func (m *metricsState) snapshot() Metrics {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	out := Metrics{
-		PerKind:        make(map[string]KindMetrics, len(m.perKind)),
-		DroppedChanges: m.dropped,
+		PerKind:           make(map[string]KindMetrics, len(m.perKind)),
+		DroppedChanges:    m.dropped,
+		ShadowDivergences: m.shadowDivergences,
 	}
 	for kind, km := range m.perKind {
 		out.PerKind[kind] = *km

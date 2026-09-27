@@ -77,6 +77,7 @@ type Harness struct {
 	comProbeCollect func(context.Context, map[string]any, string, string, string) (map[string]any, map[string]any, error)
 
 	materializeNotifier materialize.Notifier // MAT-B 三挂点物化侧入口（nil=现状逐字节一致）
+	materializeStore    *materialize.Store   // MAT-C 三态 flag 物化库（nil=off 零接线现状；shadow/on 影子轮旁路）
 
 	// Conversation-checkpoint revision gate (HARNESS-1): per-project kernel
 	// revision already covered by a (possibly in-flight) vit checkpoint. The
@@ -191,7 +192,7 @@ func newWithSender(sender KernelSender, shadowProject *shadow.Project, logger *l
 		// stays nil-silent and pure.
 		tim.AssertWarnLogger = func(line string) { logger.Warn("%s", line) }
 	}
-	return &Harness{
+	h := &Harness{
 		kernel:          sender,
 		shadow:          shadowProject,
 		catalog:         tools.DefaultCatalog(),
@@ -206,6 +207,8 @@ func newWithSender(sender KernelSender, shadowProject *shadow.Project, logger *l
 		renderWaiters:   map[string][]chan RenderResult{},
 		journalOverride: journalPath != "",
 	}
+	h.initMaterialization() // MAT-C 三态 flag 装配（off=零接线现状）
+	return h
 }
 
 func defaultJournalPath() string {
@@ -3461,6 +3464,9 @@ func (h *Harness) requestMixObservation(ctx context.Context, cmd map[string]any)
 	})
 	if err != nil {
 		return nil, err
+	}
+	if h.materializeStore != nil { // MAT-C 影子轮旁路尾挂（只写物化库；FinalizeObservationContext 原路径零改动）
+		h.materializeObserveRound(&result.Observation)
 	}
 	out := map[string]any{
 		"status":            result.Status,

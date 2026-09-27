@@ -77,6 +77,17 @@ type Store struct {
 	dir     string // 非空 = manifest 落盘目录
 	metrics metricsState
 
+	// adapters/adapterOrder 是 MAT-C kind 适配器注册表（precomputable；启动期
+	// RegisterAdapters 一次写入，读侧随重算入口 RLock 读取）。
+	adapters     map[string]KindAdapter
+	adapterOrder []string
+
+	// dirtyKinds 是事件级 kind 脏标记（§4.4 脏的单位=投影）：arrive/invalidate
+	// 命中的 kind 即使尚无行（新 scope，如新轨首包）也须在下次 lazy 重算覆盖；
+	// 行级 MarkStale 只能命中既有行。重算提交成功即清除该 kind 标记；不落盘
+	// manifest（崩溃恢复语义=全行 material_reuse，宁多标不漏标）。
+	dirtyKinds map[string]bool
+
 	// propagationOverride 覆盖生产表 B（MAT-B 脏传播；nil=生产表 table_b.go）。
 	// 仅同包测试注入合成链表用（G2-A①），生产路径不设。
 	propagationOverride map[string][]string

@@ -91,7 +91,7 @@ func runMatCShadowBattery(t *testing.T, mode string) (map[string][]byte, matCSha
 	})
 	observation := mixboard.ObservationPacket{
 		ObservationID: "obs_matc_1", MixSessionID: "mix_matc", Status: "ready",
-		TargetRef: mixboard.TargetRef{Kind: "track", ID: "T3"},
+		TargetRef:      mixboard.TargetRef{Kind: "track", ID: "T3"},
 		ProjectPackage: map[string]any{"project_revision": "r1"},
 		GlobalSummary: map[string]any{"feature_snapshot": map[string]any{
 			"schema_version": "mixboard_feature_snapshot.v1",

@@ -91,9 +91,12 @@ func newStoreWithTableB(entries []TableBEntry) *Store {
 func (s *Store) HandleReceipt(receipt shadow.ChangeReceipt) {
 	allKinds, trackKinds, resolved := resolveDirtyKinds(s.propagationTable(), receipt.AffectedScopes)
 	if !resolved {
+		s.markKindsDirty(allTableBKinds(s.propagationTable()))
 		_, _ = s.MarkStale(RowMatch{}, receipt.ChangeID)
 		return
 	}
+	dirty := append(append([]string(nil), allKinds...), trackKinds...)
+	s.markKindsDirty(dirty)
 	if len(trackKinds) > 0 {
 		match := RowMatch{Kinds: trackKinds}
 		if trackIDs := receiptTrackIDs(receipt.ChangedEntities); len(trackIDs) > 0 {
@@ -124,6 +127,7 @@ func (s *Store) HandleFeatureArrival(event map[string]any) {
 	allKinds, trackKinds, resolved := resolveDirtyKinds(s.propagationTable(), []string{domain})
 	if !resolved {
 		// 分类命中的域必然在表 B（同源词表）；防御性兜底（宁多勿漏）。
+		s.markKindsDirty(allTableBKinds(s.propagationTable()))
 		s.MarkStale(RowMatch{}, arrivalChangeID(event))
 		return
 	}
@@ -131,6 +135,7 @@ func (s *Store) HandleFeatureArrival(event map[string]any) {
 	for _, kind := range dirty {
 		s.metrics.addArrival(kind)
 	}
+	s.markKindsDirty(dirty)
 	match := RowMatch{Kinds: dirty}
 	if trackID != "" {
 		match.ScopeValues = []string{trackID}
@@ -188,7 +193,42 @@ func arrivalChangeID(event map[string]any) string {
 // 整体失真）→ 全 kind 保守标脏（粗粒度兜底；#3 同时是 com paired 登记行的
 // render_revision 失效源——登记行同样标脏，M6 消费时校验兜底）。
 func (s *Store) HandleRenderJob(jobID, status, filePath string) {
+	s.markKindsDirty(allTableBKinds(s.propagationTable()))
 	_, _ = s.MarkStale(RowMatch{}, "render_job:"+strings.TrimSpace(jobID))
+}
+
+// markKindsDirty 记事件级 kind 脏标记（§4.4 脏的单位=投影：arrive/invalidate
+// 命中的 kind 即使尚无行也要被下次 lazy 重算覆盖——新 scope 行只能由此产生）。
+func (s *Store) markKindsDirty(kinds []string) {
+	if len(kinds) == 0 {
+		return
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.dirtyKinds == nil {
+		s.dirtyKinds = map[string]bool{}
+	}
+	for _, kind := range kinds {
+		s.dirtyKinds[kind] = true
+	}
+}
+
+// clearKindDirty 清一个 kind 的事件级脏标记（重算提交成功后）。
+func (s *Store) clearKindDirty(kind string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	delete(s.dirtyKinds, kind)
+}
+
+// allTableBKinds 返回表 B 全部 kind 值域（兜底档的 kind 级全集）。
+func allTableBKinds(table map[string][]string) []string {
+	set := map[string]bool{}
+	for _, kinds := range table {
+		for _, kind := range kinds {
+			set[kind] = true
+		}
+	}
+	return sortedKeys(set)
 }
 
 // ---------------------------------------------------------------------------
