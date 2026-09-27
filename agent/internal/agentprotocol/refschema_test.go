@@ -293,22 +293,22 @@ func TestFormatRefGolden(t *testing.T) {
 	}{
 		{
 			name: "all time un-CASed",
-			ref: Ref{Kind: "dom", ScopeKind: "track", ScopeValue: "voc_main", Window: &TimeWindow{AllTime: true}, Snapshot: "req_1", Hash: "-"},
+			ref:  Ref{Kind: "dom", ScopeKind: "track", ScopeValue: "voc_main", Window: &TimeWindow{AllTime: true}, Snapshot: "req_1", Hash: "-"},
 			want: "vit://dom/track:voc_main/t=all@req_1#-",
 		},
 		{
 			name: "ranged with hash",
-			ref: Ref{Kind: "fxm", ScopeKind: "track", ScopeValue: "voc", Window: &TimeWindow{SampleStart: 0, SampleEnd: 480000}, Snapshot: "rr_7", Hash: "sha256:0123456789abcdef"},
+			ref:  Ref{Kind: "fxm", ScopeKind: "track", ScopeValue: "voc", Window: &TimeWindow{SampleStart: 0, SampleEnd: 480000}, Snapshot: "rr_7", Hash: "sha256:0123456789abcdef"},
 			want: "vit://fxm/track:voc/t=0..480000@rr_7#sha256:0123456789abcdef",
 		},
 		{
 			name: "reserved chars escaped, space verbatim",
-			ref: Ref{Kind: "dom", ScopeKind: "track", ScopeValue: "a/b:c@d#e%f g", Window: &TimeWindow{AllTime: true}, Snapshot: "r/r", Hash: "-"},
+			ref:  Ref{Kind: "dom", ScopeKind: "track", ScopeValue: "a/b:c@d#e%f g", Window: &TimeWindow{AllTime: true}, Snapshot: "r/r", Hash: "-"},
 			want: "vit://dom/track:a%2Fb%3Ac%40d%23e%25f g/t=all@r%2Fr#-",
 		},
 		{
 			name: "escape introducer escaped first",
-			ref: Ref{Kind: "rlm", ScopeKind: "project", ScopeValue: "%2F", Window: &TimeWindow{AllTime: true}, Snapshot: "s", Hash: "-"},
+			ref:  Ref{Kind: "rlm", ScopeKind: "project", ScopeValue: "%2F", Window: &TimeWindow{AllTime: true}, Snapshot: "s", Hash: "-"},
 			want: "vit://rlm/project:%252F/t=all@s#-",
 		},
 	}
