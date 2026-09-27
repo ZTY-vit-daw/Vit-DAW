@@ -185,6 +185,93 @@ func TestMaterializeShadowMeasurementCarriedRound(t *testing.T) {
 	}
 }
 
+// TestMaterializeShadowTimingCarriedRound：MAT-D4 时序两态合成复刻——观察包的
+// DOMProjection 是 finalize 世代输入算的，GlobalSummary.feature_snapshot 已是
+// 尾挂世代（MAT-D3 取证 §3.3 形态）：影子轮应把该分歧登记为 timing-carried
+// （排除+单列计数 ShadowTimingCarriedExcluded>=1，不计分歧）；随后同世代收敛
+// 轮零分歧、排除计数不涨、真比过（ReconcileRows 递增）——G2-D 收敛态闭环的
+// 合成最小形态。
+func TestMaterializeShadowTimingCarriedRound(t *testing.T) {
+	previous, had := os.LookupEnv("VIT_DAW_MATERIALIZATION")
+	if err := os.Setenv("VIT_DAW_MATERIALIZATION", "shadow"); err != nil {
+		t.Fatal(err)
+	}
+	if had {
+		t.Cleanup(func() { _ = os.Setenv("VIT_DAW_MATERIALIZATION", previous) })
+	} else {
+		t.Cleanup(func() { _ = os.Unsetenv("VIT_DAW_MATERIALIZATION") })
+	}
+
+	matD4Waveform := func(sourceRevision string, rms, peak float64) map[string]any {
+		return map[string]any{
+			"status": "ready", "track_id": "T3", "source_revision": sourceRevision,
+			"rms_dbfs": rms, "peak_dbfs": peak, "headroom_db": -peak,
+			"duration_seconds": 12.0, "sample_rate": 48000.0, "channel_count": 2,
+			"analyzed_sample_count": 576000, "window_ms": 200.0, "hop_ms": 100.0,
+			"time_segments": []any{map[string]any{"start_seconds": 0.0, "end_seconds": 12.0, "rms_dbfs": rms, "peak_dbfs": peak}},
+		}
+	}
+	snapshotWith := func(row map[string]any) map[string]any {
+		return map[string]any{
+			"schema_version":           "mixboard_feature_snapshot.v1",
+			"track_waveform_envelopes": []any{row},
+		}
+	}
+
+	h := NewWithSender(nil, nil, nil) // shadow flag → 物化层接线
+	if h.materializeStore == nil {
+		t.Fatalf("shadow 态物化库未接线")
+	}
+
+	// finalize 世代投影（观察包投影停在旧世代）。
+	finalizeObs := mixboard.ObservationPacket{
+		ObservationID: "obs_matd4_h1", MixSessionID: "mix_matd4", Status: "ready",
+		TargetRef:      mixboard.TargetRef{Kind: "track", ID: "T3"},
+		ProjectPackage: map[string]any{"project_revision": "r1"},
+		GlobalSummary:  map[string]any{"feature_snapshot": snapshotWith(matD4Waveform("sr1", -20.5, -3.2))},
+	}
+	projection := dom.Build(mixboard.DOMInputFromObservation(finalizeObs, mixboard.Request{}))
+
+	// 尾挂世代（遥测已到达换代）：观察包携带 finalize 投影+新世代 snapshot。
+	tailObs := finalizeObs
+	tailObs.ObservationID = "obs_matd4_h2"
+	tailObs.GlobalSummary = map[string]any{"feature_snapshot": snapshotWith(matD4Waveform("sr2", -19.0, -2.8))}
+	tailObs.DOMProjection = &projection
+
+	h.materializeObserveRound(&tailObs)
+	m := h.materializeStore.Metrics()
+	if m.ShadowTimingCarriedExcluded < 1 {
+		t.Fatalf("时序两态分歧应登记 timing_carried 排除计数>=1: got=%d", m.ShadowTimingCarriedExcluded)
+	}
+	if m.ShadowDivergences != 0 {
+		t.Fatalf("timing-carried 行被闸门排除后 ShadowDivergences 应为 0: got=%d", m.ShadowDivergences)
+	}
+
+	// 收敛轮：观察投影与尾挂 snapshot 同世代 → 零分歧、排除计数不涨、真比过。
+	convergedObs := mixboard.ObservationPacket{
+		ObservationID: "obs_matd4_h3", MixSessionID: "mix_matd4", Status: "ready",
+		TargetRef:      mixboard.TargetRef{Kind: "track", ID: "T3"},
+		ProjectPackage: map[string]any{"project_revision": "r1"},
+		GlobalSummary:  map[string]any{"feature_snapshot": snapshotWith(matD4Waveform("sr2", -19.0, -2.8))},
+	}
+	convergedProjection := dom.Build(mixboard.DOMInputFromObservation(convergedObs, mixboard.Request{}))
+	convergedObs.DOMProjection = &convergedProjection
+
+	reconcileRowsBefore := m.ReconcileRows
+	timingBefore := m.ShadowTimingCarriedExcluded
+	h.materializeObserveRound(&convergedObs)
+	m = h.materializeStore.Metrics()
+	if m.ShadowDivergences != 0 {
+		t.Fatalf("收敛轮应零分歧: got=%d", m.ShadowDivergences)
+	}
+	if m.ShadowTimingCarriedExcluded != timingBefore {
+		t.Fatalf("收敛轮排除计数不得上涨（排除计数不涨才叫收敛）: before=%d after=%d", timingBefore, m.ShadowTimingCarriedExcluded)
+	}
+	if m.ReconcileRows <= reconcileRowsBefore {
+		t.Fatalf("收敛行应真比过（非空洞零分歧）: before=%d after=%d", reconcileRowsBefore, m.ReconcileRows)
+	}
+}
+
 // TestMaterializationOffIsByteIdentical：off vs shadow 两态，既有可观察面逐字节
 // 一致（三态 flag 的 off=现状，§7.1）；shadow 态物化非空（非空性守卫）。
 func TestMaterializationOffIsByteIdentical(t *testing.T) {

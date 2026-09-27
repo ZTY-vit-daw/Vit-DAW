@@ -1,7 +1,7 @@
 <#
-MATERIALIZATION shadow-mode real-stack smoke (card 2026-09-28-MAT-D / design
-docs/MATERIALIZATION_V1_DESIGN.md section 5.5 G2-D, same pattern as
-tim_assert_smoke.ps1).
+MATERIALIZATION shadow-mode real-stack smoke (cards 2026-09-28-MAT-D /
+2026-09-29-MAT-D4, design docs/MATERIALIZATION_V1_DESIGN.md section 5.5 G2-D,
+same pattern as tim_assert_smoke.ps1).
 
 Proves the shadow state of the three-state materialization flag end to end on
 the real three-piece stack (VitApp kernel + Godot UI + Go agent), read-only on
@@ -17,14 +17,21 @@ the metrics/log surface (shadow promises the read side never consumes):
      materialization round (RecomputeLazy + fxm/com registration + dom
      reconcile) and each round appends a [materialize] shadow_round metrics
      line to the agent log;
-  4. four assertion groups (all must pass for exit 0):
+  4. assertion groups (all must pass for exit 0):
      S1 flag=shadow started and is alive on the real stack: agent healthy AND
         a "[materialize] mode=shadow" startup line in the agent log (the off
         lock-in之外 third state);
-     S2 ShadowDivergences visible via logs and == 0 on real project data:
-        at least one shadow_round line, every such line reports
-        shadow_divergences=0, and at least one line proves the zero is not
-        vacuous via reconcile_rows>0;
+     S2 (MAT-D4 convergence-state split, per-round):
+        - baseline rounds: at least one shadow_round line, non-vacuous via
+          reconcile_rows>0 on some line (metrics are cumulative counters);
+        - change round (post set_volume observation): divergences from the
+          finalize-vs-tail input generation gap must be REGISTERED, not
+          silent: timing_carried_excluded delta >= 1;
+        - convergence round (third observation after a telemetry silence
+          window of >=8s + log-line stability): zero NEW divergences AND
+          zero NEW timing exclusions AND at least one real compared row
+          (reconcile_rows delta >= 1) -- G2-D closes at the converged state,
+          not instantaneously (MAT-D3 ruling 2);
      S3 dirty propagation happens on the real event stream: after one
         set_volume change event on the fixture track a "[materialize] receipt"
         line appears (event-time evidence) and a subsequent shadow_round line
@@ -38,7 +45,7 @@ Usage:
   powershell ... -SkipBuild          # reuse the installed agent binary
 
 Exit codes: 0 = PASS, 1 = assertion/environment failure, 2 = stack bring-up
-failure. Artifacts land under coord\runs\MAT-D-1\ (new dir per run).
+failure. Artifacts land under coord\runs\MAT-D4-1\ (new dir per run).
 #>
 
 [CmdletBinding()]
@@ -139,6 +146,47 @@ function Read-LogLines {
     catch { return @() }
 }
 
+# Get-ShadowMetric 从 shadow_round metrics 行取累计计数字段（MAT-D4 分轮断言：
+# metrics 是累计计数，轮间 delta 才是本轮值）。行空或字段缺失返回 -1。
+function Get-ShadowMetric {
+    param([string]$Line, [string]$Field)
+    if ([string]::IsNullOrEmpty($Line)) { return -1 }
+    $m = [regex]::Match($Line, ($Field + "=(\d+)"))
+    if ($m.Success) { return [int]$m.Groups[1].Value }
+    return -1
+}
+
+# Read-ShadowRoundMetrics 把一行 shadow_round 的分轮断言面字段抽成有序表。
+function Read-ShadowRoundMetrics {
+    param([string]$Line)
+    return [ordered]@{
+        line = $Line
+        shadow_divergences = Get-ShadowMetric -Line $Line -Field "shadow_divergences"
+        reconcile_rows = Get-ShadowMetric -Line $Line -Field "reconcile_rows"
+        measurement_carried_excluded = Get-ShadowMetric -Line $Line -Field "measurement_carried_excluded"
+        timing_carried_excluded = Get-ShadowMetric -Line $Line -Field "timing_carried_excluded"
+    }
+}
+
+# Wait-NextShadowRoundLine 等待下一条未见过的 shadow_round 行（对账在观察请求
+# 尾挂同步发生，行应在请求返回后数秒内出现）。返回新行；预算耗尽返回空串。
+# 命中的新行同步补进收集列表（后续报告/取证共用）。
+function Wait-NextShadowRoundLine {
+    param([System.Collections.Generic.List[string]]$Collected, [int]$BudgetSeconds)
+    $deadline = (Get-Date).AddSeconds($BudgetSeconds)
+    while ((Get-Date) -lt $deadline) {
+        Start-Sleep -Seconds 2
+        $lines = @(Read-LogLines -Path $AgentLog | Where-Object { $_.Contains("[materialize] shadow_round") })
+        foreach ($line in $lines) {
+            if (-not $Collected.Contains($line)) {
+                $Collected.Add($line)
+                return $line
+            }
+        }
+    }
+    return ""
+}
+
 # Modest sine wav: 440 Hz, -12 dBFS (amplitude 0.25), mono 16-bit. The fixture
 # only needs a feature snapshot row for the new track, no assertion hinges on
 # the level itself (unlike tim_assert_smoke's near-full-scale fixture).
@@ -183,7 +231,7 @@ $RepoRoot = Resolve-RepoRoot -Explicit $RepoRoot
 $WorkspaceDir = Join-Path $RepoRoot "VitApp\Workspace"
 $AgentLog = Join-Path $WorkspaceDir "Logs\agent_last.log"
 $RunStamp = Get-Date -Format "yyyyMMdd_HHmmss"
-$RunRoot = Join-Path $RepoRoot ("coord\runs\MAT-D-1\materialize_shadow_smoke_" + $RunStamp)
+$RunRoot = Join-Path $RepoRoot ("coord\runs\MAT-D4-1\materialize_shadow_smoke_" + $RunStamp)
 New-Item -ItemType Directory -Force -Path $RunRoot | Out-Null
 
 if ([string]::IsNullOrWhiteSpace($KernelExe)) {
@@ -197,7 +245,7 @@ function Add-Failure { param([string]$Message) $script:failureReasons.Add($Messa
 
 $report = [ordered]@{
     run_id = "materialize_shadow_smoke_" + $RunStamp
-    card = "2026-09-28-MAT-D"
+    card = "2026-09-29-MAT-D4"
     started_at = (Get-Date).ToUniversalTime().ToString("o")
     command_line = ($MyInvocation.Line)
     repo_head = ""
@@ -205,6 +253,7 @@ $report = [ordered]@{
     stack_mode = ""
     kernel = [ordered]@{}
     fixture = [ordered]@{}
+    rounds = [ordered]@{}
     assertions = [ordered]@{}
     log_evidence = [ordered]@{}
     verdict = ""
@@ -452,31 +501,34 @@ if (-not $baselineReady -and $failureReasons.Count -eq 0) {
     Add-Failure ("no shadow_round metrics line with dom ups>0 within budget (rounds=" + $pollRounds + ")")
 }
 
-# ---------------------------------------------------------------- S2: divergences == 0
-Write-Step "S2: ShadowDivergences visible via logs and == 0 (non-vacuous)"
+# ---------------------------------------------------------------- S2 baseline anchor
+# MAT-D4 分轮口径：基线/变更轮允许 timing-carried 登记的世代差分歧（G2 闭环=
+# 收敛态非瞬时，MAT-D3 裁定②）；全零断言废弃，改为分轮断言（变更轮 timing
+# 登记 / 收敛轮零分歧——见 S3 段后的收敛轮块）。非空洞证据=dom 行确实到达
+# 对账闸门并被处置（timing/measurement 排除或真比过任一面>0——恒排除形态下
+# reconcile_rows 恒 0，该面单独要求结构性不可能）。
+Write-Step "S2 baseline: shadow_round lines observable + reconcile gate reached"
 if ($shadowRoundLines.Count -eq 0) {
     Add-Failure "S2 no [materialize] shadow_round metrics line in agent log diff (metric not observable)"
 }
 else {
-    $bad = @($shadowRoundLines | Where-Object { -not $_.Contains("shadow_divergences=0 ") })
-    if ($bad.Count -gt 0) {
-        Add-Failure ("S2 shadow_divergences != 0 on " + $bad.Count + " line(s): " + ($bad -join " | "))
-    }
-    else {
-        Write-Ok ("S2 pass: " + $shadowRoundLines.Count + " shadow_round line(s), all shadow_divergences=0")
-    }
-    $anyReconcile = @()
+    $gateReached = $false
     foreach ($line in $shadowRoundLines) {
-        $m = [regex]::Match($line, "reconcile_rows=(\d+)")
-        if ($m.Success -and ([int]$m.Groups[1].Value) -gt 0) { $anyReconcile += $line }
+        $tim = Get-ShadowMetric -Line $line -Field "timing_carried_excluded"
+        $meas = Get-ShadowMetric -Line $line -Field "measurement_carried_excluded"
+        $rec = Get-ShadowMetric -Line $line -Field "reconcile_rows"
+        if (($tim -gt 0) -or ($meas -gt 0) -or ($rec -gt 0)) { $gateReached = $true; break }
     }
-    if ($anyReconcile.Count -eq 0) {
-        Add-Failure "S2 zero is vacuous: no shadow_round line shows reconcile_rows>0 (dom reconcile path never compared rows)"
+    if (-not $gateReached) {
+        Add-Failure "S2 vacuous baseline: no shadow_round line shows the dom row reaching the reconcile gate (timing/measurement/reconcile all zero)"
     }
     else {
-        Write-Ok ("S2 non-vacuous: " + $anyReconcile.Count + " line(s) with reconcile_rows>0")
+        Write-Ok "S2 baseline non-vacuous: dom row reached the reconcile gate (disposed via timing/measurement/reconcile)"
     }
 }
+$baselineLastLine = if ($shadowRoundLines.Count -gt 0) { $shadowRoundLines[$shadowRoundLines.Count - 1] } else { "" }
+$baselineMetrics = Read-ShadowRoundMetrics -Line $baselineLastLine
+$report.rounds.baseline = $baselineMetrics
 $report.log_evidence.shadow_round_line_count = $shadowRoundLines.Count
 $report.log_evidence.shadow_round_lines = @($shadowRoundLines)
 
@@ -512,23 +564,23 @@ if ($baselineReady) {
         Write-Ok ("S3 event-time evidence: " + $receiptLines.Count + " receipt line(s), e.g. " + $receiptLines[0])
     }
 
-    # Post-change observation round: invalidations must show up in the metrics
-    # line (kind marked dirty after the change event).
-    Write-Step "Post-change observation round"
+    # Post-change observation round (=MAT-D4 变更轮): invalidations must show up
+    # in the metrics line (kind marked dirty after the change event), and the
+    # finalize-vs-tail generation-gap divergence must be REGISTERED as
+    # timing-carried (excluded + counted separately, never silent).
+    Write-Step "Change-round observation (post set_volume)"
     $obsResp = Request-ShadowObservation
     $obsStatus = [string](Get-OptionalProperty -Object $obsResp -Name "status")
+    $changeLine = ""
     if ($obsStatus -ne "ok") {
-        Add-Failure ("post-change mix_request_observation failed status=" + $obsStatus + " error=" + [string](Get-OptionalProperty -Object $obsResp -Name "error"))
+        Add-Failure ("change-round mix_request_observation failed status=" + $obsStatus + " error=" + [string](Get-OptionalProperty -Object $obsResp -Name "error"))
     }
     else {
         $obsResult = Get-OptionalProperty -Object $obsResp -Name "result"
         $report.fixture.post_change_observation_id = [string](Get-FirstPropertyValue -Object $obsResult -Names @("observation_id"))
-        Start-Sleep -Seconds 2
-        $finalLines = @(Read-LogLines -Path $AgentLog)
-        foreach ($line in $finalLines) {
-            if (-not $baselineSet.Contains($line) -and $line.Contains("[materialize] shadow_round") -and -not $shadowRoundLines.Contains($line)) {
-                $shadowRoundLines.Add($line)
-            }
+        $changeLine = Wait-NextShadowRoundLine -Collected $shadowRoundLines -BudgetSeconds 60
+        if ($changeLine -eq "") {
+            Add-Failure "change-round shadow_round metrics line did not appear within 60s"
         }
     }
     $invLines = @($shadowRoundLines | Where-Object { ([regex]::Match($_, ":inv=([1-9]\d*)").Success) })
@@ -540,11 +592,95 @@ if ($baselineReady) {
         Write-Ok ("S3 pass: " + $invLines.Count + " shadow_round line(s) with invalidations>0, e.g. " + $invLines[0])
         $report.assertions.S3_invalidation_line = $invLines[0]
     }
-    # The post-change rounds must still be divergence-free (S2 already checks
-    # every collected line; re-run the check over the grown collection).
-    $bad = @($shadowRoundLines | Where-Object { -not $_.Contains("shadow_divergences=0 ") })
-    if ($bad.Count -gt 0) {
-        Add-Failure ("S2(post-change) shadow_divergences != 0 on " + $bad.Count + " line(s): " + ($bad -join " | "))
+
+    # ---------------- S2b (变更轮): timing-carried 登记 >= 1
+    $changeMetrics = Read-ShadowRoundMetrics -Line $changeLine
+    $report.rounds.change = $changeMetrics
+    Write-Step ("S2 change round: timing-carried registration >= 1 (baseline timing=" + $baselineMetrics.timing_carried_excluded + " change timing=" + $changeMetrics.timing_carried_excluded + ")")
+    if ($changeLine -eq "") {
+        Add-Failure "S2 change round has no shadow_round metrics line"
+    }
+    elseif ($changeMetrics.timing_carried_excluded -lt 0 -or $baselineMetrics.timing_carried_excluded -lt 0) {
+        Add-Failure ("S2 change round metrics unreadable (timing field missing; stale agent binary?): baseline_line=" + $baselineLastLine + " change_line=" + $changeLine)
+    }
+    else {
+        $timingDelta = $changeMetrics.timing_carried_excluded - $baselineMetrics.timing_carried_excluded
+        if ($timingDelta -lt 1) {
+            Add-Failure ("S2 change round registered no timing-carried exclusion (delta=" + $timingDelta + "; divergence must be registered, not silent — change round timing>=1 is the card gate)")
+        }
+        else {
+            Write-Ok ("S2 change round pass: timing_carried_excluded delta=" + $timingDelta + " (generation-gap divergence registered, not silent)")
+            $report.assertions.S2_change_round_timing_registered = $timingDelta
+        }
+    }
+
+    # ---------------- silence window + convergence round (MAT-D4 G2-D 收敛态闭环)
+    # 静默判据：>=8s 地板 + [materialize] 事件面行数稳定（活栈有 authority/
+    # chat 周期日志，总行数永不稳定——只看物化事件面）；预算 40s。
+    Write-Step "Telemetry silence window before convergence round (>=8s + [materialize]-line stability, budget 40s)"
+    $silenceStart = Get-Date
+    $stablePolls = 0
+    $lastMaterializeLines = -1
+    $silenceStable = $false
+    while ($true) {
+        Start-Sleep -Seconds 2
+        $count = @((Read-LogLines -Path $AgentLog) | Where-Object { $_.Contains("[materialize]") }).Count
+        if ($count -eq $lastMaterializeLines) { $stablePolls++ } else { $stablePolls = 0; $lastMaterializeLines = $count }
+        $elapsed = ((Get-Date) - $silenceStart).TotalSeconds
+        if ($elapsed -ge 8 -and $stablePolls -ge 3) { $silenceStable = $true; break }
+        if ($elapsed -ge 40) { break }
+    }
+    if ($silenceStable) {
+        Write-Ok ("silence window reached: log stable for " + ($stablePolls * 2) + "s, total wait " + [int](((Get-Date) - $silenceStart).TotalSeconds) + "s")
+    }
+    else {
+        Write-WarnLine "silence window budget exhausted (40s) without full stability; proceeding (convergence assertions decide)"
+    }
+    $report.rounds.silence_window = [ordered]@{
+        stable = $silenceStable
+        waited_seconds = [int](((Get-Date) - $silenceStart).TotalSeconds)
+    }
+
+    Write-Step "Convergence-round observation (third round, post-silence)"
+    $convResp = Request-ShadowObservation
+    $convStatus = [string](Get-OptionalProperty -Object $convResp -Name "status")
+    $convLine = ""
+    if ($convStatus -ne "ok") {
+        Add-Failure ("convergence-round mix_request_observation failed status=" + $convStatus + " error=" + [string](Get-OptionalProperty -Object $convResp -Name "error"))
+    }
+    else {
+        $convResult = Get-OptionalProperty -Object $convResp -Name "result"
+        $report.fixture.convergence_observation_id = [string](Get-FirstPropertyValue -Object $convResult -Names @("observation_id"))
+        $convLine = Wait-NextShadowRoundLine -Collected $shadowRoundLines -BudgetSeconds 60
+        if ($convLine -eq "") {
+            Add-Failure "convergence-round shadow_round metrics line did not appear within 60s"
+        }
+    }
+    $convMetrics = Read-ShadowRoundMetrics -Line $convLine
+    $report.rounds.convergence = $convMetrics
+
+    # ---------------- S2c (收敛轮): 零分歧 + 零新排除 + 真比过
+    Write-Step ("S2 convergence round: zero new divergences AND zero new timing exclusions AND real compare (change div=" + $changeMetrics.shadow_divergences + "/" + $changeMetrics.timing_carried_excluded + "/" + $changeMetrics.reconcile_rows + " conv div=" + $convMetrics.shadow_divergences + "/" + $convMetrics.timing_carried_excluded + "/" + $convMetrics.reconcile_rows + ")")
+    if ($convLine -eq "") {
+        Add-Failure "S2 convergence round has no shadow_round metrics line"
+    }
+    else {
+        $convDivDelta = $convMetrics.shadow_divergences - $changeMetrics.shadow_divergences
+        $convTimingDelta = $convMetrics.timing_carried_excluded - $changeMetrics.timing_carried_excluded
+        $convRecDelta = $convMetrics.reconcile_rows - $changeMetrics.reconcile_rows
+        if ($convDivDelta -ne 0) {
+            Add-Failure ("S2 convergence round still diverging: new divergences=" + $convDivDelta + " (穿透在静默窗后仍发生=缺陷更深——卡面停止条件，取证上交) line=" + $convLine)
+        }
+        elseif ($convTimingDelta -ne 0) {
+            Add-Failure ("S2 convergence round still timing-carried: new exclusions=" + $convTimingDelta + " (世代差窗口在静默窗后仍开着=未真收敛) line=" + $convLine)
+        }
+        elseif ($convRecDelta -lt 1) {
+            Add-Failure ("S2 convergence zero-divergence is vacuous: no new compared row (reconcile_rows delta=" + $convRecDelta + "; dom row excluded or missing) line=" + $convLine)
+        }
+        else {
+            Write-Ok ("S2 convergence round pass: div_delta=0 timing_delta=0 reconcile_delta=" + $convRecDelta + " (G2-D converged-state closure)")
+            $report.assertions.S2_convergence_round_zero_divergence = $true
+        }
     }
 }
 
@@ -594,7 +730,7 @@ if ($failureReasons.Count -eq 0) {
     $report.verdict = "PASS"
     Write-Utf8NoBom -Path (Join-Path $RunRoot "run_report.json") -Text ($report | ConvertTo-Json -Depth 8)
     Write-Step "PASS"
-    Write-Ok ("MATERIALIZATION shadow real-stack smoke passed (S1 startup / S2 zero divergence / S3 dirty propagation / S4 exit 0). run_root=" + $RunRoot)
+    Write-Ok ("MATERIALIZATION shadow real-stack smoke passed (S1 startup / S2 change-round timing registration + convergence-round zero divergence / S3 dirty propagation / S4 exit 0). run_root=" + $RunRoot)
     exit 0
 }
 $report.verdict = "FAIL"

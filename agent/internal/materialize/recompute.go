@@ -191,8 +191,8 @@ func (s *Store) lazyKinds() []string {
 // 物化行缺失即分歧；分歧行数返回并累计入 Metrics.ShadowDivergences。现算侧
 // 多出的内容不判分歧（观察是目标域子集，物化面更宽是常态）。
 func (s *Store) ReconcileShadow(fresh []Row) int {
-	divergences, _ := s.ReconcileShadowDetailed(fresh)
-	return divergences
+	result := s.ReconcileShadowWithTiming(fresh, nil)
+	return result.Divergences
 }
 
 // ShadowDivergenceDetail 是单行分歧的取证明细（MAT-D：真栈分歧的根因级证据——
@@ -209,11 +209,32 @@ type ShadowDivergenceDetail struct {
 	Row           agentprotocol.MaterializedRow // 物化侧行（日志/调试消费）
 }
 
+// ShadowReconcileResult 是对账结果（MAT-D4 分轮断言面）：分歧数+明细+
+// timing-carried 排除数（登记可见——排除不得静默吞掉，harness 侧照此打点）。
+// TimingDetails 是被排除行的两侧 hash 取证（收敛轮仍 timing 涨=停止条件，
+// 红必须可解释）。
+type ShadowReconcileResult struct {
+	Divergences   int
+	Details       []ShadowDivergenceDetail
+	TimingCarried int
+	TimingDetails []ShadowDivergenceDetail
+}
+
 // ReconcileShadowDetailed 同 ReconcileShadow，另返回分歧明细（MAT-D 取证面：
 // 真栈 ShadowDivergences!=0 时 harness 侧逐行打 WARN——切换闸门红必须可解释）。
+// 不做 timing 判定（旧口径：调用方未提供重放基准 deps）。
 func (s *Store) ReconcileShadowDetailed(fresh []Row) (int, []ShadowDivergenceDetail) {
+	result := s.ReconcileShadowWithTiming(fresh, nil)
+	return result.Divergences, result.Details
+}
+
+// ReconcileShadowWithTiming 同对账，另做 timing-carried 判定（MAT-D4 登记型：
+// deps 非空时对"会判分歧"的行按 timingCarriedSignature 归因——两侧输入世代差
+// 的分歧排除+单列计数 Metrics.ShadowTimingCarriedExcluded，不计分歧、不进
+// ReconcileRows；判定不可靠宁计分歧不误排除）。deps 为 nil 时与旧口径逐行为等。
+func (s *Store) ReconcileShadowWithTiming(fresh []Row, deps *DepInputs) ShadowReconcileResult {
 	if len(fresh) == 0 {
-		return 0, nil
+		return ShadowReconcileResult{}
 	}
 	s.mu.RLock()
 	stored := make(map[string]materialRow, len(s.current.rows))
@@ -222,9 +243,8 @@ func (s *Store) ReconcileShadowDetailed(fresh []Row) (int, []ShadowDivergenceDet
 	}
 	s.mu.RUnlock()
 
-	divergences := 0
+	result := ShadowReconcileResult{}
 	excluded := 0
-	var details []ShadowDivergenceDetail
 	for _, row := range fresh {
 		// MAT-D2 登记型闸门排除：measurement_carried 行（观察轮 dom 输入经
 		// MixPackage 测量回退轴激活——与物化侧不同源，DepInputs 不携带测量）
@@ -236,22 +256,40 @@ func (s *Store) ReconcileShadowDetailed(fresh []Row) (int, []ShadowDivergenceDet
 		}
 		if err := row.Ref.Validate(); err != nil {
 			// 现算侧行化产出非法坐标=对账输入缺陷，计分歧（fail-visible）。
-			divergences++
+			result.Divergences++
 			continue
 		}
 		have, ok := stored[rowKey(row.Ref)]
 		if !ok {
-			divergences++
+			result.Divergences++
 			refStr, _ := agentprotocol.FormatRef(row.Ref)
-			details = append(details, ShadowDivergenceDetail{
+			result.Details = append(result.Details, ShadowDivergenceDetail{
 				Ref: refStr, FreshHash: row.Ref.Hash, StoredMissing: true, FreshPayload: row.Payload,
 			})
 			continue
 		}
 		if have.Ref.Hash != row.Ref.Hash || !payloadEqual(have.Payload, row.Payload) {
-			divergences++
+			// MAT-D4 timing-carried 判定：分歧可归因两侧输入世代差（重放==
+			// 物化行而观察行异）→ 排除+单列计数；不可靠（重放缺行/不符）→
+			// 宁计分歧不误排除。
+			if timingCarriedSignature(row, have, deps) {
+				result.TimingCarried++
+				refStr, _ := agentprotocol.FormatRef(row.Ref)
+				result.TimingDetails = append(result.TimingDetails, ShadowDivergenceDetail{
+					Ref:           refStr,
+					FreshHash:     row.Ref.Hash,
+					StoredHash:    have.Ref.Hash,
+					FreshPayload:  row.Payload,
+					StoredPayload: clonePayload(have.Payload),
+					InvalidatedBy: have.InvalidatedBy,
+					Freshness:     have.Freshness,
+					Row:           contractRow(have),
+				})
+				continue
+			}
+			result.Divergences++
 			refStr, _ := agentprotocol.FormatRef(row.Ref)
-			details = append(details, ShadowDivergenceDetail{
+			result.Details = append(result.Details, ShadowDivergenceDetail{
 				Ref:           refStr,
 				FreshHash:     row.Ref.Hash,
 				StoredHash:    have.Ref.Hash,
@@ -265,12 +303,15 @@ func (s *Store) ReconcileShadowDetailed(fresh []Row) (int, []ShadowDivergenceDet
 	}
 	// 比对行数与分歧同源累计（MAT-D：零分歧的非空洞证据；排除行不计入——
 	// 它们没有参与比对，计数单列）。
-	s.metrics.addReconcileRows(int64(len(fresh) - excluded))
+	s.metrics.addReconcileRows(int64(len(fresh) - excluded - result.TimingCarried))
 	if excluded > 0 {
 		s.metrics.addMeasurementCarriedExcluded(int64(excluded))
 	}
-	if divergences > 0 {
-		s.metrics.addShadowDivergence(int64(divergences))
+	if result.TimingCarried > 0 {
+		s.metrics.addTimingCarriedExcluded(int64(result.TimingCarried))
 	}
-	return divergences, details
+	if result.Divergences > 0 {
+		s.metrics.addShadowDivergence(int64(result.Divergences))
+	}
+	return result
 }

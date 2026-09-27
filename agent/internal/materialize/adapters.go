@@ -318,28 +318,36 @@ func DOMAdapter() KindAdapter {
 			}
 			rows := make([]Row, 0, len(trackIDs))
 			for _, trackID := range trackIDs {
-				input := mixboard.DOMInputFromObservation(mixboard.ObservationPacket{
-					TargetRef: mixboard.TargetRef{
-						Kind: "track", ID: trackID,
-						// MAT-D3：真实观察包的 target_ref 带轨名 label（harness
-						// 观察请求解析链填入），label 是投影内容的合法身份字段
-						// 且不属 volatile——合成包缺它即内容身份恒差（MAT-D2 取证）。
-						// 从 deps.ProjectState（shadow 工程快照，与观察侧
-						// visibleTrackName 同一轨行集）同源取值；轨名缺失=NE
-						// 留空，不猜名字。
-						Label: shadowTrackLabel(deps.ProjectState, trackID),
-					},
-					GlobalSummary:  map[string]any{"feature_snapshot": deps.FeatureSnapshot},
-					ProjectPackage: map[string]any{"project_revision": deps.ProjectRevision},
-				}, mixboard.Request{})
-				projection := dom.Build(input)
-				if row, ok := DOMRowFromProjection(trackID, projection); ok {
+				if row, ok := BuildDOMRowForTrack(deps, trackID); ok {
 					rows = append(rows, row)
 				}
 			}
 			return rows, nil
 		},
 	}
+}
+
+// BuildDOMRowForTrack 从 deps 现算单轨 dom 行（DOMAdapter.Build 的同路径单轨
+// 版——MAT-D4 timing-carried 判定的重放基准：与物化重算严格同 Build 同输入
+// 形态，重放 hash 才能充当"物化行是否反映当前输入"的证据）。snapshot 无该轨
+// 特征行时不产行（判定方按不可靠处理）。
+func BuildDOMRowForTrack(deps DepInputs, trackID string) (Row, bool) {
+	input := mixboard.DOMInputFromObservation(mixboard.ObservationPacket{
+		TargetRef: mixboard.TargetRef{
+			Kind: "track", ID: trackID,
+			// MAT-D3：真实观察包的 target_ref 带轨名 label（harness
+			// 观察请求解析链填入），label 是投影内容的合法身份字段
+			// 且不属 volatile——合成包缺它即内容身份恒差（MAT-D2 取证）。
+			// 从 deps.ProjectState（shadow 工程快照，与观察侧
+			// visibleTrackName 同一轨行集）同源取值；轨名缺失=NE
+			// 留空，不猜名字。
+			Label: shadowTrackLabel(deps.ProjectState, trackID),
+		},
+		GlobalSummary:  map[string]any{"feature_snapshot": deps.FeatureSnapshot},
+		ProjectPackage: map[string]any{"project_revision": deps.ProjectRevision},
+	}, mixboard.Request{})
+	projection := dom.Build(input)
+	return DOMRowFromProjection(trackID, projection)
 }
 
 // featureTrackIDs 提取 feature snapshot 中有轨级特征行的 track 集（去重+字典序，

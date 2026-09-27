@@ -1,0 +1,69 @@
+{
+    "run_id":  "materialize_shadow_smoke_20260927_210942",
+    "card":  "2026-09-29-MAT-D4",
+    "started_at":  "2026-09-27T13:09:42.8880684Z",
+    "command_line":  "",
+    "repo_head":  "4b62005677438e49451ee3c9a1762c5dbf16b625",
+    "repo_status":  "M VitApp/Workspace/default_project.xml;  M agent/internal/harness/materialize_shadow.go;  M agent/internal/harness/materialize_shadow_test.go;  M agent/internal/materialize/adapters.go;  M agent/internal/materialize/metrics.go;  M agent/internal/materialize/recompute.go;  M scripts/materialize_shadow_smoke.ps1; ?? agent/internal/materialize/timing_carried.go; ?? agent/internal/materialize/timing_carried_test.go; ?? coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/journey/; ?? coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/journey2/; ?? coord/runs/FIX-PCA-EQCHANNEL-1/journey1/; ?? coord/runs/FIX-PCA-EQCHANNEL-1/journey2/; ?? coord/runs/FIX-PCA-EQCHANNEL-1/journey3/; ?? coord/runs/FIX-PCA-EQCHANNEL-1/journey4/; ?? coord/runs/MAT-D4-1/; ?? coord/runs/OBS-IMMUTABILITY-RECON-1/",
+    "stack_mode":  "dev_agent_smoke_started",
+    "kernel":  {
+                   "path":  "D:\\Vit_DAW\\VitApp\\cmake-build-pcverify1\\VitApp_artefacts\\Release\\VitApp.exe",
+                   "last_write_utc":  "2026-09-27T08:32:10.5251480Z",
+                   "sha256":  "8CC661F5131DF4B59A6882C59757B9E7E28B54743AA210220EC194E47F98DE12"
+               },
+    "fixture":  {
+                    "track_id":  "1007",
+                    "project_sample_rate_hz":  48000,
+                    "wav_path":  "D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\smoke\\mat_d_shadow_fixture_16656_1790514594781.wav",
+                    "mix_session_id":  "materialize_shadow_smoke_20260927_210942",
+                    "observation_id":  "obs_20260927T130957_6b7eb53fd6d4",
+                    "post_change_observation_id":  "obs_20260927T131000_960193e5b3ac",
+                    "convergence_observation_id":  "obs_20260927T131011_fc47bab04a2b",
+                    "track_cleanup":  "left_last_track"
+                },
+    "rounds":  {
+                   "baseline":  {
+                                    "line":  "2026-09-27T21:09:57 [INFO] [materialize] shadow_round observation_id=obs_20260927T130957_6b7eb53fd6d4 kinds=acp:inv=0,arr=3,rec=1,ups=10,unch=0;dom:inv=0,arr=4,rec=1,ups=1,unch=0;fxm:inv=0,arr=0,rec=1,ups=1,unch=0;mom:inv=0,arr=3,rec=0,ups=0,unch=0;tim:inv=0,arr=4,rec=0,ups=0,unch=0;tom:inv=0,arr=0,rec=1,ups=1,unch=0 shadow_divergences=0 reconcile_rows=0 dropped_changes=0 recovery_skipped_rows=0 measurement_carried_excluded=0 timing_carried_excluded=1",
+                                    "shadow_divergences":  0,
+                                    "reconcile_rows":  0,
+                                    "measurement_carried_excluded":  0,
+                                    "timing_carried_excluded":  1
+                                },
+                   "change":  {
+                                  "line":  "2026-09-27T21:10:00 [INFO] [materialize] shadow_round observation_id=obs_20260927T131000_960193e5b3ac kinds=acp:inv=3,arr=3,rec=2,ups=20,unch=0;dom:inv=3,arr=4,rec=2,ups=2,unch=0;fxm:inv=3,arr=0,rec=2,ups=2,unch=0;mom:inv=0,arr=3,rec=0,ups=0,unch=0;tim:inv=0,arr=4,rec=0,ups=0,unch=0;tom:inv=3,arr=0,rec=2,ups=2,unch=0 shadow_divergences=0 reconcile_rows=0 dropped_changes=0 recovery_skipped_rows=0 measurement_carried_excluded=0 timing_carried_excluded=2",
+                                  "shadow_divergences":  0,
+                                  "reconcile_rows":  0,
+                                  "measurement_carried_excluded":  0,
+                                  "timing_carried_excluded":  2
+                              },
+                   "silence_window":  {
+                                          "stable":  true,
+                                          "waited_seconds":  8
+                                      },
+                   "convergence":  {
+                                       "line":  "2026-09-27T21:10:11 [INFO] [materialize] shadow_round observation_id=obs_20260927T131011_fc47bab04a2b kinds=acp:inv=3,arr=3,rec=2,ups=20,unch=0;dom:inv=3,arr=4,rec=2,ups=2,unch=0;fxm:inv=3,arr=0,rec=3,ups=3,unch=0;mom:inv=0,arr=3,rec=0,ups=0,unch=0;tim:inv=0,arr=4,rec=0,ups=0,unch=0;tom:inv=3,arr=0,rec=2,ups=2,unch=0 shadow_divergences=0 reconcile_rows=0 dropped_changes=0 recovery_skipped_rows=0 measurement_carried_excluded=0 timing_carried_excluded=3",
+                                       "shadow_divergences":  0,
+                                       "reconcile_rows":  0,
+                                       "measurement_carried_excluded":  0,
+                                       "timing_carried_excluded":  3
+                                   }
+               },
+    "assertions":  {
+                       "S1_startup_line":  "2026-09-27T21:09:47 [INFO] [materialize] mode=shadow kinds=tom,acp,dom store=memory",
+                       "S3_invalidation_line":  "2026-09-27T21:10:00 [INFO] [materialize] shadow_round observation_id=obs_20260927T131000_960193e5b3ac kinds=acp:inv=3,arr=3,rec=2,ups=20,unch=0;dom:inv=3,arr=4,rec=2,ups=2,unch=0;fxm:inv=3,arr=0,rec=2,ups=2,unch=0;mom:inv=0,arr=3,rec=0,ups=0,unch=0;tim:inv=0,arr=4,rec=0,ups=0,unch=0;tom:inv=3,arr=0,rec=2,ups=2,unch=0 shadow_divergences=0 reconcile_rows=0 dropped_changes=0 recovery_skipped_rows=0 measurement_carried_excluded=0 timing_carried_excluded=2",
+                       "S2_change_round_timing_registered":  1
+                   },
+    "log_evidence":  {
+                         "baseline_line_count":  111,
+                         "shadow_round_line_count":  1,
+                         "shadow_round_lines":  [
+                                                    "2026-09-27T21:09:57 [INFO] [materialize] shadow_round observation_id=obs_20260927T130957_6b7eb53fd6d4 kinds=acp:inv=0,arr=3,rec=1,ups=10,unch=0;dom:inv=0,arr=4,rec=1,ups=1,unch=0;fxm:inv=0,arr=0,rec=1,ups=1,unch=0;mom:inv=0,arr=3,rec=0,ups=0,unch=0;tim:inv=0,arr=4,rec=0,ups=0,unch=0;tom:inv=0,arr=0,rec=1,ups=1,unch=0 shadow_divergences=0 reconcile_rows=0 dropped_changes=0 recovery_skipped_rows=0 measurement_carried_excluded=0 timing_carried_excluded=1"
+                                                ],
+                         "agent_log_copy":  "saved"
+                     },
+    "verdict":  "FAIL",
+    "finished_at":  "2026-09-27T13:10:14.6397173Z",
+    "failures":  [
+                     "S2 convergence round still timing-carried: new exclusions=1 (涓栦唬宸獥鍙ｅ湪闈欓粯绐楀悗浠嶅紑鐫€=鏈湡鏀舵暃) line=2026-09-27T21:10:11 [INFO] [materialize] shadow_round observation_id=obs_20260927T131011_fc47bab04a2b kinds=acp:inv=3,arr=3,rec=2,ups=20,unch=0;dom:inv=3,arr=4,rec=2,ups=2,unch=0;fxm:inv=3,arr=0,rec=3,ups=3,unch=0;mom:inv=0,arr=3,rec=0,ups=0,unch=0;tim:inv=0,arr=4,rec=0,ups=0,unch=0;tom:inv=3,arr=0,rec=2,ups=2,unch=0 shadow_divergences=0 reconcile_rows=0 dropped_changes=0 recovery_skipped_rows=0 measurement_carried_excluded=0 timing_carried_excluded=3"
+                 ]
+}

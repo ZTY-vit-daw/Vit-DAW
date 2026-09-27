@@ -43,6 +43,11 @@ type Metrics struct {
 	// 行累计（MAT-D2 登记型：观察轮 dom 输入经 MixPackage 测量回退轴激活的行
 	// 与物化侧不同源，登记 non_precomputable 后对账跳过——计数单列，不静默）。
 	ShadowMeasurementCarriedExcluded int64
+	// ShadowTimingCarriedExcluded 影子对账被闸门排除的 timing-carried 行累计
+	// （MAT-D4 登记型：观察投影（finalize 世代输入）与物化行（尾挂世代输入）
+	// 的时序两态分歧——对账时当前输入同路径重放==物化行而观察行异，排除+单列
+	// 计数，不静默；判定不可靠宁计分歧不误排除）。
+	ShadowTimingCarriedExcluded int64
 	// RecoverySkippedRows 恢复装载时被跳过的损坏行数（非法 ref/坐标重复）。
 	RecoverySkippedRows int64
 	// RecoverySalvaged manifest 半写经流式抢救恢复（截断记账：损失可见）。
@@ -61,6 +66,9 @@ type metricsState struct {
 	// measurementCarriedExcluded 是被闸门排除的 measurement-carried 行累计
 	// （MAT-D2 登记型：单列计数，与分歧/比对行数分开可见）。
 	measurementCarriedExcluded int64
+	// timingCarriedExcluded 是被闸门排除的 timing-carried 行累计（MAT-D4 登记
+	// 型：输入世代差分歧单列可见，与分歧/比对行数分开）。
+	timingCarriedExcluded int64
 	// recovery 记账（§5.5 MAT-D）：装载期一次写入，之后只读。
 	recoverySkipped  int64
 	recoverySalvaged bool
@@ -161,6 +169,14 @@ func (m *metricsState) addMeasurementCarriedExcluded(n int64) {
 	m.measurementCarriedExcluded += n
 }
 
+// addTimingCarriedExcluded 累计被闸门排除的 timing-carried 行数（MAT-D4 登记
+// 型：输入世代差分歧的排除必须可见——计数单列，不静默）。
+func (m *metricsState) addTimingCarriedExcluded(n int64) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.timingCarriedExcluded += n
+}
+
 // setRecovery 记恢复装载记账（§5.5 MAT-D：装载期一次写入；跳过行数+是否经
 // 半写抢救——损失可见，非静默）。
 func (m *metricsState) setRecovery(skipped int64, salvaged bool) {
@@ -175,13 +191,14 @@ func (m *metricsState) snapshot() Metrics {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	out := Metrics{
-		PerKind:                         make(map[string]KindMetrics, len(m.perKind)),
-		DroppedChanges:                  m.dropped,
-		ShadowDivergences:               m.shadowDivergences,
-		ReconcileRows:                   m.reconcileRows,
+		PerKind:                          make(map[string]KindMetrics, len(m.perKind)),
+		DroppedChanges:                   m.dropped,
+		ShadowDivergences:                m.shadowDivergences,
+		ReconcileRows:                    m.reconcileRows,
 		ShadowMeasurementCarriedExcluded: m.measurementCarriedExcluded,
-		RecoverySkippedRows:             m.recoverySkipped,
-		RecoverySalvaged:                m.recoverySalvaged,
+		ShadowTimingCarriedExcluded:      m.timingCarriedExcluded,
+		RecoverySkippedRows:              m.recoverySkipped,
+		RecoverySalvaged:                 m.recoverySalvaged,
 	}
 	for kind, km := range m.perKind {
 		out.PerKind[kind] = *km

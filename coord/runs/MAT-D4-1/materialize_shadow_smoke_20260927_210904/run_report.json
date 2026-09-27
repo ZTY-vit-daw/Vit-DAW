@@ -1,0 +1,27 @@
+{
+    "run_id":  "materialize_shadow_smoke_20260927_210904",
+    "card":  "2026-09-29-MAT-D4",
+    "started_at":  "2026-09-27T13:09:04.5887196Z",
+    "command_line":  "",
+    "repo_head":  "4b62005677438e49451ee3c9a1762c5dbf16b625",
+    "repo_status":  "M VitApp/Workspace/default_project.xml;  M agent/internal/harness/materialize_shadow.go;  M agent/internal/harness/materialize_shadow_test.go;  M agent/internal/materialize/adapters.go;  M agent/internal/materialize/metrics.go;  M agent/internal/materialize/recompute.go;  M scripts/materialize_shadow_smoke.ps1; ?? agent/internal/materialize/timing_carried.go; ?? agent/internal/materialize/timing_carried_test.go; ?? coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/journey/; ?? coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/journey2/; ?? coord/runs/FIX-PCA-EQCHANNEL-1/journey1/; ?? coord/runs/FIX-PCA-EQCHANNEL-1/journey2/; ?? coord/runs/FIX-PCA-EQCHANNEL-1/journey3/; ?? coord/runs/FIX-PCA-EQCHANNEL-1/journey4/; ?? coord/runs/MAT-D4-1/; ?? coord/runs/OBS-IMMUTABILITY-RECON-1/",
+    "stack_mode":  "reused_existing_stack",
+    "kernel":  {
+                   "path":  "D:\\Vit_DAW\\VitApp\\cmake-build-pcverify1\\VitApp_artefacts\\Release\\VitApp.exe",
+                   "last_write_utc":  "2026-09-27T08:32:10.5251480Z",
+                   "sha256":  "8CC661F5131DF4B59A6882C59757B9E7E28B54743AA210220EC194E47F98DE12"
+               },
+    "fixture":  {
+
+                },
+    "rounds":  {
+
+               },
+    "assertions":  {
+                       "S1_startup_line":  ""
+                   },
+    "log_evidence":  {
+
+                     },
+    "verdict":  "s1_failed"
+}

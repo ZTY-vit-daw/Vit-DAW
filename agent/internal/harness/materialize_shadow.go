@@ -118,11 +118,25 @@ func (h *Harness) materializeObserveRound(obs *mixboard.ObservationPacket) {
 					h.logger.Info("[materialize] measurement_carried_excluded kind=dom track=%s observation_id=%s (MixPackage 测量回退轴激活：登记 non_precomputable，对账闸门排除)",
 						trackID, obs.ObservationID)
 				}
-				divergences, details := h.materializeStore.ReconcileShadowDetailed([]materialize.Row{row})
-				if divergences > 0 && h.logger != nil {
+				reconcile := h.materializeStore.ReconcileShadowWithTiming([]materialize.Row{row}, &deps)
+				if reconcile.TimingCarried > 0 && h.logger != nil {
+					// MAT-D4 登记型可见性：时序两态分歧（观察投影=finalize 世代
+					// vs 物化行=尾挂世代，当前输入重放==物化行而观察行异）被闸门
+					// 排除并单列计数——INFO 级（登记处置，不是失效告警面；计数在
+					// shadow_round 行单列；不可靠形态仍计分歧走 WARN 取证面）。
+					// 两侧 hash 附带（收敛轮仍 timing 涨=停止条件，红须可解释）。
+					firstFreshHash, firstStoredHash := "", ""
+					if len(reconcile.TimingDetails) > 0 {
+						firstFreshHash = reconcile.TimingDetails[0].FreshHash
+						firstStoredHash = reconcile.TimingDetails[0].StoredHash
+					}
+					h.logger.Info("[materialize] timing_carried_excluded kind=dom track=%s observation_id=%s rows=%d fresh_hash=%s stored_hash=%s (输入世代差：物化行=当前输入同路径重放，观察投影=finalize 世代——对账排除并单列计数)",
+						trackID, obs.ObservationID, reconcile.TimingCarried, firstFreshHash, firstStoredHash)
+				}
+				if reconcile.Divergences > 0 && h.logger != nil {
 					// MAT-D 取证面：真栈分歧逐行 WARN（坐标+两侧 hash+两侧
 					// payload）——ShadowDivergences!=0 必须可解释（G2 上交材料）。
-					for _, detail := range details {
+					for _, detail := range reconcile.Details {
 						freshJSON, _ := json.Marshal(detail.FreshPayload)
 						storedJSON, _ := json.Marshal(detail.StoredPayload)
 						freshText := string(freshJSON)
@@ -170,10 +184,12 @@ func mapValueAny(value any) map[string]any {
 // ShadowDivergences 经日志可见且==0、脏传播 invalidations 计数可观测——
 // metrics 只读面，不消费读端，不越界验 on 态）。行格式：
 //
-//	[materialize] shadow_round observation_id=... kinds=dom:inv=1,arr=0,rec=2,ups=3,unch=0;tom:... shadow_divergences=0 reconcile_rows=2 dropped_changes=0 recovery_skipped_rows=0 measurement_carried_excluded=0
+//	[materialize] shadow_round observation_id=... kinds=dom:inv=1,arr=0,rec=2,ups=3,unch=0;tom:... shadow_divergences=0 reconcile_rows=2 dropped_changes=0 recovery_skipped_rows=0 measurement_carried_excluded=0 timing_carried_excluded=0
 //
 // 末段 measurement_carried_excluded 是 MAT-D2 登记型单列计数（回退轴激活行
-// 被闸门排除的累计——分歧行已入排除计数，不静默）。
+// 被闸门排除的累计——分歧行已入排除计数，不静默）；timing_carried_excluded
+// 是 MAT-D4 登记型单列计数（输入世代差分歧被闸门排除的累计——G2-D 收敛态
+// 口径下变更轮登记、收敛轮不涨）。
 func (h *Harness) logMaterializeRoundMetrics(obs *mixboard.ObservationPacket) {
 	if h.logger == nil || h.materializeStore == nil {
 		return
@@ -194,8 +210,8 @@ func (h *Harness) logMaterializeRoundMetrics(obs *mixboard.ObservationPacket) {
 	if obs != nil {
 		observationID = obs.ObservationID
 	}
-	h.logger.Info("[materialize] shadow_round observation_id=%s kinds=%s shadow_divergences=%d reconcile_rows=%d dropped_changes=%d recovery_skipped_rows=%d measurement_carried_excluded=%d",
-		observationID, strings.Join(parts, ";"), m.ShadowDivergences, m.ReconcileRows, m.DroppedChanges, m.RecoverySkippedRows, m.ShadowMeasurementCarriedExcluded)
+	h.logger.Info("[materialize] shadow_round observation_id=%s kinds=%s shadow_divergences=%d reconcile_rows=%d dropped_changes=%d recovery_skipped_rows=%d measurement_carried_excluded=%d timing_carried_excluded=%d",
+		observationID, strings.Join(parts, ";"), m.ShadowDivergences, m.ReconcileRows, m.DroppedChanges, m.RecoverySkippedRows, m.ShadowMeasurementCarriedExcluded, m.ShadowTimingCarriedExcluded)
 }
 
 // materializeDepInputs 从 harness 状态装配适配器输入束：shadow Summary（tom
