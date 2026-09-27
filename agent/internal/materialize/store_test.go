@@ -306,7 +306,7 @@ func TestReadCommittedPerGeneration(t *testing.T) {
 	}
 
 	var (
-		failMu  sync.Mutex
+		failMu   sync.Mutex
 		failures []string
 	)
 	record := func(format string, args ...any) {
@@ -396,6 +396,7 @@ func TestGenerationAtomicCommit(t *testing.T) {
 		Row{Ref: testRef("dom", "T2", "obs-1", hashN(1))},
 		Row{Ref: testRef("tim", "T1", "obs-1", hashN(1))},
 	)
+	drainEvents(t, ch, 3)
 	if got := s.Generation(); got != 1 {
 		t.Fatalf("一笔提交 generation 应恰好 +1（0→1），got %d", got)
 	}
@@ -727,7 +728,9 @@ func TestMetricsSnapshotIsCopy(t *testing.T) {
 	if m1.PerKind["dom"].RowsUpserted != 1 {
 		t.Fatalf("RowsUpserted 应为 1，got %d", m1.PerKind["dom"].RowsUpserted)
 	}
-	m1.PerKind["dom"].RowsUpserted = 99
+	tampered := m1.PerKind["dom"]
+	tampered.RowsUpserted = 99
+	m1.PerKind["dom"] = tampered
 	if got := s.Metrics().PerKind["dom"].RowsUpserted; got != 1 {
 		t.Fatalf("Metrics() 必须返回副本（外部篡改不得污染仪表），got %d", got)
 	}
