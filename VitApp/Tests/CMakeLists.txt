@@ -28,6 +28,14 @@ add_executable(VitSharedMemorySegmentTests
 target_compile_features(VitSharedMemorySegmentTests PRIVATE cxx_std_20)
 target_include_directories(VitSharedMemorySegmentTests PRIVATE ../Source/Service)
 
+# TIM-KERNEL-DISCLOSE-1: pure disclosure classifiers (plugin load state +
+# block-size gate) — header-only, std-only, no juce/tracktion linkage.
+add_executable(VitProjectStateDisclosureTests
+    ProjectStateDisclosureTests.cpp
+    ../Source/Service/PluginLoadState.h)
+target_compile_features(VitProjectStateDisclosureTests PRIVATE cxx_std_20)
+target_include_directories(VitProjectStateDisclosureTests PRIVATE ../Source/Service)
+
 set(_g4_default_tracktion_engine "${CMAKE_CURRENT_SOURCE_DIR}/../../tracktion_engine")
 if(NOT EXISTS "${_g4_default_tracktion_engine}/CMakeLists.txt"
    AND EXISTS "D:/Vit_DAW/tracktion_engine/CMakeLists.txt")
@@ -171,6 +179,7 @@ if(MSVC)
     target_compile_options(VitAuditionPreviewStateTests PRIVATE /W4 /permissive-)
     target_compile_options(VitWorkingCopyPersistPolicyTests PRIVATE /W4 /permissive-)
     target_compile_options(VitSharedMemorySegmentTests PRIVATE /W4 /permissive-)
+    target_compile_options(VitProjectStateDisclosureTests PRIVATE /W4 /permissive-)
     if(TARGET VitAuditionPreviewAudioPlaneTests)
         target_compile_options(VitAuditionPreviewAudioPlaneTests PRIVATE /W4 /permissive-)
     endif()
@@ -190,6 +199,7 @@ else()
     target_compile_options(VitAuditionPreviewStateTests PRIVATE -Wall -Wextra -Wpedantic)
     target_compile_options(VitWorkingCopyPersistPolicyTests PRIVATE -Wall -Wextra -Wpedantic)
     target_compile_options(VitSharedMemorySegmentTests PRIVATE -Wall -Wextra -Wpedantic)
+    target_compile_options(VitProjectStateDisclosureTests PRIVATE -Wall -Wextra -Wpedantic)
     if(TARGET VitAuditionPreviewAudioPlaneTests)
         target_compile_options(VitAuditionPreviewAudioPlaneTests PRIVATE -Wall -Wextra -Wpedantic)
     endif()
@@ -210,3 +220,4 @@ endif()
 add_test(NAME VitAuditionPreviewStateTests COMMAND VitAuditionPreviewStateTests)
 add_test(NAME VitWorkingCopyPersistPolicyTests COMMAND VitWorkingCopyPersistPolicyTests)
 add_test(NAME VitSharedMemorySegmentTests COMMAND VitSharedMemorySegmentTests)
+add_test(NAME VitProjectStateDisclosureTests COMMAND VitProjectStateDisclosureTests)

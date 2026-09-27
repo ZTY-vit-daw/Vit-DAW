@@ -52,6 +52,10 @@ const (
 	codeSignalDCOffsetNE      = "assert_signal_dc_offset_not_evaluable"
 	codePluginHygieneNE       = "assert_plugin_hygiene_not_evaluable"
 	codePluginListStaleRemove = "assert_plugin_list_stale_removed"
+	codeBlockSizeMismatch     = "assert_block_size_mismatch"
+	codeBlockSizeNE           = "assert_block_size_not_evaluable"
+	codePluginLoadFailed      = "assert_plugin_load_failed"
+	codePluginLoadNE          = "assert_plugin_load_not_evaluable"
 	codeClippingHeadroomNE    = "assert_clipping_headroom_not_evaluable"
 	codeLevelCeilingNE        = "assert_level_ceiling_not_evaluable"
 	codeSampleRateNE          = "assert_sample_rate_not_evaluable"
@@ -90,11 +94,13 @@ type AssertionResult struct {
 type AssertInput struct {
 	TrackFacts          []TrackFact
 	ProjectSampleRateHz *float64
-	RackSummaries       []RackSummary
-	KnownPluginPaths    map[string]bool
-	CeilingDBFS         float64
-	// PluginListHygiene is the kernel plugin_list_hygiene disclosure block;
-	// nil keeps the plugin hygiene assertion not_evaluable.
+	// ProjectBlockSize is the kernel-disclosed block size actually in use
+	// (audio_settings.block_size); nil when no device is open / key absent,
+	// keeping the block_size check not_evaluable (TIM-KERNEL-DISCLOSE-1).
+	ProjectBlockSize  *float64
+	RackSummaries     []RackSummary
+	KnownPluginPaths  map[string]bool
+	CeilingDBFS       float64
 	PluginListHygiene map[string]any
 }
 
@@ -107,6 +113,11 @@ type RackNode struct {
 	VitOrphanBypassCandidate    bool
 	PluginPath                  string
 	PluginFormat                string
+	// Per-instance load state disclosed by the kernel rack nodes
+	// (TIM-KERNEL-DISCLOSE-1 Item 4): "ready" / "async_pending" / "failed";
+	// PluginLoadState empty = field not disclosed (older kernel).
+	PluginLoadState   string
+	PluginInstanceRdy bool
 }
 
 // RackEdge is one directed rack connection; RACK_INPUT/RACK_OUTPUT are the
