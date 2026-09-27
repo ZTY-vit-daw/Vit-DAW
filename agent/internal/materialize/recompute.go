@@ -217,6 +217,8 @@ func (s *Store) ReconcileShadow(fresh []Row) int {
 			divergences++
 		}
 	}
+	// 比对行数与分歧同源累计（MAT-D：零分歧的非空洞证据）。
+	s.metrics.addReconcileRows(int64(len(fresh)))
 	if divergences > 0 {
 		s.metrics.addShadowDivergence(int64(divergences))
 	}
