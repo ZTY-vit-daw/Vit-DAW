@@ -1,0 +1,41 @@
+{
+    "run_id":  "materialize_shadow_smoke_20260927_163619",
+    "card":  "2026-09-28-MAT-D",
+    "started_at":  "2026-09-27T08:36:19.5518070Z",
+    "command_line":  "",
+    "repo_head":  "b3fb3d8a32dcb03520c63e3ad47319aca942a84a",
+    "repo_status":  "M VitApp/Workspace/default_project.xml; ?? coord/runs/D11-ROLE-RECON-1/; ?? coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/journey/; ?? coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/journey2/; ?? coord/runs/FIX-PCA-EQCHANNEL-1/journey1/; ?? coord/runs/FIX-PCA-EQCHANNEL-1/journey2/; ?? coord/runs/FIX-PCA-EQCHANNEL-1/journey3/; ?? coord/runs/FIX-PCA-EQCHANNEL-1/journey4/; ?? coord/runs/L2-2-SEG-SMOKE-1/; ?? coord/runs/PORT-WIN-HYGIENE-SMOKE-1/hygiene_pc_20260926-170105/; ?? coord/runs/PORT-WIN-HYGIENE-SMOKE-1/hygiene_pc_20260926-172229/project/; ?? coord/runs/PORT-WIN-HYGIENE-SMOKE-1/hygiene_pc_20260926-172229/replies/W1_list.json; ?? coord/runs/PORT-WIN-HYGIENE-SMOKE-1/hygiene_pc_20260926-172229/replies/W2_list.json; ?? coord/runs/PORT-WIN-HYGIENE-SMOKE-1/hygiene_pc_20260926-172229/replies/W3_list.json; ?? coord/runs/PORT-WIN-HYGIENE-SMOKE-1/hygiene_pc_20260926-172229/settings_states/; ?? scripts/materialize_shadow_smoke.ps1",
+    "stack_mode":  "dev_agent_smoke_started",
+    "kernel":  {
+                   "path":  "D:\\Vit_DAW\\VitApp\\cmake-build-pcverify1\\VitApp_artefacts\\Release\\VitApp.exe",
+                   "last_write_utc":  "2026-09-27T08:32:10.5251480Z",
+                   "sha256":  "8CC661F5131DF4B59A6882C59757B9E7E28B54743AA210220EC194E47F98DE12"
+               },
+    "fixture":  {
+                    "track_id":  "1007",
+                    "project_sample_rate_hz":  48000,
+                    "wav_path":  "D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\smoke\\mat_d_shadow_fixture_27260_1790498189541.wav",
+                    "mix_session_id":  "materialize_shadow_smoke_20260927_163619",
+                    "observation_id":  "obs_20260927T083630_d78d69f212c4",
+                    "post_change_observation_id":  "obs_20260927T083631_e0b42318b6bd",
+                    "track_cleanup":  "left_last_track"
+                },
+    "assertions":  {
+                       "S1_startup_line":  "2026-09-27T16:36:25 [INFO] [materialize] mode=shadow kinds=tom,acp,dom store=memory",
+                       "S3_invalidation_line":  "2026-09-27T16:36:31 [INFO] [materialize] shadow_round observation_id=obs_20260927T083631_e0b42318b6bd kinds=acp:inv=3,arr=3,rec=2,ups=2,unch=0;dom:inv=3,arr=4,rec=2,ups=2,unch=0;fxm:inv=3,arr=0,rec=2,ups=2,unch=0;mom:inv=0,arr=3,rec=0,ups=0,unch=0;tim:inv=0,arr=4,rec=0,ups=0,unch=0;tom:inv=3,arr=0,rec=2,ups=2,unch=0 shadow_divergences=2 reconcile_rows=2 dropped_changes=0 recovery_skipped_rows=0"
+                   },
+    "log_evidence":  {
+                         "baseline_line_count":  113,
+                         "shadow_round_line_count":  1,
+                         "shadow_round_lines":  [
+                                                    "2026-09-27T16:36:30 [INFO] [materialize] shadow_round observation_id=obs_20260927T083630_d78d69f212c4 kinds=acp:inv=0,arr=3,rec=1,ups=1,unch=0;dom:inv=0,arr=4,rec=1,ups=1,unch=0;fxm:inv=0,arr=0,rec=1,ups=1,unch=0;mom:inv=0,arr=3,rec=0,ups=0,unch=0;tim:inv=0,arr=4,rec=0,ups=0,unch=0;tom:inv=0,arr=0,rec=1,ups=1,unch=0 shadow_divergences=1 reconcile_rows=1 dropped_changes=0 recovery_skipped_rows=0"
+                                                ],
+                         "agent_log_copy":  "saved"
+                     },
+    "verdict":  "FAIL",
+    "finished_at":  "2026-09-27T08:36:33.6184211Z",
+    "failures":  [
+                     "S2 shadow_divergences != 0 on 1 line(s): 2026-09-27T16:36:30 [INFO] [materialize] shadow_round observation_id=obs_20260927T083630_d78d69f212c4 kinds=acp:inv=0,arr=3,rec=1,ups=1,unch=0;dom:inv=0,arr=4,rec=1,ups=1,unch=0;fxm:inv=0,arr=0,rec=1,ups=1,unch=0;mom:inv=0,arr=3,rec=0,ups=0,unch=0;tim:inv=0,arr=4,rec=0,ups=0,unch=0;tom:inv=0,arr=0,rec=1,ups=1,unch=0 shadow_divergences=1 reconcile_rows=1 dropped_changes=0 recovery_skipped_rows=0",
+                     "S2(post-change) shadow_divergences != 0 on 2 line(s): 2026-09-27T16:36:30 [INFO] [materialize] shadow_round observation_id=obs_20260927T083630_d78d69f212c4 kinds=acp:inv=0,arr=3,rec=1,ups=1,unch=0;dom:inv=0,arr=4,rec=1,ups=1,unch=0;fxm:inv=0,arr=0,rec=1,ups=1,unch=0;mom:inv=0,arr=3,rec=0,ups=0,unch=0;tim:inv=0,arr=4,rec=0,ups=0,unch=0;tom:inv=0,arr=0,rec=1,ups=1,unch=0 shadow_divergences=1 reconcile_rows=1 dropped_changes=0 recovery_skipped_rows=0 | 2026-09-27T16:36:31 [INFO] [materialize] shadow_round observation_id=obs_20260927T083631_e0b42318b6bd kinds=acp:inv=3,arr=3,rec=2,ups=2,unch=0;dom:inv=3,arr=4,rec=2,ups=2,unch=0;fxm:inv=3,arr=0,rec=2,ups=2,unch=0;mom:inv=0,arr=3,rec=0,ups=0,unch=0;tim:inv=0,arr=4,rec=0,ups=0,unch=0;tom:inv=3,arr=0,rec=2,ups=2,unch=0 shadow_divergences=2 reconcile_rows=2 dropped_changes=0 recovery_skipped_rows=0"
+                 ]
+}

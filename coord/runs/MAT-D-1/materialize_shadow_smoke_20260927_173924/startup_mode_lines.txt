@@ -1,0 +1,1 @@
+2026-09-27T17:39:29 [INFO] [materialize] mode=shadow kinds=tom,acp,dom store=memory
