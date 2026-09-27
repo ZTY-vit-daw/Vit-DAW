@@ -11,7 +11,6 @@ import (
 
 	"vit-daw-agent/internal/com"
 	"vit-daw-agent/internal/dom"
-	"vit-daw-agent/internal/projectstore"
 	"vit-daw-agent/internal/tim"
 )
 
@@ -586,28 +585,10 @@ func readObservationKey(obs ObservationPacket, key string, req ReadRequest, evid
 }
 
 func lazyFeatureSnapshot(obs ObservationPacket) map[string]any {
-	roots, ok := projectstore.Current()
-	if !ok || obs.ProjectUUID == "" || !strings.EqualFold(projectstore.SafeName(obs.ProjectUUID), roots.ProjectUUID) {
-		return nil
-	}
-	for _, ref := range obs.EvidenceRefs {
-		if !strings.HasPrefix(strings.TrimSpace(ref), "evidence://") {
-			continue
-		}
-		blob, err := projectstore.GetEvidence(roots, ref)
-		if err != nil || blob.Kind != "feature_snapshot" {
-			continue
-		}
-		if snapshot, ok := blob.Content.(map[string]any); ok {
-			return snapshot
-		}
-		data, _ := json.Marshal(blob.Content)
-		var snapshot map[string]any
-		if json.Unmarshal(data, &snapshot) == nil {
-			return snapshot
-		}
-	}
-	return nil
+	// MAT-E0：判定链上收到 FeatureSnapshotEvidence（物化读端同一回溯）——
+	// 行为零变化（返回语义同旧实现：不适用与回溯失败都返回 nil）。
+	snapshot, _ := FeatureSnapshotEvidence(obs)
+	return snapshot
 }
 
 func evidenceTimeEnergyRows(snapshot map[string]any) []map[string]any {

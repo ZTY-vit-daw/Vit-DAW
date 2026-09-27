@@ -215,9 +215,10 @@ func (h *Harness) logMaterializeRoundMetrics(obs *mixboard.ObservationPacket) {
 }
 
 // materializeDepInputs 从 harness 状态装配适配器输入束：shadow Summary（tom
-// 输入域）+观察携带的 feature snapshot（dom 输入域——与观察路径消费的同一份
-// 数据面）+acp 默认 store 快照（acp 输入域；per-observation 覆盖路径的包不
-// 在此列，边界随回执申报）。
+// 输入域）+观察的完整态 feature snapshot（dom 输入域——MAT-E0 输入源切换：
+// 优先经证据链回溯 State A raw，与 finalize 同源同态；legacy/dev 包无两态，
+// inline 即完整态）+acp 默认 store 快照（acp 输入域；per-observation 覆盖路径
+// 的包不在此列，边界随回执申报）。
 func (h *Harness) materializeDepInputs(obs *mixboard.ObservationPacket) materialize.DepInputs {
 	deps := materialize.DepInputs{}
 	if h.shadow != nil {
@@ -228,8 +229,20 @@ func (h *Harness) materializeDepInputs(obs *mixboard.ObservationPacket) material
 		}
 	}
 	if obs != nil {
-		if snapshot, ok := obs.GlobalSummary["feature_snapshot"].(map[string]any); ok {
+		// MAT-E0：v2 路径的返回包 inline snapshot 是剥离态（State B——time_segments
+		// 等载荷键递归删除，OBS-RECON W1）；直接吃它会让物化 dom 重算缺
+		// activity_structure 族（真栈 S2 分歧根因）。完整态 State A raw 在证据
+		// blob——经 EvidenceRefs 回溯（FeatureSnapshotEvidence，与 mix_read
+		// `.raw.` 键回溯同链），不适用（legacy）时 inline 本就是完整态。
+		if snapshot, applicable := mixboard.FeatureSnapshotEvidence(*obs); snapshot != nil {
 			deps.FeatureSnapshot = snapshot
+		} else if snapshot, ok := obs.GlobalSummary["feature_snapshot"].(map[string]any); ok {
+			deps.FeatureSnapshot = snapshot
+			if applicable && h.logger != nil {
+				// v2 语义下回溯失败（evidence 关闭/清理/读取失败）：inline 是剥离态，
+				// 物化输入降级——登记缺口不静默（OBS-RECON R1 回退定义）。
+				h.logger.Info("[materialize] feature_snapshot_evidence_fallback_inline observation_id=%s (v2 证据回溯失败，物化输入降级为剥离态 inline)", obs.ObservationID)
+			}
 		}
 		if deps.ProjectRevision == "" {
 			deps.ProjectRevision = strings.TrimSpace(summaryString(obs.ProjectPackage["project_revision"]))
