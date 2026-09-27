@@ -1,0 +1,72 @@
+{
+    "run_id":  "materialize_shadow_smoke_20260927_223003",
+    "card":  "2026-09-29-MAT-E",
+    "materialization_mode":  "on",
+    "started_at":  "2026-09-27T14:30:03.2272891Z",
+    "command_line":  "",
+    "repo_head":  "60651ed417c41325b5c80403d111e127be50dd03",
+    "repo_status":  "M VitApp/Workspace/default_project.xml;  M agent/internal/harness/harness.go;  M agent/internal/harness/materialize_shadow.go;  M agent/internal/materialize/store.go;  M agent/internal/mixboard/mixboard.go;  M scripts/materialize_shadow_smoke.ps1; ?? agent/internal/harness/materialize_onpath.go; ?? agent/internal/harness/materialize_onpath_test.go; ?? agent/internal/materialize/store_onpath_test.go; ?? agent/internal/mixboard/finalize_materialized.go; ?? agent/internal/mixboard/finalize_materialized_test.go; ?? coord/runs/MAT-E/",
+    "stack_mode":  "dev_agent_smoke_started",
+    "kernel":  {
+                   "path":  "D:\\Vit_DAW\\VitApp\\cmake-build-pcverify1\\VitApp_artefacts\\Release\\VitApp.exe",
+                   "last_write_utc":  "2026-09-27T08:32:10.5251480Z",
+                   "sha256":  "8CC661F5131DF4B59A6882C59757B9E7E28B54743AA210220EC194E47F98DE12"
+               },
+    "fixture":  {
+                    "track_id":  "1007",
+                    "project_sample_rate_hz":  48000,
+                    "wav_path":  "D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\smoke\\mat_d_shadow_fixture_8340_1790519414980.wav",
+                    "mix_session_id":  "materialize_shadow_smoke_20260927_223003",
+                    "observation_id":  "obs_20260927T143017_86d94ac0aa15",
+                    "post_change_observation_id":  "obs_20260927T143025_d91ac74f4306",
+                    "track_cleanup":  "left_last_track"
+                },
+    "rounds":  {
+                   "baseline":  {
+                                    "line":  "2026-09-27T22:30:18 [INFO] [materialize] shadow_round observation_id=obs_20260927T143017_86d94ac0aa15 kinds=acp:inv=0,arr=3,rec=1,ups=18,unch=0;dom:inv=0,arr=4,rec=1,ups=1,unch=0;fxm:inv=0,arr=0,rec=1,ups=1,unch=0;mom:inv=0,arr=3,rec=0,ups=0,unch=0;tim:inv=0,arr=4,rec=0,ups=0,unch=0;tom:inv=0,arr=0,rec=1,ups=1,unch=0 shadow_divergences=0 reconcile_rows=1 dropped_changes=0 recovery_skipped_rows=0 measurement_carried_excluded=0 timing_carried_excluded=0",
+                                    "shadow_divergences":  0,
+                                    "reconcile_rows":  1,
+                                    "measurement_carried_excluded":  0,
+                                    "timing_carried_excluded":  0
+                                },
+                   "on_fields":  [
+                                     {
+                                         "round":  1,
+                                         "observation_id":  "obs_20260927T143017_86d94ac0aa15",
+                                         "actual_cost_class":  "compile",
+                                         "recomputed":  1
+                                     },
+                                     {
+                                         "round":  "hit_probe_1",
+                                         "observation_id":  "obs_20260927T143020_45ffea174d45",
+                                         "actual_cost_class":  "index",
+                                         "recomputed":  0
+                                     }
+                                 ],
+                   "on_change_fields":  {
+                                            "actual_cost_class":  "compile",
+                                            "recomputed":  "1"
+                                        },
+                   "drill_shadow_observation_id":  "obs_20260927T143035_a487367bac68",
+                   "drill_off_observation_id":  "obs_20260927T143043_f582ef5dca6b"
+               },
+    "assertions":  {
+                       "S1_startup_line":  "2026-09-27T22:30:07 [INFO] [materialize] mode=on kinds=tom,acp,dom store=memory",
+                       "S3_invalidation_line":  "2026-09-27T22:30:25 [INFO] [materialize] shadow_round observation_id=obs_20260927T143025_d91ac74f4306 kinds=acp:inv=3,arr=3,rec=2,ups=36,unch=0;dom:inv=3,arr=4,rec=3,ups=3,unch=0;fxm:inv=3,arr=0,rec=3,ups=3,unch=0;mom:inv=0,arr=3,rec=0,ups=0,unch=0;tim:inv=0,arr=4,rec=0,ups=0,unch=0;tom:inv=3,arr=0,rec=2,ups=2,unch=0 shadow_divergences=0 reconcile_rows=3 dropped_changes=0 recovery_skipped_rows=0 measurement_carried_excluded=0 timing_carried_excluded=0"
+                   },
+    "log_evidence":  {
+                         "baseline_line_count":  108,
+                         "shadow_round_line_count":  1,
+                         "shadow_round_lines":  [
+                                                    "2026-09-27T22:30:18 [INFO] [materialize] shadow_round observation_id=obs_20260927T143017_86d94ac0aa15 kinds=acp:inv=0,arr=3,rec=1,ups=18,unch=0;dom:inv=0,arr=4,rec=1,ups=1,unch=0;fxm:inv=0,arr=0,rec=1,ups=1,unch=0;mom:inv=0,arr=3,rec=0,ups=0,unch=0;tim:inv=0,arr=4,rec=0,ups=0,unch=0;tom:inv=0,arr=0,rec=1,ups=1,unch=0 shadow_divergences=0 reconcile_rows=1 dropped_changes=0 recovery_skipped_rows=0 measurement_carried_excluded=0 timing_carried_excluded=0"
+                                                ],
+                         "on_round_line_count":  2,
+                         "on_round_lines":  [
+                                                "2026-09-27T22:30:18 [INFO] [materialize] on_round observation_id=obs_20260927T143017_86d94ac0aa15 dom=miss recomputed=1 cost_class=compile hits=0 misses=1 backfilled=1",
+                                                "2026-09-27T22:30:20 [INFO] [materialize] on_round observation_id=obs_20260927T143020_45ffea174d45 dom=hit recomputed=0 cost_class=index hits=1 misses=1 backfilled=0"
+                                            ],
+                         "agent_log_copy":  "saved"
+                     },
+    "verdict":  "PASS",
+    "finished_at":  "2026-09-27T14:31:04.4560438Z"
+}

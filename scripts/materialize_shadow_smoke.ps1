@@ -1,61 +1,69 @@
 <#
-MATERIALIZATION shadow-mode real-stack smoke (cards 2026-09-28-MAT-D /
-2026-09-29-MAT-D4 / 2026-09-29-MAT-E0 same-source reconciliation,
-design docs/MATERIALIZATION_V1_DESIGN.md section 5.5 G2-D,
+MATERIALIZATION real-stack smoke (cards 2026-09-28-MAT-D / 2026-09-29-MAT-D4 /
+2026-09-29-MAT-E0 same-source reconciliation / 2026-09-29-MAT-E read-side
+switch, design docs/MATERIALIZATION_V1_DESIGN.md sections 5.5 G2-D and 7.1,
 same pattern as tim_assert_smoke.ps1).
 
-Proves the shadow state of the three-state materialization flag end to end on
-the real three-piece stack (VitApp kernel + Godot UI + Go agent), read-only on
-the metrics/log surface (shadow promises the read side never consumes):
+Proves the materialization three-state flag end to end on the real three-piece
+stack (VitApp kernel + Godot UI + Go agent), read-only on the metrics/log
+surface except the MAT-E on-mode response fields:
 
   1. bring the stack up by reusing dev_agent_smoke.ps1 -StartKernel -StartUI
-     with VIT_DAW_MATERIALIZATION=shadow set for the agent process and
+     with VIT_DAW_MATERIALIZATION=<mode> set for the agent process and
      -KernelExe pointing at the pcverify1 incremental build (staging is never
      touched);
   2. fixture: temporary track + modest sine wav (-12 dBFS) imported via
      clip.import_media_to_track so the feature snapshot gains a real row;
-  3. observation rounds targeting the fixture track drive the shadow
-     materialization round (RecomputeLazy + fxm/com registration + dom
-     reconcile) and each round appends a [materialize] shadow_round metrics
-     line to the agent log;
+  3. observation rounds targeting the fixture track drive the materialization
+     round (RecomputeLazy + fxm/com registration + dom reconcile) and each
+     round appends a [materialize] shadow_round metrics line to the agent log;
   4. assertion groups (all must pass for exit 0):
-     S1 flag=shadow started and is alive on the real stack: agent healthy AND
-        a "[materialize] mode=shadow" startup line in the agent log (the off
-        lock-in之外 third state);
-     S2 (MAT-E0 same-source reconciliation, per-round; the G2 ruling restores
-        observation reconciliation as the regression gate once the
-        materialization input reads the full-state evidence blob):
+     S1 flag=<mode> started and is alive on the real stack: agent healthy AND
+        a "[materialize] mode=<mode>" startup line in the agent log;
+     S2 (shadow mode, MAT-E0 same-source reconciliation, per-round; the G2
+        ruling restores observation reconciliation as the regression gate):
         - baseline rounds: at least one shadow_round line, non-vacuous via
           reconcile_rows>0 on some line (metrics are cumulative counters);
-        - change round (post set_volume observation): with the materialization
-          input switched to the full-state evidence read-back (State A), the
-          finalize generation and the tail-hook generation are same-source,
-          so the generation-gap divergence is structurally gone: zero NEW
-          divergences AND zero NEW timing exclusions AND at least one real
-          compared row (reconcile_rows delta >= 1);
+        - change round (post set_volume observation): zero NEW divergences AND
+          zero NEW timing exclusions AND at least one real compared row;
         - convergence round (third observation after a telemetry silence
-          window of >=8s + log-line stability): identical zero-delta gates
-          (G2-D closes at the converged state, not instantaneously).
+          window of >=8s + log-line stability): identical zero-delta gates;
+     S2-on (on mode, MAT-E read-side switch):
+        - miss round happens: an observation response carries
+          actual_cost_class=compile + recomputed=1 and an on_round log line
+          shows dom=miss backfilled=1 (store backfill wired);
+        - hit round happens: an observation response carries
+          actual_cost_class=index + recomputed=0 and an on_round log line
+          shows dom=hit (assembly from the materialized row);
+        - change round: post set_volume observation is a miss again
+          (invalidation degrades the hit — stale rows never serve reads);
      S3 dirty propagation happens on the real event stream: after one
         set_volume change event on the fixture track a "[materialize] receipt"
         line appears (event-time evidence) and a subsequent shadow_round line
         reports invalidations>0 (kind marked dirty);
-     S4 exit 0 (this script's own exit code).
+     S5 (on mode only) rollback drill on→shadow→off via agent restarts
+        (-RestartAgent; kernel/UI untouched): shadow leg = read end not
+        consumed (response carries NO materialization fields, shadow_round
+        lines still appear); off leg = zero [materialize] lines and no
+        materialization response fields (status quo restored);
+  6. S4 exit 0 (this script's own exit code).
 
 Usage:
   powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\materialize_shadow_smoke.ps1
-  powershell ... -KernelExe <path>   # default: pcverify1 incremental build
-  powershell ... -ReuseStack         # stack already running (kernel+UI+agent)
-  powershell ... -SkipBuild          # reuse the installed agent binary
+  powershell ... -MaterializationMode on     # MAT-E on-mode gate + rollback drill
+  powershell ... -KernelExe <path>           # default: pcverify1 incremental build
+  powershell ... -ReuseStack                 # stack already running (kernel+UI+agent)
+  powershell ... -SkipBuild                  # reuse the installed agent binary
 
 Exit codes: 0 = PASS, 1 = assertion/environment failure, 2 = stack bring-up
-failure. Artifacts land under coord\runs\MAT-D4-1\ (new dir per run).
+failure. Artifacts land under coord\runs\MAT-E\ (new dir per run).
 #>
 
 [CmdletBinding()]
 param(
     [string]$RepoRoot = "",
     [string]$AgentHttp = "http://127.0.0.1:7878",
+    [string]$MaterializationMode = "shadow",
     [string]$KernelExe = "",
     [int]$WaitSeconds = 20,
     [int]$ObserveTimeoutSeconds = 180,
@@ -191,6 +199,51 @@ function Wait-NextShadowRoundLine {
     return ""
 }
 
+# Restart-AgentWithFlag 重启 agent 进程并给定物化 flag（S5 回退演练：只重启
+# agent——dev_agent_smoke -RestartAgent -SkipBuild；内核/UI 不动）。flag 为空串
+# =清除环境变量（off 腿）。等待 agent 健康后返回 $true。
+function Restart-AgentWithFlag {
+    param([string]$Flag, [string]$RepoRoot, [int]$WaitSeconds)
+    $priorFlag = [Environment]::GetEnvironmentVariable("VIT_DAW_MATERIALIZATION", "Process")
+    if ([string]::IsNullOrEmpty($Flag)) {
+        Remove-Item Env:VIT_DAW_MATERIALIZATION -ErrorAction SilentlyContinue
+    }
+    else {
+        $env:VIT_DAW_MATERIALIZATION = $Flag
+    }
+    $devSmoke = Join-Path $RepoRoot "scripts\dev_agent_smoke.ps1"
+    $devExit = 0
+    try {
+        & $devSmoke -RestartAgent -SkipBuild -NoChatSmoke -NoStripSilenceSmoke -WaitSeconds $WaitSeconds -RepoRoot $RepoRoot
+        if (-not $?) { $devExit = 1 }
+    }
+    catch {
+        $devExit = 1
+        Write-FailLine ("S5 agent restart failed: " + $_.Exception.Message)
+    }
+    finally {
+        if ($null -eq $priorFlag) {
+            Remove-Item Env:VIT_DAW_MATERIALIZATION -ErrorAction SilentlyContinue
+        }
+        else {
+            $env:VIT_DAW_MATERIALIZATION = $priorFlag
+        }
+    }
+    if ($devExit -ne 0) { return $false }
+    # Wait for the restarted agent to report healthy (the restart races the
+    # HTTP listener coming up).
+    $deadline = (Get-Date).AddSeconds(45)
+    while ((Get-Date) -lt $deadline) {
+        try {
+            $state = Invoke-Json -Method GET -Uri ($AgentHttp.TrimEnd("/") + "/agent/state") -TimeoutSec 10
+            if ($null -ne $state -and [string](Get-OptionalProperty -Object $state -Name "status") -eq "ok") { return $true }
+        }
+        catch { Start-Sleep -Seconds 3 }
+        Start-Sleep -Seconds 2
+    }
+    return $false
+}
+
 # Modest sine wav: 440 Hz, -12 dBFS (amplitude 0.25), mono 16-bit. The fixture
 # only needs a feature snapshot row for the new track, no assertion hinges on
 # the level itself (unlike tim_assert_smoke's near-full-scale fixture).
@@ -235,7 +288,18 @@ $RepoRoot = Resolve-RepoRoot -Explicit $RepoRoot
 $WorkspaceDir = Join-Path $RepoRoot "VitApp\Workspace"
 $AgentLog = Join-Path $WorkspaceDir "Logs\agent_last.log"
 $RunStamp = Get-Date -Format "yyyyMMdd_HHmmss"
-$RunRoot = Join-Path $RepoRoot ("coord\runs\MAT-D4-1\materialize_shadow_smoke_" + $RunStamp)
+$MaterializationMode = $MaterializationMode.Trim().ToLower()
+if ($MaterializationMode -ne "off" -and $MaterializationMode -ne "shadow" -and $MaterializationMode -ne "on") {
+    Write-FailLine ("invalid -MaterializationMode '" + $MaterializationMode + "' (off|shadow|on)")
+    exit 1
+}
+if ($MaterializationMode -eq "off") {
+    # The off state is the byte-identical status quo (locked by unit tests);
+    # this smoke drives shadow/on wiring, off enters only via the S5 drill leg.
+    Write-FailLine "-MaterializationMode off is not a smoke target (off = status quo; use shadow/on, off leg runs via the on-mode rollback drill)"
+    exit 1
+}
+$RunRoot = Join-Path $RepoRoot ("coord\runs\MAT-E\materialize_shadow_smoke_" + $RunStamp)
 New-Item -ItemType Directory -Force -Path $RunRoot | Out-Null
 
 if ([string]::IsNullOrWhiteSpace($KernelExe)) {
@@ -249,7 +313,8 @@ function Add-Failure { param([string]$Message) $script:failureReasons.Add($Messa
 
 $report = [ordered]@{
     run_id = "materialize_shadow_smoke_" + $RunStamp
-    card = "2026-09-29-MAT-D4"
+    card = "2026-09-29-MAT-E"
+    materialization_mode = $MaterializationMode
     started_at = (Get-Date).ToUniversalTime().ToString("o")
     command_line = ($MyInvocation.Line)
     repo_head = ""
@@ -266,7 +331,7 @@ $report = [ordered]@{
 try { $report.repo_head = (git -C $RepoRoot rev-parse HEAD 2>$null | Out-String).Trim() } catch { $report.repo_head = "unavailable" }
 try { $report.repo_status = ((git -C $RepoRoot status --short 2>$null | Out-String).Trim() -replace "`r?`n", "; ") } catch { $report.repo_status = "unavailable" }
 
-Write-Step "MATERIALIZATION shadow-mode real-stack smoke (MAT-D / G2-D)"
+Write-Step ("MATERIALIZATION real-stack smoke (MAT-D / MAT-E, mode=" + $MaterializationMode + ")")
 Write-Host ("run_root: " + $RunRoot)
 Write-Host ("repo HEAD: " + $report.repo_head)
 Write-Host ("kernel exe: " + $KernelExe)
@@ -299,7 +364,7 @@ if (-not $ReuseStack) {
         Write-Utf8NoBom -Path (Join-Path $RunRoot "run_report.json") -Text ($report | ConvertTo-Json -Depth 8)
         exit 2
     }
-    Write-Step "Bring up real stack via dev_agent_smoke (kernel via pcverify1 -KernelExe + Godot UI + agent, VIT_DAW_MATERIALIZATION=shadow)"
+    Write-Step ("Bring up real stack via dev_agent_smoke (kernel via pcverify1 -KernelExe + Godot UI + agent, VIT_DAW_MATERIALIZATION=" + $MaterializationMode + ")")
     $devSmoke = Join-Path $RepoRoot "scripts\dev_agent_smoke.ps1"
     $devParams = @{
         StartKernel = $true
@@ -313,11 +378,11 @@ if (-not $ReuseStack) {
     }
     if ($SkipBuild) { $devParams["SkipBuild"] = $true }
     $devExit = 0
-    # The shadow flag must reach the agent process (Start-Process inherits the
-    # PowerShell process environment); restore the prior value afterwards so
-    # nothing leaks into the caller's environment.
+    # The materialization flag must reach the agent process (Start-Process
+    # inherits the PowerShell process environment); restore the prior value
+    # afterwards so nothing leaks into the caller's environment.
     $priorFlag = [Environment]::GetEnvironmentVariable("VIT_DAW_MATERIALIZATION", "Process")
-    $env:VIT_DAW_MATERIALIZATION = "shadow"
+    $env:VIT_DAW_MATERIALIZATION = $MaterializationMode
     try {
         & $devSmoke @devParams
         if (-not $?) { $devExit = 1 }
@@ -346,8 +411,8 @@ else {
     $report.stack_mode = "reused_existing_stack"
 }
 
-# ---------------------------------------------------------------- S1: shadow startup
-Write-Step "Agent health + S1: flag=shadow alive on the real stack"
+# ---------------------------------------------------------------- S1: mode startup
+Write-Step ("Agent health + S1: flag=" + $MaterializationMode + " alive on the real stack")
 $state = $null
 $healthDeadline = (Get-Date).AddSeconds(45)
 while ((Get-Date) -lt $healthDeadline) {
@@ -369,10 +434,10 @@ else {
 $startupLines = @(Read-LogLines -Path $AgentLog | Where-Object { $_.Contains("[materialize] mode=") })
 Write-Utf8NoBom -Path (Join-Path $RunRoot "startup_mode_lines.txt") -Text ($startupLines -join [Environment]::NewLine)
 if ($startupLines.Count -eq 0) {
-    Add-Failure "S1 no `[materialize] mode=` startup line in agent log (shadow wiring not alive; off default would emit none)"
+    Add-Failure ("S1 no `[materialize] mode=` startup line in agent log (materialization wiring not alive; off default would emit none)")
 }
-elseif (-not $startupLines[0].Contains("mode=shadow")) {
-    Add-Failure ("S1 startup line is not mode=shadow: " + $startupLines[0])
+elseif (-not $startupLines[0].Contains("mode=" + $MaterializationMode)) {
+    Add-Failure ("S1 startup line is not mode=" + $MaterializationMode + ": " + $startupLines[0])
 }
 else {
     Write-Ok ("S1 pass: " + $startupLines[0])
@@ -446,6 +511,8 @@ $report.log_evidence.baseline_line_count = $baselineLines.Count
 Write-Ok ("agent log baseline lines=" + $baselineLines.Count)
 
 $shadowRoundLines = New-Object System.Collections.Generic.List[string]
+$onRoundLines = New-Object System.Collections.Generic.List[string]
+$onRoundFields = New-Object System.Collections.Generic.List[object]
 $baselineReady = $false
 $finalObservationID = ""
 $pollRounds = 0
@@ -478,12 +545,27 @@ while ((Get-Date) -lt $deadline) {
     $obsResult = Get-OptionalProperty -Object $obsResp -Name "result"
     $finalObservationID = [string](Get-FirstPropertyValue -Object $obsResult -Names @("observation_id"))
     $report.fixture.observation_id = $finalObservationID
+    if ($MaterializationMode -eq "on") {
+        # MAT-E response fields (QUERY_ENGINE 2.6): capture per round for the
+        # S2-on miss/hit assertions. Entries are [pscustomobject]: ordered
+        # dictionaries inside arrays break the PS5.1 OrderedDictionary adapter
+        # (and ConvertTo-Json) once assigned into the [ordered] report.
+        $onRoundFields.Add([pscustomobject]@{
+            round = $pollRounds
+            observation_id = $finalObservationID
+            actual_cost_class = [string](Get-OptionalProperty -Object $obsResult -Name "actual_cost_class")
+            recomputed = (Get-OptionalProperty -Object $obsResult -Name "recomputed")
+        })
+    }
 
     # Collect new [materialize] lines since baseline (dedupe by line content).
     $afterLines = @(Read-LogLines -Path $AgentLog)
     foreach ($line in $afterLines) {
         if (-not $baselineSet.Contains($line) -and $line.Contains("[materialize] shadow_round") -and -not $shadowRoundLines.Contains($line)) {
             $shadowRoundLines.Add($line)
+        }
+        if (-not $baselineSet.Contains($line) -and $line.Contains("[materialize] on_round") -and -not $onRoundLines.Contains($line)) {
+            $onRoundLines.Add($line)
         }
     }
     $lastLine = if ($shadowRoundLines.Count -gt 0) { $shadowRoundLines[$shadowRoundLines.Count - 1] } else { "" }
@@ -535,6 +617,96 @@ $report.rounds.baseline = $baselineMetrics
 $report.log_evidence.shadow_round_line_count = $shadowRoundLines.Count
 $report.log_evidence.shadow_round_lines = @($shadowRoundLines)
 
+# ---------------------------------------------------------------- S2-on: MAT-E read-side switch
+if ($MaterializationMode -eq "on") {
+    Write-Step "S2-on: hit assembly + miss backfill + recomputed fields visible"
+
+    # The baseline poll loop may finish after the very first (miss) round —
+    # drive extra observations so a hit round actually happens when the
+    # fixture track's dom row is current with its backfilled evidence handle
+    # (retry budget: an inter-observation telemetry arrival can mark the row
+    # stale and legitimately turn a probe into a miss — the next round
+    # backfills and hits).
+    if ($baselineReady) {
+        $hitProbeAttempts = 0
+        $hitProbeSeen = $false
+        while ($hitProbeAttempts -lt 4 -and -not $hitProbeSeen) {
+            $hitProbeAttempts++
+            $hitProbeResp = Request-ShadowObservation
+            $hitProbeStatus = [string](Get-OptionalProperty -Object $hitProbeResp -Name "status")
+            if ($hitProbeStatus -ne "ok") {
+                Add-Failure ("S2-on hit-probe observation failed status=" + $hitProbeStatus + " error=" + [string](Get-OptionalProperty -Object $hitProbeResp -Name "error"))
+                break
+            }
+            $hitProbeResult = Get-OptionalProperty -Object $hitProbeResp -Name "result"
+            $onRoundFields.Add([pscustomobject]@{
+                round = "hit_probe_" + $hitProbeAttempts
+                observation_id = [string](Get-FirstPropertyValue -Object $hitProbeResult -Names @("observation_id"))
+                actual_cost_class = [string](Get-OptionalProperty -Object $hitProbeResult -Name "actual_cost_class")
+                recomputed = (Get-OptionalProperty -Object $hitProbeResult -Name "recomputed")
+            })
+            if ([string](Get-OptionalProperty -Object $hitProbeResult -Name "actual_cost_class") -eq "index") { $hitProbeSeen = $true }
+            Start-Sleep -Seconds 2
+            # Collect BOTH line families: probe rounds also emit shadow_round
+            # lines (the shadow machinery runs in on mode) — leaving them
+            # uncollected would let the change-round wait below accept a stale
+            # probe line as its own (S3 false red, MAT-E run 222737 forensics).
+            foreach ($line in @(Read-LogLines -Path $AgentLog | Where-Object { $_.Contains("[materialize] on_round") -or $_.Contains("[materialize] shadow_round") })) {
+                if ($line.Contains("[materialize] on_round")) {
+                    if (-not $onRoundLines.Contains($line)) { $onRoundLines.Add($line) }
+                }
+                elseif (-not $shadowRoundLines.Contains($line)) {
+                    $shadowRoundLines.Add($line)
+                }
+            }
+        }
+    }
+    # .ToArray()（非 @() 包装）：@() 产出的数组形态与 pscustomobject 条目组合
+    # 会毒化 PS5.1 OrderedDictionary 适配器（参数类型不匹配——MAT-E 真栈取证）。
+    $report.rounds.on_fields = $onRoundFields.ToArray()
+    $report.log_evidence.on_round_line_count = $onRoundLines.Count
+    $report.log_evidence.on_round_lines = $onRoundLines.ToArray()
+    Write-Utf8NoBom -Path (Join-Path $RunRoot "on_round_lines.txt") -Text ($onRoundLines -join [Environment]::NewLine)
+
+    $missSeen = $false
+    $hitSeen = $false
+    foreach ($entry in $onRoundFields) {
+        if ([string]$entry.actual_cost_class -eq "compile" -and [string]$entry.recomputed -eq "1") { $missSeen = $true }
+        if ([string]$entry.actual_cost_class -eq "index" -and [string]$entry.recomputed -eq "0") { $hitSeen = $true }
+    }
+    if (-not $missSeen) {
+        Add-Failure ("S2-on no miss round observed (actual_cost_class=compile + recomputed=1 never seen; fields=" + (($onRoundFields | ForEach-Object { $_.actual_cost_class + "/" + $_.recomputed }) -join ",") + ")")
+    }
+    else {
+        Write-Ok "S2-on miss round observed (compile/1: original path + backfill)"
+    }
+    if (-not $hitSeen) {
+        Add-Failure ("S2-on no hit round observed (actual_cost_class=index + recomputed=0 never seen; fields=" + (($onRoundFields | ForEach-Object { $_.actual_cost_class + "/" + $_.recomputed }) -join ",") + ")")
+    }
+    else {
+        Write-Ok "S2-on hit round observed (index/0: assembly from the materialized row — dom finalize skipped)"
+    }
+    $missLineSeen = $false
+    $hitLineSeen = $false
+    $backfillLineSeen = $false
+    foreach ($line in $onRoundLines) {
+        if ($line.Contains("dom=miss")) { $missLineSeen = $true }
+        if ($line.Contains("dom=hit")) { $hitLineSeen = $true }
+        if ($line.Contains("dom=miss") -and $line.Contains("backfilled=1")) { $backfillLineSeen = $true }
+    }
+    if ($onRoundLines.Count -eq 0) {
+        Add-Failure "S2-on no [materialize] on_round line in agent log (read-switch observability missing)"
+    }
+    else {
+        if (-not $missLineSeen) { Add-Failure "S2-on no on_round line with dom=miss" }
+        if (-not $hitLineSeen) { Add-Failure "S2-on no on_round line with dom=hit" }
+        if (-not $backfillLineSeen) { Add-Failure "S2-on no on_round line with dom=miss backfilled=1 (store backfill not observable)" }
+        if ($missLineSeen -and $hitLineSeen -and $backfillLineSeen) {
+            Write-Ok ("S2-on on_round lines show dom=miss(backfilled) and dom=hit: " + $onRoundLines[0])
+        }
+    }
+}
+
 # ---------------------------------------------------------------- change event + S3: dirty propagation
 if ($baselineReady) {
     Write-Step "Change event: set_volume on fixture track"
@@ -585,6 +757,31 @@ if ($baselineReady) {
         if ($changeLine -eq "") {
             Add-Failure "change-round shadow_round metrics line did not appear within 60s"
         }
+        if ($MaterializationMode -eq "on") {
+            # S2-on change leg: the invalidation degrades the hit — the row is
+            # stale so the consult misses again (recompute + backfill).
+            $changeCost = [string](Get-OptionalProperty -Object $obsResult -Name "actual_cost_class")
+            $changeRecomputed = [string](Get-OptionalProperty -Object $obsResult -Name "recomputed")
+            $report.rounds.on_change_fields = @{ actual_cost_class = $changeCost; recomputed = $changeRecomputed }
+            if ($changeCost -ne "compile" -or $changeRecomputed -ne "1") {
+                Add-Failure ("S2-on change round should be a miss again after invalidation (compile/1): got " + $changeCost + "/" + $changeRecomputed)
+            }
+            else {
+                Write-Ok "S2-on change round is a miss again (compile/1: stale row never serves reads)"
+            }
+            Start-Sleep -Seconds 2
+            $onMissAfterChange = @($onRoundLines)
+            foreach ($line in @(Read-LogLines -Path $AgentLog | Where-Object { $_.Contains("[materialize] on_round") })) {
+                if (-not $onRoundLines.Contains($line)) { $onRoundLines.Add($line) }
+            }
+            $changeOnLine = @($onRoundLines | Where-Object { $_ -ne $null }) | Select-Object -Last 1
+            if ($null -ne $changeOnLine -and $changeOnLine.Contains("dom=miss") -and $changeOnLine.Contains("backfilled=1")) {
+                Write-Ok ("S2-on change-round on_round line confirms miss+backfill: " + $changeOnLine)
+            }
+            else {
+                Add-Failure ("S2-on change-round on_round line missing dom=miss backfilled=1: " + [string]$changeOnLine)
+            }
+        }
     }
     $invLines = @($shadowRoundLines | Where-Object { ([regex]::Match($_, ":inv=([1-9]\d*)").Success) })
     Write-Utf8NoBom -Path (Join-Path $RunRoot "shadow_round_metrics_lines.txt") -Text ($shadowRoundLines -join [Environment]::NewLine)
@@ -596,10 +793,12 @@ if ($baselineReady) {
         $report.assertions.S3_invalidation_line = $invLines[0]
     }
 
-    # ---------------- S2b (变更轮): MAT-E0 同源口径——零新增分歧+零新增 timing
+    # ---------------- S2b/S2c（shadow 回归口径，MAT-E0 同源断言组——on 态的读端
+    # 语义断言在 S2-on，对账回归门保持 shadow 态执行）: 零新增分歧+零新增 timing
     # 排除+真比过。物化输入源=证据回溯完整态（State A）后，finalize 世代与尾挂
     # 世代同源，世代差分歧结构性消失（MAT-D4 的"登记不静默"是止血口径，E0 起
     # 观察对账作为回归指标恢复——任何非零 delta 都是回归红，必须可解释或修复）。
+    if ($MaterializationMode -eq "shadow") {
     $changeMetrics = Read-ShadowRoundMetrics -Line $changeLine
     $report.rounds.change = $changeMetrics
     Write-Step ("S2 change round: same-source zero div/timing delta + real compare (baseline div/tim/rec=" + $baselineMetrics.shadow_divergences + "/" + $baselineMetrics.timing_carried_excluded + "/" + $baselineMetrics.reconcile_rows + " change div/tim/rec=" + $changeMetrics.shadow_divergences + "/" + $changeMetrics.timing_carried_excluded + "/" + $changeMetrics.reconcile_rows + ")")
@@ -696,6 +895,92 @@ if ($baselineReady) {
             $report.assertions.S2_convergence_round_zero_divergence = $true
         }
     }
+    } # end shadow-only S2b/S2c
+
+    # ---------------------------------------------------------------- S5: rollback drill (on only)
+    # MAT-E 回退演练真栈段：on→shadow→off，只重启 agent（dev_agent_smoke
+    # -RestartAgent，内核/UI 不动）——回退后行为=现状：shadow 读端不消费（响应
+    # 无物化字段、shadow_round 照常）、off 零物化线（现状逐字节）。
+    if ($MaterializationMode -eq "on") {
+        Write-Step "S5 rollback drill: on -> shadow (agent restart)"
+        $shadowDrill = Restart-AgentWithFlag -Flag "shadow" -RepoRoot $RepoRoot -WaitSeconds $WaitSeconds
+        if (-not $shadowDrill) {
+            Add-Failure "S5 shadow-leg agent restart failed"
+        }
+        else {
+            $shadowStartup = @(Read-LogLines -Path $AgentLog | Where-Object { $_.Contains("[materialize] mode=shadow") })
+            if ($shadowStartup.Count -eq 0) {
+                Add-Failure "S5 shadow leg: no mode=shadow startup line after restart"
+            }
+            else {
+                Write-Ok ("S5 shadow leg alive: " + $shadowStartup[0])
+            }
+            $shadowObs = Request-ShadowObservation
+            $shadowObsStatus = [string](Get-OptionalProperty -Object $shadowObs -Name "status")
+            $shadowObsResult = Get-OptionalProperty -Object $shadowObs -Name "result"
+            if ($shadowObsStatus -ne "ok") {
+                Add-Failure ("S5 shadow-leg observation failed status=" + $shadowObsStatus + " error=" + [string](Get-OptionalProperty -Object $shadowObs -Name "error"))
+            }
+            else {
+                $shadowCost = Get-OptionalProperty -Object $shadowObsResult -Name "actual_cost_class"
+                $shadowRecomputed = Get-OptionalProperty -Object $shadowObsResult -Name "recomputed"
+                if ($null -ne $shadowCost -or $null -ne $shadowRecomputed) {
+                    Add-Failure ("S5 shadow leg must NOT consume the read end (response carries materialization fields: cost=" + [string]$shadowCost + " recomputed=" + [string]$shadowRecomputed + ")")
+                }
+                else {
+                    Write-Ok "S5 shadow leg: read end not consumed (no materialization fields in response)"
+                }
+                $shadowRoundAfterDrill = Wait-NextShadowRoundLine -Collected $shadowRoundLines -BudgetSeconds 60
+                if ($shadowRoundAfterDrill -eq "") {
+                    Add-Failure "S5 shadow leg: no shadow_round line after restart (materialization must stay alive in shadow)"
+                }
+                else {
+                    Write-Ok ("S5 shadow leg materialization alive: " + $shadowRoundAfterDrill)
+                }
+                $report.rounds.drill_shadow_observation_id = [string](Get-FirstPropertyValue -Object $shadowObsResult -Names @("observation_id"))
+            }
+        }
+
+        Write-Step "S5 rollback drill: shadow -> off (agent restart)"
+        $offDrill = Restart-AgentWithFlag -Flag "" -RepoRoot $RepoRoot -WaitSeconds $WaitSeconds
+        if (-not $offDrill) {
+            Add-Failure "S5 off-leg agent restart failed"
+        }
+        else {
+            $offMaterializeLines = @(Read-LogLines -Path $AgentLog | Where-Object { $_.Contains("[materialize]") })
+            Write-Utf8NoBom -Path (Join-Path $RunRoot "drill_off_materialize_lines.txt") -Text ($offMaterializeLines -join [Environment]::NewLine)
+            if ($offMaterializeLines.Count -gt 0) {
+                Add-Failure ("S5 off leg: [materialize] lines present after restart (off must be the zero-wiring status quo): e.g. " + $offMaterializeLines[0])
+            }
+            else {
+                Write-Ok "S5 off leg: zero [materialize] lines (status quo restored)"
+            }
+            $offObs = Request-ShadowObservation
+            $offObsStatus = [string](Get-OptionalProperty -Object $offObs -Name "status")
+            $offObsResult = Get-OptionalProperty -Object $offObs -Name "result"
+            if ($offObsStatus -ne "ok") {
+                Add-Failure ("S5 off-leg observation failed status=" + $offObsStatus + " error=" + [string](Get-OptionalProperty -Object $offObs -Name "error"))
+            }
+            else {
+                $offCost = Get-OptionalProperty -Object $offObsResult -Name "actual_cost_class"
+                $offRecomputed = Get-OptionalProperty -Object $offObsResult -Name "recomputed"
+                if ($null -ne $offCost -or $null -ne $offRecomputed) {
+                    Add-Failure ("S5 off leg must be byte-identical status quo (response carries materialization fields: cost=" + [string]$offCost + " recomputed=" + [string]$offRecomputed + ")")
+                }
+                else {
+                    Write-Ok "S5 off leg: observation OK with no materialization fields (status quo)"
+                }
+                $report.rounds.drill_off_observation_id = [string](Get-FirstPropertyValue -Object $offObsResult -Names @("observation_id"))
+                $offRoundAfter = Wait-NextShadowRoundLine -Collected $shadowRoundLines -BudgetSeconds 20
+                if ($offRoundAfter -ne "") {
+                    Add-Failure "S5 off leg: shadow_round line appeared after off restart (materialization must be dead)"
+                }
+                else {
+                    Write-Ok "S5 off leg: no shadow_round line after off restart"
+                }
+            }
+        }
+    }
 }
 
 # ---------------------------------------------------------------- cleanup
@@ -744,7 +1029,12 @@ if ($failureReasons.Count -eq 0) {
     $report.verdict = "PASS"
     Write-Utf8NoBom -Path (Join-Path $RunRoot "run_report.json") -Text ($report | ConvertTo-Json -Depth 8)
     Write-Step "PASS"
-    Write-Ok ("MATERIALIZATION shadow real-stack smoke passed (S1 startup / S2 same-source zero divergence + zero timing exclusion on change and convergence rounds / S3 dirty propagation / S4 exit 0). run_root=" + $RunRoot)
+    if ($MaterializationMode -eq "on") {
+        Write-Ok ("MATERIALIZATION on real-stack smoke passed (S1 startup / S2-on miss backfill + hit assembly + recomputed fields / S3 dirty propagation + invalidation degrades hit / S5 rollback drill on->shadow->off / S4 exit 0). run_root=" + $RunRoot)
+    }
+    else {
+        Write-Ok ("MATERIALIZATION shadow real-stack smoke passed (S1 startup / S2 same-source zero divergence + zero timing exclusion on change and convergence rounds / S3 dirty propagation / S4 exit 0). run_root=" + $RunRoot)
+    }
     exit 0
 }
 $report.verdict = "FAIL"

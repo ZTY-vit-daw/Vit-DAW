@@ -40,6 +40,7 @@ func (h *Harness) initMaterialization() {
 	if err != nil && h.logger != nil {
 		h.logger.Warn("%s", err)
 	}
+	h.materializeMode = cfg.Mode
 	if cfg.Mode == materialize.ModeOff {
 		return
 	}

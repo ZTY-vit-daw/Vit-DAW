@@ -78,6 +78,7 @@ type Harness struct {
 
 	materializeNotifier materialize.Notifier // MAT-B 三挂点物化侧入口（nil=现状逐字节一致）
 	materializeStore    *materialize.Store   // MAT-C 三态 flag 物化库（nil=off 零接线现状；shadow/on 影子轮旁路）
+	materializeMode     materialize.Mode     // MAT-E 三态记名（读端 consult 仅 on 装配；零值=off）
 
 	// Conversation-checkpoint revision gate (HARNESS-1): per-project kernel
 	// revision already covered by a (possibly in-flight) vit checkpoint. The
@@ -3440,7 +3441,9 @@ func (h *Harness) requestMixObservation(ctx context.Context, cmd map[string]any)
 		observationArgs["acoustic_package_status"] = acousticStatus
 		observationArgs["acoustic_package_status_path"] = acousticStorePath
 	}
-	result, err := mixboard.NewStore("").RequestObservation(mixboard.Request{
+	// MAT-E on 态读端 consult（装配前询问物化层；nil=off/shadow 原路径）。
+	domConsult := h.materializeDOMSource()
+	observationRequest := mixboard.Request{
 		MixSessionID: firstString(cmd, "mix_session_id", "session_id"),
 		Round:        int(numberFromAny(cmd["round"])),
 		GoalText:     firstString(cmd, "goal_text", "goal"),
@@ -3461,13 +3464,18 @@ func (h *Harness) requestMixObservation(ctx context.Context, cmd map[string]any)
 			return h.shadow.ChangeWindow(4)
 		}(),
 		Args: observationArgs,
-	})
+	}
+	if domConsult != nil {
+		observationRequest.MaterializedDOM = domConsult
+	}
+	result, err := mixboard.NewStore("").RequestObservation(observationRequest)
 	if err != nil {
 		return nil, err
 	}
 	if h.materializeStore != nil { // MAT-C 影子轮旁路尾挂（只写物化库；FinalizeObservationContext 原路径零改动）
 		h.materializeObserveRound(&result.Observation)
 	}
+	onCostClass, onRecomputed, onVisible := h.materializeOnPathTail(&result.Observation, domConsult) // MAT-E on 态读端收尾（miss 回填+on_round 日志）
 	out := map[string]any{
 		"status":            result.Status,
 		"mix_session_id":    result.Observation.MixSessionID,
@@ -3485,6 +3493,10 @@ func (h *Harness) requestMixObservation(ctx context.Context, cmd map[string]any)
 	}
 	if len(resolvedContext) > 0 {
 		out["resolved_target"] = resolvedContext
+	}
+	if onVisible { // MAT-E：observe 响应字段（QUERY_ENGINE §2.6；仅 on 态可见）
+		out["actual_cost_class"] = onCostClass
+		out["recomputed"] = onRecomputed
 	}
 	if digest := mixObservationAcousticDigest(result.Observation, featureRequest, resolvedContext); len(digest) > 0 {
 		out["acoustic_digest"] = digest

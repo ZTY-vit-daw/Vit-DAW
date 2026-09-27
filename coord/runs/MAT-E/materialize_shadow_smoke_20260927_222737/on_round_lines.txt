@@ -1,0 +1,2 @@
+2026-09-27T22:27:53 [INFO] [materialize] on_round observation_id=obs_20260927T142752_b177b044094d dom=miss recomputed=1 cost_class=compile hits=0 misses=1 backfilled=1
+2026-09-27T22:27:55 [INFO] [materialize] on_round observation_id=obs_20260927T142754_8b499dc0a04f dom=hit recomputed=0 cost_class=index hits=1 misses=1 backfilled=0

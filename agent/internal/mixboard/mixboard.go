@@ -153,6 +153,11 @@ type Request struct {
 	ProjectChange map[string]any
 	ChangeWindow  []map[string]any
 	Args          map[string]any
+	// MaterializedDOM 是 on 态读端的物化 consult（MAT-E；nil=原路径——off/
+	// shadow 与未注入调用方逐字节现状）。命中则装配输入就绪后以物化行装配
+	// dom 投影并跳过 dom finalize（FinalizeObservationContext 原路径零改动）；
+	// miss 走原路径（回填归 harness 尾挂）。
+	MaterializedDOM MaterializedDOMSource
 }
 
 type WriteResult struct {
@@ -1087,7 +1092,25 @@ func (s Store) RequestObservation(req Request) (WriteResult, error) {
 	featureSnapshot := loadFeatureSnapshot(req.Args)
 	observation := buildObservation(req, now, &featureSnapshot)
 	applyBeforeAfterDelta(&observation, previousObservation, hasPreviousObservation, now)
-	FinalizeObservationContext(&observation, req, now)
+	// MAT-E on 态读端旁路：装配输入就绪后询问物化层（§7.1 on 行——Finalize
+	// ObservationContext 原路径零改动，命中=跳过 dom finalize 的旁路变体，
+	// miss=原路径）。consult 仅 source_only 档且非 band-stereo 请求（原路径对
+	// band-stereo 请求本就不跑 dom finalize，无可跳；F9：paired 携带测量不
+	// 预计算）。
+	domMaterialized := false
+	if req.MaterializedDOM != nil &&
+		!observationWantsBandStereoProjection(req.Args) &&
+		effectiveDOMMode(req) == dom.ModeSourceOnly {
+		if projection, ok := req.MaterializedDOM.MaterializedDOM(observation.TargetRef, dom.ModeSourceOnly); ok {
+			observation.DOMProjection = &projection
+			domMaterialized = true
+		}
+	}
+	if domMaterialized {
+		FinalizeObservationContextSkipDOM(&observation, req, now)
+	} else {
+		FinalizeObservationContext(&observation, req, now)
+	}
 	persistedObservation, canonicalObservationPath, persistenceErr := projectObservationForPersistence(req, observation, featureSnapshot)
 	if persistenceErr != nil {
 		return WriteResult{}, persistenceErr

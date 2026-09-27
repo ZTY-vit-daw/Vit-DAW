@@ -183,6 +183,14 @@ func (s *Store) Upsert(rows []Row) error {
 		key := rowKey(row.Ref)
 		batchKinds[row.Ref.Kind] = true
 		old, exists := next.rows[key]
+		if exists && row.Handle == "" && old.Handle != "" &&
+			old.Ref.Hash == row.Ref.Hash && payloadEqual(old.Payload, row.Payload) {
+			// MAT-E 句柄保留：内容身份同源（hash+payload 同值）的无句柄行——
+			// 影子轮重算（适配器产物不带句柄）——不得冲掉读端回填的 evidence
+			// 句柄：句柄指向同内容身份的全量实例，保留即正确；内容变化时本
+			// 分支不进（hash 已异），旧句柄随 replaced 让位。
+			row.Handle = old.Handle
+		}
 		if exists && sameMaterial(old, row) {
 			unchangedByKind[row.Ref.Kind]++
 			continue
@@ -413,6 +421,41 @@ func (s *Store) Resolve(ctx context.Context, ref agentprotocol.Ref) (agentprotoc
 		res.ReadAll = func() ([]byte, error) { return os.ReadFile(path) }
 	}
 	return res, nil
+}
+
+// CurrentRow 是 CurrentPrecomputableRow 的返回形态：契约字段 + 内容句柄
+// （MAT-E 读端 consult 消费——agentprotocol.MaterializedRow 契约不扩段，句柄
+// 解析归读口是 QUERY_ENGINE §5.1.3 裁定，此处是物化包内的单行查询面）。
+type CurrentRow struct {
+	Ref       agentprotocol.Ref
+	Freshness string
+	Payload   map[string]any
+	Handle    string
+}
+
+// CurrentPrecomputableRow 返回 kind/scope 坐标（window=all、snapshot=current——
+// MAT-C 行坐标裁定）处的已提交行（MAT-E on 态读端 consult 的查找面）。ok 仅当
+// 行存在且 freshness==current：stale/material_reuse 如实 miss（§2.3 读侧零推断，
+// 命中判定全在写侧状态机）。
+func (s *Store) CurrentPrecomputableRow(kind, scopeKind, scopeValue string) (CurrentRow, bool) {
+	ref := agentprotocol.Ref{
+		Kind: kind, ScopeKind: scopeKind, ScopeValue: scopeValue,
+		Window: &agentprotocol.TimeWindow{AllTime: true}, Snapshot: snapshotTokenCurrent,
+	}
+	s.mu.RLock()
+	row, ok := s.current.rows[rowKey(ref)]
+	s.mu.RUnlock()
+	if !ok || row.Freshness != agentprotocol.FreshnessCurrent {
+		return CurrentRow{}, false
+	}
+	return CurrentRow{Ref: cloneRef(row.Ref), Freshness: row.Freshness, Payload: clonePayload(row.Payload), Handle: row.Handle}, true
+}
+
+// NoteObserveConsult 记一次 observe 读端 consult 结果（MAT-E 切换仪表；§2.2
+// 读端触发表。与 Resolve 读口同族 Hits/Misses 计数——S2 烟测与单测共用同一
+// 仪表面）。
+func (s *Store) NoteObserveConsult(kind string, hit bool) {
+	s.metrics.addResolveRead(kind, hit)
 }
 
 // Subscribe 注册一个变更流订阅者（每订阅者独立缓冲 channel；事件序=提交序）。

@@ -1,0 +1,3 @@
+2026-09-27T22:30:23 [INFO] [materialize] receipt change_id=shadow_change_000034 scopes=project.state entities=1
+2026-09-27T22:30:23 [INFO] [materialize] receipt change_id=shadow_change_000035 scopes=project.state entities=1
+2026-09-27T22:30:23 [INFO] [materialize] receipt change_id=shadow_change_000036 scopes=mix.frequency_relationship,mix.masking_relationship,mix.multitrack_relationship,project.headroom,project.state,track.level entities=2
