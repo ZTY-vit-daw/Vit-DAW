@@ -1,0 +1,83 @@
+package materialize
+
+// zz_matd2_diag_test.go — MAT-D2 临时诊断（取证用，不入交付）：复刻真栈两侧行化
+// 输入差，逐字段定位 fresh/stored hash 恒差的来源。
+//
+
+import (
+	"encoding/json"
+	"testing"
+
+	"vit-daw-agent/internal/dom"
+	"vit-daw-agent/internal/mixboard"
+)
+
+func TestZZDiagAdapterPacketDiff(t *testing.T) {
+	row := map[string]any{
+		"status": "ready", "track_id": "1007",
+		"source_revision": "sr1", "clip_revision": "clip=1011|track=1007",
+		"rms_dbfs": -12.5, "peak_dbfs": -12.041, "headroom_db": 12.041,
+		"duration_seconds": 2.0, "sample_rate": 48000.0, "channel_count": 1,
+		"analyzed_sample_count": 96000.0,
+		"analyzer_version": "audio_feature.v1.2", "tap_point": "source_file_pre_fx",
+	}
+	snapshot := map[string]any{
+		"schema_version":           "mixboard_feature_snapshot.v1",
+		"waveform_envelope":        row,
+		"track_waveform_envelopes": []any{row},
+	}
+
+	// 观察侧形态：label + TimeRuler + MixPackage 在场。
+	obsSide := mixboard.ObservationPacket{
+		ObservationID: "obs_diag", MixSessionID: "mix_diag",
+		TargetRef:      mixboard.TargetRef{Kind: "track", ID: "1007", Label: "Track 1"},
+		GlobalSummary:  map[string]any{"feature_snapshot": snapshot},
+		ProjectPackage: map[string]any{"project_revision": "3"},
+		MixPackage:     map[string]any{"current_metrics": map[string]any{"waveform": row}},
+	}
+	obsSide.TimeRuler.DurationSeconds = 2
+	p1 := dom.Build(mixboard.DOMInputFromObservation(obsSide, mixboard.Request{}))
+
+	// 适配器侧形态：DOMAdapter.Build 的合成包（无 label、无 TimeRuler、无 MixPackage）。
+	adapterSide := mixboard.ObservationPacket{
+		TargetRef:      mixboard.TargetRef{Kind: "track", ID: "1007"},
+		GlobalSummary:  map[string]any{"feature_snapshot": snapshot},
+		ProjectPackage: map[string]any{"project_revision": "3"},
+	}
+	p2 := dom.Build(mixboard.DOMInputFromObservation(adapterSide, mixboard.Request{}))
+
+	t.Logf("hash(obs-side)=%s hash(adapter-side)=%s", contentIdentityHash(p1), contentIdentityHash(p2))
+
+	// 差分定位：只去 label 的观察侧 / 只补 label 的适配器侧。
+	noLabel := obsSide
+	noLabel.TargetRef.Label = ""
+	p3 := dom.Build(mixboard.DOMInputFromObservation(noLabel, mixboard.Request{}))
+	t.Logf("hash(obs-side, label 去除)=%s", contentIdentityHash(p3))
+
+	// 逐字段 JSON 差分（top-level 键级）。
+	j1, _ := json.Marshal(p1)
+	j2, _ := json.Marshal(p2)
+	var m1, m2 map[string]any
+	_ = json.Unmarshal(j1, &m1)
+	_ = json.Unmarshal(j2, &m2)
+	for key := range m1 {
+		a, _ := json.Marshal(m1[key])
+		b, _ := json.Marshal(m2[key])
+		if string(a) != string(b) {
+			t.Logf("DIFF key=%s\n  obs=%s\n  adapter=%s", key, trunc(string(a)), trunc(string(b)))
+		}
+	}
+	for key := range m2 {
+		if _, ok := m1[key]; !ok {
+			b, _ := json.Marshal(m2[key])
+			t.Logf("DIFF key=%s only-in-adapter=%s", key, trunc(string(b)))
+		}
+	}
+}
+
+func trunc(s string) string {
+	if len(s) > 300 {
+		return s[:300] + "..."
+	}
+	return s
+}

@@ -1,0 +1,211 @@
+{
+  "schema_version": "seg_primitives_probe.v1",
+  "status": "failed",
+  "started_at": "2026-09-26T14:45:25Z",
+  "req_url": "tcp://127.0.0.1:5555",
+  "sub_url": "tcp://127.0.0.1:5556",
+  "training_folder": "E:\\BaiduNetdiskDownload\\yingge - sattelites tracks out",
+  "project_path": "D:\\Vit_DAW\\coord\\runs\\L2-2-SEG-SMOKE-1\\seg_primitives_smoke_20260926_224515\\temp_project\\seg_primitives_smoke.vit",
+  "commands": [
+    {
+      "label": "ping",
+      "cmd": "ping",
+      "status": "ok"
+    },
+    {
+      "label": "new_project",
+      "cmd": "new_project",
+      "status": "ok"
+    },
+    {
+      "label": "save_as_project",
+      "cmd": "save_as_project",
+      "status": "ok"
+    },
+    {
+      "label": "stems_import_preflight",
+      "cmd": "project.import_preflight",
+      "status": "ok"
+    },
+    {
+      "label": "stems_import_folder",
+      "cmd": "project.import_folder_as_stems",
+      "status": "ok"
+    },
+    {
+      "label": "warm_bake_round1",
+      "cmd": "warm_waveform_bake",
+      "status": "ok"
+    },
+    {
+      "label": "warm_bake_round2",
+      "cmd": "warm_waveform_bake",
+      "status": "ok"
+    }
+  ],
+  "assertions": {
+    "A1_payload_present": false,
+    "A2_structure_legal": true,
+    "A3_determinism": false
+  },
+  "failures": [
+    "A1 round 2: no segmentation_primitives payload on the publish socket within 600s (L3 pipeline did not emit the feature - card stop condition)"
+  ],
+  "readable_file_count": 61,
+  "tracks_created": 61,
+  "clips_created": 61,
+  "background_analysis": {
+    "analysis_job_id": "audio_analysis_1790433927157_1",
+    "polls": [
+      {
+        "pending_clips": 56,
+        "submitted_clips": 5,
+        "submitted_feature_jobs": 10,
+        "analysis_queue_status": "running"
+      },
+      {
+        "pending_clips": 51,
+        "submitted_clips": 10,
+        "submitted_feature_jobs": 20,
+        "analysis_queue_status": "running"
+      },
+      {
+        "pending_clips": 46,
+        "submitted_clips": 15,
+        "submitted_feature_jobs": 30,
+        "analysis_queue_status": "running"
+      },
+      {
+        "pending_clips": 41,
+        "submitted_clips": 20,
+        "submitted_feature_jobs": 40,
+        "analysis_queue_status": "running"
+      },
+      {
+        "pending_clips": 36,
+        "submitted_clips": 25,
+        "submitted_feature_jobs": 50,
+        "analysis_queue_status": "running"
+      },
+      {
+        "pending_clips": 31,
+        "submitted_clips": 30,
+        "submitted_feature_jobs": 60,
+        "analysis_queue_status": "running"
+      },
+      {
+        "pending_clips": 26,
+        "submitted_clips": 35,
+        "submitted_feature_jobs": 70,
+        "analysis_queue_status": "running"
+      },
+      {
+        "pending_clips": 21,
+        "submitted_clips": 40,
+        "submitted_feature_jobs": 80,
+        "analysis_queue_status": "running"
+      },
+      {
+        "pending_clips": 17,
+        "submitted_clips": 44,
+        "submitted_feature_jobs": 88,
+        "analysis_queue_status": "running"
+      },
+      {
+        "pending_clips": 12,
+        "submitted_clips": 49,
+        "submitted_feature_jobs": 98,
+        "analysis_queue_status": "running"
+      },
+      {
+        "pending_clips": 7,
+        "submitted_clips": 54,
+        "submitted_feature_jobs": 108,
+        "analysis_queue_status": "running"
+      },
+      {
+        "pending_clips": 2,
+        "submitted_clips": 59,
+        "submitted_feature_jobs": 118,
+        "analysis_queue_status": "running"
+      },
+      {
+        "pending_clips": 0,
+        "submitted_clips": 61,
+        "submitted_feature_jobs": 122,
+        "analysis_queue_status": "submitted"
+      },
+      {
+        "pending_clips": 0,
+        "submitted_clips": 61,
+        "submitted_feature_jobs": 122,
+        "analysis_queue_status": "submitted"
+      },
+      {
+        "pending_clips": 0,
+        "submitted_clips": 61,
+        "submitted_feature_jobs": 122,
+        "analysis_queue_status": "submitted"
+      },
+      {
+        "pending_clips": 0,
+        "submitted_clips": 61,
+        "submitted_feature_jobs": 122,
+        "analysis_queue_status": "submitted"
+      }
+    ],
+    "final_signature": [
+      0,
+      61,
+      122
+    ]
+  },
+  "bake": {
+    "file_path": "E:\\BaiduNetdiskDownload\\yingge - sattelites tracks out\\sattelites 10-IS_percussion_tom_analog.wav",
+    "track_id": "1007",
+    "rounds": [
+      {
+        "round": 1,
+        "request_id": "seg_primitives_smoke_r1_1790434007328",
+        "bake_feature_type": "segmentation_primitives",
+        "received": true,
+        "duplicate_events_skipped": 0,
+        "payload_path": "D:\\Vit_DAW\\coord\\runs\\L2-2-SEG-SMOKE-1\\seg_primitives_smoke_20260926_224515\\payload_round1.json",
+        "schema_version": "dad_l3_segmentation_primitives.v1",
+        "status": "ready",
+        "quality_status": "ready"
+      },
+      {
+        "round": 2,
+        "request_id": "seg_primitives_smoke_r2_1790434007710",
+        "bake_feature_type": "segmentation_primitives",
+        "received": false,
+        "duplicate_events_skipped": 0
+      }
+    ]
+  },
+  "observed_publish_traffic": {
+    "": 25867,
+    "project_audio_analysis_progress": 6,
+    "audio_feature_data_ready:waveform_envelope": 212,
+    "audio_feature_data_ready:band_energy_summary": 4,
+    "audio_feature_data_ready:stereo_relation_summary": 4,
+    "audio_feature_data_ready:loudness_summary": 4,
+    "audio_feature_data_ready:segmentation_primitives": 1
+  },
+  "structure_details": {
+    "onset_events": {
+      "detected_count": 26,
+      "published_count": 26,
+      "truncated": false,
+      "method": "rms_frame_local_peak_rise_v1"
+    },
+    "onset_density_frames": 2679,
+    "energy_novelty_frames": 2679,
+    "energy_novelty_summary": {
+      "max_novelty": 0.01815330280925,
+      "mean_novelty": 0.000140190652286
+    }
+  },
+  "finished_at": "2026-09-26T14:56:47Z"
+}

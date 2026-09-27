@@ -1,0 +1,3335 @@
+{
+  "schema_version": "mixboard_context_pack.v1",
+  "mix_session_id": "mix_ccb47990a5c9",
+  "generated_at": "2026-09-23T21:13:17.8891856Z",
+  "session_header": {
+    "goal_text": "ordinary-Agent free-state CCB observation",
+    "listen_scope": {
+      "time": {
+        "mode": "full_song",
+        "source": "scope_full_project"
+      },
+      "source": {
+        "mode": "full_project"
+      }
+    },
+    "mix_objects": [
+      {
+        "mode": "scope",
+        "kind": "project",
+        "id": "current",
+        "label": "Current project",
+        "effect_scope": "track_rack",
+        "source": "mix_observation_scope"
+      }
+    ],
+    "mix_session_id": "mix_ccb47990a5c9",
+    "round": 1,
+    "target_ref": {
+      "kind": "project",
+      "id": "current",
+      "label": "Current project",
+      "source": "mix_observation_scope",
+      "confidence": "high"
+    }
+  },
+  "latest_observation": {
+    "effects_transformation_context": {
+      "summary_md": "FXM missing projection fxm_0645aa2350366f0df4bb compares baseline against processed chain state.",
+      "compact_facts": [
+        {
+          "baseline_stage": "",
+          "chain_hash": "",
+          "projection_id": "fxm_0645aa2350366f0df4bb",
+          "status": "missing"
+        }
+      ],
+      "do_not_include_raw_package": true,
+      "suggested_next_step": "Do not use this projection for action preflight until matching baseline and processed renders are available."
+    },
+    "fxm_projection": {
+      "baseline_stage": "",
+      "chain_hash": "",
+      "effect_delta": {},
+      "evidence_refs": null,
+      "fxm_version": "v0",
+      "llm_context": {
+        "summary_md": "FXM missing projection fxm_0645aa2350366f0df4bb compares baseline against processed chain state.",
+        "compact_facts": [
+          {
+            "baseline_stage": "",
+            "chain_hash": "",
+            "projection_id": "fxm_0645aa2350366f0df4bb",
+            "status": "missing"
+          }
+        ],
+        "do_not_include_raw_package": true,
+        "suggested_next_step": "Do not use this projection for action preflight until matching baseline and processed renders are available."
+      },
+      "projection_id": "fxm_0645aa2350366f0df4bb",
+      "schema_version": "fxm.projection.v0",
+      "status": "missing",
+      "target_ref": {
+        "id": "current",
+        "kind": "project",
+        "label": "Current project"
+      },
+      "trust_quality": {
+        "overall_status": "missing",
+        "same_source": false,
+        "same_window": false,
+        "same_format": false,
+        "deterministic": false,
+        "latency_compensated": false,
+        "can_support_observation": false,
+        "can_support_suggestion": false,
+        "can_support_action_preflight": false,
+        "blocked_reasons": [
+          "baseline_measurement_missing",
+          "processed_measurement_missing"
+        ]
+      }
+    },
+    "llm_context": {
+      "summary_md": "MOM v1.5 intent=project_frequency_relationship_observation overall=partial.\nRequired layers: project_structure, frequency_relationship, frequency_relationship.coverage, frequency_relationship.tap_point, trust_quality.\nMOM frequency_relationship is primary; tap_point=source_file_pre_fx; eligible_tracks=5; overlap rows are candidates rather than masking facts; limitations=energy_overlap_is_candidate_only_not_psychoacoustic_masking_fact,no_eq_parameters_plugin_choices_proposals_or_pending_actions,measurement_conditions_not_comparable_cross_track_relations_withheld,measurement_condition_fields_incomplete,measurement_condition_mismatch_fields=analyzer_version,channel_count,end_seconds,sample_rate,start_seconds,tap_point,source_file_pre_fx_does_not_represent_current_post_plugin_signal,one_or_more_tracks_missing_fresh_frequency_evidence.\nSample arrays, spectral tile payloads, and full acoustic packages are excluded from LLM context; use evidence_refs for traceability.",
+      "compact_facts": [
+        {
+          "evidence_refs": [
+            "observation:obs_20260923T211317_6ce0b0514794",
+            "mix.read:project.static.summary",
+            "mix.read:project.limitations",
+            "acoustic_package_status"
+          ],
+          "freshness": "fresh",
+          "layer": "project_structure",
+          "status": "ready",
+          "summary": "Project/target identity and revision context."
+        },
+        {
+          "freshness": "fresh",
+          "layer": "intent_policy",
+          "optional_layers": [
+            "project_mix_profile",
+            "multitrack_relation",
+            "basic_energy",
+            "time_dynamics_structure",
+            "ab_result_comparison"
+          ],
+          "output_contract": [
+            "compact_projection_only",
+            "evidence_refs_required",
+            "quality_summary_required",
+            "do_not_include_raw_package",
+            "no_waveform_time_segments_in_llm_context",
+            "do_not_use_suspect_stale_missing_as_action_evidence"
+          ],
+          "required_layers": [
+            "project_structure",
+            "frequency_relationship",
+            "frequency_relationship.coverage",
+            "frequency_relationship.tap_point",
+            "trust_quality"
+          ],
+          "status": "ready",
+          "summary": "required=project_structure,frequency_relationship,frequency_relationship.coverage,frequency_relationship.tap_point,trust_quality optional=project_mix_profile,multitrack_relation,basic_energy,time_dynamics_structure,ab_result_comparison contract=compact_projection_only,evidence_refs_required,quality_summary_required,do_not_include_raw_package,no_waveform_time_segments_in_llm_context,do_not_use_suspect_stale_missing_as_action_evidence"
+        },
+        {
+          "conflict_candidates": [],
+          "coverage": {
+            "conflict_candidate_count": 0,
+            "decision_tracks_truncated": false,
+            "eligible_track_count": 5,
+            "eligible_track_ratio": 0.833,
+            "frequency_region_count": 0,
+            "measurement_condition_fields_complete": false,
+            "measurement_condition_mismatches": [
+              "analyzer_version",
+              "channel_count",
+              "end_seconds",
+              "sample_rate",
+              "start_seconds",
+              "tap_point"
+            ],
+            "missing_track_count": 1,
+            "missing_track_ids": [
+              "1032"
+            ],
+            "profile_count": 6,
+            "project_track_count": 6,
+            "supports_post_fx_compare": false,
+            "supports_same_tap_compare": false,
+            "supports_static_diagnosis": false,
+            "uniform_measurement_conditions": false
+          },
+          "evidence_refs": [
+            "observation:obs_20260923T211317_6ce0b0514794",
+            "mix.read:project.tracks.summary",
+            "mix.read:project.frequency_relationship_inputs",
+            "dad.band_energy_summary:1007:mixboard_20260923T211315_282779300",
+            "dad.band_energy_summary:1012:mixboard_20260923T211315_282779300",
+            "dad.band_energy_summary:1017:mixboard_20260923T211315_282779300",
+            "dad.band_energy_summary:1022:mixboard_20260923T211315_282779300",
+            "dad.band_energy_summary:1027:mixboard_20260923T211315_282779300",
+            "mix.read:track.1032.slow.band_energy.summary"
+          ],
+          "frequency_regions": [],
+          "freshness": "suspect",
+          "layer": "frequency_relationship",
+          "limitations": [
+            "energy_overlap_is_candidate_only_not_psychoacoustic_masking_fact",
+            "no_eq_parameters_plugin_choices_proposals_or_pending_actions",
+            "measurement_conditions_not_comparable_cross_track_relations_withheld",
+            "measurement_condition_fields_incomplete",
+            "measurement_condition_mismatch_fields=analyzer_version,channel_count,end_seconds,sample_rate,start_seconds,tap_point",
+            "source_file_pre_fx_does_not_represent_current_post_plugin_signal",
+            "one_or_more_tracks_missing_fresh_frequency_evidence"
+          ],
+          "persistence_summary": {
+            "reason": "cross_track_measurement_conditions_not_comparable",
+            "status": "missing"
+          },
+          "project_cut_ref": "project-state:vitproj_9ecc5ab9a454400192086c628c07b966:epoch_b5716ddf941adbe6:2:88b3cf004936c7d",
+          "schema_version": "mom.frequency_relationship.v1",
+          "scope": {
+            "duration_seconds": 20,
+            "kind": "project_tracks",
+            "project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+            "source_mode": "full_project",
+            "time_mode": "full_song",
+            "track_ids": [
+              "1007",
+              "1012",
+              "1017",
+              "1022",
+              "1027",
+              "1032"
+            ]
+          },
+          "status": "suspect",
+          "summary": "Compact project frequency relationship projection; overlap rows are candidates, not masking facts.",
+          "tap_point": "source_file_pre_fx",
+          "tonal_tendencies": [],
+          "track_profiles": [
+            {
+              "active_state": "active",
+              "bands": {
+                "air": {
+                  "energy_db": 5.814560215844664,
+                  "max_hz": 20000,
+                  "min_hz": 6000,
+                  "status": "ready",
+                  "unit_energy": 0.000007102214207129986
+                },
+                "bass": {
+                  "energy_db": 56.462860226021746,
+                  "max_hz": 250,
+                  "min_hz": 60,
+                  "status": "ready",
+                  "unit_energy": 0.824562856915592
+                },
+                "low_mid": {
+                  "energy_db": 42.534113230289236,
+                  "max_hz": 500,
+                  "min_hz": 250,
+                  "status": "ready",
+                  "unit_energy": 0.033369451504794
+                },
+                "mid": {
+                  "energy_db": 31.949496208641467,
+                  "max_hz": 2000,
+                  "min_hz": 500,
+                  "status": "ready",
+                  "unit_energy": 0.002916670479456
+                },
+                "presence": {
+                  "energy_db": 11.821303551727302,
+                  "max_hz": 6000,
+                  "min_hz": 2000,
+                  "status": "ready",
+                  "unit_energy": 0.000028318360122
+                },
+                "sub": {
+                  "energy_db": 48.734380896595894,
+                  "max_hz": 60,
+                  "min_hz": 20,
+                  "status": "ready",
+                  "unit_energy": 0.139115600525819
+                }
+              },
+              "coverage": {
+                "coverage_ratio": 1,
+                "coverage_seconds": 20
+              },
+              "evidence_ref": "dad.band_energy_summary:1007:mixboard_20260923T211315_282779300",
+              "freshness": "fresh",
+              "measurement_conditions": {
+                "analyzer_version": "dad_l3_offline_analyzer.v1",
+                "channel_count": 2,
+                "clip_revision": "[omitted_context_payload]",
+                "end_seconds": 20,
+                "sample_rate": 44100,
+                "source_revision": "[omitted_context_payload]",
+                "start_seconds": 0,
+                "tap_point": "source_file_pre_fx"
+              },
+              "measurement_key": "[omitted_context_payload]",
+              "name": "bass",
+              "role_hypothesis": {
+                "confidence": "unspecified",
+                "source": "tom_or_project_track_hypothesis",
+                "value": "bass"
+              },
+              "silence_confirmed": false,
+              "silence_reason": "",
+              "status": "ready",
+              "tap_point": "source_file_pre_fx",
+              "track_id": "1007"
+            },
+            {
+              "active_state": "active",
+              "bands": {
+                "air": {
+                  "energy_db": 47.52609572423873,
+                  "max_hz": 20000,
+                  "min_hz": 6000,
+                  "status": "ready",
+                  "unit_energy": 0.011386375926614
+                },
+                "bass": {
+                  "energy_db": 65.78791417799854,
+                  "max_hz": 250,
+                  "min_hz": 60,
+                  "status": "ready",
+                  "unit_energy": 0.763075242776546
+                },
+                "low_mid": {
+                  "energy_db": 49.94501861566193,
+                  "max_hz": 500,
+                  "min_hz": 250,
+                  "status": "ready",
+                  "unit_energy": 0.019873657789151
+                },
+                "mid": {
+                  "energy_db": 46.173806700017266,
+                  "max_hz": 2000,
+                  "min_hz": 500,
+                  "status": "ready",
+                  "unit_energy": 0.008339818818133
+                },
+                "presence": {
+                  "energy_db": 51.84438413787143,
+                  "max_hz": 6000,
+                  "min_hz": 2000,
+                  "status": "ready",
+                  "unit_energy": 0.030776154925152
+                },
+                "sub": {
+                  "energy_db": 59.17765431183166,
+                  "max_hz": 60,
+                  "min_hz": 20,
+                  "status": "ready",
+                  "unit_energy": 0.166548749764383
+                }
+              },
+              "coverage": {
+                "coverage_ratio": 1,
+                "coverage_seconds": 20
+              },
+              "evidence_ref": "dad.band_energy_summary:1012:mixboard_20260923T211315_282779300",
+              "freshness": "fresh",
+              "measurement_conditions": {
+                "analyzer_version": "dad_l3_offline_analyzer.v1",
+                "channel_count": 2,
+                "clip_revision": "[omitted_context_payload]",
+                "end_seconds": 20,
+                "sample_rate": 44100,
+                "source_revision": "[omitted_context_payload]",
+                "start_seconds": 0,
+                "tap_point": "source_file_pre_fx"
+              },
+              "measurement_key": "[omitted_context_payload]",
+              "name": "drums",
+              "role_hypothesis": {
+                "confidence": "unspecified",
+                "source": "tom_or_project_track_hypothesis",
+                "value": "drums"
+              },
+              "silence_confirmed": false,
+              "silence_reason": "",
+              "status": "ready",
+              "tap_point": "source_file_pre_fx",
+              "track_id": "1012"
+            },
+            {
+              "active_state": "active",
+              "bands": {
+                "air": {
+                  "energy_db": 24.094758086774547,
+                  "max_hz": 20000,
+                  "min_hz": 6000,
+                  "status": "ready",
+                  "unit_energy": 0.000906942835353
+                },
+                "bass": {
+                  "energy_db": 49.97524290275059,
+                  "max_hz": 250,
+                  "min_hz": 60,
+                  "status": "ready",
+                  "unit_energy": 0.351259756490533
+                },
+                "low_mid": {
+                  "energy_db": 47.52766529038099,
+                  "max_hz": 500,
+                  "min_hz": 250,
+                  "status": "ready",
+                  "unit_energy": 0.199926625019181
+                },
+                "mid": {
+                  "energy_db": 47.93565222017926,
+                  "max_hz": 2000,
+                  "min_hz": 500,
+                  "status": "ready",
+                  "unit_energy": 0.219618705657598
+                },
+                "presence": {
+                  "energy_db": 48.09523164678517,
+                  "max_hz": 6000,
+                  "min_hz": 2000,
+                  "status": "ready",
+                  "unit_energy": 0.227838582670868
+                },
+                "sub": {
+                  "energy_db": 21.04516714718807,
+                  "max_hz": 60,
+                  "min_hz": 20,
+                  "status": "ready",
+                  "unit_energy": 0.000449387326462
+                }
+              },
+              "coverage": {
+                "coverage_ratio": 1,
+                "coverage_seconds": 20
+              },
+              "evidence_ref": "dad.band_energy_summary:1017:mixboard_20260923T211315_282779300",
+              "freshness": "fresh",
+              "measurement_conditions": {
+                "analyzer_version": "dad_l3_offline_analyzer.v1",
+                "channel_count": 2,
+                "clip_revision": "[omitted_context_payload]",
+                "end_seconds": 20,
+                "sample_rate": 44100,
+                "source_revision": "[omitted_context_payload]",
+                "start_seconds": 0,
+                "tap_point": "source_file_pre_fx"
+              },
+              "measurement_key": "[omitted_context_payload]",
+              "name": "guitar",
+              "role_hypothesis": {
+                "confidence": "unspecified",
+                "source": "tom_or_project_track_hypothesis",
+                "value": "guitar"
+              },
+              "silence_confirmed": false,
+              "silence_reason": "",
+              "status": "ready",
+              "tap_point": "source_file_pre_fx",
+              "track_id": "1017"
+            },
+            {
+              "active_state": "active",
+              "bands": {
+                "air": {
+                  "energy_db": 37.70924141017449,
+                  "max_hz": 20000,
+                  "min_hz": 6000,
+                  "status": "ready",
+                  "unit_energy": 0.002631867950565
+                },
+                "bass": {
+                  "energy_db": 55.22860403030719,
+                  "max_hz": 250,
+                  "min_hz": 60,
+                  "status": "ready",
+                  "unit_energy": 0.14866213223629
+                },
+                "low_mid": {
+                  "energy_db": 55.47419504852273,
+                  "max_hz": 500,
+                  "min_hz": 250,
+                  "status": "ready",
+                  "unit_energy": 0.157311133131807
+                },
+                "mid": {
+                  "energy_db": 61.35973205716381,
+                  "max_hz": 2000,
+                  "min_hz": 500,
+                  "status": "ready",
+                  "unit_energy": 0.609976579410863
+                },
+                "presence": {
+                  "energy_db": 52.2468042923071,
+                  "max_hz": 6000,
+                  "min_hz": 2000,
+                  "status": "ready",
+                  "unit_energy": 0.074820461686673
+                },
+                "sub": {
+                  "energy_db": 41.70060876114007,
+                  "max_hz": 60,
+                  "min_hz": 20,
+                  "status": "ready",
+                  "unit_energy": 0.006597825583778
+                }
+              },
+              "coverage": {
+                "coverage_ratio": 1,
+                "coverage_seconds": 20
+              },
+              "evidence_ref": "dad.band_energy_summary:1022:mixboard_20260923T211315_282779300",
+              "freshness": "fresh",
+              "measurement_conditions": {
+                "analyzer_version": "dad_l3_offline_analyzer.v1",
+                "channel_count": 2,
+                "clip_revision": "[omitted_context_payload]",
+                "end_seconds": 20,
+                "sample_rate": 44100,
+                "source_revision": "[omitted_context_payload]",
+                "start_seconds": 0,
+                "tap_point": "source_file_pre_fx"
+              },
+              "measurement_key": "[omitted_context_payload]",
+              "name": "other",
+              "role_hypothesis": {
+                "confidence": "unspecified",
+                "source": "tom_or_project_track_hypothesis",
+                "value": "unknown"
+              },
+              "silence_confirmed": false,
+              "silence_reason": "",
+              "status": "ready",
+              "tap_point": "source_file_pre_fx",
+              "track_id": "1022"
+            },
+            {
+              "active_state": "active",
+              "bands": {
+                "air": {
+                  "energy_db": 15.83499409689823,
+                  "max_hz": 20000,
+                  "min_hz": 6000,
+                  "status": "ready",
+                  "unit_energy": 0.0000606160096
+                },
+                "bass": {
+                  "energy_db": 51.35841213369892,
+                  "max_hz": 250,
+                  "min_hz": 60,
+                  "status": "ready",
+                  "unit_energy": 0.216236571419556
+                },
+                "low_mid": {
+                  "energy_db": 53.16450768486391,
+                  "max_hz": 500,
+                  "min_hz": 250,
+                  "status": "ready",
+                  "unit_energy": 0.327746982426775
+                },
+                "mid": {
+                  "energy_db": 54.48273056456783,
+                  "max_hz": 2000,
+                  "min_hz": 500,
+                  "status": "ready",
+                  "unit_energy": 0.443977529035274
+                },
+                "presence": {
+                  "energy_db": 38.02207689374854,
+                  "max_hz": 6000,
+                  "min_hz": 2000,
+                  "status": "ready",
+                  "unit_energy": 0.010029877359528
+                },
+                "sub": {
+                  "energy_db": 30.90595481200137,
+                  "max_hz": 60,
+                  "min_hz": 20,
+                  "status": "ready",
+                  "unit_energy": 0.001948423749286
+                }
+              },
+              "coverage": {
+                "coverage_ratio": 1,
+                "coverage_seconds": 20
+              },
+              "evidence_ref": "dad.band_energy_summary:1027:mixboard_20260923T211315_282779300",
+              "freshness": "fresh",
+              "measurement_conditions": {
+                "analyzer_version": "dad_l3_offline_analyzer.v1",
+                "channel_count": 2,
+                "clip_revision": "[omitted_context_payload]",
+                "end_seconds": 20,
+                "sample_rate": 44100,
+                "source_revision": "[omitted_context_payload]",
+                "start_seconds": 0,
+                "tap_point": "source_file_pre_fx"
+              },
+              "measurement_key": "[omitted_context_payload]",
+              "name": "piano",
+              "role_hypothesis": {
+                "confidence": "unspecified",
+                "source": "tom_or_project_track_hypothesis",
+                "value": "keys_or_synth"
+              },
+              "silence_confirmed": false,
+              "silence_reason": "",
+              "status": "ready",
+              "tap_point": "source_file_pre_fx",
+              "track_id": "1027"
+            },
+            {
+              "active_state": "active",
+              "bands": {},
+              "coverage": {},
+              "evidence_ref": "mix.read:track.1032.slow.band_energy.summary",
+              "freshness": "missing",
+              "measurement_conditions": {
+                "tap_point": "unknown"
+              },
+              "measurement_key": "tap=unknown|source=|clip=|render=|sample_rate=0|channel_count=0|range=0:0|window_ms=0|hop_ms=0|analyzer=|render_mode=",
+              "name": "vocals",
+              "role_hypothesis": {
+                "confidence": "unspecified",
+                "source": "tom_or_project_track_hypothesis",
+                "value": "vocal"
+              },
+              "silence_confirmed": false,
+              "silence_reason": "",
+              "status": "missing",
+              "tap_point": "unknown",
+              "track_id": "1032"
+            }
+          ],
+          "verification_dimensions": [
+            "tap_point",
+            "track_coverage",
+            "frequency_region_energy_relationship",
+            "conflict_candidate_membership",
+            "relative_tonal_shape",
+            "time_frequency_persistence_when_available"
+          ]
+        },
+        {
+          "evidence_refs": [
+            "observation:obs_20260923T211317_6ce0b0514794",
+            "mix.read:project.static.summary",
+            "mix.read:project.limitations",
+            "acoustic_package_status",
+            "mix.read:project.tracks.summary",
+            "mix.read:project.relationship_inputs",
+            "mix.derive:rank_tracks",
+            "mix.read:project.frequency_relationship_inputs",
+            "dad.band_energy_summary:1007:mixboard_20260923T211315_282779300",
+            "dad.band_energy_summary:1012:mixboard_20260923T211315_282779300",
+            "dad.band_energy_summary:1017:mixboard_20260923T211315_282779300",
+            "dad.band_energy_summary:1022:mixboard_20260923T211315_282779300",
+            "dad.band_energy_summary:1027:mixboard_20260923T211315_282779300",
+            "mix.read:track.1032.slow.band_energy.summary",
+            "mix.read:track.current.fast.levels",
+            "acoustic_package_status:l1_static.peak_rms_summary",
+            "mix.read:track.current.slow.band_energy.summary",
+            "acoustic_package_status:l3_deep.band_energy_summary",
+            "mix.read:track.current.slow.stereo.summary",
+            "acoustic_package_status:l3_deep.stereo_relation_summary",
+            "mix.read:track.current.slow.time_energy.summary",
+            "mix.read:track.current.slow.loudness.summary",
+            "acoustic_package_status:l3_deep.loudness_summary",
+            "mix.derive:before_after",
+            "mix.read:observation.before_after.latest"
+          ],
+          "freshness": "partial",
+          "layer": "trust_quality.frequency_relationship",
+          "status": "partial",
+          "summary": "Frequency relationship readiness is bounded by tap point, whole-project coverage, freshness, and persistence limitations."
+        },
+        {
+          "deferred_layers": [
+            "basic_energy",
+            "ab_result_comparison"
+          ],
+          "evidence_refs": [
+            "observation:obs_20260923T211317_6ce0b0514794",
+            "mix.read:project.static.summary",
+            "mix.read:project.limitations",
+            "acoustic_package_status",
+            "mix.read:project.tracks.summary",
+            "mix.read:project.relationship_inputs",
+            "mix.derive:rank_tracks",
+            "mix.read:project.frequency_relationship_inputs",
+            "dad.band_energy_summary:1007:mixboard_20260923T211315_282779300",
+            "dad.band_energy_summary:1012:mixboard_20260923T211315_282779300",
+            "dad.band_energy_summary:1017:mixboard_20260923T211315_282779300",
+            "dad.band_energy_summary:1022:mixboard_20260923T211315_282779300",
+            "dad.band_energy_summary:1027:mixboard_20260923T211315_282779300",
+            "mix.read:track.1032.slow.band_energy.summary",
+            "mix.read:track.current.fast.levels",
+            "acoustic_package_status:l1_static.peak_rms_summary",
+            "mix.read:track.current.slow.band_energy.summary",
+            "acoustic_package_status:l3_deep.band_energy_summary",
+            "mix.read:track.current.slow.stereo.summary",
+            "acoustic_package_status:l3_deep.stereo_relation_summary",
+            "mix.read:track.current.slow.time_energy.summary",
+            "mix.read:track.current.slow.loudness.summary",
+            "acoustic_package_status:l3_deep.loudness_summary",
+            "dad.l3.loudness_summary:D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav|size=3528044|mtime=1788061880032|length=20.0000",
+            "mix.derive:before_after",
+            "mix.read:observation.before_after.latest"
+          ],
+          "freshness": "deferred",
+          "layer": "deferred_layers",
+          "status": "deferred",
+          "summary": "Non-requested or deferred analyzers do not affect the current intent status."
+        }
+      ],
+      "do_not_include_raw_package": true,
+      "evidence_refs": [
+        "observation:obs_20260923T211317_6ce0b0514794",
+        "mix.read:project.static.summary",
+        "mix.read:project.limitations",
+        "acoustic_package_status",
+        "mix.read:project.tracks.summary",
+        "mix.read:project.relationship_inputs",
+        "mix.derive:rank_tracks",
+        "mix.read:project.frequency_relationship_inputs",
+        "dad.band_energy_summary:1007:mixboard_20260923T211315_282779300",
+        "dad.band_energy_summary:1012:mixboard_20260923T211315_282779300",
+        "dad.band_energy_summary:1017:mixboard_20260923T211315_282779300",
+        "dad.band_energy_summary:1022:mixboard_20260923T211315_282779300",
+        "dad.band_energy_summary:1027:mixboard_20260923T211315_282779300",
+        "mix.read:track.1032.slow.band_energy.summary",
+        "mix.read:track.current.fast.levels",
+        "acoustic_package_status:l1_static.peak_rms_summary",
+        "mix.read:track.current.slow.band_energy.summary",
+        "acoustic_package_status:l3_deep.band_energy_summary",
+        "mix.read:track.current.slow.stereo.summary",
+        "acoustic_package_status:l3_deep.stereo_relation_summary",
+        "mix.read:track.current.slow.time_energy.summary",
+        "mix.read:track.current.slow.loudness.summary",
+        "acoustic_package_status:l3_deep.loudness_summary",
+        "mix.derive:before_after",
+        "mix.read:observation.before_after.latest"
+      ],
+      "quality_summary": {
+        "approximate_fields": [
+          "mix.current.loudness",
+          "mix.current.loudness.approximate_lufs",
+          "mix.current.loudness.algorithm",
+          "time_dynamics_structure.loudness_summary",
+          "time_dynamics_structure.loudness_summary.approximate_lufs",
+          "time_dynamics_structure.loudness_summary.algorithm"
+        ],
+        "blocked_reasons": [
+          "required_observation_evidence_not_ready",
+          "suspect_data_cannot_support_suggestion"
+        ],
+        "can_support_ab_result": false,
+        "can_support_action_preflight": false,
+        "can_support_observation": false,
+        "can_support_suggestion": false,
+        "clip_revision_status": "missing",
+        "l2_tap_point": "",
+        "missing_fields": [],
+        "overall_status": "partial",
+        "render_revision_status": "missing",
+        "schema_version": "mom_trust_quality.v1",
+        "source_revision_status": "missing",
+        "stale_fields": [],
+        "suspect_fields": [
+          "frequency_relationship"
+        ]
+      },
+      "task_policy": {
+        "intent": "project_frequency_relationship_observation",
+        "optional_layers": [
+          "project_mix_profile",
+          "multitrack_relation",
+          "basic_energy",
+          "time_dynamics_structure",
+          "ab_result_comparison"
+        ],
+        "output_contract": [
+          "compact_projection_only",
+          "evidence_refs_required",
+          "quality_summary_required",
+          "do_not_include_raw_package",
+          "no_waveform_time_segments_in_llm_context",
+          "do_not_use_suspect_stale_missing_as_action_evidence"
+        ],
+        "required_layers": [
+          "project_structure",
+          "frequency_relationship",
+          "frequency_relationship.coverage",
+          "frequency_relationship.tap_point",
+          "trust_quality"
+        ]
+      },
+      "limitation_notes": [
+        "energy_overlap_is_candidate_only_not_psychoacoustic_masking_fact",
+        "no_eq_parameters_plugin_choices_proposals_or_pending_actions",
+        "measurement_conditions_not_comparable_cross_track_relations_withheld",
+        "measurement_condition_fields_incomplete",
+        "measurement_condition_mismatch_fields=analyzer_version,channel_count,end_seconds,sample_rate,start_seconds,tap_point",
+        "source_file_pre_fx_does_not_represent_current_post_plugin_signal",
+        "one_or_more_tracks_missing_fresh_frequency_evidence",
+        "required_observation_evidence_not_ready",
+        "suspect_data_cannot_support_suggestion",
+        "some_tracks_missing_band_or_stereo_evidence"
+      ],
+      "safety_gates": [
+        "frequency_relationship:suspect",
+        "frequency_relationship.tap_point:source_file_pre_fx",
+        "frequency_relationship.post_fx_compare:false",
+        "approximate_fields:6",
+        "suspect_fields:1"
+      ],
+      "suggested_next_step": "Refresh or complete the missing/suspect evidence before using this observation for action."
+    },
+    "mom_projection": {
+      "frequency_relationship": {
+        "schema_version": "mom.frequency_relationship.v1",
+        "status": "suspect",
+        "freshness": "suspect",
+        "project_cut_ref": "project-state:vitproj_9ecc5ab9a454400192086c628c07b966:epoch_b5716ddf941adbe6:2:88b3cf004936c7d",
+        "scope": {
+          "duration_seconds": 20,
+          "kind": "project_tracks",
+          "project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+          "source_mode": "full_project",
+          "time_mode": "full_song",
+          "track_ids": [
+            "1007",
+            "1012",
+            "1017",
+            "1022",
+            "1027",
+            "1032"
+          ]
+        },
+        "tap_point": "source_file_pre_fx",
+        "coverage": {
+          "conflict_candidate_count": 0,
+          "decision_tracks_truncated": false,
+          "eligible_track_count": 5,
+          "eligible_track_ratio": 0.833,
+          "frequency_region_count": 0,
+          "measurement_condition_fields_complete": false,
+          "measurement_condition_mismatches": [
+            "analyzer_version",
+            "channel_count",
+            "end_seconds",
+            "sample_rate",
+            "start_seconds",
+            "tap_point"
+          ],
+          "missing_track_count": 1,
+          "missing_track_ids": [
+            "1032"
+          ],
+          "profile_count": 6,
+          "project_track_count": 6,
+          "supports_post_fx_compare": false,
+          "supports_same_tap_compare": false,
+          "supports_static_diagnosis": false,
+          "uniform_measurement_conditions": false
+        },
+        "track_profiles": [
+          {
+            "active_state": "active",
+            "bands": {
+              "air": {
+                "energy_db": 5.814560215844664,
+                "max_hz": 20000,
+                "min_hz": 6000,
+                "status": "ready",
+                "unit_energy": 0.000007102214207129986
+              },
+              "bass": {
+                "energy_db": 56.462860226021746,
+                "max_hz": 250,
+                "min_hz": 60,
+                "status": "ready",
+                "unit_energy": 0.824562856915592
+              },
+              "low_mid": {
+                "energy_db": 42.534113230289236,
+                "max_hz": 500,
+                "min_hz": 250,
+                "status": "ready",
+                "unit_energy": 0.033369451504794
+              },
+              "mid": {
+                "energy_db": 31.949496208641467,
+                "max_hz": 2000,
+                "min_hz": 500,
+                "status": "ready",
+                "unit_energy": 0.002916670479456
+              },
+              "presence": {
+                "energy_db": 11.821303551727302,
+                "max_hz": 6000,
+                "min_hz": 2000,
+                "status": "ready",
+                "unit_energy": 0.000028318360122
+              },
+              "sub": {
+                "energy_db": 48.734380896595894,
+                "max_hz": 60,
+                "min_hz": 20,
+                "status": "ready",
+                "unit_energy": 0.139115600525819
+              }
+            },
+            "coverage": {
+              "coverage_ratio": 1,
+              "coverage_seconds": 20
+            },
+            "evidence_ref": "dad.band_energy_summary:1007:mixboard_20260923T211315_282779300",
+            "freshness": "fresh",
+            "measurement_conditions": {
+              "analyzer_version": "dad_l3_offline_analyzer.v1",
+              "channel_count": 2,
+              "clip_revision": "clip=1011|track=1007|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav|size=3528044|mtime=1788061879786|length=20.0000|offset=0.0000|length=20.0000",
+              "end_seconds": 20,
+              "sample_rate": 44100,
+              "source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav|size=3528044|mtime=1788061879786|length=20.0000",
+              "start_seconds": 0,
+              "tap_point": "source_file_pre_fx"
+            },
+            "measurement_key": "tap=source_file_pre_fx|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav|size=3528044|mtime=1788061879786|length=20.0000|clip=clip=1011|track=1007|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav|size=3528044|mtime=1788061879786|length=20.0000|offset=0.0000|length=20.0000|render=|sample_rate=44100|channel_count=2|range=0:20|window_ms=0|hop_ms=0|analyzer=dad_l3_offline_analyzer.v1|render_mode=",
+            "name": "bass",
+            "role_hypothesis": {
+              "confidence": "unspecified",
+              "source": "tom_or_project_track_hypothesis",
+              "value": "bass"
+            },
+            "silence_confirmed": false,
+            "silence_reason": "",
+            "status": "ready",
+            "tap_point": "source_file_pre_fx",
+            "track_id": "1007"
+          },
+          {
+            "active_state": "active",
+            "bands": {
+              "air": {
+                "energy_db": 47.52609572423873,
+                "max_hz": 20000,
+                "min_hz": 6000,
+                "status": "ready",
+                "unit_energy": 0.011386375926614
+              },
+              "bass": {
+                "energy_db": 65.78791417799854,
+                "max_hz": 250,
+                "min_hz": 60,
+                "status": "ready",
+                "unit_energy": 0.763075242776546
+              },
+              "low_mid": {
+                "energy_db": 49.94501861566193,
+                "max_hz": 500,
+                "min_hz": 250,
+                "status": "ready",
+                "unit_energy": 0.019873657789151
+              },
+              "mid": {
+                "energy_db": 46.173806700017266,
+                "max_hz": 2000,
+                "min_hz": 500,
+                "status": "ready",
+                "unit_energy": 0.008339818818133
+              },
+              "presence": {
+                "energy_db": 51.84438413787143,
+                "max_hz": 6000,
+                "min_hz": 2000,
+                "status": "ready",
+                "unit_energy": 0.030776154925152
+              },
+              "sub": {
+                "energy_db": 59.17765431183166,
+                "max_hz": 60,
+                "min_hz": 20,
+                "status": "ready",
+                "unit_energy": 0.166548749764383
+              }
+            },
+            "coverage": {
+              "coverage_ratio": 1,
+              "coverage_seconds": 20
+            },
+            "evidence_ref": "dad.band_energy_summary:1012:mixboard_20260923T211315_282779300",
+            "freshness": "fresh",
+            "measurement_conditions": {
+              "analyzer_version": "dad_l3_offline_analyzer.v1",
+              "channel_count": 2,
+              "clip_revision": "clip=1016|track=1012|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav|size=3528044|mtime=1788061879850|length=20.0000|offset=0.0000|length=20.0000",
+              "end_seconds": 20,
+              "sample_rate": 44100,
+              "source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav|size=3528044|mtime=1788061879850|length=20.0000",
+              "start_seconds": 0,
+              "tap_point": "source_file_pre_fx"
+            },
+            "measurement_key": "tap=source_file_pre_fx|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav|size=3528044|mtime=1788061879850|length=20.0000|clip=clip=1016|track=1012|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav|size=3528044|mtime=1788061879850|length=20.0000|offset=0.0000|length=20.0000|render=|sample_rate=44100|channel_count=2|range=0:20|window_ms=0|hop_ms=0|analyzer=dad_l3_offline_analyzer.v1|render_mode=",
+            "name": "drums",
+            "role_hypothesis": {
+              "confidence": "unspecified",
+              "source": "tom_or_project_track_hypothesis",
+              "value": "drums"
+            },
+            "silence_confirmed": false,
+            "silence_reason": "",
+            "status": "ready",
+            "tap_point": "source_file_pre_fx",
+            "track_id": "1012"
+          },
+          {
+            "active_state": "active",
+            "bands": {
+              "air": {
+                "energy_db": 24.094758086774547,
+                "max_hz": 20000,
+                "min_hz": 6000,
+                "status": "ready",
+                "unit_energy": 0.000906942835353
+              },
+              "bass": {
+                "energy_db": 49.97524290275059,
+                "max_hz": 250,
+                "min_hz": 60,
+                "status": "ready",
+                "unit_energy": 0.351259756490533
+              },
+              "low_mid": {
+                "energy_db": 47.52766529038099,
+                "max_hz": 500,
+                "min_hz": 250,
+                "status": "ready",
+                "unit_energy": 0.199926625019181
+              },
+              "mid": {
+                "energy_db": 47.93565222017926,
+                "max_hz": 2000,
+                "min_hz": 500,
+                "status": "ready",
+                "unit_energy": 0.219618705657598
+              },
+              "presence": {
+                "energy_db": 48.09523164678517,
+                "max_hz": 6000,
+                "min_hz": 2000,
+                "status": "ready",
+                "unit_energy": 0.227838582670868
+              },
+              "sub": {
+                "energy_db": 21.04516714718807,
+                "max_hz": 60,
+                "min_hz": 20,
+                "status": "ready",
+                "unit_energy": 0.000449387326462
+              }
+            },
+            "coverage": {
+              "coverage_ratio": 1,
+              "coverage_seconds": 20
+            },
+            "evidence_ref": "dad.band_energy_summary:1017:mixboard_20260923T211315_282779300",
+            "freshness": "fresh",
+            "measurement_conditions": {
+              "analyzer_version": "dad_l3_offline_analyzer.v1",
+              "channel_count": 2,
+              "clip_revision": "clip=1021|track=1017|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav|size=3528044|mtime=1788061879912|length=20.0000|offset=0.0000|length=20.0000",
+              "end_seconds": 20,
+              "sample_rate": 44100,
+              "source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav|size=3528044|mtime=1788061879912|length=20.0000",
+              "start_seconds": 0,
+              "tap_point": "source_file_pre_fx"
+            },
+            "measurement_key": "tap=source_file_pre_fx|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav|size=3528044|mtime=1788061879912|length=20.0000|clip=clip=1021|track=1017|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav|size=3528044|mtime=1788061879912|length=20.0000|offset=0.0000|length=20.0000|render=|sample_rate=44100|channel_count=2|range=0:20|window_ms=0|hop_ms=0|analyzer=dad_l3_offline_analyzer.v1|render_mode=",
+            "name": "guitar",
+            "role_hypothesis": {
+              "confidence": "unspecified",
+              "source": "tom_or_project_track_hypothesis",
+              "value": "guitar"
+            },
+            "silence_confirmed": false,
+            "silence_reason": "",
+            "status": "ready",
+            "tap_point": "source_file_pre_fx",
+            "track_id": "1017"
+          },
+          {
+            "active_state": "active",
+            "bands": {
+              "air": {
+                "energy_db": 37.70924141017449,
+                "max_hz": 20000,
+                "min_hz": 6000,
+                "status": "ready",
+                "unit_energy": 0.002631867950565
+              },
+              "bass": {
+                "energy_db": 55.22860403030719,
+                "max_hz": 250,
+                "min_hz": 60,
+                "status": "ready",
+                "unit_energy": 0.14866213223629
+              },
+              "low_mid": {
+                "energy_db": 55.47419504852273,
+                "max_hz": 500,
+                "min_hz": 250,
+                "status": "ready",
+                "unit_energy": 0.157311133131807
+              },
+              "mid": {
+                "energy_db": 61.35973205716381,
+                "max_hz": 2000,
+                "min_hz": 500,
+                "status": "ready",
+                "unit_energy": 0.609976579410863
+              },
+              "presence": {
+                "energy_db": 52.2468042923071,
+                "max_hz": 6000,
+                "min_hz": 2000,
+                "status": "ready",
+                "unit_energy": 0.074820461686673
+              },
+              "sub": {
+                "energy_db": 41.70060876114007,
+                "max_hz": 60,
+                "min_hz": 20,
+                "status": "ready",
+                "unit_energy": 0.006597825583778
+              }
+            },
+            "coverage": {
+              "coverage_ratio": 1,
+              "coverage_seconds": 20
+            },
+            "evidence_ref": "dad.band_energy_summary:1022:mixboard_20260923T211315_282779300",
+            "freshness": "fresh",
+            "measurement_conditions": {
+              "analyzer_version": "dad_l3_offline_analyzer.v1",
+              "channel_count": 2,
+              "clip_revision": "clip=1026|track=1022|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav|size=3528044|mtime=1788061879972|length=20.0000|offset=0.0000|length=20.0000",
+              "end_seconds": 20,
+              "sample_rate": 44100,
+              "source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav|size=3528044|mtime=1788061879972|length=20.0000",
+              "start_seconds": 0,
+              "tap_point": "source_file_pre_fx"
+            },
+            "measurement_key": "tap=source_file_pre_fx|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav|size=3528044|mtime=1788061879972|length=20.0000|clip=clip=1026|track=1022|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav|size=3528044|mtime=1788061879972|length=20.0000|offset=0.0000|length=20.0000|render=|sample_rate=44100|channel_count=2|range=0:20|window_ms=0|hop_ms=0|analyzer=dad_l3_offline_analyzer.v1|render_mode=",
+            "name": "other",
+            "role_hypothesis": {
+              "confidence": "unspecified",
+              "source": "tom_or_project_track_hypothesis",
+              "value": "unknown"
+            },
+            "silence_confirmed": false,
+            "silence_reason": "",
+            "status": "ready",
+            "tap_point": "source_file_pre_fx",
+            "track_id": "1022"
+          },
+          {
+            "active_state": "active",
+            "bands": {
+              "air": {
+                "energy_db": 15.83499409689823,
+                "max_hz": 20000,
+                "min_hz": 6000,
+                "status": "ready",
+                "unit_energy": 0.0000606160096
+              },
+              "bass": {
+                "energy_db": 51.35841213369892,
+                "max_hz": 250,
+                "min_hz": 60,
+                "status": "ready",
+                "unit_energy": 0.216236571419556
+              },
+              "low_mid": {
+                "energy_db": 53.16450768486391,
+                "max_hz": 500,
+                "min_hz": 250,
+                "status": "ready",
+                "unit_energy": 0.327746982426775
+              },
+              "mid": {
+                "energy_db": 54.48273056456783,
+                "max_hz": 2000,
+                "min_hz": 500,
+                "status": "ready",
+                "unit_energy": 0.443977529035274
+              },
+              "presence": {
+                "energy_db": 38.02207689374854,
+                "max_hz": 6000,
+                "min_hz": 2000,
+                "status": "ready",
+                "unit_energy": 0.010029877359528
+              },
+              "sub": {
+                "energy_db": 30.90595481200137,
+                "max_hz": 60,
+                "min_hz": 20,
+                "status": "ready",
+                "unit_energy": 0.001948423749286
+              }
+            },
+            "coverage": {
+              "coverage_ratio": 1,
+              "coverage_seconds": 20
+            },
+            "evidence_ref": "dad.band_energy_summary:1027:mixboard_20260923T211315_282779300",
+            "freshness": "fresh",
+            "measurement_conditions": {
+              "analyzer_version": "dad_l3_offline_analyzer.v1",
+              "channel_count": 2,
+              "clip_revision": "clip=1031|track=1027|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav|size=3528044|mtime=1788061880032|length=20.0000|offset=0.0000|length=20.0000",
+              "end_seconds": 20,
+              "sample_rate": 44100,
+              "source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav|size=3528044|mtime=1788061880032|length=20.0000",
+              "start_seconds": 0,
+              "tap_point": "source_file_pre_fx"
+            },
+            "measurement_key": "tap=source_file_pre_fx|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav|size=3528044|mtime=1788061880032|length=20.0000|clip=clip=1031|track=1027|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav|size=3528044|mtime=1788061880032|length=20.0000|offset=0.0000|length=20.0000|render=|sample_rate=44100|channel_count=2|range=0:20|window_ms=0|hop_ms=0|analyzer=dad_l3_offline_analyzer.v1|render_mode=",
+            "name": "piano",
+            "role_hypothesis": {
+              "confidence": "unspecified",
+              "source": "tom_or_project_track_hypothesis",
+              "value": "keys_or_synth"
+            },
+            "silence_confirmed": false,
+            "silence_reason": "",
+            "status": "ready",
+            "tap_point": "source_file_pre_fx",
+            "track_id": "1027"
+          },
+          {
+            "active_state": "active",
+            "bands": {},
+            "coverage": {},
+            "evidence_ref": "mix.read:track.1032.slow.band_energy.summary",
+            "freshness": "missing",
+            "measurement_conditions": {
+              "tap_point": "unknown"
+            },
+            "measurement_key": "tap=unknown|source=|clip=|render=|sample_rate=0|channel_count=0|range=0:0|window_ms=0|hop_ms=0|analyzer=|render_mode=",
+            "name": "vocals",
+            "role_hypothesis": {
+              "confidence": "unspecified",
+              "source": "tom_or_project_track_hypothesis",
+              "value": "vocal"
+            },
+            "silence_confirmed": false,
+            "silence_reason": "",
+            "status": "missing",
+            "tap_point": "unknown",
+            "track_id": "1032"
+          }
+        ],
+        "persistence_summary": {
+          "reason": "cross_track_measurement_conditions_not_comparable",
+          "status": "missing"
+        },
+        "verification_dimensions": [
+          "tap_point",
+          "track_coverage",
+          "frequency_region_energy_relationship",
+          "conflict_candidate_membership",
+          "relative_tonal_shape",
+          "time_frequency_persistence_when_available"
+        ],
+        "evidence_refs": [
+          "observation:obs_20260923T211317_6ce0b0514794",
+          "mix.read:project.tracks.summary",
+          "mix.read:project.frequency_relationship_inputs",
+          "dad.band_energy_summary:1007:mixboard_20260923T211315_282779300",
+          "dad.band_energy_summary:1012:mixboard_20260923T211315_282779300",
+          "dad.band_energy_summary:1017:mixboard_20260923T211315_282779300",
+          "dad.band_energy_summary:1022:mixboard_20260923T211315_282779300",
+          "dad.band_energy_summary:1027:mixboard_20260923T211315_282779300",
+          "mix.read:track.1032.slow.band_energy.summary"
+        ],
+        "limitations": [
+          "energy_overlap_is_candidate_only_not_psychoacoustic_masking_fact",
+          "no_eq_parameters_plugin_choices_proposals_or_pending_actions",
+          "measurement_conditions_not_comparable_cross_track_relations_withheld",
+          "measurement_condition_fields_incomplete",
+          "measurement_condition_mismatch_fields=analyzer_version,channel_count,end_seconds,sample_rate,start_seconds,tap_point",
+          "source_file_pre_fx_does_not_represent_current_post_plugin_signal",
+          "one_or_more_tracks_missing_fresh_frequency_evidence"
+        ]
+      },
+      "intent": "project_frequency_relationship_observation",
+      "intent_policy": {
+        "name": "project_frequency_relationship_observation",
+        "required_layers": [
+          "project_structure",
+          "frequency_relationship",
+          "frequency_relationship.coverage",
+          "frequency_relationship.tap_point",
+          "trust_quality"
+        ],
+        "optional_layers": [
+          "project_mix_profile",
+          "multitrack_relation",
+          "basic_energy",
+          "time_dynamics_structure",
+          "ab_result_comparison"
+        ],
+        "output_contract": [
+          "compact_projection_only",
+          "evidence_refs_required",
+          "quality_summary_required",
+          "do_not_include_raw_package",
+          "no_waveform_time_segments_in_llm_context",
+          "do_not_use_suspect_stale_missing_as_action_evidence"
+        ]
+      },
+      "llm_context": {
+        "summary_md": "MOM v1.5 intent=project_frequency_relationship_observation overall=partial.\nRequired layers: project_structure, frequency_relationship, frequency_relationship.coverage, frequency_relationship.tap_point, trust_quality.\nMOM frequency_relationship is primary; tap_point=source_file_pre_fx; eligible_tracks=5; overlap rows are candidates rather than masking facts; limitations=energy_overlap_is_candidate_only_not_psychoacoustic_masking_fact,no_eq_parameters_plugin_choices_proposals_or_pending_actions,measurement_conditions_not_comparable_cross_track_relations_withheld,measurement_condition_fields_incomplete,measurement_condition_mismatch_fields=analyzer_version,channel_count,end_seconds,sample_rate,start_seconds,tap_point,source_file_pre_fx_does_not_represent_current_post_plugin_signal,one_or_more_tracks_missing_fresh_frequency_evidence.\nSample arrays, spectral tile payloads, and full acoustic packages are excluded from LLM context; use evidence_refs for traceability.",
+        "compact_facts": [
+          {
+            "evidence_refs": [
+              "observation:obs_20260923T211317_6ce0b0514794",
+              "mix.read:project.static.summary",
+              "mix.read:project.limitations",
+              "acoustic_package_status"
+            ],
+            "freshness": "fresh",
+            "layer": "project_structure",
+            "status": "ready",
+            "summary": "Project/target identity and revision context."
+          },
+          {
+            "freshness": "fresh",
+            "layer": "intent_policy",
+            "optional_layers": [
+              "project_mix_profile",
+              "multitrack_relation",
+              "basic_energy",
+              "time_dynamics_structure",
+              "ab_result_comparison"
+            ],
+            "output_contract": [
+              "compact_projection_only",
+              "evidence_refs_required",
+              "quality_summary_required",
+              "do_not_include_raw_package",
+              "no_waveform_time_segments_in_llm_context",
+              "do_not_use_suspect_stale_missing_as_action_evidence"
+            ],
+            "required_layers": [
+              "project_structure",
+              "frequency_relationship",
+              "frequency_relationship.coverage",
+              "frequency_relationship.tap_point",
+              "trust_quality"
+            ],
+            "status": "ready",
+            "summary": "required=project_structure,frequency_relationship,frequency_relationship.coverage,frequency_relationship.tap_point,trust_quality optional=project_mix_profile,multitrack_relation,basic_energy,time_dynamics_structure,ab_result_comparison contract=compact_projection_only,evidence_refs_required,quality_summary_required,do_not_include_raw_package,no_waveform_time_segments_in_llm_context,do_not_use_suspect_stale_missing_as_action_evidence"
+          },
+          {
+            "conflict_candidates": [],
+            "coverage": {
+              "conflict_candidate_count": 0,
+              "decision_tracks_truncated": false,
+              "eligible_track_count": 5,
+              "eligible_track_ratio": 0.833,
+              "frequency_region_count": 0,
+              "measurement_condition_fields_complete": false,
+              "measurement_condition_mismatches": [
+                "analyzer_version",
+                "channel_count",
+                "end_seconds",
+                "sample_rate",
+                "start_seconds",
+                "tap_point"
+              ],
+              "missing_track_count": 1,
+              "missing_track_ids": [
+                "1032"
+              ],
+              "profile_count": 6,
+              "project_track_count": 6,
+              "supports_post_fx_compare": false,
+              "supports_same_tap_compare": false,
+              "supports_static_diagnosis": false,
+              "uniform_measurement_conditions": false
+            },
+            "evidence_refs": [
+              "observation:obs_20260923T211317_6ce0b0514794",
+              "mix.read:project.tracks.summary",
+              "mix.read:project.frequency_relationship_inputs",
+              "dad.band_energy_summary:1007:mixboard_20260923T211315_282779300",
+              "dad.band_energy_summary:1012:mixboard_20260923T211315_282779300",
+              "dad.band_energy_summary:1017:mixboard_20260923T211315_282779300",
+              "dad.band_energy_summary:1022:mixboard_20260923T211315_282779300",
+              "dad.band_energy_summary:1027:mixboard_20260923T211315_282779300",
+              "mix.read:track.1032.slow.band_energy.summary"
+            ],
+            "frequency_regions": [],
+            "freshness": "suspect",
+            "layer": "frequency_relationship",
+            "limitations": [
+              "energy_overlap_is_candidate_only_not_psychoacoustic_masking_fact",
+              "no_eq_parameters_plugin_choices_proposals_or_pending_actions",
+              "measurement_conditions_not_comparable_cross_track_relations_withheld",
+              "measurement_condition_fields_incomplete",
+              "measurement_condition_mismatch_fields=analyzer_version,channel_count,end_seconds,sample_rate,start_seconds,tap_point",
+              "source_file_pre_fx_does_not_represent_current_post_plugin_signal",
+              "one_or_more_tracks_missing_fresh_frequency_evidence"
+            ],
+            "persistence_summary": {
+              "reason": "cross_track_measurement_conditions_not_comparable",
+              "status": "missing"
+            },
+            "project_cut_ref": "project-state:vitproj_9ecc5ab9a454400192086c628c07b966:epoch_b5716ddf941adbe6:2:88b3cf004936c7d",
+            "schema_version": "mom.frequency_relationship.v1",
+            "scope": {
+              "duration_seconds": 20,
+              "kind": "project_tracks",
+              "project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+              "source_mode": "full_project",
+              "time_mode": "full_song",
+              "track_ids": [
+                "1007",
+                "1012",
+                "1017",
+                "1022",
+                "1027",
+                "1032"
+              ]
+            },
+            "status": "suspect",
+            "summary": "Compact project frequency relationship projection; overlap rows are candidates, not masking facts.",
+            "tap_point": "source_file_pre_fx",
+            "tonal_tendencies": [],
+            "track_profiles": [
+              {
+                "active_state": "active",
+                "bands": {
+                  "air": {
+                    "energy_db": 5.814560215844664,
+                    "max_hz": 20000,
+                    "min_hz": 6000,
+                    "status": "ready",
+                    "unit_energy": 0.000007102214207129986
+                  },
+                  "bass": {
+                    "energy_db": 56.462860226021746,
+                    "max_hz": 250,
+                    "min_hz": 60,
+                    "status": "ready",
+                    "unit_energy": 0.824562856915592
+                  },
+                  "low_mid": {
+                    "energy_db": 42.534113230289236,
+                    "max_hz": 500,
+                    "min_hz": 250,
+                    "status": "ready",
+                    "unit_energy": 0.033369451504794
+                  },
+                  "mid": {
+                    "energy_db": 31.949496208641467,
+                    "max_hz": 2000,
+                    "min_hz": 500,
+                    "status": "ready",
+                    "unit_energy": 0.002916670479456
+                  },
+                  "presence": {
+                    "energy_db": 11.821303551727302,
+                    "max_hz": 6000,
+                    "min_hz": 2000,
+                    "status": "ready",
+                    "unit_energy": 0.000028318360122
+                  },
+                  "sub": {
+                    "energy_db": 48.734380896595894,
+                    "max_hz": 60,
+                    "min_hz": 20,
+                    "status": "ready",
+                    "unit_energy": 0.139115600525819
+                  }
+                },
+                "coverage": {
+                  "coverage_ratio": 1,
+                  "coverage_seconds": 20
+                },
+                "evidence_ref": "dad.band_energy_summary:1007:mixboard_20260923T211315_282779300",
+                "freshness": "fresh",
+                "measurement_conditions": {
+                  "analyzer_version": "dad_l3_offline_analyzer.v1",
+                  "channel_count": 2,
+                  "clip_revision": "[omitted_context_payload]",
+                  "end_seconds": 20,
+                  "sample_rate": 44100,
+                  "source_revision": "[omitted_context_payload]",
+                  "start_seconds": 0,
+                  "tap_point": "source_file_pre_fx"
+                },
+                "measurement_key": "[omitted_context_payload]",
+                "name": "bass",
+                "role_hypothesis": {
+                  "confidence": "unspecified",
+                  "source": "tom_or_project_track_hypothesis",
+                  "value": "bass"
+                },
+                "silence_confirmed": false,
+                "silence_reason": "",
+                "status": "ready",
+                "tap_point": "source_file_pre_fx",
+                "track_id": "1007"
+              },
+              {
+                "active_state": "active",
+                "bands": {
+                  "air": {
+                    "energy_db": 47.52609572423873,
+                    "max_hz": 20000,
+                    "min_hz": 6000,
+                    "status": "ready",
+                    "unit_energy": 0.011386375926614
+                  },
+                  "bass": {
+                    "energy_db": 65.78791417799854,
+                    "max_hz": 250,
+                    "min_hz": 60,
+                    "status": "ready",
+                    "unit_energy": 0.763075242776546
+                  },
+                  "low_mid": {
+                    "energy_db": 49.94501861566193,
+                    "max_hz": 500,
+                    "min_hz": 250,
+                    "status": "ready",
+                    "unit_energy": 0.019873657789151
+                  },
+                  "mid": {
+                    "energy_db": 46.173806700017266,
+                    "max_hz": 2000,
+                    "min_hz": 500,
+                    "status": "ready",
+                    "unit_energy": 0.008339818818133
+                  },
+                  "presence": {
+                    "energy_db": 51.84438413787143,
+                    "max_hz": 6000,
+                    "min_hz": 2000,
+                    "status": "ready",
+                    "unit_energy": 0.030776154925152
+                  },
+                  "sub": {
+                    "energy_db": 59.17765431183166,
+                    "max_hz": 60,
+                    "min_hz": 20,
+                    "status": "ready",
+                    "unit_energy": 0.166548749764383
+                  }
+                },
+                "coverage": {
+                  "coverage_ratio": 1,
+                  "coverage_seconds": 20
+                },
+                "evidence_ref": "dad.band_energy_summary:1012:mixboard_20260923T211315_282779300",
+                "freshness": "fresh",
+                "measurement_conditions": {
+                  "analyzer_version": "dad_l3_offline_analyzer.v1",
+                  "channel_count": 2,
+                  "clip_revision": "[omitted_context_payload]",
+                  "end_seconds": 20,
+                  "sample_rate": 44100,
+                  "source_revision": "[omitted_context_payload]",
+                  "start_seconds": 0,
+                  "tap_point": "source_file_pre_fx"
+                },
+                "measurement_key": "[omitted_context_payload]",
+                "name": "drums",
+                "role_hypothesis": {
+                  "confidence": "unspecified",
+                  "source": "tom_or_project_track_hypothesis",
+                  "value": "drums"
+                },
+                "silence_confirmed": false,
+                "silence_reason": "",
+                "status": "ready",
+                "tap_point": "source_file_pre_fx",
+                "track_id": "1012"
+              },
+              {
+                "active_state": "active",
+                "bands": {
+                  "air": {
+                    "energy_db": 24.094758086774547,
+                    "max_hz": 20000,
+                    "min_hz": 6000,
+                    "status": "ready",
+                    "unit_energy": 0.000906942835353
+                  },
+                  "bass": {
+                    "energy_db": 49.97524290275059,
+                    "max_hz": 250,
+                    "min_hz": 60,
+                    "status": "ready",
+                    "unit_energy": 0.351259756490533
+                  },
+                  "low_mid": {
+                    "energy_db": 47.52766529038099,
+                    "max_hz": 500,
+                    "min_hz": 250,
+                    "status": "ready",
+                    "unit_energy": 0.199926625019181
+                  },
+                  "mid": {
+                    "energy_db": 47.93565222017926,
+                    "max_hz": 2000,
+                    "min_hz": 500,
+                    "status": "ready",
+                    "unit_energy": 0.219618705657598
+                  },
+                  "presence": {
+                    "energy_db": 48.09523164678517,
+                    "max_hz": 6000,
+                    "min_hz": 2000,
+                    "status": "ready",
+                    "unit_energy": 0.227838582670868
+                  },
+                  "sub": {
+                    "energy_db": 21.04516714718807,
+                    "max_hz": 60,
+                    "min_hz": 20,
+                    "status": "ready",
+                    "unit_energy": 0.000449387326462
+                  }
+                },
+                "coverage": {
+                  "coverage_ratio": 1,
+                  "coverage_seconds": 20
+                },
+                "evidence_ref": "dad.band_energy_summary:1017:mixboard_20260923T211315_282779300",
+                "freshness": "fresh",
+                "measurement_conditions": {
+                  "analyzer_version": "dad_l3_offline_analyzer.v1",
+                  "channel_count": 2,
+                  "clip_revision": "[omitted_context_payload]",
+                  "end_seconds": 20,
+                  "sample_rate": 44100,
+                  "source_revision": "[omitted_context_payload]",
+                  "start_seconds": 0,
+                  "tap_point": "source_file_pre_fx"
+                },
+                "measurement_key": "[omitted_context_payload]",
+                "name": "guitar",
+                "role_hypothesis": {
+                  "confidence": "unspecified",
+                  "source": "tom_or_project_track_hypothesis",
+                  "value": "guitar"
+                },
+                "silence_confirmed": false,
+                "silence_reason": "",
+                "status": "ready",
+                "tap_point": "source_file_pre_fx",
+                "track_id": "1017"
+              },
+              {
+                "active_state": "active",
+                "bands": {
+                  "air": {
+                    "energy_db": 37.70924141017449,
+                    "max_hz": 20000,
+                    "min_hz": 6000,
+                    "status": "ready",
+                    "unit_energy": 0.002631867950565
+                  },
+                  "bass": {
+                    "energy_db": 55.22860403030719,
+                    "max_hz": 250,
+                    "min_hz": 60,
+                    "status": "ready",
+                    "unit_energy": 0.14866213223629
+                  },
+                  "low_mid": {
+                    "energy_db": 55.47419504852273,
+                    "max_hz": 500,
+                    "min_hz": 250,
+                    "status": "ready",
+                    "unit_energy": 0.157311133131807
+                  },
+                  "mid": {
+                    "energy_db": 61.35973205716381,
+                    "max_hz": 2000,
+                    "min_hz": 500,
+                    "status": "ready",
+                    "unit_energy": 0.609976579410863
+                  },
+                  "presence": {
+                    "energy_db": 52.2468042923071,
+                    "max_hz": 6000,
+                    "min_hz": 2000,
+                    "status": "ready",
+                    "unit_energy": 0.074820461686673
+                  },
+                  "sub": {
+                    "energy_db": 41.70060876114007,
+                    "max_hz": 60,
+                    "min_hz": 20,
+                    "status": "ready",
+                    "unit_energy": 0.006597825583778
+                  }
+                },
+                "coverage": {
+                  "coverage_ratio": 1,
+                  "coverage_seconds": 20
+                },
+                "evidence_ref": "dad.band_energy_summary:1022:mixboard_20260923T211315_282779300",
+                "freshness": "fresh",
+                "measurement_conditions": {
+                  "analyzer_version": "dad_l3_offline_analyzer.v1",
+                  "channel_count": 2,
+                  "clip_revision": "[omitted_context_payload]",
+                  "end_seconds": 20,
+                  "sample_rate": 44100,
+                  "source_revision": "[omitted_context_payload]",
+                  "start_seconds": 0,
+                  "tap_point": "source_file_pre_fx"
+                },
+                "measurement_key": "[omitted_context_payload]",
+                "name": "other",
+                "role_hypothesis": {
+                  "confidence": "unspecified",
+                  "source": "tom_or_project_track_hypothesis",
+                  "value": "unknown"
+                },
+                "silence_confirmed": false,
+                "silence_reason": "",
+                "status": "ready",
+                "tap_point": "source_file_pre_fx",
+                "track_id": "1022"
+              },
+              {
+                "active_state": "active",
+                "bands": {
+                  "air": {
+                    "energy_db": 15.83499409689823,
+                    "max_hz": 20000,
+                    "min_hz": 6000,
+                    "status": "ready",
+                    "unit_energy": 0.0000606160096
+                  },
+                  "bass": {
+                    "energy_db": 51.35841213369892,
+                    "max_hz": 250,
+                    "min_hz": 60,
+                    "status": "ready",
+                    "unit_energy": 0.216236571419556
+                  },
+                  "low_mid": {
+                    "energy_db": 53.16450768486391,
+                    "max_hz": 500,
+                    "min_hz": 250,
+                    "status": "ready",
+                    "unit_energy": 0.327746982426775
+                  },
+                  "mid": {
+                    "energy_db": 54.48273056456783,
+                    "max_hz": 2000,
+                    "min_hz": 500,
+                    "status": "ready",
+                    "unit_energy": 0.443977529035274
+                  },
+                  "presence": {
+                    "energy_db": 38.02207689374854,
+                    "max_hz": 6000,
+                    "min_hz": 2000,
+                    "status": "ready",
+                    "unit_energy": 0.010029877359528
+                  },
+                  "sub": {
+                    "energy_db": 30.90595481200137,
+                    "max_hz": 60,
+                    "min_hz": 20,
+                    "status": "ready",
+                    "unit_energy": 0.001948423749286
+                  }
+                },
+                "coverage": {
+                  "coverage_ratio": 1,
+                  "coverage_seconds": 20
+                },
+                "evidence_ref": "dad.band_energy_summary:1027:mixboard_20260923T211315_282779300",
+                "freshness": "fresh",
+                "measurement_conditions": {
+                  "analyzer_version": "dad_l3_offline_analyzer.v1",
+                  "channel_count": 2,
+                  "clip_revision": "[omitted_context_payload]",
+                  "end_seconds": 20,
+                  "sample_rate": 44100,
+                  "source_revision": "[omitted_context_payload]",
+                  "start_seconds": 0,
+                  "tap_point": "source_file_pre_fx"
+                },
+                "measurement_key": "[omitted_context_payload]",
+                "name": "piano",
+                "role_hypothesis": {
+                  "confidence": "unspecified",
+                  "source": "tom_or_project_track_hypothesis",
+                  "value": "keys_or_synth"
+                },
+                "silence_confirmed": false,
+                "silence_reason": "",
+                "status": "ready",
+                "tap_point": "source_file_pre_fx",
+                "track_id": "1027"
+              },
+              {
+                "active_state": "active",
+                "bands": {},
+                "coverage": {},
+                "evidence_ref": "mix.read:track.1032.slow.band_energy.summary",
+                "freshness": "missing",
+                "measurement_conditions": {
+                  "tap_point": "unknown"
+                },
+                "measurement_key": "tap=unknown|source=|clip=|render=|sample_rate=0|channel_count=0|range=0:0|window_ms=0|hop_ms=0|analyzer=|render_mode=",
+                "name": "vocals",
+                "role_hypothesis": {
+                  "confidence": "unspecified",
+                  "source": "tom_or_project_track_hypothesis",
+                  "value": "vocal"
+                },
+                "silence_confirmed": false,
+                "silence_reason": "",
+                "status": "missing",
+                "tap_point": "unknown",
+                "track_id": "1032"
+              }
+            ],
+            "verification_dimensions": [
+              "tap_point",
+              "track_coverage",
+              "frequency_region_energy_relationship",
+              "conflict_candidate_membership",
+              "relative_tonal_shape",
+              "time_frequency_persistence_when_available"
+            ]
+          },
+          {
+            "evidence_refs": [
+              "observation:obs_20260923T211317_6ce0b0514794",
+              "mix.read:project.static.summary",
+              "mix.read:project.limitations",
+              "acoustic_package_status",
+              "mix.read:project.tracks.summary",
+              "mix.read:project.relationship_inputs",
+              "mix.derive:rank_tracks",
+              "mix.read:project.frequency_relationship_inputs",
+              "dad.band_energy_summary:1007:mixboard_20260923T211315_282779300",
+              "dad.band_energy_summary:1012:mixboard_20260923T211315_282779300",
+              "dad.band_energy_summary:1017:mixboard_20260923T211315_282779300",
+              "dad.band_energy_summary:1022:mixboard_20260923T211315_282779300",
+              "dad.band_energy_summary:1027:mixboard_20260923T211315_282779300",
+              "mix.read:track.1032.slow.band_energy.summary",
+              "mix.read:track.current.fast.levels",
+              "acoustic_package_status:l1_static.peak_rms_summary",
+              "mix.read:track.current.slow.band_energy.summary",
+              "acoustic_package_status:l3_deep.band_energy_summary",
+              "mix.read:track.current.slow.stereo.summary",
+              "acoustic_package_status:l3_deep.stereo_relation_summary",
+              "mix.read:track.current.slow.time_energy.summary",
+              "mix.read:track.current.slow.loudness.summary",
+              "acoustic_package_status:l3_deep.loudness_summary",
+              "mix.derive:before_after",
+              "mix.read:observation.before_after.latest"
+            ],
+            "freshness": "partial",
+            "layer": "trust_quality.frequency_relationship",
+            "status": "partial",
+            "summary": "Frequency relationship readiness is bounded by tap point, whole-project coverage, freshness, and persistence limitations."
+          },
+          {
+            "deferred_layers": [
+              "basic_energy",
+              "ab_result_comparison"
+            ],
+            "evidence_refs": [
+              "observation:obs_20260923T211317_6ce0b0514794",
+              "mix.read:project.static.summary",
+              "mix.read:project.limitations",
+              "acoustic_package_status",
+              "mix.read:project.tracks.summary",
+              "mix.read:project.relationship_inputs",
+              "mix.derive:rank_tracks",
+              "mix.read:project.frequency_relationship_inputs",
+              "dad.band_energy_summary:1007:mixboard_20260923T211315_282779300",
+              "dad.band_energy_summary:1012:mixboard_20260923T211315_282779300",
+              "dad.band_energy_summary:1017:mixboard_20260923T211315_282779300",
+              "dad.band_energy_summary:1022:mixboard_20260923T211315_282779300",
+              "dad.band_energy_summary:1027:mixboard_20260923T211315_282779300",
+              "mix.read:track.1032.slow.band_energy.summary",
+              "mix.read:track.current.fast.levels",
+              "acoustic_package_status:l1_static.peak_rms_summary",
+              "mix.read:track.current.slow.band_energy.summary",
+              "acoustic_package_status:l3_deep.band_energy_summary",
+              "mix.read:track.current.slow.stereo.summary",
+              "acoustic_package_status:l3_deep.stereo_relation_summary",
+              "mix.read:track.current.slow.time_energy.summary",
+              "mix.read:track.current.slow.loudness.summary",
+              "acoustic_package_status:l3_deep.loudness_summary",
+              "dad.l3.loudness_summary:D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav|size=3528044|mtime=1788061880032|length=20.0000",
+              "mix.derive:before_after",
+              "mix.read:observation.before_after.latest"
+            ],
+            "freshness": "deferred",
+            "layer": "deferred_layers",
+            "status": "deferred",
+            "summary": "Non-requested or deferred analyzers do not affect the current intent status."
+          }
+        ],
+        "do_not_include_raw_package": true,
+        "evidence_refs": [
+          "observation:obs_20260923T211317_6ce0b0514794",
+          "mix.read:project.static.summary",
+          "mix.read:project.limitations",
+          "acoustic_package_status",
+          "mix.read:project.tracks.summary",
+          "mix.read:project.relationship_inputs",
+          "mix.derive:rank_tracks",
+          "mix.read:project.frequency_relationship_inputs",
+          "dad.band_energy_summary:1007:mixboard_20260923T211315_282779300",
+          "dad.band_energy_summary:1012:mixboard_20260923T211315_282779300",
+          "dad.band_energy_summary:1017:mixboard_20260923T211315_282779300",
+          "dad.band_energy_summary:1022:mixboard_20260923T211315_282779300",
+          "dad.band_energy_summary:1027:mixboard_20260923T211315_282779300",
+          "mix.read:track.1032.slow.band_energy.summary",
+          "mix.read:track.current.fast.levels",
+          "acoustic_package_status:l1_static.peak_rms_summary",
+          "mix.read:track.current.slow.band_energy.summary",
+          "acoustic_package_status:l3_deep.band_energy_summary",
+          "mix.read:track.current.slow.stereo.summary",
+          "acoustic_package_status:l3_deep.stereo_relation_summary",
+          "mix.read:track.current.slow.time_energy.summary",
+          "mix.read:track.current.slow.loudness.summary",
+          "acoustic_package_status:l3_deep.loudness_summary",
+          "mix.derive:before_after",
+          "mix.read:observation.before_after.latest"
+        ],
+        "quality_summary": {
+          "approximate_fields": [
+            "mix.current.loudness",
+            "mix.current.loudness.approximate_lufs",
+            "mix.current.loudness.algorithm",
+            "time_dynamics_structure.loudness_summary",
+            "time_dynamics_structure.loudness_summary.approximate_lufs",
+            "time_dynamics_structure.loudness_summary.algorithm"
+          ],
+          "blocked_reasons": [
+            "required_observation_evidence_not_ready",
+            "suspect_data_cannot_support_suggestion"
+          ],
+          "can_support_ab_result": false,
+          "can_support_action_preflight": false,
+          "can_support_observation": false,
+          "can_support_suggestion": false,
+          "clip_revision_status": "missing",
+          "l2_tap_point": "",
+          "missing_fields": [],
+          "overall_status": "partial",
+          "render_revision_status": "missing",
+          "schema_version": "mom_trust_quality.v1",
+          "source_revision_status": "missing",
+          "stale_fields": [],
+          "suspect_fields": [
+            "frequency_relationship"
+          ]
+        },
+        "task_policy": {
+          "intent": "project_frequency_relationship_observation",
+          "optional_layers": [
+            "project_mix_profile",
+            "multitrack_relation",
+            "basic_energy",
+            "time_dynamics_structure",
+            "ab_result_comparison"
+          ],
+          "output_contract": [
+            "compact_projection_only",
+            "evidence_refs_required",
+            "quality_summary_required",
+            "do_not_include_raw_package",
+            "no_waveform_time_segments_in_llm_context",
+            "do_not_use_suspect_stale_missing_as_action_evidence"
+          ],
+          "required_layers": [
+            "project_structure",
+            "frequency_relationship",
+            "frequency_relationship.coverage",
+            "frequency_relationship.tap_point",
+            "trust_quality"
+          ]
+        },
+        "limitation_notes": [
+          "energy_overlap_is_candidate_only_not_psychoacoustic_masking_fact",
+          "no_eq_parameters_plugin_choices_proposals_or_pending_actions",
+          "measurement_conditions_not_comparable_cross_track_relations_withheld",
+          "measurement_condition_fields_incomplete",
+          "measurement_condition_mismatch_fields=analyzer_version,channel_count,end_seconds,sample_rate,start_seconds,tap_point",
+          "source_file_pre_fx_does_not_represent_current_post_plugin_signal",
+          "one_or_more_tracks_missing_fresh_frequency_evidence",
+          "required_observation_evidence_not_ready",
+          "suspect_data_cannot_support_suggestion",
+          "some_tracks_missing_band_or_stereo_evidence"
+        ],
+        "safety_gates": [
+          "frequency_relationship:suspect",
+          "frequency_relationship.tap_point:source_file_pre_fx",
+          "frequency_relationship.post_fx_compare:false",
+          "approximate_fields:6",
+          "suspect_fields:1"
+        ],
+        "suggested_next_step": "Refresh or complete the missing/suspect evidence before using this observation for action."
+      },
+      "mix_session_id": "mix_ccb47990a5c9",
+      "mom_version": "v1.5",
+      "multitrack_relation": {
+        "status": "partial",
+        "freshness": "partial",
+        "track_count": 6,
+        "compared_tracks": [
+          {
+            "active_state": "active",
+            "effective_static_peak_dbfs": -15.873,
+            "effective_static_rms_dbfs": -30.255,
+            "focused": false,
+            "headroom_db": 15.873,
+            "level_db": -30.255,
+            "name": "bass",
+            "pan": 0,
+            "peak_dbfs": -15.873,
+            "rms_dbfs": -30.255,
+            "role_guess": "bass",
+            "selected": false,
+            "track_id": "1007",
+            "track_name": "bass",
+            "user_label": "bass",
+            "volume_db": 0
+          },
+          {
+            "active_state": "active",
+            "effective_static_peak_dbfs": -5.328,
+            "effective_static_rms_dbfs": -20.94,
+            "focused": false,
+            "headroom_db": 5.328,
+            "level_db": -20.94,
+            "name": "drums",
+            "pan": 0,
+            "peak_dbfs": -5.328,
+            "rms_dbfs": -20.94,
+            "role_guess": "drums",
+            "selected": false,
+            "track_id": "1012",
+            "track_name": "drums",
+            "user_label": "drums",
+            "volume_db": 0
+          },
+          {
+            "active_state": "active",
+            "effective_static_peak_dbfs": -11.567,
+            "effective_static_rms_dbfs": -31.817,
+            "focused": false,
+            "headroom_db": 11.567,
+            "level_db": -31.817,
+            "name": "guitar",
+            "pan": 0,
+            "peak_dbfs": -11.567,
+            "rms_dbfs": -31.817,
+            "role_guess": "guitar",
+            "selected": false,
+            "track_id": "1017",
+            "track_name": "guitar",
+            "user_label": "guitar",
+            "volume_db": 0
+          },
+          {
+            "active_state": "active",
+            "effective_static_peak_dbfs": -5.604,
+            "effective_static_rms_dbfs": -22.683,
+            "focused": false,
+            "headroom_db": 5.604,
+            "level_db": -22.683,
+            "name": "other",
+            "pan": 0,
+            "peak_dbfs": -5.604,
+            "rms_dbfs": -22.683,
+            "role_guess": "unknown",
+            "selected": false,
+            "track_id": "1022",
+            "track_name": "other",
+            "user_label": "other",
+            "volume_db": 0
+          },
+          {
+            "active_state": "active",
+            "effective_static_peak_dbfs": -8.61,
+            "effective_static_rms_dbfs": -27.619,
+            "focused": false,
+            "headroom_db": 8.61,
+            "level_db": -27.619,
+            "name": "piano",
+            "pan": 0,
+            "peak_dbfs": -8.61,
+            "rms_dbfs": -27.619,
+            "role_guess": "keys_or_synth",
+            "selected": false,
+            "track_id": "1027",
+            "track_name": "piano",
+            "user_label": "piano",
+            "volume_db": 0
+          },
+          {
+            "active_state": "active",
+            "effective_static_peak_dbfs": -5.22,
+            "effective_static_rms_dbfs": -19.843,
+            "focused": false,
+            "headroom_db": 5.22,
+            "level_db": -19.843,
+            "name": "vocals",
+            "pan": 0,
+            "peak_dbfs": -5.22,
+            "rms_dbfs": -19.843,
+            "role_guess": "vocal",
+            "selected": false,
+            "track_id": "1032",
+            "track_name": "vocals",
+            "user_label": "vocals",
+            "volume_db": 0
+          }
+        ],
+        "missing_tracks": [
+          {
+            "missing": [
+              "band_energy",
+              "stereo_relation"
+            ],
+            "name": "vocals",
+            "track_id": "1032"
+          }
+        ],
+        "level_distribution": {
+          "headroom_risk_rows": [
+            {
+              "headroom_db": 5.22,
+              "name": "vocals",
+              "risk": "low",
+              "track_id": "1032"
+            },
+            {
+              "headroom_db": 5.328,
+              "name": "drums",
+              "risk": "low",
+              "track_id": "1012"
+            },
+            {
+              "headroom_db": 5.604,
+              "name": "other",
+              "risk": "low",
+              "track_id": "1022"
+            },
+            {
+              "headroom_db": 8.61,
+              "name": "piano",
+              "risk": "low",
+              "track_id": "1027"
+            },
+            {
+              "headroom_db": 11.567,
+              "name": "guitar",
+              "risk": "low",
+              "track_id": "1017"
+            },
+            {
+              "headroom_db": 15.873,
+              "name": "bass",
+              "risk": "low",
+              "track_id": "1007"
+            }
+          ],
+          "highest_peak": {
+            "metric": "peak_dbfs",
+            "name": "vocals",
+            "role_guess": "vocal",
+            "track_id": "1032",
+            "value": -5.22
+          },
+          "loudest_by_rms": {
+            "metric": "rms_dbfs",
+            "name": "vocals",
+            "role_guess": "vocal",
+            "track_id": "1032",
+            "value": -19.843
+          },
+          "lowest_headroom": {
+            "metric": "headroom_db",
+            "name": "vocals",
+            "role_guess": "vocal",
+            "track_id": "1032",
+            "value": 5.22
+          },
+          "tracks_with_level": 6,
+          "tracks_with_peak": 6
+        },
+        "band_occupancy": [
+          {
+            "band": "sub",
+            "leaders": [
+              {
+                "energy_db": 59.17765431183166,
+                "name": "drums",
+                "role_guess": "drums",
+                "track_id": "1012",
+                "unit_energy": 0.167
+              },
+              {
+                "energy_db": 48.734380896595894,
+                "name": "bass",
+                "role_guess": "bass",
+                "track_id": "1007",
+                "unit_energy": 0.139
+              },
+              {
+                "energy_db": 41.70060876114007,
+                "name": "other",
+                "role_guess": "unknown",
+                "track_id": "1022",
+                "unit_energy": 0.007
+              }
+            ],
+            "track_count": 5
+          },
+          {
+            "band": "bass",
+            "leaders": [
+              {
+                "energy_db": 56.462860226021746,
+                "name": "bass",
+                "role_guess": "bass",
+                "track_id": "1007",
+                "unit_energy": 0.825
+              },
+              {
+                "energy_db": 65.78791417799854,
+                "name": "drums",
+                "role_guess": "drums",
+                "track_id": "1012",
+                "unit_energy": 0.763
+              },
+              {
+                "energy_db": 49.97524290275059,
+                "name": "guitar",
+                "role_guess": "guitar",
+                "track_id": "1017",
+                "unit_energy": 0.351
+              }
+            ],
+            "track_count": 5
+          },
+          {
+            "band": "low_mid",
+            "leaders": [
+              {
+                "energy_db": 53.16450768486391,
+                "name": "piano",
+                "role_guess": "keys_or_synth",
+                "track_id": "1027",
+                "unit_energy": 0.328
+              },
+              {
+                "energy_db": 47.52766529038099,
+                "name": "guitar",
+                "role_guess": "guitar",
+                "track_id": "1017",
+                "unit_energy": 0.2
+              },
+              {
+                "energy_db": 55.47419504852273,
+                "name": "other",
+                "role_guess": "unknown",
+                "track_id": "1022",
+                "unit_energy": 0.157
+              }
+            ],
+            "track_count": 5
+          },
+          {
+            "band": "mid",
+            "leaders": [
+              {
+                "energy_db": 61.35973205716381,
+                "name": "other",
+                "role_guess": "unknown",
+                "track_id": "1022",
+                "unit_energy": 0.61
+              },
+              {
+                "energy_db": 54.48273056456783,
+                "name": "piano",
+                "role_guess": "keys_or_synth",
+                "track_id": "1027",
+                "unit_energy": 0.444
+              },
+              {
+                "energy_db": 47.93565222017926,
+                "name": "guitar",
+                "role_guess": "guitar",
+                "track_id": "1017",
+                "unit_energy": 0.22
+              }
+            ],
+            "track_count": 5
+          },
+          {
+            "band": "presence",
+            "leaders": [
+              {
+                "energy_db": 48.09523164678517,
+                "name": "guitar",
+                "role_guess": "guitar",
+                "track_id": "1017",
+                "unit_energy": 0.228
+              },
+              {
+                "energy_db": 52.2468042923071,
+                "name": "other",
+                "role_guess": "unknown",
+                "track_id": "1022",
+                "unit_energy": 0.075
+              },
+              {
+                "energy_db": 51.84438413787143,
+                "name": "drums",
+                "role_guess": "drums",
+                "track_id": "1012",
+                "unit_energy": 0.031
+              }
+            ],
+            "track_count": 5
+          },
+          {
+            "band": "air",
+            "leaders": [
+              {
+                "energy_db": 47.52609572423873,
+                "name": "drums",
+                "role_guess": "drums",
+                "track_id": "1012",
+                "unit_energy": 0.011
+              },
+              {
+                "energy_db": 37.70924141017449,
+                "name": "other",
+                "role_guess": "unknown",
+                "track_id": "1022",
+                "unit_energy": 0.003
+              },
+              {
+                "energy_db": 24.094758086774547,
+                "name": "guitar",
+                "role_guess": "guitar",
+                "track_id": "1017",
+                "unit_energy": 0.001
+              }
+            ],
+            "track_count": 5
+          }
+        ],
+        "band_conflict_candidates": [
+          {
+            "band": "bass",
+            "confidence": "low_to_medium",
+            "reason": "two_or_more_tracks_have_close_relative_energy_in_band",
+            "status": "candidate",
+            "tracks": [
+              {
+                "energy_db": 56.462860226021746,
+                "name": "bass",
+                "role_guess": "bass",
+                "track_id": "1007",
+                "unit_energy": 0.825
+              },
+              {
+                "energy_db": 65.78791417799854,
+                "name": "drums",
+                "role_guess": "drums",
+                "track_id": "1012",
+                "unit_energy": 0.763
+              }
+            ]
+          },
+          {
+            "band": "mid",
+            "confidence": "low_to_medium",
+            "reason": "two_or_more_tracks_have_close_relative_energy_in_band",
+            "status": "candidate",
+            "tracks": [
+              {
+                "energy_db": 61.35973205716381,
+                "name": "other",
+                "role_guess": "unknown",
+                "track_id": "1022",
+                "unit_energy": 0.61
+              },
+              {
+                "energy_db": 54.48273056456783,
+                "name": "piano",
+                "role_guess": "keys_or_synth",
+                "track_id": "1027",
+                "unit_energy": 0.444
+              }
+            ]
+          }
+        ],
+        "stereo_distribution": {
+          "center_heavy_tracks": [
+            {
+              "balance_db": 0.039,
+              "balance_state": "centered",
+              "correlation_estimate": 0.974,
+              "correlation_state": "highly_correlated",
+              "name": "drums",
+              "phase_negative_ratio": 0,
+              "role_guess": "drums",
+              "tag": "center_heavy",
+              "track_id": "1012"
+            }
+          ],
+          "off_center_tracks": [],
+          "phase_risk_tracks": [
+            {
+              "balance_db": 0.887,
+              "balance_state": "centered",
+              "correlation_estimate": 0.088,
+              "correlation_state": "decorrelated",
+              "name": "piano",
+              "phase_negative_ratio": 0,
+              "role_guess": "keys_or_synth",
+              "tag": "phase_risk",
+              "track_id": "1027"
+            }
+          ],
+          "tracks_with_stereo": 5
+        },
+        "phase_risk_tracks": [
+          {
+            "balance_db": 0.887,
+            "balance_state": "centered",
+            "correlation_estimate": 0.088,
+            "correlation_state": "decorrelated",
+            "name": "piano",
+            "phase_negative_ratio": 0,
+            "role_guess": "keys_or_synth",
+            "tag": "phase_risk",
+            "track_id": "1027"
+          }
+        ],
+        "limitations": [
+          "some_tracks_missing_band_or_stereo_evidence"
+        ],
+        "evidence_refs": [
+          "observation:obs_20260923T211317_6ce0b0514794",
+          "mix.read:project.tracks.summary",
+          "mix.read:project.relationship_inputs",
+          "mix.derive:rank_tracks"
+        ]
+      },
+      "observation_id": "obs_20260923T211317_6ce0b0514794",
+      "project_mix_profile": {
+        "status": "ready",
+        "freshness": "fresh",
+        "track_count": 6,
+        "compared_tracks": [
+          {
+            "active_state": "active",
+            "effective_static_peak_dbfs": -15.873,
+            "effective_static_rms_dbfs": -30.255,
+            "focused": false,
+            "headroom_db": 15.873,
+            "level_db": -30.255,
+            "name": "bass",
+            "pan": 0,
+            "peak_dbfs": -15.873,
+            "rms_dbfs": -30.255,
+            "role_guess": "bass",
+            "selected": false,
+            "track_id": "1007",
+            "track_name": "bass",
+            "user_label": "bass",
+            "volume_db": 0
+          },
+          {
+            "active_state": "active",
+            "effective_static_peak_dbfs": -5.328,
+            "effective_static_rms_dbfs": -20.94,
+            "focused": false,
+            "headroom_db": 5.328,
+            "level_db": -20.94,
+            "name": "drums",
+            "pan": 0,
+            "peak_dbfs": -5.328,
+            "rms_dbfs": -20.94,
+            "role_guess": "drums",
+            "selected": false,
+            "track_id": "1012",
+            "track_name": "drums",
+            "user_label": "drums",
+            "volume_db": 0
+          },
+          {
+            "active_state": "active",
+            "effective_static_peak_dbfs": -11.567,
+            "effective_static_rms_dbfs": -31.817,
+            "focused": false,
+            "headroom_db": 11.567,
+            "level_db": -31.817,
+            "name": "guitar",
+            "pan": 0,
+            "peak_dbfs": -11.567,
+            "rms_dbfs": -31.817,
+            "role_guess": "guitar",
+            "selected": false,
+            "track_id": "1017",
+            "track_name": "guitar",
+            "user_label": "guitar",
+            "volume_db": 0
+          },
+          {
+            "active_state": "active",
+            "effective_static_peak_dbfs": -5.604,
+            "effective_static_rms_dbfs": -22.683,
+            "focused": false,
+            "headroom_db": 5.604,
+            "level_db": -22.683,
+            "name": "other",
+            "pan": 0,
+            "peak_dbfs": -5.604,
+            "rms_dbfs": -22.683,
+            "role_guess": "unknown",
+            "selected": false,
+            "track_id": "1022",
+            "track_name": "other",
+            "user_label": "other",
+            "volume_db": 0
+          },
+          {
+            "active_state": "active",
+            "effective_static_peak_dbfs": -8.61,
+            "effective_static_rms_dbfs": -27.619,
+            "focused": false,
+            "headroom_db": 8.61,
+            "level_db": -27.619,
+            "name": "piano",
+            "pan": 0,
+            "peak_dbfs": -8.61,
+            "rms_dbfs": -27.619,
+            "role_guess": "keys_or_synth",
+            "selected": false,
+            "track_id": "1027",
+            "track_name": "piano",
+            "user_label": "piano",
+            "volume_db": 0
+          },
+          {
+            "active_state": "active",
+            "effective_static_peak_dbfs": -5.22,
+            "effective_static_rms_dbfs": -19.843,
+            "focused": false,
+            "headroom_db": 5.22,
+            "level_db": -19.843,
+            "name": "vocals",
+            "pan": 0,
+            "peak_dbfs": -5.22,
+            "rms_dbfs": -19.843,
+            "role_guess": "vocal",
+            "selected": false,
+            "track_id": "1032",
+            "track_name": "vocals",
+            "user_label": "vocals",
+            "volume_db": 0
+          }
+        ],
+        "level_overview": {
+          "headroom_risk_rows": [
+            {
+              "headroom_db": 5.22,
+              "name": "vocals",
+              "risk": "low",
+              "track_id": "1032"
+            },
+            {
+              "headroom_db": 5.328,
+              "name": "drums",
+              "risk": "low",
+              "track_id": "1012"
+            },
+            {
+              "headroom_db": 5.604,
+              "name": "other",
+              "risk": "low",
+              "track_id": "1022"
+            },
+            {
+              "headroom_db": 8.61,
+              "name": "piano",
+              "risk": "low",
+              "track_id": "1027"
+            },
+            {
+              "headroom_db": 11.567,
+              "name": "guitar",
+              "risk": "low",
+              "track_id": "1017"
+            },
+            {
+              "headroom_db": 15.873,
+              "name": "bass",
+              "risk": "low",
+              "track_id": "1007"
+            }
+          ],
+          "highest_peak": {
+            "metric": "peak_dbfs",
+            "name": "vocals",
+            "role_guess": "vocal",
+            "track_id": "1032",
+            "value": -5.22
+          },
+          "loudest_by_rms": {
+            "metric": "rms_dbfs",
+            "name": "vocals",
+            "role_guess": "vocal",
+            "track_id": "1032",
+            "value": -19.843
+          },
+          "lowest_headroom": {
+            "metric": "headroom_db",
+            "name": "vocals",
+            "role_guess": "vocal",
+            "track_id": "1032",
+            "value": 5.22
+          },
+          "tracks_with_level": 6,
+          "tracks_with_peak": 6
+        },
+        "dominant_bands": [
+          {
+            "band": "sub",
+            "leader": {
+              "energy_db": 59.17765431183166,
+              "name": "drums",
+              "role_guess": "drums",
+              "track_id": "1012",
+              "unit_energy": 0.167
+            },
+            "track_count": 5
+          },
+          {
+            "band": "bass",
+            "leader": {
+              "energy_db": 56.462860226021746,
+              "name": "bass",
+              "role_guess": "bass",
+              "track_id": "1007",
+              "unit_energy": 0.825
+            },
+            "track_count": 5
+          },
+          {
+            "band": "low_mid",
+            "leader": {
+              "energy_db": 53.16450768486391,
+              "name": "piano",
+              "role_guess": "keys_or_synth",
+              "track_id": "1027",
+              "unit_energy": 0.328
+            },
+            "track_count": 5
+          },
+          {
+            "band": "mid",
+            "leader": {
+              "energy_db": 61.35973205716381,
+              "name": "other",
+              "role_guess": "unknown",
+              "track_id": "1022",
+              "unit_energy": 0.61
+            },
+            "track_count": 5
+          },
+          {
+            "band": "presence",
+            "leader": {
+              "energy_db": 48.09523164678517,
+              "name": "guitar",
+              "role_guess": "guitar",
+              "track_id": "1017",
+              "unit_energy": 0.228
+            },
+            "track_count": 5
+          },
+          {
+            "band": "air",
+            "leader": {
+              "energy_db": 47.52609572423873,
+              "name": "drums",
+              "role_guess": "drums",
+              "track_id": "1012",
+              "unit_energy": 0.011
+            },
+            "track_count": 5
+          }
+        ],
+        "band_tendency": {
+          "air": {
+            "dominant_band_count": 1,
+            "state": "present"
+          },
+          "low_end": {
+            "dominant_band_count": 2,
+            "state": "prominent"
+          },
+          "low_mid": {
+            "dominant_band_count": 1,
+            "state": "present"
+          },
+          "presence": {
+            "dominant_band_count": 1,
+            "state": "present"
+          }
+        },
+        "stereo_overview": {
+          "center_heavy_tracks": [
+            {
+              "balance_db": 0.039,
+              "balance_state": "centered",
+              "correlation_estimate": 0.974,
+              "correlation_state": "highly_correlated",
+              "name": "drums",
+              "phase_negative_ratio": 0,
+              "role_guess": "drums",
+              "tag": "center_heavy",
+              "track_id": "1012"
+            }
+          ],
+          "off_center_tracks": [],
+          "phase_risk_tracks": [
+            {
+              "balance_db": 0.887,
+              "balance_state": "centered",
+              "correlation_estimate": 0.088,
+              "correlation_state": "decorrelated",
+              "name": "piano",
+              "phase_negative_ratio": 0,
+              "role_guess": "keys_or_synth",
+              "tag": "phase_risk",
+              "track_id": "1027"
+            }
+          ],
+          "tracks_with_stereo": 5
+        },
+        "risk_tags": [
+          "phase_risk_present"
+        ],
+        "limitations": [
+          "project_rankings_are_agent_side_lightweight_o1",
+          "kernel_project_contrast_analyzer_deferred_o3",
+          "lufs_analysis_deferred_phase_5",
+          "reference_match_deferred_phase_5",
+          "post_fx_probe_unavailable_phase_4_1",
+          "masking_analysis_not_ready_on_current_project_cut"
+        ],
+        "evidence_refs": [
+          "observation:obs_20260923T211317_6ce0b0514794",
+          "mix.read:project.tracks.summary",
+          "mix.read:project.relationship_inputs",
+          "mix.derive:rank_tracks"
+        ]
+      },
+      "project_structure": {
+        "channel_count": 0,
+        "clip_id": "",
+        "clip_revision_status": "missing",
+        "duration_seconds": 20,
+        "evidence_refs": [
+          "observation:obs_20260923T211317_6ce0b0514794",
+          "mix.read:project.static.summary",
+          "mix.read:project.limitations",
+          "acoustic_package_status"
+        ],
+        "freshness": "fresh",
+        "gui_id": "current",
+        "limitations": [
+          "project_rankings_are_agent_side_lightweight_o1",
+          "kernel_project_contrast_analyzer_deferred_o3",
+          "lufs_analysis_deferred_phase_5",
+          "reference_match_deferred_phase_5",
+          "post_fx_probe_unavailable_phase_4_1",
+          "masking_analysis_not_ready_on_current_project_cut"
+        ],
+        "listen_scope": {
+          "source": {
+            "mode": "full_project"
+          },
+          "time": {
+            "mode": "full_song",
+            "source": "scope_full_project"
+          }
+        },
+        "project_id": "current",
+        "render_revision_status": "missing",
+        "sample_rate": 0,
+        "session_id": "mix_ccb47990a5c9",
+        "source_revision_status": "missing",
+        "status": "ready",
+        "target_ref": {
+          "confidence": "high",
+          "id": "current",
+          "kind": "project",
+          "label": "Current project",
+          "source": "mix_observation_scope"
+        },
+        "track_id": "current"
+      },
+      "trust_quality": {
+        "approximate_fields": [
+          "mix.current.loudness",
+          "mix.current.loudness.approximate_lufs",
+          "mix.current.loudness.algorithm",
+          "time_dynamics_structure.loudness_summary",
+          "time_dynamics_structure.loudness_summary.approximate_lufs",
+          "time_dynamics_structure.loudness_summary.algorithm"
+        ],
+        "blocked_reasons": [
+          "required_observation_evidence_not_ready",
+          "suspect_data_cannot_support_suggestion"
+        ],
+        "can_support_ab_result": false,
+        "can_support_action_preflight": false,
+        "can_support_observation": false,
+        "can_support_suggestion": false,
+        "clip_revision_status": "missing",
+        "coverage": {
+          "conflict_candidate_count": 0,
+          "decision_tracks_truncated": false,
+          "eligible_track_count": 5,
+          "eligible_track_ratio": 0.833,
+          "frequency_region_count": 0,
+          "measurement_condition_fields_complete": false,
+          "measurement_condition_mismatches": [
+            "analyzer_version",
+            "channel_count",
+            "end_seconds",
+            "sample_rate",
+            "start_seconds",
+            "tap_point"
+          ],
+          "missing_track_count": 1,
+          "missing_track_ids": [
+            "1032"
+          ],
+          "profile_count": 6,
+          "project_track_count": 6,
+          "supports_post_fx_compare": false,
+          "supports_same_tap_compare": false,
+          "supports_static_diagnosis": false,
+          "uniform_measurement_conditions": false
+        },
+        "deferred_layers": [
+          "basic_energy",
+          "ab_result_comparison"
+        ],
+        "evidence_refs": [
+          "observation:obs_20260923T211317_6ce0b0514794",
+          "mix.read:project.static.summary",
+          "mix.read:project.limitations",
+          "acoustic_package_status",
+          "mix.read:project.tracks.summary",
+          "mix.read:project.relationship_inputs",
+          "mix.derive:rank_tracks",
+          "mix.read:project.frequency_relationship_inputs",
+          "dad.band_energy_summary:1007:mixboard_20260923T211315_282779300",
+          "dad.band_energy_summary:1012:mixboard_20260923T211315_282779300",
+          "dad.band_energy_summary:1017:mixboard_20260923T211315_282779300",
+          "dad.band_energy_summary:1022:mixboard_20260923T211315_282779300",
+          "dad.band_energy_summary:1027:mixboard_20260923T211315_282779300",
+          "mix.read:track.1032.slow.band_energy.summary",
+          "mix.read:track.current.fast.levels",
+          "acoustic_package_status:l1_static.peak_rms_summary",
+          "mix.read:track.current.slow.band_energy.summary",
+          "acoustic_package_status:l3_deep.band_energy_summary",
+          "mix.read:track.current.slow.stereo.summary",
+          "acoustic_package_status:l3_deep.stereo_relation_summary",
+          "mix.read:track.current.slow.time_energy.summary",
+          "mix.read:track.current.slow.loudness.summary",
+          "acoustic_package_status:l3_deep.loudness_summary",
+          "mix.derive:before_after",
+          "mix.read:observation.before_after.latest"
+        ],
+        "freshness": "partial",
+        "l2_limitations": null,
+        "l2_tap_point": "",
+        "limitations": [
+          "energy_overlap_is_candidate_only_not_psychoacoustic_masking_fact",
+          "no_eq_parameters_plugin_choices_proposals_or_pending_actions",
+          "measurement_conditions_not_comparable_cross_track_relations_withheld",
+          "measurement_condition_fields_incomplete",
+          "measurement_condition_mismatch_fields=analyzer_version,channel_count,end_seconds,sample_rate,start_seconds,tap_point",
+          "source_file_pre_fx_does_not_represent_current_post_plugin_signal",
+          "one_or_more_tracks_missing_fresh_frequency_evidence",
+          "required_observation_evidence_not_ready",
+          "suspect_data_cannot_support_suggestion"
+        ],
+        "missing_fields": null,
+        "optional_layers": [
+          "project_mix_profile",
+          "multitrack_relation",
+          "basic_energy",
+          "time_dynamics_structure",
+          "ab_result_comparison"
+        ],
+        "overall_status": "partial",
+        "quality_gates": [
+          "frequency_relationship:suspect",
+          "frequency_relationship.tap_point:source_file_pre_fx",
+          "frequency_relationship.post_fx_compare:false",
+          "approximate_fields:6",
+          "suspect_fields:1"
+        ],
+        "render_revision_status": "missing",
+        "required_layers": [
+          "project_structure",
+          "frequency_relationship",
+          "frequency_relationship.coverage",
+          "frequency_relationship.tap_point",
+          "trust_quality"
+        ],
+        "schema_version": "mom_trust_quality.v1",
+        "source_revision_status": "missing",
+        "stale_fields": null,
+        "suspect_fields": [
+          "frequency_relationship"
+        ]
+      }
+    },
+    "observation_id": "obs_20260923T211317_6ce0b0514794",
+    "read_hints": [
+      "mix_read key=observation.com_projection",
+      "mix_read key=observation.dom_projection",
+      "mix_read key=observation.mom_projection",
+      "mix_read key=observation.tim_projection",
+      "mix_read key=observation.fxm_projection",
+      "mix_read key=observation.digest",
+      "mix_read key=observation.catalog"
+    ],
+    "source_capabilities": {
+      "band_energy": "ready",
+      "l2_render_probe": "missing",
+      "loudness_summary": "ready",
+      "lufs_analysis": "deferred",
+      "masking_analysis": "missing",
+      "post_fx_probe": "unavailable",
+      "realtime_band_energy": "missing",
+      "realtime_stereo_relation": "missing",
+      "reference_match": "deferred",
+      "spectrogram_tiles": "requested",
+      "stereo_relation": "ready"
+    },
+    "status": "ready",
+    "technical_integrity_context": {
+      "summary_md": "TIM v0 status=partial risk=none tracks=6 clips=6 issues=0. Source/sample/channel facts are evidence-only; unknown fields must be reported as limitations, not inferred.",
+      "compact_facts": [
+        {
+          "clip_count": 6,
+          "compressed_sources": 0,
+          "format_families": {
+            "pcm_like_or_lossless": 6
+          },
+          "layer": "technical_summary",
+          "playback_invalid": 0,
+          "source_missing": 0,
+          "source_unknown": 0,
+          "status": "partial",
+          "track_count": 6
+        },
+        {
+          "acoustic": {
+            "known_count": 6,
+            "status": "ready",
+            "total_count": 6
+          },
+          "bit_depth": {
+            "known_count": 0,
+            "missing_count": 6,
+            "status": "missing",
+            "total_count": 6
+          },
+          "channel_count": {
+            "known_count": 0,
+            "missing_count": 6,
+            "status": "missing",
+            "total_count": 6
+          },
+          "layer": "technical_coverage",
+          "sample_rate": {
+            "known_count": 0,
+            "missing_count": 6,
+            "status": "missing",
+            "total_count": 6
+          },
+          "status": "partial"
+        },
+        {
+          "issue_count": 0,
+          "layer": "technical_risk",
+          "overall_risk": "none",
+          "primary_codes": [],
+          "status": "partial"
+        }
+      ],
+      "do_not_include_raw_package": true,
+      "evidence_refs": [
+        "mix.read:project.tracks.summary",
+        "mix.read:project.acoustic.tracks",
+        "mix.read:project.limitations",
+        "dad:track_waveform_envelopes"
+      ],
+      "quality_summary": {
+        "coverage": {
+          "acoustic_package": {
+            "known_count": 6,
+            "status": "ready",
+            "total_count": 6
+          },
+          "bit_depth": {
+            "known_count": 0,
+            "missing_count": 6,
+            "status": "missing",
+            "total_count": 6
+          },
+          "channel_count": {
+            "known_count": 0,
+            "missing_count": 6,
+            "status": "missing",
+            "total_count": 6
+          },
+          "format_family": {
+            "known_count": 6,
+            "status": "ready",
+            "total_count": 6
+          },
+          "playback_validity": {
+            "known_count": 6,
+            "status": "ready",
+            "total_count": 6
+          },
+          "sample_rate": {
+            "known_count": 0,
+            "missing_count": 6,
+            "status": "missing",
+            "total_count": 6
+          },
+          "source_path": {
+            "known_count": 6,
+            "status": "ready",
+            "total_count": 6
+          }
+        },
+        "issue_count": 0,
+        "overall_risk": "none",
+        "schema_version": "tim.projection.v0",
+        "status": "partial"
+      },
+      "limitation_notes": [
+        "source_sample_rate_not_fully_exposed_by_project_state",
+        "pcm_bit_depth_not_fully_exposed_by_project_state",
+        "source_channel_count_not_fully_exposed_by_project_state"
+      ],
+      "suggested_next_step": "Report missing technical facts explicitly, then proceed with conservative organization or listening tasks."
+    },
+    "tim_projection": {
+      "coverage": {
+        "source_path": {
+          "status": "ready",
+          "known_count": 6,
+          "total_count": 6
+        },
+        "playback_validity": {
+          "status": "ready",
+          "known_count": 6,
+          "total_count": 6
+        },
+        "format_family": {
+          "status": "ready",
+          "known_count": 6,
+          "total_count": 6
+        },
+        "sample_rate": {
+          "status": "missing",
+          "known_count": 0,
+          "total_count": 6,
+          "missing_count": 6
+        },
+        "bit_depth": {
+          "status": "missing",
+          "known_count": 0,
+          "total_count": 6,
+          "missing_count": 6
+        },
+        "channel_count": {
+          "status": "missing",
+          "known_count": 0,
+          "total_count": 6,
+          "missing_count": 6
+        },
+        "acoustic_package": {
+          "status": "ready",
+          "known_count": 6,
+          "total_count": 6
+        }
+      },
+      "issue_excerpt": [],
+      "limitations": [
+        "source_sample_rate_not_fully_exposed_by_project_state",
+        "pcm_bit_depth_not_fully_exposed_by_project_state",
+        "source_channel_count_not_fully_exposed_by_project_state"
+      ],
+      "llm_context": {
+        "summary_md": "TIM v0 status=partial risk=none tracks=6 clips=6 issues=0. Source/sample/channel facts are evidence-only; unknown fields must be reported as limitations, not inferred.",
+        "compact_facts": [
+          {
+            "clip_count": 6,
+            "compressed_sources": 0,
+            "format_families": {
+              "pcm_like_or_lossless": 6
+            },
+            "layer": "technical_summary",
+            "playback_invalid": 0,
+            "source_missing": 0,
+            "source_unknown": 0,
+            "status": "partial",
+            "track_count": 6
+          },
+          {
+            "acoustic": {
+              "known_count": 6,
+              "status": "ready",
+              "total_count": 6
+            },
+            "bit_depth": {
+              "known_count": 0,
+              "missing_count": 6,
+              "status": "missing",
+              "total_count": 6
+            },
+            "channel_count": {
+              "known_count": 0,
+              "missing_count": 6,
+              "status": "missing",
+              "total_count": 6
+            },
+            "layer": "technical_coverage",
+            "sample_rate": {
+              "known_count": 0,
+              "missing_count": 6,
+              "status": "missing",
+              "total_count": 6
+            },
+            "status": "partial"
+          },
+          {
+            "issue_count": 0,
+            "layer": "technical_risk",
+            "overall_risk": "none",
+            "primary_codes": [],
+            "status": "partial"
+          }
+        ],
+        "do_not_include_raw_package": true,
+        "evidence_refs": [
+          "mix.read:project.tracks.summary",
+          "mix.read:project.acoustic.tracks",
+          "mix.read:project.limitations",
+          "dad:track_waveform_envelopes"
+        ],
+        "quality_summary": {
+          "coverage": {
+            "acoustic_package": {
+              "known_count": 6,
+              "status": "ready",
+              "total_count": 6
+            },
+            "bit_depth": {
+              "known_count": 0,
+              "missing_count": 6,
+              "status": "missing",
+              "total_count": 6
+            },
+            "channel_count": {
+              "known_count": 0,
+              "missing_count": 6,
+              "status": "missing",
+              "total_count": 6
+            },
+            "format_family": {
+              "known_count": 6,
+              "status": "ready",
+              "total_count": 6
+            },
+            "playback_validity": {
+              "known_count": 6,
+              "status": "ready",
+              "total_count": 6
+            },
+            "sample_rate": {
+              "known_count": 0,
+              "missing_count": 6,
+              "status": "missing",
+              "total_count": 6
+            },
+            "source_path": {
+              "known_count": 6,
+              "status": "ready",
+              "total_count": 6
+            }
+          },
+          "issue_count": 0,
+          "overall_risk": "none",
+          "schema_version": "tim.projection.v0",
+          "status": "partial"
+        },
+        "limitation_notes": [
+          "source_sample_rate_not_fully_exposed_by_project_state",
+          "pcm_bit_depth_not_fully_exposed_by_project_state",
+          "source_channel_count_not_fully_exposed_by_project_state"
+        ],
+        "suggested_next_step": "Report missing technical facts explicitly, then proceed with conservative organization or listening tasks."
+      },
+      "mix_session_id": "mix_ccb47990a5c9",
+      "observation_id": "obs_20260923T211317_6ce0b0514794",
+      "risk_summary": {
+        "overall_risk": "none",
+        "issue_count": 0
+      },
+      "schema_version": "tim.projection.v0",
+      "status": "partial",
+      "technical_summary": {
+        "track_count": 6,
+        "clip_count": 6,
+        "source_present_count": 6,
+        "playback_valid_count": 6,
+        "acoustic_ready_track_count": 6,
+        "pcm_source_count": 6,
+        "format_family_counts": {
+          "pcm_like_or_lossless": 6
+        }
+      },
+      "tim_version": "v0",
+      "track_fact_excerpt": [
+        {
+          "acoustic_status": "ready",
+          "clip_count": 1,
+          "clip_id": "1011",
+          "format_family": "pcm_like_or_lossless",
+          "playback_source_status": "valid",
+          "risk_codes": null,
+          "source_extension": "wav",
+          "source_present": true,
+          "source_status": "present",
+          "track_id": "1007",
+          "track_name": "bass"
+        },
+        {
+          "acoustic_status": "ready",
+          "clip_count": 1,
+          "clip_id": "1016",
+          "format_family": "pcm_like_or_lossless",
+          "playback_source_status": "valid",
+          "risk_codes": null,
+          "source_extension": "wav",
+          "source_present": true,
+          "source_status": "present",
+          "track_id": "1012",
+          "track_name": "drums"
+        },
+        {
+          "acoustic_status": "ready",
+          "clip_count": 1,
+          "clip_id": "1021",
+          "format_family": "pcm_like_or_lossless",
+          "playback_source_status": "valid",
+          "risk_codes": null,
+          "source_extension": "wav",
+          "source_present": true,
+          "source_status": "present",
+          "track_id": "1017",
+          "track_name": "guitar"
+        },
+        {
+          "acoustic_status": "ready",
+          "clip_count": 1,
+          "clip_id": "1026",
+          "format_family": "pcm_like_or_lossless",
+          "playback_source_status": "valid",
+          "risk_codes": null,
+          "source_extension": "wav",
+          "source_present": true,
+          "source_status": "present",
+          "track_id": "1022",
+          "track_name": "other"
+        },
+        {
+          "acoustic_status": "ready",
+          "clip_count": 1,
+          "clip_id": "1031",
+          "format_family": "pcm_like_or_lossless",
+          "playback_source_status": "valid",
+          "risk_codes": null,
+          "source_extension": "wav",
+          "source_present": true,
+          "source_status": "present",
+          "track_id": "1027",
+          "track_name": "piano"
+        },
+        {
+          "acoustic_status": "ready",
+          "clip_count": 1,
+          "clip_id": "1036",
+          "format_family": "pcm_like_or_lossless",
+          "playback_source_status": "valid",
+          "risk_codes": null,
+          "source_extension": "wav",
+          "source_present": true,
+          "source_status": "present",
+          "track_id": "1032",
+          "track_name": "vocals"
+        }
+      ]
+    },
+    "time_ruler": {
+      "duration_seconds": 20,
+      "frame_seconds": 0.01,
+      "segment_seconds": 2
+    }
+  },
+  "active_problem_map": null,
+  "relevant_sections": null
+}

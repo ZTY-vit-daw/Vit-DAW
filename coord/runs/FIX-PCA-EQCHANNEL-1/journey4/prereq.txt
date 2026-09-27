@@ -1,0 +1,40 @@
+﻿run_root=D:/Vit_DAW/coord/runs/FIX-PCA-EQCHANNEL-1/journey4
+head=77bed6cdf945c71047ff8d459492a52a27f863f7
+git_status= M VitApp/Workspace/default_project.xml ;  M coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/derive/builder_stdout.txt ;  M coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/derive/live_v6_normalized.json ;  M coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/derive/provenance_broadband_compression.json ;  M coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/derive/provenance_de_esser.json ;  M coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/derive/provenance_gate_expander.json ;  M coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/derive/provenance_limiter.json ;  M coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/derive/provenance_multiband.json ;  M coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/derive/provenance_table_v6_full.json ;  M coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/derive/provenance_transient_shaper.json ;  M coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/derive/whitelist_v6_broadband_compression.json ;  M coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/derive/whitelist_v6_de_esser.json ;  M coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/derive/whitelist_v6_full.json ;  M coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/derive/whitelist_v6_gate_expander.json ;  M coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/derive/whitelist_v6_limiter.json ;  M coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/derive/whitelist_v6_multiband.json ;  M coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/derive/whitelist_v6_transient_shaper.json ;  M coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/run_ledger.jsonl ;  M coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/sweep_report.json ;  M coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/sweep_report.md ;  M coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/verify/overlay_results.json ;  M scripts/pca_autosweep.py ; ?? coord/runs/FIX-BROADBAND-SHARED-1/ ; ?? coord/runs/FIX-F3-G4-SEMANTICS/ ; ?? coord/runs/FIX-F5-SNAPSHOT-FRESHNESS-1/ ; ?? coord/runs/FIX-FRONTIER-FOLD-1/ ; ?? coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/derive/eq_static_eq_derived.json ; ?? coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/derive/live_backup_pre_apply.json ; ?? coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/derive/live_backup_pre_eq.json ; ?? coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/journey/ ; ?? coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/journey2/ ; ?? coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/state.json ; ?? coord/runs/FIX-PCA-EQCHANNEL-1/ ; ?? coord/runs/PORT-PS1-N5-1/ ; ?? coord/runs/plugin_select1_artifacts/go_full_after.txt ; ?? coord/runs/plugin_select1_artifacts/journey1_pcplugsel1_console.txt ; ?? coord/runs/plugin_select1_artifacts/journey1_pcplugsel2_console.txt ; ?? coord/runs/plugin_select1_artifacts/journey1_pcplugsel3_console.txt ; ?? coord/runs/plugin_select1_artifacts/pre_smoke_worktree.txt ; ?? coord/runs/plugin_select1_artifacts/red_chat_agentloop.txt ; ?? coord/runs/plugin_select1_artifacts/red_experimentplugins.txt ; ?? coord/runs/plugin_select1_artifacts/red_green_summary.md ; ?? coord/runs/ps1-settle-1/ ; ?? extension/.sconsign.dblite ; ?? extension/src/register_types.windows.template_debug.x86_64.obj ; ?? extension/src/vit_waveform_reader.windows.template_debug.x86_64.obj ; ?? extension/src/vit_webview_host.windows.template_debug.x86_64.obj ; ?? godot-cpp/
+project_source=D:\Godot\project\vit-daw-frontend\912.vit
+user_project_sha256_before=F6CA36FA080D97E7B91CBAC755E7D2096393D453140E10563771466EB774D8BD
+user_history_fingerprint_before=EBD12840103FF6BCB539311D9EA40A836AFA7B9EB621AC820F3C2A3B1B6EC769
+repo_default_project_sha256_before=9A6C774E970EFE4E4F72765D026D90A21111E2A8AC04DFC5766E2301313768ED
+repo_settings_sha256_before=FF86975B034D49AB5C53B53EBD910F01B4E88B4E680A90C1C990DA2EF6856658
+port_free=7878
+port_free=5555
+port_free=5556
+copy_project=D:\Vit_DAW\coord\runs\FIX-PCA-EQCHANNEL-1\journey4\project\journey1_912.vit
+copy_project_sha256=F6CA36FA080D97E7B91CBAC755E7D2096393D453140E10563771466EB774D8BD
+agent_binary=D:\Vit_DAW\coord\runs\FIX-PCA-EQCHANNEL-1\journey4\bin\VitAgent.journey1.exe size=34402816 mtime=2026-09-24T13:31:16.5761341+08:00 sha256=F72CB50825488E3B765D160769184008C10D97B0EB3D27A76A69FA26A8266A5A
+kernel_binary=D:\Vit_DAW\VitApp\build\VitApp_artefacts\Release\VitApp.exe mtime=2026-09-12T18:48:37.9197531+08:00
+phase_a_kernel_pid=29408 agent_pid=24140
+phase_a_shadow_initialized=True track_count=0
+phase_a_load_status=ok command=open_project error=
+phase_a_tracks=bass,drums,guitar,other,piano,vocals
+phase_a_bass_present=True bass_plugin_count_before=0 project_uuid=vitproj_9ecc5ab9a454400192086c628c07b966
+phase_a_sessions_after_load=session_20260924T053133_c29c659b
+phase_a_authority_mode=full_project_access
+phase_a_slice_0_status=waiting_continue stop=limit_reached
+a1_state=green option_marker_count=0 ask_words=方向|选择 question_mark=False substantive_texts=21 first_reply_placeholder=True
+a2_direct_probe_landed=True plugin_id=1041 instance_ready=True graph_diff=node_add|Added rack node API-550A Stereo
+a2_ui_projection_post_probe bass_count=2 plugin_rows=2 fetched=True
+a2_state=GREEN pca_load_gate_denials=0 probe_denied=False probe_landed=True ui_projection_landed=True journey_turn_landed=True
+a2_direct_probe track=1007 plugin=VST3-API-550A Stereo-695648d-874091cb status=ok gate_denial_delta=0 error=
+a3_audition_events=audition.prepare.started,audition.candidate.ready,audition.ready,audition.ready mix_tick_events=mix_tick.pending audition_session_seen=False card_mounted=True proposal_applied=True A3=GREEN
+phase_a_save_prepare status=ok prepare_id=prepare_17f9ed7a generation=save_20260924T053342_17f9ed7a
+phase_a_save_project status=ok error=
+phase_a_copy_project_sha256_after_save=2F0E0549D45673C805109357FCF32525A8964F61C4EDC46CDBE800949BF9C157
+phase_b_kernel_pid=14140 agent_pid=15176
+phase_b_load_status=ok error=
+a4_state=green live_session=session_20260924T053346_74db32b8 graph_nodes=0 messages=0 commit_count=6 pre_savepoint_carried=False resumed_session_dirs=session_20260924T053133_c29c659b,session_20260924T053342_8740a260,session_20260924T053342_b4af18fe fresh_session_dirs=session_20260924T053346_74db32b8 rewritten_files=13 stall_warn=0
+repo_default_project_sha256_after=9A6C774E970EFE4E4F72765D026D90A21111E2A8AC04DFC5766E2301313768ED
+repo_settings_sha256_after=FF86975B034D49AB5C53B53EBD910F01B4E88B4E680A90C1C990DA2EF6856658
+user_project_sha256_after=F6CA36FA080D97E7B91CBAC755E7D2096393D453140E10563771466EB774D8BD
+user_history_fingerprint_after=EBD12840103FF6BCB539311D9EA40A836AFA7B9EB621AC820F3C2A3B1B6EC769
+finished=2026-09-24T13:34:08.9798028+08:00

@@ -1,0 +1,494 @@
+﻿{
+    "schema_version":  "vit_demo_journey_driver.v1",
+    "card":  "JOURNEY-1",
+    "run_root":  "D:/Vit_DAW/coord/runs/FIX-PCA-EQCHANNEL-1/journey1",
+    "project_source":  "D:\\Godot\\project\\vit-daw-frontend\\912.vit",
+    "copy_project":  "D:\\Vit_DAW\\coord\\runs\\FIX-PCA-EQCHANNEL-1\\journey1\\project\\journey1_912.vit",
+    "kernel_exe":  "D:\\Vit_DAW\\VitApp\\build\\VitApp_artefacts\\Release\\VitApp.exe",
+    "agent_binary":  "D:\\Vit_DAW\\coord\\runs\\FIX-PCA-EQCHANNEL-1\\journey1\\bin\\VitAgent.journey1.exe",
+    "prompt":  "run the full experiment chain on the bass track now: first make the required mix observation on the bass track, then pick one of the admitted static EQs, load it, make a gentle low-end EQ move, apply and let me audition the A/B",
+    "verdict":  "assertions_red",
+    "assertions":  {
+                       "a1_no_direction_asking":  {
+                                                      "state":  "green",
+                                                      "basis":  "delivered text (chat slices + event title/body): option-marker count / ask vocabulary"
+                                                  },
+                       "a2_load_path_works":  {
+                                                  "state":  "red",
+                                                  "basis":  "deterministic half: the direct rack.add_node probe is not denied by the PCA load gate AND the Kernel\u0027s own reply carries a ready plugin instance (plugin_id + plugin_instance_ready); journey-turn half (bass plugin_count growth) reported separately in a2_journey_turn_plugin_landed"
+                                              },
+                       "a3_experiment_chain":  {
+                                                   "state":  "red",
+                                                   "basis":  "proposal -\u003e applied -\u003e readback -\u003e mix_tick/audition card on the conversation event stream"
+                                               },
+                       "a4_session_clean":  {
+                                                "state":  "green",
+                                                "basis":  "phase B reopen after a phase A save point: does the live reopened conversation carry pre-save-point history (graph nodes / messages), and did a stall WARN scan run"
+                                            }
+                   },
+    "phase_a":  {
+                    "load_started_utc":  "2026-09-24T04:56:23.6352572Z",
+                    "load_status":  "ok",
+                    "load_command":  "open_project",
+                    "load_error":  "",
+                    "track_names":  [
+                                        "bass",
+                                        "drums",
+                                        "guitar",
+                                        "other",
+                                        "piano",
+                                        "vocals"
+                                    ],
+                    "track_count":  6,
+                    "bass_plugin_count_before":  0,
+                    "bass_present":  true,
+                    "project_uuid":  "vitproj_9ecc5ab9a454400192086c628c07b966",
+                    "project_path":  "D:\\Vit_DAW\\coord\\runs\\FIX-PCA-EQCHANNEL-1\\journey1\\project\\journey1_912.vit",
+                    "sessions_after_load":  [
+                                                {
+                                                    "uuid_dir":  "vitproj_9ecc5ab9a454400192086c628c07b966",
+                                                    "session":  "session_20260924T045623_c45bd9c8",
+                                                    "path":  "D:\\Vit_DAW\\coord\\runs\\FIX-PCA-EQCHANNEL-1\\journey1\\project\\.vit_history\\.sessions\\vitproj_9ecc5ab9a454400192086c628c07b966\\session_20260924T045623_c45bd9c8",
+                                                    "last_write_utc":  "2026-09-24T04:56:29.8231450Z",
+                                                    "file_count":  4,
+                                                    "session_json":  true,
+                                                    "has_workspace":  true
+                                                }
+                                            ],
+                    "authority_mode":  "full_project_access",
+                    "conversation_id":  "journey1_a_20260924_125629",
+                    "prompt":  "run the full experiment chain on the bass track now: first make the required mix observation on the bass track, then pick one of the admitted static EQs, load it, make a gentle low-end EQ move, apply and let me audition the A/B",
+                    "slices":  [
+                                   {
+                                       "index":  0,
+                                       "status":  "waiting_continue",
+                                       "stop_reason":  "limit_reached",
+                                       "ms":  106161,
+                                       "reply":  "我还在继续处理这个任务，完成后再向你汇报。"
+                                   }
+                               ],
+                    "runtime_state_path":  "D:\\Vit_DAW\\coord\\runs\\FIX-PCA-EQCHANNEL-1\\journey1\\project\\.vit_history\\.sessions\\vitproj_9ecc5ab9a454400192086c628c07b966\\session_20260924T045623_c45bd9c8\\workspace\\state\\agent_runtime_state.json",
+                    "a1_first_reply":  "我还在继续处理这个任务，完成后再向你汇报。",
+                    "a1_first_reply_is_placeholder":  true,
+                    "a1_delivered_texts":  [
+                                               {
+                                                   "source":  "chat_slice_0",
+                                                   "text":  "我还在继续处理这个任务，完成后再向你汇报。",
+                                                   "placeholder":  true
+                                               },
+                                               {
+                                                   "source":  "event_turn.started_1",
+                                                   "text":  "正在处理 | run the full experiment chain on the bass track now: first make the required mix observation on the bass track, then pick one of the admitted static EQs, load it, make a gentle low-end EQ move, apply and let me audition the A/B",
+                                                   "placeholder":  false
+                                               },
+                                               {
+                                                   "source":  "event_trajectory.turn.started_2",
+                                                   "text":  "正在处理",
+                                                   "placeholder":  false
+                                               },
+                                               {
+                                                   "source":  "event_item.started_3",
+                                                   "text":  "正在执行操作 | Required observation of the 低频 track before any EQ decision.",
+                                                   "placeholder":  false
+                                               },
+                                               {
+                                                   "source":  "event_item.completed_4",
+                                                   "text":  "已完成 混音观察",
+                                                   "placeholder":  false
+                                               },
+                                               {
+                                                   "source":  "event_item.started_5",
+                                                   "text":  "正在执行操作 | 加载已获准的静态 EQ（API 550A）到 低频 轨道，作为低端 EQ 处理载体。",
+                                                   "placeholder":  false
+                                               },
+                                               {
+                                                   "source":  "event_item.completed_6",
+                                                   "text":  "已完成 加载插件 | Rack node added",
+                                                   "placeholder":  false
+                                               },
+                                               {
+                                                   "source":  "event_item.started_7",
+                                                   "text":  "正在执行操作 | Frozen EQ action requires live generic topology evidence for the selected instance before choosing shapes/fields.",
+                                                   "placeholder":  false
+                                               },
+                                               {
+                                                   "source":  "event_item.completed_8",
+                                                   "text":  "已完成 plugin_grabber_explain_controls",
+                                                   "placeholder":  false
+                                               },
+                                               {
+                                                   "source":  "event_item.started_9",
+                                                   "text":  "正在执行操作 | 需要低频频段增益/频率参数的取值范围与当前值，才能给出轻柔且可回读的低端 EQ 剂量。",
+                                                   "placeholder":  false
+                                               },
+                                               {
+                                                   "source":  "event_item.completed_10",
+                                                   "text":  "已完成 get_plugin_parameters",
+                                                   "placeholder":  false
+                                               },
+                                               {
+                                                   "source":  "event_item.started_11",
+                                                   "text":  "正在执行操作 | 读取该实例低频段增益/频率参数的范围与当前值，确定轻柔低端 EQ 的具体剂量。",
+                                                   "placeholder":  false
+                                               },
+                                               {
+                                                   "source":  "event_item.completed_12",
+                                                   "text":  "已完成 get_plugin_parameters",
+                                                   "placeholder":  false
+                                               },
+                                               {
+                                                   "source":  "event_item.started_13",
+                                                   "text":  "正在执行操作 | 低端轻柔处理：把 API-550A 的低频段增益从 0 dB（0.5）下调约 2 dB（0.4167），削减观测到的过量低频/超低频堆积；单参数、可回退，便于 A/B 对比。",
+                                                   "placeholder":  false
+                                               },
+                                               {
+                                                   "source":  "event_item.completed_14",
+                                                   "text":  "执行失败 | typed_eq_control_required: parameter is owned by the live static-EQ topology; use plugin_grabber.explain_controls and plugin_grabber.apply_eq_edits",
+                                                   "placeholder":  false
+                                               },
+                                               {
+                                                   "source":  "event_turn.completed_15",
+                                                   "text":  "处理完成 | 我还在继续处理这个任务，完成后再向你汇报。",
+                                                   "placeholder":  false
+                                               },
+                                               {
+                                                   "source":  "event_item.started_16",
+                                                   "text":  "正在执行操作 | 冻结语义 EQ 动作前需要该实例的实时通用 EQ 拓扑（shape_capabilities）证据，上一次调用只返回了厂商原生参数列表，未给出通用 EQ 频段结构。",
+                                                   "placeholder":  false
+                                               },
+                                               {
+                                                   "source":  "event_item.completed_17",
+                                                   "text":  "已完成 plugin_grabber_explain_controls",
+                                                   "placeholder":  false
+                                               },
+                                               {
+                                                   "source":  "event_turn.completed_18",
+                                                   "text":  "处理完成 | Heads-up before the A/B: this turn came back as read-only, so the low-end EQ write could not be committed. Here is exactly where the chain stands.\n\nDone and verified\n- Observation on the bass track is complete. Evidence: the bass is the project\u0027s dominant low-frequency source — bass band energy ≈56.5 dB, sub ≈48.7 dB, low-mid ≈42.5 dB, versus mid ≈31.9 dB and presence ≈11.8 dB. Track level ≈-30.3 dBFS RMS, peak ≈-15.9 dBFS, headroom ≈15.9 dB, centered (balance ≈-1.5 dB, correlation ≈0.69). So the low end is genuinely heavy/stacked rather than thin — a gentle trim was the right direction, not a boost.\n- An admitted static EQ is loaded and live on the bass track: API-550A Stereo, instance id 1040 (rack node 1039), verified present in refreshed project state.\n- I read its live control surface twice so the move would be made against the real instance rather than an assumed plugin.\n\nWhat was blocked, and why\n- Writing the low-band gain directly was refused: the parameter belongs to the live static-EQ topology, so the raw-parameter path is not legal for it.\n- Routing the same move through the typed EQ path was also refused: ordinary Agent EQ mutations require a validated semantic EQ action (frozen proposal + authorization) rather than a direct call.\n- I then emitted that semantic EQ action — one gentle low-shelf trim, 90 Hz, about -2 dB, with the constraint kept explicit that the bass must not lose body or go thin — but this turn was finalized as discussion/read-only, so it was not frozen or executed.\n\nNet result: nothing was changed. The bass track still sounds exactly as it did before (the API-550A is instantiated but not yet cutting anything), so there is no A/B delta to audition yet. The direction and dose are settled and evidence-backed (trim ≈2 dB in the low shelf around 90 Hz); it only needs the turn to run with mutation authority so the action can be frozen and applied, after which you can A/B against bypass.",
+                                                   "placeholder":  false
+                                               },
+                                               {
+                                                   "source":  "event_trajectory.turn.completed_19",
+                                                   "text":  "回合已完成",
+                                                   "placeholder":  false
+                                               }
+                                           ],
+                    "a1_substantive_text_count":  19,
+                    "a1_option_marker_count":  0,
+                    "a1_ask_word_hits":  [
+
+                                         ],
+                    "a1_question_mark":  false,
+                    "a1_state":  "green",
+                    "a2_pca_load_gate_denials":  0,
+                    "a2_bass_plugin_count_after_turn":  1,
+                    "a2_plugin_rack_plugin_rows_after_turn":  0,
+                    "a2_plugin_rack_rows_after_turn":  0,
+                    "a2_journey_turn_plugin_landed":  true,
+                    "a2_plugin_landed":  true,
+                    "a2_direct_probe_plugin_id":  "",
+                    "a2_direct_probe_plugin_instance_ready":  false,
+                    "a2_direct_probe_graph_diff":  "",
+                    "a2_direct_probe_plugin_landed":  false,
+                    "a2_bass_plugin_count_after":  1,
+                    "a2_plugin_rack_plugin_rows":  1,
+                    "a2_plugin_rack_rows":  9,
+                    "a2_ui_projection_post_probe_fetched":  true,
+                    "a2_ui_projection_landed":  true,
+                    "a2_direct_probe_denied":  true,
+                    "a2_red":  true,
+                    "a2_direct_probe_track_id":  "1007",
+                    "a2_direct_probe_plugin":  "VST3-L316 Stereo-695648d-15d2d3f2",
+                    "a2_direct_probe_status":  "",
+                    "a2_direct_probe_error":  "",
+                    "a2_direct_probe_gate_denial_delta":  1,
+                    "a2_direct_probe_error_body":  "{\"status\":\"error\",\"tool\":\"rack.add_node\",\"command_name\":\"rack_add_node\",\"risk_level\":\"confirm\",\"requires_confirmation\":false,\"error\":\"pca_load_gate: full project access load requires one exact processor identity; \\\"VST3-L316 Stereo-695648d-15d2d3f2\\\" resolves to 2 promoted identities\"}",
+                    "a2_pca_load_gate_log_lines":  [
+                                                       "2026-09-24T12:58:47 [WARN] [harness] invoke pre_journal_validation_failed stage=pca_processor_load_gate tool=rack.add_node command=rack_add_node confirmed=true arg_keys=cmd,plugin_identifier,track_id,x,y,zone_id error=pca_load_gate: full project access load requires one exact processor identity; \"VST3-L316 Stereo-695648d-15d2d3f2\" resolves to 2 promoted identities"
+                                                   ],
+                    "a3_event_types":  [
+                                           "turn.started",
+                                           "trajectory.turn.started",
+                                           "item.started",
+                                           "item.completed",
+                                           "item.started",
+                                           "item.completed",
+                                           "item.started",
+                                           "item.completed",
+                                           "item.started",
+                                           "item.completed",
+                                           "item.started",
+                                           "item.completed",
+                                           "item.started",
+                                           "item.completed",
+                                           "turn.completed",
+                                           "item.started",
+                                           "item.completed",
+                                           "turn.completed",
+                                           "trajectory.turn.completed"
+                                       ],
+                    "a3_audition_events":  [
+
+                                           ],
+                    "a3_mix_tick_events":  [
+
+                                           ],
+                    "a3_audition_session_seen":  false,
+                    "a3_audition_card_mounted":  false,
+                    "a3_proposal_applied_signal":  false,
+                    "a3_blocked_by_a2":  true,
+                    "a3_state":  "red",
+                    "save_prepare_status":  "ok",
+                    "save_prepare_id":  "prepare_336c77e6",
+                    "save_generation_id":  "save_20260924T045847_336c77e6",
+                    "save_project_status":  "ok",
+                    "save_project_error":  "",
+                    "version_project_saved_status":  "ok",
+                    "copy_project_sha256_after_save":  "AD40E9A1858269DF0DE64F06EB39E8691D0239FAA07CF1940FD4527877577DCD",
+                    "sessions_after_turn":  [
+                                                {
+                                                    "uuid_dir":  "vitproj_9ecc5ab9a454400192086c628c07b966",
+                                                    "session":  "session_20260924T045623_c45bd9c8",
+                                                    "path":  "D:\\Vit_DAW\\coord\\runs\\FIX-PCA-EQCHANNEL-1\\journey1\\project\\.vit_history\\.sessions\\vitproj_9ecc5ab9a454400192086c628c07b966\\session_20260924T045623_c45bd9c8",
+                                                    "last_write_utc":  "2026-09-24T04:58:47.5480270Z",
+                                                    "file_count":  12,
+                                                    "session_json":  true,
+                                                    "has_workspace":  true
+                                                },
+                                                {
+                                                    "uuid_dir":  "vitproj_9ecc5ab9a454400192086c628c07b966",
+                                                    "session":  "session_20260924T045847_2695aa2b",
+                                                    "path":  "D:\\Vit_DAW\\coord\\runs\\FIX-PCA-EQCHANNEL-1\\journey1\\project\\.vit_history\\.sessions\\vitproj_9ecc5ab9a454400192086c628c07b966\\session_20260924T045847_2695aa2b",
+                                                    "last_write_utc":  "2026-09-24T04:58:47.7508651Z",
+                                                    "file_count":  13,
+                                                    "session_json":  true,
+                                                    "has_workspace":  true
+                                                },
+                                                {
+                                                    "uuid_dir":  "vitproj_9ecc5ab9a454400192086c628c07b966",
+                                                    "session":  "session_20260924T045847_90d2befc",
+                                                    "path":  "D:\\Vit_DAW\\coord\\runs\\FIX-PCA-EQCHANNEL-1\\journey1\\project\\.vit_history\\.sessions\\vitproj_9ecc5ab9a454400192086c628c07b966\\session_20260924T045847_90d2befc",
+                                                    "last_write_utc":  "2026-09-24T04:58:47.7123603Z",
+                                                    "file_count":  13,
+                                                    "session_json":  true,
+                                                    "has_workspace":  true
+                                                }
+                                            ]
+                },
+    "phase_b":  {
+                    "reopen_started_utc":  "2026-09-24T04:58:49.2656845Z",
+                    "sessions_before_reopen":  [
+                                                   {
+                                                       "uuid_dir":  "vitproj_9ecc5ab9a454400192086c628c07b966",
+                                                       "session":  "session_20260924T045623_c45bd9c8",
+                                                       "path":  "D:\\Vit_DAW\\coord\\runs\\FIX-PCA-EQCHANNEL-1\\journey1\\project\\.vit_history\\.sessions\\vitproj_9ecc5ab9a454400192086c628c07b966\\session_20260924T045623_c45bd9c8",
+                                                       "last_write_utc":  "2026-09-24T04:58:47.5480270Z",
+                                                       "file_count":  12,
+                                                       "session_json":  true,
+                                                       "has_workspace":  true
+                                                   },
+                                                   {
+                                                       "uuid_dir":  "vitproj_9ecc5ab9a454400192086c628c07b966",
+                                                       "session":  "session_20260924T045847_2695aa2b",
+                                                       "path":  "D:\\Vit_DAW\\coord\\runs\\FIX-PCA-EQCHANNEL-1\\journey1\\project\\.vit_history\\.sessions\\vitproj_9ecc5ab9a454400192086c628c07b966\\session_20260924T045847_2695aa2b",
+                                                       "last_write_utc":  "2026-09-24T04:58:47.7508651Z",
+                                                       "file_count":  13,
+                                                       "session_json":  true,
+                                                       "has_workspace":  true
+                                                   },
+                                                   {
+                                                       "uuid_dir":  "vitproj_9ecc5ab9a454400192086c628c07b966",
+                                                       "session":  "session_20260924T045847_90d2befc",
+                                                       "path":  "D:\\Vit_DAW\\coord\\runs\\FIX-PCA-EQCHANNEL-1\\journey1\\project\\.vit_history\\.sessions\\vitproj_9ecc5ab9a454400192086c628c07b966\\session_20260924T045847_90d2befc",
+                                                       "last_write_utc":  "2026-09-24T04:58:47.7123603Z",
+                                                       "file_count":  13,
+                                                       "session_json":  true,
+                                                       "has_workspace":  true
+                                                   }
+                                               ],
+                    "load_status":  "ok",
+                    "load_error":  "",
+                    "sessions_after_reopen":  [
+                                                  {
+                                                      "uuid_dir":  "vitproj_9ecc5ab9a454400192086c628c07b966",
+                                                      "session":  "session_20260924T045623_c45bd9c8",
+                                                      "path":  "D:\\Vit_DAW\\coord\\runs\\FIX-PCA-EQCHANNEL-1\\journey1\\project\\.vit_history\\.sessions\\vitproj_9ecc5ab9a454400192086c628c07b966\\session_20260924T045623_c45bd9c8",
+                                                      "last_write_utc":  "2026-09-24T04:58:51.5297079Z",
+                                                      "file_count":  15,
+                                                      "session_json":  true,
+                                                      "has_workspace":  true
+                                                  },
+                                                  {
+                                                      "uuid_dir":  "vitproj_9ecc5ab9a454400192086c628c07b966",
+                                                      "session":  "session_20260924T045847_2695aa2b",
+                                                      "path":  "D:\\Vit_DAW\\coord\\runs\\FIX-PCA-EQCHANNEL-1\\journey1\\project\\.vit_history\\.sessions\\vitproj_9ecc5ab9a454400192086c628c07b966\\session_20260924T045847_2695aa2b",
+                                                      "last_write_utc":  "2026-09-24T04:58:51.5335173Z",
+                                                      "file_count":  16,
+                                                      "session_json":  true,
+                                                      "has_workspace":  true
+                                                  },
+                                                  {
+                                                      "uuid_dir":  "vitproj_9ecc5ab9a454400192086c628c07b966",
+                                                      "session":  "session_20260924T045847_90d2befc",
+                                                      "path":  "D:\\Vit_DAW\\coord\\runs\\FIX-PCA-EQCHANNEL-1\\journey1\\project\\.vit_history\\.sessions\\vitproj_9ecc5ab9a454400192086c628c07b966\\session_20260924T045847_90d2befc",
+                                                      "last_write_utc":  "2026-09-24T04:58:51.5372926Z",
+                                                      "file_count":  16,
+                                                      "session_json":  true,
+                                                      "has_workspace":  true
+                                                  },
+                                                  {
+                                                      "uuid_dir":  "vitproj_9ecc5ab9a454400192086c628c07b966",
+                                                      "session":  "session_20260924T045851_582c69a6",
+                                                      "path":  "D:\\Vit_DAW\\coord\\runs\\FIX-PCA-EQCHANNEL-1\\journey1\\project\\.vit_history\\.sessions\\vitproj_9ecc5ab9a454400192086c628c07b966\\session_20260924T045851_582c69a6",
+                                                      "last_write_utc":  "2026-09-24T04:59:11.6168213Z",
+                                                      "file_count":  16,
+                                                      "session_json":  true,
+                                                      "has_workspace":  true
+                                                  }
+                                              ],
+                    "resumed_session_dirs":  [
+                                                 "session_20260924T045623_c45bd9c8",
+                                                 "session_20260924T045847_2695aa2b",
+                                                 "session_20260924T045847_90d2befc"
+                                             ],
+                    "fresh_session_dirs":  [
+                                               "session_20260924T045851_582c69a6"
+                                           ],
+                    "phase_a_session_files_rewritten_on_reopen":  [
+                                                                      {
+                                                                          "session":  "session_20260924T045623_c45bd9c8",
+                                                                          "file":  "\\archive\\agent_runtime_state.json",
+                                                                          "bytes":  1549349,
+                                                                          "written":  "2026-09-24T04:58:51.5292030Z"
+                                                                      },
+                                                                      {
+                                                                          "session":  "session_20260924T045623_c45bd9c8",
+                                                                          "file":  "\\archive\\conversation_graph.json",
+                                                                          "bytes":  92034,
+                                                                          "written":  "2026-09-24T04:58:51.5280467Z"
+                                                                      },
+                                                                      {
+                                                                          "session":  "session_20260924T045623_c45bd9c8",
+                                                                          "file":  "\\archive\\manifest.json",
+                                                                          "bytes":  548,
+                                                                          "written":  "2026-09-24T04:58:51.5297079Z"
+                                                                      },
+                                                                      {
+                                                                          "session":  "session_20260924T045623_c45bd9c8",
+                                                                          "file":  "\\workspace\\state\\agent_runtime_state.json",
+                                                                          "bytes":  707,
+                                                                          "written":  "2026-09-24T04:58:51.5297079Z"
+                                                                      },
+                                                                      {
+                                                                          "session":  "session_20260924T045847_2695aa2b",
+                                                                          "file":  "\\session.json",
+                                                                          "bytes":  699,
+                                                                          "written":  "2026-09-24T04:58:51.5128249Z"
+                                                                      },
+                                                                      {
+                                                                          "session":  "session_20260924T045847_2695aa2b",
+                                                                          "file":  "\\archive\\agent_runtime_state.json",
+                                                                          "bytes":  1549349,
+                                                                          "written":  "2026-09-24T04:58:51.5335173Z"
+                                                                      },
+                                                                      {
+                                                                          "session":  "session_20260924T045847_2695aa2b",
+                                                                          "file":  "\\archive\\conversation_graph.json",
+                                                                          "bytes":  92034,
+                                                                          "written":  "2026-09-24T04:58:51.5330178Z"
+                                                                      },
+                                                                      {
+                                                                          "session":  "session_20260924T045847_2695aa2b",
+                                                                          "file":  "\\archive\\manifest.json",
+                                                                          "bytes":  578,
+                                                                          "written":  "2026-09-24T04:58:51.5335173Z"
+                                                                      },
+                                                                      {
+                                                                          "session":  "session_20260924T045847_2695aa2b",
+                                                                          "file":  "\\workspace\\state\\agent_runtime_state.json",
+                                                                          "bytes":  736,
+                                                                          "written":  "2026-09-24T04:58:51.5335173Z"
+                                                                      },
+                                                                      {
+                                                                          "session":  "session_20260924T045847_90d2befc",
+                                                                          "file":  "\\archive\\agent_runtime_state.json",
+                                                                          "bytes":  1549349,
+                                                                          "written":  "2026-09-24T04:58:51.5367885Z"
+                                                                      },
+                                                                      {
+                                                                          "session":  "session_20260924T045847_90d2befc",
+                                                                          "file":  "\\archive\\conversation_graph.json",
+                                                                          "bytes":  92034,
+                                                                          "written":  "2026-09-24T04:58:51.5352713Z"
+                                                                      },
+                                                                      {
+                                                                          "session":  "session_20260924T045847_90d2befc",
+                                                                          "file":  "\\archive\\manifest.json",
+                                                                          "bytes":  578,
+                                                                          "written":  "2026-09-24T04:58:51.5367885Z"
+                                                                      },
+                                                                      {
+                                                                          "session":  "session_20260924T045847_90d2befc",
+                                                                          "file":  "\\workspace\\state\\agent_runtime_state.json",
+                                                                          "bytes":  736,
+                                                                          "written":  "2026-09-24T04:58:51.5372926Z"
+                                                                      }
+                                                                  ],
+                    "a4_stall_warn_count":  0,
+                    "a4_phase_a_conversation_visible":  false,
+                    "a4_phase_a_conversation_id_in_state":  false,
+                    "a4_live_history_dir":  "D:\\Vit_DAW\\coord\\runs\\FIX-PCA-EQCHANNEL-1\\journey1\\project\\.vit_history\\.sessions\\vitproj_9ecc5ab9a454400192086c628c07b966\\session_20260924T045851_582c69a6\\workspace",
+                    "a4_live_session_name":  "session_20260924T045851_582c69a6",
+                    "a4_live_conversation_graph_nodes":  0,
+                    "a4_live_conversation_messages":  0,
+                    "a4_live_commit_count":  2,
+                    "a4_pre_savepoint_history_carried":  false,
+                    "a4_previous_session_still_on_disk":  [
+                                                              "session_20260924T045623_c45bd9c8",
+                                                              "session_20260924T045847_2695aa2b",
+                                                              "session_20260924T045847_90d2befc"
+                                                          ],
+                    "a4_state":  "green"
+                },
+    "prereq":  [
+                   "run_root=D:/Vit_DAW/coord/runs/FIX-PCA-EQCHANNEL-1/journey1",
+                   "head=77bed6cdf945c71047ff8d459492a52a27f863f7",
+                   "git_status= M VitApp/Workspace/default_project.xml ;  M coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/derive/builder_stdout.txt ;  M coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/derive/live_v6_normalized.json ;  M coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/derive/provenance_broadband_compression.json ;  M coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/derive/provenance_de_esser.json ;  M coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/derive/provenance_gate_expander.json ;  M coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/derive/provenance_limiter.json ;  M coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/derive/provenance_multiband.json ;  M coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/derive/provenance_table_v6_full.json ;  M coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/derive/provenance_transient_shaper.json ;  M coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/derive/whitelist_v6_broadband_compression.json ;  M coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/derive/whitelist_v6_de_esser.json ;  M coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/derive/whitelist_v6_full.json ;  M coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/derive/whitelist_v6_gate_expander.json ;  M coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/derive/whitelist_v6_limiter.json ;  M coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/derive/whitelist_v6_multiband.json ;  M coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/derive/whitelist_v6_transient_shaper.json ;  M coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/run_ledger.jsonl ;  M coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/sweep_report.json ;  M coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/sweep_report.md ;  M coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/verify/overlay_results.json ;  M scripts/pca_autosweep.py ; ?? coord/runs/FIX-BROADBAND-SHARED-1/ ; ?? coord/runs/FIX-F3-G4-SEMANTICS/ ; ?? coord/runs/FIX-F5-SNAPSHOT-FRESHNESS-1/ ; ?? coord/runs/FIX-FRONTIER-FOLD-1/ ; ?? coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/derive/eq_static_eq_derived.json ; ?? coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/derive/live_backup_pre_apply.json ; ?? coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/derive/live_backup_pre_eq.json ; ?? coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/journey/ ; ?? coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/journey2/ ; ?? coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/state.json ; ?? coord/runs/FIX-PCA-EQCHANNEL-1/ ; ?? coord/runs/PORT-PS1-N5-1/ ; ?? coord/runs/plugin_select1_artifacts/go_full_after.txt ; ?? coord/runs/plugin_select1_artifacts/journey1_pcplugsel1_console.txt ; ?? coord/runs/plugin_select1_artifacts/journey1_pcplugsel2_console.txt ; ?? coord/runs/plugin_select1_artifacts/journey1_pcplugsel3_console.txt ; ?? coord/runs/plugin_select1_artifacts/pre_smoke_worktree.txt ; ?? coord/runs/plugin_select1_artifacts/red_chat_agentloop.txt ; ?? coord/runs/plugin_select1_artifacts/red_experimentplugins.txt ; ?? coord/runs/plugin_select1_artifacts/red_green_summary.md ; ?? coord/runs/ps1-settle-1/ ; ?? extension/.sconsign.dblite ; ?? extension/src/register_types.windows.template_debug.x86_64.obj ; ?? extension/src/vit_waveform_reader.windows.template_debug.x86_64.obj ; ?? extension/src/vit_webview_host.windows.template_debug.x86_64.obj ; ?? godot-cpp/",
+                   "project_source=D:\\Godot\\project\\vit-daw-frontend\\912.vit",
+                   "user_project_sha256_before=F6CA36FA080D97E7B91CBAC755E7D2096393D453140E10563771466EB774D8BD",
+                   "user_history_fingerprint_before=EBD12840103FF6BCB539311D9EA40A836AFA7B9EB621AC820F3C2A3B1B6EC769",
+                   "repo_default_project_sha256_before=9A6C774E970EFE4E4F72765D026D90A21111E2A8AC04DFC5766E2301313768ED",
+                   "repo_settings_sha256_before=FF86975B034D49AB5C53B53EBD910F01B4E88B4E680A90C1C990DA2EF6856658",
+                   "port_free=7878",
+                   "port_free=5555",
+                   "port_free=5556",
+                   "copy_project=D:\\Vit_DAW\\coord\\runs\\FIX-PCA-EQCHANNEL-1\\journey1\\project\\journey1_912.vit",
+                   "copy_project_sha256=F6CA36FA080D97E7B91CBAC755E7D2096393D453140E10563771466EB774D8BD",
+                   "agent_binary=D:\\Vit_DAW\\coord\\runs\\FIX-PCA-EQCHANNEL-1\\journey1\\bin\\VitAgent.journey1.exe size=34402816 mtime=2026-09-24T12:56:06.7328633+08:00 sha256=F72CB50825488E3B765D160769184008C10D97B0EB3D27A76A69FA26A8266A5A",
+                   "kernel_binary=D:\\Vit_DAW\\VitApp\\build\\VitApp_artefacts\\Release\\VitApp.exe mtime=2026-09-12T18:48:37.9197531+08:00",
+                   "phase_a_kernel_pid=18576 agent_pid=26972",
+                   "phase_a_shadow_initialized=True track_count=0",
+                   "phase_a_load_status=ok command=open_project error=",
+                   "phase_a_tracks=bass,drums,guitar,other,piano,vocals",
+                   "phase_a_bass_present=True bass_plugin_count_before=0 project_uuid=vitproj_9ecc5ab9a454400192086c628c07b966",
+                   "phase_a_sessions_after_load=session_20260924T045623_c45bd9c8",
+                   "phase_a_authority_mode=full_project_access",
+                   "phase_a_slice_0_status=waiting_continue stop=limit_reached",
+                   "a1_state=green option_marker_count=0 ask_words= question_mark=False substantive_texts=19 first_reply_placeholder=True",
+                   "a2_direct_probe_landed=False plugin_id= instance_ready=False graph_diff=",
+                   "a2_ui_projection_post_probe bass_count=1 plugin_rows=1 fetched=True",
+                   "a2_state=RED pca_load_gate_denials=0 probe_denied=True probe_landed=False ui_projection_landed=True journey_turn_landed=True",
+                   "a2_direct_probe track=1007 plugin=VST3-L316 Stereo-695648d-15d2d3f2 status= gate_denial_delta=1 error=",
+                   "a3_audition_events= mix_tick_events= audition_session_seen=False card_mounted=False proposal_applied=False A3=RED",
+                   "phase_a_save_prepare status=ok prepare_id=prepare_336c77e6 generation=save_20260924T045847_336c77e6",
+                   "phase_a_save_project status=ok error=",
+                   "phase_a_copy_project_sha256_after_save=AD40E9A1858269DF0DE64F06EB39E8691D0239FAA07CF1940FD4527877577DCD",
+                   "phase_b_kernel_pid=30128 agent_pid=5144",
+                   "phase_b_load_status=ok error=",
+                   "a4_state=green live_session=session_20260924T045851_582c69a6 graph_nodes=0 messages=0 commit_count=2 pre_savepoint_carried=False resumed_session_dirs=session_20260924T045623_c45bd9c8,session_20260924T045847_2695aa2b,session_20260924T045847_90d2befc fresh_session_dirs=session_20260924T045851_582c69a6 rewritten_files=13 stall_warn=0",
+                   "repo_default_project_sha256_after=9A6C774E970EFE4E4F72765D026D90A21111E2A8AC04DFC5766E2301313768ED",
+                   "repo_settings_sha256_after=FF86975B034D49AB5C53B53EBD910F01B4E88B4E680A90C1C990DA2EF6856658",
+                   "user_project_sha256_after=F6CA36FA080D97E7B91CBAC755E7D2096393D453140E10563771466EB774D8BD",
+                   "user_history_fingerprint_after=EBD12840103FF6BCB539311D9EA40A836AFA7B9EB621AC820F3C2A3B1B6EC769",
+                   "finished=2026-09-24T12:59:13.4885959+08:00"
+               ]
+}

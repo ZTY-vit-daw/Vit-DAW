@@ -1,0 +1,9 @@
+no_running_kernel_at_start=confirmed
+no_pedal_at_start=confirmed
+project_copy_sha256=9a6c774e970efe4e4f72765d026d90a21111e2a8ac04dfc5766e2301313768ed (source project never written; VIT_PROJECT_XML redirect)
+info: settings knownPluginList64 entries=994; warm-list retention floor=95%=944
+kernel_W1_pid=340 log=/d/Vit_DAW/coord/runs/PORT-WIN-HYGIENE-SMOKE-1/hygiene_pc_20260926-170105/logs/kernel_W1.log
+W1_list_count=994 (settings file: 994, floor: 944)
+ok: LEG W1: warm list retained 994/994 entries (no mass cleanup; mac defect form would collapse toward 0)
+ok: LEG W1: no PluginListHygiene cleanup line (zero removals — table fully warm-valid)
+kernel_W1_stop=taskkill elapsed=1266s

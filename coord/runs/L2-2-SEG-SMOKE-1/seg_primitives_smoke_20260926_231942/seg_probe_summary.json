@@ -1,0 +1,150 @@
+{
+  "schema_version": "seg_primitives_probe.v1",
+  "status": "passed",
+  "started_at": "2026-09-26T15:19:52Z",
+  "req_url": "tcp://127.0.0.1:5555",
+  "sub_url": "tcp://127.0.0.1:5556",
+  "training_folder": "E:\\BaiduNetdiskDownload\\yingge - sattelites tracks out",
+  "import_folder": "D:\\Vit_DAW\\coord\\runs\\L2-2-SEG-SMOKE-1\\seg_primitives_smoke_20260926_231942\\stems_staging",
+  "import_folder_staged": true,
+  "project_path": "D:\\Vit_DAW\\coord\\runs\\L2-2-SEG-SMOKE-1\\seg_primitives_smoke_20260926_231942\\temp_project\\seg_primitives_smoke.vit",
+  "commands": [
+    {
+      "label": "ping",
+      "cmd": "ping",
+      "status": "ok"
+    },
+    {
+      "label": "new_project",
+      "cmd": "new_project",
+      "status": "ok"
+    },
+    {
+      "label": "save_as_project",
+      "cmd": "save_as_project",
+      "status": "ok"
+    },
+    {
+      "label": "stems_import_preflight",
+      "cmd": "project.import_preflight",
+      "status": "ok"
+    },
+    {
+      "label": "stems_import_folder",
+      "cmd": "project.import_folder_as_stems",
+      "status": "ok"
+    },
+    {
+      "label": "warm_bake_round1",
+      "cmd": "warm_waveform_bake",
+      "status": "ok"
+    },
+    {
+      "label": "warm_bake_round2",
+      "cmd": "warm_waveform_bake",
+      "status": "ok"
+    }
+  ],
+  "assertions": {
+    "A1_payload_present": true,
+    "A2_structure_legal": true,
+    "A3_determinism": true
+  },
+  "failures": [],
+  "readable_file_count": 3,
+  "tracks_created": 3,
+  "clips_created": 3,
+  "background_analysis": {
+    "analysis_job_id": "audio_analysis_1790435993561_1",
+    "polls": [
+      {
+        "pending_clips": 0,
+        "submitted_clips": 3,
+        "submitted_feature_jobs": 6,
+        "analysis_queue_status": "submitted"
+      },
+      {
+        "pending_clips": 0,
+        "submitted_clips": 3,
+        "submitted_feature_jobs": 6,
+        "analysis_queue_status": "submitted"
+      },
+      {
+        "pending_clips": 0,
+        "submitted_clips": 3,
+        "submitted_feature_jobs": 6,
+        "analysis_queue_status": "submitted"
+      },
+      {
+        "pending_clips": 0,
+        "submitted_clips": 3,
+        "submitted_feature_jobs": 6,
+        "analysis_queue_status": "submitted"
+      }
+    ],
+    "final_signature": [
+      0,
+      3,
+      6
+    ]
+  },
+  "bake": {
+    "file_path": "D:\\Vit_DAW\\coord\\runs\\L2-2-SEG-SMOKE-1\\seg_primitives_smoke_20260926_231942\\stems_staging\\sattelites 10-IS_percussion_tom_analog.wav",
+    "track_id": "1007",
+    "rounds": [
+      {
+        "round": 1,
+        "request_id": "seg_primitives_smoke_r1_1790436013570",
+        "bake_feature_type": "segmentation_primitives",
+        "received": true,
+        "duplicate_events_skipped": 0,
+        "payload_path": "D:\\Vit_DAW\\coord\\runs\\L2-2-SEG-SMOKE-1\\seg_primitives_smoke_20260926_231942\\payload_round1.json",
+        "schema_version": "dad_l3_segmentation_primitives.v1",
+        "status": "ready",
+        "quality_status": "ready"
+      },
+      {
+        "round": 2,
+        "request_id": "seg_primitives_smoke_r2_1790436048860",
+        "bake_feature_type": "segmentation_primitives",
+        "received": true,
+        "duplicate_events_skipped": 0,
+        "payload_path": "D:\\Vit_DAW\\coord\\runs\\L2-2-SEG-SMOKE-1\\seg_primitives_smoke_20260926_231942\\payload_round2.json",
+        "schema_version": "dad_l3_segmentation_primitives.v1",
+        "status": "ready",
+        "quality_status": "ready"
+      }
+    ],
+    "round_gap": {
+      "merge_window_seconds": 35.0,
+      "expected_l3_summary_events": 9,
+      "observed_l3_summary_events": 9,
+      "background_quiet_timeout_hit": false
+    }
+  },
+  "observed_publish_traffic": {
+    "<empty>": 2338,
+    "project_audio_analysis_progress": 4,
+    "audio_feature_data_ready:waveform_envelope": 138,
+    "audio_feature_data_ready:band_energy_summary": 3,
+    "audio_feature_data_ready:stereo_relation_summary": 3,
+    "audio_feature_data_ready:loudness_summary": 3,
+    "audio_feature_data_ready:segmentation_primitives": 2
+  },
+  "structure_details": {
+    "onset_events": {
+      "detected_count": 26,
+      "published_count": 26,
+      "truncated": false,
+      "method": "rms_frame_local_peak_rise_v1"
+    },
+    "onset_density_frames": 2679,
+    "energy_novelty_frames": 2679,
+    "energy_novelty_summary": {
+      "max_novelty": 0.01815330280925,
+      "mean_novelty": 0.000140190652286
+    }
+  },
+  "canonical_bytes": 484377,
+  "finished_at": "2026-09-26T15:20:49Z"
+}

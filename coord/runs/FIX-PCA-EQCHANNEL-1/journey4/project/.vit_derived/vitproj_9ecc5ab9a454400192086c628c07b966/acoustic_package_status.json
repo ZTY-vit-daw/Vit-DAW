@@ -1,0 +1,3683 @@
+{
+	"schema_version": "acoustic_package_status.v0",
+	"updated_at": "2026-09-24T05:32:48.9244506Z",
+	"packages": [
+		{
+			"schema_version": "acoustic_package_status.v0",
+			"status": "ready",
+			"project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+			"session_id": "d1_session_turnfree_state_01feaf3660f7f61b",
+			"track_id": "1007",
+			"clip_id": "1011",
+			"source_fingerprint": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav|size=3528044|mtime=1788061879786|length=20.0000",
+			"source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav|size=3528044|mtime=1788061879786|length=20.0000",
+			"clip_revision": "clip=1011|track=1007|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav|size=3528044|mtime=1788061879786|length=20.0000|offset=0.0000|length=20.0000",
+			"analyzer_revision": "audio_feature.v1.2",
+			"source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav",
+			"duration_seconds": 20,
+			"source_identity": {
+				"analyzer_revision": "audio_feature.v1.2",
+				"clip_id": "1011",
+				"clip_revision": "clip=1011|track=1007|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav|size=3528044|mtime=1788061879786|length=20.0000|offset=0.0000|length=20.0000",
+				"clip_start_seconds": 0,
+				"duration_seconds": 20,
+				"project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+				"session_id": "d1_session_turnfree_state_01feaf3660f7f61b",
+				"source_fingerprint": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav|size=3528044|mtime=1788061879786|length=20.0000",
+				"source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav",
+				"source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav|size=3528044|mtime=1788061879786|length=20.0000",
+				"track_id": "1007"
+			},
+			"package_layers": {
+				"l1_static": {
+					"status": "ready",
+					"features": {
+						"peak_rms_summary": {
+							"status": "ready",
+							"source": "kernel_prepared_telemetry",
+							"progress": {
+								"tile_count_seen": 4,
+								"tile_count_expected": 4,
+								"coverage_seconds": 20,
+								"coverage_ratio": 1,
+								"updated_at": "2026-09-24T05:31:50.2623751Z"
+							},
+							"ref": {
+								"clip_id": "1011",
+								"crest_db": 14.383,
+								"file_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav",
+								"headroom_db": 15.873,
+								"peak_abs": 0.160828,
+								"peak_dbfs": -15.873,
+								"request_id": "kernel_prepared_waveform_envelope_1011",
+								"rms": 0.030706,
+								"rms_dbfs": -30.255,
+								"track_id": "1007",
+								"updated_at": "2026-09-24T05:31:50.2623751Z"
+							},
+							"updated_at": "2026-09-24T05:31:50.2623751Z"
+						},
+						"time_energy": {
+							"status": "ready",
+							"source": "kernel_prepared_telemetry",
+							"progress": {
+								"tile_count_seen": 4,
+								"tile_count_expected": 4,
+								"coverage_seconds": 20,
+								"coverage_ratio": 1,
+								"updated_at": "2026-09-24T05:31:50.2623751Z"
+							},
+							"ref": {
+								"time_segment_count": 4,
+								"time_segments": [
+									{
+										"crest_db": 17.115,
+										"end_seconds": 5,
+										"energy_state": "low",
+										"peak_abs": 0.063538,
+										"peak_dbfs": -23.939,
+										"rms": 0.008857,
+										"rms_dbfs": -41.054,
+										"start_seconds": 0
+									},
+									{
+										"crest_db": 15.499,
+										"end_seconds": 10,
+										"energy_state": "low",
+										"peak_abs": 0.113739,
+										"peak_dbfs": -18.882,
+										"rms": 0.019097,
+										"rms_dbfs": -34.381,
+										"start_seconds": 5
+									},
+									{
+										"crest_db": 9.467,
+										"end_seconds": 15,
+										"energy_state": "medium",
+										"peak_abs": 0.160828,
+										"peak_dbfs": -15.873,
+										"rms": 0.054078,
+										"rms_dbfs": -25.34,
+										"start_seconds": 10
+									},
+									{
+										"crest_db": 16.237,
+										"end_seconds": 20,
+										"energy_state": "medium",
+										"peak_abs": 0.13031,
+										"peak_dbfs": -17.7,
+										"rms": 0.020098,
+										"rms_dbfs": -33.937,
+										"start_seconds": 15
+									}
+								]
+							},
+							"updated_at": "2026-09-24T05:31:50.2623751Z"
+						},
+						"waveform_envelope": {
+							"status": "ready",
+							"source": "kernel_prepared_telemetry",
+							"progress": {
+								"tile_count_seen": 4,
+								"tile_count_expected": 4,
+								"coverage_seconds": 20,
+								"coverage_ratio": 1,
+								"updated_at": "2026-09-24T05:31:50.2623751Z"
+							},
+							"ref": {
+								"analyzer_revision": "audio_feature.v1.2",
+								"clip_id": "1011",
+								"clip_revision": "clip=1011|track=1007|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav|size=3528044|mtime=1788061879786|length=20.0000|offset=0.0000|length=20.0000",
+								"crest_db": 14.383,
+								"duration_seconds": 20,
+								"file_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav",
+								"headroom_db": 15.873,
+								"max_abs": 0.160828,
+								"nonzero_count": 12000,
+								"peak_abs": 0.160828,
+								"peak_dbfs": -15.873,
+								"project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+								"quality_reason": "ok",
+								"quality_status": "ready",
+								"request_id": "kernel_prepared_waveform_envelope_1011",
+								"rms": 0.030706,
+								"rms_dbfs": -30.255,
+								"source": "kernel_prepared_telemetry",
+								"source_fingerprint": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav|size=3528044|mtime=1788061879786|length=20.0000",
+								"source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav",
+								"source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav|size=3528044|mtime=1788061879786|length=20.0000",
+								"status": "ready",
+								"sum_abs": 319.876227,
+								"tile_count_expected": 4,
+								"tile_count_seen": 4,
+								"total_duration": 20,
+								"track_id": "1007",
+								"updated_at": "2026-09-24T05:31:50.2623751Z"
+							},
+							"updated_at": "2026-09-24T05:31:50.2623751Z"
+						}
+					},
+					"updated_at": "2026-09-24T05:32:48.9134509Z"
+				},
+				"l2_realtime": {
+					"status": "ready",
+					"features": {
+						"live_meter": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:50.467+08:00",
+								"reason": "phase_4_5_l2_realtime_requires_playback"
+							},
+							"updated_at": "2026-09-24T13:31:50.467+08:00",
+							"reason": "phase_4_5_l2_realtime_requires_playback"
+						},
+						"post_fx_meter": {
+							"status": "ready",
+							"source": "l2_render_probe",
+							"progress": {
+								"coverage_ratio": 1,
+								"updated_at": "2026-09-24T05:32:48.9134509Z",
+								"reason": "ok"
+							},
+							"ref": {
+								"analyzed_range": {
+									"duration_seconds": 20,
+									"end_seconds": 20,
+									"start_seconds": 0
+								},
+								"analyzer_revision": "agent_lightweight_o1",
+								"balance_db": -1.57050913216985,
+								"balance_state": "left_heavy",
+								"bands": {
+									"air": {
+										"coverage_ratio": 1,
+										"energy_db": 5.806181160929356,
+										"max_hz": 20000,
+										"min_hz": 6000,
+										"unit_energy": 0.0000078657443097716
+									},
+									"bass": {
+										"coverage_ratio": 1,
+										"energy_db": 56.01557373456647,
+										"max_hz": 250,
+										"min_hz": 60,
+										"unit_energy": 0.825427781999552
+									},
+									"low_mid": {
+										"coverage_ratio": 1,
+										"energy_db": 41.067612009659356,
+										"max_hz": 500,
+										"min_hz": 250,
+										"unit_energy": 0.026416964322167
+									},
+									"mid": {
+										"coverage_ratio": 1,
+										"energy_db": 31.017507707749544,
+										"max_hz": 2000,
+										"min_hz": 500,
+										"unit_energy": 0.002611394466159
+									},
+									"presence": {
+										"coverage_ratio": 1,
+										"energy_db": 11.74332322722143,
+										"max_hz": 6000,
+										"min_hz": 2000,
+										"unit_energy": 0.000030864129421
+									},
+									"sub": {
+										"coverage_ratio": 1,
+										"energy_db": 48.477565946321725,
+										"max_hz": 60,
+										"min_hz": 20,
+										"unit_energy": 0.145505129338398
+									}
+								},
+								"channel_count": 2,
+								"clip_id": "1011",
+								"clip_revision": "clip=1011|track=1007|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav|size=3528044|mtime=1788061879786|length=20.0000|offset=0.0000|length=20.0000",
+								"correlation_estimate": 0.692331616283009,
+								"correlation_state": "coherent",
+								"crest_db": 14.510900539865471,
+								"duration_seconds": 20.016,
+								"evidence_ref": "dad.l2_render_probe:l2rp.v1|tap=track_post_fader|mode=offline_probe|track=1007|clip=1011|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav|size=3528044|mtime=1788061879786|length=20.0000|clip_revision=clip=1011|track=1007|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav|size=3528044|mtime=1788061879786|length=20.0000|offset=0.0000|length=20.0000|range=0.0000-20.0000|tail=0.2500|track_state=f5b175865641cffc|clip_state=4b2f419da1224476",
+								"feature_type": "l2_render_probe",
+								"file_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav",
+								"headroom_db": 16.19649623082204,
+								"layer": "l2_realtime",
+								"peak_abs": 0.154944151639938,
+								"peak_dbfs": -16.19649623082204,
+								"project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+								"quality_evidence": {
+									"coverage": 1,
+									"deterministic": true,
+									"latency_compensated": true,
+									"max_abs": 0.154944151639938,
+									"nan_inf_count": 0,
+									"nonzero": true,
+									"sum_abs": 28805.76561152618,
+									"tail_captured": true
+								},
+								"quality_status": "ready",
+								"reason": "ok",
+								"render_mode": "offline_probe",
+								"render_revision": "l2rp.v1|tap=track_post_fader|mode=offline_probe|track=1007|clip=1011|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav|size=3528044|mtime=1788061879786|length=20.0000|clip_revision=clip=1011|track=1007|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav|size=3528044|mtime=1788061879786|length=20.0000|offset=0.0000|length=20.0000|range=0.0000-20.0000|tail=0.2500|track_state=f5b175865641cffc|clip_state=4b2f419da1224476",
+								"request_id": "mixboard_l2_render_probe_1007_20260924T053247.850160600",
+								"rms": 0.029149436353579,
+								"rms_dbfs": -30.70739677068751,
+								"sample_rate": 44100,
+								"schema_version": "dad_l2_render_probe.v1",
+								"session_id": "d1_session_turnfree_state_01feaf3660f7f61b",
+								"source_fingerprint": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav|size=3528044|mtime=1788061879786|length=20.0000",
+								"source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav",
+								"source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav|size=3528044|mtime=1788061879786|length=20.0000",
+								"status": "ready",
+								"tap_point": "track_post_fader",
+								"track_id": "1007",
+								"track_state_fingerprint": "trackstate_69a8a661e63c793f"
+							},
+							"updated_at": "2026-09-24T05:32:48.9134509Z",
+							"reason": "ok"
+						},
+						"realtime_spectrum": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:50.467+08:00",
+								"reason": "phase_4_5_l2_realtime_requires_playback"
+							},
+							"updated_at": "2026-09-24T13:31:50.467+08:00",
+							"reason": "phase_4_5_l2_realtime_requires_playback"
+						},
+						"realtime_stereo_correlation": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:50.467+08:00",
+								"reason": "phase_4_5_l2_realtime_requires_playback"
+							},
+							"updated_at": "2026-09-24T13:31:50.467+08:00",
+							"reason": "phase_4_5_l2_realtime_requires_playback"
+						},
+						"render_probe": {
+							"status": "ready",
+							"source": "mix.observe_read_first",
+							"progress": {
+								"coverage_ratio": 1,
+								"updated_at": "2026-09-24T05:32:48.9134509Z",
+								"reason": "ok"
+							},
+							"ref": {
+								"analyzed_range": {
+									"duration_seconds": 20,
+									"end_seconds": 20,
+									"start_seconds": 0
+								},
+								"analyzer_revision": "agent_lightweight_o1",
+								"balance_db": -1.57050913216985,
+								"balance_state": "left_heavy",
+								"bands": {
+									"air": {
+										"coverage_ratio": 1,
+										"energy_db": 5.806181160929356,
+										"max_hz": 20000,
+										"min_hz": 6000,
+										"unit_energy": 0.0000078657443097716
+									},
+									"bass": {
+										"coverage_ratio": 1,
+										"energy_db": 56.01557373456647,
+										"max_hz": 250,
+										"min_hz": 60,
+										"unit_energy": 0.825427781999552
+									},
+									"low_mid": {
+										"coverage_ratio": 1,
+										"energy_db": 41.067612009659356,
+										"max_hz": 500,
+										"min_hz": 250,
+										"unit_energy": 0.026416964322167
+									},
+									"mid": {
+										"coverage_ratio": 1,
+										"energy_db": 31.017507707749544,
+										"max_hz": 2000,
+										"min_hz": 500,
+										"unit_energy": 0.002611394466159
+									},
+									"presence": {
+										"coverage_ratio": 1,
+										"energy_db": 11.74332322722143,
+										"max_hz": 6000,
+										"min_hz": 2000,
+										"unit_energy": 0.000030864129421
+									},
+									"sub": {
+										"coverage_ratio": 1,
+										"energy_db": 48.477565946321725,
+										"max_hz": 60,
+										"min_hz": 20,
+										"unit_energy": 0.145505129338398
+									}
+								},
+								"channel_count": 2,
+								"clip_id": "1011",
+								"clip_revision": "clip=1011|track=1007|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav|size=3528044|mtime=1788061879786|length=20.0000|offset=0.0000|length=20.0000",
+								"correlation_estimate": 0.692331616283009,
+								"correlation_state": "coherent",
+								"crest_db": 14.510900539865471,
+								"duration_seconds": 20.016,
+								"evidence_ref": "dad.l2_render_probe:l2rp.v1|tap=track_post_fader|mode=offline_probe|track=1007|clip=1011|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav|size=3528044|mtime=1788061879786|length=20.0000|clip_revision=clip=1011|track=1007|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav|size=3528044|mtime=1788061879786|length=20.0000|offset=0.0000|length=20.0000|range=0.0000-20.0000|tail=0.2500|track_state=f5b175865641cffc|clip_state=4b2f419da1224476",
+								"feature_type": "l2_render_probe",
+								"file_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav",
+								"headroom_db": 16.19649623082204,
+								"layer": "l2_realtime",
+								"peak_abs": 0.154944151639938,
+								"peak_dbfs": -16.19649623082204,
+								"project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+								"quality_evidence": {
+									"coverage": 1,
+									"deterministic": true,
+									"latency_compensated": true,
+									"max_abs": 0.154944151639938,
+									"nan_inf_count": 0,
+									"nonzero": true,
+									"sum_abs": 28805.76561152618,
+									"tail_captured": true
+								},
+								"quality_status": "ready",
+								"reason": "ok",
+								"render_mode": "offline_probe",
+								"render_revision": "l2rp.v1|tap=track_post_fader|mode=offline_probe|track=1007|clip=1011|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav|size=3528044|mtime=1788061879786|length=20.0000|clip_revision=clip=1011|track=1007|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav|size=3528044|mtime=1788061879786|length=20.0000|offset=0.0000|length=20.0000|range=0.0000-20.0000|tail=0.2500|track_state=f5b175865641cffc|clip_state=4b2f419da1224476",
+								"request_id": "mixboard_l2_render_probe_1007_20260924T053247.850160600",
+								"rms": 0.029149436353579,
+								"rms_dbfs": -30.70739677068751,
+								"sample_rate": 44100,
+								"schema_version": "dad_l2_render_probe.v1",
+								"session_id": "d1_session_turnfree_state_01feaf3660f7f61b",
+								"source_fingerprint": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav|size=3528044|mtime=1788061879786|length=20.0000",
+								"source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav",
+								"source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav|size=3528044|mtime=1788061879786|length=20.0000",
+								"status": "ready",
+								"tap_point": "track_post_fader",
+								"track_id": "1007",
+								"track_state_fingerprint": "trackstate_69a8a661e63c793f"
+							},
+							"updated_at": "2026-09-24T05:32:48.9134509Z",
+							"reason": "ok"
+						}
+					},
+					"updated_at": "2026-09-24T05:32:48.9134509Z"
+				},
+				"l3_deep": {
+					"status": "ready",
+					"features": {
+						"band_energy_summary": {
+							"status": "ready",
+							"source": "kernel_l3_offline_analyzer",
+							"progress": {
+								"coverage_seconds": 20,
+								"coverage_ratio": 1,
+								"updated_at": "2026-09-24T13:31:50.465+08:00"
+							},
+							"ref": {
+								"analyzed_sample_count": 1764000,
+								"analyzer_revision": "dad_l3_offline_analyzer.v1",
+								"analyzer_version": "dad_l3_offline_analyzer.v1",
+								"bands": {
+									"air": {
+										"active_frame_ratio": 0.486111111111111,
+										"coverage": 1,
+										"coverage_ratio": 1,
+										"energy": 3.814661635171428,
+										"energy_db": 5.814560215844664,
+										"evidence_ref": "dad.l3.band_energy_summary:air",
+										"frame_count": 280800,
+										"max_hz": 20000,
+										"min_hz": 6000,
+										"persistence_ratio": 0.486111111111111,
+										"quality_status": "ready",
+										"relative_distribution": 0.000007102214207129986,
+										"sample_count": 1764000,
+										"status": "ready",
+										"unit_energy": 0.000007102214207129986
+									},
+									"bass": {
+										"active_frame_ratio": 0.861111111111111,
+										"coverage": 1,
+										"coverage_ratio": 1,
+										"energy": 442879.9532553562,
+										"energy_db": 56.462860226021746,
+										"evidence_ref": "dad.l3.band_energy_summary:bass",
+										"frame_count": 3888,
+										"max_hz": 250,
+										"min_hz": 60,
+										"persistence_ratio": 0.861111111111111,
+										"quality_status": "ready",
+										"relative_distribution": 0.824562856915592,
+										"sample_count": 1764000,
+										"status": "ready",
+										"unit_energy": 0.824562856915592
+									},
+									"low_mid": {
+										"active_frame_ratio": 0.773148148148148,
+										"coverage": 1,
+										"coverage_ratio": 1,
+										"energy": 17923.025514248937,
+										"energy_db": 42.534113230289236,
+										"evidence_ref": "dad.l3.band_energy_summary:low_mid",
+										"frame_count": 4968,
+										"max_hz": 500,
+										"min_hz": 250,
+										"persistence_ratio": 0.773148148148148,
+										"quality_status": "ready",
+										"relative_distribution": 0.033369451504794,
+										"sample_count": 1764000,
+										"status": "ready",
+										"unit_energy": 0.033369451504794
+									},
+									"mid": {
+										"active_frame_ratio": 0.722222222222222,
+										"coverage": 1,
+										"coverage_ratio": 1,
+										"energy": 1566.5693340042928,
+										"energy_db": 31.949496208641467,
+										"evidence_ref": "dad.l3.band_energy_summary:mid",
+										"frame_count": 30024,
+										"max_hz": 2000,
+										"min_hz": 500,
+										"persistence_ratio": 0.722222222222222,
+										"quality_status": "ready",
+										"relative_distribution": 0.002916670479456,
+										"sample_count": 1764000,
+										"status": "ready",
+										"unit_energy": 0.002916670479456
+									},
+									"presence": {
+										"active_frame_ratio": 0.546296296296296,
+										"coverage": 1,
+										"coverage_ratio": 1,
+										"energy": 15.210039964712074,
+										"energy_db": 11.821303551727302,
+										"evidence_ref": "dad.l3.band_energy_summary:presence",
+										"frame_count": 80352,
+										"max_hz": 6000,
+										"min_hz": 2000,
+										"persistence_ratio": 0.546296296296296,
+										"quality_status": "ready",
+										"relative_distribution": 0.000028318360122,
+										"sample_count": 1764000,
+										"status": "ready",
+										"unit_energy": 0.000028318360122
+									},
+									"sub": {
+										"active_frame_ratio": 0.888888888888889,
+										"coverage": 1,
+										"coverage_ratio": 1,
+										"energy": 74720.2110078464,
+										"energy_db": 48.734380896595894,
+										"evidence_ref": "dad.l3.band_energy_summary:sub",
+										"frame_count": 864,
+										"max_hz": 60,
+										"min_hz": 20,
+										"persistence_ratio": 0.888888888888889,
+										"quality_status": "ready",
+										"relative_distribution": 0.139115600525819,
+										"sample_count": 1764000,
+										"status": "ready",
+										"unit_energy": 0.139115600525819
+									}
+								},
+								"capture_mode": "offline_full_song",
+								"channel_count": 2,
+								"channels": 2,
+								"clip_id": "1011",
+								"clip_revision": "clip=1011|track=1007|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav|size=3528044|mtime=1788061879786|length=20.0000|offset=0.0000|length=20.0000",
+								"coverage_ratio": 1,
+								"coverage_seconds": 20,
+								"duration_seconds": 20,
+								"evidence_ref": "dad.l3.band_energy_summary:D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav|size=3528044|mtime=1788061879786|length=20.0000",
+								"expected_sample_count": 1764000,
+								"feature_type": "band_energy_summary",
+								"file_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav",
+								"inf_count": 0,
+								"layer": "l3_deep",
+								"max_abs": 0.16082763671875,
+								"nan_count": 0,
+								"nonzero_count": 1756863,
+								"project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+								"quality_evidence": {
+									"analyzed_sample_count": 1764000,
+									"analyzer_version": "dad_l3_offline_analyzer.v1",
+									"channels": 2,
+									"coverage_ratio": 1,
+									"duration_seconds": 20,
+									"evidence_ref": "dad.l3.band_energy_summary:D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav|size=3528044|mtime=1788061879786|length=20.0000",
+									"expected_sample_count": 1764000,
+									"inf_count": 0,
+									"max_abs": 0.16082763671875,
+									"nan_count": 0,
+									"nan_inf_count": 0,
+									"nonzero_count": 1756863,
+									"quality_reasons": [
+										"ok"
+									],
+									"quality_status": "ready",
+									"sample_rate": 44100,
+									"source_identity": "source_revision+clip_revision+optional_render_revision",
+									"sum_abs": 30344.626434326172
+								},
+								"quality_reason": "ok",
+								"quality_reasons": [
+									"ok"
+								],
+								"quality_status": "ready",
+								"request_id": "mixboard_20260924T053150.020196800",
+								"sample_rate": 44100,
+								"schema_version": "dad_l3_band_energy_summary.v1",
+								"source": "kernel_l3_offline_analyzer",
+								"source_fingerprint": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav|size=3528044|mtime=1788061879786|length=20.0000",
+								"source_identity": {
+									"analyzer_revision": "dad_l3_offline_analyzer.v1",
+									"analyzer_version": "dad_l3_offline_analyzer.v1",
+									"channels": 2,
+									"clip_id": "1011",
+									"clip_revision": "clip=1011|track=1007|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav|size=3528044|mtime=1788061879786|length=20.0000|offset=0.0000|length=20.0000",
+									"duration_seconds": 20,
+									"project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+									"project_uuid": "vitproj_9ecc5ab9a454400192086c628c07b966",
+									"sample_rate": 44100,
+									"source_fingerprint": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav|size=3528044|mtime=1788061879786|length=20.0000",
+									"source_id": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav",
+									"source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav",
+									"source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav|size=3528044|mtime=1788061879786|length=20.0000",
+									"track_id": "1007"
+								},
+								"source_kind": "clip",
+								"source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav",
+								"source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav|size=3528044|mtime=1788061879786|length=20.0000",
+								"status": "ready",
+								"sum_abs": 30344.626434326172,
+								"time_basis": "source_samples",
+								"track_id": "1007",
+								"updated_at": "2026-09-24T13:31:50.465+08:00"
+							},
+							"updated_at": "2026-09-24T13:31:50.465+08:00"
+						},
+						"loudness_summary": {
+							"status": "ready",
+							"source": "kernel_l3_offline_analyzer",
+							"progress": {
+								"coverage_seconds": 20,
+								"coverage_ratio": 1,
+								"updated_at": "2026-09-24T13:31:50.467+08:00"
+							},
+							"ref": {
+								"algorithm": "approximate_rms_lufs_v1",
+								"analyzed_sample_count": 1764000,
+								"analyzer_revision": "dad_l3_offline_analyzer.v1",
+								"analyzer_version": "dad_l3_offline_analyzer.v1",
+								"approximate": true,
+								"approximate_lufs": -30.946484412289973,
+								"capture_mode": "offline_full_song",
+								"channel_count": 2,
+								"channels": 2,
+								"clip_id": "1011",
+								"clip_revision": "clip=1011|track=1007|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav|size=3528044|mtime=1788061879786|length=20.0000|offset=0.0000|length=20.0000",
+								"coverage_ratio": 1,
+								"coverage_seconds": 20,
+								"crest_db": 14.382698017346549,
+								"crest_factor": 5.23763102996041,
+								"duration_seconds": 20,
+								"evidence_ref": "dad.l3.loudness_summary:D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav|size=3528044|mtime=1788061879786|length=20.0000",
+								"expected_sample_count": 1764000,
+								"feature_type": "loudness_summary",
+								"file_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav",
+								"inf_count": 0,
+								"integrated_lufs": -30.946484412289973,
+								"layer": "l3_deep",
+								"max_abs": 0.16082763671875,
+								"nan_count": 0,
+								"nonzero_count": 1756863,
+								"peak": 0.16082763671875,
+								"peak_abs": 0.16082763671875,
+								"peak_dbfs": -15.872786394943425,
+								"project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+								"quality_evidence": {
+									"analyzed_sample_count": 1764000,
+									"analyzer_version": "dad_l3_offline_analyzer.v1",
+									"channels": 2,
+									"coverage_ratio": 1,
+									"duration_seconds": 20,
+									"evidence_ref": "dad.l3.loudness_summary:D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav|size=3528044|mtime=1788061879786|length=20.0000",
+									"expected_sample_count": 1764000,
+									"inf_count": 0,
+									"max_abs": 0.16082763671875,
+									"nan_count": 0,
+									"nan_inf_count": 0,
+									"nonzero_count": 1756863,
+									"quality_reasons": [
+										"ok"
+									],
+									"quality_status": "ready",
+									"sample_rate": 44100,
+									"source_identity": "source_revision+clip_revision+optional_render_revision",
+									"sum_abs": 30344.626434326172
+								},
+								"quality_reason": "ok",
+								"quality_reasons": [
+									"ok"
+								],
+								"quality_status": "ready",
+								"request_id": "mixboard_20260924T053150.020196800",
+								"rms": 0.030706179148317,
+								"rms_dbfs": -30.255484412289974,
+								"sample_rate": 44100,
+								"schema_version": "dad_l3_loudness_summary.v1",
+								"source": "kernel_l3_offline_analyzer",
+								"source_fingerprint": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav|size=3528044|mtime=1788061879786|length=20.0000",
+								"source_identity": {
+									"analyzer_revision": "dad_l3_offline_analyzer.v1",
+									"analyzer_version": "dad_l3_offline_analyzer.v1",
+									"channels": 2,
+									"clip_id": "1011",
+									"clip_revision": "clip=1011|track=1007|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav|size=3528044|mtime=1788061879786|length=20.0000|offset=0.0000|length=20.0000",
+									"duration_seconds": 20,
+									"project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+									"project_uuid": "vitproj_9ecc5ab9a454400192086c628c07b966",
+									"sample_rate": 44100,
+									"source_fingerprint": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav|size=3528044|mtime=1788061879786|length=20.0000",
+									"source_id": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav",
+									"source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav",
+									"source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav|size=3528044|mtime=1788061879786|length=20.0000",
+									"track_id": "1007"
+								},
+								"source_kind": "clip",
+								"source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav",
+								"source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav|size=3528044|mtime=1788061879786|length=20.0000",
+								"status": "ready",
+								"sum_abs": 30344.626434326172,
+								"time_basis": "source_samples",
+								"track_id": "1007",
+								"updated_at": "2026-09-24T13:31:50.467+08:00"
+							},
+							"updated_at": "2026-09-24T13:31:50.467+08:00"
+						},
+						"lufs_analysis": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:50.467+08:00",
+								"reason": "phase_5_deferred"
+							},
+							"updated_at": "2026-09-24T13:31:50.467+08:00",
+							"reason": "phase_5_deferred"
+						},
+						"masking_analysis": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:50.467+08:00",
+								"reason": "phase_5_deferred"
+							},
+							"updated_at": "2026-09-24T13:31:50.467+08:00",
+							"reason": "phase_5_deferred"
+						},
+						"reference_match": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:50.467+08:00",
+								"reason": "phase_5_deferred"
+							},
+							"updated_at": "2026-09-24T13:31:50.467+08:00",
+							"reason": "phase_5_deferred"
+						},
+						"spectrogram_tiles": {
+							"status": "ready",
+							"source": "kernel_tile_ready_direct_collector",
+							"progress": {
+								"tile_count_seen": 4,
+								"tile_count_expected": 4,
+								"coverage_seconds": 20,
+								"coverage_ratio": 1,
+								"updated_at": "2026-09-24T05:31:50.9411721Z"
+							},
+							"ref": {
+								"analyzer_revision": "audio_feature.v1.2",
+								"clip_id": "1011",
+								"clip_revision": "clip=1011|track=1007|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav|size=3528044|mtime=1788061879786|length=20.0000|offset=0.0000|length=20.0000",
+								"duration_seconds": 20,
+								"feature_type": "spectral_field",
+								"file_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav",
+								"max_abs": 3.141585,
+								"nonzero_count": 2056000,
+								"project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+								"quality_reason": "ok",
+								"quality_status": "ready",
+								"request_id": "kernel_prepared_spectral_field_1011",
+								"source": "kernel_tile_ready_direct_collector",
+								"source_fingerprint": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav|size=3528044|mtime=1788061879786|length=20.0000",
+								"source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav",
+								"source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav|size=3528044|mtime=1788061879786|length=20.0000",
+								"status": "ready",
+								"sum_abs": 493846.029424,
+								"target": {
+									"clip_id": "1011",
+									"track_id": "1007"
+								},
+								"tile_count_expected": 4,
+								"tile_count_seen": 4,
+								"total_duration": 20,
+								"track_id": "1007",
+								"updated_at": "2026-09-24T05:31:50.9411721Z"
+							},
+							"updated_at": "2026-09-24T05:31:50.9411721Z"
+						},
+						"stereo_relation_summary": {
+							"status": "ready",
+							"source": "kernel_l3_offline_analyzer",
+							"progress": {
+								"coverage_seconds": 20,
+								"coverage_ratio": 1,
+								"updated_at": "2026-09-24T13:31:50.466+08:00"
+							},
+							"ref": {
+								"analyzed_sample_count": 1764000,
+								"analyzer_revision": "dad_l3_offline_analyzer.v1",
+								"analyzer_version": "dad_l3_offline_analyzer.v1",
+								"balance_db": -1.474863830506248,
+								"balance_state": "centered",
+								"capture_mode": "offline_full_song",
+								"channel_count": 2,
+								"channels": 2,
+								"clip_id": "1011",
+								"clip_revision": "clip=1011|track=1007|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav|size=3528044|mtime=1788061879786|length=20.0000|offset=0.0000|length=20.0000",
+								"correlation_estimate": 0.688632253089265,
+								"correlation_state": "coherent",
+								"coverage_ratio": 1,
+								"coverage_seconds": 20,
+								"duration_seconds": 20,
+								"evidence_ref": "dad.l3.stereo_relation_summary:D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav|size=3528044|mtime=1788061879786|length=20.0000",
+								"expected_sample_count": 1764000,
+								"feature_type": "stereo_relation_summary",
+								"file_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav",
+								"inf_count": 0,
+								"layer": "l3_deep",
+								"max_abs": 0.16082763671875,
+								"nan_count": 0,
+								"nonzero_count": 1756863,
+								"project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+								"quality_evidence": {
+									"analyzed_sample_count": 1764000,
+									"analyzer_version": "dad_l3_offline_analyzer.v1",
+									"channels": 2,
+									"coverage_ratio": 1,
+									"duration_seconds": 20,
+									"evidence_ref": "dad.l3.stereo_relation_summary:D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav|size=3528044|mtime=1788061879786|length=20.0000",
+									"expected_sample_count": 1764000,
+									"inf_count": 0,
+									"max_abs": 0.16082763671875,
+									"nan_count": 0,
+									"nan_inf_count": 0,
+									"nonzero_count": 1756863,
+									"quality_reasons": [
+										"ok"
+									],
+									"quality_status": "ready",
+									"sample_rate": 44100,
+									"source_identity": "source_revision+clip_revision+optional_render_revision",
+									"sum_abs": 30344.626434326172
+								},
+								"quality_reason": "ok",
+								"quality_reasons": [
+									"ok"
+								],
+								"quality_status": "ready",
+								"request_id": "mixboard_20260924T053150.020196800",
+								"sample_rate": 44100,
+								"schema_version": "dad_l3_stereo_relation_summary.v1",
+								"source": "kernel_l3_offline_analyzer",
+								"source_fingerprint": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav|size=3528044|mtime=1788061879786|length=20.0000",
+								"source_identity": {
+									"analyzer_revision": "dad_l3_offline_analyzer.v1",
+									"analyzer_version": "dad_l3_offline_analyzer.v1",
+									"channels": 2,
+									"clip_id": "1011",
+									"clip_revision": "clip=1011|track=1007|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav|size=3528044|mtime=1788061879786|length=20.0000|offset=0.0000|length=20.0000",
+									"duration_seconds": 20,
+									"project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+									"project_uuid": "vitproj_9ecc5ab9a454400192086c628c07b966",
+									"sample_rate": 44100,
+									"source_fingerprint": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav|size=3528044|mtime=1788061879786|length=20.0000",
+									"source_id": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav",
+									"source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav",
+									"source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav|size=3528044|mtime=1788061879786|length=20.0000",
+									"track_id": "1007"
+								},
+								"source_kind": "clip",
+								"source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav",
+								"source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav|size=3528044|mtime=1788061879786|length=20.0000",
+								"status": "ready",
+								"sum_abs": 30344.626434326172,
+								"time_basis": "source_samples",
+								"track_id": "1007",
+								"updated_at": "2026-09-24T13:31:50.466+08:00"
+							},
+							"updated_at": "2026-09-24T13:31:50.466+08:00"
+						}
+					},
+					"updated_at": "2026-09-24T05:32:48.9134509Z"
+				}
+			},
+			"updated_at": "2026-09-24T05:32:48.9134509Z",
+			"audit": [
+				{
+					"source": "mix.observe_read_first",
+					"reason": "derived_from_feature_snapshot",
+					"updated_at": "2026-09-24T05:32:48.9134509Z"
+				},
+				{
+					"source": "project_l3_feature_log",
+					"reason": "derived_from_feature_snapshot",
+					"updated_at": "2026-09-24T13:31:50.467+08:00"
+				},
+				{
+					"source": "acoustic_package_store",
+					"reason": "upsert",
+					"updated_at": "2026-09-24T05:32:48.8604449Z"
+				},
+				{
+					"source": "acoustic_package_store",
+					"reason": "upsert",
+					"updated_at": "2026-09-24T05:32:48.9244506Z"
+				}
+			]
+		},
+		{
+			"schema_version": "acoustic_package_status.v0",
+			"status": "partial",
+			"project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+			"track_id": "1012",
+			"clip_id": "1016",
+			"source_fingerprint": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav|size=3528044|mtime=1788061879850|length=20.0000",
+			"source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav|size=3528044|mtime=1788061879850|length=20.0000",
+			"clip_revision": "clip=1016|track=1012|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav|size=3528044|mtime=1788061879850|length=20.0000|offset=0.0000|length=20.0000",
+			"analyzer_revision": "dad_l3_offline_analyzer.v1",
+			"source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav",
+			"duration_seconds": 20,
+			"source_identity": {
+				"analyzer_revision": "dad_l3_offline_analyzer.v1",
+				"clip_id": "1016",
+				"clip_revision": "clip=1016|track=1012|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav|size=3528044|mtime=1788061879850|length=20.0000|offset=0.0000|length=20.0000",
+				"clip_start_seconds": 0,
+				"duration_seconds": 20,
+				"project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+				"source_fingerprint": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav|size=3528044|mtime=1788061879850|length=20.0000",
+				"source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav",
+				"source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav|size=3528044|mtime=1788061879850|length=20.0000",
+				"track_id": "1012"
+			},
+			"package_layers": {
+				"l1_static": {
+					"status": "missing",
+					"features": {
+						"peak_rms_summary": {
+							"status": "missing",
+							"source": "project_l3_feature_log",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:50.898+08:00"
+							},
+							"updated_at": "2026-09-24T13:31:50.898+08:00"
+						},
+						"time_energy": {
+							"status": "missing",
+							"source": "project_l3_feature_log",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:50.898+08:00"
+							},
+							"ref": {
+								"time_segment_count": 0
+							},
+							"updated_at": "2026-09-24T13:31:50.898+08:00",
+							"reason": "waveform_envelope_required_for_time_energy"
+						},
+						"waveform_envelope": {
+							"status": "missing",
+							"source": "project_l3_feature_log",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:50.898+08:00"
+							},
+							"updated_at": "2026-09-24T13:31:50.898+08:00"
+						}
+					},
+					"updated_at": "2026-09-24T13:31:50.898+08:00"
+				},
+				"l2_realtime": {
+					"status": "deferred",
+					"features": {
+						"live_meter": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:50.898+08:00",
+								"reason": "phase_4_5_l2_realtime_requires_playback"
+							},
+							"updated_at": "2026-09-24T13:31:50.898+08:00",
+							"reason": "phase_4_5_l2_realtime_requires_playback"
+						},
+						"post_fx_meter": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:50.898+08:00",
+								"reason": "l2_render_probe_missing"
+							},
+							"updated_at": "2026-09-24T13:31:50.898+08:00",
+							"reason": "l2_render_probe_missing"
+						},
+						"realtime_spectrum": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:50.898+08:00",
+								"reason": "phase_4_5_l2_realtime_requires_playback"
+							},
+							"updated_at": "2026-09-24T13:31:50.898+08:00",
+							"reason": "phase_4_5_l2_realtime_requires_playback"
+						},
+						"realtime_stereo_correlation": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:50.898+08:00",
+								"reason": "phase_4_5_l2_realtime_requires_playback"
+							},
+							"updated_at": "2026-09-24T13:31:50.898+08:00",
+							"reason": "phase_4_5_l2_realtime_requires_playback"
+						},
+						"render_probe": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:50.898+08:00",
+								"reason": "l2_render_probe_missing"
+							},
+							"updated_at": "2026-09-24T13:31:50.898+08:00",
+							"reason": "l2_render_probe_missing"
+						}
+					},
+					"updated_at": "2026-09-24T13:31:50.898+08:00"
+				},
+				"l3_deep": {
+					"status": "partial",
+					"features": {
+						"band_energy_summary": {
+							"status": "ready",
+							"source": "kernel_l3_offline_analyzer",
+							"progress": {
+								"coverage_seconds": 20,
+								"coverage_ratio": 1,
+								"updated_at": "2026-09-24T13:31:50.897+08:00"
+							},
+							"ref": {
+								"analyzed_sample_count": 1764000,
+								"analyzer_revision": "dad_l3_offline_analyzer.v1",
+								"analyzer_version": "dad_l3_offline_analyzer.v1",
+								"bands": {
+									"air": {
+										"active_frame_ratio": 0.851851851851852,
+										"coverage": 1,
+										"coverage_ratio": 1,
+										"energy": 56573.04727868279,
+										"energy_db": 47.52609572423873,
+										"evidence_ref": "dad.l3.band_energy_summary:air",
+										"frame_count": 280800,
+										"max_hz": 20000,
+										"min_hz": 6000,
+										"persistence_ratio": 0.851851851851852,
+										"quality_status": "ready",
+										"relative_distribution": 0.011386375926614,
+										"sample_count": 1764000,
+										"status": "ready",
+										"unit_energy": 0.011386375926614
+									},
+									"bass": {
+										"active_frame_ratio": 0.847222222222222,
+										"coverage": 1,
+										"coverage_ratio": 1,
+										"energy": 3791328.519716789,
+										"energy_db": 65.78791417799854,
+										"evidence_ref": "dad.l3.band_energy_summary:bass",
+										"frame_count": 3888,
+										"max_hz": 250,
+										"min_hz": 60,
+										"persistence_ratio": 0.847222222222222,
+										"quality_status": "ready",
+										"relative_distribution": 0.763075242776546,
+										"sample_count": 1764000,
+										"status": "ready",
+										"unit_energy": 0.763075242776546
+									},
+									"low_mid": {
+										"active_frame_ratio": 0.861111111111111,
+										"coverage": 1,
+										"coverage_ratio": 1,
+										"energy": 98741.98682287007,
+										"energy_db": 49.94501861566193,
+										"evidence_ref": "dad.l3.band_energy_summary:low_mid",
+										"frame_count": 4968,
+										"max_hz": 500,
+										"min_hz": 250,
+										"persistence_ratio": 0.861111111111111,
+										"quality_status": "ready",
+										"relative_distribution": 0.019873657789151,
+										"sample_count": 1764000,
+										"status": "ready",
+										"unit_energy": 0.019873657789151
+									},
+									"mid": {
+										"active_frame_ratio": 0.851851851851852,
+										"coverage": 1,
+										"coverage_ratio": 1,
+										"energy": 41436.271499789626,
+										"energy_db": 46.173806700017266,
+										"evidence_ref": "dad.l3.band_energy_summary:mid",
+										"frame_count": 30024,
+										"max_hz": 2000,
+										"min_hz": 500,
+										"persistence_ratio": 0.851851851851852,
+										"quality_status": "ready",
+										"relative_distribution": 0.008339818818133,
+										"sample_count": 1764000,
+										"status": "ready",
+										"unit_energy": 0.008339818818133
+									},
+									"presence": {
+										"active_frame_ratio": 0.856481481481482,
+										"coverage": 1,
+										"coverage_ratio": 1,
+										"energy": 152910.8891940792,
+										"energy_db": 51.84438413787143,
+										"evidence_ref": "dad.l3.band_energy_summary:presence",
+										"frame_count": 80352,
+										"max_hz": 6000,
+										"min_hz": 2000,
+										"persistence_ratio": 0.856481481481482,
+										"quality_status": "ready",
+										"relative_distribution": 0.030776154925152,
+										"sample_count": 1764000,
+										"status": "ready",
+										"unit_energy": 0.030776154925152
+									},
+									"sub": {
+										"active_frame_ratio": 0.87037037037037,
+										"coverage": 1,
+										"coverage_ratio": 1,
+										"energy": 827495.1007548133,
+										"energy_db": 59.17765431183166,
+										"evidence_ref": "dad.l3.band_energy_summary:sub",
+										"frame_count": 864,
+										"max_hz": 60,
+										"min_hz": 20,
+										"persistence_ratio": 0.87037037037037,
+										"quality_status": "ready",
+										"relative_distribution": 0.166548749764383,
+										"sample_count": 1764000,
+										"status": "ready",
+										"unit_energy": 0.166548749764383
+									}
+								},
+								"capture_mode": "offline_full_song",
+								"channel_count": 2,
+								"channels": 2,
+								"clip_id": "1016",
+								"clip_revision": "clip=1016|track=1012|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav|size=3528044|mtime=1788061879850|length=20.0000|offset=0.0000|length=20.0000",
+								"coverage_ratio": 1,
+								"coverage_seconds": 20,
+								"duration_seconds": 20,
+								"evidence_ref": "dad.l3.band_energy_summary:D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav|size=3528044|mtime=1788061879850|length=20.0000",
+								"expected_sample_count": 1764000,
+								"feature_type": "band_energy_summary",
+								"file_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav",
+								"inf_count": 0,
+								"layer": "l3_deep",
+								"max_abs": 0.541473388671875,
+								"nan_count": 0,
+								"nonzero_count": 1762673,
+								"project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+								"quality_evidence": {
+									"analyzed_sample_count": 1764000,
+									"analyzer_version": "dad_l3_offline_analyzer.v1",
+									"channels": 2,
+									"coverage_ratio": 1,
+									"duration_seconds": 20,
+									"evidence_ref": "dad.l3.band_energy_summary:D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav|size=3528044|mtime=1788061879850|length=20.0000",
+									"expected_sample_count": 1764000,
+									"inf_count": 0,
+									"max_abs": 0.541473388671875,
+									"nan_count": 0,
+									"nan_inf_count": 0,
+									"nonzero_count": 1762673,
+									"quality_reasons": [
+										"ok"
+									],
+									"quality_status": "ready",
+									"sample_rate": 44100,
+									"source_identity": "source_revision+clip_revision+optional_render_revision",
+									"sum_abs": 94730.06280517578
+								},
+								"quality_reason": "ok",
+								"quality_reasons": [
+									"ok"
+								],
+								"quality_status": "ready",
+								"request_id": "mixboard_20260924T053150.020196800",
+								"sample_rate": 44100,
+								"schema_version": "dad_l3_band_energy_summary.v1",
+								"source": "kernel_l3_offline_analyzer",
+								"source_fingerprint": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav|size=3528044|mtime=1788061879850|length=20.0000",
+								"source_identity": {
+									"analyzer_revision": "dad_l3_offline_analyzer.v1",
+									"analyzer_version": "dad_l3_offline_analyzer.v1",
+									"channels": 2,
+									"clip_id": "1016",
+									"clip_revision": "clip=1016|track=1012|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav|size=3528044|mtime=1788061879850|length=20.0000|offset=0.0000|length=20.0000",
+									"duration_seconds": 20,
+									"project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+									"project_uuid": "vitproj_9ecc5ab9a454400192086c628c07b966",
+									"sample_rate": 44100,
+									"source_fingerprint": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav|size=3528044|mtime=1788061879850|length=20.0000",
+									"source_id": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav",
+									"source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav",
+									"source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav|size=3528044|mtime=1788061879850|length=20.0000",
+									"track_id": "1012"
+								},
+								"source_kind": "clip",
+								"source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav",
+								"source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav|size=3528044|mtime=1788061879850|length=20.0000",
+								"status": "ready",
+								"sum_abs": 94730.06280517578,
+								"time_basis": "source_samples",
+								"track_id": "1012",
+								"updated_at": "2026-09-24T13:31:50.897+08:00"
+							},
+							"updated_at": "2026-09-24T13:31:50.897+08:00"
+						},
+						"loudness_summary": {
+							"status": "ready",
+							"source": "kernel_l3_offline_analyzer",
+							"progress": {
+								"coverage_seconds": 20,
+								"coverage_ratio": 1,
+								"updated_at": "2026-09-24T13:31:50.898+08:00"
+							},
+							"ref": {
+								"algorithm": "approximate_rms_lufs_v1",
+								"analyzed_sample_count": 1764000,
+								"analyzer_revision": "dad_l3_offline_analyzer.v1",
+								"analyzer_version": "dad_l3_offline_analyzer.v1",
+								"approximate": true,
+								"approximate_lufs": -21.630798016032095,
+								"capture_mode": "offline_full_song",
+								"channel_count": 2,
+								"channels": 2,
+								"clip_id": "1016",
+								"clip_revision": "clip=1016|track=1012|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav|size=3528044|mtime=1788061879850|length=20.0000|offset=0.0000|length=20.0000",
+								"coverage_ratio": 1,
+								"coverage_seconds": 20,
+								"crest_db": 15.61134036778147,
+								"crest_factor": 6.03346806533599,
+								"duration_seconds": 20,
+								"evidence_ref": "dad.l3.loudness_summary:D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav|size=3528044|mtime=1788061879850|length=20.0000",
+								"expected_sample_count": 1764000,
+								"feature_type": "loudness_summary",
+								"file_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav",
+								"inf_count": 0,
+								"integrated_lufs": -21.630798016032095,
+								"layer": "l3_deep",
+								"max_abs": 0.541473388671875,
+								"nan_count": 0,
+								"nonzero_count": 1762673,
+								"peak": 0.541473388671875,
+								"peak_abs": 0.541473388671875,
+								"peak_dbfs": -5.328457648250628,
+								"project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+								"quality_evidence": {
+									"analyzed_sample_count": 1764000,
+									"analyzer_version": "dad_l3_offline_analyzer.v1",
+									"channels": 2,
+									"coverage_ratio": 1,
+									"duration_seconds": 20,
+									"evidence_ref": "dad.l3.loudness_summary:D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav|size=3528044|mtime=1788061879850|length=20.0000",
+									"expected_sample_count": 1764000,
+									"inf_count": 0,
+									"max_abs": 0.541473388671875,
+									"nan_count": 0,
+									"nan_inf_count": 0,
+									"nonzero_count": 1762673,
+									"quality_reasons": [
+										"ok"
+									],
+									"quality_status": "ready",
+									"sample_rate": 44100,
+									"source_identity": "source_revision+clip_revision+optional_render_revision",
+									"sum_abs": 94730.06280517578
+								},
+								"quality_reason": "ok",
+								"quality_reasons": [
+									"ok"
+								],
+								"quality_status": "ready",
+								"request_id": "mixboard_20260924T053150.020196800",
+								"rms": 0.089744966378922,
+								"rms_dbfs": -20.939798016032096,
+								"sample_rate": 44100,
+								"schema_version": "dad_l3_loudness_summary.v1",
+								"source": "kernel_l3_offline_analyzer",
+								"source_fingerprint": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav|size=3528044|mtime=1788061879850|length=20.0000",
+								"source_identity": {
+									"analyzer_revision": "dad_l3_offline_analyzer.v1",
+									"analyzer_version": "dad_l3_offline_analyzer.v1",
+									"channels": 2,
+									"clip_id": "1016",
+									"clip_revision": "clip=1016|track=1012|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav|size=3528044|mtime=1788061879850|length=20.0000|offset=0.0000|length=20.0000",
+									"duration_seconds": 20,
+									"project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+									"project_uuid": "vitproj_9ecc5ab9a454400192086c628c07b966",
+									"sample_rate": 44100,
+									"source_fingerprint": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav|size=3528044|mtime=1788061879850|length=20.0000",
+									"source_id": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav",
+									"source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav",
+									"source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav|size=3528044|mtime=1788061879850|length=20.0000",
+									"track_id": "1012"
+								},
+								"source_kind": "clip",
+								"source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav",
+								"source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav|size=3528044|mtime=1788061879850|length=20.0000",
+								"status": "ready",
+								"sum_abs": 94730.06280517578,
+								"time_basis": "source_samples",
+								"track_id": "1012",
+								"updated_at": "2026-09-24T13:31:50.898+08:00"
+							},
+							"updated_at": "2026-09-24T13:31:50.898+08:00"
+						},
+						"lufs_analysis": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:50.898+08:00",
+								"reason": "phase_5_deferred"
+							},
+							"updated_at": "2026-09-24T13:31:50.898+08:00",
+							"reason": "phase_5_deferred"
+						},
+						"masking_analysis": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:50.898+08:00",
+								"reason": "phase_5_deferred"
+							},
+							"updated_at": "2026-09-24T13:31:50.898+08:00",
+							"reason": "phase_5_deferred"
+						},
+						"reference_match": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:50.898+08:00",
+								"reason": "phase_5_deferred"
+							},
+							"updated_at": "2026-09-24T13:31:50.898+08:00",
+							"reason": "phase_5_deferred"
+						},
+						"spectrogram_tiles": {
+							"status": "missing",
+							"source": "project_l3_feature_log",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:50.898+08:00"
+							},
+							"updated_at": "2026-09-24T13:31:50.898+08:00"
+						},
+						"stereo_relation_summary": {
+							"status": "ready",
+							"source": "kernel_l3_offline_analyzer",
+							"progress": {
+								"coverage_seconds": 20,
+								"coverage_ratio": 1,
+								"updated_at": "2026-09-24T13:31:50.898+08:00"
+							},
+							"ref": {
+								"analyzed_sample_count": 1764000,
+								"analyzer_revision": "dad_l3_offline_analyzer.v1",
+								"analyzer_version": "dad_l3_offline_analyzer.v1",
+								"balance_db": 0.038528205967552,
+								"balance_state": "centered",
+								"capture_mode": "offline_full_song",
+								"channel_count": 2,
+								"channels": 2,
+								"clip_id": "1016",
+								"clip_revision": "clip=1016|track=1012|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav|size=3528044|mtime=1788061879850|length=20.0000|offset=0.0000|length=20.0000",
+								"correlation_estimate": 0.973938032865481,
+								"correlation_state": "highly_correlated",
+								"coverage_ratio": 1,
+								"coverage_seconds": 20,
+								"duration_seconds": 20,
+								"evidence_ref": "dad.l3.stereo_relation_summary:D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav|size=3528044|mtime=1788061879850|length=20.0000",
+								"expected_sample_count": 1764000,
+								"feature_type": "stereo_relation_summary",
+								"file_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav",
+								"inf_count": 0,
+								"layer": "l3_deep",
+								"max_abs": 0.541473388671875,
+								"nan_count": 0,
+								"nonzero_count": 1762673,
+								"project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+								"quality_evidence": {
+									"analyzed_sample_count": 1764000,
+									"analyzer_version": "dad_l3_offline_analyzer.v1",
+									"channels": 2,
+									"coverage_ratio": 1,
+									"duration_seconds": 20,
+									"evidence_ref": "dad.l3.stereo_relation_summary:D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav|size=3528044|mtime=1788061879850|length=20.0000",
+									"expected_sample_count": 1764000,
+									"inf_count": 0,
+									"max_abs": 0.541473388671875,
+									"nan_count": 0,
+									"nan_inf_count": 0,
+									"nonzero_count": 1762673,
+									"quality_reasons": [
+										"ok"
+									],
+									"quality_status": "ready",
+									"sample_rate": 44100,
+									"source_identity": "source_revision+clip_revision+optional_render_revision",
+									"sum_abs": 94730.06280517578
+								},
+								"quality_reason": "ok",
+								"quality_reasons": [
+									"ok"
+								],
+								"quality_status": "ready",
+								"request_id": "mixboard_20260924T053150.020196800",
+								"sample_rate": 44100,
+								"schema_version": "dad_l3_stereo_relation_summary.v1",
+								"source": "kernel_l3_offline_analyzer",
+								"source_fingerprint": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav|size=3528044|mtime=1788061879850|length=20.0000",
+								"source_identity": {
+									"analyzer_revision": "dad_l3_offline_analyzer.v1",
+									"analyzer_version": "dad_l3_offline_analyzer.v1",
+									"channels": 2,
+									"clip_id": "1016",
+									"clip_revision": "clip=1016|track=1012|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav|size=3528044|mtime=1788061879850|length=20.0000|offset=0.0000|length=20.0000",
+									"duration_seconds": 20,
+									"project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+									"project_uuid": "vitproj_9ecc5ab9a454400192086c628c07b966",
+									"sample_rate": 44100,
+									"source_fingerprint": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav|size=3528044|mtime=1788061879850|length=20.0000",
+									"source_id": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav",
+									"source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav",
+									"source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav|size=3528044|mtime=1788061879850|length=20.0000",
+									"track_id": "1012"
+								},
+								"source_kind": "clip",
+								"source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav",
+								"source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav|size=3528044|mtime=1788061879850|length=20.0000",
+								"status": "ready",
+								"sum_abs": 94730.06280517578,
+								"time_basis": "source_samples",
+								"track_id": "1012",
+								"updated_at": "2026-09-24T13:31:50.898+08:00"
+							},
+							"updated_at": "2026-09-24T13:31:50.898+08:00"
+						}
+					},
+					"updated_at": "2026-09-24T13:31:50.898+08:00"
+				}
+			},
+			"updated_at": "2026-09-24T13:31:50.898+08:00",
+			"audit": [
+				{
+					"source": "project_l3_feature_log",
+					"reason": "derived_from_feature_snapshot",
+					"updated_at": "2026-09-24T13:31:50.898+08:00"
+				},
+				{
+					"source": "acoustic_package_store",
+					"reason": "upsert",
+					"updated_at": "2026-09-24T05:32:48.8634435Z"
+				}
+			]
+		},
+		{
+			"schema_version": "acoustic_package_status.v0",
+			"status": "partial",
+			"project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+			"track_id": "1017",
+			"clip_id": "1021",
+			"source_fingerprint": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav|size=3528044|mtime=1788061879912|length=20.0000",
+			"source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav|size=3528044|mtime=1788061879912|length=20.0000",
+			"clip_revision": "clip=1021|track=1017|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav|size=3528044|mtime=1788061879912|length=20.0000|offset=0.0000|length=20.0000",
+			"analyzer_revision": "dad_l3_offline_analyzer.v1",
+			"source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav",
+			"duration_seconds": 20,
+			"source_identity": {
+				"analyzer_revision": "dad_l3_offline_analyzer.v1",
+				"clip_id": "1021",
+				"clip_revision": "clip=1021|track=1017|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav|size=3528044|mtime=1788061879912|length=20.0000|offset=0.0000|length=20.0000",
+				"clip_start_seconds": 0,
+				"duration_seconds": 20,
+				"project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+				"source_fingerprint": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav|size=3528044|mtime=1788061879912|length=20.0000",
+				"source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav",
+				"source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav|size=3528044|mtime=1788061879912|length=20.0000",
+				"track_id": "1017"
+			},
+			"package_layers": {
+				"l1_static": {
+					"status": "missing",
+					"features": {
+						"peak_rms_summary": {
+							"status": "missing",
+							"source": "project_l3_feature_log",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:51.330+08:00"
+							},
+							"updated_at": "2026-09-24T13:31:51.330+08:00"
+						},
+						"time_energy": {
+							"status": "missing",
+							"source": "project_l3_feature_log",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:51.330+08:00"
+							},
+							"ref": {
+								"time_segment_count": 0
+							},
+							"updated_at": "2026-09-24T13:31:51.330+08:00",
+							"reason": "waveform_envelope_required_for_time_energy"
+						},
+						"waveform_envelope": {
+							"status": "missing",
+							"source": "project_l3_feature_log",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:51.330+08:00"
+							},
+							"updated_at": "2026-09-24T13:31:51.330+08:00"
+						}
+					},
+					"updated_at": "2026-09-24T13:31:51.330+08:00"
+				},
+				"l2_realtime": {
+					"status": "deferred",
+					"features": {
+						"live_meter": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:51.330+08:00",
+								"reason": "phase_4_5_l2_realtime_requires_playback"
+							},
+							"updated_at": "2026-09-24T13:31:51.330+08:00",
+							"reason": "phase_4_5_l2_realtime_requires_playback"
+						},
+						"post_fx_meter": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:51.330+08:00",
+								"reason": "l2_render_probe_missing"
+							},
+							"updated_at": "2026-09-24T13:31:51.330+08:00",
+							"reason": "l2_render_probe_missing"
+						},
+						"realtime_spectrum": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:51.330+08:00",
+								"reason": "phase_4_5_l2_realtime_requires_playback"
+							},
+							"updated_at": "2026-09-24T13:31:51.330+08:00",
+							"reason": "phase_4_5_l2_realtime_requires_playback"
+						},
+						"realtime_stereo_correlation": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:51.330+08:00",
+								"reason": "phase_4_5_l2_realtime_requires_playback"
+							},
+							"updated_at": "2026-09-24T13:31:51.330+08:00",
+							"reason": "phase_4_5_l2_realtime_requires_playback"
+						},
+						"render_probe": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:51.330+08:00",
+								"reason": "l2_render_probe_missing"
+							},
+							"updated_at": "2026-09-24T13:31:51.330+08:00",
+							"reason": "l2_render_probe_missing"
+						}
+					},
+					"updated_at": "2026-09-24T13:31:51.330+08:00"
+				},
+				"l3_deep": {
+					"status": "partial",
+					"features": {
+						"band_energy_summary": {
+							"status": "ready",
+							"source": "kernel_l3_offline_analyzer",
+							"progress": {
+								"coverage_seconds": 20,
+								"coverage_ratio": 1,
+								"updated_at": "2026-09-24T13:31:51.328+08:00"
+							},
+							"ref": {
+								"analyzed_sample_count": 1764000,
+								"analyzer_revision": "dad_l3_offline_analyzer.v1",
+								"analyzer_version": "dad_l3_offline_analyzer.v1",
+								"bands": {
+									"air": {
+										"active_frame_ratio": 0.712962962962963,
+										"coverage": 1,
+										"coverage_ratio": 1,
+										"energy": 256.72951991603765,
+										"energy_db": 24.094758086774547,
+										"evidence_ref": "dad.l3.band_energy_summary:air",
+										"frame_count": 280800,
+										"max_hz": 20000,
+										"min_hz": 6000,
+										"persistence_ratio": 0.712962962962963,
+										"quality_status": "ready",
+										"relative_distribution": 0.000906942835353,
+										"sample_count": 1764000,
+										"status": "ready",
+										"unit_energy": 0.000906942835353
+									},
+									"bass": {
+										"active_frame_ratio": 0.865740740740741,
+										"coverage": 1,
+										"coverage_ratio": 1,
+										"energy": 99431.56848968645,
+										"energy_db": 49.97524290275059,
+										"evidence_ref": "dad.l3.band_energy_summary:bass",
+										"frame_count": 3888,
+										"max_hz": 250,
+										"min_hz": 60,
+										"persistence_ratio": 0.865740740740741,
+										"quality_status": "ready",
+										"relative_distribution": 0.351259756490533,
+										"sample_count": 1764000,
+										"status": "ready",
+										"unit_energy": 0.351259756490533
+									},
+									"low_mid": {
+										"active_frame_ratio": 0.856481481481482,
+										"coverage": 1,
+										"coverage_ratio": 1,
+										"energy": 56593.496810222634,
+										"energy_db": 47.52766529038099,
+										"evidence_ref": "dad.l3.band_energy_summary:low_mid",
+										"frame_count": 4968,
+										"max_hz": 500,
+										"min_hz": 250,
+										"persistence_ratio": 0.856481481481482,
+										"quality_status": "ready",
+										"relative_distribution": 0.199926625019181,
+										"sample_count": 1764000,
+										"status": "ready",
+										"unit_energy": 0.199926625019181
+									},
+									"mid": {
+										"active_frame_ratio": 0.847222222222222,
+										"coverage": 1,
+										"coverage_ratio": 1,
+										"energy": 62167.7603816203,
+										"energy_db": 47.93565222017926,
+										"evidence_ref": "dad.l3.band_energy_summary:mid",
+										"frame_count": 30024,
+										"max_hz": 2000,
+										"min_hz": 500,
+										"persistence_ratio": 0.847222222222222,
+										"quality_status": "ready",
+										"relative_distribution": 0.219618705657598,
+										"sample_count": 1764000,
+										"status": "ready",
+										"unit_energy": 0.219618705657598
+									},
+									"presence": {
+										"active_frame_ratio": 0.824074074074074,
+										"coverage": 1,
+										"coverage_ratio": 1,
+										"energy": 64494.57194804516,
+										"energy_db": 48.09523164678517,
+										"evidence_ref": "dad.l3.band_energy_summary:presence",
+										"frame_count": 80352,
+										"max_hz": 6000,
+										"min_hz": 2000,
+										"persistence_ratio": 0.824074074074074,
+										"quality_status": "ready",
+										"relative_distribution": 0.227838582670868,
+										"sample_count": 1764000,
+										"status": "ready",
+										"unit_energy": 0.227838582670868
+									},
+									"sub": {
+										"active_frame_ratio": 0.805555555555556,
+										"coverage": 1,
+										"coverage_ratio": 1,
+										"energy": 127.20867080240181,
+										"energy_db": 21.04516714718807,
+										"evidence_ref": "dad.l3.band_energy_summary:sub",
+										"frame_count": 864,
+										"max_hz": 60,
+										"min_hz": 20,
+										"persistence_ratio": 0.805555555555556,
+										"quality_status": "ready",
+										"relative_distribution": 0.000449387326462,
+										"sample_count": 1764000,
+										"status": "ready",
+										"unit_energy": 0.000449387326462
+									}
+								},
+								"capture_mode": "offline_full_song",
+								"channel_count": 2,
+								"channels": 2,
+								"clip_id": "1021",
+								"clip_revision": "clip=1021|track=1017|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav|size=3528044|mtime=1788061879912|length=20.0000|offset=0.0000|length=20.0000",
+								"coverage_ratio": 1,
+								"coverage_seconds": 20,
+								"duration_seconds": 20,
+								"evidence_ref": "dad.l3.band_energy_summary:D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav|size=3528044|mtime=1788061879912|length=20.0000",
+								"expected_sample_count": 1764000,
+								"feature_type": "band_energy_summary",
+								"file_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav",
+								"inf_count": 0,
+								"layer": "l3_deep",
+								"max_abs": 0.2640380859375,
+								"nan_count": 0,
+								"nonzero_count": 1756440,
+								"project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+								"quality_evidence": {
+									"analyzed_sample_count": 1764000,
+									"analyzer_version": "dad_l3_offline_analyzer.v1",
+									"channels": 2,
+									"coverage_ratio": 1,
+									"duration_seconds": 20,
+									"evidence_ref": "dad.l3.band_energy_summary:D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav|size=3528044|mtime=1788061879912|length=20.0000",
+									"expected_sample_count": 1764000,
+									"inf_count": 0,
+									"max_abs": 0.2640380859375,
+									"nan_count": 0,
+									"nan_inf_count": 0,
+									"nonzero_count": 1756440,
+									"quality_reasons": [
+										"ok"
+									],
+									"quality_status": "ready",
+									"sample_rate": 44100,
+									"source_identity": "source_revision+clip_revision+optional_render_revision",
+									"sum_abs": 24285.21319580078
+								},
+								"quality_reason": "ok",
+								"quality_reasons": [
+									"ok"
+								],
+								"quality_status": "ready",
+								"request_id": "mixboard_20260924T053150.020196800",
+								"sample_rate": 44100,
+								"schema_version": "dad_l3_band_energy_summary.v1",
+								"source": "kernel_l3_offline_analyzer",
+								"source_fingerprint": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav|size=3528044|mtime=1788061879912|length=20.0000",
+								"source_identity": {
+									"analyzer_revision": "dad_l3_offline_analyzer.v1",
+									"analyzer_version": "dad_l3_offline_analyzer.v1",
+									"channels": 2,
+									"clip_id": "1021",
+									"clip_revision": "clip=1021|track=1017|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav|size=3528044|mtime=1788061879912|length=20.0000|offset=0.0000|length=20.0000",
+									"duration_seconds": 20,
+									"project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+									"project_uuid": "vitproj_9ecc5ab9a454400192086c628c07b966",
+									"sample_rate": 44100,
+									"source_fingerprint": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav|size=3528044|mtime=1788061879912|length=20.0000",
+									"source_id": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav",
+									"source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav",
+									"source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav|size=3528044|mtime=1788061879912|length=20.0000",
+									"track_id": "1017"
+								},
+								"source_kind": "clip",
+								"source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav",
+								"source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav|size=3528044|mtime=1788061879912|length=20.0000",
+								"status": "ready",
+								"sum_abs": 24285.21319580078,
+								"time_basis": "source_samples",
+								"track_id": "1017",
+								"updated_at": "2026-09-24T13:31:51.328+08:00"
+							},
+							"updated_at": "2026-09-24T13:31:51.328+08:00"
+						},
+						"loudness_summary": {
+							"status": "ready",
+							"source": "kernel_l3_offline_analyzer",
+							"progress": {
+								"coverage_seconds": 20,
+								"coverage_ratio": 1,
+								"updated_at": "2026-09-24T13:31:51.330+08:00"
+							},
+							"ref": {
+								"algorithm": "approximate_rms_lufs_v1",
+								"analyzed_sample_count": 1764000,
+								"analyzer_revision": "dad_l3_offline_analyzer.v1",
+								"analyzer_version": "dad_l3_offline_analyzer.v1",
+								"approximate": true,
+								"approximate_lufs": -32.507504957261126,
+								"capture_mode": "offline_full_song",
+								"channel_count": 2,
+								"channels": 2,
+								"clip_id": "1021",
+								"clip_revision": "clip=1021|track=1017|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav|size=3528044|mtime=1788061879912|length=20.0000|offset=0.0000|length=20.0000",
+								"coverage_ratio": 1,
+								"coverage_seconds": 20,
+								"crest_db": 20.249836473407843,
+								"crest_factor": 10.291811509327443,
+								"duration_seconds": 20,
+								"evidence_ref": "dad.l3.loudness_summary:D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav|size=3528044|mtime=1788061879912|length=20.0000",
+								"expected_sample_count": 1764000,
+								"feature_type": "loudness_summary",
+								"file_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav",
+								"inf_count": 0,
+								"integrated_lufs": -32.507504957261126,
+								"layer": "l3_deep",
+								"max_abs": 0.2640380859375,
+								"nan_count": 0,
+								"nonzero_count": 1756440,
+								"peak": 0.2640380859375,
+								"peak_abs": 0.2640380859375,
+								"peak_dbfs": -11.566668483853281,
+								"project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+								"quality_evidence": {
+									"analyzed_sample_count": 1764000,
+									"analyzer_version": "dad_l3_offline_analyzer.v1",
+									"channels": 2,
+									"coverage_ratio": 1,
+									"duration_seconds": 20,
+									"evidence_ref": "dad.l3.loudness_summary:D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav|size=3528044|mtime=1788061879912|length=20.0000",
+									"expected_sample_count": 1764000,
+									"inf_count": 0,
+									"max_abs": 0.2640380859375,
+									"nan_count": 0,
+									"nan_inf_count": 0,
+									"nonzero_count": 1756440,
+									"quality_reasons": [
+										"ok"
+									],
+									"quality_status": "ready",
+									"sample_rate": 44100,
+									"source_identity": "source_revision+clip_revision+optional_render_revision",
+									"sum_abs": 24285.21319580078
+								},
+								"quality_reason": "ok",
+								"quality_reasons": [
+									"ok"
+								],
+								"quality_status": "ready",
+								"request_id": "mixboard_20260924T053150.020196800",
+								"rms": 0.025655161455124,
+								"rms_dbfs": -31.816504957261124,
+								"sample_rate": 44100,
+								"schema_version": "dad_l3_loudness_summary.v1",
+								"source": "kernel_l3_offline_analyzer",
+								"source_fingerprint": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav|size=3528044|mtime=1788061879912|length=20.0000",
+								"source_identity": {
+									"analyzer_revision": "dad_l3_offline_analyzer.v1",
+									"analyzer_version": "dad_l3_offline_analyzer.v1",
+									"channels": 2,
+									"clip_id": "1021",
+									"clip_revision": "clip=1021|track=1017|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav|size=3528044|mtime=1788061879912|length=20.0000|offset=0.0000|length=20.0000",
+									"duration_seconds": 20,
+									"project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+									"project_uuid": "vitproj_9ecc5ab9a454400192086c628c07b966",
+									"sample_rate": 44100,
+									"source_fingerprint": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav|size=3528044|mtime=1788061879912|length=20.0000",
+									"source_id": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav",
+									"source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav",
+									"source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav|size=3528044|mtime=1788061879912|length=20.0000",
+									"track_id": "1017"
+								},
+								"source_kind": "clip",
+								"source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav",
+								"source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav|size=3528044|mtime=1788061879912|length=20.0000",
+								"status": "ready",
+								"sum_abs": 24285.21319580078,
+								"time_basis": "source_samples",
+								"track_id": "1017",
+								"updated_at": "2026-09-24T13:31:51.330+08:00"
+							},
+							"updated_at": "2026-09-24T13:31:51.330+08:00"
+						},
+						"lufs_analysis": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:51.330+08:00",
+								"reason": "phase_5_deferred"
+							},
+							"updated_at": "2026-09-24T13:31:51.330+08:00",
+							"reason": "phase_5_deferred"
+						},
+						"masking_analysis": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:51.330+08:00",
+								"reason": "phase_5_deferred"
+							},
+							"updated_at": "2026-09-24T13:31:51.330+08:00",
+							"reason": "phase_5_deferred"
+						},
+						"reference_match": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:51.330+08:00",
+								"reason": "phase_5_deferred"
+							},
+							"updated_at": "2026-09-24T13:31:51.330+08:00",
+							"reason": "phase_5_deferred"
+						},
+						"spectrogram_tiles": {
+							"status": "missing",
+							"source": "project_l3_feature_log",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:51.330+08:00"
+							},
+							"updated_at": "2026-09-24T13:31:51.330+08:00"
+						},
+						"stereo_relation_summary": {
+							"status": "ready",
+							"source": "kernel_l3_offline_analyzer",
+							"progress": {
+								"coverage_seconds": 20,
+								"coverage_ratio": 1,
+								"updated_at": "2026-09-24T13:31:51.329+08:00"
+							},
+							"ref": {
+								"analyzed_sample_count": 1764000,
+								"analyzer_revision": "dad_l3_offline_analyzer.v1",
+								"analyzer_version": "dad_l3_offline_analyzer.v1",
+								"balance_db": 0.676161689691902,
+								"balance_state": "centered",
+								"capture_mode": "offline_full_song",
+								"channel_count": 2,
+								"channels": 2,
+								"clip_id": "1021",
+								"clip_revision": "clip=1021|track=1017|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav|size=3528044|mtime=1788061879912|length=20.0000|offset=0.0000|length=20.0000",
+								"correlation_estimate": 0.226686798309598,
+								"correlation_state": "decorrelated",
+								"coverage_ratio": 1,
+								"coverage_seconds": 20,
+								"duration_seconds": 20,
+								"evidence_ref": "dad.l3.stereo_relation_summary:D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav|size=3528044|mtime=1788061879912|length=20.0000",
+								"expected_sample_count": 1764000,
+								"feature_type": "stereo_relation_summary",
+								"file_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav",
+								"inf_count": 0,
+								"layer": "l3_deep",
+								"max_abs": 0.2640380859375,
+								"nan_count": 0,
+								"nonzero_count": 1756440,
+								"project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+								"quality_evidence": {
+									"analyzed_sample_count": 1764000,
+									"analyzer_version": "dad_l3_offline_analyzer.v1",
+									"channels": 2,
+									"coverage_ratio": 1,
+									"duration_seconds": 20,
+									"evidence_ref": "dad.l3.stereo_relation_summary:D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav|size=3528044|mtime=1788061879912|length=20.0000",
+									"expected_sample_count": 1764000,
+									"inf_count": 0,
+									"max_abs": 0.2640380859375,
+									"nan_count": 0,
+									"nan_inf_count": 0,
+									"nonzero_count": 1756440,
+									"quality_reasons": [
+										"ok"
+									],
+									"quality_status": "ready",
+									"sample_rate": 44100,
+									"source_identity": "source_revision+clip_revision+optional_render_revision",
+									"sum_abs": 24285.21319580078
+								},
+								"quality_reason": "ok",
+								"quality_reasons": [
+									"ok"
+								],
+								"quality_status": "ready",
+								"request_id": "mixboard_20260924T053150.020196800",
+								"sample_rate": 44100,
+								"schema_version": "dad_l3_stereo_relation_summary.v1",
+								"source": "kernel_l3_offline_analyzer",
+								"source_fingerprint": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav|size=3528044|mtime=1788061879912|length=20.0000",
+								"source_identity": {
+									"analyzer_revision": "dad_l3_offline_analyzer.v1",
+									"analyzer_version": "dad_l3_offline_analyzer.v1",
+									"channels": 2,
+									"clip_id": "1021",
+									"clip_revision": "clip=1021|track=1017|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav|size=3528044|mtime=1788061879912|length=20.0000|offset=0.0000|length=20.0000",
+									"duration_seconds": 20,
+									"project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+									"project_uuid": "vitproj_9ecc5ab9a454400192086c628c07b966",
+									"sample_rate": 44100,
+									"source_fingerprint": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav|size=3528044|mtime=1788061879912|length=20.0000",
+									"source_id": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav",
+									"source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav",
+									"source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav|size=3528044|mtime=1788061879912|length=20.0000",
+									"track_id": "1017"
+								},
+								"source_kind": "clip",
+								"source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav",
+								"source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav|size=3528044|mtime=1788061879912|length=20.0000",
+								"status": "ready",
+								"sum_abs": 24285.21319580078,
+								"time_basis": "source_samples",
+								"track_id": "1017",
+								"updated_at": "2026-09-24T13:31:51.329+08:00"
+							},
+							"updated_at": "2026-09-24T13:31:51.329+08:00"
+						}
+					},
+					"updated_at": "2026-09-24T13:31:51.330+08:00"
+				}
+			},
+			"updated_at": "2026-09-24T13:31:51.330+08:00",
+			"audit": [
+				{
+					"source": "project_l3_feature_log",
+					"reason": "derived_from_feature_snapshot",
+					"updated_at": "2026-09-24T13:31:51.330+08:00"
+				},
+				{
+					"source": "acoustic_package_store",
+					"reason": "upsert",
+					"updated_at": "2026-09-24T05:32:48.8704456Z"
+				}
+			]
+		},
+		{
+			"schema_version": "acoustic_package_status.v0",
+			"status": "partial",
+			"project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+			"track_id": "1022",
+			"clip_id": "1026",
+			"source_fingerprint": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav|size=3528044|mtime=1788061879972|length=20.0000",
+			"source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav|size=3528044|mtime=1788061879972|length=20.0000",
+			"clip_revision": "clip=1026|track=1022|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav|size=3528044|mtime=1788061879972|length=20.0000|offset=0.0000|length=20.0000",
+			"analyzer_revision": "dad_l3_offline_analyzer.v1",
+			"source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav",
+			"duration_seconds": 20,
+			"source_identity": {
+				"analyzer_revision": "dad_l3_offline_analyzer.v1",
+				"clip_id": "1026",
+				"clip_revision": "clip=1026|track=1022|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav|size=3528044|mtime=1788061879972|length=20.0000|offset=0.0000|length=20.0000",
+				"clip_start_seconds": 0,
+				"duration_seconds": 20,
+				"project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+				"source_fingerprint": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav|size=3528044|mtime=1788061879972|length=20.0000",
+				"source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav",
+				"source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav|size=3528044|mtime=1788061879972|length=20.0000",
+				"track_id": "1022"
+			},
+			"package_layers": {
+				"l1_static": {
+					"status": "missing",
+					"features": {
+						"peak_rms_summary": {
+							"status": "missing",
+							"source": "project_l3_feature_log",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:51.783+08:00"
+							},
+							"updated_at": "2026-09-24T13:31:51.783+08:00"
+						},
+						"time_energy": {
+							"status": "missing",
+							"source": "project_l3_feature_log",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:51.783+08:00"
+							},
+							"ref": {
+								"time_segment_count": 0
+							},
+							"updated_at": "2026-09-24T13:31:51.783+08:00",
+							"reason": "waveform_envelope_required_for_time_energy"
+						},
+						"waveform_envelope": {
+							"status": "missing",
+							"source": "project_l3_feature_log",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:51.783+08:00"
+							},
+							"updated_at": "2026-09-24T13:31:51.783+08:00"
+						}
+					},
+					"updated_at": "2026-09-24T13:31:51.783+08:00"
+				},
+				"l2_realtime": {
+					"status": "deferred",
+					"features": {
+						"live_meter": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:51.783+08:00",
+								"reason": "phase_4_5_l2_realtime_requires_playback"
+							},
+							"updated_at": "2026-09-24T13:31:51.783+08:00",
+							"reason": "phase_4_5_l2_realtime_requires_playback"
+						},
+						"post_fx_meter": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:51.783+08:00",
+								"reason": "l2_render_probe_missing"
+							},
+							"updated_at": "2026-09-24T13:31:51.783+08:00",
+							"reason": "l2_render_probe_missing"
+						},
+						"realtime_spectrum": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:51.783+08:00",
+								"reason": "phase_4_5_l2_realtime_requires_playback"
+							},
+							"updated_at": "2026-09-24T13:31:51.783+08:00",
+							"reason": "phase_4_5_l2_realtime_requires_playback"
+						},
+						"realtime_stereo_correlation": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:51.783+08:00",
+								"reason": "phase_4_5_l2_realtime_requires_playback"
+							},
+							"updated_at": "2026-09-24T13:31:51.783+08:00",
+							"reason": "phase_4_5_l2_realtime_requires_playback"
+						},
+						"render_probe": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:51.783+08:00",
+								"reason": "l2_render_probe_missing"
+							},
+							"updated_at": "2026-09-24T13:31:51.783+08:00",
+							"reason": "l2_render_probe_missing"
+						}
+					},
+					"updated_at": "2026-09-24T13:31:51.783+08:00"
+				},
+				"l3_deep": {
+					"status": "partial",
+					"features": {
+						"band_energy_summary": {
+							"status": "ready",
+							"source": "kernel_l3_offline_analyzer",
+							"progress": {
+								"coverage_seconds": 20,
+								"coverage_ratio": 1,
+								"updated_at": "2026-09-24T13:31:51.782+08:00"
+							},
+							"ref": {
+								"analyzed_sample_count": 1764000,
+								"analyzer_revision": "dad_l3_offline_analyzer.v1",
+								"analyzer_version": "dad_l3_offline_analyzer.v1",
+								"bands": {
+									"air": {
+										"active_frame_ratio": 0.810185185185185,
+										"coverage": 1,
+										"coverage_ratio": 1,
+										"energy": 5900.979977120651,
+										"energy_db": 37.70924141017449,
+										"evidence_ref": "dad.l3.band_energy_summary:air",
+										"frame_count": 280800,
+										"max_hz": 20000,
+										"min_hz": 6000,
+										"persistence_ratio": 0.810185185185185,
+										"quality_status": "ready",
+										"relative_distribution": 0.002631867950565,
+										"sample_count": 1764000,
+										"status": "ready",
+										"unit_energy": 0.002631867950565
+									},
+									"bass": {
+										"active_frame_ratio": 0.814814814814815,
+										"coverage": 1,
+										"coverage_ratio": 1,
+										"energy": 333319.2554337743,
+										"energy_db": 55.22860403030719,
+										"evidence_ref": "dad.l3.band_energy_summary:bass",
+										"frame_count": 3888,
+										"max_hz": 250,
+										"min_hz": 60,
+										"persistence_ratio": 0.814814814814815,
+										"quality_status": "ready",
+										"relative_distribution": 0.14866213223629,
+										"sample_count": 1764000,
+										"status": "ready",
+										"unit_energy": 0.14866213223629
+									},
+									"low_mid": {
+										"active_frame_ratio": 0.814814814814815,
+										"coverage": 1,
+										"coverage_ratio": 1,
+										"energy": 352711.40658466326,
+										"energy_db": 55.47419504852273,
+										"evidence_ref": "dad.l3.band_energy_summary:low_mid",
+										"frame_count": 4968,
+										"max_hz": 500,
+										"min_hz": 250,
+										"persistence_ratio": 0.814814814814815,
+										"quality_status": "ready",
+										"relative_distribution": 0.157311133131807,
+										"sample_count": 1764000,
+										"status": "ready",
+										"unit_energy": 0.157311133131807
+									},
+									"mid": {
+										"active_frame_ratio": 0.824074074074074,
+										"coverage": 1,
+										"coverage_ratio": 1,
+										"energy": 1367644.444639795,
+										"energy_db": 61.35973205716381,
+										"evidence_ref": "dad.l3.band_energy_summary:mid",
+										"frame_count": 30024,
+										"max_hz": 2000,
+										"min_hz": 500,
+										"persistence_ratio": 0.824074074074074,
+										"quality_status": "ready",
+										"relative_distribution": 0.609976579410863,
+										"sample_count": 1764000,
+										"status": "ready",
+										"unit_energy": 0.609976579410863
+									},
+									"presence": {
+										"active_frame_ratio": 0.847222222222222,
+										"coverage": 1,
+										"coverage_ratio": 1,
+										"energy": 167756.9143228341,
+										"energy_db": 52.2468042923071,
+										"evidence_ref": "dad.l3.band_energy_summary:presence",
+										"frame_count": 80352,
+										"max_hz": 6000,
+										"min_hz": 2000,
+										"persistence_ratio": 0.847222222222222,
+										"quality_status": "ready",
+										"relative_distribution": 0.074820461686673,
+										"sample_count": 1764000,
+										"status": "ready",
+										"unit_energy": 0.074820461686673
+									},
+									"sub": {
+										"active_frame_ratio": 0.800925925925926,
+										"coverage": 1,
+										"coverage_ratio": 1,
+										"energy": 14793.15732920771,
+										"energy_db": 41.70060876114007,
+										"evidence_ref": "dad.l3.band_energy_summary:sub",
+										"frame_count": 864,
+										"max_hz": 60,
+										"min_hz": 20,
+										"persistence_ratio": 0.800925925925926,
+										"quality_status": "ready",
+										"relative_distribution": 0.006597825583778,
+										"sample_count": 1764000,
+										"status": "ready",
+										"unit_energy": 0.006597825583778
+									}
+								},
+								"capture_mode": "offline_full_song",
+								"channel_count": 2,
+								"channels": 2,
+								"clip_id": "1026",
+								"clip_revision": "clip=1026|track=1022|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav|size=3528044|mtime=1788061879972|length=20.0000|offset=0.0000|length=20.0000",
+								"coverage_ratio": 1,
+								"coverage_seconds": 20,
+								"duration_seconds": 20,
+								"evidence_ref": "dad.l3.band_energy_summary:D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav|size=3528044|mtime=1788061879972|length=20.0000",
+								"expected_sample_count": 1764000,
+								"feature_type": "band_energy_summary",
+								"file_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav",
+								"inf_count": 0,
+								"layer": "l3_deep",
+								"max_abs": 0.5245361328125,
+								"nan_count": 0,
+								"nonzero_count": 1763625,
+								"project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+								"quality_evidence": {
+									"analyzed_sample_count": 1764000,
+									"analyzer_version": "dad_l3_offline_analyzer.v1",
+									"channels": 2,
+									"coverage_ratio": 1,
+									"duration_seconds": 20,
+									"evidence_ref": "dad.l3.band_energy_summary:D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav|size=3528044|mtime=1788061879972|length=20.0000",
+									"expected_sample_count": 1764000,
+									"inf_count": 0,
+									"max_abs": 0.5245361328125,
+									"nan_count": 0,
+									"nan_inf_count": 0,
+									"nonzero_count": 1763625,
+									"quality_reasons": [
+										"ok"
+									],
+									"quality_status": "ready",
+									"sample_rate": 44100,
+									"source_identity": "source_revision+clip_revision+optional_render_revision",
+									"sum_abs": 96747.50256347656
+								},
+								"quality_reason": "ok",
+								"quality_reasons": [
+									"ok"
+								],
+								"quality_status": "ready",
+								"request_id": "mixboard_20260924T053150.020196800",
+								"sample_rate": 44100,
+								"schema_version": "dad_l3_band_energy_summary.v1",
+								"source": "kernel_l3_offline_analyzer",
+								"source_fingerprint": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav|size=3528044|mtime=1788061879972|length=20.0000",
+								"source_identity": {
+									"analyzer_revision": "dad_l3_offline_analyzer.v1",
+									"analyzer_version": "dad_l3_offline_analyzer.v1",
+									"channels": 2,
+									"clip_id": "1026",
+									"clip_revision": "clip=1026|track=1022|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav|size=3528044|mtime=1788061879972|length=20.0000|offset=0.0000|length=20.0000",
+									"duration_seconds": 20,
+									"project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+									"project_uuid": "vitproj_9ecc5ab9a454400192086c628c07b966",
+									"sample_rate": 44100,
+									"source_fingerprint": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav|size=3528044|mtime=1788061879972|length=20.0000",
+									"source_id": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav",
+									"source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav",
+									"source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav|size=3528044|mtime=1788061879972|length=20.0000",
+									"track_id": "1022"
+								},
+								"source_kind": "clip",
+								"source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav",
+								"source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav|size=3528044|mtime=1788061879972|length=20.0000",
+								"status": "ready",
+								"sum_abs": 96747.50256347656,
+								"time_basis": "source_samples",
+								"track_id": "1022",
+								"updated_at": "2026-09-24T13:31:51.782+08:00"
+							},
+							"updated_at": "2026-09-24T13:31:51.782+08:00"
+						},
+						"loudness_summary": {
+							"status": "ready",
+							"source": "kernel_l3_offline_analyzer",
+							"progress": {
+								"coverage_seconds": 20,
+								"coverage_ratio": 1,
+								"updated_at": "2026-09-24T13:31:51.783+08:00"
+							},
+							"ref": {
+								"algorithm": "approximate_rms_lufs_v1",
+								"analyzed_sample_count": 1764000,
+								"analyzer_revision": "dad_l3_offline_analyzer.v1",
+								"analyzer_version": "dad_l3_offline_analyzer.v1",
+								"approximate": true,
+								"approximate_lufs": -23.373941055857774,
+								"capture_mode": "offline_full_song",
+								"channel_count": 2,
+								"channels": 2,
+								"clip_id": "1026",
+								"clip_revision": "clip=1026|track=1022|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav|size=3528044|mtime=1788061879972|length=20.0000|offset=0.0000|length=20.0000",
+								"coverage_ratio": 1,
+								"coverage_seconds": 20,
+								"crest_db": 17.07844925690073,
+								"crest_factor": 7.143687742195422,
+								"duration_seconds": 20,
+								"evidence_ref": "dad.l3.loudness_summary:D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav|size=3528044|mtime=1788061879972|length=20.0000",
+								"expected_sample_count": 1764000,
+								"feature_type": "loudness_summary",
+								"file_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav",
+								"inf_count": 0,
+								"integrated_lufs": -23.373941055857774,
+								"layer": "l3_deep",
+								"max_abs": 0.5245361328125,
+								"nan_count": 0,
+								"nonzero_count": 1763625,
+								"peak": 0.5245361328125,
+								"peak_abs": 0.5245361328125,
+								"peak_dbfs": -5.604491798957047,
+								"project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+								"quality_evidence": {
+									"analyzed_sample_count": 1764000,
+									"analyzer_version": "dad_l3_offline_analyzer.v1",
+									"channels": 2,
+									"coverage_ratio": 1,
+									"duration_seconds": 20,
+									"evidence_ref": "dad.l3.loudness_summary:D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav|size=3528044|mtime=1788061879972|length=20.0000",
+									"expected_sample_count": 1764000,
+									"inf_count": 0,
+									"max_abs": 0.5245361328125,
+									"nan_count": 0,
+									"nan_inf_count": 0,
+									"nonzero_count": 1763625,
+									"quality_reasons": [
+										"ok"
+									],
+									"quality_status": "ready",
+									"sample_rate": 44100,
+									"source_identity": "source_revision+clip_revision+optional_render_revision",
+									"sum_abs": 96747.50256347656
+								},
+								"quality_reason": "ok",
+								"quality_reasons": [
+									"ok"
+								],
+								"quality_status": "ready",
+								"request_id": "mixboard_20260924T053150.020196800",
+								"rms": 0.073426520271069,
+								"rms_dbfs": -22.682941055857775,
+								"sample_rate": 44100,
+								"schema_version": "dad_l3_loudness_summary.v1",
+								"source": "kernel_l3_offline_analyzer",
+								"source_fingerprint": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav|size=3528044|mtime=1788061879972|length=20.0000",
+								"source_identity": {
+									"analyzer_revision": "dad_l3_offline_analyzer.v1",
+									"analyzer_version": "dad_l3_offline_analyzer.v1",
+									"channels": 2,
+									"clip_id": "1026",
+									"clip_revision": "clip=1026|track=1022|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav|size=3528044|mtime=1788061879972|length=20.0000|offset=0.0000|length=20.0000",
+									"duration_seconds": 20,
+									"project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+									"project_uuid": "vitproj_9ecc5ab9a454400192086c628c07b966",
+									"sample_rate": 44100,
+									"source_fingerprint": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav|size=3528044|mtime=1788061879972|length=20.0000",
+									"source_id": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav",
+									"source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav",
+									"source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav|size=3528044|mtime=1788061879972|length=20.0000",
+									"track_id": "1022"
+								},
+								"source_kind": "clip",
+								"source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav",
+								"source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav|size=3528044|mtime=1788061879972|length=20.0000",
+								"status": "ready",
+								"sum_abs": 96747.50256347656,
+								"time_basis": "source_samples",
+								"track_id": "1022",
+								"updated_at": "2026-09-24T13:31:51.783+08:00"
+							},
+							"updated_at": "2026-09-24T13:31:51.783+08:00"
+						},
+						"lufs_analysis": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:51.783+08:00",
+								"reason": "phase_5_deferred"
+							},
+							"updated_at": "2026-09-24T13:31:51.783+08:00",
+							"reason": "phase_5_deferred"
+						},
+						"masking_analysis": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:51.783+08:00",
+								"reason": "phase_5_deferred"
+							},
+							"updated_at": "2026-09-24T13:31:51.783+08:00",
+							"reason": "phase_5_deferred"
+						},
+						"reference_match": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:51.783+08:00",
+								"reason": "phase_5_deferred"
+							},
+							"updated_at": "2026-09-24T13:31:51.783+08:00",
+							"reason": "phase_5_deferred"
+						},
+						"spectrogram_tiles": {
+							"status": "missing",
+							"source": "project_l3_feature_log",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:51.783+08:00"
+							},
+							"updated_at": "2026-09-24T13:31:51.783+08:00"
+						},
+						"stereo_relation_summary": {
+							"status": "ready",
+							"source": "kernel_l3_offline_analyzer",
+							"progress": {
+								"coverage_seconds": 20,
+								"coverage_ratio": 1,
+								"updated_at": "2026-09-24T13:31:51.783+08:00"
+							},
+							"ref": {
+								"analyzed_sample_count": 1764000,
+								"analyzer_revision": "dad_l3_offline_analyzer.v1",
+								"analyzer_version": "dad_l3_offline_analyzer.v1",
+								"balance_db": -0.596749667770361,
+								"balance_state": "centered",
+								"capture_mode": "offline_full_song",
+								"channel_count": 2,
+								"channels": 2,
+								"clip_id": "1026",
+								"clip_revision": "clip=1026|track=1022|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav|size=3528044|mtime=1788061879972|length=20.0000|offset=0.0000|length=20.0000",
+								"correlation_estimate": 0.2253180301496,
+								"correlation_state": "decorrelated",
+								"coverage_ratio": 1,
+								"coverage_seconds": 20,
+								"duration_seconds": 20,
+								"evidence_ref": "dad.l3.stereo_relation_summary:D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav|size=3528044|mtime=1788061879972|length=20.0000",
+								"expected_sample_count": 1764000,
+								"feature_type": "stereo_relation_summary",
+								"file_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav",
+								"inf_count": 0,
+								"layer": "l3_deep",
+								"max_abs": 0.5245361328125,
+								"nan_count": 0,
+								"nonzero_count": 1763625,
+								"project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+								"quality_evidence": {
+									"analyzed_sample_count": 1764000,
+									"analyzer_version": "dad_l3_offline_analyzer.v1",
+									"channels": 2,
+									"coverage_ratio": 1,
+									"duration_seconds": 20,
+									"evidence_ref": "dad.l3.stereo_relation_summary:D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav|size=3528044|mtime=1788061879972|length=20.0000",
+									"expected_sample_count": 1764000,
+									"inf_count": 0,
+									"max_abs": 0.5245361328125,
+									"nan_count": 0,
+									"nan_inf_count": 0,
+									"nonzero_count": 1763625,
+									"quality_reasons": [
+										"ok"
+									],
+									"quality_status": "ready",
+									"sample_rate": 44100,
+									"source_identity": "source_revision+clip_revision+optional_render_revision",
+									"sum_abs": 96747.50256347656
+								},
+								"quality_reason": "ok",
+								"quality_reasons": [
+									"ok"
+								],
+								"quality_status": "ready",
+								"request_id": "mixboard_20260924T053150.020196800",
+								"sample_rate": 44100,
+								"schema_version": "dad_l3_stereo_relation_summary.v1",
+								"source": "kernel_l3_offline_analyzer",
+								"source_fingerprint": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav|size=3528044|mtime=1788061879972|length=20.0000",
+								"source_identity": {
+									"analyzer_revision": "dad_l3_offline_analyzer.v1",
+									"analyzer_version": "dad_l3_offline_analyzer.v1",
+									"channels": 2,
+									"clip_id": "1026",
+									"clip_revision": "clip=1026|track=1022|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav|size=3528044|mtime=1788061879972|length=20.0000|offset=0.0000|length=20.0000",
+									"duration_seconds": 20,
+									"project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+									"project_uuid": "vitproj_9ecc5ab9a454400192086c628c07b966",
+									"sample_rate": 44100,
+									"source_fingerprint": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav|size=3528044|mtime=1788061879972|length=20.0000",
+									"source_id": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav",
+									"source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav",
+									"source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav|size=3528044|mtime=1788061879972|length=20.0000",
+									"track_id": "1022"
+								},
+								"source_kind": "clip",
+								"source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav",
+								"source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav|size=3528044|mtime=1788061879972|length=20.0000",
+								"status": "ready",
+								"sum_abs": 96747.50256347656,
+								"time_basis": "source_samples",
+								"track_id": "1022",
+								"updated_at": "2026-09-24T13:31:51.783+08:00"
+							},
+							"updated_at": "2026-09-24T13:31:51.783+08:00"
+						}
+					},
+					"updated_at": "2026-09-24T13:31:51.783+08:00"
+				}
+			},
+			"updated_at": "2026-09-24T13:31:51.783+08:00",
+			"audit": [
+				{
+					"source": "project_l3_feature_log",
+					"reason": "derived_from_feature_snapshot",
+					"updated_at": "2026-09-24T13:31:51.783+08:00"
+				},
+				{
+					"source": "acoustic_package_store",
+					"reason": "upsert",
+					"updated_at": "2026-09-24T05:32:48.8812174Z"
+				}
+			]
+		},
+		{
+			"schema_version": "acoustic_package_status.v0",
+			"status": "partial",
+			"project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+			"track_id": "1027",
+			"clip_id": "1031",
+			"source_fingerprint": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav|size=3528044|mtime=1788061880032|length=20.0000",
+			"source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav|size=3528044|mtime=1788061880032|length=20.0000",
+			"clip_revision": "clip=1031|track=1027|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav|size=3528044|mtime=1788061880032|length=20.0000|offset=0.0000|length=20.0000",
+			"analyzer_revision": "dad_l3_offline_analyzer.v1",
+			"source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav",
+			"duration_seconds": 20,
+			"source_identity": {
+				"analyzer_revision": "dad_l3_offline_analyzer.v1",
+				"clip_id": "1031",
+				"clip_revision": "clip=1031|track=1027|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav|size=3528044|mtime=1788061880032|length=20.0000|offset=0.0000|length=20.0000",
+				"clip_start_seconds": 0,
+				"duration_seconds": 20,
+				"project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+				"source_fingerprint": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav|size=3528044|mtime=1788061880032|length=20.0000",
+				"source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav",
+				"source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav|size=3528044|mtime=1788061880032|length=20.0000",
+				"track_id": "1027"
+			},
+			"package_layers": {
+				"l1_static": {
+					"status": "missing",
+					"features": {
+						"peak_rms_summary": {
+							"status": "missing",
+							"source": "project_l3_feature_log",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:52.220+08:00"
+							},
+							"updated_at": "2026-09-24T13:31:52.220+08:00"
+						},
+						"time_energy": {
+							"status": "missing",
+							"source": "project_l3_feature_log",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:52.220+08:00"
+							},
+							"ref": {
+								"time_segment_count": 0
+							},
+							"updated_at": "2026-09-24T13:31:52.220+08:00",
+							"reason": "waveform_envelope_required_for_time_energy"
+						},
+						"waveform_envelope": {
+							"status": "missing",
+							"source": "project_l3_feature_log",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:52.220+08:00"
+							},
+							"updated_at": "2026-09-24T13:31:52.220+08:00"
+						}
+					},
+					"updated_at": "2026-09-24T13:31:52.220+08:00"
+				},
+				"l2_realtime": {
+					"status": "deferred",
+					"features": {
+						"live_meter": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:52.220+08:00",
+								"reason": "phase_4_5_l2_realtime_requires_playback"
+							},
+							"updated_at": "2026-09-24T13:31:52.220+08:00",
+							"reason": "phase_4_5_l2_realtime_requires_playback"
+						},
+						"post_fx_meter": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:52.220+08:00",
+								"reason": "l2_render_probe_missing"
+							},
+							"updated_at": "2026-09-24T13:31:52.220+08:00",
+							"reason": "l2_render_probe_missing"
+						},
+						"realtime_spectrum": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:52.220+08:00",
+								"reason": "phase_4_5_l2_realtime_requires_playback"
+							},
+							"updated_at": "2026-09-24T13:31:52.220+08:00",
+							"reason": "phase_4_5_l2_realtime_requires_playback"
+						},
+						"realtime_stereo_correlation": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:52.220+08:00",
+								"reason": "phase_4_5_l2_realtime_requires_playback"
+							},
+							"updated_at": "2026-09-24T13:31:52.220+08:00",
+							"reason": "phase_4_5_l2_realtime_requires_playback"
+						},
+						"render_probe": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:52.220+08:00",
+								"reason": "l2_render_probe_missing"
+							},
+							"updated_at": "2026-09-24T13:31:52.220+08:00",
+							"reason": "l2_render_probe_missing"
+						}
+					},
+					"updated_at": "2026-09-24T13:31:52.220+08:00"
+				},
+				"l3_deep": {
+					"status": "partial",
+					"features": {
+						"band_energy_summary": {
+							"status": "ready",
+							"source": "kernel_l3_offline_analyzer",
+							"progress": {
+								"coverage_seconds": 20,
+								"coverage_ratio": 1,
+								"updated_at": "2026-09-24T13:31:52.218+08:00"
+							},
+							"ref": {
+								"analyzed_sample_count": 1764000,
+								"analyzer_revision": "dad_l3_offline_analyzer.v1",
+								"analyzer_version": "dad_l3_offline_analyzer.v1",
+								"bands": {
+									"air": {
+										"active_frame_ratio": 0.819444444444444,
+										"coverage": 1,
+										"coverage_ratio": 1,
+										"energy": 38.32652194504883,
+										"energy_db": 15.83499409689823,
+										"evidence_ref": "dad.l3.band_energy_summary:air",
+										"frame_count": 280800,
+										"max_hz": 20000,
+										"min_hz": 6000,
+										"persistence_ratio": 0.819444444444444,
+										"quality_status": "ready",
+										"relative_distribution": 0.0000606160096,
+										"sample_count": 1764000,
+										"status": "ready",
+										"unit_energy": 0.0000606160096
+									},
+									"bass": {
+										"active_frame_ratio": 0.824074074074074,
+										"coverage": 1,
+										"coverage_ratio": 1,
+										"energy": 136722.88483617443,
+										"energy_db": 51.35841213369892,
+										"evidence_ref": "dad.l3.band_energy_summary:bass",
+										"frame_count": 3888,
+										"max_hz": 250,
+										"min_hz": 60,
+										"persistence_ratio": 0.824074074074074,
+										"quality_status": "ready",
+										"relative_distribution": 0.216236571419556,
+										"sample_count": 1764000,
+										"status": "ready",
+										"unit_energy": 0.216236571419556
+									},
+									"low_mid": {
+										"active_frame_ratio": 0.861111111111111,
+										"coverage": 1,
+										"coverage_ratio": 1,
+										"energy": 207229.11318638825,
+										"energy_db": 53.16450768486391,
+										"evidence_ref": "dad.l3.band_energy_summary:low_mid",
+										"frame_count": 4968,
+										"max_hz": 500,
+										"min_hz": 250,
+										"persistence_ratio": 0.861111111111111,
+										"quality_status": "ready",
+										"relative_distribution": 0.327746982426775,
+										"sample_count": 1764000,
+										"status": "ready",
+										"unit_energy": 0.327746982426775
+									},
+									"mid": {
+										"active_frame_ratio": 0.865740740740741,
+										"coverage": 1,
+										"coverage_ratio": 1,
+										"energy": 280719.8068931707,
+										"energy_db": 54.48273056456783,
+										"evidence_ref": "dad.l3.band_energy_summary:mid",
+										"frame_count": 30024,
+										"max_hz": 2000,
+										"min_hz": 500,
+										"persistence_ratio": 0.865740740740741,
+										"quality_status": "ready",
+										"relative_distribution": 0.443977529035274,
+										"sample_count": 1764000,
+										"status": "ready",
+										"unit_energy": 0.443977529035274
+									},
+									"presence": {
+										"active_frame_ratio": 0.856481481481482,
+										"coverage": 1,
+										"coverage_ratio": 1,
+										"energy": 6341.729144821381,
+										"energy_db": 38.02207689374854,
+										"evidence_ref": "dad.l3.band_energy_summary:presence",
+										"frame_count": 80352,
+										"max_hz": 6000,
+										"min_hz": 2000,
+										"persistence_ratio": 0.856481481481482,
+										"quality_status": "ready",
+										"relative_distribution": 0.010029877359528,
+										"sample_count": 1764000,
+										"status": "ready",
+										"unit_energy": 0.010029877359528
+									},
+									"sub": {
+										"active_frame_ratio": 0.824074074074074,
+										"coverage": 1,
+										"coverage_ratio": 1,
+										"energy": 1231.95680608905,
+										"energy_db": 30.90595481200137,
+										"evidence_ref": "dad.l3.band_energy_summary:sub",
+										"frame_count": 864,
+										"max_hz": 60,
+										"min_hz": 20,
+										"persistence_ratio": 0.824074074074074,
+										"quality_status": "ready",
+										"relative_distribution": 0.001948423749286,
+										"sample_count": 1764000,
+										"status": "ready",
+										"unit_energy": 0.001948423749286
+									}
+								},
+								"capture_mode": "offline_full_song",
+								"channel_count": 2,
+								"channels": 2,
+								"clip_id": "1031",
+								"clip_revision": "clip=1031|track=1027|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav|size=3528044|mtime=1788061880032|length=20.0000|offset=0.0000|length=20.0000",
+								"coverage_ratio": 1,
+								"coverage_seconds": 20,
+								"duration_seconds": 20,
+								"evidence_ref": "dad.l3.band_energy_summary:D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav|size=3528044|mtime=1788061880032|length=20.0000",
+								"expected_sample_count": 1764000,
+								"feature_type": "band_energy_summary",
+								"file_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav",
+								"inf_count": 0,
+								"layer": "l3_deep",
+								"max_abs": 0.37109375,
+								"nan_count": 0,
+								"nonzero_count": 1761288,
+								"project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+								"quality_evidence": {
+									"analyzed_sample_count": 1764000,
+									"analyzer_version": "dad_l3_offline_analyzer.v1",
+									"channels": 2,
+									"coverage_ratio": 1,
+									"duration_seconds": 20,
+									"evidence_ref": "dad.l3.band_energy_summary:D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav|size=3528044|mtime=1788061880032|length=20.0000",
+									"expected_sample_count": 1764000,
+									"inf_count": 0,
+									"max_abs": 0.37109375,
+									"nan_count": 0,
+									"nan_inf_count": 0,
+									"nonzero_count": 1761288,
+									"quality_reasons": [
+										"ok"
+									],
+									"quality_status": "ready",
+									"sample_rate": 44100,
+									"source_identity": "source_revision+clip_revision+optional_render_revision",
+									"sum_abs": 47002.46273803711
+								},
+								"quality_reason": "ok",
+								"quality_reasons": [
+									"ok"
+								],
+								"quality_status": "ready",
+								"request_id": "mixboard_20260924T053150.020196800",
+								"sample_rate": 44100,
+								"schema_version": "dad_l3_band_energy_summary.v1",
+								"source": "kernel_l3_offline_analyzer",
+								"source_fingerprint": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav|size=3528044|mtime=1788061880032|length=20.0000",
+								"source_identity": {
+									"analyzer_revision": "dad_l3_offline_analyzer.v1",
+									"analyzer_version": "dad_l3_offline_analyzer.v1",
+									"channels": 2,
+									"clip_id": "1031",
+									"clip_revision": "clip=1031|track=1027|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav|size=3528044|mtime=1788061880032|length=20.0000|offset=0.0000|length=20.0000",
+									"duration_seconds": 20,
+									"project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+									"project_uuid": "vitproj_9ecc5ab9a454400192086c628c07b966",
+									"sample_rate": 44100,
+									"source_fingerprint": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav|size=3528044|mtime=1788061880032|length=20.0000",
+									"source_id": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav",
+									"source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav",
+									"source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav|size=3528044|mtime=1788061880032|length=20.0000",
+									"track_id": "1027"
+								},
+								"source_kind": "clip",
+								"source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav",
+								"source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav|size=3528044|mtime=1788061880032|length=20.0000",
+								"status": "ready",
+								"sum_abs": 47002.46273803711,
+								"time_basis": "source_samples",
+								"track_id": "1027",
+								"updated_at": "2026-09-24T13:31:52.218+08:00"
+							},
+							"updated_at": "2026-09-24T13:31:52.218+08:00"
+						},
+						"loudness_summary": {
+							"status": "ready",
+							"source": "kernel_l3_offline_analyzer",
+							"progress": {
+								"coverage_seconds": 20,
+								"coverage_ratio": 1,
+								"updated_at": "2026-09-24T13:31:52.220+08:00"
+							},
+							"ref": {
+								"algorithm": "approximate_rms_lufs_v1",
+								"analyzed_sample_count": 1764000,
+								"analyzer_revision": "dad_l3_offline_analyzer.v1",
+								"analyzer_version": "dad_l3_offline_analyzer.v1",
+								"approximate": true,
+								"approximate_lufs": -28.30975102146952,
+								"capture_mode": "offline_full_song",
+								"channel_count": 2,
+								"channels": 2,
+								"clip_id": "1031",
+								"clip_revision": "clip=1031|track=1027|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav|size=3528044|mtime=1788061880032|length=20.0000|offset=0.0000|length=20.0000",
+								"coverage_ratio": 1,
+								"coverage_seconds": 20,
+								"crest_db": 19.008423821009487,
+								"crest_factor": 8.921157177332915,
+								"duration_seconds": 20,
+								"evidence_ref": "dad.l3.loudness_summary:D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav|size=3528044|mtime=1788061880032|length=20.0000",
+								"expected_sample_count": 1764000,
+								"feature_type": "loudness_summary",
+								"file_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav",
+								"inf_count": 0,
+								"integrated_lufs": -28.30975102146952,
+								"layer": "l3_deep",
+								"max_abs": 0.37109375,
+								"nan_count": 0,
+								"nonzero_count": 1761288,
+								"peak": 0.37109375,
+								"peak_abs": 0.37109375,
+								"peak_dbfs": -8.610327200460036,
+								"project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+								"quality_evidence": {
+									"analyzed_sample_count": 1764000,
+									"analyzer_version": "dad_l3_offline_analyzer.v1",
+									"channels": 2,
+									"coverage_ratio": 1,
+									"duration_seconds": 20,
+									"evidence_ref": "dad.l3.loudness_summary:D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav|size=3528044|mtime=1788061880032|length=20.0000",
+									"expected_sample_count": 1764000,
+									"inf_count": 0,
+									"max_abs": 0.37109375,
+									"nan_count": 0,
+									"nan_inf_count": 0,
+									"nonzero_count": 1761288,
+									"quality_reasons": [
+										"ok"
+									],
+									"quality_status": "ready",
+									"sample_rate": 44100,
+									"source_identity": "source_revision+clip_revision+optional_render_revision",
+									"sum_abs": 47002.46273803711
+								},
+								"quality_reason": "ok",
+								"quality_reasons": [
+									"ok"
+								],
+								"quality_status": "ready",
+								"request_id": "mixboard_20260924T053150.020196800",
+								"rms": 0.041597042023078,
+								"rms_dbfs": -27.61875102146952,
+								"sample_rate": 44100,
+								"schema_version": "dad_l3_loudness_summary.v1",
+								"source": "kernel_l3_offline_analyzer",
+								"source_fingerprint": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav|size=3528044|mtime=1788061880032|length=20.0000",
+								"source_identity": {
+									"analyzer_revision": "dad_l3_offline_analyzer.v1",
+									"analyzer_version": "dad_l3_offline_analyzer.v1",
+									"channels": 2,
+									"clip_id": "1031",
+									"clip_revision": "clip=1031|track=1027|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav|size=3528044|mtime=1788061880032|length=20.0000|offset=0.0000|length=20.0000",
+									"duration_seconds": 20,
+									"project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+									"project_uuid": "vitproj_9ecc5ab9a454400192086c628c07b966",
+									"sample_rate": 44100,
+									"source_fingerprint": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav|size=3528044|mtime=1788061880032|length=20.0000",
+									"source_id": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav",
+									"source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav",
+									"source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav|size=3528044|mtime=1788061880032|length=20.0000",
+									"track_id": "1027"
+								},
+								"source_kind": "clip",
+								"source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav",
+								"source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav|size=3528044|mtime=1788061880032|length=20.0000",
+								"status": "ready",
+								"sum_abs": 47002.46273803711,
+								"time_basis": "source_samples",
+								"track_id": "1027",
+								"updated_at": "2026-09-24T13:31:52.220+08:00"
+							},
+							"updated_at": "2026-09-24T13:31:52.220+08:00"
+						},
+						"lufs_analysis": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:52.220+08:00",
+								"reason": "phase_5_deferred"
+							},
+							"updated_at": "2026-09-24T13:31:52.220+08:00",
+							"reason": "phase_5_deferred"
+						},
+						"masking_analysis": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:52.220+08:00",
+								"reason": "phase_5_deferred"
+							},
+							"updated_at": "2026-09-24T13:31:52.220+08:00",
+							"reason": "phase_5_deferred"
+						},
+						"reference_match": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:52.220+08:00",
+								"reason": "phase_5_deferred"
+							},
+							"updated_at": "2026-09-24T13:31:52.220+08:00",
+							"reason": "phase_5_deferred"
+						},
+						"spectrogram_tiles": {
+							"status": "missing",
+							"source": "project_l3_feature_log",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:52.220+08:00"
+							},
+							"updated_at": "2026-09-24T13:31:52.220+08:00"
+						},
+						"stereo_relation_summary": {
+							"status": "ready",
+							"source": "kernel_l3_offline_analyzer",
+							"progress": {
+								"coverage_seconds": 20,
+								"coverage_ratio": 1,
+								"updated_at": "2026-09-24T13:31:52.220+08:00"
+							},
+							"ref": {
+								"analyzed_sample_count": 1764000,
+								"analyzer_revision": "dad_l3_offline_analyzer.v1",
+								"analyzer_version": "dad_l3_offline_analyzer.v1",
+								"balance_db": 0.886961365963945,
+								"balance_state": "centered",
+								"capture_mode": "offline_full_song",
+								"channel_count": 2,
+								"channels": 2,
+								"clip_id": "1031",
+								"clip_revision": "clip=1031|track=1027|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav|size=3528044|mtime=1788061880032|length=20.0000|offset=0.0000|length=20.0000",
+								"correlation_estimate": 0.088304852403424,
+								"correlation_state": "decorrelated",
+								"coverage_ratio": 1,
+								"coverage_seconds": 20,
+								"duration_seconds": 20,
+								"evidence_ref": "dad.l3.stereo_relation_summary:D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav|size=3528044|mtime=1788061880032|length=20.0000",
+								"expected_sample_count": 1764000,
+								"feature_type": "stereo_relation_summary",
+								"file_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav",
+								"inf_count": 0,
+								"layer": "l3_deep",
+								"max_abs": 0.37109375,
+								"nan_count": 0,
+								"nonzero_count": 1761288,
+								"project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+								"quality_evidence": {
+									"analyzed_sample_count": 1764000,
+									"analyzer_version": "dad_l3_offline_analyzer.v1",
+									"channels": 2,
+									"coverage_ratio": 1,
+									"duration_seconds": 20,
+									"evidence_ref": "dad.l3.stereo_relation_summary:D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav|size=3528044|mtime=1788061880032|length=20.0000",
+									"expected_sample_count": 1764000,
+									"inf_count": 0,
+									"max_abs": 0.37109375,
+									"nan_count": 0,
+									"nan_inf_count": 0,
+									"nonzero_count": 1761288,
+									"quality_reasons": [
+										"ok"
+									],
+									"quality_status": "ready",
+									"sample_rate": 44100,
+									"source_identity": "source_revision+clip_revision+optional_render_revision",
+									"sum_abs": 47002.46273803711
+								},
+								"quality_reason": "ok",
+								"quality_reasons": [
+									"ok"
+								],
+								"quality_status": "ready",
+								"request_id": "mixboard_20260924T053150.020196800",
+								"sample_rate": 44100,
+								"schema_version": "dad_l3_stereo_relation_summary.v1",
+								"source": "kernel_l3_offline_analyzer",
+								"source_fingerprint": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav|size=3528044|mtime=1788061880032|length=20.0000",
+								"source_identity": {
+									"analyzer_revision": "dad_l3_offline_analyzer.v1",
+									"analyzer_version": "dad_l3_offline_analyzer.v1",
+									"channels": 2,
+									"clip_id": "1031",
+									"clip_revision": "clip=1031|track=1027|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav|size=3528044|mtime=1788061880032|length=20.0000|offset=0.0000|length=20.0000",
+									"duration_seconds": 20,
+									"project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+									"project_uuid": "vitproj_9ecc5ab9a454400192086c628c07b966",
+									"sample_rate": 44100,
+									"source_fingerprint": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav|size=3528044|mtime=1788061880032|length=20.0000",
+									"source_id": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav",
+									"source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav",
+									"source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav|size=3528044|mtime=1788061880032|length=20.0000",
+									"track_id": "1027"
+								},
+								"source_kind": "clip",
+								"source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav",
+								"source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav|size=3528044|mtime=1788061880032|length=20.0000",
+								"status": "ready",
+								"sum_abs": 47002.46273803711,
+								"time_basis": "source_samples",
+								"track_id": "1027",
+								"updated_at": "2026-09-24T13:31:52.220+08:00"
+							},
+							"updated_at": "2026-09-24T13:31:52.220+08:00"
+						}
+					},
+					"updated_at": "2026-09-24T13:31:52.220+08:00"
+				}
+			},
+			"updated_at": "2026-09-24T13:31:52.220+08:00",
+			"audit": [
+				{
+					"source": "project_l3_feature_log",
+					"reason": "derived_from_feature_snapshot",
+					"updated_at": "2026-09-24T13:31:52.220+08:00"
+				},
+				{
+					"source": "acoustic_package_store",
+					"reason": "upsert",
+					"updated_at": "2026-09-24T05:32:48.8882268Z"
+				}
+			]
+		},
+		{
+			"schema_version": "acoustic_package_status.v0",
+			"status": "partial",
+			"project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+			"track_id": "1032",
+			"clip_id": "1036",
+			"source_fingerprint": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav|size=3528044|mtime=1788061880094|length=20.0000",
+			"source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav|size=3528044|mtime=1788061880094|length=20.0000",
+			"clip_revision": "clip=1036|track=1032|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav|size=3528044|mtime=1788061880094|length=20.0000|offset=0.0000|length=20.0000",
+			"analyzer_revision": "dad_l3_offline_analyzer.v1",
+			"source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav",
+			"duration_seconds": 20,
+			"source_identity": {
+				"analyzer_revision": "dad_l3_offline_analyzer.v1",
+				"clip_id": "1036",
+				"clip_revision": "clip=1036|track=1032|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav|size=3528044|mtime=1788061880094|length=20.0000|offset=0.0000|length=20.0000",
+				"clip_start_seconds": 0,
+				"duration_seconds": 20,
+				"project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+				"source_fingerprint": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav|size=3528044|mtime=1788061880094|length=20.0000",
+				"source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav",
+				"source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav|size=3528044|mtime=1788061880094|length=20.0000",
+				"track_id": "1032"
+			},
+			"package_layers": {
+				"l1_static": {
+					"status": "missing",
+					"features": {
+						"peak_rms_summary": {
+							"status": "missing",
+							"source": "project_l3_feature_log",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:52.665+08:00"
+							},
+							"updated_at": "2026-09-24T13:31:52.665+08:00"
+						},
+						"time_energy": {
+							"status": "missing",
+							"source": "project_l3_feature_log",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:52.665+08:00"
+							},
+							"ref": {
+								"time_segment_count": 0
+							},
+							"updated_at": "2026-09-24T13:31:52.665+08:00",
+							"reason": "waveform_envelope_required_for_time_energy"
+						},
+						"waveform_envelope": {
+							"status": "missing",
+							"source": "project_l3_feature_log",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:52.665+08:00"
+							},
+							"updated_at": "2026-09-24T13:31:52.665+08:00"
+						}
+					},
+					"updated_at": "2026-09-24T13:31:52.665+08:00"
+				},
+				"l2_realtime": {
+					"status": "deferred",
+					"features": {
+						"live_meter": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:52.665+08:00",
+								"reason": "phase_4_5_l2_realtime_requires_playback"
+							},
+							"updated_at": "2026-09-24T13:31:52.665+08:00",
+							"reason": "phase_4_5_l2_realtime_requires_playback"
+						},
+						"post_fx_meter": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:52.665+08:00",
+								"reason": "l2_render_probe_missing"
+							},
+							"updated_at": "2026-09-24T13:31:52.665+08:00",
+							"reason": "l2_render_probe_missing"
+						},
+						"realtime_spectrum": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:52.665+08:00",
+								"reason": "phase_4_5_l2_realtime_requires_playback"
+							},
+							"updated_at": "2026-09-24T13:31:52.665+08:00",
+							"reason": "phase_4_5_l2_realtime_requires_playback"
+						},
+						"realtime_stereo_correlation": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:52.665+08:00",
+								"reason": "phase_4_5_l2_realtime_requires_playback"
+							},
+							"updated_at": "2026-09-24T13:31:52.665+08:00",
+							"reason": "phase_4_5_l2_realtime_requires_playback"
+						},
+						"render_probe": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:52.665+08:00",
+								"reason": "l2_render_probe_missing"
+							},
+							"updated_at": "2026-09-24T13:31:52.665+08:00",
+							"reason": "l2_render_probe_missing"
+						}
+					},
+					"updated_at": "2026-09-24T13:31:52.665+08:00"
+				},
+				"l3_deep": {
+					"status": "partial",
+					"features": {
+						"band_energy_summary": {
+							"status": "ready",
+							"source": "kernel_l3_offline_analyzer",
+							"progress": {
+								"coverage_seconds": 20,
+								"coverage_ratio": 1,
+								"updated_at": "2026-09-24T13:31:52.664+08:00"
+							},
+							"ref": {
+								"analyzed_sample_count": 1764000,
+								"analyzer_revision": "dad_l3_offline_analyzer.v1",
+								"analyzer_version": "dad_l3_offline_analyzer.v1",
+								"bands": {
+									"air": {
+										"active_frame_ratio": 0.856481481481482,
+										"coverage": 1,
+										"coverage_ratio": 1,
+										"energy": 168645.2907751275,
+										"energy_db": 52.269742185229624,
+										"evidence_ref": "dad.l3.band_energy_summary:air",
+										"frame_count": 280800,
+										"max_hz": 20000,
+										"min_hz": 6000,
+										"persistence_ratio": 0.856481481481482,
+										"quality_status": "ready",
+										"relative_distribution": 0.024791253384243,
+										"sample_count": 1764000,
+										"status": "ready",
+										"unit_energy": 0.024791253384243
+									},
+									"bass": {
+										"active_frame_ratio": 0.819444444444444,
+										"coverage": 1,
+										"coverage_ratio": 1,
+										"energy": 165239.58500261485,
+										"energy_db": 52.18114095580144,
+										"evidence_ref": "dad.l3.band_energy_summary:bass",
+										"frame_count": 3888,
+										"max_hz": 250,
+										"min_hz": 60,
+										"persistence_ratio": 0.819444444444444,
+										"quality_status": "ready",
+										"relative_distribution": 0.024290606645929,
+										"sample_count": 1764000,
+										"status": "ready",
+										"unit_energy": 0.024290606645929
+									},
+									"low_mid": {
+										"active_frame_ratio": 0.842592592592593,
+										"coverage": 1,
+										"coverage_ratio": 1,
+										"energy": 1857660.277233612,
+										"energy_db": 62.68966294580774,
+										"evidence_ref": "dad.l3.band_energy_summary:low_mid",
+										"frame_count": 4968,
+										"max_hz": 500,
+										"min_hz": 250,
+										"persistence_ratio": 0.842592592592593,
+										"quality_status": "ready",
+										"relative_distribution": 0.273080418807248,
+										"sample_count": 1764000,
+										"status": "ready",
+										"unit_energy": 0.273080418807248
+									},
+									"mid": {
+										"active_frame_ratio": 0.87037037037037,
+										"coverage": 1,
+										"coverage_ratio": 1,
+										"energy": 3803640.569099388,
+										"energy_db": 65.80199470875279,
+										"evidence_ref": "dad.l3.band_energy_summary:mid",
+										"frame_count": 30024,
+										"max_hz": 2000,
+										"min_hz": 500,
+										"persistence_ratio": 0.87037037037037,
+										"quality_status": "ready",
+										"relative_distribution": 0.559144086963365,
+										"sample_count": 1764000,
+										"status": "ready",
+										"unit_energy": 0.559144086963365
+									},
+									"presence": {
+										"active_frame_ratio": 0.875,
+										"coverage": 1,
+										"coverage_ratio": 1,
+										"energy": 807326.296131132,
+										"energy_db": 59.07049098499339,
+										"evidence_ref": "dad.l3.band_energy_summary:presence",
+										"frame_count": 80352,
+										"max_hz": 6000,
+										"min_hz": 2000,
+										"persistence_ratio": 0.875,
+										"quality_status": "ready",
+										"relative_distribution": 0.118678859511334,
+										"sample_count": 1764000,
+										"status": "ready",
+										"unit_energy": 0.118678859511334
+									},
+									"sub": {
+										"active_frame_ratio": 0.805555555555556,
+										"coverage": 1,
+										"coverage_ratio": 1,
+										"energy": 100.50647681757047,
+										"energy_db": 20.021940493733908,
+										"evidence_ref": "dad.l3.band_energy_summary:sub",
+										"frame_count": 864,
+										"max_hz": 60,
+										"min_hz": 20,
+										"persistence_ratio": 0.805555555555556,
+										"quality_status": "ready",
+										"relative_distribution": 0.000014774687879,
+										"sample_count": 1764000,
+										"status": "ready",
+										"unit_energy": 0.000014774687879
+									}
+								},
+								"capture_mode": "offline_full_song",
+								"channel_count": 2,
+								"channels": 2,
+								"clip_id": "1036",
+								"clip_revision": "clip=1036|track=1032|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav|size=3528044|mtime=1788061880094|length=20.0000|offset=0.0000|length=20.0000",
+								"coverage_ratio": 1,
+								"coverage_seconds": 20,
+								"duration_seconds": 20,
+								"evidence_ref": "dad.l3.band_energy_summary:D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav|size=3528044|mtime=1788061880094|length=20.0000",
+								"expected_sample_count": 1764000,
+								"feature_type": "band_energy_summary",
+								"file_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav",
+								"inf_count": 0,
+								"layer": "l3_deep",
+								"max_abs": 0.54827880859375,
+								"nan_count": 0,
+								"nonzero_count": 1752876,
+								"project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+								"quality_evidence": {
+									"analyzed_sample_count": 1764000,
+									"analyzer_version": "dad_l3_offline_analyzer.v1",
+									"channels": 2,
+									"coverage_ratio": 1,
+									"duration_seconds": 20,
+									"evidence_ref": "dad.l3.band_energy_summary:D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav|size=3528044|mtime=1788061880094|length=20.0000",
+									"expected_sample_count": 1764000,
+									"inf_count": 0,
+									"max_abs": 0.54827880859375,
+									"nan_count": 0,
+									"nan_inf_count": 0,
+									"nonzero_count": 1752876,
+									"quality_reasons": [
+										"ok"
+									],
+									"quality_status": "ready",
+									"sample_rate": 44100,
+									"source_identity": "source_revision+clip_revision+optional_render_revision",
+									"sum_abs": 110821.60998535156
+								},
+								"quality_reason": "ok",
+								"quality_reasons": [
+									"ok"
+								],
+								"quality_status": "ready",
+								"request_id": "mixboard_20260924T053150.020196800",
+								"sample_rate": 44100,
+								"schema_version": "dad_l3_band_energy_summary.v1",
+								"source": "kernel_l3_offline_analyzer",
+								"source_fingerprint": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav|size=3528044|mtime=1788061880094|length=20.0000",
+								"source_identity": {
+									"analyzer_revision": "dad_l3_offline_analyzer.v1",
+									"analyzer_version": "dad_l3_offline_analyzer.v1",
+									"channels": 2,
+									"clip_id": "1036",
+									"clip_revision": "clip=1036|track=1032|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav|size=3528044|mtime=1788061880094|length=20.0000|offset=0.0000|length=20.0000",
+									"duration_seconds": 20,
+									"project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+									"project_uuid": "vitproj_9ecc5ab9a454400192086c628c07b966",
+									"sample_rate": 44100,
+									"source_fingerprint": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav|size=3528044|mtime=1788061880094|length=20.0000",
+									"source_id": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav",
+									"source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav",
+									"source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav|size=3528044|mtime=1788061880094|length=20.0000",
+									"track_id": "1032"
+								},
+								"source_kind": "clip",
+								"source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav",
+								"source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav|size=3528044|mtime=1788061880094|length=20.0000",
+								"status": "ready",
+								"sum_abs": 110821.60998535156,
+								"time_basis": "source_samples",
+								"track_id": "1032",
+								"updated_at": "2026-09-24T13:31:52.664+08:00"
+							},
+							"updated_at": "2026-09-24T13:31:52.664+08:00"
+						},
+						"loudness_summary": {
+							"status": "ready",
+							"source": "kernel_l3_offline_analyzer",
+							"progress": {
+								"coverage_seconds": 20,
+								"coverage_ratio": 1,
+								"updated_at": "2026-09-24T13:31:52.665+08:00"
+							},
+							"ref": {
+								"algorithm": "approximate_rms_lufs_v1",
+								"analyzed_sample_count": 1764000,
+								"analyzer_revision": "dad_l3_offline_analyzer.v1",
+								"analyzer_version": "dad_l3_offline_analyzer.v1",
+								"approximate": true,
+								"approximate_lufs": -20.53372835340057,
+								"capture_mode": "offline_full_song",
+								"channel_count": 2,
+								"channels": 2,
+								"clip_id": "1036",
+								"clip_revision": "clip=1036|track=1032|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav|size=3528044|mtime=1788061880094|length=20.0000|offset=0.0000|length=20.0000",
+								"coverage_ratio": 1,
+								"coverage_seconds": 20,
+								"crest_db": 14.622757561106539,
+								"crest_factor": 5.384406973586988,
+								"duration_seconds": 20,
+								"evidence_ref": "dad.l3.loudness_summary:D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav|size=3528044|mtime=1788061880094|length=20.0000",
+								"expected_sample_count": 1764000,
+								"feature_type": "loudness_summary",
+								"file_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav",
+								"inf_count": 0,
+								"integrated_lufs": -20.53372835340057,
+								"layer": "l3_deep",
+								"max_abs": 0.54827880859375,
+								"nan_count": 0,
+								"nonzero_count": 1752876,
+								"peak": 0.54827880859375,
+								"peak_abs": 0.54827880859375,
+								"peak_dbfs": -5.219970792294031,
+								"project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+								"quality_evidence": {
+									"analyzed_sample_count": 1764000,
+									"analyzer_version": "dad_l3_offline_analyzer.v1",
+									"channels": 2,
+									"coverage_ratio": 1,
+									"duration_seconds": 20,
+									"evidence_ref": "dad.l3.loudness_summary:D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav|size=3528044|mtime=1788061880094|length=20.0000",
+									"expected_sample_count": 1764000,
+									"inf_count": 0,
+									"max_abs": 0.54827880859375,
+									"nan_count": 0,
+									"nan_inf_count": 0,
+									"nonzero_count": 1752876,
+									"quality_reasons": [
+										"ok"
+									],
+									"quality_status": "ready",
+									"sample_rate": 44100,
+									"source_identity": "source_revision+clip_revision+optional_render_revision",
+									"sum_abs": 110821.60998535156
+								},
+								"quality_reason": "ok",
+								"quality_reasons": [
+									"ok"
+								],
+								"quality_status": "ready",
+								"request_id": "mixboard_20260924T053150.020196800",
+								"rms": 0.101827148520406,
+								"rms_dbfs": -19.84272835340057,
+								"sample_rate": 44100,
+								"schema_version": "dad_l3_loudness_summary.v1",
+								"source": "kernel_l3_offline_analyzer",
+								"source_fingerprint": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav|size=3528044|mtime=1788061880094|length=20.0000",
+								"source_identity": {
+									"analyzer_revision": "dad_l3_offline_analyzer.v1",
+									"analyzer_version": "dad_l3_offline_analyzer.v1",
+									"channels": 2,
+									"clip_id": "1036",
+									"clip_revision": "clip=1036|track=1032|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav|size=3528044|mtime=1788061880094|length=20.0000|offset=0.0000|length=20.0000",
+									"duration_seconds": 20,
+									"project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+									"project_uuid": "vitproj_9ecc5ab9a454400192086c628c07b966",
+									"sample_rate": 44100,
+									"source_fingerprint": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav|size=3528044|mtime=1788061880094|length=20.0000",
+									"source_id": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav",
+									"source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav",
+									"source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav|size=3528044|mtime=1788061880094|length=20.0000",
+									"track_id": "1032"
+								},
+								"source_kind": "clip",
+								"source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav",
+								"source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav|size=3528044|mtime=1788061880094|length=20.0000",
+								"status": "ready",
+								"sum_abs": 110821.60998535156,
+								"time_basis": "source_samples",
+								"track_id": "1032",
+								"updated_at": "2026-09-24T13:31:52.665+08:00"
+							},
+							"updated_at": "2026-09-24T13:31:52.665+08:00"
+						},
+						"lufs_analysis": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:52.665+08:00",
+								"reason": "phase_5_deferred"
+							},
+							"updated_at": "2026-09-24T13:31:52.665+08:00",
+							"reason": "phase_5_deferred"
+						},
+						"masking_analysis": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:52.665+08:00",
+								"reason": "phase_5_deferred"
+							},
+							"updated_at": "2026-09-24T13:31:52.665+08:00",
+							"reason": "phase_5_deferred"
+						},
+						"reference_match": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:52.665+08:00",
+								"reason": "phase_5_deferred"
+							},
+							"updated_at": "2026-09-24T13:31:52.665+08:00",
+							"reason": "phase_5_deferred"
+						},
+						"spectrogram_tiles": {
+							"status": "missing",
+							"source": "project_l3_feature_log",
+							"progress": {
+								"updated_at": "2026-09-24T13:31:52.665+08:00"
+							},
+							"updated_at": "2026-09-24T13:31:52.665+08:00"
+						},
+						"stereo_relation_summary": {
+							"status": "ready",
+							"source": "kernel_l3_offline_analyzer",
+							"progress": {
+								"coverage_seconds": 20,
+								"coverage_ratio": 1,
+								"updated_at": "2026-09-24T13:31:52.665+08:00"
+							},
+							"ref": {
+								"analyzed_sample_count": 1764000,
+								"analyzer_revision": "dad_l3_offline_analyzer.v1",
+								"analyzer_version": "dad_l3_offline_analyzer.v1",
+								"balance_db": -0.085370849570356,
+								"balance_state": "centered",
+								"capture_mode": "offline_full_song",
+								"channel_count": 2,
+								"channels": 2,
+								"clip_id": "1036",
+								"clip_revision": "clip=1036|track=1032|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav|size=3528044|mtime=1788061880094|length=20.0000|offset=0.0000|length=20.0000",
+								"correlation_estimate": 0.979305572405256,
+								"correlation_state": "highly_correlated",
+								"coverage_ratio": 1,
+								"coverage_seconds": 20,
+								"duration_seconds": 20,
+								"evidence_ref": "dad.l3.stereo_relation_summary:D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav|size=3528044|mtime=1788061880094|length=20.0000",
+								"expected_sample_count": 1764000,
+								"feature_type": "stereo_relation_summary",
+								"file_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav",
+								"inf_count": 0,
+								"layer": "l3_deep",
+								"max_abs": 0.54827880859375,
+								"nan_count": 0,
+								"nonzero_count": 1752876,
+								"project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+								"quality_evidence": {
+									"analyzed_sample_count": 1764000,
+									"analyzer_version": "dad_l3_offline_analyzer.v1",
+									"channels": 2,
+									"coverage_ratio": 1,
+									"duration_seconds": 20,
+									"evidence_ref": "dad.l3.stereo_relation_summary:D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav|size=3528044|mtime=1788061880094|length=20.0000",
+									"expected_sample_count": 1764000,
+									"inf_count": 0,
+									"max_abs": 0.54827880859375,
+									"nan_count": 0,
+									"nan_inf_count": 0,
+									"nonzero_count": 1752876,
+									"quality_reasons": [
+										"ok"
+									],
+									"quality_status": "ready",
+									"sample_rate": 44100,
+									"source_identity": "source_revision+clip_revision+optional_render_revision",
+									"sum_abs": 110821.60998535156
+								},
+								"quality_reason": "ok",
+								"quality_reasons": [
+									"ok"
+								],
+								"quality_status": "ready",
+								"request_id": "mixboard_20260924T053150.020196800",
+								"sample_rate": 44100,
+								"schema_version": "dad_l3_stereo_relation_summary.v1",
+								"source": "kernel_l3_offline_analyzer",
+								"source_fingerprint": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav|size=3528044|mtime=1788061880094|length=20.0000",
+								"source_identity": {
+									"analyzer_revision": "dad_l3_offline_analyzer.v1",
+									"analyzer_version": "dad_l3_offline_analyzer.v1",
+									"channels": 2,
+									"clip_id": "1036",
+									"clip_revision": "clip=1036|track=1032|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav|size=3528044|mtime=1788061880094|length=20.0000|offset=0.0000|length=20.0000",
+									"duration_seconds": 20,
+									"project_id": "vitproj_9ecc5ab9a454400192086c628c07b966",
+									"project_uuid": "vitproj_9ecc5ab9a454400192086c628c07b966",
+									"sample_rate": 44100,
+									"source_fingerprint": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav|size=3528044|mtime=1788061880094|length=20.0000",
+									"source_id": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav",
+									"source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav",
+									"source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav|size=3528044|mtime=1788061880094|length=20.0000",
+									"track_id": "1032"
+								},
+								"source_kind": "clip",
+								"source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav",
+								"source_revision": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav|size=3528044|mtime=1788061880094|length=20.0000",
+								"status": "ready",
+								"sum_abs": 110821.60998535156,
+								"time_basis": "source_samples",
+								"track_id": "1032",
+								"updated_at": "2026-09-24T13:31:52.665+08:00"
+							},
+							"updated_at": "2026-09-24T13:31:52.665+08:00"
+						}
+					},
+					"updated_at": "2026-09-24T13:31:52.665+08:00"
+				}
+			},
+			"updated_at": "2026-09-24T13:31:52.665+08:00",
+			"audit": [
+				{
+					"source": "project_l3_feature_log",
+					"reason": "derived_from_feature_snapshot",
+					"updated_at": "2026-09-24T13:31:52.665+08:00"
+				},
+				{
+					"source": "acoustic_package_store",
+					"reason": "upsert",
+					"updated_at": "2026-09-24T05:32:48.8952429Z"
+				}
+			]
+		}
+	]
+}

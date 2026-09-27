@@ -1,0 +1,16 @@
+{
+  "schema_version": "evidence_index.v1",
+  "project_uuid": "vitproj_9ecc5ab9a454400192086c628c07b966",
+  "entries": {
+    "8ef4d96d293741e0f2f68e29f819d0e9c3dd59c15561626beb6a72cab42a9bb2": {
+      "kind": "feature_snapshot",
+      "size": 42755,
+      "created_at": "2026-09-24T05:18:04.9993082Z",
+      "last_referenced_at": "2026-09-24T05:18:04.9993082Z",
+      "refs": [
+        "obs:obs_20260924T051804_59d75b72b6b1"
+      ],
+      "renewable": true
+    }
+  }
+}

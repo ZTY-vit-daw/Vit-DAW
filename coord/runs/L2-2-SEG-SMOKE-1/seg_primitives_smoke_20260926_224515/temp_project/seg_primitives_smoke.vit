@@ -1,0 +1,1436 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<EDIT appVersion="Unknown" projectID="0/29d9988" creationTime="0" modifiedBy="timoz"
+      vit_project_uuid="vitproj_851305425e274727913db2a42e7f39cc" vit_project_parent_uuid="vitproj_f21cd13959d2426986c54592326dee21">
+  <TRANSPORT endToEnd="1" position="0.0"/>
+  <TEMPOSEQUENCE>
+    <TEMPO startBeat="0.0" bpm="120.0" curve="1.0"/>
+    <TIMESIG numerator="4" denominator="4" startBeat="0.0"/>
+  </TEMPOSEQUENCE>
+  <VIDEO/>
+  <CLICKTRACK level="0.6000000238418579"/>
+  <MASTERVOLUME>
+    <PLUGIN type="volume" id="1001" enabled="1" volume="1.0">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+  </MASTERVOLUME>
+  <RACKS/>
+  <MASTERPLUGINS/>
+  <INPUTDEVICES>
+    <INPUTDEVICE deviceID="all_midi_in" name="All MIDI Ins"/>
+    <INPUTDEVICE deviceID="midiin_4b684aa" name="SG Device I/O"/>
+    <INPUTDEVICE deviceID="midiin_1683015f" name="StudioRack"/>
+    <INPUTDEVICE deviceID="wavein_d7bd293b" name="Input 1"/>
+    <INPUTDEVICE deviceID="wavein_d7bd293c" name="Input 2"/>
+  </INPUTDEVICES>
+  <TRACKCOMPS/>
+  <SCENES/>
+  <PITCHSEQUENCE>
+    <PITCH startBeat="0.0" pitch="60"/>
+  </PITCHSEQUENCE>
+  <ARRANGERTRACK name="Arranger" id="1002"/>
+  <CHORDTRACK name="Chord" id="1003"/>
+  <MARKERTRACK id="1004" name="Marker"/>
+  <TEMPOTRACK name="Global" id="1005">
+    <MODIFIERS/>
+  </TEMPOTRACK>
+  <MASTERTRACK name="Master" id="1006">
+    <MODIFIERS/>
+  </MASTERTRACK>
+  <TRACK id="1007" name="sattelites 10-IS percussion tom analog" vit_import_role="stem"
+         vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 10-IS_percussion_tom_analog.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1008" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1009" enabled="1"/>
+    <AUDIOCLIP name="sattelites 10-IS_percussion_tom_analog" start="0.0" length="228.5714375"
+               offset="0.0" id="1011" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 10-IS_percussion_tom_analog.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ff55ff00" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 10-IS_percussion_tom_analog.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 10-IS_percussion_tom_analog.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1012" name="sattelites 11-11 [125BPM] - BULLETS" vit_import_role="stem"
+         vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 11-11 [125BPM] - BULLETS.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1013" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1014" enabled="1"/>
+    <AUDIOCLIP name="sattelites 11-11 [125BPM] - BULLETS" start="0.0" length="228.5714375"
+               offset="0.0" id="1016" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 11-11 [125BPM] - BULLETS.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ff00ff00" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 11-11 [125BPM] - BULLETS.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 11-11 [125BPM] - BULLETS.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1017" name="sattelites 12-DS MARS 125 percussion tambourine lights"
+         vit_import_role="stem" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 12-DS_MARS_125_percussion_tambourine_lights.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1018" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1019" enabled="1"/>
+    <AUDIOCLIP name="sattelites 12-DS_MARS_125_percussion_tambourine_lights"
+               start="0.0" length="228.5714375" offset="0.0" id="1021" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 12-DS_MARS_125_percussion_tambourine_lights.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ff00ff55" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 12-DS_MARS_125_percussion_tambourine_lights.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 12-DS_MARS_125_percussion_tambourine_lights.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1022" name="sattelites 18-Audio" vit_import_role="stem" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 18-Audio.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1023" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1024" enabled="1"/>
+    <AUDIOCLIP name="sattelites 18-Audio" start="0.0" length="228.5714375" offset="0.0"
+               id="1026" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 18-Audio.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ff00ffaa" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 18-Audio.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 18-Audio.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1027" name="sattelites 19-Group" vit_import_role="stem" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 19-Group.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1028" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1029" enabled="1"/>
+    <AUDIOCLIP name="sattelites 19-Group" start="0.0" length="228.5714375" offset="0.0"
+               id="1031" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 19-Group.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ff00ffff" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 19-Group.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 19-Group.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1032" name="sattelites 2-Group" vit_import_role="stem" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 2-Group.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1033" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1034" enabled="1"/>
+    <AUDIOCLIP name="sattelites 2-Group" start="0.0" length="228.5714375" offset="0.0"
+               id="1036" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 2-Group.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ff00aaff" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 2-Group.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 2-Group.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1037" name="sattelites 22 Clouds gliding synth" vit_import_role="stem"
+         vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 22 Clouds gliding synth.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1038" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1039" enabled="1"/>
+    <AUDIOCLIP name="sattelites 22 Clouds gliding synth" start="0.0" length="228.5714375"
+               offset="0.0" id="1041" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 22 Clouds gliding synth.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ff0055ff" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 22 Clouds gliding synth.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 22 Clouds gliding synth.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1042" name="sattelites 25-AB IF2 Zain Wolf FX One Shot Whale Song"
+         vit_import_role="stem" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 25-AB_IF2_Zain_Wolf_FX_One_Shot_Whale_Song.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1043" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1044" enabled="1"/>
+    <AUDIOCLIP name="sattelites 25-AB_IF2_Zain_Wolf_FX_One_Shot_Whale_Song"
+               start="0.0" length="228.5714375" offset="0.0" id="1046" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 25-AB_IF2_Zain_Wolf_FX_One_Shot_Whale_Song.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ff0000ff" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 25-AB_IF2_Zain_Wolf_FX_One_Shot_Whale_Song.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 25-AB_IF2_Zain_Wolf_FX_One_Shot_Whale_Song.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1047" name="sattelites 28-BRUNER fx khaen F" vit_import_role="stem"
+         vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 28-BRUNER_fx_khaen_F.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1048" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1049" enabled="1"/>
+    <AUDIOCLIP name="sattelites 28-BRUNER_fx_khaen_F" start="0.0" length="228.5714375"
+               offset="0.0" id="1051" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 28-BRUNER_fx_khaen_F.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ff5500ff" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 28-BRUNER_fx_khaen_F.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 28-BRUNER_fx_khaen_F.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1052" name="sattelites 29-Clouds synth melody" vit_import_role="stem"
+         vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 29-Clouds synth melody.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1053" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1054" enabled="1"/>
+    <AUDIOCLIP name="sattelites 29-Clouds synth melody" start="0.0" length="228.5714375"
+               offset="0.0" id="1056" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 29-Clouds synth melody.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ffaa00ff" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 29-Clouds synth melody.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 29-Clouds synth melody.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1057" name="sattelites 3-OS STC Kick 15" vit_import_role="stem"
+         vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 3-OS_STC_Kick 15.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1058" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1059" enabled="1"/>
+    <AUDIOCLIP name="sattelites 3-OS_STC_Kick 15" start="0.0" length="228.5714375"
+               offset="0.0" id="1061" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 3-OS_STC_Kick 15.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ffff00ff" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 3-OS_STC_Kick 15.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 3-OS_STC_Kick 15.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1062" name="sattelites 30-RARE percussion gamelan melodic metals indonesia o"
+         vit_import_role="stem" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 30-RARE_percussion_gamelan_melodic_metals_indonesia_oneshot2.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1063" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1064" enabled="1"/>
+    <AUDIOCLIP name="sattelites 30-RARE_percussion_gamelan_melodic_metals_indonesia_oneshot2"
+               start="0.0" length="228.5714375" offset="0.0" id="1066" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 30-RARE_percussion_gamelan_melodic_metals_indonesia_oneshot2.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ffff00aa" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 30-RARE_percussion_gamelan_melodic_metals_indonesia_oneshot2.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 30-RARE_percussion_gamelan_melodic_metals_indonesia_oneshot2.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1067" name="sattelites 31-RARE percussion gamelan melodic metals indonesia o"
+         vit_import_role="stem" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 31-RARE_percussion_gamelan_melodic_metals_indonesia_oneshot2.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1068" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1069" enabled="1"/>
+    <AUDIOCLIP name="sattelites 31-RARE_percussion_gamelan_melodic_metals_indonesia_oneshot2"
+               start="0.0" length="228.5714375" offset="0.0" id="1071" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 31-RARE_percussion_gamelan_melodic_metals_indonesia_oneshot2.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ffff0055" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 31-RARE_percussion_gamelan_melodic_metals_indonesia_oneshot2.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 31-RARE_percussion_gamelan_melodic_metals_indonesia_oneshot2.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1072" name="sattelites 32-RARE percussion gamelan melodic metals Db 94 loop6"
+         vit_import_role="stem" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 32-RARE_percussion_gamelan_melodic_metals_Db_94_loop6.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1073" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1074" enabled="1"/>
+    <AUDIOCLIP name="sattelites 32-RARE_percussion_gamelan_melodic_metals_Db_94_loop6"
+               start="0.0" length="228.5714375" offset="0.0" id="1076" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 32-RARE_percussion_gamelan_melodic_metals_Db_94_loop6.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ffff0000" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 32-RARE_percussion_gamelan_melodic_metals_Db_94_loop6.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 32-RARE_percussion_gamelan_melodic_metals_Db_94_loop6.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1077" name="sattelites 33-RARE gamelan metals texturey perc shot35"
+         vit_import_role="stem" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 33-RARE_gamelan_metals_texturey_perc_shot35.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1078" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1079" enabled="1"/>
+    <AUDIOCLIP name="sattelites 33-RARE_gamelan_metals_texturey_perc_shot35"
+               start="0.0" length="228.5714375" offset="0.0" id="1081" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 33-RARE_gamelan_metals_texturey_perc_shot35.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ffff5500" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 33-RARE_gamelan_metals_texturey_perc_shot35.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 33-RARE_gamelan_metals_texturey_perc_shot35.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1082" name="sattelites 34-BRUNER vocal fx whoop dirty A"
+         vit_import_role="stem" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 34-BRUNER_vocal_fx_whoop_dirty_A.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1083" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1084" enabled="1"/>
+    <AUDIOCLIP name="sattelites 34-BRUNER_vocal_fx_whoop_dirty_A" start="0.0"
+               length="228.5714375" offset="0.0" id="1086" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 34-BRUNER_vocal_fx_whoop_dirty_A.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ffffaa00" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 34-BRUNER_vocal_fx_whoop_dirty_A.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 34-BRUNER_vocal_fx_whoop_dirty_A.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1087" name="sattelites 4-OS STC Snare 12" vit_import_role="stem"
+         vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 4-OS_STC_Snare 12.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1088" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1089" enabled="1"/>
+    <AUDIOCLIP name="sattelites 4-OS_STC_Snare 12" start="0.0" length="228.5714375"
+               offset="0.0" id="1091" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 4-OS_STC_Snare 12.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ffffff00" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 4-OS_STC_Snare 12.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 4-OS_STC_Snare 12.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1092" name="sattelites 48-Audio" vit_import_role="stem" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 48-Audio.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1093" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1094" enabled="1"/>
+    <AUDIOCLIP name="sattelites 48-Audio" start="0.0" length="228.5714375" offset="0.0"
+               id="1096" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 48-Audio.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ffaaff00" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 48-Audio.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 48-Audio.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1097" name="sattelites 49-Audio" vit_import_role="stem" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 49-Audio.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1098" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1099" enabled="1"/>
+    <AUDIOCLIP name="sattelites 49-Audio" start="0.0" length="228.5714375" offset="0.0"
+               id="1101" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 49-Audio.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ff55ff00" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 49-Audio.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 49-Audio.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1102" name="sattelites 5-OS STC Top 15" vit_import_role="stem"
+         vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 5-OS_STC_Top 15.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1103" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1104" enabled="1"/>
+    <AUDIOCLIP name="sattelites 5-OS_STC_Top 15" start="0.0" length="228.5714375"
+               offset="0.0" id="1106" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 5-OS_STC_Top 15.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ff00ff00" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 5-OS_STC_Top 15.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 5-OS_STC_Top 15.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1107" name="sattelites 50-Audio" vit_import_role="stem" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 50-Audio.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1108" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1109" enabled="1"/>
+    <AUDIOCLIP name="sattelites 50-Audio" start="0.0" length="228.5714375" offset="0.0"
+               id="1111" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 50-Audio.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ff00ff55" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 50-Audio.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 50-Audio.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1112" name="sattelites 51-Audio" vit_import_role="stem" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 51-Audio.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1113" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1114" enabled="1"/>
+    <AUDIOCLIP name="sattelites 51-Audio" start="0.0" length="228.5714375" offset="0.0"
+               id="1116" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 51-Audio.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ff00ffaa" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 51-Audio.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 51-Audio.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1117" name="sattelites 52-Audio" vit_import_role="stem" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 52-Audio.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1118" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1119" enabled="1"/>
+    <AUDIOCLIP name="sattelites 52-Audio" start="0.0" length="228.5714375" offset="0.0"
+               id="1121" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 52-Audio.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ff00ffff" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 52-Audio.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 52-Audio.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1122" name="sattelites 6-StolenHeart OHat" vit_import_role="stem"
+         vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 6-StolenHeart_OHat.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1123" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1124" enabled="1"/>
+    <AUDIOCLIP name="sattelites 6-StolenHeart_OHat" start="0.0" length="228.5714375"
+               offset="0.0" id="1126" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 6-StolenHeart_OHat.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ff00aaff" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 6-StolenHeart_OHat.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 6-StolenHeart_OHat.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1127" name="sattelites 7-OS STC Perc 23" vit_import_role="stem"
+         vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 7-OS_STC_Perc 23.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1128" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1129" enabled="1"/>
+    <AUDIOCLIP name="sattelites 7-OS_STC_Perc 23" start="0.0" length="228.5714375"
+               offset="0.0" id="1131" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 7-OS_STC_Perc 23.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ff0055ff" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 7-OS_STC_Perc 23.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 7-OS_STC_Perc 23.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1132" name="sattelites 8-HappyEnding 120 Toms" vit_import_role="stem"
+         vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 8-HappyEnding_120_Toms.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1133" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1134" enabled="1"/>
+    <AUDIOCLIP name="sattelites 8-HappyEnding_120_Toms" start="0.0" length="228.5714375"
+               offset="0.0" id="1136" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 8-HappyEnding_120_Toms.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ff0000ff" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 8-HappyEnding_120_Toms.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 8-HappyEnding_120_Toms.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1137" name="sattelites 9-ORBIT Drum Loop Percussion Made 110"
+         vit_import_role="stem" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 9-ORBIT_Drum_Loop_Percussion_Made_110.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1138" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1139" enabled="1"/>
+    <AUDIOCLIP name="sattelites 9-ORBIT_Drum_Loop_Percussion_Made_110" start="0.0"
+               length="228.5714375" offset="0.0" id="1141" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 9-ORBIT_Drum_Loop_Percussion_Made_110.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ff5500ff" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 9-ORBIT_Drum_Loop_Percussion_Made_110.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites 9-ORBIT_Drum_Loop_Percussion_Made_110.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1142" name="sattelites A-ValhallaPlate" vit_import_role="stem"
+         vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites A-ValhallaPlate.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1143" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1144" enabled="1"/>
+    <AUDIOCLIP name="sattelites A-ValhallaPlate" start="0.0" length="228.5714375"
+               offset="0.0" id="1146" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites A-ValhallaPlate.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ffaa00ff" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites A-ValhallaPlate.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites A-ValhallaPlate.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1147" name="sattelites B-ValhallaVintageVerb FF Pro-C 2"
+         vit_import_role="stem" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites B-ValhallaVintageVerb _ FF Pro-C 2.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1148" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1149" enabled="1"/>
+    <AUDIOCLIP name="sattelites B-ValhallaVintageVerb _ FF Pro-C 2" start="0.0"
+               length="228.5714375" offset="0.0" id="1151" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites B-ValhallaVintageVerb _ FF Pro-C 2.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ffff00ff" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites B-ValhallaVintageVerb _ FF Pro-C 2.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites B-ValhallaVintageVerb _ FF Pro-C 2.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1152" name="sattelites bass" vit_import_role="stem" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites bass.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1153" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1154" enabled="1"/>
+    <AUDIOCLIP name="sattelites bass" start="0.0" length="228.5714375" offset="0.0"
+               id="1156" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites bass.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ffff00aa" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites bass.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites bass.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1157" name="sattelites bridge voc 1" vit_import_role="stem"
+         vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites bridge voc 1.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1158" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1159" enabled="1"/>
+    <AUDIOCLIP name="sattelites bridge voc 1" start="0.0" length="228.5714375"
+               offset="0.0" id="1161" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites bridge voc 1.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ffff0055" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites bridge voc 1.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites bridge voc 1.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1162" name="sattelites bridge voc 2" vit_import_role="stem"
+         vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites bridge voc 2.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1163" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1164" enabled="1"/>
+    <AUDIOCLIP name="sattelites bridge voc 2" start="0.0" length="228.5714375"
+               offset="0.0" id="1166" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites bridge voc 2.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ffff0000" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites bridge voc 2.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites bridge voc 2.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1167" name="sattelites bridge voc" vit_import_role="stem"
+         vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites bridge voc.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1168" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1169" enabled="1"/>
+    <AUDIOCLIP name="sattelites bridge voc" start="0.0" length="228.5714375"
+               offset="0.0" id="1171" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites bridge voc.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ffff5500" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites bridge voc.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites bridge voc.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1172" name="sattelites bv group 1" vit_import_role="stem"
+         vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites bv group 1.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1173" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1174" enabled="1"/>
+    <AUDIOCLIP name="sattelites bv group 1" start="0.0" length="228.5714375"
+               offset="0.0" id="1176" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites bv group 1.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ffffaa00" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites bv group 1.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites bv group 1.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1177" name="sattelites C-ValhallaPlate" vit_import_role="stem"
+         vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites C-ValhallaPlate.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1178" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1179" enabled="1"/>
+    <AUDIOCLIP name="sattelites C-ValhallaPlate" start="0.0" length="228.5714375"
+               offset="0.0" id="1181" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites C-ValhallaPlate.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ffffff00" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites C-ValhallaPlate.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites C-ValhallaPlate.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1182" name="sattelites coming reckoning" vit_import_role="stem"
+         vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites coming reckoning.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1183" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1184" enabled="1"/>
+    <AUDIOCLIP name="sattelites coming reckoning" start="0.0" length="228.5714375"
+               offset="0.0" id="1186" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites coming reckoning.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ffaaff00" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites coming reckoning.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites coming reckoning.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1187" name="sattelites D-ValhallaRoom FF Pro-C 2 Pro-Q 3"
+         vit_import_role="stem" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites D-ValhallaRoom _ FF Pro-C 2 _ Pro-Q 3.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1188" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1189" enabled="1"/>
+    <AUDIOCLIP name="sattelites D-ValhallaRoom _ FF Pro-C 2 _ Pro-Q 3" start="0.0"
+               length="228.5714375" offset="0.0" id="1191" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites D-ValhallaRoom _ FF Pro-C 2 _ Pro-Q 3.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ff55ff00" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites D-ValhallaRoom _ FF Pro-C 2 _ Pro-Q 3.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites D-ValhallaRoom _ FF Pro-C 2 _ Pro-Q 3.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1192" name="sattelites drums" vit_import_role="stem" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites drums.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1193" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1194" enabled="1"/>
+    <AUDIOCLIP name="sattelites drums" start="0.0" length="228.5714375" offset="0.0"
+               id="1196" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites drums.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ff00ff00" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites drums.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites drums.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1197" name="sattelites E-EchoBoy FF Pro-C 2 ValhallaRoom Compressor"
+         vit_import_role="stem" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites E-EchoBoy _ FF Pro-C 2 _ ValhallaRoom _ Compressor.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1198" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1199" enabled="1"/>
+    <AUDIOCLIP name="sattelites E-EchoBoy _ FF Pro-C 2 _ ValhallaRoom _ Compressor"
+               start="0.0" length="228.5714375" offset="0.0" id="1201" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites E-EchoBoy _ FF Pro-C 2 _ ValhallaRoom _ Compressor.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ff00ff55" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites E-EchoBoy _ FF Pro-C 2 _ ValhallaRoom _ Compressor.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites E-EchoBoy _ FF Pro-C 2 _ ValhallaRoom _ Compressor.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1202" name="sattelites ending voc bus 2" vit_import_role="stem"
+         vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites ending voc bus 2.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1203" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1204" enabled="1"/>
+    <AUDIOCLIP name="sattelites ending voc bus 2" start="0.0" length="228.5714375"
+               offset="0.0" id="1206" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites ending voc bus 2.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ff00ffaa" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites ending voc bus 2.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites ending voc bus 2.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1207" name="sattelites ending voc bus" vit_import_role="stem"
+         vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites ending voc bus.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1208" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1209" enabled="1"/>
+    <AUDIOCLIP name="sattelites ending voc bus" start="0.0" length="228.5714375"
+               offset="0.0" id="1211" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites ending voc bus.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ff00ffff" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites ending voc bus.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites ending voc bus.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1212" name="sattelites ending voc melody 2" vit_import_role="stem"
+         vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites ending voc melody 2.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1213" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1214" enabled="1"/>
+    <AUDIOCLIP name="sattelites ending voc melody 2" start="0.0" length="228.5714375"
+               offset="0.0" id="1216" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites ending voc melody 2.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ff00aaff" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites ending voc melody 2.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites ending voc melody 2.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1217" name="sattelites F-EchoBoy FF Pro-C 2 Pro-Q 3 Compressor"
+         vit_import_role="stem" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites F-EchoBoy _ FF Pro-C 2 _ Pro-Q 3 _ Compressor.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1218" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1219" enabled="1"/>
+    <AUDIOCLIP name="sattelites F-EchoBoy _ FF Pro-C 2 _ Pro-Q 3 _ Compressor"
+               start="0.0" length="228.5714375" offset="0.0" id="1221" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites F-EchoBoy _ FF Pro-C 2 _ Pro-Q 3 _ Compressor.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ff0055ff" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites F-EchoBoy _ FF Pro-C 2 _ Pro-Q 3 _ Compressor.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites F-EchoBoy _ FF Pro-C 2 _ Pro-Q 3 _ Compressor.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1222" name="sattelites fender jbass" vit_import_role="stem"
+         vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites fender jbass.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1223" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1224" enabled="1"/>
+    <AUDIOCLIP name="sattelites fender jbass" start="0.0" length="228.5714375"
+               offset="0.0" id="1226" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites fender jbass.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ff0000ff" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites fender jbass.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites fender jbass.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1227" name="sattelites G-EchoBoy FF Pro-C 2 Compressor Utility"
+         vit_import_role="stem" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites G-EchoBoy _ FF Pro-C 2 _ Compressor _ Utility.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1228" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1229" enabled="1"/>
+    <AUDIOCLIP name="sattelites G-EchoBoy _ FF Pro-C 2 _ Compressor _ Utility"
+               start="0.0" length="228.5714375" offset="0.0" id="1231" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites G-EchoBoy _ FF Pro-C 2 _ Compressor _ Utility.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ff5500ff" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites G-EchoBoy _ FF Pro-C 2 _ Compressor _ Utility.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites G-EchoBoy _ FF Pro-C 2 _ Compressor _ Utility.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1232" name="sattelites hook bv 1" vit_import_role="stem"
+         vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites hook bv 1.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1233" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1234" enabled="1"/>
+    <AUDIOCLIP name="sattelites hook bv 1" start="0.0" length="228.5714375"
+               offset="0.0" id="1236" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites hook bv 1.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ffaa00ff" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites hook bv 1.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites hook bv 1.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1237" name="sattelites hook bv 2" vit_import_role="stem"
+         vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites hook bv 2.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1238" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1239" enabled="1"/>
+    <AUDIOCLIP name="sattelites hook bv 2" start="0.0" length="228.5714375"
+               offset="0.0" id="1241" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites hook bv 2.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ffff00ff" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites hook bv 2.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites hook bv 2.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1242" name="sattelites hook lv 1" vit_import_role="stem"
+         vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites hook lv 1.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1243" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1244" enabled="1"/>
+    <AUDIOCLIP name="sattelites hook lv 1" start="0.0" length="228.5714375"
+               offset="0.0" id="1246" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites hook lv 1.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ffff00aa" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites hook lv 1.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites hook lv 1.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1247" name="sattelites hook lv 2" vit_import_role="stem"
+         vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites hook lv 2.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1248" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1249" enabled="1"/>
+    <AUDIOCLIP name="sattelites hook lv 2" start="0.0" length="228.5714375"
+               offset="0.0" id="1251" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites hook lv 2.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ffff0055" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites hook lv 2.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites hook lv 2.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1252" name="sattelites hook lv bus" vit_import_role="stem"
+         vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites hook lv bus.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1253" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1254" enabled="1"/>
+    <AUDIOCLIP name="sattelites hook lv bus" start="0.0" length="228.5714375"
+               offset="0.0" id="1256" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites hook lv bus.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ffff0000" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites hook lv bus.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites hook lv bus.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1257" name="sattelites melodies" vit_import_role="stem" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites melodies.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1258" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1259" enabled="1"/>
+    <AUDIOCLIP name="sattelites melodies" start="0.0" length="228.5714375" offset="0.0"
+               id="1261" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites melodies.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ffff5500" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites melodies.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites melodies.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1262" name="sattelites moog one 2" vit_import_role="stem"
+         vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites moog one 2.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1263" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1264" enabled="1"/>
+    <AUDIOCLIP name="sattelites moog one 2" start="0.0" length="228.5714375"
+               offset="0.0" id="1266" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites moog one 2.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ffffaa00" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites moog one 2.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites moog one 2.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1267" name="sattelites moog one 3" vit_import_role="stem"
+         vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites moog one 3.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1268" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1269" enabled="1"/>
+    <AUDIOCLIP name="sattelites moog one 3" start="0.0" length="228.5714375"
+               offset="0.0" id="1271" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites moog one 3.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ffffff00" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites moog one 3.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites moog one 3.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1272" name="sattelites moog one 4" vit_import_role="stem"
+         vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites moog one 4.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1273" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1274" enabled="1"/>
+    <AUDIOCLIP name="sattelites moog one 4" start="0.0" length="228.5714375"
+               offset="0.0" id="1276" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites moog one 4.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ffaaff00" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites moog one 4.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites moog one 4.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1277" name="sattelites moog one" vit_import_role="stem" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites moog one.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1278" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1279" enabled="1"/>
+    <AUDIOCLIP name="sattelites moog one" start="0.0" length="228.5714375" offset="0.0"
+               id="1281" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites moog one.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ff55ff00" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites moog one.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites moog one.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1282" name="sattelites spike bow organ 5ths" vit_import_role="stem"
+         vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites spike bow organ 5ths.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1283" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1284" enabled="1"/>
+    <AUDIOCLIP name="sattelites spike bow organ 5ths" start="0.0" length="228.5714375"
+               offset="0.0" id="1286" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites spike bow organ 5ths.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ff00ff00" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites spike bow organ 5ths.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites spike bow organ 5ths.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1287" name="sattelites synth bass" vit_import_role="stem"
+         vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites synth bass.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1288" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1289" enabled="1"/>
+    <AUDIOCLIP name="sattelites synth bass" start="0.0" length="228.5714375"
+               offset="0.0" id="1291" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites synth bass.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ff00ff55" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites synth bass.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites synth bass.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1292" name="sattelites verse lv bus" vit_import_role="stem"
+         vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites verse lv bus.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1293" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1294" enabled="1"/>
+    <AUDIOCLIP name="sattelites verse lv bus" start="0.0" length="228.5714375"
+               offset="0.0" id="1296" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites verse lv bus.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ff00ffaa" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites verse lv bus.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites verse lv bus.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1297" name="sattelites verse lv" vit_import_role="stem" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites verse lv.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1298" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1299" enabled="1"/>
+    <AUDIOCLIP name="sattelites verse lv" start="0.0" length="228.5714375" offset="0.0"
+               id="1301" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites verse lv.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ff00ffff" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites verse lv.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites verse lv.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1302" name="sattelites voc" vit_import_role="stem" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites voc.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1303" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1304" enabled="1"/>
+    <AUDIOCLIP name="sattelites voc" start="0.0" length="228.5714375" offset="0.0"
+               id="1306" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites voc.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ff00aaff" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites voc.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites voc.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1307" name="sattelites" vit_import_role="stem" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1308" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1309" enabled="1"/>
+    <AUDIOCLIP name="sattelites" start="0.0" length="228.5714375" offset="0.0"
+               id="1311" source="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ff0055ff" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites.wav"
+               vit_import_insert_file="E:\BaiduNetdiskDownload\yingge - sattelites tracks out\sattelites.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <VIT_AUDIO_SETTINGS migration_state="defaulted_new_project" defaulted_origin="new_project"
+                      schema_version="vit_project_audio_settings.v1" sample_rate_hz="48000"
+                      record_file_type="WAV/BWF" record_bit_depth="24" pcm_format="int24"
+                      internal_processing_format="unknown" import_sample_rate_policy="ask"
+                      import_bit_depth_policy="keep_source" media_copy_policy="reference_original"
+                      channel_import_policy="preserve_interleaved" render_default_sample_rate_hz="48000"
+                      render_default_bit_depth="24" render_default_file_type="WAV"
+                      dither_policy="unknown"/>
+</EDIT>

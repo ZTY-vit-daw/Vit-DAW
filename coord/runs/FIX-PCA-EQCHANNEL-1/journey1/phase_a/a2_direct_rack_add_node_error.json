@@ -1,0 +1,1 @@
+﻿{"status":"error","tool":"rack.add_node","command_name":"rack_add_node","risk_level":"confirm","requires_confirmation":false,"error":"pca_load_gate: full project access load requires one exact processor identity; \"VST3-L316 Stereo-695648d-15d2d3f2\" resolves to 2 promoted identities"}

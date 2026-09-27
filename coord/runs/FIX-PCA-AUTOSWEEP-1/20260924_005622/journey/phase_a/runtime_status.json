@@ -1,0 +1,177 @@
+﻿{
+    "authority_mode":  "full_project_access",
+    "capability_routes":  [
+
+                          ],
+    "checked_at":  "2026-09-24T05:07:38.6971352+08:00",
+    "checkout_blocked":  false,
+    "continuations":  [
+
+                      ],
+    "goal":  {
+                 "goal_id":  "goal_420237b5bbd7b270",
+                 "run_id":  "run_a7fe2d13063a7f9f",
+                 "task":  {
+                              "task_id":  "task_42872b133068952f",
+                              "goal_id":  "goal_420237b5bbd7b270",
+                              "original_intent":  "help the bass track with a broadband compression experiment using one of the compressors and let me audition",
+                              "status":  "settled",
+                              "run":  {
+                                          "run_id":  "run_a7fe2d13063a7f9f",
+                                          "task_id":  "task_42872b133068952f",
+                                          "current_slice_id":  "slice_c463ad0f3d4b8f64",
+                                          "next_slice":  2,
+                                          "next_turn":  2,
+                                          "slices":  [
+                                                         {
+                                                             "slice_id":  "slice_c463ad0f3d4b8f64",
+                                                             "run_id":  "run_a7fe2d13063a7f9f",
+                                                             "sequence":  1,
+                                                             "max_turns":  8,
+                                                             "max_tool_calls":  12,
+                                                             "turns_used":  3,
+                                                             "status":  "settled",
+                                                             "started_at":  "2026-09-24T05:07:10.3358868+08:00",
+                                                             "ended_at":  "2026-09-24T05:07:33.6187463+08:00"
+                                                         }
+                                                     ],
+                                          "turns":  [
+                                                        {
+                                                            "turn_id":  "turn_4a7b7fb44508088b",
+                                                            "slice_id":  "slice_c463ad0f3d4b8f64",
+                                                            "run_id":  "run_a7fe2d13063a7f9f",
+                                                            "sequence":  1,
+                                                            "source":  "user",
+                                                            "status":  "completed",
+                                                            "started_at":  "2026-09-24T05:07:10.3358868+08:00",
+                                                            "ended_at":  "2026-09-24T05:07:33.6187463+08:00"
+                                                        }
+                                                    ]
+                                      },
+                              "created_at":  "2026-09-24T05:07:05.2716604+08:00",
+                              "updated_at":  "2026-09-24T05:07:33.6612602+08:00"
+                          },
+                 "status":  "completed",
+                 "summary":  "help the bass track with a broadband compression experiment using one of the compressors and let me audition",
+                 "created_at":  "2026-09-24T05:07:05.2716604+08:00",
+                 "updated_at":  "2026-09-24T05:07:33.6612602+08:00",
+                 "cancel_requested":  false,
+                 "last_checkpoint":  "before_message_loop_model",
+                 "project_history":  {
+                                         "baseline_commit_id":  "c_20260923T210705_e15f7137",
+                                         "baseline_created":  true,
+                                         "active_branch":  "main",
+                                         "head":  "c_20260923T210705_e15f7137"
+                                     }
+             },
+    "kernel":  {
+                   "connected":  true,
+                   "endpoint":  "tcp://127.0.0.1:5555",
+                   "latency_ms":  1,
+                   "message":  "pong",
+                   "reply_status":  "ok",
+                   "status":  "online"
+               },
+    "pid":  28676,
+    "service":  "VitAgent",
+    "shadow":  {
+                   "delta_seq_gaps":  0,
+                   "graph_revision":  null,
+                   "initialized":  true,
+                   "last_delta_seq":  2,
+                   "project_path":  "D:\\Vit_DAW\\coord\\runs\\FIX-PCA-AUTOSWEEP-1\\20260924_005622\\journey\\project\\journey1_912.vit",
+                   "track_count":  6,
+                   "user_track_count":  6
+               },
+    "status":  "ok",
+    "task":  {
+                 "task_id":  "task_42872b133068952f",
+                 "goal_id":  "goal_420237b5bbd7b270",
+                 "original_intent":  "help the bass track with a broadband compression experiment using one of the compressors and let me audition",
+                 "status":  "settled",
+                 "run":  {
+                             "run_id":  "run_a7fe2d13063a7f9f",
+                             "task_id":  "task_42872b133068952f",
+                             "current_slice_id":  "slice_c463ad0f3d4b8f64",
+                             "next_slice":  2,
+                             "next_turn":  2,
+                             "slices":  [
+                                            {
+                                                "slice_id":  "slice_c463ad0f3d4b8f64",
+                                                "run_id":  "run_a7fe2d13063a7f9f",
+                                                "sequence":  1,
+                                                "max_turns":  8,
+                                                "max_tool_calls":  12,
+                                                "turns_used":  3,
+                                                "status":  "settled",
+                                                "started_at":  "2026-09-24T05:07:10.3358868+08:00",
+                                                "ended_at":  "2026-09-24T05:07:33.6187463+08:00"
+                                            }
+                                        ],
+                             "turns":  [
+                                           {
+                                               "turn_id":  "turn_4a7b7fb44508088b",
+                                               "slice_id":  "slice_c463ad0f3d4b8f64",
+                                               "run_id":  "run_a7fe2d13063a7f9f",
+                                               "sequence":  1,
+                                               "source":  "user",
+                                               "status":  "completed",
+                                               "started_at":  "2026-09-24T05:07:10.3358868+08:00",
+                                               "ended_at":  "2026-09-24T05:07:33.6187463+08:00"
+                                           }
+                                       ]
+                         },
+                 "created_at":  "2026-09-24T05:07:05.2716604+08:00",
+                 "updated_at":  "2026-09-24T05:07:33.6612602+08:00"
+             },
+    "task_trajectory":  {
+                            "run":  {
+                                        "current_slice_id":  "slice_c463ad0f3d4b8f64",
+                                        "current_turn_id":  "",
+                                        "run_id":  "run_a7fe2d13063a7f9f",
+                                        "slices":  [
+                                                       {
+                                                           "slice_id":  "slice_c463ad0f3d4b8f64",
+                                                           "run_id":  "run_a7fe2d13063a7f9f",
+                                                           "sequence":  1,
+                                                           "max_turns":  8,
+                                                           "max_tool_calls":  12,
+                                                           "turns_used":  3,
+                                                           "status":  "settled",
+                                                           "started_at":  "2026-09-24T05:07:10.3358868+08:00",
+                                                           "ended_at":  "2026-09-24T05:07:33.6187463+08:00"
+                                                       }
+                                                   ],
+                                        "turns":  [
+                                                      {
+                                                          "turn_id":  "turn_4a7b7fb44508088b",
+                                                          "slice_id":  "slice_c463ad0f3d4b8f64",
+                                                          "run_id":  "run_a7fe2d13063a7f9f",
+                                                          "sequence":  1,
+                                                          "source":  "user",
+                                                          "status":  "completed",
+                                                          "started_at":  "2026-09-24T05:07:10.3358868+08:00",
+                                                          "ended_at":  "2026-09-24T05:07:33.6187463+08:00"
+                                                      }
+                                                  ]
+                                    },
+                            "schema_version":  "vit.task_runtime_trajectory.v1",
+                            "semantic":  {
+
+                                         },
+                            "task":  {
+                                         "conversation_id":  "",
+                                         "created_at":  "2026-09-24T05:07:05.2716604+08:00",
+                                         "goal_id":  "goal_420237b5bbd7b270",
+                                         "goal_status":  "completed",
+                                         "original_intent":  "help the bass track with a broadband compression experiment using one of the compressors and let me audition",
+                                         "run_id":  "run_a7fe2d13063a7f9f",
+                                         "status":  "settled",
+                                         "task_id":  "task_42872b133068952f",
+                                         "updated_at":  "2026-09-24T05:07:33.6612602+08:00"
+                                     },
+                            "transitions":  [
+
+                                            ]
+                        }
+}

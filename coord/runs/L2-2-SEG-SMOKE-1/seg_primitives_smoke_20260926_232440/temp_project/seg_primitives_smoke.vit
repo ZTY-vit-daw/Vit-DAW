@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<EDIT appVersion="Unknown" projectID="0/3a937a4" creationTime="0" modifiedBy="timoz"
+      vit_project_uuid="vitproj_933cd6ef682c4a2cb9c1277163fef03d" vit_project_parent_uuid="vitproj_b1ff7ba129914b50855ba0ef38a590ab">
+  <TRANSPORT endToEnd="1" position="0.0"/>
+  <TEMPOSEQUENCE>
+    <TEMPO startBeat="0.0" bpm="120.0" curve="1.0"/>
+    <TIMESIG numerator="4" denominator="4" startBeat="0.0"/>
+  </TEMPOSEQUENCE>
+  <VIDEO/>
+  <CLICKTRACK level="0.6000000238418579"/>
+  <MASTERVOLUME>
+    <PLUGIN type="volume" id="1001" enabled="1" volume="1.0">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+  </MASTERVOLUME>
+  <RACKS/>
+  <MASTERPLUGINS/>
+  <INPUTDEVICES>
+    <INPUTDEVICE deviceID="all_midi_in" name="All MIDI Ins"/>
+    <INPUTDEVICE deviceID="midiin_4b684aa" name="SG Device I/O"/>
+    <INPUTDEVICE deviceID="midiin_1683015f" name="StudioRack"/>
+    <INPUTDEVICE deviceID="wavein_d7bd293b" name="Input 1"/>
+    <INPUTDEVICE deviceID="wavein_d7bd293c" name="Input 2"/>
+  </INPUTDEVICES>
+  <TRACKCOMPS/>
+  <SCENES/>
+  <PITCHSEQUENCE>
+    <PITCH startBeat="0.0" pitch="60"/>
+  </PITCHSEQUENCE>
+  <ARRANGERTRACK name="Arranger" id="1002"/>
+  <CHORDTRACK name="Chord" id="1003"/>
+  <MARKERTRACK id="1004" name="Marker"/>
+  <TEMPOTRACK name="Global" id="1005">
+    <MODIFIERS/>
+  </TEMPOTRACK>
+  <MASTERTRACK name="Master" id="1006">
+    <MODIFIERS/>
+  </MASTERTRACK>
+  <TRACK id="1007" name="sattelites 10-IS percussion tom analog" vit_import_role="stem"
+         vit_import_source_file="D:\Vit_DAW\coord\runs\L2-2-SEG-SMOKE-1\seg_primitives_smoke_20260926_232440\stems_staging\sattelites 10-IS_percussion_tom_analog.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1008" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1009" enabled="1"/>
+    <AUDIOCLIP name="sattelites 10-IS_percussion_tom_analog" start="0.0" length="228.5714375"
+               offset="0.0" id="1011" source="D:\Vit_DAW\coord\runs\L2-2-SEG-SMOKE-1\seg_primitives_smoke_20260926_232440\stems_staging\sattelites 10-IS_percussion_tom_analog.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ff55ff00" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="D:\Vit_DAW\coord\runs\L2-2-SEG-SMOKE-1\seg_primitives_smoke_20260926_232440\stems_staging\sattelites 10-IS_percussion_tom_analog.wav"
+               vit_import_insert_file="D:\Vit_DAW\coord\runs\L2-2-SEG-SMOKE-1\seg_primitives_smoke_20260926_232440\stems_staging\sattelites 10-IS_percussion_tom_analog.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1012" name="sattelites 11-11 [125BPM] - BULLETS" vit_import_role="stem"
+         vit_import_source_file="D:\Vit_DAW\coord\runs\L2-2-SEG-SMOKE-1\seg_primitives_smoke_20260926_232440\stems_staging\sattelites 11-11 [125BPM] - BULLETS.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1013" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1014" enabled="1"/>
+    <AUDIOCLIP name="sattelites 11-11 [125BPM] - BULLETS" start="0.0" length="228.5714375"
+               offset="0.0" id="1016" source="D:\Vit_DAW\coord\runs\L2-2-SEG-SMOKE-1\seg_primitives_smoke_20260926_232440\stems_staging\sattelites 11-11 [125BPM] - BULLETS.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ff00ff00" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="D:\Vit_DAW\coord\runs\L2-2-SEG-SMOKE-1\seg_primitives_smoke_20260926_232440\stems_staging\sattelites 11-11 [125BPM] - BULLETS.wav"
+               vit_import_insert_file="D:\Vit_DAW\coord\runs\L2-2-SEG-SMOKE-1\seg_primitives_smoke_20260926_232440\stems_staging\sattelites 11-11 [125BPM] - BULLETS.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <TRACK id="1017" name="sattelites 12-DS MARS 125 percussion tambourine lights"
+         vit_import_role="stem" vit_import_source_file="D:\Vit_DAW\coord\runs\L2-2-SEG-SMOKE-1\seg_primitives_smoke_20260926_232440\stems_staging\sattelites 12-DS_MARS_125_percussion_tambourine_lights.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1018" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1019" enabled="1"/>
+    <AUDIOCLIP name="sattelites 12-DS_MARS_125_percussion_tambourine_lights"
+               start="0.0" length="228.5714375" offset="0.0" id="1021" source="D:\Vit_DAW\coord\runs\L2-2-SEG-SMOKE-1\seg_primitives_smoke_20260926_232440\stems_staging\sattelites 12-DS_MARS_125_percussion_tambourine_lights.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ff00ff55" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="D:\Vit_DAW\coord\runs\L2-2-SEG-SMOKE-1\seg_primitives_smoke_20260926_232440\stems_staging\sattelites 12-DS_MARS_125_percussion_tambourine_lights.wav"
+               vit_import_insert_file="D:\Vit_DAW\coord\runs\L2-2-SEG-SMOKE-1\seg_primitives_smoke_20260926_232440\stems_staging\sattelites 12-DS_MARS_125_percussion_tambourine_lights.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="457.142875" oneShot="0" denominator="4"
+                numerator="4" bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+  <VIT_AUDIO_SETTINGS migration_state="defaulted_new_project" defaulted_origin="new_project"
+                      schema_version="vit_project_audio_settings.v1" sample_rate_hz="48000"
+                      record_file_type="WAV/BWF" record_bit_depth="24" pcm_format="int24"
+                      internal_processing_format="unknown" import_sample_rate_policy="ask"
+                      import_bit_depth_policy="keep_source" media_copy_policy="reference_original"
+                      channel_import_policy="preserve_interleaved" render_default_sample_rate_hz="48000"
+                      render_default_bit_depth="24" render_default_file_type="WAV"
+                      dither_policy="unknown"/>
+</EDIT>

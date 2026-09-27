@@ -1,0 +1,34 @@
+﻿{
+    "run_id":  "seg_primitives_smoke_20260926_231942",
+    "card":  "L2-2-SEG-SMOKE-1",
+    "started_at":  "2026-09-26T15:19:43.0018810Z",
+    "command_line":  "",
+    "repo_head":  "24a1984504494dfbdfbad8c8f8a2afa8f4a47d96",
+    "kernel_exe":  "D:\\Vit_DAW\\VitApp\\cmake-build-pcverify1\\VitApp_artefacts\\Release\\VitApp.exe",
+    "kernel_sha256":  "47C4C3F5626C0649D73F56175AFB3D162CE730978E40348AC57C21F2E6790583",
+    "kernel_mtime_utc":  "2026-09-26T14:43:24.8379063Z",
+    "stack_mode":  "dev_agent_smoke_started",
+    "probe_output":  "D:\\Vit_DAW\\coord\\runs\\L2-2-SEG-SMOKE-1\\seg_primitives_smoke_20260926_231942\\seg_probe_summary.json",
+    "assertions_block":  {
+                             "A1_payload_present":  true,
+                             "A2_structure_legal":  true,
+                             "A3_determinism":  true
+                         },
+    "verdict":  "PASS",
+    "probe_exit_code":  0,
+    "probe_status":  "passed",
+    "probe_error":  "",
+    "readable_file_count":  3,
+    "tracks_created":  3,
+    "observed_publish_traffic":  {
+                                     "\u003cempty\u003e":  2338,
+                                     "project_audio_analysis_progress":  4,
+                                     "audio_feature_data_ready:waveform_envelope":  138,
+                                     "audio_feature_data_ready:band_energy_summary":  3,
+                                     "audio_feature_data_ready:stereo_relation_summary":  3,
+                                     "audio_feature_data_ready:loudness_summary":  3,
+                                     "audio_feature_data_ready:segmentation_primitives":  2
+                                 },
+    "import_folder":  "D:\\Vit_DAW\\coord\\runs\\L2-2-SEG-SMOKE-1\\seg_primitives_smoke_20260926_231942\\stems_staging",
+    "finished_at":  "2026-09-26T15:20:49.2012934Z"
+}
