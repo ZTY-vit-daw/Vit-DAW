@@ -12,4 +12,4 @@
 - 验收：三件修毕+验证记录（或 PC 复验声明）+grep 零残留
 - 停止条件：无（纯工具卡）
 - 领取：2026-09-27 05:18 UTC / 7f8ef6299d1555fcab10c4987c9839e8fcb5a098（origin/main）/ port/smoke-tooling-1
-- 回执：（待回填）
+- 回执（2026-09-27 mac 夜池；补填提交——首推 0b47b3b 时回执填充脚本编码失败空推，本提交为实际回填）：实现 `80d014a`（port/smoke-tooling-1 已推 origin）。三件：①`dev_agent_smoke` 增 `-UiPortWaitSeconds`（默认 20=零行为变化，仅作用于 UI 内核端口等待处，泛用 WaitSeconds 不动）；②方括号字符类通配四处全转 `.Contains()` 字面匹配（cont_stall_repro_smoke :326/:333/:440+cont_stall_two_goal_smoke :356），**grep 复验零残留**（精确模式 `-like "[^"]*\[[^]]*\][^"]*"` 全 scripts/ 空）；③tim_assert_smoke 十处工件写出转 `Write-Utf8NoBom`（`[System.IO.File]::WriteAllText`+`UTF8Encoding($false)`）。**偏离卡面字面说明（决策侧核）**：未用 `-Encoding utf8NoBOM` 字面——Windows PowerShell 5.1（烟测宿主）无该枚举值会抛错，而 PS7 上 `utf8` 本就无 BOM；.NET 写法两端均产无 BOM 字节，达成卡面意图（BLIND-BOM-1 族根治）。**附带修复**：cont_stall_repro_smoke 三处内嵌真实 CR 字节的 `-replace` 正则字符串（原为 `"<CR>?<LF>"` 字节形态）规范为 `\r?\n` 转义文本（正则语义等同：可选 CR+LF）——python 文本读写误伤的修复，全 scripts/ CR 清点 before 3/after 0。**验证边界（卡面口径）**：mac 无任何 PowerShell（pwsh/powershell 均缺）——①参数化短跑与③BOM 字节检查**PC 复验待决策侧**（建议复验点：`-UiPortWaitSeconds 60` 冷启动一次+run_report.json 首 3 字节非 EF BB BF+任一 cont_stall 脚本断言日志行命中）；②grep 复验已在本机完成。
