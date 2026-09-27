@@ -22,3 +22,4 @@
   - 过程记录：红→绿中两处测试脚手架修正（T4 quality_reasons 按 juce 数组遍历而非 toString；防洪摘要断言对齐历史日志格式 "+N more" 无空格——生产格式保真于 FIX-KERNEL-PLUGINLIST-HYGIENE-1 原文）；首次主工程配置时 libzmq FetchContent 下载瞬态失败一次，重试即过（环境类，已归因）。
   - 端测覆盖边界声明：本卡门=组件级（ctest 双配置+主工程编译+agent 单测），真栈面（get_project_state 卫生块经 VSP 端到端+TIM 断言器在真投影流的行）未跑——夜间托管无真栈（PROTOCOL §4），留决策侧合入后安排。
   - HEAD：`08b8986`（port/tim-kernel-hygiene-1 已推 origin）。
+- 验收：**pass（2026-09-28 决策会话）**——红绿双 commit（ca5dbc8 红/08b8986 绿）在案；**我方合入后复跑：ctest Debug 8/8+Release 8/8 双配置全绿**（Release 首跑 Not Run 系我本地未构建目标，补编后过——非测试失败）+agent tim 包 ok；主工程编译门抓到 dispatcher 裸指针误用并修复的价值声明采信（ctest 不覆盖 dispatcher 编译的覆盖面说明成立）；两处测试脚手架修正记录（生产格式保真）合规；端测边界（真栈卫生块端到端留决策侧）如实声明——与 DISCLOSE 腿完成后可合并开一张真栈腿。
