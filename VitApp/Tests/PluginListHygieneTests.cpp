@@ -293,7 +293,7 @@ void runHygieneStateObjectTest (const juce::File& directory)
     const auto summary = vit::pluginListHygieneRemovedSummary (flood);
     VIT_CHECK (summary.contains ("/ghost/0.vst3"));
     VIT_CHECK (summary.contains ("/ghost/1.vst3"));
-    VIT_CHECK (summary.contains ("+ 3 more"));
+    VIT_CHECK (summary.contains ("+3 more"));
     VIT_CHECK (! summary.contains ("/ghost/2.vst3"));
 
     // Never-ran form: empty stamp, explicit zeros, cleanup_ran=false.

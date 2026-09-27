@@ -240,8 +240,19 @@ int main()
                        "T4 silence publishes dc_offset exactly 0");
                 if (auto* evidence = object->getProperty ("quality_evidence").getDynamicObject())
                 {
-                    const auto reasons = evidence->getProperty ("quality_reasons").toString();
-                    check (reasons.contains ("all_zero_audio"),
+                    const auto reasonsVar = evidence->getProperty ("quality_reasons");
+                    bool foundAllZero = false;
+                    if (reasonsVar.isArray())
+                    {
+                        for (const auto& reason : *reasonsVar.getArray())
+                            if (reason.toString() == "all_zero_audio")
+                                foundAllZero = true;
+                    }
+                    else
+                    {
+                        foundAllZero = reasonsVar.toString().contains ("all_zero_audio");
+                    }
+                    check (foundAllZero,
                            "T4 silence keeps the all_zero_audio quality reason");
                 }
                 else

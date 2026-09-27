@@ -2,6 +2,7 @@ package tim
 
 import (
 	"fmt"
+	"math"
 	"sort"
 )
 
@@ -63,11 +64,12 @@ const (
 // knownAsserterChecks is the v1 entity registry; anything outside it fails
 // closed at load time (ReconcileLoadedAssertions).
 var knownAsserterChecks = map[string]map[string]bool{
-	"signal_hygiene":  {"signal_nonfinite": true, "clipping_headroom": true},
+	"signal_hygiene":  {"signal_nonfinite": true, "clipping_headroom": true, "dc_offset": true},
 	"level_ceiling":   {"ceiling": true},
 	"sample_rate":     {"consistency": true},
 	"routing":         {"dead_end": true, "cycle": true},
 	"plugin_legality": {"known_path": true},
+	"plugin_hygiene":  {"startup_cleanup": true},
 }
 
 // AssertionResult is one asserter verdict for one check scope (design §3.1
@@ -129,10 +131,12 @@ var AssertWarnLogger func(line string)
 
 var acousticAssertionRefs = []string{"mix.read:project.tracks.summary", "mix.read:project.acoustic.tracks"}
 var rackAssertionRefs = []string{"mix.read:project.tracks.summary"}
+var hygieneAssertionRefs = []string{"project.state:plugin_list_hygiene"}
 
 // Evaluate runs every v1 asserter (AS-SIG / AS-PEAK / AS-SR / AS-ROUTE /
-// AS-PLUGIN) and returns one row per (check, scope). Pure: same input, same
-// output; the only side effect is optional WARN lines via AssertWarnLogger.
+// AS-PLUGIN / AS-HYGIENE) and returns one row per (check, scope). Pure: same
+// input, same output; the only side effect is optional WARN lines via
+// AssertWarnLogger.
 func Evaluate(input AssertInput) []AssertionResult {
 	results := []AssertionResult{}
 	results = append(results, evaluateSignalHygiene(input.TrackFacts)...)
@@ -140,6 +144,7 @@ func Evaluate(input AssertInput) []AssertionResult {
 	results = append(results, evaluateSampleRate(input.TrackFacts, input.ProjectSampleRateHz)...)
 	results = append(results, evaluateRouting(input.RackSummaries)...)
 	results = append(results, evaluatePluginLegality(input.RackSummaries, input.KnownPluginPaths)...)
+	results = append(results, evaluatePluginHygiene(input.PluginListHygiene)...)
 	warnAssertionFailures(results)
 	return results
 }
@@ -162,6 +167,19 @@ func evaluateSignalHygiene(facts []TrackFact) []AssertionResult {
 				out = append(out, passRow("signal_hygiene", "signal_nonfinite", fact.TrackID, floatPtr(0), floatPtr(0), acousticAssertionRefs))
 			} else {
 				out = append(out, failRow("signal_hygiene", "signal_nonfinite", fact.TrackID, codeSignalNonfinite, floatPtr(float64(total)), floatPtr(0), acousticAssertionRefs))
+			}
+		}
+		// P3 dc_offset (TIM-KERNEL-HYGIENE-1 Item 2): the signed mean of the
+		// finite samples stays at or below the exposed warn threshold. The
+		// absolute value rides on the row; missing key stays not_evaluable.
+		if fact.DCOffset == nil {
+			out = append(out, assertionRow("signal_hygiene", "dc_offset", AssertionStatusNotEvaluable, fact.TrackID, codeSignalDCOffsetNE, nil, nil, acousticAssertionRefs))
+		} else {
+			absolute := math.Abs(*fact.DCOffset)
+			if absolute > SignalDCOffsetWarnLinear {
+				out = append(out, failRow("signal_hygiene", "dc_offset", fact.TrackID, codeSignalDCOffset, floatPtr(absolute), floatPtr(SignalDCOffsetWarnLinear), acousticAssertionRefs))
+			} else {
+				out = append(out, passRow("signal_hygiene", "dc_offset", fact.TrackID, floatPtr(absolute), floatPtr(SignalDCOffsetWarnLinear), acousticAssertionRefs))
 			}
 		}
 		// P2 clipping_headroom: peak below the clip ceiling and headroom above
@@ -345,6 +363,35 @@ func evaluatePluginLegality(racks []RackSummary, known map[string]bool) []Assert
 		out = append(out, assertionRow("plugin_legality", "known_path", AssertionStatusNotEvaluable, "", codePluginLegalityNE, nil, nil, rackAssertionRefs))
 	}
 	return out
+}
+
+// evaluatePluginHygiene consumes the kernel plugin_list_hygiene disclosure
+// block (TIM-KERNEL-HYGIENE-1 Item 5). Three states preserved: missing block
+// or never-ran cleanup is not_evaluable, an explicit zero-removal run passes,
+// stale entries removed at startup fail (warn) with the removed count.
+func evaluatePluginHygiene(block map[string]any) []AssertionResult {
+	if len(block) == 0 {
+		return []AssertionResult{assertionRow("plugin_hygiene", "startup_cleanup", AssertionStatusNotEvaluable, "", codePluginHygieneNE, nil, nil, hygieneAssertionRefs)}
+	}
+	ran, ranOK := boolValue(block["cleanup_ran"])
+	if !ranOK || !ran {
+		return []AssertionResult{assertionRow("plugin_hygiene", "startup_cleanup", AssertionStatusNotEvaluable, "", codePluginHygieneNE, nil, nil, hygieneAssertionRefs)}
+	}
+	removed, ok := numberFromAny(block["removed_total"])
+	if !ok {
+		// Fall back to the split counters before declaring the block
+		// uninterpretable; both missing keeps not_evaluable (never fabricated).
+		types, typesOK := numberFromAny(block["types_removed"])
+		blacklist, blacklistOK := numberFromAny(block["blacklist_removed"])
+		if !typesOK || !blacklistOK {
+			return []AssertionResult{assertionRow("plugin_hygiene", "startup_cleanup", AssertionStatusNotEvaluable, "", codePluginHygieneNE, nil, nil, hygieneAssertionRefs)}
+		}
+		removed = types + blacklist
+	}
+	if removed > 0 {
+		return []AssertionResult{failRow("plugin_hygiene", "startup_cleanup", "", codePluginListStaleRemove, floatPtr(removed), floatPtr(0), hygieneAssertionRefs)}
+	}
+	return []AssertionResult{passRow("plugin_hygiene", "startup_cleanup", "", floatPtr(0), floatPtr(0), hygieneAssertionRefs)}
 }
 
 // RackSummariesFromProjectState extracts per-track rack digests from the raw
