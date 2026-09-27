@@ -20,3 +20,4 @@
   - 设计点（供决策核）：①轨级块长现无任何内核数据源——TrackFact.BlockSize 读取器已接（acoustic/evidence 透传键 block_size），未披露前恒 NE（卡面"轨级缺=NE"字面实现，升级路径数据驱动）；②装载态聚合语义=failed 支配（真失败证据优先），pending/未披露→NE（async 瞬态窗，GAPS Item4 风险对策）；③plugin_load_error 字段为卡面两字段外加项（失败时透传原始错误串，§11 安全）。
   - 端测覆盖边界：组件级门已过（ctest 双配置+app 编译+agent 单测）；get_project_state 两披露字段的真栈端到端未跑（夜间无真栈），留决策侧合入后安排。
   - HEAD：`799c31e`（port/tim-kernel-disclose-1 已推 origin）。
+- 验收：**pass（2026-09-27 决策会话·mac，合入 ff7a33f+6bb707e）**——红绿双证采信（12b8322 exit 134/1→799c31e 全过）；**决策侧独立复跑：ctest Debug 9/9+Release 9/9（各 exit 0，含新 VitProjectStateDisclosureTests）+合并态 agent 全量 86 包 ok**；内核 diff 亲核（Item3 无设备时键缺席不造默认值/Item4 只读披露注释明示零装载动作）；越域 1 行 mixboard 断言收窄追认（保三态诚实，静默不发行方案否决正确）；设计三点采信（轨级块长恒 NE=数据驱动升级路径/failed 支配聚合/plugin_load_error §11 安全外加项）。**合入修正登记：799c31e 误裹挟 VitApp/Workspace/Settings/Settings.xml+default_project.xml 两运行时文件（回执未申报），合入时剔除（6bb707e 仅 9 实现文件）——分支历史已推送不改写，§12 纪律；夜池缰绳补"提交前 git status 核对零 Workspace 文件"**。真栈端到端与 HYGIENE 真栈腿合并后开。

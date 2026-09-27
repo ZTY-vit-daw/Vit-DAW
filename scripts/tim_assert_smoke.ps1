@@ -58,6 +58,16 @@ function Write-Ok { param([string]$Message) Write-Host ("   [ok] " + $Message) -
 function Write-WarnLine { param([string]$Message) Write-Host ("   [warn] " + $Message) -ForegroundColor Yellow }
 function Write-FailLine { param([string]$Message) Write-Host ("   [FAIL] " + $Message) -ForegroundColor Red }
 
+# SMOKE-TOOLING-1 (BLIND-BOM-1 family): write artifacts as UTF-8 WITHOUT BOM.
+# Out-File -Encoding utf8 emits a BOM under Windows PowerShell 5.1 (the host
+# these smokes run on) and 5.1 has no utf8NoBOM encoding value — the literal
+# flag would throw at exactly the point it is meant to fix. The .NET writer
+# is BOM-less and byte-identical on both 5.1 and PowerShell 7.
+function Write-Utf8NoBom {
+    param([string]$Path, [string]$Text)
+    [System.IO.File]::WriteAllText($Path, $Text, [System.Text.UTF8Encoding]::new($false))
+}
+
 function Invoke-Json {
     # [CmdletBinding()] matters: without it a mistyped parameter name (e.g.
     # -Uri vs -Url) silently lands in $args and the request goes out with an
@@ -210,7 +220,7 @@ if (-not $ReuseStack) {
     if ($null -ne $agentListener -or $null -ne $kernelListener) {
         Write-FailLine ("stack already running (agent pid=" + $(if ($agentListener) { $agentListener.OwningProcess } else { "-" }) + " kernel pid=" + $(if ($kernelListener) { $kernelListener.OwningProcess } else { "-" }) + "); clean it up or pass -ReuseStack")
         $report.verdict = "stack_occupied"
-        $report | ConvertTo-Json -Depth 8 | Out-File -FilePath (Join-Path $RunRoot "run_report.json") -Encoding utf8
+        Write-Utf8NoBom -Path (Join-Path $RunRoot "run_report.json") -Text ($report | ConvertTo-Json -Depth 8)
         exit 2
     }
     Write-Step "Bring up real stack via dev_agent_smoke (kernel + Godot UI + agent)"
@@ -237,7 +247,7 @@ if (-not $ReuseStack) {
     if ($devExit -ne 0) {
         Write-FailLine "dev_agent_smoke stack bring-up failed"
         $report.verdict = "stack_bringup_failed"
-        $report | ConvertTo-Json -Depth 8 | Out-File -FilePath (Join-Path $RunRoot "run_report.json") -Encoding utf8
+        Write-Utf8NoBom -Path (Join-Path $RunRoot "run_report.json") -Text ($report | ConvertTo-Json -Depth 8)
         exit 2
     }
     $stackBroughtUp = $true
@@ -268,7 +278,7 @@ else {
 }
 if ($failureReasons.Count -gt 0) {
     $report.verdict = "agent_unreachable"
-    $report | ConvertTo-Json -Depth 8 | Out-File -FilePath (Join-Path $RunRoot "run_report.json") -Encoding utf8
+    Write-Utf8NoBom -Path (Join-Path $RunRoot "run_report.json") -Text ($report | ConvertTo-Json -Depth 8)
     exit 1
 }
 
@@ -281,7 +291,7 @@ $createdTrackID = [string](Get-FirstPropertyValue -Object $trackResult -Names @(
 if ($trackStatus -ne "ok" -or [string]::IsNullOrWhiteSpace($createdTrackID)) {
     Add-Failure ("track.add failed status=" + $trackStatus + " error=" + [string](Get-OptionalProperty -Object $trackResp -Name "error"))
     $report.verdict = "fixture_track_failed"
-    $report | ConvertTo-Json -Depth 8 | Out-File -FilePath (Join-Path $RunRoot "run_report.json") -Encoding utf8
+    Write-Utf8NoBom -Path (Join-Path $RunRoot "run_report.json") -Text ($report | ConvertTo-Json -Depth 8)
     exit 1
 }
 Write-Ok ("fixture track_id=" + $createdTrackID)
@@ -311,7 +321,7 @@ $importResp = Invoke-AgentTool -Tool "clip.import_media_to_track" -ToolArgs @{
     mode = "non_destructive"
 } -TimeoutSec 90 -Source "tim_assert_smoke.fixture_import" -Confirmed
 $importStatus = [string](Get-OptionalProperty -Object $importResp -Name "status")
-$importResp | ConvertTo-Json -Depth 8 | Out-File -FilePath (Join-Path $RunRoot "import_response.json") -Encoding utf8
+Write-Utf8NoBom -Path (Join-Path $RunRoot "import_response.json") -Text ($importResp | ConvertTo-Json -Depth 8)
 if ($importStatus -ne "ok") {
     Add-Failure ("clip.import_media_to_track failed status=" + $importStatus + " error=" + [string](Get-OptionalProperty -Object $importResp -Name "error"))
 }
@@ -404,7 +414,7 @@ while ((Get-Date) -lt $deadline) {
         Write-Ok ("acoustic evidence reached TIM after " + $pollRounds + " round(s), observation_id=" + $finalObservationID)
         break
     }
-    $timPayload | ConvertTo-Json -Depth 12 | Out-File -FilePath (Join-Path $RunRoot ("tim_projection_poll_round" + $pollRounds + ".json")) -Encoding utf8
+    Write-Utf8NoBom -Path (Join-Path $RunRoot ("tim_projection_poll_round" + $pollRounds + ".json")) -Text ($timPayload | ConvertTo-Json -Depth 12)
     Write-Host ("   round " + $pollRounds + ": fixture track level_ceiling still not_evaluable; waiting " + $PollIntervalSeconds + "s")
     $timPayload = $null
     Start-Sleep -Seconds $PollIntervalSeconds
@@ -419,7 +429,7 @@ else {
 }
 
 if ($null -ne $timPayload) {
-    $timPayload | ConvertTo-Json -Depth 12 | Out-File -FilePath (Join-Path $RunRoot "tim_projection_final.json") -Encoding utf8
+    Write-Utf8NoBom -Path (Join-Path $RunRoot "tim_projection_final.json") -Text ($timPayload | ConvertTo-Json -Depth 12)
 
     # ------------------------------------------------------------ assertion group A1
     Write-Step "A1: assertions[] present and every row three-state legal"
@@ -479,7 +489,7 @@ if ($null -ne $timPayload) {
     $report.log_diff.after_line_count = $afterLines.Count
     $report.log_diff.new_line_count = $newLines.Count
     $report.log_diff.tim_assert_warn_lines = $warnLines
-    $warnLines | Out-File -FilePath (Join-Path $RunRoot "log_diff_tim_assert_lines.txt") -Encoding utf8
+    Write-Utf8NoBom -Path (Join-Path $RunRoot "log_diff_tim_assert_lines.txt") -Text ($warnLines -join [Environment]::NewLine)
     if ($warnLines.Count -eq 0) {
         Add-Failure ("A3 no [tim.assert] WARN lines in agent log diff (new lines=" + $newLines.Count + ")")
     }
@@ -522,14 +532,14 @@ if (-not [string]::IsNullOrWhiteSpace($createdTrackID)) {
 $report.finished_at = (Get-Date).ToUniversalTime().ToString("o")
 if ($failureReasons.Count -eq 0) {
     $report.verdict = "PASS"
-    $report | ConvertTo-Json -Depth 8 | Out-File -FilePath (Join-Path $RunRoot "run_report.json") -Encoding utf8
+    Write-Utf8NoBom -Path (Join-Path $RunRoot "run_report.json") -Text ($report | ConvertTo-Json -Depth 8)
     Write-Step "PASS"
     Write-Ok ("TIM assert real-stack smoke passed (four assertion groups). run_root=" + $RunRoot)
     exit 0
 }
 $report.verdict = "FAIL"
 $report.failures = @($failureReasons)
-$report | ConvertTo-Json -Depth 8 | Out-File -FilePath (Join-Path $RunRoot "run_report.json") -Encoding utf8
+Write-Utf8NoBom -Path (Join-Path $RunRoot "run_report.json") -Text ($report | ConvertTo-Json -Depth 8)
 Write-Step "FAIL"
 foreach ($reason in $failureReasons) { Write-FailLine $reason }
 Write-Host ("run_root=" + $RunRoot)

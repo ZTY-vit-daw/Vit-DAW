@@ -52,6 +52,10 @@ const (
 	codeSignalDCOffsetNE      = "assert_signal_dc_offset_not_evaluable"
 	codePluginHygieneNE       = "assert_plugin_hygiene_not_evaluable"
 	codePluginListStaleRemove = "assert_plugin_list_stale_removed"
+	codeBlockSizeMismatch     = "assert_block_size_mismatch"
+	codeBlockSizeNE           = "assert_block_size_not_evaluable"
+	codePluginLoadFailed      = "assert_plugin_load_failed"
+	codePluginLoadNE          = "assert_plugin_load_not_evaluable"
 	codeClippingHeadroomNE    = "assert_clipping_headroom_not_evaluable"
 	codeLevelCeilingNE        = "assert_level_ceiling_not_evaluable"
 	codeSampleRateNE          = "assert_sample_rate_not_evaluable"
@@ -66,9 +70,9 @@ const (
 var knownAsserterChecks = map[string]map[string]bool{
 	"signal_hygiene":  {"signal_nonfinite": true, "clipping_headroom": true, "dc_offset": true},
 	"level_ceiling":   {"ceiling": true},
-	"sample_rate":     {"consistency": true},
+	"sample_rate":     {"consistency": true, "block_size": true},
 	"routing":         {"dead_end": true, "cycle": true},
-	"plugin_legality": {"known_path": true},
+	"plugin_legality": {"known_path": true, "load_state": true},
 	"plugin_hygiene":  {"startup_cleanup": true},
 }
 
@@ -90,11 +94,13 @@ type AssertionResult struct {
 type AssertInput struct {
 	TrackFacts          []TrackFact
 	ProjectSampleRateHz *float64
-	RackSummaries       []RackSummary
-	KnownPluginPaths    map[string]bool
-	CeilingDBFS         float64
-	// PluginListHygiene is the kernel plugin_list_hygiene disclosure block;
-	// nil keeps the plugin hygiene assertion not_evaluable.
+	// ProjectBlockSize is the kernel-disclosed block size actually in use
+	// (audio_settings.block_size); nil when no device is open / key absent,
+	// keeping the block_size check not_evaluable (TIM-KERNEL-DISCLOSE-1).
+	ProjectBlockSize  *float64
+	RackSummaries     []RackSummary
+	KnownPluginPaths  map[string]bool
+	CeilingDBFS       float64
 	PluginListHygiene map[string]any
 }
 
@@ -107,6 +113,11 @@ type RackNode struct {
 	VitOrphanBypassCandidate    bool
 	PluginPath                  string
 	PluginFormat                string
+	// Per-instance load state disclosed by the kernel rack nodes
+	// (TIM-KERNEL-DISCLOSE-1 Item 4): "ready" / "async_pending" / "failed";
+	// PluginLoadState empty = field not disclosed (older kernel).
+	PluginLoadState   string
+	PluginInstanceRdy bool
 }
 
 // RackEdge is one directed rack connection; RACK_INPUT/RACK_OUTPUT are the
@@ -145,6 +156,8 @@ func Evaluate(input AssertInput) []AssertionResult {
 	results = append(results, evaluateRouting(input.RackSummaries)...)
 	results = append(results, evaluatePluginLegality(input.RackSummaries, input.KnownPluginPaths)...)
 	results = append(results, evaluatePluginHygiene(input.PluginListHygiene)...)
+	results = append(results, evaluateBlockSize(input.TrackFacts, input.ProjectBlockSize)...)
+	results = append(results, evaluatePluginLoadState(input.RackSummaries)...)
 	warnAssertionFailures(results)
 	return results
 }
@@ -365,6 +378,68 @@ func evaluatePluginLegality(racks []RackSummary, known map[string]bool) []Assert
 	return out
 }
 
+// evaluateBlockSize is the AS-SR P2 check (TIM-KERNEL-DISCLOSE-1 Item 3):
+// the kernel discloses the block size actually in use via
+// audio_settings.block_size. Project-level missing keeps the whole check
+// not_evaluable (the existing sample-rate behaviour, not downgraded);
+// track-level block size is not disclosed by any current source, so track
+// rows stay not_evaluable until one appears — never a fabricated pass.
+func evaluateBlockSize(facts []TrackFact, project *float64) []AssertionResult {
+	if project == nil {
+		return []AssertionResult{assertionRow("sample_rate", "block_size", AssertionStatusNotEvaluable, "", codeBlockSizeNE, nil, nil, acousticAssertionRefs)}
+	}
+	out := []AssertionResult{}
+	for _, fact := range facts {
+		if fact.BlockSize == nil {
+			out = append(out, assertionRow("sample_rate", "block_size", AssertionStatusNotEvaluable, fact.TrackID, codeBlockSizeNE, nil, floatPtr(*project), acousticAssertionRefs))
+			continue
+		}
+		if *fact.BlockSize != *project {
+			out = append(out, failRow("sample_rate", "block_size", fact.TrackID, codeBlockSizeMismatch, floatPtr(*fact.BlockSize), floatPtr(*project), acousticAssertionRefs))
+			continue
+		}
+		out = append(out, passRow("sample_rate", "block_size", fact.TrackID, floatPtr(*fact.BlockSize), floatPtr(*project), acousticAssertionRefs))
+	}
+	return out
+}
+
+// evaluatePluginLoadState is the AS-PLUGIN P2 check (TIM-KERNEL-DISCLOSE-1
+// Item 4): per-instance load state disclosed on the kernel rack nodes.
+// failed dominates (real failure evidence); pending/undisclosed keep the row
+// not_evaluable (transient async window or older kernel without the field).
+func evaluatePluginLoadState(racks []RackSummary) []AssertionResult {
+	out := []AssertionResult{}
+	for _, rack := range racks {
+		failed, undetermined := 0, 0
+		for _, node := range rack.Nodes {
+			if node.PluginPath == "" && node.PluginFormat == "" {
+				continue
+			}
+			switch node.PluginLoadState {
+			case "failed":
+				failed++
+			case "ready":
+			case "async_pending":
+				undetermined++
+			default:
+				undetermined++
+			}
+		}
+		switch {
+		case failed > 0:
+			out = append(out, failRow("plugin_legality", "load_state", rack.TrackID, codePluginLoadFailed, floatPtr(float64(failed)), floatPtr(0), rackAssertionRefs))
+		case undetermined > 0:
+			out = append(out, assertionRow("plugin_legality", "load_state", AssertionStatusNotEvaluable, rack.TrackID, codePluginLoadNE, floatPtr(float64(undetermined)), nil, rackAssertionRefs))
+		default:
+			out = append(out, passRow("plugin_legality", "load_state", rack.TrackID, floatPtr(0), floatPtr(0), rackAssertionRefs))
+		}
+	}
+	if len(racks) == 0 {
+		out = append(out, assertionRow("plugin_legality", "load_state", AssertionStatusNotEvaluable, "", codePluginLoadNE, nil, nil, rackAssertionRefs))
+	}
+	return out
+}
+
 // evaluatePluginHygiene consumes the kernel plugin_list_hygiene disclosure
 // block (TIM-KERNEL-HYGIENE-1 Item 5). Three states preserved: missing block
 // or never-ran cleanup is not_evaluable, an explicit zero-removal run passes,
@@ -417,6 +492,8 @@ func RackSummariesFromProjectState(state map[string]any) []RackSummary {
 			node.Enabled, _ = boolValue(rawNode["enabled"])
 			node.AudioReachableFromRackInput, _ = boolValue(rawNode["audio_reachable_from_rack_input"])
 			node.VitOrphanBypassCandidate, _ = boolValue(rawNode["vit_orphan_bypass_candidate"])
+			node.PluginLoadState = firstNonEmptyText(rawNode, "plugin_load_state")
+			node.PluginInstanceRdy, _ = boolValue(rawNode["plugin_instance_ready"])
 			if node.NodeID == "" && node.PluginPath == "" && node.PluginFormat == "" {
 				continue
 			}

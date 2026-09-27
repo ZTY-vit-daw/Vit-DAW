@@ -14,3 +14,4 @@
 - 停止条件：常规勘察止损
 - 领取：2026-09-27 05:15 UTC / e9c6f59（origin/main 推定，本卡纯只读）/ port/memory-recon-1
 - 回执（2026-09-27 mac 夜池）：报告入库 `coord/runs/MEMORY-RECON-1/MEMORY_INVENTORY.md`（port/memory-recon-1 分支提交 8f287df 已推 origin，待决策侧验收合入）。要点：①用户偏好**无载体**（盲测判定=工程内单 run 记录不外推）；②客观经验=PCA 台账唯一持久样板（~/.vit/，内容指纹组织）+环境指纹**缺机器维度**（全库零生成点）；③工程事实五层载体充分；④原始流四层持久+蒸馏可重算=D14 结构前提现成；⑤画像零基线确认（列举≠统计）；⑥灭失点 6 处（真灭失 2：事件环+内核 meters；可重建 3+边界 1）。零代码改动 ✓；卡面五验收项全过（报告 §5 对照表）。
+- 验收：**pass（2026-09-27 决策会话·mac，报告合入 e959210）**——五线全达标（三载体对照含"无载体"明示/流vs蒸馏/画像零基线/灭失点 6≥4/入库）；决策侧抽核三发全中（PCA Store store.go:16、盲测恢复 "User judgment restored" audition_events.go:222-227 逐字、FingerprintPath 内容哈希+fingerprint.go:16-17 注释亲读+machine_id/host_id/env_fingerprint 全库生产代码零生成点 grep 复验）；核心结论采信：用户偏好无载体/环境指纹缺机器维度=D14 两净新增面，PCA 台账唯一持久样板与 L2-3 M4 互证一致；真灭失 2 处（vsphub 事件环+内核 meters 读即清）为持久化缺口清单输入。

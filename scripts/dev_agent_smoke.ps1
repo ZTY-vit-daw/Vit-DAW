@@ -18,7 +18,12 @@ param(
     [switch]$MixSmoke,
     [switch]$AuthoritySmoke,
     [switch]$Strict,
-    [int]$WaitSeconds = 20
+    [int]$WaitSeconds = 20,
+    # SMOKE-TOOLING-1: the UI-launched kernel command port can take far longer
+    # than the generic wait budget when the plugin table is cold (three
+    # same-shape environment failures: ~994-entry cold load blew the fixed
+    # 20s). Independent knob, default preserves the previous behaviour.
+    [int]$UiPortWaitSeconds = 20
 )
 
 Set-StrictMode -Version Latest
@@ -492,7 +497,7 @@ if ($StartUI) {
         Write-Ok ("started UI: " + $UiExe)
     }
     if ($UseExportedUI -or (-not [string]::IsNullOrWhiteSpace($ResolvedGodotProjectRoot)) -or (Test-Path -LiteralPath $UiExe) -or (Get-TcpListener -Port ([int]$ZmqReqPort))) {
-        $uiKernelDeadline = (Get-Date).AddSeconds($WaitSeconds)
+        $uiKernelDeadline = (Get-Date).AddSeconds($UiPortWaitSeconds)
         while ((Get-Date) -lt $uiKernelDeadline -and -not (Get-TcpListener -Port ([int]$ZmqReqPort))) {
             Start-Sleep -Milliseconds 500
         }
@@ -500,7 +505,7 @@ if ($StartUI) {
             Write-Ok ("UI-launched kernel command port is listening: " + $ZmqReqPort)
         }
         else {
-            Fail-Or-Warn ("UI did not expose kernel command port within " + [string]$WaitSeconds + "s")
+            Fail-Or-Warn ("UI did not expose kernel command port within " + [string]$UiPortWaitSeconds + "s")
         }
     }
 }

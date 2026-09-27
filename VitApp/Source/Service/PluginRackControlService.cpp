@@ -1335,8 +1335,8 @@ te::Plugin* findPluginInEdit (te::Edit& edit, const juce::String& pluginIdStr)
 juce::String describeExternalPluginLoadState (te::Edit& edit, te::ExternalPlugin& plugin)
 {
     const auto& desc = plugin.desc;
-    auto loadError = plugin.getLoadError();
-
+    const auto state = externalPluginLoadStateFields (plugin);
+    auto loadError = juce::String (state.loadError);
     if (loadError.isEmpty() && plugin.isInitialisingAsync())
         loadError = "async initialisation pending";
 
@@ -1477,6 +1477,14 @@ juce::String expandPluginScanPathEnvironment (juce::String path)
 
 
 } // namespace
+
+ExternalPluginLoadState externalPluginLoadStateFields (te::ExternalPlugin& plugin)
+{
+    const auto loadError = plugin.getLoadError();
+    auto state = classifyExternalPluginLoadState (! loadError.isEmpty(), plugin.isInitialisingAsync());
+    state.loadError = loadError.toStdString();
+    return state;
+}
 
 class PluginScanCoordinator final : private juce::Thread
 {

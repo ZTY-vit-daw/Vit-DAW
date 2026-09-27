@@ -10,6 +10,7 @@
 #include "ProjectMarkerService.h"
 #include "ProjectService.h"
 #include "PluginRackControlService.h"
+#include "PluginLoadState.h"
 #include "TrackGroupService.h"
 #include "TiledSpectrogramBaker.h"
 #include "TrackService.h"
@@ -1854,6 +1855,16 @@ juce::var createRackState (te::Track& track, const juce::String& requestScope)
                 node->setProperty ("plugin_format", pluginFormat);
                 node->setProperty ("format", pluginFormat);
             }
+
+            // TIM-KERNEL-DISCLOSE-1 (Item 4): read-only per-instance load
+            // state. Pure disclosure — querying the project state never
+            // triggers a load or any async wait; async instances surface as
+            // async_pending so consumers treat them as transient.
+            const auto loadState = externalPluginLoadStateFields (*external);
+            node->setProperty ("plugin_load_state", juce::String (loadState.loadState));
+            node->setProperty ("plugin_instance_ready", loadState.instanceReady);
+            if (! loadState.loadError.empty())
+                node->setProperty ("plugin_load_error", juce::String (loadState.loadError));
         }
         nodes.add (juce::var (node.release()));
     }
@@ -3378,7 +3389,21 @@ juce::String CommandDispatcher::handleGetProjectState (const juce::DynamicObject
     {
         const auto settingsReply = juce::JSON::parse (projectAudioSettingsService->handleGetAudioSettings (object, {}));
         if (auto* settingsObject = settingsReply.getDynamicObject())
+        {
+            // TIM-KERNEL-DISCLOSE-1 (Item 3): disclose the block size the
+            // kernel actually uses right now (device setup, same source as
+            // get_audio_device_status); no device open means no current
+            // value and the key stays absent (never a fabricated default).
+            if (auto* settings = settingsObject->getProperty ("audio_settings").getDynamicObject())
+            {
+                auto& jdm = edit->engine.getDeviceManager().deviceManager;
+                const auto disclosed = disclosedBlockSize (jdm.getCurrentAudioDevice() != nullptr,
+                                                           jdm.getAudioDeviceSetup().bufferSize);
+                if (disclosed >= 0)
+                    settings->setProperty ("block_size", disclosed);
+            }
             response->setProperty ("audio_settings", settingsObject->getProperty ("audio_settings"));
+        }
     }
     response->setProperty ("tracks", juce::var (tracksArray));
     response->setProperty ("markers", ProjectMarkerService::createMarkersSnapshot (*edit));

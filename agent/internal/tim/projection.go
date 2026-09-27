@@ -56,6 +56,7 @@ func Build(input Input) Projection {
 	assertions := Evaluate(AssertInput{
 		TrackFacts:          trackFacts,
 		ProjectSampleRateHz: projectSampleRateHz(input.AudioSettings),
+		ProjectBlockSize:    projectBlockSize(input.AudioSettings),
 		RackSummaries:       input.RackSummaries,
 		KnownPluginPaths:    input.KnownPluginPaths,
 		CeilingDBFS:         levelCeilingDBFS(input.CeilingDBFS),
@@ -381,6 +382,7 @@ func buildTrackFact(track map[string]any, evidenceByTrack map[string]map[string]
 	}
 	fact.NanCount, fact.InfCount = nonfiniteCounts(acoustic, evidence)
 	fact.DCOffset = dcOffsetValue(acoustic, evidence)
+	fact.BlockSize = blockFactValue(acoustic, evidence)
 	issues := issuesForTrack(fact, hasPeak, peakDBFS, hasRMS, rmsDBFS, hasHeadroom, headroomDB)
 	for _, issue := range issues {
 		fact.RiskCodes = appendUniqueString(fact.RiskCodes, issue.Code)
@@ -711,6 +713,42 @@ func dcOffsetValue(acoustic, evidence map[string]any) *float64 {
 		return offset
 	}
 	return read(evidence)
+}
+
+// blockFactValue reads the per-track block-size passthrough key for the
+// AS-SR block_size check (TIM-KERNEL-DISCLOSE-1 Item 3). No current kernel
+// source emits it, so the value stays nil and the check reports
+// not_evaluable; the reader keeps the upgrade path data-driven.
+func blockFactValue(acoustic, evidence map[string]any) *float64 {
+	read := func(row map[string]any) *float64 {
+		if row == nil {
+			return nil
+		}
+		if value, ok := numberFromAny(row["block_size"]); ok {
+			return &value
+		}
+		return nil
+	}
+	if block := read(acoustic); block != nil {
+		return block
+	}
+	return read(evidence)
+}
+
+// projectBlockSize extracts the kernel-disclosed audio_settings block size
+// (the value actually in use); absent key or no open device keeps it nil so
+// the block_size check reports not_evaluable.
+func projectBlockSize(audioSettings map[string]any) *float64 {
+	if block := firstPositiveNumber(audioSettings, "block_size"); block > 0 {
+		return &block
+	}
+	// A disclosed zero is a real value (see disclosedBlockSize); surface it.
+	if audioSettings != nil {
+		if value, ok := numberFromAny(audioSettings["block_size"]); ok {
+			return &value
+		}
+	}
+	return nil
 }
 
 // projectSampleRateHz extracts the project audio settings sample rate for the

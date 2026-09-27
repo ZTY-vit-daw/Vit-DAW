@@ -136,6 +136,7 @@ type TrackFact struct {
 	NanCount  *int     `json:"nan_count,omitempty"`
 	InfCount  *int     `json:"inf_count,omitempty"`
 	DCOffset  *float64 `json:"dc_offset,omitempty"`
+	BlockSize *float64 `json:"block_size,omitempty"`
 	RiskCodes []string `json:"risk_codes,omitempty"`
 }
 
