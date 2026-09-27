@@ -25,3 +25,4 @@
     - E16（B1 pack）：pack 建立时把可见的 project_revision 编入 trace 标记（`... default pack built project_revision=<rev>`）；当前工程 revision 与标记不等 ⇒ pack 失效重建。**pack 与当前工程态双端都无 revision 可见 ⇒ 维持现状不失效**；pack 无注记而工程态出现 revision ⇒ 视为可证明变化（失效，一次重建后收敛）。
   - **端测覆盖边界声明（AGENTS §5 渲染面/旅程门槛）**：改动为 agent 内部投影合并语义与 B1 preflight 门逻辑，不涉 webui 渲染面与用户旅程 UI；本卡按卡面门以单测升级+全量验证收口，真栈烟测未执行——是否需补由决策侧裁定。
   - 复验 worktree：`/Users/timozty/Documents/Vit-DAW-fss1`（验收后由决策侧清理，PROTOCOL §3）。
+- 验收：**pass（2026-09-29 决策会话）**——E8/E16 红绿完整（红=升级断言复现旧缺陷行为的精确形态：-3.0 静默覆盖 -6.0/变更不触发失效；绿=工程态保持+Limitations 带 withheld 码/重建路径触发）；我方合入后复跑两测绿+全量 86 ok；§11 裁定（相等才可覆盖/无 revision 只补缺/双无维持现状）采纳——宁缺勿旧方向钉死。
