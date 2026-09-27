@@ -36,7 +36,7 @@ func Build(input Input) Projection {
 	if generatedAt == "" {
 		generatedAt = time.Now().UTC().Format(time.RFC3339Nano)
 	}
-	rows := buildReferenceRows(input)
+	rows, staleFieldsWithheld := buildReferenceRows(input)
 	profiles := buildMetricProfiles(rows)
 	selected, hasSelected := selectMetricProfile(profiles)
 	status := StatusMissing
@@ -75,6 +75,10 @@ func Build(input Input) Projection {
 		}
 	} else {
 		limitations = append(limitations, "rlm_no_comparable_reference_level_metric")
+	}
+	// E8 新鲜度门可见性：三源合并拒绝了不可证明新鲜的字段覆盖（宁缺勿旧）。
+	if staleFieldsWithheld > 0 {
+		limitations = append(limitations, "rlm_stale_source_fields_withheld")
 	}
 
 	calibration := []CalibrationRow{}
@@ -125,11 +129,20 @@ func ContextProjectionMap(proj Projection) map[string]any {
 	return out
 }
 
-func buildReferenceRows(input Input) []ReferenceLevelRow {
-	merged := mergeSourceRows(
-		sourceRows(projectTrackRows(input.ProjectState), "project.state:tracks"),
-		sourceRows(mixTrackRows(input.MixObservation), "mix.observe:project_package.tracks"),
-		sourceRows(audioAnalysisRows(input.AudioAnalysisStatus), "project.audio_analysis_status:track_waveform_envelopes"),
+func buildReferenceRows(input Input) ([]ReferenceLevelRow, int) {
+	merged, staleFieldsWithheld := mergeSourceRows(
+		sourceGroup{
+			Rows:     sourceRows(projectTrackRows(input.ProjectState), "project.state:tracks"),
+			Revision: sourceRevision(input.ProjectState, "project_state", "daw_state_summary", "shadow"),
+		},
+		sourceGroup{
+			Rows:     sourceRows(mixTrackRows(input.MixObservation), "mix.observe:project_package.tracks"),
+			Revision: mixObservationRevision(input.MixObservation),
+		},
+		sourceGroup{
+			Rows:     sourceRows(audioAnalysisRows(input.AudioAnalysisStatus), "project.audio_analysis_status:track_waveform_envelopes"),
+			Revision: sourceRevision(input.AudioAnalysisStatus, "analysis_job", "result"),
+		},
 	)
 	rows := make([]ReferenceLevelRow, 0, len(merged))
 	for _, raw := range merged {
@@ -142,13 +155,45 @@ func buildReferenceRows(input Input) []ReferenceLevelRow {
 	sort.SliceStable(rows, func(i, j int) bool {
 		return rowLabel(rows[i]) < rowLabel(rows[j])
 	})
-	return rows
+	return rows, staleFieldsWithheld
 }
 
 type rawRow struct {
 	Key          string
 	Data         map[string]any
 	EvidenceRefs []string
+}
+
+// sourceGroup is one merge input: its rows plus the source-level project
+// revision. Revision "" means the source carries no revision visibility; the
+// freshness gate then treats its writes as unprovable-fresh against fields
+// written by a revisioned source (fill-only), while two revision-less sources
+// keep the legacy last-write-wins semantics.
+type sourceGroup struct {
+	Rows     []rawRow
+	Revision string
+}
+
+// sourceRevision extracts project_revision/revision from a source container
+// and its nested candidates (same key convention as chat processor_selection).
+func sourceRevision(container map[string]any, nestedKeys ...string) string {
+	candidates := []map[string]any{container}
+	for _, key := range nestedKeys {
+		candidates = append(candidates, mapValue(container[key]))
+	}
+	for _, candidate := range candidates {
+		if revision := firstText(candidate, "project_revision", "revision"); revision != "" {
+			return revision
+		}
+	}
+	return ""
+}
+
+func mixObservationRevision(mixObservation map[string]any) string {
+	if revision := sourceRevision(bestMixObservation(mixObservation), "project_package"); revision != "" {
+		return revision
+	}
+	return sourceRevision(mixObservation, "observation", "context_pack")
 }
 
 func sourceRows(rows []map[string]any, evidenceRef string) []rawRow {
@@ -167,17 +212,25 @@ func sourceRows(rows []map[string]any, evidenceRef string) []rawRow {
 	return out
 }
 
-func mergeSourceRows(groups ...[]rawRow) []rawRow {
+// mergeSourceRows merges rows across sources by track key. The E8 freshness
+// gate (FIX-STALE-SAMPLES-1): an existing field may only be overwritten by a
+// source whose revision equals the revision that last wrote that field; a
+// differing or missing source revision downgrades the write to fill-only
+// (refuse stale overwrite, 宁缺勿旧). Returns the count of withheld field
+// writes for projection-level visibility.
+func mergeSourceRows(groups ...sourceGroup) ([]rawRow, int) {
 	out := []rawRow{}
 	byKey := map[string]int{}
-	for _, rows := range groups {
-		for _, row := range rows {
+	fieldRevisions := []map[string]string{}
+	withheld := 0
+	for _, group := range groups {
+		for _, row := range group.Rows {
 			key := strings.TrimSpace(row.Key)
 			if key == "" {
 				key = fmt.Sprintf("row_%d", len(out)+1)
 			}
 			if idx, ok := byKey[key]; ok {
-				mergeMap(out[idx].Data, row.Data)
+				withheld += mergeMap(out[idx].Data, row.Data, group.Revision, fieldRevisions[idx])
 				out[idx].EvidenceRefs = uniqueStrings(append(out[idx].EvidenceRefs, row.EvidenceRefs...)...)
 				continue
 			}
@@ -186,16 +239,38 @@ func mergeSourceRows(groups ...[]rawRow) []rawRow {
 				Data:         cloneMap(row.Data),
 				EvidenceRefs: uniqueStrings(row.EvidenceRefs...),
 			}
+			revisions := make(map[string]string, len(next.Data))
+			for field := range next.Data {
+				revisions[field] = group.Revision
+			}
 			byKey[key] = len(out)
 			out = append(out, next)
+			fieldRevisions = append(fieldRevisions, revisions)
 		}
 	}
-	return out
+	return out, withheld
 }
 
-func mergeMap(dst map[string]any, src map[string]any) {
+// mergeMap merges non-empty src fields into dst. fieldRevision tracks the
+// source revision that last wrote each dst field: a field already present in
+// dst may only be overwritten when srcRevision equals that field's recorded
+// revision (both empty counts as equal, preserving legacy last-write-wins
+// between revision-less sources); fills of absent fields are always allowed.
+// Returns the number of withheld writes.
+func mergeMap(dst map[string]any, src map[string]any, srcRevision string, fieldRevision map[string]string) int {
 	if dst == nil || len(src) == 0 {
-		return
+		return 0
+	}
+	withheld := 0
+	canWrite := func(key string) bool {
+		if _, exists := dst[key]; !exists {
+			return true
+		}
+		return fieldRevision[key] == srcRevision
+	}
+	set := func(key string, value any) {
+		dst[key] = value
+		fieldRevision[key] = srcRevision
 	}
 	if sourceClipID, targetClipID := sourceClipIdentity(src), sourceClipIdentity(dst); sourceClipID != "" && targetClipID != "" && sourceClipID != targetClipID {
 		// Track IDs are not sufficient after A4 clip splitting. Keep writable
@@ -212,22 +287,35 @@ func mergeMap(dst map[string]any, src map[string]any) {
 					continue
 				}
 				if cleanText(value) != "" {
-					dst[key] = value
+					if !canWrite(key) {
+						withheld++
+						continue
+					}
+					set(key, value)
 				}
 				continue
 			}
 			if cleanText(value) != "" {
-				dst[key] = value
+				if !canWrite(key) {
+					withheld++
+					continue
+				}
+				set(key, value)
 			}
 		}
-		return
+		return withheld
 	}
 	for key, value := range src {
 		if cleanText(value) == "" {
 			continue
 		}
-		dst[key] = value
+		if !canWrite(key) {
+			withheld++
+			continue
+		}
+		set(key, value)
 	}
+	return withheld
 }
 
 func sourceClipIdentity(row map[string]any) string {

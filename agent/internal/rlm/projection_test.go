@@ -48,23 +48,23 @@ func TestBuildReferenceLevelModelUsesActiveRMSAsStrictMetric(t *testing.T) {
 }
 
 func TestMergeSourceRowsKeepsTrackAggregateWhenDADUsesAnotherClip(t *testing.T) {
-	merged := mergeSourceRows(
-		sourceRows([]map[string]any{{
+	merged, _ := mergeSourceRows(
+		sourceGroup{Rows: sourceRows([]map[string]any{{
 			"track_id": "track_a",
 			"clips":    []map[string]any{{"clip_id": "clip_primary", "clip_gain_db": 2.0, "duration_seconds": 10.0}, {"clip_id": "clip_other", "clip_gain_db": -3.0, "duration_seconds": 4.0}},
-		}}, "project.state:tracks"),
-		sourceRows([]map[string]any{{
+		}}, "project.state:tracks")},
+		sourceGroup{Rows: sourceRows([]map[string]any{{
 			"track_id":                  "track_a",
 			"primary_clip":              map[string]any{"clip_id": "clip_primary"},
 			"rms_dbfs":                  -20.0,
 			"effective_static_rms_dbfs": -18.0,
-		}}, "mix.observe:project_package.tracks"),
-		sourceRows([]map[string]any{{
+		}}, "mix.observe:project_package.tracks")},
+		sourceGroup{Rows: sourceRows([]map[string]any{{
 			"track_id":  "track_a",
 			"clip_id":   "clip_other",
 			"rms_dbfs":  -40.0,
 			"peak_dbfs": -20.0,
-		}}, "project.audio_analysis_status:track_waveform_envelopes"),
+		}}, "project.audio_analysis_status:track_waveform_envelopes")},
 	)
 	if len(merged) != 1 {
 		t.Fatalf("merged rows = %+v", merged)
@@ -75,6 +75,55 @@ func TestMergeSourceRowsKeepsTrackAggregateWhenDADUsesAnotherClip(t *testing.T) 
 	}
 	if row.RMSDBFS == nil || math.Abs(*row.RMSDBFS-(-20.0)) > 0.001 {
 		t.Fatalf("different DAD clip overwrote track aggregate: row=%+v data=%+v", row, merged[0].Data)
+	}
+}
+
+// TestMergeSourceRowsRevisionGate — E8 修复行为边界钉死（FIX-STALE-SAMPLES-1）：
+//  1. 异 revision 源不得覆盖既有字段（revision 只判相等，不做序关系推断——
+//     对齐仓内 stale_for_current_revision 的不等式惯例），只允许补缺；
+//  2. §11：无 revision 源对带 revision 既有字段视为不可证明新鲜——只补缺不覆盖；
+//  3. §11：两个无 revision 源之间维持现状（后写胜）。
+func TestMergeSourceRowsRevisionGate(t *testing.T) {
+	withheldScenario := func(t *testing.T, name string, newerRevision, olderRevision string) {
+		t.Helper()
+		merged, withheld := mergeSourceRows(
+			sourceGroup{
+				Revision: newerRevision,
+				Rows:     sourceRows([]map[string]any{{"track_id": "T3", "volume_db": -6.0}}, "project.state:tracks"),
+			},
+			sourceGroup{
+				Revision: olderRevision,
+				Rows:     sourceRows([]map[string]any{{"track_id": "T3", "volume_db": -3.0, "rms_dbfs": -20.5}}, "mix.observe:project_package.tracks"),
+			},
+		)
+		if len(merged) != 1 {
+			t.Fatalf("%s: merged rows = %+v", name, merged)
+		}
+		if got, ok := merged[0].Data["volume_db"].(float64); !ok || math.Abs(got-(-6.0)) > 0.001 {
+			t.Fatalf("%s: volume_db = %+v（期望 -6.0 不被旧源覆盖）", name, merged[0].Data["volume_db"])
+		}
+		if got, ok := merged[0].Data["rms_dbfs"].(float64); !ok || math.Abs(got-(-20.5)) > 0.001 {
+			t.Fatalf("%s: rms_dbfs = %+v（期望补缺 -20.5）", name, merged[0].Data["rms_dbfs"])
+		}
+		if withheld < 1 {
+			t.Fatalf("%s: withheld = %d（期望被拒绝的覆盖 ≥1）", name, withheld)
+		}
+	}
+	withheldScenario(t, "异 revision（r2 建立行，r1 覆盖）", "r2", "r1")
+	withheldScenario(t, "§11 无 revision 源对带 revision 既有字段", "r2", "")
+
+	merged, withheld := mergeSourceRows(
+		sourceGroup{Rows: sourceRows([]map[string]any{{"track_id": "T3", "volume_db": 0.0}}, "project.state:tracks")},
+		sourceGroup{Rows: sourceRows([]map[string]any{{"track_id": "T3", "volume_db": -3.0}}, "mix.observe:project_package.tracks")},
+	)
+	if len(merged) != 1 {
+		t.Fatalf("legacy merged rows = %+v", merged)
+	}
+	if got, ok := merged[0].Data["volume_db"].(float64); !ok || math.Abs(got-(-3.0)) > 0.001 {
+		t.Fatalf("§11 双无 revision 源应维持现状后写胜：volume_db = %+v", merged[0].Data["volume_db"])
+	}
+	if withheld != 0 {
+		t.Fatalf("§11 双无 revision 源不应有拒绝写入：withheld = %d", withheld)
 	}
 }
 
@@ -355,15 +404,17 @@ func ampFromDB(db float64) float64 {
 	return math.Pow(10, db/20)
 }
 
-// TestRLMThreeSourceMergeRevisionMismatchIsVisible — E8 红测（现状锁定，非修复）。
+// TestRLMThreeSourceMergeRevisionMismatchIsVisible — E8 修复验证
+// （FIX-STALE-SAMPLES-1：MAT-C 现状锁定红测的升级断言）。
 //
-// 规格权威：docs/MATERIALIZATION_V1_DESIGN.md §5.4（G2-C 素材，RECON §2/§5.3
-// 指认 E8）：mergeSourceRows 按 track 键做字段级覆盖合并，无 revision 比较——
-// "mix.observe 后工程再变更"时序下，r1 旧观察值可静默覆盖 r2 新工程态。
+// 规格权威：docs/MATERIALIZATION_V1_DESIGN.md §5.4 + FIX-STALE-SAMPLES-1 卡：
+// mergeSourceRows 合并加 revision 新鲜度门——"mix.observe 后工程再变更"时序下，
+// r1 旧观察（无 revision 可见）不得覆盖 r2 新工程态的既有字段，只允许补缺；
+// 拒绝覆盖必须在产物 Limitations 上可见。
 //
-// 红测纪律（AGENTS §10）：本测试锁定**现状行为**并显式标注"已知隐患，修复卡
-// （rlm 三源 revision 比较，OQ-4）合入后升级断言：异 revision 源触发 stale/
-// mismatch 注记"。它的存在使隐患可见、修复可验，不是豁免。
+// §11 裁定（卡内，回执在案）：无 revision 字段的源对"带 revision 的既有字段"
+// 视为不可证明新鲜——只补缺不覆盖（视为最旧方向）；两个无 revision 源之间
+// 维持现状（后写胜）。
 func TestRLMThreeSourceMergeRevisionMismatchIsVisible(t *testing.T) {
 	proj := Build(Input{
 		GeneratedAt: "2026-09-28T00:00:00Z",
@@ -376,17 +427,17 @@ func TestRLMThreeSourceMergeRevisionMismatchIsVisible(t *testing.T) {
 				"clips": []map[string]any{{"clip_id": "C3", "clip_name": "lead.wav", "type": "audio", "clip_gain_db": 0.0, "duration_seconds": 12.0}},
 			}},
 		},
-		// 源 2（mix.observe 产物，r1 旧观察）：推子还是改前 -3.0，rms=-20.5。
+		// 源 2（mix.observe 产物，r1 旧观察，无 revision 字段）：推子还是改前 -3.0，rms=-20.5。
 		MixObservation: map[string]any{"observation": map[string]any{"project_package": map[string]any{"tracks": []map[string]any{
 			{"track_id": "T3", "track_name": "lead", "volume_db": -3.0, "rms_dbfs": -20.5},
 		}}}},
-		// 源 3（DAD 烘焙，r1 旧分析）：rms=-18.0。
+		// 源 3（DAD 烘焙，r1 旧分析，无 revision 字段）：rms=-18.0。
 		AudioAnalysisStatus: map[string]any{"track_waveform_envelopes": []map[string]any{
 			{"track_id": "T3", "clip_id": "C3", "rms_dbfs": -18.0, "peak_dbfs": -3.0},
 		}},
 	})
 
-	// 现状锁定①：Build 成功——revision 不一致不阻断、不报错。
+	// ① Build 成功——revision 不一致不阻断、不报错。
 	if proj.SchemaVersion == "" {
 		t.Fatalf("Build 未产出投影")
 	}
@@ -400,23 +451,24 @@ func TestRLMThreeSourceMergeRevisionMismatchIsVisible(t *testing.T) {
 	if row == nil {
 		t.Fatalf("T3 行缺失：rows=%+v", proj.Rows)
 	}
-	// 现状锁定②（E8 本体）：r1 旧观察的推子值（-3.0）静默覆盖 r2 新工程态
-	// （-6.0）——后源字段级覆盖、无 revision 门。修复卡合入后此断言升级为：
-	// 异 revision 源不得覆盖新工程态（触发 stale/mismatch 注记）。
-	if row.TrackFaderDB == nil || math.Abs(*row.TrackFaderDB-(-3.0)) > 0.001 {
-		t.Fatalf("E8 现状锁定失败：TrackFaderDB=%+v（期望后源旧观察值 -3.0 覆盖工程态 -6.0）", row.TrackFaderDB)
+	// ② 修复断言（E8 本体）：r1 旧观察的推子值（-3.0）不得覆盖 r2 新工程态
+	//（-6.0）——无 revision 可见的源对带 revision 的既有字段只补缺不覆盖。
+	if row.TrackFaderDB == nil || math.Abs(*row.TrackFaderDB-(-6.0)) > 0.001 {
+		t.Fatalf("E8 修复断言失败：TrackFaderDB=%+v（期望工程态 -6.0 不被旧观察覆盖）", row.TrackFaderDB)
 	}
-	// 现状锁定③：声学值取最后源（DAD r1 烘焙）。
+	// ③ 声学值取最后源（DAD 烘焙）——补缺与 legacy 档内部覆盖维持现状。
 	if row.RMSDBFS == nil || math.Abs(*row.RMSDBFS-(-18.0)) > 0.001 {
 		t.Fatalf("RMSDBFS=%+v（期望最后源 -18.0）", row.RMSDBFS)
 	}
-	// 现状锁定④：隐患在产物里不可见——无任何 revision/mismatch/stale 注记
-	//（行上三源 EvidenceRefs 并存是唯一痕迹）。修复卡合入后升级为：产物带
-	// revision_mismatch 可见性。
+	// ④ 修复可见性：拒绝了不可证明新鲜的覆盖必须在 Limitations 上带注记。
+	staleNoted := false
 	for _, limitation := range proj.Limitations {
-		if strings.Contains(strings.ToLower(limitation), "revision") || strings.Contains(strings.ToLower(limitation), "mismatch") || strings.Contains(strings.ToLower(limitation), "stale") {
-			t.Fatalf("现状不应有 revision/mismatch/stale 注记（修复卡后升级断言）：%q", limitation)
+		if strings.Contains(strings.ToLower(limitation), "rlm_stale_source_fields_withheld") {
+			staleNoted = true
 		}
+	}
+	if !staleNoted {
+		t.Fatalf("E8 修复断言失败：产物应带 rlm_stale_source_fields_withheld 注记，limitations=%v", proj.Limitations)
 	}
 	if len(row.EvidenceRefs) < 3 {
 		t.Fatalf("三源合并痕迹（EvidenceRefs）不足：%v", row.EvidenceRefs)
