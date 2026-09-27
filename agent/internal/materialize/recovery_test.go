@@ -183,6 +183,51 @@ func TestOpenStoreEmptyDirIsExplicitError(t *testing.T) {
 	}
 }
 
+// TestReconcileShadowDetailReportsRows：分歧明细取证面（MAT-D）——hash 不等与
+// 行缺失两类分歧都要产出坐标+两侧 hash/payload 的明细（真栈 ShadowDivergences
+// !=0 的可解释性，G2 上交材料粒度）。
+func TestReconcileShadowDetailReportsRows(t *testing.T) {
+	s := NewStore()
+	ref := testRef("dom", "T3", "current", hashN(1))
+	mustUpsert(t, s, Row{Ref: ref, Payload: map[string]any{"peak": -3.0}})
+
+	// 行缺失。
+	missing := s.ReconcileShadow([]Row{{Ref: testRef("dom", "T9", "current", hashN(2))}})
+	if missing != 1 {
+		t.Fatalf("行缺失应计 1 分歧，got %d", missing)
+	}
+	_, details := s.ReconcileShadowDetailed([]Row{{Ref: testRef("dom", "T9", "current", hashN(2))}})
+	if len(details) != 1 || !details[0].StoredMissing || details[0].FreshHash != hashN(2) {
+		t.Fatalf("缺失分歧明细不符：%+v", details)
+	}
+
+	// hash 不等（同坐标内容漂移）。
+	diverged, details := s.ReconcileShadowDetailed([]Row{{Ref: testRef("dom", "T3", "current", hashN(7)), Payload: map[string]any{"peak": -9.0}}})
+	if diverged != 1 || len(details) != 1 {
+		t.Fatalf("hash 不等应计 1 分歧，got %d %+v", diverged, details)
+	}
+	d := details[0]
+	if d.StoredMissing || d.FreshHash != hashN(7) || d.StoredHash != hashN(1) {
+		t.Fatalf("分歧明细 hash 不符：%+v", d)
+	}
+	if d.FreshPayload["peak"] != -9.0 || d.StoredPayload["peak"] != -3.0 {
+		t.Fatalf("分歧明细 payload 不符：%+v", d)
+	}
+	if d.Freshness != agentprotocol.FreshnessCurrent || d.Ref == "" {
+		t.Fatalf("分歧明细 freshness/坐标缺失：%+v", d)
+	}
+
+	// 一致行不产明细且 ReconcileShadow 与 Detailed 计数同源。
+	diverged, details = s.ReconcileShadowDetailed([]Row{{Ref: ref, Payload: map[string]any{"peak": -3.0}}})
+	if diverged != 0 || len(details) != 0 {
+		t.Fatalf("一致行不应产分歧：%d %+v", diverged, details)
+	}
+	m := s.Metrics()
+	if m.ShadowDivergences != 3 || m.ReconcileRows != 4 {
+		t.Fatalf("累计计数不符：divergences=%d reconcile_rows=%d（want 3/4）", m.ShadowDivergences, m.ReconcileRows)
+	}
+}
+
 // ---------------------------------------------------------------------------
 // 乱序收敛（§5.5 事件级乱序窗口；MAT-C revision 门之外的补充）
 // ---------------------------------------------------------------------------

@@ -18,6 +18,7 @@ package harness
 // 只写物化库（h.materializeStore）与只读 harness 状态——既有可观察面零触碰。
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"sort"
@@ -107,11 +108,52 @@ func (h *Harness) materializeObserveRound(obs *mixboard.ObservationPacket) {
 		trackID := strings.TrimSpace(obs.TargetRef.ID)
 		if strings.EqualFold(strings.TrimSpace(obs.TargetRef.Kind), "track") && trackID != "" {
 			if row, ok := materialize.DOMRowFromProjection(trackID, *obs.DOMProjection); ok {
-				h.materializeStore.ReconcileShadow([]materialize.Row{row})
+				divergences, details := h.materializeStore.ReconcileShadowDetailed([]materialize.Row{row})
+				if divergences > 0 && h.logger != nil {
+					// MAT-D 取证面：真栈分歧逐行 WARN（坐标+两侧 hash+两侧
+					// payload）——ShadowDivergences!=0 必须可解释（G2 上交材料）。
+					for _, detail := range details {
+						freshJSON, _ := json.Marshal(detail.FreshPayload)
+						storedJSON, _ := json.Marshal(detail.StoredPayload)
+						freshText := string(freshJSON)
+						storedText := string(storedJSON)
+						if len(freshText) > 1600 {
+							freshText = freshText[:1600] + "..."
+						}
+						if len(storedText) > 1600 {
+							storedText = storedText[:1600] + "..."
+						}
+						h.logger.Warn("[materialize] divergence ref=%s fresh_hash=%s stored_hash=%s stored_missing=%v freshness=%s invalidated_by=%s fresh_payload=%s stored_payload=%s",
+							detail.Ref, detail.FreshHash, detail.StoredHash, detail.StoredMissing, detail.Freshness, detail.InvalidatedBy, freshText, storedText)
+					}
+					// 回退轴占用探针：dom 现算输入 builder 的三支回退
+					//（snapshot.waveform_envelope / MixPackage.current_metrics /
+					// TimeRuler）恰是 DepInputs 不携带的输入——真栈分歧的
+					// 根因定位证据（domInputFromObservation 消费面）。
+					snapshot := mapValueAny(obs.GlobalSummary["feature_snapshot"])
+					metrics := mapValueAny(obs.MixPackage["current_metrics"])
+					waveEnv := mapValueAny(snapshot["waveform_envelope"])
+					metricWave := mapValueAny(metrics["waveform"])
+					projectionJSON, _ := json.Marshal(*obs.DOMProjection)
+					projectionText := string(projectionJSON)
+					if len(projectionText) > 2400 {
+						projectionText = projectionText[:2400] + "..."
+					}
+					h.logger.Warn("[materialize] divergence_probe track=%s snapshot_waveform_envelope=%v mix_metrics_waveform=%v time_ruler_duration=%v projection=%s",
+						trackID, len(waveEnv) > 0, len(metricWave) > 0, obs.TimeRuler.DurationSeconds, projectionText)
+				}
 			}
 		}
 	}
 	h.logMaterializeRoundMetrics(obs)
+}
+
+// mapValueAny 是 mixboard 侧 mapValue 的只读镜像（取证探针用）。
+func mapValueAny(value any) map[string]any {
+	if row, ok := value.(map[string]any); ok {
+		return row
+	}
+	return nil
 }
 
 // logMaterializeRoundMetrics 把累计仪表打一行日志（MAT-D 烟测断言②③：

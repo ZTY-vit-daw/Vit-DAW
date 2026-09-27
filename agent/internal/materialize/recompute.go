@@ -191,8 +191,29 @@ func (s *Store) lazyKinds() []string {
 // 物化行缺失即分歧；分歧行数返回并累计入 Metrics.ShadowDivergences。现算侧
 // 多出的内容不判分歧（观察是目标域子集，物化面更宽是常态）。
 func (s *Store) ReconcileShadow(fresh []Row) int {
+	divergences, _ := s.ReconcileShadowDetailed(fresh)
+	return divergences
+}
+
+// ShadowDivergenceDetail 是单行分歧的取证明细（MAT-D：真栈分歧的根因级证据——
+// 坐标+两侧 hash+两侧 payload，G2 上交材料的粒度）。
+type ShadowDivergenceDetail struct {
+	Ref           string                        // canonical ref（分歧行坐标）
+	FreshHash     string                        // 现算侧内容身份
+	StoredHash    string                        // 物化侧内容身份（行缺失时空）
+	StoredMissing bool                          // 物化侧无该坐标行
+	FreshPayload  map[string]any                // 现算侧标量（对照用）
+	StoredPayload map[string]any                // 物化侧标量（行缺失时 nil）
+	InvalidatedBy string                        // 物化侧最近失效记账（脏残留线索）
+	Freshness     string                        // 物化侧 freshness
+	Row           agentprotocol.MaterializedRow // 物化侧行（日志/调试消费）
+}
+
+// ReconcileShadowDetailed 同 ReconcileShadow，另返回分歧明细（MAT-D 取证面：
+// 真栈 ShadowDivergences!=0 时 harness 侧逐行打 WARN——切换闸门红必须可解释）。
+func (s *Store) ReconcileShadowDetailed(fresh []Row) (int, []ShadowDivergenceDetail) {
 	if len(fresh) == 0 {
-		return 0
+		return 0, nil
 	}
 	s.mu.RLock()
 	stored := make(map[string]materialRow, len(s.current.rows))
@@ -202,6 +223,7 @@ func (s *Store) ReconcileShadow(fresh []Row) int {
 	s.mu.RUnlock()
 
 	divergences := 0
+	var details []ShadowDivergenceDetail
 	for _, row := range fresh {
 		if err := row.Ref.Validate(); err != nil {
 			// 现算侧行化产出非法坐标=对账输入缺陷，计分歧（fail-visible）。
@@ -211,10 +233,25 @@ func (s *Store) ReconcileShadow(fresh []Row) int {
 		have, ok := stored[rowKey(row.Ref)]
 		if !ok {
 			divergences++
+			refStr, _ := agentprotocol.FormatRef(row.Ref)
+			details = append(details, ShadowDivergenceDetail{
+				Ref: refStr, FreshHash: row.Ref.Hash, StoredMissing: true, FreshPayload: row.Payload,
+			})
 			continue
 		}
 		if have.Ref.Hash != row.Ref.Hash || !payloadEqual(have.Payload, row.Payload) {
 			divergences++
+			refStr, _ := agentprotocol.FormatRef(row.Ref)
+			details = append(details, ShadowDivergenceDetail{
+				Ref:           refStr,
+				FreshHash:     row.Ref.Hash,
+				StoredHash:    have.Ref.Hash,
+				FreshPayload:  row.Payload,
+				StoredPayload: clonePayload(have.Payload),
+				InvalidatedBy: have.InvalidatedBy,
+				Freshness:     have.Freshness,
+				Row:           contractRow(have),
+			})
 		}
 	}
 	// 比对行数与分歧同源累计（MAT-D：零分歧的非空洞证据）。
@@ -222,5 +259,5 @@ func (s *Store) ReconcileShadow(fresh []Row) int {
 	if divergences > 0 {
 		s.metrics.addShadowDivergence(int64(divergences))
 	}
-	return divergences
+	return divergences, details
 }
