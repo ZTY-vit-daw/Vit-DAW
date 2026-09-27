@@ -12,3 +12,5 @@
 - 约束：文件域 rlm+staticbalance（两文件族）；行为变化范围最小（只加新鲜度门）；提交显式列文件。
 - 验收：两测试升级绿+全量 0 FAIL+§11 裁定在案
 - 停止条件：revision 语义与消费方冲突（修复导致现役行为回退）→ 冲突实证上交
+- 领取：2026-09-27 21:05（mac）/ origin/main=b9b8a702a4a1b6552e27cb5faf60372f482fa5d2 / 分支 port/fix-stale-samples-1（独立 worktree，主工作树另有并行流）
+- 回执：（待回填）
