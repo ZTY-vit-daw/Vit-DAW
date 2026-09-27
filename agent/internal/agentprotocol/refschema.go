@@ -1,9 +1,10 @@
 package agentprotocol
 
-// refschema.go — D1 统一 Ref Schema L0（REFSCHEMA-L0-1）。
+// refschema.go — D1 统一 Ref Schema L0（REFSCHEMA-L0-1）+ kind 注册补全（REFSCHEMA-L0-2）。
 //
 // 规格权威：coord/decisions/2026-09-27-g1-ref-schema-ruling.md「L0 文法定版要点」。
 // 注册表初值权威：coord/runs/L1-1-RECON-1/EVIDENCE_REFS_INVENTORY.md §2（逐条锚点，不凭记忆）。
+// L0-2 扩展的 kind 名权威：docs/QUERY_ENGINE_V1_DESIGN.md §3.3（L1-3 OQ-1 裁定）。
 //
 // 文法（ruling BNF 基线）：
 //
@@ -78,19 +79,23 @@ const (
 
 // Legacy ref families (registry 类属).
 const (
-	RefFamilyProjectionContentID = "projection_content_id" // A 类：投影内容 ID
-	RefFamilySnapshotRequestID   = "snapshot_request_id"   // G 类：快照 request_id 族
+	RefFamilyProjectionContentID    = "projection_content_id"   // A 类：投影内容 ID
+	RefFamilySnapshotRequestID      = "snapshot_request_id"     // G 类：快照 request_id 族
+	RefFamilyEvidenceSchemeURI      = "evidence_scheme_uri"     // C/D 类：URI 式 scheme 头数据面引用
+	RefFamilyObservationFingerprint = "observation_fingerprint" // B 类：内容指纹身份（16 hex）
 )
 
 // L0 segments a legacy value translates into.
 const (
 	RefSlotHash     = "hash"     // 内容身份 → #hash 段
 	RefSlotSnapshot = "snapshot" // 快照身份 → @snapshot 段
+	RefSlotScope    = "scope"    // 数据面地址 → scope 段（无独立身份段的引用）
 )
 
 // LegacyPrefixEntry maps one legacy format literal (L1-1 §2 anchor) to its
-// family and its target slot in the L0 grammar. TargetKind is set only for
-// projection-content families; snapshot-request families fill no kind.
+// family and its target slot in the L0 grammar. TargetKind is set only when
+// the family maps onto one registered kind; identity-only families (G 类
+// request ids, B 类 fingerprints) fill no kind.
 type LegacyPrefixEntry struct {
 	LegacyPrefix string
 	Family       string
@@ -102,6 +107,15 @@ type LegacyPrefixEntry struct {
 // legacyPrefixRegistry is the authoritative initial registry (ruling #4:
 // agentprotocol constant table). Every entry is anchored to the L1-1
 // inventory report §2; do not add entries from memory.
+//
+// REFSCHEMA-L0-2 extension (九投影+DAD kind 补全): entries 7-14 below add the
+// acp projection prefix family, the four DAD prefix families, and the
+// audioclosure/frequencycleanup fingerprint families. Kind names
+// (acp / dad.l3 / dad.l2_render_probe / dad.compressor_dual_tap /
+// dad.frequency_evidence) follow docs/QUERY_ENGINE_V1_DESIGN.md §3.3
+// (L1-3 OQ-1 裁定); anchors follow L1-1 §2. The fci_/fcp_ literal form
+// ("<prefix>_"+16 hex) is verified at frequencycleanup/model.go:201-204
+// (stableID), the anchor being L1-1 §2 B7 treatment.go:86/94.
 var legacyPrefixRegistry = []LegacyPrefixEntry{
 	{LegacyPrefix: "dom_", Family: RefFamilyProjectionContentID, TargetKind: "dom", Slot: RefSlotHash, Anchor: "L1-1 §2 A1 dom/projection.go:530-537"},
 	{LegacyPrefix: "fxm_", Family: RefFamilyProjectionContentID, TargetKind: "fxm", Slot: RefSlotHash, Anchor: "L1-1 §2 A2 fxm/projection.go:207-213"},
@@ -109,6 +123,44 @@ var legacyPrefixRegistry = []LegacyPrefixEntry{
 	{LegacyPrefix: "rlm_", Family: RefFamilyProjectionContentID, TargetKind: "rlm", Slot: RefSlotHash, Anchor: "L1-1 §2 A4 rlm/projection.go:738-749"},
 	{LegacyPrefix: "mixboard_", Family: RefFamilySnapshotRequestID, TargetKind: "", Slot: RefSlotSnapshot, Anchor: "L1-1 §2 G1 harness/harness.go:6848-6849"},
 	{LegacyPrefix: "kernel_prepared_", Family: RefFamilySnapshotRequestID, TargetKind: "", Slot: RefSlotSnapshot, Anchor: "L1-1 §2 G2 harness/harness.go:4188-4200"},
+	// --- REFSCHEMA-L0-2 additions (anchors: coord/runs/L1-1-RECON-1 §2) ---
+	// acp：acousticpackage 投影（kind 名采 L1-3 §3.3 建议 acp）。remainder
+	// layer.feature 是数据面地址（scope），revision 指纹属 snapshot 段、legacy
+	// 字面量不携带。
+	{LegacyPrefix: "acoustic_package_status:", Family: RefFamilyEvidenceSchemeURI, TargetKind: "acp", Slot: RefSlotScope, Anchor: "L1-1 §2 C2 mom/evidence.go:27-32"},
+	// DAD 系 scheme 族（内核 C++ D 类 5 处 + Go 侧同字面量生成点）。迁移到
+	// vit:// 前以 legacy 翻译条目进中央索引（L1-3 §3.3 audioclosure 行裁定）。
+	{LegacyPrefix: "dad.l3.", Family: RefFamilyEvidenceSchemeURI, TargetKind: "dad.l3", Slot: RefSlotScope, Anchor: "L1-1 §2 D3-D5 L3AcousticAnalyzer.cpp:465-660"},
+	{LegacyPrefix: "dad.l2_render_probe:", Family: RefFamilyEvidenceSchemeURI, TargetKind: "dad.l2_render_probe", Slot: RefSlotSnapshot, Anchor: "L1-1 §2 C4/D1 mom/projection.go:1012-1020+VitProductionCoordinator.cpp:146"},
+	{LegacyPrefix: "dad.compressor_dual_tap:", Family: RefFamilyEvidenceSchemeURI, TargetKind: "dad.compressor_dual_tap", Slot: RefSlotSnapshot, Anchor: "L1-1 §2 D2 VitProductionCoordinator.cpp:526"},
+	{LegacyPrefix: "dad.frequency_evidence:", Family: RefFamilyEvidenceSchemeURI, TargetKind: "dad.frequency_evidence", Slot: RefSlotSnapshot, Anchor: "L1-1 §2 C6 mixboard/project_package.go:348"},
+	// audioclosure 观察指纹 / frequencycleanup 诊断计划 ID：内容身份（hash 段），
+	// 设计未派 kind，TargetKind 留空（与 G 类同款）。
+	{LegacyPrefix: "audio_observation:", Family: RefFamilyObservationFingerprint, TargetKind: "", Slot: RefSlotHash, Anchor: "L1-1 §2 B2 audioclosure/driver.go:491-504"},
+	{LegacyPrefix: "fci_", Family: RefFamilyObservationFingerprint, TargetKind: "", Slot: RefSlotHash, Anchor: "L1-1 §2 B7 frequencycleanup/treatment.go:86"},
+	{LegacyPrefix: "fcp_", Family: RefFamilyObservationFingerprint, TargetKind: "", Slot: RefSlotHash, Anchor: "L1-1 §2 B7 frequencycleanup/treatment.go:94"},
+}
+
+// ProjectionKindEntry registers a projection kind that has no legacy prefix
+// family (REFSCHEMA-L0-2): L1-1 §2 A5-A7 establishes MOM/TIM/TOM/EPM carry no
+// self-generated id — identity arrives as an externally assigned
+// observation_id — so there is no legacy literal to translate and new vit://
+// generation addresses the kind directly.
+type ProjectionKindEntry struct {
+	Kind   string
+	Anchor string
+	Note   string
+}
+
+// projectionKindRegistry lists the prefix-less kinds. It is deliberately a
+// separate table from legacyPrefixRegistry: an empty LegacyPrefix would match
+// every string in matchLegacyPrefix and flip the whole parse surface to
+// legacy state.
+var projectionKindRegistry = []ProjectionKindEntry{
+	{Kind: "mom", Anchor: "L1-1 §2 A5 mom/types.go:50", Note: "无 legacy 前缀、新生成直接用；snapshot 段承载=observation_id（L1-3 §3.3）"},
+	{Kind: "tim", Anchor: "L1-1 §2 A5-A7 tim/types.go:25", Note: "无 legacy 前缀、新生成直接用；snapshot 段承载=observation_id（L1-3 §3.3）"},
+	{Kind: "tom", Anchor: "L1-1 §2 A5-A7 tom/types.go:21", Note: "无 legacy 前缀、新生成直接用"},
+	{Kind: "epm", Anchor: "L1-1 §2 A5-A7 epm/types.go:22", Note: "无 legacy 前缀、新生成直接用"},
 }
 
 var registeredKindSet = func() map[string]struct{} {
@@ -117,6 +169,9 @@ var registeredKindSet = func() map[string]struct{} {
 		if entry.TargetKind != "" {
 			set[entry.TargetKind] = struct{}{}
 		}
+	}
+	for _, entry := range projectionKindRegistry {
+		set[entry.Kind] = struct{}{}
 	}
 	return set
 }()
@@ -176,6 +231,12 @@ func LegacyPrefixRegistry() []LegacyPrefixEntry {
 	return append([]LegacyPrefixEntry(nil), legacyPrefixRegistry...)
 }
 
+// ProjectionKindRegistry returns a copy of the prefix-less kind registry
+// (kinds whose projections generate no legacy literal).
+func ProjectionKindRegistry() []ProjectionKindEntry {
+	return append([]ProjectionKindEntry(nil), projectionKindRegistry...)
+}
+
 // RegisteredRefKinds returns the projection kinds admitted by the registry.
 func RegisteredRefKinds() []string {
 	out := make([]string, 0, len(registeredKindSet))
@@ -183,6 +244,9 @@ func RegisteredRefKinds() []string {
 		if entry.TargetKind != "" {
 			out = append(out, entry.TargetKind)
 		}
+	}
+	for _, entry := range projectionKindRegistry {
+		out = append(out, entry.Kind)
 	}
 	return out
 }

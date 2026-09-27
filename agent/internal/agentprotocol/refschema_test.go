@@ -60,6 +60,13 @@ func TestParseRefValidTable(t *testing.T) {
 			start: 48000, end: 96000, snapshot: "obs_20260921T120000_ab12cd34", hash: "sha256:ffffffffffffffff",
 		},
 		{
+			// REFSCHEMA-L0-2: mom has no legacy prefix; new generation addresses
+			// the kind directly with observation_id in the snapshot segment.
+			name: "mom prefix-less kind snapshot is observation id", raw: "vit://mom/track:voc_main/t=all@obs_20260921T120000_ab12cd34#-",
+			kind: "mom", scopeKind: "track", scopeValue: "voc_main",
+			allTime: true, snapshot: "obs_20260921T120000_ab12cd34", hash: "-",
+		},
+		{
 			name: "escaped reserved chars in scope value", raw: "vit://com/track:a%2Fb%3Ac%40d%23e%25f/t=all@s#-",
 			kind: "com", scopeKind: "track", scopeValue: "a/b:c@d#e%f",
 			allTime: true, snapshot: "s", hash: "-",
@@ -175,16 +182,31 @@ func TestParseRefThreeStates(t *testing.T) {
 		state RefState
 	}{
 		{"valid vit ref is parsed", "vit://dom/track:x/t=all@s#-", RefStateParsed},
+		{"prefix-less mom kind ref is parsed", "vit://mom/track:voc/t=all@obs_20260921T120000_ab12cd34#-", RefStateParsed},
+		{"dad.l3 kind ref is parsed", "vit://dad.l3/track:x/t=all@s#-", RefStateParsed},
 		{"dom content id is legacy", "dom_0123456789abcdef0123", RefStateLegacy},
 		{"fxm content id is legacy", "fxm_0123456789abcdef0123", RefStateLegacy},
 		{"com content id is legacy", "com_0123456789abcdef0123", RefStateLegacy},
 		{"rlm content id is legacy", "rlm_0123456789abcdef", RefStateLegacy},
 		{"mixboard request id is legacy", "mixboard_20260921T120000.000000000", RefStateLegacy},
 		{"kernel prepared request id is legacy", "kernel_prepared_band_energy_summary_clip_voc_01", RefStateLegacy},
-		{"unregistered scheme head is opaque", "dad.l3.noise_floor", RefStateOpaque},
+		{"acp status ref is legacy", "acoustic_package_status:l3_deep.band_energy_summary", RefStateLegacy},
+		{"dad.l3 feature ref is legacy", "dad.l3.band_energy_summary:drum_bass", RefStateLegacy},
+		{"dad.l3 bare feature ref is legacy", "dad.l3.noise_floor", RefStateLegacy},
+		{"dad.l2 render probe ref is legacy", "dad.l2_render_probe:rev_0a1b", RefStateLegacy},
+		{"dad compressor dual tap ref is legacy", "dad.compressor_dual_tap:pair_2f3e", RefStateLegacy},
+		{"dad frequency evidence ref is legacy", "dad.frequency_evidence:track_1007:req_9c8d", RefStateLegacy},
+		{"audioclosure observation fingerprint is legacy", "audio_observation:0123456789abcdef", RefStateLegacy},
+		{"frequencycleanup issue id is legacy", "fci_0123456789abcdef", RefStateLegacy},
+		{"frequencycleanup plan id is legacy", "fcp_0123456789abcdef", RefStateLegacy},
+		{"synthetic scheme head is opaque", "scheme_fixture_one:noise_floor", RefStateOpaque},
 		{"colon scheme unregistered is opaque", "mix.read:track.1.fast.levels", RefStateOpaque},
 		{"near miss prefix is opaque", "domX_0123456789abcdef0123", RefStateOpaque},
-		{"unregistered vit kind is opaque", "vit://dad.l3/track:x/t=all@s#-", RefStateOpaque},
+		// mom is registered as a kind only: no legacy prefix exists, so a
+		// mom_-shaped literal must stay opaque (guards the separate-table design
+		// against ever adding empty-prefix matching).
+		{"prefix-less kind has no legacy literal", "mom_0123456789abcdef0123", RefStateOpaque},
+		{"unregistered vit kind is opaque", "vit://dad.l1/track:x/t=all@s#-", RefStateOpaque},
 		{"foreign uri is opaque", "http://dom/track:x/t=all@s#-", RefStateOpaque},
 	}
 	for _, tc := range cases {
@@ -232,6 +254,16 @@ func TestParseRefLegacyTranslationTable(t *testing.T) {
 		{"rlm_0123456789abcdef", "rlm_", RefFamilyProjectionContentID, "rlm", RefSlotHash, "0123456789abcdef"},
 		{"mixboard_20260921T120000.000000000", "mixboard_", RefFamilySnapshotRequestID, "", RefSlotSnapshot, "20260921T120000.000000000"},
 		{"kernel_prepared_band_energy_summary_clip_voc_01", "kernel_prepared_", RefFamilySnapshotRequestID, "", RefSlotSnapshot, "band_energy_summary_clip_voc_01"},
+		// REFSCHEMA-L0-2 additions; samples follow the L1-1 §2 quoted formats.
+		{"acoustic_package_status:l3_deep.band_energy_summary", "acoustic_package_status:", RefFamilyEvidenceSchemeURI, "acp", RefSlotScope, "l3_deep.band_energy_summary"},
+		{"dad.l3.band_energy_summary:drum_bass", "dad.l3.", RefFamilyEvidenceSchemeURI, "dad.l3", RefSlotScope, "band_energy_summary:drum_bass"},
+		{"dad.l3.noise_floor", "dad.l3.", RefFamilyEvidenceSchemeURI, "dad.l3", RefSlotScope, "noise_floor"},
+		{"dad.l2_render_probe:rev_0a1b", "dad.l2_render_probe:", RefFamilyEvidenceSchemeURI, "dad.l2_render_probe", RefSlotSnapshot, "rev_0a1b"},
+		{"dad.compressor_dual_tap:pair_2f3e", "dad.compressor_dual_tap:", RefFamilyEvidenceSchemeURI, "dad.compressor_dual_tap", RefSlotSnapshot, "pair_2f3e"},
+		{"dad.frequency_evidence:track_1007:req_9c8d", "dad.frequency_evidence:", RefFamilyEvidenceSchemeURI, "dad.frequency_evidence", RefSlotSnapshot, "track_1007:req_9c8d"},
+		{"audio_observation:0123456789abcdef", "audio_observation:", RefFamilyObservationFingerprint, "", RefSlotHash, "0123456789abcdef"},
+		{"fci_0123456789abcdef", "fci_", RefFamilyObservationFingerprint, "", RefSlotHash, "0123456789abcdef"},
+		{"fcp_0123456789abcdef", "fcp_", RefFamilyObservationFingerprint, "", RefSlotHash, "0123456789abcdef"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.raw, func(t *testing.T) {
@@ -258,18 +290,42 @@ func TestRegistryInitialValues(t *testing.T) {
 		{LegacyPrefix: "rlm_", Family: RefFamilyProjectionContentID, TargetKind: "rlm", Slot: RefSlotHash, Anchor: "L1-1 §2 A4 rlm/projection.go:738-749"},
 		{LegacyPrefix: "mixboard_", Family: RefFamilySnapshotRequestID, TargetKind: "", Slot: RefSlotSnapshot, Anchor: "L1-1 §2 G1 harness/harness.go:6848-6849"},
 		{LegacyPrefix: "kernel_prepared_", Family: RefFamilySnapshotRequestID, TargetKind: "", Slot: RefSlotSnapshot, Anchor: "L1-1 §2 G2 harness/harness.go:4188-4200"},
+		// REFSCHEMA-L0-2: acp + DAD prefix families + fingerprint families.
+		{LegacyPrefix: "acoustic_package_status:", Family: RefFamilyEvidenceSchemeURI, TargetKind: "acp", Slot: RefSlotScope, Anchor: "L1-1 §2 C2 mom/evidence.go:27-32"},
+		{LegacyPrefix: "dad.l3.", Family: RefFamilyEvidenceSchemeURI, TargetKind: "dad.l3", Slot: RefSlotScope, Anchor: "L1-1 §2 D3-D5 L3AcousticAnalyzer.cpp:465-660"},
+		{LegacyPrefix: "dad.l2_render_probe:", Family: RefFamilyEvidenceSchemeURI, TargetKind: "dad.l2_render_probe", Slot: RefSlotSnapshot, Anchor: "L1-1 §2 C4/D1 mom/projection.go:1012-1020+VitProductionCoordinator.cpp:146"},
+		{LegacyPrefix: "dad.compressor_dual_tap:", Family: RefFamilyEvidenceSchemeURI, TargetKind: "dad.compressor_dual_tap", Slot: RefSlotSnapshot, Anchor: "L1-1 §2 D2 VitProductionCoordinator.cpp:526"},
+		{LegacyPrefix: "dad.frequency_evidence:", Family: RefFamilyEvidenceSchemeURI, TargetKind: "dad.frequency_evidence", Slot: RefSlotSnapshot, Anchor: "L1-1 §2 C6 mixboard/project_package.go:348"},
+		{LegacyPrefix: "audio_observation:", Family: RefFamilyObservationFingerprint, TargetKind: "", Slot: RefSlotHash, Anchor: "L1-1 §2 B2 audioclosure/driver.go:491-504"},
+		{LegacyPrefix: "fci_", Family: RefFamilyObservationFingerprint, TargetKind: "", Slot: RefSlotHash, Anchor: "L1-1 §2 B7 frequencycleanup/treatment.go:86"},
+		{LegacyPrefix: "fcp_", Family: RefFamilyObservationFingerprint, TargetKind: "", Slot: RefSlotHash, Anchor: "L1-1 §2 B7 frequencycleanup/treatment.go:94"},
 	}
 	got := LegacyPrefixRegistry()
 	if len(got) != len(want) {
-		t.Fatalf("registry size = %d, want %d (A 类四变体 + G 类前缀族)", len(got), len(want))
+		t.Fatalf("registry size = %d, want %d (A 类四变体 + G 类前缀族 + L0-2 acp/DAD/fingerprint 族)", len(got), len(want))
 	}
 	for i := range want {
 		if got[i] != want[i] {
 			t.Errorf("entry[%d] = %+v, want %+v", i, got[i], want[i])
 		}
 	}
+	wantKindsOnly := []ProjectionKindEntry{
+		{Kind: "mom", Anchor: "L1-1 §2 A5 mom/types.go:50", Note: "无 legacy 前缀、新生成直接用；snapshot 段承载=observation_id（L1-3 §3.3）"},
+		{Kind: "tim", Anchor: "L1-1 §2 A5-A7 tim/types.go:25", Note: "无 legacy 前缀、新生成直接用；snapshot 段承载=observation_id（L1-3 §3.3）"},
+		{Kind: "tom", Anchor: "L1-1 §2 A5-A7 tom/types.go:21", Note: "无 legacy 前缀、新生成直接用"},
+		{Kind: "epm", Anchor: "L1-1 §2 A5-A7 epm/types.go:22", Note: "无 legacy 前缀、新生成直接用"},
+	}
+	gotKindsOnly := ProjectionKindRegistry()
+	if len(gotKindsOnly) != len(wantKindsOnly) {
+		t.Fatalf("prefix-less kind registry size = %d, want %d", len(gotKindsOnly), len(wantKindsOnly))
+	}
+	for i := range wantKindsOnly {
+		if gotKindsOnly[i] != wantKindsOnly[i] {
+			t.Errorf("kind entry[%d] = %+v, want %+v", i, gotKindsOnly[i], wantKindsOnly[i])
+		}
+	}
 	kinds := RegisteredRefKinds()
-	wantKinds := []string{"dom", "fxm", "com", "rlm"}
+	wantKinds := []string{"dom", "fxm", "com", "rlm", "acp", "dad.l3", "dad.l2_render_probe", "dad.compressor_dual_tap", "dad.frequency_evidence", "mom", "tim", "tom", "epm"}
 	if len(kinds) != len(wantKinds) {
 		t.Fatalf("kinds = %v, want %v", kinds, wantKinds)
 	}
@@ -282,6 +338,10 @@ func TestRegistryInitialValues(t *testing.T) {
 	got[0].LegacyPrefix = "mutated_"
 	if LegacyPrefixRegistry()[0].LegacyPrefix != "dom_" {
 		t.Errorf("LegacyPrefixRegistry() returns an aliased table")
+	}
+	gotKindsOnly[0].Kind = "mutated"
+	if ProjectionKindRegistry()[0].Kind != "mom" {
+		t.Errorf("ProjectionKindRegistry() returns an aliased table")
 	}
 }
 
@@ -339,7 +399,7 @@ func TestFormatRefRejects(t *testing.T) {
 		mut  func(Ref) Ref
 	}{
 		{"empty kind", func(r Ref) Ref { r.Kind = ""; return r }},
-		{"unregistered kind", func(r Ref) Ref { r.Kind = "dad.l3"; return r }},
+		{"unregistered kind", func(r Ref) Ref { r.Kind = "dad.l1"; return r }},
 		{"uppercase kind", func(r Ref) Ref { r.Kind = "Dom"; return r }},
 		{"nil window", func(r Ref) Ref { r.Window = nil; return r }},
 		{"empty scope kind", func(r Ref) Ref { r.ScopeKind = ""; return r }},
@@ -390,8 +450,11 @@ func TestOpaqueWarnOnceAndCounts(t *testing.T) {
 	var lines []string
 	withRefSchemaWarnLogger(t, func(line string) { lines = append(lines, line) })
 
+	// Fixtures deliberately use never-registerable synthetic literals: the
+	// pre-L0-2 fixtures (dad.l3.noise_floor, dad.l2_render_probe:…) became
+	// legacy state once REFSCHEMA-L0-2 registered their prefix families.
 	for i := 0; i < 3; i++ {
-		got, err := ParseRef("dad.l3.noise_floor")
+		got, err := ParseRef("scheme_fixture_one:noise_floor")
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -404,7 +467,7 @@ func TestOpaqueWarnOnceAndCounts(t *testing.T) {
 			t.Fatalf("unexpected error: %v", err)
 		}
 	}
-	if _, err := ParseRef("vit://dad.l3/track:x/t=all@s#-"); err != nil {
+	if _, err := ParseRef("vit://kindfixture/track:x/t=all@s#-"); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
@@ -418,15 +481,15 @@ func TestOpaqueWarnOnceAndCounts(t *testing.T) {
 		}
 	}
 	counts := OpaqueWarnCounts()
-	if got := counts["dad.l3.noise_floor"]; got != 3 {
-		t.Errorf("count[dad.l3.noise_floor] = %d, want 3", got)
+	if got := counts["scheme_fixture_one"]; got != 3 {
+		t.Errorf("count[scheme_fixture_one] = %d, want 3", got)
 	}
 	if got := counts["mix.read"]; got != 2 {
 		t.Errorf("count[mix.read] = %d, want 2 (key = scheme head before first colon)", got)
 	}
 	// Snapshot must be a copy: mutating it must not affect internal state.
-	counts["dad.l3.noise_floor"] = 999
-	if OpaqueWarnCounts()["dad.l3.noise_floor"] != 3 {
+	counts["scheme_fixture_one"] = 999
+	if OpaqueWarnCounts()["scheme_fixture_one"] != 3 {
 		t.Errorf("OpaqueWarnCounts() returned an aliased map")
 	}
 }
@@ -454,7 +517,7 @@ func TestParseRefConcurrentOpaqueCounting(t *testing.T) {
 		go func() {
 			defer func() { done <- struct{}{} }()
 			for i := 0; i < 50; i++ {
-				if _, err := ParseRef("dad.l2_render_probe:rr_7"); err != nil {
+				if _, err := ParseRef("concurrency_fixture:rr_7"); err != nil {
 					t.Errorf("unexpected error: %v", err)
 				}
 			}
@@ -463,7 +526,7 @@ func TestParseRefConcurrentOpaqueCounting(t *testing.T) {
 	for w := 0; w < 4; w++ {
 		<-done
 	}
-	if got := OpaqueWarnCounts()["dad.l2_render_probe"]; got != 200 {
+	if got := OpaqueWarnCounts()["concurrency_fixture"]; got != 200 {
 		t.Errorf("concurrent count = %d, want 200", got)
 	}
 }
