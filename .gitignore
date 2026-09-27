@@ -101,3 +101,12 @@ yarn-error.log*
 /godot-cpp/
 /extension/.sconsign.dblite
 /extension/src/*.obj
+
+# Large journey artifacts kept on disk only (coord/runs policy, 2026-09-29
+# after two accidental add -A inclusions)
+coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/journey/
+coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/journey2/
+coord/runs/FIX-PCA-EQCHANNEL-1/journey1/
+coord/runs/FIX-PCA-EQCHANNEL-1/journey2/
+coord/runs/FIX-PCA-EQCHANNEL-1/journey3/
+coord/runs/FIX-PCA-EQCHANNEL-1/journey4/
