@@ -17,6 +17,7 @@ import (
 	"vit-daw-agent/internal/chat"
 	"vit-daw-agent/internal/kernel"
 	"vit-daw-agent/internal/logx"
+	"vit-daw-agent/internal/mixboard"
 	"vit-daw-agent/internal/shadow"
 	"vit-daw-agent/internal/vspclient"
 )
@@ -45,6 +46,9 @@ func main() {
 	}
 
 	logger := logx.New(*verbose, *lastLogPath, *keepLogLines)
+	if strings.TrimSpace(*lastLogPath) != "" {
+		mixboard.SetObservationMetricsLogger(logx.New(false, filepath.Join(filepath.Dir(*lastLogPath), "MaterializeMetrics.log"), 5000))
+	}
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
