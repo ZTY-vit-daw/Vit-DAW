@@ -13,8 +13,10 @@ import (
 // Red state: the stub package returns zero results, so every check fails.
 
 // syntheticPrimitives builds a ready payload: hop=0.1s, duration seconds,
-// flat baseline signals, density spikes at the given frame indices and
-// novelty spikes at the given indices (spike value 1.0; baseline 0.01).
+// flat baseline signals, density spikes at the given frame indices (v is
+// expressed in combined-signal units: the helper multiplies by
+// DensityScalePerSecond) and novelty spikes at the given indices (v scaled
+// by NoveltyScaleLinear). Baselines stay at 0.01 combined units.
 func syntheticPrimitives(durationSeconds float64, densitySpikes, noveltySpikes map[int]float64) Primitives {
 	frames := int(durationSeconds / 0.1)
 	p := Primitives{
@@ -32,13 +34,13 @@ func syntheticPrimitives(durationSeconds float64, densitySpikes, noveltySpikes m
 	for i := 0; i < frames; i++ {
 		start := float64(i) * 0.1
 		end := start + 0.1
-		density := 0.01
+		density := 0.01 * DensityScalePerSecond
 		if v, ok := densitySpikes[i]; ok {
-			density = v
+			density = v * DensityScalePerSecond
 		}
-		novelty := 0.01
+		novelty := 0.01 * NoveltyScaleLinear
 		if v, ok := noveltySpikes[i]; ok {
-			novelty = v
+			novelty = v * NoveltyScaleLinear
 		}
 		if novelty > maxNovelty {
 			maxNovelty = novelty
@@ -51,18 +53,18 @@ func syntheticPrimitives(durationSeconds float64, densitySpikes, noveltySpikes m
 		})
 	}
 	p.EnergyNovelty.MaxNovelty = maxNovelty
-	p.EnergyNovelty.MeanNovelty = 0.01
+	p.EnergyNovelty.MeanNovelty = 0.01 * NoveltyScaleLinear
 	return p
 }
 
 func TestDetectBoundariesTable(t *testing.T) {
 	cases := []struct {
-		name       string
-		duration   float64
-		density    map[int]float64
-		novelty    map[int]float64
-		wantAt     []float64
-		wantConf   []string
+		name     string
+		duration float64
+		density  map[int]float64
+		novelty  map[int]float64
+		wantAt   []float64
+		wantConf []string
 	}{
 		{
 			name:     "two isolated spikes become two boundaries",
@@ -106,14 +108,14 @@ func TestDetectBoundariesTable(t *testing.T) {
 		{
 			name:     "medium bin confidence",
 			duration: 30.0,
-			density:  map[int]float64{120: 0.7},
+			density:  map[int]float64{120: 0.75},
 			wantAt:   []float64{12.0},
 			wantConf: []string{ConfidenceMedium},
 		},
 		{
 			name:     "low bin confidence just above threshold",
 			duration: 30.0,
-			novelty:  map[int]float64{120: 0.55},
+			novelty:  map[int]float64{120: 0.68},
 			wantAt:   []float64{12.0},
 			wantConf: []string{ConfidenceLow},
 		},
