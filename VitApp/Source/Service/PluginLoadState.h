@@ -26,11 +26,24 @@ struct ExternalPluginLoadState
 inline ExternalPluginLoadState classifyExternalPluginLoadState (bool hasLoadError,
                                                                 bool asyncPending)
 {
-    // RED-STUB for TIM-KERNEL-DISCLOSE-1: bodies stay wrong until the green
-    // commit so the acceptance tests fail first.
-    (void) hasLoadError;
-    (void) asyncPending;
-    return {};
+    ExternalPluginLoadState state;
+    if (asyncPending)
+    {
+        // A still-initialising instance is transient, not failed, even if an
+        // error string sticks around from an earlier attempt.
+        state.loadState = "async_pending";
+        state.instanceReady = false;
+        return state;
+    }
+    if (hasLoadError)
+    {
+        state.loadState = "failed";
+        state.instanceReady = false;
+        return state;
+    }
+    state.loadState = "ready";
+    state.instanceReady = true;
+    return state;
 }
 
 // Item 3: the block size actually in use is only disclosable while an audio
@@ -39,9 +52,7 @@ inline ExternalPluginLoadState classifyExternalPluginLoadState (bool hasLoadErro
 // real zero.
 inline int disclosedBlockSize (bool deviceOpen, int setupBufferSize)
 {
-    (void) deviceOpen;
-    (void) setupBufferSize;
-    return -1;
+    return deviceOpen ? setupBufferSize : -1;
 }
 
 } // namespace vit

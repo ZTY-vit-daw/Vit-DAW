@@ -70,9 +70,9 @@ const (
 var knownAsserterChecks = map[string]map[string]bool{
 	"signal_hygiene":  {"signal_nonfinite": true, "clipping_headroom": true, "dc_offset": true},
 	"level_ceiling":   {"ceiling": true},
-	"sample_rate":     {"consistency": true},
+	"sample_rate":     {"consistency": true, "block_size": true},
 	"routing":         {"dead_end": true, "cycle": true},
-	"plugin_legality": {"known_path": true},
+	"plugin_legality": {"known_path": true, "load_state": true},
 	"plugin_hygiene":  {"startup_cleanup": true},
 }
 
@@ -156,6 +156,8 @@ func Evaluate(input AssertInput) []AssertionResult {
 	results = append(results, evaluateRouting(input.RackSummaries)...)
 	results = append(results, evaluatePluginLegality(input.RackSummaries, input.KnownPluginPaths)...)
 	results = append(results, evaluatePluginHygiene(input.PluginListHygiene)...)
+	results = append(results, evaluateBlockSize(input.TrackFacts, input.ProjectBlockSize)...)
+	results = append(results, evaluatePluginLoadState(input.RackSummaries)...)
 	warnAssertionFailures(results)
 	return results
 }
@@ -376,6 +378,68 @@ func evaluatePluginLegality(racks []RackSummary, known map[string]bool) []Assert
 	return out
 }
 
+// evaluateBlockSize is the AS-SR P2 check (TIM-KERNEL-DISCLOSE-1 Item 3):
+// the kernel discloses the block size actually in use via
+// audio_settings.block_size. Project-level missing keeps the whole check
+// not_evaluable (the existing sample-rate behaviour, not downgraded);
+// track-level block size is not disclosed by any current source, so track
+// rows stay not_evaluable until one appears — never a fabricated pass.
+func evaluateBlockSize(facts []TrackFact, project *float64) []AssertionResult {
+	if project == nil {
+		return []AssertionResult{assertionRow("sample_rate", "block_size", AssertionStatusNotEvaluable, "", codeBlockSizeNE, nil, nil, acousticAssertionRefs)}
+	}
+	out := []AssertionResult{}
+	for _, fact := range facts {
+		if fact.BlockSize == nil {
+			out = append(out, assertionRow("sample_rate", "block_size", AssertionStatusNotEvaluable, fact.TrackID, codeBlockSizeNE, nil, floatPtr(*project), acousticAssertionRefs))
+			continue
+		}
+		if *fact.BlockSize != *project {
+			out = append(out, failRow("sample_rate", "block_size", fact.TrackID, codeBlockSizeMismatch, floatPtr(*fact.BlockSize), floatPtr(*project), acousticAssertionRefs))
+			continue
+		}
+		out = append(out, passRow("sample_rate", "block_size", fact.TrackID, floatPtr(*fact.BlockSize), floatPtr(*project), acousticAssertionRefs))
+	}
+	return out
+}
+
+// evaluatePluginLoadState is the AS-PLUGIN P2 check (TIM-KERNEL-DISCLOSE-1
+// Item 4): per-instance load state disclosed on the kernel rack nodes.
+// failed dominates (real failure evidence); pending/undisclosed keep the row
+// not_evaluable (transient async window or older kernel without the field).
+func evaluatePluginLoadState(racks []RackSummary) []AssertionResult {
+	out := []AssertionResult{}
+	for _, rack := range racks {
+		failed, undetermined := 0, 0
+		for _, node := range rack.Nodes {
+			if node.PluginPath == "" && node.PluginFormat == "" {
+				continue
+			}
+			switch node.PluginLoadState {
+			case "failed":
+				failed++
+			case "ready":
+			case "async_pending":
+				undetermined++
+			default:
+				undetermined++
+			}
+		}
+		switch {
+		case failed > 0:
+			out = append(out, failRow("plugin_legality", "load_state", rack.TrackID, codePluginLoadFailed, floatPtr(float64(failed)), floatPtr(0), rackAssertionRefs))
+		case undetermined > 0:
+			out = append(out, assertionRow("plugin_legality", "load_state", AssertionStatusNotEvaluable, rack.TrackID, codePluginLoadNE, floatPtr(float64(undetermined)), nil, rackAssertionRefs))
+		default:
+			out = append(out, passRow("plugin_legality", "load_state", rack.TrackID, floatPtr(0), floatPtr(0), rackAssertionRefs))
+		}
+	}
+	if len(racks) == 0 {
+		out = append(out, assertionRow("plugin_legality", "load_state", AssertionStatusNotEvaluable, "", codePluginLoadNE, nil, nil, rackAssertionRefs))
+	}
+	return out
+}
+
 // evaluatePluginHygiene consumes the kernel plugin_list_hygiene disclosure
 // block (TIM-KERNEL-HYGIENE-1 Item 5). Three states preserved: missing block
 // or never-ran cleanup is not_evaluable, an explicit zero-removal run passes,
@@ -428,6 +492,8 @@ func RackSummariesFromProjectState(state map[string]any) []RackSummary {
 			node.Enabled, _ = boolValue(rawNode["enabled"])
 			node.AudioReachableFromRackInput, _ = boolValue(rawNode["audio_reachable_from_rack_input"])
 			node.VitOrphanBypassCandidate, _ = boolValue(rawNode["vit_orphan_bypass_candidate"])
+			node.PluginLoadState = firstNonEmptyText(rawNode, "plugin_load_state")
+			node.PluginInstanceRdy, _ = boolValue(rawNode["plugin_instance_ready"])
 			if node.NodeID == "" && node.PluginPath == "" && node.PluginFormat == "" {
 				continue
 			}

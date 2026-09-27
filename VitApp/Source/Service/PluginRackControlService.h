@@ -7,6 +7,7 @@
 #include <tracktion_engine/tracktion_engine.h>
 
 #include "PluginListHygiene.h"
+#include "PluginLoadState.h"
 
 namespace vit
 {
@@ -14,6 +15,11 @@ namespace vit
 namespace te = tracktion;
 
 class PluginScanCoordinator;
+
+// TIM-KERNEL-DISCLOSE-1 (Item 4): structured per-instance load state for the
+// rack-node disclosure (classifyExternalPluginLoadState in PluginLoadState.h
+// carries the pure logic; this wraps the live plugin state).
+ExternalPluginLoadState externalPluginLoadStateFields (te::ExternalPlugin& plugin);
 
 class PluginRackControlService final
 {

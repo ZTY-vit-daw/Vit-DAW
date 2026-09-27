@@ -108,13 +108,21 @@ func TestBuildAssertionPluginLoadStates(t *testing.T) {
 		return node
 	}
 	buildProj := func(nodes ...map[string]any) Projection {
-		return Build(Input{ProjectPackage: map[string]any{
-			"track_count": 1,
+		state := map[string]any{
 			"tracks": []any{map[string]any{
-				"track_id": "t1", "track_name": "T1", "clip_count": 0,
+				"track_id": "t1",
 				"rack":     map[string]any{"nodes": nodes},
 			}},
-		}})
+		}
+		return Build(Input{
+			RackSummaries: RackSummariesFromProjectState(state),
+			ProjectPackage: map[string]any{
+				"track_count": 1,
+				"tracks": []any{map[string]any{
+					"track_id": "t1", "track_name": "T1", "clip_count": 0,
+				}},
+			},
+		})
 	}
 
 	// failed -> fail row with the dedicated code.

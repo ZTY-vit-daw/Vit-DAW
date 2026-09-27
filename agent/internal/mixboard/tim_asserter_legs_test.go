@@ -86,7 +86,10 @@ func TestTIMInputCarriesAssertionLegInputs(t *testing.T) {
 				t.Fatalf("sample rate assertion wrong end to end: %#v", row)
 			}
 		}
-		if row.Asserter == "plugin_legality" && row.TrackID == "t1" && row.Status != tim.AssertionStatusPass {
+		// TIM-KERNEL-DISCLOSE-1: scoped to the known_path check — the new
+		// load_state check legitimately reports not_evaluable on synthetic
+		// rack rows that do not disclose per-instance load state.
+		if row.Asserter == "plugin_legality" && row.Check == "known_path" && row.TrackID == "t1" && row.Status != tim.AssertionStatusPass {
 			t.Fatalf("known plugin path should pass: %#v", row)
 		}
 	}
