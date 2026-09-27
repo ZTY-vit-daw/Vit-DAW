@@ -66,16 +66,22 @@ func FinalizeObservationContext(obs *ObservationPacket, req Request, now string)
 	wantsDOM := strings.TrimSpace(cleanAnyString(req.Args["dom_mode"])) != ""
 	if wantsDOM {
 		finalizeDOMProjection(obs, req)
+		noteObservationFinalize(finalizeKindDOM)
 	}
 	if observationWantsBandStereoProjection(req.Args) {
 		applyBandStereoProjection(obs, req)
 	}
 	finalizeMOMProjection(obs, req)
+	noteObservationFinalize(finalizeKindMOM)
 	finalizeTIMProjection(obs, req)
+	noteObservationFinalize(finalizeKindTIM)
 	finalizeFXMProjection(obs, req)
+	noteObservationFinalize(finalizeKindFXM)
 	finalizeCOMProjection(obs, req)
+	noteObservationFinalize(finalizeKindCOM)
 	if !wantsDOM && !observationWantsBandStereoProjection(req.Args) {
 		finalizeDOMProjection(obs, req)
+		noteObservationFinalize(finalizeKindDOM)
 	}
 	obs.Digest = BuildDigest(*obs, req)
 	obs.Catalog = BuildCatalog(*obs, req, now)
