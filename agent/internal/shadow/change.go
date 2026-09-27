@@ -275,6 +275,9 @@ func (p *Project) recordChangeLocked(source string, authoritative bool, beforeEp
 	if len(p.changeHistory) > changeHistoryLimit {
 		p.changeHistory = append([]ChangeReceipt(nil), p.changeHistory[len(p.changeHistory)-changeHistoryLimit:]...)
 	}
+	if p.changeNotifier != nil { // MAT-B 挂点 1：纯通知尾挂（nil=现状逐字节一致）
+		p.changeNotifier(receipt)
+	}
 }
 
 // LatestChangeReceipt returns the latest bounded, deterministic project

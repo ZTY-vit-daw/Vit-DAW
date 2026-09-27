@@ -76,6 +76,10 @@ type Store struct {
 	subs    map[*subscription]struct{}
 	dir     string // 非空 = manifest 落盘目录
 	metrics metricsState
+
+	// propagationOverride 覆盖生产表 B（MAT-B 脏传播；nil=生产表 table_b.go）。
+	// 仅同包测试注入合成链表用（G2-A①），生产路径不设。
+	propagationOverride map[string][]string
 }
 
 type subscription struct {

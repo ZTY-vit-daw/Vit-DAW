@@ -30,6 +30,7 @@ import (
 	"vit-daw-agent/internal/kernel"
 	"vit-daw-agent/internal/logx"
 	"vit-daw-agent/internal/macrocontrols"
+	"vit-daw-agent/internal/materialize"
 	"vit-daw-agent/internal/mixboard"
 	"vit-daw-agent/internal/mom"
 	"vit-daw-agent/internal/orchestration"
@@ -74,6 +75,8 @@ type Harness struct {
 	renderWaiters   map[string][]chan RenderResult
 	l2ProbeCollect  func(context.Context, map[string]any, string, string, string) (map[string]any, map[string]any, error)
 	comProbeCollect func(context.Context, map[string]any, string, string, string) (map[string]any, map[string]any, error)
+
+	materializeNotifier materialize.Notifier // MAT-B 三挂点物化侧入口（nil=现状逐字节一致）
 
 	// Conversation-checkpoint revision gate (HARNESS-1): per-project kernel
 	// revision already covered by a (possibly in-flight) vit checkpoint. The
@@ -163,6 +166,17 @@ func NewWithSender(sender KernelSender, shadowProject *shadow.Project, logger *l
 	return newWithSender(sender, shadowProject, logger)
 }
 
+// SetMaterializeNotifier 装配物化层 Notifier（MAT-B 三挂点物化侧入口；挂点 1 的 shadow 观察者在此一并接线；启动期单次、不与遥测/变更流并发；nil=零接线现状）。
+func (h *Harness) SetMaterializeNotifier(n materialize.Notifier) {
+	h.materializeNotifier = n
+	if h.shadow != nil {
+		h.shadow.SetChangeNotifier(func(receipt shadow.ChangeReceipt) {
+			if n := h.materializeNotifier; n != nil {
+				n.NotifyShadowChange(receipt)
+			}
+		})
+	}
+}
 func newWithSender(sender KernelSender, shadowProject *shadow.Project, logger *logx.Logger) *Harness {
 	journalPath := defaultJournalPath()
 	j := journal.New(500)
@@ -3909,6 +3923,9 @@ func (h *Harness) IngestKernelTelemetry(event map[string]any) {
 	case strings.EqualFold(command, "audio_feature_data_ready") && isL3AcousticSummaryFeature(featureType):
 		h.ingestKernelL3AcousticTelemetry(event)
 	}
+	if h.materializeNotifier != nil { // MAT-B 挂点 2：分支写完 snapshot 后纯通知尾挂（含 #9 收编：l2_render_probe_ready 经此通知，临时 SUB 保留）
+		h.materializeNotifier.NotifyTelemetry(event)
+	}
 }
 
 func (h *Harness) ingestKernelRenderTelemetry(event map[string]any) {
@@ -3933,6 +3950,9 @@ func (h *Harness) ingestKernelRenderTelemetry(event map[string]any) {
 	waiters := append([]chan RenderResult(nil), h.renderWaiters[jobID]...)
 	delete(h.renderWaiters, jobID)
 	h.renderMu.Unlock()
+	if h.materializeNotifier != nil { // MAT-B 挂点 3：唤醒 waiters 前纯通知尾挂
+		h.materializeNotifier.NotifyRenderJob(jobID, result.Status, result.FilePath)
+	}
 	for _, waiter := range waiters {
 		select {
 		case waiter <- result:

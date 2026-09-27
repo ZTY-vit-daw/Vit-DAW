@@ -74,6 +74,12 @@ func (m *metricsState) addInvalidation(kind string) {
 	m.lock(kind).Invalidations++
 }
 
+// addArrival 计 arrive 型事件级到达（MAT-B HandleFeatureArrival，按受影响
+// kind；§5.1 Arrivals——事件发生了就计数，与行是否被标脏无关）。
+func (m *metricsState) addArrival(kind string) {
+	m.lock(kind).Arrivals++
+}
+
 func (m *metricsState) addResolveRead(kind string, hit bool) {
 	km := m.lock(kind)
 	km.Reads++

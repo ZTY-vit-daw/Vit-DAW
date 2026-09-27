@@ -28,6 +28,7 @@ type Project struct {
 	changeSequence int64
 	lastChange     ChangeReceipt
 	changeHistory  []ChangeReceipt
+	changeNotifier func(ChangeReceipt) // MAT-B 挂点 1 观察者（纯通知尾挂，nil=现状）
 }
 
 func New(logger *logx.Logger) *Project {
@@ -148,6 +149,12 @@ func (p *Project) Initialized() bool {
 	return p.initialized
 }
 
+// SetChangeNotifier 安装收据观察者（MAT-B 挂点 1 纯通知尾挂；p.mu 内回调、不得回调 shadow、启动期单次、nil=现状）。
+func (p *Project) SetChangeNotifier(fn func(ChangeReceipt)) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	p.changeNotifier = fn
+}
 func (p *Project) Snapshot() map[string]any {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
