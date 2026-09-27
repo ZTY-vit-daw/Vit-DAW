@@ -11,3 +11,5 @@
 - 约束：纯只读披露扩展（get_project_state 不触发任何装载/分析动作）；§11（新增字段旧 agent 忽略=零破坏）。
 - 验收：双配置 ctest+agent 全量 0 FAIL+红绿在案
 - 停止条件：per-instance 装载态在内核侧无现成可读源（需新状态存储）→ 停止上交（存储设计=决策侧裁定，不擅自建）
+- 领取：2026-09-27 04:27 UTC / a9e47e0c604323cb3b5930685cef329f8ccf6310（origin/main）/ port/tim-kernel-disclose-1（分支基点=②分支尖 08b8986，串行 rebase 约束）
+- 回执：（待回填）
