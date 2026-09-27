@@ -319,7 +319,16 @@ func DOMAdapter() KindAdapter {
 			rows := make([]Row, 0, len(trackIDs))
 			for _, trackID := range trackIDs {
 				input := mixboard.DOMInputFromObservation(mixboard.ObservationPacket{
-					TargetRef:      mixboard.TargetRef{Kind: "track", ID: trackID},
+					TargetRef: mixboard.TargetRef{
+						Kind: "track", ID: trackID,
+						// MAT-D3：真实观察包的 target_ref 带轨名 label（harness
+						// 观察请求解析链填入），label 是投影内容的合法身份字段
+						// 且不属 volatile——合成包缺它即内容身份恒差（MAT-D2 取证）。
+						// 从 deps.ProjectState（shadow 工程快照，与观察侧
+						// visibleTrackName 同一轨行集）同源取值；轨名缺失=NE
+						// 留空，不猜名字。
+						Label: shadowTrackLabel(deps.ProjectState, trackID),
+					},
 					GlobalSummary:  map[string]any{"feature_snapshot": deps.FeatureSnapshot},
 					ProjectPackage: map[string]any{"project_revision": deps.ProjectRevision},
 				}, mixboard.Request{})
@@ -352,6 +361,19 @@ func featureTrackIDs(snapshot map[string]any) []string {
 	}
 	sort.Strings(out)
 	return out
+}
+
+// shadowTrackLabel 从 shadow 工程快照（deps.ProjectState）取轨名：与观察侧
+// harness.visibleTrackName 同源（同一轨行集、同键序 name/track_name、按
+// track_id/id 匹配）。轨行缺失或无名时返回空串（NE——不猜名字）。
+func shadowTrackLabel(projectState map[string]any, trackID string) string {
+	for _, row := range mapRows(projectState["tracks"]) {
+		if stringField(row, "track_id", "id") != trackID {
+			continue
+		}
+		return stringField(row, "name", "track_name")
+	}
+	return ""
 }
 
 // ---------------------------------------------------------------------------

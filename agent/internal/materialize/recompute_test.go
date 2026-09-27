@@ -625,7 +625,10 @@ func TestShadowReconcileSyntheticProjectZeroDivergence(t *testing.T) {
 	}
 	result, err := mixboard.NewStore(t.TempDir()).RequestObservation(mixboard.Request{
 		MixSessionID: "mix-matc-shadow",
-		TargetRef:    mixboard.TargetRef{Kind: "track", ID: "T3"},
+		// MAT-D3：观察侧 target 带 label=真栈观察链形态（harness
+		// resolveMixObservationTargetContext 从轨行解析 track_name 填
+		// target.Label）——物化侧同源补齐后两侧同口径对账。
+		TargetRef:    mixboard.TargetRef{Kind: "track", ID: "T3", Label: "lead vox"},
 		ProjectState: deps.ProjectState,
 		Args:         map[string]any{"feature_snapshot": snapshotCopy},
 	})

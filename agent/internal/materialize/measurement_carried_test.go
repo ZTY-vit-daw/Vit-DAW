@@ -133,7 +133,9 @@ func TestDOMRowFromObservationSnapshotSourcedNotMarked(t *testing.T) {
 	snapshotRow := matCWaveformRow("T3", "sr1", -20.5, -3.2)
 	obs := mixboard.ObservationPacket{
 		ObservationID: "obs_matd2_0002", MixSessionID: "mix_matd2", Status: "ready",
-		TargetRef:      mixboard.TargetRef{Kind: "track", ID: "T3"},
+		// MAT-D3：观察侧 target 带 label=真栈观察链形态（harness 从轨行解析
+		// track_name 填 target.Label）——与物化侧同源补齐后同口径对账。
+		TargetRef:      mixboard.TargetRef{Kind: "track", ID: "T3", Label: "lead vox"},
 		ProjectPackage: map[string]any{"project_revision": "r1"},
 		GlobalSummary: map[string]any{"feature_snapshot": map[string]any{
 			"schema_version":            "mixboard_feature_snapshot.v1",
