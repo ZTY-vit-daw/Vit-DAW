@@ -1,0 +1,42 @@
+{
+  "schema_version": "vit_agent_store_manifest.v2",
+  "project_uuid": "vitproj_9ecc5ab9a454400192086c628c07b966",
+  "project_path": "D:\\Vit_DAW\\coord\\runs\\FIX-PCA-AUTOSWEEP-1\\20260924_005622\\journey\\project\\journey1_912.vit",
+  "created_at": "2026-09-23T21:06:59.1305261Z",
+  "updated_at": "2026-09-23T21:08:04.4349374Z",
+  "budgets": {
+    "observation_max_bytes": 2097152,
+    "observation_max_count": 500,
+    "evidence_max_bytes": 419430400,
+    "evidence_blob_max_bytes": 67108864,
+    "journal_shard_max_bytes": 4194304,
+    "journal_shard_max_records": 1000,
+    "journal_max_shards": 50,
+    "store_total_max_bytes": 536870912
+  },
+  "counters": {
+    "journal_bytes": 14088,
+    "journal_records": 8,
+    "journal_shards": 1,
+    "observations_bytes": 0,
+    "observations_count": 0,
+    "evidence_bytes": 0,
+    "evidence_count": 0,
+    "mixboard_bytes": 0,
+    "total_bytes": 14088
+  },
+  "classes": {
+    "authoritative": [
+      "journal",
+      "mixboard_decisions"
+    ],
+    "renewable": [
+      "evidence",
+      "context_packs"
+    ]
+  },
+  "degraded": {
+    "evidence_off": false,
+    "reason": ""
+  }
+}

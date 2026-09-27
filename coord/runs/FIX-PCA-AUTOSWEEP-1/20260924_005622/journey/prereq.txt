@@ -1,0 +1,40 @@
+﻿run_root=D:/Vit_DAW/coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/journey
+head=6234d2e37d2008e081f05cd78ba8d432ffed357f
+git_status= M VitApp/Workspace/default_project.xml ;  D coord/cards/todo/2026-09-23-FIX-PCA-AUTOSWEEP-1.md ; ?? coord/cards/doing/2026-09-23-FIX-PCA-AUTOSWEEP-1.md ; ?? coord/runs/FIX-BROADBAND-SHARED-1/ ; ?? coord/runs/FIX-F3-G4-SEMANTICS/ ; ?? coord/runs/FIX-F5-SNAPSHOT-FRESHNESS-1/ ; ?? coord/runs/FIX-FRONTIER-FOLD-1/ ; ?? coord/runs/FIX-PCA-AUTOSWEEP-1/ ; ?? coord/runs/PORT-PS1-N5-1/ ; ?? coord/runs/plugin_select1_artifacts/go_full_after.txt ; ?? coord/runs/plugin_select1_artifacts/journey1_pcplugsel1_console.txt ; ?? coord/runs/plugin_select1_artifacts/journey1_pcplugsel2_console.txt ; ?? coord/runs/plugin_select1_artifacts/journey1_pcplugsel3_console.txt ; ?? coord/runs/plugin_select1_artifacts/pre_smoke_worktree.txt ; ?? coord/runs/plugin_select1_artifacts/red_chat_agentloop.txt ; ?? coord/runs/plugin_select1_artifacts/red_experimentplugins.txt ; ?? coord/runs/plugin_select1_artifacts/red_green_summary.md ; ?? coord/runs/ps1-settle-1/ ; ?? extension/.sconsign.dblite ; ?? extension/src/register_types.windows.template_debug.x86_64.obj ; ?? extension/src/vit_waveform_reader.windows.template_debug.x86_64.obj ; ?? extension/src/vit_webview_host.windows.template_debug.x86_64.obj ; ?? godot-cpp/ ; ?? scripts/pca_autosweep.py
+project_source=D:\Godot\project\vit-daw-frontend\912.vit
+user_project_sha256_before=F6CA36FA080D97E7B91CBAC755E7D2096393D453140E10563771466EB774D8BD
+user_history_fingerprint_before=EBD12840103FF6BCB539311D9EA40A836AFA7B9EB621AC820F3C2A3B1B6EC769
+repo_default_project_sha256_before=9A6C774E970EFE4E4F72765D026D90A21111E2A8AC04DFC5766E2301313768ED
+repo_settings_sha256_before=FF86975B034D49AB5C53B53EBD910F01B4E88B4E680A90C1C990DA2EF6856658
+port_free=7878
+port_free=5555
+port_free=5556
+copy_project=D:\Vit_DAW\coord\runs\FIX-PCA-AUTOSWEEP-1\20260924_005622\journey\project\journey1_912.vit
+copy_project_sha256=F6CA36FA080D97E7B91CBAC755E7D2096393D453140E10563771466EB774D8BD
+agent_binary=D:\Vit_DAW\coord\runs\FIX-PCA-AUTOSWEEP-1\20260924_005622\journey\bin\VitAgent.journey1.exe size=34393600 mtime=2026-09-24T05:06:41.9300493+08:00 sha256=529EF3FEE87CE4F5012C06A2CC18257C76D9544984C72A4DDA87D18F0FA382DB
+kernel_binary=D:\Vit_DAW\VitApp\build\VitApp_artefacts\Release\VitApp.exe mtime=2026-09-12T18:48:37.9197531+08:00
+phase_a_kernel_pid=23852 agent_pid=28676
+phase_a_shadow_initialized=True track_count=0
+phase_a_load_status=ok command=open_project error=
+phase_a_tracks=bass,drums,guitar,other,piano,vocals
+phase_a_bass_present=True bass_plugin_count_before=0 project_uuid=vitproj_9ecc5ab9a454400192086c628c07b966
+phase_a_sessions_after_load=session_20260923T210659_dca95861
+phase_a_authority_mode=full_project_access
+phase_a_slice_0_status=completed stop=done
+a1_state=green option_marker_count=0 ask_words=方向 question_mark=False substantive_texts=5 first_reply_placeholder=False
+a2_direct_probe_landed=True plugin_id=1040 instance_ready=True graph_diff=node_add|Added rack node CLA-2A Mono
+a2_ui_projection_post_probe bass_count=1 plugin_rows=1 fetched=True
+a2_state=GREEN pca_load_gate_denials=0 probe_denied=False probe_landed=True ui_projection_landed=True journey_turn_landed=False
+a2_direct_probe track=1007 plugin=VST3-CLA-2A Mono-695648d-9d81f54 status=ok gate_denial_delta=0 error=
+a3_audition_events= mix_tick_events= audition_session_seen=False card_mounted=False proposal_applied=False A3=RED
+phase_a_save_prepare status=ok prepare_id=prepare_18758626 generation=save_20260923T210740_18758626
+phase_a_save_project status=ok error=
+phase_a_copy_project_sha256_after_save=EED36BE7FBD32CDA375A6F31C842D4AE19E83B05AC11ECCC04484B6E06D432E2
+phase_b_kernel_pid=21160 agent_pid=6108
+phase_b_load_status=ok error=
+a4_state=green live_session=session_20260923T210744_6ca2fd67 graph_nodes=0 messages=0 commit_count=2 pre_savepoint_carried=False resumed_session_dirs=session_20260923T210659_dca95861,session_20260923T210740_7b045580,session_20260923T210740_b15a61c0 fresh_session_dirs=session_20260923T210744_6ca2fd67 rewritten_files=13 stall_warn=0
+repo_default_project_sha256_after=9A6C774E970EFE4E4F72765D026D90A21111E2A8AC04DFC5766E2301313768ED
+repo_settings_sha256_after=FF86975B034D49AB5C53B53EBD910F01B4E88B4E680A90C1C990DA2EF6856658
+user_project_sha256_after=F6CA36FA080D97E7B91CBAC755E7D2096393D453140E10563771466EB774D8BD
+user_history_fingerprint_after=EBD12840103FF6BCB539311D9EA40A836AFA7B9EB621AC820F3C2A3B1B6EC769
+finished=2026-09-24T05:08:06.4010637+08:00

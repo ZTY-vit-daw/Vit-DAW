@@ -1,0 +1,504 @@
+﻿{
+    "schema_version":  "vit_demo_journey_driver.v1",
+    "card":  "JOURNEY-1",
+    "run_root":  "D:/Vit_DAW/coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/journey2",
+    "project_source":  "D:\\Godot\\project\\vit-daw-frontend\\912.vit",
+    "copy_project":  "D:\\Vit_DAW\\coord\\runs\\FIX-PCA-AUTOSWEEP-1\\20260924_005622\\journey2\\project\\journey1_912.vit",
+    "kernel_exe":  "D:\\Vit_DAW\\VitApp\\build\\VitApp_artefacts\\Release\\VitApp.exe",
+    "agent_binary":  "D:\\Vit_DAW\\coord\\runs\\FIX-PCA-AUTOSWEEP-1\\20260924_005622\\journey2\\bin\\VitAgent.journey1.exe",
+    "prompt":  "run the full experiment chain on the bass track now: first make the required mix observation on the bass track, then pick one of the admitted broadband compressors, load it, set a gentle starting dose, apply and let me audition the A/B",
+    "verdict":  "all_green",
+    "assertions":  {
+                       "a1_no_direction_asking":  {
+                                                      "state":  "green",
+                                                      "basis":  "delivered text (chat slices + event title/body): option-marker count / ask vocabulary"
+                                                  },
+                       "a2_load_path_works":  {
+                                                  "state":  "green",
+                                                  "basis":  "deterministic half: the direct rack.add_node probe is not denied by the PCA load gate AND the Kernel\u0027s own reply carries a ready plugin instance (plugin_id + plugin_instance_ready); journey-turn half (bass plugin_count growth) reported separately in a2_journey_turn_plugin_landed"
+                                              },
+                       "a3_experiment_chain":  {
+                                                   "state":  "green",
+                                                   "basis":  "proposal -\u003e applied -\u003e readback -\u003e mix_tick/audition card on the conversation event stream"
+                                               },
+                       "a4_session_clean":  {
+                                                "state":  "green",
+                                                "basis":  "phase B reopen after a phase A save point: does the live reopened conversation carry pre-save-point history (graph nodes / messages), and did a stall WARN scan run"
+                                            }
+                   },
+    "phase_a":  {
+                    "load_started_utc":  "2026-09-23T21:12:57.7356314Z",
+                    "load_status":  "ok",
+                    "load_command":  "open_project",
+                    "load_error":  "",
+                    "track_names":  [
+                                        "bass",
+                                        "drums",
+                                        "guitar",
+                                        "other",
+                                        "piano",
+                                        "vocals"
+                                    ],
+                    "track_count":  6,
+                    "bass_plugin_count_before":  0,
+                    "bass_present":  true,
+                    "project_uuid":  "vitproj_9ecc5ab9a454400192086c628c07b966",
+                    "project_path":  "D:\\Vit_DAW\\coord\\runs\\FIX-PCA-AUTOSWEEP-1\\20260924_005622\\journey2\\project\\journey1_912.vit",
+                    "sessions_after_load":  [
+                                                {
+                                                    "uuid_dir":  "vitproj_9ecc5ab9a454400192086c628c07b966",
+                                                    "session":  "session_20260923T211257_079a5eef",
+                                                    "path":  "D:\\Vit_DAW\\coord\\runs\\FIX-PCA-AUTOSWEEP-1\\20260924_005622\\journey2\\project\\.vit_history\\.sessions\\vitproj_9ecc5ab9a454400192086c628c07b966\\session_20260923T211257_079a5eef",
+                                                    "last_write_utc":  "2026-09-23T21:13:03.9226368Z",
+                                                    "file_count":  4,
+                                                    "session_json":  true,
+                                                    "has_workspace":  true
+                                                }
+                                            ],
+                    "authority_mode":  "full_project_access",
+                    "conversation_id":  "journey1_a_20260924_051303",
+                    "prompt":  "run the full experiment chain on the bass track now: first make the required mix observation on the bass track, then pick one of the admitted broadband compressors, load it, set a gentle starting dose, apply and let me audition the A/B",
+                    "slices":  [
+                                   {
+                                       "index":  0,
+                                       "status":  "waiting_continue",
+                                       "stop_reason":  "limit_reached",
+                                       "ms":  7270,
+                                       "reply":  "我还在继续处理这个任务，完成后再向你汇报。"
+                                   }
+                               ],
+                    "runtime_state_path":  "D:\\Vit_DAW\\coord\\runs\\FIX-PCA-AUTOSWEEP-1\\20260924_005622\\journey2\\project\\.vit_history\\.sessions\\vitproj_9ecc5ab9a454400192086c628c07b966\\session_20260923T211257_079a5eef\\workspace\\state\\agent_runtime_state.json",
+                    "a1_first_reply":  "我还在继续处理这个任务，完成后再向你汇报。",
+                    "a1_first_reply_is_placeholder":  true,
+                    "a1_delivered_texts":  [
+                                               {
+                                                   "source":  "chat_slice_0",
+                                                   "text":  "我还在继续处理这个任务，完成后再向你汇报。",
+                                                   "placeholder":  true
+                                               },
+                                               {
+                                                   "source":  "event_turn.started_1",
+                                                   "text":  "正在处理 | run the full experiment chain on the bass track now: first make the required mix observation on the bass track, then pick one of the admitted broadband compressors, load it, set a gentle starting dose, apply and let me audition the A/B",
+                                                   "placeholder":  false
+                                               },
+                                               {
+                                                   "source":  "event_trajectory.turn.started_2",
+                                                   "text":  "正在处理",
+                                                   "placeholder":  false
+                                               },
+                                               {
+                                                   "source":  "event_item.started_3",
+                                                   "text":  "正在执行操作 | 必须先取得权威视图 ID 列表，才能选出能披露项目轨道的视图与低音轨的动态/能量视图，并避免使用未经验证的视图名。",
+                                                   "placeholder":  false
+                                               },
+                                               {
+                                                   "source":  "event_item.completed_4",
+                                                   "text":  "已完成 ccb_observation_catalog",
+                                                   "placeholder":  false
+                                               },
+                                               {
+                                                   "source":  "event_turn.completed_5",
+                                                   "text":  "处理完成 | 我还在继续处理这个任务，完成后再向你汇报。",
+                                                   "placeholder":  false
+                                               },
+                                               {
+                                                   "source":  "event_item.started_6",
+                                                   "text":  "正在执行操作 | project.structure 用于披露轨道标识与名称以便定位低音轨；mix.multitrack_relationship 与 mix.frequency_relationship 提供项目级关系扫描证据，是后续有界动态实验假设的前置结构证据。",
+                                                   "placeholder":  false
+                                               },
+                                               {
+                                                   "source":  "event_item.completed_7",
+                                                   "text":  "已完成 ccb_observation_request",
+                                                   "placeholder":  false
+                                               },
+                                               {
+                                                   "source":  "event_item.started_8",
+                                                   "text":  "正在执行操作 | 候选前沿已把低音轨（1007）与鼓（1012）列为轨道级候选，但压缩剂量必须由该轨道自身的动态包络与能量/余量证据决定；track.time_dynamics 披露波峰与包络变化以判断是否需要以及需要多大的压缩，track.basic_energy 披露该轨的余量与电平状况以避免前级过压。两者都是目标级视图，能直接改变压缩阈值方向与幅度的选择。",
+                                                   "placeholder":  false
+                                               },
+                                               {
+                                                   "source":  "event_item.completed_9",
+                                                   "text":  "已完成 ccb_observation_request",
+                                                   "placeholder":  false
+                                               },
+                                               {
+                                                   "source":  "event_trajectory.turn.started_10",
+                                                   "text":  "实验回合开始 | 实验回合开始",
+                                                   "placeholder":  false
+                                               },
+                                               {
+                                                   "source":  "event_trajectory.intent.framed_11",
+                                                   "text":  "实验意图已确立 | 实验意图已确立",
+                                                   "placeholder":  false
+                                               },
+                                               {
+                                                   "source":  "event_trajectory.hypothesis.proposed_12",
+                                                   "text":  "实验假设已提出 | 实验假设已提出",
+                                                   "placeholder":  false
+                                               },
+                                               {
+                                                   "source":  "event_trajectory.round.started_13",
+                                                   "text":  "实验轮开始 | 实验轮开始",
+                                                   "placeholder":  false
+                                               },
+                                               {
+                                                   "source":  "event_trajectory.observation.recorded_14",
+                                                   "text":  "CCB 观察已记录 | CCB 观察已记录",
+                                                   "placeholder":  false
+                                               },
+                                               {
+                                                   "source":  "event_mix_tick.pending_15",
+                                                   "text":  "混音单步（完全访问直接应用） | 对 Track 1007 执行一次有界的宽带压缩阈值调整，当前为完全访问模式：这一步将直接应用，不再等待逐条确认。",
+                                                   "placeholder":  false
+                                               },
+                                               {
+                                                   "source":  "event_trajectory.intervention.applied_16",
+                                                   "text":  "类型化干预已应用 | 类型化干预已应用",
+                                                   "placeholder":  false
+                                               },
+                                               {
+                                                   "source":  "event_audition.prepare.started_17",
+                                                   "text":  "Kernel audition | audition.prepare.started",
+                                                   "placeholder":  false
+                                               },
+                                               {
+                                                   "source":  "event_audition.candidate.ready_18",
+                                                   "text":  "Kernel audition | audition.candidate.ready",
+                                                   "placeholder":  false
+                                               },
+                                               {
+                                                   "source":  "event_audition.ready_19",
+                                                   "text":  "Kernel audition | audition.ready",
+                                                   "placeholder":  false
+                                               },
+                                               {
+                                                   "source":  "event_audition.ready_20",
+                                                   "text":  "Kernel audition | audition.ready",
+                                                   "placeholder":  false
+                                               }
+                                           ],
+                    "a1_substantive_text_count":  20,
+                    "a1_option_marker_count":  0,
+                    "a1_ask_word_hits":  [
+                                             "方向",
+                                             "选择"
+                                         ],
+                    "a1_question_mark":  false,
+                    "a1_state":  "green",
+                    "a2_pca_load_gate_denials":  0,
+                    "a2_bass_plugin_count_after_turn":  1,
+                    "a2_plugin_rack_plugin_rows_after_turn":  0,
+                    "a2_plugin_rack_rows_after_turn":  0,
+                    "a2_journey_turn_plugin_landed":  true,
+                    "a2_plugin_landed":  true,
+                    "a2_direct_probe_plugin_id":  "1041",
+                    "a2_direct_probe_plugin_instance_ready":  true,
+                    "a2_direct_probe_graph_diff":  "node_add|Added rack node CLA-2A Mono",
+                    "a2_direct_probe_plugin_landed":  true,
+                    "a2_bass_plugin_count_after":  2,
+                    "a2_plugin_rack_plugin_rows":  2,
+                    "a2_plugin_rack_rows":  9,
+                    "a2_ui_projection_post_probe_fetched":  true,
+                    "a2_ui_projection_landed":  true,
+                    "a2_direct_probe_denied":  false,
+                    "a2_red":  false,
+                    "a2_direct_probe_track_id":  "1007",
+                    "a2_direct_probe_plugin":  "VST3-CLA-2A Mono-695648d-9d81f54",
+                    "a2_direct_probe_status":  "ok",
+                    "a2_direct_probe_error":  "",
+                    "a2_direct_probe_gate_denial_delta":  0,
+                    "a2_direct_probe_error_body":  "",
+                    "a2_pca_load_gate_log_lines":  [
+
+                                                   ],
+                    "a3_event_types":  [
+                                           "turn.started",
+                                           "trajectory.turn.started",
+                                           "item.started",
+                                           "item.completed",
+                                           "turn.completed",
+                                           "item.started",
+                                           "item.completed",
+                                           "item.started",
+                                           "item.completed",
+                                           "trajectory.turn.started",
+                                           "trajectory.intent.framed",
+                                           "trajectory.hypothesis.proposed",
+                                           "trajectory.round.started",
+                                           "trajectory.observation.recorded",
+                                           "mix_tick.pending",
+                                           "trajectory.intervention.applied",
+                                           "audition.prepare.started",
+                                           "audition.candidate.ready",
+                                           "audition.ready",
+                                           "audition.ready"
+                                       ],
+                    "a3_audition_events":  [
+                                               "audition.prepare.started",
+                                               "audition.candidate.ready",
+                                               "audition.ready",
+                                               "audition.ready"
+                                           ],
+                    "a3_mix_tick_events":  [
+                                               "mix_tick.pending"
+                                           ],
+                    "a3_audition_session_seen":  false,
+                    "a3_audition_card_mounted":  true,
+                    "a3_proposal_applied_signal":  true,
+                    "a3_blocked_by_a2":  false,
+                    "a3_state":  "green",
+                    "save_prepare_status":  "ok",
+                    "save_prepare_id":  "prepare_1cea31ee",
+                    "save_generation_id":  "save_20260923T211352_1cea31ee",
+                    "save_project_status":  "ok",
+                    "save_project_error":  "",
+                    "version_project_saved_status":  "ok",
+                    "copy_project_sha256_after_save":  "16E597E34E2B215AA9C0BD1E42851D41F36FCD613F5948A2C769A78043618698",
+                    "sessions_after_turn":  [
+                                                {
+                                                    "uuid_dir":  "vitproj_9ecc5ab9a454400192086c628c07b966",
+                                                    "session":  "session_20260923T211257_079a5eef",
+                                                    "path":  "D:\\Vit_DAW\\coord\\runs\\FIX-PCA-AUTOSWEEP-1\\20260924_005622\\journey2\\project\\.vit_history\\.sessions\\vitproj_9ecc5ab9a454400192086c628c07b966\\session_20260923T211257_079a5eef",
+                                                    "last_write_utc":  "2026-09-23T21:13:52.8217187Z",
+                                                    "file_count":  16,
+                                                    "session_json":  true,
+                                                    "has_workspace":  true
+                                                },
+                                                {
+                                                    "uuid_dir":  "vitproj_9ecc5ab9a454400192086c628c07b966",
+                                                    "session":  "session_20260923T211352_42f706f6",
+                                                    "path":  "D:\\Vit_DAW\\coord\\runs\\FIX-PCA-AUTOSWEEP-1\\20260924_005622\\journey2\\project\\.vit_history\\.sessions\\vitproj_9ecc5ab9a454400192086c628c07b966\\session_20260923T211352_42f706f6",
+                                                    "last_write_utc":  "2026-09-23T21:13:52.9302227Z",
+                                                    "file_count":  18,
+                                                    "session_json":  true,
+                                                    "has_workspace":  true
+                                                },
+                                                {
+                                                    "uuid_dir":  "vitproj_9ecc5ab9a454400192086c628c07b966",
+                                                    "session":  "session_20260923T211352_8f07859e",
+                                                    "path":  "D:\\Vit_DAW\\coord\\runs\\FIX-PCA-AUTOSWEEP-1\\20260924_005622\\journey2\\project\\.vit_history\\.sessions\\vitproj_9ecc5ab9a454400192086c628c07b966\\session_20260923T211352_8f07859e",
+                                                    "last_write_utc":  "2026-09-23T21:13:52.8911835Z",
+                                                    "file_count":  17,
+                                                    "session_json":  true,
+                                                    "has_workspace":  true
+                                                }
+                                            ]
+                },
+    "phase_b":  {
+                    "reopen_started_utc":  "2026-09-23T21:13:54.6823121Z",
+                    "sessions_before_reopen":  [
+                                                   {
+                                                       "uuid_dir":  "vitproj_9ecc5ab9a454400192086c628c07b966",
+                                                       "session":  "session_20260923T211257_079a5eef",
+                                                       "path":  "D:\\Vit_DAW\\coord\\runs\\FIX-PCA-AUTOSWEEP-1\\20260924_005622\\journey2\\project\\.vit_history\\.sessions\\vitproj_9ecc5ab9a454400192086c628c07b966\\session_20260923T211257_079a5eef",
+                                                       "last_write_utc":  "2026-09-23T21:13:52.8217187Z",
+                                                       "file_count":  16,
+                                                       "session_json":  true,
+                                                       "has_workspace":  true
+                                                   },
+                                                   {
+                                                       "uuid_dir":  "vitproj_9ecc5ab9a454400192086c628c07b966",
+                                                       "session":  "session_20260923T211352_42f706f6",
+                                                       "path":  "D:\\Vit_DAW\\coord\\runs\\FIX-PCA-AUTOSWEEP-1\\20260924_005622\\journey2\\project\\.vit_history\\.sessions\\vitproj_9ecc5ab9a454400192086c628c07b966\\session_20260923T211352_42f706f6",
+                                                       "last_write_utc":  "2026-09-23T21:13:52.9302227Z",
+                                                       "file_count":  17,
+                                                       "session_json":  true,
+                                                       "has_workspace":  true
+                                                   },
+                                                   {
+                                                       "uuid_dir":  "vitproj_9ecc5ab9a454400192086c628c07b966",
+                                                       "session":  "session_20260923T211352_8f07859e",
+                                                       "path":  "D:\\Vit_DAW\\coord\\runs\\FIX-PCA-AUTOSWEEP-1\\20260924_005622\\journey2\\project\\.vit_history\\.sessions\\vitproj_9ecc5ab9a454400192086c628c07b966\\session_20260923T211352_8f07859e",
+                                                       "last_write_utc":  "2026-09-23T21:13:52.8911835Z",
+                                                       "file_count":  17,
+                                                       "session_json":  true,
+                                                       "has_workspace":  true
+                                                   }
+                                               ],
+                    "load_status":  "ok",
+                    "load_error":  "",
+                    "sessions_after_reopen":  [
+                                                  {
+                                                      "uuid_dir":  "vitproj_9ecc5ab9a454400192086c628c07b966",
+                                                      "session":  "session_20260923T211257_079a5eef",
+                                                      "path":  "D:\\Vit_DAW\\coord\\runs\\FIX-PCA-AUTOSWEEP-1\\20260924_005622\\journey2\\project\\.vit_history\\.sessions\\vitproj_9ecc5ab9a454400192086c628c07b966\\session_20260923T211257_079a5eef",
+                                                      "last_write_utc":  "2026-09-23T21:13:57.1373011Z",
+                                                      "file_count":  19,
+                                                      "session_json":  true,
+                                                      "has_workspace":  true
+                                                  },
+                                                  {
+                                                      "uuid_dir":  "vitproj_9ecc5ab9a454400192086c628c07b966",
+                                                      "session":  "session_20260923T211352_42f706f6",
+                                                      "path":  "D:\\Vit_DAW\\coord\\runs\\FIX-PCA-AUTOSWEEP-1\\20260924_005622\\journey2\\project\\.vit_history\\.sessions\\vitproj_9ecc5ab9a454400192086c628c07b966\\session_20260923T211352_42f706f6",
+                                                      "last_write_utc":  "2026-09-23T21:13:57.1408172Z",
+                                                      "file_count":  20,
+                                                      "session_json":  true,
+                                                      "has_workspace":  true
+                                                  },
+                                                  {
+                                                      "uuid_dir":  "vitproj_9ecc5ab9a454400192086c628c07b966",
+                                                      "session":  "session_20260923T211352_8f07859e",
+                                                      "path":  "D:\\Vit_DAW\\coord\\runs\\FIX-PCA-AUTOSWEEP-1\\20260924_005622\\journey2\\project\\.vit_history\\.sessions\\vitproj_9ecc5ab9a454400192086c628c07b966\\session_20260923T211352_8f07859e",
+                                                      "last_write_utc":  "2026-09-23T21:13:57.1444000Z",
+                                                      "file_count":  20,
+                                                      "session_json":  true,
+                                                      "has_workspace":  true
+                                                  },
+                                                  {
+                                                      "uuid_dir":  "vitproj_9ecc5ab9a454400192086c628c07b966",
+                                                      "session":  "session_20260923T211357_ce210f99",
+                                                      "path":  "D:\\Vit_DAW\\coord\\runs\\FIX-PCA-AUTOSWEEP-1\\20260924_005622\\journey2\\project\\.vit_history\\.sessions\\vitproj_9ecc5ab9a454400192086c628c07b966\\session_20260923T211357_ce210f99",
+                                                      "last_write_utc":  "2026-09-23T21:14:17.2577433Z",
+                                                      "file_count":  20,
+                                                      "session_json":  true,
+                                                      "has_workspace":  true
+                                                  }
+                                              ],
+                    "resumed_session_dirs":  [
+                                                 "session_20260923T211257_079a5eef",
+                                                 "session_20260923T211352_42f706f6",
+                                                 "session_20260923T211352_8f07859e"
+                                             ],
+                    "fresh_session_dirs":  [
+                                               "session_20260923T211357_ce210f99"
+                                           ],
+                    "phase_a_session_files_rewritten_on_reopen":  [
+                                                                      {
+                                                                          "session":  "session_20260923T211257_079a5eef",
+                                                                          "file":  "\\archive\\agent_runtime_state.json",
+                                                                          "bytes":  1085559,
+                                                                          "written":  "2026-09-23T21:13:57.1373011Z"
+                                                                      },
+                                                                      {
+                                                                          "session":  "session_20260923T211257_079a5eef",
+                                                                          "file":  "\\archive\\conversation_graph.json",
+                                                                          "bytes":  2671,
+                                                                          "written":  "2026-09-23T21:13:57.1363020Z"
+                                                                      },
+                                                                      {
+                                                                          "session":  "session_20260923T211257_079a5eef",
+                                                                          "file":  "\\archive\\manifest.json",
+                                                                          "bytes":  566,
+                                                                          "written":  "2026-09-23T21:13:57.1373011Z"
+                                                                      },
+                                                                      {
+                                                                          "session":  "session_20260923T211257_079a5eef",
+                                                                          "file":  "\\workspace\\state\\agent_runtime_state.json",
+                                                                          "bytes":  741,
+                                                                          "written":  "2026-09-23T21:13:57.1373011Z"
+                                                                      },
+                                                                      {
+                                                                          "session":  "session_20260923T211352_42f706f6",
+                                                                          "file":  "\\session.json",
+                                                                          "bytes":  733,
+                                                                          "written":  "2026-09-23T21:13:57.1200028Z"
+                                                                      },
+                                                                      {
+                                                                          "session":  "session_20260923T211352_42f706f6",
+                                                                          "file":  "\\archive\\agent_runtime_state.json",
+                                                                          "bytes":  1085559,
+                                                                          "written":  "2026-09-23T21:13:57.1398127Z"
+                                                                      },
+                                                                      {
+                                                                          "session":  "session_20260923T211352_42f706f6",
+                                                                          "file":  "\\archive\\conversation_graph.json",
+                                                                          "bytes":  2671,
+                                                                          "written":  "2026-09-23T21:13:57.1383029Z"
+                                                                      },
+                                                                      {
+                                                                          "session":  "session_20260923T211352_42f706f6",
+                                                                          "file":  "\\archive\\manifest.json",
+                                                                          "bytes":  595,
+                                                                          "written":  "2026-09-23T21:13:57.1403124Z"
+                                                                      },
+                                                                      {
+                                                                          "session":  "session_20260923T211352_42f706f6",
+                                                                          "file":  "\\workspace\\state\\agent_runtime_state.json",
+                                                                          "bytes":  770,
+                                                                          "written":  "2026-09-23T21:13:57.1408172Z"
+                                                                      },
+                                                                      {
+                                                                          "session":  "session_20260923T211352_8f07859e",
+                                                                          "file":  "\\archive\\agent_runtime_state.json",
+                                                                          "bytes":  1085557,
+                                                                          "written":  "2026-09-23T21:13:57.1439002Z"
+                                                                      },
+                                                                      {
+                                                                          "session":  "session_20260923T211352_8f07859e",
+                                                                          "file":  "\\archive\\conversation_graph.json",
+                                                                          "bytes":  2671,
+                                                                          "written":  "2026-09-23T21:13:57.1424748Z"
+                                                                      },
+                                                                      {
+                                                                          "session":  "session_20260923T211352_8f07859e",
+                                                                          "file":  "\\archive\\manifest.json",
+                                                                          "bytes":  595,
+                                                                          "written":  "2026-09-23T21:13:57.1444000Z"
+                                                                      },
+                                                                      {
+                                                                          "session":  "session_20260923T211352_8f07859e",
+                                                                          "file":  "\\workspace\\state\\agent_runtime_state.json",
+                                                                          "bytes":  764,
+                                                                          "written":  "2026-09-23T21:13:57.1444000Z"
+                                                                      }
+                                                                  ],
+                    "a4_stall_warn_count":  0,
+                    "a4_phase_a_conversation_visible":  false,
+                    "a4_phase_a_conversation_id_in_state":  false,
+                    "a4_live_history_dir":  "D:\\Vit_DAW\\coord\\runs\\FIX-PCA-AUTOSWEEP-1\\20260924_005622\\journey2\\project\\.vit_history\\.sessions\\vitproj_9ecc5ab9a454400192086c628c07b966\\session_20260923T211357_ce210f99\\workspace",
+                    "a4_live_session_name":  "session_20260923T211357_ce210f99",
+                    "a4_live_conversation_graph_nodes":  0,
+                    "a4_live_conversation_messages":  0,
+                    "a4_live_commit_count":  5,
+                    "a4_pre_savepoint_history_carried":  false,
+                    "a4_previous_session_still_on_disk":  [
+                                                              "session_20260923T211257_079a5eef",
+                                                              "session_20260923T211352_42f706f6",
+                                                              "session_20260923T211352_8f07859e"
+                                                          ],
+                    "a4_state":  "green"
+                },
+    "prereq":  [
+                   "run_root=D:/Vit_DAW/coord/runs/FIX-PCA-AUTOSWEEP-1/20260924_005622/journey2",
+                   "head=6234d2e37d2008e081f05cd78ba8d432ffed357f",
+                   "git_status= M VitApp/Workspace/default_project.xml ;  D coord/cards/todo/2026-09-23-FIX-PCA-AUTOSWEEP-1.md ; ?? coord/cards/doing/2026-09-23-FIX-PCA-AUTOSWEEP-1.md ; ?? coord/runs/FIX-BROADBAND-SHARED-1/ ; ?? coord/runs/FIX-F3-G4-SEMANTICS/ ; ?? coord/runs/FIX-F5-SNAPSHOT-FRESHNESS-1/ ; ?? coord/runs/FIX-FRONTIER-FOLD-1/ ; ?? coord/runs/FIX-PCA-AUTOSWEEP-1/ ; ?? coord/runs/PORT-PS1-N5-1/ ; ?? coord/runs/plugin_select1_artifacts/go_full_after.txt ; ?? coord/runs/plugin_select1_artifacts/journey1_pcplugsel1_console.txt ; ?? coord/runs/plugin_select1_artifacts/journey1_pcplugsel2_console.txt ; ?? coord/runs/plugin_select1_artifacts/journey1_pcplugsel3_console.txt ; ?? coord/runs/plugin_select1_artifacts/pre_smoke_worktree.txt ; ?? coord/runs/plugin_select1_artifacts/red_chat_agentloop.txt ; ?? coord/runs/plugin_select1_artifacts/red_experimentplugins.txt ; ?? coord/runs/plugin_select1_artifacts/red_green_summary.md ; ?? coord/runs/ps1-settle-1/ ; ?? extension/.sconsign.dblite ; ?? extension/src/register_types.windows.template_debug.x86_64.obj ; ?? extension/src/vit_waveform_reader.windows.template_debug.x86_64.obj ; ?? extension/src/vit_webview_host.windows.template_debug.x86_64.obj ; ?? godot-cpp/ ; ?? scripts/pca_autosweep.py",
+                   "project_source=D:\\Godot\\project\\vit-daw-frontend\\912.vit",
+                   "user_project_sha256_before=F6CA36FA080D97E7B91CBAC755E7D2096393D453140E10563771466EB774D8BD",
+                   "user_history_fingerprint_before=EBD12840103FF6BCB539311D9EA40A836AFA7B9EB621AC820F3C2A3B1B6EC769",
+                   "repo_default_project_sha256_before=9A6C774E970EFE4E4F72765D026D90A21111E2A8AC04DFC5766E2301313768ED",
+                   "repo_settings_sha256_before=FF86975B034D49AB5C53B53EBD910F01B4E88B4E680A90C1C990DA2EF6856658",
+                   "port_free=7878",
+                   "port_free=5555",
+                   "port_free=5556",
+                   "copy_project=D:\\Vit_DAW\\coord\\runs\\FIX-PCA-AUTOSWEEP-1\\20260924_005622\\journey2\\project\\journey1_912.vit",
+                   "copy_project_sha256=F6CA36FA080D97E7B91CBAC755E7D2096393D453140E10563771466EB774D8BD",
+                   "agent_binary=D:\\Vit_DAW\\coord\\runs\\FIX-PCA-AUTOSWEEP-1\\20260924_005622\\journey2\\bin\\VitAgent.journey1.exe size=34393600 mtime=2026-09-24T05:12:41.2229104+08:00 sha256=529EF3FEE87CE4F5012C06A2CC18257C76D9544984C72A4DDA87D18F0FA382DB",
+                   "kernel_binary=D:\\Vit_DAW\\VitApp\\build\\VitApp_artefacts\\Release\\VitApp.exe mtime=2026-09-12T18:48:37.9197531+08:00",
+                   "phase_a_kernel_pid=9508 agent_pid=29524",
+                   "phase_a_shadow_initialized=True track_count=0",
+                   "phase_a_load_status=ok command=open_project error=",
+                   "phase_a_tracks=bass,drums,guitar,other,piano,vocals",
+                   "phase_a_bass_present=True bass_plugin_count_before=0 project_uuid=vitproj_9ecc5ab9a454400192086c628c07b966",
+                   "phase_a_sessions_after_load=session_20260923T211257_079a5eef",
+                   "phase_a_authority_mode=full_project_access",
+                   "phase_a_slice_0_status=waiting_continue stop=limit_reached",
+                   "a1_state=green option_marker_count=0 ask_words=方向|选择 question_mark=False substantive_texts=20 first_reply_placeholder=True",
+                   "a2_direct_probe_landed=True plugin_id=1041 instance_ready=True graph_diff=node_add|Added rack node CLA-2A Mono",
+                   "a2_ui_projection_post_probe bass_count=2 plugin_rows=2 fetched=True",
+                   "a2_state=GREEN pca_load_gate_denials=0 probe_denied=False probe_landed=True ui_projection_landed=True journey_turn_landed=True",
+                   "a2_direct_probe track=1007 plugin=VST3-CLA-2A Mono-695648d-9d81f54 status=ok gate_denial_delta=0 error=",
+                   "a3_audition_events=audition.prepare.started,audition.candidate.ready,audition.ready,audition.ready mix_tick_events=mix_tick.pending audition_session_seen=False card_mounted=True proposal_applied=True A3=GREEN",
+                   "phase_a_save_prepare status=ok prepare_id=prepare_1cea31ee generation=save_20260923T211352_1cea31ee",
+                   "phase_a_save_project status=ok error=",
+                   "phase_a_copy_project_sha256_after_save=16E597E34E2B215AA9C0BD1E42851D41F36FCD613F5948A2C769A78043618698",
+                   "phase_b_kernel_pid=440 agent_pid=24016",
+                   "phase_b_load_status=ok error=",
+                   "a4_state=green live_session=session_20260923T211357_ce210f99 graph_nodes=0 messages=0 commit_count=5 pre_savepoint_carried=False resumed_session_dirs=session_20260923T211257_079a5eef,session_20260923T211352_42f706f6,session_20260923T211352_8f07859e fresh_session_dirs=session_20260923T211357_ce210f99 rewritten_files=13 stall_warn=0",
+                   "repo_default_project_sha256_after=9A6C774E970EFE4E4F72765D026D90A21111E2A8AC04DFC5766E2301313768ED",
+                   "repo_settings_sha256_after=FF86975B034D49AB5C53B53EBD910F01B4E88B4E680A90C1C990DA2EF6856658",
+                   "user_project_sha256_after=F6CA36FA080D97E7B91CBAC755E7D2096393D453140E10563771466EB774D8BD",
+                   "user_history_fingerprint_after=EBD12840103FF6BCB539311D9EA40A836AFA7B9EB621AC820F3C2A3B1B6EC769",
+                   "finished=2026-09-24T05:14:19.4559004+08:00"
+               ]
+}
