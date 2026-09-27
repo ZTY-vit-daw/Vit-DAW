@@ -97,4 +97,16 @@ juce::StringArray applyUserCancelledScanCleanup (
     return rolledBack;
 }
 
+// RED-STUB for TIM-KERNEL-HYGIENE-1 Item 5: declarations so the acceptance
+// tests compile; bodies stay empty until the green commit.
+juce::String pluginListHygieneRemovedSummary (const PluginListHygieneReport&)
+{
+    return {};
+}
+
+juce::DynamicObject* pluginListHygieneStateObject (const PluginListHygieneReport&, bool)
+{
+    return nullptr;
+}
+
 } // namespace vit

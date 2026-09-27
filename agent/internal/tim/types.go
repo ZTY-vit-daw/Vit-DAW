@@ -26,9 +26,13 @@ type Input struct {
 	// (e.g. RLM true_peak_max) supplies one; nil keeps the default.
 	CeilingDBFS *float64
 	// AcousticEvidenceByTrack carries per-track L3 passthrough keys (nan_count,
-	// inf_count) keyed by track ID; used only when the compact acoustic row in
-	// ProjectPackage does not already carry them.
+	// inf_count, dc_offset) keyed by track ID; used only when the compact
+	// acoustic row in ProjectPackage does not already carry them.
 	AcousticEvidenceByTrack map[string]map[string]any
+	// PluginListHygiene is the kernel get_project_state plugin_list_hygiene
+	// disclosure block (TIM-KERNEL-HYGIENE-1 Item 5). nil/absent keeps the
+	// plugin hygiene assertion not_evaluable.
+	PluginListHygiene map[string]any
 }
 
 type Projection struct {
@@ -131,6 +135,7 @@ type TrackFact struct {
 	// acoustic row (or the observation evidence map) exposes it.
 	NanCount  *int     `json:"nan_count,omitempty"`
 	InfCount  *int     `json:"inf_count,omitempty"`
+	DCOffset  *float64 `json:"dc_offset,omitempty"`
 	RiskCodes []string `json:"risk_codes,omitempty"`
 }
 

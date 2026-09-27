@@ -142,6 +142,26 @@ if(EXISTS "${VIT_TRACKTION_ENGINE_DIR}/CMakeLists.txt")
         juce::juce_audio_utils
         juce::juce_recommended_config_flags)
     add_test(NAME VitSegmentationPrimitivesTests COMMAND VitSegmentationPrimitivesTests)
+
+    # TIM-KERNEL-HYGIENE-1 (Item 2): L3 evidence DC-offset disclosure — signed
+    # mean passthrough keys in the feature snapshot and quality evidence block,
+    # plus the all_zero interaction. Same JUCE-only linkage as the SEG tests.
+    juce_add_console_app(VitL3EvidenceTests PRODUCT_NAME "VitL3EvidenceTests")
+    juce_generate_juce_header(VitL3EvidenceTests)
+    target_sources(VitL3EvidenceTests PRIVATE
+        L3EvidenceTests.cpp
+        ../Source/Service/L3AcousticAnalyzer.cpp
+        ../Source/Service/L3AcousticAnalyzer.h
+        ../Source/Service/AudioFeatureTypes.cpp
+        ../Source/Service/AudioFeatureTypes.h)
+    target_compile_features(VitL3EvidenceTests PRIVATE cxx_std_20)
+    target_include_directories(VitL3EvidenceTests PRIVATE ../Source)
+    target_compile_definitions(VitL3EvidenceTests PRIVATE JUCE_USE_CURL=0 JUCE_WEB_BROWSER=0)
+    target_link_libraries(VitL3EvidenceTests PRIVATE
+        juce::juce_dsp
+        juce::juce_audio_utils
+        juce::juce_recommended_config_flags)
+    add_test(NAME VitL3EvidenceTests COMMAND VitL3EvidenceTests)
 else()
     message(FATAL_ERROR
         "Tracktion Engine not found. Set -DVIT_TRACKTION_ENGINE_DIR=<path> to a populated Tracktion Engine checkout.")
@@ -163,6 +183,9 @@ if(MSVC)
     if(TARGET VitSegmentationPrimitivesTests)
         target_compile_options(VitSegmentationPrimitivesTests PRIVATE /W4 /permissive-)
     endif()
+    if(TARGET VitL3EvidenceTests)
+        target_compile_options(VitL3EvidenceTests PRIVATE /W4 /permissive-)
+    endif()
 else()
     target_compile_options(VitAuditionPreviewStateTests PRIVATE -Wall -Wextra -Wpedantic)
     target_compile_options(VitWorkingCopyPersistPolicyTests PRIVATE -Wall -Wextra -Wpedantic)
@@ -178,6 +201,9 @@ else()
     endif()
     if(TARGET VitSegmentationPrimitivesTests)
         target_compile_options(VitSegmentationPrimitivesTests PRIVATE -Wall -Wextra -Wpedantic)
+    endif()
+    if(TARGET VitL3EvidenceTests)
+        target_compile_options(VitL3EvidenceTests PRIVATE -Wall -Wextra -Wpedantic)
     endif()
 endif()
 

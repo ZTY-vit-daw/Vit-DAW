@@ -29,6 +29,12 @@ const (
 	maxWarnLines     = 20
 )
 
+// SignalDCOffsetWarnLinear is the AS-SIG P3 warn threshold for the absolute
+// DC offset (signed mean of finite samples, linear full-scale units). It is
+// exported so runs and projections stay comparable (K5/K7 阈值透出范式);
+// the value rides on every assertion row as Threshold.
+const SignalDCOffsetWarnLinear = 0.01
+
 // Assertion fail / not_evaluable codes (design §2). P2 clipping_headroom
 // deliberately reuses the existing possible_clipping_or_no_headroom issue code
 // instead of minting a second code for the same problem.
@@ -41,6 +47,10 @@ const (
 	codeRoutingCycle          = "assert_routing_cycle"
 	codePluginUnknownPath     = "assert_plugin_unknown_path"
 	codeSignalNonfiniteNE     = "assert_signal_nonfinite_not_evaluable"
+	codeSignalDCOffset        = "assert_signal_dc_offset"
+	codeSignalDCOffsetNE      = "assert_signal_dc_offset_not_evaluable"
+	codePluginHygieneNE       = "assert_plugin_hygiene_not_evaluable"
+	codePluginListStaleRemove = "assert_plugin_list_stale_removed"
 	codeClippingHeadroomNE    = "assert_clipping_headroom_not_evaluable"
 	codeLevelCeilingNE        = "assert_level_ceiling_not_evaluable"
 	codeSampleRateNE          = "assert_sample_rate_not_evaluable"
@@ -81,6 +91,9 @@ type AssertInput struct {
 	RackSummaries       []RackSummary
 	KnownPluginPaths    map[string]bool
 	CeilingDBFS         float64
+	// PluginListHygiene is the kernel plugin_list_hygiene disclosure block;
+	// nil keeps the plugin hygiene assertion not_evaluable.
+	PluginListHygiene map[string]any
 }
 
 // RackNode is the compact per-node routing fact consumed by the routing and
