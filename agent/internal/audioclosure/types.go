@@ -138,6 +138,13 @@ type ObservationKey struct {
 	ObservationMode string   `json:"observation_mode,omitempty"`
 	Tap             string   `json:"tap,omitempty"`
 	TimeWindow      string   `json:"time_window,omitempty"`
+	// 扩段（MAT-A，MATERIALIZATION_V1_DESIGN §6.3 承接 G1 ruling #5）：物化
+	// 坐标，使观察记录与物化行可互查——RefKind 对齐 refschema 注册 kind，
+	// RefHash 与 L0 ref hash 段同源（观察身份至此与 ref 五段形成完整映射）。
+	// 旧记录缺省空串=未物化（AGENTS §11）；omitempty 保证旧 JSON 形状与
+	// ObservationFingerprint 输出不变（往返测试=observation_key_test.go）。
+	RefKind string `json:"ref_kind,omitempty"`
+	RefHash string `json:"ref_hash,omitempty"`
 }
 
 type ObservationRecord struct {
