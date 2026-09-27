@@ -272,6 +272,160 @@ func TestMaterializeShadowTimingCarriedRound(t *testing.T) {
 	}
 }
 
+// TestMaterializeShadowFullStateInput：MAT-E0 红先行——真栈取证形态的合成复刻。
+// OBS-RECON 定案（W1 两态）：v2 路径下 RequestObservation 返回包的 inline
+// feature_snapshot 是剥离态（State B：time_segments 递归删除+evidence_ref 注入），
+// 而 DOMProjection 是 finalize 完整态（State A）算的。既有合成用例手工构造
+// 观察包、从不真实走 v2 投影路径——State B 分歧因此漏网（G2 ruling"有价值的红"）。
+// 本用例以激活的 projectstore 驱动真实 RequestObservation 复现两态，断言：
+//  1. 输入面：materializeDepInputs 的 feature snapshot 是完整态（目标轨
+//     envelope 行携带 time_segments）；
+//  2. 派生面：物化侧 dom 重算的 activity_structure 非 missing（time_segments
+//     派生族在场——修前红点：State B 被当作物化输入必 missing）；
+//  3. 轮面（S2 微缩）：影子轮零分歧、timing-carried 排除==0、真比过
+//     （修前：物化行（State B 重算）≠观察行（State A）→ timing-carried>=1）。
+func TestMaterializeShadowFullStateInput(t *testing.T) {
+	// v2 环境（真栈取证形态前提）：legacy root 关闭 + projectstore 激活。
+	t.Setenv("VIT_MIXBOARD_ROOT", "")
+	projectstore.Deactivate()
+	t.Cleanup(projectstore.Deactivate)
+	root := t.TempDir()
+	projectPath := filepath.Join(root, "song.vit")
+	roots, _, err := projectstore.Activate(projectPath, "vitproj_mat_e0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	previous, had := os.LookupEnv("VIT_DAW_MATERIALIZATION")
+	if err := os.Setenv("VIT_DAW_MATERIALIZATION", "shadow"); err != nil {
+		t.Fatal(err)
+	}
+	if had {
+		t.Cleanup(func() { _ = os.Setenv("VIT_DAW_MATERIALIZATION", previous) })
+	} else {
+		t.Cleanup(func() { _ = os.Unsetenv("VIT_DAW_MATERIALIZATION") })
+	}
+	h := NewWithSender(nil, nil, nil) // shadow flag → 物化层接线（shadow project 缺省）
+	if h.materializeStore == nil {
+		t.Fatalf("shadow 态物化库未接线")
+	}
+
+	// 真实 v2 观察轮：feature snapshot 经 args 注入（含 time_segments 载荷），
+	// RequestObservation 内部 finalize（State A）→ v2 持久化投影（State B）。
+	// 轨级行形态对齐真栈 fixture（track_waveform_envelopes+band_energy_summaries
+	// 双轴齐备——否则 band 轴空转 MixPackage 测量回退，行被 measurement_carried
+	// 排除，到不了 dom 真比过）。
+	timeSegments := make([]any, 4)
+	for i := range timeSegments {
+		energyState := "active"
+		if i >= 2 {
+			energyState = "low"
+		}
+		timeSegments[i] = map[string]any{
+			"start_seconds": float64(i * 3), "end_seconds": float64((i + 1) * 3),
+			"rms_dbfs": -18.0, "peak_dbfs": -4.0, "energy_state": energyState,
+		}
+	}
+	trackWaveform := map[string]any{
+		"status": "ready", "track_id": "track_1", "source_revision": "sr1",
+		"rms_dbfs": -18.0, "peak_dbfs": -4.0, "headroom_db": -0.4,
+		"duration_seconds": 12.0, "sample_rate": 48000.0, "channel_count": 2,
+		"analyzed_sample_count": 576000, "window_ms": 200.0, "hop_ms": 100.0,
+		"time_segments": timeSegments,
+	}
+	bandSummary := map[string]any{
+		"status": "ready", "track_id": "track_1", "source_revision": "sr1",
+		"coverage_ratio": 1.0, "duration_seconds": 12.0,
+		"bands": map[string]any{
+			"sub":    map[string]any{"status": "ready", "min_hz": 20.0, "max_hz": 60.0, "unit_energy": 0.1},
+			"bass":   map[string]any{"status": "ready", "min_hz": 60.0, "max_hz": 250.0, "unit_energy": 0.3},
+			"mid":    map[string]any{"status": "ready", "min_hz": 250.0, "max_hz": 2000.0, "unit_energy": 0.2},
+			"air":    map[string]any{"status": "ready", "min_hz": 8000.0, "max_hz": 20000.0, "unit_energy": 0.05},
+		},
+	}
+	result, err := mixboard.NewStore("").RequestObservation(mixboard.Request{
+		MixSessionID: "mix_mat_e0",
+		TargetRef:    mixboard.TargetRef{Kind: "track", ID: "track_1"},
+		ProjectState: map[string]any{
+			"project_uuid": roots.ProjectUUID, "project_path": projectPath,
+			"project_revision": "r1", "duration_seconds": 12.0,
+		},
+		Args: map[string]any{
+			"feature_snapshot": map[string]any{
+				"schema_version":           "mixboard_feature_snapshot.v1",
+				"track_waveform_envelopes": []any{trackWaveform},
+				"band_energy_summaries":    []any{bandSummary},
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	obs := result.Observation
+
+	// 取证形态前提锁定（前提不成立=用例失效，红绿结论都不可信）：inline=State B
+	//（time_segments 已剥离、evidence_ref 注入）；观察投影=State A（activity
+	// 结构非 missing——S2 分歧的观察侧形态）。
+	inline, _ := obs.GlobalSummary["feature_snapshot"].(map[string]any)
+	if inline == nil {
+		t.Fatalf("前提失效：返回包缺 inline feature_snapshot")
+	}
+	if ref, _ := inline["evidence_ref"].(string); ref == "" {
+		t.Fatalf("前提失效：inline feature_snapshot 无 evidence_ref（未走 v2 投影路径？）")
+	}
+	inlineRows, _ := inline["track_waveform_envelopes"].([]any)
+	if len(inlineRows) == 0 {
+		t.Fatalf("前提失效：State B 顶层 track_waveform_envelopes 键不在场（与 W1 剥离机制不符）")
+	}
+	inlineWaveform, _ := inlineRows[0].(map[string]any)
+	if _, stripped := inlineWaveform["time_segments"]; stripped {
+		t.Fatalf("前提失效：inline envelope 行仍含 time_segments（不是 State B？）")
+	}
+	if obs.DOMProjection == nil || obs.DOMProjection.ActivityStructure == nil ||
+		obs.DOMProjection.ActivityStructure.Status == dom.StatusMissing {
+		t.Fatalf("前提失效：观察侧 DOMProjection 缺 activity_structure（State A 形态不成立）")
+	}
+
+	// 断言 1（输入面）：物化输入快照必须是完整态——目标轨 envelope 行携带
+	// time_segments（State A raw；修前红：deps 吃 State B 瘦身包）。
+	deps := h.materializeDepInputs(&obs)
+	if deps.FeatureSnapshot == nil {
+		t.Fatalf("物化输入缺 feature snapshot")
+	}
+	fullRows, _ := deps.FeatureSnapshot["track_waveform_envelopes"].([]any)
+	if len(fullRows) == 0 {
+		t.Fatalf("物化输入快照缺 track_waveform_envelopes 行: %v", deps.FeatureSnapshot)
+	}
+	fullWaveform, _ := fullRows[0].(map[string]any)
+	if segments, ok := fullWaveform["time_segments"].([]any); !ok || len(segments) == 0 {
+		t.Fatalf("物化输入快照的 envelope 行缺 time_segments（State B 瘦身包被当作物化输入——OBS-RECON W1 两态缺陷）")
+	}
+
+	// 断言 2（派生面）：物化侧 dom 重算的 activity_structure 非 missing
+	//（time_segments 派生族在场——真栈取证形态"观察侧 ready、物化侧 missing"）。
+	projection := dom.Build(mixboard.DOMInputFromObservation(mixboard.ObservationPacket{
+		TargetRef:      mixboard.TargetRef{Kind: "track", ID: "track_1"},
+		GlobalSummary:  map[string]any{"feature_snapshot": deps.FeatureSnapshot},
+		ProjectPackage: map[string]any{"project_revision": deps.ProjectRevision},
+	}, mixboard.Request{}))
+	if projection.ActivityStructure == nil || projection.ActivityStructure.Status == dom.StatusMissing {
+		t.Fatalf("物化输入缺 time_segments 派生字段：activity_structure=missing（State B 瘦身包被当作物化输入）")
+	}
+
+	// 断言 3（轮面，S2 微缩）：同源后影子轮零分歧、零 timing 排除、真比过
+	//（修前：物化行（State B 重算）≠观察行（State A）→ timing-carried 排除>=1）。
+	h.materializeObserveRound(&obs)
+	m := h.materializeStore.Metrics()
+	if m.ShadowDivergences != 0 {
+		t.Fatalf("同源后影子轮应零分歧: got=%d", m.ShadowDivergences)
+	}
+	if m.ShadowTimingCarriedExcluded != 0 {
+		t.Fatalf("同源后 timing-carried 排除应归零: got=%d", m.ShadowTimingCarriedExcluded)
+	}
+	if m.ReconcileRows == 0 {
+		t.Fatalf("零分歧零排除必须来自真比过（非空洞）: metrics=%+v", m)
+	}
+}
+
 // TestMaterializationOffIsByteIdentical：off vs shadow 两态，既有可观察面逐字节
 // 一致（三态 flag 的 off=现状，§7.1）；shadow 态物化非空（非空性守卫）。
 func TestMaterializationOffIsByteIdentical(t *testing.T) {

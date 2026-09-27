@@ -1,6 +1,7 @@
 <#
 MATERIALIZATION shadow-mode real-stack smoke (cards 2026-09-28-MAT-D /
-2026-09-29-MAT-D4, design docs/MATERIALIZATION_V1_DESIGN.md section 5.5 G2-D,
+2026-09-29-MAT-D4 / 2026-09-29-MAT-E0 same-source reconciliation,
+design docs/MATERIALIZATION_V1_DESIGN.md section 5.5 G2-D,
 same pattern as tim_assert_smoke.ps1).
 
 Proves the shadow state of the three-state materialization flag end to end on
@@ -21,17 +22,20 @@ the metrics/log surface (shadow promises the read side never consumes):
      S1 flag=shadow started and is alive on the real stack: agent healthy AND
         a "[materialize] mode=shadow" startup line in the agent log (the off
         lock-in之外 third state);
-     S2 (MAT-D4 convergence-state split, per-round):
+     S2 (MAT-E0 same-source reconciliation, per-round; the G2 ruling restores
+        observation reconciliation as the regression gate once the
+        materialization input reads the full-state evidence blob):
         - baseline rounds: at least one shadow_round line, non-vacuous via
           reconcile_rows>0 on some line (metrics are cumulative counters);
-        - change round (post set_volume observation): divergences from the
-          finalize-vs-tail input generation gap must be REGISTERED, not
-          silent: timing_carried_excluded delta >= 1;
+        - change round (post set_volume observation): with the materialization
+          input switched to the full-state evidence read-back (State A), the
+          finalize generation and the tail-hook generation are same-source,
+          so the generation-gap divergence is structurally gone: zero NEW
+          divergences AND zero NEW timing exclusions AND at least one real
+          compared row (reconcile_rows delta >= 1);
         - convergence round (third observation after a telemetry silence
-          window of >=8s + log-line stability): zero NEW divergences AND
-          zero NEW timing exclusions AND at least one real compared row
-          (reconcile_rows delta >= 1) -- G2-D closes at the converged state,
-          not instantaneously (MAT-D3 ruling 2);
+          window of >=8s + log-line stability): identical zero-delta gates
+          (G2-D closes at the converged state, not instantaneously).
      S3 dirty propagation happens on the real event stream: after one
         set_volume change event on the fixture track a "[materialize] receipt"
         line appears (event-time evidence) and a subsequent shadow_round line
@@ -502,11 +506,10 @@ if (-not $baselineReady -and $failureReasons.Count -eq 0) {
 }
 
 # ---------------------------------------------------------------- S2 baseline anchor
-# MAT-D4 分轮口径：基线/变更轮允许 timing-carried 登记的世代差分歧（G2 闭环=
-# 收敛态非瞬时，MAT-D3 裁定②）；全零断言废弃，改为分轮断言（变更轮 timing
-# 登记 / 收敛轮零分歧——见 S3 段后的收敛轮块）。非空洞证据=dom 行确实到达
-# 对账闸门并被处置（timing/measurement 排除或真比过任一面>0——恒排除形态下
-# reconcile_rows 恒 0，该面单独要求结构性不可能）。
+# MAT-E0 同源口径：物化输入源切换到完整态（证据回溯 State A raw）后，观察对账
+# 作为回归指标恢复（G2 ruling 附条件）——所有轮次零分歧零 timing 排除+真比过。
+# 非空洞证据=dom 行确实到达对账闸门并被处置（timing/measurement 排除或真比过
+# 任一面>0——同源态下正常形态是真比过 reconcile>0）。
 Write-Step "S2 baseline: shadow_round lines observable + reconcile gate reached"
 if ($shadowRoundLines.Count -eq 0) {
     Add-Failure "S2 no [materialize] shadow_round metrics line in agent log diff (metric not observable)"
@@ -593,10 +596,13 @@ if ($baselineReady) {
         $report.assertions.S3_invalidation_line = $invLines[0]
     }
 
-    # ---------------- S2b (变更轮): timing-carried 登记 >= 1
+    # ---------------- S2b (变更轮): MAT-E0 同源口径——零新增分歧+零新增 timing
+    # 排除+真比过。物化输入源=证据回溯完整态（State A）后，finalize 世代与尾挂
+    # 世代同源，世代差分歧结构性消失（MAT-D4 的"登记不静默"是止血口径，E0 起
+    # 观察对账作为回归指标恢复——任何非零 delta 都是回归红，必须可解释或修复）。
     $changeMetrics = Read-ShadowRoundMetrics -Line $changeLine
     $report.rounds.change = $changeMetrics
-    Write-Step ("S2 change round: timing-carried registration >= 1 (baseline timing=" + $baselineMetrics.timing_carried_excluded + " change timing=" + $changeMetrics.timing_carried_excluded + ")")
+    Write-Step ("S2 change round: same-source zero div/timing delta + real compare (baseline div/tim/rec=" + $baselineMetrics.shadow_divergences + "/" + $baselineMetrics.timing_carried_excluded + "/" + $baselineMetrics.reconcile_rows + " change div/tim/rec=" + $changeMetrics.shadow_divergences + "/" + $changeMetrics.timing_carried_excluded + "/" + $changeMetrics.reconcile_rows + ")")
     if ($changeLine -eq "") {
         Add-Failure "S2 change round has no shadow_round metrics line"
     }
@@ -605,12 +611,20 @@ if ($baselineReady) {
     }
     else {
         $timingDelta = $changeMetrics.timing_carried_excluded - $baselineMetrics.timing_carried_excluded
-        if ($timingDelta -lt 1) {
-            Add-Failure ("S2 change round registered no timing-carried exclusion (delta=" + $timingDelta + "; divergence must be registered, not silent — change round timing>=1 is the card gate)")
+        $divDelta = $changeMetrics.shadow_divergences - $baselineMetrics.shadow_divergences
+        $recDelta = $changeMetrics.reconcile_rows - $baselineMetrics.reconcile_rows
+        if ($divDelta -ne 0) {
+            Add-Failure ("S2 change round diverged after same-source switch (div delta=" + $divDelta + "; observation reconciliation is the restored regression gate — non-zero must be explainable or fixed)")
+        }
+        elseif ($timingDelta -ne 0) {
+            Add-Failure ("S2 change round still timing-carried after same-source switch (delta=" + $timingDelta + "; MAT-E0 expects zero — the generation gap must be structurally gone)")
+        }
+        elseif ($recDelta -lt 1) {
+            Add-Failure ("S2 change round vacuous: no real compared row (reconcile delta=" + $recDelta + ")")
         }
         else {
-            Write-Ok ("S2 change round pass: timing_carried_excluded delta=" + $timingDelta + " (generation-gap divergence registered, not silent)")
-            $report.assertions.S2_change_round_timing_registered = $timingDelta
+            Write-Ok ("S2 change round pass: div_delta=0 timing_delta=0 reconcile_delta=" + $recDelta + " (same-source reconciliation restored as regression gate)")
+            $report.assertions.S2_change_round_same_source = @{ div_delta = $divDelta; timing_delta = $timingDelta; reconcile_delta = $recDelta }
         }
     }
 
@@ -730,7 +744,7 @@ if ($failureReasons.Count -eq 0) {
     $report.verdict = "PASS"
     Write-Utf8NoBom -Path (Join-Path $RunRoot "run_report.json") -Text ($report | ConvertTo-Json -Depth 8)
     Write-Step "PASS"
-    Write-Ok ("MATERIALIZATION shadow real-stack smoke passed (S1 startup / S2 change-round timing registration + convergence-round zero divergence / S3 dirty propagation / S4 exit 0). run_root=" + $RunRoot)
+    Write-Ok ("MATERIALIZATION shadow real-stack smoke passed (S1 startup / S2 same-source zero divergence + zero timing exclusion on change and convergence rounds / S3 dirty propagation / S4 exit 0). run_root=" + $RunRoot)
     exit 0
 }
 $report.verdict = "FAIL"
