@@ -3,6 +3,7 @@ package rlm
 import (
 	"fmt"
 	"math"
+	"strings"
 	"testing"
 
 	"vit-daw-agent/internal/levelsafety"
@@ -352,4 +353,72 @@ func testTrack(trackID string, clipID string, gainDB float64) map[string]any {
 
 func ampFromDB(db float64) float64 {
 	return math.Pow(10, db/20)
+}
+
+// TestRLMThreeSourceMergeRevisionMismatchIsVisible — E8 红测（现状锁定，非修复）。
+//
+// 规格权威：docs/MATERIALIZATION_V1_DESIGN.md §5.4（G2-C 素材，RECON §2/§5.3
+// 指认 E8）：mergeSourceRows 按 track 键做字段级覆盖合并，无 revision 比较——
+// "mix.observe 后工程再变更"时序下，r1 旧观察值可静默覆盖 r2 新工程态。
+//
+// 红测纪律（AGENTS §10）：本测试锁定**现状行为**并显式标注"已知隐患，修复卡
+// （rlm 三源 revision 比较，OQ-4）合入后升级断言：异 revision 源触发 stale/
+// mismatch 注记"。它的存在使隐患可见、修复可验，不是豁免。
+func TestRLMThreeSourceMergeRevisionMismatchIsVisible(t *testing.T) {
+	proj := Build(Input{
+		GeneratedAt: "2026-09-28T00:00:00Z",
+		// 源 1（工程态，r2 最新）：T3 推子在观察之后被改到 -6。
+		ProjectState: map[string]any{
+			"project_revision": "r2",
+			"tracks": []map[string]any{{
+				"track_id": "T3", "track_name": "lead", "is_audio_track": true,
+				"track_type": "audio", "volume_db": -6.0,
+				"clips": []map[string]any{{"clip_id": "C3", "clip_name": "lead.wav", "type": "audio", "clip_gain_db": 0.0, "duration_seconds": 12.0}},
+			}},
+		},
+		// 源 2（mix.observe 产物，r1 旧观察）：推子还是改前 -3.0，rms=-20.5。
+		MixObservation: map[string]any{"observation": map[string]any{"project_package": map[string]any{"tracks": []map[string]any{
+			{"track_id": "T3", "track_name": "lead", "volume_db": -3.0, "rms_dbfs": -20.5},
+		}}}},
+		// 源 3（DAD 烘焙，r1 旧分析）：rms=-18.0。
+		AudioAnalysisStatus: map[string]any{"track_waveform_envelopes": []map[string]any{
+			{"track_id": "T3", "clip_id": "C3", "rms_dbfs": -18.0, "peak_dbfs": -3.0},
+		}},
+	})
+
+	// 现状锁定①：Build 成功——revision 不一致不阻断、不报错。
+	if proj.SchemaVersion == "" {
+		t.Fatalf("Build 未产出投影")
+	}
+	var row *ReferenceLevelRow
+	for i := range proj.Rows {
+		if proj.Rows[i].TrackID == "T3" {
+			row = &proj.Rows[i]
+			break
+		}
+	}
+	if row == nil {
+		t.Fatalf("T3 行缺失：rows=%+v", proj.Rows)
+	}
+	// 现状锁定②（E8 本体）：r1 旧观察的推子值（-3.0）静默覆盖 r2 新工程态
+	// （-6.0）——后源字段级覆盖、无 revision 门。修复卡合入后此断言升级为：
+	// 异 revision 源不得覆盖新工程态（触发 stale/mismatch 注记）。
+	if row.TrackFaderDB == nil || math.Abs(*row.TrackFaderDB-(-3.0)) > 0.001 {
+		t.Fatalf("E8 现状锁定失败：TrackFaderDB=%+v（期望后源旧观察值 -3.0 覆盖工程态 -6.0）", row.TrackFaderDB)
+	}
+	// 现状锁定③：声学值取最后源（DAD r1 烘焙）。
+	if row.RMSDBFS == nil || math.Abs(*row.RMSDBFS-(-18.0)) > 0.001 {
+		t.Fatalf("RMSDBFS=%+v（期望最后源 -18.0）", row.RMSDBFS)
+	}
+	// 现状锁定④：隐患在产物里不可见——无任何 revision/mismatch/stale 注记
+	//（行上三源 EvidenceRefs 并存是唯一痕迹）。修复卡合入后升级为：产物带
+	// revision_mismatch 可见性。
+	for _, limitation := range proj.Limitations {
+		if strings.Contains(strings.ToLower(limitation), "revision") || strings.Contains(strings.ToLower(limitation), "mismatch") || strings.Contains(strings.ToLower(limitation), "stale") {
+			t.Fatalf("现状不应有 revision/mismatch/stale 注记（修复卡后升级断言）：%q", limitation)
+		}
+	}
+	if len(row.EvidenceRefs) < 3 {
+		t.Fatalf("三源合并痕迹（EvidenceRefs）不足：%v", row.EvidenceRefs)
+	}
 }
