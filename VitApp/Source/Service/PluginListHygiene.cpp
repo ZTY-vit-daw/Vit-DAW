@@ -3,13 +3,31 @@
 namespace vit
 {
 
+namespace
+{
+// juce::File::isAbsolutePath is platform-dependent: outside JUCE_WINDOWS it
+// rejects drive-letter paths, so entries transplanted from a PC Settings.xml
+// would never be classified as paths and would survive every startup cleanup
+// (the 2026-09-28 mac stack kept 994 C:\ ghost entries this way). Drive-letter
+// forms are paths on every platform; off Windows they simply never exist.
+bool pluginListCarriesAbsolutePath (const juce::String& fileOrIdentifier)
+{
+    if (juce::File::isAbsolutePath (fileOrIdentifier))
+        return true;
+
+    return fileOrIdentifier.length() > 1
+        && juce::CharacterFunctions::isLetter (fileOrIdentifier[0])
+        && fileOrIdentifier[1] == ':';
+}
+} // namespace
+
 bool pluginListEntryIsPathValidated (const juce::PluginDescription& description)
 {
     // Only the VST3 scan surface carries absolute file paths. Built-in and
     // other non-path identifiers must never be existence-checked: a rename or
     // identifier scheme change would otherwise mass-delete valid entries.
     return description.pluginFormatName == "VST3"
-        && juce::File::isAbsolutePath (description.fileOrIdentifier);
+        && pluginListCarriesAbsolutePath (description.fileOrIdentifier);
 }
 
 bool defaultPluginPathExists (const juce::String& fileOrIdentifier)
@@ -17,6 +35,13 @@ bool defaultPluginPathExists (const juce::String& fileOrIdentifier)
     // mac VST3s are bundle DIRECTORIES (.vst3/), Windows ones single files;
     // existence must accept either form or every mac entry looks stale
     // (FIX-KERNEL-HYGIENE-BUNDLE-1: startup wiped 719/719 valid entries).
+    // Drive-letter paths can never exist off Windows, and juce::File would
+    // log debug assertions for what it classifies as relative paths there.
+   #if ! JUCE_WINDOWS
+    if (pluginListCarriesAbsolutePath (fileOrIdentifier)
+        && ! juce::File::isAbsolutePath (fileOrIdentifier))
+        return false;
+   #endif
     return juce::File (fileOrIdentifier).exists();
 }
 
@@ -45,7 +70,7 @@ PluginListHygieneReport cleanStalePluginListEntries (
     // that is not an absolute path is left alone.
     const auto blacklistSnapshot = list.getBlacklistedFiles();
     for (const auto& blacklisted : blacklistSnapshot)
-        if (juce::File::isAbsolutePath (blacklisted) && ! pathExists (blacklisted))
+        if (pluginListCarriesAbsolutePath (blacklisted) && ! pathExists (blacklisted))
         {
             report.removedBlacklistPaths.add (blacklisted);
             list.removeFromBlacklist (blacklisted);
