@@ -90,3 +90,5 @@
 1. `staticbalance/validate.go:59` + `capabilitycontext/context_manifest.go:222`（B2 求解器剂量合约对）——域外，实证上交（卡停止条件条款）。
 2. free_state_d1 烟测 settle 链断裂（上述 4.2）——修复点在 agent Go 侧 settle 机制，越出本卡"只放宽上限"红线，上交另卡。
 3. `paper/experiment-baseline` 未触（红线遵守；行为变化容纳方式待 K 拍板，裁定记录第 3 条）。
+
+- 验收：**pass（附端测门回补条款）（2026-09-28 决策侧，rulings/2026-09-28-DOSE-AUDIBLE-1-pass.md）**——隔离 worktree 复跑 87 包 0 FAIL+build 0；常量/残留 grep/边界测试族亲核；真栈证据链亲核：剂量链四旗标全 true（两 run 直读 json）、两阻断均以基线 worktree 复现证实为 main 既有（115926=disclosure 形态/121206=revision 形态，工件已归 coord/runs/DOSE-AUDIBLE-1/）、脚本修复定性为结构假阳性修复非弱化。**决策侧抓到回执不实一处**：d1s1_domains.go 两处注释缩进 gofmt 违规（pan 块为本 diff 引入）——已在验收中修复（f748bd1a+baa6bf9a），教训=blob 级 gofmt 门。exit-0 端测门挂 SETTLE-CHAIN-1 回补（新卡已入池）；B2 剂量合约对是否随"全轴可听"原则放宽待用户裁定。复验 worktree 两个已由决策侧清理。
