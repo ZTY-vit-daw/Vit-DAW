@@ -13,3 +13,5 @@
   4. 回执：根因链+锚点+修复 diff+红绿+exit 0 run ID。
 - 文件域：agent Go settle 机制相关（experiment/orchestration/chat）+scripts/free_state_d1_smoke.py；越域即停上交。
 - 停止条件：取证发现断裂源于更深层设计态差异（State A/B 类结构性两态）→ 证据上交决策侧裁定，不自行改设计。
+- 领取：2026-09-28 下午 / origin/main=1f4bd906（同 fetch 后确认同步）/ 分支 port/settle-chain-1 / worktree D:/Vit_DAW_worktrees/settle-chain-1 / 领取时 main 工作树仅 VitApp/Workspace/default_project.xml（运行时工程状态，会话前既有）
+- 回执：（待回填）
