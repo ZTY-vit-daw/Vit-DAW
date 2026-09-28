@@ -8,6 +8,8 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+
+	"vit-daw-agent/internal/agentprotocol"
 )
 
 const PairedEvidenceSchemaVersion = "dad.compressor_dual_tap_receipt.v1"
@@ -112,6 +114,35 @@ type PairedEvidenceValidation struct {
 
 var sha256Pattern = regexp.MustCompile(`^[0-9a-f]{64}$`)
 
+// compressorDualTapRefKind mirrors the kernel RefSchema.h kKindCompressorDualTap
+// and the agentprotocol legacy-registry TargetKind for the same family.
+const compressorDualTapRefKind = "dad.compressor_dual_tap"
+
+// validCompressorDualTapEvidenceRef reports whether evidenceRef points at
+// pairID in either shape the kernel emits across the REFSCHEMA-D2 grace
+// period: the legacy literal "dad.compressor_dual_tap:"+pairID (the
+// agentprotocol legacy registry translates it into the snapshot slot), or
+// the L0 grammar vit://dad.compressor_dual_tap/track:<track>/t=<a>..<b>@<pairID>#-
+// (pair id carried by the snapshot segment, track by the scope). Wrong kind,
+// wrong pair id, malformed and opaque refs are rejected in both shapes.
+func validCompressorDualTapEvidenceRef(evidenceRef, pairID string) bool {
+	parsed, err := agentprotocol.ParseRef(evidenceRef)
+	if err != nil {
+		return false
+	}
+	switch parsed.State {
+	case agentprotocol.RefStateLegacy:
+		return parsed.Legacy != nil &&
+			parsed.Legacy.TargetKind == compressorDualTapRefKind &&
+			parsed.Legacy.Value == pairID
+	case agentprotocol.RefStateParsed:
+		return parsed.Ref != nil &&
+			parsed.Ref.Kind == compressorDualTapRefKind &&
+			parsed.Ref.Snapshot == pairID
+	}
+	return false
+}
+
 func DecodePairedEvidenceReceipt(raw []byte) (PairedEvidenceReceipt, error) {
 	if reason := pairedEvidenceRawLeakReason(raw); reason != "" {
 		return PairedEvidenceReceipt{}, fmt.Errorf("raw_evidence_leak: %s", reason)
@@ -147,7 +178,7 @@ func ValidatePairedEvidenceReceipt(receipt PairedEvidenceReceipt, expected Paire
 	require(receipt.DeterminismProofStatus == StatusReady && finite(receipt.DeterminismCorrelation) && receipt.DeterminismCorrelation >= .999 && finite(receipt.DeterminismPeakDBDelta) && math.Abs(receipt.DeterminismPeakDBDelta) <= .10 && finite(receipt.DeterminismRMSDBDelta) && math.Abs(receipt.DeterminismRMSDBDelta) <= .10, "determinism_proof_failed")
 	require(receipt.InputTap == "compressor_input" && receipt.OutputTap == "compressor_output", "tap_order_invalid")
 	require(receipt.TailPolicy == "exact_window_no_tail" && strings.TrimSpace(receipt.AnalyzerVersion) != "", "analysis_conditions_missing")
-	require(receipt.EvidenceRef == "dad.compressor_dual_tap:"+receipt.PairID, "evidence_ref_invalid")
+	require(validCompressorDualTapEvidenceRef(receipt.EvidenceRef, receipt.PairID), "evidence_ref_invalid")
 	require(sha256Pattern.MatchString(receipt.ArtifactSHA256) && receipt.ArtifactBytes > 0, "artifact_integrity_invalid")
 	require(receipt.EnvelopeFrameCount > 0 && receipt.AlignedSampleFrames > 0, "fine_envelope_missing")
 	validateTapQuality := func(label string, quality TapQualityEvidence) {

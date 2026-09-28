@@ -241,12 +241,15 @@ int main()
         checkEqual (ref, "vit://dad.compressor_dual_tap/track:trk_9/t=0..44100@pair_2f3e#-",
                     "T5 sample-bounded window serialization (D2 shape)");
         check (acceptedByAgentGrammar (ref), "T5 accepted by agent grammar");
+        const auto built = makeCompressorDualTapRef ("trk_9", 0, 44100, "pair_2f3e");
+        checkEqual (built, ref, "T5b D2 builder emits the golden shape");
+        check (acceptedByAgentGrammar (built), "T5b accepted by agent grammar");
     }
 
-    // --- T6 legacy lock for the suspended D2 sites ---------------------------
+    // --- T6 legacy literal lock (REFSCHEMA-D2 grace period) ------------------
     checkEqual (juce::String (kLegacyPrefixCompressorDualTap) + "pair_7",
                 "dad.compressor_dual_tap:pair_7",
-                "T7 suspended D2 keeps the exact legacy string (consumer lock)");
+                "T6 legacy D2 literal stays byte-identical (agent registry lock)");
 
     // --- T8/T9 integration through the real analyzer -------------------------
     const auto workspace = testWorkspaceDirectory();

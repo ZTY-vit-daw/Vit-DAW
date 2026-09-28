@@ -515,3 +515,34 @@ func assertNoParameterInference(t *testing.T, p Projection) {
 		}
 	}
 }
+
+// REFSCHEMA-D2: the artifact's evidence_ref is accepted in either shape the
+// kernel emits across the grace period -- the legacy literal
+// "dad.compressor_dual_tap:<pair_id>" and the L0 grammar
+// vit://dad.compressor_dual_tap/track:<track>/t=<a>..<b>@<pair_id>#- --
+// while wrong kind / wrong pair id / malformed refs stay rejected.
+func TestValidatePairedArtifactAcceptsBothEvidenceRefShapes(t *testing.T) {
+	legacy := pairedFixture(fixtureOptions{action: programAction})
+	if v := validatePairedArtifact(legacy, Input{}); !v.Ready {
+		t.Fatalf("legacy evidence ref rejected: %#v", v)
+	}
+	v0 := pairedFixture(fixtureOptions{action: programAction})
+	v0.EvidenceRef = "vit://dad.compressor_dual_tap/track:1/t=0..192000@fixture_pair#-"
+	if v := validatePairedArtifact(v0, Input{}); !v.Ready {
+		t.Fatalf("vit:// evidence ref rejected: %#v", v)
+	}
+	for name, evidenceRef := range map[string]string{
+		"wrong kind":        "vit://dad.l3/feature:fixture_pair/t=all@fixture_pair#-",
+		"wrong pair":        "vit://dad.compressor_dual_tap/track:1/t=0..192000@other_pair#-",
+		"legacy wrong pair": "dad.compressor_dual_tap:other_pair",
+		"missing hash":      "vit://dad.compressor_dual_tap/track:1/t=0..192000@fixture_pair",
+	} {
+		t.Run(name, func(t *testing.T) {
+			a := pairedFixture(fixtureOptions{action: programAction})
+			a.EvidenceRef = evidenceRef
+			if v := validatePairedArtifact(a, Input{}); v.Ready || !containsStringItem(v.Reasons, "pair_identity_invalid") {
+				t.Fatalf("bad evidence ref promoted: %q -> %#v", evidenceRef, v)
+			}
+		})
+	}
+}

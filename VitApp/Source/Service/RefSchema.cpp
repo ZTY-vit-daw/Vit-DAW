@@ -94,4 +94,13 @@ juce::String makeL3BandRef (const juce::String& bandName,
                               true, 0, 0, l3SourceSnapshot (sourceRevision, filePath));
 }
 
+juce::String makeCompressorDualTapRef (const juce::String& trackId,
+                                       juce::int64 sampleStart,
+                                       juce::int64 sampleEnd,
+                                       const juce::String& pairId)
+{
+    return formatEvidenceRef (kKindCompressorDualTap, kScopeKindTrack, trackId,
+                              false, sampleStart, sampleEnd, pairId);
+}
+
 } // namespace vit::refschema

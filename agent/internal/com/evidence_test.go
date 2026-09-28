@@ -106,3 +106,45 @@ func TestDecodePairedEvidenceReceiptRejectsRawEvidenceAndPaths(t *testing.T) {
 		}
 	}
 }
+
+// REFSCHEMA-D2: the receipt's evidence_ref is accepted in either shape the
+// kernel emits across the grace period -- the legacy literal
+// "dad.compressor_dual_tap:<pair_id>" and the L0 grammar
+// vit://dad.compressor_dual_tap/track:<track>/t=<a>..<b>@<pair_id>#- --
+// while wrong kind / wrong pair id stays rejected in both shapes.
+func TestValidatePairedEvidenceReceiptAcceptsBothEvidenceRefShapes(t *testing.T) {
+	expectation := PairedEvidenceExpectation{PriorPairID: "com2_pair_0", PriorJobID: "job_0"}
+	legacy := readyPairedEvidenceReceipt()
+	if validation := ValidatePairedEvidenceReceipt(legacy, expectation); !validation.Ready {
+		t.Fatalf("legacy evidence ref rejected: %#v", validation)
+	}
+	v0 := readyPairedEvidenceReceipt()
+	v0.EvidenceRef = "vit://dad.compressor_dual_tap/track:track_1/t=48000..240000@com2_pair_1#-"
+	if validation := ValidatePairedEvidenceReceipt(v0, expectation); !validation.Ready {
+		t.Fatalf("vit:// evidence ref rejected: %#v", validation)
+	}
+	for name, evidenceRef := range map[string]string{
+		"wrong kind":          "vit://dad.l3/feature:com2_pair_1/t=all@com2_pair_1#-",
+		"wrong pair":          "vit://dad.compressor_dual_tap/track:track_1/t=48000..240000@com2_pair_0#-",
+		"legacy wrong pair":   "dad.compressor_dual_tap:com2_pair_0",
+		"opaque unregistered": "com2_pair_1",
+	} {
+		t.Run(name, func(t *testing.T) {
+			receipt := readyPairedEvidenceReceipt()
+			receipt.EvidenceRef = evidenceRef
+			validation := ValidatePairedEvidenceReceipt(receipt, PairedEvidenceExpectation{})
+			if validation.Ready || !containsStringItem(validation.Reasons, "evidence_ref_invalid") {
+				t.Fatalf("bad evidence ref promoted: %q -> %#v", evidenceRef, validation)
+			}
+		})
+	}
+}
+
+func containsStringItem(items []string, wanted string) bool {
+	for _, item := range items {
+		if item == wanted {
+			return true
+		}
+	}
+	return false
+}

@@ -165,7 +165,7 @@ func validatePairedArtifact(a PairedEvidenceArtifact, input Input) PairedEvidenc
 		}
 	}
 	require(a.SchemaVersion == pairedArtifactSchema, "paired_schema_mismatch")
-	require(strings.TrimSpace(a.PairID) != "" && a.EvidenceRef == "dad.compressor_dual_tap:"+a.PairID, "pair_identity_invalid")
+	require(strings.TrimSpace(a.PairID) != "" && validCompressorDualTapEvidenceRef(a.EvidenceRef, a.PairID), "pair_identity_invalid")
 	require(strings.TrimSpace(a.AnalyzerVersion) != "", "analyzer_version_missing")
 	require(a.ProcessorScope.SupportClass == "single_band_broadband", "unsupported_processor_scope")
 	require(strings.TrimSpace(a.ProcessorScope.TrackID) != "" && strings.TrimSpace(a.ProcessorScope.PluginInstanceID) != "", "processor_target_missing")

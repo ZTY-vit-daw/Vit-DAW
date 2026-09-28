@@ -36,12 +36,12 @@ inline constexpr const char* kKindL3 = "dad.l3";
 inline constexpr const char* kKindL2RenderProbe = "dad.l2_render_probe";
 inline constexpr const char* kKindCompressorDualTap = "dad.compressor_dual_tap";
 
-// Legacy prefix still emitted by the D2 generation points. REFSCHEMA-D1 stop
-// condition: the agent-side consumers agent/internal/com/evidence.go:150 and
-// agent/internal/com/paired.go:168 hard-assert the exact legacy string
-// ("dad.compressor_dual_tap:" + pairId), so D2 stays on the legacy format
-// until those consumers are upgraded to parse the L0 grammar. The constant
-// lives here so that migration lands as a one-line change per site.
+// Legacy prefix the D2 generation points emitted before REFSCHEMA-D2 (the
+// agent-side com consumers evidence.go/paired.go have since switched to
+// ParseRef and accept both shapes in the same frame). Kept for the grace
+// period: the T6 golden test locks the literal so it stays byte-identical
+// with the agentprotocol legacy-registry entry translating in-flight
+// artifacts.
 inline constexpr const char* kLegacyPrefixCompressorDualTap = "dad.compressor_dual_tap:";
 
 // scope_kind vocabulary used by the kernel-side builders below.
@@ -86,5 +86,16 @@ juce::String makeL3FeatureRef (const juce::String& featureName,
 juce::String makeL3BandRef (const juce::String& bandName,
                             const juce::String& sourceRevision,
                             const juce::String& filePath);
+
+// D2 (VitProductionCoordinator.cpp stampCompressorDualTapIdentity + start
+// reply, CompressorDualTapEvidence.cpp artifact ref):
+// vit://dad.compressor_dual_tap/track:<trackId>/t=<start>..<end>@<pairId>#-
+// The pair id (snapshot identity) is what the agent-side com consumers key
+// on; the window is the exact probe sample window. The probe command only
+// accepts audio tracks, so there is no master/project fallback.
+juce::String makeCompressorDualTapRef (const juce::String& trackId,
+                                       juce::int64 sampleStart,
+                                       juce::int64 sampleEnd,
+                                       const juce::String& pairId);
 
 } // namespace vit::refschema

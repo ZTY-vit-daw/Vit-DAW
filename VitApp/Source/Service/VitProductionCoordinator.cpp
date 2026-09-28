@@ -526,12 +526,9 @@ void stampCompressorDualTapIdentity (juce::DynamicObject& object,
     object.setProperty ("output_tap", "compressor_output");
     object.setProperty ("tail_policy", "exact_window_no_tail");
     object.setProperty ("analyzer_version", request.analyzerVersion);
-    // REFSCHEMA-D1 suspended: agent-side consumers (com/evidence.go:150,
-    // com/paired.go:168) hard-assert this exact legacy string, so D2 keeps
-    // the legacy format until they parse the L0 grammar. The constant mirror
-    // keeps the pending migration a one-line change per site.
     object.setProperty ("evidence_ref",
-                        juce::String (refschema::kLegacyPrefixCompressorDualTap) + request.pairId);
+                        refschema::makeCompressorDualTapRef (request.trackId, request.startSample,
+                                                             request.endSample, request.pairId));
 }
 
 void publishCompressorDualTapBuilding (const VitProductionCoordinator::PublishFn& publish,
@@ -959,9 +956,9 @@ juce::String VitProductionCoordinator::startCompressorDualTapProbe (
     reply->setProperty ("feature_type", "compressor_dual_tap_probe");
     reply->setProperty ("job_id", activeJobId);
     reply->setProperty ("pair_id", evidence.pairId);
-    // REFSCHEMA-D1 suspended (see stampCompressorDualTapIdentity note).
     reply->setProperty ("evidence_ref",
-                        juce::String (refschema::kLegacyPrefixCompressorDualTap) + evidence.pairId);
+                        refschema::makeCompressorDualTapRef (evidence.trackId, evidence.startSample,
+                                                             evidence.endSample, evidence.pairId));
     reply->setProperty ("probe_status", "building");
     return juce::JSON::toString (juce::var (reply.release()));
 }
