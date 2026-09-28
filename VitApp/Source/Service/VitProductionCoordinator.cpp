@@ -1,5 +1,7 @@
 #include "VitProductionCoordinator.h"
 
+#include "RefSchema.h"
+
 #include <algorithm>
 #include <array>
 #include <chrono>
@@ -143,7 +145,8 @@ void stampL2ProbeIdentity (juce::DynamicObject& obj,
     obj.setProperty ("source_revision", request.sourceRevision);
     obj.setProperty ("clip_revision", request.clipRevision);
     obj.setProperty ("render_revision", request.renderRevision);
-    obj.setProperty ("evidence_ref", "dad.l2_render_probe:" + request.renderRevision);
+    obj.setProperty ("evidence_ref",
+                     refschema::makeL2RenderProbeRef (request.trackId, request.renderRevision));
     if (request.analysisBandLowHz > 0.0 && request.analysisBandHighHz > request.analysisBandLowHz)
     {
         obj.setProperty ("analysis_band_low_hz", request.analysisBandLowHz);
@@ -523,7 +526,12 @@ void stampCompressorDualTapIdentity (juce::DynamicObject& object,
     object.setProperty ("output_tap", "compressor_output");
     object.setProperty ("tail_policy", "exact_window_no_tail");
     object.setProperty ("analyzer_version", request.analyzerVersion);
-    object.setProperty ("evidence_ref", "dad.compressor_dual_tap:" + request.pairId);
+    // REFSCHEMA-D1 suspended: agent-side consumers (com/evidence.go:150,
+    // com/paired.go:168) hard-assert this exact legacy string, so D2 keeps
+    // the legacy format until they parse the L0 grammar. The constant mirror
+    // keeps the pending migration a one-line change per site.
+    object.setProperty ("evidence_ref",
+                        juce::String (refschema::kLegacyPrefixCompressorDualTap) + request.pairId);
 }
 
 void publishCompressorDualTapBuilding (const VitProductionCoordinator::PublishFn& publish,
@@ -750,7 +758,8 @@ juce::String VitProductionCoordinator::startOfflineRender (te::Edit& edit,
         reply->setProperty ("source_revision", probeRequest.sourceRevision);
         reply->setProperty ("clip_revision", probeRequest.clipRevision);
         reply->setProperty ("render_revision", probeRequest.renderRevision);
-        reply->setProperty ("evidence_ref", "dad.l2_render_probe:" + probeRequest.renderRevision);
+        reply->setProperty ("evidence_ref",
+                            refschema::makeL2RenderProbeRef (probeRequest.trackId, probeRequest.renderRevision));
         if (probeRequest.analysisBandLowHz > 0.0 && probeRequest.analysisBandHighHz > probeRequest.analysisBandLowHz)
         {
             reply->setProperty ("analysis_band_low_hz", probeRequest.analysisBandLowHz);
@@ -950,7 +959,9 @@ juce::String VitProductionCoordinator::startCompressorDualTapProbe (
     reply->setProperty ("feature_type", "compressor_dual_tap_probe");
     reply->setProperty ("job_id", activeJobId);
     reply->setProperty ("pair_id", evidence.pairId);
-    reply->setProperty ("evidence_ref", "dad.compressor_dual_tap:" + evidence.pairId);
+    // REFSCHEMA-D1 suspended (see stampCompressorDualTapIdentity note).
+    reply->setProperty ("evidence_ref",
+                        juce::String (refschema::kLegacyPrefixCompressorDualTap) + evidence.pairId);
     reply->setProperty ("probe_status", "building");
     return juce::JSON::toString (juce::var (reply.release()));
 }

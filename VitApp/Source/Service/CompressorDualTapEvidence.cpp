@@ -1,5 +1,7 @@
 #include "CompressorDualTapEvidence.h"
 
+#include "RefSchema.h"
+
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -235,7 +237,10 @@ CompressorDualTapEvidenceResult analyseAndWriteCompressorDualTapEvidence (
     const CompressorDualTapEvidenceRequest& request)
 {
     CompressorDualTapEvidenceResult result;
-    result.evidenceRef = "dad.compressor_dual_tap:" + request.pairId;
+    // REFSCHEMA-D1 suspended: the artifact's evidence_ref is validated by
+    // agent-side com/paired.go:168 with an exact legacy-string assertion;
+    // keep the legacy format until that consumer parses the L0 grammar.
+    result.evidenceRef = juce::String (refschema::kLegacyPrefixCompressorDualTap) + request.pairId;
     const auto input = readPCM (inputFile);
     const auto output = readPCM (outputFile);
     const auto outputVerification = readPCM (outputVerificationFile);

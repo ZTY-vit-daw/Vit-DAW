@@ -226,6 +226,8 @@ set(VITAPP_SOURCE_FILES
     Source/Service/TrackService.h
     Source/Service/TransportAudioService.cpp
     Source/Service/TransportAudioService.h
+    Source/Service/RefSchema.cpp
+    Source/Service/RefSchema.h
     Source/Service/CompressorDualTapEvidence.cpp
     Source/Service/CompressorDualTapEvidence.h
     Source/Service/VitProductionCoordinator.cpp

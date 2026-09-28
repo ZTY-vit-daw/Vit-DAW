@@ -101,7 +101,9 @@ if(EXISTS "${VIT_TRACKTION_ENGINE_DIR}/CMakeLists.txt")
         ../Source/Service/VitProductionCoordinator.cpp
         ../Source/Service/VitProductionCoordinator.h
         ../Source/Service/CompressorDualTapEvidence.cpp
-        ../Source/Service/CompressorDualTapEvidence.h)
+        ../Source/Service/CompressorDualTapEvidence.h
+        ../Source/Service/RefSchema.cpp
+        ../Source/Service/RefSchema.h)
     target_compile_features(VitRenderWatchdogTests PRIVATE cxx_std_20)
     target_include_directories(VitRenderWatchdogTests PRIVATE ../Source)
     target_compile_definitions(VitRenderWatchdogTests PRIVATE JUCE_USE_CURL=0 JUCE_WEB_BROWSER=0)
@@ -141,7 +143,9 @@ if(EXISTS "${VIT_TRACKTION_ENGINE_DIR}/CMakeLists.txt")
         ../Source/Service/L3AcousticAnalyzer.cpp
         ../Source/Service/L3AcousticAnalyzer.h
         ../Source/Service/AudioFeatureTypes.cpp
-        ../Source/Service/AudioFeatureTypes.h)
+        ../Source/Service/AudioFeatureTypes.h
+        ../Source/Service/RefSchema.cpp
+        ../Source/Service/RefSchema.h)
     target_compile_features(VitSegmentationPrimitivesTests PRIVATE cxx_std_20)
     target_include_directories(VitSegmentationPrimitivesTests PRIVATE ../Source)
     target_compile_definitions(VitSegmentationPrimitivesTests PRIVATE JUCE_USE_CURL=0 JUCE_WEB_BROWSER=0)
@@ -161,7 +165,9 @@ if(EXISTS "${VIT_TRACKTION_ENGINE_DIR}/CMakeLists.txt")
         ../Source/Service/L3AcousticAnalyzer.cpp
         ../Source/Service/L3AcousticAnalyzer.h
         ../Source/Service/AudioFeatureTypes.cpp
-        ../Source/Service/AudioFeatureTypes.h)
+        ../Source/Service/AudioFeatureTypes.h
+        ../Source/Service/RefSchema.cpp
+        ../Source/Service/RefSchema.h)
     target_compile_features(VitL3EvidenceTests PRIVATE cxx_std_20)
     target_include_directories(VitL3EvidenceTests PRIVATE ../Source)
     target_compile_definitions(VitL3EvidenceTests PRIVATE JUCE_USE_CURL=0 JUCE_WEB_BROWSER=0)
@@ -170,6 +176,30 @@ if(EXISTS "${VIT_TRACKTION_ENGINE_DIR}/CMakeLists.txt")
         juce::juce_audio_utils
         juce::juce_recommended_config_flags)
     add_test(NAME VitL3EvidenceTests COMMAND VitL3EvidenceTests)
+
+    # REFSCHEMA-D1: kernel-side L0 evidence-ref grammar mirror — golden
+    # samples against the agent FormatRef semantics, escaping/window units,
+    # legacy lock for the suspended D2 sites, and integration through the
+    # real L3 analyzer (D3/D4/D5 generation points). Same JUCE-only linkage
+    # as the L3 evidence tests.
+    juce_add_console_app(VitRefSchemaTests PRODUCT_NAME "VitRefSchemaTests")
+    juce_generate_juce_header(VitRefSchemaTests)
+    target_sources(VitRefSchemaTests PRIVATE
+        RefSchemaTests.cpp
+        ../Source/Service/RefSchema.cpp
+        ../Source/Service/RefSchema.h
+        ../Source/Service/L3AcousticAnalyzer.cpp
+        ../Source/Service/L3AcousticAnalyzer.h
+        ../Source/Service/AudioFeatureTypes.cpp
+        ../Source/Service/AudioFeatureTypes.h)
+    target_compile_features(VitRefSchemaTests PRIVATE cxx_std_20)
+    target_include_directories(VitRefSchemaTests PRIVATE ../Source)
+    target_compile_definitions(VitRefSchemaTests PRIVATE JUCE_USE_CURL=0 JUCE_WEB_BROWSER=0)
+    target_link_libraries(VitRefSchemaTests PRIVATE
+        juce::juce_dsp
+        juce::juce_audio_utils
+        juce::juce_recommended_config_flags)
+    add_test(NAME VitRefSchemaTests COMMAND VitRefSchemaTests)
 else()
     message(FATAL_ERROR
         "Tracktion Engine not found. Set -DVIT_TRACKTION_ENGINE_DIR=<path> to a populated Tracktion Engine checkout.")
@@ -195,6 +225,9 @@ if(MSVC)
     if(TARGET VitL3EvidenceTests)
         target_compile_options(VitL3EvidenceTests PRIVATE /W4 /permissive-)
     endif()
+    if(TARGET VitRefSchemaTests)
+        target_compile_options(VitRefSchemaTests PRIVATE /W4 /permissive-)
+    endif()
 else()
     target_compile_options(VitAuditionPreviewStateTests PRIVATE -Wall -Wextra -Wpedantic)
     target_compile_options(VitWorkingCopyPersistPolicyTests PRIVATE -Wall -Wextra -Wpedantic)
@@ -214,6 +247,9 @@ else()
     endif()
     if(TARGET VitL3EvidenceTests)
         target_compile_options(VitL3EvidenceTests PRIVATE -Wall -Wextra -Wpedantic)
+    endif()
+    if(TARGET VitRefSchemaTests)
+        target_compile_options(VitRefSchemaTests PRIVATE -Wall -Wextra -Wpedantic)
     endif()
 endif()
 

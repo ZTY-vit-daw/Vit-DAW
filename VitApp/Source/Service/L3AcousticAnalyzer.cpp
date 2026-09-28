@@ -2,6 +2,7 @@
 
 #include "../Core/VitPaths.h"
 #include "OfflineAudioReadCoordinator.h"
+#include "RefSchema.h"
 
 #include <algorithm>
 #include <array>
@@ -545,8 +546,9 @@ void stampCommon (juce::DynamicObject& obj,
                   AudioFeatureType featureType)
 {
     const auto featureName = audioFeatureTypeToString (featureType);
-    const auto evidenceRef = "dad.l3." + featureName + ":"
-        + (request.sourceRevision.isNotEmpty() ? request.sourceRevision : request.filePath);
+    const auto evidenceRef = refschema::makeL3FeatureRef (featureName,
+                                                          request.sourceRevision,
+                                                          request.filePath);
 
     obj.setProperty ("command", "audio_feature_data_ready");
     obj.setProperty ("schema_version", "dad_l3_" + featureName + ".v1");
@@ -655,7 +657,10 @@ void publishBandSummary (const AudioFeatureBakeRequest& request,
         bandObject->setProperty ("min_hz", band.definition.minHz);
         bandObject->setProperty ("max_hz", band.definition.maxHz);
         bandObject->setProperty ("quality_status", analysis.evidence.status);
-        bandObject->setProperty ("evidence_ref", "dad.l3.band_energy_summary:" + juce::String (band.definition.name));
+        bandObject->setProperty ("evidence_ref",
+                                 refschema::makeL3BandRef (band.definition.name,
+                                                           request.sourceRevision,
+                                                           request.filePath));
         bandsObject->setProperty (band.definition.name, juce::var (bandObject.release()));
     }
     obj->setProperty ("bands", juce::var (bandsObject.release()));
@@ -669,7 +674,8 @@ void publishBandSummary (const AudioFeatureBakeRequest& request,
     noiseFloor->setProperty ("method", "bounded_fft_frame_rms_percentile");
     noiseFloor->setProperty ("confidence", analysis.frames.size() >= 32 ? "medium" : "low");
     noiseFloor->setProperty ("window_count", (int) analysis.frames.size());
-    noiseFloor->setProperty ("evidence_refs", juce::Array<juce::var> { "dad.l3.noise_floor" });
+    noiseFloor->setProperty ("evidence_refs", juce::Array<juce::var> {
+        refschema::makeL3FeatureRef ("noise_floor", request.sourceRevision, request.filePath) });
     obj->setProperty ("noise_floor_evidence", juce::var (noiseFloor.release()));
 
     juce::Array<juce::var> frequencyEvents;
@@ -692,7 +698,8 @@ void publishBandSummary (const AudioFeatureBakeRequest& request,
     frequency->setProperty ("events", frequencyEvents);
     frequency->setProperty ("event_count_available", ! analysis.frames.empty());
     frequency->setProperty ("coverage", analysis.evidence.coverageRatio);
-    frequency->setProperty ("evidence_refs", juce::Array<juce::var> { "dad.l3.frequency_time_events" });
+    frequency->setProperty ("evidence_refs", juce::Array<juce::var> {
+        refschema::makeL3FeatureRef ("frequency_time_events", request.sourceRevision, request.filePath) });
     obj->setProperty ("frequency_time_events", juce::var (frequency.release()));
 
     juce::Array<juce::var> transientEvents;
@@ -716,7 +723,8 @@ void publishBandSummary (const AudioFeatureBakeRequest& request,
     transient->setProperty ("coverage", analysis.evidence.coverageRatio);
     transient->setProperty ("window_ms", analysis.frameWindowMs);
     transient->setProperty ("hop_ms", analysis.frameHopMs);
-    transient->setProperty ("evidence_refs", juce::Array<juce::var> { "dad.l3.transient_events" });
+    transient->setProperty ("evidence_refs", juce::Array<juce::var> {
+        refschema::makeL3FeatureRef ("transient_events", request.sourceRevision, request.filePath) });
     obj->setProperty ("transient_events", juce::var (transient.release()));
 
     auto bandDynamics = std::make_unique<juce::DynamicObject>();
@@ -742,7 +750,8 @@ void publishBandSummary (const AudioFeatureBakeRequest& request,
         crestDistribution->setProperty ("p90", crest.p90);
         crestDistribution->setProperty ("max", crest.max);
         row->setProperty ("crest_distribution", juce::var (crestDistribution.release()));
-        row->setProperty ("evidence_refs", juce::Array<juce::var> { "dad.l3.band_dynamics" });
+        row->setProperty ("evidence_refs", juce::Array<juce::var> {
+            refschema::makeL3FeatureRef ("band_dynamics", request.sourceRevision, request.filePath) });
         dynamicBands.add (juce::var (row.release()));
     }
     bandDynamics->setProperty ("status", analysis.evidence.status == "ready" ? "ready" : "partial");
@@ -855,7 +864,8 @@ void publishSegmentationPrimitives (const AudioFeatureBakeRequest& request,
         }
         onsets->setProperty ("published_count", (int64) publishedCount);
         onsets->setProperty ("events", events);
-        onsets->setProperty ("evidence_refs", juce::Array<juce::var> { "dad.l3.segmentation_primitives.onset_events" });
+        onsets->setProperty ("evidence_refs", juce::Array<juce::var> {
+            refschema::makeL3FeatureRef ("segmentation_primitives.onset_events", request.sourceRevision, request.filePath) });
         obj->setProperty ("onset_events", juce::var (onsets.release()));
     }
 
@@ -898,7 +908,8 @@ void publishSegmentationPrimitives (const AudioFeatureBakeRequest& request,
             density->setProperty ("window_frames", 0);
         }
         density->setProperty ("frames", densityFrames);
-        density->setProperty ("evidence_refs", juce::Array<juce::var> { "dad.l3.segmentation_primitives.onset_density" });
+        density->setProperty ("evidence_refs", juce::Array<juce::var> {
+            refschema::makeL3FeatureRef ("segmentation_primitives.onset_density", request.sourceRevision, request.filePath) });
         obj->setProperty ("onset_density", juce::var (density.release()));
     }
 
@@ -922,7 +933,8 @@ void publishSegmentationPrimitives (const AudioFeatureBakeRequest& request,
             noveltyFrames.add (juce::var (row.release()));
         }
         novelty->setProperty ("frames", noveltyFrames);
-        novelty->setProperty ("evidence_refs", juce::Array<juce::var> { "dad.l3.segmentation_primitives.energy_novelty" });
+        novelty->setProperty ("evidence_refs", juce::Array<juce::var> {
+            refschema::makeL3FeatureRef ("segmentation_primitives.energy_novelty", request.sourceRevision, request.filePath) });
         obj->setProperty ("energy_novelty", juce::var (novelty.release()));
     }
 
