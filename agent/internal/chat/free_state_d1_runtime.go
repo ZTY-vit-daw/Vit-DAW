@@ -678,14 +678,25 @@ func (s *Server) projectD1Execution(loop freeStateReasoningLoop, session orchest
 	}
 	verifiedPostAction := (session.Execution.VerificationResult != nil && session.Execution.VerificationResult.Fresh && session.Execution.VerificationResult.PostAction && session.Execution.VerificationResult.ObservationRevision == receipt.AppliedRevision) ||
 		freeStateExperimentRoundHasFreshPostActionObservation(loop.Experiment)
-	if !verifiedPostAction && s.bookD1PostActionObservation(ctx, &loop, session, receipt) {
+	if !verifiedPostAction {
 		// The deterministic in-respond booking below is the 201842 path
 		// generalized: the admitted experiment's verification plan (the
 		// model-selected view set on the admitted target) is executed once
 		// server-side right after the mutation, so the post-apply chain does
 		// not depend on a model slice surviving budget/turn pressure to
 		// produce the mandatory observation.
-		verifiedPostAction = true
+		//
+		// SETTLE-CHAIN-1: the CCB's post_action bundle can lag the kernel's
+		// revision advance for seconds after the apply (2026-09-28 run
+		// 194926: the single-shot booking at +6s served revision=2 against
+		// applied=4 with freshness=ready, the debt stayed, every later slice
+		// was a model turn with zero tool calls, and the closure's no-progress
+		// window closed the task capability_blocked). Retry inside a bounded
+		// schedule — the real stack books at +13s given the chance
+		// (20260928_120230).
+		verifiedPostAction = d1RetryPostActionBooking(ctx, d1PostActionBookingAttempts, d1PostActionBookingRetryDelay, func() bool {
+			return s.bookD1PostActionObservation(ctx, &loop, session, receipt)
+		})
 	}
 	loop.RequiresPostActionObservation = !verifiedPostAction
 	if loop.RequiresPostActionObservation {
@@ -772,6 +783,38 @@ func d1BlockedResponse(loop freeStateReasoningLoop, reason string) ChatResponse 
 	}
 	return ChatResponse{ConversationID: loop.ConversationID, GoalID: loop.GoalID, RunID: loop.RunID, Workflow: "free_state_d1_s1",
 		WorkflowData: map[string]any{"status": "blocked", "mutation_performed": false}, GoalStatus: string(agentruntime.StatusFailed), StopReason: "d1_execution_blocked", Error: reason, Reply: reason}
+}
+
+// SETTLE-CHAIN-1: the deterministic post-action booking retries inside the
+// respond chain because the CCB's post_action bundle can briefly serve the
+// pre-apply revision with freshness=ready while the kernel has already
+// advanced (2026-09-28 run 194926: single-shot booking at +6s got revision=2
+// against applied=4; the stranded debt left the round without post-action
+// evidence and the closure's no-progress window settled capability_blocked).
+// Six attempts at 4s cover the observed catch-up (~13s on 20260928_120230)
+// with margin, bounded so the respond chain cannot spin on a dead backend.
+const (
+	d1PostActionBookingAttempts   = 6
+	d1PostActionBookingRetryDelay = 4 * time.Second
+)
+
+// d1RetryPostActionBooking drives the booking attempt schedule: it keeps
+// retrying the book closure until it succeeds, the attempt budget runs out,
+// or the context is cancelled. The delay is skipped after the final attempt.
+func d1RetryPostActionBooking(ctx context.Context, attempts int, delay time.Duration, book func() bool) bool {
+	for attempt := 1; attempt <= attempts; attempt++ {
+		if book() {
+			return true
+		}
+		if attempt == attempts || ctx.Err() != nil {
+			break
+		}
+		select {
+		case <-ctx.Done():
+		case <-time.After(delay):
+		}
+	}
+	return false
 }
 
 // bookD1PostActionObservation executes the admitted D1 experiment's

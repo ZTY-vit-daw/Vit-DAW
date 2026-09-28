@@ -954,6 +954,28 @@ def poll_persisted_loop_for_audition(project_path: str, conversation_id: str, ru
     return loop
 
 
+def poll_persisted_loop_for_settled_round(project_path: str, conversation_id: str, run_started: float, timeout: float) -> dict[str, Any]:
+    """SETTLE-CHAIN-1: wait for the round's settle records (materiality +
+    target_response), not just the human_audition_ready flag. The applied-
+    boundary audition mount (D1-AUDITION-GAP-1) flips that flag before the
+    settle tail — the materiality/target_response records land on scheduler
+    slices up to ~30s later — so breaking the drive loop on the flag alone
+    validates a pre-settle projection (2026-09-28 runs 200332/201712 both
+    failed "acoustic materiality record is missing" exactly there). The
+    validation assertions are unchanged: if the settle never lands this poll
+    runs to the deadline and the pre-settle projection fails honestly."""
+    deadline = time.monotonic() + timeout
+    loop: dict[str, Any] = {}
+    while time.monotonic() < deadline:
+        loop = persisted_free_state_loop(project_path, conversation_id, run_started)
+        experiment = loop.get("experiment") if isinstance(loop.get("experiment"), dict) else {}
+        rounds = rows(experiment.get("rounds"))
+        if rounds and rounds[0].get("materiality") is not None and rounds[0].get("target_response") is not None:
+            return loop
+        time.sleep(2)
+    return loop
+
+
 def persisted_task_semantic_state(state: dict[str, Any], conversation_id: str) -> dict[str, Any]:
     goal_runtime = state.get("goal_runtime") if isinstance(state.get("goal_runtime"), dict) else {}
     goals = rows(goal_runtime.get("goals"))
@@ -2772,6 +2794,17 @@ def main() -> int:
                     print(f"D1-S1 ADMISSION_ONLY: report={output}")
                     return 0
             if (first_text(response.get("workflow")).lower() == "free_state_d1_s1" and first_text(response.get("goal_status")).lower() != "waiting_continue") or find_d1_loop(responses) is not None and any(bool(item.get("human_audition_ready")) for item in dicts(response)):
+                # SETTLE-CHAIN-1: the audition-ready flag now fires at the
+                # applied boundary (D1-AUDITION-GAP-1), before the settle tail.
+                # Before breaking the drive loop, wait for the round's settle
+                # records so validation reads the settled projection; a settle
+                # that never lands fails the materiality assert honestly.
+                if find_d1_loop(responses) is not None:
+                    loop = poll_persisted_loop_for_settled_round(report["project_setup"]["project_path"], conversation_id, run_started, args.timeout_sec)
+                    if loop:
+                        responses.append({"goal_status": "settle_records_landed", "workflow_data": {"free_state_reasoning_loop": loop}})
+                        report["responses"] = responses
+                        write_report(output, report)
                 break
             applied_data = response.get("workflow_data") if isinstance(response.get("workflow_data"), dict) else {}
             if first_text(response.get("workflow")).lower() == "free_state_d1_s1" and (applied_data.get("mutation_performed") is True or first_text(applied_data.get("status")).lower() == "applied"):

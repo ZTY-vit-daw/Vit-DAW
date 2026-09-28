@@ -19,6 +19,7 @@ import (
 	"vit-daw-agent/internal/orchestrationcontroller"
 	agentruntime "vit-daw-agent/internal/runtime"
 	"vit-daw-agent/internal/taskstate"
+	"vit-daw-agent/internal/trajectory"
 )
 
 const (
@@ -929,6 +930,19 @@ func (s *Server) recordFreeStateDecision(conversationID string, res agentloop.Re
 			if !observationOK || freeStateExperimentHasObservation(loop.Experiment, observation.ID) {
 				continue
 			}
+			// SETTLE-CHAIN-1: the eligibility guard above only runs while the
+			// post-action debt is outstanding. Once the deterministic booking
+			// landed (debt cleared), a later envelope can still replay the
+			// pre-mutation bundle; appending it would demote the round's last
+			// observation below RecordTargetResponse's post-action guard
+			// (2026-09-28 run 200332: obs@2 replayed after the booked obs@4 and
+			// the settle report died as "target response requires a fresh
+			// post-action observation"). The round already owns its post-action
+			// evidence at that point — a non-post-action envelope observation can
+			// only be an older replay, never new evidence for this round.
+			if !observation.PostAction && freeStateExperimentRoundHasFreshPostActionObservation(loop.Experiment) {
+				continue
+			}
 			if events, observationErr := loop.Experiment.RecordObservation(observation, loop.RequiresPostActionObservation, time.Now().UTC()); observationErr == nil {
 				s.emitFreeStateExperimentEvents(events)
 			} else if s.logger != nil {
@@ -1205,6 +1219,23 @@ func (s *Server) recordFreeStateDecision(conversationID string, res agentloop.Re
 	}
 	loop.UpdatedAt = time.Now().UTC()
 	s.storeFreeStateLoop(loop)
+	// SETTLE-CHAIN-1 re-drive: with the audition card mounted at the applied
+	// boundary (D1-AUDITION-GAP-1), prepareFreeStateAudition early-exits on
+	// the settled round and audition.ready will not fire again now that the
+	// settle report finally armed the round's human_audition_ready target
+	// response. The pre-settle judgment request declined by then (see
+	// requestAuditionJudgment), so arm the boundary here — after the final
+	// store, through the same guarded reload path the ready event drives, so
+	// no outer re-store can clobber the armed round.
+	if loop.Experiment != nil && loop.Experiment.Admission.IsD1S1() &&
+		strings.TrimSpace(loop.AuditionSessionID) != "" &&
+		strings.EqualFold(firstStringFromMap(loop.AuditionSessionSnapshot, "status"), "ready") {
+		if round, roundErr := loop.Experiment.CurrentRound(); roundErr == nil &&
+			!round.UserJudgmentRequested && len(round.UserJudgmentEvidence) == 0 &&
+			round.TargetResponse != nil && round.TargetResponse.Outcome == trajectory.EvaluationHumanAuditionReady {
+			s.requestAuditionJudgment(loop.ConversationID, loop.AuditionSessionID)
+		}
+	}
 	return loop, true
 }
 

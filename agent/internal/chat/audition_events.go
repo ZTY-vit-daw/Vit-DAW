@@ -756,6 +756,21 @@ func (s *Server) requestAuditionJudgment(conversationID, sessionID string) {
 	if err != nil || round.UserJudgmentRequested || len(round.UserJudgmentEvidence) > 0 {
 		return
 	}
+	// SETTLE-CHAIN-1: the canonical human_judgment_required transition must
+	// not run ahead of the round it arbitrates. The applied-boundary mount
+	// (D1-AUDITION-GAP-1) reaches here before the settle report has recorded
+	// the round's human_audition_ready target response; transitioning the task
+	// there strands the boundary — the settle turn's report decision is then
+	// rejected by the task state machine (improvement_proposed is not allowed
+	// from human_judgment_required; 2026-09-28 runs 120230/120725 both ended
+	// at "acoustic materiality record is missing"). Decline instead: the
+	// settle ingest re-drives this request once the round actually qualifies.
+	if round.TargetResponse == nil || round.TargetResponse.Outcome != trajectory.EvaluationHumanAuditionReady {
+		if s.logger != nil {
+			s.logger.Info("[audition] judgment request declined until the round records its human_audition_ready target response session=%s", sessionID)
+		}
+		return
+	}
 	if !strings.EqualFold(firstStringFromMap(loop.AuditionSessionSnapshot, "status"), "ready") {
 		return
 	}
