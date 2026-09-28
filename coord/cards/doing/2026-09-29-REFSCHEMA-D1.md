@@ -12,3 +12,6 @@
 - 约束：只迁格式不改语义（ref 承载的信息不变）；§11 旧 agent 兼容（旧格式解析路径保留宽限期——agent 侧 opaque 宽容解析已有）；提交显式列文件+推分支+切回 main。
 - 验收：五处迁移样例对照+双端测试绿
 - 停止条件：某处生成点的消费方硬编码旧格式（改内核会断消费）→ 该处挂起+消费方清单上交
+- 领取：2026-09-29 / origin/main `1f4bd9067a7334983534c1703ec30468bb25ce56`（worktree 基 `9566c07c`＝origin/main+SETTLE-CHAIN-1 领取提交，coord-only）/ 分支 `port/refschema-d1` / 独立 worktree `D:/Vit_DAW_wt_refschemad1`（与 SETTLE-CHAIN-1 并行）
+- 实勘备注（领取时）：行号已漂移——D3 :465→:548、D4 :573→:658、D5 报告 4 处→现 7 处（:672/:695/:719/:745/:858/:901/:925，segmentation_primitives 三处为报告后新增）；D2 另有报告漏列第三处生成点 `CompressorDualTapEvidence.cpp:238`（result.evidenceRef→:339 写入 artifact JSON）
+- 回执：（待回填）
