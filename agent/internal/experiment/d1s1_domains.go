@@ -122,11 +122,11 @@ var d1s1Domains = []D1S1DomainSpec{
 	{
 		ActionDomain:        D1S1ActionDomain,
 		ActionKind:          D1S1ActionKind,
-		PromptParameterHint: `parameter_bounds={"delta_db":<nonzero number within +/-2>}`,
+		PromptParameterHint: fmt.Sprintf(`parameter_bounds={"delta_db":<%s>}`, D1S1DBDoseHintFragment()),
 		ValidateDoseBounds: func(scope string, bounds map[string]any) error {
 			delta, ok := mapNumber(bounds, "delta_db")
-			if !ok || delta == 0 || math.Abs(delta) > 2 {
-				return fmt.Errorf("D1-S1 %s delta_db must be non-zero and within +/-2 dB", scope)
+			if !ok || delta == 0 || math.Abs(delta) > D1S1MaxAbsDeltaDB {
+				return fmt.Errorf("D1-S1 %s delta_db must be non-zero and within %s", scope, D1S1DBDoseRangeText())
 			}
 			return nil
 		},
@@ -154,7 +154,7 @@ var d1s1Domains = []D1S1DomainSpec{
 		// gain move, no frequency outside the audible range, no resonant Q.
 		ActionDomain:        agentprotocol.ImprovementActionDomainStaticEQ,
 		ActionKind:          "static_eq_band_adjust",
-		PromptParameterHint: `parameter_bounds={"gain_db":<nonzero number within +/-2>,"frequency_hz":<number within 20-20000>,"q":<optional number within 0.1-18>,"band_index":<optional non-negative integer>}`,
+		PromptParameterHint: fmt.Sprintf(`parameter_bounds={"gain_db":<%s>,"frequency_hz":<number within 20-20000>,"q":<optional number within 0.1-18>,"band_index":<optional non-negative integer>}`, D1S1DBDoseHintFragment()),
 		ValidateTypedAction: func(a Admission) error {
 			frequency, ok := mapNumber(a.TypedAction, "frequency_hz")
 			if !ok || frequency < 20 || frequency > 20000 {
@@ -176,8 +176,8 @@ var d1s1Domains = []D1S1DomainSpec{
 		},
 		ValidateDoseBounds: func(scope string, bounds map[string]any) error {
 			gain, ok := mapNumber(bounds, "gain_db")
-			if !ok || gain == 0 || math.Abs(gain) > 2 {
-				return fmt.Errorf("D1-S1 %s gain_db must be non-zero and within +/-2 dB", scope)
+			if !ok || gain == 0 || math.Abs(gain) > D1S1MaxAbsDeltaDB {
+				return fmt.Errorf("D1-S1 %s gain_db must be non-zero and within %s", scope, D1S1DBDoseRangeText())
 			}
 			return nil
 		},
@@ -213,11 +213,11 @@ var d1s1Domains = []D1S1DomainSpec{
 		// and hard-fails without it.
 		ActionDomain:        agentprotocol.ImprovementActionDomainBroadbandCompression,
 		ActionKind:          "broadband_threshold_adjust",
-		PromptParameterHint: `parameter_bounds={"threshold_db":<nonzero number within +/-2>}`,
+		PromptParameterHint: fmt.Sprintf(`parameter_bounds={"threshold_db":<%s>}`, D1S1DBDoseHintFragment()),
 		ValidateDoseBounds: func(scope string, bounds map[string]any) error {
 			threshold, ok := mapNumber(bounds, "threshold_db")
-			if !ok || threshold == 0 || math.Abs(threshold) > 2 {
-				return fmt.Errorf("D1-S1 %s threshold_db must be non-zero and within +/-2 dB", scope)
+			if !ok || threshold == 0 || math.Abs(threshold) > D1S1MaxAbsDeltaDB {
+				return fmt.Errorf("D1-S1 %s threshold_db must be non-zero and within %s", scope, D1S1DBDoseRangeText())
 			}
 			return nil
 		},
@@ -256,11 +256,11 @@ var d1s1Domains = []D1S1DomainSpec{
 		// hard-fails without it.
 		ActionDomain:        agentprotocol.ImprovementActionDomainDeEsser,
 		ActionKind:          "de_esser_threshold_adjust",
-		PromptParameterHint: `parameter_bounds={"threshold_db":<nonzero number within +/-2>}`,
+		PromptParameterHint: fmt.Sprintf(`parameter_bounds={"threshold_db":<%s>}`, D1S1DBDoseHintFragment()),
 		ValidateDoseBounds: func(scope string, bounds map[string]any) error {
 			threshold, ok := mapNumber(bounds, "threshold_db")
-			if !ok || threshold == 0 || math.Abs(threshold) > 2 {
-				return fmt.Errorf("D1-S1 %s threshold_db must be non-zero and within +/-2 dB", scope)
+			if !ok || threshold == 0 || math.Abs(threshold) > D1S1MaxAbsDeltaDB {
+				return fmt.Errorf("D1-S1 %s threshold_db must be non-zero and within %s", scope, D1S1DBDoseRangeText())
 			}
 			return nil
 		},
@@ -306,11 +306,11 @@ var d1s1Domains = []D1S1DomainSpec{
 		// without it.
 		ActionDomain:        agentprotocol.ImprovementActionDomainTransientShaper,
 		ActionKind:          "transient_attack_adjust",
-		PromptParameterHint: `parameter_bounds={"attack_db":<nonzero number within +/-2>}`,
+		PromptParameterHint: fmt.Sprintf(`parameter_bounds={"attack_db":<%s>}`, D1S1DBDoseHintFragment()),
 		ValidateDoseBounds: func(scope string, bounds map[string]any) error {
 			attack, ok := mapNumber(bounds, "attack_db")
-			if !ok || attack == 0 || math.Abs(attack) > 2 {
-				return fmt.Errorf("D1-S1 %s attack_db must be non-zero and within +/-2 dB", scope)
+			if !ok || attack == 0 || math.Abs(attack) > D1S1MaxAbsDeltaDB {
+				return fmt.Errorf("D1-S1 %s attack_db must be non-zero and within %s", scope, D1S1DBDoseRangeText())
 			}
 			return nil
 		},
@@ -357,11 +357,11 @@ var d1s1Domains = []D1S1DomainSpec{
 		// machine-local whitelist first and hard-fails without it.
 		ActionDomain:        agentprotocol.ImprovementActionDomainLimiter,
 		ActionKind:          "limiter_ceiling_adjust",
-		PromptParameterHint: `parameter_bounds={"ceiling_db":<nonzero number within +/-2>}`,
+		PromptParameterHint: fmt.Sprintf(`parameter_bounds={"ceiling_db":<%s>}`, D1S1DBDoseHintFragment()),
 		ValidateDoseBounds: func(scope string, bounds map[string]any) error {
 			ceiling, ok := mapNumber(bounds, "ceiling_db")
-			if !ok || ceiling == 0 || math.Abs(ceiling) > 2 {
-				return fmt.Errorf("D1-S1 %s ceiling_db must be non-zero and within +/-2 dB", scope)
+			if !ok || ceiling == 0 || math.Abs(ceiling) > D1S1MaxAbsDeltaDB {
+				return fmt.Errorf("D1-S1 %s ceiling_db must be non-zero and within %s", scope, D1S1DBDoseRangeText())
 			}
 			return nil
 		},
@@ -407,11 +407,11 @@ var d1s1Domains = []D1S1DomainSpec{
 		// machine-local whitelist first and hard-fails without it.
 		ActionDomain:        agentprotocol.ImprovementActionDomainGateExpander,
 		ActionKind:          "gate_range_adjust",
-		PromptParameterHint: `parameter_bounds={"range_db":<nonzero number within +/-2>}`,
+		PromptParameterHint: fmt.Sprintf(`parameter_bounds={"range_db":<%s>}`, D1S1DBDoseHintFragment()),
 		ValidateDoseBounds: func(scope string, bounds map[string]any) error {
 			rng, ok := mapNumber(bounds, "range_db")
-			if !ok || rng == 0 || math.Abs(rng) > 2 {
-				return fmt.Errorf("D1-S1 %s range_db must be non-zero and within +/-2 dB", scope)
+			if !ok || rng == 0 || math.Abs(rng) > D1S1MaxAbsDeltaDB {
+				return fmt.Errorf("D1-S1 %s range_db must be non-zero and within %s", scope, D1S1DBDoseRangeText())
 			}
 			return nil
 		},
@@ -462,7 +462,7 @@ var d1s1Domains = []D1S1DomainSpec{
 		// it.
 		ActionDomain:        agentprotocol.ImprovementActionDomainMultibandDynamics,
 		ActionKind:          "multiband_band_threshold_adjust",
-		PromptParameterHint: `parameter_bounds={"band_threshold_db":<nonzero number within +/-2>,"band_index":<optional non-negative integer>}`,
+		PromptParameterHint: fmt.Sprintf(`parameter_bounds={"band_threshold_db":<%s>,"band_index":<optional non-negative integer>}`, D1S1DBDoseHintFragment()),
 		ValidateTypedAction: func(a Admission) error {
 			if index, present := a.TypedAction["band_index"]; present {
 				parsed, ok := mapNumber(map[string]any{"band_index": index}, "band_index")
@@ -474,8 +474,8 @@ var d1s1Domains = []D1S1DomainSpec{
 		},
 		ValidateDoseBounds: func(scope string, bounds map[string]any) error {
 			threshold, ok := mapNumber(bounds, "band_threshold_db")
-			if !ok || threshold == 0 || math.Abs(threshold) > 2 {
-				return fmt.Errorf("D1-S1 %s band_threshold_db must be non-zero and within +/-2 dB", scope)
+			if !ok || threshold == 0 || math.Abs(threshold) > D1S1MaxAbsDeltaDB {
+				return fmt.Errorf("D1-S1 %s band_threshold_db must be non-zero and within %s", scope, D1S1DBDoseRangeText())
 			}
 			return nil
 		},
@@ -509,12 +509,13 @@ var d1s1Domains = []D1S1DomainSpec{
 		AppliedReplyText:       "FAM6-S1 多段压限频段阈值已应用并回读验证。动作后新证据已单独记录；声学实质性、目标响应与人工判定仍待完成。",
 	},
 	{
-		// track_pan_adjust moves one track's stereo pan by one bounded step.
-		// FAM3-S1 admits it on the native (non-plugin) path with the same
-		// single-mutation tightness as track_gain: pan is normalized [-1,+1]
-		// (left negative, right positive) — not dB — and the bounded step is
-		// +/-0.15 pan units to match the B-side triple gate
-		// (pending_protocol/message_loop/proposal routing). The write rides
+	// track_pan_adjust moves one track's stereo pan by one bounded step.
+	// FAM3-S1 admits it on the native (non-plugin) path with the same
+	// single-mutation tightness as track_gain: pan is normalized [-1,+1]
+	// (left negative, right positive) — not dB — and the bounded step is the
+	// shared audible-priority ceiling (D1S1MaxAbsDeltaPan pan units) matching
+	// the B-side triple gate (pending_protocol/message_loop/proposal
+	// routing). The write rides
 		// the kernel's set_pan twin of set_volume through the track's volume
 		// plugin: no plugin chain, no whitelist, no attestation. Out-of-range
 		// targets are pre-rejected fail-closed by the port's Preflight (the
@@ -523,11 +524,11 @@ var d1s1Domains = []D1S1DomainSpec{
 		// precedent — there is no certified axis to freeze).
 		ActionDomain:        agentprotocol.ImprovementActionDomainPan,
 		ActionKind:          "track_pan_adjust",
-		PromptParameterHint: `parameter_bounds={"delta_pan":<nonzero number within +/-0.15>}`,
+		PromptParameterHint: fmt.Sprintf(`parameter_bounds={"delta_pan":<%s>}`, D1S1PanDoseHintFragment()),
 		ValidateDoseBounds: func(scope string, bounds map[string]any) error {
 			delta, ok := mapNumber(bounds, "delta_pan")
-			if !ok || delta == 0 || math.Abs(delta) > 0.15 {
-				return fmt.Errorf("D1-S1 %s delta_pan must be non-zero and within +/-0.15", scope)
+			if !ok || delta == 0 || math.Abs(delta) > D1S1MaxAbsDeltaPan {
+				return fmt.Errorf("D1-S1 %s delta_pan must be non-zero and within %s", scope, D1S1PanDoseRangeText())
 			}
 			return nil
 		},

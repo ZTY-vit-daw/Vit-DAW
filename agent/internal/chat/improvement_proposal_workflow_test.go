@@ -13,6 +13,7 @@ import (
 
 	"vit-daw-agent/internal/agentloop"
 	"vit-daw-agent/internal/agentprotocol"
+	"vit-daw-agent/internal/experiment"
 	"vit-daw-agent/internal/orchestrationcontroller"
 	"vit-daw-agent/internal/pendingmanager"
 	agentruntime "vit-daw-agent/internal/runtime"
@@ -384,7 +385,7 @@ func TestAcceptedStaticEQProposalRejectsUnboundedGain(t *testing.T) {
 		Target:        map[string]any{"kind": "track", "id": "vox"}, EvidenceRefs: []string{"obs_vox"},
 		ImprovementIntent: "衰减人声中低频堆积", Hypothesis: "小幅静态 EQ 衰减", ExpectedEffect: "可进行 A/B 比较",
 		ActionDomain: agentprotocol.ImprovementActionDomainStaticEQ, ActionKind: "static_eq_band_adjust", Confidence: 0.5,
-		ParameterBounds: map[string]any{"gain_db": 6.0, "frequency_hz": 300.0},
+		ParameterBounds: map[string]any{"gain_db": experiment.D1S1MaxAbsDeltaDB + 6.0, "frequency_hz": 300.0},
 	}
 	loop := freeStateReasoningLoop{
 		SchemaVersion: freeStateReasoningLoopSchema, LoopID: "free-state-staticeq-b", ConversationID: "chat-staticeq-b",

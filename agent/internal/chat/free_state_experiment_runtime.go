@@ -382,11 +382,12 @@ func d1MultiRoundRoundScopeSuffix(loop freeStateReasoningLoop) string {
 }
 
 // d2MultiRoundChatCumulativeBoundDB mirrors the S1-frozen experiment-lifetime
-// cumulative displacement bound (2 dB, equal to every domain's single-action
-// absolute bound; sealed on the experiment side by
-// TestD2MultiRoundCumulativeBoundMatchesDomainAbsoluteBound). The chat-side
-// pre-mutation refusal must not widen it independently of the frozen ruling.
-const d2MultiRoundChatCumulativeBoundDB = 2.0
+// cumulative displacement bound: the shared audible-priority single-action
+// ceiling (experiment.D1S1MaxAbsDeltaDB, DOSE-AUDIBLE-1), sealed on the
+// experiment side by TestD2MultiRoundCumulativeBoundMatchesDomainAbsoluteBound.
+// The chat-side pre-mutation refusal must not widen it independently of the
+// frozen ruling.
+const d2MultiRoundChatCumulativeBoundDB = experiment.D1S1MaxAbsDeltaDB
 
 // d2MultiRoundCumulativeDeltaDB sums the signed achieved deltas recorded on
 // every applied intervention of the experiment. It mirrors the experiment

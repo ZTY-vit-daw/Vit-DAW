@@ -1,11 +1,13 @@
 package chat
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
 	"vit-daw-agent/internal/agentloop"
 	"vit-daw-agent/internal/executionports"
+	"vit-daw-agent/internal/experiment"
 )
 
 // B10 instance-reuse nails. Discovery runs on the live plugin graph read
@@ -149,8 +151,8 @@ func TestD1StaticEQPlanReuseDoseGuardPinsOneBoundedInstance(t *testing.T) {
 	if args["plugin_id"] != "1040" || args["target_value"] != -1.0 {
 		t.Fatalf("the admitted absolute band value is the steady state on the reused instance: args=%+v", args)
 	}
-	loop.Experiment.Admission.TypedAction["gain_db"] = 3.0
-	if _, err := d1PluginParamPlanWithBinding(loop, candidate, 7, "project-1", "epoch-1", "snapshot-7", state, d1ReuseBindingForTest(), "1040"); err == nil || !strings.Contains(err.Error(), "within +/-2 dB") {
+	loop.Experiment.Admission.TypedAction["gain_db"] = experiment.D1S1MaxAbsDeltaDB + 2.0
+	if _, err := d1PluginParamPlanWithBinding(loop, candidate, 7, "project-1", "epoch-1", "snapshot-7", state, d1ReuseBindingForTest(), "1040"); err == nil || !strings.Contains(err.Error(), fmt.Sprintf("within %s", experiment.D1S1DBDoseRangeText())) {
 		t.Fatalf("reuse must not bypass the admitted dose bound: err=%v", err)
 	}
 }

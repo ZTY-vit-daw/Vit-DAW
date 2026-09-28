@@ -192,13 +192,13 @@ func TestD2MultiRoundCalibrationRoundGrantsContinuation(t *testing.T) {
 
 func TestD2MultiRoundCumulativePreCheckRefusesOvershootBeforeMutation(t *testing.T) {
 	s := New(nil, nil, nil)
-	// Round 1 applied -1.5 dB: a second -1.5 dB apply projects -3 dB past the
-	// S1-frozen 2 dB experiment-lifetime bound and must be refused at the plan
-	// boundary, before the kernel mutation.
-	loop := d2ExecutionMultiRoundLoopWithDeltaForTest(t, 2, -1.5)
-	d2ExecutionOpenCalibrationRoundForTest(t, s, &loop, -1.5)
+	// Round 1 applied -7.5 dB: a second -7.5 dB apply projects -15 dB past the
+	// experiment-lifetime bound (the shared audible ceiling) and must be
+	// refused at the plan boundary, before the kernel mutation.
+	loop := d2ExecutionMultiRoundLoopWithDeltaForTest(t, 2, -experiment.D1S1MaxAbsDeltaDB*0.75)
+	d2ExecutionOpenCalibrationRoundForTest(t, s, &loop, -experiment.D1S1MaxAbsDeltaDB*0.75)
 	state := map[string]any{"tracks": []any{map[string]any{"track_id": "vocal", "volume_db": -3.5}}}
-	_, err := d1TrackGainPlan(loop, agentloop.PendingMixTickCandidate{Operation: experiment.D1S1ActionKind, TrackID: "vocal", DeltaDB: -1.5}, 8, "project-1", "epoch-1", "snapshot-8", state)
+	_, err := d1TrackGainPlan(loop, agentloop.PendingMixTickCandidate{Operation: experiment.D1S1ActionKind, TrackID: "vocal", DeltaDB: -experiment.D1S1MaxAbsDeltaDB*0.75}, 8, "project-1", "epoch-1", "snapshot-8", state)
 	if err == nil || !strings.Contains(err.Error(), "cumulative delta_db displacement") {
 		t.Fatalf("overshooting round-2 plan admitted: err=%v", err)
 	}
@@ -206,19 +206,20 @@ func TestD2MultiRoundCumulativePreCheckRefusesOvershootBeforeMutation(t *testing
 		t.Fatalf("refusal is not a pre-mutation boundary: %v", err)
 	}
 
-	// The reciprocal-move cancellation the runtime accounting defines: +1.0
-	// after -1.5 projects -0.5 dB and stays admissible.
-	loop = d2ExecutionMultiRoundLoopWithDeltaForTest(t, 2, -1.5)
-	d2ExecutionOpenCalibrationRoundForTest(t, s, &loop, -1.5)
-	loop.Experiment.Admission.TypedAction["delta_db"] = 1.0
-	if err := d2MultiRoundCheckProjectedCumulativeDelta(loop.Experiment, "delta_db", 1.0); err != nil {
+	// The reciprocal-move cancellation the runtime accounting defines: +5
+	// after -7.5 projects -2.5 dB and stays admissible.
+	loop = d2ExecutionMultiRoundLoopWithDeltaForTest(t, 2, -experiment.D1S1MaxAbsDeltaDB*0.75)
+	d2ExecutionOpenCalibrationRoundForTest(t, s, &loop, -experiment.D1S1MaxAbsDeltaDB*0.75)
+	loop.Experiment.Admission.TypedAction["delta_db"] = experiment.D1S1MaxAbsDeltaDB * 0.5
+	if err := d2MultiRoundCheckProjectedCumulativeDelta(loop.Experiment, "delta_db", experiment.D1S1MaxAbsDeltaDB*0.5); err != nil {
 		t.Fatalf("reciprocal calibration refused: %v", err)
 	}
 
-	// Boundary: -1.0 twice projects exactly -2 dB, at (not past) the bound.
-	loop = d2ExecutionMultiRoundLoopWithDeltaForTest(t, 2, -1.0)
-	d2ExecutionOpenCalibrationRoundForTest(t, s, &loop, -1.0)
-	if err := d2MultiRoundCheckProjectedCumulativeDelta(loop.Experiment, "delta_db", -1.0); err != nil {
+	// Boundary: half the ceiling twice projects exactly the bound, at (not
+	// past) it.
+	loop = d2ExecutionMultiRoundLoopWithDeltaForTest(t, 2, -experiment.D1S1MaxAbsDeltaDB*0.5)
+	d2ExecutionOpenCalibrationRoundForTest(t, s, &loop, -experiment.D1S1MaxAbsDeltaDB*0.5)
+	if err := d2MultiRoundCheckProjectedCumulativeDelta(loop.Experiment, "delta_db", -experiment.D1S1MaxAbsDeltaDB*0.5); err != nil {
 		t.Fatalf("boundary-dose round refused: %v", err)
 	}
 }

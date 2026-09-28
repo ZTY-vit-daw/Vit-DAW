@@ -172,11 +172,11 @@ func TestD2MultiRoundCumulativeDisplacementBound(t *testing.T) {
 		if _, err = turn.StartRound([]string{"mix.multitrack_relationship"}, "checkpoint-d2", "rev-1", time.Now().UTC()); err != nil {
 			t.Fatal(err)
 		}
-		advanceD2Round(t, &turn, 1, "d2-cum-1", 1.5)
+		advanceD2Round(t, &turn, 1, "d2-cum-1", D1S1MaxAbsDeltaDB*0.75)
 		if _, err = turn.StartRound([]string{"mix.multitrack_relationship"}, "checkpoint-d2", "rev-2", time.Now().UTC()); err != nil {
 			t.Fatal(err)
 		}
-		events, err := turn.ApplyIntervention(testD2Intervention(1, "d2-cum-2", 1.0), time.Now().UTC())
+		events, err := turn.ApplyIntervention(testD2Intervention(1, "d2-cum-2", D1S1MaxAbsDeltaDB*0.5), time.Now().UTC())
 		if err == nil || !strings.Contains(err.Error(), "cumulative") {
 			t.Fatalf("cumulative overrun error=%v", err)
 		}
@@ -211,11 +211,11 @@ func TestD2MultiRoundCumulativeDisplacementBound(t *testing.T) {
 		if _, err = turn.StartRound([]string{"mix.multitrack_relationship"}, "checkpoint-d2", "rev-1", time.Now().UTC()); err != nil {
 			t.Fatal(err)
 		}
-		advanceD2Round(t, &turn, 1, "d2-boundary-1", 1.0)
+		advanceD2Round(t, &turn, 1, "d2-boundary-1", D1S1MaxAbsDeltaDB*0.5)
 		if _, err = turn.StartRound([]string{"mix.multitrack_relationship"}, "checkpoint-d2", "rev-2", time.Now().UTC()); err != nil {
 			t.Fatal(err)
 		}
-		advanceD2Round(t, &turn, 1, "d2-boundary-2", 1.0)
+		advanceD2Round(t, &turn, 1, "d2-boundary-2", D1S1MaxAbsDeltaDB*0.5)
 		if _, err = turn.StartRound([]string{"mix.multitrack_relationship"}, "checkpoint-d2", "rev-3", time.Now().UTC()); err != nil {
 			t.Fatal(err)
 		}

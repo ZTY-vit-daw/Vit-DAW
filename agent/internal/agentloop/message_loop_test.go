@@ -4980,7 +4980,7 @@ func TestMessageLoopB1GainStagingTrackFaderRiskCreatesGroupAbsoluteConfirmation(
 		t.Fatalf("executor calls = %+v", exec.calls)
 	}
 	if exec.calls[2].Tool == "mix.propose_tick" {
-		t.Fatalf("B1 fader risk must not use +/-2 dB mix tick: %+v", exec.calls[2])
+		t.Fatalf("B1 fader risk must not use the bounded-dose mix tick: %+v", exec.calls[2])
 	}
 	ids := messageLoopStringSlice(exec.calls[2].Args["track_ids"])
 	if len(ids) != 2 || ids[0] != "track_pad" || ids[1] != "track_fx" {

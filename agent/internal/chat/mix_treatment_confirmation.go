@@ -11,6 +11,7 @@ import (
 	"vit-daw-agent/internal/actionworkflow"
 	"vit-daw-agent/internal/agentloop"
 	"vit-daw-agent/internal/agentprotocol"
+	"vit-daw-agent/internal/experiment"
 )
 
 type mixResolverDecision struct {
@@ -303,10 +304,10 @@ func (s *Server) resolveGainBalanceTreatment(treatment agentloop.MixTreatmentPen
 	decision.ToolRoute = []string{"mix.propose_tick", "mix.apply_tick", "mix.observe"}
 	trackID := trackIDFromTreatmentTarget(treatment.TargetRef)
 	deltaDB := treatmentDeltaDB(treatment)
-	if trackID == "" || deltaDB == 0 || math.Abs(deltaDB) > 2 {
+	if trackID == "" || deltaDB == 0 || math.Abs(deltaDB) > experiment.D1S1MaxAbsDeltaDB {
 		decision.Status = "needs_preparation"
 		decision.Needs = appendUniqueStrings(decision.Needs, "exact_control")
-		decision.Reason = "gain_balance can use the existing gain tick route, but it still needs one explicit nonzero delta within +/-2 dB."
+		decision.Reason = fmt.Sprintf("gain_balance can use the existing gain tick route, but it still needs one explicit nonzero delta within %s.", experiment.D1S1DBDoseRangeText())
 		return decision
 	}
 	decision.Status = "ready_gain_tick"
@@ -349,10 +350,10 @@ func (s *Server) resolvePanBalanceTreatment(treatment agentloop.MixTreatmentPend
 		}
 		return decision
 	}
-	if deltaPan == 0 || math.Abs(deltaPan) > 0.15 {
+	if deltaPan == 0 || math.Abs(deltaPan) > experiment.D1S1MaxAbsDeltaPan {
 		decision.Status = "needs_preparation"
 		decision.Needs = appendUniqueStrings(decision.Needs, "exact_control")
-		decision.Reason = "pan_balance can use the typed pan tick route, but it still needs one explicit nonzero pan delta within +/-0.15 or a target pan within -1.0..+1.0."
+		decision.Reason = fmt.Sprintf("pan_balance can use the typed pan tick route, but it still needs one explicit nonzero pan delta within %s or a target pan within -1.0..+1.0.", experiment.D1S1PanDoseRangeText())
 		return decision
 	}
 	decision.Status = "ready_pan_tick"

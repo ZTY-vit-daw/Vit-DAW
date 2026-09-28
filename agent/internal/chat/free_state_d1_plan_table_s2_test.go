@@ -147,8 +147,8 @@ func TestD1S1CompressionAdmissionBindsBoundedThreshold(t *testing.T) {
 
 	// Same-equally-tight bounds: an out-of-band threshold is refused by the row.
 	oversized := compressionTestProposal()
-	oversized.ParameterBounds["threshold_db"] = -3.0
-	if _, err := freeStateExperimentAdmission(loop, oversized); err == nil || !strings.Contains(err.Error(), "+/-2") {
+	oversized.ParameterBounds["threshold_db"] = -experiment.D1S1MaxAbsDeltaDB - 3.0
+	if _, err := freeStateExperimentAdmission(loop, oversized); err == nil || !strings.Contains(err.Error(), "+/-10") {
 		t.Fatalf("out-of-band threshold admitted: err=%v", err)
 	}
 

@@ -6,6 +6,8 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	"vit-daw-agent/internal/experiment"
 )
 
 var messageLoopDBAdjustmentPattern = regexp.MustCompile(`(?i)(降低|降|下调|调低|减少|减|提高|提升|上调|调高|增加|加|raise|boost|increase|up|higher|lower|reduce|decrease|down|cut)[^0-9+\-]{0,24}([+\-]?\d+(?:\.\d+)?)\s*(?:dB|db|分贝)`)
@@ -28,7 +30,7 @@ func messageLoopPendingMixTickCandidateFromReply(state *runState, reply string) 
 		return nil
 	}
 	delta, evidenceText, ok := messageLoopExtractSingleGainDelta(reply)
-	if !ok || delta == 0 || math.Abs(delta) > 2 {
+	if !ok || delta == 0 || math.Abs(delta) > experiment.D1S1MaxAbsDeltaDB {
 		return nil
 	}
 	trackID := messageLoopPendingMixCandidateTrackID(state, reply, evidenceText)

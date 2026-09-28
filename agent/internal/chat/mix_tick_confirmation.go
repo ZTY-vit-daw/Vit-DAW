@@ -574,12 +574,12 @@ func (s *Server) validatePendingMixTickCandidate(ctx context.Context, candidate 
 	}
 	switch strings.TrimSpace(candidate.Operation) {
 	case "track_gain_adjust":
-		if candidate.DeltaDB == 0 || math.Abs(candidate.DeltaDB) > 2 {
-			return fmt.Errorf("delta_db 超出 +/-2 dB 范围")
+		if candidate.DeltaDB == 0 || math.Abs(candidate.DeltaDB) > experiment.D1S1MaxAbsDeltaDB {
+			return fmt.Errorf("delta_db 超出 %s 范围", experiment.D1S1DBDoseRangeText())
 		}
 	case "track_pan_adjust":
-		if candidate.DeltaPan == 0 || math.Abs(candidate.DeltaPan) > 0.15 {
-			return fmt.Errorf("delta_pan 超出 +/-0.15 范围")
+		if candidate.DeltaPan == 0 || math.Abs(candidate.DeltaPan) > experiment.D1S1MaxAbsDeltaPan {
+			return fmt.Errorf("delta_pan 超出 %s 范围", experiment.D1S1PanDoseRangeText())
 		}
 	case "track_pan_set":
 		if candidate.TargetPan == nil || *candidate.TargetPan < -1 || *candidate.TargetPan > 1 {
@@ -587,7 +587,7 @@ func (s *Server) validatePendingMixTickCandidate(ctx context.Context, candidate 
 		}
 	}
 	if candidate.DeltaDB == 0 && strings.EqualFold(strings.TrimSpace(candidate.Operation), "track_gain_adjust") {
-		return fmt.Errorf("delta_db 超出 +/-2 dB 范围")
+		return fmt.Errorf("delta_db 超出 %s 范围", experiment.D1S1DBDoseRangeText())
 	}
 	if !strings.EqualFold(strings.TrimSpace(candidate.Status), "pending_confirmation") {
 		return fmt.Errorf("状态不是 pending_confirmation")

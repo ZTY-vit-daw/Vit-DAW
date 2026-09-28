@@ -1,6 +1,9 @@
 package chat
 
 import (
+	"fmt"
+
+	"vit-daw-agent/internal/experiment"
 	"vit-daw-agent/internal/experimentplugins"
 )
 
@@ -22,14 +25,16 @@ const freeStatePluginCandidateDisclosureSchema = "free_state_plugin_candidate_di
 // the bounded parameter surface every candidate of the family is certified to
 // expose. All candidates inside one family share the family face; the
 // per-candidate differentiators are the structural identity fields alone.
+// The dose ceiling wording derives from the experiment-package constants
+// (DOSE-AUDIBLE-1) so the disclosure cannot drift from the admission gate.
 var freeStatePluginCandidateCapabilities = map[string]string{
-	d1StaticEQDomain:             "one bounded static EQ band gain move within +/-2 dB at the family's pinned band centers",
-	d1BroadbandCompressionDomain: "one bounded broadband compressor threshold move within +/-2 dB on a dual-channel surface",
-	d1DeEsserDomain:              "one bounded de-esser threshold move within +/-2 dB on a single shared parameter",
-	d1TransientShaperDomain:      "one bounded transient attack move within +/-2 dB on a single shared parameter",
-	d1LimiterDomain:              "one bounded output ceiling move within +/-2 dB on a single shared parameter",
-	d1GateExpanderDomain:         "one bounded gate range move within +/-2 dB on a single shared parameter",
-	d1MultibandDomain:            "one bounded per-band threshold move within +/-2 dB indexed by band_index",
+	d1StaticEQDomain:             fmt.Sprintf("one bounded static EQ band gain move within %s at the family's pinned band centers", experiment.D1S1DBDoseRangeText()),
+	d1BroadbandCompressionDomain: fmt.Sprintf("one bounded broadband compressor threshold move within %s on a dual-channel surface", experiment.D1S1DBDoseRangeText()),
+	d1DeEsserDomain:              fmt.Sprintf("one bounded de-esser threshold move within %s on a single shared parameter", experiment.D1S1DBDoseRangeText()),
+	d1TransientShaperDomain:      fmt.Sprintf("one bounded transient attack move within %s on a single shared parameter", experiment.D1S1DBDoseRangeText()),
+	d1LimiterDomain:              fmt.Sprintf("one bounded output ceiling move within %s on a single shared parameter", experiment.D1S1DBDoseRangeText()),
+	d1GateExpanderDomain:         fmt.Sprintf("one bounded gate range move within %s on a single shared parameter", experiment.D1S1DBDoseRangeText()),
+	d1MultibandDomain:            fmt.Sprintf("one bounded per-band threshold move within %s indexed by band_index", experiment.D1S1DBDoseRangeText()),
 }
 
 // buildFreeStatePluginCandidateDisclosure loads the machine whitelist and

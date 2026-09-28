@@ -38,9 +38,9 @@ func TestD1S1StaticEQBoundsRejectOutOfBandParameters(t *testing.T) {
 		mutate func(*Admission)
 	}{
 		{"gain at bound edge", func(a *Admission) {
-			a.DiagnosticDoseBounds["gain_db"] = 2.5
-			a.RetainedDoseBounds["gain_db"] = 2.5
-			a.TypedAction["gain_db"] = 2.5
+			a.DiagnosticDoseBounds["gain_db"] = 10.5
+			a.RetainedDoseBounds["gain_db"] = 10.5
+			a.TypedAction["gain_db"] = 10.5
 		}},
 		{"zero gain", func(a *Admission) {
 			a.DiagnosticDoseBounds["gain_db"] = 0
@@ -55,7 +55,7 @@ func TestD1S1StaticEQBoundsRejectOutOfBandParameters(t *testing.T) {
 		{"missing frequency", func(a *Admission) { delete(a.TypedAction, "frequency_hz") }},
 		{"hybrid domain borrows no bounds", func(a *Admission) { a.TypedAction["action_kind"] = "track_gain_adjust" }},
 		{"attempts above one", func(a *Admission) { a.RetainedDoseBounds["max_action_attempts"] = 2 }},
-		{"diagnostic gain unbounded", func(a *Admission) { a.DiagnosticDoseBounds["gain_db"] = -6.0 }},
+		{"diagnostic gain unbounded", func(a *Admission) { a.DiagnosticDoseBounds["gain_db"] = -12.0 }},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -130,9 +130,9 @@ func TestD1S1PanBoundsRejectOutOfBandParameters(t *testing.T) {
 		mutate func(*Admission)
 	}{
 		{"delta beyond bound", func(a *Admission) {
-			a.DiagnosticDoseBounds["delta_pan"] = 0.2
-			a.RetainedDoseBounds["delta_pan"] = 0.2
-			a.TypedAction["delta_pan"] = 0.2
+			a.DiagnosticDoseBounds["delta_pan"] = 0.6
+			a.RetainedDoseBounds["delta_pan"] = 0.6
+			a.TypedAction["delta_pan"] = 0.6
 		}},
 		{"zero delta", func(a *Admission) {
 			a.DiagnosticDoseBounds["delta_pan"] = 0
@@ -140,7 +140,7 @@ func TestD1S1PanBoundsRejectOutOfBandParameters(t *testing.T) {
 		}},
 		{"hybrid domain borrows no bounds", func(a *Admission) { a.TypedAction["action_domain"] = "track_gain" }},
 		{"attempts above one", func(a *Admission) { a.RetainedDoseBounds["max_action_attempts"] = 2 }},
-		{"diagnostic delta unbounded", func(a *Admission) { a.DiagnosticDoseBounds["delta_pan"] = -0.5 }},
+		{"diagnostic delta unbounded", func(a *Admission) { a.DiagnosticDoseBounds["delta_pan"] = -0.6 }},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {

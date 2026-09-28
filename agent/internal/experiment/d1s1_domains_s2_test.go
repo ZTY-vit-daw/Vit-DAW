@@ -26,10 +26,10 @@ func TestD1S1TableCarriesBroadbandCompressionRow(t *testing.T) {
 		t.Fatalf("prompt hint lost the threshold key: %q", spec.PromptParameterHint)
 	}
 	// Same equally-tight dose bounds as the sibling rows.
-	if err := spec.ValidateDoseBounds("diagnostic", map[string]any{"threshold_db": 2.0}); err != nil {
+	if err := spec.ValidateDoseBounds("diagnostic", map[string]any{"threshold_db": D1S1MaxAbsDeltaDB}); err != nil {
 		t.Fatalf("bound edge refused: %v", err)
 	}
-	for _, invalid := range []map[string]any{{"threshold_db": 0}, {"threshold_db": 2.01}, {}} {
+	for _, invalid := range []map[string]any{{"threshold_db": 0}, {"threshold_db": D1S1MaxAbsDeltaDB + 0.01}, {}} {
 		if err := spec.ValidateDoseBounds("retained", invalid); err == nil {
 			t.Fatalf("invalid dose accepted: %+v", invalid)
 		}

@@ -5,6 +5,8 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	"vit-daw-agent/internal/experiment"
 )
 
 var messageLoopMixTreatmentPendingPattern = regexp.MustCompile(`(?im)(?:^|\n)\s*mix_treatment_pending\s*:`)
@@ -711,11 +713,11 @@ func messageLoopPanPercentFromReply(text string) (float64, bool) {
 }
 
 func clampPanDelta(value float64) float64 {
-	if value > 0.15 {
-		return 0.15
+	if value > experiment.D1S1MaxAbsDeltaPan {
+		return experiment.D1S1MaxAbsDeltaPan
 	}
-	if value < -0.15 {
-		return -0.15
+	if value < -experiment.D1S1MaxAbsDeltaPan {
+		return -experiment.D1S1MaxAbsDeltaPan
 	}
 	return value
 }

@@ -15,10 +15,11 @@ const MaxD2MultiRoundBudget = 4
 
 // d2MultiRoundCumulativeDeltaBoundDB is the experiment-lifetime cumulative
 // displacement bound of the D2-2 multi-round tier. Per GLM ruling 2 it equals
-// the domain-table single-action absolute bound (2 dB for every admitted
-// domain); TestD2MultiRoundCumulativeBoundMatchesDomainAbsoluteBound seals
-// that equality against the live domain table.
-const d2MultiRoundCumulativeDeltaBoundDB = 2.0
+// the domain-table single-action absolute bound — the shared audible-priority
+// ceiling D1S1MaxAbsDeltaDB (DOSE-AUDIBLE-1, 2026-09-28 user ruling);
+// TestD2MultiRoundCumulativeBoundMatchesDomainAbsoluteBound seals that
+// equality against the live domain table.
+const d2MultiRoundCumulativeDeltaBoundDB = D1S1MaxAbsDeltaDB
 
 // ErrJudgmentPending is returned by StartRound, ApplyIntervention, and the
 // non-settle DecideRound family while an earlier round of this experiment has

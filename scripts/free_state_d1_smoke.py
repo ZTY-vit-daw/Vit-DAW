@@ -80,6 +80,13 @@ ADMITTED_DOMAIN_KINDS = {
     "gate_expander": "gate_range_adjust",
     "multiband_dynamics": "multiband_band_threshold_adjust",
 }
+# DOSE-AUDIBLE-1 (2026-09-28 user ruling): the single-step dose ceiling on
+# every adjustable axis is the audibility threshold. These mirror the
+# agent-side single source of truth (agent/internal/experiment/dose_bounds.go,
+# D1S1MaxAbsDeltaDB / D1S1MaxAbsDeltaPan); the runner-side mirror must stay
+# in lockstep with that table.
+DOSE_ABS_LIMIT_DB = 10.0
+PAN_DOSE_ABS_LIMIT = 0.5
 NOT_EXERCISED_EXIT = 3
 ACTIVE_CONTINUATION_STATUSES = {"pending", "claimed", "running"}
 # Generic mix suggestions are chain artifacts of the reobserve loop, not part
@@ -774,6 +781,32 @@ def values_for_key(value: Any, key: str) -> list[Any]:
     return [item[key] for item in dicts(value) if key in item]
 
 
+def values_for_key_outside_disclosure(value: Any, key: str) -> list[Any]:
+    """Values for key outside the system-attached plugin-candidate disclosure.
+
+    The disclosure payload (FIX-PLUGIN-SELECT-1, c8325305) rides the loop
+    projection inside workflow_data/request_context and lists every
+    multi-candidate family's action_domain without an action_kind. Those
+    domains are machine whitelist state, not model selections, so the
+    response-loop domain/kind pairing assertion must not read them
+    (2026-09-28 DOSE-AUDIBLE-1 forensics: clean HEAD reproduces the assertion
+    failure before any dose change; runs 20260928_114831/115348/115926).
+    """
+
+    def walk_skipping(node: Any):
+        yield node
+        if isinstance(node, dict):
+            for child_key, child in node.items():
+                if child_key == "plugin_candidate_disclosure":
+                    continue
+                yield from walk_skipping(child)
+        elif isinstance(node, list):
+            for child in node:
+                yield from walk_skipping(child)
+
+    return [item[key] for item in walk_skipping(value) if isinstance(item, dict) and key in item]
+
+
 def project_path_from_state(state: dict[str, Any]) -> str:
     for item in dicts(state):
         path = first_text(item.get("project_path"), item.get("current_project_path"))
@@ -1197,30 +1230,30 @@ def validate_d1(base_url: str, conversation_id: str, responses: list[dict[str, A
     band_dynamics_disclosure: dict[str, Any] | None = None
     if domain == "static_eq":
         gain = typed.get("gain_db")
-        require(isinstance(gain, (int, float)) and not isinstance(gain, bool) and gain != 0 and abs(gain) <= 2, "static_eq typed gain_db must be non-zero within +/-2")
+        require(isinstance(gain, (int, float)) and not isinstance(gain, bool) and gain != 0 and abs(gain) <= DOSE_ABS_LIMIT_DB, f"static_eq typed gain_db must be non-zero within +/-{DOSE_ABS_LIMIT_DB:g}")
         frequency = typed.get("frequency_hz")
         require(isinstance(frequency, (int, float)) and not isinstance(frequency, bool) and 20 <= frequency <= 20000, "static_eq typed frequency_hz must be within 20-20000")
     if domain == "broadband_compression":
         threshold = typed.get("threshold_db")
-        require(isinstance(threshold, (int, float)) and not isinstance(threshold, bool) and threshold != 0 and abs(threshold) <= 2, "broadband_compression typed threshold_db must be non-zero within +/-2")
+        require(isinstance(threshold, (int, float)) and not isinstance(threshold, bool) and threshold != 0 and abs(threshold) <= DOSE_ABS_LIMIT_DB, f"broadband_compression typed threshold_db must be non-zero within +/-{DOSE_ABS_LIMIT_DB:g}")
     if domain == "de_esser":
         threshold = typed.get("threshold_db")
-        require(isinstance(threshold, (int, float)) and not isinstance(threshold, bool) and threshold != 0 and abs(threshold) <= 2, "de_esser typed threshold_db must be non-zero within +/-2")
+        require(isinstance(threshold, (int, float)) and not isinstance(threshold, bool) and threshold != 0 and abs(threshold) <= DOSE_ABS_LIMIT_DB, f"de_esser typed threshold_db must be non-zero within +/-{DOSE_ABS_LIMIT_DB:g}")
     if domain == "transient_shaper":
         attack = typed.get("attack_db")
-        require(isinstance(attack, (int, float)) and not isinstance(attack, bool) and attack != 0 and abs(attack) <= 2, "transient_shaper typed attack_db must be non-zero within +/-2")
+        require(isinstance(attack, (int, float)) and not isinstance(attack, bool) and attack != 0 and abs(attack) <= DOSE_ABS_LIMIT_DB, f"transient_shaper typed attack_db must be non-zero within +/-{DOSE_ABS_LIMIT_DB:g}")
     if domain == "gate_expander":
         rng = typed.get("range_db")
-        require(isinstance(rng, (int, float)) and not isinstance(rng, bool) and rng != 0 and abs(rng) <= 2, "gate_expander typed range_db must be non-zero within +/-2")
+        require(isinstance(rng, (int, float)) and not isinstance(rng, bool) and rng != 0 and abs(rng) <= DOSE_ABS_LIMIT_DB, f"gate_expander typed range_db must be non-zero within +/-{DOSE_ABS_LIMIT_DB:g}")
     if domain == "multiband_dynamics":
         band_threshold = typed.get("band_threshold_db")
-        require(isinstance(band_threshold, (int, float)) and not isinstance(band_threshold, bool) and band_threshold != 0 and abs(band_threshold) <= 2, "multiband_dynamics typed band_threshold_db must be non-zero within +/-2")
+        require(isinstance(band_threshold, (int, float)) and not isinstance(band_threshold, bool) and band_threshold != 0 and abs(band_threshold) <= DOSE_ABS_LIMIT_DB, f"multiband_dynamics typed band_threshold_db must be non-zero within +/-{DOSE_ABS_LIMIT_DB:g}")
     if domain == "limiter":
         ceiling = typed.get("ceiling_db")
-        require(isinstance(ceiling, (int, float)) and not isinstance(ceiling, bool) and ceiling != 0 and abs(ceiling) <= 2, "limiter typed ceiling_db must be non-zero within +/-2")
+        require(isinstance(ceiling, (int, float)) and not isinstance(ceiling, bool) and ceiling != 0 and abs(ceiling) <= DOSE_ABS_LIMIT_DB, f"limiter typed ceiling_db must be non-zero within +/-{DOSE_ABS_LIMIT_DB:g}")
     if domain == "pan":
         delta = typed.get("delta_pan")
-        require(isinstance(delta, (int, float)) and not isinstance(delta, bool) and delta != 0 and abs(delta) <= 0.15, "pan typed delta_pan must be non-zero within +/-0.15")
+        require(isinstance(delta, (int, float)) and not isinstance(delta, bool) and delta != 0 and abs(delta) <= PAN_DOSE_ABS_LIMIT, f"pan typed delta_pan must be non-zero within +/-{PAN_DOSE_ABS_LIMIT:g}")
     require(int(admission.get("experiment_budget", 0) or 0) == 1, "D1 experiment_budget must equal one")
     for key in ("diagnostic_dose_bounds", "retained_dose_bounds"):
         bounds = admission.get(key) if isinstance(admission.get(key), dict) else {}
@@ -1602,15 +1635,15 @@ HONEST_REFUSAL_STALE_SIGNATURES = ("project_revision_stale", "stopprojectrevisio
 # non-zero within the bound); either direction is accepted -- the refusal
 # expectation pins the honest handling, not the model's direction choice.
 HONEST_REFUSAL_DOSE_KEYS = {
-    "track_gain": ("gain_db", 2.0),
-    "static_eq": ("gain_db", 2.0),
-    "broadband_compression": ("threshold_db", 2.0),
-    "de_esser": ("threshold_db", 2.0),
-    "transient_shaper": ("attack_db", 2.0),
-    "pan": ("delta_pan", 0.15),
-    "limiter": ("ceiling_db", 2.0),
-    "gate_expander": ("range_db", 2.0),
-    "multiband_dynamics": ("band_threshold_db", 2.0),
+    "track_gain": ("gain_db", DOSE_ABS_LIMIT_DB),
+    "static_eq": ("gain_db", DOSE_ABS_LIMIT_DB),
+    "broadband_compression": ("threshold_db", DOSE_ABS_LIMIT_DB),
+    "de_esser": ("threshold_db", DOSE_ABS_LIMIT_DB),
+    "transient_shaper": ("attack_db", DOSE_ABS_LIMIT_DB),
+    "pan": ("delta_pan", PAN_DOSE_ABS_LIMIT),
+    "limiter": ("ceiling_db", DOSE_ABS_LIMIT_DB),
+    "gate_expander": ("range_db", DOSE_ABS_LIMIT_DB),
+    "multiband_dynamics": ("band_threshold_db", DOSE_ABS_LIMIT_DB),
 }
 
 
@@ -2253,8 +2286,10 @@ def verify_settled_after_restart(base_url: str, report_path: Path, timeout: floa
 MULTI_ROUND_MIN_ROUNDS = 2
 # D2-1 domain-table absolute dose ceiling mirrored for runner-side probing;
 # admission itself stays the agent's responsibility (same stance as the
-# ADMITTED_DOMAIN_KINDS gate above).
-MULTI_ROUND_DOSE_ABS_LIMIT_DB = 2.0
+# ADMITTED_DOMAIN_KINDS gate above). Follows the shared DOSE-AUDIBLE-1
+# ceiling (agent-side D1S1MaxAbsDeltaDB), equal to the per-round single-step
+# bound by the sealed cumulative-equality ruling.
+MULTI_ROUND_DOSE_ABS_LIMIT_DB = DOSE_ABS_LIMIT_DB
 
 
 class MultiRoundNotExercised(RuntimeError):
@@ -2480,7 +2515,7 @@ def validate_d2_multi_round(base_url: str, conversation_id: str, project_path: s
         chained before/after revisions and unique transaction identities, and
         the persisted forward_mutation_count equals the round count,
       - cross-round cumulative dose never exceeds the D2-1 absolute bounds
-        (track_gain |ΣΔ| <= 2 dB; static_eq per plugin/param/band |ΣΔ| <= 2 dB),
+        (track_gain |ΣΔ| <= 10 dB; static_eq per plugin/param/band |ΣΔ| <= 10 dB),
       - restart idempotency: the projection persisted on disk repeats neither
         rounds nor interventions relative to the validated snapshot, no
         non-terminal continuation resurrects, and each round's post-action CCB
@@ -2588,11 +2623,11 @@ def validate_d2_multi_round(base_url: str, conversation_id: str, project_path: s
             per_band_totals[band_key] = per_band_totals.get(band_key, 0.0) + float(delta)
 
     if domain == "track_gain":
-        require(abs(domain_total_delta) <= MULTI_ROUND_DOSE_ABS_LIMIT_DB, f"multi-round probe: cross-round track_gain cumulative |{domain_total_delta:g}|dB exceeds the 2dB absolute bound")
+        require(abs(domain_total_delta) <= MULTI_ROUND_DOSE_ABS_LIMIT_DB, f"multi-round probe: cross-round track_gain cumulative |{domain_total_delta:g}|dB exceeds the {MULTI_ROUND_DOSE_ABS_LIMIT_DB:g}dB absolute bound")
         cumulative_dose = {"domain_total_delta_db": domain_total_delta}
     else:
         worst_band = max((abs(value) for value in per_band_totals.values()), default=0.0)
-        require(worst_band <= MULTI_ROUND_DOSE_ABS_LIMIT_DB, f"multi-round probe: cross-round static_eq cumulative band delta {worst_band:g}dB exceeds the 2dB absolute bound")
+        require(worst_band <= MULTI_ROUND_DOSE_ABS_LIMIT_DB, f"multi-round probe: cross-round static_eq cumulative band delta {worst_band:g}dB exceeds the {MULTI_ROUND_DOSE_ABS_LIMIT_DB:g}dB absolute bound")
         cumulative_dose = {"per_band_total_delta_db": per_band_totals}
     d1_receipt = loop.get("d1_receipt") if isinstance(loop.get("d1_receipt"), dict) else {}
     require(int(d1_receipt.get("forward_mutation_count", 0) or 0) == used, f"multi-round probe: persisted forward mutation count disagrees with one-forward-change-per-round across {used} rounds")
@@ -2717,7 +2752,7 @@ def main() -> int:
         # needs headroom for the interleaved drains and re-surfaces.
         for _ in range(16):
             require("dev_smoke_" not in json.dumps(response, ensure_ascii=False).lower(), "D1 response inherited dev smoke target context")
-            domains = {first_text(value).lower() for value in values_for_key(response, "action_domain")}
+            domains = {first_text(value).lower() for value in values_for_key_outside_disclosure(response, "action_domain")}
             kinds = {first_text(value).lower() for value in values_for_key(response, "action_kind")}
             for domain in domains & set(ADMITTED_DOMAIN_KINDS):
                 selected_domains.add(domain)

@@ -1,8 +1,11 @@
 package agentloop
 
 import (
+	"fmt"
 	"strings"
 	"testing"
+
+	"vit-daw-agent/internal/experiment"
 )
 
 // FIX-PLUGIN-SELECT-1: the machine whitelist's multi-candidate families are
@@ -10,6 +13,13 @@ import (
 // only), and only for families with more than one certified candidate. A
 // single-candidate (v5-shaped) whitelist renders NO directive so today's
 // prompt stays byte-identical.
+
+// The simulated disclosure payload restates the production capability face
+// from the dose-ceiling constants, so the fixture cannot drift from the
+// admission gate (DOSE-AUDIBLE-1).
+func pluginCandidateCapabilityText() string {
+	return fmt.Sprintf("one bounded band gain move within %s", experiment.D1S1DBDoseRangeText())
+}
 
 func pluginCandidateDisclosureState(families []map[string]any) *runState {
 	ctx := map[string]any{}
@@ -29,7 +39,7 @@ func pluginCandidateDisclosureState(families []map[string]any) *runState {
 func TestPluginCandidateDirectiveRendersDisclosedIdentifiers(t *testing.T) {
 	state := pluginCandidateDisclosureState([]map[string]any{{
 		"action_domain": "static_eq",
-		"capability":    "one bounded band gain move within +/-2 dB",
+		"capability":    pluginCandidateCapabilityText(),
 		"candidates": []map[string]any{
 			{"name": "Q10", "manufacturer": "Waves", "format": "VST3", "identifier": "VST3-Q10-abc"},
 			{"name": "EMO-F2", "manufacturer": "Other", "format": "VST3", "identifier": "VST3-EMO-F2-def"},
@@ -60,7 +70,7 @@ func TestPluginCandidateDirectiveSilentWithoutDisclosure(t *testing.T) {
 func TestNeutralFamilyPromptCarriesPluginCandidateDirective(t *testing.T) {
 	withDisclosure := messageLoopNeutralFamilySystemPrompt(pluginCandidateDisclosureState([]map[string]any{{
 		"action_domain": "static_eq",
-		"capability":    "one bounded band gain move within +/-2 dB",
+		"capability":    pluginCandidateCapabilityText(),
 		"candidates": []map[string]any{
 			{"name": "Q10", "manufacturer": "Waves", "format": "VST3", "identifier": "VST3-Q10-abc"},
 		},

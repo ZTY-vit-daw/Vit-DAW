@@ -630,8 +630,8 @@ func d1PluginParamPlanWithBinding(loop freeStateReasoningLoop, candidate agentlo
 		return orchestration.FrozenPlan{}, fmt.Errorf("D1-S1 requires one bounded %s", spec.ActionKind)
 	}
 	valueDB, ok := treatmentNumber(loop.Experiment.Admission.TypedAction, spec.AdmissionValueKey)
-	if !ok || valueDB == 0 || math.Abs(valueDB) > 2 {
-		return orchestration.FrozenPlan{}, fmt.Errorf("D1-S1 requires one bounded %s move within +/-2 dB", spec.AdmissionValueKey)
+	if !ok || valueDB == 0 || math.Abs(valueDB) > experiment.D1S1MaxAbsDeltaDB {
+		return orchestration.FrozenPlan{}, fmt.Errorf("D1-S1 requires one bounded %s move within %s", spec.AdmissionValueKey, experiment.D1S1DBDoseRangeText())
 	}
 	targetID := firstStringFromMap(loop.Experiment.Admission.TargetRef, "id", "track_id")
 	if candidate.TrackID != targetID {

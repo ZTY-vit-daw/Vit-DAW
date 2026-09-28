@@ -436,8 +436,8 @@ func (s *Server) routeAcceptedImprovementProposalNativeDomain(ctx context.Contex
 	switch domain {
 	case agentprotocol.ImprovementActionDomainTrackGain:
 		deltaDB, ok := treatmentNumber(proposal.ParameterBounds, "delta_db", "db_delta", "gain_delta_db")
-		if !ok || deltaDB == 0 || math.Abs(deltaDB) > 2 {
-			return improvementProposalBoundaryResponse(interaction, "已确认改善方向，但轨道电平工具需要一个非零且不超过 +/-2 dB 的明确 delta_db；没有修改工程。", "improvement_proposal_track_gain_bounds_missing"), true
+		if !ok || deltaDB == 0 || math.Abs(deltaDB) > experiment.D1S1MaxAbsDeltaDB {
+			return improvementProposalBoundaryResponse(interaction, fmt.Sprintf("已确认改善方向，但轨道电平工具需要一个非零且不超过 %s 的明确 delta_db；没有修改工程。", experiment.D1S1DBDoseRangeText()), "improvement_proposal_track_gain_bounds_missing"), true
 		}
 		candidate.Operation = "track_gain_adjust"
 		candidate.DeltaDB = deltaDB
@@ -448,27 +448,27 @@ func (s *Server) routeAcceptedImprovementProposalNativeDomain(ctx context.Contex
 			}
 			candidate.Operation = "track_pan_set"
 			candidate.TargetPan = &targetPan
-		} else if deltaPan, ok := treatmentNumber(proposal.ParameterBounds, "delta_pan", "pan_delta"); ok && deltaPan != 0 && math.Abs(deltaPan) <= 0.15 {
+		} else if deltaPan, ok := treatmentNumber(proposal.ParameterBounds, "delta_pan", "pan_delta"); ok && deltaPan != 0 && math.Abs(deltaPan) <= experiment.D1S1MaxAbsDeltaPan {
 			candidate.Operation = "track_pan_adjust"
 			candidate.DeltaPan = deltaPan
 		} else {
-			return improvementProposalBoundaryResponse(interaction, "已确认改善方向，但声像工具需要一个非零且不超过 +/-0.15 的 delta_pan，或 -1 到 +1 的 target_pan；没有修改工程。", "improvement_proposal_pan_bounds_missing"), true
+			return improvementProposalBoundaryResponse(interaction, fmt.Sprintf("已确认改善方向，但声像工具需要一个非零且不超过 %s 的 delta_pan，或 -1 到 +1 的 target_pan；没有修改工程。", experiment.D1S1PanDoseRangeText()), "improvement_proposal_pan_bounds_missing"), true
 		}
 	case agentprotocol.ImprovementActionDomainStaticEQ:
 		// D2-1: the admitted typed action (frequency/band/Q) stays
 		// authoritative on the experiment admission; this route only carries
 		// the bounded band gain so the mix tick mirrors the track_gain gate.
 		gainDB, ok := treatmentNumber(proposal.ParameterBounds, "gain_db")
-		if !ok || gainDB == 0 || math.Abs(gainDB) > 2 {
-			return improvementProposalBoundaryResponse(interaction, "已确认改善方向，但静态 EQ 工具需要一个非零且不超过 +/-2 dB 的明确 gain_db；没有修改工程。", "improvement_proposal_static_eq_bounds_missing"), true
+		if !ok || gainDB == 0 || math.Abs(gainDB) > experiment.D1S1MaxAbsDeltaDB {
+			return improvementProposalBoundaryResponse(interaction, fmt.Sprintf("已确认改善方向，但静态 EQ 工具需要一个非零且不超过 %s 的明确 gain_db；没有修改工程。", experiment.D1S1DBDoseRangeText()), "improvement_proposal_static_eq_bounds_missing"), true
 		}
 		candidate.Operation = d1StaticEQKind
 	case d1BroadbandCompressionDomain:
 		// D2-1.5: same mirror for the bounded broadband threshold move; the
 		// admitted typed action stays authoritative on the experiment admission.
 		thresholdDB, ok := treatmentNumber(proposal.ParameterBounds, "threshold_db")
-		if !ok || thresholdDB == 0 || math.Abs(thresholdDB) > 2 {
-			return improvementProposalBoundaryResponse(interaction, "已确认改善方向，但宽带压缩工具需要一个非零且不超过 +/-2 dB 的明确 threshold_db；没有修改工程。", "improvement_proposal_broadband_compression_bounds_missing"), true
+		if !ok || thresholdDB == 0 || math.Abs(thresholdDB) > experiment.D1S1MaxAbsDeltaDB {
+			return improvementProposalBoundaryResponse(interaction, fmt.Sprintf("已确认改善方向，但宽带压缩工具需要一个非零且不超过 %s 的明确 threshold_db；没有修改工程。", experiment.D1S1DBDoseRangeText()), "improvement_proposal_broadband_compression_bounds_missing"), true
 		}
 		candidate.Operation = d1BroadbandCompressionKind
 	}

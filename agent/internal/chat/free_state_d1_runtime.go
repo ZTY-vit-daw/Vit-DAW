@@ -136,7 +136,7 @@ func d1TrackGainPlan(loop freeStateReasoningLoop, candidate agentloop.PendingMix
 	if err := validateD1TierAdmission(loop.Experiment.Admission); err != nil {
 		return orchestration.FrozenPlan{}, err
 	}
-	if candidate.Operation != experiment.D1S1ActionKind || strings.TrimSpace(candidate.TrackID) == "" || candidate.DeltaDB == 0 || math.Abs(candidate.DeltaDB) > 2 {
+	if candidate.Operation != experiment.D1S1ActionKind || strings.TrimSpace(candidate.TrackID) == "" || candidate.DeltaDB == 0 || math.Abs(candidate.DeltaDB) > experiment.D1S1MaxAbsDeltaDB {
 		return orchestration.FrozenPlan{}, fmt.Errorf("D1-S1 requires one bounded track_gain_adjust")
 	}
 	admittedDelta, ok := treatmentNumber(loop.Experiment.Admission.TypedAction, "delta_db")
@@ -200,8 +200,8 @@ func d1StaticEQPlanWithBinding(loop freeStateReasoningLoop, candidate agentloop.
 		return orchestration.FrozenPlan{}, fmt.Errorf("D2-1 requires one bounded static_eq_band_adjust")
 	}
 	gainDB, ok := treatmentNumber(loop.Experiment.Admission.TypedAction, "gain_db")
-	if !ok || gainDB == 0 || math.Abs(gainDB) > 2 {
-		return orchestration.FrozenPlan{}, fmt.Errorf("D2-1 requires one bounded band gain move within +/-2 dB")
+	if !ok || gainDB == 0 || math.Abs(gainDB) > experiment.D1S1MaxAbsDeltaDB {
+		return orchestration.FrozenPlan{}, fmt.Errorf("D2-1 requires one bounded band gain move within %s", experiment.D1S1DBDoseRangeText())
 	}
 	targetID := firstStringFromMap(loop.Experiment.Admission.TargetRef, "id", "track_id")
 	if candidate.TrackID != targetID {
@@ -249,7 +249,7 @@ func d1TrackPanPlan(loop freeStateReasoningLoop, candidate agentloop.PendingMixT
 	if !ok || spec.ActionDomain != d1PanDomain || spec.ActionKind != d1PanKind {
 		return orchestration.FrozenPlan{}, fmt.Errorf("FAM3-S1 pan plan requires a pan admission")
 	}
-	if candidate.Operation != d1PanKind || strings.TrimSpace(candidate.TrackID) == "" || candidate.DeltaPan == 0 || math.Abs(candidate.DeltaPan) > 0.15 {
+	if candidate.Operation != d1PanKind || strings.TrimSpace(candidate.TrackID) == "" || candidate.DeltaPan == 0 || math.Abs(candidate.DeltaPan) > experiment.D1S1MaxAbsDeltaPan {
 		return orchestration.FrozenPlan{}, fmt.Errorf("FAM3-S1 requires one bounded track_pan_adjust")
 	}
 	admittedDelta, ok := treatmentNumber(loop.Experiment.Admission.TypedAction, "delta_pan")

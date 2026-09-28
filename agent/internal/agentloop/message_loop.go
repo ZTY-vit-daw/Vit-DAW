@@ -19,6 +19,7 @@ import (
 	"vit-daw-agent/internal/contextruntime"
 	"vit-daw-agent/internal/epm"
 	executorpkg "vit-daw-agent/internal/executor"
+	"vit-daw-agent/internal/experiment"
 	"vit-daw-agent/internal/llm"
 	"vit-daw-agent/internal/logx"
 	"vit-daw-agent/internal/mixboard"
@@ -2781,7 +2782,7 @@ func messageLoopDeterministicGainPendingAfterObservation(state *runState) (strin
 		return "", false
 	}
 	delta, ok := messageLoopImplicitGainDeltaFromText(state.input.UserText)
-	if !ok || delta == 0 || mathAbs(delta) > 2 {
+	if !ok || delta == 0 || mathAbs(delta) > experiment.D1S1MaxAbsDeltaDB {
 		return "", false
 	}
 	trackID := firstNonEmpty(
@@ -3548,7 +3549,7 @@ func messageLoopMixTreatmentPendingFromTickProposal(state *runState, call planne
 	switch operation {
 	case "track_gain_adjust":
 		delta, ok := firstNumericMapValue(args, "delta_db", "db_delta", "gain_delta_db", "volume_delta_db")
-		if !ok || delta == 0 || mathAbs(delta) > 2 {
+		if !ok || delta == 0 || mathAbs(delta) > experiment.D1S1MaxAbsDeltaDB {
 			return nil
 		}
 		treatment.ActionKind = "gain_balance"
@@ -3556,7 +3557,7 @@ func messageLoopMixTreatmentPendingFromTickProposal(state *runState, call planne
 		treatment.Target = map[string]any{"delta_db": delta}
 	case "track_pan_adjust":
 		delta, ok := firstNumericMapValue(args, "delta_pan", "pan_delta")
-		if !ok || delta == 0 || mathAbs(delta) > 0.15 {
+		if !ok || delta == 0 || mathAbs(delta) > experiment.D1S1MaxAbsDeltaPan {
 			return nil
 		}
 		treatment.ActionKind = "pan_balance"
@@ -4296,7 +4297,7 @@ Rules:
 - For Chinese acoustic observation replies, use natural-language sections in this order: 结论、证据、限制、建议. Keep the evidence human-readable, such as "来自 L3 频段、声像和响度分析"; do not expose schema names, source/render revision strings, raw evidence_ref lists, raw JSON, waveform arrays, tile payloads, or internal IDs unless the user explicitly asks for technical details.
 - Treat deep/slow packages as optional. If they are missing, pending, partial, or blocked, say what uncertainty remains and base suggestions only on available evidence.
 - If acoustic_package_status.v0 shows l3_deep building or partial, reply in Chinese with the available L1 facts, the L3 feature status, tile/coverage progress when present, and say full-song band/stereo judgement is not reliable yet. Do not create pending actions or ask to continue executing for read-only observation.
-- For B1 gain-staging fader unity reset, use track.group.apply_control with mode:absolute and db:0 after confirmation; this is an engineering state reset, not a B2 small mix tick, and is not limited to +/-2 dB.
+- For B1 gain-staging fader unity reset, use track.group.apply_control with mode:absolute and db:0 after confirmation; this is an engineering state reset, not a B2 small mix tick, and is not limited by the bounded mix-tick dose ceiling.
 - B2 whole-project static balance and B3 whole-project pan layout are owned by Project-aware Capability Runtime v1 before AgentLoop. If either request reaches this loop, do not create a pending plan, do not issue gain/pan mutations, and do not emulate the capability with local mix ticks; return a concise routing failure so the request can be retried through the v1 PlanningSession path.
 - For local gain/pan moves outside B2 whole-project static balance, keep each action to one safe small step or one clearly coupled small move. After confirmation use mix.propose_tick then mix.apply_tick; do not call track.volume or track.pan directly.
 - For a simple concrete gain/pan move that v1 can execute as one acoustic mix tick, ask for confirmation in normal user-facing text with the concrete small amount; do not append mix_treatment_pending for that tick. The local runtime will turn the confirmed move into mix.propose_tick/mix.apply_tick.

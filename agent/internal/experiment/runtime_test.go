@@ -51,7 +51,7 @@ func TestD1S1AdmissionRequiresSingleBoundedTrackGainAction(t *testing.T) {
 		{"wrong action", func(a *Admission) { a.TypedAction["action_kind"] = "track_pan_adjust" }},
 		{"budget above one", func(a *Admission) { a.ExperimentBudget = 2 }},
 		{"attempts above one", func(a *Admission) { a.DiagnosticDoseBounds["max_action_attempts"] = 2 }},
-		{"unbounded delta", func(a *Admission) { a.DiagnosticDoseBounds["delta_db"] = -3.0 }},
+		{"unbounded delta", func(a *Admission) { a.DiagnosticDoseBounds["delta_db"] = -D1S1MaxAbsDeltaDB - 3.0 }},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
