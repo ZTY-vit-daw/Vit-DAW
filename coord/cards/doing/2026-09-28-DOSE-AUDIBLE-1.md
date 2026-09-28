@@ -21,3 +21,12 @@
 - 约束：只放宽上限，不改准入/求值/回退/补偿语义（`free_state_d1_runtime.go:143/:256` 的 0.0001 是回读一致性校验，不动）；§11 无持久化字段（纯常量）；提交显式列文件+推 `port/dose-audible-1` 分支+coord 卡状态直推 main（仅 coord/ 变更）+切回 main。
 - 验收标准：边界测试绿+全量 0 FAIL+真栈 run exit 0+残留 grep 清单核验（文案零 "+/-2" 残留）
 - 停止条件：某锚点的 ±2/±0.15 是安全契约锁定而非剂量字面（放宽会破坏既有语义）→ 该锚点实证上交，不硬改
+
+---
+
+## 领取
+
+- 领取时间：2026-09-28（执行侧会话开工）
+- 领取时 HEAD：`8687dcbbbaa44b3b3d7ede6c420981787c23b4b0`（= origin/main，0 behind / 0 ahead）
+- 领取时 status：`M VitApp/Workspace/default_project.xml`（VitHeadlessServer 冒测写入的运行时工程状态，领取前已存在；不属本卡 diff，不丢弃不提交）
+- 执行分支：`port/dose-audible-1`
