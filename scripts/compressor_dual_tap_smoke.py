@@ -124,13 +124,31 @@ def artifact_path(workspace: Path, pair_id: str) -> Path:
     return workspace / "Artifacts" / "com_evidence" / pair_id / f"{pair_id}.json"
 
 
+def valid_dual_tap_evidence_ref(ref: str, pair_id: str) -> bool:
+    """REFSCHEMA-D2 grace-period dual shape: legacy literal or vit:// L0 form.
+
+    Mirrors agent/internal/com validCompressorDualTapEvidenceRef: legacy form
+    must equal the literal prefix+pair_id; vit:// form requires the exact kind,
+    snapshot==pair_id, and a present hash segment (window/hash must not be
+    omitted — G1 ruling #3)."""
+    if ref == f"dad.compressor_dual_tap:{pair_id}":
+        return True
+    if not ref.startswith("vit://dad.compressor_dual_tap/"):
+        return False
+    body, sep, frag = ref.partition("#")
+    if not sep or not frag:
+        return False
+    snapshot = body.rpartition("@")[2]
+    return "@" in body and snapshot == pair_id
+
+
 def validate_receipt(receipt: dict[str, Any], pair_id: str,
                      artifact: Path) -> list[dict[str, Any]]:
     alignment = receipt.get("latency_alignment") if isinstance(receipt.get("latency_alignment"), dict) else {}
     quality = receipt.get("quality_evidence") if isinstance(receipt.get("quality_evidence"), dict) else {}
     checks: list[tuple[str, bool]] = [
         ("terminal_ready", receipt.get("status") == "ready" and receipt.get("reason") == "ok"),
-        ("pair_identity", receipt.get("pair_id") == pair_id and receipt.get("evidence_ref") == f"dad.compressor_dual_tap:{pair_id}"),
+        ("pair_identity", receipt.get("pair_id") == pair_id and valid_dual_tap_evidence_ref(str(receipt.get("evidence_ref") or ""), pair_id)),
         ("tap_order", receipt.get("input_tap") == "compressor_input" and receipt.get("output_tap") == "compressor_output"),
         ("exact_window", int(receipt.get("end_sample") or 0) > int(receipt.get("start_sample") or -1)),
         ("scope_identity", all(str(receipt.get(key) or "").strip() for key in ("plugin_instance_id", "plugin_position", "chain_hash", "processor_state_hash", "scope_revision", "topology_generation"))),
