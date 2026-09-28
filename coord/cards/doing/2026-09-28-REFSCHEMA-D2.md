@@ -10,3 +10,8 @@
 - 文件域：`agent/internal/com`（两文件+测试）、VitApp 三生成点、VitApp/Tests（若需样例更新）；越域即停。
 - 约束：宽限期内 legacy 解析路径保留；agentprotocol 零改动（ParseRef 现成）；提交显式列文件+推 port/refschema-d2+coord 直推 main+切回 main。
 - 停止条件：ParseRef 对该 kind 的 legacy 形态不满足 snapshot==PairID 校验所需信息 → 实证上交
+- 领取：2026-09-28 20:56 / a1df2d29681c61d85d370973cbf158ade8db811d（HEAD==origin/main，无漂移） / port/refschema-d2
+  - 领取时 `git status --short`：仅 `M VitApp/Workspace/default_project.xml`（领取前已有运行时工程状态改动，非本卡产物，不提交、不丢弃）
+  - 实勘行号漂移：evidence.go:150 / paired.go:168 无漂移；内核三处 526→534、953→964、238→243
+  - 实勘发现：`makeCompressorDualTapRef` builder 在 D1 未落地（T5 黄金样例经 formatEvidenceRef 直测锁定语义）——本卡在 RefSchema.h/.cpp 按 D1 同族 pattern 补该 builder
+- 回执：（待回填）
