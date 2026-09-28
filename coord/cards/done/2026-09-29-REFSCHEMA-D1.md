@@ -26,3 +26,4 @@
   - **diff stat**：8 文件 +623/-18（RefSchema.h+90/RefSchema.cpp+97 新增；L3AcousticAnalyzer 32 行/VPC 19 行/CompressorDualTapEvidence 7 行/两 CMakeLists 44 行/RefSchemaTests.cpp+352 新增）
   - **文法镜像**：RefSchema.h/cpp 注释指向 `agent/internal/agentprotocol/refschema.go` 权威源；escapeRefSegment 按 UTF-8 字节转义保留字符 `%/@#:`（大写 hex，镜像 escapeSegment）；window/hash 禁省略（ruling #2/#3：t=all 显式+`#-` 未 CAS 化）；snapshot 段 legacy 值直填（G1 ruling 明示）
   - **边界声明**：主 VitApp 目标全链接构建未跑（改动 3 源文件+新文件已在同编译器 ctest 目标全量编译链接验证；主 CMake 仅文件列表追加）；真栈烟测不在本卡门（卡面门=ctest 双配置+go 全量）；harness/acousticpackage/mom/mixboard 测试中 dad 前缀均为 fixture 自造自洽，非内核输出断言，零关联
+- 验收：**pass（四处族迁移+D2 正当挂起）（2026-09-28 决策侧，rulings/2026-09-28-REFSCHEMA-D1-pass.md）**——ctest 双配置决策侧独立复跑 10/10+10/10；D2 挂起证据亲核（com 两处前缀等值断言 sed 直读）；实勘增益采信（漏列第三处 D2 生成点+D5 扩至 7 处）；agent 零文件改动亲核；红先行 9 FAIL 形态真实；主 VitApp 全链接构建记为后续验证项不阻塞。**REFSCHEMA-D2 消费方升级卡已入池**（P2）收官 D 类。实现 cherry-pick 2fe21671→1524cfb5。
