@@ -284,13 +284,13 @@ var d1s1Domains = []D1S1DomainSpec{
 		AdmissionValueKey:        "threshold_db",
 		AdmissionPassthroughKeys: []string{"plugin_identifier"},
 		TargetSemantics:          "delta_db",
-	// The domain's certified semantic axis (FAM1-S1 ruling 2): a
-	// free-state admitted de_esser experiment rides the semantic dynamic
-	// chain on sibilance_reduction, not on the parameter-centric axis an
-	// LLM would freeze from the literal threshold parameter name.
-	SemanticIntentFamily:   "de_esser",
-	SemanticIntentCoverage: []string{"sibilance_reduction"},
-	AppliedReplyText:       "FAM1-S1 齿音处理器阈值已应用并回读验证。动作后新证据已单独记录；声学实质性、目标响应与人工判定仍待完成。",
+		// The domain's certified semantic axis (FAM1-S1 ruling 2): a
+		// free-state admitted de_esser experiment rides the semantic dynamic
+		// chain on sibilance_reduction, not on the parameter-centric axis an
+		// LLM would freeze from the literal threshold parameter name.
+		SemanticIntentFamily:   "de_esser",
+		SemanticIntentCoverage: []string{"sibilance_reduction"},
+		AppliedReplyText:       "FAM1-S1 齿音处理器阈值已应用并回读验证。动作后新证据已单独记录；声学实质性、目标响应与人工判定仍待完成。",
 	},
 	{
 		// transient_attack_adjusts one transient-shaper instance's attack by one
@@ -509,13 +509,13 @@ var d1s1Domains = []D1S1DomainSpec{
 		AppliedReplyText:       "FAM6-S1 多段压限频段阈值已应用并回读验证。动作后新证据已单独记录；声学实质性、目标响应与人工判定仍待完成。",
 	},
 	{
-	// track_pan_adjust moves one track's stereo pan by one bounded step.
-	// FAM3-S1 admits it on the native (non-plugin) path with the same
-	// single-mutation tightness as track_gain: pan is normalized [-1,+1]
-	// (left negative, right positive) — not dB — and the bounded step is the
-	// shared audible-priority ceiling (D1S1MaxAbsDeltaPan pan units) matching
-	// the B-side triple gate (pending_protocol/message_loop/proposal
-	// routing). The write rides
+		// track_pan_adjust moves one track's stereo pan by one bounded step.
+		// FAM3-S1 admits it on the native (non-plugin) path with the same
+		// single-mutation tightness as track_gain: pan is normalized [-1,+1]
+		// (left negative, right positive) — not dB — and the bounded step is the
+		// shared audible-priority ceiling (D1S1MaxAbsDeltaPan pan units) matching
+		// the B-side triple gate (pending_protocol/message_loop/proposal
+		// routing). The write rides
 		// the kernel's set_pan twin of set_volume through the track's volume
 		// plugin: no plugin chain, no whitelist, no attestation. Out-of-range
 		// targets are pre-rejected fail-closed by the port's Preflight (the
