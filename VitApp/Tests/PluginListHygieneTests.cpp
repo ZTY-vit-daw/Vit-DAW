@@ -63,41 +63,35 @@ void runStartupCleanupTest (const juce::File& directory)
     list.addToBlacklist (directory.getChildFile ("ghost.vst3").getFullPathName());
     list.addToBlacklist (realFile.getFullPathName());
     list.addToBlacklist ("weird-blacklist-entry");
+    list.addToBlacklist ("D:\\Gone\\pc-blacklist.vst3");
 
     VIT_CHECK (list.getNumTypes() == 5);
-    VIT_CHECK (list.getBlacklistedFiles().size() == 3);
+    VIT_CHECK (list.getBlacklistedFiles().size() == 4);
 
-    // Decision-level guard: only absolute-path VST3 entries are validated.
-    // JUCE's File::isAbsolutePath recognises "X:" drive letters only under
-    // JUCE_WINDOWS, so a PC-transplant path is path-validated (and therefore
-    // removable) on Windows only; on mac the gate conservatively keeps the
-    // identifier it cannot classify. Production semantics are unchanged —
-    // these expectations just make the suite platform-accurate (the suite
-    // was authored and first run on PC, FIX-KERNEL-HYGIENE-BUNDLE-1 mac run).
+    // Decision-level guard: only entries that carry a real filesystem path
+    // are validated. Windows drive-letter paths must be classified as paths
+    // on EVERY platform: a Settings.xml transplanted from PC carries them
+    // into a mac workspace where they can never exist, so the startup
+    // cleanup has to remove them there too. (The previous platform split
+    // kept 994 PC ghost entries invisible to every cleanup pass on mac —
+    // the blind spot behind the 2026-09-28 手测 rack_add_node failure.)
     VIT_CHECK (vit::pluginListEntryIsPathValidated (keptReal));
+    VIT_CHECK (vit::pluginListEntryIsPathValidated (ghostPcPath));
     VIT_CHECK (! vit::pluginListEntryIsPathValidated (builtIn));
     VIT_CHECK (! vit::pluginListEntryIsPathValidated (vst3NonPath));
-   #if JUCE_WINDOWS
-    VIT_CHECK (vit::pluginListEntryIsPathValidated (ghostPcPath));
     const int expectedTypesRemoved = 2;
     const int expectedTypesAfter = 3;
-   #else
-    VIT_CHECK (! vit::pluginListEntryIsPathValidated (ghostPcPath));
-    const int expectedTypesRemoved = 1;
-    const int expectedTypesAfter = 4;
-   #endif
 
     const auto report = vit::cleanStalePluginListEntries (list);
 
     VIT_CHECK (report.typesBefore == 5);
     VIT_CHECK (report.typesRemoved == expectedTypesRemoved);
-    VIT_CHECK (report.blacklistBefore == 3);
-    VIT_CHECK (report.blacklistRemoved == 1);
+    VIT_CHECK (report.blacklistBefore == 4);
+    VIT_CHECK (report.blacklistRemoved == 2);
     VIT_CHECK (report.removedTypePaths.contains (directory.getChildFile ("ghost.vst3").getFullPathName()));
-   #if JUCE_WINDOWS
     VIT_CHECK (report.removedTypePaths.contains ("C:\\Program Files\\Ghost\\g.vst3"));
-   #endif
     VIT_CHECK (report.removedBlacklistPaths.contains (directory.getChildFile ("ghost.vst3").getFullPathName()));
+    VIT_CHECK (report.removedBlacklistPaths.contains ("D:\\Gone\\pc-blacklist.vst3"));
 
     VIT_CHECK (list.getNumTypes() == expectedTypesAfter);
     VIT_CHECK (list.getTypeForFile (realFile.getFullPathName()) != nullptr);
