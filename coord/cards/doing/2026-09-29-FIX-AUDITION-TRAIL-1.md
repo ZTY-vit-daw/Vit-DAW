@@ -12,6 +12,6 @@
 - 文件域：agent/webui/src/（audition.ts / eventPolling.ts / App.tsx 渲染段及测试）；若取证证明重复源在 agent 事件下发侧（chat/journal 面），停下上交证据由决策侧定扩域。
 - 验收标准：npm run test 全绿 + npm run build 通过 + E2E-WEBUI-1 渲染烟测含"处理中轨迹单条+结束定型"断言 exit 0 + 手测复现路径回归（用户或决策侧复验）。
 - 停止条件：重复源在 agent 事件侧（webui 域外）→ 实证上交。
-- 领取：（时间 / origin/main hash / 分支名）
+- 领取：2026-09-29 21:47 +0800 / origin/main=5c628e4753d848baa0e5a5a7aca48d09f077d42e / port/fix-audition-trail-1
 - 回执：（commit hash / 取证结论 / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
