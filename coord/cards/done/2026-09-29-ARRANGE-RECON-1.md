@@ -14,3 +14,4 @@
 - 停止条件：常规勘察止损
 - 领取：2026-09-29 18:24（本地）/ origin/main=bcab6e7dba46dcea68b160e1c1ef7f773fe39c1b / port/arrange-recon-1（worktree D:/Vit_DAW_worktrees/arrange-recon-1）
 - 回执：勘察时代码锚点 HEAD=bcab6e7d（=领取时 origin/main；领取 commit 68d7bad5 仅动卡面，零代码改动）；报告=coord/runs/ARRANGE-RECON-1/report.md（六节全落+逐锚点行号+三态结论+§6 选型总表+8 条设计裁定输入）；完成提交=port/arrange-recon-1 分支本 commit（报告+done mv 同批）。端测边界声明：本卡为只读勘察，未运行真实栈——内核命令面/tracktion 渲染委托路径结论为源码静态勘察（报告边界声明已列）；外部候选事实为 2026-09-29 web 快照（来源链接在报告 §1.4/§2.1/§2.2）；无任何代码改动，不适用烟测门槛。
+- 验收：pass（2026-09-29，决策侧）——rulings/2026-09-29-ARRANGE-RECON-1-pass.md；报告全文核读+承重锚点抽查 8 处全部亲核相符；合入=cherry-pick 44d0cfe5（本卡 report commit 50f3df7a）；执行侧 worktree D:/Vit_DAW_worktrees/arrange-recon-1 与 port/arrange-recon-1 分支由决策侧验收后清理。
