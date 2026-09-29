@@ -29,8 +29,8 @@
 
 | 目标 | 线 | 卡链 | 引擎 |
 |---|---|---|---|
-| G-A 论文地基 | queryengine 段 | IMPL-B →（合入后）IMPL-C → IMPL-D；CCB-PARAM 并行 | GLM 亲自 / flash（CCB-PARAM） |
-| G-A 论文地基 | L2 余段 | 按池序 | Mac 端消化 |
+| G-A 系统能力主线（~~论文地基~~，2026-09-29 下午更正：依 09-26 裁定论文主体论证在 9 月基线已完整，新能力为增量章节） | queryengine 段 | IMPL-B →（合入后）IMPL-C → IMPL-D；CCB-PARAM 并行 | GLM 亲自 / flash（CCB-PARAM） |
+| G-A 系统能力主线 | L2 余段 | 按池序 | Mac 端消化 |
 | G-B 交互主张 | 宏组件 | MACRO-RECON-1 → DESIGN（决策侧亲自）→ IMPL-A（agent 侧）→ IMPL-B（webui 侧+最小渲染烟测）→ 端测收口 | RECON 只读可交 codex/Mac/GLM；IMPL 分级 DESIGN 后定 |
 | G-C 答辩演示 | DEFENSE-SHOW-1 | 挂 11 月中评估点（输入=G-A/G-B 完成度） | 设计=决策侧 |
 | G-D 论文实验 | 论文线 | 绑"目标集闭合"版本；PAPER-EXP-ADAPT-1+EXTRACT-1 入池时点=宏组件 IMPL 收口后；K1-K7 拍板同步后移 | 届时定 |
