@@ -21,3 +21,4 @@
   - 工件：port/paper-exp-adapt-1 `7a55a97b`+`14aaa984`（coord/runs/paper-exp/：主报告 PAPER-EXP-ADAPT-1_REPORT.md+四组工件）；真栈泊位声明在主报告 §0（本会话独占栈 19:31–19:45，GUARD-1 全程零占栈，authority 已复原 manual_confirmation）。
   - 上交点：决策侧三选项（主报告 §4.4）——①开 runner 门实验适配卡（重校准地板/fixture-set 作用域化，属断言变更须立卡）；②PILOT 例替换 p05（无控制对照，仅记录）；③改素材（违定稿纪律，仅记录）。
 - 解锁注记（2026-09-29 晚，决策侧）：重锚 tag 已切定 **experiment-baseline-2026-09-29**=4b695354（含 IMPL-A/B/C 全链+今日四卡验收态；queryengine 属新模块非被测对象，符合定位决策 §一.1"新模块可在树中"）——**依赖满足，随时可领**。材料仓实锚=`C:\Users\timoz\Documents\毕业设计`（experiments/out/suite_v1_lm/ 七例已核在）。若 PILOT 开跑前混音诊断调控链再有实现改动，由决策侧裁定是否前移 tag；PILOT 数据产生后 tag 冻结不再动。
+- 验收：blocked 处置（2026-09-29，决策侧）——rulings/2026-09-29-PAPER-EXP-ADAPT-1-disposition.md；目标 1/2/3 采信合入（工件 cherry-pick 8943d1d1+4492302b）；目标 4 采纳选项①转新卡 RUNNER-GATE-ADAPT-1（池序 2 P0）；选项②③不采；泊位亲核复原（端口/进程全清）；tag 不动。
