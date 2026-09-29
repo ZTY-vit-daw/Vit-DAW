@@ -1,0 +1,18 @@
+# FIX-PLUGINLIST-WINPATH-BLINDSPOT-1：插件表卫生清理跨平台路径门——Windows 盘符形态 mac 盲点（2026-09-28 手测 rack_add_node 失败根因之一）
+
+- 优先级 / 预估 / 依赖：P1（mac 演示链阻塞面，已现场解堵；本卡收代码与证据）/ 0.5 天 / FIX-KERNEL-PLUGINLIST-HYGIENE-1（其盲点缺陷的反转）
+- 模型分级：L3 / 决策+修复同会话（用户直令"可以进行修复""按建议顺序执行"）
+- **背景（2026-09-28 两次手测 EQ `eq:instantiate` → `rack_add_node` 失败全链取证，工件 `~/Documents/vit-pluginlist-fix-20260928/`）**：
+  - **晨间腿（历史缺陷面）**：内核 `knownPluginList64` 为 PC 994 条 `C:\` 库——9/26 run1c 曾把 719 条 mac 条目真落表（7168B→301683B 双证），9/27 提交活动窗口内遭 git 级回卷回 PC 提交版；agent 白名单（`~/.vit/free_state_experiment_plugins.json`，FIX-PCA-AUTOSWEEP-1 mac 产物）下发 mac 路径哈希 identifier（`VST3-Q10 Stereo-10456661-3a8f251e`），内核表内同名条目为 Windows 路径哈希（`…-695648d-…`），`PluginRackControlService.cpp:1153` 整串精确匹配必拒。且启动卫生清理（65cbfc18，部署二进制 5fb4585b 已含）对 994 条清 0 条：`pluginListEntryIsPathValidated` 的校验门 `juce::File::isAbsolutePath` 平台相关（tracktion_engine/…/juce_File.cpp:420-430，mac 构建仅认 `/` 与 `~`），`C:\` 盘符形态永不被分类为路径→永不被存在性校验→**盲点**。该盲点曾被 FIX-KERNEL-HYGIENE-BUNDLE-1 mac run 以"#if JUCE_WINDOWS 平台条件期望"方式**编码为测试预期**（platform-accurate 决定），本卡反转该决定：盘符路径离 Windows 必不存在，正是 HYGIENE 卡"跨平台移植 Settings.xml 清理"目标对象，mac 上保守保留是缺陷不是语义。
+  - **午间腿（修复会话引入事故，如实记录）**：修复会话将未经验证的 `build/app-release` Release 二进制部署演示路径（违反 §5 端侧烟测门槛），首次扫描主壳 `WaveShell1-VST3 17.1.vst3` 探测秒败→JUCE 按加载失败拉黑（`<BLACKLISTED>`）+死蹬 pedal 残骸（FF FE BOM 空写）→后续 4 次重扫静默跳过（`completed plugins=1`，9/23 在案形态重演）。处置：回滚 5fb4585b（sha256 核对）+清黑名单/pedal+离线真栈 `kernel_pluginlist_hygiene_smoke_mac.sh --leg D` 复验。教训入回执：**演示路径二进制替换必须先过 leg D**。
+- **改动（本卡 diff，+41/−22 两文件）**：
+  1. `VitApp/Source/Service/PluginListHygiene.cpp`：新增 `pluginListCarriesAbsolutePath`（`File::isAbsolutePath` ∨ 盘符形态 `字母+:`），类型条目校验门与黑名单 walk 共用；`defaultPluginPathExists` 非 Windows 构建对盘符形态短路返回 false（离 Windows 必不存在，且避免 `juce::File` 对"相对路径"的 Debug 断言刷屏）。
+  2. `VitApp/Tests/PluginListHygieneTests.cpp`：删除 `#if JUCE_WINDOWS` 平台分歧期望，`ghostPcPath` 全平台断言被校验/被清除（expectedTypesRemoved=2 全平台）；新增黑名单盘符路径用例（`D:\Gone\pc-blacklist.vst3`，blacklistBefore=4/blacklistRemoved=2）。
+- **回执**：
+  - 红先行（mac 实证）：`PluginListHygieneTests.cpp:79: check failed: vit::pluginListEntryIsPathValidated (ghostPcPath)`，EXIT=134——盲点单元级复现。
+  - 绿：`PluginListHygieneTests: all checks passed`，EXIT=0；清理摘要首项 `C:\Program Files\Ghost\g.vst3` 于 mac 被清。收尾 MessageListener 断言+DynamicObject 泄漏打印为该测试在案既有形态（EXIT 不受影响）。构建树 `build/tests-debug`（Unix Makefiles，Debug）。
+  - 真栈环境腿：`kernel_pluginlist_hygiene_smoke_mac.sh --leg D`，run `hygiene_mac_20260928-112210`，`HYGIENE_MAC_VERDICT all_green` EXIT=0——`D_full_scan state=completed plugin_count=719`、`D_rack_add status=ok plugin_id=1040`（mac 形态 identifier `VST3-C1 comp Mono-10456661-65e94c5e` 走内核 knownPluginList 解析路径）。**边界声明：该腿所用演示二进制 5fb4585b 不含本卡修复，仅证明环境/回滚/命令链健康；含修复的演示二进制重建+leg D 复验=待办腿④。**
+  - 现场处置记录（不入库）：清空 knownPluginList64（994→0，按 9/23 流程备份）；回滚二进制 5fb4585b（存证 `VitApp.binary.bak-20260926-debug`）；可疑 Release 二进制隔离存证（`VitApp.release-suspect-20260928` + `.sha256`）；leg D 后 Settings.xml 为冷表（1 条）+无黑名单——**扫描持久化未发生**（SIGTERM 1s 干净退出未落盘；9/26 run1c 落表为引擎退出路径偶得行为、非设计保证，持久化卡另开）。
+  - 待办腿：①PC 回归腿（本测试 PC 构建 ctest）；②leg1 配方（仓外 Debug 树）重建演示二进制（含本卡修复）+ leg D 复验后替换演示路径（中期检查后执行，期间演示路径锁定 5fb4585b）；③app-release Release 构建主壳秒败调查（ARA 壳正常、主壳不行，原因未明）；④扫描持久化+Settings.xml 双端结构（git 跟踪文件回卷风险，9/27 已实际发生一次）另开决策卡。
+- 领取：2026-09-28 / main `55c9d8b9554302d90dd34db64e6886ab73eec23f` / 工作树领取态：本卡两文件 diff + 运行时残留（`VitApp/Workspace/Settings/Settings.xml`、`default_project.xml`）+ 未跟踪（`.zcodeignore`、`VitApp/Workspace/Artifacts/`、`coord/runs/FIX-PCA-AUTOSWEEP-1/20260925_mac/`）——运行态与未跟踪项不混入本卡提交。
+- 验收：**待**——单测红绿+环境腿已齐；收口条件=PC 回归腿 ①过 + 重建部署腿 ②（leg D all_green）过 + 决策侧代码复核。mac 侧中期检查（2026-09-29）前不动演示面。
