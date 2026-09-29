@@ -50,3 +50,18 @@ func TestMixReportIsAllowedInReadOnlyObservation(t *testing.T) {
 		t.Fatal("mix.report should be a read-only Mixboard projection")
 	}
 }
+
+func TestRefQueryAndRefDiffAreAllowedInReadOnlyObservation(t *testing.T) {
+	if !messageLoopReadOnlyAllowedTool(planner.ToolCall{Tool: "ref.query"}) {
+		t.Fatal("ref.query should be a read-only reference query tool")
+	}
+	if !messageLoopReadOnlyAllowedTool(planner.ToolCall{Tool: "ref_query"}) {
+		t.Fatal("ref_query should be a read-only reference query tool")
+	}
+	if !messageLoopReadOnlyAllowedTool(planner.ToolCall{Tool: "ref.diff"}) {
+		t.Fatal("ref.diff should be a read-only reference diff tool")
+	}
+	if !messageLoopReadOnlyAllowedTool(planner.ToolCall{Tool: "ref_diff"}) {
+		t.Fatal("ref_diff should be a read-only reference diff tool")
+	}
+}
