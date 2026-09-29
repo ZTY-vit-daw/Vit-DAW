@@ -27,14 +27,15 @@ func (h *Harness) prepareCCBMaskingObservation(ctx context.Context, cmd map[stri
 	if duration <= 0 {
 		return nil, fmt.Errorf("masking_analysis_requires_a_known_project_range")
 	}
+	startSeconds, endSeconds := maskingObservationWindow(cmd, duration)
 	collected, err := h.CollectL2RenderProbeBatch(ctx, L2RenderProbeBatchRequest{
 		SessionID:            strings.TrimSpace(sessionID),
 		GoalText:             firstNonEmpty(firstString(cmd, "goal_text", "goal"), "CCB masking-risk observation"),
 		TrackIDs:             trackIDs,
 		TapPoint:             "track_post_fader",
 		FeatureSnapshotPath:  mixboard.FeatureSnapshotPath(cmd),
-		StartSeconds:         0,
-		EndSeconds:           duration,
+		StartSeconds:         startSeconds,
+		EndSeconds:           endSeconds,
 		TailSeconds:          0,
 		RequireMaskingFrames: true,
 	})
@@ -63,6 +64,25 @@ func (h *Harness) prepareCCBMaskingObservation(ctx context.Context, cmd map[stri
 	}
 	writeMixboardMaskingMeasurementSnapshot(cmd, measurementMap)
 	return measurementMap, nil
+}
+
+// maskingObservationWindow 把 §2.6 observe time_window 解析为 masking 预备探测
+// 区间（v1 应用面）：seconds 标尺显式窗生效；samples 标尺与 "all"/缺省回退全
+// 窗（samples 应用随 query 侧窗口谓词落地，bundle limitation 如实记录边界）。
+func maskingObservationWindow(cmd map[string]any, duration float64) (float64, float64) {
+	row := mapAnyFromAny(cmd["time_window"])
+	if len(row) == 0 {
+		return 0, duration
+	}
+	if !strings.EqualFold(strings.TrimSpace(firstString(row, "units")), "seconds") {
+		return 0, duration
+	}
+	start := numberFromAny(row["start_seconds"])
+	end := numberFromAny(row["end_seconds"])
+	if start < 0 || end <= start {
+		return 0, duration
+	}
+	return start, end
 }
 
 func maskingObservationTracks(state map[string]any) ([]string, map[string]string) {

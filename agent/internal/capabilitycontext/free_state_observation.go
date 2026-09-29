@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 
 	"vit-daw-agent/internal/mixboard"
@@ -17,18 +18,32 @@ const (
 	FreeStateObservationReceiptSchema = "ccb_observation_receipt.v1"
 )
 
+// QUERY_ENGINE_V1_DESIGN §2.6 freshness_class 枚举（缺口 5）。
+const (
+	FreeStateFreshnessClassCurrentObservation = "current_observation"
+	FreeStateFreshnessClassPostAction         = "post_action"
+	FreeStateFreshnessClassMaterialReuse      = "material_reuse"
+)
+
+var FreeStateObservationFreshnessClasses = []string{
+	FreeStateFreshnessClassCurrentObservation,
+	FreeStateFreshnessClassPostAction,
+	FreeStateFreshnessClassMaterialReuse,
+}
+
 type FreeStateObservationView struct {
-	ViewID                 string                      `json:"view_id"`
-	Questions              []string                    `json:"questions"`
-	SupportedTargetKinds   []string                    `json:"supported_target_kinds"`
-	TemporalResolution     string                      `json:"temporal_resolution"`
-	Availability           string                      `json:"availability"`
-	CostLatencyClass       string                      `json:"cost_latency_class"`
-	QualityCeiling         string                      `json:"quality_ceiling"`
-	Limitations            []string                    `json:"limitations,omitempty"`
-	RequiredDependencies   []string                    `json:"required_dependencies,omitempty"`
-	DiagnosticDimensions   []string                    `json:"diagnostic_dimensions,omitempty"`
-	InterpretationGuidance *CCBInterpretationGuidance  `json:"interpretation_guidance,omitempty"`
+	ViewID                 string                     `json:"view_id"`
+	Questions              []string                   `json:"questions"`
+	SupportedTargetKinds   []string                   `json:"supported_target_kinds"`
+	TemporalResolution     string                     `json:"temporal_resolution"`
+	Availability           string                     `json:"availability"`
+	CostLatencyClass       string                     `json:"cost_latency_class"`
+	QualityCeiling         string                     `json:"quality_ceiling"`
+	Limitations            []string                   `json:"limitations,omitempty"`
+	RequiredDependencies   []string                   `json:"required_dependencies,omitempty"`
+	DiagnosticDimensions   []string                   `json:"diagnostic_dimensions,omitempty"`
+	SortableFields         []string                   `json:"sortable_fields,omitempty"`
+	InterpretationGuidance *CCBInterpretationGuidance `json:"interpretation_guidance,omitempty"`
 }
 
 type CCBInterpretationGuidance struct {
@@ -42,27 +57,51 @@ type CCBEvidencePattern struct {
 	Description string   `json:"description"`
 }
 
+// FreeStateObservationTimeWindow 是 observe 路径的 §2.3 双标尺观察窗（§2.6 缺口 1）：
+// nil = 默认全窗（"all"）；显式区间以 seconds（通用人类层）或 samples（权威层）
+// 计。应用面 v1 = masking 预备探测区间（seconds 标尺）；其余投影在内核窗口化
+// 落地前保持全窗（bundle limitation 如实记录）。
+type FreeStateObservationTimeWindow struct {
+	StartSeconds float64 `json:"start_seconds"`
+	EndSeconds   float64 `json:"end_seconds"`
+	Units        string  `json:"units,omitempty"`
+}
+
+// FreeStateObservationTopK 是 observe 路径的 §2.6 top_k 选择（缺口 4）：field
+// 必须 ⊆ 请求中声明了 SortableFields 的每个 view 的声明集，越界拒绝（不静默
+// 乱序）；k 与 max_items 独立（top_k 决定选哪些行，max_items 保持粗粒度闸）。
+type FreeStateObservationTopK struct {
+	Field string `json:"field"`
+	Dir   string `json:"dir,omitempty"`
+	K     int    `json:"k"`
+}
+
 type FreeStateObservationCatalog struct {
 	SchemaVersion string                     `json:"schema_version"`
 	Boundary      string                     `json:"boundary"`
 	TargetRef     mixboard.TargetRef         `json:"target_ref,omitempty"`
+	Dimension     string                     `json:"dimension,omitempty"`
+	Dimensions    []string                   `json:"dimensions,omitempty"`
 	Views         []FreeStateObservationView `json:"views"`
 	Exclusions    []string                   `json:"exclusions"`
 }
 
 type FreeStateObservationRequest struct {
-	SchemaVersion      string             `json:"schema_version"`
-	RequestID          string             `json:"request_id,omitempty"`
-	ObservationID      string             `json:"observation_id,omitempty"`
-	MixSessionID       string             `json:"mix_session_id,omitempty"`
-	ViewIDs            []string           `json:"view_ids"`
-	OriginalViewIDs    []string           `json:"-"`
-	TargetRef          mixboard.TargetRef `json:"target_ref,omitempty"`
-	FreshnessClass     string             `json:"freshness_class,omitempty"`
-	RequestedBy        string             `json:"-"`
-	Scope              string             `json:"-"`
-	MaxDisclosureBytes int                `json:"max_disclosure_bytes,omitempty"`
-	MaxItems           int                `json:"max_items,omitempty"`
+	SchemaVersion      string                          `json:"schema_version"`
+	RequestID          string                          `json:"request_id,omitempty"`
+	ObservationID      string                          `json:"observation_id,omitempty"`
+	MixSessionID       string                          `json:"mix_session_id,omitempty"`
+	ViewIDs            []string                        `json:"view_ids"`
+	OriginalViewIDs    []string                        `json:"-"`
+	TargetRef          mixboard.TargetRef              `json:"target_ref,omitempty"`
+	Targets            []mixboard.TargetRef            `json:"targets,omitempty"`
+	TimeWindow         *FreeStateObservationTimeWindow `json:"time_window,omitempty"`
+	TopK               *FreeStateObservationTopK       `json:"top_k,omitempty"`
+	FreshnessClass     string                          `json:"freshness_class,omitempty"`
+	RequestedBy        string                          `json:"-"`
+	Scope              string                          `json:"-"`
+	MaxDisclosureBytes int                             `json:"max_disclosure_bytes,omitempty"`
+	MaxItems           int                             `json:"max_items,omitempty"`
 }
 
 // FreeStateObservationAuditReceipt is the immutable audit projection for one
@@ -70,21 +109,24 @@ type FreeStateObservationRequest struct {
 // what the server actually attempted, so a later consumer can prove that no
 // acoustic view was added, removed, or inferred.
 type FreeStateObservationAuditReceipt struct {
-	SchemaVersion         string         `json:"schema_version"`
-	ReceiptID             string         `json:"receipt_id"`
-	RequestedBy           string         `json:"requested_by"`
-	ModelRequestedViewIDs []string       `json:"model_requested_view_ids"`
-	ActualExecutedViewIDs []string       `json:"actual_executed_view_ids"`
-	ViewSetMatches        bool           `json:"view_set_matches"`
-	Scope                 string         `json:"scope"`
-	Freshness             map[string]any `json:"freshness"`
-	ProjectBinding        map[string]any `json:"project_binding,omitempty"`
-	ProjectRevision       string         `json:"project_revision,omitempty"`
-	Status                string         `json:"status"`
-	RejectionReasons      []string       `json:"rejection_reasons,omitempty"`
-	RejectionScope        string         `json:"rejection_scope,omitempty"`
-	BlockingViewIDs       []string       `json:"blocking_view_ids,omitempty"`
-	NonBlockingViewIDs    []string       `json:"non_blocking_view_ids,omitempty"`
+	SchemaVersion         string                          `json:"schema_version"`
+	ReceiptID             string                          `json:"receipt_id"`
+	RequestedBy           string                          `json:"requested_by"`
+	ModelRequestedViewIDs []string                        `json:"model_requested_view_ids"`
+	ActualExecutedViewIDs []string                        `json:"actual_executed_view_ids"`
+	ViewSetMatches        bool                            `json:"view_set_matches"`
+	Scope                 string                          `json:"scope"`
+	Targets               []mixboard.TargetRef            `json:"targets,omitempty"`
+	TimeWindow            *FreeStateObservationTimeWindow `json:"time_window,omitempty"`
+	TopK                  *FreeStateObservationTopK       `json:"top_k,omitempty"`
+	Freshness             map[string]any                  `json:"freshness"`
+	ProjectBinding        map[string]any                  `json:"project_binding,omitempty"`
+	ProjectRevision       string                          `json:"project_revision,omitempty"`
+	Status                string                          `json:"status"`
+	RejectionReasons      []string                        `json:"rejection_reasons,omitempty"`
+	RejectionScope        string                          `json:"rejection_scope,omitempty"`
+	BlockingViewIDs       []string                        `json:"blocking_view_ids,omitempty"`
+	NonBlockingViewIDs    []string                        `json:"non_blocking_view_ids,omitempty"`
 }
 
 type FreeStateObservationBundle struct {
@@ -100,6 +142,10 @@ type FreeStateObservationBundle struct {
 	ProjectBinding     map[string]any                          `json:"project_binding,omitempty"`
 	Freshness          map[string]any                          `json:"freshness"`
 	RequestedViews     []string                                `json:"requested_views"`
+	Targets            []mixboard.TargetRef                    `json:"targets,omitempty"`
+	TimeWindow         *FreeStateObservationTimeWindow         `json:"time_window,omitempty"`
+	TopK               *FreeStateObservationTopK               `json:"top_k,omitempty"`
+	BatchObservations  map[string]string                       `json:"batch_observations,omitempty"`
 	Views              map[string]any                          `json:"views"`
 	EvidenceRefs       []string                                `json:"evidence_refs,omitempty"`
 	Limitations        []string                                `json:"limitations,omitempty"`
@@ -128,6 +174,7 @@ func FreeStateObservationCatalogFor(target mixboard.TargetRef) FreeStateObservat
 		SchemaVersion: FreeStateObservationCatalogSchema,
 		Boundary:      "semantic_views_only",
 		TargetRef:     target,
+		Dimensions:    FreeStateObservationDimensions(),
 		Views:         views,
 		Exclusions: []string{
 			"raw PCM or audio buffers",
@@ -138,6 +185,52 @@ func FreeStateObservationCatalogFor(target mixboard.TargetRef) FreeStateObservat
 	}
 }
 
+// FreeStateObservationDimensions 返回目录声明的诊断维度词表（排序去重）。
+func FreeStateObservationDimensions() []string {
+	seen := map[string]bool{}
+	out := []string{}
+	for _, def := range freeStateViewDefinitions("") {
+		for _, dimension := range def.view.DiagnosticDimensions {
+			if dimension == "" || seen[dimension] {
+				continue
+			}
+			seen[dimension] = true
+			out = append(out, dimension)
+		}
+	}
+	sort.Strings(out)
+	return out
+}
+
+// FreeStateObservationCatalogForDimension 按诊断维度过滤目录（§2.6 缺口 6 的目录
+// 参数面）。接线 GetViewsForDimension——此前它是全库唯一无生产接线的目录谓词
+// 钩子（F7）。dimension 是目录过滤不是推荐：CCB 不做自动 view 选择。ok=false
+// 表示 dimension 不在词表内（调用方应拒绝而非静默返回空目录）。
+func FreeStateObservationCatalogForDimension(target mixboard.TargetRef, dimension string) (FreeStateObservationCatalog, bool) {
+	catalog := FreeStateObservationCatalogFor(target)
+	dimension = strings.TrimSpace(dimension)
+	known := map[string]bool{}
+	for _, candidate := range catalog.Dimensions {
+		known[candidate] = true
+	}
+	if dimension == "" || !known[dimension] {
+		return FreeStateObservationCatalog{}, false
+	}
+	allowed := map[string]bool{}
+	for _, viewID := range GetViewsForDimension(dimension, target.ID) {
+		allowed[viewID] = true
+	}
+	views := make([]FreeStateObservationView, 0, len(catalog.Views))
+	for _, view := range catalog.Views {
+		if allowed[view.ViewID] {
+			views = append(views, view)
+		}
+	}
+	catalog.Dimension = dimension
+	catalog.Views = views
+	return catalog, true
+}
+
 func NormalizeFreeStateObservationRequest(req FreeStateObservationRequest) FreeStateObservationRequest {
 	req.SchemaVersion = FreeStateObservationRequestSchema
 	if len(req.OriginalViewIDs) == 0 {
@@ -146,6 +239,20 @@ func NormalizeFreeStateObservationRequest(req FreeStateObservationRequest) FreeS
 	if strings.TrimSpace(req.FreshnessClass) == "" {
 		req.FreshnessClass = "current_observation"
 	}
+	if req.TimeWindow != nil {
+		req.TimeWindow.Units = strings.ToLower(strings.TrimSpace(req.TimeWindow.Units))
+		if req.TimeWindow.Units == "" {
+			req.TimeWindow.Units = "seconds"
+		}
+	}
+	if req.TopK != nil {
+		req.TopK.Field = strings.TrimSpace(req.TopK.Field)
+		req.TopK.Dir = strings.ToLower(strings.TrimSpace(req.TopK.Dir))
+		if req.TopK.Dir == "" {
+			req.TopK.Dir = "desc"
+		}
+	}
+	req.Targets = uniqueFreeStateTargets(req.Targets)
 	if req.MaxDisclosureBytes <= 0 {
 		// Keep the default within the existing bounded ceiling so a model-owned
 		// multi-view request is not silently reduced to a partial observation.
@@ -167,6 +274,21 @@ func NormalizeFreeStateObservationRequest(req FreeStateObservationRequest) FreeS
 	return req
 }
 
+func uniqueFreeStateTargets(targets []mixboard.TargetRef) []mixboard.TargetRef {
+	seen := map[string]bool{}
+	out := make([]mixboard.TargetRef, 0, len(targets))
+	for _, target := range targets {
+		target.ID = strings.TrimSpace(target.ID)
+		target.Kind = strings.TrimSpace(target.Kind)
+		if target.ID == "" || seen[target.ID] {
+			continue
+		}
+		seen[target.ID] = true
+		out = append(out, target)
+	}
+	return out
+}
+
 func ValidateFreeStateObservationViewIDs(viewIDs []string) []string {
 	reasons := []string{}
 	seen := map[string]bool{}
@@ -186,6 +308,98 @@ func ValidateFreeStateObservationViewIDs(viewIDs []string) []string {
 		seen[viewID] = true
 	}
 	return uniqueNonEmpty(reasons)
+}
+
+// ValidateFreeStateObservationParameters 校验 §2.6 observe 参数化增量：
+// freshness_class 枚举（缺口 5）、time_window 双标尺（缺口 1）、targets 批量
+// 护栏（缺口 2——mix.*/project.* 保持 project 域硬定不缩窄）、top_k 声明集
+// （缺口 4——越界字段拒绝，不静默乱序）。view 级护栏的 reason 带 "<viewID>: "
+// 前缀，供 blocking/non-blocking 拆分复用。
+func ValidateFreeStateObservationParameters(req FreeStateObservationRequest) []string {
+	reasons := []string{}
+	if !containsString(FreeStateObservationFreshnessClasses, strings.TrimSpace(req.FreshnessClass)) {
+		reasons = append(reasons, "freshness_class must be one of "+strings.Join(FreeStateObservationFreshnessClasses, "|")+" (got "+strconv.Quote(strings.TrimSpace(req.FreshnessClass))+")")
+	}
+	if window := req.TimeWindow; window != nil {
+		if window.Units != "seconds" && window.Units != "samples" {
+			reasons = append(reasons, "time_window.units must be seconds or samples (got "+strconv.Quote(window.Units)+")")
+		}
+		if window.EndSeconds <= window.StartSeconds {
+			reasons = append(reasons, "time_window requires end_seconds greater than start_seconds")
+		}
+	}
+	if len(req.Targets) > 8 {
+		reasons = append(reasons, fmt.Sprintf("targets must contain at most 8 entries (got %d)", len(req.Targets)))
+	}
+	for i, target := range req.Targets {
+		if target.ID == "" {
+			reasons = append(reasons, fmt.Sprintf("targets[%d].id must be non-empty", i))
+		}
+		switch strings.ToLower(target.Kind) {
+		case "track", "clip", "selection":
+		default:
+			reasons = append(reasons, fmt.Sprintf("targets[%d].kind must be one of track|clip|selection (got %q)", i, target.Kind))
+		}
+	}
+	if len(req.Targets) > 0 {
+		if strings.TrimSpace(req.ObservationID) != "" {
+			reasons = append(reasons, "targets are not supported on observation replay: the observation binding is authoritative")
+		}
+		for _, viewID := range req.ViewIDs {
+			if !strings.HasPrefix(strings.ToLower(strings.TrimSpace(viewID)), "track.") {
+				reasons = append(reasons, viewID+": targets batching applies to track.* views only; project-domain views stay project-scoped")
+			}
+		}
+	}
+	if topK := req.TopK; topK != nil {
+		if topK.Field == "" {
+			reasons = append(reasons, "top_k.field must be non-empty")
+		}
+		switch topK.Dir {
+		case "asc", "desc":
+		default:
+			reasons = append(reasons, "top_k.dir must be asc or desc (got "+strconv.Quote(topK.Dir)+")")
+		}
+		if topK.K < 1 || topK.K > 24 {
+			reasons = append(reasons, "top_k.k must be between 1 and 24")
+		}
+		reasons = append(reasons, validateFreeStateTopKField(req)...)
+	}
+	return uniqueNonEmpty(reasons)
+}
+
+// validateFreeStateTopKField 强制 top_k.field ⊆ 声明了 SortableFields 的每个
+// 请求 view 的声明集（§2.6 缺口 4 右列护栏：任意字段 topK 归 query 侧）。
+func validateFreeStateTopKField(req FreeStateObservationRequest) []string {
+	byID := map[string]FreeStateObservationView{}
+	for _, def := range freeStateViewDefinitions(req.TargetRef.ID) {
+		byID[def.view.ViewID] = def.view
+	}
+	declaring := []string{}
+	for _, viewID := range req.ViewIDs {
+		if view, ok := byID[viewID]; ok && len(view.SortableFields) > 0 {
+			declaring = append(declaring, viewID)
+		}
+	}
+	if len(declaring) == 0 {
+		return []string{"top_k requires at least one requested view with declared sortable fields (mix.masking_relationship or mix.multitrack_relationship)"}
+	}
+	reasons := []string{}
+	for _, viewID := range declaring {
+		if !containsString(byID[viewID].SortableFields, req.TopK.Field) {
+			reasons = append(reasons, viewID+": top_k.field must be one of the view's declared sortable fields ("+strings.Join(byID[viewID].SortableFields, "|")+")")
+		}
+	}
+	return reasons
+}
+
+func containsString(values []string, expected string) bool {
+	for _, value := range values {
+		if value == expected {
+			return true
+		}
+	}
+	return false
 }
 
 func RejectedFreeStateObservation(req FreeStateObservationRequest, reasons ...string) FreeStateObservationBundle {
@@ -211,6 +425,9 @@ func RejectedFreeStateObservationScoped(req FreeStateObservationRequest, blockin
 		ObservationID:      req.ObservationID,
 		MixSessionID:       req.MixSessionID,
 		RequestedViews:     append([]string(nil), req.ViewIDs...),
+		Targets:            append([]mixboard.TargetRef(nil), req.Targets...),
+		TimeWindow:         cloneFreeStateTimeWindow(req.TimeWindow),
+		TopK:               cloneFreeStateTopK(req.TopK),
 		Views:              map[string]any{},
 		Freshness:          map[string]any{"class": req.FreshnessClass, "status": "rejected"},
 		OmissionReasons:    append([]string(nil), rejectionReasons...),
@@ -225,6 +442,9 @@ func RejectedFreeStateObservationScoped(req FreeStateObservationRequest, blockin
 			ActualExecutedViewIDs: nil,
 			ViewSetMatches:        false,
 			Scope:                 firstNonEmptyString(req.Scope, observationScopeForRequest(req)),
+			Targets:               append([]mixboard.TargetRef(nil), req.Targets...),
+			TimeWindow:            cloneFreeStateTimeWindow(req.TimeWindow),
+			TopK:                  cloneFreeStateTopK(req.TopK),
 			Freshness:             map[string]any{"class": req.FreshnessClass, "status": "rejected"},
 			Status:                "rejected",
 			RejectionReasons:      rejectionReasons,
@@ -291,6 +511,9 @@ func AssembleFreeStateObservation(req FreeStateObservationRequest, readResult ma
 			"observed_at": stringValue(binding["created_at"]),
 		},
 		RequestedViews:     append([]string(nil), req.ViewIDs...),
+		Targets:            append([]mixboard.TargetRef(nil), req.Targets...),
+		TimeWindow:         cloneFreeStateTimeWindow(req.TimeWindow),
+		TopK:               cloneFreeStateTopK(req.TopK),
 		Views:              map[string]any{},
 		EvidenceRefs:       stringSlice(binding["evidence_refs"]),
 		Omissions:          map[string]orchestration.OmissionStatus{},
@@ -347,6 +570,9 @@ func AssembleFreeStateObservation(req FreeStateObservationRequest, readResult ma
 		ActualExecutedViewIDs: actualViewIDs,
 		ViewSetMatches:        len(receiptReasons) == 0,
 		Scope:                 firstNonEmptyString(req.Scope, observationScopeForRequest(req)),
+		Targets:               append([]mixboard.TargetRef(nil), req.Targets...),
+		TimeWindow:            cloneFreeStateTimeWindow(req.TimeWindow),
+		TopK:                  cloneFreeStateTopK(req.TopK),
 		Freshness:             nil,
 		ProjectBinding:        cloneAnyMap(bundle.ProjectBinding),
 		ProjectRevision:       stringValue(bundle.ProjectBinding["project_revision"]),
@@ -377,7 +603,14 @@ func AssembleFreeStateObservation(req FreeStateObservationRequest, readResult ma
 			continue
 		}
 		candidate := cloneAnyMap(bundle.Views)
-		candidate[viewID] = sanitizeFreeStateValue(view, req.MaxItems, 0)
+		sanitized := sanitizeFreeStateValue(view, req.MaxItems, 0)
+		if req.TopK != nil {
+			// §2.6 top_k 选择在通用 sanitize（max_items 粗闸）之后、披露预算之前
+			// 应用：top_k 决定选中哪些行（声明集内字段排序），max_items 保持
+			// 全局粗粒度闸——两者独立组合。
+			applyFreeStateTopKToView(viewID, sanitized, req.TopK)
+		}
+		candidate[viewID] = sanitized
 		if jsonSize(candidate) > req.MaxDisclosureBytes {
 			bundle.Omissions[viewID] = orchestration.OmissionBudget
 			bundle.OmissionReasons = append(bundle.OmissionReasons, viewID+": omitted by disclosure budget")
@@ -389,6 +622,12 @@ func AssembleFreeStateObservation(req FreeStateObservationRequest, readResult ma
 		}
 	}
 	bundle.DisclosureBytes = jsonSize(bundle.Views)
+	if req.TimeWindow != nil {
+		// 诚实边界：显式观察窗 v1 仅作用于 masking 预备探测区间（seconds 标尺）；
+		// 其余投影在内核窗口化落地前保持全窗。该边界必须对模型可见，不得静默
+		// 把全窗结果当作已开窗结果。
+		bundle.Limitations = append(bundle.Limitations, "time_window is applied to the masking probe range only (seconds scale); other projections remain whole-window until kernel windowing lands")
+	}
 	if len(bundle.Views) == 0 {
 		bundle.Status = "insufficient"
 	} else if len(bundle.Omissions) > 0 || len(bundle.Limitations) > 0 {
@@ -423,7 +662,7 @@ func freeStateViewDefinitions(targetID string) []freeStateViewDefinition {
 		targetID = "target"
 	}
 	track := "track." + targetID
-	return []freeStateViewDefinition{
+	defs := []freeStateViewDefinition{
 		{view: semanticView("project.structure", []string{"What tracks and sources are present?", "What is the current project/selection structure?"}, []string{"project", "track", "selection"}, "state snapshot", "ready_on_observation", "cheap", "compact project and TOM-adjacent identity summary", []string{"Does not disclose a full TOM tree."}, []string{"project state", "MixBoard observation"}), keys: []string{"project.static.summary", "project.tracks.summary", "observation.tim_projection", "observation.mom_projection"}},
 		{view: semanticView("project.change_delta", []string{"What deterministic engineering changes occurred since the prior state?", "Which current observations must be refreshed after the latest project change?"}, []string{"project", "track", "clip", "processor"}, "latest state transition", "conditional", "cheap", "bounded Shadow Project change receipt", []string{"Change receipts confirm engineering mutations occurred. Acoustic evaluation requires fresh observation of the new state."}, []string{"Shadow Project change monitor", "MixBoard observation binding"}), keys: []string{"project.change_delta"}},
 		{view: semanticViewWithDimensions("track.basic_energy", []string{"How loud and peaky is the target?", "Is headroom or crest factor unusual?"}, []string{"track", "clip", "selection"}, "whole window", "ready_on_observation", "cheap", "bounded level summary", nil, []string{"waveform envelope summary"}, []string{"level_headroom"}, nil), keys: []string{track + ".static.identity", track + ".fast.levels"}},
@@ -467,6 +706,19 @@ func freeStateViewDefinitions(targetID string) []freeStateViewDefinition {
 		{view: semanticView("processor.change_delta", []string{"How did processor behavior change between observations?"}, []string{"processor", "track"}, "change delta", "conditional", "medium", "compact COM change projection", []string{"Requires compatible before/after COM evidence."}, []string{"COM change_delta projection"}), keys: []string{"observation.com_projection"}},
 		{view: semanticView("comparison.before_after", []string{"What changed between the current and previous observation?"}, []string{"project", "track", "processor"}, "observation pair", "conditional", "cheap", "bounded delta summary", []string{"Requires a prior observation in the same mix session."}, []string{"MixBoard observation history"}), keys: []string{"observation.before_after.latest"}},
 	}
+	// §2.6 缺口 4：view 声明的可排序字段（top_k.field 的合法集）。声明集对齐
+	// 既有硬编码截断列表（CCB-VIEW §3.4）——masking candidates ≤12 与
+	// multitrack band_conflict 每行 tracks ≤4 正是 top_k 参数化要解锁的。
+	sortableByView := map[string][]string{
+		"mix.masking_relationship":    {"median_margin_db", "p90_margin_db", "max_margin_db", "risk_coverage_ratio"},
+		"mix.multitrack_relationship": {"unit_energy", "energy_db"},
+	}
+	for i := range defs {
+		if fields, ok := sortableByView[defs[i].view.ViewID]; ok {
+			defs[i].view.SortableFields = fields
+		}
+	}
+	return defs
 }
 
 func semanticView(id string, questions, targets []string, temporal, availability, cost, ceiling string, limitations, dependencies []string) FreeStateObservationView {
@@ -1152,4 +1404,281 @@ func GetViewsForDimension(dimension string, targetID string) []string {
 		}
 	}
 	return views
+}
+
+// ——— §2.6 observe 参数化增量（CCB-PARAM）：top_k 应用与 targets 批量合并 ———
+
+func cloneFreeStateTimeWindow(window *FreeStateObservationTimeWindow) *FreeStateObservationTimeWindow {
+	if window == nil {
+		return nil
+	}
+	copied := *window
+	return &copied
+}
+
+func cloneFreeStateTopK(topK *FreeStateObservationTopK) *FreeStateObservationTopK {
+	if topK == nil {
+		return nil
+	}
+	copied := *topK
+	return &copied
+}
+
+// applyFreeStateTopKToView 在已 sanitize 的 view 装配产物上应用 top_k 选择。
+// 只作用于该 view 声明了 SortableFields 的列表路径；路径缺失（view 本就
+// omitted/missing）时静默跳过。选择结果以 top_k 标记字段写回，保持可审计。
+func applyFreeStateTopKToView(viewID string, value any, topK *FreeStateObservationTopK) {
+	view := anyMap(value)
+	if len(view) == 0 || topK == nil {
+		return
+	}
+	facts, _ := view["facts"].(map[string]any)
+	if len(facts) == 0 {
+		return
+	}
+	mom := anyMap(facts["observation.mom_projection"])
+	if len(mom) == 0 {
+		return
+	}
+	marker := map[string]any{"field": topK.Field, "dir": topK.Dir, "k": topK.K}
+	switch viewID {
+	case "mix.masking_relationship":
+		relation := anyMap(mom["masking_relationship"])
+		if len(relation) == 0 {
+			return
+		}
+		if rows, ok := anyList(relation["candidates"]); ok && len(rows) > 0 {
+			relation["candidates"] = topKFreeStateRows(rows, topK)
+			marker["applied_to"] = "candidates"
+			relation["top_k"] = marker
+		}
+	case "mix.multitrack_relationship":
+		relation := anyMap(mom["multitrack_relation"])
+		if len(relation) == 0 {
+			return
+		}
+		rows, ok := anyList(relation["band_conflict_candidates"])
+		if !ok || len(rows) == 0 {
+			return
+		}
+		applied := false
+		for _, row := range rows {
+			candidate := anyMap(row)
+			if len(candidate) == 0 {
+				continue
+			}
+			if tracks, ok := anyList(candidate["tracks"]); ok && len(tracks) > 0 {
+				candidate["tracks"] = topKFreeStateRows(tracks, topK)
+				applied = true
+			}
+		}
+		if applied {
+			marker["applied_to"] = "band_conflict_candidates.tracks"
+			relation["top_k"] = marker
+		}
+	}
+}
+
+// topKFreeStateRows 按声明字段排序并截断到 k：数值不可比较的行稳定排在末尾
+// （截断优先淘汰），不静默乱序。
+func topKFreeStateRows(rows []any, topK *FreeStateObservationTopK) []any {
+	numeric := make([]float64, len(rows))
+	comparable := make([]bool, len(rows))
+	for i, row := range rows {
+		numeric[i], comparable[i] = numericFreeStateField(anyMap(row), topK.Field)
+	}
+	ordered := make([]int, 0, len(rows))
+	tail := make([]int, 0)
+	for i := range rows {
+		if comparable[i] {
+			ordered = append(ordered, i)
+		} else {
+			tail = append(tail, i)
+		}
+	}
+	ascending := topK.Dir == "asc"
+	sort.SliceStable(ordered, func(a, b int) bool {
+		if ascending {
+			return numeric[ordered[a]] < numeric[ordered[b]]
+		}
+		return numeric[ordered[a]] > numeric[ordered[b]]
+	})
+	ordered = append(ordered, tail...)
+	if topK.K > 0 && len(ordered) > topK.K {
+		ordered = ordered[:topK.K]
+	}
+	out := make([]any, 0, len(ordered))
+	for _, i := range ordered {
+		out = append(out, rows[i])
+	}
+	return out
+}
+
+func numericFreeStateField(row map[string]any, field string) (float64, bool) {
+	if row == nil {
+		return 0, false
+	}
+	value, ok := row[field]
+	if !ok || value == nil {
+		return 0, false
+	}
+	switch typed := value.(type) {
+	case float64:
+		return typed, true
+	case int:
+		return float64(typed), true
+	case int64:
+		return float64(typed), true
+	case json.Number:
+		parsed, err := typed.Float64()
+		return parsed, err == nil
+	case string:
+		parsed, err := strconv.ParseFloat(strings.TrimSpace(typed), 64)
+		return parsed, err == nil
+	}
+	return 0, false
+}
+
+func anyList(value any) ([]any, bool) {
+	switch typed := value.(type) {
+	case []any:
+		return typed, true
+	case []map[string]any:
+		out := make([]any, 0, len(typed))
+		for _, row := range typed {
+			out = append(out, row)
+		}
+		return out, true
+	}
+	return nil, false
+}
+
+// FreeStateObservationBatchEntry 配对一个 fan-out 目标与其装配 bundle。
+type FreeStateObservationBatchEntry struct {
+	Target mixboard.TargetRef
+	Bundle FreeStateObservationBundle
+}
+
+// MergeFreeStateObservationBundles 合并 targets 批量请求的逐目标 bundle
+// （§2.6 缺口 2：track.* view 批量）。批量视图键带 "@<targetID>" 后缀
+// （单目标请求不经此路径、键形不变）；回执记录模型请求的 view 集，执行集
+// 为后缀键——targets 在回执中原样可见，保证精确集合审计可解释。
+func MergeFreeStateObservationBundles(req FreeStateObservationRequest, entries []FreeStateObservationBatchEntry) FreeStateObservationBundle {
+	req = NormalizeFreeStateObservationRequest(req)
+	if len(entries) == 0 {
+		return RejectedFreeStateObservationScoped(req, req.ViewIDs, "targets batch produced no observation bundles")
+	}
+	if len(entries) == 1 {
+		merged := entries[0].Bundle
+		merged.RequestedViews = append([]string(nil), req.ViewIDs...)
+		merged.Targets = append([]mixboard.TargetRef(nil), req.Targets...)
+		merged.TimeWindow = cloneFreeStateTimeWindow(req.TimeWindow)
+		merged.TopK = cloneFreeStateTopK(req.TopK)
+		merged.BatchObservations = map[string]string{compactID(entries[0].Target.ID): entries[0].Bundle.ObservationID}
+		merged.AuditReceipt.Targets = append([]mixboard.TargetRef(nil), req.Targets...)
+		merged.AuditReceipt.TimeWindow = cloneFreeStateTimeWindow(req.TimeWindow)
+		merged.AuditReceipt.TopK = cloneFreeStateTopK(req.TopK)
+		return merged
+	}
+	merged := entries[0].Bundle
+	merged.BundleID = "ccbobs_batch_" + compactID(req.ObservationID, req.RequestID)
+	merged.RequestedViews = append([]string(nil), req.ViewIDs...)
+	merged.Targets = append([]mixboard.TargetRef(nil), req.Targets...)
+	merged.TimeWindow = cloneFreeStateTimeWindow(req.TimeWindow)
+	merged.TopK = cloneFreeStateTopK(req.TopK)
+	views := map[string]any{}
+	omissions := map[string]orchestration.OmissionStatus{}
+	omissionReasons := []string{}
+	limitations := append([]string(nil), entries[0].Bundle.Limitations...)
+	evidenceRefs := append([]string(nil), entries[0].Bundle.EvidenceRefs...)
+	executed := []string{}
+	observations := map[string]string{}
+	rejected := false
+	for _, entry := range entries {
+		suffix := "@" + compactID(entry.Target.ID)
+		observations[compactID(entry.Target.ID)] = entry.Bundle.ObservationID
+		if entry.Bundle.Status == "rejected" {
+			rejected = true
+		}
+		for viewID, content := range entry.Bundle.Views {
+			views[viewID+suffix] = content
+			executed = append(executed, viewID+suffix)
+		}
+		for viewID, status := range entry.Bundle.Omissions {
+			omissions[viewID+suffix] = status
+		}
+		omissionReasons = append(omissionReasons, rekeyFreeStateReasons(entry.Bundle.OmissionReasons, req.ViewIDs, suffix)...)
+		limitations = append(limitations, rekeyFreeStateReasons(entry.Bundle.Limitations, req.ViewIDs, suffix)...)
+		evidenceRefs = append(evidenceRefs, entry.Bundle.EvidenceRefs...)
+	}
+	merged.Views = views
+	merged.Omissions = omissions
+	merged.OmissionReasons = uniqueNonEmpty(omissionReasons)
+	merged.Limitations = uniqueNonEmpty(limitations)
+	merged.EvidenceRefs = uniqueNonEmpty(evidenceRefs)
+	merged.BatchObservations = observations
+	merged.DisclosureBytes = jsonSize(views)
+	merged.MaxDisclosureBytes = req.MaxDisclosureBytes
+	merged.BlockingViewIDs = nil
+	merged.NonBlockingViewIDs = nil
+	merged.RejectionScope = ""
+	switch {
+	case rejected:
+		merged.Status = "rejected"
+	case len(views) == 0:
+		merged.Status = "insufficient"
+	case len(omissions) > 0 || len(merged.Limitations) > 0:
+		merged.Status = "partial"
+	default:
+		merged.Status = "ready"
+	}
+	receipt := merged.AuditReceipt
+	receipt.ReceiptID = "ccbr_batch_" + compactID(req.ObservationID, req.RequestID)
+	receipt.ModelRequestedViewIDs = append([]string(nil), req.OriginalViewIDs...)
+	receipt.ActualExecutedViewIDs = uniqueNonEmpty(executed)
+	receipt.Targets = append([]mixboard.TargetRef(nil), req.Targets...)
+	receipt.TimeWindow = cloneFreeStateTimeWindow(req.TimeWindow)
+	receipt.TopK = cloneFreeStateTopK(req.TopK)
+	stripped := make([]string, 0, len(executed))
+	for _, key := range executed {
+		if at := strings.LastIndex(key, "@"); at > 0 {
+			stripped = append(stripped, key[:at])
+		} else {
+			stripped = append(stripped, key)
+		}
+	}
+	receipt.ViewSetMatches = sameStringSet(receipt.ModelRequestedViewIDs, stripped) && !rejected
+	receipt.Status = "executed"
+	if rejected || len(merged.OmissionReasons) > 0 {
+		receipt.Status = "partial"
+		if rejected {
+			receipt.Status = "rejected"
+		}
+	}
+	receipt.RejectionReasons = uniqueNonEmpty(append(append([]string(nil), receipt.RejectionReasons...), merged.OmissionReasons...))
+	merged.AuditReceipt = receipt
+	if len(merged.Omissions) == 0 {
+		merged.Omissions = nil
+	}
+	return merged
+}
+
+// rekeyFreeStateReasons 把子 bundle 的 view 级 reason 前缀（"<viewID>: ..."）
+// 重写为批量键（"<viewID>@<target>: ..."）；无法匹配前缀的 reason 原样保留。
+func rekeyFreeStateReasons(reasons []string, viewIDs []string, suffix string) []string {
+	out := make([]string, 0, len(reasons))
+	for _, reason := range reasons {
+		rekeyed := false
+		for _, viewID := range viewIDs {
+			if strings.HasPrefix(reason, viewID+":") {
+				out = append(out, viewID+suffix+reason[len(viewID):])
+				rekeyed = true
+				break
+			}
+		}
+		if !rekeyed {
+			out = append(out, reason)
+		}
+	}
+	return out
 }
