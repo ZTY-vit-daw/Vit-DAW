@@ -19,3 +19,5 @@
   - ③频率：MAT-D-1 三 run 共 6 轮观察、6 次 reconcile、6 次分歧=**烟测场景 100%**（方法=shadow_round metrics 差分+divergence 行计数，可复算）；多轨工程如实申报无工件不外推，机制判断=结构性暴露、预计低于 100%。
   - ④宪法锚点：F9（MATERIALIZATION_V1_DESIGN.md:25/:96/:230）+ dom 输入域声明与代码的**文档-实现偏差**（adapters.go:301）+ 输入分层词表（:167/:173-176）+ 宪法行（:38）+ peer 拓扑（OBSERVATION_PROJECTION_MANIFEST.md:10-16）。
   - ⑤报告入库 ✓（含支持③/谨慎③的事实权重汇总与勘察边界申报）。
+- 验收：**pass（2026-09-29 归档裁定）**——五项验收全落（报告=coord/runs/DOM-EVIDENCE-PRIORITY-RECON-1/report.md）；勘察结论为 G2 ruling S2 口径修正（State A/B 设计态差异定案）与 MAT-E0 输入源切换提供全景依据；伴生决策点（featureRowForTarget 无最佳行比较）留案，属 MAT-E 读端切换评估输入。
+- 归档：2026-09-29（用户批准清理；gate 09-28 §5"实质已验收"确认）。
