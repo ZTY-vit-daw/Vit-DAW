@@ -3,8 +3,8 @@
 - 池序 4（PAPER-EXP-ADAPT-1 在飞后可领；零代码只读勘察可与一切并行）
 - 优先级 / 预估 / 依赖：P1 / 0.5–0.8 天 / 无（只读）；概念权威=decisions/2026-09-29-vit-note-concept.md（三轮用户设计讨论收敛，先读）
 - 模型分级：L1 / GLM 或 flash 均可（零代码，Godot 面+Go 面双侧勘察）
-- 目标（七节勘察面，报告入 coord/runs/VITNOTE-RECON-1/report.md）：
-  1. **Godot 框选与便签容器面**：时间轴/编排面框选交互现状（钢琴卷帘已有框选先例 PianoRollView.gd，主编排面待核）；原位浮窗/便签容器可行性锚点（Godot 内已有浮层先例：tooltip/hud/气泡——鼠标跟随气泡现状实锚，含其锚定实现）；框选→语义解析挂点（轨/clip/时间窗提取，requestContext 组包现状）。
+- 目标（七节勘察面，报告入 coord/runs/VITNOTE-RECON-1/report.md；**勘察聚焦裁定（2026-09-29 晚用户讨论）**：v1 主战场=编排面（框选语义最丰富：轨×时间窗）；钢琴卷帘=第二战场次级盘点（音符组语义，随 L1-5 编曲能力启用）；调音台/插件面板/媒体池/频谱=仅存在性确认不深勘察——框选非自然交互或语义不足以构成任务）：
+  1. **Godot 框选与便签容器面（编排面深勘察为主）**：时间轴/编排面框选交互现状（钢琴卷帘已有框选先例 PianoRollView.gd，主编排面待核）；原位浮窗/便签容器可行性锚点（Godot 内已有浮层先例：tooltip/hud/气泡——鼠标跟随气泡现状实锚，含其锚定实现）；框选→语义解析挂点（轨/clip/时间窗提取，requestContext 组包现状）；钢琴卷帘框选面次级盘点（音符组语义解析挂点）；其余视窗仅确认框选交互存在性。
   2. **IME 与文本输入**：Godot 4 内嵌 LineEdit/TextEdit 中文输入法支持现状（项目内既有输入框先例：命名框/数值框——实测可引证）；原位输入框焦点管理与 DAW 快捷键冲突面。
   3. **chat 主管道接线面**：前端触发 chat 请求的现有入口（vsp_hub WS/HTTP 面）；带 selection_context/current_selection 的请求组包现状（range_context 管道——IMPL-C R6 烟测已证存活）；新建会话（每 note 一对话流）的前端侧调用面现状。
   4. **agentloop 多会话并发模型**：消息循环是全局单循环串行还是多会话并行（message_loop 并发模型实锚）——写冲突天然串行化与否的关键事实；多 conversation 并存的服务端现状。
