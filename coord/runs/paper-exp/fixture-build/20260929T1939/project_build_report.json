@@ -1,0 +1,1051 @@
+{
+  "schema_version": "semantic_processor_agent_project_smoke_project_build.v1",
+  "created_at": "2026-09-29T11:39:39Z",
+  "status": "passed",
+  "contract_id": "pv1_runner_adaptation_v1_20260929",
+  "fixture_set_id": "suite_v1_lm_runner_20260929",
+  "fixture_manifest": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\fixture_manifest.json",
+  "agent_health": {
+    "service": "VitAgent",
+    "status": "ok"
+  },
+  "projects": [
+    {
+      "case_id": "pv1_p01",
+      "project_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\projects\\pv1_p01\\pv1_p01.vit",
+      "project_size_bytes": 23008,
+      "tracks": [
+        {
+          "track_id": "1007",
+          "track_name": "bass",
+          "clip_id": "1011",
+          "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p01\\stems\\bass.wav"
+        },
+        {
+          "track_id": "1012",
+          "track_name": "drums",
+          "clip_id": "1016",
+          "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p01\\stems\\drums.wav"
+        },
+        {
+          "track_id": "1017",
+          "track_name": "guitar",
+          "clip_id": "1021",
+          "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p01\\stems\\guitar.wav"
+        },
+        {
+          "track_id": "1022",
+          "track_name": "other",
+          "clip_id": "1026",
+          "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p01\\stems\\other.wav"
+        },
+        {
+          "track_id": "1027",
+          "track_name": "piano",
+          "clip_id": "1031",
+          "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p01\\stems\\piano.wav"
+        },
+        {
+          "track_id": "1032",
+          "track_name": "vocals",
+          "clip_id": "1036",
+          "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p01\\stems\\vocals.wav"
+        }
+      ],
+      "analysis": {
+        "analysis_job_id": "audio_analysis_1790681951874_1",
+        "dad_fact_status": "ready",
+        "dad_fact_ready_count": 6,
+        "dad_fact_total_count": 6,
+        "track_waveform_envelope_count": 6,
+        "product_fine_evidence": {
+          "status": "passed",
+          "required_fields": [
+            "noise_floor_evidence",
+            "frequency_time_events",
+            "transient_events",
+            "band_dynamics"
+          ],
+          "log_files": [
+            "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\projects\\pv1_p01\\.vit_derived\\vitproj_00b4faf4405f4d708ee34e35291ca5a1\\l3_feature_log.jsonl"
+          ],
+          "tracks": [
+            {
+              "track_id": "1007",
+              "track_name": "bass",
+              "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p01\\stems\\bass.wav",
+              "event_count": 1,
+              "required_fields_present": [
+                "band_dynamics",
+                "frequency_time_events",
+                "noise_floor_evidence",
+                "transient_events"
+              ],
+              "missing_fields": [],
+              "status": "passed"
+            },
+            {
+              "track_id": "1012",
+              "track_name": "drums",
+              "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p01\\stems\\drums.wav",
+              "event_count": 1,
+              "required_fields_present": [
+                "band_dynamics",
+                "frequency_time_events",
+                "noise_floor_evidence",
+                "transient_events"
+              ],
+              "missing_fields": [],
+              "status": "passed"
+            },
+            {
+              "track_id": "1017",
+              "track_name": "guitar",
+              "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p01\\stems\\guitar.wav",
+              "event_count": 1,
+              "required_fields_present": [
+                "band_dynamics",
+                "frequency_time_events",
+                "noise_floor_evidence",
+                "transient_events"
+              ],
+              "missing_fields": [],
+              "status": "passed"
+            },
+            {
+              "track_id": "1022",
+              "track_name": "other",
+              "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p01\\stems\\other.wav",
+              "event_count": 1,
+              "required_fields_present": [
+                "band_dynamics",
+                "frequency_time_events",
+                "noise_floor_evidence",
+                "transient_events"
+              ],
+              "missing_fields": [],
+              "status": "passed"
+            },
+            {
+              "track_id": "1027",
+              "track_name": "piano",
+              "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p01\\stems\\piano.wav",
+              "event_count": 1,
+              "required_fields_present": [
+                "band_dynamics",
+                "frequency_time_events",
+                "noise_floor_evidence",
+                "transient_events"
+              ],
+              "missing_fields": [],
+              "status": "passed"
+            },
+            {
+              "track_id": "1032",
+              "track_name": "vocals",
+              "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p01\\stems\\vocals.wav",
+              "event_count": 1,
+              "required_fields_present": [
+                "band_dynamics",
+                "frequency_time_events",
+                "noise_floor_evidence",
+                "transient_events"
+              ],
+              "missing_fields": [],
+              "status": "passed"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "case_id": "pv1_p02",
+      "project_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\projects\\pv1_p02\\pv1_p02.vit",
+      "project_size_bytes": 23001,
+      "tracks": [
+        {
+          "track_id": "1007",
+          "track_name": "bass",
+          "clip_id": "1011",
+          "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p02\\stems\\bass.wav"
+        },
+        {
+          "track_id": "1012",
+          "track_name": "drums",
+          "clip_id": "1016",
+          "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p02\\stems\\drums.wav"
+        },
+        {
+          "track_id": "1017",
+          "track_name": "guitar",
+          "clip_id": "1021",
+          "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p02\\stems\\guitar.wav"
+        },
+        {
+          "track_id": "1022",
+          "track_name": "other",
+          "clip_id": "1026",
+          "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p02\\stems\\other.wav"
+        },
+        {
+          "track_id": "1027",
+          "track_name": "piano",
+          "clip_id": "1031",
+          "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p02\\stems\\piano.wav"
+        },
+        {
+          "track_id": "1032",
+          "track_name": "vocals",
+          "clip_id": "1036",
+          "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p02\\stems\\vocals.wav"
+        }
+      ],
+      "analysis": {
+        "analysis_job_id": "audio_analysis_1790681957360_2",
+        "dad_fact_status": "ready",
+        "dad_fact_ready_count": 6,
+        "dad_fact_total_count": 6,
+        "track_waveform_envelope_count": 6,
+        "product_fine_evidence": {
+          "status": "passed",
+          "required_fields": [
+            "noise_floor_evidence",
+            "frequency_time_events",
+            "transient_events",
+            "band_dynamics"
+          ],
+          "log_files": [
+            "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\projects\\pv1_p02\\.vit_derived\\vitproj_df1db77ce1164b85b61f2ee772e28123\\l3_feature_log.jsonl"
+          ],
+          "tracks": [
+            {
+              "track_id": "1007",
+              "track_name": "bass",
+              "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p02\\stems\\bass.wav",
+              "event_count": 1,
+              "required_fields_present": [
+                "band_dynamics",
+                "frequency_time_events",
+                "noise_floor_evidence",
+                "transient_events"
+              ],
+              "missing_fields": [],
+              "status": "passed"
+            },
+            {
+              "track_id": "1012",
+              "track_name": "drums",
+              "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p02\\stems\\drums.wav",
+              "event_count": 1,
+              "required_fields_present": [
+                "band_dynamics",
+                "frequency_time_events",
+                "noise_floor_evidence",
+                "transient_events"
+              ],
+              "missing_fields": [],
+              "status": "passed"
+            },
+            {
+              "track_id": "1017",
+              "track_name": "guitar",
+              "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p02\\stems\\guitar.wav",
+              "event_count": 1,
+              "required_fields_present": [
+                "band_dynamics",
+                "frequency_time_events",
+                "noise_floor_evidence",
+                "transient_events"
+              ],
+              "missing_fields": [],
+              "status": "passed"
+            },
+            {
+              "track_id": "1022",
+              "track_name": "other",
+              "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p02\\stems\\other.wav",
+              "event_count": 1,
+              "required_fields_present": [
+                "band_dynamics",
+                "frequency_time_events",
+                "noise_floor_evidence",
+                "transient_events"
+              ],
+              "missing_fields": [],
+              "status": "passed"
+            },
+            {
+              "track_id": "1027",
+              "track_name": "piano",
+              "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p02\\stems\\piano.wav",
+              "event_count": 1,
+              "required_fields_present": [
+                "band_dynamics",
+                "frequency_time_events",
+                "noise_floor_evidence",
+                "transient_events"
+              ],
+              "missing_fields": [],
+              "status": "passed"
+            },
+            {
+              "track_id": "1032",
+              "track_name": "vocals",
+              "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p02\\stems\\vocals.wav",
+              "event_count": 1,
+              "required_fields_present": [
+                "band_dynamics",
+                "frequency_time_events",
+                "noise_floor_evidence",
+                "transient_events"
+              ],
+              "missing_fields": [],
+              "status": "passed"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "case_id": "pv1_p03",
+      "project_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\projects\\pv1_p03\\pv1_p03.vit",
+      "project_size_bytes": 23005,
+      "tracks": [
+        {
+          "track_id": "1007",
+          "track_name": "bass",
+          "clip_id": "1011",
+          "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p03\\stems\\bass.wav"
+        },
+        {
+          "track_id": "1012",
+          "track_name": "drums",
+          "clip_id": "1016",
+          "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p03\\stems\\drums.wav"
+        },
+        {
+          "track_id": "1017",
+          "track_name": "guitar",
+          "clip_id": "1021",
+          "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p03\\stems\\guitar.wav"
+        },
+        {
+          "track_id": "1022",
+          "track_name": "other",
+          "clip_id": "1026",
+          "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p03\\stems\\other.wav"
+        },
+        {
+          "track_id": "1027",
+          "track_name": "piano",
+          "clip_id": "1031",
+          "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p03\\stems\\piano.wav"
+        },
+        {
+          "track_id": "1032",
+          "track_name": "vocals",
+          "clip_id": "1036",
+          "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p03\\stems\\vocals.wav"
+        }
+      ],
+      "analysis": {
+        "analysis_job_id": "audio_analysis_1790681961976_3",
+        "dad_fact_status": "ready",
+        "dad_fact_ready_count": 6,
+        "dad_fact_total_count": 6,
+        "track_waveform_envelope_count": 6,
+        "product_fine_evidence": {
+          "status": "passed",
+          "required_fields": [
+            "noise_floor_evidence",
+            "frequency_time_events",
+            "transient_events",
+            "band_dynamics"
+          ],
+          "log_files": [
+            "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\projects\\pv1_p03\\.vit_derived\\vitproj_4af986dc75d5469f82a78a0f5c3f709a\\l3_feature_log.jsonl"
+          ],
+          "tracks": [
+            {
+              "track_id": "1007",
+              "track_name": "bass",
+              "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p03\\stems\\bass.wav",
+              "event_count": 1,
+              "required_fields_present": [
+                "band_dynamics",
+                "frequency_time_events",
+                "noise_floor_evidence",
+                "transient_events"
+              ],
+              "missing_fields": [],
+              "status": "passed"
+            },
+            {
+              "track_id": "1012",
+              "track_name": "drums",
+              "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p03\\stems\\drums.wav",
+              "event_count": 1,
+              "required_fields_present": [
+                "band_dynamics",
+                "frequency_time_events",
+                "noise_floor_evidence",
+                "transient_events"
+              ],
+              "missing_fields": [],
+              "status": "passed"
+            },
+            {
+              "track_id": "1017",
+              "track_name": "guitar",
+              "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p03\\stems\\guitar.wav",
+              "event_count": 1,
+              "required_fields_present": [
+                "band_dynamics",
+                "frequency_time_events",
+                "noise_floor_evidence",
+                "transient_events"
+              ],
+              "missing_fields": [],
+              "status": "passed"
+            },
+            {
+              "track_id": "1022",
+              "track_name": "other",
+              "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p03\\stems\\other.wav",
+              "event_count": 1,
+              "required_fields_present": [
+                "band_dynamics",
+                "frequency_time_events",
+                "noise_floor_evidence",
+                "transient_events"
+              ],
+              "missing_fields": [],
+              "status": "passed"
+            },
+            {
+              "track_id": "1027",
+              "track_name": "piano",
+              "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p03\\stems\\piano.wav",
+              "event_count": 1,
+              "required_fields_present": [
+                "band_dynamics",
+                "frequency_time_events",
+                "noise_floor_evidence",
+                "transient_events"
+              ],
+              "missing_fields": [],
+              "status": "passed"
+            },
+            {
+              "track_id": "1032",
+              "track_name": "vocals",
+              "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p03\\stems\\vocals.wav",
+              "event_count": 1,
+              "required_fields_present": [
+                "band_dynamics",
+                "frequency_time_events",
+                "noise_floor_evidence",
+                "transient_events"
+              ],
+              "missing_fields": [],
+              "status": "passed"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "case_id": "pv1_p04",
+      "project_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\projects\\pv1_p04\\pv1_p04.vit",
+      "project_size_bytes": 23008,
+      "tracks": [
+        {
+          "track_id": "1007",
+          "track_name": "bass",
+          "clip_id": "1011",
+          "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p04\\stems\\bass.wav"
+        },
+        {
+          "track_id": "1012",
+          "track_name": "drums",
+          "clip_id": "1016",
+          "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p04\\stems\\drums.wav"
+        },
+        {
+          "track_id": "1017",
+          "track_name": "guitar",
+          "clip_id": "1021",
+          "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p04\\stems\\guitar.wav"
+        },
+        {
+          "track_id": "1022",
+          "track_name": "other",
+          "clip_id": "1026",
+          "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p04\\stems\\other.wav"
+        },
+        {
+          "track_id": "1027",
+          "track_name": "piano",
+          "clip_id": "1031",
+          "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p04\\stems\\piano.wav"
+        },
+        {
+          "track_id": "1032",
+          "track_name": "vocals",
+          "clip_id": "1036",
+          "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p04\\stems\\vocals.wav"
+        }
+      ],
+      "analysis": {
+        "analysis_job_id": "audio_analysis_1790681966242_4",
+        "dad_fact_status": "ready",
+        "dad_fact_ready_count": 6,
+        "dad_fact_total_count": 6,
+        "track_waveform_envelope_count": 6,
+        "product_fine_evidence": {
+          "status": "passed",
+          "required_fields": [
+            "noise_floor_evidence",
+            "frequency_time_events",
+            "transient_events",
+            "band_dynamics"
+          ],
+          "log_files": [
+            "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\projects\\pv1_p04\\.vit_derived\\vitproj_d14146128d1b4c8d9ce5810bad49fb3c\\l3_feature_log.jsonl"
+          ],
+          "tracks": [
+            {
+              "track_id": "1007",
+              "track_name": "bass",
+              "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p04\\stems\\bass.wav",
+              "event_count": 1,
+              "required_fields_present": [
+                "band_dynamics",
+                "frequency_time_events",
+                "noise_floor_evidence",
+                "transient_events"
+              ],
+              "missing_fields": [],
+              "status": "passed"
+            },
+            {
+              "track_id": "1012",
+              "track_name": "drums",
+              "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p04\\stems\\drums.wav",
+              "event_count": 1,
+              "required_fields_present": [
+                "band_dynamics",
+                "frequency_time_events",
+                "noise_floor_evidence",
+                "transient_events"
+              ],
+              "missing_fields": [],
+              "status": "passed"
+            },
+            {
+              "track_id": "1017",
+              "track_name": "guitar",
+              "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p04\\stems\\guitar.wav",
+              "event_count": 1,
+              "required_fields_present": [
+                "band_dynamics",
+                "frequency_time_events",
+                "noise_floor_evidence",
+                "transient_events"
+              ],
+              "missing_fields": [],
+              "status": "passed"
+            },
+            {
+              "track_id": "1022",
+              "track_name": "other",
+              "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p04\\stems\\other.wav",
+              "event_count": 1,
+              "required_fields_present": [
+                "band_dynamics",
+                "frequency_time_events",
+                "noise_floor_evidence",
+                "transient_events"
+              ],
+              "missing_fields": [],
+              "status": "passed"
+            },
+            {
+              "track_id": "1027",
+              "track_name": "piano",
+              "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p04\\stems\\piano.wav",
+              "event_count": 1,
+              "required_fields_present": [
+                "band_dynamics",
+                "frequency_time_events",
+                "noise_floor_evidence",
+                "transient_events"
+              ],
+              "missing_fields": [],
+              "status": "passed"
+            },
+            {
+              "track_id": "1032",
+              "track_name": "vocals",
+              "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p04\\stems\\vocals.wav",
+              "event_count": 1,
+              "required_fields_present": [
+                "band_dynamics",
+                "frequency_time_events",
+                "noise_floor_evidence",
+                "transient_events"
+              ],
+              "missing_fields": [],
+              "status": "passed"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "case_id": "pv1_p05",
+      "project_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\projects\\pv1_p05\\pv1_p05.vit",
+      "project_size_bytes": 22999,
+      "tracks": [
+        {
+          "track_id": "1007",
+          "track_name": "bass",
+          "clip_id": "1011",
+          "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p05\\stems\\bass.wav"
+        },
+        {
+          "track_id": "1012",
+          "track_name": "drums",
+          "clip_id": "1016",
+          "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p05\\stems\\drums.wav"
+        },
+        {
+          "track_id": "1017",
+          "track_name": "guitar",
+          "clip_id": "1021",
+          "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p05\\stems\\guitar.wav"
+        },
+        {
+          "track_id": "1022",
+          "track_name": "other",
+          "clip_id": "1026",
+          "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p05\\stems\\other.wav"
+        },
+        {
+          "track_id": "1027",
+          "track_name": "piano",
+          "clip_id": "1031",
+          "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p05\\stems\\piano.wav"
+        },
+        {
+          "track_id": "1032",
+          "track_name": "vocals",
+          "clip_id": "1036",
+          "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p05\\stems\\vocals.wav"
+        }
+      ],
+      "analysis": {
+        "analysis_job_id": "audio_analysis_1790681969680_5",
+        "dad_fact_status": "ready",
+        "dad_fact_ready_count": 6,
+        "dad_fact_total_count": 6,
+        "track_waveform_envelope_count": 6,
+        "product_fine_evidence": {
+          "status": "passed",
+          "required_fields": [
+            "noise_floor_evidence",
+            "frequency_time_events",
+            "transient_events",
+            "band_dynamics"
+          ],
+          "log_files": [
+            "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\projects\\pv1_p05\\.vit_derived\\vitproj_d6d6a3c4f4884f0780638092b2a1c3f7\\l3_feature_log.jsonl"
+          ],
+          "tracks": [
+            {
+              "track_id": "1007",
+              "track_name": "bass",
+              "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p05\\stems\\bass.wav",
+              "event_count": 1,
+              "required_fields_present": [
+                "band_dynamics",
+                "frequency_time_events",
+                "noise_floor_evidence",
+                "transient_events"
+              ],
+              "missing_fields": [],
+              "status": "passed"
+            },
+            {
+              "track_id": "1012",
+              "track_name": "drums",
+              "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p05\\stems\\drums.wav",
+              "event_count": 1,
+              "required_fields_present": [
+                "band_dynamics",
+                "frequency_time_events",
+                "noise_floor_evidence",
+                "transient_events"
+              ],
+              "missing_fields": [],
+              "status": "passed"
+            },
+            {
+              "track_id": "1017",
+              "track_name": "guitar",
+              "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p05\\stems\\guitar.wav",
+              "event_count": 1,
+              "required_fields_present": [
+                "band_dynamics",
+                "frequency_time_events",
+                "noise_floor_evidence",
+                "transient_events"
+              ],
+              "missing_fields": [],
+              "status": "passed"
+            },
+            {
+              "track_id": "1022",
+              "track_name": "other",
+              "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p05\\stems\\other.wav",
+              "event_count": 1,
+              "required_fields_present": [
+                "band_dynamics",
+                "frequency_time_events",
+                "noise_floor_evidence",
+                "transient_events"
+              ],
+              "missing_fields": [],
+              "status": "passed"
+            },
+            {
+              "track_id": "1027",
+              "track_name": "piano",
+              "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p05\\stems\\piano.wav",
+              "event_count": 1,
+              "required_fields_present": [
+                "band_dynamics",
+                "frequency_time_events",
+                "noise_floor_evidence",
+                "transient_events"
+              ],
+              "missing_fields": [],
+              "status": "passed"
+            },
+            {
+              "track_id": "1032",
+              "track_name": "vocals",
+              "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p05\\stems\\vocals.wav",
+              "event_count": 1,
+              "required_fields_present": [
+                "band_dynamics",
+                "frequency_time_events",
+                "noise_floor_evidence",
+                "transient_events"
+              ],
+              "missing_fields": [],
+              "status": "passed"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "case_id": "pv1_p06",
+      "project_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\projects\\pv1_p06\\pv1_p06.vit",
+      "project_size_bytes": 23003,
+      "tracks": [
+        {
+          "track_id": "1007",
+          "track_name": "bass",
+          "clip_id": "1011",
+          "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p06\\stems\\bass.wav"
+        },
+        {
+          "track_id": "1012",
+          "track_name": "drums",
+          "clip_id": "1016",
+          "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p06\\stems\\drums.wav"
+        },
+        {
+          "track_id": "1017",
+          "track_name": "guitar",
+          "clip_id": "1021",
+          "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p06\\stems\\guitar.wav"
+        },
+        {
+          "track_id": "1022",
+          "track_name": "other",
+          "clip_id": "1026",
+          "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p06\\stems\\other.wav"
+        },
+        {
+          "track_id": "1027",
+          "track_name": "piano",
+          "clip_id": "1031",
+          "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p06\\stems\\piano.wav"
+        },
+        {
+          "track_id": "1032",
+          "track_name": "vocals",
+          "clip_id": "1036",
+          "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p06\\stems\\vocals.wav"
+        }
+      ],
+      "analysis": {
+        "analysis_job_id": "audio_analysis_1790681973172_6",
+        "dad_fact_status": "ready",
+        "dad_fact_ready_count": 6,
+        "dad_fact_total_count": 6,
+        "track_waveform_envelope_count": 6,
+        "product_fine_evidence": {
+          "status": "passed",
+          "required_fields": [
+            "noise_floor_evidence",
+            "frequency_time_events",
+            "transient_events",
+            "band_dynamics"
+          ],
+          "log_files": [
+            "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\projects\\pv1_p06\\.vit_derived\\vitproj_8b6e0d1795a24ab49305310abff60b2b\\l3_feature_log.jsonl"
+          ],
+          "tracks": [
+            {
+              "track_id": "1007",
+              "track_name": "bass",
+              "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p06\\stems\\bass.wav",
+              "event_count": 1,
+              "required_fields_present": [
+                "band_dynamics",
+                "frequency_time_events",
+                "noise_floor_evidence",
+                "transient_events"
+              ],
+              "missing_fields": [],
+              "status": "passed"
+            },
+            {
+              "track_id": "1012",
+              "track_name": "drums",
+              "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p06\\stems\\drums.wav",
+              "event_count": 1,
+              "required_fields_present": [
+                "band_dynamics",
+                "frequency_time_events",
+                "noise_floor_evidence",
+                "transient_events"
+              ],
+              "missing_fields": [],
+              "status": "passed"
+            },
+            {
+              "track_id": "1017",
+              "track_name": "guitar",
+              "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p06\\stems\\guitar.wav",
+              "event_count": 1,
+              "required_fields_present": [
+                "band_dynamics",
+                "frequency_time_events",
+                "noise_floor_evidence",
+                "transient_events"
+              ],
+              "missing_fields": [],
+              "status": "passed"
+            },
+            {
+              "track_id": "1022",
+              "track_name": "other",
+              "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p06\\stems\\other.wav",
+              "event_count": 1,
+              "required_fields_present": [
+                "band_dynamics",
+                "frequency_time_events",
+                "noise_floor_evidence",
+                "transient_events"
+              ],
+              "missing_fields": [],
+              "status": "passed"
+            },
+            {
+              "track_id": "1027",
+              "track_name": "piano",
+              "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p06\\stems\\piano.wav",
+              "event_count": 1,
+              "required_fields_present": [
+                "band_dynamics",
+                "frequency_time_events",
+                "noise_floor_evidence",
+                "transient_events"
+              ],
+              "missing_fields": [],
+              "status": "passed"
+            },
+            {
+              "track_id": "1032",
+              "track_name": "vocals",
+              "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p06\\stems\\vocals.wav",
+              "event_count": 1,
+              "required_fields_present": [
+                "band_dynamics",
+                "frequency_time_events",
+                "noise_floor_evidence",
+                "transient_events"
+              ],
+              "missing_fields": [],
+              "status": "passed"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "case_id": "pv1_p07",
+      "project_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\projects\\pv1_p07\\pv1_p07.vit",
+      "project_size_bytes": 23001,
+      "tracks": [
+        {
+          "track_id": "1007",
+          "track_name": "bass",
+          "clip_id": "1011",
+          "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p07\\stems\\bass.wav"
+        },
+        {
+          "track_id": "1012",
+          "track_name": "drums",
+          "clip_id": "1016",
+          "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p07\\stems\\drums.wav"
+        },
+        {
+          "track_id": "1017",
+          "track_name": "guitar",
+          "clip_id": "1021",
+          "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p07\\stems\\guitar.wav"
+        },
+        {
+          "track_id": "1022",
+          "track_name": "other",
+          "clip_id": "1026",
+          "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p07\\stems\\other.wav"
+        },
+        {
+          "track_id": "1027",
+          "track_name": "piano",
+          "clip_id": "1031",
+          "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p07\\stems\\piano.wav"
+        },
+        {
+          "track_id": "1032",
+          "track_name": "vocals",
+          "clip_id": "1036",
+          "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p07\\stems\\vocals.wav"
+        }
+      ],
+      "analysis": {
+        "analysis_job_id": "audio_analysis_1790681976598_7",
+        "dad_fact_status": "ready",
+        "dad_fact_ready_count": 6,
+        "dad_fact_total_count": 6,
+        "track_waveform_envelope_count": 6,
+        "product_fine_evidence": {
+          "status": "passed",
+          "required_fields": [
+            "noise_floor_evidence",
+            "frequency_time_events",
+            "transient_events",
+            "band_dynamics"
+          ],
+          "log_files": [
+            "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\projects\\pv1_p07\\.vit_derived\\vitproj_b42687784751441ba1a25a97a5e3fba2\\l3_feature_log.jsonl"
+          ],
+          "tracks": [
+            {
+              "track_id": "1007",
+              "track_name": "bass",
+              "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p07\\stems\\bass.wav",
+              "event_count": 1,
+              "required_fields_present": [
+                "band_dynamics",
+                "frequency_time_events",
+                "noise_floor_evidence",
+                "transient_events"
+              ],
+              "missing_fields": [],
+              "status": "passed"
+            },
+            {
+              "track_id": "1012",
+              "track_name": "drums",
+              "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p07\\stems\\drums.wav",
+              "event_count": 1,
+              "required_fields_present": [
+                "band_dynamics",
+                "frequency_time_events",
+                "noise_floor_evidence",
+                "transient_events"
+              ],
+              "missing_fields": [],
+              "status": "passed"
+            },
+            {
+              "track_id": "1017",
+              "track_name": "guitar",
+              "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p07\\stems\\guitar.wav",
+              "event_count": 1,
+              "required_fields_present": [
+                "band_dynamics",
+                "frequency_time_events",
+                "noise_floor_evidence",
+                "transient_events"
+              ],
+              "missing_fields": [],
+              "status": "passed"
+            },
+            {
+              "track_id": "1022",
+              "track_name": "other",
+              "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p07\\stems\\other.wav",
+              "event_count": 1,
+              "required_fields_present": [
+                "band_dynamics",
+                "frequency_time_events",
+                "noise_floor_evidence",
+                "transient_events"
+              ],
+              "missing_fields": [],
+              "status": "passed"
+            },
+            {
+              "track_id": "1027",
+              "track_name": "piano",
+              "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p07\\stems\\piano.wav",
+              "event_count": 1,
+              "required_fields_present": [
+                "band_dynamics",
+                "frequency_time_events",
+                "noise_floor_evidence",
+                "transient_events"
+              ],
+              "missing_fields": [],
+              "status": "passed"
+            },
+            {
+              "track_id": "1032",
+              "track_name": "vocals",
+              "source_path": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p07\\stems\\vocals.wav",
+              "event_count": 1,
+              "required_fields_present": [
+                "band_dynamics",
+                "frequency_time_events",
+                "noise_floor_evidence",
+                "transient_events"
+              ],
+              "missing_fields": [],
+              "status": "passed"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "project_count": 7
+}

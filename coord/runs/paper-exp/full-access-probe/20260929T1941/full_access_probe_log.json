@@ -1,0 +1,27 @@
+{
+  "probe": "full access scripted-path confirmation on the live stack (PILOT p07 run instance, binary 78DC4889..., tag experiment-baseline-2026-09-29)",
+  "captured_at": "2026-09-29T19:45:15+08:00",
+  "identity_switch_reset_evidence": "separate probe earlier same day: POST full_access on workspace A, then runner-form project.open of a copied project B (copytree to new path) -> GET authority returned manual_confirmation (AUTHORITY-LOST-1 explicit-latch drop, agent/internal/chat/server.go ~6826)",
+  "steps": [
+    {
+      "step": "a_baseline_mode",
+      "ok": true,
+      "detail": "manual_confirmation"
+    },
+    {
+      "step": "b_switch_full_echo",
+      "ok": true,
+      "detail": "full_project_access"
+    },
+    {
+      "step": "b2_survives_invoke_same_identity",
+      "ok": true,
+      "detail": "full_project_access"
+    },
+    {
+      "step": "e_restore_manual",
+      "ok": true,
+      "detail": "manual_confirmation"
+    }
+  ]
+}

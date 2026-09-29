@@ -1,0 +1,124 @@
+{
+  "method": "offline reproduction using the runner's own functions (free_state_d1_smoke.load_public_case + qualify_material, neutral flavor) on the adapted manifest; executed from D:/Vit_DAW at tag experiment-baseline-2026-09-29 code",
+  "gate_constants": {
+    "min_rms_dbfs_per_track": -45.0,
+    "min_crest_db_per_track": 10.0,
+    "min_best_crest_db": 14.0
+  },
+  "captured_at": "2026-09-29T19:44:59+08:00",
+  "cases": {
+    "pv1_p01": {
+      "verdict": "FAIL",
+      "gate_detail": {
+        "weak_rms_tracks": [
+          "guitar"
+        ],
+        "weak_crest_tracks": [],
+        "best_crest_db": 25.355
+      }
+    },
+    "pv1_p02": {
+      "verdict": "FAIL",
+      "gate_detail": {
+        "weak_rms_tracks": [
+          "guitar",
+          "other"
+        ],
+        "weak_crest_tracks": [],
+        "best_crest_db": 31.765
+      }
+    },
+    "pv1_p03": {
+      "verdict": "FAIL",
+      "gate_detail": {
+        "weak_rms_tracks": [
+          "other",
+          "piano"
+        ],
+        "weak_crest_tracks": [
+          "bass"
+        ],
+        "best_crest_db": 19.334
+      }
+    },
+    "pv1_p04": {
+      "verdict": "FAIL",
+      "gate_detail": {
+        "weak_rms_tracks": [
+          "guitar",
+          "other",
+          "piano"
+        ],
+        "weak_crest_tracks": [],
+        "best_crest_db": 22.159
+      }
+    },
+    "pv1_p05": {
+      "verdict": "PASS",
+      "best_crest_db": 24.786,
+      "tracks": [
+        {
+          "track": "bass",
+          "file": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p05\\stems\\bass.wav",
+          "rms_dbfs": -30.906,
+          "peak_dbfs": -11.436,
+          "crest_db": 19.47
+        },
+        {
+          "track": "drums",
+          "file": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p05\\stems\\drums.wav",
+          "rms_dbfs": -31.4,
+          "peak_dbfs": -7.701,
+          "crest_db": 23.699
+        },
+        {
+          "track": "guitar",
+          "file": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p05\\stems\\guitar.wav",
+          "rms_dbfs": -28.746,
+          "peak_dbfs": -3.96,
+          "crest_db": 24.786
+        },
+        {
+          "track": "other",
+          "file": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p05\\stems\\other.wav",
+          "rms_dbfs": -39.989,
+          "peak_dbfs": -15.414,
+          "crest_db": 24.575
+        },
+        {
+          "track": "piano",
+          "file": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p05\\stems\\piano.wav",
+          "rms_dbfs": -31.714,
+          "peak_dbfs": -10.509,
+          "crest_db": 21.205
+        },
+        {
+          "track": "vocals",
+          "file": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\cases\\pv1_p05\\stems\\vocals.wav",
+          "rms_dbfs": -22.59,
+          "peak_dbfs": -4.858,
+          "crest_db": 17.732
+        }
+      ]
+    },
+    "pv1_p06": {
+      "verdict": "FAIL",
+      "gate_detail": {
+        "weak_contrast_tracks": [
+          "vocals"
+        ],
+        "best_contrast_short_peak_long_median_db": 48.854
+      }
+    },
+    "pv1_p07": {
+      "verdict": "FAIL",
+      "gate_detail": {
+        "weak_rms_tracks": [
+          "guitar"
+        ],
+        "weak_crest_tracks": [],
+        "best_crest_db": 27.192
+      }
+    }
+  }
+}

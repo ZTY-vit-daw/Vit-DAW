@@ -1,0 +1,13 @@
+{
+  "schema_version": "vit.free_state_d1_smoke.v1",
+  "started_at": "2026-09-29T11:42:36.333076+00:00",
+  "public_case_id": "pv1_p01",
+  "prompt_flavor": "neutral",
+  "expect_domain": "any",
+  "expect_honest_refusal": false,
+  "public_source_project": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\projects\\pv1_p01\\pv1_p01.vit",
+  "status": "fail",
+  "error": "public material failed the compression-fixture qualification gates: {\"weak_rms_tracks\": [\"guitar\"], \"weak_crest_tracks\": [], \"best_crest_db\": 25.355}",
+  "responses": [],
+  "finished_at": "2026-09-29T11:42:36.597908+00:00"
+}

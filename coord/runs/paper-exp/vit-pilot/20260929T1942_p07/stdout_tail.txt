@@ -1,0 +1,12 @@
+
+== Summary
+ok: dev agent smoke completed
+D1-S1 FAIL: public material failed the compression-fixture qualification gates: {"weak_rms_tracks": ["guitar"], "weak_crest_tracks": [], "best_crest_db": 27.192}; report=D:\Vit_DAW\artifacts\free_state_d1_s1\20260929_194244\d1_smoke_report.json
+D1-S1 smoke failed; report=D:\Vit_DAW\artifacts\free_state_d1_s1\20260929_194244\d1_smoke_report.json
+ËùÔÚÎ»ÖÃ D:\Vit_DAW\scripts\run_free_state_d1_smoke.ps1:280 ×Ö·û: 5
++     throw "D1-S1 smoke failed; report=$report"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (D1-S1 smoke fai...oke_report.json:String) [], RuntimeException
+    + FullyQualifiedErrorId : D1-S1 smoke failed; report=D:\Vit_DAW\artifacts\free_state_d1_s1\20260929_194244\d1_smok 
+   e_report.json
+ 
