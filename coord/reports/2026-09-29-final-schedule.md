@@ -8,9 +8,9 @@
 | 线 | 内容 | 引擎/端 |
 |---|---|---|
 | **L1 地基**（蓝图关键路径） | L1-3 收段（在飞）→ L1-4 浮动窗口（四层前缀+退场）→ L1-5 新 harness+G3 A/B → 汇合（编曲核心上新 harness） | PC：GLM 亲自（关键机制）/flash（机制性外围）；L1-4 卡 L1-3 收段后由决策侧写 |
-| **L2 独立组件** | L2-1 交付 profile 收尾 → L2-2 段落 DSP 收尾 → L2-3 质询协议实现 → L2-4 时域效果器接入 | **Mac 主力**（TIM 面先例），按池序领 |
+| **L2 独立组件** | L2-1 交付 profile 收尾 → L2-2 段落 DSP 收尾 → L2-3 质询协议实现 → L2-4 时域效果器接入 | 逐卡定端（2026-09-29 修订，decisions/2026-09-29-endpoint-allocation-principle.md）：L2-4=**PC**（processor 体系深耦合，用户裁定）；L2-2/L2-3 写卡时核实耦合度（预计偏 PC）；新开面子项 Mac 可接（真栈门归 PC 验收面） |
 | **宏组件** | MACRO-RECON-1（在池）→ DESIGN（决策侧亲自）→ IMPL-A agent 侧 → IMPL-B webui+E2E-WEBUI-1 最小渲染烟测 → 端测收口 | PC：GLM L1 引导+flash 执行；与蓝图正交并行 |
-| **编曲/生成（通路层先行）** | ARRANGE-RECON-1（在池）→ DESIGN → 通路层 IMPL（工程统一性底座/资料库/生成驱动 CLI+适配器/外部导入/Basic Pitch 音频转 MIDI）→ **核心编曲能力（NL 写入轨道等）等 L1-5 汇合后上新 harness** | PC；Suno 会话适配器随通路层后 |
+| **编曲/生成（通路层先行）** | ARRANGE-RECON-1（在池）→ DESIGN → 通路层 IMPL（工程统一性底座/资料库/生成驱动 CLI+适配器/外部导入/Basic Pitch 音频转 MIDI）→ **核心编曲能力（NL 写入轨道等）等 L1-5 汇合后上新 harness** | 子项拆分定端（同上修订）：深耦面（tempo 披露键/观察装配）=PC；新开面（生成驱动 CLI 底座/Basic Pitch 集成）Mac 可接+真栈场景归 PC 验收；Suno 会话适配器随通路层后 |
 | **实验+论文** | 重锚 tag（PILOT 前切）→ PAPER-EXP-ADAPT-1（本日入池）→ PILOT → K1-K7 拍板会（10 月中，决策侧先出预消化材料）→ 56b 定稿 → MAIN 84 全量 → JUDGE → 42 号回填；写作侧：用户三章审稿+轮 6/7 | PC 真栈跑实验；写作=用户+材料侧会话 |
 | **展演** | DEFENSE-SHOW-1：11 月上分镜、12 月上素材、12 月中版本冻结+排练 ≥2、12 月底预答辩 | 决策侧设计+用户 |
 
