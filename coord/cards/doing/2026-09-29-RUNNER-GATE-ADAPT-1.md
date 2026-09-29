@@ -13,6 +13,6 @@
 - 约束：真栈泊位声明必附（PILOT 两轮）；tag experiment-baseline-2026-09-29 不动（阻断在 python 侧，被测对象未变）；不修素材。
 - 验收标准：PILOT p01+p07 exit 0（真栈工件可回指）+ spv1 回归全过 + 门反例区分度证明 + 参数推导工件入库。
 - 停止条件：发现门与 D1 契约本体存在耦合（非独立素材前置）→ 实证上交，不擅拆契约。
-- 领取：（时间 / origin/main hash / 分支名）
+- 领取：2026-09-29 21:05 / origin/main acf5c52c / `port/runner-gate-adapt-1`（worktree `D:/Vit_DAW_worktrees/runner-gate-adapt-1`，基于 tag `experiment-baseline-2026-09-29`=4b695354——PILOT 被测对象与 tag 一致，runner 两脚本自 tag 以来零改动，分支 diff=纯门变更）；领取时主树 HEAD=acf5c52c、工作树仅既有运行时残留 `M VitApp/Workspace/default_project.xml`
 - 回执：（commit hash / PILOT run ID 与退出码 / 泊位声明 / HEAD）
 - 验收：（裁定文件 / 验收 commit）
