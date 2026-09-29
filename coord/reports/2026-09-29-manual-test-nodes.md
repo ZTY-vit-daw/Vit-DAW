@@ -20,6 +20,7 @@
 | **M5** | **音频转 MIDI 编辑** | Basic Pitch 接入合入 | 给一段音频→转多声部 MIDI→进钢琴卷帘可编辑（此前音频与 MIDI 面完全割裂） | DESIGN 待落笔 |
 | **M6** | **段落 DSP 与质询对话** | L2-2/L2-3（Mac）合入 | 段落级处理可听差异；agent 主动质询澄清（对话行为变化） | Mac 侧排队 |
 | **M7** | **新 harness 双车道体验** | L1-5 新 harness+G3 裁定合入 | 简单请求快答/复杂请求深做的响应模式分化——感知=该快的快了 | L1-4 后 |
+| **M8** | **vit note 空间触发** | vit note v1 合入（VITNOTE-RECON-1→DESIGN→IMPL，decisions/2026-09-29-vit-note-concept.md） | 框选区域→原位便签输入→agent 带空间上下文工作→便签内流式输出+webui 同步可见——**全新交互形态**（领域无先例），多 note 并行各自成对话流 | RECON 在池 |
 
 ## 与排程挂接
 
