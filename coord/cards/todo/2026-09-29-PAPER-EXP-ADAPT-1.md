@@ -1,5 +1,6 @@
 # PAPER-EXP-ADAPT-1：实验适配——pv1 七例 .vit 工程构建+适配公开清单+full access 路径确认
 
+- 池序 2（P0 真栈重卡，重锚 tag experiment-baseline-2026-09-29=4b695354 已切定解锁，见尾部解锁注记；与在飞的 L1-3-GUARD-1 不同域可并行）
 - 优先级 / 预估 / 依赖：P0 / 0.5–1 天 / 实验基线重锚 tag 由决策侧在 PILOT 前切定（decisions/2026-09-29-thesis-positioning-decision.md §一.1）；规格出处=coord/runs/PAPER-EXP-RECON-1/EXPERIMENT_CALIBRATION.md §三 U1 表+§四建议卡
 - 模型分级：L1 / GLM 首选（真实栈操作），flash 可接材料仓侧部分
 - 目标：
@@ -11,3 +12,4 @@
 - 约束：三模型凭证（GLM/GPT/Claude 经中转）由用户提供，列缺口不阻塞本卡；温度口径 0.2 硬编码在案（client.go:392）；真栈泊位声明必附。
 - 验收标准：PILOT 2 例（p01+p07）exit 0 + 适配清单入库 + 工件可回指
 - 停止条件：内核导入面无法为 stems 建工程（命令语义缺口）→ 实证清单上交，不擅改内核
+- 解锁注记（2026-09-29 晚，决策侧）：重锚 tag 已切定 **experiment-baseline-2026-09-29**=4b695354（含 IMPL-A/B/C 全链+今日四卡验收态；queryengine 属新模块非被测对象，符合定位决策 §一.1"新模块可在树中"）——**依赖满足，随时可领**。材料仓实锚=`C:\Users\timoz\Documents\毕业设计`（experiments/out/suite_v1_lm/ 七例已核在）。若 PILOT 开跑前混音诊断调控链再有实现改动，由决策侧裁定是否前移 tag；PILOT 数据产生后 tag 冻结不再动。
