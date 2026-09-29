@@ -4,8 +4,8 @@
 - 模型分级：L1 / GLM 或 flash 均可（零代码）
 - 目标（四个事实面，报告入 coord/runs/MACRO-RECON-1/）：
   1. **现状宏数据流全景**：kernel/Godot rack 侧宏的定义与存储形态、rack 宏→参数的写路径（通道/数据形态/速率特征）、agent 侧 `macrocontrols` 归一化链（chat/server.go uiMacroControls）到 webui 宏面板+宏卡片引用的完整数据流，逐环节锚点。
-  2. **动态注册可行性**：kernel 是否有宏注册/变更接口；Godot 前端（D:\Godot\project\vit-daw-frontend）宏 UI 的渲染来源与刷新机制；用户手工改插件参数的写路径（含插件自有 GUI 路径是否可达/可观测）。
-  3. **传输通道选项**：agent 现有 HTTP/ZMQ/websocket 面对"连续控件事件流"的适配度（vsp_hub_websocket_smoke 先例）；预览写（连续乐观可丢）+提交写（离散权威入账）两级语义的可行落点；kernel 侧是否已有控制速率通道。
+  2. **动态注册可行性**：kernel 是否有宏注册/变更接口；Godot 前端（D:\Godot\project\vit-daw-frontend）宏 UI 的渲染来源与刷新机制；用户手工改插件参数的写路径（含插件自有 GUI 路径是否可达/可观测）；**插件编辑器窗口的打开控制面**（前端/内核何处决定可否打开 VST3 editor——exclusive 绑定下前端禁开编辑器的实现点与已开编辑器在宏创建时的处置）。
+  3. **传输通道选项（2026-09-29 扩为通用控制车道）**：agent 页面全部交互控件盘点（播放按钮/试听触发/其他调控按钮的现有传输路径与实测延迟）；agent 现有 HTTP/ZMQ/websocket 面对"控制类事件流"的适配度（vsp_hub_websocket_smoke 先例）；通用 WS 控制车道的设计输入：类型化事件面（transport / macro 预览+提交 / 试听触发）、合并与丢弃策略、与既有对话/消息路径（可靠性语义不同）的分界；kernel 侧是否已有控制速率通道。
   4. **控件类型需求清单**：webui 现有交互组件盘点（滑条/开关/段选/XY pad 有无）；pluginsemantics/pluginprobe 参数元数据面（类型/范围/枚举值/单位）对"参数类型→控件类型"映射的可得性与缺口。
   5. **参数级状态可观测性与写冲突面（2026-09-29 讨论补）**：kernel/agent 能否观察到"插件 GUI 手改单参数"这类宏外写（DAD/rack 态轮询的参数粒度与频率）；现有写路径（experiment/VSP/rack 宏写）是否带 revision/基线可供比对；**参数写语义是绝对设置还是支持增量/相对写**（delta 宏的组合语义依赖：无内核增量写时 agent 侧组合可行但需评估 CAS 重试窗口）——宏漂移检测与提交写乐观并发（带期望基线的 CAS 语义）依赖这些，是同步设计的生死前提。
 - 约束：零代码改动；只读勘察；发现与设计假设冲突的事实如实记录（正是本卡目的）。
