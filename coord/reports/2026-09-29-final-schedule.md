@@ -13,6 +13,7 @@
 | **编曲/生成（通路层先行）** | ARRANGE-RECON-1（在池）→ DESIGN → 通路层 IMPL（工程统一性底座/资料库/生成驱动 CLI+适配器/外部导入/Basic Pitch 音频转 MIDI）→ **核心编曲能力（NL 写入轨道等）等 L1-5 汇合后上新 harness** | 子项拆分定端（同上修订）：深耦面（tempo 披露键/观察装配）=PC；新开面（生成驱动 CLI 底座/Basic Pitch 集成）Mac 可接+真栈场景归 PC 验收；Suno 会话适配器随通路层后 |
 | **实验+论文** | 重锚 tag（PILOT 前切）→ PAPER-EXP-ADAPT-1（本日入池）→ PILOT → K1-K7 拍板会（10 月中，决策侧先出预消化材料）→ 56b 定稿 → MAIN 84 全量 → JUDGE → 42 号回填；写作侧：用户三章审稿+轮 6/7 | PC 真栈跑实验；写作=用户+材料侧会话 |
 | **展演** | DEFENSE-SHOW-1：11 月上分镜、12 月上素材、12 月中版本冻结+排练 ≥2、12 月底预答辩 | 决策侧设计+用户 |
+| **vit note**（2026-09-29 晚增设，decisions/2026-09-29-vit-note-concept.md） | VITNOTE-RECON-1（在池，零代码可并行）→ DESIGN（设计队列最前排，RECON 回报后先落）→ **v1 IMPL（便签+每 note 一对话流+RiskCeiling 权限分级）——排在展演分镜设计之前完成可演示形态（M8 入场）** → v2 orchestration Worker 实例化（L1-5 汇合后，与编曲核心同期） | v1=PC（Godot 前端+chat 接线+webui 徽章小卡）；v2 耦合 orchestration 面 PC；答辩招牌素材 |
 
 ## 2. 周历
 
