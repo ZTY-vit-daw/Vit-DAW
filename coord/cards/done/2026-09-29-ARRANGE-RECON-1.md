@@ -12,3 +12,5 @@
 - 约束：零代码改动；只读勘察；发现与分层愿景冲突的事实如实记录（正是本卡目的）。
 - 验收标准：报告六节全落+锚点行号+HEAD；每节"支持/不支持/需新开面"三态结论
 - 停止条件：常规勘察止损
+- 领取：2026-09-29 18:24（本地）/ origin/main=bcab6e7dba46dcea68b160e1c1ef7f773fe39c1b / port/arrange-recon-1（worktree D:/Vit_DAW_worktrees/arrange-recon-1）
+- 回执：勘察时代码锚点 HEAD=bcab6e7d（=领取时 origin/main；领取 commit 68d7bad5 仅动卡面，零代码改动）；报告=coord/runs/ARRANGE-RECON-1/report.md（六节全落+逐锚点行号+三态结论+§6 选型总表+8 条设计裁定输入）；完成提交=port/arrange-recon-1 分支本 commit（报告+done mv 同批）。端测边界声明：本卡为只读勘察，未运行真实栈——内核命令面/tracktion 渲染委托路径结论为源码静态勘察（报告边界声明已列）；外部候选事实为 2026-09-29 web 快照（来源链接在报告 §1.4/§2.1/§2.2）；无任何代码改动，不适用烟测门槛。
