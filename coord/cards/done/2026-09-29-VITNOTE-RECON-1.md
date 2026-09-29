@@ -18,3 +18,4 @@
 - 领取：2026-09-29 21:50 +0800 / c8ef4e25（领取后 main 前进至 3e3cc7f5 通用性裁定版，已 pull 进工作树按八节版执行）/ port/vitnote-recon-1（独立 worktree D:/Vit_DAW_worktrees/vitnote-recon-1；Windows 端执行——用户口令指定本会话开工）
 - 回执：报告=port/vitnote-recon-1 @ 42a0659a（coord/runs/VITNOTE-RECON-1/report.md，168 行）；领取 commit=8e371ee8（main）；勘察基线 agent=3e3cc7f5 / Godot 前端（仓库外）=5280822 行号以当日为准；八节全落+锚点+三态表+汇总；§4 并发模型=多会话并行（十步代码证据链：main.go:74 ListenAndServe→server.go 零 go func→handleChat 同步→计数器非锁→无 busy 拒绝→按会话所有权→kernel/client.go:39 每命令 REQ socket→CAS coordinator.go:45+→文件锁→三后台 goroutine 全景）。端测边界：零代码只读勘察，无生产改动，AGENTS §5 真实栈烟测门槛不适用；结论全为静态代码阅读，无新增交互实测（IME 结论引用既有生产输入框日常使用事实）。卡面"vsp_hub WS/HTTP 面"口径修正：chat 实际入口=7878 chat server HTTP（报告 §3）。
 - 验收：（裁定文件 / 验收 commit）
+- 验收：pass（2026-09-29，决策侧）——rulings/2026-09-29-VITNOTE-RECON-1-pass.md；报告全文核读+承重锚点抽查五处相符；八关键事实采信（编排面语义链在/并发模型=多会话并行/OwnerPolicy 语义澄清/RiskCeiling 零执行消费方/多模态已建未接线/气泡不存在等）；合入=cherry-pick 42a0659a（0f59ae4c）；概念文档 OwnerPolicy 勘误随验收落。

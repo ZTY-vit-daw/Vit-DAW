@@ -20,3 +20,4 @@
   - **红证边界（诚实披露）**：E2E 绿为修复后单测+真栈实证；修复前红态在单测层锚定（auditionTrail.test.ts 断言遥测行存在且无 turn 域、按旧判据必落 lane——该行 unbound 由 isUnboundActivity 语义直接给出），未做修复前 E2E 对照跑。
   - **端测覆盖边界声明（AGENTS §5）**：E2E-WEBUI-1 渲染面=真 agent 进程（隔离 draft root/端口 7897）+ 真构建 webui bundle + 真浏览器 DOM 断言，事件为归档流+M1 形态注入（网络层回放，无 LLM/内核三件套）；用户旅程（Godot 前端手测复现路径）未覆盖——卡面验收标准第 4 项「手测复现路径回归」待用户或决策侧复验。
 - 验收：（裁定文件 / 验收 commit）
+- 验收：pass（2026-09-29，决策侧）——rulings/2026-09-29-FIX-AUDITION-TRAIL-1-pass.md；决策侧复跑 npm test 331/331+E2E 工件 verdict=pass 亲核+diff 族身份排除亲核；取证定性采信（含 AUDITION-LANE-1 历史盲区闭环）；合入=cherry-pick b192c2ab（b4a197d7）；手测复现路径留用户下次手测顺带复验。
