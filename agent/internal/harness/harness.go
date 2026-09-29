@@ -41,6 +41,7 @@ import (
 	"vit-daw-agent/internal/projectpackage"
 	"vit-daw-agent/internal/projectstore"
 	"vit-daw-agent/internal/projectworkspace"
+	"vit-daw-agent/internal/queryengine"
 	"vit-daw-agent/internal/resourceintake"
 	"vit-daw-agent/internal/rlm"
 	"vit-daw-agent/internal/rollback"
@@ -84,6 +85,15 @@ type Harness struct {
 	materializeNotifier materialize.Notifier // MAT-B 三挂点物化侧入口（nil=现状逐字节一致）
 	materializeStore    *materialize.Store   // MAT-C 三态 flag 物化库（nil=off 零接线现状；shadow/on 影子轮旁路）
 	materializeMode     materialize.Mode     // MAT-E 三态记名（读端 consult 仅 on 装配；零值=off）
+
+	// ref.query/ref.diff 工具面的查询引擎句柄（L1-3-IMPL-C）：按解析出的
+	// bootstrap 配置惰性构建并缓存，配置指纹变化（工程切换）即重建；每次
+	// 调用前 Sync 取盘面现状，不启动后台轮询。refQueryConfigOverride 仅测试
+	// 注入（隔离临时扫描面）。
+	refQueryMu             sync.Mutex
+	refQueryHandle         *refQueryEngineHandle
+	refQueryConfigKey      string
+	refQueryConfigOverride *queryengine.BootstrapConfig
 
 	// Conversation-checkpoint revision gate (HARNESS-1): per-project kernel
 	// revision already covered by a (possibly in-flight) vit checkpoint. The
@@ -2472,6 +2482,12 @@ func (h *Harness) invokeLocal(ctx context.Context, spec tools.CommandSpec, cmd m
 		return h.ccbObservationCatalog(cmd), true
 	case "ccb_observation_request":
 		result, err := h.ccbObservationRequest(ctx, cmd, requestContext, source)
+		return resultWithErr(result, err), true
+	case "ref_query":
+		result, err := h.refQuery(ctx, cmd)
+		return resultWithErr(result, err), true
+	case "ref_diff":
+		result, err := h.refDiff(ctx, cmd)
 		return resultWithErr(result, err), true
 	case "mix_propose_tick":
 		result, err := h.proposeMixTick(ctx, cmd)

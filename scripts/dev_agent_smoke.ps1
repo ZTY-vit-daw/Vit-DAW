@@ -17,6 +17,10 @@ param(
     [switch]$NoStripSilenceSmoke,
     [switch]$MixSmoke,
     [switch]$AuthoritySmoke,
+    # L1-3-IMPL-C：查询引擎工具面只读场景（ref.query/ref.diff 经 /agent/invoke；
+    # 全确定性断言：CommandSpec 广告 / 五元数据 / T10 反例 / T11 降级标注 /
+    # ref.diff identity+content 边界）。
+    [switch]$RefQuerySmoke,
     [switch]$Strict,
     [int]$WaitSeconds = 20,
     # SMOKE-TOOLING-1: the UI-launched kernel command port can take far longer
@@ -993,6 +997,110 @@ if ($null -ne $req) {
             }
         }
     }
+    }
+
+    if ($RefQuerySmoke) {
+        Write-Step "ref.query read-only smoke (L1-3-IMPL-C)"
+        # 查询引擎工具面只读场景：全部断言确定性（无 LLM 参与）。场景覆盖
+        # CommandSpec 广告面 / 正常路径五元数据 / T10 三组反例 fail-closed /
+        # T11 降级路径成本标注 / ref.diff identity 与 content 诚实边界。
+        foreach ($wantTool in @("ref.query", "ref.diff")) {
+            if (-not ($toolNames -contains $wantTool)) {
+                throw ("missing query-engine tool in /agent/tools: " + $wantTool)
+            }
+        }
+        Write-Ok "ref.query/ref.diff are advertised"
+
+        $invokeUri = $AgentHttp.TrimEnd("/") + "/agent/invoke"
+        $queryArgs = @{
+            kinds = @("dom", "fxm", "com", "acp")
+            limit = 50
+        }
+        $queryResp = Invoke-Json -Method POST -Uri $invokeUri -Body @{
+            tool   = "ref.query"
+            args   = $queryArgs
+            source = "dev_agent_smoke.ref_query"
+        } -TimeoutSec ([Math]::Max(30, $WaitSeconds))
+        if ([string]$queryResp.status -ne "ok") {
+            throw ("ref.query happy path failed: " + ($queryResp | ConvertTo-Json -Depth 8 -Compress))
+        }
+        $queryResult = Get-OptionalProperty -Object $queryResp -Name "result"
+        foreach ($metaKey in @("cost_class", "degraded", "snapshot", "next_cursor", "total_matches")) {
+            if ($null -eq $queryResult.PSObject.Properties[$metaKey]) {
+                throw ("ref.query response missing required metadata: " + $metaKey)
+            }
+        }
+        if ($null -ne $queryResult.rows -and @($queryResult.rows).Count -gt 0) {
+            Write-Ok ("ref.query returned rows: " + [string]@($queryResult.rows).Count + " (cost_class=" + [string]$queryResult.cost_class + ")")
+        }
+        else {
+            Write-Ok ("ref.query returned an empty row set with full metadata (cost_class=" + [string]$queryResult.cost_class + "; bootstrap scans only materialized artifacts on disk)")
+        }
+
+        $degradedResp = Invoke-Json -Method POST -Uri $invokeUri -Body @{
+            tool   = "ref.query"
+            args   = @{
+                kinds               = @("dom")
+                payload_conditions = @(
+                    @{ field = "dom.peak_structure.readiness"; op = "eq"; str = "ready" }
+                )
+                limit               = 10
+            }
+            source = "dev_agent_smoke.ref_query"
+        } -TimeoutSec ([Math]::Max(30, $WaitSeconds))
+        $degradedResult = Get-OptionalProperty -Object $degradedResp -Name "result"
+        if ([string]$degradedResp.status -ne "ok" -or [string]$degradedResult.cost_class -ne "compile" -or [string]$degradedResult.degraded -ne "payload_index_unavailable") {
+            throw ("ref.query degraded path must surface cost_class=compile + degraded=payload_index_unavailable: " + ($degradedResp | ConvertTo-Json -Depth 8 -Compress))
+        }
+        Write-Ok "ref.query degraded path surfaces compile + payload_index_unavailable (T11)"
+
+        # /agent/invoke 对校验拒绝回非 2xx（错误体即断言对象）——读异常响应体，
+        # 与正常路径共用同一响应解析。
+        $invokeExpectingError = {
+            param([string]$Tool, [object]$ToolArgs)
+            $body = @{ tool = $Tool; args = $ToolArgs; source = "dev_agent_smoke.ref_query" }
+            $json = $body | ConvertTo-Json -Depth 20 -Compress
+            $bytes = [System.Text.Encoding]::UTF8.GetBytes($json)
+            try {
+                $resp = Invoke-WebRequest -UseBasicParsing -Method POST -Uri $invokeUri -Body $bytes -ContentType "application/json; charset=utf-8" -TimeoutSec ([Math]::Max(30, $WaitSeconds))
+                return $resp.Content | ConvertFrom-Json
+            }
+            catch {
+                # PS 5.1：非 2xx 响应体在 $_.ErrorDetails.Message（Response 流
+                # 已被错误格式化消费，不再读 GetResponseStream）。
+                $content = [string]$_.ErrorDetails.Message
+                if (-not [string]::IsNullOrWhiteSpace($content)) {
+                    return $content | ConvertFrom-Json
+                }
+                throw
+            }
+        }
+        $assertRejected = {
+            param([string]$Label, [object]$Resp, [string]$ErrorPattern)
+            if ([string]$Resp.status -eq "ok") {
+                throw ($Label + " must be rejected fail-closed, got ok")
+            }
+            $errorText = [string](Get-OptionalProperty -Object $Resp -Name "error")
+            if (-not $errorText.Contains($ErrorPattern)) {
+                throw ($Label + " rejection reason mismatch: expected [" + $ErrorPattern + "] got [" + $errorText + "]")
+            }
+            Write-Ok ($Label + " rejected as expected")
+        }
+        & $assertRejected "ref.query empty predicate" (& $invokeExpectingError "ref.query" @{ limit = 10 }) "empty predicate"
+        & $assertRejected "ref.query limit 501" (& $invokeExpectingError "ref.query" @{ kinds = @("dom"); limit = 501 }) "limit"
+        & $assertRejected "ref.query unknown field" (& $invokeExpectingError "ref.query" @{ kinds = @("dom"); kind = @("dom") }) "unknown field"
+
+        $diffResp = Invoke-Json -Method POST -Uri $invokeUri -Body @{
+            tool   = "ref.diff"
+            args   = @{ base_revision = "current" }
+            source = "dev_agent_smoke.ref_query"
+        } -TimeoutSec ([Math]::Max(30, $WaitSeconds))
+        $diffResult = Get-OptionalProperty -Object $diffResp -Name "result"
+        if ([string]$diffResp.status -ne "ok" -or [string]$diffResult.cost_class -ne "index" -or $null -eq $diffResult.PSObject.Properties["unchanged_count"]) {
+            throw ("ref.diff identity path failed: " + ($diffResp | ConvertTo-Json -Depth 8 -Compress))
+        }
+        Write-Ok ("ref.diff identity path ok (unchanged_count=" + [string]$diffResult.unchanged_count + ")")
+        & $assertRejected "ref.diff depth=content" (& $invokeExpectingError "ref.diff" @{ base_revision = "current"; depth = "content" }) "not implemented"
     }
 }
 

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+
+	"vit-daw-agent/internal/queryengine"
 )
 
 type RiskLevel string
@@ -373,6 +375,10 @@ func argHint(commandName string) string {
 		return "observation_id:string OR mix_session_id:string type:string optional focus/a/b:object dimensions:string[] max_items:number"
 	case "mix_report":
 		return "optional project_uuid:string mix_intent:object final_measurements:object"
+	case "ref_query":
+		return "kinds:string[] OR scope_kind:string OR scope_values:string[] OR scope_value_prefix:string OR time_window:object OR payload_conditions:{field:string op:string value?:number str?:string set?:string[]}[] (至少一段谓词) optional sort:{field:string dir?:asc|desc}[] limit:number(1..500) cursor:string expand:none|handle|summary expand_max_bytes:number"
+	case "ref_diff":
+		return "base_revision:string XOR base_observation_id:string optional head:latest depth:identity|content kinds:string[] scope_kind:string scope_values:string[] scope_value_prefix:string time_window:object"
 	case "mix_propose_tick":
 		return "operation:track_gain_adjust track_id:string optional delta_db:number observation_id:string evidence:object"
 	case "mix_apply_tick":
@@ -710,6 +716,117 @@ func ccbObservationRequestSpec() CommandSpec {
 	}
 }
 
+// refQuerySpec 注册 ref.query（QUERY_ENGINE §2.3 工具面）。description 与
+// Engine.Catalog 同源生成（IMPL-B T9 口径：BuildRefQuerySchemaDescription 的
+// 纯函数产物，不手写第二份目录文案——路由表/注册索引变化自动带进工具面）。
+// 校验语义（T10）在 harness 分发面 fail-closed 执行：未知字段拒绝、limit
+// 1..500、至少一段谓词必填（防全库拉取）。
+func refQuerySpec() CommandSpec {
+	return CommandSpec{
+		CommandName: "ref_query",
+		ToolName:    "ref.query",
+		Category:    "mix",
+		Description: queryengine.BuildRefQuerySchemaDescription(queryengine.NewEngine(nil, nil).Catalog()),
+		InputSchema: map[string]any{
+			"type":        "object",
+			"description": "Ad-hoc predicate query over materialized refs (audio-grep). At least one predicate segment (kinds/scope/time_window/payload_conditions) is required; full-store pulls are rejected. Response always carries cost_class/degraded/snapshot/next_cursor/total_matches.",
+			"properties": map[string]any{
+				"cmd":                map[string]any{"type": "string", "const": "ref_query"},
+				"query_id":           map[string]any{"type": "string"},
+				"kinds":              map[string]any{"type": "array", "items": map[string]any{"type": "string"}},
+				"scope_kind":         map[string]any{"type": "string"},
+				"scope_values":       map[string]any{"type": "array", "maxItems": 64, "items": map[string]any{"type": "string"}},
+				"scope_value_prefix": map[string]any{"type": "string"},
+				"time_window": map[string]any{
+					"oneOf": []any{
+						map[string]any{"const": "all"},
+						map[string]any{"type": "object", "required": []string{"start_seconds", "end_seconds"}, "properties": map[string]any{
+							"start_seconds": map[string]any{"type": "number"},
+							"end_seconds":   map[string]any{"type": "number"},
+							"units":         map[string]any{"enum": []string{"seconds", "samples"}, "default": "seconds"},
+						}},
+					},
+					"description": "Observation window (dual scale: seconds human layer, samples authoritative layer). \"all\" = full window and does not narrow the predicate set.",
+				},
+				"snapshot": map[string]any{"enum": []string{"latest"}, "default": "latest"},
+				"payload_conditions": map[string]any{
+					"type": "array", "maxItems": 8,
+					"items": map[string]any{
+						"type": "object", "required": []string{"field", "op"},
+						"properties": map[string]any{
+							"field": map[string]any{"type": "string"},
+							"op":    map[string]any{"enum": []string{"eq", "ne", "gt", "ge", "lt", "le", "in"}},
+							"value": map[string]any{"type": "number"},
+							"str":   map[string]any{"type": "string"},
+							"set":   map[string]any{"type": "array", "items": map[string]any{"type": "string"}},
+						},
+					},
+				},
+				"sort": map[string]any{
+					"type": "array", "maxItems": 2,
+					"items": map[string]any{
+						"type": "object", "required": []string{"field"},
+						"properties": map[string]any{
+							"field": map[string]any{"type": "string"},
+							"dir":   map[string]any{"enum": []string{"asc", "desc"}},
+						},
+					},
+				},
+				"limit":            map[string]any{"type": "integer", "minimum": 1, "maximum": 500, "default": 50},
+				"cursor":           map[string]any{"type": "string"},
+				"expand":           map[string]any{"enum": []string{"none", "handle", "summary"}, "default": "none"},
+				"expand_max_bytes": map[string]any{"type": "integer", "minimum": 256, "maximum": 32768, "default": 4096},
+			},
+			"additionalProperties": false,
+			"anyOf": []any{
+				map[string]any{"required": []string{"kinds"}},
+				map[string]any{"required": []string{"scope_kind"}},
+				map[string]any{"required": []string{"scope_values"}},
+				map[string]any{"required": []string{"scope_value_prefix"}},
+				map[string]any{"required": []string{"time_window"}},
+				map[string]any{"required": []string{"payload_conditions"}},
+			},
+		},
+		OutputSchema: map[string]any{"type": "object", "description": "Read-only ref.query.v1 result: rows (ref/freshness/payload, optional expanded) plus cost_class, degraded, snapshot, next_cursor, total_matches metadata."},
+		RiskLevel:    RiskDirect,
+	}
+}
+
+// refDiffSpec 注册 ref.diff（QUERY_ENGINE §2.3 工具面）。v1：head 恒 latest，
+// base = base_revision XOR base_observation_id；depth=identity（index 级集合差）；
+// depth=content 委托既有差分承载者的接线属 IMPL-D——分发面显式拒绝（诚实边界）。
+func refDiffSpec() CommandSpec {
+	return CommandSpec{
+		CommandName: "ref_diff",
+		ToolName:    "ref.diff",
+		Category:    "mix",
+		Description: "Identity-level diff of materialized refs between an explicit base snapshot (exactly one of base_revision / base_observation_id) and the current latest view. depth=identity is an index-cost set difference (added/removed/changed/unchanged); depth=content delegates to existing diff bearers and is rejected until that wiring lands.",
+		InputSchema: map[string]any{
+			"type":        "object",
+			"description": "Ref set diff (QUERY_ENGINE §2.3). Scope keys are the same ref.query predicate subset (kinds/scope_kind/scope_values/scope_value_prefix/time_window) applied to both sides before diffing.",
+			"properties": map[string]any{
+				"cmd":                 map[string]any{"type": "string", "const": "ref_diff"},
+				"base_revision":       map[string]any{"type": "string"},
+				"base_observation_id": map[string]any{"type": "string"},
+				"head":                map[string]any{"const": "latest"},
+				"depth":               map[string]any{"enum": []string{"identity", "content"}, "default": "identity"},
+				"kinds":               map[string]any{"type": "array", "items": map[string]any{"type": "string"}},
+				"scope_kind":          map[string]any{"type": "string"},
+				"scope_values":        map[string]any{"type": "array", "maxItems": 64, "items": map[string]any{"type": "string"}},
+				"scope_value_prefix":  map[string]any{"type": "string"},
+				"time_window":         map[string]any{"type": "object", "required": []string{"start_seconds", "end_seconds"}},
+			},
+			"additionalProperties": false,
+			"oneOf": []any{
+				map[string]any{"required": []string{"base_revision"}},
+				map[string]any{"required": []string{"base_observation_id"}},
+			},
+		},
+		OutputSchema: map[string]any{"type": "object", "description": "Read-only ref.diff.v1 report: added/removed/changed (base+head pairs)/unchanged_count plus cost_class."},
+		RiskLevel:    RiskDirect,
+	}
+}
+
 func spec(command, tool, category, description string, risk RiskLevel, mutates, undo, confirm, refresh bool, ids ...string) CommandSpec {
 	return CommandSpec{
 		CommandName:          command,
@@ -826,6 +943,8 @@ func defaultSpecs() []CommandSpec {
 		spec("mix_report", "mix.report", "mix", "Build a read-only mix_report.v1 projection from the project Mixboard decision ledger and the current Project Cut; never mutates the project.", RiskDirect, false, false, false, false),
 		ccbObservationCatalogSpec(),
 		ccbObservationRequestSpec(),
+		refQuerySpec(),
+		refDiffSpec(),
 		spec("mix_propose_tick", "mix.propose_tick", "mix", "Agent-local proposal for one safe mix tick after observation; supports small track_gain_adjust and track_pan_adjust/track_pan_set without mutating the project.", RiskDirect, false, false, false, false, "track_id"),
 		spec("mix_apply_tick", "mix.apply_tick", "mix", "Agent-local confirmed execution of one proposed mix tick through primitive set_volume or set_pan kernel commands.", RiskUndoable, true, true, false, true),
 		spec("mix_apply_static_balance_batch", "mix.apply_static_balance_batch", "mix", "Apply one validated B2 static-balance plan as an atomic batch of absolute track fader targets.", RiskConfirm, true, true, true, true),
