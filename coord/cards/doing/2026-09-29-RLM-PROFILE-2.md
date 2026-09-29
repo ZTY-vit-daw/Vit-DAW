@@ -13,3 +13,6 @@
 - 文件域：agent/internal/rlm（主）+render/交付面挂点（领取时实锚）；capabilitycontext 零触碰（若避不开→停止上交，与 CCB-PARAM 排序）。
 - 验收标准：绑定+披露接线绿+全量 0 FAIL+旧行为零变化（无绑定工件往返不变）
 - 停止条件：render 面无稳定挂点（命令语义缺口）→ 实证清单上交，不擅扩内核命令面
+- 领取：2026-09-29 Mac 执行侧（GLM-5.3）。领取时 origin/main=400e375；分支 port/rlm-profile-2。`git status --short`：` M VitApp/Workspace/Settings/Settings.xml`、` M VitApp/Workspace/default_project.xml`（运行时工程状态，不混入）+ untracked `.zcodeignore`、`VitApp/Workspace/Artifacts/`、`coord/runs/FIX-PCA-AUTOSWEEP-1/20260925_mac/`（领取前已有，未触碰）。领取时先跑基线门。
+- 回执：
+- 验收：
