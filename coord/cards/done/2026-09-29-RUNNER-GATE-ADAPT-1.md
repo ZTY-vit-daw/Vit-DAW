@@ -23,3 +23,4 @@
   - **泊位声明（AGENTS §9）**：本会话 2026-09-29 20:22–20:44 独占真实栈；起栈前 5555/5556/7878 全空、无 VitApp/VitAgent/Godot 残留（初查 4 个"Godot"为查询命令自匹配误报）；PILOT 全栈泊位于 worktree `D:/Vit_DAW_worktrees/runner-gate-adapt-1`（内核=主树 tag 等价 exe 哈希复核后复制，SHA256 78dc4889…；agent=worktree tag 源码构建 2d80a782…；runner=分支版）；收栈后 VitAgent 14700/VitApp 12008/Godot 17556 全停、三端口复空、authority 全程 manual_confirmation；测试时 HEAD=port/runner-gate-adapt-1 2932cf57 前身（tag+门变更）；-SkipBuild 使用已按 §9 记录二进制哈希
   - 端测边界声明（AGENTS §5）：本卡改动为 runner python 侧（非 agent/webui 渲染面），验证=真实三件套端侧烟测（PILOT 两轮 exit 0）+离线验证矩阵；无 webui 改动
 - 验收：（裁定文件 / 验收 commit）
+- 验收：pass（2026-09-29，决策侧）——rulings/2026-09-29-RUNNER-GATE-ADAPT-1-pass.md；diff 亲核（fail-closed/best 级门保留/flavor 子门不静默重校准）+验证矩阵核读+决策侧复算五格全符（含 p05@默认口径两卡互证）+PILOT 双例真栈 exit 0 工件亲核（重试协议合规+泊位规范）；合入=cherry-pick 2932cf57；PAPER-EXP-ADAPT-1 目标 4 闭环、PILOT 前置就绪。
