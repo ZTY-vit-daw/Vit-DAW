@@ -227,7 +227,9 @@ describe("钉E 数据线：App.tsx 把步账喂进计划/渲染/活动线（这�
   it("归约接线 + 计划传参 + 渲染传参 + lane 过滤四段都在", () => {
     expect(appSource).toMatch(/setRoundSteps\(\(current\) => reduceRoundSteps\(current, events\)\)/);
     expect(appSource).toMatch(/buildMessageStreamRenderPlan\(\{\s*messages:[^)]*roundSteps/);
-    expect(appSource).toMatch(/isUnboundActivity\(activity, laneBoundTurnIds, roundBoundKeys\)/);
+    // FIX-AUDITION-TRAIL-1：lane 过滤钉点迁至 turnGroups.laneVisibleActivities
+    // （isUnboundActivity && !isAuditionFamilyActivity——audition 族按身份排除）
+    expect(appSource).toMatch(/laneVisibleActivities\(activities, laneBoundTurnIds, roundBoundKeys\)/);
     expect(appSource).toMatch(/sessionBoundTurnIds/);
     expect(appSource).toMatch(/itemSteps=\{round\?\.steps\}/);
     expect(appSource).toMatch(/totalStepCount=\{round\?\.totalStepCount\}/);

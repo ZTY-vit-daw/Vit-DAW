@@ -40,6 +40,12 @@
 //                    its controls (click restarts playback server-side), and a
 //                    preparing session must say 「正在准备 A/B 试听…」 with the
 //                    controls disabled but carrying their reason
+//   T1 audition   -- FIX-AUDITION-TRAIL-1: during processing the kernel audition
+//                    telemetry must NOT stack duplicated 「Kernel audition」 rows
+//                    in the flow-bottom lane (the judge card is the single
+//                    dynamic surface, preparing explicitly); after the judgment
+//                    the same single card settles with the verdict and the lane
+//                    stays free of audition rows (定型不残留)
 //
 // Exit code: 0 = every group passed (delivery gate), 1 = at least one failed
 // (pre-fix red, with the failing group recorded in the report).
@@ -1393,6 +1399,167 @@ function checkG1(result, options) {
   return { failures, notes };
 }
 
+// FIX-AUDITION-TRAIL-1 (2026-09-29, M1 manual-test defect ①): during processing
+// the kernel audition telemetry family (audition.prepare.started /
+// audition.candidate.ready / audition.ready -- session snapshots WITHOUT any turn
+// domain, because the kernel audition::Session has no turn field) used to land in
+// the flow-bottom activity lane as one row per event type, all reading
+// 「已完成：Kernel audition」-- the user saw several duplicated "kernel audition"
+// trail entries under the output content. The lane now excludes the family by
+// identity (turnGroups.isAuditionFamilyActivity); the A/B judge card is the
+// single dynamic surface (one card per session, state-updating, settled after
+// the judgment). The pass is two-phase in ONE browser context:
+//   phase 1 (processing)  -- telemetry only, mount not complete: no lane row may
+//                            carry the Kernel audition text; exactly one judge
+//                            card in the preparing state;
+//   phase 2 (settle)      -- agent-enriched audition.ready + judgment requested
+//                            + recorded pushed into the SAME replay: still one
+//                            card, now settled with the verdict outcome, and the
+//                            lane still free of audition rows (定型不残留).
+function auditionTrailFixtureEvents(options) {
+  const now = Date.now();
+  const runId = options.turnId;
+  const sessionId = options.sessionId;
+  const mixTickTurn = "mix_tick_turn:" + options.tickId;
+  const base = Number(options.baseSeq) || 700;
+  const at = (offsetMs) => new Date(now - 30_000 + offsetMs).toISOString();
+  const candidates = (aStatus, bStatus, withPreview) => [
+    { id: "candidate-a", label: "A", status: aStatus, ...(withPreview ? { preview_ref: "candidate-a" } : {}) },
+    { id: "candidate-b", label: "B", status: bStatus, ...(withPreview ? { preview_ref: "candidate-b" } : {}) }
+  ];
+  // Kernel telemetry shape (AuditionPreviewService.publishStateEvent): NO turn
+  // domain anywhere -- event turn fields empty, payload.session has no turn_id.
+  // The logical_message_id is the agent stamp (audition_events.go emitAuditionEvent:
+  // "audition:{sid}:{type}") -- one logical row per event type.
+  const telemetry = (type, session, seq) => ({
+    seq, type, conversation_id: conversationId, item_id: sessionId, item_type: "audition",
+    status: String(session.status || "preparing"), title: "Kernel audition",
+    logical_message_id: "audition:" + sessionId + ":" + type, created_at: at(seq * 100),
+    payload: { schema_version: "vit.kernel_audition.v1", session }
+  });
+  const phase1 = [
+    {
+      seq: base + 1, type: "turn.started", conversation_id: conversationId,
+      goal_id: runId, run_id: runId, turn_id: runId, source_turn_id: runId,
+      item_type: "turn", status: "running", created_at: at(0)
+    },
+    {
+      seq: base + 2, type: "trajectory.turn.started", conversation_id: conversationId,
+      goal_id: runId, run_id: runId, turn_id: runId, source_turn_id: runId,
+      item_id: "turn:" + runId, status: "running", created_at: at(0),
+      payload: { schema_version: "vit.observable_trajectory.v1", trace_node_id: "turn:" + runId, turn_id: runId, node_kind: "turn", phase: "framing", status: "running" }
+    },
+    telemetry("audition.prepare.started", { session_id: sessionId, conversation_id: conversationId, status: "preparing", candidates: candidates("preparing", "preparing", false) }, base + 3),
+    telemetry("audition.candidate.ready", { session_id: sessionId, conversation_id: conversationId, status: "preparing", candidates: candidates("ready", "preparing", false) }, base + 4),
+    telemetry("audition.candidate.ready", { session_id: sessionId, conversation_id: conversationId, status: "preparing", candidates: candidates("ready", "ready", false) }, base + 5)
+  ];
+  const phase2 = [
+    // Agent-enriched mount completion (mix_tick_audition.go mountMixTickAudition):
+    // the session snapshot carries the synthetic turn domain + ready candidates.
+    {
+      seq: base + 6, type: "audition.ready", conversation_id: conversationId,
+      item_id: sessionId, item_type: "audition", status: "ready", title: "Kernel audition",
+      logical_message_id: "audition:" + sessionId + ":audition.ready", created_at: at((base + 6) * 100),
+      payload: {
+        schema_version: "vit.kernel_audition.v1", command: "audition.prepare", mix_tick: options.tickId,
+        session: { session_id: sessionId, conversation_id: conversationId, turn_id: mixTickTurn, round_id: "mix_tick_round:" + options.tickId, status: "ready", candidates: candidates("ready", "ready", true) }
+      }
+    },
+    {
+      seq: base + 7, type: "trajectory.user_judgment.requested", conversation_id: conversationId,
+      goal_id: runId, run_id: runId, turn_id: mixTickTurn, source_turn_id: runId,
+      item_id: "mix_tick_judgment:" + sessionId, status: "waiting_for_user", created_at: at((base + 7) * 100),
+      payload: {
+        schema_version: "vit.observable_trajectory.v1", trace_node_id: "mix_tick_judgment:" + sessionId,
+        turn_id: mixTickTurn, round_id: "mix_tick_round:" + options.tickId, node_kind: "user_judgment",
+        phase: "user_judgment", status: "waiting_for_user",
+        details: { audition_session_id: sessionId, summary: "人声轨 -1dB · A/B 试听判定" }
+      }
+    },
+    {
+      seq: base + 8, type: "trajectory.user_judgment.recorded", conversation_id: conversationId,
+      goal_id: runId, run_id: runId, turn_id: mixTickTurn, source_turn_id: runId,
+      item_id: "judgment:" + sessionId, status: "completed", created_at: at((base + 8) * 100),
+      payload: {
+        schema_version: "vit.observable_trajectory.v1", trace_node_id: "judgment:" + sessionId,
+        turn_id: mixTickTurn, node_kind: "user_judgment", phase: "user_judgment", status: "completed",
+        details: { audition_session_id: sessionId, evidence: { preference: "b", heard_difference: "yes" } }
+      }
+    }
+  ];
+  return { phase1, phase2 };
+}
+
+function checkT1(result, options) {
+  const failures = [];
+  const notes = [];
+  const laneTextsOf = (sample) => (sample.laneItems || []).map((item) => item.text);
+  const cardsOf = (sample, sessionId) => (sample.auditionCards || []).filter((card) => card.session === sessionId);
+
+  // Phase 1 -- processing window: the telemetry family is in the stream, the
+  // mount has not completed. The flow-bottom lane must carry NO Kernel audition
+  // row (pre-fix: prepare.started / candidate.ready rows all read
+  // 「已完成：Kernel audition」 and stacked up), and the judge card must be the
+  // single dynamic surface, explicitly preparing.
+  const processing = result.processing;
+  const processingLane = laneTextsOf(processing);
+  const processingAuditionLane = processingLane.filter((text) => text.indexOf("Kernel audition") >= 0);
+  notes.push("processing lane: [" + processingLane.join(" | ") + "] (audition rows: " + processingAuditionLane.length + ")");
+  if (processingAuditionLane.length > 0) {
+    failures.push(
+      "T1 processing lane: " + processingAuditionLane.length + " Kernel audition row(s) rendered under the output content ([" +
+      processingAuditionLane.join(" | ") + "]) -- the audition family must not lane; its surface is the judge card"
+    );
+  }
+  const processingCards = cardsOf(processing, options.sessionId);
+  if (processingCards.length !== 1) {
+    failures.push(
+      "T1 processing card: expected exactly 1 judge card for " + options.sessionId + ", got " +
+      processingCards.length + " (cards: [" + (processing.auditionCards || []).map((card) => card.session).join(", ") + "])"
+    );
+  } else {
+    notes.push("processing card: status=" + processingCards[0].status + " cls=\"" + processingCards[0].cls + "\"");
+    if (processingCards[0].status !== "preparing") {
+      failures.push("T1 processing card: data-status=" + processingCards[0].status + " instead of preparing");
+    }
+    const controls = (processing.auditionControls || []).find((card) => card.session === options.sessionId);
+    const chips = controls ? controls.chips : [];
+    notes.push("processing card chips: [" + chips.join(" | ") + "]");
+    if (!chips.some((chip) => chip.indexOf("正在准备") >= 0)) {
+      failures.push("T1 processing card: the preparing window is not stated (chips: [" + chips.join(" | ") + "]) -- the single surface must be explicit while warming up");
+    }
+  }
+
+  // Phase 2 -- settled: same session, still exactly one card, now settled with
+  // the verdict outcome; the lane stays free of audition rows (no residue).
+  const settled = result.settled;
+  const settledLane = laneTextsOf(settled);
+  const settledAuditionLane = settledLane.filter((text) => text.indexOf("Kernel audition") >= 0);
+  notes.push("settled lane: [" + settledLane.join(" | ") + "] (audition rows: " + settledAuditionLane.length + ")");
+  if (settledAuditionLane.length > 0) {
+    failures.push(
+      "T1 settled lane: " + settledAuditionLane.length + " Kernel audition row(s) still rendered after the judgment ([" +
+      settledAuditionLane.join(" | ") + "]) -- the trail must settle without residue"
+    );
+  }
+  const settledCards = cardsOf(settled, options.sessionId);
+  if (settledCards.length !== 1) {
+    failures.push(
+      "T1 settled card: expected exactly 1 judge card for " + options.sessionId + " after settle, got " +
+      settledCards.length + " (cards: [" + (settled.auditionCards || []).map((card) => card.session).join(", ") + "])"
+    );
+  } else {
+    notes.push("settled card: status=" + settledCards[0].status + " cls=\"" + settledCards[0].cls + "\" text=\"" + settledCards[0].text + "\"");
+    if (!/(^|\s)settled(\s|$)/.test(settledCards[0].cls)) {
+      failures.push("T1 settled card: the card does not carry the .settled class (cls=\"" + settledCards[0].cls + "\") -- the judgment must freeze the surface");
+    }
+    if ((settledCards[0].text || "").indexOf("已裁决") < 0) {
+      failures.push("T1 settled card: no verdict outcome row on the card (text: \"" + settledCards[0].text + "\")");
+    }
+  }
+  return { failures, notes };
+}
+
 // MSG-REVIVE-1 (2026-09-15): the user-hit form is the empty-storage bare boot
 // (webview panel destroy/recreate lost ALL localStorage, not just the mapping).
 // Everything recoverable must come from the server faces:
@@ -2171,6 +2338,68 @@ async function main() {
     preparingSession: "audition:run_e2e_unstick1:preparing"
   }));
 
+  // ------------------------------------------------------- FIX-AUDITION-TRAIL-1
+  // Two phases in ONE browser context. The replay route serves a mutable event
+  // array: phase 1 = archived stream + turn shell + kernel telemetry (no turn
+  // domain, mount incomplete); after the processing sample the phase-2 events
+  // (agent-enriched ready + judgment requested/recorded) are appended and the
+  // app's own polling picks them up -- the card must settle in place.
+  report.audition_trail_events_source =
+    "archived stream + seeded M1-shaped events (kernel telemetry audition.* WITHOUT turn domain first, " +
+    "agent-enriched audition.ready + user_judgment requested/recorded appended mid-pass) replayed for " +
+    "GET /agent/events in one browser context";
+  const trailSessionId = "audition:mix_tick:tick_e2e_trail1";
+  const trailFixture = auditionTrailFixtureEvents({
+    turnId: "run_e2e_auditiontrail1", tickId: "tick_e2e_trail1", sessionId: trailSessionId, baseSeq: 700
+  });
+  const trailContext = await browser.newContext({ viewport });
+  const trailServed = [...(eventsFixture.events || []), ...trailFixture.phase1];
+  await trailContext.route("**/agent/events*", async (route) => {
+    const requestURL = new URL(route.request().url());
+    const since = Number(requestURL.searchParams.get("since") || "0");
+    const limit = Number(requestURL.searchParams.get("limit") || "120");
+    const nextSeq = trailServed.reduce((maximum, event) => Math.max(maximum, Number(event.seq) || 0), 0);
+    await route.fulfill({
+      status: 200, contentType: "application/json; charset=utf-8",
+      body: JSON.stringify({ status: "ok", events: trailServed.filter((event) => Number(event.seq) > since).slice(0, limit), next_seq: nextSeq })
+    });
+  });
+  const trailPage = await trailContext.newPage();
+  await trailPage.goto(agentBase + "/app/?conversation_id=" + encodeURIComponent(conversationId), { waitUntil: "domcontentloaded" });
+  const trailProcessingAppeared = await trailPage
+    .waitForSelector('[data-audition-session="' + trailSessionId + '"]', { timeout: 15000 })
+    .then(() => true)
+    .catch(() => false);
+  await trailPage.waitForTimeout(1500);
+  const trailProcessing = await trailPage.evaluate(DOM_PROBE);
+  await trailPage.screenshot({ path: join(outDir, "dom-audition-trail-processing.png") });
+  writeFileSync(join(outDir, "dom-audition-trail-processing.json"), JSON.stringify(trailProcessing, null, 2), "utf-8");
+  trailServed.push(...trailFixture.phase2);
+  const trailSettledAppeared = await trailPage
+    .waitForSelector('[data-audition-session="' + trailSessionId + '"].settled', { timeout: 15000 })
+    .then(() => true)
+    .catch(() => false);
+  await trailPage.waitForTimeout(1200);
+  const trailSettled = await trailPage.evaluate(DOM_PROBE);
+  await trailPage.screenshot({ path: join(outDir, "dom-audition-trail-settled.png") });
+  writeFileSync(join(outDir, "dom-audition-trail-settled.json"), JSON.stringify(trailSettled, null, 2), "utf-8");
+  await trailContext.close();
+  if (!trailProcessingAppeared) {
+    record("audition-trail-T1", {
+      failures: ["T1 setup: the preparing judge card never rendered for " + trailSessionId + " -- the pass would measure nothing"],
+      notes: []
+    });
+  } else if (!trailSettledAppeared) {
+    record("audition-trail-T1", {
+      failures: ["T1 setup: the judge card never reached the .settled state after the phase-2 events were appended"],
+      notes: []
+    });
+  } else {
+    record("audition-trail-T1", checkT1({ processing: trailProcessing, settled: trailSettled }, {
+      sessionId: trailSessionId
+    }));
+  }
+
   // ------------------------------------------------------------- MSG-REVIVE-1
   // Runs LAST: its phase 1 re-seeds the draft conversation graph with the r3
   // capture, so every group that asserts against the archived mtzba6wf graph
@@ -2228,7 +2457,7 @@ async function main() {
 // Exported so a control run can exercise the very same probe and assertion
 // functions against a deliberately healthy state (proof that a red result is a
 // real finding and not an artefact of the probe itself).
-export { DOM_PROBE, checkA1, checkA2, checkA3, checkB1, checkB2, checkC1, checkD1, checkE1, checkF1, checkG1, residencyFixtureEvents, chatOnlyItemStepsFixtureEvents, terminalTurnFixtureEvents, auditionFixtureEvents, auditionUnstickFixtureEvents };
+export { DOM_PROBE, checkA1, checkA2, checkA3, checkB1, checkB2, checkC1, checkD1, checkE1, checkF1, checkG1, checkT1, residencyFixtureEvents, chatOnlyItemStepsFixtureEvents, terminalTurnFixtureEvents, auditionFixtureEvents, auditionUnstickFixtureEvents, auditionTrailFixtureEvents };
 
 // Run only when this file is the process entry point, so importing it as a
 // library (the control run does) has no side effects.

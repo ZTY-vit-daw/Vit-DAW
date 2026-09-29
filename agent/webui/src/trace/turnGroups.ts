@@ -81,3 +81,34 @@ export function isUnboundActivity(
   }
   return true;
 }
+
+/**
+ * FIX-AUDITION-TRAIL-1（2026-09-29 M1 手测缺陷①取证定性）：audition 族活动行的
+ * 身份判定。内核遥测（audition.prepare.started / audition.candidate.ready /
+ * audition.ready）的会话快照不带 turn 域（内核 audition::Session 无该字段，
+ * 2026-09-05 fixture seq27/28 实证），在 agent 侧 enrich 事件（同会话首个带
+ * turn 域者，mount 完成后才发）到达前以未绑定身份落流底活动线；族内每个
+ * eventType 各占一条逻辑消息（audition:{sid}:{type}），upsert 不折叠——处理期
+ * 输出内容底下出现多条「Kernel audition」重复行（M1 手测原述）。AUDITION-LANE-1
+ * 的裁定是**该族呈现面=判定卡**（每会话一卡、随状态更新、判定后定型），此处按
+ * 身份（而非回合绑定）排除族内一切活动行，判定卡即「至多一条」的单表面。
+ */
+export function isAuditionFamilyActivity(activity: ChatMessage): boolean {
+  const logical = (activity.logical_message_id ?? "").trim();
+  if (logical.startsWith("audition:")) {
+    return true;
+  }
+  const source = (activity.source_id ?? activity.id ?? "").trim();
+  return source.includes("agent_event_goal_audition:");
+}
+
+/** 流底活动线的可见集合（App 渲染唯一消费口）：未并入回合/会话域，且不属于 audition 族 */
+export function laneVisibleActivities(
+  activities: ChatMessage[],
+  laneBoundTurnIds: Set<string>,
+  roundBoundKeys?: Set<string>
+): ChatMessage[] {
+  return activities.filter(
+    (activity) => isUnboundActivity(activity, laneBoundTurnIds, roundBoundKeys) && !isAuditionFamilyActivity(activity)
+  );
+}

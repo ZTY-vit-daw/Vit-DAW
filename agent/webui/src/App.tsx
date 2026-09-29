@@ -151,7 +151,7 @@ import {
 } from "./trace/turnReceipts";
 import { TurnReceiptRow } from "./trace/TurnReceiptRow";
 import { PlanBar } from "./composer/PlanBar";
-import { isUnboundActivity } from "./trace/turnGroups";
+import { laneVisibleActivities } from "./trace/turnGroups";
 import type {
   AgentConfigResponse,
   AgentEvent,
@@ -4470,9 +4470,13 @@ function MessageStream({
   // messageLifecycle.activityTurnIDOfEvent 与 audition.ts:93 同键）——该族活动的呈现
   // 面是判定卡区域（准备/忙碌态卡面已显形，AUDITION-UNSTICK-1），不再落流底 lane；
   // 无回合归属的活动（上传等）照旧留 lane。
+  // FIX-AUDITION-TRAIL-1（2026-09-29）：回合域匹配漏了无 turn 域的内核遥测行（快照
+  // 无 turn_id，agent 侧 enrich 事件到达前未绑定）——处理期多条「Kernel audition」
+  // 重复落 lane。排除改按族身份（laneVisibleActivities 内 isAuditionFamilyActivity），
+  // 判定卡是族内唯一动态表面（每会话一卡、随状态更新、判定后定型）。
   const sessionBoundTurnIds = new Set(sessions.map((session) => session.turnID).filter(Boolean));
   const laneBoundTurnIds = new Set([...knownTurnIds, ...sessionBoundTurnIds]);
-  const laneActivities = activities.filter((activity) => isUnboundActivity(activity, laneBoundTurnIds, roundBoundKeys));
+  const laneActivities = laneVisibleActivities(activities, laneBoundTurnIds, roundBoundKeys);
 
   const turnFirstSeq = (turnId: string): number => {
     const turn = trajectory.turns[turnId];
