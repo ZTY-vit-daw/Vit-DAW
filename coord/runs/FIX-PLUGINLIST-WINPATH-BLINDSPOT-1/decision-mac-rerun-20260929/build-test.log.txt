@@ -1,0 +1,158 @@
+-- The C compiler identification is AppleClang 21.0.0.21000334
+-- The CXX compiler identification is AppleClang 21.0.0.21000334
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Configuring juceaide
+-- Building juceaide
+-- Exporting juceaide
+-- Testing juceaide
+-- Finished setting up juceaide
+-- Configuring done (23.0s)
+-- Generating done (0.1s)
+-- Build files have been written to: /tmp/vit-winpath-verify/VitApp/build/tests-verify
+CONFIGURE OK
+[ 12%] Generating VitPluginListHygieneTests_artefacts/JuceLibraryCode/JuceHeader.h
+[ 12%] Building CXX object CMakeFiles/VitPluginListHygieneTests.dir/PluginListHygieneTests.cpp.o
+[ 12%] Building CXX object CMakeFiles/VitPluginListHygieneTests.dir/tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_gui_extra/juce_gui_extra.mm.o
+[ 25%] Building CXX object CMakeFiles/VitPluginListHygieneTests.dir/tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_gui_basics/juce_gui_basics_3.cpp.o
+[ 25%] Building CXX object CMakeFiles/VitPluginListHygieneTests.dir/tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_gui_basics/juce_gui_basics_2.cpp.o
+[ 37%] Building CXX object CMakeFiles/VitPluginListHygieneTests.dir/tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_audio_processors/juce_audio_processors.mm.o
+[ 37%] Building CXX object CMakeFiles/VitPluginListHygieneTests.dir/tmp/vit-winpath-verify/VitApp/Source/Service/PluginListHygiene.cpp.o
+[ 37%] Building CXX object CMakeFiles/VitPluginListHygieneTests.dir/tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_gui_basics/juce_gui_basics_4.cpp.o
+[ 37%] Building CXX object CMakeFiles/VitPluginListHygieneTests.dir/tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_gui_basics/juce_gui_basics_5.cpp.o
+[ 50%] Building CXX object CMakeFiles/VitPluginListHygieneTests.dir/tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_gui_basics/juce_gui_basics.mm.o
+In file included from /tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_audio_processors/juce_audio_processors.mm:35:
+In file included from /tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_audio_processors/juce_audio_processors.cpp:71:
+In file included from /tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_audio_processors/format_types/juce_VST3PluginFormat.cpp:37:
+/tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_audio_processors_headless/format_types/juce_VST3PluginFormatImpl.h:831:17: warning: virtual method '~AttributeList' is inside a 'final' class and can never be overridden [-Wunnecessary-virtual-specifier]
+  831 |         virtual ~AttributeList() = default;
+      |                 ^
+/tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_audio_processors_headless/format_types/juce_VST3PluginFormatImpl.h:918:17: warning: virtual method '~Message' is inside a 'final' class and can never be overridden [-Wunnecessary-virtual-specifier]
+  918 |         virtual ~Message() = default;
+      |                 ^
+/tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_audio_processors_headless/format_types/juce_VST3PluginFormatImpl.h:1886:13: warning: virtual method '~HostToClientParamQueue' is inside a 'final' class and can never be overridden [-Wunnecessary-virtual-specifier]
+ 1886 |     virtual ~HostToClientParamQueue() = default;
+      |             ^
+/tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_audio_processors_headless/format_types/juce_VST3PluginFormatImpl.h:1991:13: warning: virtual method '~ClientToHostParamQueue' is inside a 'final' class and can never be overridden [-Wunnecessary-virtual-specifier]
+ 1991 |     virtual ~ClientToHostParamQueue() = default;
+      |             ^
+/tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_audio_processors_headless/format_types/juce_VST3PluginFormatImpl.h:2817:17: warning: virtual method '~TrackPropertiesAttributeList' is inside a 'final' class and can never be overridden [-Wunnecessary-virtual-specifier]
+ 2817 |         virtual ~TrackPropertiesAttributeList() {}
+      |                 ^
+/tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_audio_processors_headless/format_types/juce_VST3PluginFormatImpl.h:2074:13: warning: virtual method '~ParameterChanges' is inside a 'final' class and can never be overridden [-Wunnecessary-virtual-specifier]
+ 2074 |     virtual ~ParameterChanges() = default;
+      |             ^
+/tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_audio_processors_headless/format_types/juce_VST3PluginFormatImpl.h:3233:13: note: in instantiation of template class 'juce::ParameterChanges<juce::HostToClientParamQueue>' requested here
+ 3233 |         new ParameterChanges<HostToClientParamQueue>,
+      |             ^
+/tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_audio_processors_headless/format_types/juce_VST3PluginFormatImpl.h:2074:13: warning: virtual method '~ParameterChanges' is inside a 'final' class and can never be overridden [-Wunnecessary-virtual-specifier]
+ 2074 |     virtual ~ParameterChanges() = default;
+      |             ^
+/tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_audio_processors_headless/format_types/juce_VST3PluginFormatImpl.h:3239:13: note: in instantiation of template class 'juce::ParameterChanges<juce::ClientToHostParamQueue>' requested here
+ 3239 |         new ParameterChanges<ClientToHostParamQueue>,
+      |             ^
+[ 50%] Building CXX object CMakeFiles/VitPluginListHygieneTests.dir/tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_graphics/juce_graphics_Harfbuzz.cpp.o
+[ 50%] Building C object CMakeFiles/VitPluginListHygieneTests.dir/tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_graphics/juce_graphics_Sheenbidi.c.o
+[ 62%] Building CXX object CMakeFiles/VitPluginListHygieneTests.dir/tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_graphics/juce_graphics.mm.o
+7 warnings generated.
+[ 62%] Building CXX object CMakeFiles/VitPluginListHygieneTests.dir/tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_events/juce_events.mm.o
+In file included from /tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_gui_basics/juce_gui_basics.mm:35:
+In file included from /tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_gui_basics/juce_gui_basics.cpp:168:
+/tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_gui_basics/native/juce_CGMetalLayerRenderer_mac.h:257:66: warning: 'MTLResourceStorageModeManaged' is deprecated: first deprecated in macOS 27.0 - Managed storage has no effect on Apple Silicon, use Shared storage instead [-Wdeprecated-declarations]
+  257 |                                                                  MTLResourceStorageModeManaged
+      |                                                                  ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks/Metal.framework/Headers/MTLResource.h:177:5: note: 'MTLResourceStorageModeManaged' has been explicitly marked deprecated here
+  177 |     MTLResourceStorageModeManaged API_DEPRECATED("Managed storage has no effect on Apple Silicon, use Shared storage instead", macos(10.11, 27.0), macCatalyst(13.0, 27.0)) API_UNAVAILABLE(ios) = MTLStorageModeManaged << MTLResourceStorageModeShift,
+      |     ^
+In file included from /tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_gui_basics/juce_gui_basics.mm:35:
+In file included from /tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_gui_basics/juce_gui_basics.cpp:168:
+/tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_gui_basics/native/juce_CGMetalLayerRenderer_mac.h:269:39: warning: 'MTLStorageModeManaged' is deprecated: first deprecated in macOS 27.0 - Managed storage has no effect on Apple Silicon, use Shared storage instead [-Wdeprecated-declarations]
+  269 |                                       MTLStorageModeManaged;
+      |                                       ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks/Metal.framework/Headers/MTLResource.h:85:5: note: 'MTLStorageModeManaged' has been explicitly marked deprecated here
+   85 |     MTLStorageModeManaged API_DEPRECATED("Managed storage has no effect on Apple Silicon, use Shared storage instead", macos(10.11, 27.0), macCatalyst(13.0, 27.0)) API_UNAVAILABLE(ios) = 1,
+      |     ^
+In file included from /tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_gui_basics/juce_gui_basics.mm:35:
+In file included from /tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_gui_basics/juce_gui_basics.cpp:168:
+/tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_gui_basics/native/juce_CGMetalLayerRenderer_mac.h:301:27: warning: 'didModifyRange:' is deprecated: first deprecated in macOS 27.0 - Managed storage has no effect on Apple Silicon, use Shared storage instead [-Wdeprecated-declarations]
+  301 |             [buffer.get() didModifyRange: { 0, buffer.get().length }];
+      |                           ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks/Metal.framework/Headers/MTLBuffer.h:60:1: note: 'didModifyRange:' has been explicitly marked deprecated here
+   60 | - (void)didModifyRange:(NSRange)range API_DEPRECATED("Managed storage has no effect on Apple Silicon, use Shared storage instead", macos(10.11, 27.0), macCatalyst(13.0, 27.0)) API_UNAVAILABLE(ios);
+      | ^
+[ 62%] Building CXX object CMakeFiles/VitPluginListHygieneTests.dir/tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_core/juce_core_CompilationTime.cpp.o
+[ 75%] Building CXX object CMakeFiles/VitPluginListHygieneTests.dir/tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_core/juce_core.mm.o
+[ 75%] Building CXX object CMakeFiles/VitPluginListHygieneTests.dir/tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_data_structures/juce_data_structures.mm.o
+[ 75%] Building CXX object CMakeFiles/VitPluginListHygieneTests.dir/tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_audio_processors_headless/juce_audio_processors_headless_ara.cpp.o
+[ 87%] Building CXX object CMakeFiles/VitPluginListHygieneTests.dir/tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_audio_processors_headless/juce_audio_processors_headless_lv2_libs.cpp.o
+[ 87%] Building CXX object CMakeFiles/VitPluginListHygieneTests.dir/tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_audio_processors_headless/juce_audio_processors_headless.mm.o
+[ 87%] Building CXX object CMakeFiles/VitPluginListHygieneTests.dir/tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_audio_basics/juce_audio_basics.mm.o
+3 warnings generated.
+In file included from /tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_audio_processors_headless/juce_audio_processors_headless.mm:35:
+In file included from /tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_audio_processors_headless/juce_audio_processors_headless.cpp:70:
+In file included from /tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_audio_processors_headless/format_types/juce_VST3PluginFormatHeadless.cpp:37:
+/tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_audio_processors_headless/format_types/juce_VST3PluginFormatImpl.h:831:17: warning: virtual method '~AttributeList' is inside a 'final' class and can never be overridden [-Wunnecessary-virtual-specifier]
+  831 |         virtual ~AttributeList() = default;
+      |                 ^
+/tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_audio_processors_headless/format_types/juce_VST3PluginFormatImpl.h:918:17: warning: virtual method '~Message' is inside a 'final' class and can never be overridden [-Wunnecessary-virtual-specifier]
+  918 |         virtual ~Message() = default;
+      |                 ^
+/tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_audio_processors_headless/format_types/juce_VST3PluginFormatImpl.h:1886:13: warning: virtual method '~HostToClientParamQueue' is inside a 'final' class and can never be overridden [-Wunnecessary-virtual-specifier]
+ 1886 |     virtual ~HostToClientParamQueue() = default;
+      |             ^
+/tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_audio_processors_headless/format_types/juce_VST3PluginFormatImpl.h:1991:13: warning: virtual method '~ClientToHostParamQueue' is inside a 'final' class and can never be overridden [-Wunnecessary-virtual-specifier]
+ 1991 |     virtual ~ClientToHostParamQueue() = default;
+      |             ^
+/tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_audio_processors_headless/format_types/juce_VST3PluginFormatImpl.h:2817:17: warning: virtual method '~TrackPropertiesAttributeList' is inside a 'final' class and can never be overridden [-Wunnecessary-virtual-specifier]
+ 2817 |         virtual ~TrackPropertiesAttributeList() {}
+      |                 ^
+/tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_audio_processors_headless/format_types/juce_VST3PluginFormatImpl.h:2074:13: warning: virtual method '~ParameterChanges' is inside a 'final' class and can never be overridden [-Wunnecessary-virtual-specifier]
+ 2074 |     virtual ~ParameterChanges() = default;
+      |             ^
+/tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_audio_processors_headless/format_types/juce_VST3PluginFormatImpl.h:3233:13: note: in instantiation of template class 'juce::ParameterChanges<juce::HostToClientParamQueue>' requested here
+ 3233 |         new ParameterChanges<HostToClientParamQueue>,
+      |             ^
+/tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_audio_processors_headless/format_types/juce_VST3PluginFormatImpl.h:2074:13: warning: virtual method '~ParameterChanges' is inside a 'final' class and can never be overridden [-Wunnecessary-virtual-specifier]
+ 2074 |     virtual ~ParameterChanges() = default;
+      |             ^
+/tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_audio_processors_headless/format_types/juce_VST3PluginFormatImpl.h:3239:13: note: in instantiation of template class 'juce::ParameterChanges<juce::ClientToHostParamQueue>' requested here
+ 3239 |         new ParameterChanges<ClientToHostParamQueue>,
+      |             ^
+In file included from /tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_audio_processors_headless/juce_audio_processors_headless.mm:35:
+In file included from /tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_audio_processors_headless/juce_audio_processors_headless.cpp:47:
+In file included from /tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_audio_processors_headless/juce_audio_processors_headless.h:66:
+In file included from /tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_audio_basics/juce_audio_basics.h:66:
+In file included from /tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_core/juce_core.h:215:
+In file included from /tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_core/system/juce_StandardHeader.h:68:
+In file included from /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/functional:601:
+In file included from /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/vector:363:
+In file included from /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/locale:203:
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__locale_dir/wstring_convert.h:179:1: warning: 'wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t>' is deprecated [-Wdeprecated-declarations]
+  179 | wstring_convert<_Codecvt, _Elem, _WideAlloc, _ByteAlloc>::to_bytes(const _Elem* __frm, const _Elem* __frm_end) {
+      | ^
+/tmp/vit-winpath-verify/tracktion_engine/modules/juce/modules/juce_audio_processors_headless/format_types/VST3_SDK/public.sdk/source/common/commonstringconvert.cpp:72:22: note: in instantiation of member function 'std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t>::to_bytes' requested here
+   72 |         return converter ().to_bytes (reinterpret_cast<const UTF16Type*> (str.data ()),
+      |                             ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__locale_dir/wstring_convert.h:34:7: note: 'wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t>' has been explicitly marked deprecated here
+   34 | class _LIBCPP_DEPRECATED_IN_CXX17 wstring_convert {
+      |       ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__config:540:41: note: expanded from macro '_LIBCPP_DEPRECATED_IN_CXX17'
+  540 | #    define _LIBCPP_DEPRECATED_IN_CXX17 _LIBCPP_DEPRECATED
+      |                                         ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__config:504:49: note: expanded from macro '_LIBCPP_DEPRECATED'
+  504 | #      define _LIBCPP_DEPRECATED __attribute__((__deprecated__))
+      |                                                 ^
+8 warnings generated.
+[100%] Linking CXX executable VitPluginListHygieneTests_artefacts/Debug/VitPluginListHygieneTests
+[100%] Built target VitPluginListHygieneTests
+BUILD OK
+zsh:3: command not found: ctest
+EXIT=127
