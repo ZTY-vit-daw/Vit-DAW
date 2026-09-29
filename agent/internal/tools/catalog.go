@@ -944,6 +944,8 @@ func defaultSpecs() []CommandSpec {
 		spec("set_async_ghost_state", "assets.set_async_ghost_state", "assets", "Set async ghost asset state.", RiskUndoable, true, true, false, true),
 		spec("start_render", "render.start", "render", "Start an offline render job.", RiskConfirm, true, false, true, false),
 		spec("cancel_render", "render.cancel", "render", "Cancel the current render job.", RiskDirect, false, false, false, false),
+		spec("render_profile_bind", "render.profile.bind", "render", "Bind one completed render (kernel render job id) to exactly one delivery loudness profile (e.g. builtin:apple_music). One render one profile; rebinding to a different profile is rejected. Only renders whose telemetry reached terminal status ready can be bound.", RiskDirect, true, false, false, false),
+		spec("render_profile_list", "render.profile.list", "render", "List render-to-delivery-profile bindings with assertion semantics (loudness target bands, not one-sided thresholds; unresolvable bindings stay visible) and the available built-in delivery profiles.", RiskDirect, false, false, false, false),
 	}
 	return withDefaultBindingSpecs(specs)
 }

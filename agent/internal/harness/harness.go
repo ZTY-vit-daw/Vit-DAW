@@ -42,6 +42,7 @@ import (
 	"vit-daw-agent/internal/projectstore"
 	"vit-daw-agent/internal/projectworkspace"
 	"vit-daw-agent/internal/resourceintake"
+	"vit-daw-agent/internal/rlm"
 	"vit-daw-agent/internal/rollback"
 	agentruntime "vit-daw-agent/internal/runtime"
 	"vit-daw-agent/internal/shadow"
@@ -73,8 +74,12 @@ type Harness struct {
 	spectrals       map[string]*spectralFeatureCollector
 	renderResults   map[string]RenderResult
 	renderWaiters   map[string][]chan RenderResult
-	l2ProbeCollect  func(context.Context, map[string]any, string, string, string) (map[string]any, map[string]any, error)
-	comProbeCollect func(context.Context, map[string]any, string, string, string) (map[string]any, map[string]any, error)
+	// renderProfileBindings tracks render -> delivery-profile bindings keyed
+	// by kernel render job id (RLM-PROFILE-2). Guarded by renderMu; lazily
+	// initialized; persisted via chat's projectAgentRuntimeState.
+	renderProfileBindings *rlm.RenderBindingIndex
+	l2ProbeCollect        func(context.Context, map[string]any, string, string, string) (map[string]any, map[string]any, error)
+	comProbeCollect       func(context.Context, map[string]any, string, string, string) (map[string]any, map[string]any, error)
 
 	materializeNotifier materialize.Notifier // MAT-B 三挂点物化侧入口（nil=现状逐字节一致）
 	materializeStore    *materialize.Store   // MAT-C 三态 flag 物化库（nil=off 零接线现状；shadow/on 影子轮旁路）
@@ -2444,6 +2449,12 @@ func (h *Harness) invokeLocal(ctx context.Context, spec tools.CommandSpec, cmd m
 		return h.projectSnapshotExportCompat(cmd), true
 	case "save_as_folder":
 		result, err := h.saveAsFolder(ctx, cmd)
+		return resultWithErr(result, err), true
+	case "render_profile_bind":
+		binding, err := h.BindRenderProfile(firstString(cmd, "render_id", "job_id"), firstString(cmd, "profile_id"))
+		return resultWithErr(map[string]any{"status": "ok", "binding": binding}, err), true
+	case "render_profile_list":
+		result, err := h.ListRenderProfileBindings()
 		return resultWithErr(result, err), true
 	case "mix_observe", "mix_request_observation":
 		result, err := h.requestMixObservation(ctx, cmd)

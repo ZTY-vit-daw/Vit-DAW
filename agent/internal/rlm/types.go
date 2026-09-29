@@ -18,6 +18,11 @@ type Input struct {
 	MixObservation      map[string]any
 	AudioAnalysisStatus map[string]any
 	GeneratedAt         string
+	// RenderBindings is the optional render -> delivery-profile binding set
+	// (RLM-PROFILE-2). Absent on all existing call sites: Build output is
+	// byte-identical to before. When present, Build discloses the bindings on
+	// the projection output (fail-closed for unresolvable profiles).
+	RenderBindings []RenderProfileBinding
 }
 
 type Projection struct {
@@ -38,10 +43,16 @@ type Projection struct {
 	Limitations    []string            `json:"limitations,omitempty"`
 	GeneratedAt    string              `json:"generated_at,omitempty"`
 	// DeliveryProfile is the v1 delivery-profile slot (L2-1-RLM-1). Build does
-	// not populate it (render-chain wiring is a later card): absent on all
+	// not populate it (a project-level projection has no single "the" render
+	// profile; render-level supervision is a later card): absent on all
 	// current records, and records without it load and behave exactly as
 	// before. nil marshals to no field, keeping old JSON byte-identical.
 	DeliveryProfile *DeliveryProfile `json:"delivery_profile,omitempty"`
+	// RenderBindings discloses the current render -> delivery-profile bindings
+	// with their assertion semantics (RLM-PROFILE-2). Populated only when the
+	// Build input carries bindings; nil marshals to no field, keeping old JSON
+	// byte-identical. Unresolvable bindings stay visible as unresolvable rows.
+	RenderBindings []RenderBindingDisclosure `json:"render_profile_bindings,omitempty"`
 }
 
 type Summary struct {

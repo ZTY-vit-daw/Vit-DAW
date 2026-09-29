@@ -45,6 +45,7 @@ import (
 	"vit-daw-agent/internal/projectworkspace"
 	"vit-daw-agent/internal/promptruntime"
 	"vit-daw-agent/internal/resourceintake"
+	"vit-daw-agent/internal/rlm"
 	agentruntime "vit-daw-agent/internal/runtime"
 	"vit-daw-agent/internal/shadow"
 	"vit-daw-agent/internal/tools"
@@ -161,9 +162,14 @@ type projectAgentRuntimeState struct {
 	FreeStateLoops            map[string]freeStateReasoningLoop             `json:"free_state_reasoning_loops,omitempty"`
 	AudioClosures             map[string]audioclosure.State                 `json:"minimal_audio_closures,omitempty"`
 	ControllerOwners          map[string]orchestrationcontroller.Owner      `json:"orchestration_controller_owners,omitempty"`
-	PendingCandidates         []agentprotocol.PendingCandidate              `json:"pending_candidates,omitempty"`
-	GoalRuntime               agentruntime.Snapshot                         `json:"goal_runtime,omitempty"`
-	AuthorityMode             string                                        `json:"authority_mode,omitempty"`
+	// RenderProfileBindings carries the render -> delivery-profile binding set
+	// (RLM-PROFILE-2). Absent on all pre-existing records: restore leaves zero
+	// bindings and behavior is unchanged (AGENTS.md §11 default). Individual
+	// restored entries re-validate fail-closed (unknown profile ids dropped).
+	RenderProfileBindings []rlm.RenderProfileBinding       `json:"render_profile_bindings,omitempty"`
+	PendingCandidates     []agentprotocol.PendingCandidate `json:"pending_candidates,omitempty"`
+	GoalRuntime           agentruntime.Snapshot            `json:"goal_runtime,omitempty"`
+	AuthorityMode         string                           `json:"authority_mode,omitempty"`
 }
 
 type ChatRequest struct {
@@ -5079,7 +5085,8 @@ func smokeAuthorityResponse(conversationID string, chatContext map[string]any, s
 	}
 }
 
-func smokeRangeContextResponse(conversationID string, chatContext map[string]any) ChatResponse {	checks := []string{}
+func smokeRangeContextResponse(conversationID string, chatContext map[string]any) ChatResponse {
+	checks := []string{}
 	failures := []string{}
 	if ranges := contextClipRangeRows(chatContext["selected_clip_ranges"]); len(ranges) > 0 {
 		checks = append(checks, "top_level")
@@ -7000,6 +7007,7 @@ func (s *Server) projectAgentRuntimeStateLocked() projectAgentRuntimeState {
 	}
 	if s.harness != nil {
 		state.GoalRuntime = s.harness.RuntimeSnapshot()
+		state.RenderProfileBindings = s.harness.RenderProfileBindingsSnapshot()
 	}
 	return state
 }
@@ -7008,6 +7016,13 @@ func (s *Server) restoreProjectAgentRuntimeStateLocked(state projectAgentRuntime
 	// Collect migration audit rows before clearing legacy pointers from the
 	// shared ConversationMemory map.
 	retiredCandidates := retireLegacyCapabilityCandidates(state)
+	// Render -> delivery-profile bindings restore fail-closed per entry
+	// (unknown profile ids / conflicts dropped, counted, never executed).
+	if s.harness != nil && len(state.RenderProfileBindings) > 0 {
+		if dropped := s.harness.RestoreRenderProfileBindings(state.RenderProfileBindings); dropped > 0 && s.logger != nil {
+			s.logger.Warn("[workspace] render profile bindings restore dropped %d invalid entries", dropped)
+		}
+	}
 	s.conversations = nonNilMap(state.Conversations)
 	s.pending = retireLegacyCapabilityPendingPlans(nonNilMap(state.Pending))
 	s.interactions = retireLegacyCapabilityInteractions(nonNilMap(state.Interactions))

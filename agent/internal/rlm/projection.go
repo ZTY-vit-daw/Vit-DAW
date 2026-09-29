@@ -80,6 +80,12 @@ func Build(input Input) Projection {
 	if staleFieldsWithheld > 0 {
 		limitations = append(limitations, "rlm_stale_source_fields_withheld")
 	}
+	// 交付 profile 绑定披露（RLM-PROFILE-2）：解析失败的绑定保留为
+	// unresolvable 行并在投影级 limitations 可见，不静默丢弃。
+	renderBindings := BuildRenderBindingDisclosure(input.RenderBindings)
+	if renderBindingsCarryUnresolvable(renderBindings) {
+		limitations = append(limitations, LimitationRenderBindingUnresolvable)
+	}
 
 	calibration := []CalibrationRow{}
 	if actionable && reference != nil {
@@ -107,6 +113,9 @@ func Build(input Input) Projection {
 		EvidenceRefs:   evidenceRefsFromRows(rows),
 		Limitations:    uniqueStrings(limitations...),
 		GeneratedAt:    generatedAt,
+	}
+	if len(renderBindings) > 0 {
+		proj.RenderBindings = renderBindings
 	}
 	proj.ProjectionID = stableProjectionID(proj)
 	return proj

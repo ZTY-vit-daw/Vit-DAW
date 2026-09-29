@@ -15,6 +15,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"sort"
 	"strings"
 )
 
@@ -307,6 +308,21 @@ func (idx *RenderBindingIndex) Bind(binding RenderProfileBinding) error {
 func (idx *RenderBindingIndex) ProfileForRender(renderID string) (string, bool) {
 	profileID, ok := idx.byRender[renderID]
 	return profileID, ok
+}
+
+// Bindings returns the index contents sorted by render id (stable snapshot
+// for persistence and disclosure).
+func (idx *RenderBindingIndex) Bindings() []RenderProfileBinding {
+	out := make([]RenderProfileBinding, 0, len(idx.byRender))
+	for renderID, profileID := range idx.byRender {
+		out = append(out, RenderProfileBinding{
+			SchemaVersion: RenderBindingSchemaVersion,
+			RenderID:      renderID,
+			ProfileID:     profileID,
+		})
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].RenderID < out[j].RenderID })
+	return out
 }
 
 func finite(value float64) bool {
