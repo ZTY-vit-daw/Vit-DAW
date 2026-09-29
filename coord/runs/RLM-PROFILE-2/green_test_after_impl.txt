@@ -1,0 +1,5 @@
+ok  	vit-daw-agent/internal/rlm	0.458s
+ok  	vit-daw-agent/internal/harness	13.664s
+ok  	vit-daw-agent/internal/chat	67.432s
+ok  	vit-daw-agent/internal/tools	0.323s
+GREEN_EXIT=0

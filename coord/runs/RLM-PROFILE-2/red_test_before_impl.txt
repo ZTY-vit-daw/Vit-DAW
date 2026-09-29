@@ -1,0 +1,10 @@
+# vit-daw-agent/internal/rlm
+# [vit-daw-agent/internal/rlm]
+vet: internal/rlm/disclosure_test.go:19:22: unknown field RenderBindings in struct literal of type Input
+# vit-daw-agent/internal/harness
+# [vit-daw-agent/internal/harness]
+vet: internal/harness/render_profile_test.go:20:14: h.BindRenderProfile undefined (type *Harness has no field or method BindRenderProfile)
+# vit-daw-agent/internal/chat
+# [vit-daw-agent/internal/chat]
+vet: internal/chat/render_profile_binding_state_test.go:13:30: server.harness.BindRenderProfile undefined (type *harness.Harness has no field or method BindRenderProfile)
+RED_EXIT=
