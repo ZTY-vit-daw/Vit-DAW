@@ -1,0 +1,210 @@
+{
+  "executed_at": "2026-09-29T12:20:27.814700+00:00",
+  "manifest_profiles": {
+    "pv1": "pv1_real_stems",
+    "spv1": "spv1_synthetic"
+  },
+  "pv1_declared_profile": {
+    "pv1_p01": {
+      "verdict": "PASS",
+      "gates": {
+        "min_rms_dbfs_per_track": -100.0,
+        "min_crest_db_per_track": 6.0,
+        "min_best_crest_db": 14.0
+      },
+      "best_crest_db": 25.355,
+      "best_sibilance_contrast_db": 37.547,
+      "best_transient_contrast_db": 43.945
+    },
+    "pv1_p02": {
+      "verdict": "PASS",
+      "gates": {
+        "min_rms_dbfs_per_track": -100.0,
+        "min_crest_db_per_track": 6.0,
+        "min_best_crest_db": 14.0
+      },
+      "best_crest_db": 31.765,
+      "best_sibilance_contrast_db": 25.341,
+      "best_transient_contrast_db": 45.583
+    },
+    "pv1_p03": {
+      "verdict": "PASS",
+      "gates": {
+        "min_rms_dbfs_per_track": -100.0,
+        "min_crest_db_per_track": 6.0,
+        "min_best_crest_db": 14.0
+      },
+      "best_crest_db": 19.334,
+      "best_sibilance_contrast_db": 9.767,
+      "best_transient_contrast_db": 58.353
+    },
+    "pv1_p04": {
+      "verdict": "PASS",
+      "gates": {
+        "min_rms_dbfs_per_track": -100.0,
+        "min_crest_db_per_track": 6.0,
+        "min_best_crest_db": 14.0
+      },
+      "best_crest_db": 22.159,
+      "best_sibilance_contrast_db": 33.166,
+      "best_transient_contrast_db": 46.389
+    },
+    "pv1_p05": {
+      "verdict": "PASS",
+      "gates": {
+        "min_rms_dbfs_per_track": -100.0,
+        "min_crest_db_per_track": 6.0,
+        "min_best_crest_db": 14.0
+      },
+      "best_crest_db": 24.786,
+      "best_sibilance_contrast_db": 18.199,
+      "best_transient_contrast_db": 58.548
+    },
+    "pv1_p06": {
+      "verdict": "PASS",
+      "gates": {
+        "min_rms_dbfs_per_track": -100.0,
+        "min_crest_db_per_track": 6.0,
+        "min_best_crest_db": 14.0
+      },
+      "best_crest_db": 21.413,
+      "best_sibilance_contrast_db": 20.552,
+      "best_transient_contrast_db": 48.854
+    },
+    "pv1_p07": {
+      "verdict": "PASS",
+      "gates": {
+        "min_rms_dbfs_per_track": -100.0,
+        "min_crest_db_per_track": 6.0,
+        "min_best_crest_db": 14.0
+      },
+      "best_crest_db": 27.192,
+      "best_sibilance_contrast_db": 42.696,
+      "best_transient_contrast_db": 55.181
+    }
+  },
+  "spv1_default_regression": {
+    "spv1_p01": {
+      "verdict": "PASS",
+      "gates": {
+        "min_rms_dbfs_per_track": -45.0,
+        "min_crest_db_per_track": 10.0,
+        "min_best_crest_db": 14.0
+      },
+      "best_crest_db": 20.989,
+      "best_sibilance_contrast_db": 19.621,
+      "best_transient_contrast_db": 19.52
+    },
+    "spv1_p03": {
+      "verdict": "PASS",
+      "gates": {
+        "min_rms_dbfs_per_track": -45.0,
+        "min_crest_db_per_track": 10.0,
+        "min_best_crest_db": 14.0
+      },
+      "best_crest_db": 20.989,
+      "best_sibilance_contrast_db": 19.621,
+      "best_transient_contrast_db": 19.52
+    },
+    "spv1_p04": {
+      "verdict": "PASS",
+      "gates": {
+        "min_rms_dbfs_per_track": -45.0,
+        "min_crest_db_per_track": 10.0,
+        "min_best_crest_db": 14.0
+      },
+      "best_crest_db": 20.989,
+      "best_sibilance_contrast_db": 19.621,
+      "best_transient_contrast_db": 19.52
+    },
+    "spv1_p05": {
+      "verdict": "PASS",
+      "gates": {
+        "min_rms_dbfs_per_track": -45.0,
+        "min_crest_db_per_track": 10.0,
+        "min_best_crest_db": 14.0
+      },
+      "best_crest_db": 20.989,
+      "best_sibilance_contrast_db": 19.621,
+      "best_transient_contrast_db": 19.52
+    },
+    "spv1_p06": {
+      "verdict": "PASS",
+      "gates": {
+        "min_rms_dbfs_per_track": -45.0,
+        "min_crest_db_per_track": 10.0,
+        "min_best_crest_db": 14.0
+      },
+      "best_crest_db": 21.057,
+      "best_sibilance_contrast_db": 30.567,
+      "best_transient_contrast_db": 44.936
+    },
+    "spv1_p07": {
+      "verdict": "PASS",
+      "gates": {
+        "min_rms_dbfs_per_track": -45.0,
+        "min_crest_db_per_track": 10.0,
+        "min_best_crest_db": 14.0
+      },
+      "best_crest_db": 23.738,
+      "best_sibilance_contrast_db": 38.601,
+      "best_transient_contrast_db": 63.432
+    },
+    "spv1_p08": {
+      "verdict": "PASS",
+      "gates": {
+        "min_rms_dbfs_per_track": -45.0,
+        "min_crest_db_per_track": 10.0,
+        "min_best_crest_db": 14.0
+      },
+      "best_crest_db": 23.738,
+      "best_sibilance_contrast_db": 38.601,
+      "best_transient_contrast_db": 63.432
+    },
+    "spv1_p09": {
+      "verdict": "PASS",
+      "gates": {
+        "min_rms_dbfs_per_track": -45.0,
+        "min_crest_db_per_track": 10.0,
+        "min_best_crest_db": 14.0
+      },
+      "best_crest_db": 23.738,
+      "best_sibilance_contrast_db": 38.601,
+      "best_transient_contrast_db": 63.432
+    }
+  },
+  "spv1_skipped_missing_project": {
+    "spv1_p02": "missing local fixture project: D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\projects\\spv1_p02\\spv1_p02.vit"
+  },
+  "counterexamples_pv1_profile": {
+    "A_digital_silence_stem": {
+      "verdict": "REJECTED",
+      "error": "public material failed the compression-fixture qualification gates: {\"qualification_profile\": \"pv1_real_stems\", \"weak_rms_tracks\": [\"guitar\"], \"weak_crest_tracks\": [\"guitar\"], \"best_crest_db\": 24.575}"
+    },
+    "B_hard_clipped_stem": {
+      "verdict": "REJECTED",
+      "error": "public material failed the compression-fixture qualification gates: {\"qualification_profile\": \"pv1_real_stems\", \"weak_rms_tracks\": [], \"weak_crest_tracks\": [\"guitar\"], \"best_crest_db\": 24.575}"
+    },
+    "C_stationary_noise_set": {
+      "verdict": "REJECTED",
+      "error": "public material failed the sibilance-fixture qualification gates: {\"weak_contrast_tracks\": [], \"best_contrast_p95_p50_db\": 0.51}"
+    }
+  },
+  "unknown_profile_fail_closed": {
+    "verdict": "REJECTED",
+    "error": "unknown material qualification profile 'no_such_profile'; known profiles: ['pv1_real_stems', 'spv1_synthetic']"
+  },
+  "pv1_case_under_default_spv1_caliber": {
+    "verdict": "REJECTED",
+    "error": "public material failed the compression-fixture qualification gates: {\"qualification_profile\": \"spv1_synthetic\", \"weak_rms_tracks\": [\"guitar\"], \"weak_crest_tracks\": [], \"best_crest_db\": 25.355}"
+  },
+  "summary": {
+    "pv1_pass": 7,
+    "pv1_total": 7,
+    "spv1_pass": 8,
+    "spv1_total": 8,
+    "counterexamples_rejected": 3,
+    "counterexamples_total": 3,
+    "fail_closed_ok": true
+  }
+}

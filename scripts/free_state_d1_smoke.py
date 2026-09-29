@@ -212,6 +212,12 @@ def materialize_public_case(case: dict[str, Any], workdir: Path) -> dict[str, An
 # of pinning the measured values). Metrics are machine-computed from the public
 # stems only, land in the smoke report (never in agent context), and name no
 # target track, so the blindness contract stays mechanically auditable.
+# RUNNER-GATE-ADAPT-1: the gate VALUES are a fixture-set property, so they are
+# profile-scoped via MATERIAL_QUALIFICATION_PROFILES below (manifest top-level
+# "qualification_profile"; undeclared manifests keep the spv1 caliber exactly --
+# zero behavior change). The flavor-scoped sub-gates further down (pan/limiter/
+# gate/multiband) stay spv1-calibrated under every profile; pv1 flavored runs
+# are a formal-round design question, not silently recalibrated here.
 MATERIAL_QUALIFICATION_SCHEMA = "vit.free_state_d1_material_qualification.v1"
 MATERIAL_MIN_RMS_DBFS = -45.0
 MATERIAL_MIN_CREST_DB_PER_TRACK = 10.0
@@ -222,10 +228,20 @@ def dbfs(value: float) -> float:
     return 20.0 * math.log10(max(value, 1e-12))
 
 
-def qualify_material(case: dict[str, Any], stereo_balance: bool = False, limiter: bool = False, gate: bool = False, multiband: bool = False) -> dict[str, Any]:
+def qualify_material(case: dict[str, Any], stereo_balance: bool = False, limiter: bool = False, gate: bool = False, multiband: bool = False, profile: str | None = None) -> dict[str, Any]:
     import numpy as np
     import soundfile as sf
 
+    if profile is None:
+        profile = DEFAULT_MATERIAL_QUALIFICATION_PROFILE
+    if profile not in MATERIAL_QUALIFICATION_PROFILES:
+        # AGENTS 11 unknown-enum policy: a manifest declaring a profile this
+        # runner does not know is a runner/manifest version mismatch, not a
+        # silently degraded gate -- fail closed instead of falling back.
+        raise ValueError(
+            f"unknown material qualification profile {profile!r}; known profiles: {sorted(MATERIAL_QUALIFICATION_PROFILES)}"
+        )
+    profile_gates = MATERIAL_QUALIFICATION_PROFILES[profile]
     track_rows: list[dict[str, Any]] = []
     for stem in case.get("stem_files", []):
         path = Path(str(stem["file"]))
@@ -245,23 +261,37 @@ def qualify_material(case: dict[str, Any], stereo_balance: bool = False, limiter
         })
     if not track_rows:
         raise RuntimeError("material qualification found no public stems")
-    weak_rms = [row["track"] for row in track_rows if row["rms_dbfs"] <= MATERIAL_MIN_RMS_DBFS]
-    weak_crest = [row["track"] for row in track_rows if row["crest_db"] < MATERIAL_MIN_CREST_DB_PER_TRACK]
+    # A None per-track floor means the profile does not assert that property
+    # per track (real-stem sets legitimately contain tracks without it; see
+    # the profile table derivation note above).
+    min_rms = profile_gates["min_rms_dbfs_per_track"]
+    min_crest = profile_gates["min_crest_db_per_track"]
+    weak_rms = [] if min_rms is None else [row["track"] for row in track_rows if row["rms_dbfs"] <= min_rms]
+    weak_crest = [] if min_crest is None else [row["track"] for row in track_rows if row["crest_db"] < min_crest]
     best_crest_db = max(row["crest_db"] for row in track_rows)
-    if weak_rms or weak_crest or best_crest_db < MATERIAL_MIN_BEST_CREST_DB:
+    if weak_rms or weak_crest or best_crest_db < profile_gates["min_best_crest_db"]:
         raise RuntimeError(
             "public material failed the compression-fixture qualification gates: "
-            + json.dumps({"weak_rms_tracks": weak_rms, "weak_crest_tracks": weak_crest, "best_crest_db": best_crest_db}, ensure_ascii=False)
+            + json.dumps({"qualification_profile": profile, "weak_rms_tracks": weak_rms, "weak_crest_tracks": weak_crest, "best_crest_db": best_crest_db}, ensure_ascii=False)
         )
-    sibilance = qualify_sibilance_material(case)
-    transient = qualify_transient_material(case)
+    sibilance = qualify_sibilance_material(
+        case,
+        min_contrast_db_per_track=profile_gates["min_sibilance_contrast_db_per_track"],
+        min_best_contrast_db=profile_gates["min_best_sibilance_contrast_db"],
+    )
+    transient = qualify_transient_material(
+        case,
+        min_contrast_db_per_track=profile_gates["min_transient_contrast_db_per_track"],
+        min_best_contrast_db=profile_gates["min_best_transient_contrast_db"],
+    )
     result = {
         "schema_version": MATERIAL_QUALIFICATION_SCHEMA,
         "status": "passed",
+        "qualification_profile": profile,
         "gates": {
-            "min_rms_dbfs_per_track": MATERIAL_MIN_RMS_DBFS,
-            "min_crest_db_per_track": MATERIAL_MIN_CREST_DB_PER_TRACK,
-            "min_best_crest_db": MATERIAL_MIN_BEST_CREST_DB,
+            "min_rms_dbfs_per_track": min_rms,
+            "min_crest_db_per_track": min_crest,
+            "min_best_crest_db": profile_gates["min_best_crest_db"],
         },
         "best_crest_db": round(best_crest_db, 3),
         "tracks": track_rows,
@@ -309,7 +339,7 @@ SIBILANCE_BAND_HIGH_HZ = 10500.0
 SIBILANCE_FFT_SIZE = 2048
 
 
-def qualify_sibilance_material(case: dict[str, Any]) -> dict[str, Any]:
+def qualify_sibilance_material(case: dict[str, Any], min_contrast_db_per_track: float | None = SIBILANCE_MIN_CONTRAST_DB_PER_TRACK, min_best_contrast_db: float = SIBILANCE_MIN_BEST_CONTRAST_DB) -> dict[str, Any]:
     import numpy as np
     import soundfile as sf
 
@@ -342,9 +372,9 @@ def qualify_sibilance_material(case: dict[str, Any]) -> dict[str, Any]:
             "p50_db": round(p50, 3),
             "p95_db": round(p95, 3),
         })
-    weak_contrast = [row["track"] for row in track_rows if row["contrast_p95_p50_db"] < SIBILANCE_MIN_CONTRAST_DB_PER_TRACK]
+    weak_contrast = [] if min_contrast_db_per_track is None else [row["track"] for row in track_rows if row["contrast_p95_p50_db"] < min_contrast_db_per_track]
     best_contrast_db = max(row["contrast_p95_p50_db"] for row in track_rows)
-    if weak_contrast or best_contrast_db < SIBILANCE_MIN_BEST_CONTRAST_DB:
+    if weak_contrast or best_contrast_db < min_best_contrast_db:
         raise RuntimeError(
             "public material failed the sibilance-fixture qualification gates: "
             + json.dumps({"weak_contrast_tracks": weak_contrast, "best_contrast_p95_p50_db": best_contrast_db}, ensure_ascii=False)
@@ -357,8 +387,8 @@ def qualify_sibilance_material(case: dict[str, Any]) -> dict[str, Any]:
             "band_low_hz": SIBILANCE_BAND_LOW_HZ,
             "band_high_hz": SIBILANCE_BAND_HIGH_HZ,
             "fft_size": SIBILANCE_FFT_SIZE,
-            "min_contrast_db_per_track": SIBILANCE_MIN_CONTRAST_DB_PER_TRACK,
-            "min_best_contrast_db": SIBILANCE_MIN_BEST_CONTRAST_DB,
+            "min_contrast_db_per_track": min_contrast_db_per_track,
+            "min_best_contrast_db": min_best_contrast_db,
         },
         "best_contrast_p95_p50_db": round(best_contrast_db, 3),
         "tracks": track_rows,
@@ -381,8 +411,44 @@ TRANSIENT_MIN_BEST_CONTRAST_DB = 14.0
 TRANSIENT_SHORT_WINDOW_SECONDS = 0.010
 TRANSIENT_LONG_WINDOW_SECONDS = 0.200
 
+# Material qualification profiles (RUNNER-GATE-ADAPT-1). spv1_synthetic keeps
+# the historical constants above verbatim (undeclared manifests default to it,
+# so every existing manifest and caller sees zero behavior change). pv1_real_
+# stems is derived from the measured seven-case distribution (per-track RMS
+# -90.7..-15.6 dBFS with real near-silent stems above the PCM16 floor -96.1,
+# per-track crest 8.6..31.8 dB with a real dense bass at 8.6, per-track
+# sibilance dispersion down to 2.1 dB and transient contrast down to 3.6 dB on
+# real tracks that legitimately lack those properties, best-track sibilance
+# >=9.8 and best transient >=43.9); a None per-track floor means the profile
+# does not assert that property per track while the best-track floor keeps the
+# set-level requirement. Floors keep headroom below the measured qualifying
+# minimums and the profile stays discrimination-positive (digital silence,
+# hard-clipped and stationary-noise counterexample sets are rejected; full
+# derivation in coord/runs/paper-exp/gate-adapt/GATE_DERIVATION.md).
+MATERIAL_QUALIFICATION_PROFILES: dict[str, dict[str, float | None]] = {
+    "spv1_synthetic": {
+        "min_rms_dbfs_per_track": MATERIAL_MIN_RMS_DBFS,
+        "min_crest_db_per_track": MATERIAL_MIN_CREST_DB_PER_TRACK,
+        "min_best_crest_db": MATERIAL_MIN_BEST_CREST_DB,
+        "min_sibilance_contrast_db_per_track": SIBILANCE_MIN_CONTRAST_DB_PER_TRACK,
+        "min_best_sibilance_contrast_db": SIBILANCE_MIN_BEST_CONTRAST_DB,
+        "min_transient_contrast_db_per_track": TRANSIENT_MIN_CONTRAST_DB_PER_TRACK,
+        "min_best_transient_contrast_db": TRANSIENT_MIN_BEST_CONTRAST_DB,
+    },
+    "pv1_real_stems": {
+        "min_rms_dbfs_per_track": -100.0,
+        "min_crest_db_per_track": 6.0,
+        "min_best_crest_db": MATERIAL_MIN_BEST_CREST_DB,
+        "min_sibilance_contrast_db_per_track": None,
+        "min_best_sibilance_contrast_db": 6.0,
+        "min_transient_contrast_db_per_track": None,
+        "min_best_transient_contrast_db": TRANSIENT_MIN_BEST_CONTRAST_DB,
+    },
+}
+DEFAULT_MATERIAL_QUALIFICATION_PROFILE = "spv1_synthetic"
 
-def qualify_transient_material(case: dict[str, Any]) -> dict[str, Any]:
+
+def qualify_transient_material(case: dict[str, Any], min_contrast_db_per_track: float | None = TRANSIENT_MIN_CONTRAST_DB_PER_TRACK, min_best_contrast_db: float = TRANSIENT_MIN_BEST_CONTRAST_DB) -> dict[str, Any]:
     import numpy as np
     import soundfile as sf
 
@@ -415,9 +481,9 @@ def qualify_transient_material(case: dict[str, Any]) -> dict[str, Any]:
             "short_peak_db": round(float(np.max(short_levels)), 3),
             "long_median_db": round(float(np.median(long_levels)), 3),
         })
-    weak_contrast = [row["track"] for row in track_rows if row["contrast_short_peak_long_median_db"] < TRANSIENT_MIN_CONTRAST_DB_PER_TRACK]
+    weak_contrast = [] if min_contrast_db_per_track is None else [row["track"] for row in track_rows if row["contrast_short_peak_long_median_db"] < min_contrast_db_per_track]
     best_contrast_db = max(row["contrast_short_peak_long_median_db"] for row in track_rows)
-    if weak_contrast or best_contrast_db < TRANSIENT_MIN_BEST_CONTRAST_DB:
+    if weak_contrast or best_contrast_db < min_best_contrast_db:
         raise RuntimeError(
             "public material failed the transient-fixture qualification gates: "
             + json.dumps({"weak_contrast_tracks": weak_contrast, "best_contrast_short_peak_long_median_db": best_contrast_db}, ensure_ascii=False)
@@ -429,8 +495,8 @@ def qualify_transient_material(case: dict[str, Any]) -> dict[str, Any]:
         "gates": {
             "short_window_seconds": TRANSIENT_SHORT_WINDOW_SECONDS,
             "long_window_seconds": TRANSIENT_LONG_WINDOW_SECONDS,
-            "min_contrast_db_per_track": TRANSIENT_MIN_CONTRAST_DB_PER_TRACK,
-            "min_best_contrast_db": TRANSIENT_MIN_BEST_CONTRAST_DB,
+            "min_contrast_db_per_track": min_contrast_db_per_track,
+            "min_best_contrast_db": min_best_contrast_db,
         },
         "best_contrast_short_peak_long_median_db": round(best_contrast_db, 3),
         "tracks": track_rows,
@@ -2745,7 +2811,13 @@ def main() -> int:
         else:
             case = materialize_public_case(public_case, workdir)
         report["public_source_project"] = str(Path(str(public_case["project_path"])).resolve())
-        report["material_qualification"] = qualify_material(case, stereo_balance=args.prompt_flavor == "pan", limiter=args.prompt_flavor == "limiter", gate=args.prompt_flavor == "gate", multiband=args.prompt_flavor == "multiband")
+        # RUNNER-GATE-ADAPT-1: the material gate caliber is a fixture-set
+        # property declared by the manifest; undeclared manifests keep the
+        # historical spv1 default (qualify_material fails closed on unknown
+        # profile names, so a stale runner against a newer manifest refuses
+        # instead of silently mis-gating).
+        qualification_profile = str(public_manifest.get("qualification_profile", DEFAULT_MATERIAL_QUALIFICATION_PROFILE))
+        report["material_qualification"] = qualify_material(case, stereo_balance=args.prompt_flavor == "pan", limiter=args.prompt_flavor == "limiter", gate=args.prompt_flavor == "gate", multiband=args.prompt_flavor == "multiband", profile=qualification_profile)
         report["project_setup"] = prepare_project(args.agent_http, case, args.timeout_sec, reuse_live_binding=args.reuse_existing_project)
         report["started_at_epoch"] = time.time()
         ui_context_response = request_json("GET", args.agent_http.rstrip("/") + "/agent/ui/context", None, min(args.timeout_sec, 30))

@@ -1,0 +1,671 @@
+{
+  "method": "runner's own qualify functions with gate floors neutralized for row extraction (see header); not a gate verdict",
+  "manifest": "C:\\Users\\timoz\\Documents\\毕业设计\\experiments\\out\\suite_v1_lm_runner\\fixture_manifest.json",
+  "cases": {
+    "pv1_p01": {
+      "compression_rows": [
+        {
+          "track": "bass",
+          "rms_dbfs": -34.689,
+          "peak_dbfs": -20.973,
+          "crest_db": 13.716
+        },
+        {
+          "track": "drums",
+          "rms_dbfs": -33.446,
+          "peak_dbfs": -19.679,
+          "crest_db": 13.766
+        },
+        {
+          "track": "guitar",
+          "rms_dbfs": -52.214,
+          "peak_dbfs": -30.223,
+          "crest_db": 21.991
+        },
+        {
+          "track": "other",
+          "rms_dbfs": -39.13,
+          "peak_dbfs": -19.194,
+          "crest_db": 19.936
+        },
+        {
+          "track": "piano",
+          "rms_dbfs": -42.445,
+          "peak_dbfs": -21.276,
+          "crest_db": 21.169
+        },
+        {
+          "track": "vocals",
+          "rms_dbfs": -26.469,
+          "peak_dbfs": -1.114,
+          "crest_db": 25.355
+        }
+      ],
+      "best_crest_db": 25.355,
+      "sibilance_rows": [
+        {
+          "track": "bass",
+          "contrast_p95_p50_db": 37.547
+        },
+        {
+          "track": "drums",
+          "contrast_p95_p50_db": 13.816
+        },
+        {
+          "track": "guitar",
+          "contrast_p95_p50_db": 14.262
+        },
+        {
+          "track": "other",
+          "contrast_p95_p50_db": 5.166
+        },
+        {
+          "track": "piano",
+          "contrast_p95_p50_db": 18.3
+        },
+        {
+          "track": "vocals",
+          "contrast_p95_p50_db": 6.485
+        }
+      ],
+      "best_sibilance_contrast_db": 37.547,
+      "transient_rows": [
+        {
+          "track": "bass",
+          "contrast_short_peak_long_median_db": 12.712
+        },
+        {
+          "track": "drums",
+          "contrast_short_peak_long_median_db": 43.945
+        },
+        {
+          "track": "guitar",
+          "contrast_short_peak_long_median_db": 39.666
+        },
+        {
+          "track": "other",
+          "contrast_short_peak_long_median_db": 29.914
+        },
+        {
+          "track": "piano",
+          "contrast_short_peak_long_median_db": 41.907
+        },
+        {
+          "track": "vocals",
+          "contrast_short_peak_long_median_db": 15.964
+        }
+      ],
+      "best_transient_contrast_db": 43.945
+    },
+    "pv1_p02": {
+      "compression_rows": [
+        {
+          "track": "bass",
+          "rms_dbfs": -37.496,
+          "peak_dbfs": -22.865,
+          "crest_db": 14.63
+        },
+        {
+          "track": "drums",
+          "rms_dbfs": -37.544,
+          "peak_dbfs": -19.941,
+          "crest_db": 17.603
+        },
+        {
+          "track": "guitar",
+          "rms_dbfs": -90.71,
+          "peak_dbfs": -58.945,
+          "crest_db": 31.765
+        },
+        {
+          "track": "other",
+          "rms_dbfs": -49.067,
+          "peak_dbfs": -27.088,
+          "crest_db": 21.979
+        },
+        {
+          "track": "piano",
+          "rms_dbfs": -41.721,
+          "peak_dbfs": -27.402,
+          "crest_db": 14.319
+        },
+        {
+          "track": "vocals",
+          "rms_dbfs": -15.573,
+          "peak_dbfs": -1.871,
+          "crest_db": 13.702
+        }
+      ],
+      "best_crest_db": 31.765,
+      "sibilance_rows": [
+        {
+          "track": "bass",
+          "contrast_p95_p50_db": 7.669
+        },
+        {
+          "track": "drums",
+          "contrast_p95_p50_db": 7.638
+        },
+        {
+          "track": "guitar",
+          "contrast_p95_p50_db": 2.656
+        },
+        {
+          "track": "other",
+          "contrast_p95_p50_db": 7.965
+        },
+        {
+          "track": "piano",
+          "contrast_p95_p50_db": 6.863
+        },
+        {
+          "track": "vocals",
+          "contrast_p95_p50_db": 25.341
+        }
+      ],
+      "best_sibilance_contrast_db": 25.341,
+      "transient_rows": [
+        {
+          "track": "bass",
+          "contrast_short_peak_long_median_db": 9.944
+        },
+        {
+          "track": "drums",
+          "contrast_short_peak_long_median_db": 36.591
+        },
+        {
+          "track": "guitar",
+          "contrast_short_peak_long_median_db": 27.874
+        },
+        {
+          "track": "other",
+          "contrast_short_peak_long_median_db": 45.583
+        },
+        {
+          "track": "piano",
+          "contrast_short_peak_long_median_db": 8.118
+        },
+        {
+          "track": "vocals",
+          "contrast_short_peak_long_median_db": 12.317
+        }
+      ],
+      "best_transient_contrast_db": 45.583
+    },
+    "pv1_p03": {
+      "compression_rows": [
+        {
+          "track": "bass",
+          "rms_dbfs": -29.097,
+          "peak_dbfs": -20.479,
+          "crest_db": 8.618
+        },
+        {
+          "track": "drums",
+          "rms_dbfs": -33.193,
+          "peak_dbfs": -15.615,
+          "crest_db": 17.578
+        },
+        {
+          "track": "guitar",
+          "rms_dbfs": -17.714,
+          "peak_dbfs": -3.342,
+          "crest_db": 14.372
+        },
+        {
+          "track": "other",
+          "rms_dbfs": -89.643,
+          "peak_dbfs": -70.309,
+          "crest_db": 19.334
+        },
+        {
+          "track": "piano",
+          "rms_dbfs": -89.77,
+          "peak_dbfs": -72.247,
+          "crest_db": 17.523
+        },
+        {
+          "track": "vocals",
+          "rms_dbfs": -35.313,
+          "peak_dbfs": -17.511,
+          "crest_db": 17.802
+        }
+      ],
+      "best_crest_db": 19.334,
+      "sibilance_rows": [
+        {
+          "track": "bass",
+          "contrast_p95_p50_db": 8.437
+        },
+        {
+          "track": "drums",
+          "contrast_p95_p50_db": 4.514
+        },
+        {
+          "track": "guitar",
+          "contrast_p95_p50_db": 9.767
+        },
+        {
+          "track": "other",
+          "contrast_p95_p50_db": 3.48
+        },
+        {
+          "track": "piano",
+          "contrast_p95_p50_db": 2.12
+        },
+        {
+          "track": "vocals",
+          "contrast_p95_p50_db": 6.315
+        }
+      ],
+      "best_sibilance_contrast_db": 9.767,
+      "transient_rows": [
+        {
+          "track": "bass",
+          "contrast_short_peak_long_median_db": 3.559
+        },
+        {
+          "track": "drums",
+          "contrast_short_peak_long_median_db": 14.392
+        },
+        {
+          "track": "guitar",
+          "contrast_short_peak_long_median_db": 7.562
+        },
+        {
+          "track": "other",
+          "contrast_short_peak_long_median_db": 14.295
+        },
+        {
+          "track": "piano",
+          "contrast_short_peak_long_median_db": 6.51
+        },
+        {
+          "track": "vocals",
+          "contrast_short_peak_long_median_db": 58.353
+        }
+      ],
+      "best_transient_contrast_db": 58.353
+    },
+    "pv1_p04": {
+      "compression_rows": [
+        {
+          "track": "bass",
+          "rms_dbfs": -19.327,
+          "peak_dbfs": -8.51,
+          "crest_db": 10.817
+        },
+        {
+          "track": "drums",
+          "rms_dbfs": -22.517,
+          "peak_dbfs": -0.359,
+          "crest_db": 22.159
+        },
+        {
+          "track": "guitar",
+          "rms_dbfs": -50.684,
+          "peak_dbfs": -33.665,
+          "crest_db": 17.019
+        },
+        {
+          "track": "other",
+          "rms_dbfs": -51.948,
+          "peak_dbfs": -35.565,
+          "crest_db": 16.383
+        },
+        {
+          "track": "piano",
+          "rms_dbfs": -53.481,
+          "peak_dbfs": -34.746,
+          "crest_db": 18.735
+        },
+        {
+          "track": "vocals",
+          "rms_dbfs": -39.45,
+          "peak_dbfs": -23.421,
+          "crest_db": 16.029
+        }
+      ],
+      "best_crest_db": 22.159,
+      "sibilance_rows": [
+        {
+          "track": "bass",
+          "contrast_p95_p50_db": 33.166
+        },
+        {
+          "track": "drums",
+          "contrast_p95_p50_db": 19.894
+        },
+        {
+          "track": "guitar",
+          "contrast_p95_p50_db": 14.929
+        },
+        {
+          "track": "other",
+          "contrast_p95_p50_db": 9.728
+        },
+        {
+          "track": "piano",
+          "contrast_p95_p50_db": 11.941
+        },
+        {
+          "track": "vocals",
+          "contrast_p95_p50_db": 18.506
+        }
+      ],
+      "best_sibilance_contrast_db": 33.166,
+      "transient_rows": [
+        {
+          "track": "bass",
+          "contrast_short_peak_long_median_db": 7.066
+        },
+        {
+          "track": "drums",
+          "contrast_short_peak_long_median_db": 46.389
+        },
+        {
+          "track": "guitar",
+          "contrast_short_peak_long_median_db": 10.35
+        },
+        {
+          "track": "other",
+          "contrast_short_peak_long_median_db": 12.222
+        },
+        {
+          "track": "piano",
+          "contrast_short_peak_long_median_db": 21.249
+        },
+        {
+          "track": "vocals",
+          "contrast_short_peak_long_median_db": 9.109
+        }
+      ],
+      "best_transient_contrast_db": 46.389
+    },
+    "pv1_p05": {
+      "compression_rows": [
+        {
+          "track": "bass",
+          "rms_dbfs": -30.906,
+          "peak_dbfs": -11.436,
+          "crest_db": 19.47
+        },
+        {
+          "track": "drums",
+          "rms_dbfs": -31.4,
+          "peak_dbfs": -7.701,
+          "crest_db": 23.699
+        },
+        {
+          "track": "guitar",
+          "rms_dbfs": -28.746,
+          "peak_dbfs": -3.96,
+          "crest_db": 24.786
+        },
+        {
+          "track": "other",
+          "rms_dbfs": -39.989,
+          "peak_dbfs": -15.414,
+          "crest_db": 24.575
+        },
+        {
+          "track": "piano",
+          "rms_dbfs": -31.714,
+          "peak_dbfs": -10.509,
+          "crest_db": 21.205
+        },
+        {
+          "track": "vocals",
+          "rms_dbfs": -22.59,
+          "peak_dbfs": -4.858,
+          "crest_db": 17.732
+        }
+      ],
+      "best_crest_db": 24.786,
+      "sibilance_rows": [
+        {
+          "track": "bass",
+          "contrast_p95_p50_db": 7.16
+        },
+        {
+          "track": "drums",
+          "contrast_p95_p50_db": 11.403
+        },
+        {
+          "track": "guitar",
+          "contrast_p95_p50_db": 15.802
+        },
+        {
+          "track": "other",
+          "contrast_p95_p50_db": 18.199
+        },
+        {
+          "track": "piano",
+          "contrast_p95_p50_db": 12.579
+        },
+        {
+          "track": "vocals",
+          "contrast_p95_p50_db": 12.101
+        }
+      ],
+      "best_sibilance_contrast_db": 18.199,
+      "transient_rows": [
+        {
+          "track": "bass",
+          "contrast_short_peak_long_median_db": 58.548
+        },
+        {
+          "track": "drums",
+          "contrast_short_peak_long_median_db": 51.732
+        },
+        {
+          "track": "guitar",
+          "contrast_short_peak_long_median_db": 50.178
+        },
+        {
+          "track": "other",
+          "contrast_short_peak_long_median_db": 39.707
+        },
+        {
+          "track": "piano",
+          "contrast_short_peak_long_median_db": 20.62
+        },
+        {
+          "track": "vocals",
+          "contrast_short_peak_long_median_db": 9.215
+        }
+      ],
+      "best_transient_contrast_db": 58.548
+    },
+    "pv1_p06": {
+      "compression_rows": [
+        {
+          "track": "bass",
+          "rms_dbfs": -35.206,
+          "peak_dbfs": -20.259,
+          "crest_db": 14.947
+        },
+        {
+          "track": "drums",
+          "rms_dbfs": -19.078,
+          "peak_dbfs": -5.405,
+          "crest_db": 13.673
+        },
+        {
+          "track": "guitar",
+          "rms_dbfs": -25.845,
+          "peak_dbfs": -7.55,
+          "crest_db": 18.295
+        },
+        {
+          "track": "other",
+          "rms_dbfs": -22.971,
+          "peak_dbfs": -6.091,
+          "crest_db": 16.88
+        },
+        {
+          "track": "piano",
+          "rms_dbfs": -32.525,
+          "peak_dbfs": -11.113,
+          "crest_db": 21.413
+        },
+        {
+          "track": "vocals",
+          "rms_dbfs": -20.196,
+          "peak_dbfs": -8.466,
+          "crest_db": 11.73
+        }
+      ],
+      "best_crest_db": 21.413,
+      "sibilance_rows": [
+        {
+          "track": "bass",
+          "contrast_p95_p50_db": 12.649
+        },
+        {
+          "track": "drums",
+          "contrast_p95_p50_db": 13.425
+        },
+        {
+          "track": "guitar",
+          "contrast_p95_p50_db": 9.851
+        },
+        {
+          "track": "other",
+          "contrast_p95_p50_db": 7.852
+        },
+        {
+          "track": "piano",
+          "contrast_p95_p50_db": 6.319
+        },
+        {
+          "track": "vocals",
+          "contrast_p95_p50_db": 20.552
+        }
+      ],
+      "best_sibilance_contrast_db": 20.552,
+      "transient_rows": [
+        {
+          "track": "bass",
+          "contrast_short_peak_long_median_db": 27.734
+        },
+        {
+          "track": "drums",
+          "contrast_short_peak_long_median_db": 8.825
+        },
+        {
+          "track": "guitar",
+          "contrast_short_peak_long_median_db": 10.695
+        },
+        {
+          "track": "other",
+          "contrast_short_peak_long_median_db": 7.363
+        },
+        {
+          "track": "piano",
+          "contrast_short_peak_long_median_db": 48.854
+        },
+        {
+          "track": "vocals",
+          "contrast_short_peak_long_median_db": 4.775
+        }
+      ],
+      "best_transient_contrast_db": 48.854
+    },
+    "pv1_p07": {
+      "compression_rows": [
+        {
+          "track": "bass",
+          "rms_dbfs": -19.122,
+          "peak_dbfs": -6.466,
+          "crest_db": 12.657
+        },
+        {
+          "track": "drums",
+          "rms_dbfs": -18.159,
+          "peak_dbfs": -2.835,
+          "crest_db": 15.324
+        },
+        {
+          "track": "guitar",
+          "rms_dbfs": -65.14,
+          "peak_dbfs": -37.948,
+          "crest_db": 27.192
+        },
+        {
+          "track": "other",
+          "rms_dbfs": -25.475,
+          "peak_dbfs": -9.376,
+          "crest_db": 16.1
+        },
+        {
+          "track": "piano",
+          "rms_dbfs": -41.059,
+          "peak_dbfs": -14.594,
+          "crest_db": 26.465
+        },
+        {
+          "track": "vocals",
+          "rms_dbfs": -16.499,
+          "peak_dbfs": -2.693,
+          "crest_db": 13.806
+        }
+      ],
+      "best_crest_db": 27.192,
+      "sibilance_rows": [
+        {
+          "track": "bass",
+          "contrast_p95_p50_db": 42.696
+        },
+        {
+          "track": "drums",
+          "contrast_p95_p50_db": 7.244
+        },
+        {
+          "track": "guitar",
+          "contrast_p95_p50_db": 16.286
+        },
+        {
+          "track": "other",
+          "contrast_p95_p50_db": 18.068
+        },
+        {
+          "track": "piano",
+          "contrast_p95_p50_db": 6.387
+        },
+        {
+          "track": "vocals",
+          "contrast_p95_p50_db": 16.372
+        }
+      ],
+      "best_sibilance_contrast_db": 42.696,
+      "transient_rows": [
+        {
+          "track": "bass",
+          "contrast_short_peak_long_median_db": 9.294
+        },
+        {
+          "track": "drums",
+          "contrast_short_peak_long_median_db": 11.428
+        },
+        {
+          "track": "guitar",
+          "contrast_short_peak_long_median_db": 33.128
+        },
+        {
+          "track": "other",
+          "contrast_short_peak_long_median_db": 10.214
+        },
+        {
+          "track": "piano",
+          "contrast_short_peak_long_median_db": 55.181
+        },
+        {
+          "track": "vocals",
+          "contrast_short_peak_long_median_db": 5.903
+        }
+      ],
+      "best_transient_contrast_db": 55.181
+    }
+  }
+}
