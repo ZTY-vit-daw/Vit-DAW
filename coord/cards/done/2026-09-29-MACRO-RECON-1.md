@@ -12,4 +12,4 @@
 - 验收标准：报告五节全落+逐锚点行号+HEAD；每个事实面给出"支持/不支持/需新开面"三态结论
 - 停止条件：常规勘察止损
 - 领取：2026-09-29 / origin/main=cd4738cb3566b1850681cc2c6c799f8a7fcb9b24 / port/macro-recon-1
-- 回执：（commit hash / 报告链接 / 端测边界声明）
+- 回执：勘察时 HEAD=894c1a79（领取 commit，零代码改动）；报告=coord/runs/MACRO-RECON-1/report.md（五节全落+逐锚点行号+三态结论）；完成提交=port/macro-recon-1 分支本 commit（报告+done mv 同批）。端测边界声明：本卡为只读勘察，未运行真实栈——插件 GUI→delta flush 时延（§2.3/§5.1）与交互延迟实测（§3.1）无数据，已在报告标"需新开面"；无任何代码/文档行为改动，不适用烟测门槛。
