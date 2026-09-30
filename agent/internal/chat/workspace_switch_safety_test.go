@@ -50,7 +50,7 @@ func b5SwitchServerForTest(t *testing.T) (*Server, string, string) {
 		"project_path": projectA, "project_uuid": uuidA,
 		"project_revision": "rev-b5", "tracks": []any{},
 	})
-	server := New(nil, shadowProject, nil)
+	server := newChatServerForTest(t, nil, shadowProject, nil)
 	server.activateCurrentProjectWorkspace(context.Background())
 	return server, projectA, projectB
 }
@@ -201,15 +201,15 @@ func TestStaleRestoredRuntimeStateFoldsLiveProjectionToTerminal(t *testing.T) {
 			"cont_b5_stale_shell": {
 				ContinuationID: "cont_b5_stale_shell", TaskID: "task-b5sh", GoalID: "goal-b5-shell", RunID: "run-b5-shell",
 				CurrentSliceID: "slice-1", ConversationID: "conv-b5-shell", OriginalIntent: "shell",
-				Status: ContinuationWaitingInteraction,
+				Status:             ContinuationWaitingInteraction,
 				PendingInteraction: map[string]any{"status": "legacy_waiting_continue", "reason": "legacy checkpoint has no authoritative stop reason"},
-				CreatedAt: stale, UpdatedAt: stale,
+				CreatedAt:          stale, UpdatedAt: stale,
 				Continuation: agentloop.Continuation{GoalID: "goal-b5-shell", RunID: "run-b5-shell", TaskID: "task-b5sh", SliceID: "slice-1"},
 			},
 			"cont_b5_zero_time": {
 				ContinuationID: "cont_b5_zero_time", TaskID: "task-b5z", GoalID: "goal-b5-zero", RunID: "run-b5-zero",
 				CurrentSliceID: "slice-1", ConversationID: "conv-b5-zero", OriginalIntent: "unknown provenance",
-				Status: ContinuationPending,
+				Status:       ContinuationPending,
 				Continuation: agentloop.Continuation{GoalID: "goal-b5-zero", RunID: "run-b5-zero", TaskID: "task-b5z", SliceID: "slice-1"},
 			},
 		},

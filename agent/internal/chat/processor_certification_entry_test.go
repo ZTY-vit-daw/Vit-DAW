@@ -46,7 +46,7 @@ func TestProcessorCertificationCandidatesReportPromotedAndStaleFingerprint(t *te
 	if err != nil {
 		t.Fatal(err)
 	}
-	server := New(nil, nil, nil)
+	server := newChatServerForTest(t, nil, nil, nil)
 	readCandidate := func() processorCertificationCandidate {
 		recorder := httptest.NewRecorder()
 		request := httptest.NewRequest(http.MethodGet, "/agent/processor-certification/candidates?family=limiter", nil)
@@ -93,7 +93,7 @@ func TestProcessorCertificationStartRequiresExplicitConsent(t *testing.T) {
 	recorder := httptest.NewRecorder()
 	request := httptest.NewRequest(http.MethodPost, "/agent/processor-certification/start", bytes.NewReader(payload))
 	request.Header.Set("Content-Type", "application/json")
-	server := New(nil, nil, nil)
+	server := newChatServerForTest(t, nil, nil, nil)
 	server.Routes().ServeHTTP(recorder, request)
 	if recorder.Code != http.StatusConflict || !strings.Contains(recorder.Body.String(), "needs_confirmation") {
 		t.Fatalf("status=%d body=%s", recorder.Code, recorder.Body.String())
@@ -135,7 +135,7 @@ func TestProcessorCertificationAllViewIsPluginFirstAndShowsV1AndBoundaries(t *te
 	}, "test_promoted"); err != nil {
 		t.Fatal(err)
 	}
-	server := New(nil, nil, nil)
+	server := newChatServerForTest(t, nil, nil, nil)
 	recorder := httptest.NewRecorder()
 	request := httptest.NewRequest(http.MethodGet, "/agent/processor-certification/candidates?family=all", nil)
 	server.Routes().ServeHTTP(recorder, request)
@@ -187,7 +187,7 @@ func TestProcessorCertificationStartAcceptsBroadbandCompressorCapability(t *test
 	request := httptest.NewRequest(http.MethodPost, "/agent/processor-certification/start", bytes.NewReader(payload))
 	request.Host = "127.0.0.1:7878"
 	request.Header.Set("Content-Type", "application/json")
-	server := New(nil, nil, nil)
+	server := newChatServerForTest(t, nil, nil, nil)
 	server.Routes().ServeHTTP(recorder, request)
 	if recorder.Code != http.StatusAccepted || !strings.Contains(recorder.Body.String(), "broadband_compressor") {
 		t.Fatalf("status=%d body=%s", recorder.Code, recorder.Body.String())
