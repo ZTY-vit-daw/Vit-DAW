@@ -62,3 +62,19 @@
 ## 5. 越域申报
 
 卡面文件域为 `agent/internal/audioclosure/ + agent/internal/agentloop/`（实锚后申报）。实锚：**修复点在 `agent/internal/chat/audio_closure_controller.go`（settleTaskAtAudioClosureBoundary）+ chat 包测试**；audioclosure 与 agentloop 零改动（校验器与 gate 行为均正确，勿动）。chat 是续跑/结算路径的实际宿主（goalrunner_chat/continuation_scheduler/audio_closure_controller 均在此包），符合卡面"续跑/结算路径"的范围意图，特此申报。
+
+## 6. 真栈复验（2026-09-30 晚，run_free_state_d1_smoke.ps1 + validate_fs_settle_terminal_park 扩展）
+
+**绿轮（PASS，exit 0）**：stamp `20260930_212944`（工件 `artifacts/free_state_d1_s1/20260930_212944/`），HEAD=9815416b（port/fs-settle-terminal-1），agent=worktree 构建（sha256 前 16 位 98ef71d4528ab3a4），kernel=主仓 Sep 29 19:37 构建（本卡 VitApp/ 零改动）。结果：`D1-S1 SETTLEMENT(retain) PASS: real-stack settlement + restart consistency verified`；**park 校验记录 `{"goal_status":"waiting_continue","judgment_park":true,"closure_phase":"fs7_improvement_proposal"}`——闭包停在 fs7 的 judgment park（与野外失败同形态）不再炸轮，goal 保持 waiting_continue**；judgment 探针 retain → settlement → 重启一致性全过。
+
+**过程中的域外缺陷（8 轮取证明表，上交决策侧定卡）**：`staticeq` apply 的读回校验（`agent/internal/executionports/staticeq_vsp.go:334-342`）对 **API-550A Stereo 插件 param 2（track 1032）100% 失败**（"plugin parameter readback did not match target"，applied_unreconciled），对 Q3/Q4 插件 param 12/17 正常。失败跟随模型每轮自选的 EQ 目标（硬币），与构建无关：
+
+| run | 构建 | 目标 | 结果 |
+|---|---|---|---|
+| main 0929_203032 | main（9/29） | 550A/1032/p2/-2 | FAIL |
+| main 0929_203751 | main（9/29） | Q3/1017/p12/-3 | PASS |
+| 本卡 204759/205458/210337/211844 | 本卡 | 550A/1032/p2/-2,-1.5,-1.5,-1 | FAIL×4 |
+| 对照 210934 | **main HEAD 构建** | Q3/1027/p12/-1 | **PASS** |
+| 本卡 212944 | 本卡 | Q4/1007/p17/-1.5 | **PASS** |
+
+对照轮（main HEAD、无本卡修复）通过而 550A 目标在两 种构建下皆败——缺陷在 executionports/内核插件面域，非本卡。建议开卡（暂名 D1-EQ-READBACK-550A-1）。另：本卡 212353 轮 NOT_EXERCISED（模型未选 leveling 域，-ExpectDomain 断言的记录性结果，非缺陷）；主仓 `agent/bin/VitAgent.exe` 现为 main-HEAD 对照构建（96db35110254e4ea，原 9/29 二进制备份为 `VitAgent.pre-control-backup-20260930.exe`）。
