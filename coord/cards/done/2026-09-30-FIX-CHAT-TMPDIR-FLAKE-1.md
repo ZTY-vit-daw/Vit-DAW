@@ -22,4 +22,4 @@
   - **文件域申报**：全在 agent/internal/chat/ 测试文件内（含 1 新增 helper 文件），零生产代码改动，无越域。
   - **同族暴露面申报（供决策侧裁定是否推广）**：另有 5 个构造 workspace 的测试文件未换 helper（cont_stall_arming / g_runtime_recovery_smoke / improvement_proposal_workflow / project_workspace_persistence / turn_control；continuation_scheduler_test.go 属有意测 scheduler 语义不适用）——均无失败留档，且部分依赖中途调度行为；helper 机制对其同源可用。
   - **附注**：`go vet ./internal/chat` 报 semantic_treatment_strategy.go:1087/:1363 unreachable code——main 基线预存（主仓工作树同报），非本卡引入，未处理。
-- 验收：（裁定文件 / 验收 commit）
+- 验收：**pass（2026-09-30 决策会话）**——裁定=[rulings/2026-09-30-FIX-CHAT-TMPDIR-FLAKE-1-pass.md](../../rulings/2026-09-30-FIX-CHAT-TMPDIR-FLAKE-1-pass.md)；合并 commit 445d3688（cherry-pick）；复跑 chat 整包 ok+两名隔离 ok+零生产改动亲核；同族 5 文件暂不推广（无失败留档，再现随当时卡扩展）；CURRENT-STATE 已知项下次更新改"已修"。
