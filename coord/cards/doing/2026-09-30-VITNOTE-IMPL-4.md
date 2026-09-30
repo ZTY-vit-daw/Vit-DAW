@@ -17,6 +17,6 @@
 - 验收标准：`go test ./internal/executionruntime/...` 全绿 + 全量 87 包 0 FAIL + gofmt 通过 + 真实栈烟测场景 exit 0（AGENTS §5）+ 回执附租约并发证据工件路径。
 - 停止条件：取证发现能力执行存在多条并行入口、无法在 Coordinator 单点收口（架构前提失效）→ 停下实证上交（附入口清单锚点），由决策侧定接入面；禁止自行扩大文件域。
 - 风险点：等待者长阻塞占用请求 goroutine——v1 接受（单机单 agent、能力执行段短）；若实测执行段 >30s 须在回执申报实际时长分布。
-- 领取：（时间 / origin/main hash / 分支名）
+- 领取：2026-09-30 09:11 / origin/main=1d98667e（FIX-CONFIRM-CARD-1 领取提交后同步点）/ 分支 port/vitnote-impl-4（独立 worktree D:/Vit_DAW_worktrees/vitnote-impl-4）；领取时工作树预存改动=VitApp/Workspace/{Settings.xml,default_project.xml}（运行时工程态，非本卡，不动）；领取时取证：六项能力执行全部经 internal/chat → orchestrationRuntime.ExecuteActionSetWithPersistence → executionruntime.Coordinator 单点（c1/c2/b4/semantic_eq/pan_layout/canary/free_state_d1 共 10 处调用锚），无第二执行入口，架构前提成立
 - 回执：（commit hash / 烟测 run ID / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
