@@ -1042,6 +1042,67 @@ def poll_persisted_loop_for_settled_round(project_path: str, conversation_id: st
     return loop
 
 
+def validate_fs_settle_terminal_park(project_path: str, conversation_id: str, run_started: float, agent_log_path: str) -> dict[str, Any]:
+    """FS-SETTLE-TERMINAL-1: the settle tail's settle report parks the applied
+    round at the human-judgment boundary. The 2026-09-30 20:09 live failure
+    (goal_4e4c14a9 / run_bea18cde): the no-progress boundary of the very same
+    request then tried to settle the fs7 closure with the illegal
+    phase_transition fs7_improvement_proposal -> fs9_terminal, failed the
+    durable continuation, and failed the whole run under the user. While the
+    round sits parked these invariants hold: the bound goal is not failed, no
+    durable continuation of the conversation failed, and the parked loop's
+    closure carries no machine settlement — the guarded audition judgment POST
+    is the only settle that may land. The agent log (when provided) must not
+    contain the illegal-transition controller error."""
+    state = newest_agent_runtime_state_for_conversation(project_path, conversation_id, run_started)
+    require(bool(state), "FS-SETTLE-TERMINAL-1: no persisted runtime state at the settle park")
+    detail: dict[str, Any] = {}
+    goal_runtime = state.get("goal_runtime") if isinstance(state.get("goal_runtime"), dict) else {}
+    conversation_goals = state.get("conversation_goals") if isinstance(state.get("conversation_goals"), dict) else {}
+    bound_goal_id = first_text(conversation_goals.get(conversation_id))
+    for goal in rows(goal_runtime.get("goals")):
+        if bound_goal_id and first_text(goal.get("goal_id")) != bound_goal_id:
+            continue
+        status = first_text(goal.get("status")).lower()
+        error_text = first_text(goal.get("error"))
+        require(status != "failed", "FS-SETTLE-TERMINAL-1: the parked goal failed: " + error_text)
+        detail["goal_status"] = status
+        break
+    continuations = state.get("durable_continuations") if isinstance(state.get("durable_continuations"), dict) else {}
+    for item in continuations.values():
+        if not isinstance(item, dict) or first_text(item.get("conversation_id")) != conversation_id:
+            continue
+        last_error = first_text(item.get("last_error"))
+        require(first_text(item.get("status")).lower() != "failed" and not last_error,
+                "FS-SETTLE-TERMINAL-1: durable continuation failed at the settle park: " + last_error)
+    loop = persisted_free_state_loop(project_path, conversation_id, run_started)
+    experiment = loop.get("experiment") if isinstance(loop.get("experiment"), dict) else {}
+    rounds = rows(experiment.get("rounds"))
+    parked = bool(rounds) and first_text(rounds[0].get("decision")).lower() == "user_judgment_pending"
+    detail["judgment_park"] = parked
+    if parked:
+        closures = state.get("minimal_audio_closures") if isinstance(state.get("minimal_audio_closures"), dict) else {}
+        for closure in closures.values():
+            if not isinstance(closure, dict) or first_text(closure.get("conversation_id")) != conversation_id:
+                continue
+            settlement = closure.get("settlement") if isinstance(closure.get("settlement"), dict) else {}
+            phase = first_text(closure.get("phase")).lower()
+            require(not settlement and phase != "fs9_terminal",
+                    "FS-SETTLE-TERMINAL-1: a machine boundary settled the closure out from under the parked human judgment: "
+                    + phase + " settlement=" + json.dumps(settlement, ensure_ascii=False))
+            detail["closure_phase"] = phase
+    if agent_log_path:
+        log_file = Path(agent_log_path)
+        if log_file.is_file():
+            try:
+                log_text = log_file.read_text(encoding="utf-8", errors="replace")
+            except OSError:
+                log_text = ""
+            require("illegal phase transition" not in log_text,
+                    "FS-SETTLE-TERMINAL-1: the agent log carries an illegal phase transition at the settle park")
+    return detail
+
+
 def persisted_task_semantic_state(state: dict[str, Any], conversation_id: str) -> dict[str, Any]:
     goal_runtime = state.get("goal_runtime") if isinstance(state.get("goal_runtime"), dict) else {}
     goals = rows(goal_runtime.get("goals"))
@@ -2876,6 +2937,13 @@ def main() -> int:
                     if loop:
                         responses.append({"goal_status": "settle_records_landed", "workflow_data": {"free_state_reasoning_loop": loop}})
                         report["responses"] = responses
+                        # FS-SETTLE-TERMINAL-1: the settle records land with the
+                        # round parked at the human-judgment boundary — exactly
+                        # where the 2026-09-30 live failure struck. The park's
+                        # negative invariants are checked the moment they exist.
+                        report["fs_settle_terminal_park"] = validate_fs_settle_terminal_park(
+                            report["project_setup"]["project_path"], conversation_id, run_started, args.agent_log,
+                        )
                         write_report(output, report)
                 break
             applied_data = response.get("workflow_data") if isinstance(response.get("workflow_data"), dict) else {}

@@ -677,6 +677,22 @@ func (s *Server) settleTaskAtAudioClosureBoundary(state audioclosure.State, reas
 		s.storeFreeStateLoop(loop)
 		return state, nil
 	}
+	// FS-SETTLE-TERMINAL-1: a loop with a live experiment runtime holds three
+	// protected windows the terminal-turn guard above explicitly excludes
+	// (Experiment == nil), and none of them may be terminalized by a closure
+	// boundary. The round-boundary caller already extends the closure window
+	// for exactly this trio (see admitAudioClosureRound); the no-progress and
+	// evidence-ceiling callers reach this boundary without that protection, so
+	// the defer lives here where all three converge. The live failure
+	// (2026-09-30 20:09, goal_4e4c14a9): the settle report parked the applied
+	// round at the human-judgment boundary (audition A/B rendered, loop
+	// blocked) and the no-progress boundary of the very same request tried to
+	// settle the fs7 closure out from under the pending judgment.
+	if loop, loopOK := s.freeStateLoop(state.ConversationID); loopOK && loop.Experiment != nil &&
+		(freeStateJudgmentBoundary(loop) || freeStateLoopRoundPendingSettlement(loop) ||
+			freeStateLoopRoundOwesIntervention(loop)) {
+		return state, nil
+	}
 	// A free-state capacity route with an open diagnostic queue is a bounded
 	// continuation point, not a capability terminal.  In particular, the
 	// legacy no-pending-mix-tick boundary must not collapse FS2/FS3 into
@@ -697,7 +713,8 @@ func (s *Server) settleTaskAtAudioClosureBoundary(state audioclosure.State, reas
 	if queueOpenWithinCapacity && !frontierOpen {
 		stopReason = audioclosure.StopNoCandidateFound
 	}
-	if audioclosure.IsFSPhase(state.Phase) && state.Phase != audioclosure.PhaseFS9Terminal {
+	if audioclosure.IsFSPhase(state.Phase) && state.Phase != audioclosure.PhaseFS9Terminal &&
+		audioclosure.LegalPhaseTransition(state.Phase, audioclosure.PhaseFS9Terminal) {
 		terminal, err := (audioclosure.Driver{}).TransitionPhase(state, state.Revision, audioclosure.PhaseFS9Terminal,
 			audioclosure.PhaseGuardInput{TerminalStopReason: string(stopReason)},
 			"explicit capability boundary", time.Now().UTC())
@@ -706,6 +723,14 @@ func (s *Server) settleTaskAtAudioClosureBoundary(state audioclosure.State, reas
 		}
 		state = terminal
 	}
+	// FS-SETTLE-TERMINAL-1: from fs7 the adjacency table forbids the direct
+	// fs9 hop (legal successors are {fs8, fs4}), so no phase_transition event
+	// is constructed above. The closure still reaches its terminal through
+	// the settled-event channel below — the task-semantic transition and
+	// audioClosureSettleFromResult fold EventSettled into fs9, the same
+	// terminal mechanism the internal-resume path uses (goalrunner_chat.go).
+	// Fabricating an fs7->fs8 walk here would assert a verification phase the
+	// experiment never occupied; the settled event keeps the honest record.
 	goal := s.harness.RuntimeStatus(state.GoalID)
 	if goal.Task == nil || goal.Task.SemanticState == nil {
 		return state, fmt.Errorf("closure boundary has no canonical task state")
