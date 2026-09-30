@@ -32,10 +32,14 @@ type PersistencePort interface {
 type Coordinator struct {
 	Store orchestration.Store
 	Now   func() time.Time
+	// WriteLeases serializes capability execution segments per project
+	// (VITNOTE_V1_DESIGN §7.3). nil disables leasing, which keeps struct-literal
+	// construction backward compatible; New enables it.
+	WriteLeases *ProjectWriteLeases
 }
 
 func New(store orchestration.Store) *Coordinator {
-	return &Coordinator{Store: store, Now: func() time.Time { return time.Now().UTC() }}
+	return &Coordinator{Store: store, Now: func() time.Time { return time.Now().UTC() }, WriteLeases: NewProjectWriteLeases()}
 }
 
 func (c *Coordinator) Execute(ctx context.Context, sessionID string, actionSet orchestration.ActionSet, currentCut orchestration.ProjectCut, port MutationPort, verifier Verifier) (orchestration.PlanningSession, error) {
@@ -76,6 +80,15 @@ func (c *Coordinator) ExecuteWithPersistence(ctx context.Context, sessionID stri
 	}
 	if !currentCut.IsExecutable() {
 		return orchestration.PlanningSession{}, fmt.Errorf("project cut is not executable: consistency=%s", currentCut.Consistency)
+	}
+	if c.WriteLeases != nil {
+		lease, leaseErr := c.WriteLeases.Acquire(ctx, session.ProjectUUID, sessionID)
+		if leaseErr != nil {
+			return orchestration.PlanningSession{}, leaseErr
+		}
+		// The lease spans the whole capability execution segment (preflight,
+		// persistence baseline, mutation, verification) and never crosses turns.
+		defer lease.Release()
 	}
 	if err := port.Preflight(ctx, actionSet, currentCut); err != nil {
 		return orchestration.PlanningSession{}, fmt.Errorf("execution preflight: %w", err)
@@ -223,6 +236,16 @@ func (c *Coordinator) Reconcile(ctx context.Context, sessionID string, actionSet
 	}
 	if session.Execution.ActionSetHash != actionSet.Hash || actionSet.Hash != actionSet.ComputeHash() {
 		return orchestration.PlanningSession{}, fmt.Errorf("recovery action set does not match execution record")
+	}
+	if c.WriteLeases != nil {
+		lease, leaseErr := c.WriteLeases.Acquire(ctx, session.ProjectUUID, sessionID)
+		if leaseErr != nil {
+			return orchestration.PlanningSession{}, leaseErr
+		}
+		// Recovery resumes a mutation surface, so it holds the same per-project
+		// write lease as a fresh execution segment (and waits out any segment
+		// that is still in flight for this project).
+		defer lease.Release()
 	}
 	receipts := make(map[string]orchestration.ActionReceipt, len(session.Execution.Receipts))
 	for _, receipt := range session.Execution.Receipts {
