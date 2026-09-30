@@ -15,6 +15,6 @@
 - 文件域：docs/ROUTING_CONSTITUTION.md + agent 侧 prompt 承载点（实锚后申报具体文件，预期 chat/mixboard 域 ≤2 文件）+ 相关 _test.go。**接口冻结：不动 tools/catalog.go 命令定义、RiskConfirm 级别、内核命令面。**
 - 验收标准：相关 go test 包全绿 + 全量 0 FAIL + gofmt + 宪法 diff 语义自洽（决策侧复核）+ 回执附承载点锚点清单（宪法外每一处修订点的 文件:行）。
 - 停止条件：取证发现竖线写入存在内核侧一致性约束或听感风险的技术根据（非纯产品纪律）→ 停下实证上交，由决策侧回炉裁定。
-- 领取：（时间 / origin/main hash / 分支名）
+- 领取：2026-09-30 / origin/main c0077113 / port/clipscope-agent-1（独立 worktree D:/Vit_DAW_worktrees/clipscope-agent-1）
 - 回执：（commit hash / 承载点锚点清单 / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
