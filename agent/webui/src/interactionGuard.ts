@@ -19,8 +19,9 @@ import type { AgentEvent, ChatMessage, JsonRecord, RuntimeContinuation } from ".
 // 按 conversation_id 归属过滤；缺失归属的行按隔离目标 fail-closed 不投影。
 //
 // 兼容口径：台账损坏/旧形状按空台账处理（fail-open 只影响守卫强度，不影响
-// 功能）；盖章是幂等的纯函数变换；capability proposal 卡有独立生命周期
-// （proposal_presentation 驱动渲染），不在本守卫盖章范围内。
+// 功能）；盖章是幂等的纯函数变换。FIX-CONFIRM-CARD-1 ② 起 capability
+// proposal 卡同样入盖章范围（此前排除导致已应答的 proposal 卡在水合边界
+// 复活成可交互死卡），终态文案由 proposalCardOutcome 按 guard 标识渲染。
 
 const consumedInteractionStorageKey = "ask_vit_consumed_interactions";
 const consumedInteractionLedgerLimit = 200;
@@ -48,27 +49,18 @@ function isRecord(value: unknown): value is JsonRecord {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
-// 盖章范围：composer/流内的 interaction 卡（_ui_source=interaction），排除
-// capability proposal（独立渲染与生命周期）。与 App 的 isComposerInteraction
-// 输入域对齐但不复制其状态逻辑——状态排除由消费方谓词叠加本模块的状态集。
+// 盖章范围：composer/流内的 interaction 卡（_ui_source=interaction）。
+// FIX-CONFIRM-CARD-1 ②：capability proposal 卡不再排除——历史上按"独立生命
+// 周期"排除后，已被应答/撤卡（interaction.resolved 或跨浏览器应答）的
+// proposal 卡在水合边界复活成可交互死卡（点击报「交互已过期」），与普通
+// interaction 卡同症。盖章只发生在台账命中（已消费）时，仍在等待的
+// proposal 卡不受影响。与 App 的 isComposerInteraction 输入域对齐但不复制
+// 其状态逻辑——状态排除由消费方谓词叠加本模块的状态集。
 function isGuardStampableInteractionAction(action: JsonRecord): boolean {
   if (recordText(action._ui_source) !== "interaction") {
     return false;
   }
-  if (isCapabilityProposalLike(action)) {
-    return false;
-  }
   return Boolean(recordText(action.id ?? action.interaction_id));
-}
-
-function isCapabilityProposalLike(action: JsonRecord): boolean {
-  const payload = isRecord(action.payload ?? action.data) ? (action.payload ?? action.data) as JsonRecord : {};
-  const presentation = isRecord(payload.proposal_presentation ?? action.proposal_presentation)
-    ? (payload.proposal_presentation ?? action.proposal_presentation) as JsonRecord
-    : {};
-  const kind = recordText(action.kind).toLowerCase();
-  const type = recordText(action.type).toLowerCase();
-  return kind === "proposal_approval" || type === "proposal_approval" || recordText(presentation.schema_version) === "vit.proposal_presentation.v1";
 }
 
 // 把已消费台账命中的 interaction 动作标记为 resolved 只读形态：

@@ -202,3 +202,28 @@ describe("已消费台账解析", () => {
     expect(parseConsumedInteractionLedger("junk")).toEqual([]);
   });
 });
+
+// FIX-CONFIRM-CARD-1 ②：capability proposal 卡同样入盖章范围——此前排除使
+// 已应答/撤卡的 proposal 卡在水合边界复活成可交互死卡（点击报「交互已过
+// 期」）。仍在等待的 proposal 卡不受盖章影响。
+describe("FIX-CONFIRM-CARD-1 ②：capability proposal 卡入盖章范围", () => {
+  const proposalPresentation = { schema_version: "vit.proposal_presentation.v1", proposal_id: "prop_1", proposal_revision: 0, title: "B2 方案" };
+  const waitingProposal = waitingInteractionAction("interaction_proposal_dead", {
+    kind: "proposal_approval",
+    type: "proposal_approval",
+    payload: { plan_id: "prop_1", proposal_presentation: proposalPresentation }
+  });
+
+  it("已消费 proposal 卡盖章：resolved + 摘按钮 + guard 标识", () => {
+    const stamped = stampConsumedInteractionActions([hydratedMessage([waitingProposal])], ["interaction_proposal_dead"]);
+    const action = stamped[0]?.actions?.[0] as JsonRecord;
+    expect(String(action.status)).toBe("resolved");
+    expect(String(action.resolved_action_id)).toBe("consumed_interaction_guard");
+    expect(action.actions).toEqual([]);
+  });
+
+  it("仍在等待的 proposal 卡不盖章（真待裁卡保持可交互）", () => {
+    const stamped = stampConsumedInteractionActions([hydratedMessage([waitingProposal])], ["interaction_other"]);
+    expect(stamped[0]?.actions?.[0]).toBe(waitingProposal);
+  });
+});
