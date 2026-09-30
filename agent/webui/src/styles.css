@@ -1716,6 +1716,29 @@ h3 {
   overflow-wrap: anywhere;
 }
 
+/* OPT-OBSERVE-OUTPUT-1 P1：观察问答输出分层——长回复默认折叠（设计 §4.2-2）。
+   lead 与折叠容器内的正文共用 .message-body p 的 pre-wrap 渲染，展开后即现行形态。 */
+.observe-output-layered .observe-output-lead {
+  margin-bottom: 2px;
+}
+
+.observe-output-details {
+  margin-top: 4px;
+}
+
+.observe-output-details > summary {
+  padding: 2px 0;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 650;
+  user-select: none;
+}
+
+.observe-output-details[open] > summary {
+  color: var(--blue);
+}
+
 .typing-message {
   display: inline-flex;
   align-items: center;
