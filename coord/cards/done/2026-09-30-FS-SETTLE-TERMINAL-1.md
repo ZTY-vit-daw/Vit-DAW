@@ -24,4 +24,4 @@
   - 越域申报（卡面"实锚后申报"条款）：实锚 `agent/internal/chat/audio_closure_controller.go`+chat 测试；audioclosure/agentloop 零改动。
   - 域外缺陷上交（§11，8 轮归因表见取证报告 §6）：`staticeq` 读回校验（executionports/staticeq_vsp.go:334-342）对 API-550A Stereo param2/track1032 **100% 失败**（applied_unreconciled），Q3/Q4 正常；对照轮（main HEAD 构建）选中 Q3 即 PASS——与构建无关，建议开卡（暂名 D1-EQ-READBACK-550A-1）。主仓 `agent/bin/VitAgent.exe` 现为 main-HEAD 对照构建（原 9/29 二进制备份在旁）。
   - 端测边界声明：本卡为 agent 结算路径改动，不涉渲染面/用户旅程（E2E-WEBUI-1/JOURNEY-1 两层不适用）；d1 真栈烟测 exit 0 已过 AGENTS §5 门槛。M1 复验顺延项与本卡绿轮同栈可续。
-- 验收：（裁定文件 / 验收 commit）
+- 验收：**pass（2026-09-30 决策会话）**——裁定=[rulings/2026-09-30-FS-SETTLE-TERMINAL-1-pass.md](../../rulings/2026-09-30-FS-SETTLE-TERMINAL-1-pass.md)；合并 commit bd058a63+71044cf7（cherry-pick）；取证报告全文核读+修复 hunk 亲核（迁移表零改动+三窗守卫+EventSettled 通道）+复跑 chat 整包 ok（含三钉）+真栈工件亲读（fs7 judgment park 同形态不炸）；域外 550A 缺陷开卡 D1-EQ-READBACK-550A-1；agent/bin 二进制决策侧重建至合并态供手测。

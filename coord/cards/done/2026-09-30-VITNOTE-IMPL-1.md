@@ -45,4 +45,4 @@
     7. 拖 ⠿ 移动便签：跟手、松手即停
     8. 焦点守卫：便签输入框聚焦时按 N 不触发（N 进输入框）；无文本焦点时 N 触发
     9. 加分（M8 判据）：两块辖区各开一 note 各自问答，会话互不干扰
-- 验收：（裁定文件 / 验收记录）
+- 验收：**代码面 pass、终裁待 M8 手测（2026-09-30 决策会话）**——裁定=[rulings/2026-09-30-VITNOTE-IMPL-1-conditional.md](../../rulings/2026-09-30-VITNOTE-IMPL-1-conditional.md)；Godot@098cd25 diff/结构亲核（挂点唯一出口+选区零改变+全要件在位）+自验声明采信；终裁条件=用户按卡面 9 步手测走通 M8 最小闭环（Godot 仓 checkout port/vitnote-impl-1；agent 二进制已重建含 FS-SETTLE 修复）。
