@@ -10,7 +10,7 @@
 - **模型 B**：双预算与 bounded mix probe 已通过单测和真栈进度验证；p01 已证明覆盖/候选供给不再触发旧的 model evidence ceiling。p03 已走到 proposal accepted、domain route、`processor_selection` 和真实插件装载 mutation。
 - **当前阻塞**：PCA-1 的规划期准入契约修补已完成代码与局部测试，但 2026-09-06 首轮真栈被 CPU 瞬态中断，p03 三轮及 p01 回归尚待有效运行证据。模型 B 端到端里程碑在出现 evaluator 通过且真实栈 exit 0 前仍不得标记完成。
 - **下一步优先级**：先复跑 PCA-1 的 p03 三轮与 p01 回归；若仍在同一确定性 PCA 断点失败，停止原样重跑并转返工/blocked 裁定；真栈验收后执行 COMMIT-1 分线提交。
-- **已知不稳定项**：chat 包 `TestProcessorCertificationStart*` 存在 Windows TempDir 清理竞态。每次出现都需保留原始输出，按 AGENTS.md §11 的隔离复跑与整包复跑规则处理，不得仅凭一次重跑通过而永久忽略。
+- **已知不稳定项**：chat 包 `TestProcessorCertificationStart*` 与 `TestWorkspaceSwitchSettlesInFlightChainExplicitly` 存在 Windows TempDir 清理竞态（同族；后者 2026-09-30 同日两卡全量 run 各命中一次，修复卡 FIX-CHAT-TMPDIR-FLAKE-1 已开）。每次出现都需保留原始输出，按 AGENTS.md §11 的隔离复跑与整包复跑规则处理，不得仅凭一次重跑通过而永久忽略。
 
 维护边界：本节可以更新当前 HEAD、工作树、里程碑、阻塞和下一步；历史 run 的细节放 gate/回执报告，文档三态索引的变更仍按下文维护规则执行。
 

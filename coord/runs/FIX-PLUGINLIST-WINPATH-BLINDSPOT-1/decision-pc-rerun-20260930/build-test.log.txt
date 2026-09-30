@@ -1,0 +1,122 @@
+=== STEP 4: cmake configure (Visual Studio 18 2026, Debug) ===
+-- Selecting Windows SDK version 10.0.26100.0 to target Windows 10.0.26200.
+-- The C compiler identification is MSVC 19.50.35726.0
+-- The CXX compiler identification is MSVC 19.50.35726.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/MSVC/14.50.35717/bin/Hostx64/x64/cl.exe - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/MSVC/14.50.35717/bin/Hostx64/x64/cl.exe - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Configuring juceaide
+-- Building juceaide
+-- Exporting juceaide
+-- Testing juceaide
+-- Finished setting up juceaide
+-- Configuring done (25.0s)
+-- Generating done (0.2s)
+CMake Warning:
+  Manually-specified variables were not used by the project:
+
+    CMAKE_BUILD_TYPE
+
+
+-- Build files have been written to: D:/Vit_DAW_run/pluginlist-pc-rerun-20260930/build
+
+=== STEP 5: cmake --build --target VitPluginListHygieneTests --config Debug ===
+D:\Vit_DAW_run\pluginlist-pc-rerun-20260930\wt\tracktion_engine\modules\juce\modules\juce_graphics\fonts\harfbuzz\hb.hh(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [D:\Vit_DAW_run\pluginlist-pc-rerun-20260930\build\VitPluginListHygieneTests.vcxproj]
+  (编译源文件“../wt/tracktion_engine/modules/juce/modules/juce_graphics/juce_graphics_Harfbuzz.cpp”)
+  
+D:\Vit_DAW_run\pluginlist-pc-rerun-20260930\wt\tracktion_engine\modules\juce\modules\juce_graphics\fonts\harfbuzz\hb-algs.hh(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [D:\Vit_DAW_run\pluginlist-pc-rerun-20260930\build\VitPluginListHygieneTests.vcxproj]
+  (编译源文件“../wt/tracktion_engine/modules/juce/modules/juce_graphics/juce_graphics_Harfbuzz.cpp”)
+  
+D:\Vit_DAW_run\pluginlist-pc-rerun-20260930\wt\tracktion_engine\modules\juce\modules\juce_graphics\fonts\harfbuzz\hb.hh(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [D:\Vit_DAW_run\pluginlist-pc-rerun-20260930\build\VitPluginListHygieneTests.vcxproj]
+  (编译源文件“../wt/tracktion_engine/modules/juce/modules/juce_graphics/juce_graphics_Harfbuzz.cpp”)
+  
+D:\Vit_DAW_run\pluginlist-pc-rerun-20260930\wt\tracktion_engine\modules\juce\modules\juce_graphics\fonts\harfbuzz\hb.hh(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [D:\Vit_DAW_run\pluginlist-pc-rerun-20260930\build\VitPluginListHygieneTests.vcxproj]
+  (编译源文件“../wt/tracktion_engine/modules/juce/modules/juce_graphics/juce_graphics_Harfbuzz.cpp”)
+  
+D:\Vit_DAW_run\pluginlist-pc-rerun-20260930\wt\tracktion_engine\modules\juce\modules\juce_graphics\fonts\harfbuzz\hb.hh(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [D:\Vit_DAW_run\pluginlist-pc-rerun-20260930\build\VitPluginListHygieneTests.vcxproj]
+  (编译源文件“../wt/tracktion_engine/modules/juce/modules/juce_graphics/juce_graphics_Harfbuzz.cpp”)
+  
+D:\Vit_DAW_run\pluginlist-pc-rerun-20260930\wt\tracktion_engine\modules\juce\modules\juce_graphics\fonts\harfbuzz\hb.hh(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [D:\Vit_DAW_run\pluginlist-pc-rerun-20260930\build\VitPluginListHygieneTests.vcxproj]
+  (编译源文件“../wt/tracktion_engine/modules/juce/modules/juce_graphics/juce_graphics_Harfbuzz.cpp”)
+  
+D:\Vit_DAW_run\pluginlist-pc-rerun-20260930\wt\tracktion_engine\modules\juce\modules\juce_graphics\fonts\harfbuzz\hb.hh(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [D:\Vit_DAW_run\pluginlist-pc-rerun-20260930\build\VitPluginListHygieneTests.vcxproj]
+  (编译源文件“../wt/tracktion_engine/modules/juce/modules/juce_graphics/juce_graphics_Harfbuzz.cpp”)
+  
+D:\Vit_DAW_run\pluginlist-pc-rerun-20260930\wt\tracktion_engine\modules\juce\modules\juce_graphics\fonts\harfbuzz\hb.hh(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [D:\Vit_DAW_run\pluginlist-pc-rerun-20260930\build\VitPluginListHygieneTests.vcxproj]
+  (编译源文件“../wt/tracktion_engine/modules/juce/modules/juce_graphics/juce_graphics_Harfbuzz.cpp”)
+  
+D:\Vit_DAW_run\pluginlist-pc-rerun-20260930\wt\tracktion_engine\modules\juce\modules\juce_graphics\fonts\harfbuzz\hb-ot-layout-common.hh(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [D:\Vit_DAW_run\pluginlist-pc-rerun-20260930\build\VitPluginListHygieneTests.vcxproj]
+  (编译源文件“../wt/tracktion_engine/modules/juce/modules/juce_graphics/juce_graphics_Harfbuzz.cpp”)
+  
+D:\Vit_DAW_run\pluginlist-pc-rerun-20260930\wt\tracktion_engine\modules\juce\modules\juce_graphics\fonts\harfbuzz\hb-ot-head-table.hh(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [D:\Vit_DAW_run\pluginlist-pc-rerun-20260930\build\VitPluginListHygieneTests.vcxproj]
+  (编译源文件“../wt/tracktion_engine/modules/juce/modules/juce_graphics/juce_graphics_Harfbuzz.cpp”)
+  
+D:\Vit_DAW_run\pluginlist-pc-rerun-20260930\wt\tracktion_engine\modules\juce\modules\juce_graphics\fonts\harfbuzz\hb-ot-var-mvar-table.hh(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [D:\Vit_DAW_run\pluginlist-pc-rerun-20260930\build\VitPluginListHygieneTests.vcxproj]
+  (编译源文件“../wt/tracktion_engine/modules/juce/modules/juce_graphics/juce_graphics_Harfbuzz.cpp”)
+  
+D:\Vit_DAW_run\pluginlist-pc-rerun-20260930\wt\tracktion_engine\modules\juce\modules\juce_graphics\fonts\harfbuzz\hb-ot-var-common.hh(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [D:\Vit_DAW_run\pluginlist-pc-rerun-20260930\build\VitPluginListHygieneTests.vcxproj]
+  (编译源文件“../wt/tracktion_engine/modules/juce/modules/juce_graphics/juce_graphics_Harfbuzz.cpp”)
+  
+D:\Vit_DAW_run\pluginlist-pc-rerun-20260930\wt\tracktion_engine\modules\juce\modules\juce_core\text\juce_CharacterFunctions.cpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [D:\Vit_DAW_run\pluginlist-pc-rerun-20260930\build\VitPluginListHygieneTests.vcxproj]
+  (编译源文件“../wt/tracktion_engine/modules/juce/modules/juce_core/juce_core.cpp”)
+  
+D:\Vit_DAW_run\pluginlist-pc-rerun-20260930\wt\tracktion_engine\modules\juce\modules\juce_graphics\fonts\harfbuzz\hb-style.h(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [D:\Vit_DAW_run\pluginlist-pc-rerun-20260930\build\VitPluginListHygieneTests.vcxproj]
+  (编译源文件“../wt/tracktion_engine/modules/juce/modules/juce_graphics/juce_graphics.cpp”)
+  
+D:\Vit_DAW_run\pluginlist-pc-rerun-20260930\wt\tracktion_engine\modules\juce\modules\juce_graphics\fonts\harfbuzz\hb-common.cc(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [D:\Vit_DAW_run\pluginlist-pc-rerun-20260930\build\VitPluginListHygieneTests.vcxproj]
+  (编译源文件“../wt/tracktion_engine/modules/juce/modules/juce_graphics/juce_graphics_Harfbuzz.cpp”)
+  
+D:\Vit_DAW_run\pluginlist-pc-rerun-20260930\wt\tracktion_engine\modules\juce\modules\juce_graphics\fonts\harfbuzz\hb-ot-var-fvar-table.hh(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [D:\Vit_DAW_run\pluginlist-pc-rerun-20260930\build\VitPluginListHygieneTests.vcxproj]
+  (编译源文件“../wt/tracktion_engine/modules/juce/modules/juce_graphics/juce_graphics_Harfbuzz.cpp”)
+  
+D:\Vit_DAW_run\pluginlist-pc-rerun-20260930\wt\tracktion_engine\modules\juce\modules\juce_graphics\fonts\harfbuzz\OT\Color\sbix\sbix.hh(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [D:\Vit_DAW_run\pluginlist-pc-rerun-20260930\build\VitPluginListHygieneTests.vcxproj]
+  (编译源文件“../wt/tracktion_engine/modules/juce/modules/juce_graphics/juce_graphics_Harfbuzz.cpp”)
+  
+D:\Vit_DAW_run\pluginlist-pc-rerun-20260930\wt\tracktion_engine\modules\juce\modules\juce_graphics\fonts\harfbuzz\hb-ot-meta-table.hh(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [D:\Vit_DAW_run\pluginlist-pc-rerun-20260930\build\VitPluginListHygieneTests.vcxproj]
+  (编译源文件“../wt/tracktion_engine/modules/juce/modules/juce_graphics/juce_graphics_Harfbuzz.cpp”)
+  
+D:\Vit_DAW_run\pluginlist-pc-rerun-20260930\wt\tracktion_engine\modules\juce\modules\juce_graphics\fonts\harfbuzz\hb-ot-stat-table.hh(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [D:\Vit_DAW_run\pluginlist-pc-rerun-20260930\build\VitPluginListHygieneTests.vcxproj]
+  (编译源文件“../wt/tracktion_engine/modules/juce/modules/juce_graphics/juce_graphics_Harfbuzz.cpp”)
+  
+D:\Vit_DAW_run\pluginlist-pc-rerun-20260930\wt\tracktion_engine\modules\juce\modules\juce_graphics\fonts\harfbuzz\hb-ot-layout-base-table.hh(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [D:\Vit_DAW_run\pluginlist-pc-rerun-20260930\build\VitPluginListHygieneTests.vcxproj]
+  (编译源文件“../wt/tracktion_engine/modules/juce/modules/juce_graphics/juce_graphics_Harfbuzz.cpp”)
+  
+D:\Vit_DAW_run\pluginlist-pc-rerun-20260930\wt\tracktion_engine\modules\juce\modules\juce_graphics\fonts\harfbuzz\hb-ot-layout.cc(1672,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [D:\Vit_DAW_run\pluginlist-pc-rerun-20260930\build\VitPluginListHygieneTests.vcxproj]
+  (编译源文件“../wt/tracktion_engine/modules/juce/modules/juce_graphics/juce_graphics_Harfbuzz.cpp”)
+  
+D:\Vit_DAW_run\pluginlist-pc-rerun-20260930\wt\tracktion_engine\modules\juce\modules\juce_graphics\fonts\harfbuzz\hb-ot-math.cc(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [D:\Vit_DAW_run\pluginlist-pc-rerun-20260930\build\VitPluginListHygieneTests.vcxproj]
+  (编译源文件“../wt/tracktion_engine/modules/juce/modules/juce_graphics/juce_graphics_Harfbuzz.cpp”)
+  
+D:\Vit_DAW_run\pluginlist-pc-rerun-20260930\wt\tracktion_engine\modules\juce\modules\juce_graphics\fonts\harfbuzz\hb-ot-shaper-indic.cc(814,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [D:\Vit_DAW_run\pluginlist-pc-rerun-20260930\build\VitPluginListHygieneTests.vcxproj]
+  (编译源文件“../wt/tracktion_engine/modules/juce/modules/juce_graphics/juce_graphics_Harfbuzz.cpp”)
+  
+D:\Vit_DAW_run\pluginlist-pc-rerun-20260930\wt\tracktion_engine\modules\juce\modules\juce_graphics\fonts\harfbuzz\hb-ot-shaper-thai.cc(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [D:\Vit_DAW_run\pluginlist-pc-rerun-20260930\build\VitPluginListHygieneTests.vcxproj]
+  (编译源文件“../wt/tracktion_engine/modules/juce/modules/juce_graphics/juce_graphics_Harfbuzz.cpp”)
+  
+D:\Vit_DAW_run\pluginlist-pc-rerun-20260930\wt\tracktion_engine\modules\juce\modules\juce_graphics\fonts\harfbuzz\hb-ot-tag-table.hh(376,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [D:\Vit_DAW_run\pluginlist-pc-rerun-20260930\build\VitPluginListHygieneTests.vcxproj]
+  (编译源文件“../wt/tracktion_engine/modules/juce/modules/juce_graphics/juce_graphics_Harfbuzz.cpp”)
+  
+D:\Vit_DAW_run\pluginlist-pc-rerun-20260930\wt\tracktion_engine\modules\juce\modules\juce_graphics\fonts\harfbuzz\hb-ot-tag-table.hh(1074,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [D:\Vit_DAW_run\pluginlist-pc-rerun-20260930\build\VitPluginListHygieneTests.vcxproj]
+  (编译源文件“../wt/tracktion_engine/modules/juce/modules/juce_graphics/juce_graphics_Harfbuzz.cpp”)
+  
+  juce_graphics_Sheenbidi.c
+  VitPluginListHygieneTests.vcxproj -> D:\Vit_DAW_run\pluginlist-pc-rerun-20260930\build\VitPluginListHygieneTests_artefacts\Debug\VitPluginListHygieneTests.exe
+
+=== STEP 6: ctest -C Debug -R ^VitPluginListHygieneTests$ --output-on-failure ===
+Test project D:/Vit_DAW_run/pluginlist-pc-rerun-20260930/build
+    Start 3: VitPluginListHygieneTests
+1/1 Test #3: VitPluginListHygieneTests ........   Passed    0.07 sec
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =   0.14 sec
+
+=== 附：直跑二进制取输出（证据补采，非判定） ===
+PluginListHygieneTests: all checks passed
