@@ -57,6 +57,19 @@
 //                    endpoint receives exactly one approve (direct execution),
 //                    and the direct-execution notice + execution receipt are
 //                    visible in the conversation (事后回执)
+//   O1 layering   -- OPT-OBSERVE-OUTPUT-1 P1 (2026-09-30): a long plain
+//                    assistant reply (observation Q&A shape, over the layering
+//                    thresholds) renders COLLAPSED by default (lead paragraph
+//                    visible + a native <details> holding the rest) -- both on
+//                    the composer-driven turn (context A) and on the Project
+//                    History hydration path (context E); expanding reveals the
+//                    full original text exactly once (lead + rest, no
+//                    duplication); after a reload the hydrated default state
+//                    recomputes collapsed (expansion is pure UI state, never
+//                    persisted); the persisted content keeps the full original
+//                    text. Short replies and the card families (interactive
+//                    confirmation card, execution receipt) never fold, even
+//                    when their text alone crosses the thresholds.
 //
 // Exit code: 0 = every group passed (delivery gate), 1 = at least one failed
 // (pre-fix red, with the failing group recorded in the report).
@@ -1856,6 +1869,222 @@ function checkK2(result, options) {
 }
 
 
+// --------------------------------------------------- OPT-OBSERVE-OUTPUT-1 O1
+//
+// Card 2026-09-29 OPT-OBSERVE-OUTPUT-1, P1 spec (design §4.2/§7). The composer
+// drives the REAL app against network-layer chat fixtures (same posture as K1:
+// the isolated agent has no kernel/LLM behind it). Layering thresholds live in
+// the webui's observeOutputLayering.ts; this group only asserts the rendered
+// DOM contract:
+//   O1a long reply  -- renders with .observe-output-details NOT [open]; the
+//                      lead paragraph (OBSLEAD marker) is visible while the
+//                      collapsed rest (OBSRESTFINAL marker) is not.
+//   O1b expand      -- clicking the summary opens the details; the full text
+//                      (lead AND the rest tail) is visible exactly once.
+//   O1c reload      -- after a page reload the details is collapsed again:
+//                      expansion is pure UI state, the default state recomputes
+//                      from the persisted message (hydration equivalence).
+//   O1d families    -- a short reply, a long confirmation-card message and a
+//                      long execution receipt never render the layered
+//                      container (错折叠=缺陷 boundary).
+//
+// NOTE: the collapsed rest text IS in the DOM (the UA just does not render
+// boxes for closed <details> children), so visibility is judged through
+// innerText, which respects rendering.
+
+function observeLongReplyFixture() {
+  const lead = "OBSLEAD 观察结论：Track 2 主唱在 2.1kHz 附近有约 3.2dB 的峰值堆积，与和声吉他的泛音列重叠，是听感发硬的主要来源。";
+  const restLines = [];
+  for (let index = 1; index <= 16; index += 1) {
+    restLines.push(
+      "证据条目 OBSREST" + index + "：第 " + index + " 频段的静态电平关系与遮蔽余量、来源投影与指标名（观察问答折叠区的证据细节正文，用于验证折叠容器完整原文）。"
+    );
+  }
+  restLines.push("OBSRESTFINAL 证据尾行：折叠区最后一行，展开后必须可见。");
+  return {
+    status: "ok",
+    conversation_id: conversationId,
+    reply: lead + "\n\n" + restLines.join("\n"),
+    needs_confirmation: false,
+    goal_status: "completed",
+    turn_id: "run_e2e_observe_long",
+    run_id: "run_e2e_observe_long",
+    goal_id: "run_e2e_observe_long",
+    commands: []
+  };
+}
+
+function observeShortReplyFixture() {
+  return {
+    status: "ok",
+    conversation_id: conversationId,
+    reply: "OBSHORT 短回复：低于折叠阈值，保持现行单段渲染。",
+    needs_confirmation: false,
+    goal_status: "completed",
+    turn_id: "run_e2e_observe_short",
+    run_id: "run_e2e_observe_short",
+    goal_id: "run_e2e_observe_short",
+    commands: []
+  };
+}
+
+function observeLongProposalFixture(turnID, interactionID) {
+  const fixture = confirmationChatResponseFixture({ turnID, interactionID });
+  fixture.reply =
+    "OBSCARD 确认卡消息：这段正文超过折叠阈值（" + "长".repeat(640) + "），但它携带待确认交互卡，属于交互卡族，绝不能折叠。";
+  return fixture;
+}
+
+function observeLongReceiptFixture(turnID) {
+  return {
+    status: "ok",
+    conversation_id: conversationId,
+    reply:
+      "OBSRECEIPT 执行回执消息：这段回执正文超过折叠阈值（" + "回".repeat(640) + "），但它是回执族，绝不能折叠。",
+    needs_confirmation: false,
+    goal_status: "completed",
+    turn_id: turnID,
+    run_id: turnID,
+    goal_id: turnID,
+    interaction_id: "",
+    executed_kernel_reply: [{ status: "ok", label: "track.volume" }],
+    commands: []
+  };
+}
+
+// Row-scoped DOM probe: finds the assistant message row carrying the marker and
+// reports its layering shape. innerText (not textContent) is the visibility
+// oracle: closed <details> children have no boxes and drop out of innerText.
+const observeRowProbe = (marker) => {
+  const rows = Array.from(document.querySelectorAll(".message-row.assistant"));
+  const row = rows.find((el) => (el.textContent || "").indexOf(marker) >= 0) || null;
+  if (!row) {
+    return null;
+  }
+  const details = row.querySelector(".observe-output-details");
+  const lead = row.querySelector(".observe-output-lead");
+  const summary = details ? details.querySelector("summary") : null;
+  return {
+    marker,
+    layered: Boolean(details),
+    open: details ? details.hasAttribute("open") : null,
+    summaryText: summary ? (summary.textContent || "").replace(/\s+/g, " ").trim() : "",
+    leadText: lead ? (lead.textContent || "").replace(/\s+/g, " ").trim() : "",
+    rowVisibleText: (row.innerText || "").replace(/\s+/g, " ").trim(),
+    actionCards: row.querySelectorAll(".action-card").length,
+    paragraphCount: row.querySelectorAll(".message-body p").length
+  };
+};
+
+function checkO1(result) {
+  const failures = [];
+  const notes = [];
+  const long = result.long;
+  if (!long || !long.defaultState) {
+    failures.push("O1a setup: the long observation reply never rendered -- the pass would measure nothing");
+    return { failures, notes };
+  }
+  const collapsed = long.defaultState;
+  if (!collapsed.layered) {
+    failures.push("O1a 默认态: the long reply did not render the layered container (.observe-output-details missing)");
+  } else {
+    if (collapsed.open) {
+      failures.push("O1a 默认态: the long reply renders expanded by default -- the details must be collapsed on first render");
+    } else {
+      notes.push("O1a long reply collapsed by default (summary=\"" + collapsed.summaryText + "\")");
+    }
+    if (collapsed.rowVisibleText.indexOf("OBSLEAD") < 0) {
+      failures.push("O1a 首段: the lead paragraph (OBSLEAD) is not visible on the collapsed message -- 首段可见 is the default state's point");
+    } else {
+      notes.push("O1a lead paragraph visible while collapsed");
+    }
+    if (collapsed.rowVisibleText.indexOf("OBSRESTFINAL") >= 0) {
+      failures.push("O1a 折叠: the collapsed rest (OBSRESTFINAL) is visible while the details is closed -- 折叠默认态失效");
+    } else {
+      notes.push("O1a collapsed rest not visible (details closed)");
+    }
+  }
+  const expanded = long.expandedState;
+  if (!expanded) {
+    failures.push("O1b setup: the expanded-state sample never landed");
+  } else if (expanded.layered && expanded.open) {
+    if (expanded.rowVisibleText.indexOf("OBSRESTFINAL") < 0) {
+      failures.push("O1b 展开: after clicking the summary the rest tail (OBSRESTFINAL) is still not visible -- the details did not reveal its content");
+    } else {
+      const hits = expanded.rowVisibleText.split("OBSRESTFINAL").length - 1;
+      if (hits !== 1) {
+        failures.push("O1b 展开形态: the rest tail renders " + hits + " time(s) when expanded -- expanded rendering must match the current one exactly once (no duplicated lead/rest)");
+      } else {
+        notes.push("O1b expanded rendering shows the full original text exactly once");
+      }
+    }
+    if (expanded.rowVisibleText.indexOf("OBSLEAD") < 0) {
+      failures.push("O1b 展开: the lead paragraph disappeared after expanding -- expanded view must carry the full original text");
+    }
+  } else {
+    failures.push("O1b 展开: clicking the summary did not open the details (layered=" + expanded.layered + ", open=" + expanded.open + ")");
+  }
+  const hydrated = long.hydratedState;
+  const rehydrated = long.rehydratedState;
+  if (!hydrated) {
+    failures.push("O1c setup: the hydrated long reply never rendered (Project History hydration leg)");
+  } else {
+    if (!hydrated.layered) {
+      failures.push("O1c 水合: the hydrated long reply did not render the layered container -- the default state must recompute from the persisted content");
+    } else if (hydrated.open) {
+      failures.push("O1c 水合: the hydrated long reply renders expanded -- expansion is pure UI state and must never be remembered across hydration");
+    } else if (hydrated.rowVisibleText.indexOf("OBSRESTFINAL") >= 0) {
+      failures.push("O1c 水合: the collapsed rest (OBSRESTFINAL) is visible on the hydrated message -- 折叠默认态失效");
+    } else {
+      notes.push("O1c hydrated reply renders collapsed by default (default state recomputed from content)");
+    }
+  }
+  if (!rehydrated) {
+    failures.push("O1c setup: the re-hydrated sample never landed after reload (20s across two uiState refresh cycles)");
+  } else if (!rehydrated.layered || rehydrated.open) {
+    failures.push(
+      "O1c 刷新: after reload the reply is layered=" + rehydrated.layered + " open=" + rehydrated.open +
+      " -- the default state must recompute collapsed (v1 remembers no expansion state)"
+    );
+  } else {
+    notes.push("O1c after reload the default state recomputed collapsed again (expansion not remembered)");
+  }
+  const persisted = long.persistedBuckets || {};
+  const persistedRows = Object.values(persisted).flat();
+  if (persistedRows.length > 0) {
+    const carriedFullText = persistedRows.some((row) => row.hasRestMarker && row.contentLength === long.persistedFullContentLength);
+    if (!carriedFullText) {
+      failures.push("O1c 持久化: the persisted message content lost the full original text (length " +
+        JSON.stringify(persistedRows.map((row) => row.contentLength)) + ", expected " + long.persistedFullContentLength +
+        ") -- layering must not rewrite content");
+    } else {
+      notes.push("O1c persisted content carries the full original text (length unchanged, no expansion state)");
+    }
+  }
+  const notFolded = (sample, label, marker, cardPremise) => {
+    if (!sample) {
+      failures.push("O1d setup: the " + label + " message never rendered");
+      return;
+    }
+    if (sample.layered) {
+      failures.push("O1d " + label + ": the layered container rendered on a " + label + " message -- 错折叠缺陷（回执/交互卡族一概不动）");
+    } else {
+      notes.push("O1d " + label + " not layered (plain current rendering)");
+    }
+    if (sample.rowVisibleText.indexOf(marker) < 0) {
+      failures.push("O1d " + label + ": the message text is not visible in the flow");
+    }
+    if (cardPremise !== null && !cardPremise) {
+      failures.push("O1d " + label + ": premise broken -- the card family surface did not render, the pass would measure nothing");
+    }
+  };
+  notFolded(result.short, "short reply", "OBSHORT", null);
+  notFolded(result.proposal, "confirmation card", "OBSCARD", result.cardPremise);
+  notFolded(result.receipt, "execution receipt", "OBSRECEIPT", null);
+  return { failures, notes };
+}
+
+
 // --------------------------------------------------------------- main flow
 
 async function main() {
@@ -2767,6 +2996,307 @@ async function main() {
     interactionID: k2InteractionID
   }));
 
+  // --------------------------------------------------- OPT-OBSERVE-OUTPUT-1 O1
+  // Layering pass driven through the real composer (manual mode): context A
+  // exercises the long reply end to end (collapsed default -> click to expand ->
+  // reload recomputes), contexts B/C/D assert the not-folded family boundary.
+  // Each context is fresh (empty localStorage), so the passes cannot see each
+  // other's driven messages.
+  report.observe_output_source =
+    "driven composer turns; POST /agent/chat fulfilled at the network layer with observation-Q&A fixtures " +
+    "(long layered reply / short reply / long confirmation-card message / long execution receipt); " +
+    "context A reloads mid-pass to prove the collapsed default state recomputes";
+  const observeWaitForRow = async (page, marker) => {
+    await page
+      .locator(".message-row.assistant", { hasText: marker })
+      .first()
+      .waitFor({ timeout: 15000 })
+      .then(() => true)
+      .catch(() => false);
+    await page.waitForTimeout(300);
+    return page.evaluate(observeRowProbe, marker);
+  };
+  // OPT-OBSERVE-OUTPUT-1 forensics fix: the composer send must wait until the
+  // history scope has materialized (the archived graph's first user message is
+  // rendered by the same history-sync effect that anchors the storage bucket).
+  // Driving earlier saved the driven messages into the unsaved_root bucket
+  // (run 2 evidence: dom-observe-reload-samples.json), so the reload restore
+  // read the draft-scope bucket and never saw them -- a test-side race, not a
+  // layering defect.
+  const observeWaitForScopeMaterialized = async (page) => {
+    await page
+      .locator(".message-row", { hasText: "对低音轨做一次混音改进实验" })
+      .first()
+      .waitFor({ timeout: 20000 })
+      .catch(() => {});
+    await page.waitForTimeout(500);
+  };
+
+  // Context A: long reply -> collapsed default -> expand. (The reload leg of
+  // this context moved to context E, which exercises the SAME recompute through
+  // the real Project History hydration path -- see the context E comment for
+  // why the localStorage-driven reload is structurally unable to carry it.)
+  const observeAContext = await browser.newContext({ viewport });
+  await installReplay(observeAContext);
+  await observeAContext.route("**/agent/chat*", async (route) => {
+    await route.fulfill({
+      status: 200, contentType: "application/json; charset=utf-8",
+      body: JSON.stringify(observeLongReplyFixture())
+    });
+  });
+  const observeAPage = await observeAContext.newPage();
+  await observeAPage.goto(agentBase + "/app/?conversation_id=" + encodeURIComponent(conversationId), { waitUntil: "domcontentloaded" });
+  await observeWaitForScopeMaterialized(observeAPage);
+  await confirmDrive(observeAPage, "Track 2 的 2.1kHz 峰值是从哪里来的？给出完整观察证据。");
+  const observeDefaultState = await observeWaitForRow(observeAPage, "OBSRESTFINAL");
+  await observeAPage.screenshot({ path: join(outDir, "dom-observe-collapsed.png") });
+  let observeExpandedState = null;
+  if (observeDefaultState && observeDefaultState.layered) {
+    await observeAPage.locator(".observe-output-details > summary").first().click();
+    await observeAPage
+      .locator(".observe-output-details[open]")
+      .first()
+      .waitFor({ timeout: 5000 })
+      .catch(() => {});
+    await observeAPage.waitForTimeout(300);
+    observeExpandedState = await observeAPage.evaluate(observeRowProbe, "OBSRESTFINAL");
+    await observeAPage.screenshot({ path: join(outDir, "dom-observe-expanded.png") });
+  }
+  writeFileSync(join(outDir, "dom-observe-a.json"), JSON.stringify({
+    defaultState: observeDefaultState, expandedState: observeExpandedState
+  }, null, 2), "utf-8");
+  await observeAContext.close();
+
+  // Context B: short reply must stay plain.
+  const observeBContext = await browser.newContext({ viewport });
+  await installReplay(observeBContext);
+  await observeBContext.route("**/agent/chat*", async (route) => {
+    await route.fulfill({
+      status: 200, contentType: "application/json; charset=utf-8",
+      body: JSON.stringify(observeShortReplyFixture())
+    });
+  });
+  const observeBPage = await observeBContext.newPage();
+  await observeBPage.goto(agentBase + "/app/?conversation_id=" + encodeURIComponent(conversationId), { waitUntil: "domcontentloaded" });
+  await observeWaitForScopeMaterialized(observeBPage);
+  await confirmDrive(observeBPage, "一句话说明当前状态。");
+  const observeShortState = await observeWaitForRow(observeBPage, "OBSHORT");
+  await observeBContext.close();
+
+  // Context C: long confirmation-card message must stay unlayered (interactive
+  // card renders -- premise of the boundary).
+  const observeCTurnID = "run_e2e_observe_card";
+  const observeCInteractionID = "interaction_e2e_observe_card";
+  const observeCContext = await browser.newContext({ viewport });
+  await installReplay(observeCContext);
+  let observeCChatHits = 0;
+  await observeCContext.route("**/agent/chat*", async (route) => {
+    observeCChatHits += 1;
+    await route.fulfill({
+      status: 200, contentType: "application/json; charset=utf-8",
+      body: JSON.stringify(observeLongProposalFixture(observeCTurnID, observeCInteractionID))
+    });
+  });
+  const observeCPage = await observeCContext.newPage();
+  const observeCConsole = [];
+  observeCPage.on("pageerror", (error) => {
+    observeCConsole.push("pageerror: " + String(error).slice(0, 300));
+  });
+  await observeCPage.goto(agentBase + "/app/?conversation_id=" + encodeURIComponent(conversationId), { waitUntil: "domcontentloaded" });
+  await observeWaitForScopeMaterialized(observeCPage);
+  await confirmDrive(observeCPage, "把 Track 2 提升 1dB");
+  const observeCardAppeared = await observeCPage
+    .locator(".action-card")
+    .first()
+    .waitFor({ timeout: 15000 })
+    .then(() => true)
+    .catch(() => false);
+  const observeCardState = observeCardAppeared ? await observeWaitForRow(observeCPage, "OBSCARD") : null;
+  await observeCPage.screenshot({ path: join(outDir, "dom-observe-card.png") });
+  writeFileSync(join(outDir, "dom-observe-card.json"), JSON.stringify({
+    chatHits: observeCChatHits,
+    cardAppeared: observeCardAppeared,
+    rowState: observeCardState,
+    flow: await observeCPage.evaluate(() => Array.from(document.querySelectorAll(".message-row")).map((row) => ({
+      cls: row.className,
+      text: (row.textContent || "").replace(/\s+/g, " ").trim().slice(0, 120)
+    }))),
+    console: observeCConsole
+  }, null, 2), "utf-8");
+  await observeCContext.close();
+
+  // Context D: long execution receipt must stay unlayered.
+  const observeDTurnID = "run_e2e_observe_receipt";
+  const observeDContext = await browser.newContext({ viewport });
+  await installReplay(observeDContext);
+  await observeDContext.route("**/agent/chat*", async (route) => {
+    await route.fulfill({
+      status: 200, contentType: "application/json; charset=utf-8",
+      body: JSON.stringify(observeLongReceiptFixture(observeDTurnID))
+    });
+  });
+  const observeDPage = await observeDContext.newPage();
+  await observeDPage.goto(agentBase + "/app/?conversation_id=" + encodeURIComponent(conversationId), { waitUntil: "domcontentloaded" });
+  await observeWaitForScopeMaterialized(observeDPage);
+  await confirmDrive(observeDPage, "执行完成了吗？");
+  const observeReceiptState = await observeWaitForRow(observeDPage, "OBSRECEIPT");
+  await observeDPage.screenshot({ path: join(outDir, "dom-observe-receipt.png") });
+  await observeDContext.close();
+
+  // Context E (O1c): the hydration leg through the REAL Project History path.
+  // A seeded graph node carries the long assistant reply with message_kind
+  // "assistant"; the page hydrates it through /agent/ui/state and the collapsed
+  // default state must recompute from the content alone (expansion is pure UI
+  // state: never persisted, never remembered across a reload).
+  //
+  // Why not reload the driven message of context A? Forensic finding (runs
+  // 20260930_190233 / _190740 + artifacts/o1debug/mini_repro.mjs): on reload the
+  // scope-materializing history sync replaces the flow with the graph messages
+  // and its SAVE effect overwrites the localStorage message bucket BEFORE the
+  // restore effect gets its first chance (the restore gate needs the scope
+  // anchor, which is only set later in the same commit) -- driven messages that
+  // exist only in the local bucket are structurally lost on reload. That is a
+  // pre-existing save/restore ordering property of the app (P1 touches no
+  // hydration code); the mini repro proves the restore path itself works when
+  // the bucket survives (intro-only flow: no clobbering save). Reported to the
+  // decision side on the card; the layering assertion rides the server-side
+  // hydration path here, which is the path real observation Q&A turns take.
+  const observeSeed = await (async () => {
+    const state = await getJSON("/agent/ui/state");
+    const history = state.project_history || {};
+    const draftDir = dirname(history.project_path || "");
+    const historyDir = history.history_dir || join(draftDir, ".vit_history");
+    const stateDir = history.state_dir || "";
+    if (!draftDir || !stateDir) {
+      throw new Error("O1 seed: agent ui/state did not expose a draft project history (project_path/state_dir)");
+    }
+    const commitsDir = join(historyDir, "commits");
+    mkdirSync(commitsDir, { recursive: true });
+    // Reuse the shipped synthetic commit objects as the schema base (they point
+    // at the real project snapshot, so every reader-side validation holds);
+    // seedConversation-style rewrites pin them to the draft history.
+    const baseCommitA = JSON.parse(readFileSync(join(here, "fixtures", "webui_rendered_dom", "msg_revive_commits", "c_20260915T063010_220fb85b.json"), "utf-8"));
+    const baseCommitB = JSON.parse(readFileSync(join(here, "fixtures", "webui_rendered_dom", "msg_revive_commits", "c_20260915T063030_b5459d0d.json"), "utf-8"));
+    const longReply = observeLongReplyFixture();
+    const commitIds = { ask: "c_o1seed_ask", reply: "c_o1seed_reply" };
+    const commitFor = (base, commitID, runID, parents) => ({
+      ...base,
+      id: commitID,
+      goal_id: "goal_o1seed",
+      run_id: runID,
+      parents
+    });
+    writeFileSync(join(commitsDir, commitIds.ask + ".json"), JSON.stringify(commitFor(baseCommitA, commitIds.ask, "run_o1seed", undefined), null, 2), "utf-8");
+    writeFileSync(join(commitsDir, commitIds.reply + ".json"), JSON.stringify(commitFor(baseCommitB, commitIds.reply, "run_o1seed", [commitIds.ask]), null, 2), "utf-8");
+    const nodeFor = (nodeID, kind, commitID, parentID, text, messageKind) => ({
+      id: nodeID,
+      kind,
+      commit_id: commitID,
+      parent_node_id: parentID,
+      branch: history.active_branch || "main",
+      text,
+      text_preview: text.slice(0, 120),
+      goal_id: "goal_o1seed",
+      run_id: "run_o1seed",
+      lifecycle: "durable",
+      persistence: "project_history",
+      message_kind: messageKind,
+      turn_id: "run_o1seed",
+      logical_message_id: nodeID,
+      created_at: new Date().toISOString()
+    });
+    const graph = {
+      project_path: history.project_path,
+      project_uuid: history.project_uuid || "",
+      active_branch: history.active_branch || "main",
+      active_node_id: "n_o1seed_reply",
+      nodes: [
+        nodeFor("n_o1seed_ask", "ask", commitIds.ask, undefined, "Track 2 的 2.1kHz 峰值是从哪里来的？给出完整观察证据。", "user"),
+        nodeFor("n_o1seed_reply", "vit", commitIds.reply, "n_o1seed_ask", longReply.reply, "assistant")
+      ]
+    };
+    const graphPath = join(stateDir, "conversation_graph.json");
+    writeFileSync(graphPath, JSON.stringify(graph, null, 2), "utf-8");
+    return { graphPath, commitsDir };
+  })();
+
+  const observeEContext = await browser.newContext({ viewport });
+  // Empty event stream: this pass asserts the HYDRATED conversation shape, not
+  // the archived replay's trace blocks.
+  await observeEContext.route("**/agent/events*", async (route) => {
+    await route.fulfill({ status: 200, contentType: "application/json; charset=utf-8", body: JSON.stringify({ status: "ok", events: [], next_seq: 0 }) });
+  });
+  const observeEPage = await observeEContext.newPage();
+  await observeEPage.goto(agentBase + "/app/?conversation_id=" + encodeURIComponent(conversationId), { waitUntil: "domcontentloaded" });
+  const observeHydratedState = await observeWaitForRow(observeEPage, "OBSRESTFINAL");
+  await observeEPage.screenshot({ path: join(outDir, "dom-observe-hydrated.png") });
+  let observeHydratedExpandedState = null;
+  if (observeHydratedState && observeHydratedState.layered) {
+    await observeEPage.locator(".observe-output-details > summary").first().click();
+    await observeEPage
+      .locator(".observe-output-details[open]")
+      .first()
+      .waitFor({ timeout: 5000 })
+      .catch(() => {});
+    await observeEPage.waitForTimeout(300);
+    observeHydratedExpandedState = await observeEPage.evaluate(observeRowProbe, "OBSRESTFINAL");
+  }
+  await observeEPage.reload({ waitUntil: "domcontentloaded" });
+  const observeRehydrateSamples = [];
+  for (let index = 0; index < 8; index += 1) {
+    await observeEPage.waitForTimeout(2500);
+    observeRehydrateSamples.push(await observeEPage.evaluate(observeRowProbe, "OBSRESTFINAL"));
+  }
+  const observeRehydratedState = observeRehydrateSamples.find((sample) => sample && sample.layered) || null;
+  const observeEPersisted = await observeEPage.evaluate(() => {
+    const out = {};
+    for (const key of Object.keys(window.localStorage)) {
+      if (key.indexOf("ask_vit_conversation_messages") !== 0) {
+        continue;
+      }
+      try {
+        const bucket = JSON.parse(window.localStorage.getItem(key) || "{}");
+        out[key.slice(0, 80)] = (bucket.messages || []).map((message) => ({
+          role: message.role,
+          message_kind: message.message_kind,
+          contentLength: String(message.content || "").length,
+          hasRestMarker: String(message.content || "").indexOf("OBSRESTFINAL") >= 0
+        }));
+      } catch (error) {
+        out[key.slice(0, 80)] = { parse_error: String(error) };
+      }
+    }
+    return out;
+  });
+  await observeEPage.screenshot({ path: join(outDir, "dom-observe-rehydrated.png") });
+  writeFileSync(join(outDir, "dom-observe-e.json"), JSON.stringify({
+    seed: observeSeed,
+    hydratedState: observeHydratedState,
+    hydratedExpandedState: observeHydratedExpandedState,
+    rehydrateSamples: observeRehydrateSamples,
+    rehydratedState: observeRehydratedState,
+    persistedBuckets: observeEPersisted
+  }, null, 2), "utf-8");
+  await observeEContext.close();
+
+  record("observe-output-O1", checkO1({
+    long: {
+      defaultState: observeDefaultState,
+      expandedState: observeExpandedState,
+      hydratedState: observeHydratedState,
+      rehydratedState: observeRehydratedState,
+      persistedBuckets: observeEPersisted,
+      persistedFullContentLength: observeLongReplyFixture().reply.length
+    },
+    short: observeShortState,
+    proposal: observeCardState,
+    receipt: observeReceiptState,
+    // waiting interactions render on the composer interaction surface, NOT
+    // inside the message row (run-2 forensics: row actionCards=0 while the
+    // interactive card is visible page-wide) -- the premise is page-level.
+    cardPremise: observeCardAppeared
+  }));
+
   // ------------------------------------------------------------- MSG-REVIVE-1
   // Runs LAST: its phase 1 re-seeds the draft conversation graph with the r3
   // capture, so every group that asserts against the archived mtzba6wf graph
@@ -2824,7 +3354,7 @@ async function main() {
 // Exported so a control run can exercise the very same probe and assertion
 // functions against a deliberately healthy state (proof that a red result is a
 // real finding and not an artefact of the probe itself).
-export { DOM_PROBE, checkA1, checkA2, checkA3, checkB1, checkB2, checkC1, checkD1, checkE1, checkF1, checkG1, checkT1, checkK1, checkK2, residencyFixtureEvents, chatOnlyItemStepsFixtureEvents, terminalTurnFixtureEvents, auditionFixtureEvents, auditionUnstickFixtureEvents, auditionTrailFixtureEvents, confirmInteractionFixture, confirmationChatResponseFixture, directExecutionReceiptFixture };
+export { DOM_PROBE, checkA1, checkA2, checkA3, checkB1, checkB2, checkC1, checkD1, checkE1, checkF1, checkG1, checkT1, checkK1, checkK2, checkO1, observeRowProbe, observeLongReplyFixture, observeShortReplyFixture, residencyFixtureEvents, chatOnlyItemStepsFixtureEvents, terminalTurnFixtureEvents, auditionFixtureEvents, auditionUnstickFixtureEvents, auditionTrailFixtureEvents, confirmInteractionFixture, confirmationChatResponseFixture, directExecutionReceiptFixture };
 
 // Run only when this file is the process entry point, so importing it as a
 // library (the control run does) has no side effects.

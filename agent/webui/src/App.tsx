@@ -108,6 +108,7 @@ import type { TrajectoryState } from "./trajectory";
 import { auditionSessions, emptyAuditionState, reduceAuditionEvents, type AuditionSession, type AuditionState } from "./audition";
 import { emptyTaskTrajectoryState, reduceTaskTrajectory } from "./taskTrajectory";
 import { authorityContext, checkoutBlockedByState, continuationChainLive, isAgentTurnRunning } from "./turnControl";
+import { observeOutputLayout, shouldLayerObserveOutput } from "./observeOutputLayering";
 import { agentEventPollBusy, createAgentEventPollIdleGate } from "./eventPolling";
 import { AuditionJudgeCard } from "./trajectory/TrajectoryAuditionPanel";
 import { TraceBlock, OptimisticTraceBlock, shouldShowOptimisticTrace } from "./trace/TraceBlock";
@@ -4517,7 +4518,7 @@ function MessageStream({
       ? null
       : message.status === "pending" && message.role === "assistant"
         ? <TypingMessage content={message.content} />
-        : <p>{message.content}</p>;
+        : <AssistantTextContent message={message} />;
     const actionCardsBlock = message.actions && message.actions.length > 0
       ? (
           <ActionCards
@@ -4705,6 +4706,30 @@ function TypingMessage({ content }: { content: string }) {
         <i />
       </span>
     </p>
+  );
+}
+
+// OPT-OBSERVE-OUTPUT-1 P1（2026-09-30）：观察问答输出分层——长助手文本默认折叠。
+// 命中 observeOutputLayering 谓词的消息渲染为「首段可见 + details 展开全部」；
+// 展开后 lead+rest 拼回完整原文（无重复段），与现行 <p> pre-wrap 渲染同构。
+// 谓词与阈值集中在 observeOutputLayering.ts（设计 §5），此处只做折叠容器；
+// details 原生收纳展开态（纯 UI 态，不进 content/持久化，刷新后默认态重算）。
+export function AssistantTextContent({ message }: { message: ChatMessage }) {
+  if (!shouldLayerObserveOutput(message)) {
+    return <p>{message.content}</p>;
+  }
+  const layout = observeOutputLayout(message.content);
+  if (!layout) {
+    return <p>{message.content}</p>;
+  }
+  return (
+    <div className="observe-output-layered">
+      <p className="observe-output-lead">{layout.lead}</p>
+      <details className="observe-output-details">
+        <summary>展开全部 {layout.hiddenLineCount} 行</summary>
+        <p>{layout.rest}</p>
+      </details>
+    </div>
   );
 }
 
