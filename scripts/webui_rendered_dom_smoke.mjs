@@ -1928,6 +1928,29 @@ function observeShortReplyFixture() {
   };
 }
 
+// FIX-BUCKET-SAVE-RACE-1: the driven reply that exists ONLY in the localStorage
+// bucket (no graph node). Long enough to ride the layering predicate; the marker
+// tail must come back after the reload (context F).
+function observeLocalTailReplyFixture() {
+  const lead = "OBSLOCAL 本地桶末轮结论：这条回复没有图节点，只落 (conversation, scope) 本地桶。";
+  const restLines = [];
+  for (let index = 1; index <= 6; index += 1) {
+    restLines.push("本地证据条目 OBSLOCALT" + index + "：第 " + index + " 条仅存本地桶的证据细节。");
+  }
+  restLines.push("OBSLOCALFINAL 本地桶末轮尾行：刷新后必须仍在。");
+  return {
+    status: "ok",
+    conversation_id: conversationId,
+    reply: lead + "\n\n" + restLines.join("\n"),
+    needs_confirmation: false,
+    goal_status: "completed",
+    turn_id: "run_e2e_bucketrace_local",
+    run_id: "run_e2e_bucketrace_local",
+    goal_id: "run_e2e_bucketrace_local",
+    commands: []
+  };
+}
+
 function observeLongProposalFixture(turnID, interactionID) {
   const fixture = confirmationChatResponseFixture({ turnID, interactionID });
   fixture.reply =
@@ -3152,15 +3175,15 @@ async function main() {
   // Why not reload the driven message of context A? Forensic finding (runs
   // 20260930_190233 / _190740 + artifacts/o1debug/mini_repro.mjs): on reload the
   // scope-materializing history sync replaces the flow with the graph messages
-  // and its SAVE effect overwrites the localStorage message bucket BEFORE the
-  // restore effect gets its first chance (the restore gate needs the scope
+  // and its SAVE effect overwrote the localStorage message bucket BEFORE the
+  // restore effect got its first chance (the restore gate needs the scope
   // anchor, which is only set later in the same commit) -- driven messages that
-  // exist only in the local bucket are structurally lost on reload. That is a
-  // pre-existing save/restore ordering property of the app (P1 touches no
-  // hydration code); the mini repro proves the restore path itself works when
-  // the bucket survives (intro-only flow: no clobbering save). Reported to the
-  // decision side on the card; the layering assertion rides the server-side
-  // hydration path here, which is the path real observation Q&A turns take.
+  // exist only in the local bucket were structurally lost on reload. Fixed by
+  // FIX-BUCKET-SAVE-RACE-1: restore now re-runs on the messages change in the
+  // same commit, before save (declaration order + the existing save-skip), and
+  // context F below asserts the driven reply comes back through a real reload.
+  // The layering assertion here still rides the server-side hydration path,
+  // which is the path real observation Q&A turns take.
   const observeSeed = await (async () => {
     const state = await getJSON("/agent/ui/state");
     const history = state.project_history || {};
@@ -3296,6 +3319,95 @@ async function main() {
     // interactive card is visible page-wide) -- the premise is page-level.
     cardPremise: observeCardAppeared
   }));
+
+  // ----------------------------- FIX-BUCKET-SAVE-RACE-1 (O1 forensic followup)
+  // The bucket save/restore ordering leg on the REAL reload path. Context E's
+  // seed supplies the graph; a composer-driven turn here lands a reply that has
+  // NO graph node, so the localStorage bucket is its only carrier. The reload
+  // keeps the URL conversation id stable, the scope-materializing history sync
+  // replaces the flow with the graph messages, and the save effect used to
+  // overwrite the bucket before the restore effect ever ran (restore only
+  // re-fired on [conversationID, uiState]; neither changes when the URL anchors
+  // the id) -- the driven reply was structurally lost. The fix re-runs restore
+  // on the messages change in the same commit, BEFORE save (declaration order +
+  // the existing save-skip), so the reply must come back. Unit-level pipeline:
+  // agent/webui/src/bucketSaveRace.test.ts.
+  report.bucket_save_race_source =
+    "composer-driven turn (POST /agent/chat fulfilled with the local-tail fixture; no graph node) + real /agent/ui/state " +
+    "graph hydration from the O1 seed; the reload keeps the URL conversation id, so the driven reply exists only in the localStorage bucket";
+  const observeFContext = await browser.newContext({ viewport });
+  await observeFContext.route("**/agent/events*", async (route) => {
+    await route.fulfill({ status: 200, contentType: "application/json; charset=utf-8", body: JSON.stringify({ status: "ok", events: [], next_seq: 0 }) });
+  });
+  await observeFContext.route("**/agent/chat*", async (route) => {
+    await route.fulfill({ status: 200, contentType: "application/json; charset=utf-8", body: JSON.stringify(observeLocalTailReplyFixture()) });
+  });
+  const observeFPage = await observeFContext.newPage();
+  await observeFPage.goto(agentBase + "/app/?conversation_id=" + encodeURIComponent(conversationId), { waitUntil: "domcontentloaded" });
+  await observeWaitForScopeMaterialized(observeFPage);
+  await confirmDrive(observeFPage, "再补一条只进本地桶的观察证据");
+  const observeFLocalState = await observeWaitForRow(observeFPage, "OBSLOCALFINAL");
+  const observeFBucketRows = async () => observeFPage.evaluate((marker) => {
+    const rows = [];
+    for (const key of Object.keys(window.localStorage)) {
+      if (key.indexOf("ask_vit_conversation_messages") !== 0) {
+        continue;
+      }
+      try {
+        const bucket = JSON.parse(window.localStorage.getItem(key) || "{}");
+        rows.push({
+          key: key.slice(0, 90),
+          n: (bucket.messages || []).length,
+          has_marker: (bucket.messages || []).some((message) => String(message.content || "").indexOf(marker) >= 0)
+        });
+      } catch (error) {
+        rows.push({ key: key.slice(0, 90), parse_error: String(error) });
+      }
+    }
+    return rows;
+  }, "OBSLOCALFINAL");
+  let observeFBucketBefore = await observeFBucketRows();
+  for (let attempt = 0; attempt < 10 && !observeFBucketBefore.some((row) => row.has_marker); attempt += 1) {
+    await observeFPage.waitForTimeout(600);
+    observeFBucketBefore = await observeFBucketRows();
+  }
+  await observeFPage.screenshot({ path: join(outDir, "dom-observe-f-before-reload.png") });
+  await observeFPage.reload({ waitUntil: "domcontentloaded" });
+  const observeFRehydrateSamples = [];
+  for (let index = 0; index < 10; index += 1) {
+    await observeFPage.waitForTimeout(2500);
+    observeFRehydrateSamples.push(await observeFPage.evaluate(observeRowProbe, "OBSLOCALFINAL"));
+  }
+  const observeFBucketAfter = await observeFBucketRows();
+  await observeFPage.screenshot({ path: join(outDir, "dom-observe-f-after-reload.png") });
+  writeFileSync(join(outDir, "dom-verify-bucket-save-race-f.json"), JSON.stringify({
+    localState: observeFLocalState,
+    bucketBefore: observeFBucketBefore,
+    rehydrateSamples: observeFRehydrateSamples,
+    bucketAfter: observeFBucketAfter
+  }, null, 2), "utf-8");
+  await observeFContext.close();
+  const observeFFailures = [];
+  if (!observeFLocalState) {
+    observeFFailures.push("driven local-tail reply never rendered before the reload (drive fixture or composer failed)");
+  }
+  if (!observeFBucketBefore.some((row) => row.has_marker)) {
+    observeFFailures.push("driven local-tail reply never reached a localStorage bucket before the reload (precondition)");
+  }
+  if (!observeFRehydrateSamples.some((sample) => sample)) {
+    observeFFailures.push("local-tail reply did not return to the screen within the rehydrate window (structural reload loss)");
+  }
+  if (!observeFBucketAfter.some((row) => row.has_marker)) {
+    observeFFailures.push("local-tail marker gone from every bucket after the reload (bucket clobbered by the graph-only save)");
+  }
+  record("bucket-save-race-F1", {
+    failures: observeFFailures,
+    notes: [
+      "driven reply has no graph node; the (conversation, scope) bucket is its only carrier",
+      "buckets before reload: " + JSON.stringify(observeFBucketBefore),
+      "rehydrate non-null samples: " + observeFRehydrateSamples.filter(Boolean).length + "/" + observeFRehydrateSamples.length
+    ]
+  });
 
   // ------------------------------------------------------------- MSG-REVIVE-1
   // Runs LAST: its phase 1 re-seeds the draft conversation graph with the r3
