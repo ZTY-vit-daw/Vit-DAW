@@ -10,7 +10,7 @@
   4. **50s 回执耗时初判**：22:05:22（末 item 完成）→22:06:37（turn.completed）的 75s 尾段内含 ≥2 次 LLM 往返+解析修复+gate 循环——**耗时主体是 LLM 重试与门循环，非 CCB 数据组装**（用户感知的"CCB 回执清单 50+s"是尾段表象）；精确 per-call 归因（llm telemetry，UTC 时间戳）在本卡内完成。
 - 目标：
   1. **取证**：a) park 存活+新用户消息的路由语义——goalrunner 同会话续用未终局 goal 时，新消息应允许"回答用户+保持 park"而非强制 settle/终局决策（锚定 goalrunner_chat 续用条件与 final gate 的交互）；b) 三拒失败链的逐次 prompt/response 回放（telemetry），LLM 实际产出了什么、gate 错误引导为何不收敛；c) turn id 复用对下游（webui 消息序/轨迹动效，关联 WEBUI-MSG-ORDER-1）的语义面。
-  2. **修复**（方向供取证修正）：a) park 期间新用户消息的路由与门豁免（可回答、可继续、park 保持——人耳判断 POST 仍是唯一 settle）；b) 三拒后的降级面：不再 turn.failed，改为用户可读的明确 settle 边界呈现（与 FS-SETTLE 的修复哲学一致：park 不被机器终结也不炸轮）；c) 若 turn id 复用是渲染面问题根源，评估新切片新 turn id 的成本。
+  2. **修复**（**用户裁定已定方向，2026-09-30，decisions/2026-09-30-park-adoption-and-judgment-card-ruling.md**）：a) park 期间**新用户输入 = 对待裁决段默认采纳**——保留已应用状态、关闭该轮（**新一轮新 turn id**，解决生命周期翻转）、进入新一轮思考；结算记录如实标注 adopted_by_continuation 语义（**不得记为 human_confirmed**——证据链诚实边界）；b) park 不强制终局：门拒绝/超时不得 turn.failed，改为用户可读边界呈现（人耳判断 POST 仍是显式 settle 通道）；c) A/B 卡在新输入后被 settle 为"默认采纳"终态（与 AB-JUDGMENT-CARD-1 联动）。
   3. **回归**：复刻本场景（观察问答→实验→park→新用户消息）——修复前红（turn.failed）/修复后绿（回答落盘+park 保持或合法 settle）。
 - 文件域：agent/internal/chat/（goalrunner_chat/free_state gate/continuation 面）+ agent/internal/agentloop/（final gate）——实锚后申报；测试。
 - 验收标准：取证报告+修复 diff+回归红绿+全量 0 FAIL+真栈复验（park 中新消息场景 exit 0 或用户可读边界）——烟测扩展按 AGENTS §5。

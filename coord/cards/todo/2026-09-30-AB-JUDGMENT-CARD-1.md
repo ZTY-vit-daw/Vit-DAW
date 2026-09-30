@@ -3,6 +3,7 @@
 - 池序 16（P1——裁决卡是人耳判断边界唯一入口，点击无效=park 无法 settle）；来源=M8 手测（证据=coord/runs/M8-FORENSIC-20260930/evidence/）
 - 优先级 / 预估 / 依赖：P1 / 取证 0.5 天+修复 0.5 天 / 关联 FS-PARK-TURNFAIL-1（park 保持与其同栈）；webui+agent 交互面
 - 模型分级：L1 / GLM 首选（跨 webui 交互+agent respond/judgment 链路）
+- **裁定（2026-09-30 用户授权二选一，决策侧定：搞通不删卡）**：decisions/2026-09-30-park-adoption-and-judgment-card-ruling.md——人耳 A/B 判断是核心叙事保留；FS-PARK-TURNFAIL-1 裁定落地后本卡**非阻塞**（用户继续对话=默认采纳，卡 settle 为该终态；用户点卡=显式裁决）。
 - 已核实事实（用户原述+事件流）：
   1. 第一轮结束后 webui 出 A/B 试听卡，携带 **AB 选择与补充信息交互**；用户点击任一交互"都是无效的"（无视觉响应/无结算）。
   2. 事件流：用户点击期间（22:06:50-58）**内核收到了 audition select/stop 事件**（audition.select.changed/selected/stopped 成对出现）——试听播放链路通；但 **judgment 结算未落地**（无 judgment settled 类事件；trajectory.user_judgment.requested×2 后无消费）；turn.failed 后 pending interaction_requests 为空（卡可能已被 FIX-CONFIRM 的终结收卡逻辑 settle 成终态——点击发生在 fail 前还是后需取证时序精确化）。
