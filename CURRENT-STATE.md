@@ -93,7 +93,7 @@
 | [B4_EQ_CLOSED_LOOP_SMOKE_CONTRACT.md](docs/B4_EQ_CLOSED_LOOP_SMOKE_CONTRACT.md) | B4 抽象 EQ 闭环冒烟契约 |
 | [MIXBOARD_DECISION_LEDGER_V1.md](docs/MIXBOARD_DECISION_LEDGER_V1.md) | Mixboard 决策账本与混音报告 v1（Normative） |
 | [PROJECT_AWARE_CAPABILITY_ORCHESTRATION_ARCHITECTURE_V1.md](docs/PROJECT_AWARE_CAPABILITY_ORCHESTRATION_ARCHITECTURE_V1.md) | 项目感知能力编排架构（Normative v1） |
-| [VITNOTE_V1_DESIGN.md](docs/VITNOTE_V1_DESIGN.md) | vit note（框选便签子代理）v1 设计（VITNOTE-DESIGN 产出，2026-09-30）：**规划未实现**，子代理语义单代理实现——事实基线 F1–F13（VITNOTE-RECON-1 采信）+ 统一框选交互（形变提示）+ 便签三态 + 液态玻璃 v1 基线 + note 上下文协议（range_context 富化）+ RiskCeiling 执行闸 + 工程级写租约 + webui 徽章；IMPL 卡骨架 6 张（§10）；便签池方案待用户拍板（§9/§13）；M8 手测节点判据（§11） |
+| [VITNOTE_V1_DESIGN.md](docs/VITNOTE_V1_DESIGN.md) | vit note（框选便签子代理）v1 设计（VITNOTE-DESIGN 产出，2026-09-30）：**规划未实现**，子代理语义单代理实现——事实基线 F1–F14（RECON 采信+clip_scope/自动化现状）+ 统一框选交互（形变提示）+ 便签三态 + 液态玻璃 v1 基线 + note 上下文协议（range_context 富化）+ RiskCeiling 执行闸 + 工程级写租约 + webui 徽章 + 辖区执行面边界与演进（§7.5，clip_scope 开放裁定）；IMPL 骨架 6 张 + 关联卡 CLIPSCOPE-AGENT-1（§10）；便签池方案待用户拍板（§9/§13）；M8 手测节点判据（§11） |
 
 ### 基线与仓库治理
 

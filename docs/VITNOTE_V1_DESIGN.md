@@ -38,6 +38,7 @@ vit note = DAW 前端中"框选区域 → 原位常驻便签小窗 → 携空间
 | F11 | webui 带任意 conversation_id 即可重建该会话——徽章可作零新开面的会话入口 | RECON §5 |
 | F12 | 鼠标跟随气泡不存在；现存两套空间机制互不相通（vit_context_manager hover 栈=事件无坐标；marquee 全局 rect=坐标无控件注册） | RECON §7 |
 | F13 | llm 多模态客户端在库在测未接线；Godot 截图零实现；唯一图像外发点=provider endpoint；browsercapture `user_approved` 为批准位先例；路由缺失 fail-closed 可作"默认关"参照 | RECON §8 |
+| F14 | clip 级效果机制半在：内核竖线 clip_scope（`rack_set_node_clip_scope` IPC）+ agent 工具目录在册 RiskConfirm 级（tools/catalog.go:1047），禁令（单 Clip 绑定仅限手动）为宪法/prompt 纪律层——**2026-09-30 用户裁定向 agent 开放**；自动化零实现，能力层既定序=空间与深度（C3）之后 C4 段落自动化 | ROUTING_CONSTITUTION.md；decisions/2026-09-30-clipscope-open-and-automation-slot.md |
 
 基线版本：agent=3e3cc7f5，Godot 前端=5280822（行号随前端提交漂移，以锚点符号为准）。
 
@@ -160,6 +161,15 @@ vit note = DAW 前端中"框选区域 → 原位常驻便签小窗 → 携空间
 
 v1 不建队列（F8 现状=仅报告计数）；note 与主代理会话隔离使同 conversation 冲突不可能发生。记录为 v2 Worker 线任务。
 
+### 7.5 辖区执行面边界与演进（2026-09-30 用户裁定后定稿）
+
+vit note 的空间叙事在**上下文层**（辖区协议 §5.1）与**执行层**（能力落点）不是同时到位的，本节显式分期：
+
+- **v1 执行面** = 轨级能力（六项 bounded_reversible 写参）+ 区间 audition A/B 验证。辖区上下文（clip_ids/time_window）先行传递——上下文先到、执行后到，note 对超范围操作诚实声明（"这是整轨生效"）。
+- **clip_scope 开放（用户裁定 2026-09-30，F14）**：宪法"单 Clip 绑定仅限手动"修订为 agent 可经 RiskConfirm 确认流提案执行（竖线写入必伴随披露+可逆；rack_add_node 装载与绑定两步分离纪律保留）。落地=关联卡 CLIPSCOPE-AGENT-1（§10）。vit note v1.x 的辖区执行（"只处理这一段"）由此通达——note 提案竖线绑定→主代理确认卡→写竖线，与 §7.1 升级提案机制同构。
+- **自动化（时间性处理："这段渐强/渐弱/段落能量变化"）**：按混音能力层既定序位=空间与深度（时域混响/delay/send，总规划 C3）之后的 C4 段落自动化；不因 vit note 提前，vit note 各版本不依赖。
+- **演进图**：v1 观察问答/轨级 → v1.x 竖线辖区执行（CLIPSCOPE-AGENT-1）→ 能力线 C3 空间与深度 → C4 自动化（note"这段渐强"完全体）。
+
 ## §8 视觉规范（液态玻璃 v1 基线）
 
 - **v1 基线**（对齐苹果 Liquid Glass 语言的克制版）：便签面板半透明底（α≈0.85 中性玻璃灰）+ BackBufferCopy 区域轻模糊（blur 近似半径 8–12px）+ 1px 高亮描边 + 圆角；**无折射/高光/动态液态形变**（v1.x–v2 打磨分期）。
@@ -189,6 +199,7 @@ v1 不建队列（F8 现状=仅报告计数）；note 与主代理会话隔离�
 | VITNOTE-IMPL-4 | agent·写租约 | 工程级写租约 + 并发单测 + 真栈烟测场景（§7.3） | 无（可与 IMPL-1 并行，不同仓文件域） |
 | VITNOTE-IMPL-5 | webui | 框选上下文徽章 + 徽章跳 note 会话 + E2E-WEBUI-1 断言（§6.2） | IMPL-3 |
 | VITNOTE-IMPL-6 | Godot·视觉 | 液态玻璃基线 + 锚点小标签 + 便签池（按 P1 拍板）（§8/§9） | IMPL-1（可后置） |
+| CLIPSCOPE-AGENT-1（关联卡，非 IMPL 序列） | agent+docs | 路由宪法修订：clip_scope 竖线向 agent 开放（RiskConfirm 确认+披露+可逆）+ prompt 纪律同步 + 回归测试（§7.5） | **独立可执行**，不依赖 IMPL 序列；服务 v1.x 辖区执行 |
 
 并行域标注：IMPL-4（agent internal）与 IMPL-1/2（Godot 前端仓）天然不同文件域可并行；IMPL-3/4 同属 agent 仓但包域不同（capabilityruntime/executionruntime vs chat），写卡时再核。Webui 徽章与 FIX-CONFIRM-CARD-1/OPT-OBSERVE-OUTPUT-1 同为 webui 域——池序串行。
 
