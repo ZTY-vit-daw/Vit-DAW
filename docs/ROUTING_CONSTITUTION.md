@@ -16,7 +16,8 @@
 - **语义：** `vit_clip_scope` 为 `track`（默认，空/normalise 后同 track）或 `clip:<clip_id>`；决定 VitClipRouteRegistry 如何把 Clip MIDI/音频路由进该机架节点。
 - **IPC：** `rack_set_node_clip_scope` — 字段：`track_id`、`rack_item_id`、`plugin_item_id`、`clip_scope`（空字符串表示清除为 `track`）。
 - **前端：** Clip 占位输出 → 插件匹配端口类型的连线 **不** 调用 `rack_connect_pins`；连接发送 `rack_set_node_clip_scope`，断开发送空 `clip_scope` 回到 `track`。音频 Clip 使用占位节点第二输出槽（若存在）。
-- **`rack_add_node`：** **不得**根据「Clip 作用域」选中数量自动写入 `clip:<id>`；否则会出现「未手动画竖线却显示竖线」而与全轨生效的听感不一致。绑定单 Clip 仅限用户手动画竖线。
+- **`rack_add_node`：** **不得**根据「Clip 作用域」选中数量自动写入 `clip:<id>`；装载与绑定两步分离——`rack_add_node` 只负责装载节点，单 Clip 绑定只能由独立的 `rack_set_node_clip_scope` 显式执行（静默自动绑定仍禁止；否则会出现「未手动画竖线却显示竖线」而与全轨生效的听感不一致）。
+- **agent 提案路径（2026-09-30 用户裁定，修订原「绑定单 Clip 仅限用户手动画竖线」）：** agent 可经 RiskConfirm 确认流提案单 Clip 绑定（`rack_set_node_clip_scope` 写 `clip:<id>`），用户确认后才写入。三条纪律不变：① **披露**——确认预览须含绑定对象（track/机架节点/目标 clip）与写入参数，写入后回执可见，竖线重建显示与内核 `vit_clip_scope` 状态同步；② **可逆**——解绑路径（发送空 `clip_scope` 回到 `track`）明示于本宪法与回执；③ **两步分离**——`rack_add_node` 等装载路径仍不得静默自动绑定。
 
 ## MIDI / 音频 / 叠音色（默认语义）
 

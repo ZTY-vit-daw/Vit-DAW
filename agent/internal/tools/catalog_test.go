@@ -612,3 +612,28 @@ func TestCommandNameFallbacks(t *testing.T) {
 		t.Fatalf("got %q", got)
 	}
 }
+
+func TestRackSetNodeClipScopeStaysRiskConfirmProposalPath(t *testing.T) {
+	// ROUTING_CONSTITUTION 2026-09-30 修订：单 Clip 绑定向 agent 开放为
+	// RiskConfirm 确认流提案路径；本用例钉住命令面的确认语义不被静默改动。
+	spec, ok := DefaultCatalog().LookupCommand("rack_set_node_clip_scope")
+	if !ok {
+		t.Fatal("rack_set_node_clip_scope missing")
+	}
+	if spec.ToolName != "rack.set_node_clip_scope" {
+		t.Fatalf("tool = %q, want rack.set_node_clip_scope", spec.ToolName)
+	}
+	if spec.RiskLevel != RiskConfirm || !spec.RequiresConfirmation {
+		t.Fatalf("clip scope binding must stay RiskConfirm-gated: %+v", spec)
+	}
+	if !spec.MutatesProject {
+		t.Fatalf("clip scope binding must be flagged as project-mutating: %+v", spec)
+	}
+	if !spec.RefreshAfter {
+		t.Fatalf("clip scope binding must refresh project state so the rebuilt vertical bar stays visible: %+v", spec)
+	}
+	summary := DefaultCatalog().ModelSummary()
+	if !strings.Contains(summary, "rack_set_node_clip_scope tool=rack.set_node_clip_scope risk=confirm") {
+		t.Fatalf("model summary must present clip scope binding as confirm-risk:\n%s", summary)
+	}
+}
