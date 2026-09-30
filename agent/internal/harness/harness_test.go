@@ -7185,3 +7185,128 @@ func TestInvokeCheckoutGuardRejectsRunningGoalAndAllowsStoppedGoal(t *testing.T)
 		t.Fatalf("stopped goal remained blocked: %+v err=%v", allowed, err)
 	}
 }
+
+func TestInvokeRackSetNodeClipScopeProposesConfirmationWithDisclosure(t *testing.T) {
+	// ROUTING_CONSTITUTION 2026-09-30：单 Clip 绑定走 RiskConfirm 提案路径。
+	// 未确认时不得写入内核，且确认预览必须披露绑定对象与写入参数（纪律①披露）。
+	h := New(nil, nil, nil)
+	resp, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool: "rack.set_node_clip_scope",
+		Args: map[string]any{
+			"track_id":       "1007",
+			"rack_item_id":   "rack_item_1",
+			"plugin_item_id": "plugin_item_1",
+			"clip_scope":     "clip:clip_lead",
+		},
+		Source: "test",
+	})
+	if err != nil {
+		t.Fatalf("Invoke returned error: %v", err)
+	}
+	if resp.Status != "needs_confirmation" {
+		t.Fatalf("status = %q, want needs_confirmation; resp=%+v", resp.Status, resp)
+	}
+	if resp.CommandName != "rack_set_node_clip_scope" || resp.Tool != "rack.set_node_clip_scope" {
+		t.Fatalf("resolved response = %+v", resp)
+	}
+	if resp.AgentActionID == "" || resp.Preview == "" {
+		t.Fatalf("missing action id or preview: %+v", resp)
+	}
+	for _, want := range []string{"clip:clip_lead", "rack_item_1", "plugin_item_1"} {
+		if !strings.Contains(resp.Preview, want) {
+			t.Fatalf("preview must disclose the binding target %q, got:\n%s", want, resp.Preview)
+		}
+	}
+}
+
+func TestInvokeRackSetNodeClipScopeConfirmedWritesClipBindingWithVisibleScope(t *testing.T) {
+	// 确认后写入成功且回执/刷新状态可见绑定（agent 侧「竖线可见」等价断言；
+	// Godot 前端的竖线重建属端测边界）。
+	kernel := &fakeKernelClient{replies: []map[string]any{{
+		"status":         "ok",
+		"track_id":       "1007",
+		"rack_item_id":   "rack_item_1",
+		"plugin_item_id": "plugin_item_1",
+		"clip_scope":     "clip:clip_lead",
+	}}}
+	h := NewWithSender(kernel, nil, nil)
+	resp, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool: "rack.set_node_clip_scope",
+		Args: map[string]any{
+			"track_id":       "1007",
+			"rack_item_id":   "rack_item_1",
+			"plugin_item_id": "plugin_item_1",
+			"clip_scope":     "clip:clip_lead",
+		},
+		Confirmed: true,
+		Source:    "test",
+	})
+	if err != nil {
+		t.Fatalf("Invoke returned error: %v", err)
+	}
+	if resp.Status != "ok" {
+		t.Fatalf("status = %q, want ok; error=%q result=%+v", resp.Status, resp.Error, resp.Result)
+	}
+	if len(kernel.commands) != 1 {
+		t.Fatalf("kernel commands = %d, want 1; commands=%+v", len(kernel.commands), kernel.commands)
+	}
+	cmd := kernel.commands[0]
+	if cmd["cmd"] != "rack_set_node_clip_scope" {
+		t.Fatalf("cmd = %v, want rack_set_node_clip_scope", cmd["cmd"])
+	}
+	for key, want := range map[string]any{
+		"track_id":       "1007",
+		"rack_item_id":   "rack_item_1",
+		"plugin_item_id": "plugin_item_1",
+		"clip_scope":     "clip:clip_lead",
+	} {
+		if got := firstString(cmd, key); got != want {
+			t.Fatalf("cmd[%q] = %v, want %v; cmd=%+v", key, got, want, cmd)
+		}
+	}
+	if got := firstString(resp.Result, "clip_scope"); got != "clip:clip_lead" {
+		t.Fatalf("receipt clip_scope = %q, want clip:clip_lead; result=%+v", got, resp.Result)
+	}
+}
+
+func TestInvokeRackSetNodeClipScopeConfirmedUnbindRestoresTrackScope(t *testing.T) {
+	// 纪律②可逆：解绑路径=发送空 clip_scope 回到 track，走同一条确认流。
+	kernel := &fakeKernelClient{replies: []map[string]any{{
+		"status":         "ok",
+		"track_id":       "1007",
+		"rack_item_id":   "rack_item_1",
+		"plugin_item_id": "plugin_item_1",
+		"clip_scope":     "track",
+	}}}
+	h := NewWithSender(kernel, nil, nil)
+	resp, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool: "rack.set_node_clip_scope",
+		Args: map[string]any{
+			"track_id":       "1007",
+			"rack_item_id":   "rack_item_1",
+			"plugin_item_id": "plugin_item_1",
+			"clip_scope":     "",
+		},
+		Confirmed: true,
+		Source:    "test",
+	})
+	if err != nil {
+		t.Fatalf("Invoke returned error: %v", err)
+	}
+	if resp.Status != "ok" {
+		t.Fatalf("status = %q, want ok; error=%q result=%+v", resp.Status, resp.Error, resp.Result)
+	}
+	if len(kernel.commands) != 1 {
+		t.Fatalf("kernel commands = %d, want 1; commands=%+v", len(kernel.commands), kernel.commands)
+	}
+	cmd := kernel.commands[0]
+	if cmd["cmd"] != "rack_set_node_clip_scope" {
+		t.Fatalf("cmd = %v, want rack_set_node_clip_scope", cmd["cmd"])
+	}
+	if got := firstString(cmd, "clip_scope"); got != "" {
+		t.Fatalf("unbind write clip_scope = %q, want empty (restore track)", got)
+	}
+	if got := firstString(resp.Result, "clip_scope"); got != "track" {
+		t.Fatalf("receipt clip_scope = %q, want track; result=%+v", got, resp.Result)
+	}
+}

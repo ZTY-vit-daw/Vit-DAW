@@ -1149,6 +1149,37 @@ func (f *fakeMessageExecutor) RunToolCall(_ context.Context, in executorpkg.Inpu
 				"sections":         []map[string]any{{"section": "1", "reachable_kinds": []string{"bell"}}},
 			}},
 		}, nil
+	case "rack.set_node_clip_scope":
+		if !in.Confirmed {
+			return executorpkg.Result{
+				ToolCallID:           in.ToolCall.ID,
+				Tool:                 in.ToolCall.Tool,
+				CommandName:          "rack_set_node_clip_scope",
+				Status:               "needs_confirmation",
+				RequiresConfirmation: true,
+				Preview: "Bind rack node " + firstMapText(in.ToolCall.Args, "plugin_item_id") + " to " +
+					firstMapText(in.ToolCall.Args, "clip_scope") + " on track " + firstMapText(in.ToolCall.Args, "track_id") +
+					"; unbind later by sending an empty clip_scope to restore track scope",
+				UndoLabel: "Unbind clip scope",
+				Result: map[string]any{
+					"status":                "needs_confirmation",
+					"requires_confirmation": true,
+				},
+			}, nil
+		}
+		return executorpkg.Result{
+			ToolCallID:  in.ToolCall.ID,
+			Tool:        in.ToolCall.Tool,
+			CommandName: "rack_set_node_clip_scope",
+			Status:      "ok",
+			Result: map[string]any{
+				"status":         "ok",
+				"track_id":       firstMapText(in.ToolCall.Args, "track_id"),
+				"rack_item_id":   firstMapText(in.ToolCall.Args, "rack_item_id"),
+				"plugin_item_id": firstMapText(in.ToolCall.Args, "plugin_item_id"),
+				"clip_scope":     firstMapText(in.ToolCall.Args, "clip_scope"),
+			},
+		}, nil
 	default:
 		return executorpkg.Result{ToolCallID: in.ToolCall.ID, Tool: in.ToolCall.Tool, Status: "error", Error: "unexpected tool"}, nil
 	}
@@ -7931,5 +7962,62 @@ func TestMessageLoopRepairsInvalidJSONOnce(t *testing.T) {
 	}
 	if got := client.calls[1][0].Role; got != "system" {
 		t.Fatalf("repair prompt first role = %q", got)
+	}
+}
+
+func TestMessageLoopRackClipScopeProposalWaitsForConfirmationThenWritesBinding(t *testing.T) {
+	// ROUTING_CONSTITUTION 2026-09-30 修订的 agent 侧回归：agent 提案单 Clip
+	// 绑定 → RiskConfirm 等确认 → 确认后写入成功 → 回执披露绑定与解绑路径。
+	client := &fakeMessageCompleter{responses: []string{
+		`{"final":false,"reply":"准备把这条 clip 单独接入机架效果。","tool_calls":[{"id":"bind_clip","tool":"rack.set_node_clip_scope","args":{"track_id":"1007","rack_item_id":"rack_item_1","plugin_item_id":"plugin_item_1","clip_scope":"clip:clip_lead"},"reason":"把 lead clip 绑定到机架节点"}]}`,
+		`{"final":true,"reply":"竖线绑定完成：track 1007 的机架节点已绑定 clip:clip_lead，仅该 clip 生效；如需解绑，发送空 clip_scope 即可恢复全轨生效。","tool_calls":[]}`,
+	}}
+	exec := &fakeMessageExecutor{}
+	loop := &MessageLoop{
+		Client:   client,
+		Config:   config.EngineConfig{BaseURL: "http://example.invalid", APIKey: "test", DefaultModel: "test"},
+		Executor: exec,
+		Budget:   Budget{MaxTurns: 4, MaxToolCalls: 3, MaxConsecutiveErrors: 2},
+	}
+
+	res := loop.Start(context.Background(), Input{
+		UserText:     "把人声这一条 clip 单独接到机架效果上",
+		AllowedTools: []string{"rack.set_node_clip_scope"},
+	})
+	if res.Status != "waiting_confirmation" || res.Continuation == nil || res.Continuation.PendingToolCall == nil {
+		t.Fatalf("start = status=%q stop=%q reply=%q error=%q", res.Status, res.StopReason, res.Reply, res.Error)
+	}
+	pending := res.Continuation.PendingToolCall
+	if pending.Tool != "rack.set_node_clip_scope" {
+		t.Fatalf("pending tool = %q, want rack.set_node_clip_scope", pending.Tool)
+	}
+	if got := firstMapText(pending.Args, "clip_scope"); got != "clip:clip_lead" {
+		t.Fatalf("pending clip_scope = %q, want clip:clip_lead; args=%+v", got, pending.Args)
+	}
+	for _, want := range []string{"clip:clip_lead", "plugin_item_1", "empty clip_scope"} {
+		if !strings.Contains(res.Preview, want) {
+			t.Fatalf("preview must disclose binding and unbind path %q, got:\n%s", want, res.Preview)
+		}
+	}
+	if len(exec.calls) != 1 || exec.confirmed[0] {
+		t.Fatalf("proposal stage must not write; calls=%+v confirmed=%+v", exec.calls, exec.confirmed)
+	}
+
+	cont := *res.Continuation
+	cont.UserText = "confirm"
+	resumed := loop.ResumeAfterConfirmation(context.Background(), cont)
+	if resumed.Status != "completed" || resumed.StopReason != StopReasonDone {
+		t.Fatalf("resumed = status=%q stop=%q reply=%q error=%q", resumed.Status, resumed.StopReason, resumed.Reply, resumed.Error)
+	}
+	if len(exec.calls) != 2 || !exec.confirmed[1] {
+		t.Fatalf("confirmed execution = calls=%+v confirmed=%+v", exec.calls, exec.confirmed)
+	}
+	if got := firstMapText(exec.calls[1].Args, "clip_scope"); got != "clip:clip_lead" {
+		t.Fatalf("confirmed write clip_scope = %q, want clip:clip_lead", got)
+	}
+	for _, want := range []string{"clip:clip_lead", "clip_scope"} {
+		if !strings.Contains(resumed.Reply, want) {
+			t.Fatalf("receipt must disclose binding and unbind path %q, got:\n%s", want, resumed.Reply)
+		}
 	}
 }
