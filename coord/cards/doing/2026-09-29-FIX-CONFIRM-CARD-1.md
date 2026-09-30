@@ -15,6 +15,6 @@
 - 文件域：agent/webui/src/（确认卡渲染+生命周期+权限感知）+（若权限透传需 agent 侧配合，实锚后小改 chat/server.go 权限查询面并申报越域）。接口冻结：不改变 authority API 语义（只消费）。
 - 验收标准：npm run test 全绿+build 通过+E2E-WEBUI-1 渲染烟测含"full access 直执无前置卡+回执可见"与"卡片终态不残留可点击"断言 exit 0+手测路径复验（决策侧或用户）。
 - 停止条件：取证发现确认卡出卡决策在 agent 侧而非 webui 渲染层（越域）→ 实证上交定扩域。
-- 领取：（时间 / origin/main hash / 分支名）
+- 领取：2026-09-30 09:08 / 9f056c97a84c2c66ee481f9ff92c120d940fe1a0 / port/fix-confirm-card-1（GLM-5.3 执行侧，Windows）
 - 回执：（commit hash / 取证结论 / 权限感知锚点 / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
