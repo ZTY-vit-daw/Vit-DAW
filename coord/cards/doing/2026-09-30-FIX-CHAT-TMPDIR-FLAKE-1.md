@@ -13,6 +13,6 @@
 - 文件域：agent/internal/chat/ 测试文件（若需生产侧目录参数化小改，越域申报）。
 - 验收标准：上述验证轮次全绿+gofmt+全量 0 FAIL；回执附各轮退出码。
 - 停止条件：取证发现竞态源于生产代码句柄泄漏（非测试清理路径）→ 上交转生产缺陷卡。
-- 领取：（时间 / origin/main hash / 分支名）
+- 领取：2026-09-30 19:32 / origin/main=c4a10d54398ed3b12a7596d0e68d58892116c824 / port/fix-chat-tmpdir-flake-1（独立 worktree D:/Vit_DAW_worktrees/fix-chat-tmpdir-flake-1）；领取时工作树预存改动=VitApp/Workspace/{Settings.xml,default_project.xml}（运行时工程态，非本卡，不动）+暂存区并行卡 FIX-BUCKET-SAVE-RACE-1 领取 rename（他卡会话，不纳入本卡提交）
 - 回执：（commit hash / 根治方案一句话 / 验证轮次记录）
 - 验收：（裁定文件 / 验收 commit）
