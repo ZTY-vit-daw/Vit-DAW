@@ -21,6 +21,10 @@ param(
     # 全确定性断言：CommandSpec 广告 / 五元数据 / T10 反例 / T11 降级标注 /
     # ref.diff identity+content 边界）。
     [switch]$RefQuerySmoke,
+    # VITNOTE-IMPL-4：工程级写租约并发场景（双 chat 各触发一次 B2 能力执行，
+    # 双 approve 并发入栈——断言两执行段租约区间不重叠且后来者真实排队；
+    # 证据=VIT_WRITE_LEASE_EVENTS_PATH JSONL 工件时间戳）。
+    [switch]$WriteLeaseSmoke,
     [switch]$Strict,
     [int]$WaitSeconds = 20,
     # SMOKE-TOOLING-1: the UI-launched kernel command port can take far longer
@@ -264,6 +268,53 @@ function Write-StripSilenceTestWav {
             if (($t -ge 0.35 -and $t -lt 0.70) -or ($t -ge 1.25 -and $t -lt 1.55)) {
                 $amp = 0.45 * [Math]::Sin(2.0 * [Math]::PI * 440.0 * $t)
             }
+            $writer.Write([int16]([Math]::Round($amp * 32767.0)))
+        }
+    }
+    finally {
+        $writer.Close()
+    }
+    return $Path
+}
+
+# VITNOTE-IMPL-4: deterministic stem for the write-lease smoke fixture. Two
+# stems with deliberately different levels/frequencies give the B2 shadow
+# planner a real static-balance problem (non-empty ActionSet) and DAD
+# analysable signal. Same WAV shape as Write-StripSilenceTestWav.
+function Write-LeaseSmokeStemWav {
+    param([string]$Path, [double]$Amplitude, [double]$Frequency)
+    $dir = Split-Path -Parent $Path
+    New-Item -ItemType Directory -Path $dir -Force | Out-Null
+    $sampleRate = 44100
+    $durationSeconds = 2.2
+    $samples = [int]($sampleRate * $durationSeconds)
+    $channels = 1
+    $bitsPerSample = 16
+    $blockAlign = [int]($channels * $bitsPerSample / 8)
+    $byteRate = [int]($sampleRate * $blockAlign)
+    $dataBytes = [int]($samples * $blockAlign)
+    $writer = [System.IO.BinaryWriter]::new([System.IO.File]::Open($Path, [System.IO.FileMode]::Create, [System.IO.FileAccess]::Write))
+    try {
+        $ascii = [System.Text.Encoding]::ASCII
+        $writer.Write($ascii.GetBytes("RIFF"))
+        $writer.Write([int](36 + $dataBytes))
+        $writer.Write($ascii.GetBytes("WAVE"))
+        $writer.Write($ascii.GetBytes("fmt "))
+        $writer.Write([int]16)
+        $writer.Write([int16]1)
+        $writer.Write([int16]$channels)
+        $writer.Write([int]$sampleRate)
+        $writer.Write([int]$byteRate)
+        $writer.Write([int16]$blockAlign)
+        $writer.Write([int16]$bitsPerSample)
+        $writer.Write($ascii.GetBytes("data"))
+        $writer.Write([int]$dataBytes)
+        for ($i = 0; $i -lt $samples; $i++) {
+            $t = [double]$i / [double]$sampleRate
+            $amp = 0.0
+            # Continuous tone (unlike the strip-silence bursts): DAD features
+            # need sustained signal across the whole stem.
+            $amp = $Amplitude * [Math]::Sin(2.0 * [Math]::PI * $Frequency * $t)
             $writer.Write([int16]([Math]::Round($amp * 32767.0)))
         }
     }
@@ -528,6 +579,16 @@ foreach ($comRootVariable in @("VIT_DAW_DEV_ROOT", "VIT_DEV_ROOT", "VIT_ROOT")) 
     if ([string]::IsNullOrWhiteSpace([System.Environment]::GetEnvironmentVariable($comRootVariable))) {
         Set-Item -LiteralPath ("env:" + $comRootVariable) -Value $RepoRoot
     }
+}
+# VITNOTE-IMPL-4: per-project write lease transitions append to this JSONL
+# file (executionruntime writelease.go). Must be set before agent start so the
+# script-started agent inherits it; a reused agent will not have it and the
+# -WriteLeaseSmoke scenario reports that explicitly. A caller-provided path
+# wins, matching the comRoot pattern above.
+$WriteLeaseEventsFile = [System.Environment]::GetEnvironmentVariable("VIT_WRITE_LEASE_EVENTS_PATH")
+if ([string]::IsNullOrWhiteSpace($WriteLeaseEventsFile)) {
+    $WriteLeaseEventsFile = Join-Path $LogsDir ("write_lease_events_" + (Get-Date -Format "yyyyMMdd_HHmmss") + ".jsonl")
+    Set-Item -LiteralPath "env:VIT_WRITE_LEASE_EVENTS_PATH" -Value $WriteLeaseEventsFile
 }
 if ($RestartAgent) {
     $listener = Get-TcpListener -Port $httpPort
@@ -1195,6 +1256,393 @@ if ($MixSmoke) {
         }
         else {
             Write-Ok ("mix.observe observation_id=" + [string]$mix.result.observation_id)
+        }
+    }
+}
+
+if ($WriteLeaseSmoke) {
+    # VITNOTE-IMPL-4 工程级写租约（VITNOTE_V1_DESIGN §7.3）：
+    # 同工程两条 B2 能力执行并发入栈（双 conversation 各 propose 后，
+    # 双 approve 以 HttpClient 双任务并发发出），断言——
+    #   ①两执行段的租约 [acquired, released] 区间不重叠；
+    #   ②后来者真实排队（wait_started 早于先行者 released）；
+    #   ③先行者执行完成、后来者在租约内被 stale_project_cut 诚实拒绝
+    #     （预冻结 cut 与先行者变异后的 revision 不匹配——分层安全语义）。
+    # 证据 = VIT_WRITE_LEASE_EVENTS_PATH JSONL 事件（纳秒时间戳工件）。
+    # 已声明的概率面：双 approve 同时发出后，第二请求的 revision 快照
+    # 若晚于先行者首个变异落盘，会在 chat 层被拒（不进 Coordinator、无
+    # 租约段）——该结局重试（上限 3 次，每次全新 conversation/proposal），
+    # 不计入通过。
+    Write-Step "Write lease concurrent capability execution smoke (VITNOTE-IMPL-4)"
+    $leaseInvokeUri = $AgentHttp.TrimEnd("/") + "/agent/invoke"
+    $leaseChatUri = $AgentHttp.TrimEnd("/") + "/agent/chat"
+    $leaseRespondUri = $AgentHttp.TrimEnd("/") + "/agent/interaction/respond"
+    $leaseStamp = Get-Date -Format "yyyyMMdd_HHmmss"
+    $leaseArtifactDir = Join-Path (Join-Path $WorkspaceDir "Artifacts\smoke") ("write_lease_" + $leaseStamp)
+    New-Item -ItemType Directory -Path $leaseArtifactDir -Force | Out-Null
+
+    $leaseInvokeTool = {
+        param([string]$Tool, [object]$ToolArgs, [int]$TimeoutSec)
+        Invoke-Json -Method POST -Uri $leaseInvokeUri -Body @{
+            tool = $Tool
+            args = $ToolArgs
+            confirmed = $true
+            source = "dev_agent_smoke.write_lease"
+        } -TimeoutSec $TimeoutSec
+    }
+
+    # 记住当前打开的工程，场景结束后尽力恢复（共享栈礼仪）。
+    $leasePriorState = Invoke-Json -Method POST -Uri $leaseInvokeUri -Body @{
+        tool = "project.state"
+        args = @{}
+        source = "dev_agent_smoke.write_lease.prior_state"
+    } -TimeoutSec ([Math]::Max(30, $WaitSeconds))
+    $leasePriorResult = Get-OptionalProperty -Object $leasePriorState -Name "result"
+    $leasePriorProjectPath = [string](Get-FirstPropertyValue -Object $leasePriorResult -Names @("project_path", "project_file", "file_path"))
+    $leaseProjectSwitched = $false
+
+    try {
+        # --- fixture：隔离工程 + 两条电平失衡 stem，DAD/MOM ready ---
+        # 文件名走 staticbalance 名字推断词表（lead vocal / bass）——TOM 角色
+        # 与功能多样性证据由轨道名喂给 B2 就绪模型；合成音频只承载 DAD L1。
+        Write-LeaseSmokeStemWav -Path (Join-Path $leaseArtifactDir "Lead Vocal.wav") -Amplitude 0.5 -Frequency 440.0 | Out-Null
+        Write-LeaseSmokeStemWav -Path (Join-Path $leaseArtifactDir "Bass.wav") -Amplitude 0.35 -Frequency 110.0 | Out-Null
+        $leaseProjectPath = Join-Path $leaseArtifactDir "write_lease_fixture.vit"
+        $null = & $leaseInvokeTool "project.new" @{} 60
+        $leaseProjectSwitched = $true
+        $null = & $leaseInvokeTool "project.save_as" @{ file_path = $leaseProjectPath } 60
+        $leaseImport = & $leaseInvokeTool "project.import_folder_as_stems" @{
+            folder_path = $leaseArtifactDir
+            recursive = $false
+            target_policy = "create_tracks"
+            start_time_seconds = 0.0
+            skip_unreadable = $false
+            command_timeout_ms = 60000
+        } 120
+        if ([string]$leaseImport.status -ne "ok") {
+            throw ("write lease fixture stems import failed: " + ($leaseImport | ConvertTo-Json -Depth 8 -Compress))
+        }
+        $leaseImportResult = Get-OptionalProperty -Object $leaseImport -Name "result"
+        $leaseImportJob = Get-OptionalProperty -Object $leaseImportResult -Name "analysis_job"
+        $leaseJobId = [string](Get-FirstPropertyValue -Object $leaseImportResult -Names @("analysis_job_id"))
+        if ([string]::IsNullOrWhiteSpace($leaseJobId)) {
+            $leaseJobId = [string](Get-FirstPropertyValue -Object $leaseImportJob -Names @("analysis_job_id", "job_id"))
+        }
+        if ([string]::IsNullOrWhiteSpace($leaseJobId)) {
+            throw ("write lease fixture import returned no analysis job id: " + ($leaseImport | ConvertTo-Json -Depth 8 -Compress))
+        }
+        $null = & $leaseInvokeTool "project.audio_analysis_start" @{ analysis_job_id = $leaseJobId; interval_ms = 10 } 60
+
+        $leaseDadDeadline = (Get-Date).AddSeconds(240)
+        $leaseDadReady = $false
+        while ((Get-Date) -lt $leaseDadDeadline) {
+            $leaseDad = & $leaseInvokeTool "project.audio_analysis_status" @{ analysis_job_id = $leaseJobId; latest = $true } 60
+            $leaseDadResult = Get-OptionalProperty -Object $leaseDad -Name "result"
+            $leaseDadJob = Get-OptionalProperty -Object $leaseDadResult -Name "analysis_job"
+            $leaseDadTotal = [int](Get-FirstPropertyValue -Object $leaseDadJob -Names @("dad_fact_total_count", "dad_fact_total"))
+            $leaseDadReadyCount = [int](Get-FirstPropertyValue -Object $leaseDadJob -Names @("dad_fact_ready_count"))
+            $leaseDadStatus = [string](Get-OptionalProperty -Object $leaseDadJob -Name "dad_fact_status")
+            $leaseWaveformRows = @(Get-OptionalProperty -Object $leaseDadJob -Name "track_waveform_envelopes")
+            if ($leaseDadTotal -gt 0 -and $leaseDadReadyCount -ge $leaseDadTotal -and $leaseDadStatus.ToLower() -eq "ready" -and $leaseWaveformRows.Count -ge $leaseDadTotal) {
+                $leaseDadReady = $true
+                break
+            }
+            Start-Sleep -Seconds 1
+        }
+        if (-not $leaseDadReady) {
+            throw "write lease fixture DAD analysis did not become ready within 240s"
+        }
+        Write-Ok ("fixture DAD ready (tracks=" + [string]$leaseDadTotal + ")")
+
+        # L3 特征显式预填 + MOM 多轨关系 ready（与 capability_runtime_v1_live_smoke 同款前置）。
+        $leaseMixSession = "dev_write_lease_smoke_" + $leaseStamp
+        $null = & $leaseInvokeTool "mix.observe" @{
+            scope = "full_project"
+            project_context = $true
+            observation_only = $true
+            observation_ready_gate = $true
+            disclosure = "digest_catalog"
+            mom_intent = "action_preflight_observation"
+            mix_session_id = $leaseMixSession
+            goal_text = "write lease smoke fixture L3 preflight"
+        } 240
+        $leaseMomDeadline = (Get-Date).AddSeconds(240)
+        $leaseMomReady = $false
+        $leaseMomObservationID = ""
+        while ((Get-Date) -lt $leaseMomDeadline) {
+            $leaseMom = & $leaseInvokeTool "mix.observe" @{
+                scope = "full_project"
+                project_context = $true
+                observation_only = $true
+                disclosure = "digest_catalog"
+                mom_intent = "project_multitrack_relation_observation"
+                mix_session_id = $leaseMixSession
+                goal_text = "write lease smoke fixture readiness"
+            } 240
+            $leaseMomResult = Get-OptionalProperty -Object $leaseMom -Name "result"
+            $leaseMomProjection = Get-OptionalProperty -Object $leaseMomResult -Name "mom_projection"
+            $leaseMomRelation = Get-OptionalProperty -Object $leaseMomProjection -Name "multitrack_relation"
+            $leaseMomStatus = [string](Get-OptionalProperty -Object $leaseMomRelation -Name "status")
+            $leaseMomStatic = Get-OptionalProperty -Object $leaseMomProjection -Name "static_level_relationship"
+            $leaseMomStaticStatus = [string](Get-OptionalProperty -Object $leaseMomStatic -Name "status")
+            $leaseMomObservationID = [string](Get-OptionalProperty -Object $leaseMomResult -Name "observation_id")
+            if (-not [string]::IsNullOrWhiteSpace($leaseMomObservationID) -and $leaseMomStatus.ToLower() -eq "ready" -and $leaseMomStaticStatus.ToLower() -eq "ready") {
+                $leaseMomReady = $true
+                break
+            }
+            Start-Sleep -Seconds 1
+        }
+        if (-not $leaseMomReady) {
+            throw "write lease fixture MOM multitrack/static_level relations did not become ready within 240s"
+        }
+        Write-Ok "fixture MOM multitrack + static_level relations ready"
+
+        # --- 双 conversation 各 propose B2（顺序发起，均不执行），再并发 approve ---
+        $leaseProposeMessage = -join @(
+            [char]0x8BF7, [char]0x4E3A, [char]0x5F53, [char]0x524D, [char]0x9694, [char]0x79BB,
+            [char]0x6D4B, [char]0x8BD5, [char]0x5DE5, [char]0x7A0B, [char]0x751F, [char]0x6210,
+            [char]0x5E76, [char]0x6267, [char]0x884C, ' ', 'B', '2', ' ',
+            [char]0x9759, [char]0x6001, [char]0x5E73, [char]0x8861, [char]0x3002
+        )
+        Add-Type -AssemblyName System.Net.Http
+        $leaseParseTime = {
+            param([string]$Raw)
+            if ([string]::IsNullOrWhiteSpace($Raw)) { return [datetime]::MinValue }
+            # Go RFC3339Nano 可带 >7 位小数；.NET 只认 7 位，先裁剪再按不变文化解析。
+            $trimmed = [regex]::Replace($Raw, '(\.\d{7})\d+', '$1')
+            return [datetime]::Parse($trimmed, [System.Globalization.CultureInfo]::InvariantCulture, [System.Globalization.DateTimeStyles]::AssumeUniversal)
+        }
+
+        # 就绪探测环：B2 就绪证据（faders/roles/static levels）是摄入滞后敏感面
+        # ——试探性 propose 各带一次新观察，反复至 readiness 解锁（canary_stage=
+        # proposal）。readiness_blocked 是可重试滞后，其余阶段立即失败。
+        $leaseReadinessReady = $false
+        $leaseProbe = 0
+        while (-not $leaseReadinessReady -and $leaseProbe -lt 10) {
+            $leaseProbe++
+            $probeResp = Invoke-Json -Method POST -Uri $leaseChatUri -Body @{
+                conversation_id = ("dev_write_lease_probe_" + $leaseStamp + "_" + [string]$leaseProbe)
+                message = $leaseProposeMessage
+                context = @{
+                    agent_mode = "chat"
+                    capability_id = "static_mix.static_balance.v0"
+                    interaction_mode = "propose"
+                    capability_runtime_v1 = $true
+                }
+            } -TimeoutSec 240
+            $probeWorkflowData = Get-OptionalProperty -Object $probeResp -Name "workflow_data"
+            $probeStage = [string](Get-OptionalProperty -Object $probeWorkflowData -Name "canary_stage")
+            if ($probeStage -eq "proposal") {
+                $leaseReadinessReady = $true
+                break
+            }
+            if ($probeStage -ne "readiness_blocked") {
+                throw ("write lease readiness probe hit unexpected canary_stage " + $probeStage + ": " + ($probeResp | ConvertTo-Json -Depth 8 -Compress))
+            }
+            Write-Host ("readiness probe " + [string]$leaseProbe + " still blocked: " + ((Get-OptionalProperty -Object $probeWorkflowData -Name "blockers") -join ","))
+            Start-Sleep -Seconds 3
+        }
+        if (-not $leaseReadinessReady) {
+            throw "write lease B2 readiness did not unlock after " + [string]$leaseProbe + " probes"
+        }
+        Write-Ok ("B2 readiness unlocked after " + [string]$leaseProbe + " probe(s)")
+
+        $leaseAttempts = 0
+        $leasePassed = $false
+        $leaseSummary = $null
+        while (-not $leasePassed -and $leaseAttempts -lt 3) {
+            $leaseAttempts++
+            $convA = "dev_write_lease_a_" + $leaseStamp + "_" + [string]$leaseAttempts
+            $convB = "dev_write_lease_b_" + $leaseStamp + "_" + [string]$leaseAttempts
+            $proposeA = Invoke-Json -Method POST -Uri $leaseChatUri -Body @{
+                conversation_id = $convA
+                message = $leaseProposeMessage
+                context = @{
+                    agent_mode = "chat"
+                    capability_id = "static_mix.static_balance.v0"
+                    interaction_mode = "propose"
+                    capability_runtime_v1 = $true
+                }
+            } -TimeoutSec 240
+            $proposeB = Invoke-Json -Method POST -Uri $leaseChatUri -Body @{
+                conversation_id = $convB
+                message = $leaseProposeMessage
+                context = @{
+                    agent_mode = "chat"
+                    capability_id = "static_mix.static_balance.v0"
+                    interaction_mode = "propose"
+                    capability_runtime_v1 = $true
+                }
+            } -TimeoutSec 240
+            $proposeA | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $leaseArtifactDir ("propose_a_" + [string]$leaseAttempts + ".json")) -Encoding UTF8
+            $proposeB | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $leaseArtifactDir ("propose_b_" + [string]$leaseAttempts + ".json")) -Encoding UTF8
+
+            $leaseConfirmations = @()
+            foreach ($proposeRow in @($proposeA, $proposeB)) {
+                $rowWorkflowData = Get-OptionalProperty -Object $proposeRow -Name "workflow_data"
+                $rowStage = [string](Get-OptionalProperty -Object $rowWorkflowData -Name "canary_stage")
+                $rowSessionID = [string](Get-OptionalProperty -Object $rowWorkflowData -Name "session_id")
+                $rowNeedsConfirmation = [bool](Get-OptionalProperty -Object $proposeRow -Name "needs_confirmation")
+                $rowWorkflow = [string](Get-OptionalProperty -Object $proposeRow -Name "workflow")
+                $rowConfirmation = ""
+                foreach ($interactionRow in @(Get-OptionalProperty -Object $proposeRow -Name "interaction_requests")) {
+                    $rowKind = [string](Get-OptionalProperty -Object $interactionRow -Name "kind")
+                    $rowInteractionWorkflow = [string](Get-OptionalProperty -Object $interactionRow -Name "workflow")
+                    if (($rowKind.ToLower() -in @("proposal_approval", "confirmation")) -and $rowInteractionWorkflow.ToLower() -eq "capability_runtime_v1") {
+                        $rowConfirmation = [string](Get-OptionalProperty -Object $interactionRow -Name "id")
+                        break
+                    }
+                }
+                if (-not $rowNeedsConfirmation -or $rowWorkflow -ne "capability_runtime_v1" -or $rowStage -ne "proposal" -or [string]::IsNullOrWhiteSpace($rowSessionID) -or [string]::IsNullOrWhiteSpace($rowConfirmation)) {
+                    throw ("write lease proposal contract failed (attempt " + [string]$leaseAttempts + "): " + ($proposeRow | ConvertTo-Json -Depth 8 -Compress))
+                }
+                $leaseConfirmations += @{ session_id = $rowSessionID; interaction_id = $rowConfirmation }
+            }
+            $sessionA = [string]$leaseConfirmations[0].session_id
+            $sessionB = [string]$leaseConfirmations[1].session_id
+            $confirmA = [string]$leaseConfirmations[0].interaction_id
+            $confirmB = [string]$leaseConfirmations[1].interaction_id
+
+            # 并发 approve：同一 HttpClient 两个 PostAsync 背靠背发出（毫秒级偏差）。
+            $leaseClient = New-Object System.Net.Http.HttpClient
+            $leaseClient.Timeout = [TimeSpan]::FromSeconds(300)
+            $leasePostJson = {
+                param([string]$InteractionID)
+                (@{ interaction_id = $InteractionID; action_id = "approve"; decision = "approve"; payload = @{} } | ConvertTo-Json -Depth 6 -Compress)
+            }
+            $contentA = New-Object System.Net.Http.StringContent((& $leasePostJson $confirmA), [System.Text.Encoding]::UTF8, "application/json")
+            $contentB = New-Object System.Net.Http.StringContent((& $leasePostJson $confirmB), [System.Text.Encoding]::UTF8, "application/json")
+            $taskA = $leaseClient.PostAsync($leaseRespondUri, $contentA)
+            $taskB = $leaseClient.PostAsync($leaseRespondUri, $contentB)
+            if (-not [System.Threading.Tasks.Task]::WaitAll(@($taskA, $taskB), 300000)) {
+                throw "write lease concurrent approvals did not complete within 300s"
+            }
+            $approveRawA = $taskA.Result.Content.ReadAsStringAsync().Result
+            $approveRawB = $taskB.Result.Content.ReadAsStringAsync().Result
+            $approveA = $approveRawA | ConvertFrom-Json
+            $approveB = $approveRawB | ConvertFrom-Json
+            $approveRawA | Set-Content -LiteralPath (Join-Path $leaseArtifactDir ("approve_a_" + [string]$leaseAttempts + ".json")) -Encoding UTF8
+            $approveRawB | Set-Content -LiteralPath (Join-Path $leaseArtifactDir ("approve_b_" + [string]$leaseAttempts + ".json")) -Encoding UTF8
+
+            # 响应面：恰好一个执行成功（先行者），另一个诚实失败。
+            $stageA = [string](Get-OptionalProperty -Object (Get-OptionalProperty -Object $approveA -Name "workflow_data") -Name "canary_stage")
+            $stageB = [string](Get-OptionalProperty -Object (Get-OptionalProperty -Object $approveB -Name "workflow_data") -Name "canary_stage")
+            $executedStages = @("executed_verified", "executed_needs_review")
+            $winnerASuccess = $executedStages -contains $stageA
+            $winnerBSuccess = $executedStages -contains $stageB
+
+            # 证据面：租约事件 JSONL（需脚本启动的 agent 继承过 env）。
+            $leaseEvents = @()
+            if (Test-Path -LiteralPath $WriteLeaseEventsFile) {
+                foreach ($leaseEventLine in @(Get-Content -LiteralPath $WriteLeaseEventsFile)) {
+                    if (-not [string]::IsNullOrWhiteSpace($leaseEventLine)) {
+                        $leaseEvents += ($leaseEventLine | ConvertFrom-Json)
+                    }
+                }
+            }
+            $eventsA = @($leaseEvents | Where-Object { [string]$_.holder -eq $sessionA })
+            $eventsB = @($leaseEvents | Where-Object { [string]$_.holder -eq $sessionB })
+            $acquiredA = @($eventsA | Where-Object { [string]$_.event -eq "acquired" })
+            $acquiredB = @($eventsB | Where-Object { [string]$_.event -eq "acquired" })
+            $terminalA = @($eventsA | Where-Object { [string]$_.event -in @("released", "ttl_expired") })
+            $terminalB = @($eventsB | Where-Object { [string]$_.event -in @("released", "ttl_expired") })
+
+            $segmentsPresent = ($acquiredA.Count -eq 1 -and $acquiredB.Count -eq 1 -and $terminalA.Count -eq 1 -and $terminalB.Count -eq 1)
+            if (-not $segmentsPresent) {
+                # 只有一段=竞争窗口未成型（第二请求被 chat 层 revision 守卫拦截，
+                # 未进 Coordinator）——预声明的重试类；其它差异=真实失败。
+                if ($acquiredA.Count + $acquiredB.Count -eq 1) {
+                    Write-WarnLine ("write lease attempt " + [string]$leaseAttempts + ": contention window missed (second approval was rejected before the coordinator); retrying with fresh proposals")
+                    $leaseClient.Dispose()
+                    Start-Sleep -Seconds 1
+                    continue
+                }
+                throw ("write lease events missing expected segments (acquiredA=" + [string]$acquiredA.Count + " acquiredB=" + [string]$acquiredB.Count + " terminalA=" + [string]$terminalA.Count + " terminalB=" + [string]$terminalB.Count + "); if the agent was reused instead of started by this script, re-run with -RestartAgent")
+            }
+
+            $timeAcquiredA = & $leaseParseTime ([string]$acquiredA[0].time)
+            $timeAcquiredB = & $leaseParseTime ([string]$acquiredB[0].time)
+            $timeTerminalA = & $leaseParseTime ([string]$terminalA[0].time)
+            $timeTerminalB = & $leaseParseTime ([string]$terminalB[0].time)
+            if ($timeAcquiredA -le $timeAcquiredB) {
+                $firstSession = $sessionA; $secondSession = $sessionB
+                $firstAcquired = $timeAcquiredA; $firstTerminal = $timeTerminalA
+                $secondAcquired = $timeAcquiredB; $secondTerminal = $timeTerminalB
+                $firstStage = $stageA; $secondStage = $stageB
+                $secondEvents = $eventsB
+                $secondApprove = $approveB
+            }
+            else {
+                $firstSession = $sessionB; $secondSession = $sessionA
+                $firstAcquired = $timeAcquiredB; $firstTerminal = $timeTerminalB
+                $secondAcquired = $timeAcquiredA; $secondTerminal = $timeTerminalA
+                $firstStage = $stageB; $secondStage = $stageA
+                $secondEvents = $eventsA
+                $secondApprove = $approveA
+            }
+            $firstSegmentMS = [math]::Round(($firstTerminal - $firstAcquired).TotalMilliseconds)
+            $secondSegmentMS = [math]::Round(($secondTerminal - $secondAcquired).TotalMilliseconds)
+
+            # 断言①：两段租约区间不重叠（先行者释放 ≤ 后来者获得）。
+            if ($firstTerminal -gt $secondAcquired) {
+                throw ("write lease segments overlapped: first=[" + $firstAcquired.ToString("o") + "," + $firstTerminal.ToString("o") + "] second=[" + $secondAcquired.ToString("o") + "," + $secondTerminal.ToString("o") + "]")
+            }
+            # 断言②：后来者真实排队（wait_started 早于先行者释放）。
+            $secondWaitStarted = @($secondEvents | Where-Object { [string]$_.event -eq "wait_started" })
+            if ($secondWaitStarted.Count -lt 1) {
+                throw ("write lease second holder never queued behind the first (no wait_started for " + $secondSession + "); segments were merely sequential")
+            }
+            $timeSecondWait = & $leaseParseTime ([string]$secondWaitStarted[0].time)
+            if ($timeSecondWait -gt $firstTerminal) {
+                throw ("write lease second holder queued only after the first released (wait_started=" + $timeSecondWait.ToString("o") + " first_released=" + $firstTerminal.ToString("o") + ")")
+            }
+            # 断言③：同工程竞争 + 先行者执行完成 + 后来者诚实拒绝。
+            $firstProject = [string]$acquiredA[0].project_id
+            $secondProject = [string]$acquiredB[0].project_id
+            if ($firstProject -ne $secondProject) {
+                throw ("write lease segments ran on different projects: " + $firstProject + " vs " + $secondProject)
+            }
+            if (-not ($executedStages -contains $firstStage)) {
+                throw ("write lease first (lease-winning) execution did not complete: canary_stage=" + $firstStage + " approve=" + ($secondApprove | ConvertTo-Json -Depth 8 -Compress))
+            }
+            $secondError = [string](Get-OptionalProperty -Object $secondApprove -Name "error")
+            $secondGoalStatus = [string](Get-OptionalProperty -Object $secondApprove -Name "goal_status")
+            if ($secondGoalStatus.ToLower() -ne "failed" -or -not ($secondError.Contains("stale_project_cut") -or $secondError.Contains("execution preflight"))) {
+                throw ("write lease second execution was not honestly refused inside its lease segment: goal_status=" + $secondGoalStatus + " error=" + $secondError)
+            }
+            $leaseClient.Dispose()
+            $leasePassed = $true
+            $leaseSummary = @{
+                attempt = $leaseAttempts
+                project_id = $firstProject
+                first_session = $firstSession
+                second_session = $secondSession
+                first_stage = $firstStage
+                second_stage = $secondStage
+                first_segment_ms = $firstSegmentMS
+                second_segment_ms = $secondSegmentMS
+                second_error = $secondError
+                events_file = $WriteLeaseEventsFile
+            }
+        }
+        if (-not $leasePassed) {
+            throw "write lease smoke did not materialize two concurrent execution segments after 3 attempts"
+        }
+        Copy-Item -LiteralPath $WriteLeaseEventsFile -Destination (Join-Path $leaseArtifactDir "lease_events.json") -Force
+        $leaseSummary | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $leaseArtifactDir "summary.json") -Encoding UTF8
+        Write-Ok ("write lease serialized concurrent execution segments (project=" + $leaseSummary.project_id + " first=" + $leaseSummary.first_session + " " + [string]$leaseSummary.first_segment_ms + "ms, second=" + $leaseSummary.second_session + " " + [string]$leaseSummary.second_segment_ms + "ms incl. honest stale_project_cut refusal)")
+        Write-Host ("write lease events artifact: " + (Join-Path $leaseArtifactDir "lease_events.json"))
+    }
+    finally {
+        # 尽力恢复场景前打开的工程（共享栈礼仪；失败仅告警不影响场景结论）。
+        if ($leaseProjectSwitched -and -not [string]::IsNullOrWhiteSpace($leasePriorProjectPath) -and (Test-Path -LiteralPath $leasePriorProjectPath)) {
+            try {
+                $null = & $leaseInvokeTool "project.open" @{ file_path = $leasePriorProjectPath } 120
+                Write-Ok ("restored prior project: " + $leasePriorProjectPath)
+            }
+            catch {
+                Write-WarnLine ("could not restore prior project " + $leasePriorProjectPath + ": " + $_.Exception.Message)
+            }
         }
     }
 }
