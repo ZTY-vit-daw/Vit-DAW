@@ -396,6 +396,15 @@ function App() {
     setTurnReceipts([]);
   }, [conversationID]);
 
+  // FIX-BUCKET-SAVE-RACE-1：restore 必须先于同桶首次 save——依赖含 messages。
+  // reload 时 scope 物化提交把图消息同步 set 进流（scopedConversationRef 由同
+  // 提交里后置的 scope 解析效应钉住），save 效应（依赖含 messages）下一提交即
+  // 首跑；本效应原依赖只有 [conversationID, uiState]，URL 锚定会话两者都未变时
+  // 要等下一轮询拍（~8s）才首跑——先到的 save 把仅存本地桶的末轮消息整桶覆写
+  // （结构性丢失；mini_repro 反证：无图消息无覆写，restore 正常合并回屏）。本
+  // 效应声明在 save 之前：依赖加 messages 后两者在同一提交重跑，restore 先读桶
+  // 并布防 skipNextStoredMessageSaveRef，save 让位（既有 skip 机制），合并流再
+  // 下一提交落盘。restoredMessageScopeRef 仍保证每桶键只真读一次，稳态零变化。
   useEffect(() => {
     const scope = historyScopeKeyFromUIState(uiState);
     if (!scope) {
@@ -414,13 +423,8 @@ function App() {
       return;
     }
     skipNextStoredMessageSaveRef.current = restoreKey;
-    setMessages((current) => {
-      if (!hasMeaningfulChatMessages(current)) {
-        return messagesOrIntro(storedMessages);
-      }
-      return mergeChatMessages(storedMessages, current);
-    });
-  }, [conversationID, uiState]);
+    setMessages((current) => mergeRestoredChatMessages(current, storedMessages));
+  }, [conversationID, messages, uiState]);
 
   useEffect(() => {
     const scope = historyScopeKeyFromUIState(uiState);
@@ -12221,6 +12225,16 @@ function mergeChatMessages(current: ChatMessage[], incoming: ChatMessage[]): Cha
   }
   const base = current.length === 1 && current[0].id === "intro" ? [] : current;
   return settleSupersededInteractionFamilies(resolveCompletedTurnProposals(mergeMessageCollections(base, incoming, chatMessageKeys, mergeChatMessage)));
+}
+
+// FIX-BUCKET-SAVE-RACE-1：restore 合流核（自 restore 效应体抽出，供 reload 桶
+// save/restore 管线的回归测试直接驱动）。现流无有效消息（裸启动只有问候克隆）
+// 时以桶内容起流；否则桶内容并回现流（去重/收口语义同 mergeChatMessages）。
+export function mergeRestoredChatMessages(current: ChatMessage[], storedMessages: ChatMessage[]): ChatMessage[] {
+  if (!hasMeaningfulChatMessages(current)) {
+    return messagesOrIntro(storedMessages);
+  }
+  return mergeChatMessages(storedMessages, current);
 }
 
 function mergeAssistantMessageIntoChat(current: ChatMessage[], incoming: ChatMessage): ChatMessage[] {
