@@ -14,6 +14,6 @@
 - 文件域：agent/webui/src/（App.tsx 水合/save 效应段+涉及测试）；不动 agent Go 侧。
 - 验收标准：npm run test 全绿含新回归用例+build 过+（若加组）E2E-WEBUI-1 exit 0。
 - 停止条件：取证发现既有桶覆写时序另有功能依赖（修复会破坏其他路径）→ 实证上交定方案。
-- 领取：（时间 / origin/main hash / 分支名）
+- 领取：2026-09-30 21:05 / c4a10d54398ed3b12a7596d0e68d58892116c824 / port/fix-bucket-save-race-1（worktree D:/Vit_DAW_worktrees/fix-bucket-save-race-1）
 - 回执：（commit hash / 修复方案一句话 / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
