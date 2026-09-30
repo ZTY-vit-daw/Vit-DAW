@@ -13,6 +13,6 @@
 - 文件域：agent/internal/audioclosure/ + agent/internal/agentloop/（续跑/结算路径，实锚后申报）+ 测试。
 - 验收标准：取证报告（迁移序列+根因定性）+修复 diff+新增回归用例红绿+全量 0 FAIL+gofmt；**真实栈复验**：同场景（观察问答→实验轮→待结算时打断/二次准入拒绝）exit 0 或失败面以用户可读的 settle 边界呈现——烟测脚本扩展按 AGENTS §5。
 - 停止条件：取证发现 fs7→fs9 请求源于更上层的 d1 欠账记账缺陷（结算账本本身错账）→ 上交定 scope。
-- 领取：（时间 / origin/main hash / 分支名）
+- 领取：2026-09-30 20:17 +0800 / 8e9b7b10cbc674d137dd063481e4a6a07b9e0a74 / port/fs-settle-terminal-1（worktree D:/Vit_DAW_worktrees/fs-settle-terminal-1）
 - 回执：（commit hash / 取证报告路径 / 修复方案一句话 / 真栈 run ID）
 - 验收：（裁定文件 / 验收 commit）
