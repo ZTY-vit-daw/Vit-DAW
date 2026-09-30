@@ -22,11 +22,11 @@
 - **历史记录**：基线、验证记录、审计、ADR、设计草案快照等纯记录性文档。保留原位，可查证当时的设计决策，**不得当作现状**。
 - **已废弃**：内容已被实现超越且会误导 agent 的文档，已迁至 `docs/archive/`。
 
-汇总：`docs/` 顶层共 123 份现行/历史文档（现行 57 / 历史记录 66），另有 `docs/archive/` 已废弃文档 4 份；两者合计 127 份。`docs/vsp/` 子目录 13 份文档单独索引（见末节）。
+汇总：`docs/` 顶层共 124 份现行/历史文档（现行 58 / 历史记录 66），另有 `docs/archive/` 已废弃文档 4 份；两者合计 128 份。`docs/vsp/` 子目录 13 份文档单独索引（见末节）。
 
 ---
 
-## 一、现行（56）
+## 一、现行（58）
 
 ### 观察投影与上下文
 
@@ -93,6 +93,7 @@
 | [B4_EQ_CLOSED_LOOP_SMOKE_CONTRACT.md](docs/B4_EQ_CLOSED_LOOP_SMOKE_CONTRACT.md) | B4 抽象 EQ 闭环冒烟契约 |
 | [MIXBOARD_DECISION_LEDGER_V1.md](docs/MIXBOARD_DECISION_LEDGER_V1.md) | Mixboard 决策账本与混音报告 v1（Normative） |
 | [PROJECT_AWARE_CAPABILITY_ORCHESTRATION_ARCHITECTURE_V1.md](docs/PROJECT_AWARE_CAPABILITY_ORCHESTRATION_ARCHITECTURE_V1.md) | 项目感知能力编排架构（Normative v1） |
+| [VITNOTE_V1_DESIGN.md](docs/VITNOTE_V1_DESIGN.md) | vit note（框选便签子代理）v1 设计（VITNOTE-DESIGN 产出，2026-09-30）：**规划未实现**，子代理语义单代理实现——事实基线 F1–F13（VITNOTE-RECON-1 采信）+ 统一框选交互（形变提示）+ 便签三态 + 液态玻璃 v1 基线 + note 上下文协议（range_context 富化）+ RiskCeiling 执行闸 + 工程级写租约 + webui 徽章；IMPL 卡骨架 6 张（§10）；便签池方案待用户拍板（§9/§13）；M8 手测节点判据（§11） |
 
 ### 基线与仓库治理
 
