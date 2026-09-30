@@ -1,0 +1,8 @@
+    "session_id": "audition:turn:free_state_58e1da4258e60179:round-1-e59a897f6f0a87a2",
+    "audition_preview_plane": {
+      "plane": "audition_preview",
+      "session_id": "audition:turn:free_state_58e1da4258e60179:round-1-e59a897f6f0a87a2",
+        "preview_ref": "audio-buffer://audition:turn:free_state_58e1da4258e60179:round-1-e59a897f6f0a87a2/candidate-a:2ch@44100Hz",
+        "preview_ref": "audio-buffer://audition:turn:free_state_58e1da4258e60179:round-1-e59a897f6f0a87a2/candidate-b:2ch@44100Hz",
+      "preview_ref": "audio-buffer://audition:turn:free_state_58e1da4258e60179:round-1-e59a897f6f0a87a2/candidate-a:2ch@44100Hz",
+      "preview_ref": "audio-buffer://audition:turn:free_state_58e1da4258e60179:round-1-e59a897f6f0a87a2/candidate-b:2ch@44100Hz",
