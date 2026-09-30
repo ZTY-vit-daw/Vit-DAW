@@ -95,7 +95,12 @@ import {
   resolveCompletedTurnProposals,
   resolveSupersededMessages,
   responseMessageProtocol,
+  settleSupersededInteractionFamilies,
+  settleTerminatedTurnInteractions,
+  terminalTurnIDsFromEvents,
   transientMessage,
+  TURN_EXPIRED_RESOLVED_ACTION,
+  SUPERSEDED_BY_NEWER_RESOLVED_ACTION,
   upsertActivity
 } from "./messageLifecycle";
 import { emptyTrajectoryState, hasLiveTrajectoryTurn, reduceTrajectoryEvents, trajectoryTurns } from "./trajectory";
@@ -108,6 +113,7 @@ import { AuditionJudgeCard } from "./trajectory/TrajectoryAuditionPanel";
 import { TraceBlock, OptimisticTraceBlock, shouldShowOptimisticTrace } from "./trace/TraceBlock";
 import { appendChainResultMessages, chainResultMessagesFromEvents, hasChainTerminalDeliveryEvent, isChainResultChatMessage } from "./trace/traceDelivery";
 import {
+  CONSUMED_INTERACTION_GUARD_ID,
   forgetConsumedInteraction,
   isConsumedInteractionStatus,
   loadConsumedInteractionIDs,
@@ -484,6 +490,15 @@ function App() {
             // 盖章幂等且未命中零拷贝，对正常形态无行为变化。
             setMessages((current) => stampConsumedInteractionActions(current, resolvedInteractionIDs));
           }
+          // FIX-CONFIRM-CARD-1 ②：回合真终结（完成/失败/停止，waiting_continue
+          // 等驻留态除外）时，该回合未应答的交互卡立即转入不可交互终态——
+          // server 在无应答过期路径上不补发 interaction.resolved（4022 只在
+          // 重复提交时兜底），呈现面按回合终结信号自行收卡，不再残留可点击
+          // 的"过期"卡。
+          const terminalTurnIDs = terminalTurnIDsFromEvents(events);
+          if (terminalTurnIDs.length > 0) {
+            setMessages((current) => settleTerminatedTurnInteractions(current, terminalTurnIDs));
+          }
           if (hasChainTerminalDeliveryEvent(events)) {
             void refreshState();
           }
@@ -805,6 +820,21 @@ function App() {
     });
   }, [composerInteractionID, messages]);
 
+  // FIX-CONFIRM-CARD-1 ③ 呈现面②：composer 投影（后台驻留续跑/刷新后仍待
+  // 应答的确认闸）在完全档下同样不出前置卡——命中直执谓词即自动应答，投影
+  // 随 continuation 退役自愈消失。按交互 id 去重防重放；直执失败时投影卡
+  // 保留（server 侧仍 pending），用户可手动确认。
+  useEffect(() => {
+    if (authorityMode !== "full_project_access" || !composerInteraction) {
+      return;
+    }
+    if (!isFullAccessDirectExecutionInteraction(composerInteraction)) {
+      return;
+    }
+    void fireFullAccessDirectExecution(composerInteraction);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- fireFullAccessDirectExecution 每渲染重建但仅按 id 幂等触发
+  }, [composerInteractionID, authorityMode]);
+
   useEffect(() => {
     const scope = historyScopeKeyFromUIState(uiState);
     if (!scope) {
@@ -914,7 +944,14 @@ function App() {
       });
       debugConfirmation("chat-response", summarizeChatResponseForConfirmation(response));
       postAgentMutationsFromChatResponse(response, "chat");
-      const assistantMessage = assistantMessageFromResponse(response);
+      // FIX-CONFIRM-CARD-1 ③：完全档下 RiskConfirm 确认闸不出前置卡——入流
+      // 消息先剥除直执目标（一次性确认提示改写为直执通告），应答在流合并
+      // 后执行，回执随 runFullAccessDirectExecution 入流。
+      const directTargets = authorityMode === "full_project_access" ? fullAccessDirectExecutionTargets(response) : [];
+      let assistantMessage = assistantMessageFromResponse(response);
+      if (directTargets.length > 0) {
+        assistantMessage = stripFullAccessDirectExecutionActions(assistantMessage, directTargets);
+      }
       setActivities((current) => dismissActivitiesForTurn(current, response.turn_id || response.run_id || response.goal_id || ""));
       debugConfirmation("assistant-message", summarizeMessageForConfirmation(assistantMessage));
       setMessages((current) => mergeAssistantMessageIntoChat(current, assistantMessage));
@@ -926,6 +963,9 @@ function App() {
       }
       await refreshState();
       setMessages((current) => mergeAssistantMessageIntoChat(current, assistantMessage));
+      for (const target of directTargets) {
+        await fireFullAccessDirectExecution(target);
+      }
     } catch (chatError) {
       const message = chatError instanceof Error ? chatError.message : "发送失败";
       setError(message);
@@ -1322,6 +1362,72 @@ function App() {
     } finally {
       setRespondingActionID("");
     }
+  };
+
+  // FIX-CONFIRM-CARD-1 ③：完全档直执——对 fullAccessDirectExecutionTargets 命中
+  // 的 RiskConfirm 确认闸，以 approve 决策自动应答（与用户点击确认执行同一
+  // server 通路），应答回执并入对话流（事后回执：执行摘要+可回滚路径沿用
+  // 既有结果卡）。失败时回滚台账并把原可交互卡补回流中，交还手动确认。
+  const runFullAccessDirectExecution = async (interaction: JsonRecord): Promise<boolean> => {
+    const interactionID = textValue(interaction.id ?? interaction.interaction_id, "");
+    const renderID = actionRenderID(interaction);
+    const synthetic = isSyntheticConfirmationInteraction(interaction);
+    debugConfirmation("full-access-direct", {
+      interaction_id: interactionID,
+      render_id: renderID,
+      synthetic,
+      interaction: summarizeActionForConfirmation(interaction)
+    });
+    recordConsumedInteractions([interactionID, renderID]);
+    try {
+      const receipt = synthetic
+        ? await confirmPlan({
+            plan_id: textValue(interaction.plan_id ?? asRecord(interaction.payload).plan_id, ""),
+            decision: "approve"
+          })
+        : await respondInteraction({
+            interaction_id: interactionID,
+            action_id: "approve",
+            decision: "approve",
+            payload: asRecord(interaction.payload ?? interaction.value)
+          });
+      debugConfirmation("full-access-direct-receipt", summarizeChatResponseForConfirmation(receipt));
+      postAgentMutationsFromChatResponse(receipt, "full_access_direct");
+      const receiptMessage = assistantMessageFromResponse(receipt);
+      if (textValue(receiptMessage.content, "").trim() || (receiptMessage.actions ?? []).length > 0) {
+        setMessages((current) => mergeAssistantMessageIntoChat(current, receiptMessage));
+      }
+      setAgentEventPolling(true);
+      await refreshState();
+      return true;
+    } catch (directError) {
+      const message = directError instanceof Error ? directError.message : "完全档直执失败";
+      forgetConsumedInteraction(interactionID, renderID);
+      setError(`完全访问直执失败（${message}）——已恢复确认卡，可手动确认。`);
+      setMessages((current) => mergeAssistantMessageIntoChat(current, {
+        id: uniqueID("full_access_direct"),
+        role: "assistant",
+        content: textValue(interaction.body ?? interaction.title, ""),
+        mode,
+        actions: [interaction],
+        createdAt: Date.now(),
+        status: "sent",
+        lifecycle: "durable",
+        persistence: "local",
+        message_kind: "proposal"
+      }));
+      return false;
+    }
+  };
+
+  const fullAccessDirectFiredRef = useRef<Set<string>>(new Set());
+  const fireFullAccessDirectExecution = async (interaction: JsonRecord): Promise<boolean> => {
+    const id = textValue(interaction.id ?? interaction.interaction_id, "") || actionRenderID(interaction);
+    if (!id || fullAccessDirectFiredRef.current.has(id)) {
+      return false;
+    }
+    fullAccessDirectFiredRef.current.add(id);
+    return runFullAccessDirectExecution(interaction);
   };
 
   const handleAuditionSelect = async (sessionID: string, candidateID: string) => {
@@ -4742,6 +4848,18 @@ export function proposalCardOutcome(action: JsonRecord, resolved: boolean): Prop
   }
   if (resolvedActionID === "superseded") {
     return { tone: "gray", icon: "undo", text: "已收到你的补充 · 卡面选项未采用" };
+  }
+  // FIX-CONFIRM-CARD-1 ② 终态口径：同族新卡替代（旧交互 id 已失效）、回合
+  // 终结未应答、台账盖章（已应答/撤卡）——一律灰沉淀、不可交互，不残留
+  // 可点击的"过期"形态。
+  if (resolvedActionID === SUPERSEDED_BY_NEWER_RESOLVED_ACTION) {
+    return { tone: "gray", icon: "undo", text: "已替代 · 以最新方案为准" };
+  }
+  if (resolvedActionID === TURN_EXPIRED_RESOLVED_ACTION) {
+    return { tone: "gray", icon: "cross", text: "已失效 · 回合已结束" };
+  }
+  if (resolvedActionID === CONSUMED_INTERACTION_GUARD_ID) {
+    return { tone: "gray", icon: "undo", text: "已处理 · 交互已关闭" };
   }
   if (resolvedActionID === "turn_terminal_receipt") {
     return status.includes("fail")
@@ -11435,6 +11553,78 @@ function responseNeedsConfirmationFallback(response: ChatResponse): boolean {
   return Boolean(response.needs_confirmation) || status.includes("waiting_confirmation") || status.includes("needs_confirmation") || status.includes("confirm");
 }
 
+// FIX-CONFIRM-CARD-1 ③（2026-09-29 决策侧裁定）：full access 的产品语义=用户
+// 授予完全访问——RiskConfirm 级确认闸（通用 confirmation / mix 单步
+// mix_tick_confirmation / mix_treatment_confirmation）不再出前置确认卡，webui
+// 渲染前拦截并自动直执，保留事后回执（执行摘要入对话流）。capability
+// proposal（proposal_approval，GUI-T4 先例：完全档静默沉淀）与选卡/表单类
+// 交互不在直执范围；manual_confirmation 行为不变。
+// 注意：此文案不得含英文 "confirm"（小写 ≤120 字符会被
+// isDisposableConfirmationPromptText 判为一次性确认提示而在 history sync
+// 时被 removeDisposableConfirmationPromptMessages 删除——E2E K2 实证）。
+const FULL_ACCESS_DIRECT_EXECUTION_NOTICE = "完全访问已开启 · 已直接执行该动作，执行回执见下。";
+
+function isFullAccessDirectExecutionInteraction(action: JsonRecord): boolean {
+  if (isCapabilityProposalInteraction(action)) {
+    return false;
+  }
+  const kind = textValue(action.kind, "").toLowerCase();
+  const type = textValue(action.type, "").toLowerCase();
+  const kindOrType = [kind, type];
+  const isConfirmationGate =
+    kindOrType.includes("confirmation") ||
+    kindOrType.includes("mix_tick_confirmation") ||
+    kindOrType.includes("mix_treatment_confirmation") ||
+    type === "approval.requested";
+  if (!isConfirmationGate) {
+    return false;
+  }
+  // 表单/问答类交互（需用户输入）永不自动执行；直执仅覆盖二元批准闸。
+  if (firstArray(action.questions).length > 0 || firstArray(action.fields).length > 0) {
+    return false;
+  }
+  const childActions = firstArray(action.actions).map(asRecord).filter((item) => Object.keys(item).length > 0);
+  if (childActions.length === 0) {
+    return false;
+  }
+  const childIDs = childActions.map((child) => textValue(child.id ?? child.action_id ?? child.decision, "").toLowerCase());
+  const hasApprove = childIDs.some((id) => ["approve", "confirm", "allow", "yes", "ok", "apply"].includes(id));
+  const hasAbort = childIDs.some((id) => ["cancel", "reject", "deny", "dismiss", "no"].includes(id));
+  return hasApprove && hasAbort;
+}
+
+// 一次 chat 响应中可被完全档直执的确认闸集合：优先取服务端 interaction_
+// requests；无 requests 而带 needs_confirmation 时退到合成确认卡（plan 确认
+// 路径），capability proposal 形态的合成卡（proposal_approval）不进直执。
+export function fullAccessDirectExecutionTargets(response: ChatResponse): JsonRecord[] {
+  const fromRequests = firstArray(response.interaction_requests)
+    .map(asRecord)
+    .filter((action) => Object.keys(action).length > 0 && isFullAccessDirectExecutionInteraction(action));
+  if (fromRequests.length > 0) {
+    return fromRequests;
+  }
+  return confirmationFallbackActionsFromResponse(response)
+    .filter((action) => isFullAccessDirectExecutionInteraction(action) && !isCapabilityProposalInteraction(action));
+}
+
+// 直执目标的呈现面治理：从入流消息上摘除前置确认卡（不渲染可交互形态）；
+// 消息若只剩一次性确认提示文本，则改写为直执通告行（回执随后入流）。
+export function stripFullAccessDirectExecutionActions(message: ChatMessage, targets: JsonRecord[]): ChatMessage {
+  if (targets.length === 0) {
+    return message;
+  }
+  const removeIDs = new Set(targets.map((action) => actionRenderID(action)));
+  const actions = (message.actions ?? []).filter((value) => {
+    const action = asRecord(value);
+    return !removeIDs.has(actionRenderID(action));
+  });
+  let content = message.content;
+  if (actions.length === 0 && isDisposableConfirmationPromptText(content)) {
+    content = FULL_ACCESS_DIRECT_EXECUTION_NOTICE;
+  }
+  return { ...message, actions, content };
+}
+
 function isSyntheticConfirmationInteraction(interaction: JsonRecord): boolean {
   return truthy(interaction._synthetic_confirmation);
 }
@@ -11993,7 +12183,7 @@ function historyMessagesFromUIState(uiState: AgentUIState | null): ChatMessage[]
       messages.push(historyMessage);
     }
   });
-  return resolveCompletedTurnProposals(resolveSupersededMessages(messages));
+  return settleSupersededInteractionFamilies(resolveCompletedTurnProposals(resolveSupersededMessages(messages)));
 }
 
 function removeDisposableConfirmationPromptMessages(messages: ChatMessage[]): ChatMessage[] {
@@ -12005,7 +12195,7 @@ function mergeChatMessages(current: ChatMessage[], incoming: ChatMessage[]): Cha
     return current;
   }
   const base = current.length === 1 && current[0].id === "intro" ? [] : current;
-  return resolveCompletedTurnProposals(mergeMessageCollections(base, incoming, chatMessageKeys, mergeChatMessage));
+  return settleSupersededInteractionFamilies(resolveCompletedTurnProposals(mergeMessageCollections(base, incoming, chatMessageKeys, mergeChatMessage)));
 }
 
 function mergeAssistantMessageIntoChat(current: ChatMessage[], incoming: ChatMessage): ChatMessage[] {
@@ -12113,7 +12303,7 @@ function mergeChatMessage(existing: ChatMessage, incoming: ChatMessage): ChatMes
   };
 }
 
-function mergeMessageActions(current: JsonRecord[], incoming: JsonRecord[]): JsonRecord[] {
+export function mergeMessageActions(current: JsonRecord[], incoming: JsonRecord[]): JsonRecord[] {
   if (current.length === 0) {
     return incoming;
   }
@@ -12139,11 +12329,34 @@ function mergeActionRecord(existing: JsonRecord, incoming: JsonRecord): JsonReco
   if (isComposerInteraction(existing) && !isComposerInteraction(incoming)) {
     return existing;
   }
+  // FIX-CONFIRM-CARD-1 ②：已结算的交互动作不得从 incoming 复活子按钮。结算
+  // 写入口径一律摘按钮（resolveInteractionInMessages / guard 盖章 / 回合终结
+  // 与同族替代结算），existing.actions 为空是"已结算"而非"缺按钮数据"；旧
+  // 回退取 incoming.actions 会把死卡复活成可点击形态（点击命中 server 4022
+  // 过期口径——E2E K1/K2 实证：settle 后的二次同键合并与台账盖章版合并均
+  // 触发）。已结算形态以 existing 为权威终稿。
+  if (isSettledInteractionRecord(existing)) {
+    return existing;
+  }
   return {
     ...incoming,
     ...existing,
     actions: firstArray(existing.actions).length > 0 ? existing.actions : incoming.actions
   };
+}
+
+function isSettledInteractionRecord(action: JsonRecord): boolean {
+  if (textValue(action._ui_source, "") !== "interaction") {
+    return false;
+  }
+  if (textValue(action.resolved_action_id, "") !== "") {
+    return true;
+  }
+  const status = textValue(action.status ?? action.stage, "").toLowerCase();
+  return isConsumedInteractionStatus(status) ||
+    status.includes("complete") ||
+    status.includes("cancel") ||
+    status.includes("fail");
 }
 
 function actionMergeKey(action: JsonRecord, index: number): string {

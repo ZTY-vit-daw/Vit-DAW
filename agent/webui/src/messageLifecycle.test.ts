@@ -10,7 +10,12 @@ import {
   resolveCompletedTurnProposals,
   resolveSupersededMessages,
   responseMessageProtocol,
-  transientMessage
+  settleSupersededInteractionFamilies,
+  settleTerminatedTurnInteractions,
+  terminalTurnIDsFromEvents,
+  transientMessage,
+  TURN_EXPIRED_RESOLVED_ACTION,
+  SUPERSEDED_BY_NEWER_RESOLVED_ACTION
 } from "./messageLifecycle";
 import { chatMessageFromAgentEvent } from "./App";
 import type { AgentEvent, ChatMessage, ChatResponse } from "./types";
@@ -426,5 +431,142 @@ describe("AUDITION-LANE-1：audition 活动归属会话回合域（不落流底 
     const activities = reduceAgentEventActivities([], [plain], (event) => chatMessageFromAgentEvent(event, "default"));
     expect(activities).toHaveLength(1);
     expect(activities[0].turn_id ?? "").toBe("");
+  });
+});
+
+// FIX-CONFIRM-CARD-1 ②（M1 手测缺陷②）：确认卡生命周期与任务态绑定——
+// 任务终结（完成/失败/停止）或被同族新卡替代时，未应答卡立即转入不可交互
+// 终态（摘除子按钮），不残留可点击的"过期"卡（点击才揭示 server 4022）。
+function waitingConfirmationAction(interactionID: string, extras: Record<string, unknown> = {}): Record<string, unknown> {
+  return {
+    _ui_source: "interaction",
+    id: interactionID,
+    interaction_id: interactionID,
+    kind: "mix_tick_confirmation",
+    type: "mix_tick_confirmation",
+    workflow: "mix_tick",
+    title: "混音单步待确认",
+    status: "waiting_for_user",
+    actions: [
+      { id: "approve", label: "确认执行", style: "primary" },
+      { id: "cancel", label: "取消", style: "secondary" }
+    ],
+    ...extras
+  };
+}
+
+function interactionCarrierMessage(id: string, actions: Record<string, unknown>[], extras: Partial<ChatMessage> = {}): ChatMessage {
+  return {
+    id,
+    role: "assistant",
+    content: "需要确认后执行。",
+    mode: "default",
+    artifacts: [],
+    actions: actions as ChatMessage["actions"],
+    createdAt: 1000,
+    status: "sent",
+    lifecycle: "durable",
+    persistence: "project_history",
+    message_kind: "proposal",
+    ...extras
+  } as ChatMessage;
+}
+
+describe("FIX-CONFIRM-CARD-1 ②：terminalTurnIDsFromEvents 回合真终结提取", () => {
+  it("完成/失败/停止入列；waiting_continue 切片驻留不是终结", () => {
+    const events: AgentEvent[] = [
+      { seq: 1, type: "turn.started", run_id: "run_a", status: "running" } as AgentEvent,
+      { seq: 2, type: "turn.completed", run_id: "run_a", status: "waiting_continue" } as AgentEvent,
+      { seq: 3, type: "turn.completed", run_id: "run_a", status: "completed" } as AgentEvent,
+      { seq: 4, type: "turn.failed", run_id: "run_b", status: "failed" } as AgentEvent,
+      { seq: 5, type: "turn.stopped", run_id: "run_c", status: "stopped" } as AgentEvent,
+      { seq: 6, type: "trajectory.turn.completed", run_id: "run_d", status: "completed" } as AgentEvent
+    ];
+    expect(terminalTurnIDsFromEvents(events)).toEqual(["run_a", "run_b", "run_c", "run_d"]);
+  });
+
+  it("非终结事件与无回合域事件不入列；同回合重复终结去重", () => {
+    const events: AgentEvent[] = [
+      { seq: 1, type: "item.completed", run_id: "run_a", status: "completed" } as AgentEvent,
+      { seq: 2, type: "turn.completed", status: "completed" } as AgentEvent,
+      { seq: 3, type: "turn.completed", run_id: "run_a", status: "completed" } as AgentEvent,
+      { seq: 4, type: "turn.completed", run_id: "run_a", status: "completed" } as AgentEvent
+    ];
+    expect(terminalTurnIDsFromEvents(events)).toEqual(["run_a"]);
+  });
+});
+
+describe("FIX-CONFIRM-CARD-1 ②：settleTerminatedTurnInteractions 回合终结收卡", () => {
+  it("终结回合内未应答卡转不可交互终态（摘按钮+turn_expired 标识）", () => {
+    const messages = [interactionCarrierMessage("m1", [waitingConfirmationAction("interaction_1")], { turn_id: "run_a" })];
+    const settled = settleTerminatedTurnInteractions(messages, ["run_a"]);
+    const action = settled[0]?.actions?.[0] as Record<string, unknown>;
+    expect(String(action.status)).toBe("completed");
+    expect(String(action.resolved_action_id)).toBe(TURN_EXPIRED_RESOLVED_ACTION);
+    expect(action.actions).toEqual([]);
+  });
+
+  it("其它回合与他回合卡不波及；已结算卡（按钮已摘）不二次改判", () => {
+    const approved = { ...waitingConfirmationAction("interaction_done"), status: "completed", resolved_action_id: "approve", actions: [] };
+    const messages = [
+      interactionCarrierMessage("m0", [waitingConfirmationAction("interaction_other_turn")], { turn_id: "run_z" }),
+      interactionCarrierMessage("m1", [approved, waitingConfirmationAction("interaction_open")], { turn_id: "run_a" })
+    ];
+    const settled = settleTerminatedTurnInteractions(messages, ["run_a"]);
+    const actions = settled[1]?.actions ?? [];
+    expect((actions[0] as Record<string, unknown>).resolved_action_id).toBe("approve");
+    expect((actions[1] as Record<string, unknown>).resolved_action_id).toBe(TURN_EXPIRED_RESOLVED_ACTION);
+    expect((settled[0]?.actions?.[0] as Record<string, unknown>).status).toBe("waiting_for_user");
+  });
+
+  it("无匹配时引用相等（零拷贝）", () => {
+    const messages = [interactionCarrierMessage("m1", [waitingConfirmationAction("interaction_1")], { turn_id: "run_a" })];
+    expect(settleTerminatedTurnInteractions(messages, ["run_b"])).toBe(messages);
+    expect(settleTerminatedTurnInteractions(messages, [])).toBe(messages);
+  });
+});
+
+describe("FIX-CONFIRM-CARD-1 ②：settleSupersededInteractionFamilies 同族替代收卡", () => {
+  it("同 plan 出现更新的待应答卡时旧卡结算为已替代；最新卡保持可交互", () => {
+    const messages = [
+      interactionCarrierMessage("m1", [waitingConfirmationAction("interaction_old", { kind: "confirmation", type: "confirmation", payload: { plan_id: "plan_1" }, workflow: "" })]),
+      interactionCarrierMessage("m2", [waitingConfirmationAction("interaction_new", { kind: "confirmation", type: "confirmation", payload: { plan_id: "plan_1" }, workflow: "" })])
+    ];
+    const settled = settleSupersededInteractionFamilies(messages);
+    expect((settled[0]?.actions?.[0] as Record<string, unknown>).resolved_action_id).toBe(SUPERSEDED_BY_NEWER_RESOLVED_ACTION);
+    expect((settled[0]?.actions?.[0] as Record<string, unknown>).actions).toEqual([]);
+    expect((settled[1]?.actions?.[0] as Record<string, unknown>).status).toBe("waiting_for_user");
+  });
+
+  it("mix_tick 同 workflow 归族（每会话至多一张待确认）；不同族互不影响", () => {
+    const messages = [
+      interactionCarrierMessage("m1", [waitingConfirmationAction("interaction_tick_old")]),
+      interactionCarrierMessage("m2", [
+        waitingConfirmationAction("interaction_tick_new"),
+        waitingConfirmationAction("interaction_treat", { kind: "mix_treatment_confirmation", type: "mix_treatment_confirmation", workflow: "mix_treatment" })
+      ])
+    ];
+    const settled = settleSupersededInteractionFamilies(messages);
+    const older = settled[0]?.actions?.[0] as Record<string, unknown>;
+    const newerTick = (settled[1]?.actions ?? [])[0] as Record<string, unknown>;
+    const treatment = (settled[1]?.actions ?? [])[1] as Record<string, unknown>;
+    expect(String(older.resolved_action_id)).toBe(SUPERSEDED_BY_NEWER_RESOLVED_ACTION);
+    expect(String(newerTick.status)).toBe("waiting_for_user");
+    expect(String(treatment.status)).toBe("waiting_for_user");
+  });
+
+  it("capability proposal 卡（proposal_approval+presentation）同样按 plan 族替代结算", () => {
+    const presentation = { schema_version: "vit.proposal_presentation.v1", proposal_id: "prop_1", title: "方案" };
+    const proposalAction = (interactionID: string, revision: number) => waitingConfirmationAction(interactionID, {
+      kind: "proposal_approval", type: "proposal_approval", workflow: "capability_runtime_v1",
+      payload: { plan_id: "prop_1", proposal_presentation: { ...presentation, proposal_revision: revision } }
+    });
+    const messages = [
+      interactionCarrierMessage("m1", [proposalAction("interaction_rev0", 0)]),
+      interactionCarrierMessage("m2", [proposalAction("interaction_rev1", 1)])
+    ];
+    const settled = settleSupersededInteractionFamilies(messages);
+    expect((settled[0]?.actions?.[0] as Record<string, unknown>).resolved_action_id).toBe(SUPERSEDED_BY_NEWER_RESOLVED_ACTION);
+    expect((settled[1]?.actions?.[0] as Record<string, unknown>).status).toBe("waiting_for_user");
   });
 });

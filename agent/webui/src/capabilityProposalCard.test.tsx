@@ -106,6 +106,35 @@ describe("确认卡 Mondrian 卡族重皮（GUI-T4 ①）", () => {
     expect(markup).not.toContain('class="btn approve"');
     expect(markup).not.toContain('class="c-ask"');
   });
+
+  // FIX-CONFIRM-CARD-1 ②（M1 手测缺陷②）：任务终结/被替代/台账盖章的终态
+  // 卡一律灰沉淀且不可交互——不残留可点击的"过期"卡。
+  it("回合终结未应答：沉淀为「已失效 · 回合已结束」，无按钮", () => {
+    const action = { ...waitingAction, status: "completed", resolved_action_id: "turn_expired", actions: [] };
+    const markup = renderCard(action);
+    expect(markup).toContain("card capability-proposal-card settled");
+    expect(markup).toContain('class="outcome tone-gray"');
+    expect(markup).toContain("已失效 · 回合已结束");
+    expect(markup).not.toContain('class="btn approve"');
+    expect(markup).not.toContain('class="btn reject"');
+  });
+
+  it("同族新卡替代：沉淀为「已替代 · 以最新方案为准」", () => {
+    const action = { ...waitingAction, status: "completed", resolved_action_id: "superseded_by_newer", actions: [] };
+    const markup = renderCard(action);
+    expect(markup).toContain("card capability-proposal-card settled");
+    expect(markup).toContain("已替代 · 以最新方案为准");
+    expect(markup).not.toContain('class="btn approve"');
+  });
+
+  it("台账盖章（已应答/撤卡）：沉淀为「已处理 · 交互已关闭」，不误标为已批准", () => {
+    const action = { ...waitingAction, status: "resolved", resolved_action_id: "consumed_interaction_guard", actions: [] };
+    const markup = renderCard(action);
+    expect(markup).toContain("card capability-proposal-card settled");
+    expect(markup).toContain("已处理 · 交互已关闭");
+    expect(markup).not.toContain("已批准");
+    expect(markup).not.toContain('class="btn approve"');
+  });
 });
 
 describe("proposalCardOutcome 推导", () => {

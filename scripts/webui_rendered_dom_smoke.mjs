@@ -46,6 +46,17 @@
 //                    dynamic surface, preparing explicitly); after the judgment
 //                    the same single card settles with the verdict and the lane
 //                    stays free of audition rows (定型不残留)
+//   K1 confirm    -- FIX-CONFIRM-CARD-1 defect 2: a RiskConfirm confirmation
+//                    card left unanswered when its turn truly completes must
+//                    settle non-interactively in place (zero clickable
+//                    affordances; no clickable "expired" card), and manual mode
+//                    must never call the respond endpoint on its own
+//   K2 fullaccess -- FIX-CONFIRM-CARD-1 defect 3 (2026-09-29 ruling): under
+//                    authority_mode=full_project_access the same RiskConfirm gate
+//                    renders NO pre-confirmation card anywhere, the respond
+//                    endpoint receives exactly one approve (direct execution),
+//                    and the direct-execution notice + execution receipt are
+//                    visible in the conversation (事后回执)
 //
 // Exit code: 0 = every group passed (delivery gate), 1 = at least one failed
 // (pre-fix red, with the failing group recorded in the report).
@@ -557,6 +568,21 @@ const DOM_PROBE = () => {
     interactiveCards: Array.from(document.querySelectorAll(".action-card.interactive")).map((el) => ({
       text: (el.textContent || "").replace(/\s+/g, " ").trim().slice(0, 140),
       buttons: el.querySelectorAll(".action-buttons button").length,
+      inComposerShell: Boolean(el.closest(".composer-interaction-shell"))
+    })),
+    // FIX-CONFIRM-CARD-1: the confirmation-card surface is sampled as its own
+    // element set (StandardActionCard .action-card and CapabilityProposalCard
+    // .capability-proposal-card alike) with clickable affordances counted, so
+    // "terminal cards must not stay clickable" / "full access renders no
+    // pre-confirmation card" are real DOM facts, not inferences.
+    confirmCards: Array.from(document.querySelectorAll(".action-card, .capability-proposal-card")).map((el) => ({
+      cls: typeof el.className === "string" ? el.className : "",
+      text: (el.textContent || "").replace(/\s+/g, " ").trim().slice(0, 140),
+      interactive: el.classList.contains("interactive"),
+      buttons: el.querySelectorAll("button").length,
+      actionButtons: el.querySelectorAll(".action-buttons button").length,
+      approveButtons: el.querySelectorAll(".btn.approve, button.action-button.primary").length,
+      outcome: (el.querySelector(".outcome") ? el.querySelector(".outcome").textContent || "" : "").replace(/\s+/g, " ").trim(),
       inComposerShell: Boolean(el.closest(".composer-interaction-shell"))
     })),
     composerInteractionShell: Boolean(document.querySelector(".composer-interaction-shell")),
@@ -1657,6 +1683,179 @@ function checkH1(result, options) {
   return { failures, notes };
 }
 
+// --------------------------------------------------- FIX-CONFIRM-CARD-1 K1/K2
+//
+// Card 2026-09-29 FIX-CONFIRM-CARD-1 (M1 manual-test defects 2+3). Both passes
+// drive the REAL composer against network-layer fixture responses (the isolated
+// agent has no kernel and no LLM behind it -- same posture as the G1 render-only
+// precedent; the agent's Go-side respond routing keeps its own handler tests).
+//
+//   K1 (manual mode, defect 2) -- a RiskConfirm mix confirmation card renders
+//      interactive; the turn then truly completes (turn.completed status
+//      completed) while the card was never answered. The card must settle in
+//      place with zero clickable affordances (no clickable "expired" card left
+//      for a click to reveal the 4022 wording), and manual mode must never call
+//      the respond endpoint on its own.
+//   K2 (full access, defect 3 + the 2026-09-29 ruling) -- /agent/ui/state
+//      carries authority_mode=full_project_access; the same chat response must
+//      produce NO pre-confirmation card anywhere (stream or composer shell),
+//      the respond endpoint must receive exactly one approve (direct execution),
+//      the direct-execution notice line must be visible, and the execution
+//      receipt must land in the conversation.
+
+function confirmInteractionFixture(options = {}) {
+  const interactionID = options.interactionID || "interaction_e2e_confirm";
+  const kind = options.kind || "mix_tick_confirmation";
+  return {
+    id: interactionID,
+    interaction_id: interactionID,
+    kind: kind,
+    type: kind,
+    source: "vit_agent",
+    workflow: options.workflow || "mix_tick",
+    stage: "pending_confirmation",
+    title: options.title || "混音单步待确认",
+    body: options.body || "把 Track 2 提升 1dB",
+    status: "waiting_for_user",
+    plan_id: options.planID || "",
+    actions: [
+      { id: "approve", label: "确认执行", style: "primary", recommended: true },
+      { id: "cancel", label: "取消", style: "secondary" }
+    ]
+  };
+}
+
+function confirmationChatResponseFixture(options = {}) {
+  const turnID = options.turnID || "run_e2e_confirm";
+  return {
+    status: "ok",
+    conversation_id: conversationId,
+    reply: options.reply !== undefined ? options.reply : "这个操作需要你确认后才会执行。",
+    needs_confirmation: true,
+    goal_status: options.goalStatus || "waiting_confirmation",
+    plan_id: options.planID || "plan_e2e_confirm",
+    turn_id: turnID,
+    run_id: turnID,
+    goal_id: turnID,
+    interaction_requests: options.interactions !== undefined ? options.interactions : [confirmInteractionFixture(options)],
+    commands: []
+  };
+}
+
+function directExecutionReceiptFixture(options = {}) {
+  const turnID = options.turnID || "run_e2e_confirm";
+  return {
+    status: "ok",
+    conversation_id: conversationId,
+    reply: options.reply || "已完成：Track 2 提升 +1.0 dB（可从版本检查点回滚）。",
+    needs_confirmation: false,
+    goal_status: "completed",
+    turn_id: turnID,
+    run_id: turnID,
+    goal_id: turnID,
+    interaction_id: options.interactionID || "",
+    executed_kernel_reply: [{ status: "ok", label: "track.volume" }],
+    commands: []
+  };
+}
+
+function checkK1(result) {
+  const failures = [];
+  const notes = [];
+  if (!result.appeared) {
+    failures.push("K1 setup: the waiting confirmation card never rendered in its interactive form -- the pass would measure nothing");
+    return { failures, notes };
+  }
+  const before = (result.before.confirmCards || []).find((card) => card.text.indexOf("Track 2") >= 0) || (result.before.confirmCards || [])[0];
+  if (!before) {
+    failures.push("K1 premise: no confirmation card sampled before the terminal event");
+  } else {
+    notes.push("before: cls=\"" + before.cls + "\" buttons=" + before.buttons + " actionButtons=" + before.actionButtons);
+    if (!before.interactive || before.actionButtons < 2) {
+      failures.push(
+        "K1 premise: the card did not render as a clickable pre-confirmation (interactive=" + before.interactive +
+        ", actionButtons=" + before.actionButtons + ") -- the defect shape must be reproduced before the fix is measured"
+      );
+    }
+  }
+  const after = result.after;
+  const clickable = (after.confirmCards || []).filter((card) => card.actionButtons > 0 || card.approveButtons > 0);
+  const interactiveCount = (after.interactiveCards || []).length;
+  if (interactiveCount > 0 || clickable.length > 0) {
+    failures.push(
+      "K1 终态残留: after turn.completed the confirmation surface still renders clickable cards (interactive=" +
+      interactiveCount + ", withButtons=" + clickable.length + "): " + JSON.stringify(clickable) +
+      " -- the card must settle non-interactively at task end, not stay clickable until the 4022 wording reveals it"
+    );
+  } else {
+    notes.push("after: no clickable confirmation card remains (confirm card total " + (after.confirmCards || []).length + ")");
+  }
+  const settledCard = (after.confirmCards || []).find((card) => card.text.indexOf("Track 2") >= 0);
+  if (settledCard) {
+    if (settledCard.interactive || settledCard.buttons > 0) {
+      failures.push("K1: the settled card still renders buttons (cls=\"" + settledCard.cls + "\", buttons=" + settledCard.buttons + ")");
+    } else {
+      notes.push("settled in place: cls=\"" + settledCard.cls + "\" buttons=0");
+    }
+  } else {
+    notes.push("the waiting card left the flow entirely (nothing stale remains)");
+  }
+  if (result.respondHits !== 0) {
+    failures.push("K1 manual mode: the respond endpoint was called " + result.respondHits + " time(s) on the app's own -- manual_confirmation must never auto-respond");
+  } else {
+    notes.push("respond endpoint never called by the app (manual mode unchanged)");
+  }
+  return { failures, notes };
+}
+
+function checkK2(result, options) {
+  const failures = [];
+  const notes = [];
+  if (!result.authorityReady) {
+    failures.push("K2 setup: the authority pill never showed 完全访问 -- the pass would test a manual-mode send, not a full-access one");
+  } else {
+    notes.push("authority pill showed 完全访问 before the send (the grant was active at send time)");
+  }
+  if (result.respondHits !== 1) {
+    failures.push(
+      "K2 直执: the respond endpoint was hit " + result.respondHits + " time(s) (expected exactly 1 approve) -- full access must direct-execute the RiskConfirm gate, not leave it waiting"
+    );
+  } else {
+    notes.push("respond endpoint hit exactly once with the approve decision (direct execution)");
+  }
+  const sample = result.sample;
+  const clickable = (sample.confirmCards || []).filter((card) => card.actionButtons > 0 || card.approveButtons > 0);
+  if ((sample.interactiveCards || []).length > 0 || clickable.length > 0 || sample.composerInteractionShell) {
+    failures.push(
+      "K2 前置卡: full access still renders a pre-confirmation surface (interactive=" + (sample.interactiveCards || []).length +
+      ", withButtons=" + clickable.length + ", composerShell=" + sample.composerInteractionShell + "): " + JSON.stringify(clickable)
+    );
+  } else {
+    notes.push("no pre-confirmation card rendered anywhere (stream + composer shell clean)");
+  }
+  const noticeVisible = (sample.assistantMessages || []).some((message) => message.text.indexOf("完全访问已开启") >= 0);
+  if (!noticeVisible) {
+    failures.push("K2 通告: the direct-execution notice line (完全访问已开启 · …回执见下) is not in the rendered flow");
+  } else {
+    notes.push("direct-execution notice rendered in the flow");
+  }
+  const receiptVisible = (sample.assistantMessages || []).some((message) => message.text.indexOf(options.receiptMarker) >= 0);
+  if (!receiptVisible) {
+    failures.push(
+      "K2 回执: the execution receipt (marker \"" + options.receiptMarker + "\") is not visible in the conversation -- the post-hoc receipt is part of the ruling, not optional"
+    );
+  } else {
+    notes.push("execution receipt visible in the conversation");
+  }
+  if (sample.consumedLedger.indexOf(options.interactionID) < 0) {
+    failures.push("K2 ledger: the direct-executed interaction id was not recorded in the consumed ledger");
+  } else {
+    notes.push("direct-executed interaction recorded in the consumed ledger");
+  }
+  return { failures, notes };
+}
+
+
 // --------------------------------------------------------------- main flow
 
 async function main() {
@@ -2400,6 +2599,174 @@ async function main() {
     }));
   }
 
+  // --------------------------------------------------- FIX-CONFIRM-CARD-1 K1/K2
+  // Both passes drive the real composer. The chat / interaction-respond endpoints
+  // are fulfilled at the network layer with RiskConfirm-gate fixtures (the
+  // isolated agent has no kernel/LLM behind them); the event stream route keeps
+  // the mutable-array shape the T1 pass uses so phase-2 events can be appended
+  // mid-pass.
+  report.confirm_card_source =
+    "driven composer turns; POST /agent/chat and POST /agent/interaction/respond fulfilled at the network layer with " +
+    "RiskConfirm mix-confirmation fixtures; K1 appends a real turn.completed(status=completed) to the replayed event " +
+    "stream mid-pass; K2 patches /agent/ui/state with authority_mode=full_project_access";
+  const confirmDrive = async (page, message) => {
+    const composer = page.locator(".composer textarea").first();
+    await composer.waitFor({ state: "visible", timeout: 15000 });
+    await composer.fill(message);
+    await composer.press("Enter");
+  };
+
+  // K1 (manual mode): the card must settle non-interactively the moment the turn
+  // truly completes, with no self-initiated respond call.
+  const k1TurnID = "run_e2e_confirm_k1";
+  const k1InteractionID = "interaction_e2e_confirm_k1";
+  const k1Context = await browser.newContext({ viewport });
+  const k1Served = [...(eventsFixture.events || [])];
+  await k1Context.route("**/agent/events*", async (route) => {
+    const requestURL = new URL(route.request().url());
+    const since = Number(requestURL.searchParams.get("since") || "0");
+    const limit = Number(requestURL.searchParams.get("limit") || "120");
+    const nextSeq = k1Served.reduce((maximum, event) => Math.max(maximum, Number(event.seq) || 0), 0);
+    await route.fulfill({
+      status: 200, contentType: "application/json; charset=utf-8",
+      body: JSON.stringify({ status: "ok", events: k1Served.filter((event) => Number(event.seq) > since).slice(0, limit), next_seq: nextSeq })
+    });
+  });
+  let k1RespondHits = 0;
+  await k1Context.route("**/agent/chat*", async (route) => {
+    await route.fulfill({
+      status: 200, contentType: "application/json; charset=utf-8",
+      body: JSON.stringify(confirmationChatResponseFixture({ turnID: k1TurnID, interactionID: k1InteractionID }))
+    });
+  });
+  await k1Context.route("**/agent/interaction/respond*", async (route) => {
+    k1RespondHits += 1;
+    await route.fulfill({
+      status: 200, contentType: "application/json; charset=utf-8",
+      body: JSON.stringify(directExecutionReceiptFixture({ turnID: k1TurnID, interactionID: k1InteractionID }))
+    });
+  });
+  const k1Page = await k1Context.newPage();
+  await k1Page.goto(agentBase + "/app/?conversation_id=" + encodeURIComponent(conversationId), { waitUntil: "domcontentloaded" });
+  await confirmDrive(k1Page, "把 Track 2 提升 1dB");
+  const k1Appeared = await k1Page
+    .waitForSelector(".action-card.interactive", { timeout: 15000 })
+    .then(() => true)
+    .catch(() => false);
+  await k1Page.waitForTimeout(400);
+  const k1Before = await k1Page.evaluate(DOM_PROBE);
+  // Phase 2: the turn truly completes (status completed -- NOT a waiting_continue
+  // slice boundary) while the card was never answered.
+  k1Served.push({
+    seq: 5001, type: "turn.completed", conversation_id: conversationId,
+    goal_id: k1TurnID, run_id: k1TurnID, turn_id: k1TurnID, item_type: "turn",
+    status: "completed", created_at: new Date().toISOString()
+  });
+  await k1Page.waitForTimeout(2600);
+  const k1After = await k1Page.evaluate(DOM_PROBE);
+  await k1Page.screenshot({ path: join(outDir, "dom-confirm-k1-settled.png") });
+  writeFileSync(join(outDir, "dom-confirm-k1-before.json"), JSON.stringify(k1Before, null, 2), "utf-8");
+  writeFileSync(join(outDir, "dom-confirm-k1-after.json"), JSON.stringify(k1After, null, 2), "utf-8");
+  await k1Context.close();
+  report.confirm_k1 = { appeared: k1Appeared, respond_hits: k1RespondHits };
+  record("confirm-card-K1", checkK1({ appeared: k1Appeared, before: k1Before, after: k1After, respondHits: k1RespondHits }));
+
+  // K2 (full access): no pre-card, exactly one approve, notice + receipt visible.
+  const k2TurnID = "run_e2e_confirm_k2";
+  const k2InteractionID = "interaction_e2e_confirm_k2";
+  const k2ReceiptMarker = "Track 2 提升 +1.0 dB";
+  const k2Context = await browser.newContext({ viewport });
+  await installReplay(k2Context);
+  await k2Context.route("**/agent/ui/state*", async (route) => {
+    const response = await route.fetch();
+    const body = await response.json().catch(() => ({}));
+    await route.fulfill({ response, json: { ...body, authority_mode: "full_project_access" } });
+  });
+  await k2Context.route("**/agent/chat*", async (route) => {
+    await route.fulfill({
+      status: 200, contentType: "application/json; charset=utf-8",
+      body: JSON.stringify(confirmationChatResponseFixture({ turnID: k2TurnID, interactionID: k2InteractionID }))
+    });
+  });
+  let k2RespondHits = 0;
+  await k2Context.route("**/agent/interaction/respond*", async (route) => {
+    k2RespondHits += 1;
+    await route.fulfill({
+      status: 200, contentType: "application/json; charset=utf-8",
+      body: JSON.stringify(directExecutionReceiptFixture({ turnID: k2TurnID, interactionID: k2InteractionID }))
+    });
+  });
+  const k2Page = await k2Context.newPage();
+  const k2Console = [];
+  k2Page.on("console", (message) => {
+    const text = message.text();
+    if (message.type() === "error" || text.indexOf("[AskVit") >= 0) {
+      k2Console.push(message.type() + ": " + text.slice(0, 400));
+    }
+  });
+  k2Page.on("pageerror", (error) => {
+    k2Console.push("pageerror: " + String(error).slice(0, 400));
+  });
+  await k2Page.goto(agentBase + "/app/?conversation_id=" + encodeURIComponent(conversationId), { waitUntil: "domcontentloaded" });
+  // Wait for the authority pill to actually show 完全访问 before driving: the
+  // mode is restored from /agent/ui/state, and a send that races ahead of that
+  // restore would still run under manual mode (the app's own real-world cue for
+  // "the grant is active" is this pill).
+  const k2AuthorityReady = await k2Page
+    .locator(".authority-select-button", { hasText: "完全访问" })
+    .waitFor({ timeout: 15000 })
+    .then(() => true)
+    .catch(() => false);
+  await confirmDrive(k2Page, "把 Track 2 提升 1dB");
+  await k2Page.waitForTimeout(3200);
+  const k2Sample = await k2Page.evaluate(DOM_PROBE);
+  const k2Storage = await k2Page.evaluate(() => {
+    const out = {};
+    for (const key of Object.keys(window.localStorage)) {
+      if (key.indexOf("ask_vit_consumed") >= 0) {
+        out[key] = window.localStorage.getItem(key) || "";
+        continue;
+      }
+      if (key.indexOf("ask_vit_conversation_messages") !== 0) {
+        continue;
+      }
+      try {
+        const bucket = JSON.parse(window.localStorage.getItem(key) || "{}");
+        out[key] = {
+          conversation_id: bucket.conversation_id,
+          saved_at: bucket.saved_at,
+          messages: (bucket.messages || []).map((message) => ({
+            id: message.id,
+            role: message.role,
+            content: String(message.content || "").slice(0, 80),
+            message_kind: message.message_kind,
+            turn_id: message.turn_id,
+            lifecycle: message.lifecycle,
+            persistence: message.persistence,
+            actions: (message.actions || []).map((action) => ({
+              id: action.id, kind: action.kind, status: action.status,
+              resolved_action_id: action.resolved_action_id, _ui_source: action._ui_source,
+              buttons: Array.isArray(action.actions) ? action.actions.length : null
+            }))
+          }))
+        };
+      } catch (err) {
+        out[key] = { parse_error: String(err) };
+      }
+    }
+    return out;
+  });
+  await k2Page.screenshot({ path: join(outDir, "dom-confirm-k2-direct.png") });
+  writeFileSync(join(outDir, "dom-confirm-k2.json"), JSON.stringify(k2Sample, null, 2), "utf-8");
+  writeFileSync(join(outDir, "dom-confirm-k2-storage.json"), JSON.stringify(k2Storage, null, 2), "utf-8");
+  writeFileSync(join(outDir, "dom-confirm-k2-console.txt"), k2Console.join("\n"), "utf-8");
+  await k2Context.close();
+  report.confirm_k2 = { authority_ready: k2AuthorityReady, respond_hits: k2RespondHits, receipt_marker: k2ReceiptMarker };
+  record("full-access-K2", checkK2({ sample: k2Sample, respondHits: k2RespondHits, authorityReady: k2AuthorityReady }, {
+    receiptMarker: k2ReceiptMarker,
+    interactionID: k2InteractionID
+  }));
+
   // ------------------------------------------------------------- MSG-REVIVE-1
   // Runs LAST: its phase 1 re-seeds the draft conversation graph with the r3
   // capture, so every group that asserts against the archived mtzba6wf graph
@@ -2457,7 +2824,7 @@ async function main() {
 // Exported so a control run can exercise the very same probe and assertion
 // functions against a deliberately healthy state (proof that a red result is a
 // real finding and not an artefact of the probe itself).
-export { DOM_PROBE, checkA1, checkA2, checkA3, checkB1, checkB2, checkC1, checkD1, checkE1, checkF1, checkG1, checkT1, residencyFixtureEvents, chatOnlyItemStepsFixtureEvents, terminalTurnFixtureEvents, auditionFixtureEvents, auditionUnstickFixtureEvents, auditionTrailFixtureEvents };
+export { DOM_PROBE, checkA1, checkA2, checkA3, checkB1, checkB2, checkC1, checkD1, checkE1, checkF1, checkG1, checkT1, checkK1, checkK2, residencyFixtureEvents, chatOnlyItemStepsFixtureEvents, terminalTurnFixtureEvents, auditionFixtureEvents, auditionUnstickFixtureEvents, auditionTrailFixtureEvents, confirmInteractionFixture, confirmationChatResponseFixture, directExecutionReceiptFixture };
 
 // Run only when this file is the process entry point, so importing it as a
 // library (the control run does) has no side effects.

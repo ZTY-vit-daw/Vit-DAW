@@ -287,6 +287,158 @@ function isTurnBoundInteractionAction(value: unknown): boolean {
   );
 }
 
+// FIX-CONFIRM-CARD-1 ②：交互卡"已结算"判据——子按钮被摘除即不可再点击，
+// 无论 status 字段处于何种形态（resolveInteractionInMessages / guard 盖章 /
+// superseded 结算都遵循"结算必摘按钮"的写入口径，这里按同一口径读）。
+function isSettledInteractionAction(value: unknown): boolean {
+  const action = record(value);
+  const childActions = Array.isArray(action.actions) ? action.actions : [];
+  if (childActions.length === 0) {
+    return true;
+  }
+  const status = text(action.status ?? action.stage).toLowerCase();
+  return Boolean(status) && ["resolved", "completed", "complete", "cancelled", "canceled", "failed", "superseded"].includes(status);
+}
+
+export const TURN_EXPIRED_RESOLVED_ACTION = "turn_expired";
+export const SUPERSEDED_BY_NEWER_RESOLVED_ACTION = "superseded_by_newer";
+
+function settleInteractionAction(action: JsonRecord, resolvedActionID: string): JsonRecord {
+  return {
+    ...action,
+    status: "completed",
+    stage: "completed",
+    resolved_action_id: resolvedActionID,
+    actions: []
+  };
+}
+
+// FIX-CONFIRM-CARD-1 ②：回合终结（完成/失败/停止）时，该回合内仍未应答的
+// 交互卡立即转入不可交互终态——不再残留可点击的"过期"卡（点击才揭示
+// server 4022 的缺陷形态）。与 resolveCompletedTurnProposals 的
+// turn_terminal_receipt（按终局回执消息推导）互补：这里按事件流的回合终
+// 结信号驱动，覆盖终局无回执消息入流的形态（用户停Turn、失败无消息等）。
+// waiting_continue 等切片驻留态不是终结，不在本函数口径内（见
+// terminalTurnIDsFromEvents 的状态过滤）。
+export function settleTerminatedTurnInteractions(messages: ChatMessage[], turnIDs: string[]): ChatMessage[] {
+  const turns = new Set(turnIDs.map((id) => text(id)).filter(Boolean));
+  if (turns.size === 0 || messages.length === 0) {
+    return messages;
+  }
+  let changed = false;
+  const next = messages.map((message) => {
+    if (!message.actions?.length || !turns.has(text(message.turn_id))) {
+      return message;
+    }
+    let messageChanged = false;
+    const actions = message.actions.map((actionValue) => {
+      const action = record(actionValue);
+      if (!isTurnBoundInteractionAction(action) || isSettledInteractionAction(action)) {
+        return actionValue;
+      }
+      messageChanged = true;
+      changed = true;
+      return settleInteractionAction(action, TURN_EXPIRED_RESOLVED_ACTION);
+    });
+    return messageChanged ? { ...message, actions } : message;
+  });
+  return changed ? next : messages;
+}
+
+// 同族交互键：通用确认/mix 单步按 plan_id；mix_tick/mix_treatment 每会话同
+// 时至多一张待确认卡（pendingMixTickForConversation 口径），按 workflow 归族。
+function interactionFamilyKey(value: unknown): string {
+  const action = record(value);
+  if (text(action._ui_source) !== "interaction") {
+    return "";
+  }
+  const payload = record(action.payload ?? action.data);
+  const planID = text(payload.plan_id ?? action.plan_id);
+  if (planID) {
+    return "plan:" + planID;
+  }
+  const workflow = text(action.workflow ?? payload.workflow).toLowerCase();
+  if (workflow === "mix_tick" || workflow === "mix_treatment") {
+    return "workflow:" + workflow;
+  }
+  return "";
+}
+
+// FIX-CONFIRM-CARD-1 ②"被替代"治理：同族（同 plan / 同 mix workflow）出现
+// 更新的待应答交互卡时，旧卡立即结算为"已替代"终态。旧的服务端交互 id 已
+// 随替代失效（点击命中 4022 过期口径），呈现面不得再提供可点击形态。
+export function settleSupersededInteractionFamilies(messages: ChatMessage[]): ChatMessage[] {
+  const latestByFamily = new Map<string, string>();
+  messages.forEach((message, messageIndex) => {
+    (message.actions ?? []).forEach((actionValue, actionIndex) => {
+      const key = interactionFamilyKey(actionValue);
+      if (!key || isSettledInteractionAction(actionValue)) {
+        return;
+      }
+      if (!isTurnBoundInteractionAction(actionValue)) {
+        return;
+      }
+      latestByFamily.set(key, `${messageIndex}:${actionIndex}`);
+    });
+  });
+  if (latestByFamily.size === 0) {
+    return messages;
+  }
+  let changed = false;
+  const next = messages.map((message, messageIndex) => {
+    if (!message.actions?.length) {
+      return message;
+    }
+    let messageChanged = false;
+    const actions = message.actions.map((actionValue, actionIndex) => {
+      const action = record(actionValue);
+      const key = interactionFamilyKey(action);
+      if (!key || isSettledInteractionAction(action) || !isTurnBoundInteractionAction(action)) {
+        return actionValue;
+      }
+      if (latestByFamily.get(key) === `${messageIndex}:${actionIndex}`) {
+        return actionValue;
+      }
+      messageChanged = true;
+      changed = true;
+      return settleInteractionAction(action, SUPERSEDED_BY_NEWER_RESOLVED_ACTION);
+    });
+    return messageChanged ? { ...message, actions } : message;
+  });
+  return changed ? next : messages;
+}
+
+const TERMINAL_TURN_EVENT_TYPES = new Set([
+  "turn.completed", "turn.failed", "turn.stopped",
+  "trajectory.turn.completed", "trajectory.turn.failed", "trajectory.turn.stopped"
+]);
+const TERMINAL_TURN_STATUS_TOKENS = ["completed", "complete", "failed", "stopped", "cancelled", "canceled"];
+
+// FIX-CONFIRM-CARD-1 ②：从事件流提取"回合真终结"的回合 id。turn.completed
+// 携带 waiting_continue/waiting_interaction 状态时是切片驻留（回合仍开放，
+// 待应答卡仍有效），不属终结；仅完成/失败/停止口径入列。
+export function terminalTurnIDsFromEvents(events: AgentEvent[]): string[] {
+  const ids: string[] = [];
+  const seen = new Set<string>();
+  for (const event of events ?? []) {
+    const type = text(event?.type);
+    if (!TERMINAL_TURN_EVENT_TYPES.has(type)) {
+      continue;
+    }
+    const status = text(event?.status).toLowerCase();
+    if (Boolean(status) && !TERMINAL_TURN_STATUS_TOKENS.some((token) => status.includes(token))) {
+      continue;
+    }
+    const turnID = eventTurnID(event);
+    if (!turnID || seen.has(turnID)) {
+      continue;
+    }
+    seen.add(turnID);
+    ids.push(turnID);
+  }
+  return ids;
+}
+
 export function eventTurnID(event: AgentEvent): string {
   return text(event.turn_id ?? event.run_id ?? event.goal_id);
 }
