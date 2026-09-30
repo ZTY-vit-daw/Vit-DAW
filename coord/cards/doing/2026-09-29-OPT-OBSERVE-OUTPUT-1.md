@@ -11,6 +11,6 @@
 - 文件域：agent/webui/src/（消息渲染段+样式）+（若分层标记需 agent 侧产出消息结构配合，设计定夺后小改并申报）。
 - 验收标准：设计文档（决策侧产出）+实现过 E2E-WEBUI-1+手测复验（观察问答输出形态用户认可）。
 - 停止条件：常规止损。
-- 领取：（时间 / origin/main hash / 分支名）
+- 领取：2026-09-30 晚窗 / origin/main 8a0eb61e / 分支 port/opt-observe-output-1（独立 worktree D:/Vit_DAW_worktrees/opt-observe-output-1；实现段=P1，规格按设计 §4.2/§5）
 - 回执：（commit hash / 设计链接 / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
