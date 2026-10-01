@@ -35,6 +35,10 @@ const (
 	DispositionRollback        ReceiptDisposition = "rollback"
 	DispositionContinueOnce    ReceiptDisposition = "continue_once"
 	DispositionRequestAudition ReceiptDisposition = "request_audition"
+	// DispositionAdoptedByContinuation（FS-PARK-TURNFAIL-1）：继续对话默认
+	// 采纳的收口 dispositions——与人耳裁决（retain/rollback）严格区分，人耳
+	// A/B 层呈现 skipped_by_continuation（请求过、被继续对话收口、无判断证据）。
+	DispositionAdoptedByContinuation ReceiptDisposition = "adopted_by_continuation"
 )
 
 // TechnicalReadbackLayer: engineering change readback, never an acoustic
@@ -100,7 +104,9 @@ var receiptLayerEnums = map[string][]string{
 	"acoustic_materiality": {"none", "subthreshold", "material"},
 	"target_response":      {"absent", "directional", "sufficient", "ambiguous"},
 	"net_outcome":          {"improved", "stable", "plateau", "rolled_back"},
-	"human_ab":             {"not_requested", "pending", "decided"},
+	// FS-PARK-TURNFAIL-1: skipped_by_continuation = 判断被请求过、被继续对话
+	// 默认采纳收口、无判断证据——与 decided（人耳已判）严格区分。
+	"human_ab": {"not_requested", "pending", "decided", "skipped_by_continuation"},
 }
 
 func inEnum(value string, allowed []string) bool {
@@ -132,7 +138,7 @@ func (r ImprovementExecutionReceipt) Validate() error {
 		return fmt.Errorf("unknown classification %q", r.Classification)
 	}
 	switch r.Disposition {
-	case DispositionRetain, DispositionRollback, DispositionContinueOnce, DispositionRequestAudition:
+	case DispositionRetain, DispositionRollback, DispositionContinueOnce, DispositionRequestAudition, DispositionAdoptedByContinuation:
 	default:
 		return fmt.Errorf("unknown disposition %q", r.Disposition)
 	}
@@ -175,8 +181,10 @@ func (r ImprovementExecutionReceipt) Validate() error {
 		if r.Disposition == DispositionContinueOnce {
 			return fmt.Errorf("classification=ambiguous forbids disposition=continue_once (ambiguous stops automatic escalation)")
 		}
-		if r.Disposition != DispositionRequestAudition && r.Disposition != DispositionRollback {
-			return fmt.Errorf("classification=ambiguous only allows disposition=request_audition or rollback")
+		// FS-PARK-TURNFAIL-1: adopted_by_continuation is a user-driven settle
+		// (the user continued the conversation), not an automatic escalation.
+		if r.Disposition != DispositionRequestAudition && r.Disposition != DispositionRollback && r.Disposition != DispositionAdoptedByContinuation {
+			return fmt.Errorf("classification=ambiguous only allows disposition=request_audition, rollback, or adopted_by_continuation")
 		}
 	}
 	if len(unique(r.EvidenceRefs)) == 0 {
@@ -202,6 +210,20 @@ func (r ImprovementExecutionReceipt) Validate() error {
 	}
 	if r.Settled && strings.EqualFold(r.Layers.HumanAB.Status, "pending") {
 		return fmt.Errorf("settled receipt cannot have pending human A/B")
+	}
+	// FS-PARK-TURNFAIL-1 honesty boundary: a settled-by-continuation receipt
+	// must state the skipped judgment explicitly and must never claim a human
+	// decision, a retain, or an audible improvement.
+	if r.Disposition == DispositionAdoptedByContinuation {
+		if !strings.EqualFold(r.Layers.HumanAB.Status, "skipped_by_continuation") {
+			return fmt.Errorf("adopted_by_continuation disposition requires human_ab=skipped_by_continuation")
+		}
+		if r.HumanConfirmed || r.Ambiguous {
+			return fmt.Errorf("adopted_by_continuation receipt cannot claim a human judgment (human_confirmed=%v ambiguous=%v)", r.HumanConfirmed, r.Ambiguous)
+		}
+		if strings.EqualFold(r.Layers.NetOutcome.Status, "improved") {
+			return fmt.Errorf("adopted_by_continuation receipt cannot claim net_outcome=improved without a decided human A/B")
+		}
 	}
 	return nil
 }

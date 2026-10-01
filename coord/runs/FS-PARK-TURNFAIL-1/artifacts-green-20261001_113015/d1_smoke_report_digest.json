@@ -1,0 +1,52 @@
+{
+ "schema_version": "vit.free_state_d1_smoke.v1",
+ "status": "continuation_adoption_probe_pass",
+ "started_at": "2026-10-01T03:30:34.978455+00:00",
+ "finished_at": "2026-10-01T03:35:52.411556+00:00",
+ "conversation_id": "d1_s1_20261001T033131262003",
+ "public_case_id": "spv1_p01",
+ "prompt_flavor": "neutral",
+ "expect_domain": "any",
+ "selected_domains": [
+  "static_eq"
+ ],
+ "fs_settle_terminal_park": {
+  "goal_status": "waiting_continue",
+  "judgment_park": true,
+  "closure_phase": "fs7_improvement_proposal"
+ },
+ "continuation_adoption_probe": {
+  "parked_goal_id": "goal_8f6855a03b55134c",
+  "parked_run_id": "run_dee81121866572da",
+  "continuation_goal_id": "goal_55b99e117bc73580",
+  "continuation_run_id": "run_91081cc58b9a52c7",
+  "task_semantic_state": "settled",
+  "parked_goal_status": "completed",
+  "project_revision": "7"
+ },
+ "material_qualification": {
+  "status": "passed"
+ },
+ "terminal_causes": [
+  "waiting_interaction",
+  "completed",
+  "completed"
+ ],
+ "validation_digest": {
+  "status": "pass",
+  "action_domain": "static_eq",
+  "turn_id": "turn:free_state_5a7402f56c86ad68",
+  "round_id": "round-1-8903abfda7ed7a9e",
+  "before_revision": "6",
+  "after_revision": "7",
+  "audition_session_id": "audition:turn:free_state_5a7402f56c86ad68:round-1-8903abfda7ed7a9e"
+ },
+ "response_count": 5,
+ "response_goal_status_tail": [
+  "waiting_continue",
+  "scheduler_drained",
+  "waiting_confirmation",
+  "waiting_continue",
+  "settle_records_landed"
+ ]
+}

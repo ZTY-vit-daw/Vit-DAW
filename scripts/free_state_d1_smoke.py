@@ -2281,6 +2281,111 @@ SETTLEMENT_EXPECTATIONS = {
 }
 TERMINAL_CONTINUATION_STATUSES = {"completed", "cancelled", "failed"}
 
+# FS-PARK-TURNFAIL-1（2026-09-30 用户裁定）：park 存活下的新用户输入 = 对待裁决
+# 段默认采纳。修复前野外失败（2026-09-30 22:07，run_e5796736）：新消息被续进
+# 同一 run，三拒后 turn.failed、task 全线 failed。探针消息是一个真实的新话题
+# 观察问题（非"继续"、非命令、非确认语）。
+ADOPTION_PROBE_MESSAGE = "换一个话题：帮我看看当前工程的整体状况，先观察再简要回答"
+
+
+def run_continuation_adoption_probe(base_url: str, conversation_id: str, project_path: str, timeout: float, run_started: float) -> dict[str, Any]:
+    """FS-PARK-TURNFAIL-1 continuation adoption probe: with the round durably
+    parked at the human-judgment boundary, a NEW user message must (a) not fail
+    the turn, (b) run on a fresh goal/run/turn identity, (c) land a reply, and
+    (d) settle the parked round by adoption — outcome adopted_by_continuation,
+    zero user_judgment_evidence, human A/B layer skipped_by_continuation, the
+    applied treatment kept (project revision unchanged)."""
+    state = newest_agent_runtime_state_for_conversation(project_path, conversation_id, run_started)
+    require(bool(state), "FS-PARK-TURNFAIL-1: no persisted runtime state at the judgment park")
+    conversation_goals = state.get("conversation_goals") if isinstance(state.get("conversation_goals"), dict) else {}
+    parked_goal_id = first_text(conversation_goals.get(conversation_id))
+    require(bool(parked_goal_id), "FS-PARK-TURNFAIL-1: no bound goal at the judgment park")
+    goal_runtime = state.get("goal_runtime") if isinstance(state.get("goal_runtime"), dict) else {}
+    parked_run_id = ""
+    for goal in rows(goal_runtime.get("goals")):
+        if first_text(goal.get("goal_id")) == parked_goal_id:
+            parked_run_id = first_text(goal.get("run_id"))
+            break
+    require(bool(parked_run_id), "FS-PARK-TURNFAIL-1: parked goal carries no run id")
+    loop_before = persisted_free_state_loop(project_path, conversation_id, run_started)
+    experiment_before = loop_before.get("experiment") if isinstance(loop_before.get("experiment"), dict) else {}
+    rounds_before = rows(experiment_before.get("rounds"))
+    require(bool(rounds_before) and first_text(rounds_before[0].get("decision")).lower() == "user_judgment_pending",
+            "FS-PARK-TURNFAIL-1: the probe requires a round parked at user_judgment_pending")
+    revision_before = project_revision(invoke(base_url, "project.state", {}, timeout))
+
+    response = request_json("POST", base_url.rstrip("/") + "/agent/chat", {"conversation_id": conversation_id, "message": ADOPTION_PROBE_MESSAGE, "context": {"agent_mode": "chat"}}, timeout)
+
+    # (a) 修复前红面：turn.failed / goal failed。修复后绿面：无 error、非 failed。
+    require(not first_text(response.get("error")), "FS-PARK-TURNFAIL-1: the continuation turn failed: " + first_text(response.get("error")))
+    require(first_text(response.get("goal_status")).lower() != "failed", "FS-PARK-TURNFAIL-1: the continuation turn reported goal_status=failed")
+    # (b) 新 turn id：新消息不得复用 parked goal/run（生命周期翻转根）。
+    new_goal_id = first_text(response.get("goal_id"))
+    new_run_id = first_text(response.get("run_id"))
+    require(bool(new_goal_id) and new_goal_id != parked_goal_id,
+            f"FS-PARK-TURNFAIL-1: continuation reused the parked goal {parked_goal_id} (got {new_goal_id})")
+    require(bool(new_run_id) and new_run_id != parked_run_id,
+            f"FS-PARK-TURNFAIL-1: continuation reused the parked run {parked_run_id} (got {new_run_id})")
+    # (c) 回答落盘。
+    require(bool(first_text(response.get("reply"))), "FS-PARK-TURNFAIL-1: the continuation turn landed no reply")
+
+    # (d) parked 轮按默认采纳收口。会话 loop 槽可被续入消息的新 loop 替换
+    # （单 loop 槽设计），采纳结算的持久真值在：parked goal 的任务语义
+    # （state=settled/terminal/pending 清除/history 末条 task_settled 带采纳
+    # summary）与事件流（trajectory.round.decision next_decision +
+    # trajectory.settled outcome=adopted_by_continuation，且无人耳判断事件）。
+    deadline = time.monotonic() + 15
+    parked_semantic: dict[str, Any] = {}
+    parked_status = ""
+    while time.monotonic() < deadline:
+        state_now = newest_agent_runtime_state_for_conversation(project_path, conversation_id, run_started)
+        for goal in rows((state_now.get("goal_runtime") or {}).get("goals")):
+            if first_text(goal.get("goal_id")) != parked_goal_id:
+                continue
+            parked_status = first_text(goal.get("status")).lower()
+            task = goal.get("task") if isinstance(goal.get("task"), dict) else {}
+            semantic_row = task.get("semantic_state") if isinstance(task.get("semantic_state"), dict) else {}
+            if semantic_row:
+                parked_semantic = semantic_row
+            break
+        if parked_status == "completed" and first_text(parked_semantic.get("state")).lower() == "settled":
+            break
+        time.sleep(1)
+    require(parked_status == "completed", "FS-PARK-TURNFAIL-1: the parked goal did not close cleanly: " + parked_status)
+    require(first_text(parked_semantic.get("state")).lower() == "settled",
+            "FS-PARK-TURNFAIL-1: the parked task semantic did not settle by adoption: " + first_text(parked_semantic.get("state")))
+    require(parked_semantic.get("terminal") is True, "FS-PARK-TURNFAIL-1: the parked task semantic is not terminal after adoption")
+    require(not parked_semantic.get("pending_interaction"), "FS-PARK-TURNFAIL-1: the adoption settle left a pending interaction mounted")
+    history = rows(parked_semantic.get("history"))
+    settle_rows = [item for item in history if first_text(item.get("event")).lower() == "task_settled"]
+    require(bool(settle_rows), "FS-PARK-TURNFAIL-1: the parked task semantic has no task_settled transition")
+    require("adopted_by_continuation" in first_text(settle_rows[-1].get("summary")),
+            "FS-PARK-TURNFAIL-1: the task_settled summary does not state adopted_by_continuation: " + first_text(settle_rows[-1].get("summary")))
+
+    # 事件流：采纳轮决策 + 采纳收口事件落地；无人耳判断事件被伪造。
+    events_response = request_json("GET", base_url.rstrip("/") + "/agent/events?conversation_id=" + conversation_id, None, min(timeout, 30))
+    event_rows = rows(events_response.get("events")) if isinstance(events_response, dict) else []
+    settled_events = [item for item in event_rows if first_text(item.get("type")).lower() == "trajectory.settled"]
+    require(any(first_text((item.get("payload") or {}).get("outcome")).lower() == "adopted_by_continuation" for item in settled_events),
+            "FS-PARK-TURNFAIL-1: no trajectory.settled event with outcome=adopted_by_continuation landed")
+    decision_events = [item for item in event_rows if first_text(item.get("type")).lower() == "trajectory.round.decision"]
+    require(any(first_text((item.get("payload") or {}).get("next_decision")).lower() == "adopted_by_continuation" for item in decision_events),
+            "FS-PARK-TURNFAIL-1: no trajectory.round.decision event with next_decision=adopted_by_continuation landed")
+    judgment_events = [item for item in event_rows if first_text(item.get("type")).lower() == "trajectory.user_judgment.recorded"]
+    require(not judgment_events, "FS-PARK-TURNFAIL-1: default adoption must not fabricate a user judgment event")
+
+    revision_after = project_revision(invoke(base_url, "project.state", {}, timeout))
+    require(revision_after == revision_before, "FS-PARK-TURNFAIL-1: default adoption must keep the applied state (revision moved)")
+    return {
+        "parked_goal_id": parked_goal_id,
+        "parked_run_id": parked_run_id,
+        "continuation_goal_id": new_goal_id,
+        "continuation_run_id": new_run_id,
+        "task_semantic_state": first_text(parked_semantic.get("state")),
+        "parked_goal_status": parked_status,
+        "project_revision": revision_after,
+    }
+
 
 def probe_tags(evidence: dict[str, Any]) -> set[str]:
     return {first_text(tag) for tag in (evidence.get("reason_tags") or [])}
@@ -2840,12 +2945,15 @@ def main() -> int:
     parser.add_argument("--agent-log", default="", help="path to the agent runtime log for evaluator-side observability checks (domain routing decisions, processor selection records)")
     parser.add_argument("--expect-processor-selection", default="", help="AGENT-1 milestone: require a processor_selection.v1 record for this action domain (processor_selection route) with its routing log lines present")
     parser.add_argument("--verify-settled", default="", help="verify a previously settled probe report after an agent restart (path to d1_smoke_report.json)")
+    parser.add_argument("--continuation-adoption-probe", action="store_true", help="FS-PARK-TURNFAIL-1: with the round parked at the human-judgment boundary, send a NEW user message and assert the default-adoption settlement (adopted_by_continuation, no judgment evidence, fresh goal/run/turn identity, reply landed, applied state kept)")
     parser.add_argument("--reuse-existing-project", action="store_true", help="B10 instance-reuse round: when the project workdir already exists (a previous experiment round on this live stack), reuse the project in place instead of materializing a fresh copy, so the second experiment plans against the plugin instances the first round left on the tracks")
     args = parser.parse_args()
     if args.multi_round_probe and args.settlement_probe:
         parser.error("--multi-round-probe cannot be combined with --settlement-probe")
     if args.multi_round_probe and args.admission_only:
         parser.error("--multi-round-probe cannot be combined with --admission-only")
+    if args.continuation_adoption_probe and (args.settlement_probe or args.admission_only or args.multi_round_probe or args.expect_honest_refusal):
+        parser.error("--continuation-adoption-probe owns the run tail and cannot be combined with --settlement-probe, --admission-only, --multi-round-probe, or --expect-honest-refusal")
     if args.expect_honest_refusal and (args.multi_round_probe or args.settlement_probe or args.admission_only):
         parser.error("--expect-honest-refusal owns the run tail and cannot be combined with --multi-round-probe, --settlement-probe, or --admission-only")
     output = Path(args.output).resolve()
@@ -3095,7 +3203,14 @@ def main() -> int:
                 report["project_setup"]["project_path"], conversation_id, run_started,
                 args.expect_processor_selection, args.agent_log,
             )
-        if args.settlement_probe:
+        if args.continuation_adoption_probe:
+            # FS-PARK-TURNFAIL-1（2026-09-30 用户裁定）：park 存活下的新用户输入
+            # = 默认采纳。机器探针从不提交人耳判断——那正是被默认采纳取代的通道。
+            report["continuation_adoption_probe"] = run_continuation_adoption_probe(
+                args.agent_http, conversation_id, report["project_setup"]["project_path"], args.timeout_sec, run_started,
+            )
+            report["status"] = "continuation_adoption_probe_pass"
+        elif args.settlement_probe:
             # The probe judgment is machine-originated and permanently marked
             # as such; it exercises the settlement machinery on this temporary
             # engineering copy only and never claims a human decision.
@@ -3105,7 +3220,9 @@ def main() -> int:
             report["status"] = "pass"
         report["finished_at"] = dt.datetime.now(dt.timezone.utc).isoformat()
         write_report(output, report)
-        if args.settlement_probe:
+        if args.continuation_adoption_probe:
+            print(f"D1-S1 CONTINUATION_ADOPTION PASS: report={output}")
+        elif args.settlement_probe:
             print(f"D1-S1 SETTLEMENT({args.settlement_probe}) PASS: report={output}")
         else:
             print(f"D1-S1 PASS: report={output}")
