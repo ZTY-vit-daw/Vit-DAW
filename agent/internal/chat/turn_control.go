@@ -8,9 +8,12 @@ import (
 	"strings"
 	"time"
 
+	"vit-daw-agent/internal/agentloop"
+	"vit-daw-agent/internal/audioclosure"
 	"vit-daw-agent/internal/experiment"
 	"vit-daw-agent/internal/harness"
 	agentruntime "vit-daw-agent/internal/runtime"
+	"vit-daw-agent/internal/taskstate"
 	"vit-daw-agent/internal/trajectory"
 )
 
@@ -249,7 +252,6 @@ func (s *Server) finalizeStoppedTurn(ctx context.Context, conversationID, goalID
 	if previousGoal.Status != agentruntime.StatusStopped || checkpoint == "" {
 		checkpoint = s.stableStopCheckpoint(ctx, goalID, runID)
 	}
-	goal := s.harness.MarkGoalStopped(goalID, checkpoint)
 	if loop, ok := s.freeStateLoop(conversationID); ok {
 		if loop.Experiment != nil && checkpoint != "" {
 			loop.Experiment.Admission.CheckpointRef = checkpoint
@@ -263,10 +265,137 @@ func (s *Server) finalizeStoppedTurn(ctx context.Context, conversationID, goalID
 		loop.UpdatedAt = time.Now().UTC()
 		s.storeFreeStateLoop(loop)
 	}
+	// FS-STOP-APPLY-1: MarkGoalStopped must land AFTER stopFreeStateExperiment.
+	// The experiment stop's canonical task transition (EventTaskCancelled)
+	// converges the goal status through TransitionTask's StateCancelled branch,
+	// which would overwrite a stopped goal back to cancelled (2026-10-01 M1
+	// live shape: task contract present). Stopping the experiment first keeps
+	// the user's stop the final, truthful goal status.
+	goal := s.harness.MarkGoalStopped(goalID, checkpoint)
 	s.clearGoalContinuation(goalID)
+	s.settleStoppedTurnClosure(conversationID, goalID, reason)
 	s.emitTurnStoppedTrajectory(conversationID, goalID, runID, reason, checkpoint)
 	s.persistCurrentProjectWorkspace()
 	return goal, checkpoint
+}
+
+// goalStopPending reports whether a user stop is pending for the goal: the
+// latch RequestGoalStop set (StopRequested) or the stopped status itself. This
+// is the queryable face between "the LLM decision returned" and "the
+// intervention executes" — the improvement-proposal application path runs
+// after the message loop returned, outside the runner's before/after-tool
+// checkpoints, so the pending stop must be re-read there (FS-STOP-APPLY-1
+// Part A).
+func (s *Server) goalStopPending(goalID string) bool {
+	if s == nil || s.harness == nil {
+		return false
+	}
+	goal := s.harness.RuntimeStatus(goalID)
+	return goal.StopRequested || goal.Status == agentruntime.StatusStopped
+}
+
+// stopPendingProposalSkippedReason is the honest stop reason for a turn whose
+// returned improvement proposal was never applied because the user stop was
+// already pending (FS-STOP-APPLY-1 Part A).
+const stopPendingProposalSkippedReason = "user_stop_pending_intervention_skipped"
+
+// stopPendingExperimentProposalResponse applies the FS-STOP-APPLY-1 Part A
+// boundary: the turn's model decision returned with a bounded improvement
+// proposal while the user's stop request is pending. The proposal is NOT
+// applied — already-applied work keeps its bounded reversible semantics, but
+// no new intervention fires after the stop. The stop lands now
+// (finalizeStoppedTurn, including the Part B closure settlement and ownership
+// release) instead of one continuation later, and the response states the
+// skip honestly.
+func (s *Server) stopPendingExperimentProposalResponse(ctx context.Context, conversationID, mode string, res agentloop.Result) (ChatResponse, bool) {
+	if !s.goalStopPending(res.GoalID) {
+		return ChatResponse{}, false
+	}
+	if s.logger != nil {
+		s.logger.Info("[turn.stop] pending stop skipped a returned improvement proposal conversation=%s goal=%s run=%s",
+			conversationID, res.GoalID, res.RunID)
+	}
+	goal, checkpoint := s.finalizeStoppedTurn(ctx, conversationID, res.GoalID, res.RunID, "user_stop")
+	resp := s.chatResponseFromAgentLoopResult(conversationID, mode, res)
+	resp.GoalStatus = string(agentruntime.StatusStopped)
+	resp.StopReason = stopPendingProposalSkippedReason
+	resp.Reply = "已停止当前 Turn：停止请求之后返回的改善提案没有应用，本轮没有新的干预；已应用的调整保持可回滚。"
+	resp.NeedsConfirmation = false
+	resp.InteractionRequests = nil
+	resp.WorkflowData = mergeContext(resp.WorkflowData, map[string]any{
+		"stop_turn": true, "checkpoint_ref": checkpoint, "goal_status": goal.Status,
+		"intervention_skipped": true, "skip_reason": "user_stop_pending",
+		"mutation_performed": false,
+	})
+	return resp, true
+}
+
+// settleStoppedTurnClosure is the FS-STOP-APPLY-1 Part B ownership release:
+// a user-stopped turn must not wedge the conversation's audio closure. When
+// the experiment is stopped and the closure bound to this goal is still
+// non-terminal, the task semantic state takes the legal close migration
+// (EventOwnerTurnClosed from any non-terminal state — the user stop is the
+// owning authority), the closure settles with the honest mapped stop reason
+// (owner_turn_closed / cancelled, never a fabricated settle-success), and the
+// controller owner is released so the next goal can acquire the conversation
+// (2026-10-01 18:35 live wedge: goal_6b07c186 failed with
+// audio_closure_controller_failure "conversation is already owned by
+// minimal_audio_closure controller audio_closure_997396f72e46902c").
+func (s *Server) settleStoppedTurnClosure(conversationID, goalID, reason string) {
+	if s == nil || s.harness == nil || strings.TrimSpace(goalID) == "" {
+		return
+	}
+	goal := s.harness.RuntimeStatus(goalID)
+	if goal.Task != nil && goal.Task.Contract != nil && goal.Task.SemanticState != nil && !goal.Task.SemanticState.Terminal {
+		if _, err := s.transitionTaskSemantic(goalID, taskstate.TransitionRequest{
+			Event:   taskstate.EventOwnerTurnClosed,
+			Reason:  "user stopped the turn",
+			Summary: firstNonEmpty(reason, goal.Summary, goal.Task.OriginalIntent),
+			ProjectRevision: firstNonEmpty(goal.Task.SemanticState.ProjectRevision,
+				goal.Task.Contract.ProjectRevision),
+		}); err != nil {
+			if s.logger != nil {
+				s.logger.Warn("[turn.stop] stopped-turn task close rejected goal=%s state=%s: %v",
+					goalID, goal.Task.SemanticState.State, err)
+			}
+		}
+	}
+	if s.audioClosures == nil {
+		return
+	}
+	state, ok := s.audioClosures.ActiveForConversation(conversationID)
+	if !ok || state.Terminal() || state.GoalID != goalID {
+		return
+	}
+	projected := state
+	if state.ContractID != "" {
+		if next, err := s.projectAudioClosureTaskState(state); err == nil {
+			projected = next
+		} else if s.logger != nil {
+			s.logger.Warn("[turn.stop] closure task projection failed for %s: %v", state.ClosureID, err)
+		}
+	}
+	summary := "user stopped the turn"
+	settled := audioClosureSettleFromResult(audioclosure.Driver{}, projected, agentloop.Result{Reply: summary})
+	if !settled.Terminal() {
+		settled, _ = (audioclosure.Driver{}).Settle(projected, projected.Revision, audioclosure.StopCancelled, summary, false, time.Now().UTC())
+	}
+	if !settled.Terminal() {
+		if s.logger != nil {
+			s.logger.Warn("[turn.stop] stopped-turn closure settle did not reach terminal for %s phase=%s", state.ClosureID, projected.Phase)
+		}
+		return
+	}
+	if err := s.audioClosures.Save(settled, state.Revision); err != nil {
+		if s.logger != nil {
+			s.logger.Warn("[turn.stop] stopped-turn closure settle save failed for %s: %v", state.ClosureID, err)
+		}
+		return
+	}
+	s.settleAudioClosureOwner(settled)
+	if s.logger != nil {
+		s.logger.Info("[turn.stop] settled stopped-turn closure=%s reason=%s goal=%s", state.ClosureID, settled.Settlement.Reason, goalID)
+	}
 }
 
 func activeProjectPlaneCommand(commandName string) bool {
@@ -326,6 +455,15 @@ func (s *Server) handleTurnStop(w http.ResponseWriter, r *http.Request) {
 	}
 	reason := firstNonEmpty(req.Reason, "user_stop")
 	wasActivelyExecuting := agentruntime.IsActiveStatus(goal.Status)
+	// FS-STOP-APPLY-1 anchor: the stop request arrival used to leave no log
+	// trace, so the press moment could only be established from user testimony
+	// (2026-10-01 M1 retest forensics). One INFO line: conversation / goal /
+	// run / moment / reason / prior status / whether a runner checkpoint will
+	// land the stop or finalizeStoppedTurn runs inline.
+	if s.logger != nil {
+		s.logger.Info("[turn.stop] request received conversation=%s goal=%s run=%s reason=%s prior_status=%s actively_executing=%t",
+			req.ConversationID, goal.GoalID, goal.RunID, reason, goal.Status, wasActivelyExecuting)
+	}
 	goal = s.harness.RequestGoalStop(goal.GoalID, reason)
 	s.requestFreeStateTurnStop(req.ConversationID, reason)
 	checkpoint := ""

@@ -487,6 +487,17 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 			return s.bindFreeStateContextToResponse(s.chatResponseFromAgentLoopResult(conversationID, mode, res), chatContext), true
 		}
 		if awaitingExperiment {
+			// FS-STOP-APPLY-1 Part A: a decision that returned while a user
+			// stop is pending must not apply its intervention. The application
+			// face below (improvementProposalResponse → full-access
+			// executePendingMixTickCandidate) runs after the message loop
+			// returned — outside every runner checkpoint — so the stop latch
+			// RequestGoalStop set is re-read here, between "LLM decision
+			// returned" and "intervention executed" (2026-10-01 18:34 live
+			// case: EQ applied 6s after the user pressed stop).
+			if response, stopped := s.stopPendingExperimentProposalResponse(ctx, conversationID, mode, res); stopped {
+				return s.bindFreeStateContextToResponse(response, chatContext), true
+			}
 			if audioClosureActive {
 				audioClosure, closureErr = s.recordAudioClosureRound(audioClosure, res, chatContext)
 				if closureErr != nil {
