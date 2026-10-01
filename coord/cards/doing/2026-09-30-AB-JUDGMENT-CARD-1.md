@@ -16,4 +16,7 @@
 - 文件域：agent/webui/src/（判定卡/交互动作绑定）+（若断点在服务端）agent chat judgment/respond 面——实锚后申报。
 - 验收标准：取证断点结论+修复 diff+npm test 全绿+E2E 新组 exit 0+用户手测复验（点击有效、A/B 裁决落地）。
 - 停止条件：取证发现 judgment POST 端点在当前链路未实现（架构缺口）→ 上交定方案。
-- 领取 / 回执 / 验收：空行待填
+- 领取：（2026-10-01 21:40 / origin/main=a134f524 / port/ab-judgment-card-1，worktree=D:/Vit_DAW_worktrees/ab-judgment-card-1，PC 会话②，L1；领取时工作树仅 VitApp/Workspace/default_project.xml 既有运行态改动，非本卡域，不动）
+- 取证断点结论（2026-10-01，webui 面，两轮证据+代码锚点）：**判定 POST 的 turn_id 被污染**——`audition.ts:102` 的 turnID 优先链由 02b6b442（B9 统一面）前插 `event.source_turn_id`（run 级），而 `trajectory.user_judgment.requested` 事件 source_turn_id=run id、payload.turn_id=实验 id；判定卡 `judgmentPayload` 的 `turn_id` 复用该字段 → POST 携带 run id → 服务端 `recordFreeStateAuditionJudgment`（audition_events.go:817）`loop.Experiment.ID != request.TurnID` → 409 "audition session identity mismatch"；webui `handleAuditionJudgment`（App.tsx:1463）无 catch 无 setError → 静默吞（无视觉响应+零事件）。两轮证据用 reducer 复刻复核：M8/R4 最终态 turnID 均为 run id、canJudge 均为 true（按钮确已渲染可点）。= 卡假设 a（绑错通路参数）+ b（静默吞）复合；假设 c（守卫误伤）排除。**一字段两语义**：turnID 同时服务卡片挂靠（要 run id，WEBUI-MSG-ORDER-2 三级挂靠依赖）与判定 POST（要实验 id）。
+- 回执：（commit hash / 红绿 / 烟测 run ID / 泊位声明）
+- 验收：（裁定文件 / 验收 commit）
