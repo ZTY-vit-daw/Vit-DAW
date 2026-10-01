@@ -2287,6 +2287,15 @@ TERMINAL_CONTINUATION_STATUSES = {"completed", "cancelled", "failed"}
 # 观察问题（非"继续"、非命令、非确认语）。
 ADOPTION_PROBE_MESSAGE = "换一个话题：帮我看看当前工程的整体状况，先观察再简要回答"
 
+# FS-ADOPT-CLOSURE-1（2026-10-01 20:33-20:36 M1 活栈，webui_mupimj6f）：采纳语义
+# 生效后，新 goal（goal_65e6beee）绑上会话残留的活跃 closure，其任务已被采纳
+# 结算（TaskState=settled）→ 立即吃 StopTaskSettled 罐头句零执行。罐头句冻结在
+# 此，供"绝不重演"断言逐字比对（audioClosureSettlementReply 的 settled 映射句）。
+ADOPTION_CANNED_SETTLED_REPLY = "任务已经满足其持久化契约中的证据与结算条件。"
+# 第二个新 goal 消息（同一会话内第三段任务）：证明采纳收口后对话不再楔死、后续
+# 新 goal 也不再吃到罐头句。
+ADOPTION_PROBE_SECOND_MESSAGE = "再换一个话题：帮我看看当前选中轨道的动态表现，先观察再简答"
+
 
 def run_continuation_adoption_probe(base_url: str, conversation_id: str, project_path: str, timeout: float, run_started: float) -> dict[str, Any]:
     """FS-PARK-TURNFAIL-1 continuation adoption probe: with the round durably
@@ -2294,7 +2303,14 @@ def run_continuation_adoption_probe(base_url: str, conversation_id: str, project
     the turn, (b) run on a fresh goal/run/turn identity, (c) land a reply, and
     (d) settle the parked round by adoption — outcome adopted_by_continuation,
     zero user_judgment_evidence, human A/B layer skipped_by_continuation, the
-    applied treatment kept (project revision unchanged)."""
+    applied treatment kept (project revision unchanged).
+    FS-ADOPT-CLOSURE-1 extension (2026-10-01 20:35 live shape, webui_mupimj6f):
+    (e) the goal the adoption message itself opens must REALLY observe — never
+    the StopTaskSettled canned sentence with zero execution the live run served
+    (the old closure's settled task must not leak into the new goal), and the
+    adopted park closure must settle with the honest adopted_by_continuation
+    reason; (f) one more new goal afterwards proves the conversation stays
+    unwedged (fresh identity, no canned sentence, no instant settle)."""
     state = newest_agent_runtime_state_for_conversation(project_path, conversation_id, run_started)
     require(bool(state), "FS-PARK-TURNFAIL-1: no persisted runtime state at the judgment park")
     conversation_goals = state.get("conversation_goals") if isinstance(state.get("conversation_goals"), dict) else {}
@@ -2376,6 +2392,56 @@ def run_continuation_adoption_probe(base_url: str, conversation_id: str, project
 
     revision_after = project_revision(invoke(base_url, "project.state", {}, timeout))
     require(revision_after == revision_before, "FS-PARK-TURNFAIL-1: default adoption must keep the applied state (revision moved)")
+
+    # (e) FS-ADOPT-CLOSURE-1（2026-10-01 20:35 活栈实证面）：采纳触发消息自己
+    # 开的新 goal（会话第二个 goal，即 live goal_65e6beee 的对照位）必须真实
+    # 观察执行——绝不重演"零执行 + StopTaskSettled 罐头句"。执行证据二源断言
+    # （响应级 executed_kernel_reply/completed_steps，或持久层新 goal 自己的
+    # closure 上真实落了观察记录/轮次）；罐头句/秒结算允许出现在"有真实执行"
+    # 的结算上（诊断契约完成会诚实映射 settled——既有措辞面，非本卡零执行楔死
+    # 面），但绝不允许再出现在零执行之上。
+    response_executed = len(rows(response.get("executed_kernel_reply"))) > 0 or int(response.get("completed_steps", 0) or 0) > 0
+    closure_observed = False
+    adopted_closure_reason = ""
+    deadline = time.monotonic() + 60
+    while time.monotonic() < deadline:
+        state_now = newest_agent_runtime_state_for_conversation(project_path, conversation_id, run_started)
+        closures = state_now.get("minimal_audio_closures") if isinstance(state_now.get("minimal_audio_closures"), dict) else {}
+        for row in closures.values():
+            if not isinstance(row, dict) or first_text(row.get("conversation_id")) != conversation_id:
+                continue
+            if first_text(row.get("goal_id")) == new_goal_id:
+                if len(row.get("observations") or {}) > 0 or int(row.get("rounds_started", 0) or 0) > 0:
+                    closure_observed = True
+            if first_text(row.get("goal_id")) == parked_goal_id:
+                settlement = row.get("settlement") if isinstance(row.get("settlement"), dict) else {}
+                adopted_closure_reason = first_text(settlement.get("reason"))
+        if (closure_observed or response_executed) and adopted_closure_reason:
+            break
+        time.sleep(1)
+    require(response_executed or closure_observed,
+            "FS-ADOPT-CLOSURE-1: the post-adoption goal left no execution evidence (the canned zero-execution shape)")
+    if first_text(response.get("reply")) == ADOPTION_CANNED_SETTLED_REPLY or first_text(response.get("stop_reason")).lower() == "settled":
+        require(response_executed or closure_observed,
+                "FS-ADOPT-CLOSURE-1: the StopTaskSettled canned sentence/second-instant settle returned with ZERO execution (the 2026-10-01 live defect)")
+    # 源头层真栈钉：被采纳的旧 closure 以诚实采纳停因结算（绝不伪造 satisfied，
+    # 也不是绑定层守卫的兜底映射）。
+    require(adopted_closure_reason == "adopted_by_continuation",
+            "FS-ADOPT-CLOSURE-1: the adopted park closure must settle as adopted_by_continuation, got: " + adopted_closure_reason)
+
+    # (f) 会话不楔死：再追加一个新 goal（第二个新 goal 断言），干净开启、有真
+    # 实回应、不再吃到已结算任务的 closure（罐头句若出现必须伴随执行证据）。
+    second_response = request_json("POST", base_url.rstrip("/") + "/agent/chat", {"conversation_id": conversation_id, "message": ADOPTION_PROBE_SECOND_MESSAGE, "context": {"agent_mode": "chat"}}, timeout)
+    require(not first_text(second_response.get("error")), "FS-ADOPT-CLOSURE-1: the second post-adoption goal failed: " + first_text(second_response.get("error")))
+    require(first_text(second_response.get("goal_status")).lower() != "failed", "FS-ADOPT-CLOSURE-1: the second post-adoption goal reported goal_status=failed")
+    second_goal_id = first_text(second_response.get("goal_id"))
+    require(bool(second_goal_id) and second_goal_id != new_goal_id and second_goal_id != parked_goal_id,
+            f"FS-ADOPT-CLOSURE-1: the second post-adoption goal must be fresh (got {second_goal_id})")
+    require(bool(first_text(second_response.get("reply"))), "FS-ADOPT-CLOSURE-1: the second post-adoption goal landed no reply")
+    second_executed = len(rows(second_response.get("executed_kernel_reply"))) > 0 or int(second_response.get("completed_steps", 0) or 0) > 0
+    if first_text(second_response.get("reply")) == ADOPTION_CANNED_SETTLED_REPLY or first_text(second_response.get("stop_reason")).lower() == "settled":
+        require(second_executed,
+                "FS-ADOPT-CLOSURE-1: the second post-adoption goal answered the canned zero-execution settlement (a finished task's closure leaked again)")
     return {
         "parked_goal_id": parked_goal_id,
         "parked_run_id": parked_run_id,
@@ -2383,6 +2449,8 @@ def run_continuation_adoption_probe(base_url: str, conversation_id: str, project
         "continuation_run_id": new_run_id,
         "task_semantic_state": first_text(parked_semantic.get("state")),
         "parked_goal_status": parked_status,
+        "adopted_closure_reason": adopted_closure_reason,
+        "second_goal_id": second_goal_id,
         "project_revision": revision_after,
     }
 
@@ -3074,7 +3142,7 @@ def main() -> int:
     parser.add_argument("--agent-log", default="", help="path to the agent runtime log for evaluator-side observability checks (domain routing decisions, processor selection records)")
     parser.add_argument("--expect-processor-selection", default="", help="AGENT-1 milestone: require a processor_selection.v1 record for this action domain (processor_selection route) with its routing log lines present")
     parser.add_argument("--verify-settled", default="", help="verify a previously settled probe report after an agent restart (path to d1_smoke_report.json)")
-    parser.add_argument("--continuation-adoption-probe", action="store_true", help="FS-PARK-TURNFAIL-1: with the round parked at the human-judgment boundary, send a NEW user message and assert the default-adoption settlement (adopted_by_continuation, no judgment evidence, fresh goal/run/turn identity, reply landed, applied state kept)")
+    parser.add_argument("--continuation-adoption-probe", action="store_true", help="FS-PARK-TURNFAIL-1 + FS-ADOPT-CLOSURE-1: with the round parked at the human-judgment boundary, send a NEW user message and assert the default-adoption settlement (adopted_by_continuation, no judgment evidence, fresh goal/run/turn identity, reply landed, applied state kept); then assert the post-adoption goal really observes (never the StopTaskSettled canned zero-execution reply), the adopted closure settles as adopted_by_continuation, and a second post-adoption goal stays unwedged")
     parser.add_argument("--stop-semantics-probe", action="store_true", help="FS-STOP-APPLY-1: with the round parked at the human-judgment boundary, POST a user stop and assert the honest stopped status, the closure settle + controller-owner release, zero further interventions, the request-arrival log anchor, and an unwedged conversation (next message runs on a fresh goal)")
     parser.add_argument("--reuse-existing-project", action="store_true", help="B10 instance-reuse round: when the project workdir already exists (a previous experiment round on this live stack), reuse the project in place instead of materializing a fresh copy, so the second experiment plans against the plugin instances the first round left on the tracks")
     args = parser.parse_args()
