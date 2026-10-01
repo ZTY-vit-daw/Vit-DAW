@@ -31,7 +31,9 @@ export function auditionBlindDisclosureText(session: AuditionSession): string {
 function judgmentPayload(session: AuditionSession, heardDifference: "yes" | "no" | "unsure", preference: "a" | "b" | "neither" | "equal" | "unsure", freeText: string): AuditionJudgmentPayload {
   return {
     conversation_id: session.conversationID,
-    turn_id: session.turnID,
+    // 判定契约域（AB-JUDGMENT-CARD-1）：turn_id 走会话原生实验域（experimentTurnID），
+    // 不走挂靠域的 run 级键——服务端按 loop.Experiment.ID / mix-tick record.TurnID 校验身份。
+    turn_id: session.experimentTurnID,
     round_id: session.roundID,
     audition_session_id: session.id,
     project_revision: session.projectRevision,
