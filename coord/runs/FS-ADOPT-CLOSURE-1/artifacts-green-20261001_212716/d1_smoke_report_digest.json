@@ -1,0 +1,16 @@
+{
+  "label": "green",
+  "status": "continuation_adoption_probe_pass",
+  "conversation_id": "d1_s1_20261001T132907222418",
+  "continuation_adoption_probe": {
+    "parked_goal_id": "goal_2d549c4c9e461460",
+    "parked_run_id": "run_88fbeeeb2cef3fd8",
+    "continuation_goal_id": "goal_a0adfb41b107a52b",
+    "continuation_run_id": "run_a1e02dd5b579d704",
+    "task_semantic_state": "settled",
+    "parked_goal_status": "completed",
+    "adopted_closure_reason": "adopted_by_continuation",
+    "second_goal_id": "goal_504b9afa12810717",
+    "project_revision": "7"
+  }
+}

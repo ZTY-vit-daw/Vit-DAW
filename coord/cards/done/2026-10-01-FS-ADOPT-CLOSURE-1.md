@@ -17,5 +17,11 @@
 - 验收标准：双红测红绿+全量 0 FAIL+两姊妹卡钉零回退+烟测 exit 0+锚点清单。
 - 停止条件：closure 收尾与既有 FS9/settle 语义冲突超 chat 域，或绑定层守卫需改 prepareAudioClosureContext 的核心契约 → 实证上交定扩域。
 - 领取：（2026-10-01 21:05 / origin/main=a45f8507 / port/fs-adopt-closure-1，worktree=D:/Vit_DAW_worktrees/fs-adopt-closure-1，PC 会话①，L2）
-- 回执：（commit hash / 红绿 / 烟测 run ID / 泊位声明）
+- 回执（2026-10-01 21:55 执行侧自验完成，待决策验收）：
+  - **commit**：port/fs-adopt-closure-1 `d017b9af`（双层修复+红测四钉，5 文件 +313/-2）+ `23dfc239`（烟测探针扩展 (e)/(f)）；worktree=D:/Vit_DAW_worktrees/fs-adopt-closure-1，领取基线 origin/main=a45f8507，测试时 HEAD=23dfc239 工作树净
+  - **红绿**：fs_adopt_closure_test.go 四钉（源头层/绑定层守卫/同 goal 合法路径/新停因措辞）——源文件 stash 验证修复前三红一绿，修复后全绿；回归 chat 包全量+audioclosure 包全量 0 FAIL（118s）；FS-PARK 六钉+judgment_park_continuation 全测+judgment_park_delivery 全测+FS-STOP-APPLY-1 四钉点名全绿（20/20 PASS）
+  - **烟测**：Run1 20261001_212148 红（归因=模型提案件走 native-tool confirmation 边界，本卡代码标记零出现，模型随机分支非断点）；**Run2 20261001_212716 exit 0 PASS**——旧 closure 以 adopted_by_continuation 诚实结算+采纳触发消息自开 goal 真实观察执行+第二个新 goal（goal_504b9afa）不楔死+守卫零触发（源头层先行的分层验证）；被测二进制 sha256[:16]=bd3522044f6d3eb5（-SkipBuild §9 记录）；记录=coord/runs/FS-ADOPT-CLOSURE-1/smoke-record.md
+  - **泊位声明**：烟测完成即拆除运行栈，7878/5555/5556 无监听、Godot 已停——栈已拆除，未移交
+  - **锚点清单**：judgment_park_continuation.go settleAdoptedParkClosure（源头层）+ audio_closure_controller.go releaseFinishedTaskClosureForNewGoal/audioClosureTaskAlreadyFinished（绑定层守卫）+ audioclosure types.go StopAdoptedByContinuation+driver.go validStopReason+settlement reply 新句 + 探针 (e)/(f)
+  - **域外观察（未修，供决策）**：诊断契约本轮完成时 ContractID 分支把 StateSettled 映射 StopTaskSettled 复用罐头句措辞——有真实执行+诚实结算、与零执行楔死无关，属既有措辞面
 - 验收：（裁定文件 / 验收 commit）
