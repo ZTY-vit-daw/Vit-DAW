@@ -302,7 +302,7 @@ describe("UI-FOLLOW-2 轨迹块坠底：水合时刻晚 2 ms（成因①）+ 同
     expect(plan.orphanTurnIds).toEqual([]);
   });
 
-  it("成因②（水合后的实际形态）：同 run 两条追问并成一组——块跟开启该回合的第一条，不越过第二条坠底", () => {
+  it("成因②（水合后的实际形态，WEBUI-MSG-ORDER-1 修正）：同 run 两条追问不回吸首轮组——第二轮输入按流序落在第一轮输出之下", () => {
     const trajectory = reduceTrajectoryEvents(emptyTrajectoryState(), traceEvents(REAL_RUN, 2, REAL_TURN_STARTED_MS + 800));
     const turnEventMeta = reduceTurnEventMeta({}, [turnStarted(REAL_RUN, 1, REAL_TURN_STARTED_MS)]);
     const messages = [
@@ -316,10 +316,13 @@ describe("UI-FOLLOW-2 轨迹块坠底：水合时刻晚 2 ms（成因①）+ 同
       chat({ id: "a_last", role: "assistant", content: "抱歉，加载没成功", turn_id: "turn_56e88f464b3d02d7", createdAt: Date.parse("2026-09-13T04:28:00.991157Z") })
     ];
     const plan = buildMessageStreamRenderPlan({ messages, trajectory, turnEventMeta });
+    // WEBUI-MSG-ORDER-1：u_ask3 与 u_ask2 同挂 REAL_RUN，但 a_mid 组已接续在 run 组
+    // 之后——u_ask3 不再回吸首轮组（旧期望把它排在 a_mid 之上，即 M8 倒挂形态），
+    // 按流序落在 a_mid 之下；块仍锚定开启该回合的 u_ask2 之后。
     expect(shapeOf(plan)).toEqual([
       "messages:u_prev", "messages:a_prev",
-      "messages:u_ask2", `trace:${REAL_RUN}`, "messages:u_ask3",
-      "messages:a_mid", "messages:a_last"
+      "messages:u_ask2", `trace:${REAL_RUN}`, "messages:a_mid",
+      "messages:u_ask3", "messages:a_last"
     ]);
     expect(plan.orphanTurnIds).toEqual([]);
     expect(hasUserMessageAfterBlock(plan)).toBe(true);
@@ -342,6 +345,34 @@ describe("UI-FOLLOW-2 轨迹块坠底：水合时刻晚 2 ms（成因①）+ 同
     const beforeTrace = plan.entries[traceIndex - 1];
     expect(beforeTrace.kind === "messages" ? beforeTrace.messages.map((message) => message.id) : []).toEqual(["u_open"]);
     expect(hasUserMessageAfterBlock(plan)).toBe(true);
+    expect(plan.orphanTurnIds).toEqual([]);
+  });
+
+  it("WEBUI-MSG-ORDER-1（M8 手测倒挂反例，复刻 events-webui-muo6fygb 水合行）：同 run 两轮输入——第二轮输入按流序落在第一轮输出之下", () => {
+    // ui-state.json project_history.conversation_messages 原样时间戳：waiting_continue
+    // 续跑让两轮用户行同盖 run 域 turn_id，assistant 行是 chat 域 turn_*；round-2 以
+    // turn.failed 收场（seq46/47，22:07:20 → 22:08:07）。旧分组把 u2 吸回 u1 的
+    // run 组（组序=首现序），渲染成「第二轮输入 → 第一轮输出」。
+    const run = "run_e5796736a4865570";
+    const trajectory = reduceTrajectoryEvents(emptyTrajectoryState(), traceEvents(run, 2, Date.parse("2026-09-30T22:04:59.400+08:00")));
+    const turnEventMeta = reduceTurnEventMeta({}, [turnStarted(run, 1, Date.parse("2026-09-30T22:04:59.321+08:00"))]);
+    const messages = [
+      chat({ id: "history_n_20260930T140459_f71485af", role: "user", content: "检查一下当前工程有什么问题", turn_id: run, createdAt: Date.parse("2026-09-30T14:04:59.359Z") }),
+      chat({ id: "history_n_20260930T140504_74bd2bac", role: "assistant", content: "我还在继续处理这个任务，完成后再向你汇报。", turn_id: "turn_128b2cf41542f658", createdAt: Date.parse("2026-09-30T14:05:04.418Z") }),
+      chat({ id: "history_n_20260930T140637_283508ea", role: "assistant", content: "这一步已经应用好了：Track 1017静态 EQ 频段增益 -0.5 dB（回读 -0.5 dB）。", turn_id: "turn_977d99676e1c35ef", createdAt: Date.parse("2026-09-30T14:06:37.729Z") }),
+      chat({ id: "history_n_20260930T140720_3933e760", role: "user", content: "你能再检查一下Bass轨道，看看它的低频有没有什么问题吗？", turn_id: run, createdAt: Date.parse("2026-09-30T14:07:20.947Z") }),
+      chat({ id: "history_n_20260930T140807_a0194727", role: "assistant", content: "任务在形成有效结算前失败；失败原因与已有证据已保留。", turn_id: "turn_721c90fd784fe67b", createdAt: Date.parse("2026-09-30T14:08:07.729Z") })
+    ];
+    const plan = buildMessageStreamRenderPlan({ messages, trajectory, turnEventMeta });
+    // 修复后期望：u1 → 轨迹块 → 第一轮输出（a1/a2）→ 第二轮输入（u2）→ 失败回执（a3）。
+    expect(shapeOf(plan)).toEqual([
+      "messages:history_n_20260930T140459_f71485af",
+      `trace:${run}`,
+      "messages:history_n_20260930T140504_74bd2bac",
+      "messages:history_n_20260930T140637_283508ea",
+      "messages:history_n_20260930T140720_3933e760",
+      "messages:history_n_20260930T140807_a0194727"
+    ]);
     expect(plan.orphanTurnIds).toEqual([]);
   });
 

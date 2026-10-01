@@ -137,3 +137,70 @@ describe("FIX-BUCKET-SAVE-RACE-1：reload 桶 save/restore 管线", () => {
     });
   });
 });
+
+// WEBUI-MSG-ORDER-1 归因用例（2026-10-01，M8 手测倒挂取证）：mergeRestoredChatMessages
+// 是**保序载体**——服务端把两轮用户行都盖上同一 run 域 turn_id（waiting_continue 续跑，
+// ui-state.json 实证 user1/user2 同为 run_e5796736a4865570），本地桶里的乐观 user2 无
+// turn_id，合流后它获得盖章 turn_id 且**数组时序不变**（user2 仍在第一轮输出之后）。
+// 倒挂不产自合流层，而产自回合分组 groupMessagesByTurn 的同 id 回吸（本卡修复点）。
+describe("WEBUI-MSG-ORDER-1：mergeRestoredChatMessages 归因排除", () => {
+  const RUN = "run_e5796736a4865570";
+
+  function m8HistoryRow(id: string, role: ChatMessage["role"], content: string, turnId: string, createdAt: number): ChatMessage {
+    return {
+      id: `history_${id}`,
+      source_id: id,
+      role,
+      content,
+      createdAt,
+      status: "sent",
+      lifecycle: "durable",
+      persistence: "project_history",
+      message_kind: role === "user" ? "user" : role === "assistant" ? "assistant" : "error",
+      turn_id: turnId,
+      logical_message_id: id
+    } as ChatMessage;
+  }
+
+  it("合流输出保持时序（user2 在第一轮输出之后）；回合分组不再把 user2 吸回首轮组", async () => {
+    const { groupMessagesByTurn } = await import("./trace/turnGroups");
+    // 服务端历史 5 行（M8 ui-state.json 原样 turn_id 形态）
+    const stored: ChatMessage[] = [
+      m8HistoryRow("n_20260930T140459_f71485af", "user", "检查一下当前工程有什么问题", RUN, Date.parse("2026-09-30T14:04:59.359Z")),
+      m8HistoryRow("n_20260930T140504_74bd2bac", "assistant", "我还在继续处理这个任务，完成后再向你汇报。", "turn_128b2cf41542f658", Date.parse("2026-09-30T14:05:04.418Z")),
+      m8HistoryRow("n_20260930T140637_283508ea", "assistant", "这一步已经应用好了：Track 1017静态 EQ 频段增益 -0.5 dB（回读 -0.5 dB）。", "turn_977d99676e1c35ef", Date.parse("2026-09-30T14:06:37.729Z")),
+      m8HistoryRow("n_20260930T140720_3933e760", "user", "你能再检查一下Bass轨道，看看它的低频有没有什么问题吗？", RUN, Date.parse("2026-09-30T14:07:20.947Z")),
+      m8HistoryRow("n_20260930T140807_a0194727", "system", "任务在形成有效结算前失败；失败原因与已有证据已保留。", "turn_721c90fd784fe67b", Date.parse("2026-09-30T14:08:07.729Z"))
+    ];
+    // 现流（reload 前形态）：两轮乐观用户行都无 turn_id，assistant 行来自 HTTP（chat 域）
+    const current: ChatMessage[] = [
+      { id: "msg_round1", role: "user", content: "检查一下当前工程有什么问题", createdAt: Date.parse("2026-09-30T14:04:59.300Z"), status: "sent", lifecycle: "durable", persistence: "project_history", message_kind: "user" } as ChatMessage,
+      { id: "msg_round1_reply", role: "assistant", content: "我还在继续处理这个任务，完成后再向你汇报。", turn_id: "turn_128b2cf41542f658", createdAt: Date.parse("2026-09-30T14:05:04.420Z"), status: "sent", lifecycle: "durable", persistence: "project_history", message_kind: "execution_receipt" } as ChatMessage,
+      { id: "msg_round2", role: "user", content: "你能再检查一下Bass轨道，看看它的低频有没有什么问题吗？", createdAt: Date.parse("2026-09-30T14:07:20.900Z"), status: "sent", lifecycle: "durable", persistence: "project_history", message_kind: "user" } as ChatMessage
+    ];
+
+    const merged = mergeRestoredChatMessages(current, stored);
+    // 归因排除①：合流层保序——user2 的行仍在两条第一轮输出之后（数组时序未被合流打乱）
+    const orderIDs = merged.map((message) => message.content.slice(0, 6));
+    expect(orderIDs).toEqual([
+      "检查一下当前",
+      "我还在继续处",
+      "这一步已经应",
+      "你能再检查一",
+      "任务在形成有"
+    ]);
+    // 归因排除②：合流把盖章 turn_id 带给乐观 user2（同一逻辑消息合并，不产生双行）
+    const mergedUser2 = merged.filter((message) => message.role === "user");
+    expect(mergedUser2).toHaveLength(2);
+    expect(mergedUser2.every((message) => message.turn_id === RUN)).toBe(true);
+
+    // 缺陷面定位：倒挂只能来自回合分组——修复后 user2 不再被吸回首轮组
+    const groups = groupMessagesByTurn(merged);
+    const firstGroup = groups[0];
+    expect(firstGroup.turnId).toBe(RUN);
+    expect(firstGroup.messages.map((message) => message.content.slice(0, 6))).toEqual(["检查一下当前"]);
+    const user2Group = groups.find((group) => group.messages.some((message) => message.content.startsWith("你能再检查一下")));
+    expect(user2Group).toBeDefined();
+    expect(groups.indexOf(user2Group!)).toBeGreaterThan(groups.findIndex((group) => group.messages.some((message) => message.content.startsWith("这一步已经应用好了"))));
+  });
+});

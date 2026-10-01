@@ -18,6 +18,7 @@ import {
   SUPERSEDED_BY_NEWER_RESOLVED_ACTION
 } from "./messageLifecycle";
 import { chatMessageFromAgentEvent } from "./App";
+import { reduceTurnEventMeta } from "./trace/turnEventMeta";
 import type { AgentEvent, ChatMessage, ChatResponse } from "./types";
 
 function activityFromEvent(event: AgentEvent): ChatMessage {
@@ -568,5 +569,84 @@ describe("FIX-CONFIRM-CARD-1 ②：settleSupersededInteractionFamilies 同族替
     const settled = settleSupersededInteractionFamilies(messages);
     expect((settled[0]?.actions?.[0] as Record<string, unknown>).resolved_action_id).toBe(SUPERSEDED_BY_NEWER_RESOLVED_ACTION);
     expect((settled[1]?.actions?.[0] as Record<string, unknown>).status).toBe("waiting_for_user");
+  });
+});
+
+// WEBUI-MSG-ORDER-1（2026-10-01，M8 手测取证）：同一 run 的生命周期翻转重放——
+// waiting_continue 续跑让 turn.started/completed/failed 携带同一 logical_message_id
+// （M8 证据 agent_turn:run_e5796736a4865570 贯穿 seq1→seq47），且存在同 id 双发对
+// （audition.ready 0.5-14ms 错位；trajectory.turn.completed 同 ms 双发但 item_id
+// 不同=实验回合与 run 壳各自合法收口）。本组钉活动面/记账面对翻转与重复投递的
+// 稳健性：同 id 再 started 不得复活已清退活动、不得重排（原位更新）、重复事件
+// 不虚增。
+describe("WEBUI-MSG-ORDER-1：同 logical id 生命周期翻转重放（started→completed→items→completed→started→failed）", () => {
+  const RUN = "run_e5796736a4865570";
+  const GOAL = "goal_6da74bd8211d252f";
+  const TURN_LOGICAL_ID = `agent_turn:${RUN}`;
+  const base = { conversation_id: "webui_muo6fygb", goal_id: GOAL, run_id: RUN, source_turn_id: RUN, turn_id: RUN };
+
+  function event(seq: number, at: number, type: string, extra: Partial<AgentEvent> = {}): AgentEvent {
+    return {
+      seq,
+      type,
+      created_at: new Date(Date.parse("2026-09-30T22:04:59.321+08:00") + at).toISOString(),
+      logical_message_id: type.startsWith("audition.") ? `audition:audition:${GOAL}` : TURN_LOGICAL_ID,
+      ...base,
+      ...extra
+    } as AgentEvent;
+  }
+
+  // M8 事件序列的取证压缩版：轮次生命周期两次开启 + 两段 item + 双发对。
+  const replay: AgentEvent[] = [
+    event(1, 0, "turn.started", { title: "正在处理", body: "检查一下当前工程有什么问题" }),
+    event(3, 5_008, "item.started", { item_id: "ccb_observation_a", item_type: "daw_action", title: "正在执行操作", logical_message_id: "" }),
+    event(4, 5_029, "item.completed", { item_id: "ccb_observation_a", item_type: "daw_action", status: "completed", logical_message_id: "" }),
+    event(5, 5_113, "turn.completed", { status: "waiting_continue", title: "处理完成", body: "我还在继续处理这个任务，完成后再向你汇报。" }),
+    event(8, 37_299, "item.started", { item_id: "ccb_observation_b", item_type: "daw_action", title: "正在执行操作", logical_message_id: "" }),
+    event(9, 37_397, "item.completed", { item_id: "ccb_observation_b", item_type: "daw_action", status: "completed", logical_message_id: "" }),
+    // trajectory.turn.completed 同 ms 双发：item_id 不同（实验回合 / run 壳）——合法成对
+    event(32, 98_421, "trajectory.turn.completed", { item_id: "turn:free_state_c2681cbd102907f6", status: "waiting_for_user", logical_message_id: "trajectory:turn:free_state_c2681cbd102907f6:turn" }),
+    event(33, 98_421, "trajectory.turn.completed", { item_id: `turn:${RUN}`, status: "waiting_for_user", logical_message_id: `trajectory:${RUN}:turn` }),
+    // 同 id 双发对：audition.ready 2ms 错位（内核遥测+agent 侧双源形态）
+    event(20, 45_315, "audition.ready", { item_id: `audition:turn:free_state_c2681cbd102907f6:round-1`, item_type: "audition", status: "ready", title: "Kernel audition" }),
+    event(21, 45_317, "audition.ready", { item_id: `audition:turn:free_state_c2681cbd102907f6:round-1`, item_type: "audition", status: "ready", title: "Kernel audition" }),
+    // 同 id 翻转：第二轮输入再次 turn.started（同一 logical id），47s 后 failed
+    event(46, 141_624, "turn.started", { title: "正在处理", body: "你能再检查一下Bass轨道，看看它的低频有没有什么问题吗？" }),
+    event(47, 188_420, "turn.failed", { status: "failed", title: "执行失败", body: "任务在形成有效结算前失败；失败原因与已有证据已保留。" })
+  ];
+
+  it("turn 生命周期事件不产消息、不复活已清退活动；同 id 再 started 后 failed 终局清场干净", () => {
+    // 喂到 seq21（第一轮收口 + audition 双发）：item 活动已被 turn.completed 清退，audition 行存活
+    const afterFirstSlice = reduceAgentEventActivities([], replay.slice(0, 10), chatMessageFromAgentEvent);
+    expect(afterFirstSlice.filter((row) => row.source_id?.includes("ccb_observation"))).toHaveLength(0);
+    const auditionRows = afterFirstSlice.filter((row) => row.source_id?.includes("audition"));
+    expect(auditionRows).toHaveLength(1);
+    // 翻转 + 终局：第二个 turn.started 不复活任何活动，turn.failed 清场后为空
+    const afterReplay = reduceAgentEventActivities(afterFirstSlice, replay.slice(10), chatMessageFromAgentEvent);
+    expect(afterReplay).toHaveLength(0);
+    // 全量一次喂入（轮询窗口可能整段重放）终态一致
+    expect(reduceAgentEventActivities([], replay, chatMessageFromAgentEvent)).toHaveLength(0);
+  });
+
+  it("同 id 双发不重排：audition 活动原位更新、保留首见 createdAt（不因重复投递换位）", () => {
+    const firstAt = Date.parse("2026-09-30T22:04:59.321+08:00") + 45_315;
+    const rows = reduceAgentEventActivities([], replay.slice(0, 10), chatMessageFromAgentEvent);
+    const auditionRow = rows.find((row) => row.source_id?.includes("audition"));
+    expect(auditionRow).toBeDefined();
+    expect(auditionRow?.createdAt).toBe(firstAt);
+  });
+
+  it("记账面：startedAt 取首次开始（锚定证据不被再 started 拉走），双发终局/重复 item 不虚增", () => {
+    const meta = reduceTurnEventMeta({}, replay);
+    const turn = meta[RUN];
+    expect(turn).toBeDefined();
+    expect(turn.startedAt).toBe(Date.parse("2026-09-30T22:04:59.321+08:00"));
+    expect(turn.itemActivityKeys).toEqual(["ccb_observation_a", "ccb_observation_b"]);
+    expect(turn.itemActivityCount).toBe(2);
+    expect(turn.endedAt).toBe(Date.parse("2026-09-30T22:04:59.321+08:00") + 188_420);
+  });
+
+  it("终局提取：重复的 trajectory.turn.completed 去重后仍只回报一个回合 id", () => {
+    expect(terminalTurnIDsFromEvents(replay)).toEqual([RUN]);
   });
 });
