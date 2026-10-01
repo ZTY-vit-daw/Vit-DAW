@@ -32,4 +32,4 @@
   - 真栈烟测：`run_free_state_d1_smoke.ps1 -StopSemanticsProbe` **exit 0**，run 工件=coord/runs/FS-STOP-APPLY-1/smoke-20261001_193304/（报告+agent_last.log+README 含命令/二进制指纹/一次启动环境失败记录）。探针证据：parked goal_53d57021→stop→goal 诚实 stopped、closure **fs9_terminal+reason=cancelled**（非 satisfied）、owner **settled**、停止后 revision 不动、`[turn.stop] request received` 锚点行在 log、新输入开新 goal_935f529d/run_61ca87d44（M1 18:35 楔死面 green）
   - 端测覆盖边界声明（§5）：改动全在 agent Go 域+烟测脚本；无 webui 渲染面改动——渲染面/旅程门槛不适用；真栈烟测覆盖停止语义的服务端面（用户旅程「取消」一环），webui 停止按钮的 UI 呈现不在本卡覆盖内
   - **泊位声明：运行栈已拆除**（VitApp pid5616 / Godot pid17900 / VitAgent pid25156 已停；7878/5555/5556 空闲；2026-10-01 19:40 核验）
-- 验收：（裁定文件 / 验收 commit）
+- 验收：**pass（2026-10-01 决策会话）**——rulings/2026-10-01-FS-STOP-APPLY-1-pass.md；合并 main=15a10a5b/5b1805ba/dad07e16（决策侧 cherry-pick）；取证先行达标+diff 直读（停止闸门/诚实结算/own-closure 守卫/StateCancelled 顺带修复）+我方复跑 87 包 0 FAIL+三关键钉 PASS+烟测五证据亲读（M1 楔死面 green）+泊位合规；手测复验与 M1 第四轮同场。
