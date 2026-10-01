@@ -11,6 +11,18 @@ export interface MessageTurnGroup {
  * 把消息流按回合分组：携带 turn_id 的消息开启/并入该回合组；
  * 无 turn_id 的消息（如乐观发出的用户消息）自成独立组，保持原始顺序
  * 在后续回合组之前——渲染上即「用户气泡 → 该回合轨迹块 → 回合内卡片」。
+ *
+ * WEBUI-MSG-ORDER-1（2026-10-01，M8 手测倒挂取证）：用户消息是回合槽位的唯一
+ * 开启者（renderPlan messageRoundSlots 同一口径），且**只在回合组仍是尾随组**
+ * （回合切片尚未被其他组接续）时并入。同一 run 承载多轮输入时（waiting_continue
+ * 续跑，服务端把每轮用户行都盖上同一 run 域 turn_id——M8 证据
+ * events-webui-muo6fygb.json / ui-state.json：user1/user2 同为 run_e5796736，
+ * assistant 行反而是 chat 域 turn_*），按旧规则第二条用户输入会被吸回首轮组，
+ * 渲染序倒挂成「第二轮输入 → 第一轮输出」。故命中既有非尾随组的新一轮用户输入
+ * 自成独立组（loose 键防组键冲突），保持流位置；消息自身保留 turn_id，回合归属
+ * 的消息级消费方（settleTerminatedTurnInteractions / messageAnchoredTurnIds /
+ * 轨迹活动归属）不受组形态影响。assistant 等产出消息合并规则不变（产出归属
+ * 该回合组，与首现位置无关）。
  */
 export function groupMessagesByTurn(messages: ChatMessage[]): MessageTurnGroup[] {
   const groups: MessageTurnGroup[] = [];
@@ -19,8 +31,13 @@ export function groupMessagesByTurn(messages: ChatMessage[]): MessageTurnGroup[]
     const turnId = (message.turn_id ?? "").trim();
     if (turnId) {
       const existing = byTurn.get(turnId);
-      if (existing) {
+      if (existing && !(message.role === "user" && existing !== groups[groups.length - 1])) {
         existing.messages.push(message);
+        continue;
+      }
+      if (existing) {
+        // 同 run 的新一轮用户输入：独立组保流位置（见上方 WEBUI-MSG-ORDER-1 注）。
+        groups.push({ key: `loose:${message.id}`, turnId: "", messages: [message] });
         continue;
       }
       const group: MessageTurnGroup = { key: `turn:${turnId}`, turnId, messages: [message] };
