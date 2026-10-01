@@ -99,6 +99,39 @@ describe("buildMessageStreamRenderPlan（GUI-1/G2：固化渲染顺序）", () =
     expect(plan.chainResultMessages).toHaveLength(1);
   });
 
+  it("WEBUI-MSG-ORDER-1（M8 活态倒挂反例）：链终局被新一轮输入超越后回归流内时序槽位，不再永久钉尾", () => {
+    // 真栈 msg-order-M1 流形：第一轮链终局（scheduler_chain 合成消息）钉在流尾，
+    // 第二轮用户输入照常入列就排在它上面——「输入在第一轮输出上面、输出在底下」。
+    const messages = [
+      chat({ id: "u1", role: "user", content: "检查一下当前工程有什么问题", turn_id: "run_1", createdAt: 1000 }),
+      chat({ id: "a1", role: "assistant", content: "我还在继续处理这个任务，完成后再向你汇报。", turn_id: "turn_x1", createdAt: 2000 }),
+      chainResult("agent_event_goal_chain_result", "这一步已经应用好了：Track 1017 静态 EQ 频段增益 -0.5 dB。"),
+      chat({ id: "a2", role: "assistant", content: "第二轮中间汇报。", turn_id: "turn_x2", createdAt: 3500 }),
+      chat({ id: "u2", role: "user", content: "你能再检查一下Bass轨道吗？", createdAt: 4000 })
+    ];
+    // 链终局 createdAt=3000 介于 a1(2000)/a2(3500) 与 u2(4000) 之间（chat() 缺省
+    // createdAt=0，此处显式覆写）。无 turn_id 的链终局回 Loose 组按 createdAt 归位。
+    (messages[2] as ChatMessage).createdAt = 3000;
+    const plan = buildMessageStreamRenderPlan({ messages, trajectory: emptyTrajectoryState() });
+    expect(plan.chainResultMessages).toHaveLength(0);
+    const shape = plan.entries.map((entry) =>
+      entry.kind === "messages" ? `messages:${entry.messages.map((message) => message.id).join(",")}` : entry.kind
+    );
+    expect(shape).toEqual(["messages:u1", "messages:a1", "messages:agent_event_goal_chain_result", "messages:a2", "messages:u2"]);
+  });
+
+  it("反例保持（GUI-F8 零回退）：链终局仍是最新内容时保持流尾钉位", () => {
+    const messages = [
+      chat({ id: "u1", role: "user", content: "检查", turn_id: "run_1", createdAt: 1000 }),
+      chat({ id: "u2", role: "user", content: "占位旧消息", createdAt: 2000 }),
+      chainResult("agent_event_goal_chain_result", "终局回复。")
+    ];
+    (messages[2] as ChatMessage).createdAt = 5000;
+    const plan = buildMessageStreamRenderPlan({ messages, trajectory: emptyTrajectoryState() });
+    expect(plan.chainResultMessages.map((message) => message.id)).toEqual(["agent_event_goal_chain_result"]);
+    expect(plan.entries.map((entry) => entry.kind)).toEqual(["messages", "messages"]);
+  });
+
   it("纯函数：相同输入产出相同计划（无隐藏状态）", () => {
     const messages = [chat({ id: "u1", role: "user", content: "检查", turn_id: "run_1" })];
     const trajectory = emptyTrajectoryState();

@@ -138,8 +138,36 @@ export function buildMessageStreamRenderPlan(options: {
   receipts?: TurnReceipt[];
 }): MessageStreamRenderPlan {
   const { messages, trajectory, turnEventMeta, roundSteps, receipts } = options;
-  const chainResultMessages = messages.filter(isChainResultChatMessage);
-  const flowMessages = chainResultMessages.length > 0 ? messages.filter((message) => !isChainResultChatMessage(message)) : messages;
+  // WEBUI-MSG-ORDER-1（2026-10-01，M8 手测倒挂第二机制）：GUI-F7 的链终局消息
+  // 钉流尾（GUI-F8：孤儿实验块 → 终局回复），但钉位是**永久的**——用户开启下一
+  // 轮后，新消息照常入列、链终局仍钉在整条流最底，即「第二轮输入显示在第一轮
+  // 输出之上、第一轮输出保持在底下」（真栈 E2E msg-order-M1 流形逐位实证；水合
+  // 行与链终局孪生按文本键合并后继承孪生 source_id，同样被钉尾）。修法：链终局
+  // 只在**仍是最新内容**时保持钉位（GUI-F8 不变量只对最新终局有意义）；被更新
+  // 的非链消息超越的终局回到流内时序槽位（无 turn_id → loose 组按 createdAt
+  // 归位）。时间戳相等保持钉位（保守零回退）；flowMessages 做稳定 createdAt
+  // 排序（时间戳优先、首见序兜底——appendChainResultMessages 的尾部追加不得
+  // 让同 id 行原位更新后的行序漂移）。
+  const chainAll = messages.filter(isChainResultChatMessage);
+  let newestFlowAt = 0;
+  for (const message of messages) {
+    if (isChainResultChatMessage(message)) {
+      continue;
+    }
+    const at = Number(message.createdAt);
+    if (Number.isFinite(at) && at > newestFlowAt) {
+      newestFlowAt = at;
+    }
+  }
+  const chainResultMessages = chainAll.filter((message) => !((Number(message.createdAt) || 0) < newestFlowAt));
+  const inlineChainIDs = new Set(
+    chainAll
+      .filter((message) => (Number(message.createdAt) || 0) < newestFlowAt)
+      .map((message) => message.id || message.source_id || "")
+  );
+  const flowMessages = messages
+    .filter((message) => !isChainResultChatMessage(message) || inlineChainIDs.has(message.id || message.source_id || ""))
+    .sort((left, right) => left.createdAt - right.createdAt);
   const groups = groupMessagesByTurn(flowMessages);
 
   // 渲染哪些回合：谓词逐字沿用（M12 item 活动足迹 / settle_slice 标记证据链）

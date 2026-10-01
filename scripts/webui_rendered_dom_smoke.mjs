@@ -70,6 +70,14 @@
 //                    text. Short replies and the card families (interactive
 //                    confirmation card, execution receipt) never fold, even
 //                    when their text alone crosses the thresholds.
+//   M1 msg-order -- WEBUI-MSG-ORDER-1 (2026-09-30 M8 hand-test, conversation
+//                    webui_muo6fygb): one run spanning two user rounds
+//                    (waiting_continue; BOTH user rows carry the run-domain
+//                    turn_id, assistant rows carry chat-domain turn_*). The
+//                    round-2 user input must render BELOW the round-1 outputs
+//                    (u1 → trace block → a1 → a2 → u2 → a3), each row exactly
+//                    once, and the run keeps ONE trace block anchored after the
+//                    round-opening user message (B9 reuse semantics).
 //
 // Exit code: 0 = every group passed (delivery gate), 1 = at least one failed
 // (pre-fix red, with the failing group recorded in the report).
@@ -104,6 +112,17 @@ const msgConversationId = arg("msg-conversation-id", env("MSG_CONVERSATION_ID", 
 const msgGraphFixturePath = arg("msg-graph-fixture", env("MSG_GRAPH_FIXTURE", join(here, "fixtures", "webui_rendered_dom", "msg_revive_graph.fixture.json")));
 const msgEventsFixturePath = arg("msg-events-fixture", env("MSG_EVENTS_FIXTURE", join(here, "fixtures", "webui_rendered_dom", "msg_revive_events.fixture.json")));
 const msgCommitDirs = arg("msg-commit-dirs", env("MSG_COMMIT_DIRS", join(here, "fixtures", "webui_rendered_dom", "msg_revive_commits")));
+// WEBUI-MSG-ORDER-1: the M8 forensic capture (conversation webui_muo6fygb,
+// waiting_continue run spanning two user rounds) is its own transcript, seeded
+// over the draft graph for the M1 pass only. The commit objects it references
+// are metadata-only reconstructions shipped inside the fixture directory (the
+// capture did not include the session's commit files; the history reader only
+// requires a readable commit whose project identity matches the live draft,
+// which seedConversation rewrites onto every seeded commit).
+const msgOrderConversationId = arg("msg-order-conversation-id", env("MSG_ORDER_CONVERSATION_ID", "webui_muo6fygb"));
+const msgOrderGraphFixturePath = arg("msg-order-graph-fixture", env("MSG_ORDER_GRAPH_FIXTURE", join(here, "fixtures", "webui_rendered_dom", "msg_order_graph.fixture.json")));
+const msgOrderEventsFixturePath = arg("msg-order-events-fixture", env("MSG_ORDER_EVENTS_FIXTURE", join(here, "fixtures", "webui_rendered_dom", "msg_order_events.fixture.json")));
+const msgOrderCommitDirs = arg("msg-order-commit-dirs", env("MSG_ORDER_COMMIT_DIRS", join(here, "fixtures", "webui_rendered_dom", "msg_order_commits")));
 const outDir = arg("out-dir", env("OUT_DIR", join(here, "..", "artifacts", "e2e_webui1", "adhoc")));
 const pwModulePath = arg("playwright-module", env("PW_MODULE", ""));
 // Directories holding the archived session's real commit objects. The archived
@@ -1772,6 +1791,88 @@ function directExecutionReceiptFixture(options = {}) {
   };
 }
 
+// WEBUI-MSG-ORDER-1: the M8 inversion counterexample, asserted on the real
+// rendered flow. The forensic transcript has one run (run_e5796736a4865570)
+// spanning two user rounds; the defect rendered the round-2 input ABOVE the
+// round-1 outputs (group re-merge by the shared run turn_id). The fix keeps
+// every row in flow order, one row per logical message, and keeps ONE trace
+// block for the run anchored after the round-opening user message (B9 reuse).
+function checkM1(result) {
+  const failures = [];
+  const notes = [];
+  const sample = result.sample;
+  if (!sample) {
+    return { failures: ["M1 setup: no DOM sample was captured"], notes };
+  }
+  if (!result.appeared) {
+    failures.push("M1 setup: no .trace-block rendered for the replayed run — the events replay never produced the round container");
+  }
+  const blocks = (sample.blocks || []).filter((block) => block.turnId === result.expectedRunId);
+  if (blocks.length !== 1) {
+    failures.push(
+      "M1 block: expected exactly one trace block for turn " + result.expectedRunId + " (B9 reuse: one run = one block), got " +
+        blocks.length + " [" + (sample.blocks || []).map((block) => block.turnId).join(", ") + "]"
+    );
+  }
+  const findRows = (rows, marker) => (rows || []).filter((row) => row.text.indexOf(marker) >= 0);
+  const expected = [
+    { role: "user", marker: "检查一下当前工程有什么问题" },
+    { role: "assistant", marker: "我还在继续处理这个任务" },
+    { role: "assistant", marker: "这一步已经应用好了" },
+    { role: "user", marker: "你能再检查一下Bass轨道" },
+    { role: "assistant", marker: "任务在形成有效结算前失败" }
+  ];
+  const located = expected.map((item) => {
+    const rows = findRows(item.role === "user" ? sample.userMessages : sample.assistantMessages, item.marker);
+    return { ...item, rows };
+  });
+  for (const item of located) {
+    // The seq31 scheduler_chain terminal synthesizes a chain-result twin of the
+    // round-1 reply (GUI-F8 renders it after the whole entry sequence). On the
+    // replayed stream that twin coexists with the hydrated row — known harness
+    // shape, noted, not a merge defect; every OTHER row must be unique.
+    if (item.marker === "这一步已经应用好了") {
+      if (item.rows.length < 1) {
+        failures.push("M1 rows: expected at least one assistant row containing \"" + item.marker + "\", got 0");
+      } else if (item.rows.length > 1) {
+        notes.push("M1 rows: the chain-result twin of the round-1 reply renders alongside the hydrated row (GUI-F8 replay shape), rows=" + item.rows.length);
+      }
+      continue;
+    }
+    if (item.rows.length !== 1) {
+      failures.push(
+        "M1 rows: expected exactly one " + item.role + " row containing \"" + item.marker + "\" (merge must not duplicate a logical message), got " +
+          item.rows.length + " at indexes [" + item.rows.map((row) => row.index).join(", ") + "]"
+      );
+    }
+  }
+  // The inversion itself: round-2 input BELOW both round-1 outputs, block after
+  // the round-1 user message, failure receipt after the round-2 input. Pre-fix
+  // order was u1 → block → u2 → a1 → a2 → a3 (group re-merge by the run id).
+  // The round-1 reply is anchored at its FIRST rendered row (the hydrated,
+  // in-group one) — the chain-result twin renders at the flow tail by design.
+  const index = (item) => (item.rows.length >= 1 ? item.rows[0].index : NaN);
+  const [u1, a1, a2, u2, a3] = located;
+  const blockIndex = blocks.length === 1 ? blocks[0].flowIndex : NaN;
+  const orderPairs = [
+    ["trace block", blockIndex, "round-1 user message", index(u1)],
+    ["round-1 receipt a1", index(a1), "trace block", blockIndex],
+    ["round-1 reply a2", index(a2), "round-1 receipt a1", index(a1)],
+    ["round-2 user input", index(u2), "round-1 reply a2", index(a2)],
+    ["failure receipt a3", index(a3), "round-2 user input", index(u2)]
+  ];
+  for (const [later, laterIndex, earlier, earlierIndex] of orderPairs) {
+    if (!(laterIndex > earlierIndex)) {
+      failures.push(
+        "M1 order: " + later + " (index " + laterIndex + ") must render after " + earlier + " (index " + earlierIndex +
+          ") — rendered flow: [" + (sample.flow || []).map((row) => row.cls.replace("message-row", "row").trim() || row.tag).join(" | ") + "]"
+      );
+    }
+  }
+  notes.push("flow: " + JSON.stringify((sample.flow || []).map((row) => ({ i: row.index, cls: row.cls, text: row.text.slice(0, 24) }))));
+  return { failures, notes };
+}
+
 function checkK1(result) {
   const failures = [];
   const notes = [];
@@ -2137,6 +2238,8 @@ async function main() {
   // fixture and its own conversation id -- see installReplay options).
   const msgGraphFixture = JSON.parse(readFileSync(msgGraphFixturePath, "utf-8"));
   const msgEventsFixture = JSON.parse(readFileSync(msgEventsFixturePath, "utf-8"));
+  const msgOrderGraphFixture = JSON.parse(readFileSync(msgOrderGraphFixturePath, "utf-8"));
+  const msgOrderEventsFixture = JSON.parse(readFileSync(msgOrderEventsFixturePath, "utf-8"));
   const replayBody = JSON.stringify({
     status: eventsFixture.status || "ok",
     events: eventsFixture.events || [],
@@ -2581,6 +2684,30 @@ async function main() {
     }
     await context.close();
     return { appeared, sample, late, seeded, realScopeKey, learned, anchorRows };
+  };
+
+  // WEBUI-MSG-ORDER-1: M1 pass — seed the M8 forensic graph over the draft,
+  // replay the archived 47-event stream conversation-strict, open the panel
+  // bound to the forensic conversation id, and sample the rendered flow.
+  // MUST run after every group that asserts against an earlier seeding (it
+  // re-seeds the draft graph, like runMsgRevivePass does).
+  const runMsgOrderPass = async (name, options) => {
+    const state = await getJSON("/agent/ui/state");
+    const seeded = seedConversation(msgOrderGraphFixture, state, [msgOrderCommitDirs]);
+    const context = await browser.newContext({ viewport });
+    await installReplay(context, { baseFixture: msgOrderEventsFixture, conversationId: msgOrderConversationId, strictConversation: true });
+    const page = await context.newPage();
+    await page.goto(agentBase + "/app/?conversation_id=" + encodeURIComponent(msgOrderConversationId), { waitUntil: "domcontentloaded" });
+    const appeared = await page
+      .waitForSelector(".trace-block", { timeout: options.appearTimeoutMs || 25000 })
+      .then(() => true)
+      .catch(() => false);
+    await page.waitForTimeout(options.settleMs || 4000);
+    const sample = await page.evaluate(DOM_PROBE);
+    await page.screenshot({ path: join(outDir, "dom-" + name + ".png"), fullPage: false });
+    writeFileSync(join(outDir, "dom-" + name + ".json"), JSON.stringify(sample, null, 2), "utf-8");
+    await context.close();
+    return { appeared, sample, seeded };
   };
 
   const assess = (prefix, sample) => {
@@ -3449,6 +3576,31 @@ async function main() {
     expectResolvedInteractionIDs: ["interaction_756c9bd8111b0d6e", "interaction_855170be9aac6b30"]
   }));
 
+  // ---------------------------------------------------------- WEBUI-MSG-ORDER-1
+  // Runs AFTER msgrevive (both passes re-seed the draft graph; M1 is last).
+  report.msgorder_events_source =
+    "M8 forensic capture (conversation " + msgOrderConversationId + ", waiting_continue run run_e5796736a4865570 spanning " +
+    "two user rounds, 47 events incl. the same-id lifecycle flip started→completed→items→completed→started→failed and the " +
+    "same-id double-emission pairs) replayed conversation-strict; the M8-shaped graph (5 nodes: both user rows carry " +
+    "turn_id=run_e5796736a4865570, assistant rows chat-domain turn_*) is re-seeded over the draft history";
+  const msgOrderPass = await runMsgOrderPass("msgorder", {
+    appearTimeoutMs: 25000,
+    settleMs: 4000
+  });
+  report.msgorder = {
+    conversation_id: msgOrderConversationId,
+    seeded: {
+      commits_written: msgOrderPass.seeded ? msgOrderPass.seeded.commitsWritten : 0,
+      nodes_skipped: msgOrderPass.seeded ? msgOrderPass.seeded.nodesSkipped : []
+    },
+    appeared: msgOrderPass.appeared
+  };
+  record("msg-order-M1", checkM1({
+    sample: msgOrderPass.sample,
+    appeared: msgOrderPass.appeared,
+    expectedRunId: "run_e5796736a4865570"
+  }));
+
   report.finished_at = new Date().toISOString();
   report.events_served_from_fixture = seededEventsRequests;
   const failed = Object.entries(report.passes).filter(([, ok]) => !ok).map(([id]) => id);
@@ -3466,7 +3618,7 @@ async function main() {
 // Exported so a control run can exercise the very same probe and assertion
 // functions against a deliberately healthy state (proof that a red result is a
 // real finding and not an artefact of the probe itself).
-export { DOM_PROBE, checkA1, checkA2, checkA3, checkB1, checkB2, checkC1, checkD1, checkE1, checkF1, checkG1, checkT1, checkK1, checkK2, checkO1, observeRowProbe, observeLongReplyFixture, observeShortReplyFixture, residencyFixtureEvents, chatOnlyItemStepsFixtureEvents, terminalTurnFixtureEvents, auditionFixtureEvents, auditionUnstickFixtureEvents, auditionTrailFixtureEvents, confirmInteractionFixture, confirmationChatResponseFixture, directExecutionReceiptFixture };
+export { DOM_PROBE, checkA1, checkA2, checkA3, checkB1, checkB2, checkC1, checkD1, checkE1, checkF1, checkG1, checkT1, checkK1, checkK2, checkO1, checkM1, observeRowProbe, observeLongReplyFixture, observeShortReplyFixture, residencyFixtureEvents, chatOnlyItemStepsFixtureEvents, terminalTurnFixtureEvents, auditionFixtureEvents, auditionUnstickFixtureEvents, auditionTrailFixtureEvents, confirmInteractionFixture, confirmationChatResponseFixture, directExecutionReceiptFixture };
 
 // Run only when this file is the process entry point, so importing it as a
 // library (the control run does) has no side effects.
