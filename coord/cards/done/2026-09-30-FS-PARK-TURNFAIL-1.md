@@ -24,4 +24,4 @@
   - **真栈烟测**：run_free_state_d1_smoke.ps1 -ContinuationAdoptionProbe（本卡新增参数，扩展现有 ps1 体系）——红轮 20261001_112221（归因：探针断言面+trajectory 校验门，补锚修复，非原样重跑）/ **绿轮 20261001_113015 exit 0 PASS**：park 同形态（fs7/waiting_continue/judgment_park=true）下新用户消息——无 turn.failed、全新 goal_55b99e11/run_91081cc5（vs parked goal_8f6855a0/run_dee81121）、回复落盘、采纳结算落 task 语义（settled/terminal/task_settled 带采纳 summary）+事件流（round.decision+settled 带 adopted_by_continuation，零伪造人耳判断）、revision 不动；工件 coord/runs/FS-PARK-TURNFAIL-1/（smoke-record+红/绿摘要 JSON；全量在复验 worktree artifacts/free_state_d1_s1/20261001_113015/）；修复前红=M8 野外取证（同场景 turn.failed，evidence/ 事件流 seq47）
   - **泊位声明：运行栈已拆除**（7878/5555 无监听、Godot 已停，2026-10-01 11:4x）——未移交，会话②可上栈
   - **端测覆盖边界**（AGENTS §5）：本烟测覆盖 agent HTTP/事件面+内核栈；webui 渲染面（A/B 卡终态样式、消息序动效）未覆盖——A/B 卡联动归 AB-JUDGMENT-CARD-1（其卡面已收裁定 2），消息序归 WEBUI-MSG-ORDER-1
-- 验收：（待填）
+- 验收：**pass（2026-10-01 决策会话）**——rulings/2026-10-01-FS-PARK-TURNFAIL-1-pass.md；合并 main=63ea54c8/f2b51443（决策侧 cherry-pick+全量烟测工件补入库）；取证报告直读+diff 直读（裁定忠实+守卫完备）+我方复跑 87 包 0 FAIL+烟测红绿链亲读（Run2 exit 0 五族断言）+泊位合规；复现触发 FIX-MIXBOARD-FLAKE-2（同族 flake 二现，与本卡无关联）。M1 复验第三轮前置就此齐（与 M8 手测同场）。
