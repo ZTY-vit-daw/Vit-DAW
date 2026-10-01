@@ -14,4 +14,5 @@
 - 文件域：agent/webui/src/（消息合并/渲染序+trajectory 视图）+ scripts/webui_rendered_dom_smoke.mjs（加组）。
 - 验收标准：npm run test 全绿含新用例+build+E2E-WEBUI-1 新组 exit 0+用户手测复验（顺序正常）。
 - 停止条件：取证发现倒挂源于 agent 事件面本身乱序（非渲染端）→ 上交转 agent 卡。
-- 领取 / 回执 / 验收：空行待填
+- 领取：2026-10-01T10:52+0800 / 领取时 origin/main=88efaccc001af35170b0d142fb897d83d49db35a / 分支 port/webui-msg-order-1（独立 worktree D:/Vit_DAW_worktrees/webui-msg-order-1，PC 会话②；领取时工作树干净，无先行 diff；并行卡 FS-PARK-TURNFAIL-1 已由会话①领取，chat/agentloop 域与本卡 webui 域不同域）
+- 回执 / 验收：空行待填
