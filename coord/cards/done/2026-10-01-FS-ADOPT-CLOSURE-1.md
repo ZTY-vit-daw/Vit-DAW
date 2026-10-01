@@ -24,4 +24,4 @@
   - **泊位声明**：烟测完成即拆除运行栈，7878/5555/5556 无监听、Godot 已停——栈已拆除，未移交
   - **锚点清单**：judgment_park_continuation.go settleAdoptedParkClosure（源头层）+ audio_closure_controller.go releaseFinishedTaskClosureForNewGoal/audioClosureTaskAlreadyFinished（绑定层守卫）+ audioclosure types.go StopAdoptedByContinuation+driver.go validStopReason+settlement reply 新句 + 探针 (e)/(f)
   - **域外观察（未修，供决策）**：诊断契约本轮完成时 ContractID 分支把 StateSettled 映射 StopTaskSettled 复用罐头句措辞——有真实执行+诚实结算、与零执行楔死无关，属既有措辞面
-- 验收：（裁定文件 / 验收 commit）
+- 验收：**pass（2026-10-01 决策会话）**——rulings/2026-10-01-FS-ADOPT-CLOSURE-1-pass.md；合并 main=2d6c57a5/63bd70f0（决策侧 cherry-pick）；diff 直读（同 goal 合法路径区分正确）+我方复跑两包 ok+姊妹卡 20/20+烟测分层验证亲读（真实观察执行双红面断言）；同族三案（FS-PARK/STOP/ADOPT）会话级收尾路径全部补齐。
