@@ -27,4 +27,4 @@
   - **端测覆盖边界声明**：msg-order-M1 覆盖「水合行+归档事件网络层重放」的渲染面时序；活态 composer 驱动的时序由单测与既有 driven-turn 组覆盖，未在本组真栈断言。泊位隔离见下。
   - **泊位声明**：三件套栈（VitApp/Godot/VitAgent，2026-10-01 11:22 起）归并行会话①（FS-PARK-TURNFAIL-1）所有，本卡全程未触碰；本卡 E2E 按包装脚本隔离泊位运行（自有 draft root、HTTP 7907、桥接端口 4454/4455/5565/5566 改道、独立二进制），运行完已拆除（stopped_agent_pid=16236，port_released=7907），无遗留进程、无共享端口复用。
   - **待用户**：[等待用户:手测复验（顺序正常）]
-- 验收：（裁定文件 / 验收 commit）空行待填
+- 验收：**pass（2026-10-01 决策会话）**——rulings/2026-10-01-WEBUI-MSG-ORDER-1-pass.md；合并 main=0e7ba86d/8e21258e（决策侧 cherry-pick）；diff 直读+我方复跑 383/383+build+E2E 工件亲读（verdict=pass/failed_groups 空/M8 现场重放）+泊位合规；用户手测复验为收尾项（下次手测轮顺带销项）。
