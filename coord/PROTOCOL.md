@@ -38,6 +38,8 @@ todo → doing → done(待验收) ─ ruling pass   → 归档 done（卡内回
 
 ## 4. 唤醒机制：watcher 事件驱动（零 token 待机），心跳兜底
 
+> **用户裁定（2026-10-01）：watcher 不得由会话私自启动——一切执行转达与验收通知由用户手动驱动；本节机制仅在用户明示授权「开 watcher」时使用。**
+
 **架构**：双端各跑一个纯 shell 后台守望循环（不消耗 LLM token）——每 60 秒 `git ls-remote` 比对远端指纹（主仓 + transfer 仓），**发现变化即退出，退出唤醒本端会话**；被唤醒的会话处理完变更后必须重启 watcher。git push 即事件，无轮询等待。
 
 **watcher 命令（决策侧 Windows，Git Bash，以 run_in_background 启动；v2——修复网络恢复假触发）**：
