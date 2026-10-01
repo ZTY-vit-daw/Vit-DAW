@@ -18,6 +18,6 @@
 - 约束：新分支 `port/vitnote-dock-mount-1` 自 `port/vitnote-impl-1`（098cd25）切出，不动 Godot 仓 main/既有分支；零自动化测试基建如实申报，手测清单代端测（AGENTS §5 渲染面边界）。
 - 验收标准：dock 默认入口下 M8 最小闭环手测走通（用户复验）+headless 自验记录+改动文件清单。
 - 停止条件：dock 工作区结构与假设不符（无稳定 _ready 挂载点/context 完全无等价且降级不可行）→ 实证上交。
-- 领取：（时间 / Godot 仓基线分支与 hash / 新分支名）
+- 领取：2026-10-01 19:02（PC 会话③）/ Godot 仓基线分支=port/vitnote-impl-1 @ 098cd25（领取时工作树 HEAD 即该 commit，status 干净仅未跟踪运行时目录）/ 新分支名=port/vitnote-dock-mount-1 / 主仓 origin/main=245b795a
 - 回执：（commit hash / 挂载+context 锚点 / headless 自验 / 手测清单）
 - 验收：（裁定文件 / 验收 commit）
