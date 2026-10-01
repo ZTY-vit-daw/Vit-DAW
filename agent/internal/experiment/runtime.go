@@ -100,6 +100,11 @@ const (
 	DecisionBlockedObservation RoundDecision = "blocked_by_observation"
 	DecisionBlockedCapability  RoundDecision = "blocked_by_capability"
 	DecisionStopped            RoundDecision = "stopped"
+	// DecisionAdoptedByContinuation（FS-PARK-TURNFAIL-1，2026-09-30 用户裁定）：
+	// 用户在 judgment park 期间发新输入 = 对待裁决段默认采纳——保留已应用
+	// 状态收口该轮。它与 retain 的差别是诚实边界：不要求 sufficient target
+	// response、不写 UserJudgmentEvidence，结算不得呈现为 human_confirmed。
+	DecisionAdoptedByContinuation RoundDecision = "adopted_by_continuation"
 )
 
 // SettlementOutcome is the final, user-visible outcome of a Turn.
@@ -116,6 +121,10 @@ const (
 	OutcomeBudgetExhausted    SettlementOutcome = "budget_exhausted"
 	OutcomeUnsafe             SettlementOutcome = "unsafe_to_continue"
 	OutcomeStopped            SettlementOutcome = "stopped"
+	// OutcomeAdoptedByContinuation（FS-PARK-TURNFAIL-1）：继续对话默认采纳的
+	// 收口结果——已应用状态保留，但没有人耳 A/B 判断证据。证据链口径必须
+	// 与 improved（含 human_confirmed 路径）区分，不得混记。
+	OutcomeAdoptedByContinuation SettlementOutcome = "adopted_by_continuation"
 )
 
 // AuthorityMode controls whether an admitted experiment may mutate without a
@@ -792,10 +801,10 @@ func (t *Turn) DecideRound(decision RoundDecision, summary string, now time.Time
 	if err := validateDecision(decision); err != nil {
 		return nil, err
 	}
-	if t.experimentJudgmentPending() && decision != DecisionRetain && decision != DecisionRollback && decision != DecisionStopped {
+	if t.experimentJudgmentPending() && decision != DecisionRetain && decision != DecisionRollback && decision != DecisionStopped && decision != DecisionAdoptedByContinuation {
 		return nil, ErrJudgmentPending
 	}
-	if decision != DecisionRollback && decision != DecisionStopped && round.TargetResponse == nil && !(decision == DecisionNextRound && round.Materiality != nil && round.Materiality.State == MaterialitySubthreshold) && decision != DecisionUserJudgment && decision != DecisionPlateau && decision != DecisionBlockedObservation && decision != DecisionBlockedCapability {
+	if decision != DecisionRollback && decision != DecisionStopped && decision != DecisionAdoptedByContinuation && round.TargetResponse == nil && !(decision == DecisionNextRound && round.Materiality != nil && round.Materiality.State == MaterialitySubthreshold) && decision != DecisionUserJudgment && decision != DecisionPlateau && decision != DecisionBlockedObservation && decision != DecisionBlockedCapability {
 		return nil, fmt.Errorf("round decision requires target response")
 	}
 	if decision == DecisionRetain && (round.TargetResponse == nil || round.TargetResponse.Response != TargetSufficient) {
@@ -931,6 +940,8 @@ func (t *Turn) Settle(outcome SettlementOutcome, summary string, now time.Time) 
 		events[0].Payload.Outcome = trajectory.EvaluationHumanAuditionReady
 	case OutcomeRolledBack:
 		events[0].Payload.Outcome = trajectory.EvaluationRolledBack
+	case OutcomeAdoptedByContinuation:
+		events[0].Payload.Outcome = trajectory.EvaluationAdoptedByContinuation
 	case OutcomeBlockedCapability, OutcomeBlockedObservation, OutcomeBudgetExhausted, OutcomeUnsafe, OutcomeStopped:
 		events[0].Payload.Outcome = trajectory.EvaluationNotReady
 	case OutcomePlateau:
@@ -1019,7 +1030,7 @@ func (t *Turn) events(now time.Time, typ trajectory.EventType, roundID string, k
 
 func validateDecision(value RoundDecision) error {
 	switch value {
-	case DecisionNextRound, DecisionRetain, DecisionRollback, DecisionUserJudgment, DecisionPlateau, DecisionBlockedObservation, DecisionBlockedCapability, DecisionStopped:
+	case DecisionNextRound, DecisionRetain, DecisionRollback, DecisionUserJudgment, DecisionPlateau, DecisionBlockedObservation, DecisionBlockedCapability, DecisionStopped, DecisionAdoptedByContinuation:
 		return nil
 	default:
 		return fmt.Errorf("unsupported round decision %q", value)
@@ -1027,7 +1038,7 @@ func validateDecision(value RoundDecision) error {
 }
 func validateOutcome(value SettlementOutcome) error {
 	switch value {
-	case OutcomeImproved, OutcomeStable, OutcomePlateau, OutcomeNeedsJudgment, OutcomeBlockedCapability, OutcomeBlockedObservation, OutcomeRolledBack, OutcomeBudgetExhausted, OutcomeUnsafe, OutcomeStopped:
+	case OutcomeImproved, OutcomeStable, OutcomePlateau, OutcomeNeedsJudgment, OutcomeBlockedCapability, OutcomeBlockedObservation, OutcomeRolledBack, OutcomeBudgetExhausted, OutcomeUnsafe, OutcomeStopped, OutcomeAdoptedByContinuation:
 		return nil
 	default:
 		return fmt.Errorf("unsupported settlement outcome %q", value)

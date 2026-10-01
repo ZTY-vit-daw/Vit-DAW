@@ -1,0 +1,159 @@
+package chat
+
+import (
+	"strings"
+	"time"
+
+	"vit-daw-agent/internal/agentloop"
+	agentruntime "vit-daw-agent/internal/runtime"
+	"vit-daw-agent/internal/experiment"
+)
+
+// FS-PARK-TURNFAIL-1（用户裁定 2026-09-30，
+// decisions/2026-09-30-park-adoption-and-judgment-card-ruling.md）：
+// judgment park（待人耳 A/B 裁决驻留态）不强制终局；用户在 park 期间发新输入
+// = 对待裁决段默认采纳——保留已应用状态、关闭该轮，新消息以全新 goal/run/turn
+// 进入新一轮思考（顺带消除 run id 复用导致的 turn 生命周期翻转）。结算如实
+// 标注 adopted_by_continuation：不写 UserJudgmentEvidence、不要求 sufficient
+// target response，绝不呈现为 human_confirmed；人耳判断 POST 仍是显式结算通道。
+
+// judgmentParkAdoptionSummary is the frozen settle summary (closed template:
+// states the adoption semantics and the honesty boundary, no domain content).
+const judgmentParkAdoptionSummary = "用户继续对话，待 A/B 裁决轮按默认采纳收口：已应用调整保留，未记录人耳 A/B 判断（adopted_by_continuation，非 human_confirmed）"
+
+// judgmentParkPendingRound reports whether the conversation's persisted loop is
+// durably parked at the human-judgment boundary with an unjudged round — the
+// exact state a new user input settles by adoption. A round that already
+// recorded user judgment evidence honors that explicit judgment instead: its
+// settlement stays on the audition judgment POST channel.
+func judgmentParkPendingRound(loop freeStateReasoningLoop) bool {
+	if loop.Experiment == nil || !freeStateJudgmentBoundary(loop) {
+		return false
+	}
+	current, err := loop.Experiment.CurrentRound()
+	if err != nil {
+		return false
+	}
+	return len(current.UserJudgmentEvidence) == 0
+}
+
+// settleJudgmentParkOnUserContinuation applies the default-adoption ruling for
+// one new user input. It returns true when a parked round was settled; the
+// caller then proceeds to beginChatGoal, which starts a fresh goal because the
+// parked goal is completed here. Every failure path returns false and leaves
+// all durable state untouched — the message falls back to the pre-existing
+// routing, never to a new failure mode.
+func (s *Server) settleJudgmentParkOnUserContinuation(conversationID, message string) bool {
+	if s == nil || s.harness == nil {
+		return false
+	}
+	message = strings.TrimSpace(message)
+	if message == "" || strings.HasPrefix(message, "/") || isContinueMessage(message) {
+		return false
+	}
+	loop, ok := s.freeStateLoop(conversationID)
+	if !ok || !judgmentParkPendingRound(loop) {
+		return false
+	}
+	now := time.Now().UTC()
+	round, err := loop.Experiment.CurrentRound()
+	if err != nil {
+		return false
+	}
+	events, err := loop.Experiment.DecideRound(experiment.DecisionAdoptedByContinuation, judgmentParkAdoptionSummary, now)
+	if err != nil {
+		if s.logger != nil {
+			s.logger.Warn("[judgment-park-continuation] adoption round decision rejected: %v", err)
+		}
+		return false
+	}
+	annotateJudgmentDecision(events, "judgment.adopted_by_continuation", round.AdoptedCandidateID)
+	s.emitFreeStateExperimentEvents(events)
+	if s.hasTaskSemanticContract(loop.GoalID) {
+		// EventTaskSettled is legal from human_judgment_required
+		// (taskstate/state.go) and clears the durable pending interaction, so
+		// the audition judgment card stops demanding an answer.
+		if err := s.settleTaskFromExperiment(&loop, judgmentParkAdoptionSummary, freeStateExperimentEvidence(loop.Experiment)); err != nil {
+			if s.logger != nil {
+				s.logger.Warn("[judgment-park-continuation] canonical settlement rejected: %v", err)
+			}
+			return false
+		}
+	}
+	events, err = loop.Experiment.Settle(experiment.OutcomeAdoptedByContinuation, judgmentParkAdoptionSummary, now)
+	if err != nil {
+		if s.logger != nil {
+			s.logger.Warn("[judgment-park-continuation] settlement rejected: %v", err)
+		}
+		return false
+	}
+	s.emitFreeStateExperimentEvents(events)
+	loop.Status = "completed"
+	loop.RequiresPostActionObservation = false
+	if len(loop.AuditionSessionSnapshot) > 0 {
+		// Machine-readable terminal state for the A/B judgment card
+		// (AB-JUDGMENT-CARD-1 ruling 2: the card settles to a default-adopt
+		// final style once the user continued the conversation).
+		loop.AuditionSessionSnapshot["adoption_status"] = "adopted_by_continuation"
+		loop.AuditionSessionSnapshot["judgment_skipped"] = true
+	}
+	loop.UpdatedAt = time.Now().UTC()
+	s.storeFreeStateLoop(loop)
+	s.persistCurrentProjectWorkspace()
+	// Close the parked goal (waiting_continue → completed) so beginChatGoal
+	// starts a fresh goal/run/turn for the new message — the turn-id reuse
+	// lifecycle flip cannot recur for this conversation's parked round.
+	s.harness.CompleteGoal(loop.GoalID, nil)
+	if s.logger != nil {
+		s.logger.Info("[judgment-park-continuation] parked round adopted by continuation conversation=%s goal=%s round=%s",
+			conversationID, loop.GoalID, round.ID)
+	}
+	return true
+}
+
+// judgmentParkPreservedReply is the frozen user-readable boundary wording for
+// Part B: a turn whose model decision failed while the judgment park survives.
+// The park stays answerable (explicit A/B judgment POST) and the continuation
+// channel stays open (new input adopts by the Part A semantics).
+const judgmentParkPreservedReply = "上一轮实验仍在等待你的 A/B 试听判断，本轮没有产生新的执行。你可以点开 A/B 卡片进行裁决；也可以直接输入新话题继续——继续对话会默认采纳已应用的调整。"
+
+const judgmentParkPreservedStopReason = "judgment_park_preserved"
+
+// judgmentParkTerminalFallbackFailure reports whether a failed agentloop
+// result is the terminal-turn fallback family (BOUNDARY-1 honest fallback) —
+// the gate-rejection/unparseable shape the ruling forbids to project as
+// turn.failed while the judgment park survives.
+func judgmentParkTerminalFallbackFailure(res agentloop.Result) bool {
+	if res.Status != agentruntime.StatusFailed {
+		return false
+	}
+	switch res.StopReason {
+	case agentloop.FreeStateTerminalFallbackStopReason, agentloop.FreeStateTerminalGateRejectedStopReason:
+		return true
+	}
+	return false
+}
+
+// preserveJudgmentParkOnTerminalFallback applies Part B in place: a terminal
+// fallback failure while the conversation's judgment park still holds is
+// rewritten from the turn.failed projection to the user-readable boundary
+// (goal stays waiting_continue; the audition judgment POST channel is
+// untouched; new user input settles the park by Part A adoption). It reports
+// whether the response was rewritten.
+func (s *Server) preserveJudgmentParkOnTerminalFallback(conversationID string, resp *ChatResponse, res agentloop.Result) bool {
+	if s == nil || resp == nil || !judgmentParkTerminalFallbackFailure(res) {
+		return false
+	}
+	loop, ok := s.freeStateLoop(conversationID)
+	if !ok || !judgmentParkPendingRound(loop) {
+		return false
+	}
+	resp.Error = ""
+	resp.GoalStatus = string(agentruntime.StatusWaitingContinue)
+	resp.StopReason = judgmentParkPreservedStopReason
+	resp.Reply = judgmentParkPreservedReply
+	resp.WorkflowData = mergeContext(resp.WorkflowData, map[string]any{
+		"judgment_park_preserved": true,
+	})
+	return true
+}

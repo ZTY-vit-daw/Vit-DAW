@@ -2275,11 +2275,19 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 	// Bind a plain-language proposal confirmation to the persisted interaction
 	// before beginChatGoal can perform semantic entry. The confirmation is a
 	// continuation of the existing Task, never a new natural-language task.
+	proposalConfirmation := false
 	if pending, ok := s.pendingImprovementProposalForConversation(conversationID); ok {
 		decision := actionworkflow.ClassifyConfirmation(req.Message, true)
 		if decision.Kind == actionworkflow.DecisionAccept || decision.Kind == actionworkflow.DecisionReject || isImprovementProposalConfirmationText(req.Message) {
 			req.Context = contextWithGoal(req.Context, pending.GoalID, pending.RunID)
+			proposalConfirmation = true
 		}
+	}
+	if !proposalConfirmation {
+		// FS-PARK-TURNFAIL-1（2026-09-30 用户裁定）：judgment park 期间的新
+		// 用户输入 = 对待裁决段默认采纳——结算 parked 轮（adopted_by_continuation）
+		// 并关闭其 goal，使下方 beginChatGoal 为本消息开全新 goal/run/turn。
+		s.settleJudgmentParkOnUserContinuation(conversationID, req.Message)
 	}
 	goal := s.beginChatGoal(conversationID, req.Message, req.Context)
 	s.mu.Lock()

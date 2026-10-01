@@ -2014,6 +2014,7 @@ func (s *Server) chatResponseFromAgentLoopResult(conversationID, mode string, re
 		Error:               res.Error,
 		AgentPlan:           agentPlanForMode(mode, agentPlanFromAgentLoopResult(res)),
 	}
+	s.preserveJudgmentParkOnTerminalFallback(conversationID, &resp, res)
 	if res.Status == agentruntime.StatusWaitingContinue || res.StopReason == "durable_continuation_missing" {
 		resp.WorkflowData = mergeContext(resp.WorkflowData, map[string]any{
 			"continuation_id":       continuationIDForResult(res),
