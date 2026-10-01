@@ -2387,6 +2387,135 @@ def run_continuation_adoption_probe(base_url: str, conversation_id: str, project
     }
 
 
+STOP_SEMANTICS_PROBE_MESSAGE = "换一个话题：帮我看看当前工程的整体状况，先观察再简要回答"
+
+
+def conversation_closure_row(state: dict[str, Any], conversation_id: str) -> dict[str, Any]:
+    closures = state.get("minimal_audio_closures") if isinstance(state.get("minimal_audio_closures"), dict) else {}
+    for row in closures.values():
+        if isinstance(row, dict) and first_text(row.get("conversation_id")) == conversation_id:
+            return row
+    return {}
+
+
+def conversation_owner_row(state: dict[str, Any], conversation_id: str) -> dict[str, Any]:
+    owners = state.get("orchestration_controller_owners") if isinstance(state.get("orchestration_controller_owners"), dict) else {}
+    row = owners.get(conversation_id)
+    return row if isinstance(row, dict) else {}
+
+
+def run_stop_semantics_probe(base_url: str, conversation_id: str, project_path: str, timeout: float, run_started: float, agent_log_path: str) -> dict[str, Any]:
+    """FS-STOP-APPLY-1 stop semantics probe (merged Part A/B face), mirroring
+    the 2026-10-01 18:30-18:36 live run (webui_mupe9yh1: park -> user_stop;
+    the next message failed with audio_closure_controller_failure "conversation
+    is already owned by minimal_audio_closure controller ..."). With the round
+    parked at the human-judgment boundary, a user stop must (1) land the honest
+    stopped status on the parked goal, (2) settle the conversation's audio
+    closure honestly (never a satisfied settle) and release the controller
+    owner, (3) apply no further intervention (project revision unchanged), and
+    (4) leave the conversation unwedged: the next user message runs on a fresh
+    goal/run without the ownership failure. The probe also requires the stop
+    request arrival anchor line in the agent log."""
+    state = newest_agent_runtime_state_for_conversation(project_path, conversation_id, run_started)
+    require(bool(state), "FS-STOP-APPLY-1: no persisted runtime state at the judgment park")
+    conversation_goals = state.get("conversation_goals") if isinstance(state.get("conversation_goals"), dict) else {}
+    parked_goal_id = first_text(conversation_goals.get(conversation_id))
+    require(bool(parked_goal_id), "FS-STOP-APPLY-1: no bound goal at the judgment park")
+    parked_run_id = ""
+    for goal in rows((state.get("goal_runtime") or {}).get("goals")):
+        if first_text(goal.get("goal_id")) == parked_goal_id:
+            parked_run_id = first_text(goal.get("run_id"))
+            break
+    require(bool(parked_run_id), "FS-STOP-APPLY-1: parked goal carries no run id")
+    loop_before = persisted_free_state_loop(project_path, conversation_id, run_started)
+    experiment_before = loop_before.get("experiment") if isinstance(loop_before.get("experiment"), dict) else {}
+    rounds_before = rows(experiment_before.get("rounds"))
+    require(bool(rounds_before) and first_text(rounds_before[0].get("decision")).lower() == "user_judgment_pending",
+            "FS-STOP-APPLY-1: the probe requires a round parked at user_judgment_pending")
+    owner_before = conversation_owner_row(state, conversation_id)
+    require(first_text(owner_before.get("status")).lower() == "active",
+            "FS-STOP-APPLY-1: no active minimal_audio_closure owner at the park (probe precondition broken)")
+    closure_before = conversation_closure_row(state, conversation_id)
+    require(bool(closure_before), "FS-STOP-APPLY-1: no audio closure persisted at the park (probe precondition broken)")
+    revision_before = project_revision(invoke(base_url, "project.state", {}, timeout))
+
+    stop_response = request_json("POST", base_url.rstrip("/") + "/agent/turn/stop",
+                                 {"conversation_id": conversation_id, "goal_id": parked_goal_id, "reason": "user_stop"}, timeout)
+
+    # (1) 诚实停止：goal 状态=stopped（修复前红面之一：任务取消收敛把 goal 改写为
+    # cancelled）。持久面轮询到 stopped 投影为止。
+    deadline = time.monotonic() + 15
+    parked_status = ""
+    closure_phase_after = first_text(closure_before.get("phase"))
+    settlement_reason = ""
+    owner_status_after = first_text(owner_before.get("status"))
+    experiment_status_after = ""
+    while time.monotonic() < deadline:
+        state_now = newest_agent_runtime_state_for_conversation(project_path, conversation_id, run_started)
+        for goal in rows((state_now.get("goal_runtime") or {}).get("goals")):
+            if first_text(goal.get("goal_id")) == parked_goal_id:
+                parked_status = first_text(goal.get("status")).lower()
+                break
+        closure_after = conversation_closure_row(state_now, conversation_id)
+        if closure_after:
+            closure_phase_after = first_text(closure_after.get("phase")).lower()
+            settlement = closure_after.get("settlement") if isinstance(closure_after.get("settlement"), dict) else {}
+            settlement_reason = first_text(settlement.get("reason"))
+        owner_status_after = first_text(conversation_owner_row(state_now, conversation_id).get("status")).lower()
+        loop_now = persisted_free_state_loop(project_path, conversation_id, run_started)
+        experiment_now = loop_now.get("experiment") if isinstance(loop_now.get("experiment"), dict) else {}
+        experiment_status_after = first_text(experiment_now.get("status")).lower()
+        if parked_status == "stopped" and closure_phase_after in {"settled", "fs9_terminal"} and owner_status_after == "settled":
+            break
+        time.sleep(1)
+    require(first_text(stop_response.get("goal_status")).lower() == "stopped",
+            "FS-STOP-APPLY-1: the stop response must project the honest stopped status: " + first_text(stop_response.get("goal_status")))
+    require(parked_status == "stopped", "FS-STOP-APPLY-1: the parked goal did not land the honest stopped status: " + parked_status)
+    # (2) closure 诚实结算 + 所有权释放（修复前红面之二=M1 楔死：closure 停 fs7
+    # 非终态、owner 永远 active）。
+    require(closure_phase_after in {"settled", "fs9_terminal"},
+            "FS-STOP-APPLY-1: the stopped turn must settle the conversation closure, phase=" + closure_phase_after)
+    require(settlement_reason not in {"", "satisfied"},
+            "FS-STOP-APPLY-1: a user-stopped closure must carry an honest stop reason, got: " + settlement_reason)
+    require(owner_status_after == "settled",
+            "FS-STOP-APPLY-1: the controller owner must be released by the stop, status=" + owner_status_after)
+    require(experiment_status_after == "stopped",
+            "FS-STOP-APPLY-1: the experiment must read stopped (never revived): " + experiment_status_after)
+    # (3) 停止后无新干预。
+    revision_after_stop = project_revision(invoke(base_url, "project.state", {}, timeout))
+    require(revision_after_stop == revision_before, "FS-STOP-APPLY-1: the stop must not apply any further intervention (revision moved)")
+    # 锚点：停止请求到达的一行 INFO（会话/goal/reason）。
+    if agent_log_path:
+        log_text = Path(agent_log_path).read_text(encoding="utf-8", errors="replace")
+        anchor_line = "[turn.stop] request received"
+        require(anchor_line in log_text and conversation_id in log_text and parked_goal_id in log_text,
+                "FS-STOP-APPLY-1: the stop request arrival anchor line is missing from the agent log")
+
+    # (4) 新输入正常新 goal（修复前红面之三=goal_6b07c186 立即
+    # audio_closure_controller_failure 的实证面）。
+    response = request_json("POST", base_url.rstrip("/") + "/agent/chat",
+                            {"conversation_id": conversation_id, "message": STOP_SEMANTICS_PROBE_MESSAGE, "context": {"agent_mode": "chat"}}, timeout)
+    require(not first_text(response.get("error")), "FS-STOP-APPLY-1: the post-stop message failed (the 18:35 live wedge): " + first_text(response.get("error")))
+    require(first_text(response.get("goal_status")).lower() != "failed", "FS-STOP-APPLY-1: the post-stop message reported goal_status=failed")
+    new_goal_id = first_text(response.get("goal_id"))
+    new_run_id = first_text(response.get("run_id"))
+    require(bool(new_goal_id) and new_goal_id != parked_goal_id,
+            f"FS-STOP-APPLY-1: the post-stop message reused the stopped goal {parked_goal_id} (got {new_goal_id})")
+    require(bool(new_run_id) and new_run_id != parked_run_id,
+            f"FS-STOP-APPLY-1: the post-stop message reused the stopped run {parked_run_id} (got {new_run_id})")
+    require(bool(first_text(response.get("reply"))), "FS-STOP-APPLY-1: the post-stop message landed no reply")
+    return {
+        "parked_goal_id": parked_goal_id,
+        "parked_run_id": parked_run_id,
+        "closure_phase": closure_phase_after,
+        "settlement_reason": settlement_reason,
+        "owner_status": owner_status_after,
+        "post_stop_goal_id": new_goal_id,
+        "post_stop_run_id": new_run_id,
+        "project_revision": revision_after_stop,
+    }
+
+
 def probe_tags(evidence: dict[str, Any]) -> set[str]:
     return {first_text(tag) for tag in (evidence.get("reason_tags") or [])}
 
@@ -2946,6 +3075,7 @@ def main() -> int:
     parser.add_argument("--expect-processor-selection", default="", help="AGENT-1 milestone: require a processor_selection.v1 record for this action domain (processor_selection route) with its routing log lines present")
     parser.add_argument("--verify-settled", default="", help="verify a previously settled probe report after an agent restart (path to d1_smoke_report.json)")
     parser.add_argument("--continuation-adoption-probe", action="store_true", help="FS-PARK-TURNFAIL-1: with the round parked at the human-judgment boundary, send a NEW user message and assert the default-adoption settlement (adopted_by_continuation, no judgment evidence, fresh goal/run/turn identity, reply landed, applied state kept)")
+    parser.add_argument("--stop-semantics-probe", action="store_true", help="FS-STOP-APPLY-1: with the round parked at the human-judgment boundary, POST a user stop and assert the honest stopped status, the closure settle + controller-owner release, zero further interventions, the request-arrival log anchor, and an unwedged conversation (next message runs on a fresh goal)")
     parser.add_argument("--reuse-existing-project", action="store_true", help="B10 instance-reuse round: when the project workdir already exists (a previous experiment round on this live stack), reuse the project in place instead of materializing a fresh copy, so the second experiment plans against the plugin instances the first round left on the tracks")
     args = parser.parse_args()
     if args.multi_round_probe and args.settlement_probe:
@@ -2954,6 +3084,8 @@ def main() -> int:
         parser.error("--multi-round-probe cannot be combined with --admission-only")
     if args.continuation_adoption_probe and (args.settlement_probe or args.admission_only or args.multi_round_probe or args.expect_honest_refusal):
         parser.error("--continuation-adoption-probe owns the run tail and cannot be combined with --settlement-probe, --admission-only, --multi-round-probe, or --expect-honest-refusal")
+    if args.stop_semantics_probe and (args.settlement_probe or args.admission_only or args.multi_round_probe or args.expect_honest_refusal or args.continuation_adoption_probe):
+        parser.error("--stop-semantics-probe owns the run tail and cannot be combined with --settlement-probe, --admission-only, --multi-round-probe, --expect-honest-refusal, or --continuation-adoption-probe")
     if args.expect_honest_refusal and (args.multi_round_probe or args.settlement_probe or args.admission_only):
         parser.error("--expect-honest-refusal owns the run tail and cannot be combined with --multi-round-probe, --settlement-probe, or --admission-only")
     output = Path(args.output).resolve()
@@ -3210,6 +3342,14 @@ def main() -> int:
                 args.agent_http, conversation_id, report["project_setup"]["project_path"], args.timeout_sec, run_started,
             )
             report["status"] = "continuation_adoption_probe_pass"
+        elif args.stop_semantics_probe:
+            # FS-STOP-APPLY-1（2026-10-01 M1 活栈实证）：park 态取消的停止语义
+            # ——诚实 stopped、closure 结算+所有权释放、停止后零新干预、日志锚点、
+            # 会话不楔死（新输入开新 goal）。
+            report["stop_semantics_probe"] = run_stop_semantics_probe(
+                args.agent_http, conversation_id, report["project_setup"]["project_path"], args.timeout_sec, run_started, args.agent_log,
+            )
+            report["status"] = "stop_semantics_probe_pass"
         elif args.settlement_probe:
             # The probe judgment is machine-originated and permanently marked
             # as such; it exercises the settlement machinery on this temporary
@@ -3222,6 +3362,8 @@ def main() -> int:
         write_report(output, report)
         if args.continuation_adoption_probe:
             print(f"D1-S1 CONTINUATION_ADOPTION PASS: report={output}")
+        elif args.stop_semantics_probe:
+            print(f"D1-S1 STOP_SEMANTICS PASS: report={output}")
         elif args.settlement_probe:
             print(f"D1-S1 SETTLEMENT({args.settlement_probe}) PASS: report={output}")
         else:

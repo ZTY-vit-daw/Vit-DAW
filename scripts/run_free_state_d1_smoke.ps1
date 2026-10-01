@@ -47,6 +47,14 @@ param(
     # judgment evidence, fresh goal/run/turn identity, reply landed, applied
     # state kept. Pre-fix live failure (2026-09-30 22:07): turn.failed.
     [switch]$ContinuationAdoptionProbe,
+    # FS-STOP-APPLY-1 (2026-10-01 M1 活栈取证): with the round parked at the
+    # human-judgment boundary, POST /agent/turn/stop and assert the honest
+    # stopped goal status, the audio-closure settle with the controller-owner
+    # release, zero further interventions, the stop request-arrival log anchor,
+    # and an unwedged conversation (a NEW user message runs on a fresh goal).
+    # Pre-fix live failure (2026-10-01 18:35): the next message failed with
+    # audio_closure_controller_failure "conversation is already owned by ...".
+    [switch]$StopSemanticsProbe,
     # AGENT-1/AGENT-2 (2026-09-05): per-domain processor-selection route
     # switch, e.g. "broadband_compression=processor_selection". The launcher
     # owns the injection into the child agent process env
@@ -84,6 +92,9 @@ if ($ExpectHonestRefusal -and ($MultiRoundProbe -or $AdmissionOnly -or $Settleme
 }
 if ($ContinuationAdoptionProbe -and ($MultiRoundProbe -or $AdmissionOnly -or $SettlementProbe -ne "" -or $ExpectHonestRefusal)) {
     throw "-ContinuationAdoptionProbe owns the run tail and cannot be combined with -MultiRoundProbe, -AdmissionOnly, -SettlementProbe, or -ExpectHonestRefusal"
+}
+if ($StopSemanticsProbe -and ($MultiRoundProbe -or $AdmissionOnly -or $SettlementProbe -ne "" -or $ExpectHonestRefusal -or $ContinuationAdoptionProbe)) {
+    throw "-StopSemanticsProbe owns the run tail and cannot be combined with -MultiRoundProbe, -AdmissionOnly, -SettlementProbe, -ExpectHonestRefusal, or -ContinuationAdoptionProbe"
 }
 $multiroundTierEnv = [string]$env:VIT_FREE_STATE_D2_MULTI_ROUND_BUDGET
 # AGENT-1/AGENT-2 domain-route env discipline: the launcher owns
@@ -241,6 +252,11 @@ try {
     }
     if ($ContinuationAdoptionProbe) {
         $smokeArgs += "--continuation-adoption-probe"
+    }
+    if ($StopSemanticsProbe) {
+        # The probe asserts the stop request-arrival anchor line, so it needs
+        # the agent log path the way the processor-selection check does.
+        $smokeArgs += @("--stop-semantics-probe", "--agent-log", $agentLogPath)
     }
     if ($PromptFlavor -ne "neutral") {
         $smokeArgs += @("--prompt-flavor", $PromptFlavor)
