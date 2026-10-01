@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"vit-daw-agent/internal/agentloop"
+	"vit-daw-agent/internal/audioclosure"
 	agentruntime "vit-daw-agent/internal/runtime"
 	"vit-daw-agent/internal/experiment"
 )
@@ -104,11 +105,65 @@ func (s *Server) settleJudgmentParkOnUserContinuation(conversationID, message st
 	// starts a fresh goal/run/turn for the new message — the turn-id reuse
 	// lifecycle flip cannot recur for this conversation's parked round.
 	s.harness.CompleteGoal(loop.GoalID, nil)
+	// FS-ADOPT-CLOSURE-1 source layer: the adoption settles the experiment and
+	// the canonical task, so the conversation's session-level closure must not
+	// outlive them. Left active, the next goal binds it in
+	// prepareAudioClosureContext and audioClosureSettleFromResult maps the
+	// settled TaskState to StopTaskSettled — the 2026-10-01 20:35 live shape
+	// (goal_65e6beee answered the canned settlement sentence with zero
+	// observation). Settle with the honest adoption reason (never
+	// satisfied/diagnostic_complete — adoption is not a judged completion) and
+	// release the controller owner.
+	s.settleAdoptedParkClosure(conversationID, loop.GoalID)
 	if s.logger != nil {
 		s.logger.Info("[judgment-park-continuation] parked round adopted by continuation conversation=%s goal=%s round=%s",
 			conversationID, loop.GoalID, round.ID)
 	}
 	return true
+}
+
+// settleAdoptedParkClosure is the FS-ADOPT-CLOSURE-1 source-layer settlement:
+// the session closure bound to the adopted goal closes with the honest
+// adoption stop reason and the controller owner is released, so the next goal
+// either acquires the conversation cleanly or opens its own fresh closure.
+// Failures only WARN — the adoption semantics above are already durable, and
+// the prepareAudioClosureContext binding guard is the defense-in-depth net.
+func (s *Server) settleAdoptedParkClosure(conversationID, goalID string) {
+	if s == nil || s.audioClosures == nil {
+		return
+	}
+	state, ok := s.audioClosures.ActiveForConversation(conversationID)
+	if !ok || state.Terminal() || state.GoalID != goalID {
+		return
+	}
+	projected := state
+	if state.ContractID != "" {
+		if next, err := s.projectAudioClosureTaskState(state); err == nil {
+			projected = next
+		} else if s.logger != nil {
+			s.logger.Warn("[judgment-park-continuation] closure task projection failed for %s: %v", state.ClosureID, err)
+		}
+	}
+	settled, err := (audioclosure.Driver{}).Settle(projected, projected.Revision, audioclosure.StopAdoptedByContinuation,
+		judgmentParkAdoptionSummary, false, time.Now().UTC())
+	if err != nil {
+		if s.logger != nil {
+			s.logger.Warn("[judgment-park-continuation] adoption closure settle rejected for %s: %v", state.ClosureID, err)
+		}
+		return
+	}
+	if err := s.audioClosures.Save(settled, state.Revision); err != nil {
+		if s.logger != nil {
+			s.logger.Warn("[judgment-park-continuation] adoption closure settle save failed for %s: %v", state.ClosureID, err)
+		}
+		return
+	}
+	s.settleAudioClosureOwner(settled)
+	s.persistCurrentProjectWorkspace()
+	if s.logger != nil {
+		s.logger.Info("[judgment-park-continuation] settled adopted park closure=%s reason=%s goal=%s",
+			state.ClosureID, audioclosure.StopAdoptedByContinuation, goalID)
+	}
 }
 
 // judgmentParkPreservedReply is the frozen user-readable boundary wording for

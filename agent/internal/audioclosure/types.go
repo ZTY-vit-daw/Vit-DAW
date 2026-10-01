@@ -62,6 +62,14 @@ const (
 	StopHandoffRequested              StopReason = "handoff_requested"
 	StopCancelled                     StopReason = "cancelled"
 	StopOwnerTurnClosed               StopReason = "owner_turn_closed"
+	// StopAdoptedByContinuation settles a closure whose judgment-parked round
+	// was adopted by default when the user continued the conversation
+	// (FS-ADOPT-CLOSURE-1, FS-PARK-TURNFAIL-1 Part A sibling). Adoption keeps
+	// the applied treatment but never records a human A/B judgment, so it is
+	// neither satisfied nor diagnostic_complete — it gets its own honest
+	// reason. Old persisted settlements never carry it (the reason set is
+	// closed under validation), so no compatibility mapping is owed.
+	StopAdoptedByContinuation StopReason = "adopted_by_continuation"
 )
 
 type Policy struct {
