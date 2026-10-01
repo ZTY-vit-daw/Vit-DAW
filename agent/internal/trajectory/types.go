@@ -77,6 +77,10 @@ const (
 	EvaluationAmbiguous             EvaluationState = "ambiguous"
 	EvaluationUnsupportedHypothesis EvaluationState = "unsupported_hypothesis"
 	EvaluationRolledBack            EvaluationState = "rolled_back"
+	// EvaluationAdoptedByContinuation（FS-PARK-TURNFAIL-1）：继续对话默认采纳
+	// 的收口评估值——与人耳确认（human_confirmed）严格区分，消费端按未知值
+	// 兼容（不升级、不推断）。
+	EvaluationAdoptedByContinuation EvaluationState = "adopted_by_continuation"
 )
 
 // Payload is a UI-facing projection. Controller-private state must not be
