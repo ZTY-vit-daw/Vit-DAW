@@ -79,6 +79,13 @@ func syncD1Receipt(loop *freeStateReasoningLoop) {
 	} else if classification == experiment.ClassificationSubthreshold {
 		netOutcome = "plateau"
 	}
+	// FS-PARK-TURNFAIL-1（2026-09-30 用户裁定）：继续对话默认采纳的收口——人耳
+	// 判断被跳过（请求过、无判断证据），已应用状态保留。诚实边界：不 claim
+	// human 决策/retain/improved，human A/B 层如实呈现 skipped_by_continuation。
+	if settled && loop.Experiment.Outcome == experiment.OutcomeAdoptedByContinuation && len(round.UserJudgmentEvidence) == 0 {
+		disposition = experiment.DispositionAdoptedByContinuation
+		humanStatus = "skipped_by_continuation"
+	}
 	beforeRender := firstMapFromAny(loop.D1State["before_render"])
 	afterRender := firstMapFromAny(loop.D1State["after_render"])
 	humanAuditionReady := evaluationReady && firstStringFromMap(beforeRender, "status") == "ready" && firstStringFromMap(afterRender, "status") == "ready" &&

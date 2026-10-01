@@ -1,0 +1,43 @@
+{
+ "schema_version": "vit.free_state_d1_smoke.v1",
+ "status": "fail",
+ "error": "FS-PARK-TURNFAIL-1: the parked loop did not settle on continuation: blocked",
+ "started_at": "2026-10-01T03:22:32.986763+00:00",
+ "finished_at": "2026-10-01T03:26:49.469050+00:00",
+ "conversation_id": "d1_s1_20261001T032337740607",
+ "public_case_id": "spv1_p01",
+ "prompt_flavor": "neutral",
+ "expect_domain": "any",
+ "selected_domains": [
+  "static_eq"
+ ],
+ "fs_settle_terminal_park": {
+  "goal_status": "waiting_continue",
+  "judgment_park": true,
+  "closure_phase": "fs7_improvement_proposal"
+ },
+ "material_qualification": {
+  "status": "passed"
+ },
+ "terminal_causes": [
+  "waiting_interaction",
+  "completed"
+ ],
+ "validation_digest": {
+  "status": "pass",
+  "action_domain": "static_eq",
+  "turn_id": "turn:free_state_493a634960c5cb1b",
+  "round_id": "round-1-0faebdb244c07df0",
+  "before_revision": "3",
+  "after_revision": "4",
+  "audition_session_id": "audition:turn:free_state_493a634960c5cb1b:round-1-0faebdb244c07df0"
+ },
+ "response_count": 5,
+ "response_goal_status_tail": [
+  "waiting_continue",
+  "scheduler_drained",
+  "waiting_confirmation",
+  "waiting_continue",
+  "settle_records_landed"
+ ]
+}

@@ -41,6 +41,12 @@ param(
     # misattribution explicitly rejected). Any requirement not met is an
     # honest FAIL, not a retry loop.
     [switch]$ExpectHonestRefusal,
+    # FS-PARK-TURNFAIL-1 (2026-09-30 用户裁定): with the round parked at the
+    # human-judgment boundary, send a NEW user message through /agent/chat and
+    # assert the default-adoption settlement — adopted_by_continuation, zero
+    # judgment evidence, fresh goal/run/turn identity, reply landed, applied
+    # state kept. Pre-fix live failure (2026-09-30 22:07): turn.failed.
+    [switch]$ContinuationAdoptionProbe,
     # AGENT-1/AGENT-2 (2026-09-05): per-domain processor-selection route
     # switch, e.g. "broadband_compression=processor_selection". The launcher
     # owns the injection into the child agent process env
@@ -75,6 +81,9 @@ if ($MultiRoundProbe -and ($AdmissionOnly -or $SettlementProbe -ne "")) {
 }
 if ($ExpectHonestRefusal -and ($MultiRoundProbe -or $AdmissionOnly -or $SettlementProbe -ne "")) {
     throw "-ExpectHonestRefusal owns the run tail and cannot be combined with -MultiRoundProbe, -AdmissionOnly, or -SettlementProbe"
+}
+if ($ContinuationAdoptionProbe -and ($MultiRoundProbe -or $AdmissionOnly -or $SettlementProbe -ne "" -or $ExpectHonestRefusal)) {
+    throw "-ContinuationAdoptionProbe owns the run tail and cannot be combined with -MultiRoundProbe, -AdmissionOnly, -SettlementProbe, or -ExpectHonestRefusal"
 }
 $multiroundTierEnv = [string]$env:VIT_FREE_STATE_D2_MULTI_ROUND_BUDGET
 # AGENT-1/AGENT-2 domain-route env discipline: the launcher owns
@@ -229,6 +238,9 @@ try {
     }
     if ($SettlementProbe -ne "") {
         $smokeArgs += @("--settlement-probe", $SettlementProbe)
+    }
+    if ($ContinuationAdoptionProbe) {
+        $smokeArgs += "--continuation-adoption-probe"
     }
     if ($PromptFlavor -ne "neutral") {
         $smokeArgs += @("--prompt-flavor", $PromptFlavor)

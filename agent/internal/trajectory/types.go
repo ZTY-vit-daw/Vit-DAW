@@ -305,7 +305,7 @@ func (s EvaluationState) Valid() bool {
 	switch s {
 	case EvaluationNotReady, EvaluationInsufficientDose, EvaluationAgentEvaluable,
 		EvaluationHumanAuditionReady, EvaluationHumanConfirmed, EvaluationAmbiguous,
-		EvaluationUnsupportedHypothesis, EvaluationRolledBack:
+		EvaluationUnsupportedHypothesis, EvaluationRolledBack, EvaluationAdoptedByContinuation:
 		return true
 	default:
 		return false

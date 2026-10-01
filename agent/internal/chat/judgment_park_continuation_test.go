@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"vit-daw-agent/internal/agentloop"
 	agentruntime "vit-daw-agent/internal/runtime"
@@ -84,6 +85,91 @@ func TestJudgmentParkNewUserInputAdoptsByContinuation(t *testing.T) {
 	// parked goal 关闭：新消息不再续用（turn id 复用翻转的根）。
 	if goal.Status != agentruntime.StatusCompleted {
 		t.Fatalf("parked goal status = %s, want completed", goal.Status)
+	}
+}
+
+// TestAdoptionSettlementD1ReceiptHonesty 钉 receipt 级诚实边界：D1-S1 实验按
+// 默认采纳收口后，d1 receipt 无 validation_error，disposition/human_ab 如实
+// 呈现 adopted_by_continuation/skipped_by_continuation，绝不 claim
+// human_confirmed 或 net_outcome=improved。
+func TestAdoptionSettlementD1ReceiptHonesty(t *testing.T) {
+	now := time.Now().UTC()
+	loop := freeStateReasoningLoop{SchemaVersion: freeStateReasoningLoopSchema, LoopID: "loop-adoption-receipt", ConversationID: "conversation-adoption-receipt", GoalID: "goal", RunID: "run", OriginalIntent: "compare before and after", LatestProjectChange: map[string]any{"project_path": auditionProjectPathForTest(t), "project_revision": "rev-7"}, LatestObservation: d1FreshObservationForTest("rev-6"), CreatedAt: now, UpdatedAt: now}
+	admission, err := freeStateExperimentAdmission(loop, experimentTestProposal())
+	if err != nil {
+		t.Fatal(err)
+	}
+	// 注册域（static_eq/track_gain）自带 D1-S1 不变量——不覆写 legacy_mix。
+	turn, err := experiment.NewTurn(experiment.Identity{ConversationID: loop.ConversationID, GoalID: loop.GoalID, RunID: loop.RunID, TurnID: "turn-adoption"}, loop.OriginalIntent, admission, now)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = turn.StartRound([]string{"track.timbre_frequency"}, "checkpoint-7", "rev-6", now); err != nil {
+		t.Fatal(err)
+	}
+	before := experiment.Observation{ID: "before", RequestedViewIDs: []string{"track.timbre_frequency"}, ExecutedViewIDs: []string{"track.timbre_frequency"}, ViewSetMatches: true, Fresh: true, ProjectRevision: "rev-6", EvidenceRefs: []string{"before"}}
+	if _, err = turn.RecordObservation(before, false, now); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = turn.ApplyIntervention(experiment.Intervention{ID: "action-7", Attempt: 1, TechnicalApplication: experiment.TechnicalApplied, UserConfirmed: true, Receipt: map[string]any{"status": "ok", "before_revision": "6", "after_revision": "rev-7", "readback_verified": true}}, now); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = turn.EvaluateMateriality(experiment.MaterialityEvaluation{State: experiment.MaterialitySubthreshold, Evaluation: trajectory.EvaluationInsufficientDose, Attempt: 1, EvidenceRefs: []string{"material"}}, now); err != nil {
+		t.Fatal(err)
+	}
+	after := before
+	after.ID = "after"
+	after.PostAction = true
+	after.ProjectRevision = "rev-7"
+	after.EvidenceRefs = []string{"after"}
+	if _, err = turn.RecordObservation(after, true, now); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = turn.RecordTargetResponse(experiment.TargetEvaluation{Response: experiment.TargetAmbiguous, Outcome: trajectory.EvaluationHumanAuditionReady, EvidenceRefs: []string{"after"}}, now); err != nil {
+		t.Fatal(err)
+	}
+	// park 形态：轮决策 user_judgment_pending（judgment requested 未落证据）。
+	if _, err = turn.DecideRound(experiment.DecisionUserJudgment, "awaiting human A/B judgment", now); err != nil {
+		t.Fatal(err)
+	}
+	round, err := turn.CurrentRound()
+	if err != nil {
+		t.Fatal(err)
+	}
+	round.UserJudgmentRequested = true
+	round.AuditionSessionID = "audition:turn-adoption:" + round.ID
+	turn.Rounds[len(turn.Rounds)-1] = round
+	// 默认采纳收口。
+	if _, err = turn.DecideRound(experiment.DecisionAdoptedByContinuation, judgmentParkAdoptionSummary, now); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = turn.Settle(experiment.OutcomeAdoptedByContinuation, judgmentParkAdoptionSummary, now); err != nil {
+		t.Fatal(err)
+	}
+	loop.Experiment = &turn
+	loop.D1State = map[string]any{
+		"before_render": map[string]any{"status": "ready", "render_revision": "before:7"},
+		"after_render":  map[string]any{"status": "ready", "render_revision": "after:8"},
+	}
+	syncD1Receipt(&loop)
+	receipt := loop.D1Receipt
+	if firstStringFromMap(receipt, "validation_error") != "" {
+		t.Fatalf("adoption receipt carries a validation error: %s", firstStringFromMap(receipt, "validation_error"))
+	}
+	if got := firstStringFromMap(receipt, "disposition"); got != string(experiment.DispositionAdoptedByContinuation) {
+		t.Fatalf("receipt disposition = %q, want adopted_by_continuation", got)
+	}
+	layers := firstMapFromAny(receipt["layers"])
+	humanAB := firstMapFromAny(layers["human_ab"])
+	if got := firstStringFromMap(humanAB, "status"); got != "skipped_by_continuation" {
+		t.Fatalf("receipt human_ab status = %q, want skipped_by_continuation", got)
+	}
+	if receipt["human_confirmed"] == true || receipt["settled"] != true {
+		t.Fatalf("receipt honesty flags wrong: human_confirmed=%v settled=%v", receipt["human_confirmed"], receipt["settled"])
+	}
+	netOutcome := firstMapFromAny(layers["net_outcome"])
+	if got := firstStringFromMap(netOutcome, "status"); got == "improved" {
+		t.Fatal("adoption receipt must not claim net_outcome=improved without a decided human A/B")
 	}
 }
 
