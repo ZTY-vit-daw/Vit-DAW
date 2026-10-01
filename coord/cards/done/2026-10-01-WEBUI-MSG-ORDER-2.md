@@ -24,4 +24,4 @@
   - **泊位声明**：两次 E2E 各用独立 run root（red/green 不覆盖）；HTTP 7899（每轮先验端口空闲）；桥端口经 VIT_AGENT_* 覆盖为 5601/5602/4500/4501（prereq.txt bridge_ports 记录），draft root=各 run 目录内 agent_drafts，agent 进程运行后即停（stopped_agent_pid 在案）；与并行卡①真栈（默认端口面）零共享、全程未触碰主工作树 D:\Vit_DAW。
   - **端测覆盖边界声明**：本卡改动过渲染面端侧烟测（E2E-WEBUI-1 全量 24 组 exit 0，含渲染面 DOM 断言与新活态组）；真栈三件套（VitApp 内核+Godot 前端）未在本卡拉起——按 AGENTS §5「真实运行栈」口径以隔离 VitAgent+真实浏览器+真实 bundle 执行，agent Go 代码零改动（E2E 所用 VitAgent.exe 由仓库工作树构建）；**用户手测复验（顺序正常）留待决策侧安排**，验收标准第三项未在本卡闭合。
   - **已知边界（不在本卡域）**：① 轮内时序细粒度——卡与其回合块按 UI-FOLLOW-1 槽位语义挂在开启用户消息之后，可能位于同轮更早的 receipt 行上方（轮间边界=本卡修复的承重面，轮内相对次序为既有槽位锚定语义）；② TRAJ-IMPL-3 水合收据行（orphanReceiptTurnIds）仍流尾兜底，若未来出现「水合收据被新消息超越」的同类形态，可按本卡同款时序插列扩展（候选后续卡）。
-- 验收：（裁定文件 / 验收 commit）
+- 验收：**pass（2026-10-01 决策会话）**——rulings/2026-10-01-WEBUI-MSG-ORDER-2-pass.md；合并 main=ef8de3d4（决策侧 cherry-pick）；机制取证采信（独立 pinned lane+内核无 turn 域实证）+diff 直读（无证据不猜纪律全过）+我方复跑 393/393+build+E2E 红绿工件亲读（活态组 msg-order-M2 上线=上卡缺口正式补面）+泊位合规；手测复验与 M1 第四轮同场销项。
