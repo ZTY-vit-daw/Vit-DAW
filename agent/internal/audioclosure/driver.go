@@ -632,7 +632,7 @@ func firstNonEmpty(values ...string) string {
 
 func validStopReason(reason StopReason) bool {
 	switch reason {
-	case StopSatisfied, StopDiagnosticComplete, StopNoCandidateFound, StopCapabilityBlocked, StopTaskSettled, StopTaskFailed, StopActionablePendingConfirmation, StopInsufficientEvidence, StopEvidenceCeilingReached, StopNoProgress, StopCapabilityUnavailable, StopPCAUnavailable, StopModelProtocolFailure, StopTransportFailure, StopRoundLimit, StopActionFailed, StopVerificationFailedRolledBack, StopUserChoiceRequired, StopProjectRevisionStale, StopHandoffRequested, StopCancelled, StopOwnerTurnClosed:
+	case StopSatisfied, StopDiagnosticComplete, StopNoCandidateFound, StopCapabilityBlocked, StopTaskSettled, StopTaskFailed, StopActionablePendingConfirmation, StopInsufficientEvidence, StopEvidenceCeilingReached, StopNoProgress, StopCapabilityUnavailable, StopPCAUnavailable, StopModelProtocolFailure, StopTransportFailure, StopRoundLimit, StopActionFailed, StopVerificationFailedRolledBack, StopUserChoiceRequired, StopProjectRevisionStale, StopHandoffRequested, StopCancelled, StopOwnerTurnClosed, StopAdoptedByContinuation:
 		return true
 	default:
 		return false

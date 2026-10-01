@@ -59,7 +59,7 @@ func (s *Server) prepareAudioClosureContext(conversationID, userText string, req
 	if s.audioClosures == nil {
 		s.audioClosures = audioclosure.NewMemoryStore()
 	}
-	if state, ok := s.audioClosures.ActiveForConversation(conversationID); ok {
+	if state, ok := s.audioClosures.ActiveForConversation(conversationID); ok && !s.releaseFinishedTaskClosureForNewGoal(conversationID, state, requestContext) {
 		requestContext = s.bindCurrentTaskSemantics(requestContext, state.GoalID)
 		requestRevision := audioClosureRequestProjectRevision(s, requestContext)
 		// A request revision inside the superseded set is the shadow lagging
@@ -189,6 +189,73 @@ func (s *Server) projectAudioClosureTaskState(state audioclosure.State) (audiocl
 	}
 	next, _, err := (audioclosure.Driver{}).ProjectTaskState(state, state.Revision, state.ContractID, goal.Task.SemanticState.State, goal.Task.SemanticState.Revision, time.Now().UTC())
 	return next, err
+}
+
+// audioClosureTaskAlreadyFinished reports whether the closure's canonical task
+// sits in a terminal state, read from the authoritative harness row of the
+// closure's own goal (the closure's projected TaskState can lag the runtime
+// across a settle that happened outside the closure round path).
+func (s *Server) audioClosureTaskAlreadyFinished(state audioclosure.State) bool {
+	if s == nil || s.harness == nil || state.GoalID == "" {
+		return false
+	}
+	goal := s.harness.RuntimeStatus(state.GoalID)
+	return goal.Task != nil && goal.Task.SemanticState != nil && goal.Task.SemanticState.Terminal
+}
+
+// releaseFinishedTaskClosureForNewGoal is the FS-ADOPT-CLOSURE-1 binding
+// guard: the conversation's active closure must not become the working
+// closure of a DIFFERENT goal once its own task already reached a terminal
+// state. Binding it anyway makes the new goal's turn settle immediately from
+// the old task's terminal projection — the 2026-10-01 20:35 live shape
+// (goal_65e6beee got the StopTaskSettled canned reply with zero observation;
+// the adoption path had settled the task without settling the closure). The
+// guard settles the orphaned closure with the honest reason mapped from its
+// task state (same mapping restart recovery uses), releases the owner, and
+// reports true so the caller falls through to the fresh-closure decision
+// instead of binding. A settle that cannot land still refuses the binding
+// (WARN only, per the card's minimum: never hand a finished task's closure to
+// a new goal); the same goal resuming its own closure is never guarded — that
+// is the legal StopTaskSettled presentation for a task its own goal settled
+// (e.g. via the explicit audition judgment POST).
+func (s *Server) releaseFinishedTaskClosureForNewGoal(conversationID string, state audioclosure.State, requestContext map[string]any) bool {
+	requestGoal := firstStringFromMap(requestContext, "goal_id")
+	if requestGoal == "" || requestGoal == state.GoalID || !s.audioClosureTaskAlreadyFinished(state) {
+		return false
+	}
+	summary := "task already finished under its own goal; closure released before a new goal could bind it"
+	projected := state
+	if state.ContractID != "" {
+		if next, err := s.projectAudioClosureTaskState(state); err == nil {
+			projected = next
+		} else if s.logger != nil {
+			s.logger.Warn("[audio-closure] finished-task guard projection failed for %s: %v", state.ClosureID, err)
+		}
+	}
+	settled := audioClosureSettleFromResult(audioclosure.Driver{}, projected, agentloop.Result{Reply: summary})
+	if !settled.Terminal() {
+		var err error
+		settled, err = (audioclosure.Driver{}).Settle(projected, projected.Revision, audioclosure.StopOwnerTurnClosed, summary, false, time.Now().UTC())
+		if err != nil {
+			if s.logger != nil {
+				s.logger.Warn("[audio-closure] finished-task guard could not settle %s for a new goal (refusing the binding): %v", state.ClosureID, err)
+			}
+			return true
+		}
+	}
+	if err := s.audioClosures.Save(settled, state.Revision); err != nil {
+		if s.logger != nil {
+			s.logger.Warn("[audio-closure] finished-task guard settle save failed for %s (refusing the binding): %v", state.ClosureID, err)
+		}
+		return true
+	}
+	s.settleAudioClosureOwner(settled)
+	s.persistCurrentProjectWorkspace()
+	if s.logger != nil {
+		s.logger.Info("[audio-closure] finished-task guard settled closure=%s reason=%s old_goal=%s new_goal=%s",
+			state.ClosureID, settled.Settlement.Reason, state.GoalID, requestGoal)
+	}
+	return true
 }
 
 func audioClosureRequestProjectRevision(s *Server, requestContext map[string]any) string {
@@ -1666,6 +1733,8 @@ func audioClosureSettlementReply(settlement *audioclosure.Settlement, visibleTra
 		return "任务在形成有效结算前失败；失败原因与已有证据已保留。"
 	case audioclosure.StopOwnerTurnClosed:
 		return "本轮对话已收尾；没有排程后续观察或受治理实验，任务以未完成实验的状态关闭。"
+	case audioclosure.StopAdoptedByContinuation:
+		return "待 A/B 试听判断的轮次已按继续对话默认采纳收口：已应用的调整保留，未记录人耳 A/B 判断。"
 	case audioclosure.StopEvidenceCeilingReached:
 		return "已达到本次闭环的唯一观察上限，现有证据仍不足以支持可靠动作；没有修改工程。"
 	case audioclosure.StopNoProgress:
