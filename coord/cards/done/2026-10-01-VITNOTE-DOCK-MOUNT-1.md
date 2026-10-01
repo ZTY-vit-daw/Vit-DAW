@@ -29,4 +29,4 @@
     2. 主场景 headless 运行（临时 SceneTree 脚本实例化 VitDockRoot.tscn 跑 30 帧，**跑完已删**）：**PASS**——`VITNOTE_MOUNT_CHECK: PASS path=/root/VitDockRoot/VitNoteLayer group=ok empty_context_degrade=ok`，EXIT=0；断言含 VitNoteLayer 入树、组查找命中同一实例、`get_agent_context()` 返回空字典（降级路径实测）。退出时仅 "3 resources still in use at exit" 资源清理提示，非脚本错误。
   - **端测边界声明（AGENTS §5）**：Godot 仓无自动化测试基建（同 IMPL-1 申报）。headless 自验覆盖挂载入树+组协议+context 降级；交互面（拖框→胶囊→N 键→便签三态→中文 IME→7878 实发问答）无法 headless 断言，交用户手测覆盖。
   - **用户复验（M8 9 步清单，默认入口）**：从 Godot 拉起 DAW 前端→启动页进含音频轨+clip 的工程（**无需任何环境变量**，即默认 Vit-Dock 工作区）→按 IMPL-1 卡 9 步清单走（编排面拖框出胶囊→三出口→便签结构→中文 IME→观察问答有回复）。若需对照 legacy 行为才用 VIT_USE_LEGACY_MAIN=1。
-- 验收：（裁定文件 / 验收 commit）
+- 验收：**代码面 pass，终裁待用户默认入口 M8 手测（2026-10-01 决策会话）**——rulings/2026-10-01-VITNOTE-DOCK-MOUNT-1-conditional.md；diff 直读（8 行外科手术级+锚点逐一吻合）+context 降级三锚点采信+headless 自验采信（编辑器占用不复跑，理由在 ruling）；终裁条件=dock 默认入口 9 步走通（可与 VITNOTE-IMPL-1 条件同场销项）。
