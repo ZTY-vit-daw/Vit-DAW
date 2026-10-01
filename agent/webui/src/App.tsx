@@ -309,6 +309,11 @@ function App() {
   const [turnReceipts, setTurnReceipts] = useState<TurnReceipt[]>([]);
   const [transportBusy, setTransportBusy] = useState(false);
   const [error, setError] = useState("");
+  // AB-JUDGMENT-CARD-1：错误显形不被运行时轮询抹掉——refreshState 的成功分支
+  // 只允许清掉自己写入的错误（连接面错误）。判定/试听等交互面错误若恰逢一次
+  // 在飞 refreshState（挂载期或 8s 周期拍），会被迟到的无条件 setError("") 静默
+  // 抹除（E2E J1 实测：点击后 +26ms 渲染、+706ms 被挂载期轮询清除）。
+  const runtimeOwnedErrorRef = useRef("");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const composerRef = useRef<HTMLFormElement | null>(null);
   // PLANBAR-1：输入框停靠列（规划条 + composer）。消息流要预留的底部空间是
@@ -358,12 +363,17 @@ function App() {
       setRuntimeStatus(runtimeResult.value);
       setTaskTrajectoryState((current) => reduceTaskTrajectory(current, "task_trajectory" in runtimeResult.value ? runtimeResult.value.task_trajectory : null));
       setHealthLabel(runtimeResult.value.service ?? "VitAgent");
-      setError("");
+      // AB-JUDGMENT-CARD-1：成功只清运行时自己写入的错误——在飞轮询迟到的
+      // 成功不得抹掉判定/试听等交互面刚设置的错误（挂载期竞态 E2E J1 实证）。
+      setError((current) => (current === runtimeOwnedErrorRef.current ? "" : current));
+      runtimeOwnedErrorRef.current = "";
     } else {
       setConnection("offline");
       setRuntimeStatus(null);
       setHealthLabel("未连接");
-      setError(runtimeResult.reason instanceof Error ? runtimeResult.reason.message : "Agent 未连接");
+      const runtimeError = runtimeResult.reason instanceof Error ? runtimeResult.reason.message : "Agent 未连接";
+      runtimeOwnedErrorRef.current = runtimeError;
+      setError(runtimeError);
     }
     if (uiResult.status === "fulfilled") {
       setUIState(applyMacroValueOverridesToUIState(uiResult.value, macroValueOverridesRef.current));
@@ -1461,8 +1471,14 @@ function App() {
   };
 
   const handleAuditionJudgment = async (payload: AuditionJudgmentPayload) => {
-    await submitAuditionJudgment(payload);
-    setAgentEventPolling(true);
+    // AB-JUDGMENT-CARD-1：判定 POST 的拒绝必须显形——此前无 catch，服务端 409
+    // （identity mismatch）以未处理 rejection 形式被吞，用户点击零反馈零事件。
+    try {
+      await submitAuditionJudgment(payload);
+      setAgentEventPolling(true);
+    } catch (auditionError) {
+      setError(auditionError instanceof Error ? auditionError.message : "判定提交失败");
+    }
   };
 
   const hiddenFileInput = (

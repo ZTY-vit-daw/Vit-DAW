@@ -31,7 +31,15 @@ export interface AuditionSession {
   lastEventType: string;
   error: string;
   conversationID: string;
+  /** 挂靠域（B9/WEBUI-MSG-ORDER-2）：run 级 source_turn_id 优先——判定卡锚进轨迹回合组的键 */
   turnID: string;
+  /**
+   * 判定契约域（AB-JUDGMENT-CARD-1）：judgment POST 的 turn_id 必须是会话原生
+   * turn 域（自由态=实验 id、mix-tick=mixTickAuditionTurnID），绝不能是挂靠域的
+   * run id——服务端 recordFreeStateAuditionJudgment/mixTickAuditionIdentityError
+   * 按它对 loop.Experiment.ID/record.TurnID 做身份校验，发 run id 必吃 409。
+   */
+  experimentTurnID: string;
   roundID: string;
   judgmentRequested: boolean;
   judgmentRecorded: boolean;
@@ -100,6 +108,11 @@ export function reduceAuditionEvents(current: AuditionState, incoming: AgentEven
       // B9 统一面：判定卡锚定轮次域（source_turn_id=run）——与轨迹回合同键，
       // 卡片才能挂进统一轨迹块所在的回合组；缺失回退会话原生 turn 域。
       turnID: text(event.source_turn_id) || text(rawSession.turn_id) || text(payload.turn_id) || previous?.turnID || "",
+      // 判定契约域与挂靠域分账（AB-JUDGMENT-CARD-1）：内核原始快照无 turn_id、
+      // trajectory.user_judgment.requested 的 source_turn_id 是 run 级——挂靠域若
+      // 直接喂 judgment POST，服务端身份校验必拒（identity mismatch 409 被静默
+      // 吞=点击零痕迹）。此处只取会话原生/轨迹 payload 的 turn 域，run 级键不进。
+      experimentTurnID: text(rawSession.turn_id) || text(payload.turn_id) || previous?.experimentTurnID || "",
       roundID: text(rawSession.round_id) || text(payload.round_id) || previous?.roundID || "",
       judgmentRequested: event.type === "trajectory.user_judgment.recorded" ? false : previous?.judgmentRequested || event.type === "trajectory.user_judgment.requested",
       judgmentRecorded: previous?.judgmentRecorded || event.type === "trajectory.user_judgment.recorded",

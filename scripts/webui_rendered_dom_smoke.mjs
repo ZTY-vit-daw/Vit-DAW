@@ -46,6 +46,15 @@
 //                    dynamic surface, preparing explicitly); after the judgment
 //                    the same single card settles with the verdict and the lane
 //                    stays free of audition rows (定型不残留)
+//   J1 judgment   -- AB-JUDGMENT-CARD-1 (M8 + M1 round-4: clicks left zero
+//                    server trace): in the parked waiting state the verdict
+//                    buttons render enabled; a real click on 「A 更好」 reaches
+//                    POST /agent/audition/judgment with turn_id in the
+//                    experiment domain (never the run-level anchor key the
+//                    pre-fix reducer fed it), and a 409 rejection surfaces as
+//                    the visible warning banner instead of an unhandled
+//                    rejection (the silent swallow that cost two forensic
+//                    rounds)
 //   K1 confirm    -- FIX-CONFIRM-CARD-1 defect 2: a RiskConfirm confirmation
 //                    card left unanswered when its turn truly completes must
 //                    settle non-interactively in place (zero clickable
@@ -1622,6 +1631,114 @@ function checkT1(result, options) {
     }
     if ((settledCards[0].text || "").indexOf("已裁决") < 0) {
       failures.push("T1 settled card: no verdict outcome row on the card (text: \"" + settledCards[0].text + "\")");
+    }
+  }
+  return { failures, notes };
+}
+
+// --------------------------------------------------- AB-JUDGMENT-CARD-1 J1
+//
+// Card 2026-09-30 AB-JUDGMENT-CARD-1 (M8 + M1 round-4 manual tests: judgment
+// clicks left zero server-side trace). The two forensic rounds pinned the
+// shapes this fixture reproduces exactly:
+//   * the kernel's audition.ready session snapshot carries NO turn_id /
+//     round_id / project_revision top-level keys (only active_project_plane);
+//   * trajectory.user_judgment.requested carries the RUN-level id in
+//     source_turn_id while payload.turn_id holds the experiment turn domain.
+// The pre-fix reducer fed the run-level anchor key into the judgment POST's
+// turn_id, so the real server answered 409 "audition session identity
+// mismatch" and the webui swallowed it (no catch, no banner) -- a click with
+// zero visible effect and zero event-stream trace.
+//
+//   J1 -- in the parked waiting state (kernel session stopped, judgment
+//      requested, candidates ready) the verdict buttons render enabled; a real
+//      click on 「A 更好」 MUST reach POST /agent/audition/judgment with
+//      turn_id in the experiment domain (never the run-level anchor key), and
+//      a 409 rejection MUST surface as the visible warning banner instead of
+//      dying as an unhandled rejection. (The parked-loop settlement the POST
+//      unlocks is covered agent-side by judgment_park_continuation_test.go;
+//      this isolated agent has no free-state loop behind it.)
+function judgmentIdentityFixtureEvents(options) {
+  const now = Date.now();
+  const startedAt = new Date(now - 60_000).toISOString();
+  const midAt = new Date(now - 30_000).toISOString();
+  const stoppedAt = new Date(now - 5_000).toISOString();
+  const base = Number(options.baseSeq) || 800;
+  const runCommon = { conversation_id: conversationId, goal_id: options.runId, run_id: options.runId, turn_id: options.runId, source_turn_id: options.runId };
+  // Real kernel shape (M8-FORENSIC-20260930 seq 20/41): NO turn-domain keys.
+  const kernelSession = (status, activeCandidateId) => ({
+    session_id: options.sessionId, conversation_id: conversationId, status, state_revision: 5,
+    active_candidate_id: activeCandidateId,
+    active_project_plane: { plane: "active_project", project_ref: "project/Unsaved.vit", project_revision: "revision-j1" },
+    candidates: [
+      { id: "candidate-a", label: "A", status: "ready", preview_ref: "audio-buffer://" + options.sessionId + "/candidate-a:2ch@44100Hz" },
+      { id: "candidate-b", label: "B", status: "ready", preview_ref: "audio-buffer://" + options.sessionId + "/candidate-b:2ch@44100Hz" }
+    ]
+  });
+  return [
+    { ...runCommon, seq: base + 1, type: "turn.started", item_type: "turn", status: "running", created_at: startedAt },
+    {
+      ...runCommon, seq: base + 2, type: "audition.ready", item_id: options.sessionId, status: "ready", created_at: midAt,
+      payload: { schema_version: "vit.kernel_audition.v1", command: "audition.prepare", session: kernelSession("ready", "") }
+    },
+    // Real trajectory shape (M8 seq 28 / M1R4 seq 28): source_turn_id is the
+    // run level; payload.turn_id is the experiment turn domain.
+    {
+      ...runCommon, seq: base + 3, type: "trajectory.user_judgment.requested", item_id: "judgment:" + options.sessionId, status: "waiting_for_user", created_at: midAt,
+      payload: {
+        schema_version: "vit.observable_trajectory.v1", trace_node_id: "judgment:" + options.sessionId,
+        turn_id: options.experimentTurnId, round_id: options.roundId, node_kind: "user_judgment",
+        phase: "user_judgment", status: "waiting_for_user", summary: "A/B audition required",
+        details: { audition_session_id: options.sessionId, summary: "A/B audition required" }
+      }
+    },
+    {
+      ...runCommon, seq: base + 4, type: "audition.stopped", item_id: options.sessionId, status: "stopped", created_at: stoppedAt,
+      payload: { schema_version: "vit.kernel_audition.v1", session: kernelSession("stopped", "candidate-a") }
+    }
+  ];
+}
+
+function checkJ1(result, options) {
+  const failures = [];
+  const notes = [];
+  if (!result.appeared) {
+    failures.push("J1 setup: the parked judge card never rendered its verdict buttons for " + options.sessionId + " -- the pass would measure nothing");
+    return { failures, notes };
+  }
+  notes.push("verdict buttons rendered and enabled in the parked state (canJudge held with the kernel-shaped snapshot)");
+  if (!result.posts || result.posts.length === 0) {
+    failures.push("J1 click: the real click on 「A 更好」 never reached POST /agent/audition/judgment -- the binding is dead again");
+    return { failures, notes };
+  }
+  notes.push("judgment POST issued " + result.posts.length + " time(s) on click");
+  const bodies = result.posts.map((post) => (post && post.body ? post.body : post));
+  bodies.forEach((post, index) => {
+    if (post.turn_id !== options.experimentTurnId) {
+      failures.push(
+        "J1 contract: POST #" + (index + 1) + " carried turn_id=" + JSON.stringify(post.turn_id) +
+        " instead of the experiment domain " + options.experimentTurnId +
+        (post.turn_id === options.runId ? " (the run-level anchor key -- the AB-JUDGMENT-CARD-1 regression)" : "")
+      );
+    }
+    if (post.audition_session_id !== options.sessionId) {
+      failures.push("J1 contract: POST #" + (index + 1) + " carried audition_session_id=" + JSON.stringify(post.audition_session_id));
+    }
+    if (post.round_id !== options.roundId) {
+      failures.push("J1 contract: POST #" + (index + 1) + " carried round_id=" + JSON.stringify(post.round_id) + " instead of " + options.roundId);
+    }
+  });
+  const first = bodies[0] || {};
+  notes.push("first POST: turn_id=" + JSON.stringify(first.turn_id) + " round_id=" + JSON.stringify(first.round_id) + " preference=" + JSON.stringify(first.preference));
+  if (first.preference !== "a" || first.heard_difference !== "yes") {
+    failures.push("J1 contract: the A seat must send preference=a with heard_difference=yes (got " + JSON.stringify(first.preference) + "/" + JSON.stringify(first.heard_difference) + ")");
+  }
+  if (!result.noticeVisible) {
+    failures.push("J1 swallow: the 409 rejection did NOT surface as the visible warning banner -- handleAuditionJudgment must catch and setError, not die as an unhandled rejection");
+  } else {
+    notes.push("rejection surfaced: banner text=\"" + (result.noticeText || "") + "\"");
+    if ((result.noticeText || "").indexOf("identity mismatch") < 0) {
+      failures.push("J1 swallow: the banner must carry the server's rejection text (got \"" + result.noticeText + "\")");
     }
   }
   return { failures, notes };
@@ -3270,6 +3387,116 @@ async function main() {
       sessionId: trailSessionId
     }));
   }
+
+  // ------------------------------------------------------ AB-JUDGMENT-CARD-1 J1
+  // Parked-boundary events in the REAL forensic shape; the judgment endpoint is
+  // intercepted at the network layer and answered with the real 409
+  // identity-mismatch rejection (this isolated agent has no free-state loop
+  // behind it -- the park settlement the POST unlocks keeps its Go-side
+  // handler tests).
+  report.audition_judgment_source =
+    "parked-boundary events in the real forensic shape (kernel audition.ready snapshot WITHOUT turn domain + " +
+    "trajectory.user_judgment.requested with run-level source_turn_id / experiment-domain payload.turn_id) replayed for " +
+    "GET /agent/events; POST /agent/audition/judgment intercepted at the network layer and answered 409 with the real " +
+    "identity-mismatch body";
+  const j1SessionId = "audition:turn:free_state_e2e_abjudg1:round-1-e2e";
+  const j1RunId = "run_e2e_abjudg1";
+  const j1ExperimentTurnId = "turn:free_state_e2e_abjudg1";
+  const j1RoundId = "round-1-e2e";
+  const j1Seeded = judgmentIdentityFixtureEvents({
+    runId: j1RunId, experimentTurnId: j1ExperimentTurnId, roundId: j1RoundId,
+    sessionId: j1SessionId, baseSeq: 800
+  });
+  const j1Context = await browser.newContext({ viewport });
+  const j1Diagnostics = { console: [], pageErrors: [] };
+  const j1Posts = [];
+  await j1Context.route("**/agent/audition/judgment*", async (route) => {
+    const raw = route.request().postData() || "";
+    const at = Date.now();
+    try {
+      j1Posts.push({ at, body: JSON.parse(raw) });
+    } catch {
+      j1Posts.push({ at, unparseable: raw.slice(0, 120) });
+    }
+    await route.fulfill({
+      status: 409, contentType: "application/json; charset=utf-8",
+      body: JSON.stringify({ status: "error", error: "audition session identity mismatch" })
+    });
+  });
+  await installReplay(j1Context, { extraEvents: j1Seeded, strictConversation: true });
+  const j1Page = await j1Context.newPage();
+  j1Page.on("console", (message) => {
+    j1Diagnostics.console.push(message.type() + ": " + message.text());
+  });
+  j1Page.on("pageerror", (error) => {
+    j1Diagnostics.pageErrors.push(String(error));
+  });
+  await j1Page.goto(agentBase + "/app/?conversation_id=" + encodeURIComponent(conversationId), { waitUntil: "domcontentloaded" });
+  const j1PickA = j1Page.locator('[data-audition-session="' + j1SessionId + '"] button[data-act="pickA"]');
+  const j1Appeared = await j1PickA.waitFor({ state: "visible", timeout: 15000 }).then(() => true).catch(() => false);
+  let j1Enabled = false;
+  // MutationObserver before the click: distinguish "banner never rendered" from
+  // "rendered then cleared" (a later setError("") would remove it silently).
+  await j1Page.evaluate(() => {
+    window.__j1NoticeLog = [];
+    const log = window.__j1NoticeLog;
+    const describe = (node) => (node.outerHTML || "").slice(0, 200);
+    new MutationObserver((records) => {
+      for (const record of records) {
+        record.addedNodes.forEach((node) => {
+          if (node.nodeType === 1 && (node.classList?.contains("notice") || node.querySelector?.(".notice"))) {
+            log.push({ at: Date.now(), op: "add", html: describe(node) });
+          }
+        });
+        record.removedNodes.forEach((node) => {
+          if (node.nodeType === 1 && (node.classList?.contains("notice") || node.querySelector?.(".notice"))) {
+            log.push({ at: Date.now(), op: "remove", html: describe(node) });
+          }
+        });
+      }
+    }).observe(document.body, { childList: true, subtree: true });
+  });
+  let j1ClickAt = 0;
+  if (j1Appeared) {
+    j1Enabled = await j1PickA.isEnabled().catch(() => false);
+    if (j1Enabled) {
+      j1ClickAt = Date.now();
+      await j1PickA.click({ timeout: 10000 }).catch(() => {});
+    }
+  }
+  await j1Page.waitForTimeout(1500);
+  const j1Notice = j1Page.locator(".notice.warning").first();
+  let j1NoticeVisible = await j1Notice.isVisible().catch(() => false);
+  // Give the banner up to 6s total (React render + any debounced state) before
+  // declaring the swallow still alive.
+  for (let attempt = 0; attempt < 9 && !j1NoticeVisible; attempt += 1) {
+    await j1Page.waitForTimeout(500);
+    j1NoticeVisible = await j1Notice.isVisible().catch(() => false);
+  }
+  const j1NoticeText = j1NoticeVisible ? ((await j1Notice.textContent()) || "").replace(/\s+/g, " ").trim() : "";
+  const j1NoticeCount = await j1Page.evaluate(() => ({
+    notices: document.querySelectorAll(".notice").length,
+    warnings: document.querySelectorAll(".notice.warning").length,
+    warningHTML: (document.querySelector(".notice.warning") || { outerHTML: "" }).outerHTML.slice(0, 300),
+    mutationLog: window.__j1NoticeLog || []
+  })).catch(() => ({ notices: -1, warnings: -1, warningHTML: "evaluate failed", mutationLog: [] }));
+  const j1Sample = await j1Page.evaluate(DOM_PROBE);
+  await j1Page.screenshot({ path: join(outDir, "dom-audition-judgment.png") });
+  writeFileSync(
+    join(outDir, "dom-audition-judgment.json"),
+    JSON.stringify({
+      sample: j1Sample, posts: j1Posts, notice: j1NoticeText, noticeCount: j1NoticeCount,
+      clickAt: j1ClickAt,
+      diagnostics: j1Diagnostics,
+      buttonsAppeared: j1Appeared, buttonsEnabled: j1Enabled, seeded_events: j1Seeded
+    }, null, 2),
+    "utf-8"
+  );
+  await j1Context.close();
+  record("judgment-identity-J1", checkJ1(
+    { appeared: j1Appeared && j1Enabled, posts: j1Posts, noticeVisible: j1NoticeVisible, noticeText: j1NoticeText },
+    { sessionId: j1SessionId, runId: j1RunId, experimentTurnId: j1ExperimentTurnId, roundId: j1RoundId }
+  ));
 
   // --------------------------------------------------- FIX-CONFIRM-CARD-1 K1/K2
   // Both passes drive the real composer. The chat / interaction-respond endpoints

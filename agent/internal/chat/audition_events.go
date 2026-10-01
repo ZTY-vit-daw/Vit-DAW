@@ -544,6 +544,12 @@ func (s *Server) handleAuditionJudgment(w http.ResponseWriter, r *http.Request) 
 	// 它的会话返回 handled=false，故下方自由态路径逐字零回退。
 	if outcome, handled, mixErr := s.recordMixTickAuditionJudgment(r.Context(), request); handled {
 		if mixErr != nil {
+			// AB-JUDGMENT-CARD-1：判定 POST 的拒绝必须留服务端痕迹——两轮手测
+			// 取证（M8/M1-R4）因 409 零日志而无法区分「未发出」与「被拒绝」。
+			if s.logger != nil {
+				s.logger.Warn("[audition] judgment rejected (mix-tick) conversation=%s session=%s turn=%s round=%s err=%v",
+					request.ConversationID, request.SessionID, request.TurnID, request.RoundID, mixErr)
+			}
 			writeJSON(w, http.StatusConflict, map[string]any{"status": "error", "error": mixErr.Error()})
 			return
 		}
@@ -552,6 +558,10 @@ func (s *Server) handleAuditionJudgment(w http.ResponseWriter, r *http.Request) 
 	}
 	evidence, err := s.recordFreeStateAuditionJudgment(r.Context(), request)
 	if err != nil {
+		if s.logger != nil {
+			s.logger.Warn("[audition] judgment rejected (free-state) conversation=%s session=%s turn=%s round=%s err=%v",
+				request.ConversationID, request.SessionID, request.TurnID, request.RoundID, err)
+		}
 		writeJSON(w, http.StatusConflict, map[string]any{"status": "error", "error": err.Error()})
 		return
 	}
