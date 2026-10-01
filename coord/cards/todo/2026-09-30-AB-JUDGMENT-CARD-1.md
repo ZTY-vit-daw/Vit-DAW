@@ -1,6 +1,7 @@
 # AB-JUDGMENT-CARD-1：A/B 试听裁决卡交互点击无效（M8 手测实测，P1）
 
 - 池序 16（P1——裁决卡是人耳判断边界唯一入口，点击无效=park 无法 settle）；来源=M8 手测（证据=coord/runs/M8-FORENSIC-20260930/evidence/）
+- **证据增补（2026-10-01 M1 第四轮再证，决策侧）**：[runs/M1-RETEST-20261001/FORENSIC-NOTE.md](../../runs/M1-RETEST-20261001/FORENSIC-NOTE.md) 追记+evidence/events-webui_mupimj6f.json——park 期间（20:35:01-20:35:33）用户点击 A好/B好/补充，**事件流零 judgment 类事件**（点击未产生任何服务端痕迹，假设 a/b 的现场再强化）；注意本卡取证须在 FS-ADOPT-CLOSURE-1 合入后做终验（否则采纳路径缺陷会污染第二输入形态）
 - 优先级 / 预估 / 依赖：P1 / 取证 0.5 天+修复 0.5 天 / 关联 FS-PARK-TURNFAIL-1（park 保持与其同栈）；webui+agent 交互面
 - 模型分级：L1 / GLM 首选（跨 webui 交互+agent respond/judgment 链路）
 - **裁定（2026-09-30 用户授权二选一，决策侧定：搞通不删卡）**：decisions/2026-09-30-park-adoption-and-judgment-card-ruling.md——人耳 A/B 判断是核心叙事保留；FS-PARK-TURNFAIL-1 裁定落地后本卡**非阻塞**（用户继续对话=默认采纳，卡 settle 为该终态；用户点卡=显式裁决）。
