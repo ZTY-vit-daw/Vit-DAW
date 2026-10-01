@@ -17,6 +17,6 @@
 - 约束：八项裁定不偏离（要推翻回决策侧带用户）；零代码；Godot 仓代码勘察只读；Godot 仓无自动化测试基建如实申报。
 - 验收标准：①手势状态机到状态/转移级 ②命中解析含跨面合并 ③供给器契约函数级+四类面逐一 ④输入 bug 排查路径可执行 ⑤旧路径处置明确 ⑥V2 九步清单 ⑦排程建议表
 - 停止条件：发现 Godot 输入架构使 Alt+拖全局捕获不可行（如 dock 拦截层无法让位）→ 实证上交回决策侧（可能需用户改触发键位裁定）
-- 领取：（时间 / origin/main hash / 分支名）
+- 领取：（2026-10-01 PC 执行侧 / origin/main=7649fc3a / port/vitnote-interact-v2-design-1，worktree=D:\Vit_DAW_worktrees\vitnote-interact-v2-design-1；Godot 参照=port/vitnote-dock-mount-1@66e59f0 只读）
 - 回执：（文档 commit hash / 验收对照 / 核心设计决策）
 - 验收：（裁定文件 / 验收 commit）
