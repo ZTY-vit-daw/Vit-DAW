@@ -25,4 +25,4 @@
   - **Go 侧**：`go build ./...` 0 错；`go test ./internal/chat` 全包 ok（114s，含 judgment_park_continuation（POST→park settle 服务端链）与 mix-tick judgment 面）。
   - **泊位声明**：E2E 为隔离 agent（自有 draft root+HTTP 7897）；因用户活栈占默认桥接口（VitApp 5555/5556/4444/4445、VspHub 8787，21:08 实测在跑），按脚本既有 VIT_AGENT_* 文档化环境变量错峰（ZMQ 15555/15556、UDP 14444/14445、VSP 注册置空关闭）——与活栈零接触；首次未错峰尝试死于 UDP 4445 bind，记 env_failure（artifacts/e2e_webui1/20261001_210825，非功能结论）。
   - **终验边界声明（卡预置条件）**：①真栈三件套（Godot 前端→工程→判定卡真人点击链）烟测未跑——用户活栈占端口（错峰等待）+ 卡明示终验须在 **FS-ADOPT-CLOSURE-1 合入后**（截 21:50 仍未合入，仅在其自有分支 port/fs-adopt-closure-1 领取态）；②用户手测复验（验收标准末项）留待决策侧安排——建议 FS-ADOPT 合入+本卡验收后一并做（一次手测覆盖两卡的 park 二次输入形态）。服务端 POST→park settle 语义已由 Go 测试覆盖，E2E J1 覆盖点击→POST 契约；未覆盖面=真实内核试听声+park 释放的端到端真人链路。
-- 验收：（裁定文件 / 验收 commit）
+- 验收：**pass（2026-10-01 决策会话；终验留合并后手测）**——rulings/2026-10-01-AB-JUDGMENT-CARD-1-pass.md；合并 main=fb1c3771（决策侧 cherry-pick）；三层复合根因采信（turn_id 契约域污染→409→静默吞+轮询抹错竞态）+diff 直读双域分账+我方复跑 399/399+tsc+chat 包+E2E J1 组 26 组零失败亲读+泊位错峰合规；终验=FS-ADOPT 已合入后与用户手测合并一场（park→点卡→settle→新输入全链）。
