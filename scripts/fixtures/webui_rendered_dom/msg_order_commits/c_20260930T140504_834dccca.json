@@ -1,0 +1,15 @@
+{
+  "id": "c_20260930T140504_834dccca",
+  "message": "Conversation vit",
+  "created_at": "2026-09-30T14:05:04.3000000Z",
+  "project_path": "",
+  "source": "conversation_graph",
+  "checkpoint_kind": "manual",
+  "project_file": {
+    "path": "Unsaved.vit",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "size": 0,
+    "kind": "project_snapshot"
+  },
+  "files": null
+}
