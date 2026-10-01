@@ -16,5 +16,12 @@
 - 验收标准：取证报告+修复 diff+回归红绿+全量 0 FAIL+真栈复验（park 中新消息场景 exit 0 或用户可读边界）——烟测扩展按 AGENTS §5。
 - 停止条件：取证发现 park 路由在架构层无定义（需要产品设计裁定）→ 上交决策侧。
 - 领取：2026-10-01 上午 / origin/main=ec93d570 / 分支 port/fs-park-turnfail-1（worktree D:/Vit_DAW_worktrees/fs-park-turnfail-1）
-- 回执：（待填）
+- 回执：
+  - **实现 commit**：port/fs-park-turnfail-1 @ 2b4953e7（Part A 默认采纳+Part B 边界呈现+新枚举）+ 6b3624d1（run1 归因修复：trajectory 校验门+receipt 诚实投影+烟测探针）——等决策侧验收 cherry-pick
+  - **取证**：coord/runs/FS-PARK-TURNFAIL-1/forensic-report.md——三拒链事件级回放（拒①settled 轮门→拒②G 门 gap（stale 调度器副本致 judgment boundary 失效+计数锁终局轮）→拒③终局锁拒绝 LLM 按引导给出的 needs_observation→fallback→turn.failed）；根因 RC1 路由语义缺失（主）/RC2 陈旧副本/RC3 终局强制；50s 尾段归因=LLM 重试+门循环（与初判一致）；停止条件未触发（park 路由架构有定义，缺采纳结算，用户裁定已定案）
+  - **修复**：①handleChat 在 beginChatGoal 前拦截——park+新输入→DecideRound/Settle(adopted_by_continuation)+task EventTaskSettled（清 pending interaction）+loop completed+CompleteGoal→新消息全新 goal/run/turn（生命周期翻转根除）；诚实边界：不写 UserJudgmentEvidence、TargetResponse 保持 human_audition_ready、receipt human_ab=skipped_by_continuation/disposition=adopted_by_continuation/禁 claim human_confirmed 与 net_outcome=improved；已记录人耳判断的轮不触发（显式 POST 通道优先）②terminal fallback 族失败在 park 存活时不投影 turn.failed——waiting_continue+冻结边界话术+judgment_park_preserved 标记；真执行失败仍诚实失败
+  - **测试**：judgment_park_continuation_test.go 六钉（采纳语义+goal 收口+receipt 诚实+裸继续/命令不触发+已记录判断不覆盖+Part B 边界保留与失败不吸收）；全量 go test ./... exit 0（0 FAIL，87 包）×2 轮（trajectory 修复前后各一）
+  - **真栈烟测**：run_free_state_d1_smoke.ps1 -ContinuationAdoptionProbe（本卡新增参数，扩展现有 ps1 体系）——红轮 20261001_112221（归因：探针断言面+trajectory 校验门，补锚修复，非原样重跑）/ **绿轮 20261001_113015 exit 0 PASS**：park 同形态（fs7/waiting_continue/judgment_park=true）下新用户消息——无 turn.failed、全新 goal_55b99e11/run_91081cc5（vs parked goal_8f6855a0/run_dee81121）、回复落盘、采纳结算落 task 语义（settled/terminal/task_settled 带采纳 summary）+事件流（round.decision+settled 带 adopted_by_continuation，零伪造人耳判断）、revision 不动；工件 coord/runs/FS-PARK-TURNFAIL-1/（smoke-record+红/绿摘要 JSON；全量在复验 worktree artifacts/free_state_d1_s1/20261001_113015/）；修复前红=M8 野外取证（同场景 turn.failed，evidence/ 事件流 seq47）
+  - **泊位声明：运行栈已拆除**（7878/5555 无监听、Godot 已停，2026-10-01 11:4x）——未移交，会话②可上栈
+  - **端测覆盖边界**（AGENTS §5）：本烟测覆盖 agent HTTP/事件面+内核栈；webui 渲染面（A/B 卡终态样式、消息序动效）未覆盖——A/B 卡联动归 AB-JUDGMENT-CARD-1（其卡面已收裁定 2），消息序归 WEBUI-MSG-ORDER-1
 - 验收：（待填）
