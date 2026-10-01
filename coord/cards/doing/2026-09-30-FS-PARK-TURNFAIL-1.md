@@ -15,4 +15,6 @@
 - 文件域：agent/internal/chat/（goalrunner_chat/free_state gate/continuation 面）+ agent/internal/agentloop/（final gate）——实锚后申报；测试。
 - 验收标准：取证报告+修复 diff+回归红绿+全量 0 FAIL+真栈复验（park 中新消息场景 exit 0 或用户可读边界）——烟测扩展按 AGENTS §5。
 - 停止条件：取证发现 park 路由在架构层无定义（需要产品设计裁定）→ 上交决策侧。
-- 领取 / 回执 / 验收：空行待填
+- 领取：2026-10-01 上午 / origin/main=ec93d570 / 分支 port/fs-park-turnfail-1（worktree D:/Vit_DAW_worktrees/fs-park-turnfail-1）
+- 回执：（待填）
+- 验收：（待填）
