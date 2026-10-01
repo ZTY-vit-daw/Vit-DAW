@@ -16,6 +16,6 @@
 - 约束：真栈 §9——**用户活栈可能仍占 7878/5555（20:32 起）**：代码+单测先行，烟测等端口空闲（用户被通知关栈后）；泊位声明必附。
 - 验收标准：双红测红绿+全量 0 FAIL+两姊妹卡钉零回退+烟测 exit 0+锚点清单。
 - 停止条件：closure 收尾与既有 FS9/settle 语义冲突超 chat 域，或绑定层守卫需改 prepareAudioClosureContext 的核心契约 → 实证上交定扩域。
-- 领取：（时间 / origin/main hash / 分支名）
+- 领取：（2026-10-01 21:05 / origin/main=a45f8507 / port/fs-adopt-closure-1，worktree=D:/Vit_DAW_worktrees/fs-adopt-closure-1，PC 会话①，L2）
 - 回执：（commit hash / 红绿 / 烟测 run ID / 泊位声明）
 - 验收：（裁定文件 / 验收 commit）
