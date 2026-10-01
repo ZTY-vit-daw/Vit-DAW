@@ -16,6 +16,6 @@
 - 约束：E2E 走隔离泊位先例（与并行真栈卡不冲突）；npm run test 全绿+build+E2E exit 0。
 - 验收标准：新活态组红绿+既有 23 组零回退+用户手测复验（顺序正常）。
 - 停止条件：取证发现钉底源于服务端事件缺 turn_id/回合域（webui 无法独活排序）→ 实证锚点上交，转 agent 侧卡。
-- 领取：（时间 / origin/main hash / 分支名）
+- 领取：2026-10-01 19:1x / origin/main=245b795a（并行卡①领取提交后） / 分支 port/webui-msg-order-2（独立 worktree D:\Vit_DAW_wt_webui_msg_order_2，PC 会话②）
 - 回执：（commit hash / 机制锚点 / 红绿 / E2E run ID）
 - 验收：（裁定文件 / 验收 commit）
