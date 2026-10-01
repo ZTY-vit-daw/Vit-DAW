@@ -448,3 +448,120 @@ describe("UI-FOLLOW-2 轨迹块坠底：水合时刻晚 2 ms（成因①）+ 同
   });
 });
 
+
+// WEBUI-MSG-ORDER-2（2026-10-01，M1 复验活态钉尾取证）：孤儿轨迹块的时序插列。
+// 槽位被占（B9 一组一块）的孤儿块旧实现一律追加流尾——「实验块 + A/B 判定卡」
+// 钉在整条流底，用户开启下一轮后新消息插在其上（M1 复验活态形态）。修法与
+// WEBUI-MSG-ORDER-1 的链终局回流同语义：有起始时刻证据（turnEventMeta.startedAt，
+// 与槽位锚定同源）的孤儿块按时刻插列到组边界（组内最大消息时刻 ≤ 回合起始+容差
+// 的最后一个组之后）；无证据不猜，保持流尾兜底。
+describe("WEBUI-MSG-ORDER-2 孤儿块时序插列：被超越的实验块回归流内时序槽位", () => {
+  const T0 = Date.parse("2026-10-01T18:32:02.000+08:00");
+
+  function turnStarted(turnId: string, seq: number, at: number, payloadTurnID?: string): AgentEvent {
+    return {
+      seq,
+      type: "trajectory.turn.started",
+      item_id: `turn:${turnId}`,
+      created_at: new Date(at).toISOString(),
+      payload: { schema_version: "vit.observable_trajectory.v1", trace_node_id: `turn:${turnId}`, turn_id: payloadTurnID ?? turnId, node_kind: "turn", phase: "framing", status: "running" }
+    } as AgentEvent;
+  }
+
+  const shapeOf = (plan: ReturnType<typeof buildMessageStreamRenderPlan>) =>
+    plan.entries.map((entry) => entry.kind === "trace"
+      ? `trace:${entry.turnId}`
+      : entry.kind === "receipt"
+        ? `receipt:${entry.turnId}`
+        : `messages:${entry.messages.map((message) => message.id).join(",")}`);
+
+  it("M1 复验形态：主回合块占首轮槽位，实验块（起始晚于首轮汇报）插列到汇报组之后、下一轮输入之前", () => {
+    // 旧流形态（事件无 source_turn_id，回合键走 payload.turn_id 回退链）：主回合
+    // run_1 与实验回合 turn:fs 各自成块，槽位锚定都指向 u1 的 loose 组——run_1 按
+    // seq 先到先占，turn:fs 成孤儿。旧实现孤儿钉流尾（u2/a2 之下）；修复后按
+    // startedAt（T0+116s > a1 的 T0+7s）插列到 a1 组之后。
+    const trajectory = reduceTrajectoryEvents(emptyTrajectoryState(), [
+      turnStarted("run_1", 1, T0 + 100),
+      turnStarted("turn:fs", 5, T0 + 116_000, "turn:fs")
+    ]);
+    const turnEventMeta = reduceTurnEventMeta({}, [
+      { seq: 1, type: "turn.started", created_at: new Date(T0 + 100).toISOString(), payload: { turn_id: "run_1" } },
+      { seq: 5, type: "turn.started", created_at: new Date(T0 + 116_000).toISOString(), payload: { turn_id: "turn:fs" } }
+    ] as AgentEvent[]);
+    const messages = [
+      chat({ id: "u1", role: "user", content: "检查一下当前工程有什么问题吗", createdAt: T0 }),
+      chat({ id: "a1", role: "assistant", content: "我还在继续处理这个任务，完成后再向你汇报。", turn_id: "turn_x1", createdAt: T0 + 7_000 }),
+      chat({ id: "u2", role: "user", content: "检查一下当前选中的drums轨道的低频", createdAt: T0 + 210_000 }),
+      chat({ id: "a2", role: "system", content: "声学闭环控制器无法建立一致的持久状态。", status: "error", turn_id: "run_2", createdAt: T0 + 210_500 })
+    ];
+    const plan = buildMessageStreamRenderPlan({ messages, trajectory, turnEventMeta });
+    expect(plan.orphanTurnIds).toEqual(["turn:fs"]);
+    expect(shapeOf(plan)).toEqual([
+      "messages:u1", "trace:run_1",
+      "messages:a1",
+      "trace:turn:fs",
+      "messages:u2", "messages:a2"
+    ]);
+  });
+
+  it("反例保持：孤儿块无起始时刻证据 → 仍钉流尾（不猜，旧调用点零回退）", () => {
+    const trajectory = reduceTrajectoryEvents(emptyTrajectoryState(), [turnStarted("run_1", 1, T0 + 100)]);
+    const messages = [
+      chat({ id: "u1", role: "user", content: "检查", turn_id: "run_1", createdAt: T0 }),
+      chat({ id: "u2", role: "user", content: "下一轮", createdAt: T0 + 60_000 })
+    ];
+    const plan = buildMessageStreamRenderPlan({ messages, trajectory });
+    // run_1 身份锚定进 u1 组（消息带 run_1）——再造一个无 meta 的孤儿回合：
+    const trajectory2 = reduceTrajectoryEvents(trajectory, [turnStarted("turn:fs2", 9, T0 + 30_000, "turn:fs2")]);
+    const plan2 = buildMessageStreamRenderPlan({ messages, trajectory: trajectory2 });
+    expect(plan2.orphanTurnIds).toEqual(["turn:fs2"]);
+    expect(shapeOf(plan2)).toEqual([
+      "messages:u1", "trace:run_1",
+      "messages:u2",
+      "trace:turn:fs2"
+    ]);
+  });
+
+  it("反例保持：孤儿块起始早于全部消息 → 组边界全不命中，仍钉流尾", () => {
+    const trajectory = reduceTrajectoryEvents(emptyTrajectoryState(), [
+      turnStarted("run_1", 1, T0 + 100),
+      turnStarted("turn:fs", 5, T0 - 60_000, "turn:fs")
+    ]);
+    const turnEventMeta = reduceTurnEventMeta({}, [
+      { seq: 1, type: "turn.started", created_at: new Date(T0 + 100).toISOString(), payload: { turn_id: "run_1" } },
+      { seq: 5, type: "turn.started", created_at: new Date(T0 - 60_000).toISOString(), payload: { turn_id: "turn:fs" } }
+    ] as AgentEvent[]);
+    const messages = [
+      chat({ id: "u1", role: "user", content: "检查", turn_id: "run_1", createdAt: T0 }),
+      chat({ id: "u2", role: "user", content: "下一轮", createdAt: T0 + 60_000 })
+    ];
+    const plan = buildMessageStreamRenderPlan({ messages, trajectory, turnEventMeta });
+    expect(plan.orphanTurnIds).toEqual(["turn:fs"]);
+    expect(shapeOf(plan)).toEqual([
+      "messages:u1", "trace:run_1",
+      "messages:u2",
+      "trace:turn:fs"
+    ]);
+  });
+
+  it("孤儿块仍是最新内容（起始晚于全部消息）→ 插列到末组之后，与旧流尾位置等价", () => {
+    const trajectory = reduceTrajectoryEvents(emptyTrajectoryState(), [
+      turnStarted("run_1", 1, T0 + 100),
+      turnStarted("turn:fs", 5, T0 + 120_000, "turn:fs")
+    ]);
+    const turnEventMeta = reduceTurnEventMeta({}, [
+      { seq: 1, type: "turn.started", created_at: new Date(T0 + 100).toISOString(), payload: { turn_id: "run_1" } },
+      { seq: 5, type: "turn.started", created_at: new Date(T0 + 120_000).toISOString(), payload: { turn_id: "turn:fs" } }
+    ] as AgentEvent[]);
+    const messages = [
+      chat({ id: "u1", role: "user", content: "检查", turn_id: "run_1", createdAt: T0 }),
+      chat({ id: "a1", role: "assistant", content: "汇报", turn_id: "turn_x1", createdAt: T0 + 7_000 })
+    ];
+    const plan = buildMessageStreamRenderPlan({ messages, trajectory, turnEventMeta });
+    expect(shapeOf(plan)).toEqual([
+      "messages:u1", "trace:run_1",
+      "messages:a1",
+      "trace:turn:fs"
+    ]);
+  });
+});

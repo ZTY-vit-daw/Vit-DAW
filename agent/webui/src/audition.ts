@@ -45,6 +45,12 @@ export interface AuditionSession {
   adoptionStatus: string;
   inspectionReceipt: JsonRecord | null;
   adoptionReceipt: JsonRecord | null;
+  /**
+   * WEBUI-MSG-ORDER-2：会话首条事件的 created_at（毫秒；缺证据 NaN）。
+   * turn 域缺失的会话（内核 audition::Session 无该字段，M1 复验实证）按时刻
+   * 归位判定卡时以它为唯一时序证据——与轨迹块槽位锚定同源（服务端盖章）。
+   */
+  startedAt: number;
 }
 
 export interface AuditionState {
@@ -77,6 +83,9 @@ export function reduceAuditionEvents(current: AuditionState, incoming: AgentEven
       ? rawSession.candidates.map(candidateFromAny).filter((candidate) => candidate.id)
       : previous?.candidates ?? [];
     const trajectoryJudgmentEvent = event.type === "trajectory.user_judgment.requested" || event.type === "trajectory.user_judgment.recorded";
+    // WEBUI-MSG-ORDER-2：会话起始时刻 = 首条归属事件的 created_at（增量归约取
+    // 最小；解析失败保持 NaN——消费侧「无证据不猜」退流尾，不虚造时刻）。
+    const eventStartedAt = eventStartedAtMs(event);
     next.sessions[id] = {
       id,
       status: text(rawSession.status) || (trajectoryJudgmentEvent ? previous?.status : text(event.status)) || previous?.status || "preparing",
@@ -103,7 +112,10 @@ export function reduceAuditionEvents(current: AuditionState, incoming: AgentEven
       adoptedCandidateId: text(rawSession.adopted_candidate_id) || previous?.adoptedCandidateId || "",
       adoptionStatus: text(rawSession.adoption_status) || previous?.adoptionStatus || "",
       inspectionReceipt: Object.keys(record(rawSession.inspection_receipt)).length > 0 ? record(rawSession.inspection_receipt) : previous?.inspectionReceipt || null,
-      adoptionReceipt: Object.keys(record(rawSession.adoption_receipt)).length > 0 ? record(rawSession.adoption_receipt) : previous?.adoptionReceipt || null
+      adoptionReceipt: Object.keys(record(rawSession.adoption_receipt)).length > 0 ? record(rawSession.adoption_receipt) : previous?.adoptionReceipt || null,
+      startedAt: Number.isFinite(eventStartedAt) && (!previous || !Number.isFinite(previous.startedAt) || eventStartedAt < previous.startedAt)
+        ? eventStartedAt
+        : previous?.startedAt ?? Number.NaN
     };
     seen.add(key);
     next.eventKeys.push(key);
@@ -156,6 +168,13 @@ function candidateFromAny(value: unknown): AuditionCandidate {
     checkpointRef: text(row.checkpoint_ref), commitID: text(row.commit_id), branchRef: text(row.branch_ref), worktreeRef: text(row.worktree_ref),
     projectPath: text(row.project_path), projectRevision: text(row.project_revision)
   };
+}
+
+/** 会话事件的 created_at（毫秒）；缺失/不可解析返回 NaN（无证据不猜） */
+function eventStartedAtMs(event: AgentEvent): number {
+  const raw = text(event.created_at);
+  const at = raw ? Date.parse(raw) : NaN;
+  return Number.isFinite(at) ? at : Number.NaN;
 }
 function record(value: unknown): JsonRecord { return value && typeof value === "object" && !Array.isArray(value) ? value as JsonRecord : {}; }
 function firstRecord(...values: unknown[]): JsonRecord | null {

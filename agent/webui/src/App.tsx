@@ -101,7 +101,8 @@ import {
   transientMessage,
   TURN_EXPIRED_RESOLVED_ACTION,
   SUPERSEDED_BY_NEWER_RESOLVED_ACTION,
-  upsertActivity
+  upsertActivity,
+  auditionSessionNativeTurnID
 } from "./messageLifecycle";
 import { emptyTrajectoryState, hasLiveTrajectoryTurn, reduceTrajectoryEvents, trajectoryTurns } from "./trajectory";
 import type { TrajectoryState } from "./trajectory";
@@ -4595,13 +4596,31 @@ function MessageStream({
     return Math.min(...turn.nodeIds.map((id) => trajectory.nodes[id]?.seq ?? Number.MAX_SAFE_INTEGER));
   };
   // 免选路径：用户越过待裁卡在底部输入框继续了对话 → 卡片沉淀「卡面选项未采用」（supersedes 语义的 UI 呈现）
+  // WEBUI-MSG-ORDER-2：turn 域缺失的会话（内核 audition::Session 无该字段）按
+  // session_id 内嵌的原生轨迹域回查 trajectory 的 nativeTurnIds 账，映射到拥有
+  // 它的 B9 轮次——映射不中保持空串（无证据不猜，走流尾兜底）。
+  const nativeTurnOwnerBySessionNative = new Map<string, string>();
+  for (const turn of trajectoryTurns(trajectory)) {
+    for (const native of turn.nativeTurnIds ?? []) {
+      if (native && !nativeTurnOwnerBySessionNative.has(native)) {
+        nativeTurnOwnerBySessionNative.set(native, turn.id);
+      }
+    }
+  }
+  const sessionTurnID = (session: AuditionSession): string => {
+    if (session.turnID) {
+      return session.turnID;
+    }
+    return nativeTurnOwnerBySessionNative.get(auditionSessionNativeTurnID(session.id)) ?? "";
+  };
   const sessionSuperseded = (session: AuditionSession): boolean => {
     if (session.judgmentRecorded) return false;
-    const baseSeq = turnFirstSeq(session.turnID);
-    if (baseSeq !== Number.MAX_SAFE_INTEGER && Object.values(trajectory.turns).some((other) => other.id !== session.turnID && turnFirstSeq(other.id) > baseSeq)) {
+    const turnID = sessionTurnID(session);
+    const baseSeq = turnFirstSeq(turnID);
+    if (baseSeq !== Number.MAX_SAFE_INTEGER && Object.values(trajectory.turns).some((other) => other.id !== turnID && turnFirstSeq(other.id) > baseSeq)) {
       return true;
     }
-    const entryIndex = plan.entries.findIndex((entry) => entry.kind === "trace" && entry.turnId === session.turnID);
+    const entryIndex = plan.entries.findIndex((entry) => entry.kind === "trace" && entry.turnId === turnID);
     return entryIndex >= 0 && plan.entries.slice(entryIndex + 1).some((entry) => entry.kind === "messages" && entry.messages.some((message) => message.role === "user"));
   };
   const renderJudgeCard = (session: AuditionSession) => (
@@ -4616,20 +4635,39 @@ function MessageStream({
       onSubmitJudgment={onSubmitAuditionJudgment}
     />
   );
-  // 试听判定卡挂靠：组内卡跟在组尾条目后；未被任何消息 turn 锚定的挂流尾防丢
-  const messageAnchoredTurnIds = new Set(visibleMessages.map((message) => (message.turn_id ?? "").trim()).filter(Boolean));
-  const unanchoredSessions = sessions.filter((session) => !session.turnID || !messageAnchoredTurnIds.has(session.turnID));
+  // 试听判定卡挂靠（WEBUI-MSG-ORDER-2 三级）：
+  //   ① 组尾挂靠（既有语义）：会话回合域命中某消息组键（turn:<id>），卡跟组尾条目后；
+  //   ② 轨迹块跟随（本卡新增）：会话回合域未命中组键但该回合在计划中有轨迹块条目
+  //      （自由态实验块身份不同源、槽位被占或无消息组的形态），卡直接跟在该块后
+  //      ——卡与块同沉浮，新消息组自然排在它们下面；
+  //   ③ 流尾兜底（既有语义）：回合域无法解析或两者皆不命中，挂流尾防丢（不猜）。
+  // 旧判据（visibleMessages 的 turn_id 集合）被 ① 的组键判据取代：组键由同一批消息
+  // 归组而来，二者对「组锚定是否命中」等价，而组键判据与渲染落位（entries）同源。
+  const entryGroupKey = (entry: MessageStreamEntry): string =>
+    entry.key.startsWith("orphan:") ? "" : entry.key.replace(/:(user|trace|rest|receipt)$/, "");
+  const groupKeyTurnIds = new Set(
+    plan.entries
+      .map((entry) => entryGroupKey(entry))
+      .filter((key) => key.startsWith("turn:"))
+      .map((key) => key.slice("turn:".length))
+  );
+  const planTraceTurnIds = new Set(plan.entries.filter((entry) => entry.kind === "trace").map((entry) => entry.turnId));
+  const resolvedSessionTurnID = new Map(sessions.map((session) => [session.id, sessionTurnID(session)]));
+  const traceAnchoredSessions = sessions.filter((session) => {
+    const turnID = resolvedSessionTurnID.get(session.id) ?? "";
+    return Boolean(turnID) && !groupKeyTurnIds.has(turnID) && planTraceTurnIds.has(turnID);
+  });
+  const unanchoredSessions = sessions.filter((session) => {
+    const turnID = resolvedSessionTurnID.get(session.id) ?? "";
+    return !turnID || (!groupKeyTurnIds.has(turnID) && !planTraceTurnIds.has(turnID));
+  });
   const sessionsForGroupKey = (groupKey: string) => {
     if (!groupKey.startsWith("turn:")) {
       return [];
     }
     const turnId = groupKey.slice("turn:".length);
-    return sessions.filter((session) => session.turnID === turnId);
+    return sessions.filter((session) => (resolvedSessionTurnID.get(session.id) ?? "") === turnId);
   };
-  // 组内条目 key 形如 <组key>:user|:trace|:rest|:receipt；孤儿条目（轨迹块/收据行）
-  // 与终局尾巴不属组——组尾判定（试听判定卡挂靠）因此不会把孤儿行当组尾。
-  const entryGroupKey = (entry: MessageStreamEntry): string =>
-    entry.key.startsWith("orphan:") ? "" : entry.key.replace(/:(user|trace|rest|receipt)$/, "");
 
   return (
     <div className="message-stream">
@@ -4659,6 +4697,10 @@ function MessageStream({
               ) : null;
             })()}
             {isGroupEnd && sessionsForGroupKey(groupKey).map(renderJudgeCard)}
+            {/* WEBUI-MSG-ORDER-2 ②：会话回合域无组键但该回合有轨迹块条目（自由态
+                实验块）——卡跟块后，与块同沉浮（时序插列后新消息组排在它们下面） */}
+            {entry.kind === "trace" &&
+              traceAnchoredSessions.filter((session) => (resolvedSessionTurnID.get(session.id) ?? "") === entry.turnId).map(renderJudgeCard)}
           </Fragment>
         );
       })}
