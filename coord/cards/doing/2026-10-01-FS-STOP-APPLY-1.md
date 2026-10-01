@@ -16,6 +16,6 @@
 - 约束：真栈 §9 所有权（与其他卡烟测错峰）；泊位声明必附；FS-PARK 六钉零回退是硬门槛。
 - 验收标准：三场景红绿+全量 0 FAIL+FS-PARK 六钉绿+真栈烟测 exit 0+锚点清单。
 - 停止条件：停止标记在 agentloop 无可查询面（需改 harness 契约）或 closure 结算与既有 FS9/settle 语义冲突超出 chat 域 → 实证上交定扩域。
-- 领取：（时间 / origin/main hash / 分支名）
+- 领取：2026-10-01 19:05 / origin/main=701e2c27 / port/fs-stop-apply-1（worktree D:/Vit_DAW_worktrees/fs-stop-apply-1）
 - 回执：（commit hash / 三场景红绿 / 烟测 run ID / 泊位声明）
 - 验收：（裁定文件 / 验收 commit）
