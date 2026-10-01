@@ -154,3 +154,33 @@ describe("observable trajectory reducer", () => {
     expect(state.nextSeq).toBe(2);
   });
 });
+
+// WEBUI-MSG-ORDER-2：B9 折叠时的原生轨迹域记账——实验级事件（payload.turn_id=
+// turn:free_state_*，source_turn_id=run 域）归并进拥有它的 run 轮次，同时把
+// 原生域留痕在 nativeTurnIds，供判定卡会话身份（session_id 内嵌原生域）映射。
+describe("WEBUI-MSG-ORDER-2 nativeTurnIds：原生轨迹域留痕", () => {
+  it("payload.turn_id 与轮次键不同源 → 记入 nativeTurnIds；同源不记；幂等去重", () => {
+    const run = "run_native_owner";
+    const native = "turn:free_state_abc123";
+    const events = [
+      { seq: 1, type: "trajectory.turn.started", source_turn_id: run, item_id: "turn:" + run, created_at: "2026-10-01T10:32:02.000Z", payload: { schema_version: "vit.observable_trajectory.v1", trace_node_id: "turn:" + run, turn_id: run, node_kind: "turn", status: "running" } },
+      { seq: 2, type: "trajectory.round.started", source_turn_id: run, item_id: "round:" + native, created_at: "2026-10-01T10:33:58.000Z", payload: { schema_version: "vit.observable_trajectory.v1", trace_node_id: "round:" + native, turn_id: native, round_id: "round-1-x", node_kind: "round", status: "running" } },
+      { seq: 3, type: "trajectory.intervention.applied", source_turn_id: run, item_id: "act:" + native, created_at: "2026-10-01T10:34:04.000Z", payload: { schema_version: "vit.observable_trajectory.v1", trace_node_id: "act:" + native, turn_id: native, round_id: "round-1-x", node_kind: "action", status: "completed" } }
+    ] as AgentEvent[];
+    const state = reduceTrajectoryEvents(emptyTrajectoryState(), events);
+    const turn = state.turns[run];
+    expect(turn).toBeTruthy();
+    expect(turn.nativeTurnIds).toEqual([native]);
+    // 幂等：重放同域事件不重复留痕
+    const again = reduceTrajectoryEvents(state, events);
+    expect(again.turns[run].nativeTurnIds).toEqual([native]);
+  });
+
+  it("无实验级事件（全部同源）→ nativeTurnIds 为空数组", () => {
+    const run = "run_pure";
+    const state = reduceTrajectoryEvents(emptyTrajectoryState(), [
+      { seq: 1, type: "trajectory.turn.started", source_turn_id: run, item_id: "turn:" + run, created_at: "2026-10-01T10:32:02.000Z", payload: { schema_version: "vit.observable_trajectory.v1", trace_node_id: "turn:" + run, turn_id: run, node_kind: "turn", status: "running" } }
+    ] as AgentEvent[]);
+    expect(state.turns[run].nativeTurnIds).toEqual([]);
+  });
+});

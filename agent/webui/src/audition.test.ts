@@ -153,3 +153,35 @@ describe("AUDITION-UNSTICK-1 准备期判定", () => {
     expect(auditionPreparing(state.sessions["audition-1"])).toBe(false);
   });
 });
+
+// WEBUI-MSG-ORDER-2：会话起始时刻记账（判定卡时序归位的唯一时序证据——内核
+// audition::Session 无 turn 域的事件面形态下，turn 域与时刻都只能从事件取）。
+describe("WEBUI-MSG-ORDER-2 session.startedAt：首条事件 created_at 记账", () => {
+  const auditionEvent = (seq: number, type: string, at: string, status: string) =>
+    ({
+      seq,
+      type,
+      created_at: at,
+      status,
+      item_id: "audition:turn:free_state_x:round-1-h",
+      payload: { session: { session_id: "audition:turn:free_state_x:round-1-h", status, candidates: [] } }
+    }) as AgentEvent;
+
+  it("首条事件时刻入账；更早的后续事件（乱序重放）取最小", () => {
+    let state = reduceAuditionEvents(emptyAuditionState(), [
+      auditionEvent(16, "audition.prepare.started", "2026-10-01T18:34:06.500+08:00", "preparing")
+    ]);
+    expect(state.sessions["audition:turn:free_state_x:round-1-h"].startedAt).toBe(Date.parse("2026-10-01T18:34:06.500+08:00"));
+    state = reduceAuditionEvents(state, [
+      auditionEvent(18, "audition.ready", "2026-10-01T18:34:06.553+08:00", "ready")
+    ]);
+    expect(state.sessions["audition:turn:free_state_x:round-1-h"].startedAt).toBe(Date.parse("2026-10-01T18:34:06.500+08:00"));
+  });
+
+  it("created_at 缺失/不可解析 → startedAt 保持 NaN（无证据不猜，消费侧退流尾）", () => {
+    const state = reduceAuditionEvents(emptyAuditionState(), [
+      { seq: 16, type: "audition.prepare.started", item_id: "audition:s2", payload: { session: { session_id: "audition:s2", status: "preparing", candidates: [] } } } as AgentEvent
+    ]);
+    expect(state.sessions["audition:s2"].startedAt).toBeNaN();
+  });
+});

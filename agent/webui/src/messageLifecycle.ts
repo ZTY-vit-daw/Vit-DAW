@@ -465,6 +465,23 @@ export function activityTurnIDOfEvent(event: AgentEvent): string {
   return text(record(payload.session).turn_id) || text(payload.turn_id);
 }
 
+/**
+ * WEBUI-MSG-ORDER-2（2026-10-01，M1 复验活态钉尾取证）：内核 audition 会话 id
+ * 是会话起源的规范编码——`audition:turn:<原生轨迹域 turn>:round-<n>-<hash>`。
+ * 内核 audition::Session 无 turn 字段（2026-09-05 fixture 实证、M1 复验事件流
+ * 八条 audition.* 事件 turn 域全空再证），事件面拿不到回合归属；这个编码是
+ * webui 侧唯一的会话→回合证据。解析出原生域（补回 `turn:` 前缀，与轨迹事件
+ * payload.turn_id 同形），再由消费方经 trajectory 的 nativeTurnIds 账映射到
+ * 拥有它的 B9 轮次。不匹配编码的会话 id 返回空串（无证据不猜）。
+ */
+export function auditionSessionNativeTurnID(sessionID: string): string {
+  const parts = text(sessionID).split(":");
+  if (parts.length < 4 || parts[0] !== "audition" || parts[1] !== "turn" || !parts[2]) {
+    return "";
+  }
+  return `turn:${parts[2]}`;
+}
+
 export function eventLogicalMessageID(event: AgentEvent): string {
   return text(event.logical_message_id) || [eventTurnID(event), text(event.item_id), text(event.type)].filter(Boolean).join(":");
 }

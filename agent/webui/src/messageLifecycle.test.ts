@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  auditionSessionNativeTurnID,
   durableMessagesForStorage,
   historyMessageProtocol,
   messageProtocolIdentityKeys,
@@ -648,5 +649,21 @@ describe("WEBUI-MSG-ORDER-1：同 logical id 生命周期翻转重放（started�
 
   it("终局提取：重复的 trajectory.turn.completed 去重后仍只回报一个回合 id", () => {
     expect(terminalTurnIDsFromEvents(replay)).toEqual([RUN]);
+  });
+});
+
+// WEBUI-MSG-ORDER-2：内核 audition session_id 的原生轨迹域解析。
+describe("auditionSessionNativeTurnID（session_id 规范编码 → 原生轨迹域）", () => {
+  it("audition:turn:<原生>:round-* 形态解析出 turn:<原生>", () => {
+    expect(auditionSessionNativeTurnID("audition:turn:free_state_7318f4503f4fe7e3:round-1-3e668023e682bcdc")).toBe(
+      "turn:free_state_7318f4503f4fe7e3"
+    );
+  });
+
+  it("非规范编码（无 turn 段/段数不足/空原生段）返回空串（无证据不猜）", () => {
+    expect(auditionSessionNativeTurnID("audition:turn:free_state_x")).toBe("");
+    expect(auditionSessionNativeTurnID("audition:")).toBe("");
+    expect(auditionSessionNativeTurnID("")).toBe("");
+    expect(auditionSessionNativeTurnID("audition:turn::round-1-x")).toBe("");
   });
 });

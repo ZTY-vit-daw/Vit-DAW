@@ -89,7 +89,7 @@ export type MessageStreamEntry =
 export interface MessageStreamRenderPlan {
   /** 有序渲染条目（不含流尾终局回复——见 chainResultMessages） */
   entries: MessageStreamEntry[];
-  /** 未能挂进任何回合组、追加渲染在条目序列尾的轨迹回合 */
+  /** 未能挂进任何回合组的轨迹回合（WEBUI-MSG-ORDER-2 起：有时刻证据的按时刻插列组边界，无证据的仍流尾兜底） */
   orphanTurnIds: string[];
   /** 同上，但落位的是水合收据行（TRAJ-IMPL-3）：与轨迹块分开记账，孤儿轨迹语义不变 */
   orphanReceiptTurnIds: string[];
@@ -212,6 +212,9 @@ export function buildMessageStreamRenderPlan(options: {
   };
 
   const entries: MessageStreamEntry[] = [];
+  // WEBUI-MSG-ORDER-2（2026-10-01，M1 复验活态钉尾残留）：组边界账——每组条目段的
+  // 结束下标与组内最大消息时刻，供孤儿块的时序插列落位（见下方孤儿插列注）。
+  const groupBoundaries: Array<{ endIndex: number; lastMessageAt: number }> = [];
   for (const group of groups) {
     const anchor = anchorByGroupKey.get(group.key);
     const userMessages = group.messages.filter((message) => message.role === "user");
@@ -223,29 +226,82 @@ export function buildMessageStreamRenderPlan(options: {
       if (restMessages.length > 0) {
         entries.push({ kind: "messages", key: `${group.key}:rest`, messages: restMessages });
       }
-      continue;
-    }
-    // 组内没有用户消息可依附（纯汇报组，身份锚定命中）：块落在组首，既有行为不变。
-    if (userMessages.length === 0) {
+    } else if (userMessages.length === 0) {
+      // 组内没有用户消息可依附（纯汇报组，身份锚定命中）：块落在组首，既有行为不变。
       entries.push(anchoredEntry(anchor.turnId, group.key));
       if (group.messages.length > 0) {
         entries.push({ kind: "messages", key: `${group.key}:rest`, messages: group.messages });
       }
-      continue;
+    } else {
+      // 锚定用户消息及其之前的组内用户消息在块上方；其余（组内后续用户消息 + 汇报）
+      // 落到块下方。单用户消息组与既有输出逐字一致（tail 只剩原 rest）。
+      const splitAt = Math.min(Math.max(anchor.userIndex, 0), userMessages.length - 1) + 1;
+      entries.push({ kind: "messages", key: `${group.key}:user`, messages: userMessages.slice(0, splitAt) });
+      entries.push(anchoredEntry(anchor.turnId, group.key));
+      const tailMessages = [...userMessages.slice(splitAt), ...restMessages];
+      if (tailMessages.length > 0) {
+        entries.push({ kind: "messages", key: `${group.key}:rest`, messages: tailMessages });
+      }
     }
-    // 锚定用户消息及其之前的组内用户消息在块上方；其余（组内后续用户消息 + 汇报）
-    // 落到块下方。单用户消息组与既有输出逐字一致（tail 只剩原 rest）。
-    const splitAt = Math.min(Math.max(anchor.userIndex, 0), userMessages.length - 1) + 1;
-    entries.push({ kind: "messages", key: `${group.key}:user`, messages: userMessages.slice(0, splitAt) });
-    entries.push(anchoredEntry(anchor.turnId, group.key));
-    const tailMessages = [...userMessages.slice(splitAt), ...restMessages];
-    if (tailMessages.length > 0) {
-      entries.push({ kind: "messages", key: `${group.key}:rest`, messages: tailMessages });
+    let lastMessageAt = Number.NEGATIVE_INFINITY;
+    for (const message of group.messages) {
+      const at = Number(message.createdAt);
+      if (Number.isFinite(at) && at > lastMessageAt) {
+        lastMessageAt = at;
+      }
     }
+    groupBoundaries.push({ endIndex: entries.length, lastMessageAt });
   }
 
-  // 兜底：确实没有回合附属位的轨迹块挂流尾防丢（无起始时刻证据 / 槽位已占）
+  // 孤儿块落位（WEBUI-MSG-ORDER-2）：孤儿=槽位被占（B9 一组一块）或无归属证据的
+  // 回合，旧实现一律追加在条目序列尾——「实验回合块 + A/B 判定卡」钉在整条流底，
+  // 用户开启下一轮后新消息插在其上（M1 复验活态形态：free_state 实验块身份不同源
+  // turn:free_state_*，槽位锚定命中首轮组但已被主回合块占用 → 尾部）。与
+  // WEBUI-MSG-ORDER-1 给链终局加的回流同语义：**孤儿块只在仍是最新内容时待在流尾；
+  // 有起始时刻证据（turnEventMeta.startedAt，与槽位锚定同源）时按时刻插列到组边界
+  // ——落在「组内最大消息时刻 ≤ 回合起始 + 容差」的最后一个组之后**，新消息组
+  // （时刻更晚）自然排在它下面。容差沿用 TURN_SLOT_ANCHOR_TOLERANCE_MS（同一
+  // 回合两条人机同源时间戳的盖章先后差量级）；无证据（无 meta）不猜 → 保持流尾
+  // 兜底，旧调用点行为逐字不变。key 仍用 orphan: 前缀（MessageStream 的
+  // entryGroupKey 据此不把它当组尾），落位变化不改变条目身份。
+  const boundaryInsertions = new Map<number, MessageStreamEntry[]>();
+  const tailOrphanTurnIds: string[] = [];
   for (const turnId of orphanTurnIds) {
+    const startedAt = turnStartedAtMs(turnEventMeta, turnId);
+    let boundaryIndex = -1;
+    if (Number.isFinite(startedAt)) {
+      for (let index = 0; index < groupBoundaries.length; index += 1) {
+        if (groupBoundaries[index].lastMessageAt <= startedAt + TURN_SLOT_ANCHOR_TOLERANCE_MS) {
+          boundaryIndex = index;
+        }
+      }
+    }
+    if (boundaryIndex < 0) {
+      tailOrphanTurnIds.push(turnId);
+      continue;
+    }
+    const list = boundaryInsertions.get(boundaryIndex) ?? [];
+    list.push({ kind: "trace", key: `orphan:${turnId}`, turnId });
+    boundaryInsertions.set(boundaryIndex, list);
+  }
+  if (boundaryInsertions.size > 0) {
+    const ordered: MessageStreamEntry[] = [];
+    let cursor = 0;
+    groupBoundaries.forEach((boundary, index) => {
+      ordered.push(...entries.slice(cursor, boundary.endIndex));
+      cursor = boundary.endIndex;
+      const extra = boundaryInsertions.get(index);
+      if (extra) {
+        ordered.push(...extra);
+      }
+    });
+    ordered.push(...entries.slice(cursor));
+    entries.length = 0;
+    entries.push(...ordered);
+  }
+
+  // 兜底：确实没有回合附属位（无时刻证据 / 早于全部消息）的轨迹块挂流尾防丢
+  for (const turnId of tailOrphanTurnIds) {
     entries.push({ kind: "trace", key: `orphan:${turnId}`, turnId });
   }
   for (const turnId of orphanReceiptTurnIds) {

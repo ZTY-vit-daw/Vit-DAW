@@ -123,6 +123,12 @@ const msgOrderConversationId = arg("msg-order-conversation-id", env("MSG_ORDER_C
 const msgOrderGraphFixturePath = arg("msg-order-graph-fixture", env("MSG_ORDER_GRAPH_FIXTURE", join(here, "fixtures", "webui_rendered_dom", "msg_order_graph.fixture.json")));
 const msgOrderEventsFixturePath = arg("msg-order-events-fixture", env("MSG_ORDER_EVENTS_FIXTURE", join(here, "fixtures", "webui_rendered_dom", "msg_order_events.fixture.json")));
 const msgOrderCommitDirs = arg("msg-order-commit-dirs", env("MSG_ORDER_COMMIT_DIRS", join(here, "fixtures", "webui_rendered_dom", "msg_order_commits")));
+// WEBUI-MSG-ORDER-2: the M1-RETEST forensic capture (conversation
+// webui_mupe9yh1, park + user_stop then an immediately failed second turn) is
+// the LIVE-shape transcript. No graph is seeded and the mount transcript is
+// served empty: every visible row must arrive LIVE through the driven
+// composer, which is the exact coverage gap WEBUI-MSG-ORDER-1 declared.
+const msgOrder2ConversationId = arg("msg-order2-conversation-id", env("MSG_ORDER2_CONVERSATION_ID", "webui_mupe9yh1"));
 const outDir = arg("out-dir", env("OUT_DIR", join(here, "..", "artifacts", "e2e_webui1", "adhoc")));
 const pwModulePath = arg("playwright-module", env("PW_MODULE", ""));
 // Directories holding the archived session's real commit objects. The archived
@@ -562,7 +568,10 @@ const DOM_PROBE = () => {
       session: el.getAttribute("data-audition-session") || "",
       status: el.getAttribute("data-status") || "",
       cls: typeof el.className === "string" ? el.className : "",
-      text: (el.textContent || "").replace(/\s+/g, " ").trim().slice(0, 80)
+      text: (el.textContent || "").replace(/\s+/g, " ").trim().slice(0, 80),
+      // WEBUI-MSG-ORDER-2: the card position in the real flow order (its
+      // anchoring tier is what this card is about). Additive probe field.
+      flowIndex: flowIndex(el)
     })),
     // CONV-ID-BOOT-1: the scoped conversation-id anchor buckets, WITH values. The
     // whole defect this gate pass pins is "a bare boot overwrites the anchor with a
@@ -1873,6 +1882,197 @@ function checkM1(result) {
   return { failures, notes };
 }
 
+// WEBUI-MSG-ORDER-2: the M1-RETEST live event shape (36-event forensic stream,
+// reduced to the load-bearing families, ids/timestamps semantics preserved).
+// Phase 1 replays the park: the B9 run turn (run_4dbe...) with its item steps
+// and the turn.completed(limit_reached) receipt boundary, the free-state
+// experiment family folded under the same source_turn_id (payload.turn_id =
+// turn:free_state_*), mix_tick.pending, and the audition family with NO turn
+// domain anywhere (the kernel audition::Session has no such field -- that is
+// the pinning defect's identity gap). Phase 2 replays the second turn failing
+// immediately (audio_closure_controller_failure). Timestamps are stamped at
+// append time so every event is strictly newer than the client-stamped
+// optimistic rows that preceded it, exactly like the live session.
+function msgOrder2Phase1Events(options) {
+  const conversationId = options.conversationId;
+  const run1 = "run_4dbe6a109d4bd4e7";
+  const goal1 = "goal_36b2f2e85a4efad9";
+  const freeState = "turn:free_state_7318f4503f4fe7e3";
+  const sessionId = "audition:turn:free_state_7318f4503f4fe7e3:round-1-3e668023e682bcdc";
+  const base = Date.now();
+  const at = (offsetMs) => new Date(base + offsetMs).toISOString();
+  let seq = options.baseSeq;
+  const ev = (type, fields, payload) => ({
+    seq: seq++, type, conversation_id: conversationId, goal_id: goal1, run_id: run1,
+    source_turn_id: fields.sourceTurnID, created_at: at(options.offsetMs + seq * 100),
+    logical_message_id: fields.logicalMessageID,
+    ...(fields.itemID ? { item_id: fields.itemID } : {}),
+    ...(fields.status ? { status: fields.status } : {}),
+    ...(fields.title ? { title: fields.title } : {}),
+    ...(fields.body ? { body: fields.body } : {}),
+    payload: payload || {}
+  });
+  const turnEvent = (type, status, payload) => ev(type, { sourceTurnID: run1, logicalMessageID: "agent_turn:" + run1, status }, payload);
+  const itemEvent = (type, itemID, status, payload) => ev(type, { sourceTurnID: run1, itemID, logicalMessageID: "agent_item:" + run1 + ":" + itemID, status }, payload);
+  const trajectory = (type, itemID, turnID, extra) => ev(
+    "trajectory." + type,
+    { sourceTurnID: run1, itemID, logicalMessageID: "trajectory:" + run1 + ":" + itemID },
+    { schema_version: "vit.observable_trajectory.v1", trace_node_id: itemID, turn_id: turnID, ...(extra || {}) }
+  );
+  const audition = (type, status) => ev(
+    "audition." + type,
+    { itemID: sessionId, logicalMessageID: "audition:" + sessionId + ":audition." + type, status },
+    { schema_version: "vit.kernel_audition.v1", session: {
+      session_id: sessionId, conversation_id: conversationId, status,
+      state_revision: 5,
+      candidates: [
+        { id: "candidate-a", label: "A", status: status === "preparing" ? "preparing" : "ready", preview_ref: "audio-buffer://" + sessionId + "/candidate-a:2ch@44100Hz" },
+        { id: "candidate-b", label: "B", status: status === "preparing" ? "preparing" : "ready", preview_ref: "audio-buffer://" + sessionId + "/candidate-b:2ch@44100Hz" }
+      ]
+    } }
+  );
+  return [
+    turnEvent("turn.started", "running"),
+    trajectory("turn.started", "turn:" + run1, run1, { node_kind: "turn", phase: "framing", status: "running" }),
+    itemEvent("item.started", "tool_step_1", "running", { command_name: "ccb_observation_catalog" }),
+    itemEvent("item.completed", "tool_step_1", "completed", { command_name: "ccb_observation_catalog" }),
+    turnEvent("turn.completed", "waiting_continue", { stop_reason: "limit_reached", completed_steps: 1 }),
+    itemEvent("item.started", "tool_step_2", "running", { command_name: "ccb_observation_request" }),
+    itemEvent("item.completed", "tool_step_2", "completed", { command_name: "ccb_observation_request" }),
+    trajectory("turn.started", "turn:" + freeState, freeState, { node_kind: "turn", phase: "experiment", status: "running" }),
+    trajectory("intent.framed", "intent:" + freeState, freeState, { node_kind: "intent", status: "completed", round_id: "round-1-3e668023e682bcdc" }),
+    trajectory("hypothesis.proposed", "hyp:" + freeState, freeState, { node_kind: "hypothesis", status: "completed", round_id: "round-1-3e668023e682bcdc" }),
+    trajectory("round.started", "round:" + freeState, freeState, { node_kind: "round", status: "running", round_id: "round-1-3e668023e682bcdc" }),
+    trajectory("observation.recorded", "obs:" + freeState, freeState, { node_kind: "observation", status: "completed", round_id: "round-1-3e668023e682bcdc", summary: "bass 轨低中频聚集" }),
+    ev("mix_tick.pending", { sourceTurnID: run1, logicalMessageID: "agent_event:" + conversationId + ":13", status: "pending_confirmation", title: "混音单步（完全访问直接应用）", body: "对 Track 1007 执行一次有界的静态 EQ 频段增益调整，当前为完全访问模式：这一步将直接应用，不再等待逐条确认" }, { operation: "static_eq_band_adjust", track_id: "1007" }),
+    trajectory("intervention.applied", "apply:" + freeState, freeState, { node_kind: "action", status: "completed", round_id: "round-1-3e668023e682bcdc", summary: "static_eq · Track 1007 频段增益" }),
+    audition("prepare.started", "preparing"),
+    audition("candidate.ready", "preparing"),
+    audition("ready", "ready"),
+    audition("ready", "ready"),
+    trajectory("turn.stopped", "turn:" + freeState, freeState, { node_kind: "turn", phase: "stopped", status: "stopped" })
+  ];
+}
+
+function msgOrder2Phase2Events(options) {
+  const conversationId = options.conversationId;
+  const run2 = "run_3eaf57c9b717c4f2";
+  const goal2 = "goal_6b07c1866f795403";
+  const base = Date.now();
+  const at = (offsetMs) => new Date(base + offsetMs).toISOString();
+  let seq = options.baseSeq;
+  const ev = (type, fields, payload) => ({
+    seq: seq++, type, conversation_id: conversationId, goal_id: goal2, run_id: run2,
+    source_turn_id: fields.sourceTurnID, created_at: at(seq * 100),
+    logical_message_id: fields.logicalMessageID,
+    ...(fields.status ? { status: fields.status } : {}),
+    payload: payload || {}
+  });
+  const turnEvent = (type, status, payload) => ev(type, { sourceTurnID: run2, logicalMessageID: "agent_turn:" + run2, status }, payload);
+  const trajectory = (type, itemID, turnID, extra) => ev(
+    "trajectory." + type,
+    { sourceTurnID: run2, itemID, logicalMessageID: "trajectory:" + run2 + ":" + itemID },
+    { schema_version: "vit.observable_trajectory.v1", trace_node_id: itemID, turn_id: turnID, ...(extra || {}) }
+  );
+  return [
+    turnEvent("turn.started", "running"),
+    trajectory("turn.started", "turn:" + run2, run2, { node_kind: "turn", phase: "framing", status: "running" }),
+    turnEvent("turn.failed", "failed", { stop_reason: "audio_closure_controller_failure", error: "minimal audio closure controller failed: conversation is already owned by minimal_audio_closure controller audio_closure_997396f72e46902c" }),
+    trajectory("turn.failed", "turn:" + run2, run2, { node_kind: "turn", phase: "failed", status: "failed" })
+  ];
+}
+
+// WEBUI-MSG-ORDER-2: the live-order gate. Post-fix flow (u1 hydrated with the
+// run-domain turn_id; the judge card resolves its turn through the session id's
+// native encoding folded into the B9 run turn):
+//   u1 -> trace(run_4dbe...) -> [A/B card] -> a1 receipt -> u2 -> trace(run_3eaf...) -> a2 error
+// Pre-fix the card carries NO turn domain, lands in unanchoredSessions, and is
+// pinned at the flow tail BELOW the round-2 input and the failure receipt --
+// the exact M1-RETEST visual.
+function checkM2(result) {
+  const failures = [];
+  const notes = [];
+  const sample = result.finalSample;
+  if (!sample) {
+    return { failures: ["M2 setup: no final DOM sample was captured"], notes };
+  }
+  const run1 = "run_4dbe6a109d4bd4e7";
+  const run2 = "run_3eaf57c9b717c4f2";
+  const sessionID = "audition:turn:free_state_7318f4503f4fe7e3:round-1-3e668023e682bcdc";
+  if (!result.phase1.auditionCardAppeared) {
+    failures.push("M2 setup: the A/B judge card never rendered during the park phase -- the pass would measure nothing");
+  }
+  if (!result.phase1.traceAppeared) {
+    failures.push("M2 setup: no .trace-block rendered for " + run1 + " during the park phase");
+  }
+  const findRows = (rows, marker) => (rows || []).filter((row) => row.text.indexOf(marker) >= 0);
+  const expected = [
+    { role: "user", marker: "检查一下当前工程有什么问题吗" },
+    { role: "assistant", marker: "我还在继续处理这个任务" },
+    { role: "user", marker: "检查一下当前选中的drums轨道的低频" }
+  ];
+  const located = expected.map((item) => ({ ...item, rows: findRows(item.role === "user" ? sample.userMessages : sample.assistantMessages, item.marker) }));
+  for (const item of located) {
+    if (item.rows.length !== 1) {
+      failures.push(
+        "M2 rows: expected exactly one " + item.role + " row containing \"" + item.marker + "\", got " + item.rows.length +
+        " at indexes [" + item.rows.map((row) => row.index).join(", ") + "]"
+      );
+    }
+  }
+  const errorRow = findRows(sample.flow, "声学闭环控制器无法建立一致的持久状态").find((row) => (row.cls || "").indexOf("message-row") >= 0);
+  if (!errorRow) {
+    failures.push("M2 rows: the turn.failed error row is not in the rendered flow");
+  }
+  const blocks = sample.blocks || [];
+  const block1 = blocks.filter((block) => block.turnId === run1);
+  if (block1.length !== 1) {
+    failures.push("M2 blocks: expected exactly one trace block for " + run1 + " (B9 fold of the run shell + free-state family), got " + block1.length + " [" + blocks.map((block) => block.turnId).join(", ") + "]");
+  }
+  const cards = (sample.auditionCards || []).filter((card) => card.session === sessionID);
+  if (cards.length !== 1) {
+    failures.push("M2 cards: expected exactly one A/B judge card for " + sessionID + ", got " + cards.length);
+  }
+  const index = (item) => (item.rows.length >= 1 ? item.rows[0].index : NaN);
+  const [u1, a1, u2] = located;
+  const cardIndex = cards.length >= 1 ? cards[0].flowIndex : NaN;
+  const block1Index = block1.length === 1 ? block1[0].flowIndex : NaN;
+  const block2 = blocks.filter((block) => block.turnId === run2);
+  const block2Index = block2.length >= 1 ? block2[0].flowIndex : NaN;
+  const errorIndex = errorRow ? errorRow.index : NaN;
+  const orderPairs = [
+    ["trace block " + run1, block1Index, "round-1 user message", index(u1)],
+    ["round-1 receipt a1", index(a1), "trace block " + run1, block1Index],
+    ["A/B judge card", cardIndex, "trace block " + run1, block1Index],
+    ["round-2 user input", index(u2), "A/B judge card", cardIndex],
+    ["failure receipt a2", errorIndex, "round-2 user input", index(u2)]
+  ];
+  for (const [later, laterIndex, earlier, earlierIndex] of orderPairs) {
+    if (!(laterIndex > earlierIndex)) {
+      failures.push(
+        "M2 order: " + later + " (index " + laterIndex + ") must render after " + earlier + " (index " + earlierIndex +
+        ") -- rendered flow: [" + (sample.flow || []).map((row) => (row.cls || "").replace("message-row", "row").trim() || row.tag).join(" | ") + "]"
+      );
+    }
+  }
+  if (block2.length >= 1 && !(block2Index > index(u2))) {
+    failures.push("M2 order: the round-2 trace block (index " + block2Index + ") must render after the round-2 user input (index " + index(u2) + ")");
+  }
+  if (cards.length >= 1) {
+    // Designed supersedes semantics: the user continued the conversation past
+    // the pending judgment card, so the card settles. The settle bar doubles
+    // as the proof that the card is the REAL interactive surface (not a stray
+    // shell) and that the order fix did not fake its state.
+    if (cards[0].text.indexOf("卡面选项未采用") < 0) {
+      notes.push("M2 card settle bar not found yet (card text: \"" + cards[0].text.slice(0, 60) + "\")");
+    } else {
+      notes.push("A/B card settled with the supersedes bar at its chronological slot");
+    }
+  }
+  notes.push("flow: " + JSON.stringify((sample.flow || []).map((row) => ({ i: row.index, cls: (row.cls || "").replace("message-row", "row").trim(), text: row.text.slice(0, 24) }))));
+  return { failures, notes };
+}
+
 function checkK1(result) {
   const failures = [];
   const notes = [];
@@ -2691,6 +2891,99 @@ async function main() {
   // bound to the forensic conversation id, and sample the rendered flow.
   // MUST run after every group that asserts against an earlier seeding (it
   // re-seeds the draft graph, like runMsgRevivePass does).
+  // WEBUI-MSG-ORDER-2: the composer-driven LIVE pass. The round-2 rows never
+  // exist server-side: they are produced by the REAL composer (optimistic rows
+  // stamped with the client clock), which is the exact coverage gap
+  // WEBUI-MSG-ORDER-1 declared. The draft history is served EMPTY for this
+  // conversation's mount (ui/state projection patch -- the same network-layer
+  // pattern as PLANBAR-1), so the stream is the pure live shape of the M1-RETEST
+  // session: optimistic u1, response receipt, then the park events. The event
+  // buffer is a mutable array served with the agent's own since/limit contract
+  // (K1 pattern), so phase-2 events are appended mid-pass.
+  const runMsgOrder2Pass = async (name) => {
+    const context = await browser.newContext({ viewport });
+    await context.route("**/agent/ui/state*", async (route) => {
+      const response = await route.fetch();
+      const body = await response.json().catch(() => ({}));
+      const history = { ...(body.project_history || {}) };
+      history.conversation_messages = [];
+      await route.fulfill({ response, json: { ...body, project_history: history } });
+    });
+    const served = [];
+    await context.route("**/agent/events*", async (route) => {
+      const requestURL = new URL(route.request().url());
+      const asked = requestURL.searchParams.get("conversation_id") || "";
+      const since = Number(requestURL.searchParams.get("since") || "0");
+      const limit = Number(requestURL.searchParams.get("limit") || "120");
+      const nextSeq = served.reduce((maximum, event) => Math.max(maximum, Number(event.seq) || 0), 0);
+      await route.fulfill({
+        status: 200, contentType: "application/json; charset=utf-8",
+        body: JSON.stringify({
+          status: "ok",
+          events: asked === msgOrder2ConversationId ? served.filter((event) => Number(event.seq) > since).slice(0, limit) : [],
+          next_seq: nextSeq
+        })
+      });
+    });
+    const receiptResponse = {
+      status: "ok", conversation_id: msgOrder2ConversationId,
+      reply: "我还在继续处理这个任务，完成后再向你汇报。",
+      needs_confirmation: false, goal_status: "waiting_interaction",
+      turn_id: "turn_d8701f0905894cc8", run_id: "run_4dbe6a109d4bd4e7", goal_id: "goal_36b2f2e85a4efad9",
+      executed_kernel_reply: [{ status: "ok", label: "ccb_observation_catalog" }],
+      commands: []
+    };
+    const failureResponse = {
+      status: "ok", conversation_id: msgOrder2ConversationId,
+      reply: "声学闭环控制器无法建立一致的持久状态，因此没有继续观察或修改工程。",
+      needs_confirmation: false, goal_status: "failed",
+      turn_id: "run_3eaf57c9b717c4f2", run_id: "run_3eaf57c9b717c4f2", goal_id: "goal_6b07c1866f795403",
+      commands: []
+    };
+    await context.route("**/agent/chat*", async (route) => {
+      let asked = "";
+      try { asked = String((route.request().postDataJSON() || {}).message || ""); } catch { asked = ""; }
+      await route.fulfill({
+        status: 200, contentType: "application/json; charset=utf-8",
+        body: JSON.stringify(asked.indexOf("drums") >= 0 ? failureResponse : receiptResponse)
+      });
+    });
+    const page = await context.newPage();
+    await page.goto(agentBase + "/app/?conversation_id=" + encodeURIComponent(msgOrder2ConversationId), { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(2500);
+    // Phase 1: drive the park turn through the REAL composer, then replay the
+    // park events (B9 fold + audition family with NO turn domain anywhere).
+    const composer = page.locator(".composer textarea").first();
+    await composer.waitFor({ state: "visible", timeout: 15000 });
+    await composer.fill("检查一下当前工程有什么问题吗");
+    await composer.press("Enter");
+    await page.waitForTimeout(1200);
+    served.push(...msgOrder2Phase1Events({ conversationId: msgOrder2ConversationId, baseSeq: 1, offsetMs: 0 }));
+    const auditionCardAppeared = await page
+      .waitForSelector("[data-audition-session]", { timeout: 25000 })
+      .then(() => true)
+      .catch(() => false);
+    const traceAppeared = await page
+      .waitForSelector('.trace-block[data-turn-id="run_4dbe6a109d4bd4e7"]', { timeout: 25000 })
+      .then(() => true)
+      .catch(() => false);
+    await page.waitForTimeout(1500);
+    const parkSample = await page.evaluate(DOM_PROBE);
+    await page.screenshot({ path: join(outDir, "dom-" + name + "-park.png") });
+    writeFileSync(join(outDir, "dom-" + name + "-park.json"), JSON.stringify(parkSample, null, 2), "utf-8");
+    // Phase 2: the second turn, driven live, failing immediately.
+    await composer.fill("检查一下当前选中的drums轨道的低频");
+    await composer.press("Enter");
+    await page.waitForTimeout(1200);
+    served.push(...msgOrder2Phase2Events({ conversationId: msgOrder2ConversationId, baseSeq: 500 }));
+    await page.waitForTimeout(3000);
+    const finalSample = await page.evaluate(DOM_PROBE);
+    await page.screenshot({ path: join(outDir, "dom-" + name + ".png") });
+    writeFileSync(join(outDir, "dom-" + name + ".json"), JSON.stringify(finalSample, null, 2), "utf-8");
+    await context.close();
+    return { phase1: { auditionCardAppeared, traceAppeared, parkSample }, finalSample };
+  };
+
   const runMsgOrderPass = async (name, options) => {
     const state = await getJSON("/agent/ui/state");
     const seeded = seedConversation(msgOrderGraphFixture, state, [msgOrderCommitDirs]);
@@ -3601,6 +3894,31 @@ async function main() {
     expectedRunId: "run_e5796736a4865570"
   }));
 
+  // ---------------------------------------------------------- WEBUI-MSG-ORDER-2
+  // Runs LAST (after msgrevive/msgorder re-seeded the draft graph): its ui/state
+  // projection serves an EMPTY transcript for this pass's own mounts, so the
+  // stream is the pure composer-driven live shape. Round 1 = driven composer +
+  // park event replay (audition family carries NO turn domain); round 2 = driven
+  // composer + immediate turn.failed events. The gate asserts the A/B judge card
+  // renders at its chronological slot ABOVE the round-2 input (pre-fix it was
+  // pinned at the flow tail below the failure receipt -- the M1-RETEST visual).
+  report.msgorder2_events_source =
+    "composer-driven live pass (NOT a pure replay): conversation " + msgOrder2ConversationId + " mounts with an empty " +
+    "transcript (ui/state projection, PLANBAR-1 pattern); turn 1 is driven through the REAL composer with POST /agent/chat " +
+    "fulfilled at the network layer (execution receipt fixture) and the M1-RETEST park replayed through the event buffer " +
+    "(B9 run fold with free-state payload turn ids, mix_tick.pending, audition family WITHOUT any turn domain); turn 2 is " +
+    "driven through the REAL composer (failure receipt fixture) with turn.started/turn.failed events appended live";
+  const msgOrder2Pass = await runMsgOrder2Pass("msgorder2");
+  report.msgorder2 = {
+    conversation_id: msgOrder2ConversationId,
+    phase1: {
+      audition_card_appeared: msgOrder2Pass.phase1.auditionCardAppeared,
+      trace_appeared: msgOrder2Pass.phase1.traceAppeared
+    }
+  };
+  record("msg-order-M2", checkM2({ finalSample: msgOrder2Pass.finalSample, phase1: msgOrder2Pass.phase1 }));
+
+
   report.finished_at = new Date().toISOString();
   report.events_served_from_fixture = seededEventsRequests;
   const failed = Object.entries(report.passes).filter(([, ok]) => !ok).map(([id]) => id);
@@ -3618,7 +3936,7 @@ async function main() {
 // Exported so a control run can exercise the very same probe and assertion
 // functions against a deliberately healthy state (proof that a red result is a
 // real finding and not an artefact of the probe itself).
-export { DOM_PROBE, checkA1, checkA2, checkA3, checkB1, checkB2, checkC1, checkD1, checkE1, checkF1, checkG1, checkT1, checkK1, checkK2, checkO1, checkM1, observeRowProbe, observeLongReplyFixture, observeShortReplyFixture, residencyFixtureEvents, chatOnlyItemStepsFixtureEvents, terminalTurnFixtureEvents, auditionFixtureEvents, auditionUnstickFixtureEvents, auditionTrailFixtureEvents, confirmInteractionFixture, confirmationChatResponseFixture, directExecutionReceiptFixture };
+export { DOM_PROBE, checkA1, checkA2, checkA3, checkB1, checkB2, checkC1, checkD1, checkE1, checkF1, checkG1, checkT1, checkK1, checkK2, checkO1, checkM1, checkM2, observeRowProbe, observeLongReplyFixture, observeShortReplyFixture, residencyFixtureEvents, chatOnlyItemStepsFixtureEvents, terminalTurnFixtureEvents, auditionFixtureEvents, auditionUnstickFixtureEvents, auditionTrailFixtureEvents, confirmInteractionFixture, confirmationChatResponseFixture, directExecutionReceiptFixture };
 
 // Run only when this file is the process entry point, so importing it as a
 // library (the control run does) has no side effects.

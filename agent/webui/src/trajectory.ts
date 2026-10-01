@@ -113,6 +113,13 @@ export interface TrajectoryTurn {
   /** 轮次域回合的终局事件状态（空 = 轮次仍开放） */
   terminalStatus: string;
   terminalPhase: string;
+  /**
+   * WEBUI-MSG-ORDER-2：本回合计到过的原生轨迹域 turn_id（payload.turn_id 与
+   * B9 轮次键不同源者，如实验级 turn:free_state_*）。判定卡等会话身份只携带
+   * 原生域（内核 audition session_id 编码 audition:turn:<原生>:round-*）时，
+   * 以此把会话映射回拥有它的 B9 轮次。可选：旧构造点缺省按无原生域处理。
+   */
+  nativeTurnIds?: string[];
 }
 
 export interface TrajectoryState {
@@ -233,7 +240,15 @@ export function reduceTrajectoryEvents(
     const mergedNode = previousNode ? mergeNode(previousNode, node) : node;
     next.nodes[nodeId] = mergedNode;
     const turn = next.turns[turnId] ?? emptyTurn(turnId);
-    next.turns[turnId] = updateTurn(turn, mergedNode, text(event.type), next.nodes, roundScoped);
+    let mergedTurn = updateTurn(turn, mergedNode, text(event.type), next.nodes, roundScoped);
+    // WEBUI-MSG-ORDER-2：原生轨迹域记账——payload.turn_id 与 B9 轮次键不同源
+    // （实验级 turn:free_state_* 挂在 run 域轮次下）时留痕，供判定卡会话身份
+    // （session_id 内嵌原生域）映射回拥有它的轮次。幂等收编，零拷贝优先。
+    const nativeTurnID = text(payload.turn_id);
+    if (nativeTurnID && nativeTurnID !== turnId && !(mergedTurn.nativeTurnIds ?? []).includes(nativeTurnID)) {
+      mergedTurn = { ...mergedTurn, nativeTurnIds: [...(mergedTurn.nativeTurnIds ?? []), nativeTurnID] };
+    }
+    next.turns[turnId] = mergedTurn;
     if (roundId) {
       const round = next.rounds[roundId] ?? emptyRound(roundId, turnId);
       next.rounds[roundId] = updateRound(round, mergedNode, text(event.type), next.nodes);
@@ -262,7 +277,7 @@ export function trajectoryNodesForRound(state: TrajectoryState, roundId: string)
 }
 
 function emptyTurn(id: string): TrajectoryTurn {
-  return { id, status: "pending", phase: "", nodeIds: [], roundIds: [], activeNodeId: "", activeRoundId: "", outcome: "", stopped: false, roundScoped: false, terminalStatus: "", terminalPhase: "" };
+  return { id, status: "pending", phase: "", nodeIds: [], roundIds: [], activeNodeId: "", activeRoundId: "", outcome: "", stopped: false, roundScoped: false, terminalStatus: "", terminalPhase: "", nativeTurnIds: [] };
 }
 
 function emptyRound(id: string, turnId: string): TrajectoryRound {
