@@ -21,3 +21,10 @@
 
 - handleTurnStop 无请求日志（取消按下时刻只能靠用户证词——本次已获：CCB 观察运行中）。
 - agent_last.log 被 authority restore INFO 刷屏（每秒 3 行）——AUTH-RESTORE-LOGSPAM-1 已在池，取证成本实证+1。
+
+## 追记：第四轮复验（2026-10-01 20:33–20:36，会话 webui_mupimj6f，栈=新二进制 20:31+新 dist 20:24）
+
+- **修复生效面**：消息序正确（用户确认）；park→新输入→默认采纳正确触发（20:35:33 round.decision+settled=adopted 链）；新 goal/run 正常开启（FS-PARK 主语义真机闭环）。
+- **新缺陷（采纳路径姊妹案）**：新 goal goal_65e6beee（"可以听听看drums音轨的clip低频怎么样吗"）零执行即收尾，回复=「任务已经满足其持久化契约中的证据与结算条件。」——audioClosureSettlementReply 的 StopTaskSettled 映射句（audio_closure_controller.go:1663-1664）。机制：FS-PARK Part A 采纳结算 experiment+task（EventTaskSettled）但**不触碰会话 audio closure**（judgment_park_continuation.go 无 audioClosures 调用）；新 goal 经 prepareAudioClosureContext（audio_closure_controller.go:62-66）绑定会话既有活跃 closure→其 TaskState=Settled→audioClosureSettleFromResult（:1327-1333 StateSettled→StopTaskSettled）立即结算收尾。与 FS-STOP-APPLY-1 Part B 同类（会话级持久态未随收尾释放），路径不同（采纳 vs 停止）。
+- **A/B 判定按钮无效再证**：park 期间（20:35:01–20:35:33）用户点击 A好/B好/补充——事件流零 judgment 类事件（点击未产生任何服务端痕迹）；证据=events-webui_mupimj6f.json。AB-JUDGMENT-CARD-1 假设 a/b 的现场再强化。
+- **VITNOTE 面板不可交互（M8 新阻断）**：dock 面 N 键开窗成功但面板零交互（含收起按钮）；键盘链（N）通、鼠标链全灭——疑输入路由/叠层被 dock 上层消费或命中测试未达面板（vit_note_panel.gd 按钮接线在位：collapse:85/send:104/anchor:164；manager 层 MOUSE_FILTER_IGNORE:27 正确）。待取证卡钉死。
