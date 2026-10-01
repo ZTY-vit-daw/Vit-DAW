@@ -18,5 +18,5 @@
 - 验收标准：①手势状态机到状态/转移级 ②命中解析含跨面合并 ③供给器契约函数级+四类面逐一 ④输入 bug 排查路径可执行 ⑤旧路径处置明确 ⑥V2 九步清单 ⑦排程建议表
 - 停止条件：发现 Godot 输入架构使 Alt+拖全局捕获不可行（如 dock 拦截层无法让位）→ 实证上交回决策侧（可能需用户改触发键位裁定）
 - 领取：（2026-10-01 PC 执行侧 / origin/main=7649fc3a / port/vitnote-interact-v2-design-1，worktree=D:\Vit_DAW_worktrees\vitnote-interact-v2-design-1；Godot 参照=port/vitnote-dock-mount-1@66e59f0 只读）
-- 回执：（文档 commit hash / 验收对照 / 核心设计决策）
+- 回执：（文档 commit=ea8b9220（docs/VITNOTE_V2_INTERACTION_DESIGN.md 新建 350 行+V1 文档修订标注）；验收对照：①手势状态机到状态/转移级=§4.1（IDLE/PRESS_PENDING/DRAGGING/RESOLVING 全转移表+消费边界）②命中解析含跨面合并=§5（五步管线+占比双口径+单 note 合并规则+空辖区）③供给器契约函数级四函数+四类面逐一=§6.0-§6.4（timeline/rack/library/control_snapshot+新面接入指南）④输入 bug 排查路径可执行=§7.2 五步探针+§7.3 三修复锚点 ⑤旧路径处置明确=§8（_notify_vit_note_hint 退役/采集转供/组广播保留）⑥V2 九步清单=§10.2（含三卡同场销第 9 步）⑦排程建议表=§11 五卡；核心设计决策：a) 全局捕获机制=manager 末位挂载+_input 逆序传播+活动态 set_input_as_handled（停止条件未触发——可行性已证）；b) 输入 bug 主嫌疑=router._input 先转发 lane 后查 interactive 旁路且 _candidate_interactive_hit_roots 不含 VitNoteLayer 子树（静态证据链 F2/F3，解释"含收起按钮全灭"+legacy 同根推论）；c) 两项裁定边界项上交：D1 clip 体 Alt+拖=克隆让位（备选=克隆迁 Ctrl+拖需用户裁定）、D2 plain marquee 回归纯选区（胶囊双出口=圈选后出口）；d) 供给器=组协议注册（无 autoload）+vit_floating_interactive 旁路组与输入修复共用；e) 机架/资料库 v2 整面命中诚实降级。零代码：仅 docs 两文件；Godot 仓只读未动。）
 - 验收：（裁定文件 / 验收 commit）
