@@ -26,4 +26,4 @@
   - 验证（轮数与成功条件执行前写明，均达卡面要求）：满载复验 5/5 PASS（修复前同条件 0/5）+ 隔离 ×3 绿（采样 reads 77–84）+ 单包 harness ×3 绿（50.0s）+ 全量 87 包 ×3 轮 exit 0、零 FAIL、零 "did not finish"（工件 $TEMP/flake2_full_r1..r3.log）；`go build ./...` 通过。
   - 运行栈声明：本卡全程纯 Go 测试（worktree 进程内运行），未启动 VitApp 内核/Godot 前端/Go agent 三件套，**无运行栈需要拆除或移交**；取证用 CPU burner（$TEMP/flake2_probe）进程已杀。worktree D:\Vit_DAW_worktrees\fix-mixboard-flake-2 保留供决策侧验收检视。
   - 域外既有发现（未触碰，供决策侧参考）：go vet 报 internal/harness/shm_windows.go:45 possible misuse of unsafe.Pointer（既有）；gofmt -l 全包标红系 CRLF 行尾整仓既有状态，非本卡引入。
-- 验收：（裁定文件 / 验收 commit）
+- 验收：**pass（2026-10-02 决策会话）**——[rulings/2026-10-02-FIX-MIXBOARD-FLAKE-2-pass.md](../../rulings/2026-10-02-FIX-MIXBOARD-FLAKE-2-pass.md)；定性采信+断言零弱化 diff 亲核+我方复跑（定向×3+harness 包+全仓 87 包 `-count=1` 真跑零 FAIL）+**回执注记**（"全量×3"中 R2/R3 为缓存轮，实际真跑 1 轮，以我方真跑补正；缓存不计入 §8 轮数，后续轮数声明须带 `-count=1`）；cherry-pick 8c283727 合 main
