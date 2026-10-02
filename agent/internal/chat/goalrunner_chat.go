@@ -3027,8 +3027,36 @@ func (s *Server) armOwedSettlementCheckpointLocked(conversationID string, res ag
 	if !freeStateLoopOwesAutoSettlement(loop) {
 		return nil
 	}
-	if _, occupied := s.goalContinuations[res.GoalID]; occupied {
-		return nil
+	if occupant, occupied := s.goalContinuations[res.GoalID]; occupied {
+		durable, hasDurable := s.durableContinuations[continuationIDForContinuation(occupant)]
+		if !hasDurable {
+			// A bare slot occupant is an armed internal resume (the recalibration
+			// driver or the adoption arm) — a live automatic slice that needs no
+			// bridge.
+			return nil
+		}
+		if continuationRunnableStatus(durable.Status) {
+			return nil
+		}
+		if !continuationOccupantDrivable(occupant, &durable) {
+			// Unanswerable shell (legacy_waiting_continue) or terminal residue:
+			// cancel the record per the recalibration-arm recipe — a later disk
+			// reload would otherwise refill the slot from the latest-by-goal
+			// restore and re-poison the goal's drive path.
+			durable.Status = ContinuationCancelled
+			durable.LeaseOwner = ""
+			durable.LeaseExpiresAt = time.Time{}
+			durable.UpdatedAt = time.Now().UTC()
+			durable.PendingInteraction = mergeContext(cloneContext(durable.PendingInteraction), map[string]any{
+				"status": "displaced_by_settle_arm",
+			})
+			s.durableContinuations[durable.ContinuationID] = cloneDurableContinuation(durable)
+		}
+		// An answerable park survives displaced: completePendingInteractionContinuation
+		// retires it by interaction_id (never by slot ownership), so the user's
+		// answer keeps working while the settle slice runs on its own checkpoint.
+		// The slot write below then makes the settle checkpoint the goal's live
+		// arm, matching what the latest-by-goal restore would refill anyway.
 	}
 	for _, item := range s.durableContinuations {
 		if item.GoalID == res.GoalID && continuationRunnableStatus(item.Status) {
@@ -3110,14 +3138,29 @@ func (s *Server) armOwedSettlementCheckpointLocked(conversationID string, res ag
 // the chain already dead. That debt becomes true here, at the applied
 // boundary, so the checkpoint is armed here for exactly that shape:
 //
-//   - the goal must already sit in the runner's completed form (the ordinary
-//     chain cannot carry the tail anymore). A goal still running or parked
-//     waiting_* is left to the turn boundary's own arming — the completed
-//     boundary above then covers its completion;
+//   - the goal must already sit in a form the settle slice can legally resume:
+//     either the runner's completed form (the ordinary chain cannot carry the
+//     tail anymore; restored to waiting_continue below) or a parked resumable
+//     form (waiting_continue/waiting_confirmation/waiting_clarification). The
+//     parked shape is the 2026-10-02 Mac round_1 stall (d1_550a_20261002_182113):
+//     a generic mix-tick answerable park landed at 10:26:09.7, the orchestration
+//     turn applied the intervention at 10:26:12 over the parked goal, and no
+//     goal result ever fires for a parked goal — so this applied boundary and
+//     the completed-over-owed boundary in recordGoalResult were both
+//     unreachable, the settle tail (materiality/target_response -> judgment
+//     boundary) starved for the whole window, and the scheduler correctly held
+//     the answerable park forever ("answerable park holds the chain"). Leaving
+//     the parked shape to the turn boundary only works when something resumes
+//     the park; a generic suggestion the user simply ignores is exactly the
+//     shape where nothing ever does. A live running goal is still refused —
+//     the turn carries its own tail;
 //   - a completed goal is not resumable (shouldResumeGoalFromStatus), so the
 //     same correction D1-AUDITION-GAP-1 applies at its boundary — restore
 //     waiting_continue — happens here BEFORE the A/B mount can park the goal,
-//     keeping the scheduler's settle slice a legal resume.
+//     keeping the scheduler's settle slice a legal resume. A parked goal keeps
+//     its own park surface: rewriting waiting_confirmation to waiting_continue
+//     would degrade the pending interaction's user-visible status for no
+//     scheduling gain (it is already a legal resume form).
 //
 // Exactly-once across both entry points is guaranteed by the settle-marker
 // durable latch and the live-owner guards inside the core.
@@ -3126,7 +3169,7 @@ func (s *Server) armOwedSettlementCheckpointAtAppliedBoundary(loop freeStateReas
 		return
 	}
 	goal := s.harness.RuntimeStatus(loop.GoalID)
-	if goal.Status != agentruntime.StatusCompleted {
+	if goal.Status != agentruntime.StatusCompleted && !shouldResumeGoalFromStatus(goal.Status) {
 		return
 	}
 	s.mu.Lock()
@@ -3147,7 +3190,10 @@ func (s *Server) armOwedSettlementCheckpointAtAppliedBoundary(loop freeStateReas
 	// The D1-AUDITION-GAP-1 correction, at the boundary where the debt became
 	// true: the apply landed over a goal the runner had already completed, and
 	// a completed goal cannot be resumed by the scheduler's settle slice.
-	s.harness.SetGoalStatus(settle.GoalID, agentruntime.StatusWaitingContinue, nil)
+	// Parked-resumable goals keep their park surface untouched.
+	if goal.Status == agentruntime.StatusCompleted {
+		s.harness.SetGoalStatus(settle.GoalID, agentruntime.StatusWaitingContinue, nil)
+	}
 	if err := s.persistContinuationState(); err != nil && s.logger != nil {
 		s.logger.Warn("[continuation.settle] applied-boundary arm failed to persist: err=%v", err)
 	}
