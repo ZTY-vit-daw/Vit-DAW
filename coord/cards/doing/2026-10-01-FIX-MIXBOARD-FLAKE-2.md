@@ -14,6 +14,6 @@
 - 文件域：agent/internal/harness/（该测试与其被测并发面，实锚后申报；预期 ≤2 文件）。
 - 验收标准：全量 0 FAIL×3 轮+断言语义零弱化 diff 审查+定性结论回写本卡。
 - 停止条件：取证发现非负载敏感（真竞态缺陷在生产路径）→ 升级 P1 上交另立卡。
-- 领取：（时间 / origin/main hash / 分支名）
+- 领取：（2026-10-02 10:08 +0800 / ccdc0a7a / port/fix-mixboard-flake-2，worktree=D:\Vit_DAW_worktrees\fix-mixboard-flake-2）
 - 回执：（commit hash / 定性 / 三轮全量结果）
 - 验收：（裁定文件 / 验收 commit）
