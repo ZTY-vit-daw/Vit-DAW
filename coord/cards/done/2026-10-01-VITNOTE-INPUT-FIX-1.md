@@ -29,4 +29,4 @@
   - **验收证据**：headless `--import` 修复前后均 EXIT=0 零 SCRIPT ERROR；探针 legacy 修复后全绿（上表）；无自动化测试基建如实申报（探针+手测代端测，AGENTS §5 渲染面边界声明：本卡探针覆盖输入链逻辑层，渲染/IME/真实窗口几何归手测）。
   - **手测清单（交用户，AGENTS §5 途径：用户从 Godot 拉起前端→dock 工作区进工程）**：①N 键/胶囊开便签→面板含收起按钮全部鼠标交互有效（收起/锚点重开/拖把手移动/输入框聚焦/发送）②面板悬浮于时间线轨道区上方时重复①（bug 原场景）③画布手势零回退：lane 上左拖 marquee 框选/clip 点选/clip 拖动/边缘裁剪/空区左拖与修复前一致④legacy 面板拖到画布上方重复①（同根验证）⑤面板底板空白处点击不应触发时间线操作（锚点 C 判据）。
   - **运行栈声明：本卡全程未启动真实三件套（VitApp 内核/Godot 前端正式栈/Go agent）；探针自起自退的 Godot 进程已全部退出（tasklist 核对零残留），无栈移交事项。**
-- 验收：（裁定文件 / 验收 commit）
+- 验收：**pass（2026-10-02 决策会话；面板终验挂用户手测）**——[rulings/2026-10-02-VITNOTE-INPUT-FIX-1-pass.md](../../rulings/2026-10-02-VITNOTE-INPUT-FIX-1-pass.md)；三锚点 diff 亲核+偏离申报采信（组旁路前置保守落地，画布零回退优先）+我方复跑（headless import EXIT=0+窗口模式 legacy 探针全绿复证：collapse 触发/hover 恢复/面板在场零穿透/隐藏对照 marquee 正常/根枚举补全）+探针原始输出未落盘注记（我方重跑补正）；Godot d97293c 为分支链 HEAD，V2-IMPL-A 依赖解锁
