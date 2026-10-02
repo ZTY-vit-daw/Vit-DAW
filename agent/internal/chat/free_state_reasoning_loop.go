@@ -1227,12 +1227,17 @@ func (s *Server) recordFreeStateDecision(conversationID string, res agentloop.Re
 	// requestAuditionJudgment), so arm the boundary here — after the final
 	// store, through the same guarded reload path the ready event drives, so
 	// no outer re-store can clobber the armed round.
+	// JUDGMENT-SETTLE-STALL-1: the same re-drive must fire for the parked
+	// shape — the decision just recorded user_judgment_pending while its
+	// companion report field never landed; that round is durably at the
+	// boundary and requestAuditionJudgment now admits it.
 	if loop.Experiment != nil && loop.Experiment.Admission.IsD1S1() &&
 		strings.TrimSpace(loop.AuditionSessionID) != "" &&
 		strings.EqualFold(firstStringFromMap(loop.AuditionSessionSnapshot, "status"), "ready") {
 		if round, roundErr := loop.Experiment.CurrentRound(); roundErr == nil &&
 			!round.UserJudgmentRequested && len(round.UserJudgmentEvidence) == 0 &&
-			round.TargetResponse != nil && round.TargetResponse.Outcome == trajectory.EvaluationHumanAuditionReady {
+			((round.TargetResponse != nil && round.TargetResponse.Outcome == trajectory.EvaluationHumanAuditionReady) ||
+				round.Decision == experiment.DecisionUserJudgment) {
 			s.requestAuditionJudgment(loop.ConversationID, loop.AuditionSessionID)
 		}
 	}

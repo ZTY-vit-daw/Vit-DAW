@@ -375,6 +375,13 @@ func (s *Server) handleAuditionCommand(w http.ResponseWriter, r *http.Request, a
 	s.updateAuditionSessionSnapshot(request.ConversationID, session)
 	s.persistCurrentProjectWorkspace()
 	s.emitAuditionEvent(request.ConversationID, eventType, session, nil)
+	// JUDGMENT-SETTLE-STALL-1 recovery: a round parked at the boundary before
+	// this fix never armed its judgment request (the settle tail never landed
+	// the target response), so a card mounted by the applied-boundary mount
+	// shows playback seats but no verdict seats. Any successful command on the
+	// session retries the idempotent arming so the seat appears without a
+	// restart or a new settle slice.
+	s.requestAuditionJudgment(request.ConversationID, request.SessionID)
 	writeJSON(w, http.StatusOK, map[string]any{"status": "ok", "session": session})
 }
 
@@ -771,11 +778,21 @@ func (s *Server) requestAuditionJudgment(conversationID, sessionID string) {
 	// (D1-AUDITION-GAP-1) reaches here before the settle report has recorded
 	// the round's human_audition_ready target response; transitioning the task
 	// there strands the boundary — the settle turn's report decision is then
-	// rejected by the task state machine (improvement_proposed is not allowed
+	// rejected by the task state machine (improvement_proposal is not allowed
 	// from human_judgment_required; 2026-09-28 runs 120230/120725 both ended
 	// at "acoustic materiality record is missing"). Decline instead: the
 	// settle ingest re-drives this request once the round actually qualifies.
-	if round.TargetResponse == nil || round.TargetResponse.Outcome != trajectory.EvaluationHumanAuditionReady {
+	//
+	// JUDGMENT-SETTLE-STALL-1 exception: a round already parked at the boundary
+	// by its OWN user_judgment_pending decision has no settle turn left to
+	// strand — that decision landed and only its companion report field is
+	// missing. Leaving the shape declined is exactly how the 2026-10-02
+	// webui_muqwy5sv run wedged (card mounted, seat never armed, task stayed
+	// needs_experiment, parked controller kept the conversation). Arm it through
+	// the guarded parked-boundary API instead; a late settle report still lands
+	// its fields on the round and only its round decision is refused.
+	roundParkedAtBoundary := round.Decision == experiment.DecisionUserJudgment
+	if (round.TargetResponse == nil || round.TargetResponse.Outcome != trajectory.EvaluationHumanAuditionReady) && !roundParkedAtBoundary {
 		if s.logger != nil {
 			s.logger.Info("[audition] judgment request declined until the round records its human_audition_ready target response session=%s", sessionID)
 		}
@@ -803,10 +820,19 @@ func (s *Server) requestAuditionJudgment(conversationID, sessionID string) {
 			return
 		}
 	}
-	events, err := loop.Experiment.RequestUserJudgmentForSession("A/B audition required", sessionID, time.Now().UTC())
-	if err != nil {
+	// JUDGMENT-SETTLE-STALL-1: the armed and the parked-boundary shapes share
+	// every guard here; only the round's substrate differs (recorded target
+	// response vs the parked user_judgment_pending decision).
+	var events []trajectory.Event
+	var requestErr error
+	if round.TargetResponse != nil && round.TargetResponse.Outcome == trajectory.EvaluationHumanAuditionReady {
+		events, requestErr = loop.Experiment.RequestUserJudgmentForSession("A/B audition required", sessionID, time.Now().UTC())
+	} else {
+		events, requestErr = loop.Experiment.RequestUserJudgmentAtParkedBoundary("A/B audition required", sessionID, time.Now().UTC())
+	}
+	if requestErr != nil {
 		if s.logger != nil {
-			s.logger.Warn("[audition] user judgment request rejected: %v", err)
+			s.logger.Warn("[audition] user judgment request rejected: %v", requestErr)
 		}
 		return
 	}
@@ -865,8 +891,19 @@ func (s *Server) recordFreeStateAuditionJudgment(ctx context.Context, request au
 				}
 			}
 		}
-		if events, bindErr := loop.Experiment.RequestUserJudgmentForSession("A/B audition required", request.SessionID, time.Now().UTC()); bindErr == nil {
-			s.emitFreeStateExperimentEvents(events)
+		// JUDGMENT-SETTLE-STALL-1: the bind must serve the parked-boundary
+		// shape too — round decision user_judgment_pending with no target
+		// response arms through the parked-boundary API, never through a
+		// weakened identity check.
+		var bindEvents []trajectory.Event
+		var bindErr error
+		if round.TargetResponse != nil && round.TargetResponse.Outcome == trajectory.EvaluationHumanAuditionReady {
+			bindEvents, bindErr = loop.Experiment.RequestUserJudgmentForSession("A/B audition required", request.SessionID, time.Now().UTC())
+		} else {
+			bindEvents, bindErr = loop.Experiment.RequestUserJudgmentAtParkedBoundary("A/B audition required", request.SessionID, time.Now().UTC())
+		}
+		if bindErr == nil {
+			s.emitFreeStateExperimentEvents(bindEvents)
 			s.storeFreeStateLoop(loop)
 			round, err = loop.Experiment.CurrentRound()
 			if err != nil {
@@ -992,10 +1029,80 @@ func (s *Server) recordFreeStateAuditionJudgment(ctx context.Context, request au
 	// before this point the mapping exists solely inside the evidence structure
 	// the settlement reads.
 	s.publishAuditionBlindDisclosure(&loop, auditionSession, evidence)
+	// JUDGMENT-SETTLE-STALL-1（用户裁定 2026-10-02：判定后反馈面=通用确认卡语义）:
+	// a settled judgment must close the whole residency, not just the experiment —
+	// the session closure settles with the honest task reason, the controller
+	// owner is released so the next user input starts cleanly, and the user gets
+	// a visible new reply stating what the judgment did.
+	s.finishJudgmentSettlement(&loop, evidence)
 	loop.UpdatedAt = time.Now().UTC()
 	s.storeFreeStateLoop(loop)
 	s.persistCurrentProjectWorkspace()
 	return evidence, nil
+}
+
+// judgmentSettlementReply is the user-visible settle report for a landed A/B
+// judgment: what the user picked, what was executed (retain/rollback/terminal),
+// and the durable identities for audit. It deliberately uses no internal
+// codenames (FAM3-S1) and never claims an un-judged improvement.
+func judgmentSettlementReply(loop freeStateReasoningLoop, evidence experiment.UserJudgmentEvidence) string {
+	if loop.Experiment == nil {
+		return ""
+	}
+	var disposition string
+	switch loop.Experiment.Outcome {
+	case experiment.OutcomeImproved:
+		disposition = "已按你的判定保留改动后状态"
+	case experiment.OutcomeRolledBack:
+		disposition = "已按你的判定回滚到改动前状态"
+	case experiment.OutcomeNeedsJudgment:
+		disposition = "判定未指向任一候选，实验按人耳判断收口，未执行进一步变更"
+	case experiment.OutcomeAdoptedByContinuation:
+		disposition = "待裁决段按默认采纳收口"
+	default:
+		disposition = "实验已按判定收口（" + string(loop.Experiment.Outcome) + "）"
+	}
+	roundID := ""
+	if round, err := loop.Experiment.CurrentRound(); err == nil {
+		roundID = round.ID
+	}
+	reply := "A/B 判定已落账并完成结算：" + disposition + "。"
+	if summary := strings.TrimSpace(loop.Experiment.Settlement); summary != "" {
+		reply += summary + "。"
+	}
+	reply += fmt.Sprintf("（判定证据 %s · 实验轮 %s）", evidence.ID, firstNonEmpty(roundID, evidence.RoundID))
+	return reply
+}
+
+// finishJudgmentSettlement closes the post-judgment tail for a settled
+// experiment: the session audio closure settles with the honest task reason and
+// the controller owner is released (a wedge here is what turned the 2026-10-02
+// parked boundary into "conversation is already owned" for the next goal), and
+// the settle reply reaches the user as a visible stream message (closed
+// template — states the executed action and the audit identities, no
+// satisfaction claims). Failures WARN and leave the durable experiment state
+// untouched; the prepareAudioClosureContext finished-task guard remains the
+// defense-in-depth net for any closure that could not settle here.
+func (s *Server) finishJudgmentSettlement(loop *freeStateReasoningLoop, evidence experiment.UserJudgmentEvidence) {
+	if s == nil || loop == nil || loop.Experiment == nil || loop.Experiment.Status != experiment.StatusSettled {
+		return
+	}
+	reply := judgmentSettlementReply(*loop, evidence)
+	s.settleJudgedClosure(loop.ConversationID, loop.GoalID, reply)
+	if reply == "" {
+		return
+	}
+	event := AgentEvent{
+		Type: "judgment.settled", ItemID: "judgment_settle:" + evidence.ID, ItemType: "judgment",
+		GoalID: loop.GoalID, RunID: loop.RunID,
+		Status: "completed", Body: reply, Payload: map[string]any{
+			"schema_version": auditionSchemaVersion, "judgment_evidence_id": evidence.ID,
+			"audition_session_id": evidence.AuditionSessionID, "experiment_id": loop.Experiment.ID,
+			"experiment_outcome": string(loop.Experiment.Outcome), "settlement_reply": true,
+		},
+		MessageKind: "activity", LogicalMessageID: "judgment_settle:" + evidence.ID,
+	}
+	s.emitAgentEvent(loop.ConversationID, event)
 }
 
 // auditionBlindDisclosureForSession reads back the disclosure persisted with the
@@ -1094,6 +1201,17 @@ func buildUserJudgmentEvidence(loop freeStateReasoningLoop, round experiment.Rou
 	if candidateACheckpointRef == "" && firstStringFromMap(candidateA, "source_kind") == "checkpoint" {
 		candidateACheckpointRef = strings.TrimPrefix(firstStringFromMap(candidateA, "source_ref"), "checkpoint:")
 	}
+	// JUDGMENT-SETTLE-STALL-1: the parked-boundary shape reaches here before its
+	// target response is reconstructed (that happens in
+	// RecordUserJudgmentEvidence); the analytical refs then fall back to the
+	// boundary's own evidence (round observations/materiality) instead of
+	// panicking on a nil evaluation.
+	analyticalEvidenceRefs := []string{}
+	if round.TargetResponse != nil {
+		analyticalEvidenceRefs = append(analyticalEvidenceRefs, round.TargetResponse.EvidenceRefs...)
+	} else {
+		analyticalEvidenceRefs = append(analyticalEvidenceRefs, experiment.RoundJudgmentBoundaryEvidenceRefs(round)...)
+	}
 	return experiment.UserJudgmentEvidence{
 		SchemaVersion:  experiment.UserJudgmentEvidenceSchemaVersion,
 		ConversationID: loop.ConversationID, TurnID: loop.Experiment.ID, RoundID: round.ID, AuditionSessionID: sessionID,
@@ -1107,7 +1225,7 @@ func buildUserJudgmentEvidence(loop freeStateReasoningLoop, round experiment.Rou
 		CandidateARenderRevision: firstStringFromMap(candidateA, "render_revision"), CandidateBRenderRevision: firstStringFromMap(candidateB, "render_revision"),
 		ProjectUUID: firstStringFromMap(session, "project_uuid"), ProjectRevision: projectRevision,
 		Scope: firstStringFromMap(session, "scope"), TransportAnchor: cloneContext(transportAnchor), LoudnessReference: cloneContext(loudnessReference),
-		AnalyticalEvidenceRefs: append([]string(nil), round.TargetResponse.EvidenceRefs...), HeardDifference: heard, Preference: preference,
+		AnalyticalEvidenceRefs: analyticalEvidenceRefs, HeardDifference: heard, Preference: preference,
 		ReasonTags: append([]string(nil), reasonTags...), FreeText: strings.TrimSpace(freeText), CreatedAt: time.Now().UTC(),
 	}
 }

@@ -1,6 +1,7 @@
 package chat
 
 import (
+	"context"
 	"strings"
 	"time"
 
@@ -53,8 +54,17 @@ func (s *Server) settleJudgmentParkOnUserContinuation(conversationID, message st
 		return false
 	}
 	loop, ok := s.freeStateLoop(conversationID)
-	if !ok || !judgmentParkPendingRound(loop) {
+	if !ok {
 		return false
+	}
+	if !judgmentParkPendingRound(loop) {
+		// JUDGMENT-SETTLE-STALL-1: a round that already recorded its judgment but
+		// never finished settling (settle/rollback failed mid-path on the parked
+		// loop) must not wedge the conversation the way the un-judged park did —
+		// the recorded judgment is the authority the settlement needs, so
+		// finishing it here honors the user's earlier answer instead of silently
+		// re-adopting or rejecting the input.
+		return s.finishJudgedParkOnUserContinuation(conversationID, loop)
 	}
 	now := time.Now().UTC()
 	round, err := loop.Experiment.CurrentRound()
@@ -156,6 +166,12 @@ func (s *Server) settleAdoptedParkClosure(conversationID, goalID string) {
 		if s.logger != nil {
 			s.logger.Warn("[judgment-park-continuation] adoption closure settle save failed for %s: %v", state.ClosureID, err)
 		}
+		// JUDGMENT-SETTLE-STALL-1: a failed store save must not leave the
+		// controller owner wedged — the settle itself succeeded and the state in
+		// hand is terminal, so the registry owner is released regardless; the
+		// store row stays non-terminal as orphaned audit data the
+		// prepareAudioClosureContext finished-task guard can still settle later.
+		s.settleAudioClosureOwner(settled)
 		return
 	}
 	s.settleAudioClosureOwner(settled)
@@ -163,6 +179,93 @@ func (s *Server) settleAdoptedParkClosure(conversationID, goalID string) {
 	if s.logger != nil {
 		s.logger.Info("[judgment-park-continuation] settled adopted park closure=%s reason=%s goal=%s",
 			state.ClosureID, audioclosure.StopAdoptedByContinuation, goalID)
+	}
+}
+
+// finishJudgedParkOnUserContinuation closes the judged-but-unsettled park: the
+// round recorded its user judgment evidence but the settlement never completed
+// (settle/rollback failed mid-path on the single-round tier). The recorded
+// judgment — not a default adoption — is the settlement authority, so the new
+// user input drives the same deterministic outcome the judgment POST would
+// have. The legacy candidate tier's awaiting_candidate_apply state is a
+// DESIGNED waiting shape (the explicit apply boundary owns the settlement) and
+// is excluded; every other shape returns false with state untouched.
+func (s *Server) finishJudgedParkOnUserContinuation(conversationID string, loop freeStateReasoningLoop) bool {
+	if loop.Experiment == nil || !freeStateJudgmentBoundary(loop) {
+		return false
+	}
+	switch loop.Experiment.Status {
+	case experiment.StatusSettled, experiment.StatusStopped:
+		return false
+	}
+	if !strings.EqualFold(strings.TrimSpace(loop.Status), "blocked") {
+		return false
+	}
+	round, err := loop.Experiment.CurrentRound()
+	if err != nil || len(round.UserJudgmentEvidence) == 0 {
+		return false
+	}
+	evidence := round.UserJudgmentEvidence[len(round.UserJudgmentEvidence)-1]
+	if err := s.applyFreeStateJudgmentOutcome(context.Background(), &loop, evidence); err != nil {
+		if s.logger != nil {
+			s.logger.Warn("[judgment-park-continuation] recorded-judgment settlement rejected conversation=%s goal=%s: %v",
+				conversationID, loop.GoalID, err)
+		}
+		return false
+	}
+	s.finishJudgmentSettlement(&loop, evidence)
+	loop.UpdatedAt = time.Now().UTC()
+	s.storeFreeStateLoop(loop)
+	s.persistCurrentProjectWorkspace()
+	s.harness.CompleteGoal(loop.GoalID, nil)
+	if s.logger != nil {
+		s.logger.Info("[judgment-park-continuation] parked round settled by recorded judgment conversation=%s goal=%s round=%s",
+			conversationID, loop.GoalID, round.ID)
+	}
+	return true
+}
+
+// settleJudgedClosure is the judgment-settle counterpart of
+// settleAdoptedParkClosure: the experiment settled through the governed
+// judgment path (EventTaskSettled), so the conversation's session closure must
+// not outlive it holding the controller owner — the 2026-10-02 live wedge had
+// exactly that residue turn the NEXT goal's entry into "conversation is
+// already owned by minimal_audio_closure". Failures only WARN; the
+// prepareAudioClosureContext finished-task guard remains the net.
+func (s *Server) settleJudgedClosure(conversationID, goalID, summary string) {
+	if s == nil || s.audioClosures == nil {
+		return
+	}
+	state, ok := s.audioClosures.ActiveForConversation(conversationID)
+	if !ok || state.Terminal() || state.GoalID != goalID {
+		return
+	}
+	projected := state
+	if state.ContractID != "" {
+		if next, err := s.projectAudioClosureTaskState(state); err == nil {
+			projected = next
+		} else if s.logger != nil {
+			s.logger.Warn("[judgment-settle] closure task projection failed for %s: %v", state.ClosureID, err)
+		}
+	}
+	settled := audioClosureSettleFromResult(audioclosure.Driver{}, projected, agentloop.Result{Reply: summary})
+	if !settled.Terminal() {
+		if s.logger != nil {
+			s.logger.Warn("[judgment-settle] closure %s could not map its task state to a settle reason; leaving it to the binding guard", state.ClosureID)
+		}
+		return
+	}
+	if err := s.audioClosures.Save(settled, state.Revision); err != nil {
+		if s.logger != nil {
+			s.logger.Warn("[judgment-settle] closure settle save failed for %s: %v", state.ClosureID, err)
+		}
+		s.settleAudioClosureOwner(settled)
+		return
+	}
+	s.settleAudioClosureOwner(settled)
+	s.persistCurrentProjectWorkspace()
+	if s.logger != nil {
+		s.logger.Info("[judgment-settle] settled judged park closure=%s goal=%s", state.ClosureID, goalID)
 	}
 }
 

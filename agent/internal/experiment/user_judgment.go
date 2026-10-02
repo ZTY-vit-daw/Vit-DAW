@@ -145,6 +145,91 @@ func (t *Turn) RequestUserJudgment(summary string, now time.Time) ([]trajectory.
 	return nil, fmt.Errorf("user judgment requires audition_session_id; use RequestUserJudgmentForSession")
 }
 
+// RequestUserJudgmentAtParkedBoundary arms the durable human-judgment request
+// for the JUDGMENT-SETTLE-STALL-1 shape: the settle turn already recorded the
+// round decision user_judgment_pending — the round is durably parked at the
+// boundary by its own decision — but its companion report field (the
+// human_audition_ready target response) never landed, so the ordinary
+// RequestUserJudgmentForSession refuses the round and the boundary becomes
+// unanswerable (2026-10-02 webui_muqwy5sv: the A/B card mounted at the applied
+// boundary, the judgment seat never armed, the task stayed needs_experiment,
+// and the parked controller kept the conversation). The parked decision is the
+// durable statement that the human audition is the decider for this round, so
+// arming the request from it weakens no evidence gate: every original guard
+// except the missing-report one still applies, and a late settle report keeps
+// landing harmlessly (its round decision is rejected by
+// experimentJudgmentPending while materiality/target_response fields still
+// append to the round).
+func (t *Turn) RequestUserJudgmentAtParkedBoundary(summary, auditionSessionID string, now time.Time) ([]trajectory.Event, error) {
+	if err := t.ensureLive(); err != nil {
+		return nil, err
+	}
+	if t.ContractID != "" && t.TaskState != taskstate.StateHumanJudgmentRequired {
+		return nil, fmt.Errorf("user judgment request requires canonical task state human_judgment_required")
+	}
+	round, err := t.currentRound()
+	if err != nil {
+		return nil, err
+	}
+	if round.Decision != DecisionUserJudgment {
+		return nil, fmt.Errorf("parked-boundary judgment request requires the user_judgment_pending round decision, got %q", round.Decision)
+	}
+	if round.TargetResponse != nil {
+		return nil, fmt.Errorf("round carries a target response; use RequestUserJudgmentForSession")
+	}
+	if round.UserJudgmentRequested || len(round.UserJudgmentEvidence) > 0 {
+		return nil, fmt.Errorf("user judgment is already armed for this round")
+	}
+	auditionSessionID = strings.TrimSpace(auditionSessionID)
+	if auditionSessionID == "" {
+		return nil, fmt.Errorf("user judgment requires audition_session_id")
+	}
+	if now.IsZero() {
+		now = time.Now().UTC()
+	}
+	round.AuditionSessionID = auditionSessionID
+	round.UserJudgmentRequested = true
+	round.Status = RoundTargetResponse
+	round.Phase = "user_judgment_waiting"
+	round.UpdatedAt = now.UTC()
+	t.replaceRound(*round)
+	t.Status = StatusWaitingForUser
+	t.UpdatedAt = now.UTC()
+	evidenceRefs := RoundJudgmentBoundaryEvidenceRefs(*round)
+	return t.events(now, trajectory.EventUserJudgmentRequested, round.ID, trajectory.NodeJudgment,
+		"user A/B judgment requested", evidenceRefs, nil,
+		map[string]any{"summary": strings.TrimSpace(summary), "audition_session_id": auditionSessionID,
+			"parked_boundary": true}), nil
+}
+
+// roundJudgmentBoundaryEvidenceRefs names the evidence the parked boundary
+// arbitrates over: the round's recorded observations (post-action first) and
+// its materiality record when present. The ordinary armed path uses the target
+// response's own refs; the parked shape reconstructs them from the round.
+// RoundJudgmentBoundaryEvidenceRefs names the evidence the parked judgment boundary
+// arbitrates over; shared by the experiment-layer arming/reconstruction and the
+// chat-layer evidence builder so both cite the same refs.
+func RoundJudgmentBoundaryEvidenceRefs(round Round) []string {
+	out := []string{}
+	if round.Materiality != nil {
+		out = append(out, round.Materiality.EvidenceRefs...)
+	}
+	for index := len(round.Observations) - 1; index >= 0; index-- {
+		observation := round.Observations[index]
+		if !observation.PostAction {
+			continue
+		}
+		out = append(out, observation.EvidenceRefs...)
+		break
+	}
+	if len(out) == 0 {
+		for _, observation := range round.Observations {
+			out = append(out, observation.EvidenceRefs...)
+		}
+	}
+	return unique(out)
+}
+
 func (t *Turn) RecordUserJudgmentEvidence(evidence UserJudgmentEvidence, now time.Time) ([]trajectory.Event, error) {
 	if strings.TrimSpace(evidence.SupersedesID) == "" {
 		if err := t.ensureLive(); err != nil {
@@ -156,6 +241,28 @@ func (t *Turn) RecordUserJudgmentEvidence(evidence UserJudgmentEvidence, now tim
 		return nil, err
 	}
 	isCorrection := len(round.UserJudgmentEvidence) > 0
+	// JUDGMENT-SETTLE-STALL-1: a round durably parked at the boundary by its own
+	// user_judgment_pending decision may carry no target response at all (the
+	// settle tail never landed it). The parked decision itself states that the
+	// human audition is the decider, so the first judgment reconstructs the
+	// human_audition_ready evaluation the boundary was waiting for — the exact
+	// report shape RecordTargetResponse admits for this tier (ambiguous +
+	// human_audition_ready) — over the evidence the round actually holds. The
+	// promotion below then converts it from the recorded judgment exactly as it
+	// does for the ordinary armed shape; nothing is marked sufficient before a
+	// human preference B says so.
+	if !isCorrection && round.TargetResponse == nil && round.Decision == DecisionUserJudgment {
+		synthesized := TargetEvaluation{
+			Response:     TargetAmbiguous,
+			Outcome:      trajectory.EvaluationHumanAuditionReady,
+			Summary:      "human audition arbitrates this round (parked-boundary reconstruction)",
+			EvidenceRefs: RoundJudgmentBoundaryEvidenceRefs(*round),
+		}
+		if err := synthesized.Validate(); err != nil {
+			return nil, fmt.Errorf("parked-boundary target response reconstruction: %w", err)
+		}
+		round.TargetResponse = &synthesized
+	}
 	if !isCorrection && (round.TargetResponse == nil || round.TargetResponse.Outcome != trajectory.EvaluationHumanAuditionReady) {
 		return nil, fmt.Errorf("user judgment requires human_audition_ready target response")
 	}

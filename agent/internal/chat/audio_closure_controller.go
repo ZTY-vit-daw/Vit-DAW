@@ -304,7 +304,24 @@ func (s *Server) ensureAudioClosureOwner(state audioclosure.State) error {
 		if owner.Controller == orchestrationcontroller.MinimalAudioClosure && owner.ControllerID == state.ClosureID {
 			return nil
 		}
-		return fmt.Errorf("conversation is already owned by %s controller %s", owner.Controller, owner.ControllerID)
+		// JUDGMENT-SETTLE-STALL-1: an owner whose closure is terminal in the
+		// store (or gone entirely) is a settle's leftover — the 2026-10-02 live
+		// wedge reached exactly this shape ("conversation is already owned by
+		// minimal_audio_closure controller …" for a closure whose settle had
+		// landed without the registry release surviving, e.g. across a
+		// workspace-state restore). A finished closure can never legally own the
+		// conversation again, so the stale owner is retired with the honest
+		// reason and the intake proceeds; two LIVE closures keep failing closed.
+		if s.staleAudioClosureOwner(owner) {
+			if s.logger != nil {
+				s.logger.Warn("[audio-closure] releasing stale controller owner conversation=%s owner=%s (closure is terminal in the store)",
+					state.ConversationID, owner.ControllerID)
+			}
+			_, _ = s.controllerOwners.Settle(state.ConversationID, owner.ControllerID, owner.Revision,
+				"stale owner released: closure settled without registry release", time.Now().UTC())
+		} else {
+			return fmt.Errorf("conversation is already owned by %s controller %s", owner.Controller, owner.ControllerID)
+		}
 	}
 	_, _, err := s.controllerOwners.Acquire(state.ConversationID, state.ClosureID, orchestrationcontroller.Decision{
 		SchemaVersion: orchestrationcontroller.DecisionSchema, Controller: orchestrationcontroller.MinimalAudioClosure,
@@ -312,6 +329,21 @@ func (s *Server) ensureAudioClosureOwner(state audioclosure.State) error {
 		SourceRoute: audioClosureSourceRoute(state.Mode), Reason: "persistent minimal audio closure",
 	}, time.Now().UTC())
 	return err
+}
+
+// staleAudioClosureOwner reports whether the active registry owner names a
+// closure that no longer exists as a live closure in the store — settled,
+// cancelled, failed, or absent. Such an owner is residue by definition: the
+// conversation can only be owned by a live closure.
+func (s *Server) staleAudioClosureOwner(owner orchestrationcontroller.Owner) bool {
+	if s == nil || s.audioClosures == nil || owner.Controller != orchestrationcontroller.MinimalAudioClosure {
+		return false
+	}
+	state, ok := s.audioClosures.Load(owner.ControllerID)
+	if !ok {
+		return true
+	}
+	return state.Terminal()
 }
 
 func audioClosureSemanticScope(scope audioclosure.Scope) string {
