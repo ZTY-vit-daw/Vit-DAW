@@ -1,0 +1,10 @@
+run_id=hygiene_mac_20261002-105939
+started_at=2026-10-02 10:59:39
+repo_head=1f566a0699449f7de4fb89f190316d780b8d3891
+kernel_bin=/Users/timozty/Documents/vit-pluginlist-redeploy-20261002/build/vitapp/VitApp_artefacts/Debug/VitApp
+kernel_sha256=8624fe9e162fe7b65ddb5e1fd55c23621020fa11c7b86d961b56944aadcdbe96
+kernel_mtime=Oct  2 10:59:19 2026
+vst3_dir=/Library/Audio/Plug-Ins/VST3
+legs=D
+real_settings=/Users/timozty/Documents/Vit-DAW/VitApp/Workspace/Settings/Settings.xml
+real_settings_sha256=1e842d896497a281240d5a957828df157415c10a4dc7bcec88994c2f3deb0ce3
