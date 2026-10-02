@@ -259,10 +259,32 @@ func TestStaticEQVSPPortPreflightGuards(t *testing.T) {
 
 type fakeNBParam struct{ normalized float64 }
 
+// fakeNBStep is one position of a discrete stepped control exactly as the
+// kernel reports it: the state's normalized position (float32 promoted, like
+// the real VST3 host round-trips it) and its display text.
+type fakeNBStep struct {
+	Normalized float64
+	Text       string
+}
+
+// steppedGrid550A mirrors the API-550A Stereo Mid Gain surface measured on
+// the real kernel (D1-EQ-READBACK-550A-1, forensic1_20261002_111423): eleven
+// detents with non-linear dB spacing, no display-domain candidate, raw range
+// 0..1.
+var steppedGrid550A = []fakeNBStep{
+	{0.0, "-12 dB "}, {float64(float32(0.1)), "-9 dB "}, {float64(float32(0.2)), "-6 dB "},
+	{float64(float32(0.3)), "-4 dB "}, {float64(float32(0.4)), "-2 dB "}, {0.5, "0 dB "},
+	{float64(float32(0.6)), "+2 dB "}, {float64(float32(0.7)), "+4 dB "}, {float64(float32(0.8)), "+6 dB "},
+	{float64(float32(0.9)), "+9 dB "}, {1.0, "+12 dB "},
+}
+
 // fakeNBVSPClient simulates a real VST3 plugin host for the normalized batch
 // pipeline: path instantiation, a full parameter surface with display-domain
 // metadata, the typed plugin.set_params_batch command, and normalized
-// readback. Domains are [-24, +24] dB linear unless stated otherwise.
+// readback. Domains are [-24, +24] dB linear unless stated otherwise. A
+// non-empty stepped grid turns every parameter into a discrete stepped
+// control: writes snap to the nearest detent and the surface reports the
+// kernel's discrete metadata.
 type fakeNBVSPClient struct {
 	fakeVSPClient
 	domainMin, domainMax float64
@@ -270,12 +292,37 @@ type fakeNBVSPClient struct {
 	frozenPhysicalText   bool   // live value_text ignores writes (degenerate threshold display)
 	curveExponent        float64 // >0 bends physical = min + span*norm^k and switches text to the "+x.xx" form
 	displayQuantum       float64 // >0 rounds the curved display text to this dB step (coarse compressor readouts)
+	stepped              []fakeNBStep
 	params               map[string]*fakeNBParam
 	batchArgs            map[string]any
 	batchFailure         string // when set, the typed batch answers partial_failure
 	swallowWrites        bool   // kernel keeps old values despite ok status
 	readDrift            float64
 	failSurface          bool
+}
+
+// snapToStep emulates a stepped control's write behavior: any requested
+// normalized value lands on the nearest reachable detent.
+func (f *fakeNBVSPClient) snapToStep(normalized float64) float64 {
+	best, bestGap := f.stepped[0].Normalized, math.Abs(normalized-f.stepped[0].Normalized)
+	for _, step := range f.stepped[1:] {
+		if gap := math.Abs(normalized - step.Normalized); gap < bestGap {
+			best, bestGap = step.Normalized, gap
+		}
+	}
+	return best
+}
+
+// stepForNormalized resolves the detent a normalized position holds on.
+func (f *fakeNBVSPClient) stepForNormalized(normalized float64) fakeNBStep {
+	step := f.stepped[0]
+	gap := math.Abs(normalized - step.Normalized)
+	for _, candidate := range f.stepped[1:] {
+		if g := math.Abs(normalized - candidate.Normalized); g < gap {
+			step, gap = candidate, g
+		}
+	}
+	return step
 }
 
 func (f *fakeNBVSPClient) physicalFor(norm float64) float64 {
@@ -301,6 +348,28 @@ func newFakeNBVSPClient(ch1, ch2 string, domainMin, domainMax float64, withCandi
 
 func (f *fakeNBVSPClient) surfaceRow(paramID string) map[string]any {
 	state := f.params[paramID]
+	if len(f.stepped) > 0 {
+		step := f.stepForNormalized(state.normalized)
+		samples := []any{}
+		for _, sampleNormalized := range []float64{0, 0.25, 0.5, 0.75, 1} {
+			samples = append(samples, map[string]any{
+				"normalized_value": sampleNormalized,
+				"text":             f.stepForNormalized(sampleNormalized).Text,
+			})
+		}
+		labels := []any{}
+		for index, position := range f.stepped {
+			labels = append(labels, map[string]any{
+				"index": index, "value": position.Normalized, "label": position.Text,
+			})
+		}
+		return map[string]any{
+			"id": paramID, "param_id": paramID,
+			"normalized_value": state.normalized, "value_text": step.Text,
+			"is_discrete": true, "num_steps": len(f.stepped),
+			"display_probe": map[string]any{"mode": "read_only_value_to_string", "samples": samples, "discrete_labels": labels},
+		}
+	}
 	value := f.domainMin + state.normalized*(f.domainMax-f.domainMin)
 	text := fmt.Sprintf("%.2f dB", value)
 	if f.frozenPhysicalText || f.curveExponent > 0 {
@@ -379,7 +448,11 @@ func (f *fakeNBVSPClient) SendVSPCommandWithIDs(_ context.Context, command strin
 		if !f.swallowWrites {
 			for _, entry := range args["parameters"].([]map[string]any) {
 				if state, ok := f.params[fmt.Sprint(entry["parameter_id"])]; ok {
-					state.normalized = entry["normalized_value"].(float64)
+					value := entry["normalized_value"].(float64)
+					if len(f.stepped) > 0 {
+						value = f.snapToStep(value)
+					}
+					state.normalized = value
 				}
 			}
 		}
@@ -566,5 +639,79 @@ func TestStaticEQVSPPortReconcileStaysNotAppliedForPathOnlyActions(t *testing.T)
 	}
 	if receipt.Status != "not_applied" {
 		t.Fatalf("path-only actions cannot reconcile durably, got %+v", receipt)
+	}
+}
+
+// ---- stepped vs continuous absolute-semantics regression (550A vs Q3) --------
+
+// staticEQAbsoluteAction targets one band gain parameter with an absolute dB
+// value through the normalized batch pipeline.
+func staticEQAbsoluteAction(paramID string, targetDB float64) orchestration.Action {
+	return orchestration.Action{ID: "a-abs", Command: staticEQActionCommand, TargetRef: "t1",
+		BeforeFingerprint: "track:t1:eq:plg_1:pending",
+		Args: map[string]any{
+			"write_mode": WriteModeNormalizedBatchV1,
+			"plugin_path": "/Library/Audio/Plug-Ins/VST3/WaveShell1-VST3 17.1.vst3",
+			"param_id":    paramID,
+			"target_value": targetDB,
+		}}
+}
+
+// The 550A family on the absolute path: the requested dB maps onto the
+// nearest detent's normalized position instead of a continuous inversion.
+func TestStaticEQVSPPortSteppedAbsoluteSnapsToNearestDetent(t *testing.T) {
+	client := newFakeNBVSPClient("2", "2", 0, 1, false)
+	client.stepped = steppedGrid550A
+	client.params["2"].normalized = 0.5
+	port := &StaticEQVSPPort{Client: client}
+	action := staticEQAbsoluteAction("2", -2)
+	actionSet := orchestration.ActionSet{ProjectCutHash: "cut-eq", Actions: []orchestration.Action{action}}
+	if err := port.Preflight(context.Background(), actionSet, eqCut()); err != nil {
+		t.Fatal(err)
+	}
+	receipt, err := port.Apply(context.Background(), action, "execution:eq:a-abs")
+	if err != nil || receipt.Status != "applied" {
+		t.Fatalf("stepped absolute must apply: receipt=%+v err=%v", receipt, err)
+	}
+	parameters, _ := client.batchArgs["parameters"].([]map[string]any)
+	if len(parameters) != 1 {
+		t.Fatalf("single-channel absolute batch expected: %+v", client.batchArgs)
+	}
+	wantNormalized := float64(float32(0.4)) // -2 dB detent position
+	if got := parameters[0]["normalized_value"].(float64); math.Abs(got-wantNormalized) > 1e-12 {
+		t.Fatalf("requested normalized %v want detent %v", got, wantNormalized)
+	}
+	if got := receipt.Details["actual_readback_value"].(float64); math.Abs(got-(-2)) > eqSteppedPhysicalToleranceDB {
+		t.Fatalf("actual_readback_value=%v want -2", receipt.Details["actual_readback_value"])
+	}
+	if receipt.Details["readback_verified"] != true {
+		t.Fatalf("readback must verify: %+v", receipt.Details)
+	}
+}
+
+// The Q3 family control guard: a continuous gain parameter keeps the exact
+// linear mapping (byte-identical legacy pipeline, no stepped metadata).
+func TestStaticEQVSPPortContinuousAbsoluteKeepsLinearMapping(t *testing.T) {
+	client := newFakeNBVSPClient("12", "12", -18, 18, true) // Q3 Band 3 Gain: continuous, linear ±18 dB
+	port := &StaticEQVSPPort{Client: client}
+	action := staticEQAbsoluteAction("12", -3)
+	actionSet := orchestration.ActionSet{ProjectCutHash: "cut-eq", Actions: []orchestration.Action{action}}
+	if err := port.Preflight(context.Background(), actionSet, eqCut()); err != nil {
+		t.Fatal(err)
+	}
+	receipt, err := port.Apply(context.Background(), action, "execution:eq:a-abs")
+	if err != nil || receipt.Status != "applied" {
+		t.Fatalf("continuous absolute must apply: receipt=%+v err=%v", receipt, err)
+	}
+	parameters, _ := client.batchArgs["parameters"].([]map[string]any)
+	wantNormalized := (-3.0 - (-18.0)) / 36.0
+	if got := parameters[0]["normalized_value"].(float64); math.Abs(got-wantNormalized) > 1e-12 {
+		t.Fatalf("requested normalized %v want linear %v", got, wantNormalized)
+	}
+	if _, has := receipt.Details["delta_calibration"]; has {
+		t.Fatalf("continuous absolute must not carry delta metadata: %+v", receipt.Details)
+	}
+	if got := receipt.Details["actual_readback_value"].(float64); math.Abs(got-(-3)) > 0.01 {
+		t.Fatalf("actual_readback_value=%v want -3", receipt.Details["actual_readback_value"])
 	}
 }
