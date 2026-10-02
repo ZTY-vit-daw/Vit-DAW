@@ -1,0 +1,25 @@
+Initialize godot-rust (API v4.5.stable.official, runtime v4.6.1.stable.official, safeguards balanced)
+[VulkanHook/Windows] Installing vkCreateDevice hook...
+[VulkanHook/Windows] Hook installed successfully
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+[probe] VITNOTE-V2-IMPL-D panel summary suite start
+[probe] PASS panel _ready built summary label
+[probe] PASS summary[empty snapshot no faces key]
+[probe] PASS summary[faces empty array]
+[probe] PASS summary[faces not array (defensive)]
+[probe] PASS summary[two faces design sample]
+[probe] PASS summary[three faces cross-panel (§10.2 step3 form)]
+[probe] PASS summary[single face control 100%]
+[probe] PASS summary[rack label with track name (§6.2 form)]
+[probe] PASS summary[share rounding .284/.286]
+[probe] PASS summary[payload order preserved (no resort)]
+[probe] PASS summary[non-dict element skipped]
+[probe] PASS summary[empty label falls back to face_kind]
+[probe] FAIL summary[empty label and kind falls to generic] | expected=note_probe · 面 50% got=note_probe ·  50%
+[probe] PASS summary[missing selection_share defaults 0%]
+[probe] PASS summary[non-dict only faces stays empty district]
+[probe] PASS tooltip synced with summary
+[probe] ---- summary ----
+[probe] checks=16 failed=1
+[probe] PROBE FAIL
