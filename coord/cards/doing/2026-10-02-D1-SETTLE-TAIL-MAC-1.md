@@ -16,6 +16,6 @@
 - 文件域：agent chat/settle 机械域（free_state_d1_runtime 尾段链一带，实锚后申报）；若根因在内核调度面→实证上交转内核卡。
 - 验收标准：根因取证报告+修复 diff+相关包全绿+全量 0 FAIL+d1 冒测 exit-0（run 工件可回指）+泊位声明。
 - 停止条件：①取证发现缺陷在内核调度面（agent 侧无法闭环）→ 实证上交；②时序缺陷无法在 mac 稳定复现（需构造确定性复现路径，无法构造则如实上交定方案）。
-- 领取：（时间 / origin/main hash / 分支名）
+- 领取：2026-10-02 / origin/main=8c3ff03 / port/d1-settle-tail-mac-1（Mac 执行侧，独立 worktree ~/Documents/vit-d1settle-mac1）
 - 回执：（commit hash / 取证根因 / 冒测 run ID / 泊位声明）
 - 验收：（裁定文件 / 验收 commit）
