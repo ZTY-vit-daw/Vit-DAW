@@ -18,6 +18,6 @@
 - 验收标准：目标 1-4 落地+E2E（含新增组）exit 0+用户目检复验（三区布局/侧边栏操作/视窗已删）。
 - 二期钩子（登记不实施）：工程概览证据卡（TOM/ui-state 只读）+A/B 卡内嵌可播放渲染对比（decision 文件 §三步走）。
 - 停止条件：删除发现组件被证据链深度耦合（删常驻仍破坏功能）→ 保留组件+如实申报耦合点上交；侧边栏与 conversationIdentity/historyScope 既有语义冲突 → 带锚点上交。
-- 领取：（时间 / origin/main hash / 分支名）
+- 领取：2026-10-02 20:43 / origin/main=1ed78d7d / 分支 port/webui-ia-redesign-1（独立 worktree D:\Vit_DAW_wt_webui_ia_1，PC 执行侧 GLM-5.3）
 - 回执：（commit hash / 删减行数 / 三核对结论 / E2E 结果 / 截图）
 - 验收：（裁定文件 / 验收 commit）
