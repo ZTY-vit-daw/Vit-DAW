@@ -535,6 +535,195 @@ func TestAppliedBoundaryArmsSettleCheckpointOverCompletedGoal(t *testing.T) {
 	}
 }
 
+// D1-SETTLE-TAIL-MAC-1 主钉：2026-10-02 Mac round_1 真栈形态
+// （d1_550a_20261002_182113 r1）——generic mix-tick answerable park 先落
+// （10:26:09.7），orchestration 回合把干预 apply 在 parked goal 之上
+// （10:26:12），goal 停 waiting_confirmation 永不发 result：applied 边界与
+// recordGoalResult 的 completed-over-owed 边界双双不可达，settle 尾段
+// （materiality/target_response -> 判定边界）整窗饥饿，调度器正确地握着
+// answerable park 不放（"answerable park holds the chain"）。应用边界必须
+// 对 parked-resumable goal 也造 settle 检查点，且被位移的可答 park 记录
+// 必须原样存活（应答按 interaction_id 退役，不按槽归属）。
+func TestAppliedBoundaryArmsSettleCheckpointOverAnswerablePark(t *testing.T) {
+	s := New(nil, nil, nil)
+	s.auditionKernel = &fakeAuditionKernel{}
+	s.auditionCandidateDriver = newCandidateDriverForTest(auditionProjectPathForTest(t))
+
+	loop := d1LoopForTest(t, "7")
+	beforePath := writeD1WAVForTest(t, "before_revision_7_parked_apply.wav")
+	loop.D1State = map[string]any{
+		"before_render": map[string]any{
+			"phase": "before", "status": "ready", "file_path": beforePath, "project_revision": "7",
+			"sha256": strings.Repeat("d", 64), "render_revision": d1RenderRevisionForTest(loop.Experiment.ID, "before", "7"),
+			"preview_revision": "sha256:before-parked-apply",
+		},
+	}
+	s.storeFreeStateLoop(loop)
+	afterPath := writeD1WAVForTest(t, "after_revision_8_parked_apply.wav")
+	loop.D1State["after_render"] = map[string]any{
+		"phase": "after", "status": "ready", "file_path": afterPath, "project_revision": "8",
+		"sha256": strings.Repeat("e", 64), "render_revision": d1RenderRevisionForTest(loop.Experiment.ID, "after", "8"),
+		"preview_revision": "sha256:after-parked-apply",
+	}
+	loop.ContinuationBudget, loop.ContinuationUsed = 6, 3
+	s.storeFreeStateLoop(loop)
+
+	// parked goal（mix-tick 可答 park 之后的真栈形态）+ 槽被该 park 占用。
+	goal := s.harness.EnsureGoal(loop.GoalID, loop.RunID, loop.OriginalIntent)
+	s.harness.SetGoalStatus(goal.GoalID, agentruntime.StatusWaitingConfirmation, nil)
+	parkedCont := agentloop.Continuation{
+		ContinuationID: "cont-parked-mix-tick", GoalID: loop.GoalID, RunID: loop.RunID,
+		SliceID: "slice-parked-mix-tick", TurnID: "turn-parked-mix-tick", OriginalIntent: loop.OriginalIntent,
+	}
+	parkedDurable := DurableContinuation{
+		SchemaVersion: continuationRuntimeSchema, ContinuationID: "cont-parked-mix-tick",
+		GoalID: loop.GoalID, ConversationID: loop.ConversationID, RunID: loop.RunID,
+		CurrentSliceID: "slice-parked-mix-tick", CurrentTurnID: "turn-parked-mix-tick",
+		OriginalIntent: loop.OriginalIntent, Continuation: parkedCont,
+		Status: ContinuationWaitingInteraction,
+		PendingInteraction: map[string]any{
+			"interaction_id": "interaction-mix-tick-parked", "status": "waiting_confirmation",
+			"requests": []any{map[string]any{"id": "interaction-mix-tick-parked", "kind": "mix_tick_confirmation"}},
+		},
+	}
+	s.mu.Lock()
+	s.durableContinuations[parkedDurable.ContinuationID] = cloneDurableContinuation(parkedDurable)
+	s.goalContinuations[loop.GoalID] = parkedCont
+	s.mu.Unlock()
+
+	receipt := orchestration.ActionReceipt{ActionID: "d1-action-parked-apply", Status: "applied", AppliedRevision: "8", EffectivelyOnce: true, Details: map[string]any{
+		"before_revision": "7", "after_revision": "8", "transaction_id": "tx-parked-apply", "idempotency_key": "key-parked-apply",
+		"actual_readback_db": -1.0, "readback_verified": true,
+	}}
+	session := orchestration.PlanningSession{ID: "d1-session-parked-apply", Status: orchestration.StatusCompleted, Execution: &orchestration.ExecutionRecord{
+		ID: "execution-parked-apply", IdempotencyKey: "key-parked-apply", Receipts: []orchestration.ActionReceipt{receipt},
+		VerificationResult: &orchestration.VerificationResult{Status: "verified", Fresh: true, PostAction: true, ObservationID: "obs-parked-apply", ObservationRevision: "8", EvidenceRefs: []string{"ccb-parked-apply"}},
+	}}
+
+	resp := s.projectD1Execution(loop, session, nil)
+
+	s.mu.Lock()
+	var settleDurable *DurableContinuation
+	alive, pending := 0, 0
+	for _, item := range s.durableContinuations {
+		if contextBool(item.Continuation.Context, settleCheckpointMarker) && continuationRunnableStatus(item.Status) {
+			durable := item
+			settleDurable = &durable
+			pending++
+		}
+		if item.ContinuationID == parkedDurable.ContinuationID {
+			alive++
+			if item.Status != ContinuationWaitingInteraction {
+				t.Fatalf("the answerable park must survive the settle arm unchanged, got status=%s", item.Status)
+			}
+			if firstStringFromMap(item.PendingInteraction, "interaction_id") != "interaction-mix-tick-parked" {
+				t.Fatalf("the answerable park lost its interaction identity: %+v", item.PendingInteraction)
+			}
+		}
+	}
+	latched := s.goalHasSettleCheckpointLocked(loop.GoalID)
+	slot := s.goalContinuations[loop.GoalID]
+	s.mu.Unlock()
+	if settleDurable == nil || !latched {
+		t.Fatalf("the applied boundary must arm the settle checkpoint over a parked-resumable goal: pending=%d latched=%t", pending, latched)
+	}
+	if alive != 1 {
+		t.Fatalf("the parked mix-tick durable must survive exactly once, saw %d copies", alive)
+	}
+	if slot.ContinuationID != settleDurable.ContinuationID {
+		t.Fatalf("the arm slot must move to the settle checkpoint, got slot=%s settle=%s", slot.ContinuationID, settleDurable.ContinuationID)
+	}
+	// parked goal 的 park 面不动：waiting_confirmation 已是合法 resume 形态，
+	// 不得被改写成 waiting_continue（那会降级待答交互的用户可见状态）。
+	if after := s.harness.RuntimeStatus(goal.GoalID); after.Status != agentruntime.StatusWaitingConfirmation {
+		t.Fatalf("a parked-resumable goal must keep its park surface at the applied boundary, got %s", after.Status)
+	}
+	if resp.StopReason != "d1_post_action_evaluation_required" || resp.GoalStatus != string(agentruntime.StatusWaitingContinue) {
+		t.Fatalf("the applied response contract changed: status=%s stop=%s", resp.GoalStatus, resp.StopReason)
+	}
+}
+
+// 守卫钉：槽占用者是 runnable durable（活的自动片）时不得造第二张活片——
+// 该 goal 已有自己的驱动，无需桥接。
+func TestSettleArmRefusedOverRunnableArmOccupant(t *testing.T) {
+	s, loop, _ := d1StallServerLoopForTest(t)
+	now := time.Now().UTC()
+	runnableCont := agentloop.Continuation{
+		ContinuationID: "cont-runnable-occupant", GoalID: loop.GoalID, RunID: loop.RunID,
+		SliceID: "slice-runnable-occupant", TurnID: "turn-runnable-occupant", OriginalIntent: loop.OriginalIntent,
+		Context: map[string]any{},
+	}
+	runnableDurable := DurableContinuation{
+		SchemaVersion: continuationRuntimeSchema, ContinuationID: "cont-runnable-occupant",
+		GoalID: loop.GoalID, ConversationID: loop.ConversationID, RunID: loop.RunID,
+		CurrentSliceID: "slice-runnable-occupant", CurrentTurnID: "turn-runnable-occupant",
+		OriginalIntent: loop.OriginalIntent, Continuation: runnableCont,
+		Status: ContinuationPending, CreatedAt: now, UpdatedAt: now,
+	}
+	s.mu.Lock()
+	s.durableContinuations[runnableDurable.ContinuationID] = cloneDurableContinuation(runnableDurable)
+	s.goalContinuations[loop.GoalID] = runnableCont
+	s.mu.Unlock()
+
+	settle := s.armOwedSettlementCheckpointLocked(loop.ConversationID, agentloop.Result{
+		GoalID: loop.GoalID, RunID: loop.RunID, OriginalIntent: loop.OriginalIntent,
+	}, loop)
+
+	if settle != nil {
+		t.Fatalf("the settle arm must refuse over a runnable occupant, armed %s", settle.ContinuationID)
+	}
+	if occupant := s.goalContinuations[loop.GoalID]; occupant.ContinuationID != runnableCont.ContinuationID {
+		t.Fatalf("the runnable occupant must keep the slot, got %s", occupant.ContinuationID)
+	}
+	if item, ok := s.durableContinuations[runnableDurable.ContinuationID]; !ok || item.Status != ContinuationPending {
+		t.Fatalf("the runnable occupant durable must survive untouched: ok=%t status=%s", ok, item.Status)
+	}
+}
+
+// 守卫钉：槽占用者是不可答的 legacy shell（waiting_interaction 无 interaction
+// 身份）时，settle arm 按 recalibration-arm 配方取消该记录再占槽——留它在盘上
+// 会被 latest-by-goal restore 回灌槽位、重新毒化 goal 的驱动路径。
+func TestSettleArmDisplacesLegacyShellOccupant(t *testing.T) {
+	s, loop, _ := d1StallServerLoopForTest(t)
+	now := time.Now().UTC()
+	shellCont := agentloop.Continuation{
+		ContinuationID: "cont-legacy-shell", GoalID: loop.GoalID, RunID: loop.RunID,
+		SliceID: "slice-legacy-shell", TurnID: "turn-legacy-shell", OriginalIntent: loop.OriginalIntent,
+		Context: map[string]any{},
+	}
+	shellDurable := DurableContinuation{
+		SchemaVersion: continuationRuntimeSchema, ContinuationID: "cont-legacy-shell",
+		GoalID: loop.GoalID, ConversationID: loop.ConversationID, RunID: loop.RunID,
+		CurrentSliceID: "slice-legacy-shell", CurrentTurnID: "turn-legacy-shell",
+		OriginalIntent: loop.OriginalIntent, Continuation: shellCont,
+		Status: ContinuationWaitingInteraction,
+		PendingInteraction: map[string]any{"status": "legacy_waiting_continue"},
+		CreatedAt:          now, UpdatedAt: now,
+	}
+	s.mu.Lock()
+	s.durableContinuations[shellDurable.ContinuationID] = cloneDurableContinuation(shellDurable)
+	s.goalContinuations[loop.GoalID] = shellCont
+	s.mu.Unlock()
+
+	settle := s.armOwedSettlementCheckpointLocked(loop.ConversationID, agentloop.Result{
+		GoalID: loop.GoalID, RunID: loop.RunID, OriginalIntent: loop.OriginalIntent,
+	}, loop)
+
+	if settle == nil {
+		t.Fatal("the settle arm must proceed over an unanswerable shell occupant")
+	}
+	item, ok := s.durableContinuations[shellDurable.ContinuationID]
+	if !ok || item.Status != ContinuationCancelled {
+		t.Fatalf("the displaced shell must be cancelled, ok=%t status=%s", ok, item.Status)
+	}
+	if firstStringFromMap(item.PendingInteraction, "status") != "displaced_by_settle_arm" {
+		t.Fatalf("the displaced shell must carry the displacement marker, got %+v", item.PendingInteraction)
+	}
+	if slot := s.goalContinuations[loop.GoalID]; slot.ContinuationID != settle.ContinuationID {
+		t.Fatalf("the slot must move to the settle checkpoint, got %s", slot.ContinuationID)
+	}
+}
+
 // 钉⑪（守卫钉，应用边界不越权）：goal 仍在运行（turn 活着）时应用落账，应用
 // 边界不得造片——回合边界自己的 arm 机制会扛尾段，完成后由 completed 边界接管。
 func TestAppliedBoundaryDoesNotArmWhileGoalStillRunning(t *testing.T) {
