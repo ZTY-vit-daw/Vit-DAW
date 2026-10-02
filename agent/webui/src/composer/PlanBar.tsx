@@ -105,6 +105,9 @@ export function PlanBar({ snapshot, goal = null, plan = null, defaultOpen = fals
   const stateLabel = phase === "stale"
     ? "已中断"
     : semantic ? semanticLabel(statusRaw) : (statusLabel(statusRaw, "") || semanticLabel(statusRaw));
+  // STATUSBAR-ID-1（用户裁定 2026-09-30，2026-10-02 并入 WEBUI-IA-REDESIGN-1）：
+  // 执行状态栏不再显示哈希类任务 id 文本；完整 id 保留在 data-task-id 属性，
+  // 调试走 DOM/网络面板查（零成本）。本条为单任务窄条，无需区分占位编号。
   const taskID = task ? text(task.task_id) : "";
   return (
     <section
@@ -129,7 +132,6 @@ export function PlanBar({ snapshot, goal = null, plan = null, defaultOpen = fals
         <strong>{stateLabel}</strong>
         {intent && <span className="plan-bar-intent" title={intent}>{intent}</span>}
         {currentStep && <span className="plan-bar-step">{currentStep}</span>}
-        {taskID && <span className="plan-bar-task">Task {taskID}</span>}
         <span className="plan-bar-chev" aria-hidden="true">{open ? <ChevronDown size={13} /> : <ChevronRight size={13} />}</span>
       </button>
       <div className="plan-bar-body" id="plan-bar-body"><div className="plan-bar-body-in">

@@ -5,7 +5,7 @@ import { mockTaskTrajectorySnapshot } from "../trajectoryMock";
 import { PlanBar, planBarDwellMs, planBarFadeMs, planBarPhase, planBarRetracted, planBarRetracts } from "./PlanBar";
 
 describe("PlanBar 规划条（GUI-T6）", () => {
-  it("有 snapshot：收起窄条含状态标签/意图摘要/当前步骤/Task id，默认收起", () => {
+  it("有 snapshot：收起窄条含状态标签/意图摘要/当前步骤，默认收起；Task id 不上可见面（STATUSBAR-ID-1）", () => {
     const snapshot = mockTaskTrajectorySnapshot();
     expect(snapshot).not.toBeNull();
     const markup = renderToStaticMarkup(
@@ -15,7 +15,10 @@ describe("PlanBar 规划条（GUI-T6）", () => {
     expect(markup).toContain("正在观察工程");
     expect(markup).toContain("改善主唱清晰度，不明显增加亮度。");
     expect(markup).toContain("观察掩蔽关系");
-    expect(markup).toContain("Task mock-task");
+    // STATUSBAR-ID-1（并入 WEBUI-IA-REDESIGN-1）：哈希类任务 id 不再渲染可见
+    // 文本；完整 id 保留在 data-task-id 属性，调试走 DOM 面板查。
+    expect(markup).not.toContain("Task mock-task");
+    expect(markup).toContain('data-task-id="mock-task"');
     expect(markup).toContain('aria-expanded="false"');
     expect(markup).not.toContain("is-open");
   });
@@ -165,9 +168,10 @@ describe("PlanBar 生命周期（PLANBAR-1 缺陷②：执行结束后停掉 / �
     expect(stale).toContain("is-stale");
     expect(stale).toContain("已中断");
     expect(stale).toContain('data-plan-phase="stale"');
-    // 栏的其余信息面（意图/步骤/Task id）保留，收起与否由时间表决定
+    // 栏的其余信息面（意图/步骤）保留；Task id 仅存 data-task-id（STATUSBAR-ID-1），
+    // 收起与否由时间表决定
     expect(stale).toContain("改善主唱清晰度，不明显增加亮度。");
-    expect(stale).toContain("Task mock-task");
+    expect(stale).toContain('data-task-id="mock-task"');
   });
 
   it("终态：灰态无 live 标签，且进入收起时间表", () => {

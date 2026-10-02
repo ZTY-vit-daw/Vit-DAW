@@ -19,7 +19,6 @@ import {
   Gauge,
   GitBranch,
   Globe,
-  Layers,
   Link2,
   Loader2,
   Maximize2,
@@ -124,6 +123,7 @@ import {
   resolvedInteractionIdsFromEvents,
   stampConsumedInteractionActions
 } from "./interactionGuard";
+import { SessionFlowSidebar } from "./SessionFlowSidebar";
 import {
   classifyHistoryScopeChange,
   concreteWorkspacePath,
@@ -187,7 +187,6 @@ console.info(`[VitWebUI] loaded ${WEBUI_BUILD_MARK}`);
 const mixBoardUserNoteDrafts = new Map<string, string>();
 
 type ConnectionStatus = "loading" | "ready" | "offline";
-type FocusMode = "dialogue" | "tracks" | "rack" | "midi" | "mixer";
 type WorkbenchTab = "history" | "media" | "macro";
 type SettingsTab = "agent" | "llm" | "multimodal" | "browser" | "diagnostics";
 type MediaContextMenuState = { artifact: ArtifactSummary; x: number; y: number };
@@ -220,14 +219,6 @@ const modeItems: Array<{ key: AgentMode; label: string; hint: string; icon: Luci
   { key: "default", label: "协作", hint: "自然对话", icon: Bot },
   { key: "plan", label: "计划", hint: "只读分析", icon: Brain },
   { key: "goal", label: "目标", hint: "长任务", icon: Wand2 }
-];
-
-const focusItems: Array<{ key: FocusMode; label: string; icon: LucideIcon }> = [
-  { key: "dialogue", label: "对话", icon: Bot },
-  { key: "tracks", label: "轨道", icon: Layers },
-  { key: "rack", label: "机架", icon: Plug },
-  { key: "midi", label: "MIDI", icon: Activity },
-  { key: "mixer", label: "混音台", icon: Gauge }
 ];
 
 const workbenchTabs: Array<{ key: WorkbenchTab; label: string; icon: LucideIcon }> = [
@@ -289,7 +280,6 @@ function App() {
   const [authorityMode, setAuthorityModeState] = useState<AuthorityMode>("manual_confirmation");
   const [authorityBusy, setAuthorityBusy] = useState(false);
   const [stopTurnBusy, setStopTurnBusy] = useState(false);
-  const [activeFocus, setActiveFocus] = useState<FocusMode>("dialogue");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [input, setInput] = useState("");
   const [pendingArtifacts, setPendingArtifacts] = useState<ArtifactSummary[]>([]);
@@ -956,7 +946,7 @@ function App() {
         message: messageText,
         artifact_refs: attached.map((artifact) => artifact.id),
         authority_mode: authorityMode,
-        context: buildChatContext(mode, activeFocus, uiState, attached, macroRefs, authorityMode)
+        context: buildChatContext(mode, uiState, attached, macroRefs, authorityMode)
       });
       debugConfirmation("chat-response", summarizeChatResponseForConfirmation(response));
       postAgentMutationsFromChatResponse(response, "chat");
@@ -1192,10 +1182,46 @@ function App() {
     setPendingArtifacts([]);
     setPendingMacroRefs([]);
     setDismissedInteractionIDs([]);
-    setActiveFocus("dialogue");
     setInput("");
     setError("");
   };
+
+  // WEBUI-IA-REDESIGN-1：会话流侧边栏的切换通路——与 handleNewConversation 同语义
+  //（scope 暂停+锚定改写+瞬态清空），目标会话的消息由既有恢复效应从本地桶水合、
+  // 轨迹块由 [conversationID] 效应重放 /agent/events 重建。不建工作树/分支：
+  // 会话键=conversation id，工程级深操作仍在历史界面。
+  const handleSwitchConversation = (targetConversationID: string) => {
+    const target = targetConversationID.trim();
+    if (!target || target === conversationID) {
+      return;
+    }
+    const currentScope = historyScopeKeyFromUIState(uiState);
+    if (currentScope) {
+      pausedHistoryScopeRef.current = currentScope;
+      historyScopeRef.current = currentScope;
+      scopedConversationRef.current = scopedConversationRuntimeKey(currentScope, target);
+      saveStoredScopedConversationID(currentScope, target);
+    }
+    setConversationID(target);
+    setMessages([{ ...initialMessage, id: uniqueID("intro"), createdAt: Date.now() }]);
+    setActivities([]);
+    setPendingArtifacts([]);
+    setPendingMacroRefs([]);
+    setDismissedInteractionIDs([]);
+    setInput("");
+    setError("");
+  };
+
+  // 侧边栏未命名会话的展示名推导：本地消息桶的首条用户消息（截断 40 字）。
+  const sessionEntryTitleFor = useCallback((conversationID: string) => {
+    const scope = historyScopeKeyFromUIState(uiState);
+    if (!scope || !conversationID) {
+      return "";
+    }
+    const cached = loadStoredConversationMessages(conversationID, scope);
+    const firstUser = [...cached].find((message) => message.role === "user" && message.content.trim());
+    return firstUser ? firstUser.content.replace(/\s+/g, " ").trim().slice(0, 40) : "";
+  }, [uiState]);
 
   const fetchLatestUIState = async (): Promise<AgentUIState | null> => {
     try {
@@ -1219,7 +1245,7 @@ function App() {
       args,
       source,
       confirmed,
-      context: buildChatContext(mode, activeFocus, uiState, [], macroControlsFromUIState(uiState), authorityMode)
+      context: buildChatContext(mode, uiState, [], macroControlsFromUIState(uiState), authorityMode)
     });
     postAgentMutationsFromInvokeResponse(response, source);
     if (response.status === "error") {
@@ -1229,7 +1255,7 @@ function App() {
     }
     await refreshState();
     return response;
-  }, [activeFocus, mode, refreshState, uiState]);
+  }, [mode, refreshState, uiState]);
 
   const runTransportCommand = useCallback(async (tool: string, args: JsonRecord = {}) => {
     setTransportBusy(true);
@@ -1500,11 +1526,6 @@ function App() {
     setRightPanelOpen(true);
   };
 
-  const handleFocusChange = (nextFocus: FocusMode) => {
-    setSettingsOpen(false);
-    setActiveFocus(nextFocus);
-  };
-
   const rightPanelMaximum = () => {
     const workspaceWidth = workspaceRef.current?.getBoundingClientRect().width ?? window.innerWidth;
     return Math.max(minRightPanelWidth, Math.min(workspaceWidth * 0.45, workspaceWidth - 460));
@@ -1706,12 +1727,16 @@ function App() {
       />
 
       <section className="main-workspace">
-        <SideRail
-          activeFocus={activeFocus}
+        <SessionFlowSidebar
+          scopeKey={historyScopeKeyFromUIState(uiState)}
+          scopeParts={historyScopePartsFromUIState(uiState)}
+          currentConversationID={conversationID}
+          continuations={runtimeStatus?.continuations}
           settingsOpen={settingsOpen}
-          onFocusChange={handleFocusChange}
           onNewConversation={handleNewConversation}
+          onSwitchConversation={handleSwitchConversation}
           onOpenSettings={() => setSettingsOpen(true)}
+          readEntryTitle={sessionEntryTitleFor}
         />
 
         <section
@@ -1727,18 +1752,7 @@ function App() {
             />
           ) : (
             <>
-              {activeFocus === "dialogue" ? (
-                conversationPanel
-              ) : (
-                <DawFocusPanel
-                  activeFocus={activeFocus}
-                  uiState={uiState}
-                  connection={connection}
-                  onInvoke={invokeDawAction}
-                  onRefresh={refreshState}
-                  onClose={() => handleFocusChange("dialogue")}
-                />
-              )}
+              {conversationPanel}
               {!isMainSurface && rightPanelOpen && (
                 <>
                   <PanelResizeHandle
@@ -1759,68 +1773,6 @@ function App() {
   );
 }
 
-function SideRail({
-  activeFocus,
-  settingsOpen,
-  onFocusChange,
-  onNewConversation,
-  onOpenSettings
-}: {
-  activeFocus: FocusMode;
-  settingsOpen: boolean;
-  onFocusChange: (mode: FocusMode) => void;
-  onNewConversation: () => void;
-  onOpenSettings: () => void;
-}) {
-  return (
-    <nav className="side-rail" aria-label="Ask Vit modes">
-      <div className="rail-brand">
-        <strong>Ask</strong>
-        <span>Vit</span>
-      </div>
-      <div className="rail-main">
-        {focusItems.map(({ key, label, icon: Icon }) => (
-          <button
-            key={key}
-            type="button"
-            className={`rail-button ${activeFocus === key ? "active" : ""}`}
-            title={label}
-            onClick={() => onFocusChange(key)}
-          >
-            <Icon size={20} />
-            <span>{label}</span>
-          </button>
-        ))}
-      </div>
-      <div className="rail-footer">
-        <button className="rail-button compact" type="button" title="新建对话" onClick={onNewConversation}>
-          <Plus size={19} />
-          <span>新建</span>
-        </button>
-        <button className={`rail-button compact ${settingsOpen ? "active" : ""}`} type="button" title="设置" onClick={onOpenSettings}>
-          <Settings size={19} />
-          <span>设置</span>
-        </button>
-      </div>
-    </nav>
-  );
-}
-
-function focusTitle(activeFocus: FocusMode): string {
-  switch (activeFocus) {
-    case "tracks":
-      return "轨道";
-    case "rack":
-      return "机架";
-    case "midi":
-      return "MIDI";
-    case "mixer":
-      return "混音台";
-    default:
-      return "对话";
-  }
-}
-
 function appSurface(): AppSurface {
   const value = new URLSearchParams(window.location.search).get("surface")?.toLowerCase();
   if (value === "main" || value === "workbench") {
@@ -1839,38 +1791,6 @@ function initialConversationID(): string {
 
 function conversationIDFromURL(): string {
   return new URLSearchParams(window.location.search).get("conversation_id")?.trim() ?? "";
-}
-
-function FocusSummary({ activeFocus, uiState }: { activeFocus: FocusMode; uiState: AgentUIState | null }) {
-  const tracks = uiState?.tracks ?? [];
-  const selectedTrack = asRecord(uiState?.selected_track);
-  const rack = asRecord(uiState?.plugin_rack);
-  const transport = asRecord(uiState?.transport);
-  const pluginCount = firstArray(rack.plugins, rack.items, rack.chain, rack.rack).length;
-  const rows: Array<[string, string]> = [];
-  if (activeFocus === "tracks") {
-    rows.push(["轨道数", String(tracks.length)]);
-    rows.push(["当前轨道", textValue(selectedTrack.name ?? selectedTrack.track_name, "未选择")]);
-  } else if (activeFocus === "rack") {
-    rows.push(["当前轨道", textValue(selectedTrack.name ?? selectedTrack.track_name, "未选择")]);
-    rows.push(["机架节点", String(pluginCount)]);
-  } else if (activeFocus === "midi") {
-    rows.push(["当前轨道", textValue(selectedTrack.name ?? selectedTrack.track_name, "未选择")]);
-    rows.push(["编辑语境", "MIDI"]);
-  } else if (activeFocus === "mixer") {
-    rows.push(["播放状态", statusLabel(transport.play_state ?? transport.state ?? transport.status, "空闲")]);
-    rows.push(["速度", `${textValue(transport.bpm ?? transport.tempo, "--")} BPM`]);
-  }
-  return (
-    <section className="focus-summary">
-      {rows.map(([label, value]) => (
-        <div key={label}>
-          <span>{label}</span>
-          <strong>{value}</strong>
-        </div>
-      ))}
-    </section>
-  );
 }
 
 function SettingsPage({
@@ -2383,8 +2303,6 @@ export function TopStatusBar({
 
 type DawInvoke = (tool: string, args?: JsonRecord, source?: string, confirmed?: boolean) => Promise<AgentInvokeResponse>;
 type DawActivitySegment = { left: number; width: number; height: number };
-type DawMidiClipEntry = { track: DawTrack; clip: DawClip };
-type DawMidiGhostClip = DawMidiClipEntry & { notes: JsonRecord[]; offsetBeats: number };
 type DawClip = {
   id: string;
   name: string;
@@ -2398,17 +2316,6 @@ type DawClip = {
   notes: JsonRecord[];
   activity: DawActivitySegment[];
   activityKnown: boolean;
-};
-type ClipDragState = {
-  clipID: string;
-  trackID: string;
-  targetTrackID: string;
-  startSeconds: number;
-  startClientX: number;
-  startClientY: number;
-  deltaX: number;
-  deltaY: number;
-  moved: boolean;
 };
 type DawPlugin = {
   id: string;
@@ -2440,1101 +2347,6 @@ type DawTrack = {
   plugins: DawPlugin[];
   rackEdges: JsonRecord[];
 };
-type RackPluginContextMenuState = { track: DawTrack; plugin: DawPlugin; x: number; y: number };
-type RackParamSnapshot = { count: number; labels: string[]; updatedAt: number };
-
-function DawFocusPanel({
-  activeFocus,
-  uiState,
-  connection,
-  onInvoke,
-  onRefresh,
-  onClose
-}: {
-  activeFocus: Exclude<FocusMode, "dialogue">;
-  uiState: AgentUIState | null;
-  connection: ConnectionStatus;
-  onInvoke: DawInvoke;
-  onRefresh: () => Promise<void>;
-  onClose: () => void;
-}) {
-  const tracks = useMemo(() => dawTracksFromUIState(uiState), [uiState]);
-  const title = focusTitle(activeFocus);
-  const subtitle = dawPanelSubtitle(activeFocus, tracks, uiState);
-
-  return (
-    <section className={`daw-focus-panel daw-${activeFocus}`}>
-      <header className="daw-panel-header">
-        <div>
-          <p className="eyebrow">DAW</p>
-          <h1>{title}</h1>
-          <span>{subtitle}</span>
-        </div>
-        <div className="daw-panel-actions">
-          <button className="ghost-button" type="button" onClick={() => void onRefresh()}>
-            <RefreshCw size={15} />
-            刷新
-          </button>
-          <button className="icon-button" type="button" title="收起左侧面板" onClick={onClose}>
-            <X size={15} />
-          </button>
-        </div>
-      </header>
-
-      {connection !== "ready" && (
-        <div className="notice warning">
-          <AlertTriangle size={16} />
-          <span>Agent 未连接，DAW 面板暂不可操作。</span>
-        </div>
-      )}
-
-      {activeFocus === "tracks" && <DawTracksPanel tracks={tracks} onInvoke={onInvoke} />}
-      {activeFocus === "rack" && <DawRackPanelV2 tracks={tracks} uiState={uiState} onInvoke={onInvoke} />}
-      {activeFocus === "midi" && <DawMidiPanel tracks={tracks} uiState={uiState} onInvoke={onInvoke} />}
-      {activeFocus === "mixer" && <DawMixerPanel tracks={tracks} onInvoke={onInvoke} />}
-    </section>
-  );
-}
-
-function DawTracksPanel({ tracks, onInvoke }: { tracks: DawTrack[]; onInvoke: DawInvoke }) {
-  const projectEnd = Math.max(8, ...tracks.flatMap((track) => track.clips.map((clip) => clip.startSeconds + clip.lengthSeconds)));
-  const timelineEnd = Math.max(8, projectEnd + Math.min(12, Math.max(2, projectEnd * 0.08)));
-  const fitPixelsPerSecond = clampNumber(720 / timelineEnd, 0.05, 42);
-  const minPixelsPerSecond = Math.min(1.5, fitPixelsPerSecond);
-  const [pixelsPerSecond, setPixelsPerSecond] = useState(() => clampNumber(fitPixelsPerSecond, minPixelsPerSecond, 18));
-  const [snapSeconds, setSnapSeconds] = useState(0.5);
-  const [clipDrag, setClipDrag] = useState<ClipDragState | null>(null);
-  const userZoomTouchedRef = useRef(false);
-  const suppressClipClickRef = useRef(false);
-  useEffect(() => {
-    if (!userZoomTouchedRef.current) {
-      setPixelsPerSecond(clampNumber(fitPixelsPerSecond, minPixelsPerSecond, 18));
-    }
-  }, [fitPixelsPerSecond, minPixelsPerSecond]);
-  const safePixelsPerSecond = clampNumber(pixelsPerSecond, minPixelsPerSecond, 80);
-  const timelineWidth = Math.max(720, Math.ceil(timelineEnd * safePixelsPerSecond));
-  const displayEndSeconds = timelineWidth / safePixelsPerSecond;
-  const setTimelineZoom = (next: number) => {
-    userZoomTouchedRef.current = true;
-    setPixelsPerSecond(clampNumber(next, minPixelsPerSecond, 80));
-  };
-  const beginClipDrag = (event: ReactPointerEvent<HTMLButtonElement>, track: DawTrack, clip: DawClip) => {
-    if (event.button !== 0) {
-      return;
-    }
-    event.stopPropagation();
-    event.currentTarget.setPointerCapture(event.pointerId);
-    suppressClipClickRef.current = false;
-    setClipDrag({
-      clipID: clip.id,
-      trackID: track.id,
-      targetTrackID: track.id,
-      startSeconds: clip.startSeconds,
-      startClientX: event.clientX,
-      startClientY: event.clientY,
-      deltaX: 0,
-      deltaY: 0,
-      moved: false
-    });
-  };
-  const updateClipDrag = (event: ReactPointerEvent<HTMLButtonElement>) => {
-    if (!clipDrag) {
-      return;
-    }
-    const deltaX = event.clientX - clipDrag.startClientX;
-    const moved = clipDrag.moved || Math.abs(deltaX) >= 4;
-    if (moved) {
-      event.stopPropagation();
-      suppressClipClickRef.current = true;
-    }
-    setClipDrag({
-      ...clipDrag,
-      deltaX,
-      deltaY: event.clientY - clipDrag.startClientY,
-      targetTrackID: trackIDFromPointer(event.clientX, event.clientY) || clipDrag.targetTrackID,
-      moved
-    });
-  };
-  const finishClipDrag = (event: ReactPointerEvent<HTMLButtonElement>, track: DawTrack, clip: DawClip) => {
-    if (!clipDrag || clipDrag.clipID !== clip.id) {
-      return;
-    }
-    event.stopPropagation();
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-      event.currentTarget.releasePointerCapture(event.pointerId);
-    }
-    const targetTrackID = trackIDFromPointer(event.clientX, event.clientY) || clipDrag.targetTrackID || track.id;
-    const nextStart = draggedClipStart(clipDrag, safePixelsPerSecond, snapSeconds);
-    const didMove = clipDrag.moved && Math.abs(nextStart - clipDrag.startSeconds) >= 0.02;
-    const changedTrack = targetTrackID !== clipDrag.trackID;
-    setClipDrag(null);
-    if (!didMove && !changedTrack) {
-      return;
-    }
-    suppressClipClickRef.current = true;
-    void onInvoke("clip.move", {
-      source_track_id: clipDrag.trackID,
-      target_track_id: targetTrackID,
-      track_id: targetTrackID,
-      clip_id: clip.id,
-      new_start: nextStart,
-      new_start_seconds: nextStart,
-      time_unit: "seconds"
-    }, "ask_vit_webui_tracks");
-  };
-  const cancelClipDrag = () => {
-    setClipDrag(null);
-  };
-  return (
-    <div className="daw-panel-body">
-      <div className="daw-toolbar">
-        <button className="primary-button compact" type="button" onClick={() => void onInvoke("track.add", {}, "ask_vit_webui_tracks")}>
-          <Plus size={15} />
-          新建轨道
-        </button>
-        <div className="timeline-zoom-controls" aria-label="Timeline zoom">
-          <button type="button" title="Zoom out" onClick={() => setTimelineZoom(safePixelsPerSecond / 1.25)}>
-            <ZoomOut size={14} />
-          </button>
-          <input
-            type="range"
-            min={minPixelsPerSecond}
-            max="80"
-            step={minPixelsPerSecond < 1 ? 0.05 : 0.5}
-            value={safePixelsPerSecond}
-            title="Timeline zoom"
-            onChange={(event) => setTimelineZoom(Number(event.currentTarget.value))}
-          />
-          <button type="button" title="Zoom in" onClick={() => setTimelineZoom(safePixelsPerSecond * 1.25)}>
-            <ZoomIn size={14} />
-          </button>
-          <button type="button" title="Fit timeline" onClick={() => setTimelineZoom(fitPixelsPerSecond)}>
-            <Maximize2 size={14} />
-          </button>
-          <button type="button" title="Compact overview" onClick={() => setTimelineZoom(minPixelsPerSecond)}>
-            <Minus size={14} />
-          </button>
-        </div>
-        <select
-          className="timeline-snap-select"
-          value={snapSeconds}
-          title="Snap"
-          onChange={(event) => setSnapSeconds(Number(event.currentTarget.value))}
-        >
-          <option value={0}>Snap off</option>
-          <option value={0.25}>1/4s</option>
-          <option value={0.5}>1/2s</option>
-          <option value={1}>1s</option>
-          <option value={5}>5s</option>
-        </select>
-        <span>{tracks.length} tracks</span>
-      </div>
-      {tracks.length === 0 ? (
-        <EmptyState label="当前工程没有可编辑轨道" />
-      ) : (
-        <div className="daw-timeline" style={{ "--timeline-width": `${timelineWidth}px` } as React.CSSProperties}>
-          <div className="timeline-ruler">
-            <span>0s</span>
-            <span>{formatTimelineSeconds(displayEndSeconds / 2)}</span>
-            <span>{formatTimelineSeconds(displayEndSeconds)}</span>
-          </div>
-          {tracks.map((track) => (
-            <div className={`daw-track-lane ${track.selected ? "selected" : ""} ${clipDrag?.moved && clipDrag.targetTrackID === track.id ? "drop-target" : ""}`} key={track.id}>
-              <TrackLaneHeader track={track} onInvoke={onInvoke} />
-              <div className="track-lane-canvas" data-track-id={track.id} onClick={() => void focusDawTarget(onInvoke, { track_id: track.id })}>
-                {track.clips.length === 0 && <span className="lane-empty">No clips</span>}
-                {track.clips.map((clip) => (
-                  <button
-                    className={`clip-block ${clip.selected ? "selected" : ""} ${clip.activityKnown ? "" : "unknown-activity"} ${clipDrag?.clipID === clip.id ? "dragging" : ""}`}
-                    key={clip.id}
-                    type="button"
-                    style={clipBlockStyle(clip, safePixelsPerSecond, timelineWidth, clipDrag?.clipID === clip.id ? clipDrag.deltaX : 0, clipDrag?.clipID === clip.id ? clipDrag.deltaY : 0)}
-                    title={clipTitle(track, clip)}
-                    onPointerDown={(event) => beginClipDrag(event, track, clip)}
-                    onPointerMove={updateClipDrag}
-                    onPointerUp={(event) => finishClipDrag(event, track, clip)}
-                    onPointerCancel={cancelClipDrag}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      if (suppressClipClickRef.current) {
-                        suppressClipClickRef.current = false;
-                        return;
-                      }
-                      void focusDawTarget(onInvoke, { track_id: track.id, clip_id: clip.id, start_seconds: clip.startSeconds });
-                    }}
-                  >
-                    <span>{clip.name}</span>
-                    {clipDrag?.clipID === clip.id && clipDrag.moved && <em>{formatTimelineSeconds(draggedClipStart(clipDrag, safePixelsPerSecond, snapSeconds))}</em>}
-                    <ClipActivityStrip clip={clip} />
-                  </button>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function TrackLaneHeader({ track, onInvoke }: { track: DawTrack; onInvoke: DawInvoke }) {
-  return (
-    <div className="track-lane-header">
-      <button className="track-name-button" type="button" onClick={() => void focusDawTarget(onInvoke, { track_id: track.id })}>
-        <span className="track-color" style={{ background: track.color }} />
-        <strong>{track.name}</strong>
-        <small>{track.type}</small>
-      </button>
-      <div className="track-mini-actions">
-        <button className={track.mute ? "toggle on red" : "toggle"} type="button" onClick={() => void onInvoke("track.mute", { track_id: track.id, mute: !track.mute }, "ask_vit_webui_tracks")}>M</button>
-        <button className={track.solo ? "toggle on yellow" : "toggle"} type="button" onClick={() => void onInvoke("track.solo", { track_id: track.id, solo: !track.solo }, "ask_vit_webui_tracks")}>S</button>
-        <button className={track.armed ? "toggle on blue" : "toggle"} type="button" onClick={() => void onInvoke("track.arm", { track_id: track.id, is_armed: !track.armed }, "ask_vit_webui_tracks")}>R</button>
-      </div>
-    </div>
-  );
-}
-
-function ClipActivityStrip({ clip }: { clip: DawClip }) {
-  if (!clip.activityKnown) {
-    return <i className="clip-activity unknown" />;
-  }
-  return (
-    <i className="clip-activity">
-      {clip.activity.map((segment, index) => (
-        <b
-          key={`${clip.id}-activity-${index}`}
-          style={{
-            left: `${segment.left}%`,
-            width: `${segment.width}%`,
-            height: `${segment.height}%`
-          }}
-        />
-      ))}
-    </i>
-  );
-}
-
-function DawRackPanel({ tracks, uiState, onInvoke }: { tracks: DawTrack[]; uiState: AgentUIState | null; onInvoke: DawInvoke }) {
-  const selectedPlugin = selectedPluginFromUIState(uiState);
-  return (
-    <div className="daw-panel-body rack-lanes">
-      {tracks.length === 0 && <EmptyState label="当前工程没有可显示的机架轨道" />}
-      {tracks.map((track) => {
-        const lanes = rackLanesForTrack(track);
-        return (
-          <section className={`rack-track-row ${track.selected ? "selected" : ""}`} key={track.id}>
-            <button className="rack-track-title" type="button" onClick={() => void focusDawTarget(onInvoke, { track_id: track.id })}>
-              <span className="track-color" style={{ background: track.color }} />
-              <strong>{track.name}</strong>
-              <small>{track.plugins.length} plugins</small>
-            </button>
-            <RackPluginLane label="Track Chain" plugins={lanes.trackChain} track={track} onInvoke={onInvoke} />
-            {lanes.parallel.length > 0 && <RackPluginLane label="Parallel" plugins={lanes.parallel} track={track} onInvoke={onInvoke} />}
-            {lanes.clipFx.length > 0 && <RackPluginLane label="Clip FX" plugins={lanes.clipFx} track={track} onInvoke={onInvoke} clipLane />}
-          </section>
-        );
-      })}
-      {selectedPlugin.id && (
-        <aside className="rack-inspector">
-          <div>
-            <span>Selected plugin</span>
-            <strong>{selectedPlugin.name || selectedPlugin.id}</strong>
-          </div>
-          <button type="button" onClick={() => void onInvoke("plugin.open", { track_id: selectedPlugin.trackID, plugin_id: selectedPlugin.id }, "ask_vit_webui_rack")}>Open UI</button>
-          <button type="button" onClick={() => void onInvoke("plugin.get_parameters", { track_id: selectedPlugin.trackID, plugin_id: selectedPlugin.id }, "ask_vit_webui_rack")}>Get Params</button>
-        </aside>
-      )}
-    </div>
-  );
-}
-
-function RackPluginLane({ label, plugins, track, onInvoke, clipLane = false }: { label: string; plugins: DawPlugin[]; track: DawTrack; onInvoke: DawInvoke; clipLane?: boolean }) {
-  return (
-    <div className={`rack-plugin-lane ${clipLane ? "clip-fx" : ""}`}>
-      <span className="rack-lane-label">{label}</span>
-      <div className="rack-plugin-chain">
-        {plugins.length === 0 ? (
-          <span className="rack-empty">Empty</span>
-        ) : (
-          plugins.map((plugin, index) => (
-            <div className="rack-plugin-wrap" key={plugin.id || `${track.id}-plugin-${index}`}>
-              {index > 0 && <i className="rack-connector" />}
-              <article className={`rack-plugin-card ${plugin.selected ? "selected" : ""} ${plugin.bypass ? "bypassed" : ""}`}>
-                <button className="rack-plugin-main" type="button" onClick={() => void focusDawTarget(onInvoke, { track_id: track.id, plugin_id: plugin.id })}>
-                  <strong>{plugin.name}</strong>
-                  <span>{plugin.clipScope === "track" ? plugin.role || plugin.kind : plugin.clipScope}</span>
-                </button>
-                <div>
-                  <button type="button" onClick={() => void onInvoke("plugin.open", { track_id: track.id, plugin_id: plugin.id }, "ask_vit_webui_rack")}>Open UI</button>
-                  <button type="button" onClick={() => void onInvoke("plugin.get_parameters", { track_id: track.id, plugin_id: plugin.id }, "ask_vit_webui_rack")}>Get Params</button>
-                </div>
-              </article>
-            </div>
-          ))
-        )}
-      </div>
-    </div>
-  );
-}
-
-function DawRackPanelV2({ tracks, uiState, onInvoke }: { tracks: DawTrack[]; uiState: AgentUIState | null; onInvoke: DawInvoke }) {
-  const selectedPlugin = selectedPluginFromUIState(uiState);
-  const [contextMenu, setContextMenu] = useState<RackPluginContextMenuState | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<{ track: DawTrack; plugin: DawPlugin } | null>(null);
-  const [busyPluginKey, setBusyPluginKey] = useState("");
-  const [rackMessage, setRackMessage] = useState("");
-  const [paramSnapshots, setParamSnapshots] = useState<Record<string, RackParamSnapshot>>({});
-  const selectedPluginEntry = tracks
-    .flatMap((track) => track.plugins.map((plugin) => ({ track, plugin })))
-    .find(({ track, plugin }) => plugin.id === selectedPlugin.id && (!selectedPlugin.trackID || selectedPlugin.trackID === track.id || selectedPlugin.trackID === plugin.source));
-
-  useEffect(() => {
-    if (!contextMenu) {
-      return undefined;
-    }
-    const close = () => setContextMenu(null);
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        close();
-      }
-    };
-    window.addEventListener("click", close);
-    window.addEventListener("contextmenu", close);
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("click", close);
-      window.removeEventListener("contextmenu", close);
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [contextMenu]);
-
-  const copyRackValue = async (label: string, value: string) => {
-    const text = value.trim();
-    if (!text) {
-      setRackMessage(`${label}不可用`);
-      return;
-    }
-    try {
-      await navigator.clipboard.writeText(text);
-      setRackMessage(`已复制${label}`);
-    } catch {
-      setRackMessage(`无法复制${label}`);
-    }
-    setContextMenu(null);
-  };
-
-  const invokeRackPlugin = async (tool: string, track: DawTrack, plugin: DawPlugin) => {
-    const key = rackPluginKey(track.id, plugin.id);
-    setBusyPluginKey(key);
-    setRackMessage("");
-    try {
-      const args = tool === "plugin.get_parameters"
-        ? { ...rackPluginArgs(track, plugin), include_parameters: true }
-        : rackPluginArgs(track, plugin);
-      const response = await onInvoke(tool, args, "ask_vit_webui_rack", true);
-      if (tool === "plugin.get_parameters") {
-        const snapshot = rackParamSnapshotFromInvoke(response);
-        setParamSnapshots((current) => ({ ...current, [key]: snapshot }));
-        setRackMessage(snapshot.count > 0 ? `已读取 ${plugin.name} 的 ${snapshot.count} 个参数` : `${plugin.name} 暂无可显示参数`);
-      } else if (tool === "plugin.delete") {
-        setRackMessage(`已删除 ${plugin.name}`);
-      }
-      return response;
-    } catch (error) {
-      setRackMessage(error instanceof Error ? error.message : "机架操作失败");
-    } finally {
-      setBusyPluginKey("");
-    }
-  };
-
-  const openPlugin = (track: DawTrack, plugin: DawPlugin) => {
-    void invokeRackPlugin("plugin.open", track, plugin);
-  };
-
-  const readPluginParams = (track: DawTrack, plugin: DawPlugin) => {
-    void invokeRackPlugin("plugin.get_parameters", track, plugin);
-  };
-
-  const confirmDeletePlugin = async () => {
-    if (!deleteTarget) {
-      return;
-    }
-    const target = deleteTarget;
-    setDeleteTarget(null);
-    await invokeRackPlugin("plugin.delete", target.track, target.plugin);
-  };
-
-  return (
-    <div className="daw-panel-body rack-lanes">
-      {tracks.length === 0 && <EmptyState label="当前工程没有可显示的机架轨道" />}
-      {tracks.map((track) => {
-        const lanes = rackLanesForTrack(track);
-        return (
-          <section className={`rack-track-row ${track.selected ? "selected" : ""}`} key={track.id}>
-            <button className="rack-track-title" type="button" onClick={() => void focusDawTarget(onInvoke, { track_id: track.id })}>
-              <span className="track-color" style={{ background: track.color }} />
-              <strong>{track.name}</strong>
-              <small>{track.plugins.length} plugins</small>
-            </button>
-            <RackPluginLaneV2
-              label="Track Chain"
-              plugins={lanes.trackChain}
-              track={track}
-              onInvoke={onInvoke}
-              onOpenPlugin={openPlugin}
-              onReadParams={readPluginParams}
-              onContextMenu={setContextMenu}
-              busyPluginKey={busyPluginKey}
-              paramSnapshots={paramSnapshots}
-            />
-            {lanes.parallel.length > 0 && (
-              <RackPluginLaneV2
-                label="Parallel"
-                plugins={lanes.parallel}
-                track={track}
-                onInvoke={onInvoke}
-                onOpenPlugin={openPlugin}
-                onReadParams={readPluginParams}
-                onContextMenu={setContextMenu}
-                busyPluginKey={busyPluginKey}
-                paramSnapshots={paramSnapshots}
-              />
-            )}
-            {lanes.clipFx.length > 0 && (
-              <RackPluginLaneV2
-                label="Clip FX"
-                plugins={lanes.clipFx}
-                track={track}
-                onInvoke={onInvoke}
-                onOpenPlugin={openPlugin}
-                onReadParams={readPluginParams}
-                onContextMenu={setContextMenu}
-                busyPluginKey={busyPluginKey}
-                paramSnapshots={paramSnapshots}
-                clipLane
-              />
-            )}
-          </section>
-        );
-      })}
-      {selectedPluginEntry && (
-        <aside className="rack-inspector">
-          <div>
-            <span>Selected plugin</span>
-            <strong>{selectedPluginEntry.plugin.name || selectedPluginEntry.plugin.id}</strong>
-          </div>
-          <button type="button" disabled={busyPluginKey === rackPluginKey(selectedPluginEntry.track.id, selectedPluginEntry.plugin.id)} onClick={() => openPlugin(selectedPluginEntry.track, selectedPluginEntry.plugin)}>Open UI</button>
-          <button type="button" disabled={busyPluginKey === rackPluginKey(selectedPluginEntry.track.id, selectedPluginEntry.plugin.id)} onClick={() => readPluginParams(selectedPluginEntry.track, selectedPluginEntry.plugin)}>Get Params</button>
-        </aside>
-      )}
-      {rackMessage && <div className="rack-status-note">{rackMessage}</div>}
-      {contextMenu && (
-        <div
-          className="media-context-menu rack-context-menu"
-          style={{ left: contextMenu.x, top: contextMenu.y }}
-          role="menu"
-          onClick={(event) => event.stopPropagation()}
-          onContextMenu={(event) => {
-            event.preventDefault();
-            event.stopPropagation();
-          }}
-        >
-          <button type="button" role="menuitem" onClick={() => void copyRackValue("插件引用", rackPluginReference(contextMenu.track, contextMenu.plugin))}>
-            引用插件
-          </button>
-          <button type="button" role="menuitem" disabled={!contextMenu.plugin.path} onClick={() => void copyRackValue("插件路径", contextMenu.plugin.path)}>
-            复制路径
-          </button>
-          <button type="button" role="menuitem" onClick={() => void copyRackValue("插件 ID", contextMenu.plugin.id)}>
-            复制 ID
-          </button>
-          <div className="media-menu-separator" />
-          <button type="button" role="menuitem" onClick={() => {
-            openPlugin(contextMenu.track, contextMenu.plugin);
-            setContextMenu(null);
-          }}>
-            Open UI
-          </button>
-          <button type="button" role="menuitem" onClick={() => {
-            readPluginParams(contextMenu.track, contextMenu.plugin);
-            setContextMenu(null);
-          }}>
-            Get Params
-          </button>
-          <div className="media-menu-separator" />
-          <button
-            className="danger"
-            type="button"
-            role="menuitem"
-            disabled={!contextMenu.plugin.deletable}
-            onClick={() => {
-              setDeleteTarget({ track: contextMenu.track, plugin: contextMenu.plugin });
-              setContextMenu(null);
-            }}
-          >
-            删除插件
-          </button>
-        </div>
-      )}
-      {deleteTarget && (
-        <div className="media-dialog-backdrop rack-dialog-backdrop" onClick={() => setDeleteTarget(null)}>
-          <div className="media-dialog rack-delete-dialog" onClick={(event) => event.stopPropagation()}>
-            <h3>删除插件</h3>
-            <p>{deleteTarget.plugin.name}</p>
-            <span>这会从 {deleteTarget.track.name} 的机架链中移除该插件实例。</span>
-            <div className="media-dialog-actions">
-              <button type="button" onClick={() => setDeleteTarget(null)} disabled={Boolean(busyPluginKey)}>
-                取消
-              </button>
-              <button type="button" className="danger" onClick={() => void confirmDeletePlugin()} disabled={Boolean(busyPluginKey)}>
-                删除
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function RackPluginLaneV2({
-  label,
-  plugins,
-  track,
-  onInvoke,
-  onOpenPlugin,
-  onReadParams,
-  onContextMenu,
-  busyPluginKey,
-  paramSnapshots,
-  clipLane = false
-}: {
-  label: string;
-  plugins: DawPlugin[];
-  track: DawTrack;
-  onInvoke: DawInvoke;
-  onOpenPlugin: (track: DawTrack, plugin: DawPlugin) => void;
-  onReadParams: (track: DawTrack, plugin: DawPlugin) => void;
-  onContextMenu: (state: RackPluginContextMenuState) => void;
-  busyPluginKey: string;
-  paramSnapshots: Record<string, RackParamSnapshot>;
-  clipLane?: boolean;
-}) {
-  return (
-    <div className={`rack-plugin-lane ${clipLane ? "clip-fx" : ""}`}>
-      <span className="rack-lane-label">{label}</span>
-      <div className="rack-plugin-chain">
-        {plugins.length === 0 ? (
-          <span className="rack-empty">Empty</span>
-        ) : (
-          plugins.map((plugin, index) => {
-            const key = rackPluginKey(track.id, plugin.id);
-            const snapshot = paramSnapshots[key];
-            return (
-              <div className="rack-plugin-wrap" key={plugin.id || `${track.id}-plugin-${index}`}>
-                {index > 0 && <i className="rack-connector" />}
-                <article
-                  className={`rack-plugin-card ${plugin.selected ? "selected" : ""} ${plugin.bypass ? "bypassed" : ""}`}
-                  onContextMenu={(event) => {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    onContextMenu({ track, plugin, x: event.clientX, y: event.clientY });
-                  }}
-                >
-                  <button
-                    className="rack-plugin-menu-button"
-                    type="button"
-                    title="插件操作"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      const rect = event.currentTarget.getBoundingClientRect();
-                      onContextMenu({ track, plugin, x: rect.left, y: rect.bottom + 4 });
-                    }}
-                  >
-                    <MoreHorizontal size={15} />
-                  </button>
-                  <button className="rack-plugin-main" type="button" onClick={() => void focusDawTarget(onInvoke, { track_id: track.id, plugin_id: plugin.id })}>
-                    <strong>{plugin.name}</strong>
-                    <span>{plugin.vendor || (plugin.clipScope === "track" ? plugin.role || plugin.kind : plugin.clipScope)}</span>
-                  </button>
-                  <div>
-                    <button type="button" disabled={busyPluginKey === key} onClick={() => onOpenPlugin(track, plugin)}>Open UI</button>
-                    <button type="button" disabled={busyPluginKey === key} onClick={() => onReadParams(track, plugin)}>Get Params</button>
-                  </div>
-                  {snapshot && <small className="rack-param-summary">{rackParamSnapshotText(snapshot)}</small>}
-                </article>
-              </div>
-            );
-          })
-        )}
-      </div>
-    </div>
-  );
-}
-
-function DawMidiPanel({ tracks, uiState, onInvoke }: { tracks: DawTrack[]; uiState: AgentUIState | null; onInvoke: DawInvoke }) {
-  const midiClips = tracks.flatMap((track) => track.clips.filter((clip) => isMidiClip(clip)).map((clip) => ({ track, clip })));
-  const [notesByClip, setNotesByClip] = useState<Record<string, JsonRecord[]>>({});
-  const [noteReadErrorsByClip, setNoteReadErrorsByClip] = useState<Record<string, string>>({});
-  const [loadingClipIDs, setLoadingClipIDs] = useState<Record<string, boolean>>({});
-  const [hiddenGhostTrackIDs, setHiddenGhostTrackIDs] = useState<Record<string, boolean>>({});
-  const [localSelectedClipID, setLocalSelectedClipID] = useState("");
-  const onInvokeRef = useRef(onInvoke);
-  const loadingClipIDsRef = useRef<Set<string>>(new Set());
-  const mountedRef = useRef(true);
-  const lastContextFocusRef = useRef("");
-  const midiClipIDsKey = midiClips.map(({ track, clip }) => `${track.id}:${clip.id}`).join("|");
-  const displayMidiTracks = tracks
-    .map((track) => ({
-      track,
-      clips: track.clips.filter((clip) => isMidiClip(clip)).map((clip) => midiClipWithCachedNotes(clip, notesByClip))
-    }))
-    .filter((entry) => entry.clips.length > 0);
-  const displayMidiClips = displayMidiTracks.flatMap(({ track, clips }) => clips.map((clip) => ({ track, clip })));
-  const contextSelectedClipID = selectedMidiClipIDFromUIState(uiState);
-  const contextSelectedTrackID = selectedMidiTrackIDFromUIState(uiState);
-  const contextFocusKey = `${contextSelectedTrackID}::${contextSelectedClipID}`;
-  const localSelected = displayMidiClips.find((entry) => entry.clip.id === localSelectedClipID) ?? null;
-  const contextSelected = contextSelectedClipID ? displayMidiClips.find((entry) => entry.clip.id === contextSelectedClipID) ?? null : null;
-  const contextTrackSelected = contextSelectedTrackID ? displayMidiClips.find((entry) => entry.track.id === contextSelectedTrackID) ?? null : null;
-  const selected = localSelected ?? contextSelected ?? contextTrackSelected ?? displayMidiClips[0] ?? null;
-  const currentTrackClips = selected ? displayMidiTracks.find((entry) => entry.track.id === selected.track.id)?.clips ?? [] : [];
-  const ghostClips: DawMidiGhostClip[] = selected
-    ? displayMidiTracks
-      .filter(({ track }) => track.id !== selected.track.id && !hiddenGhostTrackIDs[track.id])
-      .map(({ track, clips }) => {
-        const clip = midiClipIntersectingWindow(clips, selected.clip);
-        if (!clip) {
-          return null;
-        }
-        const notes = clip.notes.length > 0 ? clip.notes : notesByClip[clip.id] ?? [];
-        return { track, clip, notes, offsetBeats: clip.startBeats - selected.clip.startBeats };
-      })
-      .filter((entry): entry is DawMidiGhostClip => entry != null)
-    : [];
-  const selectedNotes = selected ? (selected.clip.notes.length > 0 ? selected.clip.notes : notesByClip[selected.clip.id] ?? []) : [];
-  const selectedReadError = selected ? noteReadErrorsByClip[selected.clip.id] ?? "" : "";
-  const selectedClipLoadID = selected?.clip.id ?? "";
-  const selectedTrackLoadID = selected?.track.id ?? "";
-  const selectedInlineNoteCount = selected?.clip.notes.length ?? 0;
-  const selectedCachedNotes = selectedClipLoadID ? notesByClip[selectedClipLoadID] : undefined;
-  const ghostLoadKey = ghostClips
-    .map(({ track, clip }) => `${track.id}:${clip.id}:${clip.notes.length}:${midiClipHasLoadedNotes(notesByClip, clip.id) ? "loaded" : "pending"}`)
-    .join("|");
-
-  useEffect(() => {
-    onInvokeRef.current = onInvoke;
-  }, [onInvoke]);
-
-  useEffect(() => {
-    return () => {
-      mountedRef.current = false;
-    };
-  }, []);
-
-  const readMidiClipNotes = useCallback((clipID: string, trackID: string) => {
-    if (!clipID || loadingClipIDsRef.current.has(clipID)) {
-      return;
-    }
-    loadingClipIDsRef.current.add(clipID);
-    setLoadingClipIDs((current) => ({ ...current, [clipID]: true }));
-    setNoteReadErrorsByClip((current) => {
-      if (!current[clipID]) {
-        return current;
-      }
-      const next = { ...current };
-      delete next[clipID];
-      return next;
-    });
-    void onInvokeRef.current("midi.read_clip_notes", { clip_id: clipID, track_id: trackID }, "ask_vit_webui_midi", true)
-      .then((response) => {
-        const result = asRecord(response.result);
-        const responseStatus = textValue(response.status, "").toLowerCase();
-        const resultStatus = textValue(result.status, "").toLowerCase();
-        if ((responseStatus && responseStatus !== "ok" && responseStatus !== "success") || resultStatus === "error") {
-          throw new Error(textValue(response.error ?? result.error ?? result.message, "Unable to read MIDI notes"));
-        }
-        const notes = midiReadNotesFromResult(result);
-        if (mountedRef.current) {
-          setNotesByClip((current) => ({ ...current, [clipID]: notes }));
-        }
-      })
-      .catch((error: unknown) => {
-        if (mountedRef.current) {
-          const message = error instanceof Error ? error.message : "Unable to read MIDI notes";
-          setNoteReadErrorsByClip((current) => ({ ...current, [clipID]: message }));
-          setNotesByClip((current) => ({ ...current, [clipID]: [] }));
-        }
-      })
-      .finally(() => {
-        loadingClipIDsRef.current.delete(clipID);
-        if (mountedRef.current) {
-          setLoadingClipIDs((current) => {
-            if (!current[clipID]) {
-              return current;
-            }
-            const next = { ...current };
-            delete next[clipID];
-            return next;
-          });
-        }
-      });
-  }, []);
-
-  useEffect(() => {
-    if (contextFocusKey === lastContextFocusRef.current) {
-      return;
-    }
-    lastContextFocusRef.current = contextFocusKey;
-    const next =
-      (contextSelectedClipID ? displayMidiClips.find((entry) => entry.clip.id === contextSelectedClipID) ?? null : null) ??
-      (contextSelectedTrackID ? displayMidiClips.find((entry) => entry.track.id === contextSelectedTrackID) ?? null : null);
-    if (next) {
-      setLocalSelectedClipID(next.clip.id);
-    }
-  }, [contextFocusKey, contextSelectedClipID, contextSelectedTrackID, displayMidiClips]);
-
-  useEffect(() => {
-    if (localSelectedClipID && !midiClips.some((entry) => entry.clip.id === localSelectedClipID)) {
-      setLocalSelectedClipID("");
-    }
-  }, [localSelectedClipID, midiClips, midiClipIDsKey]);
-
-  useEffect(() => {
-    if (!selectedClipLoadID || selectedInlineNoteCount > 0 || selectedCachedNotes || loadingClipIDsRef.current.has(selectedClipLoadID)) {
-      return;
-    }
-    readMidiClipNotes(selectedClipLoadID, selectedTrackLoadID);
-  }, [readMidiClipNotes, selectedCachedNotes, selectedClipLoadID, selectedInlineNoteCount, selectedTrackLoadID]);
-
-  useEffect(() => {
-    ghostClips.forEach(({ track, clip }) => {
-      if (clip.notes.length > 0 || midiClipHasLoadedNotes(notesByClip, clip.id) || loadingClipIDsRef.current.has(clip.id)) {
-        return;
-      }
-      readMidiClipNotes(clip.id, track.id);
-    });
-  }, [ghostLoadKey, ghostClips, notesByClip, readMidiClipNotes]);
-
-  const focusMidiClip = (track: DawTrack, clip: DawClip) => {
-    setLocalSelectedClipID(clip.id);
-    void focusDawTarget(onInvoke, { track_id: track.id, clip_id: clip.id, start_seconds: clip.startSeconds, start_beats: clip.startBeats });
-  };
-
-  const activateTrack = (track: DawTrack, clips: DawClip[]) => {
-    const clip = midiClipForTrackActivation(clips, selected?.clip ?? null);
-    if (clip) {
-      focusMidiClip(track, clip);
-    }
-  };
-
-  const toggleGhostTrack = (trackID: string) => {
-    setHiddenGhostTrackIDs((current) => {
-      const next = { ...current };
-      if (next[trackID]) {
-        delete next[trackID];
-      } else {
-        next[trackID] = true;
-      }
-      return next;
-    });
-  };
-
-  return (
-    <div className="daw-panel-body midi-workspace">
-      <aside className="midi-track-list">
-        <h2>Tracks</h2>
-        {displayMidiTracks.map(({ track, clips }) => {
-          const active = selected?.track.id === track.id;
-          const ghostVisible = !active && !hiddenGhostTrackIDs[track.id];
-          const targetClip = midiClipForTrackActivation(clips, selected?.clip ?? null);
-          return (
-            <div className={active ? "midi-track-row active" : "midi-track-row"} key={track.id}>
-              <button
-                className="midi-ghost-toggle"
-                disabled={active}
-                title={active ? "Current track" : ghostVisible ? "Hide ghost notes" : "Show ghost notes"}
-                type="button"
-                onClick={() => toggleGhostTrack(track.id)}
-              >
-                {ghostVisible || active ? <Eye size={15} /> : <EyeOff size={15} />}
-              </button>
-              <button className="midi-track-main" disabled={!targetClip} type="button" onClick={() => activateTrack(track, clips)}>
-                <span className="track-color" style={{ background: track.color }} />
-                <strong>{track.name}</strong>
-                <small>{active ? "Current" : ghostVisible ? "Ghost" : "Hidden"} / {clips.length} clips</small>
-              </button>
-            </div>
-          );
-        })}
-        {midiClips.length === 0 && <EmptyState label="当前工程没有 MIDI clip" />}
-        {false && displayMidiClips.map(({ track, clip }) => (
-          <button className={selected?.clip.id === clip.id ? "midi-clip-row selected" : "midi-clip-row"} key={clip.id} type="button" onClick={() => void focusDawTarget(onInvoke, { track_id: track.id, clip_id: clip.id, start_seconds: clip.startSeconds })}>
-            <strong>{clip.name}</strong>
-            <span>{track.name} 路 {clip.noteCount || clip.notes.length || "?"} notes</span>
-          </button>
-        ))}
-      </aside>
-      <section className="midi-editor-preview">
-        {selected ? (
-          <>
-            <div className="midi-editor-header">
-              <div>
-                <span>{selected.track.name}</span>
-                <strong>{selected.clip.name}</strong>
-              </div>
-              <button type="button" onClick={() => void focusDawTarget(onInvoke, { track_id: selected.track.id, clip_id: selected.clip.id, start_seconds: selected.clip.startSeconds })}>跳到 Clip</button>
-            </div>
-            <PianoRollPreview notes={selectedNotes} clip={selected.clip} loading={Boolean(loadingClipIDs[selected.clip.id])} error={selectedReadError} ghosts={ghostClips} />
-          </>
-        ) : (
-          <EmptyState label="选择一个 MIDI clip 查看音符" />
-        )}
-      </section>
-      <aside className="midi-track-clips">
-        <div className="midi-track-clips-header">
-          <h2>Clips</h2>
-          <span>{selected?.track.name ?? "No track"}</span>
-        </div>
-        {currentTrackClips.length === 0 && <EmptyState label="No clips on current track" />}
-        {currentTrackClips.map((clip) => (
-          <button className={selected?.clip.id === clip.id ? "midi-clip-row selected" : "midi-clip-row"} key={clip.id} type="button" onClick={() => selected && focusMidiClip(selected.track, clip)}>
-            <strong>{clip.name}</strong>
-            <span>{midiClipNoteCountLabel(clip, notesByClip)}</span>
-          </button>
-        ))}
-      </aside>
-    </div>
-  );
-}
-
-function PianoRollPreview({ notes, clip, loading, error = "", ghosts = [] }: { notes: JsonRecord[]; clip: DawClip; loading: boolean; error?: string; ghosts?: DawMidiGhostClip[] }) {
-  const rows = 12;
-  const length = Math.max(1, clip.lengthBeats || 4);
-  const ghostNoteCount = ghosts.reduce((total, ghost) => total + ghost.notes.length, 0);
-  return (
-    <div className="piano-roll-preview">
-      {Array.from({ length: rows }).map((_, index) => <span className="piano-row" key={`row-${index}`} />)}
-      {loading && <span className="piano-empty">Reading notes...</span>}
-      {!loading && error && <span className="piano-empty">{error}</span>}
-      {!loading && !error && notes.length === 0 && ghostNoteCount === 0 && <span className="piano-empty">No note data</span>}
-      {ghosts.map((ghost) => ghost.notes.map((note, index) => {
-        const pitch = finiteNumber(note.pitch ?? note.note, 60);
-        const start = finiteNumber(note.start ?? note.start_beats ?? note.beat, 0) + ghost.offsetBeats;
-        const duration = Math.max(0.1, finiteNumber(note.length ?? note.length_beats ?? note.duration, 0.25));
-        const row = rows - 1 - Math.abs(Math.round(pitch) % rows);
-        const left = start / length * 100;
-        const width = duration / length * 100;
-        if (left > 100 || left + width < 0) {
-          return null;
-        }
-        return (
-          <i
-            className="midi-note ghost"
-            key={`ghost-${ghost.track.id}-${ghost.clip.id}-${index}`}
-            style={{
-              background: ghost.track.color,
-              borderColor: ghost.track.color,
-              left: `${Math.max(0, Math.min(100, left))}%`,
-              width: `${Math.max(2, Math.min(100, width))}%`,
-              top: `${row / rows * 100}%`
-            }}
-          />
-        );
-      }))}
-      {notes.map((note, index) => {
-        const pitch = finiteNumber(note.pitch ?? note.note, 60);
-        const start = finiteNumber(note.start ?? note.start_beats ?? note.beat, 0);
-        const duration = Math.max(0.1, finiteNumber(note.length ?? note.length_beats ?? note.duration, 0.25));
-        const row = rows - 1 - Math.abs(Math.round(pitch) % rows);
-        return (
-          <i
-            className="midi-note"
-            key={`note-${index}`}
-            style={{
-              left: `${Math.max(0, Math.min(100, start / length * 100))}%`,
-              width: `${Math.max(2, Math.min(100, duration / length * 100))}%`,
-              top: `${row / rows * 100}%`
-            }}
-          />
-        );
-      })}
-    </div>
-  );
-}
-
-function DawMixerPanel({ tracks, onInvoke }: { tracks: DawTrack[]; onInvoke: DawInvoke }) {
-  const [editingMixerVolumeDB, setEditingMixerVolumeDB] = useState<Record<string, number>>({});
-
-  useEffect(() => {
-    setEditingMixerVolumeDB((current) => {
-      const trackIDs = new Set(tracks.map((track) => track.id));
-      let changed = false;
-      const next = { ...current };
-      Object.keys(next).forEach((trackID) => {
-        const track = tracks.find((entry) => entry.id === trackID);
-        if (!trackIDs.has(trackID) || (track?.volumeDB != null && Math.abs(track.volumeDB - next[trackID]) < 0.05)) {
-          delete next[trackID];
-          changed = true;
-        }
-      });
-      return changed ? next : current;
-    });
-  }, [tracks]);
-
-  const setPendingMixerVolume = useCallback((trackID: string, db: number) => {
-    const nextDB = clampMixerVolumeDB(db);
-    setEditingMixerVolumeDB((current) => ({ ...current, [trackID]: nextDB }));
-    return nextDB;
-  }, []);
-
-  const clearPendingMixerVolume = useCallback((trackID: string, db: number) => {
-    window.setTimeout(() => {
-      setEditingMixerVolumeDB((current) => {
-        if (Math.abs((current[trackID] ?? db) - db) > 0.05) {
-          return current;
-        }
-        const next = { ...current };
-        delete next[trackID];
-        return next;
-      });
-    }, 1200);
-  }, []);
-
-  const commitMixerVolume = useCallback((trackID: string, db: number) => {
-    const nextDB = clampMixerVolumeDB(db);
-    void onInvoke("track.volume", { track_id: trackID, db: nextDB }, "ask_vit_webui_mixer").finally(() => {
-      clearPendingMixerVolume(trackID, nextDB);
-    });
-  }, [clearPendingMixerVolume, onInvoke]);
-
-  const updateMixerVolumeFromPointer = useCallback((event: ReactPointerEvent<HTMLElement>, trackID: string) => {
-    event.preventDefault();
-    return setPendingMixerVolume(trackID, mixerDBFromPointer(event));
-  }, [setPendingMixerVolume]);
-
-  const updateMixerVolumeFromKey = useCallback((event: ReactKeyboardEvent<HTMLElement>, trackID: string, currentDB: number) => {
-    const nextDB = mixerDBFromKeyboardEvent(event, currentDB);
-    if (nextDB == null) {
-      return;
-    }
-    event.preventDefault();
-    const committedDB = setPendingMixerVolume(trackID, nextDB);
-    commitMixerVolume(trackID, committedDB);
-  }, [commitMixerVolume, setPendingMixerVolume]);
-
-  return (
-    <div className="daw-panel-body mixer-strips">
-      {tracks.length === 0 && <EmptyState label="当前工程没有可混音轨道" />}
-      {tracks.map((track) => {
-        const displayVolumeDB = editingMixerVolumeDB[track.id] ?? track.volumeDB;
-        const volumeEnabled = displayVolumeDB != null;
-        const meterKnown = track.levelDB != null;
-        const faderTop = mixerFaderTopPercent(displayVolumeDB);
-        return (
-          <article className={`mixer-strip-card ${track.selected ? "selected" : ""}`} key={track.id}>
-            <button className="mixer-strip-name" type="button" onClick={() => void focusDawTarget(onInvoke, { track_id: track.id })}>
-              <span className="track-color" style={{ background: track.color }} />
-              <strong>{track.name}</strong>
-            </button>
-            <div className="mixer-zone-stack" aria-label={`${track.name} rack zones`}>
-              <span>Z1 MIDI FX</span>
-              <span>Z2 乐器</span>
-              <span>Z3 音频效果</span>
-            </div>
-            <div className="mixer-strip-core">
-              <div
-                aria-disabled={!volumeEnabled}
-                aria-label={`${track.name} volume fader`}
-                aria-valuemax={mixerFaderMaxDB}
-                aria-valuemin={mixerFaderMinDB}
-                aria-valuenow={volumeEnabled ? Number(displayVolumeDB.toFixed(1)) : undefined}
-                aria-valuetext={mixerVolumeLabel(displayVolumeDB)}
-                className={volumeEnabled ? "mixer-fader" : "mixer-fader disabled"}
-                onKeyDown={(event) => {
-                  if (!volumeEnabled) {
-                    return;
-                  }
-                  updateMixerVolumeFromKey(event, track.id, displayVolumeDB);
-                }}
-                onPointerCancel={(event) => {
-                  if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-                    event.currentTarget.releasePointerCapture(event.pointerId);
-                  }
-                }}
-                onPointerDown={(event) => {
-                  if (!volumeEnabled) {
-                    void focusDawTarget(onInvoke, { track_id: track.id });
-                    return;
-                  }
-                  void focusDawTarget(onInvoke, { track_id: track.id });
-                  event.currentTarget.setPointerCapture(event.pointerId);
-                  updateMixerVolumeFromPointer(event, track.id);
-                }}
-                onPointerMove={(event) => {
-                  if (!volumeEnabled || (event.buttons & 1) !== 1 || !event.currentTarget.hasPointerCapture(event.pointerId)) {
-                    return;
-                  }
-                  updateMixerVolumeFromPointer(event, track.id);
-                }}
-                onPointerUp={(event) => {
-                  if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-                    event.currentTarget.releasePointerCapture(event.pointerId);
-                  }
-                  if (!volumeEnabled) {
-                    return;
-                  }
-                  const nextDB = updateMixerVolumeFromPointer(event, track.id);
-                  commitMixerVolume(track.id, nextDB);
-                }}
-                role="slider"
-                tabIndex={volumeEnabled ? 0 : -1}
-                title={volumeEnabled ? `Volume ${mixerVolumeLabel(displayVolumeDB)}` : "No volume data"}
-              >
-                <div className="mixer-scale" aria-hidden="true">
-                  {mixerFaderTicks.map((db) => (
-                    <span key={db} style={{ top: `${mixerFaderTickTopPercent(db)}%` }}>{mixerFaderTickLabel(db)}</span>
-                  ))}
-                </div>
-                <div className="mixer-groove" aria-hidden="true">
-                  <span className="mixer-rail" />
-                  <span className="mixer-knob" style={{ top: `${faderTop}%` }} />
-                </div>
-              </div>
-              <div
-                className={meterKnown ? "mixer-meter" : "mixer-meter unknown"}
-                onPointerDown={() => void focusDawTarget(onInvoke, { track_id: track.id })}
-                title={mixerMeterTitle(track.levelDB)}
-              >
-                <span className="mixer-meter-fill" style={{ height: `${meterHeight(track.levelDB)}%` }} />
-              </div>
-            </div>
-            <div className="mixer-volume">
-              <span>VOL</span>
-              <strong>{mixerVolumeLabel(displayVolumeDB)}</strong>
-            </div>
-            <div className="track-mini-actions">
-              <button className={track.mute ? "toggle on red" : "toggle"} type="button" onClick={() => void onInvoke("track.mute", { track_id: track.id, mute: !track.mute }, "ask_vit_webui_mixer")}>M</button>
-              <button className={track.solo ? "toggle on yellow" : "toggle"} type="button" onClick={() => void onInvoke("track.solo", { track_id: track.id, solo: !track.solo }, "ask_vit_webui_mixer")}>S</button>
-              <button className={track.armed ? "toggle on blue" : "toggle"} type="button" onClick={() => void onInvoke("track.arm", { track_id: track.id, is_armed: !track.armed }, "ask_vit_webui_mixer")}>R</button>
-            </div>
-          </article>
-        );
-      })}
-    </div>
-  );
-}
-
-const mixerFaderMinDB = -60;
-const mixerFaderMaxDB = 12;
-const mixerFaderTicks = [-60, -15, -5, 0, 3, 12];
-const mixerFaderScalePoints = [
-  { db: -60, y: 1 },
-  { db: -15, y: 0.65 },
-  { db: 0, y: 0.3 },
-  { db: 3, y: 0.15 },
-  { db: 12, y: 0 }
-];
 
 const dawTrackPalette = ["#1f55d8", "#0f8f6d", "#a35d00", "#7c3aed", "#b42318", "#2e6f95", "#8a6f00", "#4d66c7"];
 
@@ -3676,27 +2488,6 @@ function normalizeRackPluginText(value: string): string {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, "");
 }
 
-function dawPanelSubtitle(activeFocus: FocusMode, tracks: DawTrack[], uiState: AgentUIState | null): string {
-  const selectedTrack = tracks.find((track) => track.selected);
-  if (activeFocus === "tracks") {
-    const clipCount = tracks.reduce((total, track) => total + track.clips.length, 0);
-    return `${tracks.length} tracks / ${clipCount} clips`;
-  }
-  if (activeFocus === "rack") {
-    const pluginCount = tracks.reduce((total, track) => total + track.plugins.length, 0);
-    return selectedTrack ? `${selectedTrack.name} selected / ${pluginCount} plugins` : `${pluginCount} plugins`;
-  }
-  if (activeFocus === "midi") {
-    const midiCount = tracks.reduce((total, track) => total + track.clips.filter(isMidiClip).length, 0);
-    const selectedClip = selectedClipIDFromUIState(uiState);
-    return selectedClip ? `${midiCount} MIDI clips / selected ${selectedClip}` : `${midiCount} MIDI clips`;
-  }
-  if (activeFocus === "mixer") {
-    return selectedTrack ? `${selectedTrack.name} selected` : `${tracks.length} mixer channels`;
-  }
-  return "";
-}
-
 function selectedTrackIDFromUIState(uiState: AgentUIState | null): string {
   const selectedTrack = asRecord(uiState?.selected_track);
   const context = asRecord(uiState?.ui_context);
@@ -3750,167 +2541,6 @@ function selectedPluginFromUIState(uiState: AgentUIState | null): { id: string; 
     trackID: textValue(plugin.track_id ?? plugin.selected_plugin_track_id ?? context.selected_plugin_track_id ?? context.selected_track_id, ""),
     name: textValue(plugin.plugin_name ?? plugin.name ?? context.selected_plugin_name, "")
   };
-}
-
-function rackLanesForTrack(track: DawTrack): { trackChain: DawPlugin[]; parallel: DawPlugin[]; clipFx: DawPlugin[] } {
-  const clipFx: DawPlugin[] = [];
-  const parallel: DawPlugin[] = [];
-  const trackChain: DawPlugin[] = [];
-  track.plugins.forEach((plugin) => {
-    const lane = `${plugin.clipScope} ${plugin.role} ${plugin.kind}`.toLowerCase();
-    if (plugin.clipScope !== "track" || lane.includes("clip")) {
-      clipFx.push(plugin);
-      return;
-    }
-    if (lane.includes("parallel") || lane.includes("send") || lane.includes("aux") || lane.includes("branch")) {
-      parallel.push(plugin);
-      return;
-    }
-    trackChain.push(plugin);
-  });
-  if (parallel.length === 0 && hasBranchingRackEdges(track.rackEdges)) {
-    track.plugins.forEach((plugin) => {
-      if (!trackChain.includes(plugin) && !clipFx.includes(plugin) && !parallel.includes(plugin)) {
-        parallel.push(plugin);
-      }
-    });
-  }
-  return { trackChain, parallel, clipFx };
-}
-
-function hasBranchingRackEdges(edges: JsonRecord[]): boolean {
-  const outgoing = new Map<string, number>();
-  edges.forEach((edge) => {
-    const source = textFromKeys(edge, "source", "source_id", "from", "from_id", "src");
-    if (!source) {
-      return;
-    }
-    outgoing.set(source, (outgoing.get(source) ?? 0) + 1);
-  });
-  return Array.from(outgoing.values()).some((count) => count > 1);
-}
-
-function rackPluginKey(trackID: string, pluginID: string): string {
-  return `${trackID}::${pluginID}`;
-}
-
-function rackPluginArgs(track: DawTrack, plugin: DawPlugin): JsonRecord {
-  return {
-    track_id: track.id,
-    plugin_id: plugin.id,
-    plugin_item_id: plugin.itemID || plugin.id,
-    item_id: plugin.itemID || plugin.id,
-    plugin_name: plugin.name,
-    plugin_path: plugin.path
-  };
-}
-
-function rackPluginReference(track: DawTrack, plugin: DawPlugin): string {
-  return `@plugin(track_id="${track.id}", plugin_id="${plugin.id}", name="${plugin.name}")`;
-}
-
-function rackParamSnapshotFromInvoke(response: AgentInvokeResponse): RackParamSnapshot {
-  const result = asRecord(response.result);
-  const plugin = asRecord(result.plugin ?? result.snapshot ?? result.plugin_snapshot);
-  const rows = firstArray(
-    result.parameters,
-    result.params,
-    result.plugin_parameters,
-    result.controls,
-    result.quick_controls,
-    plugin.parameters,
-    plugin.params,
-    plugin.controls
-  ).map(asRecord);
-  const labels = rows
-    .map((row) => textFromKeys(row, "label", "name", "param_name", "raw_param_name", "param_id", "id"))
-    .filter(Boolean)
-    .slice(0, 4);
-  const declaredCount = numericValue(result.parameter_count ?? result.param_count ?? result.count);
-  return {
-    count: declaredCount || rows.length,
-    labels,
-    updatedAt: Date.now()
-  };
-}
-
-function rackParamSnapshotText(snapshot: RackParamSnapshot): string {
-  if (snapshot.count <= 0) {
-    return "No params";
-  }
-  return snapshot.labels.length > 0 ? `${snapshot.count} params 路 ${snapshot.labels.join(", ")}` : `${snapshot.count} params`;
-}
-
-function midiReadNotesFromResult(result: JsonRecord): JsonRecord[] {
-  const clip = asRecord(result.clip ?? result.midi_clip);
-  const data = asRecord(result.data ?? result.payload);
-  return firstArray(
-    result.notes,
-    result.midi_notes,
-    result.note_rows,
-    result.note_events,
-    result.events,
-    clip.notes,
-    clip.midi_notes,
-    data.notes,
-    data.midi_notes,
-    data.note_rows,
-    data.note_events
-  )
-    .map(asRecord)
-    .filter((note) => Object.keys(note).length > 0);
-}
-
-function midiClipHasLoadedNotes(notesByClip: Record<string, JsonRecord[]>, clipID: string): boolean {
-  return Object.prototype.hasOwnProperty.call(notesByClip, clipID);
-}
-
-function midiClipWithCachedNotes(clip: DawClip, notesByClip: Record<string, JsonRecord[]>): DawClip {
-  if (!midiClipHasLoadedNotes(notesByClip, clip.id) || clip.notes.length > 0) {
-    return clip;
-  }
-  const notes = notesByClip[clip.id] ?? [];
-  return { ...clip, notes, noteCount: Math.max(clip.noteCount, notes.length) };
-}
-
-function midiClipNotesForDisplay(clip: DawClip, notesByClip: Record<string, JsonRecord[]>): JsonRecord[] {
-  if (clip.notes.length > 0) {
-    return clip.notes;
-  }
-  return notesByClip[clip.id] ?? [];
-}
-
-function midiClipNoteCountLabel(clip: DawClip, notesByClip: Record<string, JsonRecord[]>): string {
-  if (clip.noteCount > 0) {
-    return `${clip.noteCount} notes`;
-  }
-  if (clip.notes.length > 0) {
-    return `${clip.notes.length} notes`;
-  }
-  if (midiClipHasLoadedNotes(notesByClip, clip.id)) {
-    return `${notesByClip[clip.id]?.length ?? 0} notes`;
-  }
-  return "? notes";
-}
-
-function midiClipIntersectingWindow(clips: DawClip[], focusClip: DawClip | null): DawClip | null {
-  if (clips.length === 0) {
-    return null;
-  }
-  if (!focusClip) {
-    return clips[0];
-  }
-  const start = focusClip.startBeats;
-  const end = focusClip.startBeats + Math.max(0.125, focusClip.lengthBeats);
-  return clips.find((clip) => midiRangesIntersect(clip.startBeats, clip.startBeats + Math.max(0.125, clip.lengthBeats), start, end)) ?? null;
-}
-
-function midiClipForTrackActivation(clips: DawClip[], focusClip: DawClip | null): DawClip | null {
-  return midiClipIntersectingWindow(clips, focusClip) ?? clips[0] ?? null;
-}
-
-function midiRangesIntersect(leftStart: number, leftEnd: number, rightStart: number, rightEnd: number): boolean {
-  return leftStart < rightEnd && rightStart < leftEnd;
 }
 
 function isMidiClip(clip: DawClip): boolean {
@@ -4100,32 +2730,6 @@ function clipBlockStyle(clip: DawClip, pixelsPerSecond: number, timelineWidth: n
   };
 }
 
-function draggedClipStart(drag: ClipDragState, pixelsPerSecond: number, snapSeconds: number): number {
-  const rawStart = Math.max(0, drag.startSeconds + drag.deltaX / Math.max(0.05, pixelsPerSecond));
-  if (snapSeconds <= 0) {
-    return rawStart;
-  }
-  return Math.max(0, Math.round(rawStart / snapSeconds) * snapSeconds);
-}
-
-function trackIDFromPointer(clientX: number, clientY: number): string {
-  if (typeof document === "undefined") {
-    return "";
-  }
-  const lanes = Array.from(document.querySelectorAll<HTMLElement>(".track-lane-canvas[data-track-id]"));
-  for (const lane of lanes) {
-    const rect = lane.getBoundingClientRect();
-    if (clientY >= rect.top && clientY <= rect.bottom) {
-      return lane.dataset.trackId ?? "";
-    }
-  }
-  const element = document.elementFromPoint(clientX, clientY);
-  if (!(element instanceof HTMLElement)) {
-    return "";
-  }
-  return element.closest<HTMLElement>("[data-track-id]")?.dataset.trackId ?? "";
-}
-
 function formatTimelineSeconds(seconds: number): string {
   const safe = Math.max(0, Math.round(seconds));
   if (safe < 60) {
@@ -4134,115 +2738,6 @@ function formatTimelineSeconds(seconds: number): string {
   const minutes = Math.floor(safe / 60);
   const rest = safe % 60;
   return `${minutes}:${String(rest).padStart(2, "0")}`;
-}
-
-function clipTitle(track: DawTrack, clip: DawClip): string {
-  const end = clip.startSeconds + clip.lengthSeconds;
-  const noteSuffix = isMidiClip(clip) ? ` / ${clip.noteCount || clip.notes.length} notes` : "";
-  return `${track.name} / ${clip.name}\n${clip.startSeconds.toFixed(2)}s - ${end.toFixed(2)}s${noteSuffix}`;
-}
-
-function meterHeight(levelDB: number | null): number {
-  if (levelDB == null || !Number.isFinite(levelDB)) {
-    return 0;
-  }
-  return clampNumber(((levelDB + 60) / 60) * 100, 0, 100);
-}
-
-function clampMixerVolumeDB(db: number): number {
-  return clampNumber(db, mixerFaderMinDB, mixerFaderMaxDB);
-}
-
-function mixerVolumeLabel(db: number | null): string {
-  if (db == null || !Number.isFinite(db)) {
-    return "-- dB";
-  }
-  if (db <= mixerFaderMinDB + 0.05) {
-    return "-inf";
-  }
-  return `${db.toFixed(1)} dB`;
-}
-
-function mixerMeterTitle(levelDB: number | null): string {
-  return levelDB == null || !Number.isFinite(levelDB) ? "No meter data" : `Meter ${levelDB.toFixed(1)} dB`;
-}
-
-function mixerFaderTickLabel(db: number): string {
-  if (db <= mixerFaderMinDB) {
-    return "-inf";
-  }
-  if (db > 0) {
-    return `+${Math.round(db)}`;
-  }
-  return `${Math.round(db)}`;
-}
-
-function mixerFaderTopPercent(db: number | null): number {
-  return mixerDBToUIPercent(db ?? 0) * 100;
-}
-
-function mixerFaderTickTopPercent(db: number): number {
-  return clampNumber(mixerFaderTopPercent(db), 4, 96);
-}
-
-function mixerDBToUIPercent(db: number): number {
-  const safeDB = clampMixerVolumeDB(db);
-  for (let index = 0; index < mixerFaderScalePoints.length - 1; index += 1) {
-    const current = mixerFaderScalePoints[index];
-    const next = mixerFaderScalePoints[index + 1];
-    if (safeDB <= next.db) {
-      const span = next.db - current.db;
-      const t = Math.abs(span) < 1e-9 ? 0 : (safeDB - current.db) / span;
-      return current.y + (next.y - current.y) * t;
-    }
-  }
-  return mixerFaderScalePoints[mixerFaderScalePoints.length - 1].y;
-}
-
-function mixerUIPercentToDB(percent: number): number {
-  const safePercent = clampNumber(percent, 0, 1);
-  for (let index = 0; index < mixerFaderScalePoints.length - 1; index += 1) {
-    const current = mixerFaderScalePoints[index];
-    const next = mixerFaderScalePoints[index + 1];
-    const high = Math.max(current.y, next.y);
-    const low = Math.min(current.y, next.y);
-    if (safePercent <= high && safePercent >= low) {
-      const span = current.y - next.y;
-      const t = Math.abs(span) < 1e-9 ? 0 : (current.y - safePercent) / span;
-      return clampMixerVolumeDB(current.db + (next.db - current.db) * t);
-    }
-  }
-  return mixerFaderMaxDB;
-}
-
-function mixerDBFromPointer(event: ReactPointerEvent<HTMLElement>): number {
-  const rect = event.currentTarget.getBoundingClientRect();
-  if (rect.height <= 1) {
-    return 0;
-  }
-  return mixerUIPercentToDB((event.clientY - rect.top) / rect.height);
-}
-
-function mixerDBFromKeyboardEvent(event: ReactKeyboardEvent<HTMLElement>, currentDB: number): number | null {
-  const step = event.shiftKey ? 1 : 0.5;
-  switch (event.key) {
-    case "ArrowUp":
-    case "ArrowRight":
-      return clampMixerVolumeDB(currentDB + step);
-    case "ArrowDown":
-    case "ArrowLeft":
-      return clampMixerVolumeDB(currentDB - step);
-    case "PageUp":
-      return clampMixerVolumeDB(currentDB + 3);
-    case "PageDown":
-      return clampMixerVolumeDB(currentDB - 3);
-    case "Home":
-      return mixerFaderMaxDB;
-    case "End":
-      return mixerFaderMinDB;
-    default:
-      return null;
-  }
 }
 
 function clipActivitySegments(raw: JsonRecord, notes: JsonRecord[], lengthBeats: number): DawActivitySegment[] {
@@ -12592,7 +11087,7 @@ function selectedPluginContextFromUIState(uiState: AgentUIState | null): { track
   };
 }
 
-function buildChatContext(mode: AgentMode, activeFocus: FocusMode, uiState: AgentUIState | null, artifacts: ArtifactSummary[], macroRefs: MacroControl[] = [], authorityMode: AuthorityMode = "manual_confirmation"): JsonRecord {
+function buildChatContext(mode: AgentMode, uiState: AgentUIState | null, artifacts: ArtifactSummary[], macroRefs: MacroControl[] = [], authorityMode: AuthorityMode = "manual_confirmation"): JsonRecord {
   const selectedTrack = asRecord(uiState?.selected_track);
   const uiContext = asRecord(uiState?.ui_context);
   const selectedTrackID = selectedTrackIDFromUIState(uiState);
@@ -12627,7 +11122,8 @@ function buildChatContext(mode: AgentMode, activeFocus: FocusMode, uiState: Agen
   return compactChatContextRecord({
     agent_mode: mode,
     ...authorityContext(authorityMode),
-    active_focus: activeFocus,
+    // WEBUI-IA-REDESIGN-1: focus 视窗族已删，聊天上下文固定对话面
+    active_focus: "dialogue",
     history_scope_key: scope.history_scope_key,
     media_scope_key: scope.media_scope_key,
     project_path: textValue(projectHistory.project_path ?? projectHistory.current_project_path ?? project.project_path, ""),

@@ -2525,6 +2525,96 @@ function checkO1(result) {
   return { failures, notes };
 }
 
+// ------------------------------------------------ WEBUI-IA-REDESIGN-1 (2026-10-02)
+// 三区布局一期的新增断言组：左列=会话流侧边栏（新建/切换/重命名/归档/折叠，
+// 会话键=conversation id，不建工作树不建分支），DAW 简易视窗三件套（时间线/
+// 机架 lanes/MIDI workspace，含同族 mixer-strips 与死码 V1 机架）整体下线，
+// 执行状态栏不再显示哈希类任务 id 文本（STATUSBAR-ID-1 并入）。
+function checkIaSidebar(result, options) {
+  const failures = [];
+  const notes = [];
+  if (!result.appeared) {
+    failures.push("the session-flow sidebar never rendered (.session-sidebar)");
+    return { failures, notes };
+  }
+  if (!result.currentRowActive) {
+    failures.push("the mounted conversation (" + options.conversationId + ") is not the active sidebar row");
+  }
+  if (!result.numbersLinear || result.numbersLinear.count === 0 || !result.numbersLinear.allLinear) {
+    failures.push("sidebar display numbers are not pure linear digits: " + JSON.stringify(result.numbersLinear));
+  } else {
+    notes.push("display numbers: " + JSON.stringify(result.numbersLinear.values) + " (no prefix, no hash)");
+  }
+  if (!result.registryKeys.some((key) => key.indexOf("ask_vit_session_flow.v1") === 0)) {
+    failures.push("no session-flow registry bucket persisted to localStorage after mount");
+  }
+  const nc = result.newConversation;
+  if (!nc.rowAppeared) {
+    failures.push("clicking 新建会话 did not register a new row in the sidebar list");
+  }
+  if (nc.rowAppeared && nc.activeID === options.conversationId) {
+    failures.push("clicking 新建会话 did not switch the active row to the new conversation");
+  }
+  if (nc.rowAppeared && nc.newID && nc.newID.indexOf("webui_") !== 0) {
+    failures.push("new conversation id is not the lightweight webui_ form: " + nc.newID);
+  } else if (nc.newID) {
+    notes.push("new conversation " + nc.newID + " registered (no worktree, no branch)");
+  }
+  if (!result.rename.inputAppeared || !result.rename.titleUpdated) {
+    failures.push("inline rename did not commit (inputAppeared=" + result.rename.inputAppeared + ", titleUpdated=" + result.rename.titleUpdated + ")");
+  }
+  if (!result.switchBack.activeRestored) {
+    failures.push("clicking the original conversation row did not switch back (active row is not " + options.conversationId + ")");
+  }
+  if (!result.archive.hiddenFromList || !result.archive.toggleAppeared || !result.archive.restored) {
+    failures.push(
+      "archive/restore flow broken (hidden=" + result.archive.hiddenFromList +
+      ", toggle=" + result.archive.toggleAppeared + ", restored=" + result.archive.restored + ")"
+    );
+  }
+  if (!result.collapse.collapsedClass || !result.collapse.expandedBack) {
+    failures.push("collapse toggle broken (collapsed=" + result.collapse.collapsedClass + ", expandedBack=" + result.collapse.expandedBack + ")");
+  }
+  return { failures, notes };
+}
+
+function checkIaViewport(result) {
+  const failures = [];
+  const notes = [];
+  for (const [selector, count] of Object.entries(result.deadNodes || {})) {
+    if (count > 0) {
+      failures.push("deleted viewport family still renders: " + selector + " x" + count);
+    }
+  }
+  if (Object.keys(result.deadNodes || {}).length === 0) {
+    failures.push("the dead-node probe returned nothing (pass setup broken)");
+  } else {
+    notes.push("all deleted families absent: " + Object.keys(result.deadNodes).join(", "));
+  }
+  return { failures, notes };
+}
+
+function checkIaStatusbar(result, options) {
+  const failures = [];
+  const notes = [];
+  if (!result.planBarAppeared) {
+    failures.push("the plan bar never rendered with the injected running task -- the statusbar id assertion would measure nothing");
+    return { failures, notes };
+  }
+  if (result.planBarHeadText && /Task\s+\S+/.test(result.planBarHeadText)) {
+    failures.push("the plan-bar head still shows a visible task id text: " + JSON.stringify(result.planBarHeadText));
+  }
+  if (result.planBarTaskElementCount > 0) {
+    failures.push("a .plan-bar-task element still renders (" + result.planBarTaskElementCount + ")");
+  }
+  if (options.expectTaskID && result.planBarDataTaskID !== options.expectTaskID) {
+    failures.push("data-task-id attribute missing or wrong: " + JSON.stringify(result.planBarDataTaskID));
+  } else {
+    notes.push("task id stays DOM-only via data-task-id=" + JSON.stringify(result.planBarDataTaskID));
+  }
+  return { failures, notes };
+}
+
 
 // --------------------------------------------------------------- main flow
 
@@ -4144,6 +4234,191 @@ async function main() {
     }
   };
   record("msg-order-M2", checkM2({ finalSample: msgOrder2Pass.finalSample, phase1: msgOrder2Pass.phase1 }));
+
+  // ------------------------------------------------------ WEBUI-IA-REDESIGN-1
+  // The three-zone redesign pass: real browser, real bundle, real interactions.
+  // Events replay conversation-strict (a freshly minted webui_ conversation gets
+  // an empty buffer exactly like the live agent), the plan bar is fed a running
+  // task through the network layer (PLANBAR-1 pattern) so the statusbar id shape
+  // is asserted on the live DOM, and every sidebar operation (new / rename /
+  // switch / archive / restore / collapse) is driven by real clicks.
+  report.ia_redesign_source =
+    "real interactions on the rendered surface: archived stream replayed conversation-strict for GET /agent/events; " +
+    "task runtime state injected at the network layer (PLANBAR-1 pattern) so .plan-bar is live; sidebar operations " +
+    "driven by real Playwright clicks against the bundle under test";
+  const runIaRedesignPass = async (name) => {
+    const context = await browser.newContext({ viewport });
+    await installReplay(context, { strictConversation: true });
+    await installTaskState(context, planBarTaskFixture("observation_in_progress"), "running");
+    const page = await context.newPage();
+    await page.goto(agentBase + "/app/?conversation_id=" + encodeURIComponent(conversationId), { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(2500);
+
+    const result = {
+      appeared: false,
+      currentRowActive: false,
+      numbersLinear: null,
+      registryKeys: [],
+      newConversation: { rowAppeared: false, newID: "", activeID: "" },
+      rename: { inputAppeared: false, titleUpdated: false },
+      switchBack: { activeRestored: false },
+      archive: { hiddenFromList: false, toggleAppeared: false, restored: false },
+      collapse: { collapsedClass: false, expandedBack: false },
+      deadNodes: {},
+      planBarAppeared: false,
+      planBarHeadText: "",
+      planBarTaskElementCount: 0,
+      planBarDataTaskID: ""
+    };
+
+    // IA3 first: the injected running task drives the plan bar at mount time.
+    // Sidebar operations below mint a new conversation, whose [conversationID]
+    // effect legitimately clears the task trajectory -- sampling the bar after
+    // the ops would read the goal-fallback render, not the fixture.
+    result.planBarAppeared = await page.waitForSelector(".plan-bar", { timeout: 8000 }).then(() => true).catch(() => false);
+    if (result.planBarAppeared) {
+      const bar = await page.evaluate(() => {
+        const el = document.querySelector(".plan-bar");
+        const head = el ? el.querySelector(".plan-bar-head") : null;
+        return {
+          headText: head ? (head.textContent || "").replace(/\s+/g, " ").trim() : "",
+          taskElementCount: document.querySelectorAll(".plan-bar-task").length,
+          dataTaskID: el ? el.getAttribute("data-task-id") || "" : ""
+        };
+      });
+      result.planBarHeadText = bar.headText;
+      result.planBarTaskElementCount = bar.taskElementCount;
+      result.planBarDataTaskID = bar.dataTaskID;
+    }
+    await page.screenshot({ path: join(outDir, "dom-" + name + "-mount.png"), fullPage: false });
+
+    result.appeared = await page.waitForSelector(".session-sidebar", { timeout: 10000 }).then(() => true).catch(() => false);
+    if (result.appeared) {
+      result.currentRowActive = await page
+        .locator('.session-list .session-row[data-conversation-id="' + conversationId + '"].active')
+        .count()
+        .then((count) => count > 0)
+        .catch(() => false);
+      result.numbersLinear = await page.evaluate(() => {
+        const numbers = Array.from(document.querySelectorAll(".session-sidebar .session-number")).map((el) => (el.textContent || "").trim());
+        return { count: numbers.length, allLinear: numbers.length > 0 && numbers.every((text) => /^[0-9]+$/.test(text)), values: numbers.slice(0, 8) };
+      });
+      result.registryKeys = await page.evaluate(() => Object.keys(window.localStorage));
+
+      // 新建会话（轻量：webui_ id，不建工作树不建分支）
+      await page.click('.session-sidebar [data-action="new"]').catch(() => {});
+      await page.waitForTimeout(900);
+      const afterNew = await page.evaluate(() => {
+        const rows = Array.from(document.querySelectorAll(".session-list .session-row"));
+        const active = document.querySelector(".session-list .session-row.active");
+        return {
+          ids: rows.map((row) => row.getAttribute("data-conversation-id") || ""),
+          activeID: active ? active.getAttribute("data-conversation-id") || "" : ""
+        };
+      });
+      result.newConversation.newID = afterNew.ids.find((id) => id && id !== conversationId) || "";
+      result.newConversation.rowAppeared = afterNew.ids.length >= 2;
+      result.newConversation.activeID = afterNew.activeID;
+
+      // 重命名（inline input）
+      if (result.newConversation.newID) {
+        const newRow = page.locator('.session-list .session-row[data-conversation-id="' + result.newConversation.newID + '"]');
+        await newRow.hover().catch(() => {});
+        await page.click('.session-list .session-row[data-conversation-id="' + result.newConversation.newID + '"] [data-action="rename"]').catch(() => {});
+        const renameInput = page.locator(".session-rename-input");
+        result.rename.inputAppeared = await renameInput.waitFor({ state: "visible", timeout: 4000 }).then(() => true).catch(() => false);
+        if (result.rename.inputAppeared) {
+          await renameInput.fill("E2E 重命名会话");
+          await renameInput.press("Enter");
+          await page.waitForTimeout(500);
+          result.rename.titleUpdated = await page
+            .locator('.session-list .session-row[data-conversation-id="' + result.newConversation.newID + '"] .session-title', { hasText: "E2E 重命名会话" })
+            .count()
+            .then((count) => count > 0)
+            .catch(() => false);
+        }
+        // 归档 + 还原
+        await newRow.hover().catch(() => {});
+        await page.click('.session-list .session-row[data-conversation-id="' + result.newConversation.newID + '"] [data-action="archive"]').catch(() => {});
+        await page.waitForTimeout(400);
+        result.archive.hiddenFromList = await page
+          .locator('.session-list .session-row[data-conversation-id="' + result.newConversation.newID + '"]')
+          .count()
+          .then((count) => count === 0)
+          .catch(() => false);
+        const archivedToggle = page.locator(".session-archived-toggle");
+        result.archive.toggleAppeared = await archivedToggle
+          .waitFor({ state: "visible", timeout: 4000 })
+          .then(() => archivedToggle.textContent().then((text) => (text || "").indexOf("已归档") >= 0))
+          .catch(() => false);
+        if (result.archive.toggleAppeared) {
+          await archivedToggle.click().catch(() => {});
+          await page.waitForTimeout(300);
+          const restoreButton = page.locator('.session-archived [data-action="restore"]').first();
+          await restoreButton.click().catch(() => {});
+          await page.waitForTimeout(400);
+          result.archive.restored = await page
+            .locator('.session-list .session-row[data-conversation-id="' + result.newConversation.newID + '"]')
+            .count()
+            .then((count) => count > 0)
+            .catch(() => false);
+        }
+
+        // 切换回原会话
+        await page.click('.session-list .session-row[data-conversation-id="' + conversationId + '"] .session-row-main').catch(() => {});
+        await page.waitForTimeout(700);
+        result.switchBack.activeRestored = await page
+          .locator('.session-list .session-row[data-conversation-id="' + conversationId + '"].active')
+          .count()
+          .then((count) => count > 0)
+          .catch(() => false);
+      }
+
+      // 折叠 toggle
+      await page.click('.session-sidebar [data-action="collapse"]').catch(() => {});
+      await page.waitForTimeout(300);
+      result.collapse.collapsedClass = await page.locator(".session-sidebar.collapsed").count().then((count) => count > 0).catch(() => false);
+      await page.screenshot({ path: join(outDir, "dom-" + name + "-collapsed.png"), fullPage: false });
+      if (result.collapse.collapsedClass) {
+        await page.click('.session-sidebar [data-action="expand"]').catch(() => {});
+        await page.waitForTimeout(300);
+        result.collapse.expandedBack = await page.locator(".session-sidebar:not(.collapsed)").count().then((count) => count > 0).catch(() => false);
+      }
+      await page.screenshot({ path: join(outDir, "dom-" + name + "-ops.png"), fullPage: false });
+    }
+
+    // IA2：简易视窗三件套（含同族 mixer-strips/死码 V1/旧模式轨）不再渲染
+    result.deadNodes = await page.evaluate(() => {
+      const probes = [
+        ".daw-panel-body", ".daw-focus-panel", ".daw-timeline", ".daw-toolbar", ".daw-panel-header",
+        ".rack-lanes", ".midi-workspace", ".midi-editor-preview", ".mixer-strips",
+        ".side-rail", ".rail-button", ".focus-summary"
+      ];
+      const out = {};
+      for (const selector of probes) {
+        out[selector] = document.querySelectorAll(selector).length;
+      }
+      return out;
+    });
+
+    await page.screenshot({ path: join(outDir, "dom-" + name + ".png"), fullPage: false });
+    await context.close();
+    return result;
+  };
+
+  const iaRedesignPass = await runIaRedesignPass("ia-redesign");
+  report.ia_redesign = {
+    sidebar_appeared: iaRedesignPass.appeared,
+    new_conversation_id: iaRedesignPass.newConversation.newID,
+    numbers: iaRedesignPass.numbersLinear,
+    registry_keys: iaRedesignPass.registryKeys.filter((key) => key.indexOf("ask_vit_session_flow") === 0),
+    plan_bar_head_text: iaRedesignPass.planBarHeadText,
+    plan_bar_data_task_id: iaRedesignPass.planBarDataTaskID,
+    dead_nodes: iaRedesignPass.deadNodes
+  };
+  record("ia-redesign-sidebar-IA1", checkIaSidebar(iaRedesignPass, { conversationId }));
+  record("ia-redesign-viewport-IA2", checkIaViewport(iaRedesignPass));
+  record("ia-redesign-statusbar-IA3", checkIaStatusbar(iaRedesignPass, { expectTaskID: "task_e2e_planbar1" }));
 
 
   report.finished_at = new Date().toISOString();
