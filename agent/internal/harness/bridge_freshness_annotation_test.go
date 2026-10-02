@@ -155,8 +155,16 @@ func TestMixboardSnapshotDualWriteForkRowsCarryFreshnessAnnotation(t *testing.T)
 }
 
 // TestMixboardSnapshotConcurrentDualWriteNoUnannotatedFork 模拟烟测 ⑤ 断言在
-// 分叉窗内读快照：两条写路径并发交替发布，轮询读者持续检查"不存在未标注的
+// 分叉窗内读快照：两条写路径并发交替发布，轮询读者持续检查"不存在未注记的
 // 分叉"。修前轮询必然捕获无标注分叉窗；修后每笔写入都随铃标注，全程绿。
+//
+// FIX-MIXBOARD-FLAKE-2：完成检测不走"spawn goroutine 等 WaitGroup 再非阻塞
+// select"的投票原语——它要求新生的 goroutine 在同一轮询窗口内被调度跑完，
+// 全量并发（87 包饱和 CPU）时永远输给 default 分支：写者 1s 内完成、读者仍
+// 空转到截止（2026-10-02 满载取证 5/5 复现）。改为事件驱动：写者收尾
+// close(done)，select 观察关闭态确定命中，检测与时钟脱钩。15s 看门狗只防
+// 真挂死（生产写路径互斥时序化，挂死即真缺陷），不约束正常负载下的写者
+// 吞吐；预算放宽不构成放行——分叉回归在任何一次采样即红，与预算大小无关。
 func TestMixboardSnapshotConcurrentDualWriteNoUnannotatedFork(t *testing.T) {
 	root := t.TempDir()
 	snapshotPath := filepath.Join(root, "mixboard_feature_snapshot.json")
@@ -165,9 +173,13 @@ func TestMixboardSnapshotConcurrentDualWriteNoUnannotatedFork(t *testing.T) {
 	const rounds = 40
 	var wg sync.WaitGroup
 	wg.Add(2)
+	doneMixboard := make(chan struct{})
+	doneKernel := make(chan struct{})
+	started := time.Now()
 
 	go func() {
 		defer wg.Done()
+		defer close(doneMixboard)
 		for i := 0; i < rounds; i++ {
 			requestID := fmt.Sprintf("mixboard_20260921T120000.%09d", 1000+i)
 			writeMixboardReadyL3SummarySnapshot(cmd, f5MixboardPacket(requestID), f5BandEnergyRow(requestID))
@@ -175,6 +187,7 @@ func TestMixboardSnapshotConcurrentDualWriteNoUnannotatedFork(t *testing.T) {
 	}()
 	go func() {
 		defer wg.Done()
+		defer close(doneKernel)
 		for i := 0; i < rounds; i++ {
 			kernelEvent := map[string]any{
 				"track_id":     "1007",
@@ -186,12 +199,18 @@ func TestMixboardSnapshotConcurrentDualWriteNoUnannotatedFork(t *testing.T) {
 		}
 	}()
 
-	deadline := time.Now().Add(5 * time.Second)
+	deadline := time.Now().Add(15 * time.Second)
 	var lastForks []string
 	var reads int
-	for {
-		if wgDone(&wg) {
-			break
+	for pending := 2; pending > 0; {
+		select {
+		case <-doneMixboard:
+			doneMixboard = nil
+			pending--
+		case <-doneKernel:
+			doneKernel = nil
+			pending--
+		default:
 		}
 		if time.Now().After(deadline) {
 			t.Fatal("dual writers did not finish in time")
@@ -208,19 +227,9 @@ func TestMixboardSnapshotConcurrentDualWriteNoUnannotatedFork(t *testing.T) {
 		time.Sleep(2 * time.Millisecond)
 	}
 	wg.Wait()
+	t.Logf("dual writers finished in %s (reads=%d)", time.Since(started), reads)
 	if reads == 0 {
 		t.Fatal("polling reader never observed a snapshot")
-	}
-}
-
-func wgDone(wg *sync.WaitGroup) bool {
-	state := make(chan struct{})
-	go func() { wg.Wait(); close(state) }()
-	select {
-	case <-state:
-		return true
-	default:
-		return false
 	}
 }
 
