@@ -19,5 +19,13 @@
 - 验收标准：目标 1-5 落地+探针/回归全绿+用户手测复验（拖动/缩放/锚点移动删除/布局/三态零回退）。
 - 停止条件：router 清单扩展影响画布正常手势（回归发现）→ 退回仅组内方案并如实申报取舍；锚点删除语义与持久化耦合超预期 → 上交裁定。
 - 领取：2026-10-02 PC 执行侧（ZCode GLM-5.3）/ fd7e6af0b7cff88afea29a4a6882fa81d7f5244b / port/vitnote-container-2
-- 回执：（commit hash / 探针输出留档 / 布局前后截图 / 自验清单）
+- 回执（2026-10-02 PC 执行侧）：
+  - **commit**：Godot 仓 `port/vitnote-container-2` @ `42b1856`（基线 fd7e6af+1；5 文件：3 产品 + 2 工具）
+  - **方案 2 实锚申报（最小侵入）**：router 仅改 `_global_point_targets_floating_interactive_control` 一处——组成员自身 `mouse_filter!=IGNORE`+矩形命中即旁路（体部判定，语义对齐仲裁器锚点 C）；`_is_interactive_timeline_control` 清单与其余两调用点（画布侧 hover 链/非 lane 判定）不动 → 画布手势零影响；面板根 `_ready` 入组 `vit_floating_interactive`（先例=manager 锚点 B 入组）。
+  - **目标落地**：①整标题栏拖动=Header STOP+gui_input 起闩（⠿ 保留视觉提示，按钮子先于父命中不受扰）②体部防抢如上 ③锚点三分=原位 down→up 重开（位移<4px 判定替代 pressed 直连）/拖动移动（_process 轮询+钳制）/右键即删（`manager.remove_note`，note 数据丢弃，无回收站）；collapse 清闩防悬挂 ④缩放=右下 16px 把手（FDIAG 光标+三斜线），min=PANEL_MIN_SIZE/max=viewport 内自由；基类 PanelContainer→Panel（把手驻角前提，vbox FULL_RECT 自管布局）⑤布局重排=标题栏/输出滚动区（中）/输入行常驻底部（LineEdit+发送同行）；钳制抽静态纯函数（探针可断言面）。
+  - **探针输出留档**：`coord/runs/VITNOTE-CONTAINER-2/` 10 份——新探针 probe_container_run1（43/43 EXIT=0：组注册/结构不变量/拖动闩/缩放闩/两钳制数值表/锚点三语义/删除链）；回归 face_resolve 127/127+circle_state 52/52+panel_summary 16/16+input dock EXIT=0；`--import` 零 SCRIPT ERROR；input legacy EXIT=2 经基线 fd7e6af 临时 worktree 对照判定=既有 headless 64x64 几何限制（两版输出逐字相同，probe_input_legacy_baseline_check.txt 归因留档；IMPL-D 当时留档亦仅 dock 面）。
+  - **布局前后截图**：layout_before/after_{open,collapsed}.png 四张（窗口模式渲染截图，工具 tools/capture_vitnote_panel_layout.gd 两版通用）。
+  - **自验清单（用户手测复验项）**：1) 打开态：标题栏空白处长按拖动整面板（含摘要文本区），⠿/收起/输入/发送各自交互不受扰；2) 右下角把手缩放（光标变斜箭头；不小于 ~340×300、不出屏）；3) 输入框常驻底部、输出区内容多时滚动；4) 收起→锚点：单击重开、按住拖动只挪位置、右键即删（无确认无回收站——删除不可恢复请用测试 note）；5) 多 note 并存互不干扰；6) Q 圈选→胶囊→开便签链路照常；7) 面板压在时间线上方时画布 marquee/右键菜单照常（防抢不扩大到面板外）；8) IME 中文输入照常。
+  - **运行栈状态声明**：本卡全程未启动真实运行栈（VitApp 内核/Godot 完整前端应用/Go agent 三件套均未运行）；仅 Godot `--headless -s` 探针与窗口模式截图脚本（Script 模式加载 dock 场景取证，先例=probe_vitnote_input）；无残留进程、无端口占用；两仓工作树除本卡 diff 外无其他改动（Godot 仓未跟踪运行时目录未动）。
+  - **端测覆盖边界（AGENTS.md §5）**：渲染面/交互手感/IME 实输在 headless 不可判（探针 NOTE 自声明），按卡面约定归用户手测复验；闩位/钳制数值/结构不变量已由 43 项探针锁定。
 - 验收：（裁定文件 / 验收 commit）

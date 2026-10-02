@@ -1,0 +1,16 @@
+VITNOTE-CONTAINER-2 回归补证：probe_vitnote_input.gd --face=legacy EXIT=2 的归因
+
+现象：本卡工作树跑 legacy 面 EXIT=2，失败点=搭建期
+  [probe] FAIL setup: timeline canvas too small for panel overlay: [P: (-170.5, -17.5), S: (713.0, 0.0)]
+  （scroll_rect 高度 0；viewport_visible_rect=(64.0, 64.0)）
+
+归因（基线对照，临时 git worktree @ fd7e6af，跑后已清理）：
+  基线 fd7e6af 上 legacy 面输出完全相同：
+  [probe] FAIL setup: timeline canvas too small for panel overlay: [P: (-170.5, -17.5), S: (713.0, 0.0)]
+  → 既有 headless 64x64 几何限制（探针文件 NOTE 自声明：headless 下 canvas 出窗、GUI pick 不可判），
+    非本卡改动引入。IMPL-D 留档（coord/runs/VITNOTE-V2-IMPL-D/probe_input_regression.txt）
+    实际只含 dock 面——本卡回归口径与之一致：dock 面 EXIT=0、VERDICT 形态与基线相同
+    （timeline_consumed(panel_present)=false），且组枚举新证面板根已入 vit_floating_interactive
+    （体部旁路注册生效）。
+
+结论：legacy 面 headless EXIT=2 记为环境边界（同基线），不构成本卡回退；GUI 终验归用户手测。

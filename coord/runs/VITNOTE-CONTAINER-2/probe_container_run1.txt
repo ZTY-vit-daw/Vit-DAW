@@ -1,0 +1,52 @@
+Initialize godot-rust (API v4.5.stable.official, runtime v4.6.1.stable.official, safeguards balanced)
+[VulkanHook/Windows] Installing vkCreateDevice hook...
+[VulkanHook/Windows] Hook installed successfully
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+[probe] VITNOTE-CONTAINER-2 container suite start
+[probe] PASS spawn two notes via open_note
+[probe] PASS note ids distinct and incremented
+[probe] PASS manager in vit_floating_interactive group
+[probe] PASS panel root A in vit_floating_interactive group
+[probe] PASS panel root B in vit_floating_interactive group
+[probe] PASS panel root mouse_filter not IGNORE (body hit premise)
+[probe] PASS panel base is Panel (not PanelContainer)
+[probe] PASS layout root present
+[probe] PASS header is first layout child
+[probe] PASS input row is last layout child (pinned bottom)
+[probe] PASS output scroll between header and input row
+[probe] PASS header mouse_filter STOP (whole-bar drag)
+[probe] PASS summary label IGNORE (click-through to header)
+[probe] PASS grip button kept as visual hint in header
+[probe] PASS resize handle is direct panel child
+[probe] PASS resize handle anchored bottom-right
+[probe] PASS resize handle mouse_filter STOP
+[probe] PASS input box and send button in bottom row
+[probe] PASS drag latch on _begin_drag
+[probe] PASS drag latch off _end_drag
+[probe] PASS drag latch on header press
+[probe] PASS drag latch off header release
+[probe] PASS collapse clears drag latch (no dangling drag)
+[probe] PASS pos clamp negative coords to margin
+[probe] PASS pos clamp beyond bottom-right
+[probe] PASS pos in-range passthrough
+[probe] PASS pos clamp degenerate elem larger than viewport stays at margin
+[probe] PASS resize latch on handle press
+[probe] PASS resize latch off handle release
+[probe] PASS size clamp below minimum
+[probe] PASS size clamp beyond viewport freedom
+[probe] PASS size in-range passthrough
+[probe] PASS size clamp degenerate panel at viewport corner floors to minimum
+[probe] PASS collapsed panel hidden
+[probe] PASS anchor dot present after collapse
+[probe] PASS anchor drag latch on button_down
+[probe] PASS in-place down/up reopens (click semantics)
+[probe] PASS moved down/up does not reopen (drag semantics)
+[probe] PASS anchor drag latch cleared after up
+[probe] PASS panel B anchor present before delete
+[probe] PASS right-click removes note from manager set
+[probe] PASS deleted panel freed after frames
+[probe] PASS deleted panel anchor freed with panel
+[probe] ---- summary ----
+[probe] checks=43 failed=0
+[probe] PROBE PASS
