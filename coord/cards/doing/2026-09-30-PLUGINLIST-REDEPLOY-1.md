@@ -14,4 +14,5 @@
 - 文件域：仓外构建树+演示二进制路径+coord/runs/FIX-PLUGINLIST-WINPATH-BLINDSPOT-1/（回执工件）；**零仓库源码改动**。
 - 验收标准：leg D run all_green exit 0+演示路径替换回执（新旧 sha256）+回执工件入 runs/。
 - 停止条件：新二进制 leg D 失败 → 保留双二进制与 run 工件上交（修复可能未覆盖演示形态，转取证）。
-- 领取 / 回执 / 验收：空行待填
+- 领取：2026-10-02（mac 执行侧）/ origin/main=`08fdfe9bc8d59040b5f577f16f2c4060a685eb39`（含决策侧预核锚点所述 cb194c5 之后两条他卡领取提交）/ 分支=main（coord-only，零仓库源码改动卡）；独立 worktree `/tmp/pluginlist-redeploy-wt` 开工（PROTOCOL §3），主工作树不动（停 port/rlm-profile-2 有未提交内容）
+- 回执 / 验收：待填
