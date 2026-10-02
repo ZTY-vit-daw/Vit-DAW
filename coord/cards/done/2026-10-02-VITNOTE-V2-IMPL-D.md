@@ -17,5 +17,5 @@
 - 验收标准：多面摘要 diff 亲核+headless import 零错误+九步手测记录完整（判据逐条结论）+三卡销项落簿+用户确认手测结论。
 - 停止条件：手测暴露 V2 链真缺陷 → 记录现象+锚点，卡移 blocked 附证据上交（缺陷归谁由决策侧裁）；panel 呈现发现 faces 形态与 IMPL-B 载荷不匹配 → 带锚点上交。
 - 领取：2026-10-02 / Godot 仓基线 port/vitnote-v2-impl-c@4e0b8625967c6927cc62151680b281b3262de2a3 / 分支 port/vitnote-v2-impl-d（Vit-DAW 仓 HEAD=4413c12c，工作树仅 VitApp/Workspace/default_project.xml 运行时改动=领取前已有勿动；Godot 仓未跟踪文件全为运行时工程目录，未动）
-- 回执：（commit hash / 手测九步记录 / 三卡销项 / 留证工件索引）
-- 验收：（裁定文件 / 验收 commit）
+- 回执：2026-10-02 实现侧自验完成（commit 948b73ca 簿记+runs/ 八件工件；决策侧代誊）——多面摘要落地 Godot 仓 port/vitnote-v2-impl-d@fd7e6af（2 文件 +176/-4）；panel 探针红绿链（run1 一红=face_kind 空串边界真缺陷→修复后 16/16 两轮）+三套回归零破坏（resolve 127/127+circle 52/52+input 全 EXIT=0）+import 零 SCRIPT ERROR；**九步手测清单编排就绪（runs/VITNOTE-V2-IMPL-D/MANUAL_TEST_9STEPS.md）待用户按 AGENTS §5 途径执行**；执行侧未起真实栈（泊位声明）。
+- 验收：**conditional pass（2026-10-02 决策会话——实现面 pass；九步手测+三卡销项待用户执行后终裁）**——[rulings/2026-10-02-VITNOTE-V2-IMPL-D-conditional.md](../../rulings/2026-10-02-VITNOTE-V2-IMPL-D-conditional.md)；_rebuild_summary diff 亲核（空辖区/三级兜底/tooltip/v1 字段移除正当）+我方全套独立复跑（panel 16/16+三套回归+import 零错误）+九步清单编排质量优；九步全过→转 pass 终裁+IMPL-1/DOCK-MOUNT/V2 三卡销项；任一步不过→blocked 附锚点
