@@ -18,6 +18,6 @@
 - 约束：新分支 `port/vitnote-input-fix-1` 自 dock-mount 分支切出；不动 Godot 仓 main；运行时目录勿动；无自动化测试基建如实申报（探针+手测代端测，AGENTS §5 渲染面边界声明）。
 - 验收标准：三锚点落地+探针前后对比留档+画布手势零回退（手测目检）+用户面板复验通过。
 - 停止条件：探针证伪主嫌疑（如 hover 归属报其他 STOP 控件=候选 A 成立）→ 按设计 §7.2 分支处理并如实申报，不硬套锚点。
-- 领取：（时间 / Godot 仓基线 hash / 分支名）
+- 领取：2026-10-02 10:08 / Godot 仓基线 66e59f0cb102e6ddd9cc75b6faf965799d12c551（=port/vitnote-dock-mount-1 HEAD，仓原停此） / 分支 port/vitnote-input-fix-1（自基线切出）；Vit_DAW 仓 HEAD=ccdc0a7a，领取时工作树仅 VitApp/Workspace/default_project.xml（运行时状态，不属本卡不混入）
 - 回执：（commit hash / 探针对比 / 三锚点 diff / 手测清单）
 - 验收：（裁定文件 / 验收 commit）
