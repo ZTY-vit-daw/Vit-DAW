@@ -1,0 +1,17 @@
+# binary sha256 records — PLUGINLIST-REDEPLOY-1 (2026-10-02)
+# source commit: 468ad0e4a531006da9291be51a64e1629eae7e1e (origin/port/fix-pluginlist-absolutepath, 含 FIX-PLUGINLIST-WINPATH-BLINDSPOT-1 修复)
+# tracktion_engine submodule: b43974980c480d4d3f378fe84f640ec9b4ad4300
+
+== old demo binary (replaced, backed up) ==
+5fb4585b5fd0cb0cddfce9911e8c788096c607288e8b95d4da5f6422c5dda2eb  /Users/timozty/Documents/vit-pluginlist-redeploy-20261002/VitApp.binary.bak-5fb4585b-20261002
+size=106538696 mtime=Sep 28 11:22:01 2026
+
+== new binary (build tree) ==
+8624fe9e162fe7b65ddb5e1fd55c23621020fa11c7b86d961b56944aadcdbe96  /Users/timozty/Documents/vit-pluginlist-redeploy-20261002/build/vitapp/VitApp_artefacts/Debug/VitApp
+
+== installed at demo path (post-replace verification) ==
+8624fe9e162fe7b65ddb5e1fd55c23621020fa11c7b86d961b56944aadcdbe96  /Users/timozty/Documents/Vit-DAW/VitApp/build/VitApp_artefacts/Debug/VitApp
+size=106539960 mtime=Oct  2 11:04:50 2026
+
+== live Settings.xml before/after leg D (unchanged, no pollution) ==
+1e842d896497a281240d5a957828df157415c10a4dc7bcec88994c2f3deb0ce3  /Users/timozty/Documents/Vit-DAW/VitApp/Workspace/Settings/Settings.xml

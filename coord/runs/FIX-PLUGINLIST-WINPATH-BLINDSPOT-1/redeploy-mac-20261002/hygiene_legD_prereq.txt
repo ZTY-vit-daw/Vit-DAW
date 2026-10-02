@@ -1,0 +1,12 @@
+no_running_kernel_at_start=confirmed
+no_pedal_at_start=confirmed
+project_copy_sha256=84043f12e23a401938b488f97587c5c6ec70bea2419c6edeef93f606fdadc55b (source project never written; VIT_PROJECT_XML redirect)
+kernel_D_pid=16235 log=/Users/timozty/Documents/vit-pcbatch-mac-legs-artifacts/leg2_hygiene/hygiene_mac_20261002-105939/logs/kernel_D.log
+D_full_scan state=completed plugin_count=719 completed_files=2 total_files=2
+ok: LEG D: full scan completed
+ok: LEG D: full scan enumerated 719 plugins (>100)
+D_load_spot track_id=1032 identifier=VST3-C1 comp Mono-10456661-65e94c5e
+D_rack_add status=ok plugin_id=1040 error=Rack node added
+ok: LEG D: load spot landed (status=ok plugin_id=1040; knownPluginList resolution path)
+kernel_D_stop=SIGTERM elapsed=1s
+finished=2026-10-02 11:04:32
