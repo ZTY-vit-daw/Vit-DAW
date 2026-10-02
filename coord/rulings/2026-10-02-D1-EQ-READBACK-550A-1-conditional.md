@@ -29,3 +29,7 @@
 ## 哈希补正（2026-10-02 决策侧）
 
 推送时 origin/main 前进（PC 推 VITNOTE-V2-IMPL-D 领取），验收链 rebase 后落地——复跑 worktree 哈希 92e2047/8c9e7b2/d60acb8/673db5a 为 rebase 前本地副本，**main 正典哈希=1379614（修复）/d68e2cc（脚本+工件）/ecff90c（取证日志补档）/1e7f11f（去 .log 双份）+ba00a19（归档补正）+937da8c（本裁定）**，内容与 port 分支正典 5693f3f/085f2b3/5605a06/9e7a03a 逐字节同源（cherry-pick 副本关系）。
+
+## PC 决策侧接收复核（2026-10-02 晚，第二决策会话独立复核）
+
+用户转达接收后 PC 侧补核四点，均过，**concur 本裁定**：①修复正典 1379614 diff 亲核（stepped 路径=落计划档位校验+applied_unreconciled fail-closed 出口在位；连续路径 else 分支原阈值原语义未动——裁定所述 1e-4 等式保留属实）；②PC `go build ./...` exit 0；③PC `go test ./internal/executionports -count=1` PASS；④runs/ 三工件目录在仓（forensic1+两真栈 run）。接收无异议：conditional 口径、D1-SETTLE-TAIL-MAC-1 转正（P1）、终验联动、worktree 清理（含 PLUGINLIST 遗留移交项）全部成立。**D1-SETTLE-TAIL-MAC-1 池序待校准**（新卡池序 29 与 L1-3-IMPL-D 池序 20 并存——下轮发卡顺带归一，非卡缺陷）。
