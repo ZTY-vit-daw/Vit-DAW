@@ -342,7 +342,17 @@ func (p *StaticEQVSPPort) Apply(ctx context.Context, action orchestration.Action
 		}
 		if deltaPlan != nil {
 			achieved, parsed := actualPhysical.(float64)
-			if !parsed || math.Abs(achieved-deltaPlan.TargetPhysical) > ThresholdDeltaToleranceDB {
+			if deltaPlan.Stepped != nil {
+				// Stepped control: the write planned the nearest reachable
+				// grid position, so success is landing on that position. The
+				// deviation from the requested delta is inherent to the
+				// control's granularity and disclosed via delta_calibration;
+				// a readback anywhere else means the write did not take.
+				if !parsed || math.Abs(achieved-deltaPlan.Stepped.AchievedPhysical) > eqSteppedPhysicalToleranceDB {
+					return orchestration.ActionReceipt{ActionID: action.ID, Status: "applied_unreconciled", AppliedRevision: strconv.FormatInt(current.Revision, 10), EffectivelyOnce: true},
+						fmt.Errorf("stepped parameter readback %v did not land on the planned grid position %.4g dB", actualPhysical, deltaPlan.Stepped.AchievedPhysical)
+				}
+			} else if !parsed || math.Abs(achieved-deltaPlan.TargetPhysical) > ThresholdDeltaToleranceDB {
 				// The planned average slope missed the local taper; converge
 				// onto the target through measured secant steps instead of
 				// condemning the action on the first write.

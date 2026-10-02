@@ -1,0 +1,7 @@
+run_id=d1_550a_20261002_121511
+repo_root=/Users/timozty/Documents/Vit-DAW-d1eq550a-1
+repo_head=5693f3fe3b4c0f167d35350f5c0124f854bba3cf
+repo_branch=port/d1-eq-readback-550a-1
+repo_dirty=1 entries
+agent_http=http://127.0.0.1:7878 stems_dir=/Users/timozty/Desktop/cases/spv1_p01/stems vst3_dir=/Library/Audio/Plug-Ins/VST3
+started_at=2026-10-02T12:15:11+0800

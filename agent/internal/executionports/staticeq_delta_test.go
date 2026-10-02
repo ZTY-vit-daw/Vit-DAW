@@ -398,3 +398,137 @@ func TestStaticEQVSPPortSingleChannelDeltaProbesSlopeAndApplies(t *testing.T) {
 		t.Fatalf("actual_readback_value=%v want -37", achieved)
 	}
 }
+
+// ---- stepped controls (API-550A family, D1-EQ-READBACK-550A-1) ---------------
+
+// staticEQSteppedAction mirrors the d1 static_eq write shape against the
+// API-550A Stereo whitelist binding: one shared Mid Gain parameter (ch1=ch2),
+// delta semantics, band gain target in dB.
+func staticEQSteppedAction(delta float64) orchestration.Action {
+	return orchestration.Action{ID: "a-550a", Command: staticEQActionCommand, TargetRef: "t1",
+		BeforeFingerprint: "track:t1:eq:plg_1:pending",
+		Args: map[string]any{
+			"write_mode": WriteModeNormalizedBatchV1,
+			"plugin_path": "/Library/Audio/Plug-Ins/VST3/WaveShell1-VST3 17.1.vst3",
+			"param_id":    "2", "param_id_ch2": "2",
+			"target_value": delta, "target_semantics": deltaSemantics,
+		}}
+}
+
+// The 550A family regression: a stepped control's delta must plan the nearest
+// reachable detent directly (no slope probe — its off-grid probe value snaps
+// and measures a grid artifact), land exactly on that detent, and disclose the
+// plan through delta_calibration.stepped.
+func TestStaticEQVSPPortSteppedDeltaWritesNearestDetent(t *testing.T) {
+	client := newFakeNBVSPClient("2", "2", 0, 1, false)
+	client.stepped = steppedGrid550A
+	client.params["2"].normalized = 0.5 // 0 dB detent
+	port := &StaticEQVSPPort{Client: client}
+	action := staticEQSteppedAction(-2)
+	actionSet := orchestration.ActionSet{ProjectCutHash: "cut-eq", Actions: []orchestration.Action{action}}
+	if err := port.Preflight(context.Background(), actionSet, eqCut()); err != nil {
+		t.Fatal(err)
+	}
+	receipt, err := port.Apply(context.Background(), action, "execution:eq:a-550a")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if receipt.Status != "applied" || !receipt.EffectivelyOnce {
+		t.Fatalf("receipt=%+v err=%v", receipt, err)
+	}
+	// -2 dB is exactly the 0.4 detent (kernel float32 step position).
+	wantNormalized := float64(float32(0.4))
+	if got := client.params["2"].normalized; math.Abs(got-wantNormalized) > 1e-12 {
+		t.Fatalf("stepped normalized=%v want %v", got, wantNormalized)
+	}
+	parameters, _ := client.batchArgs["parameters"].([]map[string]any)
+	if len(parameters) != 2 {
+		t.Fatalf("dual-channel batch expected: %+v", client.batchArgs)
+	}
+	for _, entry := range parameters {
+		if got := entry["normalized_value"].(float64); math.Abs(got-wantNormalized) > 1e-12 {
+			t.Fatalf("batch requested %v want %v", got, wantNormalized)
+		}
+	}
+	for _, request := range client.requests {
+		if strings.Contains(request, ":probe") {
+			t.Fatalf("stepped plan must not run the slope probe: %v", client.requests)
+		}
+	}
+	calibration, ok := receipt.Details["delta_calibration"].(map[string]any)
+	if !ok {
+		t.Fatalf("receipt missing delta_calibration: %+v", receipt.Details)
+	}
+	stepped, ok := calibration["stepped"].(map[string]any)
+	if !ok {
+		t.Fatalf("delta_calibration missing stepped record: %+v", calibration)
+	}
+	if got := stepped["requested_physical"].(float64); math.Abs(got-(-2)) > 1e-9 {
+		t.Fatalf("requested_physical=%v want -2", stepped["requested_physical"])
+	}
+	if got := stepped["achieved_physical"].(float64); math.Abs(got-(-2)) > 1e-9 {
+		t.Fatalf("achieved_physical=%v want -2", stepped["achieved_physical"])
+	}
+	if got := stepped["deviation_db"].(float64); math.Abs(got) > 1e-9 {
+		t.Fatalf("deviation_db=%v want 0", stepped["deviation_db"])
+	}
+	if got := stepped["grid_positions"].(int); got != len(steppedGrid550A) {
+		t.Fatalf("grid_positions=%v want %d", stepped["grid_positions"], len(steppedGrid550A))
+	}
+	if got := receipt.Details["actual_readback_value"].(float64); math.Abs(got-(-2)) > eqSteppedPhysicalToleranceDB {
+		t.Fatalf("actual_readback_value=%v want -2", receipt.Details["actual_readback_value"])
+	}
+}
+
+// A delta that falls between detents still applies at the nearest one — the
+// deviation is inherent to the control's granularity and must be disclosed,
+// not silently absorbed nor condemned as unreconciled.
+func TestStaticEQVSPPortSteppedDeltaDisclosesGranularityDeviation(t *testing.T) {
+	client := newFakeNBVSPClient("2", "2", 0, 1, false)
+	client.stepped = steppedGrid550A
+	client.params["2"].normalized = 0.5
+	port := &StaticEQVSPPort{Client: client}
+	action := staticEQSteppedAction(-1.5) // nearest detents -2/-0? grid holds -2 and 0
+	actionSet := orchestration.ActionSet{ProjectCutHash: "cut-eq", Actions: []orchestration.Action{action}}
+	if err := port.Preflight(context.Background(), actionSet, eqCut()); err != nil {
+		t.Fatal(err)
+	}
+	receipt, err := port.Apply(context.Background(), action, "execution:eq:a-550a")
+	if err != nil || receipt.Status != "applied" {
+		t.Fatalf("between-detent delta must apply at nearest: receipt=%+v err=%v", receipt, err)
+	}
+	calibration, _ := receipt.Details["delta_calibration"].(map[string]any)
+	stepped, _ := calibration["stepped"].(map[string]any)
+	if stepped == nil {
+		t.Fatalf("missing stepped record: %+v", calibration)
+	}
+	if got := stepped["deviation_db"].(float64); math.Abs(got-0.5) > 1e-9 {
+		t.Fatalf("deviation_db=%v want 0.5 (target -1.5, detent -2)", stepped["deviation_db"])
+	}
+	if got := receipt.Details["actual_readback_value"].(float64); math.Abs(got-(-2)) > eqSteppedPhysicalToleranceDB {
+		t.Fatalf("actual_readback_value=%v want -2", receipt.Details["actual_readback_value"])
+	}
+}
+
+// Fail-closed stays fail-closed: a stepped parameter whose write never takes
+// effect must surface applied_unreconciled exactly like the continuous family
+// (the write-ineffective guard is the normalized readback equality itself).
+func TestStaticEQVSPPortSteppedWriteNotTakenFailsClosed(t *testing.T) {
+	client := newFakeNBVSPClient("2", "2", 0, 1, false)
+	client.stepped = steppedGrid550A
+	client.params["2"].normalized = 0.5
+	client.swallowWrites = true
+	port := &StaticEQVSPPort{Client: client}
+	action := staticEQSteppedAction(-2)
+	actionSet := orchestration.ActionSet{ProjectCutHash: "cut-eq", Actions: []orchestration.Action{action}}
+	if err := port.Preflight(context.Background(), actionSet, eqCut()); err != nil {
+		t.Fatal(err)
+	}
+	receipt, err := port.Apply(context.Background(), action, "execution:eq:a-550a")
+	if err == nil || receipt.Status != "applied_unreconciled" {
+		t.Fatalf("swallowed stepped write must fail closed: receipt=%+v err=%v", receipt, err)
+	}
+	if !strings.Contains(err.Error(), "readback did not match target") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
