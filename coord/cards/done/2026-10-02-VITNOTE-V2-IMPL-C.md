@@ -18,5 +18,11 @@
 - 验收标准：headless 探针全绿 EXIT=0（含两面新增组）+`--import` 零 SCRIPT ERROR+探针输出落 runs/+两供给器 resolve 形态与设计 §6.2/§6.3 逐字段对上（含截断标记/空 tab/关闭抽屉空矩形路径）+三只读文件零改动核实+用户手测 §10.2 第 3 步（跨面完整版）复验（挂 V2 手测场）。
 - 停止条件：域对象源实锚发现 F11/F12 形态与设计不符（如 getter 缺失/形态变更）→ 带锚点上交，不擅自改三只读文件。
 - 领取：2026-10-02 / Godot 仓基线 port/vitnote-v2-impl-b@3ea8a0a442660b5f5c022139af570bf3a151b783（领取时 HEAD=3ea8a0a，工作树仅未跟踪运行时目录、无未提交代码改动）/ 分支 port/vitnote-v2-impl-c
-- 回执：（commit hash / 探针输出留档 / 供给器 diff / 自验清单）
+- 回执（done，2026-10-02）：
+  - **commit**：Godot 仓 port/vitnote-v2-impl-c @ 4e0b862（自 impl-b@3ea8a0a 切出，已推 origin）；diff=6 路径 685+/9-：新建 vit_face_supplier_rack.gd(192 行)+vit_face_supplier_library.gd(208 行)+2 生成 .uid+vit_note_manager.gd(+14：spawn 扩至四供给器)+tools/probe_vitnote_face_resolve.gd(+278：IMPL-C 新增组+③段四面断言+三伪造类）。
+  - **探针输出留档**：coord/runs/VITNOTE-V2-IMPL-C/（README+run1 红+run2/run3 全绿+import 零错共 5 件）。run1 103 项 6 红=探针搭建缺陷（FakeRackAdapter 忘设节点名，非实现缺陷）；run2/run3 两轮 127/127 PASS EXIT=0；--import EXIT=0 SCRIPT/PARSE ERROR=0。
+  - **两面 resolve 形态与 §6.2/§6.3 对上**（探针逐键断言）：rack=track_id/track_name/entries[node_id,plugin_name,track_id,type,params]+无 time_window+面命中即整链入摘实证；library=tab/entries/total_items+截断标记（60→50+truncated_items=10）+空 tab/关闭抽屉空矩形/Tree 缺失回退根清单/未知 tab 规整路径。真路径证据：dock 场景全视口解析出 4 面（含真 rack@vp_rack_main——真 _viewport_id）；library 真 browser_tree 枚举 6 条；legacy 无机架视图 rack 正确缺席。
+  - **三只读文件零修改+lane 域零改动**：git diff 3ea8a0a 核实（graph_rack_dock_adapter/left_library_dock/project_repository 空 diff；track_scene/timeline/rack 空改动）。域对象源实锚 F11/F12 全部在位（停止条件未触发）。
+  - **运行栈声明**：本卡验收面=headless 探针+--import（沿 IMPL-B 先例），真实运行栈本机**未起**（无占用、无需拆解移交）；渲染面/用户旅程门槛的端测覆盖边界=未覆盖，归手测 §10.2 第 3 步[跨面完整版]挂 V2 手测场（真实抽屉开合/机架切换时效+真实内核下 rack 链内容）。
+  - 自验清单：静态契约 18 项/沙盒 89 项/两面烟测各 10 项全绿；诚实降级注释双供给器在位；50 条截断=MAX_ENTRIES 常量+truncated_items 键仅截断时出现。
 - 验收：（裁定文件 / 验收 commit）
