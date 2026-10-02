@@ -18,6 +18,6 @@
 - 约束：新分支 `port/vitnote-v2-impl-a` 自 port/vitnote-input-fix-1 切出；不动 Godot 仓 main；运行时目录勿动；无自动化测试基建如实申报（headless 探针+手测代端测，AGENTS §5 渲染面边界声明）。
 - 验收标准：状态机探针全绿+四类取消路径零残留+lane 通知退役后普通框选仍正常（纯选区、零胶囊）+Alt 克隆零改变+Q 圈选全域可发起+用户手测 §10.2 第 1/2/6/7 步复验通过；**探针原始输出落 coord/runs/VITNOTE-V2-IMPL-A/ 留档**（INPUT-FIX-1 ruling 注记要求：结论须可回指原始工件）。
 - 停止条件：状态机探针发现设计 §4.1 转移表自相矛盾 → 停止上交（设计缺陷转决策侧）；挂载顺序不变量在真实两面验证失败（press 先被 router 收走）→ 保留探针证据上交。
-- 领取：（时间 / Godot 仓基线 hash / 分支名）
+- 领取：2026-10-02 10:54 / Godot 仓基线 d97293c（port/vitnote-input-fix-1，已验收 HEAD）/ 分支 port/vitnote-v2-impl-a
 - 回执：（commit hash / 状态机探针输出 / 退役 diff / 自验清单）
 - 验收：（裁定文件 / 验收 commit）
