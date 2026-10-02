@@ -1,6 +1,6 @@
 # JUDGMENT-SETTLE-STALL-1：A/B 判定后结算停滞——判定未落 round 状态+会话所有权楔死+新输入被拒（P1）
 
-- 池序 32（P1——A/B 判定是人耳判断边界唯一出口，判定后链路死=自由态实验闭环断裂）；来源=用户 2026-10-02 晚真机手测（[decisions/2026-10-02-user-manual-test-feedback.md](../../decisions/2026-10-02-user-manual-test-feedback.md) §4）；目标仓库=D:\Vit_DAW（PC 执行侧）
+- 池序 33（Mac 侧已将 D1-SETTLE-TAIL-MAC-1 归一至 32，本卡顺延；P1——A/B 判定是人耳判断边界唯一出口，判定后链路死=自由态实验闭环断裂）；来源=用户 2026-10-02 晚真机手测（[decisions/2026-10-02-user-manual-test-feedback.md](../../decisions/2026-10-02-user-manual-test-feedback.md) §4）；目标仓库=D:\Vit_DAW（PC 执行侧）
 - 优先级 / 预估 / 依赖：P1 / 取证 0.5 天+修复 0.5 天 / **建议 AUTH-RESTORE-LOGSPAM-1 先行**（判定 POST 服务端痕迹已被刷屏摧毁一次，取证必须先有干净日志面）
 - 模型分级：L2 / GLM 首选（chat/settle 机械域+时序敏感取证；D1-SETTLE-TAIL-MAC-1 同族嫌疑，两卡根因可能同源）
 - 已核实事实（活栈只读取证在案，勿重跑）：
