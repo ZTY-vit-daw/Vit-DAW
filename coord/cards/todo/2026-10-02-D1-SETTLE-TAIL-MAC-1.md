@@ -1,6 +1,6 @@
 # D1-SETTLE-TAIL-MAC-1：d1 settle 尾段停滞——materiality/target_response 迟落不落致 round 卡死（Mac 首跑暴露，P1）
 
-- 池序 29（P1——阻塞 mac d1 冒测 exit-0；D1-EQ-READBACK-550A-1 终验挂本卡）；来源=D1-EQ-READBACK-550A-1 真栈验收上交（[rulings/2026-10-02-D1-EQ-READBACK-550A-1-conditional.md](../../rulings/2026-10-02-D1-EQ-READBACK-550A-1-conditional.md)；证据=[runs/D1-EQ-READBACK-550A-1/d1_550a_20261002_182113/](../../runs/D1-EQ-READBACK-550A-1/d1_550a_20261002_182113/)）
+- 池序 32（P1——阻塞 mac d1 冒测 exit-0；D1-EQ-READBACK-550A-1 终验挂本卡）；来源=D1-EQ-READBACK-550A-1 真栈验收上交（[rulings/2026-10-02-D1-EQ-READBACK-550A-1-conditional.md](../../rulings/2026-10-02-D1-EQ-READBACK-550A-1-conditional.md)；证据=[runs/D1-EQ-READBACK-550A-1/d1_550a_20261002_182113/](../../runs/D1-EQ-READBACK-550A-1/d1_550a_20261002_182113/)）。池序归一（2026-10-02 决策侧）：原入池误标 29 与 VITNOTE-V2-IMPL-B 撞号（B/C/D=29/30/31 在案），顺延 32（PC 注记 4c1ecff）
 - 优先级 / 预估 / 依赖：P1 / 取证 0.5 天+修复 0.5 天 / 建议 AUTH-RESTORE-LOGSPAM-1 先行或同会话附带（取证能见度前置：settle 切片证据被遥测刷屏淹没）
 - 模型分级：L2 / GLM 首选（时序敏感缺陷取证+chat/settle 机械域）
 - 已核实事实（上交证据在案，勿重跑已证部分）：
