@@ -7,9 +7,11 @@
 
 | 工件 | 命令 | 退出码 |
 |---|---|---|
-| probe_circle_state_run1.log | `"D:\Godot\Godot_v4.6.1-stable_win64_console.exe" --headless --path . -s tools/probe_vitnote_circle_state.gd` | 0 |
-| probe_circle_state_run2_rerun.log | 同上（确定性复跑） | 0 |
-| import_zero_script_error.log | `... --headless --path . --import` | 0，SCRIPT/PARSE ERROR 计数=0 |
+| probe_circle_state_run1.txt | `"D:\Godot\Godot_v4.6.1-stable_win64_console.exe" --headless --path . -s tools/probe_vitnote_circle_state.gd` | 0 |
+| probe_circle_state_run2_rerun.txt | 同上（确定性复跑） | 0 |
+| import_zero_script_error.txt | `... --headless --path . --import` | 0，SCRIPT/PARSE ERROR 计数=0 |
+
+（原始输出为控制台重定向文本；仓库 .gitignore 排除 `*.log`，按 FIX-BROADBAND-SHARED-1/go_full_after.txt 先例以 .txt 落档，内容字节不变。）
 
 ## 探针结果（两轮一致）
 
@@ -20,7 +22,7 @@
 
 ## 过程记录（诚实申报）
 
-- import_run0_first_with_parse_error_fixed_in_worktree.log：首轮 import 抓到实现真实缺陷（observe_position 返回 Dictionary 直传 _apply_actions 缺 .get("actions")），当场修复后零错误——保留首轮日志作修复前证据。
+- import_run0_first_with_parse_error_fixed_in_worktree.txt：首轮 import 抓到实现真实缺陷（observe_position 返回 Dictionary 直传 _apply_actions 缺 .get("actions")），当场修复后零错误——保留首轮日志作修复前证据。
 - 探针开发中另有两处探针侧修正：S2c 状态污染（复用机器）与 S8e 测试数据（未拖出视口）；S8a 失败暴露实现缺陷（release 位置未回写 current_global，终值矩形漂移）→ 已修（release 事件位置回写）。
 - 退出时 ObjectDB leaks 警告为探针环境产物（headless 场景 teardown），退出码 0 为门槛判据。
 
