@@ -18,3 +18,10 @@
 ## 遗留移交
 
 - Mac 侧两个 worktree（/tmp/pluginlist-redeploy-src、/tmp/pluginlist-redeploy-wt）待清理——Mac 机器侧物理操作，随下一张 Mac 卡（AUTH-RESTORE-LOGSPAM-1）转交提示词附带清理指令。
+
+## 补正追记（2026-10-02 晚，执行侧自查披露后决策侧复核）
+
+- **验收基准改为复跑 run `hygiene_mac_20261002-112253`**：首跑（105939）`--kernel-bin` 指仓外构建树件，内核工作区回退解析到 CWD 仓根新建 `Workspace/`（kernel_D.log:8-10 明示）——断言（扫描链+rack_add）仍真，但脚本 live-settings 语义未满足，降级为链路证据。
+- 复跑工件亲读：默认演示路径本体（kernel_bin=主树 VitApp/build/...，sha=8624fe9e）+真 Settings 路径+`cached_count_before=719` 证真暖表加载+`HYGIENE_MAC_VERDICT all_green`（ok=3 red=0）真退出码 0——**复跑直接验证已部署演示件本体，验收证据较原裁定更强**。
+- 意外 `Workspace/` 3 文件归档后清理、主树未跟踪态复原；真 Settings 三时点 sha 一致零写入；复跑前端口被并行 D1 会话内核占用按 §9 等待释放（一次预检 RED 为环境类拦截，不计功能轮次）——处置全部合规。
+- **裁定不变：pass+终裁 pass 维持**；cherry-pick 468ad0e4（=df5ca286）不受影响。教训入档：hygiene 脚本真 Settings 语义要求被测件位于主树 `VitApp/` 内，`--kernel-bin` 仓外件会改变工作区解析——后续 Mac 真栈腿提示词注意此点。

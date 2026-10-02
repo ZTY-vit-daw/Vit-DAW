@@ -25,4 +25,4 @@
   - **供给器 diff**：vit_face_supplier_timeline.gd（§6.1：Right_3D_Wrapper 行矩形+`_collect_marquee_hits_global` 只调不改+time_window 包络/映射两分支+face_id scope=场景根名两面可区分）；vit_face_supplier_control.gd（§6.4：走带+轨头两块+snapshot 形态 F10 锚点只读+observe only）；vit_note_manager.gd（§6.0 注册处+resolve_circle §5.1 管线①–⑤+payload v2 faces 真接线+胶囊「圈选 N 面」/0=空辖区）。
   - **自验清单**：①headless 探针四轮（run1 红=实现真实缺陷：§6.0 字面「_ready 入组」不对称，重挂不重注册——改 _enter_tree/_exit_tree 对称后全绿，首红日志留档）；②lane 文件域零改动核实（git diff 091cf80..3ea8a0a 对 track_scene/timeline/shell/legacy/vit_dock 全空）；③停止条件未触发——IMPL-A 出口兼容（rect_global 全局坐标域直连）、F6 采集形态无缺口（命中字典含所需字段、秒映射公开 API 在位）。
   - **申报**：payload 键名沿 IMPL-A 仓内约定 rect_global（panel 消费方兼容）；v2 下面板 _rebuild_summary 读 v1 顶层字段显「空辖区」——多面版摘要归 IMPL-D（panel 零改动，文件域外）；真实跨面矩形/占比目检归手测 §10.2 第 3[单面]/4 步挂 V2 手测场；**运行栈未起**（本卡验收面=headless 探针+import，无真实栈烟测需求）。
-- 验收：（裁定文件 / 验收 commit）
+- 验收：**pass（2026-10-02 决策会话；跨面目检挂 V2 手测场）**——[rulings/2026-10-02-VITNOTE-V2-IMPL-B-pass.md](../../rulings/2026-10-02-VITNOTE-V2-IMPL-B-pass.md)；resolve_circle 管线①-⑤+两供给器契约/生命周期 diff 亲核（平局决胜与缺源降级两处实现增益采信）+lane 文件域零改动核实+我方复跑（headless 探针 74/74 EXIT=0+import 零错误自跑）+四轮红绿链工件可回指；V2-IMPL-C 依赖解锁
