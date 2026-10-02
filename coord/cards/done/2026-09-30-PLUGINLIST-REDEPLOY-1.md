@@ -21,3 +21,4 @@
   - **替换 ✓**：旧件 5fb4585b 备份入 `~/Documents/vit-pluginlist-redeploy-20261002/`（+sha256）；演示路径装后复核=`8624fe9e…` 逐字节一致；双 sha 见 binary_sha256.txt。
   - 边界注记：live Settings 现 719 条全 mac 暖表（0 条 `C:\` 幽灵），启动清理零对象、无摘要行属预期（源码 :85 removed>0 才输出）；修复清理行为由决策侧两复跑腿（单测 mac/回归 PC）覆盖，本腿证演示形态运行链路。
   - 端测边界声明（AGENTS §5）：本卡为二进制重建+既定 leg D 脚本复验，非 agent 侧代码改动；渲染面/用户旅程不在本卡范围。待决策侧终裁 FIX-PLUGINLIST-WINPATH-BLINDSPOT-1+cherry-pick 468ad0e4 合 main。
+- 验收：**pass（2026-10-02 决策会话）+FIX-PLUGINLIST-WINPATH-BLINDSPOT-1 终裁 pass**——[rulings/2026-10-02-PLUGINLIST-REDEPLOY-1-pass.md](../../rulings/2026-10-02-PLUGINLIST-REDEPLOY-1-pass.md)；工件五件亲读（leg D all_green+kernel_sha256 三段一致=被测件含修复硬证据+repo_head 上下文字段澄清+Settings 零污染）+468ad0e4 内容本地产核；三收口条件全齐终裁；cherry-pick 468ad0e4 合 main；Mac 侧 worktree 清理随下卡转交
