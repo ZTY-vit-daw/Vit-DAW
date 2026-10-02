@@ -32,19 +32,60 @@ type deltaChannelPlan struct {
 	TargetPhysical    float64
 	Slope             float64
 	Probe             map[string]any
+	// Stepped is non-nil when the primary parameter is a discrete stepped
+	// control: the plan writes the nearest reachable grid position directly
+	// (no slope probe — an off-grid probe value snaps and measures a
+	// meaningless average) and the refinement loop must not run (the nearest
+	// position is already the physical optimum a stepped control can hold).
+	Stepped *eqSteppedPlan
+}
+
+// eqSteppedPlan records how a stepped control's nearest-position write maps
+// onto the requested delta. The deviation is inherent to the control's
+// granularity (e.g. an API-550A -1.5 dB request lands on the -2 dB detent);
+// it is disclosed on the receipt, never silently absorbed.
+type eqSteppedPlan struct {
+	PrimaryParamID    string
+	Positions         int
+	RequestedPhysical float64
+	AchievedPhysical  float64
+	DeviationDB       float64
+}
+
+func (plan *eqSteppedPlan) audit() map[string]any {
+	if plan == nil {
+		return nil
+	}
+	return map[string]any{
+		"parameter_id":       plan.PrimaryParamID,
+		"grid_positions":     plan.Positions,
+		"requested_physical": plan.RequestedPhysical,
+		"achieved_physical":  plan.AchievedPhysical,
+		"deviation_db":       plan.DeviationDB,
+	}
 }
 
 func (plan *deltaChannelPlan) audit() map[string]any {
 	if plan == nil {
 		return nil
 	}
-	return map[string]any{
+	out := map[string]any{
 		"current_physical":        plan.CurrentPhysical,
 		"target_physical":         plan.TargetPhysical,
 		"slope_db_per_normalized": plan.Slope,
 		"probe":                   plan.Probe,
 	}
+	if plan.Stepped != nil {
+		out["stepped"] = plan.Stepped.audit()
+	}
+	return out
 }
+
+// eqSteppedPhysicalToleranceDB bounds how far a stepped readback may sit from
+// the planned grid position's own physical value: both sides parse the same
+// kernel display text family, so this only absorbs formatting wobble — a
+// readback on any other detent fails.
+const eqSteppedPhysicalToleranceDB = 0.05
 
 // rebaseAfterWrite refreshes the CAS base after a probe-class kernel write
 // (the same rebase the instantiate path performs: every write-like command
@@ -104,6 +145,29 @@ func (p *StaticEQVSPPort) planDeltaChannels(ctx context.Context, trackID, plugin
 		return nil, nil, fmt.Errorf("delta parameter %q display %q is not a parsable threshold value", primary, info.ValueText)
 	}
 	targetPhysical := currentPhysical + deltaDB
+	if grid, stepped := eqSteppedGrid(info); stepped {
+		// Stepped control: the only reachable positions are the grid's own.
+		// Write the nearest one directly; the slope probe below is useless
+		// here (its off-grid probe value snaps to a detent, so the measured
+		// "slope" is an artifact of the grid, not of a taper).
+		position := eqNearestSteppedPosition(grid, targetPhysical)
+		channels := make([]eqGainChannel, 0, len(paramIDs))
+		for _, paramID := range paramIDs {
+			if id := strings.TrimSpace(paramID); id != "" {
+				channels = append(channels, eqGainChannel{ParamID: id, RequestedNormalized: position.Normalized})
+			}
+		}
+		return channels, &deltaChannelPlan{
+			Channels: channels, CurrentPhysical: currentPhysical, CurrentNormalized: currentNormalized,
+			TargetPhysical: targetPhysical, Slope: 0,
+			Probe: map[string]any{"parameter_id": primary, "planning": "stepped_grid", "grid_positions": len(grid)},
+			Stepped: &eqSteppedPlan{
+				PrimaryParamID: primary, Positions: len(grid),
+				RequestedPhysical: targetPhysical, AchievedPhysical: position.Physical,
+				DeviationDB: math.Abs(position.Physical - targetPhysical),
+			},
+		}, nil
+	}
 	for _, offset := range []float64{-0.25, 0.25} {
 		probeNormalized := math.Max(0, math.Min(1, currentNormalized+offset))
 		if probeNormalized == currentNormalized {

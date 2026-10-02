@@ -118,7 +118,10 @@ func eqPlanGainChannels(surface map[string]plugingrabber.ParameterInfo, targetDB
 			return nil, "", fmt.Errorf("band gain parameter %q was not present in the plugin parameter surface", paramID)
 		}
 		description := fmt.Sprintf("parameter %q", paramID)
-		if info.DisplayDomainCandidate != nil && strings.TrimSpace(info.DisplayDomainCandidate.Text) != "" {
+		if grid, stepped := eqSteppedGrid(info); stepped {
+			position := eqNearestSteppedPosition(grid, targetDB)
+			description = fmt.Sprintf("parameter %q stepped grid %d positions, nearest %.4g dB (requested %.4g dB)", paramID, len(grid), position.Physical, targetDB)
+		} else if info.DisplayDomainCandidate != nil && strings.TrimSpace(info.DisplayDomainCandidate.Text) != "" {
 			description = fmt.Sprintf("parameter %q display domain %q", paramID, info.DisplayDomainCandidate.Text)
 		}
 		normalized, err := eqGainToNormalized(info, targetDB)
@@ -131,9 +134,77 @@ func eqPlanGainChannels(surface map[string]plugingrabber.ParameterInfo, targetDB
 	return channels, strings.Join(descriptions, "; "), nil
 }
 
+// eqSteppedPosition is one reachable position of a discrete stepped control:
+// the kernel's own normalized step value paired with the physical value parsed
+// from its state label (API-550A Mid Gain: 11 positions, -12..+12 dB on a
+// non-linear grid — the hardware's stepped detents, D1-EQ-READBACK-550A-1
+// forensic1_20261002_111423).
+type eqSteppedPosition struct {
+	Normalized float64
+	Physical   float64
+}
+
+// eqSteppedGrid derives the reachable positions of a stepped gain parameter
+// from the kernel-reported surface. Both halves are required: the parameter
+// must declare itself discrete with a step count, and every discrete label
+// must carry a parsable physical text on a monotone grid. Anything less keeps
+// the continuous pipeline (which then fails closed on the readback equality —
+// an off-grid write snaps and never re-reads equal at 1e-4).
+func eqSteppedGrid(info plugingrabber.ParameterInfo) ([]eqSteppedPosition, bool) {
+	if !info.IsDiscrete || info.NumSteps < 2 || info.DisplayProbe == nil {
+		return nil, false
+	}
+	labels := info.DisplayProbe.DiscreteLabels
+	if len(labels) != info.NumSteps {
+		return nil, false
+	}
+	grid := make([]eqSteppedPosition, 0, len(labels))
+	for _, label := range labels {
+		physical, ok := plugingrabber.ParseEQLocalizedNumber(label.Label)
+		if !ok {
+			return nil, false
+		}
+		normalized := float64(label.Index) / float64(info.NumSteps-1)
+		if value, ok := numeric(label.Value); ok {
+			// The kernel's own step position (float32 promoted) is the exact
+			// value the readback reports for that state; prefer it over the
+			// exact fraction so verification compares like with like.
+			normalized = value
+		}
+		grid = append(grid, eqSteppedPosition{Normalized: clampUnit(normalized), Physical: physical})
+	}
+	for i := 1; i < len(grid); i++ {
+		if grid[i].Physical < grid[i-1].Physical {
+			// Nearest-step selection assumes physical order follows the grid.
+			return nil, false
+		}
+	}
+	return grid, true
+}
+
+// eqNearestSteppedPosition picks the reachable position closest to the
+// requested physical value.
+func eqNearestSteppedPosition(grid []eqSteppedPosition, target float64) eqSteppedPosition {
+	best := grid[0]
+	bestGap := math.Abs(target - grid[0].Physical)
+	for _, position := range grid[1:] {
+		if gap := math.Abs(target - position.Physical); gap < bestGap {
+			best, bestGap = position, gap
+		}
+	}
+	return best
+}
+
 // eqGainToNormalized converts one admitted dB target into the kernel's
 // normalized 0..1 domain for a single parameter.
 func eqGainToNormalized(info plugingrabber.ParameterInfo, targetDB float64) (float64, error) {
+	if grid, stepped := eqSteppedGrid(info); stepped {
+		// A stepped control can only hold its own grid positions: write the
+		// nearest reachable one (the display quantizes any other request to
+		// the same position anyway, and an off-grid request would fail the
+		// readback equality that follows).
+		return eqNearestSteppedPosition(grid, targetDB).Normalized, nil
+	}
 	if candidate := info.DisplayDomainCandidate; candidate != nil && isEQDecibelUnit(candidate.Unit) &&
 		strings.EqualFold(strings.TrimSpace(candidate.Scale), "linear") && candidate.Min != nil && candidate.Max != nil {
 		min, max := *candidate.Min, *candidate.Max
