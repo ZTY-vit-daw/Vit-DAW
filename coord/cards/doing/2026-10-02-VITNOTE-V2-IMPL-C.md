@@ -17,6 +17,6 @@
 - 约束：新分支 `port/vitnote-v2-impl-c` 自 port/vitnote-v2-impl-b@3ea8a0a 切出；不动 main；运行时目录勿动；无自动化测试基建如实申报。
 - 验收标准：headless 探针全绿 EXIT=0（含两面新增组）+`--import` 零 SCRIPT ERROR+探针输出落 runs/+两供给器 resolve 形态与设计 §6.2/§6.3 逐字段对上（含截断标记/空 tab/关闭抽屉空矩形路径）+三只读文件零改动核实+用户手测 §10.2 第 3 步（跨面完整版）复验（挂 V2 手测场）。
 - 停止条件：域对象源实锚发现 F11/F12 形态与设计不符（如 getter 缺失/形态变更）→ 带锚点上交，不擅自改三只读文件。
-- 领取：（时间 / Godot 仓基线 hash / 分支名）
+- 领取：2026-10-02 / Godot 仓基线 port/vitnote-v2-impl-b@3ea8a0a442660b5f5c022139af570bf3a151b783（领取时 HEAD=3ea8a0a，工作树仅未跟踪运行时目录、无未提交代码改动）/ 分支 port/vitnote-v2-impl-c
 - 回执：（commit hash / 探针输出留档 / 供给器 diff / 自验清单）
 - 验收：（裁定文件 / 验收 commit）
