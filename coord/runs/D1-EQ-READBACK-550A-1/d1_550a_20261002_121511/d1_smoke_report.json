@@ -1,0 +1,169 @@
+{
+  "schema_version": "vit.free_state_d1_smoke.v1",
+  "started_at": "2026-10-02T04:19:38.554907+00:00",
+  "public_case_id": "spv1_p01",
+  "prompt_flavor": "frequency",
+  "expect_domain": "static_eq",
+  "expect_honest_refusal": false,
+  "public_source_project": "/Users/timozty/Documents/vit-d1eq550a-artifacts/d1_550a_20261002_121511/public_case/spv1_p01.vit",
+  "material_qualification": {
+    "schema_version": "vit.free_state_d1_material_qualification.v1",
+    "status": "passed",
+    "qualification_profile": "spv1_synthetic",
+    "gates": {
+      "min_rms_dbfs_per_track": -45.0,
+      "min_crest_db_per_track": 10.0,
+      "min_best_crest_db": 14.0
+    },
+    "best_crest_db": 20.989,
+    "tracks": [
+      {
+        "track": "bass",
+        "file": "/Users/timozty/Desktop/cases/spv1_p01/stems/bass.wav",
+        "rms_dbfs": -31.016,
+        "peak_dbfs": -15.94,
+        "crest_db": 15.076
+      },
+      {
+        "track": "drums",
+        "file": "/Users/timozty/Desktop/cases/spv1_p01/stems/drums.wav",
+        "rms_dbfs": -20.997,
+        "peak_dbfs": -5.369,
+        "crest_db": 15.627
+      },
+      {
+        "track": "guitar",
+        "file": "/Users/timozty/Desktop/cases/spv1_p01/stems/guitar.wav",
+        "rms_dbfs": -33.942,
+        "peak_dbfs": -12.953,
+        "crest_db": 20.989
+      },
+      {
+        "track": "other",
+        "file": "/Users/timozty/Desktop/cases/spv1_p01/stems/other.wav",
+        "rms_dbfs": -24.813,
+        "peak_dbfs": -8.049,
+        "crest_db": 16.763
+      },
+      {
+        "track": "piano",
+        "file": "/Users/timozty/Desktop/cases/spv1_p01/stems/piano.wav",
+        "rms_dbfs": -30.263,
+        "peak_dbfs": -11.861,
+        "crest_db": 18.402
+      },
+      {
+        "track": "vocals",
+        "file": "/Users/timozty/Desktop/cases/spv1_p01/stems/vocals.wav",
+        "rms_dbfs": -19.888,
+        "peak_dbfs": -5.388,
+        "crest_db": 14.5
+      }
+    ],
+    "sibilance_band": {
+      "schema_version": "vit.free_state_d1_material_qualification.v1",
+      "status": "passed",
+      "metric": "windowed high-band/full-band energy ratio dispersion (p95-p50, dB)",
+      "gates": {
+        "band_low_hz": 4800.0,
+        "band_high_hz": 10500.0,
+        "fft_size": 2048,
+        "min_contrast_db_per_track": 6.0,
+        "min_best_contrast_db": 14.0
+      },
+      "best_contrast_p95_p50_db": 19.621,
+      "tracks": [
+        {
+          "track": "bass",
+          "contrast_p95_p50_db": 18.256,
+          "p50_db": -42.079,
+          "p95_db": -23.823
+        },
+        {
+          "track": "drums",
+          "contrast_p95_p50_db": 10.823,
+          "p50_db": -16.822,
+          "p95_db": -5.998
+        },
+        {
+          "track": "guitar",
+          "contrast_p95_p50_db": 16.255,
+          "p50_db": -31.033,
+          "p95_db": -14.778
+        },
+        {
+          "track": "other",
+          "contrast_p95_p50_db": 9.901,
+          "p50_db": -28.407,
+          "p95_db": -18.506
+        },
+        {
+          "track": "piano",
+          "contrast_p95_p50_db": 9.359,
+          "p50_db": -40.497,
+          "p95_db": -31.138
+        },
+        {
+          "track": "vocals",
+          "contrast_p95_p50_db": 19.621,
+          "p50_db": -21.978,
+          "p95_db": -2.357
+        }
+      ]
+    },
+    "transient_window": {
+      "schema_version": "vit.free_state_d1_material_qualification.v1",
+      "status": "passed",
+      "metric": "short-window peak vs long-window median RMS level (dB)",
+      "gates": {
+        "short_window_seconds": 0.01,
+        "long_window_seconds": 0.2,
+        "min_contrast_db_per_track": 6.0,
+        "min_best_contrast_db": 14.0
+      },
+      "best_contrast_short_peak_long_median_db": 19.52,
+      "tracks": [
+        {
+          "track": "bass",
+          "contrast_short_peak_long_median_db": 19.52,
+          "short_peak_db": -19.619,
+          "long_median_db": -39.139
+        },
+        {
+          "track": "drums",
+          "contrast_short_peak_long_median_db": 12.358,
+          "short_peak_db": -8.536,
+          "long_median_db": -20.894
+        },
+        {
+          "track": "guitar",
+          "contrast_short_peak_long_median_db": 18.47,
+          "short_peak_db": -22.076,
+          "long_median_db": -40.546
+        },
+        {
+          "track": "other",
+          "contrast_short_peak_long_median_db": 9.806,
+          "short_peak_db": -15.375,
+          "long_median_db": -25.181
+        },
+        {
+          "track": "piano",
+          "contrast_short_peak_long_median_db": 13.551,
+          "short_peak_db": -19.047,
+          "long_median_db": -32.598
+        },
+        {
+          "track": "vocals",
+          "contrast_short_peak_long_median_db": 7.36,
+          "short_peak_db": -12.478,
+          "long_median_db": -19.838
+        }
+      ]
+    }
+  },
+  "status": "fail",
+  "error": "project.audio_analysis_start failed: {\"status\": \"kernel_error\", \"agent_action_id\": \"act_94e095eda065a882\", \"tool\": \"project.audio_analysis_start\", \"command_name\": \"project.audio_analysis_start\", \"risk_level\": \"direct\", \"requires_confirmation\": false, \"result\": {\"command\": \"project.audio_analysis_start\", \"command_ack\": {\"ack\": {\"message\": \"Audio analysis job is cancelled: audio_analysis_1790914776875_1\", \"stage\": \"rejected\"}, \"command\": \"legacy.command\", \"error\": {\"code\": \"legacy_adapter_error\", \"message\": \"Audio analysis job is cancelled: audio_analysis_1790914776875_1\", \"retryable\": false}, \"legacy_command\": \"project.audio_analysis_start\", \"resync_hint\": true, \"revision\": 0, \"source\": \"vsp.command.response\", \"stage\": \"rejected\", \"transaction_id\": \"tx_1790914778990058000_54\"}, \"feature_snapshot_path\": \"/Users/timozty/Documents/vit-d1eq550a-artifacts/d1_550a_20261002_121511/round_2/project/.vit_agent/vitproj_045fecb61c134799bf3b6b20afa506e4/mixboard/mixboard_feature_snapshot.json\", \"message\": \"Audio analysis job is cancelled: audio_analysis_1790914776875_1\", \"mixboard_feature_snapshot_path\": \"/Users/timozty/Documents/vit-d1eq550a-artifacts/d1_550a_20261002_121511/round_2/project/.vit_agent/vitproj_045fecb61c134799bf3b6b20afa506e4/mixboard/mixboard_feature_snapshot.json\", \"status\": \"error\", \"vsp\": {\"command_ack\": {\"ack\": {\"message\": \"Audio analysis job is cancelled: audio_analysis_1790914776875_1\", \"stage\": \"rejected\"}, \"command\": \"legacy.command\", \"error\": {\"code\": \"legacy_adapter_error\", \"message\": \"Audio analysis job is cancelled: audio_analysis_1790914776875_1\", \"retryable\": false}, \"legacy_command\": \"project.audio_analysis_start\", \"resync_hint\": true, \"revision\": 0, \"source\": \"vsp.command.response\", \"stage\": \"rejected\", \"transaction_id\": \"tx_1790914778990058000_54\"}, \"transport\": \"vsp\", \"version\": \"1.0\"}}, \"project_history\": {\"active_branch\": \"main\", \"active_node_id\": \"\", \"active_worktree\": \"\", \"available\": true, \"branches\": {}, \"commit_count\": 0, \"detached\": false, \"draft\": false, \"head\": \"\", \"init",
+  "responses": [],
+  "finished_at": "2026-10-02T04:19:38.994570+00:00"
+}

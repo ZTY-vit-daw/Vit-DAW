@@ -1,0 +1,207 @@
+{
+ "param_550a": {
+  "id": "2",
+  "param_id": "2",
+  "raw_param_id": "2",
+  "raw_param_name": "Mid Gain",
+  "name": "Mid Gain",
+  "value": 0.5,
+  "normalized_value": 0.5,
+  "value_text": "0 dB ",
+  "min": 0.0,
+  "max": 1.0,
+  "is_discrete": true,
+  "num_steps": 11,
+  "is_boolean": false,
+  "normalized_role": "common_gain",
+  "display_group": "Mix",
+  "host_controllable": true,
+  "control_relevance": "musical_control",
+  "control_priority": 100,
+  "alias": "Mid Gain",
+  "supports_automation": true,
+  "source": "hosted_plugin_parameter",
+  "display_probe": {
+   "mode": "read_only_value_to_string",
+   "current_text": "0 dB ",
+   "label": "",
+   "discrete_labels": [
+    {
+     "index": 0,
+     "value": 0.0,
+     "label": "-12 dB "
+    },
+    {
+     "index": 1,
+     "value": 0.100000001490116,
+     "label": "-9 dB "
+    },
+    {
+     "index": 2,
+     "value": 0.200000002980232,
+     "label": "-6 dB "
+    },
+    {
+     "index": 3,
+     "value": 0.300000011920929,
+     "label": "-4 dB "
+    },
+    {
+     "index": 4,
+     "value": 0.400000005960464,
+     "label": "-2 dB "
+    },
+    {
+     "index": 5,
+     "value": 0.5,
+     "label": "0 dB "
+    },
+    {
+     "index": 6,
+     "value": 0.600000023841858,
+     "label": "+2 dB "
+    },
+    {
+     "index": 7,
+     "value": 0.699999988079071,
+     "label": "+4 dB "
+    },
+    {
+     "index": 8,
+     "value": 0.800000011920929,
+     "label": "+6 dB "
+    },
+    {
+     "index": 9,
+     "value": 0.900000035762787,
+     "label": "+9 dB "
+    },
+    {
+     "index": 10,
+     "value": 1.0,
+     "label": "+12 dB "
+    }
+   ],
+   "all_labels": [],
+   "samples": [
+    {
+     "normalized_value": 0.0,
+     "value": 0.0,
+     "text": "-12 dB "
+    },
+    {
+     "normalized_value": 0.25,
+     "value": 0.25,
+     "text": "-4 dB "
+    },
+    {
+     "normalized_value": 0.5,
+     "value": 0.5,
+     "text": "0 dB "
+    },
+    {
+     "normalized_value": 0.75,
+     "value": 0.75,
+     "text": "+6 dB "
+    },
+    {
+     "normalized_value": 1.0,
+     "value": 1.0,
+     "text": "+12 dB "
+    }
+   ],
+   "capabilities": [
+    "current_value_text",
+    "value_to_string_samples",
+    "discrete_labels"
+   ],
+   "issues": [
+    "empty_label"
+   ]
+  },
+  "binding_target": {
+   "target_kind": "plugin_param",
+   "plugin_id": "1040",
+   "plugin_name": "API-550A Stereo",
+   "plugin_type": "vst",
+   "template_role": "",
+   "param_id": "2",
+   "param_name": "Mid Gain",
+   "normalized_role": "common_gain",
+   "alias": "Mid Gain"
+  }
+ },
+ "param_q3": {
+  "id": "12",
+  "param_id": "12",
+  "raw_param_id": "12",
+  "raw_param_name": "Band 3 Gain",
+  "name": "Band 3 Gain",
+  "value": 0.5,
+  "normalized_value": 0.5,
+  "value_text": "0.0 dB",
+  "min": 0.0,
+  "max": 1.0,
+  "is_discrete": false,
+  "num_steps": 0,
+  "is_boolean": false,
+  "normalized_role": "common_gain",
+  "display_group": "Mix",
+  "host_controllable": true,
+  "control_relevance": "musical_control",
+  "control_priority": 100,
+  "alias": "Band 3 Gain",
+  "supports_automation": true,
+  "source": "hosted_plugin_parameter",
+  "display_probe": {
+   "mode": "read_only_value_to_string",
+   "current_text": "0.0 dB",
+   "label": "",
+   "samples": [
+    {
+     "normalized_value": 0.0,
+     "value": 0.0,
+     "text": "-18.0 dB"
+    },
+    {
+     "normalized_value": 0.25,
+     "value": 0.25,
+     "text": "-9.0 dB"
+    },
+    {
+     "normalized_value": 0.5,
+     "value": 0.5,
+     "text": "0.0 dB"
+    },
+    {
+     "normalized_value": 0.75,
+     "value": 0.75,
+     "text": "9.0 dB"
+    },
+    {
+     "normalized_value": 1.0,
+     "value": 1.0,
+     "text": "18.0 dB"
+    }
+   ],
+   "capabilities": [
+    "current_value_text",
+    "value_to_string_samples"
+   ],
+   "issues": [
+    "empty_label"
+   ]
+  },
+  "binding_target": {
+   "target_kind": "plugin_param",
+   "plugin_id": "1041",
+   "plugin_name": "Q3 Stereo",
+   "plugin_type": "vst",
+   "template_role": "",
+   "param_id": "12",
+   "param_name": "Band 3 Gain",
+   "normalized_role": "common_gain",
+   "alias": "Band 3 Gain"
+  }
+ }
+}

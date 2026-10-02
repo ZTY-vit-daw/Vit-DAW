@@ -1,0 +1,5 @@
+final_exit=1
+rounds:
+  round 1 exit=1 report=/Users/timozty/Documents/vit-d1eq550a-artifacts/d1_550a_20261002_121511/round_1/d1_smoke_report.json
+  round 2 exit=1 report=/Users/timozty/Documents/vit-d1eq550a-artifacts/d1_550a_20261002_121511/round_2/d1_smoke_report.json
+finished_at=2026-10-02T12:19:39+0800

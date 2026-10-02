@@ -1,0 +1,931 @@
+{
+  "schema_version": "project_stems_import_smoke.v1",
+  "created_at": "2026-10-02T10:21:18Z",
+  "status": "passed",
+  "error": "",
+  "req_url": "tcp://127.0.0.1:5555",
+  "project_path": "/Users/timozty/Documents/vit-d1eq550a-artifacts/d1_550a_20261002_182113/public_case/spv1_p01.vit",
+  "training_folder": "/Users/timozty/Desktop/cases/spv1_p01/stems",
+  "sealed_folder": "",
+  "commands": [
+    {
+      "cmd": "ping"
+    },
+    {
+      "cmd": "new_project"
+    },
+    {
+      "cmd": "save_as_project",
+      "file_path": "/Users/timozty/Documents/vit-d1eq550a-artifacts/d1_550a_20261002_182113/public_case/spv1_p01.vit"
+    },
+    {
+      "cmd": "project.import_preflight",
+      "folder_path": "/Users/timozty/Desktop/cases/spv1_p01/stems",
+      "recursive": false,
+      "media_kinds": [
+        "audio"
+      ],
+      "intended_mode": "stems_folder",
+      "target_policy": "create_tracks",
+      "start_time_seconds": 0,
+      "command_timeout_ms": 180000
+    },
+    {
+      "cmd": "project.import_folder_as_stems",
+      "folder_path": "/Users/timozty/Desktop/cases/spv1_p01/stems",
+      "recursive": false,
+      "target_policy": "create_tracks",
+      "start_time_seconds": 0,
+      "confirmed": true,
+      "skip_unreadable": false,
+      "command_timeout_ms": 180000
+    },
+    {
+      "cmd": "project.audio_analysis_start",
+      "analysis_job_id": "audio_analysis_1790936477918_1",
+      "interval_ms": 200,
+      "max_submit_clips": 1
+    },
+    {
+      "cmd": "project.audio_analysis_status",
+      "analysis_job_id": "audio_analysis_1790936477918_1"
+    },
+    {
+      "cmd": "project.audio_analysis_cancel",
+      "analysis_job_id": "audio_analysis_1790936477918_1"
+    },
+    {
+      "cmd": "get_project_state"
+    },
+    {
+      "cmd": "open_project",
+      "file_path": "/Users/timozty/Documents/vit-d1eq550a-artifacts/d1_550a_20261002_182113/public_case/spv1_p01.vit",
+      "command_timeout_ms": 180000
+    },
+    {
+      "cmd": "get_project_state"
+    }
+  ],
+  "compact": {
+    "ping": {
+      "status": "ok",
+      "command": null,
+      "message": "pong"
+    },
+    "new_project": {
+      "status": "ok",
+      "command": null,
+      "message": "Blank project created"
+    },
+    "save_as_project_before_import": {
+      "status": "ok",
+      "command": null,
+      "message": "Project saved"
+    },
+    "training_stems_import_preflight": {
+      "status": "ok",
+      "command": "project.import_preflight",
+      "summary": {
+        "discovered_audio_file_count": 6,
+        "readable_file_count": 6,
+        "unreadable_file_count": 0,
+        "tracks_to_create": 6,
+        "sample_rate_mismatch_count": 6,
+        "bit_depth_or_format_mismatch_count": 6,
+        "requires_user_confirmation": true,
+        "copy_policy": "reference_original",
+        "recommended_copy_policy": "reference_original",
+        "sample_rate_decision": {
+          "status": "mismatch",
+          "project_sample_rate_hz": 48000,
+          "readable_file_count": 6,
+          "sample_rate_mismatch_count": 6,
+          "source_sample_rate_distribution": [
+            {
+              "sample_rate_hz": 44100,
+              "file_count": 6
+            }
+          ],
+          "source_sample_rate_is_unique": true,
+          "project_audio_clip_count": 0,
+          "project_is_empty": true,
+          "can_switch_project_sample_rate": true,
+          "requires_user_choice": true,
+          "import_sample_rate_policy": "ask",
+          "source_sample_rate_hz": 44100,
+          "project_audio_settings_patch": {
+            "sample_rate_hz": 44100,
+            "render_default_sample_rate_hz": 44100
+          },
+          "recommended_action": "ask_user_switch_or_keep_project_rate",
+          "available_actions": [
+            "switch_project_sample_rate_then_import",
+            "keep_project_sample_rate_and_import",
+            "reject_import"
+          ]
+        },
+        "project_audio_settings_patch": {
+          "sample_rate_hz": 44100,
+          "render_default_sample_rate_hz": 44100
+        }
+      },
+      "audio_settings_snapshot": {
+        "sample_rate_hz": 48000,
+        "record_bit_depth": 24,
+        "import_sample_rate_policy": "ask",
+        "import_bit_depth_policy": "keep_source",
+        "media_copy_policy": "reference_original",
+        "channel_import_policy": "preserve_interleaved"
+      },
+      "import_plan": {
+        "intended_mode": "stems_folder",
+        "target_policy": "create_tracks",
+        "start_time_seconds": 0.0,
+        "tracks_to_create": 6,
+        "sample_rate_mismatches": [
+          {
+            "file_path": "/Users/timozty/Desktop/cases/spv1_p01/stems/drums.wav",
+            "source_sample_rate_hz": 44100,
+            "project_sample_rate_hz": 48000,
+            "policy": "ask"
+          },
+          {
+            "file_path": "/Users/timozty/Desktop/cases/spv1_p01/stems/piano.wav",
+            "source_sample_rate_hz": 44100,
+            "project_sample_rate_hz": 48000,
+            "policy": "ask"
+          },
+          {
+            "file_path": "/Users/timozty/Desktop/cases/spv1_p01/stems/vocals.wav",
+            "source_sample_rate_hz": 44100,
+            "project_sample_rate_hz": 48000,
+            "policy": "ask"
+          },
+          {
+            "file_path": "/Users/timozty/Desktop/cases/spv1_p01/stems/guitar.wav",
+            "source_sample_rate_hz": 44100,
+            "project_sample_rate_hz": 48000,
+            "policy": "ask"
+          },
+          {
+            "file_path": "/Users/timozty/Desktop/cases/spv1_p01/stems/other.wav",
+            "source_sample_rate_hz": 44100,
+            "project_sample_rate_hz": 48000,
+            "policy": "ask"
+          },
+          {
+            "file_path": "/Users/timozty/Desktop/cases/spv1_p01/stems/bass.wav",
+            "source_sample_rate_hz": 44100,
+            "project_sample_rate_hz": 48000,
+            "policy": "ask"
+          }
+        ],
+        "bit_depth_or_format_mismatches": [
+          {
+            "file_path": "/Users/timozty/Desktop/cases/spv1_p01/stems/drums.wav",
+            "source_bit_depth": 16,
+            "source_pcm_format": "int16",
+            "project_record_bit_depth": 24,
+            "policy": "keep_source"
+          },
+          {
+            "file_path": "/Users/timozty/Desktop/cases/spv1_p01/stems/piano.wav",
+            "source_bit_depth": 16,
+            "source_pcm_format": "int16",
+            "project_record_bit_depth": 24,
+            "policy": "keep_source"
+          },
+          {
+            "file_path": "/Users/timozty/Desktop/cases/spv1_p01/stems/vocals.wav",
+            "source_bit_depth": 16,
+            "source_pcm_format": "int16",
+            "project_record_bit_depth": 24,
+            "policy": "keep_source"
+          },
+          {
+            "file_path": "/Users/timozty/Desktop/cases/spv1_p01/stems/guitar.wav",
+            "source_bit_depth": 16,
+            "source_pcm_format": "int16",
+            "project_record_bit_depth": 24,
+            "policy": "keep_source"
+          },
+          {
+            "file_path": "/Users/timozty/Desktop/cases/spv1_p01/stems/other.wav",
+            "source_bit_depth": 16,
+            "source_pcm_format": "int16",
+            "project_record_bit_depth": 24,
+            "policy": "keep_source"
+          },
+          {
+            "file_path": "/Users/timozty/Desktop/cases/spv1_p01/stems/bass.wav",
+            "source_bit_depth": 16,
+            "source_pcm_format": "int16",
+            "project_record_bit_depth": 24,
+            "policy": "keep_source"
+          }
+        ],
+        "unreadable_files": [],
+        "copy_reference_strategy": "reference_original",
+        "requires_user_confirmation": true,
+        "sample_rate_decision": {
+          "status": "mismatch",
+          "project_sample_rate_hz": 48000,
+          "readable_file_count": 6,
+          "sample_rate_mismatch_count": 6,
+          "source_sample_rate_distribution": [
+            {
+              "sample_rate_hz": 44100,
+              "file_count": 6
+            }
+          ],
+          "source_sample_rate_is_unique": true,
+          "project_audio_clip_count": 0,
+          "project_is_empty": true,
+          "can_switch_project_sample_rate": true,
+          "requires_user_choice": true,
+          "import_sample_rate_policy": "ask",
+          "source_sample_rate_hz": 44100,
+          "project_audio_settings_patch": {
+            "sample_rate_hz": 44100,
+            "render_default_sample_rate_hz": 44100
+          },
+          "recommended_action": "ask_user_switch_or_keep_project_rate",
+          "available_actions": [
+            "switch_project_sample_rate_then_import",
+            "keep_project_sample_rate_and_import",
+            "reject_import"
+          ]
+        },
+        "project_audio_settings_patch": {
+          "sample_rate_hz": 44100,
+          "render_default_sample_rate_hz": 44100
+        },
+        "track_plan_preview": [
+          {
+            "file_path": "/Users/timozty/Desktop/cases/spv1_p01/stems/drums.wav",
+            "suggested_track_name": "drums",
+            "start_time_seconds": 0.0,
+            "channel_import_policy": "preserve_interleaved",
+            "media_copy_policy": "reference_original",
+            "needs_sample_rate_conversion": true,
+            "sample_rate_policy": "ask",
+            "bit_depth_or_format_differs": true,
+            "bit_depth_policy": "keep_source"
+          },
+          {
+            "file_path": "/Users/timozty/Desktop/cases/spv1_p01/stems/piano.wav",
+            "suggested_track_name": "piano",
+            "start_time_seconds": 0.0,
+            "channel_import_policy": "preserve_interleaved",
+            "media_copy_policy": "reference_original",
+            "needs_sample_rate_conversion": true,
+            "sample_rate_policy": "ask",
+            "bit_depth_or_format_differs": true,
+            "bit_depth_policy": "keep_source"
+          },
+          {
+            "file_path": "/Users/timozty/Desktop/cases/spv1_p01/stems/vocals.wav",
+            "suggested_track_name": "vocals",
+            "start_time_seconds": 0.0,
+            "channel_import_policy": "preserve_interleaved",
+            "media_copy_policy": "reference_original",
+            "needs_sample_rate_conversion": true,
+            "sample_rate_policy": "ask",
+            "bit_depth_or_format_differs": true,
+            "bit_depth_policy": "keep_source"
+          },
+          {
+            "file_path": "/Users/timozty/Desktop/cases/spv1_p01/stems/guitar.wav",
+            "suggested_track_name": "guitar",
+            "start_time_seconds": 0.0,
+            "channel_import_policy": "preserve_interleaved",
+            "media_copy_policy": "reference_original",
+            "needs_sample_rate_conversion": true,
+            "sample_rate_policy": "ask",
+            "bit_depth_or_format_differs": true,
+            "bit_depth_policy": "keep_source"
+          },
+          {
+            "file_path": "/Users/timozty/Desktop/cases/spv1_p01/stems/other.wav",
+            "suggested_track_name": "other",
+            "start_time_seconds": 0.0,
+            "channel_import_policy": "preserve_interleaved",
+            "media_copy_policy": "reference_original",
+            "needs_sample_rate_conversion": true,
+            "sample_rate_policy": "ask",
+            "bit_depth_or_format_differs": true,
+            "bit_depth_policy": "keep_source"
+          },
+          {
+            "file_path": "/Users/timozty/Desktop/cases/spv1_p01/stems/bass.wav",
+            "suggested_track_name": "bass",
+            "start_time_seconds": 0.0,
+            "channel_import_policy": "preserve_interleaved",
+            "media_copy_policy": "reference_original",
+            "needs_sample_rate_conversion": true,
+            "sample_rate_policy": "ask",
+            "bit_depth_or_format_differs": true,
+            "bit_depth_policy": "keep_source"
+          }
+        ]
+      },
+      "file_preview": [
+        {
+          "file_path": "/Users/timozty/Desktop/cases/spv1_p01/stems/drums.wav",
+          "file_name": "drums.wav",
+          "file_type": "wav",
+          "readable": true,
+          "duration_seconds": 20.0,
+          "sample_rate_hz": 44100,
+          "bit_depth": 16,
+          "pcm_format": "int16",
+          "channel_count": 2,
+          "compressed_bitrate_kbps": null,
+          "suggested_track_name": "drums",
+          "format_name": "WAV file",
+          "warnings": [],
+          "errors": []
+        },
+        {
+          "file_path": "/Users/timozty/Desktop/cases/spv1_p01/stems/piano.wav",
+          "file_name": "piano.wav",
+          "file_type": "wav",
+          "readable": true,
+          "duration_seconds": 20.0,
+          "sample_rate_hz": 44100,
+          "bit_depth": 16,
+          "pcm_format": "int16",
+          "channel_count": 2,
+          "compressed_bitrate_kbps": null,
+          "suggested_track_name": "piano",
+          "format_name": "WAV file",
+          "warnings": [],
+          "errors": []
+        },
+        {
+          "file_path": "/Users/timozty/Desktop/cases/spv1_p01/stems/vocals.wav",
+          "file_name": "vocals.wav",
+          "file_type": "wav",
+          "readable": true,
+          "duration_seconds": 20.0,
+          "sample_rate_hz": 44100,
+          "bit_depth": 16,
+          "pcm_format": "int16",
+          "channel_count": 2,
+          "compressed_bitrate_kbps": null,
+          "suggested_track_name": "vocals",
+          "format_name": "WAV file",
+          "warnings": [],
+          "errors": []
+        },
+        {
+          "file_path": "/Users/timozty/Desktop/cases/spv1_p01/stems/guitar.wav",
+          "file_name": "guitar.wav",
+          "file_type": "wav",
+          "readable": true,
+          "duration_seconds": 20.0,
+          "sample_rate_hz": 44100,
+          "bit_depth": 16,
+          "pcm_format": "int16",
+          "channel_count": 2,
+          "compressed_bitrate_kbps": null,
+          "suggested_track_name": "guitar",
+          "format_name": "WAV file",
+          "warnings": [],
+          "errors": []
+        },
+        {
+          "file_path": "/Users/timozty/Desktop/cases/spv1_p01/stems/other.wav",
+          "file_name": "other.wav",
+          "file_type": "wav",
+          "readable": true,
+          "duration_seconds": 20.0,
+          "sample_rate_hz": 44100,
+          "bit_depth": 16,
+          "pcm_format": "int16",
+          "channel_count": 2,
+          "compressed_bitrate_kbps": null,
+          "suggested_track_name": "other",
+          "format_name": "WAV file",
+          "warnings": [],
+          "errors": []
+        },
+        {
+          "file_path": "/Users/timozty/Desktop/cases/spv1_p01/stems/bass.wav",
+          "file_name": "bass.wav",
+          "file_type": "wav",
+          "readable": true,
+          "duration_seconds": 20.0,
+          "sample_rate_hz": 44100,
+          "bit_depth": 16,
+          "pcm_format": "int16",
+          "channel_count": 2,
+          "compressed_bitrate_kbps": null,
+          "suggested_track_name": "bass",
+          "format_name": "WAV file",
+          "warnings": [],
+          "errors": []
+        }
+      ]
+    },
+    "training_stems_import_folder_as_stems": {
+      "status": "ok",
+      "command": "project.import_folder_as_stems",
+      "message": "Stems imported as separate tracks; audio analysis queued",
+      "action": "import_folder_as_stems",
+      "baking_status": "running",
+      "analysis_deferred": false,
+      "analysis_jobs_created": 0,
+      "analysis_jobs_queued": 12,
+      "analysis_total_clips": 6,
+      "analysis_total_feature_jobs": 12,
+      "analysis_job_id": "audio_analysis_1790936477918_1",
+      "analysis_queue_status": "running",
+      "background_analysis_status": "running",
+      "last_created_track_id": "1032",
+      "last_created_clip_id": "1036",
+      "summary": {
+        "discovered_audio_file_count": 6,
+        "readable_file_count": 6,
+        "unreadable_file_count": 0,
+        "tracks_created": 6,
+        "clips_created": 6,
+        "sample_rate_mismatch_count": 6,
+        "bit_depth_or_format_mismatch_count": 6,
+        "requires_user_confirmation": false,
+        "copy_policy": "reference_original",
+        "start_time_seconds": 0.0,
+        "edit_length_seconds": 20.0,
+        "analysis_deferred": false,
+        "analysis_jobs_created": 0,
+        "analysis_jobs_queued": 12,
+        "analysis_total_clips": 6,
+        "analysis_total_feature_jobs": 12,
+        "analysis_job_id": "audio_analysis_1790936477918_1",
+        "analysis_queue_status": "running",
+        "background_analysis_status": "running"
+      },
+      "audio_settings_snapshot": {
+        "sample_rate_hz": 48000,
+        "record_bit_depth": 24,
+        "import_sample_rate_policy": "ask",
+        "import_bit_depth_policy": "keep_source",
+        "media_copy_policy": "reference_original",
+        "channel_import_policy": "preserve_interleaved"
+      },
+      "analysis_job": {
+        "analysis_job_id": "audio_analysis_1790936477918_1",
+        "status": "running",
+        "analysis_queue_status": "running",
+        "total_clips": 6,
+        "submitted_clips": 0,
+        "pending_clips": 6,
+        "total_feature_jobs": 12,
+        "submitted_feature_jobs": 0,
+        "pending_feature_jobs": 12,
+        "progress_percent": 0.0,
+        "interval_ms": 1000,
+        "cancel_scope": "pending_only",
+        "completion_scope": "submitted_to_background_bakers"
+      },
+      "imported_tracks_preview": [
+        {
+          "track_id": "1007",
+          "track_name": "drums",
+          "clip_id": "1011",
+          "clip_name": "drums",
+          "source_file_path": "/Users/timozty/Desktop/cases/spv1_p01/stems/drums.wav",
+          "imported_file_path": "/Users/timozty/Desktop/cases/spv1_p01/stems/drums.wav",
+          "start_time_seconds": 0.0,
+          "duration_seconds": 20.0,
+          "sample_rate_hz": 44100,
+          "bit_depth": 16,
+          "pcm_format": "int16",
+          "channel_count": 2,
+          "needs_sample_rate_conversion": true,
+          "bit_depth_or_format_differs": true,
+          "sample_rate_policy": "ask",
+          "bit_depth_policy": "keep_source",
+          "media_copy_policy": "reference_original",
+          "channel_import_policy": "preserve_interleaved",
+          "analysis_deferred": false,
+          "analysis_jobs_created": 0,
+          "background_analysis_status": "running",
+          "analysis_queue_status": "running",
+          "baking_status": "running"
+        },
+        {
+          "track_id": "1012",
+          "track_name": "piano",
+          "clip_id": "1016",
+          "clip_name": "piano",
+          "source_file_path": "/Users/timozty/Desktop/cases/spv1_p01/stems/piano.wav",
+          "imported_file_path": "/Users/timozty/Desktop/cases/spv1_p01/stems/piano.wav",
+          "start_time_seconds": 0.0,
+          "duration_seconds": 20.0,
+          "sample_rate_hz": 44100,
+          "bit_depth": 16,
+          "pcm_format": "int16",
+          "channel_count": 2,
+          "needs_sample_rate_conversion": true,
+          "bit_depth_or_format_differs": true,
+          "sample_rate_policy": "ask",
+          "bit_depth_policy": "keep_source",
+          "media_copy_policy": "reference_original",
+          "channel_import_policy": "preserve_interleaved",
+          "analysis_deferred": false,
+          "analysis_jobs_created": 0,
+          "background_analysis_status": "running",
+          "analysis_queue_status": "running",
+          "baking_status": "running"
+        },
+        {
+          "track_id": "1017",
+          "track_name": "vocals",
+          "clip_id": "1021",
+          "clip_name": "vocals",
+          "source_file_path": "/Users/timozty/Desktop/cases/spv1_p01/stems/vocals.wav",
+          "imported_file_path": "/Users/timozty/Desktop/cases/spv1_p01/stems/vocals.wav",
+          "start_time_seconds": 0.0,
+          "duration_seconds": 20.0,
+          "sample_rate_hz": 44100,
+          "bit_depth": 16,
+          "pcm_format": "int16",
+          "channel_count": 2,
+          "needs_sample_rate_conversion": true,
+          "bit_depth_or_format_differs": true,
+          "sample_rate_policy": "ask",
+          "bit_depth_policy": "keep_source",
+          "media_copy_policy": "reference_original",
+          "channel_import_policy": "preserve_interleaved",
+          "analysis_deferred": false,
+          "analysis_jobs_created": 0,
+          "background_analysis_status": "running",
+          "analysis_queue_status": "running",
+          "baking_status": "running"
+        },
+        {
+          "track_id": "1022",
+          "track_name": "guitar",
+          "clip_id": "1026",
+          "clip_name": "guitar",
+          "source_file_path": "/Users/timozty/Desktop/cases/spv1_p01/stems/guitar.wav",
+          "imported_file_path": "/Users/timozty/Desktop/cases/spv1_p01/stems/guitar.wav",
+          "start_time_seconds": 0.0,
+          "duration_seconds": 20.0,
+          "sample_rate_hz": 44100,
+          "bit_depth": 16,
+          "pcm_format": "int16",
+          "channel_count": 2,
+          "needs_sample_rate_conversion": true,
+          "bit_depth_or_format_differs": true,
+          "sample_rate_policy": "ask",
+          "bit_depth_policy": "keep_source",
+          "media_copy_policy": "reference_original",
+          "channel_import_policy": "preserve_interleaved",
+          "analysis_deferred": false,
+          "analysis_jobs_created": 0,
+          "background_analysis_status": "running",
+          "analysis_queue_status": "running",
+          "baking_status": "running"
+        },
+        {
+          "track_id": "1027",
+          "track_name": "other",
+          "clip_id": "1031",
+          "clip_name": "other",
+          "source_file_path": "/Users/timozty/Desktop/cases/spv1_p01/stems/other.wav",
+          "imported_file_path": "/Users/timozty/Desktop/cases/spv1_p01/stems/other.wav",
+          "start_time_seconds": 0.0,
+          "duration_seconds": 20.0,
+          "sample_rate_hz": 44100,
+          "bit_depth": 16,
+          "pcm_format": "int16",
+          "channel_count": 2,
+          "needs_sample_rate_conversion": true,
+          "bit_depth_or_format_differs": true,
+          "sample_rate_policy": "ask",
+          "bit_depth_policy": "keep_source",
+          "media_copy_policy": "reference_original",
+          "channel_import_policy": "preserve_interleaved",
+          "analysis_deferred": false,
+          "analysis_jobs_created": 0,
+          "background_analysis_status": "running",
+          "analysis_queue_status": "running",
+          "baking_status": "running"
+        },
+        {
+          "track_id": "1032",
+          "track_name": "bass",
+          "clip_id": "1036",
+          "clip_name": "bass",
+          "source_file_path": "/Users/timozty/Desktop/cases/spv1_p01/stems/bass.wav",
+          "imported_file_path": "/Users/timozty/Desktop/cases/spv1_p01/stems/bass.wav",
+          "start_time_seconds": 0.0,
+          "duration_seconds": 20.0,
+          "sample_rate_hz": 44100,
+          "bit_depth": 16,
+          "pcm_format": "int16",
+          "channel_count": 2,
+          "needs_sample_rate_conversion": true,
+          "bit_depth_or_format_differs": true,
+          "sample_rate_policy": "ask",
+          "bit_depth_policy": "keep_source",
+          "media_copy_policy": "reference_original",
+          "channel_import_policy": "preserve_interleaved",
+          "analysis_deferred": false,
+          "analysis_jobs_created": 0,
+          "background_analysis_status": "running",
+          "analysis_queue_status": "running",
+          "baking_status": "running"
+        }
+      ],
+      "file_preview": [
+        {
+          "file_path": "/Users/timozty/Desktop/cases/spv1_p01/stems/drums.wav",
+          "file_name": "drums.wav",
+          "file_type": "wav",
+          "readable": true,
+          "duration_seconds": 20.0,
+          "sample_rate_hz": 44100,
+          "bit_depth": 16,
+          "pcm_format": "int16",
+          "channel_count": 2,
+          "suggested_track_name": "drums",
+          "needs_sample_rate_conversion": true,
+          "bit_depth_or_format_differs": true
+        },
+        {
+          "file_path": "/Users/timozty/Desktop/cases/spv1_p01/stems/piano.wav",
+          "file_name": "piano.wav",
+          "file_type": "wav",
+          "readable": true,
+          "duration_seconds": 20.0,
+          "sample_rate_hz": 44100,
+          "bit_depth": 16,
+          "pcm_format": "int16",
+          "channel_count": 2,
+          "suggested_track_name": "piano",
+          "needs_sample_rate_conversion": true,
+          "bit_depth_or_format_differs": true
+        },
+        {
+          "file_path": "/Users/timozty/Desktop/cases/spv1_p01/stems/vocals.wav",
+          "file_name": "vocals.wav",
+          "file_type": "wav",
+          "readable": true,
+          "duration_seconds": 20.0,
+          "sample_rate_hz": 44100,
+          "bit_depth": 16,
+          "pcm_format": "int16",
+          "channel_count": 2,
+          "suggested_track_name": "vocals",
+          "needs_sample_rate_conversion": true,
+          "bit_depth_or_format_differs": true
+        },
+        {
+          "file_path": "/Users/timozty/Desktop/cases/spv1_p01/stems/guitar.wav",
+          "file_name": "guitar.wav",
+          "file_type": "wav",
+          "readable": true,
+          "duration_seconds": 20.0,
+          "sample_rate_hz": 44100,
+          "bit_depth": 16,
+          "pcm_format": "int16",
+          "channel_count": 2,
+          "suggested_track_name": "guitar",
+          "needs_sample_rate_conversion": true,
+          "bit_depth_or_format_differs": true
+        },
+        {
+          "file_path": "/Users/timozty/Desktop/cases/spv1_p01/stems/other.wav",
+          "file_name": "other.wav",
+          "file_type": "wav",
+          "readable": true,
+          "duration_seconds": 20.0,
+          "sample_rate_hz": 44100,
+          "bit_depth": 16,
+          "pcm_format": "int16",
+          "channel_count": 2,
+          "suggested_track_name": "other",
+          "needs_sample_rate_conversion": true,
+          "bit_depth_or_format_differs": true
+        },
+        {
+          "file_path": "/Users/timozty/Desktop/cases/spv1_p01/stems/bass.wav",
+          "file_name": "bass.wav",
+          "file_type": "wav",
+          "readable": true,
+          "duration_seconds": 20.0,
+          "sample_rate_hz": 44100,
+          "bit_depth": 16,
+          "pcm_format": "int16",
+          "channel_count": 2,
+          "suggested_track_name": "bass",
+          "needs_sample_rate_conversion": true,
+          "bit_depth_or_format_differs": true
+        }
+      ],
+      "sample_rate_mismatch_examples": [
+        {
+          "file_path": "/Users/timozty/Desktop/cases/spv1_p01/stems/drums.wav",
+          "source_sample_rate_hz": 44100,
+          "project_sample_rate_hz": 48000,
+          "policy": "ask"
+        },
+        {
+          "file_path": "/Users/timozty/Desktop/cases/spv1_p01/stems/piano.wav",
+          "source_sample_rate_hz": 44100,
+          "project_sample_rate_hz": 48000,
+          "policy": "ask"
+        },
+        {
+          "file_path": "/Users/timozty/Desktop/cases/spv1_p01/stems/vocals.wav",
+          "source_sample_rate_hz": 44100,
+          "project_sample_rate_hz": 48000,
+          "policy": "ask"
+        },
+        {
+          "file_path": "/Users/timozty/Desktop/cases/spv1_p01/stems/guitar.wav",
+          "source_sample_rate_hz": 44100,
+          "project_sample_rate_hz": 48000,
+          "policy": "ask"
+        },
+        {
+          "file_path": "/Users/timozty/Desktop/cases/spv1_p01/stems/other.wav",
+          "source_sample_rate_hz": 44100,
+          "project_sample_rate_hz": 48000,
+          "policy": "ask"
+        },
+        {
+          "file_path": "/Users/timozty/Desktop/cases/spv1_p01/stems/bass.wav",
+          "source_sample_rate_hz": 44100,
+          "project_sample_rate_hz": 48000,
+          "policy": "ask"
+        }
+      ],
+      "bit_depth_or_format_mismatch_examples": [
+        {
+          "file_path": "/Users/timozty/Desktop/cases/spv1_p01/stems/drums.wav",
+          "source_bit_depth": 16,
+          "source_pcm_format": "int16",
+          "project_record_bit_depth": 24,
+          "policy": "keep_source"
+        },
+        {
+          "file_path": "/Users/timozty/Desktop/cases/spv1_p01/stems/piano.wav",
+          "source_bit_depth": 16,
+          "source_pcm_format": "int16",
+          "project_record_bit_depth": 24,
+          "policy": "keep_source"
+        },
+        {
+          "file_path": "/Users/timozty/Desktop/cases/spv1_p01/stems/vocals.wav",
+          "source_bit_depth": 16,
+          "source_pcm_format": "int16",
+          "project_record_bit_depth": 24,
+          "policy": "keep_source"
+        },
+        {
+          "file_path": "/Users/timozty/Desktop/cases/spv1_p01/stems/guitar.wav",
+          "source_bit_depth": 16,
+          "source_pcm_format": "int16",
+          "project_record_bit_depth": 24,
+          "policy": "keep_source"
+        },
+        {
+          "file_path": "/Users/timozty/Desktop/cases/spv1_p01/stems/other.wav",
+          "source_bit_depth": 16,
+          "source_pcm_format": "int16",
+          "project_record_bit_depth": 24,
+          "policy": "keep_source"
+        },
+        {
+          "file_path": "/Users/timozty/Desktop/cases/spv1_p01/stems/bass.wav",
+          "source_bit_depth": 16,
+          "source_pcm_format": "int16",
+          "project_record_bit_depth": 24,
+          "policy": "keep_source"
+        }
+      ],
+      "unreadable_file_examples": [],
+      "created_track_ids_preview": [
+        "1007",
+        "1012",
+        "1017",
+        "1022",
+        "1027",
+        "1032"
+      ],
+      "created_track_ids_count": 6,
+      "created_clip_ids_preview": [
+        "1011",
+        "1016",
+        "1021",
+        "1026",
+        "1031",
+        "1036"
+      ],
+      "created_clip_ids_count": 6
+    },
+    "analysis_start_throttled": {
+      "status": "ok",
+      "command": "project.audio_analysis_start",
+      "message": "Audio analysis job started",
+      "analysis_job_id": "audio_analysis_1790936477918_1",
+      "analysis_queue_status": "running",
+      "analysis_job": {
+        "analysis_job_id": "audio_analysis_1790936477918_1",
+        "status": "running",
+        "analysis_queue_status": "running",
+        "total_clips": 6,
+        "submitted_clips": 0,
+        "pending_clips": 6,
+        "total_feature_jobs": 12,
+        "submitted_feature_jobs": 0,
+        "pending_feature_jobs": 12,
+        "progress_percent": 0.0,
+        "interval_ms": 200,
+        "cancel_scope": "pending_only",
+        "completion_scope": "submitted_to_background_bakers"
+      }
+    },
+    "analysis_status_after_throttle_window": {
+      "status": "ok",
+      "command": "project.audio_analysis_status",
+      "message": "Audio analysis job status",
+      "analysis_job_id": "audio_analysis_1790936477918_1",
+      "analysis_queue_status": "paused",
+      "analysis_job": {
+        "analysis_job_id": "audio_analysis_1790936477918_1",
+        "status": "paused",
+        "analysis_queue_status": "paused",
+        "total_clips": 6,
+        "submitted_clips": 1,
+        "pending_clips": 5,
+        "total_feature_jobs": 12,
+        "submitted_feature_jobs": 2,
+        "pending_feature_jobs": 10,
+        "progress_percent": 16.666666666666664,
+        "interval_ms": 200,
+        "cancel_scope": "pending_only",
+        "completion_scope": "submitted_to_background_bakers"
+      }
+    },
+    "analysis_cancel_remaining": {
+      "status": "ok",
+      "command": "project.audio_analysis_cancel",
+      "message": "Audio analysis job cancelled; already submitted background bakes may continue",
+      "analysis_job_id": "audio_analysis_1790936477918_1",
+      "analysis_queue_status": "cancelled",
+      "analysis_job": {
+        "analysis_job_id": "audio_analysis_1790936477918_1",
+        "status": "cancelled",
+        "analysis_queue_status": "cancelled",
+        "total_clips": 6,
+        "submitted_clips": 1,
+        "pending_clips": 0,
+        "total_feature_jobs": 12,
+        "submitted_feature_jobs": 2,
+        "pending_feature_jobs": 0,
+        "progress_percent": 16.666666666666664,
+        "interval_ms": 200,
+        "cancel_scope": "pending_only",
+        "completion_scope": "submitted_to_background_bakers"
+      }
+    },
+    "state_after_import": {
+      "status": "ok",
+      "command": null
+    },
+    "reopen_imported_project": {
+      "status": "ok",
+      "command": null,
+      "message": "Project opened"
+    },
+    "state_after_reopen": {
+      "status": "ok",
+      "command": null
+    }
+  },
+  "assertions": {
+    "training_preflight_readable_file_count": 6,
+    "training_preflight_tracks_to_create": 6,
+    "training_import_tracks_created": 6,
+    "training_import_clips_created": 6,
+    "analysis_deferred": false,
+    "analysis_baking_status": "running",
+    "analysis_jobs_queued": 12,
+    "analysis_job_id": "audio_analysis_1790936477918_1",
+    "expected_import_features_per_clip": 2,
+    "analysis_throttled_submitted_clips": 1,
+    "analysis_throttled_submitted_feature_jobs": 2,
+    "state_after_import_visible": true,
+    "state_after_reopen_visible": true,
+    "state_after_import_path": "/Users/timozty/Documents/vit-d1eq550a-artifacts/d1_550a_20261002_182113/project_state_after_import.json",
+    "state_after_reopen_path": "/Users/timozty/Documents/vit-d1eq550a-artifacts/d1_550a_20261002_182113/project_state_after_reopen.json",
+    "sealed_readonly_preflight": {
+      "status": "skipped"
+    }
+  }
+}

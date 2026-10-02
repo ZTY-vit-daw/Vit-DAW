@@ -1,0 +1,283 @@
+#!/usr/bin/env bash
+# D1-EQ-READBACK-550A-1 forensic probe — kernel-face param write/readback for
+# API-550A Stereo param 2 (failing family) vs Q3 Stereo param 12 (passing family).
+#
+# Owns the machine stack while running (AGENTS §9). Kernel = fresh build from
+# the card worktree (main HEAD code, coord-only diff). All artifacts under the
+# run workdir; the source tree is never written (AGENTS §10).
+set -euo pipefail
+
+REPO_ROOT="/Users/timozty/Documents/Vit-DAW-d1eq550a-1"
+TRACKTION_DIR="/Users/timozty/Documents/Vit-DAW/tracktion_engine"
+VST3_DIR="/Library/Audio/Plug-Ins/VST3"
+ART_ROOT="$HOME/Documents/vit-d1eq550a-artifacts"
+RUN_ID="forensic1_$(date '+%Y%m%d_%H%M%S')"
+WORKDIR="$ART_ROOT/$RUN_ID"
+KERNEL_PORT_REQ=5555
+ZMQ_REQ_ENDPOINT="tcp://127.0.0.1:$KERNEL_PORT_REQ"
+
+mkdir -p "$WORKDIR"/{build,bin,zmq,logs,probe}
+cd "$WORKDIR"
+
+log() { echo "[$(date '+%H:%M:%S')] $*" | tee -a "$WORKDIR/probe_run.log" >&2; }
+
+fail_env() { echo "ERROR[env]: $*" >&2; exit 3; }
+fail_functional() { echo "ERROR[functional]: $*" >&2; exit 1; }
+
+for tool in go cmake make python3 lsof shasum; do
+  command -v "$tool" >/dev/null 2>&1 || fail_env "required tool not found: $tool"
+done
+
+# -- no other stack may own the ports while this probe runs (§9) -------------
+for port in 5555 5556 5557; do
+  pid="$(lsof -nP -iTCP:"$port" -sTCP:LISTEN -t 2>/dev/null | head -1 || true)"
+  [[ -z "$pid" ]] || fail_env "port $port already owned by pid $pid — stagger with the parallel card (AGENTS §9)"
+done
+
+{
+  echo "run_id=$RUN_ID"
+  echo "repo_root=$REPO_ROOT"
+  echo "repo_head=$(git -C "$REPO_ROOT" rev-parse HEAD)"
+  echo "repo_branch=$(git -C "$REPO_ROOT" rev-parse --abbrev-ref HEAD)"
+  echo "repo_dirty=$(git -C "$REPO_ROOT" status --short | wc -l | tr -d ' ') entries"
+  echo "tracktion_dir=$TRACKTION_DIR (pinned $(git -C "$TRACKTION_DIR" rev-parse HEAD))"
+  echo "kernel_code=vitapp @ $(git -C "$REPO_ROOT" ls-tree HEAD VitApp | awk '{print $3}')"
+  echo "started_at=$(date '+%Y-%m-%dT%H:%M:%S%z')"
+} > "$WORKDIR/run_meta.txt"
+
+KERNEL_PID=""
+cleanup() {
+  local rc=$?
+  if [[ -n "$KERNEL_PID" ]] && kill -0 "$KERNEL_PID" 2>/dev/null; then
+    kill -TERM "$KERNEL_PID" 2>/dev/null || true
+    for i in 1 2 3 4 5 6 7 8 9 10; do kill -0 "$KERNEL_PID" 2>/dev/null || break; sleep 1; done
+    kill -0 "$KERNEL_PID" 2>/dev/null && kill -KILL "$KERNEL_PID" 2>/dev/null || true
+  fi
+  wait 2>/dev/null || true
+  exit $rc
+}
+trap cleanup EXIT INT TERM
+
+# -- kernel: reuse the prebuilt forensic kernel (built from this worktree's
+#    VitApp @ main HEAD; sha256 in kernel_bin.sha256) --------------------------
+KERNEL_BIN="${KERNEL_BIN:-$ART_ROOT/kernel_build/VitApp_artefacts/Debug/VitApp}"
+[[ -x "$KERNEL_BIN" ]] || fail_env "kernel binary not found: $KERNEL_BIN"
+mkdir -p "$WORKDIR"
+shasum -a 256 "$KERNEL_BIN" > "$WORKDIR/kernel_bin.sha256"
+log "kernel binary: $KERNEL_BIN ($(cut -c1-16 "$WORKDIR/kernel_bin.sha256"))"
+
+# -- zmq one-shot REQ probe (same lib as the agent) ---------------------------
+cat > "$WORKDIR/probe/go.mod" <<'EOF'
+module zmqprobe
+
+go 1.24.1
+
+require (
+	github.com/go-zeromq/zmq4 v0.17.0
+	github.com/go-zeromq/goczmq/v4 v4.2.2 // indirect
+	golang.org/x/sync v0.7.0 // indirect
+	golang.org/x/text v0.15.0 // indirect
+)
+EOF
+cat > "$WORKDIR/probe/main.go" <<'EOF'
+package main
+
+import (
+	"context"
+	"fmt"
+	"os"
+	"strconv"
+	"time"
+
+	"github.com/go-zeromq/zmq4"
+)
+
+func main() {
+	if len(os.Args) != 4 {
+		fmt.Fprintln(os.Stderr, "usage: zmqprobe <endpoint> <timeout-ms> <json>")
+		os.Exit(2)
+	}
+	timeoutMs, err := strconv.Atoi(os.Args[2])
+	if err != nil || timeoutMs <= 0 {
+		fmt.Fprintln(os.Stderr, "invalid timeout:", os.Args[2])
+		os.Exit(2)
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeoutMs)*time.Millisecond)
+	defer cancel()
+	sock := zmq4.NewReq(ctx, zmq4.WithTimeout(time.Duration(timeoutMs)*time.Millisecond),
+		zmq4.WithDialerTimeout(5*time.Second), zmq4.WithDialerMaxRetries(1))
+	defer sock.Close()
+	if err := sock.Dial(os.Args[1]); err != nil {
+		fmt.Fprintln(os.Stderr, "dial:", err)
+		os.Exit(1)
+	}
+	if err := sock.Send(zmq4.NewMsgString(os.Args[3])); err != nil {
+		fmt.Fprintln(os.Stderr, "send:", err)
+		os.Exit(1)
+	}
+	reply, err := sock.Recv()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "recv:", err)
+		os.Exit(1)
+	}
+	payload := ""
+	if len(reply.Frames) > 0 {
+		payload = string(reply.Frames[len(reply.Frames)-1])
+	}
+	fmt.Println(payload)
+}
+EOF
+cp "$REPO_ROOT/agent/go.sum" "$WORKDIR/probe/go.sum"
+(cd "$WORKDIR/probe" && GOPROXY=off GOSUMDB=off go build -o "$WORKDIR/bin/zmqprobe" .) \
+  || fail_env "zmq probe build failed"
+
+N=0
+zmq_send() { # zmq_send <name> <timeout-ms> <json> — reply saved to zmq/<name>.json, printed
+  N=$((N+1))
+  local name="$1" tmo="$2" payload="$3" reply rc=0
+  reply="$("$WORKDIR/bin/zmqprobe" "$ZMQ_REQ_ENDPOINT" "$tmo" "$payload")" || rc=$?
+  printf '%s\n' "$payload" > "$WORKDIR/zmq/$(printf '%02d' "$N")_${name}_req.json"
+  printf '%s\n' "$reply"     > "$WORKDIR/zmq/$(printf '%02d' "$N")_${name}_rep.json"
+  [[ $rc -eq 0 ]] || { log "zmq $name transport failed rc=$rc"; return 1; }
+  printf '%s' "$reply"
+}
+
+# -- kernel root: fake markers + repo default project (known track ids) -------
+KERNEL_ROOT="$WORKDIR/kernel_root"
+mkdir -p "$KERNEL_ROOT/Source" "$KERNEL_ROOT/Workspace"
+: > "$KERNEL_ROOT/CMakeLists.txt"
+cp "$REPO_ROOT/VitApp/Workspace/default_project.xml" "$KERNEL_ROOT/Workspace/default_project.xml"
+
+log "starting kernel (cwd=$KERNEL_ROOT)..."
+( cd "$KERNEL_ROOT" && exec "$KERNEL_BIN" ) > "$WORKDIR/logs/kernel_stdout.log" 2>&1 &
+KERNEL_PID=$!
+log "kernel pid=$KERNEL_PID"
+
+deadline=$((SECONDS + 90))
+while (( SECONDS < deadline )); do
+  kill -0 "$KERNEL_PID" 2>/dev/null || { tail -30 "$WORKDIR/logs/kernel_stdout.log" >&2; fail_functional "kernel exited during startup"; }
+  [[ -n "$(lsof -nP -iTCP:5555 -sTCP:LISTEN -t 2>/dev/null | head -1)" ]] && break
+  sleep 1
+done
+[[ -n "$(lsof -nP -iTCP:5555 -sTCP:LISTEN -t 2>/dev/null | head -1)" ]] || fail_functional "kernel REQ port not listening"
+log "kernel up (5555 listening)"
+
+# -- 1. ping + project state --------------------------------------------------
+zmq_send ping 10000 '{"cmd":"ping"}' >/dev/null
+zmq_send project_state 20000 '{"cmd":"get_project_state"}' > "$WORKDIR/zmq/project_state_raw.json"
+TRACK_ID="$(python3 - "$WORKDIR/zmq/project_state_raw.json" <<'PY'
+import json, sys
+d = json.load(open(sys.argv[1]))
+for t in d.get("tracks", []):
+    if isinstance(t, dict) and t.get("is_audio_track") and str(t.get("track_id", "")).strip():
+        print(str(t["track_id"]).strip())
+        break
+PY
+)"
+[[ -n "$TRACK_ID" ]] || fail_functional "no audio track id found in project state"
+log "probe track: $TRACK_ID"
+
+# -- 2. plugin scan (full VST3 dir; out-of-process per R9) ---------------------
+log "scan_plugins $VST3_DIR (may take minutes)..."
+SCAN_REPLY="$(zmq_send scan 600000 "{\"cmd\":\"scan_plugins\",\"paths\":[\"$VST3_DIR\"]}")" \
+  || fail_functional "scan transport failed"
+SCAN_ID="$(python3 -c "import json,sys; print(json.loads(sys.argv[1]).get('scan_id',''))" "$SCAN_REPLY")"
+[[ -n "$SCAN_ID" ]] || fail_functional "scan reply missing scan_id: $SCAN_REPLY"
+while :; do
+  sleep 5
+  ST="$(zmq_send scan_status 30000 "{\"cmd\":\"plugin_scan_status\",\"scan_id\":\"$SCAN_ID\"}")" || fail_functional "scan_status transport failed"
+  STATE="$(python3 -c "import json,sys; print(json.loads(sys.argv[1]).get('status',''))" "$ST")"
+  log "scan state: $STATE"
+  [[ "$STATE" == "idle" || "$STATE" == "completed" || "$STATE" == "done" ]] && break
+  [[ "$STATE" == "failed" || "$STATE" == "error" ]] && fail_functional "scan failed: $ST"
+done
+
+# -- 3. rack_add_node for 550A + Q3 (identifier from machine whitelist) -------
+add_node() { # add_node <name> <identifier>
+  local name="$1" ident="$2" reply
+  reply="$(zmq_send "rack_add_$name" 120000 "$(python3 -c '
+import json, sys
+print(json.dumps({"cmd":"rack_add_node","track_id":sys.argv[1],"x":40.0,"y":500.0,"zone_id":"Z3","auto_connect":True,
+                  "plugin_path":sys.argv[2],"plugin_identifier":sys.argv[3]}))' "$TRACK_ID" "$VST3_DIR/WaveShell1-VST3 17.1.vst3" "$ident")")" \
+    || fail_functional "rack_add_node($name) transport failed"
+  python3 -c 'import json,sys; d=json.loads(sys.argv[1]); print(d.get("plugin_id",""))' "$reply"
+}
+
+log "loading API-550A Stereo..."
+PID_550A="$(add_node 550a 'VST3-API-550A Stereo-10456661-874091cb')"
+[[ -n "$PID_550A" ]] || fail_functional "rack_add_node(550A) gave no plugin_id"
+log "550A plugin_id=$PID_550A"
+
+log "loading Q3 Stereo..."
+PID_Q3="$(add_node q3 'VST3-Q3 Stereo-10456661-33282547')"
+[[ -n "$PID_Q3" ]] || fail_functional "rack_add_node(Q3) gave no plugin_id"
+log "Q3 plugin_id=$PID_Q3"
+
+# -- 4. baseline parameter surfaces -------------------------------------------
+surface() { # surface <name> <plugin_id>
+  zmq_send "surface_$1" 60000 "$(python3 -c '
+import json, sys
+print(json.dumps({"cmd":"get_plugin_parameters","track_id":sys.argv[1],"plugin_id":sys.argv[2],"include_parameters":True}))' "$TRACK_ID" "$2")" \
+    || fail_functional "get_plugin_parameters($1) failed"
+}
+surface 550a_base "$PID_550A" > /dev/null
+surface q3_base   "$PID_Q3"   > /dev/null
+log "baseline surfaces captured"
+
+# -- 5. write/readback sweep ---------------------------------------------------
+# 550A param 2 (mid gain, forensic targets -2/-1.5/-1 dB); Q3 param 12 control.
+# Values: the three forensic dB targets mapped through the linear -12..+12 dB
+# guess is NOT assumed — first read the actual min/max from the baseline
+# surface, then request those exact physical targets.
+S550="$(find "$WORKDIR/zmq" -name '*surface_550a_base_rep.json' | sort | head -1)"
+SQ3="$(find "$WORKDIR/zmq" -name '*surface_q3_base_rep.json' | sort | head -1)"
+[[ -n "$S550" && -n "$SQ3" ]] || fail_functional "baseline surface files missing"
+python3 - "$WORKDIR" "$S550" "$SQ3" <<'PY' > "$WORKDIR/sweep_commands.jsonl"
+import json, sys
+workdir, s550, sq3 = sys.argv[1:4]
+def param_row(path, pid_want):
+    d = json.load(open(path))
+    for p in d.get("parameters", []):
+        if str(p.get("param_id")) == pid_want:
+            return p
+    raise SystemExit(f"param {pid_want} not found in {path}")
+row550 = param_row(s550, "2")
+rowq3 = param_row(sq3, "12")
+json.dump({"param_550a": row550, "param_q3": rowq3}, open(f"{workdir}/baseline_params.json", "w"), indent=1)
+mn, mx = float(row550.get("min", -12)), float(row550.get("max", 12))
+steps = int(row550.get("num_steps") or 0)
+cmds = []
+for db in (-2.0, -1.5, -1.0):
+    lin = (db - mn) / (mx - mn)
+    if row550.get("is_discrete") and steps > 1:
+        k = round(lin * (steps - 1))
+        cmds.append(("550a", "2", db, k / (steps - 1), "ongrid"))
+        cmds.append(("550a", "2", db, lin, "offgrid-linear"))
+    else:
+        cmds.append(("550a", "2", db, lin, "linear"))
+mnq, mxq = float(rowq3.get("min", -18)), float(rowq3.get("max", 18))
+for db in (-3.0, -1.0):
+    cmds.append(("q3", "12", db, (db - mnq) / (mxq - mnq), "linear"))
+for c in cmds:
+    print(json.dumps({"who": c[0], "param_id": c[1], "target_db": c[2], "normalized": c[3], "variant": c[4]}))
+PY
+
+while IFS= read -r line; do
+  [[ -n "$line" ]] || continue
+  WHO="$(python3 -c 'import json,sys; print(json.loads(sys.argv[1])["who"])' "$line")"
+  PAR="$(python3 -c 'import json,sys; print(json.loads(sys.argv[1])["param_id"])' "$line")"
+  NRM="$(python3 -c 'import json,sys; print(json.loads(sys.argv[1])["normalized"])' "$line")"
+  VAR="$(python3 -c 'import json,sys; print(json.loads(sys.argv[1])["variant"])' "$line")"
+  DB="$(python3 -c 'import json,sys; print(json.loads(sys.argv[1])["target_db"])' "$line")"
+  if [[ "$WHO" == "550a" ]]; then PLUG="$PID_550A"; else PLUG="$PID_Q3"; fi
+  SETREPLY="$(zmq_send "set_${WHO}_p${PAR}_${VAR}_db${DB}" 60000 "$(python3 -c '
+import json, sys
+print(json.dumps({"cmd":"set_plugin_param","track_id":sys.argv[1],"plugin_id":sys.argv[2],"param_id":sys.argv[3],"normalized_value":float(sys.argv[4])}))' "$TRACK_ID" "$PLUG" "$PAR" "$NRM")")" \
+    || fail_functional "set_plugin_param($WHO/$VAR/$DB) failed"
+  IMM="$(python3 -c 'import json,sys; d=json.loads(sys.argv[1]); print(d.get("actual_normalized_value", d.get("new_normalised_value","")))  )' "$SETREPLY")"
+  IMMTXT="$(python3 -c 'import json,sys; d=json.loads(sys.argv[1]); print(d.get("new_value_text",""))' "$SETREPLY")"
+  surface "${WHO}_p${PAR}_${VAR}_db${DB}" "$PLUG" > /dev/null
+  log "write $WHO p$PAR $VAR db=$DB n=$NRM -> immediate=$IMM text=$IMMTXT"
+done < "$WORKDIR/sweep_commands.jsonl"
+
+log "probe complete — artifacts in $WORKDIR"
