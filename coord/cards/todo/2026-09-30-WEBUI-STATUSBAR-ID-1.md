@@ -9,4 +9,5 @@
 - 验收标准：npm run test 全绿+build+E2E-WEBUI-1 exit 0（若改了被断言元素）；回执附前后截图或 DOM 片段。
 - 停止条件：常规止损。
 - 领取：并入 WEBUI-IA-REDESIGN-1 一并执行（2026-10-02 20:43，doing 卡领取记录在案；回执/验收随主卡）
+- 回执：随主卡 WEBUI-IA-REDESIGN-1 交付（实现 commit=6501e051，分支 port/webui-ia-redesign-1）——PlanBar `Task {id}` 可见文本移除、data-task-id 属性保留、无占位编号（单任务窄条无区分需求，按裁定默认移除式）；PlanBar.test.tsx 断言同步更新；E2E ia-redesign-statusbar-IA3 组红绿验证在案。验收随主卡。
 - **并卡注记（2026-10-02 决策侧）**：本卡并入 WEBUI-IA-REDESIGN-1（池序 36）一期目标 3 执行——两卡同域同分支一次交付，本卡不再单独领取（[decisions/2026-10-02-webui-ia-vision.md](../../decisions/2026-10-02-webui-ia-vision.md) 用户裁定）。

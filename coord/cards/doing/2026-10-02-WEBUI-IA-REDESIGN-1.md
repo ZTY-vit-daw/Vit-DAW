@@ -19,5 +19,16 @@
 - 二期钩子（登记不实施）：工程概览证据卡（TOM/ui-state 只读）+A/B 卡内嵌可播放渲染对比（decision 文件 §三步走）。
 - 停止条件：删除发现组件被证据链深度耦合（删常驻仍破坏功能）→ 保留组件+如实申报耦合点上交；侧边栏与 conversationIdentity/historyScope 既有语义冲突 → 带锚点上交。
 - 领取：2026-10-02 20:43 / origin/main=1ed78d7d / 分支 port/webui-ia-redesign-1（独立 worktree D:\Vit_DAW_wt_webui_ia_1，PC 执行侧 GLM-5.3）
-- 回执：（commit hash / 删减行数 / 三核对结论 / E2E 结果 / 截图）
+- 回执：实现 commit=**6501e051**（port/webui-ia-redesign-1，9 文件 +1434/−2861；领取提交 8c3ff037 在 main）
+  - **删减（目标 1）**：App.tsx 净 −1654 行——DawFocusPanel 壳+DawTracksPanel（时间线）+DawRackPanelV2（机架 lanes）+DawMidiPanel（MIDI workspace+midi-editor-preview）+focus 体系（FocusMode/focusItems/SideRail 轨/focusTitle/FocusSummary/handleFocusChange）+死码 helper 族（rack/midi/mixer/clip-drag 一族）；styles.css 死族 −1291 行（153 规则）+侧边栏新样式；dawTracksFromUIState/DawTrack 模型族保留（确认卡/工程结果卡共用，实锚 ：4059/:6288 等消费者）。
+  - **三核对结论**：① E2E/单测对三件套**零断言引用**（webui_rendered_dom_smoke.mjs 内 9 处 "daw" 均为 `item_type:"daw_action"` 消息事件 fixture，与视窗组件无关）→ 既有断言无需同步；② midi-editor-preview 全仓唯一引用=App.tsx:3278 自身，轨迹详情/证据链**零复用** → 整体删除（未触发"删常驻保组件"停止条件）；③ demo-capture SOP 素材清单无三件套镜头引用 → 登记不阻塞。
+  - **同族发现（如实申报）**：`daw-panel-body` 家族实为四件+死码——:3427 mixer-strips（DawMixerPanel，per-track 推子镜像；decision §能力边界裁定"手工细调归 DAW GUI"，同属低配 DAW 镜像族）与 :2717 DawRackPanel **V1（无调用点死码）**随三件套一并删除；focus 切换体系整体下线是目标 4（中=conversation-panel 常驻）的必要条件。若决策侧裁定 mixer 应保留，revert 该组件族即独立可回滚（同一提交内边界清晰）。
+  - **会话流侧边栏（目标 2）**：新增 SessionFlowSidebar.tsx+sessionFlow.ts（注册表）+sessionFlow.test.ts（14 例）。新建=既有 handleNewConversation 轻量通路（webui_ id）；切换=同语义镜像（scope 暂停+锚定改写+瞬态清空；消息由既有恢复效应自本地桶水合、轨迹由 [conversationID] 效应重放）；重命名=inline input（Enter/Esc）；归档+还原；折叠窄条 toggle（localStorage）；**不建工作树不建分支**（E2E note: "new conversation webui_mur0m1vm registered (no worktree, no branch)"）；note 流零接触；编号=纯线性数字 1/2/3…，完整会话 id 不上 UI（行节点 data-conversation-id 属性=DOM 查询面）。注册表 fail-open：损坏 JSON/异形行丢弃不阻塞加载（AGENTS §11，单测钉）。
+  - **STATUSBAR-ID-1（目标 3，并卡）**：PlanBar `Task {taskID}` 可见文本移除；data-task-id 属性保留（调试走 DOM/网络面板）；单任务窄条无区分占位需求，按裁定默认移除式交付；PlanBar.test.tsx 两处断言同步更新（可见文本→属性形态）。
+  - **E2E（目标 5）**：新增三组——**ia-redesign-sidebar-IA1**（存在性/线性编号/新建/重命名/切换回原会话/归档还原/折叠展开全操作链，真实点击驱动）、**ia-redesign-viewport-IA2**（12 个死族选择器含 .side-rail/.rail-button 全 0）、**ia-redesign-statusbar-IA3**（plan-bar 头无可见 Task 文本+data-task-id="task_e2e_planbar1" 在）。**RED**（HEAD bundle，run root `artifacts/e2e_webui1/webui-ia-redesign-1-red`）：既有 24 组全绿+唯三新组红（侧边栏未渲染 / .side-rail×1+.rail-button×7 在场 / "Task task_e2e_planbar1" 可见+.plan-bar-task 元素在）——证明新组真能抓住旧形态。**GREEN**（新 bundle，`…-green2`）：**28 组全绿 verdict=pass，脚本 exit 0**。（green 首轮 IA3 误判：采样位在会话切换后，而 [conversationID] 效应清任务轨迹是合法行为——采样位移至挂载后复跑 green2 通过；red/green/green2 三 run root 互不覆盖留档，prereq.txt 含 head/二进制 SHA256/dist 哈希/agent_pid/桥端口全量。）
+  - **泊位声明（与他卡错峰）**：HTTP 7899（每轮验空）；桥端口 VIT_AGENT_* 覆盖 5601/5602/4500/4501；agent=工作树构建 VitAgent.ia1.exe（SHA256 在案，agent Go 代码零改动）；draft root=各 run 目录内 agent_drafts；agent 进程每轮 stopped（pid+port_released=7899 在案）；全程未触碰主工作树 D:\Vit_DAW 与其他会话真栈。
+  - **截图（前后对比）**：前=`…-red/dom-ia-redesign-mount.png`（旧 SideRail 轨+Task id 可见）；后=`…-green2/dom-ia-redesign-mount.png` / `-ops.png`（侧边栏操作后形态）/ `-collapsed.png`（折叠窄条）。
+  - **回归**：npm run test **413/413 全绿**（含 sessionFlow 14 新例）；npm run build（tsc --noEmit+vite）**exit 0**。
+  - **运行栈声明**：本卡 E2E 泊位栈（隔离 VitAgent+headless 浏览器）每轮已拆（stopped_agent_pid+port_released 在案）；真实三件套栈（VitApp 内核/Godot 前端）本卡**未启动、无移交**。
+  - **端测覆盖边界（AGENTS §5）**：渲染面已过 E2E-WEBUI-1 全量 28 组（浏览器级 DOM 断言+真实交互）；用户目检复验（三区布局/侧边栏操作/视窗已删）留待决策侧安排——验收标准第三项未在本卡闭合。
 - 验收：（裁定文件 / 验收 commit）
