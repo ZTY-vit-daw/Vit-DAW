@@ -2,22 +2,22 @@
 
 - 产出：VITNOTE-INTERACT-V2-DESIGN-1（PC 执行侧 L2 设计档，2026-10-01）
 - 输入：**用户八项裁定**（权威输入，[decisions/2026-10-01-vitnote-v2-interaction-ruling.md](../coord/decisions/2026-10-01-vitnote-v2-interaction-ruling.md)）+ [VITNOTE_V1_DESIGN.md](VITNOTE_V1_DESIGN.md) + M8 第四轮手测取证（coord/runs/M1-RETEST-20261001/FORENSIC-NOTE.md）+ 本轮 Godot 仓只读勘察（port/vitnote-dock-mount-1@66e59f0；行号随提交漂移，以锚点符号为准）
-- 状态：**规划未实现**——V2 IMPL 卡（§11）依赖本文档；§12 含两项裁定边界项待决策侧确认
+- 状态：**规划未实现**——V2 IMPL 卡（§11）依赖本文档；§12 裁定边界项 D1/D2 已由用户裁定（2026-10-02：圈选修饰键 Alt→**Q**、plain marquee 回纯选区，[decisions/2026-10-02-vitnote-v2-d1d2-ruling.md](../coord/decisions/2026-10-02-vitnote-v2-d1d2-ruling.md)），全文触发键已按 Q 修订
 - 端测口径：Godot 交互面手测走 M8 节点（AGENTS §5 手测入口=用户从 Godot 拉起 DAW 前端）；Godot 仓无自动化测试基建（F15），headless 可断言面见 §10.1
 
 ---
 
 ## §0 摘要
 
-v2 把 vit note 的触发面从「lane 级框选直连」升级为**全域圈选**：Alt+左键拖出屏幕矩形 → 全局圈选层仅活跃期拦截输入 → 松开时按坐标枚举命中面及占比 → 各面供给器解析域对象 → **合并为单 note**。第一原则贯穿全程（裁定 2）：**圈选层只产生屏幕坐标矩形；GUI 命中仅用于圈定任务范围，note 载荷必须是域对象引用（哪个轨/哪个 clip/哪个效果器）**，agent 任务消费不在 GUI 层。架构=全局圈选层 + 面级供给器（identity+affordance+resolve(rect) 四函数契约）；v2 覆盖轨道时间线、机架、资料库、控制面（状态快照）四类面。V1 的便签容器三态、会话架构、权限闸、写租约全部沿用；V1 的 lane 级通知路径退役（§8）；面板 dock 面零交互 bug 并入 V2 修复（§7，静态勘察已锁定主嫌疑链）。
+v2 把 vit note 的触发面从「lane 级框选直连」升级为**全域圈选**：Q+左键拖出屏幕矩形（2026-10-02 裁定迁键，原 Alt） → 全局圈选层仅活跃期拦截输入 → 松开时按坐标枚举命中面及占比 → 各面供给器解析域对象 → **合并为单 note**。第一原则贯穿全程（裁定 2）：**圈选层只产生屏幕坐标矩形；GUI 命中仅用于圈定任务范围，note 载荷必须是域对象引用（哪个轨/哪个 clip/哪个效果器）**，agent 任务消费不在 GUI 层。架构=全局圈选层 + 面级供给器（identity+affordance+resolve(rect) 四函数契约）；v2 覆盖轨道时间线、机架、资料库、控制面（状态快照）四类面。V1 的便签容器三态、会话架构、权限闸、写租约全部沿用；V1 的 lane 级通知路径退役（§8）；面板 dock 面零交互 bug 并入 V2 修复（§7，静态勘察已锁定主嫌疑链）。
 
-**停止条件评估：未触发。** Alt+拖全局捕获在 Godot 输入架构下可行（`_input` 逆序传播+挂载末位不变量，§4.4）；唯一冲突点=clip 体上既有 Alt+拖克隆语义（F1），本设计以「clip 体让位」边界处置并升为裁定边界项 D1（§4.2、§12）交决策侧确认，不改八项裁定本身。
+**停止条件评估：未触发。** 修饰键+拖全局捕获在 Godot 输入架构下可行（`_input` 逆序传播+挂载末位不变量，§4.4）。原设计触发键 Alt 与 clip 体克隆手势（F1）冲突；2026-10-02 用户裁定 D1：**圈选迁 Q 键（前端仓零占用，F16），克隆保留 Alt 零改动**——冲突整体消除，clip 体上亦可发起圈选，原「clip 体让位」分支取消。
 
 ## §1 八项裁定 → 设计映射
 
 | # | 裁定（摘要） | 落点 |
 |---|---|---|
-| 1 | Alt+左键拖全局圈选；时间线保留直接框选兼容；胶囊+[N] 双出口保留 | §4 手势状态机；§4.2 共存边界（D1/D2）；§4.5 出口 |
+| 1 | 修饰键+左键拖全局圈选（2026-10-02 修订：Alt→**Q**，D1）；时间线保留直接框选兼容；胶囊+[N] 双出口保留（圈选完成后，D2） | §4 手势状态机；§4.2 共存边界（D1/D2 已裁定）；§4.5 出口 |
 | 2 | 坐标→枚举命中窗口及占比→各面解析域对象→合并辖区摘要；GUI 命中仅圈定范围、载荷=域对象引用 | §5 命中解析；§9 payload（faces[].domain） |
 | 3 | 全局圈选层（仅圈选时活跃）+面级供给器；契约=identity+affordance；新面接入=注册全局矩形+实现供给器 | §4.4 活跃期；§6 供给器契约+接入指南 |
 | 4 | v2 覆盖轨道+机架+资料库+控制面（走带/轨道头=状态快照） | §6.1–§6.4 四类面逐一 |
@@ -47,6 +47,7 @@ v2 把 vit note 的触发面从「lane 级框选直连」升级为**全域圈选
 | F13 | 快捷键体系：VitShortcutManager autoload；`_ensure_action_with_key(ACTION_VITNOTE_OPEN, KEY_N)`（:17）；鼠标按钮+修饰键文案先例（`_format_mouse`） | 直读 |
 | F14 | M8 第四轮症状（一手取证）：dock 面 N 键开窗成功但面板零交互（**含收起按钮**）；键盘链通、鼠标链全灭；按钮接线在位（collapse:85/send:104/anchor:164）、manager IGNORE:27 正确 | FORENSIC-NOTE.md:30 |
 | F15 | Godot 仓无自动化测试基建（无 GUT/gdUnit）；冒测体系在 Vit-DAW 仓 scripts/（agent 侧），Godot 交互面验收靠手测 | 仓内现状 |
+| F16 | **Q 键零占用**：全仓 .gd/.godot/.tres/.tscn 扫描无 KEY_Q/ui_q/"q" 绑定（对照 F1：Alt 已被克隆拖拽占用）——2026-10-02 决策侧核验，D1 迁键依据 | 决策侧 grep 核验（decisions/2026-10-02-vitnote-v2-d1d2-ruling.md） |
 
 基线版本：Godot 前端=port/vitnote-dock-mount-1@66e59f0（双面挂载已含）；agent 侧架构事实沿用 V1 §2 基线不重勘。
 
@@ -54,7 +55,7 @@ v2 把 vit note 的触发面从「lane 级框选直连」升级为**全域圈选
 
 | 进 v2 | 推迟（v2.x / 远期） |
 |---|---|
-| 全局圈选层：Alt+左拖手势状态机+仅活跃期拦输入+截图工具式视觉 | 其他修饰键/触发键位可配置化（v2.x，触发键固定 Alt） |
+| 全局圈选层：Q+左拖手势状态机（2026-10-02 裁定迁键）+仅活跃期拦输入+截图工具式视觉 | 其他修饰键/触发键位可配置化（v2.x，触发键固定 Q） |
 | 坐标命中解析：矩形→面枚举→占比→供给器→跨面合并单 note | 圈选形状（套索/多边形，远期） |
 | 供给器契约+注册处（identity+affordance+resolve(rect)+face_rects） | 非矩形/子像素级命中（面级矩形已够载荷语义） |
 | 四类面：轨道时间线（lane 采集改造）/机架/资料库/控制面状态快照 | 调音台/频谱/钢琴卷帘等其余视窗（按 §6.5 接入指南逐面补） |
@@ -72,45 +73,47 @@ v2 把 vit note 的触发面从「lane 级框选直连」升级为**全域圈选
 ### 4.1 手势状态机（状态/转移级）
 
 ```
-IDLE ──[Alt held ∧ LMB press ∧ 非焦点文本区内 ∧ 非clip体命中(D1)]──▶ PRESS_PENDING   （消费 press）
+IDLE ──[Q held ∧ LMB press ∧ 非焦点文本区内]──▶ PRESS_PENDING   （消费 press）
 IDLE ──[其他]──▶ IDLE                                                            （不消费，全透传）
 
 PRESS_PENDING ──[位移 ≥ CIRCLE_DRAG_START_THRESHOLD_PX(=4.0)]──▶ DRAGGING        （消费 motion；开视觉）
-PRESS_PENDING ──[LMB release]──▶ IDLE                                            （消费；无动作——Alt+单击=无害空操作）
-PRESS_PENDING ──[ESC / Alt release / RMB press]──▶ IDLE                          （消费；取消）
+PRESS_PENDING ──[LMB release]──▶ IDLE                                            （消费；无动作——Q+单击=无害空操作）
+PRESS_PENDING ──[ESC / Q release / RMB press]──▶ IDLE                             （消费；取消）
 
 DRAGGING ──[motion]──▶ DRAGGING                                                  （消费；矩形=起点×当前点，钳制 viewport 内）
 DRAGGING ──[LMB release]──▶ RESOLVING ──(同步解析 §5 → 胶囊 §4.5)──▶ IDLE        （消费；拆视觉）
-DRAGGING ──[ESC / Alt release / RMB press]──▶ IDLE                               （消费；拆视觉；不出胶囊不出 note）
+DRAGGING ──[ESC / Q release / RMB press]──▶ IDLE                                 （消费；拆视觉；不出胶囊不出 note）
 
 （活动态补充消费：PRESS_PENDING/DRAGGING 期间鼠标滚轮全透传——缩放不被圈选中断）
 ```
 
 判定与常量：
 
-- **发起条件**（IDLE→PRESS_PENDING 全部满足才消费 press）：① `InputEventMouseButton` 左键 pressed 且 `event.alt_pressed`；② **焦点文本区让位**：若 press 点落在当前 `gui_get_focus_owner()`（LineEdit/TextEdit）全局矩形内则不发起（打字区内的 Alt+点按归输入框，如框选文本；区外即使有焦点仍可圈——圈整个界面不被一个聊天输入框锁死）；③ **D1 clip 体让位**（§4.2）；④ 手势态自身重入 guard。
-- **修饰键保持规则**：Alt 须持续按住（拖中 Alt 松开=取消）。与克隆拖拽同语义（F1 :2834 持续复查先例）。
+- **发起条件**（IDLE→PRESS_PENDING 全部满足才消费 press）：① `InputEventMouseButton` 左键 pressed 且 **Q 持续按住**——Q 非修饰键，不走 `event.alt_pressed` 形态，用 `Input.is_key_pressed(KEY_Q)`（F1 克隆 `_alt_clone_drag` 同款 API 换键）；② **焦点文本区让位**：若 press 点落在当前 `gui_get_focus_owner()`（LineEdit/TextEdit）全局矩形内则不发起（打字区内的 Q+点按归输入框，如框选文本；区外即使有焦点仍可圈——圈整个界面不被一个聊天输入框锁死）；③ 手势态自身重入 guard（原 D1「clip 体让位」分支已随 2026-10-02 迁键裁定移除——Q 无占用，clip 体上亦发起）。
+- **触发键保持规则**：Q 须持续按住（拖中 Q 松开=取消）。与克隆拖拽同语义（F1 :2834 持续复查先例）。
+- **Q 为字符键的已知边界**（如实声明）：焦点在文本控件、且 press 点落其矩形外时，Q+拖发起圈选——活动期字符仍透传，被按住的 Q 会作为重复字符进入该文本控件。不吞 Q 字符（吞=打断正常打字）；条件②焦点文本区让位是主防线，正常使用（打字时不在界面他处圈选）不触发此边界。
 - 阈值复用 lane 先例 4.0px（F5）；矩形规范化=abs 宽高、钳制 viewport 矩形内。
-- **消费边界（仅活跃期拦输入）**：IDLE 态层完全透明（MOUSE_FILTER_IGNORE+`_input` 不消费任何事件）；活动态只消费手势自身事件流（LMB press/motion/release、ESC、RMB、Alt release），键盘字符、滚轮、其余按钮全透传。
+- **消费边界（仅活跃期拦输入）**：IDLE 态层完全透明（MOUSE_FILTER_IGNORE+`_input` 不消费任何事件）；活动态只消费手势自身事件流（LMB press/motion/release、ESC、RMB、Q release），键盘字符、滚轮、其余按钮全透传。
 
-### 4.2 Alt 边界与共存判定（裁定 1 的并存规格）
+### 4.2 键位边界与共存判定（D1/D2 已裁定 2026-10-02）
 
-| 场景 | Alt 按住+左拖 | 依据 |
+| 场景 | 行为 | 依据 |
 |---|---|---|
-| 空 lane / 非交互区 / 机架 / 资料库 / 控制面 / 任意面 | **全局圈选** | 裁定 1「Alt+左键全局圈选」 |
-| clip 体（2D lane 与 3D 视图） | **既有克隆拖拽让位**（圈选层不发起、不消费） | F1 现有手势；与裁定 1「时间线保留现有直接框选兼容」同源的保留原则 → **裁定边界项 D1**（§12） |
-| 焦点文本控件矩形内 | 让位（输入框文本选择等） | §4.1 条件②，`_has_text_input_focus` 先例的精确化 |
-| 无 Alt 的普通左拖（空 lane） | 既有 lane marquee（clip 框选）零改变 | 裁定 1「保留现有直接框选兼容」 |
-| 无 Alt 的普通左拖（clip 体） | 既有选中/拖拽零改变 | 同上 |
-| 胶囊+[N] 出口 | 保留（圈选完成后） | 裁定 1「双出口保留」→ **解释性裁定 D2**（§8/§12：plain marquee 回归纯选区，胶囊触发面移至圈选） |
+| **Q 按住+左拖（全域：空 lane / clip 体 / 机架 / 资料库 / 控制面 / 任意面）** | **全局圈选** | D1 裁定：圈选迁 Q（F16 零占用）；无让位分支，clip 体上也可发起 |
+| Alt 按住+左拖 clip 体（2D lane 与 3D 视图） | **既有克隆拖拽零改变** | F1 现有手势；D1 裁定克隆保留 Alt |
+| Alt 按住+左拖空 lane | 既有普通 marquee（F1 不查修饰键）零改变 | F1 |
+| 焦点文本控件矩形内（Q+点按） | 让位（输入框文本选择/打字） | §4.1 条件② |
+| 无修饰普通左拖（空 lane / clip 体） | 既有框选/选中/拖拽零改变 | 裁定 1「保留现有直接框选兼容」 |
+| plain marquee（普通框选）完成 | **不出胶囊**（回纯选区；§8 退役） | D2 裁定 2026-10-02（维持设计取值） |
+| 胶囊+[N] 出口 | 保留（**圈选完成后**） | 裁定 1「双出口保留」+D2 |
 
-D1 处置理由：全局无条件捕获会摧毁既有 Alt+拖克隆手势（用户未裁定取消它）；「clip 体让位」与裁定 1 自身的保留条款同构。**若决策侧裁定圈选优先于克隆，则克隆迁修饰键（建议 Ctrl+拖）另开卡**——本设计不改裁定，只定义边界并上交。
+D1 裁定记录（2026-10-02 用户）：原两方案（克隆让位 / 圈选优先迁克隆）均未采纳，用户裁定**圈选迁不占用的新键 Q**——冲突整体消除，两侧既有手势（Alt 克隆、无修饰框选）零改动。
 
 ### 4.3 视觉反馈（截图工具式，裁定默认项）
 
 - **暗幕**：活动层全幅 `_draw()` 绘半透明遮罩（α≈0.18 中性黑），**选区矩形内部镂空**（框内清晰、框外变暗——截图工具语义）。
 - **亮框**：选区矩形 1.5px 高亮描边（accent 色）+ 四角短标记；拖拽中每帧重绘（仅 `_draw` 层，无 BackBufferCopy，帧率安全）。
-- 现有 lane marquee 框（F5 组广播预览）与圈选框**不共存**：Alt 圈选发起在 lane marquee 之前消费 press，lane 侧永远收不到该 press，无双重框。
+- 现有 lane marquee 框（F5 组广播预览）与圈选框**不共存**：Q 圈选发起在 lane marquee 之前消费 press，lane 侧永远收不到该 press，无双重框。
 - 收尾动画：松开后遮罩 0.12s 淡出（复用 hint QUICK_FADE 先例节奏）。
 
 ### 4.4 输入捕获机制与挂载契约
@@ -118,7 +121,7 @@ D1 处置理由：全局无条件捕获会摧毁既有 Alt+拖克隆手势（用
 - **机制**：`_input()` + 活动态 `get_viewport().set_input_as_handled()`。Godot 4 输入序=`_input`（树序逆序传播）→ GUI pick → unhandled；本仓既有先例（router `_input` F2、lane `_input` F5、manager `_input` F7）全走此路。
 - **顺序不变量**：`_input` 消费者间的优先级=逆树序（树序末者先收）。manager 挂载于两面主场景根的**末位子节点**（F8），故先于 router（场景根，树序最早）与全部深层节点收到 press。**挂载契约**：VitNoteLayer 必须保持主场景根末位（或其后仅挂自门控 `_input` 的节点）；两面挂载点（vit_control_v_1.0.gd:156 / vit_dock_root.gd:182）在 V2 IMPL 卡中加注释固化。
 - **防御性设计**（不裸赌传播顺序）：① 活动态 motion 消费后，矩形更新同时由 `_process` 读 `get_global_mouse_position()` 兜底驱动（即使个别 motion 被先收，视觉与终值不漂）；② 手测第 6/7 步显式验证共存零干扰；③ 分离窗口（DetachedViewportWindow / LLM_Chat_Window / agent webui Window）不在主窗口 canvas，圈选不达——**声明边界**，非缺陷。
-- **clip 体让位实现**：press 点经 timeline 侧 `resolve_hit_target` 等价查询（manager 经组协议向 timeline 供给器问询 `hit_kind` 是否 begins_with "clip"）；非时间线区默认可发起。查询走 §6 注册处，不直连 lane。
+- **D1 让位查询退役**（2026-10-02 迁键裁定后无让位分支）：原设计「press 点 hit_kind 问询」不再需要；§6 供给器组协议保留，供解析面枚举复用。
 
 ### 4.5 出口（裁定 1 双出口保留）
 
@@ -244,7 +247,7 @@ func vit_face_resolve(rect_global: Rect2) -> Dictionary:
 2. `vit_face_rects()` 返回面实时全局矩形（多块可分：控制面=走带+轨头两块先例）。
 3. （推荐）面内含悬浮可交互层的，把该层加入 `vit_floating_interactive` 组（§7 修复锚点 B 的旁路组）——输入不被 router/仲裁器误吃。
 4. 无时间语义可不实现 time_window；快照面用 snapshot 键；失败返回空 entries 不抛。
-5. 自验：任意 Alt 圈住新面 → 胶囊摘要含该面 label+占比+entries；手测并入手测清单第 3/4 步扩展。
+5. 自验：任意 Q+左拖圈住新面 → 胶囊摘要含该面 label+占比+entries；手测并入手测清单第 3/4 步扩展。
 
 ## §7 面板输入 bug：根因取证面与修复锚点（裁定 7）
 
@@ -279,7 +282,7 @@ func vit_face_resolve(rect_global: Rect2) -> Dictionary:
 
 | 路径 | 处置 | 依据/兼容期 |
 |---|---|---|
-| `_notify_vit_note_hint`（vit_track_lane_2d.gd:2311 lane→manager 直连）+ manager `present_marquee_hint` 入口 | **退役**（V2-IMPL-A 同卡原子删除，调用点与入口一起） | plain marquee 回归纯选区语义（D2 解释性裁定）：裁定 1 的「胶囊+[N] 双出口保留」读作**圈选完成后**的出口保留；双触发并存（普通框选也出胶囊）会造成同屏竞争胶囊+语义混乱。进程内调用无持久化耦合，无跨版本兼容负担；备选（保留双触发）在 §12 D2 登记，验收异议可回滚 |
+| `_notify_vit_note_hint`（vit_track_lane_2d.gd:2311 lane→manager 直连）+ manager `present_marquee_hint` 入口 | **退役**（V2-IMPL-A 同卡原子删除，调用点与入口一起） | plain marquee 回归纯选区语义（D2 已裁定 2026-10-02：不弹）：裁定 1 的「胶囊+[N] 双出口保留」读作**圈选完成后**的出口保留；双触发并存（普通框选也出胶囊）会造成同屏竞争胶囊+语义混乱。进程内调用无持久化耦合，无跨版本兼容负担；备选（保留双触发）已被用户裁定排除 |
 | `get_clip_marquee_hits_global`/`_collect_marquee_hits_global`（F6 采集函数） | **保留并转供**：时间线供给器 §6.1 的 resolve 实现体 | 采集与通知分离——通知退役不动采集 |
 | `_broadcast_marquee_preview`/`set_global_marquee_preview` 组广播（F5） | **保留零改动** | 跨 lane marquee 预览绘制用，与 note 链无关 |
 | V1 文档 | **加修订标注**（本次随卡落）：§4.1 触发面改圈选、IMPL 序列与 V2 排程的衔接 | 见 VITNOTE_V1_DESIGN.md 头部标注 |
@@ -314,13 +317,13 @@ func vit_face_resolve(rect_global: Rect2) -> Dictionary:
 
 | # | 步骤 | 判据 |
 |---|---|---|
-| 1 | **圈选触发**：时间线空区 Alt+左拖 | 拖拽中暗幕+亮框（框内镂空清晰）；松开胶囊出现在框右侧，文案含 [N] |
+| 1 | **圈选触发**：时间线空区 Q+左拖 | 拖拽中暗幕+亮框（框内镂空清晰）；松开胶囊出现在框右侧，文案含 [N] |
 | 2 | **双出口**：先按 [N] 开便签；再圈一次改点胶囊 | 两出口都开出 note；[N] 在文本输入态不触发（焦点守卫） |
 | 3 | **跨面合并**：从时间线拖到机架+资料库横跨三面 | 单 note；摘要=「轨道时间线 x% · 机架 y% · 资料库 z%」+各面对象清单；payload 无 GUI 引用（domain 纯 id/值） |
 | 4 | **控制面快照**：圈住走带条+2~3 个轨道头 | 摘要含 BPM/播放位置/循环区/相交轨参数当前值；未相交轨不入 |
 | 5 | **空辖区**：圈界面空白角（无供给器区） | 空辖区 note 可开、可发（7878 有回复） |
-| 6 | **取消路径**：拖拽中 ESC；拖拽中松 Alt；Alt+单击不过阈值 | 三者皆无胶囊无 note 无残留遮罩；Alt+单击无任何副作用 |
-| 7 | **共存边界**：普通左拖空 lane 仍 clip 框选；Alt+左拖 clip 体仍克隆；时间线既有编辑（选/移/裁/画）零回归 | 裁定 1 兼容项+D1 边界生效 |
+| 6 | **取消路径**：拖拽中 ESC；拖拽中松 Q；Q+单击不过阈值 | 三者皆无胶囊无 note 无残留遮罩；Q+单击无任何副作用 |
+| 7 | **共存边界**：普通左拖空 lane 仍 clip 框选；Alt+左拖 clip 体仍克隆；Q+左拖 clip 体发起圈选（D1 迁键新行为）；时间线既有编辑（选/移/裁/画）零回归 | 裁定 1 兼容项+D1 迁键裁定生效 |
 | 8 | **面板三态+修复验证**（dock 面）：开窗→IME 中文输入→发送辖区问答→收起→锚点重开→拖把手移动；双 note 并存 | **含收起按钮在内全部鼠标交互有效**（§7 修复判据）；辖区上下文进回复（agent 答的是域对象） |
 | 9 | **三卡同场销收口**：复核 VITNOTE-IMPL-1 条件项（M8 最小闭环：圈选→胶囊→便签→IME→观察问答→收回→重开——V1 §11 判据的 V2 交互版=步骤 1/2/8）与 VITNOTE-DOCK-MOUNT-1 条件项（dock 默认入口挂载可见=本场全程 dock 面） | 裁定 8：V2 手测一场销三卡；本清单 1–8 全过=第 9 步记录两张条件卡销项 |
 
@@ -329,7 +332,7 @@ func vit_face_resolve(rect_global: Rect2) -> Dictionary:
 | 卡 | 域（文件域） | 内容 | 依赖/并行 | 验收 |
 |---|---|---|---|---|
 | **V2-INPUT-FIX-1** | Godot·router+仲裁器（timeline_track_list_drop_router.gd、TimelineInputArbitrator.gd、vitnote 层入组） | §7.2 探针取证落地+§7.3 三锚点修复+legacy 同根验证 | **先行独立**；与 V2-IMPL-A 不同文件域可并行 | 探针证据链+手测第 8 步面板交互项+时间线编辑回归 |
-| **V2-IMPL-A** | Godot·vitnote 层（vit_circle_select_layer.gd 新建、vit_note_manager.gd、lane 通知退役位） | §4 全局圈选层（状态机/视觉/Alt 边界/挂载契约）+§8 退役 | 本文档；可与 INPUT-FIX-1 并行 | headless 状态机探针+手测 1/2/6/7 |
+| **V2-IMPL-A** | Godot·vitnote 层（vit_circle_select_layer.gd 新建、vit_note_manager.gd、lane 通知退役位） | §4 全局圈选层（状态机/视觉/Q 边界/挂载契约）+§8 退役 | 本文档；可与 INPUT-FIX-1 并行 | headless 状态机探针+手测 1/2/6/7 |
 | **V2-IMPL-B** | Godot·注册处+轨道+控制面（manager 解析编排、timeline 供给器新建、control 供给器新建、lane 采集转供） | §5 解析管线+§6.0 契约+§6.1/§6.4 两面+§9 payload | 依赖 A（圈选出口） | headless 解析/契约探针+手测 3（单面）/4 |
 | **V2-IMPL-C** | Godot·机架+资料库（rack/library 供给器新建） | §6.2/§6.3+诚实降级注释 | 依赖 B（注册处） | 手测 3（跨面完整版） |
 | **V2-IMPL-D** | Godot·面板+手测 | 多面辖区摘要呈现（`_rebuild_summary` 多面版）+九步清单执行（三卡同场销记录） | 依赖 A/B/C+INPUT-FIX-1 | 手测 1–9 全过+条件卡销项落簿 |
@@ -340,9 +343,9 @@ func vit_face_resolve(rect_global: Rect2) -> Dictionary:
 
 | # | 事项 | 本设计取值 | 备选 | 状态 |
 |---|---|---|---|---|
-| D1 | **Alt+拖与克隆拖拽共存边界**：clip 体上 Alt+左拖 | 克隆让位（圈选不发起，F1 既有手势保留） | 圈选无条件全局优先→克隆迁 Ctrl+拖（改用户习惯，需用户裁定） | **待决策侧确认**（裁定 1 的边界解释，非改裁定；用户异议即回决策侧带用户） |
-| D2 | 「胶囊+[N] 双出口保留」的解释：plain marquee 是否仍出胶囊 | 不出（D2：双出口=圈选完成后的出口；plain marquee 回纯选区，§8 退役） | 保留双触发（普通框选与圈选都出胶囊，竞争由 `_dismiss_hint_immediately` 互斥） | 解释性裁定，验收异议可回滚 |
+| D1 | **圈选触发键与克隆拖拽共存边界**：clip 体上修饰键+左拖 | **已裁定迁键**（2026-10-02 用户）：圈选=**Q+左拖**（F16 零占用），克隆保留 Alt 零改动，无让位分支 | 原设计取值（克隆让位）与备选（圈选优先、克隆迁 Ctrl）均被替代 | **已裁定** |
+| D2 | 「胶囊+[N] 双出口保留」的解释：plain marquee 是否仍出胶囊 | 不出（D2：双出口=圈选完成后的出口；plain marquee 回纯选区，§8 退役） | 保留双触发（普通框选与圈选都出胶囊，竞争由 `_dismiss_hint_immediately` 互斥） | **已裁定（2026-10-02 用户，维持设计取值）** |
 | D3 | 占比口径 | 主=selection_share、辅=face_coverage 双报 | 仅主口径 | 设计默认，验收可裁 |
-| — | 圈选触发键固定 Alt（不做用户可配置修饰键） | v2 固定，v2.x 再配置化 | — | 设计默认（裁定 1 明示 Alt） |
+| — | 圈选触发键固定 Q（不做用户可配置修饰键） | v2 固定，v2.x 再配置化 | — | 设计默认（2026-10-02 裁定 Alt→Q） |
 | — | 机架/资料库逐条目矩形精度 | v2 整面命中+全清单（域引用完整，空间精度粗，§6.2/§6.3 诚实降级注释） | v2.x 逐节点/逐行矩形 | 设计默认 |
 | — | 圈选不达分离窗口（Detached/Chat/webui Window） | 声明边界非缺陷（§4.4） | — | 设计默认 |
