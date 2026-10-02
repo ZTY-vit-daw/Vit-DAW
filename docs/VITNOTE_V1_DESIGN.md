@@ -5,7 +5,7 @@
 - 状态：**规划未实现**——v1 IMPL 卡（§10）依赖本文档；§9/§13 含待用户拍板项
 - 端测口径：agent 侧实现过真实栈烟测门槛（AGENTS §5）；webui 渲染面过 E2E-WEBUI-1；Godot 交互面手测走 M8 节点
 
-> **V2 修订标注（2026-10-01，VITNOTE-INTERACT-V2-DESIGN-1；用户八项裁定 2026-10-01）**：交互触发面在 V2 升级为 Alt+左拖全域圈选——**§4.1 的「框选完成→形变提示」触发面改为圈选完成**（plain marquee 回归纯选区语义，lane 级 `_notify_vit_note_hint` 通知路径退役）；§4.1 出口三件、§4.2/§4.3 容器与输入、§5 上下文派生规则（多面化）、§6 会话、§7 权限与写租约、§8 视觉、§9 便签池全部沿用，以 [VITNOTE_V2_INTERACTION_DESIGN.md](VITNOTE_V2_INTERACTION_DESIGN.md) 为交互面权威；§10 IMPL 序列中 IMPL-2 的组包目标改 v2 payload（faces[]），IMPL-3/4/5/6 不变；M8 手测清单已由 V2 九步版取代（V2 文档 §10.2，一场销 IMPL-1/DOCK-MOUNT/V2 三卡）。
+> **V2 修订标注（2026-10-01，VITNOTE-INTERACT-V2-DESIGN-1；用户八项裁定 2026-10-01；2026-10-02 D1/D2 裁定追记）**：交互触发面在 V2 升级为全域圈选，触发键=**Q+左拖**（2026-10-02 D1 用户裁定迁键 Alt→Q，克隆保留 Alt；[decisions/2026-10-02-vitnote-v2-d1d2-ruling.md](../coord/decisions/2026-10-02-vitnote-v2-d1d2-ruling.md)）——**§4.1 的「框选完成→形变提示」触发面改为圈选完成**（plain marquee 回归纯选区语义，lane 级 `_notify_vit_note_hint` 通知路径退役——**已随 V2-IMPL-A 落地（2026-10-02 验收 pass）**）；§4.1 出口三件、§4.2/§4.3 容器与输入、§5 上下文派生规则（多面化）、§6 会话、§7 权限与写租约、§8 视觉、§9 便签池全部沿用，以 [VITNOTE_V2_INTERACTION_DESIGN.md](VITNOTE_V2_INTERACTION_DESIGN.md) 为交互面权威；§10 IMPL 序列中 IMPL-2 的组包目标改 v2 payload（faces[]），IMPL-3/4/5/6 不变；M8 手测清单已由 V2 九步版取代（V2 文档 §10.2，一场销 IMPL-1/DOCK-MOUNT/V2 三卡）。
 
 ---
 
