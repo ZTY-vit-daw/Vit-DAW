@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+# Sweep 2: authoritative step table + snap evidence.
+set -euo pipefail
+RUN="/Users/timozty/Documents/vit-d1eq550a-artifacts/forensic1_20261002_111423"
+cd "$RUN"
+ZMQ="$RUN/bin/zmqprobe"
+EP="tcp://127.0.0.1:5555"
+N=40   # continue numbering after sweep 1 (files exist up to ~21 + surfaces)
+send() {
+  N=$((N+1))
+  printf '%s\n' "$3" > "$RUN/zmq/$(printf '%02d' "$N")_${1}_req.json"
+  "$ZMQ" "$EP" "$2" "$3" > "$RUN/zmq/$(printf '%02d' "$N")_${1}_rep.json"
+  cat "$RUN/zmq/$(printf '%02d' "$N")_${1}_rep.json"
+}
+TRACK_ID=1007
+PID_550A=1040
+PID_Q3=1041
+
+set_param() { set_param_named "$1" "$2" "$3" "$4" >/dev/null; }
+set_param_named() { # name plugin param normalized
+  send "$1" 60000 "$(python3 -c '
+import json, sys
+print(json.dumps({"cmd":"set_plugin_param","track_id":sys.argv[1],"plugin_id":sys.argv[2],"param_id":sys.argv[3],"normalized_value":float(sys.argv[4])}))' "$TRACK_ID" "$2" "$3" "$4")"
+}
+surface() {
+  send "surface_$1" 60000 "$(python3 -c '
+import json, sys
+print(json.dumps({"cmd":"get_plugin_parameters","track_id":sys.argv[1],"plugin_id":sys.argv[2],"include_parameters":True}))' "$TRACK_ID" "$2")" > /dev/null
+}
+readback() { # readback <suffix> <plugin> <param> -> "normalized|text"
+  surface "$1" "$2"
+  python3 - "$RUN" "$1" "$3" <<'PY'
+import json, sys, glob
+run, suffix, pid = sys.argv[1:4]
+f = sorted(glob.glob(f"{run}/zmq/*surface_{suffix}_rep.json"))[-1]
+d = json.load(open(f))
+for p in d.get("parameters", []):
+    if str(p.get("param_id")) == pid:
+        print(f"{p.get('normalized_value')}|{p.get('value_text')}")
+        break
+PY
+}
+
+RESULTS="$RUN/sweep2_results.tsv"
+echo -e "case\twritten\timmediate_norm\timmediate_text\tsurface_norm\tsurface_text" > "$RESULTS"
+
+probe_case() { # probe_case <label> <plugin> <param> <normalized>
+  local label="$1" plug="$2" par="$3" nrm="$4" imm immn immt rb rbn rbt
+  imm="$(set_param_named "s2set_${label}" "$plug" "$par" "$nrm")"
+  immn="$(python3 -c 'import json,sys; d=json.loads(sys.argv[1]); print(d.get("new_normalised_value"))' "$imm")"
+  immt="$(python3 -c 'import json,sys; d=json.loads(sys.argv[1]); print(d.get("new_value_text"))' "$imm")"
+  rb="$(readback "s2_${label}" "$plug" "$par")"
+  rbn="${rb%%|*}"; rbt="${rb#*|}"
+  echo -e "${label}\t${nrm}\t${immn}\t${immt}\t${rbn}\t${rbt}" | tee -a "$RESULTS"
+}
+
+# --- 550A step table: k/10 for k=0..10 (exactly representable grid) ----------
+for k in 0 1 2 3 4 5 6 7 8 9 10; do
+  probe_case "550a_step_${k}" "$PID_550A" 2 "$(python3 -c "print($k/10)")"
+done
+# --- 550A off-grid writes: the delta-path position for -2 dB and neighbors ---
+probe_case "550a_offgrid_0417" "$PID_550A" 2 "0.4166666666666667"
+probe_case "550a_offgrid_045"  "$PID_550A" 2 "0.45"
+probe_case "550a_offgrid_0583" "$PID_550A" 2 "0.5833333333333334"
+# float32 echo check on an on-grid point
+probe_case "550a_ongrid_04"   "$PID_550A" 2 "0.4"
+# --- Q3 continuous control echo ----------------------------------------------
+probe_case "q3_cont_0417" "$PID_Q3" 12 "0.4166666666666667"
+probe_case "q3_cont_045"  "$PID_Q3" 12 "0.45"
+
+echo "SWEEP2_DONE"

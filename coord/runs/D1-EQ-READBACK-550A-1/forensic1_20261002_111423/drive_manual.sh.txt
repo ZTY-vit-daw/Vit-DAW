@@ -1,0 +1,107 @@
+#!/usr/bin/env bash
+# Manual continuation of forensic1_20261002_111423 after the scan completed
+# (the parent script's status-field typo left its wait loop stuck; the kernel
+# and its populated plugin list are alive and owned by this run).
+set -euo pipefail
+RUN="/Users/timozty/Documents/vit-d1eq550a-artifacts/forensic1_20261002_111423"
+cd "$RUN"
+ZMQ="$RUN/bin/zmqprobe"
+EP="tcp://127.0.0.1:5555"
+N=3
+send() { # send <name> <timeout-ms> <json>
+  N=$((N+1))
+  printf '%s\n' "$3" > "$RUN/zmq/$(printf '%02d' "$N")_${1}_req.json"
+  "$ZMQ" "$EP" "$2" "$3" > "$RUN/zmq/$(printf '%02d' "$N")_${1}_rep.json"
+  cat "$RUN/zmq/$(printf '%02d' "$N")_${1}_rep.json"
+}
+VST3="/Library/Audio/Plug-Ins/VST3/WaveShell1-VST3 17.1.vst3"
+
+TRACK_ID="$(python3 - "$RUN/zmq/02_project_state_rep.json" <<'PY'
+import json, sys
+d = json.load(open(sys.argv[1]))
+for t in d.get("tracks", []):
+    if isinstance(t, dict) and t.get("is_audio_track") and str(t.get("track_id", "")).strip():
+        print(str(t["track_id"]).strip()); break
+PY
+)"
+echo "track=$TRACK_ID" | tee -a manual_drive.log
+
+add_node() {
+  local name="$1" ident="$2"
+  send "rack_add_$name" 120000 "$(python3 -c '
+import json, sys
+print(json.dumps({"cmd":"rack_add_node","track_id":sys.argv[1],"x":40.0,"y":500.0,"zone_id":"Z3","auto_connect":True,
+                  "plugin_path":sys.argv[2],"plugin_identifier":sys.argv[3]}))' "$TRACK_ID" "$VST3" "$ident")" \
+    | python3 -c 'import json,sys; d=json.loads(sys.stdin.read()); print(d.get("plugin_id",""))'
+}
+echo "loading 550A..." | tee -a manual_drive.log
+PID_550A="$(add_node 550a 'VST3-API-550A Stereo-10456661-874091cb')"
+echo "550A=$PID_550A" | tee -a manual_drive.log
+[[ -n "$PID_550A" ]] || { echo "550A load failed" | tee -a manual_drive.log; exit 1; }
+
+echo "loading Q3..." | tee -a manual_drive.log
+PID_Q3="$(add_node q3 'VST3-Q3 Stereo-10456661-33282547')"
+echo "Q3=$PID_Q3" | tee -a manual_drive.log
+[[ -n "$PID_Q3" ]] || { echo "Q3 load failed" | tee -a manual_drive.log; exit 1; }
+
+surface() {
+  send "surface_$1" 60000 "$(python3 -c '
+import json, sys
+print(json.dumps({"cmd":"get_plugin_parameters","track_id":sys.argv[1],"plugin_id":sys.argv[2],"include_parameters":True}))' "$TRACK_ID" "$2")" > /dev/null
+}
+surface 550a_base "$PID_550A"
+surface q3_base "$PID_Q3"
+echo "surfaces captured" | tee -a manual_drive.log
+
+set_param() { # set_param <name> <plugin> <param> <normalized>
+  send "set_$1" 60000 "$(python3 -c '
+import json, sys
+print(json.dumps({"cmd":"set_plugin_param","track_id":sys.argv[1],"plugin_id":sys.argv[2],"param_id":sys.argv[3],"normalized_value":float(sys.argv[4])}))' "$TRACK_ID" "$2" "$3" "$4")" > /dev/null
+}
+
+# sweep values are computed in the analysis step from the baseline surface; here
+# drive a fixed, hypothesis-free ladder first: the three forensic dB targets in
+# the linear [-12,+12] guess plus raw on/off-grid probes around them; the exact
+# grid is derived from num_steps in the baseline row.
+python3 - "$RUN" > "$RUN/sweep_commands.jsonl" <<'PY'
+import json, sys
+run = sys.argv[1]
+def row(suffix, pid):
+    import glob
+    f = sorted(glob.glob(f"{run}/zmq/*surface_{suffix}_rep.json"))[-1]
+    d = json.load(open(f))
+    for p in d.get("parameters", []):
+        if str(p.get("param_id")) == pid:
+            return p
+    raise SystemExit(f"missing {pid}")
+r550 = row("550a_base", "2")
+rq3 = row("q3_base", "12")
+json.dump({"param_550a": r550, "param_q3": rq3}, open(f"{run}/baseline_params.json", "w"), indent=1)
+mn, mx = float(r550.get("min", -12.0)), float(r550.get("max", 12.0))
+steps = int(r550.get("num_steps") or 0)
+cmds = []
+for db in (-2.0, -1.5, -1.0):
+    lin = (db - mn) / (mx - mn)
+    if r550.get("is_discrete") and steps > 1:
+        k = round(lin * (steps - 1))
+        cmds.append(("550a", "2", db, round(k / (steps - 1), 10), "ongrid"))
+        cmds.append(("550a", "2", db, lin, "offgrid-linear"))
+    else:
+        cmds.append(("550a", "2", db, lin, "linear"))
+mnq, mxq = float(rq3.get("min", -18.0)), float(rq3.get("max", 18.0))
+for db in (-3.0, -1.0):
+    cmds.append(("q3", "12", db, (db - mnq) / (mxq - mnq), "linear"))
+for c in cmds:
+    print(json.dumps({"who": c[0], "param_id": c[1], "target_db": c[2], "normalized": c[3], "variant": c[4]}))
+PY
+
+while IFS= read -r line; do
+  [[ -n "$line" ]] || continue
+  read -r WHO PAR DB NRM VAR <<<"$(python3 -c 'import json,sys; d=json.loads(sys.argv[1]); print(d["who"], d["param_id"], d["target_db"], d["normalized"], d["variant"])' "$line")"
+  if [[ "$WHO" == "550a" ]]; then PLUG="$PID_550A"; else PLUG="$PID_Q3"; fi
+  NAME="${WHO}_p${PAR}_${VAR}_n${NRM}_db${DB}"
+  set_param "$NAME" "$PLUG" "$PAR" "$NRM"
+  surface "${WHO}_p${PAR}_${VAR}_n${NRM}_db${DB}" "$PLUG"
+  echo "wrote $NAME" | tee -a manual_drive.log
+done < "$RUN/sweep_commands.jsonl"
+echo "MANUAL_DRIVE_DONE" | tee -a manual_drive.log

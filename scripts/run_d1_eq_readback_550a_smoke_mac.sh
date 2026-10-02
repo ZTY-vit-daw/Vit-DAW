@@ -195,73 +195,52 @@ KERNEL_ROOT="$WORKDIR/kernel_root"
 mkdir -p "$KERNEL_ROOT/Source" "$KERNEL_ROOT/Workspace"
 : > "$KERNEL_ROOT/CMakeLists.txt"
 
-log "starting kernel (cwd=$KERNEL_ROOT)..."
-( cd "$KERNEL_ROOT" && exec "$KERNEL_BIN" ) > "$WORKDIR/logs/kernel_stdout.log" 2>&1 &
-KERNEL_PID=$!
-deadline=$((SECONDS + 90))
-while (( SECONDS < deadline )); do
-  kill -0 "$KERNEL_PID" 2>/dev/null || { tail -30 "$WORKDIR/logs/kernel_stdout.log" >&2; fail_env "kernel exited during startup"; }
-  [[ -n "$(port_listener_pid "$KERNEL_PORT_REQ")" ]] && break
-  sleep 1
-done
-for port in "$KERNEL_PORT_REQ" "$ZMQ_PUB_PORT" "$ZMQ_LOG_PORT"; do
-  listener="$(port_listener_pid "$port")"
-  [[ "$listener" == "$KERNEL_PID" ]] || fail_env "port $port listener $listener != kernel $KERNEL_PID"
-done
-log "kernel up (pid $KERNEL_PID)"
-
-log "starting agent..."
-(
-  cd "$WORKDIR/agent_cwd"
-  exec env VIT_HISTORY_DRAFT_ROOT="$WORKDIR/agent_drafts" \
-           VIT_DAW_DEV_ROOT="$REPO_ROOT" \
-           VIT_ORCHESTRATION_STORE_PATH="$WORKDIR/agent_state/orchestration_v1.json" \
-           "$AGENT_BIN" \
-             -http "$AGENT_HTTP_ADDR" \
-             -last-log-path "$WORKDIR/agent_state/agent_last.log" \
-             -keep-last-log-lines 8000 \
-             -vsp-hub-url ""
-) > "$WORKDIR/logs/agent_stdout.log" 2>&1 &
-AGENT_PID=$!
-deadline=$((SECONDS + 90))
-while (( SECONDS < deadline )); do
-  kill -0 "$AGENT_PID" 2>/dev/null || { tail -30 "$WORKDIR/logs/agent_stdout.log" >&2; fail_env "agent exited during startup"; }
-  curl -sS --max-time 2 -o /dev/null "$AGENT_HTTP/health" 2>/dev/null && break
-  sleep 1
-done
-curl -sS --max-time 2 -o /dev/null "$AGENT_HTTP/health" 2>/dev/null || fail_env "agent health not reachable"
-log "agent up (pid $AGENT_PID)"
-
-http_json() { # http_json <method> <url> <body-file> <out-file> <timeout-s> -> http code
-  curl -sS -X "$1" -H "Content-Type: application/json" --data-binary "@$3" \
-       --max-time "$5" -o "$4" -w "%{http_code}" "$2"
+start_kernel() { # start_kernel <tag>
+  local tag="$1"
+  log "starting kernel ($tag, cwd=$KERNEL_ROOT)..."
+  ( cd "$KERNEL_ROOT" && exec "$KERNEL_BIN" ) > "$WORKDIR/logs/kernel_stdout_${tag}.log" 2>&1 &
+  KERNEL_PID=$!
+  local deadline=$((SECONDS + 90))
+  while (( SECONDS < deadline )); do
+    kill -0 "$KERNEL_PID" 2>/dev/null || { tail -30 "$WORKDIR/logs/kernel_stdout_${tag}.log" >&2; fail_env "kernel ($tag) exited during startup"; }
+    [[ -n "$(port_listener_pid "$KERNEL_PORT_REQ")" ]] && break
+    sleep 1
+  done
+  local port listener
+  for port in "$KERNEL_PORT_REQ" "$ZMQ_PUB_PORT" "$ZMQ_LOG_PORT"; do
+    listener="$(port_listener_pid "$port")"
+    [[ "$listener" == "$KERNEL_PID" ]] || fail_env "port $port listener $listener != kernel ($tag) $KERNEL_PID"
+  done
+  log "kernel ($tag) up (pid $KERNEL_PID)"
 }
 
-# -- warm-up scan (cold fake root cannot resolve identifiers) -------------------
-log "warm-up: plugin.semantic_build_index over $VST3_DIR (may take minutes)..."
-python3 - "$VST3_DIR" > "$WORKDIR/bodies/scan.json" <<'PY'
-import json, sys
-print(json.dumps({"tool": "plugin.semantic_build_index", "args": {"paths": [sys.argv[1]]},
-                  "confirmed": True, "source": "d1_550a_smoke_mac"}, ensure_ascii=False))
-PY
-code="$(http_json POST "$AGENT_HTTP/agent/invoke" "$WORKDIR/bodies/scan.json" "$WORKDIR/scan_reply.json" 960)" \
-  || fail_env "scan invoke transport failed"
-[[ "$code" =~ ^2 ]] || fail_env "scan invoke HTTP $code: $(head -c 300 "$WORKDIR/scan_reply.json")"
-SCAN_STATUS="$(jq -r '.status // ""' "$WORKDIR/scan_reply.json")"
-SCAN_COUNT="$(jq -r '.result.plugin_count // 0' "$WORKDIR/scan_reply.json")"
-log "scan: status=$SCAN_COUNT plugins=$SCAN_COUNT"
-[[ "$SCAN_STATUS" == "ok" && "$SCAN_COUNT" -gt 0 ]] || fail_env "scan not ok (status=$SCAN_STATUS count=$SCAN_COUNT)"
+stop_kernel() { # stop_kernel <tag>: TERM→grace→KILL, wait for ports to drop
+  local tag="$1"
+  [[ -n "$KERNEL_PID" ]] || return 0
+  if kill -0 "$KERNEL_PID" 2>/dev/null; then
+    kill -TERM "$KERNEL_PID" 2>/dev/null || true
+    local i; for i in 1 2 3 4 5 6 7 8 9 10; do kill -0 "$KERNEL_PID" 2>/dev/null || break; sleep 1; done
+    kill -0 "$KERNEL_PID" 2>/dev/null && kill -KILL "$KERNEL_PID" 2>/dev/null || true
+  fi
+  wait "$KERNEL_PID" 2>/dev/null || true
+  KERNEL_PID=""
+  local port
+  for port in "$KERNEL_PORT_REQ" "$ZMQ_PUB_PORT" "$ZMQ_LOG_PORT"; do
+    local deadline=$((SECONDS + 15))
+    while (( SECONDS < deadline )) && [[ -n "$(port_listener_pid "$port")" ]]; do sleep 1; done
+    [[ -z "$(port_listener_pid "$port")" ]] || fail_env "port $port still owned after kernel ($tag) teardown"
+  done
+  log "kernel ($tag) down (ports released)"
+}
 
-# -- authority ------------------------------------------------------------------
-printf '{"authority_mode":"full_project_access"}' > "$WORKDIR/bodies/authority.json"
-code="$(http_json POST "$AGENT_HTTP/agent/authority" "$WORKDIR/bodies/authority.json" "$WORKDIR/authority_reply.json" 30)" \
-  || fail_env "authority transport failed"
-[[ "$code" =~ ^2 ]] || fail_env "authority refused HTTP $code"
-[[ "$(jq -r '.authority_mode // ""' "$WORKDIR/authority_reply.json")" == "full_project_access" ]] \
-  || fail_env "authority refused: $(head -c 200 "$WORKDIR/authority_reply.json")"
-log "authority: full_project_access"
-
-# -- build the spv1_p01 project from desktop stems (kernel ZMQ, deterministic) --
+# Phase 1: build the public project on a dedicated kernel instance. The stems
+# probe leaves a CANCELLED audio-analysis job in the kernel session (its own
+# throttling/cancel assertions require starting one); the evaluator's
+# project.audio_analysis_start on the materialized copy then collides with that
+# cancelled job ("Audio analysis job is cancelled", observed 2026-10-02 round
+# d1_550a_20261002_121511). A fresh kernel session for the evaluator is the
+# clean boundary — no leftover jobs to reject against.
+start_kernel probe
 PROJECT_VIT="$WORKDIR/public_case/spv1_p01.vit"
 log "building .vit project from $STEMS_DIR (stems import probe)..."
 python3 "$REPO_ROOT/scripts/project_stems_import_probe.py" \
@@ -273,6 +252,7 @@ python3 "$REPO_ROOT/scripts/project_stems_import_probe.py" \
 [[ "$(jq -r '.status' "$WORKDIR/stems_probe_report.json")" == "passed" ]] \
   || fail_env "stems probe status != passed: $(jq -r '.error' "$WORKDIR/stems_probe_report.json")"
 [[ -f "$PROJECT_VIT" ]] || fail_env "project file missing after probe: $PROJECT_VIT"
+stop_kernel probe
 log "project built: $PROJECT_VIT"
 
 # -- synthetic public manifest (evaluator face) ----------------------------------
@@ -325,6 +305,61 @@ json.dump(data, open(path, "w"), indent=1, ensure_ascii=False)
 PY
 log "whitelist narrowed: static_eq = [API-550A Stereo] (backup at $WHITELIST_BACKUP)"
 
+# Phase 2: evaluator stack — fresh kernel session (no leftover analysis jobs)
+# + agent, then scan warm-up and authority.
+start_kernel evaluator
+
+log "starting agent..."
+(
+  cd "$WORKDIR/agent_cwd"
+  exec env VIT_HISTORY_DRAFT_ROOT="$WORKDIR/agent_drafts" \
+           VIT_DAW_DEV_ROOT="$REPO_ROOT" \
+           VIT_ORCHESTRATION_STORE_PATH="$WORKDIR/agent_state/orchestration_v1.json" \
+           "$AGENT_BIN" \
+             -http "$AGENT_HTTP_ADDR" \
+             -last-log-path "$WORKDIR/agent_state/agent_last.log" \
+             -keep-last-log-lines 8000 \
+             -vsp-hub-url ""
+) > "$WORKDIR/logs/agent_stdout.log" 2>&1 &
+AGENT_PID=$!
+deadline=$((SECONDS + 90))
+while (( SECONDS < deadline )); do
+  kill -0 "$AGENT_PID" 2>/dev/null || { tail -30 "$WORKDIR/logs/agent_stdout.log" >&2; fail_env "agent exited during startup"; }
+  curl -sS --max-time 2 -o /dev/null "$AGENT_HTTP/health" 2>/dev/null && break
+  sleep 1
+done
+curl -sS --max-time 2 -o /dev/null "$AGENT_HTTP/health" 2>/dev/null || fail_env "agent health not reachable"
+log "agent up (pid $AGENT_PID)"
+
+http_json() { # http_json <method> <url> <body-file> <out-file> <timeout-s> -> http code
+  curl -sS -X "$1" -H "Content-Type: application/json" --data-binary "@$3" \
+       --max-time "$5" -o "$4" -w "%{http_code}" "$2"
+}
+
+# -- warm-up scan (cold fake root cannot resolve identifiers) -------------------
+log "warm-up: plugin.semantic_build_index over $VST3_DIR (may take minutes)..."
+python3 - "$VST3_DIR" > "$WORKDIR/bodies/scan.json" <<'PY'
+import json, sys
+print(json.dumps({"tool": "plugin.semantic_build_index", "args": {"paths": [sys.argv[1]]},
+                  "confirmed": True, "source": "d1_550a_smoke_mac"}, ensure_ascii=False))
+PY
+code="$(http_json POST "$AGENT_HTTP/agent/invoke" "$WORKDIR/bodies/scan.json" "$WORKDIR/scan_reply.json" 960)" \
+  || fail_env "scan invoke transport failed"
+[[ "$code" =~ ^2 ]] || fail_env "scan invoke HTTP $code: $(head -c 300 "$WORKDIR/scan_reply.json")"
+SCAN_STATUS="$(jq -r '.status // ""' "$WORKDIR/scan_reply.json")"
+SCAN_COUNT="$(jq -r '.result.plugin_count // 0' "$WORKDIR/scan_reply.json")"
+log "scan: status=$SCAN_STATUS plugins=$SCAN_COUNT"
+[[ "$SCAN_STATUS" == "ok" && "$SCAN_COUNT" -gt 0 ]] || fail_env "scan not ok (status=$SCAN_STATUS count=$SCAN_COUNT)"
+
+# -- authority ------------------------------------------------------------------
+printf '{"authority_mode":"full_project_access"}' > "$WORKDIR/bodies/authority.json"
+code="$(http_json POST "$AGENT_HTTP/agent/authority" "$WORKDIR/bodies/authority.json" "$WORKDIR/authority_reply.json" 30)" \
+  || fail_env "authority transport failed"
+[[ "$code" =~ ^2 ]] || fail_env "authority refused HTTP $code"
+[[ "$(jq -r '.authority_mode // ""' "$WORKDIR/authority_reply.json")" == "full_project_access" ]] \
+  || fail_env "authority refused: $(head -c 200 "$WORKDIR/authority_reply.json")"
+log "authority: full_project_access"
+
 # -- §8 rounds -------------------------------------------------------------------
 FINAL_EXIT=1
 LAST_BREAKPOINT=""
@@ -356,8 +391,11 @@ for round in $(seq 1 "$MAX_RUNS"); do
     LAST_BREAKPOINT="not_exercised"
     continue
   fi
-  # deterministic failure: classify the breakpoint from the report for stop-loss
-  BP="$(jq -r '.status // .reason // "unknown"' "$ROUND_DIR/d1_smoke_report.json" 2>/dev/null | head -c 80)"
+  # deterministic failure: classify the breakpoint from the report error for
+  # stop-loss (the report status is "fail" for every failure class — using it
+  # as the breakpoint conflates distinct failures and fires the stop-loss
+  # wrongly; observed 2026-10-02 d1_550a_20261002_182113 r1/r2)
+  BP="$(jq -r '.error // .reason // .status // "unknown"' "$ROUND_DIR/d1_smoke_report.json" 2>/dev/null | head -c 120)"
   log "round $round FAILED (exit $rc, breakpoint=$BP)"
   if [[ -n "$LAST_BREAKPOINT" && "$BP" == "$LAST_BREAKPOINT" && "$BP" != "not_exercised" ]]; then
     log "stop-loss: same deterministic breakpoint twice ($BP) — no third identical retry (§8)"
