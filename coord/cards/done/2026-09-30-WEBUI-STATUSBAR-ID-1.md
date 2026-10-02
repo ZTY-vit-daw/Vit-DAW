@@ -11,3 +11,4 @@
 - 领取：并入 WEBUI-IA-REDESIGN-1 一并执行（2026-10-02 20:43，doing 卡领取记录在案；回执/验收随主卡）
 - 回执：随主卡 WEBUI-IA-REDESIGN-1 交付（实现 commit=6501e051，分支 port/webui-ia-redesign-1）——PlanBar `Task {id}` 可见文本移除、data-task-id 属性保留、无占位编号（单任务窄条无区分需求，按裁定默认移除式）；PlanBar.test.tsx 断言同步更新；E2E ia-redesign-statusbar-IA3 组红绿验证在案。验收随主卡。
 - **并卡注记（2026-10-02 决策侧）**：本卡并入 WEBUI-IA-REDESIGN-1（池序 36）一期目标 3 执行——两卡同域同分支一次交付，本卡不再单独领取（[decisions/2026-10-02-webui-ia-vision.md](../../decisions/2026-10-02-webui-ia-vision.md) 用户裁定）。
+- 验收：**pass（2026-10-02，随 WEBUI-IA-REDESIGN-1 并卡交付）**——[rulings/2026-10-02-WEBUI-IA-REDESIGN-1-conditional.md](../../rulings/2026-10-02-WEBUI-IA-REDESIGN-1-conditional.md)；可见 Task 文本移除+data-task-id 属性保留（调试走 DOM）+两处断言同步+E2E IA3 组绿；commit=f6640d42
