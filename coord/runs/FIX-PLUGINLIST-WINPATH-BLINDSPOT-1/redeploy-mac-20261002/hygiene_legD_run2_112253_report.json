@@ -1,0 +1,16 @@
+{
+  "schema_version": "vit_kernel_pluginlist_hygiene_smoke.mac.v1",
+  "card": "PORT-PCBATCH-MAC-LEGS-1 leg2 (FIX-KERNEL-PLUGINLIST-HYGIENE-1 ①-④)",
+  "run_id": "hygiene_mac_20261002-112253",
+  "run_root": "/Users/timozty/Documents/vit-pcbatch-mac-legs-artifacts/leg2_hygiene/hygiene_mac_20261002-112253",
+  "legs_requested": "D",
+  "ok_count": 3,
+  "red_count": 0,
+  "ok": [
+    "LEG D: full scan completed",
+    "LEG D: full scan enumerated 719 plugins (>100)",
+    "LEG D: load spot landed (status=ok plugin_id=1040; knownPluginList resolution path)"
+  ],
+  "red": [],
+  "verdict": "all_green"
+}
