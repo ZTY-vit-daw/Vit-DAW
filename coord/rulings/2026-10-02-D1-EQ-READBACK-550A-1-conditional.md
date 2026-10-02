@@ -25,3 +25,7 @@
 - **新卡 D1-SETTLE-TAIL-MAC-1（P1）入池 todo**——settle 尾段停滞取证修复；本卡终验挂该卡验收。
 - worktree 清理（决策侧本次执行）：/tmp/pluginlist-redeploy-src、/tmp/pluginlist-redeploy-wt（PLUGINLIST ruling 遗留移交项）+ ~/Documents/Vit-DAW-d1eq550a-1（本卡执行 worktree，port 分支已推远端）。
 - 原始工件目录 ~/Documents/vit-d1eq550a-artifacts/ 保留（回指锚，非归档）。
+
+## 哈希补正（2026-10-02 决策侧）
+
+推送时 origin/main 前进（PC 推 VITNOTE-V2-IMPL-D 领取），验收链 rebase 后落地——复跑 worktree 哈希 92e2047/8c9e7b2/d60acb8/673db5a 为 rebase 前本地副本，**main 正典哈希=1379614（修复）/d68e2cc（脚本+工件）/ecff90c（取证日志补档）/1e7f11f（去 .log 双份）+ba00a19（归档补正）+937da8c（本裁定）**，内容与 port 分支正典 5693f3f/085f2b3/5605a06/9e7a03a 逐字节同源（cherry-pick 副本关系）。
