@@ -16,6 +16,6 @@
 - 文件域：agent/internal/chat/（audition_events.go 一带+所有权释放点；实锚后申报）——若根因在 webui 乐观标记面则另申报 webui 域。
 - 验收标准：三嫌疑定性结论+修复 diff+上述回归全绿+用户手测复验（判定→有新回复→新输入正常进入处理）。
 - 停止条件：取证发现根因与 D1-SETTLE-TAIL-MAC-1 同源（settle 尾段调度）→ 两卡并轨上交决策侧统筹；webui 域缺陷超出本卡域→带锚点上交。
-- 领取：（时间 / origin/main hash / 分支名）
+- 领取：2026-10-02 晚 / origin/main=200eddf6 / port/judgment-settle-stall-1（PC 执行侧 GLM-5.3，独立 worktree）
 - 回执：（commit hash / 定性结论 / E2E 新组 / 复现路径）
 - 验收：（裁定文件 / 验收 commit）
