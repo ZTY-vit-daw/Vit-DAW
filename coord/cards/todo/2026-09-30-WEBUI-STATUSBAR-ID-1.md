@@ -9,3 +9,4 @@
 - 验收标准：npm run test 全绿+build+E2E-WEBUI-1 exit 0（若改了被断言元素）；回执附前后截图或 DOM 片段。
 - 停止条件：常规止损。
 - 领取 / 回执 / 验收：空行待填
+- **并卡注记（2026-10-02 决策侧）**：本卡并入 WEBUI-IA-REDESIGN-1（池序 36）一期目标 3 执行——两卡同域同分支一次交付，本卡不再单独领取（[decisions/2026-10-02-webui-ia-vision.md](../../decisions/2026-10-02-webui-ia-vision.md) 用户裁定）。
