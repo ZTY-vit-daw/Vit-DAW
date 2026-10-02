@@ -18,6 +18,6 @@
 - 约束：新分支 `port/vitnote-container-2` 自 port/vitnote-v2-impl-d@fd7e6af 切出；不动 main；运行时目录勿动；渲染面归用户手测复验（回执附自验清单）。
 - 验收标准：目标 1-5 落地+探针/回归全绿+用户手测复验（拖动/缩放/锚点移动删除/布局/三态零回退）。
 - 停止条件：router 清单扩展影响画布正常手势（回归发现）→ 退回仅组内方案并如实申报取舍；锚点删除语义与持久化耦合超预期 → 上交裁定。
-- 领取：（时间 / Godot 仓基线 hash / 分支名）
+- 领取：2026-10-02 PC 执行侧（ZCode GLM-5.3）/ fd7e6af0b7cff88afea29a4a6882fa81d7f5244b / port/vitnote-container-2
 - 回执：（commit hash / 探针输出留档 / 布局前后截图 / 自验清单）
 - 验收：（裁定文件 / 验收 commit）
