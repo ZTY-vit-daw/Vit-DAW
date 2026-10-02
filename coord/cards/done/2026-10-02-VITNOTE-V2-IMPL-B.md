@@ -19,5 +19,10 @@
 - 验收标准：headless 解析/契约探针全绿 EXIT=0+`--import` 零 SCRIPT ERROR+探针输出落 runs/+timeline/control 两供给器注册与 resolve 形态与设计 §5.2/§6.4 逐字段对上+用户手测 §10.2 第 3（单面）/4 步复验通过（挂 V2 手测场）。
 - 停止条件：解析编排发现设计 §5.1 管线与 IMPL-A 出口不兼容（如 rect 坐标域不一致）→ 停止上交带锚点；采集函数复用发现形态缺口（缺字段）→ 如实申报最小补齐方案转决策侧裁（不擅自改 lane）。
 - 领取：2026-10-02 PC 执行侧（GLM）/ Godot 仓基线 091cf80a00c2e565e670859cf8f3dd8719300932（port/vitnote-v2-impl-a 已验收 HEAD，领取时该分支工作树干净，仅运行时未跟踪目录）/ 分支 port/vitnote-v2-impl-b
-- 回执：（commit hash / 探针输出留档 / 供给器 diff / 自验清单）
+- 回执：2026-10-02 PC 执行侧（GLM）。
+  - **commit**：Godot 仓 port/vitnote-v2-impl-b@3ea8a0a（自 091cf80 切出，已推 origin）；diff=manager 150 行改+两供给器新建（timeline 170 行/control 221 行）+探针 510 行，共 6 文件 +1046/-7。
+  - **探针输出留档**：coord/runs/VITNOTE-V2-IMPL-B/（README + 4 轮探针原始输出 + import 零错误日志）。终版 74/74 EXIT=0（静态契约 10+沙盒管线 52+两面烟测 12）；`--import` EXIT=0 零 SCRIPT/PARSE ERROR。
+  - **供给器 diff**：vit_face_supplier_timeline.gd（§6.1：Right_3D_Wrapper 行矩形+`_collect_marquee_hits_global` 只调不改+time_window 包络/映射两分支+face_id scope=场景根名两面可区分）；vit_face_supplier_control.gd（§6.4：走带+轨头两块+snapshot 形态 F10 锚点只读+observe only）；vit_note_manager.gd（§6.0 注册处+resolve_circle §5.1 管线①–⑤+payload v2 faces 真接线+胶囊「圈选 N 面」/0=空辖区）。
+  - **自验清单**：①headless 探针四轮（run1 红=实现真实缺陷：§6.0 字面「_ready 入组」不对称，重挂不重注册——改 _enter_tree/_exit_tree 对称后全绿，首红日志留档）；②lane 文件域零改动核实（git diff 091cf80..3ea8a0a 对 track_scene/timeline/shell/legacy/vit_dock 全空）；③停止条件未触发——IMPL-A 出口兼容（rect_global 全局坐标域直连）、F6 采集形态无缺口（命中字典含所需字段、秒映射公开 API 在位）。
+  - **申报**：payload 键名沿 IMPL-A 仓内约定 rect_global（panel 消费方兼容）；v2 下面板 _rebuild_summary 读 v1 顶层字段显「空辖区」——多面版摘要归 IMPL-D（panel 零改动，文件域外）；真实跨面矩形/占比目检归手测 §10.2 第 3[单面]/4 步挂 V2 手测场；**运行栈未起**（本卡验收面=headless 探针+import，无真实栈烟测需求）。
 - 验收：（裁定文件 / 验收 commit）

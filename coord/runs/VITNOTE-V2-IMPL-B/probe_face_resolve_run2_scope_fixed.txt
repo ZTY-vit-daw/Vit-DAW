@@ -1,0 +1,328 @@
+Initialize godot-rust (API v4.5.stable.official, runtime v4.6.1.stable.official, safeguards balanced)
+[VulkanHook/Windows] Installing vkCreateDevice hook...
+[VulkanHook/Windows] Hook installed successfully
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+[probe] VITNOTE-V2-IMPL-B resolve/contract suite start
+[probe] PASS static vit_note_manager.gd has resolve_circle/1 args
+[probe] PASS static vit_note_manager.gd has _circle_hint_text/1 args
+[probe] PASS static vit_face_supplier_timeline.gd has vit_face_identity/0 args
+[probe] PASS static vit_face_supplier_timeline.gd has vit_face_affordance/0 args
+[probe] PASS static vit_face_supplier_timeline.gd has vit_face_rects/0 args
+[probe] PASS static vit_face_supplier_timeline.gd has vit_face_resolve/1 args
+[probe] PASS static vit_face_supplier_control.gd has vit_face_identity/0 args
+[probe] PASS static vit_face_supplier_control.gd has vit_face_affordance/0 args
+[probe] PASS static vit_face_supplier_control.gd has vit_face_rects/0 args
+[probe] PASS static vit_face_supplier_control.gd has vit_face_resolve/1 args
+[probe] ---- static contract summary ----
+[probe] checks=10 failed=0
+[probe] PASS manager has resolve_circle
+[probe] PASS timeline supplier child
+[probe] PASS control supplier child
+[probe] PASS timeline supplier in group
+[probe] PASS control supplier in group
+[probe] PASS timeline identity face_id prefix
+[probe] PASS timeline identity kind/label/priority
+[probe] PASS timeline affordance shape
+[probe] PASS timeline rects empty (no rows)
+[probe] PASS timeline resolve degraded entries/track_ids
+[probe] PASS timeline resolve no time_window (no lane)
+[probe] PASS control identity face_id
+[probe] PASS control affordance observe only
+[probe] PASS control rects empty (no transport)
+[probe] PASS control resolve snapshot keys
+[probe] PASS control resolve degraded nulls
+[probe] PASS arith face A present
+[probe] PASS arith face C present
+[probe] PASS arith A share==1.0 coverage==0.25
+[probe] PASS arith A element keys exact
+[probe] PASS arith A domain entries array
+[probe] PASS arith C share==0.25 coverage==0.0625
+[probe] PASS arith rect passthrough
+[probe] PASS arith supplier dict not mutated
+[probe] PASS arith G multi-block present
+[probe] PASS arith G share==5000/35000 coverage==1.0
+[probe] PASS gate drops inter<4.0 (fake_d 3.0px)
+[probe] PASS gate keeps inter==4.0 boundary (fake_e)
+[probe] PASS gate drops no-overlap (fake_f)
+[probe] PASS gate fake_e share==8/10000
+[probe] PASS gate zero-area rect -> no faces
+[probe] PASS gate empty jurisdiction legal
+[probe] PASS merge desc by share (a before c)
+[probe] PASS merge tie priority wins (j2 before j1)
+[probe] PASS merge tie face_id asc (k1 before k2)
+[probe] PASS merge priority erased from payload
+[probe] PASS merge priority erased from payload
+[probe] PASS merge priority erased from payload
+[probe] PASS merge priority erased from payload
+[probe] PASS failure null resolve kept as face
+[probe] PASS failure null resolve -> empty entries domain
+[probe] PASS failure others not blocked (a/c present)
+[probe] PASS gap partial contract skipped (no fake_i)
+[probe] PASS lifecycle exit_tree leaves group
+[probe] PASS lifecycle re-enter joins group
+[probe] PASS hint text 3 faces
+[probe] PASS hint text empty jurisdiction
+[probe] PASS finish callback creates hint
+[probe] PASS finish snapshot origin/rect_global
+[probe] PASS finish snapshot faces resolved (timeline absent rect zone)
+[probe] PASS finish hint text has face count
+[probe] PASS finish hint dismissed
+[probe] ---- sandbox suite summary ----
+[probe] checks=62 failed=0
+[probe] face=legacy scene=res://app/legacy/Vit control V1.0.tscn
+ERROR: Node not found: "Browser_Layout_V/LibraryTabs/LibraryPlacesTab" (relative to "/root/Main_Control/Main_App_Stack/App_Vertical_Root/Main_Layout/Left_Library_Dock").
+   at: get_node (scene/main/node.cpp:1963)
+   GDScript backtrace (most recent call first):
+       [0] @implicit_ready (res://app/browser/left_library_dock.gd:18)
+       [1] _load_face (res://tools/probe_vitnote_face_resolve.gd:332)
+       [2] _run_sandbox_suite (res://tools/probe_vitnote_face_resolve.gd:145)
+       [3] _process (res://tools/probe_vitnote_face_resolve.gd:346)
+ERROR: Node not found: "Browser_Layout_V/LibraryTabs/LibraryPluginsTab" (relative to "/root/Main_Control/Main_App_Stack/App_Vertical_Root/Main_Layout/Left_Library_Dock").
+   at: get_node (scene/main/node.cpp:1963)
+   GDScript backtrace (most recent call first):
+       [0] @implicit_ready (res://app/browser/left_library_dock.gd:19)
+       [1] _load_face (res://tools/probe_vitnote_face_resolve.gd:332)
+       [2] _run_sandbox_suite (res://tools/probe_vitnote_face_resolve.gd:145)
+       [3] _process (res://tools/probe_vitnote_face_resolve.gd:346)
+ERROR: Node not found: "Browser_Layout_V/LibraryTabs/LibraryGroupsTab" (relative to "/root/Main_Control/Main_App_Stack/App_Vertical_Root/Main_Layout/Left_Library_Dock").
+   at: get_node (scene/main/node.cpp:1963)
+   GDScript backtrace (most recent call first):
+       [0] @implicit_ready (res://app/browser/left_library_dock.gd:20)
+       [1] _load_face (res://tools/probe_vitnote_face_resolve.gd:332)
+       [2] _run_sandbox_suite (res://tools/probe_vitnote_face_resolve.gd:145)
+       [3] _process (res://tools/probe_vitnote_face_resolve.gd:346)
+ERROR: Node not found: "Browser_Layout_V/TrackGroupListPanel" (relative to "/root/Main_Control/Main_App_Stack/App_Vertical_Root/Main_Layout/Left_Library_Dock").
+   at: get_node (scene/main/node.cpp:1963)
+   GDScript backtrace (most recent call first):
+       [0] @implicit_ready (res://app/browser/left_library_dock.gd:23)
+       [1] _load_face (res://tools/probe_vitnote_face_resolve.gd:332)
+       [2] _run_sandbox_suite (res://tools/probe_vitnote_face_resolve.gd:145)
+       [3] _process (res://tools/probe_vitnote_face_resolve.gd:346)
+
+=======================================================
+📡 [Vit-DAW 架构师雷达] 正在扫描当前真实 UI 节点树...
+=======================================================
+├── Main_Control [Control]
+    ├── Main_App_Stack [VBoxContainer]
+        ├── Native_MenuBar [MenuBar]
+            ├── MB_File [PopupMenu]
+            ├── MB_Edit [PopupMenu]
+        ├── App_Vertical_Root [VSplitContainer]
+            ├── Top_Transport_Bar [PanelContainer]
+                ├── Bar_Column [VBoxContainer]
+                    ├── Bar_Main_Ribbon [HBoxContainer]
+                        ├── Toolbox_Ribbon [HBoxContainer]
+                            ├── Left_Tools_Margin [MarginContainer]
+                                ├── Left_Tool_Zone [HBoxContainer]
+                                    ├── Btn_Tool_Smart [Button]
+                                    ├── Btn_Tool_Cut [Button]
+                                    ├── Btn_Tool_Draw [Button]
+                                    ├── Btn_Tool_Cursor [Button]
+                        ├── Center_Lane [MarginContainer]
+                            ├── LCD_Stack_Center [CenterContainer]
+                                ├── Main_LCD_Stack [VBoxContainer]
+                                    ├── Main_Time [Label]
+                                    ├── Sub_Info_Bar [HBoxContainer]
+                                        ├── Sub_Time [Label]
+                                        ├── Spacer_Sub_Axis [Control]
+                                        ├── Tempo_LCD_Panel [PanelContainer]
+                                            ├── Tempo_Margin [MarginContainer]
+                                                ├── Tempo_VBox [VBoxContainer]
+                                                    ├── Tempo_Top_Row [HBoxContainer]
+                                                        ├── Lbl_Bpm [Label]
+                                                        ├── Btn_Tap_Mode [Button]
+                                                    ├── Lbl_Meter [Label]
+                                    ├── Transport_Center_Row [HBoxContainer]
+                                        ├── Spacer_Transport_L [Control]
+                                        ├── Transport_Panel [PanelContainer]
+                                            ├── Transport_Buttons_Center [CenterContainer]
+                                                ├── Transport_Buttons [HBoxContainer]
+                                                    ├── Btn_ReturnToZero [Button]
+                                                    ├── Btn_Stop [Button]
+                                                    ├── Btn_Play [Button]
+                                                    ├── Btn_Record [Button]
+                                                    ├── Btn_Loop [Button]
+                                                    ├── Chk_StopReturnToStart [CheckButton]
+                                        ├── Spacer_Transport_R [Control]
+                        ├── Transport_Layout [HBoxContainer]
+                            ├── Right_Meta_Zone [HBoxContainer]
+                                ├── VitCore_Dashboard_Shell [PanelContainer]
+                                    ├── MarginContainer [MarginContainer]
+                                        ├── VitCore_Dashboard [HBoxContainer]
+                                            ├── Btn_IoReadout [Button]
+                                            ├── Btn_Performance [Button]
+                                            ├── Btn_AiReadout [Button]
+                                    ├── @Timer@50 [Timer]
+                                    ├── @Timer@51 [Timer]
+                                    ├── @HTTPRequest@255 [HTTPRequest]
+                                        ├── @Timer@254 [Timer]
+                                ├── Btn_Export_Mix [Button]
+                                ├── Btn_Import_Stems_Folder [Button]
+                                ├── Btn_Project_Branch_Pill [Button]
+                                ├── Btn_Compute_Mode [Button]
+                                ├── Btn_Toggle_Chat [Button]
+                ├── @Timer@52 [Timer]
+                ├── @HTTPRequest@257 [HTTPRequest]
+                    ├── @Timer@256 [Timer]
+            ├── Main_Layout [HSplitContainer]
+                ├── Left_Library_Dock [PanelContainer]
+                    ├── Browser_Layout_V [VBoxContainer]
+                        ├── Search_Bar [LineEdit]
+                        ├── Places_Toolbar [HBoxContainer]
+                            ├── @Label@53 [Label]
+                            ├── Btn_Add_Place [Button]
+                        ├── Browser_Tree [Tree]
+                            ├── @Timer@36 [Timer]
+                    ├── Places_DirDialog [FileDialog]
+                ├── Right_Main_Core [VSplitContainer]
+                    ├── Top_3D_Timeline [ScrollContainer]
+                        ├── Track_List [VBoxContainer]
+                            ├── Track_Toolbar [HBoxContainer]
+                                ├── Btn_Add_Track [MenuButton]
+                                ├── Btn_Remove_Track [Button]
+                            ├── Track_Master [VBoxContainer]
+                                ├── Track_Split [HSplitContainer]
+                                    ├── Header_2D [PanelContainer]
+                                        ├── Header_Chrome_Row [HBoxContainer]
+                                            ├── Tree_Indent_Spacer [Control]
+                                            ├── Track_Group_Pick_Box [CheckBox]
+                                            ├── Type_Indicator [ColorRect]
+                                            ├── Header_VBox [VBoxContainer]
+                                                ├── Header_Title_Row [HBoxContainer]
+                                                    ├── Btn_Folder_Collapse [Button]
+                                                    ├── Track_Name_Edit [LineEdit]
+                                                    ├── Btn_Track_Detail [Button]
+                                                ├── Header_MSR_Row [HBoxContainer]
+                                                    ├── Btn_PianoRoll_Toggle [Button]
+                                                    ├── Btn_Mute [Button]
+                                                    ├── Btn_Solo [Button]
+                                                    ├── Btn_Record [Button]
+                                                    ├── Btn_Input_Monitor [Button]
+                                                    ├── Btn_Solo_Safe [Button]
+                                                    ├── Lbl_Engine_Level [Label]
+                                                    ├── Btn_Folder_Bus [Button]
+                                                ├── Master_Meters_Row [HBoxContainer]
+                                                    ├── Meter_L [ProgressBar]
+                                                    ├── Meter_R [ProgressBar]
+                                                ├── Header_IO_Row [HBoxContainer]
+                                                    ├── Opt_Input [OptionButton]
+                                                    ├── Dropdown_Output [OptionButton]
+                                                ├── Header_Send_Row [HBoxContainer]
+                                                    ├── Opt_Send [OptionButton]
+                                                    ├── Opt_Receive [OptionButton]
+                                                ├── Header_Vol_Row [HBoxContainer]
+                                                    ├── Slider_Vol [HSlider]
+                                                    ├── Edit_VolDb [LineEdit]
+                                                ├── Header_Pan_Row [HBoxContainer]
+                                                    ├── Slider_Pan [HSlider]
+                                                    ├── Edit_PanVal [LineEdit]
+                                            ├── Track_Header_LR_Meters [Control]
+                                    ├── Right_3D_Wrapper [Control]
+                                        ├── Timeline_Paper_Background [TextureRect]
+                                        ├── HUD_Y_Left [Control]
+                                        ├── HUD_2D_Overlay [Control]
+                                        ├── View_Gizmo [MarginContainer]
+                                            ├── HBoxContainer [HBoxContainer]
+                                                ├── Btn_Top [Button]
+                                                ├── Btn_3D [Button]
+                                                ├── Btn_Side [Button]
+                                        ├── Slider_V_Height [VSlider]
+                                        ├── Bottom_Control_Bar [HBoxContainer]
+                                            ├── Btn_Mode_Toggle [Button]
+                                        ├── Main_Audio_Player [AudioStreamPlayer]
+                                        ├── Master_Output_Strip [PanelContainer]
+                                            ├── Master_Strip_Margin [MarginContainer]
+                                                ├── Master_Strip_Row [HBoxContainer]
+                                                    ├── Master_Accent [ColorRect]
+                                                    ├── Master_Title_Column [VBoxContainer]
+                                                        ├── Lbl_Master_Title [Label]
+                                                        ├── Lbl_Master_Subtitle [Label]
+                                                        ├── Master_Status_Row [HBoxContainer]
+                                                            ├── @Label@293 [Label]
+                                                            ├── @Label@294 [Label]
+                                                            ├── @Label@295 [Label]
+                                                    ├── Master_Strip_LR_Meters [Control]
+                                                    ├── Btn_Master_Analyzer [Button]
+                                ├── Resize_Handle_Y [ColorRect]
+                            ├── TimelineViewMapping [Node]
+                            ├── TimelineInputArbitrator [Control]
+                            ├── Empty_Space_Drop_Zone [ColorRect]
+                                ├── EmptyZoneBackground [ColorRect]
+                                ├── EmptyZoneColumns [HBoxContainer]
+                                    ├── EmptyTrackHeaderFill [ColorRect]
+                                    ├── EmptyTimelineCanvasFill [ColorRect]
+                    ├── Bottom_Vit_Graph_Rack [PanelContainer]
+                        ├── Rack_Mount_Slot [Control]
+    ├── Edge_Toggles [Control]
+        ├── Btn_Toggle_Browser [Button]
+        ├── Btn_Toggle_Rack [Button]
+    ├── LLM_Chat_Window [Window]
+        ├── VBox_Main [VBoxContainer]
+            ├── Agent_Config_Row [HBoxContainer]
+                ├── @Label@213 [Label]
+                ├── @Label@214 [Label]
+                ├── @Button@215 [Button]
+                ├── @Button@216 [Button]
+                ├── @Button@217 [Button]
+                ├── @Control@218 [Control]
+                ├── @Button@219 [Button]
+            ├── Chat_Scroll [ScrollContainer]
+                ├── Msg_List [VBoxContainer]
+                    ├── TranscriptSelectionLayer [RichTextLabel]
+            ├── AttachmentTray [PanelContainer]
+                ├── AttachmentTrayRoot [HBoxContainer]
+                    ├── AttachmentScroll [ScrollContainer]
+                        ├── Attachment_Row [HBoxContainer]
+                    ├── AttachmentCount [Label]
+            ├── Input_Zone [HBoxContainer]
+                ├── @Button@220 [Button]
+                ├── Input_Box [LineEdit]
+                ├── Btn_Send [Button]
+        ├── ProjectHistoryMenu [PopupMenu]
+        ├── BranchNodeMenu [PopupMenu]
+        ├── @Button@212 [Button]
+        ├── SidePanelResizeZone [Control]
+        ├── AskVitContextMenu [PopupMenu]
+        ├── @HTTPRequest@259 [HTTPRequest]
+            ├── @Timer@258 [Timer]
+    ├── @Timer@230 [Timer]
+    ├── TimelineEditStore [Node]
+    ├── GlobalTimeAxisController [Node]
+    ├── VitNoteLayer [Control]
+        ├── VitCircleSelectLayer [Control]
+        ├── VitFaceSupplierTimeline [Node]
+        ├── VitFaceSupplierControl [Node]
+    ├── GlobalFrequencyAxisController [Node]
+    ├── ToolbarAddTrackKindMenu [PopupMenu]
+    ├── Track_Context_Menu [PopupMenu]
+        ├── CtxAddTrackSubmenu [PopupMenu]
+=======================================================
+
+📡 [VitApp] 正在探测内核... (startup_ping)
+[probe] PASS face=legacy manager mounted
+[probe] PASS face=legacy timeline supplier child+group
+[probe] PASS face=legacy control supplier child+group
+[probe] PASS face=legacy timeline rects typed Array[Rect2]
+[probe] face=legacy timeline rect count=1
+[probe] PASS face=legacy resolve_circle full-viewport shape
+[probe] face=legacy full-viewport faces=["control@main", "timeline@Main_Control"]
+[probe] PASS face=legacy control snapshot tracks array
+[probe] face=legacy smoke done (checks=68 failed=0)
+[probe] face=dock scene=res://vit_dock/scenes/VitDockRoot.tscn
+[probe] PASS face=dock manager mounted
+[probe] PASS face=dock timeline supplier child+group
+[probe] PASS face=dock control supplier child+group
+[probe] PASS face=dock timeline rects typed Array[Rect2]
+[probe] face=dock timeline rect count=1
+[probe] PASS face=dock resolve_circle full-viewport shape
+[probe] face=dock full-viewport faces=["control@main", "timeline@VitDockRoot"]
+[probe] PASS face=dock control snapshot tracks array
+[probe] face=dock smoke done (checks=74 failed=0)
+[probe] ---- probe verdict ----
+[probe] checks=74 failed=0
+[probe] PROBE PASS (static contract + sandbox pipeline + both-face wiring)
+WARNING: ObjectDB instances leaked at exit (run with --verbose for details).
+   at: cleanup (core/object/object.cpp:2641)
+ERROR: 3 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:810)
