@@ -34,4 +34,4 @@
     - run 201555/201944：判定席前死亡，根因逐字相同 `terminal turn produced no admissible final decision after one strengthened retry`（自由态终局裁定模型随机分支，executed=0 本卡修复面未参与；兄弟台账 judgment_not_armed 同族概率面）——**同型连败 2 次触发止损**，工件保全待裁。
     - **端测边界**：全链 exit 0 留决策侧裁定（补跑 or 采信 run1 半链实证+进程内 RED→GREEN+全仓绿，兄弟 SETTLE-DELIVER「分裂证据+手测复验」先例）；[等待用户手测复验]（Godot 入口，同会话判定结算后发观察问句）。
   - **事故记录**：首领（19:55 mv+暂存未提交）被并行 VITNOTE-CONTAINER-4 领取提交误携、经 coord(fix) c04b39d5 归位 todo；20:20 原子重领（3bc43e48）——共享工作树暂存残留教训与协议 §3 增补吻合。
-- 验收：（裁定文件 / 验收 commit）
+- 验收：**conditional pass（2026-10-03 决策会话）**——[rulings/2026-10-03-REPLY-GEN-TOOLGATE-1-conditional.md](../../rulings/2026-10-03-REPLY-GEN-TOOLGATE-1-conditional.md)；我方复跑三钉+planner+chat 94.9s+全仓 -count=1 EXIT=0+RED 抽验（回退别名修复钉红）；转正条件=用户手测复验（判定后观察问句→正常回复）；28da5db1 随验收合 main
