@@ -31,6 +31,6 @@
 - 约束：不动 main；探针 headless 不占端口；与 NOTESTREAM-2 Godot 腿（同分支基线切出）文件域重叠——**串行**（本卡先，NOTESTREAM-2 Godot 腿后接，或决策侧协调基线）。
 - 验收标准：目标 2 落地+探针/回归全绿+用户手测复验四项裁定。
 - 停止条件：作用域显示与时间线渲染层耦合超预期 → 方案上交；图钉带布局需动 dock 结构 → 上交裁定。
-- 领取：（时间 / 基线 hash / 分支名）
+- 领取：2026-10-03 18:18 PC 执行侧（ZCode GLM-5.3）/ Vit-DAW 仓 origin/main=634278ff2115a21b3079ed4d34902c1a4af41262 / Godot 仓 port/vitnote-container-3 自 port/vitnote-container-2@42b1856 切出
 - 回执：（commit hash / 设计段链接 / 探针结果 / 前后截图）
 - 验收：（裁定文件 / 验收 commit）
