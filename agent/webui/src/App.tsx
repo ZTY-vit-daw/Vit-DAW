@@ -112,7 +112,7 @@ import { observeOutputLayout, shouldLayerObserveOutput } from "./observeOutputLa
 import { agentEventPollBusy, createAgentEventPollIdleGate } from "./eventPolling";
 import { AuditionJudgeCard } from "./trajectory/TrajectoryAuditionPanel";
 import { TraceBlock, OptimisticTraceBlock, shouldShowOptimisticTrace } from "./trace/TraceBlock";
-import { appendChainResultMessages, chainResultMessagesFromEvents, hasChainTerminalDeliveryEvent, isChainResultChatMessage } from "./trace/traceDelivery";
+import { appendChainResultMessages, chainResultMessagesFromEvents, hasChainTerminalDeliveryEvent, isChainResultChatMessage, settlementMessagesFromEvents } from "./trace/traceDelivery";
 import {
   CONSUMED_INTERACTION_GUARD_ID,
   forgetConsumedInteraction,
@@ -534,6 +534,13 @@ function App() {
           const chainMessages = chainResultMessagesFromEvents(events, mode, chatMessageFromAgentEvent);
           if (chainMessages.length > 0) {
             setMessages((current) => appendChainResultMessages(current, chainMessages));
+          }
+          // SETTLE-DELIVER-1 症状 A：判定结算确认（judgment.settled +
+          // settlement_reply）同 GUI-F7 语义直接入 messages——活动面不承载正式
+          // 回复，刷新后由持久化 vit 节点水合接管（logical_message_id 同键合并）。
+          const settleMessages = settlementMessagesFromEvents(events, mode, chatMessageFromAgentEvent);
+          if (settleMessages.length > 0) {
+            setMessages((current) => appendChainResultMessages(current, settleMessages));
           }
         } else if (idleGate.tickIdle(pollBusy)) {
           setAgentEventPolling(false);

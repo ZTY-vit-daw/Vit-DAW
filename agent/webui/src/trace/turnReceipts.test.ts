@@ -372,7 +372,7 @@ describe("钉6 水合渲染：活态缺失的回合落成静态收起收据行�
       trajectory: emptyTrajectoryState(),
       receipts: [receipt({ turnId: RUN, startedAt: T0 })]
     });
-    expect(shapeOf(plan)).toEqual(["messages:u1", "messages:a1", "messages:u2", `receipt:${RUN}`, "messages:a2"]);
+    expect(shapeOf(plan)).toEqual(["messages:u1,a1", "messages:u2", `receipt:${RUN}`, "messages:a2"]);
   });
 
   it("无起始时刻证据不猜归属：收据行退流尾（orphanReceiptTurnIds），不挂到别的回合下", () => {

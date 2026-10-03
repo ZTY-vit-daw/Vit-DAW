@@ -14,6 +14,7 @@ import (
 	"vit-daw-agent/internal/agentloop"
 	"vit-daw-agent/internal/audioclosure"
 	"vit-daw-agent/internal/contextruntime"
+	"vit-daw-agent/internal/experiment"
 	"vit-daw-agent/internal/orchestration"
 	"vit-daw-agent/internal/orchestrationcontroller"
 	agentruntime "vit-daw-agent/internal/runtime"
@@ -569,14 +570,21 @@ func (s *Server) recordAudioClosureRound(state audioclosure.State, res agentloop
 	}
 	observations := freeStateCCBObservations(res)
 	postActionObservationRequired := false
-	if loop, loopOK := s.freeStateLoop(current.ConversationID); loopOK {
+	// SETTLE-DELIVER-1 症状 B（2026-10-03 webui_murptx58 二轮 goal 25s 即终
+	// stop_reason=project_revision_stale）：loop 按会话键存取，判定结算后
+	// round-1 的已终态 loop 连同账本残留（旧修订观察行）活到下一个 goal 的新
+	// 闭包——按会话键重水合把旧修订证据回放进新闭包的回合录制，撞上
+	// RecordObservation 的跨修订守卫（守卫正确拒收）。守卫语义不动，修回放
+	// 路径的所有权门：只有本闭包 goal 拥有且实验未终态的在途 loop 才是本回合
+	// 的权威账本（scheduler continuation 的重水合语义不变）；已结算/他 goal
+	// 的 loop 是历史审计数据。同理 postActionObservationRequired 不得从他人
+	// loop 借位——否则本回合合法观察会被旧债位错杀。
+	if loop, loopOK := s.freeStateLoop(current.ConversationID); loopOK && audioClosureLoopOwnsRound(loop, current) {
 		postActionObservationRequired = loop.RequiresPostActionObservation
-	}
-	// Scheduler continuations can carry the authoritative CCB bundles only in
-	// the durable free-state ledger. Rehydrate those bundles before recording
-	// the closure round so candidate/frontier state cannot regress to empty
-	// merely because this Result has no Executed projection.
-	if loop, loopOK := s.freeStateLoop(current.ConversationID); loopOK {
+		// Scheduler continuations can carry the authoritative CCB bundles only in
+		// the durable free-state ledger. Rehydrate those bundles before recording
+		// the closure round so candidate/frontier state cannot regress to empty
+		// merely because this Result has no Executed projection.
 		observations = appendUniqueFreeStateObservations(observations, freeStateLedgerObservations(loop.ObservationLedger))
 	}
 	for _, observation := range observations {
@@ -964,6 +972,30 @@ func (s *Server) syncAudioClosureFailedActionRevision(conversationID, observedRe
 	if saveErr := s.audioClosures.Save(next, state.Revision); saveErr == nil {
 		s.persistCurrentProjectWorkspace()
 	}
+}
+
+// audioClosureLoopOwnsRound reports whether the conversation's stored
+// free-state loop is the in-flight authority for this closure round: the loop
+// must belong to the closure's own goal and its experiment must not be
+// terminal. A settled loop from an earlier goal is audit history — its ledger
+// rows carry the pre-settlement project revision, and replaying them into a
+// fresh closure staleness-settles the new goal's first round through the
+// cross-revision observation guard (SETTLE-DELIVER-1 symptom B). Ownership is
+// only decidable when both goal ids are known; a loop without goal identity
+// keeps the historical behavior (no evidence → no guess).
+func audioClosureLoopOwnsRound(loop freeStateReasoningLoop, state audioclosure.State) bool {
+	if loop.Experiment != nil {
+		switch loop.Experiment.Status {
+		case experiment.StatusSettled, experiment.StatusStopped:
+			return false
+		}
+	}
+	loopGoal := strings.TrimSpace(loop.GoalID)
+	closureGoal := strings.TrimSpace(state.GoalID)
+	if loopGoal == "" || closureGoal == "" {
+		return true
+	}
+	return loopGoal == closureGoal
 }
 
 func audioClosureObservationKey(state audioclosure.State, observation *agentloop.RecentObservation, requestContext map[string]any) audioclosure.ObservationKey {

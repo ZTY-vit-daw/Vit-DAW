@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"vit-daw-agent/internal/experiment"
+	"vit-daw-agent/internal/history"
 	"vit-daw-agent/internal/kernel"
 	"vit-daw-agent/internal/taskstate"
 	"vit-daw-agent/internal/trajectory"
@@ -1092,6 +1093,7 @@ func (s *Server) finishJudgmentSettlement(loop *freeStateReasoningLoop, evidence
 	if reply == "" {
 		return
 	}
+	s.recordJudgmentSettlementReply(loop, evidence, reply)
 	event := AgentEvent{
 		Type: "judgment.settled", ItemID: "judgment_settle:" + evidence.ID, ItemType: "judgment",
 		GoalID: loop.GoalID, RunID: loop.RunID,
@@ -1103,6 +1105,67 @@ func (s *Server) finishJudgmentSettlement(loop *freeStateReasoningLoop, evidence
 		MessageKind: "activity", LogicalMessageID: "judgment_settle:" + evidence.ID,
 	}
 	s.emitAgentEvent(loop.ConversationID, event)
+}
+
+// recordJudgmentSettlementReply lands the settle report as a durable assistant
+// conversation message (SETTLE-DELIVER-1 symptom A, 2026-10-03 webui_murptx58:
+// zero message-delivery events after judgment.settled — the text survived only
+// in the audio-closure checkpoint, so the conversation stream showed nothing).
+// Ordinary turns persist their reply through the harness "vit" node path; the
+// settlement tail writes the same graph node directly against history: a plain
+// file-backed checkpoint (no kernel snapshot export — the settle POST must not
+// tax the execution journal, and the settle slice already paid the mutation
+// checkpoint) plus one "vit" node, which is the only kind the conversation
+// message projection admits. Failures WARN only: the durable experiment state
+// is already terminal here and must not unwind.
+func (s *Server) recordJudgmentSettlementReply(loop *freeStateReasoningLoop, evidence experiment.UserJudgmentEvidence, reply string) {
+	if s == nil || s.harness == nil {
+		return
+	}
+	projectPath := firstStringFromMap(loop.LatestProjectChange, "project_path")
+	if strings.TrimSpace(projectPath) == "" {
+		// Draft/unsaved shapes keep the authoritative path only in the active
+		// workspace binding (the shadow summary's project_path stays empty
+		// there — 2026-10-03 smoke run 114223 evidence).
+		s.workspaceMu.Lock()
+		projectPath = strings.TrimSpace(s.activeWorkspacePath)
+		s.workspaceMu.Unlock()
+	}
+	if strings.TrimSpace(projectPath) == "" {
+		projectPath, _ = s.harness.CurrentProjectIdentity(context.Background())
+		if strings.TrimSpace(projectPath) == "" {
+			return
+		}
+	}
+	checkpoint, err := history.Checkpoint(map[string]any{
+		"project_path": projectPath, "message": "Conversation judgment settle",
+		"goal_id":      loop.GoalID, "run_id": loop.RunID,
+		"source": "conversation_graph", "checkpoint_kind": "manual",
+	})
+	if err != nil {
+		if s.logger != nil {
+			s.logger.Warn("[judgment-settle] settle reply checkpoint failed conversation=%s goal=%s: %v", loop.ConversationID, loop.GoalID, err)
+		}
+		return
+	}
+	commitID := firstStringFromMap(checkpoint, "commit_id")
+	args := map[string]any{
+		"project_path": projectPath, "kind": "vit", "text": reply, "commit_id": commitID,
+		"goal_id": loop.GoalID, "run_id": loop.RunID,
+		"lifecycle": "durable", "persistence": "project_history", "message_kind": "assistant",
+		"turn_id":            firstNonEmpty(loop.RunID, loop.GoalID),
+		"logical_message_id": "judgment_settle:" + evidence.ID,
+		"message_data": map[string]any{
+			"settlement_reply": true, "judgment_evidence_id": evidence.ID,
+			"experiment_id": loop.Experiment.ID, "experiment_outcome": string(loop.Experiment.Outcome),
+		},
+	}
+	if _, err := history.AppendConversationNode(args); err != nil {
+		if s.logger != nil {
+			s.logger.Warn("[judgment-settle] settle reply did not land in the conversation history conversation=%s goal=%s: %v",
+				loop.ConversationID, loop.GoalID, err)
+		}
+	}
 }
 
 // auditionBlindDisclosureForSession reads back the disclosure persisted with the

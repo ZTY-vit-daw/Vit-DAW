@@ -1,0 +1,23 @@
+﻿run_root=D:\Vit_DAW\coord\runs\SETTLE-DELIVER-SMOKE-20261003_121934
+head=e43378248d1932dfd9fa954e2d8c4d438c0da02b
+git_status= M VitApp/Workspace/default_project.xml ;  M agent/internal/chat/audio_closure_controller.go ;  M agent/internal/chat/audition_events.go ;  M agent/webui/src/App.tsx ;  M agent/webui/src/messageLifecycle.ts ;  M agent/webui/src/trace/renderPlan.test.ts ;  M agent/webui/src/trace/renderPlan.ts ;  M agent/webui/src/trace/traceDelivery.ts ;  M agent/webui/src/trace/turnReceipts.test.ts ; ?? .zcodeignore ; ?? agent/internal/chat/judgment_settle_delivery_test.go ; ?? agent/webui/src/settleDelivery.test.ts ; ?? coord/runs/SETTLE-DELIVER-SMOKE-20261003_110730/ ; ?? coord/runs/SETTLE-DELIVER-SMOKE-20261003_111943/ ; ?? coord/runs/SETTLE-DELIVER-SMOKE-20261003_112607/ ; ?? coord/runs/SETTLE-DELIVER-SMOKE-20261003_113348/ ; ?? coord/runs/SETTLE-DELIVER-SMOKE-20261003_114223/ ; ?? coord/runs/SETTLE-DELIVER-SMOKE-20261003_115939/ ; ?? coord/runs/SETTLE-DELIVER-SMOKE-20261003_120857/ ; ?? scripts/settle_deliver_smoke.ps1
+port_free=7878
+port_free=5555
+port_free=5556
+agent_binary=D:\Vit_DAW\coord\runs\SETTLE-DELIVER-SMOKE-20261003_121934\bin\VitAgent.settledeliver.exe size=35283968 mtime=2026-10-03T12:19:35.9201310+08:00
+kernel_binary=D:\Vit_DAW\VitApp\build\VitApp_artefacts\Release\VitApp.exe size=30922752 mtime=2026-09-29T19:37:42.4930926+08:00
+repo_default_project_sha256_before=718AF65AEA9FA799CEE994909CBC712D59DAAED0EA1D587EFADF06689DC95295
+kernel_pid=3008
+agent_pid=5224
+s1_shadow_initialized=True track_count=6
+authority_mode=full_project_access
+chat1_goal=goal_2d3e57d4417bc92d status=waiting_continue stop=limit_reached
+judgment_http=ok
+fatal=persisted assistant conversation_message row for the settle report missing (rows=4)
+stopped_agent_pid=5224
+stopped_kernel_pid=3008
+port_released=7878
+port_released=5555
+port_released=5556
+repo_default_project_sha256_after=718AF65AEA9FA799CEE994909CBC712D59DAAED0EA1D587EFADF06689DC95295
+finished=2026-10-03T12:24:57.6591808+08:00

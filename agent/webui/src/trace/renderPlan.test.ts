@@ -68,8 +68,10 @@ describe("buildMessageStreamRenderPlan（GUI-1/G2：固化渲染顺序）", () =
     ] as AgentEvent[]);
     const plan = buildMessageStreamRenderPlan({ messages, trajectory, turnEventMeta: meta({ id: "run_1", itemActivityCount: 2 }) });
     const shape = plan.entries.map((entry) => entry.kind === "trace" ? `trace:${entry.turnId}` : "messages");
-    // 组内：用户消息条目 + 中间汇报条目（run_1 无轨迹 turn 记录不入块）；实验块为孤儿条目
-    expect(shape).toEqual(["messages", "messages", "trace:turn:fs_1"]);
+    // WEBUI-MSG-ORDER-3：无锚组不按 user/rest 切分，整组按 createdAt 保序
+    // （run_1 无轨迹 turn 记录不入块）；实验块为孤儿条目
+    expect(shape).toEqual(["messages", "trace:turn:fs_1"]);
+    expect(plan.entries[0].kind === "messages" && plan.entries[0].messages.map((message) => message.id)).toEqual(["u1", "a1"]);
     expect(plan.orphanTurnIds).toEqual(["turn:fs_1"]);
     expect(plan.chainResultMessages.map((message) => message.id)).toEqual(["agent_event_goal_chain_result"]);
   });

@@ -57,6 +57,47 @@ export function appendChainResultMessages(current: ChatMessage[], incoming: Chat
   return [...current, ...additions];
 }
 
+// SETTLE-DELIVER-1 症状 A（2026-10-03 手测取证，webui_murptx58 seq 37 后零消息投递）：
+// 判定结算确认是正式助手消息，不是回合活动行。judgment.settled（payload.
+// settlement_reply）经事件流到达时直接路由进 messages——GUI-F7 同语义（活动面
+// 不承载正式回复，且活动行在回合终局被清退）。消息身份沿用事件的
+// logical_message_id（judgment_settle:<evidence>，服务端持久化 vit 节点同键），
+// 水合孪生经 protocol identity keys 合并，不双份。
+export function settlementMessagesFromEvents(
+  events: AgentEvent[],
+  mode: string | undefined,
+  factory: (event: AgentEvent, mode?: string) => ChatMessage | null
+): ChatMessage[] {
+  const out: ChatMessage[] = [];
+  const seen = new Set<string>();
+  for (const event of events ?? []) {
+    if (String(event.type ?? "") !== "judgment.settled") {
+      continue;
+    }
+    const payload = (event.payload ?? {}) as Record<string, unknown>;
+    if (!payload.settlement_reply) {
+      continue;
+    }
+    const message = factory(event, mode);
+    if (!message) {
+      continue;
+    }
+    const logical = String(event.logical_message_id ?? "").trim();
+    const key = logical || message.id || message.source_id || "";
+    if (key && seen.has(key)) {
+      continue;
+    }
+    if (key) {
+      seen.add(key);
+    }
+    out.push({
+      ...message,
+      logical_message_id: message.logical_message_id || logical
+    });
+  }
+  return out;
+}
+
 // F3 面②：链终局到达是"链已收尾"的最早权威信号。忙态（agentTurnRunning）派生
 // 自 runtime status 的 goal/continuations 投影，只靠 8s 周期轮刷新时终局后停止
 // 按钮最长滞留 8s（B1 手测"stop=done 后转圈"的呈现面放大器）；轮询器据此谓词
