@@ -465,7 +465,7 @@ func (r *Runner) loop(ctx context.Context, state *runState) Result {
 			call = coerceMixObservationCall(state, call)
 			call = coerceMixTickPrimitiveCall(state, call)
 			if !allowedTool(call.Tool, state.input.AllowedTools) {
-				result := planner.ToolResult{ToolCallID: stableToolCallID(call, state.completedSteps+1), Tool: call.Tool, Status: "error", Error: "未知或不允许的工具：" + strings.TrimSpace(call.Tool)}
+				result := planner.ToolResult{ToolCallID: stableToolCallID(call, state.completedSteps+1), Tool: call.Tool, Status: "error", Error: toolAdmissionError(call)}
 				state.trace = append(state.trace,
 					planner.TraceEvent{Kind: "tool_call", ToolCall: &call},
 					planner.TraceEvent{Kind: "tool_result", ToolResult: &result},
@@ -944,6 +944,17 @@ func stableToolCallID(call planner.ToolCall, step int) string {
 		step = 1
 	}
 	return fmt.Sprintf("tool_step_%d", step)
+}
+
+// toolAdmissionError renders the admission rejection for a tool call. An
+// empty name must state its own cause: the REPLY-GEN-TOOLGATE-1 live failure
+// surfaced as "未知或不允许的工具：" with nothing after the colon, hiding
+// both the rejected shape and the missing-name diagnosis.
+func toolAdmissionError(call planner.ToolCall) string {
+	if name := strings.TrimSpace(call.Tool); name != "" {
+		return "未知或不允许的工具：" + name
+	}
+	return "模型返回的工具调用缺少工具名（tool 字段与 name 别名字段均为空），无法执行该调用"
 }
 
 func allowedTool(tool string, allowed []string) bool {
