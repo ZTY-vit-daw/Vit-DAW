@@ -10,6 +10,11 @@
   2. note 载荷 v2 已带 note_id（note_<id>，IMPL-B/C/D 链）——天然会话键。
   3. webui 无会话流侧边栏（用户反馈；历史界面分支/工作树机制为现路径）——**本卡不含 webui 侧**（侧边栏另卡，见 decision §2b）。
 - 目标：
+  **设计定稿追加（2026-10-03 用户裁定，实现相位按此）**（裁定见 [decisions/2026-10-03-session-naming-and-scope-context.md](../../decisions/2026-10-03-session-naming-and-scope-context.md)）：
+  - 目标 6 细化：便签流默认名=「便签 N<序号> · <面1> <x>% · <面2> <y>%」（faces[] 降序前两面，与图钉 tooltip 同源同文；空辖区=「便签 N<序号> · 空辖区」）；出生即命名、用户改名最高且持久（注册表 fail-open）、同 note 重开同名（note_id 键）；LLM 增强命名=二期不做。
+  - 目标 2 细化：辖区上下文=**身份+一级轻摘要**（轨名+clip 数+挂载插件名），细节按需查询（上下文给身份，工具查细节）。
+  - 验收追加项：便签问答**只走只读观察路径，零进 D1 治理链**（三号场"能力边界"拒绝=走错管线，实现后同问句必须得到辖区内容回答）。
+
   1. **取证先行（轻量）**：实锚 note 7878 问答的会话路由——当前 chat_* 会话 id 如何生成、与 webui 主流（webui_*）的呈现关系、note 问答为何出现在主流（回答：是同会话还是主流聚合渲染）；结论回写本卡。
   2. **agent 侧**：note 问答路由到独立会话——会话键=note_id（同一 note 重开延续同会话；收起/重开不清史）；主任务 goal 的 LLM 上下文不再注入 note 往返（观察问答 observe 语义隔离）；持久化兼容（AGENTS §11：新会话形态 fail-open，旧工程加载零破坏）。
   3. **Godot 侧**：note 面板内自含问答历史（消息列表+滚动，CONTAINER-2 的输出区基线上扩展）；note 关闭/删除=会话归档（可查，不入主流）。
@@ -21,5 +26,12 @@
 - 验收标准：四判据全过+回归全绿+持久化兼容测试+用户手测复验。
 - 停止条件：取证发现 note 会话已独立（仅主流聚合渲染问题）→ 修面改 webui 渲染，域变更上交裁定；会话架构改动触及历史图/worktree 语义 → 上交（超出本卡）。
 - 领取：2026-10-03 20:51 +0800 / Vit_DAW origin/main=aa3fe836（工作树另有 VitApp/Workspace/default_project.xml 改动+runs 工件，非本卡）/ Godot port/vitnote-container-4@a2930a7（切出点即卡面基线）/ 分支：Vit_DAW=port/vitnote-notestream-2（agent 腿，独立 worktree），Godot=port/vitnote-notestream-2（自 a2930a7 切出，独立 worktree）
+- 取证结论（2026-10-03 21:15，PC 执行侧，代码实锚，目标 1）：
+  1. **chat_* 生成**：`agent/internal/chat/server.go:2256-2259`——/agent/chat 载荷 conversation_id 空 → 服务端生成 `chat_+randomID()`；与 note_id 零关联（面板初始空、首答回包持有返回值）。
+  2. **与 webui_*（主流）呈现关系**：webui 新会话自成 `webui_<ts36>`（`webui/src/App.tsx:1181`）；但主流终局消息水合**不按会话 id 过滤**——`historyMessagesFromUIState` 从 `uiState.project_history.conversation_messages`（工程单图）取消息（App.tsx:10705，注释明言"终局消息的服务端图水合不受会话 id 影响"）。
+  3. **note 问答为何入主流（双重同向，回答=既同图又聚合渲染）**：①`handleChat` 对一切消息 `RecordConversationNodeForProject(projectPath,"ask"/"vit")`（server.go:2314/2347）——会话图按**工程单图**（conversation_graph.json）落盘，与 conversation_id 无关 → note 节点进主图（二/三号场实锚即此机制）；②webui 主流再从该图聚合水合 → 主流可见。
+  4. **误入治理链**：`beginChatGoal`（goalrunner_chat.go:32）把每条 /agent/chat 消息变 goal；面板 context 复用主控台组包（vit_note_manager.gd `get_agent_context`→`_build_agent_context`）→ contract_scope 取主控台选中轨（三号场 1007）；圈选快照 faces 根本不在载荷中。
+  5. **侧边栏未命名**：行=本地注册表+服务端 continuations hints 合并（webui/src/sessionFlow.ts）；note 的 chat_ff99… 经 durableContinuations 投影（continuation_scheduler.go:2222）冒出，title 空+本地消息桶空 → 「未命名会话」。
+  → **修面**：/agent/chat 增 note 载荷（note_id+run 戳 session 键+默认名+辖区 faces）→ note 会话模式：不走 beginChatGoal、不写工程单图、独立 note 会话库（`.vit_derived/<uuid>/note_sessions.json`，fail-open）；webui 侧边栏并 note 会话投影（带默认名+可改名+可查）。
 - 回执：（commit hash / 取证结论 / 判据 1-4 证据 / 回归结果）
 - 验收：（裁定文件 / 验收 commit）
