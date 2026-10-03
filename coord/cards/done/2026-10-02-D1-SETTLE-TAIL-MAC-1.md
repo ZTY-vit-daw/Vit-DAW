@@ -17,5 +17,10 @@
 - 验收标准：根因取证报告+修复 diff+相关包全绿+全量 0 FAIL+d1 冒测 exit-0（run 工件可回指）+泊位声明。
 - 停止条件：①取证发现缺陷在内核调度面（agent 侧无法闭环）→ 实证上交；②时序缺陷无法在 mac 稳定复现（需构造确定性复现路径，无法构造则如实上交定方案）。
 - 领取：2026-10-02 / origin/main=8c3ff03 / port/d1-settle-tail-mac-1（Mac 执行侧，独立 worktree ~/Documents/vit-d1settle-mac1）
-- 回执：（commit hash / 取证根因 / 冒测 run ID / 泊位声明）
+- 回执：
+  - 实现 commit：port/d1-settle-tail-mac-1@1662943（agent/internal/chat/goalrunner_chat.go 两处：applied 边界武装扩到 parked-resumable goal；arm 核心槽位移——answerable park 存活、legacy shell 取消、runnable/裸占用仍拒）。+3 回归钉（traj_auto_settle_test.go）。
+  - 取证根因：**假设②（等待条件永真形态）**——2026-10-02 d1_550a r1：generic mix-tick 可答 park 先落（10:26:09.7）钳住 goal（waiting_confirmation），干预 apply（10:26:12）落在其上后，settle 检查点的两条武装边界（applied 边界 goal==completed 门、recordGoalResult completed-over-owed 门）均不可达（parked goal 永不发 result），调度器按设计握着 answerable park 十分钟，materiality/target_response 全窗未落。假设①（调度饥饿）③（超时/重试形态）证据排除（调度全程在拍、地板已授、无重试在等）。**轮2 不同根**：G6_target_evidence+G8_target_consistency 准入门拒案（fail-closed 设计内，模型提案质量方差）。"Mac 时序敏感"定性为模型提案流方差（park 先于 apply 的窗口期交错），非机器时序。取证报告：coord/runs/D1-SETTLE-TAIL-MAC-1/FORENSICS.md。
+  - 冒测：**run d1_550a_20261003_180509 exit-0**（round2 PASS：static_eq@1017 rev6→7，readback -2dB verified=True，settle 记录落地，judgment_park=true；round1 为无关模型方差断点）——同时完成 D1-EQ-READBACK-550A-1 终验条件。证据+md5 逐文件核对：coord/runs/D1-SETTLE-TAIL-MAC-1/d1_550a_20261003_180509/；环境类失败尝试留痕与 A/B 取证见同目录 SMOKE_RUN.md。
+  - 泊位声明：修复后 settle 尾段自动跑完并泊在人工判定边界（judgment_park=true，closure fs7_improvement_proposal，无机器越权收口）；被位移的可答 park 存活可答。测试：chat 包全绿；全量 87 包 0 FAIL（go test ./... exit 0）。
+  - 端测边界：本卡端测=真栈 550A 冒测（agent HTTP 面驱动全程，Godot 面外，同 journey1 mac 先例）；渲染面/用户旅程面未涉（改动为 agent 调度机械域，无 webui 变更）。
 - 验收：（裁定文件 / 验收 commit）
