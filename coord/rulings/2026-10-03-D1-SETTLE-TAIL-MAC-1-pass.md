@@ -23,3 +23,7 @@
 - 原始工件目录 ~/Documents/vit-d1eq550a-artifacts/ 保留（回指锚）。
 - AUTH-RESTORE-LOGSPAM-1（池序 12，P3）仍在池——本卡取证再次实证其取证能见度代价（环形日志被刷出窗外），建议下轮发卡优先。
 - SMOKE_RUN.md 教训移交（代理 env 污染整栈/WaveShell1 探测余量）已在案，后续 Mac 冒测卡提示词注意。
+
+## PC 接收复核 concur（2026-10-03 PC 决策会话，独立验证后并入本裁定）
+
+PC 侧对同一卡独立完成验收四层（时间窗与 Mac 验收并行，rebase 收敛时合并）：cherry-pick 1662943 至含 PC 同域双修复（334d8f4 判定通道/d8b7e2d 结算投递+所有权门）的当前 main **零冲突**；三新钉 PASS；chat 全包 84.7s PASS；全仓 `go test -count=1` EXIT=0；SMOKE_RUN.md 诚实边界（特定交错由单测钉住、不冒认 run 内发生）亲读合格。结论与 Mac 裁定一致——**pass 维持**；PC 侧重复实现提交（d8ce072c）经 rebase 补丁去重自动跳过，以 Mac 链 cherry-pick（abc92402）为准。

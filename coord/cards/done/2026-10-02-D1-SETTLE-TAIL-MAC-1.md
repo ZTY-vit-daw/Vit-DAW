@@ -24,3 +24,4 @@
   - 泊位声明：修复后 settle 尾段自动跑完并泊在人工判定边界（judgment_park=true，closure fs7_improvement_proposal，无机器越权收口）；被位移的可答 park 存活可答。测试：chat 包全绿；全量 87 包 0 FAIL（go test ./... exit 0）。
   - 端测边界：本卡端测=真栈 550A 冒测（agent HTTP 面驱动全程，Godot 面外，同 journey1 mac 先例）；渲染面/用户旅程面未涉（改动为 agent 调度机械域，无 webui 变更）。
 - 验收：**pass**（2026-10-03 决策会话）——[rulings/2026-10-03-D1-SETTLE-TAIL-MAC-1-pass.md](../../rulings/2026-10-03-D1-SETTLE-TAIL-MAC-1-pass.md)：取证三假设分诊+修复 diff（武装门扩展/槽位移三分支/闩守卫沿用）+与 PC 同域修复（334d8f4/d8b7e2d）零文件交集正交性核对+我方复跑 87 包 0 FAIL+终验 run 亲读（round2 独立复核 applied/readback/judgment_park）；实现 1662943 cherry-pick 合 main；**D1-EQ-READBACK-550A-1 终验同场闭合（conditional 转正 pass）**。
+- **PC 接收复核 concur（2026-10-03 PC 决策会话，独立验证）**：cherry-pick 1662943 至含 334d8f4/d8b7e2d 的当前 main 零冲突；三新钉+chat 全包 84.7s+全仓 -count=1 EXIT=0（验证 worktree 亲跑）；SMOKE_RUN 诚实边界亲读合格。与 Mac 裁定独立得出一致结论，双会话验收采信。
