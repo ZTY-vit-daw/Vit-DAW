@@ -98,6 +98,7 @@ type Server struct {
 	mixTickAuditions                   map[string]*mixTickAuditionRecord
 	pendingTreatments                  map[string]agentloop.MixTreatmentPending
 	freeStateLoops                     map[string]freeStateReasoningLoop
+	noteSessionMu                      sync.Mutex
 	audioClosures                      *audioclosure.MemoryStore
 	controllerOwners                   *orchestrationcontroller.Registry
 	pendingManager                     *pendingmanager.MemoryManager
@@ -173,12 +174,15 @@ type projectAgentRuntimeState struct {
 }
 
 type ChatRequest struct {
-	ConversationID string         `json:"conversation_id"`
-	Message        string         `json:"message"`
-	Context        map[string]any `json:"context,omitempty"`
-	Attachments    []Attachment   `json:"attachments,omitempty"`
-	ArtifactRefs   []string       `json:"artifact_refs,omitempty"`
-	AuthorityMode  string         `json:"authority_mode,omitempty"`
+	ConversationID string `json:"conversation_id"`
+	Message        string `json:"message"`
+	// Note 非 nil 时进入 note 会话模式（VITNOTE-NOTESTREAM-2：每 note 独立会话流——
+	// 会话键=note_id/run 戳、不走治理链、不写工程单图、辖区上下文注入；见 note_sessions.go）。
+	Note          *NoteChatPayload `json:"note,omitempty"`
+	Context       map[string]any   `json:"context,omitempty"`
+	Attachments   []Attachment     `json:"attachments,omitempty"`
+	ArtifactRefs  []string         `json:"artifact_refs,omitempty"`
+	AuthorityMode string           `json:"authority_mode,omitempty"`
 }
 
 type Attachment struct {
@@ -557,6 +561,7 @@ func (s *Server) Routes() http.Handler {
 	mux.HandleFunc("/agent/ui/state", s.handleUIState)
 	mux.HandleFunc("/agent/ui/context", s.handleUIContext)
 	mux.HandleFunc("/agent/chat", s.handleChat)
+	mux.HandleFunc("/agent/note/archive", s.handleNoteArchive)
 	mux.HandleFunc("/agent/confirm", s.handleConfirm)
 	mux.HandleFunc("/agent/interaction/respond", s.handleInteractionRespond)
 	mux.HandleFunc("/agent/config", s.handleConfig)
@@ -702,6 +707,9 @@ func (s *Server) handleRuntimeStatus(w http.ResponseWriter, r *http.Request) {
 	defer shadowCancel()
 	goal := s.harness.RuntimeStatus("")
 	_, checkoutBlocked := s.harness.CheckoutBlocked()
+	// VITNOTE-NOTESTREAM-2：note 会话投影（webui 侧边栏会话流合并源——默认名+归档态+可查
+	// 历史；工程身份=当前活动工程，fail-open：无活动工程=空表）。
+	noteProjectPath, noteProjectUUID := s.harness.CurrentProjectIdentity(r.Context())
 	response := map[string]any{
 		"status":            "ok",
 		"service":           "VitAgent",
@@ -711,6 +719,7 @@ func (s *Server) handleRuntimeStatus(w http.ResponseWriter, r *http.Request) {
 		"shadow":            runtimeShadowStatus(s.harness.StateSummary(shadowCtx)),
 		"goal":              goal,
 		"continuations":     s.continuationRuntimeProjection(),
+		"note_sessions":     s.noteSessionRows(noteProjectPath, noteProjectUUID),
 		"capability_routes": s.capabilityRouteProjection(),
 		"authority_mode":    s.authorityModeSnapshot(),
 		"checkout_blocked":  checkoutBlocked,
@@ -2272,6 +2281,17 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 	}
 	projectPath := projectPathFromChatContext(req.Context)
 	agentMode := agentModeFromContext(req.Context)
+	// VITNOTE-NOTESTREAM-2：note 会话模式早分叉——载荷带 note 对象即离开主任务管线
+	//（不进 pending 确认/治理链/工程单图落盘/durable continuation/turn 事件），走独立
+	// note 会话（会话键=note_id/run 戳+辖区上下文注入，note_sessions.go）。
+	if req.Note != nil {
+		if strings.TrimSpace(req.Note.NoteID) == "" && strings.TrimSpace(req.Note.Session) == "" {
+			writeJSON(w, http.StatusBadRequest, map[string]any{"error": "note.note_id is required"})
+			return
+		}
+		s.handleNoteChatTurn(w, r, req, agentMode)
+		return
+	}
 	// Bind a plain-language proposal confirmation to the persisted interaction
 	// before beginChatGoal can perform semantic entry. The confirmation is a
 	// continuation of the existing Task, never a new natural-language task.

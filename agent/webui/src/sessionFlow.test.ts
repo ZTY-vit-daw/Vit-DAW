@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   loadSessionFlowCollapsed,
   loadSessionFlowRegistry,
+  noteSessionServerHints,
   renameSessionFlowEntry,
   saveSessionFlowCollapsed,
   saveSessionFlowRegistry,
@@ -10,6 +11,7 @@ import {
   setSessionFlowArchived,
   upsertSessionFlowEntry
 } from "./sessionFlow";
+import { noteSessionSeedMessages } from "./App";
 
 // WEBUI-IA-REDESIGN-1：会话流注册表单元钉。
 // 持久化兼容（AGENTS §11）是验收面之一：损坏 JSON/异形行/未知字段 fail-open，
@@ -177,5 +179,84 @@ describe("折叠态持久化", () => {
     expect(loadSessionFlowCollapsed()).toBe(true);
     saveSessionFlowCollapsed(false);
     expect(loadSessionFlowCollapsed()).toBe(false);
+  });
+});
+
+// VITNOTE-NOTESTREAM-2（目标 6）：note 会话提示——默认命名落侧边栏，不显示"未命名会话"。
+describe("note 会话提示与合并（NOTESTREAM-2）", () => {
+  const parts = { projectPath: "D:/proj/a.vit", rootProjectPath: "", projectUUID: "uuid-1" };
+  const noteRows = [
+    {
+      conversation_id: "note_r-abc-3",
+      note_id: "note_3",
+      title: "便签 N3 · 轨道时间线 72%",
+      archived: false,
+      updated_at: "2026-10-03T12:00:00Z",
+      project_path: "D:\\proj\\a.vit",
+      project_uuid: "uuid-1",
+      messages: [
+        { role: "user", content: "这个范围是什么内容？", created_at: "2026-10-03T11:59:00Z" },
+        { role: "assistant", content: "辖区包含 Bass 轨的 4 个 clip。", created_at: "2026-10-03T12:00:00Z" }
+      ]
+    },
+    {
+      conversation_id: "note_r-def-5",
+      title: "便签 N5 · 空辖区",
+      archived: true,
+      updated_at: "2026-10-03T13:00:00Z",
+      project_uuid: "UUID-1"
+    },
+    { conversation_id: "note_r-other", title: "他工程", updated_at: "2026-10-03T14:00:00Z", project_path: "D:/proj/b.vit" }
+  ];
+
+  it("noteSessionServerHints 按 scope 匹配并携带默认名+归档态", () => {
+    const hints = noteSessionServerHints(noteRows, parts);
+    expect(Array.from(hints.keys()).sort()).toEqual(["note_r-abc-3", "note_r-def-5"]);
+    expect(hints.get("note_r-abc-3")?.title).toBe("便签 N3 · 轨道时间线 72%");
+    expect(hints.get("note_r-abc-3")?.archived).toBe(false);
+    expect(hints.get("note_r-def-5")?.archived).toBe(true);
+  });
+
+  it("非数组/空 scope → 空提示（fail-open）", () => {
+    expect(noteSessionServerHints(null, parts).size).toBe(0);
+    expect(noteSessionServerHints(noteRows, { projectPath: "", rootProjectPath: "", projectUUID: "" }).size).toBe(0);
+  });
+
+  it("合并投影：note 行带默认名（不显未命名）+归档行入归档组；本地命名/归档仍权威", () => {
+    const hints = noteSessionServerHints(noteRows, parts);
+    const { visible, archived } = sessionFlowRows([], hints);
+    // 归档提示行（note 删除）进归档组，可见组只含未归档 note 行。
+    expect(visible.map((row) => row.conversationID)).toEqual(["note_r-abc-3"]);
+    expect(visible[0].title).toBe("便签 N3 · 轨道时间线 72%");
+    expect(visible[0].serverKnown).toBe(true);
+    expect(archived.map((row) => row.conversationID)).toEqual(["note_r-def-5"]);
+    expect(archived[0].title).toBe("便签 N5 · 空辖区");
+    // 本地已命名行不被服务端默认名覆写。
+    const local = [{ conversationID: "note_r-abc-3", title: "我的便签", createdAt: 1, updatedAt: 50, archived: false }];
+    const merged = sessionFlowRows(local, hints);
+    expect(merged.visible.find((row) => row.conversationID === "note_r-abc-3")?.title).toBe("我的便签");
+  });
+
+  it("rename 缺行补建：serverKnown note 行改名可落（注册表权威）", () => {
+    let entries: ReturnType<typeof renameSessionFlowEntry> = [];
+    entries = renameSessionFlowEntry(entries, "note_r-abc-3", "改名后的便签");
+    expect(entries).toHaveLength(1);
+    expect(entries[0].title).toBe("改名后的便签");
+    // 提示行 title 不覆写本地改名。
+    const hints = noteSessionServerHints(noteRows, parts);
+    const { visible } = sessionFlowRows(entries, hints);
+    const row = visible.find((candidate) => candidate.conversationID === "note_r-abc-3");
+    expect(row?.title).toBe("改名后的便签");
+  });
+
+  it("noteSessionSeedMessages 从投影行回放问答对；非 note 目标回落问候", () => {
+    const seeded = noteSessionSeedMessages("note_r-abc-3", noteRows as unknown as import("./types").JsonRecord[]);
+    expect(seeded).toHaveLength(2);
+    expect(seeded[0].role).toBe("user");
+    expect(seeded[0].content).toBe("这个范围是什么内容？");
+    expect(seeded[1].role).toBe("assistant");
+    // fail-open：无匹配行/异形消息回落 intro。
+    expect(noteSessionSeedMessages("note_unknown", noteRows as unknown as import("./types").JsonRecord[])).toHaveLength(1);
+    expect(noteSessionSeedMessages("note_r-def-5", noteRows as unknown as import("./types").JsonRecord[])).toHaveLength(1);
   });
 });
