@@ -17,6 +17,6 @@
 - 约束：不动判定/结算链（已实证工作）；worktree 纪律；泊位申报。
 - 验收标准：根因取证+RED→GREEN+全量 0 FAIL+真栈烟测 exit 0+用户手测复验。
 - 停止条件：空名调用源自 LLM 供应商面（模型输出本身）→ 取证上交定护栏方案；根因在观察工具注册表层之外（queryengine 域）→ 实锚上交扩域裁定。
-- 领取：（时间 / origin/main hash / 分支名）
+- 领取：（2026-10-03 20:20 二次领取（首领 19:55 的 mv 暂存被并行 VITNOTE-CONTAINER-4 领取提交误携后由 coord(fix) c04b39d5 归位 todo，本轮原子重领）/ origin/main=c04b39d51b5d5b4b9d5f1b02dc106c486c507d9e / main 工作树直做，PC 执行侧会话）
 - 回执：（commit hash / 实锚根因 / 红绿 / 烟测 run ID / 泊位声明）
 - 验收：（裁定文件 / 验收 commit）
