@@ -872,11 +872,22 @@ func (l *MessageLoop) executeMessageLoopToolCalls(ctx context.Context, r *Runner
 			return true, result
 		}
 		if !allowedTool(call.Tool, state.input.AllowedTools) {
-			result := planner.ToolResult{ToolCallID: stableToolCallID(call, state.completedSteps+1), Tool: call.Tool, Status: "error", Error: "未知或不允许的工具：" + strings.TrimSpace(call.Tool)}
+			result := planner.ToolResult{ToolCallID: stableToolCallID(call, state.completedSteps+1), Tool: call.Tool, Status: "error", Error: toolAdmissionError(call)}
 			state.trace = append(state.trace, planner.TraceEvent{Kind: "tool_call", ToolCall: &call}, planner.TraceEvent{Kind: "tool_result", ToolResult: &result})
 			state.consecutiveErrors++
 			appendMessageLoopToolResult(state)
 			if state.consecutiveErrors >= state.budget.MaxConsecutiveErrors {
+				// REPLY-GEN-TOOLGATE-1: admission exhaustion after a completed
+				// read-only observation must not kill the turn with a bare
+				// protocol error — the observation data is already collected.
+				// Contain the failure into this round's reply (materialized
+				// observation digest + the admission diagnostic), mirroring
+				// the transient-LLM-error observation fallback.
+				if reply, ok := messageLoopAdmissionExhaustionObservationReply(state, result.Error); ok {
+					state.pendingToolQueue = nil
+					state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: "tool admission exhausted after read-only mix observation; returned materialized observation fallback: " + result.Error})
+					return true, r.complete(state, reply)
+				}
 				return true, r.fail(state, errors.New(result.Error))
 			}
 			continue
@@ -1748,7 +1759,7 @@ func (l *MessageLoop) preflightStemsFolderImport(ctx context.Context, r *Runner,
 		return true, result
 	}
 	if !allowedTool(call.Tool, state.input.AllowedTools) {
-		result := planner.ToolResult{ToolCallID: call.ID, Tool: call.Tool, Status: "error", Error: "未知或不允许的工具：" + strings.TrimSpace(call.Tool)}
+		result := planner.ToolResult{ToolCallID: call.ID, Tool: call.Tool, Status: "error", Error: toolAdmissionError(call)}
 		state.trace = append(state.trace,
 			planner.TraceEvent{Kind: "tool_call", ToolCall: cloneToolCallPtr(call), Message: "deterministic stems import preflight"},
 			planner.TraceEvent{Kind: "tool_result", ToolResult: &result},
@@ -1787,7 +1798,7 @@ func (l *MessageLoop) preflightPendingSectionMarkersApply(ctx context.Context, r
 		return true, result
 	}
 	if !allowedTool(call.Tool, state.input.AllowedTools) {
-		result := planner.ToolResult{ToolCallID: call.ID, Tool: call.Tool, Status: "error", Error: "未知或不允许的工具：" + strings.TrimSpace(call.Tool)}
+		result := planner.ToolResult{ToolCallID: call.ID, Tool: call.Tool, Status: "error", Error: toolAdmissionError(call)}
 		state.trace = append(state.trace,
 			planner.TraceEvent{Kind: "tool_call", ToolCall: cloneToolCallPtr(call), Message: "deterministic A5 section marker apply"},
 			planner.TraceEvent{Kind: "tool_result", ToolResult: &result},
@@ -2531,7 +2542,7 @@ func (l *MessageLoop) preflightNaturalMixObservation(ctx context.Context, r *Run
 	}
 	call := messageLoopDeterministicMixObservationCall(state)
 	if !allowedTool(call.Tool, state.input.AllowedTools) {
-		result := planner.ToolResult{ToolCallID: call.ID, Tool: call.Tool, Status: "error", Error: "未知或不允许的工具：" + strings.TrimSpace(call.Tool)}
+		result := planner.ToolResult{ToolCallID: call.ID, Tool: call.Tool, Status: "error", Error: toolAdmissionError(call)}
 		state.trace = append(state.trace,
 			planner.TraceEvent{Kind: "tool_call", ToolCall: cloneToolCallPtr(call), Message: "deterministic mix observation preflight"},
 			planner.TraceEvent{Kind: "tool_result", ToolResult: &result},
@@ -7078,6 +7089,40 @@ func messageLoopObservationFallbackAfterLLMError(state *runState, err error) (st
 		return question, true, true
 	}
 	return messageLoopMixObservationFinalReply(state, reply), false, true
+}
+
+// messageLoopAdmissionExhaustionObservationReply contains the tool-admission
+// exhaustion failure into this round's reply when the turn already collected
+// a usable read-only mix observation: the user receives the materialized
+// observation digest plus the admission diagnostic (which names the rejected
+// tool or states the missing-name cause) instead of a bare protocol-failure
+// error node. Eligibility mirrors messageLoopObservationFallbackEligible
+// minus the transient-LLM-error gate (REPLY-GEN-TOOLGATE-1 live shape).
+func messageLoopAdmissionExhaustionObservationReply(state *runState, admissionError string) (string, bool) {
+	if state == nil || !messageLoopHasMixObservationExecution(state) || !messageLoopHasUsableMixObservation(state) {
+		return "", false
+	}
+	if !messageLoopNaturalMixRequest(state.input.UserText) && !messageLoopAudioObservationRequest(state.input.UserText) {
+		return "", false
+	}
+	if messageLoopExplicitMixExecutionConfirmation(state.input.UserText) {
+		return "", false
+	}
+	for _, record := range state.executed {
+		if !messageLoopExecutionSucceeded(record) {
+			continue
+		}
+		name := strings.ToLower(strings.TrimSpace(firstNonEmpty(messageLoopText(record["tool"]), messageLoopText(record["command_name"]))))
+		if messageLoopReadOnlyObservationFallbackTool(name) {
+			continue
+		}
+		return "", false
+	}
+	reply := messageLoopMaterializedObservationFallbackReply(state)
+	if strings.TrimSpace(reply) == "" {
+		return "", false
+	}
+	return messageLoopMixObservationFinalReply(state, reply) + "\n\n注：本轮最终模型回复生成未完成（" + admissionError + "），以上为已采集观察数据的确定性摘要。", true
 }
 
 func messageLoopObservationFallbackEligible(state *runState, err error) bool {

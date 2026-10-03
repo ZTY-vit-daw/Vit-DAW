@@ -21,6 +21,38 @@ type ToolCall struct {
 	PlanItemID string         `json:"plan_item_id,omitempty"`
 }
 
+// UnmarshalJSON keeps the canonical wire names (tool/args) and additionally
+// accepts the OpenAI-style aliases name/arguments when the canonical fields
+// are absent. REPLY-GEN-TOOLGATE-1 live trace: a repair pass returned
+// {"tool_calls":[{"name":"mix.read","arguments":{...}}]} — without the alias
+// fallback the name silently decodes empty and the call dies at tool
+// admission as a nameless "未知或不允许的工具：".
+func (c *ToolCall) UnmarshalJSON(data []byte) error {
+	type toolCallJSON ToolCall
+	var wire toolCallJSON
+	if err := json.Unmarshal(data, &wire); err != nil {
+		return err
+	}
+	*c = ToolCall(wire)
+	if strings.TrimSpace(c.Tool) != "" && c.Args != nil {
+		return nil
+	}
+	var alias struct {
+		Name      string         `json:"name"`
+		Arguments map[string]any `json:"arguments"`
+	}
+	if err := json.Unmarshal(data, &alias); err != nil {
+		return nil
+	}
+	if strings.TrimSpace(c.Tool) == "" {
+		c.Tool = strings.TrimSpace(alias.Name)
+	}
+	if c.Args == nil {
+		c.Args = alias.Arguments
+	}
+	return nil
+}
+
 type ToolResult struct {
 	ToolCallID string         `json:"tool_call_id,omitempty"`
 	Tool       string         `json:"tool,omitempty"`
