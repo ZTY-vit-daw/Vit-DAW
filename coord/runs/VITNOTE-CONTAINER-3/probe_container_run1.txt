@@ -1,0 +1,125 @@
+Initialize godot-rust (API v4.5.stable.official, runtime v4.6.1.stable.official, safeguards balanced)
+[VulkanHook/Windows] Installing vkCreateDevice hook...
+[VulkanHook/Windows] Hook installed successfully
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+[probe] VITNOTE-CONTAINER-3 container suite start
+[probe] PASS spawn two notes via open_note
+[probe] PASS note ids distinct and incremented
+[probe] PASS manager in vit_floating_interactive group
+[probe] PASS panel root A in vit_floating_interactive group
+[probe] PASS panel root B in vit_floating_interactive group
+[probe] PASS panel root mouse_filter not IGNORE (body hit premise)
+[probe] PASS panel base is Panel (not PanelContainer)
+[probe] PASS layout root present
+[probe] PASS header is first layout child
+[probe] PASS input row is last layout child (pinned bottom)
+[probe] PASS output scroll between header and input row
+[probe] PASS header mouse_filter STOP (whole-bar drag retained)
+[probe] PASS summary label IGNORE (click-through to header)
+[probe] PASS grip button kept as visual hint in header
+[probe] PASS input box and send button in bottom row
+[probe] PASS eight resize handles are direct panel children
+[probe] PASS legacy ResizeHandle node retired
+[probe] PASS legacy anchor dot retired (pin tray era)
+[probe] PASS drag latch on _begin_drag
+[probe] PASS drag latch off _end_drag
+[probe] PASS drag latch on header press
+[probe] PASS drag latch off header release
+[probe] PASS collapse clears drag latch (no dangling drag)
+[probe] PASS collapse clears resize latch (no dangling resize)
+[probe] PASS pos clamp negative coords to margin
+[probe] PASS pos clamp beyond bottom-right
+[probe] PASS pos in-range passthrough
+[probe] PASS pos clamp degenerate elem larger than viewport stays at margin
+[probe] PASS handle rect matches static table (1, 0)
+[probe] PASS handle inside panel rect (1, 0)
+[probe] PASS handle rect matches static table (-1, 0)
+[probe] PASS handle inside panel rect (-1, 0)
+[probe] PASS handle rect matches static table (0, 1)
+[probe] PASS handle inside panel rect (0, 1)
+[probe] PASS handle rect matches static table (0, -1)
+[probe] PASS handle inside panel rect (0, -1)
+[probe] PASS handle rect matches static table (1, 1)
+[probe] PASS handle inside panel rect (1, 1)
+[probe] PASS handle rect matches static table (-1, 1)
+[probe] PASS handle inside panel rect (-1, 1)
+[probe] PASS handle rect matches static table (1, -1)
+[probe] PASS handle inside panel rect (1, -1)
+[probe] PASS handle rect matches static table (-1, -1)
+[probe] PASS handle inside panel rect (-1, -1)
+[probe] PASS edge handle hit thickness 8px (N)
+[probe] PASS edge handle hit thickness 8px (E)
+[probe] PASS corner handle hit 12x12 (SE)
+[probe] PASS cursor E is HSIZE
+[probe] PASS cursor W is HSIZE
+[probe] PASS cursor S is VSIZE
+[probe] PASS cursor N is VSIZE
+[probe] PASS cursor SE is FDIAG
+[probe] PASS cursor NW is FDIAG
+[probe] PASS cursor NE is BDIAG
+[probe] PASS cursor SW is BDIAG
+[probe] PASS handle node cursor matches mapping (SE)
+[probe] PASS handle mouse_filter STOP
+[probe] PASS resize latch on edge handle press (E)
+[probe] PASS resize latch off edge handle release
+[probe] PASS resize latch on corner handle press (SE)
+[probe] PASS resize latch off corner handle release
+[probe] PASS edge E passthrough
+[probe] PASS edge E clamps to min width
+[probe] PASS edge E clamps to viewport edge
+[probe] PASS edge E leaves other axis untouched
+[probe] PASS edge W passthrough moves left edge
+[probe] PASS edge W clamps to min width (right edge fixed)
+[probe] PASS edge W clamps to viewport left margin
+[probe] PASS edge S passthrough
+[probe] PASS edge S clamps to min height
+[probe] PASS edge N passthrough moves top edge
+[probe] FAIL edge N clamps to min height (bottom fixed) | expected=[P: (100.0, 60.0), S: (400.0, 300.0)] got=[P: (100.0, 100.0), S: (400.0, 300.0)]
+[probe] PASS corner SE identity at drag-start diagonal
+[probe] PASS corner SE y-boundary truncates x by same ratio
+[probe] PASS corner truncation preserves aspect ratio
+[probe] PASS corner SE min clamp keeps ratio
+[probe] PASS corner min clamp preserves aspect ratio
+[probe] PASS corner NW keeps opposite anchor (end fixed)
+[probe] PASS corner NW preserves aspect ratio
+[probe] PASS corner NE anchor rule (x from anchor, y anchored bottom)
+[probe] PASS corner NE preserves aspect ratio
+[probe] PASS pin tray present and initially hidden
+[probe] PASS pin tray bottom-docked (bottom anchors)
+[probe] PASS pin tray horizontal scroll enabled
+[probe] PASS collapse shows pin tray
+[probe] PASS collapsed panel A gets a pin
+[probe] PASS pin abbreviation is index + first face
+[probe] PASS pin tooltip carries full summary
+[probe] PASS pin min height >= 22px
+[probe] PASS pin lives inside tray subtree
+[probe] PASS collapsed panel B gets a pin
+[probe] PASS pin order is note creation order
+[probe] PASS in-place pin click reopens panel B
+[probe] PASS reopen removes pin from tray
+[probe] PASS tray stays visible while other pins remain
+[probe] PASS reopen registers scope highlight fade
+[probe] PASS re-collapse re-adds pin
+[probe] PASS pin order still creation order after re-collapse
+[probe] PASS dragged pin does not reopen (no-op)
+[probe] PASS dragged pin zero displacement
+[probe] PASS dragged pin tray order unchanged
+[probe] PASS hovering pin peeks collapsed scope
+[probe] PASS leaving pin ends scope peek
+[probe] PASS scope overlay present
+[probe] PASS scope overlay IGNORE (zero gesture grab)
+[probe] PASS scope overlay full rect
+[probe] PASS expanded note visible in scope set
+[probe] PASS collapsed note hidden from scope set
+[probe] PASS circle select layer stays first child
+[probe] PASS scope overlay precedes note panels
+[probe] PASS pin tray precedes note panels
+[probe] PASS right-click pin removes note from manager set
+[probe] PASS deleted note pin removed from tray
+[probe] PASS tray visible while one pin remains
+[probe] PASS last pin delete empties and hides tray
+[probe] PASS deleted panels freed after frames
+[probe] ---- summary ----
+[probe] checks=116 failed=1
+[probe] PROBE FAIL
