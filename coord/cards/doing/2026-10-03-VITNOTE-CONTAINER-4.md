@@ -17,6 +17,6 @@
 - 约束：不动 main；headless 探针不占端口；与 NOTESTREAM-2 Godot 腿串行（本卡先——同文件域）。
 - 验收标准：目标 1-3 落地+探针/回归全绿+用户手测复验。
 - 停止条件：资料库面板结构不容新列（需动 dock/抽屉架构）→ 上交裁定；图钉半透明与 overlay 渲染层耦合超预期 → 方案上交。
-- 领取：（时间 / 基线 hash / 分支名）
+- 领取：2026-10-03 19:53 PC 执行侧（ZCode GLM-5.3）/ Vit-DAW 仓 origin/main=48ee12c28afc486b8a9a1a25289220e1a47a679a / Godot 仓 port/vitnote-container-4 自 port/vitnote-container-3@82635c1 切出
 - 回执：（commit hash / 实锚申报 / 探针结果 / 前后截图）
 - 验收：（裁定文件 / 验收 commit）
