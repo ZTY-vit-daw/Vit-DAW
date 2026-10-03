@@ -9,6 +9,7 @@ import {
   saveSessionFlowRegistry,
   sessionFlowRows,
   sessionFlowServerHints,
+  noteSessionServerHints,
   setSessionFlowArchived,
   upsertSessionFlowEntry,
   type SessionFlowEntry
@@ -16,16 +17,19 @@ import {
 
 // WEBUI-IA-REDESIGN-1：左列会话流侧边栏（替换原 Ask Vit 模式轨）。
 // 用户裁定：轻量会话操作（新建/切换/重命名/归档/折叠），会话键=conversation id，
-// 不建工作树不建分支（工程级深操作在历史界面）；note 流不进侧边栏
-//（NOTESTREAM-2 契约：note 自含面板）。展示编号=纯线性数字（1/2/3…，无前缀
-// 无哈希，STATUSBAR-ID-1 同裁定），完整会话 id 不上 UI，调试走 DOM/网络面板
+// 不建工作树不建分支（工程级深操作在历史界面）。展示编号=纯线性数字（1/2/3…，
+// 无前缀无哈希，STATUSBAR-ID-1 同裁定），完整会话 id 不上 UI，调试走 DOM/网络面板
 //（行节点保留 data-conversation-id 属性=零成本 DOM 查询面）。
+// VITNOTE-NOTESTREAM-2（2026-10-03 命名裁定取代 IA 期"note 流不入侧边栏"意见）：
+// note 会话经 note_sessions 服务端提示入侧边栏——服务端默认名（「便签 N3 · 时间线
+// 55% · 机架 30%」式）随行，本地可改名（注册表权威）；note 删除=行转归档组。
 
 export function SessionFlowSidebar({
   scopeKey,
   scopeParts,
   currentConversationID,
   continuations,
+  noteSessions,
   settingsOpen,
   onNewConversation,
   onSwitchConversation,
@@ -36,6 +40,8 @@ export function SessionFlowSidebar({
   scopeParts: HistoryScopeParts;
   currentConversationID: string;
   continuations: unknown;
+  /** VITNOTE-NOTESTREAM-2：/agent/runtime/status note_sessions 投影（note 会话提示源） */
+  noteSessions: unknown;
   settingsOpen: boolean;
   onNewConversation: () => void;
   onSwitchConversation: (conversationID: string) => void;
@@ -72,12 +78,21 @@ export function SessionFlowSidebar({
 
   const serverHints = useMemo(
     () =>
-      sessionFlowServerHints(continuations, {
-        projectPath: scopeParts.projectPath,
-        rootProjectPath: scopeParts.rootProjectPath,
-        projectUUID: scopeParts.projectUUID
-      }),
-    [continuations, scopeParts.projectPath, scopeParts.rootProjectPath, scopeParts.projectUUID]
+      // VITNOTE-NOTESTREAM-2：note 会话提示叠加在 continuations 提示上（键空间不相交：
+      // note 会话 id 恒 note_ 前缀；note 行带默认名+归档态，见 sessionFlow.ts 合并注释）。
+      new Map([
+        ...sessionFlowServerHints(continuations, {
+          projectPath: scopeParts.projectPath,
+          rootProjectPath: scopeParts.rootProjectPath,
+          projectUUID: scopeParts.projectUUID
+        }),
+        ...noteSessionServerHints(noteSessions, {
+          projectPath: scopeParts.projectPath,
+          rootProjectPath: scopeParts.rootProjectPath,
+          projectUUID: scopeParts.projectUUID
+        })
+      ]),
+    [continuations, noteSessions, scopeParts.projectPath, scopeParts.rootProjectPath, scopeParts.projectUUID]
   );
   const { visible, archived } = useMemo(() => sessionFlowRows(entries, serverHints), [entries, serverHints]);
 

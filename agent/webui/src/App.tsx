@@ -1197,6 +1197,9 @@ function App() {
   //（scope 暂停+锚定改写+瞬态清空），目标会话的消息由既有恢复效应从本地桶水合、
   // 轨迹块由 [conversationID] 效应重放 /agent/events 重建。不建工作树/分支：
   // 会话键=conversation id，工程级深操作仍在历史界面。
+  // VITNOTE-NOTESTREAM-2：切到 note 会话（note_ 前缀）时本地桶无消息（note 问答不经
+  // webui 发送），改由 note_sessions 投影行种子消息——note 删除=归档可查（判据面：
+  // 不入主流，但侧边栏可回看）。
   const handleSwitchConversation = (targetConversationID: string) => {
     const target = targetConversationID.trim();
     if (!target || target === conversationID) {
@@ -1210,7 +1213,7 @@ function App() {
       saveStoredScopedConversationID(currentScope, target);
     }
     setConversationID(target);
-    setMessages([{ ...initialMessage, id: uniqueID("intro"), createdAt: Date.now() }]);
+    setMessages(noteSessionSeedMessages(target, runtimeStatus?.note_sessions));
     setActivities([]);
     setPendingArtifacts([]);
     setPendingMacroRefs([]);
@@ -1739,6 +1742,7 @@ function App() {
           scopeParts={historyScopePartsFromUIState(uiState)}
           currentConversationID={conversationID}
           continuations={runtimeStatus?.continuations}
+          noteSessions={runtimeStatus?.note_sessions}
           settingsOpen={settingsOpen}
           onNewConversation={handleNewConversation}
           onSwitchConversation={handleSwitchConversation}
@@ -10700,6 +10704,40 @@ function chatMessageStatusFromStored(value: unknown): ChatMessage["status"] {
     return status;
   }
   return "sent";
+}
+
+// VITNOTE-NOTESTREAM-2：切换到 note 会话时的消息种子——note 问答不经 webui 发送
+//（本地桶无消息、/agent/events 无轨迹），从 note_sessions 投影行回放问答对；非
+// note 会话/无投影行回落常规开机问候（既有恢复效应接管）。fail-open：异形行按空处理。
+export function noteSessionSeedMessages(targetConversationID: string, noteSessions: JsonRecord[] | undefined): ChatMessage[] {
+  const intro = () => [{ ...initialMessage, id: uniqueID("intro"), createdAt: Date.now() }];
+  const target = targetConversationID.trim();
+  if (!target || !Array.isArray(noteSessions)) {
+    return intro();
+  }
+  const row = noteSessions.find((candidate) => textValue(candidate.conversation_id, "") === target);
+  if (!row) {
+    return intro();
+  }
+  const messages: ChatMessage[] = [];
+  for (const raw of firstArray(row.messages)) {
+    const record = asRecord(raw);
+    const content = textValue(record.content ?? record.text, "");
+    const roleText = textValue(record.role, "").toLowerCase();
+    if (!content || (roleText !== "user" && roleText !== "assistant")) {
+      continue;
+    }
+    const created = Date.parse(textValue(record.created_at, ""));
+    messages.push({
+      id: uniqueID("vitnote"),
+      role: roleText === "user" ? "user" : "assistant",
+      content,
+      createdAt: Number.isFinite(created) ? created : Date.now(),
+      lifecycle: "durable",
+      persistence: "project_history"
+    });
+  }
+  return messages.length > 0 ? messages : intro();
 }
 
 function historyMessagesFromUIState(uiState: AgentUIState | null): ChatMessage[] {

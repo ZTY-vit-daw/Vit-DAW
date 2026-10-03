@@ -35,6 +35,9 @@ export interface RuntimeStatusResponse {
   checkout_blocked?: boolean;
   task_trajectory?: TaskRuntimeTrajectory;
   continuations?: RuntimeContinuation[];
+  /** VITNOTE-NOTESTREAM-2：note 会话投影行（conversation_id/note_id/title/archived/
+   * messages/project_path/project_uuid——侧边栏 note 流命名与回查数据源）。 */
+  note_sessions?: JsonRecord[];
 }
 
 export interface RuntimeContinuation {

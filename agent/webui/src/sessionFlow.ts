@@ -141,9 +141,20 @@ export function upsertSessionFlowEntry(
   return next;
 }
 
+/** 改名：本地行改写；无本地行的会话（VITNOTE-NOTESTREAM-2：note 会话等 serverKnown 行）
+ * 补建本地行使改名可落——注册表权威语义下这是 hint 行可改名的唯一通路。 */
 export function renameSessionFlowEntry(entries: SessionFlowEntry[], conversationID: string, title: string): SessionFlowEntry[] {
+  const cleanID = conversationID.trim();
   const cleanTitle = title.trim().slice(0, 120);
-  return entries.map((entry) => (entry.conversationID === conversationID ? { ...entry, title: cleanTitle } : entry));
+  if (!cleanID) {
+    return entries;
+  }
+  const found = entries.some((entry) => entry.conversationID === cleanID);
+  if (found) {
+    return entries.map((entry) => (entry.conversationID === cleanID ? { ...entry, title: cleanTitle } : entry));
+  }
+  const now = Date.now();
+  return [...entries, { conversationID: cleanID, title: cleanTitle, createdAt: now, updatedAt: now, archived: false }];
 }
 
 export function setSessionFlowArchived(entries: SessionFlowEntry[], conversationID: string, archived: boolean): SessionFlowEntry[] {
@@ -154,6 +165,11 @@ export interface SessionFlowServerHint {
   conversationID: string;
   updatedAt: number;
   intent: string;
+  /** VITNOTE-NOTESTREAM-2：note 会话投影携带服务端默认命名（「便签·轨道时间线 72%」式）；
+   * continuations 提示无此字段（undefined=沿用未命名推导，行为不变）。 */
+  title?: string;
+  /** note 会话归档态（note 删除=会话归档）；undefined=非 note 源，不参与合并。 */
+  archived?: boolean;
 }
 
 function normalizePath(value: unknown): string {
@@ -206,9 +222,58 @@ export function sessionFlowServerHints(continuations: unknown, parts: SessionFlo
 }
 
 /**
+ * VITNOTE-NOTESTREAM-2（目标 6）：/agent/runtime/status note_sessions 投影 → 本 scope
+ * 的 note 会话提示。匹配口径与 sessionFlowServerHints 同源（project_path 或
+ * project_uuid 命中）；每行带服务端默认名（webui 侧不显示"未命名会话"）与归档态。
+ */
+export function noteSessionServerHints(noteSessions: unknown, parts: SessionFlowScopeParts): Map<string, SessionFlowServerHint> {
+  const hints = new Map<string, SessionFlowServerHint>();
+  if (!Array.isArray(noteSessions)) {
+    return hints;
+  }
+  const scopePath = normalizePath(parts.projectPath || parts.rootProjectPath);
+  const scopeUUID = parts.projectUUID.trim().toLowerCase();
+  if (!scopePath && !scopeUUID) {
+    return hints;
+  }
+  for (const raw of noteSessions) {
+    if (!raw || typeof raw !== "object") {
+      continue;
+    }
+    const row = raw as Record<string, unknown>;
+    const conversationID = textOf(row.conversation_id);
+    if (!conversationID) {
+      continue;
+    }
+    const rowPath = normalizePath(row.project_path);
+    const rowUUID = textOf(row.project_uuid).toLowerCase();
+    const matched = (scopePath !== "" && rowPath === scopePath) || (scopeUUID !== "" && rowUUID === scopeUUID);
+    if (!matched) {
+      continue;
+    }
+    const parsed = Date.parse(textOf(row.updated_at));
+    const updatedAt = Number.isFinite(parsed) ? parsed : 0;
+    const existing = hints.get(conversationID);
+    if (!existing || updatedAt >= existing.updatedAt) {
+      hints.set(conversationID, {
+        conversationID,
+        updatedAt: Math.max(updatedAt, existing?.updatedAt ?? 0),
+        intent: "",
+        title: textOf(row.title),
+        archived: row.archived === true
+      });
+    }
+  }
+  return hints;
+}
+
+/**
  * 合并投影：注册表为展示权威（标题/归档/创建时间），服务端提示补充本浏览器
  * 未见过的会话并刷新 updatedAt（取两侧较大值）。输出按 updatedAt 降序（同刻
  * 按 conversationID 决胜，选择只由数据决定），可见行赋纯线性编号 1/2/3…。
+ * VITNOTE-NOTESTREAM-2：提示行携带 title 时（note 会话）作为默认名兜底——本地
+ * 未命名且未改名前显示服务端默认名，本地命名/改名后本地权威；note 归档提示只
+ * 影响无本地行时的初值（本地归档操作仍权威）。
  */
 export function sessionFlowRows(
   entries: SessionFlowEntry[],
@@ -223,13 +288,18 @@ export function sessionFlowRows(
     if (!existing) {
       byID.set(conversationID, {
         conversationID,
-        title: "",
+        title: hint.title ?? "",
         createdAt: hint.updatedAt,
         updatedAt: hint.updatedAt,
-        archived: false
+        archived: hint.archived === true
       });
-    } else if (hint.updatedAt > existing.updatedAt) {
-      byID.set(conversationID, { ...existing, updatedAt: hint.updatedAt });
+    } else {
+      if (existing.title === "" && hint.title) {
+        existing.title = hint.title;
+      }
+      if (hint.updatedAt > existing.updatedAt) {
+        existing.updatedAt = hint.updatedAt;
+      }
     }
   }
   const merged = Array.from(byID.values()).sort((left, right) => {
