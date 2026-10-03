@@ -1,0 +1,32 @@
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+SCRIPT ERROR: Parse Error: Identifier "VitWaveformReader" not declared in the current scope.
+   at: GDScript::reload (res://app/kernel/autoloads/telemetry_manager.gd:171)
+ERROR: Failed to load script "res://app/kernel/autoloads/telemetry_manager.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript.cpp:2907)
+ERROR: Failed to instantiate an autoload, script 'res://app/kernel/autoloads/telemetry_manager.gd' does not inherit from 'Node'.
+   at: start (main/main.cpp:4407)
+[probe] VITNOTE-NOTESTREAM-2 note session suite start
+[probe] PASS default title two faces top-2 desc
+[probe] PASS default title single face
+[probe] PASS default title empty jurisdiction
+[probe] PASS default title label fallback chain
+[probe] PASS default title skips malformed faces
+[probe] PASS note ids keep note_N display form
+[probe] PASS session keys run-stamp form
+[probe] PASS session keys unique per note
+[probe] PASS panel default title preseeded from ruling template
+[probe] PASS session key stable across collapse/reopen
+[probe] PASS note payload carries note_id
+[probe] PASS note payload carries session key
+[probe] PASS note payload carries default title
+[probe] PASS note payload echoes snapshot faces
+[probe] PASS panel no longer collects main console context
+[probe] PASS manager no longer supplies main console context
+[probe] PASS manager chat controller finder retired
+[probe] PASS panel history survives collapse/reopen
+[probe] PASS archive payload conversation id is note_<session_key>
+[probe] PASS archive payload carries note identity
+[probe] PASS remove_note clears note set
+[probe] ---- summary ----
+[probe] checks=21 failed=0
