@@ -28,4 +28,5 @@
   - **自验清单（用户手测复验项）**：1) 打开态：标题栏空白处长按拖动整面板（含摘要文本区），⠿/收起/输入/发送各自交互不受扰；2) 右下角把手缩放（光标变斜箭头；不小于 ~340×300、不出屏）；3) 输入框常驻底部、输出区内容多时滚动；4) 收起→锚点：单击重开、按住拖动只挪位置、右键即删（无确认无回收站——删除不可恢复请用测试 note）；5) 多 note 并存互不干扰；6) Q 圈选→胶囊→开便签链路照常；7) 面板压在时间线上方时画布 marquee/右键菜单照常（防抢不扩大到面板外）；8) IME 中文输入照常。
   - **运行栈状态声明**：本卡全程未启动真实运行栈（VitApp 内核/Godot 完整前端应用/Go agent 三件套均未运行）；仅 Godot `--headless -s` 探针与窗口模式截图脚本（Script 模式加载 dock 场景取证，先例=probe_vitnote_input）；无残留进程、无端口占用；两仓工作树除本卡 diff 外无其他改动（Godot 仓未跟踪运行时目录未动）。
   - **端测覆盖边界（AGENTS.md §5）**：渲染面/交互手感/IME 实输在 headless 不可判（探针 NOTE 自声明），按卡面约定归用户手测复验；闩位/钳制数值/结构不变量已由 43 项探针锁定。
-- 验收：**conditional pass（2026-10-02 决策会话 gate 轮；用户手测复验 8 项留待合并手测场）**——[rulings/2026-10-02-VITNOTE-CONTAINER-2-conditional.md](../../rulings/2026-10-02-VITNOTE-CONTAINER-2-conditional.md)；router 最小侵入+基类变更申报采信+我方复跑（container 43/43+四回归+import 零错误）+legacy EXIT=2 基线对照归因在档；NOTESTREAM-2 Godot 腿自此切出
+- 验收：**conditional pass（2026-10-02 决策会话 gate 轮；用户手测复验 8 项留待合并手测场）**
+- **转正 pass（2026-10-03 三号场，容器族链式转正）**：功能面三轮累计覆盖（标题栏拖动/把手拉伸/收起重开/多 note/圈选链/IME），后续形态演进归 CONTAINER-3/4；证据 [runs/MANUAL-TEST3-20261003/FORENSIC.md](../../runs/MANUAL-TEST3-20261003/FORENSIC.md)——[rulings/2026-10-02-VITNOTE-CONTAINER-2-conditional.md](../../rulings/2026-10-02-VITNOTE-CONTAINER-2-conditional.md)；router 最小侵入+基类变更申报采信+我方复跑（container 43/43+四回归+import 零错误）+legacy EXIT=2 基线对照归因在档；NOTESTREAM-2 Godot 腿自此切出

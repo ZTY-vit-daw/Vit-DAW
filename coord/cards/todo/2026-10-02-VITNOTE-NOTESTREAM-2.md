@@ -6,6 +6,7 @@
 - 已核实事实：
   1. 现状：note Q&A 经 manager `get_agent_context`（F7）→主控台组包→7878；用户实测 note 问答往返出现在 webui 主对话流（chat_* 会话与主流呈现关系待实锚——2026-10-02 晚 note 会话=chat_0313eaa025726d04）。
   2. **手测二号实锚追加（2026-10-03 晚，取证见 [runs/MANUAL-TEST2-20261003/FORENSIC.md](../../runs/MANUAL-TEST2-20261003/FORENSIC.md)）**：note"hi"问答落进**主会话图同一 session graph**（draft_20261003T113402 八节点全量，ask n_113827/assistant n_113832）——"note 入主流"直接实证；webui 侧边栏新会话条目显示报错+未命名的机制（localStorage sessionFlow 注册表）归本卡相位 1+SESSION-SEMANTICS 取证。
+  3. **手测三号场实锚（2026-10-03 晚）**：便签问「你能告诉我这个范围是什么内容吗？」落主图走治理链（contract_scope=选中轨 1007 非辖区），工具面仅通用工程查询，终局"能力边界"拒绝——辖区上下文未注入+便签问答误入 goal 管线双证；[FORENSIC-3](../../runs/MANUAL-TEST3-20261003/FORENSIC.md)。
   2. note 载荷 v2 已带 note_id（note_<id>，IMPL-B/C/D 链）——天然会话键。
   3. webui 无会话流侧边栏（用户反馈；历史界面分支/工作树机制为现路径）——**本卡不含 webui 侧**（侧边栏另卡，见 decision §2b）。
 - 目标：

@@ -32,3 +32,4 @@
   - **运行栈声明**：本卡 E2E 泊位栈（隔离 VitAgent+headless 浏览器）每轮已拆（stopped_agent_pid+port_released 在案）；真实三件套栈（VitApp 内核/Godot 前端）本卡**未启动、无移交**。
   - **端测覆盖边界（AGENTS §5）**：渲染面已过 E2E-WEBUI-1 全量 28 组（浏览器级 DOM 断言+真实交互）；用户目检复验（三区布局/侧边栏操作/视窗已删）留待决策侧安排——验收标准第三项未在本卡闭合。
 - 验收：**conditional pass（2026-10-02 决策会话；用户目检复验留待非阻塞）**——[rulings/2026-10-02-WEBUI-IA-REDESIGN-1-conditional.md](../../rulings/2026-10-02-WEBUI-IA-REDESIGN-1-conditional.md)；删除边界+同族超额采信+侧边栏不建树契约+E2E RED 恰三新组红/GREEN2 28-28 工件亲读+我方复跑（413/413+build）+三核对采信；cherry-pick 6501e051=f6640d42 合 main；STATUSBAR-ID-1 随卡关闭
+- **转正 pass（2026-10-03 三号场）**：三区/侧边栏用户好评（一号场"侧边栏搭建的很好"）+两轮 webui 打开无布局/视窗残留异议+E2E 首屏断言绿；命名缺陷归 SESSION-SEMANTICS（非本期范围）；证据 [runs/MANUAL-TEST3-20261003/FORENSIC.md](../../runs/MANUAL-TEST3-20261003/FORENSIC.md)
