@@ -57,7 +57,9 @@ button:disabled {
 
 .app-shell {
   display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr);
+  /* 行数必须与 .app-shell 的实际子元素数一致（header + main-workspace = 2 行）：
+     多出的行会把 minmax(0,1fr) 挪给空行，workspace 掉进 auto 行随内容收缩（WEBUI-INIT-LAYOUT-1）。 */
+  grid-template-rows: auto minmax(0, 1fr);
   width: 100%;
   height: 100%;
   min-width: 0;
@@ -4126,7 +4128,7 @@ h3 {
 }
 
 .app-shell {
-  grid-template-rows: auto auto minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
   background: var(--panel);
 }
 
