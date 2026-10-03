@@ -18,6 +18,6 @@
 - 约束：不动判定通道（已验证工作）；worktree 纪律；泊位错峰（用户手测栈 10-03 上午已关，起栈前确认）；探针/烟测工件落 runs/。
 - 验收标准：三症状 RED→GREEN+全量 0 FAIL+真栈烟测 exit 0+用户手测复验（判定→新回复→新输入全链）。
 - 停止条件：症状 B 根因在内核修订发布面（agent 侧无法闭环）→ 实证上交转内核卡；消息发布链涉及 history/worktree 深层语义 → 上交。
-- 领取：（时间 / origin/main hash / 分支名）
+- 领取：2026-10-03 10:31 +0800 / 572f2ebde0546699393ac37d7536d580c84ae936 / port/settle-deliver-1（PC 执行侧；领取时工作树仅 VitApp/Workspace/default_project.xml 运行时态改动 + 未跟踪 .zcodeignore，与本卡文件域无交集，保留不动）
 - 回执：（commit hash / 实锚断链点 / 三症状红绿 / 烟测 run ID / 泊位声明）
 - 验收：（裁定文件 / 验收 commit）
