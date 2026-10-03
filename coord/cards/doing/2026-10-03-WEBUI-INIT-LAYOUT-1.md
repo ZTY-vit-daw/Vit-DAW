@@ -11,6 +11,6 @@
 - 文件域：agent/webui/src/ 布局/样式段 + scripts/webui_rendered_dom_smoke.mjs（加组）。
 - 验收标准：npm test 全绿+E2E 新组 exit 0+用户目检复验（初启即展开）。
 - 停止条件：headless 无法复现初启形态（首帧依赖真实浏览器测量）→ 以有头截图取证+人工验证收口，如实申报端测边界。
-- 领取：（时间 / origin/main hash / 分支名）
+- 领取：2026-10-03 18:14（PC 执行侧 flash 会话）/ origin/main c7f55d0d06787de0c453fa7a14b160b01aa51c51 / 分支 port/webui-init-layout-1。领取时工作树既有改动：`VitApp/Workspace/default_project.xml`（M，运行时状态，非本卡域，不触碰）、`.zcodeignore` 与 coord/runs/SETTLE-DELIVER-SMOKE-*（??，不触碰）。
 - 回执：（commit hash / 复现方式 / 根因层 / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
