@@ -33,3 +33,7 @@
 ## PC 决策侧接收复核（2026-10-02 晚，第二决策会话独立复核）
 
 用户转达接收后 PC 侧补核四点，均过，**concur 本裁定**：①修复正典 1379614 diff 亲核（stepped 路径=落计划档位校验+applied_unreconciled fail-closed 出口在位；连续路径 else 分支原阈值原语义未动——裁定所述 1e-4 等式保留属实）；②PC `go build ./...` exit 0；③PC `go test ./internal/executionports -count=1` PASS；④runs/ 三工件目录在仓（forensic1+两真栈 run）。接收无异议：conditional 口径、D1-SETTLE-TAIL-MAC-1 转正（P1）、终验联动、worktree 清理（含 PLUGINLIST 遗留移交项）全部成立。**D1-SETTLE-TAIL-MAC-1 池序待校准**（新卡池序 29 与 L1-3-IMPL-D 池序 20 并存——下轮发卡顺带归一，非卡缺陷）。
+
+## 终验闭合（2026-10-03 决策会话）
+
+终验条件（D1-SETTLE-TAIL-MAC-1 落地后 550A 锁定场景复跑 exit-0）已由 run `d1_550a_20261003_180509` 达成（readback verified on locked 550A scenario，exit-0，裁定=rulings/2026-10-03-D1-SETTLE-TAIL-MAC-1-pass.md）——**本裁定 conditional 转正为 pass，全条件闭合**。

@@ -23,4 +23,4 @@
   - 冒测：**run d1_550a_20261003_180509 exit-0**（round2 PASS：static_eq@1017 rev6→7，readback -2dB verified=True，settle 记录落地，judgment_park=true；round1 为无关模型方差断点）——同时完成 D1-EQ-READBACK-550A-1 终验条件。证据+md5 逐文件核对：coord/runs/D1-SETTLE-TAIL-MAC-1/d1_550a_20261003_180509/；环境类失败尝试留痕与 A/B 取证见同目录 SMOKE_RUN.md。
   - 泊位声明：修复后 settle 尾段自动跑完并泊在人工判定边界（judgment_park=true，closure fs7_improvement_proposal，无机器越权收口）；被位移的可答 park 存活可答。测试：chat 包全绿；全量 87 包 0 FAIL（go test ./... exit 0）。
   - 端测边界：本卡端测=真栈 550A 冒测（agent HTTP 面驱动全程，Godot 面外，同 journey1 mac 先例）；渲染面/用户旅程面未涉（改动为 agent 调度机械域，无 webui 变更）。
-- 验收：（裁定文件 / 验收 commit）
+- 验收：**pass**（2026-10-03 决策会话）——[rulings/2026-10-03-D1-SETTLE-TAIL-MAC-1-pass.md](../../rulings/2026-10-03-D1-SETTLE-TAIL-MAC-1-pass.md)：取证三假设分诊+修复 diff（武装门扩展/槽位移三分支/闩守卫沿用）+与 PC 同域修复（334d8f4/d8b7e2d）零文件交集正交性核对+我方复跑 87 包 0 FAIL+终验 run 亲读（round2 独立复核 applied/readback/judgment_park）；实现 1662943 cherry-pick 合 main；**D1-EQ-READBACK-550A-1 终验同场闭合（conditional 转正 pass）**。
