@@ -13,6 +13,7 @@
   3. **Godot 侧**：note 面板内自含问答历史（消息列表+滚动，CONTAINER-2 的输出区基线上扩展）；note 关闭/删除=会话归档（可查，不入主流）。
   4. **验收判据（用户口径）**：note 里问一圈→webui 主对话流**零**新增消息；note 重开→历史还在；同一问题主任务上下文不被污染（遥测 section_stats 对照，回执附前后对比）。
   5. 回归：chat 域测试+全量 0 FAIL（-count=1）+webui npm test+note E2E/探针面+真栈手测（与用户约定复验）。
+  6. **（2026-10-03 手测反馈问题 3 并入）note 会话默认命名协议**：note 圈选新建的会话在 webui 侧不得显示"未命名对话流"——按默认协议命名（用户裁定方向：note id 或圈选规划位置，如「便签·轨道时间线 72%」式，实现取简），用户可改名；判据 4 的对照面（webui 主流）同时验证命名正确落侧边栏。
 - 文件域：Godot `vit_note_panel.gd`+`vit_note_manager.gd`；agent chat note 路由与会话面（实锚后申报）。
 - 约束：Godot 腿分支自 CONTAINER-2 之后基线切出（或经决策侧协调）；agent 腿 worktree 纪律；探针输出落 runs/。
 - 验收标准：四判据全过+回归全绿+持久化兼容测试+用户手测复验。
