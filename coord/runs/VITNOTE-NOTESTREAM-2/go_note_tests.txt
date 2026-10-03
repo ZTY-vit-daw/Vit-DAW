@@ -1,0 +1,21 @@
+=== RUN   TestNoteConversationIDPrefersSessionKeyOverNoteID
+--- PASS: TestNoteConversationIDPrefersSessionKeyOverNoteID (0.00s)
+=== RUN   TestNoteSessionStoreFailOpenAndRoundTrip
+--- PASS: TestNoteSessionStoreFailOpenAndRoundTrip (0.02s)
+=== RUN   TestNoteDefaultTitleFallback
+--- PASS: TestNoteDefaultTitleFallback (0.00s)
+=== RUN   TestNoteReplyTextStripsEnvelope
+--- PASS: TestNoteReplyTextStripsEnvelope (0.00s)
+=== RUN   TestHandleChatNoteTurnRoutesToIndependentSession
+--- PASS: TestHandleChatNoteTurnRoutesToIndependentSession (0.02s)
+=== RUN   TestHandleChatNotePayloadRequiresIdentity
+--- PASS: TestHandleChatNotePayloadRequiresIdentity (0.00s)
+=== RUN   TestHandleNoteArchiveEndpoint
+--- PASS: TestHandleNoteArchiveEndpoint (0.02s)
+=== RUN   TestNoteSessionRowsOrderingAndCap
+--- PASS: TestNoteSessionRowsOrderingAndCap (0.02s)
+=== RUN   TestNoteSessionRowsMessageCap
+--- PASS: TestNoteSessionRowsMessageCap (0.33s)
+PASS
+ok  	vit-daw-agent/internal/chat	0.521s
+NOTE_EXIT=0

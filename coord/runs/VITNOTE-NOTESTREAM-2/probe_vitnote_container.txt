@@ -1,0 +1,155 @@
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: GDExtension dynamic library not found: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: open_library (core/extension/gdextension.cpp:740)
+ERROR: Error loading extension: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: load_extensions (core/extension/gdextension_manager.cpp:329)
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+[probe] VITNOTE-CONTAINER-4 container suite start
+[probe] PASS spawn two notes via open_note
+[probe] PASS note ids distinct and incremented
+[probe] PASS manager in vit_floating_interactive group
+[probe] PASS panel root A in vit_floating_interactive group
+[probe] PASS panel root B in vit_floating_interactive group
+[probe] PASS panel root mouse_filter not IGNORE (body hit premise)
+[probe] PASS panel base is Panel (not PanelContainer)
+[probe] PASS layout root present
+[probe] PASS header is first layout child
+[probe] PASS input row is last layout child (pinned bottom)
+[probe] PASS output scroll between header and input row
+[probe] PASS header mouse_filter STOP (whole-bar drag retained)
+[probe] PASS summary label IGNORE (click-through to header)
+[probe] PASS grip button kept as visual hint in header
+[probe] PASS input box and send button in bottom row
+[probe] PASS eight resize handles are direct panel children
+[probe] PASS legacy ResizeHandle node retired
+[probe] PASS legacy anchor dot retired (pin tray era)
+[probe] PASS drag latch on _begin_drag
+[probe] PASS drag latch off _end_drag
+[probe] PASS drag latch on header press
+[probe] PASS drag latch off header release
+[probe] PASS collapse clears drag latch (no dangling drag)
+[probe] PASS collapse clears resize latch (no dangling resize)
+[probe] PASS pos clamp negative coords to margin
+[probe] PASS pos clamp beyond bottom-right
+[probe] PASS pos in-range passthrough
+[probe] PASS pos clamp degenerate elem larger than viewport stays at margin
+[probe] PASS handle rect matches static table (1, 0)
+[probe] PASS handle inside panel rect (1, 0)
+[probe] PASS handle rect matches static table (-1, 0)
+[probe] PASS handle inside panel rect (-1, 0)
+[probe] PASS handle rect matches static table (0, 1)
+[probe] PASS handle inside panel rect (0, 1)
+[probe] PASS handle rect matches static table (0, -1)
+[probe] PASS handle inside panel rect (0, -1)
+[probe] PASS handle rect matches static table (1, 1)
+[probe] PASS handle inside panel rect (1, 1)
+[probe] PASS handle rect matches static table (-1, 1)
+[probe] PASS handle inside panel rect (-1, 1)
+[probe] PASS handle rect matches static table (1, -1)
+[probe] PASS handle inside panel rect (1, -1)
+[probe] PASS handle rect matches static table (-1, -1)
+[probe] PASS handle inside panel rect (-1, -1)
+[probe] PASS edge handle hit thickness 8px (N)
+[probe] PASS edge handle hit thickness 8px (E)
+[probe] PASS corner handle hit 12x12 (SE)
+[probe] PASS cursor E is HSIZE
+[probe] PASS cursor W is HSIZE
+[probe] PASS cursor S is VSIZE
+[probe] PASS cursor N is VSIZE
+[probe] PASS cursor SE is FDIAG
+[probe] PASS cursor NW is FDIAG
+[probe] PASS cursor NE is BDIAG
+[probe] PASS cursor SW is BDIAG
+[probe] PASS handle node cursor matches mapping (SE)
+[probe] PASS handle mouse_filter STOP
+[probe] PASS resize latch on edge handle press (E)
+[probe] PASS resize latch off edge handle release
+[probe] PASS resize latch on corner handle press (SE)
+[probe] PASS resize latch off corner handle release
+[probe] PASS edge E passthrough
+[probe] PASS edge E clamps to min width
+[probe] PASS edge E clamps to viewport edge
+[probe] PASS edge E leaves other axis untouched
+[probe] PASS edge W passthrough moves left edge
+[probe] PASS edge W clamps to min width (right edge fixed)
+[probe] PASS edge W clamps to viewport left margin
+[probe] PASS edge S passthrough
+[probe] PASS edge S clamps to min height
+[probe] PASS edge N passthrough moves top edge
+[probe] PASS edge N clamps to min height (bottom fixed)
+[probe] PASS corner SE identity at drag-start diagonal
+[probe] PASS corner SE y-boundary truncates x by same ratio
+[probe] PASS corner truncation preserves aspect ratio
+[probe] PASS corner SE min clamp keeps ratio
+[probe] PASS corner min clamp preserves aspect ratio
+[probe] PASS corner NW keeps opposite anchor (end fixed)
+[probe] PASS corner NW preserves aspect ratio
+[probe] PASS corner NE anchor rule (x from anchor, y anchored bottom)
+[probe] PASS corner NE preserves aspect ratio
+[probe] PASS pin tray retired (field)
+[probe] PASS pin tray retired (method)
+[probe] PASS pin size within 1.5-2x of legacy 12px dot
+[probe] PASS pin rect centers on scope top-left
+[probe] PASS pin rect clamps to viewport top-left margin
+[probe] PASS pin rect clamps to viewport bottom-right
+[probe] PASS pin overlap detects content under pin
+[probe] PASS pin overlap clear of content
+[probe] PASS pin overlap ignores degenerate blocks
+[probe] PASS collapsed panel A gets a pin
+[probe] PASS pin is manager direct child (overlay subtree, track heads cannot cover)
+[probe] PASS pin rect equals pin_rect_for at its scope
+[probe] PASS pin tooltip carries full summary
+[probe] PASS collapsed panel B gets a pin
+[probe] PASS pin B rect equals pin_rect_for at its own scope
+[probe] PASS pin over content goes translucent
+[probe] PASS hovering pin restores opaque
+[probe] PASS pin translucent again after hover ends
+[probe] PASS pin opaque when cover withdrawn
+[probe] PASS in-place pin click reopens panel B
+[probe] PASS reopen removes pin
+[probe] PASS reopen registers scope highlight fade
+[probe] PASS re-collapse re-adds pin
+[probe] PASS re-collapsed pin returns to same scope rect
+[probe] PASS dragged pin does not reopen (no-op)
+[probe] PASS dragged pin zero displacement
+[probe] PASS hovering pin peeks collapsed scope
+[probe] PASS leaving pin ends scope peek
+[probe] PASS scope overlay present
+[probe] PASS scope overlay IGNORE (zero gesture grab)
+[probe] PASS scope overlay full rect
+[probe] PASS expanded note visible in scope set
+[probe] PASS collapsed note hidden from scope set
+[probe] PASS circle select layer stays first child
+[probe] PASS scope overlay precedes note panels
+[probe] PASS viewport pins precede note panels
+[probe] PASS right-click pin removes note from manager set
+[probe] PASS deleted note pin removed from registry
+[probe] PASS remaining pin stays at its scope rect
+[probe] PASS last pin delete empties pin set
+[probe] PASS deleted panels freed after frames
+[probe] PASS dock library scene loads
+[probe] PASS notes tab present and toggle mode
+[probe] PASS notes tab shares library button group
+[probe] PASS note list panel present and initially hidden
+[probe] PASS dock in note list consumer group
+[probe] PASS dock refresh entry exposed
+[probe] PASS switching to notes tab shows note list panel
+[probe] PASS empty state message while no notes
+[probe] PASS note count status shows 0
+[probe] PASS note row present after open broadcast
+[probe] PASS note row text is index + first face short
+[probe] PASS note row tooltip carries full summary
+[probe] PASS note row state shows expanded
+[probe] PASS note row glyph present
+[probe] PASS collapse broadcast updates row state
+[probe] PASS note row click reopens collapsed note
+[probe] PASS expanded note row click is no-op
+[probe] PASS note row right-click deletes note
+[probe] PASS empty state returns after delete
+[probe] ---- summary ----
+[probe] checks=141 failed=0
+[probe] PROBE PASS

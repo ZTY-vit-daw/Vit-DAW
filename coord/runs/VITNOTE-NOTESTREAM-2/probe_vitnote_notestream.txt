@@ -1,0 +1,34 @@
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: GDExtension dynamic library not found: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: open_library (core/extension/gdextension.cpp:740)
+ERROR: Error loading extension: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: load_extensions (core/extension/gdextension_manager.cpp:329)
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+[probe] VITNOTE-NOTESTREAM-2 note session suite start
+[probe] PASS default title two faces top-2 desc
+[probe] PASS default title single face
+[probe] PASS default title empty jurisdiction
+[probe] PASS default title label fallback chain
+[probe] PASS default title skips malformed faces
+[probe] PASS note ids keep note_N display form
+[probe] PASS session keys run-stamp form
+[probe] PASS session keys unique per note
+[probe] PASS panel default title preseeded from ruling template
+[probe] PASS session key stable across collapse/reopen
+[probe] PASS note payload carries note_id
+[probe] PASS note payload carries session key
+[probe] PASS note payload carries default title
+[probe] PASS note payload echoes snapshot faces
+[probe] PASS panel no longer collects main console context
+[probe] PASS manager no longer supplies main console context
+[probe] PASS manager chat controller finder retired
+[probe] PASS panel history survives collapse/reopen
+[probe] PASS archive payload conversation id is note_<session_key>
+[probe] PASS archive payload carries note identity
+[probe] PASS remove_note clears note set
+[probe] ---- summary ----
+[probe] checks=21 failed=0

@@ -33,5 +33,11 @@
   4. **误入治理链**：`beginChatGoal`（goalrunner_chat.go:32）把每条 /agent/chat 消息变 goal；面板 context 复用主控台组包（vit_note_manager.gd `get_agent_context`→`_build_agent_context`）→ contract_scope 取主控台选中轨（三号场 1007）；圈选快照 faces 根本不在载荷中。
   5. **侧边栏未命名**：行=本地注册表+服务端 continuations hints 合并（webui/src/sessionFlow.ts）；note 的 chat_ff99… 经 durableContinuations 投影（continuation_scheduler.go:2222）冒出，title 空+本地消息桶空 → 「未命名会话」。
   → **修面**：/agent/chat 增 note 载荷（note_id+run 戳 session 键+默认名+辖区 faces）→ note 会话模式：不走 beginChatGoal、不写工程单图、独立 note 会话库（`.vit_derived/<uuid>/note_sessions.json`，fail-open）；webui 侧边栏并 note 会话投影（带默认名+可改名+可查）。
-- 回执：（commit hash / 取证结论 / 判据 1-4 证据 / 回归结果）
+- 回执：（2026-10-03 21:25，PC 执行侧）
+  - **commit**：Vit_DAW `port/vitnote-notestream-2`@**618d69f9**（agent+webui 腿，已推 origin）；Godot `port/vitnote-notestream-2`@**4391c49**（自 container-4@a2930a7 切出，已推 origin）；报告=[runs/VITNOTE-NOTESTREAM-2/REPORT.md](../../runs/VITNOTE-NOTESTREAM-2/REPORT.md)。
+  - **取证结论**：见上"取证结论"段（五条，目标 1 回写完成）。
+  - **判据 1-4 证据**：REPORT.md §三——判据 1=机制三证（note 早分叉位于单图落盘调用点之前/Go 钉主对话记忆零写入+响应无 GoalID/webui 主流水合源不消费 note 投影）；判据 2=探针 D 面（collapse/reopen 消息不清）+Go 钉（同键续档 4 条）；判据 3=note 组装只吃 note 会话库（Go 钉断言）、主 goal 两源（工程单图+主对话记忆）零 note 写入、vitnote_* 分段名可与主组包遥测（section_stats）对照；判据 4（目标 6）=vitest 钉（默认名落侧边栏不显未命名/本地命名权威/缺行补建可改名/切换回放种子）。
+  - **回归**：Go 全量 `go test ./... -count=1` **exit 0，87 包 ok 0 FAIL**（go_test_full.log）；chat 域 ok；note 新钉 9/9（go_note_tests.log）；webui `npm run test` **425/425**+`tsc --noEmit` 0 错+`npm run build` 过（webui_test.log）；Godot 探针 **notestream 21 / container 141 / circle_state 52 / face_resolve 127 / panel_summary 16 全 0 FAIL exit 0**（同目录 .log）。
+  - **文件域申报（实锚后）**：agent=internal/chat/{server.go,note_sessions.go 新增,note_sessions_test.go 新增}；webui=src/{sessionFlow.ts,SessionFlowSidebar.tsx,App.tsx,types.ts,sessionFlow.test.ts}；Godot=两卡面文件+**新增** tools/probe_vitnote_notestream.gd（探针面新增，测试专用）；runs 工件 coord/runs/VITNOTE-NOTESTREAM-2/。
+  - **端测边界声明（AGENTS §5）**：全程未起真栈（用户指令）——7878 真栈往返/webui 浏览器级渲染/用户旅程未覆盖，`[等待真栈手测复验]`（卡面验收口径）；webui 侧边栏无 DOM 级断言（E2E-WEBUI-1 前如实声明）；agent 无活动工程身份时会话库降级进程内不落盘（fail-open 申报）；旧 note 问答路径整体退役（非并存开关），Godot/agent 需同版本配套（验收合并建议同批或 Godot 先）。
 - 验收：（裁定文件 / 验收 commit）
