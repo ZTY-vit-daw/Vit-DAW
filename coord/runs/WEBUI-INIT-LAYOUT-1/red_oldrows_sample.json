@@ -1,0 +1,24 @@
+{
+  "sample": {
+    "innerW": 1600,
+    "innerH": 900,
+    "shellRows": "72px 391.266px 436.734px",
+    "shellChildCount": 2,
+    "workspace": {
+      "top": 72,
+      "bottom": 463.3,
+      "w": 1600,
+      "h": 391.3
+    },
+    "composer": {
+      "top": 327.3,
+      "bottom": 441.3,
+      "w": 927,
+      "h": 114
+    }
+  },
+  "failures": [
+    "L1 tracks: 3 track(s) [72px 391.266px 436.734px] vs 2 children",
+    "L1 fill: workspace bottom=463.3 vs innerH=900 (slack 436.7px)"
+  ]
+}

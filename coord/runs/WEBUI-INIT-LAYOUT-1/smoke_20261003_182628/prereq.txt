@@ -1,0 +1,28 @@
+﻿run_root=D:\Vit_DAW\artifacts\e2e_webui1\20261003_182628
+affix=e2e_webui1
+head=16fc4a53c215e3a01a4706b3002fafb7517c6d45
+git_status= M VitApp/Workspace/default_project.xml ;  M agent/webui/src/styles.css ;  M scripts/webui_rendered_dom_smoke.mjs ; ?? .zcodeignore ; ?? coord/runs/SETTLE-DELIVER-SMOKE-20261003_110730/ ; ?? coord/runs/SETTLE-DELIVER-SMOKE-20261003_111943/ ; ?? coord/runs/SETTLE-DELIVER-SMOKE-20261003_112607/ ; ?? coord/runs/SETTLE-DELIVER-SMOKE-20261003_113348/ ; ?? coord/runs/SETTLE-DELIVER-SMOKE-20261003_114223/BridgeReplies/ ; ?? coord/runs/SETTLE-DELIVER-SMOKE-20261003_114223/agent_drafts/ ; ?? coord/runs/SETTLE-DELIVER-SMOKE-20261003_115939/ ; ?? coord/runs/SETTLE-DELIVER-SMOKE-20261003_120857/ ; ?? coord/runs/SETTLE-DELIVER-SMOKE-20261003_121934/BridgeReplies/ ; ?? coord/runs/SETTLE-DELIVER-SMOKE-20261003_121934/agent_drafts/ ; ?? coord/runs/SETTLE-DELIVER-SMOKE-20261003_122932/ ; ?? coord/runs/VITNOTE-CONTAINER-3/ ; ?? coord/runs/WEBUI-INIT-LAYOUT-1/
+http_port=7897
+bridge_ports=agent defaults (zmq 5555/5556, udp 4444/4445)
+conversation_id=webui_mtzba6wf
+started=2026-10-03T18:26:28.8881525+08:00
+port_free=7897
+npm_build_stderr=node.exe : [33m | 所在位置 行:1 字符: 1 | + & "C:\Program Files\nodejs/node.exe" "C:\Program Files\nodejs/node_mo ... | + ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ |     + CategoryInfo          : NotSpecified: ([33m:String) [], RemoteException |     + FullyQualifiedErrorId : NativeCommandError |   | (!) Some chunks are larger than 500 kB after minification. Consider: | - Using dynamic import() to code-split the application | - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-m | anualchunks | - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.[39m
+agent_binary=D:\Vit_DAW\artifacts\e2e_webui1\20261003_182628\bin\VitAgent.e2ewebui1.exe size=35283968 mtime=2026-10-03T18:26:30.5248725+08:00 sha256=36439CFF48FBB3B85FEE161B20ADAFD860571B4E7EDA66E3EA919315E7658B1C
+webui_index_sha256=E6FABB74A751E9B60C79235AB13A463CD6E0D3D3BBBA622C9CC1C2A76EABCCB8
+webui_asset=index-Cl9dhGyy.js size=505158 sha256=42DEB48F858095841F929EED2D42EC65CCE6E619B930D49B345BEFD4B0609AF0
+webui_asset=index-DSb5AJYB.css size=98179 sha256=D1E47BCDB6037614D0ADA276B87B3554BE1423A4F4AF42A5564DE363CABBD06F
+graph_fixture=D:\Vit_DAW\scripts\fixtures\webui_rendered_dom\webui_rendered_dom_graph.fixture.json sha256=C99EA525DF245EFC5913E7CE76EB0C09901CDEA173B8913C781B6136ED6476CF
+events_fixture=D:\Vit_DAW\scripts\fixtures\webui_rendered_dom\webui_rendered_dom_events.fixture.json sha256=149D29F3194D354646F5347B21588A4BEA168C45DA088DAD83C5338283C945AC
+smoke_script=D:\Vit_DAW\scripts\webui_rendered_dom_smoke.mjs sha256=C5D65BFABBA5AF72F095B553100C6EEE4083A971CABCF802AE4F943F17AE54FA
+commit_dirs=D:\Godot\project\vit-daw-frontend\.vit_history\.sessions\vitproj_9ecc5ab9a454400192086c628c07b966\session_20260912T144157_6ebae8ca\workspace\commits
+graph_commit_ids=4 matched_in_commit_dirs=4
+playwright_module=C:\Users\timoz\AppData\Local\npm-cache\_npx\31e32ef8478fbf80\node_modules\playwright-core
+agent_pid=7628
+smoke_exit=0
+verdict=pass
+failed_groups=
+browser=chromium-channel-msedge 154.0.4258.53
+stopped_agent_pid=7628
+port_released=7897
+finished=2026-10-03T18:29:39.5956131+08:00

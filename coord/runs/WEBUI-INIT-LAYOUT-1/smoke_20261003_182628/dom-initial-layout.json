@@ -1,0 +1,49 @@
+{
+  "innerW": 1600,
+  "innerH": 900,
+  "shellRows": "72px 828px",
+  "shellDisplay": "grid",
+  "shellChildCount": 2,
+  "topStatus": {
+    "top": 0,
+    "left": 0,
+    "bottom": 72,
+    "right": 1600,
+    "w": 1600,
+    "h": 72
+  },
+  "workspace": {
+    "top": 72,
+    "left": 0,
+    "bottom": 900,
+    "right": 1600,
+    "w": 1600,
+    "h": 828
+  },
+  "sidebar": {
+    "top": 72,
+    "left": 0,
+    "bottom": 900,
+    "right": 232,
+    "w": 232,
+    "h": 828
+  },
+  "composer": {
+    "top": 764,
+    "left": 254,
+    "bottom": 878,
+    "right": 1181,
+    "w": 927,
+    "h": 114
+  },
+  "workbenchPanel": {
+    "top": 72,
+    "left": 1210,
+    "bottom": 900,
+    "right": 1600,
+    "w": 390,
+    "h": 828
+  },
+  "workbenchCollapsed": null,
+  "workspaceGridCls": "workspace-grid project-aware  right-open"
+}
