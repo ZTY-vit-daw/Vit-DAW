@@ -220,11 +220,15 @@ export function buildMessageStreamRenderPlan(options: {
     const userMessages = group.messages.filter((message) => message.role === "user");
     const restMessages = group.messages.filter((message) => message.role !== "user");
     if (!anchor) {
-      if (userMessages.length > 0) {
-        entries.push({ kind: "messages", key: `${group.key}:user`, messages: userMessages });
-      }
-      if (restMessages.length > 0) {
-        entries.push({ kind: "messages", key: `${group.key}:rest`, messages: restMessages });
+      // WEBUI-MSG-ORDER-3（SETTLE-DELIVER-1 症状 C，2026-10-03 手测取证流回放实锤）：
+      // 无锚组不按 user/rest 切分。切分把组内用户消息一律提到汇报上方，逆了
+      // createdAt 时序——二轮乐观输入（无 turn_id）与一轮链终局（无 turn_id）并入
+      // 同一 loose 组时，输入被切到链终局上方，即「二轮消息插队显示在首轮输出
+      // 上方」（coord/runs/MANUAL-TEST-20261003 事件流复现形态）。切分只对有锚
+      // 组有意义（块夹在 user 与 rest 之间）；无锚组的消息已按 createdAt 排序
+      // （flowMessages），整组保序输出。
+      if (group.messages.length > 0) {
+        entries.push({ kind: "messages", key: `${group.key}:rest`, messages: group.messages });
       }
     } else if (userMessages.length === 0) {
       // 组内没有用户消息可依附（纯汇报组，身份锚定命中）：块落在组首，既有行为不变。

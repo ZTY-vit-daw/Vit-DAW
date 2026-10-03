@@ -514,6 +514,11 @@ export function reduceAgentEventActivities(
       next = dismissActivity(next, logicalID, event);
       continue;
     }
+    // SETTLE-DELIVER-1 症状 A：判定结算确认（settlement_reply）是正式助手消息
+    // （settlementMessagesFromEvents 路由进 messages），活动线不再重复承载。
+    if (eventType === "judgment.settled" && Boolean(record(event.payload).settlement_reply)) {
+      continue;
+    }
     const created = factory(event);
     if (!created) {
       continue;
