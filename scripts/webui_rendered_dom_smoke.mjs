@@ -87,6 +87,14 @@
 //                    (u1 → trace block → a1 → a2 → u2 → a3), each row exactly
 //                    once, and the run keeps ONE trace block anchored after the
 //                    round-opening user message (B9 reuse semantics).
+//   L1 init-layout-- WEBUI-INIT-LAYOUT-1 (2026-10-03 manual test, screenshot
+//                    webui_initial_layout_squeezed.png): on the FIRST mounted
+//                    frame the workspace must already fill the window --
+//                    .app-shell grid track count == its DOM child count (the
+//                    regression was a stale 3rd track starving the workspace's
+//                    auto row), .main-workspace bottom == viewport bottom,
+//                    sidebar stretching with it, and the composer seated at
+//                    the window bottom instead of floating mid-window.
 //
 // Exit code: 0 = every group passed (delivery gate), 1 = at least one failed
 // (pre-fix red, with the failing group recorded in the report).
@@ -2615,6 +2623,119 @@ function checkIaStatusbar(result, options) {
   return { failures, notes };
 }
 
+// WEBUI-INIT-LAYOUT-1: the first mounted frame's layout facts. Everything the
+// user's eyes land on at boot is a real viewport-coordinate fact here: the
+// shell's resolved grid tracks, the workspace/sidebar/composer boxes. Sampled
+// immediately after the shell mounts -- the frame the squeeze lived in -- with
+// zero interaction and no scroll.
+const INITIAL_LAYOUT_PROBE = () => {
+  const rectOf = (el) => {
+    if (!el) return null;
+    const r = el.getBoundingClientRect();
+    return {
+      top: +r.top.toFixed(1),
+      left: +r.left.toFixed(1),
+      bottom: +r.bottom.toFixed(1),
+      right: +r.right.toFixed(1),
+      w: +r.width.toFixed(1),
+      h: +r.height.toFixed(1)
+    };
+  };
+  const shell = document.querySelector(".app-shell");
+  const shellCS = shell ? getComputedStyle(shell) : null;
+  return {
+    innerW: window.innerWidth,
+    innerH: window.innerHeight,
+    shellRows: shellCS ? shellCS.gridTemplateRows : "",
+    shellDisplay: shellCS ? shellCS.display : "",
+    shellChildCount: shell ? shell.children.length : 0,
+    topStatus: rectOf(document.querySelector(".app-shell > .top-status")),
+    workspace: rectOf(document.querySelector(".app-shell > .main-workspace")),
+    sidebar: rectOf(document.querySelector(".session-sidebar")),
+    composer: rectOf(document.querySelector(".composer")),
+    workbenchPanel: rectOf(document.querySelector(".workbench-panel")),
+    workbenchCollapsed: rectOf(document.querySelector(".workbench-collapsed")),
+    workspaceGridCls: document.querySelector(".workspace-grid") ? document.querySelector(".workspace-grid").className : ""
+  };
+};
+
+function checkInitialLayout(sample) {
+  const failures = [];
+  const notes = [];
+  if (!sample.workspace || !sample.composer) {
+    failures.push("L1 setup: .main-workspace or .composer did not render -- nothing to measure");
+    return { failures, notes };
+  }
+  const tracks = sample.shellRows.split(/\s+/).filter(Boolean);
+  // The regression shape itself: the shell declared 3 tracks for 2 children, so
+  // the empty minmax(0,1fr) track swallowed the window and the workspace slid
+  // into a content-sized auto row. Track count must always equal child count.
+  if (sample.shellDisplay !== "grid") {
+    failures.push("L1: .app-shell is display=" + sample.shellDisplay + ", expected grid");
+  }
+  if (tracks.length !== sample.shellChildCount) {
+    failures.push(
+      "L1 tracks: .app-shell resolves " + tracks.length + " grid row track(s) [" + sample.shellRows +
+      "] for " + sample.shellChildCount + " child element(s) -- a stale track starves the workspace row " +
+      "(the WEBUI-INIT-LAYOUT-1 squeeze shape: rows must be 1:1 with children)"
+    );
+  } else {
+    notes.push("shell tracks [" + sample.shellRows + "] = " + sample.shellChildCount + " children (1:1)");
+  }
+  // The fill itself: the workspace's last pixel row sits on the viewport's
+  // last pixel row on the very first frame -- no dead band under the content.
+  const fillSlack = sample.innerH - sample.workspace.bottom;
+  if (Math.abs(fillSlack) > 1.5) {
+    failures.push(
+      "L1 fill: .main-workspace bottom=" + sample.workspace.bottom + " vs viewport height=" + sample.innerH +
+      " (slack " + fillSlack.toFixed(1) + "px) -- the initial frame leaves a dead band under the app " +
+      "(the user-visible squeeze: sidebar/composer/rail all end early)"
+    );
+  } else {
+    notes.push("workspace fills the viewport: bottom=" + sample.workspace.bottom + " == innerHeight=" + sample.innerH);
+  }
+  if (sample.sidebar && Math.abs(sample.sidebar.bottom - sample.workspace.bottom) > 1.5) {
+    failures.push(
+      "L1 sidebar: .session-sidebar bottom=" + sample.sidebar.bottom + " vs workspace bottom=" + sample.workspace.bottom +
+      " -- the left column no longer stretches with the workspace row"
+    );
+  } else if (sample.sidebar) {
+    notes.push("sidebar stretches with the workspace row (bottom=" + sample.sidebar.bottom + ")");
+  }
+  // The composer is anchored near the window bottom (its own bottom offset is
+  // ~22px); floating mid-window means the workspace row collapsed again.
+  const composerSlack = sample.innerH - sample.composer.bottom;
+  if (composerSlack < -1.5 || composerSlack > 60) {
+    failures.push(
+      "L1 composer: .composer bottom=" + sample.composer.bottom + " vs viewport height=" + sample.innerH +
+      " (slack " + composerSlack.toFixed(1) + "px, expected within [0, 60]) -- the composer floats mid-window " +
+      "instead of seating at the window bottom"
+    );
+  } else {
+    notes.push("composer seated at the window bottom (bottom=" + sample.composer.bottom + ", slack " + composerSlack.toFixed(1) + "px)");
+  }
+  // Right rail consistency with the viewport threshold (App.tsx collapses the
+  // workbench panel under 1120px): whichever shape renders, it must reach the
+  // window's right edge -- a squeezed shell also pinches the rail inward.
+  if (sample.innerW >= 1120) {
+    if (!sample.workbenchPanel) {
+      failures.push("L1 right panel: innerWidth " + sample.innerW + " >= 1120 but no .workbench-panel rendered (workspaceGridCls=\"" + sample.workspaceGridCls + "\")");
+    } else if (Math.abs(sample.workbenchPanel.right - sample.innerW) > 1.5) {
+      failures.push(
+        "L1 right panel: .workbench-panel right=" + sample.workbenchPanel.right + " vs viewport width=" + sample.innerW +
+        " -- the panel does not reach the window edge"
+      );
+    } else {
+      notes.push("right workbench panel open and flush with the window edge (right=" + sample.workbenchPanel.right + ")");
+    }
+  } else if (!sample.workbenchCollapsed) {
+    failures.push("L1 right rail: innerWidth " + sample.innerW + " < 1120 but no .workbench-collapsed rail rendered");
+  } else {
+    notes.push("narrow viewport keeps the collapsed rail (right=" + sample.workbenchCollapsed.right + ")");
+  }
+  return { failures, notes };
+}
+
 
 // --------------------------------------------------------------- main flow
 
@@ -4419,6 +4540,26 @@ async function main() {
   record("ia-redesign-sidebar-IA1", checkIaSidebar(iaRedesignPass, { conversationId }));
   record("ia-redesign-viewport-IA2", checkIaViewport(iaRedesignPass));
   record("ia-redesign-statusbar-IA3", checkIaStatusbar(iaRedesignPass, { expectTaskID: "task_e2e_planbar1" }));
+
+  // WEBUI-INIT-LAYOUT-1: a fresh context sampled on the FIRST mounted frame --
+  // no interaction, no waiting for conversation traffic. This is the frame the
+  // user's screenshot caught squeezed.
+  const runInitialLayoutPass = async (name) => {
+    const context = await browser.newContext({ viewport });
+    await installReplay(context);
+    const page = await context.newPage();
+    await page.goto(agentBase + "/app/?conversation_id=" + encodeURIComponent(conversationId), { waitUntil: "domcontentloaded" });
+    await page.waitForSelector(".app-shell .composer", { timeout: settleMs });
+    const sample = await page.evaluate(INITIAL_LAYOUT_PROBE);
+    await page.screenshot({ path: join(outDir, "dom-" + name + ".png"), fullPage: false });
+    writeFileSync(join(outDir, "dom-" + name + ".json"), JSON.stringify(sample, null, 2), "utf-8");
+    await context.close();
+    return sample;
+  };
+  const initialLayoutSample = await runInitialLayoutPass("initial-layout");
+  report.initial_layout = initialLayoutSample;
+  record("initial-layout-L1", checkInitialLayout(initialLayoutSample));
+
 
 
   report.finished_at = new Date().toISOString();
