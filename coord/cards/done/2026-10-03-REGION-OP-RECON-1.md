@@ -12,5 +12,5 @@
 - 约束：只读（零代码改动零探针写源码树）；不动 sealed fixture。
 - 验收标准：四问全答+锚点可回查+路径建议明确（不代决——用户拍板）。
 - 领取：2026-10-04 / 基线 08031102b6c3fc672a066bafdbc1898e4e329f75（Windows 端执行会话；领取时工作树预存 VitApp/Workspace/Settings.xml+default_project.xml 未提交改动与若干未跟踪 coord/runs 目录，本卡不触碰）
-- 回执：（RECON.md 路径）
+- 回执：`coord/runs/REGION-OP-RECON-1/RECON.md`（四问全答+18 条锚点索引+三选结论+分期建议）。核心发现：clip.split 全链在位（命令表 VspKernelReference.cpp:111 / ClipService.cpp:1496-1577 带子 clip id 回传 / catalog.go:987 / 前端 TimelineInputArbitrator cut 工具）；**前端已有 range 工具框选 clip 局部（selected_clip_ranges 双时间界，vit_track_lane_2d.gd:2016-2024）且已流入主对话上下文**；缺口=意图层不消费 ranges（intent.go:248-259）+ 内核 DSP 处理命令无时间界（范围只在 render.start/l2_render_probe 与 strip_silence 面存在）+ note→主流无交接机制。三选结论：(a) 物理拆可行性最高（建议主路径）；(b) 范围界定处理 agent 消费面有两条先例但工程参数面需新内核命令；(c) SEG/marker 线是分析位非执行位。治理：普通确认制轨道不撞 D1；自由态实验轨道同轮两 mutation 违 D1-S1，两轮制/拆分定性需用户裁定（RECON §3.2）。子段 A/B 可经 render.start range + audition audio_file candidate 组合实现，零 audition 面改动。端测边界声明：纯只读勘察卡，零代码改动，不适用 AGENTS §5 端侧烟测门槛；全程未起真栈、未动 sealed fixture、未触碰工作树预存改动。
 - 验收：（裁定文件）
