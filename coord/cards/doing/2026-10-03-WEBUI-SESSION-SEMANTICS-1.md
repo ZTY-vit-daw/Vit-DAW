@@ -16,6 +16,6 @@
 - 约束：与 SETTLE-DELIVER-1 的 webui 渲染段改动如相遇，串行（SETTLE-DELIVER P1 先）；E2E 真栈排他（泊位）。
 - 验收标准：npm test 全绿+新用例（主会话自动建+轨迹切换）+E2E-WEBUI-1 扩组 exit 0+用户目检复验。
 - 停止条件：主会话语义需 agent 侧会话接口支持而现接口缺失 → 实锚清单上交定方案。
-- 领取：（时间 / origin/main hash / 分支名）
+- 领取：2026-10-04 10:18 / origin/main=d2862b59 / 分支 port/webui-session-semantics-1 / **worktree=D:\Vit_DAW_wt_sess_sem_1**（主树被他卡 REGION-OP-RECON-1 占用，按协议独立 worktree 开工）
 - 回执：（commit hash / 主会话命名协议 / 轨迹绑定锚点 / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
