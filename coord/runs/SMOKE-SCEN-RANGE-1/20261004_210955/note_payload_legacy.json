@@ -1,0 +1,27 @@
+﻿{
+    "session":  "smoke_legacy_20261004_211000",
+    "faces":  [
+                  {
+                      "face_kind":  "timeline",
+                      "label":  "timeline",
+                      "selection_share":  0.72,
+                      "domain":  {
+                                     "entries":  [
+                                                     {
+                                                         "end_seconds":  7.8,
+                                                         "clip_id":  "smoke_clip_full",
+                                                         "start_seconds":  3.2,
+                                                         "track_id":  "smoke_track_1"
+                                                     },
+                                                     {
+                                                         "end_seconds":  12,
+                                                         "clip_id":  "smoke_clip_part",
+                                                         "start_seconds":  5,
+                                                         "track_id":  "smoke_track_1"
+                                                     }
+                                                 ]
+                                 }
+                  }
+              ],
+    "note_id":  "note_smoke_legacy"
+}

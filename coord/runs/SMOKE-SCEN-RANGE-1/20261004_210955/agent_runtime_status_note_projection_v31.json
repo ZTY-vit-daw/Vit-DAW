@@ -1,0 +1,119 @@
+﻿{
+    "authority_mode":  "manual_confirmation",
+    "capability_routes":  [
+
+                          ],
+    "checked_at":  "2026-10-04T21:10:03.2633683+08:00",
+    "checkout_blocked":  false,
+    "continuations":  [
+
+                      ],
+    "goal":  {
+                 "goal_id":  "goal_648d4a65242e9897",
+                 "run_id":  "run_baf88f5f81220b4e",
+                 "task":  {
+                              "task_id":  "task_4229d120e5313b07",
+                              "goal_id":  "goal_648d4a65242e9897",
+                              "original_intent":  "把这段拆出来",
+                              "status":  "waiting_interaction",
+                              "run":  {
+                                          "run_id":  "run_baf88f5f81220b4e",
+                                          "task_id":  "task_4229d120e5313b07",
+                                          "next_slice":  1,
+                                          "next_turn":  1
+                                      },
+                              "created_at":  "2026-10-04T21:03:14.2708379+08:00",
+                              "updated_at":  "2026-10-04T21:03:19.2264546+08:00"
+                          },
+                 "status":  "waiting_confirmation",
+                 "summary":  "把这段拆出来",
+                 "created_at":  "2026-10-04T21:03:14.2708379+08:00",
+                 "updated_at":  "2026-10-04T21:03:19.2264546+08:00",
+                 "cancel_requested":  false
+             },
+    "kernel":  {
+                   "connected":  true,
+                   "endpoint":  "tcp://127.0.0.1:5555",
+                   "latency_ms":  3,
+                   "message":  "pong",
+                   "reply_status":  "ok",
+                   "status":  "online"
+               },
+    "note_sessions":  [
+                          {
+                              "archived":  false,
+                              "conversation_id":  "note_smoke_v31_20261004_211000",
+                              "created_at":  "2026-10-04T13:10:02.7227271Z",
+                              "messages":  [
+                                               {
+                                                   "role":  "user",
+                                                   "content":  "What does this circled range contain? Include the time span.",
+                                                   "created_at":  "2026-10-04T13:10:02.7227271Z"
+                                               },
+                                               {
+                                                   "role":  "assistant",
+                                                   "content":  "The circled range is a single timeline face (72% of the selection), covering the time span 0:03.2–0:08.5. It hits 2 clips, both on track smoke_track_1:\n\n- clip smoke_clip_full (track smoke_track_1): full length 0:03.2–0:07.8; segment inside the range 0:03.2–0:07.8 (entirely contained).\n- clip smoke_clip_part (track smoke_track_1): full length 0:05.0–0:12.0; segment inside the range 0:05.0–0:08.5 (truncated at the range end).\n\nNote: the project state reports 0 tracks and 2 clips, so these clip/track IDs come from the note jurisdiction rather than resolved track objects. No other faces (rack, library, control surfaces) are in this jurisdiction.",
+                                                   "created_at":  "2026-10-04T13:10:02.7227271Z"
+                                               }
+                                           ],
+                              "note_id":  "note_smoke_v31",
+                              "project_path":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261004T130958_dc0a26ab\\Unsaved.vit",
+                              "project_uuid":  "vitproj_19a2b6fbc94f49a7ba4a1505bc96be07",
+                              "title":  "便签 note_smoke_v31",
+                              "updated_at":  "2026-10-04T13:10:02.7227271Z"
+                          }
+                      ],
+    "pid":  31248,
+    "service":  "VitAgent",
+    "shadow":  {
+                   "delta_seq_gaps":  0,
+                   "graph_revision":  0,
+                   "initialized":  true,
+                   "last_delta_seq":  0,
+                   "project_path":  "",
+                   "track_count":  0,
+                   "user_track_count":  0
+               },
+    "status":  "ok",
+    "task":  {
+                 "task_id":  "task_4229d120e5313b07",
+                 "goal_id":  "goal_648d4a65242e9897",
+                 "original_intent":  "把这段拆出来",
+                 "status":  "waiting_interaction",
+                 "run":  {
+                             "run_id":  "run_baf88f5f81220b4e",
+                             "task_id":  "task_4229d120e5313b07",
+                             "next_slice":  1,
+                             "next_turn":  1
+                         },
+                 "created_at":  "2026-10-04T21:03:14.2708379+08:00",
+                 "updated_at":  "2026-10-04T21:03:19.2264546+08:00"
+             },
+    "task_trajectory":  {
+                            "run":  {
+                                        "current_slice_id":  "",
+                                        "current_turn_id":  "",
+                                        "run_id":  "run_baf88f5f81220b4e",
+                                        "slices":  null,
+                                        "turns":  null
+                                    },
+                            "schema_version":  "vit.task_runtime_trajectory.v1",
+                            "semantic":  {
+
+                                         },
+                            "task":  {
+                                         "conversation_id":  "",
+                                         "created_at":  "2026-10-04T21:03:14.2708379+08:00",
+                                         "goal_id":  "goal_648d4a65242e9897",
+                                         "goal_status":  "waiting_confirmation",
+                                         "original_intent":  "把这段拆出来",
+                                         "run_id":  "run_baf88f5f81220b4e",
+                                         "status":  "waiting_interaction",
+                                         "task_id":  "task_4229d120e5313b07",
+                                         "updated_at":  "2026-10-04T21:03:19.2264546+08:00"
+                                     },
+                            "transitions":  [
+
+                                            ]
+                        }
+}

@@ -1,0 +1,6 @@
+﻿{
+    "conversation_id":  "note_smoke_legacy_20261004_210022",
+    "reply":  "**Circled range — timeline face (72% of the note\u0027s selection), track `smoke_track_1`**\n\nTwo clips are hit:\n\n| clip | full extent | segment relevant to the range |\n|---|---|---|\n| `smoke_clip_full` | 0:03.2 – 0:07.8 | 0:03.2 – 0:07.8 (whole clip) |\n| `smoke_clip_part` | 0:05.0 – 0:12.0 | 0:05.0 – 0:12.0 (whole clip) |\n\nTime span: the note digest records no explicit range start/end — it only stores the two clips\u0027 full lengths. Taken together they cover **0:03.2 – 0:12.0**, with the two clips overlapping on **0:05.0 – 0:07.8**. I can\u0027t give a narrower \"intersecting segment\" because no range boundary was captured in the note.\n\nContext from the read-only project state: it\u0027s a smoke/legacy note (`note_smoke_legacy`), project initialized and idle, 2 clips in the profile but `tracks` is empty and track_count is 0 — no jobs, no takes, no graph revision bumps.\n\n(If you want the range boundary recorded or the clips trimmed, ask in the main chat console — this view is observation only.)",
+    "agent_mode":  "default",
+    "needs_confirmation":  false
+}

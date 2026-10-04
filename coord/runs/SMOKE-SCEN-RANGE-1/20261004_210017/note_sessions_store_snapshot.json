@@ -1,0 +1,57 @@
+﻿{
+  "schema_version": "vit_note_sessions.v1",
+  "project_uuid": "vitproj_19a2b6fbc94f49a7ba4a1505bc96be07",
+  "sessions": {
+    "note_smoke_v31_20261004_210022": {
+      "conversation_id": "note_smoke_v31_20261004_210022",
+      "note_id": "note_smoke_v31",
+      "title": "便签 note_smoke_v31",
+      "created_at": "2026-10-04T13:00:25.3682568Z",
+      "updated_at": "2026-10-04T13:00:25.3682568Z",
+      "archived": false,
+      "messages": [
+        {
+          "role": "user",
+          "content": "What does this circled range contain? Include the time span.",
+          "created_at": "2026-10-04T13:00:25.3682568Z"
+        },
+        {
+          "role": "assistant",
+          "content": "圈定范围是时间线（timeline）区域，占该便签选区约 72%。\n\n时间跨度：0:03.2 – 0:08.5（3.2s–8.5s）。\n\n范围内的内容：命中 2 个 clip，均在轨道 smoke_track_1 上：\n\n1. smoke_clip_full\n   - 全长：0:03.2 – 0:07.8\n   - 与范围相交段：0:03.2 – 0:07.8（完整落入范围内）\n\n2. smoke_clip_part\n   - 全长：0:05.0 – 0:12.0\n   - 与范围相交段：0:05.0 – 0:08.5（仅前半段落入，0:08.5 之后在范围外）\n\n补充说明：只读项目状态里 tracks 列表为空、track_count 为 0，但概览（profile）显示 clip_count 为 2，正好对应上述两个 clip；此外该范围只覆盖轨道 face 的时间线维度，未命中机架 / 素材库 / 控制面等其他界面。如需改动请到主聊天控制台提出。",
+          "created_at": "2026-10-04T13:00:25.3682568Z"
+        }
+      ],
+      "faces": [
+        {
+          "domain": {
+            "entries": [
+              {
+                "clip_id": "smoke_clip_full",
+                "end_seconds": 7.8,
+                "range_clip_end": 7.8,
+                "range_clip_start": 3.2,
+                "start_seconds": 3.2,
+                "track_id": "smoke_track_1"
+              },
+              {
+                "clip_id": "smoke_clip_part",
+                "end_seconds": 12,
+                "range_clip_end": 8.5,
+                "range_clip_start": 5,
+                "start_seconds": 5,
+                "track_id": "smoke_track_1"
+              }
+            ],
+            "range_time_span": {
+              "end_s": 8.5,
+              "start_s": 3.2
+            }
+          },
+          "face_kind": "timeline",
+          "label": "timeline",
+          "selection_share": 0.72
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,107 @@
+﻿{
+    "conversation_id":  "dev_range_split_neg_20261004_210109_1",
+    "task_id":  "task_33af6301d0693c14",
+    "goal_id":  "goal_0a037145d7f59e25",
+    "run_id":  "run_a4b8d2199ee89d2a",
+    "original_intent":  "把这段拆出来",
+    "reply":  "已选中 clip。",
+    "agent_mode":  "default",
+    "needs_confirmation":  false,
+    "commands":  [
+                     {
+                         "command":  {
+                                         "args":  {
+                                                      "clip_id":  "smoke_clip_1",
+                                                      "track_id":  "smoke_track_1"
+                                                  },
+                                         "tool":  "clip.select"
+                                     },
+                         "name":  "select_clip",
+                         "risk":  "direct",
+                         "reason":  "只读或低风险操作"
+                     }
+                 ],
+    "executed_kernel_reply":  [
+                                  {
+                                      "agent_action_id":  "act_798ae4aa9a0114ce",
+                                      "command_name":  "select_clip",
+                                      "error":  "",
+                                      "result":  {
+                                                     "clip_id":  "smoke_clip_1",
+                                                     "clip_name":  "",
+                                                     "start_beats":  null,
+                                                     "start_seconds":  null,
+                                                     "status":  "ok",
+                                                     "track_id":  "smoke_track_1",
+                                                     "track_name":  "",
+                                                     "ui_action":  "select_clip"
+                                                 },
+                                      "risk_level":  "direct",
+                                      "status":  "ok",
+                                      "tool":  "clip.select",
+                                      "undo_label":  ""
+                                  }
+                              ],
+    "goal_status":  "completed",
+    "goal_summary":  "把这段拆出来",
+    "project_history":  {
+                            "active_branch":  "main",
+                            "active_node_id":  "n_20261004T130121_ee8a9d17",
+                            "active_worktree":  "",
+                            "available":  true,
+                            "branches":  {
+                                             "main":  "c_20261004T130121_155583a2"
+                                         },
+                            "commit_count":  3,
+                            "conversation_messages":  [
+                                                          {
+                                                              "content":  "把这段拆出来",
+                                                              "logical_message_id":  "n_20261004T130117_8d9f2105",
+                                                              "message_kind":  "user",
+                                                              "node_id":  "n_20261004T130117_8d9f2105",
+                                                              "role":  "user"
+                                                          },
+                                                          {
+                                                              "content":  "已选中 clip。",
+                                                              "logical_message_id":  "n_20261004T130121_ee8a9d17",
+                                                              "message_kind":  "execution_receipt",
+                                                              "node_id":  "n_20261004T130121_ee8a9d17",
+                                                              "role":  "assistant"
+                                                          }
+                                                      ],
+                            "detached":  false,
+                            "draft":  false,
+                            "head":  "c_20261004T130121_155583a2",
+                            "initialized":  true,
+                            "project_label":  "Unsaved",
+                            "project_path":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261004T130108_6d12c5ab\\Unsaved.vit",
+                            "project_uuid":  "vitproj_19a2b6fbc94f49a7ba4a1505bc96be07",
+                            "refs":  {
+                                         "refs/heads/main":  "c_20261004T130121_155583a2"
+                                     },
+                            "root_project_path":  "",
+                            "unsaved":  false,
+                            "warnings":  [
+
+                                         ],
+                            "worktrees":  [
+                                              {
+                                                  "commit_id":  "c_20261004T130121_155583a2",
+                                                  "created_at":  "2026-10-04T13:01:21.7598586Z",
+                                                  "is_root":  true,
+                                                  "label":  "主工作树",
+                                                  "name":  "main",
+                                                  "origin_commit_id":  "c_20261004T130121_155583a2",
+                                                  "path":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261004T130108_6d12c5ab",
+                                                  "project_file_path":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261004T130108_6d12c5ab\\Unsaved.vit",
+                                                  "project_path":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261004T130108_6d12c5ab\\Unsaved.vit",
+                                                  "root_project_path":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261004T130108_6d12c5ab\\Unsaved.vit"
+                                              }
+                                          ]
+                        },
+    "lifecycle":  "durable",
+    "persistence":  "project_history",
+    "message_kind":  "execution_receipt",
+    "turn_id":  "run_a4b8d2199ee89d2a",
+    "logical_message_id":  "n_20261004T130121_ee8a9d17"
+}

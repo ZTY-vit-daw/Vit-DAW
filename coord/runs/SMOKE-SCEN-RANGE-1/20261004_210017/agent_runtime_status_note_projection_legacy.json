@@ -1,0 +1,85 @@
+﻿{
+    "authority_mode":  "manual_confirmation",
+    "capability_routes":  [
+
+                          ],
+    "checked_at":  "2026-10-04T21:00:31.5000283+08:00",
+    "checkout_blocked":  false,
+    "continuations":  [
+
+                      ],
+    "goal":  {
+                 "goal_id":  "",
+                 "run_id":  "",
+                 "status":  "idle",
+                 "created_at":  "0001-01-01T00:00:00Z",
+                 "updated_at":  "0001-01-01T00:00:00Z",
+                 "cancel_requested":  false
+             },
+    "kernel":  {
+                   "connected":  true,
+                   "endpoint":  "tcp://127.0.0.1:5555",
+                   "latency_ms":  2,
+                   "message":  "pong",
+                   "reply_status":  "ok",
+                   "status":  "online"
+               },
+    "note_sessions":  [
+                          {
+                              "archived":  false,
+                              "conversation_id":  "note_smoke_legacy_20261004_210022",
+                              "created_at":  "2026-10-04T13:00:31.0928162Z",
+                              "messages":  [
+                                               {
+                                                   "role":  "user",
+                                                   "content":  "What does this circled range contain? Include the time span.",
+                                                   "created_at":  "2026-10-04T13:00:31.0928162Z"
+                                               },
+                                               {
+                                                   "role":  "assistant",
+                                                   "content":  "**Circled range — timeline face (72% of the note\u0027s selection), track `smoke_track_1`**\n\nTwo clips are hit:\n\n| clip | full extent | segment relevant to the range |\n|---|---|---|\n| `smoke_clip_full` | 0:03.2 – 0:07.8 | 0:03.2 – 0:07.8 (whole clip) |\n| `smoke_clip_part` | 0:05.0 – 0:12.0 | 0:05.0 – 0:12.0 (whole clip) |\n\nTime span: the note digest records no explicit range start/end — it only stores the two clips\u0027 full lengths. Taken together they cover **0:03.2 – 0:12.0**, with the two clips overlapping on **0:05.0 – 0:07.8**. I can\u0027t give a narrower \"intersecting segment\" because no range boundary was captured in the note.\n\nContext from the read-only project state: it\u0027s a smoke/legacy note (`note_smoke_legacy`), project initialized and idle, 2 clips in the profile but `tracks` is empty and track_count is 0 — no jobs, no takes, no graph revision bumps.\n\n(If you want the range boundary recorded or the clips trimmed, ask in the main chat console — this view is observation only.)",
+                                                   "created_at":  "2026-10-04T13:00:31.0928162Z"
+                                               }
+                                           ],
+                              "note_id":  "note_smoke_legacy",
+                              "project_path":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261004T130020_8f5b8f15\\Unsaved.vit",
+                              "project_uuid":  "vitproj_19a2b6fbc94f49a7ba4a1505bc96be07",
+                              "title":  "便签 note_smoke_legacy",
+                              "updated_at":  "2026-10-04T13:00:31.0928162Z"
+                          },
+                          {
+                              "archived":  false,
+                              "conversation_id":  "note_smoke_v31_20261004_210022",
+                              "created_at":  "2026-10-04T13:00:25.3682568Z",
+                              "messages":  [
+                                               {
+                                                   "role":  "user",
+                                                   "content":  "What does this circled range contain? Include the time span.",
+                                                   "created_at":  "2026-10-04T13:00:25.3682568Z"
+                                               },
+                                               {
+                                                   "role":  "assistant",
+                                                   "content":  "圈定范围是时间线（timeline）区域，占该便签选区约 72%。\n\n时间跨度：0:03.2 – 0:08.5（3.2s–8.5s）。\n\n范围内的内容：命中 2 个 clip，均在轨道 smoke_track_1 上：\n\n1. smoke_clip_full\n   - 全长：0:03.2 – 0:07.8\n   - 与范围相交段：0:03.2 – 0:07.8（完整落入范围内）\n\n2. smoke_clip_part\n   - 全长：0:05.0 – 0:12.0\n   - 与范围相交段：0:05.0 – 0:08.5（仅前半段落入，0:08.5 之后在范围外）\n\n补充说明：只读项目状态里 tracks 列表为空、track_count 为 0，但概览（profile）显示 clip_count 为 2，正好对应上述两个 clip；此外该范围只覆盖轨道 face 的时间线维度，未命中机架 / 素材库 / 控制面等其他界面。如需改动请到主聊天控制台提出。",
+                                                   "created_at":  "2026-10-04T13:00:25.3682568Z"
+                                               }
+                                           ],
+                              "note_id":  "note_smoke_v31",
+                              "project_path":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261004T130020_8f5b8f15\\Unsaved.vit",
+                              "project_uuid":  "vitproj_19a2b6fbc94f49a7ba4a1505bc96be07",
+                              "title":  "便签 note_smoke_v31",
+                              "updated_at":  "2026-10-04T13:00:25.3682568Z"
+                          }
+                      ],
+    "pid":  14188,
+    "service":  "VitAgent",
+    "shadow":  {
+                   "delta_seq_gaps":  0,
+                   "graph_revision":  0,
+                   "initialized":  true,
+                   "last_delta_seq":  0,
+                   "project_path":  "",
+                   "track_count":  0,
+                   "user_track_count":  0
+               },
+    "status":  "ok"
+}

@@ -1,0 +1,6 @@
+﻿{
+    "conversation_id":  "note_smoke_v31_20261004_211000",
+    "reply":  "The circled range is a single timeline face (72% of the selection), covering the time span 0:03.2–0:08.5. It hits 2 clips, both on track smoke_track_1:\n\n- clip smoke_clip_full (track smoke_track_1): full length 0:03.2–0:07.8; segment inside the range 0:03.2–0:07.8 (entirely contained).\n- clip smoke_clip_part (track smoke_track_1): full length 0:05.0–0:12.0; segment inside the range 0:05.0–0:08.5 (truncated at the range end).\n\nNote: the project state reports 0 tracks and 2 clips, so these clip/track IDs come from the note jurisdiction rather than resolved track objects. No other faces (rack, library, control surfaces) are in this jurisdiction.",
+    "agent_mode":  "default",
+    "needs_confirmation":  false
+}

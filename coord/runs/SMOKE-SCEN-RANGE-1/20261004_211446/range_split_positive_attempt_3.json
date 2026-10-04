@@ -1,0 +1,301 @@
+﻿{
+    "conversation_id":  "dev_range_split_pos_20261004_211450_3",
+    "task_id":  "task_dfb368ea821e651a",
+    "goal_id":  "goal_51361fba8fd1eafa",
+    "run_id":  "run_ce421f7a99eb898e",
+    "original_intent":  "把这段拆出来",
+    "reply":  "这 2 个操作需要确认后执行。",
+    "agent_mode":  "default",
+    "needs_confirmation":  true,
+    "plan_id":  "plan_df7adbf0c2272476",
+    "preview":  "确认后，VitAgent 会先创建一个项目历史安全检查点。\nsplit_clip [confirm]: Split a clip at a timeline position.\n{\"clip_id\":\"smoke_clip_1\",\"cmd\":\"split_clip\",\"split_time\":2,\"time_unit\":\"seconds\",\"track_id\":\"smoke_track_1\"}\nsplit_clip [confirm]: Split a clip at a timeline position.\n{\"clip_id\":\"smoke_clip_1\",\"cmd\":\"split_clip\",\"split_time\":3.5,\"time_unit\":\"seconds\",\"track_id\":\"smoke_track_1\"}",
+    "interaction_requests":  [
+                                 {
+                                     "id":  "interaction_235668348e4a7a3b",
+                                     "kind":  "confirmation",
+                                     "source":  "vit_agent",
+                                     "stage":  "waiting_for_user",
+                                     "title":  "需要确认",
+                                     "body":  "这 2 个操作需要确认后执行。",
+                                     "status":  "waiting_for_user",
+                                     "conversation_id":  "dev_range_split_pos_20261004_211450_3",
+                                     "goal_id":  "goal_51361fba8fd1eafa",
+                                     "run_id":  "run_ce421f7a99eb898e",
+                                     "payload":  {
+                                                     "commands":  [
+                                                                      {
+                                                                          "command":  {
+                                                                                          "clip_id":  "smoke_clip_1",
+                                                                                          "cmd":  "split_clip",
+                                                                                          "split_time":  2,
+                                                                                          "time_unit":  "seconds",
+                                                                                          "track_id":  "smoke_track_1"
+                                                                                      },
+                                                                          "name":  "split_clip",
+                                                                          "risk":  "confirm",
+                                                                          "reason":  "该命令需要先预览并确认"
+                                                                      },
+                                                                      {
+                                                                          "command":  {
+                                                                                          "clip_id":  "smoke_clip_1",
+                                                                                          "cmd":  "split_clip",
+                                                                                          "split_time":  3.5,
+                                                                                          "time_unit":  "seconds",
+                                                                                          "track_id":  "smoke_track_1"
+                                                                                      },
+                                                                          "name":  "split_clip",
+                                                                          "risk":  "confirm",
+                                                                          "reason":  "该命令需要先预览并确认"
+                                                                      }
+                                                                  ],
+                                                     "plan_id":  "plan_df7adbf0c2272476",
+                                                     "preview":  "确认后，VitAgent 会先创建一个项目历史安全检查点。\nsplit_clip [confirm]: Split a clip at a timeline position.\n{\"clip_id\":\"smoke_clip_1\",\"cmd\":\"split_clip\",\"split_time\":2,\"time_unit\":\"seconds\",\"track_id\":\"smoke_track_1\"}\nsplit_clip [confirm]: Split a clip at a timeline position.\n{\"clip_id\":\"smoke_clip_1\",\"cmd\":\"split_clip\",\"split_time\":3.5,\"time_unit\":\"seconds\",\"track_id\":\"smoke_track_1\"}",
+                                                     "typed_event":  {
+                                                                         "event_type":  "ApprovalRequest",
+                                                                         "schema_version":  "vit_agent_protocol.v0",
+                                                                         "source":  {
+                                                                                        "call_id":  "plan_df7adbf0c2272476",
+                                                                                        "conversation_id":  "dev_range_split_pos_20261004_211450_3",
+                                                                                        "goal_id":  "goal_51361fba8fd1eafa",
+                                                                                        "legacy_kind":  "confirmation_plan",
+                                                                                        "run_id":  "run_ce421f7a99eb898e"
+                                                                                    },
+                                                                         "state":  {
+                                                                                       "available_decisions":  [
+                                                                                                                   "approve_once",
+                                                                                                                   "deny"
+                                                                                                               ],
+                                                                                       "id":  "approval_plan_df7adbf0c2272476_goal_51361fba8fd1eafa_run_ce421f7a99eb898e_split_clip",
+                                                                                       "kind":  "ApprovalRequest",
+                                                                                       "operation":  "commit",
+                                                                                       "reason":  "这 2 个操作需要确认后执行。",
+                                                                                       "resource_domain":  "project.commit",
+                                                                                       "scope":  "single_call",
+                                                                                       "source":  {
+                                                                                                      "call_id":  "plan_df7adbf0c2272476",
+                                                                                                      "conversation_id":  "dev_range_split_pos_20261004_211450_3",
+                                                                                                      "goal_id":  "goal_51361fba8fd1eafa",
+                                                                                                      "legacy_kind":  "confirmation_plan",
+                                                                                                      "run_id":  "run_ce421f7a99eb898e"
+                                                                                                  },
+                                                                                       "status":  "waiting_user",
+                                                                                       "target_ref":  "track:smoke_track_1"
+                                                                                   },
+                                                                         "state_id":  "approval_plan_df7adbf0c2272476_goal_51361fba8fd1eafa_run_ce421f7a99eb898e_split_clip",
+                                                                         "state_kind":  "ApprovalRequest",
+                                                                         "status":  "waiting_user"
+                                                                     },
+                                                     "typed_state":  {
+                                                                         "available_decisions":  [
+                                                                                                     "approve_once",
+                                                                                                     "deny"
+                                                                                                 ],
+                                                                         "id":  "approval_plan_df7adbf0c2272476_goal_51361fba8fd1eafa_run_ce421f7a99eb898e_split_clip",
+                                                                         "kind":  "ApprovalRequest",
+                                                                         "operation":  "commit",
+                                                                         "reason":  "这 2 个操作需要确认后执行。",
+                                                                         "resource_domain":  "project.commit",
+                                                                         "scope":  "single_call",
+                                                                         "source":  {
+                                                                                        "call_id":  "plan_df7adbf0c2272476",
+                                                                                        "conversation_id":  "dev_range_split_pos_20261004_211450_3",
+                                                                                        "goal_id":  "goal_51361fba8fd1eafa",
+                                                                                        "legacy_kind":  "confirmation_plan",
+                                                                                        "run_id":  "run_ce421f7a99eb898e"
+                                                                                    },
+                                                                         "status":  "waiting_user",
+                                                                         "target_ref":  "track:smoke_track_1"
+                                                                     }
+                                                 },
+                                     "actions":  [
+                                                     {
+                                                         "id":  "approve",
+                                                         "label":  "确认执行",
+                                                         "style":  "primary",
+                                                         "recommended":  true
+                                                     },
+                                                     {
+                                                         "id":  "cancel",
+                                                         "label":  "取消",
+                                                         "style":  "secondary"
+                                                     }
+                                                 ],
+                                     "plan_id":  "plan_df7adbf0c2272476",
+                                     "type":  "confirmation",
+                                     "data":  {
+                                                  "commands":  [
+                                                                   {
+                                                                       "command":  {
+                                                                                       "clip_id":  "smoke_clip_1",
+                                                                                       "cmd":  "split_clip",
+                                                                                       "split_time":  2,
+                                                                                       "time_unit":  "seconds",
+                                                                                       "track_id":  "smoke_track_1"
+                                                                                   },
+                                                                       "name":  "split_clip",
+                                                                       "risk":  "confirm",
+                                                                       "reason":  "该命令需要先预览并确认"
+                                                                   },
+                                                                   {
+                                                                       "command":  {
+                                                                                       "clip_id":  "smoke_clip_1",
+                                                                                       "cmd":  "split_clip",
+                                                                                       "split_time":  3.5,
+                                                                                       "time_unit":  "seconds",
+                                                                                       "track_id":  "smoke_track_1"
+                                                                                   },
+                                                                       "name":  "split_clip",
+                                                                       "risk":  "confirm",
+                                                                       "reason":  "该命令需要先预览并确认"
+                                                                   }
+                                                               ],
+                                                  "plan_id":  "plan_df7adbf0c2272476",
+                                                  "preview":  "确认后，VitAgent 会先创建一个项目历史安全检查点。\nsplit_clip [confirm]: Split a clip at a timeline position.\n{\"clip_id\":\"smoke_clip_1\",\"cmd\":\"split_clip\",\"split_time\":2,\"time_unit\":\"seconds\",\"track_id\":\"smoke_track_1\"}\nsplit_clip [confirm]: Split a clip at a timeline position.\n{\"clip_id\":\"smoke_clip_1\",\"cmd\":\"split_clip\",\"split_time\":3.5,\"time_unit\":\"seconds\",\"track_id\":\"smoke_track_1\"}",
+                                                  "typed_event":  {
+                                                                      "event_type":  "ApprovalRequest",
+                                                                      "schema_version":  "vit_agent_protocol.v0",
+                                                                      "source":  {
+                                                                                     "call_id":  "plan_df7adbf0c2272476",
+                                                                                     "conversation_id":  "dev_range_split_pos_20261004_211450_3",
+                                                                                     "goal_id":  "goal_51361fba8fd1eafa",
+                                                                                     "legacy_kind":  "confirmation_plan",
+                                                                                     "run_id":  "run_ce421f7a99eb898e"
+                                                                                 },
+                                                                      "state":  {
+                                                                                    "available_decisions":  [
+                                                                                                                "approve_once",
+                                                                                                                "deny"
+                                                                                                            ],
+                                                                                    "id":  "approval_plan_df7adbf0c2272476_goal_51361fba8fd1eafa_run_ce421f7a99eb898e_split_clip",
+                                                                                    "kind":  "ApprovalRequest",
+                                                                                    "operation":  "commit",
+                                                                                    "reason":  "这 2 个操作需要确认后执行。",
+                                                                                    "resource_domain":  "project.commit",
+                                                                                    "scope":  "single_call",
+                                                                                    "source":  {
+                                                                                                   "call_id":  "plan_df7adbf0c2272476",
+                                                                                                   "conversation_id":  "dev_range_split_pos_20261004_211450_3",
+                                                                                                   "goal_id":  "goal_51361fba8fd1eafa",
+                                                                                                   "legacy_kind":  "confirmation_plan",
+                                                                                                   "run_id":  "run_ce421f7a99eb898e"
+                                                                                               },
+                                                                                    "status":  "waiting_user",
+                                                                                    "target_ref":  "track:smoke_track_1"
+                                                                                },
+                                                                      "state_id":  "approval_plan_df7adbf0c2272476_goal_51361fba8fd1eafa_run_ce421f7a99eb898e_split_clip",
+                                                                      "state_kind":  "ApprovalRequest",
+                                                                      "status":  "waiting_user"
+                                                                  },
+                                                  "typed_state":  {
+                                                                      "available_decisions":  [
+                                                                                                  "approve_once",
+                                                                                                  "deny"
+                                                                                              ],
+                                                                      "id":  "approval_plan_df7adbf0c2272476_goal_51361fba8fd1eafa_run_ce421f7a99eb898e_split_clip",
+                                                                      "kind":  "ApprovalRequest",
+                                                                      "operation":  "commit",
+                                                                      "reason":  "这 2 个操作需要确认后执行。",
+                                                                      "resource_domain":  "project.commit",
+                                                                      "scope":  "single_call",
+                                                                      "source":  {
+                                                                                     "call_id":  "plan_df7adbf0c2272476",
+                                                                                     "conversation_id":  "dev_range_split_pos_20261004_211450_3",
+                                                                                     "goal_id":  "goal_51361fba8fd1eafa",
+                                                                                     "legacy_kind":  "confirmation_plan",
+                                                                                     "run_id":  "run_ce421f7a99eb898e"
+                                                                                 },
+                                                                      "status":  "waiting_user",
+                                                                      "target_ref":  "track:smoke_track_1"
+                                                                  }
+                                              }
+                                 }
+                             ],
+    "commands":  [
+                     {
+                         "command":  {
+                                         "clip_id":  "smoke_clip_1",
+                                         "cmd":  "split_clip",
+                                         "split_time":  2,
+                                         "time_unit":  "seconds",
+                                         "track_id":  "smoke_track_1"
+                                     },
+                         "name":  "split_clip",
+                         "risk":  "confirm",
+                         "reason":  "该命令需要先预览并确认"
+                     },
+                     {
+                         "command":  {
+                                         "clip_id":  "smoke_clip_1",
+                                         "cmd":  "split_clip",
+                                         "split_time":  3.5,
+                                         "time_unit":  "seconds",
+                                         "track_id":  "smoke_track_1"
+                                     },
+                         "name":  "split_clip",
+                         "risk":  "confirm",
+                         "reason":  "该命令需要先预览并确认"
+                     }
+                 ],
+    "goal_status":  "waiting_confirmation",
+    "goal_summary":  "把这段拆出来",
+    "project_history":  {
+                            "active_branch":  "main",
+                            "active_node_id":  "n_20261004T131511_db63c4ee",
+                            "active_worktree":  "",
+                            "available":  true,
+                            "branches":  {
+                                             "main":  "c_20261004T131511_60636571"
+                                         },
+                            "commit_count":  4,
+                            "conversation_messages":  [
+                                                          {
+                                                              "content":  "把这段拆出来",
+                                                              "logical_message_id":  "n_20261004T131507_b66336fd",
+                                                              "message_kind":  "user",
+                                                              "node_id":  "n_20261004T131507_b66336fd",
+                                                              "role":  "user"
+                                                          },
+                                                          {
+                                                              "content":  "这 2 个操作需要确认后执行。",
+                                                              "logical_message_id":  "n_20261004T131511_db63c4ee",
+                                                              "message_kind":  "proposal",
+                                                              "node_id":  "n_20261004T131511_db63c4ee",
+                                                              "role":  "assistant"
+                                                          }
+                                                      ],
+                            "detached":  false,
+                            "draft":  false,
+                            "head":  "c_20261004T131511_60636571",
+                            "initialized":  true,
+                            "project_label":  "Unsaved",
+                            "project_path":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261004T131449_27f36026\\Unsaved.vit",
+                            "project_uuid":  "vitproj_19a2b6fbc94f49a7ba4a1505bc96be07",
+                            "refs":  {
+                                         "refs/heads/main":  "c_20261004T131511_60636571"
+                                     },
+                            "root_project_path":  "",
+                            "unsaved":  false,
+                            "warnings":  [
+
+                                         ],
+                            "worktrees":  [
+                                              {
+                                                  "commit_id":  "c_20261004T131511_60636571",
+                                                  "created_at":  "2026-10-04T13:15:11.8951795Z",
+                                                  "is_root":  true,
+                                                  "label":  "主工作树",
+                                                  "name":  "main",
+                                                  "origin_commit_id":  "c_20261004T131511_60636571",
+                                                  "path":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261004T131449_27f36026",
+                                                  "project_file_path":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261004T131449_27f36026\\Unsaved.vit",
+                                                  "project_path":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261004T131449_27f36026\\Unsaved.vit",
+                                                  "root_project_path":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261004T131449_27f36026\\Unsaved.vit"
+                                              }
+                                          ]
+                        },
+    "lifecycle":  "durable",
+    "persistence":  "project_history",
+    "message_kind":  "proposal",
+    "turn_id":  "run_ce421f7a99eb898e",
+    "logical_message_id":  "n_20261004T131511_db63c4ee"
+}
