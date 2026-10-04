@@ -363,11 +363,27 @@ func TestBuildNoteAssemblyTimeDimension(t *testing.T) {
 	legacyJoined := strings.Join(messageContents(legacy.Messages), "\n")
 	// 键形断言（带 JSON 引号）：系统段指令行含裸词 time_digest，不能作缺省判据——
 	// 快照 JSON 无 "time_digest" 键=旧载荷形态不变（fail-open）。
-	if strings.Contains(legacyJoined, `"time_digest"`) {
-		t.Fatalf("legacy assembly must omit time_digest key:\n%s", legacyJoined)
+	if strings.Contains(legacyJoined, `"time_digest"`) || strings.Contains(legacyJoined, `"range_time_span"`) {
+		t.Fatalf("legacy assembly must omit time_digest/range_time_span keys:\n%s", legacyJoined)
 	}
 	if !strings.Contains(legacyJoined, "always include the time dimension") {
 		t.Fatal("time instruction must stay present for legacy payloads (fail-open wording)")
+	}
+	// 线格式解码钉：Godot v3.1 顶层 range_time_span 经 JSON 解码到达（struct 字段）并进快照段。
+	var wirePayload NoteChatPayload
+	if err := json.Unmarshal([]byte(`{"note_id":"note_3","session":"r-1","range_time_span":{"start_s":3.2,"end_s":8.5}}`), &wirePayload); err != nil {
+		t.Fatal(err)
+	}
+	if len(wirePayload.RangeTimeSpan) == 0 {
+		t.Fatal("wire top-level range_time_span not decoded")
+	}
+	wire := server.buildNoteAssembly(context.Background(), ChatRequest{
+		Message: "问句",
+		Note:    &wirePayload,
+		Context: ctx,
+	}, "note_r-1")
+	if !strings.Contains(strings.Join(messageContents(wire.Messages), "\n"), `"range_time_span"`) {
+		t.Fatalf("wire range_time_span missing from snapshot:\n%s", strings.Join(messageContents(wire.Messages), "\n"))
 	}
 }
 

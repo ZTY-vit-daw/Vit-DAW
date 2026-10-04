@@ -56,6 +56,9 @@ type NoteChatPayload struct {
 	// 自 timeline 面 domain 提升）+timeline 面 domain 每条目 range_clip_start/range_clip_end
 	// （clip∩范围交）；旧载荷无字段=fail-open 缺省（摘要只列可得段）。
 	Faces []map[string]any `json:"faces,omitempty"`
+	// RangeTimeSpan 载荷顶层范围时间跨度（v3.1，panel 自 timeline 面 domain 提升的
+	// {start_s,end_s}）；nil/旧载荷=缺省（快照段省键，fail-open）。
+	RangeTimeSpan map[string]any `json:"range_time_span,omitempty"`
 }
 
 type noteSessionMessage struct {
@@ -528,6 +531,9 @@ func noteJurisdictionSnapshot(payload *NoteChatPayload) map[string]any {
 		"note_id": strings.TrimSpace(payload.NoteID),
 		"title":   noteDefaultTitle(payload),
 		"faces":   payload.Faces,
+	}
+	if len(payload.RangeTimeSpan) > 0 {
+		jurisdiction["range_time_span"] = payload.RangeTimeSpan
 	}
 	if digest := noteJurisdictionDigest(payload.Faces); digest != "" {
 		jurisdiction["time_digest"] = digest
