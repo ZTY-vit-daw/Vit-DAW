@@ -100,7 +100,13 @@ describe("PlanBar 位置契约（PLANBAR-1 缺陷①：恢复 T6 设计位=输�
     expect(composerIndex).toBeGreaterThan(planIndex);
     expect(dockEnd).toBeGreaterThan(composerIndex);
     expect(appSource.split("<PlanBar").length - 1).toBe(1);
-    expect(appSource).toContain("chainLive={agentTurnRunning || trajectoryLive}");
+    // WEBUI-SESSION-SEMANTICS-1：链活/兜底按会话归属门控（planBarOwnLive）——
+    // 全局 goal running 只有属主快照在位或本会话轨迹回合开放时才算本会话活链，
+    // 异会话任务在跑不得点亮输入框上方的规划条。
+    expect(appSource).toContain("chainLive={planBarOwnLive}");
+    expect(appSource).toContain(
+      "const planBarOwnLive = trajectoryLive || (agentTurnRunning && taskTrajectoryState.snapshot !== null);"
+    );
   });
 
   it("停靠列承担底部浮层定位，composer 的绝对定位被中性化（栏底边恒在 composer 顶边之上）", () => {

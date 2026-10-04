@@ -106,7 +106,8 @@ import {
 import { emptyTrajectoryState, hasLiveTrajectoryTurn, reduceTrajectoryEvents, trajectoryTurns } from "./trajectory";
 import type { TrajectoryState } from "./trajectory";
 import { auditionSessions, emptyAuditionState, reduceAuditionEvents, type AuditionSession, type AuditionState } from "./audition";
-import { emptyTaskTrajectoryState, reduceTaskTrajectory } from "./taskTrajectory";
+import { emptyTaskTrajectoryState, reduceTaskTrajectoryForConversation } from "./taskTrajectory";
+import { loadSessionFlowMainID, mainConversationDefaultTitle, saveSessionFlowMainID } from "./sessionFlow";
 import { authorityContext, checkoutBlockedByState, continuationChainLive, isAgentTurnRunning } from "./turnControl";
 import { observeOutputLayout, shouldLayerObserveOutput } from "./observeOutputLayering";
 import { agentEventPollBusy, createAgentEventPollIdleGate } from "./eventPolling";
@@ -276,6 +277,10 @@ function App() {
   const [auditionBusySessionID, setAuditionBusySessionID] = useState("");
   const auditionWaiting = useMemo(() => Object.values(auditionState.sessions).some((session) => session.status === "preparing"), [auditionState]);
   const [conversationID, setConversationID] = useState(initialConversationID);
+  // WEBUI-SESSION-SEMANTICS-1：本 scope 的主对话流身份（「主对话流 · <工程名>」）。
+  // 独立于 scoped conversation 锚定——新建/切换会话都会改写锚定，主会话身份只在
+  // scope 物化时首见即钉（loadSessionFlowMainID 幂等），此后不再跟当前会话走。
+  const [mainConversationID, setMainConversationID] = useState("");
   const [mode, setMode] = useState<AgentMode>("default");
   const [authorityMode, setAuthorityModeState] = useState<AuthorityMode>("manual_confirmation");
   const [authorityBusy, setAuthorityBusy] = useState(false);
@@ -351,7 +356,16 @@ function App() {
     if (runtimeResult.status === "fulfilled") {
       setConnection("ready");
       setRuntimeStatus(runtimeResult.value);
-      setTaskTrajectoryState((current) => reduceTaskTrajectory(current, "task_trajectory" in runtimeResult.value ? runtimeResult.value.task_trajectory : null));
+      // WEBUI-SESSION-SEMANTICS-1：PlanBar 快照按 active session 绑定——全局
+      // task_trajectory 投影的 conversation_id 与当前会话不符（note 会话/其他流
+      // 的任务在跑）时即时清空，异会话的执行轨迹不得渲染到本会话输入框上方。
+      setTaskTrajectoryState((current) =>
+        reduceTaskTrajectoryForConversation(
+          current,
+          "task_trajectory" in runtimeResult.value ? runtimeResult.value.task_trajectory : null,
+          conversationID
+        )
+      );
       setHealthLabel(runtimeResult.value.service ?? "VitAgent");
       // AB-JUDGMENT-CARD-1：成功只清运行时自己写入的错误——在飞轮询迟到的
       // 成功不得抹掉判定/试听等交互面刚设置的错误（挂载期竞态 E2E J1 实证）。
@@ -368,7 +382,9 @@ function App() {
     if (uiResult.status === "fulfilled") {
       setUIState(applyMacroValueOverridesToUIState(uiResult.value, macroValueOverridesRef.current));
     }
-  }, []);
+    // WEBUI-SESSION-SEMANTICS-1：会话切换后下一次轮询立即按新会话裁决快照归属
+    //（依赖缺位会让异会话快照多活一个 8s 拍）。
+  }, [conversationID]);
 
   useEffect(() => {
     void refreshState();
@@ -455,6 +471,10 @@ function App() {
   // 回合开放」位（壳节点自 trajectory.turn.started 开至终态事件），链执行期
   // 轮询不再休眠（mtwwegtp 取证：63s 空窗+终局一次性补渲染的根因①）。
   const trajectoryLive = hasLiveTrajectoryTurn(trajectoryState);
+  // WEBUI-SESSION-SEMANTICS-1：PlanBar 链活/兜底的会话归属门控——全局 goal running
+  // 只有在属主快照在位（归约已按 conversation_id 过滤）或本会话事件流轨迹回合开放
+  // 时才视为"本会话有活链"；异会话任务在跑不再点亮输入框上方的规划条。
+  const planBarOwnLive = trajectoryLive || (agentTurnRunning && taskTrajectoryState.snapshot !== null);
 
   useEffect(() => {
     if (!agentEventPolling) {
@@ -608,6 +628,12 @@ function App() {
       });
       historyScopeRef.current = nextScope;
       saveStoredScopedConversationID(nextScope, nextConversationID);
+      // WEBUI-SESSION-SEMANTICS-1：主对话流出生即钉（裁定 1：每次拉栈自动建、同工程
+      // 重开沿旧名）——scope 首次物化解析出的会话就是主对话流；已钉过则沿旧身份。
+      if (!loadSessionFlowMainID(nextScope)) {
+        saveSessionFlowMainID(nextScope, nextConversationID);
+      }
+      setMainConversationID(loadSessionFlowMainID(nextScope));
       scopedConversationRef.current = scopedConversationRuntimeKey(nextScope, nextConversationID);
       restoredMessageScopeRef.current = "";
       agentEventSeqRef.current = 0;
@@ -659,6 +685,12 @@ function App() {
         historyScopeRef.current = nextScope;
         agentEventSeqRef.current = 0;
         saveStoredScopedConversationID(nextScope, anchorScopedConversationID);
+        // WEBUI-SESSION-SEMANTICS-1：采纳的锚定会话就是本 scope 的主对话流（裸开/
+        // 服务端兜底形态）——主身份缺位时补钉，命名随侧边栏幂等登记生效。
+        if (!loadSessionFlowMainID(nextScope)) {
+          saveSessionFlowMainID(nextScope, anchorScopedConversationID);
+        }
+        setMainConversationID(loadSessionFlowMainID(nextScope));
         scopedConversationRef.current = scopedConversationRuntimeKey(nextScope, anchorScopedConversationID);
         restoredMessageScopeRef.current = "";
         // MSG-REVIVE-1：采纳服务端会话身份时工程历史消息同批并入——裸开
@@ -675,6 +707,12 @@ function App() {
       historyScopeRef.current = nextScope;
       scopedConversationRef.current = scopedConversationRuntimeKey(nextScope, conversationID);
       migrateStoredConversationScope(previousScope, nextScope, conversationID);
+      // WEBUI-SESSION-SEMANTICS-1：scope 演进迁移路径上，被迁移的当前会话继承为
+      // 新 scope 的主对话流（未保存→保存等演进形态主身份不落空）。
+      if (!loadSessionFlowMainID(nextScope)) {
+        saveSessionFlowMainID(nextScope, conversationID);
+      }
+      setMainConversationID(loadSessionFlowMainID(nextScope));
       restoredMessageScopeRef.current = "";
       setMessages((current) => {
         debugConfirmation("history-sync", {
@@ -1233,6 +1271,13 @@ function App() {
     return firstUser ? firstUser.content.replace(/\s+/g, " ").trim().slice(0, 40) : "";
   }, [uiState]);
 
+  // WEBUI-SESSION-SEMANTICS-1（命名裁定 1）：主对话流默认名=「主对话流 · <工程名>」，
+  // 工程名与状态栏同源（工程路径尾段；未保存工程沿 "Vit Project" 兜底）。
+  const mainFlowTitle = useMemo(() => {
+    const parts = historyScopePartsFromUIState(uiState);
+    return mainConversationDefaultTitle(lastPathPart(parts.projectPath || parts.rootProjectPath || ""));
+  }, [uiState]);
+
   const fetchLatestUIState = async (): Promise<AgentUIState | null> => {
     try {
       const latest = await fetchUIState();
@@ -1643,11 +1688,16 @@ function App() {
           列——列向 flex 保证栏底边恒在 composer 顶边之上；栏留在面板流内时会被
           composer 的绝对定位浮层压住（缺陷①的形态）。停靠列整体高度即消息流预留。 */}
       <div className="composer-dock" ref={composerDockRef}>
+        {/* WEBUI-SESSION-SEMANTICS-1：PlanBar 的 goal/plan 全局兜底与链活信号按
+            active session 归属门控——快照归约已保证 snapshot 非空 ⟺ 全局任务属于
+            本会话；异会话任务在跑（note 流/其他 webui 流）时兜底置空，栏随快照
+            清空立即卸载，不再以无快照兜底形态滞留或泄漏他流意图文本。本会话自身
+            活动（事件流轨迹回合开放/链活且属主快照在位）保持既有兜底行为。 */}
         <PlanBar
           snapshot={taskTrajectoryState.snapshot}
-          goal={asRecord(uiState?.goal)}
-          plan={asRecord(uiState?.agent_plan)}
-          chainLive={agentTurnRunning || trajectoryLive}
+          goal={planBarOwnLive ? asRecord(uiState?.goal) : null}
+          plan={planBarOwnLive ? asRecord(uiState?.agent_plan) : null}
+          chainLive={planBarOwnLive}
         />
 
         <Composer
@@ -1743,6 +1793,8 @@ function App() {
           currentConversationID={conversationID}
           continuations={runtimeStatus?.continuations}
           noteSessions={runtimeStatus?.note_sessions}
+          mainConversationID={mainConversationID}
+          mainFlowTitle={mainFlowTitle}
           settingsOpen={settingsOpen}
           onNewConversation={handleNewConversation}
           onSwitchConversation={handleSwitchConversation}

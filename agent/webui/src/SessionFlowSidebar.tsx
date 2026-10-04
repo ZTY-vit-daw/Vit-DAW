@@ -30,6 +30,8 @@ export function SessionFlowSidebar({
   currentConversationID,
   continuations,
   noteSessions,
+  mainConversationID,
+  mainFlowTitle,
   settingsOpen,
   onNewConversation,
   onSwitchConversation,
@@ -42,6 +44,10 @@ export function SessionFlowSidebar({
   continuations: unknown;
   /** VITNOTE-NOTESTREAM-2：/agent/runtime/status note_sessions 投影（note 会话提示源） */
   noteSessions: unknown;
+  /** WEBUI-SESSION-SEMANTICS-1：本 scope 主对话流会话 id（App 在 scope 物化时钉定） */
+  mainConversationID: string;
+  /** 主对话流默认名（裁定 1：「主对话流 · <工程名>」；确定性模板，零 LLM 依赖） */
+  mainFlowTitle: string;
   settingsOpen: boolean;
   onNewConversation: () => void;
   onSwitchConversation: (conversationID: string) => void;
@@ -75,6 +81,17 @@ export function SessionFlowSidebar({
     }
     setEntries((current) => upsertSessionFlowEntry(current, { conversationID: currentConversationID }));
   }, [scopeKey, currentConversationID]);
+
+  // WEBUI-SESSION-SEMANTICS-1：主对话流出生即命名——主会话行随 App 钉定的
+  // mainConversationID 幂等登记默认名「主对话流 · <工程名>」。upsert 只在行未命名时
+  // 落默认名：用户改名最高且持久（裁定 1），归档态同样零覆写；用户后续新建的会话
+  // 不经此路径（无主会话身份），平级列出、沿消息推导或"未命名会话"展示。
+  useEffect(() => {
+    if (!scopeKey || !mainConversationID || !mainFlowTitle) {
+      return;
+    }
+    setEntries((current) => upsertSessionFlowEntry(current, { conversationID: mainConversationID, title: mainFlowTitle }));
+  }, [scopeKey, mainConversationID, mainFlowTitle]);
 
   const serverHints = useMemo(
     () =>
