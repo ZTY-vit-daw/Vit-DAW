@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"io"
+	"math"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -221,6 +222,168 @@ func TestHandleChatNotePayloadRequiresIdentity(t *testing.T) {
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusBadRequest {
 		t.Fatalf("status = %d", resp.StatusCode)
+	}
+}
+
+// VITNOTE-REGION-TIME-1：m:ss.d 格式化（十分位四舍五入；负值/非有限回落 0）。
+func TestNoteFormatTimelineSeconds(t *testing.T) {
+	cases := []struct {
+		seconds  float64
+		expected string
+	}{
+		{0, "0:00.0"},
+		{3.2, "0:03.2"},
+		{8.5, "0:08.5"},
+		{62.45, "1:02.5"},
+		{600.04, "10:00.0"},
+		{-1, "0:00.0"},
+		{math.NaN(), "0:00.0"},
+		{math.Inf(1), "0:00.0"},
+	}
+	for _, c := range cases {
+		if got := noteFormatTimelineSeconds(c.seconds); got != c.expected {
+			t.Fatalf("noteFormatTimelineSeconds(%v) = %s, want %s", c.seconds, got, c.expected)
+		}
+	}
+}
+
+// 辖区时间维度摘要三例（全含/部分交/零交缺省）+全长段+轨/clip 身份。
+func TestNoteJurisdictionDigestTimeIntersectionCases(t *testing.T) {
+	faces := []map[string]any{{
+		"face_kind": "timeline", "label": "轨道时间线", "selection_share": 0.72,
+		"domain": map[string]any{
+			"range_time_span": map[string]any{"start_s": 3.2, "end_s": 8.5},
+			"entries": []any{
+				// 全含：相交段=clip 全长界。
+				map[string]any{"clip_id": "c_full", "track_id": "t1", "start_seconds": 3.2, "end_seconds": 7.8, "length_seconds": 4.6, "range_clip_start": 3.2, "range_clip_end": 7.8},
+				// 部分交：相交段=裁剪界。
+				map[string]any{"clip_id": "c_part", "track_id": "t1", "start_seconds": 5.0, "end_seconds": 12.0, "range_clip_start": 5.0, "range_clip_end": 8.5},
+				// 零交：supplier 省键 → 只列身份+全长，无相交段。
+				map[string]any{"clip_id": "c_out", "track_id": "t2", "start_seconds": 20.0, "end_seconds": 30.0},
+			},
+		},
+	}}
+	digest := noteJurisdictionDigest(faces)
+	for _, needle := range []string{
+		"时间线 0:03.2–0:08.5：命中 3 个 clip：",
+		"clip c_full（轨 t1）全长 0:03.2–0:07.8（与范围相交段 0:03.2–0:07.8）",
+		"clip c_part（轨 t1）全长 0:05.0–0:12.0（与范围相交段 0:05.0–0:08.5）",
+		"clip c_out（轨 t2）全长 0:20.0–0:30.0",
+	} {
+		if !strings.Contains(digest, needle) {
+			t.Fatalf("digest missing %q:\n%s", needle, digest)
+		}
+	}
+	if strings.Contains(digest, "c_out（轨 t2）全长 0:20.0–0:30.0（") {
+		t.Fatalf("zero-overlap clip must omit intersection segment:\n%s", digest)
+	}
+}
+
+// 旧载荷 fail-open：无时间字段=身份行仍在、无时间段文本；非 timeline 面/空面=无时间行。
+func TestNoteJurisdictionDigestFailOpen(t *testing.T) {
+	// v3 旧载荷：无 range_time_span、条目无 range_clip_start/end。
+	legacy := []map[string]any{{
+		"face_kind": "timeline", "label": "轨道时间线",
+		"domain": map[string]any{
+			"entries": []any{
+				map[string]any{"clip_id": "c1", "track_id": "t1", "start_seconds": 1.0, "end_seconds": 4.0},
+				map[string]any{"clip_id": 1007, "track_id": 42},
+			},
+		},
+	}}
+	digest := noteJurisdictionDigest(legacy)
+	for _, needle := range []string{"时间线：命中 2 个 clip：", "clip c1（轨 t1）全长 0:01.0–0:04.0", "clip 1007（轨 42）"} {
+		if !strings.Contains(digest, needle) {
+			t.Fatalf("legacy digest missing %q:\n%s", needle, digest)
+		}
+	}
+	if strings.Contains(digest, "与范围相交段") || strings.Contains(digest, "时间线 0:") {
+		t.Fatalf("legacy digest must not fabricate time spans:\n%s", digest)
+	}
+	// 异形值：负秒/退化区间/越界相交段一律省略（不伪造）。
+	malformed := []map[string]any{{
+		"face_kind": "timeline",
+		"domain": map[string]any{
+			"range_time_span": map[string]any{"start_s": 5.0, "end_s": 2.0},
+			"entries": []any{
+				map[string]any{"clip_id": "c_bad", "track_id": "t1", "start_seconds": -3.0, "range_clip_start": 1.0, "range_clip_end": 99.0},
+			},
+		},
+	}}
+	if got := noteJurisdictionDigest(malformed); got != "时间线：命中 1 个 clip：\nclip c_bad（轨 t1）" {
+		t.Fatalf("malformed digest mismatch:\n%s", got)
+	}
+	// 非 timeline 面=无时间行（如实缺省）；空/nil 面=空摘要。
+	if got := noteJurisdictionDigest([]map[string]any{{"face_kind": "rack", "domain": map[string]any{"entries": []any{map[string]any{"plugin_name": "EQ"}}}}}); got != "" {
+		t.Fatalf("non-timeline face must not produce time lines: %s", got)
+	}
+	if noteJurisdictionDigest(nil) != "" {
+		t.Fatal("nil faces must produce empty digest")
+	}
+	if noteJurisdictionDigest([]map[string]any{{"face_kind": "timeline"}}) != "" {
+		t.Fatal("timeline face without domain must produce empty digest")
+	}
+}
+
+// 组装注入：v3.1 载荷快照段带 time_digest+系统段时间指令；旧载荷快照形态不变（键缺席）。
+func TestBuildNoteAssemblyTimeDimension(t *testing.T) {
+	server := &Server{conversations: map[string][]llm.Message{}}
+	projectPath, projectUUID := noteTestProjectDir(t)
+	ctx := map[string]any{"project_path": projectPath, "project_uuid": projectUUID}
+	richFaces := []map[string]any{{
+		"face_kind": "timeline", "label": "轨道时间线",
+		"domain": map[string]any{
+			"range_time_span": map[string]any{"start_s": 3.2, "end_s": 8.5},
+			"entries": []any{
+				map[string]any{"clip_id": "c1", "track_id": "t1", "start_seconds": 3.2, "end_seconds": 7.8, "range_clip_start": 3.2, "range_clip_end": 7.8},
+			},
+		},
+	}}
+	rich := server.buildNoteAssembly(context.Background(), ChatRequest{
+		Message: "这个范围是什么内容？",
+		Note:    &NoteChatPayload{NoteID: "note_3", Session: "r-1", Faces: richFaces},
+		Context: ctx,
+	}, "note_r-1")
+	richJoined := strings.Join(messageContents(rich.Messages), "\n")
+	for _, needle := range []string{
+		"time_digest",
+		"时间线 0:03.2–0:08.5：命中 1 个 clip：",
+		"与范围相交段 0:03.2–0:07.8",
+		"always include the time dimension",
+	} {
+		if !strings.Contains(richJoined, needle) {
+			t.Fatalf("rich assembly missing %q:\n%s", needle, richJoined)
+		}
+	}
+	legacy := server.buildNoteAssembly(context.Background(), ChatRequest{
+		Message: "问句",
+		Note:    &NoteChatPayload{NoteID: "note_3", Session: "r-1"},
+		Context: ctx,
+	}, "note_r-1")
+	legacyJoined := strings.Join(messageContents(legacy.Messages), "\n")
+	// 键形断言（带 JSON 引号）：系统段指令行含裸词 time_digest，不能作缺省判据——
+	// 快照 JSON 无 "time_digest" 键=旧载荷形态不变（fail-open）。
+	if strings.Contains(legacyJoined, `"time_digest"`) || strings.Contains(legacyJoined, `"range_time_span"`) {
+		t.Fatalf("legacy assembly must omit time_digest/range_time_span keys:\n%s", legacyJoined)
+	}
+	if !strings.Contains(legacyJoined, "always include the time dimension") {
+		t.Fatal("time instruction must stay present for legacy payloads (fail-open wording)")
+	}
+	// 线格式解码钉：Godot v3.1 顶层 range_time_span 经 JSON 解码到达（struct 字段）并进快照段。
+	var wirePayload NoteChatPayload
+	if err := json.Unmarshal([]byte(`{"note_id":"note_3","session":"r-1","range_time_span":{"start_s":3.2,"end_s":8.5}}`), &wirePayload); err != nil {
+		t.Fatal(err)
+	}
+	if len(wirePayload.RangeTimeSpan) == 0 {
+		t.Fatal("wire top-level range_time_span not decoded")
+	}
+	wire := server.buildNoteAssembly(context.Background(), ChatRequest{
+		Message: "问句",
+		Note:    &wirePayload,
+		Context: ctx,
+	}, "note_r-1")
+	if !strings.Contains(strings.Join(messageContents(wire.Messages), "\n"), `"range_time_span"`) {
+		t.Fatalf("wire range_time_span missing from snapshot:\n%s", strings.Join(messageContents(wire.Messages), "\n"))
 	}
 }
 
