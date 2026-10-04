@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -29,6 +30,9 @@ import (
 //   - 持久化：.vit_derived/<uuid>/note_sessions.json（AGENTS §11 fail-open：缺文件/损坏
 //     JSON/异形行一律按空处理，旧工程加载零破坏；原子写 tmp+rename）。
 // 归档语义：note 删除=会话归档（archived=true，可查不入主流——/agent/note/archive）。
+// VITNOTE-REGION-TIME-1（2026-10-04）：辖区时间维度——载荷 v3.1（顶层 range_time_span+
+// 条目 range_clip_start/end，Godot supplier/panel 产出）→ noteJurisdictionDigest 产 m:ss.d
+// 摘要（time_digest 键注入快照段，旧载荷键缺席 fail-open）+系统段指令要求回答辖区内容带时间界。
 
 const noteSessionsFileName = "note_sessions.json"
 const noteSessionsSchemaV1 = "vit_note_sessions.v1"
@@ -48,6 +52,9 @@ type NoteChatPayload struct {
 	Title string `json:"title,omitempty"`
 	// Faces 圈选辖区摘要（resolve_circle §5.2 faces[]：face_id/face_kind/label/
 	// selection_share/face_coverage/domain）——辖区上下文注入的数据源。
+	// v3.1（REGION-TIME-1）时间维度：载荷顶层 range_time_span（圈选映射时间段，Godot panel
+	// 自 timeline 面 domain 提升）+timeline 面 domain 每条目 range_clip_start/range_clip_end
+	// （clip∩范围交）；旧载荷无字段=fail-open 缺省（摘要只列可得段）。
 	Faces []map[string]any `json:"faces,omitempty"`
 }
 
@@ -382,6 +389,152 @@ func noteReplyText(raw string) string {
 	return text
 }
 
+// ==========================================
+// 辖区时间维度摘要（VITNOTE-REGION-TIME-1）
+// ==========================================
+
+// noteFormatTimelineSeconds：秒→m:ss.d（十分之一秒精度四舍五入；负值/非有限回落 0——
+// fail-open，不产生 "NaN" 类噪声文本）。
+func noteFormatTimelineSeconds(seconds float64) string {
+	if math.IsNaN(seconds) || math.IsInf(seconds, 0) || seconds < 0 {
+		seconds = 0
+	}
+	totalTenths := int64(math.Round(seconds * 10))
+	tenths := totalTenths % 10
+	wholeSeconds := totalTenths / 10
+	return fmt.Sprintf("%d:%02d.%d", wholeSeconds/60, wholeSeconds%60, tenths)
+}
+
+// noteAsSeconds：载荷数值→秒（JSON 解码 float64；int/int64 兼容 Go 侧构造）。负值/非有限/
+// 类型不符=不可得（false——调用侧省略对应段，不猜测）。
+func noteAsSeconds(value any) (float64, bool) {
+	seconds, ok := value.(float64)
+	if !ok {
+		if iv, isInt := value.(int); isInt {
+			seconds, ok = float64(iv), true
+		} else if iv64, isInt64 := value.(int64); isInt64 {
+			seconds, ok = float64(iv64), true
+		}
+	}
+	if !ok || math.IsNaN(seconds) || math.IsInf(seconds, 0) || seconds < 0 {
+		return 0, false
+	}
+	return seconds, true
+}
+
+// noteValueText：载荷标量→文本（string 原样；数字/其他 %v 规整；nil 空）。
+func noteValueText(value any) string {
+	if text, ok := value.(string); ok {
+		return strings.TrimSpace(text)
+	}
+	if value == nil {
+		return ""
+	}
+	return strings.TrimSpace(fmt.Sprintf("%v", value))
+}
+
+// noteRangeSpanOf：timeline 面 domain.range_time_span→[start,end]（缺字段/异形/退化区间=
+// 不可得，false——旧载荷 fail-open 路径）。
+func noteRangeSpanOf(domain map[string]any) ([2]float64, bool) {
+	var span [2]float64
+	if domain == nil {
+		return span, false
+	}
+	raw, ok := domain["range_time_span"].(map[string]any)
+	if !ok {
+		return span, false
+	}
+	start, startOK := noteAsSeconds(raw["start_s"])
+	end, endOK := noteAsSeconds(raw["end_s"])
+	if !startOK || !endOK || end <= start {
+		return span, false
+	}
+	return [2]float64{start, end}, true
+}
+
+// noteClipDigestLine：单 clip 摘要行——「clip <id>（轨 <track>）全长 <s>–<e>（与范围相交段
+// <rs>–<re>）」；全长/相交段缺字段或异形=按缺省省略对应段（fail-open）；四段全无=空行。
+func noteClipDigestLine(entry map[string]any, span [2]float64, spanOK bool) string {
+	clipID := noteValueText(entry["clip_id"])
+	trackID := noteValueText(entry["track_id"])
+	if clipID == "" && trackID == "" {
+		return ""
+	}
+	line := fmt.Sprintf("clip %s（轨 %s）", clipID, trackID)
+	if start, startOK := noteAsSeconds(entry["start_seconds"]); startOK {
+		if end, endOK := noteAsSeconds(entry["end_seconds"]); endOK && end >= start {
+			line += fmt.Sprintf("全长 %s–%s", noteFormatTimelineSeconds(start), noteFormatTimelineSeconds(end))
+		}
+	}
+	if spanOK {
+		if rs, rsOK := noteAsSeconds(entry["range_clip_start"]); rsOK {
+			if re, reOK := noteAsSeconds(entry["range_clip_end"]); reOK && re >= rs && rs >= span[0] && re <= span[1] {
+				line += fmt.Sprintf("（与范围相交段 %s–%s）", noteFormatTimelineSeconds(rs), noteFormatTimelineSeconds(re))
+			}
+		}
+	}
+	return line
+}
+
+// noteJurisdictionDigest：辖区时间维度摘要（buildNoteAssembly 快照段 time_digest 数据源）。
+// timeline 面（face_kind=timeline）产「时间线 <范围跨度>：命中 N 个 clip：」头行+逐 clip 行；
+// 范围跨度=domain.range_time_span（v3.1 顶层提升前的面内形态），相交段=条目 range_clip_start/
+// end（Godot supplier 零交即省键）。旧载荷无时间字段=只列 clip 身份/全长行，不报错不伪造
+// （fail-open）；非 timeline 面不产时间行（非时间线语义如实缺省）；无可述行=空串（快照省键）。
+func noteJurisdictionDigest(faces []map[string]any) string {
+	lines := []string{}
+	for _, face := range faces {
+		if face == nil || noteValueText(face["face_kind"]) != "timeline" {
+			continue
+		}
+		domain, _ := face["domain"].(map[string]any)
+		span, spanOK := noteRangeSpanOf(domain)
+		var entries []any
+		if raw, ok := domain["entries"].([]any); ok {
+			entries = raw
+		} else if typed, ok := domain["entries"].([]map[string]any); ok {
+			for _, entry := range typed {
+				entries = append(entries, entry)
+			}
+		}
+		clipLines := []string{}
+		for _, entryAny := range entries {
+			entry, ok := entryAny.(map[string]any)
+			if !ok {
+				continue
+			}
+			if line := noteClipDigestLine(entry, span, spanOK); line != "" {
+				clipLines = append(clipLines, line)
+			}
+		}
+		if len(clipLines) == 0 {
+			continue
+		}
+		header := "时间线"
+		if spanOK {
+			header += fmt.Sprintf(" %s–%s", noteFormatTimelineSeconds(span[0]), noteFormatTimelineSeconds(span[1]))
+		}
+		lines = append(lines, fmt.Sprintf("%s：命中 %d 个 clip：", header, len(clipLines)))
+		lines = append(lines, clipLines...)
+	}
+	return strings.Join(lines, "\n")
+}
+
+// noteJurisdictionSnapshot：辖区快照段（note_jurisdiction 键面）。时间维度（REGION-TIME-1）：
+// noteJurisdictionDigest 非空时注 time_digest 键（m:ss.d 摘要行）；旧载荷无时间字段=摘要空串
+// →键缺席，快照形态与 NOTESTREAM-2 v3 完全一致（fail-open 兼容面）。
+func noteJurisdictionSnapshot(payload *NoteChatPayload) map[string]any {
+	jurisdiction := map[string]any{
+		"note_id": strings.TrimSpace(payload.NoteID),
+		"title":   noteDefaultTitle(payload),
+		"faces":   payload.Faces,
+	}
+	if digest := noteJurisdictionDigest(payload.Faces); digest != "" {
+		jurisdiction["time_digest"] = digest
+	}
+	return jurisdiction
+}
+
 // buildNoteAssembly：note 专属组包——系统段（观察者角色+只读约束）+上下文快照段（辖区
 // digest+工程只读摘要）+会话历史（note 会话库，非工程单图）+当前问句。段落命名带
 // vitnote_ 前缀，遥测 section_stats 可与主任务组包对照（判据 3 证据面）。
@@ -396,11 +549,7 @@ func (s *Server) buildNoteAssembly(ctx context.Context, req ChatRequest, convers
 		stateSummary = s.harness.UserStateSummary(ctx)
 	}
 	snapshot := map[string]any{
-		"note_jurisdiction": map[string]any{
-			"note_id": strings.TrimSpace(payload.NoteID),
-			"title":   noteDefaultTitle(payload),
-			"faces":   payload.Faces,
-		},
+		"note_jurisdiction": noteJurisdictionSnapshot(payload),
 		"read_only_project_state": stateSummary,
 	}
 	snapshotJSON, err := json.Marshal(snapshot)
@@ -412,6 +561,7 @@ The note jurisdiction below describes what was circled: which UI faces were hit 
 Answer using the note jurisdiction digest and the read-only project state summary.
 This is a read-only observation conversation: do not propose project mutations, do not emit commands or JSON envelopes, do not start workflows. If the user asks for a change, describe what you observe and tell them to ask in the main chat console for actual edits.
 When the question refers to "这个范围" / "这一块" / "this range" / "this region", it means the note jurisdiction, not the DAW track selection.
+When describing what the circled range contains, always include the time dimension: give the range's mapped time span and, for each clip, the segment that falls inside the range (与范围相交段), using the timeline values from the jurisdiction time_digest. If time fields are absent for a clip, state what you can and do not invent times.
 Reply with plain text only. Answer in the user's language. Be concise and concrete.`
 
 	assembly := promptruntime.Build(promptruntime.AssemblyInput{
