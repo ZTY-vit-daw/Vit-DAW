@@ -22,6 +22,7 @@ func SynthesizeLocalDAWCommands(userText string, requestContext map[string]any) 
 		return nil
 	}
 	text = expandLocalIntentText(text)
+	rangeSplitCommands := clipRangeSplitCommands(text, requestContext)
 	if isAddTrackText(text) {
 		return []map[string]any{{
 			"tool": "track.add",
@@ -91,7 +92,10 @@ func SynthesizeLocalDAWCommands(userText string, requestContext map[string]any) 
 			"tool": "clip.remove",
 			"args": selectedClipArgs(requestContext, true),
 		}}
-	case isClipSplitText(text):
+	case isClipSplitText(text) || len(rangeSplitCommands) > 0:
+		if len(rangeSplitCommands) > 0 {
+			return rangeSplitCommands
+		}
 		args := selectedClipArgs(requestContext, false)
 		if seconds, ok := firstLocalSeconds(text); ok {
 			args["split_time"] = seconds
@@ -253,12 +257,128 @@ func selectedClipArgs(requestContext map[string]any, allowMany bool) map[string]
 			ids = []string{id}
 		}
 	}
+	ranges := selectedClipRangeRows(requestContext["selected_clip_ranges"])
+	if len(ranges) > 0 {
+		args["selected_clip_range_count"] = len(ranges)
+		args["selected_clip_range"] = ranges[0]
+		if len(ids) == 0 {
+			ids = []string{strings.TrimSpace(firstContextText(ranges[0], "clip_id"))}
+		}
+	}
 	if allowMany && len(ids) > 0 {
 		args["clip_ids"] = ids
 	} else if len(ids) == 1 {
 		args["clip_id"] = ids[0]
 	}
 	return args
+}
+
+// selectedClipRangeRows mirrors the server-side selected_clip_ranges structure
+// validation (chat server contextClipRangeRows): rows without a clip_id are
+// ignored (fail-open) and only whitelisted keys survive.
+func selectedClipRangeRows(v any) []map[string]any {
+	rows := contextRows(v)
+	out := make([]map[string]any, 0, len(rows))
+	for _, row := range rows {
+		if strings.TrimSpace(firstContextText(row, "clip_id")) == "" {
+			continue
+		}
+		item := map[string]any{}
+		for _, key := range []string{
+			"range_id", "clip_id", "clip_name", "track_id",
+			"start_seconds", "end_seconds", "duration_seconds",
+			"clip_start_seconds", "clip_end_seconds",
+			"clip_local_start_seconds", "clip_local_end_seconds",
+			"source", "revision",
+		} {
+			if value, ok := row[key]; ok && !isEmptyLocalValue(value) {
+				item[key] = value
+			}
+		}
+		out = append(out, item)
+	}
+	return out
+}
+
+// clipMinSurvivingSeconds mirrors the kernel's kMinimumSurvivingClipLengthSeconds
+// (VitApp Source/Service/ClipService.cpp): a split must leave audio on both sides.
+const clipMinSurvivingSeconds = 0.01
+
+// clipRangeSplitCommands routes boxed-range split phrasing ("把这段拆出来") to
+// clip.split cuts at the range's global boundaries. Spoken seconds and playhead
+// references keep their existing cut-point sources; ranges only engage when they
+// are the sole cut-point signal.
+func clipRangeSplitCommands(text string, requestContext map[string]any) []map[string]any {
+	if !containsAnyFold(text, "这段", "这个范围", "框选") {
+		return nil
+	}
+	if !isClipSplitText(text) && !containsAnyFold(text, "拆出", "拆开", "拆分") {
+		return nil
+	}
+	if _, ok := firstLocalSeconds(text); ok {
+		return nil
+	}
+	if mentionsPlayheadText(text) {
+		return nil
+	}
+	ranges := selectedClipRangeRows(requestContext["selected_clip_ranges"])
+	if len(ranges) == 0 {
+		return nil
+	}
+	return clipRangeCutCommands(ranges[0])
+}
+
+// clipRangeCutCommands builds the cut plan for one boxed range. ClipService
+// handleSplitClip keeps the original clip_id on the left half after a split, so
+// when both cuts fall strictly inside the clip the end cut runs first and the
+// start cut second, isolating the boxed span as its own clip with known ids.
+func clipRangeCutCommands(row map[string]any) []map[string]any {
+	clipID := strings.TrimSpace(firstContextText(row, "clip_id"))
+	trackID := strings.TrimSpace(firstContextText(row, "track_id"))
+	if clipID == "" || trackID == "" {
+		return nil
+	}
+	start, okStart := contextRowSeconds(row, "start_seconds")
+	end, okEnd := contextRowSeconds(row, "end_seconds")
+	clipStart, okClipStart := contextRowSeconds(row, "clip_start_seconds")
+	clipEnd, okClipEnd := contextRowSeconds(row, "clip_end_seconds")
+	if !okStart || !okEnd || !okClipStart || !okClipEnd {
+		return nil
+	}
+	if clipEnd-clipStart <= 0 || end-start <= clipMinSurvivingSeconds || start < clipStart || end > clipEnd {
+		return nil
+	}
+	splitArgs := func(splitTime float64) map[string]any {
+		return map[string]any{
+			"clip_id":    clipID,
+			"track_id":   trackID,
+			"split_time": splitTime,
+			"time_unit":  "seconds",
+		}
+	}
+	cutAtStart := start-clipStart > clipMinSurvivingSeconds
+	cutAtEnd := clipEnd-end > clipMinSurvivingSeconds
+	switch {
+	case cutAtStart && cutAtEnd:
+		return []map[string]any{
+			{"tool": "clip.split", "args": splitArgs(end)},
+			{"tool": "clip.split", "args": splitArgs(start)},
+		}
+	case cutAtStart:
+		return []map[string]any{{"tool": "clip.split", "args": splitArgs(start)}}
+	case cutAtEnd:
+		return []map[string]any{{"tool": "clip.split", "args": splitArgs(end)}}
+	default:
+		return nil
+	}
+}
+
+func contextRowSeconds(row map[string]any, key string) (float64, bool) {
+	value, err := strconv.ParseFloat(strings.TrimSpace(fmt.Sprint(row[key])), 64)
+	if err != nil {
+		return 0, false
+	}
+	return value, true
 }
 
 func contextStringSlice(v any) []string {
