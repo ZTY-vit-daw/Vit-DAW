@@ -1,5 +1,7 @@
 # FREESTATE-REGION-IMPL-1：自由态范围 goal 两轮编舞——loop 状态 range_goal 字段+轮 1 断言 settle+轮 2 衔接（P2）
 
+> **排序裁定（2026-10-04 晚用户）：推迟至自动化曲线（B2）开发批次**——届时范围 goal 编舞按单轮形态（写包络=单变更）直接做终态，本卡两轮制为 a 路径过渡形态不再单独实现；卡与 DESIGN.md 保留为 B2 批次设计输入。**不可在此批领取。**
+
 - 池序 7（设计卡 FREESTATE-REGION-GOAL-1 已收口）；目标仓库=D:\Vit_DAW（PC 执行侧）；设计=[DESIGN.md](../../runs/FREESTATE-REGION-GOAL-1/DESIGN.md)（锚点地图 D1-D7+协议全文，实现以它为准）
 - 优先级 / 预估 / 依赖：P2 / 0.5 天 / main c1f95286；REGION-INTENT-WIRE-1 已合入（split 切序先例）
 - 模型分级：L1 / **flash 可接**（先例=goalrunner 轮状态机+INTENT-WIRE）
