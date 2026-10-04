@@ -1,0 +1,35 @@
+Initialize godot-rust (API v4.5.stable.official, runtime v4.6.1.stable.official, safeguards balanced)
+[VulkanHook/Windows] Installing vkCreateDevice hook...
+[VulkanHook/Windows] Hook installed successfully
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+[probe] face=dock scene=res://vit_dock/scenes/VitDockRoot.tscn
+[probe] router=/root/VitDockRoot/TopLevelShell/MainBody/ContentStack/WorkspaceShell/WorkspaceRoot/DynamicSplitTreeRoot/@HSplitContainer@73/ViewportFrame/VBox/ContentHost/Stack/ViewInstanceHost/TimelineDockAdapter/Layout/TrackScroll/TrackList
+[probe] manager=/root/VitDockRoot/VitNoteLayer mouse_filter=2
+[probe] canvas_rect=[P: (-244.0, 227.0), S: (561.0, 32.0)] viewport=(64.0, 64.0)
+[probe] align target=lane∩canvas /root/VitDockRoot/TopLevelShell/MainBody/ContentStack/WorkspaceShell/WorkspaceRoot/DynamicSplitTreeRoot/@HSplitContainer@73/ViewportFrame/VBox/ContentHost/Stack/ViewInstanceHost/TimelineDockAdapter/Layout/TrackScroll/TrackList/Track_Master/Track_Split/Right_3D_Wrapper/TrackLane2D right-half center (170.75, 243.0)
+[probe] panel_rect=[P: (-137.25, 219.0), S: (340.0, 300.0)]
+[probe] collapse_btn_rect=[P: (148.75, 227.0), S: (44.0, 32.0)] press_pos=(170.75, 243.0) (inside canvas)
+[probe] B.wire panel.gui_input / mouse_entered / collapse.pressed connected
+[probe] A.hover gui_get_hovered_control=<null>
+[probe] A.hover panel_mouse_entered=false
+[probe] C.chain inject left press at (170.75, 243.0) (panel present)
+[probe] C.chain[panel_present] after_press lane_marquee_press=false lane_marquee_drag=false lane=<none>
+[probe] C.chain[panel_present] after_press lane_clip_gesture=false arb_press_candidate='' arb_captured='' router_alive=true
+[probe] control: panel hidden, same-point press (唯一变量=面板在场)
+[probe] C.chain[panel_hidden] after_press lane_marquee_press=false lane_marquee_drag=false lane=<none>
+[probe] C.chain[panel_hidden] after_press lane_clip_gesture=false arb_press_candidate='' arb_captured='' router_alive=true
+[probe] ---- verdict ----
+[probe] B.gui panel_gui_events=[] (count=0)
+[probe] B.gui collapse_pressed=false panel_visible_after=false
+[probe] C.chain bypass_interactive_hit=true
+[probe] C.chain group_vit_floating_interactive=["/root/VitDockRoot/VitNoteLayer", "/root/VitDockRoot/VitNoteLayer/@Panel@435"]
+[probe] C.chain manager_rect=[P: (0.0, 0.0), S: (64.0, 64.0)] visible=true contains_press=false
+[probe] C.chain candidate_roots=["/root/VitDockRoot/TopLevelShell/MainBody/ContentStack/WorkspaceShell/WorkspaceRoot/DynamicSplitTreeRoot/@HSplitContainer@73/ViewportFrame/VBox/ContentHost/Stack/ViewInstanceHost/TimelineDockAdapter/Layout/TrackScroll/TrackList/Track_Master"]
+[probe] VERDICT gui_reached=false timeline_consumed(panel_present)=false timeline_consumed(panel_hidden)=false
+[probe] VERDICT reading: gui_reached=false+consumed(present)=true=候选B实锤（press 穿透面板操作时间线/marquee 起手，GUI 未达）；bypass=true 而 press 仍被吃=旁路检查顺序在 lane 转发之后（锚点A实证）；candidate_roots 缺 VitNoteLayer=根枚举缺口（锚点B实证）。修复后应 gui_reached=true（collapse 触发）
+[probe] NOTE 取证跑渲染窗口模式（headless 64x64 几何限制：canvas 出窗、GUI pick 不可判，仅 dock 面根枚举证据可用）；GUI/手感受验终判归用户手测。
+WARNING: ObjectDB instances leaked at exit (run with --verbose for details).
+   at: cleanup (core/object/object.cpp:2641)
+ERROR: 3 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:810)

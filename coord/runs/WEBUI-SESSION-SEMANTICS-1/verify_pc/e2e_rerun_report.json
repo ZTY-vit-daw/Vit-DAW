@@ -1,0 +1,1276 @@
+{
+  "schema_version": "webui_rendered_dom_smoke.v1",
+  "started_at": "2026-10-04T03:35:04.599Z",
+  "agent_base": "http://127.0.0.1:7897",
+  "conversation_id": "webui_mtzba6wf",
+  "viewport": {
+    "width": 1600,
+    "height": 900
+  },
+  "playwright_module": "C:\\Users\\timoz\\AppData\\Local\\npm-cache\\_npx\\31e32ef8478fbf80\\node_modules\\playwright-core",
+  "browser": "chromium-channel-msedge",
+  "browser_version": "154.0.4258.53",
+  "events_sha256": "b715f665a50e8110c544309927c539c6ef1b2fbcf42d9958771edca8a9018d6a",
+  "seeded": {
+    "historyDir": "D:\\Vit_DAW_wt_sess_sem_1\\artifacts\\e2e_webui1\\20261004_113457\\agent_drafts\\draft_20261004T033505_f7cefd8e\\.vit_history",
+    "stateDir": "D:\\Vit_DAW_wt_sess_sem_1\\artifacts\\e2e_webui1\\20261004_113457\\agent_drafts\\draft_20261004T033505_f7cefd8e\\.vit_history\\projects\\Unsaved_c6adaa80c027",
+    "graphPath": "D:\\Vit_DAW_wt_sess_sem_1\\artifacts\\e2e_webui1\\20261004_113457\\agent_drafts\\draft_20261004T033505_f7cefd8e\\.vit_history\\projects\\Unsaved_c6adaa80c027\\conversation_graph.json",
+    "commitsWritten": 18,
+    "nodesSkipped": [],
+    "archivedSource": "D:\\Godot\\project\\vit-daw-frontend\\.vit_history\\.sessions\\vitproj_9ecc5ab9a454400192086c628c07b966\\session_20260912T144157_6ebae8ca\\workspace\\state\\conversation_graph.json"
+  },
+  "passes": {
+    "live-A1": true,
+    "live-A2": true,
+    "live-A3": true,
+    "hydration-A1": true,
+    "hydration-A2": true,
+    "hydration-A3": true,
+    "A4": true,
+    "planbar-live-B1": true,
+    "planbar-settled-B1": true,
+    "planbar-settled-B2": true,
+    "residency-C1": true,
+    "residency-audition-C1": true,
+    "itemsteps-D1": true,
+    "receipts-E1": true,
+    "bareboot-F1": true,
+    "audition-unstick-G1": true,
+    "audition-trail-T1": true,
+    "judgment-identity-J1": true,
+    "confirm-card-K1": true,
+    "full-access-K2": true,
+    "observe-output-O1": true,
+    "bucket-save-race-F1": true,
+    "msgrevive-H1": true,
+    "msg-order-M1": true,
+    "msg-order-M2": true,
+    "ia-redesign-sidebar-IA1": true,
+    "ia-redesign-viewport-IA2": true,
+    "ia-redesign-statusbar-IA3": true,
+    "initial-layout-L1": true,
+    "session-semantics-SS1": true,
+    "session-semantics-SS2": true,
+    "session-semantics-SS3": true
+  },
+  "assertions": [
+    {
+      "id": "live-A1",
+      "pass": true,
+      "failures": [],
+      "notes": [
+        "turn=run_bab2dcdacb41bdc1 sits in a turn slot: after user message \"用户我选C\" (flowIndex 9) at flowIndex 10, with 1 user message(s) still following it",
+        "turn=run_bab2dcdacb41bdc1 clear of the composer: at max scroll bottom=-56.5, post-load bottom=-56.5, composer top=764.0",
+        "bottom inset: scroll-anchor height=150px (expected 150px from composer height 114px + the composer's 22px bottom offset), distance from composer bottom to viewport bottom=136px",
+        "supporting: last content element ends 31.9px above the composer top at max scroll"
+      ]
+    },
+    {
+      "id": "live-A2",
+      "pass": true,
+      "failures": [],
+      "notes": [
+        "turn=run_bab2dcdacb41bdc1 cls=\"trace-block is-waiting is-collapsed\" label=\"等待你的判断\" meta=\"2 步82.3s\" steps=2"
+      ]
+    },
+    {
+      "id": "live-A3",
+      "pass": true,
+      "failures": [],
+      "notes": [
+        "turn=run_bab2dcdacb41bdc1 no residency segment (等待续跑 absent, as required): \"2 步82.3s\""
+      ]
+    },
+    {
+      "id": "hydration-A1",
+      "pass": true,
+      "failures": [],
+      "notes": [
+        "turn=run_bab2dcdacb41bdc1 sits in a turn slot: after user message \"用户我选C\" (flowIndex 9) at flowIndex 10, with 1 user message(s) still following it",
+        "turn=run_bab2dcdacb41bdc1 clear of the composer: at max scroll bottom=-56.5, post-load bottom=-56.5, composer top=764.0",
+        "bottom inset: scroll-anchor height=150px (expected 150px from composer height 114px + the composer's 22px bottom offset), distance from composer bottom to viewport bottom=136px",
+        "supporting: last content element ends 31.9px above the composer top at max scroll"
+      ]
+    },
+    {
+      "id": "hydration-A2",
+      "pass": true,
+      "failures": [],
+      "notes": [
+        "turn=run_bab2dcdacb41bdc1 cls=\"trace-block is-waiting is-collapsed\" label=\"等待你的判断\" meta=\"2 步82.3s\" steps=2"
+      ]
+    },
+    {
+      "id": "hydration-A3",
+      "pass": true,
+      "failures": [],
+      "notes": [
+        "turn=run_bab2dcdacb41bdc1 no residency segment (等待续跑 absent, as required): \"2 步82.3s\""
+      ]
+    },
+    {
+      "id": "A4",
+      "pass": true,
+      "failures": [],
+      "notes": [
+        "reload re-hydrates the transcript from the agent (fresh context, localStorage cleared before load): 1 stored message keys at sample time"
+      ]
+    },
+    {
+      "id": "planbar-live-B1",
+      "pass": true,
+      "failures": [],
+      "notes": [
+        "plan bar phase=live cls=\"plan-bar is-active\" top=729.0 bottom=758.0 height=29.0 position=static z-index=auto parent=\"composer-dock\"",
+        "composer top=764.0 bottom=878.0 -- distance from bar bottom to composer top=6.0px",
+        "dock column: height=149.0 top=729.0 children=[plan-bar is-active, composer]"
+      ]
+    },
+    {
+      "id": "planbar-settled-B1",
+      "pass": true,
+      "failures": [],
+      "notes": [
+        "plan bar phase=terminal cls=\"plan-bar is-terminal\" top=729.0 bottom=758.0 height=29.0 position=static z-index=auto parent=\"composer-dock\"",
+        "composer top=764.0 bottom=878.0 -- distance from bar bottom to composer top=6.0px",
+        "dock column: height=149.0 top=729.0 children=[plan-bar is-terminal, composer]"
+      ]
+    },
+    {
+      "id": "planbar-settled-B2",
+      "pass": true,
+      "failures": [],
+      "notes": [
+        "settled bar at first sample: phase=terminal cls=\"plan-bar is-terminal\" gapToComposerTop=6.0px",
+        "retraction observed: the settled bar left the DOM inside the wait window (dwell 6s + fade)"
+      ]
+    },
+    {
+      "id": "residency-C1",
+      "pass": true,
+      "failures": [],
+      "notes": [
+        "turn=run_e2e_residency1 cls=\"trace-block is-active is-live\" meta=\"1 步已工作 55s\" wait=\"等待续跑（已等 5s）\"",
+        "waiting clock advanced by the app's own per-second timer: 已等 5s -> 6s across the 1.5s gap between samples",
+        "head meta 已工作 55s stayed frozen across both samples (waiting is not counted as work)"
+      ]
+    },
+    {
+      "id": "residency-audition-C1",
+      "pass": true,
+      "failures": [],
+      "notes": [
+        "turn=run_e2e_residency2 cls=\"trace-block is-active is-live\" meta=\"2 步已工作 55s\" wait=\"等待你的试听判定（已等 5s）\"",
+        "waiting clock advanced by the app's own per-second timer: 已等 5s -> 6s across the 1.5s gap between samples",
+        "head meta 已工作 55s stayed frozen across both samples (waiting is not counted as work)"
+      ]
+    },
+    {
+      "id": "itemsteps-D1",
+      "pass": true,
+      "failures": [],
+      "notes": [
+        "turn=run_e2e_itemsteps1 cls=\"trace-block is-active is-live\" label=\"正在处理\" meta=\"3 步已工作 30s\" steps=3 stepTexts=[已完成 可用观察视图清单工具步骤 | 已完成 混音调整工具步骤 | weird.custom_tool工具步骤]",
+        "activity lane at sample time: [] (empty = owned items stayed in the round block)"
+      ]
+    },
+    {
+      "id": "receipts-E1",
+      "pass": true,
+      "failures": [],
+      "notes": [
+        "ledger key=vit.turn_receipts.v1:webui_mtzba6wf:unsaved%3A%3Aroot rows=2",
+        "row: status=completed step_count=2 activity_count=2 work_ms=30000 park_ms=null started_at=1791084885869",
+        "live phase: block present, no receipt row for the same key",
+        "hydrated row: cls=\"trace-receipt is-terminal\" text=\"执行完成 · 2 步 · 30.0s\" occludedByComposer=false"
+      ]
+    },
+    {
+      "id": "bareboot-F1",
+      "pass": true,
+      "failures": [],
+      "notes": [
+        "anchor bucket ask_vit_conversation_id_scope:D_Vit_DAW_wt_sess_sem_1_artifacts_e2e_webui1_20261004_113457_agent_drafts_draft_20261004T033505_ -> \"webui_mtzba6wf\" (expected webui_mtzba6wf)",
+        "trace blocks rendered on the bare boot: [run_bab2dcdacb41bdc1, run_e2e_bareboot1]",
+        "A/B card rendered: session=audition:run_e2e_bareboot1 status=ready text=\"判定 · A/B 试听待判定这是试验步，可一键回滚A/B 快速对比ABA改动前 · A待播放B改动后 · B待播放A 更好 · 回滚B 更好 · 保留听不出差别\""
+      ]
+    },
+    {
+      "id": "audition-unstick-G1",
+      "pass": true,
+      "failures": [],
+      "notes": [
+        "stopped card: status=stopped chips=[待判定 | 已停止试听 · 点击 A/B 可重新播放]",
+        "preparing card: status=preparing chips=[正在准备 A/B 试听…]"
+      ]
+    },
+    {
+      "id": "audition-trail-T1",
+      "pass": true,
+      "failures": [],
+      "notes": [
+        "processing lane: [] (audition rows: 0)",
+        "processing card: status=preparing cls=\"card\"",
+        "processing card chips: [正在准备 A/B 试听…]",
+        "settled lane: [] (audition rows: 0)",
+        "settled card: status=ready cls=\"card settled\" text=\"判定 · A/B 试听第 1/1 轮人声轨 -1dB · A/B 试听判定已裁决 · B 更好 · 保留改动后\""
+      ]
+    },
+    {
+      "id": "judgment-identity-J1",
+      "pass": true,
+      "failures": [],
+      "notes": [
+        "verdict buttons rendered and enabled in the parked state (canJudge held with the kernel-shaped snapshot)",
+        "judgment POST issued 1 time(s) on click",
+        "first POST: turn_id=\"turn:free_state_e2e_abjudg1\" round_id=\"round-1-e2e\" preference=\"a\"",
+        "rejection surfaced: banner text=\"audition session identity mismatch\""
+      ]
+    },
+    {
+      "id": "confirm-card-K1",
+      "pass": true,
+      "failures": [],
+      "notes": [
+        "before: cls=\"action-card attention interactive \" buttons=2 actionButtons=2",
+        "after: no clickable confirmation card remains (confirm card total 1)",
+        "settled in place: cls=\"action-card success  \" buttons=0",
+        "respond endpoint never called by the app (manual mode unchanged)"
+      ]
+    },
+    {
+      "id": "full-access-K2",
+      "pass": true,
+      "failures": [],
+      "notes": [
+        "authority pill showed 完全访问 before the send (the grant was active at send time)",
+        "respond endpoint hit exactly once with the approve decision (direct execution)",
+        "no pre-confirmation card rendered anywhere (stream + composer shell clean)",
+        "direct-execution notice rendered in the flow",
+        "execution receipt visible in the conversation",
+        "direct-executed interaction recorded in the consumed ledger"
+      ]
+    },
+    {
+      "id": "observe-output-O1",
+      "pass": true,
+      "failures": [],
+      "notes": [
+        "O1a long reply collapsed by default (summary=\"展开全部 17 行\")",
+        "O1a lead paragraph visible while collapsed",
+        "O1a collapsed rest not visible (details closed)",
+        "O1b expanded rendering shows the full original text exactly once",
+        "O1c hydrated reply renders collapsed by default (default state recomputed from content)",
+        "O1c after reload the default state recomputed collapsed again (expansion not remembered)",
+        "O1c persisted content carries the full original text (length unchanged, no expansion state)",
+        "O1d short reply not layered (plain current rendering)",
+        "O1d confirmation card not layered (plain current rendering)",
+        "O1d execution receipt not layered (plain current rendering)"
+      ]
+    },
+    {
+      "id": "bucket-save-race-F1",
+      "pass": true,
+      "failures": [],
+      "notes": [
+        "driven reply has no graph node; the (conversation, scope) bucket is its only carrier",
+        "buckets before reload: [{\"key\":\"ask_vit_conversation_messages:webui_mtzba6wf:D_Vit_DAW_wt_sess_sem_1_artifacts_e2e_webui1_\",\"n\":5,\"has_marker\":true}]",
+        "rehydrate non-null samples: 10/10"
+      ]
+    },
+    {
+      "id": "msgrevive-H1",
+      "pass": true,
+      "failures": [],
+      "notes": [
+        "graph seeded: nodes=7 skipped=0",
+        "identity: scope bucket -> webui_mu2aized (server anchor adopted on the bare boot)",
+        "M1 user bubble rendered: \"检查一下当前工程有什么问题\"",
+        "M1 user bubble rendered: \"可以执行\"",
+        "M1 assistant bubble rendered: \"已在「bass」轨\"",
+        "M2 zero interactive cards on the bare boot after the replay settled",
+        "consumed ledger after replay: [\"interaction_756c9bd8111b0d6e\",\"interaction_855170be9aac6b30\"]",
+        "M3 trace blocks rebuilt: [run_2577decba4d612be]",
+        "M3 audition cards rebuilt: 1 card(s)"
+      ]
+    },
+    {
+      "id": "msg-order-M1",
+      "pass": true,
+      "failures": [],
+      "notes": [
+        "flow: [{\"i\":0,\"cls\":\"message-row user sent\",\"text\":\"用户检查一下当前工程有什么问题\"},{\"i\":1,\"cls\":\"trace-block is-waiting is-collapsed\",\"text\":\"等待你的判断实验意图已确立15 步183.4s已\"},{\"i\":2,\"cls\":\"card settled\",\"text\":\"判定 · A/B 试听第 1/1 轮A/B au\"},{\"i\":3,\"cls\":\"message-row assistant sent\",\"text\":\"Vit我还在继续处理这个任务，完成后再向你汇报。\"},{\"i\":4,\"cls\":\"message-row assistant sent\",\"text\":\"Vit这一步已经应用好了：Track 1017静\"},{\"i\":5,\"cls\":\"message-row user sent\",\"text\":\"用户你能再检查一下Bass轨道，看看它的低频有没\"},{\"i\":6,\"cls\":\"message-row assistant sent\",\"text\":\"Vit任务在形成有效结算前失败；失败原因与已有证\"},{\"i\":7,\"cls\":\"message-row assistant sent\",\"text\":\"VitAsk Vit 就绪。\"},{\"i\":8,\"cls\":\"message-scroll-anchor\",\"text\":\"\"}]"
+      ]
+    },
+    {
+      "id": "msg-order-M2",
+      "pass": true,
+      "failures": [],
+      "notes": [
+        "A/B card settled with the supersedes bar at its chronological slot",
+        "flow: [{\"i\":0,\"cls\":\"row user sent\",\"text\":\"用户检查一下当前工程有什么问题吗\"},{\"i\":1,\"cls\":\"trace-block is-terminal is-collapsed\",\"text\":\"已停止bass 轨低中频聚集7 步执行 1.1s\"},{\"i\":2,\"cls\":\"card settled\",\"text\":\"判定 · A/B 试听卡面选项未采用 · 你在对\"},{\"i\":3,\"cls\":\"row assistant\",\"text\":\"VitAsk Vit 就绪。\"},{\"i\":4,\"cls\":\"row assistant sent\",\"text\":\"Vit我还在继续处理这个任务，完成后再向你汇报。\"},{\"i\":5,\"cls\":\"row user sent\",\"text\":\"用户检查一下当前选中的drums轨道的低频\"},{\"i\":6,\"cls\":\"trace-block is-warning is-collapsed\",\"text\":\"执行失败1 步0.0sturn.failed错误\"},{\"i\":7,\"cls\":\"row assistant sent\",\"text\":\"Vit声学闭环控制器无法建立一致的持久状态，因此\"},{\"i\":8,\"cls\":\"message-scroll-anchor\",\"text\":\"\"}]"
+      ]
+    },
+    {
+      "id": "ia-redesign-sidebar-IA1",
+      "pass": true,
+      "failures": [],
+      "notes": [
+        "display numbers: [\"1\"] (no prefix, no hash)",
+        "new conversation webui_mut9t3jv registered (no worktree, no branch)"
+      ]
+    },
+    {
+      "id": "ia-redesign-viewport-IA2",
+      "pass": true,
+      "failures": [],
+      "notes": [
+        "all deleted families absent: .daw-panel-body, .daw-focus-panel, .daw-timeline, .daw-toolbar, .daw-panel-header, .rack-lanes, .midi-workspace, .midi-editor-preview, .mixer-strips, .side-rail, .rail-button, .focus-summary"
+      ]
+    },
+    {
+      "id": "ia-redesign-statusbar-IA3",
+      "pass": true,
+      "failures": [],
+      "notes": [
+        "task id stays DOM-only via data-task-id=\"task_e2e_planbar1\""
+      ]
+    },
+    {
+      "id": "initial-layout-L1",
+      "pass": true,
+      "failures": [],
+      "notes": [
+        "shell tracks [72px 828px] = 2 children (1:1)",
+        "workspace fills the viewport: bottom=900 == innerHeight=900",
+        "sidebar stretches with the workspace row (bottom=900)",
+        "composer seated at the window bottom (bottom=878, slack 22.0px)",
+        "right workbench panel open and flush with the window edge (right=1600)"
+      ]
+    },
+    {
+      "id": "session-semantics-SS1",
+      "pass": true,
+      "failures": [],
+      "notes": [
+        "main flow row: {\"found\":true,\"title\":\"主对话流 · Unsaved.vit\",\"active\":true,\"conversationId\":\"webui_mtzba6wf\"}"
+      ]
+    },
+    {
+      "id": "session-semantics-SS2",
+      "pass": true,
+      "failures": [],
+      "notes": [
+        "plan bar cleared on switch to the note conversation",
+        "plan bar stays clear in the new flow",
+        "new user flow stays unnamed (平级列出, not auto-named as main)"
+      ]
+    },
+    {
+      "id": "session-semantics-SS3",
+      "pass": true,
+      "failures": [],
+      "notes": [
+        "plan bar rebound on switch back to the owning conversation",
+        "user rename persisted across reload: \"我的主流 E2E\""
+      ]
+    }
+  ],
+  "run_dir": "D:\\Vit_DAW_wt_sess_sem_1\\artifacts\\e2e_webui1\\20261004_113457",
+  "hydrated_message_count": 18,
+  "hydrated_turn_one_user": {
+    "created_at": "2026-09-13T04:26:17.1423557Z",
+    "text": "帮低音轨做个均衡实验然后让我试听"
+  },
+  "events_source": "archived fixture replayed for GET /agent/events",
+  "rendered_turn_one_user": {
+    "index": 7,
+    "tag": "ARTICLE",
+    "cls": "message-row user sent",
+    "text": "用户帮低音轨做个均衡实验然后让我试听"
+  },
+  "hydration_localstorage_keys": [
+    "vit.turn_receipts.v1:webui_mtzba6wf:D%3A%5CVit_DAW_wt_sess_sem_1%5Cartifacts%5Ce2e_webui1%5C20261004_113457%5Cagent_drafts%5Cdraft_20261004T033505_f7cefd8e%5CUnsaved.vit%3A%3Aroot",
+    "vit.turn_receipts.v1:webui_mtzba6wf:unsaved%3A%3Aroot",
+    "ask_vit_session_flow.v1:unsaved--root",
+    "ask_vit_conversation_messages:webui_mtzba6wf:D_Vit_DAW_wt_sess_sem_1_artifacts_e2e_webui1_20261004_113457_agent_drafts_draft_20261004T033505_",
+    "ask_vit_session_main.v1:D--Vit_DAW_wt_sess_sem_1-artifacts-e2e_webui1-20261004_113457-agent_drafts-draft_20261004T033505",
+    "ask_vit_conversation_id_scope:unsaved_root",
+    "ask_vit_session_main.v1:unsaved--root",
+    "ask_vit_session_flow.v1:D--Vit_DAW_wt_sess_sem_1-artifacts-e2e_webui1-20261004_113457-agent_drafts-draft_20261004T033505",
+    "ask_vit_conversation_id_scope:D_Vit_DAW_wt_sess_sem_1_artifacts_e2e_webui1_20261004_113457_agent_drafts_draft_20261004T033505_"
+  ],
+  "planbar_task_state_source": "injected at the network layer for GET /agent/runtime/status (vit.task_runtime_trajectory.v1); chain-live signal patched on the real /agent/ui/state",
+  "planbar_live": {
+    "appeared": true,
+    "bar": {
+      "cls": "plan-bar is-active",
+      "phase": "live",
+      "taskId": "task_e2e_planbar1",
+      "text": "正在观察工程PLANBAR-1 rendered-surface smoke: the plan bar must sit above the input bo",
+      "parentCls": "composer-dock",
+      "top": 729,
+      "bottom": 758,
+      "height": 29,
+      "position": "static",
+      "zIndex": "auto",
+      "opacity": "1",
+      "spinning": true,
+      "composerTop": 764,
+      "gapToComposerTop": 6,
+      "occludedByComposer": false
+    }
+  },
+  "planbar_settled": {
+    "appeared": true,
+    "retracted": true,
+    "bar": {
+      "cls": "plan-bar is-terminal",
+      "phase": "terminal",
+      "taskId": "task_e2e_planbar1",
+      "text": "任务已完成PLANBAR-1 rendered-surface smoke: the plan bar must sit above the input box",
+      "parentCls": "composer-dock",
+      "top": 729,
+      "bottom": 758,
+      "height": 29,
+      "position": "static",
+      "zIndex": "auto",
+      "opacity": "1",
+      "spinning": false,
+      "composerTop": 764,
+      "gapToComposerTop": 6,
+      "occludedByComposer": false
+    }
+  },
+  "residency_events_source": "archived stream + seeded slice-boundary events for a new turn id, replayed for GET /agent/events (live turn, work slice closed by turn.completed, terminal event absent = the residency window)",
+  "residency_continuation": {
+    "appeared": true,
+    "seeded_events": [
+      {
+        "seq": 101,
+        "type": "turn.started",
+        "conversation_id": "webui_mtzba6wf",
+        "goal_id": "run_e2e_residency1",
+        "run_id": "run_e2e_residency1",
+        "turn_id": "run_e2e_residency1",
+        "source_turn_id": "run_e2e_residency1",
+        "item_type": "turn",
+        "status": "running",
+        "created_at": "2026-10-04T03:34:20.013Z"
+      },
+      {
+        "seq": 102,
+        "type": "trajectory.turn.started",
+        "conversation_id": "webui_mtzba6wf",
+        "goal_id": "run_e2e_residency1",
+        "run_id": "run_e2e_residency1",
+        "turn_id": "run_e2e_residency1",
+        "source_turn_id": "run_e2e_residency1",
+        "item_id": "turn:run_e2e_residency1",
+        "status": "running",
+        "created_at": "2026-10-04T03:34:20.013Z",
+        "payload": {
+          "schema_version": "vit.observable_trajectory.v1",
+          "trace_node_id": "turn:run_e2e_residency1",
+          "turn_id": "run_e2e_residency1",
+          "node_kind": "turn",
+          "phase": "framing",
+          "status": "running"
+        }
+      },
+      {
+        "seq": 103,
+        "type": "trajectory.observation.recorded",
+        "conversation_id": "webui_mtzba6wf",
+        "goal_id": "run_e2e_residency1",
+        "run_id": "run_e2e_residency1",
+        "turn_id": "run_e2e_residency1",
+        "source_turn_id": "run_e2e_residency1",
+        "item_id": "obs:run_e2e_residency1",
+        "status": "completed",
+        "created_at": "2026-10-04T03:35:15.013Z",
+        "payload": {
+          "schema_version": "vit.observable_trajectory.v1",
+          "trace_node_id": "obs:run_e2e_residency1",
+          "turn_id": "run_e2e_residency1",
+          "node_kind": "observation",
+          "phase": "observing",
+          "status": "completed",
+          "summary": "频率关系观察"
+        }
+      },
+      {
+        "seq": 104,
+        "type": "turn.completed",
+        "conversation_id": "webui_mtzba6wf",
+        "goal_id": "run_e2e_residency1",
+        "run_id": "run_e2e_residency1",
+        "turn_id": "run_e2e_residency1",
+        "source_turn_id": "run_e2e_residency1",
+        "item_type": "turn",
+        "status": "waiting_continue",
+        "created_at": "2026-10-04T03:35:15.013Z",
+        "payload": {
+          "turn_kind": "slice_boundary",
+          "goal_status": "waiting_continue"
+        }
+      }
+    ]
+  },
+  "residency_audition": {
+    "appeared": true,
+    "seeded_events": [
+      {
+        "seq": 201,
+        "type": "turn.started",
+        "conversation_id": "webui_mtzba6wf",
+        "goal_id": "run_e2e_residency2",
+        "run_id": "run_e2e_residency2",
+        "turn_id": "run_e2e_residency2",
+        "source_turn_id": "run_e2e_residency2",
+        "item_type": "turn",
+        "status": "running",
+        "created_at": "2026-10-04T03:34:22.397Z"
+      },
+      {
+        "seq": 202,
+        "type": "trajectory.turn.started",
+        "conversation_id": "webui_mtzba6wf",
+        "goal_id": "run_e2e_residency2",
+        "run_id": "run_e2e_residency2",
+        "turn_id": "run_e2e_residency2",
+        "source_turn_id": "run_e2e_residency2",
+        "item_id": "turn:run_e2e_residency2",
+        "status": "running",
+        "created_at": "2026-10-04T03:34:22.397Z",
+        "payload": {
+          "schema_version": "vit.observable_trajectory.v1",
+          "trace_node_id": "turn:run_e2e_residency2",
+          "turn_id": "run_e2e_residency2",
+          "node_kind": "turn",
+          "phase": "framing",
+          "status": "running"
+        }
+      },
+      {
+        "seq": 203,
+        "type": "trajectory.observation.recorded",
+        "conversation_id": "webui_mtzba6wf",
+        "goal_id": "run_e2e_residency2",
+        "run_id": "run_e2e_residency2",
+        "turn_id": "run_e2e_residency2",
+        "source_turn_id": "run_e2e_residency2",
+        "item_id": "obs:run_e2e_residency2",
+        "status": "completed",
+        "created_at": "2026-10-04T03:35:17.397Z",
+        "payload": {
+          "schema_version": "vit.observable_trajectory.v1",
+          "trace_node_id": "obs:run_e2e_residency2",
+          "turn_id": "run_e2e_residency2",
+          "node_kind": "observation",
+          "phase": "observing",
+          "status": "completed",
+          "summary": "频率关系观察"
+        }
+      },
+      {
+        "seq": 204,
+        "type": "turn.completed",
+        "conversation_id": "webui_mtzba6wf",
+        "goal_id": "run_e2e_residency2",
+        "run_id": "run_e2e_residency2",
+        "turn_id": "run_e2e_residency2",
+        "source_turn_id": "run_e2e_residency2",
+        "item_type": "turn",
+        "status": "waiting_continue",
+        "created_at": "2026-10-04T03:35:17.397Z",
+        "payload": {
+          "turn_kind": "slice_boundary",
+          "goal_status": "waiting_continue"
+        }
+      },
+      {
+        "seq": 205,
+        "type": "trajectory.user_judgment.requested",
+        "conversation_id": "webui_mtzba6wf",
+        "goal_id": "run_e2e_residency2",
+        "run_id": "run_e2e_residency2",
+        "turn_id": "run_e2e_residency2",
+        "source_turn_id": "run_e2e_residency2",
+        "item_id": "judgment:run_e2e_residency2",
+        "status": "waiting_for_user",
+        "created_at": "2026-10-04T03:35:17.397Z",
+        "payload": {
+          "schema_version": "vit.observable_trajectory.v1",
+          "trace_node_id": "judgment:run_e2e_residency2",
+          "turn_id": "run_e2e_residency2",
+          "node_kind": "user_judgment",
+          "phase": "user_judgment",
+          "status": "waiting_for_user",
+          "summary": "static_eq · A/B 试听判定",
+          "details": {
+            "audition_session_id": "audition:run_e2e_residency2"
+          }
+        }
+      }
+    ]
+  },
+  "itemsteps_events_source": "archived stream + seeded item.* events for a turn with NO trajectory record (pure chat execution window, terminal event deliberately absent), replayed for GET /agent/events",
+  "itemsteps": {
+    "appeared": true,
+    "seeded_events": [
+      {
+        "conversation_id": "webui_mtzba6wf",
+        "goal_id": "run_e2e_itemsteps1",
+        "run_id": "run_e2e_itemsteps1",
+        "turn_id": "run_e2e_itemsteps1",
+        "source_turn_id": "run_e2e_itemsteps1",
+        "seq": 301,
+        "type": "turn.started",
+        "item_type": "turn",
+        "status": "running",
+        "created_at": "2026-10-04T03:34:54.806Z"
+      },
+      {
+        "conversation_id": "webui_mtzba6wf",
+        "goal_id": "run_e2e_itemsteps1",
+        "run_id": "run_e2e_itemsteps1",
+        "turn_id": "run_e2e_itemsteps1",
+        "source_turn_id": "run_e2e_itemsteps1",
+        "seq": 302,
+        "type": "item.started",
+        "item_id": "tool_step_1",
+        "item_type": "daw_action",
+        "status": "running",
+        "created_at": "2026-10-04T03:34:55.806Z",
+        "payload": {
+          "tool": "ccb.observation_catalog",
+          "command_raw": {
+            "tool": "ccb.observation_catalog"
+          }
+        }
+      },
+      {
+        "conversation_id": "webui_mtzba6wf",
+        "goal_id": "run_e2e_itemsteps1",
+        "run_id": "run_e2e_itemsteps1",
+        "turn_id": "run_e2e_itemsteps1",
+        "source_turn_id": "run_e2e_itemsteps1",
+        "seq": 303,
+        "type": "item.completed",
+        "item_id": "tool_step_1",
+        "item_type": "daw_action",
+        "status": "completed",
+        "created_at": "2026-10-04T03:34:57.306Z",
+        "payload": {
+          "command_name": "ccb_observation_catalog"
+        }
+      },
+      {
+        "conversation_id": "webui_mtzba6wf",
+        "goal_id": "run_e2e_itemsteps1",
+        "run_id": "run_e2e_itemsteps1",
+        "turn_id": "run_e2e_itemsteps1",
+        "source_turn_id": "run_e2e_itemsteps1",
+        "seq": 304,
+        "type": "item.started",
+        "item_id": "tool_step_1",
+        "item_type": "daw_action",
+        "status": "running",
+        "created_at": "2026-10-04T03:34:58.806Z",
+        "payload": {
+          "tool": "mix_tick"
+        }
+      },
+      {
+        "conversation_id": "webui_mtzba6wf",
+        "goal_id": "run_e2e_itemsteps1",
+        "run_id": "run_e2e_itemsteps1",
+        "turn_id": "run_e2e_itemsteps1",
+        "source_turn_id": "run_e2e_itemsteps1",
+        "seq": 305,
+        "type": "item.completed",
+        "item_id": "tool_step_1",
+        "item_type": "daw_action",
+        "status": "completed",
+        "created_at": "2026-10-04T03:35:00.806Z",
+        "payload": {
+          "command_name": "mix_tick"
+        }
+      },
+      {
+        "conversation_id": "webui_mtzba6wf",
+        "goal_id": "run_e2e_itemsteps1",
+        "run_id": "run_e2e_itemsteps1",
+        "turn_id": "run_e2e_itemsteps1",
+        "source_turn_id": "run_e2e_itemsteps1",
+        "seq": 306,
+        "type": "item.started",
+        "item_id": "tool_step_1",
+        "item_type": "daw_action",
+        "status": "running",
+        "created_at": "2026-10-04T03:35:02.806Z",
+        "payload": {
+          "tool": "weird.custom_tool"
+        }
+      }
+    ]
+  },
+  "receipt_events_source": "archived stream + seeded events for a NEW turn id that reaches its terminal event (two item steps, turn.completed = the close-out moment), replayed for GET /agent/events; the hydration phase re-serves the archived stream only and keeps localStorage in the same browser context",
+  "receipts": {
+    "turn_id": "run_e2e_receipt1",
+    "appeared": true,
+    "ledger_key": "vit.turn_receipts.v1:webui_mtzba6wf:unsaved%3A%3Aroot",
+    "ledger_raw": "{\"schema_version\":\"vit.turn_receipts.v1\",\"conversation_id\":\"webui_mtzba6wf\",\"scope\":\"unsaved::root\",\"saved_at\":\"2026-10-04T03:35:26.047Z\",\"receipts\":[{\"turn_id\":\"run_bab2dcdacb41bdc1\",\"status\":\"completed\",\"step_count\":2,\"activity_count\":1,\"work_ms\":103868,\"park_ms\":null,\"started_at\":1789273577140},{\"turn_id\":\"run_e2e_receipt1\",\"status\":\"completed\",\"step_count\":2,\"activity_count\":2,\"work_ms\":30000,\"park_ms\":null,\"started_at\":1791084885869}]}",
+    "live_rows": [],
+    "hydrated_rows": [
+      {
+        "turnId": "run_e2e_receipt1",
+        "text": "执行完成 · 2 步 · 30.0s"
+      }
+    ],
+    "hydrated_blocks": [
+      "run_bab2dcdacb41bdc1"
+    ],
+    "seeded_events": [
+      {
+        "conversation_id": "webui_mtzba6wf",
+        "goal_id": "run_e2e_receipt1",
+        "run_id": "run_e2e_receipt1",
+        "turn_id": "run_e2e_receipt1",
+        "source_turn_id": "run_e2e_receipt1",
+        "seq": 401,
+        "type": "turn.started",
+        "item_type": "turn",
+        "status": "running",
+        "created_at": "2026-10-04T03:34:45.869Z"
+      },
+      {
+        "conversation_id": "webui_mtzba6wf",
+        "goal_id": "run_e2e_receipt1",
+        "run_id": "run_e2e_receipt1",
+        "turn_id": "run_e2e_receipt1",
+        "source_turn_id": "run_e2e_receipt1",
+        "seq": 402,
+        "type": "item.started",
+        "item_id": "tool_step_1",
+        "logical_message_id": "agent_item:run_e2e_receipt1:tool_step_1",
+        "item_type": "daw_action",
+        "status": "running",
+        "created_at": "2026-10-04T03:34:46.869Z",
+        "payload": {
+          "tool": "ccb.observation_catalog"
+        }
+      },
+      {
+        "conversation_id": "webui_mtzba6wf",
+        "goal_id": "run_e2e_receipt1",
+        "run_id": "run_e2e_receipt1",
+        "turn_id": "run_e2e_receipt1",
+        "source_turn_id": "run_e2e_receipt1",
+        "seq": 403,
+        "type": "item.completed",
+        "item_id": "tool_step_1",
+        "logical_message_id": "agent_item:run_e2e_receipt1:tool_step_1",
+        "item_type": "daw_action",
+        "status": "completed",
+        "created_at": "2026-10-04T03:34:48.869Z",
+        "payload": {
+          "command_name": "ccb_observation_catalog"
+        }
+      },
+      {
+        "conversation_id": "webui_mtzba6wf",
+        "goal_id": "run_e2e_receipt1",
+        "run_id": "run_e2e_receipt1",
+        "turn_id": "run_e2e_receipt1",
+        "source_turn_id": "run_e2e_receipt1",
+        "seq": 404,
+        "type": "item.started",
+        "item_id": "tool_step_1",
+        "logical_message_id": "agent_item:run_e2e_receipt1:tool_step_2",
+        "item_type": "daw_action",
+        "status": "running",
+        "created_at": "2026-10-04T03:34:50.869Z",
+        "payload": {
+          "tool": "mix_tick"
+        }
+      },
+      {
+        "conversation_id": "webui_mtzba6wf",
+        "goal_id": "run_e2e_receipt1",
+        "run_id": "run_e2e_receipt1",
+        "turn_id": "run_e2e_receipt1",
+        "source_turn_id": "run_e2e_receipt1",
+        "seq": 405,
+        "type": "item.completed",
+        "item_id": "tool_step_1",
+        "logical_message_id": "agent_item:run_e2e_receipt1:tool_step_2",
+        "item_type": "daw_action",
+        "status": "completed",
+        "created_at": "2026-10-04T03:34:54.869Z",
+        "payload": {
+          "command_name": "mix_tick"
+        }
+      },
+      {
+        "conversation_id": "webui_mtzba6wf",
+        "goal_id": "run_e2e_receipt1",
+        "run_id": "run_e2e_receipt1",
+        "turn_id": "run_e2e_receipt1",
+        "source_turn_id": "run_e2e_receipt1",
+        "seq": 406,
+        "type": "turn.completed",
+        "item_type": "turn",
+        "status": "completed",
+        "created_at": "2026-10-04T03:35:15.869Z"
+      }
+    ]
+  },
+  "bareboot_events_source": "archived stream + seeded waiting-for-judgment events (open turn + audition.ready A/B + unresolved user_judgment.requested) replayed conversation-strict for GET /agent/events; the bare context presets ONLY the real-scope anchor bucket learned by the URL-bound context in the same run",
+  "bareboot": {
+    "turn_id": "run_e2e_bareboot1",
+    "real_scope_key": "ask_vit_conversation_id_scope:D_Vit_DAW_wt_sess_sem_1_artifacts_e2e_webui1_20261004_113457_agent_drafts_draft_20261004T033505_",
+    "learning_context_anchor": "webui_mtzba6wf",
+    "learning_saw_seeded_turn": true,
+    "appeared": true,
+    "seeded_events": [
+      {
+        "conversation_id": "webui_mtzba6wf",
+        "goal_id": "run_e2e_bareboot1",
+        "run_id": "run_e2e_bareboot1",
+        "turn_id": "run_e2e_bareboot1",
+        "source_turn_id": "run_e2e_bareboot1",
+        "seq": 501,
+        "type": "turn.started",
+        "item_type": "turn",
+        "status": "running",
+        "created_at": "2026-10-04T03:34:29.301Z"
+      },
+      {
+        "conversation_id": "webui_mtzba6wf",
+        "goal_id": "run_e2e_bareboot1",
+        "run_id": "run_e2e_bareboot1",
+        "turn_id": "run_e2e_bareboot1",
+        "source_turn_id": "run_e2e_bareboot1",
+        "seq": 502,
+        "type": "trajectory.turn.started",
+        "item_id": "turn:run_e2e_bareboot1",
+        "status": "running",
+        "created_at": "2026-10-04T03:34:29.301Z",
+        "payload": {
+          "schema_version": "vit.observable_trajectory.v1",
+          "trace_node_id": "turn:run_e2e_bareboot1",
+          "turn_id": "run_e2e_bareboot1",
+          "node_kind": "turn",
+          "phase": "framing",
+          "status": "running"
+        }
+      },
+      {
+        "conversation_id": "webui_mtzba6wf",
+        "goal_id": "run_e2e_bareboot1",
+        "run_id": "run_e2e_bareboot1",
+        "turn_id": "run_e2e_bareboot1",
+        "source_turn_id": "run_e2e_bareboot1",
+        "seq": 503,
+        "type": "audition.ready",
+        "item_id": "audition:run_e2e_bareboot1",
+        "status": "ready",
+        "created_at": "2026-10-04T03:35:24.301Z",
+        "payload": {
+          "schema_version": "vit.kernel_audition.v1",
+          "session": {
+            "session_id": "audition:run_e2e_bareboot1",
+            "conversation_id": "webui_mtzba6wf",
+            "turn_id": "run_e2e_bareboot1",
+            "round_id": "round-1",
+            "project_revision": "revision-e2e",
+            "status": "ready",
+            "candidates": [
+              {
+                "id": "candidate-a",
+                "label": "A",
+                "status": "ready",
+                "preview_ref": "a"
+              },
+              {
+                "id": "candidate-b",
+                "label": "B",
+                "status": "ready",
+                "preview_ref": "b"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "conversation_id": "webui_mtzba6wf",
+        "goal_id": "run_e2e_bareboot1",
+        "run_id": "run_e2e_bareboot1",
+        "turn_id": "run_e2e_bareboot1",
+        "source_turn_id": "run_e2e_bareboot1",
+        "seq": 504,
+        "type": "trajectory.user_judgment.requested",
+        "item_id": "judgment:run_e2e_bareboot1",
+        "status": "waiting_for_user",
+        "created_at": "2026-10-04T03:35:24.301Z",
+        "payload": {
+          "schema_version": "vit.observable_trajectory.v1",
+          "trace_node_id": "judgment:run_e2e_bareboot1",
+          "turn_id": "run_e2e_bareboot1",
+          "node_kind": "user_judgment",
+          "phase": "user_judgment",
+          "status": "waiting_for_user",
+          "summary": "static_eq · A/B 试听判定",
+          "details": {
+            "audition_session_id": "audition:run_e2e_bareboot1"
+          }
+        }
+      }
+    ]
+  },
+  "audition_unstick_events_source": "archived stream + seeded audition boundary events (stopped-after-playing session + preparing session) replayed for GET /agent/events; assertions are render-only (no kernel behind this agent, the select round-trip is covered by the Go handler test)",
+  "audition_unstick": {
+    "appeared": true,
+    "seeded_events": [
+      {
+        "conversation_id": "webui_mtzba6wf",
+        "goal_id": "run_e2e_unstick1",
+        "run_id": "run_e2e_unstick1",
+        "turn_id": "run_e2e_unstick1",
+        "source_turn_id": "run_e2e_unstick1",
+        "seq": 601,
+        "type": "turn.started",
+        "item_type": "turn",
+        "status": "running",
+        "created_at": "2026-10-04T03:34:25.117Z"
+      },
+      {
+        "conversation_id": "webui_mtzba6wf",
+        "goal_id": "run_e2e_unstick1",
+        "run_id": "run_e2e_unstick1",
+        "turn_id": "run_e2e_unstick1",
+        "source_turn_id": "run_e2e_unstick1",
+        "seq": 602,
+        "type": "audition.ready",
+        "item_id": "audition:run_e2e_unstick1:stopped",
+        "status": "ready",
+        "created_at": "2026-10-04T03:34:55.117Z",
+        "payload": {
+          "schema_version": "vit.kernel_audition.v1",
+          "session": {
+            "session_id": "audition:run_e2e_unstick1:stopped",
+            "conversation_id": "webui_mtzba6wf",
+            "turn_id": "run_e2e_unstick1",
+            "round_id": "round-1",
+            "project_revision": "revision-e2e",
+            "status": "ready",
+            "active_candidate_id": "",
+            "candidates": [
+              {
+                "id": "candidate-a",
+                "label": "A",
+                "status": "ready",
+                "preview_ref": "preview-a"
+              },
+              {
+                "id": "candidate-b",
+                "label": "B",
+                "status": "ready",
+                "preview_ref": "preview-b"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "conversation_id": "webui_mtzba6wf",
+        "goal_id": "run_e2e_unstick1",
+        "run_id": "run_e2e_unstick1",
+        "turn_id": "run_e2e_unstick1",
+        "source_turn_id": "run_e2e_unstick1",
+        "seq": 603,
+        "type": "trajectory.user_judgment.requested",
+        "item_id": "judgment:run_e2e_unstick1",
+        "status": "waiting_for_user",
+        "created_at": "2026-10-04T03:34:55.117Z",
+        "payload": {
+          "schema_version": "vit.observable_trajectory.v1",
+          "trace_node_id": "judgment:run_e2e_unstick1",
+          "turn_id": "run_e2e_unstick1",
+          "node_kind": "user_judgment",
+          "phase": "user_judgment",
+          "status": "waiting_for_user",
+          "summary": "static_eq · A/B 试听判定",
+          "details": {
+            "audition_session_id": "audition:run_e2e_unstick1:stopped"
+          }
+        }
+      },
+      {
+        "conversation_id": "webui_mtzba6wf",
+        "goal_id": "run_e2e_unstick1",
+        "run_id": "run_e2e_unstick1",
+        "turn_id": "run_e2e_unstick1",
+        "source_turn_id": "run_e2e_unstick1",
+        "seq": 604,
+        "type": "audition.selected",
+        "item_id": "audition:run_e2e_unstick1:stopped",
+        "status": "playing",
+        "created_at": "2026-10-04T03:34:55.117Z",
+        "payload": {
+          "schema_version": "vit.kernel_audition.v1",
+          "session": {
+            "session_id": "audition:run_e2e_unstick1:stopped",
+            "conversation_id": "webui_mtzba6wf",
+            "turn_id": "run_e2e_unstick1",
+            "round_id": "round-1",
+            "project_revision": "revision-e2e",
+            "status": "playing",
+            "active_candidate_id": "candidate-a",
+            "candidates": [
+              {
+                "id": "candidate-a",
+                "label": "A",
+                "status": "ready",
+                "preview_ref": "preview-a"
+              },
+              {
+                "id": "candidate-b",
+                "label": "B",
+                "status": "ready",
+                "preview_ref": "preview-b"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "conversation_id": "webui_mtzba6wf",
+        "goal_id": "run_e2e_unstick1",
+        "run_id": "run_e2e_unstick1",
+        "turn_id": "run_e2e_unstick1",
+        "source_turn_id": "run_e2e_unstick1",
+        "seq": 605,
+        "type": "audition.stopped",
+        "item_id": "audition:run_e2e_unstick1:stopped",
+        "status": "stopped",
+        "created_at": "2026-10-04T03:35:25.117Z",
+        "payload": {
+          "schema_version": "vit.kernel_audition.v1",
+          "session": {
+            "session_id": "audition:run_e2e_unstick1:stopped",
+            "conversation_id": "webui_mtzba6wf",
+            "turn_id": "run_e2e_unstick1",
+            "round_id": "round-1",
+            "project_revision": "revision-e2e",
+            "status": "stopped",
+            "active_candidate_id": "candidate-a",
+            "candidates": [
+              {
+                "id": "candidate-a",
+                "label": "A",
+                "status": "ready",
+                "preview_ref": "preview-a"
+              },
+              {
+                "id": "candidate-b",
+                "label": "B",
+                "status": "ready",
+                "preview_ref": "preview-b"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "conversation_id": "webui_mtzba6wf",
+        "goal_id": "run_e2e_unstick1",
+        "run_id": "run_e2e_unstick1",
+        "turn_id": "run_e2e_unstick1",
+        "source_turn_id": "run_e2e_unstick1",
+        "seq": 606,
+        "type": "audition.prepare",
+        "item_id": "audition:run_e2e_unstick1:preparing",
+        "status": "preparing",
+        "created_at": "2026-10-04T03:35:25.117Z",
+        "payload": {
+          "schema_version": "vit.kernel_audition.v1",
+          "session": {
+            "session_id": "audition:run_e2e_unstick1:preparing",
+            "conversation_id": "webui_mtzba6wf",
+            "turn_id": "run_e2e_unstick1",
+            "round_id": "round-2",
+            "project_revision": "revision-e2e",
+            "status": "preparing",
+            "candidates": [
+              {
+                "id": "candidate-a",
+                "label": "A",
+                "status": "preparing"
+              },
+              {
+                "id": "candidate-b",
+                "label": "B",
+                "status": "preparing"
+              }
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "audition_trail_events_source": "archived stream + seeded M1-shaped events (kernel telemetry audition.* WITHOUT turn domain first, agent-enriched audition.ready + user_judgment requested/recorded appended mid-pass) replayed for GET /agent/events in one browser context",
+  "audition_judgment_source": "parked-boundary events in the real forensic shape (kernel audition.ready snapshot WITHOUT turn domain + trajectory.user_judgment.requested with run-level source_turn_id / experiment-domain payload.turn_id) replayed for GET /agent/events; POST /agent/audition/judgment intercepted at the network layer and answered 409 with the real identity-mismatch body",
+  "confirm_card_source": "driven composer turns; POST /agent/chat and POST /agent/interaction/respond fulfilled at the network layer with RiskConfirm mix-confirmation fixtures; K1 appends a real turn.completed(status=completed) to the replayed event stream mid-pass; K2 patches /agent/ui/state with authority_mode=full_project_access",
+  "confirm_k1": {
+    "appeared": true,
+    "respond_hits": 0
+  },
+  "confirm_k2": {
+    "authority_ready": true,
+    "respond_hits": 1,
+    "receipt_marker": "Track 2 提升 +1.0 dB"
+  },
+  "observe_output_source": "driven composer turns; POST /agent/chat fulfilled at the network layer with observation-Q&A fixtures (long layered reply / short reply / long confirmation-card message / long execution receipt); context A reloads mid-pass to prove the collapsed default state recomputes",
+  "bucket_save_race_source": "composer-driven turn (POST /agent/chat fulfilled with the local-tail fixture; no graph node) + real /agent/ui/state graph hydration from the O1 seed; the reload keeps the URL conversation id, so the driven reply exists only in the localStorage bucket",
+  "msgrevive_events_source": "r3 forensic capture (conversation webui_mu2aized, normal-permission mix-tick chain, 41 events incl. mix_tick.pending / mix_tick.confirmation.routed / two interaction.resolved) replayed conversation-strict; the r3-shaped graph (7 nodes, interaction-carrying proposal node with a waiting_for_user send-time snapshot) is re-seeded over the draft history; /agent/runtime/status gets the conversation's completed continuation row appended as the server-side identity anchor; phase 2 opens /app/ in a fresh context with NO localStorage at all",
+  "msgrevive": {
+    "conversation_id": "webui_mu2aized",
+    "seeded": {
+      "commits_written": 7,
+      "nodes_skipped": []
+    },
+    "real_scope_key": "ask_vit_conversation_id_scope:D_Vit_DAW_wt_sess_sem_1_artifacts_e2e_webui1_20261004_113457_agent_drafts_draft_20261004T033505_",
+    "learning_anchor": "webui_mu2aized",
+    "appeared": true,
+    "late_sample_summary": {
+      "user_messages": 3,
+      "assistant_messages": 5,
+      "interactive_cards": 0
+    }
+  },
+  "msgorder_events_source": "M8 forensic capture (conversation webui_muo6fygb, waiting_continue run run_e5796736a4865570 spanning two user rounds, 47 events incl. the same-id lifecycle flip started→completed→items→completed→started→failed and the same-id double-emission pairs) replayed conversation-strict; the M8-shaped graph (5 nodes: both user rows carry turn_id=run_e5796736a4865570, assistant rows chat-domain turn_*) is re-seeded over the draft history",
+  "msgorder": {
+    "conversation_id": "webui_muo6fygb",
+    "seeded": {
+      "commits_written": 5,
+      "nodes_skipped": []
+    },
+    "appeared": true
+  },
+  "msgorder2_events_source": "composer-driven live pass (NOT a pure replay): conversation webui_mupe9yh1 mounts with an empty transcript (ui/state projection, PLANBAR-1 pattern); turn 1 is driven through the REAL composer with POST /agent/chat fulfilled at the network layer (execution receipt fixture) and the M1-RETEST park replayed through the event buffer (B9 run fold with free-state payload turn ids, mix_tick.pending, audition family WITHOUT any turn domain); turn 2 is driven through the REAL composer (failure receipt fixture) with turn.started/turn.failed events appended live",
+  "msgorder2": {
+    "conversation_id": "webui_mupe9yh1",
+    "phase1": {
+      "audition_card_appeared": true,
+      "trace_appeared": true
+    }
+  },
+  "ia_redesign_source": "real interactions on the rendered surface: archived stream replayed conversation-strict for GET /agent/events; task runtime state injected at the network layer (PLANBAR-1 pattern) so .plan-bar is live; sidebar operations driven by real Playwright clicks against the bundle under test",
+  "ia_redesign": {
+    "sidebar_appeared": true,
+    "new_conversation_id": "webui_mut9t3jv",
+    "numbers": {
+      "count": 1,
+      "allLinear": true,
+      "values": [
+        "1"
+      ]
+    },
+    "registry_keys": [
+      "ask_vit_session_flow.v1:unsaved--root",
+      "ask_vit_session_flow.v1:D--Vit_DAW_wt_sess_sem_1-artifacts-e2e_webui1-20261004_113457-agent_drafts-draft_20261004T033505"
+    ],
+    "plan_bar_head_text": "正在观察工程PLANBAR-1 rendered-surface smoke: the plan bar must sit above the input box and stop when the task ends.",
+    "plan_bar_data_task_id": "task_e2e_planbar1",
+    "dead_nodes": {
+      ".daw-panel-body": 0,
+      ".daw-focus-panel": 0,
+      ".daw-timeline": 0,
+      ".daw-toolbar": 0,
+      ".daw-panel-header": 0,
+      ".rack-lanes": 0,
+      ".midi-workspace": 0,
+      ".midi-editor-preview": 0,
+      ".mixer-strips": 0,
+      ".side-rail": 0,
+      ".rail-button": 0,
+      ".focus-summary": 0
+    }
+  },
+  "initial_layout": {
+    "innerW": 1600,
+    "innerH": 900,
+    "shellRows": "72px 828px",
+    "shellDisplay": "grid",
+    "shellChildCount": 2,
+    "topStatus": {
+      "top": 0,
+      "left": 0,
+      "bottom": 72,
+      "right": 1600,
+      "w": 1600,
+      "h": 72
+    },
+    "workspace": {
+      "top": 72,
+      "left": 0,
+      "bottom": 900,
+      "right": 1600,
+      "w": 1600,
+      "h": 828
+    },
+    "sidebar": {
+      "top": 72,
+      "left": 0,
+      "bottom": 900,
+      "right": 232,
+      "w": 232,
+      "h": 828
+    },
+    "composer": {
+      "top": 764,
+      "left": 254,
+      "bottom": 878,
+      "right": 1181,
+      "w": 927,
+      "h": 114
+    },
+    "workbenchPanel": {
+      "top": 72,
+      "left": 1210,
+      "bottom": 900,
+      "right": 1600,
+      "w": 390,
+      "h": 828
+    },
+    "workbenchCollapsed": null,
+    "workspaceGridCls": "workspace-grid project-aware  right-open"
+  },
+  "session_semantics": {
+    "scope_calibrated": true,
+    "scope_project_path": "D:\\Vit_DAW_wt_sess_sem_1\\artifacts\\e2e_webui1\\20261004_113457\\agent_drafts\\draft_20261004T033505_f7cefd8e\\Unsaved.vit",
+    "sidebar_appeared": true,
+    "main_row": {
+      "found": true,
+      "title": "主对话流 · Unsaved.vit",
+      "active": true,
+      "conversationId": "webui_mtzba6wf"
+    },
+    "main_id_key_persisted": true,
+    "note_row_present": true,
+    "plan_bar_at_boot": true,
+    "cleared_on_note_switch": true,
+    "stays_clear_after_new_flow": true,
+    "new_flow_row_title": "未命名会话",
+    "rebound_on_main": true,
+    "rename_persisted_after_reload": true,
+    "plan_bar_rebound_after_reload": true
+  },
+  "finished_at": "2026-10-04T03:38:06.326Z",
+  "events_served_from_fixture": 144,
+  "verdict": "pass",
+  "failed_groups": []
+}

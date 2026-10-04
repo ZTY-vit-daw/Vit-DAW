@@ -22,4 +22,4 @@
   - **边界声明**（AGENTS §5）：未起真栈（无内核/Godot 前端/agent 进程），7878 往返与 Godot↔agent 端到端问答链未覆盖——探针/单测锁纯函数、组装面与载荷契约，端到端归用户手测复验（NOTESTREAM-2 同口径）。
   - **手测复验点**（用户真栈，按 Godot 拉起途径）：① 框选含 clip 的时间线区域→开便签→问「这个范围是什么内容」→回答应含范围时间段（如 0:03.2–0:08.5）与每 clip 相交段；② 框选只盖 clip 局部→相交段应只是被框住的那段（非 clip 全长）；③ 框选空时间线区或纯机架面→回答不伪造时间（缺省如实）。
   - 并行流注记：主树 VitApp workspace XML 两处运行时改动与 REGION-OP-RECON-1/WEBUI-SESSION-SEMANTICS-1 两并行流均未触碰；agent 腿按并行流纪律走独立 worktree。
-- 验收：（裁定文件 / 验收 commit）
+- 验收：conditional pass（[rulings/2026-10-04-VITNOTE-REGION-TIME-1-conditional.md](../../rulings/2026-10-04-VITNOTE-REGION-TIME-1-conditional.md)，2026-10-04）/ 验收 commit=merge 4c98c643（agent 腿合 main）+Godot ecc722d 推 port 分支+主树 binary/dist 11:39 收口重建；我方复跑 verify_pc（探针 26/141/143/16 全 0 FAIL+chat 全包 ok 87.3s）。转正挂用户真栈手测三复验点。

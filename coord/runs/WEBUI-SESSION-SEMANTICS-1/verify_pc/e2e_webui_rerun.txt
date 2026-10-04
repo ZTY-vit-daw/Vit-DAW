@@ -1,0 +1,201 @@
+run_root=D:\Vit_DAW_wt_sess_sem_1\artifacts\e2e_webui1\20261004_113457
+affix=e2e_webui1
+head=458403900a5408b1f808cf61c6e137697041b449
+git_status=
+http_port=7897
+bridge_ports=agent defaults (zmq 5555/5556, udp 4444/4445)
+conversation_id=webui_mtzba6wf
+started=2026-10-04T11:34:57.6173187+08:00
+
+== Port 7897 must be free (stack ownership, AGENTS.md section 9)
+port_free=7897
+
+== Build VitAgent (isolated binary in the run directory)
+ok: VitAgent built
+
+== Build webui dist (the bundle the browser will load)
+
+> ask-vit-webui@0.1.0 build
+> tsc --noEmit && vite build
+
+[36mvite v6.4.3 [32mbuilding for production...[36m[39m
+transforming...
+[32m�?[39m 1610 modules transformed.
+rendering chunks...
+computing gzip size...
+[2mdist/[22m[32mindex.html                 [39m[1m[2m  0.49 kB[22m[1m[22m[2m �?gzip:   0.31 kB[22m
+[2mdist/[22m[35massets/index-DSb5AJYB.css  [39m[1m[2m 98.18 kB[22m[1m[22m[2m �?gzip:  17.37 kB[22m
+[2mdist/[22m[36massets/index-B7AI8ZmC.js   [39m[1m[33m507.73 kB[39m[22m[2m �?gzip: 156.54 kB[22m
+[32m�?built in 1.71s[39m
+npm_build_stderr=node.exe : [33m | ����λ�� ��:1 �ַ�: 1 | + & "C:\Program Files\nodejs/node.exe" "C:\Program Files\nodejs/node_mo ... | + ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ |     + CategoryInfo          : NotSpecified: ([33m:String) [], RemoteException |     + FullyQualifiedErrorId : NativeCommandError |   | (!) Some chunks are larger than 500 kB after minification. Consider: | - Using dynamic import() to code-split the application | - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-m | anualchunks | - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.[39m
+ok: webui dist built
+agent_binary=D:\Vit_DAW_wt_sess_sem_1\artifacts\e2e_webui1\20261004_113457\bin\VitAgent.e2ewebui1.exe size=35344896 mtime=2026-10-04T11:34:58.7049531+08:00 sha256=D2F1518781DC39E315658EC6C0A2E400D7206DABDE4DE32E0D98D5BEBF9A852B
+webui_index_sha256=6D6F470176A445FFCB223676144B1C9700ABF6ED814EE25D762D2F8ADA992650
+webui_asset=index-B7AI8ZmC.js size=507729 sha256=AAE2E4D5A0AAD65540B27BD2917A5BA965E79640466147E3BBD2035DFA58CEC4
+webui_asset=index-DSb5AJYB.css size=98179 sha256=D1E47BCDB6037614D0ADA276B87B3554BE1423A4F4AF42A5564DE363CABBD06F
+
+== Check the archived evidence inputs
+graph_fixture=D:\Vit_DAW_wt_sess_sem_1\scripts\fixtures\webui_rendered_dom\webui_rendered_dom_graph.fixture.json sha256=3B7888398D889B1B15A297C1AD27C193D6562E82324F0AE2617CB05424BA659C
+events_fixture=D:\Vit_DAW_wt_sess_sem_1\scripts\fixtures\webui_rendered_dom\webui_rendered_dom_events.fixture.json sha256=D27384050B3532A767154259F0F9CAD3ADC27B3908838BA0994B01055C161BEC
+smoke_script=D:\Vit_DAW_wt_sess_sem_1\scripts\webui_rendered_dom_smoke.mjs sha256=CDB684FE2AC7ABA5F52C0F12C1B8281E4155E6CD2CB91E05134726EF26E1AF6F
+commit_dirs=D:\Godot\project\vit-daw-frontend\.vit_history\.sessions\vitproj_9ecc5ab9a454400192086c628c07b966\session_20260912T144157_6ebae8ca\workspace\commits
+graph_commit_ids=4 matched_in_commit_dirs=4
+ok: archived commit objects: D:\Godot\project\vit-daw-frontend\.vit_history\.sessions\vitproj_9ecc5ab9a454400192086c628c07b966\session_20260912T144157_6ebae8ca\workspace\commits (4/4 required objects present)
+playwright_module=C:\Users\timoz\AppData\Local\npm-cache\_npx\31e32ef8478fbf80\node_modules\playwright-core
+
+== Start the isolated agent (own draft root, own log, own port)
+agent_pid=25096
+ok: agent up, pid=25096 at http://127.0.0.1:7897
+
+== Run the rendered DOM smoke (Playwright)
+[e2e-webui1] playwright module: C:\Users\timoz\AppData\Local\npm-cache\_npx\31e32ef8478fbf80\node_modules\playwright-core
+[e2e-webui1] events replayed: 12 sha256: b715f665a50e8110
+[e2e-webui1] agent health: {"service":"VitAgent","status":"ok"}
+[e2e-webui1] seeded graph nodes: 18 skipped: 0
+[e2e-webui1] hydrated messages: 18 turn-1 user created_at: 2026-09-13T04:26:17.1423557Z
+[e2e-webui1] browser: chromium-channel-msedge 154.0.4258.53
+[e2e-webui1] archived turn-1 user message rendered at flowIndex 7
+[e2e-webui1] live-A1 PASS
+[e2e-webui1]    note: turn=run_bab2dcdacb41bdc1 sits in a turn slot: after user message "用户我选C" (flowIndex 9) at flowIndex 10, with 1 user message(s) still following it
+[e2e-webui1]    note: turn=run_bab2dcdacb41bdc1 clear of the composer: at max scroll bottom=-56.5, post-load bottom=-56.5, composer top=764.0
+[e2e-webui1]    note: bottom inset: scroll-anchor height=150px (expected 150px from composer height 114px + the composer's 22px bottom offset), distance from composer bottom to viewport bottom=136px
+[e2e-webui1]    note: supporting: last content element ends 31.9px above the composer top at max scroll
+[e2e-webui1] live-A2 PASS
+[e2e-webui1]    note: turn=run_bab2dcdacb41bdc1 cls="trace-block is-waiting is-collapsed" label="等待你的判断" meta="2 �?2.3s" steps=2
+[e2e-webui1] live-A3 PASS
+[e2e-webui1]    note: turn=run_bab2dcdacb41bdc1 no residency segment (等待续跑 absent, as required): "2 �?2.3s"
+[e2e-webui1] hydration-A1 PASS
+[e2e-webui1]    note: turn=run_bab2dcdacb41bdc1 sits in a turn slot: after user message "用户我选C" (flowIndex 9) at flowIndex 10, with 1 user message(s) still following it
+[e2e-webui1]    note: turn=run_bab2dcdacb41bdc1 clear of the composer: at max scroll bottom=-56.5, post-load bottom=-56.5, composer top=764.0
+[e2e-webui1]    note: bottom inset: scroll-anchor height=150px (expected 150px from composer height 114px + the composer's 22px bottom offset), distance from composer bottom to viewport bottom=136px
+[e2e-webui1]    note: supporting: last content element ends 31.9px above the composer top at max scroll
+[e2e-webui1] hydration-A2 PASS
+[e2e-webui1]    note: turn=run_bab2dcdacb41bdc1 cls="trace-block is-waiting is-collapsed" label="等待你的判断" meta="2 �?2.3s" steps=2
+[e2e-webui1] hydration-A3 PASS
+[e2e-webui1]    note: turn=run_bab2dcdacb41bdc1 no residency segment (等待续跑 absent, as required): "2 �?2.3s"
+[e2e-webui1] A4 PASS
+[e2e-webui1] planbar-live-B1 PASS
+[e2e-webui1]    note: plan bar phase=live cls="plan-bar is-active" top=729.0 bottom=758.0 height=29.0 position=static z-index=auto parent="composer-dock"
+[e2e-webui1]    note: composer top=764.0 bottom=878.0 -- distance from bar bottom to composer top=6.0px
+[e2e-webui1]    note: dock column: height=149.0 top=729.0 children=[plan-bar is-active, composer]
+[e2e-webui1] planbar-settled-B1 PASS
+[e2e-webui1]    note: plan bar phase=terminal cls="plan-bar is-terminal" top=729.0 bottom=758.0 height=29.0 position=static z-index=auto parent="composer-dock"
+[e2e-webui1]    note: composer top=764.0 bottom=878.0 -- distance from bar bottom to composer top=6.0px
+[e2e-webui1]    note: dock column: height=149.0 top=729.0 children=[plan-bar is-terminal, composer]
+[e2e-webui1] planbar-settled-B2 PASS
+[e2e-webui1]    note: settled bar at first sample: phase=terminal cls="plan-bar is-terminal" gapToComposerTop=6.0px
+[e2e-webui1]    note: retraction observed: the settled bar left the DOM inside the wait window (dwell 6s + fade)
+[e2e-webui1] residency-C1 PASS
+[e2e-webui1]    note: turn=run_e2e_residency1 cls="trace-block is-active is-live" meta="1 步已工作 55s" wait="等待续跑（已�?5s�?
+[e2e-webui1]    note: waiting clock advanced by the app's own per-second timer: 已等 5s -> 6s across the 1.5s gap between samples
+[e2e-webui1]    note: head meta 已工�?55s stayed frozen across both samples (waiting is not counted as work)
+[e2e-webui1] residency-audition-C1 PASS
+[e2e-webui1]    note: turn=run_e2e_residency2 cls="trace-block is-active is-live" meta="2 步已工作 55s" wait="等待你的试听判定（已�?5s�?
+[e2e-webui1]    note: waiting clock advanced by the app's own per-second timer: 已等 5s -> 6s across the 1.5s gap between samples
+[e2e-webui1]    note: head meta 已工�?55s stayed frozen across both samples (waiting is not counted as work)
+[e2e-webui1] itemsteps-D1 PASS
+[e2e-webui1]    note: turn=run_e2e_itemsteps1 cls="trace-block is-active is-live" label="正在处理" meta="3 步已工作 30s" steps=3 stepTexts=[已完�?可用观察视图清单工具步骤 | 已完�?混音调整工具步骤 | weird.custom_tool工具步骤]
+[e2e-webui1]    note: activity lane at sample time: [] (empty = owned items stayed in the round block)
+[e2e-webui1] receipts-E1 PASS
+[e2e-webui1]    note: ledger key=vit.turn_receipts.v1:webui_mtzba6wf:unsaved%3A%3Aroot rows=2
+[e2e-webui1]    note: row: status=completed step_count=2 activity_count=2 work_ms=30000 park_ms=null started_at=1791084885869
+[e2e-webui1]    note: live phase: block present, no receipt row for the same key
+[e2e-webui1]    note: hydrated row: cls="trace-receipt is-terminal" text="执行完成 · 2 �?· 30.0s" occludedByComposer=false
+[e2e-webui1] bareboot-F1 PASS
+[e2e-webui1]    note: anchor bucket ask_vit_conversation_id_scope:D_Vit_DAW_wt_sess_sem_1_artifacts_e2e_webui1_20261004_113457_agent_drafts_draft_20261004T033505_ -> "webui_mtzba6wf" (expected webui_mtzba6wf)
+[e2e-webui1]    note: trace blocks rendered on the bare boot: [run_bab2dcdacb41bdc1, run_e2e_bareboot1]
+[e2e-webui1]    note: A/B card rendered: session=audition:run_e2e_bareboot1 status=ready text="判定 · A/B 试听待判定这是试验步，可一键回滚A/B 快速对比ABA改动�?· A待播放B改动�?· B待播放A 更好 · 回滚B 更好 · 保留听不出差�?
+[e2e-webui1] audition-unstick-G1 PASS
+[e2e-webui1]    note: stopped card: status=stopped chips=[待判�?| 已停止试�?· 点击 A/B 可重新播放]
+[e2e-webui1]    note: preparing card: status=preparing chips=[正在准备 A/B 试听…]
+[e2e-webui1] audition-trail-T1 PASS
+[e2e-webui1]    note: processing lane: [] (audition rows: 0)
+[e2e-webui1]    note: processing card: status=preparing cls="card"
+[e2e-webui1]    note: processing card chips: [正在准备 A/B 试听…]
+[e2e-webui1]    note: settled lane: [] (audition rows: 0)
+[e2e-webui1]    note: settled card: status=ready cls="card settled" text="判定 · A/B 试听�?1/1 轮人声轨 -1dB · A/B 试听判定已裁�?· B 更好 · 保留改动�?
+[e2e-webui1] judgment-identity-J1 PASS
+[e2e-webui1]    note: verdict buttons rendered and enabled in the parked state (canJudge held with the kernel-shaped snapshot)
+[e2e-webui1]    note: judgment POST issued 1 time(s) on click
+[e2e-webui1]    note: first POST: turn_id="turn:free_state_e2e_abjudg1" round_id="round-1-e2e" preference="a"
+[e2e-webui1]    note: rejection surfaced: banner text="audition session identity mismatch"
+[e2e-webui1] confirm-card-K1 PASS
+[e2e-webui1]    note: before: cls="action-card attention interactive " buttons=2 actionButtons=2
+[e2e-webui1]    note: after: no clickable confirmation card remains (confirm card total 1)
+[e2e-webui1]    note: settled in place: cls="action-card success  " buttons=0
+[e2e-webui1]    note: respond endpoint never called by the app (manual mode unchanged)
+[e2e-webui1] full-access-K2 PASS
+[e2e-webui1]    note: authority pill showed 完全访问 before the send (the grant was active at send time)
+[e2e-webui1]    note: respond endpoint hit exactly once with the approve decision (direct execution)
+[e2e-webui1]    note: no pre-confirmation card rendered anywhere (stream + composer shell clean)
+[e2e-webui1]    note: direct-execution notice rendered in the flow
+[e2e-webui1]    note: execution receipt visible in the conversation
+[e2e-webui1]    note: direct-executed interaction recorded in the consumed ledger
+[e2e-webui1] observe-output-O1 PASS
+[e2e-webui1]    note: O1a long reply collapsed by default (summary="展开全部 17 �?)
+[e2e-webui1]    note: O1a lead paragraph visible while collapsed
+[e2e-webui1]    note: O1a collapsed rest not visible (details closed)
+[e2e-webui1]    note: O1b expanded rendering shows the full original text exactly once
+[e2e-webui1]    note: O1c hydrated reply renders collapsed by default (default state recomputed from content)
+[e2e-webui1]    note: O1c after reload the default state recomputed collapsed again (expansion not remembered)
+[e2e-webui1]    note: O1c persisted content carries the full original text (length unchanged, no expansion state)
+[e2e-webui1]    note: O1d short reply not layered (plain current rendering)
+[e2e-webui1]    note: O1d confirmation card not layered (plain current rendering)
+[e2e-webui1]    note: O1d execution receipt not layered (plain current rendering)
+[e2e-webui1] bucket-save-race-F1 PASS
+[e2e-webui1]    note: driven reply has no graph node; the (conversation, scope) bucket is its only carrier
+[e2e-webui1]    note: buckets before reload: [{"key":"ask_vit_conversation_messages:webui_mtzba6wf:D_Vit_DAW_wt_sess_sem_1_artifacts_e2e_webui1_","n":5,"has_marker":true}]
+[e2e-webui1]    note: rehydrate non-null samples: 10/10
+[e2e-webui1] msgrevive-H1 PASS
+[e2e-webui1]    note: graph seeded: nodes=7 skipped=0
+[e2e-webui1]    note: identity: scope bucket -> webui_mu2aized (server anchor adopted on the bare boot)
+[e2e-webui1]    note: M1 user bubble rendered: "检查一下当前工程有什么问�?
+[e2e-webui1]    note: M1 user bubble rendered: "可以执行"
+[e2e-webui1]    note: M1 assistant bubble rendered: "已在「bass」轨"
+[e2e-webui1]    note: M2 zero interactive cards on the bare boot after the replay settled
+[e2e-webui1]    note: consumed ledger after replay: ["interaction_756c9bd8111b0d6e","interaction_855170be9aac6b30"]
+[e2e-webui1]    note: M3 trace blocks rebuilt: [run_2577decba4d612be]
+[e2e-webui1]    note: M3 audition cards rebuilt: 1 card(s)
+[e2e-webui1] msg-order-M1 PASS
+[e2e-webui1]    note: flow: [{"i":0,"cls":"message-row user sent","text":"用户检查一下当前工程有什么问�?},{"i":1,"cls":"trace-block is-waiting is-collapsed","text":"等待你的判断实验意图已确�?5 �?83.4s�?},{"i":2,"cls":"card settled","text":"判定 · A/B 试听�?1/1 轮A/B au"},{"i":3,"cls":"message-row assistant sent","text":"Vit我还在继续处理这个任务，完成后再向你汇报�?},{"i":4,"cls":"message-row assistant sent","text":"Vit这一步已经应用好了：Track 1017�?},{"i":5,"cls":"message-row user sent","text":"用户你能再检查一下Bass轨道，看看它的低频有�?},{"i":6,"cls":"message-row assistant sent","text":"Vit任务在形成有效结算前失败；失败原因与已有�?},{"i":7,"cls":"message-row assistant sent","text":"VitAsk Vit 就绪�?},{"i":8,"cls":"message-scroll-anchor","text":""}]
+[e2e-webui1] msg-order-M2 PASS
+[e2e-webui1]    note: A/B card settled with the supersedes bar at its chronological slot
+[e2e-webui1]    note: flow: [{"i":0,"cls":"row user sent","text":"用户检查一下当前工程有什么问题吗"},{"i":1,"cls":"trace-block is-terminal is-collapsed","text":"已停止bass 轨低中频聚集7 步执�?1.1s"},{"i":2,"cls":"card settled","text":"判定 · A/B 试听卡面选项未采�?· 你在�?},{"i":3,"cls":"row assistant","text":"VitAsk Vit 就绪�?},{"i":4,"cls":"row assistant sent","text":"Vit我还在继续处理这个任务，完成后再向你汇报�?},{"i":5,"cls":"row user sent","text":"用户检查一下当前选中的drums轨道的低�?},{"i":6,"cls":"trace-block is-warning is-collapsed","text":"执行失败1 �?.0sturn.failed错误"},{"i":7,"cls":"row assistant sent","text":"Vit声学闭环控制器无法建立一致的持久状态，因此"},{"i":8,"cls":"message-scroll-anchor","text":""}]
+[e2e-webui1] ia-redesign-sidebar-IA1 PASS
+[e2e-webui1]    note: display numbers: ["1"] (no prefix, no hash)
+[e2e-webui1]    note: new conversation webui_mut9t3jv registered (no worktree, no branch)
+[e2e-webui1] ia-redesign-viewport-IA2 PASS
+[e2e-webui1]    note: all deleted families absent: .daw-panel-body, .daw-focus-panel, .daw-timeline, .daw-toolbar, .daw-panel-header, .rack-lanes, .midi-workspace, .midi-editor-preview, .mixer-strips, .side-rail, .rail-button, .focus-summary
+[e2e-webui1] ia-redesign-statusbar-IA3 PASS
+[e2e-webui1]    note: task id stays DOM-only via data-task-id="task_e2e_planbar1"
+[e2e-webui1] initial-layout-L1 PASS
+[e2e-webui1]    note: shell tracks [72px 828px] = 2 children (1:1)
+[e2e-webui1]    note: workspace fills the viewport: bottom=900 == innerHeight=900
+[e2e-webui1]    note: sidebar stretches with the workspace row (bottom=900)
+[e2e-webui1]    note: composer seated at the window bottom (bottom=878, slack 22.0px)
+[e2e-webui1]    note: right workbench panel open and flush with the window edge (right=1600)
+[e2e-webui1] session-semantics-SS1 PASS
+[e2e-webui1]    note: main flow row: {"found":true,"title":"主对话流 · Unsaved.vit","active":true,"conversationId":"webui_mtzba6wf"}
+[e2e-webui1] session-semantics-SS2 PASS
+[e2e-webui1]    note: plan bar cleared on switch to the note conversation
+[e2e-webui1]    note: plan bar stays clear in the new flow
+[e2e-webui1]    note: new user flow stays unnamed (平级列出, not auto-named as main)
+[e2e-webui1] session-semantics-SS3 PASS
+[e2e-webui1]    note: plan bar rebound on switch back to the owning conversation
+[e2e-webui1]    note: user rename persisted across reload: "我的主流 E2E"
+[e2e-webui1] verdict: pass 
+[e2e-webui1] report: D:\Vit_DAW_wt_sess_sem_1\artifacts\e2e_webui1\20261004_113457\webui_rendered_dom_report.json
+smoke_exit=0
+ok: rendered DOM smoke PASS
+verdict=pass
+failed_groups=
+browser=chromium-channel-msedge 154.0.4258.53
+
+ARTIFACT_RUN_ROOT D:\Vit_DAW_wt_sess_sem_1\artifacts\e2e_webui1\20261004_113457
+
+== Teardown
+stopped_agent_pid=25096
+port_released=7897
+finished=2026-10-04T11:38:08.7328068+08:00
+
+WEBUI_RENDERED_DOM_VERDICT pass
