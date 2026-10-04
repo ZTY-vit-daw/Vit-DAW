@@ -17,6 +17,7 @@ import (
 	"vit-daw-agent/internal/actionworkflow"
 	"vit-daw-agent/internal/config"
 	"vit-daw-agent/internal/contextruntime"
+	"vit-daw-agent/internal/conversation"
 	"vit-daw-agent/internal/epm"
 	executorpkg "vit-daw-agent/internal/executor"
 	"vit-daw-agent/internal/experiment"
@@ -419,6 +420,9 @@ func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Resu
 				return result
 			}
 			if stopped, result := l.preflightStripSilenceSuggest(ctx, r, state); stopped {
+				return result
+			}
+			if stopped, result := l.preflightClipRangeSplit(ctx, r, state); stopped {
 				return result
 			}
 			if stopped, result := l.preflightStemsFolderImport(ctx, r, state); stopped {
@@ -1159,6 +1163,207 @@ func (l *MessageLoop) preflightStripSilenceSuggest(ctx context.Context, r *Runne
 		return true, r.complete(state, reply)
 	}
 	return true, r.complete(state, "清理静音分析完成。")
+}
+
+// preflightClipRangeSplit is the agent-loop fast intent for boxed-range split
+// phrasing (INTENT-WIRE-FIX-1 leg 2). The kernel requires the two range cuts
+// in end-before-start order, so when conversation.SynthesizeClipRangeSplitCommands
+// hits, the synthesized plan replaces the model's tool-call decisions for the
+// whole turn: the first cut proposes through the regular confirmation pause and
+// the remaining cuts ride the continuation queue so each resume executes the
+// next cut in the fixed order — the model never re-enters between cuts.
+func (l *MessageLoop) preflightClipRangeSplit(ctx context.Context, r *Runner, state *runState) (bool, Result) {
+	plan, ok := messageLoopDeterministicClipRangeSplitCalls(state)
+	if !ok {
+		return false, Result{}
+	}
+	attempted, succeeded := messageLoopExecutedClipRangeSplitCuts(state.trace)
+	remaining := make([]planner.ToolCall, 0, len(plan))
+	for _, call := range plan {
+		if !attempted[clipRangeSplitCutKey(call.Args)] {
+			remaining = append(remaining, call)
+		}
+	}
+	if len(remaining) == 0 {
+		state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: "deterministic clip range split plan already executed; completing the turn"})
+		return true, r.complete(state, messageLoopClipRangeSplitCompletionReply(plan, succeeded))
+	}
+	if stopped, result := r.checkpoint("before_message_loop_clip_range_split", state); stopped {
+		return true, result
+	}
+	for index, call := range remaining {
+		after := append([]planner.ToolCall(nil), remaining[index+1:]...)
+		if limit, result := r.checkToolBudget(state); limit {
+			return true, result
+		}
+		if !allowedTool(call.Tool, state.input.AllowedTools) {
+			result := planner.ToolResult{ToolCallID: call.ID, Tool: call.Tool, Status: "error", Error: "unknown or disallowed tool: " + strings.TrimSpace(call.Tool)}
+			state.trace = append(state.trace,
+				planner.TraceEvent{Kind: "tool_call", ToolCall: cloneToolCallPtr(call), Message: "deterministic clip range split"},
+				planner.TraceEvent{Kind: "tool_result", ToolResult: &result},
+				planner.TraceEvent{Kind: "final_gate", Message: result.Error},
+			)
+			state.input.Conversation = append(state.input.Conversation, llm.Message{Role: "user", Content: "<final_gate>" + result.Error + "</final_gate>"})
+			return false, Result{}
+		}
+		if issue := messageLoopToolGuardIssue(state, call, messageLoopHasUsableMixObservation(state)); issue != "" {
+			messageLoopAppendGuardGate(state, call, issue)
+			return false, Result{}
+		}
+		state.trace = append(state.trace, planner.TraceEvent{
+			Kind:     "tool_call_rewritten",
+			Message:  "boxed-range split was routed through the deterministic clip range split plan",
+			ToolCall: cloneToolCallPtr(call),
+		})
+		toolStarted := time.Now()
+		stopped, result := r.executeTool(ctx, state, call, false, after)
+		l.logTiming("message_loop.tool", toolStarted, "goal=%s tool=%s confirmed=false clip_range_split=true remaining=%d stopped=%t status=%s", state.goal.GoalID, call.Tool, len(after), stopped, result.Status)
+		if stopped {
+			// The runner clears the pending queue on a confirmation pause; the
+			// follow-up cuts must survive into the confirmation continuation so
+			// each resume runs the next cut of the synthesized plan.
+			if len(after) > 0 && result.Continuation != nil && result.Continuation.PendingToolCall != nil &&
+				result.StopReason == StopReasonNeedsConfirmation {
+				result.Continuation.PendingToolQueue = append([]planner.ToolCall(nil), after...)
+			}
+			return true, result
+		}
+		appendMessageLoopToolResult(state)
+	}
+	state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: "deterministic clip range split completed the turn"})
+	return true, r.complete(state, messageLoopClipRangeSplitCompletionReply(plan, succeeded))
+}
+
+// messageLoopDeterministicClipRangeSplitCalls builds the full synthesized cut
+// plan for the current turn, or reports false when the gate does not hit.
+func messageLoopDeterministicClipRangeSplitCalls(state *runState) ([]planner.ToolCall, bool) {
+	if state == nil || state.pendingToolCall != nil || len(state.pendingToolQueue) > 0 {
+		return nil, false
+	}
+	commands := conversation.SynthesizeClipRangeSplitCommands(state.input.UserText, messageLoopClipRangeSplitGateContext(state))
+	if len(commands) == 0 {
+		return nil, false
+	}
+	calls := make([]planner.ToolCall, 0, len(commands))
+	for index, command := range commands {
+		tool := strings.TrimSpace(messageLoopText(command["tool"]))
+		args := cloneMap(messageLoopMapValue(command["args"]))
+		if tool == "" || len(args) == 0 || args["clip_id"] == nil || args["split_time"] == nil {
+			return nil, false
+		}
+		command := cloneMap(args)
+		command["cmd"] = "split_clip"
+		calls = append(calls, planner.ToolCall{
+			ID:      fmt.Sprintf("clip_range_split_%d", index+1),
+			Tool:    tool,
+			Args:    args,
+			Command: command,
+			Reason:  fmt.Sprintf("Boxed-range split cut %d/%d at %s seconds.", index+1, len(commands), messageLoopText(args["split_time"])),
+		})
+	}
+	if len(calls) == 0 {
+		return nil, false
+	}
+	return calls, true
+}
+
+// messageLoopClipRangeSplitGateContext returns the richest selection context
+// available for the split gate, backfilling selected_clip_ranges from the
+// durable snapshot/state rows when the live context does not carry them.
+func messageLoopClipRangeSplitGateContext(state *runState) map[string]any {
+	gate := cloneMap(state.input.Context)
+	if gate == nil {
+		gate = map[string]any{}
+	}
+	for _, source := range []map[string]any{
+		state.input.Context,
+		messageLoopMapValue(state.input.Context["current_selection"]),
+		messageLoopMapValue(state.input.Context["ui_context"]),
+		state.input.ContextSnapshot,
+		messageLoopMapValue(state.input.ContextSnapshot["current_selection"]),
+		messageLoopMapValue(state.input.ContextSnapshot["ui_context"]),
+		state.input.State,
+		messageLoopMapValue(state.input.State["current_selection"]),
+		messageLoopMapValue(state.input.State["ui_context"]),
+	} {
+		if rows := messageLoopMapRows(source["selected_clip_ranges"]); len(rows) > 0 {
+			gate["selected_clip_ranges"] = rows
+			break
+		}
+	}
+	return gate
+}
+
+// messageLoopExecutedClipRangeSplitCuts scans the run trace for clip.split
+// tool calls and pairs them with their results: a cut counts as attempted once
+// a result arrives (so failed cuts are never retried inside the same run) and
+// as succeeded only on a non-error, non-confirmation result. The trace spans
+// confirmation resumes, so the plan survives across user confirmations.
+func messageLoopExecutedClipRangeSplitCuts(trace []planner.TraceEvent) (attempted, succeeded map[string]bool) {
+	attempted = map[string]bool{}
+	succeeded = map[string]bool{}
+	pendingID := ""
+	pendingKey := ""
+	for _, event := range trace {
+		switch event.Kind {
+		case "tool_call":
+			if event.ToolCall != nil && strings.EqualFold(strings.TrimSpace(event.ToolCall.Tool), "clip.split") {
+				pendingID = strings.TrimSpace(event.ToolCall.ID)
+				pendingKey = clipRangeSplitCutKey(event.ToolCall.Args)
+			} else {
+				pendingID, pendingKey = "", ""
+			}
+		case "tool_result":
+			if pendingKey == "" || event.ToolResult == nil {
+				pendingID, pendingKey = "", ""
+				continue
+			}
+			if pendingID == "" || strings.TrimSpace(event.ToolResult.ToolCallID) == pendingID {
+				attempted[pendingKey] = true
+				status := strings.ToLower(strings.TrimSpace(event.ToolResult.Status))
+				if strings.TrimSpace(event.ToolResult.Error) == "" &&
+					status != "error" && status != "kernel_error" && status != "failed" && status != "needs_confirmation" {
+					succeeded[pendingKey] = true
+				}
+				pendingID, pendingKey = "", ""
+			}
+		}
+	}
+	return attempted, succeeded
+}
+
+func clipRangeSplitCutKey(args map[string]any) string {
+	if args == nil {
+		return ""
+	}
+	clipID := strings.TrimSpace(messageLoopText(args["clip_id"]))
+	value, ok := args["split_time"].(float64)
+	if !ok {
+		parsed, err := strconv.ParseFloat(strings.TrimSpace(messageLoopText(args["split_time"])), 64)
+		if err == nil {
+			value, ok = parsed, true
+		}
+	}
+	if clipID == "" || !ok {
+		return ""
+	}
+	return clipID + "@" + strconv.FormatFloat(value, 'f', -1, 64)
+}
+
+func messageLoopClipRangeSplitCompletionReply(plan []planner.ToolCall, succeeded map[string]bool) string {
+	times := make([]string, 0, len(plan))
+	missing := make([]string, 0, len(plan))
+	for _, call := range plan {
+		key := clipRangeSplitCutKey(call.Args)
+		times = append(times, strings.TrimPrefix(key, strings.TrimSpace(messageLoopText(call.Args["clip_id"]))+"@"))
+		if !succeeded[key] {
+			missing = append(missing, times[len(times)-1])
+		}
+	}
+	if len(missing) == 0 {
+		return "框选范围拆分完成：已按 " + strings.Join(times, " → ") + " 秒的顺序切分，所选范围已独立成片。"
+	}
+	return "框选范围拆分未完成：" + strings.Join(missing, "、") + " 秒处的切分未能执行，片段状态可能已变化，请检查后重试。"
 }
 
 func messageLoopDeterministicClipFadeGainReadCalls(state *runState) ([]planner.ToolCall, bool) {

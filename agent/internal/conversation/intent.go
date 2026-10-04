@@ -182,6 +182,35 @@ func SynthesizeLocalDAWCommands(userText string, requestContext map[string]any) 
 	}
 }
 
+// SynthesizeClipRangeSplitCommands returns the boxed-range split cut plan when
+// SynthesizeLocalDAWCommands would resolve userText to exactly that plan under
+// the current dispatch precedence, and nil otherwise. The kernel requires the
+// two range cuts in end-before-start order, so chat server (before its LLM
+// call) and the agent loop fast intent call this to take over deterministically
+// instead of racing a model-emitted envelope whose cut order is random.
+func SynthesizeClipRangeSplitCommands(userText string, requestContext map[string]any) []map[string]any {
+	text := strings.TrimSpace(userText)
+	if text == "" || isSourceLessAudioPlacementText(text, requestContext) {
+		return nil
+	}
+	text = expandLocalIntentText(text)
+	rangeSplitCommands := clipRangeSplitCommands(text, requestContext)
+	if len(rangeSplitCommands) == 0 {
+		return nil
+	}
+	// Mirror SynthesizeLocalDAWCommands dispatch precedence: the intent forms
+	// dispatched before the clip switch and the clip gate keep their routes, and
+	// inside the switch clip.delete outranks the split branch. Only when the
+	// dispatch reaches the split branch with the range cuts in hand does the
+	// deterministic plan win.
+	if isAddTrackText(text) || isTrackMuteText(text) || isTrackSoloText(text) ||
+		isMidiImportText(text, requestContext) || isAudioAttachmentImportText(text, requestContext) ||
+		isAudioImportText(text) || !mentionsClip(text) || isClipDeleteText(text) {
+		return nil
+	}
+	return rangeSplitCommands
+}
+
 func selectedImportArgs(requestContext map[string]any) map[string]any {
 	args := map[string]any{}
 	if trackID := strings.TrimSpace(firstContextText(requestContext, "selected_track_id", "focused_track_id", "track_id")); trackID != "" {

@@ -2597,6 +2597,21 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// INTENT-WIRE-FIX-1: the boxed-range split plan is a deterministic two-cut
+	// proposal (end cut before start cut) whose order the kernel requires. When
+	// the phrase+ranges gate hits, take over before the LLM call so a
+	// model-emitted envelope can no longer preempt the plan with a random (and
+	// roughly half the time kernel-rejected) cut order. Every other intent form
+	// keeps its post-envelope fallback below (synthesizeLocalDAWCommands).
+	if splitCommands := synthesizeClipRangeSplitCommandsPreModel(req.Message, chatContext); len(splitCommands) > 0 {
+		resp, handled := s.chatResponseForCommands(r.Context(), conversationID, req.Message, "已按框选范围生成拆分提案。", splitCommands, chatContext)
+		if handled {
+			s.remember(conversationID, req.Message, resp.Reply)
+			writeChat(http.StatusOK, resp)
+			return
+		}
+	}
+
 	assembly := s.buildAssembly(r.Context(), conversationID, req.Message, req.Context)
 	goalID, _ := goalIDsFromContext(req.Context)
 	resp, err := s.llm.CompleteRequest(r.Context(), cfg, llm.Request{
