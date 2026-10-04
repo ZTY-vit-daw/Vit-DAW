@@ -1,0 +1,104 @@
+diff --git a/agent/internal/chat/free_state_reasoning_loop.go b/agent/internal/chat/free_state_reasoning_loop.go
+index da8d5c6e..a407c0f4 100644
+--- a/agent/internal/chat/free_state_reasoning_loop.go
++++ b/agent/internal/chat/free_state_reasoning_loop.go
+@@ -182,9 +182,16 @@ type freeStateReasoningLoop struct {
+ 	// user to adjudicate; no experiment admission is constructed and the
+ 	// terminal lock never clears (parking is not re-entry).
+ 	TerminalAdjudication map[string]any `json:"terminal_adjudication,omitempty"`
+-	LastError            string         `json:"last_error,omitempty"`
+-	CreatedAt            time.Time      `json:"created_at"`
+-	UpdatedAt            time.Time      `json:"updated_at"`
++	// RangeGoal is the FREESTATE-REGION two-round protocol state (DESIGN 问 1):
++	// the boxed-range structural target riding this loop. Optional and
++	// fail-open — a loop persisted before this field carries no key and
++	// decodes to nil, which is the ordinary non-range goal. The phase walks
++	// split_pending → split_done → treating inside the conversation; it is
++	// orchestration memory, not a Goal identity and not a mutation authority.
++	RangeGoal *freeStateRangeGoal `json:"range_goal,omitempty"`
++	LastError string              `json:"last_error,omitempty"`
++	CreatedAt time.Time           `json:"created_at"`
++	UpdatedAt time.Time           `json:"updated_at"`
+ }
+ 
+ func freeStateLoopActive(loop freeStateReasoningLoop) bool {
+@@ -289,6 +296,10 @@ func (s *Server) prepareFreeStateReasoningContext(conversationID, userText strin
+ 			CreatedAt:      now,
+ 			UpdatedAt:      now,
+ 		}
++		// FREESTATE-REGION-IMPL-1: treatment-class speech plus a boxed range
++		// arms the two-round protocol on the fresh loop (simplest gate; IMPL-2
++		// refines the speech boundary). Pure structural phrasing never arms.
++		loop.RangeGoal = freeStateRangeGoalFromRequest(userText, requestContext)
+ 		s.storeFreeStateLoop(loop)
+ 	}
+ 	if loop.AuthorityMode == "" {
+@@ -358,6 +369,15 @@ func mergeFreeStateLoops(base, overlay freeStateReasoningLoop, overlayOK bool) f
+ 	if overlay.TargetRef != nil {
+ 		out.TargetRef = cloneContext(overlay.TargetRef)
+ 	}
++	// The range-goal phase is monotonic inside a conversation: a transport
++	// copy that predates the split verification never regresses the durable
++	// phase (split_pending < split_done < treating); a same-rank overlay
++	// refreshes the field set.
++	if overlay.RangeGoal != nil {
++		if out.RangeGoal == nil || freeStateRangePhaseRank(overlay.RangeGoal.Phase) >= freeStateRangePhaseRank(out.RangeGoal.Phase) {
++			out.RangeGoal = cloneFreeStateRangeGoal(overlay.RangeGoal)
++		}
++	}
+ 	if len(overlay.LatestProjectChange) > 0 {
+ 		out.LatestProjectChange = cloneContext(overlay.LatestProjectChange)
+ 	}
+@@ -1003,6 +1023,7 @@ func (s *Server) recordFreeStateDecision(conversationID string, res agentloop.Re
+ 		}
+ 		if len(target) > 0 {
+ 			loop.TargetRef = target
++			applyFreeStateRangeGoalTreatmentTarget(&loop)
+ 		}
+ 		loop.Status = "awaiting_action"
+ 		loop.DecisionPhase = freeStatePhaseProcessorMaterialization
+@@ -1105,6 +1126,7 @@ func (s *Server) recordFreeStateDecision(conversationID string, res agentloop.Re
+ 		}
+ 		proposal := decision.ImprovementProposal
+ 		loop.TargetRef = cloneContext(proposal.Target)
++		applyFreeStateRangeGoalTreatmentTarget(&loop)
+ 		loop.Status = "awaiting_experiment"
+ 		loop.DecisionPhase = freeStatePhaseProcessorMaterialization
+ 		loop.ActiveIntent = strings.TrimSpace(proposal.ImprovementIntent)
+diff --git a/agent/internal/chat/goalrunner_chat.go b/agent/internal/chat/goalrunner_chat.go
+index bcb49ea7..c12af878 100644
+--- a/agent/internal/chat/goalrunner_chat.go
++++ b/agent/internal/chat/goalrunner_chat.go
+@@ -314,7 +314,7 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
+ 				}
+ 			}
+ 			return ChatResponse{ConversationID: conversationID, GoalID: loop.GoalID, RunID: loop.RunID,
+-				Reply:      firstNonEmpty(loop.LastError, "free-state reasoning loop has ended; no further automatic action was started."),
++				Reply:      freeStateRangeGoalReplyNote(loop, firstNonEmpty(loop.LastError, "free-state reasoning loop has ended; no further automatic action was started.")),
+ 				GoalStatus: string(agentruntime.StatusCompleted), Workflow: "free_state_reasoning_loop",
+ 				StopReason:   firstNonEmpty(loop.LastError, "free_state_loop_inactive"),
+ 				WorkflowData: map[string]any{"status": loop.Status, "free_state_reasoning_loop": freeStateLoopMap(loop), "mutation_performed": false},
+@@ -457,6 +457,15 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
+ 		resp.GoalStatus = string(agentruntime.StatusStopped)
+ 		resp.StopReason = "stop_turn_completed"
+ 		resp.Reply = "已停止当前 Turn；不会再启动新的实验动作。"
++		if stopLoop, stopLoopOK := s.freeStateLoop(conversationID); stopLoopOK {
++			if note := freeStateRangeGoalRetentionNote(stopLoop); note != "" {
++				// Inter-round abort semantics (DESIGN 问 2): the sub clip stays
++				// in the project and the stop report records the retention —
++				// no automatic revert.
++				resp.Reply = strings.TrimSpace(resp.Reply + " " + note)
++				resp.GoalSummary = strings.TrimSpace(strings.TrimSpace(goal.Summary) + "；" + note)
++			}
++		}
+ 		resp.WorkflowData = mergeContext(resp.WorkflowData, map[string]any{"stop_turn": true, "checkpoint_ref": checkpoint, "goal_status": goal.Status})
+ 		return s.bindFreeStateContextToResponse(resp, chatContext), true
+ 	}
+@@ -465,6 +474,7 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
+ 			res.RecentObservation = observation
+ 		}
+ 		loop, _ := s.recordFreeStateDecision(conversationID, res)
++		loop = s.applyFreeStateRangeSplitOutcome(conversationID, loop, res)
+ 		if loop.LatestDecision != nil {
+ 			res.FreeStateDecision = loop.LatestDecision
+ 		}

@@ -11,6 +11,7 @@
 - 产出：`coord/runs/MIXLAYER-RECON-1/RECON.md`（四问各带锚点+一张 A-F×实现度矩阵+M1 内 A-F 工作量估算表）。
 - 约束：只读（零代码改动零探针写源码树）；不动 sealed fixture。
 - 验收标准：四问全答+锚点可回查+矩阵覆盖 23 节点+工作量估算明确（不代决拆卡——决策侧复核后拆）。
-- 领取：（时间 / 基线）
-- 回执：（RECON.md 路径）
-- 验收：（裁定文件）
+- 领取：2026-10-04 / `4de389a5900c54ec485d2802e6ecc32c72097b30`（Windows 主工作树；领取时工作树已有与本卡无关的 Settings.xml/default_project.xml 改动及 coord/runs 未跟踪目录，未触碰）
+- 回执：`coord/runs/MIXLAYER-RECON-1/RECON.md`——四问全答+锚点可回查+A-F×实现度 23 节点矩阵+M1 内工作量估算（6-10 天分块，拆卡权留决策侧）。核心读数：账本+mix.report 已实现且 B2/B3/B4/C1/C2 五族读写接线；mix_workflow_queue.v0 代码零命中纯设计；黑板=每回合现算无持久层且 `static_mix_capabilities` 等三个状态键全仓无生产者；自由态 settle 与账本/黑板零桥接（conversation 键控 vs project_uuid 键控）；typed route 七项中采样率/电平/声像在位，宽度/automation/clip 静音写/bus-send/导出暴露缺。执行侧未提交 commit（按 §12 等决策验收；且主工作树有他卡前置改动）——卡片移动+RECON.md 为 coord/ 变更，提交由决策侧处置。
+- 端测边界声明：本卡为纯只读勘察，无运行链路改动，不适用端侧烟测门槛；结论以源码锚点与全仓 grep 判定为据。
+- 验收：pass（[rulings/2026-10-04-MIXLAYER-RECON-1-pass.md](../../rulings/2026-10-04-MIXLAYER-RECON-1-pass.md)，2026-10-04 晚）——锚点抽查 3/3 属实（queue 零命中/三键无生产者/impact 契约五 ID）；M1 拆卡建议五序见裁定。
