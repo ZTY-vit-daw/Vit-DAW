@@ -1,0 +1,6 @@
+﻿{
+    "conversation_id":  "note_smoke_legacy_20261004_213648",
+    "reply":  "这个圈定范围 = 一个时间线（timeline）face，占便签选区的 72%，仅命中 1 条轨道 smoke_track_1 上的 2 个 clip：\n\n| clip | 轨道 | 全长 | 与范围相交段 |\n|---|---|---|---|\n| smoke_clip_full | smoke_track_1 | 0:03.2 – 0:07.8 (3.2s–7.8s) | 辖区未给出范围边界，故记入的是全长 3.2s–7.8s |\n| smoke_clip_part | smoke_track_1 | 0:05.0 – 0:12.0 (5.0s–12.0s) | 同上，记入全长 5.0s–12.0s |\n\n时间跨度：由命中 clip 合并得出 0:03.2 – 0:12.0（3.2s–12.0s）。\n\n注意：time_digest 只记录了这两个 clip 的完整起止，没有单独的范围起止边界（也没有为\"部分\"clip 单独裁剪出的时间段），所以无法给出比全长更精确的相交区间；以上即为 jurisdiction 中实际有的时间信息。\n\n项目状态侧：仅有 2 个 clip、0 条 user track、无待处理任务，健康无问题。\n\n若想真正修改范围或剪辑内容，请到主聊天控制台提出。",
+    "agent_mode":  "default",
+    "needs_confirmation":  false
+}

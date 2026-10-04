@@ -1,0 +1,119 @@
+﻿{
+    "authority_mode":  "manual_confirmation",
+    "capability_routes":  [
+
+                          ],
+    "checked_at":  "2026-10-04T21:36:51.7196295+08:00",
+    "checkout_blocked":  false,
+    "continuations":  [
+
+                      ],
+    "goal":  {
+                 "goal_id":  "goal_51361fba8fd1eafa",
+                 "run_id":  "run_ce421f7a99eb898e",
+                 "task":  {
+                              "task_id":  "task_dfb368ea821e651a",
+                              "goal_id":  "goal_51361fba8fd1eafa",
+                              "original_intent":  "把这段拆出来",
+                              "status":  "waiting_interaction",
+                              "run":  {
+                                          "run_id":  "run_ce421f7a99eb898e",
+                                          "task_id":  "task_dfb368ea821e651a",
+                                          "next_slice":  1,
+                                          "next_turn":  1
+                                      },
+                              "created_at":  "2026-10-04T21:15:07.2172394+08:00",
+                              "updated_at":  "2026-10-04T21:15:11.854134+08:00"
+                          },
+                 "status":  "waiting_confirmation",
+                 "summary":  "把这段拆出来",
+                 "created_at":  "2026-10-04T21:15:07.2172394+08:00",
+                 "updated_at":  "2026-10-04T21:15:11.854134+08:00",
+                 "cancel_requested":  false
+             },
+    "kernel":  {
+                   "connected":  true,
+                   "endpoint":  "tcp://127.0.0.1:5555",
+                   "latency_ms":  1,
+                   "message":  "pong",
+                   "reply_status":  "ok",
+                   "status":  "online"
+               },
+    "note_sessions":  [
+                          {
+                              "archived":  false,
+                              "conversation_id":  "note_smoke_v31_20261004_213648",
+                              "created_at":  "2026-10-04T13:36:51.1921405Z",
+                              "messages":  [
+                                               {
+                                                   "role":  "user",
+                                                   "content":  "What does this circled range contain? Include the time span.",
+                                                   "created_at":  "2026-10-04T13:36:51.1921405Z"
+                                               },
+                                               {
+                                                   "role":  "assistant",
+                                                   "content":  "The circled range (note note_smoke_v31) is a timeline region.\n\nTime span: 0:03.2 – 0:08.5 (3.2s to 8.5s).\n\nIt hits 2 clips, both on track smoke_track_1:\n\n1. smoke_clip_full — full length 0:03.2–0:07.8; portion inside the range 0:03.2–0:07.8 (entire clip falls inside the range).\n2. smoke_clip_part — full length 0:05.0–0:12.0; portion inside the range 0:05.0–0:08.5 (its tail beyond 0:08.5 is outside the range).\n\nFaces in the jurisdiction: timeline (selection share 0.72). Read-only project state lists 2 clips and no tracks/plugins/library rows; no jobs pending, graph idle.",
+                                                   "created_at":  "2026-10-04T13:36:51.1921405Z"
+                                               }
+                                           ],
+                              "note_id":  "note_smoke_v31",
+                              "project_path":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261004T133647_b8e21ffb\\Unsaved.vit",
+                              "project_uuid":  "vitproj_19a2b6fbc94f49a7ba4a1505bc96be07",
+                              "title":  "便签 note_smoke_v31",
+                              "updated_at":  "2026-10-04T13:36:51.1921405Z"
+                          }
+                      ],
+    "pid":  31088,
+    "service":  "VitAgent",
+    "shadow":  {
+                   "delta_seq_gaps":  0,
+                   "graph_revision":  0,
+                   "initialized":  true,
+                   "last_delta_seq":  0,
+                   "project_path":  "",
+                   "track_count":  0,
+                   "user_track_count":  0
+               },
+    "status":  "ok",
+    "task":  {
+                 "task_id":  "task_dfb368ea821e651a",
+                 "goal_id":  "goal_51361fba8fd1eafa",
+                 "original_intent":  "把这段拆出来",
+                 "status":  "waiting_interaction",
+                 "run":  {
+                             "run_id":  "run_ce421f7a99eb898e",
+                             "task_id":  "task_dfb368ea821e651a",
+                             "next_slice":  1,
+                             "next_turn":  1
+                         },
+                 "created_at":  "2026-10-04T21:15:07.2172394+08:00",
+                 "updated_at":  "2026-10-04T21:15:11.854134+08:00"
+             },
+    "task_trajectory":  {
+                            "run":  {
+                                        "current_slice_id":  "",
+                                        "current_turn_id":  "",
+                                        "run_id":  "run_ce421f7a99eb898e",
+                                        "slices":  null,
+                                        "turns":  null
+                                    },
+                            "schema_version":  "vit.task_runtime_trajectory.v1",
+                            "semantic":  {
+
+                                         },
+                            "task":  {
+                                         "conversation_id":  "",
+                                         "created_at":  "2026-10-04T21:15:07.2172394+08:00",
+                                         "goal_id":  "goal_51361fba8fd1eafa",
+                                         "goal_status":  "waiting_confirmation",
+                                         "original_intent":  "把这段拆出来",
+                                         "run_id":  "run_ce421f7a99eb898e",
+                                         "status":  "waiting_interaction",
+                                         "task_id":  "task_dfb368ea821e651a",
+                                         "updated_at":  "2026-10-04T21:15:11.854134+08:00"
+                                     },
+                            "transitions":  [
+
+                                            ]
+                        }
+}

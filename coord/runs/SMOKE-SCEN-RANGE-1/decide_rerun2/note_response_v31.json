@@ -1,0 +1,6 @@
+﻿{
+    "conversation_id":  "note_smoke_v31_20261004_213648",
+    "reply":  "The circled range (note note_smoke_v31) is a timeline region.\n\nTime span: 0:03.2 – 0:08.5 (3.2s to 8.5s).\n\nIt hits 2 clips, both on track smoke_track_1:\n\n1. smoke_clip_full — full length 0:03.2–0:07.8; portion inside the range 0:03.2–0:07.8 (entire clip falls inside the range).\n2. smoke_clip_part — full length 0:05.0–0:12.0; portion inside the range 0:05.0–0:08.5 (its tail beyond 0:08.5 is outside the range).\n\nFaces in the jurisdiction: timeline (selection share 0.72). Read-only project state lists 2 clips and no tracks/plugins/library rows; no jobs pending, graph idle.",
+    "agent_mode":  "default",
+    "needs_confirmation":  false
+}

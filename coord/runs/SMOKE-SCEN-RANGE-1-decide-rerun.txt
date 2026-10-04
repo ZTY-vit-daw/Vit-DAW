@@ -1,0 +1,28 @@
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW
+agent http: http://127.0.0.1:7878
+
+== Build VitAgent
+ok: build passed: D:\Vit_DAW\agent\bin\VitAgent.dev-smoke.exe
+ok: installed agent bin: D:\Vit_DAW\agent\bin\VitAgent.exe
+ok: installed agent root compatibility exe: D:\Vit_DAW\agent\vitagent.exe
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=265
+shadow.initialized=False track_count=0
+
+== Scenario berth teardown
+ok: stopped scenario agent pid=24076
+scenario berth never reported a stable active project uuid (last=); note-session assertions would race the agent's proj
+ect recovery
+ËùÔÚÎ»ÖÃ D:\Vit_DAW\scripts\dev_agent_smoke.ps1:724 ×Ö·û: 13
++             throw ("scenario berth never reported a stable active pro ...
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (scenario berth ...roject recovery:String) [], RuntimeException
+    + FullyQualifiedErrorId : scenario berth never reported a stable active project uuid (last=); note-session asserti 
+   ons would race the agent's project recovery
+ 

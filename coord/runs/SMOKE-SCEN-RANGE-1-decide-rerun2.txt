@@ -1,0 +1,38 @@
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW
+agent http: http://127.0.0.1:7878
+
+== Build VitAgent
+ok: build passed: D:\Vit_DAW\agent\bin\VitAgent.dev-smoke.exe
+ok: installed agent bin: D:\Vit_DAW\agent\bin\VitAgent.exe
+ok: installed agent root compatibility exe: D:\Vit_DAW\agent\vitagent.exe
+
+== Start kernel
+ok: started kernel: D:\Vit_DAW\Export\staging\runtime\VitApp.exe pid=13336
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=265
+shadow.initialized=True track_count=0
+ok: scenario berth project identity stable: vitproj_19a2b6fbc94f49a7ba4a1505bc96be07
+
+== Scenario note_time: note payload v3.1 time dimension injection
+ok: note session persisted (v31): note_smoke_v31_20261004_213648 messages=2
+ok: v3.1 time keys survive note session persistence
+ok: note session persisted (legacy): note_smoke_legacy_20261004_213648 messages=2
+
+== Scenario berth teardown
+ok: stopped scenario agent pid=31088
+ok: stopped scenario kernel pid=13336
+llm telemetry has no vitnote_chat records for the two note turns (v31=0 legacy=0); file=coord\runs\SMOKE-SCEN-RANGE-1\d
+ecide_rerun2\agent_llm_telemetry.jsonl
+ËùÔÚÎ»ÖÃ D:\Vit_DAW\scripts\dev_agent_smoke.ps1:861 ×Ö·û: 13
++             throw ("llm telemetry has no vitnote_chat records for the ...
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (llm telemetry h...telemetry.jsonl:String) [], RuntimeException
+    + FullyQualifiedErrorId : llm telemetry has no vitnote_chat records for the two note turns (v31=0 legacy=0); file= 
+   coord\runs\SMOKE-SCEN-RANGE-1\decide_rerun2\agent_llm_telemetry.jsonl
+ 

@@ -35,4 +35,4 @@
     c. 接受概率口径（模型先终点=通过）——不建议，违反 AGENTS §8 确定性口径；
     d. INTENT-WIRE-1 转正判据回退手测——手测同样撞随机序，且掩盖产品缺陷，不建议。
   - 断言点实锚清单：A=note_sessions 投影+store 文件时间键+遥测 char_count 差值（三面皆确定性）；B=意图层 tool-form 形态（仅在模型让路时出现，非确定性）。
-- 验收：（裁定文件 / 验收 commit）
+- 验收：pass——A 判据达成（执行侧两轮+决策侧复跑断言①②过，③证明目标由真栈真 LLM 回复直接证据替代，env 差异记录）；B 停止条件正确行使移交 INTENT-WIRE-FIX-1（[rulings/2026-10-04-SMOKE-SCEN-RANGE-1-pass.md](../../rulings/2026-10-04-SMOKE-SCEN-RANGE-1-pass.md)）

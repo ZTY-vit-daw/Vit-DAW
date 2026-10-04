@@ -1,0 +1,57 @@
+﻿{
+  "schema_version": "vit_note_sessions.v1",
+  "project_uuid": "vitproj_19a2b6fbc94f49a7ba4a1505bc96be07",
+  "sessions": {
+    "note_smoke_v31_20261004_213648": {
+      "conversation_id": "note_smoke_v31_20261004_213648",
+      "note_id": "note_smoke_v31",
+      "title": "便签 note_smoke_v31",
+      "created_at": "2026-10-04T13:36:51.1921405Z",
+      "updated_at": "2026-10-04T13:36:51.1921405Z",
+      "archived": false,
+      "messages": [
+        {
+          "role": "user",
+          "content": "What does this circled range contain? Include the time span.",
+          "created_at": "2026-10-04T13:36:51.1921405Z"
+        },
+        {
+          "role": "assistant",
+          "content": "The circled range (note note_smoke_v31) is a timeline region.\n\nTime span: 0:03.2 – 0:08.5 (3.2s to 8.5s).\n\nIt hits 2 clips, both on track smoke_track_1:\n\n1. smoke_clip_full — full length 0:03.2–0:07.8; portion inside the range 0:03.2–0:07.8 (entire clip falls inside the range).\n2. smoke_clip_part — full length 0:05.0–0:12.0; portion inside the range 0:05.0–0:08.5 (its tail beyond 0:08.5 is outside the range).\n\nFaces in the jurisdiction: timeline (selection share 0.72). Read-only project state lists 2 clips and no tracks/plugins/library rows; no jobs pending, graph idle.",
+          "created_at": "2026-10-04T13:36:51.1921405Z"
+        }
+      ],
+      "faces": [
+        {
+          "domain": {
+            "entries": [
+              {
+                "clip_id": "smoke_clip_full",
+                "end_seconds": 7.8,
+                "range_clip_end": 7.8,
+                "range_clip_start": 3.2,
+                "start_seconds": 3.2,
+                "track_id": "smoke_track_1"
+              },
+              {
+                "clip_id": "smoke_clip_part",
+                "end_seconds": 12,
+                "range_clip_end": 8.5,
+                "range_clip_start": 5,
+                "start_seconds": 5,
+                "track_id": "smoke_track_1"
+              }
+            ],
+            "range_time_span": {
+              "end_s": 8.5,
+              "start_s": 3.2
+            }
+          },
+          "face_kind": "timeline",
+          "label": "timeline",
+          "selection_share": 0.72
+        }
+      ]
+    }
+  }
+}
