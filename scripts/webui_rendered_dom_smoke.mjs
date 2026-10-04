@@ -2859,6 +2859,13 @@ async function main() {
         task_id: "task_e2e_planbar1",
         goal_id: "goal_e2e_planbar1",
         run_id: "run_e2e_planbar1",
+        // WEBUI-SESSION-SEMANTICS-1: the projection carries the owning
+        // conversation id (the real agent has always served it, chat/server.go
+        // taskRuntimeTrajectoryProjection); the webui binds the plan bar to the
+        // active session, so the fixture must declare its owner for the bar to
+        // render at all -- which makes every plan-bar assertion below prove
+        // per-conversation binding, not just presence.
+        conversation_id: conversationId,
         original_intent: "PLANBAR-1 rendered-surface smoke: the plan bar must sit above the input box and stop when the task ends.",
         status: settled ? "completed" : "running",
         updated_at: stamp
@@ -4559,6 +4566,266 @@ async function main() {
   const initialLayoutSample = await runInitialLayoutPass("initial-layout");
   report.initial_layout = initialLayoutSample;
   record("initial-layout-L1", checkInitialLayout(initialLayoutSample));
+
+  // ------------------------------------------------ WEBUI-SESSION-SEMANTICS-1 (2026-10-04)
+  // 主对话流语义组：webui 流是主、note 流是副（用户裁定 2026-10-03）。启动（scope
+  // 物化）即自动建主会话并命名「主对话流 · <工程名>」（出生即命名、用户改名最高且
+  // 持久、同工程重开沿旧名）；输入框上方的 PlanBar 执行轨迹按 active session 绑定——
+  // 全局 task_trajectory 投影的 conversation_id 与当前会话不符时即时清空，切回属主
+  // 会话即重绑。场景即手测三号场症状 6：note 会话任务在跑、webui 新建对话流，旧轨迹
+  // 不得复活。
+  // 工程身份自校准：note 行与期望名都用真 agent /agent/ui/state 的 project_history
+  // （historyScopePartsFromUIState 同源字段），隔离 draft 工程与 fixture 路径不同也
+  // 成立。note_sessions 在网络层注入（PLANBAR-1 模式），其余全真。
+  const sessionSemanticsNoteRowBase = {
+    conversation_id: "note_r_e2e_session_sem",
+    note_id: "note_e2e_ss",
+    title: "便签 N3 · 时间线 55% · 机架 30%",
+    archived: false,
+    updated_at: "2026-10-04T10:00:00Z"
+  };
+  const runSessionSemanticsPass = async (name) => {
+    const context = await browser.newContext({ viewport });
+    await installReplay(context, { strictConversation: true });
+    // 动态 status 面：note 行在页面加载前按真 agent 的 scope 身份填充
+    const noteRowsHolder = { rows: [] };
+    await context.route("**/agent/runtime/status*", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json; charset=utf-8",
+        body: JSON.stringify({
+          status: "ok",
+          service: "VitAgent",
+          kernel: { connected: true, status: "ok" },
+          goal: { status: "running" },
+          task_trajectory: planBarTaskFixture("observation_in_progress"),
+          note_sessions: noteRowsHolder.rows
+        })
+      });
+    });
+    await context.route("**/agent/ui/state*", async (route) => {
+      const response = await route.fetch();
+      const body = await response.json().catch(() => ({}));
+      await route.fulfill({ response, json: { ...body, goal: { ...(body.goal || {}), status: "running" } } });
+    });
+    // 自校准：真 agent 的 project_history 就是 webui scope 的身份源
+    let scopeProjectPath = "";
+    let scopeProjectUUID = "";
+    for (let attempt = 0; attempt < 10 && !scopeProjectPath; attempt += 1) {
+      const uiState = await getJSON("/agent/ui/state").catch(() => null);
+      const projectHistory = (uiState && uiState.project_history) || {};
+      scopeProjectPath = String(projectHistory.project_path || projectHistory.current_project_path || "").trim();
+      scopeProjectUUID = String(projectHistory.project_uuid || "").trim();
+      if (!scopeProjectPath) {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+    }
+    if (scopeProjectPath) {
+      noteRowsHolder.rows = [{ ...sessionSemanticsNoteRowBase, project_path: scopeProjectPath, project_uuid: scopeProjectUUID }];
+    }
+    const page = await context.newPage();
+    await page.goto(agentBase + "/app/?conversation_id=" + encodeURIComponent(conversationId), { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(2500);
+    const result = {
+      sidebarAppeared: false,
+      scopeProjectPath: scopeProjectPath,
+      scopeCalibrated: Boolean(scopeProjectPath),
+      statusTitles: [],
+      mainRow: { found: false, title: "", active: false, conversationId: "" },
+      mainIDKeyPersisted: false,
+      planBarAtBoot: false,
+      noteRowPresent: false,
+      planBarClearedOnNoteSwitch: false,
+      planBarStaysClearAfterNewFlow: false,
+      newFlowRowTitle: "",
+      planBarReboundOnMain: false,
+      renamedTitle: "",
+      renamePersistedAfterReload: false,
+      planBarReboundAfterReload: false
+    };
+    result.sidebarAppeared = await page.waitForSelector(".session-sidebar", { timeout: 10000 }).then(() => true).catch(() => false);
+    if (result.sidebarAppeared) {
+      result.statusTitles = await page.evaluate(() =>
+        Array.from(document.querySelectorAll(".top-status span[title]"))
+          .map((el) => el.getAttribute("title") || "")
+          .filter((title) => title.indexOf(" · ") >= 0)
+      );
+      // 期望名与 App 同源推导：工程名 = scope 工程路径尾段（lastPathPart 语义）
+      const projectName = scopeProjectPath.replace(/\\/g, "/").split("/").filter(Boolean).pop() || "";
+      const expectedMainTitle = projectName ? "主对话流 · " + projectName : "主对话流";
+      result.mainRow = await page.evaluate((expected) => {
+        const rows = Array.from(document.querySelectorAll(".session-list .session-row"));
+        const match = rows.find((row) => {
+          const title = row.querySelector(".session-title");
+          return title && (title.textContent || "").trim() === expected;
+        });
+        return {
+          found: Boolean(match),
+          title: match ? (match.querySelector(".session-title") || {}).textContent || "" : "",
+          active: Boolean(match && match.classList.contains("active")),
+          conversationId: match ? match.getAttribute("data-conversation-id") || "" : ""
+        };
+      }, expectedMainTitle);
+      result.mainIDKeyPersisted = await page
+        .evaluate(() => Object.keys(window.localStorage).some((key) => key.indexOf("ask_vit_session_main.v1:") === 0))
+        .catch(() => false);
+      await page.screenshot({ path: join(outDir, "dom-" + name + "-mount.png"), fullPage: false });
+
+      // PlanBar 随属主会话在启动即绑定（fixture task 归属本会话）
+      result.planBarAtBoot = await page.waitForSelector(".plan-bar", { timeout: 8000 }).then(() => true).catch(() => false);
+
+      // note 行经服务端提示入列（NOTESTREAM-2 既有语义，SS 组的跳板）
+      result.noteRowPresent = await page
+        .locator('.session-list .session-row[data-conversation-id="' + sessionSemanticsNoteRowBase.conversation_id + '"]')
+        .count()
+        .then((count) => count > 0)
+        .catch(() => false);
+
+      if (result.planBarAtBoot && result.noteRowPresent) {
+        // 症状 6 场景 ①：切到 note 会话——异会话任务投影不得留在输入框上方
+        await page.click('.session-list .session-row[data-conversation-id="' + sessionSemanticsNoteRowBase.conversation_id + '"] .session-row-main').catch(() => {});
+        result.planBarClearedOnNoteSwitch = await page
+          .waitForSelector(".plan-bar", { state: "detached", timeout: 10000 })
+          .then(() => true)
+          .catch(() => false);
+        // 症状 6 场景 ②：webui 新建对话流——旧轨迹不得复活
+        await page.click('.session-sidebar [data-action="new"]').catch(() => {});
+        await page.waitForTimeout(1200);
+        result.planBarStaysClearAfterNewFlow = await page
+          .locator(".plan-bar")
+          .count()
+          .then((count) => count === 0)
+          .catch(() => false);
+        result.newFlowRowTitle = await page
+          .locator(".session-list .session-row.active .session-title")
+          .first()
+          .textContent()
+          .then((text) => (text || "").trim())
+          .catch(() => "");
+        // 切回主流（属主）→ PlanBar 重绑
+        await page.click('.session-list .session-row[data-conversation-id="' + conversationId + '"] .session-row-main').catch(() => {});
+        result.planBarReboundOnMain = await page.waitForSelector(".plan-bar", { timeout: 10000 }).then(() => true).catch(() => false);
+
+        // 用户改名最高且持久：改主对话流名后 reload，名字仍在
+        const mainRow = page.locator('.session-list .session-row[data-conversation-id="' + conversationId + '"]');
+        await mainRow.hover().catch(() => {});
+        await mainRow.locator('[data-action="rename"]').click().catch(() => {});
+        const renameInput = page.locator(".session-rename-input");
+        const renameInputAppeared = await renameInput.waitFor({ state: "visible", timeout: 4000 }).then(() => true).catch(() => false);
+        if (renameInputAppeared) {
+          await renameInput.fill("我的主流 E2E");
+          await renameInput.press("Enter");
+          await page.waitForTimeout(500);
+          await page.reload({ waitUntil: "domcontentloaded" });
+          await page.waitForTimeout(2500);
+          result.renamedTitle = "我的主流 E2E";
+          result.renamePersistedAfterReload = await page
+            .locator('.session-list .session-row[data-conversation-id="' + conversationId + '"] .session-title', { hasText: "我的主流 E2E" })
+            .count()
+            .then((count) => count > 0)
+            .catch(() => false);
+          result.planBarReboundAfterReload = await page.waitForSelector(".plan-bar", { timeout: 10000 }).then(() => true).catch(() => false);
+        }
+      }
+      await page.screenshot({ path: join(outDir, "dom-" + name + "-ops.png"), fullPage: false });
+    }
+    await context.close();
+    return result;
+  };
+
+  const checkSessionSemanticsNaming = (result) => {
+    const failures = [];
+    const notes = [];
+    if (!result.sidebarAppeared) {
+      failures.push("the session-flow sidebar never rendered (.session-sidebar)");
+      return { failures, notes };
+    }
+    if (!result.mainRow.found) {
+      failures.push(
+        "no sidebar row is named 「主对话流 · <工程名>」 at boot (statusTitles=" + JSON.stringify(result.statusTitles) + ")"
+      );
+      return { failures, notes };
+    }
+    notes.push("main flow row: " + JSON.stringify(result.mainRow));
+    if (!result.mainRow.active) {
+      failures.push("the auto-created main conversation row is not the active row at boot");
+    }
+    if (result.mainRow.conversationId !== conversationId) {
+      failures.push("the main-flow row is not the mounted conversation (" + result.mainRow.conversationId + " vs " + conversationId + ")");
+    }
+    if (!result.mainIDKeyPersisted) {
+      failures.push("no ask_vit_session_main.v1:* identity key persisted to localStorage (main conversation not pinned)");
+    }
+    return { failures, notes };
+  };
+
+  const checkSessionSemanticsTrajectoryClear = (result) => {
+    const failures = [];
+    const notes = [];
+    if (!result.planBarAtBoot) {
+      failures.push("the plan bar never rendered at boot for its owning conversation -- the binding assertion would measure nothing");
+      return { failures, notes };
+    }
+    if (!result.noteRowPresent) {
+      failures.push("the injected note session row never appeared in the sidebar (note_sessions projection broken)");
+      return { failures, notes };
+    }
+    if (!result.planBarClearedOnNoteSwitch) {
+      failures.push("switching to the note conversation did not clear the plan bar (stale trajectory stays above the input box -- manual-test symptom 6)");
+    } else {
+      notes.push("plan bar cleared on switch to the note conversation");
+    }
+    if (!result.planBarStaysClearAfterNewFlow) {
+      failures.push("creating a new webui conversation let the stale trajectory re-render (global projection leaked into the new flow)");
+    } else {
+      notes.push("plan bar stays clear in the new flow");
+    }
+    if (result.newFlowRowTitle === "未命名会话") {
+      notes.push("new user flow stays unnamed (平级列出, not auto-named as main)");
+    } else if (result.newFlowRowTitle.indexOf("主对话流") === 0) {
+      failures.push("the user-created new flow was mis-named as the main conversation flow: " + JSON.stringify(result.newFlowRowTitle));
+    }
+    return { failures, notes };
+  };
+
+  const checkSessionSemanticsRebind = (result) => {
+    const failures = [];
+    const notes = [];
+    if (!result.planBarReboundOnMain) {
+      failures.push("switching back to the main conversation did not rebind the plan bar (trajectory lost after session switch)");
+    } else {
+      notes.push("plan bar rebound on switch back to the owning conversation");
+    }
+    if (!result.renamePersistedAfterReload) {
+      failures.push("the user rename of the main flow did not survive a page reload (rename must be highest and persistent)");
+    } else {
+      notes.push("user rename persisted across reload: " + JSON.stringify(result.renamedTitle));
+    }
+    if (!result.planBarReboundAfterReload) {
+      failures.push("the plan bar did not re-render after reload on the owning conversation");
+    }
+    return { failures, notes };
+  };
+
+  const sessionSemanticsPass = await runSessionSemanticsPass("session-semantics");
+  report.session_semantics = {
+    scope_calibrated: sessionSemanticsPass.scopeCalibrated,
+    scope_project_path: sessionSemanticsPass.scopeProjectPath,
+    sidebar_appeared: sessionSemanticsPass.sidebarAppeared,
+    main_row: sessionSemanticsPass.mainRow,
+    main_id_key_persisted: sessionSemanticsPass.mainIDKeyPersisted,
+    note_row_present: sessionSemanticsPass.noteRowPresent,
+    plan_bar_at_boot: sessionSemanticsPass.planBarAtBoot,
+    cleared_on_note_switch: sessionSemanticsPass.planBarClearedOnNoteSwitch,
+    stays_clear_after_new_flow: sessionSemanticsPass.planBarStaysClearAfterNewFlow,
+    new_flow_row_title: sessionSemanticsPass.newFlowRowTitle,
+    rebound_on_main: sessionSemanticsPass.planBarReboundOnMain,
+    rename_persisted_after_reload: sessionSemanticsPass.renamePersistedAfterReload,
+    plan_bar_rebound_after_reload: sessionSemanticsPass.planBarReboundAfterReload
+  };
+  record("session-semantics-SS1", checkSessionSemanticsNaming(sessionSemanticsPass));
+  record("session-semantics-SS2", checkSessionSemanticsTrajectoryClear(sessionSemanticsPass));
+  record("session-semantics-SS3", checkSessionSemanticsRebind(sessionSemanticsPass));
 
 
 

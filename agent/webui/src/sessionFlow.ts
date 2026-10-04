@@ -342,3 +342,46 @@ export function saveSessionFlowCollapsed(collapsed: boolean): void {
     // best-effort
   }
 }
+
+// WEBUI-SESSION-SEMANTICS-1（2026-10-04 命名裁定）：主对话流=webui 流是主、note 流
+// 是副——webui 启动（scope 物化）时自动建并命名「主对话流 · <工程名>」，同工程重开
+// 沿旧名，用户改名最高且持久。主会话身份不能复用 scoped conversation 锚定（新建/
+// 切换会话都会改写锚定），需要独立的每 scope 持久键；与注册表同一 fail-open 语义。
+const MAIN_FLOW_PREFIX = "ask_vit_session_main.v1";
+
+/** 主对话流默认名（裁定 1 确定性模板）：出生即命名、零 LLM 依赖；无工程名（未保存
+ * 工程）退化为「主对话流」裸形态。 */
+export function mainConversationDefaultTitle(projectName: string): string {
+  const clean = projectName.trim();
+  return clean ? `主对话流 · ${clean}` : "主对话流";
+}
+
+function mainFlowScopeKey(scope: string): string {
+  const slug = scope.trim().replace(/[<>:"/\\|?*\u0000-\u001f]/g, "-").slice(0, 96);
+  return `${MAIN_FLOW_PREFIX}:${slug || "unsaved"}`;
+}
+
+/** 空 scope/无 window → ""（fail-open：读失败按未设处理，调用侧会重新钉主会话） */
+export function loadSessionFlowMainID(scope: string): string {
+  if (typeof window === "undefined" || !scope) {
+    return "";
+  }
+  try {
+    return window.localStorage.getItem(mainFlowScopeKey(scope))?.trim() ?? "";
+  } catch {
+    return "";
+  }
+}
+
+/** 空会话 id 不写入（不吞旧值）；写失败 best-effort（身份键只影响默认命名，不阻塞会话） */
+export function saveSessionFlowMainID(scope: string, conversationID: string): void {
+  const clean = conversationID.trim();
+  if (typeof window === "undefined" || !scope || !clean) {
+    return;
+  }
+  try {
+    window.localStorage.setItem(mainFlowScopeKey(scope), clean);
+  } catch {
+    // best-effort
+  }
+}

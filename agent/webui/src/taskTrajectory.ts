@@ -39,6 +39,32 @@ export function reduceTaskTrajectory(
   return { snapshot: next };
 }
 
+// WEBUI-SESSION-SEMANTICS-1：PlanBar 数据源（/agent/runtime/status 的 task_trajectory
+// 全局投影）按 active session 绑定——投影 task.conversation_id 与当前会话不符（note
+// 会话任务、其他 webui 流任务）时即时清空，不得把异会话的执行轨迹渲染到本会话。
+// 载荷缺位（runtime 空闲无任务投影）不算异会话证据，保留现状交给既有 replay-safe
+// 归约与 [conversationID] 清场效应。
+export function reduceTaskTrajectoryForConversation(
+  current: TaskTrajectoryState,
+  incoming: TaskRuntimeTrajectory | JsonRecord | null | undefined,
+  conversationID: string
+): TaskTrajectoryState {
+  const active = conversationID.trim();
+  if (!active) {
+    return emptyTaskTrajectoryState();
+  }
+  const next = normalizeTaskTrajectory(incoming);
+  if (!next) {
+    return current;
+  }
+  if (text(next.task.conversation_id) !== active) {
+    return emptyTaskTrajectoryState();
+  }
+  // 归约吃原始载荷（normalizeTaskTrajectory 只认 schema_version 蛇形键，已归一化
+  // 对象二次归一化会得 null——原始输入上幂等，monotonic 规则保持单一出处）。
+  return reduceTaskTrajectory(current, incoming);
+}
+
 export function normalizeTaskTrajectory(input?: TaskRuntimeTrajectory | JsonRecord | null): TaskTrajectorySnapshot | null {
   const root = record(input);
   if (text(root.schema_version) !== taskRuntimeTrajectorySchema) return null;
@@ -87,3 +113,4 @@ function time(value: unknown): number {
   const parsed = Date.parse(text(value));
   return Number.isFinite(parsed) ? parsed : 0;
 }
+

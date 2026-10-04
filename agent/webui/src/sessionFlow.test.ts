@@ -1,10 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   loadSessionFlowCollapsed,
+  loadSessionFlowMainID,
   loadSessionFlowRegistry,
+  mainConversationDefaultTitle,
   noteSessionServerHints,
   renameSessionFlowEntry,
   saveSessionFlowCollapsed,
+  saveSessionFlowMainID,
   saveSessionFlowRegistry,
   sessionFlowRows,
   sessionFlowServerHints,
@@ -179,6 +182,65 @@ describe("折叠态持久化", () => {
     expect(loadSessionFlowCollapsed()).toBe(true);
     saveSessionFlowCollapsed(false);
     expect(loadSessionFlowCollapsed()).toBe(false);
+  });
+});
+
+// WEBUI-SESSION-SEMANTICS-1（2026-10-04 命名裁定 1）：主对话流=webui 流是主——
+// 启动即建并命名「主对话流 · <工程名>」，同工程重开沿旧名，用户改名最高且持久。
+describe("主对话流身份与默认命名（SESSION-SEMANTICS-1）", () => {
+  it("默认名模板：工程名拼「主对话流 · <工程名>」；空工程名退化为裸形态", () => {
+    expect(mainConversationDefaultTitle("draft_20261003")).toBe("主对话流 · draft_20261003");
+    expect(mainConversationDefaultTitle("")).toBe("主对话流");
+    expect(mainConversationDefaultTitle("   ")).toBe("主对话流");
+  });
+
+  it("主会话身份键往返；trim 读取", () => {
+    expect(loadSessionFlowMainID("scope::root")).toBe("");
+    saveSessionFlowMainID("scope::root", "webui_main_1");
+    expect(loadSessionFlowMainID("scope::root")).toBe("webui_main_1");
+    // 同 scope 重写=换主（首见即钉由调用侧保证，本层只存取）
+    saveSessionFlowMainID("scope::root", "webui_main_2");
+    expect(loadSessionFlowMainID("scope::root")).toBe("webui_main_2");
+  });
+
+  it("fail-open：无 window 时读空串、写不抛（不依赖 stub）", () => {
+    vi.unstubAllGlobals();
+    expect(loadSessionFlowMainID("scope::root")).toBe("");
+    expect(() => saveSessionFlowMainID("scope::root", "webui_a")).not.toThrow();
+    expect(() => saveSessionFlowMainID("", "webui_a")).not.toThrow();
+  });
+
+  it("空 scope 不落键；空 id 不吞旧值", () => {
+    saveSessionFlowMainID("", "webui_a");
+    saveSessionFlowMainID("scope::root", "webui_keep");
+    saveSessionFlowMainID("scope::root", "  ");
+    expect(loadSessionFlowMainID("scope::root")).toBe("webui_keep");
+    expect(loadSessionFlowMainID("")).toBe("");
+  });
+
+  it("默认名经 upsert 落行：只填未命名行——用户改名后不被覆写（改名最高且持久）", () => {
+    let entries = upsertSessionFlowEntry([], { conversationID: "webui_main_1" });
+    entries = upsertSessionFlowEntry(entries, { conversationID: "webui_main_1", title: mainConversationDefaultTitle("draft_x") });
+    expect(entries[0].title).toBe("主对话流 · draft_x");
+    // 用户改名
+    entries = renameSessionFlowEntry(entries, "webui_main_1", "我的主流");
+    // 后续幂等登记（重启/切换回来）不得覆写
+    entries = upsertSessionFlowEntry(entries, { conversationID: "webui_main_1", title: mainConversationDefaultTitle("draft_x") });
+    expect(entries[0].title).toBe("我的主流");
+    // 归档态同样零覆写
+    entries = setSessionFlowArchived(entries, "webui_main_1", true);
+    entries = upsertSessionFlowEntry(entries, { conversationID: "webui_main_1", title: mainConversationDefaultTitle("draft_x") });
+    expect(entries[0].archived).toBe(true);
+  });
+
+  it("主对话流行与用户新建会话平级合并（线性编号连续）", () => {
+    const main = upsertSessionFlowEntry([], { conversationID: "webui_main_1", title: mainConversationDefaultTitle("draft_x"), updatedAt: 100 });
+    const withUserFlow = upsertSessionFlowEntry(main, { conversationID: "webui_user_1", updatedAt: 200 });
+    const { visible } = sessionFlowRows(withUserFlow, new Map());
+    // updatedAt 降序：用户新流(200)在前，主对话流(100)在后；编号纯线性 1/2
+    expect(visible.map((row) => row.conversationID)).toEqual(["webui_user_1", "webui_main_1"]);
+    expect(visible[1].title).toBe("主对话流 · draft_x");
+    expect(visible.map((row) => row.displayNumber)).toEqual([1, 2]);
   });
 });
 
