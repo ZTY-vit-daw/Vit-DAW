@@ -15,6 +15,6 @@
 - 约束：不改 server 白名单/结构校验（已含 ranges）；不改 catalog 工具面；不碰 webui/Godot。
 - 验收标准：`go test ./internal/conversation ./internal/chat -count=1` 全绿+新用例+`go build ./...`+gofmt（git show HEAD:<file> | gofmt -d 为空）。
 - 停止条件：实锚发现 split 快速意图路由不承载范围形态（需新意图分支）→ 锚点+形态清单上交定方案，不扩域自决。
-- 领取：（时间 / origin/main hash / 分支名）
+- 领取：2026-10-04 12:57 / origin/main dce9c3b81c5d427231a288acad59727e68771739 / 分支 port/region-intent-wire-1（独立工作树 D:/Vit_DAW_wt_region_intent_wire_1——主树有 VitApp workspace 运行态未提交改动与当日冒测 coord/runs 残留，按协议 §3 不共用主工作树）
 - 回执：（commit hash / 实锚路由形态 / 新用例清单 / 端测边界声明——未起真栈；真栈手测复验点=前端 range 工具框选 clip 局部→主对话说"把这段拆出来"→确认卡→拆分发生在框选边界）
 - 验收：（裁定文件 / 验收 commit）
