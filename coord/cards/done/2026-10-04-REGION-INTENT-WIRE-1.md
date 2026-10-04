@@ -27,4 +27,4 @@
   - **新用例清单**（intent_test.go，8 条）：CutsAtRangeBoundaries（两次切序=先终点后起点）/ WithoutRangesUnchanged（无 ranges 零变化：拆出话术回落既有 select 路由、切开话术旧行为）/ MalformedRangesIgnored（6 种异形 fail-open）/ MultipleRangesUsesFirst / SpokenTimeWins（口述时间优先）/ BoundaryRanges（贴界单切×2+整 clip 不切）/ PlayheadKeepsExistingPath / SelectedClipArgsConsumesRanges（兜底/ids 优先/count 注记/异形无注记）。
   - **端测边界声明**：未起真栈（内核/Godot/agent 三件套未动，纯 Go 意图层逻辑+单测；不涉 webui 渲染面）。真栈手测复验点（卡面原列）：前端 range 工具框选 clip 局部→主对话说"把这段拆出来"→确认卡（两条 clip.split）→拆分发生在框选边界。补充复验点：口述秒数切分仍按口述值；无框选时旧话术行为不变。
   - message_loop 未接线（无需）；server 白名单/结构校验、catalog、webui、Godot 零改动。
-- 验收：（裁定文件 / 验收 commit）
+- 验收：conditional pass（[rulings/2026-10-04-REGION-INTENT-WIRE-1-conditional.md](../../rulings/2026-10-04-REGION-INTENT-WIRE-1-conditional.md)，2026-10-04 晚）/ 验收 commit=merge c2edb0d6（合 main）+binary 18:12:21 收口重建；我方复跑 verify_pc（build+conversation/chat 全绿+gofmt blob 补跑 0 行）；两次 split 顺序论证核实成立。转正挂用户真栈手测三复验点。

@@ -1,0 +1,9 @@
+ok  	vit-daw-agent/internal/conversation	0.323s
+ok  	vit-daw-agent/internal/chat	92.702s
+fatal: path 'agent/internal/conversation/intent.go' exists, but not 'internal/conversation/intent.go'
+hint: Did you mean 'HEAD:agent/internal/conversation/intent.go' aka 'HEAD:./internal/conversation/intent.go'?
+fatal: path 'agent/internal/conversation/intent_test.go' exists, but not 'internal/conversation/intent_test.go'
+hint: Did you mean 'HEAD:agent/internal/conversation/intent_test.go' aka 'HEAD:./internal/conversation/intent_test.go'?
+GOFMT_CLEAN
+EXIT=0
+补充：gofmt blob 口径补跑（仓根路径）——intent.go/intent_test.go gofmt -d 均 0 行，GOFMT_BLOB_CLEAN

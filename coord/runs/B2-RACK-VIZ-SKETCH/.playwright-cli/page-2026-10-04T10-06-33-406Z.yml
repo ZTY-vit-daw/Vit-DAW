@@ -1,0 +1,56 @@
+- img [ref=e2]:
+  - generic [ref=e3]: B2 参数限段（自动化包络）· 机架可视化设计例图
+  - generic [ref=e4]: 机架 = 空间/结构视图，时间以「标注」进入（只读 + 钻取）；曲线编辑主场在时间线 —— 场景：混响湿量只在 0:03–0:08 提升
+  - generic [ref=e6]: 机架（RACK）· 谁连谁
+  - generic [ref=e7]: clip 完整未拆分 —— B2 不动工程结构
+  - generic [ref=e9]: clip
+  - generic [ref=e10]: 贝斯 bass_01
+  - generic [ref=e11]: 0:00 – 0:12 · 完整
+  - generic [ref=e13]: 对照：若走 a 方案，这里会碎成 3 个 clip
+  - generic [ref=e19]: ②
+  - generic [ref=e21]: EQ
+  - generic [ref=e22]: 增益 +2.0 dB · 全时段生效
+  - generic [ref=e24]: 压缩 Comp
+  - generic [ref=e25]: 阈值 −18 dB · 全时段生效
+  - generic [ref=e27]: 混响 Reverb
+  - generic [ref=e29]: ⏱ 0:03–0:08 ×1
+  - generic [ref=e30]: ①
+  - generic [ref=e31]: 房间大小 40%
+  - generic [ref=e33]: 湿量 60% ~
+  - generic [ref=e34]: ③ 自动化参数（高亮+~）；显示值随播放头动
+  - generic [ref=e36]: ④ 点击徽章 → 跳到时间线包络
+  - generic [ref=e38]: 便签（辖区识别）
+  - generic [ref=e39]: 框选问："这段有什么处理？"
+  - generic [ref=e40]: 答：限段混响 0:03–0:08
+  - generic [ref=e41]: rack face · time_bound 字段
+  - generic [ref=e42]: 隐式参数 → 显式可述事实
+  - generic [ref=e43]: ⑤
+  - generic [ref=e44]: · 插件节点徽章 = 只读标注（区间/段数），编辑都在时间线
+  - generic [ref=e45]: · 全时段连线 = 实线常态；带限段参数的连线 = 虚线 + 限段珠
+  - generic [ref=e46]: · 播放头走到限段内，机架插件旋钮/数值实时变（机架"活"起来）
+  - generic [ref=e47]: 多区间形态：徽章显示「×3 段」，点开列表逐段钻取（v1 只读展示）
+  - generic [ref=e49]: 时间线（TIMELINE）· 曲线编辑主场
+  - generic [ref=e50]: 包络画在 clip 下方车道 —— 「这段才生效」直接可见
+  - generic [ref=e51]:
+    - generic [ref=e52]: 0:00
+    - generic [ref=e53]: 0:03
+    - generic [ref=e54]: 0:05
+    - generic [ref=e55]: 0:08
+    - generic [ref=e56]: 0:12
+  - generic [ref=e59]: 用户框选（range 工具）—— 操作来源
+  - generic [ref=e61]: 贝斯 bass_01（完整 · 未拆分）
+  - generic [ref=e64]: 湿量（混响）· 包络车道
+  - generic [ref=e71]: 基线 20%
+  - generic [ref=e72]: 限段 60%（可渐变 —— 拆分表达不了的形态）
+  - generic [ref=e75]: 播放头 0:05 → 当前湿量 60%（机架插件同步显示）
+  - generic [ref=e76]: 治理形态：写包络 = 一次参数层变更（单轮原生合规，不套两轮制）
+  - generic [ref=e77]: 撤销 = 删包络（工程结构零改动）；取证 = 范围内前后渲染对比
+  - generic [ref=e78]: 实锚待定项：tracktion 自动化挂载层级（clip 级 / 轨道级）→ 影响包络归属与徽章挂点
+  - generic [ref=e80]: 五个设计元素
+  - generic [ref=e81]:
+    - generic [ref=e82]: ① 插件限段徽章：区间+段数，hover 浮出参数清单（默认只显图标，不占空间）
+    - generic [ref=e83]: ② 连线限段珠：全时段=实线常态，带限段参数=虚线+珠 —— 扫一眼机架即见"非全天候连线"
+    - generic [ref=e84]: ③ 参数自动化态：控件高亮+~；显示值随播放头实时变化（机架本身成为自动化的可视化）
+    - generic [ref=e85]: ④ 钻取路径：点徽章/珠/参数 → 时间线跳转到该 clip 并展开包络车道；机架不做第二套曲线编辑器
+    - generic [ref=e86]: ⑤ 辖区联动（Vit 特色）：rack face 条目带 time_bound → 框选问便签"这段有什么处理"可答"限段混响 0:03–0:08"
+    - generic [ref=e87]: 第一原则：机架是空间视图，时间只以标注进入；曲线编辑主场永远在时间线

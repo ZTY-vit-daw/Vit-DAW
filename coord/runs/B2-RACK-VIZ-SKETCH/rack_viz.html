@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>B2 机架可视化设计例图</title>
+<style>
+  html,body{margin:0;padding:0;background:#10131a;}
+  svg{display:block;}
+  text{font-family:"Segoe UI","Microsoft YaHei",sans-serif;}
+</style>
+</head>
+<body>
+<svg viewBox="0 0 1440 880" width="1440" height="880" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#8b93a7"/>
+    </marker>
+    <marker id="arrowAmber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#f5a623"/>
+    </marker>
+  </defs>
+
+  <!-- 标题 -->
+  <text x="720" y="38" text-anchor="middle" fill="#e8ebf2" font-size="24" font-weight="600">B2 参数限段（自动化包络）· 机架可视化设计例图</text>
+  <text x="720" y="64" text-anchor="middle" fill="#8b93a7" font-size="14">机架 = 空间/结构视图，时间以「标注」进入（只读 + 钻取）；曲线编辑主场在时间线 —— 场景：混响湿量只在 0:03–0:08 提升</text>
+
+  <!-- ============ 左面板：机架 ============ -->
+  <rect x="40" y="90" width="620" height="600" rx="14" fill="#1a1d24" stroke="#2c3140"/>
+  <text x="60" y="122" fill="#e8ebf2" font-size="17" font-weight="600">机架（RACK）· 谁连谁</text>
+  <text x="60" y="142" fill="#8b93a7" font-size="12">clip 完整未拆分 —— B2 不动工程结构</text>
+
+  <!-- clip 节点 -->
+  <rect x="80" y="165" width="185" height="140" rx="10" fill="#232733" stroke="#3a4152"/>
+  <text x="90" y="188" fill="#9aa3b8" font-size="11">clip</text>
+  <text x="90" y="208" fill="#e8ebf2" font-size="15" font-weight="600">贝斯 bass_01</text>
+  <text x="90" y="226" fill="#8b93a7" font-size="12">0:00 – 0:12 · 完整</text>
+  <!-- 小波形 -->
+  <g stroke="#5b8ac9" stroke-width="2">
+    <line x1="92" y1="265" x2="92" y2="285"/><line x1="102" y1="258" x2="102" y2="292"/><line x1="112" y1="262" x2="112" y2="288"/><line x1="122" y1="252" x2="122" y2="298"/><line x1="132" y1="260" x2="132" y2="290"/><line x1="142" y1="265" x2="142" y2="285"/><line x1="152" y1="255" x2="152" y2="295"/><line x1="162" y1="262" x2="162" y2="288"/><line x1="172" y1="266" x2="172" y2="284"/><line x1="182" y1="258" x2="182" y2="292"/><line x1="192" y1="264" x2="192" y2="286"/><line x1="202" y1="260" x2="202" y2="290"/><line x1="212" y1="266" x2="212" y2="284"/><line x1="222" y1="262" x2="222" y2="288"/><line x1="232" y1="265" x2="232" y2="285"/><line x1="248" y1="263" x2="248" y2="287"/>
+  </g>
+  <text x="80" y="326" fill="#5f6778" font-size="11">对照：若走 a 方案，这里会碎成 3 个 clip</text>
+
+  <!-- 连线 clip -> 插件 -->
+  <path d="M 265 210 C 320 200, 330 178, 375 172" stroke="#5f6778" stroke-width="2" fill="none"/>
+  <path d="M 265 235 C 320 240, 330 262, 375 278" stroke="#5f6778" stroke-width="2" fill="none"/>
+  <!-- 限段连线（虚线+珠） -->
+  <path d="M 265 262 C 330 300, 330 400, 375 420" stroke="#f5a623" stroke-width="2" fill="none" stroke-dasharray="7 5" opacity="0.85"/>
+  <circle cx="322" cy="332" r="8" fill="#f5a623"/>
+  <circle cx="322" cy="332" r="3" fill="#1a1d24"/>
+  <text x="334" y="326" fill="#f5a623" font-size="11" font-weight="600">②</text>
+
+  <!-- EQ -->
+  <rect x="378" y="140" width="242" height="70" rx="8" fill="#2c3140" stroke="#3a4152"/>
+  <text x="392" y="165" fill="#e8ebf2" font-size="14" font-weight="600">EQ</text>
+  <text x="392" y="190" fill="#9aa3b8" font-size="12">增益 +2.0 dB · 全时段生效</text>
+
+  <!-- 压缩 -->
+  <rect x="378" y="248" width="242" height="70" rx="8" fill="#2c3140" stroke="#3a4152"/>
+  <text x="392" y="273" fill="#e8ebf2" font-size="14" font-weight="600">压缩 Comp</text>
+  <text x="392" y="298" fill="#9aa3b8" font-size="12">阈值 −18 dB · 全时段生效</text>
+
+  <!-- 混响（限段） -->
+  <rect x="378" y="360" width="242" height="120" rx="8" fill="#2c3140" stroke="#f5a623" stroke-width="1.5"/>
+  <text x="392" y="385" fill="#e8ebf2" font-size="14" font-weight="600">混响 Reverb</text>
+  <!-- 徽章 -->
+  <rect x="470" y="368" width="138" height="26" rx="13" fill="#f5a623"/>
+  <text x="539" y="386" text-anchor="middle" fill="#1a1d24" font-size="12" font-weight="600">⏱ 0:03–0:08 ×1</text>
+  <text x="560" y="404" fill="#f5a623" font-size="13" font-weight="700">①</text>
+  <!-- 参数 -->
+  <text x="392" y="415" fill="#9aa3b8" font-size="12">房间大小 40%</text>
+  <rect x="388" y="424" width="150" height="24" rx="5" fill="#232733" stroke="#f5a623" stroke-width="1.2"/>
+  <text x="396" y="441" fill="#e8ebf2" font-size="12">湿量 <tspan fill="#f5a623" font-weight="700">60% ~</tspan></text>
+  <text x="392" y="468" fill="#8b93a7" font-size="11">③ 自动化参数（高亮+~）；显示值随播放头动</text>
+
+  <!-- 钻取箭头 ④ -->
+  <path d="M 614 380 C 700 340, 760 300, 880 272" stroke="#f5a623" stroke-width="1.6" fill="none" stroke-dasharray="4 5" marker-end="url(#arrowAmber)"/>
+  <text x="726" y="252" fill="#f5a623" font-size="12" font-weight="600">④ 点击徽章 → 跳到这里（时间线包络）</text>
+
+  <!-- 便签 ⑤ -->
+  <rect x="80" y="380" width="185" height="130" rx="4" fill="#f0e6c8" stroke="#d4c68f"/>
+  <text x="92" y="404" fill="#6b5d2e" font-size="12" font-weight="700">便签（辖区识别）</text>
+  <text x="92" y="426" fill="#5a4f28" font-size="11">框选问："这段有什么处理？"</text>
+  <text x="92" y="446" fill="#5a4f28" font-size="11">答：限段混响 0:03–0:08</text>
+  <text x="92" y="466" fill="#8a7c46" font-size="10">rack face · time_bound 字段</text>
+  <text x="92" y="486" fill="#8a7c46" font-size="10">隐式参数 → 显式可述事实</text>
+  <text x="256" y="510" fill="#f0e6c8" font-size="13" font-weight="700">⑤</text>
+
+  <!-- 机架底部说明 -->
+  <text x="60" y="560" fill="#8b93a7" font-size="12">· 插件节点徽章 = 只读标注（区间/段数），编辑都在时间线</text>
+  <text x="60" y="582" fill="#8b93a7" font-size="12">· 全时段连线 = 实线常态；带限段参数的连线 = 虚线 + 限段珠</text>
+  <text x="60" y="604" fill="#8b93a7" font-size="12">· 播放头走到限段内，机架插件旋钮/数值实时变（机架"活"起来）</text>
+  <text x="60" y="640" fill="#5f6778" font-size="11">多区间形态：徽章显示「×3 段」，点开列表逐段钻取（v1 只读展示）</text>
+
+  <!-- ============ 右面板：时间线 ============ -->
+  <rect x="700" y="90" width="700" height="600" rx="14" fill="#1a1d24" stroke="#2c3140"/>
+  <text x="720" y="122" fill="#e8ebf2" font-size="17" font-weight="600">时间线（TIMELINE）· 曲线编辑主场</text>
+  <text x="720" y="142" fill="#8b93a7" font-size="12">包络画在 clip 下方车道 —— 「这段才生效」直接可见</text>
+
+  <!-- 时间刻度 0-12s → x 740..1360 -->
+  <g fill="#8b93a7" font-size="11">
+    <text x="740" y="185" text-anchor="middle">0:00</text>
+    <text x="895" y="185" text-anchor="middle">0:03</text>
+    <text x="998" y="185" text-anchor="middle">0:05</text>
+    <text x="1150" y="185" text-anchor="middle">0:08</text>
+    <text x="1360" y="185" text-anchor="middle">0:12</text>
+  </g>
+  <g stroke="#2c3140" stroke-width="1">
+    <line x1="740" y1="190" x2="740" y2="560"/><line x1="895" y1="190" x2="895" y2="560" stroke-dasharray="2 4"/>
+    <line x1="998" y1="190" x2="998" y2="560" stroke-dasharray="2 4"/><line x1="1150" y1="190" x2="1150" y2="560" stroke-dasharray="2 4"/>
+    <line x1="1360" y1="190" x2="1360" y2="560"/>
+  </g>
+
+  <!-- 用户框选来源标注 -->
+  <path d="M 895 196 L 1150 196" stroke="#4ec9b0" stroke-width="2"/>
+  <path d="M 895 190 L 895 202 M 1150 190 L 1150 202" stroke="#4ec9b0" stroke-width="2"/>
+  <text x="1022" y="212" text-anchor="middle" fill="#4ec9b0" font-size="11">用户框选（range 工具）—— 操作来源</text>
+
+  <!-- 轨道 clip 块 -->
+  <rect x="740" y="230" width="620" height="58" rx="6" fill="#232733" stroke="#3a4152"/>
+  <text x="752" y="265" fill="#e8ebf2" font-size="13">贝斯 bass_01（完整 · 未拆分）</text>
+  <g stroke="#5b8ac9" stroke-width="2">
+    <line x1="960" y1="252" x2="960" y2="268"/><line x1="975" y1="246" x2="975" y2="274"/><line x1="990" y1="252" x2="990" y2="268"/><line x1="1005" y1="240" x2="1005" y2="280"/><line x1="1020" y1="250" x2="1020" y2="270"/><line x1="1035" y1="244" x2="1035" y2="276"/><line x1="1050" y1="252" x2="1050" y2="268"/><line x1="1065" y1="246" x2="1065" y2="274"/><line x1="1080" y1="254" x2="1080" y2="266"/><line x1="1095" y1="248" x2="1095" y2="272"/><line x1="1110" y1="252" x2="1110" y2="268"/><line x1="1125" y1="244" x2="1125" y2="276"/><line x1="1140" y1="252" x2="1140" y2="268"/>
+  </g>
+
+  <!-- 包络车道：限段底色 + 包络线 -->
+  <rect x="895" y="300" width="255" height="120" rx="4" fill="#f5a623" opacity="0.10"/>
+  <text x="748" y="316" fill="#9aa3b8" font-size="11">湿量（混响）· 包络车道</text>
+  <g stroke="#2c3140" stroke-width="1"><line x1="740" y1="420" x2="1360" y2="420"/></g>
+  <!-- 基线 20% -> y=396 ; 60% -> y=348 -->
+  <path d="M 740 396 L 895 396 L 927 348 L 1082 348 L 1150 396 L 1360 396" stroke="#f5a623" stroke-width="2.5" fill="none"/>
+  <g fill="#f5a623">
+    <circle cx="895" cy="396" r="4"/><circle cx="927" cy="348" r="4"/><circle cx="1082" cy="348" r="4"/><circle cx="1150" cy="396" r="4"/>
+  </g>
+  <text x="780" y="390" fill="#8b93a7" font-size="11">基线 20%</text>
+  <text x="990" y="340" fill="#f5a623" font-size="11" font-weight="600">限段 60%（可渐变 —— 拆分表达不了的形态）</text>
+
+  <!-- 播放头（止于包络车道底，不穿底部说明文字） -->
+  <line x1="998" y1="196" x2="998" y2="468" stroke="#4ec9b0" stroke-width="2"/>
+  <polygon points="998,190 991,200 1005,200" fill="#4ec9b0"/>
+  <circle cx="998" cy="348" r="5" fill="none" stroke="#4ec9b0" stroke-width="2"/>
+  <text x="1012" y="442" fill="#4ec9b0" font-size="11">播放头 0:05 → 当前湿量 60%（机架插件同步显示）</text>
+
+  <!-- 对比：B2 单变更 -->
+  <text x="720" y="500" fill="#8b93a7" font-size="12">治理形态：写包络 = <tspan fill="#4ec9b0" font-weight="600">一次参数层变更</tspan>（单轮原生合规，不套两轮制）</text>
+  <text x="720" y="522" fill="#8b93a7" font-size="12">撤销 = 删包络（工程结构零改动）；取证 = 范围内前后渲染对比</text>
+  <text x="720" y="544" fill="#5f6778" font-size="11">实锚待定项：tracktion 自动化挂载层级（clip 级 / 轨道级）→ 影响包络归属与徽章挂点</text>
+
+  <!-- 底部注释 -->
+  <rect x="40" y="710" width="1360" height="140" rx="12" fill="#161922" stroke="#2c3140"/>
+  <text x="60" y="738" fill="#e8ebf2" font-size="14" font-weight="600">五个设计元素</text>
+  <g fill="#9aa3b8" font-size="12.5">
+    <text x="60" y="766">① 插件限段徽章：区间+段数，hover 浮出参数清单（默认只显图标，不占空间）</text>
+    <text x="60" y="790">② 连线限段珠：全时段=实线常态，带限段参数=虚线+珠 —— 扫一眼机架即见"非全天候连线"</text>
+    <text x="720" y="766">③ 参数自动化态：控件高亮+~；显示值随播放头实时变化（机架本身成为自动化的可视化）</text>
+    <text x="720" y="790">④ 钻取路径：点徽章/珠/参数 → 时间线跳转到该 clip 并展开包络车道；机架不做第二套曲线编辑器</text>
+    <text x="60" y="826" fill="#d4c68f">⑤ 辖区联动（Vit 特色）：rack face 条目带 time_bound → 框选问便签"这段有什么处理"可答"限段混响 0:03–0:08"</text>
+    <text x="720" y="826">第一原则：机架是空间视图，时间只以标注进入；曲线编辑主场永远在时间线</text>
+  </g>
+</svg>
+</body>
+</html>
