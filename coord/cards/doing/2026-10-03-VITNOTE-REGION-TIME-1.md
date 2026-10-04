@@ -14,6 +14,6 @@
 - 文件域：Godot `vit_note_manager.gd`/`vit_note_circle_resolver` 一带（载荷组装，实锚后申报）+agent `note_sessions.go`（模板+prompt）+测试。
 - 验收标准：载荷/模板/回答三面落地+回归全绿+用户手测复验。
 - 停止条件：时间线坐标系换算（像素↔时间）在 resolve 层不可得（需 lane 内部状态）→ 实锚上交定方案。
-- 领取：（时间 / 两仓基线 / 分支名）
+- 领取：2026-10-04 10:15 / Godot=port/vitnote-notestream-2@4391c49（工作树 HEAD 即此）/ agent=main@d2862b59 / 分支名：两腿均 `port/vitnote-region-time-1`（agent 腿按并行流纪律开独立 worktree `D:\Vit_DAW_wt_region_time_1`；主树另有 VitApp workspace XML 两处运行时改动与并行流 REGION-OP-RECON-1/WEBUI-SESSION-SEMANTICS-1 各占 worktree，均不触碰）
 - 回执：（commit hash / 实锚 / 探针与测试 / 手测复验点）
 - 验收：（裁定文件 / 验收 commit）
