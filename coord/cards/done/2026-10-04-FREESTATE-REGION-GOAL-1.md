@@ -10,6 +10,6 @@
   4. **边界**：多 range/跨 clip 场景的显式不支持声明（v1 单 clip 单 range）；与 B2（自动化限段，后续方向）的协议留位——**两轮制仅 a/B1 路径协议，B2 将来单轮原生合规**（决策 2026-10-04 裁定 3 修正），本卡目标形态不锁死"拆分"实现。
 - 约束：只读勘察+设计产出；D1 规则文案（ccb_model_prompt.go:131/133）不在本卡改动（两轮制=零规则改动基线）；不动 sealed fixture。
 - 验收标准：四问全答+锚点可回查+协议可立实现卡（实现卡粒度+分期建议明确）；决策侧复核后出实现卡。
-- 领取：（时间 / 基线）
-- 回执：（DESIGN.md 路径）
-- 验收：（裁定文件）
+- 领取：2026-10-04 晚 / 基线 8cd98a60（决策侧亲自收口设计段——先例 CONTAINER-3）
+- 回执：[DESIGN.md](../../runs/FREESTATE-REGION-GOAL-1/DESIGN.md)——四问全答+锚点地图 D1-D7（beginChatGoal:32/agentloop 白名单 helpers.go:143-145/runtime.Goal:45/轮状态机 goalrunner_chat.go:280-330+audio_closure_controller/D1 prompt 131-133/split 子 id 回传）；协议=loop 状态增 range_goal 字段（fail-open）+两轮编舞（轮 1 拆分确定性断言 settle→轮 2 treatment 全复用判定链）；D1 prompt 零改动逐字兼容；实现拆两张 flash 级卡（IMPL-1 状态机编舞/IMPL-2 话术分界+用户卡），待决策侧复核后立卡。
+- 验收：设计产出待用户过目（决策侧自查锚点全实证）；实现卡 FREESTATE-REGION-IMPL-1/2 待立。
