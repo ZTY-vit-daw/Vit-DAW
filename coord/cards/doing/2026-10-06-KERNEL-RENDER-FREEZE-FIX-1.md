@@ -42,6 +42,6 @@
 - 修复后仍冻结（机制理解偏差）→ 栈工件取证上交，不盲改。
 - 清理线程方案撞上 tracktion 内部假设（Handle 生命周期契约）→ 停上交，带证据。
 
-## 领取：（时间 / origin/main hash / 分支名）
+## 领取：2026-10-06 深夜 / origin/main `97af10a9` / 分支 `port/kernel-render-freeze-fix-1`（领取前工作树=Workspace 运行时状态文件+coord 未跟踪 run 工件，非本卡域）
 ## 回执：（commit hash / 烟测 run ID / 新内核 sha256 / 泊位声明）
 ## 验收：（裁定文件 / 验收 commit）
