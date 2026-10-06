@@ -1,0 +1,116 @@
+﻿{
+    "status":  "ok",
+    "agent_action_id":  "act_ea7c8bd68bc70f6e",
+    "tool":  "midi.read_clip_notes",
+    "command_name":  "get_midi_clip_notes",
+    "risk_level":  "direct",
+    "requires_confirmation":  false,
+    "result":  {
+                   "clip_id":  "1049",
+                   "command_ack":  {
+                                       "ack":  {
+                                                   "message":  "MIDI clip notes",
+                                                   "stage":  "completed"
+                                               },
+                                       "command":  "legacy.command",
+                                       "legacy_command":  "get_midi_clip_notes",
+                                       "resync_hint":  false,
+                                       "revision":  0,
+                                       "source":  "vsp.command.response",
+                                       "stage":  "completed",
+                                       "transaction_id":  "tx_1791296525800268400_56"
+                                   },
+                   "message":  "MIDI clip notes",
+                   "notes":  [
+                                 {
+                                     "channel":  1,
+                                     "id":  "midi_file_note_1",
+                                     "length":  1,
+                                     "pitch":  65,
+                                     "start":  0,
+                                     "velocity":  90
+                                 },
+                                 {
+                                     "channel":  1,
+                                     "id":  "midi_file_note_3",
+                                     "length":  1,
+                                     "pitch":  67,
+                                     "start":  2,
+                                     "velocity":  70
+                                 },
+                                 {
+                                     "channel":  1,
+                                     "id":  "note_6ceb65412e7d45c88edffb649c22f1c1",
+                                     "length":  1,
+                                     "pitch":  72,
+                                     "start":  3,
+                                     "velocity":  64
+                                 }
+                             ],
+                   "status":  "ok",
+                   "time_unit":  "beats",
+                   "track_id":  "1046",
+                   "vsp":  {
+                               "command_ack":  {
+                                                   "ack":  {
+                                                               "message":  "MIDI clip notes",
+                                                               "stage":  "completed"
+                                                           },
+                                                   "command":  "legacy.command",
+                                                   "legacy_command":  "get_midi_clip_notes",
+                                                   "resync_hint":  false,
+                                                   "revision":  0,
+                                                   "source":  "vsp.command.response",
+                                                   "stage":  "completed",
+                                                   "transaction_id":  "tx_1791296525800268400_56"
+                                               },
+                               "transport":  "vsp",
+                               "version":  "1.0"
+                           }
+               },
+    "project_history":  {
+                            "active_branch":  "main",
+                            "active_node_id":  "",
+                            "active_worktree":  "",
+                            "available":  true,
+                            "baseline_commit":  "c_20261006T111942_de62fa6a",
+                            "baseline_created":  true,
+                            "branches":  {
+
+                                         },
+                            "commit_count":  0,
+                            "detached":  false,
+                            "draft":  false,
+                            "goal_active_branch":  "main",
+                            "goal_detached":  false,
+                            "head":  "",
+                            "initialized":  true,
+                            "project_label":  "Unsaved",
+                            "project_path":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261006T142159_1bd9357e\\Unsaved.vit",
+                            "project_uuid":  "vitproj_19a2b6fbc94f49a7ba4a1505bc96be07",
+                            "recent_checkpoints":  [
+
+                                                   ],
+                            "refs":  {
+
+                                     },
+                            "root_project_path":  "",
+                            "unsaved":  false,
+                            "warnings":  [
+
+                                         ],
+                            "worktree_count":  1,
+                            "worktrees":  [
+                                              {
+                                                  "created_at":  "2026-10-06T14:22:05.8068789Z",
+                                                  "is_root":  true,
+                                                  "label":  "主工作树",
+                                                  "name":  "main",
+                                                  "path":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261006T142159_1bd9357e",
+                                                  "project_file_path":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261006T142159_1bd9357e\\Unsaved.vit",
+                                                  "project_path":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261006T142159_1bd9357e\\Unsaved.vit",
+                                                  "root_project_path":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261006T142159_1bd9357e\\Unsaved.vit"
+                                              }
+                                          ]
+                        }
+}

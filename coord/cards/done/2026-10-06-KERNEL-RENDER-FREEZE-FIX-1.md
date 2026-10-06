@@ -43,5 +43,12 @@
 - 清理线程方案撞上 tracktion 内部假设（Handle 生命周期契约）→ 停上交，带证据。
 
 ## 领取：2026-10-06 深夜 / origin/main `97af10a9` / 分支 `port/kernel-render-freeze-fix-1`（领取前工作树=Workspace 运行时状态文件+coord 未跟踪 run 工件，非本卡域）
-## 回执：（commit hash / 烟测 run ID / 新内核 sha256 / 泊位声明）
+## 回执：
+- 实现 commit：`port/kernel-render-freeze-fix-1` @ `4984ef66`（4 文件：VitProductionCoordinator.cpp/.h + RenderWatchdogTests.cpp + dev_agent_smoke.ps1，+615/-17；等验收 cherry-pick）
+- 烟测 run ID：`coord/runs/KERNEL-RENDER-FREEZE-FIX-1/smoke_render_freeze_1`（exit 0，17 断言组全绿）+ `smoke_render_freeze_2`（复跑 exit 0）+ `smoke_midi_register_regress`（共享脚本回归 exit 0）；先行验证探针 `20261006_verify1`（run 清单见 `coord/runs/KERNEL-RENDER-FREEZE-FIX-1/manifest.md`）
+- 新内核 sha256：`b6565dcf85d1da867e16333052a7b928a5413565940603adbcf4abd59dd3123b`（已部署 `Export/staging/runtime/VitApp.exe`；部署前=`959c06cf…2bd7c9`=取证构建）
+- 泊位声明：两轮 berth 自起自拆（agent+kernel stopped，端口 5555/5556/7878 复查净，无残留进程）；探针内核 2 次 taskkill //F 已申报于 manifest；go 全量 0 FAIL（55 包）；VitRenderWatchdogTests exit 0；run_ab_result_smoke.ps1 exit 0；C++ Release 编译 exit 0
+- diff 锚点：腿 A=`retireRenderHandleOffThread`（VPC 匿名 ns）+完成回调 4 处 reset 改 retire（:696 原位+同文件 dual-tap :831/:871/:909 同型违规一并修，属卡面"消息线程零 Handle 析构"不变式内）+`releaseWedgedRenderHandle` erase 改 move-out+retire；腿 A'=`armRenderWatchdog` detached 定时线程+`renderWatchdogSignalled` exactly-once 门（timer 路径 force-clear/park 行为保留兼容，测试日志计数断言改鲁棒下界）；腿 B=`editHasRenderableAudioContent` 预检+`reason=no_renderable_audio_content` 同步 error（新回执语义申报：消息为 ASCII 英文——内核无 /utf-8、CP936 源码解码下中文字面量运行时乱码，卡面中文为人话语义、语义已对齐）
+- 端测边界声明：场景确定性断言=腿 B 同步拒绝+不可写目标盘异步失败反转（render_failed 遥测经 kernel PUB→agent 到达+命令面活，零竞态：既有 createDirectory 结果被忽略行为，已实证 2 次）；live-cancel 组因渲染速度与取消往返存在真竞态（两轮分别 failed/ready），仅断言 cancel 回 ok+任一终态+命令面活，不设竞态门；看门狗 A' 线程路径由 VitRenderWatchdogTests 覆盖（真栈 122s 触发不进烟测）；渲染族回归=AB 烟测+空范围 render_done+文件存在断言
+- 附加发现：`checkNodesForAudio`/`props.hasAudio` 按全工程判定（音频剪辑在范围外→静音 render_done 而非失败）——空范围不能当异步失败触发器，已记入 manifest；PS 5.1 `Invoke-WebRequest` 错误体在用户 catch 前被吸干，场景 helper 走 `System.Net.Http.HttpClient`
 ## 验收：（裁定文件 / 验收 commit）
