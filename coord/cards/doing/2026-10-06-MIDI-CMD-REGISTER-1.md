@@ -36,6 +36,6 @@
 - 注册后真栈仍 Unknown command（分发面还有第二层映射）→ 实证上交，不盲目扩域。
 - handleImportMidiToTrack/handleApplyMidiNotePatch 实现体本身缺陷（参数契约不匹配/崩溃）→ 取证上交，不修 MidiService。
 
-## 领取：（时间 / origin/main hash / 分支名）
+## 领取：2026-10-06 19:58 / origin/main a518f685 / port/midi-cmd-register-1（领取时 HEAD=a518f685=origin/main，干净起点；领取前已有工作树改动均非本卡产生不触碰：`VitApp/Workspace/Settings/Settings.xml`+`VitApp/Workspace/default_project.xml` 两运行时文件 M 态（diff --stat 2 files, +16/-130），另 coord/runs/ 下若干未跟踪历史烟测工件）
 ## 回执：（commit hash / 烟测 run ID / 泊位声明）
 ## 验收：（裁定文件 / 验收 commit）
