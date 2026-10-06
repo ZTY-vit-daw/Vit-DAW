@@ -35,4 +35,4 @@
 
 ## 领取：2026-10-06 晚 / origin/main c8d274004d62fc097807b532f2625bad27d3505a / port/kernel-render-freeze-1（领取时工作树仅既有 Workspace 运行时状态文件与 coord 工件，无源码改动；doing/ 目录缺失已补建）
 ## 回执：报告 [coord/reports/2026-10-06-KERNEL-RENDER-FREEZE-1.md](../../reports/2026-10-06-KERNEL-RENDER-FREEZE-1.md) / 主复现 run `coord/runs/KERNEL-RENDER-FREEZE-1/20261006_210431`（当前 HEAD 内核 959c06cf，冻结复现+栈+WCT+minidump 三件套；首试 20261006_203747 行为级复现，栈因工具停滞未取得已申报）/ **诊断日志 0 行、生产代码改动 0**（port/kernel-render-freeze-1 空分支可清理）/ 核结论：ABBA 死锁——完成回调 join 渲染线程 vs 渲染线程收尾 callBlocking 等消息线程；H1 否、H2 后半成立、H3 坐实（看门狗=消息线程 timer 共死）；失败路径确定性冻（非竞态）；修复建议 A（Handle 析构搬离消息线程，根因）+B（无音频内容前置短路，纵深）+C（结构性搬离，长期不推荐）+看门狗线程化加固，上交决策 / 拆栈：graceful 无回包→taskkill /F 33280→端口复查净
-## 验收：（裁定文件 / 验收 commit）
+## 验收：**pass 2026-10-06 晚（决策侧）**——裁定 [rulings/2026-10-06-KERNEL-RENDER-FREEZE-1-pass.md](../../rulings/2026-10-06-KERNEL-RENDER-FREEZE-1-pass.md)。亲核：代码锚点逐条对上（~Handle join/失败路径不 reset/~NRC:168 callBlocking/NRC:94-96 早退/VPC 四锚）；工件亲读（46 线程双栈逐帧+WCT 等待链 7188→34304 直连+probe 冻结指纹 5s 整超时）；ABBA 机制与 n≥5 同型复现自洽。零代码改动+Sep-06 战役复用认可。修复裁定=立 KERNEL-RENDER-FREEZE-FIX-1（方案 A+A'+B 同卡，P0 例外条款）；render_wedge_evidence 沉淀上交用户；空分支清理。
