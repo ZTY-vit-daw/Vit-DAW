@@ -473,8 +473,8 @@ $ScenarioKernelProcId = $null
 $ScenarioAgentProcId = $null
 $ScenarioRunDir = ""
 if ($ScenarioMode) {
-    if ($Scenario -notin @("note_time", "range_split", "all")) {
-        throw ("unknown -Scenario value '" + $Scenario + "'; expected note_time, range_split, or all")
+    if ($Scenario -notin @("note_time", "range_split", "ref_diff_content", "all")) {
+        throw ("unknown -Scenario value '" + $Scenario + "'; expected note_time, range_split, ref_diff_content, or all")
     }
     if ($StartUI) {
         throw "-Scenario berth mode never starts the Godot UI (card constraint: webui/Godot untouched)"
@@ -1054,13 +1054,169 @@ if ($ScenarioMode) {
         Write-Ok "no-ranges counter-case surfaced zero proposals (existing behaviour preserved)"
     }
 
+    if ($Scenario -eq "ref_diff_content" -or $Scenario -eq "all") {
+        Write-Step "Scenario ref_diff_content: ref.diff content-level delegation on real observation tickets (L1-3-IMPL-D)"
+        # Deterministic scenario (zero LLM): two real mix.observe invocations
+        # (read-only tool; com_mode=source_only deterministically attaches a
+        # com_projection to each ticket -> a bootstrap com row), then ref.diff
+        # identity + content assertions. The second observation carries
+        # previous_observation_id -> its ticket holds before_after_delta +
+        # ab_result (the observation.before_after carrier's real product). The
+        # 2s gap matters: observation ids are obs_<second-resolution timestamp
+        # >_<hex>, so a later ticket always sorts after an earlier one and the
+        # latest-view coordinate dedup deterministically keeps the second
+        # ticket's row.
+        $refDiffInvokeUri = $AgentHttp.TrimEnd("/") + "/agent/invoke"
+        $observe1 = Invoke-Json -Method POST -Uri $refDiffInvokeUri -Body @{
+            tool   = "mix.observe"
+            args   = @{ com_mode = "source_only" }
+            source = "dev_agent_smoke.ref_diff_content"
+        } -TimeoutSec 120
+        $observe1Result = Get-OptionalProperty -Object $observe1 -Name "result"
+        if ([string]$observe1.status -ne "ok" -or [string]::IsNullOrWhiteSpace([string]$observe1Result)) {
+            throw ("first mix.observe invoke failed: " + ($observe1 | ConvertTo-Json -Depth 8 -Compress))
+        }
+        $obs1 = [string]$observe1Result.observation_id
+        $obs1Path = [string]$observe1Result.observation_path
+        if ([string]::IsNullOrWhiteSpace($obs1) -or -not (Test-Path -LiteralPath $obs1Path)) {
+            throw ("first mix.observe did not persist an observation ticket (id=" + $obs1 + " path=" + $obs1Path + ")")
+        }
+        Write-Ok ("first observation ticket persisted: " + $obs1)
+        Start-Sleep -Seconds 2
+        $observe2 = Invoke-Json -Method POST -Uri $refDiffInvokeUri -Body @{
+            tool   = "mix.observe"
+            args   = @{ com_mode = "source_only"; previous_observation_id = $obs1 }
+            source = "dev_agent_smoke.ref_diff_content"
+        } -TimeoutSec 120
+        $observe2Result = Get-OptionalProperty -Object $observe2 -Name "result"
+        if ([string]$observe2.status -ne "ok" -or [string]::IsNullOrWhiteSpace([string]$observe2Result)) {
+            throw ("second mix.observe invoke failed: " + ($observe2 | ConvertTo-Json -Depth 8 -Compress))
+        }
+        $obs2 = [string]$observe2Result.observation_id
+        $obs2Path = [string]$observe2Result.observation_path
+        if ([string]::IsNullOrWhiteSpace($obs2) -or -not (Test-Path -LiteralPath $obs2Path)) {
+            throw ("second mix.observe did not persist an observation ticket (id=" + $obs2 + " path=" + $obs2Path + ")")
+        }
+        Write-Ok ("second observation ticket persisted: " + $obs2)
+        $observe1 | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "ref_diff_observe_1.json") -Encoding UTF8
+        $observe2 | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "ref_diff_observe_2.json") -Encoding UTF8
+
+        # Carrier-product precheck (the real observe flow's product surface; a
+        # missing key is a real defect to escalate, not a reason to weaken the
+        # assertion below).
+        $obs2Ticket = Get-Content -LiteralPath $obs2Path -Raw -Encoding UTF8 | ConvertFrom-Json
+        $obs2Metrics = Get-OptionalProperty -Object (Get-OptionalProperty -Object $obs2Ticket -Name "mix_package") -Name "current_metrics"
+        if (-not (Get-OptionalProperty -Object $obs2Metrics -Name "before_after_delta") -or -not (Get-OptionalProperty -Object $obs2Metrics -Name "ab_result")) {
+            throw ("second observation ticket lacks before_after_delta/ab_result (carrier product missing): " + $obs2Path)
+        }
+        Write-Ok "second ticket carries before_after_delta + ab_result (real carrier product)"
+
+        # identity depth (IMPL-C surface regression).
+        $identityResp = Invoke-Json -Method POST -Uri $refDiffInvokeUri -Body @{
+            tool   = "ref.diff"
+            args   = @{ base_observation_id = $obs1; depth = "identity" }
+            source = "dev_agent_smoke.ref_diff_content"
+        } -TimeoutSec ([Math]::Max(30, $WaitSeconds))
+        $identityResult = Get-OptionalProperty -Object $identityResp -Name "result"
+        if ([string]$identityResp.status -ne "ok" -or [string]$identityResult.cost_class -ne "index" -or $null -eq $identityResult.PSObject.Properties["unchanged_count"]) {
+            throw ("ref.diff identity path failed on real tickets: " + ($identityResp | ConvertTo-Json -Depth 8 -Compress))
+        }
+        Write-Ok ("ref.diff identity ok on real tickets (unchanged_count=" + [string]$identityResult.unchanged_count + ")")
+        $identityResp | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "ref_diff_identity.json") -Encoding UTF8
+
+        # content depth: delegation map + real before_after evidence.
+        $contentResp = Invoke-Json -Method POST -Uri $refDiffInvokeUri -Body @{
+            tool   = "ref.diff"
+            args   = @{ base_observation_id = $obs1; depth = "content" }
+            source = "dev_agent_smoke.ref_diff_content"
+        } -TimeoutSec ([Math]::Max(30, $WaitSeconds))
+        $contentResult = Get-OptionalProperty -Object $contentResp -Name "result"
+        if ([string]$contentResp.status -ne "ok" -or [string]$contentResult.cost_class -ne "compile" -or [string]$contentResult.degraded -ne "") {
+            throw ("ref.diff content path contract failed (want ok+compile+empty degraded): " + ($contentResp | ConvertTo-Json -Depth 8 -Compress))
+        }
+        $delegatedMap = Get-OptionalProperty -Object $contentResult -Name "delegated"
+        if (-not $delegatedMap -or $null -eq $contentResult.PSObject.Properties["unrouted_kinds"]) {
+            throw ("ref.diff content response missing delegated/unrouted_kinds surface")
+        }
+        $comChanged = @($contentResult.changed | Where-Object { [string]$_.kind -eq "com" })
+        if ($comChanged.Count -lt 1) {
+            throw ("content diff must classify the com row as changed (obs1->obs2 instance hashes differ); changed=" + ($contentResult.changed | ConvertTo-Json -Depth 6 -Compress))
+        }
+        foreach ($entry in $comChanged) {
+            if ([string]$entry.hash_semantics -ne "instance_identity") {
+                throw ("com changed entry missing instance_identity annotation: " + ($entry | ConvertTo-Json -Depth 4 -Compress))
+            }
+            if (-not ([string]$entry.base).Contains("@" + $obs1 + "#") -or -not ([string]$entry.head).Contains("@" + $obs2 + "#")) {
+                throw ("com changed pair must span @obs1 -> @obs2 snapshots: " + ($entry | ConvertTo-Json -Depth 4 -Compress))
+            }
+        }
+        Write-Ok ("com row classified changed with instance_identity annotation (entries=" + [string]$comChanged.Count + ")")
+        $comCarrier = Get-OptionalProperty -Object $delegatedMap -Name "com.change_delta"
+        if (-not $comCarrier) {
+            throw ("delegated map missing com.change_delta carrier: " + ($delegatedMap | ConvertTo-Json -Depth 8 -Compress))
+        }
+        $comCarrierHit = @($comCarrier.pairs | Where-Object { [string]$_.base_handle -eq $obs1Path -and [string]$_.head_handle -eq $obs2Path })
+        if ($comCarrierHit.Count -lt 1) {
+            throw ("com.change_delta pairs must carry base_handle=obs1 ticket and head_handle=obs2 ticket: " + ($comCarrier | ConvertTo-Json -Depth 8 -Compress))
+        }
+        Write-Ok "com.change_delta carrier maps both ticket handles (delegation wiring live)"
+        $baCarrier = Get-OptionalProperty -Object $delegatedMap -Name "observation.before_after"
+        if (-not $baCarrier) {
+            throw ("delegated map missing observation.before_after carrier despite on-disk ticket evidence")
+        }
+        $baMatched = @($baCarrier.tickets | Where-Object { [string]$_.handle -eq $obs2Path -and [bool]$_.matches_base })
+        if ($baMatched.Count -lt 1) {
+            throw ("before_after carrier must list the second ticket with matches_base=true: " + ($baCarrier | ConvertTo-Json -Depth 8 -Compress))
+        }
+        foreach ($ticketEntry in @($baCarrier.tickets)) {
+            if (-not (Test-Path -LiteralPath ([string]$ticketEntry.handle))) {
+                throw ("before_after carrier handle does not exist on disk: " + [string]$ticketEntry.handle)
+            }
+        }
+        Write-Ok ("observation.before_after carrier lists real ticket evidence (matches_base=true, tickets=" + [string]@($baCarrier.tickets).Count + ")")
+        $contentResp | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "ref_diff_content.json") -Encoding UTF8
+
+        # T10 counter-case: unknown depth rejected fail-closed (non-2xx body).
+        $refDiffInvokeError = {
+            param([object]$ToolArgs)
+            $body = @{ tool = "ref.diff"; args = $ToolArgs; source = "dev_agent_smoke.ref_diff_content" }
+            $json = $body | ConvertTo-Json -Depth 20 -Compress
+            $bytes = [System.Text.Encoding]::UTF8.GetBytes($json)
+            try {
+                $resp = Invoke-WebRequest -UseBasicParsing -Method POST -Uri $refDiffInvokeUri -Body $bytes -ContentType "application/json; charset=utf-8" -TimeoutSec ([Math]::Max(30, $WaitSeconds))
+                return $resp.Content | ConvertFrom-Json
+            }
+            catch {
+                $content = [string]$_.ErrorDetails.Message
+                if (-not [string]::IsNullOrWhiteSpace($content)) {
+                    return $content | ConvertFrom-Json
+                }
+                throw
+            }
+        }
+        $badDepthResp = & $refDiffInvokeError @{ base_observation_id = $obs1; depth = "contents" }
+        if ([string]$badDepthResp.status -eq "ok") {
+            throw "ref.diff unknown depth must be rejected fail-closed, got ok"
+        }
+        $badDepthError = [string](Get-OptionalProperty -Object $badDepthResp -Name "error")
+        if (-not $badDepthError.Contains("rejected")) {
+            throw ("ref.diff unknown depth rejection reason mismatch: " + $badDepthError)
+        }
+        Write-Ok "ref.diff unknown depth rejected as expected (T10)"
+    }
+
         $scenarioPassed = $true
         $scenarioSummary = @{
             scenario = $Scenario
             outcome = "pass"
-            range_split_proposal_source = $proposalSource
             finished_at = (Get-Date).ToString("o")
             artifacts_dir = $ScenarioRunDir
+        }
+        # range_split_proposal_source is range-split specific; guard the
+        # reference so non-range scenarios do not trip StrictMode on an
+        # undefined variable.
+        if (Test-Path Variable:proposalSource) {
+            $scenarioSummary.range_split_proposal_source = $proposalSource
         }
         $scenarioSummary | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "summary.json") -Encoding UTF8
     }
@@ -1629,7 +1785,21 @@ if ($null -ne $req) {
             throw ("ref.diff identity path failed: " + ($diffResp | ConvertTo-Json -Depth 8 -Compress))
         }
         Write-Ok ("ref.diff identity path ok (unchanged_count=" + [string]$diffResult.unchanged_count + ")")
-        & $assertRejected "ref.diff depth=content" (& $invokeExpectingError "ref.diff" @{ base_revision = "current"; depth = "content" }) "not implemented"
+
+        # depth=content 正例（IMPL-D 委托面：compile 成本级 + delegated/unrouted
+        # 表面；空盘面=合法形态——delegated 空 map 如实）。深度 Berth 场景
+        # （-Scenario ref_diff_content）以真实观察票断言承载者映射。
+        $contentResp = Invoke-Json -Method POST -Uri $invokeUri -Body @{
+            tool   = "ref.diff"
+            args   = @{ base_revision = "current"; depth = "content" }
+            source = "dev_agent_smoke.ref_query"
+        } -TimeoutSec ([Math]::Max(30, $WaitSeconds))
+        $contentResult = Get-OptionalProperty -Object $contentResp -Name "result"
+        if ([string]$contentResp.status -ne "ok" -or [string]$contentResult.cost_class -ne "compile" -or [string]$contentResult.degraded -ne "" -or $null -eq $contentResult.PSObject.Properties["delegated"] -or $null -eq $contentResult.PSObject.Properties["unrouted_kinds"]) {
+            throw ("ref.diff content path contract failed (want ok+compile+degraded empty+delegated/unrouted surface): " + ($contentResp | ConvertTo-Json -Depth 8 -Compress))
+        }
+        Write-Ok "ref.diff content path surfaces compile + delegated/unrouted surface (T11 口径)"
+        & $assertRejected "ref.diff unknown depth" (& $invokeExpectingError "ref.diff" @{ base_revision = "current"; depth = "contents" }) "rejected"
     }
 }
 

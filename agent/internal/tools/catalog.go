@@ -794,13 +794,14 @@ func refQuerySpec() CommandSpec {
 
 // refDiffSpec 注册 ref.diff（QUERY_ENGINE §2.3 工具面）。v1：head 恒 latest，
 // base = base_revision XOR base_observation_id；depth=identity（index 级集合差）；
-// depth=content 委托既有差分承载者的接线属 IMPL-D——分发面显式拒绝（诚实边界）。
+// depth=content 委托既有差分承载者（IMPL-D：harness/ref_diff.go 句柄映射，
+// compile 级）。
 func refDiffSpec() CommandSpec {
 	return CommandSpec{
 		CommandName: "ref_diff",
 		ToolName:    "ref.diff",
 		Category:    "mix",
-		Description: "Identity-level diff of materialized refs between an explicit base snapshot (exactly one of base_revision / base_observation_id) and the current latest view. depth=identity is an index-cost set difference (added/removed/changed/unchanged); depth=content delegates to existing diff bearers and is rejected until that wiring lands.",
+		Description: "Identity-level diff of materialized refs between an explicit base snapshot (exactly one of base_revision / base_observation_id) and the current latest view. depth=identity is an index-cost set difference (added/removed/changed/unchanged; fxm/com hashes are instance identity so Changed there does not imply content change). depth=content additionally maps changed/added/removed refs onto the existing diff bearers (COM change_delta / COM paired artifacts / FXM A/B / observation before_after) and returns evidence handles at compile cost.",
 		InputSchema: map[string]any{
 			"type":        "object",
 			"description": "Ref set diff (QUERY_ENGINE §2.3). Scope keys are the same ref.query predicate subset (kinds/scope_kind/scope_values/scope_value_prefix/time_window) applied to both sides before diffing.",
@@ -822,7 +823,7 @@ func refDiffSpec() CommandSpec {
 				map[string]any{"required": []string{"base_observation_id"}},
 			},
 		},
-		OutputSchema: map[string]any{"type": "object", "description": "Read-only ref.diff.v1 report: added/removed/changed (base+head pairs)/unchanged_count plus cost_class."},
+		OutputSchema: map[string]any{"type": "object", "description": "Read-only ref.diff.v1 report: added/removed/changed (base+head pairs with kind/hash_semantics)/unchanged_count plus cost_class; depth=content adds delegated carrier→evidence-handle mapping, unrouted_kinds and degraded (compile-cost design path)."},
 		RiskLevel:    RiskDirect,
 	}
 }

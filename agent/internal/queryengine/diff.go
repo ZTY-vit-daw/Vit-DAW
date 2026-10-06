@@ -2,9 +2,11 @@ package queryengine
 
 // diff.go — §2.5 DiffEvidence：两级差分。
 //
-// 设计立场：载荷级差分一律委托既有承载者（COM change_delta / observation
+// 设计立场：载荷级差分一律委托既有差分承载者（COM change_delta / observation
 // before_after / FXM A/B），查询引擎不新建差分算法——identity 级（集合差）是
-// 引擎自己的毫秒级职责（R9）；content 级委托接线属 IMPL-D（本卡 ErrNotImplemented）。
+// 引擎自己的毫秒级职责（R9）。content 级委托接线经 IMPL-D 裁定落 harness 工具层
+// （承载者句柄面=bootstrap/store 侧知识，见 harness/ref_diff.go 与设计文档 §2.5
+// 修订段）；引擎面 content 泛化留后续卡，本层保持 ErrNotImplemented。
 
 import (
 	"context"
@@ -19,7 +21,7 @@ type DiffDepth string
 
 const (
 	DiffIdentity DiffDepth = "identity" // 两快照 ref 集合差（index）
-	DiffContent  DiffDepth = "content"  // 载荷差异，委托既有差分承载者（IMPL-D）
+	DiffContent  DiffDepth = "content"  // 载荷差异，委托既有差分承载者（IMPL-D：工具层接线）
 )
 
 // SnapshotRefSet 差分侧集：revision / observation_id / 显式 ref 列表三选一。
@@ -44,14 +46,14 @@ type RefPair struct {
 }
 
 // DiffReport 差分产物。Changed 判定 = 坐标相同、hash 不同（内容变了）。
-// fxm 类 kind hash 含时间戳（实例身份）——误报风险按 kind 注记在路由表
-// Notes（T8 锁定），判定 refinement 归 IMPL-D。
+// fxm/com 类 kind hash 含时间戳（实例身份）——identity Changed ≠ 内容变化，
+// 按 kind 注记（hash_semantics）在工具面响应层（harness/ref_diff.go，T7）。
 type DiffReport struct {
 	Added          []string
 	Removed        []string
 	Changed        []RefPair
 	UnchangedCount int
-	Delegated      map[string]any // Depth=content 时：承载者 → 工件/ref 映射（IMPL-D）
+	Delegated      map[string]any // Depth=content 时：承载者 → 工件/ref 映射（IMPL-D 落工具面响应，引擎面留空）
 	CostClass      string         // identity=index；content=compile（需 render 则 probe）
 }
 
@@ -62,7 +64,9 @@ func (e *Engine) DiffEvidence(ctx context.Context, d DiffRequest) (DiffReport, e
 		depth = DiffIdentity
 	}
 	if depth == DiffContent {
-		return DiffReport{}, fmt.Errorf("%w: diff depth=content（委托既有差分承载者的接线属 IMPL-D）", ErrNotImplemented)
+		// IMPL-D 裁定：content 委托接线落 harness 工具层（harness/ref_diff.go）；
+		// 引擎面 content 泛化（承载者解析进引擎）留后续卡，本层如实报未实现。
+		return DiffReport{}, fmt.Errorf("%w: diff depth=content（引擎面泛化留后续卡；工具面接线=harness/ref_diff.go）", ErrNotImplemented)
 	}
 	baseRows, err := e.diffSideRows(ctx, d.Base)
 	if err != nil {

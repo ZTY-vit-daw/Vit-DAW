@@ -251,11 +251,12 @@ func TestRefDiffValidation(t *testing.T) {
 	}); err == nil || !strings.Contains(err.Error(), "head") {
 		t.Fatalf("non-latest head must be rejected in v1, got err=%v", err)
 	}
-	// depth=content 是 IMPL-D 未接线的诚实边界：显式拒绝，不静默降级。
+	// depth=content IMPL-D 已接线（正例归 ref_diff_test.go 委托面）；未知深度
+	// 仍显式拒绝（fail-closed，不静默降级为 identity）。
 	if _, err := h.refDiff(ctx, map[string]any{
-		"cmd": "ref_diff", "base_revision": "current", "depth": "content",
-	}); err == nil || !strings.Contains(err.Error(), "not implemented") {
-		t.Fatalf("depth=content must be explicitly rejected until IMPL-D, got err=%v", err)
+		"cmd": "ref_diff", "base_revision": "current", "depth": "contents",
+	}); err == nil || !strings.Contains(err.Error(), "rejected") {
+		t.Fatalf("unknown depth must be rejected, got err=%v", err)
 	}
 	// 未知字段。
 	if _, err := h.refDiff(ctx, map[string]any{

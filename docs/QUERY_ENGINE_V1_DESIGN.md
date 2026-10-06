@@ -333,6 +333,14 @@ type DiffReport struct {
 
 设计立场：**载荷级差分一律委托既有承载者，查询引擎不新建差分算法**。identity 级（集合差）是引擎自己的毫秒级职责；content 级是"找到对的差分证据并给出句柄"，COM/FXM/before_after 已有锚定校验（同 tap+render_revision+精确采样窗），重复实现只会造第二套真相。
 
+> **IMPL-D 落地修订（2026-10-06，L1-3-IMPL-D 卡）**：
+>
+> 1. **分层裁定——content 委托接线落 harness 工具层**（`agent/internal/harness/ref_diff.go`），引擎 `DiffEvidence` 保持 identity-only。理由：三承载者的句柄面是 bootstrap/store 侧知识（观察票内部 JSON 键 `com_projection`/`fxm_projection`/`mix_package.current_metrics.*`、`com_evidence` 工件目录），引擎 `MaterializedStore` 契约只暴露 `Resolve`（handle+ReadAll）——在引擎内解析承载者内部键会复制 bootstrap 解析知识、违反 D2 存储引擎分界。IMPL-C 注记①的引擎面预授权（DiffRequest 扩字段）**未动用**；`DiffRequest`/`DiffReport` 签名零改动，`Delegated` 字段在引擎面留空（工具面响应直接承载委托映射）。
+> 2. **承载者坐标路由与响应形态**：kind `com`→`com.change_delta`（票内 com_projection，changed 对双票句柄）；kind `dad.compressor_dual_tap`→`com.paired_artifact`（pair 工件路径句柄）；kind `fxm`→`fxm.ab`（票内 fxm_projection）；`observation.before_after` 为 kind 正交承载者（差分涉及票内 `before_after_delta`+`ab_result` 锚定键提取，含 `matches_base` 对齐提示）。无载者 kind 进 `unrouted_kinds` 如实报空。成本分级沿用 R10（`RouteDiff`）：content 恒 compile、`degraded` 恒空（委托是设计路径非降级；需 render 的 probe 级不在 v0 只读面）。
+> 3. **fxm/com 实例身份注记（T7 口径落地）**：fxm 与 com 行 hash 均为实例身份（时间戳入哈希，materialize `instanceIdentityHash`），identity 级 Changed ≠ 内容变化——两深度响应的 changed 条目均带 `hash_semantics: instance_identity` 注记；dom/acp/dad 系=内容身份 hash，不注记。设计原文只点名 fxm，落地按 materialize 现实把 com 一并注记。
+> 4. **承载者现实锚定修正**：(a) "同 tap+render_revision 门"实际位于 **ab_result**（`mom_ab_result.v1` 的 `quality_gates`：same_tap_point/render_revision_changed，mixboard.go abResultQualityGate）；`before_after_delta` 本身仅门"前观察存在"。(b) FXM 锚定门是 same_source/same_window/same_format（A/B 双侧本就异 render，每侧 RenderRevision 记录于 MeasurementRef），与 COM 口径不同。(c) §3.3 路由表 fxm 建议字段 `fxm.ab.delta_lufs`/`fxm.ab.correlation` 与实际 JSON 键不符（`effect_delta.lufs_delta_db`；correlation 差分在 ab_result 的 stereo 块、fxm EffectDelta 无此字段）——目录字段名修正归 Catalog 侧后续卡，本卡不改共享路由表。
+> 5. **T7 测试形态**：引擎级四类精确命中用 explicit refs（bootstrap 单盘态下 base exact 视图≡latest 同次扫描子集，removed 结构性恒空——removed 类只能在显式 ref 集路径命中，此语义已在测试中锁定注记）。
+
 ### 2.6 observe 参数化升级（衔接参数规格，实现落 CCB 卡）
 
 对照 CCB-VIEW 7 缺口，observe 侧只做**最小参数化**（view 的价值在预编排，不复制 query 的全谓词面）：
