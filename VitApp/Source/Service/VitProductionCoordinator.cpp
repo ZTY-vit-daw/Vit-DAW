@@ -36,6 +36,61 @@ juce::String makeCoordinatorError (const juce::String& message)
     return juce::JSON::toString (juce::var (o.release()));
 }
 
+// KERNEL-RENDER-FREEZE-FIX-1 leg A: ~Handle runs cancel() + renderThread.join(),
+// and on every render that already failed the render thread is parked in
+// ~NodeRenderContext's callBlocking waiting for the message thread — destroying
+// a Handle on the message thread is therefore a guaranteed mutual wait (the
+// ABBA deadlock KERNEL-RENDER-FREEZE-1 proved with paired stacks). Retire
+// handles on a detached cleanup thread instead: the message thread keeps
+// pumping, services the render thread's callBlocking, and the join then
+// completes off-thread. A render wedged inside a plugin only leaks one cleanup
+// thread; it can never freeze the message thread.
+void retireRenderHandleOffThread (std::shared_ptr<te::EditRenderer::Handle> handle)
+{
+    if (handle == nullptr)
+        return;
+
+    std::thread ([h = std::move (handle)] {}).detach();
+}
+
+// KERNEL-RENDER-FREEZE-FIX-1 leg B: a MIDI-only edit (audio clips nowhere, no
+// instrument on any MIDI-bearing track) always fails node creation with
+// "Didn't find any audio to render". The check is deliberately biased towards
+// "has content": a false negative would block a renderable edit, while a false
+// positive merely falls through to the engine's own failure, which leg A
+// turned into a clean asynchronous render_failed instead of a freeze.
+bool editHasRenderableAudioContent (te::Edit& edit)
+{
+    for (auto* track : te::getAllTracks (edit))
+    {
+        auto* audioTrack = dynamic_cast<te::AudioTrack*> (track);
+        if (audioTrack == nullptr)
+            continue;
+
+        bool trackHostsInstrument = false;
+        for (auto* plugin : audioTrack->pluginList.getPlugins())
+            if (plugin != nullptr && plugin->isEnabled()
+                && (plugin->takesMidiInput() || plugin->producesAudioWhenNoAudioInput()))
+                trackHostsInstrument = true;
+
+        const int n = audioTrack->getNumTrackItems();
+        for (int i = 0; i < n; ++i)
+        {
+            auto* clip = dynamic_cast<te::Clip*> (audioTrack->getTrackItem (i));
+            if (clip == nullptr)
+                continue;
+            if (dynamic_cast<te::AudioClipBase*> (clip) != nullptr)
+                return true;
+            if ((dynamic_cast<te::MidiClip*> (clip) != nullptr
+                 || dynamic_cast<te::StepClip*> (clip) != nullptr)
+                && trackHostsInstrument)
+                return true;
+        }
+    }
+
+    return false;
+}
+
 double dbFromLinear (double value)
 {
     if (! std::isfinite (value) || value <= 0.0)
@@ -639,6 +694,25 @@ juce::String VitProductionCoordinator::startOfflineRender (te::Edit& edit,
     if (rendering.load())
         return makeCoordinatorError ("A render job is already in progress");
 
+    // Leg B: an edit with no audio clip and no instrument can never pass node
+    // creation ("Didn't find any audio to render"); reject it synchronously
+    // with a human-readable error instead of spawning EditRenderer's threads
+    // for a doomed job. New reply semantics for render.start (declared on the
+    // card): status=error plus reason=no_renderable_audio_content.
+    if (! editHasRenderableAudioContent (edit))
+    {
+        auto o = std::make_unique<juce::DynamicObject>();
+        o->setProperty ("status", "error");
+        o->setProperty ("reason", "no_renderable_audio_content");
+        // ASCII only: the kernel is compiled without /utf-8 (CP936 source
+        // decoding), so a non-ASCII literal would garble at runtime.
+        o->setProperty ("message", "The project has no renderable audio content (MIDI tracks "
+                                   "have no instrument); offline rendering would always fail. "
+                                   "Add an audio clip to a track or load an instrument plugin "
+                                   "on the MIDI track before rendering.");
+        return juce::JSON::toString (juce::var (o.release()));
+    }
+
     if (! destFile.getParentDirectory().exists())
         destFile.getParentDirectory().createDirectory();
 
@@ -693,7 +767,9 @@ juce::String VitProductionCoordinator::startOfflineRender (te::Edit& edit,
                     }
 
                     rendering.store (false);
-                    renderHandle.reset();
+                    // Leg A: never join the render thread from the message
+                    // thread; retire the handle on a detached cleanup thread.
+                    retireRenderHandleOffThread (std::move (renderHandle));
                     lastPublishedProgress = -1.0f;
 
                     if (probeRequest.enabled)
@@ -828,7 +904,7 @@ juce::String VitProductionCoordinator::startCompressorDualTapProbe (
                     if (! inputResult.has_value())
                     {
                         rendering.store (false);
-                        renderHandle.reset();
+                        retireRenderHandleOffThread (std::move (renderHandle));
                         lastPublishedProgress = -1.0f;
                         publishCompressorDualTapFailure (publishMessage, request.evidence, activeJobId,
                                                          "input_render_failed:" + juce::String (inputResult.error()));
@@ -868,7 +944,7 @@ juce::String VitProductionCoordinator::startCompressorDualTapProbe (
                                     if (! outputResult.has_value())
                                     {
                                         rendering.store (false);
-                                        renderHandle.reset();
+                                        retireRenderHandleOffThread (std::move (renderHandle));
                                         lastPublishedProgress = -1.0f;
                                         publishCompressorDualTapFailure (publishMessage, request.evidence, activeJobId,
                                                                          "output_render_failed:" + juce::String (outputResult.error()));
@@ -906,7 +982,7 @@ juce::String VitProductionCoordinator::startCompressorDualTapProbe (
                                                 [this, request, activeJobId, verificationResult]
                                                 {
                                                     rendering.store (false);
-                                                    renderHandle.reset();
+                                                    retireRenderHandleOffThread (std::move (renderHandle));
                                                     lastPublishedProgress = -1.0f;
                                                     if (! verificationResult.has_value())
                                                     {
@@ -974,14 +1050,66 @@ void VitProductionCoordinator::armRenderWatchdog (double timeoutSeconds)
     const auto deadlineMs = steadyClockNowMs()
         + (int64_t) (juce::jmax (0.05, timeoutSeconds) * 1000.0);
     renderWatchdogDeadlineMs.store (deadlineMs);
+    renderWatchdogSignalled.store (false);
+
+    // Leg A': the timer-driven checkRenderWatchdog below only runs from tick()
+    // on the message thread, so it shares fate with exactly the thread a
+    // wedged render blocks. This detached timer thread is the independent
+    // second line: on expiry it re-validates the deadline, flips the one-shot
+    // publish gate and emits the render_failed telemetry. It never touches the
+    // render handle — joining the render thread from here would only move the
+    // wedge — and leaves the cancel/park/force-clear self-heal to the message
+    // thread's timer path, which stays fully compatible.
+    auto publish = publishMessage;
+    const auto armedJobId = jobId;
+    std::thread ([this, publish, armedJobId, deadlineMs]
+    {
+        std::this_thread::sleep_until (
+            std::chrono::steady_clock::time_point (std::chrono::milliseconds (deadlineMs)));
+
+        if (renderWatchdogDeadlineMs.load() != deadlineMs || ! rendering.load())
+            return; // superseded by a newer job, completed, or disarmed
+
+        if (renderWatchdogSignalled.exchange (true))
+            return; // timer path already published this job's render_failed
+
+        juce::Logger::writeToLog (
+            "WARN [render_watchdog] render job " + armedJobId
+            + " timed out; detached watchdog thread publishing render_failed");
+
+        if (publish)
+        {
+            auto object = std::make_unique<juce::DynamicObject>();
+            object->setProperty ("topic", "render");
+            object->setProperty ("subtopic", "render_failed");
+            object->setProperty ("job_id", armedJobId);
+            object->setProperty ("status", "error");
+            object->setProperty ("source", "render_watchdog");
+            object->setProperty ("message", "render watchdog timeout: render considered failed "
+                                             "(detached watchdog thread; engine state self-heal "
+                                             "is handled by the message-thread timer path)");
+            publish (juce::JSON::toString (juce::var (object.release())));
+        }
+    }).detach();
 }
 
 void VitProductionCoordinator::releaseWedgedRenderHandle (const juce::String& handleJobId)
 {
-    wedgedRenderHandles.erase (
-        std::remove_if (wedgedRenderHandles.begin(), wedgedRenderHandles.end(),
-                        [&handleJobId] (const auto& entry) { return entry.first == handleJobId; }),
-        wedgedRenderHandles.end());
+    // Leg A: erasing the parked entry would destroy the Handle here on the
+    // message thread (join). Move each matched handle out first and retire it
+    // off-thread; a wedged render only leaks its cleanup thread.
+    for (auto it = wedgedRenderHandles.begin(); it != wedgedRenderHandles.end();)
+    {
+        if (it->first != handleJobId)
+        {
+            ++it;
+            continue;
+        }
+
+        auto handle = std::move (it->second);
+        it = wedgedRenderHandles.erase (it);
+        retireRenderHandleOffThread (std::move (handle));
+    }
 }
 
 void VitProductionCoordinator::checkRenderWatchdog()
@@ -1016,7 +1144,12 @@ void VitProductionCoordinator::checkRenderWatchdog()
         + juce::String (overshootSeconds, 1) + "s: cancel requested, rendering flag force-cleared, "
           "subsequent render commands are accepted again");
 
-    if (publishMessage)
+    // One-shot publish gate shared with the detached watchdog thread (leg A'):
+    // whichever side reaches the deadline first emits the single render_failed
+    // event for this job; this side keeps its force-clear duties either way.
+    const bool publishTelemetry = ! renderWatchdogSignalled.exchange (true);
+
+    if (publishTelemetry && publishMessage)
     {
         auto object = std::make_unique<juce::DynamicObject>();
         object->setProperty ("topic", "render");

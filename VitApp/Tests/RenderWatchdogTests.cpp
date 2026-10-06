@@ -76,8 +76,13 @@ int main()
     assert (published.empty());
 
     // 2. Wedged render past its deadline: tick clears the rendering flag (the
-    //    exact gate CommandDispatcher checks) and publishes one watchdog
-    //    render_failed event — subsequent start_render commands are accepted.
+    //    exact gate CommandDispatcher checks) and exactly one watchdog
+    //    render_failed event is published — subsequent start_render commands
+    //    are accepted. KERNEL-RENDER-FREEZE-FIX-1 leg A' added the detached
+    //    watchdog timer thread: whichever of the two sides reaches the deadline
+    //    first wins the one-shot publish gate, so the event count stays 1 under
+    //    every interleaving (250 ms of sleep gives the detached thread a wide
+    //    head start over the tick, but the assertions hold either way).
     coordinator.simulateWedgedRenderForTest (0.1);
     assert (coordinator.isRendering());
     sleepForMs (250);
@@ -106,9 +111,13 @@ int main()
     assert (! coordinator.isRendering());
     assert (published.size() == 2);
 
-    // 5. Watchdog events reach the kernel log (juce::Logger) as WARN.
+    // 5. Watchdog events reach the kernel log (juce::Logger) as WARN. Each
+    //    wedge logs the timer-path "missed its deadline" force-clear line
+    //    unconditionally (deterministic lower bound of one per wedge); the
+    //    detached thread's line appears only when it wins the publish gate,
+    //    so the total is 2..4 and never asserted exactly.
     assert (capturingLogger.contains ("[render_watchdog]"));
-    assert (capturingLogger.messages.size() == 2);
+    assert (capturingLogger.messages.size() >= 2);
 
     juce::Logger::setCurrentLogger (nullptr);
     return 0;

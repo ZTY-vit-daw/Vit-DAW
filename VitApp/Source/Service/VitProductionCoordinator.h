@@ -96,8 +96,14 @@ private:
     float lastPublishedProgress = -1.0f;
 
     // Render watchdog (KERNEL-RENDER-1): steady-clock deadline in ms for the
-    // current render job; 0 = disarmed. Message thread only in practice.
+    // current render job; 0 = disarmed. Written on the message thread; read by
+    // the detached watchdog timer thread (leg A') to detect superseded jobs.
     std::atomic<int64_t> renderWatchdogDeadlineMs { 0 };
+    // One-shot render_failed publish gate shared between the detached watchdog
+    // timer thread and the message-thread timer path (KERNEL-RENDER-FREEZE-FIX-1
+    // leg A'): reset on arm, exchanged by whichever side reaches the deadline
+    // first so exactly one render_failed event is published per job.
+    std::atomic<bool> renderWatchdogSignalled { false };
     // Handles of timed-out (wedged) renders. They are parked, never destroyed:
     // ~Handle joins the render thread, which would hang the message thread on a
     // blocked render. Cleared when the stale completion callback finally runs.

@@ -36,7 +36,12 @@ param(
     # delegation on real observation tickets. "midi_register"
     # (MIDI-CMD-REGISTER-1): kernel registration of import_midi_to_track +
     # apply_midi_note_patch, driven through the agent tool chain with a
-    # self-generated SMF fixture and mixed-op patch read-back. "all" runs
+    # self-generated SMF fixture and mixed-op patch read-back.
+    # "render_freeze" (KERNEL-RENDER-FREEZE-FIX-1): render ABBA deadlock fix
+    # reversal -- MIDI-only sync rejection (leg B), cancelled-render
+    # render_failed telemetry + live command surface (leg A), idle/live
+    # render.cancel, and an empty-range healthy render_done regression.
+    # "all" runs
     # them. Scenario mode runs an isolated berth:
     # it refuses an already-listening stack (AGENTS.md section 9), starts the
     # kernel+agent itself, and tears both down when the scenarios finish.
@@ -132,6 +137,38 @@ function Invoke-Json {
         return $null
     }
     return $resp.Content | ConvertFrom-Json
+}
+
+# render_freeze (KERNEL-RENDER-FREEZE-FIX-1): /agent/invoke replies with a
+# non-2xx status when a tool execution fails, but the JSON body still carries
+# the failure semantics the poll asserts on (render.profile.bind distinguishes
+# "no telemetry cached" from a terminal failed status). Windows PowerShell
+# 5.1 drains the error response stream before user catch blocks can read it
+# (both Response.GetResponseStream and ErrorDetails come back empty), so this
+# helper goes through System.Net.Http.HttpClient, which never throws on
+# non-2xx and hands the body back for parsing.
+function Invoke-JsonTolerant {
+    param(
+        [string]$Uri,
+        [object]$Body = $null,
+        [int]$TimeoutSec = 30
+    )
+    Add-Type -AssemblyName System.Net.Http | Out-Null
+    $client = New-Object System.Net.Http.HttpClient
+    $client.Timeout = [TimeSpan]::FromSeconds($TimeoutSec)
+    try {
+        $json = $Body | ConvertTo-Json -Depth 20 -Compress
+        $content = New-Object System.Net.Http.StringContent ($json, [System.Text.Encoding]::UTF8, "application/json")
+        $post = $client.PostAsync($Uri, $content).GetAwaiter().GetResult()
+        $text = $post.Content.ReadAsStringAsync().GetAwaiter().GetResult()
+        if ([string]::IsNullOrWhiteSpace($text)) {
+            return $null
+        }
+        return $text | ConvertFrom-Json
+    }
+    finally {
+        $client.Dispose()
+    }
 }
 
 function Get-OptionalProperty {
@@ -478,8 +515,8 @@ $ScenarioKernelProcId = $null
 $ScenarioAgentProcId = $null
 $ScenarioRunDir = ""
 if ($ScenarioMode) {
-    if ($Scenario -notin @("note_time", "range_split", "ref_diff_content", "midi_register", "all")) {
-        throw ("unknown -Scenario value '" + $Scenario + "'; expected note_time, range_split, ref_diff_content, midi_register, or all")
+    if ($Scenario -notin @("note_time", "range_split", "ref_diff_content", "midi_register", "render_freeze", "all")) {
+        throw ("unknown -Scenario value '" + $Scenario + "'; expected note_time, range_split, ref_diff_content, midi_register, render_freeze, or all")
     }
     if ($StartUI) {
         throw "-Scenario berth mode never starts the Godot UI (card constraint: webui/Godot untouched)"
@@ -1407,6 +1444,419 @@ if ($ScenarioMode) {
         }
         Write-Ok ("patched notes read back consistent (65@0/67@2/72@3, len 1, vel 90/70/64): " + $midiClipId)
         $readTwoResp | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "midi_register_readback_patch.json") -Encoding UTF8
+    }
+
+    if ($Scenario -eq "render_freeze" -or $Scenario -eq "all") {
+        Write-Step "Scenario render_freeze: render ABBA deadlock fix reversal (KERNEL-RENDER-FREEZE-FIX-1)"
+        # Deterministic scenario (zero LLM). KERNEL-RENDER-FREEZE-1 proved that
+        # any render which fails after startup freezes the JUCE message thread
+        # (completion callback renderHandle.reset() joins the render thread
+        # which is itself blocked in ~NodeRenderContext's callBlocking waiting
+        # for the message thread). KERNEL-RENDER-FREEZE-FIX-1 reverses that
+        # sequence to green on three legs, verified on the real stack before
+        # this scenario was written (coord/runs/KERNEL-RENDER-FREEZE-FIX-1/
+        # 20261006_verify1):
+        #   leg B  - MIDI-only edit: render.start must return a synchronous
+        #            status=error reason=no_renderable_audio_content reply
+        #            (new reply semantics declared on the card) with no job_id,
+        #            and the command surface must stay alive afterwards.
+        #   leg A  - a render that starts and then ends with a failure result
+        #            (here: cancel mid-render -> "Cancelled") must deliver its
+        #            render_failed telemetry through the kernel PUB socket and
+        #            leave get_project_state responsive -- the exact completion
+        #            path that used to deadlock.
+        #   cancel - render.cancel must reply ok both idle and against a live
+        #            render job.
+        # The render_failed/render_done telemetry arrival is asserted through
+        # render.profile.bind: its error distinguishes "unknown render (no
+        # telemetry cached)" from "is not ready (status \"failed\")", so a
+        # terminal-status reply proves the agent ingested the kernel render
+        # telemetry for that job id.
+        $renderInvokeUri = $AgentHttp.TrimEnd("/") + "/agent/invoke"
+
+        # Deterministic slate: kernel clear_project removes every clip (the
+        # dispatcher refuses to delete the last audio track, so track.delete
+        # cannot empty the edit on its own). Leftover clips from earlier berth
+        # runs would otherwise turn a MIDI-only edit into a renderable one --
+        # the staging kernel persists its default project across runs. The
+        # clear_project invocation resolves through the command-catalog
+        # fallback (LookupCommand), routing to the kernel command verbatim.
+        $renderClearResp = Invoke-Json -Method POST -Uri $renderInvokeUri -Body @{
+            tool   = "clear_project"
+            args   = @{}
+            source = "dev_agent_smoke.render_freeze"
+        } -TimeoutSec 60
+        if ([string]$renderClearResp.status -eq "needs_confirmation") {
+            $renderClearResp = Invoke-Json -Method POST -Uri $renderInvokeUri -Body @{
+                tool      = "clear_project"
+                args      = @{}
+                source    = "dev_agent_smoke.render_freeze"
+                confirmed = $true
+            } -TimeoutSec 60
+        }
+        if ([string]$renderClearResp.status -ne "ok") {
+            throw ("render_freeze slate clear_project failed: " + ($renderClearResp | ConvertTo-Json -Depth 8 -Compress))
+        }
+        Write-Ok "render_freeze slate swept: clear_project removed all clips"
+
+        # ---- leg B: MIDI-only edit must be rejected synchronously -----------
+        $renderTrackResp = Invoke-Json -Method POST -Uri $renderInvokeUri -Body @{
+            tool   = "track.add"
+            args   = @{}
+            source = "dev_agent_smoke.render_freeze"
+        } -TimeoutSec 60
+        $renderTrackResult = Get-OptionalProperty -Object $renderTrackResp -Name "result"
+        $renderTrackId = [string](Get-OptionalProperty -Object $renderTrackResult -Name "track_id")
+        if ([string]$renderTrackResp.status -ne "ok" -or [string]::IsNullOrWhiteSpace($renderTrackId)) {
+            throw ("render_freeze track.add failed: " + ($renderTrackResp | ConvertTo-Json -Depth 8 -Compress))
+        }
+        Write-Ok ("host track added: " + $renderTrackId)
+
+        $renderFixturePath = Join-Path $ScenarioRunDir "render_freeze_fixture.mid"
+        [byte[]]$renderFixtureBytes = @(
+            0x4D,0x54,0x68,0x64, 0x00,0x00,0x00,0x06, 0x00,0x00, 0x00,0x01, 0x01,0xE0,
+            0x4D,0x54,0x72,0x6B, 0x00,0x00,0x00,0x1F,
+            0x00,0x90,0x3C,0x5A,
+            0x83,0x60,0x80,0x3C,0x00,
+            0x00,0x90,0x40,0x50,
+            0x83,0x60,0x80,0x40,0x00,
+            0x00,0x90,0x43,0x46,
+            0x83,0x60,0x80,0x43,0x00,
+            0x00,0xFF,0x2F,0x00
+        )
+        [System.IO.File]::WriteAllBytes($renderFixturePath, $renderFixtureBytes)
+
+        $renderImportResp = Invoke-Json -Method POST -Uri $renderInvokeUri -Body @{
+            tool   = "midi.import_file"
+            args   = @{ track_id = $renderTrackId; file_path = $renderFixturePath; start_time_beats = 0 }
+            source = "dev_agent_smoke.render_freeze"
+        } -TimeoutSec 120
+        if ([string]$renderImportResp.status -eq "needs_confirmation") {
+            $renderImportResp = Invoke-Json -Method POST -Uri $renderInvokeUri -Body @{
+                tool      = "midi.import_file"
+                args      = @{ track_id = $renderTrackId; file_path = $renderFixturePath; start_time_beats = 0 }
+                source    = "dev_agent_smoke.render_freeze"
+                confirmed = $true
+            } -TimeoutSec 120
+        }
+        if ([string]$renderImportResp.status -ne "ok") {
+            throw ("render_freeze midi.import_file execute failed: " + ($renderImportResp | ConvertTo-Json -Depth 8 -Compress))
+        }
+        Write-Ok ("MIDI-only edit assembled (3 notes, no instrument): track=" + $renderTrackId)
+
+        $midiOnlyWav = Join-Path $ScenarioRunDir "render_freeze_midi_only.wav"
+        $legBResp = Invoke-Json -Method POST -Uri $renderInvokeUri -Body @{
+            tool   = "render.start"
+            args   = @{ file_path = $midiOnlyWav }
+            source = "dev_agent_smoke.render_freeze"
+        } -TimeoutSec 60
+        if ([string]$legBResp.status -eq "needs_confirmation") {
+            $legBResp = Invoke-Json -Method POST -Uri $renderInvokeUri -Body @{
+                tool      = "render.start"
+                args      = @{ file_path = $midiOnlyWav }
+                source    = "dev_agent_smoke.render_freeze"
+                confirmed = $true
+            } -TimeoutSec 60
+        }
+        $legBResp | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "render_freeze_legB_reply.json") -Encoding UTF8
+        $legBResult = Get-OptionalProperty -Object $legBResp -Name "result"
+        $legBStatus = [string](Get-OptionalProperty -Object $legBResult -Name "status")
+        if ([string]::IsNullOrWhiteSpace($legBStatus)) {
+            $legBStatus = [string]$legBResp.status
+        }
+        $legBReason = [string](Get-OptionalProperty -Object $legBResult -Name "reason")
+        $legBMessage = [string](Get-OptionalProperty -Object $legBResult -Name "message")
+        $legBJobId = [string](Get-OptionalProperty -Object $legBResult -Name "job_id")
+        if ($legBStatus -ne "error" -or $legBReason -ne "no_renderable_audio_content" -or -not $legBMessage.Contains("no renderable audio content") -or -not [string]::IsNullOrWhiteSpace($legBJobId)) {
+            throw ("render_freeze leg B: MIDI-only render.start must reply status=error reason=no_renderable_audio_content with no job_id (got status=" + $legBStatus + " reason=" + $legBReason + " job_id=" + $legBJobId + "): " + ($legBResp | ConvertTo-Json -Depth 12 -Compress))
+        }
+        Write-Ok ("leg B: MIDI-only render.start rejected synchronously (reason=no_renderable_audio_content, no job started)")
+
+        # Command surface must stay alive after the rejection (leg B) and the
+        # idle cancel path must reply.
+        $legBAliveResp = Invoke-Json -Method POST -Uri $renderInvokeUri -Body @{
+            tool   = "project.state"
+            args   = @{}
+            source = "dev_agent_smoke.render_freeze"
+        } -TimeoutSec 20
+        if ([string]$legBAliveResp.status -ne "ok") {
+            throw ("render_freeze leg B: project.state after sync rejection failed (command surface frozen?): " + ($legBAliveResp | ConvertTo-Json -Depth 8 -Compress))
+        }
+        Write-Ok "leg B: command surface alive after rejection"
+
+        $legBCancelResp = Invoke-Json -Method POST -Uri $renderInvokeUri -Body @{
+            tool   = "render.cancel"
+            args   = @{}
+            source = "dev_agent_smoke.render_freeze"
+        } -TimeoutSec 20
+        if ([string]$legBCancelResp.status -ne "ok") {
+            throw ("render_freeze leg B: idle render.cancel failed: " + ($legBCancelResp | ConvertTo-Json -Depth 8 -Compress))
+        }
+        Write-Ok "leg B: idle render.cancel replied ok"
+
+        # Give the edit renderable audio content (sine stem), so later render
+        # groups pass the leg-B pre-check and reach the engine.
+        $renderSineWav = Write-LeaseSmokeStemWav -Path (Join-Path $ScenarioRunDir "render_freeze_sine.wav") -Amplitude 0.5 -Frequency 440.0
+        $renderAudioTrackResp = Invoke-Json -Method POST -Uri $renderInvokeUri -Body @{
+            tool   = "track.add"
+            args   = @{}
+            source = "dev_agent_smoke.render_freeze"
+        } -TimeoutSec 60
+        $renderAudioTrackId = [string](Get-OptionalProperty -Object (Get-OptionalProperty -Object $renderAudioTrackResp -Name "result") -Name "track_id")
+        if ([string]$renderAudioTrackResp.status -ne "ok" -or [string]::IsNullOrWhiteSpace($renderAudioTrackId)) {
+            throw ("render_freeze audio track.add failed: " + ($renderAudioTrackResp | ConvertTo-Json -Depth 8 -Compress))
+        }
+        $renderImportAudioResp = Invoke-Json -Method POST -Uri $renderInvokeUri -Body @{
+            tool   = "clip.import_audio"
+            args   = @{ track_id = $renderAudioTrackId; file_path = $renderSineWav }
+            source = "dev_agent_smoke.render_freeze"
+        } -TimeoutSec 180
+        if ([string]$renderImportAudioResp.status -eq "needs_confirmation") {
+            $renderImportAudioResp = Invoke-Json -Method POST -Uri $renderInvokeUri -Body @{
+                tool      = "clip.import_audio"
+                args      = @{ track_id = $renderAudioTrackId; file_path = $renderSineWav }
+                source    = "dev_agent_smoke.render_freeze"
+                confirmed = $true
+            } -TimeoutSec 180
+        }
+        if ([string]$renderImportAudioResp.status -ne "ok") {
+            throw ("render_freeze clip.import_audio execute failed: " + ($renderImportAudioResp | ConvertTo-Json -Depth 8 -Compress))
+        }
+        Write-Ok ("sine stem imported on track " + $renderAudioTrackId + " (edit now has audio content)")
+
+        # ---- leg A: deterministic failed-result completion (unwritable -----
+        # ---- destination) -- the deadlock shape, reversed.               -----
+        # startOfflineRender ignores the createDirectory() result (pre-existing
+        # behavior), so a destination on a non-existent drive passes the sync
+        # checks, replies "Render started", then fails inside
+        # NodeRenderContext at writer open ("Couldn't write to target file").
+        # That is a completion callback on the message thread with a FAILED
+        # result while the render thread unwinds a live nodePlayer -- the
+        # exact ABBA shape that froze the message thread before the fix. No
+        # timing race: the failure is content-determined.
+        $renderDeadDrive = $null
+        foreach ($renderDriveLetter in @("B:", "A:", "Y:", "Z:", "X:")) {
+            if (-not [System.IO.Directory]::Exists(($renderDriveLetter + "\"))) {
+                $renderDeadDrive = $renderDriveLetter
+                break
+            }
+        }
+        if ([string]::IsNullOrWhiteSpace($renderDeadDrive)) {
+            throw "render_freeze leg A: no absent drive letter found for the unwritable-destination probe"
+        }
+        $badWav = $renderDeadDrive + "\vit_fix1_probe\render_freeze_unwritable.wav"
+        $legAStartResp = Invoke-Json -Method POST -Uri $renderInvokeUri -Body @{
+            tool   = "render.start"
+            args   = @{ file_path = $badWav; range = @(0.0, 2.0) }
+            source = "dev_agent_smoke.render_freeze"
+        } -TimeoutSec 60
+        if ([string]$legAStartResp.status -eq "needs_confirmation") {
+            $legAStartResp = Invoke-Json -Method POST -Uri $renderInvokeUri -Body @{
+                tool      = "render.start"
+                args      = @{ file_path = $badWav; range = @(0.0, 2.0) }
+                source    = "dev_agent_smoke.render_freeze"
+                confirmed = $true
+            } -TimeoutSec 60
+        }
+        $legAStartResult = Get-OptionalProperty -Object $legAStartResp -Name "result"
+        $badJobId = [string](Get-OptionalProperty -Object $legAStartResult -Name "job_id")
+        $legAStartStatus = [string](Get-OptionalProperty -Object $legAStartResult -Name "status")
+        if ([string]::IsNullOrWhiteSpace($legAStartStatus)) {
+            $legAStartStatus = [string]$legAStartResp.status
+        }
+        if ($legAStartStatus -ne "ok" -or [string]::IsNullOrWhiteSpace($badJobId)) {
+            throw ("render_freeze leg A: unwritable-destination render.start must be accepted synchronously (got status=" + $legAStartStatus + "): " + ($legAStartResp | ConvertTo-Json -Depth 12 -Compress))
+        }
+        $legAStartResp | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "render_freeze_legA_start.json") -Encoding UTF8
+        Write-Ok ("doomed render started on unwritable destination: job=" + $badJobId + " (" + $renderDeadDrive + " absent)")
+
+        # render_failed telemetry arrival: poll render.profile.bind until its
+        # error no longer says "no render telemetry cached" and carries the
+        # terminal failed status for this job id.
+        $legABindDeadline = (Get-Date).AddSeconds(45)
+        $legABindTerminal = $false
+        $legABindLastJson = ""
+        while ((Get-Date) -lt $legABindDeadline) {
+            $legABindResp = Invoke-JsonTolerant -Uri $renderInvokeUri -Body @{
+                tool   = "render.profile.bind"
+                args   = @{ render_id = $badJobId; profile_id = "builtin:apple_music" }
+                source = "dev_agent_smoke.render_freeze"
+            } -TimeoutSec 30
+            $legABindLastJson = ($legABindResp | ConvertTo-Json -Depth 12 -Compress)
+            if ($legABindLastJson.Contains("no render telemetry cached")) {
+                Start-Sleep -Milliseconds 500
+                continue
+            }
+            if ($legABindLastJson.Contains("is not ready") -and $legABindLastJson.Contains("failed")) {
+                $legABindTerminal = $true
+                break
+            }
+            throw ("render_freeze leg A: render.profile.bind produced an unexpected reply for the doomed job (expected terminal failed status): " + $legABindLastJson)
+        }
+        if (-not $legABindTerminal) {
+            throw ("render_freeze leg A: render_failed telemetry for job " + $badJobId + " never reached the agent within 45s (last bind reply: " + $legABindLastJson + ")")
+        }
+        $legABindLastJson | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "render_freeze_legA_bind_terminal.json") -Encoding UTF8
+        Write-Ok ("leg A: render_failed telemetry reached the agent for doomed job " + $badJobId)
+
+        # THE reversal assertion: after a failed-result render completion, the
+        # kernel command surface must still respond (previously this exact
+        # sequence froze the message thread and every command timed out).
+        $legAAliveResp = Invoke-Json -Method POST -Uri $renderInvokeUri -Body @{
+            tool   = "project.state"
+            args   = @{}
+            source = "dev_agent_smoke.render_freeze"
+        } -TimeoutSec 20
+        if ([string]$legAAliveResp.status -ne "ok") {
+            throw ("render_freeze leg A: project.state after failed-result render failed (message thread frozen?): " + ($legAAliveResp | ConvertTo-Json -Depth 8 -Compress))
+        }
+        Write-Ok "leg A: command surface alive after failed-result render completion (freeze reversed)"
+
+        # ---- live-cancel path availability: start a live render, cancel it, --
+        # ---- require a terminal telemetry of EITHER kind plus a live surface.--
+        # Whether the cancel lands mid-render (render_failed "Cancelled") or
+        # the render wins the race (render_done) depends on machine speed and
+        # is deliberately NOT gated; the deadlock-reversal assertion lives in
+        # the deterministic unwritable-destination group above.
+        $liveWav = Join-Path $ScenarioRunDir "render_freeze_live_cancel.wav"
+        $liveStartResp = Invoke-Json -Method POST -Uri $renderInvokeUri -Body @{
+            tool   = "render.start"
+            args   = @{ file_path = $liveWav; range = @(0.0, 30.0) }
+            source = "dev_agent_smoke.render_freeze"
+        } -TimeoutSec 60
+        if ([string]$liveStartResp.status -eq "needs_confirmation") {
+            $liveStartResp = Invoke-Json -Method POST -Uri $renderInvokeUri -Body @{
+                tool      = "render.start"
+                args      = @{ file_path = $liveWav; range = @(0.0, 30.0) }
+                source    = "dev_agent_smoke.render_freeze"
+                confirmed = $true
+            } -TimeoutSec 60
+        }
+        $liveStartResult = Get-OptionalProperty -Object $liveStartResp -Name "result"
+        $liveJobId = [string](Get-OptionalProperty -Object $liveStartResult -Name "job_id")
+        $liveStartStatus = [string](Get-OptionalProperty -Object $liveStartResult -Name "status")
+        if ([string]::IsNullOrWhiteSpace($liveStartStatus)) {
+            $liveStartStatus = [string]$liveStartResp.status
+        }
+        if ($liveStartStatus -ne "ok" -or [string]::IsNullOrWhiteSpace($liveJobId)) {
+            throw ("render_freeze live-cancel: render.start must succeed with a job_id (got status=" + $liveStartStatus + "): " + ($liveStartResp | ConvertTo-Json -Depth 12 -Compress))
+        }
+        $liveStartResp | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "render_freeze_live_start.json") -Encoding UTF8
+        Write-Ok ("live render started: job=" + $liveJobId)
+
+        # Cancel immediately. If the cancel lands mid-render the completion
+        # callback carries a FAILED result ("Cancelled"); if the render wins
+        # the race it completes normally. Either way the cancel command must
+        # reply and the job must reach a terminal telemetry state.
+        $liveCancelResp = Invoke-Json -Method POST -Uri $renderInvokeUri -Body @{
+            tool   = "render.cancel"
+            args   = @{}
+            source = "dev_agent_smoke.render_freeze"
+        } -TimeoutSec 20
+        if ([string]$liveCancelResp.status -ne "ok") {
+            throw ("render_freeze live-cancel: render.cancel against live job failed: " + ($liveCancelResp | ConvertTo-Json -Depth 8 -Compress))
+        }
+        $liveCancelResp | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "render_freeze_live_cancel.json") -Encoding UTF8
+        Write-Ok "render.cancel against live job replied ok"
+
+        # Terminal telemetry of EITHER kind proves the cancel path interplays
+        # with a live job without burying the engine.
+        $liveBindDeadline = (Get-Date).AddSeconds(45)
+        $liveTerminal = ""
+        $liveLastJson = ""
+        while ((Get-Date) -lt $liveBindDeadline) {
+            $liveBindResp = Invoke-JsonTolerant -Uri $renderInvokeUri -Body @{
+                tool   = "render.profile.bind"
+                args   = @{ render_id = $liveJobId; profile_id = "builtin:apple_music" }
+                source = "dev_agent_smoke.render_freeze"
+            } -TimeoutSec 30
+            $liveLastJson = ($liveBindResp | ConvertTo-Json -Depth 12 -Compress)
+            if ($liveLastJson.Contains("no render telemetry cached")) {
+                Start-Sleep -Milliseconds 500
+                continue
+            }
+            if ([string]$liveBindResp.status -eq "ok") {
+                $liveTerminal = "ready"
+                break
+            }
+            if ($liveLastJson.Contains("is not ready") -and $liveLastJson.Contains("failed")) {
+                $liveTerminal = "failed"
+                break
+            }
+            throw ("render_freeze live-cancel: unexpected bind reply for job " + $liveJobId + ": " + $liveLastJson)
+        }
+        if ([string]::IsNullOrWhiteSpace($liveTerminal)) {
+            throw ("render_freeze live-cancel: terminal telemetry for job " + $liveJobId + " never reached the agent within 45s (last bind reply: " + $liveLastJson + ")")
+        }
+        $liveLastJson | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "render_freeze_live_bind_terminal.json") -Encoding UTF8
+        Write-Ok ("live-cancel: job " + $liveJobId + " reached terminal telemetry (status=" + $liveTerminal + "; outcome intentionally not gated)")
+
+        $liveAliveResp = Invoke-Json -Method POST -Uri $renderInvokeUri -Body @{
+            tool   = "project.state"
+            args   = @{}
+            source = "dev_agent_smoke.render_freeze"
+        } -TimeoutSec 20
+        if ([string]$liveAliveResp.status -ne "ok") {
+            throw ("render_freeze live-cancel: project.state after live-cancel sequence failed: " + ($liveAliveResp | ConvertTo-Json -Depth 8 -Compress))
+        }
+        Write-Ok "live-cancel: command surface alive"
+        if (Test-Path -LiteralPath $liveWav) {
+            Remove-Item -LiteralPath $liveWav -Force -ErrorAction SilentlyContinue
+        }
+
+        # ---- healthy-render regression: an empty-range render over an edit ---
+        # ---- with audio succeeds (render_done) and renders a file.          ---
+        $emptyWav = Join-Path $ScenarioRunDir "render_freeze_empty_range.wav"
+        $legCStartResp = Invoke-Json -Method POST -Uri $renderInvokeUri -Body @{
+            tool   = "render.start"
+            args   = @{ file_path = $emptyWav; range = @(10.0, 12.0) }
+            source = "dev_agent_smoke.render_freeze"
+        } -TimeoutSec 60
+        if ([string]$legCStartResp.status -eq "needs_confirmation") {
+            $legCStartResp = Invoke-Json -Method POST -Uri $renderInvokeUri -Body @{
+                tool      = "render.start"
+                args      = @{ file_path = $emptyWav; range = @(10.0, 12.0) }
+                source    = "dev_agent_smoke.render_freeze"
+                confirmed = $true
+            } -TimeoutSec 60
+        }
+        $legCStartResult = Get-OptionalProperty -Object $legCStartResp -Name "result"
+        $emptyJobId = [string](Get-OptionalProperty -Object $legCStartResult -Name "job_id")
+        $legCStartStatus = [string](Get-OptionalProperty -Object $legCStartResult -Name "status")
+        if ([string]::IsNullOrWhiteSpace($legCStartStatus)) {
+            $legCStartStatus = [string]$legCStartResp.status
+        }
+        if ($legCStartStatus -ne "ok" -or [string]::IsNullOrWhiteSpace($emptyJobId)) {
+            throw ("render_freeze regression: empty-range render.start must be accepted (edit has audio): " + ($legCStartResp | ConvertTo-Json -Depth 12 -Compress))
+        }
+
+        $legCBindDeadline = (Get-Date).AddSeconds(45)
+        $legCReady = $false
+        $legCLastJson = ""
+        while ((Get-Date) -lt $legCBindDeadline) {
+            $legCBindResp = Invoke-JsonTolerant -Uri $renderInvokeUri -Body @{
+                tool   = "render.profile.bind"
+                args   = @{ render_id = $emptyJobId; profile_id = "builtin:apple_music" }
+                source = "dev_agent_smoke.render_freeze"
+            } -TimeoutSec 30
+            $legCLastJson = ($legCBindResp | ConvertTo-Json -Depth 12 -Compress)
+            if ($legCLastJson.Contains("no render telemetry cached")) {
+                Start-Sleep -Milliseconds 500
+                continue
+            }
+            if ([string]$legCBindResp.status -eq "ok") {
+                $legCReady = $true
+                break
+            }
+            throw ("render_freeze regression: empty-range render did not reach ready status: " + $legCLastJson)
+        }
+        if (-not $legCReady) {
+            throw ("render_freeze regression: render_done telemetry for job " + $emptyJobId + " never reached the agent within 45s (last bind reply: " + $legCLastJson + ")")
+        }
+        if (-not (Test-Path -LiteralPath $emptyWav) -or ((Get-Item -LiteralPath $emptyWav).Length -le 0)) {
+            throw ("render_freeze regression: empty-range render reported done but produced no file: " + $emptyWav)
+        }
+        Write-Ok ("regression: empty-range render completed with render_done telemetry and a file (job " + $emptyJobId + ")")
     }
 
         $scenarioPassed = $true
