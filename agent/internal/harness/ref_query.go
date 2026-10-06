@@ -9,8 +9,8 @@ package harness
 //  2. 不装配披露——响应只回 refs+声明标量+五元数据（cost_class/degraded/
 //     snapshot/next_cursor/total_matches），无 LLMContext/预算/审计；
 //  3. 校验 fail-closed（T10）——未知字段拒绝、limit 1..500、至少一段谓词
-//     必填（防"全库拉取"）、ref.diff base 侧恰选一、depth=content 显式拒绝
-//     （IMPL-D 未接线，不静默降级）。
+//     必填（防"全库拉取"）、ref.diff base 侧恰选一；depth=content 委托接线
+//     落本包 ref_diff.go（IMPL-D）。
 //
 // 引擎生命周期：按解析出的 BootstrapConfig 惰性构建并缓存（工程切换=配置指纹
 // 变化→重建）；每次调用前 Sync 强制从盘面重建中央索引（on-demand 新鲜度，
@@ -360,7 +360,8 @@ func refQueryResponse(result queryengine.QueryResult) map[string]any {
 
 // ---- ref.diff ----
 
-// refDiff 分发入口：base 恰选一校验 → head=latest 盘面物化 → identity 集合差。
+// refDiff 分发入口：base 恰选一校验 → head=latest 盘面物化 → identity 集合差；
+// depth=content 在 identity 之上做承载者委托映射（ref_diff.go，IMPL-D）。
 func (h *Harness) refDiff(ctx context.Context, cmd map[string]any) (map[string]any, error) {
 	if err := rejectUnknownRefKeys("ref.diff", cmd, refDiffAllowedKeys); err != nil {
 		return nil, err
@@ -377,11 +378,11 @@ func (h *Harness) refDiff(ctx context.Context, cmd map[string]any) (map[string]a
 	if depth == "" {
 		depth = string(queryengine.DiffIdentity)
 	}
+	content := false
 	switch queryengine.DiffDepth(depth) {
 	case queryengine.DiffIdentity:
 	case queryengine.DiffContent:
-		// IMPL-D 未接线：显式拒绝（诚实边界），不静默降级为 identity。
-		return nil, fmt.Errorf("ref.diff: depth=content is not implemented yet (delegation to existing diff bearers lands in IMPL-D); use depth=identity")
+		content = true
 	default:
 		return nil, fmt.Errorf("ref.diff: depth %q rejected (identity|content)", depth)
 	}
@@ -415,41 +416,57 @@ func (h *Harness) refDiff(ctx context.Context, cmd map[string]any) (map[string]a
 		headRefs = append(headRefs, canonical)
 	}
 	// 空盘面短路：head=latest 视图为空时（bootstrap 语义：exact 视图是同一次
-	// 扫描的子集，latest 空 ⇒ base 侧必空），identity 差分退化为全空报告——
-	// 引擎签名冻结（SnapshotRefSet 空 Refs 不可与"未选"区分），此处确定性
-	// 返回，不伪造非空结果。
+	// 扫描的子集，latest 空 ⇒ base 侧必空），差分退化为全空报告——引擎签名
+	// 冻结（SnapshotRefSet 空 Refs 不可与"未选"区分），此处确定性返回，不伪造
+	// 非空结果。成本分级按请求深度报（identity=index / content=compile，R9/R10
+	// 路由类口径——与 ref.query 零行命中仍报 compile 的语义一致）。
 	if len(headRefs) == 0 {
-		return map[string]any{
+		empty := map[string]any{
 			"status":          "ok",
 			"added":           []string{},
 			"removed":         []string{},
 			"changed":         []map[string]any{},
 			"unchanged_count": 0,
 			"cost_class":      queryengine.CostClassIndex,
-		}, nil
+		}
+		if content {
+			empty["delegated"] = map[string]any{}
+			empty["unrouted_kinds"] = []string{}
+			empty["cost_class"] = queryengine.RouteDiff(queryengine.DiffContent).CostClass
+			empty["degraded"] = "" // R10 委托是设计路径，非降级
+		}
+		return empty, nil
 	}
 
 	report, err := handle.engine.DiffEvidence(ctx, queryengine.DiffRequest{
 		Base:  queryengine.SnapshotRefSet{Revision: baseRevision, ObservationID: baseObservationID},
 		Head:  queryengine.SnapshotRefSet{Refs: headRefs},
 		Scope: scope,
-		Depth: queryengine.DiffIdentity,
+		Depth: queryengine.DiffIdentity, // content=identity 差分 + 承载者委托（分层裁定见 ref_diff.go）
 	})
 	if err != nil {
 		return nil, err
 	}
-	changed := make([]map[string]any, 0, len(report.Changed))
-	for _, pair := range report.Changed {
-		changed = append(changed, map[string]any{"base": pair.Base, "head": pair.Head})
+	baseSelector := baseObservationID
+	if baseSelector == "" {
+		baseSelector = baseRevision // matches_base 只在恰等时为真；revision 语义下通常不匹配，无害
 	}
-	return map[string]any{
+	response := map[string]any{
 		"status":          "ok",
 		"added":           report.Added,
 		"removed":         report.Removed,
-		"changed":         changed,
+		"changed":         refDiffChangedEntries(report.Changed),
 		"unchanged_count": report.UnchangedCount,
 		"cost_class":      report.CostClass,
-	}, nil
+	}
+	if content {
+		delegated, unrouted := refDiffDelegated(ctx, handle, report, baseSelector)
+		response["delegated"] = delegated
+		response["unrouted_kinds"] = unrouted
+		response["cost_class"] = queryengine.RouteDiff(queryengine.DiffContent).CostClass
+		response["degraded"] = ""
+	}
+	return response, nil
 }
 
 // parseRefDiffScope 解析差分限定谓词（ref.query 同构子集；任一 presence 才建）。
