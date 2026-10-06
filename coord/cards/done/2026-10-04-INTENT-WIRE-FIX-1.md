@@ -33,4 +33,4 @@
     - 泊位纪律：两 run 各自独立工件目录、起拆即净（agent/kernel 双停日志）、预检拒绝复用已监听栈、VitApp/Workspace 内核默认工程零写入。
   - **端测覆盖边界声明**：真栈场景 B 只覆盖 legacy 路径（`disable_agent_loop=true`，SMOKE 卡既有判据面）；agentloop 生产路径的两刀确认续行链由单元链测试（假 executor 三层 resume）覆盖，**Godot 主对话真栈端到端（两卡顺序确认 UX）不在本卡烟测面内**，由决策侧裁定是否需要补测；`-Scenario all` 对 INTENT-WIRE-1 转正判据（场景 B 严格 tool-form 先终点后起点 exit 0）已达成，转正与归档由决策侧裁定。
   - 领取时工作树已有运行时改动（VitApp/Workspace/Settings/Settings.xml、default_project.xml，非本卡产物），未触碰、未入库。
-- 验收：（裁定文件 / 验收 commit）
+- 验收：**pass**（[rulings/2026-10-06-INTENT-WIRE-FIX-1-pass.md](../../rulings/2026-10-06-INTENT-WIRE-FIX-1-pass.md)，2026-10-06 晚窗决策侧）/ 验收 commit=实现提交 ed45a072；决策侧四层亲核：diff 直读 937 行锚点全对+两轮 run 工件核验+闲时预复跑三包/build exit 0（INTENT-WIRE-FIX-1-VERIFY-1）+我方真栈 -Scenario range_split -StartKernel exit 0（run 20261006_185750）。边界裁定：Godot 两卡顺序确认 UX 并入 M2 时域手测场次，不另立补测卡。
