@@ -2630,6 +2630,18 @@ void CommandDispatcher::registerBuiltinCommands()
                                       : makeErrorReply ("MIDI service unavailable");
     });
 
+    handlers.emplace ("apply_midi_note_patch", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return midiService != nullptr ? midiService->handleApplyMidiNotePatch (object, raw)
+                                      : makeErrorReply ("MIDI service unavailable");
+    });
+
+    handlers.emplace ("import_midi_to_track", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return midiService != nullptr ? midiService->handleImportMidiToTrack (object, raw)
+                                      : makeErrorReply ("MIDI service unavailable");
+    });
+
     handlers.emplace ("get_midi_clip_notes", [this] (const juce::DynamicObject& object, const juce::String& raw)
     {
         return midiService != nullptr ? midiService->handleGetMidiClipNotes (object, raw)
