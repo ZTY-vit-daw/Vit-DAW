@@ -58,11 +58,25 @@ param(
     # plugin_instance_ready + graph_last_diff_kind=node_add), the UI
     # projection (plugin_count >= 1 after track selection), and the PCA
     # load gate (denial-line increment 0). Zero LLM.
+    # "journey_free_state_nl" (JOURNEY-3): demo journey gate station 3,
+    # natural-language face -- J1 berth/fixture/open/authority legs, then
+    # ONE real-LLM free-state experiment round driven by a fixed Chinese
+    # utterance (probabilistic face per AGENTS.md section 8: N=3 separate
+    # invocations, >=1 round walking proposal -> confirm -> apply ->
+    # A/B card). Assembly-face evidence only (stop_reason family, pending
+    # confirmation faces, /agent/events timeline, audition markers); reply
+    # text semantics are NEVER asserted. The exit-0 gate carries only the
+    # deterministic sub-faces: the J1 legs verbatim plus, when the NL
+    # round mounted a pending confirmation card, the direct
+    # /agent/interaction/respond approve hop (structural route assertions).
+    # NL-round shape misses are classified and recorded, never thrown.
+    # One NL round per invocation (fresh berth + fixture each round).
     [string]$Scenario = "",
     # Scenario run artifacts root; defaults to
     # coord\runs\SMOKE-SCEN-RANGE-1\<timestamp> (journey_first:
     # coord\runs\JOURNEY-1\<timestamp>; journey_plugin_load:
-    # coord\runs\JOURNEY-2\<timestamp>) under the repo.
+    # coord\runs\JOURNEY-2\<timestamp>; journey_free_state_nl:
+    # coord\runs\JOURNEY-3\<timestamp>) under the repo.
     [string]$RunArtifactsDir = "",
     # JOURNEY-2: exact plugin identifier driven into rack.add_node. Default
     # is the J1-journey (journey1_demo_journey_smoke.ps1) same-source
@@ -71,6 +85,21 @@ param(
     # deterministically (card constraint: no new plugin dependency without
     # declaring it first).
     [string]$JourneyPluginIdentifier = "VST3-bx_hybrid V2-d0ef306f-c141eb4b",
+    # JOURNEY-3: optional base64 (UTF-8) override for the fixed free-state
+    # NL utterance. Empty = the built-in fixed utterance (the deterministic
+    # input face the card settles on); decision-side re-runs may override.
+    [string]$JourneyNlPromptBase64 = "",
+    # JOURNEY-3 budgets: /agent/chat call timeout, durable-settle poll
+    # budget (runtime/status until the goal parks at a confirmation card or
+    # reaches a terminal state), the max confirmation hops the script will
+    # direct-drive through /agent/interaction/respond, and the max
+    # continuation nudges (fixed utterance, journey1 evidence-tool
+    # precedent) sent when the free-state chain parks at a conversational
+    # boundary (goal waiting_continue, no active continuation, no card).
+    [int]$JourneyNlTurnSeconds = 480,
+    [int]$JourneyNlSettleSeconds = 720,
+    [int]$JourneyNlMaxHops = 3,
+    [int]$JourneyNlMaxNudges = 3,
     # SMOKE-TOOLING-1: the UI-launched kernel command port can take far longer
     # than the generic wait budget when the plugin table is cold (three
     # same-shape environment failures: ~994-entry cold load blew the fixed
@@ -535,13 +564,13 @@ $listener = Get-TcpListener -Port $httpPort
 $ScenarioMode = -not [string]::IsNullOrWhiteSpace($Scenario)
 # Journeys own the full berth (kernel + agent); one flag for every journey
 # card. Defined for every mode so later references stay StrictMode-safe.
-$journeyBerth = ($ScenarioMode -and ($Scenario -eq "journey_first" -or $Scenario -eq "journey_plugin_load"))
+$journeyBerth = ($ScenarioMode -and ($Scenario -eq "journey_first" -or $Scenario -eq "journey_plugin_load" -or $Scenario -eq "journey_free_state_nl"))
 $ScenarioKernelProcId = $null
 $ScenarioAgentProcId = $null
 $ScenarioRunDir = ""
 if ($ScenarioMode) {
-    if ($Scenario -notin @("note_time", "range_split", "ref_diff_content", "midi_register", "render_freeze", "journey_first", "journey_plugin_load", "all")) {
-        throw ("unknown -Scenario value '" + $Scenario + "'; expected note_time, range_split, ref_diff_content, midi_register, render_freeze, journey_first, journey_plugin_load, or all")
+    if ($Scenario -notin @("note_time", "range_split", "ref_diff_content", "midi_register", "render_freeze", "journey_first", "journey_plugin_load", "journey_free_state_nl", "all")) {
+        throw ("unknown -Scenario value '" + $Scenario + "'; expected note_time, range_split, ref_diff_content, midi_register, render_freeze, journey_first, journey_plugin_load, journey_free_state_nl, or all")
     }
     if ($StartUI) {
         throw "-Scenario berth mode never starts the Godot UI (card constraint: webui/Godot untouched)"
@@ -562,6 +591,9 @@ if ($ScenarioMode) {
         }
         elseif ($Scenario -eq "journey_plugin_load") {
             $scenarioRunsRoot = "coord\runs\JOURNEY-2"
+        }
+        elseif ($Scenario -eq "journey_free_state_nl") {
+            $scenarioRunsRoot = "coord\runs\JOURNEY-3"
         }
         $RunArtifactsDir = Join-Path $RepoRoot ($scenarioRunsRoot + "\" + (Get-Date -Format "yyyyMMdd_HHmmss"))
     }
@@ -2716,6 +2748,677 @@ if ($ScenarioMode) {
             after_rack_plugins_type = $journeyRackPluginsType
             after_rack_plugin_rows = [int]$journeyRackPluginObjectRows.Count
             after_rack_plugin_ids = @($journeyRackPluginIds.ToArray())
+            authority_probe = [string](Get-OptionalProperty -Object $journeyAuthorityProbe -Name "stop_reason")
+            finished_at = (Get-Date).ToString("o")
+        }
+        $journeySummary | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "journey_summary.json") -Encoding UTF8
+    }
+
+    if ($Scenario -eq "journey_free_state_nl") {
+        # JOURNEY-3 free-state NL journey gate: demo station 3, natural
+        # language face. The berth, the fixture recipe, the project-open leg
+        # and the authority leg are the J1/J2 journey reused (JOURNEYS.md
+        # section 1, J3 row); this journey's own face is ONE real-LLM
+        # free-state experiment round driven by a fixed Chinese utterance.
+        #
+        # Probabilistic face (AGENTS.md section 8, card-settled): N=3 rounds
+        # = three separate invocations of this scenario (fresh berth + fixture
+        # each round); success = >=1 round walking proposal -> confirm ->
+        # apply -> A/B card mounted; failure classes are recorded per round,
+        # never thrown. Assembly-face evidence only -- stop_reason family,
+        # pending confirmation faces, the /agent/events timeline, audition
+        # markers -- reply text semantics are NEVER asserted.
+        #
+        # Exit-0 gate = deterministic sub-faces ONLY:
+        #   - the J1 fixture/open/authority legs verbatim (throw on failure);
+        #   - when the NL round mounted a pending confirmation card, the
+        #     direct /agent/interaction/respond approve hop must answer a
+        #     parseable ChatResponse with a non-empty stop_reason and must NOT
+        #     be the consumed/expired fallback (structural route assertions;
+        #     content-level outcomes like bounds rejections are recorded as
+        #     hop_outcome and classified, not thrown).
+        # NL-round shape misses (no card, pure text, stalls) are recorded
+        # with their failure classification and do NOT crash the exit code.
+        # Note the full-access policy (B6 ruling #3, improvement_proposal_
+        # workflow.go: the native-domain proposal executes directly with
+        # full_access_auto_authorized and mounts no user card): a cardless
+        # applied round is an honest recorded outcome (auto_applied_no_card),
+        # not a gate failure.
+        Write-Step "Scenario journey_free_state_nl: demo journey -- berth + J1 legs -> one real-LLM free-state experiment round -> confirm hop -> post-application chain"
+        $journeyInvokeUri = $AgentHttp.TrimEnd("/") + "/agent/invoke"
+        $journeyChatUri = $AgentHttp.TrimEnd("/") + "/agent/chat"
+        $journeyAuthorityUri = $AgentHttp.TrimEnd("/") + "/agent/authority"
+        $journeyStateUri = $AgentHttp.TrimEnd("/") + "/agent/state"
+        $journeyUiStateUri = $AgentHttp.TrimEnd("/") + "/agent/ui/state"
+        $journeyRuntimeUri = $AgentHttp.TrimEnd("/") + "/agent/runtime/status"
+        $journeyRespondUri = $AgentHttp.TrimEnd("/") + "/agent/interaction/respond"
+        $journeyEventsUri = $AgentHttp.TrimEnd("/") + "/agent/events"
+        $journeyStamp = Get-Date -Format "yyyyMMdd_HHmmss"
+        $journeyInvoke = {
+            param([string]$Tool, [object]$ToolArgs, [int]$TimeoutSec)
+            Invoke-Json -Method POST -Uri $journeyInvokeUri -Body @{
+                tool = $Tool
+                args = $ToolArgs
+                confirmed = $true
+                source = "dev_agent_smoke.journey_free_state_nl"
+            } -TimeoutSec $TimeoutSec
+        }
+
+        # Fixed utterance (the deterministic input face; card constraint):
+        # ASCII-safe base64, same rule as journey1_demo_journey_smoke.ps1.
+        # The decoded text is preserved verbatim in journey_nl_prompt.txt.
+        $nlPromptDefaultB64 = "6K+35a+55b2T5YmN6LS05ZSx5bel56iL5YGa5LiA5qyh6Ieq55Sx5oCB5a6e6aqM77ya5Z+65LqO6KeC5a+f6K+B5o2u5pS55ZaE5Lq65aOw5LiO5Ly05aWP55qE5bmz6KGh77yM5omn6KGM5ZCO6K6p5oiR6K+V5ZCs5a+55q+U5pWI5p6c44CC"
+        $nlPromptB64 = $nlPromptDefaultB64
+        $nlPromptOverridden = $false
+        if (-not [string]::IsNullOrWhiteSpace($JourneyNlPromptBase64)) {
+            $nlPromptB64 = $JourneyNlPromptBase64
+            $nlPromptOverridden = $true
+        }
+        $nlPrompt = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($nlPromptB64))
+        $nlPrompt | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "journey_nl_prompt.txt") -Encoding UTF8
+
+        # ---------------- fixture: J1 recipe, verbatim ----------------------
+        # WriteLease recipe (VITNOTE-IMPL-4): the two stem names feed the
+        # staticbalance name-inference vocabulary and the sustained tones
+        # carry the DAD L1 features. Everything lives inside the run dir.
+        Write-Step "Journey fixture: build the two-stem project, bake DAD analysis, persist"
+        Write-LeaseSmokeStemWav -Path (Join-Path $JourneyStemsDir "Lead Vocal.wav") -Amplitude 0.5 -Frequency 440.0 | Out-Null
+        Write-LeaseSmokeStemWav -Path (Join-Path $JourneyStemsDir "Bass.wav") -Amplitude 0.35 -Frequency 110.0 | Out-Null
+        $journeyProjectPath = Join-Path $JourneyProjectDir "journey_fixture.vit"
+        $null = & $journeyInvoke "project.new" @{} 60
+        $journeyImport = & $journeyInvoke "project.import_folder_as_stems" @{
+            folder_path = $JourneyStemsDir
+            recursive = $false
+            target_policy = "create_tracks"
+            start_time_seconds = 0.0
+            skip_unreadable = $false
+            command_timeout_ms = 60000
+        } 120
+        if ([string]$journeyImport.status -ne "ok") {
+            throw ("journey fixture stems import failed: " + ($journeyImport | ConvertTo-Json -Depth 8 -Compress))
+        }
+        $journeyImportResult = Get-OptionalProperty -Object $journeyImport -Name "result"
+        $journeyJobId = [string](Get-FirstPropertyValue -Object $journeyImportResult -Names @("analysis_job_id"))
+        if ([string]::IsNullOrWhiteSpace($journeyJobId)) {
+            $journeyImportJob = Get-OptionalProperty -Object $journeyImportResult -Name "analysis_job"
+            $journeyJobId = [string](Get-FirstPropertyValue -Object $journeyImportJob -Names @("analysis_job_id", "job_id"))
+        }
+        if ([string]::IsNullOrWhiteSpace($journeyJobId)) {
+            throw ("journey fixture import returned no analysis job id: " + ($journeyImport | ConvertTo-Json -Depth 8 -Compress))
+        }
+        $null = & $journeyInvoke "project.audio_analysis_start" @{ analysis_job_id = $journeyJobId; interval_ms = 10 } 60
+        $journeyDadDeadline = (Get-Date).AddSeconds(240)
+        $journeyDadReady = $false
+        $journeyDadTotal = 0
+        while ((Get-Date) -lt $journeyDadDeadline) {
+            $journeyDad = & $journeyInvoke "project.audio_analysis_status" @{ analysis_job_id = $journeyJobId; latest = $true } 60
+            $journeyDadResult = Get-OptionalProperty -Object $journeyDad -Name "result"
+            $journeyDadJob = Get-OptionalProperty -Object $journeyDadResult -Name "analysis_job"
+            $journeyDadTotal = [int](Get-FirstPropertyValue -Object $journeyDadJob -Names @("dad_fact_total_count", "dad_fact_total"))
+            $journeyDadReadyCount = [int](Get-FirstPropertyValue -Object $journeyDadJob -Names @("dad_fact_ready_count"))
+            $journeyDadStatus = [string](Get-FirstPropertyValue -Object $journeyDadJob -Names @("dad_fact_status"))
+            $journeyDadWaveforms = @(Get-OptionalProperty -Object $journeyDadJob -Name "track_waveform_envelopes")
+            if ($journeyDadTotal -gt 0 -and $journeyDadReadyCount -ge $journeyDadTotal -and $journeyDadStatus.ToLower() -eq "ready" -and $journeyDadWaveforms.Count -ge $journeyDadTotal) {
+                $journeyDadReady = $true
+                break
+            }
+            Start-Sleep -Seconds 1
+        }
+        if (-not $journeyDadReady) {
+            throw "journey fixture DAD analysis did not become ready within 240s"
+        }
+        Write-Ok ("fixture DAD ready (tracks=" + [string]$journeyDadTotal + ")")
+        $journeySave = & $journeyInvoke "project.save_as" @{ file_path = $journeyProjectPath } 60
+        if ([string]$journeySave.status -ne "ok") {
+            throw ("journey fixture save_as failed: " + ($journeySave | ConvertTo-Json -Depth 8 -Compress))
+        }
+        if (-not (Test-Path -LiteralPath $journeyProjectPath)) {
+            throw ("journey fixture project file missing after save_as: " + $journeyProjectPath)
+        }
+        $null = & $journeyInvoke "project.new" @{} 60
+        Write-Ok ("fixture persisted: " + $journeyProjectPath)
+
+        # ---------------- LEG 1: project open (journey start state) ---------
+        # J1 owns the deep open assertions (identity/session evidence); this
+        # journey only needs the restored two-stem state the NL round lands
+        # on (J2-light reuse).
+        Write-Step "LEG 1 (project open): open_project through the agent tool face"
+        $journeyOpen = & $journeyInvoke "project.open" @{ file_path = $journeyProjectPath } 180
+        $journeyOpen | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "journey_open_response.json") -Encoding UTF8
+        if ([string]$journeyOpen.status -ne "ok") {
+            throw ("journey project.open failed: " + ($journeyOpen | ConvertTo-Json -Depth 8 -Compress))
+        }
+        Start-Sleep -Seconds 4
+        $journeyUiState = Invoke-Json -Method GET -Uri $journeyUiStateUri -TimeoutSec 60
+        $journeyUiState | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "journey_ui_state_after_open.json") -Encoding UTF8
+        $journeyTrackRows = @()
+        $journeyTracksProp = Get-OptionalProperty -Object $journeyUiState -Name "tracks"
+        if ($null -ne $journeyTracksProp) {
+            if ($journeyTracksProp -is [System.Management.Automation.PSCustomObject]) {
+                foreach ($journeyTrackProp in $journeyTracksProp.PSObject.Properties) {
+                    $journeyTrackRows += $journeyTrackProp.Value
+                }
+            }
+            else {
+                $journeyTrackRows = @($journeyTracksProp)
+            }
+        }
+        $journeyTrackNames = New-Object System.Collections.Generic.List[string]
+        foreach ($journeyTrackRow in $journeyTrackRows) {
+            if ($null -eq $journeyTrackRow) { continue }
+            $journeyTrackName = [string](Get-OptionalProperty -Object $journeyTrackRow -Name "name")
+            if ([string]::IsNullOrWhiteSpace($journeyTrackName)) {
+                $journeyTrackName = [string](Get-OptionalProperty -Object $journeyTrackRow -Name "track_name")
+            }
+            if (-not [string]::IsNullOrWhiteSpace($journeyTrackName)) { $journeyTrackNames.Add($journeyTrackName) }
+        }
+        if ($journeyTrackNames.Count -ne 2) {
+            throw ("journey open did not restore the two-stem project: tracks=[" + ($journeyTrackNames.ToArray() -join ",") + "]")
+        }
+        $journeyTracksJoined = $journeyTrackNames.ToArray() -join ","
+        if (-not ($journeyTracksJoined.Contains("Lead Vocal")) -or -not ($journeyTracksJoined.Contains("Bass"))) {
+            throw ("journey open restored unexpected track names: [" + $journeyTracksJoined + "]")
+        }
+        Write-Ok ("open restored both stems: [" + $journeyTracksJoined + "]")
+
+        # ---------------- LEG 2: authority grant (J1 P2 leg, verbatim) ------
+        Write-Step "LEG 2 (authority grant): full project access switches and binds the input chain"
+        $journeyAuthoritySwitch = Invoke-Json -Method POST -Uri $journeyAuthorityUri -Body @{ authority_mode = "full_project_access" } -TimeoutSec 30
+        $journeyAuthoritySwitch | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "journey_authority_switch.json") -Encoding UTF8
+        if ([string]$journeyAuthoritySwitch.status -ne "ok" -or [string](Get-OptionalProperty -Object $journeyAuthoritySwitch -Name "authority_mode") -ne "full_project_access") {
+            throw ("journey authority switch refused: " + ($journeyAuthoritySwitch | ConvertTo-Json -Depth 6 -Compress))
+        }
+        $journeyHoldDeadline = (Get-Date).AddSeconds(8)
+        while ((Get-Date) -lt $journeyHoldDeadline) {
+            $null = Invoke-Json -Method GET -Uri $journeyRuntimeUri -TimeoutSec 60
+            Start-Sleep -Milliseconds 800
+        }
+        $journeyAuthorityHeld = Invoke-Json -Method GET -Uri $journeyAuthorityUri -TimeoutSec 60
+        if ([string](Get-OptionalProperty -Object $journeyAuthorityHeld -Name "authority_mode") -ne "full_project_access") {
+            throw ("journey authority mode flipped after the hold window: " + ($journeyAuthorityHeld | ConvertTo-Json -Depth 6 -Compress))
+        }
+        Write-Ok "authority held full_project_access across the activation window"
+        # Input-chain probe (AUTHORITY-LOST-1 face): server-owned, no LLM.
+        $journeyAuthorityProbe = Invoke-Json -Method POST -Uri $journeyChatUri -Body @{
+            conversation_id = ("dev_journey_fs_nl_authority_" + $journeyStamp)
+            message = "/smoke authority"
+            context = @{
+                agent_mode = "chat"
+            }
+        } -TimeoutSec ([Math]::Max(30, $WaitSeconds))
+        $journeyAuthorityProbe | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "journey_authority_probe.json") -Encoding UTF8
+        if ([string](Get-OptionalProperty -Object $journeyAuthorityProbe -Name "stop_reason") -ne "authority_smoke_ok" -or -not (([string](Get-OptionalProperty -Object $journeyAuthorityProbe -Name "reply")).Contains("bound=full_project_access"))) {
+            throw ("journey authority input-chain probe did not bind full access: " + ($journeyAuthorityProbe | ConvertTo-Json -Depth 8 -Compress))
+        }
+        if ([bool](Get-OptionalProperty -Object $journeyAuthorityProbe -Name "needs_confirmation")) {
+            throw "journey authority probe raised a confirmation card under full access"
+        }
+        Write-Ok "input chain binds full_project_access with no confirmation card"
+
+        # ---------------- LEG 3: free-state NL round (probabilistic face) ---
+        # One real-LLM journey round: fixed utterance, then bounded fixed
+        # nudges at conversational boundaries. The free-state chain runs as
+        # a multi-turn conversation (trajectory rounds, then a boundary that
+        # waits for the user to continue); the journey1 evidence tool drove
+        # the same face with a fixed nudge, so this leg does too (fixed
+        # strings only -- deterministic input face). Evidence surfaces: the
+        # per-turn /agent/chat responses, the durable
+        # /agent/runtime/status continuation while the chain settles, and
+        # the /agent/events timeline. Everything here is RECORDED and
+        # classified; nothing throws on a shape miss.
+        Write-Step "LEG 3 (free-state NL round): fixed utterance (+ bounded nudges) -> real LLM chain -> settle -> assembly-face capture"
+        $nlTimeline = New-Object System.Collections.Generic.List[string]
+        $nlConversationID = "dev_journey_fs_nl_" + $journeyStamp
+        # Fixed nudge (ASCII-safe base64, journey1 evidence-tool precedent).
+        $nlNudge = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String("5Y+v5Lul5omn6KGM"))
+        $nlChatResponses = New-Object System.Collections.Generic.List[object]
+        $nlTurnStopReasons = New-Object System.Collections.Generic.List[string]
+        $nlRaw = $null
+        $nlTransportError = ""
+        $nlRawStop = ""
+        $nlRawGoal = ""
+        $nlRawNeedsConfirmation = $false
+        $nlRawReplyPresent = $false
+        $nlFirstStopReason = ""
+        $nlCardID = ""
+        $nlCardKind = ""
+        $nlCardSource = ""
+        $nlRuntimeFinal = $null
+        $nlGoalStatus = ""
+        $nlSettleReason = "budget_exhausted"
+        $nlTurnsSent = 0
+        $nlNudgesSent = 0
+        $nlSendPending = $true
+        $nlTerminalGoals = @("completed", "failed", "stopped", "cancelled", "waiting_confirmation", "waiting_clarification")
+        $nlSettleDeadline = (Get-Date).AddSeconds($JourneyNlSettleSeconds)
+        while ((Get-Date) -lt $nlSettleDeadline) {
+            # ---- send: initial utterance first, then nudges at boundaries --
+            if ($nlSendPending) {
+                $nlSendPending = $false
+                $nlTurnsSent++
+                $nlIsNudge = ($nlTurnsSent -gt 1)
+                if ($nlIsNudge) { $nlNudgesSent++ }
+                $nlTurnMessage = $nlPrompt
+                if ($nlIsNudge) { $nlTurnMessage = $nlNudge }
+                $nlTurnRaw = $null
+                $nlTurnError = ""
+                try {
+                    $nlTurnRaw = Invoke-Json -Method POST -Uri $journeyChatUri -Body @{
+                        conversation_id = $nlConversationID
+                        message = $nlTurnMessage
+                        context = @{
+                            agent_mode = "chat"
+                        }
+                    } -TimeoutSec $JourneyNlTurnSeconds
+                }
+                catch {
+                    $nlTurnRaw = $null
+                    if ($null -ne $_.ErrorDetails -and -not [string]::IsNullOrWhiteSpace($_.ErrorDetails.Message)) { $nlTurnError = $_.ErrorDetails.Message }
+                    else { $nlTurnError = $_.Exception.Message }
+                }
+                if ($null -ne $nlTurnRaw) {
+                    $nlChatResponses.Add($nlTurnRaw)
+                    $nlRaw = $nlTurnRaw
+                    $nlTurnRaw | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir ("journey_nl_chat_" + [string]$nlTurnsSent + ".json")) -Encoding UTF8
+                    if ($nlTurnsSent -eq 1) {
+                        $nlTurnRaw | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "journey_nl_chat_raw.json") -Encoding UTF8
+                    }
+                    $nlRawStop = [string](Get-OptionalProperty -Object $nlTurnRaw -Name "stop_reason")
+                    $nlRawGoal = [string](Get-OptionalProperty -Object $nlTurnRaw -Name "goal_status")
+                    $nlRawNeedsConfirmation = [bool](Get-OptionalProperty -Object $nlTurnRaw -Name "needs_confirmation")
+                    $nlRawReplyPresent = -not [string]::IsNullOrWhiteSpace([string](Get-OptionalProperty -Object $nlTurnRaw -Name "reply"))
+                    if ($nlTurnsSent -eq 1) { $nlFirstStopReason = $nlRawStop }
+                    if (-not [string]::IsNullOrWhiteSpace($nlRawStop)) { $nlTurnStopReasons.Add($nlRawStop) }
+                    $nlTimeline.Add(("chat_turn_" + [string]$nlTurnsSent + $(if ($nlIsNudge) { " (nudge)" } else { "" }) + " stop_reason=" + $nlRawStop + " goal_status=" + $nlRawGoal + " needs_confirmation=" + [string]$nlRawNeedsConfirmation))
+                    # Pending-card discovery, source 1: an unsliced park
+                    # response carries its own live card. Row objects only:
+                    # a missing array reads as one empty string row through
+                    # the @() wrapper (PS 5.1 unrolling -- the J2 rack-row
+                    # trap); an empty row must not masquerade as a card.
+                    if (-not ($nlRawGoal -eq "waiting_continue" -and ($nlRawStop -eq "limit_reached" -or [string]::IsNullOrWhiteSpace($nlRawStop)))) {
+                        foreach ($nlCardRow in @(Get-OptionalProperty -Object $nlTurnRaw -Name "interaction_requests")) {
+                            if ($null -eq $nlCardRow -or -not ($nlCardRow -is [System.Management.Automation.PSCustomObject])) { continue }
+                            $nlRowKind = [string](Get-OptionalProperty -Object $nlCardRow -Name "kind")
+                            if ([string]::IsNullOrWhiteSpace($nlRowKind)) { $nlRowKind = [string](Get-OptionalProperty -Object $nlCardRow -Name "type") }
+                            if ($nlRowKind.ToLower().Contains("confirmation")) {
+                                $nlCardID = [string](Get-OptionalProperty -Object $nlCardRow -Name "id")
+                                if ([string]::IsNullOrWhiteSpace($nlCardID)) { $nlCardID = [string](Get-OptionalProperty -Object $nlCardRow -Name "interaction_id") }
+                                $nlCardKind = $nlRowKind
+                                $nlCardSource = "chat_response"
+                            }
+                        }
+                    }
+                }
+                else {
+                    $nlTransportError = $nlTurnError
+                    $nlTurnError | Set-Content -LiteralPath (Join-Path $ScenarioRunDir ("journey_nl_chat_" + [string]$nlTurnsSent + "_error.txt")) -Encoding UTF8
+                    $nlTimeline.Add(("chat_turn_" + [string]$nlTurnsSent + " transport_error=" + $nlTurnError))
+                    if ($nlTurnsSent -eq 1) {
+                        # The initial utterance never reached the chain:
+                        # environment-interrupt class, nothing to settle.
+                        $nlSettleReason = "initial_transport_error"
+                        break
+                    }
+                    # A nudge transport failure still leaves whatever the
+                    # chain already reached; keep polling.
+                }
+            }
+            Start-Sleep -Seconds 5
+            # ---- poll the durable continuation ------------------------------
+            $nlRuntimePoll = $null
+            try { $nlRuntimePoll = Invoke-Json -Method GET -Uri $journeyRuntimeUri -TimeoutSec 30 } catch { $nlRuntimePoll = $null }
+            if ($null -eq $nlRuntimePoll) { continue }
+            $nlRuntimeFinal = $nlRuntimePoll
+            $nlGoalProp = Get-OptionalProperty -Object $nlRuntimePoll -Name "goal"
+            $nlGoalStatus = [string](Get-OptionalProperty -Object $nlGoalProp -Name "status")
+            # Pending-card discovery, source 2: the durable continuation
+            # park (mix tick e2e precedent).
+            $nlWalkedCardID = ""
+            $nlWalkedCardKind = ""
+            $nlContinuationActive = $false
+            foreach ($nlContinuationRow in @(Get-OptionalProperty -Object $nlRuntimePoll -Name "continuations")) {
+                if ($null -eq $nlContinuationRow -or -not ($nlContinuationRow -is [System.Management.Automation.PSCustomObject])) { continue }
+                $nlContStatus = [string](Get-OptionalProperty -Object $nlContinuationRow -Name "status")
+                if ($nlContStatus -in @("pending", "claimed", "running")) { $nlContinuationActive = $true }
+                $nlPendingInteraction = Get-OptionalProperty -Object $nlContinuationRow -Name "pending_interaction"
+                if ($null -eq $nlPendingInteraction -or -not ($nlPendingInteraction -is [System.Management.Automation.PSCustomObject])) { continue }
+                $nlPendingKind = [string](Get-OptionalProperty -Object $nlPendingInteraction -Name "kind")
+                if (-not $nlPendingKind.ToLower().Contains("confirmation")) { continue }
+                $nlWalkedCardID = [string](Get-FirstPropertyValue -Object $nlPendingInteraction -Names @("interaction_id", "id"))
+                $nlWalkedCardKind = $nlPendingKind
+            }
+            if (-not [string]::IsNullOrWhiteSpace($nlWalkedCardID)) {
+                $nlCardID = $nlWalkedCardID
+                $nlCardKind = $nlWalkedCardKind
+                $nlCardSource = "runtime_status"
+                $nlSettleReason = "card_parked"
+                $nlTimeline.Add(("settle card_parked kind=" + $nlCardKind + " goal_status=" + $nlGoalStatus))
+                break
+            }
+            if ($nlTerminalGoals -contains $nlGoalStatus) {
+                $nlSettleReason = "goal_terminal"
+                $nlTimeline.Add(("settle goal_terminal status=" + $nlGoalStatus))
+                break
+            }
+            # Conversational boundary: goal waiting_continue, nothing active,
+            # no card -- the chain finished its rounds for this turn and
+            # waits for the user. Send the fixed nudge (bounded).
+            if ($nlGoalStatus -eq "waiting_continue" -and -not $nlContinuationActive) {
+                if ($nlNudgesSent -lt $JourneyNlMaxNudges) {
+                    $nlTimeline.Add(("boundary: goal waiting_continue with no active continuation -> fixed nudge " + [string]($nlNudgesSent + 1) + "/" + [string]$JourneyNlMaxNudges))
+                    $nlSendPending = $true
+                }
+                else {
+                    $nlSettleReason = "boundary_no_nudges_left"
+                    $nlTimeline.Add("boundary: no nudges left; chain parked without a card")
+                    break
+                }
+            }
+        }
+        if ($nlSettleReason -eq "budget_exhausted") {
+            $nlTimeline.Add(("settle budget_exhausted goal_status=" + $nlGoalStatus))
+        }
+        if ($null -ne $nlRuntimeFinal) {
+            $nlRuntimeFinal | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "journey_nl_runtime_status_final.json") -Encoding UTF8
+        }
+
+        # Events timeline: the capability/experiment chain face (audition
+        # markers, mix tick / applied / intervention events all ride the
+        # conversation event stream -- J1-journey A3 precedent).
+        $nlEvents = $null
+        try { $nlEvents = Invoke-Json -Method GET -Uri ($journeyEventsUri + "?conversation_id=" + [uri]::EscapeDataString($nlConversationID) + "&since=0&limit=500") -TimeoutSec 60 } catch { $nlEvents = $null }
+        if ($null -ne $nlEvents) {
+            $nlEvents | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "journey_nl_events.json") -Encoding UTF8
+        }
+        $nlEventTypes = New-Object System.Collections.Generic.List[string]
+        foreach ($nlEventRow in @(Get-OptionalProperty -Object $nlEvents -Name "events")) {
+            $nlEventType = [string](Get-OptionalProperty -Object $nlEventRow -Name "type")
+            if (-not [string]::IsNullOrWhiteSpace($nlEventType)) { $nlEventTypes.Add($nlEventType) }
+        }
+        $nlEventsText = ""
+        if ($null -ne $nlEvents) { $nlEventsText = ($nlEvents | ConvertTo-Json -Depth 14 -Compress) }
+        $nlAuditionEvents = @($nlEventTypes.ToArray() | Where-Object { $_.StartsWith("audition.") })
+        $nlMixTickEvents = @($nlEventTypes.ToArray() | Where-Object { $_ -like "*mix_tick*" })
+        $nlAppliedEvents = @($nlEventTypes.ToArray() | Where-Object { $_ -like "*applied*" -or $_ -like "*intervention*" })
+        $nlAuditionSessionSeen = $nlEventsText.Contains("audition_session_id")
+        $nlTimeline.Add(("events count=" + [string]$nlEventTypes.Count + " audition=" + [string]$nlAuditionEvents.Count + " mix_tick=" + [string]$nlMixTickEvents.Count + " applied_like=" + [string]$nlAppliedEvents.Count + " audition_session_id=" + [string]$nlAuditionSessionSeen))
+
+        # ---------------- LEG 4: confirmation hops (deterministic gate) -----
+        # Direct-drive approve through /agent/interaction/respond on the
+        # pending confirmation card(s) the round mounted. The hop is the
+        # exit-0 deterministic sub-face WHEN a card exists: the route must
+        # answer a parseable ChatResponse with a non-empty stop_reason and
+        # must not be the consumed/expired fallback. Content-level outcomes
+        # (bounds rejections, execution failures) are recorded and
+        # classified, not thrown. No card -> nothing to drive (recorded).
+        Write-Step "LEG 4 (confirm hop): direct-drive /agent/interaction/respond on the pending confirmation card"
+        $nlHops = New-Object System.Collections.Generic.List[object]
+        $nlHopIndex = 0
+        $nlHopGate = "not_driven_no_card"
+        $nlLastHopResponse = $null
+        while ($nlHopIndex -lt $JourneyNlMaxHops -and -not [string]::IsNullOrWhiteSpace($nlCardID)) {
+            $nlHopIndex++
+            $nlHopResponse = $null
+            $nlHopError = ""
+            try {
+                $nlHopResponse = Invoke-Json -Method POST -Uri $journeyRespondUri -Body @{
+                    interaction_id = $nlCardID
+                    action_id = "approve"
+                    decision = "approve"
+                    payload = @{}
+                } -TimeoutSec 300
+            }
+            catch {
+                $nlHopResponse = $null
+                if ($null -ne $_.ErrorDetails -and -not [string]::IsNullOrWhiteSpace($_.ErrorDetails.Message)) { $nlHopError = $_.ErrorDetails.Message }
+                else { $nlHopError = $_.Exception.Message }
+            }
+            $nlHopStop = ""
+            $nlHopGoal = ""
+            $nlHopExpiredFallback = $false
+            $nlHopAutoAuthorized = $false
+            $nlHopMutation = $false
+            if ($null -ne $nlHopResponse) {
+                $nlHopStop = [string](Get-OptionalProperty -Object $nlHopResponse -Name "stop_reason")
+                $nlHopGoal = [string](Get-OptionalProperty -Object $nlHopResponse -Name "goal_status")
+                $nlHopWorkflowData = Get-OptionalProperty -Object $nlHopResponse -Name "workflow_data"
+                $nlHopAutoAuthorized = [bool](Get-OptionalProperty -Object $nlHopWorkflowData -Name "full_access_auto_authorized")
+                $nlHopMutation = [bool](Get-OptionalProperty -Object $nlHopWorkflowData -Name "mutation_performed")
+                # The consumed/expired fallback answers goal_status=completed
+                # with no stop_reason (server.go handleInteractionRespond).
+                if ([string]::IsNullOrWhiteSpace($nlHopStop) -and $nlHopGoal -eq "completed") { $nlHopExpiredFallback = $true }
+            }
+            $nlHopOk = ($null -ne $nlHopResponse) -and (-not [string]::IsNullOrWhiteSpace($nlHopStop)) -and (-not $nlHopExpiredFallback)
+            $nlHops.Add([pscustomobject]@{
+                index = $nlHopIndex
+                interaction_id = $nlCardID
+                kind = $nlCardKind
+                ok = $nlHopOk
+                stop_reason = $nlHopStop
+                goal_status = $nlHopGoal
+                expired_fallback = $nlHopExpiredFallback
+                auto_authorized = $nlHopAutoAuthorized
+                mutation_performed = $nlHopMutation
+                error = $nlHopError
+            })
+            $nlTimeline.Add(("hop_" + [string]$nlHopIndex + " kind=" + $nlCardKind + " ok=" + [string]$nlHopOk + " stop_reason=" + $nlHopStop + " goal_status=" + $nlHopGoal))
+            if ($null -ne $nlHopResponse) {
+                $nlHopResponse | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir ("journey_nl_hop_" + [string]$nlHopIndex + "_respond.json")) -Encoding UTF8
+            }
+            if (-not [string]::IsNullOrWhiteSpace($nlHopError)) {
+                $nlHopError | Set-Content -LiteralPath (Join-Path $ScenarioRunDir ("journey_nl_hop_" + [string]$nlHopIndex + "_error.txt")) -Encoding UTF8
+            }
+            # Deterministic gate (exit sub-face): a driven hop must route.
+            if (-not $nlHopOk) {
+                $nlHopGate = "fail"
+                throw ("journey confirm hop " + [string]$nlHopIndex + " did not route: expired_fallback=" + [string]$nlHopExpiredFallback + " stop_reason=" + $nlHopStop + " goal_status=" + $nlHopGoal + " error=" + $nlHopError)
+            }
+            $nlHopGate = "pass"
+            $nlLastHopResponse = $nlHopResponse
+            # Next card: the routed response may mount the next confirmation
+            # in the chain (proposal -> exact tick); judgment/audition cards
+            # are NOT confirmation-family and end the hop loop (J4's face).
+            $nlNextCardID = ""
+            $nlNextCardKind = ""
+            if ($null -ne $nlHopResponse) {
+                foreach ($nlCardRow in @(Get-OptionalProperty -Object $nlHopResponse -Name "interaction_requests")) {
+                    if ($null -eq $nlCardRow -or -not ($nlCardRow -is [System.Management.Automation.PSCustomObject])) { continue }
+                    $nlRowKind = [string](Get-OptionalProperty -Object $nlCardRow -Name "kind")
+                    if ([string]::IsNullOrWhiteSpace($nlRowKind)) { $nlRowKind = [string](Get-OptionalProperty -Object $nlCardRow -Name "type") }
+                    if ($nlRowKind.ToLower().Contains("confirmation")) {
+                        $nlNextCardID = [string](Get-OptionalProperty -Object $nlCardRow -Name "id")
+                        if ([string]::IsNullOrWhiteSpace($nlNextCardID)) { $nlNextCardID = [string](Get-OptionalProperty -Object $nlCardRow -Name "interaction_id") }
+                        $nlNextCardKind = $nlRowKind
+                    }
+                }
+            }
+            if ([string]::IsNullOrWhiteSpace($nlNextCardID)) { break }
+            $nlCardID = $nlNextCardID
+            $nlCardKind = $nlNextCardKind
+            $nlCardSource = "hop_response"
+        }
+        if ($nlHopIndex -gt 0) {
+            Write-Ok ("confirm hops driven: " + [string]$nlHopIndex + " (gate=" + $nlHopGate + ")")
+        }
+        else {
+            Write-WarnLine "no pending confirmation card mounted; hop not driven (full-access auto-authorized chains mount no user card -- recorded, not a gate failure)"
+        }
+
+        # ---------------- LEG 5: post-application chain ----------------------
+        # Re-read the event stream after the hops; judge applied/audition on
+        # the assembly faces only.
+        Start-Sleep -Seconds 5
+        $nlEventsAfter = $null
+        try { $nlEventsAfter = Invoke-Json -Method GET -Uri ($journeyEventsUri + "?conversation_id=" + [uri]::EscapeDataString($nlConversationID) + "&since=0&limit=500") -TimeoutSec 60 } catch { $nlEventsAfter = $null }
+        if ($null -ne $nlEventsAfter) {
+            $nlEventsAfter | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "journey_nl_events_after_hop.json") -Encoding UTF8
+        }
+        $nlEventTypesAfter = New-Object System.Collections.Generic.List[string]
+        foreach ($nlEventRow in @(Get-OptionalProperty -Object $nlEventsAfter -Name "events")) {
+            $nlEventType = [string](Get-OptionalProperty -Object $nlEventRow -Name "type")
+            if (-not [string]::IsNullOrWhiteSpace($nlEventType)) { $nlEventTypesAfter.Add($nlEventType) }
+        }
+        $nlEventsAfterText = ""
+        if ($null -ne $nlEventsAfter) { $nlEventsAfterText = ($nlEventsAfter | ConvertTo-Json -Depth 14 -Compress) }
+        $nlAuditionEventsAfter = @($nlEventTypesAfter.ToArray() | Where-Object { $_.StartsWith("audition.") })
+        $nlMixTickEventsAfter = @($nlEventTypesAfter.ToArray() | Where-Object { $_ -like "*mix_tick*" })
+        $nlAppliedEventsAfter = @($nlEventTypesAfter.ToArray() | Where-Object { $_ -like "*applied*" -or $_ -like "*intervention*" })
+        $nlAuditionSessionSeenAfter = $nlEventsAfterText.Contains("audition_session_id")
+        $nlTimeline.Add(("events_after count=" + [string]$nlEventTypesAfter.Count + " audition=" + [string]$nlAuditionEventsAfter.Count + " mix_tick=" + [string]$nlMixTickEventsAfter.Count + " applied_like=" + [string]$nlAppliedEventsAfter.Count + " audition_session_id=" + [string]$nlAuditionSessionSeenAfter))
+
+        # Applied signal: hop stop reasons in the executed families, a
+        # workflow_data.mutation_performed / full_access_auto_authorized
+        # marker on any turn or hop response, or mix_tick/applied chain
+        # events on the stream.
+        $nlAppliedStopFamilies = @("mix_tick_applied_reobserved", "d1_post_action_evaluation_required", "improvement_proposal_accepted")
+        $nlAppliedByStop = $false
+        $nlAppliedBasis = ""
+        $nlAnyAutoAuthorized = $false
+        foreach ($nlTurnResponse in @($nlChatResponses.ToArray())) {
+            if ([bool](Get-OptionalProperty -Object (Get-OptionalProperty -Object $nlTurnResponse -Name "workflow_data") -Name "full_access_auto_authorized")) { $nlAnyAutoAuthorized = $true }
+            if ([bool](Get-OptionalProperty -Object (Get-OptionalProperty -Object $nlTurnResponse -Name "workflow_data") -Name "mutation_performed")) { $nlAppliedByStop = $true }
+        }
+        foreach ($nlHopRow in @($nlHops.ToArray())) {
+            if ($nlAppliedStopFamilies -contains [string]$nlHopRow.stop_reason) { $nlAppliedByStop = $true }
+            if ([bool]$nlHopRow.mutation_performed) { $nlAppliedByStop = $true }
+        }
+        if ($nlAnyAutoAuthorized) { $nlAppliedByStop = $true; $nlAppliedBasis = "full_access_auto_authorized_response" }
+        if (-not $nlAppliedByStop -and ($nlMixTickEventsAfter.Count -gt 0 -or $nlAppliedEventsAfter.Count -gt 0)) { $nlAppliedByStop = $true; $nlAppliedBasis = "chain_events" }
+        if ($nlAppliedByStop -and [string]::IsNullOrWhiteSpace($nlAppliedBasis)) { $nlAppliedBasis = "hop_response" }
+        # A/B card mounted: audition candidate face on the event stream
+        # (audition.* events or an audition_session_id payload marker).
+        $nlAbCard = ($nlAuditionEventsAfter.Count -gt 0) -or $nlAuditionSessionSeenAfter
+        $nlTimeline.Add(("applied=" + [string]$nlAppliedByStop + " basis=" + $nlAppliedBasis + " ab_card=" + [string]$nlAbCard))
+
+        # ---------------- round classification (section 8 classes) ----------
+        $nlStopReasonsObserved = New-Object System.Collections.Generic.List[string]
+        foreach ($nlTurnStop in @($nlTurnStopReasons.ToArray())) {
+            if (-not [string]::IsNullOrWhiteSpace($nlTurnStop)) { $nlStopReasonsObserved.Add($nlTurnStop) }
+        }
+        foreach ($nlHopRow in @($nlHops.ToArray())) {
+            if (-not [string]::IsNullOrWhiteSpace([string]$nlHopRow.stop_reason)) { $nlStopReasonsObserved.Add([string]$nlHopRow.stop_reason) }
+        }
+        $nlClassification = "unclassified"
+        if ($null -eq $nlRaw -and -not [string]::IsNullOrWhiteSpace($nlTransportError)) {
+            $nlClassification = "environment_interrupt"
+        }
+        elseif (-not [string]::IsNullOrWhiteSpace($nlCardID) -and $nlHopIndex -gt 0) {
+            $nlClassification = "card_mounted:" + $nlCardKind
+        }
+        elseif ($nlAppliedByStop -or $nlAbCard) {
+            $nlClassification = "auto_applied_no_card"
+        }
+        elseif ($nlSettleReason -eq "budget_exhausted" -or $nlSettleReason -eq "boundary_no_nudges_left") {
+            $nlClassification = "chain_stall"
+        }
+        else {
+            $nlStopJoined = ($nlStopReasonsObserved.ToArray() -join "|") + "|" + $nlRawGoal
+            if ($nlStopJoined.Contains("no_candidate") -or $nlStopJoined.Contains("capability_blocked") -or $nlStopJoined.Contains("capability_boundary") -or $nlStopJoined.Contains("improvement_proposal_missing") -or $nlStopJoined.Contains("improvement_proposal_invalid") -or $nlStopJoined.Contains("unresolved")) {
+                $nlClassification = "no_candidate_found"
+            }
+            else {
+                # Chain-activity evidence: trajectory rounds or executed tool
+                # steps (item.completed command_name markers) on the stream.
+                # A terminal turn WITHOUT chain activity and with a reply is
+                # the model-pure-text shape; a terminal turn WITH chain
+                # activity but no proposal card ended without surfacing an
+                # experiment candidate (the no_candidate_found family).
+                $nlTrajectoryEvents = @($nlEventTypesAfter | Where-Object { $_ -like "trajectory.*" })
+                $nlChainRan = ($nlTrajectoryEvents.Count -gt 0) -or $nlEventsAfterText.Contains('"command_name":"')
+                if ($nlRawReplyPresent -and -not $nlChainRan) {
+                    $nlClassification = "model_pure_text"
+                }
+                elseif ($nlChainRan) {
+                    $nlClassification = "no_candidate_found"
+                }
+                else {
+                    $nlClassification = "other_terminal:" + $nlRawStop
+                }
+            }
+        }
+        $nlTimeline.Add("classification=" + $nlClassification)
+
+        # ---------------- LEG 6: stack health (deterministic) ---------------
+        $journeyFinalState = Invoke-Json -Method GET -Uri $journeyStateUri -TimeoutSec 10
+        if ($null -eq $journeyFinalState -or [string]$journeyFinalState.status -ne "ok") {
+            throw "journey final /agent/state did not return ok"
+        }
+        Write-Ok ("stack healthy after the journey (tool_count=" + [string]$journeyFinalState.tool_count + ")")
+
+        # ---------------- round report --------------------------------------
+        # Success predicates, both recorded honestly:
+        #   strict card chain = card mounted + confirm hop routed + applied +
+        #                       A/B card (the card's literal chain);
+        #   policy chain      = applied + A/B card with confirmation carried
+        #                       by the granted full-access policy instead of
+        #                       a user card (B6 ruling #3 auto-authorization).
+        $nlSuccessStrict = ($nlHopIndex -gt 0) -and ($nlHopGate -eq "pass") -and $nlAppliedByStop -and $nlAbCard
+        $nlConfirmationKind = "none"
+        if ($nlHopIndex -gt 0 -and $nlHopGate -eq "pass") { $nlConfirmationKind = "interaction_card" }
+        elseif ($nlAnyAutoAuthorized) { $nlConfirmationKind = "policy_auto_authorized" }
+        $nlSuccessPolicy = $nlAppliedByStop -and $nlAbCard -and ($nlConfirmationKind -ne "none")
+        $nlSummary = @{
+            journey = "journey_free_state_nl"
+            round_protocol = "one NL journey round per invocation (fixed utterance + bounded fixed nudges); card N=3 = three invocations"
+            conversation_id = $nlConversationID
+            prompt = $nlPrompt
+            prompt_overridden = $nlPromptOverridden
+            nl_turns_sent = [int]$nlTurnsSent
+            nl_nudges_sent = [int]$nlNudgesSent
+            nl_first_stop_reason = $nlFirstStopReason
+            nl_chat_transport = $(if ($null -ne $nlRaw) { "ok" } else { "error" })
+            nl_transport_error = $nlTransportError
+            nl_raw_stop_reason = $nlRawStop
+            nl_raw_goal_status = $nlRawGoal
+            nl_raw_needs_confirmation = $nlRawNeedsConfirmation
+            nl_settle_reason = $nlSettleReason
+            nl_goal_status_final = $nlGoalStatus
+            pending_card_id = $nlCardID
+            pending_card_kind = $nlCardKind
+            pending_card_source = $nlCardSource
+            stop_reasons_observed = @($nlStopReasonsObserved.ToArray())
+            event_types = @($nlEventTypesAfter.ToArray())
+            event_count = [int]$nlEventTypesAfter.Count
+            audition_event_types = @($nlAuditionEventsAfter)
+            mix_tick_event_types = @($nlMixTickEventsAfter)
+            applied_like_event_types = @($nlAppliedEventsAfter)
+            audition_session_id_seen = $nlAuditionSessionSeenAfter
+            hops = @($nlHops.ToArray())
+            hops_driven = [int]$nlHopIndex
+            hop_gate = $nlHopGate
+            applied_signal = $nlAppliedByStop
+            applied_basis = $nlAppliedBasis
+            ab_card_mounted = $nlAbCard
+            confirmation_kind = $nlConfirmationKind
+            classification = $nlClassification
+            success_strict_card_chain = $nlSuccessStrict
+            success_policy_chain = $nlSuccessPolicy
+            timeline = @($nlTimeline.ToArray())
+            authority_probe = [string](Get-OptionalProperty -Object $journeyAuthorityProbe -Name "stop_reason")
+            finished_at = (Get-Date).ToString("o")
+        }
+        $nlSummary | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "journey_nl_summary.json") -Encoding UTF8
+        if ($nlSuccessStrict) {
+            Write-Ok "NL round walked the strict card chain: proposal -> confirm hop -> apply -> A/B card"
+        }
+        elseif ($nlSuccessPolicy) {
+            Write-Ok "NL round walked the policy chain: proposal -> policy-authorized apply -> A/B card (no user card under full access)"
+        }
+        else {
+            Write-WarnLine ("NL round did not complete the chain: classification=" + $nlClassification + " (recorded; probabilistic face, exit not affected)")
+        }
+
+        $journeySummary = @{
+            journey = "journey_free_state_nl"
+            project_path = $journeyProjectPath
+            track_names = @($journeyTrackNames.ToArray())
+            conversation_id = $nlConversationID
+            classification = $nlClassification
+            success_strict_card_chain = $nlSuccessStrict
+            success_policy_chain = $nlSuccessPolicy
+            hops_driven = [int]$nlHopIndex
+            hop_gate = $nlHopGate
+            ab_card_mounted = $nlAbCard
             authority_probe = [string](Get-OptionalProperty -Object $journeyAuthorityProbe -Name "stop_reason")
             finished_at = (Get-Date).ToString("o")
         }
