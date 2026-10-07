@@ -20,5 +20,5 @@
 - 验收标准：三假设逐条有证据支持或排除（引用工件行/代码锚点）；根因裁定+修复建议落报告；决策侧复核。
 - 停止条件：工件不足以下结论（如终轮 prompt 面未留痕）→ 缺口清单上交（此时修复卡按现有证据先立 prompt 注入腿）。
 - 领取：（2026-10-07 20:42 / origin/main=a42c87e1 / main，主树单流；真栈泊位 5555/7878/5556，领取时未核监听，跑前 netstat 申报）
-- 回执：（报告路径 / 假设裁定 / 修复建议 / 是否需修复卡）
+- 回执：（报告=coord/runs/FS-NL-PROPOSAL-RECON-1/REPORT.md+evidence_extract.json / 裁定=**H2 主因+H3 触发器复合，H1 排除**——R3 模型实际返回了结构化有效提案（receipt: proposal_present/valid=true），被 G6_target_evidence+G8_target_consistency 准入门拒后 loop=capability_blocked，goalrunner_chat.go:478 响应门未路由边界而把模型散文终答当 done/completed 投递（治理面零卡）；R2 为另一形态（模型连续 needs_observation 烧完预算、从未提案，与 R3 治理面同形机制不同形）/ 修复建议=①修复面兜底腿（capability_blocked 显式边界响应，≈1 分支，推荐）②nudge 重试腿（可选）③prompt 引用措辞（收益不确定）④话术不需要 / 需要修复卡：建议立 P2（主腿①，文件域 agent/internal/chat/，锚点清单见报告 §1.2；附带探针分类修正+可选 prompt 留痕开关）/ 受控复现跳过（1/2 已定因，卡面条款；复现无法区分 R3 内部拒因细分）/ 端测边界：纯取证零代码改动，无端测）
 - 验收：（裁定文件 / 验收 commit）
