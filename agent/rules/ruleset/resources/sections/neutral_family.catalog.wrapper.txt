@@ -1,0 +1,5 @@
+Available observation catalog:
+%s
+
+	Allowed tools:
+%s

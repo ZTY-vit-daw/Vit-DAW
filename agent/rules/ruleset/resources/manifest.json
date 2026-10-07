@@ -1,0 +1,55 @@
+{
+  "schema_version": "ruleset.v1",
+  "ruleset_version": "ruleset.v1",
+  "sections": [
+    {
+      "section_id": "chat.output_format",
+      "version": 1,
+      "purpose": "output_format",
+      "file": "sections/chat.output_format.txt",
+      "applies_to": ["chat"]
+    },
+    {
+      "section_id": "chat.discipline.commands",
+      "version": 1,
+      "purpose": "discipline",
+      "file": "sections/chat.discipline.commands.txt",
+      "applies_to": ["chat"]
+    },
+    {
+      "section_id": "chat.discipline.plugins_mixing",
+      "version": 1,
+      "purpose": "discipline",
+      "file": "sections/chat.discipline.plugins_mixing.txt",
+      "applies_to": ["chat"]
+    },
+    {
+      "section_id": "chat.catalog.wrapper",
+      "version": 1,
+      "purpose": "catalog",
+      "file": "sections/chat.catalog.wrapper.txt",
+      "applies_to": ["chat"]
+    },
+    {
+      "section_id": "neutral_family.output_format",
+      "version": 1,
+      "purpose": "output_format",
+      "file": "sections/neutral_family.output_format.txt",
+      "applies_to": ["neutral_family"]
+    },
+    {
+      "section_id": "neutral_family.discipline.rules",
+      "version": 1,
+      "purpose": "discipline",
+      "file": "sections/neutral_family.discipline.rules.txt",
+      "applies_to": ["neutral_family"]
+    },
+    {
+      "section_id": "neutral_family.catalog.wrapper",
+      "version": 1,
+      "purpose": "catalog",
+      "file": "sections/neutral_family.catalog.wrapper.txt",
+      "applies_to": ["neutral_family"]
+    }
+  ]
+}

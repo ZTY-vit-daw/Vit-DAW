@@ -90,6 +90,12 @@ type PrefixRequest struct {
 	// SessionKey 是跨轮比对键（conversation/run 标识）。空 = 单次装配，
 	// 不做断裂比对（Breaks 恒空）。
 	SessionKey string
+	// LayerStates 声明本次未渲染出 Section 的载体层（L1-4-IMPL-B 四层
+	// 载体）：LayerID -> "absent" | "corrupt"。声明行进 AssemblyReport
+	// （§2.0 fail-open 但显式）；corrupt 的 WARN 由载体侧产生，报告只记
+	// 状态。已渲染层不受影响；该层上一轮渲染、本轮声明缺席时，断裂比对
+	// 按既有 diff 规则记 layer removed。
+	LayerStates map[string]string
 }
 
 type PrefixService interface {
@@ -164,6 +170,19 @@ func (s *prefixService) Assemble(ctx context.Context, req PrefixRequest) (Assemb
 		layerOrder = append(layerOrder, layer.LayerID)
 		layers[layer.LayerID] = layer
 		layerBytes[layer.LayerID] = rendered
+	}
+	// 载体层声明行（L1-4-IMPL-B §2.0）：absent/corrupt 的层不渲染
+	// Section，以声明形态进报告（确定性：按 LayerID 排序）。
+	declared := make([]string, 0, len(req.LayerStates))
+	for id := range req.LayerStates {
+		declared = append(declared, id)
+	}
+	sort.Strings(declared)
+	for _, id := range declared {
+		if _, rendered := layers[id]; rendered {
+			continue
+		}
+		report.Layers = append(report.Layers, LayerReport{LayerID: id, State: req.LayerStates[id]})
 	}
 
 	report.PrefixFingerprint = prefixFingerprint(layerOrder, layers)
