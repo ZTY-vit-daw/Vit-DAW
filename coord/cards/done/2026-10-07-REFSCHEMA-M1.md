@@ -18,5 +18,7 @@
 - 验收标准：`cd agent && go build ./...` + `go test ./internal/agentprotocol -count=1` 全绿 + `go test ./... -count=1` 全量 0 FAIL（注册表是共享常量面）+ gofmt blob 净。
 - 停止条件：发现既有消费方依赖"`observation:` 落 opaque"的行为（如断言 opaque 计数含 observation 头）→ 锚点+消费方清单上交。
 - 领取：2026-10-07 09:50 / origin/main=412820cc（本地 HEAD c01089b4 领取，main 领先 4 commit 未推）/ port/refschema-m1（PC 执行侧；实现于独立 worktree——主树检出并行流 L1-4-IMPL-A 共用，协议 §3 裁定）
-- 回执：（commit hash / 新增用例名 / 全量测试退出码）
+- 回执：实现 commit **680dda80**（分支 port/refschema-m1，独立 worktree D:/Vit_DAW_wt_refschemam1，基于领取 commit 7c3a21e4）；新增用例 2 函数：`TestObservationPrefixDoesNotHijackAudioObservation`（双前缀各自命中断言）、`TestObservationHeadNoLongerOpaqueCounted`（头不再计 opaque + observation_id:/合成头仍计），另有三处表用例：三态表 "mom observation ticket head is legacy"、翻译表 observation: 行、注册表契约表第 15 条+计数文案。门实测：`go build ./...` exit 0；`go test ./internal/agentprotocol -count=1` ok；全量 `go test ./... -count=1` **exit 0（88 ok / 0 FAIL）**；blob gofmt 净（worktree CRLF 检出伪影已甄别——git blob LF 全净）。
+  - 端测边界声明：纯常量表追加，ParseRef 属未接线运行栈的纯工具层（L0 设计），无渲染面/旅程面涉及；验收按卡面三命令口径。
+  - 交付决策侧注意四点：① `docs/REF_SCHEMA_V1.md:55`"legacyPrefixRegistry，14 条"计数已过时（现为 15 条），不在本卡文件域未改，建议随 M2 或勘误卡同步；② 主树检出与并行流 L1-4-IMPL-A 共用（其卡移动 09:50 前后出现在共享索引），本卡实现按协议 §3 切独立 worktree，验收后请决策侧清理；③ 主树 `agent/internal/agentprotocol/materialstore.go` 领取前即 gofmt 不净（既有状态，未动）；④ 未推送——本地 main 领先 origin/main（领取前已有 4 个决策侧 commit + 本卡 2 个卡片 commit），推送时机留决策侧裁定。
 - 验收：（裁定文件 / 验收 commit）
