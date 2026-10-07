@@ -1,0 +1,36 @@
+﻿ M VitApp/Workspace/Settings/Settings.xml
+ M VitApp/Workspace/default_project.xml
+R  coord/cards/todo/2026-10-07-L1-4-IMPL-A.md -> coord/cards/doing/2026-10-07-L1-4-IMPL-A.md
+ M scripts/dev_agent_smoke.ps1
+?? .zcodeignore
+?? agent/coord/
+?? coord/runs/B2-RACK-VIZ-SKETCH/.playwright-cli/page-2026-10-04T10-14-00-718Z.yml
+?? coord/runs/B2-RACK-VIZ-SKETCH/.playwright-cli/page-2026-10-04T10-15-25-582Z.yml
+?? coord/runs/INTENT-WIRE-FIX-1-VERIFY-1/
+?? coord/runs/JOURNEY-1/
+?? coord/runs/KERNEL-RENDER-FREEZE-1/
+?? coord/runs/KERNEL-RENDER-FREEZE-FIX-1/20261006_verify1/telemetry_render.jsonl
+?? coord/runs/L1-3-IMPL-D-SMOKE/
+?? coord/runs/MIDI-RECON-1/
+?? coord/runs/REPLY-GEN-TOOLGATE-SMOKE-20261003_201047/
+?? coord/runs/REPLY-GEN-TOOLGATE-SMOKE-20261003_201555/
+?? coord/runs/REPLY-GEN-TOOLGATE-SMOKE-20261003_201944/
+?? coord/runs/SETTLE-DELIVER-SMOKE-20261003_110730/
+?? coord/runs/SETTLE-DELIVER-SMOKE-20261003_111943/
+?? coord/runs/SETTLE-DELIVER-SMOKE-20261003_112607/
+?? coord/runs/SETTLE-DELIVER-SMOKE-20261003_113348/
+?? coord/runs/SETTLE-DELIVER-SMOKE-20261003_114223/BridgeReplies/
+?? coord/runs/SETTLE-DELIVER-SMOKE-20261003_114223/agent_drafts/
+?? coord/runs/SETTLE-DELIVER-SMOKE-20261003_115939/
+?? coord/runs/SETTLE-DELIVER-SMOKE-20261003_120857/
+?? coord/runs/SETTLE-DELIVER-SMOKE-20261003_121934/BridgeReplies/
+?? coord/runs/SETTLE-DELIVER-SMOKE-20261003_121934/agent_drafts/
+?? coord/runs/SETTLE-DELIVER-SMOKE-20261003_122932/
+?? coord/runs/SMOKE-SCEN-RANGE-1/20261004_223710/
+?? coord/runs/SMOKE-SCEN-RANGE-1/20261004_223757/
+?? coord/runs/SMOKE-SCEN-RANGE-1/20261006_185612/
+?? coord/runs/SMOKE-SCEN-RANGE-1/20261006_185750/
+?? coord/runs/SMOKE-SCEN-RANGE-1/20261006_201042/
+?? coord/runs/SMOKE-SCEN-RANGE-1/20261006_201241/
+?? coord/runs/VITNOTE-CONTAINER-3/verify_pc/
+?? coord/runs/VITNOTE-REGION-TIME-1/verify_pc/go_full_main.txt

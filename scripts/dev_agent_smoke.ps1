@@ -45,9 +45,16 @@ param(
     # them. Scenario mode runs an isolated berth:
     # it refuses an already-listening stack (AGENTS.md section 9), starts the
     # kernel+agent itself, and tears both down when the scenarios finish.
+    # "journey_first" (JOURNEY-1): demo journey gate leg 1-3 skeleton --
+    # project open -> authority grant -> one deterministic B2 capability
+    # experiment round (propose/approve/execute-verify). Zero LLM in the
+    # gate; the NL free-state face is the J3 journey card (see
+    # coord/runs/JOURNEY-1/JOURNEYS.md). Journeys are deliberately NOT part
+    # of "all" (heavier execution legs, scheduled per journey).
     [string]$Scenario = "",
     # Scenario run artifacts root; defaults to
-    # coord\runs\SMOKE-SCEN-RANGE-1\<timestamp> under the repo.
+    # coord\runs\SMOKE-SCEN-RANGE-1\<timestamp> (journey_first:
+    # coord\runs\JOURNEY-1\<timestamp>) under the repo.
     [string]$RunArtifactsDir = "",
     # SMOKE-TOOLING-1: the UI-launched kernel command port can take far longer
     # than the generic wait budget when the plugin table is cold (three
@@ -515,11 +522,14 @@ $ScenarioKernelProcId = $null
 $ScenarioAgentProcId = $null
 $ScenarioRunDir = ""
 if ($ScenarioMode) {
-    if ($Scenario -notin @("note_time", "range_split", "ref_diff_content", "midi_register", "render_freeze", "all")) {
-        throw ("unknown -Scenario value '" + $Scenario + "'; expected note_time, range_split, ref_diff_content, midi_register, render_freeze, or all")
+    if ($Scenario -notin @("note_time", "range_split", "ref_diff_content", "midi_register", "render_freeze", "journey_first", "all")) {
+        throw ("unknown -Scenario value '" + $Scenario + "'; expected note_time, range_split, ref_diff_content, midi_register, render_freeze, journey_first, or all")
     }
     if ($StartUI) {
         throw "-Scenario berth mode never starts the Godot UI (card constraint: webui/Godot untouched)"
+    }
+    if ($Scenario -eq "journey_first" -and -not $StartKernel) {
+        throw "-Scenario journey_first owns the full stack and must be run with -StartKernel (the kernel is part of the journey berth)"
     }
     if ($null -ne $listener) {
         throw ("scenario berth requires a free agent HTTP port; " + $httpPort + " is already listening (another session's stack, AGENTS.md section 9)")
@@ -528,7 +538,11 @@ if ($ScenarioMode) {
         throw ("scenario berth requires a free kernel command port; " + $ZmqReqPort + " is already listening (kernel ports are fixed)")
     }
     if ([string]::IsNullOrWhiteSpace($RunArtifactsDir)) {
-        $RunArtifactsDir = Join-Path $RepoRoot ("coord\runs\SMOKE-SCEN-RANGE-1\" + (Get-Date -Format "yyyyMMdd_HHmmss"))
+        $scenarioRunsRoot = "coord\runs\SMOKE-SCEN-RANGE-1"
+        if ($Scenario -eq "journey_first") {
+            $scenarioRunsRoot = "coord\runs\JOURNEY-1"
+        }
+        $RunArtifactsDir = Join-Path $RepoRoot ($scenarioRunsRoot + "\" + (Get-Date -Format "yyyyMMdd_HHmmss"))
     }
     if (Test-Path -LiteralPath $RunArtifactsDir) {
         throw ("scenario run artifacts directory already exists; each run needs a fresh directory: " + $RunArtifactsDir)
@@ -537,6 +551,32 @@ if ($ScenarioMode) {
     $ScenarioRunDir = $RunArtifactsDir
     (& git -C $RepoRoot rev-parse HEAD) | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "head.txt") -Encoding UTF8
     (& git -C $RepoRoot status --short) | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "git_status.txt") -Encoding UTF8
+    if ($Scenario -eq "journey_first") {
+        # JOURNEY-1 berth isolation (journey1 contract): the kernel runs in a
+        # run-dir workspace with its default project redirected there, so
+        # nothing under VitApp\Workspace is written by this run even though the
+        # journey approves real executions; the agent's conversation draft
+        # root is redirected into the run dir too. A caller-provided
+        # VIT_HISTORY_DRAFT_ROOT wins (same precedence as the COM roots).
+        $JourneyKernelWorkspace = Join-Path $ScenarioRunDir "kernel_workspace"
+        $JourneyProjectDir = Join-Path $ScenarioRunDir "project"
+        $JourneyStemsDir = Join-Path $ScenarioRunDir "fixture_stems"
+        $JourneyAgentDrafts = Join-Path $ScenarioRunDir "agent_drafts"
+        foreach ($journeyDir in @(
+            $JourneyKernelWorkspace,
+            (Join-Path $JourneyKernelWorkspace "Settings"),
+            (Join-Path $JourneyKernelWorkspace "Logs"),
+            $JourneyProjectDir,
+            $JourneyStemsDir,
+            $JourneyAgentDrafts
+        )) {
+            New-Item -ItemType Directory -Path $journeyDir -Force | Out-Null
+        }
+        Copy-Item -LiteralPath (Join-Path $RepoRoot "VitApp\Workspace\default_project.xml") -Destination (Join-Path $JourneyKernelWorkspace "default_project.xml") -Force
+        if ([string]::IsNullOrWhiteSpace([System.Environment]::GetEnvironmentVariable("VIT_HISTORY_DRAFT_ROOT"))) {
+            Set-Item -LiteralPath "env:VIT_HISTORY_DRAFT_ROOT" -Value $JourneyAgentDrafts
+        }
+    }
 }
 
 Write-Step "VitAgent dev smoke"
@@ -592,11 +632,38 @@ if ($StartKernel) {
         Fail-Or-Warn ("kernel exe not found: " + $KernelExe)
     }
     elseif (-not (Get-TcpListener -Port ([int]$ZmqReqPort))) {
-        $startedKernelProc = Start-Process -FilePath $KernelExe -WorkingDirectory (Split-Path -Parent $KernelExe) -WindowStyle Hidden -PassThru
+        # JOURNEY-1: the journey berth kernel runs inside the run-dir workspace
+        # with VIT_PROJECT_XML redirected to the run-dir default-project copy
+        # (journey1 isolation contract); every other scenario keeps the
+        # deployed-kernel working directory.
+        $journeyKernelStart = ($ScenarioMode -and $Scenario -eq "journey_first")
+        $kernelWorkingDir = Split-Path -Parent $KernelExe
+        if ($journeyKernelStart) {
+            $kernelWorkingDir = $JourneyKernelWorkspace
+        }
+        $startedKernelProc = $null
+        if ($journeyKernelStart) {
+            $priorProjectXml = [System.Environment]::GetEnvironmentVariable("VIT_PROJECT_XML", "Process")
+            $env:VIT_PROJECT_XML = (Join-Path $JourneyKernelWorkspace "default_project.xml")
+            try {
+                $startedKernelProc = Start-Process -FilePath $KernelExe -WorkingDirectory $kernelWorkingDir -WindowStyle Hidden -PassThru
+            }
+            finally {
+                if ([string]::IsNullOrWhiteSpace($priorProjectXml)) {
+                    Remove-Item Env:VIT_PROJECT_XML -ErrorAction SilentlyContinue
+                }
+                else {
+                    $env:VIT_PROJECT_XML = $priorProjectXml
+                }
+            }
+        }
+        else {
+            $startedKernelProc = Start-Process -FilePath $KernelExe -WorkingDirectory $kernelWorkingDir -WindowStyle Hidden -PassThru
+        }
         if ($null -ne $startedKernelProc) {
             $ScenarioKernelProcId = $startedKernelProc.Id
         }
-        Write-Ok ("started kernel: " + $KernelExe + " pid=" + $ScenarioKernelProcId)
+        Write-Ok ("started kernel: " + $KernelExe + " pid=" + $ScenarioKernelProcId + " workdir=" + $kernelWorkingDir)
         Start-Sleep -Seconds 2
     }
     else {
@@ -1857,6 +1924,359 @@ if ($ScenarioMode) {
             throw ("render_freeze regression: empty-range render reported done but produced no file: " + $emptyWav)
         }
         Write-Ok ("regression: empty-range render completed with render_done telemetry and a file (job " + $emptyJobId + ")")
+    }
+
+    if ($Scenario -eq "journey_first") {
+        # JOURNEY-1 first demo journey gate: project open -> authority grant ->
+        # one deterministic experiment round. Every assertion sits on a
+        # server/kernel-owned surface (AGENTS.md section 8): invoke status,
+        # authority mode + the /smoke authority input-chain probe, the B2
+        # capability canary chain (proposal card contract + executed stage),
+        # the UI projection, and the filesystem session evidence. Zero LLM in
+        # the gate; the natural-language free-state face is journey J3 (see
+        # coord/runs/JOURNEY-1/JOURNEYS.md).
+        Write-Step "Scenario journey_first: demo journey -- project open -> authority -> one experiment round"
+        $journeyInvokeUri = $AgentHttp.TrimEnd("/") + "/agent/invoke"
+        $journeyChatUri = $AgentHttp.TrimEnd("/") + "/agent/chat"
+        $journeyAuthorityUri = $AgentHttp.TrimEnd("/") + "/agent/authority"
+        $journeyStateUri = $AgentHttp.TrimEnd("/") + "/agent/state"
+        $journeyUiStateUri = $AgentHttp.TrimEnd("/") + "/agent/ui/state"
+        $journeyRuntimeUri = $AgentHttp.TrimEnd("/") + "/agent/runtime/status"
+        $journeyRespondUri = $AgentHttp.TrimEnd("/") + "/agent/interaction/respond"
+        $journeyStamp = Get-Date -Format "yyyyMMdd_HHmmss"
+        $journeyInvoke = {
+            param([string]$Tool, [object]$ToolArgs, [int]$TimeoutSec)
+            Invoke-Json -Method POST -Uri $journeyInvokeUri -Body @{
+                tool = $Tool
+                args = $ToolArgs
+                confirmed = $true
+                source = "dev_agent_smoke.journey_first"
+            } -TimeoutSec $TimeoutSec
+        }
+
+        # ---------------- fixture: self-contained two-stem project ----------
+        # WriteLease recipe (VITNOTE-IMPL-4): the two stem names feed the
+        # staticbalance name-inference vocabulary and the sustained tones
+        # carry the DAD L1 features. Everything lives inside the run dir.
+        Write-Step "Journey fixture: build the two-stem project, bake DAD analysis, persist"
+        Write-LeaseSmokeStemWav -Path (Join-Path $JourneyStemsDir "Lead Vocal.wav") -Amplitude 0.5 -Frequency 440.0 | Out-Null
+        Write-LeaseSmokeStemWav -Path (Join-Path $JourneyStemsDir "Bass.wav") -Amplitude 0.35 -Frequency 110.0 | Out-Null
+        $journeyProjectPath = Join-Path $JourneyProjectDir "journey_fixture.vit"
+        $null = & $journeyInvoke "project.new" @{} 60
+        $journeyImport = & $journeyInvoke "project.import_folder_as_stems" @{
+            folder_path = $JourneyStemsDir
+            recursive = $false
+            target_policy = "create_tracks"
+            start_time_seconds = 0.0
+            skip_unreadable = $false
+            command_timeout_ms = 60000
+        } 120
+        if ([string]$journeyImport.status -ne "ok") {
+            throw ("journey fixture stems import failed: " + ($journeyImport | ConvertTo-Json -Depth 8 -Compress))
+        }
+        $journeyImportResult = Get-OptionalProperty -Object $journeyImport -Name "result"
+        $journeyJobId = [string](Get-FirstPropertyValue -Object $journeyImportResult -Names @("analysis_job_id"))
+        if ([string]::IsNullOrWhiteSpace($journeyJobId)) {
+            $journeyImportJob = Get-OptionalProperty -Object $journeyImportResult -Name "analysis_job"
+            $journeyJobId = [string](Get-FirstPropertyValue -Object $journeyImportJob -Names @("analysis_job_id", "job_id"))
+        }
+        if ([string]::IsNullOrWhiteSpace($journeyJobId)) {
+            throw ("journey fixture import returned no analysis job id: " + ($journeyImport | ConvertTo-Json -Depth 8 -Compress))
+        }
+        $null = & $journeyInvoke "project.audio_analysis_start" @{ analysis_job_id = $journeyJobId; interval_ms = 10 } 60
+        $journeyDadDeadline = (Get-Date).AddSeconds(240)
+        $journeyDadReady = $false
+        $journeyDadTotal = 0
+        while ((Get-Date) -lt $journeyDadDeadline) {
+            $journeyDad = & $journeyInvoke "project.audio_analysis_status" @{ analysis_job_id = $journeyJobId; latest = $true } 60
+            $journeyDadResult = Get-OptionalProperty -Object $journeyDad -Name "result"
+            $journeyDadJob = Get-OptionalProperty -Object $journeyDadResult -Name "analysis_job"
+            $journeyDadTotal = [int](Get-FirstPropertyValue -Object $journeyDadJob -Names @("dad_fact_total_count", "dad_fact_total"))
+            $journeyDadReadyCount = [int](Get-FirstPropertyValue -Object $journeyDadJob -Names @("dad_fact_ready_count"))
+            $journeyDadStatus = [string](Get-FirstPropertyValue -Object $journeyDadJob -Names @("dad_fact_status"))
+            $journeyDadWaveforms = @(Get-OptionalProperty -Object $journeyDadJob -Name "track_waveform_envelopes")
+            if ($journeyDadTotal -gt 0 -and $journeyDadReadyCount -ge $journeyDadTotal -and $journeyDadStatus.ToLower() -eq "ready" -and $journeyDadWaveforms.Count -ge $journeyDadTotal) {
+                $journeyDadReady = $true
+                break
+            }
+            Start-Sleep -Seconds 1
+        }
+        if (-not $journeyDadReady) {
+            throw "journey fixture DAD analysis did not become ready within 240s"
+        }
+        Write-Ok ("fixture DAD ready (tracks=" + [string]$journeyDadTotal + ")")
+        # Persist AFTER the analysis bake: the analysis manifest travels with
+        # the edit state (vit_analysis_manifest_json), so the reopen below
+        # restores stems and facts together.
+        $journeySave = & $journeyInvoke "project.save_as" @{ file_path = $journeyProjectPath } 60
+        if ([string]$journeySave.status -ne "ok") {
+            throw ("journey fixture save_as failed: " + ($journeySave | ConvertTo-Json -Depth 8 -Compress))
+        }
+        if (-not (Test-Path -LiteralPath $journeyProjectPath)) {
+            throw ("journey fixture project file missing after save_as: " + $journeyProjectPath)
+        }
+        # Blank untitled project = the demo start-page state the open journey
+        # departs from.
+        $null = & $journeyInvoke "project.new" @{} 60
+        Write-Ok ("fixture persisted: " + $journeyProjectPath)
+
+        # ---------------- LEG 1: project open -------------------------------
+        # Same agent-side face the Godot start page drives (journey1 ruling
+        # #1): POST /agent/invoke {tool: project.open} -> kernel open_project
+        # + applyProjectLifecycle("open") + OpenWorkingSessionAsGeneration.
+        Write-Step "LEG 1 (project open): open_project through the agent tool face"
+        $journeyOpen = & $journeyInvoke "project.open" @{ file_path = $journeyProjectPath } 180
+        $journeyOpen | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "journey_open_response.json") -Encoding UTF8
+        if ([string]$journeyOpen.status -ne "ok") {
+            throw ("journey project.open failed: " + ($journeyOpen | ConvertTo-Json -Depth 8 -Compress))
+        }
+        Start-Sleep -Seconds 4
+        $journeyUiState = Invoke-Json -Method GET -Uri $journeyUiStateUri -TimeoutSec 60
+        $journeyUiState | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "journey_ui_state_after_open.json") -Encoding UTF8
+        $journeyTrackRows = @()
+        $journeyTracksProp = Get-OptionalProperty -Object $journeyUiState -Name "tracks"
+        if ($null -ne $journeyTracksProp) {
+            if ($journeyTracksProp -is [System.Management.Automation.PSCustomObject]) {
+                foreach ($journeyTrackProp in $journeyTracksProp.PSObject.Properties) {
+                    $journeyTrackRows += $journeyTrackProp.Value
+                }
+            }
+            else {
+                $journeyTrackRows = @($journeyTracksProp)
+            }
+        }
+        $journeyTrackNames = New-Object System.Collections.Generic.List[string]
+        foreach ($journeyTrackRow in $journeyTrackRows) {
+            if ($null -eq $journeyTrackRow) { continue }
+            $journeyTrackName = [string](Get-OptionalProperty -Object $journeyTrackRow -Name "name")
+            if ([string]::IsNullOrWhiteSpace($journeyTrackName)) {
+                $journeyTrackName = [string](Get-OptionalProperty -Object $journeyTrackRow -Name "track_name")
+            }
+            if (-not [string]::IsNullOrWhiteSpace($journeyTrackName)) { $journeyTrackNames.Add($journeyTrackName) }
+        }
+        if ($journeyTrackNames.Count -ne 2) {
+            throw ("journey open did not restore the two-stem project: tracks=[" + ($journeyTrackNames.ToArray() -join ",") + "]")
+        }
+        $journeyTracksJoined = $journeyTrackNames.ToArray() -join ","
+        if (-not ($journeyTracksJoined.Contains("Lead Vocal")) -or -not ($journeyTracksJoined.Contains("Bass"))) {
+            throw ("journey open restored unexpected track names: [" + $journeyTracksJoined + "]")
+        }
+        Write-Ok ("open restored both stems: [" + $journeyTracksJoined + "]")
+        # Project identity: non-empty and stable across two consecutive reads.
+        $journeyIdentityA = [string](Get-OptionalProperty -Object (Get-OptionalProperty -Object (Invoke-Json -Method GET -Uri $journeyStateUri -TimeoutSec 10) -Name "shadow") -Name "project_uuid")
+        Start-Sleep -Milliseconds 800
+        $journeyIdentityB = [string](Get-OptionalProperty -Object (Get-OptionalProperty -Object (Invoke-Json -Method GET -Uri $journeyStateUri -TimeoutSec 10) -Name "shadow") -Name "project_uuid")
+        if ([string]::IsNullOrWhiteSpace($journeyIdentityA) -or [string]::IsNullOrWhiteSpace($journeyIdentityB) -or $journeyIdentityA -ne $journeyIdentityB) {
+            throw ("journey open left no stable project identity: first=" + $journeyIdentityA + " second=" + $journeyIdentityB)
+        }
+        Write-Ok ("project identity stable after open: " + $journeyIdentityB)
+        # Session evidence: OpenWorkingSessionAsGeneration materializes a
+        # session directory beside the project file.
+        $journeySessionsRoot = Join-Path $JourneyProjectDir ".vit_history\.sessions"
+        $journeySessionDeadline = (Get-Date).AddSeconds(20)
+        $journeySessionNames = New-Object System.Collections.Generic.List[string]
+        while ((Get-Date) -lt $journeySessionDeadline -and $journeySessionNames.Count -lt 1) {
+            if (Test-Path -LiteralPath $journeySessionsRoot) {
+                foreach ($journeyUuidDir in @(Get-ChildItem -LiteralPath $journeySessionsRoot -Directory -ErrorAction SilentlyContinue)) {
+                    foreach ($journeySessionDir in @(Get-ChildItem -LiteralPath $journeyUuidDir.FullName -Directory -ErrorAction SilentlyContinue)) {
+                        $journeySessionNames.Add($journeySessionDir.Name)
+                    }
+                }
+            }
+            if ($journeySessionNames.Count -lt 1) { Start-Sleep -Milliseconds 800 }
+        }
+        if ($journeySessionNames.Count -lt 1) {
+            throw ("journey open produced no working-session directory under " + $journeySessionsRoot)
+        }
+        Write-Ok ("working session materialized: " + ($journeySessionNames.ToArray() -join ","))
+
+        # ---------------- LEG 2: authority grant ----------------------------
+        Write-Step "LEG 2 (authority grant): full project access switches and binds the input chain"
+        $journeyAuthoritySwitch = Invoke-Json -Method POST -Uri $journeyAuthorityUri -Body @{ authority_mode = "full_project_access" } -TimeoutSec 30
+        $journeyAuthoritySwitch | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "journey_authority_switch.json") -Encoding UTF8
+        if ([string]$journeyAuthoritySwitch.status -ne "ok" -or [string](Get-OptionalProperty -Object $journeyAuthoritySwitch -Name "authority_mode") -ne "full_project_access") {
+            throw ("journey authority switch refused: " + ($journeyAuthoritySwitch | ConvertTo-Json -Depth 6 -Compress))
+        }
+        $journeyHoldDeadline = (Get-Date).AddSeconds(8)
+        while ((Get-Date) -lt $journeyHoldDeadline) {
+            $null = Invoke-Json -Method GET -Uri $journeyRuntimeUri -TimeoutSec 60
+            Start-Sleep -Milliseconds 800
+        }
+        $journeyAuthorityHeld = Invoke-Json -Method GET -Uri $journeyAuthorityUri -TimeoutSec 60
+        if ([string](Get-OptionalProperty -Object $journeyAuthorityHeld -Name "authority_mode") -ne "full_project_access") {
+            throw ("journey authority mode flipped after the hold window: " + ($journeyAuthorityHeld | ConvertTo-Json -Depth 6 -Compress))
+        }
+        Write-Ok "authority held full_project_access across the activation window"
+        # Input-chain probe (AUTHORITY-LOST-1 face): server-owned, no LLM.
+        $journeyAuthorityProbe = Invoke-Json -Method POST -Uri $journeyChatUri -Body @{
+            conversation_id = ("dev_journey_first_authority_" + $journeyStamp)
+            message = "/smoke authority"
+            context = @{
+                agent_mode = "chat"
+            }
+        } -TimeoutSec ([Math]::Max(30, $WaitSeconds))
+        $journeyAuthorityProbe | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "journey_authority_probe.json") -Encoding UTF8
+        if ([string](Get-OptionalProperty -Object $journeyAuthorityProbe -Name "stop_reason") -ne "authority_smoke_ok" -or -not (([string](Get-OptionalProperty -Object $journeyAuthorityProbe -Name "reply")).Contains("bound=full_project_access"))) {
+            throw ("journey authority input-chain probe did not bind full access: " + ($journeyAuthorityProbe | ConvertTo-Json -Depth 8 -Compress))
+        }
+        if ([bool](Get-OptionalProperty -Object $journeyAuthorityProbe -Name "needs_confirmation")) {
+            throw "journey authority probe raised a confirmation card under full access"
+        }
+        Write-Ok "input chain binds full_project_access with no confirmation card"
+
+        # ---------------- LEG 3: one experiment round -----------------------
+        # B2 capability chain (static_mix.static_balance.v0): propose ->
+        # approval card -> approve -> execute inside the project write lease
+        # -> executed_verified. Entirely server-owned; readiness lag is the
+        # only declared retryable class.
+        Write-Step "LEG 3 (experiment round): B2 static balance propose -> approve -> execute-verify"
+        $journeyMixSession = "dev_journey_first_" + $journeyStamp
+        $null = & $journeyInvoke "mix.observe" @{
+            scope = "full_project"
+            project_context = $true
+            observation_only = $true
+            observation_ready_gate = $true
+            disclosure = "digest_catalog"
+            mom_intent = "action_preflight_observation"
+            mix_session_id = $journeyMixSession
+            goal_text = "journey first fixture L3 preflight"
+        } 240
+        $journeyMomDeadline = (Get-Date).AddSeconds(240)
+        $journeyMomReady = $false
+        while ((Get-Date) -lt $journeyMomDeadline) {
+            $journeyMom = & $journeyInvoke "mix.observe" @{
+                scope = "full_project"
+                project_context = $true
+                observation_only = $true
+                disclosure = "digest_catalog"
+                mom_intent = "project_multitrack_relation_observation"
+                mix_session_id = $journeyMixSession
+                goal_text = "journey first fixture readiness"
+            } 240
+            $journeyMomResult = Get-OptionalProperty -Object $journeyMom -Name "result"
+            $journeyMomProjection = Get-OptionalProperty -Object $journeyMomResult -Name "mom_projection"
+            $journeyMomRelation = Get-OptionalProperty -Object $journeyMomProjection -Name "multitrack_relation"
+            $journeyMomStatus = [string](Get-OptionalProperty -Object $journeyMomRelation -Name "status")
+            $journeyMomStatic = Get-OptionalProperty -Object $journeyMomProjection -Name "static_level_relationship"
+            $journeyMomStaticStatus = [string](Get-OptionalProperty -Object $journeyMomStatic -Name "status")
+            if ($journeyMomStatus.ToLower() -eq "ready" -and $journeyMomStaticStatus.ToLower() -eq "ready") {
+                $journeyMomReady = $true
+                break
+            }
+            Start-Sleep -Seconds 1
+        }
+        if (-not $journeyMomReady) {
+            throw "journey fixture MOM multitrack/static_level relations did not become ready within 240s"
+        }
+        Write-Ok "fixture MOM multitrack + static_level relations ready"
+
+        # ASCII-safe Chinese propose sentence (PS 5.1 BOM-less rule):
+        # "please generate and execute one B2 static balance for the current
+        #  isolated test project"
+        $journeyProposeMessage = -join @(
+            [char]0x8BF7, [char]0x4E3A, [char]0x5F53, [char]0x524D, [char]0x9694, [char]0x79BB,
+            [char]0x6D4B, [char]0x8BD5, [char]0x5DE5, [char]0x7A0B, [char]0x751F, [char]0x6210,
+            [char]0x5E76, [char]0x6267, [char]0x884C, ' ', 'B', '2', ' ',
+            [char]0x9759, [char]0x6001, [char]0x5E73, [char]0x8861, [char]0x3002
+        )
+        $journeyProposeContext = @{
+            agent_mode = "chat"
+            capability_id = "static_mix.static_balance.v0"
+            interaction_mode = "propose"
+            capability_runtime_v1 = $true
+        }
+        $journeyProposal = $null
+        $journeyProbeCount = 0
+        $journeyReadinessReady = $false
+        while (-not $journeyReadinessReady -and $journeyProbeCount -lt 10) {
+            $journeyProbeCount++
+            $journeyProposal = Invoke-Json -Method POST -Uri $journeyChatUri -Body @{
+                conversation_id = ("dev_journey_first_probe_" + $journeyStamp + "_" + [string]$journeyProbeCount)
+                message = $journeyProposeMessage
+                context = $journeyProposeContext
+            } -TimeoutSec 240
+            $journeyProbeData = Get-OptionalProperty -Object $journeyProposal -Name "workflow_data"
+            $journeyProbeStage = [string](Get-OptionalProperty -Object $journeyProbeData -Name "canary_stage")
+            if ($journeyProbeStage -eq "proposal") {
+                $journeyReadinessReady = $true
+                break
+            }
+            if ($journeyProbeStage -ne "readiness_blocked") {
+                throw ("journey propose hit unexpected canary_stage " + $journeyProbeStage + ": " + ($journeyProposal | ConvertTo-Json -Depth 8 -Compress))
+            }
+            Write-WarnLine ("journey readiness probe " + [string]$journeyProbeCount + " still blocked: " + ((Get-OptionalProperty -Object $journeyProbeData -Name "blockers") -join ","))
+            Start-Sleep -Seconds 3
+        }
+        if (-not $journeyReadinessReady) {
+            throw ("journey B2 readiness did not unlock after " + [string]$journeyProbeCount + " probes")
+        }
+        $journeyProposal | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "journey_propose_response.json") -Encoding UTF8
+        $journeyProposalData = Get-OptionalProperty -Object $journeyProposal -Name "workflow_data"
+        $journeySessionID = [string](Get-OptionalProperty -Object $journeyProposalData -Name "session_id")
+        $journeyInteractionID = ""
+        foreach ($journeyInteractionRow in @(Get-OptionalProperty -Object $journeyProposal -Name "interaction_requests")) {
+            $journeyRowKind = [string](Get-OptionalProperty -Object $journeyInteractionRow -Name "kind")
+            $journeyRowWorkflow = [string](Get-OptionalProperty -Object $journeyInteractionRow -Name "workflow")
+            if (($journeyRowKind.ToLower() -in @("proposal_approval", "confirmation")) -and $journeyRowWorkflow.ToLower() -eq "capability_runtime_v1") {
+                $journeyInteractionID = [string](Get-OptionalProperty -Object $journeyInteractionRow -Name "id")
+                break
+            }
+        }
+        if (-not [bool](Get-OptionalProperty -Object $journeyProposal -Name "needs_confirmation") -or [string](Get-OptionalProperty -Object $journeyProposal -Name "workflow") -ne "capability_runtime_v1" -or [string](Get-OptionalProperty -Object $journeyProposalData -Name "canary_stage") -ne "proposal" -or [string]::IsNullOrWhiteSpace($journeySessionID) -or [string]::IsNullOrWhiteSpace($journeyInteractionID)) {
+            throw ("journey proposal card contract failed: " + ($journeyProposal | ConvertTo-Json -Depth 8 -Compress))
+        }
+        Write-Ok ("B2 proposal card mounted (session=" + $journeySessionID + ", stage=proposal)")
+
+        $journeyApprove = Invoke-Json -Method POST -Uri $journeyRespondUri -Body @{
+            interaction_id = $journeyInteractionID
+            action_id = "approve"
+            decision = "approve"
+            payload = @{}
+        } -TimeoutSec 300
+        $journeyApprove | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "journey_approve_response.json") -Encoding UTF8
+        $journeyExecutedStages = @("executed_verified", "executed_needs_review")
+        $journeyApproveStage = [string](Get-OptionalProperty -Object (Get-OptionalProperty -Object $journeyApprove -Name "workflow_data") -Name "canary_stage")
+        if (-not ($journeyExecutedStages -contains $journeyApproveStage)) {
+            throw ("journey B2 execution did not reach an executed stage: canary_stage=" + $journeyApproveStage + " response=" + ($journeyApprove | ConvertTo-Json -Depth 8 -Compress))
+        }
+        Write-Ok ("B2 experiment round executed: canary_stage=" + $journeyApproveStage)
+
+        # Readback face: a post-execution observation must answer ok (the
+        # chain's re-observation leg).
+        $journeyReadback = & $journeyInvoke "mix.observe" @{
+            scope = "full_project"
+            project_context = $true
+            observation_only = $true
+            disclosure = "digest_catalog"
+            mom_intent = "project_multitrack_relation_observation"
+            mix_session_id = $journeyMixSession
+            goal_text = "journey first post-execution readback"
+        } 240
+        $journeyReadback | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "journey_readback_observe.json") -Encoding UTF8
+        if ([string]$journeyReadback.status -ne "ok") {
+            throw ("journey post-execution observation failed: " + ($journeyReadback | ConvertTo-Json -Depth 8 -Compress))
+        }
+        Write-Ok "post-execution observation readback ok"
+
+        $journeyFinalState = Invoke-Json -Method GET -Uri $journeyStateUri -TimeoutSec 10
+        if ($null -eq $journeyFinalState -or [string]$journeyFinalState.status -ne "ok") {
+            throw "journey final /agent/state did not return ok"
+        }
+        Write-Ok ("stack healthy after the journey (tool_count=" + [string]$journeyFinalState.tool_count + ")")
+
+        $journeySummary = @{
+            journey = "journey_first"
+            project_path = $journeyProjectPath
+            track_names = @($journeyTrackNames.ToArray())
+            project_uuid = $journeyIdentityB
+            session_dirs = @($journeySessionNames.ToArray())
+            authority_probe = [string](Get-OptionalProperty -Object $journeyAuthorityProbe -Name "stop_reason")
+            propose_session = $journeySessionID
+            propose_probes = $journeyProbeCount
+            approve_stage = $journeyApproveStage
+            finished_at = (Get-Date).ToString("o")
+        }
+        $journeySummary | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "journey_summary.json") -Encoding UTF8
     }
 
         $scenarioPassed = $true

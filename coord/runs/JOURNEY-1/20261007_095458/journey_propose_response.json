@@ -1,0 +1,561 @@
+﻿{
+    "conversation_id":  "dev_journey_first_probe_20261007_095502_1",
+    "task_id":  "task_9b5945f7065a37d0",
+    "goal_id":  "goal_258879084accad97",
+    "run_id":  "run_8ced26b1b141da34",
+    "original_intent":  "请为当前隔离测试工程生成并执行 B2 静态平衡。",
+    "reply":  "B2 静态主次与音量平衡方案\n\n已分析 2 条轨道，推荐以 Balanced 策略调整 2 条轨道。\n\n分析依据\n- 角色覆盖 100%，有效电平覆盖 100%，可比较电平覆盖 100%。\n- 识别 2 个音乐功能组，2 条轨道满足 B2 求解条件。\n- B2 使用静态有效电平、当前推子与角色关系；频谱和立体声不是本次决策的必需证据。\n\n推荐方案\n- 推荐候选“Balanced”，置信度 中，最大单轨变化 2.00 dB。\n\n修改预览\n- 核心/前景元素：1 轨，-0.50 dB\n- low_end_anchor：1 轨，+0.50 dB\n\nProposal proposal_e4c46f70382df966 · revision 1 · 2 个可逆动作\n你可以直接回复“执行这个方案”、提出问题、要求排除/只处理某些轨道，或取消。",
+    "agent_mode":  "default",
+    "needs_confirmation":  true,
+    "plan_id":  "proposal_e4c46f70382df966",
+    "preview":  "已分析 2 条轨道，推荐以 Balanced 策略调整 2 条轨道。",
+    "proposal_presentation":  {
+                                  "schema_version":  "vit.proposal_presentation.v1",
+                                  "proposal_id":  "proposal_e4c46f70382df966",
+                                  "proposal_revision":  1,
+                                  "capability_id":  "static_mix.static_balance.v0",
+                                  "title":  "B2 静态主次与音量平衡方案",
+                                  "conclusion":  "已分析 2 条轨道，推荐以 Balanced 策略调整 2 条轨道。",
+                                  "analysis_summary":  [
+                                                           "角色覆盖 100%，有效电平覆盖 100%，可比较电平覆盖 100%。",
+                                                           "识别 2 个音乐功能组，2 条轨道满足 B2 求解条件。",
+                                                           "B2 使用静态有效电平、当前推子与角色关系；频谱和立体声不是本次决策的必需证据。"
+                                                       ],
+                                  "recommendation":  "推荐候选“Balanced”，置信度 中，最大单轨变化 2.00 dB。",
+                                  "analyzed_tracks":  2,
+                                  "action_count":  2,
+                                  "risk":  "bounded_reversible",
+                                  "reversible":  true,
+                                  "readiness":  [
+                                                    {
+                                                        "id":  "role_coverage",
+                                                        "label":  "角色覆盖",
+                                                        "value":  "100%",
+                                                        "status":  "ready"
+                                                    },
+                                                    {
+                                                        "id":  "effective_level_coverage",
+                                                        "label":  "有效电平覆盖",
+                                                        "value":  "100%",
+                                                        "status":  "ready"
+                                                    },
+                                                    {
+                                                        "id":  "fader_coverage",
+                                                        "label":  "推子覆盖",
+                                                        "value":  "2/2",
+                                                        "status":  "ready"
+                                                    }
+                                                ],
+                                  "change_groups":  [
+                                                        {
+                                                            "id":  "function:foreground",
+                                                            "label":  "核心/前景元素",
+                                                            "function":  "foreground",
+                                                            "track_count":  1,
+                                                            "move_count":  1,
+                                                            "min_value":  -0.5,
+                                                            "max_value":  -0.5,
+                                                            "unit":  "dB"
+                                                        },
+                                                        {
+                                                            "id":  "function:low_end_anchor",
+                                                            "label":  "low_end_anchor",
+                                                            "function":  "low_end_anchor",
+                                                            "track_count":  1,
+                                                            "move_count":  1,
+                                                            "min_value":  0.5,
+                                                            "max_value":  0.5,
+                                                            "unit":  "dB"
+                                                        }
+                                                    ],
+                                  "actions":  [
+                                                  {
+                                                      "action_id":  "sbp_393b2b4b809aa835:0:1007",
+                                                      "track_id":  "1007",
+                                                      "track_name":  "Bass",
+                                                      "role":  "bass",
+                                                      "function":  "low_end_anchor",
+                                                      "operation":  "track_gain_adjust",
+                                                      "before":  0,
+                                                      "target":  0.5,
+                                                      "delta":  0.5,
+                                                      "unit":  "dB",
+                                                      "reason":  "place Bass/bass in the low_end_anchor relationship under Neutral"
+                                                  },
+                                                  {
+                                                      "action_id":  "sbp_393b2b4b809aa835:1:1012",
+                                                      "track_id":  "1012",
+                                                      "track_name":  "Lead Vocal",
+                                                      "role":  "lead_vocal",
+                                                      "function":  "foreground",
+                                                      "operation":  "track_gain_adjust",
+                                                      "before":  0,
+                                                      "target":  -0.5,
+                                                      "delta":  -0.5,
+                                                      "unit":  "dB",
+                                                      "reason":  "place Lead Vocal/lead_vocal in the foreground relationship under Neutral"
+                                                  }
+                                              ],
+                                  "evidence_refs":  [
+                                                        "project.state",
+                                                        "mix.observe",
+                                                        "MOM",
+                                                        "MOM:static_level_relationship",
+                                                        "TOM",
+                                                        "dad.track_waveform_envelope:1007:kernel_prepared_waveform_envelope_1011",
+                                                        "dad.track_waveform_envelope:1012:kernel_prepared_waveform_envelope_1016",
+                                                        "obs_20261007T015523_ebb651fa6b4f",
+                                                        "observation:obs_20261007T015523_ebb651fa6b4f",
+                                                        "project_package.static_level_relationship_inputs"
+                                                    ],
+                                  "approval_prompt":  "你可以直接回复“执行这个方案”、提出问题、要求排除/只处理某些轨道，或取消。"
+                              },
+    "workflow":  "capability_runtime_v1",
+    "workflow_data":  {
+                          "action_set_hash":  "e4c46f70382df9667010df7b05f156984e85b7b5342e8454b3e8c30eecc8c065",
+                          "approval_mode":  "conversational",
+                          "canary_stage":  "proposal",
+                          "candidate_ids":  [
+                                                "sbp_3eb38745ab6f33f0",
+                                                "sbp_393b2b4b809aa835",
+                                                "sbp_eabaef1e851194bd"
+                                            ],
+                          "capability_id":  "static_mix.static_balance.v0",
+                          "context_budget":  {
+                                                 "conversation_turns":  1,
+                                                 "estimated_input_tokens":  1881,
+                                                 "max_input_tokens":  28000,
+                                                 "omissions":  {
+
+                                                               },
+                                                 "output_reserve_tokens":  4000,
+                                                 "registry_entries":  6,
+                                                 "tool_schemas":  4,
+                                                 "valid":  true
+                                             },
+                          "context_bundle_id":  "cap_pack_d22cdc7b45fa6c4e",
+                          "project_cut_hash":  "f107f1b0c3ca7e41dd118d2424696f6b8073dbd43dbdde61df60c278885c0cd1",
+                          "proposal_id":  "proposal_e4c46f70382df966",
+                          "proposal_presentation":  {
+                                                        "schema_version":  "vit.proposal_presentation.v1",
+                                                        "proposal_id":  "proposal_e4c46f70382df966",
+                                                        "proposal_revision":  1,
+                                                        "capability_id":  "static_mix.static_balance.v0",
+                                                        "title":  "B2 静态主次与音量平衡方案",
+                                                        "conclusion":  "已分析 2 条轨道，推荐以 Balanced 策略调整 2 条轨道。",
+                                                        "analysis_summary":  [
+                                                                                 "角色覆盖 100%，有效电平覆盖 100%，可比较电平覆盖 100%。",
+                                                                                 "识别 2 个音乐功能组，2 条轨道满足 B2 求解条件。",
+                                                                                 "B2 使用静态有效电平、当前推子与角色关系；频谱和立体声不是本次决策的必需证据。"
+                                                                             ],
+                                                        "recommendation":  "推荐候选“Balanced”，置信度 中，最大单轨变化 2.00 dB。",
+                                                        "analyzed_tracks":  2,
+                                                        "action_count":  2,
+                                                        "risk":  "bounded_reversible",
+                                                        "reversible":  true,
+                                                        "readiness":  [
+                                                                          {
+                                                                              "id":  "role_coverage",
+                                                                              "label":  "角色覆盖",
+                                                                              "value":  "100%",
+                                                                              "status":  "ready"
+                                                                          },
+                                                                          {
+                                                                              "id":  "effective_level_coverage",
+                                                                              "label":  "有效电平覆盖",
+                                                                              "value":  "100%",
+                                                                              "status":  "ready"
+                                                                          },
+                                                                          {
+                                                                              "id":  "fader_coverage",
+                                                                              "label":  "推子覆盖",
+                                                                              "value":  "2/2",
+                                                                              "status":  "ready"
+                                                                          }
+                                                                      ],
+                                                        "change_groups":  [
+                                                                              {
+                                                                                  "id":  "function:foreground",
+                                                                                  "label":  "核心/前景元素",
+                                                                                  "function":  "foreground",
+                                                                                  "track_count":  1,
+                                                                                  "move_count":  1,
+                                                                                  "min_value":  -0.5,
+                                                                                  "max_value":  -0.5,
+                                                                                  "unit":  "dB"
+                                                                              },
+                                                                              {
+                                                                                  "id":  "function:low_end_anchor",
+                                                                                  "label":  "low_end_anchor",
+                                                                                  "function":  "low_end_anchor",
+                                                                                  "track_count":  1,
+                                                                                  "move_count":  1,
+                                                                                  "min_value":  0.5,
+                                                                                  "max_value":  0.5,
+                                                                                  "unit":  "dB"
+                                                                              }
+                                                                          ],
+                                                        "actions":  [
+                                                                        {
+                                                                            "action_id":  "sbp_393b2b4b809aa835:0:1007",
+                                                                            "track_id":  "1007",
+                                                                            "track_name":  "Bass",
+                                                                            "role":  "bass",
+                                                                            "function":  "low_end_anchor",
+                                                                            "operation":  "track_gain_adjust",
+                                                                            "before":  0,
+                                                                            "target":  0.5,
+                                                                            "delta":  0.5,
+                                                                            "unit":  "dB",
+                                                                            "reason":  "place Bass/bass in the low_end_anchor relationship under Neutral"
+                                                                        },
+                                                                        {
+                                                                            "action_id":  "sbp_393b2b4b809aa835:1:1012",
+                                                                            "track_id":  "1012",
+                                                                            "track_name":  "Lead Vocal",
+                                                                            "role":  "lead_vocal",
+                                                                            "function":  "foreground",
+                                                                            "operation":  "track_gain_adjust",
+                                                                            "before":  0,
+                                                                            "target":  -0.5,
+                                                                            "delta":  -0.5,
+                                                                            "unit":  "dB",
+                                                                            "reason":  "place Lead Vocal/lead_vocal in the foreground relationship under Neutral"
+                                                                        }
+                                                                    ],
+                                                        "evidence_refs":  [
+                                                                              "project.state",
+                                                                              "mix.observe",
+                                                                              "MOM",
+                                                                              "MOM:static_level_relationship",
+                                                                              "TOM",
+                                                                              "dad.track_waveform_envelope:1007:kernel_prepared_waveform_envelope_1011",
+                                                                              "dad.track_waveform_envelope:1012:kernel_prepared_waveform_envelope_1016",
+                                                                              "obs_20261007T015523_ebb651fa6b4f",
+                                                                              "observation:obs_20261007T015523_ebb651fa6b4f",
+                                                                              "project_package.static_level_relationship_inputs"
+                                                                          ],
+                                                        "approval_prompt":  "你可以直接回复“执行这个方案”、提出问题、要求排除/只处理某些轨道，或取消。"
+                                                    },
+                          "proposal_revision":  1,
+                          "session_id":  "cap_v1_b2_dev_journey_first_probe_20261007_095502_1_1"
+                      },
+    "interaction_requests":  [
+                                 {
+                                     "id":  "interaction_6b7874cfc42852e5",
+                                     "kind":  "proposal_approval",
+                                     "source":  "vit_agent",
+                                     "workflow":  "capability_runtime_v1",
+                                     "stage":  "proposal_review",
+                                     "title":  "B2 静态主次与音量平衡方案",
+                                     "body":  "已分析 2 条轨道，推荐以 Balanced 策略调整 2 条轨道。",
+                                     "status":  "waiting_for_user",
+                                     "conversation_id":  "dev_journey_first_probe_20261007_095502_1",
+                                     "goal_id":  "goal_258879084accad97",
+                                     "run_id":  "run_8ced26b1b141da34",
+                                     "payload":  {
+                                                     "action_set_hash":  "e4c46f70382df9667010df7b05f156984e85b7b5342e8454b3e8c30eecc8c065",
+                                                     "approval_mode":  "conversational",
+                                                     "capability_id":  "static_mix.static_balance.v0",
+                                                     "commands":  null,
+                                                     "plan_id":  "proposal_e4c46f70382df966",
+                                                     "preview":  "已分析 2 条轨道，推荐以 Balanced 策略调整 2 条轨道。",
+                                                     "project_cut_hash":  "f107f1b0c3ca7e41dd118d2424696f6b8073dbd43dbdde61df60c278885c0cd1",
+                                                     "proposal_id":  "proposal_e4c46f70382df966",
+                                                     "proposal_presentation":  {
+                                                                                   "schema_version":  "vit.proposal_presentation.v1",
+                                                                                   "proposal_id":  "proposal_e4c46f70382df966",
+                                                                                   "proposal_revision":  1,
+                                                                                   "capability_id":  "static_mix.static_balance.v0",
+                                                                                   "title":  "B2 静态主次与音量平衡方案",
+                                                                                   "conclusion":  "已分析 2 条轨道，推荐以 Balanced 策略调整 2 条轨道。",
+                                                                                   "analysis_summary":  [
+                                                                                                            "角色覆盖 100%，有效电平覆盖 100%，可比较电平覆盖 100%。",
+                                                                                                            "识别 2 个音乐功能组，2 条轨道满足 B2 求解条件。",
+                                                                                                            "B2 使用静态有效电平、当前推子与角色关系；频谱和立体声不是本次决策的必需证据。"
+                                                                                                        ],
+                                                                                   "recommendation":  "推荐候选“Balanced”，置信度 中，最大单轨变化 2.00 dB。",
+                                                                                   "analyzed_tracks":  2,
+                                                                                   "action_count":  2,
+                                                                                   "risk":  "bounded_reversible",
+                                                                                   "reversible":  true,
+                                                                                   "readiness":  [
+                                                                                                     {
+                                                                                                         "id":  "role_coverage",
+                                                                                                         "label":  "角色覆盖",
+                                                                                                         "value":  "100%",
+                                                                                                         "status":  "ready"
+                                                                                                     },
+                                                                                                     {
+                                                                                                         "id":  "effective_level_coverage",
+                                                                                                         "label":  "有效电平覆盖",
+                                                                                                         "value":  "100%",
+                                                                                                         "status":  "ready"
+                                                                                                     },
+                                                                                                     {
+                                                                                                         "id":  "fader_coverage",
+                                                                                                         "label":  "推子覆盖",
+                                                                                                         "value":  "2/2",
+                                                                                                         "status":  "ready"
+                                                                                                     }
+                                                                                                 ],
+                                                                                   "change_groups":  [
+                                                                                                         {
+                                                                                                             "id":  "function:foreground",
+                                                                                                             "label":  "核心/前景元素",
+                                                                                                             "function":  "foreground",
+                                                                                                             "track_count":  1,
+                                                                                                             "move_count":  1,
+                                                                                                             "min_value":  -0.5,
+                                                                                                             "max_value":  -0.5,
+                                                                                                             "unit":  "dB"
+                                                                                                         },
+                                                                                                         {
+                                                                                                             "id":  "function:low_end_anchor",
+                                                                                                             "label":  "low_end_anchor",
+                                                                                                             "function":  "low_end_anchor",
+                                                                                                             "track_count":  1,
+                                                                                                             "move_count":  1,
+                                                                                                             "min_value":  0.5,
+                                                                                                             "max_value":  0.5,
+                                                                                                             "unit":  "dB"
+                                                                                                         }
+                                                                                                     ],
+                                                                                   "actions":  [
+                                                                                                   {
+                                                                                                       "action_id":  "sbp_393b2b4b809aa835:0:1007",
+                                                                                                       "track_id":  "1007",
+                                                                                                       "track_name":  "Bass",
+                                                                                                       "role":  "bass",
+                                                                                                       "function":  "low_end_anchor",
+                                                                                                       "operation":  "track_gain_adjust",
+                                                                                                       "before":  0,
+                                                                                                       "target":  0.5,
+                                                                                                       "delta":  0.5,
+                                                                                                       "unit":  "dB",
+                                                                                                       "reason":  "place Bass/bass in the low_end_anchor relationship under Neutral"
+                                                                                                   },
+                                                                                                   {
+                                                                                                       "action_id":  "sbp_393b2b4b809aa835:1:1012",
+                                                                                                       "track_id":  "1012",
+                                                                                                       "track_name":  "Lead Vocal",
+                                                                                                       "role":  "lead_vocal",
+                                                                                                       "function":  "foreground",
+                                                                                                       "operation":  "track_gain_adjust",
+                                                                                                       "before":  0,
+                                                                                                       "target":  -0.5,
+                                                                                                       "delta":  -0.5,
+                                                                                                       "unit":  "dB",
+                                                                                                       "reason":  "place Lead Vocal/lead_vocal in the foreground relationship under Neutral"
+                                                                                                   }
+                                                                                               ],
+                                                                                   "evidence_refs":  [
+                                                                                                         "project.state",
+                                                                                                         "mix.observe",
+                                                                                                         "MOM",
+                                                                                                         "MOM:static_level_relationship",
+                                                                                                         "TOM",
+                                                                                                         "dad.track_waveform_envelope:1007:kernel_prepared_waveform_envelope_1011",
+                                                                                                         "dad.track_waveform_envelope:1012:kernel_prepared_waveform_envelope_1016",
+                                                                                                         "obs_20261007T015523_ebb651fa6b4f",
+                                                                                                         "observation:obs_20261007T015523_ebb651fa6b4f",
+                                                                                                         "project_package.static_level_relationship_inputs"
+                                                                                                     ],
+                                                                                   "approval_prompt":  "你可以直接回复“执行这个方案”、提出问题、要求排除/只处理某些轨道，或取消。"
+                                                                               },
+                                                     "proposal_revision":  1,
+                                                     "session_id":  "cap_v1_b2_dev_journey_first_probe_20261007_095502_1_1"
+                                                 },
+                                     "actions":  [
+                                                     {
+                                                         "id":  "approve",
+                                                         "label":  "确认执行",
+                                                         "style":  "primary",
+                                                         "recommended":  true
+                                                     },
+                                                     {
+                                                         "id":  "cancel",
+                                                         "label":  "取消",
+                                                         "style":  "secondary"
+                                                     }
+                                                 ],
+                                     "plan_id":  "proposal_e4c46f70382df966",
+                                     "type":  "proposal_approval",
+                                     "data":  {
+                                                  "action_set_hash":  "e4c46f70382df9667010df7b05f156984e85b7b5342e8454b3e8c30eecc8c065",
+                                                  "approval_mode":  "conversational",
+                                                  "capability_id":  "static_mix.static_balance.v0",
+                                                  "commands":  null,
+                                                  "plan_id":  "proposal_e4c46f70382df966",
+                                                  "preview":  "已分析 2 条轨道，推荐以 Balanced 策略调整 2 条轨道。",
+                                                  "project_cut_hash":  "f107f1b0c3ca7e41dd118d2424696f6b8073dbd43dbdde61df60c278885c0cd1",
+                                                  "proposal_id":  "proposal_e4c46f70382df966",
+                                                  "proposal_presentation":  {
+                                                                                "schema_version":  "vit.proposal_presentation.v1",
+                                                                                "proposal_id":  "proposal_e4c46f70382df966",
+                                                                                "proposal_revision":  1,
+                                                                                "capability_id":  "static_mix.static_balance.v0",
+                                                                                "title":  "B2 静态主次与音量平衡方案",
+                                                                                "conclusion":  "已分析 2 条轨道，推荐以 Balanced 策略调整 2 条轨道。",
+                                                                                "analysis_summary":  [
+                                                                                                         "角色覆盖 100%，有效电平覆盖 100%，可比较电平覆盖 100%。",
+                                                                                                         "识别 2 个音乐功能组，2 条轨道满足 B2 求解条件。",
+                                                                                                         "B2 使用静态有效电平、当前推子与角色关系；频谱和立体声不是本次决策的必需证据。"
+                                                                                                     ],
+                                                                                "recommendation":  "推荐候选“Balanced”，置信度 中，最大单轨变化 2.00 dB。",
+                                                                                "analyzed_tracks":  2,
+                                                                                "action_count":  2,
+                                                                                "risk":  "bounded_reversible",
+                                                                                "reversible":  true,
+                                                                                "readiness":  [
+                                                                                                  {
+                                                                                                      "id":  "role_coverage",
+                                                                                                      "label":  "角色覆盖",
+                                                                                                      "value":  "100%",
+                                                                                                      "status":  "ready"
+                                                                                                  },
+                                                                                                  {
+                                                                                                      "id":  "effective_level_coverage",
+                                                                                                      "label":  "有效电平覆盖",
+                                                                                                      "value":  "100%",
+                                                                                                      "status":  "ready"
+                                                                                                  },
+                                                                                                  {
+                                                                                                      "id":  "fader_coverage",
+                                                                                                      "label":  "推子覆盖",
+                                                                                                      "value":  "2/2",
+                                                                                                      "status":  "ready"
+                                                                                                  }
+                                                                                              ],
+                                                                                "change_groups":  [
+                                                                                                      {
+                                                                                                          "id":  "function:foreground",
+                                                                                                          "label":  "核心/前景元素",
+                                                                                                          "function":  "foreground",
+                                                                                                          "track_count":  1,
+                                                                                                          "move_count":  1,
+                                                                                                          "min_value":  -0.5,
+                                                                                                          "max_value":  -0.5,
+                                                                                                          "unit":  "dB"
+                                                                                                      },
+                                                                                                      {
+                                                                                                          "id":  "function:low_end_anchor",
+                                                                                                          "label":  "low_end_anchor",
+                                                                                                          "function":  "low_end_anchor",
+                                                                                                          "track_count":  1,
+                                                                                                          "move_count":  1,
+                                                                                                          "min_value":  0.5,
+                                                                                                          "max_value":  0.5,
+                                                                                                          "unit":  "dB"
+                                                                                                      }
+                                                                                                  ],
+                                                                                "actions":  [
+                                                                                                {
+                                                                                                    "action_id":  "sbp_393b2b4b809aa835:0:1007",
+                                                                                                    "track_id":  "1007",
+                                                                                                    "track_name":  "Bass",
+                                                                                                    "role":  "bass",
+                                                                                                    "function":  "low_end_anchor",
+                                                                                                    "operation":  "track_gain_adjust",
+                                                                                                    "before":  0,
+                                                                                                    "target":  0.5,
+                                                                                                    "delta":  0.5,
+                                                                                                    "unit":  "dB",
+                                                                                                    "reason":  "place Bass/bass in the low_end_anchor relationship under Neutral"
+                                                                                                },
+                                                                                                {
+                                                                                                    "action_id":  "sbp_393b2b4b809aa835:1:1012",
+                                                                                                    "track_id":  "1012",
+                                                                                                    "track_name":  "Lead Vocal",
+                                                                                                    "role":  "lead_vocal",
+                                                                                                    "function":  "foreground",
+                                                                                                    "operation":  "track_gain_adjust",
+                                                                                                    "before":  0,
+                                                                                                    "target":  -0.5,
+                                                                                                    "delta":  -0.5,
+                                                                                                    "unit":  "dB",
+                                                                                                    "reason":  "place Lead Vocal/lead_vocal in the foreground relationship under Neutral"
+                                                                                                }
+                                                                                            ],
+                                                                                "evidence_refs":  [
+                                                                                                      "project.state",
+                                                                                                      "mix.observe",
+                                                                                                      "MOM",
+                                                                                                      "MOM:static_level_relationship",
+                                                                                                      "TOM",
+                                                                                                      "dad.track_waveform_envelope:1007:kernel_prepared_waveform_envelope_1011",
+                                                                                                      "dad.track_waveform_envelope:1012:kernel_prepared_waveform_envelope_1016",
+                                                                                                      "obs_20261007T015523_ebb651fa6b4f",
+                                                                                                      "observation:obs_20261007T015523_ebb651fa6b4f",
+                                                                                                      "project_package.static_level_relationship_inputs"
+                                                                                                  ],
+                                                                                "approval_prompt":  "你可以直接回复“执行这个方案”、提出问题、要求排除/只处理某些轨道，或取消。"
+                                                                            },
+                                                  "proposal_revision":  1,
+                                                  "session_id":  "cap_v1_b2_dev_journey_first_probe_20261007_095502_1_1"
+                                              }
+                                 }
+                             ],
+    "goal_status":  "waiting_confirmation",
+    "goal_summary":  "请为当前隔离测试工程生成并执行 B2 静态平衡。",
+    "project_history":  {
+                            "active_branch":  "main",
+                            "active_node_id":  "n_20261007T015526_4f39e3e2",
+                            "active_worktree":  "",
+                            "available":  true,
+                            "branches":  {
+                                             "main":  "c_20261007T015519_b855747b"
+                                         },
+                            "commit_count":  2,
+                            "conversation_messages":  [
+                                                          {
+                                                              "content":  "请为当前隔离测试工程生成并执行 B2 静态平衡。",
+                                                              "logical_message_id":  "n_20261007T015521_51a9d7c3",
+                                                              "message_kind":  "user",
+                                                              "node_id":  "n_20261007T015521_51a9d7c3",
+                                                              "role":  "user"
+                                                          },
+                                                          {
+                                                              "content":  "B2 静态主次与音量平衡方案\n\n已分析 2 条轨道，推荐以 Balanced 策略调整 2 条轨道。\n\n分析依据\n- 角色覆盖 100%，有效电平覆盖 100%，可比较电平覆盖 100%。\n- 识别 2 个音乐功能组，2 条轨道满足 B2 求解条件。\n- B2 使用静态有效电平、当前推子与角色关系；频谱和立体声不是本次决策的必需证据。\n\n推荐方案\n- 推荐候选“Balanced”，置信度 中，最大单轨变化 2.00 dB。\n\n修改预览\n- 核心/前景元素：1 轨，-0.50 dB\n- low_end_anchor：1 轨，+0.50 dB\n\nProposal proposal_e4c46f70382df966 · revision 1 · 2 个可逆动作\n你可以直接回复“执行这个方案”、提出问题、要求排除/只处理某些轨道，或取消。",
+                                                              "logical_message_id":  "proposal_e4c46f70382df966",
+                                                              "message_kind":  "proposal",
+                                                              "node_id":  "n_20261007T015526_4f39e3e2",
+                                                              "role":  "assistant"
+                                                          }
+                                                      ],
+                            "detached":  false,
+                            "draft":  false,
+                            "head":  "c_20261007T015519_b855747b",
+                            "initialized":  true,
+                            "project_label":  "journey_fixture",
+                            "project_path":  "D:\\Vit_DAW\\coord\\runs\\JOURNEY-1\\20261007_095458\\project\\journey_fixture.vit",
+                            "project_uuid":  "vitproj_d74b0f8ec18b41f288feae4a236c5237",
+                            "refs":  {
+                                         "refs/heads/main":  "c_20261007T015519_b855747b"
+                                     },
+                            "root_project_path":  "",
+                            "unsaved":  false,
+                            "warnings":  [
+
+                                         ],
+                            "worktrees":  [
+                                              {
+                                                  "commit_id":  "c_20261007T015519_b855747b",
+                                                  "created_at":  "2026-10-07T01:55:26.6263888Z",
+                                                  "is_root":  true,
+                                                  "label":  "主工作树",
+                                                  "name":  "main",
+                                                  "origin_commit_id":  "c_20261007T015519_b855747b",
+                                                  "path":  "D:\\Vit_DAW\\coord\\runs\\JOURNEY-1\\20261007_095458\\project",
+                                                  "project_file_path":  "D:\\Vit_DAW\\coord\\runs\\JOURNEY-1\\20261007_095458\\project\\journey_fixture.vit",
+                                                  "project_path":  "D:\\Vit_DAW\\coord\\runs\\JOURNEY-1\\20261007_095458\\project\\journey_fixture.vit",
+                                                  "root_project_path":  "D:\\Vit_DAW\\coord\\runs\\JOURNEY-1\\20261007_095458\\project\\journey_fixture.vit"
+                                              }
+                                          ]
+                        },
+    "lifecycle":  "durable",
+    "persistence":  "project_history",
+    "message_kind":  "proposal",
+    "turn_id":  "run_8ced26b1b141da34",
+    "logical_message_id":  "proposal_e4c46f70382df966"
+}

@@ -1,0 +1,18 @@
+﻿{
+    "propose_session":  "cap_v1_b2_dev_journey_first_probe_20261007_095502_1_1",
+    "project_uuid":  "vitproj_d74b0f8ec18b41f288feae4a236c5237",
+    "journey":  "journey_first",
+    "authority_probe":  "authority_smoke_ok",
+    "session_dirs":  [
+                         "session_20261007T015504_9f931651",
+                         "session_20261007T015505_f5255bc9"
+                     ],
+    "track_names":  [
+                        "Bass",
+                        "Lead Vocal"
+                    ],
+    "approve_stage":  "executed_verified",
+    "finished_at":  "2026-10-07T09:55:35.6117598+08:00",
+    "propose_probes":  1,
+    "project_path":  "D:\\Vit_DAW\\coord\\runs\\JOURNEY-1\\20261007_095458\\project\\journey_fixture.vit"
+}
