@@ -51,11 +51,26 @@ param(
     # gate; the NL free-state face is the J3 journey card (see
     # coord/runs/JOURNEY-1/JOURNEYS.md). Journeys are deliberately NOT part
     # of "all" (heavier execution legs, scheduled per journey).
+    # "journey_plugin_load" (JOURNEY-2): demo journey gate station 4 --
+    # same berth + J1 fixture recipe, then track select -> one direct
+    # rack.add_node under full access (real plugin load chain). Assertion
+    # face is fully settled on the kernel receipt (plugin_id +
+    # plugin_instance_ready + graph_last_diff_kind=node_add), the UI
+    # projection (plugin_count >= 1 after track selection), and the PCA
+    # load gate (denial-line increment 0). Zero LLM.
     [string]$Scenario = "",
     # Scenario run artifacts root; defaults to
     # coord\runs\SMOKE-SCEN-RANGE-1\<timestamp> (journey_first:
-    # coord\runs\JOURNEY-1\<timestamp>) under the repo.
+    # coord\runs\JOURNEY-1\<timestamp>; journey_plugin_load:
+    # coord\runs\JOURNEY-2\<timestamp>) under the repo.
     [string]$RunArtifactsDir = "",
+    # JOURNEY-2: exact plugin identifier driven into rack.add_node. Default
+    # is the J1-journey (journey1_demo_journey_smoke.ps1) same-source
+    # whitelisted static EQ -- the identifier embeds the promoted PCA
+    # catalog fingerprint, so it must name a plugin this machine can load
+    # deterministically (card constraint: no new plugin dependency without
+    # declaring it first).
+    [string]$JourneyPluginIdentifier = "VST3-bx_hybrid V2-d0ef306f-c141eb4b",
     # SMOKE-TOOLING-1: the UI-launched kernel command port can take far longer
     # than the generic wait budget when the plugin table is cold (three
     # same-shape environment failures: ~994-entry cold load blew the fixed
@@ -518,18 +533,21 @@ $listener = Get-TcpListener -Port $httpPort
 # one stack owner at a time), then starts kernel+agent below and tears them
 # down after the selected scenarios finish.
 $ScenarioMode = -not [string]::IsNullOrWhiteSpace($Scenario)
+# Journeys own the full berth (kernel + agent); one flag for every journey
+# card. Defined for every mode so later references stay StrictMode-safe.
+$journeyBerth = ($ScenarioMode -and ($Scenario -eq "journey_first" -or $Scenario -eq "journey_plugin_load"))
 $ScenarioKernelProcId = $null
 $ScenarioAgentProcId = $null
 $ScenarioRunDir = ""
 if ($ScenarioMode) {
-    if ($Scenario -notin @("note_time", "range_split", "ref_diff_content", "midi_register", "render_freeze", "journey_first", "all")) {
-        throw ("unknown -Scenario value '" + $Scenario + "'; expected note_time, range_split, ref_diff_content, midi_register, render_freeze, journey_first, or all")
+    if ($Scenario -notin @("note_time", "range_split", "ref_diff_content", "midi_register", "render_freeze", "journey_first", "journey_plugin_load", "all")) {
+        throw ("unknown -Scenario value '" + $Scenario + "'; expected note_time, range_split, ref_diff_content, midi_register, render_freeze, journey_first, journey_plugin_load, or all")
     }
     if ($StartUI) {
         throw "-Scenario berth mode never starts the Godot UI (card constraint: webui/Godot untouched)"
     }
-    if ($Scenario -eq "journey_first" -and -not $StartKernel) {
-        throw "-Scenario journey_first owns the full stack and must be run with -StartKernel (the kernel is part of the journey berth)"
+    if ($journeyBerth -and -not $StartKernel) {
+        throw ("-Scenario " + $Scenario + " owns the full stack and must be run with -StartKernel (the kernel is part of the journey berth)")
     }
     if ($null -ne $listener) {
         throw ("scenario berth requires a free agent HTTP port; " + $httpPort + " is already listening (another session's stack, AGENTS.md section 9)")
@@ -542,6 +560,9 @@ if ($ScenarioMode) {
         if ($Scenario -eq "journey_first") {
             $scenarioRunsRoot = "coord\runs\JOURNEY-1"
         }
+        elseif ($Scenario -eq "journey_plugin_load") {
+            $scenarioRunsRoot = "coord\runs\JOURNEY-2"
+        }
         $RunArtifactsDir = Join-Path $RepoRoot ($scenarioRunsRoot + "\" + (Get-Date -Format "yyyyMMdd_HHmmss"))
     }
     if (Test-Path -LiteralPath $RunArtifactsDir) {
@@ -551,12 +572,12 @@ if ($ScenarioMode) {
     $ScenarioRunDir = $RunArtifactsDir
     (& git -C $RepoRoot rev-parse HEAD) | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "head.txt") -Encoding UTF8
     (& git -C $RepoRoot status --short) | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "git_status.txt") -Encoding UTF8
-    if ($Scenario -eq "journey_first") {
-        # JOURNEY-1 berth isolation (journey1 contract): the kernel runs in a
-        # run-dir workspace with its default project redirected there, so
-        # nothing under VitApp\Workspace is written by this run even though the
-        # journey approves real executions; the agent's conversation draft
-        # root is redirected into the run dir too. A caller-provided
+    if ($journeyBerth) {
+        # JOURNEY-1/JOURNEY-2 berth isolation (journey1 contract): the kernel
+        # runs in a run-dir workspace with its default project redirected
+        # there, so nothing under VitApp\Workspace is written by this run even
+        # though the journey approves real executions; the agent's conversation
+        # draft root is redirected into the run dir too. A caller-provided
         # VIT_HISTORY_DRAFT_ROOT wins (same precedence as the COM roots).
         $JourneyKernelWorkspace = Join-Path $ScenarioRunDir "kernel_workspace"
         $JourneyProjectDir = Join-Path $ScenarioRunDir "project"
@@ -632,11 +653,11 @@ if ($StartKernel) {
         Fail-Or-Warn ("kernel exe not found: " + $KernelExe)
     }
     elseif (-not (Get-TcpListener -Port ([int]$ZmqReqPort))) {
-        # JOURNEY-1: the journey berth kernel runs inside the run-dir workspace
-        # with VIT_PROJECT_XML redirected to the run-dir default-project copy
-        # (journey1 isolation contract); every other scenario keeps the
-        # deployed-kernel working directory.
-        $journeyKernelStart = ($ScenarioMode -and $Scenario -eq "journey_first")
+        # JOURNEY-1/JOURNEY-2: the journey berth kernel runs inside the
+        # run-dir workspace with VIT_PROJECT_XML redirected to the run-dir
+        # default-project copy (journey1 isolation contract); every other
+        # scenario keeps the deployed-kernel working directory.
+        $journeyKernelStart = $journeyBerth
         $kernelWorkingDir = Split-Path -Parent $KernelExe
         if ($journeyKernelStart) {
             $kernelWorkingDir = $JourneyKernelWorkspace
@@ -2274,6 +2295,428 @@ if ($ScenarioMode) {
             propose_session = $journeySessionID
             propose_probes = $journeyProbeCount
             approve_stage = $journeyApproveStage
+            finished_at = (Get-Date).ToString("o")
+        }
+        $journeySummary | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "journey_summary.json") -Encoding UTF8
+    }
+
+    if ($Scenario -eq "journey_plugin_load") {
+        # JOURNEY-2 plugin-load journey gate: demo station 4. The berth, the
+        # fixture recipe and the authority leg are the J1 journey reused
+        # verbatim (JOURNEYS.md section 1, J2 row); the journey's own face is
+        # the plugin load -- one direct rack.add_node under full project
+        # access (FULLACCESS-AUTONOMY-1 autonomous admission). Assertion
+        # surface (card-settled, zero LLM, all server/kernel-owned):
+        #   kernel receipt: plugin_id + plugin_instance_ready=true +
+        #                  graph_last_diff_kind=node_add
+        #   UI projection:  plugin_count >= 1 after track selection
+        #   PCA load gate:  denial-line increment 0
+        Write-Step "Scenario journey_plugin_load: demo journey -- project open -> authority -> track select -> rack.add_node direct drive"
+        $journeyInvokeUri = $AgentHttp.TrimEnd("/") + "/agent/invoke"
+        $journeyChatUri = $AgentHttp.TrimEnd("/") + "/agent/chat"
+        $journeyAuthorityUri = $AgentHttp.TrimEnd("/") + "/agent/authority"
+        $journeyStateUri = $AgentHttp.TrimEnd("/") + "/agent/state"
+        $journeyUiStateUri = $AgentHttp.TrimEnd("/") + "/agent/ui/state"
+        $journeyUiContextUri = $AgentHttp.TrimEnd("/") + "/agent/ui/context"
+        $journeyRuntimeUri = $AgentHttp.TrimEnd("/") + "/agent/runtime/status"
+        $journeyStamp = Get-Date -Format "yyyyMMdd_HHmmss"
+        $journeyInvoke = {
+            param([string]$Tool, [object]$ToolArgs, [int]$TimeoutSec)
+            Invoke-Json -Method POST -Uri $journeyInvokeUri -Body @{
+                tool = $Tool
+                args = $ToolArgs
+                confirmed = $true
+                source = "dev_agent_smoke.journey_plugin_load"
+            } -TimeoutSec $TimeoutSec
+        }
+
+        # ---------------- fixture: J1 recipe, verbatim ----------------------
+        # WriteLease recipe (VITNOTE-IMPL-4): the two stem names feed the
+        # staticbalance name-inference vocabulary and the sustained tones
+        # carry the DAD L1 features. Everything lives inside the run dir.
+        Write-Step "Journey fixture: build the two-stem project, bake DAD analysis, persist"
+        Write-LeaseSmokeStemWav -Path (Join-Path $JourneyStemsDir "Lead Vocal.wav") -Amplitude 0.5 -Frequency 440.0 | Out-Null
+        Write-LeaseSmokeStemWav -Path (Join-Path $JourneyStemsDir "Bass.wav") -Amplitude 0.35 -Frequency 110.0 | Out-Null
+        $journeyProjectPath = Join-Path $JourneyProjectDir "journey_fixture.vit"
+        $null = & $journeyInvoke "project.new" @{} 60
+        $journeyImport = & $journeyInvoke "project.import_folder_as_stems" @{
+            folder_path = $JourneyStemsDir
+            recursive = $false
+            target_policy = "create_tracks"
+            start_time_seconds = 0.0
+            skip_unreadable = $false
+            command_timeout_ms = 60000
+        } 120
+        if ([string]$journeyImport.status -ne "ok") {
+            throw ("journey fixture stems import failed: " + ($journeyImport | ConvertTo-Json -Depth 8 -Compress))
+        }
+        $journeyImportResult = Get-OptionalProperty -Object $journeyImport -Name "result"
+        $journeyJobId = [string](Get-FirstPropertyValue -Object $journeyImportResult -Names @("analysis_job_id"))
+        if ([string]::IsNullOrWhiteSpace($journeyJobId)) {
+            $journeyImportJob = Get-OptionalProperty -Object $journeyImportResult -Name "analysis_job"
+            $journeyJobId = [string](Get-FirstPropertyValue -Object $journeyImportJob -Names @("analysis_job_id", "job_id"))
+        }
+        if ([string]::IsNullOrWhiteSpace($journeyJobId)) {
+            throw ("journey fixture import returned no analysis job id: " + ($journeyImport | ConvertTo-Json -Depth 8 -Compress))
+        }
+        $null = & $journeyInvoke "project.audio_analysis_start" @{ analysis_job_id = $journeyJobId; interval_ms = 10 } 60
+        $journeyDadDeadline = (Get-Date).AddSeconds(240)
+        $journeyDadReady = $false
+        $journeyDadTotal = 0
+        while ((Get-Date) -lt $journeyDadDeadline) {
+            $journeyDad = & $journeyInvoke "project.audio_analysis_status" @{ analysis_job_id = $journeyJobId; latest = $true } 60
+            $journeyDadResult = Get-OptionalProperty -Object $journeyDad -Name "result"
+            $journeyDadJob = Get-OptionalProperty -Object $journeyDadResult -Name "analysis_job"
+            $journeyDadTotal = [int](Get-FirstPropertyValue -Object $journeyDadJob -Names @("dad_fact_total_count", "dad_fact_total"))
+            $journeyDadReadyCount = [int](Get-FirstPropertyValue -Object $journeyDadJob -Names @("dad_fact_ready_count"))
+            $journeyDadStatus = [string](Get-FirstPropertyValue -Object $journeyDadJob -Names @("dad_fact_status"))
+            $journeyDadWaveforms = @(Get-OptionalProperty -Object $journeyDadJob -Name "track_waveform_envelopes")
+            if ($journeyDadTotal -gt 0 -and $journeyDadReadyCount -ge $journeyDadTotal -and $journeyDadStatus.ToLower() -eq "ready" -and $journeyDadWaveforms.Count -ge $journeyDadTotal) {
+                $journeyDadReady = $true
+                break
+            }
+            Start-Sleep -Seconds 1
+        }
+        if (-not $journeyDadReady) {
+            throw "journey fixture DAD analysis did not become ready within 240s"
+        }
+        Write-Ok ("fixture DAD ready (tracks=" + [string]$journeyDadTotal + ")")
+        $journeySave = & $journeyInvoke "project.save_as" @{ file_path = $journeyProjectPath } 60
+        if ([string]$journeySave.status -ne "ok") {
+            throw ("journey fixture save_as failed: " + ($journeySave | ConvertTo-Json -Depth 8 -Compress))
+        }
+        if (-not (Test-Path -LiteralPath $journeyProjectPath)) {
+            throw ("journey fixture project file missing after save_as: " + $journeyProjectPath)
+        }
+        $null = & $journeyInvoke "project.new" @{} 60
+        Write-Ok ("fixture persisted: " + $journeyProjectPath)
+
+        # ---------------- LEG 1: project open (journey start state) ---------
+        # Same agent-side face the Godot start page drives (journey1 ruling
+        # #1). J1 owns the deep open assertions (identity/session evidence);
+        # J2 only needs the restored two-stem state the load lands on.
+        Write-Step "LEG 1 (project open): open_project through the agent tool face"
+        $journeyOpen = & $journeyInvoke "project.open" @{ file_path = $journeyProjectPath } 180
+        $journeyOpen | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "journey_open_response.json") -Encoding UTF8
+        if ([string]$journeyOpen.status -ne "ok") {
+            throw ("journey project.open failed: " + ($journeyOpen | ConvertTo-Json -Depth 8 -Compress))
+        }
+        Start-Sleep -Seconds 4
+        $journeyUiState = Invoke-Json -Method GET -Uri $journeyUiStateUri -TimeoutSec 60
+        $journeyUiState | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "journey_ui_state_after_open.json") -Encoding UTF8
+        $journeyTrackRows = @()
+        $journeyTracksProp = Get-OptionalProperty -Object $journeyUiState -Name "tracks"
+        if ($null -ne $journeyTracksProp) {
+            if ($journeyTracksProp -is [System.Management.Automation.PSCustomObject]) {
+                foreach ($journeyTrackProp in $journeyTracksProp.PSObject.Properties) {
+                    $journeyTrackRows += $journeyTrackProp.Value
+                }
+            }
+            else {
+                $journeyTrackRows = @($journeyTracksProp)
+            }
+        }
+        $journeyTrackNames = New-Object System.Collections.Generic.List[string]
+        foreach ($journeyTrackRow in $journeyTrackRows) {
+            if ($null -eq $journeyTrackRow) { continue }
+            $journeyTrackName = [string](Get-OptionalProperty -Object $journeyTrackRow -Name "name")
+            if ([string]::IsNullOrWhiteSpace($journeyTrackName)) {
+                $journeyTrackName = [string](Get-OptionalProperty -Object $journeyTrackRow -Name "track_name")
+            }
+            if (-not [string]::IsNullOrWhiteSpace($journeyTrackName)) { $journeyTrackNames.Add($journeyTrackName) }
+        }
+        if ($journeyTrackNames.Count -ne 2) {
+            throw ("journey open did not restore the two-stem project: tracks=[" + ($journeyTrackNames.ToArray() -join ",") + "]")
+        }
+        $journeyTracksJoined = $journeyTrackNames.ToArray() -join ","
+        if (-not ($journeyTracksJoined.Contains("Lead Vocal")) -or -not ($journeyTracksJoined.Contains("Bass"))) {
+            throw ("journey open restored unexpected track names: [" + $journeyTracksJoined + "]")
+        }
+        Write-Ok ("open restored both stems: [" + $journeyTracksJoined + "]")
+
+        # ---------------- LEG 2: authority grant (J1 P2 leg, verbatim) ------
+        Write-Step "LEG 2 (authority grant): full project access switches and binds the input chain"
+        $journeyAuthoritySwitch = Invoke-Json -Method POST -Uri $journeyAuthorityUri -Body @{ authority_mode = "full_project_access" } -TimeoutSec 30
+        $journeyAuthoritySwitch | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "journey_authority_switch.json") -Encoding UTF8
+        if ([string]$journeyAuthoritySwitch.status -ne "ok" -or [string](Get-OptionalProperty -Object $journeyAuthoritySwitch -Name "authority_mode") -ne "full_project_access") {
+            throw ("journey authority switch refused: " + ($journeyAuthoritySwitch | ConvertTo-Json -Depth 6 -Compress))
+        }
+        $journeyHoldDeadline = (Get-Date).AddSeconds(8)
+        while ((Get-Date) -lt $journeyHoldDeadline) {
+            $null = Invoke-Json -Method GET -Uri $journeyRuntimeUri -TimeoutSec 60
+            Start-Sleep -Milliseconds 800
+        }
+        $journeyAuthorityHeld = Invoke-Json -Method GET -Uri $journeyAuthorityUri -TimeoutSec 60
+        if ([string](Get-OptionalProperty -Object $journeyAuthorityHeld -Name "authority_mode") -ne "full_project_access") {
+            throw ("journey authority mode flipped after the hold window: " + ($journeyAuthorityHeld | ConvertTo-Json -Depth 6 -Compress))
+        }
+        Write-Ok "authority held full_project_access across the activation window"
+        # Input-chain probe (AUTHORITY-LOST-1 face): server-owned, no LLM.
+        $journeyAuthorityProbe = Invoke-Json -Method POST -Uri $journeyChatUri -Body @{
+            conversation_id = ("dev_journey_plugin_load_authority_" + $journeyStamp)
+            message = "/smoke authority"
+            context = @{
+                agent_mode = "chat"
+            }
+        } -TimeoutSec ([Math]::Max(30, $WaitSeconds))
+        $journeyAuthorityProbe | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "journey_authority_probe.json") -Encoding UTF8
+        if ([string](Get-OptionalProperty -Object $journeyAuthorityProbe -Name "stop_reason") -ne "authority_smoke_ok" -or -not (([string](Get-OptionalProperty -Object $journeyAuthorityProbe -Name "reply")).Contains("bound=full_project_access"))) {
+            throw ("journey authority input-chain probe did not bind full access: " + ($journeyAuthorityProbe | ConvertTo-Json -Depth 8 -Compress))
+        }
+        if ([bool](Get-OptionalProperty -Object $journeyAuthorityProbe -Name "needs_confirmation")) {
+            throw "journey authority probe raised a confirmation card under full access"
+        }
+        Write-Ok "input chain binds full_project_access with no confirmation card"
+
+        # ---------------- LEG 3: track select + pre-load baseline -----------
+        # The plugin rack follows the UI selection: the Godot frontend
+        # selects a track before its rack column means anything, so the
+        # journey selects the bass track through the same /agent/ui/context
+        # face first (journey1 A2 selection face). Baseline: a fresh fixture
+        # carries no plugins, so plugin_count must read 0 before the load.
+        Write-Step "LEG 3 (track select): select Bass through the UI context face, read the pre-load baseline"
+        $journeySelectedTrack = "Bass"
+        $null = Invoke-Json -Method POST -Uri $journeyUiContextUri -Body @{ selected_track_name = $journeySelectedTrack } -TimeoutSec 30
+        $journeyUiBaseline = Invoke-Json -Method GET -Uri $journeyUiStateUri -TimeoutSec 60
+        $journeyUiBaseline | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "journey_ui_state_baseline.json") -Encoding UTF8
+        $journeyBaselineTracksProp = Get-OptionalProperty -Object $journeyUiBaseline -Name "tracks"
+        $journeyBaselineTrackRows = @()
+        if ($null -ne $journeyBaselineTracksProp) {
+            if ($journeyBaselineTracksProp -is [System.Management.Automation.PSCustomObject]) {
+                foreach ($journeyTrackProp in $journeyBaselineTracksProp.PSObject.Properties) {
+                    $journeyBaselineTrackRows += $journeyTrackProp.Value
+                }
+            }
+            else {
+                $journeyBaselineTrackRows = @($journeyBaselineTracksProp)
+            }
+        }
+        $journeyBassRow = $null
+        foreach ($journeyTrackRow in $journeyBaselineTrackRows) {
+            if ($null -eq $journeyTrackRow) { continue }
+            if (([string](Get-OptionalProperty -Object $journeyTrackRow -Name "name")) -eq $journeySelectedTrack -or ([string](Get-OptionalProperty -Object $journeyTrackRow -Name "track_name")) -eq $journeySelectedTrack) {
+                $journeyBassRow = $journeyTrackRow
+                break
+            }
+        }
+        if ($null -eq $journeyBassRow) {
+            throw ("journey baseline ui/state lost the selected track " + $journeySelectedTrack)
+        }
+        $journeyBassTrackId = [string](Get-OptionalProperty -Object $journeyBassRow -Name "track_id")
+        if ([string]::IsNullOrWhiteSpace($journeyBassTrackId)) {
+            $journeyBassTrackId = [string](Get-OptionalProperty -Object $journeyBassRow -Name "id")
+        }
+        if ([string]::IsNullOrWhiteSpace($journeyBassTrackId)) {
+            throw ("journey selected track carries no track_id: " + ($journeyBassRow | ConvertTo-Json -Depth 6 -Compress))
+        }
+        $journeyBaselinePluginCountProp = Get-OptionalProperty -Object $journeyBassRow -Name "plugin_count"
+        if ([string]::IsNullOrWhiteSpace([string]$journeyBaselinePluginCountProp)) {
+            throw ("journey selected track carries no plugin_count (ui/state shape drift): " + ($journeyBassRow | ConvertTo-Json -Depth 6 -Compress))
+        }
+        $journeyBaselinePluginCount = [int]$journeyBaselinePluginCountProp
+        if ($journeyBaselinePluginCount -ne 0) {
+            throw ("journey fixture bass track already carries plugins before the load (plugin_count=" + [string]$journeyBaselinePluginCount + "); fixture is not the declared clean start state")
+        }
+        Write-Ok ("bass selected (track_id=" + $journeyBassTrackId + ", baseline plugin_count=0)")
+
+        # ---------------- LEG 4: rack.add_node direct drive -----------------
+        # One exact load under full access. zone_id Z3 is the kernel
+        # signal-zone whitelist value the journey1 A2 probe settled on (an
+        # EQ lands in Z3). A rejected invoke answers non-2xx, so the error
+        # body is captured for the artifact before the gate fails.
+        Write-Step "LEG 4 (plugin load): one direct rack.add_node under full access"
+        $journeyGateDenialPattern = "stage=pca_processor_load_gate"
+        # The agent's rolling last-log rewrites the whole file on every line
+        # (logx logger.go), so a count can race the rewrite and see a partial
+        # file. Three reads a moment apart, keep the maximum: a real denial
+        # line is stable, a torn read is not.
+        $journeyGateCount = {
+            $maxSeen = 0
+            for ($attempt = 0; $attempt -lt 3; $attempt++) {
+                if ($attempt -gt 0) { Start-Sleep -Milliseconds 250 }
+                if (-not (Test-Path -LiteralPath $AgentLog)) { continue }
+                $seen = @(@(Select-String -LiteralPath $AgentLog -Pattern $journeyGateDenialPattern -ErrorAction SilentlyContinue)).Count
+                if ($seen -gt $maxSeen) { $maxSeen = $seen }
+            }
+            return $maxSeen
+        }
+        $journeyGateBefore = & $journeyGateCount
+        $journeyLoad = $null
+        $journeyLoadErrorBody = ""
+        try {
+            $journeyLoad = & $journeyInvoke "rack_add_node" @{
+                plugin_identifier = $JourneyPluginIdentifier
+                track_id = $journeyBassTrackId
+                x = 0
+                y = 0
+                zone_id = "Z3"
+            } 180
+        }
+        catch {
+            $journeyLoad = $null
+            if ($null -ne $_.ErrorDetails -and -not [string]::IsNullOrWhiteSpace($_.ErrorDetails.Message)) { $journeyLoadErrorBody = $_.ErrorDetails.Message }
+            else { $journeyLoadErrorBody = $_.Exception.Message }
+        }
+        if ($null -ne $journeyLoad) {
+            $journeyLoad | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "journey_rack_add_node_response.json") -Encoding UTF8
+        }
+        if (-not [string]::IsNullOrWhiteSpace($journeyLoadErrorBody)) {
+            $journeyLoadErrorBody | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "journey_rack_add_node_error.json") -Encoding UTF8
+        }
+        if ($null -eq $journeyLoad) {
+            throw ("journey rack.add_node invoke failed: " + $journeyLoadErrorBody)
+        }
+        if ([string]$journeyLoad.status -ne "ok") {
+            throw ("journey rack.add_node did not answer ok: " + ($journeyLoad | ConvertTo-Json -Depth 8 -Compress))
+        }
+        $journeyLoadResult = Get-OptionalProperty -Object $journeyLoad -Name "result"
+        $journeyPluginId = [string](Get-OptionalProperty -Object $journeyLoadResult -Name "plugin_id")
+        $journeyInstanceReadyProp = Get-OptionalProperty -Object $journeyLoadResult -Name "plugin_instance_ready"
+        if ([string]::IsNullOrWhiteSpace([string]$journeyInstanceReadyProp)) {
+            $journeyInstanceReadyProp = $null
+        }
+        $journeyGraphDiffKind = [string](Get-OptionalProperty -Object $journeyLoadResult -Name "graph_last_diff_kind")
+        if ([string]::IsNullOrWhiteSpace($journeyPluginId)) {
+            throw ("journey rack.add_node kernel receipt carries no plugin_id: " + ($journeyLoad | ConvertTo-Json -Depth 8 -Compress))
+        }
+        if ($null -eq $journeyInstanceReadyProp -or -not [bool]$journeyInstanceReadyProp) {
+            throw ("journey rack.add_node kernel receipt plugin_instance_ready is not true: " + ($journeyLoad | ConvertTo-Json -Depth 8 -Compress))
+        }
+        if ($journeyGraphDiffKind -ne "node_add") {
+            throw ("journey rack.add_node graph diff is not node_add (got '" + $journeyGraphDiffKind + "'): " + ($journeyLoad | ConvertTo-Json -Depth 8 -Compress))
+        }
+        $journeyGateAfter = & $journeyGateCount
+        $journeyGateDelta = [int]$journeyGateAfter - [int]$journeyGateBefore
+        # PCA gate face: a denial logs one WARN line with the gate stage, so
+        # the load under full access must add zero denial lines. The guard is
+        # "after must not exceed before" (delta <= 0): the rolling last-log
+        # rewrite can only evict old lines, never invent denials, and the
+        # artifact records the measured delta.
+        if ($journeyGateDelta -gt 0) {
+            throw ("journey PCA load gate denied the full-access load: stage=pca_processor_load_gate lines before=" + [string]$journeyGateBefore + " after=" + [string]$journeyGateAfter)
+        }
+        Write-Ok ("rack.add_node landed: plugin_id=" + $journeyPluginId + " instance_ready=true graph_diff=" + $journeyGraphDiffKind + " (gate denial delta=" + [string]$journeyGateDelta + ")")
+
+        # ---------------- LEG 5: UI projection reflects the loaded plugin ---
+        # UI-PLUGIN-COUNT-1 face: the VSP write path refreshes the shadow and
+        # the chat projection derives plugin rows/plugin_count from
+        # rack.nodes, so /agent/ui/state must show the loaded plugin for the
+        # selected track (plugin_rack follows the selection).
+        Write-Step "LEG 5 (UI projection): selected-track plugin_count and rack rows after the load"
+        $null = Invoke-Json -Method POST -Uri $journeyUiContextUri -Body @{ selected_track_name = $journeySelectedTrack } -TimeoutSec 30
+        $journeyUiAfter = Invoke-Json -Method GET -Uri $journeyUiStateUri -TimeoutSec 60
+        $journeyUiAfter | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "journey_ui_state_after_load.json") -Encoding UTF8
+        $journeyAfterTracksProp = Get-OptionalProperty -Object $journeyUiAfter -Name "tracks"
+        $journeyAfterTrackRows = @()
+        if ($null -ne $journeyAfterTracksProp) {
+            if ($journeyAfterTracksProp -is [System.Management.Automation.PSCustomObject]) {
+                foreach ($journeyTrackProp in $journeyAfterTracksProp.PSObject.Properties) {
+                    $journeyAfterTrackRows += $journeyTrackProp.Value
+                }
+            }
+            else {
+                $journeyAfterTrackRows = @($journeyAfterTracksProp)
+            }
+        }
+        $journeyBassAfterRow = $null
+        foreach ($journeyTrackRow in $journeyAfterTrackRows) {
+            if ($null -eq $journeyTrackRow) { continue }
+            if (([string](Get-OptionalProperty -Object $journeyTrackRow -Name "name")) -eq $journeySelectedTrack -or ([string](Get-OptionalProperty -Object $journeyTrackRow -Name "track_name")) -eq $journeySelectedTrack) {
+                $journeyBassAfterRow = $journeyTrackRow
+                break
+            }
+        }
+        if ($null -eq $journeyBassAfterRow) {
+            throw ("journey post-load ui/state lost the selected track " + $journeySelectedTrack)
+        }
+        $journeyAfterPluginCountProp = Get-OptionalProperty -Object $journeyBassAfterRow -Name "plugin_count"
+        if ([string]::IsNullOrWhiteSpace([string]$journeyAfterPluginCountProp)) {
+            throw ("journey post-load selected track carries no plugin_count (ui/state shape drift): " + ($journeyBassAfterRow | ConvertTo-Json -Depth 6 -Compress))
+        }
+        $journeyAfterPluginCount = [int]$journeyAfterPluginCountProp
+        if ($journeyAfterPluginCount -lt 1) {
+            throw ("journey post-load selected track plugin_count is " + [string]$journeyAfterPluginCount + " (expected >= 1)")
+        }
+        $journeyRack = Get-OptionalProperty -Object $journeyUiAfter -Name "plugin_rack"
+        $journeyRackPluginRows = @()
+        $journeyRackPluginsType = "absent"
+        if ($null -ne $journeyRack) {
+            # Direct property access, NOT Get-OptionalProperty: a PowerShell
+            # function's output stream unrolls collections, so a one-row
+            # plugins array would reach the caller as the bare row object
+            # (its 22 properties then masquerade as rows -- the round-1/2
+            # diagnostic plugins_type=PSCustomObject). Reading .Value in
+            # place keeps the array intact; the type is recorded as the
+            # shape evidence.
+            $journeyRackPluginsProp = $journeyRack.PSObject.Properties["plugins"].Value
+            if ($null -ne $journeyRackPluginsProp) {
+                $journeyRackPluginsType = [string]$journeyRackPluginsProp.GetType().FullName
+                if ($journeyRackPluginsProp -is [System.Management.Automation.PSCustomObject]) {
+                    foreach ($journeyRackPluginProp in $journeyRackPluginsProp.PSObject.Properties) {
+                        $journeyRackPluginRows += $journeyRackPluginProp.Value
+                    }
+                }
+                else {
+                    $journeyRackPluginRows = @($journeyRackPluginsProp)
+                }
+            }
+        }
+        # Row objects only: a scalar entry means the enumeration hit a
+        # non-row shape (e.g. property VALUES of a flattened row object),
+        # which must not count as a rack plugin row.
+        $journeyRackPluginObjectRows = @()
+        foreach ($journeyRackPluginRow in $journeyRackPluginRows) {
+            if ($null -ne $journeyRackPluginRow -and $journeyRackPluginRow -is [System.Management.Automation.PSCustomObject]) {
+                $journeyRackPluginObjectRows += $journeyRackPluginRow
+            }
+        }
+        if ($journeyRackPluginObjectRows.Count -lt 1) {
+            throw ("journey post-load plugin_rack carries no plugin row objects for the selected track (plugins_type=" + $journeyRackPluginsType + ", raw_entries=" + [string]$journeyRackPluginRows.Count + ")")
+        }
+        $journeyRackPluginIds = New-Object System.Collections.Generic.List[string]
+        foreach ($journeyRackPluginRow in $journeyRackPluginObjectRows) {
+            $journeyRackPluginId = [string](Get-OptionalProperty -Object $journeyRackPluginRow -Name "plugin_id")
+            if ([string]::IsNullOrWhiteSpace($journeyRackPluginId)) {
+                $journeyRackPluginId = [string](Get-OptionalProperty -Object $journeyRackPluginRow -Name "id")
+            }
+            if (-not [string]::IsNullOrWhiteSpace($journeyRackPluginId)) { $journeyRackPluginIds.Add($journeyRackPluginId) }
+        }
+        $journeyRackTrackName = ""
+        if ($null -ne $journeyRack) {
+            $journeyRackTrackName = [string](Get-OptionalProperty -Object (Get-OptionalProperty -Object $journeyRack -Name "track") -Name "track_name")
+        }
+        if ($journeyRackTrackName -ne $journeySelectedTrack) {
+            throw ("journey post-load plugin_rack does not follow the selection: rack.track_name=" + $journeyRackTrackName)
+        }
+        Write-Ok ("UI projection shows the load: plugin_count=" + [string]$journeyAfterPluginCount + " rack.track=" + $journeyRackTrackName + " rack_plugin_rows=" + [string]$journeyRackPluginObjectRows.Count + " rack_plugin_ids=[" + ($journeyRackPluginIds.ToArray() -join ",") + "]")
+
+        # ---------------- LEG 6: stack health -------------------------------
+        $journeyFinalState = Invoke-Json -Method GET -Uri $journeyStateUri -TimeoutSec 10
+        if ($null -eq $journeyFinalState -or [string]$journeyFinalState.status -ne "ok") {
+            throw "journey final /agent/state did not return ok"
+        }
+        Write-Ok ("stack healthy after the journey (tool_count=" + [string]$journeyFinalState.tool_count + ")")
+
+        $journeySummary = @{
+            journey = "journey_plugin_load"
+            project_path = $journeyProjectPath
+            track_names = @($journeyTrackNames.ToArray())
+            selected_track = $journeySelectedTrack
+            selected_track_id = $journeyBassTrackId
+            baseline_plugin_count = $journeyBaselinePluginCount
+            plugin_identifier = $JourneyPluginIdentifier
+            load_plugin_id = $journeyPluginId
+            load_plugin_instance_ready = [bool]$journeyInstanceReadyProp
+            load_graph_last_diff_kind = $journeyGraphDiffKind
+            pca_gate_denial_lines_before = [int]$journeyGateBefore
+            pca_gate_denial_lines_after = [int]$journeyGateAfter
+            pca_gate_denial_delta = $journeyGateDelta
+            after_plugin_count = $journeyAfterPluginCount
+            after_rack_track = $journeyRackTrackName
+            after_rack_plugins_type = $journeyRackPluginsType
+            after_rack_plugin_rows = [int]$journeyRackPluginObjectRows.Count
+            after_rack_plugin_ids = @($journeyRackPluginIds.ToArray())
+            authority_probe = [string](Get-OptionalProperty -Object $journeyAuthorityProbe -Name "stop_reason")
             finished_at = (Get-Date).ToString("o")
         }
         $journeySummary | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "journey_summary.json") -Encoding UTF8
