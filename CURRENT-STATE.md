@@ -22,18 +22,19 @@
 - **历史记录**：基线、验证记录、审计、ADR、设计草案快照等纯记录性文档。保留原位，可查证当时的设计决策，**不得当作现状**。
 - **已废弃**：内容已被实现超越且会误导 agent 的文档，已迁至 `docs/archive/`。
 
-汇总：`docs/` 顶层共 125 份现行/历史文档（现行 59 / 历史记录 66），另有 `docs/archive/` 已废弃文档 4 份；两者合计 129 份。`docs/vsp/` 子目录 13 份文档单独索引（见末节）。
+汇总：`docs/` 顶层共 126 份现行/历史文档（现行 60 / 历史记录 66），另有 `docs/archive/` 已废弃文档 4 份；两者合计 130 份。`docs/vsp/` 子目录 13 份文档单独索引（见末节）。
 
 ---
 
-## 一、现行（61）
+## 一、现行（62）
 
 ### 观察投影与上下文
 
 | 文档 | 说明 |
 |---|---|
 | [OBSERVATION_PROJECTION_MANIFEST.md](docs/OBSERVATION_PROJECTION_MANIFEST.md) | 观察投影拓扑 ground truth（DAD + peer 投影，AGENTS.md 白名单收录） |
-| [AGENTIC_OBSERVATION_ROADMAP_2026-09-25.md](docs/AGENTIC_OBSERVATION_ROADMAP_2026-09-25.md) | Agentic Observation 架构路线图（AGENTIC-OBSERVATION 蓝图，2026-09-25）：**规划未实现**，中期检查收口版本之后全部开发的现行计划来源——统一 ref schema、多维坐标集、物化索引与 audio-grep、四层前缀与可变窗口、音频编译器三层、质询-确权协议、memory 系统、两线五段一汇合排程与质量门 G1–G3；各组件进入实现时随卡片更新状态标注 |
+| [AGENTIC_OBSERVATION_ROADMAP_2026-09-25.md](docs/AGENTIC_OBSERVATION_ROADMAP_2026-09-25.md) | Agentic Observation 架构路线图（AGENTIC-OBSERVATION 蓝图，2026-09-25）：**规划（部分实现）**，中期检查收口版本之后全部开发的现行计划来源——统一 ref schema、多维坐标集、物化索引与 audio-grep、四层稳定前缀与可变窗口、音频编译器三层、质询-确权协议、memory 系统、两线五段一汇合排程与质量门 G1–G3；线 1 各段状态行内标注（2026-10-07 起）：L1-1 定版/L1-2 部分/L1-3 收官/L1-4 设计完成/L1-5 未动 |
+| [REF_SCHEMA_V1.md](docs/REF_SCHEMA_V1.md) | 统一 Ref Schema V1 定版规格（L1-1-REFSCHEMA-1 G1 终审产出，2026-10-07）：五元组字段语义、BNF+canonical form、kind 双注册表（14 legacy 翻译条目+4 prefix-less kind）、时间坐标三层（采样点权威）、对象类型轴与 memory 预留、CAS 对接约定（sha256 16hex 截断）、六不变式、解析三态（parsed/legacy/opaque）；权威实现 agent/internal/agentprotocol/refschema.go+内核 RefSchema.h 镜像；迁移余量 M1-M8 排程见 coord/runs/L1-1-REFSCHEMA-1/G1_FINAL_REVIEW.md |
 | [TIM_ASSERTER_V1_DESIGN.md](docs/TIM_ASSERTER_V1_DESIGN.md) | TIM 结构断言器 v1 设计（L2-1-TIM-DESIGN-1 产出，2026-09-26）：**规划未实现**，D8 编译器第一层承载者——TIM 现状盘点（`tim.projection.v0`）+ 5 断言器五要素（信号卫生/电平上限/采样率一致性/路由完整性/插件合法性，v1 全 agent 侧零内核改动）+ 实现锚点 + 红测试 T1-T9 + 端侧烟测草案 + 内核腿缺口清单 8 项；实现卡 L2-1-TIM-1 依赖本文档 |
 | [OBSERVE_OUTPUT_LAYERING_V1_DESIGN.md](docs/OBSERVE_OUTPUT_LAYERING_V1_DESIGN.md) | 观察问答输出分层设计（OPT-OBSERVE-OUTPUT-1 设计先行段，2026-09-30）：**规划未实现**——摘要/证据/追溯三层，两期落地（P1 webui 呈现重排零 agent 改动 / P2 agent presentation 结构化真三层，旧消息 fail-open 退化）；判定谓词保守阈值+水合等价约束+E2E 断言面；M8 便签结果卡复用同构 |
 | [QUERY_ENGINE_V1_DESIGN.md](docs/QUERY_ENGINE_V1_DESIGN.md) | 查询引擎与 audio-grep 工具面设计（L1-3-DESIGN-1 产出，2026-09-27）：接口层已实现——queryengine 包+MaterializedStore v0 bootstrap+ref.query/ref.diff 工具面已合入 main（IMPL-A/B/C，2026-09-29）；三动词 observe/query/diff.evidence、谓词路由 R1-R10、成本分级（index/compile/probe 进响应元数据）、T1-T11 测试计划与 B1-B7 延迟基准（BENCH 未跑）；content 级 diff 委托接线留 IMPL-D |
