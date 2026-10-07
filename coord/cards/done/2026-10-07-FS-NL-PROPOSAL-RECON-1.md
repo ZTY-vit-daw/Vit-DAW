@@ -22,3 +22,5 @@
 - 领取：（2026-10-07 20:42 / origin/main=a42c87e1 / main，主树单流；真栈泊位 5555/7878/5556，领取时未核监听，跑前 netstat 申报）
 - 回执：（报告=coord/runs/FS-NL-PROPOSAL-RECON-1/REPORT.md+evidence_extract.json / 裁定=**H2 主因+H3 触发器复合，H1 排除**——R3 模型实际返回了结构化有效提案（receipt: proposal_present/valid=true），被 G6_target_evidence+G8_target_consistency 准入门拒后 loop=capability_blocked，goalrunner_chat.go:478 响应门未路由边界而把模型散文终答当 done/completed 投递（治理面零卡）；R2 为另一形态（模型连续 needs_observation 烧完预算、从未提案，与 R3 治理面同形机制不同形）/ 修复建议=①修复面兜底腿（capability_blocked 显式边界响应，≈1 分支，推荐）②nudge 重试腿（可选）③prompt 引用措辞（收益不确定）④话术不需要 / 需要修复卡：建议立 P2（主腿①，文件域 agent/internal/chat/，锚点清单见报告 §1.2；附带探针分类修正+可选 prompt 留痕开关）/ 受控复现跳过（1/2 已定因，卡面条款；复现无法区分 R3 内部拒因细分）/ 端测边界：纯取证零代码改动，无端测）
 - 验收：（裁定文件 / 验收 commit）
+
+- 验收：**pass（2026-10-07 决策侧，rulings/2026-10-07-FS-NL-PROPOSAL-RECON-1-pass.md）**——核心锚点亲读（goalrunner_chat.go 响应路由门 plain 分支与 H2 定位逐字吻合）+R3 admission receipt 亲读（proposal_valid=true + G6/G8 fail + capability_blocked 由原始工件坐实）；采信 H2 主因+H3 触发器复合、H1 排除；修复卡 FS-CAPABILITY-BLOCKED-SURFACE-1 已立（P2）。

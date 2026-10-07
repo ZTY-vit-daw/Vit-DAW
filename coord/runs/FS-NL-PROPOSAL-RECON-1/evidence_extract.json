@@ -1,0 +1,236 @@
+{
+ "R1": {
+  "run_dir": "coord/runs/JOURNEY-3/20261007_194840/",
+  "semantic_final": {
+   "state": "needs_experiment",
+   "revision": 4,
+   "transition_reason": "free-state experiment runtime admitted"
+  },
+  "semantic_history": [
+   {
+    "revision": 1,
+    "event": "observation_started",
+    "from": null,
+    "to": "observation_in_progress",
+    "reason": "task contract admitted"
+   },
+   {
+    "revision": 2,
+    "event": "diagnostic_completed",
+    "from": "observation_in_progress",
+    "to": "diagnostic_complete",
+    "reason": "candidate diagnosis established"
+   },
+   {
+    "revision": 3,
+    "event": "improvement_proposed",
+    "from": "diagnostic_complete",
+    "to": "improvement_proposal",
+    "reason": "runtime admitted bounded improvement proposal"
+   },
+   {
+    "revision": 4,
+    "event": "experiment_required",
+    "from": "improvement_proposal",
+    "to": "needs_experiment",
+    "reason": "free-state experiment runtime admitted"
+   }
+  ],
+  "admission_receipts": [
+   {
+    "boundary": "admitted",
+    "candidate_id": "",
+    "failed_gate_ids": null,
+    "gate_results": {
+     "G1_project_binding": "pass",
+     "G2_capacity_assessed": "pass",
+     "G3_project_scan": "pass",
+     "G4_dimension_closed": "pass",
+     "G5_frontier_established": "pass",
+     "G6_target_evidence": "pass",
+     "G7_fresh_revision_bound_refs": "pass",
+     "G8_target_consistency": "pass"
+    },
+    "project_revision": "",
+    "proposal_error": "",
+    "proposal_present": true,
+    "proposal_valid": true,
+    "recorded_at": "2026-10-07T11:50:43.1013641Z",
+    "schema_version": "free_state_admission_receipt.v1",
+    "status": "needs_experiment",
+    "target_evidence_ref": "obs_20261007T115030_5f672c8dadd2"
+   }
+  ],
+  "probe": {
+   "classification": "chain_stall",
+   "ab_card_mounted": false,
+   "success_strict_card_chain": false,
+   "event_count": 17
+  }
+ },
+ "R2": {
+  "run_dir": "coord/runs/JOURNEY-3/20261007_200603/",
+  "semantic_final": {
+   "state": "observation_in_progress",
+   "revision": 1,
+   "transition_reason": "task contract admitted"
+  },
+  "semantic_history": [
+   {
+    "revision": 1,
+    "event": "observation_started",
+    "from": null,
+    "to": "observation_in_progress",
+    "reason": "task contract admitted"
+   }
+  ],
+  "admission_receipts": "NONE (no proposal decision returned)",
+  "probe": {
+   "classification": "other_terminal:limit_reached",
+   "ab_card_mounted": false,
+   "success_strict_card_chain": false,
+   "event_count": 11
+  }
+ },
+ "R3": {
+  "run_dir": "coord/runs/JOURNEY-3/20261007_201400/",
+  "semantic_final": {
+   "state": "closed",
+   "revision": 4,
+   "transition_reason": "chat turn closed without governed experiment"
+  },
+  "semantic_history": [
+   {
+    "revision": 1,
+    "event": "observation_started",
+    "from": null,
+    "to": "observation_in_progress",
+    "reason": "task contract admitted"
+   },
+   {
+    "revision": 2,
+    "event": "diagnostic_completed",
+    "from": "observation_in_progress",
+    "to": "diagnostic_complete",
+    "reason": "candidate diagnosis established"
+   },
+   {
+    "revision": 3,
+    "event": "improvement_proposed",
+    "from": "diagnostic_complete",
+    "to": "improvement_proposal",
+    "reason": "runtime admitted bounded improvement proposal"
+   },
+   {
+    "revision": 4,
+    "event": "owner_turn_closed",
+    "from": "improvement_proposal",
+    "to": "closed",
+    "reason": "chat turn closed without governed experiment"
+   }
+  ],
+  "admission_receipts": [
+   {
+    "boundary": "admission_gate_failed",
+    "candidate_id": "",
+    "failed_gate_ids": [
+     "G6_target_evidence",
+     "G8_target_consistency"
+    ],
+    "gate_results": {
+     "G1_project_binding": "pass",
+     "G2_capacity_assessed": "pass",
+     "G3_project_scan": "pass",
+     "G4_dimension_closed": "pass",
+     "G5_frontier_established": "pass",
+     "G6_target_evidence": "fail",
+     "G7_fresh_revision_bound_refs": "pass",
+     "G8_target_consistency": "fail"
+    },
+    "project_revision": "",
+    "proposal_error": "",
+    "proposal_present": true,
+    "proposal_valid": true,
+    "recorded_at": "2026-10-07T12:15:07.4023562Z",
+    "schema_version": "free_state_admission_receipt.v1",
+    "status": "capability_blocked",
+    "target_evidence_ref": "obs_20261007T121443_82928c777079"
+   }
+  ],
+  "probe": {
+   "classification": "no_candidate_found",
+   "ab_card_mounted": false,
+   "success_strict_card_chain": false,
+   "event_count": 11
+  }
+ },
+ "R4": {
+  "run_dir": "coord/runs/JOURNEY-3/20261007_202322/",
+  "semantic_final": {
+   "state": "needs_experiment",
+   "revision": 4,
+   "transition_reason": "free-state experiment runtime admitted"
+  },
+  "semantic_history": [
+   {
+    "revision": 1,
+    "event": "observation_started",
+    "from": null,
+    "to": "observation_in_progress",
+    "reason": "task contract admitted"
+   },
+   {
+    "revision": 2,
+    "event": "diagnostic_completed",
+    "from": "observation_in_progress",
+    "to": "diagnostic_complete",
+    "reason": "candidate diagnosis established"
+   },
+   {
+    "revision": 3,
+    "event": "improvement_proposed",
+    "from": "diagnostic_complete",
+    "to": "improvement_proposal",
+    "reason": "runtime admitted bounded improvement proposal"
+   },
+   {
+    "revision": 4,
+    "event": "experiment_required",
+    "from": "improvement_proposal",
+    "to": "needs_experiment",
+    "reason": "free-state experiment runtime admitted"
+   }
+  ],
+  "admission_receipts": [
+   {
+    "boundary": "admitted",
+    "candidate_id": "",
+    "failed_gate_ids": null,
+    "gate_results": {
+     "G1_project_binding": "pass",
+     "G2_capacity_assessed": "pass",
+     "G3_project_scan": "pass",
+     "G4_dimension_closed": "pass",
+     "G5_frontier_established": "pass",
+     "G6_target_evidence": "pass",
+     "G7_fresh_revision_bound_refs": "pass",
+     "G8_target_consistency": "pass"
+    },
+    "project_revision": "",
+    "proposal_error": "",
+    "proposal_present": true,
+    "proposal_valid": true,
+    "recorded_at": "2026-10-07T12:24:29.4099339Z",
+    "schema_version": "free_state_admission_receipt.v1",
+    "status": "needs_experiment",
+    "target_evidence_ref": "obs_20261007T122411_eac18529de8b"
+   }
+  ],
+  "probe": {
+   "classification": "card_mounted:mix_tick_confirmation",
+   "ab_card_mounted": true,
+   "success_strict_card_chain": true,
+   "event_count": 24
+  }
+ }
+}
