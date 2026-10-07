@@ -2009,6 +2009,7 @@ func (s *Server) chatResponseFromAgentLoopResult(conversationID, mode string, re
 		OriginalIntent:      res.OriginalIntent,
 		Reply:               reply,
 		AgentMode:           mode,
+		Presentation:        res.Presentation,
 		NeedsConfirmation:   res.Status == agentruntime.StatusWaitingConfirmation,
 		Preview:             res.Preview,
 		ExecutedKernelReply: visibleExecuted,

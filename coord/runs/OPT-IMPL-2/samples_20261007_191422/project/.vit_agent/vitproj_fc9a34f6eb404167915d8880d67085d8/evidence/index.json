@@ -1,0 +1,36 @@
+{
+  "schema_version": "evidence_index.v1",
+  "project_uuid": "vitproj_fc9a34f6eb404167915d8880d67085d8",
+  "entries": {
+    "5eba43f2b939e3c82fb7dc4fac9c715becc1d1487287dca432f92a10ba73916a": {
+      "kind": "feature_snapshot",
+      "size": 55349,
+      "created_at": "2026-10-07T11:14:39.1447488Z",
+      "last_referenced_at": "2026-10-07T11:14:39.1447488Z",
+      "refs": [
+        "obs:obs_20261007T111439_5ab7e63f95d2"
+      ],
+      "renewable": true
+    },
+    "ba8a0256eb820d00bd2299e8aeef850a202449a707a12b7258e9bada32a87a0e": {
+      "kind": "feature_snapshot",
+      "size": 77693,
+      "created_at": "2026-10-07T11:14:59.4493266Z",
+      "last_referenced_at": "2026-10-07T11:14:59.4493266Z",
+      "refs": [
+        "obs:obs_20261007T111459_bea63f54e0eb"
+      ],
+      "renewable": true
+    },
+    "e1f5566fe3d687a96effd9e1c86a43dabf96fb7c5ed8d2a8b369db6b86441a8c": {
+      "kind": "feature_snapshot",
+      "size": 64019,
+      "created_at": "2026-10-07T11:14:48.5925147Z",
+      "last_referenced_at": "2026-10-07T11:14:48.5925147Z",
+      "refs": [
+        "obs:obs_20261007T111448_41e433941e70"
+      ],
+      "renewable": true
+    }
+  }
+}

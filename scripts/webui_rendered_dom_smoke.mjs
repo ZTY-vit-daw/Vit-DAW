@@ -2354,6 +2354,59 @@ function observeShortReplyFixture() {
   };
 }
 
+// OPT-IMPL-2 P2（2026-10-07）：观察问答真三层——presentation 块合法时
+// 摘要常显/证据折叠（含 source/ref 追溯行）/完整原文深折叠；未知
+// detail_mode 的块必须 fail-open 回落 P1 谓词路径（设计 §4.3-2）。
+function observePresentationReplyFixture() {
+  const summary = "OBSP2SUM 真三层结论：Track 3 底鼓与贝斯在 60-110Hz 存在约 2.8dB 遮蔽余量不足，低频整体偏亮 0.4dB。";
+  const restLines = [];
+  for (let index = 1; index <= 10; index += 1) {
+    restLines.push("OBSP2REST" + index + "：第 " + index + " 段完整回复正文（摘要之后的深折叠区证据细节）。");
+  }
+  restLines.push("OBSP2RESTFINAL 深折叠尾行：展开完整回复后必须可见。");
+  return {
+    status: "ok",
+    conversation_id: conversationId,
+    reply: summary + "\n\n" + restLines.join("\n"),
+    presentation: {
+      summary,
+      evidence_entries: [
+        { text: "OBSP2EV1 track_1009 low_band_margin=-2.8dB", source: "mix.observe", ref: "obs_e2e_p2_0001" },
+        { text: "OBSP2EV2 band_energy sub=+0.4dB", source: "ccb.observation_request", ref: "obs_e2e_p2_0002" }
+      ],
+      detail_mode: "layered"
+    },
+    needs_confirmation: false,
+    goal_status: "completed",
+    turn_id: "run_e2e_observe_p2",
+    run_id: "run_e2e_observe_p2",
+    goal_id: "run_e2e_observe_p2",
+    commands: []
+  };
+}
+
+// 未知 detail_mode：按无块处理，长文本回落 P1 谓词折叠（兼容反例的端测腿）。
+function observePresentationUnknownModeFixture() {
+  const lead = "OBSP2DG 降级结论首段：这条回复携带 detail_mode 未知的 presentation 块，必须当作无块走 P1 折叠路径。";
+  const restLines = [];
+  for (let index = 1; index <= 16; index += 1) {
+    restLines.push("OBSP2DGREST" + index + "：降级腿折叠区正文行，超过 P1 阈值以确保谓词命中。");
+  }
+  restLines.push("OBSP2DGFINAL 降级腿尾行：P1 折叠默认态不可见。");
+  return {
+    status: "ok",
+    conversation_id: conversationId,
+    reply: lead + "\n\n" + restLines.join("\n"),
+    presentation: { summary: lead, evidence_entries: [{ text: "被丢弃的条目" }], detail_mode: "v3_unknown" },
+    needs_confirmation: false,
+    goal_status: "completed",
+    turn_id: "run_e2e_observe_p2dg",
+    run_id: "run_e2e_observe_p2dg",
+    goal_id: "run_e2e_observe_p2dg",
+    commands: []
+  };
+}
+
 // FIX-BUCKET-SAVE-RACE-1: the driven reply that exists ONLY in the localStorage
 // bucket (no graph node). Long enough to ride the layering predicate; the marker
 // tail must come back after the reload (context F).
@@ -2422,6 +2475,32 @@ const observeRowProbe = (marker) => {
     rowVisibleText: (row.innerText || "").replace(/\s+/g, " ").trim(),
     actionCards: row.querySelectorAll(".action-card").length,
     paragraphCount: row.querySelectorAll(".message-body p").length
+  };
+};
+
+// OPT-IMPL-2 P2: presentation 真三层采样探针（与 observeRowProbe 同型，另采
+// presentation 容器/证据折叠/追溯行/深折叠原文；legacyLayered 探测 P1 互斥）。
+const observePresentationRowProbe = (marker) => {
+  const rows = Array.from(document.querySelectorAll(".message-row.assistant"));
+  const row = rows.find((el) => (el.textContent || "").indexOf(marker) >= 0) || null;
+  if (!row) {
+    return null;
+  }
+  const evidence = row.querySelector(".observe-presentation-evidence");
+  const fulltext = row.querySelector(".observe-presentation-fulltext");
+  const summaryEl = row.querySelector(".observe-presentation-summary");
+  const sourceEl = row.querySelector(".observe-presentation-evidence-source");
+  return {
+    marker,
+    presentation: Boolean(row.querySelector(".observe-presentation-layered")),
+    summaryText: summaryEl ? (summaryEl.textContent || "").replace(/\s+/g, " ").trim() : "",
+    evidenceOpen: evidence ? evidence.hasAttribute("open") : null,
+    evidenceCount: row.querySelectorAll(".observe-presentation-evidence-item").length,
+    evidenceSourceText: sourceEl ? (sourceEl.textContent || "").replace(/\s+/g, " ").trim() : "",
+    hasFulltext: Boolean(fulltext),
+    fulltextOpen: fulltext ? fulltext.hasAttribute("open") : null,
+    legacyLayered: Boolean(row.querySelector(".observe-output-details")),
+    rowVisibleText: (row.innerText || "").replace(/\s+/g, " ").trim()
   };
 };
 
@@ -2530,6 +2609,88 @@ function checkO1(result) {
   notFolded(result.short, "short reply", "OBSHORT", null);
   notFolded(result.proposal, "confirmation card", "OBSCARD", result.cardPremise);
   notFolded(result.receipt, "execution receipt", "OBSRECEIPT", null);
+  return { failures, notes };
+}
+
+// OPT-IMPL-2 P2（2026-10-07）：观察问答真三层断言组。O2a 摘要常显+证据/
+// 原文双折叠默认态；O2b 证据展开+source/ref 追溯行；O2c 完整原文深折叠可达；
+// O2d 未知 detail_mode fail-open 回落 P1 谓词（兼容反例端测腿）。
+function checkO2(result) {
+  const failures = [];
+  const notes = [];
+  const p = result.presentation;
+  if (!p || !p.defaultState) {
+    failures.push("O2a setup: the presentation reply never rendered -- the pass would measure nothing");
+  } else {
+    const d = p.defaultState;
+    if (!d.presentation) {
+      failures.push("O2a 真三层: presentation container missing (.observe-presentation-layered)");
+    } else {
+      if (d.summaryText.indexOf("OBSP2SUM") < 0) {
+        failures.push("O2a 摘要常显: summary paragraph missing the marker (got '" + d.summaryText.slice(0, 40) + "')");
+      } else {
+        notes.push("O2a summary always visible");
+      }
+      if (d.evidenceOpen !== false) {
+        failures.push("O2a 证据折叠: evidence details must be closed by default (open=" + d.evidenceOpen + ")");
+      } else {
+        notes.push("O2a evidence folded by default");
+      }
+      if (d.evidenceCount !== 2) {
+        failures.push("O2a 证据条目: expected 2 entries, got " + d.evidenceCount);
+      }
+      if (d.hasFulltext && d.fulltextOpen !== false) {
+        failures.push("O2a 原文折叠: full-text details must be closed by default (open=" + d.fulltextOpen + ")");
+      }
+      if (d.rowVisibleText.indexOf("OBSP2EV1") >= 0) {
+        failures.push("O2a 折叠默认态: evidence entry text visible while folded");
+      }
+      if (d.rowVisibleText.indexOf("OBSP2RESTFINAL") >= 0) {
+        failures.push("O2a 折叠默认态: full-text tail visible while folded");
+      }
+      if (d.legacyLayered) {
+        failures.push("O2a 优先级: the P1 legacy container also rendered (presentation must take precedence exclusively)");
+      }
+    }
+    const e = p.evidenceExpandedState;
+    if (!e || !e.evidenceOpen) {
+      failures.push("O2b 展开证据: clicking the evidence summary did not open it");
+    } else {
+      if (e.rowVisibleText.indexOf("OBSP2EV1") < 0) {
+        failures.push("O2b 展开证据: entry text not visible after expanding");
+      } else {
+        notes.push("O2b evidence entries visible after expand");
+      }
+      if (e.evidenceSourceText.indexOf("mix.observe") < 0 || e.evidenceSourceText.indexOf("obs_e2e_p2_0001") < 0) {
+        failures.push("O2b 追溯: source/ref line missing or incomplete (got '" + e.evidenceSourceText + "')");
+      } else {
+        notes.push("O2b source/ref traceability line visible");
+      }
+    }
+    const f = p.fullExpandedState;
+    if (!f || !f.fulltextOpen) {
+      failures.push("O2c 展开原文: the full-text details did not open after clicking its summary");
+    } else if (f.rowVisibleText.indexOf("OBSP2RESTFINAL") < 0) {
+      failures.push("O2c 展开原文: the full-text tail (OBSP2RESTFINAL) not visible after expanding");
+    } else {
+      notes.push("O2c full original text reachable via the deep fold");
+    }
+  }
+  const dg = result.degrade;
+  if (!dg || !dg.defaultState) {
+    failures.push("O2d setup: the degrade reply never rendered");
+  } else {
+    const d = dg.defaultState;
+    if (d.presentation) {
+      failures.push("O2d 退化: an unknown detail_mode rendered the presentation container (must be treated as absent)");
+    } else if (!d.legacyLayered) {
+      failures.push("O2d 退化: the long reply without a valid presentation must fall back to the P1 predicate container");
+    } else if (d.rowVisibleText.indexOf("OBSP2DGFINAL") >= 0) {
+      failures.push("O2d 退化: the P1 collapsed default state violated (tail visible while folded)");
+    } else {
+      notes.push("O2d unknown detail_mode degrades to the P1 layered path");
+    }
+  }
   return { failures, notes };
 }
 
@@ -4185,6 +4346,85 @@ async function main() {
     cardPremise: observeCardAppeared
   }));
 
+  // ----------------------------- OPT-IMPL-2 P2 (observe presentation 真三层)
+  // Context P: a reply carrying a valid presentation block renders the real
+  // three layers (summary always visible; evidence entries + full original
+  // text behind native <details>, default closed; source/ref traceability on
+  // the entries). Context Q: an unknown detail_mode must fall back to the P1
+  // predicate path exactly like a block-less old message.
+  const observeP2WaitForRow = async (page, marker) => {
+    await page
+      .locator(".message-row.assistant", { hasText: marker })
+      .first()
+      .waitFor({ timeout: 15000 })
+      .then(() => true)
+      .catch(() => false);
+    await page.waitForTimeout(300);
+    return page.evaluate(observePresentationRowProbe, marker);
+  };
+  const observePContext = await browser.newContext({ viewport });
+  await installReplay(observePContext);
+  await observePContext.route("**/agent/chat*", async (route) => {
+    await route.fulfill({
+      status: 200, contentType: "application/json; charset=utf-8",
+      body: JSON.stringify(observePresentationReplyFixture())
+    });
+  });
+  const observePPage = await observePContext.newPage();
+  await observePPage.goto(agentBase + "/app/?conversation_id=" + encodeURIComponent(conversationId), { waitUntil: "domcontentloaded" });
+  await observeWaitForScopeMaterialized(observePPage);
+  await confirmDrive(observePPage, "Track 3 的低频遮蔽情况怎么样？给出分层结论。");
+  const observeP2Default = await observeP2WaitForRow(observePPage, "OBSP2SUM");
+  await observePPage.screenshot({ path: join(outDir, "dom-observe-p2-collapsed.png") });
+  let observeP2EvidenceExpanded = null;
+  let observeP2FullExpanded = null;
+  if (observeP2Default && observeP2Default.presentation) {
+    await observePPage.locator(".observe-presentation-evidence > summary").first().click().catch(() => {});
+    await observePPage.waitForTimeout(300);
+    observeP2EvidenceExpanded = await observePPage.evaluate(observePresentationRowProbe, "OBSP2SUM");
+    await observePPage.screenshot({ path: join(outDir, "dom-observe-p2-evidence.png") });
+    if (observeP2Default.hasFulltext) {
+      await observePPage.locator(".observe-presentation-fulltext > summary").first().click().catch(() => {});
+      await observePPage.waitForTimeout(300);
+      observeP2FullExpanded = await observePPage.evaluate(observePresentationRowProbe, "OBSP2SUM");
+      await observePPage.screenshot({ path: join(outDir, "dom-observe-p2-fulltext.png") });
+    }
+  }
+  writeFileSync(join(outDir, "dom-observe-p2.json"), JSON.stringify({
+    defaultState: observeP2Default,
+    evidenceExpandedState: observeP2EvidenceExpanded,
+    fullExpandedState: observeP2FullExpanded
+  }, null, 2), "utf-8");
+  await observePContext.close();
+
+  const observeQContext = await browser.newContext({ viewport });
+  await installReplay(observeQContext);
+  await observeQContext.route("**/agent/chat*", async (route) => {
+    await route.fulfill({
+      status: 200, contentType: "application/json; charset=utf-8",
+      body: JSON.stringify(observePresentationUnknownModeFixture())
+    });
+  });
+  const observeQPage = await observeQContext.newPage();
+  await observeQPage.goto(agentBase + "/app/?conversation_id=" + encodeURIComponent(conversationId), { waitUntil: "domcontentloaded" });
+  await observeWaitForScopeMaterialized(observeQPage);
+  await confirmDrive(observeQPage, "这条带未知 detail_mode 的观察回复该怎么呈现？");
+  const observeP2DegradeDefault = await observeP2WaitForRow(observeQPage, "OBSP2DG");
+  await observeQPage.screenshot({ path: join(outDir, "dom-observe-p2-degrade.png") });
+  writeFileSync(join(outDir, "dom-observe-p2-degrade.json"), JSON.stringify({
+    defaultState: observeP2DegradeDefault
+  }, null, 2), "utf-8");
+  await observeQContext.close();
+
+  record("observe-output-O2", checkO2({
+    presentation: {
+      defaultState: observeP2Default,
+      evidenceExpandedState: observeP2EvidenceExpanded,
+      fullExpandedState: observeP2FullExpanded
+    },
+    degrade: { defaultState: observeP2DegradeDefault }
+  }));
+
   // ----------------------------- FIX-BUCKET-SAVE-RACE-1 (O1 forensic followup)
   // The bucket save/restore ordering leg on the REAL reload path. Context E's
   // seed supplies the graph; a composer-driven turn here lands a reply that has
@@ -4846,7 +5086,7 @@ async function main() {
 // Exported so a control run can exercise the very same probe and assertion
 // functions against a deliberately healthy state (proof that a red result is a
 // real finding and not an artefact of the probe itself).
-export { DOM_PROBE, checkA1, checkA2, checkA3, checkB1, checkB2, checkC1, checkD1, checkE1, checkF1, checkG1, checkT1, checkK1, checkK2, checkO1, checkM1, checkM2, observeRowProbe, observeLongReplyFixture, observeShortReplyFixture, residencyFixtureEvents, chatOnlyItemStepsFixtureEvents, terminalTurnFixtureEvents, auditionFixtureEvents, auditionUnstickFixtureEvents, auditionTrailFixtureEvents, confirmInteractionFixture, confirmationChatResponseFixture, directExecutionReceiptFixture };
+export { DOM_PROBE, checkA1, checkA2, checkA3, checkB1, checkB2, checkC1, checkD1, checkE1, checkF1, checkG1, checkT1, checkK1, checkK2, checkO1, checkO2, checkM1, checkM2, observeRowProbe, observePresentationRowProbe, observeLongReplyFixture, observeShortReplyFixture, observePresentationReplyFixture, observePresentationUnknownModeFixture, residencyFixtureEvents, chatOnlyItemStepsFixtureEvents, terminalTurnFixtureEvents, auditionFixtureEvents, auditionUnstickFixtureEvents, auditionTrailFixtureEvents, confirmInteractionFixture, confirmationChatResponseFixture, directExecutionReceiptFixture };
 
 // Run only when this file is the process entry point, so importing it as a
 // library (the control run does) has no side effects.

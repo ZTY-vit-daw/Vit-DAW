@@ -110,3 +110,6 @@ coord/runs/FIX-PCA-EQCHANNEL-1/journey1/
 coord/runs/FIX-PCA-EQCHANNEL-1/journey2/
 coord/runs/FIX-PCA-EQCHANNEL-1/journey3/
 coord/runs/FIX-PCA-EQCHANNEL-1/journey4/
+
+# OPT-IMPL-2 采样器现场构建二进制不入库（run 工件留 JSON/日志）
+coord/runs/OPT-IMPL-2/samples_*/VitAgent.sample.exe

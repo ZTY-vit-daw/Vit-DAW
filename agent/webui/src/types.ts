@@ -231,6 +231,7 @@ export interface ChatResponse {
   plan_id?: string;
   preview?: string;
   proposal_presentation?: JsonRecord;
+  presentation?: ObservePresentation;
   workflow?: string;
   workflow_data?: JsonRecord;
   mix_session?: JsonRecord;
@@ -318,6 +319,23 @@ export interface ChatMessage {
   turn_id?: string;
   logical_message_id?: string;
   supersedes?: string[];
+  presentation?: ObservePresentation;
+}
+
+// OPT-IMPL-2（2026-10-07）：观察问答回复的可选 presentation 块——真三层
+// （摘要常显/证据条目折叠/追溯=条目 source+ref 引用）。设计锚
+// docs/OBSERVE_OUTPUT_LAYERING_V1_DESIGN.md §4.1/§4.3；消费面 fail-open：
+// 旧消息无块走 P1 谓词呈现，未知 detail_mode 按无块处理。
+export interface ObserveEvidenceEntry {
+  text: string;
+  source?: string;
+  ref?: string;
+}
+
+export interface ObservePresentation {
+  summary: string;
+  evidence_entries?: ObserveEvidenceEntry[];
+  detail_mode?: string;
 }
 
 export interface ArtifactReadResponse {

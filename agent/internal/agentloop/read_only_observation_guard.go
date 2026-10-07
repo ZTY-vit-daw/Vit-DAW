@@ -131,6 +131,9 @@ func messageLoopReadOnlyFinalReply(state *runState, reply string) string {
 	messageLoopApplyReadOnlyMutationBarrier(state)
 	reply = messageLoopStripMixTreatmentPendingMarkup(strings.TrimSpace(reply))
 	reply = messageLoopStripReadOnlyExecutionQuestions(reply)
+	// OPT-IMPL-2：观察问答路由的 presentation 块在清理后的正文上组装（先于
+	// 只读声明尾注——尾注不进摘要）；任一保守门槛不过即 nil，回落 P1 呈现。
+	state.observePresentation = observePresentationFromTurn(state, reply)
 	if reply == "" {
 		return "\u672c\u6b21\u662f\u53ea\u8bfb\u89c2\u5bdf\uff0c\u672a\u751f\u6210\u5f85\u6267\u884c\u5019\u9009\uff0c\u4e5f\u6ca1\u6709\u4fee\u6539\u5de5\u7a0b\u3002"
 	}

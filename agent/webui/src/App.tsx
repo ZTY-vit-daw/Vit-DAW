@@ -110,6 +110,7 @@ import { emptyTaskTrajectoryState, reduceTaskTrajectoryForConversation } from ".
 import { loadSessionFlowMainID, mainConversationDefaultTitle, saveSessionFlowMainID } from "./sessionFlow";
 import { authorityContext, checkoutBlockedByState, continuationChainLive, isAgentTurnRunning } from "./turnControl";
 import { observeOutputLayout, shouldLayerObserveOutput } from "./observeOutputLayering";
+import { hasLayeredPresentation, ObservePresentationView } from "./observePresentationLayered";
 import { agentEventPollBusy, createAgentEventPollIdleGate } from "./eventPolling";
 import { AuditionJudgeCard } from "./trajectory/TrajectoryAuditionPanel";
 import { TraceBlock, OptimisticTraceBlock, shouldShowOptimisticTrace } from "./trace/TraceBlock";
@@ -3334,7 +3335,12 @@ function TypingMessage({ content }: { content: string }) {
 // 展开后 lead+rest 拼回完整原文（无重复段），与现行 <p> pre-wrap 渲染同构。
 // 谓词与阈值集中在 observeOutputLayering.ts（设计 §5），此处只做折叠容器；
 // details 原生收纳展开态（纯 UI 态，不进 content/持久化，刷新后默认态重算）。
+// OPT-IMPL-2 P2（2026-10-07）：有效 presentation 块优先——真三层（摘要常显/
+// 证据折叠/完整原文深折叠，observePresentationLayered.tsx）；无块回落 P1 谓词。
 export function AssistantTextContent({ message }: { message: ChatMessage }) {
+  if (hasLayeredPresentation(message)) {
+    return <ObservePresentationView message={message} />;
+  }
   if (!shouldLayerObserveOutput(message)) {
     return <p>{message.content}</p>;
   }

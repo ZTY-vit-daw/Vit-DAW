@@ -210,6 +210,7 @@ type ChatResponse struct {
 	PlanID                    string                              `json:"plan_id,omitempty"`
 	Preview                   string                              `json:"preview,omitempty"`
 	ProposalPresentation      *orchestration.ProposalPresentation `json:"proposal_presentation,omitempty"`
+	Presentation              *agentloop.ObservePresentation      `json:"presentation,omitempty"`
 	Workflow                  string                              `json:"workflow,omitempty"`
 	WorkflowData              map[string]any                      `json:"workflow_data,omitempty"`
 	MixSession                map[string]any                      `json:"mix_session,omitempty"`
@@ -2365,6 +2366,9 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 			})
 			if len(resp.ProjectResultCards) > 0 {
 				historyData["project_result_cards"] = resp.ProjectResultCards
+			}
+			if resp.Presentation != nil {
+				historyData["presentation"] = resp.Presentation
 			}
 			if history := s.harness.RecordConversationNodeForProjectWithData(r.Context(), projectPath, "vit", resp.Reply, goalID, resp.RunID, historyData); len(history) > 0 {
 				resp.ProjectHistory = history
@@ -5829,16 +5833,28 @@ Available DAW command catalog:
 	// §3.3 治理：稳定 system 只装 Stable Section；快照（Runtime/Stable=false）
 	// 物理迁出 system 消息边界，进 user 节尾部（chat 腿本就走 user 节，
 	// OQ-5 降级路径无新增依赖）。
+	userSections := []promptruntime.Section{
+		promptruntime.TextSection(promptruntime.SectionCurrentUser, "chat_current_user", "", userText, false),
+		promptruntime.TextSection(promptruntime.SectionRuntime, "chat_context_snapshot", "Context snapshot JSON", snapshot.JSON(), false),
+	}
+	if agentloop.ReadOnlyObservationIntent(userText) {
+		// OPT-IMPL-2：只读观察问答轮的回复形状指令——动态段，不碰 IMPL-B
+		// 字节锁定的 ruleset 骨架面；presentation 摘要层从该首段整段提取。
+		userSections = append(userSections, promptruntime.TextSection(
+			promptruntime.SectionRuntime, "observe_reply_shape", "Observe reply shape", observeReplyShapeInstruction, false))
+	}
 	return promptruntime.AssemblyInput{
 		SystemSections: []promptruntime.Section{
 			promptruntime.TextSection(promptruntime.SectionStatic, "chat_system", "", system, true),
 		},
-		UserSections: []promptruntime.Section{
-			promptruntime.TextSection(promptruntime.SectionCurrentUser, "chat_current_user", "", userText, false),
-			promptruntime.TextSection(promptruntime.SectionRuntime, "chat_context_snapshot", "Context snapshot JSON", snapshot.JSON(), false),
-		},
+		UserSections: userSections,
 	}
 }
+
+// observeReplyShapeInstruction instructs the model to open read-only
+// observation answers with a self-contained conclusion block (OPT-IMPL-2 §4.3
+// summary layer source; extraction is whole-paragraph, never mid-line).
+const observeReplyShapeInstruction = "Reply shape for this read-only observation turn: begin your final reply with a self-contained conclusion of at most three lines that states the finding and the key measured values, then present the supporting detail below it. Do not open with questions, execution offers, or apologies."
 
 func (s *Server) remember(conversationID, userText, assistantText string) {
 	s.mu.Lock()

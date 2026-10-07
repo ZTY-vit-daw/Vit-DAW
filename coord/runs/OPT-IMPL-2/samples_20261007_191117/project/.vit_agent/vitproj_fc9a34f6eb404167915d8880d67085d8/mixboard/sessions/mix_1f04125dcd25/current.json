@@ -1,0 +1,95 @@
+{
+  "schema_version": "mixboard.v1",
+  "mix_session_id": "mix_1f04125dcd25",
+  "status": "ready",
+  "goal_text": "这是一个新的独立要求：请只读分析这首歌的立体声声场与相位相关度并给出观察结论",
+  "target_ref": {
+    "kind": "project",
+    "id": "current",
+    "label": "Current project",
+    "source": "mix_observation_scope",
+    "confidence": "high"
+  },
+  "mix_objects": [
+    {
+      "mode": "scope",
+      "kind": "project",
+      "id": "current",
+      "label": "Current project",
+      "effect_scope": "track_rack",
+      "source": "mix_observation_scope"
+    }
+  ],
+  "listen_scope": {
+    "time": {
+      "mode": "full_song",
+      "source": "scope_full_project"
+    },
+    "source": {
+      "mode": "full_project"
+    }
+  },
+  "observation_count": 1,
+  "latest_observation_id": "obs_20261007T111149_727bb0f9dedb",
+  "latest_observation_path": "D:\\Vit_DAW\\coord\\runs\\OPT-IMPL-2\\samples_20261007_191117\\project\\.vit_agent\\vitproj_fc9a34f6eb404167915d8880d67085d8\\observations\\obs_20261007T111149_727bb0f9dedb.json",
+  "active_problem_map": [
+    {
+      "confidence": 0.35,
+      "summary": "深度频段观察可用，可作为后续精修参考",
+      "tag": "deep_band_observation_available"
+    }
+  ],
+  "section_candidates": [
+    {
+      "confidence": 0.25,
+      "end_seconds": 2.2,
+      "label_hint": "full",
+      "start_seconds": 0
+    }
+  ],
+  "package_status": {
+    "deep": "async_available",
+    "dom": "partial",
+    "environment": "ready",
+    "mix": "baseline_ready",
+    "project": "ready"
+  },
+  "latest_change": {
+    "affected_scopes": [
+      "project.state"
+    ],
+    "authoritative": true,
+    "change_id": "shadow_change_000002",
+    "changed_entities": [
+      {
+        "fields": [
+          {
+            "after": "INPUTDEVICE",
+            "path": "state"
+          }
+        ],
+        "id": "INPUTDEVICE",
+        "kind": "node"
+      }
+    ],
+    "freshness": "current_snapshot",
+    "from_project": {
+      "project_epoch": "epoch_5deb1e545d8931a9",
+      "project_revision": 2,
+      "project_uuid": "vitproj_fc9a34f6eb404167915d8880d67085d8",
+      "snapshot_hash": "992ececce306c028"
+    },
+    "from_state_epoch": 5,
+    "observed_at": "2026-10-07T11:11:23.6524996Z",
+    "schema_version": "project_change_receipt.v1",
+    "source": "telemetry_delta",
+    "to_project": {
+      "project_epoch": "epoch_5deb1e545d8931a9",
+      "project_revision": 2,
+      "project_uuid": "vitproj_fc9a34f6eb404167915d8880d67085d8",
+      "snapshot_hash": "992ececce306c028"
+    },
+    "to_state_epoch": 6
+  },
+  "updated_at": "2026-10-07T11:11:49.787746Z"
+}

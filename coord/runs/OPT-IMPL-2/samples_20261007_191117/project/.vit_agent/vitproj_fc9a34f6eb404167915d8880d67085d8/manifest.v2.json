@@ -1,0 +1,42 @@
+{
+  "schema_version": "vit_agent_store_manifest.v2",
+  "project_uuid": "vitproj_fc9a34f6eb404167915d8880d67085d8",
+  "project_path": "D:\\Vit_DAW\\coord\\runs\\OPT-IMPL-2\\samples_20261007_191117\\project\\observe_fixture.vit",
+  "created_at": "2026-10-07T11:11:22.7139576Z",
+  "updated_at": "2026-10-07T11:11:57.1741618Z",
+  "budgets": {
+    "observation_max_bytes": 2097152,
+    "observation_max_count": 500,
+    "evidence_max_bytes": 419430400,
+    "evidence_blob_max_bytes": 67108864,
+    "journal_shard_max_bytes": 4194304,
+    "journal_shard_max_records": 1000,
+    "journal_max_shards": 50,
+    "store_total_max_bytes": 536870912
+  },
+  "counters": {
+    "journal_bytes": 47005,
+    "journal_records": 6,
+    "journal_shards": 1,
+    "observations_bytes": 1163129,
+    "observations_count": 3,
+    "evidence_bytes": 198424,
+    "evidence_count": 3,
+    "mixboard_bytes": 379705,
+    "total_bytes": 1788263
+  },
+  "classes": {
+    "authoritative": [
+      "journal",
+      "mixboard_decisions"
+    ],
+    "renewable": [
+      "evidence",
+      "context_packs"
+    ]
+  },
+  "degraded": {
+    "evidence_off": false,
+    "reason": ""
+  }
+}

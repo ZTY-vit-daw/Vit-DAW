@@ -6,7 +6,9 @@ import type {
   JsonRecord,
   MessageKind,
   MessageLifecycle,
-  MessagePersistence
+  MessagePersistence,
+  ObserveEvidenceEntry,
+  ObservePresentation
 } from "./types";
 
 const durableLifecycle: MessageLifecycle = "durable";
@@ -127,7 +129,8 @@ export function responseMessageProtocol(response: ChatResponse, content: string)
     message_kind: inferResponseMessageKind(response),
     turn_id: response.turn_id ?? text(response.run_id ?? response.goal_id),
     logical_message_id: response.logical_message_id ?? identity.logicalMessageID ?? identity.sourceID,
-    supersedes: response.supersedes
+    supersedes: response.supersedes,
+    presentation: normalizeObservePresentation(response.presentation)
   };
 }
 
@@ -140,8 +143,43 @@ export function historyMessageProtocol(row: JsonRecord, role: ChatMessage["role"
     message_kind: normalizeMessageKind(row.message_kind, role === "user" ? "user" : "assistant"),
     turn_id: text(row.turn_id ?? row.run_id ?? row.goal_id),
     logical_message_id: text(row.logical_message_id) || sourceID,
-    supersedes: stringArray(row.supersedes)
+    supersedes: stringArray(row.supersedes),
+    presentation: normalizeObservePresentation(row.presentation)
   };
+}
+
+// OPT-IMPL-2：presentation 块的 fail-open 归一——非对象/缺 summary/未知
+// detail_mode（≠"layered"）/证据条目非数组，一律按无块处理（旧消息退化 P1
+// 谓词路径；未知 detail_mode 不报错不升级，设计 §4.3-2）。
+export function normalizeObservePresentation(value: unknown): ObservePresentation | undefined {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+  const record = value as Record<string, unknown>;
+  const summary = text(record.summary);
+  if (summary.trim() === "" || record.detail_mode !== "layered") {
+    return undefined;
+  }
+  const rawEntries = Array.isArray(record.evidence_entries) ? record.evidence_entries : [];
+  const entries: ObserveEvidenceEntry[] = [];
+  for (const entry of rawEntries) {
+    if (!entry || typeof entry !== "object") {
+      continue;
+    }
+    const entryText = text((entry as Record<string, unknown>).text);
+    if (entryText.trim() === "") {
+      continue;
+    }
+    entries.push({
+      text: entryText,
+      source: text((entry as Record<string, unknown>).source) || undefined,
+      ref: text((entry as Record<string, unknown>).ref) || undefined
+    });
+  }
+  if (entries.length === 0) {
+    return undefined;
+  }
+  return { summary, evidence_entries: entries, detail_mode: "layered" };
 }
 
 export function messageProtocolIdentityKeys(message: ChatMessage): string[] {

@@ -125,6 +125,7 @@ type Result struct {
 	ProjectHistory        map[string]any              `json:"project_history,omitempty"`
 	ExecutionMemory       ExecutionMemory             `json:"execution_memory,omitempty"`
 	RecentObservation     *RecentObservation          `json:"recent_observation,omitempty"`
+	Presentation          *ObservePresentation        `json:"presentation,omitempty"`
 	SemanticAction        *semanticeffect.Action      `json:"semantic_action,omitempty"`
 	FreeStateDecision     *FreeStateDecision          `json:"free_state_decision,omitempty"`
 	Continuation          *Continuation               `json:"continuation,omitempty"`
@@ -358,6 +359,7 @@ type runState struct {
 	projectHistory       map[string]any
 	executionMemory      ExecutionMemory
 	recentObservation    *RecentObservation
+	observePresentation  *ObservePresentation
 	semanticAction       *semanticeffect.Action
 	freeStateDecision    *FreeStateDecision
 	replanAfterTool      bool
@@ -813,6 +815,7 @@ func (r *Runner) result(state *runState, status agentruntime.GoalStatus, stopRea
 		ProjectHistory:       cloneMap(projectHistoryFromState(state)),
 		ExecutionMemory:      cloneExecutionMemory(state.executionMemory),
 		RecentObservation:    cloneRecentObservation(state.recentObservation),
+		Presentation:         state.observePresentation,
 		SemanticAction:       cloneSemanticEffectAction(state.semanticAction),
 		FreeStateDecision:    cloneFreeStateDecision(state.freeStateDecision),
 		Continuation:         cont,
