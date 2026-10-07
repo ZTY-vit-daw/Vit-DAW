@@ -63,6 +63,7 @@ type Server struct {
 	llm                             *llm.Client
 	logger                          *logx.Logger
 	harness                         *harness.Harness
+	prefixAssembler                 promptruntime.PrefixService
 	artifactRoot                    string
 	webUIRoot                       string
 	startedAt                       time.Time
@@ -488,6 +489,7 @@ func New(kernelClient *kernel.Client, shadowProject *shadow.Project, logger *log
 		llm:                              &llm.Client{},
 		logger:                           logger,
 		harness:                          harness.New(kernelClient, shadowProject, logger),
+		prefixAssembler:                  promptruntime.NewPrefixService(),
 		startedAt:                        time.Now(),
 		conversations:                    map[string][]llm.Message{},
 		pending:                          map[string]PendingPlan{},
@@ -2612,7 +2614,11 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	assembly := s.buildAssembly(r.Context(), conversationID, req.Message, req.Context)
+	assembly, assemblyReport, _ := s.buildAssemblyWithReport(r.Context(), conversationID, req.Message, req.Context)
+	promptStats := assembly.Stats.Map()
+	for key, value := range assemblyReport.PromptStatsExtras() {
+		promptStats[key] = value
+	}
 	goalID, _ := goalIDsFromContext(req.Context)
 	resp, err := s.llm.CompleteRequest(r.Context(), cfg, llm.Request{
 		Messages: assembly.Messages,
@@ -2621,7 +2627,7 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 			ConversationID:    conversationID,
 			GoalID:            goalID,
 			PromptFingerprint: assembly.Fingerprint,
-			PromptStats:       assembly.Stats.Map(),
+			PromptStats:       promptStats,
 		},
 	})
 	if err != nil {
@@ -5720,7 +5726,29 @@ func (s *Server) buildMessages(ctx context.Context, conversationID, userText str
 	return s.buildAssembly(ctx, conversationID, userText, requestContext).Messages
 }
 
+// buildAssemblyWithReport 经 PrefixService 装配并产出报告（L1-4-IMPL-A）。
+// §3.3 治理表 chat 行：chat_context_snapshot（Runtime/Stable=false）迁
+// user 节尾部（对齐 agentloop 通用路径形态），稳定 system 消息只装
+// Stable Section——快照 CreatedAt 逐轮变不再打断 system 前缀。
+func (s *Server) buildAssemblyWithReport(ctx context.Context, conversationID, userText string, requestContext map[string]any) (promptruntime.Assembly, promptruntime.AssemblyReport, error) {
+	assembly := s.assembleChatInput(ctx, conversationID, userText, requestContext)
+	if s.prefixAssembler == nil {
+		s.prefixAssembler = promptruntime.NewPrefixService()
+	}
+	return s.prefixAssembler.Assemble(ctx, promptruntime.PrefixRequest{
+		AssemblyInput: assembly,
+		SessionKey:    "chat:" + conversationID,
+	})
+}
+
+// assembleChatInput builds the raw assembly input (system rules + dynamic
+// user tail) shared by report-aware and legacy callers.
 func (s *Server) buildAssembly(ctx context.Context, conversationID, userText string, requestContext map[string]any) promptruntime.Assembly {
+	assembly, _, _ := s.buildAssemblyWithReport(ctx, conversationID, userText, requestContext)
+	return assembly
+}
+
+func (s *Server) assembleChatInput(ctx context.Context, conversationID, userText string, requestContext map[string]any) promptruntime.AssemblyInput {
 	stateSummary := s.harness.UserStateSummary(ctx)
 	catalog := s.harness.ModelCatalogSummary()
 	goalID, runID := goalIDsFromContext(requestContext)
@@ -5798,15 +5826,18 @@ Mode instruction:
 Available DAW command catalog:
 %s`, modeInstruction, catalog)
 
-	return promptruntime.Build(promptruntime.AssemblyInput{
+	// §3.3 治理：稳定 system 只装 Stable Section；快照（Runtime/Stable=false）
+	// 物理迁出 system 消息边界，进 user 节尾部（chat 腿本就走 user 节，
+	// OQ-5 降级路径无新增依赖）。
+	return promptruntime.AssemblyInput{
 		SystemSections: []promptruntime.Section{
 			promptruntime.TextSection(promptruntime.SectionStatic, "chat_system", "", system, true),
-			promptruntime.TextSection(promptruntime.SectionRuntime, "chat_context_snapshot", "Context snapshot JSON", snapshot.JSON(), false),
 		},
 		UserSections: []promptruntime.Section{
 			promptruntime.TextSection(promptruntime.SectionCurrentUser, "chat_current_user", "", userText, false),
+			promptruntime.TextSection(promptruntime.SectionRuntime, "chat_context_snapshot", "Context snapshot JSON", snapshot.JSON(), false),
 		},
-	})
+	}
 }
 
 func (s *Server) remember(conversationID, userText, assistantText string) {

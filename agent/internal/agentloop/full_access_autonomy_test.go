@@ -59,14 +59,16 @@ func fullAccessFreeStateContext(authority map[string]any) map[string]any {
 	return ctx
 }
 
-// fullAccessAssemblySystemText returns the system text of an assembled prompt —
-// the text the model actually receives.
+// fullAccessAssemblySystemText returns the text of an assembled prompt —
+// the text the model actually receives. Since the L1-4-IMPL-A §3.3 split the
+// neutral-family autonomy directive renders in the per-turn user block (the
+// authority mode is turn-scoped state), so the collector walks every message,
+// not just the system role; the byte-stable skeleton assertions of the other
+// tests are what pin the physical boundary.
 func fullAccessAssemblySystemText(assembly promptruntime.Assembly) string {
 	parts := make([]string, 0, len(assembly.Messages))
 	for _, message := range assembly.Messages {
-		if strings.EqualFold(strings.TrimSpace(message.Role), "system") {
-			parts = append(parts, message.Content)
-		}
+		parts = append(parts, message.Content)
 	}
 	return strings.Join(parts, "\n---\n")
 }

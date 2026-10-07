@@ -8,13 +8,14 @@ import (
 	"vit-daw-agent/internal/experiment"
 )
 
-func messageLoopNeutralFamilySystemPrompt(state *runState) string {
-	catalog := ""
-	allowed := ""
-	if state != nil {
-		catalog = messageLoopNeutralFamilyCatalog(state.input.AllowedTools)
-		allowed = strings.Join(messageLoopNeutralFamilyAllowedTools(state.input.AllowedTools), ", ")
-	}
+// messageLoopNeutralFamilyTurnDirectives renders the per-turn dynamic pieces of
+// the neutral-family prompt (L1-4-IMPL-A, CONTEXT_LAYERING_V1_DESIGN §3.3
+// 中性族行): the diagnostic-only/improvement/budget/gate-path/saturation/
+// candidate-frontier/terminal-turn directives, the experiment-tier rules, and
+// the full-access autonomy directive. Every piece reads runState, so the
+// rendered bytes may change turn over turn — the assembly therefore lands
+// them in the user turn (dynamic zone), not in the stable system message.
+func messageLoopNeutralFamilyTurnDirectives(state *runState) string {
 	prefix := ""
 	if messageLoopFreeStateDiagnosticOnly(state) {
 		prefix = `This is a diagnostic-only turn. Do not select a processor, load a plug-in, emit semantic_processor_intent, or execute any action. Return a terminal free_state decision with diagnostic={"schema_version":"free_state_diagnostic.v1","status":"confirmed|ruled_out|unresolved","findings":[{"statement":"your own evidence-grounded finding","scope":{"kind":"track|track_pair|project","ids":["visible id"]},"evidence_refs":["exact returned observation_id or evidence_ref"],"confidence":0.0,"limitation":"optional"}],"limitations":["optional"]}. Every evidence_refs entry must come from a CCB observation actually returned in this loop. Do not claim a sealed expected issue or family. A structure-only observation may be used to discover visible targets. After the first usable non-structural CCB observation returns, the observation window is closed: make your own conclusion immediately from the available facts and limitations. If they do not support confirmed or ruled_out, return unresolved; do not request another observation.
@@ -56,12 +57,46 @@ func messageLoopNeutralFamilySystemPrompt(state *runState) string {
 	if multiRound {
 		experimentBudget = messageLoopFreeStateEffectiveExperimentBudget(state)
 	}
-	return fmt.Sprintf(`%sYou are the neutral observation-and-family decision phase of Ask Vit's DAW Agent.
+	prefix += freeStateImprovementProposalPromptShape(experimentBudget) + "\n"
+	prefix += freeStateD1AdmittedDomainRuleForBudget(experimentBudget) + "\n"
+	prefix += freeStateSubthresholdExperimentPromptRule(multiRound) + "\n"
+	prefix += freeStateRoundMutationLimitPromptRule(multiRound)
+	// The autonomy directive reads the turn's authority mode, so it belongs to
+	// the per-turn dynamic zone as well (same call site as the ordinary path).
+	prefix += messageLoopFullAccessAutonomyRules(state)
+	return strings.TrimSpace(prefix)
+}
+
+// messageLoopNeutralFamilySystemPrompt keeps the full historical text surface
+// (turn directives + skeleton) for the messageLoopSystemPrompt free-state
+// defense branch and for tests that pin complete prompt wording. The physical
+// assembly path (assemblyNeutralFamilySelection) renders the two halves into
+// different message boundaries instead.
+func messageLoopNeutralFamilySystemPrompt(state *runState) string {
+	directives := messageLoopNeutralFamilyTurnDirectives(state)
+	skeleton := messageLoopNeutralFamilySystemSkeleton(state)
+	if directives == "" {
+		return skeleton
+	}
+	return directives + "\n\n" + skeleton
+}
+
+// messageLoopNeutralFamilySystemSkeleton renders the byte-stable system
+// skeleton: the fixed rule frame plus the session-constant observation catalog
+// and allowed-tools list. It must stay byte-identical across eventless turns
+// (T-A3); every per-turn variable piece lives in TurnDirectives instead.
+func messageLoopNeutralFamilySystemSkeleton(state *runState) string {
+	catalog := ""
+	allowed := ""
+	if state != nil {
+		catalog = messageLoopNeutralFamilyCatalog(state.input.AllowedTools)
+		allowed = strings.Join(messageLoopNeutralFamilyAllowedTools(state.input.AllowedTools), ", ")
+	}
+	return fmt.Sprintf(`You are the neutral observation-and-family decision phase of Ask Vit's DAW Agent.
 Return ONLY strict JSON in one of these shapes:
 {"final":false,"reply":"short catalog discovery note","free_state":{"schema_version":"free_state_decision.v1","status":"needs_observation","evidence_status":"insufficient","summary":"why the available view IDs must be discovered","requested_view_ids":[]},"tool_calls":[{"tool":"ccb.observation_catalog","args":{},"reason":"why catalog discovery is needed"}]}
 {"final":false,"reply":"short observation progress note","free_state":{"schema_version":"free_state_decision.v1","status":"needs_observation","evidence_status":"insufficient","summary":"what evidence is missing","requested_view_ids":["<model-selected-view-id>"]},"tool_calls":[{"tool":"ccb.observation_request","args":{"view_ids":["<model-selected-view-id>"],"target_ref":{"kind":"track","id":"<visible track id>","label":"<visible track name>"}},"reason":"why this target-specific evidence can change the decision"}]}
 {"final":true,"reply":"short treatment handoff","free_state":{"schema_version":"free_state_decision.v1","status":"needs_action","evidence_status":"sufficient","summary":"what the returned evidence supports","remaining_intent":"the unresolved audible outcome","processor_type":"eq|compressor|limiter|gate_expander|de_esser|transient_shaper|multiband_dynamics","semantic_processor_intent":{"schema_version":"semantic_processor_intent.v1","status":"resolved","family":"<model-selected-family>","intent":"<open acoustic intent>","required_coverage":["<model-selected-axis>"],"scope":"current_track|current_selection|project|track_group","control_mode":"semantic_loop|typed_control|observe_only","confidence":0.0,"evidence_refs":["<exact observation id>"]}},"tool_calls":[]}
-%s
 {"final":true,"reply":"short experiment evaluation","free_state":{"schema_version":"free_state_decision.v1","status":"needs_experiment","evidence_status":"plausible|sufficient","summary":"what the latest fresh evidence says","improvement_proposal":{"schema_version":"improvement_proposal.v1","target":{"kind":"track|clip|bus|relationship","id":"<visible id>"},"evidence_refs":["<exact observation id>"],"improvement_intent":"<original improvement>","hypothesis":"<same bounded hypothesis>","expected_effect":"<comparison target>","action_domain":"<same governed domain>","action_kind":"<same bounded action>","parameter_bounds":{"delta_db":0.5},"confidence":0.0},"experiment_materiality":{"state":"none|subthreshold|material","evaluation":"not_ready|insufficient_dose|agent_evaluable|ambiguous","attempt":1,"evidence_refs":["<fresh evidence ref>"]},"experiment_target_response":{"response":"absent|directional|sufficient|ambiguous","outcome":"agent_evaluable|human_audition_ready|human_confirmed|ambiguous|unsupported_hypothesis","evidence_refs":["<fresh evidence ref>"],"summary":"<bounded response>"},"experiment_round_decision":"next_round|retained|rolled_back|user_judgment_pending|plateau|blocked_by_observation|blocked_by_capability|stopped"},"tool_calls":[]}
 {"final":true,"reply":"short evidence-grounded diagnosis","free_state":{"schema_version":"free_state_decision.v1","status":"diagnostic_complete","evidence_status":"sufficient","summary":"the bounded diagnosis","observation_id":"real id","diagnostic":{"schema_version":"free_state_diagnostic.v1","status":"confirmed","findings":[{"statement":"bounded finding","evidence_refs":["real id"],"confidence":0.0}]}},"tool_calls":[]}
 {"final":true,"reply":"no credible candidate in the bounded search","free_state":{"schema_version":"free_state_decision.v1","status":"no_candidate_found","evidence_status":"sufficient","summary":"what was checked and what remains outside the evidence boundary","diagnostic":{"schema_version":"free_state_diagnostic.v1","status":"ruled_out","findings":[{"statement":"no candidate was supported in the checked scope","evidence_refs":["real id"],"confidence":0.0,"limitation":"unchecked boundary"}],"limitations":["unchecked boundary"]}},"tool_calls":[]}
@@ -81,15 +116,14 @@ Rules:
 - If a CCB observation returns rejected, unavailable, or deferred evidence for a requested view set, do not retry the same view set. Choose a different executable catalog view set, or return blocked with the concrete limitation when no safe alternative exists.
 - A rejection with rejection_scope "exact_view_set" applies only to that exact requested set. Treat blocking_view_ids as the views that caused the rejection; non_blocking_view_ids are not declared unavailable and may be requested separately. Previously available_views remain valid unless their own freshness or limitation says otherwise.
 - For needs_action, return exactly one processor_type and a resolved semantic_processor_intent.v1 whose family agrees with it. Choose required_coverage only from the evidence and the declared family vocabulary; do not add defaults. Unsupported, inspect-only, or unavailable families will be reported by the governed router as an auditable boundary.
-- %s
-- %s
+- The experiment tier rules for this turn (the needs_experiment proposal shape, admitted action domains, and subthreshold materiality handling under the current experiment budget) are supplied in the per-turn directives block of the request below and are authoritative.
 - Evidence status and problem status are different. Sufficient evidence can support the conclusion that no treatment is needed and does not authorize treatment by itself.
 - A candidate-only finding with an explicit interpretation limit (for example, overlap that is not a psychoacoustic fact) is not by itself a safe basis for a deterministic treatment or a whole-project satisfied conclusion. After the required target-level observation returns, if the evidence remains plausible but non-deterministic, return needs_experiment with one bounded improvement_proposal.v1; do not convert that epistemic limit into blocked. Use blocked only for a concrete capability, freshness, authorization, or observation boundary.
 - Preserve conditional authorization exactly. If the user authorized treatment only when a condition is true, decide that condition from the requested evidence before returning needs_action. Weak, natural, or within-control variation is not enough; return no_candidate_found with the bounded evidence and limitations when the condition is false.
 - Authorization semantics under an open improvement contract: a diagnostic-phrased user goal (asking to check, inspect, or find problems in the mix) still authorizes bounded reversible improvement experiments, unless this turn is explicitly marked diagnostic-only. The needs_experiment user-confirmation gate is where any mutation is authorized; diagnostic wording alone neither selects a treatment nor refuses one. Do not return capability_blocked on authorization without a concrete runtime authorization boundary.
 - Every CCB observation bundle carries read_only=true and mutation_authority=false. These fields describe the observation tool itself: CCB observes, never mutates, and neither grants nor denies modification authority. They are contract properties of the observation view, not statements about your task authorization, and must not be used alone as a capability_blocked authorization basis.
 - During post_action_evaluation, when the loop context still carries requires_post_action_observation=true your FIRST action must be a ccb.observation_request for the admitted experiment's view set on the applied target; no runtime outcome, needs_action, or settle report is legal until that request has returned in this reasoning cycle. When requires_post_action_observation is false the fresh post-action evidence is already recorded on the round: cite it and settle the experiment from it without requesting the observation again. Re-evaluate the complete original intent and preserve unresolved clauses. The bounded experiment has already been user-confirmed and applied; authorization was settled at that confirmation. Re-litigating whether the original request authorized treatment is not a valid boundary in this phase — evaluate the applied experiment's outcome only from fresh post-action evidence.
-- %s
+- The per-turn mutation and round limits are supplied in the per-turn directives block of the request below and are authoritative.
 - If post-action evidence is partial, inconclusive, stale, or otherwise insufficient to prove the target remains unmet, continue observing or report the concrete evidence limitation; never return needs_action and never write another processor action from inconclusive evidence. Return blocked only when the fresh post-action CCB observation itself cannot be obtained; blocked before that observation is not a legal terminal.
 - User-facing wording discipline (applies to every reply and free_state.summary that can surface to the user): when the user writes Chinese, use natural Chinese with no internal codes or layer abbreviations — never write phase/family ids like FAM3-S1, D1-S1, D2-2, or observation-layer abbreviations like CCB/DOM/MOM. When reporting an applied bounded adjustment, make it actionable without logs: name the target track in its user-visible form, the parameter, the change amount and direction, the finding it targets, and where in the DAW to verify it. Never state that a human judgment is still pending unless this decision itself records experiment_round_decision=user_judgment_pending.
 - For diagnostic_complete or no_candidate_found, fresh evidence must cover the declared bounded scope. For capability_blocked, state the concrete runtime boundary without naming a replacement family.
@@ -98,7 +132,7 @@ Available observation catalog:
 %s
 
 	Allowed tools:
-%s`, prefix, freeStateImprovementProposalPromptShape(experimentBudget), freeStateD1AdmittedDomainRuleForBudget(experimentBudget), freeStateSubthresholdExperimentPromptRule(multiRound), freeStateRoundMutationLimitPromptRule(multiRound), catalog, allowed)
+%s`, catalog, allowed)
 }
 
 // freeStateImprovementProposalPromptShape renders the needs_experiment

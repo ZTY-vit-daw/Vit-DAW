@@ -34,6 +34,13 @@ func TestMessageLoopNeutralFamilyAssemblyExposesFinalGateFeedback(t *testing.T) 
 	state := &runState{
 		input: Input{
 			UserText: "find one bounded improvement",
+			Context: map[string]any{
+				"free_state_reasoning_loop": map[string]any{
+					"schema_version":  "free_state_reasoning_loop.v1",
+					"status":          "active",
+					"original_intent": "find one bounded improvement",
+				},
+			},
 			Conversation: []llm.Message{
 				{Role: "assistant", Content: `{"selected_plugin":"must-not-leak"}`},
 				{Role: "user", Content: "<final_gate>return needs_experiment with one proposal</final_gate>"},
@@ -42,7 +49,7 @@ func TestMessageLoopNeutralFamilyAssemblyExposesFinalGateFeedback(t *testing.T) 
 		goal:   agentruntime.Goal{GoalID: "goal-feedback", RunID: "run-feedback"},
 		budget: Budget{MaxToolCalls: 1},
 	}
-	assembly := (&MessageLoop{}).assemblyNeutralFamilySelection(state, `{"free_state_reasoning_loop":{"status":"active"}}`)
+	assembly := (&MessageLoop{}).assembly(state, `{"free_state_reasoning_loop":{"status":"active"}}`)
 	if len(assembly.Messages) < 3 {
 		t.Fatalf("neutral assembly messages = %#v, want system, feedback, runtime", assembly.Messages)
 	}

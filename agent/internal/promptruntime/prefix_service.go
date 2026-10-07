@@ -1,0 +1,303 @@
+package promptruntime
+
+// PrefixService 是 CONTEXT_LAYERING_V1_DESIGN §3.1 的装配入口包装：
+// promptruntime.Build 签名冻结，服务在其上产出 AssemblyReport——层报告、
+// 前缀指纹、断裂归因（封闭枚举六值）与双轨一致性信号（§3.2）。
+// 四层载体（ruleset/profile/env/ledger）归 IMPL-B；本实现的层 = 输入中
+// Stable=true 的 system section（现有 chat/agentloop 规则与目录段）。
+
+import (
+	"context"
+	"crypto/sha256"
+	"encoding/hex"
+	"fmt"
+	"sort"
+	"strings"
+	"sync"
+)
+
+// BreakReason 是断裂原因封闭枚举（设计 §3.4；超出枚举 = 装配器 bug）。
+type BreakReason string
+
+const (
+	BreakRulesetChanged    BreakReason = "ruleset_changed"
+	BreakProfileUpdated    BreakReason = "profile_updated"
+	BreakEnvChanged        BreakReason = "env_changed"
+	BreakLayerAppended     BreakReason = "layer_appended"
+	BreakHistoryWindowSlid BreakReason = "history_window_slid"
+	BreakSnapshotRotated   BreakReason = "snapshot_rotated"
+)
+
+// PrefixBreaking 报告该原因是否为前缀字节断裂类（P2 判据用）。
+// layer_appended 是 P1 下的合法尾部增长；history/snapshot 两类只描述
+// 动态区，不入前缀指纹（§3.4"仅报告可见性"）。
+func (r BreakReason) PrefixBreaking() bool {
+	switch r {
+	case BreakRulesetChanged, BreakProfileUpdated, BreakEnvChanged:
+		return true
+	default:
+		return false
+	}
+}
+
+// AllBreakReasons 供测试与遥测校验枚举封闭性。
+var AllBreakReasons = []BreakReason{
+	BreakRulesetChanged, BreakProfileUpdated, BreakEnvChanged,
+	BreakLayerAppended, BreakHistoryWindowSlid, BreakSnapshotRotated,
+}
+
+type LayerReport struct {
+	LayerID     string
+	Version     string
+	CacheKey    string
+	ContentHash string // 渲染产物 sha256（判据轨，字节级诚实）
+	Bytes       int
+	EntryCount  int
+	State       string // rendered | absent | corrupt | skipped
+}
+
+type BreakEvent struct {
+	LayerID string // 动态区类断裂记 "dynamic"
+	Reason  BreakReason
+	Detail  string
+}
+
+type AssemblyReport struct {
+	Layers            []LayerReport
+	PrefixFingerprint string // 稳定段级联 sha256（层 content_hash 级联；不含 history/动态区）
+	PrefixBytes       int
+	DynamicBytes      int
+	Breaks            []BreakEvent // 相对上一轮同 SessionKey 装配；首轮为空
+	CacheAnomalies    []string     // content_hash 变而 CacheKey 未变的层（§3.2：装配器 bug 信号，T-A4）
+}
+
+// PromptStatsExtras 把三字段（设计 §3.1 遥测接线）映射进既有 promptStats
+// 口径：体积计量沿用 model_snapshot_bytes 同族字节口径，不编造 token 数。
+func (r AssemblyReport) PromptStatsExtras() map[string]any {
+	breaks := make([]string, 0, len(r.Breaks))
+	for _, event := range r.Breaks {
+		breaks = append(breaks, string(event.Reason)+":"+event.LayerID)
+	}
+	return map[string]any{
+		"prefix_bytes":  r.PrefixBytes,
+		"dynamic_bytes": r.DynamicBytes,
+		"breaks":        breaks,
+	}
+}
+
+type PrefixRequest struct {
+	AssemblyInput
+	// SessionKey 是跨轮比对键（conversation/run 标识）。空 = 单次装配，
+	// 不做断裂比对（Breaks 恒空）。
+	SessionKey string
+}
+
+type PrefixService interface {
+	// Assemble 产出与 promptruntime.Build 同构的 Assembly，外加装配报告。
+	Assemble(ctx context.Context, req PrefixRequest) (Assembly, AssemblyReport, error)
+}
+
+// NewPrefixService 返回有状态默认实现：按 SessionKey 保存上一轮层快照，
+// 断裂清单相对上一轮装配计算。并发安全（chat 多会话共享）。
+func NewPrefixService() PrefixService {
+	return &prefixService{last: map[string]prefixSnapshot{}}
+}
+
+type prefixService struct {
+	mu   sync.Mutex
+	last map[string]prefixSnapshot
+}
+
+type prefixSnapshot struct {
+	layerOrder  []string
+	layers      map[string]LayerReport
+	layerBytes  map[string]string // 层渲染产物（层级 starts-with 判定）
+	historyLen  int
+	dynamicHash string
+}
+
+// Assemble 按 §3.1/§3.2 语义包装 Build：
+//   - 层 = Stable=true 且内容非空的 system section；层渲染产物为该段
+//     renderSections 单段字节（消息边界内的假想独立渲染，前缀指纹级联之）；
+//   - CacheKey 双轨（§3.2）：显式 Section.CacheKey 优先（调用方声明的
+//     渲染输入身份）；空则自动推导 "auto:"+段身份哈希——自动推导下
+//     CacheKey 恒随内容变，双轨退化单轨仍诚实；显式固定 CacheKey 而
+//     内容变会被记入 CacheAnomalies（T-A4 锁定）；
+//   - PrefixBytes/DynamicBytes 按最终消息字节计（PrefixBytes=system 消息，
+//     DynamicBytes=末条 user 消息），与 provider 实际看到的字节一致。
+func (s *prefixService) Assemble(ctx context.Context, req PrefixRequest) (Assembly, AssemblyReport, error) {
+	_ = ctx // 预留：IMPL-B 载体装载的取消面
+	assembly := Build(req.AssemblyInput)
+	report := AssemblyReport{Layers: []LayerReport{}, Breaks: []BreakEvent{}, CacheAnomalies: []string{}}
+
+	layerOrder := make([]string, 0, len(req.SystemSections))
+	layers := make(map[string]LayerReport, len(req.SystemSections))
+	layerBytes := make(map[string]string, len(req.SystemSections))
+	for _, section := range req.SystemSections {
+		content := strings.TrimSpace(section.Content)
+		if content == "" {
+			if section.Stable {
+				report.Layers = append(report.Layers, LayerReport{
+					LayerID: section.ID, Version: section.CacheKey, CacheKey: section.CacheKey,
+					State: "skipped", EntryCount: 1,
+				})
+			}
+			continue
+		}
+		if !section.Stable {
+			continue // 动态段不进层（治理后不应再出现，防御保留）
+		}
+		rendered := renderSections([]Section{section})
+		layer := LayerReport{
+			LayerID:     section.ID,
+			CacheKey:    section.CacheKey,
+			ContentHash: contentDigest(rendered),
+			Bytes:       len(rendered),
+			EntryCount:  1,
+			State:       "rendered",
+		}
+		if layer.CacheKey == "" {
+			layer.CacheKey = "auto:" + contentDigest(section.ID+"\x00"+string(section.Kind)+"\x00"+section.Title+"\x00"+rendered)
+		}
+		layer.Version = layer.CacheKey
+		report.Layers = append(report.Layers, layer)
+		layerOrder = append(layerOrder, layer.LayerID)
+		layers[layer.LayerID] = layer
+		layerBytes[layer.LayerID] = rendered
+	}
+
+	report.PrefixFingerprint = prefixFingerprint(layerOrder, layers)
+	for _, message := range assembly.Messages {
+		switch {
+		case strings.EqualFold(message.Role, "system"):
+			report.PrefixBytes = len([]byte(message.Content))
+		}
+	}
+	for index := len(assembly.Messages) - 1; index >= 0; index-- {
+		if strings.EqualFold(assembly.Messages[index].Role, "user") {
+			report.DynamicBytes = len([]byte(assembly.Messages[index].Content))
+			break
+		}
+	}
+
+	dynamicHash := contentDigest(fmt.Sprintf("%d\x00%s", len(req.History), dynamicDigest(req.UserSections)))
+	if key := strings.TrimSpace(req.SessionKey); key != "" {
+		s.mu.Lock()
+		previous, hasPrevious := s.last[key]
+		s.last[key] = prefixSnapshot{layerOrder: layerOrder, layers: layers, layerBytes: layerBytes, historyLen: len(req.History), dynamicHash: dynamicHash}
+		s.mu.Unlock()
+		if hasPrevious {
+			layerEvents, anomalies := diffLayers(previous, layerOrder, layers, layerBytes)
+			report.Breaks = append(report.Breaks, layerEvents...)
+			report.Breaks = append(report.Breaks, diffDynamic(previous, len(req.History), dynamicHash)...)
+			report.CacheAnomalies = append(report.CacheAnomalies, anomalies...)
+		}
+	}
+	return assembly, report, nil
+}
+
+// diffLayers 产出层断裂清单与双轨违例清单：新层 = layer_appended（合法
+// 尾部增长）；层内容变化时，字节级 starts-with 仍成立 = layer_appended
+// （P1 判定），否则按 LayerID 映射封闭枚举（ledger→layer_appended 族、
+// profile、env、其余=规则/目录族 ruleset_changed）；层消失 = 对应断裂。
+// CacheKey 未变而 content_hash 变的层同时进 Breaks（保 P2 完备：指纹变
+// 必有归因）与 anomalies（显式装配器 bug 信号，T-A4 断言面）。
+func diffLayers(previous prefixSnapshot, order []string, layers map[string]LayerReport, layerBytes map[string]string) ([]BreakEvent, []string) {
+	events := []BreakEvent{}
+	anomalies := []string{}
+	for _, id := range order {
+		current, ok := layers[id]
+		if !ok {
+			continue
+		}
+		prev, existed := previous.layers[id]
+		if !existed {
+			events = append(events, BreakEvent{LayerID: id, Reason: BreakLayerAppended, Detail: "layer appended"})
+			continue
+		}
+		if prev.ContentHash == current.ContentHash {
+			continue
+		}
+		if prev.CacheKey == current.CacheKey {
+			// 双轨一致性（§3.2）：渲染输入身份未变而字节变 = 渲染非确定性。
+			events = append(events, BreakEvent{
+				LayerID: id, Reason: reasonForLayer(id),
+				Detail: fmt.Sprintf("cache_key unchanged but content_hash %s -> %s", prev.ContentHash, current.ContentHash),
+			})
+			anomalies = append(anomalies, fmt.Sprintf("layer %s: cache_key unchanged but content_hash %s -> %s", id, prev.ContentHash, current.ContentHash))
+			continue
+		}
+		if strings.HasPrefix(layerBytes[id], previous.layerBytes[id]) {
+			events = append(events, BreakEvent{LayerID: id, Reason: BreakLayerAppended, Detail: "layer grew append-only"})
+			continue
+		}
+		events = append(events, BreakEvent{LayerID: id, Reason: reasonForLayer(id), Detail: "layer content changed"})
+	}
+	seen := map[string]bool{}
+	for _, id := range order {
+		seen[id] = true
+	}
+	removed := make([]string, 0)
+	for _, id := range previous.layerOrder {
+		if !seen[id] {
+			removed = append(removed, id)
+		}
+	}
+	sort.Strings(removed)
+	for _, id := range removed {
+		events = append(events, BreakEvent{LayerID: id, Reason: reasonForLayer(id), Detail: "layer removed"})
+	}
+	return events, anomalies
+}
+
+func diffDynamic(previous prefixSnapshot, historyLen int, dynamicHash string) []BreakEvent {
+	events := []BreakEvent{}
+	if previous.historyLen != historyLen {
+		events = append(events, BreakEvent{LayerID: "dynamic", Reason: BreakHistoryWindowSlid,
+			Detail: fmt.Sprintf("history %d -> %d", previous.historyLen, historyLen)})
+	}
+	if previous.dynamicHash != dynamicHash {
+		events = append(events, BreakEvent{LayerID: "dynamic", Reason: BreakSnapshotRotated,
+			Detail: "user-turn dynamic content changed"})
+	}
+	return events
+}
+
+func reasonForLayer(layerID string) BreakReason {
+	id := strings.ToLower(layerID)
+	switch {
+	case strings.Contains(id, "ledger"):
+		return BreakLayerAppended
+	case strings.Contains(id, "profile"):
+		return BreakProfileUpdated
+	case strings.Contains(id, "env"):
+		return BreakEnvChanged
+	default:
+		return BreakRulesetChanged
+	}
+}
+
+func prefixFingerprint(order []string, layers map[string]LayerReport) string {
+	if len(order) == 0 {
+		return ""
+	}
+	parts := make([]string, 0, len(order))
+	for _, id := range order {
+		layer := layers[id]
+		parts = append(parts, id+"\x00"+layer.ContentHash+"\x00"+fmt.Sprintf("%d", layer.Bytes))
+	}
+	return contentDigest(strings.Join(parts, "\x1e"))
+}
+
+func dynamicDigest(sections []Section) string {
+	parts := make([]string, 0, len(sections))
+	for _, section := range sections {
+		parts = append(parts, section.ID+"\x00"+renderSections([]Section{section}))
+	}
+	return strings.Join(parts, "\x1e")
+}
+
+func contentDigest(text string) string {
+	sum := sha256.Sum256([]byte(text))
+	return hex.EncodeToString(sum[:])
+}

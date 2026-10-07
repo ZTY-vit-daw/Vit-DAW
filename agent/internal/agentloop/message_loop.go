@@ -45,6 +45,10 @@ type MessageLoop struct {
 	Budget   Budget
 	Now      func() time.Time
 	Logger   *logx.Logger
+
+	// prefix wraps every assembly through the layer report machinery
+	// (L1-4-IMPL-A). Lazily initialized inside the serial run loop.
+	prefix promptruntime.PrefixService
 }
 
 var (
@@ -455,7 +459,12 @@ func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Resu
 			state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: "context_overflow: " + overflow})
 			return r.fail(state, fmt.Errorf("context_overflow: %s", overflow))
 		}
-		assembly := l.assembly(state, modelSnapshotJSON)
+		assembly, assemblyReport, assembleErr := l.assembleWithReport(state, modelSnapshotJSON)
+		if assembleErr != nil {
+			// Assemble is currently infallible (Build never errors); a future
+			// carrier-load failure surfaces here without a half-rendered turn.
+			return r.fail(state, assembleErr)
+		}
 		// BOUNDARY-1 §3.1 prompt-render evidence: persist the actually
 		// assembled system prompt in full for every model turn (D1 and
 		// ordinary runs alike), with the round identity and the stable
@@ -472,6 +481,13 @@ func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Resu
 		llmStarted := time.Now()
 		promptStats := assembly.Stats.Map()
 		for key, value := range messageLoopModelContextPromptStats(modelSnapshotJSON, assembly.Messages) {
+			promptStats[key] = value
+		}
+		// L1-4-IMPL-A T-A5: AssemblyReport telemetry joins the existing
+		// promptStats family (prefix_bytes/dynamic_bytes/breaks). Byte
+		// accounting follows the model_snapshot_bytes convention; no token
+		// counts are invented.
+		for key, value := range assemblyReport.PromptStatsExtras() {
 			promptStats[key] = value
 		}
 		raw, err := llm.CompleteText(ctx, l.Client, l.Config, llm.Request{
@@ -4033,8 +4049,38 @@ func (l *MessageLoop) messages(state *runState, snapshotJSON string) []llm.Messa
 }
 
 func (l *MessageLoop) assembly(state *runState, snapshotJSON string) promptruntime.Assembly {
+	assembly, _, _ := l.assembleWithReport(state, snapshotJSON)
+	return assembly
+}
+
+// assembleWithReport routes every entry point through the PrefixService
+// wrapper (L1-4-IMPL-A): the returned Assembly is byte-identical to what
+// promptruntime.Build produced before; the report adds layer accounting,
+// the prefix fingerprint, break attribution, and the dual-track signal.
+func (l *MessageLoop) assembleWithReport(state *runState, snapshotJSON string) (promptruntime.Assembly, promptruntime.AssemblyReport, error) {
+	input := l.assemblyInput(state, snapshotJSON)
+	if l.prefix == nil {
+		l.prefix = promptruntime.NewPrefixService()
+	}
+	return l.prefix.Assemble(context.Background(), promptruntime.PrefixRequest{
+		AssemblyInput: input,
+		SessionKey:    "message_loop:" + messageLoopPrefixSessionKey(state),
+	})
+}
+
+func messageLoopPrefixSessionKey(state *runState) string {
+	if state == nil {
+		return "anonymous"
+	}
+	if id := strings.TrimSpace(state.goal.RunID); id != "" {
+		return id
+	}
+	return strings.TrimSpace(state.goal.GoalID)
+}
+
+func (l *MessageLoop) assemblyInput(state *runState, snapshotJSON string) promptruntime.AssemblyInput {
 	if messageLoopNeedsNeutralFamilyProjection(state) {
-		return l.assemblyNeutralFamilySelection(state, snapshotJSON)
+		return l.neutralFamilyAssemblyInput(state, snapshotJSON)
 	}
 	system := messageLoopSystemPrompt(state)
 	user := fmt.Sprintf("Current Goal: %s\nGoalID: %s\nRunID: %s\nRemaining tool calls this run: %d\nCurrent context snapshot JSON:\n%s", strings.TrimSpace(state.input.UserText), state.goal.GoalID, state.goal.RunID, state.budget.MaxToolCalls-state.toolCallsUsed, snapshotJSON)
@@ -4042,7 +4088,7 @@ func (l *MessageLoop) assembly(state *runState, snapshotJSON string) promptrunti
 		data, _ := json.Marshal(freeState)
 		user += "\nFree-state reasoning ledger JSON:\n" + string(data)
 	}
-	return promptruntime.Build(promptruntime.AssemblyInput{
+	return promptruntime.AssemblyInput{
 		SystemSections: []promptruntime.Section{
 			promptruntime.TextSection(promptruntime.SectionStatic, "message_loop_system", "", system, true),
 		},
@@ -4050,16 +4096,21 @@ func (l *MessageLoop) assembly(state *runState, snapshotJSON string) promptrunti
 		UserSections: []promptruntime.Section{
 			promptruntime.TextSection(promptruntime.SectionRuntime, "message_loop_runtime", "", user, false),
 		},
-	})
+	}
 }
 
-func (l *MessageLoop) assemblyNeutralFamilySelection(state *runState, snapshotJSON string) promptruntime.Assembly {
-	// FULLACCESS-AUTONOMY-1: this is the production assembly path for every
-	// active free-state turn (messageLoopNeedsNeutralFamilyProjection mirrors
-	// messageLoopFreeStateActive), so the full-access autonomy directive must be
-	// appended here as well as inside messageLoopSystemPrompt. It renders "" for
-	// every manual/ordinary turn, keeping those prompts byte-identical.
-	system := messageLoopNeutralFamilySystemPrompt(state) + messageLoopFullAccessAutonomyRules(state)
+// neutralFamilyAssemblyInput applies the §3.3 中性族 split: the byte-stable
+// skeleton (fixed rule frame + session-constant catalog/allowed tools) stays
+// in the system message, while every per-turn variable piece — the state
+// directives, the experiment-tier rules, and the full-access autonomy
+// directive — physically lands in the user turn.
+func (l *MessageLoop) neutralFamilyAssemblyInput(state *runState, snapshotJSON string) promptruntime.AssemblyInput {
+	// FULLACCESS-AUTONOMY-1: the full-access autonomy directive keeps the same
+	// behavioral contract on this path; after the L1-4-IMPL-A split it renders
+	// inside the per-turn directives block (dynamic zone) instead of the
+	// system message, because the authority mode is turn-scoped state.
+	system := messageLoopNeutralFamilySystemSkeleton(state)
+	directives := messageLoopNeutralFamilyTurnDirectives(state)
 	user := fmt.Sprintf("Current acoustic goal: %s\nGoalID: %s\nRunID: %s\nRemaining tool calls this run: %d\nNeutral context snapshot JSON:\n%s",
 		strings.TrimSpace(state.input.UserText), state.goal.GoalID, state.goal.RunID,
 		state.budget.MaxToolCalls-state.toolCallsUsed, snapshotJSON)
@@ -4067,7 +4118,14 @@ func (l *MessageLoop) assemblyNeutralFamilySelection(state *runState, snapshotJS
 		data, _ := json.Marshal(freeState)
 		user += "\nFree-state reasoning ledger JSON:\n" + string(data)
 	}
-	return promptruntime.Build(promptruntime.AssemblyInput{
+	userSections := []promptruntime.Section{
+		promptruntime.TextSection(promptruntime.SectionRuntime, "message_loop_neutral_family_runtime", "", user, false),
+	}
+	if strings.TrimSpace(directives) != "" {
+		userSections = append(userSections, promptruntime.TextSection(
+			promptruntime.SectionRuntime, "message_loop_neutral_family_directives", "Per-turn directives", directives, false))
+	}
+	return promptruntime.AssemblyInput{
 		SystemSections: []promptruntime.Section{
 			promptruntime.TextSection(promptruntime.SectionStatic, "message_loop_neutral_family_selection", "", system, true),
 		},
@@ -4075,11 +4133,9 @@ func (l *MessageLoop) assemblyNeutralFamilySelection(state *runState, snapshotJS
 		// only the most recent final-gate feedback: it is workflow control
 		// feedback, not materialization context, and must be visible to the next
 		// neutral decision request.
-		History: messageLoopNeutralFamilyFeedbackHistory(state.input.Conversation),
-		UserSections: []promptruntime.Section{
-			promptruntime.TextSection(promptruntime.SectionRuntime, "message_loop_neutral_family_runtime", "", user, false),
-		},
-	})
+		History:      messageLoopNeutralFamilyFeedbackHistory(state.input.Conversation),
+		UserSections: userSections,
+	}
 }
 
 func messageLoopNeutralFamilyFeedbackHistory(conversation []llm.Message) []llm.Message {
@@ -4446,11 +4502,12 @@ func messageLoopSystemPrompt(state *runState) string {
 	// An active free-state turn is always model-owned observation/family
 	// reasoning. Keep the general Agent and typed-control examples outside it.
 	if messageLoopFreeStateActive(state) {
-		// FULLACCESS-AUTONOMY-1: the full-access autonomy contract is the same on
-		// either prompt path, so the free-state neutral-family prompt carries the
-		// same directive. It renders "" for every manual/ordinary turn, which
-		// keeps both prompts byte-identical to their previous wording.
-		return messageLoopNeutralFamilySystemPrompt(state) + messageLoopFullAccessAutonomyRules(state)
+		// L1-4-IMPL-A: the physical assembly splits the neutral-family prompt
+		// (skeleton in system, per-turn directives in the user turn); this
+		// defense branch keeps the complete historical text surface via the
+		// combined renderer, with the autonomy directive folded into the
+		// per-turn directives half.
+		return messageLoopNeutralFamilySystemPrompt(state)
 	}
 	catalog := ""
 	allowed := ""
@@ -4923,6 +4980,11 @@ type messageLoopPromptRenderDiagnostic struct {
 	Tag            string `json:"tag"`
 	Fingerprint    string `json:"fingerprint,omitempty"`
 	SystemPrompt   string `json:"system_prompt"`
+	// TurnDirectives carries the neutral-family per-turn directives block
+	// (L1-4-IMPL-A §3.3 split): the behavior contract the model receives in
+	// the user turn. Rows written before the split have no field (empty on
+	// read); their per-turn pieces were still inside system_prompt.
+	TurnDirectives string `json:"turn_directives,omitempty"`
 }
 
 // appendMessageLoopPromptRenderDiagnostic writes the per-turn prompt-render
@@ -4934,8 +4996,14 @@ func appendMessageLoopPromptRenderDiagnostic(state *runState, assembly promptrun
 		return
 	}
 	tag := "message_loop_system"
+	directives := ""
 	if messageLoopNeedsNeutralFamilyProjection(state) {
 		tag = "message_loop_neutral_family_selection"
+		// Same pure function the assembly input uses; the split moved these
+		// bytes out of the system message, so the render evidence records
+		// them on their own field to keep the full model-visible contract
+		// auditable.
+		directives = messageLoopNeutralFamilyTurnDirectives(state)
 	}
 	system := ""
 	for _, message := range assembly.Messages {
@@ -4956,6 +5024,7 @@ func appendMessageLoopPromptRenderDiagnostic(state *runState, assembly promptrun
 		Tag:            tag,
 		Fingerprint:    assembly.Fingerprint,
 		SystemPrompt:   system,
+		TurnDirectives: directives,
 	}
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 		return

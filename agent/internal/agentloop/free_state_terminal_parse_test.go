@@ -163,13 +163,14 @@ func TestMessageLoopPromptRenderEvidencePersisted(t *testing.T) {
 		if row.Tag != "message_loop_neutral_family_selection" {
 			t.Fatalf("render row tag = %q, want the neutral-family section tag", row.Tag)
 		}
-		// The persisted prompt is the full assembled system prompt: it must
-		// carry the frozen terminal sentence (this locked loop renders it).
-		if !strings.Contains(row.SystemPrompt, freeStateTerminalTurnSentence) {
-			t.Fatal("persisted system prompt is not the actually assembled full text (terminal directive missing)")
-		}
+		// The persisted prompt keeps the full model-visible contract after the
+		// L1-4-IMPL-A split: the byte-stable skeleton stays in system_prompt,
+		// the frozen terminal sentence renders in turn_directives (user turn).
 		if !strings.Contains(row.SystemPrompt, "free_state_decision.v1") {
 			t.Fatal("persisted system prompt lost its decision contract body")
+		}
+		if !strings.Contains(row.TurnDirectives, freeStateTerminalTurnSentence) {
+			t.Fatal("persisted render evidence lost the per-turn terminal directive")
 		}
 	}
 	if rows != 1 {

@@ -14,11 +14,18 @@ func TestSystemPromptWiresBudgetDirectiveFromContext(t *testing.T) {
 	}}}
 	l := &MessageLoop{}
 	msgs := l.assembly(state, "").Messages
+	joined := ""
+	for _, message := range msgs {
+		joined += message.Content + "\n"
+	}
+	if !strings.Contains(joined, "CONTINUATION BUDGET CRITICAL") {
+		t.Fatalf("critical directive missing from the assembled request")
+	}
 	sys := ""
 	if len(msgs) > 0 {
 		sys = msgs[0].Content
 	}
-	if !strings.Contains(sys, "CONTINUATION BUDGET CRITICAL") {
-		t.Fatalf("critical directive missing from assembled system prompt")
+	if strings.Contains(sys, "CONTINUATION BUDGET CRITICAL") {
+		t.Fatalf("per-turn budget directive must live in the user turn, not the stable system message (L1-4-IMPL-A §3.3)")
 	}
 }
