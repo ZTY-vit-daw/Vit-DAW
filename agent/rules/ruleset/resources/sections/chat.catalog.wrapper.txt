@@ -1,0 +1,5 @@
+Mode instruction:
+%s
+
+Available DAW command catalog:
+%s
