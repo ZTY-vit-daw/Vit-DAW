@@ -187,7 +187,7 @@ ref := (projection_kind, scope_id, time_window, snapshot_id, content_hash)
 | L1-1 | 统一 ref schema 定版（含 D3 时间三层、D2 对象类型轴、memory 预留）+ 各投影层迁移 | 设计评审决策侧亲自把关（质量门 G1）；迁移后全量测试绿 | ✅ **定版**——G1 ruling 2026-09-27 + 终审 2026-10-07（L1-1-REFSCHEMA-1），规格=[REF_SCHEMA_V1.md](REF_SCHEMA_V1.md)；实现链 RECON→L0-1/L0-2→D1/D2（内核 D 类 5/5）已收官；agent 侧生成点迁移余量按 [G1 终审记录](../coord/runs/L1-1-REFSCHEMA-1/G1_FINAL_REVIEW.md) §4 M1-M8 排程（渐进归一，非 L1-2 前置） |
 | L1-2 | 投影物化存储 + 变更事件 + 依赖图增量失效 | 失效正确性专项测试（质量门 G2） | ✅ **完工**——设计（L1-2-DESIGN-1，09-28）+MAT-0/A/B/C/D/D2/D3/D4/E0/E 十一卡全链（09-28/29）；**G2 门 pass**（rulings/2026-09-29-G2-materialization-pass.md，E0 附条件闭环）；MAT-E 读端切换验收 pass（3f17f52e，生产默认 off）；v1 边界 OQ-1/2/3/4/6 留档 docs/MATERIALIZATION_V1_DESIGN.md §9 |
 | L1-3 | 查询引擎 + audio-grep 工具面（谓词/尺度/topK，毫秒级） | 索引查询延迟与正确性基准；工具面成本分级标注 | ✅ 收官——IMPL-A/B/C（09-29）+IMPL-D（10-06 验收）；B1-B7 延迟基准（BENCH）未跑，见 CURRENT-STATE 条目 |
-| L1-4 | 上下文退场 + 四层稳定前缀 | 轮次退场后句柄重拉一致性；前缀 append-only 的 cache 命中验证 | 🔶 设计完成——L1-4-DESIGN-1（10-01 验收 pass）；IMPL-A 待入池（L1-1 定版后解锁） |
+| L1-4 | 上下文退场 + 四层稳定前缀 | 轮次退场后句柄重拉一致性；前缀 append-only 的 cache 命中验证 | 🔶 **实现中**——设计（10-01 pass）+IMPL-A 落地（10-07 验收 pass e26a282c：PrefixService+AssemblyReport+stable/unstable 物理分离+遥测，T-A1/A3/A4/A5 绿）；B/C/D 待续（IMPL-B 卡已入池；真实栈烟测收口归 IMPL-D） |
 | L1-5 | 新 harness 骨架（pull 模式；相位轮次降级冷启动；能力层挂快路径） | 新旧并存 A/B（质量门 G3） | ⬜ 未动 |
 
 ### 线 2：独立组件与功能载体（与线 1 完全并行）
