@@ -116,6 +116,10 @@ type LegacyPrefixEntry struct {
 // (L1-3 OQ-1 裁定); anchors follow L1-1 §2. The fci_/fcp_ literal form
 // ("<prefix>_"+16 hex) is verified at frequencycleanup/model.go:201-204
 // (stableID), the anchor being L1-1 §2 B7 treatment.go:86/94.
+//
+// REFSCHEMA-M1 extension (2026-10-07): entry 15 adds the mom observation
+// ticket head "observation:" (L1-1 §2 C3). Source: G1 终审记录 §4 迁移计划
+// 首项 (coord/runs/L1-1-REFSCHEMA-1/G1_FINAL_REVIEW.md).
 var legacyPrefixRegistry = []LegacyPrefixEntry{
 	{LegacyPrefix: "dom_", Family: RefFamilyProjectionContentID, TargetKind: "dom", Slot: RefSlotHash, Anchor: "L1-1 §2 A1 dom/projection.go:530-537"},
 	{LegacyPrefix: "fxm_", Family: RefFamilyProjectionContentID, TargetKind: "fxm", Slot: RefSlotHash, Anchor: "L1-1 §2 A2 fxm/projection.go:207-213"},
@@ -139,6 +143,12 @@ var legacyPrefixRegistry = []LegacyPrefixEntry{
 	{LegacyPrefix: "audio_observation:", Family: RefFamilyObservationFingerprint, TargetKind: "", Slot: RefSlotHash, Anchor: "L1-1 §2 B2 audioclosure/driver.go:491-504"},
 	{LegacyPrefix: "fci_", Family: RefFamilyObservationFingerprint, TargetKind: "", Slot: RefSlotHash, Anchor: "L1-1 §2 B7 frequencycleanup/treatment.go:86"},
 	{LegacyPrefix: "fcp_", Family: RefFamilyObservationFingerprint, TargetKind: "", Slot: RefSlotHash, Anchor: "L1-1 §2 B7 frequencycleanup/treatment.go:94"},
+	// --- REFSCHEMA-M1 addition (G1 终审记录 §4 首项) ---
+	// mom 观察票加头：identity 族（obs_ ID 含时间戳+随机数，非内容哈希）→
+	// slot=snapshot（与 G 类同语义）；TargetKind 留空待 L1-2 结构化键定（与
+	// audio_observation:/fci_/fcp_ 同款）。与 audio_observation:（B2 内容指纹，
+	// 不同物）无前缀包含关系，最长匹配互不劫持。
+	{LegacyPrefix: "observation:", Family: RefFamilyEvidenceSchemeURI, TargetKind: "", Slot: RefSlotSnapshot, Anchor: "L1-1 §2 C3 mom/evidence.go:34-39"},
 }
 
 // ProjectionKindEntry registers a projection kind that has no legacy prefix

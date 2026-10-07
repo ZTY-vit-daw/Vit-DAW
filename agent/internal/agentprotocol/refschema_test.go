@@ -199,6 +199,7 @@ func TestParseRefThreeStates(t *testing.T) {
 		{"audioclosure observation fingerprint is legacy", "audio_observation:0123456789abcdef", RefStateLegacy},
 		{"frequencycleanup issue id is legacy", "fci_0123456789abcdef", RefStateLegacy},
 		{"frequencycleanup plan id is legacy", "fcp_0123456789abcdef", RefStateLegacy},
+		{"mom observation ticket head is legacy", "observation:obs_20260921T120000_ab12cd34", RefStateLegacy},
 		{"synthetic scheme head is opaque", "scheme_fixture_one:noise_floor", RefStateOpaque},
 		{"colon scheme unregistered is opaque", "mix.read:track.1.fast.levels", RefStateOpaque},
 		{"near miss prefix is opaque", "domX_0123456789abcdef0123", RefStateOpaque},
@@ -264,6 +265,8 @@ func TestParseRefLegacyTranslationTable(t *testing.T) {
 		{"audio_observation:0123456789abcdef", "audio_observation:", RefFamilyObservationFingerprint, "", RefSlotHash, "0123456789abcdef"},
 		{"fci_0123456789abcdef", "fci_", RefFamilyObservationFingerprint, "", RefSlotHash, "0123456789abcdef"},
 		{"fcp_0123456789abcdef", "fcp_", RefFamilyObservationFingerprint, "", RefSlotHash, "0123456789abcdef"},
+		// REFSCHEMA-M1: mom observation ticket head — snapshot slot, no kind.
+		{"observation:obs_20260921T120000_ab12cd34", "observation:", RefFamilyEvidenceSchemeURI, "", RefSlotSnapshot, "obs_20260921T120000_ab12cd34"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.raw, func(t *testing.T) {
@@ -299,10 +302,12 @@ func TestRegistryInitialValues(t *testing.T) {
 		{LegacyPrefix: "audio_observation:", Family: RefFamilyObservationFingerprint, TargetKind: "", Slot: RefSlotHash, Anchor: "L1-1 §2 B2 audioclosure/driver.go:491-504"},
 		{LegacyPrefix: "fci_", Family: RefFamilyObservationFingerprint, TargetKind: "", Slot: RefSlotHash, Anchor: "L1-1 §2 B7 frequencycleanup/treatment.go:86"},
 		{LegacyPrefix: "fcp_", Family: RefFamilyObservationFingerprint, TargetKind: "", Slot: RefSlotHash, Anchor: "L1-1 §2 B7 frequencycleanup/treatment.go:94"},
+		// REFSCHEMA-M1: mom observation ticket head (G1 终审记录 §4 首项).
+		{LegacyPrefix: "observation:", Family: RefFamilyEvidenceSchemeURI, TargetKind: "", Slot: RefSlotSnapshot, Anchor: "L1-1 §2 C3 mom/evidence.go:34-39"},
 	}
 	got := LegacyPrefixRegistry()
 	if len(got) != len(want) {
-		t.Fatalf("registry size = %d, want %d (A 类四变体 + G 类前缀族 + L0-2 acp/DAD/fingerprint 族)", len(got), len(want))
+		t.Fatalf("registry size = %d, want %d (A 类四变体 + G 类前缀族 + L0-2 acp/DAD/fingerprint 族 + M1 observation 票头)", len(got), len(want))
 	}
 	for i := range want {
 		if got[i] != want[i] {
@@ -528,5 +533,62 @@ func TestParseRefConcurrentOpaqueCounting(t *testing.T) {
 	}
 	if got := OpaqueWarnCounts()["concurrency_fixture"]; got != 200 {
 		t.Errorf("concurrent count = %d, want 200", got)
+	}
+}
+
+// REFSCHEMA-M1: "observation:" (mom 观察票加头，身份族) 与 "audio_observation:"
+// (audioclosure 内容指纹，B2) 是不同物且无前缀包含关系——最长匹配下两前缀必须
+// 各自命中自己的注册条目，互不劫持。
+func TestObservationPrefixDoesNotHijackAudioObservation(t *testing.T) {
+	ticket, err := ParseRef("observation:obs_20260921T120000_ab12cd34")
+	if err != nil {
+		t.Fatalf("ParseRef(ticket) unexpected error: %v", err)
+	}
+	if ticket.State != RefStateLegacy || ticket.Legacy == nil {
+		t.Fatalf("ticket state = %q, want legacy with translation", ticket.State)
+	}
+	if l := ticket.Legacy; l.LegacyPrefix != "observation:" || l.Family != RefFamilyEvidenceSchemeURI || l.Slot != RefSlotSnapshot {
+		t.Errorf("ticket translation = %+v, want prefix=observation: family=evidence_scheme_uri slot=snapshot", l)
+	}
+	fingerprint, err := ParseRef("audio_observation:0123456789abcdef")
+	if err != nil {
+		t.Fatalf("ParseRef(fingerprint) unexpected error: %v", err)
+	}
+	if fingerprint.State != RefStateLegacy || fingerprint.Legacy == nil {
+		t.Fatalf("fingerprint state = %q, want legacy with translation", fingerprint.State)
+	}
+	if l := fingerprint.Legacy; l.LegacyPrefix != "audio_observation:" || l.Family != RefFamilyObservationFingerprint || l.Slot != RefSlotHash {
+		t.Errorf("fingerprint translation = %+v, want prefix=audio_observation: family=observation_fingerprint slot=hash", l)
+	}
+}
+
+// REFSCHEMA-M1: observation: 头注册后不再计入 opaque 计数；M1 刻意不注册的头
+// （observation_id: 属 plugin_prep_worker 剥头族）与合成未注册头仍计入。
+func TestObservationHeadNoLongerOpaqueCounted(t *testing.T) {
+	ResetOpaqueWarnState()
+	withRefSchemaWarnLogger(t, nil)
+
+	got, err := ParseRef("observation:obs_20260921T120000_ab12cd34")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if got.State != RefStateLegacy {
+		t.Fatalf("state = %q, want legacy (observation: registered by M1)", got.State)
+	}
+	if _, err := ParseRef("observation_id:obs_20260921T120000_ab12cd34"); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if _, err := ParseRef("scheme_fixture_two:x"); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	counts := OpaqueWarnCounts()
+	if _, ok := counts["observation"]; ok {
+		t.Errorf("count[observation] present after M1 registration: %v", counts)
+	}
+	if got := counts["observation_id"]; got != 1 {
+		t.Errorf("count[observation_id] = %d, want 1 (M1 registers only the ticket head)", got)
+	}
+	if got := counts["scheme_fixture_two"]; got != 1 {
+		t.Errorf("count[scheme_fixture_two] = %d, want 1", got)
 	}
 }
