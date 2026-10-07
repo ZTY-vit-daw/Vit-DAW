@@ -22,3 +22,5 @@
   - 端测边界声明：纯常量表追加，ParseRef 属未接线运行栈的纯工具层（L0 设计），无渲染面/旅程面涉及；验收按卡面三命令口径。
   - 交付决策侧注意四点：① `docs/REF_SCHEMA_V1.md:55`"legacyPrefixRegistry，14 条"计数已过时（现为 15 条），不在本卡文件域未改，建议随 M2 或勘误卡同步；② 主树检出与并行流 L1-4-IMPL-A 共用（其卡移动 09:50 前后出现在共享索引），本卡实现按协议 §3 切独立 worktree，验收后请决策侧清理；③ 主树 `agent/internal/agentprotocol/materialstore.go` 领取前即 gofmt 不净（既有状态，未动）；④ 未推送——本地 main 领先 origin/main（领取前已有 4 个决策侧 commit + 本卡 2 个卡片 commit），推送时机留决策侧裁定。
 - 验收：（裁定文件 / 验收 commit）
+
+- 验收：**pass（2026-10-07 决策侧，rulings/2026-10-07-REFSCHEMA-M1-pass.md）**——diff 逐字核（条目五字段与卡面规格一致）+我方复跑（build/包级/消费面包 com+queryengine+materialize/全量 exit 0）+cherry-pick 680dda80→main 00f96200；worktree 与分支已清；REF_SCHEMA_V1 表一 15 条+G1 终审记录 §3 落账+CURRENT-STATE 计数同步随验收 commit；materialstore.go gofmt 既有不净记 hygiene 债不混卡。

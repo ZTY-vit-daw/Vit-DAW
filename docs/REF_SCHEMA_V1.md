@@ -52,7 +52,7 @@ ruling #2/#3 收紧（定版维持）：**window 与 hash 两段禁止省略**�
 
 注册表是权威清单不是代码架构（ruling #4）：Go 侧 `agentprotocol` 常量表起步，内核 C++ 侧编译期镜像。**新增 kind = 注册表追加 + 注册义注释（生成点锚点）**，不改文法。
 
-**表一：legacy 前缀翻译条目**（`legacyPrefixRegistry`，14 条；匹配取最长前缀）：
+**表一：legacy 前缀翻译条目**（`legacyPrefixRegistry`，15 条；匹配取最长前缀）：
 
 | legacy 前缀 | 族 | TargetKind | 槽位 | 生成点锚点 |
 |---|---|---|---|---|
@@ -68,6 +68,7 @@ ruling #2/#3 收紧（定版维持）：**window 与 hash 两段禁止省略**�
 | `dad.compressor_dual_tap:` | evidence_scheme_uri | dad.compressor_dual_tap | snapshot | L1-1 §2 D2 |
 | `dad.frequency_evidence:` | evidence_scheme_uri | dad.frequency_evidence | snapshot | L1-1 §2 C6 |
 | `audio_observation:` | observation_fingerprint | — | hash | L1-1 §2 B2 |
+| `observation:` | evidence_scheme_uri | — | snapshot | L1-1 §2 C3（REFSCHEMA-M1 补入 2026-10-07，00f96200；mom 观察票加头，身份族非内容哈希） |
 | `fci_` / `fcp_` | observation_fingerprint | — | hash | L1-1 §2 B7 |
 
 （族语义：A 类投影内容 ID→hash 槽；G 类快照 request_id→snapshot 槽；C/D 类 URI 式→scope 或 snapshot 槽；B 类内容指纹→hash 槽。身份族无对应 kind 时 TargetKind 留空，待 L1-2 结构化键定承载。）

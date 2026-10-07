@@ -38,7 +38,7 @@
 
 ## 3. 现状核对（生成面迁移余额）
 
-亲核（2026-10-07 HEAD）：agent 侧生成点**仍发 legacy 格式**——`dom_`（dom/projection.go:530-537 实读）、`acoustic_package_status:`/`observation:`（mom/evidence.go:23-39 实读）等；内核 D 类 5 处已迁 vit://（D1/D2 卡）。**注册表缺口**：`observation:`（mom C3 高频族，与 `audio_observation:` 不同物）未注册——现落 opaque（WARN 计数积累中）。盘点 §6 两处未覆盖（Godot 前端写者/PCA 层）维持待勘。
+亲核（2026-10-07 HEAD）：agent 侧生成点**仍发 legacy 格式**——`dom_`（dom/projection.go:530-537 实读）、`acoustic_package_status:`/`observation:`（mom/evidence.go:23-39 实读）等；内核 D 类 5 处已迁 vit://（D1/D2 卡）。**注册表缺口**：`observation:`（mom C3 高频族，与 `audio_observation:` 不同物）未注册——现落 opaque（WARN 计数积累中）。~~盘点 §6 两处未覆盖（Godot 前端写者/PCA 层）维持待勘~~。**后续落账（同日验收）**：M1 已补 `observation:` 条目（REFSCHEMA-M1 验收合入 00f96200，注册表现 15 条）；M8 勘察已排闲时任务（offpeak-3b571695）。
 
 ## 4. 迁移计划（类 × 动作 × 触发 × 优先级）
 
