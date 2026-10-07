@@ -1,0 +1,46 @@
+{
+  "schema_version": "evidence_index.v1",
+  "project_uuid": "vitproj_72622ec75f4c482c985fc716bd144095",
+  "entries": {
+    "4566c0ca60eb0f9cb3bdefabdf942b243f8a396dc253733e9ad9a2cbec1e2ce6": {
+      "kind": "feature_snapshot",
+      "size": 90966,
+      "created_at": "2026-10-07T12:24:42.6337033Z",
+      "last_referenced_at": "2026-10-07T12:24:42.6337033Z",
+      "refs": [
+        "obs:obs_20261007T122442_844b6aa41f6c"
+      ],
+      "renewable": true
+    },
+    "969a800bf2365d1036f7549607aa55dfc857737d36fdee0ddca96323360123b3": {
+      "kind": "feature_snapshot",
+      "size": 74664,
+      "created_at": "2026-10-07T12:24:11.1779161Z",
+      "last_referenced_at": "2026-10-07T12:24:11.1779161Z",
+      "refs": [
+        "obs:obs_20261007T122411_eac18529de8b"
+      ],
+      "renewable": true
+    },
+    "a788d5787c040e8b8c8c03a2f07ed4b31a6b4b8211086b9499770e763ffaefb8": {
+      "kind": "feature_snapshot",
+      "size": 76734,
+      "created_at": "2026-10-07T12:24:41.3665447Z",
+      "last_referenced_at": "2026-10-07T12:24:41.3665447Z",
+      "refs": [
+        "obs:obs_20261007T122441_7dbff6a885b8"
+      ],
+      "renewable": true
+    },
+    "c7e7ae2893655047e10862c1c0a2699a41f2f628235b883c7b8d0ac7e599b9b0": {
+      "kind": "feature_snapshot",
+      "size": 74610,
+      "created_at": "2026-10-07T12:23:59.3384919Z",
+      "last_referenced_at": "2026-10-07T12:23:59.3384919Z",
+      "refs": [
+        "obs:obs_20261007T122359_b89bd1a09fba"
+      ],
+      "renewable": true
+    }
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "schema_version": "vit_agent_store_manifest.v2",
+  "project_uuid": "vitproj_76c9aa3a8c7e4e69a3e98c98c1e2c200",
+  "origin_project_uuid": "vitproj_7fcf2cffcfa44df88566f7fff0258050",
+  "project_path": "D:\\Vit_DAW\\coord\\runs\\JOURNEY-3\\20261007_194840\\project\\journey_fixture.vit",
+  "created_at": "2026-10-07T11:48:46.7660798Z",
+  "updated_at": "2026-10-07T11:50:30.0817548Z",
+  "budgets": {
+    "observation_max_bytes": 2097152,
+    "observation_max_count": 500,
+    "evidence_max_bytes": 419430400,
+    "evidence_blob_max_bytes": 67108864,
+    "journal_shard_max_bytes": 4194304,
+    "journal_shard_max_records": 1000,
+    "journal_max_shards": 50,
+    "store_total_max_bytes": 536870912
+  },
+  "counters": {
+    "journal_bytes": 37597,
+    "journal_records": 16,
+    "journal_shards": 1,
+    "observations_bytes": 928527,
+    "observations_count": 2,
+    "evidence_bytes": 150369,
+    "evidence_count": 2,
+    "mixboard_bytes": 201153,
+    "total_bytes": 1317646
+  },
+  "classes": {
+    "authoritative": [
+      "journal",
+      "mixboard_decisions"
+    ],
+    "renewable": [
+      "evidence",
+      "context_packs"
+    ]
+  },
+  "degraded": {
+    "evidence_off": false,
+    "reason": ""
+  }
+}

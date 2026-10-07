@@ -1,0 +1,99 @@
+﻿{
+    "nl_raw_goal_status":  "waiting_continue",
+    "pending_card_source":  "runtime_status",
+    "nl_goal_status_final":  "waiting_confirmation",
+    "nl_first_stop_reason":  "limit_reached",
+    "journey":  "journey_free_state_nl",
+    "authority_probe":  "authority_smoke_ok",
+    "timeline":  [
+                     "chat_turn_1 stop_reason=limit_reached goal_status=waiting_continue needs_confirmation=False",
+                     "settle card_parked kind=mix_tick_confirmation goal_status=waiting_confirmation",
+                     "events count=16 audition=0 mix_tick=2 applied_like=0 audition_session_id=False",
+                     "hop_1 kind=mix_tick_confirmation ok=True stop_reason=d1_settlement_pending_mix_tick_refused goal_status=waiting_continue",
+                     "events_after count=24 audition=4 mix_tick=2 applied_like=1 audition_session_id=False",
+                     "applied=True basis=chain_events ab_card=True",
+                     "classification=card_mounted:mix_tick_confirmation"
+                 ],
+    "nl_settle_reason":  "card_parked",
+    "nl_turns_sent":  1,
+    "ab_card_mounted":  true,
+    "event_types":  [
+                        "turn.started",
+                        "trajectory.turn.started",
+                        "item.started",
+                        "item.completed",
+                        "turn.completed",
+                        "item.started",
+                        "item.completed",
+                        "item.started",
+                        "item.completed",
+                        "trajectory.turn.started",
+                        "trajectory.intent.framed",
+                        "trajectory.hypothesis.proposed",
+                        "trajectory.round.started",
+                        "trajectory.observation.recorded",
+                        "mix_tick.pending",
+                        "mix_tick.pending",
+                        "trajectory.intervention.applied",
+                        "trajectory.observation.recorded",
+                        "audition.prepare.started",
+                        "audition.candidate.ready",
+                        "audition.ready",
+                        "audition.ready",
+                        "interaction.resolved",
+                        "turn.completed"
+                    ],
+    "round_protocol":  "one NL journey round per invocation (fixed utterance + bounded fixed nudges); card N=3 = three invocations",
+    "event_count":  24,
+    "conversation_id":  "dev_journey_fs_nl_20261007_202326",
+    "nl_chat_transport":  "ok",
+    "finished_at":  "2026-10-07T20:24:48.5105567+08:00",
+    "applied_basis":  "chain_events",
+    "nl_raw_stop_reason":  "limit_reached",
+    "hop_gate":  "pass",
+    "classification":  "card_mounted:mix_tick_confirmation",
+    "nl_nudges_sent":  0,
+    "success_strict_card_chain":  true,
+    "audition_session_id_seen":  false,
+    "applied_signal":  true,
+    "stop_reasons_observed":  [
+                                  "limit_reached",
+                                  "d1_settlement_pending_mix_tick_refused"
+                              ],
+    "pending_card_id":  "interaction_2a3fd807f3aab866",
+    "applied_like_event_types":  [
+                                     "trajectory.intervention.applied"
+                                 ],
+    "success_policy_chain":  true,
+    "hops_driven":  1,
+    "hops":  [
+                 {
+                     "index":  1,
+                     "interaction_id":  "interaction_2a3fd807f3aab866",
+                     "kind":  "mix_tick_confirmation",
+                     "ok":  true,
+                     "stop_reason":  "d1_settlement_pending_mix_tick_refused",
+                     "goal_status":  "waiting_continue",
+                     "expired_fallback":  false,
+                     "auto_authorized":  false,
+                     "mutation_performed":  false,
+                     "error":  ""
+                 }
+             ],
+    "prompt_overridden":  false,
+    "audition_event_types":  [
+                                 "audition.prepare.started",
+                                 "audition.candidate.ready",
+                                 "audition.ready",
+                                 "audition.ready"
+                             ],
+    "mix_tick_event_types":  [
+                                 "mix_tick.pending",
+                                 "mix_tick.pending"
+                             ],
+    "prompt":  "请对当前贴唱工程做一次自由态实验：基于观察证据改善人声与伴奏的平衡，执行后让我试听对比效果。",
+    "nl_raw_needs_confirmation":  false,
+    "confirmation_kind":  "interaction_card",
+    "pending_card_kind":  "mix_tick_confirmation",
+    "nl_transport_error":  ""
+}

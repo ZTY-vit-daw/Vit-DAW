@@ -1,0 +1,61 @@
+{
+  "schema_version": "mixboard.v1",
+  "mix_session_id": "mix_49426d517f43",
+  "status": "ready",
+  "goal_text": "ordinary-Agent free-state CCB observation",
+  "target_ref": {
+    "kind": "track",
+    "id": "1007",
+    "label": "Bass",
+    "source": "selected_track_first_clip",
+    "confidence": "high"
+  },
+  "mix_objects": [
+    {
+      "mode": "target_ref",
+      "kind": "track",
+      "id": "1007",
+      "label": "Bass",
+      "effect_scope": "track_rack",
+      "source": "resolved_observation_target"
+    }
+  ],
+  "listen_scope": {
+    "time": {
+      "mode": "full_song",
+      "source": "default"
+    },
+    "source": {
+      "mode": "selected_track_with_project_context",
+      "focus_ids": [
+        "1007"
+      ]
+    }
+  },
+  "observation_count": 1,
+  "latest_observation_id": "obs_20261007T120709_4758296b8c36",
+  "latest_observation_path": "D:\\Vit_DAW\\coord\\runs\\JOURNEY-3\\20261007_200603\\project\\.vit_agent\\vitproj_2d21bc4e4d074f238ffbf773c077318f\\observations\\obs_20261007T120709_4758296b8c36.json",
+  "active_problem_map": [
+    {
+      "confidence": 0.35,
+      "summary": "深度频段观察可用，可作为后续精修参考",
+      "tag": "deep_band_observation_available"
+    }
+  ],
+  "section_candidates": [
+    {
+      "confidence": 0.25,
+      "end_seconds": 2.2,
+      "label_hint": "full",
+      "start_seconds": 0
+    }
+  ],
+  "package_status": {
+    "deep": "async_available",
+    "dom": "partial",
+    "environment": "ready",
+    "mix": "baseline_ready",
+    "project": "ready"
+  },
+  "updated_at": "2026-10-07T12:07:09.8448163Z"
+}

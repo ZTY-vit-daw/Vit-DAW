@@ -1,0 +1,69 @@
+﻿{
+    "nl_raw_goal_status":  "waiting_continue",
+    "pending_card_source":  "",
+    "nl_goal_status_final":  "completed",
+    "nl_first_stop_reason":  "limit_reached",
+    "journey":  "journey_free_state_nl",
+    "authority_probe":  "authority_smoke_ok",
+    "timeline":  [
+                     "chat_turn_1 stop_reason=limit_reached goal_status=waiting_continue needs_confirmation=False",
+                     "settle goal_terminal status=completed",
+                     "events count=11 audition=0 mix_tick=0 applied_like=0 audition_session_id=False",
+                     "events_after count=11 audition=0 mix_tick=0 applied_like=0 audition_session_id=False",
+                     "applied=False basis= ab_card=False",
+                     "classification=other_terminal:limit_reached"
+                 ],
+    "nl_settle_reason":  "goal_terminal",
+    "nl_turns_sent":  1,
+    "ab_card_mounted":  false,
+    "event_types":  [
+                        "turn.started",
+                        "trajectory.turn.started",
+                        "item.started",
+                        "item.completed",
+                        "turn.completed",
+                        "item.started",
+                        "item.completed",
+                        "item.started",
+                        "item.completed",
+                        "item.started",
+                        "item.completed"
+                    ],
+    "round_protocol":  "one NL journey round per invocation (fixed utterance + bounded fixed nudges); card N=3 = three invocations",
+    "event_count":  11,
+    "conversation_id":  "dev_journey_fs_nl_20261007_200607",
+    "nl_chat_transport":  "ok",
+    "finished_at":  "2026-10-07T20:10:07.5396512+08:00",
+    "applied_basis":  "",
+    "nl_raw_stop_reason":  "limit_reached",
+    "hop_gate":  "not_driven_no_card",
+    "classification":  "other_terminal:limit_reached",
+    "nl_nudges_sent":  0,
+    "success_strict_card_chain":  false,
+    "audition_session_id_seen":  false,
+    "applied_signal":  false,
+    "stop_reasons_observed":  [
+                                  "limit_reached"
+                              ],
+    "pending_card_id":  "",
+    "applied_like_event_types":  [
+
+                                 ],
+    "success_policy_chain":  false,
+    "hops_driven":  0,
+    "hops":  [
+
+             ],
+    "prompt_overridden":  false,
+    "audition_event_types":  [
+
+                             ],
+    "mix_tick_event_types":  [
+
+                             ],
+    "prompt":  "请对当前贴唱工程做一次自由态实验：基于观察证据改善人声与伴奏的平衡，执行后让我试听对比效果。",
+    "nl_raw_needs_confirmation":  false,
+    "confirmation_kind":  "none",
+    "pending_card_kind":  "",
+    "nl_transport_error":  ""
+}

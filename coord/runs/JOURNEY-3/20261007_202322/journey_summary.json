@@ -1,0 +1,17 @@
+﻿{
+    "journey":  "journey_free_state_nl",
+    "success_policy_chain":  true,
+    "classification":  "card_mounted:mix_tick_confirmation",
+    "hop_gate":  "pass",
+    "track_names":  [
+                        "Bass",
+                        "Lead Vocal"
+                    ],
+    "authority_probe":  "authority_smoke_ok",
+    "hops_driven":  1,
+    "success_strict_card_chain":  true,
+    "conversation_id":  "dev_journey_fs_nl_20261007_202326",
+    "finished_at":  "2026-10-07T20:24:48.5135780+08:00",
+    "ab_card_mounted":  true,
+    "project_path":  "D:\\Vit_DAW\\coord\\runs\\JOURNEY-3\\20261007_202322\\project\\journey_fixture.vit"
+}

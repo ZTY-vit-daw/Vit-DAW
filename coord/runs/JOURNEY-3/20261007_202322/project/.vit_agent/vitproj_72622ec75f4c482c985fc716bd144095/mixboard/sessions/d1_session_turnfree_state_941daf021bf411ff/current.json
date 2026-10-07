@@ -1,0 +1,118 @@
+{
+  "schema_version": "mixboard.v1",
+  "mix_session_id": "d1_session_turnfree_state_941daf021bf411ff",
+  "status": "ready",
+  "goal_text": "ordinary-Agent free-state CCB observation",
+  "target_ref": {
+    "kind": "track",
+    "id": "1012",
+    "label": "Lead Vocal",
+    "source": "selected_track_first_clip",
+    "confidence": "high"
+  },
+  "mix_objects": [
+    {
+      "mode": "target_ref",
+      "kind": "track",
+      "id": "1012",
+      "label": "Lead Vocal",
+      "effect_scope": "track_rack",
+      "source": "resolved_observation_target"
+    }
+  ],
+  "listen_scope": {
+    "time": {
+      "mode": "full_song",
+      "source": "default"
+    },
+    "source": {
+      "mode": "selected_track_with_project_context",
+      "focus_ids": [
+        "1012"
+      ]
+    }
+  },
+  "observation_count": 1,
+  "latest_observation_id": "obs_20261007T122442_844b6aa41f6c",
+  "latest_observation_path": "D:\\Vit_DAW\\coord\\runs\\JOURNEY-3\\20261007_202322\\project\\.vit_agent\\vitproj_72622ec75f4c482c985fc716bd144095\\observations\\obs_20261007T122442_844b6aa41f6c.json",
+  "active_problem_map": [
+    {
+      "confidence": 0.35,
+      "summary": "深度频段观察可用，可作为后续精修参考",
+      "tag": "deep_band_observation_available"
+    }
+  ],
+  "section_candidates": [
+    {
+      "confidence": 0.25,
+      "end_seconds": 2.2,
+      "label_hint": "full",
+      "start_seconds": 0
+    }
+  ],
+  "package_status": {
+    "deep": "async_available",
+    "dom": "partial",
+    "environment": "ready",
+    "mix": "baseline_ready",
+    "project": "ready"
+  },
+  "latest_change": {
+    "affected_scopes": [
+      "project.state"
+    ],
+    "authoritative": true,
+    "change_id": "shadow_change_000029",
+    "changed_entities": [
+      {
+        "fields": [
+          {
+            "after": 8,
+            "before": 6,
+            "path": "project_revision"
+          },
+          {
+            "after": "c5c39d38ec4b21b6",
+            "before": "fd2cd7d47f6e88e9",
+            "path": "snapshot_hash"
+          }
+        ],
+        "id": "current",
+        "kind": "project"
+      },
+      {
+        "fields": [
+          {
+            "after": "2871428f78eb3fd9",
+            "before": "d9b37352ffd5a9c8",
+            "path": "track_state_revision"
+          }
+        ],
+        "id": "1012",
+        "kind": "track"
+      }
+    ],
+    "freshness": "current_snapshot",
+    "from_project": {
+      "project_epoch": "epoch_54b8ce73097e40d7",
+      "project_revision": 6,
+      "project_uuid": "vitproj_72622ec75f4c482c985fc716bd144095",
+      "snapshot_hash": "fd2cd7d47f6e88e9"
+    },
+    "from_state_epoch": 121,
+    "observed_at": "2026-10-07T12:24:41.3094353Z",
+    "schema_version": "project_change_receipt.v1",
+    "source": "authoritative_snapshot",
+    "to_project": {
+      "project_epoch": "epoch_54b8ce73097e40d7",
+      "project_revision": 8,
+      "project_uuid": "vitproj_72622ec75f4c482c985fc716bd144095",
+      "snapshot_hash": "c5c39d38ec4b21b6"
+    },
+    "to_state_epoch": 122,
+    "unresolved_refresh_scopes": [
+      "project.state"
+    ]
+  },
+  "updated_at": "2026-10-07T12:24:42.5989296Z"
+}

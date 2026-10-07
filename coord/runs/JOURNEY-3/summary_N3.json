@@ -1,0 +1,89 @@
+{
+  "schema_version": "journey3.n3_summary.v1",
+  "card": "JOURNEY-3",
+  "date": "2026-10-07",
+  "scenario": "journey_free_state_nl",
+  "n_rounds": 3,
+  "rounds": [
+    {
+      "round": 1,
+      "run_dir": "coord/runs/JOURNEY-3/20261007_194840",
+      "driver_version": "v1",
+      "exit_code": 0,
+      "deterministic_subface": "green (fixture/open/authority+probe/stack-health)",
+      "classification": "chain_stall",
+      "classification_note": "driver defect: no nudge mechanic; chain parked at continuation boundary (trajectory intent.framed->hypothesis.proposed->observation.recorded, goal waiting_continue, continuations completed, no card)",
+      "card_mounted": false,
+      "hops_driven": 0,
+      "hop_gate": "not_driven_no_card",
+      "applied": false,
+      "ab_card": false,
+      "success_strict": false,
+      "success_policy": false
+    },
+    {
+      "round": 2,
+      "run_dir": "coord/runs/JOURNEY-3/20261007_200603",
+      "driver_version": "v2",
+      "exit_code": 0,
+      "deterministic_subface": "green",
+      "classification": "other_terminal:limit_reached (script v2 classifier)",
+      "classification_note": "corrected read: terminal without governed proposal (no_candidate_found family): capacity assessment + 2 ccb.observation_request (Lead Vocal 1012 / Bass 1007) + 7 slices -> goal completed, no card",
+      "card_mounted": false,
+      "hops_driven": 0,
+      "hop_gate": "not_driven_no_card",
+      "applied": false,
+      "ab_card": false,
+      "success_strict": false,
+      "success_policy": false
+    },
+    {
+      "round": 3,
+      "run_dir": "coord/runs/JOURNEY-3/20261007_201400",
+      "driver_version": "v2+classifier_v3",
+      "exit_code": 0,
+      "deterministic_subface": "green",
+      "classification": "no_candidate_found",
+      "classification_note": "chain ran (trajectory turn + observation catalog + 2 observation requests) -> goal completed; final turn.completed body delivered a concrete bounded-experiment proposal as TEXT (~350Hz -3.0dB Q~1.0 vocal cut + A/B listen instruction) while the governed improvement_proposal card/pending face/stop_reason family never mounted (diagnostic evidence only; no reply-text assertion per card)",
+      "card_mounted": false,
+      "hops_driven": 0,
+      "hop_gate": "not_driven_no_card",
+      "applied": false,
+      "ab_card": false,
+      "success_strict": false,
+      "success_policy": false
+    }
+  ],
+  "success_condition": {
+    "definition": ">=1 round walking proposal -> confirm -> apply -> A/B card mounted",
+    "achieved_rounds": 0,
+    "met": false
+  },
+  "failure_class_counts": {
+    "chain_stall": 1,
+    "terminal_no_governed_proposal": 2,
+    "no_candidate_found_explicit_stop_family": 0,
+    "model_pure_text_zero_chain_activity": 0,
+    "environment_interrupt": 0
+  },
+  "stop_loss": {
+    "rule": "2 consecutive same-shape failures on the same code version",
+    "triggered": true,
+    "basis": "rounds 2+3 same shape (terminal without governed proposal) under driver v2; round 1 stall was a driver defect fixed before round 2 and is not counted into the v2 series"
+  },
+  "exit_gate": {
+    "rule": "deterministic sub-faces only; NL assembly-face misses recorded without failing exit; confirm-hop structural failure (when driven) must fail exit",
+    "rounds_exit0": 3,
+    "hop_ever_driven": false,
+    "judgment_correct": true
+  },
+  "script_commits": "see card receipt",
+  "artifacts": {
+    "summary_md": "coord/runs/JOURNEY-3/summary_N3.md",
+    "console_logs": [
+      "coord/runs/JOURNEY-3_round1_console.log",
+      "coord/runs/JOURNEY-3_round2_console.log",
+      "coord/runs/JOURNEY-3_round3_console.log"
+    ]
+  }
+}

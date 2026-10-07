@@ -1,0 +1,42 @@
+{
+  "schema_version": "vit_agent_store_manifest.v2",
+  "project_uuid": "vitproj_e7c8bf18458b4fa1b8a57423f806b915",
+  "project_path": "D:\\Vit_DAW\\coord\\runs\\JOURNEY-3\\20261007_200603\\agent_drafts\\draft_20261007T120609_6d5a43be\\Unsaved.vit",
+  "created_at": "2026-10-07T12:06:09.2621919Z",
+  "updated_at": "2026-10-07T12:06:09.3236663Z",
+  "budgets": {
+    "observation_max_bytes": 2097152,
+    "observation_max_count": 500,
+    "evidence_max_bytes": 419430400,
+    "evidence_blob_max_bytes": 67108864,
+    "journal_shard_max_bytes": 4194304,
+    "journal_shard_max_records": 1000,
+    "journal_max_shards": 50,
+    "store_total_max_bytes": 536870912
+  },
+  "counters": {
+    "journal_bytes": 0,
+    "journal_records": 0,
+    "journal_shards": 0,
+    "observations_bytes": 0,
+    "observations_count": 0,
+    "evidence_bytes": 0,
+    "evidence_count": 0,
+    "mixboard_bytes": 0,
+    "total_bytes": 0
+  },
+  "classes": {
+    "authoritative": [
+      "journal",
+      "mixboard_decisions"
+    ],
+    "renewable": [
+      "evidence",
+      "context_packs"
+    ]
+  },
+  "degraded": {
+    "evidence_off": false,
+    "reason": ""
+  }
+}
