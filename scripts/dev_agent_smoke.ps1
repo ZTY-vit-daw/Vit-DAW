@@ -71,6 +71,11 @@ param(
     # /agent/interaction/respond approve hop (structural route assertions).
     # NL-round shape misses are classified and recorded, never thrown.
     # One NL round per invocation (fresh berth + fixture each round).
+    # journey_first additionally carries the JOURNEY-4 probe (record-only):
+    # after the B2 round it captures the propose conversation /agent/events
+    # stream and counts the audition face (audition.* events,
+    # audition_session_id) to settle whether the deterministic chain mounts
+    # a candidate entry for the J4 judgment leg.
     [string]$Scenario = "",
     # Scenario run artifacts root; defaults to
     # coord\runs\SMOKE-SCEN-RANGE-1\<timestamp> (journey_first:
@@ -2317,6 +2322,40 @@ if ($ScenarioMode) {
         }
         Write-Ok ("stack healthy after the journey (tool_count=" + [string]$journeyFinalState.tool_count + ")")
 
+        # ---------------- PROBE (JOURNEY-4): events face on the B2 chain ----
+        # Record-only, never throws: the probe question is whether the J1
+        # direct-drive B2 chain (capability_runtime_v1 propose -> approve ->
+        # executed) mounts any audition face on the propose conversation's
+        # event stream (audition.* events or an audition_session_id marker) --
+        # J4's judgment leg needs a deterministic candidate entry (the J3/R4
+        # chain audition.prepare.started -> audition.candidate.ready ->
+        # audition.ready was observed on the free-state NL face only). The
+        # mounted / not-mounted verdict is read from the artifacts (card stop
+        # condition 1), so a missing face here is a recorded outcome, not a
+        # gate failure.
+        Write-Step "PROBE (JOURNEY-4): capture the propose conversation event stream"
+        $journeyEventsUri = $AgentHttp.TrimEnd("/") + "/agent/events"
+        $journeyProposeConversation = "dev_journey_first_probe_" + $journeyStamp + "_" + [string]$journeyProbeCount
+        Start-Sleep -Seconds 3
+        $journeyEvents = $null
+        try { $journeyEvents = Invoke-Json -Method GET -Uri ($journeyEventsUri + "?conversation_id=" + [uri]::EscapeDataString($journeyProposeConversation) + "&since=0&limit=500") -TimeoutSec 60 } catch { $journeyEvents = $null }
+        if ($null -ne $journeyEvents) {
+            $journeyEvents | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "journey_propose_events.json") -Encoding UTF8
+        }
+        $journeyEventTypes = New-Object System.Collections.Generic.List[string]
+        foreach ($journeyEventRow in @(Get-OptionalProperty -Object $journeyEvents -Name "events")) {
+            $journeyEventType = [string](Get-OptionalProperty -Object $journeyEventRow -Name "type")
+            if (-not [string]::IsNullOrWhiteSpace($journeyEventType)) { $journeyEventTypes.Add($journeyEventType) }
+        }
+        $journeyEventsText = ""
+        if ($null -ne $journeyEvents) { $journeyEventsText = ($journeyEvents | ConvertTo-Json -Depth 14 -Compress) }
+        $journeyAuditionEvents = @($journeyEventTypes.ToArray() | Where-Object { $_.StartsWith("audition.") })
+        $journeyMixTickEvents = @($journeyEventTypes.ToArray() | Where-Object { $_ -like "*mix_tick*" })
+        $journeyAppliedEvents = @($journeyEventTypes.ToArray() | Where-Object { $_ -like "*applied*" -or $_ -like "*intervention*" })
+        $journeyAuditionSessionSeen = $journeyEventsText.Contains("audition_session_id")
+        [bool]$journeyAuditionCandidateReady = (@($journeyAuditionEvents | Where-Object { $_ -eq "audition.candidate.ready" }).Count -gt 0)
+        Write-Ok ("probe events: count=" + [string]$journeyEventTypes.Count + " audition=" + [string]$journeyAuditionEvents.Count + " candidate_ready=" + [string]$journeyAuditionCandidateReady + " mix_tick=" + [string]$journeyMixTickEvents.Count + " applied_like=" + [string]$journeyAppliedEvents.Count + " audition_session_id=" + [string]$journeyAuditionSessionSeen)
+
         $journeySummary = @{
             journey = "journey_first"
             project_path = $journeyProjectPath
@@ -2327,6 +2366,12 @@ if ($ScenarioMode) {
             propose_session = $journeySessionID
             propose_probes = $journeyProbeCount
             approve_stage = $journeyApproveStage
+            probe_events_conversation = $journeyProposeConversation
+            probe_events_count = [int]$journeyEventTypes.Count
+            probe_events_audition_count = [int]$journeyAuditionEvents.Count
+            probe_events_audition_candidate_ready = $journeyAuditionCandidateReady
+            probe_events_audition_types = @($journeyAuditionEvents)
+            probe_events_audition_session_id_seen = $journeyAuditionSessionSeen
             finished_at = (Get-Date).ToString("o")
         }
         $journeySummary | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "journey_summary.json") -Encoding UTF8
