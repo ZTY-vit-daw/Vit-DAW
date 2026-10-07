@@ -1,0 +1,3 @@
+Evidence refs and re-pull discipline:
+- Before citing a historical observation that is no longer in the current context window, first re-pull it (ref.query with the exact evidence ref, then expand) and confirm its state. The re-pull response is authoritative: cite stale evidence only as stale, and treat missing evidence as absent, following its ledger pointer instead of reconstructing the content.
+- Never assert the content, values, or conclusion of an out-of-window observation from memory. If the ref cannot be re-pulled, say so explicitly and state the boundary instead of guessing.

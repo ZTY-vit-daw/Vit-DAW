@@ -69,19 +69,48 @@ type AssemblyReport struct {
 	DynamicBytes      int
 	Breaks            []BreakEvent // 相对上一轮同 SessionKey 装配；首轮为空
 	CacheAnomalies    []string     // content_hash 变而 CacheKey 未变的层（§3.2：装配器 bug 信号，T-A4）
+	// HistoryRefs 是历史 refs 伴随索引（设计 §5.2，L1-4-IMPL-C）：装配历史时
+	// 对 assistant 消息 evidence refs 的解析注记。构建器在 contextruntime
+	// （TurnBoundaryHook）；本报告只承载注记结果，不改写历史文本。
+	HistoryRefs []HistoryRefEntry
+	// ExitViolations 是退场执行器拒绝的退场（§4.1 安全不变式不满足）+
+	// WARN 文本——进遥测（回执必查项）。v1 挂点 advisory，执法面不消费决策。
+	ExitViolations []string
+}
+
+// HistoryRefEntry 是伴随索引的一行（§5.2 设计态字段签名）。ParseState 与
+// agentprotocol 解析三态直通；opaque 残骸留文本不进可重拉面（Handle 空）。
+type HistoryRefEntry struct {
+	Ref          string `json:"ref"`                 // 原文字面（含 opaque 残骸）
+	ParseState   string `json:"parse_state"`         // parsed | legacy | opaque
+	Handle       string `json:"handle,omitempty"`    // parsed 且可 Resolve：evidence:// 或观察票路径
+	Freshness    string `json:"freshness,omitempty"` // 物化层透传（current/material_reuse/stale）；不可解析为空
+	LastSeenTurn string `json:"last_seen_turn,omitempty"`
+	LedgerEntry  int64  `json:"ledger_entry,omitempty"` // 相关账本条目（可回指时）
 }
 
 // PromptStatsExtras 把三字段（设计 §3.1 遥测接线）映射进既有 promptStats
 // 口径：体积计量沿用 model_snapshot_bytes 同族字节口径，不编造 token 数。
+// L1-4-IMPL-C 附加退场面键（exit_violations）与伴随索引覆盖率键
+// （§5.2：Tax 递减度量=parsed 占比）——均加法式，不动既有三键。
 func (r AssemblyReport) PromptStatsExtras() map[string]any {
 	breaks := make([]string, 0, len(r.Breaks))
 	for _, event := range r.Breaks {
 		breaks = append(breaks, string(event.Reason)+":"+event.LayerID)
 	}
+	parsed := 0
+	for _, entry := range r.HistoryRefs {
+		if entry.ParseState == "parsed" {
+			parsed++
+		}
+	}
 	return map[string]any{
-		"prefix_bytes":  r.PrefixBytes,
-		"dynamic_bytes": r.DynamicBytes,
-		"breaks":        breaks,
+		"prefix_bytes":        r.PrefixBytes,
+		"dynamic_bytes":       r.DynamicBytes,
+		"breaks":              breaks,
+		"exit_violations":     len(r.ExitViolations),
+		"history_refs_total":  len(r.HistoryRefs),
+		"history_refs_parsed": parsed,
 	}
 }
 
@@ -134,7 +163,7 @@ type prefixSnapshot struct {
 func (s *prefixService) Assemble(ctx context.Context, req PrefixRequest) (Assembly, AssemblyReport, error) {
 	_ = ctx // 预留：IMPL-B 载体装载的取消面
 	assembly := Build(req.AssemblyInput)
-	report := AssemblyReport{Layers: []LayerReport{}, Breaks: []BreakEvent{}, CacheAnomalies: []string{}}
+	report := AssemblyReport{Layers: []LayerReport{}, Breaks: []BreakEvent{}, CacheAnomalies: []string{}, HistoryRefs: []HistoryRefEntry{}, ExitViolations: []string{}}
 
 	layerOrder := make([]string, 0, len(req.SystemSections))
 	layers := make(map[string]LayerReport, len(req.SystemSections))

@@ -68,6 +68,23 @@ const (
 	NeutralFamilyCatalogWrapperSectionID = "neutral_family.catalog.wrapper"
 )
 
+// SectionEvidenceRefDiscipline 是 §4.4-3 纪律条款段（L1-4-IMPL-C 新增）：
+// 引用历史观察前先经重拉确认 state，不得凭记忆断言。跨族段——chat 与
+// neutral_family 各渲染一次（AppliesTo 归并，§2.1 要点 1）。新增段=embed
+// 资源新增（既有七段字节不动）+ RulesetVersion 递增（ruleset.v2）。
+const SectionEvidenceRefDiscipline = "shared.discipline.evidence_refs"
+
+// postMigrationSectionIDs 列出 IMPL-B 逐字迁移之后新增的段。双源对照锁定
+// 测试（chat/agentloop 的 ruleset_parity）比对 legacy 生产常量与 embed 渲染
+// 时排除它们：这些段是语义新增，legacy 生产面在 IMPL-D 接线翻转前不含
+// 它们；其正确性由各自测试断言（T-B7），不进「迁移零改写」证明面。
+var postMigrationSectionIDs = []string{SectionEvidenceRefDiscipline}
+
+// PostMigrationSectionIDs 返回迁移后新增段 ID 集的副本（对照锁定测试用）。
+func PostMigrationSectionIDs() []string {
+	return append([]string(nil), postMigrationSectionIDs...)
+}
+
 type RuleSection struct {
 	SectionID string   // 稳定段 ID（与 promptruntime Section.ID 语义对齐）
 	Version   int      // 段级版本；文本变更递增
@@ -247,10 +264,21 @@ func (m *RulesetManifest) RenderNeutralFamilyLayers(observationCatalog, allowedT
 }
 
 func (m *RulesetManifest) renderFamilyExcept(family, excludeID string) string {
+	return m.RenderFamilyJoined(family, excludeID)
+}
+
+// RenderFamilyJoined 按声明序拼接 family 内段内容（排除 exclude ID 集），
+// 段间 "\n\n"（renderFamilyExcept 的多排除泛化）。对照锁定测试用它把
+// 比对面限定在 IMPL-B 迁移段集合（PostMigrationSectionIDs 语义）。
+func (m *RulesetManifest) RenderFamilyJoined(family string, exclude ...string) string {
+	skip := make(map[string]bool, len(exclude))
+	for _, id := range exclude {
+		skip[id] = true
+	}
 	sections := m.FamilySections(family)
 	parts := make([]string, 0, len(sections))
 	for _, section := range sections {
-		if section.SectionID == excludeID {
+		if skip[section.SectionID] {
 			continue
 		}
 		parts = append(parts, section.Content)

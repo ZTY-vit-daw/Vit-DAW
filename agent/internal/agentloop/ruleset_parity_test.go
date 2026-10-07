@@ -28,7 +28,13 @@ func TestNeutralFamilySkeletonMatchesRulesetEmbedByteForByte(t *testing.T) {
 	if result.Err != nil {
 		t.Fatalf("ruleset load: %v", result.Err)
 	}
-	rules, catalogLayer := result.Manifest.RenderNeutralFamilyLayers(catalog, allowed)
+	// L1-4-IMPL-C：embed 面新增 shared.discipline.evidence_refs（资源新增，
+	// 既有七段字节不动）。本对照锁定的证明面=IMPL-B 迁移段集合与 legacy
+	// 生产骨架逐字节一致——迁移后新增段排除出比对面，其正确性由 T-B7
+	// （carriers 装配面）独立断言。
+	_, catalogLayer := result.Manifest.RenderNeutralFamilyLayers(catalog, allowed)
+	rules := result.Manifest.RenderFamilyJoined(ruleset.FamilyNeutralFamily,
+		append([]string{ruleset.NeutralFamilyCatalogWrapperSectionID}, ruleset.PostMigrationSectionIDs()...)...)
 	want := strings.TrimSpace(rules + "\n\n" + catalogLayer)
 
 	if strings.TrimSpace(legacy) != want {

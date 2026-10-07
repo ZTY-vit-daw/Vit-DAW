@@ -5735,14 +5735,29 @@ func (s *Server) buildMessages(ctx context.Context, conversationID, userText str
 // user 节尾部（对齐 agentloop 通用路径形态），稳定 system 消息只装
 // Stable Section——快照 CreatedAt 逐轮变不再打断 system 前缀。
 func (s *Server) buildAssemblyWithReport(ctx context.Context, conversationID, userText string, requestContext map[string]any) (promptruntime.Assembly, promptruntime.AssemblyReport, error) {
-	assembly := s.assembleChatInput(ctx, conversationID, userText, requestContext)
+	input := s.assembleChatInput(ctx, conversationID, userText, requestContext)
 	if s.prefixAssembler == nil {
 		s.prefixAssembler = promptruntime.NewPrefixService()
 	}
-	return s.prefixAssembler.Assemble(ctx, promptruntime.PrefixRequest{
-		AssemblyInput: assembly,
+	assembly, report, err := s.prefixAssembler.Assemble(ctx, promptruntime.PrefixRequest{
+		AssemblyInput: input,
 		SessionKey:    "chat:" + conversationID,
 	})
+	if err != nil {
+		return assembly, report, err
+	}
+	// L1-4-IMPL-C 轮次边界挂点（advisory，零行为切换）：历史 refs 伴随
+	// 索引注记 + 退场不变式执法面；retain/ref 决策不消费、账本不落盘
+	// （生产消费切换归 IMPL-D）；Violations 经 PromptStatsExtras 进遥测。
+	// HistoryLimit 对齐既有截尾线 12（conversationHistory 调用点，§4.2 归
+	// 并表锚点不动——chat 轮无独立 TurnID，turn_end 判据在此面不触发）。
+	report.HistoryRefs, report.ExitViolations = contextruntime.RunTurnBoundaryHook(ctx, contextruntime.TurnBoundaryHookInput{
+		SessionKey:   "chat:" + conversationID,
+		TurnID:       conversationID,
+		History:      input.History,
+		HistoryLimit: 12,
+	})
+	return assembly, report, err
 }
 
 // assembleChatInput builds the raw assembly input (system rules + dynamic

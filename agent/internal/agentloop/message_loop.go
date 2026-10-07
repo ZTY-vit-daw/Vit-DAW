@@ -4062,10 +4062,25 @@ func (l *MessageLoop) assembleWithReport(state *runState, snapshotJSON string) (
 	if l.prefix == nil {
 		l.prefix = promptruntime.NewPrefixService()
 	}
-	return l.prefix.Assemble(context.Background(), promptruntime.PrefixRequest{
+	sessionKey := messageLoopPrefixSessionKey(state)
+	assembly, report, err := l.prefix.Assemble(context.Background(), promptruntime.PrefixRequest{
 		AssemblyInput: input,
-		SessionKey:    "message_loop:" + messageLoopPrefixSessionKey(state),
+		SessionKey:    "message_loop:" + sessionKey,
 	})
+	if err != nil {
+		return assembly, report, err
+	}
+	// L1-4-IMPL-C 轮次边界挂点（advisory，零行为切换）：伴随索引注记 +
+	// 退场不变式执法面；决策不消费、账本不落盘（生产消费切换归 IMPL-D），
+	// Violations 经 PromptStatsExtras 进遥测。中性族历史窗（recent_turns）
+	// 与观察票单元的完整喂给归 IMPL-D 接线，此处 HistoryLimit=0 不评
+	// window_slide 候选。
+	report.HistoryRefs, report.ExitViolations = contextruntime.RunTurnBoundaryHook(context.Background(), contextruntime.TurnBoundaryHookInput{
+		SessionKey: "message_loop:" + sessionKey,
+		TurnID:     sessionKey,
+		History:    input.History,
+	})
+	return assembly, report, err
 }
 
 func messageLoopPrefixSessionKey(state *runState) string {

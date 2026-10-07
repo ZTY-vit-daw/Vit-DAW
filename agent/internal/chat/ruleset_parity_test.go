@@ -57,7 +57,13 @@ func TestChatSystemMatchesRulesetEmbedByteForByte(t *testing.T) {
 	if result.Err != nil {
 		t.Fatalf("ruleset load: %v", result.Err)
 	}
-	rules, catalogLayer := result.Manifest.RenderChatLayers(mode, catalog)
+	// L1-4-IMPL-C：embed 面新增 shared.discipline.evidence_refs（资源新增，
+	// 既有七段字节不动）。双源对照锁定的证明面=IMPL-B 迁移段集合与 legacy
+	// 生产常量逐字节一致——迁移后新增段排除出本比对面，其正确性由 T-B7
+	// （carriers 装配面）独立断言；IMPL-D 接线翻转后生产面即含新段。
+	_, catalogLayer := result.Manifest.RenderChatLayers(mode, catalog)
+	rules := result.Manifest.RenderFamilyJoined(ruleset.FamilyChat,
+		append([]string{ruleset.ChatCatalogWrapperSectionID}, ruleset.PostMigrationSectionIDs()...)...)
 	want := strings.TrimSpace(rules + "\n\n" + catalogLayer)
 
 	if system != want {

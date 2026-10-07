@@ -29,8 +29,8 @@ const validManifest = `{
   ]
 }`
 
-// TestEmbeddedManifestLoadsClean：嵌入 manifest 零拒载、七段齐全、
-// 段 ID 与 Purpose 布局符合迁移对照表。
+// TestEmbeddedManifestLoadsClean：嵌入 manifest 零拒载、八段齐全（IMPL-B
+// 迁移七段 + IMPL-C 纪律条款段）、段 ID 与 Purpose 布局符合迁移对照表。
 func TestEmbeddedManifestLoadsClean(t *testing.T) {
 	result := Load()
 	if result.Err != nil {
@@ -47,6 +47,9 @@ func TestEmbeddedManifestLoadsClean(t *testing.T) {
 		"neutral_family.output_format":       PurposeOutputFormat,
 		"neutral_family.discipline.rules":    PurposeDiscipline,
 		NeutralFamilyCatalogWrapperSectionID: PurposeCatalog,
+		// L1-4-IMPL-C 新增段（§4.4-3 纪律条款，跨族）——资源新增非改写，
+		// 既有七段字节不动。
+		SectionEvidenceRefDiscipline: PurposeDiscipline,
 	}
 	if len(result.Manifest.Sections) != len(want) {
 		t.Fatalf("embedded manifest section count = %d, want %d", len(result.Manifest.Sections), len(want))
@@ -58,6 +61,9 @@ func TestEmbeddedManifestLoadsClean(t *testing.T) {
 	}
 	if result.Manifest.RulesetVersion == "" {
 		t.Fatalf("empty ruleset version")
+	}
+	if result.Manifest.RulesetVersion == "ruleset.v1" {
+		t.Fatalf("new section added but RulesetVersion not bumped (still ruleset.v1)")
 	}
 }
 
