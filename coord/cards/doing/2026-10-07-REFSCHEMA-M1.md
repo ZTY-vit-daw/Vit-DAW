@@ -17,6 +17,6 @@
 - 约束：零行为追加（不改解析逻辑/转义/文法）；ANCHOR 语义不凭记忆（领取时实锚 mom/evidence.go 现行号）；gofmt 净。
 - 验收标准：`cd agent && go build ./...` + `go test ./internal/agentprotocol -count=1` 全绿 + `go test ./... -count=1` 全量 0 FAIL（注册表是共享常量面）+ gofmt blob 净。
 - 停止条件：发现既有消费方依赖"`observation:` 落 opaque"的行为（如断言 opaque 计数含 observation 头）→ 锚点+消费方清单上交。
-- 领取：（时间 / origin/main hash / 分支名）
+- 领取：2026-10-07 09:50 / origin/main=412820cc（本地 HEAD c01089b4 领取，main 领先 4 commit 未推）/ port/refschema-m1（PC 执行侧；实现于独立 worktree——主树检出并行流 L1-4-IMPL-A 共用，协议 §3 裁定）
 - 回执：（commit hash / 新增用例名 / 全量测试退出码）
 - 验收：（裁定文件 / 验收 commit）
