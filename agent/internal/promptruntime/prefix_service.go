@@ -80,6 +80,9 @@ type AssemblyReport struct {
 	// RetainsWritten 是本轮经 IMPL-B 写入器实际落盘的 retain 条目数
 	// （L1-4-IMPL-D 生产消费切换；ProjectDir 缺席的 advisory 形态恒 0）。
 	RetainsWritten int
+	// CarrierWarnings 是四层载体装载面的 WARN 清单（损坏/失配/拒载，
+	// L1-4-IMPL-D；§2.0 WARN 不静默吞）——进遥测。
+	CarrierWarnings []string
 }
 
 // HistoryRefEntry 是伴随索引的一行（§5.2 设计态字段签名）。ParseState 与
@@ -115,6 +118,7 @@ func (r AssemblyReport) PromptStatsExtras() map[string]any {
 		"breaks":               breaks,
 		"exit_violations":      len(r.ExitViolations),
 		"exit_retains_written": r.RetainsWritten,
+		"carrier_warnings":     len(r.CarrierWarnings),
 		"history_refs_total":   len(r.HistoryRefs),
 		"history_refs_parsed":  parsed,
 	}
@@ -207,9 +211,22 @@ func (s *prefixService) Assemble(ctx context.Context, req PrefixRequest) (Assemb
 		layerBytes[layer.LayerID] = rendered
 	}
 	// 载体层声明行（L1-4-IMPL-B §2.0）：absent/corrupt 的层不渲染
-	// Section，以声明形态进报告（确定性：按 LayerID 排序）。
-	declared := make([]string, 0, len(req.LayerStates))
-	for id := range req.LayerStates {
+	// Section，以声明形态进报告（确定性：按 LayerID 排序）。L1-4-IMPL-D：
+	// 装配输入随 Bundle 附带的声明（CarrierLayerStates）与请求级声明合并。
+	layerStates := req.LayerStates
+	if len(req.CarrierLayerStates) > 0 {
+		layerStates = make(map[string]string, len(req.LayerStates)+len(req.CarrierLayerStates))
+		for id, state := range req.LayerStates {
+			layerStates[id] = state
+		}
+		for id, state := range req.CarrierLayerStates {
+			if _, exists := layerStates[id]; !exists {
+				layerStates[id] = state
+			}
+		}
+	}
+	declared := make([]string, 0, len(layerStates))
+	for id := range layerStates {
 		declared = append(declared, id)
 	}
 	sort.Strings(declared)
@@ -217,8 +234,9 @@ func (s *prefixService) Assemble(ctx context.Context, req PrefixRequest) (Assemb
 		if _, rendered := layers[id]; rendered {
 			continue
 		}
-		report.Layers = append(report.Layers, LayerReport{LayerID: id, State: req.LayerStates[id]})
+		report.Layers = append(report.Layers, LayerReport{LayerID: id, State: layerStates[id]})
 	}
+	report.CarrierWarnings = append([]string(nil), req.CarrierWarnings...)
 
 	report.PrefixFingerprint = prefixFingerprint(layerOrder, layers)
 	for _, message := range assembly.Messages {

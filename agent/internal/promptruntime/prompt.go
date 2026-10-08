@@ -32,6 +32,12 @@ type AssemblyInput struct {
 	SystemSections []Section
 	History        []llm.Message
 	UserSections   []Section
+	// CarrierLayerStates/CarrierWarnings 是四层载体装载面（L1-4-IMPL-D）随
+	// Bundle 附带的层声明（absent/corrupt 报告行）与 WARN 面。Build 不消费
+	// （legacy 装配零影响）；PrefixService.Assemble 并入报告（§2.0 fail-open
+	// 但显式）。
+	CarrierLayerStates map[string]string
+	CarrierWarnings    []string
 }
 
 type Assembly struct {

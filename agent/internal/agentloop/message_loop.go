@@ -17,6 +17,7 @@ import (
 	"vit-daw-agent/internal/actionworkflow"
 	"vit-daw-agent/internal/config"
 	"vit-daw-agent/internal/contextruntime"
+	"vit-daw-agent/internal/contextruntime/carriers"
 	"vit-daw-agent/internal/conversation"
 	"vit-daw-agent/internal/epm"
 	executorpkg "vit-daw-agent/internal/executor"
@@ -31,6 +32,7 @@ import (
 	"vit-daw-agent/internal/tim"
 	"vit-daw-agent/internal/tom"
 	"vit-daw-agent/internal/toolpolicy"
+	"vit-daw-agent/rules/ruleset"
 )
 
 type MessageCompleter interface {
@@ -49,6 +51,9 @@ type MessageLoop struct {
 	// prefix wraps every assembly through the layer report machinery
 	// (L1-4-IMPL-A). Lazily initialized inside the serial run loop.
 	prefix promptruntime.PrefixService
+	// carrierWorkspaceDir 是四层载体宿主目录（L1-4-IMPL-D；测试注入用；
+	// 空=contextruntime.DefaultCarrierWorkspaceDir 按运行目录解析）。
+	carrierWorkspaceDir string
 }
 
 var (
@@ -4127,7 +4132,31 @@ func (l *MessageLoop) neutralFamilyAssemblyInput(state *runState, snapshotJSON s
 	// behavioral contract on this path; after the L1-4-IMPL-A split it renders
 	// inside the per-turn directives block (dynamic zone) instead of the
 	// system message, because the authority mode is turn-scoped state.
-	system := messageLoopNeutralFamilySystemSkeleton(state)
+	// L1-4-IMPL-D D3：四层载体真实工程装载——中性族 system 从单段骨架切为
+	// bundle 层序 Section（rules/profile/env/ledger/目录；缺层=absent
+	// fail-open，中层全缺席时与单段骨架字节一致——renderSections "\n\n"
+	// 连接语义保证，parity 测试持续锁定）。工程路径空=账本层 absent。
+	observationCatalog := messageLoopNeutralFamilyCatalog(state.input.AllowedTools)
+	allowedTools := strings.Join(messageLoopNeutralFamilyAllowedTools(state.input.AllowedTools), ", ")
+	workspaceDir := l.carrierWorkspaceDir
+	if workspaceDir == "" {
+		workspaceDir = contextruntime.DefaultCarrierWorkspaceDir()
+	}
+	bundle := carriers.Assemble(context.Background(), carriers.Options{
+		WorkspaceDir:       workspaceDir,
+		ProjectDir:         runProjectDirFromState(state),
+		Family:             ruleset.FamilyNeutralFamily,
+		ObservationCatalog: observationCatalog,
+		AllowedTools:       allowedTools,
+	})
+	systemSections := bundle.Sections
+	if len(systemSections) == 0 {
+		// L1 corrupt（embed 装载失败，理论不可达）：fail-open 回落单段骨架
+		// （内部再回落 legacy 模板），system 消息不缺席。
+		systemSections = []promptruntime.Section{
+			promptruntime.TextSection(promptruntime.SectionStatic, "message_loop_neutral_family_selection", "", messageLoopNeutralFamilySystemSkeleton(state), true),
+		}
+	}
 	directives := messageLoopNeutralFamilyTurnDirectives(state)
 	user := fmt.Sprintf("Current acoustic goal: %s\nGoalID: %s\nRunID: %s\nRemaining tool calls this run: %d\nNeutral context snapshot JSON:\n%s",
 		strings.TrimSpace(state.input.UserText), state.goal.GoalID, state.goal.RunID,
@@ -4144,9 +4173,9 @@ func (l *MessageLoop) neutralFamilyAssemblyInput(state *runState, snapshotJSON s
 			promptruntime.SectionRuntime, "message_loop_neutral_family_directives", "Per-turn directives", directives, false))
 	}
 	return promptruntime.AssemblyInput{
-		SystemSections: []promptruntime.Section{
-			promptruntime.TextSection(promptruntime.SectionStatic, "message_loop_neutral_family_selection", "", system, true),
-		},
+		SystemSections:     systemSections,
+		CarrierLayerStates: bundle.LayerStates,
+		CarrierWarnings:    bundle.Warnings,
 		// Prior assistant turns can contain materialization identity. Preserve
 		// only the most recent final-gate feedback: it is workflow control
 		// feedback, not materialization context, and must be visible to the next

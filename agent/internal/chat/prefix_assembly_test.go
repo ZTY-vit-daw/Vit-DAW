@@ -82,7 +82,7 @@ func TestChatAssemblyPrefixReport(t *testing.T) {
 	if len(firstReport.Layers) == 0 {
 		t.Fatalf("stable layer missing from report: %+v", firstReport)
 	}
-	if firstReport.Layers[0].LayerID != "chat_system" || firstReport.Layers[0].State != "rendered" {
+	if firstReport.Layers[0].LayerID != "ctx.layer.rules" || firstReport.Layers[0].State != "rendered" { // L1-4-IMPL-D：四层装载后首层=ctx.layer.rules（rules 层，字节=prior chat_system）
 		t.Fatalf("unexpected chat layer report: %+v", firstReport.Layers[0])
 	}
 	_, secondReport, err := server.buildAssemblyWithReport(ctx, "conv-prefix-report", "第二轮。", map[string]any{})

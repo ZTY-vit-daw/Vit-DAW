@@ -29,6 +29,7 @@ import (
 	"vit-daw-agent/internal/browsercapture"
 	"vit-daw-agent/internal/config"
 	"vit-daw-agent/internal/contextruntime"
+	"vit-daw-agent/internal/contextruntime/carriers"
 	"vit-daw-agent/internal/harness"
 	"vit-daw-agent/internal/history"
 	"vit-daw-agent/internal/kernel"
@@ -53,11 +54,14 @@ import (
 )
 
 type Server struct {
-	kernel                          *kernel.Client
-	auditionKernel                  auditionCommandClient
-	auditionCandidateDriver         auditionCandidateProjectDriver
-	auditionBlindDraw               func() bool // optional blind-session coin flip; nil draws from crypto/rand
-	mixTickAuditionRenderOverride   func(ctx context.Context, phase, projectRevision string, plan *mixTickAuditionPlan) (map[string]any, error)
+	kernel                        *kernel.Client
+	auditionKernel                auditionCommandClient
+	auditionCandidateDriver       auditionCandidateProjectDriver
+	auditionBlindDraw             func() bool // optional blind-session coin flip; nil draws from crypto/rand
+	mixTickAuditionRenderOverride func(ctx context.Context, phase, projectRevision string, plan *mixTickAuditionPlan) (map[string]any, error)
+	// carrierWorkspaceDir 是四层载体宿主目录（L1-4-IMPL-D；测试注入用；
+	// 空=DefaultCarrierWorkspaceDir 按运行目录解析）。
+	carrierWorkspaceDir             string
 	eqKernelOverride                eqKernelTransport
 	semanticSettlementStateOverride semanticSettlementState
 	shadow                          *shadow.Project
@@ -5789,7 +5793,29 @@ func (s *Server) assembleChatInput(ctx context.Context, conversationID, userText
 	}, contextruntime.Options{})
 	_ = contextruntime.AppendDefault(snapshot)
 	modeInstruction := agentModeSystemInstruction(agentModeFromContext(requestContext))
-	system := chatSystemFromRuleset(modeInstruction, catalog)
+	// L1-4-IMPL-D D3：四层载体真实工程装载——L1 rules/L2 profile/L3 env/
+	// L4 ledger/目录按层序挂稳定 system（缺层=absent fail-open，§2.0；
+	// 中层全缺席时 system 字节与 D2 单段形态逐字节一致——renderSections
+	// "\n\n" 连接语义保证，parity 测试持续锁定）。工程路径空=账本层 absent。
+	workspaceDir := s.carrierWorkspaceDir
+	if workspaceDir == "" {
+		workspaceDir = contextruntime.DefaultCarrierWorkspaceDir()
+	}
+	bundle := carriers.Assemble(ctx, carriers.Options{
+		WorkspaceDir:    workspaceDir,
+		ProjectDir:      projectPath,
+		Family:          ruleset.FamilyChat,
+		ModeInstruction: modeInstruction,
+		CommandCatalog:  catalog,
+	})
+	systemSections := bundle.Sections
+	if len(systemSections) == 0 {
+		// L1 corrupt（embed 装载失败，理论不可达）：fail-open 回落 D2 单段
+		// 形态（内部再回落 legacy 模板），system 消息不缺席。
+		systemSections = []promptruntime.Section{
+			promptruntime.TextSection(promptruntime.SectionStatic, "chat_system", "", chatSystemFromRuleset(modeInstruction, catalog), true),
+		}
+	}
 
 	// §3.3 治理：稳定 system 只装 Stable Section；快照（Runtime/Stable=false）
 	// 物理迁出 system 消息边界，进 user 节尾部（chat 腿本就走 user 节，
@@ -5805,10 +5831,10 @@ func (s *Server) assembleChatInput(ctx context.Context, conversationID, userText
 			promptruntime.SectionRuntime, "observe_reply_shape", "Observe reply shape", observeReplyShapeInstruction, false))
 	}
 	return promptruntime.AssemblyInput{
-		SystemSections: []promptruntime.Section{
-			promptruntime.TextSection(promptruntime.SectionStatic, "chat_system", "", system, true),
-		},
-		UserSections: userSections,
+		SystemSections:     systemSections,
+		CarrierLayerStates: bundle.LayerStates,
+		CarrierWarnings:    bundle.Warnings,
+		UserSections:       userSections,
 	}
 }
 
