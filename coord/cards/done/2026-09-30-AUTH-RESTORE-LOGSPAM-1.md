@@ -10,4 +10,4 @@
 - 停止条件：取证发现刷屏另有来源（非轮询触发）→ 如实申报。
 - 领取：2026-10-08 / origin/main `9e30ac5f3da8a90f51b420b66c7a66f0b8cf2a9c` / `port/auth-restore-logspam-1`（独立 worktree `D:/Vit_DAW_wt_authrestore`，领取时干净）
 - 回执：`coord/runs/AUTH-RESTORE-LOGSPAM-1/receipt.md` 随分支提交（commit hash 见分支提交记录）；锚点=chat/server.go `restoreProjectAgentRuntimeStateLocked` authority 块（原 ：7297-7307）+ Server 结构体 dedupe 记账两字段；降噪对比=稳定态 500 行/2 分钟 → 0 行（重复 restore 整行跳过，仅首个/变化各 1 行 INFO；来源取证=scheduler 250ms tick 重载而非前端 GET，已申报）
-- 验收：（裁定文件 / 验收 commit）
+- 验收：**pass（2026-10-08 晚窗决策侧，rulings/2026-10-08-AUTH-RESTORE-LOGSPAM-1-pass.md）**——来源取证偏差申报采信（主源=scheduler tick 非 GET，修复点同域）+闩零触碰我方 grep 实证+跳过/降级取舍采信+2 测试复跑绿+全量 90 包 0 FAIL；cherry-pick e494a54d→main 2436fb99；手验窗口 0 行留活栈观察归 gate
