@@ -77,7 +77,14 @@ func buildProjectStructure(input Input) ProjectStructure {
 		TargetRef:      compactMap(input.TargetRef, "kind", "id", "label", "source", "confidence"),
 		ListenScope:    compactMap(input.ListenScope, "time", "source"),
 		TimeRuler:      compactMap(input.TimeRuler, "duration_seconds", "segment_seconds", "frame_seconds", "tempo_bpm", "bar_map_available"),
-		EvidenceRefs:   evidenceRefs(observationRef(input), "mix.read:project.static.summary", "mix.read:project.limitations", "acoustic_package_status"),
+		EvidenceRefs: evidenceRefs(
+			observationRef(input),
+			momEvidenceRef("mix.read", "project.static.summary", input.ObservationID),
+			momEvidenceRef("mix.read", "project.limitations", input.ObservationID),
+			// 裸族指针（无数据键，形不成 scope_value），迁不动留原样（L1-2
+			// 给键后再升）。
+			"acoustic_package_status",
+		),
 	}
 	if out.DurationSec <= 0 {
 		out.DurationSec = firstPositiveNumber(input.TimeRuler, "duration_seconds")
@@ -111,7 +118,7 @@ func buildBasicEnergy(input Input) Layer {
 		Source:       firstNonEmpty(text(waveform["source"]), "l1_static.peak_rms_summary"),
 		Summary:      energySummary(waveform, status),
 		Facts:        facts,
-		EvidenceRefs: evidenceRefs(observationRef(input), trackReadKey(input, "fast.levels"), acousticFeatureRef("l1_static", "peak_rms_summary")),
+		EvidenceRefs: evidenceRefs(observationRef(input), trackReadKey(input, "fast.levels"), acousticFeatureRef(input, "l1_static", "peak_rms_summary")),
 	}
 }
 
@@ -124,16 +131,16 @@ func buildTimbreFrequency(input Input, intent string) Layer {
 	l2ProbeBands := compactBandEnergy(renderProbe)
 	primary := l3
 	source := "l3_deep.band_energy_summary"
-	refs := evidenceRefs(observationRef(input), trackReadKey(input, "slow.band_energy.summary"), acousticFeatureRef("l3_deep", "band_energy_summary"))
+	refs := evidenceRefs(observationRef(input), trackReadKey(input, "slow.band_energy.summary"), acousticFeatureRef(input, "l3_deep", "band_energy_summary"))
 	if intent == IntentRealtimeBandStereoObservation {
 		if renderProbeUsable(renderProbe) {
 			primary = l2ProbeBands
 			source = "l2_realtime.render_probe"
-			refs = evidenceRefs(observationRef(input), trackReadKey(input, "l2.render_probe.band_energy"), acousticFeatureRef("l2_realtime", "render_probe"), l2RenderProbeEvidenceRef(renderProbe))
+			refs = evidenceRefs(observationRef(input), trackReadKey(input, "l2.render_probe.band_energy"), acousticFeatureRef(input, "l2_realtime", "render_probe"), l2RenderProbeEvidenceRef(renderProbe))
 		} else {
 			primary = l2
 			source = "l2_realtime.realtime_spectrum"
-			refs = evidenceRefs(observationRef(input), trackReadKey(input, "realtime.band_energy.summary"), acousticFeatureRef("l2_realtime", "realtime_spectrum"))
+			refs = evidenceRefs(observationRef(input), trackReadKey(input, "realtime.band_energy.summary"), acousticFeatureRef(input, "l2_realtime", "realtime_spectrum"))
 		}
 	}
 	status := StatusFromSource(text(primary["status"]))
@@ -178,16 +185,16 @@ func buildSpaceStereo(input Input, intent string) Layer {
 	l2ProbeStereo := compactStereo(renderProbe)
 	primary := l3
 	source := "l3_deep.stereo_relation_summary"
-	refs := evidenceRefs(observationRef(input), trackReadKey(input, "slow.stereo.summary"), acousticFeatureRef("l3_deep", "stereo_relation_summary"))
+	refs := evidenceRefs(observationRef(input), trackReadKey(input, "slow.stereo.summary"), acousticFeatureRef(input, "l3_deep", "stereo_relation_summary"))
 	if intent == IntentRealtimeBandStereoObservation {
 		if renderProbeUsable(renderProbe) {
 			primary = l2ProbeStereo
 			source = "l2_realtime.render_probe"
-			refs = evidenceRefs(observationRef(input), trackReadKey(input, "l2.render_probe.stereo"), acousticFeatureRef("l2_realtime", "render_probe"), l2RenderProbeEvidenceRef(renderProbe))
+			refs = evidenceRefs(observationRef(input), trackReadKey(input, "l2.render_probe.stereo"), acousticFeatureRef(input, "l2_realtime", "render_probe"), l2RenderProbeEvidenceRef(renderProbe))
 		} else {
 			primary = l2
 			source = "l2_realtime.realtime_stereo_correlation"
-			refs = evidenceRefs(observationRef(input), trackReadKey(input, "realtime.stereo.summary"), acousticFeatureRef("l2_realtime", "realtime_stereo_correlation"))
+			refs = evidenceRefs(observationRef(input), trackReadKey(input, "realtime.stereo.summary"), acousticFeatureRef(input, "l2_realtime", "realtime_stereo_correlation"))
 		}
 	}
 	status := StatusFromSource(text(primary["status"]))
@@ -263,7 +270,7 @@ func buildTimeDynamicsStructure(input Input) Layer {
 		Source:       source,
 		Summary:      summary,
 		Facts:        facts,
-		EvidenceRefs: evidenceRefs(observationRef(input), trackReadKey(input, "slow.time_energy.summary"), trackReadKey(input, "slow.loudness.summary"), acousticFeatureRef("l3_deep", "loudness_summary"), text(loudness["evidence_ref"])),
+		EvidenceRefs: evidenceRefs(observationRef(input), trackReadKey(input, "slow.time_energy.summary"), trackReadKey(input, "slow.loudness.summary"), acousticFeatureRef(input, "l3_deep", "loudness_summary"), text(loudness["evidence_ref"])),
 		Limitations:  []string{"lufs_analysis_deferred", "masking_analysis_deferred", "structure_analysis_deferred", "reference_match_deferred"},
 	}
 }
@@ -284,7 +291,7 @@ func buildABResultComparison(input Input) Layer {
 			observationRef(input),
 			text(abResult["before_evidence_ref"]),
 			text(abResult["after_evidence_ref"]),
-			"mix.read:observation.ab_result.latest",
+			momEvidenceRef("mix.read", "observation.ab_result.latest", input.ObservationID),
 		)
 		return Layer{
 			Status:       status,
@@ -310,7 +317,7 @@ func buildABResultComparison(input Input) Layer {
 		Source:       "mixboard.before_after_delta",
 		Summary:      "AB comparison interface is present; it becomes ready when a previous observation in the same session exists.",
 		Facts:        facts,
-		EvidenceRefs: evidenceRefs(observationRef(input), "mix.derive:before_after", "mix.read:observation.before_after.latest"),
+		EvidenceRefs: evidenceRefs(observationRef(input), "mix.derive:before_after", momEvidenceRef("mix.read", "observation.before_after.latest", input.ObservationID)),
 	}
 }
 

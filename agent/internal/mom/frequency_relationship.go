@@ -25,7 +25,11 @@ var frequencyRegionDefinitions = []frequencyRegionDefinition{
 func buildFrequencyRelationship(input Input) FrequencyRelationship {
 	tracks := frequencyProjectTrackRows(input)
 	profiles := make([]map[string]any, 0, len(tracks))
-	evidenceRefsOut := []string{observationRef(input), "mix.read:project.tracks.summary", "mix.read:project.frequency_relationship_inputs"}
+	evidenceRefsOut := []string{
+		observationRef(input),
+		momEvidenceRef("mix.read", "project.tracks.summary", input.ObservationID),
+		momEvidenceRef("mix.read", "project.frequency_relationship_inputs", input.ObservationID),
+	}
 	limitations := []string{"energy_overlap_is_candidate_only_not_psychoacoustic_masking_fact", "no_eq_parameters_plugin_choices_proposals_or_pending_actions"}
 	missingTrackIDs := []string{}
 	eligible := 0
@@ -34,7 +38,7 @@ func buildFrequencyRelationship(input Input) FrequencyRelationship {
 	suspect := 0
 	tapSet := map[string]bool{}
 	for _, track := range tracks {
-		profile := frequencyTrackProfile(track)
+		profile := frequencyTrackProfile(input, track)
 		profiles = append(profiles, profile)
 		trackID := text(profile["track_id"])
 		switch StatusFromSource(text(profile["status"])) {
@@ -186,7 +190,7 @@ func trackRequiresFrequencyProfile(track map[string]any) bool {
 	return true
 }
 
-func frequencyTrackProfile(track map[string]any) map[string]any {
+func frequencyTrackProfile(input Input, track map[string]any) map[string]any {
 	bandSummary := mapValue(track["frequency_evidence"])
 	if len(bandSummary) == 0 {
 		bandSummary = mapValue(track["band_energy"])
@@ -235,7 +239,7 @@ func frequencyTrackProfile(track map[string]any) map[string]any {
 		"bands":                  bands,
 		"measurement_conditions": measurement,
 		"measurement_key":        measurementKey,
-		"evidence_ref":           frequencyTrackEvidenceRef(trackID, bandSummary),
+		"evidence_ref":           frequencyTrackEvidenceRef(trackID, input.ObservationID, bandSummary),
 		"silence_confirmed":      boolValue(bandSummary["silence_confirmed"]),
 		"silence_reason":         text(bandSummary["silence_reason"]),
 	}
@@ -600,12 +604,14 @@ func frequencyProjectCutRef(input Input) (string, bool) {
 		return ref, false
 	}
 	if input.ObservationID != "" {
-		return "observation:" + input.ObservationID, true
+		return observationRef(input), true
 	}
+	// 身份哨兵：无 observation_id 可承载 snapshot，保持 legacy 字面量
+	// （vit://mom 形态伪造不出"无身份"语义）。
 	return "observation:unbound", true
 }
 
-func frequencyTrackEvidenceRef(trackID string, row map[string]any) string {
+func frequencyTrackEvidenceRef(trackID, observationID string, row map[string]any) string {
 	if ref := text(row["evidence_ref"]); ref != "" {
 		return ref
 	}
@@ -613,7 +619,7 @@ func frequencyTrackEvidenceRef(trackID string, row map[string]any) string {
 	if requestID != "" {
 		return "dad.band_energy_summary:" + safeKey(trackID) + ":" + safeKey(requestID)
 	}
-	return "mix.read:track." + safeKey(trackID) + ".slow.band_energy.summary"
+	return momEvidenceRef("mix.read", "track."+safeKey(trackID)+".slow.band_energy.summary", observationID)
 }
 
 // FrequencyRelationshipsComparable checks only observation comparability. It

@@ -84,7 +84,7 @@ func buildMaskingRelationship(input Input) MaskingRelationship {
 		Conditions:     conditions,
 		Coverage:       coverage,
 		Candidates:     candidates,
-		EvidenceRefs:   evidenceRefs(append([]string{"mix.read:project.masking_relationship_inputs"}, stringValues(measurement["evidence_refs"])...)...),
+		EvidenceRefs:   evidenceRefs(append([]string{momEvidenceRef("mix.read", "project.masking_relationship_inputs", input.ObservationID)}, stringValues(measurement["evidence_refs"])...)...),
 		Limitations:    evidenceRefs(limitations...),
 	}
 }

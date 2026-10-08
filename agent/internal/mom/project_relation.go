@@ -34,7 +34,13 @@ func buildIntentPolicy(intent string) IntentPolicy {
 func buildProjectMixProfile(input Input) ProjectMixProfile {
 	tracks := projectTrackRows(input)
 	trackCount := len(tracks)
-	refs := evidenceRefs(observationRef(input), "mix.read:project.tracks.summary", "mix.read:project.relationship_inputs", "mix.derive:rank_tracks")
+	refs := evidenceRefs(
+		observationRef(input),
+		momEvidenceRef("mix.read", "project.tracks.summary", input.ObservationID),
+		momEvidenceRef("mix.read", "project.relationship_inputs", input.ObservationID),
+		// mix.derive: 族不在 M2 三族范围，保持原样。
+		"mix.derive:rank_tracks",
+	)
 	compared := compactComparedTracks(tracks)
 	level := levelOverview(tracks)
 	if projected := mapValue(input.ProjectPackage["level_distribution"]); len(projected) > 0 && StatusFromSource(text(projected["status"])) != StatusMissing {
@@ -70,7 +76,12 @@ func buildProjectMixProfile(input Input) ProjectMixProfile {
 func buildMultitrackRelation(input Input, profile ProjectMixProfile) MultitrackRelation {
 	tracks := projectTrackRows(input)
 	trackCount := len(tracks)
-	refs := evidenceRefs(observationRef(input), "mix.read:project.tracks.summary", "mix.read:project.relationship_inputs", "mix.derive:rank_tracks")
+	refs := evidenceRefs(
+		observationRef(input),
+		momEvidenceRef("mix.read", "project.tracks.summary", input.ObservationID),
+		momEvidenceRef("mix.read", "project.relationship_inputs", input.ObservationID),
+		"mix.derive:rank_tracks",
+	)
 	if trackCount <= 1 {
 		return MultitrackRelation{
 			Status:         "not_applicable_single_track",

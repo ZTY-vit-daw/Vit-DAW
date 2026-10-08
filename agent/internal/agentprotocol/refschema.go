@@ -44,6 +44,13 @@ import (
 	"sync"
 )
 
+// scope_kind 词汇登记（REF_SCHEMA_V1 §6 开放集登记义务：新增随注册表注释
+// 登记）。REFSCHEMA-M2（2026-10-08）mom C 类构造器迁 vit://mom 后新增三个
+// 数据键族 scope_kind：`mix.read`（track/project 数据读键）、
+// `acoustic_package_status`（声学包 layer.feature 键）、`observation`（观察
+// 票键；snapshot 段承载同一 observation_id——身份族语义，M1 裁定）。本条为
+// 纯注释登记，零行为改动；词汇表现役集（track/project/feature/band/pair）
+// 的权威表仍归 REF_SCHEMA_V1 §6，由决策侧文档卡同步。
 const RefSchemePrefix = "vit://"
 
 // refEscapeReserved is the set of grammar-structural delimiters that must be

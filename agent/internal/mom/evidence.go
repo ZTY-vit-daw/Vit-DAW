@@ -1,6 +1,10 @@
 package mom
 
-import "strings"
+import (
+	"strings"
+
+	"vit-daw-agent/internal/agentprotocol"
+)
 
 func evidenceRefs(values ...string) []string {
 	out := make([]string, 0, len(values))
@@ -20,22 +24,44 @@ func targetID(input Input) string {
 	return firstNonEmpty(text(input.TargetRef["id"]), text(input.ProjectPackage["track_id"]), "target")
 }
 
-func trackReadKey(input Input, suffix string) string {
-	return "mix.read:track." + safeKey(targetID(input)) + "." + suffix
+// momEvidenceRef renders one vit://mom L0 evidence ref (REFSCHEMA-M2, G1 终审
+// §4 M2 行)：legacy 数据键族头进 scope_kind，数据键余部进 scope_value，
+// snapshot 段承载 observation_id（mom 身份族语义，M1/registry 注记裁定；
+// 非内容哈希）。legacy 数据键不带采样窗，window 恒 t=all；mom refs 是数据面
+// 地址而非内容寻址，hash 段显式 "-"（未 CAS 化）。必需段缺失（最典型是
+// ObservationID 为空）时返回 ""——观察域 ref 没有身份即不发（legacy 写入面
+// 曾发出无身份字面量；vit://mom 文法不允许伪造 snapshot，宁缺勿假）。
+func momEvidenceRef(scopeKind, scopeValue, observationID string) string {
+	ref, err := agentprotocol.FormatRef(agentprotocol.Ref{
+		Kind:       "mom",
+		ScopeKind:  scopeKind,
+		ScopeValue: scopeValue,
+		Window:     &agentprotocol.TimeWindow{AllTime: true},
+		Snapshot:   observationID,
+		Hash:       "-",
+	})
+	if err != nil {
+		return ""
+	}
+	return ref
 }
 
-func acousticFeatureRef(layer, feature string) string {
+func trackReadKey(input Input, suffix string) string {
+	return momEvidenceRef("mix.read", "track."+safeKey(targetID(input))+"."+suffix, input.ObservationID)
+}
+
+func acousticFeatureRef(input Input, layer, feature string) string {
 	if strings.TrimSpace(layer) == "" || strings.TrimSpace(feature) == "" {
 		return ""
 	}
-	return "acoustic_package_status:" + layer + "." + feature
+	return momEvidenceRef("acoustic_package_status", layer+"."+feature, input.ObservationID)
 }
 
 func observationRef(input Input) string {
 	if strings.TrimSpace(input.ObservationID) == "" {
 		return ""
 	}
-	return "observation:" + input.ObservationID
+	return momEvidenceRef("observation", input.ObservationID, input.ObservationID)
 }
 
 func allEvidenceRefs(proj Projection) []string {
