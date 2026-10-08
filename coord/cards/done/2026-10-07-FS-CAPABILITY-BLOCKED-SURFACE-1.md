@@ -19,4 +19,4 @@
 - 停止条件：路由门实态与取证锚点不符（行漂移或分支重构）→ 新锚点+差异清单上交。
 - 领取：2026-10-08 早窗派发 flash（用户转交） / origin/main=d154cffc / port/fs-capability-blocked-surface-1（独立 worktree，决策侧代行移动）
 - 回执：（commit hash / 改动面申报 / 新测试名 / 复现轮工件与分类 / 端测边界声明）
-- 验收：（裁定文件 / 验收 commit）
+- 验收：**pass（2026-10-08 晚窗决策侧，rulings/2026-10-08-FS-CAPABILITY-BLOCKED-SURFACE-1-pass.md）**——纯插入 diff 亲读+红线四项亲验（agentloop/improvement_proposal_workflow 零 diff）+实现裁定申报核实（gate 拒绝出口双条件必然同现，AND+终态护栏采信）+4 新测我方两轮复跑绿+复现轮 2 轮 exit 0 全链走通（§8 判据达成；capability_blocked 形未概率触发如实采信）；cherry-pick 632776c2+35012e37→main ad21313a/0c9fc3aa；J4 复活条件①落地，J4-REV 随裁立卡
