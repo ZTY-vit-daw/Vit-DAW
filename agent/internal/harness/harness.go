@@ -2795,6 +2795,9 @@ func (h *Harness) applyExternalProjectOpened(ctx context.Context, cmd map[string
 		result["project_history_snapshot_recovery"] = historySnapshotRecovery
 	}
 	result["refresh"] = h.refreshShadowWithStatus(ctx, "version_project_opened")
+	// L4-GENESIS-1：工程打开后从投影/状态面只读渲染一次 genesis 头部段入
+	// 账本（fail-open——任何失败不阻塞打开，WARN 可见）。
+	h.appendProjectLedgerGenesis(projectPath, result)
 	if projectPackageNeedsBackgroundMigration(packageRestore) {
 		result["project_package_migration"] = "scheduled"
 		h.scheduleLegacyProjectPackageMigration(projectPath, projectUUID)

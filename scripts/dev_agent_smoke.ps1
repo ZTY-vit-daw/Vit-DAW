@@ -112,6 +112,12 @@ param(
     #     WorkflowData boundary face (capability_blocked=true +
     #     mutation_performed=false + free_state_admission_receipt); the
     #     shape is never constructed artificially.
+    # "l4_genesis" (L4-GENESIS-1): project-opened event face -> L4 project
+    #     ledger genesis header, three legs on an isolated berth:
+    #     fail-open (blank kernel state -> open succeeds + warning visible +
+    #     no ledger), genesis write (topology_delta/genesis entries with the
+    #     TOM overview + delivery-profile lines), idempotent re-open (ledger
+    #     byte-identical). Zero LLM.
     [string]$Scenario = "",
     # Scenario run artifacts root; defaults to
     # coord\runs\SMOKE-SCEN-RANGE-1\<timestamp> (journey_first:
@@ -617,13 +623,13 @@ $listener = Get-TcpListener -Port $httpPort
 $ScenarioMode = -not [string]::IsNullOrWhiteSpace($Scenario)
 # Journeys own the full berth (kernel + agent); one flag for every journey
 # card. Defined for every mode so later references stay StrictMode-safe.
-$journeyBerth = ($ScenarioMode -and ($Scenario -eq "journey_first" -or $Scenario -eq "journey_plugin_load" -or $Scenario -eq "journey_free_state_nl" -or $Scenario -eq "journey_ab_judgment" -or $Scenario -eq "context_layering"))
+$journeyBerth = ($ScenarioMode -and ($Scenario -eq "journey_first" -or $Scenario -eq "journey_plugin_load" -or $Scenario -eq "journey_free_state_nl" -or $Scenario -eq "journey_ab_judgment" -or $Scenario -eq "context_layering" -or $Scenario -eq "l4_genesis"))
 $ScenarioKernelProcId = $null
 $ScenarioAgentProcId = $null
 $ScenarioRunDir = ""
 if ($ScenarioMode) {
-    if ($Scenario -notin @("note_time", "context_layering", "range_split", "ref_diff_content", "midi_register", "render_freeze", "journey_first", "journey_plugin_load", "journey_free_state_nl", "journey_ab_judgment", "all")) {
-        throw ("unknown -Scenario value '" + $Scenario + "'; expected note_time, context_layering, range_split, ref_diff_content, midi_register, render_freeze, journey_first, journey_plugin_load, journey_free_state_nl, journey_ab_judgment, or all")
+    if ($Scenario -notin @("note_time", "context_layering", "range_split", "ref_diff_content", "midi_register", "render_freeze", "journey_first", "journey_plugin_load", "journey_free_state_nl", "journey_ab_judgment", "l4_genesis", "all")) {
+        throw ("unknown -Scenario value '" + $Scenario + "'; expected note_time, context_layering, range_split, ref_diff_content, midi_register, render_freeze, journey_first, journey_plugin_load, journey_free_state_nl, journey_ab_judgment, l4_genesis, or all")
     }
     if ($StartUI) {
         throw "-Scenario berth mode never starts the Godot UI (card constraint: webui/Godot untouched)"
@@ -653,6 +659,9 @@ if ($ScenarioMode) {
         }
         elseif ($Scenario -eq "context_layering") {
             $scenarioRunsRoot = "coord\runs\L1-4-IMPL-D"
+        }
+        elseif ($Scenario -eq "l4_genesis") {
+            $scenarioRunsRoot = "coord\runs\L4-GENESIS-1"
         }
         $RunArtifactsDir = Join-Path $RepoRoot ($scenarioRunsRoot + "\" + (Get-Date -Format "yyyyMMdd_HHmmss"))
     }
@@ -2519,6 +2528,181 @@ if ($ScenarioMode) {
             finished_at = (Get-Date).ToString("o")
         }
         $journeySummary | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "journey_summary.json") -Encoding UTF8
+    }
+
+    if ($Scenario -eq "l4_genesis") {
+        # L4-GENESIS-1 real-stack gate: the project-opened event face
+        # (version.project_opened -- the face the Godot start page drives,
+        # cf. the A5 journal source=start_page_open_project evidence) appends
+        # the L4 project-ledger genesis header exactly once. Three legs, all
+        # asserted on the invoke status/result and the on-disk ledger file
+        # (AGENTS.md section 8: server/kernel-owned surfaces, never reply
+        # text):
+        #   LEG 1 fail-open: notification while the kernel still holds a blank
+        #     project -> the shadow identity guard skips genesis, the open
+        #     itself still succeeds, the warning stays visible on the result,
+        #     and no ledger file appears.
+        #   LEG 2 genesis write: kernel holds the fixture project ->
+        #     topology_delta/genesis entries carrying the TOM overview line
+        #     (track names) and the delivery-profile reference lines.
+        #   LEG 3 idempotent re-open: same notification again -> zero new
+        #     entries and the ledger file byte-identical (append-only prefix
+        #     intact).
+        Write-Step "Scenario l4_genesis: opened-event face -> L4 ledger genesis (fail-open -> write -> idempotent)"
+        $genesisInvokeUri = $AgentHttp.TrimEnd("/") + "/agent/invoke"
+        $genesisInvoke = {
+            param([string]$Tool, [object]$ToolArgs, [int]$TimeoutSec)
+            Invoke-Json -Method POST -Uri $genesisInvokeUri -Body @{
+                tool = $Tool
+                args = $ToolArgs
+                confirmed = $true
+                source = "dev_agent_smoke.l4_genesis"
+            } -TimeoutSec $TimeoutSec
+        }
+
+        # ---------------- fixture: same two-stem recipe as journey_first ----
+        Write-Step "Genesis fixture: build the two-stem project and persist it"
+        Write-LeaseSmokeStemWav -Path (Join-Path $JourneyStemsDir "Lead Vocal.wav") -Amplitude 0.5 -Frequency 440.0 | Out-Null
+        Write-LeaseSmokeStemWav -Path (Join-Path $JourneyStemsDir "Bass.wav") -Amplitude 0.35 -Frequency 110.0 | Out-Null
+        $genesisProjectPath = Join-Path $JourneyProjectDir "genesis_fixture.vit"
+        $genesisLedgerPath = Join-Path $JourneyProjectDir "ledger\project_ledger.v1.jsonl"
+        $null = & $genesisInvoke "project.new" @{} 60
+        $genesisImport = & $genesisInvoke "project.import_folder_as_stems" @{
+            folder_path = $JourneyStemsDir
+            recursive = $false
+            target_policy = "create_tracks"
+            start_time_seconds = 0.0
+            skip_unreadable = $false
+            command_timeout_ms = 60000
+        } 120
+        if ([string]$genesisImport.status -ne "ok") {
+            throw ("genesis fixture stems import failed: " + ($genesisImport | ConvertTo-Json -Depth 8 -Compress))
+        }
+        $genesisSave = & $genesisInvoke "project.save_as" @{ file_path = $genesisProjectPath } 60
+        if ([string]$genesisSave.status -ne "ok" -or -not (Test-Path -LiteralPath $genesisProjectPath)) {
+            throw ("genesis fixture save_as failed: " + ($genesisSave | ConvertTo-Json -Depth 8 -Compress))
+        }
+        # Tool-face open once so the response carries the bound project UUID
+        # (the start page knows it from its own kernel session; the smoke
+        # scrapes it from the open reply).
+        $genesisFirstOpen = & $genesisInvoke "project.open" @{ file_path = $genesisProjectPath } 180
+        if ([string]$genesisFirstOpen.status -ne "ok") {
+            throw ("genesis fixture project.open failed: " + ($genesisFirstOpen | ConvertTo-Json -Depth 8 -Compress))
+        }
+        $genesisOpenJson = ($genesisFirstOpen | ConvertTo-Json -Depth 20 -Compress)
+        $genesisProjectUuid = ""
+        if ($genesisOpenJson -match 'vitproj_[0-9a-f]{32}') { $genesisProjectUuid = $Matches[0] }
+        if ([string]::IsNullOrWhiteSpace($genesisProjectUuid)) {
+            throw ("genesis fixture open reply carried no project uuid: " + $genesisOpenJson)
+        }
+        # Depart to a blank project so LEG 1 sees a non-matching kernel state.
+        $null = & $genesisInvoke "project.new" @{} 60
+        Write-Ok ("fixture persisted: " + $genesisProjectPath + " uuid=" + $genesisProjectUuid)
+
+        # ---------------- LEG 1: fail-open on unreadable projection ---------
+        Write-Step "LEG 1 (fail-open): opened notification while kernel holds the blank project"
+        $genesisFailOpen = & $genesisInvoke "version.project_opened" @{
+            project_path = $genesisProjectPath
+            project_uuid = $genesisProjectUuid
+        } 120
+        $genesisFailOpen | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "genesis_failopen_response.json") -Encoding UTF8
+        if ([string]$genesisFailOpen.status -ne "ok") {
+            throw ("LEG 1 fail-open violated: opened notification must not fail or block: " + ($genesisFailOpen | ConvertTo-Json -Depth 8 -Compress))
+        }
+        $genesisFailOpenText = ($genesisFailOpen | ConvertTo-Json -Depth 20 -Compress)
+        # WARN 可见面=agent 日志（host 生命周期响应经
+        # compactHostLifecycleInvokeResponseForTransport 白名单压缩，result
+        # 注记不外传——日志才是该事件面的 WARN 通道）。
+        $genesisLogText = ""
+        if (Test-Path -LiteralPath $AgentLog) {
+            $genesisLogText = Get-Content -LiteralPath $AgentLog -Raw -ErrorAction SilentlyContinue
+        }
+        if (-not $genesisLogText.Contains("project ledger genesis") -or -not $genesisLogText.Contains("identity does not match opened project")) {
+            throw ("LEG 1 fail-open WARN missing from agent log: " + $genesisLogText.Substring([Math]::Max(0, $genesisLogText.Length - 600)))
+        }
+        if (Test-Path -LiteralPath $genesisLedgerPath) {
+            throw ("LEG 1 fail-open violated: ledger written despite identity mismatch: " + $genesisLedgerPath)
+        }
+        Write-Ok "LEG 1 fail-open: open succeeded, WARN visible in agent log, no ledger written"
+
+        # ---------------- LEG 2: genesis write ------------------------------
+        Write-Step "LEG 2 (genesis): kernel holds the fixture -> opened notification writes the header"
+        $genesisReopen = & $genesisInvoke "project.open" @{ file_path = $genesisProjectPath } 180
+        if ([string]$genesisReopen.status -ne "ok") {
+            throw ("genesis fixture re-open failed: " + ($genesisReopen | ConvertTo-Json -Depth 8 -Compress))
+        }
+        $genesisOpened = & $genesisInvoke "version.project_opened" @{
+            project_path = $genesisProjectPath
+            project_uuid = $genesisProjectUuid
+        } 120
+        $genesisOpened | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "genesis_opened_response.json") -Encoding UTF8
+        if ([string]$genesisOpened.status -ne "ok") {
+            throw ("genesis opened notification failed: " + ($genesisOpened | ConvertTo-Json -Depth 8 -Compress))
+        }
+        if (-not (Test-Path -LiteralPath $genesisLedgerPath)) {
+            throw ("LEG 2 genesis violated: no ledger at " + $genesisLedgerPath + " after opened notification: " + ($genesisOpened | ConvertTo-Json -Depth 12 -Compress))
+        }
+        $genesisEntries = @(Get-Content -LiteralPath $genesisLedgerPath -Encoding UTF8 | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | ForEach-Object { $_ | ConvertFrom-Json })
+        if ($genesisEntries.Count -eq 0) {
+            throw ("LEG 2 genesis violated: ledger empty after opened notification")
+        }
+        foreach ($genesisEntry in $genesisEntries) {
+            if ([string]$genesisEntry.kind -ne "topology_delta" -or [string]$genesisEntry.phase -ne "genesis") {
+                throw ("LEG 2 genesis violated: entry kind/phase = " + $genesisEntry.kind + "/" + $genesisEntry.phase + ", want topology_delta/genesis")
+            }
+        }
+        $genesisStatements = ($genesisEntries | ForEach-Object { [string]$_.statement }) -join "`n"
+        if (-not $genesisStatements.Contains("tom_overview:")) {
+            throw ("LEG 2 genesis violated: TOM overview line missing: " + $genesisStatements)
+        }
+        if (-not $genesisStatements.Contains("Lead Vocal") -or -not $genesisStatements.Contains("Bass")) {
+            throw ("LEG 2 genesis violated: fixture track names missing from TOM summary: " + $genesisStatements)
+        }
+        if (-not $genesisStatements.Contains("delivery_targets:") -or -not $genesisStatements.Contains("builtin:spotify")) {
+            throw ("LEG 2 genesis violated: delivery profile lines missing: " + $genesisStatements)
+        }
+        $genesisBeforeBytes = [System.IO.File]::ReadAllBytes($genesisLedgerPath)
+        $genesisLogText = ""
+        if (Test-Path -LiteralPath $AgentLog) {
+            $genesisLogText = Get-Content -LiteralPath $AgentLog -Raw -ErrorAction SilentlyContinue
+        }
+        if (-not $genesisLogText.Contains("project ledger genesis appended entries=")) {
+            throw ("LEG 2 genesis log anchor missing (appended entries line): " + $genesisLogText.Substring([Math]::Max(0, $genesisLogText.Length - 600)))
+        }
+        Write-Ok ("LEG 2 genesis: " + $genesisEntries.Count + " topology_delta/genesis entries on disk")
+
+        # ---------------- LEG 3: idempotent re-open --------------------------
+        Write-Step "LEG 3 (idempotent): same opened notification again -> zero new entries"
+        $genesisReopened = & $genesisInvoke "version.project_opened" @{
+            project_path = $genesisProjectPath
+            project_uuid = $genesisProjectUuid
+        } 120
+        $genesisReopened | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "genesis_reopened_response.json") -Encoding UTF8
+        if ([string]$genesisReopened.status -ne "ok") {
+            throw ("LEG 3 idempotent re-open failed: " + ($genesisReopened | ConvertTo-Json -Depth 8 -Compress))
+        }
+        $genesisAfterBytes = [System.IO.File]::ReadAllBytes($genesisLedgerPath)
+        if ($genesisBeforeBytes.Length -ne $genesisAfterBytes.Length) {
+            throw ("LEG 3 idempotency violated: ledger grew from " + $genesisBeforeBytes.Length + " to " + $genesisAfterBytes.Length + " bytes")
+        }
+        for ($genesisByteIndex = 0; $genesisByteIndex -lt $genesisBeforeBytes.Length; $genesisByteIndex++) {
+            if ($genesisBeforeBytes[$genesisByteIndex] -ne $genesisAfterBytes[$genesisByteIndex]) {
+                throw ("LEG 3 idempotency violated: ledger bytes mutated at offset " + $genesisByteIndex)
+            }
+        }
+        Write-Ok "LEG 3 idempotent: ledger byte-identical after re-open"
+
+        @{
+            scenario = "l4_genesis"
+            project_path = $genesisProjectPath
+            project_uuid = $genesisProjectUuid
+            ledger_path = $genesisLedgerPath
+            ledger_entries = $genesisEntries.Count
+            ledger_statements = $genesisStatements
+            fail_open_response = $genesisFailOpenText
+            reopened_response = ($genesisReopened | ConvertTo-Json -Depth 20 -Compress)
+            finished_at = (Get-Date).ToString("o")
+        } | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "l4_genesis_summary.json") -Encoding UTF8
     }
 
     if ($Scenario -eq "journey_plugin_load") {
