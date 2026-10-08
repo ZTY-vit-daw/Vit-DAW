@@ -4070,16 +4070,19 @@ func (l *MessageLoop) assembleWithReport(state *runState, snapshotJSON string) (
 	if err != nil {
 		return assembly, report, err
 	}
-	// L1-4-IMPL-C 轮次边界挂点（advisory，零行为切换）：伴随索引注记 +
-	// 退场不变式执法面；决策不消费、账本不落盘（生产消费切换归 IMPL-D），
-	// Violations 经 PromptStatsExtras 进遥测。中性族历史窗（recent_turns）
-	// 与观察票单元的完整喂给归 IMPL-D 接线，此处 HistoryLimit=0 不评
-	// window_slide 候选。
-	report.HistoryRefs, report.ExitViolations = contextruntime.RunTurnBoundaryHook(context.Background(), contextruntime.TurnBoundaryHookInput{
+	// L1-4-IMPL-C 轮次边界挂点（IMPL-D 切生产消费）：伴随索引注记 +
+	// 退场不变式执法面 + retain 决策落盘（ProjectDir=run 上下文工程路径；
+	// 无工程面时 advisory 形态），Violations 经 PromptStatsExtras 进遥测。
+	// 中性族历史窗（recent_turns）与观察票单元的完整喂给归 IMPL-D 接线
+	// （run 终态收尾在 runner.retainRunObservationConclusions），此处
+	// HistoryLimit=0 不评 window_slide 候选。
+	hook := contextruntime.RunTurnBoundaryHook(context.Background(), contextruntime.TurnBoundaryHookInput{
 		SessionKey: "message_loop:" + sessionKey,
 		TurnID:     sessionKey,
 		History:    input.History,
+		ProjectDir: runProjectDirFromState(state),
 	})
+	report.HistoryRefs, report.ExitViolations, report.RetainsWritten = hook.HistoryRefs, hook.ExitViolations, hook.RetainsWritten
 	return assembly, report, err
 }
 

@@ -10,13 +10,15 @@ package contextruntime
 // parsed 占比（遥测 history_refs_parsed/history_refs_total，§5.2 首审口径）。
 //
 // 挂点（RunTurnBoundaryHook）供 chat/agentloop 装配路径调用：伴随索引 +
-// 退场执行器执法面，advisory——retain/ref 决策不消费、账本不落盘（生产
-// 消费切换归 IMPL-D），Violations 经 AssemblyReport 进遥测。
+// 退场执行器执法面 + retain 决策生产消费（IMPL-D：ProjectDir 在位时经
+// IMPL-B 写入器落盘工程账本；空=advisory），Violations 经 AssemblyReport
+// 进遥测。
 
 import (
 	"context"
 	"strconv"
 	"strings"
+	"time"
 	"unicode/utf8"
 
 	"vit-daw-agent/internal/agentprotocol"
@@ -228,7 +230,7 @@ func isSchemeStartByte(c byte) bool {
 	return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
 }
 
-// TurnBoundaryHookInput 是装配路径挂点的输入（v1 advisory 形态）。
+// TurnBoundaryHookInput 是装配路径挂点的输入（IMPL-D 起生产消费形态）。
 type TurnBoundaryHookInput struct {
 	SessionKey string
 	TurnID     string
@@ -236,29 +238,61 @@ type TurnBoundaryHookInput struct {
 	// HistoryLimit 是既有截尾线（chat=12，§4.2 归并表锚点不动）；0=不评
 	// window_slide 候选。
 	HistoryLimit int
+	// ExtraUnits 是装配面可诚实供给的非历史单元（观察票/工具结果——IMPL-D
+	// D1）。不造轮次语义：单元的 TurnID 由供给面用其原生货币标注（run 终态
+	// 收尾用 RunID），供给面不标则不参与 turn_end 判据。
+	ExtraUnits []WindowUnit
+	// ProjectDir 非空=retain 决策经 IMPL-B 写入器落盘工程账本（IMPL-D 生产
+	// 消费切换）；空=advisory（决策不落盘，IMPL-C 形态）。写失败显式进
+	// ExitViolations（不静默——结论跨会话延伸丢失必须可见）。
+	ProjectDir string
 }
 
-// RunTurnBoundaryHook 是 chat/agentloop 装配处的 v1 挂点（IMPL-C，挂点
-// diff ≤30 行级的单入口）：伴随索引注记 + 退场执行器执法面。advisory——
-// 决策不消费、账本不落盘、CAS 例外路径不接线（生产消费切换归 IMPL-D）；
-// 返回值直接落 AssemblyReport（HistoryRefs/ExitViolations）。
-func RunTurnBoundaryHook(ctx context.Context, in TurnBoundaryHookInput) ([]promptruntime.HistoryRefEntry, []string) {
+// TurnBoundaryHookResult 是挂点产出：HistoryRefs/ExitViolations 直接落
+// AssemblyReport；ExitReport 供供给面消费决策明细（OQ-3 单元分布采集面）；
+// RetainsWritten 是本轮实际落盘的 retain 条目数（遥测）。
+type TurnBoundaryHookResult struct {
+	HistoryRefs    []promptruntime.HistoryRefEntry
+	ExitViolations []string
+	ExitReport     ExitReport
+	RetainsWritten int
+}
+
+// RunTurnBoundaryHook 是 chat/agentloop 装配处的挂点（IMPL-C 单入口，IMPL-D
+// 切生产消费）：伴随索引注记 + 退场执行器执法面 + retain 决策落盘（ProjectDir
+// 在位时经 WriteRetains 走 IMPL-B 写入器，append-only 字面执行）；CAS 例外
+// 路径仍不接线（白名单 v1=tool_result 维持，OQ-3 待真栈数据）。
+func RunTurnBoundaryHook(ctx context.Context, in TurnBoundaryHookInput) TurnBoundaryHookResult {
 	indexer := &HistoryRefIndexer{}
 	historyRefs := indexer.Build(ctx, in.History, in.TurnID)
 
 	executor := NewExitExecutor(ExitExecutorConfig{})
-	window := WindowState{Units: make([]WindowUnit, 0, len(in.History)), HistoryLimit: in.HistoryLimit}
+	window := WindowState{Units: make([]WindowUnit, 0, len(in.History)+len(in.ExtraUnits)), HistoryLimit: in.HistoryLimit}
 	for i, message := range in.History {
 		window.Units = append(window.Units, WindowUnit{
 			Unit:  ExitUnit{Kind: ExitUnitHistoryMessage, ID: messageIndexID(i)},
 			Bytes: int64(len(message.Content)),
 		})
 	}
+	window.Units = append(window.Units, in.ExtraUnits...)
 	report := executor.OnTurnBoundary(ctx, TurnBoundaryEvent{
 		TurnID: in.TurnID,
 		Window: window,
 	})
-	return historyRefs, report.Violations
+	result := TurnBoundaryHookResult{
+		HistoryRefs:    historyRefs,
+		ExitViolations: report.Violations,
+		ExitReport:     report,
+	}
+	if in.ProjectDir != "" {
+		written, err := WriteRetains(in.ProjectDir, report, time.Now().UTC())
+		result.RetainsWritten = len(written)
+		if err != nil {
+			result.ExitViolations = append(result.ExitViolations,
+				"retain write failed: "+err.Error()+" (conclusion cross-session extension lost for remaining decisions)")
+		}
+	}
+	return result
 }
 
 func messageIndexID(index int) string {

@@ -74,8 +74,12 @@ type AssemblyReport struct {
 	// （TurnBoundaryHook）；本报告只承载注记结果，不改写历史文本。
 	HistoryRefs []HistoryRefEntry
 	// ExitViolations 是退场执行器拒绝的退场（§4.1 安全不变式不满足）+
-	// WARN 文本——进遥测（回执必查项）。v1 挂点 advisory，执法面不消费决策。
+	// retain 落盘失败（IMPL-D：结论跨会话延伸丢失必须可见）+ WARN 文本——
+	// 进遥测（回执必查项）。
 	ExitViolations []string
+	// RetainsWritten 是本轮经 IMPL-B 写入器实际落盘的 retain 条目数
+	// （L1-4-IMPL-D 生产消费切换；ProjectDir 缺席的 advisory 形态恒 0）。
+	RetainsWritten int
 }
 
 // HistoryRefEntry 是伴随索引的一行（§5.2 设计态字段签名）。ParseState 与
@@ -92,7 +96,8 @@ type HistoryRefEntry struct {
 // PromptStatsExtras 把三字段（设计 §3.1 遥测接线）映射进既有 promptStats
 // 口径：体积计量沿用 model_snapshot_bytes 同族字节口径，不编造 token 数。
 // L1-4-IMPL-C 附加退场面键（exit_violations）与伴随索引覆盖率键
-// （§5.2：Tax 递减度量=parsed 占比）——均加法式，不动既有三键。
+// （§5.2：Tax 递减度量=parsed 占比）；L1-4-IMPL-D 附加 retain 落盘键
+// （exit_retains_written）——均加法式，不动既有三键。
 func (r AssemblyReport) PromptStatsExtras() map[string]any {
 	breaks := make([]string, 0, len(r.Breaks))
 	for _, event := range r.Breaks {
@@ -105,12 +110,13 @@ func (r AssemblyReport) PromptStatsExtras() map[string]any {
 		}
 	}
 	return map[string]any{
-		"prefix_bytes":        r.PrefixBytes,
-		"dynamic_bytes":       r.DynamicBytes,
-		"breaks":              breaks,
-		"exit_violations":     len(r.ExitViolations),
-		"history_refs_total":  len(r.HistoryRefs),
-		"history_refs_parsed": parsed,
+		"prefix_bytes":         r.PrefixBytes,
+		"dynamic_bytes":        r.DynamicBytes,
+		"breaks":               breaks,
+		"exit_violations":      len(r.ExitViolations),
+		"exit_retains_written": r.RetainsWritten,
+		"history_refs_total":   len(r.HistoryRefs),
+		"history_refs_parsed":  parsed,
 	}
 }
 

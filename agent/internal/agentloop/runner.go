@@ -781,6 +781,12 @@ func (r *Runner) result(state *runState, status agentruntime.GoalStatus, stopRea
 	}
 	if status == agentruntime.StatusCompleted || status == agentruntime.StatusCancelled || status == agentruntime.StatusStopped || status == agentruntime.StatusFailed {
 		cont = nil
+		// L1-4-IMPL-D D1：run 终态观察结论跨会话延伸（§4.2 行 3）——观察账本
+		// 随 loop 消亡，结论行经退场执行器 retain 进工程 L4 账本；结果留痕
+		// trace（retain 计数/违规可见，失败不阻断 Result）。
+		if note := r.retainRunObservationConclusions(state); note != "" {
+			state.trace = append(state.trace, planner.TraceEvent{Kind: "exit_retain", Message: note})
+		}
 	}
 	currentStep := ""
 	if pending != nil {

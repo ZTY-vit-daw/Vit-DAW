@@ -5746,17 +5746,19 @@ func (s *Server) buildAssemblyWithReport(ctx context.Context, conversationID, us
 	if err != nil {
 		return assembly, report, err
 	}
-	// L1-4-IMPL-C 轮次边界挂点（advisory，零行为切换）：历史 refs 伴随
-	// 索引注记 + 退场不变式执法面；retain/ref 决策不消费、账本不落盘
-	// （生产消费切换归 IMPL-D）；Violations 经 PromptStatsExtras 进遥测。
-	// HistoryLimit 对齐既有截尾线 12（conversationHistory 调用点，§4.2 归
-	// 并表锚点不动——chat 轮无独立 TurnID，turn_end 判据在此面不触发）。
-	report.HistoryRefs, report.ExitViolations = contextruntime.RunTurnBoundaryHook(ctx, contextruntime.TurnBoundaryHookInput{
+	// L1-4-IMPL-C 轮次边界挂点（IMPL-D 切生产消费）：历史 refs 伴随索引
+	// 注记 + 退场不变式执法面 + retain 决策落盘（ProjectDir=chat 上下文工程
+	// 路径；无工程面时 advisory 形态）；Violations 经 PromptStatsExtras 进
+	// 遥测。HistoryLimit 对齐既有截尾线 12（conversationHistory 调用点，
+	// §4.2 归并表锚点不动——chat 轮无独立 TurnID，turn_end 判据在此面不触发）。
+	hook := contextruntime.RunTurnBoundaryHook(ctx, contextruntime.TurnBoundaryHookInput{
 		SessionKey:   "chat:" + conversationID,
 		TurnID:       conversationID,
 		History:      input.History,
 		HistoryLimit: 12,
+		ProjectDir:   projectPathFromChatContext(requestContext),
 	})
+	report.HistoryRefs, report.ExitViolations, report.RetainsWritten = hook.HistoryRefs, hook.ExitViolations, hook.RetainsWritten
 	return assembly, report, err
 }
 
