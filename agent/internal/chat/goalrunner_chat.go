@@ -484,6 +484,15 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 				chatContext = bindAudioClosureContext(chatContext, audioClosure)
 				return s.bindFreeStateContextToResponse(s.audioClosureResponse(conversationID, mode, audioClosure, res), chatContext), true
 			}
+			// FS-CAPABILITY-BLOCKED-SURFACE-1: a loop that settled at the
+			// capability_blocked boundary (admission gate refusal or a
+			// model-declared terminal boundary) must not deliver the model's
+			// prose as a successful done turn (RECON-1 R3: the prose promised an
+			// experiment that would never run). The gate refusal itself stays
+			// untouched law — this only surfaces it.
+			if response, boundaryBlocked := s.capabilityBlockedBoundaryResponse(conversationID, mode, res, loop); boundaryBlocked {
+				return s.bindFreeStateContextToResponse(response, chatContext), true
+			}
 			return s.bindFreeStateContextToResponse(s.chatResponseFromAgentLoopResult(conversationID, mode, res), chatContext), true
 		}
 		if awaitingExperiment {
@@ -1901,6 +1910,84 @@ func agentLoopBudgetForModeAfter(mode string, elapsed time.Duration) agentloop.B
 	}
 	return budget
 }
+
+// freeStateCapabilityBlockedStringList reads a receipt string list that may
+// arrive Go-native ([]string, as recorded) or JSON-decoded ([]any, via
+// freeStateLoopMap round trips).
+func freeStateCapabilityBlockedStringList(value any) []string {
+	switch rows := value.(type) {
+	case []string:
+		return append([]string(nil), rows...)
+	case []any:
+		out := make([]string, 0, len(rows))
+		for _, row := range rows {
+			if text, ok := row.(string); ok && strings.TrimSpace(text) != "" {
+				out = append(out, strings.TrimSpace(text))
+			}
+		}
+		return out
+	default:
+		return nil
+	}
+}
+
+// freeStateCapabilityBlockedBoundary reports the FS-NL-PROPOSAL-RECON-1 R3
+// leak shape: recordFreeStateDecision settled the loop at the
+// capability_blocked boundary — the server-side admission gate refused the
+// round's proposal (stop_reason free_state_admission_gate_failed, receipt
+// boundary admission_gate_failed), or the model declared a terminal capability
+// boundary — while the response router was still holding the model's prose
+// final answer. The admission receipt rides along for the response face. A
+// stale receipt from an earlier round must not hijack a live or parked turn,
+// so the loop itself must have settled at the boundary: the server-side
+// refusal maps to status capability_blocked, the model-terminal concession to
+// blocked; a parked 方案乙 adjudication keeps its awaiting_experiment
+// confirmation face and the judgment boundary keeps its settle face.
+func freeStateCapabilityBlockedBoundary(loop freeStateReasoningLoop) (map[string]any, bool) {
+	if loop.LatestDecision == nil ||
+		!strings.EqualFold(strings.TrimSpace(loop.LatestDecision.Status), agentloop.FreeStateCapabilityBlocked) {
+		return nil, false
+	}
+	switch strings.ToLower(strings.TrimSpace(loop.Status)) {
+	case "capability_blocked", "blocked":
+	default:
+		return nil, false
+	}
+	return cloneContext(loop.AdmissionReceipt), true
+}
+
+func freeStateCapabilityBlockedReply(receipt map[string]any, decision *agentloop.FreeStateDecision) string {
+	const boundaryTail = "任务在能力边界停止：没有执行任何实验或修改，也不会自动重试。"
+	if failed := freeStateCapabilityBlockedStringList(receipt["failed_gate_ids"]); len(failed) > 0 {
+		return "本次有界改进提案未通过自由态准入门（" + strings.Join(failed, "、") + "），" + boundaryTail
+	}
+	if boundary := strings.TrimSpace(decision.Summary); boundary != "" {
+		return "自由态推理申报了能力边界（" + boundary + "）。" + boundaryTail
+	}
+	return "自由态推理在能力边界停止。" + boundaryTail
+}
+
+// capabilityBlockedBoundaryResponse replaces the prose final answer the plain
+// branch would deliver when the loop has settled at the capability_blocked
+// boundary. The G1-G8 verdict itself is correct enforcement and stays
+// untouched: this is a surface fix that stops a refusal from being wrapped in
+// a success-shaped answer — no retry is started and no gate is bypassed.
+func (s *Server) capabilityBlockedBoundaryResponse(conversationID, mode string, res agentloop.Result, loop freeStateReasoningLoop) (ChatResponse, bool) {
+	receipt, blocked := freeStateCapabilityBlockedBoundary(loop)
+	if !blocked {
+		return ChatResponse{}, false
+	}
+	resp := s.chatResponseFromAgentLoopResult(conversationID, mode, res)
+	resp.StopReason = "capability_blocked"
+	resp.Reply = freeStateCapabilityBlockedReply(receipt, loop.LatestDecision)
+	resp.WorkflowData = mergeContext(resp.WorkflowData, map[string]any{
+		"capability_blocked":           true,
+		"mutation_performed":           false,
+		"free_state_admission_receipt": receipt,
+	})
+	return resp, true
+}
+
 func (s *Server) chatResponseFromAgentLoopResult(conversationID, mode string, res agentloop.Result) ChatResponse {
 	res = s.applyLegacyCapabilityCreationGate(res)
 	// The refused-settle race window: the round's settle report was refused
