@@ -49,6 +49,7 @@ import (
 	agentruntime "vit-daw-agent/internal/runtime"
 	"vit-daw-agent/internal/shadow"
 	"vit-daw-agent/internal/tools"
+	"vit-daw-agent/rules/ruleset"
 )
 
 type Server struct {
@@ -5788,7 +5789,34 @@ func (s *Server) assembleChatInput(ctx context.Context, conversationID, userText
 	}, contextruntime.Options{})
 	_ = contextruntime.AppendDefault(snapshot)
 	modeInstruction := agentModeSystemInstruction(agentModeFromContext(requestContext))
-	system := fmt.Sprintf(`You are Ask Vit, the DAW assistant inside Vit-DAW.
+	system := chatSystemFromRuleset(modeInstruction, catalog)
+
+	// §3.3 治理：稳定 system 只装 Stable Section；快照（Runtime/Stable=false）
+	// 物理迁出 system 消息边界，进 user 节尾部（chat 腿本就走 user 节，
+	// OQ-5 降级路径无新增依赖）。
+	userSections := []promptruntime.Section{
+		promptruntime.TextSection(promptruntime.SectionCurrentUser, "chat_current_user", "", userText, false),
+		promptruntime.TextSection(promptruntime.SectionRuntime, "chat_context_snapshot", "Context snapshot JSON", snapshot.JSON(), false),
+	}
+	if agentloop.ReadOnlyObservationIntent(userText) {
+		// OPT-IMPL-2：只读观察问答轮的回复形状指令——动态段，不碰 IMPL-B
+		// 字节锁定的 ruleset 骨架面；presentation 摘要层从该首段整段提取。
+		userSections = append(userSections, promptruntime.TextSection(
+			promptruntime.SectionRuntime, "observe_reply_shape", "Observe reply shape", observeReplyShapeInstruction, false))
+	}
+	return promptruntime.AssemblyInput{
+		SystemSections: []promptruntime.Section{
+			promptruntime.TextSection(promptruntime.SectionStatic, "chat_system", "", system, true),
+		},
+		UserSections: userSections,
+	}
+}
+
+// legacyChatSystemTemplate 是 IMPL-B 迁移前的生产 system 模板（L1-4-IMPL-D
+// 权威翻转后降为 fail-open 回落：ruleset embed 装载失败时保服务可用；装载
+// 正常时生产面走 embed 渲染，本模板与 embed 的字节一致性由
+// TestChatSystemFallbackMatchesEmbedMinusPostMigration 持续锁定）。
+const legacyChatSystemTemplate = `You are Ask Vit, the DAW assistant inside Vit-DAW.
 Return ONLY JSON with this shape:
 {"reply":"short user-facing answer","commands":[{"cmd":"get_project_state"}]}
 You may also use tool-form commands when it is clearer:
@@ -5845,27 +5873,17 @@ Mode instruction:
 %s
 
 Available DAW command catalog:
-%s`, modeInstruction, catalog)
+%s`
 
-	// §3.3 治理：稳定 system 只装 Stable Section；快照（Runtime/Stable=false）
-	// 物理迁出 system 消息边界，进 user 节尾部（chat 腿本就走 user 节，
-	// OQ-5 降级路径无新增依赖）。
-	userSections := []promptruntime.Section{
-		promptruntime.TextSection(promptruntime.SectionCurrentUser, "chat_current_user", "", userText, false),
-		promptruntime.TextSection(promptruntime.SectionRuntime, "chat_context_snapshot", "Context snapshot JSON", snapshot.JSON(), false),
+// chatSystemFromRuleset 渲染 chat L1 system——权威=ruleset embed（L1-4-IMPL-D
+// D2 翻转：含 shared.discipline.evidence_refs 第八段；mode/command catalog 经
+// wrapper 槽填充）。embed 装载失败（编译期资源，理论不可达）回落 legacy 模板。
+func chatSystemFromRuleset(modeInstruction, commandCatalog string) string {
+	if result := ruleset.Load(); result.Err == nil && result.Manifest != nil {
+		rules, catalogLayer := result.Manifest.RenderChatLayers(modeInstruction, commandCatalog)
+		return strings.TrimSpace(rules + "\n\n" + catalogLayer)
 	}
-	if agentloop.ReadOnlyObservationIntent(userText) {
-		// OPT-IMPL-2：只读观察问答轮的回复形状指令——动态段，不碰 IMPL-B
-		// 字节锁定的 ruleset 骨架面；presentation 摘要层从该首段整段提取。
-		userSections = append(userSections, promptruntime.TextSection(
-			promptruntime.SectionRuntime, "observe_reply_shape", "Observe reply shape", observeReplyShapeInstruction, false))
-	}
-	return promptruntime.AssemblyInput{
-		SystemSections: []promptruntime.Section{
-			promptruntime.TextSection(promptruntime.SectionStatic, "chat_system", "", system, true),
-		},
-		UserSections: userSections,
-	}
+	return fmt.Sprintf(legacyChatSystemTemplate, modeInstruction, commandCatalog)
 }
 
 // observeReplyShapeInstruction instructs the model to open read-only

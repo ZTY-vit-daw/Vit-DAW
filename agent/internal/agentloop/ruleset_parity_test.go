@@ -1,11 +1,17 @@
 package agentloop
 
-// L1-4-IMPL-B 逐字迁移对照（中性族面）：嵌入 ruleset manifest 渲染的
-// 固定骨架 + 目录尾段，与 ccb_model_prompt.go 既有
-// messageLoopNeutralFamilySystemSkeleton 逐字节一致（双源对照锁定，漂移
-// 当场红——"逐字迁移零改写"的机械证明；生产常量保持权威直至 IMPL-D）。
+// L1-4-IMPL-D 权威翻转后的 parity（中性族面）：生产骨架直接经 ruleset
+// embed 渲染（neutralFamilySkeletonFromRuleset），legacy 骨架模板降为
+// fail-open 回落。两个证明面：
+//  1. TestNeutralFamilySkeletonMatchesRulesetEmbedByteForByte——生产骨架 ==
+//     embed 全量渲染（含 IMPL-C 新增段）。回退到 legacy 模板即红——
+//     「生产面确实从 embed 装配」的 canary。
+//  2. TestNeutralFamilyFallbackMatchesEmbedMinusPostMigration——fail-open
+//     回落模板 == embed 渲染减 PostMigrationSectionIDs（IMPL-B 迁移段
+//     零改写的持续锁定）。
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -13,12 +19,13 @@ import (
 )
 
 // TestNeutralFamilySkeletonMatchesRulesetEmbedByteForByte：同 catalog/
-// allowed 输入下，embed 渲染（skeleton + "\n\n" + catalog）== 生产骨架字节。
+// allowed 输入下，生产骨架 == embed 全量渲染（含 shared.discipline.
+// evidence_refs）。
 func TestNeutralFamilySkeletonMatchesRulesetEmbedByteForByte(t *testing.T) {
 	state := neutralFamilyTestState(nil)
 	state.input.AllowedTools = []string{"ccb.observation_catalog", "ccb.observation_request"}
-	legacy := messageLoopNeutralFamilySystemSkeleton(state)
-	if legacy == "" {
+	produced := messageLoopNeutralFamilySystemSkeleton(state)
+	if produced == "" {
 		t.Fatalf("skeleton rendered empty")
 	}
 
@@ -28,29 +35,60 @@ func TestNeutralFamilySkeletonMatchesRulesetEmbedByteForByte(t *testing.T) {
 	if result.Err != nil {
 		t.Fatalf("ruleset load: %v", result.Err)
 	}
-	// L1-4-IMPL-C：embed 面新增 shared.discipline.evidence_refs（资源新增，
-	// 既有七段字节不动）。本对照锁定的证明面=IMPL-B 迁移段集合与 legacy
-	// 生产骨架逐字节一致——迁移后新增段排除出比对面，其正确性由 T-B7
-	// （carriers 装配面）独立断言。
+	rules, catalogLayer := result.Manifest.RenderNeutralFamilyLayers(catalog, allowed)
+	want := strings.TrimSpace(rules + "\n\n" + catalogLayer)
+
+	if strings.TrimSpace(produced) != want {
+		at := 0
+		limit := len(produced)
+		if len(want) < limit {
+			limit = len(want)
+		}
+		for index := 0; index < limit; index++ {
+			if produced[index] != want[index] {
+				at = index
+				break
+			}
+		}
+		t.Fatalf("neutral skeleton diverges from ruleset embed near byte %d (len %d vs %d)\nproduced: %q\nembed:    %q",
+			at, len(produced), len(want), snippet(produced, at), snippet(want, at))
+	}
+	// 生产面必须携带 IMPL-C 纪律条款段（翻转的语义增量）——锚句=段首行。
+	if !strings.Contains(produced, "Evidence refs and re-pull discipline:") {
+		t.Fatalf("flipped neutral skeleton lacks discipline section anchor sentence")
+	}
+}
+
+// TestNeutralFamilyFallbackMatchesEmbedMinusPostMigration：fail-open 回落
+// 模板与 embed 渲染减 PostMigrationSectionIDs 逐字节一致。
+func TestNeutralFamilyFallbackMatchesEmbedMinusPostMigration(t *testing.T) {
+	catalog := "observation-catalog-fixture"
+	allowed := "ccb.observation_catalog, ccb.observation_request"
+	fallback := fmt.Sprintf(legacyNeutralFamilySkeletonTemplate, catalog, allowed)
+
+	result := ruleset.Load()
+	if result.Err != nil {
+		t.Fatalf("ruleset load: %v", result.Err)
+	}
 	_, catalogLayer := result.Manifest.RenderNeutralFamilyLayers(catalog, allowed)
 	rules := result.Manifest.RenderFamilyJoined(ruleset.FamilyNeutralFamily,
 		append([]string{ruleset.NeutralFamilyCatalogWrapperSectionID}, ruleset.PostMigrationSectionIDs()...)...)
 	want := strings.TrimSpace(rules + "\n\n" + catalogLayer)
 
-	if strings.TrimSpace(legacy) != want {
+	if strings.TrimSpace(fallback) != want {
 		at := 0
-		limit := len(legacy)
+		limit := len(fallback)
 		if len(want) < limit {
 			limit = len(want)
 		}
 		for index := 0; index < limit; index++ {
-			if legacy[index] != want[index] {
+			if fallback[index] != want[index] {
 				at = index
 				break
 			}
 		}
-		t.Fatalf("neutral skeleton diverges from ruleset embed near byte %d (len %d vs %d)\nlegacy: %q\nembed:  %q",
-			at, len(legacy), len(want), snippet(legacy, at), snippet(want, at))
+		t.Fatalf("fallback template diverges from embed (minus post-migration) near byte %d (len %d vs %d)\nlegacy: %q\nembed:  %q",
+			at, len(fallback), len(want), snippet(fallback, at), snippet(want, at))
 	}
 }
 
