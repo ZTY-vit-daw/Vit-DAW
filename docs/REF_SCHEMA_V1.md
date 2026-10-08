@@ -93,7 +93,7 @@ ruling #2/#3 收紧（定版维持）：**window 与 hash 两段禁止省略**�
 - **kind 承载"对象族"**：观察产物以投影类型为 kind（§4 两表）；问题/决策/变更等新对象族未来以新 kind 注册（命名随对象系统落地定，charset `[a-z0-9._]` 已容纳，无需改文法）。
 - **memory 预留**（D14）：`memory.entry`（原始记忆流）/ `memory.distilled`（蒸馏文档）为预留命名空间——本定版只占名，不实现；收尾段拼装时注册即用，反序零返工（路线图排程依据）。
 - **地址性对象不占 kind**：轨道/段落/总线/频段是**坐标**不是对象族——归 scope_kind 词汇。
-- **scope_kind 词汇表 v1**（开放集+登记义务：新增须随注册表注释登记）：现役 `track` / `project` / `feature` / `band` / `pair`；预留 `bus` / `segment` / `send_path` / `sidechain`（D2 拓扑轴细化时启用）。
+- **scope_kind 词汇表 v1**（开放集+登记义务：新增须随注册表注释登记）：现役 `track` / `project` / `feature` / `band` / `pair`；现役数据键族（mom 域，scope 承载数据键——REFSCHEMA-M1/M2 落地，登记见 `agent/internal/agentprotocol/refschema.go` 注释）`mix.read` / `acoustic_package_status` / `observation`；预留 `bus` / `segment` / `send_path` / `sidechain`（D2 拓扑轴细化时启用）。
 - **语义角色零判定**（D11 红线）：scope_value 用各域原生 ID；"像 hook""是低音轨"类解释永不进 ref。
 
 ## 7. 内容寻址与 CAS 对接约定

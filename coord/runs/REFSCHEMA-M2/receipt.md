@@ -109,3 +109,30 @@ agent/internal/mom/evidence_test.go          | (新增 213 行)
 ## 9. 验收建议
 
 实现面、legacy 兼容面、测试面均按卡面完成且绿；"全量 0 FAIL"一项因卡外预算门饱和不可在本卡文件域内达成（§7.1 证据）。请决策侧就 mixboard 预算门裁定扩域或另开卡后再收 M2；若裁定调预算，本分支可当场补一个 mixboard_test 一行改动（预算上调或改为泄漏断言主导）+ 复跑全量后交付。
+
+## 10. 补证返工段（2026-10-08 晚窗决策侧扩域授权执行）
+
+决策侧首轮裁定（卡面「首轮回执裁定」节）：实现面/兼容面/测试面验收通过，全量门因卡外 mixboard 预算门饱和未达，§11 上交成立；授权扩域两行补证。本段记录授权执行结果。
+
+### 10.1 授权改动（2 文件，+5/-2，无第三文件）
+
+1. `agent/internal/mixboard/mixboard_test.go:596` 预算 50000→70000，附行内注释注明调值依据：体积上限是粗护栏、原始波形泄漏防护由 forbidden-string 断言独立承载（调上限不放松泄漏防护）；70000=REFSCHEMA-M2 后实测 58399 + ~20% 余量；ref 变长为 G1 身份族语义结构性必然（snapshot 段必携 observation_id）。
+2. `docs/REF_SCHEMA_V1.md` §6 scope_kind 词汇表 v1 补三个现役**数据键族**：`mix.read` / `acoustic_package_status` / `observation`（mom 域，scope 承载数据键，REFSCHEMA-M1/M2 落地；与 refschema.go 注册表注释登记同步）。**§5 遗留项（V1 文档同步）就此闭合**。
+
+### 10.2 门禁复跑（授权后全量两轮）
+
+- `go build` 未受影响（改动仅测试文件与文档，无生产代码变更）。
+- 全量 `go test ./... -count=1`：**第一轮 exit 0（无 FAIL 行，90 包 ok）；第二轮带退出码记录复跑 `GO_TEST_EXIT=0`、`grep -c "^ok "=90`、`grep FAIL` 零行**。首轮回执 §7 的 mixboard 预算门 FAIL 已消，**全量 0 FAIL 达成**。
+- chat TempDir 清理竞态（§7.2 环境中断型）：两轮全量均未再现，无隔离复跑需求，维持"首次观察、不判 known flaky"记录。
+- gofmt：blob 级净。mixboard_test.go 工作树 `gofmt -l` 报警经 §7 同款甄别（LF 化后 `gofmt -l` 零输出）确认为 autocrlf 行尾噪声。
+
+### 10.3 diff --stat（补证段）
+
+```
+agent/internal/mixboard/mixboard_test.go | 5 ++++-
+docs/REF_SCHEMA_V1.md                    | 2 +-
+```
+
+### 10.4 交付状态
+
+补证授权两项 + 全量门复跑全部完成，M2 卡面验收标准（含"全量 0 FAIL"）在本分支全部达成，交决策侧终审。

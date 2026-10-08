@@ -593,7 +593,10 @@ func TestFrequencyStereoProjectionOmitsRawWaveformTimeSegments(t *testing.T) {
 	if mapValue(items["observation.mom_projection"])["mom_version"] != mom.Version {
 		t.Fatalf("mix.read missing MOM projection: %#v", items)
 	}
-	if len(data) > 50000 {
+	// 体积上限只是粗护栏：原始波形泄漏防护由下方 forbidden-string 断言独立承载，
+	// 调上限不放松泄漏防护。70000 = REFSCHEMA-M2 迁 vit://mom 后实测 58399 + ~20% 余量；
+	// ref 变长是 G1 身份族语义的结构性必然（snapshot 段必携 observation_id），非载荷膨胀。
+	if len(data) > 70000 {
 		t.Fatalf("projection payload too large: %d bytes", len(data))
 	}
 }
