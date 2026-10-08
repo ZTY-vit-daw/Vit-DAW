@@ -18,6 +18,6 @@
 - 约束：断言只落服务端/事件拥有面；泊位自起自拆申报（领取前 netstat 核 5555/7878/5556）；与其它真栈烟测错窗；**capability_blocked 分类断言只在该形自然触发时执行（不为凑分类人为构造拒绝）**。
 - 验收标准：判定腿真栈 exit 0（≥1 挂卡轮）+盲听腿过+run 工件（分类分记）；决策侧复跑判定腿 1 轮。
 - 停止条件：①N=3 零挂卡（分类清单+轮工件上交，J3 实况挂卡率 1/4——若 3 轮 miss 属概率实况非缺陷，上交后决策侧裁加轮或改直驱端点）；②判定断言需 agent 侧新观测端点→锚点清单上交。
-- 领取：（时间 / origin/main hash / 分支名）
+- 领取：2026-10-08 晚窗 PC 执行侧（GLM-5.3 flash，ZCode 会话） / origin/main=509e37f9 / port/j4-rev（独立 worktree D:/Vit_DAW_wt_j4rev；卡状态移动待决策侧代行）
 - 回执：（commit hash / N 轮分类结果 / 判定腿+盲听腿断言面 / run 工件 / 端测边界声明）
-- 验收：（裁定文件 / 验收 commit）
+- 验收：**pass（2026-10-08 晚窗决策侧，rulings/2026-10-08-JOURNEY-4-REV-pass.md）**——diff 结构核验（6 hunk 既有段零触碰）+执行侧四轮工件亲读（C1 概率 miss 如实/C2 judgment_ok/B1 真实失败驱动加固/B2 judgment_ok_blind）+决策侧复跑 exit 0 直采且挂座走通全判定链（run 20261008_201949）；cherry-pick 16f7a762→main c937e27e；挂账三项随裁定（BOM 配置小修卡候选/D1 渲染 before-after 观察项归 B12 域/capability_blocked 真栈样本累计挂账）
