@@ -132,6 +132,20 @@ type Server struct {
 	// the workspace identity changes: the mode is per-workspace and never
 	// leaks across projects. Not persisted: a restart restores disk authority.
 	authorityModeExplicit bool
+	// AUTH-RESTORE-LOGSPAM-1 dedupe bookkeeping: the outcome behind the last
+	// surfaced authority restore line. Not persisted; access is under s.mu
+	// (every restoreProjectAgentRuntimeStateLocked caller holds it).
+	authorityRestoreSeen bool
+	authorityRestoreLast authorityRestoreLogState
+}
+
+// authorityRestoreLogState captures the values an authority restore line was
+// last surfaced with (AUTH-RESTORE-LOGSPAM-1), compared as a unit to detect
+// a first restore, a latch branch flip, or a mode/disk value change.
+type authorityRestoreLogState struct {
+	explicit bool
+	mode     string
+	disk     string
 }
 
 type PendingPlan struct {
@@ -7295,16 +7309,38 @@ func (s *Server) restoreProjectAgentRuntimeStateLocked(state projectAgentRuntime
 	// persist failure or a not-yet-activated workspace keeps its in-memory
 	// mode here, and the next persist writes it to disk.
 	restoredAuthority := normalizeAuthorityModeOrDefault(state.AuthorityMode)
+	// AUTH-RESTORE-LOGSPAM-1: the scheduler reload path replays this snapshot
+	// every tick (continuationSchedulerTick = 250ms), so an unconditional INFO
+	// here flooded the log in steady state (M1-RETEST evidence: 500 identical
+	// restore lines in 2 minutes). Surface the line only when the restore
+	// outcome changed since the last surfaced one — first restore, a latch
+	// branch flip, or a mode/disk value change — and stay silent on identical
+	// repeats; logx writes every level to the log file, so a Debug demotion
+	// would not stop the line growth. Latch semantics below are unchanged.
+	restoreOutcome := authorityRestoreLogState{
+		explicit: s.authorityModeExplicit,
+		mode:     normalizeAuthorityModeOrDefault(s.authorityMode),
+		disk:     restoredAuthority,
+	}
+	if !s.authorityModeExplicit {
+		// The adopted branch rewrites the mode below; judge the outcome by
+		// the post-restore effective mode so an unchanged disk replay is not
+		// mistaken for a change caused by the previous restore itself.
+		restoreOutcome.mode = restoredAuthority
+	}
+	restoreChanged := !s.authorityRestoreSeen || s.authorityRestoreLast != restoreOutcome
 	if s.authorityModeExplicit {
-		if s.logger != nil {
-			s.logger.Info("[authority] restore kept explicit mode=%s disk=%s", normalizeAuthorityModeOrDefault(s.authorityMode), restoredAuthority)
+		if restoreChanged && s.logger != nil {
+			s.logger.Info("[authority] restore kept explicit mode=%s disk=%s", restoreOutcome.mode, restoreOutcome.disk)
 		}
 	} else {
-		if s.logger != nil {
+		if restoreChanged && s.logger != nil {
 			s.logger.Info("[authority] restore adopted disk mode=%s", restoredAuthority)
 		}
 		s.authorityMode = restoredAuthority
 	}
+	s.authorityRestoreSeen = true
+	s.authorityRestoreLast = restoreOutcome
 	if s.audioClosures == nil {
 		s.audioClosures = audioclosure.NewMemoryStore()
 	}

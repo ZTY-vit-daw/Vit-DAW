@@ -8,6 +8,6 @@
 - 文件域：agent 侧 authority restore 日志点（chat/server.go authority 闩一带，实锚后申报，≤1 文件+测试如需）。
 - 验收标准：go 相关包全绿+全量 0 FAIL+手验轮询窗口日志行数从每秒 3 条降为 0（稳定态）。
 - 停止条件：取证发现刷屏另有来源（非轮询触发）→ 如实申报。
-- 领取：（时间 / origin/main hash / 分支名）
-- 回执：（commit hash / 锚点 / 降噪前后行数对比）
+- 领取：2026-10-08 / origin/main `9e30ac5f3da8a90f51b420b66c7a66f0b8cf2a9c` / `port/auth-restore-logspam-1`（独立 worktree `D:/Vit_DAW_wt_authrestore`，领取时干净）
+- 回执：`coord/runs/AUTH-RESTORE-LOGSPAM-1/receipt.md` 随分支提交（commit hash 见分支提交记录）；锚点=chat/server.go `restoreProjectAgentRuntimeStateLocked` authority 块（原 ：7297-7307）+ Server 结构体 dedupe 记账两字段；降噪对比=稳定态 500 行/2 分钟 → 0 行（重复 restore 整行跳过，仅首个/变化各 1 行 INFO；来源取证=scheduler 250ms tick 重载而非前端 GET，已申报）
 - 验收：（裁定文件 / 验收 commit）
