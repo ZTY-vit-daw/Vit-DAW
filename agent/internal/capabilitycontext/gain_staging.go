@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"vit-daw-agent/internal/agentprotocol"
 	"vit-daw-agent/internal/levelsafety"
 	"vit-daw-agent/internal/rlm"
 )
@@ -1306,6 +1307,32 @@ func currentSelection(candidates ...map[string]any) map[string]any {
 	return nil
 }
 
+// mixReadRefs renders the mix.read 数据键族 refs in the REFSCHEMA-M2X-1
+// vit://mom form（M2 mom 包消费面同型）：scope=mix.read:<数据键>，snapshot
+// 段承载 observation_id（M1/M2 身份族语义），window 恒 t=all，hash 显式 "-"。
+// 无观察身份时不发——vit://mom 文法不允许伪造 snapshot（宁缺勿假）。
+func mixReadRefs(observationID string, dataKeys ...string) []string {
+	out := make([]string, 0, len(dataKeys))
+	if strings.TrimSpace(observationID) == "" {
+		return out
+	}
+	for _, key := range dataKeys {
+		ref, err := agentprotocol.FormatRef(agentprotocol.Ref{
+			Kind:       "mom",
+			ScopeKind:  "mix.read",
+			ScopeValue: key,
+			Window:     &agentprotocol.TimeWindow{AllTime: true},
+			Snapshot:   observationID,
+			Hash:       "-",
+		})
+		if err != nil {
+			continue
+		}
+		out = append(out, ref)
+	}
+	return out
+}
+
 func gainStagingEvidenceRefs(projectState, mixObservation, mixProject map[string]any) []string {
 	refs := []string{}
 	if len(projectState) > 0 {
@@ -1318,7 +1345,7 @@ func gainStagingEvidenceRefs(projectState, mixObservation, mixProject map[string
 		refs = addUnique(refs, "mix.observe")
 	}
 	if len(mixProject) > 0 {
-		refs = addUnique(refs, "mix.read:project.tracks.summary", "mix.read:project.risks.headroom", "mix.read:project.rankings.peak")
+		refs = addUnique(refs, mixReadRefs(observationID, "project.tracks.summary", "project.risks.headroom", "project.rankings.peak")...)
 	}
 	return refs
 }
