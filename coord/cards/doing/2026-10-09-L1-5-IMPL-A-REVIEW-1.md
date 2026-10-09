@@ -47,6 +47,6 @@ gofmt -l internal/pullharness
 - 回执与报告按既有分支协议提交，回填实际 commit、基线和命令退出码；本卡状态按共享 main 同步，报告分支交主管核查。禁止在 main 合入被审实现或出最终 ruling。
 - 端测边界：本卡纯审查/复跑，无生产变更，不新增烟测豁免；原 A 的零生产消费边界需实证，真实 G3 收口继续归后续卡。
 
-- 领取：（时间 / main 基线 / owner 模型+机器+具体会话 / 分支 / worktree / 领取提交）
+- 领取：2026-10-09 13:38 Asia/Shanghai / origin/main=a25d3b9d71f38eb8ffbec7019e5f986ac9871b83 / owner=Codex GPT-6 / Windows PC ZTY / 会话 01a11f26-bbcd-7d71-8a9d-909d10107633（用户明确指定执行本复核卡）/ 复验分支 port/l1-5-impl-a-review-1 / 独立 worktree C:/Users/timoz/.codex/worktrees/l1-5-a-review-coord/Vit_DAW / 协调分支 codex/l1-5-impl-a-review-1-coord；领取提交见本卡移动与 owner 同批提交。领取基线 HEAD=a25d3b9d，status --short 与 diff --stat 均为空；主树已有改动未带入。本次 fetch 确认 A 无最终 ruling、origin/port/l1-5-impl-a=de1d876c8b8e3e453d69b138e22bf7425df4f558；doing/blocked 无在飞卡。
 - 回执：（报告分支与 commit / REPORT.md 路径 / 命令退出码 / 建议结论）
 - 验收：（主管裁定 / 本复核卡验收 commit；与 A 原卡最终裁定分开）
