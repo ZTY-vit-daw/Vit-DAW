@@ -81,6 +81,11 @@ type fakeSession struct {
 	interpretInputs []string
 	exit            *fakeExit
 	protocolPrompt  string
+	// G3-ATTRIB-2 双段供给面：固定值或按 snapshot 序号渲染（1 基）。
+	protocolSkeleton   string
+	protocolDirectives string
+	skeletonFor        func(snapshot int) string
+	directivesFor      func(snapshot int) string
 }
 
 func (f *fakeSession) Snapshot(context.Context) (Frame, error) {
@@ -92,6 +97,20 @@ func (f *fakeSession) Snapshot(context.Context) (Frame, error) {
 	}
 	if f.protocolPrompt != "" {
 		contextClone[FrameContextProtocolPrompt] = f.protocolPrompt
+	}
+	skeleton := f.protocolSkeleton
+	if f.skeletonFor != nil {
+		skeleton = f.skeletonFor(f.snapshotCalls)
+	}
+	if strings.TrimSpace(skeleton) != "" {
+		contextClone[FrameContextProtocolSkeleton] = skeleton
+	}
+	directives := f.protocolDirectives
+	if f.directivesFor != nil {
+		directives = f.directivesFor(f.snapshotCalls)
+	}
+	if strings.TrimSpace(directives) != "" {
+		contextClone[FrameContextProtocolDirectives] = directives
 	}
 	return Frame{
 		Revision:         uint64(f.snapshotCalls),

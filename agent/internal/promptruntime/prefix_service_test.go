@@ -295,3 +295,143 @@ func llmMessageHistory(turns int) []llm.Message {
 	}
 	return out
 }
+
+// G3-ATTRIB-2 P1 计量供给（§3.4 P1 的机械判定面）：PrefixContentHash 对
+// 实际稳定段字节、PrefixStartsWithPrevious 给出字节级 starts-with 判定，
+// 使"prefix_bytes 跨 turn starts-with 恒等"不经整装配指纹即可机械判定
+//（整装配 PromptFingerprint 含动态区，跨轮恒等天然不成立——归因卡②a）。
+
+// TestPrefixServiceP1SupplyEventlessTurns：无语义事件相邻轮——starts-with
+// 判定 true、前缀内容哈希恒等、无前缀断裂；首轮无可比面（nil）。
+func TestPrefixServiceP1SupplyEventlessTurns(t *testing.T) {
+	service := NewPrefixService()
+	base := AssemblyInput{
+		SystemSections: []Section{stableSection("rules", "fixed rules")},
+		UserSections:   []Section{dynamicUserSection("dynamic", `{"state":"turn1"}`)},
+	}
+	_, first, err := service.Assemble(context.Background(), PrefixRequest{AssemblyInput: base, SessionKey: "p1-supply"})
+	if err != nil {
+		t.Fatalf("first assemble: %v", err)
+	}
+	if first.PrefixStartsWithPrevious != nil {
+		t.Fatalf("first turn must have no previous prefix (nil), got %+v", first.PrefixStartsWithPrevious)
+	}
+	if first.PrefixContentHash == "" {
+		t.Fatal("PrefixContentHash must be supplied on every assembly")
+	}
+	_, second, err := service.Assemble(context.Background(), PrefixRequest{
+		AssemblyInput: AssemblyInput{
+			SystemSections: []Section{stableSection("rules", "fixed rules")},
+			History:        llmMessageHistory(1),
+			UserSections:   []Section{dynamicUserSection("dynamic", `{"state":"turn2"}`)},
+		},
+		SessionKey: "p1-supply",
+	})
+	if err != nil {
+		t.Fatalf("second assemble: %v", err)
+	}
+	if second.PrefixStartsWithPrevious == nil || !*second.PrefixStartsWithPrevious {
+		t.Fatalf("P1 mechanical judgment must be true on an eventless turn, got %+v", second.PrefixStartsWithPrevious)
+	}
+	if second.PrefixContentHash != first.PrefixContentHash {
+		t.Fatalf("prefix content hash drifted on an eventless turn: %s -> %s", first.PrefixContentHash, second.PrefixContentHash)
+	}
+	if got := prefixBreaks(second); len(got) != 0 {
+		t.Fatalf("eventless turn reported prefix breaks: %+v", got)
+	}
+}
+
+// TestPrefixServiceP1SupplyAppendOnlyGrowth：尾部追加（新稳定层挂尾/层内
+// 追加）是 P1 下唯一合法增长——starts-with 判定保持 true。
+func TestPrefixServiceP1SupplyAppendOnlyGrowth(t *testing.T) {
+	service := NewPrefixService()
+	_, first, err := service.Assemble(context.Background(), PrefixRequest{
+		AssemblyInput: AssemblyInput{SystemSections: []Section{stableSection("rules", "rules head")}},
+		SessionKey:    "p1-append",
+	})
+	if err != nil {
+		t.Fatalf("first assemble: %v", err)
+	}
+	_, grown, err := service.Assemble(context.Background(), PrefixRequest{
+		AssemblyInput: AssemblyInput{SystemSections: []Section{
+			stableSection("rules", "rules head"),
+			stableSection("ledger", "entry 41 appended"),
+		}},
+		SessionKey: "p1-append",
+	})
+	if err != nil {
+		t.Fatalf("second assemble: %v", err)
+	}
+	if grown.PrefixStartsWithPrevious == nil || !*grown.PrefixStartsWithPrevious {
+		t.Fatalf("append-only growth must keep P1 true, got %+v", grown.PrefixStartsWithPrevious)
+	}
+	if grown.PrefixContentHash == first.PrefixContentHash {
+		t.Fatal("appended layer must change the prefix content hash")
+	}
+}
+
+// TestPrefixServiceP1SupplyPerturbationDetected（负例）：人为扰动稳定段
+// （非尾部追加的字节变化）——starts-with 判定 false 且断裂归因非空
+// （PrefixBreaking），机械判定面不漏报。
+func TestPrefixServiceP1SupplyPerturbationDetected(t *testing.T) {
+	service := NewPrefixService()
+	_, first, err := service.Assemble(context.Background(), PrefixRequest{
+		AssemblyInput: AssemblyInput{SystemSections: []Section{stableSection("rules", "stable skeleton bytes"), stableSection("catalog", "catalog rows")}},
+		SessionKey:    "p1-perturb",
+	})
+	if err != nil {
+		t.Fatalf("first assemble: %v", err)
+	}
+	_, perturbed, err := service.Assemble(context.Background(), PrefixRequest{
+		AssemblyInput: AssemblyInput{SystemSections: []Section{
+			stableSection("rules", "stable skeleton BYTES"), // 中部扰动（非追加）
+			stableSection("catalog", "catalog rows"),
+		}},
+		SessionKey: "p1-perturb",
+	})
+	if err != nil {
+		t.Fatalf("second assemble: %v", err)
+	}
+	if perturbed.PrefixStartsWithPrevious == nil || *perturbed.PrefixStartsWithPrevious {
+		t.Fatalf("mid-prefix perturbation must be detected as non-starts-with, got %+v", perturbed.PrefixStartsWithPrevious)
+	}
+	if perturbed.PrefixContentHash == first.PrefixContentHash {
+		t.Fatal("perturbation must change the prefix content hash")
+	}
+	if got := prefixBreaks(perturbed); len(got) == 0 {
+		t.Fatal("perturbation must surface a prefix-breaking attribution (P2 completeness)")
+	}
+}
+
+// TestPrefixServiceP1SupplyTelemetryKeys：P1 供给进 PromptStatsExtras
+// （加法式键），无上一轮时 starts-with 键缺席（不可比不造值）。
+func TestPrefixServiceP1SupplyTelemetryKeys(t *testing.T) {
+	service := NewPrefixService()
+	_, first, err := service.Assemble(context.Background(), PrefixRequest{
+		AssemblyInput: AssemblyInput{SystemSections: []Section{stableSection("rules", "fixed")}},
+		SessionKey:    "p1-telemetry",
+	})
+	if err != nil {
+		t.Fatalf("first assemble: %v", err)
+	}
+	extras := first.PromptStatsExtras()
+	if extras["prefix_content_hash"] != first.PrefixContentHash {
+		t.Fatalf("prefix_content_hash missing from extras: %+v", extras)
+	}
+	if extras["prefix_fingerprint"] != first.PrefixFingerprint {
+		t.Fatalf("prefix_fingerprint missing from extras: %+v", extras)
+	}
+	if _, present := extras["prefix_starts_with_previous"]; present {
+		t.Fatalf("first turn must omit prefix_starts_with_previous (no previous), got %+v", extras)
+	}
+	_, second, err := service.Assemble(context.Background(), PrefixRequest{
+		AssemblyInput: AssemblyInput{SystemSections: []Section{stableSection("rules", "fixed")}},
+		SessionKey:    "p1-telemetry",
+	})
+	if err != nil {
+		t.Fatalf("second assemble: %v", err)
+	}
+	if got, ok := second.PromptStatsExtras()["prefix_starts_with_previous"].(bool); !ok || !got {
+		t.Fatalf("second turn must report prefix_starts_with_previous=true, got %+v", second.PromptStatsExtras()["prefix_starts_with_previous"])
+	}
+}

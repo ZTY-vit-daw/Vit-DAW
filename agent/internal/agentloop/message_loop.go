@@ -4226,12 +4226,27 @@ func messageLoopSystemPrompt(state *runState) string {
 		// per-turn directives half.
 		return messageLoopNeutralFamilySystemPrompt(state)
 	}
-	catalog := ""
-	allowed := ""
-	modeRules := ""
+	catalog, allowed := "", ""
 	if state != nil {
 		catalog = state.input.CatalogSummary
 		allowed = strings.Join(state.input.AllowedTools, ", ")
+	}
+	// G3-ATTRIB-2: 普通族同样拆"字节稳定骨架+逐轮指令块"两半（复用 L1-4
+	// 中性族拆分形态）；本组合渲染器保持历史完整文本面（push 路径消费，
+	// 字节恒等由既有 prompt 测试锚定），pull 侧经 pullProtocolSegments 取
+	// 两半做物理分装（协议段拆分修复，G3-RULING §2.4）。
+	return messageLoopOrdinaryFamilySystemSkeleton(state) + "\n" +
+		messageLoopOrdinaryFamilyModeRules(state) +
+		"\n\nAvailable tool catalog:\n" + catalog + "\n\nAllowed tools:\n" + allowed
+}
+
+// messageLoopOrdinaryFamilyModeRules 渲染普通族的逐轮状态规则块：Plan
+// mode / read-only 观察 / full-access autonomy——全部按 state 渲染，字节
+// 逐轮可变，属动态区（G3-ATTRIB-2 从 messageLoopSystemPrompt 提取，语义
+// 与字节不变）。
+func messageLoopOrdinaryFamilyModeRules(state *runState) string {
+	modeRules := ""
+	if state != nil {
 		if messageLoopPlanMode(state.input.Context) {
 			modeRules = `
 Plan mode:
@@ -4252,7 +4267,17 @@ Read-only acoustic observation:
 	// over to the user's A/B audition). The directive renders "" for every
 	// manual/ordinary turn, so those prompts stay byte-identical.
 	modeRules += messageLoopFullAccessAutonomyRules(state)
-	prompt := fmt.Sprintf(`You are Ask Vit's DAW ReAct runtime inside Vit-DAW.
+	return modeRules
+}
+
+// messageLoopOrdinaryFamilySystemSkeleton 渲染普通族字节稳定骨架（固定
+// 规则帧+输出格式示例；不含逐轮 modeRules/目录/allowed——它们随每轮
+// state 重算，归动态区）。verified-entry 裁剪按 state 触发，但它是真实
+// 规则内容变化（对模型披露的规则集变了），保留在骨架：翻转即合法
+// ruleset_changed 断裂，不与族内漂移混淆。G3-ATTRIB-2 提取；与
+// messageLoopOrdinaryFamilyModeRules 组合的输出与历史渲染字节恒等。
+func messageLoopOrdinaryFamilySystemSkeleton(state *runState) string {
+	skeleton := `You are Ask Vit's DAW ReAct runtime inside Vit-DAW.
 Return ONLY strict JSON in one of these shapes:
 {"final":true,"reply":"short final user-facing reply","tool_calls":[]}
 {"final":false,"needs_clarification":true,"clarification_question":"ask exactly what target/choice is missing","reply":"same question","tool_calls":[]}
@@ -4312,27 +4337,20 @@ Rules:
 - If a MIDI note write is unverified, observe the current clip notes before retrying so you do not duplicate notes that were already written.
 - When the user gives a local asset file or folder and asks what media is available, use media.register_assets or media.index_authorized_folder so the response can include clickable media pool artifact cards. Do not replace artifact cards with long raw path lists.
 - Mark final:true only when requested outcomes are evidenced by tool results or context.
-- User-facing reply text must be Chinese when the user writes Chinese. Do not expose JSON, tool names, tool IDs, or internal IDs unless the user explicitly asks for technical details.
-%s
-
-Available tool catalog:
-%s
-
-Allowed tools:
-%s`, modeRules, catalog, allowed)
+- User-facing reply text must be Chinese when the user writes Chinese. Do not expose JSON, tool names, tool IDs, or internal IDs unless the user explicitly asks for technical details.`
 	if state != nil && messageLoopHasVerifiedSemanticEntry(state) {
-		if start := strings.Index(prompt, `{"final":true,"reply":"concrete EQ proposal`); start >= 0 {
-			if end := strings.Index(prompt[start:], "\n\nRules:"); end >= 0 {
-				prompt = prompt[:start] + prompt[start+end:]
+		if start := strings.Index(skeleton, `{"final":true,"reply":"concrete EQ proposal`); start >= 0 {
+			if end := strings.Index(skeleton[start:], "\n\nRules:"); end >= 0 {
+				skeleton = skeleton[:start] + skeleton[start+end:]
 			}
 		}
-		if start := strings.Index(prompt, "- For an actionable generic static-EQ listening goal"); start >= 0 {
-			if end := strings.Index(prompt[start:], "- For an explicit generic static-EQ parameter request"); end >= 0 {
-				prompt = prompt[:start] + "- For a verified semantic-entry turn, keep acoustic family and observation selection model-owned; use the free-state decision or the typed control protocol selected by the entry route.\n" + prompt[start+end:]
+		if start := strings.Index(skeleton, "- For an actionable generic static-EQ listening goal"); start >= 0 {
+			if end := strings.Index(skeleton[start:], "- For an explicit generic static-EQ parameter request"); end >= 0 {
+				skeleton = skeleton[:start] + "- For a verified semantic-entry turn, keep acoustic family and observation selection model-owned; use the free-state decision or the typed control protocol selected by the entry route.\n" + skeleton[start+end:]
 			}
 		}
 	}
-	return prompt
+	return skeleton
 }
 
 func messageLoopPlanMode(ctx map[string]any) bool {

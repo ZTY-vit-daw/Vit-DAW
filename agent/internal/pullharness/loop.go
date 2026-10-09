@@ -3,8 +3,9 @@ package pullharness
 // loop.go — Session 驱动的 pull 循环（HARNESS_V1_DESIGN §3.1/§11.1，L1-5-IMPL-D 腿1）。
 //
 // S1 形态（§11.1 定版）：宿主（agentloop pullSession，腿2）独家持有活状态；
-// 本驱动只做四件事——装配（Prefix 四层+冷启动底座+宿主供给协议段+动态区）、
-// 溢出预检（实际装配字节计量，fail-closed）、模型调用、循环编排。快路径
+// 本驱动只做四件事——装配（Prefix 四层+冷启动底座+宿主供给协议段[骨架+
+// 逐轮指令块，G3-ATTRIB-2 拆分]+动态区）、溢出预检（实际装配字节计量，
+// fail-closed）、模型调用、循环编排。快路径
 // （Attempt）/协议解析（Interpret）/工具执行（Execute）/T1（CloseCycle）/
 // 生命周期提交（Return）全部回宿主经 Session 六方法。
 //
@@ -100,6 +101,28 @@ type Result struct {
 	// Trace 是确定性留痕行（分类/边界/装配计量；G3 指标采集的原始面）。
 	Trace []string
 }
+
+// Frame.Context 的协议段双段供给键（G3-ATTRIB-2 协议段拆分修复，
+// G3-RULING §2.4；宿主→驱动只读面，与 session.go 的 Frame.Context 键族
+// 同族）。
+const (
+	// FrameContextProtocolSkeleton 是宿主供给的字节稳定协议骨架（固定
+	// 规则帧+输出格式+会话内恒定面）——驱动以 SectionStatic stable=true
+	// 挂载（段 ID pullharness.protocol）；字节变化=真实规则变化，在装配
+	// 报告如实报 ruleset_changed（族切换即此类合法断裂）。
+	FrameContextProtocolSkeleton = "pull_protocol_skeleton"
+	// FrameContextProtocolDirectives 是宿主供给的逐轮协议指令块（按 state
+	// 渲染的 autonomy/readonly 块+每轮重算的 AllowedTools/目录行+中性族
+	// 逐轮指令）——驱动挂进动态区（user 段，stable=false），族内漂移不
+	// 再断前缀。
+	FrameContextProtocolDirectives = "pull_protocol_directives"
+)
+
+// 协议段在装配中的段 ID（稳定骨架）与动态区指令块段 ID（per-block 归因面）。
+const (
+	protocolSkeletonSectionID   = "pullharness.protocol"
+	protocolDirectivesSectionID = "pullharness.protocol_directives"
+)
 
 // PullLoop 是 Session 驱动的循环骨架（§11.1：LLM/PrefixService/ExitExecutor
 // 接口冻结不改；工具/快路径/生命周期面归 Session）。
@@ -305,14 +328,33 @@ func (d *pullDriver) run(ctx context.Context) Result {
 	}
 }
 
-// assemble 执行步骤②：稳定前缀（冷启动底座 Section 族+宿主协议段）+
-// 动态区（会话状态+预算披露，§3.2）。SessionKey 用宿主供给的会话键
-// （P1 append-only 判据跨 turn 可测）。
+// assemble 执行步骤②：稳定前缀（冷启动底座 Section 族+宿主协议骨架）+
+// 动态区（会话状态+预算披露+逐轮协议指令块，§3.2）。SessionKey 用宿主
+// 供给的会话键（P1 append-only 判据跨 turn 可测）。
+//
+// G3-ATTRIB-2 拆分挂载：宿主双段供给——骨架以 SectionStatic stable=true
+// 挂载（段 ID pullharness.protocol，族切换=合法 ruleset_changed）；逐轮
+// 指令块挂进动态区 user 段（stable=false，复用 L1-4 中性族拆分形态），
+// 族内逐轮漂移不再断前缀。legacy 单段键（FrameContextProtocolPrompt）
+// 保留兼容挂载：宿主未供给骨架时按原单段 stable 形态挂载（宿主声明整段
+// 稳定；生产宿主已改双段供给）。
 func (d *pullDriver) assemble(frame Frame) (promptruntime.Assembly, promptruntime.AssemblyReport, error) {
 	systemSections := append([]promptruntime.Section(nil), d.coldStart.Sections...)
-	if protocol, ok := frameString(frame.Context, FrameContextProtocolPrompt); ok && strings.TrimSpace(protocol) != "" {
+	userSections := []promptruntime.Section{
+		promptruntime.TextSection(promptruntime.SectionRuntime, "pullharness.dynamic",
+			"run state", d.dynamicZone(frame), false),
+	}
+	if skeleton, ok := frameString(frame.Context, FrameContextProtocolSkeleton); ok && strings.TrimSpace(skeleton) != "" {
 		systemSections = append(systemSections, promptruntime.TextSection(
-			promptruntime.SectionStatic, "pullharness.protocol", "model protocol", protocol, true))
+			promptruntime.SectionStatic, protocolSkeletonSectionID, "model protocol", skeleton, true))
+	} else if protocol, ok := frameString(frame.Context, FrameContextProtocolPrompt); ok && strings.TrimSpace(protocol) != "" {
+		systemSections = append(systemSections, promptruntime.TextSection(
+			promptruntime.SectionStatic, protocolSkeletonSectionID, "model protocol", protocol, true))
+	}
+	if directives, ok := frameString(frame.Context, FrameContextProtocolDirectives); ok && strings.TrimSpace(directives) != "" {
+		userSections = append(userSections, promptruntime.TextSection(
+			promptruntime.SectionRuntime, protocolDirectivesSectionID,
+			"Per-turn protocol directives", directives, false))
 	}
 	sessionKey := strings.TrimSpace(frame.PrefixSessionKey)
 	if sessionKey == "" {
@@ -328,10 +370,7 @@ func (d *pullDriver) assemble(frame Frame) (promptruntime.Assembly, promptruntim
 		AssemblyInput: promptruntime.AssemblyInput{
 			SystemSections: systemSections,
 			History:        append([]llm.Message(nil), frame.Conversation...),
-			UserSections: []promptruntime.Section{
-				promptruntime.TextSection(promptruntime.SectionRuntime, "pullharness.dynamic",
-					"run state", d.dynamicZone(frame), false),
-			},
+			UserSections:   userSections,
 		},
 		SessionKey:  sessionKey,
 		LayerStates: d.coldStart.LayerStates(),

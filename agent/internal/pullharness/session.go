@@ -131,10 +131,12 @@ type Frame struct {
 
 // Frame.Context 的稳定供给键（宿主→驱动只读面；缺失=能力缺席，不臆造）。
 const (
-	// FrameContextProtocolPrompt 是宿主供给的协议指令段（工具调用 JSON 协议
-	// +目录+allowed tools；缺失=无协议段，模型自由文本将由宿主 Interpret
-	// 的修复链处理）。字节稳定性由宿主侧前缀治理约束（变化会在装配报告的
-	// 断裂归因中显式可见）。
+	// FrameContextProtocolPrompt 是宿主供给的协议指令段（单段形态；自
+	// G3-ATTRIB-2 起被双段键取代——见 loop.go 的
+	// FrameContextProtocolSkeleton/FrameContextProtocolDirectives；驱动保留
+	// 单段兼容挂载，生产宿主已改双段供给）。缺失=无协议段，模型自由文本
+	// 将由宿主 Interpret 的修复链处理。字节稳定性由宿主侧前缀治理约束
+	//（变化会在装配报告的断裂归因中显式可见）。
 	FrameContextProtocolPrompt = "pull_protocol_prompt"
 	// FrameContextContextBudgetBytes 是溢出线（>0 生效；缺省=不设线）。
 	// 驱动按实际装配字节计量（§3.2-4：不反复用最初的静态快照）。

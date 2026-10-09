@@ -204,14 +204,39 @@ func (s *pullSession) restoreLedger(saved *PullContinuation) error {
 
 // ---- pullharness.Session 实现 ----
 
-// Snapshot 返回有版本只读视图。协议段（JSON 协议+目录+allowed）由宿主供给
-// ——Interpret 复用 push 协议解析，模型必须收到同族协议指令。
+// pullProtocolSegments 渲染双段协议供给（G3-ATTRIB-2 协议段拆分修复，
+// G3-RULING §2.4 接线缺陷：原单段=逐状态渲染的 messageLoopSystemPrompt 挂
+// stable=true，族切换+族内逐轮块都触发 ruleset_changed 断裂）。拆分复用
+// L1-4-IMPL-A 中性族拆分形态：
+//   - 骨架（stable=true，字节稳定）：固定规则帧+输出格式+会话内恒定面；
+//   - 逐轮指令块（stable=false/动态区）：按 state 渲染的 autonomy/readonly
+//     块+每轮重算的 AllowedTools/目录行+中性族逐轮指令。
+//
+// 族切换（普通↔中性族）改变骨架字节=合法 ruleset_changed 断裂（真实规则
+// 变化）；族内漂移全部落在动态区，不再断前缀。Interpret 仍复用 push 协议
+// 解析——模型经双段收到与 push 同族的完整协议指令。
+func pullProtocolSegments(state *runState) (skeleton, directives string) {
+	if messageLoopFreeStateActive(state) {
+		return messageLoopNeutralFamilySystemSkeleton(state),
+			messageLoopNeutralFamilyTurnDirectives(state)
+	}
+	skeleton = messageLoopOrdinaryFamilySystemSkeleton(state)
+	directives = messageLoopOrdinaryFamilyModeRules(state) +
+		"\n\nAvailable tool catalog:\n" + state.input.CatalogSummary +
+		"\n\nAllowed tools:\n" + strings.Join(state.input.AllowedTools, ", ")
+	return skeleton, directives
+}
+
+// Snapshot 返回有版本只读视图。协议段由宿主按双段供给（见
+// pullProtocolSegments）；驱动挂载骨架进稳定 system 段、逐轮指令块进动态区。
 func (s *pullSession) Snapshot(context.Context) (pullharness.Frame, error) {
 	contextClone := map[string]any{}
 	for key, value := range s.state.input.Context {
 		contextClone[key] = value
 	}
-	contextClone[pullharness.FrameContextProtocolPrompt] = messageLoopSystemPrompt(s.state)
+	skeleton, directives := pullProtocolSegments(s.state)
+	contextClone[pullharness.FrameContextProtocolSkeleton] = skeleton
+	contextClone[pullharness.FrameContextProtocolDirectives] = directives
 	return pullharness.Frame{
 		Revision:         s.revision,
 		GoalID:           s.state.goal.GoalID,

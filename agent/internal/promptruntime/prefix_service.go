@@ -69,6 +69,17 @@ type AssemblyReport struct {
 	DynamicBytes      int
 	Breaks            []BreakEvent // 相对上一轮同 SessionKey 装配；首轮为空
 	CacheAnomalies    []string     // content_hash 变而 CacheKey 未变的层（§3.2：装配器 bug 信号，T-A4）
+	// PrefixContentHash 是稳定段实际渲染字节的 sha256（最终 system 消息
+	// 内容，判据轨 P1 供给，G3-ATTRIB-2）。与 PrefixFingerprint 互补：前者
+	// 对真实消息字节，后者对层报告级联——跨轮恒等时两者皆恒等，字节级
+	// starts-with（append-only 增长）只有前者配合 PrefixStartsWithPrevious
+	// 可判。空稳定段=空串哈希（确定性）。
+	PrefixContentHash string
+	// PrefixStartsWithPrevious 是 P1 判据的机械判定（设计 §3.4）：同
+	// SessionKey 上一轮装配的稳定段字节串是否为本轮稳定段字节串的字节级
+	// 前缀（starts-with；尾部增长是唯一合法增长形态）。nil=无上一轮可比
+	//（首轮/无会话键），非 nil 的 false=前缀断裂面（配 Breaks 归因）。
+	PrefixStartsWithPrevious *bool
 	// HistoryRefs 是历史 refs 伴随索引（设计 §5.2，L1-4-IMPL-C）：装配历史时
 	// 对 assistant 消息 evidence refs 的解析注记。构建器在 contextruntime
 	// （TurnBoundaryHook）；本报告只承载注记结果，不改写历史文本。
@@ -112,7 +123,7 @@ func (r AssemblyReport) PromptStatsExtras() map[string]any {
 			parsed++
 		}
 	}
-	return map[string]any{
+	extras := map[string]any{
 		"prefix_bytes":         r.PrefixBytes,
 		"dynamic_bytes":        r.DynamicBytes,
 		"breaks":               breaks,
@@ -122,6 +133,15 @@ func (r AssemblyReport) PromptStatsExtras() map[string]any {
 		"history_refs_total":   len(r.HistoryRefs),
 		"history_refs_parsed":  parsed,
 	}
+	// P1 计量供给（G3-ATTRIB-2，加法式键）：前缀级指纹与实际前缀字节哈希
+	// 进遥测，P1 判据（prefix_bytes 跨 turn starts-with 恒等）在 harness/
+	// 场景侧机械可判；无上一轮时 starts-with 键缺席（诚实：不可比不造值）。
+	extras["prefix_fingerprint"] = r.PrefixFingerprint
+	extras["prefix_content_hash"] = r.PrefixContentHash
+	if r.PrefixStartsWithPrevious != nil {
+		extras["prefix_starts_with_previous"] = *r.PrefixStartsWithPrevious
+	}
+	return extras
 }
 
 type PrefixRequest struct {
@@ -157,6 +177,7 @@ type prefixSnapshot struct {
 	layerOrder  []string
 	layers      map[string]LayerReport
 	layerBytes  map[string]string // 层渲染产物（层级 starts-with 判定）
+	systemBytes string            // 最终 system 消息内容（P1 字节级判定的权威面）
 	historyLen  int
 	dynamicHash string
 }
@@ -239,12 +260,15 @@ func (s *prefixService) Assemble(ctx context.Context, req PrefixRequest) (Assemb
 	report.CarrierWarnings = append([]string(nil), req.CarrierWarnings...)
 
 	report.PrefixFingerprint = prefixFingerprint(layerOrder, layers)
+	var systemBytes string
 	for _, message := range assembly.Messages {
 		switch {
 		case strings.EqualFold(message.Role, "system"):
 			report.PrefixBytes = len([]byte(message.Content))
+			systemBytes = message.Content
 		}
 	}
+	report.PrefixContentHash = contentDigest(systemBytes)
 	for index := len(assembly.Messages) - 1; index >= 0; index-- {
 		if strings.EqualFold(assembly.Messages[index].Role, "user") {
 			report.DynamicBytes = len([]byte(assembly.Messages[index].Content))
@@ -256,13 +280,17 @@ func (s *prefixService) Assemble(ctx context.Context, req PrefixRequest) (Assemb
 	if key := strings.TrimSpace(req.SessionKey); key != "" {
 		s.mu.Lock()
 		previous, hasPrevious := s.last[key]
-		s.last[key] = prefixSnapshot{layerOrder: layerOrder, layers: layers, layerBytes: layerBytes, historyLen: len(req.History), dynamicHash: dynamicHash}
+		s.last[key] = prefixSnapshot{layerOrder: layerOrder, layers: layers, layerBytes: layerBytes, systemBytes: systemBytes, historyLen: len(req.History), dynamicHash: dynamicHash}
 		s.mu.Unlock()
 		if hasPrevious {
 			layerEvents, anomalies := diffLayers(previous, layerOrder, layers, layerBytes)
 			report.Breaks = append(report.Breaks, layerEvents...)
 			report.Breaks = append(report.Breaks, diffDynamic(previous, len(req.History), dynamicHash)...)
 			report.CacheAnomalies = append(report.CacheAnomalies, anomalies...)
+			// P1 机械判定（§3.4）：上一轮稳定段字节串是否仍为本轮前缀。
+			// 只比对字节，不推断语义——断裂与否交 Breaks 归因。
+			startsWith := strings.HasPrefix(systemBytes, previous.systemBytes)
+			report.PrefixStartsWithPrevious = &startsWith
 		}
 	}
 	return assembly, report, nil

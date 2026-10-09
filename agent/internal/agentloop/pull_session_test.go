@@ -6,6 +6,11 @@ package agentloop
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -513,4 +518,229 @@ func runtimeTurnCount(t *testing.T, rt *agentruntime.Runtime, goalID string) int
 		return 0
 	}
 	return len(goal.Task.Run.Turns)
+}
+
+// ---- G3-ATTRIB-2：协议段双段供给（G3-RULING §2.4 拆分修复）----
+
+func pullSegmentStrings(t *testing.T, frame pullharness.Frame) (skeleton, directives string) {
+	t.Helper()
+	rawSkeleton, okS := frame.Context[pullharness.FrameContextProtocolSkeleton].(string)
+	rawDirectives, okD := frame.Context[pullharness.FrameContextProtocolDirectives].(string)
+	if !okS || !okD {
+		t.Fatalf("Snapshot must supply dual protocol segments (skeleton ok=%v directives ok=%v)", okS, okD)
+	}
+	if strings.TrimSpace(rawSkeleton) == "" || strings.TrimSpace(rawDirectives) == "" {
+		t.Fatalf("dual protocol segments must be non-empty (skeleton=%q directives=%q)", rawSkeleton, rawDirectives)
+	}
+	return rawSkeleton, rawDirectives
+}
+
+// TestPullSessionSnapshotSuppliesDualProtocolSegments：宿主 Snapshot 供给
+// 双段（骨架+逐轮指令）；旧单段键不再由宿主设置（拆分后宿主不再声明
+// 整段稳定）。
+func TestPullSessionSnapshotSuppliesDualProtocolSegments(t *testing.T) {
+	session, _ := newPullTestSession(t, &pullTestExecutor{}, func(ctx map[string]any) {
+		ctx["agent_mode"] = "plan"
+	})
+	frame, err := session.Snapshot(context.Background())
+	if err != nil {
+		t.Fatalf("snapshot: %v", err)
+	}
+	skeleton, directives := pullSegmentStrings(t, frame)
+	if _, legacy := frame.Context[pullharness.FrameContextProtocolPrompt]; legacy {
+		t.Error("host must not set the legacy single-segment protocol key after the split")
+	}
+	if !strings.Contains(skeleton, "You are Ask Vit's DAW ReAct runtime inside Vit-DAW.") {
+		t.Error("ordinary-family skeleton must carry the fixed rule frame")
+	}
+	if !strings.Contains(directives, "Plan mode:") {
+		t.Error("state-rendered mode rules (plan mode) must ride the per-turn directives block")
+	}
+	if !strings.Contains(directives, "Allowed tools:") {
+		t.Error("per-turn allowed tools line must ride the per-turn directives block")
+	}
+	if strings.Contains(skeleton, "Allowed tools:") || strings.Contains(skeleton, "Plan mode:") {
+		t.Error("skeleton must stay byte-stable: per-turn mode rules / allowed lines must not ride it")
+	}
+}
+
+// TestPullProtocolSegmentsOrdinaryFamilyParity：普通族拆分与历史组合渲染
+// 的字节关系（物理拆分不改协议内容面）：combined == skeleton + "\n" +
+// directives。
+func TestPullProtocolSegmentsOrdinaryFamilyParity(t *testing.T) {
+	states := []*runState{
+		{input: Input{AllowedTools: []string{"track.list"}, CatalogSummary: "- track.list: rows"}},
+		{input: Input{Context: map[string]any{"agent_mode": "plan"}, AllowedTools: []string{"track.list", "mix.read"}, CatalogSummary: "- track.list: rows\n- mix.read: pkg"}},
+	}
+	for index, state := range states {
+		skeleton, directives := pullProtocolSegments(state)
+		combined := messageLoopSystemPrompt(state)
+		if got := skeleton + "\n" + directives; got != combined {
+			t.Errorf("state %d: split segments must recombine to the historical combined renderer", index)
+		}
+	}
+}
+
+// TestPullProtocolSegmentsNeutralFamilyReusesL1_4Split：自由态活化的族
+// （中性族）直接复用 L1-4-IMPL-A 拆分既有面（骨架/逐轮指令两函数）。
+func TestPullProtocolSegmentsNeutralFamilyReusesL1_4Split(t *testing.T) {
+	state := &runState{input: Input{Context: map[string]any{
+		"free_state_reasoning_loop": map[string]any{
+			"schema_version": "free_state_reasoning_loop.v1", "status": "reasoning",
+		},
+	}, AllowedTools: []string{"ccb.observation_catalog", "ccb.observation_request", "track.volume"}}}
+	if !messageLoopFreeStateActive(state) {
+		t.Fatal("test state must activate the free-state family")
+	}
+	skeleton, directives := pullProtocolSegments(state)
+	if skeleton != messageLoopNeutralFamilySystemSkeleton(state) {
+		t.Error("neutral-family skeleton must be the L1-4 byte-stable skeleton")
+	}
+	if directives != messageLoopNeutralFamilyTurnDirectives(state) {
+		t.Error("neutral-family directives must be the L1-4 per-turn directives")
+	}
+}
+
+// TestPullProtocolSegmentsStableWithinFamilyAcrossTurns（验收③核心）：
+// 族内连续轮稳定段字节恒等——普通族（mode rules/allowed/catalog 逐轮变）
+// 与中性族（free-state 上下文推进）骨架恒等；族切换（普通↔中性）骨架
+// 变化=合法 ruleset_changed 面。
+func TestPullProtocolSegmentsStableWithinFamilyAcrossTurns(t *testing.T) {
+	// 普通族：mode rules、allowed tools、目录行逐轮重算（续跑轮与首轮不同），
+	// 骨架字节恒等。
+	ordinaryTurn1 := &runState{input: Input{
+		AllowedTools: []string{"track.list", "mix.read"}, CatalogSummary: "- track.list: rows",
+	}}
+	ordinaryTurn2 := &runState{input: Input{
+		Context:      map[string]any{"agent_mode": "plan"},
+		AllowedTools: []string{"track.list", "mix.read", "plugin.search"}, CatalogSummary: "- track.list: rows\n- plugin.search: rows",
+	}}
+	skeleton1, directives1 := pullProtocolSegments(ordinaryTurn1)
+	skeleton2, directives2 := pullProtocolSegments(ordinaryTurn2)
+	if skeleton1 != skeleton2 {
+		t.Fatal("ordinary-family skeleton must stay byte-identical while mode rules / allowed tools / catalog lines rotate per turn")
+	}
+	if directives1 == directives2 {
+		t.Fatal("per-turn directives must absorb the per-turn rotation (plan mode + allowed/catalog lines)")
+	}
+	// 中性族：free-state 上下文推进（预算消耗/观察饱和）只动逐轮指令，
+	// 骨架恒等。
+	neutralTurn1 := &runState{input: Input{Context: map[string]any{
+		"free_state_reasoning_loop": map[string]any{
+			"schema_version": "free_state_reasoning_loop.v1", "status": "reasoning",
+		},
+	}, AllowedTools: []string{"ccb.observation_catalog", "ccb.observation_request"}}}
+	neutralTurn2 := &runState{input: Input{Context: map[string]any{
+		"free_state_reasoning_loop": map[string]any{
+			"schema_version": "free_state_reasoning_loop.v1", "status": "reasoning",
+			"continuation_budget": 6, "continuation_used": 3,
+			"observation_saturation_notice": map[string]any{
+				"coverage_status": "partial", "open_dimensions": []any{"frequency"},
+				"frontier_candidates": 2, "continuation_used": 3, "continuation_budget": 6,
+			},
+		},
+	}, AllowedTools: []string{"ccb.observation_catalog", "ccb.observation_request"}}}
+	neutralSkeleton1, neutralDirectives1 := pullProtocolSegments(neutralTurn1)
+	neutralSkeleton2, neutralDirectives2 := pullProtocolSegments(neutralTurn2)
+	if neutralSkeleton1 != neutralSkeleton2 {
+		t.Fatal("neutral-family skeleton must stay byte-identical while the free-state context advances turn over turn")
+	}
+	if neutralDirectives1 == neutralDirectives2 {
+		t.Fatal("free-state context advance must surface in the per-turn directives block")
+	}
+	// 族切换：骨架字节变化（合法 ruleset_changed，真实规则变化）。
+	switchSkeleton, _ := pullProtocolSegments(neutralTurn1)
+	if switchSkeleton == skeleton1 {
+		t.Fatal("family switch (ordinary <-> neutral) must change the skeleton bytes (legal ruleset_changed)")
+	}
+}
+
+// TestPullProtocolSplitComparisonArtifact 产出"拆分前后稳定段字节序列对比"
+// 工件（G3-ATTRIB-2 验收项）：同族两轮演化（plan mode 翻转+allowed/目录行
+// 重算，模拟 G3-RULING §2.4 的族内漂移源）下——
+//   - 拆分前稳定段字节序列（=整协议段，旧单段挂 stable=true）：逐轮漂移；
+//   - 拆分后稳定段字节序列（=骨架）：字节恒等；漂移面全部落在逐轮指令块。
+//
+// 工件写 t.TempDir 并经 t.Log 全文输出（回执复制入 coord/runs/G3-ATTRIB-2/）。
+func TestPullProtocolSplitComparisonArtifact(t *testing.T) {
+	turn1 := &runState{input: Input{
+		AllowedTools: []string{"track.list", "mix.read"}, CatalogSummary: "- track.list: rows",
+	}}
+	turn2 := &runState{input: Input{
+		Context:      map[string]any{"agent_mode": "plan"},
+		AllowedTools: []string{"track.list", "mix.read", "plugin.search"}, CatalogSummary: "- track.list: rows\n- plugin.search: rows",
+	}}
+	neutral1 := &runState{input: Input{Context: map[string]any{
+		"free_state_reasoning_loop": map[string]any{
+			"schema_version": "free_state_reasoning_loop.v1", "status": "reasoning",
+		},
+	}, AllowedTools: []string{"ccb.observation_catalog", "ccb.observation_request"}}}
+	neutral2 := &runState{input: Input{Context: map[string]any{
+		"free_state_reasoning_loop": map[string]any{
+			"schema_version": "free_state_reasoning_loop.v1", "status": "reasoning",
+			"continuation_budget": 6, "continuation_used": 3,
+			"observation_saturation_notice": map[string]any{
+				"coverage_status": "partial", "open_dimensions": []any{"frequency"},
+				"frontier_candidates": 2, "continuation_used": 3, "continuation_budget": 6,
+			},
+		},
+	}, AllowedTools: []string{"ccb.observation_catalog", "ccb.observation_request"}}}
+
+	digest := func(text string) string {
+		sum := sha256.Sum256([]byte(text))
+		return hex.EncodeToString(sum[:])
+	}
+	type segmentRow struct {
+		Bytes int    `json:"bytes"`
+		Sha   string `json:"sha256"`
+	}
+	type familyRow struct {
+		Turn                string     `json:"turn"`
+		OldStableSegment    segmentRow `json:"old_stable_segment"` // 拆分前：整协议段挂 stable=true
+		NewSkeleton         segmentRow `json:"new_skeleton"`       // 拆分后：字节稳定骨架
+		NewDirectives       segmentRow `json:"new_directives"`     // 拆分后：逐轮指令块（动态区）
+		SkeletonIsHeadOfOld bool       `json:"skeleton_is_head_of_old_combined"`
+	}
+	family := func(name string, a, b *runState) map[string]any {
+		oldA, oldB := messageLoopSystemPrompt(a), messageLoopSystemPrompt(b)
+		skelA, dirA := pullProtocolSegments(a)
+		skelB, dirB := pullProtocolSegments(b)
+		return map[string]any{
+			"family": name,
+			"turns": []familyRow{
+				{Turn: "turn1", OldStableSegment: segmentRow{len(oldA), digest(oldA)}, NewSkeleton: segmentRow{len(skelA), digest(skelA)}, NewDirectives: segmentRow{len(dirA), digest(dirA)}, SkeletonIsHeadOfOld: strings.HasPrefix(oldA, skelA)},
+				{Turn: "turn2", OldStableSegment: segmentRow{len(oldB), digest(oldB)}, NewSkeleton: segmentRow{len(skelB), digest(skelB)}, NewDirectives: segmentRow{len(dirB), digest(dirB)}, SkeletonIsHeadOfOld: strings.HasPrefix(oldB, skelB)},
+			},
+			"old_stable_sequence_identical":   oldA == oldB,   // 拆分前：族内漂移（false=断裂源）
+			"new_skeleton_sequence_identical": skelA == skelB, // 拆分后：恒等（true=修复）
+		}
+	}
+	artifact := map[string]any{
+		"card":     "G3-ATTRIB-2",
+		"artifact": "protocol split: before/after stable-segment byte sequences",
+		"note":     "old_stable_segment = pre-split single protocol section mounted stable=true (drift = ruleset_changed break source, G3-RULing 2.4); new_skeleton = post-split byte-stable skeleton; new_directives = per-turn dynamic block",
+		"sequences": []map[string]any{
+			family("ordinary", turn1, turn2),
+			family("neutral", neutral1, neutral2),
+		},
+	}
+	data, err := json.MarshalIndent(artifact, "", "  ")
+	if err != nil {
+		t.Fatalf("marshal artifact: %v", err)
+	}
+	path := filepath.Join(t.TempDir(), "protocol_split_comparison.json")
+	if err := os.WriteFile(path, data, 0o644); err != nil {
+		t.Fatalf("write artifact: %v", err)
+	}
+	t.Logf("ARTIFACT_PATH=%s", path)
+	t.Logf("ARTIFACT_JSON=%s", data)
+	// 断言工件承载的事实：两族拆分前漂移、拆分后恒等。
+	for _, sequence := range artifact["sequences"].([]map[string]any) {
+		if sequence["old_stable_sequence_identical"] != false {
+			t.Errorf("%v: pre-split stable sequence must show within-family drift", sequence["family"])
+		}
+		if sequence["new_skeleton_sequence_identical"] != true {
+			t.Errorf("%v: post-split skeleton sequence must be byte-identical", sequence["family"])
+		}
+	}
 }
