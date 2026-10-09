@@ -1,0 +1,85 @@
+{
+  "artifact": "protocol split: before/after stable-segment byte sequences",
+  "card": "G3-ATTRIB-2",
+  "note": "old_stable_segment = pre-split single protocol section mounted stable=true (drift = ruleset_changed break source, G3-RULing 2.4); new_skeleton = post-split byte-stable skeleton; new_directives = per-turn dynamic block",
+  "sequences": [
+    {
+      "family": "ordinary",
+      "new_skeleton_sequence_identical": true,
+      "old_stable_sequence_identical": false,
+      "turns": [
+        {
+          "turn": "turn1",
+          "old_stable_segment": {
+            "bytes": 17535,
+            "sha256": "9d2c13960ac9935b228ce332a4663d5576971033b330a46bdb709fbf6621a7f3"
+          },
+          "new_skeleton": {
+            "bytes": 17453,
+            "sha256": "fd5a2a7fd5b30e872b00f19aed7ba37fa1a4a80891202fafbb4b46bac9e8be77"
+          },
+          "new_directives": {
+            "bytes": 81,
+            "sha256": "56d003dc39fbca24518b5a3c4125a7c8a6bb1170ebf155053fe6e67a30058aa2"
+          },
+          "skeleton_is_head_of_old_combined": true
+        },
+        {
+          "turn": "turn2",
+          "old_stable_segment": {
+            "bytes": 18086,
+            "sha256": "1539d1820fbc87ea2df4a954839372fb422439de81a96e011b11eba0270b2200"
+          },
+          "new_skeleton": {
+            "bytes": 17453,
+            "sha256": "fd5a2a7fd5b30e872b00f19aed7ba37fa1a4a80891202fafbb4b46bac9e8be77"
+          },
+          "new_directives": {
+            "bytes": 632,
+            "sha256": "6c968efef45f8dffb523b1df6f377a7954f92c252ee0f4d06b228a75d5becd3b"
+          },
+          "skeleton_is_head_of_old_combined": true
+        }
+      ]
+    },
+    {
+      "family": "neutral",
+      "new_skeleton_sequence_identical": true,
+      "old_stable_sequence_identical": false,
+      "turns": [
+        {
+          "turn": "turn1",
+          "old_stable_segment": {
+            "bytes": 18629,
+            "sha256": "fd0f5ce2a6ce58e7b6a1740da0093053b74c3524fb3a89afcc38815881a650ea"
+          },
+          "new_skeleton": {
+            "bytes": 14207,
+            "sha256": "c53fca18809ed06d0cc228f99767e8283ce87e062b20b9c109e18bac86316bd3"
+          },
+          "new_directives": {
+            "bytes": 4420,
+            "sha256": "76740870250033ba19c4f513e893084d020aef43ba23c8855685e73bb2def092"
+          },
+          "skeleton_is_head_of_old_combined": false
+        },
+        {
+          "turn": "turn2",
+          "old_stable_segment": {
+            "bytes": 19181,
+            "sha256": "989988c435870c9c19117d45fa94777133e68ea540e76618ed77cd54faa4b3ad"
+          },
+          "new_skeleton": {
+            "bytes": 14207,
+            "sha256": "c53fca18809ed06d0cc228f99767e8283ce87e062b20b9c109e18bac86316bd3"
+          },
+          "new_directives": {
+            "bytes": 4972,
+            "sha256": "b4ca2c3354b018f6a5dd8afaef1f7921d0d471a8ca201c3329235fbaf70f6abe"
+          },
+          "skeleton_is_head_of_old_combined": false
+        }
+      ]
+    }
+  ]
+}
