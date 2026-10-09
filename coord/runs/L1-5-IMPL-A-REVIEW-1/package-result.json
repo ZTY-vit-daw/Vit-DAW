@@ -1,0 +1,6 @@
+{
+  "command": "go test ./internal/pullharness -count=1 -v",
+  "exit_code": 0,
+  "head": "eca150926b47573f012c5c6faffb65ea7e5ebff6",
+  "time": "2026-10-09T13:37:05.6078061+08:00"
+}

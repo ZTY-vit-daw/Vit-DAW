@@ -1,0 +1,49 @@
+{
+  "review_head": "eca150926b47573f012c5c6faffb65ea7e5ebff6",
+  "claim_commit": "2986df4ff91037814e035f3ab72fa2a257aeccee",
+  "base": "a25d3b9d71f38eb8ffbec7019e5f986ac9871b83",
+  "reviewed": "de1d876c8b8e3e453d69b138e22bf7425df4f558",
+  "source_blob_equality": [
+    {
+      "path": "agent/internal/pullharness/budget.go",
+      "original": "290f7132af11be7a776b9ff81686eeeb18a69a4a",
+      "integration": "290f7132af11be7a776b9ff81686eeeb18a69a4a"
+    },
+    {
+      "path": "agent/internal/pullharness/budget_test.go",
+      "original": "329b455ef82d495a6d623c4c3842e38b301f2e53",
+      "integration": "329b455ef82d495a6d623c4c3842e38b301f2e53"
+    },
+    {
+      "path": "agent/internal/pullharness/loop.go",
+      "original": "939b3b354af44721ac2f722ba5803901d590636c",
+      "integration": "939b3b354af44721ac2f722ba5803901d590636c"
+    },
+    {
+      "path": "agent/internal/pullharness/loop_test.go",
+      "original": "7ccc3110e4fc2646584cfb021399933ad60f563e",
+      "integration": "7ccc3110e4fc2646584cfb021399933ad60f563e"
+    },
+    {
+      "path": "agent/internal/pullharness/mode.go",
+      "original": "e856c4934b1d9e7a28b84648831cccff690d9291",
+      "integration": "e856c4934b1d9e7a28b84648831cccff690d9291"
+    },
+    {
+      "path": "agent/internal/pullharness/mode_test.go",
+      "original": "fc89ed5e1de22794c84ef0ee5bac512830b8aa0a",
+      "integration": "fc89ed5e1de22794c84ef0ee5bac512830b8aa0a"
+    },
+    {
+      "path": "coord/runs/L1-5-IMPL-A/receipt.md",
+      "original": "e3edf9c7359eb27aaae09917e0fc8baa6909863e",
+      "integration": "e3edf9c7359eb27aaae09917e0fc8baa6909863e"
+    }
+  ],
+  "frozen_and_old_entry_diff": "",
+  "production_consumers": "",
+  "status": "?? coord/runs/L1-5-IMPL-A-REVIEW-1/\n",
+  "tracked_post_test_diff": "",
+  "go_version": "go version go1.26.2 windows/amd64",
+  "autocrlf": "true"
+}

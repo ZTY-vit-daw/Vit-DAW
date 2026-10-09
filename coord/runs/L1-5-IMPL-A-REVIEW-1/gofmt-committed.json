@@ -1,0 +1,50 @@
+[
+  {
+    "path": "agent/internal/pullharness/budget.go",
+    "committed_bytes": 3889,
+    "committed_is_gofmt": true,
+    "working_crlf_pairs": 92,
+    "working_lf_normalized_equals_commit": true,
+    "committed_diff": ""
+  },
+  {
+    "path": "agent/internal/pullharness/budget_test.go",
+    "committed_bytes": 3081,
+    "committed_is_gofmt": true,
+    "working_crlf_pairs": 104,
+    "working_lf_normalized_equals_commit": true,
+    "committed_diff": ""
+  },
+  {
+    "path": "agent/internal/pullharness/loop.go",
+    "committed_bytes": 17120,
+    "committed_is_gofmt": true,
+    "working_crlf_pairs": 402,
+    "working_lf_normalized_equals_commit": true,
+    "committed_diff": ""
+  },
+  {
+    "path": "agent/internal/pullharness/loop_test.go",
+    "committed_bytes": 16976,
+    "committed_is_gofmt": true,
+    "working_crlf_pairs": 474,
+    "working_lf_normalized_equals_commit": true,
+    "committed_diff": ""
+  },
+  {
+    "path": "agent/internal/pullharness/mode.go",
+    "committed_bytes": 5130,
+    "committed_is_gofmt": true,
+    "working_crlf_pairs": 122,
+    "working_lf_normalized_equals_commit": true,
+    "committed_diff": ""
+  },
+  {
+    "path": "agent/internal/pullharness/mode_test.go",
+    "committed_bytes": 5280,
+    "committed_is_gofmt": true,
+    "working_crlf_pairs": 150,
+    "working_lf_normalized_equals_commit": true,
+    "committed_diff": ""
+  }
+]
