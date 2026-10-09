@@ -13,6 +13,6 @@
 - 语义红线：vit:// 文法（kind/scope/window@snapshot#hash 双段强制）零改动；sha256 段=内容哈希（stableProjectionID 现成语义）；旧记录 legacy refs 必须可解析（legacy 条保留=兼容读）；ProjectionID 消费方（去重/缓存/测试断言）行为预期核对——ID 形态变化若触发消费方断言需如实分记不弱化。
 - 验收标准：四包构造器产出 vit:// 形态+ParseRef 全部 RefStateParsed；legacy 兼容读回归（旧 fixture 往返）；四包+全量 `go build ./...`+`go test ./... -count=1` 0 FAIL+gofmt 净；消费面清单（改动处全列）入回执。
 - 停止条件：任一族 stableProjectionID 实为非内容哈希（含时间戳/随机量）→ 该族单独上交（升 G1 终审记录缺口，不私改文法）；scope/snapshot 承载争议 → 申报两形态上交裁定。
-- 领取：（时间 / origin/main hash / 分支名）
+- 领取：2026-10-09 执行会话 / origin/main 935b15a4 / port/refschema-m3（独立 worktree D:/Vit_DAW_wt_m3，基于 origin/main 新建，树净）
 - 回执：（commit hash / 四包 diff / 新测试名 / 全量退出码 / 消费面清单）
 - 验收：（裁定文件 / 验收 commit）
