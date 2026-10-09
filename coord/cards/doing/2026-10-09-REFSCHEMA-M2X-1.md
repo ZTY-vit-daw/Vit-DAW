@@ -14,6 +14,6 @@
 - Mac 领取附加腿（Mac 线 2026-09-26 后首次接卡）：先 `git pull --rebase` 到最新 main 并核对 HEAD≥a7b5fe74；`cd agent && go build ./...` 基线绿；tim/capabilitycontext 两包定向测试绿——若 Mac 侧存在与本卡无关的既有失败基线，如实分记（环境差异不硬凑、不弱化断言），回执注明基线形态。
 - 验收标准：迁移点全部产出 vit://mom 形态+ParseRef RefStateParsed；legacy 兼容读回归；tim/capabilitycontext 全包测试+全量 `go build ./...`+`go test ./... -count=1` 0 FAIL（Mac 基线差异如实分记者除外，决策侧复核）+gofmt 净；消费面清单（改动处全列）入回执。
 - 停止条件：任一 mix.read: 数据键塞不进 scope 文法 → 实证上交（升 G1 终审记录缺口）；发现 dad: 族被既有测试硬依赖迁移 → 上交裁定不擅动。
-- 领取：（时间 / origin/main hash / 分支名 / 执行端 PC|Mac）
+- 领取：2026-10-09 10:09 / origin/main=4b0d6d1846a3d0dec4614f36d121afd20e489763（≥a7b5fe74 ✓）/ port/refschema-m2x-1（独立 worktree ~/Documents/Vit-DAW-m2x1）/ 执行端=Mac。基线核对腿已过：go build ./... exit 0；tim+capabilitycontext 定向测试 exit 0（基线形态=净，无既有失败）
 - 回执：（commit hash / 迁移点 diff 清单 / 新测试名 / 全量退出码 / 基线形态声明[Mac]）
 - 验收：（裁定文件 / 验收 commit）
