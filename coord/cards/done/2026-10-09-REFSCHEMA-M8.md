@@ -12,5 +12,5 @@
 - 验收标准：报告含两盘点清单+迁移建议表；每条锚点可回查（文件:行）；Godot 侧 grep 命令入报告附录（可复跑）。
 - 停止条件：Godot 前端目录不可达/形态大改 → 如实记录环境形态上交。
 - 领取：2026-10-09 晚 / 45ae7591 / main（PC 执行侧 ZCode GLM-5.3 直推；工作树含他卡在飞改动未触碰，本卡仅 coord/）
-- 回执：（报告路径 + 两清单条目数 + 迁移建议行数）
+- 回执：报告 `coord/runs/REFSCHEMA-M8/report.md` @ afddcea3 基线。清单①（Godot 前端）14 条（2 证据面写者族复核+行号漂移 / 7 IPC 信封前缀 agent 侧零消费实证 / 3 诊断工具 / 2 vit:// 字面量面）；清单②（PCA）3 包面+4 条域外衍生（processorregistry 零 ref 面、processorattestation 复核成立、**processorauthority 系生成者：`pcr1_` 内容寻址族 3 调用点**——旧闲时产出未覆盖面；衍生：mixboard_l2_render_probe_ harness.go:3609 第三 mixboard_ 写者、mix-report:/mixboard-project: 未注册响应面 ref、注册表 mixboard_ Anchor 漂移 6849→6923、ccbr_ 维持）。迁移建议 R1-R8 共 8 行（M6×3+M5×1+M4×1+新行 M9 登记观察×1+不动作×2）。零代码改动，两仓 clean（三处 tracked 修改均领取前已有）。附录 A1-A9 grep 可复跑。
 - 验收：（裁定文件 / 验收 commit）
