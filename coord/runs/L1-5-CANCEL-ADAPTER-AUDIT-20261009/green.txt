@@ -1,0 +1,56 @@
+=== RUN   TestObservationBudgetCycleExhausted
+--- PASS: TestObservationBudgetCycleExhausted (0.00s)
+=== RUN   TestObservationBudgetProbeExhausted
+--- PASS: TestObservationBudgetProbeExhausted (0.00s)
+=== RUN   TestBudgetExhaustedIsDistinctFailureClass
+--- PASS: TestBudgetExhaustedIsDistinctFailureClass (0.00s)
+=== RUN   TestObservationBudgetDisclosure
+--- PASS: TestObservationBudgetDisclosure (0.00s)
+=== RUN   TestPullLoopCancellationBoundaries
+=== RUN   TestPullLoopCancellationBoundaries/entry
+=== RUN   TestPullLoopCancellationBoundaries/complete
+=== RUN   TestPullLoopCancellationBoundaries/plan
+=== RUN   TestPullLoopCancellationBoundaries/execute_empty
+=== RUN   TestPullLoopCancellationBoundaries/execute_result
+=== RUN   TestPullLoopCancellationBoundaries/route
+--- PASS: TestPullLoopCancellationBoundaries (0.00s)
+    --- PASS: TestPullLoopCancellationBoundaries/entry (0.00s)
+    --- PASS: TestPullLoopCancellationBoundaries/complete (0.00s)
+    --- PASS: TestPullLoopCancellationBoundaries/plan (0.00s)
+    --- PASS: TestPullLoopCancellationBoundaries/execute_empty (0.00s)
+    --- PASS: TestPullLoopCancellationBoundaries/execute_result (0.00s)
+    --- PASS: TestPullLoopCancellationBoundaries/route (0.00s)
+=== RUN   TestPullLoopCancellationKeepsEarlierCompletedBatch
+--- PASS: TestPullLoopCancellationKeepsEarlierCompletedBatch (0.00s)
+=== RUN   TestPullLoopT1OncePerBatchWithTurnIDSequence
+--- PASS: TestPullLoopT1OncePerBatchWithTurnIDSequence (0.00s)
+=== RUN   TestPullLoopT2ExactlyOnceOnTerminals
+--- PASS: TestPullLoopT2ExactlyOnceOnTerminals (0.00s)
+=== RUN   TestPullLoopPauseSurfaceNeverFiresT2
+--- PASS: TestPullLoopPauseSurfaceNeverFiresT2 (0.00s)
+=== RUN   TestPullLoopBudgetExhaustedOnCycleCap
+--- PASS: TestPullLoopBudgetExhaustedOnCycleCap (0.00s)
+=== RUN   TestPullLoopBudgetExhaustedOnProbeAccount
+--- PASS: TestPullLoopBudgetExhaustedOnProbeAccount (0.00s)
+=== RUN   TestPullLoopOverflowFailsClosedWithoutRequest
+--- PASS: TestPullLoopOverflowFailsClosedWithoutRequest (0.00s)
+=== RUN   TestPullLoopClassifyTerminalSeam
+--- PASS: TestPullLoopClassifyTerminalSeam (0.00s)
+=== RUN   TestPullLoopAssemblyConsumesPrefixService
+--- PASS: TestPullLoopAssemblyConsumesPrefixService (0.00s)
+=== RUN   TestPullLoopInjectionDefaults
+--- PASS: TestPullLoopInjectionDefaults (0.00s)
+=== RUN   TestPullLoopLLMErrorFiresT2
+--- PASS: TestPullLoopLLMErrorFiresT2 (0.00s)
+=== RUN   TestHarnessModeEnvWins
+--- PASS: TestHarnessModeEnvWins (0.00s)
+=== RUN   TestHarnessModeConfigKey
+--- PASS: TestHarnessModeConfigKey (0.01s)
+=== RUN   TestHarnessModeDefaultPush
+--- PASS: TestHarnessModeDefaultPush (0.01s)
+=== RUN   TestHarnessModeBOMTolerated
+--- PASS: TestHarnessModeBOMTolerated (0.01s)
+=== RUN   TestHarnessModeFailVisible
+--- PASS: TestHarnessModeFailVisible (0.02s)
+PASS
+ok  	vit-daw-agent/internal/pullharness	0.423s

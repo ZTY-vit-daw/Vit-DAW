@@ -1,0 +1,15 @@
+=== RUN   TestReviewCancelledBeforeRouter
+    audit_probe_test.go:41: outcome=interrupted router_calls=0 boundary_ids=[]
+--- PASS: TestReviewCancelledBeforeRouter (0.00s)
+=== RUN   TestReviewCancelledDuringToolAtCap
+    audit_probe_test.go:52: outcome=interrupted cycles=0 boundary_ids=[]
+--- PASS: TestReviewCancelledDuringToolAtCap (0.00s)
+=== RUN   TestReviewCancelledAfterModelReturn
+    audit_probe_test.go:62: outcome=interrupted tool_executions=0 boundary_ids=[]
+--- PASS: TestReviewCancelledAfterModelReturn (0.00s)
+=== RUN   TestReviewBudgetRouterObservation
+    audit_probe_test.go:71: OBSERVATION ONLY: seeded=2 cap=1 router_cost=2 outcome=fastpath probe_spent=4 router_calls=1
+This observation does not decide the router budget contract.
+--- PASS: TestReviewBudgetRouterObservation (0.00s)
+PASS
+ok  	vit-daw-agent/internal/pullharness	0.276s
