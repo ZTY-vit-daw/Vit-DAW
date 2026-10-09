@@ -380,7 +380,7 @@ func TestTIMING1LockedTerminalFallbackNeverGhostwritesBlocked(t *testing.T) {
 				"terminal_turn_locked": true, "terminal_turn_reason": "admission_rejections_exhausted",
 				"admission_rejection_count": 2,
 				"admission_rejection_gaps": []any{map[string]any{
-					"schema_version": FreeStateAdmissionGapSchema,
+					"schema_version":  FreeStateAdmissionGapSchema,
 					"failed_gate_ids": []any{"G7_fresh_revision_bound_refs"},
 				}},
 			},

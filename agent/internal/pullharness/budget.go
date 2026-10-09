@@ -18,9 +18,9 @@ import "strconv"
 //     index 级零成本不计，render/probe 级逐笔计入）。ProbeCost 是run 入场
 //     时的既有花费（续跑承接面），循环内由工具结果逐笔累加。
 type ObservationBudget struct {
-	MaxCycles    int
-	ProbeCost    float64
-	MaxProbeCost float64
+	MaxCycles    int     `json:"max_cycles,omitempty"`
+	ProbeCost    float64 `json:"probe_cost,omitempty"`
+	MaxProbeCost float64 `json:"max_probe_cost,omitempty"`
 }
 
 // 终态分类常量（G3 §6 指标口径的 outcome 分层）。

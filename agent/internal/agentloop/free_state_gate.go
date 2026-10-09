@@ -644,8 +644,8 @@ type FreeStateAdmissionMissingCondition struct {
 // read-only feedback derived from the same context the gate itself checked;
 // it introduces no new verdict.
 type FreeStateAdmissionGap struct {
-	SchemaVersion string                            `json:"schema_version"`
-	FailedGateIDs []string                          `json:"failed_gate_ids"`
+	SchemaVersion string                               `json:"schema_version"`
+	FailedGateIDs []string                             `json:"failed_gate_ids"`
 	Missing       []FreeStateAdmissionMissingCondition `json:"missing,omitempty"`
 	// QuotableFreshReference is the ledger's current fresh observation
 	// reference ("obs_id@revision") when a revision-binding gate failed: which

@@ -40,7 +40,7 @@ func TestNeutral3ConvergenceGuidancePresentsViewsFairly(t *testing.T) {
 
 func TestNeutral3BudgetDirectiveOmitsNamedViewsAndAntiBreadth(t *testing.T) {
 	directives := map[string]string{
-		"warning": messageLoopFreeStateContinuationBudgetDirective(budgetState(3, 6)),
+		"warning":  messageLoopFreeStateContinuationBudgetDirective(budgetState(3, 6)),
 		"critical": messageLoopFreeStateContinuationBudgetDirective(budgetState(5, 6)),
 	}
 	for name, directive := range directives {

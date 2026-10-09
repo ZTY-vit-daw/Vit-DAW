@@ -57,9 +57,9 @@ func terminalAdjudicationContext(mutate func(ctx map[string]any)) map[string]any
 				"views_requested": []any{"track.timbre_frequency"},
 				"evidence_status": "ready", "project_revision": "rev-7",
 			}},
-			"terminal_turn_locked":          true,
-			"terminal_turn_reason":          "admission_rejections_exhausted",
-			"admission_rejection_count":     2,
+			"terminal_turn_locked":      true,
+			"terminal_turn_reason":      "admission_rejections_exhausted",
+			"admission_rejection_count": 2,
 		},
 		"minimal_audio_closure": map[string]any{
 			"project_uuid": "proj-1", "project_revision": "rev-7",

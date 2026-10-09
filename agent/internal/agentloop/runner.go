@@ -28,6 +28,14 @@ const (
 	StopReasonInterjection         = "interjection"
 	StopReasonFailed               = "failed"
 
+	// StopReasonObservationBudgetExhausted 是 pull 模式全 run 观察预算用尽的
+	// 专用 StopReason（HARNESS_V1_DESIGN §11.3.1：映射旧 failed+专用原因，
+	// fail-visible——不冒充 limit_reached 也不静默续片）。
+	StopReasonObservationBudgetExhausted = "observation_budget_exhausted"
+	// StopReasonInterrupted 是 pull 模式 ctx 中断暂停的原因（§11.2：ctx 中断
+	// 与显式用户取消严格分离；非终局，checkpoint 存续）。
+	StopReasonInterrupted = "interrupted"
+
 	LimitTypeTurns     = "max_turns"
 	LimitTypeToolCalls = "max_tool_calls"
 	LimitTypeTimeout   = "timeout"
@@ -147,6 +155,13 @@ type Runner struct {
 	Executor ToolExecutor
 	Budget   Budget
 	Now      func() time.Time
+
+	// lifecycleDraft 延后生命周期副作用（L1-5-IMPL-D §11.1 S1：pull 会话的
+	// draft 返回策略，提案 §3.2"实施必要条件"）。true 时 complete/fail/pause/
+	// checkpoint 的 Runtime 提交与 result 的 EndTurn/retain 全部延后，由
+	// pullSession.Return 作为唯一提交点重放（终局唯一 owner）。缺省 false=
+	// 完全旧行为（push 零变化，§11.5 兼容义务）。仅 agentloop 包内设置。
+	lifecycleDraft bool
 }
 
 func (r *Runner) Start(ctx context.Context, in Input) Result {
@@ -665,18 +680,22 @@ func (r *Runner) checkpoint(label string, state *runState) (bool, Result) {
 		state.goal = r.Runtime.Tick(state.goal.GoalID, label)
 	}
 	if state.goal.StopRequested || state.goal.Status == agentruntime.StatusStopped {
-		if r.Runtime != nil {
-			state.goal = r.Runtime.MarkStopped(state.goal.GoalID, state.goal.LastCheckpoint)
-		} else {
-			state.goal.Status = agentruntime.StatusStopped
+		if !r.lifecycleDraft {
+			if r.Runtime != nil {
+				state.goal = r.Runtime.MarkStopped(state.goal.GoalID, state.goal.LastCheckpoint)
+			} else {
+				state.goal.Status = agentruntime.StatusStopped
+			}
 		}
 		return true, r.result(state, agentruntime.StatusStopped, StopReasonCancelled, "", "已停止。", "", "", nil)
 	}
 	if state.goal.CancelRequested || state.goal.Status == agentruntime.StatusCancelled || state.goal.Status == agentruntime.StatusCancelling {
-		if r.Runtime != nil {
-			state.goal = r.Runtime.SetStatus(state.goal.GoalID, agentruntime.StatusCancelled, nil)
-		} else {
-			state.goal.Status = agentruntime.StatusCancelled
+		if !r.lifecycleDraft {
+			if r.Runtime != nil {
+				state.goal = r.Runtime.SetStatus(state.goal.GoalID, agentruntime.StatusCancelled, nil)
+			} else {
+				state.goal.Status = agentruntime.StatusCancelled
+			}
 		}
 		return true, r.result(state, agentruntime.StatusCancelled, StopReasonCancelled, "", "已取消。", "", "", nil)
 	}
@@ -702,6 +721,11 @@ func (r *Runner) checkToolBudget(state *runState) (bool, Result) {
 }
 
 func (r *Runner) complete(state *runState, reply string) Result {
+	if r.lifecycleDraft {
+		// pull draft：Runtime 提交延后到 Return（结果组装照常——draft 即
+		// 最终 Result 的纯组装形态）。
+		return r.result(state, agentruntime.StatusCompleted, StopReasonDone, "", reply, "", "", nil)
+	}
 	if r.Runtime != nil {
 		state.goal = r.Runtime.Complete(state.goal.GoalID, nil)
 	} else {
@@ -714,7 +738,7 @@ func (r *Runner) fail(state *runState, err error) Result {
 	if err == nil {
 		err = fmt.Errorf("goal failed")
 	}
-	if r.Runtime != nil && state != nil && state.goal.GoalID != "" {
+	if !r.lifecycleDraft && r.Runtime != nil && state != nil && state.goal.GoalID != "" {
 		state.goal = r.Runtime.Complete(state.goal.GoalID, err)
 	}
 	stopReason := StopReasonFailed
@@ -728,10 +752,12 @@ func (r *Runner) fail(state *runState, err error) Result {
 }
 
 func (r *Runner) pause(state *runState, status agentruntime.GoalStatus, stopReason, limitType, reply, preview, undoLabel string, pending *planner.ToolCall) Result {
-	if r.Runtime != nil {
-		state.goal = r.Runtime.SetStatus(state.goal.GoalID, status, nil)
-	} else {
-		state.goal.Status = status
+	if !r.lifecycleDraft {
+		if r.Runtime != nil {
+			state.goal = r.Runtime.SetStatus(state.goal.GoalID, status, nil)
+		} else {
+			state.goal.Status = status
+		}
 	}
 	return r.result(state, status, stopReason, limitType, reply, preview, undoLabel, pending)
 }
@@ -745,7 +771,7 @@ func (r *Runner) result(state *runState, status agentruntime.GoalStatus, stopRea
 	} else {
 		state.pendingToolCall = nil
 	}
-	if r.Runtime != nil && state.input.TurnID != "" {
+	if r.Runtime != nil && state.input.TurnID != "" && !r.lifecycleDraft {
 		state.goal = r.Runtime.EndTurn(state.goal.GoalID, state.input.TurnID, string(status),
 			maxInt(0, state.turnsUsed-state.sliceTurnsStart), maxInt(0, state.toolCallsUsed-state.sliceToolCallsStart))
 	}
@@ -784,8 +810,12 @@ func (r *Runner) result(state *runState, status agentruntime.GoalStatus, stopRea
 		// L1-4-IMPL-D D1：run 终态观察结论跨会话延伸（§4.2 行 3）——观察账本
 		// 随 loop 消亡，结论行经退场执行器 retain 进工程 L4 账本；结果留痕
 		// trace（retain 计数/违规可见，失败不阻断 Result）。
-		if note := r.retainRunObservationConclusions(state); note != "" {
-			state.trace = append(state.trace, planner.TraceEvent{Kind: "exit_retain", Message: note})
+		// L1-5-IMPL-D：pull draft 模式下 retain 延后到 Return（T2=宿主唯一
+		// 提交点）；cont=nil 语义不变（终局不续片）。
+		if !r.lifecycleDraft {
+			if note := r.retainRunObservationConclusions(state); note != "" {
+				state.trace = append(state.trace, planner.TraceEvent{Kind: "exit_retain", Message: note})
+			}
 		}
 	}
 	currentStep := ""

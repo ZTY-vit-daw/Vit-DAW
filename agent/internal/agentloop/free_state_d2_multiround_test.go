@@ -93,7 +93,7 @@ func TestPromptTierFollowsLiveAdmissionBudget(t *testing.T) {
 	}
 	// Budgets above the sealed bound fall back to the single-round wording.
 	over := &runState{input: Input{Context: map[string]any{
-		"free_state_reasoning_loop": multiRoundExperimentLoopContext(int(experiment.MaxD2MultiRoundBudget) + 1, nil),
+		"free_state_reasoning_loop": multiRoundExperimentLoopContext(int(experiment.MaxD2MultiRoundBudget)+1, nil),
 	}}}
 	if messageLoopFreeStateMultiRoundTier(over) {
 		t.Fatal("an over-bound admission budget was detected as multi-round")

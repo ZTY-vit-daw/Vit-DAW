@@ -347,6 +347,7 @@ func TestImprovementContractRejectsDiagnosticCompleteTerminal(t *testing.T) {
 		t.Fatalf("diagnostic-only run was denied its legal diagnostic_complete terminal: %q", issue)
 	}
 }
+
 // Final-gate defense-in-depth: while the experiment round is durably parked at
 // the human-judgment boundary (round decision user_judgment_pending / judgment
 // requested / judgment recorded), a model decision that would revive the loop
@@ -388,5 +389,3 @@ func TestJudgmentBoundaryRejectsRevivalDecisions(t *testing.T) {
 		t.Fatalf("settle decision was rejected at the judgment boundary: %q", issue)
 	}
 }
-
-

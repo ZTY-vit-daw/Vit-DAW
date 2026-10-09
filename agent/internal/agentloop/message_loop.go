@@ -543,308 +543,12 @@ func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Resu
 			}
 			return r.fail(state, err)
 		}
-		out, err := parseMessageLoopOutput(raw)
-		if err != nil {
-			appendMessageLoopDiagnostic(messageLoopDiagnostic{
-				Stage:             "parse_failed",
-				Error:             err.Error(),
-				GoalID:            state.goal.GoalID,
-				RunID:             state.goal.RunID,
-				ConversationID:    messageLoopConversationID(state),
-				PromptFingerprint: assembly.Fingerprint,
-				Raw:               raw,
-			})
-			state.trace = append(state.trace, planner.TraceEvent{Kind: "planner_error", Message: err.Error(), Reply: raw})
-			repairedRaw, repairErr := l.repairOutput(ctx, state, raw, err, assembly.Fingerprint)
-			state.turnsUsed++
-			if repairErr != nil {
-				state.modelProtocolFailure = true
-				appendMessageLoopDiagnostic(messageLoopDiagnostic{
-					Stage:             "repair_failed",
-					Error:             repairErr.Error(),
-					GoalID:            state.goal.GoalID,
-					RunID:             state.goal.RunID,
-					ConversationID:    messageLoopConversationID(state),
-					PromptFingerprint: assembly.Fingerprint,
-					Raw:               repairedRaw,
-				})
-				state.trace = append(state.trace, planner.TraceEvent{Kind: "planner_error", Message: repairErr.Error(), Reply: repairedRaw})
-				if messageLoopFreeStateTerminalTurnLocked(state) {
-					return messageLoopTerminalFallbackResult(r, state, assembly.Fingerprint, raw, messageLoopJSONRepairRetryPrompt, FreeStateTerminalFallbackStopReason, "terminal turn output was unparseable after the strengthened JSON repair retry")
-				}
-				return r.fail(state, fmt.Errorf("Agent 返回的计划格式不完整，自动修复也失败了"))
-			}
-			repairedOut, parseRepairErr := parseMessageLoopOutput(repairedRaw)
-			if parseRepairErr != nil {
-				state.modelProtocolFailure = true
-				appendMessageLoopDiagnostic(messageLoopDiagnostic{
-					Stage:             "repair_parse_failed",
-					Error:             parseRepairErr.Error(),
-					GoalID:            state.goal.GoalID,
-					RunID:             state.goal.RunID,
-					ConversationID:    messageLoopConversationID(state),
-					PromptFingerprint: assembly.Fingerprint,
-					Raw:               repairedRaw,
-				})
-				state.trace = append(state.trace, planner.TraceEvent{Kind: "planner_error", Message: parseRepairErr.Error(), Reply: repairedRaw})
-				if messageLoopFreeStateTerminalTurnLocked(state) {
-					return messageLoopTerminalFallbackResult(r, state, assembly.Fingerprint, raw, messageLoopJSONRepairRetryPrompt, FreeStateTerminalFallbackStopReason, "terminal turn output was unparseable after the strengthened JSON repair retry")
-				}
-				return r.fail(state, fmt.Errorf("Agent 返回的计划格式不完整，自动修复也没有得到可执行计划"))
-			}
-			// FIX-REPAIR-CLARIFY-DEATH-1: a successful repair's raw output is
-			// itself evidence. The forensic boundary showed repair outputs were
-			// never persisted, so the actual repaired form had to be inferred
-			// from downstream behavior.
-			appendMessageLoopDiagnostic(messageLoopDiagnostic{
-				Stage:             "repair_succeeded",
-				GoalID:            state.goal.GoalID,
-				RunID:             state.goal.RunID,
-				ConversationID:    messageLoopConversationID(state),
-				PromptFingerprint: assembly.Fingerprint,
-				Raw:               repairedRaw,
-			})
-			// FIX-REPAIR-CLARIFY-DEATH-1: under an active audio closure the
-			// repair contract forbids clarification shapes. A repair that
-			// parses but returns one gets exactly one reinforced repair before
-			// the NeedsClarification pause — and the chat-layer protocol-death
-			// classification behind it — may stand.
-			if repairedOut.NeedsClarification && messageLoopAudioClosureActive(state) {
-				appendMessageLoopDiagnostic(messageLoopDiagnostic{
-					Stage:             "repair_clarify_violation",
-					Error:             "closure repair returned a prohibited needs_clarification object; one reinforced repair precedes the protocol-death classification",
-					GoalID:            state.goal.GoalID,
-					RunID:             state.goal.RunID,
-					ConversationID:    messageLoopConversationID(state),
-					PromptFingerprint: assembly.Fingerprint,
-					Raw:               repairedRaw,
-				})
-				state.trace = append(state.trace, planner.TraceEvent{Kind: "planner_repair", Message: "closure repair violated the no-clarification contract; one reinforced repair follows"})
-				reinforcedRaw, reinforceErr := l.repairOutputClarifyReinforced(ctx, state, raw, err, assembly.Fingerprint)
-				state.turnsUsed++
-				reinforceDiag := messageLoopDiagnostic{
-					Stage:             "repair_clarify_reinforce",
-					GoalID:            state.goal.GoalID,
-					RunID:             state.goal.RunID,
-					ConversationID:    messageLoopConversationID(state),
-					PromptFingerprint: assembly.Fingerprint,
-				}
-				if reinforceErr != nil {
-					reinforceDiag.Error = "reinforced repair call failed: " + reinforceErr.Error()
-				} else {
-					reinforceDiag.Raw = reinforcedRaw
-					reinforcedOut, reinforcedParseErr := parseMessageLoopOutput(reinforcedRaw)
-					switch {
-					case reinforcedParseErr != nil:
-						reinforceDiag.Error = "reinforced repair output unparseable: " + reinforcedParseErr.Error()
-					case reinforcedOut.NeedsClarification:
-						reinforceDiag.Error = "reinforced repair still returned a prohibited needs_clarification object; protocol-death classification stands"
-						repairedRaw, repairedOut = reinforcedRaw, reinforcedOut
-						state.trace = append(state.trace, planner.TraceEvent{Kind: "planner_repair", Message: "reinforced closure repair still returned a clarification"})
-					default:
-						repairedRaw, repairedOut = reinforcedRaw, reinforcedOut
-						state.trace = append(state.trace, planner.TraceEvent{Kind: "planner_repair", Message: "reinforced closure repair recovered a compliant output"})
-					}
-				}
-				appendMessageLoopDiagnostic(reinforceDiag)
-			}
-			raw = repairedRaw
-			out = repairedOut
-			state.modelProtocolRepairs++
-			state.trace = append(state.trace, planner.TraceEvent{Kind: "planner_repair", Message: "message loop JSON repaired"})
+		flow, interpreted, out := l.interpretModelReply(ctx, r, state, raw, assembly.Fingerprint)
+		if flow == modelFlowStopped {
+			return interpreted
 		}
-		out = coerceMessageLoopFreeStateObservationOutput(state, out)
-		state.input.Conversation = append(state.input.Conversation, llm.Message{Role: "assistant", Content: strings.TrimSpace(raw)})
-		if strings.TrimSpace(out.Reply) != "" {
-			state.trace = append(state.trace, planner.TraceEvent{Kind: "assistant", Reply: strings.TrimSpace(out.Reply)})
-		}
-		// BOUNDARY-1 §3.2 strict terminal parse: on a locked turn the raw
-		// response must be exactly one JSON object. A prose-mixed or
-		// multi-object output is classified unparseable — no lenient repair,
-		// no silent default — and follows the same one-retry-then-honest-
-		// fallback chain as the gate rejection below.
-		if messageLoopFreeStateTerminalTurnLocked(state) && messageLoopFreeStateTerminalRawUnparseable(raw) {
-			appendMessageLoopDiagnostic(messageLoopDiagnostic{
-				Stage:             "free_state_terminal_parse_strict",
-				Error:             "terminal turn raw output was not one clean JSON object (prose-mixed or multi-object output)",
-				GoalID:            state.goal.GoalID,
-				RunID:             state.goal.RunID,
-				ConversationID:    messageLoopConversationID(state),
-				PromptFingerprint: assembly.Fingerprint,
-				Raw:               raw,
-			})
-			state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: "terminal-turn strict parse: raw output was not one clean JSON object"})
-			if messageLoopFreeStateTerminalRetryCount(state) < freeStateTerminalTurnMaxRetries {
-				messageLoopFreeStateNoteTerminalRetry(state)
-				retryPrompt := freeStateTerminalTurnSentence + " " + freeStateTerminalTurnRetryDirective
-				state.input.Conversation = append(state.input.Conversation, llm.Message{Role: "user", Content: "<final_gate>" + retryPrompt + "</final_gate>"})
-				continue
-			}
-			return messageLoopTerminalFallbackResult(r, state, assembly.Fingerprint, raw,
-				freeStateTerminalTurnSentence+" "+freeStateTerminalTurnRetryDirective,
-				FreeStateTerminalFallbackStopReason,
-				"terminal turn raw output was not one clean JSON object after one strengthened retry")
-		}
-		if strings.TrimSpace(out.FailureReason) != "" {
-			if strings.EqualFold(strings.TrimSpace(out.FailureReason), StopReasonModelProtocolFailure) {
-				state.modelProtocolFailure = true
-			}
-			state.trace = append(state.trace, planner.TraceEvent{Kind: "planner_failure", Message: out.FailureReason})
-			return r.fail(state, errors.New(out.FailureReason))
-		}
-		if issue := messageLoopFreeStateOutputIssue(state, out); issue != "" {
-			appendMessageLoopDiagnostic(messageLoopDiagnostic{
-				Stage:             "free_state_final_gate",
-				Error:             issue,
-				GoalID:            state.goal.GoalID,
-				RunID:             state.goal.RunID,
-				ConversationID:    messageLoopConversationID(state),
-				PromptFingerprint: assembly.Fingerprint,
-				Raw:               raw,
-			})
-			state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: issue})
-			if messageLoopFreeStateTerminalTurnLocked(state) {
-				// BOUNDARY-1 §1.3 fallback chain: one strengthened retry, then
-				// the honest settle with the three-piece evidence (original
-				// response / retry prompt / fallback reason) in the artifact
-				// log. The fallback never counts as a model decision.
-				if messageLoopFreeStateTerminalRetryCount(state) < freeStateTerminalTurnMaxRetries {
-					messageLoopFreeStateNoteTerminalRetry(state)
-					retryPrompt := issue + " " + freeStateTerminalTurnRetryDirective
-					state.input.Conversation = append(state.input.Conversation, llm.Message{Role: "user", Content: "<final_gate>" + retryPrompt + "</final_gate>"})
-					continue
-				}
-				// FIX-F3-G4-SEMANTICS: an admissible decision shape (a complete
-				// proposal or a terminal status) refused at this boundary was
-				// parseable — report it as gate-rejected, not unparseable.
-				fallbackStopReason := FreeStateTerminalFallbackStopReason
-				if out.FreeStateDecision != nil && freeStateTerminalDecisionAdmitted(out.FreeStateDecision) {
-					fallbackStopReason = FreeStateTerminalGateRejectedStopReason
-				}
-				return messageLoopTerminalFallbackResult(r, state, assembly.Fingerprint, raw,
-					issue+" "+freeStateTerminalTurnRetryDirective,
-					fallbackStopReason,
-					"no admissible final decision after one strengthened retry")
-			}
-			// TIMING-1 anti-abuse accounting: count the evidence-type G-gate
-			// bounce, latch the rejected proposal fingerprint, and lock the
-			// terminal turn on the second rejection or an identical-fingerprint
-			// resubmission without new evidence (advisory ruling #5 rules 1-3).
-			// The lock lands after the locked-turn check above, so this bounce
-			// keeps its ordinary gap feedback and the next turn is the terminal
-			// prompt; the budget-critical reservation is never downgraded.
-			messageLoopFreeStateNoteAdmissionRejection(state, out, issue)
-			state.input.Conversation = append(state.input.Conversation, llm.Message{Role: "user", Content: "<final_gate>" + issue + "</final_gate>"})
+		if flow == modelFlowRetry {
 			continue
-		}
-		state.freeStateDecision = cloneFreeStateDecision(out.FreeStateDecision)
-		if out.NeedsClarification {
-			if handled, stopped, result := l.maybeStartStemsImportConfirmation(ctx, r, state, out, "clarification_after_preflight"); handled {
-				if stopped {
-					return result
-				}
-				continue
-			}
-			if candidate := messageLoopDeterministicVocalClarificationPendingTick(state, firstNonEmpty(out.Reply, out.ClarificationQuestion)); candidate != nil {
-				messageLoopAttachDiagnosisToMixTick(state, candidate, state.input.UserText)
-				state.executionMemory.PendingMixTickCandidate = candidate
-				state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: "resolved vocal clarification synthesized pending mix tick"})
-				return r.complete(state, messageLoopDeterministicVocalClarificationPendingReply(state, candidate))
-			}
-			if reply, ok := messageLoopClarificationAsPendingMixSuggestion(state, out); ok {
-				state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: "mix execution question normalized to pending suggestion"})
-				return r.complete(state, reply)
-			}
-			if reply, ok := messageLoopClarificationAsPendingPanTreatment(state, out); ok {
-				state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: "pan clarification normalized to pending treatment"})
-				return r.complete(state, reply)
-			}
-			// FULLACCESS-AUTONOMY-1 guardrail: under an explicit full project access
-			// grant a direction/selection/dose question is bounced once (the prompt
-			// directive already states who owns the choice). Request-object
-			// ambiguity and genuine boundaries fall through untouched, and the
-			// bounce is bounded to one per turn so the turn can never be trapped.
-			if issue := messageLoopFullAccessDirectionClarificationIssue(state, out); issue != "" {
-				if messageLoopFullAccessDirectionClarificationBounce(state, issue, raw) {
-					continue
-				}
-			}
-			question := firstNonEmpty(out.ClarificationQuestion, out.Reply, "请告诉我这次要编辑的具体目标。")
-			question = messageLoopClarificationQuestion(state, question)
-			state.trace = append(state.trace, planner.TraceEvent{Kind: "clarification", Message: question})
-			res := r.pause(state, agentruntime.StatusWaitingClarification, StopReasonNeedsClarification, "", question, "", "", nil)
-			res.NeedsClarification = true
-			res.ClarificationQuestion = question
-			return res
-		}
-		if out.Final || len(out.ToolCalls) == 0 {
-			if handled, stopped, result := l.maybeStartStemsImportConfirmation(ctx, r, state, out, "final_after_preflight"); handled {
-				if stopped {
-					return result
-				}
-				continue
-			}
-			if reply, status, ok := messageLoopFreeStateTerminalReply(out); ok {
-				state.trace = append(state.trace, planner.TraceEvent{
-					Kind:    "final_gate",
-					Message: "accepted authoritative free-state terminal decision: " + status,
-				})
-				return r.complete(state, reply)
-			}
-			if messageLoopOrdinarySemanticEQRequest(state) && out.SemanticAction == nil && !messageLoopHasGenericEQTopologyEvidence(state) {
-				issue := "this is an actionable ordinary-Agent generic EQ listening goal with an exact selected plugin target; do not create MixTreatmentPending or use stored-mapping/B4 preparation. Read the live EQ topology if needed, then emit semantic_effect_action.v1, or ask a genuine target clarification"
-				state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: issue})
-				state.input.Conversation = append(state.input.Conversation, llm.Message{Role: "user", Content: "<final_gate>" + issue + "</final_gate>"})
-				continue
-			}
-			if out.SemanticAction != nil && messageLoopOrdinarySemanticEQRequest(state) && !messageLoopHasGenericEQTopologyEvidence(state) {
-				issue := "before freezing semantic_action, call plugin_grabber.explain_controls for the exact selected track/plugin and use only its live generic EQ eq_band_summary/control_topology evidence to choose a provably reachable Shape and explicit fields"
-				state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: issue})
-				state.input.Conversation = append(state.input.Conversation, llm.Message{Role: "user", Content: "<final_gate>" + issue + "</final_gate>"})
-				continue
-			}
-			if reply, ok := messageLoopCompressorFailureFinalReply(state); ok {
-				state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: "typed compressor failure completed truthfully without fallback"})
-				return r.complete(state, reply)
-			}
-			if issue := messageLoopFinalIssue(state); issue != "" {
-				state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: issue, PlanItems: append([]planner.PlanItem(nil), state.planItems...)})
-				state.input.Conversation = append(state.input.Conversation, llm.Message{Role: "user", Content: "<final_gate>" + issue + "</final_gate>"})
-				continue
-			}
-			reply := strings.TrimSpace(out.Reply)
-			if reply == "" {
-				reply = "已完成。"
-			}
-			if out.SemanticAction != nil {
-				if !messageLoopSemanticEffectProposalAllowed(state) {
-					issue := "the current turn is discussion/read-only; answer the question without semantic_action, Proposal, pending state, or mutation authority"
-					state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: issue})
-					state.input.Conversation = append(state.input.Conversation, llm.Message{Role: "user", Content: "<final_gate>" + issue + "</final_gate>"})
-					continue
-				}
-				if err := out.SemanticAction.Validate(); err != nil {
-					issue := "semantic_action is invalid: " + err.Error() + "; correct the typed action without changing the user's acoustic goal"
-					state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: issue})
-					state.input.Conversation = append(state.input.Conversation, llm.Message{Role: "user", Content: "<final_gate>" + issue + "</final_gate>"})
-					continue
-				}
-				state.semanticAction = cloneSemanticEffectAction(out.SemanticAction)
-			}
-			if candidate := messageLoopDeterministicVocalClarificationPendingTick(state, reply); candidate != nil {
-				messageLoopAttachDiagnosisToMixTick(state, candidate, state.input.UserText)
-				state.executionMemory.PendingMixTickCandidate = candidate
-				state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: "resolved vocal clarification synthesized pending mix tick"})
-				return r.complete(state, messageLoopDeterministicVocalClarificationPendingReply(state, candidate))
-			}
-			if question, ok := messageLoopFinalFocusTrackClarification(state, reply); ok {
-				state.trace = append(state.trace, planner.TraceEvent{Kind: "clarification", Message: question})
-				res := r.pause(state, agentruntime.StatusWaitingClarification, StopReasonNeedsClarification, "", question, "", "", nil)
-				res.NeedsClarification = true
-				res.ClarificationQuestion = question
-				return res
-			}
-			return r.complete(state, messageLoopMixObservationFinalReply(state, reply))
 		}
 		hadMixObservationBeforeTurn := messageLoopHasUsableMixObservation(state)
 		if stopped, result := l.executeMessageLoopToolCalls(ctx, r, state, out.ToolCalls, out, hadMixObservationBeforeTurn); stopped {
@@ -10924,4 +10628,330 @@ func messageLoopIsMIDINoteReadName(name string) bool {
 	default:
 		return false
 	}
+}
+
+// modelFlow 是 interpretModelReply 的流向枚举（结构提取面，无行为语义）。
+type modelFlow int
+
+const (
+	modelFlowRetry modelFlow = iota
+	modelFlowStopped
+	modelFlowExecute
+)
+
+// interpretModelReply 处理一次模型原始回复的完整链（解析→修复→自由态终局
+// 兜底→守卫/final gate→澄清/终局分支）。L1-5-IMPL-D 腿2 结构提取自
+// l.loop（push 逐字保持，行为零变化——缺省 push 全量回归断言）；pull 侧
+// 经 pullSession.Interpret 复用（ADAPTER 提案 §3.2-5）。返回值：
+//
+//	modelFlowRetry   — final gate 反馈已回喂会话，调用方须装配下一模型轮；
+//	modelFlowStopped — 完整 Result（push=直接返回；pull=draft，交 Return
+//	                   提交）；
+//	modelFlowExecute — out.ToolCalls 待执行批（调用方执行后接确定性
+//	                   fast-complete 检查）。
+func (l *MessageLoop) interpretModelReply(ctx context.Context, r *Runner, state *runState, raw, fingerprint string) (modelFlow, Result, messageLoopOutput) {
+	out, err := parseMessageLoopOutput(raw)
+	if err != nil {
+		appendMessageLoopDiagnostic(messageLoopDiagnostic{
+			Stage:             "parse_failed",
+			Error:             err.Error(),
+			GoalID:            state.goal.GoalID,
+			RunID:             state.goal.RunID,
+			ConversationID:    messageLoopConversationID(state),
+			PromptFingerprint: fingerprint,
+			Raw:               raw,
+		})
+		state.trace = append(state.trace, planner.TraceEvent{Kind: "planner_error", Message: err.Error(), Reply: raw})
+		repairedRaw, repairErr := l.repairOutput(ctx, state, raw, err, fingerprint)
+		state.turnsUsed++
+		if repairErr != nil {
+			state.modelProtocolFailure = true
+			appendMessageLoopDiagnostic(messageLoopDiagnostic{
+				Stage:             "repair_failed",
+				Error:             repairErr.Error(),
+				GoalID:            state.goal.GoalID,
+				RunID:             state.goal.RunID,
+				ConversationID:    messageLoopConversationID(state),
+				PromptFingerprint: fingerprint,
+				Raw:               repairedRaw,
+			})
+			state.trace = append(state.trace, planner.TraceEvent{Kind: "planner_error", Message: repairErr.Error(), Reply: repairedRaw})
+			if messageLoopFreeStateTerminalTurnLocked(state) {
+				return modelFlowStopped, messageLoopTerminalFallbackResult(r, state, fingerprint, raw, messageLoopJSONRepairRetryPrompt, FreeStateTerminalFallbackStopReason, "terminal turn output was unparseable after the strengthened JSON repair retry"), messageLoopOutput{}
+			}
+			return modelFlowStopped, r.fail(state, fmt.Errorf("Agent 返回的计划格式不完整，自动修复也失败了")), messageLoopOutput{}
+		}
+		repairedOut, parseRepairErr := parseMessageLoopOutput(repairedRaw)
+		if parseRepairErr != nil {
+			state.modelProtocolFailure = true
+			appendMessageLoopDiagnostic(messageLoopDiagnostic{
+				Stage:             "repair_parse_failed",
+				Error:             parseRepairErr.Error(),
+				GoalID:            state.goal.GoalID,
+				RunID:             state.goal.RunID,
+				ConversationID:    messageLoopConversationID(state),
+				PromptFingerprint: fingerprint,
+				Raw:               repairedRaw,
+			})
+			state.trace = append(state.trace, planner.TraceEvent{Kind: "planner_error", Message: parseRepairErr.Error(), Reply: repairedRaw})
+			if messageLoopFreeStateTerminalTurnLocked(state) {
+				return modelFlowStopped, messageLoopTerminalFallbackResult(r, state, fingerprint, raw, messageLoopJSONRepairRetryPrompt, FreeStateTerminalFallbackStopReason, "terminal turn output was unparseable after the strengthened JSON repair retry"), messageLoopOutput{}
+			}
+			return modelFlowStopped, r.fail(state, fmt.Errorf("Agent 返回的计划格式不完整，自动修复也没有得到可执行计划")), messageLoopOutput{}
+		}
+		// FIX-REPAIR-CLARIFY-DEATH-1: a successful repair's raw output is
+		// itself evidence. The forensic boundary showed repair outputs were
+		// never persisted, so the actual repaired form had to be inferred
+		// from downstream behavior.
+		appendMessageLoopDiagnostic(messageLoopDiagnostic{
+			Stage:             "repair_succeeded",
+			GoalID:            state.goal.GoalID,
+			RunID:             state.goal.RunID,
+			ConversationID:    messageLoopConversationID(state),
+			PromptFingerprint: fingerprint,
+			Raw:               repairedRaw,
+		})
+		// FIX-REPAIR-CLARIFY-DEATH-1: under an active audio closure the
+		// repair contract forbids clarification shapes. A repair that
+		// parses but returns one gets exactly one reinforced repair before
+		// the NeedsClarification pause — and the chat-layer protocol-death
+		// classification behind it — may stand.
+		if repairedOut.NeedsClarification && messageLoopAudioClosureActive(state) {
+			appendMessageLoopDiagnostic(messageLoopDiagnostic{
+				Stage:             "repair_clarify_violation",
+				Error:             "closure repair returned a prohibited needs_clarification object; one reinforced repair precedes the protocol-death classification",
+				GoalID:            state.goal.GoalID,
+				RunID:             state.goal.RunID,
+				ConversationID:    messageLoopConversationID(state),
+				PromptFingerprint: fingerprint,
+				Raw:               repairedRaw,
+			})
+			state.trace = append(state.trace, planner.TraceEvent{Kind: "planner_repair", Message: "closure repair violated the no-clarification contract; one reinforced repair follows"})
+			reinforcedRaw, reinforceErr := l.repairOutputClarifyReinforced(ctx, state, raw, err, fingerprint)
+			state.turnsUsed++
+			reinforceDiag := messageLoopDiagnostic{
+				Stage:             "repair_clarify_reinforce",
+				GoalID:            state.goal.GoalID,
+				RunID:             state.goal.RunID,
+				ConversationID:    messageLoopConversationID(state),
+				PromptFingerprint: fingerprint,
+			}
+			if reinforceErr != nil {
+				reinforceDiag.Error = "reinforced repair call failed: " + reinforceErr.Error()
+			} else {
+				reinforceDiag.Raw = reinforcedRaw
+				reinforcedOut, reinforcedParseErr := parseMessageLoopOutput(reinforcedRaw)
+				switch {
+				case reinforcedParseErr != nil:
+					reinforceDiag.Error = "reinforced repair output unparseable: " + reinforcedParseErr.Error()
+				case reinforcedOut.NeedsClarification:
+					reinforceDiag.Error = "reinforced repair still returned a prohibited needs_clarification object; protocol-death classification stands"
+					repairedRaw, repairedOut = reinforcedRaw, reinforcedOut
+					state.trace = append(state.trace, planner.TraceEvent{Kind: "planner_repair", Message: "reinforced closure repair still returned a clarification"})
+				default:
+					repairedRaw, repairedOut = reinforcedRaw, reinforcedOut
+					state.trace = append(state.trace, planner.TraceEvent{Kind: "planner_repair", Message: "reinforced closure repair recovered a compliant output"})
+				}
+			}
+			appendMessageLoopDiagnostic(reinforceDiag)
+		}
+		raw = repairedRaw
+		out = repairedOut
+		state.modelProtocolRepairs++
+		state.trace = append(state.trace, planner.TraceEvent{Kind: "planner_repair", Message: "message loop JSON repaired"})
+	}
+	out = coerceMessageLoopFreeStateObservationOutput(state, out)
+	state.input.Conversation = append(state.input.Conversation, llm.Message{Role: "assistant", Content: strings.TrimSpace(raw)})
+	if strings.TrimSpace(out.Reply) != "" {
+		state.trace = append(state.trace, planner.TraceEvent{Kind: "assistant", Reply: strings.TrimSpace(out.Reply)})
+	}
+	// BOUNDARY-1 §3.2 strict terminal parse: on a locked turn the raw
+	// response must be exactly one JSON object. A prose-mixed or
+	// multi-object output is classified unparseable — no lenient repair,
+	// no silent default — and follows the same one-retry-then-honest-
+	// fallback chain as the gate rejection below.
+	if messageLoopFreeStateTerminalTurnLocked(state) && messageLoopFreeStateTerminalRawUnparseable(raw) {
+		appendMessageLoopDiagnostic(messageLoopDiagnostic{
+			Stage:             "free_state_terminal_parse_strict",
+			Error:             "terminal turn raw output was not one clean JSON object (prose-mixed or multi-object output)",
+			GoalID:            state.goal.GoalID,
+			RunID:             state.goal.RunID,
+			ConversationID:    messageLoopConversationID(state),
+			PromptFingerprint: fingerprint,
+			Raw:               raw,
+		})
+		state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: "terminal-turn strict parse: raw output was not one clean JSON object"})
+		if messageLoopFreeStateTerminalRetryCount(state) < freeStateTerminalTurnMaxRetries {
+			messageLoopFreeStateNoteTerminalRetry(state)
+			retryPrompt := freeStateTerminalTurnSentence + " " + freeStateTerminalTurnRetryDirective
+			state.input.Conversation = append(state.input.Conversation, llm.Message{Role: "user", Content: "<final_gate>" + retryPrompt + "</final_gate>"})
+			return modelFlowRetry, Result{}, messageLoopOutput{}
+		}
+		return modelFlowStopped, messageLoopTerminalFallbackResult(r, state, fingerprint, raw,
+			freeStateTerminalTurnSentence+" "+freeStateTerminalTurnRetryDirective,
+			FreeStateTerminalFallbackStopReason,
+			"terminal turn raw output was not one clean JSON object after one strengthened retry"), messageLoopOutput{}
+	}
+	if strings.TrimSpace(out.FailureReason) != "" {
+		if strings.EqualFold(strings.TrimSpace(out.FailureReason), StopReasonModelProtocolFailure) {
+			state.modelProtocolFailure = true
+		}
+		state.trace = append(state.trace, planner.TraceEvent{Kind: "planner_failure", Message: out.FailureReason})
+		return modelFlowStopped, r.fail(state, errors.New(out.FailureReason)), messageLoopOutput{}
+	}
+	if issue := messageLoopFreeStateOutputIssue(state, out); issue != "" {
+		appendMessageLoopDiagnostic(messageLoopDiagnostic{
+			Stage:             "free_state_final_gate",
+			Error:             issue,
+			GoalID:            state.goal.GoalID,
+			RunID:             state.goal.RunID,
+			ConversationID:    messageLoopConversationID(state),
+			PromptFingerprint: fingerprint,
+			Raw:               raw,
+		})
+		state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: issue})
+		if messageLoopFreeStateTerminalTurnLocked(state) {
+			// BOUNDARY-1 §1.3 fallback chain: one strengthened retry, then
+			// the honest settle with the three-piece evidence (original
+			// response / retry prompt / fallback reason) in the artifact
+			// log. The fallback never counts as a model decision.
+			if messageLoopFreeStateTerminalRetryCount(state) < freeStateTerminalTurnMaxRetries {
+				messageLoopFreeStateNoteTerminalRetry(state)
+				retryPrompt := issue + " " + freeStateTerminalTurnRetryDirective
+				state.input.Conversation = append(state.input.Conversation, llm.Message{Role: "user", Content: "<final_gate>" + retryPrompt + "</final_gate>"})
+				return modelFlowRetry, Result{}, messageLoopOutput{}
+			}
+			// FIX-F3-G4-SEMANTICS: an admissible decision shape (a complete
+			// proposal or a terminal status) refused at this boundary was
+			// parseable — report it as gate-rejected, not unparseable.
+			fallbackStopReason := FreeStateTerminalFallbackStopReason
+			if out.FreeStateDecision != nil && freeStateTerminalDecisionAdmitted(out.FreeStateDecision) {
+				fallbackStopReason = FreeStateTerminalGateRejectedStopReason
+			}
+			return modelFlowStopped, messageLoopTerminalFallbackResult(r, state, fingerprint, raw,
+				issue+" "+freeStateTerminalTurnRetryDirective,
+				fallbackStopReason,
+				"no admissible final decision after one strengthened retry"), messageLoopOutput{}
+		}
+		// TIMING-1 anti-abuse accounting: count the evidence-type G-gate
+		// bounce, latch the rejected proposal fingerprint, and lock the
+		// terminal turn on the second rejection or an identical-fingerprint
+		// resubmission without new evidence (advisory ruling #5 rules 1-3).
+		// The lock lands after the locked-turn check above, so this bounce
+		// keeps its ordinary gap feedback and the next turn is the terminal
+		// prompt; the budget-critical reservation is never downgraded.
+		messageLoopFreeStateNoteAdmissionRejection(state, out, issue)
+		state.input.Conversation = append(state.input.Conversation, llm.Message{Role: "user", Content: "<final_gate>" + issue + "</final_gate>"})
+		return modelFlowRetry, Result{}, messageLoopOutput{}
+	}
+	state.freeStateDecision = cloneFreeStateDecision(out.FreeStateDecision)
+	if out.NeedsClarification {
+		if handled, stopped, result := l.maybeStartStemsImportConfirmation(ctx, r, state, out, "clarification_after_preflight"); handled {
+			if stopped {
+				return modelFlowStopped, result, messageLoopOutput{}
+			}
+			return modelFlowRetry, Result{}, messageLoopOutput{}
+		}
+		if candidate := messageLoopDeterministicVocalClarificationPendingTick(state, firstNonEmpty(out.Reply, out.ClarificationQuestion)); candidate != nil {
+			messageLoopAttachDiagnosisToMixTick(state, candidate, state.input.UserText)
+			state.executionMemory.PendingMixTickCandidate = candidate
+			state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: "resolved vocal clarification synthesized pending mix tick"})
+			return modelFlowStopped, r.complete(state, messageLoopDeterministicVocalClarificationPendingReply(state, candidate)), messageLoopOutput{}
+		}
+		if reply, ok := messageLoopClarificationAsPendingMixSuggestion(state, out); ok {
+			state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: "mix execution question normalized to pending suggestion"})
+			return modelFlowStopped, r.complete(state, reply), messageLoopOutput{}
+		}
+		if reply, ok := messageLoopClarificationAsPendingPanTreatment(state, out); ok {
+			state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: "pan clarification normalized to pending treatment"})
+			return modelFlowStopped, r.complete(state, reply), messageLoopOutput{}
+		}
+		// FULLACCESS-AUTONOMY-1 guardrail: under an explicit full project access
+		// grant a direction/selection/dose question is bounced once (the prompt
+		// directive already states who owns the choice). Request-object
+		// ambiguity and genuine boundaries fall through untouched, and the
+		// bounce is bounded to one per turn so the turn can never be trapped.
+		if issue := messageLoopFullAccessDirectionClarificationIssue(state, out); issue != "" {
+			if messageLoopFullAccessDirectionClarificationBounce(state, issue, raw) {
+				return modelFlowRetry, Result{}, messageLoopOutput{}
+			}
+		}
+		question := firstNonEmpty(out.ClarificationQuestion, out.Reply, "请告诉我这次要编辑的具体目标。")
+		question = messageLoopClarificationQuestion(state, question)
+		state.trace = append(state.trace, planner.TraceEvent{Kind: "clarification", Message: question})
+		res := r.pause(state, agentruntime.StatusWaitingClarification, StopReasonNeedsClarification, "", question, "", "", nil)
+		res.NeedsClarification = true
+		res.ClarificationQuestion = question
+		return modelFlowStopped, res, messageLoopOutput{}
+	}
+	if out.Final || len(out.ToolCalls) == 0 {
+		if handled, stopped, result := l.maybeStartStemsImportConfirmation(ctx, r, state, out, "final_after_preflight"); handled {
+			if stopped {
+				return modelFlowStopped, result, messageLoopOutput{}
+			}
+			return modelFlowRetry, Result{}, messageLoopOutput{}
+		}
+		if reply, status, ok := messageLoopFreeStateTerminalReply(out); ok {
+			state.trace = append(state.trace, planner.TraceEvent{
+				Kind:    "final_gate",
+				Message: "accepted authoritative free-state terminal decision: " + status,
+			})
+			return modelFlowStopped, r.complete(state, reply), messageLoopOutput{}
+		}
+		if messageLoopOrdinarySemanticEQRequest(state) && out.SemanticAction == nil && !messageLoopHasGenericEQTopologyEvidence(state) {
+			issue := "this is an actionable ordinary-Agent generic EQ listening goal with an exact selected plugin target; do not create MixTreatmentPending or use stored-mapping/B4 preparation. Read the live EQ topology if needed, then emit semantic_effect_action.v1, or ask a genuine target clarification"
+			state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: issue})
+			state.input.Conversation = append(state.input.Conversation, llm.Message{Role: "user", Content: "<final_gate>" + issue + "</final_gate>"})
+			return modelFlowRetry, Result{}, messageLoopOutput{}
+		}
+		if out.SemanticAction != nil && messageLoopOrdinarySemanticEQRequest(state) && !messageLoopHasGenericEQTopologyEvidence(state) {
+			issue := "before freezing semantic_action, call plugin_grabber.explain_controls for the exact selected track/plugin and use only its live generic EQ eq_band_summary/control_topology evidence to choose a provably reachable Shape and explicit fields"
+			state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: issue})
+			state.input.Conversation = append(state.input.Conversation, llm.Message{Role: "user", Content: "<final_gate>" + issue + "</final_gate>"})
+			return modelFlowRetry, Result{}, messageLoopOutput{}
+		}
+		if reply, ok := messageLoopCompressorFailureFinalReply(state); ok {
+			state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: "typed compressor failure completed truthfully without fallback"})
+			return modelFlowStopped, r.complete(state, reply), messageLoopOutput{}
+		}
+		if issue := messageLoopFinalIssue(state); issue != "" {
+			state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: issue, PlanItems: append([]planner.PlanItem(nil), state.planItems...)})
+			state.input.Conversation = append(state.input.Conversation, llm.Message{Role: "user", Content: "<final_gate>" + issue + "</final_gate>"})
+			return modelFlowRetry, Result{}, messageLoopOutput{}
+		}
+		reply := strings.TrimSpace(out.Reply)
+		if reply == "" {
+			reply = "已完成。"
+		}
+		if out.SemanticAction != nil {
+			if !messageLoopSemanticEffectProposalAllowed(state) {
+				issue := "the current turn is discussion/read-only; answer the question without semantic_action, Proposal, pending state, or mutation authority"
+				state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: issue})
+				state.input.Conversation = append(state.input.Conversation, llm.Message{Role: "user", Content: "<final_gate>" + issue + "</final_gate>"})
+				return modelFlowRetry, Result{}, messageLoopOutput{}
+			}
+			if err := out.SemanticAction.Validate(); err != nil {
+				issue := "semantic_action is invalid: " + err.Error() + "; correct the typed action without changing the user's acoustic goal"
+				state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: issue})
+				state.input.Conversation = append(state.input.Conversation, llm.Message{Role: "user", Content: "<final_gate>" + issue + "</final_gate>"})
+				return modelFlowRetry, Result{}, messageLoopOutput{}
+			}
+			state.semanticAction = cloneSemanticEffectAction(out.SemanticAction)
+		}
+		if candidate := messageLoopDeterministicVocalClarificationPendingTick(state, reply); candidate != nil {
+			messageLoopAttachDiagnosisToMixTick(state, candidate, state.input.UserText)
+			state.executionMemory.PendingMixTickCandidate = candidate
+			state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: "resolved vocal clarification synthesized pending mix tick"})
+			return modelFlowStopped, r.complete(state, messageLoopDeterministicVocalClarificationPendingReply(state, candidate)), messageLoopOutput{}
+		}
+		if question, ok := messageLoopFinalFocusTrackClarification(state, reply); ok {
+			state.trace = append(state.trace, planner.TraceEvent{Kind: "clarification", Message: question})
+			res := r.pause(state, agentruntime.StatusWaitingClarification, StopReasonNeedsClarification, "", question, "", "", nil)
+			res.NeedsClarification = true
+			res.ClarificationQuestion = question
+			return modelFlowStopped, res, messageLoopOutput{}
+		}
+		return modelFlowStopped, r.complete(state, messageLoopMixObservationFinalReply(state, reply)), messageLoopOutput{}
+	}
+	return modelFlowExecute, Result{}, out
 }
