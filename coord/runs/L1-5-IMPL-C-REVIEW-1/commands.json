@@ -1,0 +1,26 @@
+﻿[
+    {
+        "command":  "go build ./...",
+        "exit_code":  0,
+        "started":  "2026-10-09T13:37:24.5354735+08:00",
+        "finished":  "2026-10-09T13:37:45.4133745+08:00"
+    },
+    {
+        "command":  "go test ./internal/fastpath -count=1 -v",
+        "exit_code":  0,
+        "started":  "2026-10-09T13:37:45.5019482+08:00",
+        "finished":  "2026-10-09T13:37:46.7414114+08:00"
+    },
+    {
+        "command":  "go test ./internal/agentloop -count=1",
+        "exit_code":  0,
+        "started":  "2026-10-09T13:37:46.7449129+08:00",
+        "finished":  "2026-10-09T13:37:54.6627330+08:00"
+    },
+    {
+        "command":  "go test ./... -count=1",
+        "exit_code":  1,
+        "started":  "2026-10-09T13:37:54.6637325+08:00",
+        "finished":  "2026-10-09T13:39:48.8658598+08:00"
+    }
+]

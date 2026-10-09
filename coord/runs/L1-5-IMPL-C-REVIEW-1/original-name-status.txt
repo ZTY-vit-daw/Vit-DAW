@@ -1,0 +1,11 @@
+M	agent/internal/agentloop/message_loop.go
+A	agent/internal/fastpath/clip_fade_gain.go
+A	agent/internal/fastpath/clip_range_split.go
+A	agent/internal/fastpath/gain_staging_ref.go
+A	agent/internal/fastpath/natural_mix.go
+A	agent/internal/fastpath/router.go
+A	agent/internal/fastpath/router_test.go
+A	agent/internal/fastpath/strip_silence.go
+A	agent/internal/fastpath/text.go
+A	coord/runs/L1-5-IMPL-C/message_loop_diff.txt
+A	coord/runs/L1-5-IMPL-C/receipt.md

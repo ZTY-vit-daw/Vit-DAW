@@ -1,0 +1,72 @@
+[
+  {
+    "entry": "static_mix_capability_contract",
+    "equal": true,
+    "new_handler": "preflightStaticMixCapabilityContract",
+    "old_handler": "preflightStaticMixCapabilityContract",
+    "position": 1
+  },
+  {
+    "entry": "project_blackboard_status",
+    "equal": true,
+    "new_handler": "preflightProjectBlackboardStatus",
+    "old_handler": "preflightProjectBlackboardStatus",
+    "position": 2
+  },
+  {
+    "entry": "clip_fade_gain_set",
+    "equal": true,
+    "new_handler": "preflightClipFadeGainSet",
+    "old_handler": "preflightClipFadeGainSet",
+    "position": 3
+  },
+  {
+    "entry": "clip_fade_gain_read",
+    "equal": true,
+    "new_handler": "preflightClipFadeGainRead",
+    "old_handler": "preflightClipFadeGainRead",
+    "position": 4
+  },
+  {
+    "entry": "strip_silence_suggest",
+    "equal": true,
+    "new_handler": "preflightStripSilenceSuggest",
+    "old_handler": "preflightStripSilenceSuggest",
+    "position": 5
+  },
+  {
+    "entry": "clip_range_split",
+    "equal": true,
+    "new_handler": "preflightClipRangeSplit",
+    "old_handler": "preflightClipRangeSplit",
+    "position": 6
+  },
+  {
+    "entry": "stems_folder_import",
+    "equal": true,
+    "new_handler": "preflightStemsFolderImport",
+    "old_handler": "preflightStemsFolderImport",
+    "position": 7
+  },
+  {
+    "entry": "pending_section_markers_apply",
+    "equal": true,
+    "new_handler": "preflightPendingSectionMarkersApply",
+    "old_handler": "preflightPendingSectionMarkersApply",
+    "position": 8
+  },
+  {
+    "entry": "natural_mix_observation",
+    "equal": true,
+    "new_handler": "preflightNaturalMixObservation",
+    "old_handler": "preflightNaturalMixObservation",
+    "position": 9
+  },
+  {
+    "entry": "static_mix_gain_staging_context_pack",
+    "equal": true,
+    "new_handler": "preflightStaticMixGainStagingContextPack",
+    "old_handler": "preflightStaticMixGainStagingContextPack",
+    "position": 10
+  }
+]

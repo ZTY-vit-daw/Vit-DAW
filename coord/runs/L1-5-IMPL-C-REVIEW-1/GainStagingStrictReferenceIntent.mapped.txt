@@ -1,0 +1,17 @@
+func messageLoopGainStagingStrictReferenceIntent(userText string) bool {
+	text := strings.ToLower(strings.TrimSpace(userText))
+	if text == "" {
+		return false
+	}
+	hasReference := messageLoopTextHasAny(text,
+		"strict reference", "reference level", "reference-level", "same reference", "same range", "full-project reference", "source level calibration",
+		"\u4e25\u683c\u53c2\u8003", "\u4e25\u683c\u6821\u51c6", "\u53c2\u8003\u7535\u5e73", "\u53c2\u8003\u6307\u6807", "\u540c\u4e00\u53c2\u8003", "\u540c\u4e00\u6307\u6807", "\u7edf\u4e00\u7535\u5e73", "\u76f8\u540c\u8303\u56f4", "\u8d34\u8fd1",
+	)
+	if !hasReference {
+		return false
+	}
+	return messageLoopTextHasAny(text,
+		"calibrate", "calibration", "source level", "clip gain", "clip.gain", "full project", "whole project", "entire project", "all tracks", "pending action", "prepare",
+		"\u6821\u51c6", "\u6e90\u7535\u5e73", "\u9759\u6001\u6e90\u7535\u5e73", "\u5168\u5de5\u7a0b", "\u6574\u4e2a\u5de5\u7a0b", "\u6240\u6709\u8f68\u9053", "\u5168\u90e8\u8f68\u9053", "\u5f85\u786e\u8ba4\u52a8\u4f5c", "\u51c6\u5907",
+	)
+}

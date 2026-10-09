@@ -1,0 +1,10 @@
+func messageLoopA4ClipCleanupWholeProjectRequest(text string) bool {
+	text = strings.ToLower(strings.TrimSpace(text))
+	if !messageLoopA4ClipCleanupRequest(text) {
+		return false
+	}
+	return !messageLoopTextHasAny(text,
+		"selected", "current", "this clip", "this track", "selected clip", "selected track", "current clip", "current track", "selected range", "range",
+		"选中", "当前片段", "当前轨道", "选中片段", "选中轨道", "这个片段", "这条轨", "范围", "选区",
+	)
+}

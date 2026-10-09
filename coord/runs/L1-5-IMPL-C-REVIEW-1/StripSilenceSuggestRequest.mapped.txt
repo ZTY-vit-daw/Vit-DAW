@@ -1,0 +1,25 @@
+func messageLoopStripSilenceSuggestRequest(userText string) bool {
+	text := strings.ToLower(strings.TrimSpace(userText))
+	if text == "" {
+		return false
+	}
+	hasStripIntent := messageLoopTextHasAny(text,
+		"strip silence", "strip_silence", "silence cleanup", "remove silence", "trim silence",
+		"清理静音", "片段清理", "清理空白", "去静音", "去掉静音", "去掉空白", "删除静音", "过滤静音", "噪声底",
+	) || messageLoopA4ClipCleanupRequest(text)
+	if !hasStripIntent {
+		return false
+	}
+	if messageLoopA4ClipCleanupRequest(text) {
+		return true
+	}
+	hasApplyOnlyIntent := messageLoopTextHasAny(text,
+		"apply", "execute", "confirm", "do it", "go ahead",
+		"应用", "执行", "确认", "按这个", "就这样", "继续",
+	)
+	hasAnalysisIntent := messageLoopTextHasAny(text,
+		"suggest", "recommend", "analyze", "analyse", "estimate", "parameter", "threshold", "preview",
+		"建议", "推荐", "分析", "估算", "参数", "阈值", "预览", "检查",
+	)
+	return !hasApplyOnlyIntent || hasAnalysisIntent
+}

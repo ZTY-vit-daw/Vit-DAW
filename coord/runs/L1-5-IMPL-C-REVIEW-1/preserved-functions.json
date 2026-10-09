@@ -1,0 +1,1786 @@
+[
+  {
+    "equal": true,
+    "function": "Continue"
+  },
+  {
+    "equal": true,
+    "function": "ResumeAfterConfirmation"
+  },
+  {
+    "equal": true,
+    "function": "Start"
+  },
+  {
+    "equal": true,
+    "function": "appendMessageLoopBullet"
+  },
+  {
+    "equal": true,
+    "function": "appendMessageLoopDiagnostic"
+  },
+  {
+    "equal": true,
+    "function": "appendMessageLoopPromptRenderDiagnostic"
+  },
+  {
+    "equal": true,
+    "function": "appendMessageLoopToolResult"
+  },
+  {
+    "equal": true,
+    "function": "assembleWithReport"
+  },
+  {
+    "equal": true,
+    "function": "assembly"
+  },
+  {
+    "equal": true,
+    "function": "assemblyInput"
+  },
+  {
+    "equal": true,
+    "function": "balancedJSONObjectCandidates"
+  },
+  {
+    "equal": true,
+    "function": "capMessageLoopRows"
+  },
+  {
+    "equal": true,
+    "function": "cloneToolArgs"
+  },
+  {
+    "equal": true,
+    "function": "coerceMixObservationCall"
+  },
+  {
+    "equal": true,
+    "function": "coerceMixTickPrimitiveCall"
+  },
+  {
+    "equal": true,
+    "function": "coerceObservationPackageReadCall"
+  },
+  {
+    "equal": true,
+    "function": "coerceWaveformBakeToMixObservation"
+  },
+  {
+    "equal": true,
+    "function": "compactMOMBandOccupancyRows"
+  },
+  {
+    "equal": true,
+    "function": "compactMOMComparedTracks"
+  },
+  {
+    "equal": true,
+    "function": "compactMOMMultitrackRelation"
+  },
+  {
+    "equal": true,
+    "function": "compactMOMProjectMixProfile"
+  },
+  {
+    "equal": true,
+    "function": "compactMessageLoopExecution"
+  },
+  {
+    "equal": true,
+    "function": "compactMixObservationDigest"
+  },
+  {
+    "equal": true,
+    "function": "compactMixPackageForPrompt"
+  },
+  {
+    "equal": true,
+    "function": "compactSelectedKeys"
+  },
+  {
+    "equal": true,
+    "function": "compressorControlDisplayName"
+  },
+  {
+    "equal": true,
+    "function": "decodeMessageLoopCandidate"
+  },
+  {
+    "equal": true,
+    "function": "escapeBareNewlinesInJSONStringLiterals"
+  },
+  {
+    "equal": true,
+    "function": "executeConfirmedStripSilenceBundle"
+  },
+  {
+    "equal": true,
+    "function": "executeMessageLoopToolCalls"
+  },
+  {
+    "equal": true,
+    "function": "executionBindingID"
+  },
+  {
+    "equal": true,
+    "function": "fencedJSONBlocks"
+  },
+  {
+    "equal": true,
+    "function": "firstMessageLoopStrings"
+  },
+  {
+    "equal": true,
+    "function": "firstNonEmptyAny"
+  },
+  {
+    "equal": true,
+    "function": "firstNonEmptyMap"
+  },
+  {
+    "equal": true,
+    "function": "firstNumericMapValue"
+  },
+  {
+    "equal": true,
+    "function": "firstStateClipID"
+  },
+  {
+    "equal": true,
+    "function": "firstStateTrackID"
+  },
+  {
+    "equal": true,
+    "function": "intNumberFromAny"
+  },
+  {
+    "equal": true,
+    "function": "isPluginGrabberApplyEQEditsTool"
+  },
+  {
+    "equal": true,
+    "function": "isPluginGrabberSetEQPointTool"
+  },
+  {
+    "equal": true,
+    "function": "logTiming"
+  },
+  {
+    "equal": true,
+    "function": "maxInt"
+  },
+  {
+    "equal": true,
+    "function": "maybeStartStemsImportConfirmation"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopAcousticPackageHasReadyEvidence"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopAdmissionExhaustionObservationReply"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopAnalysisJobIDFromImportResult"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopAnalysisStatusLabel"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopAnnotateLastExecutionResultWithSampleRatePatch"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopAnnotateStripSilenceBatchSourceStats"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopAnyFeatureReady"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopAnyMap"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopAnySlice"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopAppendGuardGate"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopApplyTrackOrganizationTrackCount"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopAudioClosureActive"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopAudioSpecText"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopBandStereoObservationRequest"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopBestImportDADWaveformRow"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopBuildImportDADTargets"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopCCBObservationSummary"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopCOMProjectionForPrompt"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopCanReadDADStatus"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopCanonicalMixTrackID"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopCapabilityStatusKeys"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopCapabilityStatusReady"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopClarificationAsPendingMixSuggestion"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopClarificationAsPendingPanTreatment"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopClarificationAsksForExecution"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopClarificationAsksForFocusTrack"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopClarificationQuestion"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopCleanExtractedLocalPath"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopClipExecutionFallbackReply"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopClipFadeGainReadReply"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopClipFadeGainSetReply"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopClipFadeGainSetRequest"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopClipFadeSetArgs"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopClipFadeSetReason"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopClipGainSetValueDB"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopClipPresentFastCompleteReply"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopClipRangeSplitGateContext"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopCompactClipRanges"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopCompactCompressorBinding"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopCompactOptions"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopCompressorApplyFastCompleteReply"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopCompressorApplyRecordComplete"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopCompressorControlResultSummary"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopCompressorFailureFinalReply"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopCompressorFinalIssue"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopConservativeLowMudTreatmentPendingReply"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopConversationHasFocusRelationshipIntent"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopConversationID"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopCopyStripSilenceBatchMetadata"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopCountRowsOrList"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopCountSchema"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopCurrentClipID"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopCurrentClipTrackID"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopCurrentTrackDB"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopCurrentTrackDBFromResult"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopDADGateFieldMaps"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopDADGateFieldNumber"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopDADGateFieldText"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopDADGateIdleTimeout"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopDADGateMaxWait"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopDADGatePollInterval"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopDADGateProgressSignature"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopDADGateTimeoutError"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopDADStatusToolCall"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopDeterministicClipFadeGainReadCalls"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopDeterministicClipFadeGainSetCall"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopDeterministicClipRangeSplitCalls"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopDeterministicGainPendingAfterObservation"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopDeterministicMixObservationCall"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopDeterministicSectionMarkersApplyCall"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopDeterministicStemsImportCall"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopDeterministicStemsPreflightCall"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopDeterministicStripSilenceSuggestCall"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopDiagnosticPath"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopDurationEnvMS"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopEPMClipEditReportBullets"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopEPMConfidenceLabel"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopEPMMarkerSupportLabel"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopEPMProjectionForImportResult"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopEPMRecommendationLabel"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopEPMSectionEvidenceText"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopEPMSectionListText"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopEPMSectionMapReportBullets"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopEPMSectionStatusLabel"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopEPMSectionStrategyLabel"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopEmptyValue"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopExactSelectedTrackID"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopExecutionActionName"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopExecutionFallbackAfterLLMError"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopExecutionSucceeded"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopExecutionVerification"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopExpandedMixObservationScope"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopExpectedMIDINoteWriteEvidence"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopExplicitMixExecutionConfirmation"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopExplicitPanActionText"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopExplicitPluginOrRawRequest"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopExplicitPluginRequest"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopExtractAbsoluteDBAmount"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopExtractFadeSeconds"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopExtractLocalFolderPath"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopFastCompletablePostcondition"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopFastCompleteAllowsTrackAdd"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopFastCompleteRecordMatches"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopFastCompleteReply"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopFatalObservationBlockers"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopFeatureReady"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopFilterImportDADTrackWaveformRows"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopFilteredImportDADFeatureSnapshot"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopFinalFocusTrackClarification"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopFinalIssue"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopFindProjectTrackInResult"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopFindProjectTrackInSummary"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopFirstImportText"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopFirstImportValue"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopFirstImportValueOrDefault"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopFirstStemsImportRow"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopFloatFromAny"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopFocusRelationshipDeriveCall"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopFocusRelationshipIntent"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopFocusTrackClarificationQuestion"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopForbiddenOrdinarySemanticEQTool"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopFormatStemsImportCompactReply"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopFormatStemsImportDADGatedReply"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopFreeStateMutationTool"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopFreeStateTransientPauseReply"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopHasAnyMixObservationAttempt"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopHasClipCreationAttempt"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopHasGenericEQTopologyEvidence"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopHasImportPreflightAttempt"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopHasMIDINoteWriteAttempt"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopHasMediaArtifactToolAttempt"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopHasMixObservationExecution"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopHasPanPendingContext"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopHasPendingMixAction"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopHasResolvedFocusTrack"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopHasStemsImportAttemptAfter"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopHasUsableMixObservation"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopHasVerifiedMIDINoteWrite"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopHasVerifiedSemanticEntry"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopImplicitGainDeltaFromText"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopImplicitGainFollowupRequest"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopImportDADFeatureSnapshotFromRows"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopImportDADFeatureSnapshotFromStatus"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopImportDADRowScore"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopImportDADRowSourceCompatible"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopImportDADStatusWaveformRows"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopImportDADTargetForRow"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopImportDADTileCounts"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopImportHasAnalysisJobHint"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopImportNumber"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopImportPreflightResultOK"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopImportPreflightTracksToCreate"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopImportRows"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopInitialTranscript"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopIsApplySectionMarkersCall"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopIsApplyTrackOrganizationCall"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopIsClipCreateName"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopIsCompressorApplyName"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopIsDADAnalysisControlTool"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopIsGenericPluginParameterWrite"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopIsImportPreflightName"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopIsMIDINoteReadName"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopIsMIDINoteWriteName"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopIsMediaArtifactToolName"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopIsMixObservationName"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopIsMixObservationTool"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopIsMixProposeTickCall"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopIsStemsImportName"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopIsStripSilenceApplyCall"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopIsWaveformBakeTool"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopJSONCandidates"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopKnownPluginNames"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopLastMixObservationDeepPackageIncomplete"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopLastMixObservationResult"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopLastSuccessfulImportPreflight"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopLatestCompressorApplyFailed"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopListCount"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopLooksLikePluginParameterRead"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopLowMudPluginPrepForState"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopMIDINotesFastCompleteReply"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopMOMBandFallbackSummary"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopMOMBandLabel"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopMOMFallbackLimitations"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopMOMLevelFallbackSummary"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopMOMLimitationLabel"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopMOMMetricSuffix"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopMOMObservationFallbackReply"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopMOMProjectStructureForPrompt"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopMOMProjectionForPrompt"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopMOMProjectionFromResult"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopMOMStatusLabel"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopMOMStereoFallbackSummary"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopMOMTrackLabel"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopMOMTrustQualityForPrompt"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopMapRows"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopMapValue"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopMaterializedObservationFallbackReply"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopMediaArtifactResultSummary"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopMediaArtifactsFastCompleteReply"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopMediaFinalIssue"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopMediaPolicyLabel"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopMergeDADStatusIntoImportResult"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopMixExecutionApproval"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopMixObservationActionFollowupRequest"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopMixObservationArgs"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopMixObservationFinalReply"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopMixObservationHasReadyAcousticEvidence"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopMixObservationResultUsable"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopMixObserveFirstAllowedTool"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopMixObserveFirstBlockedTool"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopMixReplyAsksForExecution"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopMixScopeFromIntent"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopMixTickProposalAsPendingTreatment"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopMixTreatmentPendingFromTickProposal"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopModelContextPromptStats"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopNeedsDeterministicMixObservation"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopNeedsFocusRelationshipDerive"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopNeutralFamilyFeedbackHistory"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopNormalizeImportDADTrackWaveformRow"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopNormalizeImportSourcePath"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopNotesExposeIDs"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopNotesFromReadResult"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopObservationFallbackAfterLLMError"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopObservationFallbackCapabilities"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopObservationFallbackCapabilityMaps"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopObservationFallbackCapabilityStatus"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopObservationFallbackEligible"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopObservationFallbackTrackLabel"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopObservationFallbackWaveform"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopObservationMetricSuffix"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopObservationMetricSummary"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopObservationPackageReadKeys"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopObservationPackageReadRequest"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopObservationRowHasReadyAcousticEvidence"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopOrdinarySemanticEQRequest"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopOutcomeBlockedByUserText"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopOutcomeFastCompleteReply"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopOutcomesSatisfied"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopOutputHasShape"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopPathLooksSingleMediaFile"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopPendingConfirmationCall"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopPendingMixTreatmentReply"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopPendingSectionMarkersApplyRequest"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopPlanMode"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopPluginPolicyCall"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopPreferredMixObservationTool"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopPrefixSessionKey"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopPreflightCanBecomeStemsImport"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopPrimitiveTrackPanCall"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopPrimitiveTrackPanDelta"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopPrimitiveTrackPanTarget"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopPrimitiveTrackVolumeCall"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopPrimitiveTrackVolumeDelta"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopProjectAudioSettingsPatchForConfirmedImport"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopProjectAudioSettingsPatchFromDecision"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopProjectHistoryPromptSummary"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopProjectMarkersFastCompleteReply"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopProjectMultitrackObservationRequest"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopProjectStateFromImportRows"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopPromptRenderPath"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopRackNodeFastCompleteReply"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopReadOnlyObservationFallbackTool"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopReadbackShowsExpectedMIDINotes"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopRealtimeObservationRequest"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopRefreshImportTIMFromDADSnapshot"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopReplyClaimsCompletedMixWrite"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopReplyHasPendingMarker"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopReplyMentionsIncompleteDeepPackage"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopRequiredOutcomes"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopResolvedMixActionIntent"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopSampleRateDecisionFromPreflight"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopSampleRateDecisionRecommendsSwitch"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopSatisfiedOutcomes"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopSelectedClipRanges"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopSemanticEQIntent"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopSemanticEQNeedsPluginSelection"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopSemanticEQTopic"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopSemanticEffectActionRequested"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopSemanticEffectProposalAllowed"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopSetAudioSettingsCallForImport"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopSetImportDADGate"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopShouldAutoApplyConfirmedMixTick"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopSleepContext"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopSplitTrackIDsCSV"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopStateShowsExpectedMIDINotes"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopStemsFolderImportRequest"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopStemsImportCompleteReplyWithDADGate"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopStemsImportExpectedTrackCount"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopStemsImportFastCompleteReply"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopStemsImportFolderCandidate"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopStemsImportFolderObject"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopStemsImportFolderPath"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopStemsImportIntent"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopStemsImportResultFromRecord"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopStemsImportRows"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopStringList"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopStringRows"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopStringSliceFromAny"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopStripExecutionQuestion"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopStripSilenceActionCallsAsRows"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopStripSilenceAllProjectRequest"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopStripSilenceApplyCompleteReply"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopStripSilenceApplyRegionCount"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopStripSilenceBatchCallFromActions"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopStripSilenceBundleCalls"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopStripSilenceBundleCompleteReply"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopStripSilencePendingActionCalls"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopStripSilencePendingActionKey"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopStripSilencePendingActionRows"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopStripSilencePendingConfirmationCall"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopStripSilenceRangeRequest"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopStripSilenceScopeLabel"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopStripSilenceSelectedTrackRequest"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopStripSilenceShouldBatchSingleAction"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopStripSilenceSuggestReply"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopSystemPrompt"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopTIMCountLabel"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopTIMCountsText"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopTIMImportReportBullets"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopTIMImportReportLines"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopTIMImportResultAcousticReady"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopTIMImportResultReadyForA2"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopTIMIssueLabel"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopTIMPrimaryBlockingIssueBullet"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopTIMPrimaryIssueLine"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopTIMProjectionAcousticReady"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopTIMProjectionForImportResult"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopTIMProjectionFromImportDADSnapshot"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopTIMProjectionShouldReplace"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopTIMProjectionSubsetLimited"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopTIMRiskLabel"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopTIMStatusLabel"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopTOMCoverageStatusText"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopTOMDisclosureStageText"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopTOMGroupDisplayLabel"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopTOMGroupListText"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopTOMGroupsByConfidenceText"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopTOMOrganizationReportBullets"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopTOMProjectionForImportResult"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopTOMReviewGroupsText"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopTargetRefIsTrack"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopTextHasStemsFolderObjectHint"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopToolGuardIssue"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopToolWantsClip"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopToolWantsFolderTrack"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopToolWantsMixTick"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopToolWantsTrack"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopTraceToolCallForResult"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopTrackAddFastCompleteReply"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopTrackClipKey"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopTrackGroupApplyControlReply"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopTrackHasVocalEvidence"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopTrackIsResolvedVocal"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopTrackOrganizationFastCompleteReply"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopTrackPresentFastCompleteReply"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopTransientLLMError"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopUserConfirmsStemsImport"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopUserExplicitlyIdentifiesVocalTrack"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopUserExplicitlyIdentifiesVocalTrackResolved"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopUserExplicitlyRequestsProjectSampleRateSwitch"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopUserRequestedMIDINotes"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopUserRequestedMediaArtifacts"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopUserTrackIndexFromText"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopVerifiedExecutionFallbackReply"
+  },
+  {
+    "equal": true,
+    "function": "messageLoopWaveformBakeCallMissingClipSource"
+  },
+  {
+    "equal": true,
+    "function": "messages"
+  },
+  {
+    "equal": true,
+    "function": "mixObservationPromptSummary"
+  },
+  {
+    "equal": true,
+    "function": "neutralFamilyAssemblyInput"
+  },
+  {
+    "equal": true,
+    "function": "neutralFamilySystemSections"
+  },
+  {
+    "equal": true,
+    "function": "normalizeMessageLoopMixScope"
+  },
+  {
+    "equal": true,
+    "function": "normalizeMessageLoopOutput"
+  },
+  {
+    "equal": true,
+    "function": "normalizeMessageLoopToolCall"
+  },
+  {
+    "equal": true,
+    "function": "observationIsMixObservation"
+  },
+  {
+    "equal": true,
+    "function": "parseMessageLoopOutput"
+  },
+  {
+    "equal": true,
+    "function": "pendingSectionMarkersToolSections"
+  },
+  {
+    "equal": true,
+    "function": "pendingTrackOrganizationToolGroups"
+  },
+  {
+    "equal": true,
+    "function": "preflightClipFadeGainRead"
+  },
+  {
+    "equal": true,
+    "function": "preflightClipFadeGainSet"
+  },
+  {
+    "equal": true,
+    "function": "preflightClipRangeSplit"
+  },
+  {
+    "equal": true,
+    "function": "preflightFocusRelationship"
+  },
+  {
+    "equal": true,
+    "function": "preflightNaturalMixObservation"
+  },
+  {
+    "equal": true,
+    "function": "preflightPendingSectionMarkersApply"
+  },
+  {
+    "equal": true,
+    "function": "preflightProjectBlackboardStatus"
+  },
+  {
+    "equal": true,
+    "function": "preflightStaticMixCapabilityContract"
+  },
+  {
+    "equal": true,
+    "function": "preflightStemsFolderImport"
+  },
+  {
+    "equal": true,
+    "function": "preflightStripSilenceSuggest"
+  },
+  {
+    "equal": true,
+    "function": "removeMessageLoopEmpty"
+  },
+  {
+    "equal": true,
+    "function": "repairOutput"
+  },
+  {
+    "equal": true,
+    "function": "repairOutputClarifyReinforced"
+  },
+  {
+    "equal": true,
+    "function": "resolveClipRef"
+  },
+  {
+    "equal": true,
+    "function": "resolveFolderTrackRef"
+  },
+  {
+    "equal": true,
+    "function": "resolveMessageLoopBindings"
+  },
+  {
+    "equal": true,
+    "function": "resolveMessageLoopCCBTarget"
+  },
+  {
+    "equal": true,
+    "function": "resolveMixTickRef"
+  },
+  {
+    "equal": true,
+    "function": "resolvePendingSectionMarkersCall"
+  },
+  {
+    "equal": true,
+    "function": "resolvePendingTrackOrganizationCall"
+  },
+  {
+    "equal": true,
+    "function": "resolveTrackRef"
+  },
+  {
+    "equal": true,
+    "function": "runner"
+  },
+  {
+    "equal": true,
+    "function": "setIfEmpty"
+  },
+  {
+    "equal": true,
+    "function": "setIfEmptyMap"
+  },
+  {
+    "equal": true,
+    "function": "setIfMissing"
+  },
+  {
+    "equal": true,
+    "function": "truncateRunes"
+  }
+]

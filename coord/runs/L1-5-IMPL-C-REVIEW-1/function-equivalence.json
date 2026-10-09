@@ -1,0 +1,242 @@
+[
+  {
+    "Mapping": {
+      "Old": "messageLoopText",
+      "New": "Text",
+      "Source": "agent/internal/agentloop/message_loop.go",
+      "Target": "text.go",
+      "Copy": false
+    },
+    "OldLine": 7266,
+    "NewLine": 11,
+    "Bytes": 138,
+    "OldSHA256": "491b1cdf3b569dedbcbb5540a474b2d3eb5fa0d784d575f0ffe694be9957f871",
+    "NewSHA256": "491b1cdf3b569dedbcbb5540a474b2d3eb5fa0d784d575f0ffe694be9957f871",
+    "Equal": true,
+    "Wrapper": "{ return fastpath.Text(value) }"
+  },
+  {
+    "Mapping": {
+      "Old": "messageLoopTextHasAny",
+      "New": "TextHasAny",
+      "Source": "agent/internal/agentloop/message_loop.go",
+      "Target": "text.go",
+      "Copy": false
+    },
+    "OldLine": 10568,
+    "NewLine": 20,
+    "Bytes": 238,
+    "OldSHA256": "226ad8bed9866d36464c5c761f87b05734d403156ea4158dabdc864086069666",
+    "NewSHA256": "226ad8bed9866d36464c5c761f87b05734d403156ea4158dabdc864086069666",
+    "Equal": true,
+    "Wrapper": "{\n\treturn fastpath.TextHasAny(text, tokens...)\n}"
+  },
+  {
+    "Mapping": {
+      "Old": "messageLoopClipFadeGainRequest",
+      "New": "ClipFadeGainRequest",
+      "Source": "agent/internal/agentloop/message_loop.go",
+      "Target": "clip_fade_gain.go",
+      "Copy": false
+    },
+    "OldLine": 6170,
+    "NewLine": 30,
+    "Bytes": 1208,
+    "OldSHA256": "7af56426eea73633738163de92de96c12db072519f620962dd5cf215bf6143da",
+    "NewSHA256": "7af56426eea73633738163de92de96c12db072519f620962dd5cf215bf6143da",
+    "Equal": true,
+    "Wrapper": "{\n\treturn fastpath.ClipFadeGainRequest(userText)\n}"
+  },
+  {
+    "Mapping": {
+      "Old": "messageLoopClipFadeGainReadRequest",
+      "New": "ClipFadeGainReadRequest",
+      "Source": "agent/internal/agentloop/message_loop.go",
+      "Target": "clip_fade_gain.go",
+      "Copy": false
+    },
+    "OldLine": 1420,
+    "NewLine": 10,
+    "Bytes": 704,
+    "OldSHA256": "ba46a9b6ffaf7ad00fe8fbacfa5d8b9ab04ccc60d4ede0c33e98dd86f5866d51",
+    "NewSHA256": "ba46a9b6ffaf7ad00fe8fbacfa5d8b9ab04ccc60d4ede0c33e98dd86f5866d51",
+    "Equal": true,
+    "Wrapper": "{\n\treturn fastpath.ClipFadeGainReadRequest(userText)\n}"
+  },
+  {
+    "Mapping": {
+      "Old": "messageLoopExecutedClipRangeSplitCuts",
+      "New": "ExecutedClipRangeSplitCuts",
+      "Source": "agent/internal/agentloop/message_loop.go",
+      "Target": "clip_range_split.go",
+      "Copy": false
+    },
+    "OldLine": 1323,
+    "NewLine": 13,
+    "Bytes": 1156,
+    "OldSHA256": "1c5fd860b031d26b060b97a0aa8dd4976abdbc5b22894b89bebeb729d4ad9903",
+    "NewSHA256": "1c5fd860b031d26b060b97a0aa8dd4976abdbc5b22894b89bebeb729d4ad9903",
+    "Equal": true,
+    "Wrapper": "{\n\treturn fastpath.ExecutedClipRangeSplitCuts(trace)\n}"
+  },
+  {
+    "Mapping": {
+      "Old": "clipRangeSplitCutKey",
+      "New": "ClipRangeSplitCutKey",
+      "Source": "agent/internal/agentloop/message_loop.go",
+      "Target": "clip_range_split.go",
+      "Copy": false
+    },
+    "OldLine": 1356,
+    "NewLine": 47,
+    "Bytes": 459,
+    "OldSHA256": "eaf32d0e76a9902ed1db3c9b9e3be8f0b5906bff60f3f380223558dcd2ec3b51",
+    "NewSHA256": "eaf32d0e76a9902ed1db3c9b9e3be8f0b5906bff60f3f380223558dcd2ec3b51",
+    "Equal": true,
+    "Wrapper": "{ return fastpath.ClipRangeSplitCutKey(args) }"
+  },
+  {
+    "Mapping": {
+      "Old": "messageLoopClipRangeSplitCompletionReply",
+      "New": "ClipRangeSplitCompletionReply",
+      "Source": "agent/internal/agentloop/message_loop.go",
+      "Target": "clip_range_split.go",
+      "Copy": false
+    },
+    "OldLine": 1374,
+    "NewLine": 66,
+    "Bytes": 769,
+    "OldSHA256": "f67d4fa006573031e259e3151625fdbe79cf67d639d4fd7ee9d3131a34a71ff6",
+    "NewSHA256": "f67d4fa006573031e259e3151625fdbe79cf67d639d4fd7ee9d3131a34a71ff6",
+    "Equal": true,
+    "Wrapper": "{\n\treturn fastpath.ClipRangeSplitCompletionReply(plan, succeeded)\n}"
+  },
+  {
+    "Mapping": {
+      "Old": "messageLoopStripSilenceSuggestRequest",
+      "New": "StripSilenceSuggestRequest",
+      "Source": "agent/internal/agentloop/message_loop.go",
+      "Target": "strip_silence.go",
+      "Copy": false
+    },
+    "OldLine": 6202,
+    "NewLine": 10,
+    "Bytes": 1035,
+    "OldSHA256": "813b13c004f71ea9db4eef73ca74abfcabc65b6dc72116f092ce3ddc71c26292",
+    "NewSHA256": "813b13c004f71ea9db4eef73ca74abfcabc65b6dc72116f092ce3ddc71c26292",
+    "Equal": true,
+    "Wrapper": "{\n\treturn fastpath.StripSilenceSuggestRequest(userText)\n}"
+  },
+  {
+    "Mapping": {
+      "Old": "messageLoopA4ClipCleanupRequest",
+      "New": "A4ClipCleanupRequest",
+      "Source": "agent/internal/agentloop/message_loop.go",
+      "Target": "strip_silence.go",
+      "Copy": false
+    },
+    "OldLine": 6262,
+    "NewLine": 37,
+    "Bytes": 398,
+    "OldSHA256": "3ba352c56ba26d8cc8780d059471385f2bb20c8d8e7628a01ad72e6838df4e20",
+    "NewSHA256": "3ba352c56ba26d8cc8780d059471385f2bb20c8d8e7628a01ad72e6838df4e20",
+    "Equal": true,
+    "Wrapper": "{ return fastpath.A4ClipCleanupRequest(text) }"
+  },
+  {
+    "Mapping": {
+      "Old": "messageLoopA4ClipCleanupWholeProjectRequest",
+      "New": "A4ClipCleanupWholeProjectRequest",
+      "Source": "agent/internal/agentloop/message_loop.go",
+      "Target": "strip_silence.go",
+      "Copy": false
+    },
+    "OldLine": 6273,
+    "NewLine": 49,
+    "Bytes": 494,
+    "OldSHA256": "105a3bcb7301a9d2105699cbb0cbad7c929af58b900939f79978c549ea3be388",
+    "NewSHA256": "105a3bcb7301a9d2105699cbb0cbad7c929af58b900939f79978c549ea3be388",
+    "Equal": true,
+    "Wrapper": "{\n\treturn fastpath.A4ClipCleanupWholeProjectRequest(text)\n}"
+  },
+  {
+    "Mapping": {
+      "Old": "messageLoopNaturalMixRequest",
+      "New": "NaturalMixRequest",
+      "Source": "agent/internal/agentloop/message_loop.go",
+      "Target": "natural_mix.go",
+      "Copy": false
+    },
+    "OldLine": 6148,
+    "NewLine": 10,
+    "Bytes": 1689,
+    "OldSHA256": "c544c59aae581ec0d80b6936d335549631e611176feeb825ec905e547eaa85a2",
+    "NewSHA256": "c544c59aae581ec0d80b6936d335549631e611176feeb825ec905e547eaa85a2",
+    "Equal": true,
+    "Wrapper": "{ return fastpath.NaturalMixRequest(userText) }"
+  },
+  {
+    "Mapping": {
+      "Old": "messageLoopAudioObservationRequest",
+      "New": "AudioObservationRequest",
+      "Source": "agent/internal/agentloop/message_loop.go",
+      "Target": "natural_mix.go",
+      "Copy": false
+    },
+    "OldLine": 6284,
+    "NewLine": 33,
+    "Bytes": 1056,
+    "OldSHA256": "ce430bf2bfcc6f8315a8f5861693cf23787ab80aff00d042d8670ccce388605b",
+    "NewSHA256": "ce430bf2bfcc6f8315a8f5861693cf23787ab80aff00d042d8670ccce388605b",
+    "Equal": true,
+    "Wrapper": "{\n\treturn fastpath.AudioObservationRequest(userText)\n}"
+  },
+  {
+    "Mapping": {
+      "Old": "messageLoopGainStagingExplicitRequest",
+      "New": "GainStagingExplicitRequest",
+      "Source": "agent/internal/agentloop/static_mix_gain_staging_context.go",
+      "Target": "gain_staging_ref.go",
+      "Copy": true
+    },
+    "OldLine": 1746,
+    "NewLine": 10,
+    "Bytes": 930,
+    "OldSHA256": "bd9a338a3f7ca73f232cc9906bfdaafeaa204ebdf80e13c5fe03db4a06ec6be0",
+    "NewSHA256": "bd9a338a3f7ca73f232cc9906bfdaafeaa204ebdf80e13c5fe03db4a06ec6be0",
+    "Equal": true,
+    "Wrapper": "original unchanged (copy)"
+  },
+  {
+    "Mapping": {
+      "Old": "messageLoopStaticBalanceIntentReference",
+      "New": "StaticBalanceIntentReference",
+      "Source": "agent/internal/agentloop/static_mix_gain_staging_context.go",
+      "Target": "gain_staging_ref.go",
+      "Copy": true
+    },
+    "OldLine": 1770,
+    "NewLine": 35,
+    "Bytes": 289,
+    "OldSHA256": "8601df1ca8d19994e7e550ac54d43d65fbad4c343607ff9225c601be2c61b373",
+    "NewSHA256": "8601df1ca8d19994e7e550ac54d43d65fbad4c343607ff9225c601be2c61b373",
+    "Equal": true,
+    "Wrapper": "original unchanged (copy)"
+  },
+  {
+    "Mapping": {
+      "Old": "messageLoopGainStagingStrictReferenceIntent",
+      "New": "GainStagingStrictReferenceIntent",
+      "Source": "agent/internal/agentloop/static_mix_gain_staging_context.go",
+      "Target": "gain_staging_ref.go",
+      "Copy": true
+    },
+    "OldLine": 1777,
+    "NewLine": 43,
+    "Bytes": 1072,
+    "OldSHA256": "7697e599ee83997e680be7ab46714f34db09c31ee497128d3699873546035f18",
+    "NewSHA256": "7697e599ee83997e680be7ab46714f34db09c31ee497128d3699873546035f18",
+    "Equal": true,
+    "Wrapper": "original unchanged (copy)"
+  }
+]

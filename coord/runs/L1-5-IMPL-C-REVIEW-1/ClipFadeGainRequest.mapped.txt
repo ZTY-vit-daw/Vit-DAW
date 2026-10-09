@@ -1,0 +1,31 @@
+func messageLoopClipFadeGainRequest(userText string) bool {
+	text := strings.ToLower(strings.TrimSpace(userText))
+	if text == "" {
+		return false
+	}
+	if messageLoopGainStagingExplicitRequest(text) {
+		return false
+	}
+	hasClipTarget := messageLoopTextHasAny(text,
+		"clip", "clips", "selected clip", "current clip", "this clip", "audio clip",
+		"\u7247\u6bb5", "\u97f3\u9891\u7247\u6bb5", "\u5f53\u524d\u7247\u6bb5", "\u9009\u4e2d\u7247\u6bb5",
+		"\u5f53\u524d\u9009\u4e2d clip", "\u5f53\u524d clip", "\u9009\u4e2d clip", "\u8fd9\u4e2a clip",
+	)
+	if !hasClipTarget {
+		return false
+	}
+	hasFadeOrGain := messageLoopTextHasAny(text,
+		"fade", "fade in", "fade out", "clip gain", "gain",
+		"\u6de1\u5165", "\u6de1\u51fa", "\u6de1\u5316", "\u589e\u76ca",
+	)
+	if !hasFadeOrGain {
+		return false
+	}
+	if messageLoopTextHasAny(text, "fade", "gain", "clip gain", "fade/gain") && messageLoopTextHasAny(text, "clip", "audio clip") {
+		return true
+	}
+	return messageLoopTextHasAny(text,
+		"read", "show", "inspect", "status", "state", "get", "set", "adjust", "change", "drag",
+		"\u8bfb\u53d6", "\u67e5\u770b", "\u770b\u4e00\u4e0b", "\u72b6\u6001", "\u8bbe\u7f6e", "\u8c03\u6574", "\u4fee\u6539", "\u62d6", "\u62c9",
+	)
+}

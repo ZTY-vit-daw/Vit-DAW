@@ -1,0 +1,18 @@
+func messageLoopClipFadeGainReadRequest(userText string) bool {
+	text := strings.ToLower(strings.TrimSpace(userText))
+	if !messageLoopClipFadeGainRequest(text) {
+		return false
+	}
+	hasReadIntent := messageLoopTextHasAny(text,
+		"read", "show", "inspect", "status", "state", "get",
+		"\u8bfb\u53d6", "\u67e5\u770b", "\u770b\u4e00\u4e0b", "\u72b6\u6001",
+	)
+	hasWriteIntent := messageLoopTextHasAny(text,
+		"set", "adjust", "change", "drag", "write", "apply",
+		"\u8bbe\u7f6e", "\u8c03\u6574", "\u4fee\u6539", "\u62d6", "\u62c9", "\u5199\u5165", "\u5e94\u7528",
+	)
+	if !hasReadIntent && messageLoopTextHasAny(text, "db", "d b", "\u5206\u8d1d") {
+		return false
+	}
+	return hasReadIntent || !hasWriteIntent
+}

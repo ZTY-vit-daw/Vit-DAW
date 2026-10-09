@@ -1,0 +1,12 @@
+ agent/internal/agentloop/message_loop.go     | 286 ++++----------------
+ agent/internal/fastpath/clip_fade_gain.go    |  60 +++++
+ agent/internal/fastpath/clip_range_split.go  |  80 ++++++
+ agent/internal/fastpath/gain_staging_ref.go  |  59 ++++
+ agent/internal/fastpath/natural_mix.go       |  50 ++++
+ agent/internal/fastpath/router.go            |  90 +++++++
+ agent/internal/fastpath/router_test.go       | 146 ++++++++++
+ agent/internal/fastpath/strip_silence.go     |  58 ++++
+ agent/internal/fastpath/text.go              |  28 ++
+ coord/runs/L1-5-IMPL-C/message_loop_diff.txt | 384 +++++++++++++++++++++++++++
+ coord/runs/L1-5-IMPL-C/receipt.md            |  86 ++++++
+ 11 files changed, 1099 insertions(+), 228 deletions(-)

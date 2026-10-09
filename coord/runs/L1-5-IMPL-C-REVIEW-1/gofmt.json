@@ -1,0 +1,56 @@
+[
+  {
+    "checkout_lf_clean": true,
+    "checkout_raw_clean": false,
+    "committed_lf_clean": true,
+    "file": "agent/internal/agentloop/message_loop.go"
+  },
+  {
+    "checkout_lf_clean": true,
+    "checkout_raw_clean": false,
+    "committed_lf_clean": true,
+    "file": "agent/internal/fastpath/clip_fade_gain.go"
+  },
+  {
+    "checkout_lf_clean": true,
+    "checkout_raw_clean": false,
+    "committed_lf_clean": true,
+    "file": "agent/internal/fastpath/clip_range_split.go"
+  },
+  {
+    "checkout_lf_clean": true,
+    "checkout_raw_clean": false,
+    "committed_lf_clean": true,
+    "file": "agent/internal/fastpath/gain_staging_ref.go"
+  },
+  {
+    "checkout_lf_clean": true,
+    "checkout_raw_clean": false,
+    "committed_lf_clean": true,
+    "file": "agent/internal/fastpath/natural_mix.go"
+  },
+  {
+    "checkout_lf_clean": true,
+    "checkout_raw_clean": false,
+    "committed_lf_clean": true,
+    "file": "agent/internal/fastpath/router.go"
+  },
+  {
+    "checkout_lf_clean": true,
+    "checkout_raw_clean": false,
+    "committed_lf_clean": true,
+    "file": "agent/internal/fastpath/router_test.go"
+  },
+  {
+    "checkout_lf_clean": true,
+    "checkout_raw_clean": false,
+    "committed_lf_clean": true,
+    "file": "agent/internal/fastpath/strip_silence.go"
+  },
+  {
+    "checkout_lf_clean": true,
+    "checkout_raw_clean": false,
+    "committed_lf_clean": true,
+    "file": "agent/internal/fastpath/text.go"
+  }
+]

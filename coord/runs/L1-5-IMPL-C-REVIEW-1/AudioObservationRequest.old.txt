@@ -1,0 +1,18 @@
+func messageLoopAudioObservationRequest(userText string) bool {
+	text := strings.ToLower(strings.TrimSpace(userText))
+	if text == "" {
+		return false
+	}
+	if messageLoopNaturalMixRequest(text) {
+		return true
+	}
+	return messageLoopTextHasAny(text,
+		"\u97f3\u9891\u89c2\u5bdf", "\u6df7\u97f3\u89c2\u5bdf", "\u58f0\u5b66\u89c2\u5bdf", "\u58f0\u5b66\u5206\u6790", "\u58f0\u5b66\u6570\u636e",
+		"\u89c2\u5bdf\u5206\u6790", "\u5177\u4f53\u5206\u6790", "\u7ee7\u7eed\u89c2\u5bdf", "\u5206\u6790\u4e00\u4e0b",
+		"\u9891\u8c31", "\u9891\u8c31\u5206\u5e03", "\u9891\u6bb5\u80fd\u91cf", "\u4f4e\u9891", "\u4e2d\u9891", "\u9ad8\u9891",
+		"\u54cd\u5ea6", "\u5cf0\u503c", "\u5747\u65b9\u6839", "\u52a8\u6001\u8303\u56f4", "\u6ce2\u5f62", "\u5305\u7edc",
+		"audio observation", "mix observation", "acoustic observation", "acoustic analysis", "acoustic data",
+		"observation analysis", "analyze audio", "specific analysis", "spectrum", "spectral", "frequency distribution",
+		"band energy", "loudness", "peak", "rms", "lufs", "dynamic range", "waveform", "envelope",
+	)
+}

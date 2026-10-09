@@ -1,0 +1,103 @@
+?   	vit-daw-agent/cmd/comderive	[no test files]
+?   	vit-daw-agent/cmd/domreadiness	[no test files]
+?   	vit-daw-agent/cmd/eqtopologyreplay	[no test files]
+?   	vit-daw-agent/cmd/mixlab	[no test files]
+?   	vit-daw-agent/cmd/pcactl	[no test files]
+ok  	vit-daw-agent/cmd/pluginprobe	0.611s
+ok  	vit-daw-agent/cmd/vitagent	0.608s
+?   	vit-daw-agent/cmd/vsphub	[no test files]
+ok  	vit-daw-agent/internal	0.546s
+ok  	vit-daw-agent/internal/acousticpackage	1.193s
+ok  	vit-daw-agent/internal/actionworkflow	0.464s
+ok  	vit-daw-agent/internal/agentloop	10.911s
+ok  	vit-daw-agent/internal/agentprotocol	0.542s
+ok  	vit-daw-agent/internal/artifacts	0.852s
+ok  	vit-daw-agent/internal/audioclosure	0.273s
+ok  	vit-daw-agent/internal/bridge	1.251s
+?   	vit-daw-agent/internal/browsercapture	[no test files]
+ok  	vit-daw-agent/internal/capabilityadapters	0.343s
+ok  	vit-daw-agent/internal/capabilitycontext	0.428s
+ok  	vit-daw-agent/internal/capabilityinteraction	0.426s
+ok  	vit-daw-agent/internal/capabilityruntime	0.377s
+ok  	vit-daw-agent/internal/chat	106.753s
+ok  	vit-daw-agent/internal/com	1.752s
+ok  	vit-daw-agent/internal/config	0.262s
+ok  	vit-daw-agent/internal/contextruntime	0.735s
+ok  	vit-daw-agent/internal/contextruntime/carriers	0.839s
+ok  	vit-daw-agent/internal/conversation	0.240s
+ok  	vit-daw-agent/internal/daw	0.223s
+ok  	vit-daw-agent/internal/dom	0.237s
+ok  	vit-daw-agent/internal/dynamiccontrol	0.245s
+ok  	vit-daw-agent/internal/epm	0.250s
+ok  	vit-daw-agent/internal/executionports	0.268s
+ok  	vit-daw-agent/internal/executionruntime	2.379s
+ok  	vit-daw-agent/internal/executionverifiers	0.617s
+ok  	vit-daw-agent/internal/executor	0.550s
+ok  	vit-daw-agent/internal/experiment	0.235s
+ok  	vit-daw-agent/internal/experimentplugins	1.654s
+ok  	vit-daw-agent/internal/fastpath	0.541s
+ok  	vit-daw-agent/internal/frequencycleanup	0.250s
+ok  	vit-daw-agent/internal/fxm	0.431s
+ok  	vit-daw-agent/internal/goalrunner	1.671s
+ok  	vit-daw-agent/internal/harness	22.323s
+ok  	vit-daw-agent/internal/history	8.507s
+ok  	vit-daw-agent/internal/journal	0.665s
+ok  	vit-daw-agent/internal/kernel	0.525s
+ok  	vit-daw-agent/internal/levelsafety	0.424s
+ok  	vit-daw-agent/internal/llm	1.107s
+?   	vit-daw-agent/internal/logx	[no test files]
+ok  	vit-daw-agent/internal/lowendrelation	0.484s
+ok  	vit-daw-agent/internal/macrocontrols	0.423s
+ok  	vit-daw-agent/internal/masking	0.413s
+ok  	vit-daw-agent/internal/materialize	1.385s
+ok  	vit-daw-agent/internal/mixboard	6.191s
+ok  	vit-daw-agent/internal/mixdiagnosis	0.427s
+ok  	vit-daw-agent/internal/mixstyle	0.448s
+ok  	vit-daw-agent/internal/mom	0.532s
+ok  	vit-daw-agent/internal/observationrouter	0.489s
+ok  	vit-daw-agent/internal/orchestration	1.965s
+ok  	vit-daw-agent/internal/orchestrationcontroller	0.413s
+ok  	vit-daw-agent/internal/orchestrationruntime	0.506s
+ok  	vit-daw-agent/internal/panlayout	0.514s
+ok  	vit-daw-agent/internal/pendingmanager	0.435s
+ok  	vit-daw-agent/internal/planner	0.597s
+ok  	vit-daw-agent/internal/pluginprobe	0.727s
+ok  	vit-daw-agent/internal/pluginsemantics	0.512s
+ok  	vit-daw-agent/internal/policy	0.436s
+?   	vit-daw-agent/internal/presenter	[no test files]
+?   	vit-daw-agent/internal/preview	[no test files]
+ok  	vit-daw-agent/internal/probeaudio	9.128s
+ok  	vit-daw-agent/internal/processorattestation	1.329s
+ok  	vit-daw-agent/internal/processorauthority	1.611s
+ok  	vit-daw-agent/internal/processorintent	0.486s
+ok  	vit-daw-agent/internal/processorregistry	0.464s
+ok  	vit-daw-agent/internal/projectcut	0.503s
+ok  	vit-daw-agent/internal/projectpackage	1.948s
+ok  	vit-daw-agent/internal/projectstore	1.773s
+ok  	vit-daw-agent/internal/projectworkspace	0.606s
+ok  	vit-daw-agent/internal/promptruntime	0.568s
+ok  	vit-daw-agent/internal/protocolvalue	0.473s
+ok  	vit-daw-agent/internal/queryengine	1.210s
+ok  	vit-daw-agent/internal/resourceintake	0.851s
+ok  	vit-daw-agent/internal/rlm	0.658s
+?   	vit-daw-agent/internal/rollback	[no test files]
+ok  	vit-daw-agent/internal/runtime	0.456s
+ok  	vit-daw-agent/internal/segmentation	0.464s
+ok  	vit-daw-agent/internal/semanticeffect	0.439s
+ok  	vit-daw-agent/internal/semanticorchestrator	0.436s
+ok  	vit-daw-agent/internal/shadow	1.399s
+ok  	vit-daw-agent/internal/shelltools	0.459s
+ok  	vit-daw-agent/internal/staticbalance	0.486s
+ok  	vit-daw-agent/internal/taskstate	0.449s
+ok  	vit-daw-agent/internal/tim	0.569s
+ok  	vit-daw-agent/internal/tom	0.443s
+ok  	vit-daw-agent/internal/toolpolicy	0.447s
+ok  	vit-daw-agent/internal/tools	0.473s
+ok  	vit-daw-agent/internal/trajectory	0.469s
+?   	vit-daw-agent/internal/vspclient	[no test files]
+ok  	vit-daw-agent/internal/vsphub	1.136s
+ok  	vit-daw-agent/internal/vst3host	0.417s
+ok  	vit-daw-agent/internal/webtools	0.719s
+ok  	vit-daw-agent/internal/workflows/plugingrabber	0.549s
+ok  	vit-daw-agent/internal/workspace	0.443s
+ok  	vit-daw-agent/rules/ruleset	0.405s

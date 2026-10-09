@@ -1,0 +1,23 @@
+func messageLoopGainStagingExplicitRequest(userText string) bool {
+	text := strings.ToLower(strings.TrimSpace(userText))
+	if text == "" {
+		return false
+	}
+	hasB1 := messageLoopTextHasAny(text, "b1", "b 1", "static_mix.gain_staging", "gain staging", "gain-staging", "gainstage")
+	// In B2 requests, B1 is commonly a readiness reference ("based on B1"),
+	// not a request to run the gain-staging capability again.
+	if hasB1 && messageLoopStaticBalanceIntentReference(text) {
+		return false
+	}
+	if hasB1 {
+		return true
+	}
+	hasB12 := messageLoopTextHasAny(text, "b1.2", "b 1.2", "b1-2", "b 1-2", "b1_2")
+	if hasB12 || messageLoopGainStagingStrictReferenceIntent(text) {
+		return true
+	}
+	return hasB1 && messageLoopTextHasAny(text,
+		"gain", "level", "volume", "loudness", "peak", "rms", "lufs", "headroom",
+		"\u589e\u76ca", "\u7535\u5e73", "\u97f3\u91cf", "\u54cd\u5ea6", "\u5cf0\u503c", "\u5747\u65b9\u6839", "\u4f59\u91cf",
+	)
+}

@@ -1,0 +1,14 @@
+﻿[
+    {
+        "command":  "go test ./internal/chat -run ^TestAutomaticProposalTextConfirmationKeepsTaskIdentityAndPendingProjection$ -count=1 -v",
+        "exit_code":  0,
+        "started":  "2026-10-09T13:40:31.1130464+08:00",
+        "finished":  "2026-10-09T13:40:33.8694738+08:00"
+    },
+    {
+        "command":  "go test ./internal/chat -count=1",
+        "exit_code":  0,
+        "started":  "2026-10-09T13:40:33.8979406+08:00",
+        "finished":  "2026-10-09T13:42:13.1454262+08:00"
+    }
+]

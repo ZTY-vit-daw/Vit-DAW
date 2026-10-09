@@ -1,0 +1,17 @@
+func clipRangeSplitCutKey(args map[string]any) string {
+	if args == nil {
+		return ""
+	}
+	clipID := strings.TrimSpace(messageLoopText(args["clip_id"]))
+	value, ok := args["split_time"].(float64)
+	if !ok {
+		parsed, err := strconv.ParseFloat(strings.TrimSpace(messageLoopText(args["split_time"])), 64)
+		if err == nil {
+			value, ok = parsed, true
+		}
+	}
+	if clipID == "" || !ok {
+		return ""
+	}
+	return clipID + "@" + strconv.FormatFloat(value, 'f', -1, 64)
+}

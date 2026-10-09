@@ -1,0 +1,291 @@
+[
+  {
+    "direct_calls": [
+      "append",
+      "messageLoopStaticMixCapabilityContractReply",
+      "messageLoopStaticMixCapabilityContractRequest"
+    ],
+    "direct_selectors": [
+      "r.complete",
+      "state.input",
+      "state.trace"
+    ],
+    "file": "agent/internal/agentloop/message_loop.go",
+    "handler": "preflightStaticMixCapabilityContract",
+    "line": 1006,
+    "signature": "func (l *MessageLoop) preflightStaticMixCapabilityContract(_ context.Context, r *Runner, state *runState) (bool, Result) "
+  },
+  {
+    "direct_calls": [
+      "allowedTool",
+      "append",
+      "appendMessageLoopToolResult",
+      "cloneToolCallPtr",
+      "len",
+      "messageLoopProjectBlackboardExecutionResult",
+      "messageLoopProjectBlackboardFallbackRecord",
+      "messageLoopProjectBlackboardReportFromRecord",
+      "messageLoopProjectBlackboardStateCall",
+      "messageLoopProjectBlackboardStatusRequest"
+    ],
+    "direct_selectors": [
+      "l.logTiming",
+      "r.checkToolBudget",
+      "r.checkpoint",
+      "r.complete",
+      "r.executeTool",
+      "state.goal",
+      "state.input",
+      "state.trace"
+    ],
+    "file": "agent/internal/agentloop/message_loop.go",
+    "handler": "preflightProjectBlackboardStatus",
+    "line": 1014,
+    "signature": "func (l *MessageLoop) preflightProjectBlackboardStatus(ctx context.Context, r *Runner, state *runState) (bool, Result) "
+  },
+  {
+    "direct_calls": [
+      "allowedTool",
+      "append",
+      "appendMessageLoopToolResult",
+      "cloneToolCallPtr",
+      "messageLoopClipFadeGainSetReply",
+      "messageLoopDeterministicClipFadeGainSetCall"
+    ],
+    "direct_selectors": [
+      "l.logTiming",
+      "r.checkToolBudget",
+      "r.checkpoint",
+      "r.complete",
+      "r.executeTool",
+      "state.goal",
+      "state.input",
+      "state.trace"
+    ],
+    "file": "agent/internal/agentloop/message_loop.go",
+    "handler": "preflightClipFadeGainSet",
+    "line": 1112,
+    "signature": "func (l *MessageLoop) preflightClipFadeGainSet(ctx context.Context, r *Runner, state *runState) (bool, Result) "
+  },
+  {
+    "direct_calls": [
+      "allowedTool",
+      "append",
+      "appendMessageLoopToolResult",
+      "cloneToolCallPtr",
+      "messageLoopClipFadeGainReadReply",
+      "messageLoopClipFadeGainReadRequest",
+      "messageLoopCurrentClipID",
+      "messageLoopDeterministicClipFadeGainReadCalls"
+    ],
+    "direct_selectors": [
+      "l.logTiming",
+      "r.checkToolBudget",
+      "r.checkpoint",
+      "r.complete",
+      "r.executeTool",
+      "r.pause",
+      "state.goal",
+      "state.input",
+      "state.trace"
+    ],
+    "file": "agent/internal/agentloop/message_loop.go",
+    "handler": "preflightClipFadeGainRead",
+    "line": 1062,
+    "signature": "func (l *MessageLoop) preflightClipFadeGainRead(ctx context.Context, r *Runner, state *runState) (bool, Result) "
+  },
+  {
+    "direct_calls": [
+      "allowedTool",
+      "append",
+      "appendMessageLoopToolResult",
+      "cloneToolCallPtr",
+      "messageLoopDeterministicStripSilenceSuggestCall",
+      "messageLoopStripSilenceSuggestReply"
+    ],
+    "direct_selectors": [
+      "l.logTiming",
+      "r.checkToolBudget",
+      "r.checkpoint",
+      "r.complete",
+      "r.executeTool",
+      "state.goal",
+      "state.input",
+      "state.trace"
+    ],
+    "file": "agent/internal/agentloop/message_loop.go",
+    "handler": "preflightStripSilenceSuggest",
+    "line": 1152,
+    "signature": "func (l *MessageLoop) preflightStripSilenceSuggest(ctx context.Context, r *Runner, state *runState) (bool, Result) "
+  },
+  {
+    "direct_calls": [
+      "allowedTool",
+      "append",
+      "appendMessageLoopToolResult",
+      "clipRangeSplitCutKey",
+      "cloneToolCallPtr",
+      "len",
+      "make",
+      "messageLoopAppendGuardGate",
+      "messageLoopClipRangeSplitCompletionReply",
+      "messageLoopDeterministicClipRangeSplitCalls",
+      "messageLoopExecutedClipRangeSplitCuts",
+      "messageLoopHasUsableMixObservation",
+      "messageLoopToolGuardIssue"
+    ],
+    "direct_selectors": [
+      "l.logTiming",
+      "r.checkToolBudget",
+      "r.checkpoint",
+      "r.complete",
+      "r.executeTool",
+      "state.goal",
+      "state.input",
+      "state.trace"
+    ],
+    "file": "agent/internal/agentloop/message_loop.go",
+    "handler": "preflightClipRangeSplit",
+    "line": 1199,
+    "signature": "func (l *MessageLoop) preflightClipRangeSplit(ctx context.Context, r *Runner, state *runState) (bool, Result) "
+  },
+  {
+    "direct_calls": [
+      "allowedTool",
+      "append",
+      "appendMessageLoopToolResult",
+      "cloneToolCallPtr",
+      "messageLoopDeterministicStemsPreflightCall",
+      "toolAdmissionError"
+    ],
+    "direct_selectors": [
+      "l.logTiming",
+      "l.maybeStartStemsImportConfirmation",
+      "r.checkToolBudget",
+      "r.checkpoint",
+      "r.executeTool",
+      "state.goal",
+      "state.input",
+      "state.trace"
+    ],
+    "file": "agent/internal/agentloop/message_loop.go",
+    "handler": "preflightStemsFolderImport",
+    "line": 1911,
+    "signature": "func (l *MessageLoop) preflightStemsFolderImport(ctx context.Context, r *Runner, state *runState) (bool, Result) "
+  },
+  {
+    "direct_calls": [
+      "allowedTool",
+      "append",
+      "appendMessageLoopToolResult",
+      "cloneToolCallPtr",
+      "len",
+      "messageLoopDeterministicSectionMarkersApplyCall",
+      "messageLoopProjectMarkersFastCompleteReply",
+      "toolAdmissionError"
+    ],
+    "direct_selectors": [
+      "l.logTiming",
+      "r.checkToolBudget",
+      "r.checkpoint",
+      "r.complete",
+      "r.executeTool",
+      "state.executed",
+      "state.goal",
+      "state.input",
+      "state.trace"
+    ],
+    "file": "agent/internal/agentloop/message_loop.go",
+    "handler": "preflightPendingSectionMarkersApply",
+    "line": 1950,
+    "signature": "func (l *MessageLoop) preflightPendingSectionMarkersApply(ctx context.Context, r *Runner, state *runState) (bool, Result) "
+  },
+  {
+    "direct_calls": [
+      "allowedTool",
+      "append",
+      "appendMessageLoopToolResult",
+      "cloneToolCallPtr",
+      "messageLoopDeterministicGainPendingAfterObservation",
+      "messageLoopDeterministicMixObservationCall",
+      "messageLoopFreeStateActive",
+      "messageLoopHasUsableMixObservation",
+      "messageLoopNeedsDeterministicMixObservation",
+      "toolAdmissionError"
+    ],
+    "direct_selectors": [
+      "l.logTiming",
+      "l.preflightFocusRelationship",
+      "r.checkToolBudget",
+      "r.checkpoint",
+      "r.complete",
+      "r.executeTool",
+      "state.goal",
+      "state.input",
+      "state.trace"
+    ],
+    "file": "agent/internal/agentloop/message_loop.go",
+    "handler": "preflightNaturalMixObservation",
+    "line": 2694,
+    "signature": "func (l *MessageLoop) preflightNaturalMixObservation(ctx context.Context, r *Runner, state *runState) (bool, Result) "
+  },
+  {
+    "direct_calls": [
+      "allowedTool",
+      "append",
+      "cloneToolCallPtr",
+      "executionMemoryMap",
+      "firstMapText",
+      "len",
+      "messageLoopCompactB1PreflightState",
+      "messageLoopGainStagingAnalysisNeedsRecovery",
+      "messageLoopGainStagingAudioAnalysisRetryCall",
+      "messageLoopGainStagingAudioAnalysisStatusCall",
+      "messageLoopGainStagingB12NeedsUnityReply",
+      "messageLoopGainStagingCapabilityRequest",
+      "messageLoopGainStagingEffectivePackIntent",
+      "messageLoopGainStagingFaderResetRequest",
+      "messageLoopGainStagingFaderUnityStats",
+      "messageLoopGainStagingFullWorkflowRequest",
+      "messageLoopGainStagingObservationCall",
+      "messageLoopGainStagingPackStale",
+      "messageLoopGainStagingProjectRevision",
+      "messageLoopGainStagingProjectState",
+      "messageLoopGainStagingReportRequest",
+      "messageLoopGainStagingRequiresSourceCalibration",
+      "messageLoopGainStagingSuggestionRequest",
+      "messageLoopGainStagingTechnicalReport",
+      "messageLoopHasAnyMixObservationAttempt",
+      "messageLoopHasAudioAnalysisStatusExecution",
+      "messageLoopHasGainStagingContextPack",
+      "messageLoopHasProjectStateExecution",
+      "messageLoopHasUsableMixObservation",
+      "messageLoopLastAudioAnalysisStatusResult",
+      "messageLoopLastMixObservationResult",
+      "messageLoopProjectBlackboardStateCall",
+      "string"
+    ],
+    "direct_selectors": [
+      "l.logTiming",
+      "l.messageLoopGainStagingWaitForAnalysisReady",
+      "l.preflightStaticMixGainStagingFaderReset",
+      "l.preflightStaticMixGainStagingSuggestion",
+      "r.checkToolBudget",
+      "r.checkpoint",
+      "r.complete",
+      "r.executeTool",
+      "r.now",
+      "state.contextSnapshot",
+      "state.executionMemory",
+      "state.goal",
+      "state.input",
+      "state.pendingToolCall",
+      "state.pendingToolQueue",
+      "state.trace"
+    ],
+    "file": "agent/internal/agentloop/static_mix_gain_staging_context.go",
+    "handler": "preflightStaticMixGainStagingContextPack",
+    "line": 17,
+    "signature": "func (l *MessageLoop) preflightStaticMixGainStagingContextPack(ctx context.Context, r *Runner, state *runState) (bool, Result) "
+  }
+]

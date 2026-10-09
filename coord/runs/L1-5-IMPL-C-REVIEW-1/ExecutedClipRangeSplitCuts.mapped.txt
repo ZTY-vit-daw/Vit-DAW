@@ -1,0 +1,32 @@
+func messageLoopExecutedClipRangeSplitCuts(trace []planner.TraceEvent) (attempted, succeeded map[string]bool) {
+	attempted = map[string]bool{}
+	succeeded = map[string]bool{}
+	pendingID := ""
+	pendingKey := ""
+	for _, event := range trace {
+		switch event.Kind {
+		case "tool_call":
+			if event.ToolCall != nil && strings.EqualFold(strings.TrimSpace(event.ToolCall.Tool), "clip.split") {
+				pendingID = strings.TrimSpace(event.ToolCall.ID)
+				pendingKey = clipRangeSplitCutKey(event.ToolCall.Args)
+			} else {
+				pendingID, pendingKey = "", ""
+			}
+		case "tool_result":
+			if pendingKey == "" || event.ToolResult == nil {
+				pendingID, pendingKey = "", ""
+				continue
+			}
+			if pendingID == "" || strings.TrimSpace(event.ToolResult.ToolCallID) == pendingID {
+				attempted[pendingKey] = true
+				status := strings.ToLower(strings.TrimSpace(event.ToolResult.Status))
+				if strings.TrimSpace(event.ToolResult.Error) == "" &&
+					status != "error" && status != "kernel_error" && status != "failed" && status != "needs_confirmation" {
+					succeeded[pendingKey] = true
+				}
+				pendingID, pendingKey = "", ""
+			}
+		}
+	}
+	return attempted, succeeded
+}

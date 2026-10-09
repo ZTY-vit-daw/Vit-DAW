@@ -1,0 +1,5 @@
+M	agent/internal/capabilitycontext/gain_staging.go
+A	agent/internal/capabilitycontext/gain_staging_refs_m2x_test.go
+M	agent/internal/tim/asserter.go
+M	agent/internal/tim/projection.go
+A	agent/internal/tim/refschema_m2x_test.go
