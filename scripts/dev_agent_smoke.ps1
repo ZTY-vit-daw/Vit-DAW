@@ -169,6 +169,12 @@ param(
     [int]$HarnessAbRounds = 3,
     [int]$HarnessAbTurnSeconds = 200,
     [int]$HarnessAbSettleSeconds = 300,
+    # G3-ATTRIB-1: multi-utterance family sampling (phase B runs the first
+    # $HarnessAbFamilies families of the fixed family list x both modes, 1
+    # round each) and the confirmation round-trip hop bound (phases C/D,
+    # pull-only legs).
+    [int]$HarnessAbFamilies = 3,
+    [int]$HarnessAbConfirmHops = 3,
     # SMOKE-TOOLING-1: the UI-launched kernel command port can take far longer
     # than the generic wait budget when the plugin table is cold (three
     # same-shape environment failures: ~994-entry cold load blew the fixed
@@ -318,6 +324,215 @@ function Get-FirstPropertyValue {
         }
     }
     return ""
+}
+
+# G3-ATTRIB-1 harness_ab shared round driver: send the utterance -> bounded
+# nudge settle -> classify. Same boundary policy and classification
+# vocabulary as the harness_ab phase-A base loop (kept verbatim there; this
+# helper serves phases B/C/D so the phases share one classification face).
+# Outcomes are RECORDED, never asserted here.
+function Invoke-HarnessAbSettleRound {
+    param(
+        [string]$ChatUri,
+        [string]$ConversationID,
+        [string]$Prompt,
+        [string]$Nudge,
+        [hashtable]$ChatContext,
+        [int]$TurnSeconds,
+        [int]$SettleSeconds,
+        [int]$MaxNudges = 2
+    )
+    $turnsSent = 0
+    $nudgesSent = 0
+    $sendPending = $true
+    $terminal = $false
+    $lastStop = ""
+    $lastGoalStatus = ""
+    $needsConfirmation = $false
+    $transportErrors = 0
+    $stopReasons = New-Object System.Collections.Generic.List[string]
+    $goalStatuses = New-Object System.Collections.Generic.List[string]
+    $lastResponse = $null
+    $settleDeadline = (Get-Date).AddSeconds($SettleSeconds)
+    while ((Get-Date) -lt $settleDeadline -and -not $terminal) {
+        if ($sendPending) {
+            $sendPending = $false
+            $turnsSent++
+            $isNudge = ($turnsSent -gt 1)
+            if ($isNudge) { $nudgesSent++ }
+            $message = $Prompt
+            if ($isNudge) { $message = $Nudge }
+            try {
+                $response = Invoke-Json -Method POST -Uri $ChatUri -Body @{
+                    conversation_id = $ConversationID
+                    message = $message
+                    context = $ChatContext
+                } -TimeoutSec $TurnSeconds
+                $lastResponse = $response
+                $lastStop = [string](Get-OptionalProperty -Object $response -Name "stop_reason")
+                $lastGoalStatus = [string](Get-OptionalProperty -Object $response -Name "goal_status")
+                $needsConfirmation = [bool](Get-OptionalProperty -Object $response -Name "needs_confirmation")
+                if ($lastStop -ne "") { $stopReasons.Add($lastStop) }
+                if ($lastGoalStatus -ne "") { $goalStatuses.Add($lastGoalStatus) }
+            }
+            catch {
+                $transportErrors++
+                $lastStop = "transport_error"
+                $stopReasons.Add("transport_error")
+            }
+        }
+        else {
+            Start-Sleep -Seconds 2
+        }
+        # Boundary policy: identical to the phase-A loop (terminal or
+        # user-facing status settles; waiting_continue chains get bounded
+        # nudges; observation_budget_exhausted never nudged).
+        if ($lastGoalStatus -in @("completed", "failed", "stopped", "cancelled") -or
+            $lastStop -in @("done", "failed", "cancelled", "user_stop")) {
+            $terminal = $true
+        }
+        elseif ($lastGoalStatus -in @("waiting_confirmation", "waiting_clarification")) {
+            $terminal = $true
+        }
+        elseif ($lastGoalStatus -eq "waiting_continue" -or $lastStop -in @("limit_reached", "transient_llm_error", "interrupted", "observation_budget_exhausted", "transport_error")) {
+            if ($nudgesSent -lt $MaxNudges -and $lastStop -ne "observation_budget_exhausted") {
+                $sendPending = $true
+            }
+            else {
+                $terminal = $true
+            }
+        }
+        if ($transportErrors -ge 2) { $terminal = $true }
+    }
+    $classification = "other"
+    if ($lastGoalStatus -eq "completed" -or $lastStop -eq "done") { $classification = "judgment_terminal" }
+    elseif ($lastGoalStatus -eq "waiting_confirmation" -or $needsConfirmation) { $classification = "needs_user_confirmation" }
+    elseif ($lastGoalStatus -eq "waiting_clarification") { $classification = "needs_user_clarification" }
+    elseif ($lastStop -eq "observation_budget_exhausted") { $classification = "budget_exhausted" }
+    elseif ($lastStop -in @("llm_error", "model_protocol_failure")) { $classification = "infra_error_llm" }
+    elseif ($lastStop -eq "transport_error") { $classification = "infra_error_transport" }
+    elseif ($lastGoalStatus -eq "failed") { $classification = "judgment_failed" }
+    elseif ($lastGoalStatus -eq "waiting_continue" -or $lastStop -eq "limit_reached") { $classification = "stalled_slice_limit" }
+    elseif ($lastStop -eq "") { $classification = "no_response" }
+    $firstInteraction = $null
+    $lastInteractions = @(Get-OptionalProperty -Object $lastResponse -Name "interaction_requests")
+    if ($lastInteractions.Count -gt 0 -and $null -ne $lastInteractions[0]) { $firstInteraction = $lastInteractions[0] }
+    return @{
+        conversation_id = $ConversationID
+        classification = $classification
+        stop_reasons = @($stopReasons.ToArray())
+        goal_statuses = @($goalStatuses.ToArray())
+        turns_sent = $turnsSent
+        nudges_sent = $nudgesSent
+        transport_errors = $transportErrors
+        settled = $terminal
+        last_stop_reason = $lastStop
+        last_goal_status = $lastGoalStatus
+        needs_confirmation = $needsConfirmation
+        plan_id = [string](Get-OptionalProperty -Object $lastResponse -Name "plan_id")
+        interaction_request = $firstInteraction
+        finished_at = (Get-Date).ToString("o")
+    }
+}
+
+# G3-ATTRIB-1 harness_ab confirmation round-trip driver: approve the mounted
+# card (plan face /agent/confirm preferred; interaction face fallback, J3
+# journey precedent) and follow the chain hop by hop until a terminal goal
+# status or the hop bound. Structural face only: hop responses are recorded
+# (goal status / stop reason / next card identity), outcomes never asserted.
+function Invoke-HarnessAbConfirmHops {
+    param(
+        [string]$ConfirmUri,
+        [string]$RespondUri,
+        [string]$InitialPlanID,
+        [object]$InitialInteractionRequest,
+        [int]$MaxHops,
+        [int]$TurnSeconds
+    )
+    $hops = New-Object System.Collections.Generic.List[object]
+    $planID = $InitialPlanID
+    $interaction = $InitialInteractionRequest
+    $hopIndex = 0
+    $exercised = $false
+    while ($hopIndex -lt $MaxHops -and (-not [string]::IsNullOrWhiteSpace($planID) -or $null -ne $interaction)) {
+        $hopIndex++
+        $face = "plan"
+        $cardID = $planID
+        if ([string]::IsNullOrWhiteSpace($planID) -and $null -ne $interaction) {
+            $face = "interaction"
+            $cardID = [string](Get-OptionalProperty -Object $interaction -Name "id")
+        }
+        $hopResponse = $null
+        $hopError = ""
+        try {
+            if ($face -eq "plan") {
+                $hopResponse = Invoke-Json -Method POST -Uri $ConfirmUri -Body @{
+                    plan_id = $planID
+                    decision = "approve"
+                } -TimeoutSec $TurnSeconds
+            }
+            else {
+                $hopResponse = Invoke-Json -Method POST -Uri $RespondUri -Body @{
+                    interaction_id = $cardID
+                    action_id = "approve"
+                    decision = "approve"
+                    payload = @{}
+                } -TimeoutSec $TurnSeconds
+            }
+        }
+        catch {
+            $hopResponse = $null
+            if ($null -ne $_.ErrorDetails -and -not [string]::IsNullOrWhiteSpace($_.ErrorDetails.Message)) { $hopError = $_.ErrorDetails.Message }
+            else { $hopError = $_.Exception.Message }
+        }
+        $hopStop = ""
+        $hopGoal = ""
+        $hopNeedsConfirm = $false
+        $hopExpiredFallback = $false
+        $nextPlanID = ""
+        $nextInteraction = $null
+        if ($null -ne $hopResponse) {
+            $exercised = $true
+            $hopStop = [string](Get-OptionalProperty -Object $hopResponse -Name "stop_reason")
+            $hopGoal = [string](Get-OptionalProperty -Object $hopResponse -Name "goal_status")
+            $hopNeedsConfirm = [bool](Get-OptionalProperty -Object $hopResponse -Name "needs_confirmation")
+            # The consumed/expired plan fallback answers goal_status=completed
+            # with no stop_reason (server.go handleConfirm stale face).
+            if ([string]::IsNullOrWhiteSpace($hopStop) -and $hopGoal -eq "completed") { $hopExpiredFallback = $true }
+            if ($face -eq "plan") {
+                $nextPlanID = [string](Get-FirstPropertyValue -Object $hopResponse -Names @("next_plan_id", "plan_id"))
+            }
+            $hopInteractions = @(Get-OptionalProperty -Object $hopResponse -Name "interaction_requests")
+            if ($hopInteractions.Count -gt 0 -and $null -ne $hopInteractions[0]) { $nextInteraction = $hopInteractions[0] }
+        }
+        $hops.Add([pscustomobject]@{
+            index = $hopIndex
+            face = $face
+            card_id = $cardID
+            goal_status = $hopGoal
+            stop_reason = $hopStop
+            needs_confirmation = $hopNeedsConfirm
+            expired_fallback = $hopExpiredFallback
+            error = $hopError
+            answered = ($null -ne $hopResponse)
+        })
+        if ($hopGoal -in @("completed", "failed", "stopped", "cancelled")) { break }
+        $planID = ""
+        $interaction = $null
+        if ($hopNeedsConfirm) {
+            if (-not [string]::IsNullOrWhiteSpace($nextPlanID)) { $planID = $nextPlanID }
+            elseif ($null -ne $nextInteraction) { $interaction = $nextInteraction }
+            else { break }
+        }
+        else {
+            break
+        }
+    }
+    return @{
+        hops = @($hops.ToArray())
+        hops_used = $hops.Count
+        face_exercised = $exercised
+    }
 }
 
 function Get-FirstVisibleTrackId {
@@ -4941,12 +5156,46 @@ if ($ScenarioMode) {
         # legs (throw), per-mode >=1 real LLM telemetry record, per-mode >=3
         # classified rounds (or stop-loss recorded), metrics artifacts
         # written. Quality comparison is the G3 report's job, not the gate.
+        #
+        # G3-ATTRIB-1 phases B/C/D (probabilistic discipline pre-written,
+        # same §8 vocabulary as phase A):
+        #   phase B (multi-utterance sampling, both modes): the first
+        #     $HarnessAbFamilies families of the fixed family list (J3
+        #     loudness-balance verbatim + low-end cleanup + dynamic control),
+        #     1 round each, fresh conversation + fixture reopen per round
+        #     (rounds are NOT state-isolated in phase A; phase B reopens the
+        #     persisted fixture so family strata start from one baseline).
+        #     Outcomes recorded per (family x mode); the "assertive completion
+        #     vs proposal confirmation" equivalence verdict is the report's
+        #     job, never the gate.
+        #   phase C (confirmation round trip, pull only): one dedicated round;
+        #     success conditions (structural, recorded): a confirmation card
+        #     mounted AND >=1 approve hop answered by a parseable response.
+        #     Miss classification: no card mounted (confirm_face_exercised
+        #     =false), card mounted but hop unanswered/expired fallback --
+        #     all recorded, never thrown. Post-confirm stations and the
+        #     conversation event stream (audition./mix_tick/applied faces =
+        #     A/B judgment station evidence) are recorded as artifacts.
+        #   phase D (observation budget calibration, pull only): one round
+        #     with goal context pull_observation_budget {max_cycles=1,
+        #     max_probe_cost=8}; confirmation cards on the way are approved
+        #     (bounded hops) so the cycle can complete. success condition
+        #     (recorded): stop_reason observation_budget_exhausted observed;
+        #     miss = budget_trigger_missed with the actual stop reason.
+        #     Single-column accounting check: budget_exhausted classification
+        #     must never carry a no_candidate stop reason (recorded as
+        #     accounted_separately=false if it ever does).
+        #   stop-loss: phases B/C/D inherit the phase-A mode/run stop-loss
+        #     state; they are skipped once it trips.
         Write-Step "Scenario harness_ab: G3 A/B -- demo project x {push, pull} x rounds"
         $abInvokeUri = $AgentHttp.TrimEnd("/") + "/agent/invoke"
         $abChatUri = $AgentHttp.TrimEnd("/") + "/agent/chat"
         $abAuthorityUri = $AgentHttp.TrimEnd("/") + "/agent/authority"
         $abRuntimeUri = $AgentHttp.TrimEnd("/") + "/agent/runtime/status"
         $abHealthUri = $AgentHttp.TrimEnd("/") + "/health"
+        $abConfirmUri = $AgentHttp.TrimEnd("/") + "/agent/confirm"
+        $abRespondUri = $AgentHttp.TrimEnd("/") + "/agent/interaction/respond"
+        $abEventsUri = $AgentHttp.TrimEnd("/") + "/agent/events"
         $abInvoke = {
             param([string]$Tool, [object]$ToolArgs, [int]$TimeoutSec)
             Invoke-Json -Method POST -Uri $abInvokeUri -Body @{
@@ -5025,6 +5274,16 @@ if ($ScenarioMode) {
         $abPrompt = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String("6K+35a+55b2T5YmN6LS05ZSx5bel56iL5YGa5LiA5qyh6Ieq55Sx5oCB5a6e6aqM77ya5Z+65LqO6KeC5a+f6K+B5o2u5pS55ZaE5Lq65aOw5LiO5Ly05aWP55qE5bmz6KGh77yM5omn6KGM5ZCO6K6p5oiR6K+V5ZCs5a+55q+U5pWI5p6c44CC"))
         $abPrompt | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "harness_ab_prompt.txt") -Encoding UTF8
         $abNudge = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String("5Y+v5Lul5omn6KGM"))
+
+        # G3-ATTRIB-1 phase B utterance families (fixed list, verbatim strings;
+        # f1 reuses the J3 prompt byte-for-byte so the family stratum stays
+        # comparable with the phase-A/G3-round-1 baseline).
+        $abFamiliesAll = @(
+            @{ id = "f1_loudness_balance"; prompt = $abPrompt },
+            @{ id = "f2_low_end_cleanup";   prompt = "工程里的低频有些浑浊，贝斯和主唱的低频挤在一起。请帮我清理低频：让贝斯更清晰、主唱更透亮，整体听起来不轰头。" },
+            @{ id = "f3_dynamic_control";   prompt = "主唱的动态起伏太大了，有些句子太轻、有些句子太响。请帮我用压缩把主唱的音量拉平稳一些，副歌不要突兀地冒出来。" }
+        )
+        $abFamilies = @($abFamiliesAll | Select-Object -First ([Math]::Max(1, $HarnessAbFamilies)))
 
         $abModes = @("push", "pull")
         $abModeSummaries = @{}
@@ -5166,6 +5425,169 @@ if ($ScenarioMode) {
                 if ($abStopLossRun) { break }
             }
 
+            # ---------------- G3-ATTRIB-1 phase B: multi-family sampling ----
+            # Every family round reopens the persisted fixture first so the
+            # family strata start from one project baseline (phase A keeps
+            # the G3-round-1 sequential-drift semantics).
+            $abFamilyRounds = New-Object System.Collections.Generic.List[object]
+            foreach ($abFamily in $abFamilies) {
+                if ($abStopLossMode -or $abStopLossRun) { break }
+                $abReopen = & $abInvoke "project.open" @{ file_path = $abProjectPath } 180
+                if ([string]$abReopen.status -ne "ok") {
+                    throw ("harness_ab family-leg fixture reopen failed: " + ($abReopen | ConvertTo-Json -Depth 6 -Compress))
+                }
+                Start-Sleep -Seconds 2
+                $abFamilyConversationID = ("dev_harness_ab_" + $abMode + "_fam_" + $abFamily.id + "_" + (Get-Date -Format "yyyyMMdd_HHmmss"))
+                $abFamilyRound = Invoke-HarnessAbSettleRound -ChatUri $abChatUri -ConversationID $abFamilyConversationID -Prompt $abFamily.prompt -Nudge $abNudge -ChatContext @{ agent_mode = "chat" } -TurnSeconds $HarnessAbTurnSeconds -SettleSeconds $HarnessAbSettleSeconds
+                $abFamilyRounds.Add([pscustomobject]@{
+                    mode = $abMode
+                    family = $abFamily.id
+                    conversation_id = $abFamilyConversationID
+                    classification = $abFamilyRound.classification
+                    stop_reasons = $abFamilyRound.stop_reasons
+                    goal_statuses = $abFamilyRound.goal_statuses
+                    last_stop_reason = $abFamilyRound.last_stop_reason
+                    last_goal_status = $abFamilyRound.last_goal_status
+                    turns_sent = $abFamilyRound.turns_sent
+                    nudges_sent = $abFamilyRound.nudges_sent
+                    settled = $abFamilyRound.settled
+                    finished_at = $abFamilyRound.finished_at
+                })
+                Write-Ok ("harness_ab family round: mode=" + $abMode + " family=" + $abFamily.id + " class=" + $abFamilyRound.classification + " goal=" + $abFamilyRound.last_goal_status + " stop=" + $abFamilyRound.last_stop_reason)
+                if ($abFamilyRound.classification -like "infra_error_*") {
+                    $abConsecutiveInfra++
+                    if ($abConsecutiveInfra -ge 2 -and -not $abStopLossMode) {
+                        $abStopLossMode = $true
+                        Write-WarnLine ("harness_ab stop-loss: mode " + $abMode + " hit 2 consecutive infra_error rounds (family leg); remaining legs skipped")
+                    }
+                }
+                else { $abConsecutiveInfra = 0 }
+            }
+
+            # ---------------- G3-ATTRIB-1 phase C: confirm round trip (pull) -
+            $abConfirmRecord = $null
+            if ($abMode -eq "pull" -and -not $abStopLossRun -and -not $abStopLossMode) {
+                Write-Step "harness_ab phase C (pull): confirmation round trip -- propose -> confirm -> execute/judgment station"
+                $abReopen = & $abInvoke "project.open" @{ file_path = $abProjectPath } 180
+                if ([string]$abReopen.status -ne "ok") {
+                    throw ("harness_ab confirm-leg fixture reopen failed: " + ($abReopen | ConvertTo-Json -Depth 6 -Compress))
+                }
+                Start-Sleep -Seconds 2
+                $abConfirmConversationID = ("dev_harness_ab_pull_confirm_" + (Get-Date -Format "yyyyMMdd_HHmmss"))
+                $abConfirmRound = Invoke-HarnessAbSettleRound -ChatUri $abChatUri -ConversationID $abConfirmConversationID -Prompt $abPrompt -Nudge $abNudge -ChatContext @{ agent_mode = "chat" } -TurnSeconds $HarnessAbTurnSeconds -SettleSeconds $HarnessAbSettleSeconds
+                $abConfirmHops = @{ hops = @(); hops_used = 0; face_exercised = $false }
+                if ($abConfirmRound.classification -eq "needs_user_confirmation") {
+                    $abConfirmHops = Invoke-HarnessAbConfirmHops -ConfirmUri $abConfirmUri -RespondUri $abRespondUri -InitialPlanID $abConfirmRound.plan_id -InitialInteractionRequest $abConfirmRound.interaction_request -MaxHops $HarnessAbConfirmHops -TurnSeconds $HarnessAbTurnSeconds
+                }
+                # Post-confirm station + A/B judgment station evidence: the
+                # conversation event stream (audition./mix_tick/applied faces).
+                $abConfirmEvents = $null
+                try {
+                    $abConfirmEvents = Invoke-Json -Method GET -Uri ($abEventsUri + "?conversation_id=" + [uri]::EscapeDataString($abConfirmConversationID) + "&since=0&limit=500") -TimeoutSec 60
+                }
+                catch { $abConfirmEvents = $null }
+                $abConfirmEventTypes = New-Object System.Collections.Generic.List[string]
+                foreach ($abEventRow in @(Get-OptionalProperty -Object $abConfirmEvents -Name "events")) {
+                    $abEventType = [string](Get-OptionalProperty -Object $abEventRow -Name "type")
+                    if (-not [string]::IsNullOrWhiteSpace($abEventType)) { $abConfirmEventTypes.Add($abEventType) }
+                }
+                $abConfirmEventArray = @($abConfirmEventTypes.ToArray())
+                $abConfirmStationClass = "not_driven_no_card"
+                if ($abConfirmRound.classification -eq "needs_user_confirmation") {
+                    if ($abConfirmHops.face_exercised) {
+                        $abLastHop = $null
+                        if ($abConfirmHops.hops.Count -gt 0) { $abLastHop = $abConfirmHops.hops[$abConfirmHops.hops.Count - 1] }
+                        $abHopGoal = ""
+                        $abHopStop = ""
+                        if ($null -ne $abLastHop) {
+                            $abHopGoal = [string]$abLastHop.goal_status
+                            $abHopStop = [string]$abLastHop.stop_reason
+                        }
+                        if ($abHopGoal -in @("completed") -or $abHopStop -eq "done") { $abConfirmStationClass = "judgment_terminal" }
+                        elseif ($abHopStop -eq "observation_budget_exhausted") { $abConfirmStationClass = "budget_exhausted" }
+                        elseif ($abHopGoal -eq "failed") { $abConfirmStationClass = "judgment_failed" }
+                        elseif ($abHopGoal -eq "waiting_confirmation") { $abConfirmStationClass = "needs_user_confirmation_again" }
+                        elseif ($abHopGoal -eq "waiting_clarification") { $abConfirmStationClass = "needs_user_clarification" }
+                        elseif ($abHopStop -in @("llm_error", "model_protocol_failure")) { $abConfirmStationClass = "infra_error_llm" }
+                        else { $abConfirmStationClass = "settled_other" }
+                    }
+                    else { $abConfirmStationClass = "card_mounted_hop_unanswered" }
+                }
+                $abConfirmRecord = @{
+                    phase = "confirm_roundtrip"
+                    mode = $abMode
+                    conversation_id = $abConfirmConversationID
+                    round = $abConfirmRound
+                    hops = $abConfirmHops.hops
+                    hops_used = $abConfirmHops.hops_used
+                    confirm_face_exercised = $abConfirmHops.face_exercised
+                    post_confirm_station = $abConfirmStationClass
+                    judgment_station_events = @{
+                        total = $abConfirmEventArray.Count
+                        audition = @($abConfirmEventArray | Where-Object { $_.StartsWith("audition.") }).Count
+                        mix_tick = @($abConfirmEventArray | Where-Object { $_ -like "*mix_tick*" }).Count
+                        applied_like = @($abConfirmEventArray | Where-Object { $_ -like "*applied*" -or $_ -like "*intervention*" }).Count
+                    }
+                    finished_at = (Get-Date).ToString("o")
+                }
+                $abConfirmRecord | ConvertTo-Json -Depth 14 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "harness_ab_confirm_roundtrip.json") -Encoding UTF8
+                Write-Ok ("harness_ab confirm round trip: exercised=" + $abConfirmHops.face_exercised + " hops=" + $abConfirmHops.hops_used + " station=" + $abConfirmStationClass)
+            }
+
+            # ---------------- G3-ATTRIB-1 phase D: budget calibration (pull) -
+            $abBudgetRecord = $null
+            if ($abMode -eq "pull" -and -not $abStopLossRun -and -not $abStopLossMode) {
+                Write-Step "harness_ab phase D (pull): observation budget calibration (max_cycles=1)"
+                $abReopen = & $abInvoke "project.open" @{ file_path = $abProjectPath } 180
+                if ([string]$abReopen.status -ne "ok") {
+                    throw ("harness_ab budget-leg fixture reopen failed: " + ($abReopen | ConvertTo-Json -Depth 6 -Compress))
+                }
+                Start-Sleep -Seconds 2
+                $abBudgetConversationID = ("dev_harness_ab_pull_budget_" + (Get-Date -Format "yyyyMMdd_HHmmss"))
+                $abBudgetRound = Invoke-HarnessAbSettleRound -ChatUri $abChatUri -ConversationID $abBudgetConversationID -Prompt $abPrompt -Nudge $abNudge -ChatContext @{
+                    agent_mode = "chat"
+                    pull_observation_budget = @{ max_cycles = 1; max_probe_cost = 8 }
+                } -TurnSeconds $HarnessAbTurnSeconds -SettleSeconds $HarnessAbSettleSeconds
+                # A first-turn confirmation card is expected on this fixture:
+                # approve it (bounded) so the tool cycle completes and the
+                # cycle-cap face can fire on the next boundary.
+                $abBudgetHops = @{ hops = @(); hops_used = 0; face_exercised = $false }
+                if ($abBudgetRound.classification -eq "needs_user_confirmation") {
+                    $abBudgetHops = Invoke-HarnessAbConfirmHops -ConfirmUri $abConfirmUri -RespondUri $abRespondUri -InitialPlanID $abBudgetRound.plan_id -InitialInteractionRequest $abBudgetRound.interaction_request -MaxHops $HarnessAbConfirmHops -TurnSeconds $HarnessAbTurnSeconds
+                }
+                $abBudgetStops = New-Object System.Collections.Generic.List[string]
+                foreach ($abStop in @($abBudgetRound.stop_reasons)) { $abBudgetStops.Add([string]$abStop) }
+                foreach ($abHopRow in @($abBudgetHops.hops)) {
+                    $abHopStopText = [string]$abHopRow.stop_reason
+                    if ($abHopStopText -ne "") { $abBudgetStops.Add($abHopStopText) }
+                }
+                $abBudgetStopList = @($abBudgetStops.ToArray())
+                $abBudgetTriggered = ($abBudgetStopList -contains "observation_budget_exhausted")
+                $abBudgetFinalStop = ""
+                if ($abBudgetStopList.Count -gt 0) { $abBudgetFinalStop = $abBudgetStopList[$abBudgetStopList.Count - 1] }
+                $abBudgetRecord = @{
+                    phase = "budget_calibration"
+                    mode = $abMode
+                    conversation_id = $abBudgetConversationID
+                    budget_config = @{ max_cycles = 1; max_probe_cost = 8 }
+                    round = $abBudgetRound
+                    hops = $abBudgetHops.hops
+                    hops_used = $abBudgetHops.hops_used
+                    confirm_face_exercised = $abBudgetHops.face_exercised
+                    budget_exhausted_triggered = $abBudgetTriggered
+                    trigger_miss_class = $(if ($abBudgetTriggered) { "" } else { $abBudgetRound.classification })
+                    final_stop_reason = $abBudgetFinalStop
+                    all_stop_reasons = $abBudgetStopList
+                    # Single-column accounting check (§8): the budget stop
+                    # reason must never co-occur with no_candidate family
+                    # markers in the same round accounting.
+                    accounted_separately = (-not ($abBudgetStopList -contains "no_pending_mix_tick_candidate"))
+                    finished_at = (Get-Date).ToString("o")
+                }
+                $abBudgetRecord | ConvertTo-Json -Depth 14 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "harness_ab_budget.json") -Encoding UTF8
+                Write-Ok ("harness_ab budget calibration: triggered=" + $abBudgetTriggered + " final_stop=" + $abBudgetFinalStop + " accounted_separately=" + $abBudgetRecord.accounted_separately)
+            }
+
             # ---------------- metrics: three layers from telemetry ----------
             $abTelemetryRecords = @()
             if (Test-Path -LiteralPath $abTelemetry) {
@@ -5244,6 +5666,20 @@ if ($ScenarioMode) {
                     $abMessagesTotal += [int]$abCall.message_count
                 }
             }
+            # G3-ATTRIB-1 cold-start rendered evidence base: the first call per
+            # goal carries the cold-start base bytes in the stable prefix; the
+            # per-goal first prefix_bytes list is the artifact the report diffs
+            # against the G3-round-1 absent baseline (~33-34k).
+            $abFirstCallByGoal = @{}
+            foreach ($abCall in $abCalls) {
+                $abCallGoal = [string]$abCall.goal_id
+                if ($abCallGoal -eq "" -or $abFirstCallByGoal.ContainsKey($abCallGoal)) { continue }
+                $abFirstVal = $null
+                if ($null -ne $abCall.section_stats) { $abFirstVal = $abCall.section_stats.prefix_bytes }
+                if ($abFirstVal -is [int] -or $abFirstVal -is [long] -or $abFirstVal -is [double]) {
+                    $abFirstCallByGoal[$abCallGoal] = [int]$abFirstVal
+                }
+            }
 
             $abModeSummaries[$abMode] = @{
                 mode = $abMode
@@ -5253,6 +5689,11 @@ if ($ScenarioMode) {
                 environment_interrupt = $abStopLossRun
                 llm_calls = $abCalls.Count
                 telemetry_records_total = $abTelemetryRecords.Count
+                family_rounds = @($abFamilyRounds.ToArray())
+                family_rounds_classified = $abFamilyRounds.Count
+                confirm_roundtrip = $abConfirmRecord
+                budget_round = $abBudgetRecord
+                first_call_prefix_bytes_by_goal = $abFirstCallByGoal
                 cost = @{
                     llm_calls = $abCalls.Count
                     messages_total = $abMessagesTotal
@@ -5278,7 +5719,13 @@ if ($ScenarioMode) {
             if ($abRounds.Count -lt $HarnessAbRounds -and -not $abStopLossMode -and -not $abStopLossRun) {
                 throw ("harness_ab mode " + $abMode + " classified only " + $abRounds.Count + " rounds (want " + $HarnessAbRounds + ")")
             }
-            Write-Ok ("harness_ab mode " + $abMode + " complete: rounds=" + $abRounds.Count + " llm_calls=" + $abCalls.Count)
+            # G3-ATTRIB-1 phase B wiring gate: family legs produced no round at
+            # all only when the scenario wiring broke (fixture reopen throws on
+            # its own; a zero-round mode without stop-loss = wiring miss).
+            if ($abFamilyRounds.Count -lt 1 -and -not $abStopLossMode -and -not $abStopLossRun) {
+                throw ("harness_ab mode " + $abMode + " produced no family rounds (scenario wiring broken)")
+            }
+            Write-Ok ("harness_ab mode " + $abMode + " complete: rounds=" + $abRounds.Count + " family_rounds=" + $abFamilyRounds.Count + " llm_calls=" + $abCalls.Count)
         }
 
         # Environment restoration for the teardown-path agent stop.
@@ -5288,6 +5735,13 @@ if ($ScenarioMode) {
             scenario = "harness_ab"
             rounds_per_mode = $HarnessAbRounds
             prompt_file = "harness_ab_prompt.txt"
+            families = @($abFamilies | ForEach-Object { $_.id })
+            phases = @{
+                base_rounds_per_mode = $HarnessAbRounds
+                family_rounds_per_mode_and_family = 1
+                confirm_roundtrip_pull = $true
+                budget_calibration_pull = $true
+            }
             modes = $abModeSummaries
             stop_loss_run = $abStopLossRun
             finished_at = (Get-Date).ToString("o")

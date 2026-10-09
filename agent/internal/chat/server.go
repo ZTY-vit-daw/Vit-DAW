@@ -45,6 +45,7 @@ import (
 	"vit-daw-agent/internal/processorattestation"
 	"vit-daw-agent/internal/projectworkspace"
 	"vit-daw-agent/internal/promptruntime"
+	"vit-daw-agent/internal/pullharness"
 	"vit-daw-agent/internal/resourceintake"
 	"vit-daw-agent/internal/rlm"
 	agentruntime "vit-daw-agent/internal/runtime"
@@ -2614,7 +2615,11 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if shouldUseAgentLoop(req.Message, chatContext) {
-		resp, handled := s.runAgentLoopChat(r.Context(), conversationID, req, cfg)
+		// G3-ATTRIB-1 冷启动供给：pull 模式的 goal 上下文携带 engine_snapshot
+		// （仅 goal 面注入；直连管线与非 goal 分支继续用原 req.Context，字节不变）。
+		agentLoopReq := req
+		agentLoopReq.Context = s.contextWithPullEngineSnapshot(conversationID, agentLoopReq.Context)
+		resp, handled := s.runAgentLoopChat(r.Context(), conversationID, agentLoopReq, cfg)
 		if handled {
 			s.remember(conversationID, req.Message, resp.Reply)
 			writeChat(http.StatusOK, resp)
@@ -6397,6 +6402,50 @@ func cleanContextText(value any) string {
 		return ""
 	}
 	return text
+}
+
+// contextWithPullEngineSnapshot 为 pull 模式的 goal 上下文补冷启动供给面
+// （G3-ATTRIB-1 目标④，L1-5-IMPL-D G3-RULING §4"底座真实供给面"）：
+// engine_snapshot 从 shadow 只读快照注入 goal 上下文（消费面=pull_entry.go
+// 冷启动源读取 state.input.Context["engine_snapshot"]；与 genesis/TOM 消费面
+// 同源）。供给语义对齐冷启动底座的"会话首装"设计（coldstart.go：一次性
+// session 层 Section，之后字节恒定）：
+//   - 仅 pull 模式注入——push 的 goal 上下文字节零变化（G3 前缀基线不受扰）；
+//   - 会话已有活 continuation 时不再注入（continuation.Context 回带首装快照，
+//     续跑轮 merge 不引入新快照字节漂移）；
+//   - shadow 未初始化/无 engine_snapshot=不注入，三事实组按 absent 显式
+//     处理（coldstart §4.1 fail-open 但显式）；
+//   - 请求已显式携带 engine_snapshot 时尊重调用方（确定性注入缝）。
+func (s *Server) contextWithPullEngineSnapshot(conversationID string, in map[string]any) map[string]any {
+	if s == nil || pullharness.ResolveHarnessMode().Mode != pullharness.ModePull {
+		return in
+	}
+	if _, exists := in["engine_snapshot"]; exists {
+		return in
+	}
+	if _, hasContinuation := s.goalContinuationForConversation(conversationID); hasContinuation {
+		return in
+	}
+	if s.shadow == nil || !s.shadow.Initialized() {
+		return in
+	}
+	engine, _ := s.shadow.Snapshot()["engine_snapshot"].(map[string]any)
+	if len(engine) == 0 {
+		return in
+	}
+	out := cloneContext(in)
+	if out == nil {
+		out = map[string]any{}
+	}
+	out["engine_snapshot"] = engine
+	if s.logger != nil {
+		tracks := 0
+		if rows, ok := engine["tracks"].([]any); ok {
+			tracks = len(rows)
+		}
+		s.logger.Info("[chat] pull cold-start engine_snapshot supplied: tracks=%d project=%q", tracks, cleanContextText(engine["project_path"]))
+	}
+	return out
 }
 
 func contextWithUserMessage(in map[string]any, message string) map[string]any {
