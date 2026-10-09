@@ -76,7 +76,7 @@ static_mix_capability_contract / project_blackboard_status / clip_fade_gain_set 
 
 ## 7. 提交
 
-- port 分支：port/l1-5-impl-c（实现+测试+回执），commit hash=提交后回填本节
+- port 分支：port/l1-5-impl-c（实现+测试+回执），commit hash=c488b811（实现主体）+本回执回填提交
 - 卡片流转：本回执提交后 mv doing→done（main 侧 coord 提交）
 
 ## 8. 移交决策侧的三点裁定请求
