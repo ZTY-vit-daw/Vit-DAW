@@ -1,6 +1,7 @@
 package chat
 
 import (
+	"bytes"
 	"context"
 	"crypto/rand"
 	"encoding/json"
@@ -101,6 +102,12 @@ func auditionBlindSettingsFor() auditionBlindSettings {
 		}
 		return auditionBlindSettings{source: "config_unreadable:" + path}
 	}
+	// CONFIG-BOM-1: Windows writers (PowerShell 5.1 Set-Content, legacy
+	// Notepad) emit a UTF-8 BOM by default and encoding/json rejects it, which
+	// silently turned a user's blind config into config_invalid. Strip only the
+	// BOM prefix here; every other parse failure keeps its fail-visible
+	// config_invalid surface.
+	data = bytes.TrimPrefix(data, []byte{0xEF, 0xBB, 0xBF})
 	var config map[string]any
 	if err := json.Unmarshal(data, &config); err != nil {
 		return auditionBlindSettings{source: "config_invalid:" + path}
@@ -1139,7 +1146,7 @@ func (s *Server) recordJudgmentSettlementReply(loop *freeStateReasoningLoop, evi
 	}
 	checkpoint, err := history.Checkpoint(map[string]any{
 		"project_path": projectPath, "message": "Conversation judgment settle",
-		"goal_id":      loop.GoalID, "run_id": loop.RunID,
+		"goal_id": loop.GoalID, "run_id": loop.RunID,
 		"source": "conversation_graph", "checkpoint_kind": "manual",
 	})
 	if err != nil {

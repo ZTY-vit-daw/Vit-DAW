@@ -93,3 +93,42 @@ func TestAuditionBlindConfigStringTruthy(t *testing.T) {
 		t.Fatal("string truthy config value must enable the blind tier")
 	}
 }
+
+// CONFIG-BOM-1: Windows writers (PowerShell 5.1 Set-Content, legacy Notepad)
+// default to a UTF-8 BOM; the config surface must still enable the blind tier
+// instead of silently falling to config_invalid.
+func TestAuditionBlindConfigFileWithBOMEnablesBlindTier(t *testing.T) {
+	writeAuditionConfigForTest(t, "\xEF\xBB\xBF"+`{"audition_blind": true}`)
+	settings := auditionBlindSettingsFor()
+	if !settings.enabled {
+		t.Fatalf("BOM-prefixed config did not enable the blind tier: %+v", settings)
+	}
+	if settings.source != "config:"+auditionBlindConfigPath() {
+		t.Fatalf("unexpected source %q", settings.source)
+	}
+}
+
+func TestAuditionBlindEnvironmentWinsOverBOMConfigFile(t *testing.T) {
+	writeAuditionConfigForTest(t, "\xEF\xBB\xBF"+`{"audition_blind": false}`)
+	t.Setenv(auditionBlindEnvVar, "1")
+	settings := auditionBlindSettingsFor()
+	if !settings.enabled {
+		t.Fatalf("environment must win over the BOM config file: %+v", settings)
+	}
+	if settings.source != "environment:"+auditionBlindEnvVar {
+		t.Fatalf("unexpected source %q", settings.source)
+	}
+}
+
+// The BOM tolerance is prefix-only: it must not rescue a config that is
+// invalid beyond the BOM.
+func TestAuditionBlindBOMDoesNotRescueMalformedConfig(t *testing.T) {
+	writeAuditionConfigForTest(t, "\xEF\xBB\xBF"+`{not json`)
+	settings := auditionBlindSettingsFor()
+	if settings.enabled {
+		t.Fatalf("malformed BOM-prefixed config must not enable the blind tier: %+v", settings)
+	}
+	if settings.source != "config_invalid:"+auditionBlindConfigPath() {
+		t.Fatalf("malformed BOM-prefixed config must stay config_invalid, got source %q", settings.source)
+	}
+}
