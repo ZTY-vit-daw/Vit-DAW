@@ -188,7 +188,7 @@ ref := (projection_kind, scope_id, time_window, snapshot_id, content_hash)
 | L1-2 | 投影物化存储 + 变更事件 + 依赖图增量失效 | 失效正确性专项测试（质量门 G2） | ✅ **完工**——设计（L1-2-DESIGN-1，09-28）+MAT-0/A/B/C/D/D2/D3/D4/E0/E 十一卡全链（09-28/29）；**G2 门 pass**（rulings/2026-09-29-G2-materialization-pass.md，E0 附条件闭环）；MAT-E 读端切换验收 pass（3f17f52e，生产默认 off）；v1 边界 OQ-1/2/3/4/6 留档 docs/MATERIALIZATION_V1_DESIGN.md §9 |
 | L1-3 | 查询引擎 + audio-grep 工具面（谓词/尺度/topK，毫秒级） | 索引查询延迟与正确性基准；工具面成本分级标注 | ✅ 收官——IMPL-A/B/C（09-29）+IMPL-D（10-06 验收）；B1-B7 延迟基准（BENCH）未跑，见 CURRENT-STATE 条目 |
 | L1-4 | 上下文退场 + 四层稳定前缀 | 轮次退场后句柄重拉一致性；前缀 append-only 的 cache 命中验证 | ✅ **收官**——设计（10-01 pass）+IMPL-A/B（10-07 pass e26a282c/61611533）+IMPL-C（10-08）+IMPL-D（10-08 pass 2bc8843c..b5fd1375，四腿+真栈 context_layering 场景 exit 0）全链落账；REVIEW-1 独立复核 pass+R-4 缺口闭合（G-2 随 GENESIS、G-1/G-3/G-4 随 L4-LEDGER-DIR-1 2026-10-09）；retain 真栈闭环达成（L4-LEDGER-DIR-1 pass 05d74b2f：LEG4 delta=707） |
-| L1-5 | 新 harness 骨架（pull 模式；相位轮次降级冷启动；能力层挂快路径） | 新旧并存 A/B（质量门 G3） | 🔶 **设计 pass、实现排程中**——[HARNESS_V1_DESIGN.md](HARNESS_V1_DESIGN.md)（L1-5-DESIGN-1，2026-10-09 设计+同日独立复核 pass：OQ-1 裁决 turn=工具循环节/pull 骨架+观察预算止损/相位降级冷启动+披露位迁移表/快路径路由/G3 方案可执行化）；IMPL-A（骨架）∥IMPL-C（FastPathRouter 平移，独立先行）→IMPL-B（冷启动+披露位，依赖 A）→IMPL-D（双模接线+G3 A/B）四卡入池（2026-10-09） |
+| L1-5 | 新 harness 骨架（pull 模式；相位轮次降级冷启动；能力层挂快路径） | 新旧并存 A/B（质量门 G3） | ✅ **实现收官（2026-10-09 单日 A/B/C/D 四卡+复核/修复链全落地）；G3 首轮=不切换**——设计（L1-5-DESIGN-1 pass+§11 D 接线剖面定版）/IMPL-A（骨架+取消修复链）/IMPL-B（冷启动+披露位+真实退场）/IMPL-C（FastPathRouter 平移，15/15 逐字节等价）/IMPL-D（Session 接线+G3 双模真栈，含 P2 指标补证返工轮）全链 pass；pull 经 env 开关可用、缺省 push 零变化；G3 依据=成本口径分化+行为分布位移+pull 前缀断裂 6/13（接线缺陷）；**切换决策待归因卡 G3-ATTRIB-1（行为等价+预算校准+冷启动供给）/G3-ATTRIB-2（P1 计量+协议段拆分修复）清偿** |
 
 ### 线 2：独立组件与功能载体（与线 1 完全并行）
 
