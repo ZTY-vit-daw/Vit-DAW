@@ -41,4 +41,4 @@
 - 领取同步确认：b07da14ccf31930a318f5cf9c2782011768a1692 已成功推 main，fetch 重读远端 owner 与本会话一致。
 - 回执：执行自验完成，待主管最终验收；修复 commit **47ce5d75**（已推 origin/port/l1-5-impl-a-cancel-fix-1）；原 A=de1d876c 的本地 cherry-pick 底座=231a4ff3，主管按原 A→47ce5d75 顺序验收合入，不重复合入底座副本。修前六条取消路径+此前正常批回归均断言级红（exit 1），修后 `go test ./internal/pullharness -count=1 -v`、`go build ./...`、`go test ./... -count=1` 均 exit 0；staged blob gofmt 净，源码/回执 diff check exit 0，冻结三包 diff 空。详见执行分支 `coord/runs/L1-5-IMPL-A-CANCEL-FIX-1/receipt.md`、red.txt、validation.txt。取消批保留 Reply/Conversation/ModelLine/ProbeSpent，返回工具 ID/Tool/Status/单笔成本记录在 Trace；不增加完成轮次、不新增 T1/T2，此前正常批保持；取消优先于预算终局。零包外生产消费复查通过，未启动真实栈；只证明骨架取消路径，未证明生产中断恢复、A/C 适配或 G3 真栈。本卡五个实现/测试/证据文件；主工作树已有改动未触碰；实现 worktree 提交后 status 空。原 A 最终验收与 B 解锁仍归主管。
 - 辅助核查：Codex 发卡流已亲读 diff、独立复现修前断言级红/修后21测试绿与原三反例绿；建议主管通过本窄修，详见 coord/reports/2026-10-09-L1-5-cancel-adapter-audit.md。非最终 ruling、未合入、不解锁 B。
-- 验收：（主管裁定 / 修复合入 / A 原卡与 B 依赖状态另记）
+- 验收：**pass（2026-10-09 主管决策侧）**——作为 A 的修订腿合入（97aa4fc8），裁定见 rulings/2026-10-09-L1-5-IMPL-A-pass.md；六路径验收表冻结+审计双绿采信。A 原卡 pass 同批、B 解锁生效
