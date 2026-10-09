@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -22,6 +23,7 @@ import (
 	"vit-daw-agent/internal/epm"
 	executorpkg "vit-daw-agent/internal/executor"
 	"vit-daw-agent/internal/experiment"
+	"vit-daw-agent/internal/fastpath"
 	"vit-daw-agent/internal/llm"
 	"vit-daw-agent/internal/logx"
 	"vit-daw-agent/internal/mixboard"
@@ -397,6 +399,28 @@ func (l *MessageLoop) executeConfirmedStripSilenceBundle(ctx context.Context, r 
 	return true, r.complete(state, messageLoopStripSilenceApplyCompleteReply(state.executed[len(state.executed)-1], batchCall))
 }
 
+// newFastPathRouter 构造本 loop 的确定性快路径注册面（L1-5-IMPL-C，HARNESS_V1_DESIGN §5）。
+// 注册序=原 loop() preflight 链逐项顺序（行为零变化的调用序契约）；注册清单以
+// fastpath.DefaultEntryNames 为完整性契约，漂移即显式失败（fail-visible）。
+func (l *MessageLoop) newFastPathRouter() *fastpath.Router[*Runner, *runState, Result] {
+	router := fastpath.NewRouter(
+		fastpath.Entry[*Runner, *runState, Result]{Name: "static_mix_capability_contract", Handler: l.preflightStaticMixCapabilityContract},
+		fastpath.Entry[*Runner, *runState, Result]{Name: "project_blackboard_status", Handler: l.preflightProjectBlackboardStatus},
+		fastpath.Entry[*Runner, *runState, Result]{Name: "clip_fade_gain_set", Handler: l.preflightClipFadeGainSet},
+		fastpath.Entry[*Runner, *runState, Result]{Name: "clip_fade_gain_read", Handler: l.preflightClipFadeGainRead},
+		fastpath.Entry[*Runner, *runState, Result]{Name: "strip_silence_suggest", Handler: l.preflightStripSilenceSuggest},
+		fastpath.Entry[*Runner, *runState, Result]{Name: "clip_range_split", Handler: l.preflightClipRangeSplit},
+		fastpath.Entry[*Runner, *runState, Result]{Name: "stems_folder_import", Handler: l.preflightStemsFolderImport},
+		fastpath.Entry[*Runner, *runState, Result]{Name: "pending_section_markers_apply", Handler: l.preflightPendingSectionMarkersApply},
+		fastpath.Entry[*Runner, *runState, Result]{Name: "natural_mix_observation", Handler: l.preflightNaturalMixObservation},
+		fastpath.Entry[*Runner, *runState, Result]{Name: "static_mix_gain_staging_context_pack", Handler: l.preflightStaticMixGainStagingContextPack},
+	)
+	if names := router.Names(); !slices.Equal(names, fastpath.DefaultEntryNames) {
+		panic(fmt.Sprintf("fastpath 注册面漂移：Names()=%v want=%v（L1-5-IMPL-C 完整性契约）", names, fastpath.DefaultEntryNames))
+	}
+	return router
+}
+
 func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Result {
 	if l == nil || l.Client == nil {
 		return r.fail(state, fmt.Errorf("agent message loop LLM client is nil"))
@@ -405,6 +429,9 @@ func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Resu
 		return r.fail(state, fmt.Errorf("agent message loop LLM config incomplete"))
 	}
 	messageLoopApplyReadOnlyMutationBarrier(state)
+	// L1-5-IMPL-C：确定性 preflight 链经 FastPathRouter 单点尝试；Router 本身无状态
+	//（diagnostic-only 每轮由原判定源刷新），注册面构造见 newFastPathRouter。
+	fastPaths := l.newFastPathRouter()
 	for {
 		if len(state.pendingToolQueue) > 0 {
 			queued := append([]planner.ToolCall(nil), state.pendingToolQueue...)
@@ -415,37 +442,13 @@ func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Resu
 		// Diagnostic-only turns are a CCB-only experiment boundary. Ordinary
 		// deterministic preflights (especially project.state) would bypass that
 		// boundary and manufacture a terminal result before the model observes.
-		if !messageLoopFreeStateDiagnosticOnly(state) {
-			if stopped, result := l.preflightStaticMixCapabilityContract(ctx, r, state); stopped {
-				return result
-			}
-			if stopped, result := l.preflightProjectBlackboardStatus(ctx, r, state); stopped {
-				return result
-			}
-			if stopped, result := l.preflightClipFadeGainSet(ctx, r, state); stopped {
-				return result
-			}
-			if stopped, result := l.preflightClipFadeGainRead(ctx, r, state); stopped {
-				return result
-			}
-			if stopped, result := l.preflightStripSilenceSuggest(ctx, r, state); stopped {
-				return result
-			}
-			if stopped, result := l.preflightClipRangeSplit(ctx, r, state); stopped {
-				return result
-			}
-			if stopped, result := l.preflightStemsFolderImport(ctx, r, state); stopped {
-				return result
-			}
-			if stopped, result := l.preflightPendingSectionMarkersApply(ctx, r, state); stopped {
-				return result
-			}
-			if stopped, result := l.preflightNaturalMixObservation(ctx, r, state); stopped {
-				return result
-			}
-			if stopped, result := l.preflightStaticMixGainStagingContextPack(ctx, r, state); stopped {
-				return result
-			}
+		// L1-5-IMPL-C：preflight 链整体平移为 FastPathRouter 注册面（newFastPathRouter，
+		// 注册序=原链调用序，短路/时序语义逐项不变）；旁路判定源保持
+		// messageLoopFreeStateDiagnosticOnly（单一事实源不变），开关形态平移为 Router
+		// 显式 diagnostic-only 旁路（HARNESS_V1_DESIGN §5）。
+		fastPaths.SetDiagnosticOnly(messageLoopFreeStateDiagnosticOnly(state))
+		if stopped, result, _ := fastPaths.TryMatch(ctx, r, state); stopped {
+			return result
 		}
 		if stopped, result := r.checkpoint("before_message_loop_model", state); stopped {
 			return result
@@ -1320,71 +1323,17 @@ func messageLoopClipRangeSplitGateContext(state *runState) map[string]any {
 // a result arrives (so failed cuts are never retried inside the same run) and
 // as succeeded only on a non-error, non-confirmation result. The trace spans
 // confirmation resumes, so the plan survives across user confirmations.
+// L1-5-IMPL-C 平移委托：函数体已逐字迁至 fastpath.ExecutedClipRangeSplitCuts（原 message_loop.go:1323-1354）。
 func messageLoopExecutedClipRangeSplitCuts(trace []planner.TraceEvent) (attempted, succeeded map[string]bool) {
-	attempted = map[string]bool{}
-	succeeded = map[string]bool{}
-	pendingID := ""
-	pendingKey := ""
-	for _, event := range trace {
-		switch event.Kind {
-		case "tool_call":
-			if event.ToolCall != nil && strings.EqualFold(strings.TrimSpace(event.ToolCall.Tool), "clip.split") {
-				pendingID = strings.TrimSpace(event.ToolCall.ID)
-				pendingKey = clipRangeSplitCutKey(event.ToolCall.Args)
-			} else {
-				pendingID, pendingKey = "", ""
-			}
-		case "tool_result":
-			if pendingKey == "" || event.ToolResult == nil {
-				pendingID, pendingKey = "", ""
-				continue
-			}
-			if pendingID == "" || strings.TrimSpace(event.ToolResult.ToolCallID) == pendingID {
-				attempted[pendingKey] = true
-				status := strings.ToLower(strings.TrimSpace(event.ToolResult.Status))
-				if strings.TrimSpace(event.ToolResult.Error) == "" &&
-					status != "error" && status != "kernel_error" && status != "failed" && status != "needs_confirmation" {
-					succeeded[pendingKey] = true
-				}
-				pendingID, pendingKey = "", ""
-			}
-		}
-	}
-	return attempted, succeeded
+	return fastpath.ExecutedClipRangeSplitCuts(trace)
 }
 
-func clipRangeSplitCutKey(args map[string]any) string {
-	if args == nil {
-		return ""
-	}
-	clipID := strings.TrimSpace(messageLoopText(args["clip_id"]))
-	value, ok := args["split_time"].(float64)
-	if !ok {
-		parsed, err := strconv.ParseFloat(strings.TrimSpace(messageLoopText(args["split_time"])), 64)
-		if err == nil {
-			value, ok = parsed, true
-		}
-	}
-	if clipID == "" || !ok {
-		return ""
-	}
-	return clipID + "@" + strconv.FormatFloat(value, 'f', -1, 64)
-}
+// L1-5-IMPL-C 平移委托：函数体已逐字迁至 fastpath.ClipRangeSplitCutKey（原 message_loop.go:1356-1372）。
+func clipRangeSplitCutKey(args map[string]any) string { return fastpath.ClipRangeSplitCutKey(args) }
 
+// L1-5-IMPL-C 平移委托：函数体已逐字迁至 fastpath.ClipRangeSplitCompletionReply（原 message_loop.go:1374-1388）。
 func messageLoopClipRangeSplitCompletionReply(plan []planner.ToolCall, succeeded map[string]bool) string {
-	times := make([]string, 0, len(plan))
-	missing := make([]string, 0, len(plan))
-	for _, call := range plan {
-		key := clipRangeSplitCutKey(call.Args)
-		times = append(times, strings.TrimPrefix(key, strings.TrimSpace(messageLoopText(call.Args["clip_id"]))+"@"))
-		if !succeeded[key] {
-			missing = append(missing, times[len(times)-1])
-		}
-	}
-	if len(missing) == 0 {
-		return "框选范围拆分完成：已按 " + strings.Join(times, " → ") + " 秒的顺序切分，所选范围已独立成片。"
-	}
-	return "框选范围拆分未完成：" + strings.Join(missing, "、") + " 秒处的切分未能执行，片段状态可能已变化，请检查后重试。"
+	return fastpath.ClipRangeSplitCompletionReply(plan, succeeded)
 }
 
 func messageLoopDeterministicClipFadeGainReadCalls(state *runState) ([]planner.ToolCall, bool) {
@@ -1417,23 +1366,9 @@ func messageLoopDeterministicClipFadeGainReadCalls(state *runState) ([]planner.T
 	}, true
 }
 
+// L1-5-IMPL-C 平移委托：函数体已逐字迁至 fastpath.ClipFadeGainReadRequest（原 message_loop.go:1420-1437）。
 func messageLoopClipFadeGainReadRequest(userText string) bool {
-	text := strings.ToLower(strings.TrimSpace(userText))
-	if !messageLoopClipFadeGainRequest(text) {
-		return false
-	}
-	hasReadIntent := messageLoopTextHasAny(text,
-		"read", "show", "inspect", "status", "state", "get",
-		"\u8bfb\u53d6", "\u67e5\u770b", "\u770b\u4e00\u4e0b", "\u72b6\u6001",
-	)
-	hasWriteIntent := messageLoopTextHasAny(text,
-		"set", "adjust", "change", "drag", "write", "apply",
-		"\u8bbe\u7f6e", "\u8c03\u6574", "\u4fee\u6539", "\u62d6", "\u62c9", "\u5199\u5165", "\u5e94\u7528",
-	)
-	if !hasReadIntent && messageLoopTextHasAny(text, "db", "d b", "\u5206\u8d1d") {
-		return false
-	}
-	return hasReadIntent || !hasWriteIntent
+	return fastpath.ClipFadeGainReadRequest(userText)
 }
 
 func messageLoopDeterministicClipFadeGainSetCall(state *runState) (planner.ToolCall, bool) {
@@ -6145,84 +6080,17 @@ func messageLoopStringList(v any) []string {
 	}
 }
 
-func messageLoopNaturalMixRequest(userText string) bool {
-	text := strings.ToLower(strings.TrimSpace(userText))
-	if text == "" {
-		return false
-	}
-	if messageLoopClipFadeGainRequest(text) {
-		return false
-	}
-	if messageLoopTextHasAny(text, "\u5de6", "\u53f3", "\u5c45\u4e2d", "\u56de\u4e2d", "\u4e2d\u95f4", "left", "right", "center", "centre") &&
-		messageLoopTextHasAny(text, "\u58f0\u50cf", "\u58f0\u76f8", "\u8f68\u9053", "\u5409\u4ed6", "\u8d1d\u65af", "\u9f13", "\u4e3b\u5531", "\u4eba\u58f0", "pan", "panning", "track", "guitar", "bass", "drum", "vocal", "voice") {
-		return true
-	}
-	return messageLoopTextHasAny(text,
-		"\u6df7\u97f3", "\u6df7\u4e00\u4e0b", "\u5e2e\u6211\u6df7", "\u7f29\u6df7", "\u58f0\u97f3\u5904\u7406", "\u8c03\u4e00\u4e0b", "\u5904\u7406\u4e00\u4e0b",
-		"\u4e3b\u5531", "\u4eba\u58f0", "vocal", "lead vocal",
-		"\u9760\u524d", "\u5f80\u524d", "\u63d0\u5347\u54cd\u5ea6", "\u54cd\u5ea6", "\u592a\u54cd", "\u592a\u5927", "\u592a\u5c0f", "\u538b\u4f4e", "\u964d\u4f4e", "\u4e0b\u8c03", "\u8c03\u4f4e", "\u63d0\u9ad8", "\u63d0\u5347", "\u4e0a\u8c03", "\u8c03\u9ad8", "\u97f3\u91cf", "\u7535\u5e73", "\u589e\u76ca", "\u66f4\u4eae", "\u660e\u4eae", "\u6d51\u6d4a", "\u523a\u8033",
-		"\u4f4e\u9891", "\u4f4e\u4e2d\u9891", "\u7a7a\u95f4\u611f", "\u52a0\u4e00\u70b9\u7a7a\u95f4", "\u58f0\u50cf", "\u58f0\u76f8", "\u58f0\u573a", "\u52a8\u6001", "\u538b\u7f29",
-		"mix", "mixing", "loudness", "louder", "too loud", "too quiet", "volume", "level", "gain", "lower", "reduce", "decrease", "raise", "boost", "increase", "forward", "mud", "muddy", "harsh", "bright", "space", "reverb", "pan", "panning", "stereo field", "dynamic",
-		"low end", "low-end", "bass", "kick",
-	)
-}
+// L1-5-IMPL-C 平移委托：函数体已逐字迁至 fastpath.NaturalMixRequest（原 message_loop.go:6148-6168）。
+func messageLoopNaturalMixRequest(userText string) bool { return fastpath.NaturalMixRequest(userText) }
 
+// L1-5-IMPL-C 平移委托：函数体已逐字迁至 fastpath.ClipFadeGainRequest（原 message_loop.go:6170-6200）。
 func messageLoopClipFadeGainRequest(userText string) bool {
-	text := strings.ToLower(strings.TrimSpace(userText))
-	if text == "" {
-		return false
-	}
-	if messageLoopGainStagingExplicitRequest(text) {
-		return false
-	}
-	hasClipTarget := messageLoopTextHasAny(text,
-		"clip", "clips", "selected clip", "current clip", "this clip", "audio clip",
-		"\u7247\u6bb5", "\u97f3\u9891\u7247\u6bb5", "\u5f53\u524d\u7247\u6bb5", "\u9009\u4e2d\u7247\u6bb5",
-		"\u5f53\u524d\u9009\u4e2d clip", "\u5f53\u524d clip", "\u9009\u4e2d clip", "\u8fd9\u4e2a clip",
-	)
-	if !hasClipTarget {
-		return false
-	}
-	hasFadeOrGain := messageLoopTextHasAny(text,
-		"fade", "fade in", "fade out", "clip gain", "gain",
-		"\u6de1\u5165", "\u6de1\u51fa", "\u6de1\u5316", "\u589e\u76ca",
-	)
-	if !hasFadeOrGain {
-		return false
-	}
-	if messageLoopTextHasAny(text, "fade", "gain", "clip gain", "fade/gain") && messageLoopTextHasAny(text, "clip", "audio clip") {
-		return true
-	}
-	return messageLoopTextHasAny(text,
-		"read", "show", "inspect", "status", "state", "get", "set", "adjust", "change", "drag",
-		"\u8bfb\u53d6", "\u67e5\u770b", "\u770b\u4e00\u4e0b", "\u72b6\u6001", "\u8bbe\u7f6e", "\u8c03\u6574", "\u4fee\u6539", "\u62d6", "\u62c9",
-	)
+	return fastpath.ClipFadeGainRequest(userText)
 }
 
+// L1-5-IMPL-C 平移委托：函数体已逐字迁至 fastpath.StripSilenceSuggestRequest（原 message_loop.go:6202-6226）。
 func messageLoopStripSilenceSuggestRequest(userText string) bool {
-	text := strings.ToLower(strings.TrimSpace(userText))
-	if text == "" {
-		return false
-	}
-	hasStripIntent := messageLoopTextHasAny(text,
-		"strip silence", "strip_silence", "silence cleanup", "remove silence", "trim silence",
-		"清理静音", "片段清理", "清理空白", "去静音", "去掉静音", "去掉空白", "删除静音", "过滤静音", "噪声底",
-	) || messageLoopA4ClipCleanupRequest(text)
-	if !hasStripIntent {
-		return false
-	}
-	if messageLoopA4ClipCleanupRequest(text) {
-		return true
-	}
-	hasApplyOnlyIntent := messageLoopTextHasAny(text,
-		"apply", "execute", "confirm", "do it", "go ahead",
-		"应用", "执行", "确认", "按这个", "就这样", "继续",
-	)
-	hasAnalysisIntent := messageLoopTextHasAny(text,
-		"suggest", "recommend", "analyze", "analyse", "estimate", "parameter", "threshold", "preview",
-		"建议", "推荐", "分析", "估算", "参数", "阈值", "预览", "检查",
-	)
-	return !hasApplyOnlyIntent || hasAnalysisIntent
+	return fastpath.StripSilenceSuggestRequest(userText)
 }
 
 func messageLoopStripSilenceAllProjectRequest(userText string) bool {
@@ -6259,45 +6127,17 @@ func messageLoopStripSilenceRangeRequest(userText string) bool {
 	)
 }
 
-func messageLoopA4ClipCleanupRequest(text string) bool {
-	text = strings.ToLower(strings.TrimSpace(text))
-	if text == "" || !messageLoopTextHasAny(text, "a4", "a 4", "epm") {
-		return false
-	}
-	return messageLoopTextHasAny(text,
-		"clip cleanup", "clip trim", "clip trimming", "trim clips", "cleanup clips",
-		"片段裁剪", "片段清理", "裁剪片段", "清理片段", "裁剪", "清理",
-	)
-}
+// L1-5-IMPL-C 平移委托：函数体已逐字迁至 fastpath.A4ClipCleanupRequest（原 message_loop.go:6262-6271）。
+func messageLoopA4ClipCleanupRequest(text string) bool { return fastpath.A4ClipCleanupRequest(text) }
 
+// L1-5-IMPL-C 平移委托：函数体已逐字迁至 fastpath.A4ClipCleanupWholeProjectRequest（原 message_loop.go:6273-6282）。
 func messageLoopA4ClipCleanupWholeProjectRequest(text string) bool {
-	text = strings.ToLower(strings.TrimSpace(text))
-	if !messageLoopA4ClipCleanupRequest(text) {
-		return false
-	}
-	return !messageLoopTextHasAny(text,
-		"selected", "current", "this clip", "this track", "selected clip", "selected track", "current clip", "current track", "selected range", "range",
-		"选中", "当前片段", "当前轨道", "选中片段", "选中轨道", "这个片段", "这条轨", "范围", "选区",
-	)
+	return fastpath.A4ClipCleanupWholeProjectRequest(text)
 }
 
+// L1-5-IMPL-C 平移委托：函数体已逐字迁至 fastpath.AudioObservationRequest（原 message_loop.go:6284-6301）。
 func messageLoopAudioObservationRequest(userText string) bool {
-	text := strings.ToLower(strings.TrimSpace(userText))
-	if text == "" {
-		return false
-	}
-	if messageLoopNaturalMixRequest(text) {
-		return true
-	}
-	return messageLoopTextHasAny(text,
-		"\u97f3\u9891\u89c2\u5bdf", "\u6df7\u97f3\u89c2\u5bdf", "\u58f0\u5b66\u89c2\u5bdf", "\u58f0\u5b66\u5206\u6790", "\u58f0\u5b66\u6570\u636e",
-		"\u89c2\u5bdf\u5206\u6790", "\u5177\u4f53\u5206\u6790", "\u7ee7\u7eed\u89c2\u5bdf", "\u5206\u6790\u4e00\u4e0b",
-		"\u9891\u8c31", "\u9891\u8c31\u5206\u5e03", "\u9891\u6bb5\u80fd\u91cf", "\u4f4e\u9891", "\u4e2d\u9891", "\u9ad8\u9891",
-		"\u54cd\u5ea6", "\u5cf0\u503c", "\u5747\u65b9\u6839", "\u52a8\u6001\u8303\u56f4", "\u6ce2\u5f62", "\u5305\u7edc",
-		"audio observation", "mix observation", "acoustic observation", "acoustic analysis", "acoustic data",
-		"observation analysis", "analyze audio", "specific analysis", "spectrum", "spectral", "frequency distribution",
-		"band energy", "loudness", "peak", "rms", "lufs", "dynamic range", "waveform", "envelope",
-	)
+	return fastpath.AudioObservationRequest(userText)
 }
 
 func messageLoopRealtimeObservationRequest(userText string) bool {
@@ -7263,13 +7103,8 @@ func removeMessageLoopEmpty(row map[string]any) {
 	}
 }
 
-func messageLoopText(value any) string {
-	text := strings.TrimSpace(fmt.Sprint(value))
-	if text == "<nil>" {
-		return ""
-	}
-	return text
-}
+// L1-5-IMPL-C 平移委托：函数体已逐字迁至 fastpath.Text（原 message_loop.go:7266-7272）。
+func messageLoopText(value any) string { return fastpath.Text(value) }
 
 func messageLoopEmptyValue(value any) bool {
 	text := strings.TrimSpace(fmt.Sprint(value))
@@ -10565,14 +10400,9 @@ func messageLoopOutcomeBlockedByUserText(userText, postcondition string) bool {
 	}
 }
 
+// L1-5-IMPL-C 平移委托：函数体已逐字迁至 fastpath.TextHasAny（原 message_loop.go:10568-10576）。
 func messageLoopTextHasAny(text string, tokens ...string) bool {
-	for _, token := range tokens {
-		token = strings.ToLower(strings.TrimSpace(token))
-		if token != "" && strings.Contains(text, token) {
-			return true
-		}
-	}
-	return false
+	return fastpath.TextHasAny(text, tokens...)
 }
 
 func messageLoopOutcomeFastCompleteReply(state *runState, record map[string]any, ver planner.VerificationResult, required map[string]bool) string {
