@@ -207,8 +207,8 @@ D15 裁定：相位轮次→"冷启动第一轮（保证每会话共同底座）
 |---|---|---|---|
 | L1-5-IMPL-A | PullLoop 骨架+flag 面（env+config 键）+PrefixService 注入+ObservationBudget——纯新增包，旧面零改动 | 单元测试：循环/边界触发（T1/T2）/预算止损/flag 缺省 push；`go build`+全量 0 FAIL | 无（接口本设计冻结） |
 | L1-5-IMPL-B | 冷启动底座装配（GENESIS 三事实组复用）+披露位迁移（表 §4.2）+退场逐 turn 接线（T1） | 底座字节恒定断言；T1 退场三态测试；内容盲审查（T-C1 键扩展） | A |
-| L1-5-IMPL-C | FastPathRouter：preflight 族平移+注册面+diagnostic 旁路开关 | 平移前后匹配语义等价测试（现役 preflight 用例回归）；注册清单可审计 | A（与 B 不同文件域可并行） |
-| L1-5-IMPL-D | G3 A/B 执行：smoke 场景扩展+双模式全流程+指标采集+裁定报告 | 真实栈 exit 0；§6 指标三层齐；G3 裁定建议成文 | A/B/C |
+| L1-5-IMPL-C | FastPathRouter：preflight 族平移+注册面+diagnostic 旁路开关 | 平移前后匹配语义等价测试（现役 preflight 用例回归）；注册清单可审计 | **无**（Router 先落 fastpath 包并在旧 harness message_loop 消费面调用=行为零变化平移；pull 侧接线归 D——2026-10-09 复核精化，可与 A 同窗并行） |
+| L1-5-IMPL-D | G3 A/B 执行：**flag→双模入口路由接线**（复核精化补入）+smoke 场景扩展+双模式全流程+指标采集+裁定报告 | 真实栈 exit 0；§6 指标三层齐；G3 裁定建议成文 | A/B/C |
 
 排序：A 先（骨架独立可测）；B/C 并行；D 收口。每卡真栈门槛按 AGENTS §5；渲染面/旅程边界显式声明义务照旧。
 
