@@ -1,0 +1,6 @@
+{
+  "command": "gofmt -l internal/pullharness",
+  "exit_code": 0,
+  "head": "eca150926b47573f012c5c6faffb65ea7e5ebff6",
+  "time": "2026-10-09T13:38:19.2175602+08:00"
+}

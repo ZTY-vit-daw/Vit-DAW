@@ -1,0 +1,6 @@
+{
+  "command": "go test '-overlay=../coord/runs/L1-5-IMPL-A-REVIEW-1/probe-overlay.json' ./internal/pullharness -run '^TestReview' -count=1 -v",
+  "exit_code": 1,
+  "head": "eca150926b47573f012c5c6faffb65ea7e5ebff6",
+  "time": "2026-10-09T13:39:04.2570796+08:00"
+}

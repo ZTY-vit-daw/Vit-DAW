@@ -1,0 +1,7 @@
+FAIL	../coord/runs/L1-5-IMPL-A-REVIEW-1/probe-overlay.json [setup failed]
+# ../coord/runs/L1-5-IMPL-A-REVIEW-1/probe-overlay.json
+directory ..\coord\runs\L1-5-IMPL-A-REVIEW-1\probe-overlay.json outside main module or its selected dependencies
+testing: warning: no tests to run
+PASS
+ok  	vit-daw-agent/internal/pullharness	0.423s [no tests to run]
+FAIL
