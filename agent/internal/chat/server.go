@@ -5775,7 +5775,7 @@ func (s *Server) buildAssemblyWithReport(ctx context.Context, conversationID, us
 		TurnID:       conversationID,
 		History:      input.History,
 		HistoryLimit: 12,
-		ProjectDir:   projectPathFromChatContext(requestContext),
+		ProjectDir:   carriers.ResolveProjectDir(projectPathFromChatContext(requestContext)),
 	})
 	report.HistoryRefs, report.ExitViolations, report.RetainsWritten = hook.HistoryRefs, hook.ExitViolations, hook.RetainsWritten
 	return assembly, report, err
@@ -5816,20 +5816,15 @@ func (s *Server) assembleChatInput(ctx context.Context, conversationID, userText
 		workspaceDir = contextruntime.DefaultCarrierWorkspaceDir()
 	}
 	bundle := carriers.Assemble(ctx, carriers.Options{
-		WorkspaceDir:    workspaceDir,
-		ProjectDir:      projectPath,
+		WorkspaceDir: workspaceDir,
+		// ResolveProjectDir：真栈 project_path 是 .vit 文件，账本落其父目录
+		// （裸 .vit 路径直喂=L4 层永 absent）。
+		ProjectDir:      carriers.ResolveProjectDir(projectPath),
 		Family:          ruleset.FamilyChat,
 		ModeInstruction: modeInstruction,
 		CommandCatalog:  catalog,
 	})
-	systemSections := bundle.Sections
-	if len(systemSections) == 0 {
-		// L1 corrupt（embed 装载失败，理论不可达）：fail-open 回落 D2 单段
-		// 形态（内部再回落 legacy 模板），system 消息不缺席。
-		systemSections = []promptruntime.Section{
-			promptruntime.TextSection(promptruntime.SectionStatic, "chat_system", "", chatSystemFromRuleset(modeInstruction, catalog), true),
-		}
-	}
+	systemSections := chatSystemSections(bundle, modeInstruction, catalog)
 
 	// §3.3 治理：稳定 system 只装 Stable Section；快照（Runtime/Stable=false）
 	// 物理迁出 system 消息边界，进 user 节尾部（chat 腿本就走 user 节，
@@ -5918,6 +5913,17 @@ Available DAW command catalog:
 // chatSystemFromRuleset 渲染 chat L1 system——权威=ruleset embed（L1-4-IMPL-D
 // D2 翻转：含 shared.discipline.evidence_refs 第八段；mode/command catalog 经
 // wrapper 槽填充）。embed 装载失败（编译期资源，理论不可达）回落 legacy 模板。
+// chatSystemSections 挂 bundle 层序段；L1 corrupt（embed 装载失败，理论
+// 不可达）回落 D2 单段形态（内部再回落 legacy 模板），system 消息不缺席。
+func chatSystemSections(bundle carriers.Bundle, modeInstruction, commandCatalog string) []promptruntime.Section {
+	if len(bundle.Sections) > 0 {
+		return bundle.Sections
+	}
+	return []promptruntime.Section{
+		promptruntime.TextSection(promptruntime.SectionStatic, "chat_system", "", chatSystemFromRuleset(modeInstruction, commandCatalog), true),
+	}
+}
+
 func chatSystemFromRuleset(modeInstruction, commandCatalog string) string {
 	if result := ruleset.Load(); result.Err == nil && result.Manifest != nil {
 		rules, catalogLayer := result.Manifest.RenderChatLayers(modeInstruction, commandCatalog)

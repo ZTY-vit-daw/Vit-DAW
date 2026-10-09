@@ -4085,7 +4085,7 @@ func (l *MessageLoop) assembleWithReport(state *runState, snapshotJSON string) (
 		SessionKey: "message_loop:" + sessionKey,
 		TurnID:     sessionKey,
 		History:    input.History,
-		ProjectDir: runProjectDirFromState(state),
+		ProjectDir: carriers.ResolveProjectDir(runProjectDirFromState(state)),
 	})
 	report.HistoryRefs, report.ExitViolations, report.RetainsWritten = hook.HistoryRefs, hook.ExitViolations, hook.RetainsWritten
 	return assembly, report, err
@@ -4143,20 +4143,15 @@ func (l *MessageLoop) neutralFamilyAssemblyInput(state *runState, snapshotJSON s
 		workspaceDir = contextruntime.DefaultCarrierWorkspaceDir()
 	}
 	bundle := carriers.Assemble(context.Background(), carriers.Options{
-		WorkspaceDir:       workspaceDir,
-		ProjectDir:         runProjectDirFromState(state),
+		WorkspaceDir: workspaceDir,
+		// ResolveProjectDir：真栈 project_path 是 .vit 文件，账本落其父目录
+		// （裸 .vit 路径直喂=L4 层永 absent）。
+		ProjectDir:         carriers.ResolveProjectDir(runProjectDirFromState(state)),
 		Family:             ruleset.FamilyNeutralFamily,
 		ObservationCatalog: observationCatalog,
 		AllowedTools:       allowedTools,
 	})
-	systemSections := bundle.Sections
-	if len(systemSections) == 0 {
-		// L1 corrupt（embed 装载失败，理论不可达）：fail-open 回落单段骨架
-		// （内部再回落 legacy 模板），system 消息不缺席。
-		systemSections = []promptruntime.Section{
-			promptruntime.TextSection(promptruntime.SectionStatic, "message_loop_neutral_family_selection", "", messageLoopNeutralFamilySystemSkeleton(state), true),
-		}
-	}
+	systemSections := neutralFamilySystemSections(bundle, state)
 	directives := messageLoopNeutralFamilyTurnDirectives(state)
 	user := fmt.Sprintf("Current acoustic goal: %s\nGoalID: %s\nRunID: %s\nRemaining tool calls this run: %d\nNeutral context snapshot JSON:\n%s",
 		strings.TrimSpace(state.input.UserText), state.goal.GoalID, state.goal.RunID,
@@ -4182,6 +4177,17 @@ func (l *MessageLoop) neutralFamilyAssemblyInput(state *runState, snapshotJSON s
 		// neutral decision request.
 		History:      messageLoopNeutralFamilyFeedbackHistory(state.input.Conversation),
 		UserSections: userSections,
+	}
+}
+
+// neutralFamilySystemSections 挂 bundle 层序段；L1 corrupt（embed 装载失败，
+// 理论不可达）回落单段骨架（内部再回落 legacy 模板），system 消息不缺席。
+func neutralFamilySystemSections(bundle carriers.Bundle, state *runState) []promptruntime.Section {
+	if len(bundle.Sections) > 0 {
+		return bundle.Sections
+	}
+	return []promptruntime.Section{
+		promptruntime.TextSection(promptruntime.SectionStatic, "message_loop_neutral_family_selection", "", messageLoopNeutralFamilySystemSkeleton(state), true),
 	}
 }
 

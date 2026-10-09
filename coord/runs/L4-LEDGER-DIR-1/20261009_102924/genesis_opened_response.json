@@ -1,0 +1,62 @@
+﻿{
+    "status":  "ok",
+    "agent_action_id":  "act_c53a58f490f7927e",
+    "tool":  "version.project_opened",
+    "command_name":  "version_project_opened",
+    "risk_level":  "direct",
+    "requires_confirmation":  false,
+    "result":  {
+                   "project_path":  "D:\\Vit_DAW_wt_ledger\\coord\\runs\\L4-LEDGER-DIR-1\\20261009_102924\\project\\genesis_fixture.vit",
+                   "project_uuid":  "vitproj_4e0def33ef8a47c99a22c5f74ca4ab59",
+                   "refresh":  {
+                                   "project_epoch":  "epoch_cf359912ba706541",
+                                   "reason":  "version_project_opened",
+                                   "revision":  7,
+                                   "shadow_refreshed":  true,
+                                   "snapshot_hash":  "55a44b850f49c25c",
+                                   "source":  "vsp.state.snapshot"
+                               },
+                   "status":  "ok"
+               },
+    "project_history":  {
+                            "active_branch":  "main",
+                            "active_node_id":  "",
+                            "active_worktree":  "",
+                            "available":  true,
+                            "branches":  {
+
+                                         },
+                            "commit_count":  0,
+                            "detached":  false,
+                            "draft":  false,
+                            "head":  "",
+                            "initialized":  true,
+                            "project_label":  "genesis_fixture",
+                            "project_path":  "D:\\Vit_DAW_wt_ledger\\coord\\runs\\L4-LEDGER-DIR-1\\20261009_102924\\project\\genesis_fixture.vit",
+                            "project_uuid":  "vitproj_e6319a53a6dc408fb29bf573ca544d8f",
+                            "recent_checkpoints":  [
+
+                                                   ],
+                            "refs":  {
+
+                                     },
+                            "root_project_path":  "",
+                            "unsaved":  false,
+                            "warnings":  [
+
+                                         ],
+                            "worktree_count":  1,
+                            "worktrees":  [
+                                              {
+                                                  "created_at":  "2026-10-09T02:29:31.2491203Z",
+                                                  "is_root":  true,
+                                                  "label":  "主工作树",
+                                                  "name":  "main",
+                                                  "path":  "D:\\Vit_DAW_wt_ledger\\coord\\runs\\L4-LEDGER-DIR-1\\20261009_102924\\project",
+                                                  "project_file_path":  "D:\\Vit_DAW_wt_ledger\\coord\\runs\\L4-LEDGER-DIR-1\\20261009_102924\\project\\genesis_fixture.vit",
+                                                  "project_path":  "D:\\Vit_DAW_wt_ledger\\coord\\runs\\L4-LEDGER-DIR-1\\20261009_102924\\project\\genesis_fixture.vit",
+                                                  "root_project_path":  "D:\\Vit_DAW_wt_ledger\\coord\\runs\\L4-LEDGER-DIR-1\\20261009_102924\\project\\genesis_fixture.vit"
+                                              }
+                                          ]
+                        }
+}

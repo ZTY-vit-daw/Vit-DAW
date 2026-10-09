@@ -4,9 +4,12 @@ package agentloop
 // （观察账本结论行 retain 进工程 L4 账本 + 语句级去重 + advisory 形态）。
 
 import (
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
+	"vit-daw-agent/internal/contextruntime"
 	"vit-daw-agent/internal/contextruntime/carriers"
 	agentruntime "vit-daw-agent/internal/runtime"
 )
@@ -113,5 +116,77 @@ func TestRunProjectDirFromStateKeyOrder(t *testing.T) {
 	}
 	if dir := runProjectDirFromState(nil); dir != "" {
 		t.Fatalf("nil state dir = %q, want empty", dir)
+	}
+}
+
+// REVIEW-1 G-1：去重读失败支——账本 corrupt（含前缀可读段）时 ReadLedger
+// 整本 fail-closed 拒读，去重必须全量保留（宁可重复入账不静默丢结论）。
+func TestDedupeAgainstProjectLedgerCorruptReadKeepsAll(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(dir, "ledger"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	// 首行是合法且语句可匹配的条目——证明整本读失败时连可读前缀也不参与去重。
+	corrupt := `{"entry_id":1,"kind":"observation_conclusion","statement":"drums bus masking resolved"}` + "\n" + "not-json\n"
+	if err := os.WriteFile(filepath.Join(dir, carriers.LedgerRelPath), []byte(corrupt), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := carriers.ReadLedger(dir); err == nil {
+		t.Fatalf("fixture must fail the ledger read (corrupt line present)")
+	}
+	units := []contextruntime.WindowUnit{
+		{Unit: contextruntime.ExitUnit{Kind: contextruntime.ExitUnitObservationBundle, ID: "obs-1"}, RetainedStatement: "drums bus masking resolved"},
+		{Unit: contextruntime.ExitUnit{Kind: contextruntime.ExitUnitObservationBundle, ID: "obs-2"}, RetainedStatement: "bass level stable after trim"},
+	}
+	kept := dedupeAgainstProjectLedger(dir, units)
+	if len(kept) != len(units) {
+		t.Fatalf("corrupt-ledger dedupe kept %d/%d units, want full retention", len(kept), len(units))
+	}
+	for i, unit := range kept {
+		if unit.RetainedStatement != units[i].RetainedStatement {
+			t.Fatalf("kept unit %d statement = %q, want %q (order and content preserved)", i, unit.RetainedStatement, units[i].RetainedStatement)
+		}
+	}
+}
+
+// REVIEW-1 G-4：runner 终态漏斗直测——仅终态（cont=nil 分支）触发 retain；
+// 暂停面（pause→result 非终态）不触发；终态 trace 事件附加可见。
+func TestRunnerResultFunnelRetainsOnlyOnTerminalStates(t *testing.T) {
+	r := &Runner{}
+
+	// 终态面：completed → 账本两条入账 + trace 附加 exit_retain 事件。
+	terminalDir := t.TempDir()
+	res := r.result(exitRetainTestState(terminalDir), agentruntime.StatusCompleted, "", "", "done", "", "", nil)
+	entries, err := carriers.ReadLedger(terminalDir)
+	if err != nil {
+		t.Fatalf("ReadLedger after terminal result: %v", err)
+	}
+	if len(entries) != 2 {
+		t.Fatalf("terminal result ledger entries = %d, want 2", len(entries))
+	}
+	retainEvents := 0
+	for _, event := range res.Trace {
+		if event.Kind == "exit_retain" {
+			retainEvents++
+			if !strings.Contains(event.Message, "2 conclusions retained") {
+				t.Fatalf("exit_retain trace message = %q, want retain count disclosure", event.Message)
+			}
+		}
+	}
+	if retainEvents != 1 {
+		t.Fatalf("terminal result trace exit_retain events = %d, want 1", retainEvents)
+	}
+
+	// 暂停面：waiting_continue（pause→result，cont 存续）→ 账本零落盘、
+	// 零 exit_retain 事件。
+	pauseDir := t.TempDir()
+	paused := r.pause(exitRetainTestState(pauseDir), agentruntime.StatusWaitingContinue, "", "", "", "", "", nil)
+	if entries, err := carriers.ReadLedger(pauseDir); err != nil || len(entries) != 0 {
+		t.Fatalf("pause face ledger entries = %d err = %v, want untouched empty ledger", len(entries), err)
+	}
+	for _, event := range paused.Trace {
+		if event.Kind == "exit_retain" {
+			t.Fatalf("pause face must not append exit_retain trace events, got %+v", event)
+		}
 	}
 }

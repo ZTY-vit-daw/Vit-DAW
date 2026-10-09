@@ -66,7 +66,9 @@ func (r *Runner) retainRunObservationConclusions(state *runState) string {
 	if len(units) == 0 {
 		return ""
 	}
-	projectDir := runProjectDirFromState(state)
+	// ResolveProjectDir：真栈 project_path 是 .vit 文件，账本落其父目录
+	// （裸 .vit 路径直喂=去重读与 retain 写都无声落空）。
+	projectDir := carriers.ResolveProjectDir(runProjectDirFromState(state))
 	if projectDir == "" {
 		// 无工程面（无落盘点）——advisory：决策只进报告不落盘。
 		return fmt.Sprintf("exit_retain advisory: %d observation conclusions, no project dir (retains not persisted)", len(units))

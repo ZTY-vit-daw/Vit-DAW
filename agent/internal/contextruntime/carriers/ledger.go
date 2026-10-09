@@ -98,6 +98,23 @@ func ledgerPath(projectDir string) string {
 	return filepath.Join(projectDir, filepath.FromSlash(LedgerRelPath))
 }
 
+// ResolveProjectDir 把工程路径解析成账本宿主目录：真栈工程 project_path 是
+// .vit 文件（sidecar 目录 .vit_agent/.vit_history 与其同级，对齐
+// projectstore.Resolve 的 ProjectDir 语义=文件父目录），账本按
+// <projectDir>/ledger/ 约定落同一父目录；project_path 本身是目录（草稿/
+// 测试面）时原样使用。裸 .vit 路径直喂 ledgerPath 会让读侧永 absent、写侧
+// MkdirAll 落在文件之下必然失败。空路径原样返回（无工程面=无账本宿主，
+// 不落 cwd 相对面）。读侧探测（os.Stat），纯函数无副作用。
+func ResolveProjectDir(projectPath string) string {
+	if projectPath == "" {
+		return ""
+	}
+	if info, err := os.Stat(projectPath); err == nil && info.IsDir() {
+		return projectPath
+	}
+	return filepath.Dir(projectPath)
+}
+
 // AppendLedgerEntry 追加一条条目：EntryID=链尾+1，PrevHash=链尾哈希，
 // 写入行=canonical JSON+"\n"（只追加，永不改写前缀）。Kind 越界=
 // fail-closed 拒写。

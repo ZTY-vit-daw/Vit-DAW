@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"vit-daw-agent/internal/contextruntime/carriers"
+	"vit-daw-agent/internal/promptruntime"
 )
 
 func writeCarrierProfileFixture(t *testing.T, workspaceDir string) {
@@ -103,5 +104,56 @@ func TestChatAssemblyAbsentLayersKeepPrefixByteStable(t *testing.T) {
 	}
 	if strings.Contains(system, "User prefers") || strings.Contains(system, "master bus") {
 		t.Fatalf("absent layers must not inject content")
+	}
+}
+
+// REVIEW-1 G-3：入口级 L1 corrupt 回落（len(sections)==0→D2 单段形态）直接
+// 测试——embed 装载失败理论不可达，回落分支以提炼后的纯函数直测锁定形态。
+func TestChatSystemSectionsCorruptFallback(t *testing.T) {
+	fallback := chatSystemSections(carriers.Bundle{}, "mode", "catalog")
+	if len(fallback) != 1 {
+		t.Fatalf("empty bundle fallback sections = %d, want single D2 section", len(fallback))
+	}
+	if fallback[0].ID != "chat_system" || !fallback[0].Stable {
+		t.Fatalf("fallback section id/stable = %q/%v, want static stable chat_system section", fallback[0].ID, fallback[0].Stable)
+	}
+	if fallback[0].Content != chatSystemFromRuleset("mode", "catalog") {
+		t.Fatalf("fallback content diverges from D2 single-section form")
+	}
+	rendered := []promptruntime.Section{{ID: carriers.LayerRules}, {ID: carriers.LayerCatalog}}
+	if got := chatSystemSections(carriers.Bundle{Sections: rendered}, "mode", "catalog"); len(got) != 2 || got[0].ID != carriers.LayerRules || got[1].ID != carriers.LayerCatalog {
+		t.Fatalf("non-empty bundle must pass sections through unchanged, got %+v", got)
+	}
+}
+
+// L4-LEDGER-DIR-1：真栈路径形态（project_path=.vit 文件，账本落父目录）下
+// chat 装配读面必须 rendered，而非永 absent。
+func TestChatAssemblyRendersLedgerForVitFileProjectPath(t *testing.T) {
+	parent := t.TempDir()
+	projectFile := filepath.Join(parent, "carrier_fixture.vit")
+	if err := os.WriteFile(projectFile, []byte("kernel project file placeholder"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := carriers.AppendLedgerEntry(parent, "constraint", "", "vit-form ledger reaches the system prefix", nil, 0, time.Date(2026, 10, 9, 9, 30, 0, 0, time.UTC)); err != nil {
+		t.Fatalf("seed ledger at parent: %v", err)
+	}
+	server := newChatServerForTest(t, nil, nil, nil)
+	server.carrierWorkspaceDir = t.TempDir()
+	assembly, report, err := server.buildAssemblyWithReport(context.Background(), "conv-carriers-vit", "vit 形态轮。", map[string]any{"project_path": projectFile})
+	if err != nil {
+		t.Fatalf("buildAssemblyWithReport: %v", err)
+	}
+	system := chatAssemblySystemText(t, assembly.Messages)
+	if !strings.Contains(system, "vit-form ledger reaches the system prefix") {
+		t.Fatalf("ledger statement missing from system for .vit project_path form")
+	}
+	rendered := false
+	for _, layer := range report.Layers {
+		if layer.LayerID == carriers.LayerLedger && layer.State == "rendered" {
+			rendered = true
+		}
+	}
+	if !rendered {
+		t.Fatalf("report layers missing rendered ledger row for .vit project_path form: %+v", report.Layers)
 	}
 }

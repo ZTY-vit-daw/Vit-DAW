@@ -112,12 +112,17 @@ param(
     #     WorkflowData boundary face (capability_blocked=true +
     #     mutation_performed=false + free_state_admission_receipt); the
     #     shape is never constructed artificially.
-    # "l4_genesis" (L4-GENESIS-1): project-opened event face -> L4 project
-    #     ledger genesis header, three legs on an isolated berth:
-    #     fail-open (blank kernel state -> open succeeds + warning visible +
-    #     no ledger), genesis write (topology_delta/genesis entries with the
-    #     TOM overview + delivery-profile lines), idempotent re-open (ledger
-    #     byte-identical). Zero LLM.
+    # "l4_genesis" (L4-GENESIS-1 + L4-LEDGER-DIR-1): project-opened event
+    #     face -> L4 project ledger genesis header, four legs on an isolated
+    #     berth: fail-open (blank kernel state -> open succeeds + warning
+    #     visible + no ledger), genesis write (topology_delta/genesis entries
+    #     with the TOM overview + delivery-profile lines), idempotent re-open
+    #     (ledger byte-identical), and the L4 assembly read face (two real-LLM
+    #     chat turns on the same .vit project: prefix_bytes strictly larger
+    #     with ledger entries present than with the ledger file absent -- the
+    #     stable prefix grows by exactly the ledger section, so "L4 rendered
+    #     when entries exist / absent when they don't" is asserted on the
+    #     telemetry surface, never the reply text).
     [string]$Scenario = "",
     # Scenario run artifacts root; defaults to
     # coord\runs\SMOKE-SCEN-RANGE-1\<timestamp> (journey_first:
@@ -887,7 +892,7 @@ if ([string]::IsNullOrWhiteSpace($WriteLeaseEventsFile)) {
 # be set before agent start so the berth agent inherits it; like the lease
 # path above, a caller-provided value wins.
 $ScenarioTelemetryFile = [System.Environment]::GetEnvironmentVariable("VIT_AGENT_LLM_TELEMETRY_PATH")
-if ($ScenarioMode -and ($Scenario -eq "note_time" -or $Scenario -eq "context_layering" -or $Scenario -eq "all")) {
+if ($ScenarioMode -and ($Scenario -eq "note_time" -or $Scenario -eq "context_layering" -or $Scenario -eq "l4_genesis" -or $Scenario -eq "all")) {
     if ([string]::IsNullOrWhiteSpace($ScenarioTelemetryFile)) {
         $ScenarioTelemetryFile = Join-Path $ScenarioRunDir "agent_llm_telemetry.jsonl"
         Set-Item -LiteralPath "env:VIT_AGENT_LLM_TELEMETRY_PATH" -Value $ScenarioTelemetryFile
@@ -2692,6 +2697,91 @@ if ($ScenarioMode) {
         }
         Write-Ok "LEG 3 idempotent: ledger byte-identical after re-open"
 
+        # ---------------- LEG 4: L4 assembly read face (A/B prefix_bytes) ----
+        # L4-LEDGER-DIR-1: the real stack's project_path is the .vit FILE; the
+        # assembly faces resolve the ledger host via carriers.ResolveProjectDir
+        # (file -> parent dir). Deterministic proof on the telemetry surface
+        # (never the reply text): two identical real-LLM chat turns in two
+        # FRESH conversations while the kernel holds the fixture -- turn A with
+        # the seeded ledger file in place, turn B with it moved aside. The
+        # faces that consume the four-layer carriers are the chat direct
+        # assembly (disable_agent_loop routes there, avoiding the goalrunner
+        # message-loop face whose non-free-state assembly carries no carriers
+        # at all) and the free-state neutral-family message loop. The stable
+        # prefix must grow by the ledger section when the file is present and
+        # shrink to the baseline when it is absent (before the resolution fix
+        # both turns read <file>.vit\ledger\... -> always absent -> delta 0).
+        Write-Step "LEG 4 (assembly read): prefix grows with ledger present, shrinks when absent"
+        if ([string]::IsNullOrWhiteSpace($ScenarioTelemetryFile)) {
+            throw "l4_genesis LEG 4 requires VIT_AGENT_LLM_TELEMETRY_PATH (set automatically in scenario mode; must precede agent start)"
+        }
+        $leg4Stamp = Get-Date -Format "yyyyMMdd_HHmmss"
+        $leg4ConvPresent = "ctx_ledger_present_" + $leg4Stamp
+        $leg4ConvAbsent = "ctx_ledger_absent_" + $leg4Stamp
+        $leg4Message = "Reply with one short sentence only: confirm you received this message. Do not call any commands."
+        $leg4PostChat = {
+            param([string]$Conversation)
+            Invoke-Json -Method POST -Uri $chatUri -Body @{
+                conversation_id = $Conversation
+                message = $leg4Message
+                context = @{ agent_mode = "chat"; disable_agent_loop = $true }
+            } -TimeoutSec 120
+        }
+        # Turn A: ledger present (LEG 2 seeded it at the .vit parent dir).
+        $leg4RespPresent = & $leg4PostChat $leg4ConvPresent
+        $leg4RespPresent | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "leg4_ledger_present_reply.json") -Encoding UTF8
+        $leg4ErrPresent = [string](Get-OptionalProperty -Object $leg4RespPresent -Name "error")
+        if (-not [string]::IsNullOrWhiteSpace($leg4ErrPresent)) {
+            throw ("LEG 4 ledger-present chat turn returned error: " + $leg4ErrPresent)
+        }
+        if ([string]::IsNullOrWhiteSpace([string](Get-OptionalProperty -Object $leg4RespPresent -Name "reply"))) {
+            throw "LEG 4 ledger-present chat turn returned an empty reply"
+        }
+        # Turn B: ledger file moved aside -> L4 absent on the same project.
+        $leg4LedgerBak = $genesisLedgerPath + ".leg4bak"
+        Move-Item -LiteralPath $genesisLedgerPath -Destination $leg4LedgerBak
+        try {
+            $leg4RespAbsent = & $leg4PostChat $leg4ConvAbsent
+            $leg4RespAbsent | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "leg4_ledger_absent_reply.json") -Encoding UTF8
+        }
+        finally {
+            Move-Item -LiteralPath $leg4LedgerBak -Destination $genesisLedgerPath
+        }
+        $leg4ErrAbsent = [string](Get-OptionalProperty -Object $leg4RespAbsent -Name "error")
+        if (-not [string]::IsNullOrWhiteSpace($leg4ErrAbsent)) {
+            throw ("LEG 4 ledger-absent chat turn returned error: " + $leg4ErrAbsent)
+        }
+        if ([string]::IsNullOrWhiteSpace([string](Get-OptionalProperty -Object $leg4RespAbsent -Name "reply"))) {
+            throw "LEG 4 ledger-absent chat turn returned an empty reply"
+        }
+        if (-not (Test-Path -LiteralPath $genesisLedgerPath)) {
+            throw ("LEG 4 ledger restore failed: " + $genesisLedgerPath + " missing after move-back")
+        }
+        # Telemetry face: last section_stats record per conversation (fresh
+        # conversations -> the assembly record is the chat face; router
+        # records carry none, same shape as context_layering).
+        $leg4Telemetry = @(Get-Content -LiteralPath $ScenarioTelemetryFile -Encoding UTF8 | Where-Object { $_ -like '*"section_stats"*' -and $_.Contains('"breaks":') -and ($_.Contains($leg4ConvPresent) -or $_.Contains($leg4ConvAbsent)) } | ForEach-Object { $_ | ConvertFrom-Json })
+        $leg4PrefixByConv = @{}
+        foreach ($leg4Record in $leg4Telemetry) {
+            $leg4Conv = [string]$leg4Record.conversation_id
+            $leg4Stats = Get-OptionalProperty -Object $leg4Record -Name "section_stats"
+            if ($null -eq $leg4Stats) {
+                throw ("LEG 4 telemetry record missing section_stats: " + ($leg4Record | ConvertTo-Json -Depth 6 -Compress))
+            }
+            $leg4PrefixByConv[$leg4Conv] = [int](Get-OptionalProperty -Object $leg4Stats -Name "prefix_bytes")
+        }
+        if (-not $leg4PrefixByConv.ContainsKey($leg4ConvPresent) -or -not $leg4PrefixByConv.ContainsKey($leg4ConvAbsent)) {
+            throw ("LEG 4 telemetry missing assembly records (present=" + $leg4PrefixByConv.ContainsKey($leg4ConvPresent) + " absent=" + $leg4PrefixByConv.ContainsKey($leg4ConvAbsent) + "); file=" + $ScenarioTelemetryFile)
+        }
+        $leg4PrefixPresent = $leg4PrefixByConv[$leg4ConvPresent]
+        $leg4PrefixAbsent = $leg4PrefixByConv[$leg4ConvAbsent]
+        $leg4Delta = $leg4PrefixPresent - $leg4PrefixAbsent
+        Copy-Item -LiteralPath $ScenarioTelemetryFile -Destination (Join-Path $ScenarioRunDir "leg4_telemetry_snapshot.jsonl") -Force
+        if ($leg4Delta -lt 64) {
+            throw ("LEG 4 violated: stable prefix grew only " + $leg4Delta + " bytes with the ledger present (present=" + $leg4PrefixPresent + " absent=" + $leg4PrefixAbsent + "); L4 ledger layer not rendered on the .vit path form")
+        }
+        Write-Ok ("LEG 4 assembly read: prefix_bytes present=" + $leg4PrefixPresent + " absent=" + $leg4PrefixAbsent + " (delta=" + $leg4Delta + ", ledger section rendered)")
+
         @{
             scenario = "l4_genesis"
             project_path = $genesisProjectPath
@@ -2701,6 +2791,9 @@ if ($ScenarioMode) {
             ledger_statements = $genesisStatements
             fail_open_response = $genesisFailOpenText
             reopened_response = ($genesisReopened | ConvertTo-Json -Depth 20 -Compress)
+            leg4_prefix_bytes_present = $leg4PrefixPresent
+            leg4_prefix_bytes_absent = $leg4PrefixAbsent
+            leg4_prefix_delta = $leg4Delta
             finished_at = (Get-Date).ToString("o")
         } | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "l4_genesis_summary.json") -Encoding UTF8
     }

@@ -19,7 +19,6 @@ package harness
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -55,7 +54,9 @@ func (h *Harness) appendProjectLedgerGenesis(projectPath string, result map[stri
 		h.warnProjectLedgerGenesis("shadow snapshot identity does not match opened project; genesis skipped", result)
 		return
 	}
-	appended, err := carriers.AppendGenesis(genesisLedgerDir(projectPath), genesisFacts(engine, h.RenderProfileBindingsSnapshot()), time.Now().UTC())
+	// ResolveProjectDir：project_path 是 .vit 文件时账本落其父目录（既有
+	// 目录语义不变，L4-LEDGER-DIR-1 起与装配/retain 三面共用同一解析）。
+	appended, err := carriers.AppendGenesis(carriers.ResolveProjectDir(projectPath), genesisFacts(engine, h.RenderProfileBindingsSnapshot()), time.Now().UTC())
 	if err != nil {
 		h.warnProjectLedgerGenesis(fmt.Sprintf("project ledger genesis not appended: %v", err), result)
 		return
@@ -66,19 +67,6 @@ func (h *Harness) appendProjectLedgerGenesis(projectPath string, result map[stri
 	if h.logger != nil {
 		h.logger.Info("[harness] project ledger genesis appended entries=%d project=%q", appended, projectPath)
 	}
-}
-
-// genesisLedgerDir 把工程路径解析成账本宿主目录：真栈工程 project_path 是
-// .vit 文件（sidecar 目录 .vit_agent/.vit_history 与其同级，见
-// projectstore.Resolve 的 ProjectDir 语义=文件父目录），账本按 carriers 的
-// <projectDir>/ledger/ 约定落同一父目录；project_path 本身是目录（草稿/
-// 测试面）时原样使用。裸 .vit 路径直喂 ledgerPath 会让 MkdirAll 落在文件
-// 之下必然失败（且 AppendGenesis 对写入错误静默吞掉）。
-func genesisLedgerDir(projectPath string) string {
-	if info, err := os.Stat(projectPath); err == nil && info.IsDir() {
-		return projectPath
-	}
-	return filepath.Dir(projectPath)
 }
 
 // genesisEngineSnapshot 取 shadow 的内核项目状态快照（engine_snapshot；
