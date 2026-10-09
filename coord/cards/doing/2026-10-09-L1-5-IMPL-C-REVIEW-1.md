@@ -51,5 +51,6 @@ go test ./... -count=1
 - 端测边界：纯复核、不修改生产；行为零变化是否成立需本卡实证，真实栈与双模式消费面仍由收口卡验证。
 
 - 领取：2026-10-09 13:39（Asia/Shanghai） / origin/main=a25d3b9d71f38eb8ffbec7019e5f986ac9871b83 / owner=Codex GPT-6，PC ZTY，本会话 01a11f27-39ba-7313-9aa1-517fa3214c23（用户明确“执行 L1-5-IMPL-C-REVIEW-1”） / port/l1-5-impl-c-review-1 / worktree=C:/Users/timoz/.codex/worktrees/l1-5-c-review/Vit_DAW / 领取提交=本条状态提交（提交后以远端 log 核对）；独立 worktree 领取前 status/diff stat 均为空；主树已有改动不带入复验。
+- 领取同步补记：上述时间字段为预填；实际领取提交时间 2026-10-09 13:35:47 +08:00。首次 push 因 A-REVIEW-1 领取提交 2986df4f 被拒；已重读远端，C 仍 todo、A 仅写独立报告域。按协议从 origin/main=2986df4ff91037814e035f3ab72fa2a257aeccee 建新协调分支并 cherry-pick 本卡领取记录；复验从成功同步后的 main 建立。
 - 回执：（报告分支与 commit / REPORT.md 路径 / 等价结果 / 命令退出码 / 建议结论）
 - 验收：（主管裁定 / 本复核卡验收 commit；与 C 原卡最终裁定分开）
