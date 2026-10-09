@@ -227,3 +227,38 @@ D15 裁定：相位轮次→"冷启动第一轮（保证每会话共同底座）
 ---
 
 *本文档由 L1-5-DESIGN-1 卡（PC 决策会话，GLM-5.3/L2 设计面，2026-10-09 /morning 单点确认）产出；事实锚本轮 HEAD=8abbccd1 亲核（§1 清单），规格锚路线图 D15/§4-G3 与 CONTEXT_LAYERING_V1_DESIGN §7/§10。*
+
+
+---
+
+## 11. D 接线剖面定版（L1-5-IMPL-D 设计评审段，主管 2026-10-09 晚窗冻结）
+
+> 权威细节规格=[ADAPTER-DESIGN-1 提案](../coord/runs/L1-5-ADAPTER-DESIGN-1/PROPOSAL.md)（主管采纳）；本节为冻结裁定与增补，冲突时以本节为准。
+
+### 11.1 架构形态（S1 定版）
+
+**宿主持有活状态 + 中性会话协议**：agentloop 独家持有 *runState/Runner/MessageLoop 与十 handler；pullharness 只经有版本只读 Frame 驱动循环；fastpath 保持泛型不 import agentloop。LLM/PrefixService/ExitExecutor/工具动词/证据门接口冻结不改。
+
+**Session 协议（提案 §3 签名草案冻结，落 pullharness 包）**：`Disposition`（Continue/Suspend/Terminal，未知拒绝）/`ReturnKind`（Done/Failed/Confirmation/Clarification/SliceLimit/Interjection/Transient/Interrupted/UserCancelled/ObservationBudgetExhausted）/`Frame`（Revision+LedgerView 只读账本视图）/`Step`（Disposition+Kind+Source/Entry/Outcome/Reply/Error+Calls 仅 Interpret 可产未执行批+ReceiptIDs 已执行不可回放+DraftID）/`Session` 六方法（Snapshot/Attempt/Interpret/Execute/CloseCycle/Return）。
+
+**A 占位接口退役授权**：A 的 `ToolExecutor` 与 `FastPathRouter` 占位接口在 D 中由 Session 协议取代并移除（A 占位级测试同步改写——修订授权随本节生效；CANCEL-FIX 冻结表语义在 Session 面重新锚定，六路径回归测试随迁）。宿主 adapter=agentloop 侧 `pullSession`（newPullSession 构造，单一 state owner）。
+
+### 11.2 三轴映射（提案 §2 表冻结）
+
+completed≠judgment_ok（Outcome 独立轴）；EndTurn=宿主唯一 owner（slice 结算≠T2）；旧 Result 状态 14 行映射逐行冻结（Terminal/TerminalFailure/Suspend×5/TerminalCancelled/Continue）；未知 Status/StopReason=fail-closed 适配错误零新工具；ctx 中断（SuspendInterrupted）与显式用户取消（TerminalCancelled）严格分离，同时到达先读 runtime flags 按用户取消终局处理。
+
+### 11.3 主管裁定五项（提案悬置点）
+
+1. **budget_exhausted 映射**：映射旧 failed+专用 StopReason `observation_budget_exhausted`（fail-visible，不冒充 limit_reached 也不静默续片）。
+2. **Router 零成本豁免**：无豁免（预算用尽后零成本纯回复同样终局——统计一致性优先）。
+3. **确认暂停×预算用尽并发**：全 run 限额先拒绝后续 apply、保留 pending 证据、不开自动续跑；恢复后由用户显式 continue。
+4. **恢复载体**：第一版 `agentloop.PullContinuation` **仅同进程恢复**——跨进程 pull checkpoint 显式拒绝并报产品边界（不重放已执行动作）；持久化 schema 版本化，旧 continuation 无 pull 字段=push 语义 fail-open，未知版本/绑定不符=拒绝并报因。apply 后 receipt 未保存走执行协调器 Reconcile/回读，unknown apply=fail-closed 上交。
+5. **Router 预算契约（A-REVIEW 挂账②清偿）**：宿主 ledger=累计实际消费唯一 authority（pull 只读披露）；每真实工具按稳定 receipt ID 于 gateway 单次结算（Route hit/miss 均守）；Step 不再携带可重复相加的总 ProbeCost；未知成本标 unknown 不填 0；越线记录 overshoot 后终局不假称硬预授权。取消语义（挂账①）=CANCEL-FIX 冻结表为规格已实现，随 Session 面重新锚定；nil Prefix（挂账③）=生产构造要求非 nil，Run 入口 fail-closed 拒绝（测试 fake 豁免）。
+
+### 11.4 五不可丢语义（提案 §4 冻结为 D 验收测试集）
+
+miss 副作用回流（Frame.Revision 递增+pack 可见+不重建）/confirmation 零 T2（pending 保留+T2=0）/已执行工具不重放（ReceiptIDs 网关单次）/终局唯一 owner（terminal commit=1+retain hook=1+同 slice EndTurn=1+重复 Return 同 DraftID 幂等）/每轮同源 diagnostic 刷新（root/nested 双键）。断言查实际消息/revision/pending/账本/receipt，不只计调用次数。
+
+### 11.5 D 实现段范围确认
+
+flag→goalrunner/agentloop 入口路由（缺省 push 旧行为零变化断言）+pullSession adapter+PullContinuation+fastpath pull 侧接线（注册序/短路/旁路保持）+G3 双模真栈（§6）+HARNESS 文档增补段即本节。**实现段领取条件：本节冻结生效（已生效）+真栈独占**；独立复核腿强制（L2 标准）。
