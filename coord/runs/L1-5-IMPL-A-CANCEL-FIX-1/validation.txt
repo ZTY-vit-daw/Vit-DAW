@@ -1,0 +1,300 @@
+=== RUN   TestObservationBudgetCycleExhausted
+--- PASS: TestObservationBudgetCycleExhausted (0.00s)
+=== RUN   TestObservationBudgetProbeExhausted
+--- PASS: TestObservationBudgetProbeExhausted (0.00s)
+=== RUN   TestBudgetExhaustedIsDistinctFailureClass
+--- PASS: TestBudgetExhaustedIsDistinctFailureClass (0.00s)
+=== RUN   TestObservationBudgetDisclosure
+--- PASS: TestObservationBudgetDisclosure (0.00s)
+=== RUN   TestPullLoopCancellationBoundaries
+=== RUN   TestPullLoopCancellationBoundaries/entry
+=== RUN   TestPullLoopCancellationBoundaries/complete
+=== RUN   TestPullLoopCancellationBoundaries/plan
+=== RUN   TestPullLoopCancellationBoundaries/execute_empty
+=== RUN   TestPullLoopCancellationBoundaries/execute_result
+=== RUN   TestPullLoopCancellationBoundaries/route
+--- PASS: TestPullLoopCancellationBoundaries (0.00s)
+    --- PASS: TestPullLoopCancellationBoundaries/entry (0.00s)
+    --- PASS: TestPullLoopCancellationBoundaries/complete (0.00s)
+    --- PASS: TestPullLoopCancellationBoundaries/plan (0.00s)
+    --- PASS: TestPullLoopCancellationBoundaries/execute_empty (0.00s)
+    --- PASS: TestPullLoopCancellationBoundaries/execute_result (0.00s)
+    --- PASS: TestPullLoopCancellationBoundaries/route (0.00s)
+=== RUN   TestPullLoopCancellationKeepsEarlierCompletedBatch
+--- PASS: TestPullLoopCancellationKeepsEarlierCompletedBatch (0.00s)
+=== RUN   TestPullLoopT1OncePerBatchWithTurnIDSequence
+--- PASS: TestPullLoopT1OncePerBatchWithTurnIDSequence (0.00s)
+=== RUN   TestPullLoopT2ExactlyOnceOnTerminals
+--- PASS: TestPullLoopT2ExactlyOnceOnTerminals (0.00s)
+=== RUN   TestPullLoopPauseSurfaceNeverFiresT2
+--- PASS: TestPullLoopPauseSurfaceNeverFiresT2 (0.00s)
+=== RUN   TestPullLoopBudgetExhaustedOnCycleCap
+--- PASS: TestPullLoopBudgetExhaustedOnCycleCap (0.00s)
+=== RUN   TestPullLoopBudgetExhaustedOnProbeAccount
+--- PASS: TestPullLoopBudgetExhaustedOnProbeAccount (0.00s)
+=== RUN   TestPullLoopOverflowFailsClosedWithoutRequest
+--- PASS: TestPullLoopOverflowFailsClosedWithoutRequest (0.00s)
+=== RUN   TestPullLoopClassifyTerminalSeam
+--- PASS: TestPullLoopClassifyTerminalSeam (0.00s)
+=== RUN   TestPullLoopAssemblyConsumesPrefixService
+--- PASS: TestPullLoopAssemblyConsumesPrefixService (0.00s)
+=== RUN   TestPullLoopInjectionDefaults
+--- PASS: TestPullLoopInjectionDefaults (0.00s)
+=== RUN   TestPullLoopLLMErrorFiresT2
+--- PASS: TestPullLoopLLMErrorFiresT2 (0.00s)
+=== RUN   TestHarnessModeEnvWins
+--- PASS: TestHarnessModeEnvWins (0.00s)
+=== RUN   TestHarnessModeConfigKey
+--- PASS: TestHarnessModeConfigKey (0.00s)
+=== RUN   TestHarnessModeDefaultPush
+--- PASS: TestHarnessModeDefaultPush (0.00s)
+=== RUN   TestHarnessModeBOMTolerated
+--- PASS: TestHarnessModeBOMTolerated (0.00s)
+=== RUN   TestHarnessModeFailVisible
+--- PASS: TestHarnessModeFailVisible (0.01s)
+PASS
+ok  	vit-daw-agent/internal/pullharness	0.297s
+=== TESTED BASE / STATUS / DIFF ===
+231a4ff313efdb33533c96a81810bf95121528e6
+ M internal/pullharness/loop.go
+?? internal/pullharness/loop_cancel_test.go
+?? ../coord/runs/L1-5-IMPL-A-CANCEL-FIX-1/
+ agent/internal/pullharness/loop.go | 54 +++++++++++++++++++++++++++++++++-----
+ 1 file changed, 47 insertions(+), 7 deletions(-)
+diff --git a/agent/internal/pullharness/loop.go b/agent/internal/pullharness/loop.go
+index 939b3b35..91057e46 100644
+--- a/agent/internal/pullharness/loop.go
++++ b/agent/internal/pullharness/loop.go
+@@ -165,9 +165,13 @@ func (p *PullLoop) Run(ctx context.Context, in GoalInput) Result {
+ 	var windowUnits []contextruntime.WindowUnit
+ 	var windowBytes int64
+ 	for {
++		if ctx.Err() != nil {
++			return p.interrupt(&result, "ctx_done_before_route")
++		}
+ 		// ① 快路径路由尝试（§5：命中→确定性执行→短路，零模型轮）。
+ 		if p.Router != nil {
+-			if outcome, hit := p.Router.Route(ctx, in); hit {
++			outcome, hit := p.Router.Route(ctx, in)
++			if hit {
+ 				result.Shortcuts++
+ 				probeSpent += outcome.ProbeCost
+ 				result.ProbeSpent = probeSpent
+@@ -175,12 +179,20 @@ func (p *PullLoop) Run(ctx context.Context, in GoalInput) Result {
+ 				result.Outcome = nonEmpty(outcome.Outcome, OutcomeFastPath)
+ 				result.Trace = append(result.Trace,
+ 					"router_shortcut: outcome="+result.Outcome+" probe_spent="+ftoa(probeSpent))
++			}
++			if ctx.Err() != nil {
++				return p.interrupt(&result, "ctx_done_after_route")
++			}
++			if hit {
+ 				return p.finish(ctx, in, &result, windowUnits, windowBytes)
+ 			}
+ 		}
+ 
+ 		// ② 装配：PrefixService（稳定前缀）+动态区（会话状态+预算披露）。
+ 		assembly, report, err := p.assemble(ctx, in, history, cycles, probeSpent)
++		if ctx.Err() != nil {
++			return p.interrupt(&result, "ctx_done_after_assembly")
++		}
+ 		if err != nil {
+ 			result.Error = err.Error()
+ 			result.Outcome = "assemble_error"
+@@ -211,16 +223,23 @@ func (p *PullLoop) Run(ctx context.Context, in GoalInput) Result {
+ 		}
+ 		result.ModelTurns++
+ 		reply, llmErr := p.LLM.Complete(ctx, in.Engine, assembly.Messages)
+-		if llmErr != nil {
+-			if ctx.Err() != nil {
+-				return p.interrupt(&result, "ctx_done_during_model")
++		reply = strings.TrimSpace(reply)
++		// A cancelled component can still return a reply. Keep received facts
++		// before interrupting, including a partial reply returned with an error.
++		if ctx.Err() != nil {
++			if reply != "" {
++				history = append(history, llm.Message{Role: "assistant", Content: reply})
++				result.Conversation = history
++				result.Reply = reply
+ 			}
++			return p.interrupt(&result, "ctx_done_during_model")
++		}
++		if llmErr != nil {
+ 			result.Outcome = OutcomeLLMError
+ 			result.Error = llmErr.Error()
+ 			result.Trace = append(result.Trace, "llm_error: "+llmErr.Error())
+ 			return p.finish(ctx, in, &result, windowUnits, windowBytes)
+ 		}
+-		reply = strings.TrimSpace(reply)
+ 		history = append(history, llm.Message{Role: "assistant", Content: reply})
+ 		result.Conversation = history
+ 		result.Reply = reply
+@@ -229,6 +248,9 @@ func (p *PullLoop) Run(ctx context.Context, in GoalInput) Result {
+ 		if p.Tools != nil {
+ 			calls = p.Tools.Plan(reply)
+ 		}
++		if ctx.Err() != nil {
++			return p.interrupt(&result, "ctx_done_after_plan")
++		}
+ 		if len(calls) == 0 {
+ 			// 终态判定：无工具调用轮。分类沿缝透传（nil=judgment_ok 缺省）。
+ 			result.Outcome = classifyTerminal(in, reply)
+@@ -239,8 +261,6 @@ func (p *PullLoop) Run(ctx context.Context, in GoalInput) Result {
+ 		// ⑤ 工具批执行（读面 ref.query/ref.diff/ccb.observation_*；
+ 		//    写面既有执行动词——零动词新增）。
+ 		batch := p.Tools.Execute(ctx, calls)
+-		cycles++
+-		result.Cycles = cycles
+ 		for _, toolResult := range batch {
+ 			probeSpent += toolResult.ProbeCost
+ 		}
+@@ -249,12 +269,27 @@ func (p *PullLoop) Run(ctx context.Context, in GoalInput) Result {
+ 			history = append(history, llm.Message{Role: "user", Content: lines})
+ 			result.Conversation = history
+ 		}
++		if ctx.Err() != nil {
++			// The batch may have performed actions. Preserve returned IDs and
++			// costs without claiming completion, triggering T1, or refunding.
++			for _, toolResult := range batch {
++				result.Trace = append(result.Trace, fmt.Sprintf(
++					"interrupted_tool_result: id=%q tool=%q status=%q probe_cost=%s",
++					toolResult.ID, toolResult.Tool, toolResult.Status, ftoa(toolResult.ProbeCost)))
++			}
++			return p.interrupt(&result, "ctx_done_after_tools")
++		}
++		cycles++
++		result.Cycles = cycles
+ 
+ 		// ⑥ [T1] OnTurnBoundary(cycle:<n>)——每工具批恰一次。
+ 		turnID := cycleTurnID(in.RunID, cycles)
+ 		batchUnits, batchBytes := p.fireTurnBoundary(ctx, in, turnID, batch)
+ 		windowUnits = append(windowUnits, batchUnits...)
+ 		windowBytes += batchBytes
++		if ctx.Err() != nil {
++			return p.interrupt(&result, "ctx_done_after_T1")
++		}
+ 
+ 		// ⑦ 预算检查：exhausted → 止损终态 budget_exhausted（独立分类）。
+ 		if p.Budget.CycleExhausted(cycles) {
+@@ -380,6 +415,11 @@ func (p *PullLoop) fireTurnBoundary(ctx context.Context, in GoalInput, turnID st
+ // （TurnID=RunID 沿既有先例）；窗面=run 累计工具单元（observation 结论级
+ // retain 供给归 IMPL-B）。中断面（interrupt）不经此处——暂停面不触发 T2。
+ func (p *PullLoop) finish(ctx context.Context, in GoalInput, result *Result, windowUnits []contextruntime.WindowUnit, windowBytes int64) Result {
++	// Also cover cancellation inside terminal classification. This check only
++	// prevents a subsequent T2; it cannot undo already completed stages.
++	if ctx.Err() != nil {
++		return p.interrupt(result, "ctx_done_before_T2")
++	}
+ 	result.Trace = append(result.Trace, "terminal: outcome="+result.Outcome+" cycles="+itoa(result.Cycles)+" model_turns="+itoa(result.ModelTurns))
+ 	if p.Exit != nil && strings.TrimSpace(in.RunID) != "" {
+ 		p.Exit.OnTurnBoundary(ctx, contextruntime.TurnBoundaryEvent{
+=== GO BUILD ./... ===
+BUILD_EXIT_CODE=0
+=== GO TEST ./... -count=1 ===
+?   	vit-daw-agent/cmd/comderive	[no test files]
+?   	vit-daw-agent/cmd/domreadiness	[no test files]
+?   	vit-daw-agent/cmd/eqtopologyreplay	[no test files]
+?   	vit-daw-agent/cmd/mixlab	[no test files]
+?   	vit-daw-agent/cmd/pcactl	[no test files]
+ok  	vit-daw-agent/cmd/pluginprobe	0.739s
+ok  	vit-daw-agent/cmd/vitagent	0.835s
+?   	vit-daw-agent/cmd/vsphub	[no test files]
+ok  	vit-daw-agent/internal	0.533s
+ok  	vit-daw-agent/internal/acousticpackage	1.240s
+ok  	vit-daw-agent/internal/actionworkflow	0.557s
+ok  	vit-daw-agent/internal/agentloop	10.198s
+ok  	vit-daw-agent/internal/agentprotocol	0.503s
+ok  	vit-daw-agent/internal/artifacts	0.797s
+ok  	vit-daw-agent/internal/audioclosure	0.542s
+ok  	vit-daw-agent/internal/bridge	1.154s
+?   	vit-daw-agent/internal/browsercapture	[no test files]
+ok  	vit-daw-agent/internal/capabilityadapters	0.534s
+ok  	vit-daw-agent/internal/capabilitycontext	0.682s
+ok  	vit-daw-agent/internal/capabilityinteraction	0.464s
+ok  	vit-daw-agent/internal/capabilityruntime	0.448s
+ok  	vit-daw-agent/internal/chat	95.477s
+ok  	vit-daw-agent/internal/com	1.254s
+ok  	vit-daw-agent/internal/config	0.312s
+ok  	vit-daw-agent/internal/contextruntime	0.970s
+ok  	vit-daw-agent/internal/contextruntime/carriers	0.899s
+ok  	vit-daw-agent/internal/conversation	0.317s
+ok  	vit-daw-agent/internal/daw	0.303s
+ok  	vit-daw-agent/internal/dom	0.369s
+ok  	vit-daw-agent/internal/dynamiccontrol	0.353s
+ok  	vit-daw-agent/internal/epm	0.391s
+ok  	vit-daw-agent/internal/executionports	0.425s
+ok  	vit-daw-agent/internal/executionruntime	2.461s
+ok  	vit-daw-agent/internal/executionverifiers	0.531s
+ok  	vit-daw-agent/internal/executor	0.439s
+ok  	vit-daw-agent/internal/experiment	0.373s
+ok  	vit-daw-agent/internal/experimentplugins	1.560s
+ok  	vit-daw-agent/internal/frequencycleanup	0.356s
+ok  	vit-daw-agent/internal/fxm	0.361s
+ok  	vit-daw-agent/internal/goalrunner	1.396s
+ok  	vit-daw-agent/internal/harness	19.051s
+ok  	vit-daw-agent/internal/history	6.322s
+ok  	vit-daw-agent/internal/journal	0.636s
+ok  	vit-daw-agent/internal/kernel	0.400s
+ok  	vit-daw-agent/internal/levelsafety	0.369s
+ok  	vit-daw-agent/internal/llm	0.908s
+?   	vit-daw-agent/internal/logx	[no test files]
+ok  	vit-daw-agent/internal/lowendrelation	0.400s
+ok  	vit-daw-agent/internal/macrocontrols	0.380s
+ok  	vit-daw-agent/internal/masking	0.439s
+ok  	vit-daw-agent/internal/materialize	1.364s
+ok  	vit-daw-agent/internal/mixboard	4.761s
+ok  	vit-daw-agent/internal/mixdiagnosis	0.403s
+ok  	vit-daw-agent/internal/mixstyle	0.407s
+ok  	vit-daw-agent/internal/mom	0.513s
+ok  	vit-daw-agent/internal/observationrouter	0.373s
+ok  	vit-daw-agent/internal/orchestration	1.986s
+ok  	vit-daw-agent/internal/orchestrationcontroller	0.404s
+ok  	vit-daw-agent/internal/orchestrationruntime	0.478s
+ok  	vit-daw-agent/internal/panlayout	0.399s
+ok  	vit-daw-agent/internal/pendingmanager	0.357s
+ok  	vit-daw-agent/internal/planner	0.486s
+ok  	vit-daw-agent/internal/pluginprobe	0.577s
+ok  	vit-daw-agent/internal/pluginsemantics	0.410s
+ok  	vit-daw-agent/internal/policy	0.403s
+?   	vit-daw-agent/internal/presenter	[no test files]
+?   	vit-daw-agent/internal/preview	[no test files]
+ok  	vit-daw-agent/internal/probeaudio	6.794s
+ok  	vit-daw-agent/internal/processorattestation	1.266s
+ok  	vit-daw-agent/internal/processorauthority	1.377s
+ok  	vit-daw-agent/internal/processorintent	0.343s
+ok  	vit-daw-agent/internal/processorregistry	0.407s
+ok  	vit-daw-agent/internal/projectcut	0.416s
+ok  	vit-daw-agent/internal/projectpackage	1.656s
+ok  	vit-daw-agent/internal/projectstore	1.413s
+ok  	vit-daw-agent/internal/projectworkspace	0.506s
+ok  	vit-daw-agent/internal/promptruntime	0.506s
+ok  	vit-daw-agent/internal/protocolvalue	0.373s
+ok  	vit-daw-agent/internal/pullharness	0.679s
+ok  	vit-daw-agent/internal/queryengine	1.094s
+ok  	vit-daw-agent/internal/resourceintake	0.803s
+ok  	vit-daw-agent/internal/rlm	0.574s
+?   	vit-daw-agent/internal/rollback	[no test files]
+ok  	vit-daw-agent/internal/runtime	0.389s
+ok  	vit-daw-agent/internal/segmentation	0.436s
+ok  	vit-daw-agent/internal/semanticeffect	0.412s
+ok  	vit-daw-agent/internal/semanticorchestrator	0.420s
+ok  	vit-daw-agent/internal/shadow	0.987s
+ok  	vit-daw-agent/internal/shelltools	0.368s
+ok  	vit-daw-agent/internal/staticbalance	0.399s
+ok  	vit-daw-agent/internal/taskstate	0.410s
+ok  	vit-daw-agent/internal/tim	0.449s
+ok  	vit-daw-agent/internal/tom	0.409s
+ok  	vit-daw-agent/internal/toolpolicy	0.375s
+ok  	vit-daw-agent/internal/tools	0.423s
+ok  	vit-daw-agent/internal/trajectory	0.378s
+?   	vit-daw-agent/internal/vspclient	[no test files]
+ok  	vit-daw-agent/internal/vsphub	1.122s
+ok  	vit-daw-agent/internal/vst3host	0.387s
+ok  	vit-daw-agent/internal/webtools	0.753s
+ok  	vit-daw-agent/internal/workflows/plugingrabber	0.526s
+ok  	vit-daw-agent/internal/workspace	0.434s
+ok  	vit-daw-agent/rules/ruleset	0.397s
+FULL_TEST_EXIT_CODE=0
+=== FINAL STATIC CHECKS ===
+PRODUCTION_SEARCH_EXIT=1 (1=no matches)
+STAGED_BLOB_GOFMT=clean; SOURCE_RECEIPT_DIFF_CHECK_EXIT=0; FROZEN_THREE_PACKAGE_DIFF=empty; raw embedded diff whitespace preserved

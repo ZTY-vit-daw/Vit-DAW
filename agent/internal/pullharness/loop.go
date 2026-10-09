@@ -165,9 +165,13 @@ func (p *PullLoop) Run(ctx context.Context, in GoalInput) Result {
 	var windowUnits []contextruntime.WindowUnit
 	var windowBytes int64
 	for {
+		if ctx.Err() != nil {
+			return p.interrupt(&result, "ctx_done_before_route")
+		}
 		// ① 快路径路由尝试（§5：命中→确定性执行→短路，零模型轮）。
 		if p.Router != nil {
-			if outcome, hit := p.Router.Route(ctx, in); hit {
+			outcome, hit := p.Router.Route(ctx, in)
+			if hit {
 				result.Shortcuts++
 				probeSpent += outcome.ProbeCost
 				result.ProbeSpent = probeSpent
@@ -175,12 +179,20 @@ func (p *PullLoop) Run(ctx context.Context, in GoalInput) Result {
 				result.Outcome = nonEmpty(outcome.Outcome, OutcomeFastPath)
 				result.Trace = append(result.Trace,
 					"router_shortcut: outcome="+result.Outcome+" probe_spent="+ftoa(probeSpent))
+			}
+			if ctx.Err() != nil {
+				return p.interrupt(&result, "ctx_done_after_route")
+			}
+			if hit {
 				return p.finish(ctx, in, &result, windowUnits, windowBytes)
 			}
 		}
 
 		// ② 装配：PrefixService（稳定前缀）+动态区（会话状态+预算披露）。
 		assembly, report, err := p.assemble(ctx, in, history, cycles, probeSpent)
+		if ctx.Err() != nil {
+			return p.interrupt(&result, "ctx_done_after_assembly")
+		}
 		if err != nil {
 			result.Error = err.Error()
 			result.Outcome = "assemble_error"
@@ -211,16 +223,23 @@ func (p *PullLoop) Run(ctx context.Context, in GoalInput) Result {
 		}
 		result.ModelTurns++
 		reply, llmErr := p.LLM.Complete(ctx, in.Engine, assembly.Messages)
-		if llmErr != nil {
-			if ctx.Err() != nil {
-				return p.interrupt(&result, "ctx_done_during_model")
+		reply = strings.TrimSpace(reply)
+		// A cancelled component can still return a reply. Keep received facts
+		// before interrupting, including a partial reply returned with an error.
+		if ctx.Err() != nil {
+			if reply != "" {
+				history = append(history, llm.Message{Role: "assistant", Content: reply})
+				result.Conversation = history
+				result.Reply = reply
 			}
+			return p.interrupt(&result, "ctx_done_during_model")
+		}
+		if llmErr != nil {
 			result.Outcome = OutcomeLLMError
 			result.Error = llmErr.Error()
 			result.Trace = append(result.Trace, "llm_error: "+llmErr.Error())
 			return p.finish(ctx, in, &result, windowUnits, windowBytes)
 		}
-		reply = strings.TrimSpace(reply)
 		history = append(history, llm.Message{Role: "assistant", Content: reply})
 		result.Conversation = history
 		result.Reply = reply
@@ -228,6 +247,9 @@ func (p *PullLoop) Run(ctx context.Context, in GoalInput) Result {
 		var calls []ToolCall
 		if p.Tools != nil {
 			calls = p.Tools.Plan(reply)
+		}
+		if ctx.Err() != nil {
+			return p.interrupt(&result, "ctx_done_after_plan")
 		}
 		if len(calls) == 0 {
 			// 终态判定：无工具调用轮。分类沿缝透传（nil=judgment_ok 缺省）。
@@ -239,8 +261,6 @@ func (p *PullLoop) Run(ctx context.Context, in GoalInput) Result {
 		// ⑤ 工具批执行（读面 ref.query/ref.diff/ccb.observation_*；
 		//    写面既有执行动词——零动词新增）。
 		batch := p.Tools.Execute(ctx, calls)
-		cycles++
-		result.Cycles = cycles
 		for _, toolResult := range batch {
 			probeSpent += toolResult.ProbeCost
 		}
@@ -249,12 +269,27 @@ func (p *PullLoop) Run(ctx context.Context, in GoalInput) Result {
 			history = append(history, llm.Message{Role: "user", Content: lines})
 			result.Conversation = history
 		}
+		if ctx.Err() != nil {
+			// The batch may have performed actions. Preserve returned IDs and
+			// costs without claiming completion, triggering T1, or refunding.
+			for _, toolResult := range batch {
+				result.Trace = append(result.Trace, fmt.Sprintf(
+					"interrupted_tool_result: id=%q tool=%q status=%q probe_cost=%s",
+					toolResult.ID, toolResult.Tool, toolResult.Status, ftoa(toolResult.ProbeCost)))
+			}
+			return p.interrupt(&result, "ctx_done_after_tools")
+		}
+		cycles++
+		result.Cycles = cycles
 
 		// ⑥ [T1] OnTurnBoundary(cycle:<n>)——每工具批恰一次。
 		turnID := cycleTurnID(in.RunID, cycles)
 		batchUnits, batchBytes := p.fireTurnBoundary(ctx, in, turnID, batch)
 		windowUnits = append(windowUnits, batchUnits...)
 		windowBytes += batchBytes
+		if ctx.Err() != nil {
+			return p.interrupt(&result, "ctx_done_after_T1")
+		}
 
 		// ⑦ 预算检查：exhausted → 止损终态 budget_exhausted（独立分类）。
 		if p.Budget.CycleExhausted(cycles) {
@@ -380,6 +415,11 @@ func (p *PullLoop) fireTurnBoundary(ctx context.Context, in GoalInput, turnID st
 // （TurnID=RunID 沿既有先例）；窗面=run 累计工具单元（observation 结论级
 // retain 供给归 IMPL-B）。中断面（interrupt）不经此处——暂停面不触发 T2。
 func (p *PullLoop) finish(ctx context.Context, in GoalInput, result *Result, windowUnits []contextruntime.WindowUnit, windowBytes int64) Result {
+	// Also cover cancellation inside terminal classification. This check only
+	// prevents a subsequent T2; it cannot undo already completed stages.
+	if ctx.Err() != nil {
+		return p.interrupt(result, "ctx_done_before_T2")
+	}
 	result.Trace = append(result.Trace, "terminal: outcome="+result.Outcome+" cycles="+itoa(result.Cycles)+" model_turns="+itoa(result.ModelTurns))
 	if p.Exit != nil && strings.TrimSpace(in.RunID) != "" {
 		p.Exit.OnTurnBoundary(ctx, contextruntime.TurnBoundaryEvent{

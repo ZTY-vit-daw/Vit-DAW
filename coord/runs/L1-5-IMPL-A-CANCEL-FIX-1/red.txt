@@ -1,0 +1,39 @@
+=== RUN   TestPullLoopCancellationBoundaries
+=== RUN   TestPullLoopCancellationBoundaries/entry
+    loop_cancel_test.go:97: route/model/plan/execute=[1 0 0 0], want [0 0 0 0]
+=== RUN   TestPullLoopCancellationBoundaries/complete
+    loop_cancel_test.go:87: outcome="budget_exhausted", want interrupted
+    loop_cancel_test.go:90: cancelled batch counted complete or fired T1/T2: cycles=1 events=[{TurnID:run-cancel-complete:cycle:1 Window:{Units:[{Unit:{Kind:tool_result ID:action-1} Bytes:0 TurnID:run-cancel-complete:cycle:1 SemanticExpiry:false RetainedStatement: HandleRef: EvidenceRefs:[] CAS:<nil>}] HistoryLimit:0} Budget:{HotBytes:0 HotLimitBytes:0} Now:2026-10-09 14:06:46.1998348 +0800 CST m=+0.002500601} {TurnID:run-cancel-complete Window:{Units:[{Unit:{Kind:tool_result ID:action-1} Bytes:0 TurnID:run-cancel-complete:cycle:1 SemanticExpiry:false RetainedStatement: HandleRef: EvidenceRefs:[] CAS:<nil>}] HistoryLimit:0} Budget:{HotBytes:0 HotLimitBytes:0} Now:2026-10-09 14:06:46.1998348 +0800 CST m=+0.002500601}]
+    loop_cancel_test.go:97: route/model/plan/execute=[1 1 1 1], want [1 1 0 0]
+    loop_cancel_test.go:124: lost reply/cost: reply="model fact" cost=1, want "model fact"/0.25
+    loop_cancel_test.go:127: conversation length=4, want 3: [{Role:assistant Content:prior fact} {Role:user Content:演示工程里给主唱轨做淡入} {Role:assistant Content:model fact} {Role:user Content:executed fact}]
+=== RUN   TestPullLoopCancellationBoundaries/plan
+    loop_cancel_test.go:87: outcome="budget_exhausted", want interrupted
+    loop_cancel_test.go:90: cancelled batch counted complete or fired T1/T2: cycles=1 events=[{TurnID:run-cancel-plan:cycle:1 Window:{Units:[{Unit:{Kind:tool_result ID:action-1} Bytes:0 TurnID:run-cancel-plan:cycle:1 SemanticExpiry:false RetainedStatement: HandleRef: EvidenceRefs:[] CAS:<nil>}] HistoryLimit:0} Budget:{HotBytes:0 HotLimitBytes:0} Now:2026-10-09 14:06:46.207835 +0800 CST m=+0.010500801} {TurnID:run-cancel-plan Window:{Units:[{Unit:{Kind:tool_result ID:action-1} Bytes:0 TurnID:run-cancel-plan:cycle:1 SemanticExpiry:false RetainedStatement: HandleRef: EvidenceRefs:[] CAS:<nil>}] HistoryLimit:0} Budget:{HotBytes:0 HotLimitBytes:0} Now:2026-10-09 14:06:46.207835 +0800 CST m=+0.010500801}]
+    loop_cancel_test.go:97: route/model/plan/execute=[1 1 1 1], want [1 1 1 0]
+    loop_cancel_test.go:124: lost reply/cost: reply="model fact" cost=1, want "model fact"/0.25
+    loop_cancel_test.go:127: conversation length=4, want 3: [{Role:assistant Content:prior fact} {Role:user Content:演示工程里给主唱轨做淡入} {Role:assistant Content:model fact} {Role:user Content:executed fact}]
+=== RUN   TestPullLoopCancellationBoundaries/execute_empty
+    loop_cancel_test.go:87: outcome="budget_exhausted", want interrupted
+    loop_cancel_test.go:90: cancelled batch counted complete or fired T1/T2: cycles=1 events=[{TurnID:run-cancel-execute_empty:cycle:1 Window:{Units:[] HistoryLimit:0} Budget:{HotBytes:0 HotLimitBytes:0} Now:2026-10-09 14:06:46.207835 +0800 CST m=+0.010500801} {TurnID:run-cancel-execute_empty Window:{Units:[] HistoryLimit:0} Budget:{HotBytes:0 HotLimitBytes:0} Now:2026-10-09 14:06:46.207835 +0800 CST m=+0.010500801}]
+=== RUN   TestPullLoopCancellationBoundaries/execute_result
+    loop_cancel_test.go:87: outcome="budget_exhausted", want interrupted
+    loop_cancel_test.go:90: cancelled batch counted complete or fired T1/T2: cycles=1 events=[{TurnID:run-cancel-execute_result:cycle:1 Window:{Units:[{Unit:{Kind:tool_result ID:action-1} Bytes:0 TurnID:run-cancel-execute_result:cycle:1 SemanticExpiry:false RetainedStatement: HandleRef: EvidenceRefs:[] CAS:<nil>}] HistoryLimit:0} Budget:{HotBytes:0 HotLimitBytes:0} Now:2026-10-09 14:06:46.207835 +0800 CST m=+0.010500801} {TurnID:run-cancel-execute_result Window:{Units:[{Unit:{Kind:tool_result ID:action-1} Bytes:0 TurnID:run-cancel-execute_result:cycle:1 SemanticExpiry:false RetainedStatement: HandleRef: EvidenceRefs:[] CAS:<nil>}] HistoryLimit:0} Budget:{HotBytes:0 HotLimitBytes:0} Now:2026-10-09 14:06:46.207835 +0800 CST m=+0.010500801}]
+    loop_cancel_test.go:120: returned tool ID has no Result carrier
+=== RUN   TestPullLoopCancellationBoundaries/route
+    loop_cancel_test.go:87: outcome="fastpath", want interrupted
+    loop_cancel_test.go:90: cancelled batch counted complete or fired T1/T2: cycles=0 events=[{TurnID:run-cancel-route Window:{Units:[] HistoryLimit:0} Budget:{HotBytes:0 HotLimitBytes:0} Now:2026-10-09 14:06:46.207835 +0800 CST m=+0.010500801}]
+--- FAIL: TestPullLoopCancellationBoundaries (0.01s)
+    --- FAIL: TestPullLoopCancellationBoundaries/entry (0.00s)
+    --- FAIL: TestPullLoopCancellationBoundaries/complete (0.01s)
+    --- FAIL: TestPullLoopCancellationBoundaries/plan (0.00s)
+    --- FAIL: TestPullLoopCancellationBoundaries/execute_empty (0.00s)
+    --- FAIL: TestPullLoopCancellationBoundaries/execute_result (0.00s)
+    --- FAIL: TestPullLoopCancellationBoundaries/route (0.00s)
+=== RUN   TestPullLoopCancellationKeepsEarlierCompletedBatch
+    loop_cancel_test.go:161: completed/cancelled batch accounting: {RunID:run-prior-batch GoalID:goal-1 Outcome:budget_exhausted Reply:model fact Error:budget_exhausted: cycles=2 max=2 Cycles:2 ModelTurns:2 Shortcuts:0 ProbeSpent:1 Conversation:[{Role:user Content:演示工程里给主唱轨做淡入} {Role:assistant Content:model fact} {Role:user Content:executed fact} {Role:assistant Content:model fact} {Role:user Content:executed fact}] Trace:[assembly: cycle=1 prefix_bytes=0 dynamic_bytes=0 breaks=0 assembly: cycle=2 prefix_bytes=0 dynamic_bytes=0 breaks=0 budget_exhausted: cycles=2 max=2 terminal: outcome=budget_exhausted cycles=2 model_turns=2]}, model/execute=2/2
+    loop_cancel_test.go:164: prior T1 must survive, no new T1/T2: [{TurnID:run-prior-batch:cycle:1 Window:{Units:[{Unit:{Kind:tool_result ID:action} Bytes:0 TurnID:run-prior-batch:cycle:1 SemanticExpiry:false RetainedStatement: HandleRef: EvidenceRefs:[] CAS:<nil>}] HistoryLimit:0} Budget:{HotBytes:0 HotLimitBytes:0} Now:2026-10-09 14:06:46.2083374 +0800 CST m=+0.011003201} {TurnID:run-prior-batch:cycle:2 Window:{Units:[{Unit:{Kind:tool_result ID:action} Bytes:0 TurnID:run-prior-batch:cycle:2 SemanticExpiry:false RetainedStatement: HandleRef: EvidenceRefs:[] CAS:<nil>}] HistoryLimit:0} Budget:{HotBytes:0 HotLimitBytes:0} Now:2026-10-09 14:06:46.2083374 +0800 CST m=+0.011003201} {TurnID:run-prior-batch Window:{Units:[{Unit:{Kind:tool_result ID:action} Bytes:0 TurnID:run-prior-batch:cycle:1 SemanticExpiry:false RetainedStatement: HandleRef: EvidenceRefs:[] CAS:<nil>} {Unit:{Kind:tool_result ID:action} Bytes:0 TurnID:run-prior-batch:cycle:2 SemanticExpiry:false RetainedStatement: HandleRef: EvidenceRefs:[] CAS:<nil>}] HistoryLimit:0} Budget:{HotBytes:0 HotLimitBytes:0} Now:2026-10-09 14:06:46.2083374 +0800 CST m=+0.011003201}]
+--- FAIL: TestPullLoopCancellationKeepsEarlierCompletedBatch (0.00s)
+FAIL
+FAIL	vit-daw-agent/internal/pullharness	0.279s
+FAIL
