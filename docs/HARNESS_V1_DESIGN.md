@@ -262,3 +262,27 @@ miss 副作用回流（Frame.Revision 递增+pack 可见+不重建）/confirmati
 ### 11.5 D 实现段范围确认
 
 flag→goalrunner/agentloop 入口路由（缺省 push 旧行为零变化断言）+pullSession adapter+PullContinuation+fastpath pull 侧接线（注册序/短路/旁路保持）+G3 双模真栈（§6）+HARNESS 文档增补段即本节。**实现段领取条件：本节冻结生效（已生效）+真栈独占**；独立复核腿强制（L2 标准）。
+
+
+---
+
+## 12. D 实现段落地记录（L1-5-IMPL-D，2026-10-09 晚窗执行）
+
+> 本节是实现段的事实登记（落地面+验收面），规格权威仍是 §3-§6/§11；与 §11 冲突以 §11 为准。
+
+### 12.1 代码面（port/l1-5-impl-d）
+
+- **腿1（pullharness）**：`session.go`——§11.1 冻结签名六类型+Session 接口+Frame.Context 供给键（协议段/溢出线位）；`loop.go` 重写为 Session 驱动循环——Attempt（宿主快路径）/Interpret（宿主协议面）/Execute（宿主 gateway）/CloseCycle（T1 唯一入口，宿主用注入 Exit 构造）/Return（终局唯一 owner）全部回宿主，驱动保留装配（Prefix+冷启动底座+宿主协议段+动态区）+实际装配字节溢出预检+模型调用（经 llm.CompleteText 携 telemetry metadata）；A 占位 ToolExecutor/FastPathRouter 退役（§11.1 授权）；CANCEL-FIX 六路径取消回归在 Session 面重新锚定（loop_cancel_test.go）。
+- **腿2（agentloop）**：`pull_session.go`——newPullSession 单一 state owner；三轴映射 `stepFromLegacyResult`（§11.2 十四行逐行+fail-closed）；Runner `lifecycleDraft` draft 返回策略（pull-only，缺省 false=push 完全旧行为）；Router 预算契约（§11.3.5：宿主 ledger 唯一 authority+receipt 稳定 ID 单次结算+unknown 不填 0+overshoot 记录+入场拒绝零成本无豁免）；budget_exhausted→failed+`observation_budget_exhausted` 专用 StopReason（§11.3.1）；`pull_continuation.go`——PullContinuation v1（schema 版本化 fail 边界+旧 continuation=push fail-open+同进程会话登记面）。
+- **腿3（入口路由）**：`pull_entry.go`+message_loop 三入口头部单点分流；Start 前导提取 `buildStartState`（push/pull 共用，行为零变化）；同进程恢复=GoalID 登记面找回活会话（身份重绑+切片预算扩展）；跨进程 pull checkpoint 显式拒绝零重放；Continuation 增 `PullCheckpoint` 字段（omitempty，旧记录缺省 push）。
+- **提取面**：l.loop 解析/分支块结构提取为 `interpretModelReply`（push 逐字保持，全量回归=零变化断言；pull Interpret 复用同一实现——两模式协议面同源）。
+
+### 12.2 G3 执行面（§6 落地）
+
+- 场景：`scripts/dev_agent_smoke.ps1 -Scenario harness_ab`（berth 全栈独占：内核+按模式重启的 agent+J1 双 stem fixture+full_project_access；§8 纪律预写于场景注释：轮数/成功条件/失败分类/止损线）。
+- 指标三层：判定链 outcome 分层（逐轮分类 JSON）/成本（LLM telemetry JSONL 按 source=message_loop|pullharness 归属+prefix/dynamic 字节）/前缀命中（P2 断裂计数+P3 动静分离+P1 指纹代理——P1 判据受整装配指纹限制，见裁定报告归因卡②）。
+- 结果与裁定：`coord/runs/L1-5-IMPL-D/G3-RULING.md`（run 20261009_195558，exit 0；建议=不切换+两轴差异归因卡）。
+
+### 12.3 已知边界（G3 报告 §4 同源）
+
+- 确认往返真栈面未行使（单测覆盖，归归因卡①）；probe 计量源缺失（unknown 如实披露）；pull 冷启动 engine_snapshot 供给面待接（chat 目标上下文未携带→absent 显式）；chat 直连管线未迁移（OQ-H3 归 G3 后切换卡）。

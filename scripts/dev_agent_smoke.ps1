@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
     [string]$RepoRoot = "",
     [string]$AgentHttp = "http://127.0.0.1:7878",
@@ -164,6 +164,11 @@ param(
     # start; auditionBlindSettingsFor reads the env first at every prepare).
     # The judgment leg then asserts the blind faces on the seated session.
     [switch]$JourneyBlindAudition,
+    # L1-5-IMPL-D G3 A/B: rounds per mode (>=3, AGENTS §8 probabilistic face),
+    # per-turn chat timeout and per-round settle window.
+    [int]$HarnessAbRounds = 3,
+    [int]$HarnessAbTurnSeconds = 200,
+    [int]$HarnessAbSettleSeconds = 300,
     # SMOKE-TOOLING-1: the UI-launched kernel command port can take far longer
     # than the generic wait budget when the plugin table is cold (three
     # same-shape environment failures: ~994-entry cold load blew the fixed
@@ -628,13 +633,13 @@ $listener = Get-TcpListener -Port $httpPort
 $ScenarioMode = -not [string]::IsNullOrWhiteSpace($Scenario)
 # Journeys own the full berth (kernel + agent); one flag for every journey
 # card. Defined for every mode so later references stay StrictMode-safe.
-$journeyBerth = ($ScenarioMode -and ($Scenario -eq "journey_first" -or $Scenario -eq "journey_plugin_load" -or $Scenario -eq "journey_free_state_nl" -or $Scenario -eq "journey_ab_judgment" -or $Scenario -eq "context_layering" -or $Scenario -eq "l4_genesis"))
+$journeyBerth = ($ScenarioMode -and ($Scenario -eq "journey_first" -or $Scenario -eq "journey_plugin_load" -or $Scenario -eq "journey_free_state_nl" -or $Scenario -eq "journey_ab_judgment" -or $Scenario -eq "context_layering" -or $Scenario -eq "l4_genesis" -or $Scenario -eq "harness_ab"))
 $ScenarioKernelProcId = $null
 $ScenarioAgentProcId = $null
 $ScenarioRunDir = ""
 if ($ScenarioMode) {
-    if ($Scenario -notin @("note_time", "context_layering", "range_split", "ref_diff_content", "midi_register", "render_freeze", "journey_first", "journey_plugin_load", "journey_free_state_nl", "journey_ab_judgment", "l4_genesis", "all")) {
-        throw ("unknown -Scenario value '" + $Scenario + "'; expected note_time, context_layering, range_split, ref_diff_content, midi_register, render_freeze, journey_first, journey_plugin_load, journey_free_state_nl, journey_ab_judgment, l4_genesis, or all")
+    if ($Scenario -notin @("note_time", "context_layering", "range_split", "ref_diff_content", "midi_register", "render_freeze", "journey_first", "journey_plugin_load", "journey_free_state_nl", "journey_ab_judgment", "l4_genesis", "harness_ab", "all")) {
+        throw ("unknown -Scenario value '" + $Scenario + "'; expected note_time, context_layering, range_split, ref_diff_content, midi_register, render_freeze, journey_first, journey_plugin_load, journey_free_state_nl, journey_ab_judgment, l4_genesis, harness_ab, or all")
     }
     if ($StartUI) {
         throw "-Scenario berth mode never starts the Godot UI (card constraint: webui/Godot untouched)"
@@ -667,6 +672,9 @@ if ($ScenarioMode) {
         }
         elseif ($Scenario -eq "l4_genesis") {
             $scenarioRunsRoot = "coord\runs\L4-GENESIS-1"
+        }
+        elseif ($Scenario -eq "harness_ab") {
+            $scenarioRunsRoot = "coord\runs\L1-5-IMPL-D"
         }
         $RunArtifactsDir = Join-Path $RepoRoot ($scenarioRunsRoot + "\" + (Get-Date -Format "yyyyMMdd_HHmmss"))
     }
@@ -4903,6 +4911,357 @@ if ($ScenarioMode) {
             finished_at = (Get-Date).ToString("o")
         }
         $journeySummary | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "journey_summary.json") -Encoding UTF8
+    }
+
+    if ($Scenario -eq "harness_ab") {
+        # L1-5-IMPL-D G3 A/B gate (HARNESS_V1_DESIGN §6): one demo project
+        # (J1 fixture recipe) x two harness modes x >=3 rounds per mode.
+        #
+        # Probabilistic discipline pre-written (AGENTS.md §8):
+        #   rounds: $HarnessAbRounds per mode (default 3), fixed utterance
+        #     (J3 same-source base64 prompt; the A/B variable is the harness
+        #     mode, never the prompt), fresh conversation per round.
+        #   success conditions (per-round classification; RECORDED, never
+        #     thrown): judgment_terminal = chain reached a terminal judgment
+        #     (goal completed / stop_reason done family); needs_user_* =
+        #     healthy chain awaiting user (waiting_confirmation /
+        #     waiting_clarification).
+        #   failure classification (per round): stalled_slice_limit =
+        #     limit_reached/waiting_continue without judgment; budget_exhausted
+        #     = observation_budget_exhausted (pull-specific, single-column
+        #     accounting, never mixed into no_candidate/capability classes);
+        #     infra_error_llm / infra_error_transport / infra_error_protocol;
+        #     environment_interrupt recorded separately (port/process
+        #     anomalies during a round).
+        #   stop-loss: 2 consecutive rounds of the same mode classified
+        #     infra_error_* at the same stage -> stop that mode (recorded,
+        #     remaining rounds skipped, no same-shape retries); agent health
+        #     failure after a round -> stop the whole run (stop_loss_run).
+        # Exit-0 gate = deterministic sub-faces ONLY: fixture/open/authority
+        # legs (throw), per-mode >=1 real LLM telemetry record, per-mode >=3
+        # classified rounds (or stop-loss recorded), metrics artifacts
+        # written. Quality comparison is the G3 report's job, not the gate.
+        Write-Step "Scenario harness_ab: G3 A/B -- demo project x {push, pull} x rounds"
+        $abInvokeUri = $AgentHttp.TrimEnd("/") + "/agent/invoke"
+        $abChatUri = $AgentHttp.TrimEnd("/") + "/agent/chat"
+        $abAuthorityUri = $AgentHttp.TrimEnd("/") + "/agent/authority"
+        $abRuntimeUri = $AgentHttp.TrimEnd("/") + "/agent/runtime/status"
+        $abHealthUri = $AgentHttp.TrimEnd("/") + "/health"
+        $abInvoke = {
+            param([string]$Tool, [object]$ToolArgs, [int]$TimeoutSec)
+            Invoke-Json -Method POST -Uri $abInvokeUri -Body @{
+                tool = $Tool
+                args = $ToolArgs
+                confirmed = $true
+                source = "dev_agent_smoke.harness_ab"
+            } -TimeoutSec $TimeoutSec
+        }
+
+        # ---------------- deterministic legs: fixture + open + authority -----
+        Write-Step "harness_ab fixture: J1 two-stem recipe, bake DAD, persist"
+        Write-LeaseSmokeStemWav -Path (Join-Path $JourneyStemsDir "Lead Vocal.wav") -Amplitude 0.5 -Frequency 440.0 | Out-Null
+        Write-LeaseSmokeStemWav -Path (Join-Path $JourneyStemsDir "Bass.wav") -Amplitude 0.35 -Frequency 110.0 | Out-Null
+        $abProjectPath = Join-Path $JourneyProjectDir "harness_ab_fixture.vit"
+        $null = & $abInvoke "project.new" @{} 60
+        $abImport = & $abInvoke "project.import_folder_as_stems" @{
+            folder_path = $JourneyStemsDir
+            recursive = $false
+            target_policy = "create_tracks"
+            start_time_seconds = 0.0
+            skip_unreadable = $false
+            command_timeout_ms = 60000
+        } 120
+        if ([string]$abImport.status -ne "ok") {
+            throw ("harness_ab fixture stems import failed: " + ($abImport | ConvertTo-Json -Depth 8 -Compress))
+        }
+        $abImportResult = Get-OptionalProperty -Object $abImport -Name "result"
+        $abJobId = [string](Get-FirstPropertyValue -Object $abImportResult -Names @("analysis_job_id"))
+        if ([string]::IsNullOrWhiteSpace($abJobId)) {
+            $abImportJob = Get-OptionalProperty -Object $abImportResult -Name "analysis_job"
+            $abJobId = [string](Get-FirstPropertyValue -Object $abImportJob -Names @("analysis_job_id", "job_id"))
+        }
+        $null = & $abInvoke "project.audio_analysis_start" @{ analysis_job_id = $abJobId; interval_ms = 10 } 60
+        $abDadDeadline = (Get-Date).AddSeconds(240)
+        $abDadReady = $false
+        while ((Get-Date) -lt $abDadDeadline) {
+            $abDad = & $abInvoke "project.audio_analysis_status" @{ analysis_job_id = $abJobId; latest = $true } 60
+            $abDadResult = Get-OptionalProperty -Object $abDad -Name "result"
+            $abDadJob = Get-OptionalProperty -Object $abDadResult -Name "analysis_job"
+            $abDadTotal = [int](Get-FirstPropertyValue -Object $abDadJob -Names @("dad_fact_total_count", "dad_fact_total"))
+            $abDadReadyCount = [int](Get-FirstPropertyValue -Object $abDadJob -Names @("dad_fact_ready_count"))
+            $abDadStatus = [string](Get-FirstPropertyValue -Object $abDadJob -Names @("dad_fact_status"))
+            if ($abDadTotal -gt 0 -and $abDadReadyCount -ge $abDadTotal -and $abDadStatus.ToLower() -eq "ready") {
+                $abDadReady = $true
+                break
+            }
+            Start-Sleep -Seconds 1
+        }
+        if (-not $abDadReady) {
+            throw "harness_ab fixture DAD analysis did not become ready within 240s"
+        }
+        $abSave = & $abInvoke "project.save_as" @{ file_path = $abProjectPath } 60
+        if ([string]$abSave.status -ne "ok") {
+            throw ("harness_ab fixture save_as failed: " + ($abSave | ConvertTo-Json -Depth 8 -Compress))
+        }
+        $null = & $abInvoke "project.new" @{} 60
+        Write-Ok ("harness_ab fixture persisted: " + $abProjectPath)
+
+        Write-Step "harness_ab project open"
+        $abOpen = & $abInvoke "project.open" @{ file_path = $abProjectPath } 180
+        $abOpen | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "harness_ab_open.json") -Encoding UTF8
+        if ([string]$abOpen.status -ne "ok") {
+            throw ("harness_ab project.open failed: " + ($abOpen | ConvertTo-Json -Depth 8 -Compress))
+        }
+        Start-Sleep -Seconds 3
+
+        Write-Step "harness_ab authority grant (full_project_access)"
+        $abAuthoritySwitch = Invoke-Json -Method POST -Uri $abAuthorityUri -Body @{ authority_mode = "full_project_access" } -TimeoutSec 30
+        if ([string]$abAuthoritySwitch.status -ne "ok" -or [string](Get-OptionalProperty -Object $abAuthoritySwitch -Name "authority_mode") -ne "full_project_access") {
+            throw ("harness_ab authority switch failed: " + ($abAuthoritySwitch | ConvertTo-Json -Depth 6 -Compress))
+        }
+        Write-Ok "authority = full_project_access"
+
+        # Fixed utterance + nudge (J3 same-source faces, verbatim).
+        $abPrompt = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String("6K+35a+55b2T5YmN6LS05ZSx5bel56iL5YGa5LiA5qyh6Ieq55Sx5oCB5a6e6aqM77ya5Z+65LqO6KeC5a+f6K+B5o2u5pS55ZaE5Lq65aOw5LiO5Ly05aWP55qE5bmz6KGh77yM5omn6KGM5ZCO6K6p5oiR6K+V5ZCs5a+55q+U5pWI5p6c44CC"))
+        $abPrompt | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "harness_ab_prompt.txt") -Encoding UTF8
+        $abNudge = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String("5Y+v5Lul5omn6KGM"))
+
+        $abModes = @("push", "pull")
+        $abModeSummaries = @{}
+        $abStopLossRun = $false
+        foreach ($abMode in $abModes) {
+            if ($abStopLossRun) { break }
+            Write-Step ("harness_ab mode " + $abMode + ": restart agent with mode env + per-mode telemetry")
+            if ($null -ne $ScenarioAgentProcId -and $ScenarioAgentProcId -gt 0) {
+                try { Stop-Process -Id $ScenarioAgentProcId -Force -ErrorAction Stop } catch { }
+                $ScenarioAgentProcId = $null
+                $abAgentDownDeadline = (Get-Date).AddSeconds(20)
+                while ((Get-Date) -lt $abAgentDownDeadline -and (Get-TcpListener -Port $httpPort)) { Start-Sleep -Milliseconds 500 }
+            }
+            Set-Item -LiteralPath env:VIT_DAW_HARNESS -Value $abMode
+            $abTelemetry = Join-Path $ScenarioRunDir ("harness_ab_telemetry_" + $abMode + ".jsonl")
+            Set-Item -LiteralPath env:VIT_AGENT_LLM_TELEMETRY_PATH -Value $abTelemetry
+            $abAgentLog = Join-Path $LogsDir ("agent_harness_ab_" + $abMode + ".log")
+            Start-Process -FilePath $AgentExe -ArgumentList @(
+                "-http", $AgentHttpAddr,
+                "-last-log-path", $abAgentLog,
+                "-keep-last-log-lines", "800"
+            ) -WorkingDirectory $AgentDir -WindowStyle Hidden | Out-Null
+            if (-not (Wait-HttpReady -BaseUrl $AgentHttp -TimeoutSeconds $WaitSeconds)) {
+                throw ("harness_ab agent (" + $abMode + ") HTTP did not become ready at " + $AgentHttp)
+            }
+            $abAgentListener = Get-TcpListener -Port $httpPort
+            if ($null -ne $abAgentListener) { $ScenarioAgentProcId = $abAgentListener.OwningProcess }
+            Write-Ok ("harness_ab agent up (mode=" + $abMode + ", telemetry=" + $abTelemetry + ")")
+
+            $abRounds = New-Object System.Collections.Generic.List[object]
+            $abConsecutiveInfra = 0
+            $abStopLossMode = $false
+            for ($abRoundIndex = 1; $abRoundIndex -le $HarnessAbRounds; $abRoundIndex++) {
+                if ($abStopLossMode) { break }
+                $abConversationID = ("dev_harness_ab_" + $abMode + "_" + (Get-Date -Format "yyyyMMdd_HHmmss") + "_r" + $abRoundIndex)
+                $abTurnsSent = 0
+                $abNudgesSent = 0
+                $abSendPending = $true
+                $abTerminal = $false
+                $abLastStop = ""
+                $abLastGoalStatus = ""
+                $abNeedsConfirmation = $false
+                $abTransportErrors = 0
+                $abStopReasons = New-Object System.Collections.Generic.List[string]
+                $abGoalStatuses = New-Object System.Collections.Generic.List[string]
+                $abEnvironmentInterrupt = $false
+                $abSettleDeadline = (Get-Date).AddSeconds($HarnessAbSettleSeconds)
+                while ((Get-Date) -lt $abSettleDeadline -and -not $abTerminal) {
+                    if ($abSendPending) {
+                        $abSendPending = $false
+                        $abTurnsSent++
+                        $abIsNudge = ($abTurnsSent -gt 1)
+                        if ($abIsNudge) { $abNudgesSent++ }
+                        $abMessage = $abPrompt
+                        if ($abIsNudge) { $abMessage = $abNudge }
+                        try {
+                            $abResponse = Invoke-Json -Method POST -Uri $abChatUri -Body @{
+                                conversation_id = $abConversationID
+                                message = $abMessage
+                                context = @{ agent_mode = "chat" }
+                            } -TimeoutSec $HarnessAbTurnSeconds
+                            $abLastStop = [string](Get-OptionalProperty -Object $abResponse -Name "stop_reason")
+                            $abLastGoalStatus = [string](Get-OptionalProperty -Object $abResponse -Name "goal_status")
+                            $abNeedsConfirmation = [bool](Get-OptionalProperty -Object $abResponse -Name "needs_confirmation")
+                            if ($abLastStop -ne "") { $abStopReasons.Add($abLastStop) }
+                            if ($abLastGoalStatus -ne "") { $abGoalStatuses.Add($abLastGoalStatus) }
+                        }
+                        catch {
+                            $abTransportErrors++
+                            $abLastStop = "transport_error"
+                            $abStopReasons.Add("transport_error")
+                        }
+                    }
+                    else {
+                        Start-Sleep -Seconds 2
+                    }
+                    # Boundary policy: a settled turn ends with a terminal or
+                    # user-facing status; waiting_continue chains get one
+                    # bounded nudge, then settle as stalled.
+                    if ($abLastGoalStatus -in @("completed", "failed", "stopped", "cancelled") -or
+                        $abLastStop -in @("done", "failed", "cancelled", "user_stop")) {
+                        $abTerminal = $true
+                    }
+                    elseif ($abLastGoalStatus -in @("waiting_confirmation", "waiting_clarification")) {
+                        $abTerminal = $true
+                    }
+                    elseif ($abLastGoalStatus -eq "waiting_continue" -or $abLastStop -in @("limit_reached", "transient_llm_error", "interrupted", "observation_budget_exhausted", "transport_error")) {
+                        if ($abNudgesSent -lt 2 -and $abLastStop -ne "observation_budget_exhausted") {
+                            $abSendPending = $true
+                        }
+                        else {
+                            $abTerminal = $true
+                        }
+                    }
+                    if ($abTransportErrors -ge 2) { $abTerminal = $true }
+                }
+                # Agent still alive? (panic detection -> stop-loss run)
+                try {
+                    $null = Invoke-Json -Method GET -Uri $abHealthUri -TimeoutSec 10
+                }
+                catch {
+                    $abEnvironmentInterrupt = $true
+                    $abStopLossRun = $true
+                }
+
+                # Classification (recorded, never thrown).
+                $abClass = "other"
+                if ($abEnvironmentInterrupt) { $abClass = "environment_interrupt" }
+                elseif ($abLastGoalStatus -eq "completed" -or $abLastStop -eq "done") { $abClass = "judgment_terminal" }
+                elseif ($abLastGoalStatus -eq "waiting_confirmation" -or $abNeedsConfirmation) { $abClass = "needs_user_confirmation" }
+                elseif ($abLastGoalStatus -eq "waiting_clarification") { $abClass = "needs_user_clarification" }
+                elseif ($abLastStop -eq "observation_budget_exhausted") { $abClass = "budget_exhausted" }
+                elseif ($abLastStop -in @("llm_error", "model_protocol_failure")) { $abClass = "infra_error_llm" }
+                elseif ($abLastStop -eq "transport_error") { $abClass = "infra_error_transport" }
+                elseif ($abLastGoalStatus -eq "failed") { $abClass = "judgment_failed" }
+                elseif ($abLastGoalStatus -eq "waiting_continue" -or $abLastStop -eq "limit_reached") { $abClass = "stalled_slice_limit" }
+                elseif ($abLastStop -eq "") { $abClass = "no_response" }
+
+                if ($abClass -like "infra_error_*") { $abConsecutiveInfra++ } else { $abConsecutiveInfra = 0 }
+                if ($abConsecutiveInfra -ge 2 -and -not $abStopLossMode) {
+                    $abStopLossMode = $true
+                    Write-WarnLine ("harness_ab stop-loss: mode " + $abMode + " hit 2 consecutive infra_error rounds; remaining rounds skipped")
+                }
+
+                $abRounds.Add(@{
+                    mode = $abMode
+                    round = $abRoundIndex
+                    conversation_id = $abConversationID
+                    classification = $abClass
+                    stop_reasons = @($abStopReasons.ToArray())
+                    goal_statuses = @($abGoalStatuses.ToArray())
+                    turns_sent = $abTurnsSent
+                    nudges_sent = $abNudgesSent
+                    transport_errors = $abTransportErrors
+                    settled = $abTerminal
+                    finished_at = (Get-Date).ToString("o")
+                })
+                Write-Ok ("harness_ab round recorded: mode=" + $abMode + " r" + $abRoundIndex + " class=" + $abClass + " goal=" + $abLastGoalStatus + " stop=" + $abLastStop)
+                if ($abStopLossRun) { break }
+            }
+
+            # ---------------- metrics: three layers from telemetry ----------
+            $abTelemetryRecords = @()
+            if (Test-Path -LiteralPath $abTelemetry) {
+                foreach ($abLine in Get-Content -LiteralPath $abTelemetry) {
+                    if (-not [string]::IsNullOrWhiteSpace($abLine)) {
+                        try { $abTelemetryRecords += ($abLine | ConvertFrom-Json) } catch { }
+                    }
+                }
+            }
+            $abCalls = @($abTelemetryRecords | Where-Object { $_.source -eq "message_loop" -or $_.source -eq "pullharness" })
+            # Defensive scalar extraction: section_stats values can be arrays
+            # or objects on some record shapes; only numeric scalars feed the
+            # byte/break aggregates (never cast an Object[] to int).
+            $abPrefixBytes = @($abCalls | ForEach-Object {
+                $abVal = $null
+                if ($null -ne $_.section_stats) { $abVal = $_.section_stats.prefix_bytes }
+                if ($abVal -is [int] -or $abVal -is [long] -or $abVal -is [double]) { [int]$abVal }
+            })
+            $abDynamicBytes = @($abCalls | ForEach-Object {
+                $abVal = $null
+                if ($null -ne $_.section_stats) { $abVal = $_.section_stats.dynamic_bytes }
+                if ($abVal -is [int] -or $abVal -is [long] -or $abVal -is [double]) { [int]$abVal }
+            })
+            $abBreaks = @($abCalls | ForEach-Object {
+                $abVal = $null
+                if ($null -ne $_.section_stats) { $abVal = $_.section_stats.breaks }
+                if ($abVal -is [int] -or $abVal -is [long] -or $abVal -is [double]) { [int]$abVal }
+            })
+            $abFingerprints = @($abCalls | ForEach-Object { [string]$_.prompt_fingerprint } | Where-Object { $_ -ne "" })
+            $abFingerprintGroups = $abFingerprints | Group-Object | Sort-Object Count -Descending
+            # P1: calls sharing the modal fingerprint (prefix byte-stability
+            # proxy); P2: break-bearing calls; P3: dynamic/prefix byte split
+            # presence (structural isolation, counted when both fields exist).
+            $abP1StableCalls = 0
+            if ($abFingerprintGroups.Count -gt 0) { $abP1StableCalls = [int]($abFingerprintGroups[0].Count) }
+            $abP2BreakCalls = @($abBreaks | Where-Object { $_ -gt 0 }).Count
+            $abP3IsolatedCalls = 0
+            if ($abPrefixBytes.Count -gt 0 -and $abDynamicBytes.Count -gt 0) { $abP3IsolatedCalls = [Math]::Min($abPrefixBytes.Count, $abDynamicBytes.Count) }
+            $abPrefixTotal = 0
+            foreach ($abBytes in $abPrefixBytes) { $abPrefixTotal += $abBytes }
+            $abDynamicTotal = 0
+            foreach ($abBytes in $abDynamicBytes) { $abDynamicTotal += $abBytes }
+            $abMessagesTotal = 0
+            foreach ($abCall in $abCalls) {
+                if ($abCall.message_count -is [int] -or $abCall.message_count -is [long] -or $abCall.message_count -is [double]) {
+                    $abMessagesTotal += [int]$abCall.message_count
+                }
+            }
+
+            $abModeSummaries[$abMode] = @{
+                mode = $abMode
+                rounds = @($abRounds.ToArray())
+                rounds_classified = $abRounds.Count
+                stop_loss_mode = $abStopLossMode
+                environment_interrupt = $abStopLossRun
+                llm_calls = $abCalls.Count
+                telemetry_records_total = $abTelemetryRecords.Count
+                cost = @{
+                    llm_calls = $abCalls.Count
+                    messages_total = $abMessagesTotal
+                    prefix_bytes_total = $abPrefixTotal
+                    dynamic_bytes_total = $abDynamicTotal
+                }
+                prefix_hits = @{
+                    p1_stable_calls = $abP1StableCalls
+                    p1_distinct_fingerprints = $abFingerprintGroups.Count
+                    p2_break_calls = $abP2BreakCalls
+                    p3_isolated_calls = $abP3IsolatedCalls
+                }
+                agent_log = $abAgentLog
+            }
+            $abModeSummaries[$abMode] | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir ("harness_ab_metrics_" + $abMode + ".json")) -Encoding UTF8
+
+            # Deterministic gate faces per mode (NOT quality gating):
+            if ($abCalls.Count -lt 1) {
+                throw ("harness_ab mode " + $abMode + " produced no LLM telemetry records (harness wiring broken, not an LLM outcome)")
+            }
+            if ($abRounds.Count -lt $HarnessAbRounds -and -not $abStopLossMode -and -not $abStopLossRun) {
+                throw ("harness_ab mode " + $abMode + " classified only " + $abRounds.Count + " rounds (want " + $HarnessAbRounds + ")")
+            }
+            Write-Ok ("harness_ab mode " + $abMode + " complete: rounds=" + $abRounds.Count + " llm_calls=" + $abCalls.Count)
+        }
+
+        # Environment restoration for the teardown-path agent stop.
+        Remove-Item -LiteralPath env:VIT_DAW_HARNESS -ErrorAction SilentlyContinue
+
+        $abSummary = @{
+            scenario = "harness_ab"
+            rounds_per_mode = $HarnessAbRounds
+            prompt_file = "harness_ab_prompt.txt"
+            modes = $abModeSummaries
+            stop_loss_run = $abStopLossRun
+            finished_at = (Get-Date).ToString("o")
+        }
+        $abSummary | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "harness_ab_summary.json") -Encoding UTF8
+        Write-Ok ("harness_ab summary written: " + (Join-Path $ScenarioRunDir "harness_ab_summary.json"))
     }
 
         $scenarioPassed = $true

@@ -219,7 +219,23 @@ func (d *pullDriver) run(ctx context.Context) Result {
 			return d.returnStep(ctx, d.driverStep(DispositionTerminal, ReturnFailed, OutcomeLLMError,
 				"llm_error: no LLM client injected"))
 		}
-		raw, llmErr := d.loop.LLM.Complete(ctx, d.in.Engine, assembly.Messages)
+		// 模型调用经 llm.CompleteText 携带 metadata（source/conversation/
+		// fingerprint/promptStats）：pull 模式的成本指标经 LLM telemetry
+		// JSONL 采集（G3 口径：prefix_bytes/dynamic_bytes/breaks 与调用
+		// 计数），与 push 的 message_loop 面同构。fake completer（非
+		// RequestCompleter）回落直调——测试面行为不变。
+		promptStats := report.PromptStatsExtras()
+		promptStats["pull_model_messages"] = len(assembly.Messages)
+		raw, llmErr := llm.CompleteText(ctx, d.loop.LLM, d.in.Engine, llm.Request{
+			Messages: assembly.Messages,
+			Metadata: llm.RequestMetadata{
+				Source:            "pullharness",
+				ConversationID:    "pullharness:" + d.in.RunID,
+				GoalID:            d.in.GoalID,
+				PromptFingerprint: assembly.Fingerprint,
+				PromptStats:       promptStats,
+			},
+		})
 		raw = strings.TrimSpace(raw)
 		if ctx.Err() != nil {
 			// A cancelled component can still return a reply. Keep received

@@ -1,0 +1,80 @@
+﻿{
+    "mode":  "push",
+    "rounds":  [
+                   {
+                       "mode":  "push",
+                       "settled":  true,
+                       "round":  1,
+                       "nudges_sent":  1,
+                       "classification":  "judgment_terminal",
+                       "stop_reasons":  [
+                                            "limit_reached",
+                                            "no_pending_mix_tick_candidate"
+                                        ],
+                       "transport_errors":  0,
+                       "conversation_id":  "dev_harness_ab_push_20261009_195608_r1",
+                       "finished_at":  "2026-10-09T19:56:27.5773611+08:00",
+                       "goal_statuses":  [
+                                             "waiting_continue",
+                                             "completed"
+                                         ],
+                       "turns_sent":  2
+                   },
+                   {
+                       "mode":  "push",
+                       "settled":  true,
+                       "round":  2,
+                       "nudges_sent":  1,
+                       "classification":  "judgment_terminal",
+                       "stop_reasons":  [
+                                            "limit_reached",
+                                            "no_pending_mix_tick_candidate"
+                                        ],
+                       "transport_errors":  0,
+                       "conversation_id":  "dev_harness_ab_push_20261009_195627_r2",
+                       "finished_at":  "2026-10-09T19:56:40.5642165+08:00",
+                       "goal_statuses":  [
+                                             "waiting_continue",
+                                             "completed"
+                                         ],
+                       "turns_sent":  2
+                   },
+                   {
+                       "mode":  "push",
+                       "settled":  true,
+                       "round":  3,
+                       "nudges_sent":  1,
+                       "classification":  "judgment_terminal",
+                       "stop_reasons":  [
+                                            "limit_reached",
+                                            "no_pending_mix_tick_candidate"
+                                        ],
+                       "transport_errors":  0,
+                       "conversation_id":  "dev_harness_ab_push_20261009_195640_r3",
+                       "finished_at":  "2026-10-09T19:56:46.6372123+08:00",
+                       "goal_statuses":  [
+                                             "waiting_continue",
+                                             "completed"
+                                         ],
+                       "turns_sent":  2
+                   }
+               ],
+    "environment_interrupt":  false,
+    "rounds_classified":  3,
+    "llm_calls":  5,
+    "prefix_hits":  {
+                        "p1_stable_calls":  1,
+                        "p3_isolated_calls":  5,
+                        "p2_break_calls":  0,
+                        "p1_distinct_fingerprints":  5
+                    },
+    "cost":  {
+                 "prefix_bytes_total":  71035,
+                 "dynamic_bytes_total":  193186,
+                 "messages_total":  10,
+                 "llm_calls":  5
+             },
+    "agent_log":  "D:\\Vit_DAW_wt_l5d\\VitApp\\Workspace\\Logs\\agent_harness_ab_push.log",
+    "telemetry_records_total":  8,
+    "stop_loss_mode":  false
+}
