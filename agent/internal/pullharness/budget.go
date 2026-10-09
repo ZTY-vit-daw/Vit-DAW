@@ -45,6 +45,10 @@ const (
 	// OutcomeInterrupted ctx 取消/环境中断面：非终态判定，不触发 T2
 	//（暂停面语义：账本随会话载体存续）。
 	OutcomeInterrupted = "interrupted"
+	// OutcomeSessionError Session 协议违规/适配错误（L1-5-IMPL-D 腿1）：
+	// fail-closed 直返——宿主状态未提交、零新工具，由入口层兜底清理
+	//（§11.2 未知 Status/StopReason 同族处置）。
+	OutcomeSessionError = "session_error"
 )
 
 // CycleExhausted 报告工具循环节上限是否用尽（MaxCycles<=0 = 不设限）。

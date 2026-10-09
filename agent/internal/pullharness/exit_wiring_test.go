@@ -15,6 +15,7 @@ import (
 
 	"vit-daw-agent/internal/config"
 	"vit-daw-agent/internal/contextruntime"
+	"vit-daw-agent/internal/llm"
 )
 
 func fixedExitClock() time.Time {
@@ -153,11 +154,13 @@ func (r *recordingExit) OnTurnBoundary(ctx context.Context, ev contextruntime.Tu
 	return report
 }
 
-// T1 三态经整场 Run：真实执行器+循环事件构造面，三批分别产出
-// retain/drop、ref；T2（TurnID=RunID）窗面重供单元但不重复判定。
+// T1 三态经整场 Run（Session 面，L1-5-IMPL-D 腿1 随迁）：宿主 CloseCycle
+// 用注入执行器构造批事件（三批分别产出 retain/drop、ref）；宿主 Return 终局
+// 提交发 T2（FinalTurnEvent，TurnID=RunID）——窗面重供单元但不重复判定。
 func TestPullLoopT1ThreeStatesWithRealExitExecutor(t *testing.T) {
 	executor := &recordingExit{inner: NewWiredExitExecutor(contextruntime.ExitExecutorConfig{Now: fixedExitClock})}
-	tools := &fakeTools{batches: [][]ToolResult{
+	session := &fakeSession{runID: "run-3s", goalID: "goal-1"}
+	batches := [][]ToolResult{
 		{
 			{ID: "o1", Tool: "ref.query", Status: "ok", Bytes: 40, RetainedStatement: "target evidence concluded for t1"},
 			{ID: "o2", Tool: "ref.query", Status: "ok", Bytes: 20},
@@ -165,10 +168,35 @@ func TestPullLoopT1ThreeStatesWithRealExitExecutor(t *testing.T) {
 		{
 			{ID: "o3", Tool: "ref.query", Status: "ok", Bytes: 60, HandleRef: "evidence://cas9"},
 		},
-	}}
+	}
+	cycle := 0
+	var windowUnits []contextruntime.WindowUnit
+	var hotBytes int64
+	session.closeCycleFn = func(f *fakeSession, ctx context.Context, batchID string, exit contextruntime.ExitExecutor) error {
+		batch := batches[cycle]
+		cycle++
+		event, units, hot := BatchTurnEvent(batchID, batch, ExitWiring{Now: fixedExitClock})
+		windowUnits = append(windowUnits, units...)
+		hotBytes += hot
+		exit.OnTurnBoundary(ctx, event)
+		f.budget.CompletedCycles++
+		return nil
+	}
+	session.returnFn = func(f *fakeSession, ctx context.Context, step Step) (Result, error) {
+		if step.Disposition == DispositionTerminal {
+			// 宿主终局提交=唯一 T2 owner（S1 §11.1：驱动不发 T2）。
+			executor.OnTurnBoundary(ctx, FinalTurnEvent("run-3s", windowUnits, hotBytes, ExitWiring{Now: fixedExitClock}))
+		}
+		return Result{
+			RunID: "run-3s", GoalID: "goal-1", Outcome: OutcomeJudgmentOK,
+			Cycles: f.budget.CompletedCycles, ModelTurns: f.budget.ModelCalls,
+			Conversation: append([]llm.Message(nil), f.conversation...),
+		}, nil
+	}
 	loop := &PullLoop{
 		LLM:        &fakeLLM{responses: []string{"call:probe:o1", "call:probe:o3", "final judgment, no tools"}},
-		Tools:      tools,
+		Session:    session,
+		Prefix:     &fakePrefix{},
 		Exit:       executor,
 		Budget:     ObservationBudget{MaxCycles: 8},
 		ExitWiring: ExitWiring{Now: fixedExitClock},

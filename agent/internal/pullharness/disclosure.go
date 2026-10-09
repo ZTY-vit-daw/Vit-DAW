@@ -47,6 +47,29 @@ func dynamicStateRows(cycles int, probeSpent float64, budget ObservationBudget) 
 	}
 }
 
+// ledgerDisclosureRows 渲染宿主账本视图的动态区状态行（L1-5-IMPL-D 腿1：
+// Session 驱动循环的消费面）。计数/成本取 LedgerView（宿主 ledger=唯一
+// authority，§11.3.5），上限取声明面 ObservationBudget；成本计量缺失时
+// 披露 unknown（不填 0 冒充免费）。行序同 dynamicStateRows。
+func ledgerDisclosureRows(view LedgerView, budget ObservationBudget) []string {
+	probeSpent := view.ProbeSpent
+	if !view.ProbeCostKnown {
+		probeSpent = 0
+	}
+	rows := dynamicStateRows(view.CompletedCycles, probeSpent, budget)
+	if !view.ProbeCostKnown {
+		// 替换 budget_state 行的 probe 披露为 unknown（机械改写，不重排）。
+		for i, row := range rows {
+			if strings.HasPrefix(row, "budget_state:") {
+				rows[i] = strings.Replace(row,
+					"probe_spent="+ftoa(probeSpent), "probe_spent=unknown", 1)
+			}
+		}
+		rows = append(rows, "budget_note: probe cost accounting unavailable this run (unknown, not zero)")
+	}
+	return rows
+}
+
 // terminalTurnRow 是行 3 落点：终态轮机械状态头（剩余循环节计数，:358
 // 的 counters 形态）+ 终态轮指令语义（无工具调用轮=终态轮，其回复即终局
 // 判定；仍需观察/执行时返回工具调用）。

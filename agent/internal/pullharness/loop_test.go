@@ -1,14 +1,19 @@
 package pullharness
 
-// loop_test.go — PullLoop 七步循环验收（卡面验收标准 1）：
-// T1 每批恰一次且 TurnID 序列正确 / T2 终态恰一次、暂停零触发 /
-// budget 超限→budget_exhausted / 溢出→fail-closed 不发请求。
-// 全部经测试 fake（真实工具面接线归 IMPL-D）；真实 PrefixService 参与
-// 装配面断言（接口冻结消费面的实证）。
+// loop_test.go — Session 驱动循环验收（L1-5-IMPL-D 腿1：A 占位级测试随
+// §11.1 授权同步改写——ToolExecutor/FastPathRouter 占位面退役，改经
+// fakeSession 锚定 Session 协议契约）：
+//   - CloseCycle 每完整批恰一次，批 ID=<RunID>:cycle:<NextCycle> 序列；
+//   - 驱动不自行触发任何边界事件（T1 经 CloseCycle 传宿主；T2=宿主 Return
+//     提交——S1 形态 §11.1）；
+//   - 暂停/中断面零 CloseCycle、零边界事件；
+//   - 预算用尽=宿主 Terminal/ObservationBudgetExhausted（ledger authority）
+//     → Result.Outcome=budget_exhausted 独立分类；
+//   - 溢出 fail-closed：请求永不发出（零 LLM 调用）；
+//   - 装配消费 Frame（会话+协议段+冷启动底座）与 PrefixService 会话键。
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strings"
 	"testing"
@@ -37,7 +42,7 @@ func (f *fakeLLM) Complete(ctx context.Context, cfg config.EngineConfig, message
 	}
 	if f.cancelOn > 0 && f.calls == f.cancelOn {
 		f.cancel()
-		return "", ctx.Err()
+		return "model fact", ctx.Err()
 	}
 	if f.calls > len(f.responses) {
 		return "", fmt.Errorf("fakeLLM: script exhausted at call %d", f.calls)
@@ -45,39 +50,172 @@ func (f *fakeLLM) Complete(ctx context.Context, cfg config.EngineConfig, message
 	return f.responses[f.calls-1], nil
 }
 
-// fakeTools 的 Plan 认 "call:<tool>:<id>" 行协议；Execute 按批返回脚本。
-type fakeTools struct {
-	executeCalls int
-	plannedCalls int
-	batches      [][]ToolResult
-	planOf       func(responseText string) []ToolCall
+// fakeSession 是 Session 六方法的测试宿主：账本/会话/批窗口的极简权威面，
+// 各方法行为可经函数字段覆写。默认行为=miss→模型批→回执→CloseCycle。
+type fakeSession struct {
+	goalID     string
+	runID      string
+	prefixKey  string
+	context    map[string]any
+	budget     LedgerView
+	budgetCaps ObservationBudget // 宿主执法声明面（Attempt 入场拒绝）
+
+	conversation []llm.Message
+
+	attemptFn    func(*fakeSession, context.Context) (Step, error)
+	interpretFn  func(*fakeSession, context.Context, string) (Step, error)
+	executeFn    func(*fakeSession, context.Context, []ToolCall) (Step, error)
+	closeCycleFn func(*fakeSession, context.Context, string, contextruntime.ExitExecutor) error
+	returnFn     func(*fakeSession, context.Context, Step) (Result, error)
+
+	// 记录面（断言用）。
+	attemptCalls    int
+	snapshotCalls   int
+	interpretCalls  int
+	executeCalls    int
+	closeCalls      int
+	returnCalls     int
+	closedBatchIDs  []string
+	returnedSteps   []Step
+	executedBatches [][]ToolCall
+	interpretInputs []string
+	exit            *fakeExit
+	protocolPrompt  string
 }
 
-func (f *fakeTools) Plan(responseText string) []ToolCall {
-	if f.planOf != nil {
-		return f.planOf(responseText)
+func (f *fakeSession) Snapshot(context.Context) (Frame, error) {
+	f.snapshotCalls++
+	f.budget.NextCycle = uint64(f.budget.CompletedCycles + 1)
+	contextClone := map[string]any{}
+	for key, value := range f.context {
+		contextClone[key] = value
+	}
+	if f.protocolPrompt != "" {
+		contextClone[FrameContextProtocolPrompt] = f.protocolPrompt
+	}
+	return Frame{
+		Revision:         uint64(f.snapshotCalls),
+		GoalID:           f.goalID,
+		RunID:            f.runID,
+		PrefixSessionKey: f.prefixKey,
+		Context:          contextClone,
+		Conversation:     append([]llm.Message(nil), f.conversation...),
+		Budget:           f.budget,
+	}, nil
+}
+
+// Attempt 默认行为：预算入场拒绝（ledger authority）+ 快路径 miss。
+func (f *fakeSession) Attempt(ctx context.Context) (Step, error) {
+	f.attemptCalls++
+	if f.attemptFn != nil {
+		return f.attemptFn(f, ctx)
+	}
+	if f.budgetCaps.CycleExhausted(f.budget.CompletedCycles) ||
+		f.budgetCaps.ProbeExhausted(f.budget.ProbeSpent) {
+		return Step{Disposition: DispositionTerminal, Kind: ReturnObservationBudgetExhausted,
+			Source: StepSourceFastPath, Error: "budget_exhausted: entry denial"}, nil
+	}
+	return Step{Disposition: DispositionContinue, Source: StepSourceFastPath}, nil
+}
+
+// Interpret 默认行为：归档 assistant 消息；"call:<tool>:<id>" 行协议→待执行
+// 批；无调用行→终局 Done。
+func (f *fakeSession) Interpret(ctx context.Context, raw string) (Step, error) {
+	f.interpretCalls++
+	f.interpretInputs = append(f.interpretInputs, raw)
+	f.budget.ModelCalls++
+	f.conversation = append(f.conversation, llm.Message{Role: "assistant", Content: raw})
+	if f.interpretFn != nil {
+		return f.interpretFn(f, ctx, raw)
 	}
 	var calls []ToolCall
-	for _, line := range strings.Split(responseText, "\n") {
+	for _, line := range strings.Split(raw, "\n") {
 		parts := strings.Split(strings.TrimSpace(line), ":")
 		if len(parts) == 3 && parts[0] == "call" {
 			calls = append(calls, ToolCall{ID: parts[2], Tool: parts[1]})
 		}
 	}
-	f.plannedCalls += len(calls)
-	return calls
+	if len(calls) == 0 {
+		return Step{Disposition: DispositionTerminal, Kind: ReturnDone,
+			Source: StepSourceModel, Reply: raw, Outcome: OutcomeJudgmentOK}, nil
+	}
+	return Step{Disposition: DispositionContinue, Source: StepSourceModel, Calls: calls}, nil
 }
 
-func (f *fakeTools) Execute(ctx context.Context, calls []ToolCall) []ToolResult {
+// Execute 默认行为：批执行（回执）+模型行回喂会话；ModelLine 回喂模拟
+// miss 副作用回流可见面。
+func (f *fakeSession) Execute(ctx context.Context, calls []ToolCall) (Step, error) {
 	f.executeCalls++
-	if f.executeCalls <= len(f.batches) {
-		return f.batches[f.executeCalls-1]
+	f.executedBatches = append(f.executedBatches, append([]ToolCall(nil), calls...))
+	if f.executeFn != nil {
+		return f.executeFn(f, ctx, calls)
 	}
-	var results []ToolResult
+	receipts := make([]string, 0, len(calls))
+	lines := make([]string, 0, len(calls))
 	for _, call := range calls {
-		results = append(results, ToolResult{ID: call.ID, Tool: call.Tool, Status: "ok", Bytes: 100, ProbeCost: 0.5, ModelLine: "tool " + call.ID + " ok"})
+		receipts = append(receipts, call.ID)
+		lines = append(lines, "tool "+call.ID+" ok")
 	}
-	return results
+	f.conversation = append(f.conversation, llm.Message{Role: "user", Content: strings.Join(lines, "\n")})
+	return Step{Disposition: DispositionContinue, Source: StepSourceModel, ReceiptIDs: receipts}, nil
+}
+
+// CloseCycle 默认行为：用注入 Exit 构造 T1（BatchTurnEvent）+账本完成计数。
+func (f *fakeSession) CloseCycle(ctx context.Context, batchID string, exit contextruntime.ExitExecutor) error {
+	f.closeCalls++
+	f.closedBatchIDs = append(f.closedBatchIDs, batchID)
+	if f.closeCycleFn != nil {
+		return f.closeCycleFn(f, ctx, batchID, exit)
+	}
+	batch := make([]ToolResult, 0, len(f.executedBatches[len(f.executedBatches)-1]))
+	for _, call := range f.executedBatches[len(f.executedBatches)-1] {
+		batch = append(batch, ToolResult{ID: call.ID, Tool: call.Tool, Status: "ok",
+			Bytes: 100, ModelLine: "tool " + call.ID + " ok"})
+	}
+	if exit != nil && f.exit != nil {
+		event, _, _ := BatchTurnEvent(batchID, batch, ExitWiring{})
+		exit.OnTurnBoundary(ctx, event)
+	}
+	f.budget.CompletedCycles++
+	return nil
+}
+
+// Return 默认行为：终局唯一 owner（记录步；结果按 Kind 投影）。
+func (f *fakeSession) Return(ctx context.Context, step Step) (Result, error) {
+	f.returnCalls++
+	f.returnedSteps = append(f.returnedSteps, step)
+	if f.returnFn != nil {
+		return f.returnFn(f, ctx, step)
+	}
+	outcome := step.Outcome
+	if outcome == "" {
+		switch step.Kind {
+		case ReturnDone:
+			outcome = OutcomeJudgmentOK
+		case ReturnFailed:
+			outcome = "failed"
+		case ReturnInterrupted:
+			outcome = OutcomeInterrupted
+		case ReturnTransient:
+			outcome = OutcomeLLMError
+		case ReturnObservationBudgetExhausted:
+			outcome = OutcomeBudgetExhausted
+		default:
+			outcome = step.Kind.String()
+		}
+	}
+	return Result{
+		RunID:        f.runID,
+		GoalID:       f.goalID,
+		Outcome:      outcome,
+		Reply:        step.Reply,
+		Error:        step.Error,
+		Cycles:       f.budget.CompletedCycles,
+		ModelTurns:   f.budget.ModelCalls,
+		ProbeSpent:   f.budget.ProbeSpent,
+		Conversation: append([]llm.Message(nil), f.conversation...),
+		Trace:        []string{"host_return: kind=" + step.Kind.String()},
+	}, nil
 }
 
 type fakeExit struct {
@@ -87,17 +225,6 @@ type fakeExit struct {
 func (f *fakeExit) OnTurnBoundary(ctx context.Context, ev contextruntime.TurnBoundaryEvent) contextruntime.ExitReport {
 	f.events = append(f.events, ev)
 	return contextruntime.ExitReport{}
-}
-
-type fakeRouter struct {
-	outcome FastPathOutcome
-	hit     bool
-	routes  int
-}
-
-func (f *fakeRouter) Route(ctx context.Context, in GoalInput) (FastPathOutcome, bool) {
-	f.routes++
-	return f.outcome, f.hit
 }
 
 type fakePrefix struct {
@@ -122,6 +249,15 @@ func goalInput(runID string) GoalInput {
 	}
 }
 
+func newSessionLoop(session *fakeSession, llmClient llm.Completer, prefix promptruntime.PrefixService, exit contextruntime.ExitExecutor) *PullLoop {
+	return &PullLoop{
+		LLM:     llmClient,
+		Prefix:  prefix,
+		Exit:    exit,
+		Session: session,
+	}
+}
+
 func countTurnID(events []contextruntime.TurnBoundaryEvent, turnID string) int {
 	count := 0
 	for _, ev := range events {
@@ -132,343 +268,251 @@ func countTurnID(events []contextruntime.TurnBoundaryEvent, turnID string) int {
 	return count
 }
 
-// T1：每工具批恰一次，TurnID=<RunID>:cycle:<n> 序列；T2 终局恰一次且
-// 窗面=累计批单元。
-func TestPullLoopT1OncePerBatchWithTurnIDSequence(t *testing.T) {
+// CloseCycle 每完整批恰一次，批 ID 序列=<RunID>:cycle:<n>；驱动不自行触发
+// 边界事件（fakeSession 经注入 Exit 构造 T1——生产同型，宿主唯一入口）。
+func TestPullLoopCloseCycleOncePerBatchWithBatchIDSequence(t *testing.T) {
 	llmFake := &fakeLLM{responses: []string{
 		"call:ref.query:q1",
 		"call:ref.diff:d1",
-		"淡入已完成，判定通过", // 无工具调用 → 终局判定
+		"done",
 	}}
-	tools := &fakeTools{}
-	exitFake := &fakeExit{}
-	loop := &PullLoop{
-		LLM:    llmFake,
-		Prefix: &fakePrefix{},
-		Tools:  tools,
-		Exit:   exitFake,
-		Budget: ObservationBudget{MaxCycles: 10},
-	}
-
-	result := loop.Run(context.Background(), goalInput("run-1"))
-
+	session := &fakeSession{runID: "run-batch-seq", goalID: "goal-1", exit: &fakeExit{}}
+	exit := &fakeExit{}
+	session.exit = exit
+	loop := newSessionLoop(session, llmFake, &fakePrefix{}, exit)
+	result := loop.Run(context.Background(), goalInput("run-batch-seq"))
 	if result.Outcome != OutcomeJudgmentOK {
-		t.Fatalf("outcome = %q, want %q (error: %s)", result.Outcome, OutcomeJudgmentOK, result.Error)
+		t.Fatalf("outcome=%q, want judgment_ok (result=%+v)", result.Outcome, result)
 	}
-	if result.ModelTurns != 3 || result.Cycles != 2 {
-		t.Fatalf("model_turns/cycles = %d/%d, want 3/2", result.ModelTurns, result.Cycles)
+	if len(session.closedBatchIDs) != 2 ||
+		session.closedBatchIDs[0] != "run-batch-seq:cycle:1" ||
+		session.closedBatchIDs[1] != "run-batch-seq:cycle:2" {
+		t.Errorf("closed batches=%v, want [run-batch-seq:cycle:1 run-batch-seq:cycle:2]", session.closedBatchIDs)
 	}
-	// T1：每批恰一次，序列 cycle:1 → cycle:2。
-	if got := countTurnID(exitFake.events, "run-1:cycle:1"); got != 1 {
-		t.Fatalf("T1 cycle:1 count = %d, want 1 (events: %v)", got, exitFake.events)
+	if len(exit.events) != 2 || countTurnID(exit.events, "run-batch-seq:cycle:1") != 1 {
+		t.Errorf("T1 events=%+v, want exactly one per completed batch", exit.events)
 	}
-	if got := countTurnID(exitFake.events, "run-1:cycle:2"); got != 1 {
-		t.Fatalf("T1 cycle:2 count = %d, want 1", got)
+	if session.budget.CompletedCycles != 2 || result.Cycles != 2 {
+		t.Errorf("completed cycles host=%d result=%d, want 2/2", session.budget.CompletedCycles, result.Cycles)
 	}
-	// T2：终局恰一次，TurnID=RunID，窗面=两批累计单元。
-	if got := countTurnID(exitFake.events, "run-1"); got != 1 {
-		t.Fatalf("T2 count = %d, want exactly 1", got)
+	if llmFake.calls != 3 || session.budget.ModelCalls != 3 {
+		t.Errorf("model calls=%d host=%d, want 3/3", llmFake.calls, session.budget.ModelCalls)
 	}
-	final := exitFake.events[len(exitFake.events)-1]
-	if len(final.Window.Units) != 2 {
-		t.Fatalf("T2 window units = %d, want 2 (accumulated batches)", len(final.Window.Units))
+}
+
+// 终局（Interpret 无工具调用轮）与暂停面：零新增 CloseCycle、零边界事件；
+// 驱动不自行发 T2（宿主 Return 提交——S1 §11.1）。
+func TestPullLoopTerminalAndPauseSurfaceNeverFireBoundaries(t *testing.T) {
+	cases := []struct {
+		name      string
+		step      Step
+		wantCalls int // 期望 CloseCycle 次数（0；终局前无完整批）
+	}{
+		{"terminal_from_attempt", Step{Disposition: DispositionTerminal, Kind: ReturnDone, Source: StepSourceFastPath, Reply: "routed"}, 0},
+		{"suspend_confirmation_from_attempt", Step{Disposition: DispositionSuspend, Kind: ReturnConfirmation, Source: StepSourceFastPath}, 0},
+		{"suspend_interrupted_from_interpret", Step{Disposition: DispositionSuspend, Kind: ReturnInterrupted, Source: StepSourceModel}, 0},
 	}
-	for i, unit := range final.Window.Units {
-		want := fmt.Sprintf("run-1:cycle:%d", i+1)
-		if unit.TurnID != want {
-			t.Fatalf("unit %d TurnID = %q, want %q", i, unit.TurnID, want)
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			session := &fakeSession{runID: "run-" + tc.name, goalID: "goal-1"}
+			exit := &fakeExit{}
+			session.exit = exit
+			origin := "attempt"
+			session.attemptFn = func(f *fakeSession, ctx context.Context) (Step, error) {
+				if origin == "interpret" {
+					return Step{Disposition: DispositionContinue, Source: StepSourceFastPath}, nil
+				}
+				return tc.step, nil
+			}
+			session.interpretFn = func(f *fakeSession, ctx context.Context, raw string) (Step, error) {
+				return tc.step, nil
+			}
+			var llmClient llm.Completer = &fakeLLM{}
+			if tc.name == "suspend_interrupted_from_interpret" {
+				origin = "interpret"
+				llmClient = &fakeLLM{responses: []string{"model reply"}}
+			}
+			loop := newSessionLoop(session, llmClient, &fakePrefix{}, exit)
+			result := loop.Run(context.Background(), goalInput("run-"+tc.name))
+			if session.closeCalls != tc.wantCalls {
+				t.Errorf("CloseCycle=%d, want %d", session.closeCalls, tc.wantCalls)
+			}
+			if len(exit.events) != 0 {
+				t.Errorf("boundary events fired: %+v", exit.events)
+			}
+			if session.returnCalls != 1 || len(session.returnedSteps) != 1 {
+				t.Fatalf("Return calls=%d, want exactly 1 (host sole terminal owner)", session.returnCalls)
+			}
+			if got := session.returnedSteps[0]; got.Disposition != tc.step.Disposition || got.Kind != tc.step.Kind {
+				t.Errorf("returned step=%+v, want disposition/kind of %+v", got, tc.step)
+			}
+			if result.Outcome == "" {
+				t.Error("host Result projection missing outcome")
+			}
+		})
+	}
+}
+
+// 预算用尽：宿主 ledger 入场拒绝（Attempt Terminal/ObservationBudgetExhausted）
+// → 独立分类 budget_exhausted（不混 no_candidate_found/切片暂停）。
+func TestPullLoopBudgetExhaustedFromHostLedger(t *testing.T) {
+	session := &fakeSession{runID: "run-budget", goalID: "goal-1", exit: &fakeExit{}}
+	session.budgetCaps = ObservationBudget{MaxCycles: 1}
+	// 第一轮：模型批+CloseCycle 后账本 CompletedCycles=1；第二轮 Attempt
+	// 入场拒绝。
+	session.interpretFn = func(f *fakeSession, ctx context.Context, raw string) (Step, error) {
+		if f.budget.CompletedCycles == 0 {
+			return Step{Disposition: DispositionContinue, Source: StepSourceModel,
+				Calls: []ToolCall{{ID: "probe-1", Tool: "ref.query"}}}, nil
 		}
-		if unit.Unit.Kind != contextruntime.ExitUnitToolResult {
-			t.Fatalf("unit %d kind = %q, want tool_result", i, unit.Unit.Kind)
-		}
+		return Step{Disposition: DispositionTerminal, Kind: ReturnDone, Source: StepSourceModel}, nil
 	}
-	if final.Budget.HotBytes != 200 {
-		t.Fatalf("T2 hot bytes = %d, want 200", final.Budget.HotBytes)
-	}
-	// 工具批与 T1 一一对应。
-	if tools.executeCalls != 2 {
-		t.Fatalf("execute calls = %d, want 2", tools.executeCalls)
-	}
-	if result.ProbeSpent != 1.0 {
-		t.Fatalf("probe spent = %v, want 1.0", result.ProbeSpent)
-	}
-}
-
-// T2 终态恰一次（无工具轮直达终态 + 快路径短路两个终态路径都验）。
-func TestPullLoopT2ExactlyOnceOnTerminals(t *testing.T) {
-	// 路径 1：首轮即无工具调用。
-	exitFake := &fakeExit{}
-	loop := &PullLoop{
-		LLM:    &fakeLLM{responses: []string{"done"}},
-		Prefix: &fakePrefix{},
-		Exit:   exitFake,
-	}
-	if result := loop.Run(context.Background(), goalInput("run-t2a")); result.Outcome != OutcomeJudgmentOK {
-		t.Fatalf("outcome = %q, want judgment_ok", result.Outcome)
-	}
-	if len(exitFake.events) != 1 || exitFake.events[0].TurnID != "run-t2a" {
-		t.Fatalf("terminal run must fire exactly one T2 with TurnID=RunID, got %+v", exitFake.events)
-	}
-
-	// 路径 2：快路径短路（零模型轮）也只一次 T2、零 T1。
-	router := &fakeRouter{hit: true, outcome: FastPathOutcome{Reply: "确定性淡入已应用", Outcome: "fastpath_mix_fade", ProbeCost: 0.2}}
-	exitFake2 := &fakeExit{}
-	llmFake := &fakeLLM{responses: []string{"should not be reached"}}
-	loop2 := &PullLoop{
-		LLM:    llmFake,
-		Prefix: &fakePrefix{},
-		Exit:   exitFake2,
-		Router: router,
-	}
-	result := loop2.Run(context.Background(), goalInput("run-t2b"))
-	if result.Outcome != "fastpath_mix_fade" || result.Reply != "确定性淡入已应用" {
-		t.Fatalf("router shortcut outcome/reply mismatch: %+v", result)
-	}
-	if result.ModelTurns != 0 || llmFake.calls != 0 {
-		t.Fatalf("shortcut must make zero model turns, got turns=%d calls=%d", result.ModelTurns, llmFake.calls)
-	}
-	if result.Shortcuts != 1 || result.ProbeSpent != 0.2 {
-		t.Fatalf("shortcut accounting mismatch: %+v", result)
-	}
-	if len(exitFake2.events) != 1 || exitFake2.events[0].TurnID != "run-t2b" {
-		t.Fatalf("shortcut run must fire exactly one T2, got %+v", exitFake2.events)
-	}
-}
-
-// 暂停/中断面（ctx 取消）零 T2：会话载体随 Result.Conversation 存续。
-func TestPullLoopPauseSurfaceNeverFiresT2(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	llmFake := &fakeLLM{
-		responses: []string{"call:ref.query:q1", "second"},
-		cancelOn:  2,
-		cancel:    cancel,
-	}
-	exitFake := &fakeExit{}
-	loop := &PullLoop{
-		LLM:    llmFake,
-		Prefix: &fakePrefix{},
-		Tools:  &fakeTools{},
-		Exit:   exitFake,
-		Budget: ObservationBudget{MaxCycles: 10},
-	}
-
-	result := loop.Run(ctx, goalInput("run-pause"))
-
-	if result.Outcome != OutcomeInterrupted {
-		t.Fatalf("outcome = %q, want %q", result.Outcome, OutcomeInterrupted)
-	}
-	// 第一批的 T1 已发生，但 T2 必须零触发。
-	if got := countTurnID(exitFake.events, "run-pause:cycle:1"); got != 1 {
-		t.Fatalf("T1 cycle:1 count = %d, want 1", got)
-	}
-	if got := countTurnID(exitFake.events, "run-pause"); got != 0 {
-		t.Fatalf("pause surface fired T2 %d times, want 0", got)
-	}
-	if len(result.Conversation) == 0 {
-		t.Fatal("interrupted run must carry the conversation carrier (continuation minimal face)")
-	}
-}
-
-// budget 超限 → 止损终态 budget_exhausted（独立分类）：循环节上限腿。
-func TestPullLoopBudgetExhaustedOnCycleCap(t *testing.T) {
-	llmFake := &fakeLLM{responses: []string{"call:ref.query:q1", "call:ref.query:q2"}}
-	exitFake := &fakeExit{}
-	loop := &PullLoop{
-		LLM:    llmFake,
-		Prefix: &fakePrefix{},
-		Tools:  &fakeTools{},
-		Exit:   exitFake,
-		Budget: ObservationBudget{MaxCycles: 2},
-	}
-
+	exit := &fakeExit{}
+	session.exit = exit
+	loop := newSessionLoop(session, &fakeLLM{responses: []string{"call:ref.query:probe-1", "x"}}, &fakePrefix{}, exit)
 	result := loop.Run(context.Background(), goalInput("run-budget"))
-
 	if result.Outcome != OutcomeBudgetExhausted {
-		t.Fatalf("outcome = %q, want %q", result.Outcome, OutcomeBudgetExhausted)
+		t.Fatalf("outcome=%q, want budget_exhausted (result=%+v)", result.Outcome, result)
 	}
-	if result.Outcome == OutcomeNoCandidateFound || result.Outcome == OutcomeCapabilityBlocked {
-		t.Fatal("budget_exhausted must not be conflated with semantic failure classes")
+	if session.closeCalls != 1 {
+		t.Errorf("CloseCycle=%d, want 1 (first batch completed before denial)", session.closeCalls)
 	}
-	if result.Cycles != 2 || result.ModelTurns != 2 {
-		t.Fatalf("cycles/model_turns = %d/%d, want 2/2", result.Cycles, result.ModelTurns)
-	}
-	// 止损前的最后一批仍先触发 T1（⑥→⑦ 顺序）。
-	if got := countTurnID(exitFake.events, "run-budget:cycle:2"); got != 1 {
-		t.Fatalf("T1 before budget stop count = %d, want 1", got)
-	}
-	if got := countTurnID(exitFake.events, "run-budget"); got != 1 {
-		t.Fatalf("T2 count = %d, want 1", got)
-	}
-	if !strings.Contains(result.Error, "budget_exhausted") {
-		t.Fatalf("error must carry the stop-loss line, got %q", result.Error)
+	if session.returnedSteps[0].Kind != ReturnObservationBudgetExhausted {
+		t.Errorf("step kind=%v, want observation_budget_exhausted", session.returnedSteps[0].Kind)
 	}
 }
 
-// budget 超限 probe 账户腿（逐笔计量 + 越线止损）。
-func TestPullLoopBudgetExhaustedOnProbeAccount(t *testing.T) {
-	tools := &fakeTools{}
-	llmFake := &fakeLLM{responses: []string{"call:probe.render:r1", "call:probe.render:r2"}}
-	loop := &PullLoop{
-		LLM:    llmFake,
-		Prefix: &fakePrefix{},
-		Tools:  tools,
-		Exit:   &fakeExit{},
-		Budget: ObservationBudget{MaxProbeCost: 1.0},
-	}
-
-	result := loop.Run(context.Background(), goalInput("run-probe"))
-
-	if result.Outcome != OutcomeBudgetExhausted {
-		t.Fatalf("outcome = %q, want %q", result.Outcome, OutcomeBudgetExhausted)
-	}
-	if result.ProbeSpent != 1.0 {
-		t.Fatalf("probe spent = %v, want 1.0 (0.5 per batch)", result.ProbeSpent)
-	}
-	if !strings.Contains(result.Error, "probe") {
-		t.Fatalf("error must attribute the probe account, got %q", result.Error)
-	}
-
-	// 入场即越线（续跑承接的既有花费）：首批后立即止损。
-	loop2 := &PullLoop{
-		LLM:    &fakeLLM{responses: []string{"call:probe.render:r1"}},
-		Prefix: &fakePrefix{},
-		Tools:  &fakeTools{},
-		Budget: ObservationBudget{ProbeCost: 2.0, MaxProbeCost: 1.0},
-	}
-	if result := loop2.Run(context.Background(), goalInput("run-probe-seed")); result.Outcome != OutcomeBudgetExhausted {
-		t.Fatalf("seeded over-line run outcome = %q, want budget_exhausted", result.Outcome)
-	}
-}
-
-// 溢出 fail-closed：复用 ModelContextOverflow 既有面——越线即终态，
-// 请求永不发出（LLM fake 零调用、工具面零执行）。
+// 溢出 fail-closed：装配字节越线（宿主披露线位）→ 请求永不发出（零 LLM
+// 调用）、零 CloseCycle；实际装配计量（非入场静态快照）。
 func TestPullLoopOverflowFailsClosedWithoutRequest(t *testing.T) {
-	llmFake := &fakeLLM{responses: []string{"unreachable"}}
-	tools := &fakeTools{}
-	exitFake := &fakeExit{}
-	loop := &PullLoop{
-		LLM:    llmFake,
-		Prefix: &fakePrefix{},
-		Tools:  tools,
-		Exit:   exitFake,
-	}
-	in := goalInput("run-overflow")
-	in.ContextSnapshotJSON = `{"context_overflow":{"status":"overflow","hot_bytes":999,"hot_budget_bytes":100,"warm_bytes":0,"warm_budget_bytes":0,"cold_ref":"evidence://cold"}}`
-
-	result := loop.Run(context.Background(), in)
-
+	llmFake := &fakeLLM{responses: []string{"should never be requested"}}
+	session := &fakeSession{runID: "run-overflow", goalID: "goal-1"}
+	session.context = map[string]any{FrameContextContextBudgetBytes: 8} // 极小线位
+	session.protocolPrompt = strings.Repeat("protocol ", 8)
+	exit := &fakeExit{}
+	session.exit = exit
+	loop := newSessionLoop(session, llmFake, &fakePrefix{}, exit)
+	result := loop.Run(context.Background(), goalInput("run-overflow"))
 	if llmFake.calls != 0 {
-		t.Fatalf("fail-closed must never send a request, got %d LLM calls", llmFake.calls)
+		t.Fatalf("LLM calls=%d, want 0 (fail-closed before request)", llmFake.calls)
 	}
-	if tools.executeCalls != 0 {
-		t.Fatalf("fail-closed must not execute tools, got %d batches", tools.executeCalls)
+	if session.closeCalls != 0 || len(exit.events) != 0 {
+		t.Errorf("CloseCycle=%d events=%v, want 0/none", session.closeCalls, exit.events)
 	}
 	if result.Outcome != OutcomeContextOverflow {
-		t.Fatalf("outcome = %q, want %q", result.Outcome, OutcomeContextOverflow)
+		t.Errorf("outcome=%q, want context_overflow", result.Outcome)
 	}
-	if got := countTurnID(exitFake.events, "run-overflow"); got != 1 {
-		t.Fatalf("fail-closed terminal must fire T2 once, got %d", got)
-	}
-}
-
-// 终态分类缝：nil=judgment_ok 缺省；缝值透传（push 既有口径接线归 D）。
-func TestPullLoopClassifyTerminalSeam(t *testing.T) {
-	loop := &PullLoop{
-		LLM:    &fakeLLM{responses: []string{"查遍候选库，没有可行动作"}},
-		Prefix: &fakePrefix{},
-	}
-	if result := loop.Run(context.Background(), goalInput("run-classify-default")); result.Outcome != OutcomeJudgmentOK {
-		t.Fatalf("nil classifier must default to judgment_ok, got %q", result.Outcome)
-	}
-
-	loop2 := &PullLoop{
-		LLM:    &fakeLLM{responses: []string{"工程权限不足，无法执行"}},
-		Prefix: &fakePrefix{},
-	}
-	in := goalInput("run-classify-blocked")
-	in.ClassifyTerminal = func(responseText string) string {
-		if strings.Contains(responseText, "权限不足") {
-			return OutcomeCapabilityBlocked
-		}
-		return OutcomeJudgmentOK
-	}
-	if result := loop2.Run(context.Background(), in); result.Outcome != OutcomeCapabilityBlocked {
-		t.Fatalf("classifier seam must pass through, got %q", result.Outcome)
+	if session.returnCalls != 1 || session.returnedSteps[0].Disposition != DispositionTerminal {
+		t.Errorf("overflow must commit via host Return: calls=%d steps=%+v", session.returnCalls, session.returnedSteps)
 	}
 }
 
-// 装配面：PrefixService 冻结接口的消费形态（SessionKey 命名空间、动态区
-// 披露、冷启动槽 A 阶段为空）。
-func TestPullLoopAssemblyConsumesPrefixService(t *testing.T) {
+// 装配消费面：Frame.Conversation（宿主权威会话）+宿主协议段+冷启动底座
+// Section 族+PrefixSessionKey（P1 判据会话键）。
+func TestPullLoopAssemblyConsumesFrameAndPrefixService(t *testing.T) {
 	prefix := &fakePrefix{}
-	llmFake := &fakeLLM{responses: []string{"done"}}
-	loop := &PullLoop{LLM: llmFake, Prefix: prefix, Budget: ObservationBudget{MaxCycles: 5}}
-
-	result := loop.Run(context.Background(), goalInput("run-asm"))
+	session := &fakeSession{runID: "run-assembly", goalID: "goal-1", prefixKey: "pullharness:run-assembly"}
+	session.protocolPrompt = "PROTOCOL: return strict JSON"
+	session.conversation = []llm.Message{{Role: "user", Content: "prior turn"}}
+	llmFake := &fakeLLM{responses: []string{"final answer"}}
+	loop := newSessionLoop(session, llmFake, prefix, &fakeExit{})
+	result := loop.Run(context.Background(), goalInput("run-assembly"))
 	if result.Outcome != OutcomeJudgmentOK {
-		t.Fatalf("outcome = %q", result.Outcome)
+		t.Fatalf("outcome=%q (result=%+v)", result.Outcome, result)
 	}
-	if prefix.last.SessionKey != "pullharness:run-asm" {
-		t.Fatalf("session key = %q, want pullharness:run-asm", prefix.last.SessionKey)
+	if prefix.last.SessionKey != "pullharness:run-assembly" {
+		t.Errorf("SessionKey=%q, want host-provided prefix session key", prefix.last.SessionKey)
 	}
-	if len(prefix.last.SystemSections) != 0 {
-		t.Fatalf("A-stage cold-start slot must be empty, got %d sections", len(prefix.last.SystemSections))
+	if len(prefix.last.SystemSections) == 0 || len(prefix.last.UserSections) == 0 {
+		t.Fatalf("assembly sections missing: system=%d user=%d", len(prefix.last.SystemSections), len(prefix.last.UserSections))
 	}
-	// 模型实际收到的消息：动态区 user 段含目标与预算披露。
-	if llmFake.calls != 1 || len(llmFake.gotMsgs[0]) == 0 {
-		t.Fatalf("expected one model call with messages, got %d", llmFake.calls)
+	joined := ""
+	for _, message := range llmFake.gotMsgs[0] {
+		joined += message.Content + "\n"
 	}
-	last := llmFake.gotMsgs[0][len(llmFake.gotMsgs[0])-1]
-	if last.Role != "user" {
-		t.Fatalf("dynamic zone must be the trailing user message, got role %q", last.Role)
+	if !strings.Contains(joined, "PROTOCOL: return strict JSON") {
+		t.Error("host protocol prompt not mounted into model messages")
 	}
-	if !strings.Contains(last.Content, "goal: 演示工程里给主唱轨做淡入") {
-		t.Fatalf("dynamic zone missing goal line: %q", last.Content)
+	if !strings.Contains(joined, "prior turn") {
+		t.Error("Frame.Conversation (host authoritative) not mounted into model messages")
 	}
-	if !strings.Contains(last.Content, "budget_state: cycles=0/5") {
-		t.Fatalf("dynamic zone missing budget disclosure: %q", last.Content)
+	if !strings.Contains(joined, "budget_state:") {
+		t.Error("dynamic zone budget disclosure missing from model messages")
 	}
 }
 
-// 注入面缺省：Prefix nil 用缺省实现；LLM nil 是显式基础设施失败而非 panic；
-// Tools nil → 首轮模型响应即终态。
+// 注入缺省：无 Session/无 Prefix（生产非 nil 要求）→ fail-closed session_error，
+// 零宿主调用。
 func TestPullLoopInjectionDefaults(t *testing.T) {
-	loop := &PullLoop{LLM: &fakeLLM{responses: []string{"done"}}}
-	if result := loop.Run(context.Background(), goalInput("run-defaults")); result.Outcome != OutcomeJudgmentOK {
-		t.Fatalf("nil prefix must fall back to default PrefixService, got outcome %q", result.Outcome)
+	session := &fakeSession{runID: "run-inject", goalID: "goal-1"}
+	if result := (&PullLoop{LLM: &fakeLLM{}, Prefix: &fakePrefix{}}).Run(context.Background(), goalInput("run-inject")); result.Outcome != OutcomeSessionError {
+		t.Errorf("no-session outcome=%q, want session_error", result.Outcome)
 	}
-
-	noLLM := &PullLoop{Prefix: &fakePrefix{}}
-	result := noLLM.Run(context.Background(), goalInput("run-nollm"))
-	if result.Outcome != OutcomeLLMError || result.Error == "" {
-		t.Fatalf("nil LLM must be llm_error with visible error, got %+v", result)
+	loop := newSessionLoop(session, &fakeLLM{}, nil, nil)
+	if result := loop.Run(context.Background(), goalInput("run-inject")); result.Outcome != OutcomeSessionError {
+		t.Errorf("nil-prefix outcome=%q, want session_error (fail-closed)", result.Outcome)
 	}
-
-	loop3 := &PullLoop{
-		LLM:    &fakeLLM{responses: []string{"直接给出结论"}},
-		Prefix: &fakePrefix{},
-		Exit:   &fakeExit{},
+	if session.attemptCalls != 0 {
+		t.Errorf("protocol failure must not reach host: attempts=%d", session.attemptCalls)
 	}
-	result3 := loop3.Run(context.Background(), goalInput("run-notools"))
-	if result3.Outcome != OutcomeJudgmentOK || result3.Cycles != 0 || result3.ModelTurns != 1 {
-		t.Fatalf("nil tools run mismatch: %+v", result3)
+	loop.AllowNilPrefix = true // 测试豁免面（生产构造禁止）
+	if result := loop.Run(context.Background(), goalInput("run-inject")); result.Outcome == OutcomeSessionError {
+		t.Errorf("exempted nil-prefix still rejected: %+v", result)
 	}
 }
 
-// LLM 基础设施失败（非 ctx 取消）：独立分类 + T2 照常（终局漏斗）。
-func TestPullLoopLLMErrorFiresT2(t *testing.T) {
-	exitFake := &fakeExit{}
-	loop := &PullLoop{
-		LLM:    &fakeLLM{forceError: errors.New("gateway 502")},
-		Prefix: &fakePrefix{},
-		Exit:   exitFake,
+// LLM 基础设施失败：驱动零裁量交宿主（Suspend/Transient 提示）——真实暂停
+// vs 终局失败由宿主 Return 按自身状态裁定（fake 映射 llm_error）。
+func TestPullLoopLLMErrorHandsOffToHost(t *testing.T) {
+	session := &fakeSession{runID: "run-llm-err", goalID: "goal-1"}
+	exit := &fakeExit{}
+	session.exit = exit
+	loop := newSessionLoop(session, &fakeLLM{forceError: fmt.Errorf("connection reset")}, &fakePrefix{}, exit)
+	result := loop.Run(context.Background(), goalInput("run-llm-err"))
+	if session.returnCalls != 1 {
+		t.Fatalf("Return calls=%d, want 1", session.returnCalls)
 	}
-	result := loop.Run(context.Background(), goalInput("run-llmerr"))
+	step := session.returnedSteps[0]
+	if step.Disposition != DispositionSuspend || step.Kind != ReturnTransient {
+		t.Errorf("step=%+v, want suspend/transient handoff", step)
+	}
+	if !strings.Contains(step.Error, "connection reset") {
+		t.Errorf("llm error lost: %q", step.Error)
+	}
+	if session.closeCalls != 0 || len(exit.events) != 0 {
+		t.Errorf("no boundary on llm error: close=%d events=%v", session.closeCalls, exit.events)
+	}
 	if result.Outcome != OutcomeLLMError {
-		t.Fatalf("outcome = %q, want llm_error", result.Outcome)
+		t.Errorf("outcome=%q, want llm_error (host projection)", result.Outcome)
 	}
-	if got := countTurnID(exitFake.events, "run-llmerr"); got != 1 {
-		t.Fatalf("T2 count = %d, want 1", got)
+}
+
+// Session 协议违规：Attempt 的 Continue 携带 Calls（已执行面不得伪装未执行
+// 批）→ fail-closed session_error，零 Return（宿主状态未提交）。
+func TestPullLoopRejectsAttemptCarryingCalls(t *testing.T) {
+	session := &fakeSession{runID: "run-proto", goalID: "goal-1"}
+	session.attemptFn = func(f *fakeSession, ctx context.Context) (Step, error) {
+		return Step{Disposition: DispositionContinue, Source: StepSourceFastPath,
+			Calls: []ToolCall{{ID: "x", Tool: "existing.tool"}}}, nil
+	}
+	loop := newSessionLoop(session, &fakeLLM{}, &fakePrefix{}, nil)
+	result := loop.Run(context.Background(), goalInput("run-proto"))
+	if result.Outcome != OutcomeSessionError {
+		t.Fatalf("outcome=%q, want session_error", result.Outcome)
+	}
+	if session.returnCalls != 0 || session.snapshotCalls != 0 {
+		t.Errorf("protocol violation must fail before host commit: returns=%d snapshots=%d", session.returnCalls, session.snapshotCalls)
+	}
+}
+
+// 未知 Disposition 拒绝（§11.1 封闭枚举）。
+func TestPullLoopRejectsUnknownDisposition(t *testing.T) {
+	session := &fakeSession{runID: "run-unknown", goalID: "goal-1"}
+	session.attemptFn = func(f *fakeSession, ctx context.Context) (Step, error) {
+		return Step{Disposition: Disposition(99), Kind: ReturnDone, Source: StepSourceFastPath}, nil
+	}
+	loop := newSessionLoop(session, &fakeLLM{}, &fakePrefix{}, nil)
+	if result := loop.Run(context.Background(), goalInput("run-unknown")); result.Outcome != OutcomeSessionError {
+		t.Errorf("outcome=%q, want session_error (unknown disposition rejected)", result.Outcome)
 	}
 }

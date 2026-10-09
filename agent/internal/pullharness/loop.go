@@ -1,32 +1,30 @@
 package pullharness
 
-// loop.go — PullLoop 六注入+七步循环（HARNESS_V1_DESIGN §3.1 字面落地）。
+// loop.go — Session 驱动的 pull 循环（HARNESS_V1_DESIGN §3.1/§11.1，L1-5-IMPL-D 腿1）。
 //
-// 与 push 的语义差异（G3 对比的本质变量）：无逐轮全量快照注入——模型的
-// 世界认知=四层前缀（稳定事实，PrefixService）+动态区（会话状态+预算披露）
-// +主动查询结果（工具批按需拉取）。观察是模型发起的动作，不是环境推送。
+// S1 形态（§11.1 定版）：宿主（agentloop pullSession，腿2）独家持有活状态；
+// 本驱动只做四件事——装配（Prefix 四层+冷启动底座+宿主供给协议段+动态区）、
+// 溢出预检（实际装配字节计量，fail-closed）、模型调用、循环编排。快路径
+// （Attempt）/协议解析（Interpret）/工具执行（Execute）/T1（CloseCycle）/
+// 生命周期提交（Return）全部回宿主经 Session 六方法。
 //
-// 轮次语义（§2 OQ-1 裁决）：turn=一次模型响应及其工具执行批（工具循环节）。
-//   T1：每工具批执行完毕触发 OnTurnBoundary，TurnID=<RunID>:cycle:<n>；
-//   T2：run 终态（终局判定/止损/预算尽/溢出 fail-closed/基础设施失败）
-//       触发，TurnID=RunID（沿 agentloop/exit_retain.go 先例）；
-//   暂停/中断面（ctx 取消）不触发 T2——会话载体随 Result.Conversation
-//       存续（continuation 最小面，OQ-H1，决策侧复核点）。
+// A 占位接口退役（§11.1 授权）：ToolExecutor/FastPathRouter 占位面移除——
+// 工具批经 Session.Execute（宿主同一执行 gateway），快路径经 Session.Attempt
+// （宿主 Router 注册面，注册序/短路/diagnostic 旁路语义保持）。CANCEL-FIX
+// 冻结表的取消语义在 Session 面重新锚定（loop_cancel_test.go 六路径随迁）：
+// 中断=Step{Suspend, Interrupted} 交宿主 Return（保存恢复身份，不造终局），
+// 已收事实（模型回复/回执/成本）不丢，未完批不 CloseCycle，无 T2。
 //
-// A 阶段空槽（接线归后续卡，面已留）：
-//   - 冷启动底座装配（§4.1）：assembleColdStart 返回空——IMPL-B 由装配器
-//     从投影只读面渲染一次性机械事实段（GENESIS 三事实组同源），字节恒定；
-//   - 快路径路由（§5）：Router nil-safe 跳过——IMPL-C 落注册面，IMPL-D
-//     接 pull 侧；命中=确定性执行短路，零模型轮；
-//   - 工具面（§3.3）：ToolExecutor 是包内最小接口（执行既有动词面，零动词
-//     新增），协议解析与真实接线归 IMPL-D；本卡仅接口+测试 fake。
+// 轮次语义（§2 OQ-1）：T1=完整模型工具批（CloseCycle 唯一入口，宿主用注入
+// Exit 构造事件）；T2=run 终局 retain（宿主 Return 提交，沿 exit_retain 先例
+// ——驱动不再自行发 T2）。Router-only 批不伪装模型工具循环（不 CloseCycle）。
 //
-// 溢出预检（步骤③）复用 contextruntime.ModelContextOverflow 既有面
-// （不新造）：越线即 fail-closed 终态，请求永不发出（push 先例
-// message_loop.go 既有注释语义）。
+// 预算契约（§11.3.5）：宿主 ledger=累计实际消费唯一 authority（Attempt/Execute
+// 入场执法）；Budget 字段是声明上限面（动态区披露+测试），驱动不重复执法。
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -36,19 +34,19 @@ import (
 	"vit-daw-agent/internal/promptruntime"
 )
 
-// ToolCall 是模型请求执行的单个工具调用（既有动词面的载体，本包不解释）。
+// ToolCall 是模型请求执行的单个工具调用（既有动词面的载体，本包不解释；
+// Interpret 产的未执行批与 Execute 的入参共用此形态）。
 type ToolCall struct {
 	ID       string
 	Tool     string
 	ArgsJSON string
 }
 
-// ToolResult 是单个工具执行结果。Bytes 进 T1 动态窗计量；HandleRef /
-// EvidenceRefs 是退场三态判据的输入（retain/ref/drop，contextruntime 语义）；
-// RetainedStatement 是结论级陈述的显式供给通道（上游观察结论，B 卡接线；
-// 非空→retain 判据，WindowUnit 同名语义）；ProbeCost 是 render/probe 级
-// 物理成本（D5 分级：index 级零成本=0）；ModelLine 是回喂模型的既定渲染
-// 行（协议格式归执行适配层，循环不发明协议）。
+// ToolResult 是单个已执行工具的回执投影（T1 批轮单元构造面，exit_wiring.go
+// BatchTurnEvent 消费；宿主 CloseCycle 从执行 gateway 的真实回执适配）。
+// Bytes 进动态窗计量；RetainedStatement 是结论级陈述显式供给通道；
+// ProbeCost 是 render/probe 级物理成本（D5 分级：index 级零成本=0；计量
+// 缺失时宿主按 unknown 处理，不填 0 冒充免费）。
 type ToolResult struct {
 	ID                string
 	Tool              string
@@ -60,28 +58,6 @@ type ToolResult struct {
 	RetainedStatement string
 	ProbeCost         float64
 	ModelLine         string
-}
-
-// ToolExecutor 是工具批执行的最小缝（§3.3：适配层不是新工具层）。
-// Plan 是协议解析面（模型响应文本→工具批；空批=无工具调用→终态判定），
-// Execute 执行批（既有动词面）。真实实现归 IMPL-D；本卡测试用 fake。
-type ToolExecutor interface {
-	Plan(responseText string) []ToolCall
-	Execute(ctx context.Context, calls []ToolCall) []ToolResult
-}
-
-// FastPathOutcome 是快路径命中产出的确定性终态（零模型轮）。Outcome 分类
-// 口径归 IMPL-C 定（OQ-H2：fastpath 终态独立分类，不混入 judgment 统计）。
-type FastPathOutcome struct {
-	Reply     string
-	Outcome   string
-	ProbeCost float64
-}
-
-// FastPathRouter 是 §5 快路径路由占位接口（纯模式匹配前置层，非 LLM 调用）。
-// nil-safe：PullLoop 允许 Router 为 nil（A 阶段缺省），命中→短路终态。
-type FastPathRouter interface {
-	Route(ctx context.Context, in GoalInput) (FastPathOutcome, bool)
 }
 
 // GoalInput 是 pull run 的最小输入面（OQ-H1：按 agentloop 同构形态定最小
@@ -96,28 +72,24 @@ type GoalInput struct {
 	// user 消息接在其后。
 	Conversation []llm.Message
 
-	// ContextSnapshotJSON 是溢出预检消费面（push 的
-	// buildModelContextSnapshot 同位物；真实生产面归 IMPL-D 接线）。
-	// 复用 contextruntime.ModelContextOverflow：空串/无标记=不越线。
+	// ContextSnapshotJSON 是入场溢出基线（一次性预检；循环内溢出预检按
+	// 实际装配字节计量——§3.2-4 不反复用最初的静态快照）。复用
+	// contextruntime.ModelContextOverflow：空串/无标记=不越线。
 	ContextSnapshotJSON string
 
 	// Engine 是模型调用配置（llm.Client 既有面的入参）。
 	Engine config.EngineConfig
-
-	// ClassifyTerminal 是终局判定的分类缝（无工具调用轮调用一次）；
-	// nil=缺省 judgment_ok。真实失败分类沿 push 既有口径接线归 IMPL-D
-	//（§3.4：诚实分记，A/B 对比按分类分层统计）。
-	ClassifyTerminal func(responseText string) string
 }
 
-// Result 是 pull run 的终态产出（agentloop.Result 同构最小面）。
+// Result 是 pull run 的终态产出（宿主 Return 的投影面；驱动追加自身 zone
+// 的 trace 行，不重复累计计数）。Outcome 分类常量见 budget.go。
 type Result struct {
 	RunID      string
 	GoalID     string
-	Outcome    string // 终态分类（本文件头部 Outcome* 常量族）
+	Outcome    string
 	Reply      string
 	Error      string
-	Cycles     int // 完成的工具循节数（有工具批执行的轮）
+	Cycles     int // 完成的工具循节数（完整模型工具批）
 	ModelTurns int // 实际模型调用次数
 	Shortcuts  int // 快路径短路次数（零模型轮）
 	ProbeSpent float64
@@ -129,199 +101,50 @@ type Result struct {
 	Trace []string
 }
 
-// PullLoop 是 §3.1 骨架：六注入。
+// PullLoop 是 Session 驱动的循环骨架（§11.1：LLM/PrefixService/ExitExecutor
+// 接口冻结不改；工具/快路径/生命周期面归 Session）。
 type PullLoop struct {
-	// LLM 是既有客户端面（llm.Client 实现的 llm.Completer 接口；用接口
-	// 类型使 fail-closed 等契约可测——llm 包零改动）。
+	// LLM 是既有客户端面（llm.Completer 接口；fail-closed 等契约可测）。
 	LLM llm.Completer
-	// Prefix 注入装配（不自建装配报告/指纹，§3.2）；nil=缺省实现。
+	// Prefix 注入装配（不自建装配报告/指纹，§3.2）；nil=缺省实现。生产
+	// 构造要求非 nil（Run 入口 fail-closed 拒绝——A-REVIEW 挂账③；测试
+	// fake 经 AllowNilPrefix 豁免）。
 	Prefix promptruntime.PrefixService
-	// Tools 工具批执行缝（见 ToolExecutor）；nil=无工具面（模型轮后即终态）。
-	Tools ToolExecutor
-	// Exit 触发 T1/T2（contextruntime.ExitExecutor 冻结接口，零改动）；
-	// nil=边界事件丢弃（advisory 形态，同既有 TurnBoundaryHook 挂点语义）。
-	// 生产构造经 NewWiredExitExecutor（exit_wiring.go，B 卡接线面）。
+	// Exit 是 T1/T2 事件执行器（经 CloseCycle 传宿主；驱动不自行触发）；
+	// nil=宿主按 advisory 形态处理（事件丢弃，同既有 TurnBoundaryHook
+	// 挂点语义）。
 	Exit contextruntime.ExitExecutor
-	// Router 快路径（§5 占位）；nil-safe 跳过。
-	Router FastPathRouter
-	// Budget 观察预算（§3.4）。
+	// Session 是宿主会话端口（§11.1 六方法；nil=协议违规，fail-closed）。
+	Session Session
+	// Budget 是声明上限面（动态区披露；执法 authority=宿主 ledger）。
 	Budget ObservationBudget
-	// ColdStart 是冷启动底座只读输入缝（§4.1，B 卡接线）；nil=无底座
-	//（A 阶段形态）。非 nil 时 Run 首装一次 RenderColdStart 产物，之后
-	// 字节恒定。
+	// ColdStart 是冷启动底座只读输入缝（§4.1）；nil=无底座（缺省形态）。
 	ColdStart ColdStartSource
-	// ExitWiring 是边界事件构造线位（HistoryLimit/HotLimitBytes/时钟；
-	// 零值=A 阶段形态，见 exit_wiring.go）。
+	// ExitWiring 是边界事件构造线位（宿主 CloseCycle 消费）。
 	ExitWiring ExitWiring
+	// AllowNilPrefix 豁免生产非 nil Prefix 要求（仅测试 fake 用；生产
+	// 构造不得设置）。
+	AllowNilPrefix bool
 }
 
-// Run 执行七步循环直至终态。循环与 §3.1 步骤序一一对应：
-// 冷启动装配（一次性，A 阶段空槽）→ for { ① 快路径 ② 装配 ③ 溢出预检
-// ④ 模型调用/终态判定 ⑤ 工具批 ⑥ [T1] ⑦ 预算检查 } → [T2] 终局 retain。
+// Run 执行 Session 驱动循环直至宿主 Return 终态。循环步序（§3.1 对应）：
+// ① Attempt（宿主快路径）→ miss 回流 Snapshot → ② 装配 → ③ 溢出预检
+// → ④ 模型调用 → ⑤ Interpret（宿主协议面）→ ⑥ Execute（宿主 gateway）
+// → ⑦ CloseCycle（T1）→ 下一轮。任何非 Continue 步交宿主 Return。
 func (p *PullLoop) Run(ctx context.Context, in GoalInput) Result {
-	result := Result{RunID: in.RunID, GoalID: in.GoalID, ProbeSpent: p.Budget.ProbeCost}
-	history := append([]llm.Message(nil), in.Conversation...)
-	if strings.TrimSpace(in.UserText) != "" {
-		history = append(history, llm.Message{Role: "user", Content: in.UserText})
+	if p.Session == nil {
+		return protocolFailResult(in, "no session injected")
 	}
-	result.Conversation = history
-
-	// 冷启动底座装配（§4.1，一次性首装）：从 ColdStart 只读缝渲染一次，
-	// 之后每轮装配挂同一组 Section（字节恒定）。nil 源=空底座（A 阶段
-	// 形态）；缺席事实组经 LayerStates 声明 absent（§2.0 fail-open 但
-	// 显式）。
+	if p.Prefix == nil && !p.AllowNilPrefix {
+		return protocolFailResult(in, "no prefix service injected (fail-closed)")
+	}
 	coldStart := p.renderColdStart()
-
-	cycles := 0
-	probeSpent := p.Budget.ProbeCost
-	var windowUnits []contextruntime.WindowUnit
-	var windowBytes int64
-	for {
-		if ctx.Err() != nil {
-			return p.interrupt(&result, "ctx_done_before_route")
-		}
-		// ① 快路径路由尝试（§5：命中→确定性执行→短路，零模型轮）。
-		if p.Router != nil {
-			outcome, hit := p.Router.Route(ctx, in)
-			if hit {
-				result.Shortcuts++
-				probeSpent += outcome.ProbeCost
-				result.ProbeSpent = probeSpent
-				result.Reply = outcome.Reply
-				result.Outcome = nonEmpty(outcome.Outcome, OutcomeFastPath)
-				result.Trace = append(result.Trace,
-					"router_shortcut: outcome="+result.Outcome+" probe_spent="+ftoa(probeSpent))
-			}
-			if ctx.Err() != nil {
-				return p.interrupt(&result, "ctx_done_after_route")
-			}
-			if hit {
-				return p.finish(ctx, in, &result, windowUnits, windowBytes)
-			}
-		}
-
-		// ② 装配：PrefixService（稳定前缀含冷启动底座）+动态区（会话状态
-		// +预算披露）。
-		assembly, report, err := p.assemble(ctx, in, history, cycles, probeSpent, coldStart)
-		if ctx.Err() != nil {
-			return p.interrupt(&result, "ctx_done_after_assembly")
-		}
-		if err != nil {
-			result.Error = err.Error()
-			result.Outcome = "assemble_error"
-			result.Trace = append(result.Trace, "assemble_error: "+err.Error())
-			return p.finish(ctx, in, &result, windowUnits, windowBytes)
-		}
-		result.Trace = append(result.Trace, fmt.Sprintf(
-			"assembly: cycle=%d prefix_bytes=%d dynamic_bytes=%d breaks=%d",
-			cycles+1, report.PrefixBytes, report.DynamicBytes, len(report.Breaks)))
-
-		// ③ 溢出预检：ModelContextOverflow fail-closed（复用既有面）。
-		if overflow := contextruntime.ModelContextOverflow(in.ContextSnapshotJSON); overflow != "" {
-			result.Outcome = OutcomeContextOverflow
-			result.Error = "context_overflow: " + overflow
-			result.Trace = append(result.Trace, "context_overflow: "+overflow+" (fail-closed, request not sent)")
-			return p.finish(ctx, in, &result, windowUnits, windowBytes)
-		}
-
-		// ④ 模型调用 → 无工具调用 → 终态判定（含失败分类，§3.4）。
-		if ctx.Err() != nil {
-			return p.interrupt(&result, "ctx_done_before_model")
-		}
-		if p.LLM == nil {
-			result.Outcome = OutcomeLLMError
-			result.Error = "pullharness: no LLM client injected"
-			result.Trace = append(result.Trace, "llm_error: no client injected")
-			return p.finish(ctx, in, &result, windowUnits, windowBytes)
-		}
-		result.ModelTurns++
-		reply, llmErr := p.LLM.Complete(ctx, in.Engine, assembly.Messages)
-		reply = strings.TrimSpace(reply)
-		// A cancelled component can still return a reply. Keep received facts
-		// before interrupting, including a partial reply returned with an error.
-		if ctx.Err() != nil {
-			if reply != "" {
-				history = append(history, llm.Message{Role: "assistant", Content: reply})
-				result.Conversation = history
-				result.Reply = reply
-			}
-			return p.interrupt(&result, "ctx_done_during_model")
-		}
-		if llmErr != nil {
-			result.Outcome = OutcomeLLMError
-			result.Error = llmErr.Error()
-			result.Trace = append(result.Trace, "llm_error: "+llmErr.Error())
-			return p.finish(ctx, in, &result, windowUnits, windowBytes)
-		}
-		history = append(history, llm.Message{Role: "assistant", Content: reply})
-		result.Conversation = history
-		result.Reply = reply
-
-		var calls []ToolCall
-		if p.Tools != nil {
-			calls = p.Tools.Plan(reply)
-		}
-		if ctx.Err() != nil {
-			return p.interrupt(&result, "ctx_done_after_plan")
-		}
-		if len(calls) == 0 {
-			// 终态判定：无工具调用轮。分类沿缝透传（nil=judgment_ok 缺省）。
-			result.Outcome = classifyTerminal(in, reply)
-			result.Trace = append(result.Trace, "terminal: no tool calls, outcome="+result.Outcome)
-			return p.finish(ctx, in, &result, windowUnits, windowBytes)
-		}
-
-		// ⑤ 工具批执行（读面 ref.query/ref.diff/ccb.observation_*；
-		//    写面既有执行动词——零动词新增）。
-		batch := p.Tools.Execute(ctx, calls)
-		for _, toolResult := range batch {
-			probeSpent += toolResult.ProbeCost
-		}
-		result.ProbeSpent = probeSpent
-		if lines := toolModelLines(batch); lines != "" {
-			history = append(history, llm.Message{Role: "user", Content: lines})
-			result.Conversation = history
-		}
-		if ctx.Err() != nil {
-			// The batch may have performed actions. Preserve returned IDs and
-			// costs without claiming completion, triggering T1, or refunding.
-			for _, toolResult := range batch {
-				result.Trace = append(result.Trace, fmt.Sprintf(
-					"interrupted_tool_result: id=%q tool=%q status=%q probe_cost=%s",
-					toolResult.ID, toolResult.Tool, toolResult.Status, ftoa(toolResult.ProbeCost)))
-			}
-			return p.interrupt(&result, "ctx_done_after_tools")
-		}
-		cycles++
-		result.Cycles = cycles
-
-		// ⑥ [T1] OnTurnBoundary(cycle:<n>)——每工具批恰一次。
-		turnID := cycleTurnID(in.RunID, cycles)
-		batchUnits, batchBytes := p.fireTurnBoundary(ctx, in, turnID, batch)
-		windowUnits = append(windowUnits, batchUnits...)
-		windowBytes += batchBytes
-		if ctx.Err() != nil {
-			return p.interrupt(&result, "ctx_done_after_T1")
-		}
-
-		// ⑦ 预算检查：exhausted → 止损终态 budget_exhausted（独立分类）。
-		if p.Budget.CycleExhausted(cycles) {
-			result.Outcome = OutcomeBudgetExhausted
-			result.Error = fmt.Sprintf("budget_exhausted: cycles=%d max=%d", cycles, p.Budget.MaxCycles)
-			result.Trace = append(result.Trace, result.Error)
-			return p.finish(ctx, in, &result, windowUnits, windowBytes)
-		}
-		if p.Budget.ProbeExhausted(probeSpent) {
-			result.Outcome = OutcomeBudgetExhausted
-			result.Error = fmt.Sprintf("budget_exhausted: probe_spent=%s max=%s", ftoa(probeSpent), ftoa(p.Budget.MaxProbeCost))
-			result.Trace = append(result.Trace, result.Error)
-			return p.finish(ctx, in, &result, windowUnits, windowBytes)
-		}
-	}
+	d := &pullDriver{loop: p, in: in, coldStart: coldStart, trace: []string{}}
+	return d.run(ctx)
 }
 
-// renderColdStart 是 §4.1 冷启动底座首装点（B 卡填槽）：ColdStart 只读缝
-// 一次渲染；nil 源=空底座（A 阶段形态）。产物在 run 内复用（字节恒定）。
+// renderColdStart 是 §4.1 冷启动底座首装点：ColdStart 只读缝一次渲染；
+// nil 源=空底座。产物在 run 内复用（字节恒定）。
 func (p *PullLoop) renderColdStart() ColdStartBase {
 	if p.ColdStart == nil {
 		return ColdStartBase{}
@@ -329,107 +152,311 @@ func (p *PullLoop) renderColdStart() ColdStartBase {
 	return RenderColdStart(p.ColdStart.ColdStartEngineSnapshot())
 }
 
-// assemble 执行步骤②：稳定前缀（冷启动底座 session Section 族+既有前缀
-// 面）+动态区（会话状态+预算披露，§3.2）。SessionKey 按 RunID 隔离
-// （P1 append-only 判据跨 turn 可测）；缺席事实组经 LayerStates 声明。
-func (p *PullLoop) assemble(ctx context.Context, in GoalInput, history []llm.Message, cycles int, probeSpent float64, coldStart ColdStartBase) (promptruntime.Assembly, promptruntime.AssemblyReport, error) {
-	prefix := p.Prefix
+type pullDriver struct {
+	loop      *PullLoop
+	in        GoalInput
+	coldStart ColdStartBase
+	trace     []string
+}
+
+func (d *pullDriver) run(ctx context.Context) Result {
+	// 入场溢出基线（一次性）：入场已越线的请求 fail-closed，不进循环。
+	if overflow := contextruntime.ModelContextOverflow(d.in.ContextSnapshotJSON); overflow != "" {
+		return d.returnStep(ctx, d.driverStep(DispositionTerminal, ReturnFailed, OutcomeContextOverflow,
+			"context_overflow: "+overflow+" (fail-closed at entry, request not sent)"))
+	}
+	for {
+		if ctx.Err() != nil {
+			return d.returnStep(ctx, d.driverInterrupt("ctx_done_before_attempt"))
+		}
+
+		// ① Attempt：宿主快路径/pending 队列（miss=Continue 无 Calls）。
+		step, err := d.loop.Session.Attempt(ctx)
+		if err != nil {
+			return d.sessionFail("attempt", err)
+		}
+		if invalid := validateStep(step, "attempt"); invalid != "" {
+			return d.sessionFail("attempt", fmt.Errorf("%s", invalid))
+		}
+		if step.Disposition != DispositionContinue {
+			return d.returnStep(ctx, step)
+		}
+		if len(step.Calls) > 0 {
+			// Attempt 的 Continue 不得携带未执行批（handler 的工具请求已
+			// 在宿主执行）——协议违规 fail-closed。
+			return d.sessionFail("attempt", fmt.Errorf("continue step from Attempt carries %d calls (already-executed work must surface as ReceiptIDs)", len(step.Calls)))
+		}
+
+		// miss 回流：新鲜 Frame（成本先结算、状态先回流，然后才装配）。
+		frame, err := d.loop.Session.Snapshot(ctx)
+		if err != nil {
+			return d.sessionFail("snapshot", err)
+		}
+		if ctx.Err() != nil {
+			return d.returnStep(ctx, d.driverInterrupt("ctx_done_after_attempt"))
+		}
+
+		// ② 装配：Prefix（四层稳定前缀+冷启动底座）+宿主协议段+动态区。
+		assembly, report, err := d.assemble(frame)
+		if err != nil {
+			return d.sessionFail("assemble", err)
+		}
+		d.trace = append(d.trace, fmt.Sprintf(
+			"assembly: cycle=%d prefix_bytes=%d dynamic_bytes=%d breaks=%d",
+			frame.Budget.CompletedCycles+1, report.PrefixBytes, report.DynamicBytes, len(report.Breaks)))
+		if ctx.Err() != nil {
+			return d.returnStep(ctx, d.driverInterrupt("ctx_done_after_assembly"))
+		}
+
+		// ③ 溢出预检：实际装配字节计量（fail-closed，请求永不发出）。
+		if overflow := d.assemblyOverflow(assembly, frame); overflow != "" {
+			return d.returnStep(ctx, d.driverStep(DispositionTerminal, ReturnFailed, OutcomeContextOverflow,
+				"context_overflow: "+overflow+" (fail-closed, request not sent)"))
+		}
+
+		// ④ 模型调用。
+		if d.loop.LLM == nil {
+			return d.returnStep(ctx, d.driverStep(DispositionTerminal, ReturnFailed, OutcomeLLMError,
+				"llm_error: no LLM client injected"))
+		}
+		raw, llmErr := d.loop.LLM.Complete(ctx, d.in.Engine, assembly.Messages)
+		raw = strings.TrimSpace(raw)
+		if ctx.Err() != nil {
+			// A cancelled component can still return a reply. Keep received
+			// facts before interrupting, including a partial reply returned
+			// with an error.
+			return d.returnStep(ctx, d.driverInterruptWithReply("ctx_done_during_model", raw))
+		}
+		if llmErr != nil {
+			// 基础设施失败交宿主裁定暂停语义（free-state transient 判定在
+			// 宿主）：Suspend/Transient，零新工具。
+			return d.returnStep(ctx, d.driverStep(DispositionSuspend, ReturnTransient, OutcomeLLMError,
+				"llm_error: "+llmErr.Error()))
+		}
+
+		// ⑤ Interpret：宿主协议面（解析/修复/守卫/final gate/澄清）。
+		step, err = d.loop.Session.Interpret(ctx, raw)
+		if err != nil {
+			return d.sessionFail("interpret", err)
+		}
+		if invalid := validateStep(step, "interpret"); invalid != "" {
+			return d.sessionFail("interpret", fmt.Errorf("%s", invalid))
+		}
+		if step.Disposition != DispositionContinue {
+			return d.returnStep(ctx, step)
+		}
+		if len(step.Calls) == 0 {
+			// 宿主判继续（final gate 反馈等），无工具批——不 CloseCycle，
+			// 直接装配下一模型轮。
+			continue
+		}
+		if ctx.Err() != nil {
+			return d.returnStep(ctx, d.driverInterrupt("ctx_done_after_interpret"))
+		}
+
+		// ⑥ Execute：宿主同一执行 gateway（守卫/权限/verifier 面不变）。
+		step, err = d.loop.Session.Execute(ctx, step.Calls)
+		if err != nil {
+			return d.sessionFail("execute", err)
+		}
+		if invalid := validateStep(step, "execute"); invalid != "" {
+			return d.sessionFail("execute", fmt.Errorf("%s", invalid))
+		}
+		if step.Disposition != DispositionContinue {
+			// partial 批（批中确认/暂停/取消）不 CloseCycle。
+			return d.returnStep(ctx, step)
+		}
+		if ctx.Err() != nil {
+			// 批已执行（回执在宿主账本），但批不完整结束——不 CloseCycle、
+			// 不退款，中断面交宿主 Return（CANCEL-FIX：ctx_done_after_tools）。
+			return d.returnStep(ctx, d.driverInterrupt("ctx_done_after_tools"))
+		}
+
+		// ⑦ CloseCycle：完整模型工具批恰一 T1（宿主用注入 Exit 构造事件
+		// 并应用真实 ExitReport）。批身份=<RunID>:cycle:<NextCycle>（账本
+		// 分配身份，§5.2）。
+		batchID := allocatedBatchID(d.in.RunID, frame)
+		if err := d.loop.Session.CloseCycle(ctx, batchID, d.loop.Exit); err != nil {
+			return d.sessionFail("close_cycle", err)
+		}
+		d.trace = append(d.trace, "cycle_closed: batch="+batchID+
+			" receipts="+itoa(len(step.ReceiptIDs)))
+		if ctx.Err() != nil {
+			return d.returnStep(ctx, d.driverInterrupt("ctx_done_after_T1"))
+		}
+		// 预算执法 authority=宿主 ledger（下一轮 Attempt 入场拒绝）；驱动
+		// 侧无重复执法。
+	}
+}
+
+// assemble 执行步骤②：稳定前缀（冷启动底座 Section 族+宿主协议段）+
+// 动态区（会话状态+预算披露，§3.2）。SessionKey 用宿主供给的会话键
+// （P1 append-only 判据跨 turn 可测）。
+func (d *pullDriver) assemble(frame Frame) (promptruntime.Assembly, promptruntime.AssemblyReport, error) {
+	systemSections := append([]promptruntime.Section(nil), d.coldStart.Sections...)
+	if protocol, ok := frameString(frame.Context, FrameContextProtocolPrompt); ok && strings.TrimSpace(protocol) != "" {
+		systemSections = append(systemSections, promptruntime.TextSection(
+			promptruntime.SectionStatic, "pullharness.protocol", "model protocol", protocol, true))
+	}
+	sessionKey := strings.TrimSpace(frame.PrefixSessionKey)
+	if sessionKey == "" {
+		sessionKey = "pullharness:" + d.in.RunID
+	}
+	prefix := d.loop.Prefix
 	if prefix == nil {
+		// AllowNilPrefix=测试豁免面：回退缺省 PrefixService（A 阶段形态）；
+		// 生产构造禁止（Run 入口已 fail-closed 拒绝——A-REVIEW 挂账③）。
 		prefix = promptruntime.NewPrefixService()
 	}
-	return prefix.Assemble(ctx, promptruntime.PrefixRequest{
+	return prefix.Assemble(ctxBackground(), promptruntime.PrefixRequest{
 		AssemblyInput: promptruntime.AssemblyInput{
-			SystemSections: coldStart.Sections,
-			History:        history,
+			SystemSections: systemSections,
+			History:        append([]llm.Message(nil), frame.Conversation...),
 			UserSections: []promptruntime.Section{
 				promptruntime.TextSection(promptruntime.SectionRuntime, "pullharness.dynamic",
-					"run state", p.dynamicZone(in, cycles, probeSpent), false),
+					"run state", d.dynamicZone(frame), false),
 			},
 		},
-		SessionKey:  "pullharness:" + in.RunID,
-		LayerStates: coldStart.LayerStates(),
+		SessionKey:  sessionKey,
+		LayerStates: d.coldStart.LayerStates(),
 	})
 }
 
-// dynamicZone 是逐轮重算的动态区（§3.2：pull loop 每轮只重算动态区；
-// §4.2 表行 3/4 落点见 disclosure.go dynamicStateRows）。
-func (p *PullLoop) dynamicZone(in GoalInput, cycles int, probeSpent float64) string {
+// dynamicZone 是逐轮重算的动态区（§3.2：每轮只重算动态区；§4.2 表行 3/4
+// 落点见 disclosure.go）。预算行从宿主账本只读视图披露（authority 在宿主）。
+func (d *pullDriver) dynamicZone(frame Frame) string {
 	lines := []string{}
-	if text := strings.TrimSpace(in.UserText); text != "" {
+	if text := strings.TrimSpace(d.in.UserText); text != "" {
 		lines = append(lines, "goal: "+text)
 	}
-	lines = append(lines, dynamicStateRows(cycles, probeSpent, p.Budget)...)
+	lines = append(lines, ledgerDisclosureRows(frame.Budget, d.loop.Budget)...)
 	return strings.Join(lines, "\n")
 }
 
-func classifyTerminal(in GoalInput, reply string) string {
-	if in.ClassifyTerminal != nil {
-		if outcome := strings.TrimSpace(in.ClassifyTerminal(reply)); outcome != "" {
-			return outcome
-		}
+// assemblyOverflow 按实际装配字节计量溢出（§3.2-4）：合计消息内容字节 vs
+// 宿主披露的线位（FrameContextContextBudgetBytes；<=0=不设线）。越线经
+// contextruntime.ModelContextOverflow 渲染（复用既有面，不新造格式）。
+func (d *pullDriver) assemblyOverflow(assembly promptruntime.Assembly, frame Frame) string {
+	limit := frameInt(frame.Context, FrameContextContextBudgetBytes)
+	if limit <= 0 {
+		return ""
 	}
-	return OutcomeJudgmentOK
+	var total int64
+	for _, message := range assembly.Messages {
+		total += int64(len(message.Content))
+	}
+	if total <= int64(limit) {
+		return ""
+	}
+	marker, _ := json.Marshal(map[string]any{
+		"context_overflow": map[string]any{
+			"status": "overflow", "hot_bytes": total, "hot_budget_bytes": limit,
+			"warm_bytes": 0, "warm_budget_bytes": 0, "cold_ref": "",
+		},
+	})
+	return contextruntime.ModelContextOverflow(string(marker))
 }
 
-func cycleTurnID(runID string, cycle int) string {
-	return runID + ":cycle:" + itoa(cycle)
+// driverStep 构造驱动自建步（中断/溢出/LLM 基础设施面），交宿主 Return
+// 提交生命周期——驱动不直接造终局。outcome 非空时随步透传（宿主投影消费）。
+func (d *pullDriver) driverStep(disposition Disposition, kind ReturnKind, outcome, message string) Step {
+	return Step{Disposition: disposition, Kind: kind, Source: StepSourceDriver, Outcome: outcome, Error: message}
 }
 
-func nonEmpty(value, fallback string) string {
-	if strings.TrimSpace(value) != "" {
+func (d *pullDriver) driverInterrupt(where string) Step {
+	return d.driverStep(DispositionSuspend, ReturnInterrupted, OutcomeInterrupted, "interrupted: "+where)
+}
+
+// driverInterruptWithReply 保留已收模型事实后中断（CANCEL-FIX：partial reply
+// 不丢，进 Step.Reply 由宿主存档）。
+func (d *pullDriver) driverInterruptWithReply(where, reply string) Step {
+	step := d.driverInterrupt(where)
+	step.Reply = reply
+	return step
+}
+
+// returnStep 把非 Continue 步交宿主 Return（终局唯一 owner），并合并驱动
+// 自身 zone 的 trace 行。Return 失败=协议违规，fail-closed 直返（宿主状态
+// 未提交，由入口层兜底清理）。
+func (d *pullDriver) returnStep(ctx context.Context, step Step) Result {
+	result, err := d.loop.Session.Return(ctx, step)
+	if err != nil {
+		return protocolFailResult(d.in, "return failed: "+err.Error())
+	}
+	result.Trace = append(result.Trace, d.trace...)
+	if step.Source == StepSourceFastPath {
+		result.Shortcuts++
+	}
+	return result
+}
+
+// sessionFail 是 Session 协议违规的 fail-closed 出口：不调 Return（宿主
+// 状态未动，零新工具）， Outcome=session_error 显式可见，由入口层兜底。
+func (d *pullDriver) sessionFail(where string, err error) Result {
+	result := protocolFailResult(d.in, where+": "+err.Error())
+	result.Trace = append(result.Trace, d.trace...)
+	return result
+}
+
+func protocolFailResult(in GoalInput, message string) Result {
+	return Result{
+		RunID:   in.RunID,
+		GoalID:  in.GoalID,
+		Outcome: OutcomeSessionError,
+		Error:   "session_error: " + message,
+		Trace:   []string{"session_error: " + message},
+	}
+}
+
+// validateStep 检查步的协议有效性（Disposition/Kind 封闭枚举——未知拒绝，
+// §11.1）。返回空串=有效。
+func validateStep(step Step, where string) string {
+	if !step.Disposition.Valid() {
+		return where + ": invalid disposition " + step.Disposition.String()
+	}
+	if step.Disposition != DispositionContinue && !step.Kind.Valid() {
+		// Continue 步无细分 Kind（零值合法）；Suspend/Terminal 必须带合法
+		// 返回原因。
+		return where + ": suspend/terminal step missing valid return kind"
+	}
+	return ""
+}
+
+// allocatedBatchID 从账本分配身份构造批 ID（<RunID>:cycle:<NextCycle>；
+// §5.2：partial 也占唯一 ID，新批分配下一 ID）。NextCycle=0 时回退本地
+// 计数（宿主未实现账本面的测试形态）。
+func allocatedBatchID(runID string, frame Frame) string {
+	if frame.Budget.NextCycle > 0 {
+		return runID + ":cycle:" + itoa(int(frame.Budget.NextCycle))
+	}
+	return runID + ":cycle:" + itoa(frame.Budget.CompletedCycles+1)
+}
+
+func ctxBackground() context.Context { return context.Background() }
+
+func frameString(ctx map[string]any, key string) (string, bool) {
+	value, ok := ctx[key]
+	if !ok {
+		return "", false
+	}
+	text, ok := value.(string)
+	return text, ok
+}
+
+func frameInt(ctx map[string]any, key string) int {
+	switch value := ctx[key].(type) {
+	case int:
 		return value
-	}
-	return fallback
-}
-
-// toolModelLines 把工具批的既定渲染行并成一条回喂消息（协议格式归执行
-// 适配层的 ToolResult.ModelLine，循环不做二次解释）。
-func toolModelLines(batch []ToolResult) string {
-	lines := make([]string, 0, len(batch))
-	for _, toolResult := range batch {
-		if line := strings.TrimSpace(toolResult.ModelLine); line != "" {
-			lines = append(lines, line)
+	case int64:
+		return int(value)
+	case float64:
+		return int(value)
+	case json.Number:
+		number, err := value.Int64()
+		if err != nil {
+			return 0
 		}
+		return int(number)
 	}
-	return strings.Join(lines, "\n")
-}
-
-// fireTurnBoundary 触发单批 T1：事件构造落位在 exit_wiring.go
-// BatchTurnEvent（单元=工具结果行，TurnID 标本批轮次 → turn_end 判据按
-// 既有机械规则触发；线位经 ExitWiring）。返回本批单元与字节（终局 T2
-// 窗面的累计输入）。
-func (p *PullLoop) fireTurnBoundary(ctx context.Context, in GoalInput, turnID string, batch []ToolResult) ([]contextruntime.WindowUnit, int64) {
-	if p.Exit == nil {
-		return nil, 0
-	}
-	event, units, hotBytes := BatchTurnEvent(turnID, batch, p.ExitWiring)
-	p.Exit.OnTurnBoundary(ctx, event)
-	return units, hotBytes
-}
-
-// finish 是终局出口（终局判定/止损/预算尽/溢出/装配失败/基础设施失败/
-// 快路径短路）：[T2] OnTurnBoundary(RunID)——事件构造落位在
-// exit_wiring.go FinalTurnEvent（TurnID=RunID 沿 exit_retain 先例；窗面
-// =run 累计工具单元，线位经 ExitWiring）。中断面（interrupt）不经此处
-// ——暂停面不触发 T2。
-func (p *PullLoop) finish(ctx context.Context, in GoalInput, result *Result, windowUnits []contextruntime.WindowUnit, windowBytes int64) Result {
-	// Also cover cancellation inside terminal classification. This check only
-	// prevents a subsequent T2; it cannot undo already completed stages.
-	if ctx.Err() != nil {
-		return p.interrupt(result, "ctx_done_before_T2")
-	}
-	result.Trace = append(result.Trace, "terminal: outcome="+result.Outcome+" cycles="+itoa(result.Cycles)+" model_turns="+itoa(result.ModelTurns))
-	if p.Exit != nil && strings.TrimSpace(in.RunID) != "" {
-		p.Exit.OnTurnBoundary(ctx, FinalTurnEvent(in.RunID, windowUnits, windowBytes, p.ExitWiring))
-	}
-	return *result
-}
-
-// interrupt 是中断/暂停出口（ctx 取消）：不触发 T2（暂停面语义），会话
-// 载体随 Result.Conversation 存续（continuation 最小面）。
-func (p *PullLoop) interrupt(result *Result, where string) Result {
-	result.Outcome = OutcomeInterrupted
-	result.Error = "interrupted: " + where
-	result.Trace = append(result.Trace, "interrupted: "+where+" (pause surface, no T2)")
-	return *result
+	return 0
 }

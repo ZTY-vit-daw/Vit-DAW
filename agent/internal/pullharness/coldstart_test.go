@@ -214,9 +214,10 @@ func TestColdStartFirstInstallOnceAndFrozen(t *testing.T) {
 		return engine
 	})
 	prefix := &capturingPrefix{}
+	session := &fakeSession{runID: "run-cold", goalID: "goal-1"}
 	loop := &PullLoop{
 		LLM:       &fakeLLM{responses: []string{"call:probe:o1", "terminal reply, no tools"}},
-		Tools:     &fakeTools{},
+		Session:   session,
 		Prefix:    prefix,
 		ColdStart: source,
 		Budget:    ObservationBudget{MaxCycles: 5},
@@ -253,9 +254,11 @@ func TestColdStartFirstInstallOnceAndFrozen(t *testing.T) {
 // LayerStates 空声明）。
 func TestColdStartNilSourceKeepsAForm(t *testing.T) {
 	prefix := &capturingPrefix{}
+	session := &fakeSession{runID: "run-nocold", goalID: "goal-1"}
 	loop := &PullLoop{
-		LLM:    &fakeLLM{responses: []string{"done"}},
-		Prefix: prefix,
+		LLM:     &fakeLLM{responses: []string{"done"}},
+		Session: session,
+		Prefix:  prefix,
 	}
 	loop.Run(context.Background(), goalInput("run-nocold"))
 	if len(prefix.requests) != 1 {
