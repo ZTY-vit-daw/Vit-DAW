@@ -38,5 +38,6 @@
 
 - 停止条件：上述结果保留口径无法通过既有字段表达，或必须改 ToolExecutor/FastPathRouter/GoalInput/Result/continuation 持久化；新证据推翻取消批规则；A 版本变化；文件域与 B 冲突。附最小反例与两种方案，上交，不自行扩域；当前窄修不解决 A/C 全量适配。
 - 领取：用户本会话明确“执行 L1-5-IMPL-A-CANCEL-FIX-1，按最新卡面和共享协议领取”；2026-10-09 14:02 +08:00；origin/main=7e230ab92924295cba5f01cd812f7afbb10e4104；owner=Codex GPT-6 / Windows ZTY / 会话 01a11f3f-20bf-7092-811f-582e67f23c0f（独立执行流）；分支 port/l1-5-impl-a-cancel-fix-1；worktree C:/Users/timoz/.codex/worktrees/l1-5-cancel-fix/Vit_DAW；领取基线 HEAD=7e230ab92924295cba5f01cd812f7afbb10e4104，status --short 与 diff --stat 均空；协调 checkout= C:/Users/timoz/.codex/worktrees/l1-5-cancel-fix-coord/Vit_DAW；同步提交=本条 owner 记录所在提交（后续回执回填 hash）。A 尚未合入，仅 cherry-pick de1d876c 作为实现底座；未触碰主工作树已有改动；B 在 todo，无 doing 文件域冲突。
-- 回执：（修复 commit / 命令退出码 / 红绿证据 / 取消与批结果保留契约 / 端测边界）
+- 领取同步确认：b07da14ccf31930a318f5cf9c2782011768a1692 已成功推 main，fetch 重读远端 owner 与本会话一致。
+- 回执：执行自验完成，待主管最终验收；修复 commit **47ce5d75**（已推 origin/port/l1-5-impl-a-cancel-fix-1）；原 A=de1d876c 的本地 cherry-pick 底座=231a4ff3，主管按原 A→47ce5d75 顺序验收合入，不重复合入底座副本。修前六条取消路径+此前正常批回归均断言级红（exit 1），修后 `go test ./internal/pullharness -count=1 -v`、`go build ./...`、`go test ./... -count=1` 均 exit 0；staged blob gofmt 净，源码/回执 diff check exit 0，冻结三包 diff 空。详见执行分支 `coord/runs/L1-5-IMPL-A-CANCEL-FIX-1/receipt.md`、red.txt、validation.txt。取消批保留 Reply/Conversation/ModelLine/ProbeSpent，返回工具 ID/Tool/Status/单笔成本记录在 Trace；不增加完成轮次、不新增 T1/T2，此前正常批保持；取消优先于预算终局。零包外生产消费复查通过，未启动真实栈；只证明骨架取消路径，未证明生产中断恢复、A/C 适配或 G3 真栈。本卡五个实现/测试/证据文件；主工作树已有改动未触碰；实现 worktree 提交后 status 空。原 A 最终验收与 B 解锁仍归主管。
 - 验收：（主管裁定 / 修复合入 / A 原卡与 B 依赖状态另记）
