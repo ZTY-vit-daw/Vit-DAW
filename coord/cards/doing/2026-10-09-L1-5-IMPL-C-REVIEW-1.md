@@ -50,6 +50,6 @@ go test ./... -count=1
 - 报告与机械工件走本卡分支，提交回执后按共享协议同步卡状态；不合入被审代码、不出最终 ruling。
 - 端测边界：纯复核、不修改生产；行为零变化是否成立需本卡实证，真实栈与双模式消费面仍由收口卡验证。
 
-- 领取：（时间 / main 基线 / owner 模型+机器+具体会话 / 分支 / worktree / 领取提交）
+- 领取：2026-10-09 13:39（Asia/Shanghai） / origin/main=a25d3b9d71f38eb8ffbec7019e5f986ac9871b83 / owner=Codex GPT-6，PC ZTY，本会话 01a11f27-39ba-7313-9aa1-517fa3214c23（用户明确“执行 L1-5-IMPL-C-REVIEW-1”） / port/l1-5-impl-c-review-1 / worktree=C:/Users/timoz/.codex/worktrees/l1-5-c-review/Vit_DAW / 领取提交=本条状态提交（提交后以远端 log 核对）；独立 worktree 领取前 status/diff stat 均为空；主树已有改动不带入复验。
 - 回执：（报告分支与 commit / REPORT.md 路径 / 等价结果 / 命令退出码 / 建议结论）
 - 验收：（主管裁定 / 本复核卡验收 commit；与 C 原卡最终裁定分开）
