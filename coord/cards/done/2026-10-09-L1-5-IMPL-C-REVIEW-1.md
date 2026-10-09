@@ -52,5 +52,5 @@ go test ./... -count=1
 
 - 领取：2026-10-09 13:39（Asia/Shanghai） / origin/main=a25d3b9d71f38eb8ffbec7019e5f986ac9871b83 / owner=Codex GPT-6，PC ZTY，本会话 01a11f27-39ba-7313-9aa1-517fa3214c23（用户明确“执行 L1-5-IMPL-C-REVIEW-1”） / port/l1-5-impl-c-review-1 / worktree=C:/Users/timoz/.codex/worktrees/l1-5-c-review/Vit_DAW / 领取提交=本条状态提交（提交后以远端 log 核对）；独立 worktree 领取前 status/diff stat 均为空；主树已有改动不带入复验。
 - 领取同步补记：上述时间字段为预填；实际领取提交时间 2026-10-09 13:35:47 +08:00。首次 push 因 A-REVIEW-1 领取提交 2986df4f 被拒；已重读远端，C 仍 todo、A 仅写独立报告域。按协议从 origin/main=2986df4ff91037814e035f3ab72fa2a257aeccee 建新协调分支并 cherry-pick 本卡领取记录；复验从成功同步后的 main 建立。
-- 回执：（报告分支与 commit / REPORT.md 路径 / 等价结果 / 命令退出码 / 建议结论）
+- 回执：2026-10-09 / port/l1-5-impl-c-review-1，报告提交=576c8ca8d26cf8d8cbbc04da9cd24aa8e9c7d4a9（已推 origin） / coord/runs/L1-5-IMPL-C-REVIEW-1/REPORT.md 与同目录机械对照、原始日志 / 15/15 逐字等价（实际 12 平移+3 副本），注册链10/10，旧文件另446函数保持 / build、fastpath、agentloop 均0；首次全量1（chat临时目录cleanup），隔离0、chat整包0、全量确认0（91包）；全部首次证据保留，不作known-flaky豁免 / 建议补证：旧消费面正常注册等价成立，主管需确认宿主留置/副本/panic偏差与D适配边界；417/8334/83未独立复现 / 端测边界=纯Go复核，零真实栈，未合入C实现、未出最终ruling。本卡done仅复核完成待主管验收。
 - 验收：（主管裁定 / 本复核卡验收 commit；与 C 原卡最终裁定分开）
