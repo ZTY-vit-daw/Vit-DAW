@@ -29,7 +29,6 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"time"
 
 	"vit-daw-agent/internal/config"
 	"vit-daw-agent/internal/contextruntime"
@@ -46,18 +45,21 @@ type ToolCall struct {
 
 // ToolResult 是单个工具执行结果。Bytes 进 T1 动态窗计量；HandleRef /
 // EvidenceRefs 是退场三态判据的输入（retain/ref/drop，contextruntime 语义）；
-// ProbeCost 是 render/probe 级物理成本（D5 分级：index 级零成本=0）；
-// ModelLine 是回喂模型的既定渲染行（协议格式归执行适配层，循环不发明协议）。
+// RetainedStatement 是结论级陈述的显式供给通道（上游观察结论，B 卡接线；
+// 非空→retain 判据，WindowUnit 同名语义）；ProbeCost 是 render/probe 级
+// 物理成本（D5 分级：index 级零成本=0）；ModelLine 是回喂模型的既定渲染
+// 行（协议格式归执行适配层，循环不发明协议）。
 type ToolResult struct {
-	ID           string
-	Tool         string
-	Status       string
-	ContentJSON  string
-	Bytes        int64
-	HandleRef    string
-	EvidenceRefs []string
-	ProbeCost    float64
-	ModelLine    string
+	ID                string
+	Tool              string
+	Status            string
+	ContentJSON       string
+	Bytes             int64
+	HandleRef         string
+	EvidenceRefs      []string
+	RetainedStatement string
+	ProbeCost         float64
+	ModelLine         string
 }
 
 // ToolExecutor 是工具批执行的最小缝（§3.3：适配层不是新工具层）。
@@ -138,11 +140,19 @@ type PullLoop struct {
 	Tools ToolExecutor
 	// Exit 触发 T1/T2（contextruntime.ExitExecutor 冻结接口，零改动）；
 	// nil=边界事件丢弃（advisory 形态，同既有 TurnBoundaryHook 挂点语义）。
+	// 生产构造经 NewWiredExitExecutor（exit_wiring.go，B 卡接线面）。
 	Exit contextruntime.ExitExecutor
 	// Router 快路径（§5 占位）；nil-safe 跳过。
 	Router FastPathRouter
 	// Budget 观察预算（§3.4）。
 	Budget ObservationBudget
+	// ColdStart 是冷启动底座只读输入缝（§4.1，B 卡接线）；nil=无底座
+	//（A 阶段形态）。非 nil 时 Run 首装一次 RenderColdStart 产物，之后
+	// 字节恒定。
+	ColdStart ColdStartSource
+	// ExitWiring 是边界事件构造线位（HistoryLimit/HotLimitBytes/时钟；
+	// 零值=A 阶段形态，见 exit_wiring.go）。
+	ExitWiring ExitWiring
 }
 
 // Run 执行七步循环直至终态。循环与 §3.1 步骤序一一对应：
@@ -156,9 +166,11 @@ func (p *PullLoop) Run(ctx context.Context, in GoalInput) Result {
 	}
 	result.Conversation = history
 
-	// 冷启动底座装配（§4.1，一次性）：A 阶段空槽——IMPL-B 落装配器。
-	// 槽位在 assemble 的 SystemSections（session 层 Section，首装挂载后
-	// 字节恒定）；run 级无独立动作。
+	// 冷启动底座装配（§4.1，一次性首装）：从 ColdStart 只读缝渲染一次，
+	// 之后每轮装配挂同一组 Section（字节恒定）。nil 源=空底座（A 阶段
+	// 形态）；缺席事实组经 LayerStates 声明 absent（§2.0 fail-open 但
+	// 显式）。
+	coldStart := p.renderColdStart()
 
 	cycles := 0
 	probeSpent := p.Budget.ProbeCost
@@ -188,8 +200,9 @@ func (p *PullLoop) Run(ctx context.Context, in GoalInput) Result {
 			}
 		}
 
-		// ② 装配：PrefixService（稳定前缀）+动态区（会话状态+预算披露）。
-		assembly, report, err := p.assemble(ctx, in, history, cycles, probeSpent)
+		// ② 装配：PrefixService（稳定前缀含冷启动底座）+动态区（会话状态
+		// +预算披露）。
+		assembly, report, err := p.assemble(ctx, in, history, cycles, probeSpent, coldStart)
 		if ctx.Err() != nil {
 			return p.interrupt(&result, "ctx_done_after_assembly")
 		}
@@ -307,42 +320,45 @@ func (p *PullLoop) Run(ctx context.Context, in GoalInput) Result {
 	}
 }
 
-// assembleColdStart 是 §4.1 冷启动底座挂点。A 阶段返回空（空操作）：
-// 底座=会话首装时由装配器从投影只读面渲染的一次性机械事实段（GENESIS
-// 三事实组同源），字节恒定——装配归 IMPL-B。落点=Stable session Section
-// 进 SystemSections（首装挂载后不再变）。
-func (p *PullLoop) assembleColdStart(in GoalInput) []promptruntime.Section {
-	return nil // IMPL-B 填槽
+// renderColdStart 是 §4.1 冷启动底座首装点（B 卡填槽）：ColdStart 只读缝
+// 一次渲染；nil 源=空底座（A 阶段形态）。产物在 run 内复用（字节恒定）。
+func (p *PullLoop) renderColdStart() ColdStartBase {
+	if p.ColdStart == nil {
+		return ColdStartBase{}
+	}
+	return RenderColdStart(p.ColdStart.ColdStartEngineSnapshot())
 }
 
-// assemble 执行步骤②：四层稳定前缀（A 阶段=冷启动槽，当前空）+动态区
-// （会话状态+预算披露，§3.2）。SessionKey 按 RunID 隔离（P1 append-only
-// 判据跨 turn 可测）。
-func (p *PullLoop) assemble(ctx context.Context, in GoalInput, history []llm.Message, cycles int, probeSpent float64) (promptruntime.Assembly, promptruntime.AssemblyReport, error) {
+// assemble 执行步骤②：稳定前缀（冷启动底座 session Section 族+既有前缀
+// 面）+动态区（会话状态+预算披露，§3.2）。SessionKey 按 RunID 隔离
+// （P1 append-only 判据跨 turn 可测）；缺席事实组经 LayerStates 声明。
+func (p *PullLoop) assemble(ctx context.Context, in GoalInput, history []llm.Message, cycles int, probeSpent float64, coldStart ColdStartBase) (promptruntime.Assembly, promptruntime.AssemblyReport, error) {
 	prefix := p.Prefix
 	if prefix == nil {
 		prefix = promptruntime.NewPrefixService()
 	}
 	return prefix.Assemble(ctx, promptruntime.PrefixRequest{
 		AssemblyInput: promptruntime.AssemblyInput{
-			SystemSections: p.assembleColdStart(in),
+			SystemSections: coldStart.Sections,
 			History:        history,
 			UserSections: []promptruntime.Section{
 				promptruntime.TextSection(promptruntime.SectionRuntime, "pullharness.dynamic",
 					"run state", p.dynamicZone(in, cycles, probeSpent), false),
 			},
 		},
-		SessionKey: "pullharness:" + in.RunID,
+		SessionKey:  "pullharness:" + in.RunID,
+		LayerStates: coldStart.LayerStates(),
 	})
 }
 
-// dynamicZone 是逐轮重算的动态区（§3.2：pull loop 每轮只重算动态区）。
+// dynamicZone 是逐轮重算的动态区（§3.2：pull loop 每轮只重算动态区；
+// §4.2 表行 3/4 落点见 disclosure.go dynamicStateRows）。
 func (p *PullLoop) dynamicZone(in GoalInput, cycles int, probeSpent float64) string {
 	lines := []string{}
 	if text := strings.TrimSpace(in.UserText); text != "" {
 		lines = append(lines, "goal: "+text)
 	}
-	lines = append(lines, p.Budget.Disclosure(cycles, probeSpent))
+	lines = append(lines, dynamicStateRows(cycles, probeSpent, p.Budget)...)
 	return strings.Join(lines, "\n")
 }
 
@@ -378,42 +394,24 @@ func toolModelLines(batch []ToolResult) string {
 	return strings.Join(lines, "\n")
 }
 
-// fireTurnBoundary 触发单批 T1：单元=工具结果行（TurnID 标本批轮次 →
-// turn_end 判据按既有机械规则触发）；热字节=批字节合计；HotLimitBytes=0
-// （A 阶段无动态窗字节线——退出判据面维持 §4.1 既有机械规则）。
-// 返回本批单元与字节（终局 T2 窗面的累计输入）。
+// fireTurnBoundary 触发单批 T1：事件构造落位在 exit_wiring.go
+// BatchTurnEvent（单元=工具结果行，TurnID 标本批轮次 → turn_end 判据按
+// 既有机械规则触发；线位经 ExitWiring）。返回本批单元与字节（终局 T2
+// 窗面的累计输入）。
 func (p *PullLoop) fireTurnBoundary(ctx context.Context, in GoalInput, turnID string, batch []ToolResult) ([]contextruntime.WindowUnit, int64) {
 	if p.Exit == nil {
 		return nil, 0
 	}
-	units := make([]contextruntime.WindowUnit, 0, len(batch))
-	var hotBytes int64
-	for _, toolResult := range batch {
-		units = append(units, contextruntime.WindowUnit{
-			Unit: contextruntime.ExitUnit{
-				Kind: contextruntime.ExitUnitToolResult,
-				ID:   toolResult.ID,
-			},
-			Bytes:        toolResult.Bytes,
-			TurnID:       turnID,
-			HandleRef:    toolResult.HandleRef,
-			EvidenceRefs: toolResult.EvidenceRefs,
-		})
-		hotBytes += toolResult.Bytes
-	}
-	p.Exit.OnTurnBoundary(ctx, contextruntime.TurnBoundaryEvent{
-		TurnID: turnID,
-		Window: contextruntime.WindowState{Units: units},
-		Budget: contextruntime.BudgetState{HotBytes: hotBytes},
-		Now:    time.Now(),
-	})
+	event, units, hotBytes := BatchTurnEvent(turnID, batch, p.ExitWiring)
+	p.Exit.OnTurnBoundary(ctx, event)
 	return units, hotBytes
 }
 
 // finish 是终局出口（终局判定/止损/预算尽/溢出/装配失败/基础设施失败/
-// 快路径短路）：[T2] OnTurnBoundary(RunID)——exit_retain 语义同型
-// （TurnID=RunID 沿既有先例）；窗面=run 累计工具单元（observation 结论级
-// retain 供给归 IMPL-B）。中断面（interrupt）不经此处——暂停面不触发 T2。
+// 快路径短路）：[T2] OnTurnBoundary(RunID)——事件构造落位在
+// exit_wiring.go FinalTurnEvent（TurnID=RunID 沿 exit_retain 先例；窗面
+// =run 累计工具单元，线位经 ExitWiring）。中断面（interrupt）不经此处
+// ——暂停面不触发 T2。
 func (p *PullLoop) finish(ctx context.Context, in GoalInput, result *Result, windowUnits []contextruntime.WindowUnit, windowBytes int64) Result {
 	// Also cover cancellation inside terminal classification. This check only
 	// prevents a subsequent T2; it cannot undo already completed stages.
@@ -422,12 +420,7 @@ func (p *PullLoop) finish(ctx context.Context, in GoalInput, result *Result, win
 	}
 	result.Trace = append(result.Trace, "terminal: outcome="+result.Outcome+" cycles="+itoa(result.Cycles)+" model_turns="+itoa(result.ModelTurns))
 	if p.Exit != nil && strings.TrimSpace(in.RunID) != "" {
-		p.Exit.OnTurnBoundary(ctx, contextruntime.TurnBoundaryEvent{
-			TurnID: in.RunID,
-			Window: contextruntime.WindowState{Units: windowUnits},
-			Budget: contextruntime.BudgetState{HotBytes: windowBytes},
-			Now:    time.Now(),
-		})
+		p.Exit.OnTurnBoundary(ctx, FinalTurnEvent(in.RunID, windowUnits, windowBytes, p.ExitWiring))
 	}
 	return *result
 }
