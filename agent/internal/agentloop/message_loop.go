@@ -86,7 +86,20 @@ type messageLoopOutput struct {
 }
 
 func (l *MessageLoop) Start(ctx context.Context, in Input) Result {
+	// L1-5-IMPL-D 腿3：双模入口分流（缺省 push=下方旧路径零变化；
+	// pull=pullSession 驱动，见 pull_entry.go）。
+	if pullHarnessEnabled() {
+		return l.startPull(ctx, in)
+	}
 	r := l.runner()
+	state := l.buildStartState(r, in)
+	state.input.Conversation = messageLoopInitialTranscript(in)
+	return l.loop(ctx, r, state)
+}
+
+// buildStartState 是 Start 的身份/预算前导（push 与 pull 入口共用；L1-5-IMPL-D
+// 腿3 结构提取自 Start——行为零变化，全量回归断言）。
+func (l *MessageLoop) buildStartState(r *Runner, in Input) *runState {
 	goal := r.ensureGoal(in.GoalID, in.RunID, firstNonEmpty(in.Summary, in.UserText))
 	baseBudget := normalizeBudget(firstNonZeroBudget(in.Budget, l.Budget))
 	if r.Runtime != nil {
@@ -123,11 +136,16 @@ func (l *MessageLoop) Start(ctx context.Context, in Input) Result {
 		state.input.TaskID = goal.Task.TaskID
 		state.input.OriginalIntent = goal.Task.OriginalIntent
 	}
-	state.input.Conversation = messageLoopInitialTranscript(in)
-	return l.loop(ctx, r, &state)
+	return &state
 }
 
 func (l *MessageLoop) Continue(ctx context.Context, cont Continuation) Result {
+	// L1-5-IMPL-D 腿3：pull 分流（handled=false=旧 push 载体 fail-open 走下方旧路径）。
+	if pullHarnessEnabled() {
+		if result, handled := l.continuePull(ctx, cont); handled {
+			return result
+		}
+	}
 	r := l.runner()
 	if r.Runtime == nil {
 		return Result{Status: agentruntime.StatusFailed, StopReason: StopReasonFailed, Error: "goal runtime is nil"}
@@ -197,6 +215,13 @@ func (l *MessageLoop) Continue(ctx context.Context, cont Continuation) Result {
 }
 
 func (l *MessageLoop) ResumeAfterConfirmation(ctx context.Context, cont Continuation) Result {
+	// L1-5-IMPL-D 腿3：pull 分流（确认授权经同一 pull 会话；handled=false=旧
+	// push 载体 fail-open）。
+	if pullHarnessEnabled() {
+		if result, handled := l.resumeConfirmationPull(ctx, cont); handled {
+			return result
+		}
+	}
 	r := l.runner()
 	baseBudget := normalizeBudget(firstNonZeroBudget(cont.Budget, l.Budget))
 	goal := r.ensureGoal(cont.GoalID, cont.RunID, cont.Summary)

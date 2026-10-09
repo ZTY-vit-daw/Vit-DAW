@@ -101,6 +101,10 @@ type Continuation struct {
 	ExecutionMemory   ExecutionMemory      `json:"execution_memory,omitempty"`
 	RecentObservation *RecentObservation   `json:"recent_observation,omitempty"`
 	FreeStateDecision *FreeStateDecision   `json:"free_state_decision,omitempty"`
+
+	// PullCheckpoint 是 pull 模式恢复标记+账本快照（L1-5-IMPL-D；旧记录无
+	// 此字段=push 语义 fail-open——§11.3-4）。仅同进程恢复消费。
+	PullCheckpoint *PullCheckpoint `json:"pull_checkpoint,omitempty"`
 }
 
 type Result struct {

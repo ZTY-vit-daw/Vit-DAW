@@ -559,12 +559,14 @@ func (s *pullSession) commitDraft(step pullharness.Step, draft Result) Result {
 	committed := draft
 	committed.Goal = s.state.goal
 	if !isTerminalGoalStatus(status) {
-		// Suspend：continuation 包装为 PullContinuation（同进程恢复面）。
-		if committed.Continuation != nil {
-			committed.Continuation = nil // 先撤销 legacy 挂载，checkpoint 由 continuationForResume 统一构造
-		}
+		// Suspend：checkpoint（PullContinuation）经 lastCheckpoint 暴露，
+		// 并把 Pull 部分挂到 legacy Continuation 上（chat 侧续跑链路透传；
+		// 旧消费方忽略未知字段，push 语义不受影响）。
 		if pc := s.continuationForResume(draft); pc != nil {
 			s.lastCheckpoint = pc
+			if committed.Continuation != nil {
+				committed.Continuation.PullCheckpoint = pc.Pull
+			}
 		}
 	}
 	return committed

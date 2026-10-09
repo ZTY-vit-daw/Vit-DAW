@@ -31,7 +31,7 @@ func (f *pullTestExecutor) RunToolCall(_ context.Context, in executorpkg.Input) 
 		tool      string
 		confirmed bool
 	}{in.ToolCall.Tool, in.Confirmed})
-	if f.requires != nil && f.requires[strings.TrimSpace(in.ToolCall.Tool)] {
+	if f.requires != nil && f.requires[strings.TrimSpace(in.ToolCall.Tool)] && !in.Confirmed {
 		return executorpkg.Result{
 			ToolCallID: in.ToolCall.ID, Tool: in.ToolCall.Tool, Status: "ok",
 			RequiresConfirmation: true, Preview: "pull preview", UndoLabel: "pull undo",

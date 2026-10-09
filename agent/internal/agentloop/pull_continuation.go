@@ -25,6 +25,8 @@ const pullContinuationSchemaVersion = 1
 // PullCheckpoint 是 pull 侧账本/窗口/边界提交状态的快照（提案 §5.2 表：
 // pull 状态+窗与边界两行的最小面）。
 type PullCheckpoint struct {
+	SchemaVersion   int      `json:"schema_version,omitempty"`
+	HarnessMode     string   `json:"harness_mode,omitempty"`
 	NextCycle       uint64   `json:"next_cycle"`
 	CompletedCycles int      `json:"completed_cycles"`
 	ModelCalls      int      `json:"model_calls"`
@@ -49,6 +51,30 @@ type PullContinuation struct {
 	HarnessMode   string          `json:"harness_mode,omitempty"`
 	Continuation  *Continuation   `json:"continuation"`
 	Pull          *PullCheckpoint `json:"pull_checkpoint,omitempty"`
+}
+
+// ValidateFor 是 checkpoint 的自含校验面（随 legacy Continuation 携带时用；
+// 版本/模式/身份绑定 fail 边界同 PullContinuation.ValidatePull）。
+func (cp *PullCheckpoint) ValidateFor(goalID, runID, projectDir string) error {
+	if cp == nil {
+		return fmt.Errorf("not a pull checkpoint")
+	}
+	if cp.SchemaVersion != pullContinuationSchemaVersion {
+		return fmt.Errorf("pull checkpoint schema version %d unsupported (want %d): rejected, data preserved", cp.SchemaVersion, pullContinuationSchemaVersion)
+	}
+	if cp.HarnessMode != "" && cp.HarnessMode != "pull" {
+		return fmt.Errorf("pull checkpoint harness_mode %q is not pull", cp.HarnessMode)
+	}
+	if cp.GoalID != "" && goalID != "" && cp.GoalID != goalID {
+		return fmt.Errorf("pull checkpoint goal binding mismatch: checkpoint=%q resume=%q", cp.GoalID, goalID)
+	}
+	if cp.RunID != "" && runID != "" && cp.RunID != runID {
+		return fmt.Errorf("pull checkpoint run binding mismatch: checkpoint=%q resume=%q", cp.RunID, runID)
+	}
+	if cp.ProjectDir != "" && projectDir != "" && cp.ProjectDir != projectDir {
+		return fmt.Errorf("pull checkpoint project binding mismatch: checkpoint=%q resume=%q", cp.ProjectDir, projectDir)
+	}
+	return nil
 }
 
 // IsPull 报告该载体是否携带 pull checkpoint（否则按旧 push 语义解释）。
@@ -102,6 +128,8 @@ func (s *pullSession) continuationForResume(draft Result) *PullContinuation {
 		HarnessMode:   "pull",
 		Continuation:  legacy,
 		Pull: &PullCheckpoint{
+			SchemaVersion:   pullContinuationSchemaVersion,
+			HarnessMode:     "pull",
 			NextCycle:       s.ledger.nextCycle + 1,
 			CompletedCycles: s.ledger.completedCycles,
 			ModelCalls:      s.ledger.modelCalls,
