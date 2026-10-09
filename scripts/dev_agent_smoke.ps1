@@ -5189,19 +5189,49 @@ if ($ScenarioMode) {
                 if ($null -ne $_.section_stats) { $abVal = $_.section_stats.dynamic_bytes }
                 if ($abVal -is [int] -or $abVal -is [long] -or $abVal -is [double]) { [int]$abVal }
             })
-            $abBreaks = @($abCalls | ForEach-Object {
-                $abVal = $null
-                if ($null -ne $_.section_stats) { $abVal = $_.section_stats.breaks }
-                if ($abVal -is [int] -or $abVal -is [long] -or $abVal -is [double]) { [int]$abVal }
-            })
             $abFingerprints = @($abCalls | ForEach-Object { [string]$_.prompt_fingerprint } | Where-Object { $_ -ne "" })
             $abFingerprintGroups = $abFingerprints | Group-Object | Sort-Object Count -Descending
             # P1: calls sharing the modal fingerprint (prefix byte-stability
-            # proxy); P2: break-bearing calls; P3: dynamic/prefix byte split
-            # presence (structural isolation, counted when both fields exist).
+            # proxy); P2: prefix-breaking break-bearing calls -- section_stats.
+            # breaks is a JSON ARRAY of "reason:section" strings (promptruntime
+            # BreakEvent), never a scalar: count calls carrying at least one
+            # PrefixBreaking reason (ruleset_changed/profile_updated/
+            # env_changed, prefix_service.go BreakReason.PrefixBreaking) and
+            # decompose per reason; history_window_slid/snapshot_rotated carry
+            # section "dynamic" (dynamic-zone visibility only, not prefix-
+            # breaking) and are recorded in the same breakdown. P3: dynamic/
+            # prefix byte split presence (structural isolation).
+            $abP2BreakCalls = 0
+            $abBreakReasonCounts = @{}
+            $abBreakSectionCounts = @{}
+            foreach ($abCall in $abCalls) {
+                $abCallBreaks = $null
+                if ($null -ne $abCall.section_stats) { $abCallBreaks = $abCall.section_stats.breaks }
+                $abCallPrefixBreaking = $false
+                if ($abCallBreaks -is [System.Array]) {
+                    foreach ($abBreakEntry in $abCallBreaks) {
+                        $abBreakText = [string]$abBreakEntry
+                        $abReason = $abBreakText
+                        $abSection = ""
+                        if ($abBreakText.Contains(":")) {
+                            $abReason = $abBreakText.Substring(0, $abBreakText.IndexOf(":"))
+                            $abSection = $abBreakText.Substring($abBreakText.IndexOf(":") + 1)
+                        }
+                        if (-not $abBreakReasonCounts.ContainsKey($abReason)) { $abBreakReasonCounts[$abReason] = 0 }
+                        $abBreakReasonCounts[$abReason]++
+                        if ($abSection -ne "") {
+                            if (-not $abBreakSectionCounts.ContainsKey($abBreakText)) { $abBreakSectionCounts[$abBreakText] = 0 }
+                            $abBreakSectionCounts[$abBreakText]++
+                        }
+                        if ($abReason -in @("ruleset_changed", "profile_updated", "env_changed")) {
+                            $abCallPrefixBreaking = $true
+                        }
+                    }
+                }
+                if ($abCallPrefixBreaking) { $abP2BreakCalls++ }
+            }
             $abP1StableCalls = 0
             if ($abFingerprintGroups.Count -gt 0) { $abP1StableCalls = [int]($abFingerprintGroups[0].Count) }
-            $abP2BreakCalls = @($abBreaks | Where-Object { $_ -gt 0 }).Count
             $abP3IsolatedCalls = 0
             if ($abPrefixBytes.Count -gt 0 -and $abDynamicBytes.Count -gt 0) { $abP3IsolatedCalls = [Math]::Min($abPrefixBytes.Count, $abDynamicBytes.Count) }
             $abPrefixTotal = 0
@@ -5233,6 +5263,8 @@ if ($ScenarioMode) {
                     p1_stable_calls = $abP1StableCalls
                     p1_distinct_fingerprints = $abFingerprintGroups.Count
                     p2_break_calls = $abP2BreakCalls
+                    p2_break_reasons = $abBreakReasonCounts
+                    p2_break_sections = $abBreakSectionCounts
                     p3_isolated_calls = $abP3IsolatedCalls
                 }
                 agent_log = $abAgentLog

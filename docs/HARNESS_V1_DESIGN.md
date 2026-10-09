@@ -281,8 +281,9 @@ flag→goalrunner/agentloop 入口路由（缺省 push 旧行为零变化断言�
 
 - 场景：`scripts/dev_agent_smoke.ps1 -Scenario harness_ab`（berth 全栈独占：内核+按模式重启的 agent+J1 双 stem fixture+full_project_access；§8 纪律预写于场景注释：轮数/成功条件/失败分类/止损线）。
 - 指标三层：判定链 outcome 分层（逐轮分类 JSON）/成本（LLM telemetry JSONL 按 source=message_loop|pullharness 归属+prefix/dynamic 字节）/前缀命中（P2 断裂计数+P3 动静分离+P1 指纹代理——P1 判据受整装配指纹限制，见裁定报告归因卡②）。
-- 结果与裁定：`coord/runs/L1-5-IMPL-D/G3-RULING.md`（run 20261009_195558，exit 0；建议=不切换+两轴差异归因卡）。
+- 结果与裁定：`coord/runs/L1-5-IMPL-D/G3-RULING.md`（run 20261009_195558，exit 0；建议=不切换+两轴差异归因卡）。首轮裁定（2026-10-09 rulings）=补证返工：P2 计算类型缺陷修正（breaks 为 reason:section 字符串数组）+既有遥测离线复算（`20261009_205504_p2_recompute/`：push 0/5、pull 6/13——全部 `ruleset_changed:pullharness.protocol`）+断裂机理成文（提示族切换+族内逐轮可变块；接线缺陷登记修复项：协议段拆"稳定骨架+逐轮指令"双段，复用 L1-4 中性族拆分面）；"不切换"结论经复核维持（断裂事实为新增依据）。
 
 ### 12.3 已知边界（G3 报告 §4 同源）
 
 - 确认往返真栈面未行使（单测覆盖，归归因卡①）；probe 计量源缺失（unknown 如实披露）；pull 冷启动 engine_snapshot 供给面待接（chat 目标上下文未携带→absent 显式）；chat 直连管线未迁移（OQ-H3 归 G3 后切换卡）。
+- **pull 协议段会话内断裂（返工确认的接线缺陷）**：宿主逐 Snapshot 渲染的 `messageLoopSystemPrompt` 含状态依赖块（自由态族切换+allowed tools/逐轮指令），驱动以 stable=true 挂载 → 族切换与族内漂移均触发 ruleset_changed:P2（真栈 6/13 调用）；修复项（归因卡②b）=协议段拆"字节稳定骨架（stable=true）+逐轮指令（stable=false/动态区）"双段。

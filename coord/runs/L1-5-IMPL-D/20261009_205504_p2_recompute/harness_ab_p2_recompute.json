@@ -1,0 +1,348 @@
+﻿{
+    "recomputed_at":  "2026-10-09T20:55:38.5810155+08:00",
+    "schema":  "harness_ab_p2_recompute.v1",
+    "source_run":  "D:\\Vit_DAW_wt_l5d\\coord\\runs\\L1-5-IMPL-D\\20261009_195558",
+    "modes":  {
+                  "push":  {
+                               "goals":  {
+                                             "goal_5d2c26a4d35920b6":  {
+                                                                           "breaks_sequence":  [
+
+                                                                                               ],
+                                                                           "prefix_bytes_sequence":  [
+                                                                                                         14207
+                                                                                                     ],
+                                                                           "prefix_breaking_calls":  0,
+                                                                           "calls":  1
+                                                                       },
+                                             "goal_1a752c51ca33ba02":  {
+                                                                           "breaks_sequence":  [
+
+                                                                                               ],
+                                                                           "prefix_bytes_sequence":  [
+                                                                                                         14207,
+                                                                                                         14207
+                                                                                                     ],
+                                                                           "prefix_breaking_calls":  0,
+                                                                           "calls":  2
+                                                                       },
+                                             "goal_23f680f947e4bd29":  {
+                                                                           "breaks_sequence":  [
+
+                                                                                               ],
+                                                                           "prefix_bytes_sequence":  [
+                                                                                                         14207,
+                                                                                                         14207
+                                                                                                     ],
+                                                                           "prefix_breaking_calls":  0,
+                                                                           "calls":  2
+                                                                       }
+                                         },
+                               "p2_break_sections":  {
+
+                                                     },
+                               "p2_break_reasons":  {
+
+                                                    },
+                               "p2_break_calls":  0,
+                               "calls":  [
+                                             {
+                                                 "prefix_bytes":  14207,
+                                                 "message_count":  2,
+                                                 "goal_id":  "goal_1a752c51ca33ba02",
+                                                 "created_at":  "2026-10-09T11:56:16.143561Z",
+                                                 "breaks":  [
+
+                                                            ],
+                                                 "prefix_breaking":  false,
+                                                 "dynamic_bytes":  35946
+                                             },
+                                             {
+                                                 "prefix_bytes":  14207,
+                                                 "message_count":  2,
+                                                 "goal_id":  "goal_1a752c51ca33ba02",
+                                                 "created_at":  "2026-10-09T11:56:24.2825108Z",
+                                                 "breaks":  [
+
+                                                            ],
+                                                 "prefix_breaking":  false,
+                                                 "dynamic_bytes":  42665
+                                             },
+                                             {
+                                                 "prefix_bytes":  14207,
+                                                 "message_count":  2,
+                                                 "goal_id":  "goal_23f680f947e4bd29",
+                                                 "created_at":  "2026-10-09T11:56:34.9449579Z",
+                                                 "breaks":  [
+
+                                                            ],
+                                                 "prefix_breaking":  false,
+                                                 "dynamic_bytes":  35946
+                                             },
+                                             {
+                                                 "prefix_bytes":  14207,
+                                                 "message_count":  2,
+                                                 "goal_id":  "goal_23f680f947e4bd29",
+                                                 "created_at":  "2026-10-09T11:56:39.5860641Z",
+                                                 "breaks":  [
+
+                                                            ],
+                                                 "prefix_breaking":  false,
+                                                 "dynamic_bytes":  42683
+                                             },
+                                             {
+                                                 "prefix_bytes":  14207,
+                                                 "message_count":  2,
+                                                 "goal_id":  "goal_5d2c26a4d35920b6",
+                                                 "created_at":  "2026-10-09T11:56:45.772464Z",
+                                                 "breaks":  [
+
+                                                            ],
+                                                 "prefix_breaking":  false,
+                                                 "dynamic_bytes":  35946
+                                             }
+                                         ],
+                               "llm_calls":  5
+                           },
+                  "pull":  {
+                               "goals":  {
+                                             "goal_dc9a481f7f2ef14b":  {
+                                                                           "breaks_sequence":  [
+                                                                                                   "ruleset_changed:pullharness.protocol",
+                                                                                                   "history_window_slid:dynamic",
+                                                                                                   "snapshot_rotated:dynamic",
+                                                                                                   "ruleset_changed:pullharness.protocol",
+                                                                                                   "history_window_slid:dynamic",
+                                                                                                   "snapshot_rotated:dynamic",
+                                                                                                   "history_window_slid:dynamic",
+                                                                                                   "snapshot_rotated:dynamic"
+                                                                                               ],
+                                                                           "prefix_bytes_sequence":  [
+                                                                                                         34027,
+                                                                                                         33279,
+                                                                                                         33526,
+                                                                                                         33526
+                                                                                                     ],
+                                                                           "prefix_breaking_calls":  2,
+                                                                           "calls":  4
+                                                                       },
+                                             "goal_0c6624926809dc1d":  {
+                                                                           "breaks_sequence":  [
+                                                                                                   "ruleset_changed:pullharness.protocol",
+                                                                                                   "history_window_slid:dynamic",
+                                                                                                   "snapshot_rotated:dynamic",
+                                                                                                   "ruleset_changed:pullharness.protocol",
+                                                                                                   "history_window_slid:dynamic",
+                                                                                                   "snapshot_rotated:dynamic",
+                                                                                                   "history_window_slid:dynamic",
+                                                                                                   "snapshot_rotated:dynamic"
+                                                                                               ],
+                                                                           "prefix_bytes_sequence":  [
+                                                                                                         34027,
+                                                                                                         34274,
+                                                                                                         33526,
+                                                                                                         33526
+                                                                                                     ],
+                                                                           "prefix_breaking_calls":  2,
+                                                                           "calls":  4
+                                                                       },
+                                             "goal_7952e3683da4cfec":  {
+                                                                           "breaks_sequence":  [
+                                                                                                   "ruleset_changed:pullharness.protocol",
+                                                                                                   "history_window_slid:dynamic",
+                                                                                                   "snapshot_rotated:dynamic",
+                                                                                                   "history_window_slid:dynamic",
+                                                                                                   "snapshot_rotated:dynamic",
+                                                                                                   "ruleset_changed:pullharness.protocol",
+                                                                                                   "history_window_slid:dynamic",
+                                                                                                   "snapshot_rotated:dynamic",
+                                                                                                   "history_window_slid:dynamic",
+                                                                                                   "snapshot_rotated:dynamic"
+                                                                                               ],
+                                                                           "prefix_bytes_sequence":  [
+                                                                                                         34027,
+                                                                                                         33279,
+                                                                                                         33279,
+                                                                                                         33526,
+                                                                                                         33526
+                                                                                                     ],
+                                                                           "prefix_breaking_calls":  2,
+                                                                           "calls":  5
+                                                                       }
+                                         },
+                               "p2_break_sections":  {
+                                                         "ruleset_changed:pullharness.protocol":  6,
+                                                         "history_window_slid:dynamic":  10,
+                                                         "snapshot_rotated:dynamic":  10
+                                                     },
+                               "p2_break_reasons":  {
+                                                        "snapshot_rotated":  10,
+                                                        "ruleset_changed":  6,
+                                                        "history_window_slid":  10
+                                                    },
+                               "p2_break_calls":  6,
+                               "calls":  [
+                                             {
+                                                 "prefix_bytes":  34027,
+                                                 "message_count":  10,
+                                                 "goal_id":  "goal_0c6624926809dc1d",
+                                                 "created_at":  "2026-10-09T11:56:52.6198105Z",
+                                                 "breaks":  [
+
+                                                            ],
+                                                 "prefix_breaking":  false,
+                                                 "dynamic_bytes":  834
+                                             },
+                                             {
+                                                 "prefix_bytes":  34274,
+                                                 "message_count":  12,
+                                                 "goal_id":  "goal_0c6624926809dc1d",
+                                                 "created_at":  "2026-10-09T11:56:56.1522761Z",
+                                                 "breaks":  [
+                                                                "ruleset_changed:pullharness.protocol",
+                                                                "history_window_slid:dynamic",
+                                                                "snapshot_rotated:dynamic"
+                                                            ],
+                                                 "prefix_breaking":  true,
+                                                 "dynamic_bytes":  916
+                                             },
+                                             {
+                                                 "prefix_bytes":  33526,
+                                                 "message_count":  14,
+                                                 "goal_id":  "goal_0c6624926809dc1d",
+                                                 "created_at":  "2026-10-09T11:57:18.1032458Z",
+                                                 "breaks":  [
+                                                                "ruleset_changed:pullharness.protocol",
+                                                                "history_window_slid:dynamic",
+                                                                "snapshot_rotated:dynamic"
+                                                            ],
+                                                 "prefix_breaking":  true,
+                                                 "dynamic_bytes":  916
+                                             },
+                                             {
+                                                 "prefix_bytes":  33526,
+                                                 "message_count":  16,
+                                                 "goal_id":  "goal_0c6624926809dc1d",
+                                                 "created_at":  "2026-10-09T11:57:28.8743385Z",
+                                                 "breaks":  [
+                                                                "history_window_slid:dynamic",
+                                                                "snapshot_rotated:dynamic"
+                                                            ],
+                                                 "prefix_breaking":  false,
+                                                 "dynamic_bytes":  916
+                                             },
+                                             {
+                                                 "prefix_bytes":  34027,
+                                                 "message_count":  10,
+                                                 "goal_id":  "goal_dc9a481f7f2ef14b",
+                                                 "created_at":  "2026-10-09T11:57:44.29825Z",
+                                                 "breaks":  [
+
+                                                            ],
+                                                 "prefix_breaking":  false,
+                                                 "dynamic_bytes":  834
+                                             },
+                                             {
+                                                 "prefix_bytes":  33279,
+                                                 "message_count":  12,
+                                                 "goal_id":  "goal_dc9a481f7f2ef14b",
+                                                 "created_at":  "2026-10-09T11:58:00.80716Z",
+                                                 "breaks":  [
+                                                                "ruleset_changed:pullharness.protocol",
+                                                                "history_window_slid:dynamic",
+                                                                "snapshot_rotated:dynamic"
+                                                            ],
+                                                 "prefix_breaking":  true,
+                                                 "dynamic_bytes":  916
+                                             },
+                                             {
+                                                 "prefix_bytes":  33526,
+                                                 "message_count":  14,
+                                                 "goal_id":  "goal_dc9a481f7f2ef14b",
+                                                 "created_at":  "2026-10-09T11:58:05.6907283Z",
+                                                 "breaks":  [
+                                                                "ruleset_changed:pullharness.protocol",
+                                                                "history_window_slid:dynamic",
+                                                                "snapshot_rotated:dynamic"
+                                                            ],
+                                                 "prefix_breaking":  true,
+                                                 "dynamic_bytes":  916
+                                             },
+                                             {
+                                                 "prefix_bytes":  33526,
+                                                 "message_count":  16,
+                                                 "goal_id":  "goal_dc9a481f7f2ef14b",
+                                                 "created_at":  "2026-10-09T11:58:12.7257561Z",
+                                                 "breaks":  [
+                                                                "history_window_slid:dynamic",
+                                                                "snapshot_rotated:dynamic"
+                                                            ],
+                                                 "prefix_breaking":  false,
+                                                 "dynamic_bytes":  916
+                                             },
+                                             {
+                                                 "prefix_bytes":  34027,
+                                                 "message_count":  10,
+                                                 "goal_id":  "goal_7952e3683da4cfec",
+                                                 "created_at":  "2026-10-09T11:58:22.8834862Z",
+                                                 "breaks":  [
+
+                                                            ],
+                                                 "prefix_breaking":  false,
+                                                 "dynamic_bytes":  834
+                                             },
+                                             {
+                                                 "prefix_bytes":  33279,
+                                                 "message_count":  12,
+                                                 "goal_id":  "goal_7952e3683da4cfec",
+                                                 "created_at":  "2026-10-09T11:58:48.6077835Z",
+                                                 "breaks":  [
+                                                                "ruleset_changed:pullharness.protocol",
+                                                                "history_window_slid:dynamic",
+                                                                "snapshot_rotated:dynamic"
+                                                            ],
+                                                 "prefix_breaking":  true,
+                                                 "dynamic_bytes":  916
+                                             },
+                                             {
+                                                 "prefix_bytes":  33279,
+                                                 "message_count":  14,
+                                                 "goal_id":  "goal_7952e3683da4cfec",
+                                                 "created_at":  "2026-10-09T11:58:52.0729967Z",
+                                                 "breaks":  [
+                                                                "history_window_slid:dynamic",
+                                                                "snapshot_rotated:dynamic"
+                                                            ],
+                                                 "prefix_breaking":  false,
+                                                 "dynamic_bytes":  916
+                                             },
+                                             {
+                                                 "prefix_bytes":  33526,
+                                                 "message_count":  16,
+                                                 "goal_id":  "goal_7952e3683da4cfec",
+                                                 "created_at":  "2026-10-09T11:58:54.4252802Z",
+                                                 "breaks":  [
+                                                                "ruleset_changed:pullharness.protocol",
+                                                                "history_window_slid:dynamic",
+                                                                "snapshot_rotated:dynamic"
+                                                            ],
+                                                 "prefix_breaking":  true,
+                                                 "dynamic_bytes":  916
+                                             },
+                                             {
+                                                 "prefix_bytes":  33526,
+                                                 "message_count":  18,
+                                                 "goal_id":  "goal_7952e3683da4cfec",
+                                                 "created_at":  "2026-10-09T11:59:00.9872369Z",
+                                                 "breaks":  [
+                                                                "history_window_slid:dynamic",
+                                                                "snapshot_rotated:dynamic"
+                                                            ],
+                                                 "prefix_breaking":  false,
+                                                 "dynamic_bytes":  916
+                                             }
+                                         ],
+                               "llm_calls":  13
+                           }
+              }
+}
