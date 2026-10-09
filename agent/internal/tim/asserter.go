@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"sort"
+	"strings"
 )
 
 // Structural assertion layer v1 (docs/TIM_ASSERTER_V1_DESIGN.md).
@@ -102,6 +103,11 @@ type AssertInput struct {
 	KnownPluginPaths  map[string]bool
 	CeilingDBFS       float64
 	PluginListHygiene map[string]any
+	// ObservationID is the TIM observation identity this assertion pass is
+	// bound to; vit://mom evidence refs carry it as the snapshot segment
+	// (REFSCHEMA-M2X-1). Empty identity keeps rows without mix.read data refs
+	// rather than fabricating a snapshot (M2 宁缺勿假同款).
+	ObservationID string
 }
 
 // RackNode is the compact per-node routing fact consumed by the routing and
@@ -140,34 +146,45 @@ type RackSummary struct {
 // agent logx logger is host-side work; nil keeps Build silent and pure.
 var AssertWarnLogger func(line string)
 
-var acousticAssertionRefs = []string{"mix.read:project.tracks.summary", "mix.read:project.acoustic.tracks"}
-var rackAssertionRefs = []string{"mix.read:project.tracks.summary"}
+// acousticAssertionRefs / rackAssertionRefs render the mix.read 数据键族
+// refs in the REFSCHEMA-M2X-1 vit://mom form (snapshot=observation_id 身份族
+// 语义)；identity-less passes emit no data refs. hygieneAssertionRefs is the
+// project.state: family — out of scope for M2X, legacy literal retained.
+func acousticAssertionRefs(observationID string) []string {
+	return mixReadRefs(observationID, "project.tracks.summary", "project.acoustic.tracks")
+}
+
+func rackAssertionRefs(observationID string) []string {
+	return mixReadRefs(observationID, "project.tracks.summary")
+}
+
 var hygieneAssertionRefs = []string{"project.state:plugin_list_hygiene"}
 
 // Evaluate runs every v1 asserter (AS-SIG / AS-PEAK / AS-SR / AS-ROUTE /
 // AS-PLUGIN / AS-HYGIENE) and returns one row per (check, scope). Pure: same
 // input, same output; the only side effect is optional WARN lines via
-// AssertWarnLogger.
+// the injected logger hook.
 func Evaluate(input AssertInput) []AssertionResult {
+	observationID := strings.TrimSpace(input.ObservationID)
 	results := []AssertionResult{}
-	results = append(results, evaluateSignalHygiene(input.TrackFacts)...)
-	results = append(results, evaluateLevelCeiling(input.TrackFacts, input.CeilingDBFS)...)
-	results = append(results, evaluateSampleRate(input.TrackFacts, input.ProjectSampleRateHz)...)
-	results = append(results, evaluateRouting(input.RackSummaries)...)
-	results = append(results, evaluatePluginLegality(input.RackSummaries, input.KnownPluginPaths)...)
+	results = append(results, evaluateSignalHygiene(input.TrackFacts, observationID)...)
+	results = append(results, evaluateLevelCeiling(input.TrackFacts, input.CeilingDBFS, observationID)...)
+	results = append(results, evaluateSampleRate(input.TrackFacts, input.ProjectSampleRateHz, observationID)...)
+	results = append(results, evaluateRouting(input.RackSummaries, observationID)...)
+	results = append(results, evaluatePluginLegality(input.RackSummaries, input.KnownPluginPaths, observationID)...)
 	results = append(results, evaluatePluginHygiene(input.PluginListHygiene)...)
-	results = append(results, evaluateBlockSize(input.TrackFacts, input.ProjectBlockSize)...)
-	results = append(results, evaluatePluginLoadState(input.RackSummaries)...)
+	results = append(results, evaluateBlockSize(input.TrackFacts, input.ProjectBlockSize, observationID)...)
+	results = append(results, evaluatePluginLoadState(input.RackSummaries, observationID)...)
 	warnAssertionFailures(results)
 	return results
 }
 
-func evaluateSignalHygiene(facts []TrackFact) []AssertionResult {
+func evaluateSignalHygiene(facts []TrackFact, observationID string) []AssertionResult {
 	out := []AssertionResult{}
 	for _, fact := range facts {
 		// P1 nonfinite: nan_count + inf_count must be zero.
 		if fact.NanCount == nil && fact.InfCount == nil {
-			out = append(out, assertionRow("signal_hygiene", "signal_nonfinite", AssertionStatusNotEvaluable, fact.TrackID, codeSignalNonfiniteNE, nil, nil, acousticAssertionRefs))
+			out = append(out, assertionRow("signal_hygiene", "signal_nonfinite", AssertionStatusNotEvaluable, fact.TrackID, codeSignalNonfiniteNE, nil, nil, acousticAssertionRefs(observationID)))
 		} else {
 			total := 0
 			if fact.NanCount != nil {
@@ -177,29 +194,29 @@ func evaluateSignalHygiene(facts []TrackFact) []AssertionResult {
 				total += *fact.InfCount
 			}
 			if total == 0 {
-				out = append(out, passRow("signal_hygiene", "signal_nonfinite", fact.TrackID, floatPtr(0), floatPtr(0), acousticAssertionRefs))
+				out = append(out, passRow("signal_hygiene", "signal_nonfinite", fact.TrackID, floatPtr(0), floatPtr(0), acousticAssertionRefs(observationID)))
 			} else {
-				out = append(out, failRow("signal_hygiene", "signal_nonfinite", fact.TrackID, codeSignalNonfinite, floatPtr(float64(total)), floatPtr(0), acousticAssertionRefs))
+				out = append(out, failRow("signal_hygiene", "signal_nonfinite", fact.TrackID, codeSignalNonfinite, floatPtr(float64(total)), floatPtr(0), acousticAssertionRefs(observationID)))
 			}
 		}
 		// P3 dc_offset (TIM-KERNEL-HYGIENE-1 Item 2): the signed mean of the
 		// finite samples stays at or below the exposed warn threshold. The
 		// absolute value rides on the row; missing key stays not_evaluable.
 		if fact.DCOffset == nil {
-			out = append(out, assertionRow("signal_hygiene", "dc_offset", AssertionStatusNotEvaluable, fact.TrackID, codeSignalDCOffsetNE, nil, nil, acousticAssertionRefs))
+			out = append(out, assertionRow("signal_hygiene", "dc_offset", AssertionStatusNotEvaluable, fact.TrackID, codeSignalDCOffsetNE, nil, nil, acousticAssertionRefs(observationID)))
 		} else {
 			absolute := math.Abs(*fact.DCOffset)
 			if absolute > SignalDCOffsetWarnLinear {
-				out = append(out, failRow("signal_hygiene", "dc_offset", fact.TrackID, codeSignalDCOffset, floatPtr(absolute), floatPtr(SignalDCOffsetWarnLinear), acousticAssertionRefs))
+				out = append(out, failRow("signal_hygiene", "dc_offset", fact.TrackID, codeSignalDCOffset, floatPtr(absolute), floatPtr(SignalDCOffsetWarnLinear), acousticAssertionRefs(observationID)))
 			} else {
-				out = append(out, passRow("signal_hygiene", "dc_offset", fact.TrackID, floatPtr(absolute), floatPtr(SignalDCOffsetWarnLinear), acousticAssertionRefs))
+				out = append(out, passRow("signal_hygiene", "dc_offset", fact.TrackID, floatPtr(absolute), floatPtr(SignalDCOffsetWarnLinear), acousticAssertionRefs(observationID)))
 			}
 		}
 		// P2 clipping_headroom: peak below the clip ceiling and headroom above
 		// the floor. Same semantics as the existing issue code.
 		peak, headroom := fact.PeakDBFS, fact.HeadroomDB
 		if peak == nil && headroom == nil {
-			out = append(out, assertionRow("signal_hygiene", "clipping_headroom", AssertionStatusNotEvaluable, fact.TrackID, codeClippingHeadroomNE, nil, nil, acousticAssertionRefs))
+			out = append(out, assertionRow("signal_hygiene", "clipping_headroom", AssertionStatusNotEvaluable, fact.TrackID, codeClippingHeadroomNE, nil, nil, acousticAssertionRefs(observationID)))
 			continue
 		}
 		failing := false
@@ -219,59 +236,59 @@ func evaluateSignalHygiene(facts []TrackFact) []AssertionResult {
 			}
 		}
 		if failing {
-			out = append(out, failRow("signal_hygiene", "clipping_headroom", fact.TrackID, codeClippingHeadroom, value, threshold, acousticAssertionRefs))
+			out = append(out, failRow("signal_hygiene", "clipping_headroom", fact.TrackID, codeClippingHeadroom, value, threshold, acousticAssertionRefs(observationID)))
 		} else {
-			out = append(out, passRow("signal_hygiene", "clipping_headroom", fact.TrackID, value, threshold, acousticAssertionRefs))
+			out = append(out, passRow("signal_hygiene", "clipping_headroom", fact.TrackID, value, threshold, acousticAssertionRefs(observationID)))
 		}
 	}
 	return out
 }
 
-func evaluateLevelCeiling(facts []TrackFact, ceiling float64) []AssertionResult {
+func evaluateLevelCeiling(facts []TrackFact, ceiling float64, observationID string) []AssertionResult {
 	out := []AssertionResult{}
 	for _, fact := range facts {
 		if fact.PeakDBFS == nil {
-			out = append(out, assertionRow("level_ceiling", "ceiling", AssertionStatusNotEvaluable, fact.TrackID, codeLevelCeilingNE, nil, nil, acousticAssertionRefs))
+			out = append(out, assertionRow("level_ceiling", "ceiling", AssertionStatusNotEvaluable, fact.TrackID, codeLevelCeilingNE, nil, nil, acousticAssertionRefs(observationID)))
 			continue
 		}
 		// Single-sided semantics: sample peak above the ceiling proves true
 		// peak exceeds it; a passing sample peak does not prove compliance
 		// (standing limitation, never a pass-only guarantee).
 		if *fact.PeakDBFS > ceiling {
-			out = append(out, failRow("level_ceiling", "ceiling", fact.TrackID, codeLevelCeilingExceeded, floatPtr(*fact.PeakDBFS), floatPtr(ceiling), acousticAssertionRefs))
+			out = append(out, failRow("level_ceiling", "ceiling", fact.TrackID, codeLevelCeilingExceeded, floatPtr(*fact.PeakDBFS), floatPtr(ceiling), acousticAssertionRefs(observationID)))
 		} else {
-			out = append(out, passRow("level_ceiling", "ceiling", fact.TrackID, floatPtr(*fact.PeakDBFS), floatPtr(ceiling), acousticAssertionRefs))
+			out = append(out, passRow("level_ceiling", "ceiling", fact.TrackID, floatPtr(*fact.PeakDBFS), floatPtr(ceiling), acousticAssertionRefs(observationID)))
 		}
 	}
 	return out
 }
 
-func evaluateSampleRate(facts []TrackFact, projectHz *float64) []AssertionResult {
+func evaluateSampleRate(facts []TrackFact, projectHz *float64, observationID string) []AssertionResult {
 	out := []AssertionResult{}
 	if projectHz == nil {
 		// Project settings missing: the whole asserter stays not_evaluable.
-		out = append(out, assertionRow("sample_rate", "consistency", AssertionStatusNotEvaluable, "", codeSampleRateNE, nil, nil, acousticAssertionRefs))
+		out = append(out, assertionRow("sample_rate", "consistency", AssertionStatusNotEvaluable, "", codeSampleRateNE, nil, nil, acousticAssertionRefs(observationID)))
 		return out
 	}
 	for _, fact := range facts {
 		if fact.SampleRateHz <= 0 {
-			out = append(out, assertionRow("sample_rate", "consistency", AssertionStatusNotEvaluable, fact.TrackID, codeSampleRateNE, nil, nil, acousticAssertionRefs))
+			out = append(out, assertionRow("sample_rate", "consistency", AssertionStatusNotEvaluable, fact.TrackID, codeSampleRateNE, nil, nil, acousticAssertionRefs(observationID)))
 			continue
 		}
 		if fact.SampleRateHz != *projectHz {
-			out = append(out, failRow("sample_rate", "consistency", fact.TrackID, codeSampleRateMismatch, floatPtr(fact.SampleRateHz), floatPtr(*projectHz), acousticAssertionRefs))
+			out = append(out, failRow("sample_rate", "consistency", fact.TrackID, codeSampleRateMismatch, floatPtr(fact.SampleRateHz), floatPtr(*projectHz), acousticAssertionRefs(observationID)))
 		} else {
-			out = append(out, passRow("sample_rate", "consistency", fact.TrackID, floatPtr(fact.SampleRateHz), floatPtr(*projectHz), acousticAssertionRefs))
+			out = append(out, passRow("sample_rate", "consistency", fact.TrackID, floatPtr(fact.SampleRateHz), floatPtr(*projectHz), acousticAssertionRefs(observationID)))
 		}
 	}
 	return out
 }
 
-func evaluateRouting(racks []RackSummary) []AssertionResult {
+func evaluateRouting(racks []RackSummary, observationID string) []AssertionResult {
 	out := []AssertionResult{}
 	if len(racks) == 0 {
-		out = append(out, assertionRow("routing", "dead_end", AssertionStatusNotEvaluable, "", codeRoutingNE, nil, nil, rackAssertionRefs))
-		out = append(out, assertionRow("routing", "cycle", AssertionStatusNotEvaluable, "", codeRoutingNE, nil, nil, rackAssertionRefs))
+		out = append(out, assertionRow("routing", "dead_end", AssertionStatusNotEvaluable, "", codeRoutingNE, nil, nil, rackAssertionRefs(observationID)))
+		out = append(out, assertionRow("routing", "cycle", AssertionStatusNotEvaluable, "", codeRoutingNE, nil, nil, rackAssertionRefs(observationID)))
 		return out
 	}
 	for _, rack := range racks {
@@ -282,15 +299,15 @@ func evaluateRouting(racks []RackSummary) []AssertionResult {
 			}
 		}
 		if deadEnds > 0 {
-			out = append(out, failRow("routing", "dead_end", rack.TrackID, codeRoutingDeadEnd, floatPtr(float64(deadEnds)), floatPtr(0), rackAssertionRefs))
+			out = append(out, failRow("routing", "dead_end", rack.TrackID, codeRoutingDeadEnd, floatPtr(float64(deadEnds)), floatPtr(0), rackAssertionRefs(observationID)))
 		} else {
-			out = append(out, passRow("routing", "dead_end", rack.TrackID, floatPtr(0), floatPtr(0), rackAssertionRefs))
+			out = append(out, passRow("routing", "dead_end", rack.TrackID, floatPtr(0), floatPtr(0), rackAssertionRefs(observationID)))
 		}
 	}
 	if routingGraphHasCycle(racks) {
-		out = append(out, failRow("routing", "cycle", "", codeRoutingCycle, floatPtr(1), floatPtr(0), rackAssertionRefs))
+		out = append(out, failRow("routing", "cycle", "", codeRoutingCycle, floatPtr(1), floatPtr(0), rackAssertionRefs(observationID)))
 	} else {
-		out = append(out, passRow("routing", "cycle", "", floatPtr(0), floatPtr(0), rackAssertionRefs))
+		out = append(out, passRow("routing", "cycle", "", floatPtr(0), floatPtr(0), rackAssertionRefs(observationID)))
 	}
 	return out
 }
@@ -340,7 +357,7 @@ func routingGraphHasCycle(racks []RackSummary) bool {
 	return false
 }
 
-func evaluatePluginLegality(racks []RackSummary, known map[string]bool) []AssertionResult {
+func evaluatePluginLegality(racks []RackSummary, known map[string]bool, observationID string) []AssertionResult {
 	out := []AssertionResult{}
 	for _, rack := range racks {
 		pluginNodes, unknown, emptyPath := 0, 0, 0
@@ -363,17 +380,17 @@ func evaluatePluginLegality(racks []RackSummary, known map[string]bool) []Assert
 		}
 		switch {
 		case known == nil && pluginNodes > 0:
-			out = append(out, assertionRow("plugin_legality", "known_path", AssertionStatusNotEvaluable, rack.TrackID, codePluginLegalityNE, floatPtr(float64(pluginNodes)), nil, rackAssertionRefs))
+			out = append(out, assertionRow("plugin_legality", "known_path", AssertionStatusNotEvaluable, rack.TrackID, codePluginLegalityNE, floatPtr(float64(pluginNodes)), nil, rackAssertionRefs(observationID)))
 		case unknown > 0:
-			out = append(out, failRow("plugin_legality", "known_path", rack.TrackID, codePluginUnknownPath, floatPtr(float64(unknown)), floatPtr(0), rackAssertionRefs))
+			out = append(out, failRow("plugin_legality", "known_path", rack.TrackID, codePluginUnknownPath, floatPtr(float64(unknown)), floatPtr(0), rackAssertionRefs(observationID)))
 		case emptyPath > 0:
-			out = append(out, assertionRow("plugin_legality", "known_path", AssertionStatusNotEvaluable, rack.TrackID, codePluginLegalityNE, floatPtr(float64(emptyPath)), nil, rackAssertionRefs))
+			out = append(out, assertionRow("plugin_legality", "known_path", AssertionStatusNotEvaluable, rack.TrackID, codePluginLegalityNE, floatPtr(float64(emptyPath)), nil, rackAssertionRefs(observationID)))
 		default:
-			out = append(out, passRow("plugin_legality", "known_path", rack.TrackID, floatPtr(0), floatPtr(0), rackAssertionRefs))
+			out = append(out, passRow("plugin_legality", "known_path", rack.TrackID, floatPtr(0), floatPtr(0), rackAssertionRefs(observationID)))
 		}
 	}
 	if len(racks) == 0 {
-		out = append(out, assertionRow("plugin_legality", "known_path", AssertionStatusNotEvaluable, "", codePluginLegalityNE, nil, nil, rackAssertionRefs))
+		out = append(out, assertionRow("plugin_legality", "known_path", AssertionStatusNotEvaluable, "", codePluginLegalityNE, nil, nil, rackAssertionRefs(observationID)))
 	}
 	return out
 }
@@ -384,21 +401,21 @@ func evaluatePluginLegality(racks []RackSummary, known map[string]bool) []Assert
 // not_evaluable (the existing sample-rate behaviour, not downgraded);
 // track-level block size is not disclosed by any current source, so track
 // rows stay not_evaluable until one appears — never a fabricated pass.
-func evaluateBlockSize(facts []TrackFact, project *float64) []AssertionResult {
+func evaluateBlockSize(facts []TrackFact, project *float64, observationID string) []AssertionResult {
 	if project == nil {
-		return []AssertionResult{assertionRow("sample_rate", "block_size", AssertionStatusNotEvaluable, "", codeBlockSizeNE, nil, nil, acousticAssertionRefs)}
+		return []AssertionResult{assertionRow("sample_rate", "block_size", AssertionStatusNotEvaluable, "", codeBlockSizeNE, nil, nil, acousticAssertionRefs(observationID))}
 	}
 	out := []AssertionResult{}
 	for _, fact := range facts {
 		if fact.BlockSize == nil {
-			out = append(out, assertionRow("sample_rate", "block_size", AssertionStatusNotEvaluable, fact.TrackID, codeBlockSizeNE, nil, floatPtr(*project), acousticAssertionRefs))
+			out = append(out, assertionRow("sample_rate", "block_size", AssertionStatusNotEvaluable, fact.TrackID, codeBlockSizeNE, nil, floatPtr(*project), acousticAssertionRefs(observationID)))
 			continue
 		}
 		if *fact.BlockSize != *project {
-			out = append(out, failRow("sample_rate", "block_size", fact.TrackID, codeBlockSizeMismatch, floatPtr(*fact.BlockSize), floatPtr(*project), acousticAssertionRefs))
+			out = append(out, failRow("sample_rate", "block_size", fact.TrackID, codeBlockSizeMismatch, floatPtr(*fact.BlockSize), floatPtr(*project), acousticAssertionRefs(observationID)))
 			continue
 		}
-		out = append(out, passRow("sample_rate", "block_size", fact.TrackID, floatPtr(*fact.BlockSize), floatPtr(*project), acousticAssertionRefs))
+		out = append(out, passRow("sample_rate", "block_size", fact.TrackID, floatPtr(*fact.BlockSize), floatPtr(*project), acousticAssertionRefs(observationID)))
 	}
 	return out
 }
@@ -407,7 +424,7 @@ func evaluateBlockSize(facts []TrackFact, project *float64) []AssertionResult {
 // Item 4): per-instance load state disclosed on the kernel rack nodes.
 // failed dominates (real failure evidence); pending/undisclosed keep the row
 // not_evaluable (transient async window or older kernel without the field).
-func evaluatePluginLoadState(racks []RackSummary) []AssertionResult {
+func evaluatePluginLoadState(racks []RackSummary, observationID string) []AssertionResult {
 	out := []AssertionResult{}
 	for _, rack := range racks {
 		failed, undetermined := 0, 0
@@ -427,15 +444,15 @@ func evaluatePluginLoadState(racks []RackSummary) []AssertionResult {
 		}
 		switch {
 		case failed > 0:
-			out = append(out, failRow("plugin_legality", "load_state", rack.TrackID, codePluginLoadFailed, floatPtr(float64(failed)), floatPtr(0), rackAssertionRefs))
+			out = append(out, failRow("plugin_legality", "load_state", rack.TrackID, codePluginLoadFailed, floatPtr(float64(failed)), floatPtr(0), rackAssertionRefs(observationID)))
 		case undetermined > 0:
-			out = append(out, assertionRow("plugin_legality", "load_state", AssertionStatusNotEvaluable, rack.TrackID, codePluginLoadNE, floatPtr(float64(undetermined)), nil, rackAssertionRefs))
+			out = append(out, assertionRow("plugin_legality", "load_state", AssertionStatusNotEvaluable, rack.TrackID, codePluginLoadNE, floatPtr(float64(undetermined)), nil, rackAssertionRefs(observationID)))
 		default:
-			out = append(out, passRow("plugin_legality", "load_state", rack.TrackID, floatPtr(0), floatPtr(0), rackAssertionRefs))
+			out = append(out, passRow("plugin_legality", "load_state", rack.TrackID, floatPtr(0), floatPtr(0), rackAssertionRefs(observationID)))
 		}
 	}
 	if len(racks) == 0 {
-		out = append(out, assertionRow("plugin_legality", "load_state", AssertionStatusNotEvaluable, "", codePluginLoadNE, nil, nil, rackAssertionRefs))
+		out = append(out, assertionRow("plugin_legality", "load_state", AssertionStatusNotEvaluable, "", codePluginLoadNE, nil, nil, rackAssertionRefs(observationID)))
 	}
 	return out
 }

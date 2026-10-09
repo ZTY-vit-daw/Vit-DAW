@@ -8,6 +8,8 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+
+	"vit-daw-agent/internal/agentprotocol"
 )
 
 const (
@@ -26,6 +28,7 @@ const (
 )
 
 func Build(input Input) Projection {
+	observationID := strings.TrimSpace(input.ObservationID)
 	tracks := rowsFromAny(input.ProjectPackage["tracks"])
 	tracks = reconcileAuthoritativeSourceState(tracks, input.ProjectPackage, input.AuthoritativeState)
 	declaredTrackCount := intFromAny(input.ProjectPackage["track_count"])
@@ -42,7 +45,7 @@ func Build(input Input) Projection {
 	issues := []Issue{}
 	trackFacts := []TrackFact{}
 	for _, track := range tracks {
-		fact, factIssues := buildTrackFact(track, input.AcousticEvidenceByTrack)
+		fact, factIssues := buildTrackFact(track, input.AcousticEvidenceByTrack, observationID)
 		applyTrackFactToSummary(&summary, fact)
 		issues = append(issues, factIssues...)
 		if len(trackFacts) < maxTrackFacts {
@@ -61,6 +64,7 @@ func Build(input Input) Projection {
 		KnownPluginPaths:    input.KnownPluginPaths,
 		CeilingDBFS:         levelCeilingDBFS(input.CeilingDBFS),
 		PluginListHygiene:   input.PluginListHygiene,
+		ObservationID:       observationID,
 	})
 	issues = append(issues, assertionIssues(assertions, issues, trackFacts)...)
 	if declaredTrackCount == 0 {
@@ -68,7 +72,7 @@ func Build(input Input) Projection {
 			Code:         "no_project_tracks",
 			Severity:     SeverityError,
 			Detail:       "Project track summary is empty, so TIM cannot verify imported audio integrity.",
-			EvidenceRefs: []string{"mix.read:project.tracks.summary"},
+			EvidenceRefs: mixReadRefs(observationID, "project.tracks.summary"),
 		})
 	}
 	issuesCapped := false
@@ -95,7 +99,7 @@ func Build(input Input) Projection {
 	proj := Projection{
 		SchemaVersion:    SchemaVersion,
 		TIMVersion:       Version,
-		ObservationID:    strings.TrimSpace(input.ObservationID),
+		ObservationID:    observationID,
 		MixSessionID:     strings.TrimSpace(input.MixSessionID),
 		Status:           status,
 		TechnicalSummary: summary,
@@ -104,7 +108,7 @@ func Build(input Input) Projection {
 		Issues:           issues,
 		TrackFacts:       trackFacts,
 		Assertions:       assertions,
-		EvidenceRefs:     evidenceRefs("mix.read:project.tracks.summary", "mix.read:project.acoustic.tracks", "mix.read:project.limitations", "dad:track_waveform_envelopes"),
+		EvidenceRefs:     evidenceRefs(append(mixReadRefs(observationID, "project.tracks.summary", "project.acoustic.tracks", "project.limitations"), "dad:track_waveform_envelopes")...),
 		Limitations:      limitations,
 		GeneratedAt:      strings.TrimSpace(input.CreatedAt),
 	}
@@ -294,7 +298,7 @@ func boolValue(value any) (bool, bool) {
 	return false, false
 }
 
-func buildTrackFact(track map[string]any, evidenceByTrack map[string]map[string]any) (TrackFact, []Issue) {
+func buildTrackFact(track map[string]any, evidenceByTrack map[string]map[string]any, observationID string) (TrackFact, []Issue) {
 	primary := mapValue(track["primary_clip"])
 	acoustic := mapValue(track["acoustic"])
 	trackID := firstNonEmpty(text(track["track_id"]), text(track["id"]))
@@ -383,14 +387,14 @@ func buildTrackFact(track map[string]any, evidenceByTrack map[string]map[string]
 	fact.NanCount, fact.InfCount = nonfiniteCounts(acoustic, evidence)
 	fact.DCOffset = dcOffsetValue(acoustic, evidence)
 	fact.BlockSize = blockFactValue(acoustic, evidence)
-	issues := issuesForTrack(fact, hasPeak, peakDBFS, hasRMS, rmsDBFS, hasHeadroom, headroomDB)
+	issues := issuesForTrack(fact, hasPeak, peakDBFS, hasRMS, rmsDBFS, hasHeadroom, headroomDB, observationID)
 	for _, issue := range issues {
 		fact.RiskCodes = appendUniqueString(fact.RiskCodes, issue.Code)
 	}
 	return fact, issues
 }
 
-func issuesForTrack(fact TrackFact, hasPeak bool, peakDBFS float64, hasRMS bool, rmsDBFS float64, hasHeadroom bool, headroomDB float64) []Issue {
+func issuesForTrack(fact TrackFact, hasPeak bool, peakDBFS float64, hasRMS bool, rmsDBFS float64, hasHeadroom bool, headroomDB float64, observationID string) []Issue {
 	issues := []Issue{}
 	add := func(code, severity, detail string) {
 		issues = append(issues, Issue{
@@ -401,7 +405,7 @@ func issuesForTrack(fact TrackFact, hasPeak bool, peakDBFS float64, hasRMS bool,
 			ClipID:       fact.ClipID,
 			ClipName:     fact.ClipName,
 			Detail:       detail,
-			EvidenceRefs: []string{"mix.read:project.tracks.summary", "mix.read:project.acoustic.tracks"},
+			EvidenceRefs: mixReadRefs(observationID, "project.tracks.summary", "project.acoustic.tracks"),
 		})
 	}
 	if fact.ClipCount == 0 {
@@ -1163,6 +1167,39 @@ func evidenceRefs(values ...string) []string {
 		}
 		seen[value] = true
 		out = append(out, value)
+	}
+	return out
+}
+
+// momEvidenceRef renders one vit://mom data-key ref in the REFSCHEMA-M2X-1
+// migrated form (M2 mom 包消费面同型)：legacy 数据键族头进 scope_kind，数据
+// 键余部进 scope_value，snapshot 段承载 observation_id（M1/M2 身份族语义，
+// 非内容哈希），window 恒 t=all（legacy 数据键不带采样窗），hash 段显式 "-"
+// （未 CAS 化）。必需段缺失（最典型是 ObservationID 为空）时返回 ""——
+// 观察域 ref 没有身份即不发（vit://mom 文法不允许伪造 snapshot，宁缺勿假）。
+func momEvidenceRef(scopeKind, scopeValue, observationID string) string {
+	ref, err := agentprotocol.FormatRef(agentprotocol.Ref{
+		Kind:       "mom",
+		ScopeKind:  scopeKind,
+		ScopeValue: scopeValue,
+		Window:     &agentprotocol.TimeWindow{AllTime: true},
+		Snapshot:   observationID,
+		Hash:       "-",
+	})
+	if err != nil {
+		return ""
+	}
+	return ref
+}
+
+// mixReadRefs builds the mix.read 数据键族 refs for one observation identity;
+// identity-less keys drop out (empty refs are filtered by evidenceRefs/addUnique).
+func mixReadRefs(observationID string, dataKeys ...string) []string {
+	out := make([]string, 0, len(dataKeys))
+	for _, key := range dataKeys {
+		if ref := momEvidenceRef("mix.read", key, observationID); ref != "" {
+			out = append(out, ref)
+		}
 	}
 	return out
 }
