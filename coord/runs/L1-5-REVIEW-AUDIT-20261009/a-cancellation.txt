@@ -1,0 +1,21 @@
+=== RUN   TestReviewCancelledBeforeRouter
+    audit_probe_test.go:41: outcome=fastpath router_calls=1 boundary_ids=[cancel-router]
+    audit_probe_test.go:43: cancelled entry must interrupt before router and must not fire T2
+--- FAIL: TestReviewCancelledBeforeRouter (0.00s)
+=== RUN   TestReviewCancelledDuringToolAtCap
+    audit_probe_test.go:52: outcome=budget_exhausted cycles=1 boundary_ids=[cancel-tool:cycle:1 cancel-tool]
+    audit_probe_test.go:53: tool cancellation must stay interrupted, not become a terminal budget outcome
+    audit_probe_test.go:54: tool cancellation must not fire T2
+--- FAIL: TestReviewCancelledDuringToolAtCap (0.00s)
+=== RUN   TestReviewCancelledAfterModelReturn
+    audit_probe_test.go:62: outcome=budget_exhausted tool_executions=1 boundary_ids=[cancel-model:cycle:1 cancel-model]
+    audit_probe_test.go:63: cancellation after model response must stop before executing tools
+    audit_probe_test.go:64: model cancellation must not fire T2
+--- FAIL: TestReviewCancelledAfterModelReturn (0.00s)
+=== RUN   TestReviewBudgetRouterObservation
+    audit_probe_test.go:71: OBSERVATION ONLY: seeded=2 cap=1 router_cost=2 outcome=fastpath probe_spent=4 router_calls=1
+This observation does not decide the router budget contract.
+--- PASS: TestReviewBudgetRouterObservation (0.00s)
+FAIL
+FAIL	vit-daw-agent/internal/pullharness	0.309s
+FAIL

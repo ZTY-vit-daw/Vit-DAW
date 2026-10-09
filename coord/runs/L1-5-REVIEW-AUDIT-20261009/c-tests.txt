@@ -1,0 +1,2 @@
+ok  	vit-daw-agent/internal/fastpath	0.460s
+ok  	vit-daw-agent/internal/agentloop	5.111s

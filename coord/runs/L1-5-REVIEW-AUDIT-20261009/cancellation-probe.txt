@@ -1,0 +1,73 @@
+package pullharness_test
+
+import (
+    "context"
+    "fmt"
+    "testing"
+    "vit-daw-agent/internal/config"
+    "vit-daw-agent/internal/contextruntime"
+    "vit-daw-agent/internal/llm"
+    ph "vit-daw-agent/internal/pullharness"
+)
+
+type reviewLLM struct { cancel context.CancelFunc }
+func (m reviewLLM) Complete(context.Context, config.EngineConfig, []llm.Message) (string, error) {
+    if m.cancel != nil { m.cancel() }
+    return "query", nil
+}
+type reviewTools struct { cancel context.CancelFunc; executions int }
+func (*reviewTools) Plan(string) []ph.ToolCall { return []ph.ToolCall{{ID:"q1",Tool:"ref.query"}} }
+func (x *reviewTools) Execute(context.Context, []ph.ToolCall) []ph.ToolResult {
+    x.executions++
+    if x.cancel != nil { x.cancel(); return nil }
+    return []ph.ToolResult{{ID:"q1",ProbeCost:2,ModelLine:"query result"}}
+}
+type reviewExit struct { ids []string }
+func (x *reviewExit) OnTurnBoundary(_ context.Context, e contextruntime.TurnBoundaryEvent) contextruntime.ExitReport {
+    x.ids=append(x.ids,e.TurnID)
+    return contextruntime.ExitReport{}
+}
+type reviewRouter struct { calls int }
+func (x *reviewRouter) Route(context.Context, ph.GoalInput) (ph.FastPathOutcome,bool) {
+    x.calls++
+    return ph.FastPathOutcome{Reply:"done",ProbeCost:2},true
+}
+
+func TestReviewCancelledBeforeRouter(t *testing.T) {
+    ctx,cancel:=context.WithCancel(context.Background()); cancel()
+    router:=&reviewRouter{}; boundary:=&reviewExit{}
+    loop:=&ph.PullLoop{Router:router,Exit:boundary}
+    got:=loop.Run(ctx,ph.GoalInput{RunID:"cancel-router"})
+    t.Logf("outcome=%s router_calls=%d boundary_ids=%v",got.Outcome,router.calls,boundary.ids)
+    if got.Outcome!=ph.OutcomeInterrupted || router.calls!=0 || len(boundary.ids)!=0 {
+        t.Errorf("cancelled entry must interrupt before router and must not fire T2")
+    }
+}
+
+func TestReviewCancelledDuringToolAtCap(t *testing.T) {
+    ctx,cancel:=context.WithCancel(context.Background()); defer cancel()
+    tools:=&reviewTools{cancel:cancel}; boundary:=&reviewExit{}
+    loop:=&ph.PullLoop{LLM:reviewLLM{},Tools:tools,Exit:boundary,Budget:ph.ObservationBudget{MaxCycles:1}}
+    got:=loop.Run(ctx,ph.GoalInput{RunID:"cancel-tool"})
+    t.Logf("outcome=%s cycles=%d boundary_ids=%v",got.Outcome,got.Cycles,boundary.ids)
+    if got.Outcome!=ph.OutcomeInterrupted { t.Errorf("tool cancellation must stay interrupted, not become a terminal budget outcome") }
+    for _,id:=range boundary.ids { if id=="cancel-tool" { t.Errorf("tool cancellation must not fire T2") } }
+}
+
+func TestReviewCancelledAfterModelReturn(t *testing.T) {
+    ctx,cancel:=context.WithCancel(context.Background()); defer cancel()
+    tools:=&reviewTools{}; boundary:=&reviewExit{}
+    loop:=&ph.PullLoop{LLM:reviewLLM{cancel:cancel},Tools:tools,Exit:boundary,Budget:ph.ObservationBudget{MaxCycles:1}}
+    got:=loop.Run(ctx,ph.GoalInput{RunID:"cancel-model"})
+    t.Logf("outcome=%s tool_executions=%d boundary_ids=%v",got.Outcome,tools.executions,boundary.ids)
+    if got.Outcome!=ph.OutcomeInterrupted || tools.executions!=0 { t.Errorf("cancellation after model response must stop before executing tools") }
+    for _,id:=range boundary.ids { if id=="cancel-model" { t.Errorf("model cancellation must not fire T2") } }
+}
+
+func TestReviewBudgetRouterObservation(t *testing.T) {
+    router:=&reviewRouter{}
+    loop:=&ph.PullLoop{Router:router,Budget:ph.ObservationBudget{ProbeCost:2,MaxProbeCost:1}}
+    got:=loop.Run(context.Background(),ph.GoalInput{RunID:"router-budget"})
+    t.Logf("OBSERVATION ONLY: seeded=2 cap=1 router_cost=2 outcome=%s probe_spent=%v router_calls=%d",got.Outcome,got.ProbeSpent,router.calls)
+    fmt.Println("This observation does not decide the router budget contract.")
+}

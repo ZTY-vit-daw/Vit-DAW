@@ -1,0 +1,5 @@
+{
+  "exit_code": 0,
+  "command": "go test ./internal/fastpath ./internal/agentloop -count=1",
+  "head": "124a643ddafaf3c81f31772b3c772b301ca27b23"
+}
