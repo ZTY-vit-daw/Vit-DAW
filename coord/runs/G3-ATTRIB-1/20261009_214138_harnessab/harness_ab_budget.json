@@ -1,0 +1,42 @@
+﻿{
+    "final_stop_reason":  "observation_budget_exhausted",
+    "hops":  [
+
+             ],
+    "all_stop_reasons":  [
+                             "observation_budget_exhausted"
+                         ],
+    "budget_config":  {
+                          "max_probe_cost":  8,
+                          "max_cycles":  1
+                      },
+    "finished_at":  "2026-10-09T21:46:06.1178581+08:00",
+    "hops_used":  0,
+    "trigger_miss_class":  "",
+    "confirm_face_exercised":  false,
+    "accounted_separately":  true,
+    "mode":  "pull",
+    "phase":  "budget_calibration",
+    "conversation_id":  "dev_harness_ab_pull_budget_20261009_214549",
+    "round":  {
+                  "finished_at":  "2026-10-09T21:46:06.1138309+08:00",
+                  "plan_id":  "",
+                  "nudges_sent":  0,
+                  "last_stop_reason":  "observation_budget_exhausted",
+                  "goal_statuses":  [
+                                        "failed"
+                                    ],
+                  "turns_sent":  1,
+                  "stop_reasons":  [
+                                       "observation_budget_exhausted"
+                                   ],
+                  "last_goal_status":  "failed",
+                  "settled":  true,
+                  "classification":  "budget_exhausted",
+                  "transport_errors":  0,
+                  "interaction_request":  "",
+                  "conversation_id":  "dev_harness_ab_pull_budget_20261009_214549",
+                  "needs_confirmation":  false
+              },
+    "budget_exhausted_triggered":  true
+}

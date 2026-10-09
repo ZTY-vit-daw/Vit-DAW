@@ -1,0 +1,682 @@
+﻿{
+    "mode":  "pull",
+    "round":  {
+                  "finished_at":  "2026-10-09T21:45:44.6342085+08:00",
+                  "plan_id":  "",
+                  "nudges_sent":  0,
+                  "last_stop_reason":  "needs_confirmation",
+                  "goal_statuses":  [
+                                        "waiting_confirmation"
+                                    ],
+                  "turns_sent":  1,
+                  "stop_reasons":  [
+                                       "needs_confirmation"
+                                   ],
+                  "last_goal_status":  "waiting_confirmation",
+                  "settled":  true,
+                  "classification":  "needs_user_confirmation",
+                  "transport_errors":  0,
+                  "interaction_request":  {
+                                              "id":  "interaction_d746cf7f9b17dca1",
+                                              "kind":  "mix_tick_confirmation",
+                                              "source":  "vit_agent",
+                                              "workflow":  "mix_tick",
+                                              "stage":  "pending_confirmation",
+                                              "title":  "混音单步待确认",
+                                              "body":  "将 Track 1012 的电平调整 -1.50 dB，正在等待你确认；确认前不会修改工程。",
+                                              "status":  "waiting_for_user",
+                                              "conversation_id":  "dev_harness_ab_pull_confirm_20261009_214448",
+                                              "goal_id":  "goal_264a62a43db4dda9",
+                                              "run_id":  "run_d23d3bdfdd2f2289",
+                                              "payload":  {
+                                                              "conversation_id":  "dev_harness_ab_pull_confirm_20261009_214448",
+                                                              "delta_db":  -1.5,
+                                                              "display":  {
+                                                                              "body":  "将 Track 1012 的电平调整 -1.50 dB，正在等待你确认；确认前不会修改工程。",
+                                                                              "summary":  "将 Track 1012 的电平调整 -1.50 dB",
+                                                                              "title":  "混音单步待确认"
+                                                                          },
+                                                              "observation_id":  "",
+                                                              "operation":  "track_gain_adjust",
+                                                              "request_context":  {
+                                                                                      "conversation_id":  "dev_harness_ab_pull_confirm_20261009_214448",
+                                                                                      "goal_id":  "goal_264a62a43db4dda9",
+                                                                                      "run_id":  "run_d23d3bdfdd2f2289"
+                                                                                  },
+                                                              "track_id":  "1012",
+                                                              "typed_event":  {
+                                                                                  "event_type":  "PendingCandidate",
+                                                                                  "schema_version":  "vit_agent_protocol.v0",
+                                                                                  "source":  {
+                                                                                                 "conversation_id":  "dev_harness_ab_pull_confirm_20261009_214448",
+                                                                                                 "goal_id":  "goal_264a62a43db4dda9",
+                                                                                                 "legacy_kind":  "PendingMixTickCandidate",
+                                                                                                 "legacy_schema":  "mix_tick.pending.v0",
+                                                                                                 "metadata":  {
+                                                                                                                  "before_track_summary":  {
+                                                                                                                                               "gain_db":  0,
+                                                                                                                                               "id":  "1012",
+                                                                                                                                               "name":  "Lead Vocal",
+                                                                                                                                               "pan":  0,
+                                                                                                                                               "track_id":  "1012",
+                                                                                                                                               "track_name":  "Lead Vocal",
+                                                                                                                                               "volume_db":  0
+                                                                                                                                           },
+                                                                                                                  "conversation_id":  "dev_harness_ab_pull_confirm_20261009_214448",
+                                                                                                                  "goal_id":  "goal_264a62a43db4dda9",
+                                                                                                                  "run_id":  "run_d23d3bdfdd2f2289",
+                                                                                                                  "target_track_id":  "1012",
+                                                                                                                  "track_count":  2,
+                                                                                                                  "track_gain_db":  0
+                                                                                                              },
+                                                                                                 "run_id":  "run_d23d3bdfdd2f2289"
+                                                                                             },
+                                                                                  "state":  {
+                                                                                                "action_kind":  "gain_balance",
+                                                                                                "candidate_action":  {
+                                                                                                                         "action_kind":  "gain_balance",
+                                                                                                                         "confidence":  "medium",
+                                                                                                                         "delta_db":  -1.5,
+                                                                                                                         "evidence":  {
+                                                                                                                                          "diagnosis_context":  {
+                                                                                                                                                                    "conversation_id":  "dev_harness_ab_pull_confirm_20261009_214448",
+                                                                                                                                                                    "created_at":  "2026-10-09T13:44:51.1556517Z",
+                                                                                                                                                                    "evidence_refs":  [
+                                                                                                                                                                                          "diag_9be64592b920c093",
+                                                                                                                                                                                          "obs_20261009T134456_7b7462b1a589",
+                                                                                                                                                                                          "diag_9be64592b920c093.user_reported.intent",
+                                                                                                                                                                                          "diag_9be64592b920c093.missing.band_energy_summary",
+                                                                                                                                                                                          "diag_9be64592b920c093.missing.masking_depth"
+                                                                                                                                                                                      ],
+                                                                                                                                                                    "evidence_status":  {
+                                                                                                                                                                                            "band_energy":  "missing",
+                                                                                                                                                                                            "confidence_ceiling":  "medium",
+                                                                                                                                                                                            "missing":  [
+                                                                                                                                                                                                            "band_energy_summary",
+                                                                                                                                                                                                            "masking_depth"
+                                                                                                                                                                                                        ],
+                                                                                                                                                                                            "problem_kind":  "vocal_forward",
+                                                                                                                                                                                            "spectral":  "missing",
+                                                                                                                                                                                            "strategy":  "conservative_level_or_peer_rebalance"
+                                                                                                                                                                                        },
+                                                                                                                                                                    "goal_id":  "goal_264a62a43db4dda9",
+                                                                                                                                                                    "id":  "diag_9be64592b920c093",
+                                                                                                                                                                    "inferred_facts":  [
+                                                                                                                                                                                           {
+                                                                                                                                                                                               "key":  "vocal_forward_safe_route",
+                                                                                                                                                                                               "ref":  "diag_9be64592b920c093.inferred.vocal_forward_safe_route",
+                                                                                                                                                                                               "summary":  "prefer a conservative level or peer rebalance move; avoid tonal-brightness boosts without masking evidence"
+                                                                                                                                                                                           }
+                                                                                                                                                                                       ],
+                                                                                                                                                                    "low_risk_next_step":  "conservative_level_or_peer_rebalance",
+                                                                                                                                                                    "missing_evidence":  [
+                                                                                                                                                                                             {
+                                                                                                                                                                                                 "key":  "band_energy_summary",
+                                                                                                                                                                                                 "reason":  "vocal-forward decisions should avoid brightness or presence assumptions without band/masking evidence"
+                                                                                                                                                                                             },
+                                                                                                                                                                                             {
+                                                                                                                                                                                                 "key":  "masking_depth",
+                                                                                                                                                                                                 "reason":  "masking depth is unavailable, so do not infer a precise presence-band conflict"
+                                                                                                                                                                                             }
+                                                                                                                                                                                         ],
+                                                                                                                                                                    "observation_id":  "obs_20261009T134456_7b7462b1a589",
+                                                                                                                                                                    "problem_kind":  "vocal_forward",
+                                                                                                                                                                    "recommendation":  {
+                                                                                                                                                                                           "action_kind":  "gain_balance",
+                                                                                                                                                                                           "confidence":  "medium",
+                                                                                                                                                                                           "next_step":  "prepare a small level/rebalance candidate instead of a brightness boost",
+                                                                                                                                                                                           "processor_type":  "utility",
+                                                                                                                                                                                           "risk":  "low",
+                                                                                                                                                                                           "strategy":  "conservative_level_or_peer_rebalance"
+                                                                                                                                                                                       },
+                                                                                                                                                                    "run_id":  "run_d23d3bdfdd2f2289",
+                                                                                                                                                                    "schema_version":  "mix_diagnosis_context.v0",
+                                                                                                                                                                    "source_refs":  {
+                                                                                                                                                                                        "observation_id":  "obs_20261009T134456_7b7462b1a589",
+                                                                                                                                                                                        "target_ref":  "track:1012"
+                                                                                                                                                                                    },
+                                                                                                                                                                    "target_ref":  "track:1012",
+                                                                                                                                                                    "user_intent":  "请对当前贴唱工程做一次自由态实验：基于观察证据改善人声与伴奏的平衡，执行后让我试听对比效果。",
+                                                                                                                                                                    "user_reported_facts":  [
+                                                                                                                                                                                                {
+                                                                                                                                                                                                    "key":  "user_intent",
+                                                                                                                                                                                                    "ref":  "diag_9be64592b920c093.user_reported.intent",
+                                                                                                                                                                                                    "summary":  "user asked for a vocal-forward mix result: 请对当前贴唱工程做一次自由态实验：基于观察证据改善人声与伴奏的平衡，执行后让我试听对比效果。"
+                                                                                                                                                                                                }
+                                                                                                                                                                                            ]
+                                                                                                                                                                },
+                                                                                                                                          "diagnosis_context_id":  "diag_9be64592b920c093",
+                                                                                                                                          "diagnosis_evidence_refs":  [
+                                                                                                                                                                          "diag_9be64592b920c093",
+                                                                                                                                                                          "obs_20261009T134456_7b7462b1a589",
+                                                                                                                                                                          "diag_9be64592b920c093.user_reported.intent",
+                                                                                                                                                                          "diag_9be64592b920c093.missing.band_energy_summary",
+                                                                                                                                                                          "diag_9be64592b920c093.missing.masking_depth"
+                                                                                                                                                                      ],
+                                                                                                                                          "matched_text":  "下调 1.5 dB",
+                                                                                                                                          "source":  "assistant_reply"
+                                                                                                                                      },
+                                                                                                                         "operation":  "track_gain_adjust",
+                                                                                                                         "processor_type":  "utility",
+                                                                                                                         "track_id":  "1012"
+                                                                                                                     },
+                                                                                                "candidate_type":  "mix_tick",
+                                                                                                "confidence":  "medium",
+                                                                                                "domain":  "mix",
+                                                                                                "id":  "pending_mix_tick_dev_harness_ab_pull_confirm_20261009_214448_goal_264a62a43db4dda9_track_gain_adjust_1012",
+                                                                                                "kind":  "PendingCandidate",
+                                                                                                "processor_type":  "utility",
+                                                                                                "rationale":  "assistant_reply",
+                                                                                                "required_permission_domains":  [
+                                                                                                                                    "mix.commit"
+                                                                                                                                ],
+                                                                                                "risk":  "undoable_commit",
+                                                                                                "source":  {
+                                                                                                               "conversation_id":  "dev_harness_ab_pull_confirm_20261009_214448",
+                                                                                                               "goal_id":  "goal_264a62a43db4dda9",
+                                                                                                               "legacy_kind":  "PendingMixTickCandidate",
+                                                                                                               "legacy_schema":  "mix_tick.pending.v0",
+                                                                                                               "metadata":  {
+                                                                                                                                "before_track_summary":  {
+                                                                                                                                                             "gain_db":  0,
+                                                                                                                                                             "id":  "1012",
+                                                                                                                                                             "name":  "Lead Vocal",
+                                                                                                                                                             "pan":  0,
+                                                                                                                                                             "track_id":  "1012",
+                                                                                                                                                             "track_name":  "Lead Vocal",
+                                                                                                                                                             "volume_db":  0
+                                                                                                                                                         },
+                                                                                                                                "conversation_id":  "dev_harness_ab_pull_confirm_20261009_214448",
+                                                                                                                                "goal_id":  "goal_264a62a43db4dda9",
+                                                                                                                                "run_id":  "run_d23d3bdfdd2f2289",
+                                                                                                                                "target_track_id":  "1012",
+                                                                                                                                "track_count":  2,
+                                                                                                                                "track_gain_db":  0
+                                                                                                                            },
+                                                                                                               "run_id":  "run_d23d3bdfdd2f2289"
+                                                                                                           },
+                                                                                                "status":  "waiting_user",
+                                                                                                "summary":  "将 Track 1012 的电平调整 -1.50 dB。",
+                                                                                                "target_ref":  "track:1012"
+                                                                                            },
+                                                                                  "state_id":  "pending_mix_tick_dev_harness_ab_pull_confirm_20261009_214448_goal_264a62a43db4dda9_track_gain_adjust_1012",
+                                                                                  "state_kind":  "PendingCandidate",
+                                                                                  "status":  "waiting_user"
+                                                                              },
+                                                              "typed_state":  {
+                                                                                  "action_kind":  "gain_balance",
+                                                                                  "candidate_action":  {
+                                                                                                           "action_kind":  "gain_balance",
+                                                                                                           "confidence":  "medium",
+                                                                                                           "delta_db":  -1.5,
+                                                                                                           "evidence":  {
+                                                                                                                            "diagnosis_context":  {
+                                                                                                                                                      "conversation_id":  "dev_harness_ab_pull_confirm_20261009_214448",
+                                                                                                                                                      "created_at":  "2026-10-09T13:44:51.1556517Z",
+                                                                                                                                                      "evidence_refs":  [
+                                                                                                                                                                            "diag_9be64592b920c093",
+                                                                                                                                                                            "obs_20261009T134456_7b7462b1a589",
+                                                                                                                                                                            "diag_9be64592b920c093.user_reported.intent",
+                                                                                                                                                                            "diag_9be64592b920c093.missing.band_energy_summary",
+                                                                                                                                                                            "diag_9be64592b920c093.missing.masking_depth"
+                                                                                                                                                                        ],
+                                                                                                                                                      "evidence_status":  {
+                                                                                                                                                                              "band_energy":  "missing",
+                                                                                                                                                                              "confidence_ceiling":  "medium",
+                                                                                                                                                                              "missing":  [
+                                                                                                                                                                                              "band_energy_summary",
+                                                                                                                                                                                              "masking_depth"
+                                                                                                                                                                                          ],
+                                                                                                                                                                              "problem_kind":  "vocal_forward",
+                                                                                                                                                                              "spectral":  "missing",
+                                                                                                                                                                              "strategy":  "conservative_level_or_peer_rebalance"
+                                                                                                                                                                          },
+                                                                                                                                                      "goal_id":  "goal_264a62a43db4dda9",
+                                                                                                                                                      "id":  "diag_9be64592b920c093",
+                                                                                                                                                      "inferred_facts":  [
+                                                                                                                                                                             {
+                                                                                                                                                                                 "key":  "vocal_forward_safe_route",
+                                                                                                                                                                                 "ref":  "diag_9be64592b920c093.inferred.vocal_forward_safe_route",
+                                                                                                                                                                                 "summary":  "prefer a conservative level or peer rebalance move; avoid tonal-brightness boosts without masking evidence"
+                                                                                                                                                                             }
+                                                                                                                                                                         ],
+                                                                                                                                                      "low_risk_next_step":  "conservative_level_or_peer_rebalance",
+                                                                                                                                                      "missing_evidence":  [
+                                                                                                                                                                               {
+                                                                                                                                                                                   "key":  "band_energy_summary",
+                                                                                                                                                                                   "reason":  "vocal-forward decisions should avoid brightness or presence assumptions without band/masking evidence"
+                                                                                                                                                                               },
+                                                                                                                                                                               {
+                                                                                                                                                                                   "key":  "masking_depth",
+                                                                                                                                                                                   "reason":  "masking depth is unavailable, so do not infer a precise presence-band conflict"
+                                                                                                                                                                               }
+                                                                                                                                                                           ],
+                                                                                                                                                      "observation_id":  "obs_20261009T134456_7b7462b1a589",
+                                                                                                                                                      "problem_kind":  "vocal_forward",
+                                                                                                                                                      "recommendation":  {
+                                                                                                                                                                             "action_kind":  "gain_balance",
+                                                                                                                                                                             "confidence":  "medium",
+                                                                                                                                                                             "next_step":  "prepare a small level/rebalance candidate instead of a brightness boost",
+                                                                                                                                                                             "processor_type":  "utility",
+                                                                                                                                                                             "risk":  "low",
+                                                                                                                                                                             "strategy":  "conservative_level_or_peer_rebalance"
+                                                                                                                                                                         },
+                                                                                                                                                      "run_id":  "run_d23d3bdfdd2f2289",
+                                                                                                                                                      "schema_version":  "mix_diagnosis_context.v0",
+                                                                                                                                                      "source_refs":  {
+                                                                                                                                                                          "observation_id":  "obs_20261009T134456_7b7462b1a589",
+                                                                                                                                                                          "target_ref":  "track:1012"
+                                                                                                                                                                      },
+                                                                                                                                                      "target_ref":  "track:1012",
+                                                                                                                                                      "user_intent":  "请对当前贴唱工程做一次自由态实验：基于观察证据改善人声与伴奏的平衡，执行后让我试听对比效果。",
+                                                                                                                                                      "user_reported_facts":  [
+                                                                                                                                                                                  {
+                                                                                                                                                                                      "key":  "user_intent",
+                                                                                                                                                                                      "ref":  "diag_9be64592b920c093.user_reported.intent",
+                                                                                                                                                                                      "summary":  "user asked for a vocal-forward mix result: 请对当前贴唱工程做一次自由态实验：基于观察证据改善人声与伴奏的平衡，执行后让我试听对比效果。"
+                                                                                                                                                                                  }
+                                                                                                                                                                              ]
+                                                                                                                                                  },
+                                                                                                                            "diagnosis_context_id":  "diag_9be64592b920c093",
+                                                                                                                            "diagnosis_evidence_refs":  [
+                                                                                                                                                            "diag_9be64592b920c093",
+                                                                                                                                                            "obs_20261009T134456_7b7462b1a589",
+                                                                                                                                                            "diag_9be64592b920c093.user_reported.intent",
+                                                                                                                                                            "diag_9be64592b920c093.missing.band_energy_summary",
+                                                                                                                                                            "diag_9be64592b920c093.missing.masking_depth"
+                                                                                                                                                        ],
+                                                                                                                            "matched_text":  "下调 1.5 dB",
+                                                                                                                            "source":  "assistant_reply"
+                                                                                                                        },
+                                                                                                           "operation":  "track_gain_adjust",
+                                                                                                           "processor_type":  "utility",
+                                                                                                           "track_id":  "1012"
+                                                                                                       },
+                                                                                  "candidate_type":  "mix_tick",
+                                                                                  "confidence":  "medium",
+                                                                                  "domain":  "mix",
+                                                                                  "id":  "pending_mix_tick_dev_harness_ab_pull_confirm_20261009_214448_goal_264a62a43db4dda9_track_gain_adjust_1012",
+                                                                                  "kind":  "PendingCandidate",
+                                                                                  "processor_type":  "utility",
+                                                                                  "rationale":  "assistant_reply",
+                                                                                  "required_permission_domains":  [
+                                                                                                                      "mix.commit"
+                                                                                                                  ],
+                                                                                  "risk":  "undoable_commit",
+                                                                                  "source":  {
+                                                                                                 "conversation_id":  "dev_harness_ab_pull_confirm_20261009_214448",
+                                                                                                 "goal_id":  "goal_264a62a43db4dda9",
+                                                                                                 "legacy_kind":  "PendingMixTickCandidate",
+                                                                                                 "legacy_schema":  "mix_tick.pending.v0",
+                                                                                                 "metadata":  {
+                                                                                                                  "before_track_summary":  {
+                                                                                                                                               "gain_db":  0,
+                                                                                                                                               "id":  "1012",
+                                                                                                                                               "name":  "Lead Vocal",
+                                                                                                                                               "pan":  0,
+                                                                                                                                               "track_id":  "1012",
+                                                                                                                                               "track_name":  "Lead Vocal",
+                                                                                                                                               "volume_db":  0
+                                                                                                                                           },
+                                                                                                                  "conversation_id":  "dev_harness_ab_pull_confirm_20261009_214448",
+                                                                                                                  "goal_id":  "goal_264a62a43db4dda9",
+                                                                                                                  "run_id":  "run_d23d3bdfdd2f2289",
+                                                                                                                  "target_track_id":  "1012",
+                                                                                                                  "track_count":  2,
+                                                                                                                  "track_gain_db":  0
+                                                                                                              },
+                                                                                                 "run_id":  "run_d23d3bdfdd2f2289"
+                                                                                             },
+                                                                                  "status":  "waiting_user",
+                                                                                  "summary":  "将 Track 1012 的电平调整 -1.50 dB。",
+                                                                                  "target_ref":  "track:1012"
+                                                                              }
+                                                          },
+                                              "actions":  [
+                                                              {
+                                                                  "id":  "approve",
+                                                                  "label":  "确认执行",
+                                                                  "style":  "primary",
+                                                                  "recommended":  true
+                                                              },
+                                                              {
+                                                                  "id":  "cancel",
+                                                                  "label":  "取消",
+                                                                  "style":  "secondary"
+                                                              }
+                                                          ],
+                                              "type":  "mix_tick_confirmation",
+                                              "data":  {
+                                                           "conversation_id":  "dev_harness_ab_pull_confirm_20261009_214448",
+                                                           "delta_db":  -1.5,
+                                                           "display":  {
+                                                                           "body":  "将 Track 1012 的电平调整 -1.50 dB，正在等待你确认；确认前不会修改工程。",
+                                                                           "summary":  "将 Track 1012 的电平调整 -1.50 dB",
+                                                                           "title":  "混音单步待确认"
+                                                                       },
+                                                           "observation_id":  "",
+                                                           "operation":  "track_gain_adjust",
+                                                           "request_context":  {
+                                                                                   "conversation_id":  "dev_harness_ab_pull_confirm_20261009_214448",
+                                                                                   "goal_id":  "goal_264a62a43db4dda9",
+                                                                                   "run_id":  "run_d23d3bdfdd2f2289"
+                                                                               },
+                                                           "track_id":  "1012",
+                                                           "typed_event":  {
+                                                                               "event_type":  "PendingCandidate",
+                                                                               "schema_version":  "vit_agent_protocol.v0",
+                                                                               "source":  {
+                                                                                              "conversation_id":  "dev_harness_ab_pull_confirm_20261009_214448",
+                                                                                              "goal_id":  "goal_264a62a43db4dda9",
+                                                                                              "legacy_kind":  "PendingMixTickCandidate",
+                                                                                              "legacy_schema":  "mix_tick.pending.v0",
+                                                                                              "metadata":  {
+                                                                                                               "before_track_summary":  {
+                                                                                                                                            "gain_db":  0,
+                                                                                                                                            "id":  "1012",
+                                                                                                                                            "name":  "Lead Vocal",
+                                                                                                                                            "pan":  0,
+                                                                                                                                            "track_id":  "1012",
+                                                                                                                                            "track_name":  "Lead Vocal",
+                                                                                                                                            "volume_db":  0
+                                                                                                                                        },
+                                                                                                               "conversation_id":  "dev_harness_ab_pull_confirm_20261009_214448",
+                                                                                                               "goal_id":  "goal_264a62a43db4dda9",
+                                                                                                               "run_id":  "run_d23d3bdfdd2f2289",
+                                                                                                               "target_track_id":  "1012",
+                                                                                                               "track_count":  2,
+                                                                                                               "track_gain_db":  0
+                                                                                                           },
+                                                                                              "run_id":  "run_d23d3bdfdd2f2289"
+                                                                                          },
+                                                                               "state":  {
+                                                                                             "action_kind":  "gain_balance",
+                                                                                             "candidate_action":  {
+                                                                                                                      "action_kind":  "gain_balance",
+                                                                                                                      "confidence":  "medium",
+                                                                                                                      "delta_db":  -1.5,
+                                                                                                                      "evidence":  {
+                                                                                                                                       "diagnosis_context":  {
+                                                                                                                                                                 "conversation_id":  "dev_harness_ab_pull_confirm_20261009_214448",
+                                                                                                                                                                 "created_at":  "2026-10-09T13:44:51.1556517Z",
+                                                                                                                                                                 "evidence_refs":  [
+                                                                                                                                                                                       "diag_9be64592b920c093",
+                                                                                                                                                                                       "obs_20261009T134456_7b7462b1a589",
+                                                                                                                                                                                       "diag_9be64592b920c093.user_reported.intent",
+                                                                                                                                                                                       "diag_9be64592b920c093.missing.band_energy_summary",
+                                                                                                                                                                                       "diag_9be64592b920c093.missing.masking_depth"
+                                                                                                                                                                                   ],
+                                                                                                                                                                 "evidence_status":  {
+                                                                                                                                                                                         "band_energy":  "missing",
+                                                                                                                                                                                         "confidence_ceiling":  "medium",
+                                                                                                                                                                                         "missing":  [
+                                                                                                                                                                                                         "band_energy_summary",
+                                                                                                                                                                                                         "masking_depth"
+                                                                                                                                                                                                     ],
+                                                                                                                                                                                         "problem_kind":  "vocal_forward",
+                                                                                                                                                                                         "spectral":  "missing",
+                                                                                                                                                                                         "strategy":  "conservative_level_or_peer_rebalance"
+                                                                                                                                                                                     },
+                                                                                                                                                                 "goal_id":  "goal_264a62a43db4dda9",
+                                                                                                                                                                 "id":  "diag_9be64592b920c093",
+                                                                                                                                                                 "inferred_facts":  [
+                                                                                                                                                                                        {
+                                                                                                                                                                                            "key":  "vocal_forward_safe_route",
+                                                                                                                                                                                            "ref":  "diag_9be64592b920c093.inferred.vocal_forward_safe_route",
+                                                                                                                                                                                            "summary":  "prefer a conservative level or peer rebalance move; avoid tonal-brightness boosts without masking evidence"
+                                                                                                                                                                                        }
+                                                                                                                                                                                    ],
+                                                                                                                                                                 "low_risk_next_step":  "conservative_level_or_peer_rebalance",
+                                                                                                                                                                 "missing_evidence":  [
+                                                                                                                                                                                          {
+                                                                                                                                                                                              "key":  "band_energy_summary",
+                                                                                                                                                                                              "reason":  "vocal-forward decisions should avoid brightness or presence assumptions without band/masking evidence"
+                                                                                                                                                                                          },
+                                                                                                                                                                                          {
+                                                                                                                                                                                              "key":  "masking_depth",
+                                                                                                                                                                                              "reason":  "masking depth is unavailable, so do not infer a precise presence-band conflict"
+                                                                                                                                                                                          }
+                                                                                                                                                                                      ],
+                                                                                                                                                                 "observation_id":  "obs_20261009T134456_7b7462b1a589",
+                                                                                                                                                                 "problem_kind":  "vocal_forward",
+                                                                                                                                                                 "recommendation":  {
+                                                                                                                                                                                        "action_kind":  "gain_balance",
+                                                                                                                                                                                        "confidence":  "medium",
+                                                                                                                                                                                        "next_step":  "prepare a small level/rebalance candidate instead of a brightness boost",
+                                                                                                                                                                                        "processor_type":  "utility",
+                                                                                                                                                                                        "risk":  "low",
+                                                                                                                                                                                        "strategy":  "conservative_level_or_peer_rebalance"
+                                                                                                                                                                                    },
+                                                                                                                                                                 "run_id":  "run_d23d3bdfdd2f2289",
+                                                                                                                                                                 "schema_version":  "mix_diagnosis_context.v0",
+                                                                                                                                                                 "source_refs":  {
+                                                                                                                                                                                     "observation_id":  "obs_20261009T134456_7b7462b1a589",
+                                                                                                                                                                                     "target_ref":  "track:1012"
+                                                                                                                                                                                 },
+                                                                                                                                                                 "target_ref":  "track:1012",
+                                                                                                                                                                 "user_intent":  "请对当前贴唱工程做一次自由态实验：基于观察证据改善人声与伴奏的平衡，执行后让我试听对比效果。",
+                                                                                                                                                                 "user_reported_facts":  [
+                                                                                                                                                                                             {
+                                                                                                                                                                                                 "key":  "user_intent",
+                                                                                                                                                                                                 "ref":  "diag_9be64592b920c093.user_reported.intent",
+                                                                                                                                                                                                 "summary":  "user asked for a vocal-forward mix result: 请对当前贴唱工程做一次自由态实验：基于观察证据改善人声与伴奏的平衡，执行后让我试听对比效果。"
+                                                                                                                                                                                             }
+                                                                                                                                                                                         ]
+                                                                                                                                                             },
+                                                                                                                                       "diagnosis_context_id":  "diag_9be64592b920c093",
+                                                                                                                                       "diagnosis_evidence_refs":  [
+                                                                                                                                                                       "diag_9be64592b920c093",
+                                                                                                                                                                       "obs_20261009T134456_7b7462b1a589",
+                                                                                                                                                                       "diag_9be64592b920c093.user_reported.intent",
+                                                                                                                                                                       "diag_9be64592b920c093.missing.band_energy_summary",
+                                                                                                                                                                       "diag_9be64592b920c093.missing.masking_depth"
+                                                                                                                                                                   ],
+                                                                                                                                       "matched_text":  "下调 1.5 dB",
+                                                                                                                                       "source":  "assistant_reply"
+                                                                                                                                   },
+                                                                                                                      "operation":  "track_gain_adjust",
+                                                                                                                      "processor_type":  "utility",
+                                                                                                                      "track_id":  "1012"
+                                                                                                                  },
+                                                                                             "candidate_type":  "mix_tick",
+                                                                                             "confidence":  "medium",
+                                                                                             "domain":  "mix",
+                                                                                             "id":  "pending_mix_tick_dev_harness_ab_pull_confirm_20261009_214448_goal_264a62a43db4dda9_track_gain_adjust_1012",
+                                                                                             "kind":  "PendingCandidate",
+                                                                                             "processor_type":  "utility",
+                                                                                             "rationale":  "assistant_reply",
+                                                                                             "required_permission_domains":  [
+                                                                                                                                 "mix.commit"
+                                                                                                                             ],
+                                                                                             "risk":  "undoable_commit",
+                                                                                             "source":  {
+                                                                                                            "conversation_id":  "dev_harness_ab_pull_confirm_20261009_214448",
+                                                                                                            "goal_id":  "goal_264a62a43db4dda9",
+                                                                                                            "legacy_kind":  "PendingMixTickCandidate",
+                                                                                                            "legacy_schema":  "mix_tick.pending.v0",
+                                                                                                            "metadata":  {
+                                                                                                                             "before_track_summary":  {
+                                                                                                                                                          "gain_db":  0,
+                                                                                                                                                          "id":  "1012",
+                                                                                                                                                          "name":  "Lead Vocal",
+                                                                                                                                                          "pan":  0,
+                                                                                                                                                          "track_id":  "1012",
+                                                                                                                                                          "track_name":  "Lead Vocal",
+                                                                                                                                                          "volume_db":  0
+                                                                                                                                                      },
+                                                                                                                             "conversation_id":  "dev_harness_ab_pull_confirm_20261009_214448",
+                                                                                                                             "goal_id":  "goal_264a62a43db4dda9",
+                                                                                                                             "run_id":  "run_d23d3bdfdd2f2289",
+                                                                                                                             "target_track_id":  "1012",
+                                                                                                                             "track_count":  2,
+                                                                                                                             "track_gain_db":  0
+                                                                                                                         },
+                                                                                                            "run_id":  "run_d23d3bdfdd2f2289"
+                                                                                                        },
+                                                                                             "status":  "waiting_user",
+                                                                                             "summary":  "将 Track 1012 的电平调整 -1.50 dB。",
+                                                                                             "target_ref":  "track:1012"
+                                                                                         },
+                                                                               "state_id":  "pending_mix_tick_dev_harness_ab_pull_confirm_20261009_214448_goal_264a62a43db4dda9_track_gain_adjust_1012",
+                                                                               "state_kind":  "PendingCandidate",
+                                                                               "status":  "waiting_user"
+                                                                           },
+                                                           "typed_state":  {
+                                                                               "action_kind":  "gain_balance",
+                                                                               "candidate_action":  {
+                                                                                                        "action_kind":  "gain_balance",
+                                                                                                        "confidence":  "medium",
+                                                                                                        "delta_db":  -1.5,
+                                                                                                        "evidence":  {
+                                                                                                                         "diagnosis_context":  {
+                                                                                                                                                   "conversation_id":  "dev_harness_ab_pull_confirm_20261009_214448",
+                                                                                                                                                   "created_at":  "2026-10-09T13:44:51.1556517Z",
+                                                                                                                                                   "evidence_refs":  [
+                                                                                                                                                                         "diag_9be64592b920c093",
+                                                                                                                                                                         "obs_20261009T134456_7b7462b1a589",
+                                                                                                                                                                         "diag_9be64592b920c093.user_reported.intent",
+                                                                                                                                                                         "diag_9be64592b920c093.missing.band_energy_summary",
+                                                                                                                                                                         "diag_9be64592b920c093.missing.masking_depth"
+                                                                                                                                                                     ],
+                                                                                                                                                   "evidence_status":  {
+                                                                                                                                                                           "band_energy":  "missing",
+                                                                                                                                                                           "confidence_ceiling":  "medium",
+                                                                                                                                                                           "missing":  [
+                                                                                                                                                                                           "band_energy_summary",
+                                                                                                                                                                                           "masking_depth"
+                                                                                                                                                                                       ],
+                                                                                                                                                                           "problem_kind":  "vocal_forward",
+                                                                                                                                                                           "spectral":  "missing",
+                                                                                                                                                                           "strategy":  "conservative_level_or_peer_rebalance"
+                                                                                                                                                                       },
+                                                                                                                                                   "goal_id":  "goal_264a62a43db4dda9",
+                                                                                                                                                   "id":  "diag_9be64592b920c093",
+                                                                                                                                                   "inferred_facts":  [
+                                                                                                                                                                          {
+                                                                                                                                                                              "key":  "vocal_forward_safe_route",
+                                                                                                                                                                              "ref":  "diag_9be64592b920c093.inferred.vocal_forward_safe_route",
+                                                                                                                                                                              "summary":  "prefer a conservative level or peer rebalance move; avoid tonal-brightness boosts without masking evidence"
+                                                                                                                                                                          }
+                                                                                                                                                                      ],
+                                                                                                                                                   "low_risk_next_step":  "conservative_level_or_peer_rebalance",
+                                                                                                                                                   "missing_evidence":  [
+                                                                                                                                                                            {
+                                                                                                                                                                                "key":  "band_energy_summary",
+                                                                                                                                                                                "reason":  "vocal-forward decisions should avoid brightness or presence assumptions without band/masking evidence"
+                                                                                                                                                                            },
+                                                                                                                                                                            {
+                                                                                                                                                                                "key":  "masking_depth",
+                                                                                                                                                                                "reason":  "masking depth is unavailable, so do not infer a precise presence-band conflict"
+                                                                                                                                                                            }
+                                                                                                                                                                        ],
+                                                                                                                                                   "observation_id":  "obs_20261009T134456_7b7462b1a589",
+                                                                                                                                                   "problem_kind":  "vocal_forward",
+                                                                                                                                                   "recommendation":  {
+                                                                                                                                                                          "action_kind":  "gain_balance",
+                                                                                                                                                                          "confidence":  "medium",
+                                                                                                                                                                          "next_step":  "prepare a small level/rebalance candidate instead of a brightness boost",
+                                                                                                                                                                          "processor_type":  "utility",
+                                                                                                                                                                          "risk":  "low",
+                                                                                                                                                                          "strategy":  "conservative_level_or_peer_rebalance"
+                                                                                                                                                                      },
+                                                                                                                                                   "run_id":  "run_d23d3bdfdd2f2289",
+                                                                                                                                                   "schema_version":  "mix_diagnosis_context.v0",
+                                                                                                                                                   "source_refs":  {
+                                                                                                                                                                       "observation_id":  "obs_20261009T134456_7b7462b1a589",
+                                                                                                                                                                       "target_ref":  "track:1012"
+                                                                                                                                                                   },
+                                                                                                                                                   "target_ref":  "track:1012",
+                                                                                                                                                   "user_intent":  "请对当前贴唱工程做一次自由态实验：基于观察证据改善人声与伴奏的平衡，执行后让我试听对比效果。",
+                                                                                                                                                   "user_reported_facts":  [
+                                                                                                                                                                               {
+                                                                                                                                                                                   "key":  "user_intent",
+                                                                                                                                                                                   "ref":  "diag_9be64592b920c093.user_reported.intent",
+                                                                                                                                                                                   "summary":  "user asked for a vocal-forward mix result: 请对当前贴唱工程做一次自由态实验：基于观察证据改善人声与伴奏的平衡，执行后让我试听对比效果。"
+                                                                                                                                                                               }
+                                                                                                                                                                           ]
+                                                                                                                                               },
+                                                                                                                         "diagnosis_context_id":  "diag_9be64592b920c093",
+                                                                                                                         "diagnosis_evidence_refs":  [
+                                                                                                                                                         "diag_9be64592b920c093",
+                                                                                                                                                         "obs_20261009T134456_7b7462b1a589",
+                                                                                                                                                         "diag_9be64592b920c093.user_reported.intent",
+                                                                                                                                                         "diag_9be64592b920c093.missing.band_energy_summary",
+                                                                                                                                                         "diag_9be64592b920c093.missing.masking_depth"
+                                                                                                                                                     ],
+                                                                                                                         "matched_text":  "下调 1.5 dB",
+                                                                                                                         "source":  "assistant_reply"
+                                                                                                                     },
+                                                                                                        "operation":  "track_gain_adjust",
+                                                                                                        "processor_type":  "utility",
+                                                                                                        "track_id":  "1012"
+                                                                                                    },
+                                                                               "candidate_type":  "mix_tick",
+                                                                               "confidence":  "medium",
+                                                                               "domain":  "mix",
+                                                                               "id":  "pending_mix_tick_dev_harness_ab_pull_confirm_20261009_214448_goal_264a62a43db4dda9_track_gain_adjust_1012",
+                                                                               "kind":  "PendingCandidate",
+                                                                               "processor_type":  "utility",
+                                                                               "rationale":  "assistant_reply",
+                                                                               "required_permission_domains":  [
+                                                                                                                   "mix.commit"
+                                                                                                               ],
+                                                                               "risk":  "undoable_commit",
+                                                                               "source":  {
+                                                                                              "conversation_id":  "dev_harness_ab_pull_confirm_20261009_214448",
+                                                                                              "goal_id":  "goal_264a62a43db4dda9",
+                                                                                              "legacy_kind":  "PendingMixTickCandidate",
+                                                                                              "legacy_schema":  "mix_tick.pending.v0",
+                                                                                              "metadata":  {
+                                                                                                               "before_track_summary":  {
+                                                                                                                                            "gain_db":  0,
+                                                                                                                                            "id":  "1012",
+                                                                                                                                            "name":  "Lead Vocal",
+                                                                                                                                            "pan":  0,
+                                                                                                                                            "track_id":  "1012",
+                                                                                                                                            "track_name":  "Lead Vocal",
+                                                                                                                                            "volume_db":  0
+                                                                                                                                        },
+                                                                                                               "conversation_id":  "dev_harness_ab_pull_confirm_20261009_214448",
+                                                                                                               "goal_id":  "goal_264a62a43db4dda9",
+                                                                                                               "run_id":  "run_d23d3bdfdd2f2289",
+                                                                                                               "target_track_id":  "1012",
+                                                                                                               "track_count":  2,
+                                                                                                               "track_gain_db":  0
+                                                                                                           },
+                                                                                              "run_id":  "run_d23d3bdfdd2f2289"
+                                                                                          },
+                                                                               "status":  "waiting_user",
+                                                                               "summary":  "将 Track 1012 的电平调整 -1.50 dB。",
+                                                                               "target_ref":  "track:1012"
+                                                                           }
+                                                       }
+                                          },
+                  "conversation_id":  "dev_harness_ab_pull_confirm_20261009_214448",
+                  "needs_confirmation":  true
+              },
+    "judgment_station_events":  {
+                                    "applied_like":  0,
+                                    "mix_tick":  2,
+                                    "audition":  4,
+                                    "total":  18
+                                },
+    "post_confirm_station":  "judgment_terminal",
+    "phase":  "confirm_roundtrip",
+    "hops":  [
+                 {
+                     "index":  1,
+                     "face":  "interaction",
+                     "card_id":  "interaction_d746cf7f9b17dca1",
+                     "goal_status":  "completed",
+                     "stop_reason":  "mix_tick_applied_reobserved",
+                     "needs_confirmation":  false,
+                     "expired_fallback":  false,
+                     "error":  "",
+                     "answered":  true
+                 }
+             ],
+    "conversation_id":  "dev_harness_ab_pull_confirm_20261009_214448",
+    "finished_at":  "2026-10-09T21:45:47.2089186+08:00",
+    "confirm_face_exercised":  true,
+    "hops_used":  1
+}

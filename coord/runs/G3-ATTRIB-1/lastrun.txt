@@ -1,0 +1,1 @@
+RUNDIR=coord/runs/G3-ATTRIB-1/20261009_214138_harnessab

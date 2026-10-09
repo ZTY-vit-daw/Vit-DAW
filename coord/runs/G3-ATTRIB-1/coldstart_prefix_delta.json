@@ -1,0 +1,57 @@
+{
+  "artifact": "coldstart_prefix_delta",
+  "method": "per-goal FIRST pullharness call prefix_bytes; absent-baseline = L1-5-IMPL-D G3 round 1 (engine_snapshot absent, coldstart fact groups absent-declared); supplied = G3-ATTRIB-1 run 20261009_214138_harnessab (server.go contextWithPullEngineSnapshot active). Non-first calls excluded (in-goal prefix drift is a separate face, G3-RULING §2.4).",
+  "baseline_absent": {
+    "run": "L1-5-IMPL-D/20261009_195558",
+    "n": 3,
+    "min": 34027,
+    "max": 34027,
+    "per_goal": {
+      "goal_0c6624926809dc1d": {
+        "prefix_bytes": 34027,
+        "dynamic_bytes": 834
+      },
+      "goal_dc9a481f7f2ef14b": {
+        "prefix_bytes": 34027,
+        "dynamic_bytes": 834
+      },
+      "goal_7952e3683da4cfec": {
+        "prefix_bytes": 34027,
+        "dynamic_bytes": 834
+      }
+    }
+  },
+  "supplied": {
+    "run": "G3-ATTRIB-1/20261009_214138_harnessab",
+    "n": 5,
+    "min": 34316,
+    "max": 34476,
+    "per_goal": {
+      "goal_365f49776bc8ce75": {
+        "prefix_bytes": 34476,
+        "dynamic_bytes": 834
+      },
+      "goal_e1f61ebbf90c83b2": {
+        "prefix_bytes": 34476,
+        "dynamic_bytes": 834
+      },
+      "goal_699af26082f8884e": {
+        "prefix_bytes": 34476,
+        "dynamic_bytes": 858
+      },
+      "goal_264a62a43db4dda9": {
+        "prefix_bytes": 34476,
+        "dynamic_bytes": 834
+      },
+      "goal_26bcc848999334aa": {
+        "prefix_bytes": 34316,
+        "dynamic_bytes": 852
+      }
+    }
+  },
+  "delta": {
+    "min_gain": 289,
+    "median_gain_approx": 449
+  },
+  "verdict": "all supplied-mode first-call prefix_bytes exceed the absent-baseline max (+289 minimum) => cold-start fact-group sections rendered into the stable prefix (TOM overview + bus topology + delivery lines); rules section was already present in both. Injection log evidence: 6x \"[chat] pull cold-start engine_snapshot supplied\" in agent_harness_ab_pull.log."
+}

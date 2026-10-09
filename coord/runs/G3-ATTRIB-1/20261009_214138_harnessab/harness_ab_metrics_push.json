@@ -1,0 +1,116 @@
+﻿{
+    "first_call_prefix_bytes_by_goal":  {
+                                            "goal_f11fc70400dee89d":  14207,
+                                            "goal_733d19019cf1c5b5":  14207,
+                                            "goal_c1e2b8b36346b68d":  14207
+                                        },
+    "budget_round":  null,
+    "llm_calls":  6,
+    "cost":  {
+                 "prefix_bytes_total":  85242,
+                 "dynamic_bytes_total":  235944,
+                 "messages_total":  12,
+                 "llm_calls":  6
+             },
+    "stop_loss_mode":  false,
+    "rounds_classified":  1,
+    "rounds":  [
+                   {
+                       "mode":  "push",
+                       "settled":  true,
+                       "round":  1,
+                       "nudges_sent":  1,
+                       "classification":  "judgment_terminal",
+                       "stop_reasons":  [
+                                            "limit_reached",
+                                            "no_pending_mix_tick_candidate"
+                                        ],
+                       "transport_errors":  0,
+                       "conversation_id":  "dev_harness_ab_push_20261009_214152_r1",
+                       "finished_at":  "2026-10-09T21:42:10.9611772+08:00",
+                       "goal_statuses":  [
+                                             "waiting_continue",
+                                             "completed"
+                                         ],
+                       "turns_sent":  2
+                   }
+               ],
+    "agent_log":  "D:\\Vit_DAW_wt_g3a1\\VitApp\\Workspace\\Logs\\agent_harness_ab_push.log",
+    "confirm_roundtrip":  null,
+    "family_rounds_classified":  3,
+    "mode":  "push",
+    "prefix_hits":  {
+                        "p1_distinct_fingerprints":  6,
+                        "p3_isolated_calls":  6,
+                        "p2_break_reasons":  {
+
+                                             },
+                        "p2_break_calls":  0,
+                        "p1_stable_calls":  1,
+                        "p2_break_sections":  {
+
+                                              }
+                    },
+    "environment_interrupt":  false,
+    "telemetry_records_total":  10,
+    "family_rounds":  [
+                          {
+                              "mode":  "push",
+                              "family":  "f1_loudness_balance",
+                              "conversation_id":  "dev_harness_ab_push_fam_f1_loudness_balance_20261009_214213",
+                              "classification":  "judgment_terminal",
+                              "stop_reasons":  [
+                                                   "limit_reached",
+                                                   "no_pending_mix_tick_candidate"
+                                               ],
+                              "goal_statuses":  [
+                                                    "waiting_continue",
+                                                    "completed"
+                                                ],
+                              "last_stop_reason":  "no_pending_mix_tick_candidate",
+                              "last_goal_status":  "completed",
+                              "turns_sent":  2,
+                              "nudges_sent":  1,
+                              "settled":  true,
+                              "finished_at":  "2026-10-09T21:42:27.3320822+08:00"
+                          },
+                          {
+                              "mode":  "push",
+                              "family":  "f2_low_end_cleanup",
+                              "conversation_id":  "dev_harness_ab_push_fam_f2_low_end_cleanup_20261009_214229",
+                              "classification":  "judgment_terminal",
+                              "stop_reasons":  [
+                                                   "limit_reached",
+                                                   "no_pending_mix_tick_candidate"
+                                               ],
+                              "goal_statuses":  [
+                                                    "waiting_continue",
+                                                    "completed"
+                                                ],
+                              "last_stop_reason":  "no_pending_mix_tick_candidate",
+                              "last_goal_status":  "completed",
+                              "turns_sent":  2,
+                              "nudges_sent":  1,
+                              "settled":  true,
+                              "finished_at":  "2026-10-09T21:42:41.9856430+08:00"
+                          },
+                          {
+                              "mode":  "push",
+                              "family":  "f3_dynamic_control",
+                              "conversation_id":  "dev_harness_ab_push_fam_f3_dynamic_control_20261009_214244",
+                              "classification":  "needs_user_confirmation",
+                              "stop_reasons":  [
+                                                   "needs_confirmation"
+                                               ],
+                              "goal_statuses":  [
+                                                    "waiting_confirmation"
+                                                ],
+                              "last_stop_reason":  "needs_confirmation",
+                              "last_goal_status":  "waiting_confirmation",
+                              "turns_sent":  1,
+                              "nudges_sent":  0,
+                              "settled":  true,
+                              "finished_at":  "2026-10-09T21:42:49.8468055+08:00"
+                          }
+                      ]
+}

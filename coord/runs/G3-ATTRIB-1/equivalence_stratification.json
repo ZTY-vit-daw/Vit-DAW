@@ -1,0 +1,95 @@
+{
+  "artifact": "equivalence_stratification",
+  "run": "G3-ATTRIB-1/20261009_214138_harnessab",
+  "note_base_pull_r1": "pull base r1 classified judgment_failed stop=durable_checkpoint_persist_failed at the RESPONSE boundary; agent log [continuation.arm] shows the internal chain reached status=completed stop=done before the persist demotion (transient lease/contention candidate; 2 later completed pull goals persisted fine). Single occurrence.",
+  "strata": {
+    "families": {
+      "push": {
+        "f1_loudness_balance": {
+          "classification": "judgment_terminal",
+          "last_goal_status": "completed",
+          "last_stop_reason": "no_pending_mix_tick_candidate",
+          "turns_sent": 2
+        },
+        "f2_low_end_cleanup": {
+          "classification": "judgment_terminal",
+          "last_goal_status": "completed",
+          "last_stop_reason": "no_pending_mix_tick_candidate",
+          "turns_sent": 2
+        },
+        "f3_dynamic_control": {
+          "classification": "needs_user_confirmation",
+          "last_goal_status": "waiting_confirmation",
+          "last_stop_reason": "needs_confirmation",
+          "turns_sent": 1
+        }
+      },
+      "pull": {
+        "f1_loudness_balance": {
+          "classification": "needs_user_confirmation",
+          "last_goal_status": "waiting_confirmation",
+          "last_stop_reason": "needs_confirmation",
+          "turns_sent": 1
+        },
+        "f2_low_end_cleanup": {
+          "classification": "judgment_terminal",
+          "last_goal_status": "completed",
+          "last_stop_reason": "done",
+          "turns_sent": 1
+        },
+        "f3_dynamic_control": {
+          "classification": "needs_user_confirmation",
+          "last_goal_status": "waiting_confirmation",
+          "last_stop_reason": "needs_confirmation",
+          "turns_sent": 1
+        }
+      }
+    },
+    "base_rounds": {
+      "push": {
+        "classification": "judgment_terminal",
+        "stop_reasons": [
+          "limit_reached",
+          "no_pending_mix_tick_candidate"
+        ]
+      },
+      "pull": {
+        "classification": "judgment_failed",
+        "stop_reasons": [
+          "durable_checkpoint_persist_failed"
+        ]
+      }
+    },
+    "confirm_roundtrip_pull": {
+      "initial": {
+        "classification": "needs_user_confirmation",
+        "plan_id_present": false
+      },
+      "face_driven": "interaction",
+      "post_confirm_goal_status": "completed",
+      "post_confirm_stop_reason": "mix_tick_applied_reobserved",
+      "post_confirm_station": "judgment_terminal",
+      "judgment_station_events": {
+        "applied_like": 0,
+        "mix_tick": 2,
+        "audition": 4,
+        "total": 18
+      }
+    },
+    "budget_pull": {
+      "classification": "budget_exhausted",
+      "budget_exhausted_triggered": true,
+      "final_stop_reason": "observation_budget_exhausted",
+      "accounted_separately": true,
+      "confirm_hops_needed": 0
+    },
+    "cost": {
+      "push": {
+        "llm_calls": 6
+      },
+      "pull": {
+        "llm_calls": 17
+      }
+    }
+  }
+}
