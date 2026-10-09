@@ -37,6 +37,6 @@
 - 回执含报告 commit、被读 A/C 版本、锚点表、方案推荐与待裁决点、建议卡拆分及覆盖边界。报告走本卡分支，状态按共享协议同步 main。
 - 本卡完成只证明提案齐备、锚点可查，不证明 A+C 集成或恢复幂等；不新增用户手测义务。
 
-- 领取：（时间 / main 基线 / owner 模型+机器+会话 / 分支 / worktree / 同步提交）
+- 领取：2026-10-09 14:01 +08:00；用户本会话明确“执行 L1-5-ADAPTER-DESIGN-1，按最新卡面和共享协议领取”；origin/main=b07da14ccf31930a318f5cf9c2782011768a1692（重新核对：取消修复已独立领取，文件域不交）；owner=Codex GPT-6 / Windows ZTY / 会话 01a11f3f-41df-7411-acad-4b9a90cb5d0d；执行分支 port/l1-5-adapter-design-1；worktree C:/Users/timoz/.codex/worktrees/l1-5-adapter-design/Vit_DAW；执行领取基线 HEAD=7e230ab92924295cba5f01cd812f7afbb10e4104，status/diff stat 均空；协调 checkout D:/Vit_DAW_worktrees/l1-5-adapter-design-1-coord；领取提交 hash 在回执记录（避免自引用）。本卡零真栈。
 - 回执：（报告分支与 commit / PROPOSAL.md / 复核锚点数 / 待裁决点）
 - 验收：（主管设计裁决 / 后续实施卡 / 现行规格更新另记）
