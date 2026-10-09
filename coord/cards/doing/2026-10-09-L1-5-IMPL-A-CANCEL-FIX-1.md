@@ -37,6 +37,6 @@
 5. 回执明确本卡只修骨架取消路径，未证明生产中断恢复、A/C 适配或 G3 真栈。零生产入口消费须重新核对；若已有生产接线，本卡既定单元级边界失效，上交主管安排真实栈门槛。
 
 - 停止条件：上述结果保留口径无法通过既有字段表达，或必须改 ToolExecutor/FastPathRouter/GoalInput/Result/continuation 持久化；新证据推翻取消批规则；A 版本变化；文件域与 B 冲突。附最小反例与两种方案，上交，不自行扩域；当前窄修不解决 A/C 全量适配。
-- 领取：（授权依据 / 时间 / main 基线 / owner 模型+机器+会话 / 分支 / worktree / 同步提交）
+- 领取：用户本会话明确“执行 L1-5-IMPL-A-CANCEL-FIX-1，按最新卡面和共享协议领取”；2026-10-09 14:02 +08:00；origin/main=7e230ab92924295cba5f01cd812f7afbb10e4104；owner=Codex GPT-6 / Windows ZTY / 会话 01a11f3f-20bf-7092-811f-582e67f23c0f（独立执行流）；分支 port/l1-5-impl-a-cancel-fix-1；worktree C:/Users/timoz/.codex/worktrees/l1-5-cancel-fix/Vit_DAW；领取基线 HEAD=7e230ab92924295cba5f01cd812f7afbb10e4104，status --short 与 diff --stat 均空；协调 checkout= C:/Users/timoz/.codex/worktrees/l1-5-cancel-fix-coord/Vit_DAW；同步提交=本条 owner 记录所在提交（后续回执回填 hash）。A 尚未合入，仅 cherry-pick de1d876c 作为实现底座；未触碰主工作树已有改动；B 在 todo，无 doing 文件域冲突。
 - 回执：（修复 commit / 命令退出码 / 红绿证据 / 取消与批结果保留契约 / 端测边界）
 - 验收：（主管裁定 / 修复合入 / A 原卡与 B 依赖状态另记）
