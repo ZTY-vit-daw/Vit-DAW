@@ -9,6 +9,8 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	"vit-daw-agent/internal/agentprotocol"
 )
 
 func Build(input Input) Projection {
@@ -527,14 +529,77 @@ func quantile(sorted []float64, q float64) float64 {
 	return sorted[lower]*(1-weight) + sorted[upper]*weight
 }
 
+// stableProjectionID renders the vit://dom projection id (REFSCHEMA-M3, G1
+// 终审 §4 M3 行). The sha256 seed keeps the legacy input set untouched
+// (ProjectionID/GeneratedAt/LLMContext stripped before marshal) — dom is
+// content identity (F6, QUERY_ENGINE §3.3: 时间戳置空), so the digest lands in
+// the vit:// #hash segment truncated to 16 hex (F3). scope follows the
+// materialize targetScope precedent (TargetRef kind/id, 缺省 target/unknown);
+// snapshot carries observation_id (QUERY_ENGINE §3.3 fxm/com 行同款), falling
+// back to the explicit "unknown" token so the id stays total (the legacy form
+// always produced a value). FormatRef cannot fail on this input domain (dom
+// is registered via the legacy table TargetKind, the hash is self-produced,
+// scope/snapshot default non-empty); the impossible error yields "" which the
+// empty-id-tolerant consumers already handle.
 func stableProjectionID(projection Projection) string {
+	sum := projectionSeedHash(projection)
+	scopeKind, scopeValue := targetScope(projection.TargetRef)
+	ref, err := agentprotocol.FormatRef(agentprotocol.Ref{
+		Kind:       "dom",
+		ScopeKind:  scopeKind,
+		ScopeValue: scopeValue,
+		Window:     &agentprotocol.TimeWindow{AllTime: true},
+		Snapshot:   observationSnapshotID(projection.ObservationID),
+		Hash:       "sha256:" + hex.EncodeToString(sum[:])[:16],
+	})
+	if err != nil {
+		return ""
+	}
+	return ref
+}
+
+// projectionSeedHash keeps the legacy stableProjectionID seed byte-for-byte:
+// the marshaled projection with ProjectionID/GeneratedAt/LLMContext stripped.
+func projectionSeedHash(projection Projection) [32]byte {
 	copy := projection
 	copy.ProjectionID = ""
 	copy.GeneratedAt = ""
 	copy.LLMContext = LLMContext{}
 	data, _ := json.Marshal(copy)
-	sum := sha256.Sum256(data)
-	return "dom_" + hex.EncodeToString(sum[:])[:20]
+	return sha256.Sum256(data)
+}
+
+// targetScope mirrors the materialize adapter precedent: scope segments come
+// from the projection TargetRef and fall back to target/unknown so both
+// segments stay non-empty (refschema requirement).
+func targetScope(targetRef map[string]any) (kind, value string) {
+	kind = targetRefField(targetRef, "kind")
+	if kind == "" {
+		kind = "target"
+	}
+	value = targetRefField(targetRef, "id")
+	if value == "" {
+		value = "unknown"
+	}
+	return kind, value
+}
+
+func targetRefField(targetRef map[string]any, key string) string {
+	if value, ok := targetRef[key]; ok && value != nil {
+		if text := strings.TrimSpace(fmt.Sprint(value)); text != "" && text != "<nil>" {
+			return text
+		}
+	}
+	return ""
+}
+
+// observationSnapshotID maps the observation identity onto the snapshot
+// segment, with "unknown" as the explicit no-generation token.
+func observationSnapshotID(observationID string) string {
+	if snapshot := strings.TrimSpace(observationID); snapshot != "" {
+		return snapshot
+	}
+	return "unknown"
 }
 
 func generatedAt(value string) string {

@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"vit-daw-agent/internal/agentprotocol"
 	"vit-daw-agent/internal/levelsafety"
 )
 
@@ -832,6 +833,19 @@ func evidenceRefsFromRows(rows []ReferenceLevelRow) []string {
 	return uniqueStrings(refs...)
 }
 
+// stableProjectionID renders the vit://rlm projection id (REFSCHEMA-M3, G1
+// 终审 §4 M3 行). The sha256 seed keeps the legacy input set untouched
+// (seven-field \x00 join) — rlm is instance identity (F6, REF_SCHEMA_V1 §7:
+// 时间戳参与), so the digest lands in the vit:// #hash segment truncated to
+// 16 hex (F3; the legacy form already used 16). scope is project-level
+// "project:current"（rlm 是 per-project 单例投影，无工程 ID 字段可取，"current"
+// 沿物化层 snapshotTokenCurrent 词汇表当前工程）; snapshot carries
+// GeneratedAt（实例身份族的代=生成时刻，QUERY_ENGINE §3.3 rlm 行实例口径）,
+// falling back to the explicit "unknown" token so the id stays total (the
+// legacy form always produced a value). FormatRef cannot fail on this input
+// domain (rlm is registered via the legacy table TargetKind, the hash is
+// self-produced, scope/snapshot default non-empty); the impossible error
+// yields "" which the empty-id-tolerant consumers already handle.
 func stableProjectionID(proj Projection) string {
 	seed := strings.Join([]string{
 		proj.SchemaVersion,
@@ -843,7 +857,27 @@ func stableProjectionID(proj Projection) string {
 		proj.GeneratedAt,
 	}, "\x00")
 	sum := sha256.Sum256([]byte(seed))
-	return "rlm_" + hex.EncodeToString(sum[:])[:16]
+	ref, err := agentprotocol.FormatRef(agentprotocol.Ref{
+		Kind:       "rlm",
+		ScopeKind:  "project",
+		ScopeValue: "current",
+		Window:     &agentprotocol.TimeWindow{AllTime: true},
+		Snapshot:   generatedAtSnapshotID(proj.GeneratedAt),
+		Hash:       "sha256:" + hex.EncodeToString(sum[:])[:16],
+	})
+	if err != nil {
+		return ""
+	}
+	return ref
+}
+
+// generatedAtSnapshotID maps the instance generation stamp onto the snapshot
+// segment, with "unknown" as the explicit no-generation token.
+func generatedAtSnapshotID(generatedAt string) string {
+	if snapshot := strings.TrimSpace(generatedAt); snapshot != "" {
+		return snapshot
+	}
+	return "unknown"
 }
 
 func valueAtPath(root map[string]any, path []string) any {

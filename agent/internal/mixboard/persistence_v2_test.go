@@ -124,7 +124,10 @@ func TestProjectObservationPersistsCompactCOMProjectionAndCatalog(t *testing.T) 
 		t.Fatal(err)
 	}
 	text := strings.ToLower(string(data))
-	if !strings.Contains(text, `"com_projection"`) || !strings.Contains(text, result.Observation.COMProjection.ProjectionID) {
+	// REFSCHEMA-M3：projection_id 已迁 vit:// 形态（snapshot 段嵌 observation
+	// 身份，含时间戳大写字母）；写盘断言两侧同口径小写比对——legacy 形态
+	// （全小写 hex）曾使单侧 ToLower 恰好成立，断言强度不变（ID 完整在盘）。
+	if !strings.Contains(text, `"com_projection"`) || !strings.Contains(text, strings.ToLower(result.Observation.COMProjection.ProjectionID)) {
 		t.Fatalf("canonical observation omitted COM projection: %s", text[:minInt(len(text), 1000)])
 	}
 	for _, forbidden := range []string{"aligned_envelope_frames", "input_event_candidates", "raw_samples", "render_file_path"} {
