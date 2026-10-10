@@ -50,7 +50,7 @@
 | M2 | mom C 类构造器（mix.read:/acoustic_package_status:/observation:） | legacy | 迁 vit://mom 形态（scope 承载数据键族；snapshot=observation_id） | M1 后；痛点②③④根源 | P2 / flash（锚点齐） |
 | M3 | A 类四包（dom/fxm/com/rlm stableProjectionID） | legacy（哈希已在手） | 生成 vit:// 带 sha256 段（内容哈希现成）；snapshot 承载按 F6 注记 | M2 后，或随 L1-2 种子需要 | P2 / flash |
 | M4 | B 类身份族（obs_/ccbobs_/rel_/cap_pack_/c2_plan_） | legacy | 进 EvidenceRefs 边界处归一 | 随各域触碰机会；**capabilitycontext 批次 2026-10-10 落地（部分完结，见下方 M4 行批注）** | P3 / 机会 |
-| M5 | E 类回执（semantic_eq_batch/c2.dynamic_plugin_load_batch） | legacy | 同 M4 | 随功能触碰 | P3 / 机会 |
+| M5 | E 类回执（semantic_eq_batch/c2.dynamic_plugin_load_batch） | legacy | 同 M4 | 随功能触碰；**点名两族 2026-10-10 落地（五词条注册，见下方 M5 行批注）** | P3 / 机会 |
 | M6 | G 类快照族（mixboard_/kernel_prepared_+Godot 第三写者） | legacy | 族迁移+GDScript 常量导出 | **BELL/F5 链下次触碰**（ruling #7 原钩子保留） | P2 / 届时定 |
 | M7 | C5/C6/C7 数据源 ref（project.state: 族/project_package.*/裸常量） | legacy | 随 L1-2 物化种子逐面升 | L1-2 各面 IMPL 卡内嵌 | 随卡 |
 | M8 | Godot 写者+PCA 层勘察补腿 | 未盘点 | 两小节勘察（≤0.5h） | 机会卡或 M6 前 | P3 / 闲时可 |
@@ -62,6 +62,10 @@
 > **升记录缺口（ccbr_ 族待重裁）**：`ccbr_`/`ccbr_rejected_`/`ccbr_batch_`（M8 报告 D4 移交面，free_state_observation.go:567/:439/:1636）触发 M4 卡停止条件——实读 remainder 与 ccbobs_ 族同构（obs_ 身份透传，**实含时间戳+随机量**，webui trace fixture 实录 `ccbr_obs_20260911T115419_a2ef6022376c`），与"compactID=观察 id+请求 id 哈希短串、内容寻址→slot=hash"预裁定矛盾（compactID 只取首个非空输入，非哈希）。缓注册维持 opaque 透传（fail-visible 测试钉住），重裁前不入注册表；若重裁，实读证据指向与 ccbobs_ 族对齐（identity→slot=snapshot）。余量 obs_/rel_/c2_plan_ 维持"随域触碰"不变。
 >
 > **缺口闭合（ccbr_ 族，2026-10-10 REFSCHEMA-M4B 落地回写）**：重裁生效（[2026-10-10 MORNING-BATCH rulings §3](../../../rulings/2026-10-10-MORNING-BATCH-rulings.md)）——裁定 `ccbr_`/`ccbr_rejected_`/`ccbr_batch_` 按 identity 族承载（slot=snapshot、TargetKind 留空，family=evidence_scheme_uri），对齐 ccbobs_ 同款；M8 报告 D4 行"哈希短串"描述失准记注（历史工件不改，行为证据优先）。落地：三词条注册进 legacyPrefixRegistry（19→22）+ 钉住测试翻面（`TestRefSchemaM4CCBRFamilyStaysUnregistered` → `TestRefSchemaM4BCCBRFamilyRegistered`）+ 初值表测试扩 22；capabilitycontext 生产代码零改动（锚点测试保持）。实现 `port/refschema-m4b@a62f7125`（待决策验收合入）；回执 coord/runs/REFSCHEMA-M4B/receipt.md。capabilitycontext 域 7 生成点至此全部注册在案；M4 余量 obs_/rel_/c2_plan_ 维持"随域触碰"不变。
+>
+> **M5 行批注（2026-10-10，REFSCHEMA-M5 执行回执回写，实现待决策验收）**：E 类回执点名两族落地——`b4.semantic_eq_batch:`/`b4.semantic_eq_batch.reconcile:`/`c1.semantic_eq_batch:`/`c1.semantic_eq_batch.reconcile:`/`c2.dynamic_plugin_load_batch:` 五词条注册进 legacyPrefixRegistry（22→27）：identity/回执族承载核实成立（remainder=IdempotencyKey=`exec:`+sessionID+`:`+actionSetHash+`:`+actionID，executionruntime/coordinator.go:115/:130——session 实例身份在前，非可复现内容指纹）→ slot=snapshot、TargetKind 留空，family=evidence_scheme_uri 对齐 M4 批次（卡面"含批序号与时间成分→slot=snapshot"预裁定核实成立，无证据矛盾）。前缀含尾冒号：不劫持 `.governed` 命令常量（命令名非 ref），主/reconcile 词条各归其主。实现 `port/refschema-m5@9d80a573`（消费链=纯回执面零解析消费，chat/capabilityadapters 生产代码零改动；回执 coord/runs/REFSCHEMA-M5/receipt.md）。余量：同端口兄弟族 plugin_load_batch{,.reconcile}:（b4_eq_runtime.go:678/:564，b4/c1 两前缀）不在 M5 行点名两族内，维持 opaque fail-visible 钉住（`TestRefSchemaM5LoadBatchSiblingsStayUnregistered`），随域触碰再注册。
+>
+> **R5 去留裁定落账（2026-10-10，M8 报告新输入，按主管预裁定=登记不动作）**：`mix-report:`/`mixboard-project:`（harness.go:4548-4549 + chat/mixboard_decision_projection.go:100）——纯响应面 ref 形态字段、无下游读取者（M8 附录 A7 grep 口径本卡回执时点复跑：仍仅三写点+1 测试断言，agent/webui 解析消费方零命中）、不进 EvidenceRefs 面 → **登记不动作**（不注册翻译条目：无解析消费方，注册徒增词条噪音）。领取时点未出现新读取者，M5 卡 R5 停止条件未触发。
 
 ## 5. 解锁声明（2026-10-07 午间勘误修订）
 
