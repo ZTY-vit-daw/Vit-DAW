@@ -409,8 +409,9 @@ func (s *pullSession) Execute(ctx context.Context, calls []pullharness.ToolCall)
 }
 
 // settleBatch 结算自批起点以来的执行回执（单次结算；已结算不重复计费）。
-// 现执行面无统一 probe 计量（提案 §5.1 取证点）——成本标 unknown，不填 0
-// 冒充免费；有真实计量源后在此接入。
+// probe 物理成本按 D5 分级逐笔结算（settleRecordProbeCost，计量源=
+// execRecord.elapsed_ms）；分级表内已计量回执不再翻 probeCostKnown=false，
+// 无键/未列名回执维持翻 false——未计量不填 0 冒充已知（诚实语义保留）。
 func (s *pullSession) settleBatch() []string {
 	if s.batchStart >= len(s.state.executed) {
 		return nil
@@ -424,9 +425,74 @@ func (s *pullSession) settleBatch() []string {
 	}
 	fresh := s.ledger.settle(receipts)
 	if len(fresh) > 0 {
-		s.ledger.probeCostKnown = false
+		freshSet := make(map[string]bool, len(fresh))
+		for _, id := range fresh {
+			freshSet[id] = true
+		}
+		for _, record := range records {
+			if freshSet[strings.TrimSpace(fmt.Sprint(record["tool_call_id"]))] {
+				s.settleRecordProbeCost(record)
+			}
+		}
 	}
 	return fresh
+}
+
+// D5 工具成本分级（卡面 PULL-PROBE-METER-1 分级表；语义=
+// pullharness/budget.go:17-19：index 级零成本不计，render/probe 级逐笔计入）。
+const (
+	probeTierProbe    = "probe"    // render/probe 观察与渲染面：elapsed_ms 逐笔计入
+	probeTierIndex    = "index"    // catalog/state 读：D5 定义零成本，不计不翻
+	probeTierUnlisted = "unlisted" // 分级表未列名/两属性工具：不私定，按 unknown 处置
+)
+
+// settleRecordProbeCost 结算单笔回执的 probe 物理成本。诚实红线：无键/
+// 不可解析=未计量，翻 probeCostKnown=false，不填 0；index 级按 D5 定义零
+// 成本不计不翻；未列名/两属性工具（如 clip.warm_waveform_bake 变异+烘焙）
+// 不私定分级——按 unknown 处置，争议上交决策侧裁定后扩表。
+func (s *pullSession) settleRecordProbeCost(record map[string]any) {
+	switch probeToolTier(fmt.Sprint(record["tool"])) {
+	case probeTierIndex:
+		return
+	case probeTierProbe:
+		if elapsed, ok := elapsedMSFromRecord(record); ok {
+			s.ledger.probeSpent += elapsed
+			return
+		}
+	}
+	s.ledger.probeCostKnown = false
+}
+
+// elapsedMSFromRecord 读回执的 elapsed_ms 计量键（executeTool 写入的毫秒
+// 墙钟；容忍 JSON 数值形态）。缺键/形态不可解析=未计量（ok=false）。
+func elapsedMSFromRecord(record map[string]any) (float64, bool) {
+	switch value := record["elapsed_ms"].(type) {
+	case int64:
+		return float64(value), true
+	case int:
+		return float64(value), true
+	case float64:
+		return value, true
+	case json.Number:
+		parsed, err := value.Float64()
+		return parsed, err == nil
+	default:
+		return 0, false
+	}
+}
+
+// probeToolTier 按分级表分类工具。名称归一：下划线视作点号（命令名
+// mix_request_observation 与工具名 mix.request_observation 同类）。
+func probeToolTier(tool string) string {
+	name := strings.ReplaceAll(strings.ToLower(strings.TrimSpace(tool)), "_", ".")
+	switch name {
+	case "ccb.observation.request", "mix.observe", "mix.request.observation":
+		return probeTierProbe
+	case "ref.query", "ref.diff", "ccb.observation.catalog", "project.state":
+		return probeTierIndex
+	default:
+		return probeTierUnlisted
+	}
 }
 
 // CloseCycle 是 T1 唯一调用入口：完整模型工具批恰一次。用注入的 ExitExecutor

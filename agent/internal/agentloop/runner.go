@@ -529,6 +529,7 @@ func (r *Runner) executeTool(ctx context.Context, state *runState, call planner.
 		call.ID = stableToolCallID(call, state.completedSteps+1)
 	}
 	state.trace = append(state.trace, planner.TraceEvent{Kind: "tool_call", ToolCall: cloneToolCallPtr(call)})
+	started := time.Now()
 	execResult, err := r.Executor.RunToolCall(ctx, executorpkg.Input{
 		GoalID:    state.goal.GoalID,
 		RunID:     state.goal.RunID,
@@ -562,6 +563,10 @@ func (r *Runner) executeTool(ctx context.Context, state *runState, call planner.
 		"undo_label":      execResult.UndoLabel,
 		"result":          execResult.Result,
 		"error":           toolResult.Error,
+		// 工具执行墙钟（agent 观测，与 harness.invoke 计时同粒度，含调度
+		// 噪音——勿冒称纯内核成本）；记录仅在真实执行调用后构造，未执行
+		// 路径无此键（未计量不填 0）。
+		"elapsed_ms": time.Since(started).Milliseconds(),
 	}
 	if len(execResult.ProjectHistory) > 0 {
 		state.projectHistory = cloneMap(execResult.ProjectHistory)
