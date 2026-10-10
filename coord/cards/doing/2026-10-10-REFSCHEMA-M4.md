@@ -51,6 +51,7 @@ vit:// 文法零改动；既有 15 词条零改动；旧记录 legacy refs 必�
 
 - 并行域 B（capabilitycontext+agentprotocol）；与 HYGIENE-FASTPATH-1 / HYGIENE-GOFMT-1 零重叠。**与 REFSCHEMA-M5 相交于 refschema.go——M5 依赖本卡合入后领取（串行）**。不需要真栈；无资源占用。
 
-- 领取：（时间 / origin/main hash / owner 模型+机器+会话 / 分支 / worktree / 领取提交）
-- 回执：（commit hash / 消费链清单 / 端测边界声明）
+- 领取：2026-10-10 10:36 / origin/main `c0f8eb94` / owner=GLM-5.3-Flash 执行会话 PC（ZCode flash 会话，本机主仓 D:\Vit_DAW）/ 分支 `port/refschema-m4` / worktree `D:\Vit_DAW_wt_refschema_m4` / 领取提交=本提交
+- 领取注记：承载预裁定已核实——ccbobs_ 族（含 rejected/batch 变体 :420/:499/:1584）remainder=compactID 对 obs_ 身份清洗透传（含时序）✓；cap_pack_（pack.go:112）sha256 输入含 generatedAt → 实例身份非内容指纹 ✓；**ccbr_ 族（:567/:439/:1636）remainder 实为 obs_ 身份透传（实含时间戳+随机量，webui trace fixture 实录证实），非"哈希短串/内容寻址"→ 触发卡面停止条件，按"该族单独上交"条款不注册、升 G1 终审记录缺口**（证据全文见 coord/runs/REFSCHEMA-M4/receipt.md）。消费链=纯响应面（零 EvidenceRefs/ParseRef 消费），ccbobs_ 三变体+cap_pack_ 注册即完成。
+- 回执：（commit hash / 消费链清单 / 端测边界声明）→ coord/runs/REFSCHEMA-M4/receipt.md
 - 验收：（裁定文件 / 验收 commit）
