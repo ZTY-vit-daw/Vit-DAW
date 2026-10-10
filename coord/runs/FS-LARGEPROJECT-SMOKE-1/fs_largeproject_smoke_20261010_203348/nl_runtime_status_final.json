@@ -1,0 +1,1072 @@
+﻿{
+    "authority_mode":  "full_project_access",
+    "capability_routes":  [
+                              {
+                                  "capacity_assessment":  {
+                                                              "schema_version":  "free_state_capacity_assessment.v1",
+                                                              "authority":  "product_runtime",
+                                                              "observed_facts":  {
+                                                                                     "project_uuid":  "vitproj_f4f91a6f4ffa47f0b3508487aedc5970",
+                                                                                     "project_revision":  "4",
+                                                                                     "track_count":  61,
+                                                                                     "active_audio_track_count":  61,
+                                                                                     "duration_seconds":  228.5714375,
+                                                                                     "plugin_count":  0,
+                                                                                     "automation_lane_count":  0,
+                                                                                     "track_group_count":  0,
+                                                                                     "routing_edge_count":  0,
+                                                                                     "relationship_breadth":  0,
+                                                                                     "request_scope":  "project_context",
+                                                                                     "task_history_available":  false,
+                                                                                     "evidence_refs":  [
+                                                                                                           "project.state:vitproj_f4f91a6f4ffa47f0b3508487aedc5970:4"
+                                                                                                       ]
+                                                                                 },
+                                                              "complexity_factors":  [
+                                                                                         {
+                                                                                             "code":  "large_track_set",
+                                                                                             "observed":  61,
+                                                                                             "weight":  25,
+                                                                                             "triggered":  true,
+                                                                                             "reason":  "twenty or more user tracks expand whole-project coverage"
+                                                                                         },
+                                                                                         {
+                                                                                             "code":  "long_timeline",
+                                                                                             "observed":  228.5714375,
+                                                                                             "weight":  15,
+                                                                                             "triggered":  false,
+                                                                                             "reason":  "five minutes or more increases observation span"
+                                                                                         },
+                                                                                         {
+                                                                                             "code":  "dense_processing_graph",
+                                                                                             "observed":  0,
+                                                                                             "weight":  20,
+                                                                                             "triggered":  false,
+                                                                                             "reason":  "forty or more processors increase context pressure"
+                                                                                         },
+                                                                                         {
+                                                                                             "code":  "dense_routing_graph",
+                                                                                             "observed":  0,
+                                                                                             "weight":  20,
+                                                                                             "triggered":  false,
+                                                                                             "reason":  "routing and grouping relationships require project-wide coordination"
+                                                                                         },
+                                                                                         {
+                                                                                             "code":  "automation_heavy",
+                                                                                             "observed":  0,
+                                                                                             "weight":  15,
+                                                                                             "triggered":  false,
+                                                                                             "reason":  "automation breadth increases cross-stage state"
+                                                                                         }
+                                                                                     ],
+                                                              "capacity_score":  25,
+                                                              "capacity_level":  "within_free_state",
+                                                              "selected_capability":  "free_state",
+                                                              "reason_codes":  [
+                                                                                   "large_track_set"
+                                                                               ],
+                                                              "confidence":  0.94,
+                                                              "project_revision":  "4",
+                                                              "observed_at":  "2026-10-10T12:34:30.1741028Z"
+                                                          },
+                                  "controller":  "minimal_audio_closure",
+                                  "conversation_id":  "dev_fs_largeproject_20261010_203348",
+                                  "created_at":  "2026-10-10T12:34:30.1741028Z",
+                                  "goal_id":  "goal_c142b6d60b797d8a",
+                                  "original_intent":  "检查一下当前工程有什么问题吗",
+                                  "project_revision":  "4",
+                                  "run_id":  "run_216abb29c0d6563e",
+                                  "schema_version":  "capability_route_decision.v1",
+                                  "semantic_entry":  {
+                                                         "confidence":  0.9,
+                                                         "control_mode":  "semantic_loop",
+                                                         "reason":  "product runtime selected free_state after project structure observation (score=25, reasons=large_track_set)",
+                                                         "route":  "open_semantic",
+                                                         "schema_version":  "semantic_entry_decision.v1",
+                                                         "target_scope":  "project_context",
+                                                         "user_authorization":  "action_requested"
+                                                     },
+                                  "task_id":  "task_982ded957475a31d",
+                                  "updated_at":  "2026-10-10T12:34:30.1741028Z"
+                              }
+                          ],
+    "checked_at":  "2026-10-10T20:36:10.5214662+08:00",
+    "checkout_blocked":  false,
+    "continuations":  [
+                          {
+                              "attempt":  1,
+                              "capacity_assessment":  {
+                                                          "schema_version":  "free_state_capacity_assessment.v1",
+                                                          "authority":  "product_runtime",
+                                                          "observed_facts":  {
+                                                                                 "project_uuid":  "vitproj_f4f91a6f4ffa47f0b3508487aedc5970",
+                                                                                 "project_revision":  "4",
+                                                                                 "track_count":  61,
+                                                                                 "active_audio_track_count":  61,
+                                                                                 "duration_seconds":  228.5714375,
+                                                                                 "plugin_count":  0,
+                                                                                 "automation_lane_count":  0,
+                                                                                 "track_group_count":  0,
+                                                                                 "routing_edge_count":  0,
+                                                                                 "relationship_breadth":  0,
+                                                                                 "request_scope":  "project_context",
+                                                                                 "task_history_available":  false,
+                                                                                 "evidence_refs":  [
+                                                                                                       "project.state:vitproj_f4f91a6f4ffa47f0b3508487aedc5970:4"
+                                                                                                   ]
+                                                                             },
+                                                          "complexity_factors":  [
+                                                                                     {
+                                                                                         "code":  "large_track_set",
+                                                                                         "observed":  61,
+                                                                                         "weight":  25,
+                                                                                         "triggered":  true,
+                                                                                         "reason":  "twenty or more user tracks expand whole-project coverage"
+                                                                                     },
+                                                                                     {
+                                                                                         "code":  "long_timeline",
+                                                                                         "observed":  228.5714375,
+                                                                                         "weight":  15,
+                                                                                         "triggered":  false,
+                                                                                         "reason":  "five minutes or more increases observation span"
+                                                                                     },
+                                                                                     {
+                                                                                         "code":  "dense_processing_graph",
+                                                                                         "observed":  0,
+                                                                                         "weight":  20,
+                                                                                         "triggered":  false,
+                                                                                         "reason":  "forty or more processors increase context pressure"
+                                                                                     },
+                                                                                     {
+                                                                                         "code":  "dense_routing_graph",
+                                                                                         "observed":  0,
+                                                                                         "weight":  20,
+                                                                                         "triggered":  false,
+                                                                                         "reason":  "routing and grouping relationships require project-wide coordination"
+                                                                                     },
+                                                                                     {
+                                                                                         "code":  "automation_heavy",
+                                                                                         "observed":  0,
+                                                                                         "weight":  15,
+                                                                                         "triggered":  false,
+                                                                                         "reason":  "automation breadth increases cross-stage state"
+                                                                                     }
+                                                                                 ],
+                                                          "capacity_score":  25,
+                                                          "capacity_level":  "within_free_state",
+                                                          "selected_capability":  "free_state",
+                                                          "reason_codes":  [
+                                                                               "large_track_set"
+                                                                           ],
+                                                          "confidence":  0.94,
+                                                          "project_revision":  "4",
+                                                          "observed_at":  "2026-10-10T12:34:30.1741028Z"
+                                                      },
+                              "continuation_id":  "cont_c6e072fb2d9a11b8e4a02109",
+                              "conversation_id":  "dev_fs_largeproject_20261010_203348",
+                              "free_state_admission_receipt":  {
+                                                                   "boundary":  "admitted",
+                                                                   "candidate_id":  "candidate:3eba29949b17a0e8",
+                                                                   "failed_gate_ids":  null,
+                                                                   "gate_results":  {
+                                                                                        "G1_project_binding":  "pass",
+                                                                                        "G2_capacity_assessed":  "pass",
+                                                                                        "G3_project_scan":  "pass",
+                                                                                        "G4_dimension_closed":  "pass",
+                                                                                        "G5_frontier_established":  "pass",
+                                                                                        "G6_target_evidence":  "pass",
+                                                                                        "G7_fresh_revision_bound_refs":  "pass",
+                                                                                        "G8_target_consistency":  "pass"
+                                                                                    },
+                                                                   "project_revision":  "",
+                                                                   "proposal_error":  "",
+                                                                   "proposal_present":  true,
+                                                                   "proposal_valid":  true,
+                                                                   "recorded_at":  "2026-10-10T12:36:06.4982212Z",
+                                                                   "schema_version":  "free_state_admission_receipt.v1",
+                                                                   "status":  "needs_experiment",
+                                                                   "target_evidence_ref":  "obs_20261010T123533_c344c8929bfa"
+                                                               },
+                              "free_state_continuation_budget":  6,
+                              "free_state_continuation_used":  1,
+                              "free_state_current_phase":  "fs4_diagnostic_round",
+                              "free_state_current_round_id":  "r_862269f04e29",
+                              "free_state_decision_status":  "needs_experiment",
+                              "free_state_status":  "awaiting_experiment",
+                              "free_state_stop_reason":  "",
+                              "goal_id":  "goal_c142b6d60b797d8a",
+                              "original_intent":  "检查一下当前工程有什么问题吗",
+                              "project_path":  "D:\\Vit_DAW_wt_fslp1\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261010_203348\\project\\sattelites_61.vit",
+                              "project_revision":  "4",
+                              "project_session_id":  "session_20261010T123427_7aba9578",
+                              "project_uuid":  "vitproj_f4f91a6f4ffa47f0b3508487aedc5970",
+                              "run_id":  "run_216abb29c0d6563e",
+                              "slice_id":  "slice_c22a9e123caea9c6",
+                              "status":  "completed",
+                              "task_contract":  {
+                                                    "schema_version":  "vit.task_semantic_state.v1",
+                                                    "contract_id":  "contract_task_982ded957475a31d",
+                                                    "task_id":  "task_982ded957475a31d",
+                                                    "goal_id":  "goal_c142b6d60b797d8a",
+                                                    "run_id":  "run_216abb29c0d6563e",
+                                                    "conversation_id":  "dev_fs_largeproject_20261010_203348",
+                                                    "original_intent":  "检查一下当前工程有什么问题吗",
+                                                    "kind":  "improvement",
+                                                    "scope":  {
+                                                                  "kind":  "project",
+                                                                  "id":  "vitproj_f4f91a6f4ffa47f0b3508487aedc5970"
+                                                              },
+                                                    "temporary":  true,
+                                                    "target_discovery":  "agent_observation",
+                                                    "authorization_boundary":  "governed_experiment",
+                                                    "completion_criteria":  [
+                                                                                "settle only after a governed experiment outcome",
+                                                                                "or report no_candidate_found or a distinct capability boundary with evidence"
+                                                                            ],
+                                                    "evidence_requirements":  [
+                                                                                  "exact observation or audit receipt references",
+                                                                                  "project revision matching the evaluated evidence",
+                                                                                  "explicit limitations for every bounded conclusion"
+                                                                              ],
+                                                    "project_uuid":  "vitproj_f4f91a6f4ffa47f0b3508487aedc5970",
+                                                    "project_revision":  "4",
+                                                    "created_at":  "2026-10-10T12:34:30.2489144Z"
+                                                },
+                              "task_id":  "task_982ded957475a31d",
+                              "task_semantic_state":  {
+                                                          "schema_version":  "vit.task_semantic_state.v1",
+                                                          "state":  "needs_experiment",
+                                                          "revision":  4,
+                                                          "contract_id":  "contract_task_982ded957475a31d",
+                                                          "project_uuid":  "vitproj_f4f91a6f4ffa47f0b3508487aedc5970",
+                                                          "project_revision":  "4",
+                                                          "evidence_refs":  [
+                                                                                "obs_20261010T123517_e391fa3e743f",
+                                                                                "obs_20261010T123533_c344c8929bfa"
+                                                                            ],
+                                                          "candidate_id":  "1037",
+                                                          "proposal":  {
+                                                                           "proposal_id":  "proposal_8d1c027cec04fe944f43",
+                                                                           "summary":  "让低频段不再与另一条音轨叠在一起，听感上低频更清楚、各轨更有区分度",
+                                                                           "evidence_refs":  [
+                                                                                                 "obs_20261010T123533_c344c8929bfa",
+                                                                                                 "obs_20261010T123517_e391fa3e743f"
+                                                                                             ],
+                                                                           "bounds":  [
+                                                                                          "工程级低频重叠仅为能量重叠候选，不是已证实的心理声学遮蔽事实",
+                                                                                          "工程级跨轨关系因测量条件不一致被保留，仅有单轨目标级证据"
+                                                                                      ],
+                                                                           "requires_experiment":  true
+                                                                       },
+                                                          "experiment_id":  "turn:free_state_293eb9fa0ccbe3eb",
+                                                          "transition_reason":  "free-state experiment runtime admitted",
+                                                          "summary":  "bounded experiment admitted",
+                                                          "terminal":  false,
+                                                          "history":  [
+                                                                          {
+                                                                              "revision":  1,
+                                                                              "event":  "observation_started",
+                                                                              "to":  "observation_in_progress",
+                                                                              "reason":  "task contract admitted",
+                                                                              "project_revision":  "4",
+                                                                              "occurred_at":  "2026-10-10T12:34:30.2489144Z"
+                                                                          },
+                                                                          {
+                                                                              "revision":  2,
+                                                                              "event":  "diagnostic_completed",
+                                                                              "from":  "observation_in_progress",
+                                                                              "to":  "diagnostic_complete",
+                                                                              "reason":  "candidate diagnosis established",
+                                                                              "summary":  "工程级扫描显示低频段存在跨轨能量重叠候选，其中「sattelites 22 Clouds gliding synth」（轨 1037）是该频段能量最高的候选轨；该轨的目标级频段证据显示其能量集中于低频至中频、高频区明显回落，与低频重叠候选一致。重叠只是候选、不是已证实的遮蔽事实，因此按有界可逆实验处理：对该轨低中频做一次轻微衰减，交由用户 A/B 判断。",
+                                                                              "evidence_refs":  [
+                                                                                                    "obs_20261010T123517_e391fa3e743f",
+                                                                                                    "obs_20261010T123533_c344c8929bfa"
+                                                                                                ],
+                                                                              "project_revision":  "4",
+                                                                              "occurred_at":  "2026-10-10T12:35:44.8457353Z"
+                                                                          },
+                                                                          {
+                                                                              "revision":  3,
+                                                                              "event":  "improvement_proposed",
+                                                                              "from":  "diagnostic_complete",
+                                                                              "to":  "improvement_proposal",
+                                                                              "reason":  "runtime admitted bounded improvement proposal",
+                                                                              "summary":  "工程级扫描显示低频段存在跨轨能量重叠候选，其中「sattelites 22 Clouds gliding synth」（轨 1037）是该频段能量最高的候选轨；该轨的目标级频段证据显示其能量集中于低频至中频、高频区明显回落，与低频重叠候选一致。重叠只是候选、不是已证实的遮蔽事实，因此按有界可逆实验处理：对该轨低中频做一次轻微衰减，交由用户 A/B 判断。",
+                                                                              "evidence_refs":  [
+                                                                                                    "obs_20261010T123517_e391fa3e743f",
+                                                                                                    "obs_20261010T123533_c344c8929bfa"
+                                                                                                ],
+                                                                              "candidate_id":  "1037",
+                                                                              "project_revision":  "4",
+                                                                              "occurred_at":  "2026-10-10T12:35:44.851236Z"
+                                                                          },
+                                                                          {
+                                                                              "revision":  4,
+                                                                              "event":  "experiment_required",
+                                                                              "from":  "improvement_proposal",
+                                                                              "to":  "needs_experiment",
+                                                                              "reason":  "free-state experiment runtime admitted",
+                                                                              "summary":  "bounded experiment admitted",
+                                                                              "experiment_id":  "turn:free_state_293eb9fa0ccbe3eb",
+                                                                              "project_revision":  "4",
+                                                                              "occurred_at":  "2026-10-10T12:35:44.9000598Z"
+                                                                          }
+                                                                      ],
+                                                          "updated_at":  "2026-10-10T12:35:44.9000598Z"
+                                                      },
+                              "task_state":  "needs_experiment",
+                              "task_state_revision":  4,
+                              "turn_id":  "turn_4445dadaa9eb3fb5",
+                              "updated_at":  "2026-10-10T12:36:06.5332857Z"
+                          }
+                      ],
+    "goal":  {
+                 "goal_id":  "goal_c142b6d60b797d8a",
+                 "run_id":  "run_216abb29c0d6563e",
+                 "task":  {
+                              "task_id":  "task_982ded957475a31d",
+                              "goal_id":  "goal_c142b6d60b797d8a",
+                              "conversation_id":  "dev_fs_largeproject_20261010_203348",
+                              "original_intent":  "检查一下当前工程有什么问题吗",
+                              "status":  "waiting_continuation",
+                              "contract":  {
+                                               "schema_version":  "vit.task_semantic_state.v1",
+                                               "contract_id":  "contract_task_982ded957475a31d",
+                                               "task_id":  "task_982ded957475a31d",
+                                               "goal_id":  "goal_c142b6d60b797d8a",
+                                               "run_id":  "run_216abb29c0d6563e",
+                                               "conversation_id":  "dev_fs_largeproject_20261010_203348",
+                                               "original_intent":  "检查一下当前工程有什么问题吗",
+                                               "kind":  "improvement",
+                                               "scope":  {
+                                                             "kind":  "project",
+                                                             "id":  "vitproj_f4f91a6f4ffa47f0b3508487aedc5970"
+                                                         },
+                                               "temporary":  true,
+                                               "target_discovery":  "agent_observation",
+                                               "authorization_boundary":  "governed_experiment",
+                                               "completion_criteria":  [
+                                                                           "settle only after a governed experiment outcome",
+                                                                           "or report no_candidate_found or a distinct capability boundary with evidence"
+                                                                       ],
+                                               "evidence_requirements":  [
+                                                                             "exact observation or audit receipt references",
+                                                                             "project revision matching the evaluated evidence",
+                                                                             "explicit limitations for every bounded conclusion"
+                                                                         ],
+                                               "project_uuid":  "vitproj_f4f91a6f4ffa47f0b3508487aedc5970",
+                                               "project_revision":  "4",
+                                               "created_at":  "2026-10-10T12:34:30.2489144Z"
+                                           },
+                              "semantic_state":  {
+                                                     "schema_version":  "vit.task_semantic_state.v1",
+                                                     "state":  "needs_experiment",
+                                                     "revision":  4,
+                                                     "contract_id":  "contract_task_982ded957475a31d",
+                                                     "project_uuid":  "vitproj_f4f91a6f4ffa47f0b3508487aedc5970",
+                                                     "project_revision":  "4",
+                                                     "evidence_refs":  [
+                                                                           "obs_20261010T123517_e391fa3e743f",
+                                                                           "obs_20261010T123533_c344c8929bfa"
+                                                                       ],
+                                                     "candidate_id":  "1037",
+                                                     "proposal":  {
+                                                                      "proposal_id":  "proposal_8d1c027cec04fe944f43",
+                                                                      "summary":  "让低频段不再与另一条音轨叠在一起，听感上低频更清楚、各轨更有区分度",
+                                                                      "evidence_refs":  [
+                                                                                            "obs_20261010T123533_c344c8929bfa",
+                                                                                            "obs_20261010T123517_e391fa3e743f"
+                                                                                        ],
+                                                                      "bounds":  [
+                                                                                     "工程级低频重叠仅为能量重叠候选，不是已证实的心理声学遮蔽事实",
+                                                                                     "工程级跨轨关系因测量条件不一致被保留，仅有单轨目标级证据"
+                                                                                 ],
+                                                                      "requires_experiment":  true
+                                                                  },
+                                                     "experiment_id":  "turn:free_state_293eb9fa0ccbe3eb",
+                                                     "transition_reason":  "free-state experiment runtime admitted",
+                                                     "summary":  "bounded experiment admitted",
+                                                     "terminal":  false,
+                                                     "history":  [
+                                                                     {
+                                                                         "revision":  1,
+                                                                         "event":  "observation_started",
+                                                                         "to":  "observation_in_progress",
+                                                                         "reason":  "task contract admitted",
+                                                                         "project_revision":  "4",
+                                                                         "occurred_at":  "2026-10-10T12:34:30.2489144Z"
+                                                                     },
+                                                                     {
+                                                                         "revision":  2,
+                                                                         "event":  "diagnostic_completed",
+                                                                         "from":  "observation_in_progress",
+                                                                         "to":  "diagnostic_complete",
+                                                                         "reason":  "candidate diagnosis established",
+                                                                         "summary":  "工程级扫描显示低频段存在跨轨能量重叠候选，其中「sattelites 22 Clouds gliding synth」（轨 1037）是该频段能量最高的候选轨；该轨的目标级频段证据显示其能量集中于低频至中频、高频区明显回落，与低频重叠候选一致。重叠只是候选、不是已证实的遮蔽事实，因此按有界可逆实验处理：对该轨低中频做一次轻微衰减，交由用户 A/B 判断。",
+                                                                         "evidence_refs":  [
+                                                                                               "obs_20261010T123517_e391fa3e743f",
+                                                                                               "obs_20261010T123533_c344c8929bfa"
+                                                                                           ],
+                                                                         "project_revision":  "4",
+                                                                         "occurred_at":  "2026-10-10T12:35:44.8457353Z"
+                                                                     },
+                                                                     {
+                                                                         "revision":  3,
+                                                                         "event":  "improvement_proposed",
+                                                                         "from":  "diagnostic_complete",
+                                                                         "to":  "improvement_proposal",
+                                                                         "reason":  "runtime admitted bounded improvement proposal",
+                                                                         "summary":  "工程级扫描显示低频段存在跨轨能量重叠候选，其中「sattelites 22 Clouds gliding synth」（轨 1037）是该频段能量最高的候选轨；该轨的目标级频段证据显示其能量集中于低频至中频、高频区明显回落，与低频重叠候选一致。重叠只是候选、不是已证实的遮蔽事实，因此按有界可逆实验处理：对该轨低中频做一次轻微衰减，交由用户 A/B 判断。",
+                                                                         "evidence_refs":  [
+                                                                                               "obs_20261010T123517_e391fa3e743f",
+                                                                                               "obs_20261010T123533_c344c8929bfa"
+                                                                                           ],
+                                                                         "candidate_id":  "1037",
+                                                                         "project_revision":  "4",
+                                                                         "occurred_at":  "2026-10-10T12:35:44.851236Z"
+                                                                     },
+                                                                     {
+                                                                         "revision":  4,
+                                                                         "event":  "experiment_required",
+                                                                         "from":  "improvement_proposal",
+                                                                         "to":  "needs_experiment",
+                                                                         "reason":  "free-state experiment runtime admitted",
+                                                                         "summary":  "bounded experiment admitted",
+                                                                         "experiment_id":  "turn:free_state_293eb9fa0ccbe3eb",
+                                                                         "project_revision":  "4",
+                                                                         "occurred_at":  "2026-10-10T12:35:44.9000598Z"
+                                                                     }
+                                                                 ],
+                                                     "updated_at":  "2026-10-10T12:35:44.9000598Z"
+                                                 },
+                              "run":  {
+                                          "run_id":  "run_216abb29c0d6563e",
+                                          "task_id":  "task_982ded957475a31d",
+                                          "current_slice_id":  "slice_40ec7cf2f5a2b2be",
+                                          "next_slice":  3,
+                                          "next_turn":  3,
+                                          "slices":  [
+                                                         {
+                                                             "slice_id":  "slice_c22a9e123caea9c6",
+                                                             "run_id":  "run_216abb29c0d6563e",
+                                                             "sequence":  1,
+                                                             "max_turns":  1,
+                                                             "max_tool_calls":  6,
+                                                             "turns_used":  4,
+                                                             "tool_calls_used":  3,
+                                                             "status":  "waiting_continuation",
+                                                             "started_at":  "2026-10-10T20:34:30.2910017+08:00",
+                                                             "ended_at":  "2026-10-10T20:35:44.9272228+08:00"
+                                                         },
+                                                         {
+                                                             "slice_id":  "slice_40ec7cf2f5a2b2be",
+                                                             "run_id":  "run_216abb29c0d6563e",
+                                                             "sequence":  2,
+                                                             "max_turns":  1,
+                                                             "max_tool_calls":  6,
+                                                             "turns_used":  2,
+                                                             "status":  "waiting_continuation",
+                                                             "started_at":  "2026-10-10T20:35:45.1680402+08:00",
+                                                             "ended_at":  "2026-10-10T20:36:06.510896+08:00"
+                                                         }
+                                                     ],
+                                          "turns":  [
+                                                        {
+                                                            "turn_id":  "turn_4445dadaa9eb3fb5",
+                                                            "slice_id":  "slice_c22a9e123caea9c6",
+                                                            "run_id":  "run_216abb29c0d6563e",
+                                                            "sequence":  1,
+                                                            "source":  "user",
+                                                            "status":  "completed",
+                                                            "started_at":  "2026-10-10T20:34:30.2915045+08:00",
+                                                            "ended_at":  "2026-10-10T20:35:44.8392344+08:00"
+                                                        },
+                                                        {
+                                                            "turn_id":  "turn_1b7db930d9b637ab",
+                                                            "slice_id":  "slice_40ec7cf2f5a2b2be",
+                                                            "run_id":  "run_216abb29c0d6563e",
+                                                            "sequence":  2,
+                                                            "source":  "automatic_continuation",
+                                                            "status":  "completed",
+                                                            "started_at":  "2026-10-10T20:35:45.1680402+08:00",
+                                                            "ended_at":  "2026-10-10T20:36:06.4772109+08:00"
+                                                        }
+                                                    ]
+                                      },
+                              "created_at":  "2026-10-10T20:34:27.718764+08:00",
+                              "updated_at":  "2026-10-10T20:36:10.4678657+08:00"
+                          },
+                 "status":  "waiting_continue",
+                 "summary":  "d1 owed-settlement tail",
+                 "created_at":  "2026-10-10T20:34:27.718764+08:00",
+                 "updated_at":  "2026-10-10T20:36:10.4678657+08:00",
+                 "cancel_requested":  false,
+                 "last_checkpoint":  "before_message_loop_model",
+                 "project_history":  {
+                                         "baseline_commit_id":  "c_20261010T123427_0fe5aeea",
+                                         "baseline_created":  true,
+                                         "active_branch":  "main",
+                                         "head":  "c_20261010T123427_0fe5aeea"
+                                     }
+             },
+    "kernel":  {
+                   "connected":  true,
+                   "endpoint":  "tcp://127.0.0.1:5555",
+                   "latency_ms":  1,
+                   "message":  "pong",
+                   "reply_status":  "ok",
+                   "status":  "online"
+               },
+    "note_sessions":  [
+
+                      ],
+    "pid":  4164,
+    "service":  "VitAgent",
+    "shadow":  {
+                   "delta_seq_gaps":  1,
+                   "graph_revision":  null,
+                   "initialized":  true,
+                   "last_delta_seq":  2022,
+                   "project_path":  "D:\\Vit_DAW_wt_fslp1\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261010_203348\\project\\sattelites_61.vit",
+                   "track_count":  61,
+                   "user_track_count":  61
+               },
+    "status":  "ok",
+    "task":  {
+                 "task_id":  "task_982ded957475a31d",
+                 "goal_id":  "goal_c142b6d60b797d8a",
+                 "conversation_id":  "dev_fs_largeproject_20261010_203348",
+                 "original_intent":  "检查一下当前工程有什么问题吗",
+                 "status":  "waiting_continuation",
+                 "contract":  {
+                                  "schema_version":  "vit.task_semantic_state.v1",
+                                  "contract_id":  "contract_task_982ded957475a31d",
+                                  "task_id":  "task_982ded957475a31d",
+                                  "goal_id":  "goal_c142b6d60b797d8a",
+                                  "run_id":  "run_216abb29c0d6563e",
+                                  "conversation_id":  "dev_fs_largeproject_20261010_203348",
+                                  "original_intent":  "检查一下当前工程有什么问题吗",
+                                  "kind":  "improvement",
+                                  "scope":  {
+                                                "kind":  "project",
+                                                "id":  "vitproj_f4f91a6f4ffa47f0b3508487aedc5970"
+                                            },
+                                  "temporary":  true,
+                                  "target_discovery":  "agent_observation",
+                                  "authorization_boundary":  "governed_experiment",
+                                  "completion_criteria":  [
+                                                              "settle only after a governed experiment outcome",
+                                                              "or report no_candidate_found or a distinct capability boundary with evidence"
+                                                          ],
+                                  "evidence_requirements":  [
+                                                                "exact observation or audit receipt references",
+                                                                "project revision matching the evaluated evidence",
+                                                                "explicit limitations for every bounded conclusion"
+                                                            ],
+                                  "project_uuid":  "vitproj_f4f91a6f4ffa47f0b3508487aedc5970",
+                                  "project_revision":  "4",
+                                  "created_at":  "2026-10-10T12:34:30.2489144Z"
+                              },
+                 "semantic_state":  {
+                                        "schema_version":  "vit.task_semantic_state.v1",
+                                        "state":  "needs_experiment",
+                                        "revision":  4,
+                                        "contract_id":  "contract_task_982ded957475a31d",
+                                        "project_uuid":  "vitproj_f4f91a6f4ffa47f0b3508487aedc5970",
+                                        "project_revision":  "4",
+                                        "evidence_refs":  [
+                                                              "obs_20261010T123517_e391fa3e743f",
+                                                              "obs_20261010T123533_c344c8929bfa"
+                                                          ],
+                                        "candidate_id":  "1037",
+                                        "proposal":  {
+                                                         "proposal_id":  "proposal_8d1c027cec04fe944f43",
+                                                         "summary":  "让低频段不再与另一条音轨叠在一起，听感上低频更清楚、各轨更有区分度",
+                                                         "evidence_refs":  [
+                                                                               "obs_20261010T123533_c344c8929bfa",
+                                                                               "obs_20261010T123517_e391fa3e743f"
+                                                                           ],
+                                                         "bounds":  [
+                                                                        "工程级低频重叠仅为能量重叠候选，不是已证实的心理声学遮蔽事实",
+                                                                        "工程级跨轨关系因测量条件不一致被保留，仅有单轨目标级证据"
+                                                                    ],
+                                                         "requires_experiment":  true
+                                                     },
+                                        "experiment_id":  "turn:free_state_293eb9fa0ccbe3eb",
+                                        "transition_reason":  "free-state experiment runtime admitted",
+                                        "summary":  "bounded experiment admitted",
+                                        "terminal":  false,
+                                        "history":  [
+                                                        {
+                                                            "revision":  1,
+                                                            "event":  "observation_started",
+                                                            "to":  "observation_in_progress",
+                                                            "reason":  "task contract admitted",
+                                                            "project_revision":  "4",
+                                                            "occurred_at":  "2026-10-10T12:34:30.2489144Z"
+                                                        },
+                                                        {
+                                                            "revision":  2,
+                                                            "event":  "diagnostic_completed",
+                                                            "from":  "observation_in_progress",
+                                                            "to":  "diagnostic_complete",
+                                                            "reason":  "candidate diagnosis established",
+                                                            "summary":  "工程级扫描显示低频段存在跨轨能量重叠候选，其中「sattelites 22 Clouds gliding synth」（轨 1037）是该频段能量最高的候选轨；该轨的目标级频段证据显示其能量集中于低频至中频、高频区明显回落，与低频重叠候选一致。重叠只是候选、不是已证实的遮蔽事实，因此按有界可逆实验处理：对该轨低中频做一次轻微衰减，交由用户 A/B 判断。",
+                                                            "evidence_refs":  [
+                                                                                  "obs_20261010T123517_e391fa3e743f",
+                                                                                  "obs_20261010T123533_c344c8929bfa"
+                                                                              ],
+                                                            "project_revision":  "4",
+                                                            "occurred_at":  "2026-10-10T12:35:44.8457353Z"
+                                                        },
+                                                        {
+                                                            "revision":  3,
+                                                            "event":  "improvement_proposed",
+                                                            "from":  "diagnostic_complete",
+                                                            "to":  "improvement_proposal",
+                                                            "reason":  "runtime admitted bounded improvement proposal",
+                                                            "summary":  "工程级扫描显示低频段存在跨轨能量重叠候选，其中「sattelites 22 Clouds gliding synth」（轨 1037）是该频段能量最高的候选轨；该轨的目标级频段证据显示其能量集中于低频至中频、高频区明显回落，与低频重叠候选一致。重叠只是候选、不是已证实的遮蔽事实，因此按有界可逆实验处理：对该轨低中频做一次轻微衰减，交由用户 A/B 判断。",
+                                                            "evidence_refs":  [
+                                                                                  "obs_20261010T123517_e391fa3e743f",
+                                                                                  "obs_20261010T123533_c344c8929bfa"
+                                                                              ],
+                                                            "candidate_id":  "1037",
+                                                            "project_revision":  "4",
+                                                            "occurred_at":  "2026-10-10T12:35:44.851236Z"
+                                                        },
+                                                        {
+                                                            "revision":  4,
+                                                            "event":  "experiment_required",
+                                                            "from":  "improvement_proposal",
+                                                            "to":  "needs_experiment",
+                                                            "reason":  "free-state experiment runtime admitted",
+                                                            "summary":  "bounded experiment admitted",
+                                                            "experiment_id":  "turn:free_state_293eb9fa0ccbe3eb",
+                                                            "project_revision":  "4",
+                                                            "occurred_at":  "2026-10-10T12:35:44.9000598Z"
+                                                        }
+                                                    ],
+                                        "updated_at":  "2026-10-10T12:35:44.9000598Z"
+                                    },
+                 "run":  {
+                             "run_id":  "run_216abb29c0d6563e",
+                             "task_id":  "task_982ded957475a31d",
+                             "current_slice_id":  "slice_40ec7cf2f5a2b2be",
+                             "next_slice":  3,
+                             "next_turn":  3,
+                             "slices":  [
+                                            {
+                                                "slice_id":  "slice_c22a9e123caea9c6",
+                                                "run_id":  "run_216abb29c0d6563e",
+                                                "sequence":  1,
+                                                "max_turns":  1,
+                                                "max_tool_calls":  6,
+                                                "turns_used":  4,
+                                                "tool_calls_used":  3,
+                                                "status":  "waiting_continuation",
+                                                "started_at":  "2026-10-10T20:34:30.2910017+08:00",
+                                                "ended_at":  "2026-10-10T20:35:44.9272228+08:00"
+                                            },
+                                            {
+                                                "slice_id":  "slice_40ec7cf2f5a2b2be",
+                                                "run_id":  "run_216abb29c0d6563e",
+                                                "sequence":  2,
+                                                "max_turns":  1,
+                                                "max_tool_calls":  6,
+                                                "turns_used":  2,
+                                                "status":  "waiting_continuation",
+                                                "started_at":  "2026-10-10T20:35:45.1680402+08:00",
+                                                "ended_at":  "2026-10-10T20:36:06.510896+08:00"
+                                            }
+                                        ],
+                             "turns":  [
+                                           {
+                                               "turn_id":  "turn_4445dadaa9eb3fb5",
+                                               "slice_id":  "slice_c22a9e123caea9c6",
+                                               "run_id":  "run_216abb29c0d6563e",
+                                               "sequence":  1,
+                                               "source":  "user",
+                                               "status":  "completed",
+                                               "started_at":  "2026-10-10T20:34:30.2915045+08:00",
+                                               "ended_at":  "2026-10-10T20:35:44.8392344+08:00"
+                                           },
+                                           {
+                                               "turn_id":  "turn_1b7db930d9b637ab",
+                                               "slice_id":  "slice_40ec7cf2f5a2b2be",
+                                               "run_id":  "run_216abb29c0d6563e",
+                                               "sequence":  2,
+                                               "source":  "automatic_continuation",
+                                               "status":  "completed",
+                                               "started_at":  "2026-10-10T20:35:45.1680402+08:00",
+                                               "ended_at":  "2026-10-10T20:36:06.4772109+08:00"
+                                           }
+                                       ]
+                         },
+                 "created_at":  "2026-10-10T20:34:27.718764+08:00",
+                 "updated_at":  "2026-10-10T20:36:10.4678657+08:00"
+             },
+    "task_contract":  {
+                          "schema_version":  "vit.task_semantic_state.v1",
+                          "contract_id":  "contract_task_982ded957475a31d",
+                          "task_id":  "task_982ded957475a31d",
+                          "goal_id":  "goal_c142b6d60b797d8a",
+                          "run_id":  "run_216abb29c0d6563e",
+                          "conversation_id":  "dev_fs_largeproject_20261010_203348",
+                          "original_intent":  "检查一下当前工程有什么问题吗",
+                          "kind":  "improvement",
+                          "scope":  {
+                                        "kind":  "project",
+                                        "id":  "vitproj_f4f91a6f4ffa47f0b3508487aedc5970"
+                                    },
+                          "temporary":  true,
+                          "target_discovery":  "agent_observation",
+                          "authorization_boundary":  "governed_experiment",
+                          "completion_criteria":  [
+                                                      "settle only after a governed experiment outcome",
+                                                      "or report no_candidate_found or a distinct capability boundary with evidence"
+                                                  ],
+                          "evidence_requirements":  [
+                                                        "exact observation or audit receipt references",
+                                                        "project revision matching the evaluated evidence",
+                                                        "explicit limitations for every bounded conclusion"
+                                                    ],
+                          "project_uuid":  "vitproj_f4f91a6f4ffa47f0b3508487aedc5970",
+                          "project_revision":  "4",
+                          "created_at":  "2026-10-10T12:34:30.2489144Z"
+                      },
+    "task_semantic_state":  {
+                                "schema_version":  "vit.task_semantic_state.v1",
+                                "state":  "needs_experiment",
+                                "revision":  4,
+                                "contract_id":  "contract_task_982ded957475a31d",
+                                "project_uuid":  "vitproj_f4f91a6f4ffa47f0b3508487aedc5970",
+                                "project_revision":  "4",
+                                "evidence_refs":  [
+                                                      "obs_20261010T123517_e391fa3e743f",
+                                                      "obs_20261010T123533_c344c8929bfa"
+                                                  ],
+                                "candidate_id":  "1037",
+                                "proposal":  {
+                                                 "proposal_id":  "proposal_8d1c027cec04fe944f43",
+                                                 "summary":  "让低频段不再与另一条音轨叠在一起，听感上低频更清楚、各轨更有区分度",
+                                                 "evidence_refs":  [
+                                                                       "obs_20261010T123533_c344c8929bfa",
+                                                                       "obs_20261010T123517_e391fa3e743f"
+                                                                   ],
+                                                 "bounds":  [
+                                                                "工程级低频重叠仅为能量重叠候选，不是已证实的心理声学遮蔽事实",
+                                                                "工程级跨轨关系因测量条件不一致被保留，仅有单轨目标级证据"
+                                                            ],
+                                                 "requires_experiment":  true
+                                             },
+                                "experiment_id":  "turn:free_state_293eb9fa0ccbe3eb",
+                                "transition_reason":  "free-state experiment runtime admitted",
+                                "summary":  "bounded experiment admitted",
+                                "terminal":  false,
+                                "history":  [
+                                                {
+                                                    "revision":  1,
+                                                    "event":  "observation_started",
+                                                    "to":  "observation_in_progress",
+                                                    "reason":  "task contract admitted",
+                                                    "project_revision":  "4",
+                                                    "occurred_at":  "2026-10-10T12:34:30.2489144Z"
+                                                },
+                                                {
+                                                    "revision":  2,
+                                                    "event":  "diagnostic_completed",
+                                                    "from":  "observation_in_progress",
+                                                    "to":  "diagnostic_complete",
+                                                    "reason":  "candidate diagnosis established",
+                                                    "summary":  "工程级扫描显示低频段存在跨轨能量重叠候选，其中「sattelites 22 Clouds gliding synth」（轨 1037）是该频段能量最高的候选轨；该轨的目标级频段证据显示其能量集中于低频至中频、高频区明显回落，与低频重叠候选一致。重叠只是候选、不是已证实的遮蔽事实，因此按有界可逆实验处理：对该轨低中频做一次轻微衰减，交由用户 A/B 判断。",
+                                                    "evidence_refs":  [
+                                                                          "obs_20261010T123517_e391fa3e743f",
+                                                                          "obs_20261010T123533_c344c8929bfa"
+                                                                      ],
+                                                    "project_revision":  "4",
+                                                    "occurred_at":  "2026-10-10T12:35:44.8457353Z"
+                                                },
+                                                {
+                                                    "revision":  3,
+                                                    "event":  "improvement_proposed",
+                                                    "from":  "diagnostic_complete",
+                                                    "to":  "improvement_proposal",
+                                                    "reason":  "runtime admitted bounded improvement proposal",
+                                                    "summary":  "工程级扫描显示低频段存在跨轨能量重叠候选，其中「sattelites 22 Clouds gliding synth」（轨 1037）是该频段能量最高的候选轨；该轨的目标级频段证据显示其能量集中于低频至中频、高频区明显回落，与低频重叠候选一致。重叠只是候选、不是已证实的遮蔽事实，因此按有界可逆实验处理：对该轨低中频做一次轻微衰减，交由用户 A/B 判断。",
+                                                    "evidence_refs":  [
+                                                                          "obs_20261010T123517_e391fa3e743f",
+                                                                          "obs_20261010T123533_c344c8929bfa"
+                                                                      ],
+                                                    "candidate_id":  "1037",
+                                                    "project_revision":  "4",
+                                                    "occurred_at":  "2026-10-10T12:35:44.851236Z"
+                                                },
+                                                {
+                                                    "revision":  4,
+                                                    "event":  "experiment_required",
+                                                    "from":  "improvement_proposal",
+                                                    "to":  "needs_experiment",
+                                                    "reason":  "free-state experiment runtime admitted",
+                                                    "summary":  "bounded experiment admitted",
+                                                    "experiment_id":  "turn:free_state_293eb9fa0ccbe3eb",
+                                                    "project_revision":  "4",
+                                                    "occurred_at":  "2026-10-10T12:35:44.9000598Z"
+                                                }
+                                            ],
+                                "updated_at":  "2026-10-10T12:35:44.9000598Z"
+                            },
+    "task_state":  "needs_experiment",
+    "task_state_revision":  4,
+    "task_trajectory":  {
+                            "capability_route":  {
+                                                     "capacity_assessment":  {
+                                                                                 "schema_version":  "free_state_capacity_assessment.v1",
+                                                                                 "authority":  "product_runtime",
+                                                                                 "observed_facts":  {
+                                                                                                        "project_uuid":  "vitproj_f4f91a6f4ffa47f0b3508487aedc5970",
+                                                                                                        "project_revision":  "4",
+                                                                                                        "track_count":  61,
+                                                                                                        "active_audio_track_count":  61,
+                                                                                                        "duration_seconds":  228.5714375,
+                                                                                                        "plugin_count":  0,
+                                                                                                        "automation_lane_count":  0,
+                                                                                                        "track_group_count":  0,
+                                                                                                        "routing_edge_count":  0,
+                                                                                                        "relationship_breadth":  0,
+                                                                                                        "request_scope":  "project_context",
+                                                                                                        "task_history_available":  false,
+                                                                                                        "evidence_refs":  [
+                                                                                                                              "project.state:vitproj_f4f91a6f4ffa47f0b3508487aedc5970:4"
+                                                                                                                          ]
+                                                                                                    },
+                                                                                 "complexity_factors":  [
+                                                                                                            {
+                                                                                                                "code":  "large_track_set",
+                                                                                                                "observed":  61,
+                                                                                                                "weight":  25,
+                                                                                                                "triggered":  true,
+                                                                                                                "reason":  "twenty or more user tracks expand whole-project coverage"
+                                                                                                            },
+                                                                                                            {
+                                                                                                                "code":  "long_timeline",
+                                                                                                                "observed":  228.5714375,
+                                                                                                                "weight":  15,
+                                                                                                                "triggered":  false,
+                                                                                                                "reason":  "five minutes or more increases observation span"
+                                                                                                            },
+                                                                                                            {
+                                                                                                                "code":  "dense_processing_graph",
+                                                                                                                "observed":  0,
+                                                                                                                "weight":  20,
+                                                                                                                "triggered":  false,
+                                                                                                                "reason":  "forty or more processors increase context pressure"
+                                                                                                            },
+                                                                                                            {
+                                                                                                                "code":  "dense_routing_graph",
+                                                                                                                "observed":  0,
+                                                                                                                "weight":  20,
+                                                                                                                "triggered":  false,
+                                                                                                                "reason":  "routing and grouping relationships require project-wide coordination"
+                                                                                                            },
+                                                                                                            {
+                                                                                                                "code":  "automation_heavy",
+                                                                                                                "observed":  0,
+                                                                                                                "weight":  15,
+                                                                                                                "triggered":  false,
+                                                                                                                "reason":  "automation breadth increases cross-stage state"
+                                                                                                            }
+                                                                                                        ],
+                                                                                 "capacity_score":  25,
+                                                                                 "capacity_level":  "within_free_state",
+                                                                                 "selected_capability":  "free_state",
+                                                                                 "reason_codes":  [
+                                                                                                      "large_track_set"
+                                                                                                  ],
+                                                                                 "confidence":  0.94,
+                                                                                 "project_revision":  "4",
+                                                                                 "observed_at":  "2026-10-10T12:34:30.1741028Z"
+                                                                             },
+                                                     "controller":  "minimal_audio_closure",
+                                                     "conversation_id":  "dev_fs_largeproject_20261010_203348",
+                                                     "created_at":  "2026-10-10T12:34:30.1741028Z",
+                                                     "goal_id":  "goal_c142b6d60b797d8a",
+                                                     "original_intent":  "检查一下当前工程有什么问题吗",
+                                                     "project_revision":  "4",
+                                                     "run_id":  "run_216abb29c0d6563e",
+                                                     "schema_version":  "capability_route_decision.v1",
+                                                     "semantic_entry":  {
+                                                                            "confidence":  0.9,
+                                                                            "control_mode":  "semantic_loop",
+                                                                            "reason":  "product runtime selected free_state after project structure observation (score=25, reasons=large_track_set)",
+                                                                            "route":  "open_semantic",
+                                                                            "schema_version":  "semantic_entry_decision.v1",
+                                                                            "target_scope":  "project_context",
+                                                                            "user_authorization":  "action_requested"
+                                                                        },
+                                                     "task_id":  "task_982ded957475a31d",
+                                                     "updated_at":  "2026-10-10T12:34:30.1741028Z"
+                                                 },
+                            "continuation":  {
+                                                 "attempt":  1,
+                                                 "continuation_id":  "cont_c6e072fb2d9a11b8e4a02109",
+                                                 "slice_id":  "slice_c22a9e123caea9c6",
+                                                 "status":  "completed",
+                                                 "turn_id":  "turn_4445dadaa9eb3fb5",
+                                                 "updated_at":  "2026-10-10T12:36:06.5332857Z"
+                                             },
+                            "run":  {
+                                        "current_slice_id":  "slice_40ec7cf2f5a2b2be",
+                                        "current_turn_id":  "",
+                                        "run_id":  "run_216abb29c0d6563e",
+                                        "slices":  [
+                                                       {
+                                                           "slice_id":  "slice_c22a9e123caea9c6",
+                                                           "run_id":  "run_216abb29c0d6563e",
+                                                           "sequence":  1,
+                                                           "max_turns":  1,
+                                                           "max_tool_calls":  6,
+                                                           "turns_used":  4,
+                                                           "tool_calls_used":  3,
+                                                           "status":  "waiting_continuation",
+                                                           "started_at":  "2026-10-10T20:34:30.2910017+08:00",
+                                                           "ended_at":  "2026-10-10T20:35:44.9272228+08:00"
+                                                       },
+                                                       {
+                                                           "slice_id":  "slice_40ec7cf2f5a2b2be",
+                                                           "run_id":  "run_216abb29c0d6563e",
+                                                           "sequence":  2,
+                                                           "max_turns":  1,
+                                                           "max_tool_calls":  6,
+                                                           "turns_used":  2,
+                                                           "status":  "waiting_continuation",
+                                                           "started_at":  "2026-10-10T20:35:45.1680402+08:00",
+                                                           "ended_at":  "2026-10-10T20:36:06.510896+08:00"
+                                                       }
+                                                   ],
+                                        "turns":  [
+                                                      {
+                                                          "turn_id":  "turn_4445dadaa9eb3fb5",
+                                                          "slice_id":  "slice_c22a9e123caea9c6",
+                                                          "run_id":  "run_216abb29c0d6563e",
+                                                          "sequence":  1,
+                                                          "source":  "user",
+                                                          "status":  "completed",
+                                                          "started_at":  "2026-10-10T20:34:30.2915045+08:00",
+                                                          "ended_at":  "2026-10-10T20:35:44.8392344+08:00"
+                                                      },
+                                                      {
+                                                          "turn_id":  "turn_1b7db930d9b637ab",
+                                                          "slice_id":  "slice_40ec7cf2f5a2b2be",
+                                                          "run_id":  "run_216abb29c0d6563e",
+                                                          "sequence":  2,
+                                                          "source":  "automatic_continuation",
+                                                          "status":  "completed",
+                                                          "started_at":  "2026-10-10T20:35:45.1680402+08:00",
+                                                          "ended_at":  "2026-10-10T20:36:06.4772109+08:00"
+                                                      }
+                                                  ]
+                                    },
+                            "schema_version":  "vit.task_runtime_trajectory.v1",
+                            "semantic":  {
+                                             "contract":  {
+                                                              "contract_id":  "contract_task_982ded957475a31d",
+                                                              "kind":  "improvement",
+                                                              "scope":  {
+                                                                            "kind":  "project",
+                                                                            "id":  "vitproj_f4f91a6f4ffa47f0b3508487aedc5970"
+                                                                        },
+                                                              "temporary":  true
+                                                          },
+                                             "evidence_refs":  [
+                                                                   "obs_20261010T123517_e391fa3e743f",
+                                                                   "obs_20261010T123533_c344c8929bfa"
+                                                               ],
+                                             "project_revision":  "4",
+                                             "revision":  4,
+                                             "state":  "needs_experiment",
+                                             "summary":  "bounded experiment admitted",
+                                             "terminal":  false,
+                                             "transition_reason":  "free-state experiment runtime admitted",
+                                             "updated_at":  "2026-10-10T12:35:44.9000598Z"
+                                         },
+                            "task":  {
+                                         "conversation_id":  "dev_fs_largeproject_20261010_203348",
+                                         "created_at":  "2026-10-10T20:34:27.718764+08:00",
+                                         "goal_id":  "goal_c142b6d60b797d8a",
+                                         "goal_status":  "waiting_continue",
+                                         "original_intent":  "检查一下当前工程有什么问题吗",
+                                         "run_id":  "run_216abb29c0d6563e",
+                                         "status":  "waiting_continuation",
+                                         "task_id":  "task_982ded957475a31d",
+                                         "updated_at":  "2026-10-10T20:36:10.4678657+08:00"
+                                     },
+                            "transitions":  [
+                                                {
+                                                    "candidate_id":  "",
+                                                    "event":  "observation_started",
+                                                    "evidence_refs":  null,
+                                                    "experiment_id":  "",
+                                                    "from":  "",
+                                                    "occurred_at":  "2026-10-10T12:34:30.2489144Z",
+                                                    "pending_interaction":  null,
+                                                    "project_revision":  "4",
+                                                    "reason":  "task contract admitted",
+                                                    "revision":  1,
+                                                    "stale_for_current_revision":  false,
+                                                    "summary":  "",
+                                                    "to":  "observation_in_progress"
+                                                },
+                                                {
+                                                    "candidate_id":  "",
+                                                    "event":  "diagnostic_completed",
+                                                    "evidence_refs":  [
+                                                                          "obs_20261010T123517_e391fa3e743f",
+                                                                          "obs_20261010T123533_c344c8929bfa"
+                                                                      ],
+                                                    "experiment_id":  "",
+                                                    "from":  "observation_in_progress",
+                                                    "occurred_at":  "2026-10-10T12:35:44.8457353Z",
+                                                    "pending_interaction":  null,
+                                                    "project_revision":  "4",
+                                                    "reason":  "candidate diagnosis established",
+                                                    "revision":  2,
+                                                    "stale_for_current_revision":  false,
+                                                    "summary":  "工程级扫描显示低频段存在跨轨能量重叠候选，其中「sattelites 22 Clouds gliding synth」（轨 1037）是该频段能量最高的候选轨；该轨的目标级频段证据显示其能量集中于低频至中频、高频区明显回落，与低频重叠候选一致。重叠只是候选、不是已证实的遮蔽事实，因此按有界可逆实验处理：对该轨低中频做一次轻微衰减，交由用户 A/B 判断。",
+                                                    "to":  "diagnostic_complete"
+                                                },
+                                                {
+                                                    "candidate_id":  "1037",
+                                                    "event":  "improvement_proposed",
+                                                    "evidence_refs":  [
+                                                                          "obs_20261010T123517_e391fa3e743f",
+                                                                          "obs_20261010T123533_c344c8929bfa"
+                                                                      ],
+                                                    "experiment_id":  "",
+                                                    "from":  "diagnostic_complete",
+                                                    "occurred_at":  "2026-10-10T12:35:44.851236Z",
+                                                    "pending_interaction":  null,
+                                                    "project_revision":  "4",
+                                                    "reason":  "runtime admitted bounded improvement proposal",
+                                                    "revision":  3,
+                                                    "stale_for_current_revision":  false,
+                                                    "summary":  "工程级扫描显示低频段存在跨轨能量重叠候选，其中「sattelites 22 Clouds gliding synth」（轨 1037）是该频段能量最高的候选轨；该轨的目标级频段证据显示其能量集中于低频至中频、高频区明显回落，与低频重叠候选一致。重叠只是候选、不是已证实的遮蔽事实，因此按有界可逆实验处理：对该轨低中频做一次轻微衰减，交由用户 A/B 判断。",
+                                                    "to":  "improvement_proposal"
+                                                },
+                                                {
+                                                    "candidate_id":  "",
+                                                    "event":  "experiment_required",
+                                                    "evidence_refs":  null,
+                                                    "experiment_id":  "turn:free_state_293eb9fa0ccbe3eb",
+                                                    "from":  "improvement_proposal",
+                                                    "occurred_at":  "2026-10-10T12:35:44.9000598Z",
+                                                    "pending_interaction":  null,
+                                                    "project_revision":  "4",
+                                                    "reason":  "free-state experiment runtime admitted",
+                                                    "revision":  4,
+                                                    "stale_for_current_revision":  false,
+                                                    "summary":  "bounded experiment admitted",
+                                                    "to":  "needs_experiment"
+                                                }
+                                            ]
+                        }
+}

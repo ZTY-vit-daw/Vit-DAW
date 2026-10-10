@@ -1,0 +1,26 @@
+{
+  "schema_version": "evidence_index.v1",
+  "project_uuid": "vitproj_abe25300a55a4ab89a99fdb972de6bc9",
+  "entries": {
+    "4be26b249bb7e9aed0251e06ef6432d0660cd171c231a8a747015c8aac5fa567": {
+      "kind": "feature_snapshot",
+      "size": 1212640,
+      "created_at": "2026-10-10T12:19:08.4044037Z",
+      "last_referenced_at": "2026-10-10T12:19:08.4044037Z",
+      "refs": [
+        "obs:obs_20261010T121908_257bf62fac32"
+      ],
+      "renewable": true
+    },
+    "7f3f0fb14d5ac5deeab1d34ea9ab5acbd5da677ab170234654ad6909c8566159": {
+      "kind": "feature_snapshot",
+      "size": 1582661,
+      "created_at": "2026-10-10T12:18:45.0017896Z",
+      "last_referenced_at": "2026-10-10T12:18:45.0017896Z",
+      "refs": [
+        "obs:obs_20261010T121844_0b96a8bd5d31"
+      ],
+      "renewable": true
+    }
+  }
+}

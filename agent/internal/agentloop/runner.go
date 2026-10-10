@@ -786,6 +786,18 @@ func (r *Runner) result(state *runState, status agentruntime.GoalStatus, stopRea
 	}
 	snapshot := r.buildContextSnapshot(state)
 	state.contextSnapshot = snapshot.Map()
+	// FS-LEDGER-PERSIST-1: contextruntime.Build produces a summarize-only
+	// projection, so the durable free-state loop (with the observation ledger
+	// the in-flight runtime maintains per CCB execution) never rode the
+	// Result envelope — the HTTP-boundary import in the chat controller
+	// (recordFreeStateDecision's snapshot merge) was structurally dead and a
+	// terminal Result (continuation nil) had no other loop carrier. Bind the
+	// live loop map onto the snapshot here so the boundary import sees the
+	// authoritative ledger; suspensions already carry it via
+	// Continuation.Context.
+	if loop := messageLoopMapValue(state.input.Context["free_state_reasoning_loop"]); len(loop) > 0 {
+		state.contextSnapshot["free_state_reasoning_loop"] = loop
+	}
 	cont := &Continuation{
 		GoalID:            state.goal.GoalID,
 		RunID:             state.goal.RunID,

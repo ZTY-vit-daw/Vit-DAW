@@ -1,0 +1,104 @@
+{
+  "schema_version": "mixboard.v1",
+  "mix_session_id": "mix_9c0a361af147",
+  "status": "partial",
+  "goal_text": "ordinary-Agent free-state CCB observation",
+  "target_ref": {
+    "kind": "track",
+    "id": "1037",
+    "label": "sattelites 22 Clouds gliding synth",
+    "source": "selected_track_first_clip",
+    "confidence": "high"
+  },
+  "mix_objects": [
+    {
+      "mode": "target_ref",
+      "kind": "track",
+      "id": "1037",
+      "label": "sattelites 22 Clouds gliding synth",
+      "effect_scope": "track_rack",
+      "source": "resolved_observation_target"
+    }
+  ],
+  "listen_scope": {
+    "time": {
+      "mode": "full_song",
+      "source": "default"
+    },
+    "source": {
+      "mode": "selected_track_with_project_context",
+      "focus_ids": [
+        "1037"
+      ]
+    }
+  },
+  "observation_count": 1,
+  "latest_observation_id": "obs_20261010T122522_664a9b25b285",
+  "latest_observation_path": "D:\\Vit_DAW_wt_fslp1\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261010_202326\\project\\.vit_agent\\vitproj_54cb0fad249b4ac4a5fb823c7d4ff1d2\\observations\\obs_20261010T122522_664a9b25b285.json",
+  "active_problem_map": [
+    {
+      "confidence": 0.35,
+      "summary": "深度频段观察可用，可作为后续精修参考",
+      "tag": "deep_band_observation_available"
+    }
+  ],
+  "section_candidates": [
+    {
+      "confidence": 0.25,
+      "end_seconds": 27.429,
+      "label_hint": "intro",
+      "start_seconds": 0
+    },
+    {
+      "confidence": 0.2,
+      "end_seconds": 228.571,
+      "label_hint": "body",
+      "start_seconds": 27.429
+    }
+  ],
+  "package_status": {
+    "deep": "async_available",
+    "dom": "partial",
+    "environment": "partial",
+    "mix": "limited",
+    "project": "ready"
+  },
+  "latest_change": {
+    "affected_scopes": [
+      "project.state"
+    ],
+    "authoritative": true,
+    "change_id": "shadow_change_000003",
+    "changed_entities": [
+      {
+        "fields": [
+          {
+            "after": "vitproj_a4b35ba1944647129fabf7087506dfab",
+            "path": "vit_project_parent_uuid"
+          }
+        ],
+        "id": "0/d3becf",
+        "kind": "node"
+      }
+    ],
+    "freshness": "current_snapshot",
+    "from_project": {
+      "project_epoch": "epoch_428ed2cda7fb41e3",
+      "project_revision": 4,
+      "project_uuid": "vitproj_54cb0fad249b4ac4a5fb823c7d4ff1d2",
+      "snapshot_hash": "8123d70610543d42"
+    },
+    "from_state_epoch": 1925,
+    "observed_at": "2026-10-10T12:24:07.9605304Z",
+    "schema_version": "project_change_receipt.v1",
+    "source": "telemetry_delta",
+    "to_project": {
+      "project_epoch": "epoch_428ed2cda7fb41e3",
+      "project_revision": 4,
+      "project_uuid": "vitproj_54cb0fad249b4ac4a5fb823c7d4ff1d2",
+      "snapshot_hash": "8123d70610543d42"
+    },
+    "to_state_epoch": 1926
+  },
+  "updated_at": "2026-10-10T12:25:22.4211995Z"
+}

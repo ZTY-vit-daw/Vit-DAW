@@ -1,0 +1,408 @@
+﻿{
+    "status":  "ok",
+    "agent_action_id":  "act_e7e7522d0e030b96",
+    "tool":  "project.import_preflight",
+    "command_name":  "project.import_preflight",
+    "risk_level":  "direct",
+    "requires_confirmation":  false,
+    "result":  {
+                   "audio_settings_snapshot":  {
+                                                   "channel_import_policy":  "preserve_interleaved",
+                                                   "import_bit_depth_policy":  "keep_source",
+                                                   "import_sample_rate_policy":  "ask",
+                                                   "media_copy_policy":  "reference_original",
+                                                   "record_bit_depth":  24,
+                                                   "sample_rate_hz":  48000
+                                               },
+                   "command":  "project.import_preflight",
+                   "command_ack":  {
+                                       "ack":  {
+                                                   "message":  "Legacy command completed",
+                                                   "stage":  "completed"
+                                               },
+                                       "command":  "legacy.command",
+                                       "legacy_command":  "project.import_preflight",
+                                       "resync_hint":  true,
+                                       "revision":  0,
+                                       "source":  "vsp.command.response",
+                                       "stage":  "completed",
+                                       "transaction_id":  "tx_1791634642825783600_23"
+                                   },
+                   "file_preview":  [
+                                        {
+                                            "bit_depth":  24,
+                                            "channel_count":  2,
+                                            "duration_seconds":  228.5714375,
+                                            "errors":  [
+
+                                                       ],
+                                            "file_name":  "sattelites 10-IS_percussion_tom_analog.wav",
+                                            "file_path":  "E:\\BaiduNetdiskDownload\\yingge - sattelites tracks out\\sattelites 10-IS_percussion_tom_analog.wav",
+                                            "file_type":  "wav",
+                                            "pcm_format":  "int24",
+                                            "readable":  true,
+                                            "sample_rate_hz":  48000,
+                                            "suggested_track_name":  "sattelites 10-IS percussion tom analog",
+                                            "warnings":  [
+
+                                                         ]
+                                        },
+                                        {
+                                            "bit_depth":  24,
+                                            "channel_count":  2,
+                                            "duration_seconds":  228.5714375,
+                                            "errors":  [
+
+                                                       ],
+                                            "file_name":  "sattelites 11-11 [125BPM] - BULLETS.wav",
+                                            "file_path":  "E:\\BaiduNetdiskDownload\\yingge - sattelites tracks out\\sattelites 11-11 [125BPM] - BULLETS.wav",
+                                            "file_type":  "wav",
+                                            "pcm_format":  "int24",
+                                            "readable":  true,
+                                            "sample_rate_hz":  48000,
+                                            "suggested_track_name":  "sattelites 11-11 [125BPM] - BULLETS",
+                                            "warnings":  [
+
+                                                         ]
+                                        },
+                                        {
+                                            "bit_depth":  24,
+                                            "channel_count":  2,
+                                            "duration_seconds":  228.5714375,
+                                            "errors":  [
+
+                                                       ],
+                                            "file_name":  "sattelites 12-DS_MARS_125_percussion_tambourine_lights.wav",
+                                            "file_path":  "E:\\BaiduNetdiskDownload\\yingge - sattelites tracks out\\sattelites 12-DS_MARS_125_percussion_tambourine_lights.wav",
+                                            "file_type":  "wav",
+                                            "pcm_format":  "int24",
+                                            "readable":  true,
+                                            "sample_rate_hz":  48000,
+                                            "suggested_track_name":  "sattelites 12-DS MARS 125 percussion tambourine lights",
+                                            "warnings":  [
+
+                                                         ]
+                                        },
+                                        {
+                                            "bit_depth":  24,
+                                            "channel_count":  2,
+                                            "duration_seconds":  228.5714375,
+                                            "errors":  [
+
+                                                       ],
+                                            "file_name":  "sattelites 18-Audio.wav",
+                                            "file_path":  "E:\\BaiduNetdiskDownload\\yingge - sattelites tracks out\\sattelites 18-Audio.wav",
+                                            "file_type":  "wav",
+                                            "pcm_format":  "int24",
+                                            "readable":  true,
+                                            "sample_rate_hz":  48000,
+                                            "suggested_track_name":  "sattelites 18-Audio",
+                                            "warnings":  [
+
+                                                         ]
+                                        },
+                                        {
+                                            "bit_depth":  24,
+                                            "channel_count":  2,
+                                            "duration_seconds":  228.5714375,
+                                            "errors":  [
+
+                                                       ],
+                                            "file_name":  "sattelites 19-Group.wav",
+                                            "file_path":  "E:\\BaiduNetdiskDownload\\yingge - sattelites tracks out\\sattelites 19-Group.wav",
+                                            "file_type":  "wav",
+                                            "pcm_format":  "int24",
+                                            "readable":  true,
+                                            "sample_rate_hz":  48000,
+                                            "suggested_track_name":  "sattelites 19-Group",
+                                            "warnings":  [
+
+                                                         ]
+                                        },
+                                        {
+                                            "bit_depth":  24,
+                                            "channel_count":  2,
+                                            "duration_seconds":  228.5714375,
+                                            "errors":  [
+
+                                                       ],
+                                            "file_name":  "sattelites 2-Group.wav",
+                                            "file_path":  "E:\\BaiduNetdiskDownload\\yingge - sattelites tracks out\\sattelites 2-Group.wav",
+                                            "file_type":  "wav",
+                                            "pcm_format":  "int24",
+                                            "readable":  true,
+                                            "sample_rate_hz":  48000,
+                                            "suggested_track_name":  "sattelites 2-Group",
+                                            "warnings":  [
+
+                                                         ]
+                                        },
+                                        {
+                                            "bit_depth":  24,
+                                            "channel_count":  2,
+                                            "duration_seconds":  228.5714375,
+                                            "errors":  [
+
+                                                       ],
+                                            "file_name":  "sattelites 22 Clouds gliding synth.wav",
+                                            "file_path":  "E:\\BaiduNetdiskDownload\\yingge - sattelites tracks out\\sattelites 22 Clouds gliding synth.wav",
+                                            "file_type":  "wav",
+                                            "pcm_format":  "int24",
+                                            "readable":  true,
+                                            "sample_rate_hz":  48000,
+                                            "suggested_track_name":  "sattelites 22 Clouds gliding synth",
+                                            "warnings":  [
+
+                                                         ]
+                                        },
+                                        {
+                                            "bit_depth":  24,
+                                            "channel_count":  2,
+                                            "duration_seconds":  228.5714375,
+                                            "errors":  [
+
+                                                       ],
+                                            "file_name":  "sattelites 25-AB_IF2_Zain_Wolf_FX_One_Shot_Whale_Song.wav",
+                                            "file_path":  "E:\\BaiduNetdiskDownload\\yingge - sattelites tracks out\\sattelites 25-AB_IF2_Zain_Wolf_FX_One_Shot_Whale_Song.wav",
+                                            "file_type":  "wav",
+                                            "pcm_format":  "int24",
+                                            "readable":  true,
+                                            "sample_rate_hz":  48000,
+                                            "suggested_track_name":  "sattelites 25-AB IF2 Zain Wolf FX One Shot Whale Song",
+                                            "warnings":  [
+
+                                                         ]
+                                        }
+                                    ],
+                   "file_preview_count":  8,
+                   "import_plan":  {
+                                       "copy_reference_strategy":  "reference_original",
+                                       "intended_mode":  "stems_folder",
+                                       "requires_user_confirmation":  false,
+                                       "sample_rate_decision":  {
+                                                                    "available_actions":  [
+                                                                                              "import"
+                                                                                          ],
+                                                                    "can_switch_project_sample_rate":  false,
+                                                                    "import_sample_rate_policy":  "ask",
+                                                                    "project_audio_clip_count":  0,
+                                                                    "project_is_empty":  true,
+                                                                    "project_sample_rate_hz":  48000,
+                                                                    "readable_file_count":  61,
+                                                                    "recommended_action":  "import",
+                                                                    "requires_user_choice":  false,
+                                                                    "sample_rate_mismatch_count":  0,
+                                                                    "source_sample_rate_distribution":  [
+                                                                                                            {
+                                                                                                                "file_count":  61,
+                                                                                                                "sample_rate_hz":  48000
+                                                                                                            }
+                                                                                                        ],
+                                                                    "source_sample_rate_hz":  48000,
+                                                                    "source_sample_rate_is_unique":  true,
+                                                                    "status":  "match"
+                                                                },
+                                       "start_time_seconds":  0,
+                                       "target_policy":  "create_tracks",
+                                       "track_plan_preview":  [
+                                                                  {
+                                                                      "bit_depth_or_format_differs":  false,
+                                                                      "bit_depth_policy":  "keep_source",
+                                                                      "file_path":  "E:\\BaiduNetdiskDownload\\yingge - sattelites tracks out\\sattelites 10-IS_percussion_tom_analog.wav",
+                                                                      "media_copy_policy":  "reference_original",
+                                                                      "needs_sample_rate_conversion":  false,
+                                                                      "sample_rate_policy":  "ask",
+                                                                      "start_time_seconds":  0,
+                                                                      "suggested_track_name":  "sattelites 10-IS percussion tom analog"
+                                                                  },
+                                                                  {
+                                                                      "bit_depth_or_format_differs":  false,
+                                                                      "bit_depth_policy":  "keep_source",
+                                                                      "file_path":  "E:\\BaiduNetdiskDownload\\yingge - sattelites tracks out\\sattelites 11-11 [125BPM] - BULLETS.wav",
+                                                                      "media_copy_policy":  "reference_original",
+                                                                      "needs_sample_rate_conversion":  false,
+                                                                      "sample_rate_policy":  "ask",
+                                                                      "start_time_seconds":  0,
+                                                                      "suggested_track_name":  "sattelites 11-11 [125BPM] - BULLETS"
+                                                                  },
+                                                                  {
+                                                                      "bit_depth_or_format_differs":  false,
+                                                                      "bit_depth_policy":  "keep_source",
+                                                                      "file_path":  "E:\\BaiduNetdiskDownload\\yingge - sattelites tracks out\\sattelites 12-DS_MARS_125_percussion_tambourine_lights.wav",
+                                                                      "media_copy_policy":  "reference_original",
+                                                                      "needs_sample_rate_conversion":  false,
+                                                                      "sample_rate_policy":  "ask",
+                                                                      "start_time_seconds":  0,
+                                                                      "suggested_track_name":  "sattelites 12-DS MARS 125 percussion tambourine lights"
+                                                                  },
+                                                                  {
+                                                                      "bit_depth_or_format_differs":  false,
+                                                                      "bit_depth_policy":  "keep_source",
+                                                                      "file_path":  "E:\\BaiduNetdiskDownload\\yingge - sattelites tracks out\\sattelites 18-Audio.wav",
+                                                                      "media_copy_policy":  "reference_original",
+                                                                      "needs_sample_rate_conversion":  false,
+                                                                      "sample_rate_policy":  "ask",
+                                                                      "start_time_seconds":  0,
+                                                                      "suggested_track_name":  "sattelites 18-Audio"
+                                                                  },
+                                                                  {
+                                                                      "bit_depth_or_format_differs":  false,
+                                                                      "bit_depth_policy":  "keep_source",
+                                                                      "file_path":  "E:\\BaiduNetdiskDownload\\yingge - sattelites tracks out\\sattelites 19-Group.wav",
+                                                                      "media_copy_policy":  "reference_original",
+                                                                      "needs_sample_rate_conversion":  false,
+                                                                      "sample_rate_policy":  "ask",
+                                                                      "start_time_seconds":  0,
+                                                                      "suggested_track_name":  "sattelites 19-Group"
+                                                                  },
+                                                                  {
+                                                                      "bit_depth_or_format_differs":  false,
+                                                                      "bit_depth_policy":  "keep_source",
+                                                                      "file_path":  "E:\\BaiduNetdiskDownload\\yingge - sattelites tracks out\\sattelites 2-Group.wav",
+                                                                      "media_copy_policy":  "reference_original",
+                                                                      "needs_sample_rate_conversion":  false,
+                                                                      "sample_rate_policy":  "ask",
+                                                                      "start_time_seconds":  0,
+                                                                      "suggested_track_name":  "sattelites 2-Group"
+                                                                  },
+                                                                  {
+                                                                      "bit_depth_or_format_differs":  false,
+                                                                      "bit_depth_policy":  "keep_source",
+                                                                      "file_path":  "E:\\BaiduNetdiskDownload\\yingge - sattelites tracks out\\sattelites 22 Clouds gliding synth.wav",
+                                                                      "media_copy_policy":  "reference_original",
+                                                                      "needs_sample_rate_conversion":  false,
+                                                                      "sample_rate_policy":  "ask",
+                                                                      "start_time_seconds":  0,
+                                                                      "suggested_track_name":  "sattelites 22 Clouds gliding synth"
+                                                                  },
+                                                                  {
+                                                                      "bit_depth_or_format_differs":  false,
+                                                                      "bit_depth_policy":  "keep_source",
+                                                                      "file_path":  "E:\\BaiduNetdiskDownload\\yingge - sattelites tracks out\\sattelites 25-AB_IF2_Zain_Wolf_FX_One_Shot_Whale_Song.wav",
+                                                                      "media_copy_policy":  "reference_original",
+                                                                      "needs_sample_rate_conversion":  false,
+                                                                      "sample_rate_policy":  "ask",
+                                                                      "start_time_seconds":  0,
+                                                                      "suggested_track_name":  "sattelites 25-AB IF2 Zain Wolf FX One Shot Whale Song"
+                                                                  }
+                                                              ],
+                                       "tracks_to_create":  61
+                                   },
+                   "sample_rate_decision":  {
+                                                "available_actions":  [
+                                                                          "import"
+                                                                      ],
+                                                "can_switch_project_sample_rate":  false,
+                                                "import_sample_rate_policy":  "ask",
+                                                "project_audio_clip_count":  0,
+                                                "project_is_empty":  true,
+                                                "project_sample_rate_hz":  48000,
+                                                "readable_file_count":  61,
+                                                "recommended_action":  "import",
+                                                "requires_user_choice":  false,
+                                                "sample_rate_mismatch_count":  0,
+                                                "source_sample_rate_distribution":  [
+                                                                                        {
+                                                                                            "file_count":  61,
+                                                                                            "sample_rate_hz":  48000
+                                                                                        }
+                                                                                    ],
+                                                "source_sample_rate_hz":  48000,
+                                                "source_sample_rate_is_unique":  true,
+                                                "status":  "match"
+                                            },
+                   "status":  "ok",
+                   "summary":  {
+                                   "bit_depth_or_format_mismatch_count":  0,
+                                   "copy_policy":  "reference_original",
+                                   "discovered_audio_file_count":  61,
+                                   "readable_file_count":  61,
+                                   "recommended_copy_policy":  "reference_original",
+                                   "requires_user_confirmation":  false,
+                                   "sample_rate_decision":  {
+                                                                "available_actions":  [
+                                                                                          "import"
+                                                                                      ],
+                                                                "can_switch_project_sample_rate":  false,
+                                                                "import_sample_rate_policy":  "ask",
+                                                                "project_audio_clip_count":  0,
+                                                                "project_is_empty":  true,
+                                                                "project_sample_rate_hz":  48000,
+                                                                "readable_file_count":  61,
+                                                                "recommended_action":  "import",
+                                                                "requires_user_choice":  false,
+                                                                "sample_rate_mismatch_count":  0,
+                                                                "source_sample_rate_distribution":  [
+                                                                                                        {
+                                                                                                            "file_count":  61,
+                                                                                                            "sample_rate_hz":  48000
+                                                                                                        }
+                                                                                                    ],
+                                                                "source_sample_rate_hz":  48000,
+                                                                "source_sample_rate_is_unique":  true,
+                                                                "status":  "match"
+                                                            },
+                                   "sample_rate_mismatch_count":  0,
+                                   "tracks_to_create":  61,
+                                   "unreadable_file_count":  0
+                               },
+                   "vsp":  {
+                               "command_ack":  {
+                                                   "ack":  {
+                                                               "message":  "Legacy command completed",
+                                                               "stage":  "completed"
+                                                           },
+                                                   "command":  "legacy.command",
+                                                   "legacy_command":  "project.import_preflight",
+                                                   "resync_hint":  true,
+                                                   "revision":  0,
+                                                   "source":  "vsp.command.response",
+                                                   "stage":  "completed",
+                                                   "transaction_id":  "tx_1791634642825783600_23"
+                                               },
+                               "transport":  "vsp",
+                               "version":  "1.0"
+                           }
+               },
+    "project_history":  {
+                            "active_branch":  "main",
+                            "active_node_id":  "",
+                            "active_worktree":  "",
+                            "available":  true,
+                            "branches":  {
+
+                                         },
+                            "commit_count":  0,
+                            "detached":  false,
+                            "draft":  false,
+                            "head":  "",
+                            "initialized":  true,
+                            "project_label":  "Unsaved",
+                            "project_path":  "D:\\Vit_DAW_wt_fslp1\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261010_201713\\agent_drafts\\draft_20261010T121722_3dd7ac04\\Unsaved.vit",
+                            "project_uuid":  "vitproj_4dcce49cf1bb4a39926a1eb992979ba8",
+                            "recent_checkpoints":  [
+
+                                                   ],
+                            "refs":  {
+
+                                     },
+                            "root_project_path":  "",
+                            "unsaved":  false,
+                            "warnings":  [
+
+                                         ],
+                            "worktree_count":  1,
+                            "worktrees":  [
+                                              {
+                                                  "created_at":  "2026-10-10T12:17:22.8413204Z",
+                                                  "is_root":  true,
+                                                  "label":  "主工作树",
+                                                  "name":  "main",
+                                                  "path":  "D:\\Vit_DAW_wt_fslp1\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261010_201713\\agent_drafts\\draft_20261010T121722_3dd7ac04",
+                                                  "project_file_path":  "D:\\Vit_DAW_wt_fslp1\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261010_201713\\agent_drafts\\draft_20261010T121722_3dd7ac04\\Unsaved.vit",
+                                                  "project_path":  "D:\\Vit_DAW_wt_fslp1\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261010_201713\\agent_drafts\\draft_20261010T121722_3dd7ac04\\Unsaved.vit",
+                                                  "root_project_path":  "D:\\Vit_DAW_wt_fslp1\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261010_201713\\agent_drafts\\draft_20261010T121722_3dd7ac04\\Unsaved.vit"
+                                              }
+                                          ]
+                        }
+}

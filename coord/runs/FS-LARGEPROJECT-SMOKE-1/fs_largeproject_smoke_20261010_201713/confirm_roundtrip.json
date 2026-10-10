@@ -1,0 +1,19 @@
+﻿{
+    "mode":  "pull",
+    "reobserved_completed_seen":  false,
+    "judgment_station_events":  {
+                                    "applied_like":  0,
+                                    "mix_tick":  0,
+                                    "audition":  0,
+                                    "total":  10,
+                                    "audition_session_id_seen":  false
+                                },
+    "post_confirm_station":  "not_driven_no_card",
+    "phase":  "confirm_roundtrip",
+    "hops":  [
+
+             ],
+    "conversation_id":  "dev_fs_largeproject_20261010_201713",
+    "confirm_face_exercised":  false,
+    "hops_used":  0
+}

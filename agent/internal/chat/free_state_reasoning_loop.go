@@ -815,6 +815,18 @@ func (s *Server) recordFreeStateDecision(conversationID string, res agentloop.Re
 		loop = mergeFreeStateLoops(loop, snapshotLoop, true)
 	}
 	observations := freeStateCCBObservations(res)
+	if s.logger != nil {
+		// FS-LEDGER-PERSIST-1 observability: the cross-round ledger import is
+		// only observable at this boundary. Content-free counts plus machine ids.
+		observationIDs := make([]string, 0, len(observations))
+		for _, current := range observations {
+			observationIDs = append(observationIDs, firstStringFromMap(current.Summary, "observation_id"))
+		}
+		snapshotHasLoop := len(firstMapFromAny(firstMapFromAny(res.ContextSnapshot)["free_state_reasoning_loop"])) > 0
+		continuationHasLoop := res.Continuation != nil && len(firstMapFromAny(firstMapFromAny(res.Continuation.Context)["free_state_reasoning_loop"])) > 0
+		s.logger.Info("[free-state.ledger] boundary conversation=%s goal=%s executed=%d ccb_observations=%d ids=%v snapshot_loop=%t continuation_loop=%t stored_receipts=%d",
+			conversationID, res.GoalID, len(res.Executed), len(observations), observationIDs, snapshotHasLoop, continuationHasLoop, len(loop.ObservationReceipts))
+	}
 	var latestUsable *agentloop.RecentObservation
 	for _, current := range observations {
 		if current == nil {
@@ -2700,12 +2712,12 @@ func freeStateCCBObservations(res agentloop.Result) []*agentloop.RecentObservati
 		if name != "ccb.observation_request" && name != "ccb_observation_request" {
 			continue
 		}
-		result := firstMapFromAny(record["result"])
-		bundle := firstMapFromAny(result["bundle"])
-		if len(bundle) == 0 && len(firstMapFromAny(result["audit_receipt"])) == 0 {
+		result := freeStateNormalizeMapAny(record["result"])
+		bundle := freeStateNormalizeMapAny(result["bundle"])
+		if len(bundle) == 0 && len(freeStateNormalizeMapAny(result["audit_receipt"])) == 0 {
 			continue
 		}
-		status := firstNonEmpty(firstStringFromMap(record, "status"), firstStringFromMap(result, "status"), firstStringFromMap(bundle, "status"), firstStringFromMap(firstMapFromAny(result["audit_receipt"]), "status"))
+		status := firstNonEmpty(firstStringFromMap(record, "status"), firstStringFromMap(result, "status"), firstStringFromMap(bundle, "status"), firstStringFromMap(freeStateNormalizeMapAny(result["audit_receipt"]), "status"))
 		summary := bundle
 		if len(summary) == 0 {
 			summary = result
@@ -2728,6 +2740,32 @@ func freeStateCCBObservations(res agentloop.Result) []*agentloop.RecentObservati
 		out = append(out, cloneRecentObservationForFreeState(observation))
 	}
 	return out
+}
+
+// freeStateNormalizeMapAny mirrors agentloop's messageLoopMapValue: the CCB
+// execution path embeds the typed FreeStateObservationBundle struct inside
+// the map[string]any harness result (harness ccbObservationRequest), so a
+// strict map assertion reads an empty bundle. The JSON round-trip fallback
+// restores the map view without touching the harness contract. FS-LEDGER-PERSIST-1
+// run 20261010_185519: every earlier-round CCB receipt was dropped here and
+// only the last observation (via Result.RecentObservation) survived, which
+// starved admission gate G3 of the delivered project scan.
+func freeStateNormalizeMapAny(v any) map[string]any {
+	if row, ok := v.(map[string]any); ok {
+		return row
+	}
+	if v == nil {
+		return nil
+	}
+	data, err := json.Marshal(v)
+	if err != nil || len(data) == 0 || string(data) == "null" {
+		return nil
+	}
+	var row map[string]any
+	if err := json.Unmarshal(data, &row); err != nil {
+		return nil
+	}
+	return row
 }
 
 func freeStateIsCCBObservation(observation *agentloop.RecentObservation) bool {
