@@ -24,5 +24,5 @@
 四节齐+逐条锚点；runtime 清单与 fastpath/A4 五标记交叉核对零遗漏。
 
 - 领取：2026-10-10 21:05 / origin/main=1c1a447a4315d8b5800c5dd3c4df88dfdc62f915 / owner=GLM-5.3 flash（ZCode PC 会话，PC 执行流）/ 分支=main（coord-only 提交直推）/ worktree=主工作树 D:\Vit_DAW（本卡零代码只读，仅 coord/cards 状态提交）
-- 回执：（报告链接）
+- 回执：报告=[coord/runs/MIX-CAP-RECON-1/RECON.md](../../runs/MIX-CAP-RECON-1/RECON.md)+[GREP-APPENDIX.md](../../runs/MIX-CAP-RECON-1/GREP-APPENDIX.md)。四节全齐：§1 六固定编排 runtime+7 退役项+10 fastpath+工具包+legacy mix session（休眠）+D1 域表，逐项功能/入口/自由态可达性/退役标记；§1-A 交叉核对=A4 文本标记实为 6 枚（原始 5+review A note 1 增补 c2.dynamic_plugin_load.governed）+8 遥测 source 标，全部映射到 B4/C1/C2 生产者锚点，零遗漏成立；§2 底盘面=PCA 链已收口（内核无感知）/时域写回已打通而 FXM 差分采集缺生产者（仅压缩器双 tap 探针样板）/自动化曲线面不存在（引擎原生未暴露，agent 观测恒 0）；§3 按主管补注改为现状对照表（基线=MIXLAYER-RECON-1 已验收矩阵+六日增量：C3 仅路由映射无 runtime/C4 真 dev/F=固定编排淘汰判据=A4 零命中+AB 腿）；§4 三工程基材=sattelites 导入链已证、Weekend Lover 仅 preflight、长河零验证，A/B 试听 harness 端端到端可用但大工程上 A3 腿零触发（7 run audition_events 全 0）。端测边界声明：纯只读勘察零代码零栈启动，不适用端侧烟测门槛；结论以源码锚点+grep+已验收 run 工件为据。⚠️ 领取提交 076ce106 事故如实记录：扫入共享索引中并行会话已暂存的 ARR/GEN-CAP-RECON 两卡 todo→doing 纯改名（100% rename 内容零改动，coord/cards 允许面内），无内容干扰；共享索引并发 mv 冲突面建议主管协议层留意（§2.1 协调分支模式可规避）。另有记录：勘察期间卡面被主管补注（§3 改对照表），执行侧按补注后口径交付。
 - 验收：（裁定文件）
