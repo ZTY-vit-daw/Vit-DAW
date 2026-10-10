@@ -47,6 +47,12 @@ execRecord 加键破坏既有序列化/快照消费方（发现消费方对未�
 
 纯单测域，不需要真栈；与 REFSCHEMA-M4B/M5 文件域不相交可并行；与 FS-LARGEPROJECT-SMOKE-1 无硬依赖（烟测验收口径为行为面，本卡并行落地、合入后烟测成本面即有读数）。
 
-- 领取：2026-10-10 18:20 / origin/main 491555c8f703d94244285f2ffc61dc2b0fb21178（依赖 ≥171fb223 满足，merge-base --is-ancestor 实核） / owner=GLM-5.3-Flash（ZCode flash 会话）/ PC (Windows) / 分支 port/pull-probe-meter-1（基线 491555c8） / worktree D:/Vit_DAW_wt_pull_probe_meter_1（独立 worktree，状态净）/ 领取提交=本 mv 协调提交（hash 于 done 回执回填）
-- 回执：（commit hash / 分级表锚点 / 端测边界声明）
+- 领取：2026-10-10 18:20 / origin/main 491555c8f703d94244285f2ffc61dc2b0fb21178（依赖 ≥171fb223 满足，merge-base --is-ancestor 实核） / owner=GLM-5.3-Flash（ZCode flash 会话）/ PC (Windows) / 分支 port/pull-probe-meter-1（基线 491555c8） / worktree D:/Vit_DAW_wt_pull_probe_meter_1（独立 worktree，状态净）/ 领取提交=3cd4efa4（card mv 协调提交，已推 main）
+- 回执：实现 commit **12792d0a**（port/pull-probe-meter-1，已推 origin；3 文件 +237/−3：runner.go +5 / pull_session.go +72−3 / 新增 pull_probe_meter_test.go +163，≤4 文件域内）。
+  - **验收命令与退出码**：`go build ./...` exit 0；`go test ./internal/agentloop -count=1` ok；全量 `go test ./... -count=1` exit 0（0 FAIL，既有测试零改动全绿）；AGENTS §6 五组健康测试全 ok。
+  - **gofmt blob 级口径**：三文件暂存 blob GOFMT-STABLE（`git show :file | gofmt` 恒等）+ `git ls-files --eol` 实证 i/lf（blob CR=0；工作树 w/crlf 为 autocrlf 检出形态，非 blob 属性）。
+  - **分级表锚点（实现面）**：分类函数 `probeToolTier`（pull_session.go，名称归一=下划线视作点号，一处 switch 可扩表）。probe 级=`ccb.observation_request`/`ccb_observation_request`、`mix.observe`/`mix_observe`、`mix.request_observation`/`mix_request_observation`（elapsed_ms 逐笔累加）；index 级=`ref.query`、`ref.diff`、`ccb.observation_catalog`、`project.state`（D5 定义零成本，不计不翻，budget.go:17-19 语义）；**未列名=probeTierUnlisted：不入账且翻 probeCostKnown=false（维持既有 unknown 语义——既有测试 TestPullSessionUnknownProbeCostNotZero/TestPullContinuationUnknownCostCarried 因此保持绿）**。争议上交件：`clip.warm_waveform_bake`（变异+烘焙两属性，卡面"两属性"例）未私定，归 unlisted 待裁定扩表；同族候选 `mix.read`/`mix.derive`/`mix.report`/audition 面亦未列名未入账。
+  - **计量键锚点**：runner.go executeTool `started:=time.Now()` + execRecord `"elapsed_ms": time.Since(started).Milliseconds()`（与 harness.invoke :879 计时同粒度）；结算面 settleBatch→settleRecordProbeCost（单次结算去重面沿用 ledger.settle，仅对本批 fresh 回执分级结算）。**probe_spent 单位=ms**（elapsed_ms 原子），max_probe_cost 注入方（G3 复跑）需按 ms 口径设线。粗时钟实测 ~0ms 属真实计量非冒充（键存在=已计量）。
+  - **诚实红线核对**：未计量不填 0——无键/不可解析翻 false 不入账（elapsedMSFromRecord ok=false 路径）；账本记 agent 观测墙钟（含调度噪音，代码注释明示勿冒称纯内核成本）；push 模式零变化——settleBatch 仅 pullSession.Execute 调用，runner.go 仅通用加法键（push 侧消费方全为内存 map 读特定键，grep 实证无严格 schema 反序列化、无 T1 Bytes 精确断言）。
+  - **端测边界声明**：本卡按卡面"纯单测域，不需要真栈"口径交付，未跑真栈烟测与 webui 渲染面（无 webui 改动）；probe 成本面真栈读数归 FS-LARGEPROJECT-SMOKE-1 行为面验收（合入后 budget_state 披露行即有实测值）。
 - 验收：（裁定文件 / 验收 commit）
