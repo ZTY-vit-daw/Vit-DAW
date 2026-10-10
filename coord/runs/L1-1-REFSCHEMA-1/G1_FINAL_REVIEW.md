@@ -49,13 +49,17 @@
 | M1 | 注册表补全：`observation:` + opaque 计数头 | 缺口，落 opaque | legacyPrefixRegistry 追加（族=evidence_scheme_uri、slot=snapshot、TargetKind 留空待 L1-2 结构化键）+ 测试 | 立即可做 | P3 / flash（零行为追加，L0-2 同型） |
 | M2 | mom C 类构造器（mix.read:/acoustic_package_status:/observation:） | legacy | 迁 vit://mom 形态（scope 承载数据键族；snapshot=observation_id） | M1 后；痛点②③④根源 | P2 / flash（锚点齐） |
 | M3 | A 类四包（dom/fxm/com/rlm stableProjectionID） | legacy（哈希已在手） | 生成 vit:// 带 sha256 段（内容哈希现成）；snapshot 承载按 F6 注记 | M2 后，或随 L1-2 种子需要 | P2 / flash |
-| M4 | B 类身份族（obs_/ccbobs_/rel_/cap_pack_/c2_plan_） | legacy | 进 EvidenceRefs 边界处归一 | 随各域触碰机会 | P3 / 机会 |
+| M4 | B 类身份族（obs_/ccbobs_/rel_/cap_pack_/c2_plan_） | legacy | 进 EvidenceRefs 边界处归一 | 随各域触碰机会；**capabilitycontext 批次 2026-10-10 落地（部分完结，见下方 M4 行批注）** | P3 / 机会 |
 | M5 | E 类回执（semantic_eq_batch/c2.dynamic_plugin_load_batch） | legacy | 同 M4 | 随功能触碰 | P3 / 机会 |
 | M6 | G 类快照族（mixboard_/kernel_prepared_+Godot 第三写者） | legacy | 族迁移+GDScript 常量导出 | **BELL/F5 链下次触碰**（ruling #7 原钩子保留） | P2 / 届时定 |
 | M7 | C5/C6/C7 数据源 ref（project.state: 族/project_package.*/裸常量） | legacy | 随 L1-2 物化种子逐面升 | L1-2 各面 IMPL 卡内嵌 | 随卡 |
 | M8 | Godot 写者+PCA 层勘察补腿 | 未盘点 | 两小节勘察（≤0.5h） | 机会卡或 M6 前 | P3 / 闲时可 |
 
 已完结：内核 D 类 5/5（REFSCHEMA-D1/D2，09-28）。
+
+> **M4 行批注（2026-10-10，REFSCHEMA-M4 执行回执回写，实现待决策验收）**：capabilitycontext 批次落地——`ccbobs_`/`ccbobs_rejected_`/`ccbobs_batch_`/`cap_pack_` 四词条注册进 legacyPrefixRegistry（15→19）：identity 族核实成立（remainder=compactID 对 obs_ 观察 id 的清洗透传、含时序戳；cap_pack_ 的 sha256 种子含 generatedAt=实例身份非内容指纹）→ slot=snapshot、TargetKind 留空，family=evidence_scheme_uri 对齐 `observation:` 先例（M4 卡承载预裁定）。实现 `port/refschema-m4@cf080a9a`（消费链=纯响应面零解析消费，capabilitycontext 生产代码零改动；回执 coord/runs/REFSCHEMA-M4/receipt.md）。
+>
+> **升记录缺口（ccbr_ 族待重裁）**：`ccbr_`/`ccbr_rejected_`/`ccbr_batch_`（M8 报告 D4 移交面，free_state_observation.go:567/:439/:1636）触发 M4 卡停止条件——实读 remainder 与 ccbobs_ 族同构（obs_ 身份透传，**实含时间戳+随机量**，webui trace fixture 实录 `ccbr_obs_20260911T115419_a2ef6022376c`），与"compactID=观察 id+请求 id 哈希短串、内容寻址→slot=hash"预裁定矛盾（compactID 只取首个非空输入，非哈希）。缓注册维持 opaque 透传（fail-visible 测试钉住），重裁前不入注册表；若重裁，实读证据指向与 ccbobs_ 族对齐（identity→slot=snapshot）。余量 obs_/rel_/c2_plan_ 维持"随域触碰"不变。
 
 ## 5. 解锁声明（2026-10-07 午间勘误修订）
 

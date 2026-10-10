@@ -53,5 +53,5 @@ vit:// 文法零改动；既有 15 词条零改动；旧记录 legacy refs 必�
 
 - 领取：2026-10-10 10:36 / origin/main `c0f8eb94` / owner=GLM-5.3-Flash 执行会话 PC（ZCode flash 会话，本机主仓 D:\Vit_DAW）/ 分支 `port/refschema-m4` / worktree `D:\Vit_DAW_wt_refschema_m4` / 领取提交=本提交
 - 领取注记：承载预裁定已核实——ccbobs_ 族（含 rejected/batch 变体 :420/:499/:1584）remainder=compactID 对 obs_ 身份清洗透传（含时序）✓；cap_pack_（pack.go:112）sha256 输入含 generatedAt → 实例身份非内容指纹 ✓；**ccbr_ 族（:567/:439/:1636）remainder 实为 obs_ 身份透传（实含时间戳+随机量，webui trace fixture 实录证实），非"哈希短串/内容寻址"→ 触发卡面停止条件，按"该族单独上交"条款不注册、升 G1 终审记录缺口**（证据全文见 coord/runs/REFSCHEMA-M4/receipt.md）。消费链=纯响应面（零 EvidenceRefs/ParseRef 消费），ccbobs_ 三变体+cap_pack_ 注册即完成。
-- 回执：（commit hash / 消费链清单 / 端测边界声明）→ coord/runs/REFSCHEMA-M4/receipt.md
+- 回执：实现 `port/refschema-m4@cf080a9a`（已推远待决策验收，未直推 main）→ `coord/runs/REFSCHEMA-M4/receipt.md`（消费链清单/承载核实/ccbr_ 族停止条件上交全文）；验收命令=go build exit 0+定向两包 ok+全量 92 包 0 FAIL+触碰 4 文件 blob 级 gofmt 净；端测边界声明=纯单测域（注册表+解析器+生成侧 id 构造），卡面明示不需要真栈、未触碰真实运行栈、无渲染面/旅程改动；G1 终审 M4 行已回写（含 ccbr_ 族缺口升级）
 - 验收：（裁定文件 / 验收 commit）
