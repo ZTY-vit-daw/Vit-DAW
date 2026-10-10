@@ -22,6 +22,6 @@
 
 四节齐+锚点；耦合面评估给文件域冲突清单（并行安全性输入）。
 
-- 领取：（时间 / origin/main hash / owner）
+- 领取：2026-10-10 / origin/main=1c1a447a4315d8b5800c5dd3c4df88dfdc62f915 / owner=GLM-5.3-Flash（ZCode flash 执行会话，PC win32）。零代码勘察未建 worktree，直接在主工作树执行（文件域仅 coord/runs/ARR-CAP-RECON-1/ + 本卡状态；领取提交按 pathspec 只含本卡，避开同工作树内并行流的暂存）。领取时 todo 卡存在、doing 为空、依赖无。
 - 回执：（报告链接）
 - 验收：（裁定文件）
