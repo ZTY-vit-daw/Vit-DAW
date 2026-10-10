@@ -60,6 +60,8 @@
 > **M4 行批注（2026-10-10，REFSCHEMA-M4 执行回执回写，实现待决策验收）**：capabilitycontext 批次落地——`ccbobs_`/`ccbobs_rejected_`/`ccbobs_batch_`/`cap_pack_` 四词条注册进 legacyPrefixRegistry（15→19）：identity 族核实成立（remainder=compactID 对 obs_ 观察 id 的清洗透传、含时序戳；cap_pack_ 的 sha256 种子含 generatedAt=实例身份非内容指纹）→ slot=snapshot、TargetKind 留空，family=evidence_scheme_uri 对齐 `observation:` 先例（M4 卡承载预裁定）。实现 `port/refschema-m4@cf080a9a`（消费链=纯响应面零解析消费，capabilitycontext 生产代码零改动；回执 coord/runs/REFSCHEMA-M4/receipt.md）。
 >
 > **升记录缺口（ccbr_ 族待重裁）**：`ccbr_`/`ccbr_rejected_`/`ccbr_batch_`（M8 报告 D4 移交面，free_state_observation.go:567/:439/:1636）触发 M4 卡停止条件——实读 remainder 与 ccbobs_ 族同构（obs_ 身份透传，**实含时间戳+随机量**，webui trace fixture 实录 `ccbr_obs_20260911T115419_a2ef6022376c`），与"compactID=观察 id+请求 id 哈希短串、内容寻址→slot=hash"预裁定矛盾（compactID 只取首个非空输入，非哈希）。缓注册维持 opaque 透传（fail-visible 测试钉住），重裁前不入注册表；若重裁，实读证据指向与 ccbobs_ 族对齐（identity→slot=snapshot）。余量 obs_/rel_/c2_plan_ 维持"随域触碰"不变。
+>
+> **缺口闭合（ccbr_ 族，2026-10-10 REFSCHEMA-M4B 落地回写）**：重裁生效（[2026-10-10 MORNING-BATCH rulings §3](../../../rulings/2026-10-10-MORNING-BATCH-rulings.md)）——裁定 `ccbr_`/`ccbr_rejected_`/`ccbr_batch_` 按 identity 族承载（slot=snapshot、TargetKind 留空，family=evidence_scheme_uri），对齐 ccbobs_ 同款；M8 报告 D4 行"哈希短串"描述失准记注（历史工件不改，行为证据优先）。落地：三词条注册进 legacyPrefixRegistry（19→22）+ 钉住测试翻面（`TestRefSchemaM4CCBRFamilyStaysUnregistered` → `TestRefSchemaM4BCCBRFamilyRegistered`）+ 初值表测试扩 22；capabilitycontext 生产代码零改动（锚点测试保持）。实现 `port/refschema-m4b@a62f7125`（待决策验收合入）；回执 coord/runs/REFSCHEMA-M4B/receipt.md。capabilitycontext 域 7 生成点至此全部注册在案；M4 余量 obs_/rel_/c2_plan_ 维持"随域触碰"不变。
 
 ## 5. 解锁声明（2026-10-07 午间勘误修订）
 
