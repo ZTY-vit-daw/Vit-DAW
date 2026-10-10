@@ -145,14 +145,14 @@ func TestConfirmChatNaturalNegativesCancelPendingConfirmation(t *testing.T) {
 // 失败）两种成因都给中文，且不冒充「已理解你的请求」。
 func TestConfirmChatUnresolvedFallbackReplyIsChineseGuidance(t *testing.T) {
 	decision := semanticEntryDecision{
-		SchemaVersion:   semanticEntryDecisionSchema,
-		Route:           semanticEntryRouteUnresolved,
-		TargetScope:     semanticEntryScopeNone,
-		ControlMode:     semanticEntryControlNone,
+		SchemaVersion:     semanticEntryDecisionSchema,
+		Route:             semanticEntryRouteUnresolved,
+		TargetScope:       semanticEntryScopeNone,
+		ControlMode:       semanticEntryControlNone,
 		UserAuthorization: semanticEntryAuthorizationNone,
-		Confidence:      0.2,
-		Reason:          "ambiguous",
-		RejectionReason: "The user request '需要' is too underspecified to determine whether they want discussion, observation, or control.",
+		Confidence:        0.2,
+		Reason:            "ambiguous",
+		RejectionReason:   "The user request '需要' is too underspecified to determine whether they want discussion, observation, or control.",
 	}
 	unresolved := semanticEntryUnresolvedResponse("chat_confirm", agentModeDefault, &decision, nil)
 	if confirmChat1ASCII.MatchString(unresolved.Reply) {

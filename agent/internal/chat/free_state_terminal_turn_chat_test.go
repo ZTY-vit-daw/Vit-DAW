@@ -213,4 +213,3 @@ func TestSyncFreeStateSpineArmsNoGateSignalAfterTimingGateRemoval(t *testing.T) 
 		}
 	}
 }
-

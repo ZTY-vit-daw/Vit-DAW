@@ -273,6 +273,7 @@ func TestJudgmentParkDeliveryGateSharesBoundaryPredicate(t *testing.T) {
 		t.Fatal("a conversation without a free-state loop must not report a judgment park")
 	}
 }
+
 // ---------------------------------------------------------------------------
 // AUDITION-PLAY-1 验收补锚点勘察（2026-09-12）：判定请求落账前 WARN
 // "[audition] user judgment request rejected: user judgment request requires

@@ -156,13 +156,13 @@ type ObservationKey struct {
 }
 
 type ObservationRecord struct {
-	Fingerprint     string    `json:"fingerprint"`
-	ObservationID   string    `json:"observation_id,omitempty"`
-	TargetRef       string    `json:"target_ref,omitempty"`
-	ProjectRevision string    `json:"project_revision,omitempty"`
-	ViewIDs         []string  `json:"view_ids,omitempty"`
-	Round           int       `json:"round"`
-	RecordedAt      time.Time `json:"recorded_at"`
+	Fingerprint     string     `json:"fingerprint"`
+	ObservationID   string     `json:"observation_id,omitempty"`
+	TargetRef       string     `json:"target_ref,omitempty"`
+	ProjectRevision string     `json:"project_revision,omitempty"`
+	ViewIDs         []string   `json:"view_ids,omitempty"`
+	Round           int        `json:"round"`
+	RecordedAt      time.Time  `json:"recorded_at"`
 	Provenance      Provenance `json:"provenance,omitempty"`
 }
 
@@ -233,44 +233,44 @@ type Settlement struct {
 }
 
 type State struct {
-	SchemaVersion         string                          `json:"schema_version"`
-	ClosureID             string                          `json:"closure_id"`
-	Revision              uint64                          `json:"revision"`
-	ConversationID        string                          `json:"conversation_id"`
-	TaskID                string                          `json:"task_id,omitempty"`
-	GoalID                string                          `json:"goal_id,omitempty"`
-	RunID                 string                          `json:"run_id,omitempty"`
-	ContractID            string                          `json:"contract_id,omitempty"`
-	TaskState             taskstate.State                 `json:"task_state,omitempty"`
-	TaskStateRevision     uint64                          `json:"task_state_revision,omitempty"`
-	ProjectUUID           string                          `json:"project_uuid"`
-	ProjectRevision       string                          `json:"project_revision,omitempty"`
-	SupersededProjectRevisions map[string]bool            `json:"superseded_project_revisions,omitempty"`
-	OriginalIntent        string                          `json:"original_intent"`
-	Mode                  Mode                            `json:"mode"`
-	Scope                 Scope                           `json:"scope"`
-	Phase                 Phase                           `json:"phase"`
-	Policy                Policy                          `json:"policy"`
-	RoundsStarted         int                             `json:"rounds_started"`
-	RoundInProgress       bool                            `json:"round_in_progress"`
-	RoundHadProgress      bool                            `json:"round_had_progress"`
-	NoProgressStreak      int                             `json:"no_progress_streak"`
-	LastProjectChangeID   string                          `json:"last_project_change_id,omitempty"`
-	ObservationOrder      []string                        `json:"observation_order,omitempty"`
-	Observations          map[string]ObservationRecord    `json:"observations,omitempty"`
-	Frontier              HypothesisFrontier              `json:"hypothesis_frontier,omitempty"`
-	DiagnosticRounds      []DiagnosticRoundRecord         `json:"diagnostic_rounds,omitempty"`
-	Actionability         Actionability                   `json:"actionability"`
-	ModelProtocolRepairs  int                             `json:"model_protocol_repairs"`
-	ActionAttempts        int                             `json:"action_attempts"`
-	RollbackAttempts      int                             `json:"rollback_attempts"`
-	ActiveCapability      *CapabilityLink                 `json:"active_capability_session,omitempty"`
-	CapabilitySettlements map[string]CapabilitySettlement `json:"capability_settlements,omitempty"`
-	ProjectCutRef         string                          `json:"project_cut_ref,omitempty"`
-	Settlement            *Settlement                     `json:"settlement,omitempty"`
-	Events                []Event                         `json:"events"`
-	CreatedAt             time.Time                       `json:"created_at"`
-	UpdatedAt             time.Time                       `json:"updated_at"`
+	SchemaVersion              string                          `json:"schema_version"`
+	ClosureID                  string                          `json:"closure_id"`
+	Revision                   uint64                          `json:"revision"`
+	ConversationID             string                          `json:"conversation_id"`
+	TaskID                     string                          `json:"task_id,omitempty"`
+	GoalID                     string                          `json:"goal_id,omitempty"`
+	RunID                      string                          `json:"run_id,omitempty"`
+	ContractID                 string                          `json:"contract_id,omitempty"`
+	TaskState                  taskstate.State                 `json:"task_state,omitempty"`
+	TaskStateRevision          uint64                          `json:"task_state_revision,omitempty"`
+	ProjectUUID                string                          `json:"project_uuid"`
+	ProjectRevision            string                          `json:"project_revision,omitempty"`
+	SupersededProjectRevisions map[string]bool                 `json:"superseded_project_revisions,omitempty"`
+	OriginalIntent             string                          `json:"original_intent"`
+	Mode                       Mode                            `json:"mode"`
+	Scope                      Scope                           `json:"scope"`
+	Phase                      Phase                           `json:"phase"`
+	Policy                     Policy                          `json:"policy"`
+	RoundsStarted              int                             `json:"rounds_started"`
+	RoundInProgress            bool                            `json:"round_in_progress"`
+	RoundHadProgress           bool                            `json:"round_had_progress"`
+	NoProgressStreak           int                             `json:"no_progress_streak"`
+	LastProjectChangeID        string                          `json:"last_project_change_id,omitempty"`
+	ObservationOrder           []string                        `json:"observation_order,omitempty"`
+	Observations               map[string]ObservationRecord    `json:"observations,omitempty"`
+	Frontier                   HypothesisFrontier              `json:"hypothesis_frontier,omitempty"`
+	DiagnosticRounds           []DiagnosticRoundRecord         `json:"diagnostic_rounds,omitempty"`
+	Actionability              Actionability                   `json:"actionability"`
+	ModelProtocolRepairs       int                             `json:"model_protocol_repairs"`
+	ActionAttempts             int                             `json:"action_attempts"`
+	RollbackAttempts           int                             `json:"rollback_attempts"`
+	ActiveCapability           *CapabilityLink                 `json:"active_capability_session,omitempty"`
+	CapabilitySettlements      map[string]CapabilitySettlement `json:"capability_settlements,omitempty"`
+	ProjectCutRef              string                          `json:"project_cut_ref,omitempty"`
+	Settlement                 *Settlement                     `json:"settlement,omitempty"`
+	Events                     []Event                         `json:"events"`
+	CreatedAt                  time.Time                       `json:"created_at"`
+	UpdatedAt                  time.Time                       `json:"updated_at"`
 }
 
 func (s State) Terminal() bool {

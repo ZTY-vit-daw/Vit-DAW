@@ -470,7 +470,7 @@ func TestAssertWarnLoggerInjectedEmitsFailLines(t *testing.T) {
 		"tracks": []any{map[string]any{
 			"track_id": "t1", "clip_count": 1,
 			"primary_clip": map[string]any{"clip_id": "c1", "current_source_path": "/a/b.wav"},
-			"acoustic":    map[string]any{"status": "ready", "nan_count": 2, "peak_dbfs": -6.0},
+			"acoustic":     map[string]any{"status": "ready", "nan_count": 2, "peak_dbfs": -6.0},
 		}},
 	}})
 	if len(captured) == 0 {
@@ -500,7 +500,7 @@ func TestAssertWarnLoggerNilStaysSilent(t *testing.T) {
 		"tracks": []any{map[string]any{
 			"track_id": "t1", "clip_count": 1,
 			"primary_clip": map[string]any{"clip_id": "c1", "current_source_path": "/a/b.wav"},
-			"acoustic":    map[string]any{"status": "ready", "nan_count": 2, "peak_dbfs": -6.0},
+			"acoustic":     map[string]any{"status": "ready", "nan_count": 2, "peak_dbfs": -6.0},
 		}},
 	}})
 	if AssertWarnLogger != nil {

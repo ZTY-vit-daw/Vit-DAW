@@ -138,9 +138,9 @@ func TestDOMRowFromObservationSnapshotSourcedNotMarked(t *testing.T) {
 		TargetRef:      mixboard.TargetRef{Kind: "track", ID: "T3", Label: "lead vox"},
 		ProjectPackage: map[string]any{"project_revision": "r1"},
 		GlobalSummary: map[string]any{"feature_snapshot": map[string]any{
-			"schema_version":            "mixboard_feature_snapshot.v1",
-			"waveform_envelope":         snapshotRow, // 顶层命中目标（track_id=T3）
-			"track_waveform_envelopes":  []any{snapshotRow},
+			"schema_version":           "mixboard_feature_snapshot.v1",
+			"waveform_envelope":        snapshotRow, // 顶层命中目标（track_id=T3）
+			"track_waveform_envelopes": []any{snapshotRow},
 		}},
 		MixPackage: map[string]any{"current_metrics": map[string]any{
 			"waveform": matCWaveformRow("T3", "sr_live", -18.0, -4.0), // 在场但未被消费

@@ -40,9 +40,9 @@ func leaseShellPark(updatedAt time.Time) DurableContinuation {
 		ConversationID: leaseReadConversation, OriginalIntent: "inspect the project",
 		Continuation: agentloop.Continuation{GoalID: "goal-lease-read", RunID: "run-lease-read", TaskID: "task-lease-read",
 			SliceID: "slice-lease-shell", TurnID: "turn-lease-shell", OriginalIntent: "inspect the project"},
-		Status:            ContinuationWaitingInteraction,
+		Status:             ContinuationWaitingInteraction,
 		PendingInteraction: map[string]any{"status": "legacy_waiting_continue", "reason": "legacy checkpoint has no authoritative stop reason"},
-		CreatedAt:         updatedAt, UpdatedAt: updatedAt,
+		CreatedAt:          updatedAt, UpdatedAt: updatedAt,
 	}
 }
 

@@ -413,8 +413,8 @@ func TestClarifyParkPendingInteractionCarriesQuestion(t *testing.T) {
 	res := agentloop.Result{
 		GoalID: "goal-f2", RunID: "run-f2", TaskID: "task-f2", SliceID: "slice-f2", TurnID: "turn-f2",
 		OriginalIntent: "让主唱更靠前", Status: agentruntime.StatusWaitingClarification,
-		StopReason: agentloop.StopReasonNeedsClarification,
-		Reply:               clarifyParkQuestion,
+		StopReason:            agentloop.StopReasonNeedsClarification,
+		Reply:                 clarifyParkQuestion,
 		ClarificationQuestion: clarifyParkQuestion,
 		Continuation: &agentloop.Continuation{
 			GoalID: "goal-f2", RunID: "run-f2", TaskID: "task-f2", SliceID: "slice-f2", TurnID: "turn-f2",

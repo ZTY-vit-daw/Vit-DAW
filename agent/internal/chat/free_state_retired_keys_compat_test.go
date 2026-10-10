@@ -64,7 +64,7 @@ func TestAdmissionAccountingFieldsRideLoopMapRoundTrip(t *testing.T) {
 	loop := continuationTestLoop("conversation-timing1")
 	loop.AdmissionRejectionCount = 2
 	loop.AdmissionRejectionGaps = []map[string]any{{
-		"schema_version": "free_state_admission_gap.v1",
+		"schema_version":  "free_state_admission_gap.v1",
 		"failed_gate_ids": []any{"G7_fresh_revision_bound_refs"},
 		"missing": []any{map[string]any{
 			"gate_id": "G7_fresh_revision_bound_refs", "condition": "unresolved_evidence_ref",

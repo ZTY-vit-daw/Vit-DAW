@@ -1158,6 +1158,7 @@ func (s *Server) runContinuationSchedulerOnce(ctx context.Context) error {
 //     lifecycle (completed/cancelled/failed — the settle-time displaced-cancel
 //     transient is repaired to completed afterwards, so completed alone would
 //     misjudge) and the goal landed on a settled form.
+//
 //   - B1-F2 waiting park: the chain parked at an answerable interaction
 //     (goal waiting_confirmation/waiting_clarification). The park is a
 //     genuine user-facing wait whose final reply is the chain's last word

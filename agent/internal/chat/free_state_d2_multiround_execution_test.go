@@ -198,7 +198,7 @@ func TestD2MultiRoundCumulativePreCheckRefusesOvershootBeforeMutation(t *testing
 	loop := d2ExecutionMultiRoundLoopWithDeltaForTest(t, 2, -experiment.D1S1MaxAbsDeltaDB*0.75)
 	d2ExecutionOpenCalibrationRoundForTest(t, s, &loop, -experiment.D1S1MaxAbsDeltaDB*0.75)
 	state := map[string]any{"tracks": []any{map[string]any{"track_id": "vocal", "volume_db": -3.5}}}
-	_, err := d1TrackGainPlan(loop, agentloop.PendingMixTickCandidate{Operation: experiment.D1S1ActionKind, TrackID: "vocal", DeltaDB: -experiment.D1S1MaxAbsDeltaDB*0.75}, 8, "project-1", "epoch-1", "snapshot-8", state)
+	_, err := d1TrackGainPlan(loop, agentloop.PendingMixTickCandidate{Operation: experiment.D1S1ActionKind, TrackID: "vocal", DeltaDB: -experiment.D1S1MaxAbsDeltaDB * 0.75}, 8, "project-1", "epoch-1", "snapshot-8", state)
 	if err == nil || !strings.Contains(err.Error(), "cumulative delta_db displacement") {
 		t.Fatalf("overshooting round-2 plan admitted: err=%v", err)
 	}

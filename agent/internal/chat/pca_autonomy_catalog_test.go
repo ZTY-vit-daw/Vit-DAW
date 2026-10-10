@@ -212,7 +212,7 @@ func TestFullAccessCatalogDoesNotLeakIntoFreeStateObservationCatalog(t *testing.
 	freeState := map[string]any{
 		"authority_mode": authorityModeFull, "authority_mode_explicit": true,
 		"free_state_reasoning_loop": map[string]any{
-			"schema_version": freeStateReasoningLoopSchema,
+			"schema_version":  freeStateReasoningLoopSchema,
 			"original_intent": "帮低音轨做个均衡实验", "status": "observing",
 		},
 	}
@@ -274,8 +274,8 @@ func TestFullAccessCatalogCapsLargeLibrariesExplicitly(t *testing.T) {
 				Identifier: identifier, InstalledPath: bundle,
 			},
 			BinaryFingerprint: fingerprint, ProcessorFamily: processorattestation.FamilyStaticEQ,
-			Coverage:  []processorattestation.Coverage{{Action: "upsert", Shape: "bell"}},
-			Evidence:  pcaAutonomyEvidence(),
+			Coverage: []processorattestation.Coverage{{Action: "upsert", Shape: "bell"}},
+			Evidence: pcaAutonomyEvidence(),
 		}, "pca-autonomy-test"); err != nil {
 			t.Fatal(err)
 		}

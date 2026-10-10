@@ -47,7 +47,7 @@ func pcaFullAccessInvokeFixture(t *testing.T, identifier string) string {
 		t.Fatal(err)
 	}
 	if _, err := store.PromoteCurrent(processorattestation.IssueSpec{
-		Subject: processorattestation.Subject{Name: "PCA Transport EQ", Manufacturer: "Vendor", Format: "VST3", Identifier: identifier, InstalledPath: bundle},
+		Subject:           processorattestation.Subject{Name: "PCA Transport EQ", Manufacturer: "Vendor", Format: "VST3", Identifier: identifier, InstalledPath: bundle},
 		BinaryFingerprint: fingerprint, ProcessorFamily: processorattestation.FamilyStaticEQ,
 		Coverage: []processorattestation.Coverage{{Action: "upsert", Shape: "bell"}},
 		Evidence: []processorattestation.EvidenceRef{{

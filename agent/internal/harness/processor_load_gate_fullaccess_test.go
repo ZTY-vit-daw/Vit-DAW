@@ -18,11 +18,11 @@ import (
 // the server from the promoted PCA catalog instead of from a client payload.
 
 type pcaFullAccessFixture struct {
-	root       string
-	path       string
-	identifier string
-	subject    processorattestation.Subject
-	key        string
+	root        string
+	path        string
+	identifier  string
+	subject     processorattestation.Subject
+	key         string
 	fingerprint string
 	attestation processorattestation.Attestation
 }
@@ -77,7 +77,6 @@ func rackAddNodeCommands(commands []map[string]any) []map[string]any {
 func fullProjectAccessContext() map[string]any {
 	return map[string]any{"authority_mode": "full_project_access", "authority_mode_explicit": true}
 }
-
 
 func TestFullProjectAccessLoadsAdmittedProcessorWithoutUserSelectionAuthorization(t *testing.T) {
 	const identifier = "VST3-PCA-FullAccess-Probe-1"

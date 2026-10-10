@@ -123,7 +123,7 @@ func TestLimitBoundaryReplyIsNeutralForConversationalTurns(t *testing.T) {
 	server := &Server{harness: harness.NewWithSender(nil, nil, nil)}
 	t.Run("chain continues", func(t *testing.T) {
 		res := agentloop.Result{
-			Reply: "本轮思考步数已到上限；任务会从已保存的检查点自动继续。",
+			Reply:  "本轮思考步数已到上限；任务会从已保存的检查点自动继续。",
 			Status: agentruntime.StatusWaitingContinue, StopReason: agentloop.StopReasonLimitReached,
 			LimitType: agentloop.LimitTypeTurns, RunID: "run-f3", SliceID: "slice-f3", TurnID: "turn-f3",
 			Continuation: &agentloop.Continuation{RunID: "run-f3", SliceID: "slice-f3"},
@@ -141,7 +141,7 @@ func TestLimitBoundaryReplyIsNeutralForConversationalTurns(t *testing.T) {
 	})
 	t.Run("checkpoint missing converts honestly", func(t *testing.T) {
 		res := agentloop.Result{
-			Reply: "本轮思考步数已到上限；任务会从已保存的检查点自动继续。",
+			Reply:  "本轮思考步数已到上限；任务会从已保存的检查点自动继续。",
 			Status: agentruntime.StatusWaitingContinue, StopReason: agentloop.StopReasonLimitReached,
 			LimitType: agentloop.LimitTypeTurns, RunID: "run-f3", SliceID: "slice-f3", TurnID: "turn-f3",
 		}

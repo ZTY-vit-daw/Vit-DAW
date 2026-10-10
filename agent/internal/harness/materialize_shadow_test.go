@@ -336,10 +336,10 @@ func TestMaterializeShadowFullStateInput(t *testing.T) {
 		"status": "ready", "track_id": "track_1", "source_revision": "sr1",
 		"coverage_ratio": 1.0, "duration_seconds": 12.0,
 		"bands": map[string]any{
-			"sub":    map[string]any{"status": "ready", "min_hz": 20.0, "max_hz": 60.0, "unit_energy": 0.1},
-			"bass":   map[string]any{"status": "ready", "min_hz": 60.0, "max_hz": 250.0, "unit_energy": 0.3},
-			"mid":    map[string]any{"status": "ready", "min_hz": 250.0, "max_hz": 2000.0, "unit_energy": 0.2},
-			"air":    map[string]any{"status": "ready", "min_hz": 8000.0, "max_hz": 20000.0, "unit_energy": 0.05},
+			"sub":  map[string]any{"status": "ready", "min_hz": 20.0, "max_hz": 60.0, "unit_energy": 0.1},
+			"bass": map[string]any{"status": "ready", "min_hz": 60.0, "max_hz": 250.0, "unit_energy": 0.3},
+			"mid":  map[string]any{"status": "ready", "min_hz": 250.0, "max_hz": 2000.0, "unit_energy": 0.2},
+			"air":  map[string]any{"status": "ready", "min_hz": 8000.0, "max_hz": 20000.0, "unit_energy": 0.05},
 		},
 	}
 	result, err := mixboard.NewStore("").RequestObservation(mixboard.Request{

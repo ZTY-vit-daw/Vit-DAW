@@ -18,23 +18,23 @@ import (
 
 func b6PanAppliedLoop() freeStateReasoningLoop {
 	return freeStateReasoningLoop{
-		SchemaVersion:   freeStateReasoningLoopSchema,
-		LoopID:          "free_state_b6",
-		ConversationID:  "conversation-b6",
-		GoalID:          "goal-b6",
-		RunID:           "run-b6",
-		OriginalIntent:  "请检查当前工程是否有什么问题吗",
-		Status:          "re_evaluating",
-		DecisionPhase:   freeStatePhasePostActionEvaluation,
+		SchemaVersion:                 freeStateReasoningLoopSchema,
+		LoopID:                        "free_state_b6",
+		ConversationID:                "conversation-b6",
+		GoalID:                        "goal-b6",
+		RunID:                         "run-b6",
+		OriginalIntent:                "请检查当前工程是否有什么问题吗",
+		Status:                        "re_evaluating",
+		DecisionPhase:                 freeStatePhasePostActionEvaluation,
 		RequiresPostActionObservation: false,
 		Experiment: &experiment.Turn{
 			ID: "turn_b6", Status: experiment.StatusRunning,
 			OriginalIntent: "请检查当前工程是否有什么问题吗",
 			Admission: experiment.Admission{
-				TargetRef:   map[string]any{"kind": "track", "id": "1017", "label": "guitar"},
+				TargetRef:    map[string]any{"kind": "track", "id": "1017", "label": "guitar"},
 				EvidenceRefs: []string{"obs_b6_seed"},
-				Hypothesis:  "吉他轨立体声相关性 0.23 偏高，尝试小幅居中微调",
-				TypedAction: map[string]any{"action_domain": d1PanDomain, "action_kind": d1PanKind, "delta_pan": 0.05},
+				Hypothesis:   "吉他轨立体声相关性 0.23 偏高，尝试小幅居中微调",
+				TypedAction:  map[string]any{"action_domain": d1PanDomain, "action_kind": d1PanKind, "delta_pan": 0.05},
 			},
 		},
 	}
@@ -92,10 +92,10 @@ func TestD1AppliedReportCarriesFiveElementsPan(t *testing.T) {
 func TestD1AppliedReportGainDomainAndUnknownKindFallback(t *testing.T) {
 	loop := b6PanAppliedLoop()
 	loop.Experiment.Admission = experiment.Admission{
-		TargetRef:   map[string]any{"kind": "track", "id": "42"},
+		TargetRef:    map[string]any{"kind": "track", "id": "42"},
 		EvidenceRefs: []string{"obs_b6_gain"},
-		Hypothesis:  "底鼓电平略高于参考轨",
-		TypedAction: map[string]any{"action_domain": experiment.D1S1ActionDomain, "action_kind": experiment.D1S1ActionKind, "delta_db": 0.8},
+		Hypothesis:   "底鼓电平略高于参考轨",
+		TypedAction:  map[string]any{"action_domain": experiment.D1S1ActionDomain, "action_kind": experiment.D1S1ActionKind, "delta_db": 0.8},
 	}
 	reply := d1AppliedReportReply(loop, map[string]any{
 		"status": "applied", "before_readback_db": -6.2, "actual_readback_db": -5.4, "readback_verified": true,

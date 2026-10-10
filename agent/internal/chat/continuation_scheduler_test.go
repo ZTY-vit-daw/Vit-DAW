@@ -63,7 +63,7 @@ func (e *productionFreeStateCCBExecutor) RunToolCall(_ context.Context, in execu
 		"status": "ok", "bundle": map[string]any{
 			"schema_version": "ccb_observation_bundle.v1", "status": "ready", "read_only": true, "mutation_authority": false,
 			"observation_id": observationID, "requested_views": views, "target_ref": target,
-			"views": map[string]any{"project.structure": map[string]any{"status": "ready"}, "mix.multitrack_relationship": map[string]any{"status": "ready"}, "track.band_dynamics": map[string]any{"status": "ready"}},
+			"views":         map[string]any{"project.structure": map[string]any{"status": "ready"}, "mix.multitrack_relationship": map[string]any{"status": "ready"}, "track.band_dynamics": map[string]any{"status": "ready"}},
 			"audit_receipt": map[string]any{"schema_version": "ccb_observation_receipt.v1", "receipt_id": receiptID, "status": "ready"},
 		},
 	}}, nil
@@ -130,7 +130,9 @@ func TestProductionFreeStateRunnerObservationsSurviveDurableSlices(t *testing.T)
 				break
 			}
 			statuses := []string{}
-			for _, item := range s.durableContinuations { statuses = append(statuses, string(item.Status)+":"+item.ContinuationID) }
+			for _, item := range s.durableContinuations {
+				statuses = append(statuses, string(item.Status)+":"+item.ContinuationID)
+			}
 			t.Fatalf("slice %d did not create child checkpoint: statuses=%v result_cont=%v", slice, statuses, result.Continuation != nil)
 		}
 		s.continuationExecutor = func(ctx context.Context, item DurableContinuation) error {
@@ -164,7 +166,9 @@ func TestProductionFreeStateRunnerObservationsSurviveDurableSlices(t *testing.T)
 			projectCalls++
 		}
 	}
-	if projectCalls != 1 { t.Fatalf("duplicate project view set entered CCB executor: %d", projectCalls) }
+	if projectCalls != 1 {
+		t.Fatalf("duplicate project view set entered CCB executor: %d", projectCalls)
+	}
 }
 
 func mustFreeStateLoop(s *Server, conversationID string) freeStateReasoningLoop {
@@ -281,10 +285,10 @@ func TestFreeStateObservationsSurviveFourDurableSlices(t *testing.T) {
 		updated.ObservationIDs = appendUniqueFreeStateStrings(updated.ObservationIDs, []string{observationID})
 		updated.ObservationReceipts = append(updated.ObservationReceipts, map[string]any{"receipt_id": receiptID, "observation_id": observationID})
 		updated.ObservationLedger = mergeFreeStateLedgers(updated.ObservationLedger, map[string]any{
-			"schema_version": freeStateObservationLedgerSchema,
-			"receipts": []map[string]any{{"receipt_id": receiptID, "observation_id": observationID, "requested_views": []string{views[index]}}},
+			"schema_version":  freeStateObservationLedgerSchema,
+			"receipts":        []map[string]any{{"receipt_id": receiptID, "observation_id": observationID, "requested_views": []string{views[index]}}},
 			"available_views": map[string]any{views[index]: map[string]any{"view_id": views[index], "observation_id": observationID, "status": "ready"}},
-		},)
+		})
 		updated.LatestObservation = &agentloop.RecentObservation{Tool: "ccb.observation_request", Status: "ready", Summary: map[string]any{
 			"observation_id": observationID, "requested_views": []any{views[index]}, "audit_receipt": map[string]any{"receipt_id": receiptID},
 		}}

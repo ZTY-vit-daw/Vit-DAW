@@ -61,7 +61,7 @@ func (f *statefulAuditionKernel) AuditionPrepare(_ context.Context, request kern
 	f.session = map[string]any{
 		"session_id": request.SessionID, "conversation_id": request.ConversationID, "scope": request.Scope,
 		"status": "ready", "active_project_plane": map[string]any{"plane": "active_project", "project_ref": request.ActiveProjectRef, "project_revision": request.ActiveProjectRevision},
-		"transport": map[string]any{"timeline_revision": request.TimelineRevision, "is_playing": false},
+		"transport":  map[string]any{"timeline_revision": request.TimelineRevision, "is_playing": false},
 		"candidates": rows,
 	}
 	return f.sessionResult("ready"), nil
@@ -222,8 +222,8 @@ func TestStoppedSelectAfterStaleSliceWriteBackReseats(t *testing.T) {
 
 	// 晚到写回：slice resume 的真实入口把 stop 之前的副本盖回 server loop。
 	server.prepareFreeStateReasoningContext(conversationID, "继续", map[string]any{
-		"free_state_internal_resume":        true,
-		"free_state_reasoning_loop": freeStateLoopMap(staleLoop),
+		"free_state_internal_resume": true,
+		"free_state_reasoning_loop":  freeStateLoopMap(staleLoop),
 	})
 	if gate := server.auditionSnapshotStopped(conversationID, sessionID); gate {
 		t.Fatalf("stale write-back must regress the snapshot for this field-shape pin (got gate still true)")

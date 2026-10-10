@@ -64,16 +64,16 @@ type CandidateSummary struct {
 }
 
 type EditCandidate struct {
-	TrackID         string   `json:"track_id,omitempty"`
-	TrackName       string   `json:"track_name,omitempty"`
-	ClipID          string   `json:"clip_id,omitempty"`
-	ClipName        string   `json:"clip_name,omitempty"`
-	Kind            string   `json:"kind"`
-	Severity        string   `json:"severity"`
-	Recommendation  string   `json:"recommendation"`
-	Reason          string   `json:"reason"`
-	Evidence        []string `json:"evidence,omitempty"`
-	RequiresConfirm bool     `json:"requires_confirmation"`
+	TrackID         string             `json:"track_id,omitempty"`
+	TrackName       string             `json:"track_name,omitempty"`
+	ClipID          string             `json:"clip_id,omitempty"`
+	ClipName        string             `json:"clip_name,omitempty"`
+	Kind            string             `json:"kind"`
+	Severity        string             `json:"severity"`
+	Recommendation  string             `json:"recommendation"`
+	Reason          string             `json:"reason"`
+	Evidence        []string           `json:"evidence,omitempty"`
+	RequiresConfirm bool               `json:"requires_confirmation"`
 	PendingAction   *PendingActionPlan `json:"pending_action,omitempty"`
 }
 

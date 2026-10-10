@@ -34,8 +34,8 @@ func refusedSettleCompletedTurn(loop freeStateReasoningLoop) agentloop.Result {
 		Status:     agentruntime.StatusCompleted,
 		StopReason: agentloop.StopReasonDone,
 		FreeStateDecision: &agentloop.FreeStateDecision{
-			Status:            agentloop.FreeStateNeedsExperiment,
-			Summary:           "settle report finished the retry turn cleanly",
+			Status:              agentloop.FreeStateNeedsExperiment,
+			Summary:             "settle report finished the retry turn cleanly",
 			ImprovementProposal: experimentTestProposal(),
 			ExperimentMateriality: &experiment.MaterialityEvaluation{
 				State: experiment.MaterialityMaterial, Evaluation: trajectory.EvaluationAmbiguous,

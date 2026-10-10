@@ -175,9 +175,9 @@ func TestExperimentReportFieldsIngestedOnTerminalDecision(t *testing.T) {
 	}
 	loop, ok := s.recordFreeStateDecision("conversation-boundary", agentloop.Result{GoalID: "goal-b", RunID: "run-b", FreeStateDecision: &agentloop.FreeStateDecision{
 		SchemaVersion: agentloop.FreeStateDecisionSchema, Status: agentloop.FreeStateCapabilityBlocked, EvidenceStatus: "insufficient",
-		Summary: "ambiguous; awaiting human A/B judgment",
-		ExperimentMateriality:      &experiment.MaterialityEvaluation{State: experiment.MaterialitySubthreshold, Evaluation: trajectory.EvaluationInsufficientDose, Attempt: 1, EvidenceRefs: []string{"obs-after"}},
-		ExperimentRoundDecision:    string(experiment.DecisionUserJudgment),
+		Summary:                 "ambiguous; awaiting human A/B judgment",
+		ExperimentMateriality:   &experiment.MaterialityEvaluation{State: experiment.MaterialitySubthreshold, Evaluation: trajectory.EvaluationInsufficientDose, Attempt: 1, EvidenceRefs: []string{"obs-after"}},
+		ExperimentRoundDecision: string(experiment.DecisionUserJudgment),
 	}})
 	if !ok {
 		t.Fatal("boundary decision was not recorded")
@@ -193,6 +193,7 @@ func TestExperimentReportFieldsIngestedOnTerminalDecision(t *testing.T) {
 		t.Fatalf("round decision = %q, want user_judgment_pending", round.Decision)
 	}
 }
+
 // The human-judgment boundary is terminal for model turns. Once the round
 // decision user_judgment_pending is recorded (or a judgment is requested /
 // recorded), a needs_observation/needs_action/new-admission decision must not
@@ -335,7 +336,7 @@ func TestFS8EvaluationReportSkipsGateAuditAndParksAtJudgmentBoundary(t *testing.
 	}}, FreeStateDecision: &agentloop.FreeStateDecision{
 		SchemaVersion: agentloop.FreeStateDecisionSchema, Status: agentloop.FreeStateNeedsExperiment,
 		EvidenceStatus: "plausible", Summary: "post-action evaluation: awaiting human A/B judgment",
-		ImprovementProposal: experimentTestProposal(),
+		ImprovementProposal:      experimentTestProposal(),
 		ExperimentMateriality:    &experiment.MaterialityEvaluation{State: experiment.MaterialityMaterial, Evaluation: trajectory.EvaluationAgentEvaluable, Attempt: 1, EvidenceRefs: []string{"material-after"}},
 		ExperimentTargetResponse: &experiment.TargetEvaluation{Response: experiment.TargetAmbiguous, Outcome: trajectory.EvaluationHumanAuditionReady, EvidenceRefs: []string{"target-after"}},
 		ExperimentRoundDecision:  string(experiment.DecisionUserJudgment),
@@ -398,5 +399,3 @@ func TestInteractionResumeRefusedAtJudgmentBoundary(t *testing.T) {
 		t.Fatalf("interaction resume revived the loop at the judgment boundary: status=%s cycle=%d actions=%d", stored.Status, stored.Cycle, len(stored.Actions))
 	}
 }
-
-

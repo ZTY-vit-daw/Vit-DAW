@@ -26,38 +26,38 @@ type LowEndRelationInput struct {
 // LowEndRelationAnalysisDisclosure is the CCB disclosure serialised into
 // the ContextBundle. It does not contain candidate actions.
 type LowEndRelationAnalysisDisclosure struct {
-	SchemaVersion string                      `json:"schema_version"`
-	Readiness     capabilityruntime.Readiness `json:"readiness"`
-	Coverage      lowendrelation.Coverage     `json:"coverage"`
+	SchemaVersion string                       `json:"schema_version"`
+	Readiness     capabilityruntime.Readiness  `json:"readiness"`
+	Coverage      lowendrelation.Coverage      `json:"coverage"`
 	Summary       lowendrelation.LowEndSummary `json:"summary"`
 	Observations  []lowendrelation.Observation `json:"observations,omitempty"`
 }
 
 type LowEndRelationPack struct {
-	SchemaVersion      string                            `json:"schema_version"`
-	PackID             string                            `json:"pack_id"`
-	CapabilityID       string                            `json:"capability_id"`
-	CapabilityName     string                            `json:"capability_name"`
-	ContextManifestID  string                            `json:"context_manifest_id"`
-	ContextBuilder     string                            `json:"context_builder"`
-	GeneratedAt        string                            `json:"generated_at"`
-	UserIntent         string                            `json:"user_intent,omitempty"`
-	Scope              Scope                             `json:"scope"`
-	Budget             Budget                            `json:"budget"`
-	EvidenceRefs       []string                          `json:"evidence_refs,omitempty"`
-	EvidenceStatus     map[string]EvidenceStatus         `json:"evidence_status,omitempty"`
-	Readiness          capabilityruntime.Readiness       `json:"-"`
-	AnalyzedTrackCount int                               `json:"analyzed_track_count"`
+	SchemaVersion       string                           `json:"schema_version"`
+	PackID              string                           `json:"pack_id"`
+	CapabilityID        string                           `json:"capability_id"`
+	CapabilityName      string                           `json:"capability_name"`
+	ContextManifestID   string                           `json:"context_manifest_id"`
+	ContextBuilder      string                           `json:"context_builder"`
+	GeneratedAt         string                           `json:"generated_at"`
+	UserIntent          string                           `json:"user_intent,omitempty"`
+	Scope               Scope                            `json:"scope"`
+	Budget              Budget                           `json:"budget"`
+	EvidenceRefs        []string                         `json:"evidence_refs,omitempty"`
+	EvidenceStatus      map[string]EvidenceStatus        `json:"evidence_status,omitempty"`
+	Readiness           capabilityruntime.Readiness      `json:"-"`
+	AnalyzedTrackCount  int                              `json:"analyzed_track_count"`
 	DisclosedTrackCount int                              `json:"disclosed_track_count"`
-	AnalysisDisclosure LowEndRelationAnalysisDisclosure  `json:"analysis_disclosure"`
-	Summary            lowendrelation.LowEndSummary      `json:"summary"`
-	Observations       []lowendrelation.Observation      `json:"observations,omitempty"`
-	Conflicts          []lowendrelation.LowEndConflict   `json:"conflicts,omitempty"`
-	Tracks             []lowendrelation.LowEndTrack      `json:"tracks,omitempty"`
-	Limitations        []string                          `json:"limitations,omitempty"`
-	Guidance           []string                          `json:"guidance,omitempty"`
-	model              lowendrelation.Model
-	result             lowendrelation.Result
+	AnalysisDisclosure  LowEndRelationAnalysisDisclosure `json:"analysis_disclosure"`
+	Summary             lowendrelation.LowEndSummary     `json:"summary"`
+	Observations        []lowendrelation.Observation     `json:"observations,omitempty"`
+	Conflicts           []lowendrelation.LowEndConflict  `json:"conflicts,omitempty"`
+	Tracks              []lowendrelation.LowEndTrack     `json:"tracks,omitempty"`
+	Limitations         []string                         `json:"limitations,omitempty"`
+	Guidance            []string                         `json:"guidance,omitempty"`
+	model               lowendrelation.Model
+	result              lowendrelation.Result
 }
 
 func (p LowEndRelationPack) Map() map[string]any {

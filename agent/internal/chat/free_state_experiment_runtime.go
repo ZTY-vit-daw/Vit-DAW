@@ -1243,8 +1243,8 @@ func recalibrationRoundBaseRecent(exp *experiment.Turn, base experiment.Observat
 		CommandName: "ccb_observation_request", Status: "ready",
 		Summary: map[string]any{
 			"schema_version": "ccb_observation_bundle.v1", "status": "ready",
-			"observation_id": base.ID,
-			"requested_views": append([]string(nil), base.RequestedViewIDs...),
+			"observation_id":           base.ID,
+			"requested_views":          append([]string(nil), base.RequestedViewIDs...),
 			"actual_executed_view_ids": append([]string(nil), executed...),
 			"evidence_refs":            append([]string(nil), base.EvidenceRefs...),
 			"target_ref":               cloneContext(exp.Admission.TargetRef),

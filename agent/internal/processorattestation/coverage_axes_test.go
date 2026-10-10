@@ -42,7 +42,7 @@ func TestPromotedAttestationCoverageAxesReturnsPromotedCertificateAxes(t *testin
 		t.Fatalf("unknown attestation must certify nothing: axes=%v err=%v", unknown, err)
 	}
 	issued, err := store.Issue(IssueSpec{
-		Subject: Subject{Name: "Bridge Compressor Two", Format: "VST3", Identifier: "bridge-comp-v2", InstalledPath: path},
+		Subject:           Subject{Name: "Bridge Compressor Two", Format: "VST3", Identifier: "bridge-comp-v2", InstalledPath: path},
 		BinaryFingerprint: fingerprint, ProcessorFamily: FamilyBroadbandCompressor,
 		Coverage: []Coverage{{Action: "adjust", Axis: "transient_timing"}},
 		Evidence: []EvidenceRef{{ReceiptID: "coverage-axes-issued", Kind: "test", SHA256: "sha256:" + strings.Repeat("c", 64), ObservedAt: time.Now().UTC()}},

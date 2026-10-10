@@ -40,7 +40,7 @@ func seedRoundSurfacePreActionLedger() map[string]any {
 				"receipt_id": "receipt-before", "status": "ready", "observation_id": "obs-pre-action",
 				"tool_call_id": "call-before", "project_revision": "7", "round": 1,
 				"requested_views": []any{"track.timbre_frequency"},
-				"freshness": map[string]any{"status": "current_observation", "project_revision": "7"},
+				"freshness":       map[string]any{"status": "current_observation", "project_revision": "7"},
 			},
 			// The deterministic post-action booking's receipt rows, exactly as
 			// the 201003 trace persisted them: the post_action freshness class
@@ -49,16 +49,16 @@ func seedRoundSurfacePreActionLedger() map[string]any {
 				"status": "ready", "observation_id": "obs-d2-action-1",
 				"tool_call_id": "d1_post_action:turn-d2", "project_revision": "8", "round": 0,
 				"requested_views": []any{"track.timbre_frequency"},
-				"freshness": map[string]any{"status": "ready", "class": "post_action", "project_revision": "8"},
+				"freshness":       map[string]any{"status": "ready", "class": "post_action", "project_revision": "8"},
 			},
 			map[string]any{
 				"status": "ready", "observation_id": "obs-d2-action-1",
 				"tool_call_id": "d1_post_action:turn-d2", "project_revision": "8", "round": 0,
 				"requested_views": []any{"track.timbre_frequency"},
-				"freshness": map[string]any{"status": "ready", "class": "post_action", "project_revision": "8"},
+				"freshness":       map[string]any{"status": "ready", "class": "post_action", "project_revision": "8"},
 			},
 		},
-		"receipt_count":         3,
+		"receipt_count":          3,
 		"view_observation_count": 1,
 	}
 }

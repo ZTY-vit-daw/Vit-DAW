@@ -288,8 +288,8 @@ var steppedGrid550A = []fakeNBStep{
 type fakeNBVSPClient struct {
 	fakeVSPClient
 	domainMin, domainMax float64
-	withCandidate        bool   // expose display_domain_candidate; probe samples are always present
-	frozenPhysicalText   bool   // live value_text ignores writes (degenerate threshold display)
+	withCandidate        bool    // expose display_domain_candidate; probe samples are always present
+	frozenPhysicalText   bool    // live value_text ignores writes (degenerate threshold display)
 	curveExponent        float64 // >0 bends physical = min + span*norm^k and switches text to the "+x.xx" form
 	displayQuantum       float64 // >0 rounds the curved display text to this dB step (coarse compressor readouts)
 	stepped              []fakeNBStep
@@ -650,9 +650,9 @@ func staticEQAbsoluteAction(paramID string, targetDB float64) orchestration.Acti
 	return orchestration.Action{ID: "a-abs", Command: staticEQActionCommand, TargetRef: "t1",
 		BeforeFingerprint: "track:t1:eq:plg_1:pending",
 		Args: map[string]any{
-			"write_mode": WriteModeNormalizedBatchV1,
-			"plugin_path": "/Library/Audio/Plug-Ins/VST3/WaveShell1-VST3 17.1.vst3",
-			"param_id":    paramID,
+			"write_mode":   WriteModeNormalizedBatchV1,
+			"plugin_path":  "/Library/Audio/Plug-Ins/VST3/WaveShell1-VST3 17.1.vst3",
+			"param_id":     paramID,
 			"target_value": targetDB,
 		}}
 }

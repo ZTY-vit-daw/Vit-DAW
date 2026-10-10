@@ -276,14 +276,14 @@ func Checkpoint(args map[string]any) (map[string]any, error) {
 	detached := isDetached(repo)
 	activeBranch := activeBranch(repo)
 	commit := Commit{
-		ID:          "c_" + time.Now().UTC().Format("20060102T150405") + "_" + shortID(),
-		CreatedAt:   time.Now().UTC(),
-		Message:     value(args, "message"),
-		ProjectPath: repo.ProjectPath,
-		ProjectUUID: repo.ProjectUUID,
-		GoalID:      value(args, "goal_id"),
-		RunID:       value(args, "run_id"),
-		Source:      value(args, "source"),
+		ID:              "c_" + time.Now().UTC().Format("20060102T150405") + "_" + shortID(),
+		CreatedAt:       time.Now().UTC(),
+		Message:         value(args, "message"),
+		ProjectPath:     repo.ProjectPath,
+		ProjectUUID:     repo.ProjectUUID,
+		GoalID:          value(args, "goal_id"),
+		RunID:           value(args, "run_id"),
+		Source:          value(args, "source"),
 		ProjectRevision: value(args, "project_revision"),
 		CheckpointKind: firstNonEmpty(
 			value(args, "checkpoint_kind"),

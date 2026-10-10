@@ -36,8 +36,8 @@ func refusedSettleEnvelopeTurn(loop freeStateReasoningLoop) agentloop.Result {
 		StopReason: agentloop.StopReasonLimitReached,
 		LimitType:  "max_turns",
 		FreeStateDecision: &agentloop.FreeStateDecision{
-			Status:            agentloop.FreeStateNeedsExperiment,
-			Summary:           "settle report replayed for the round that owes its intervention",
+			Status:              agentloop.FreeStateNeedsExperiment,
+			Summary:             "settle report replayed for the round that owes its intervention",
 			ImprovementProposal: experimentTestProposal(),
 			ExperimentMateriality: &experiment.MaterialityEvaluation{
 				State: experiment.MaterialityMaterial, Evaluation: trajectory.EvaluationAmbiguous,

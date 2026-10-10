@@ -251,8 +251,8 @@ func TestUserStopReleasesClosureOwnershipForNextGoal(t *testing.T) {
 		// Production assigns the controller during capacity routing before the
 		// entry decision is bound into the context; the fixture assigns it
 		// directly so the closure intake takes the create-new-closure branch.
-		Controller:        string(orchestrationcontroller.MinimalAudioClosure),
-		TargetScope:       semanticEntryScopeProjectContext, ControlMode: semanticEntryControlObserveOnly,
+		Controller:  string(orchestrationcontroller.MinimalAudioClosure),
+		TargetScope: semanticEntryScopeProjectContext, ControlMode: semanticEntryControlObserveOnly,
 		UserAuthorization: semanticEntryAuthorizationObserve, Confidence: 0.9, Reason: "fixture observation entry",
 	})
 	_, newState, active, err := server.prepareAudioClosureContext(fsStopApplyConversation, "检查一下当前选中的drums轨道的低频", entryContext)

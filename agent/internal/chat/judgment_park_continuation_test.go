@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"vit-daw-agent/internal/agentloop"
-	agentruntime "vit-daw-agent/internal/runtime"
 	"vit-daw-agent/internal/experiment"
+	agentruntime "vit-daw-agent/internal/runtime"
 	"vit-daw-agent/internal/taskstate"
 	"vit-daw-agent/internal/trajectory"
 )

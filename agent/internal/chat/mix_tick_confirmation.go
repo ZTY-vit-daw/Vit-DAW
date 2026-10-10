@@ -9,10 +9,10 @@ import (
 	"vit-daw-agent/internal/actionworkflow"
 	"vit-daw-agent/internal/agentloop"
 	"vit-daw-agent/internal/agentprotocol"
-	agentruntime "vit-daw-agent/internal/runtime"
 	"vit-daw-agent/internal/executor"
 	"vit-daw-agent/internal/experiment"
 	"vit-daw-agent/internal/planner"
+	agentruntime "vit-daw-agent/internal/runtime"
 )
 
 func (s *Server) handlePendingMixTickChat(ctx context.Context, conversationID string, req ChatRequest, mode string) (ChatResponse, bool) {
@@ -461,7 +461,7 @@ func (s *Server) completeAnsweredMixTickParks(conversationID string, candidate a
 			continue
 		}
 		answered = append(answered, PendingInteraction{
-			ID: firstStringFromMap(item.PendingInteraction, "interaction_id"),
+			ID:             firstStringFromMap(item.PendingInteraction, "interaction_id"),
 			ConversationID: item.ConversationID, GoalID: item.GoalID, RunID: item.RunID,
 		})
 	}

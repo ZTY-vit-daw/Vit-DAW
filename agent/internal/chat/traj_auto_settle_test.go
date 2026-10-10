@@ -437,7 +437,7 @@ func TestSettleCheckpointRefusedAtHonestBudgetEdge(t *testing.T) {
 // runner 在回合 LLM 段已把 goal 判 completed（此刻回合不欠账），干预回执随后在
 // 同一回合的 respond 段（projectD1Execution）落账，此后再无 goal result 边界。
 // 结算欠账在此判真，应用边界必须在此造片并把 goal 修正回可续跑的 waiting_continue
-//（completed 不可 resume，调度器结算片需要合法的 resume 入口）。
+// （completed 不可 resume，调度器结算片需要合法的 resume 入口）。
 func TestAppliedBoundaryArmsSettleCheckpointOverCompletedGoal(t *testing.T) {
 	s := New(nil, nil, nil)
 	s.auditionKernel = &fakeAuditionKernel{}
@@ -696,7 +696,7 @@ func TestSettleArmDisplacesLegacyShellOccupant(t *testing.T) {
 		GoalID: loop.GoalID, ConversationID: loop.ConversationID, RunID: loop.RunID,
 		CurrentSliceID: "slice-legacy-shell", CurrentTurnID: "turn-legacy-shell",
 		OriginalIntent: loop.OriginalIntent, Continuation: shellCont,
-		Status: ContinuationWaitingInteraction,
+		Status:             ContinuationWaitingInteraction,
 		PendingInteraction: map[string]any{"status": "legacy_waiting_continue"},
 		CreatedAt:          now, UpdatedAt: now,
 	}

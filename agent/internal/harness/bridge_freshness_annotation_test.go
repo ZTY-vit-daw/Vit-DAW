@@ -64,22 +64,22 @@ func f5BandEnergyRow(requestID string) map[string]any {
 			"low":  map[string]any{"rms_dbfs": -18.2},
 			"high": map[string]any{"rms_dbfs": -21.7},
 		},
-		"analyzed_sample_count":  480000,
-		"expected_sample_count":  480000,
-		"coverage_ratio":         1.0,
-		"source_revision":        "rev-f5-band",
+		"analyzed_sample_count": 480000,
+		"expected_sample_count": 480000,
+		"coverage_ratio":        1.0,
+		"source_revision":       "rev-f5-band",
 	}
 }
 
 func f5SpectralRow(requestID string) map[string]any {
 	return map[string]any{
-		"feature_type":       "spectral_field",
-		"status":             "ready",
-		"request_id":         requestID,
-		"track_id":           "1007",
-		"clip_id":            "1011",
-		"source":             "kernel_tile_ready_direct_collector",
-		"tile_count_seen":    4,
+		"feature_type":        "spectral_field",
+		"status":              "ready",
+		"request_id":          requestID,
+		"track_id":            "1007",
+		"clip_id":             "1011",
+		"source":              "kernel_tile_ready_direct_collector",
+		"tile_count_seen":     4,
 		"tile_count_expected": 4,
 	}
 }
@@ -244,9 +244,9 @@ func TestWriteMixboardFeatureSnapshotFileAtomicReplace(t *testing.T) {
 		requestID := fmt.Sprintf("mixboard_20260921T130000.%09d", 2000+i)
 		packet := f5MixboardPacket(requestID)
 		snapshot := map[string]any{
-			"schema_version": "mixboard_feature_snapshot.v1",
-			"updated_at":     time.Now().UTC().Format(time.RFC3339Nano),
-			"latest_request": packet,
+			"schema_version":      "mixboard_feature_snapshot.v1",
+			"updated_at":          time.Now().UTC().Format(time.RFC3339Nano),
+			"latest_request":      packet,
 			"band_energy_summary": f5BandEnergyRow(requestID),
 		}
 		writeMixboardFeatureSnapshotFile(snapshotPath, snapshot, packet)

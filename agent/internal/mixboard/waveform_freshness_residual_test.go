@@ -20,16 +20,16 @@ func kernelPreparedWaveformRow(trackID, clipID, filePath string) map[string]any 
 		"status": "ready", "source": "kernel_prepared_telemetry",
 		"track_id": trackID, "clip_id": clipID,
 		"request_id": "kernel_prepared_waveform_envelope_" + clipID,
-		"file_path": filePath, "source_path": filePath,
+		"file_path":  filePath, "source_path": filePath,
 		"source_revision": filePath + "|size=3528044|length=20.0000",
 		"clip_revision":   "clip=" + clipID + "|track=" + trackID + "|source=" + filePath,
-		"sample_rate": 44100.0, "channel_count": 2, "channel_layout": "stereo",
+		"sample_rate":     44100.0, "channel_count": 2, "channel_layout": "stereo",
 		"duration_seconds": 20.0, "total_duration": 20.0, "analyzed_sample_count": 1764000,
 		"nonzero_count": 12000, "sum_abs": 1194.8, "coverage_ratio": 1.0,
 		"rms": 0.09, "peak_abs": 0.54, "rms_dbfs": -20.9, "peak_dbfs": -5.3, "crest_db": 15.6,
 		"quality_status": "ready", "evidence_ref": "dad:waveform:" + trackID,
 		"analyzer_revision": "audio_feature.v1.2",
-		"time_segments": segments,
+		"time_segments":     segments,
 	}
 }
 
@@ -126,8 +126,8 @@ func TestNonWaveformLatestRequestKeepsReadyWaveformRows(t *testing.T) {
 func TestNonWaveformLatestRequestStubsForeignWaveformEnvelope(t *testing.T) {
 	vocalsRow := kernelPreparedWaveformRow("1032", "1036", "D:/fixture/stems/vocals.wav")
 	snapshot := map[string]any{
-		"schema_version": "mixboard_feature_snapshot.v1",
-		"latest_request": l2RenderProbeLatestRequest(),
+		"schema_version":           "mixboard_feature_snapshot.v1",
+		"latest_request":           l2RenderProbeLatestRequest(),
 		"waveform_envelope":        vocalsRow,
 		"track_waveform_envelopes": []any{vocalsRow},
 		"spectrogram_tiles":        map[string]any{"status": "missing"},

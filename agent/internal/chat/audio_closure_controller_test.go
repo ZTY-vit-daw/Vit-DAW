@@ -833,6 +833,7 @@ func TestAdvanceAudioClosurePhaseDerivesGuardsFromStateOnly(t *testing.T) {
 		t.Fatalf("self-asserted scan evidence advanced past the derived guard: %s", advanced.Phase)
 	}
 }
+
 // TestAudioClosureRoundRecordKeepsDimensionOpenOnUnboundOrEmptyDisclosure is
 // the DIAG2 guardrail: a dimension may close only on disclosure quality — a
 // target-bound observation with usable disclosed evidence. The DIAG1 failure
@@ -865,7 +866,7 @@ func TestAudioClosureRoundRecordKeepsDimensionOpenOnUnboundOrEmptyDisclosure(t *
 	recordRound := func(state audioclosure.State, targetRef, observationID string) audioclosure.State {
 		outcome, err := driver.RecordObservation(state, state.Revision, audioclosure.ObservationKey{
 			ProjectUUID: "project-1", ProjectRevision: "16",
-			Scope: audioclosure.Scope{Kind: "project", ID: "project-1"},
+			Scope:     audioclosure.Scope{Kind: "project", ID: "project-1"},
 			TargetRef: targetRef, ViewIDs: []string{"track.time_dynamics"},
 		}, observationID, now)
 		if err != nil {
@@ -1106,7 +1107,7 @@ func TestAudioClosureRoundClosePersistsRoundsAndAdvancesToFS6(t *testing.T) {
 		"requested_views": []any{"track.basic_energy", "track.timbre_frequency"},
 		"target_ref":      map[string]any{"kind": "track", "id": "1007", "label": "bass"},
 		"views": map[string]any{
-			"track.basic_energy":    map[string]any{"status": "ready"},
+			"track.basic_energy":     map[string]any{"status": "ready"},
 			"track.timbre_frequency": map[string]any{"status": "ready"},
 		},
 	}}
@@ -1140,8 +1141,6 @@ func TestAudioClosureRoundClosePersistsRoundsAndAdvancesToFS6(t *testing.T) {
 		t.Fatalf("closure state diverged: terminal=%v observations=%d", state.Terminal(), len(state.Observations))
 	}
 }
-
-
 
 func TestSyncAudioClosureGovernedRevisionBooksAppliedRevision(t *testing.T) {
 	server := &Server{audioClosures: audioclosure.NewMemoryStore()}

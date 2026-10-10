@@ -1171,21 +1171,21 @@ func TestAudioClosureBoundaryGrantsFrontierDecisionRoundBeforeSettle(t *testing.
 	// exactly as the production mix.multitrack_relationship bundle does.
 	mixFrontierResult := agentloop.Result{
 		Executed: []map[string]any{{
-		"tool": "ccb.observation_request", "command_name": "ccb_observation_request",
-		"status": "ok", "tool_call_id": "tool_mix_frontier",
-		"result": map[string]any{"bundle": map[string]any{
-			"schema_version":  "ccb_observation_bundle.v1",
-			"status":          "ready",
-			"observation_id":  "obs-mix-frontier",
-			"requested_views": []any{"mix.multitrack_relationship"},
-			"views": map[string]any{"mix.multitrack_relationship": map[string]any{"facts": map[string]any{
-				"band_conflict_candidates": []any{map[string]any{
-					"band": "bass", "type": "low_end_overlap", "status": "candidate",
-					"tracks": []any{map[string]any{"track_id": "synthetic-track-a"}},
-				}},
-			}}},
-			"evidence_refs": []any{"obs-mix-frontier"},
-		}},
+			"tool": "ccb.observation_request", "command_name": "ccb_observation_request",
+			"status": "ok", "tool_call_id": "tool_mix_frontier",
+			"result": map[string]any{"bundle": map[string]any{
+				"schema_version":  "ccb_observation_bundle.v1",
+				"status":          "ready",
+				"observation_id":  "obs-mix-frontier",
+				"requested_views": []any{"mix.multitrack_relationship"},
+				"views": map[string]any{"mix.multitrack_relationship": map[string]any{"facts": map[string]any{
+					"band_conflict_candidates": []any{map[string]any{
+						"band": "bass", "type": "low_end_overlap", "status": "candidate",
+						"tracks": []any{map[string]any{"track_id": "synthetic-track-a"}},
+					}},
+				}}},
+				"evidence_refs": []any{"obs-mix-frontier"},
+			}},
 		}},
 		FreeStateDecision: &agentloop.FreeStateDecision{
 			SchemaVersion: agentloop.FreeStateDecisionSchema, Status: agentloop.FreeStateNeedsObservation,

@@ -165,9 +165,9 @@ func TestArmNeverDisplacesDrivableOccupant(t *testing.T) {
 func TestContinuationOccupantDrivablePredicate(t *testing.T) {
 	occupant := agentloop.Continuation{GoalID: "goal-x", RunID: "run-x"}
 	cases := []struct {
-		name   string
+		name    string
 		durable *DurableContinuation
-		want   bool
+		want    bool
 	}{
 		{"no durable record (armed internal resume)", nil, true},
 		{"pending checkpoint", &DurableContinuation{Status: ContinuationPending}, true},

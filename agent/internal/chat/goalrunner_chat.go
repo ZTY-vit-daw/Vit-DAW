@@ -290,7 +290,7 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 				// and the unsettled round stays queryable for an explicit user
 				// turn (2026-08-28 130901 smoke: 194ms empty "completed").
 				return ChatResponse{ConversationID: conversationID, GoalID: loop.GoalID, RunID: loop.RunID,
-					Reply: "本轮实验改动后的证据已记录，但结算报告尚未产出，任务保持待继续状态；实验轮不会在无结算的情况下被标记完成。",
+					Reply:      "本轮实验改动后的证据已记录，但结算报告尚未产出，任务保持待继续状态；实验轮不会在无结算的情况下被标记完成。",
 					GoalStatus: string(agentruntime.StatusWaitingContinue),
 					StopReason: "d1_settlement_pending_loop_inactive", Workflow: "free_state_reasoning_loop",
 					WorkflowData: map[string]any{"status": loop.Status, "free_state_reasoning_loop": freeStateLoopMap(loop),
@@ -2116,10 +2116,10 @@ func (s *Server) chatResponseFromAgentLoopResult(conversationID, mode string, re
 	s.preserveJudgmentParkOnTerminalFallback(conversationID, &resp, res)
 	if res.Status == agentruntime.StatusWaitingContinue || res.StopReason == "durable_continuation_missing" {
 		resp.WorkflowData = mergeContext(resp.WorkflowData, map[string]any{
-			"continuation_id":       continuationIDForResult(res),
-			"checkpoint_status":     string(res.Status),
-			"checkpoint_persisted":  res.Status == agentruntime.StatusWaitingContinue && res.Continuation != nil,
-			"scheduler_eligible":    res.Status == agentruntime.StatusWaitingContinue && res.Continuation != nil,
+			"continuation_id":      continuationIDForResult(res),
+			"checkpoint_status":    string(res.Status),
+			"checkpoint_persisted": res.Status == agentruntime.StatusWaitingContinue && res.Continuation != nil,
+			"scheduler_eligible":   res.Status == agentruntime.StatusWaitingContinue && res.Continuation != nil,
 		})
 	}
 	if !chatResponseTurnFailed(resp) {

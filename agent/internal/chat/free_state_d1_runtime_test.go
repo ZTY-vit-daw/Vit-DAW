@@ -696,7 +696,6 @@ func TestD1S1JudgmentSettlementBindsCanonicalTaskContract(t *testing.T) {
 	}
 }
 
-
 func TestD1S1RollbackUsesExistingRollbackAction(t *testing.T) {
 	loop := d1EvaluatedLoopForTest(t)
 	round, _ := loop.Experiment.CurrentRound()

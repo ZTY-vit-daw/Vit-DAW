@@ -268,7 +268,7 @@ func deEsserSingleChannelAction(mutate func(map[string]any)) orchestration.Actio
 func newSingleChannelFake() *fakeNBVSPClient {
 	client := &fakeNBVSPClient{
 		fakeVSPClient: fakeVSPClient{snapshots: eqSnapshots()},
-		domainMin: -60, domainMax: 0, withCandidate: true,
+		domainMin:     -60, domainMax: 0, withCandidate: true,
 		params: map[string]*fakeNBParam{"deess_thresh": {normalized: 0.4}},
 	}
 	extendDeltaSnapshots(client)
@@ -330,7 +330,7 @@ func TestStaticEQVSPPreflightRelaxationKeepsDualChannelShapeIntact(t *testing.T)
 func TestStaticEQVSPPortSingleChannelAbsoluteAppliesOneEntryBatch(t *testing.T) {
 	client := &fakeNBVSPClient{
 		fakeVSPClient: fakeVSPClient{snapshots: eqSnapshots()},
-		domainMin: -60, domainMax: 0, withCandidate: true,
+		domainMin:     -60, domainMax: 0, withCandidate: true,
 		params: map[string]*fakeNBParam{"deess_thresh": {normalized: 0.4}},
 	}
 	port := &StaticEQVSPPort{Client: client, CommandName: "de_esser_threshold_adjust"}
@@ -408,7 +408,7 @@ func staticEQSteppedAction(delta float64) orchestration.Action {
 	return orchestration.Action{ID: "a-550a", Command: staticEQActionCommand, TargetRef: "t1",
 		BeforeFingerprint: "track:t1:eq:plg_1:pending",
 		Args: map[string]any{
-			"write_mode": WriteModeNormalizedBatchV1,
+			"write_mode":  WriteModeNormalizedBatchV1,
 			"plugin_path": "/Library/Audio/Plug-Ins/VST3/WaveShell1-VST3 17.1.vst3",
 			"param_id":    "2", "param_id_ch2": "2",
 			"target_value": delta, "target_semantics": deltaSemantics,

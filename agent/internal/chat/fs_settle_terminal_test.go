@@ -99,7 +99,7 @@ func fsSettleTerminalServer(t *testing.T, parkLoop bool) (*Server, freeStateReas
 		TaskStateRevision: current.Task.SemanticState.Revision,
 		ProjectUUID:       "project-fs-settle-terminal-1", ProjectRevision: "rev-1",
 		OriginalIntent: "inspect the project", Mode: audioclosure.ModeTreatment,
-		Scope:  audioclosure.Scope{Kind: "project", ID: "project-fs-settle-terminal-1"},
+		Scope: audioclosure.Scope{Kind: "project", ID: "project-fs-settle-terminal-1"},
 		Policy: audioclosure.Policy{MaxClosureRounds: 6, MaxUniqueObservations: 4, MaxDutyObservations: 8,
 			MaxNoProgressRounds: 2, MaxModelProtocolRepairs: 1, MaxActionAttempts: 1, MaxRollbackAttempts: 1},
 		Now: time.Now().UTC(),

@@ -45,7 +45,7 @@ func (s *Server) improvementProposalResponse(conversationID, mode string, res ag
 		resp.Workflow = improvementProposalWorkflow
 		resp.WorkflowData = mergeContext(resp.WorkflowData, map[string]any{
 			"experiment_budget_exhausted": true, "mutation_performed": false,
-			"free_state_reasoning_loop":   freeStateLoopMap(loop),
+			"free_state_reasoning_loop": freeStateLoopMap(loop),
 		})
 		resp.InteractionRequests = nil
 		return resp
@@ -88,7 +88,7 @@ func (s *Server) improvementProposalResponse(conversationID, mode string, res ag
 			resp.Workflow = improvementProposalWorkflow
 			resp.WorkflowData = mergeContext(resp.WorkflowData, map[string]any{
 				"settle_report_refused": true, "mutation_performed": false,
-				"round_owes_intervention": neverActedRound,
+				"round_owes_intervention":   neverActedRound,
 				"free_state_reasoning_loop": freeStateLoopMap(loop),
 			})
 			if baseRef := freeStateOwedRoundBaseReference(loop); baseRef != "" {
@@ -543,10 +543,10 @@ func freeStateAdmittedSemanticProcessorIntent(loop freeStateReasoningLoop) (map[
 		"intent": fmt.Sprintf("admitted bounded experiment %s on axis %s", spec.ActionKind,
 			strings.Join(spec.SemanticIntentCoverage, "+")),
 		"required_coverage": append([]string(nil), spec.SemanticIntentCoverage...),
-		"scope":            processorintent.ScopeCurrentTrack,
-		"control_mode":     processorintent.ControlModeSemantic,
-		"confidence":       1.0,
-		"evidence_refs":    refs,
+		"scope":             processorintent.ScopeCurrentTrack,
+		"control_mode":      processorintent.ControlModeSemantic,
+		"confidence":        1.0,
+		"evidence_refs":     refs,
 	}
 	// Fail closed: a domain row that cannot yield a valid intent must stop
 	// this continuation instead of silently falling back to the accidental

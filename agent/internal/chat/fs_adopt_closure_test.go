@@ -61,8 +61,8 @@ func TestAdoptionSettlesSessionClosureAndReleasesOwner(t *testing.T) {
 		"project_uuid": "project-fs-stop-apply-1", "project_revision": "rev-1",
 	}, semanticEntryDecision{
 		SchemaVersion: semanticEntryDecisionSchema, Route: semanticEntryRouteObservation,
-		Controller:        string(orchestrationcontroller.MinimalAudioClosure),
-		TargetScope:       semanticEntryScopeProjectContext, ControlMode: semanticEntryControlObserveOnly,
+		Controller:  string(orchestrationcontroller.MinimalAudioClosure),
+		TargetScope: semanticEntryScopeProjectContext, ControlMode: semanticEntryControlObserveOnly,
 		UserAuthorization: semanticEntryAuthorizationObserve, Confidence: 0.9, Reason: "fixture observation entry",
 	})
 	_, newState, active, err := server.prepareAudioClosureContext(fsStopApplyConversation, "可以听听看drums音轨的clip低频怎么样吗", entryContext)
@@ -99,8 +99,8 @@ func TestPrepareAudioClosureContextRefusesFinishedTaskClosureForNewGoal(t *testi
 		"project_uuid": "project-fs-stop-apply-1", "project_revision": "rev-1",
 	}, semanticEntryDecision{
 		SchemaVersion: semanticEntryDecisionSchema, Route: semanticEntryRouteObservation,
-		Controller:        string(orchestrationcontroller.MinimalAudioClosure),
-		TargetScope:       semanticEntryScopeProjectContext, ControlMode: semanticEntryControlObserveOnly,
+		Controller:  string(orchestrationcontroller.MinimalAudioClosure),
+		TargetScope: semanticEntryScopeProjectContext, ControlMode: semanticEntryControlObserveOnly,
 		UserAuthorization: semanticEntryAuthorizationObserve, Confidence: 0.9, Reason: "fixture observation entry",
 	})
 	_, newState, active, err := server.prepareAudioClosureContext(fsStopApplyConversation, "可以听听看drums音轨的clip低频怎么样吗", entryContext)

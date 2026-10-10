@@ -79,14 +79,14 @@ func dumpParameterCurveContext(surface map[string]plugingrabber.ParameterInfo, t
 			continue
 		}
 		params[paramID] = map[string]any{
-			"name":                    info.Name,
-			"unit":                    info.Unit,
-			"normalized_value":        info.NormalizedValue,
-			"value_text":              info.ValueText,
-			"min":                     info.Min,
-			"max":                     info.Max,
+			"name":                     info.Name,
+			"unit":                     info.Unit,
+			"normalized_value":         info.NormalizedValue,
+			"value_text":               info.ValueText,
+			"min":                      info.Min,
+			"max":                      info.Max,
 			"display_domain_candidate": info.DisplayDomainCandidate,
-			"display_probe":           info.DisplayProbe,
+			"display_probe":            info.DisplayProbe,
 		}
 	}
 	entry := map[string]any{"captured_at": time.Now().UTC().Format(time.RFC3339Nano), "target_db": targetDB, "params": params}

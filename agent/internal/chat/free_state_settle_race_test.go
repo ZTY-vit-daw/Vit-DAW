@@ -33,8 +33,8 @@ func settleRaceTurn(loop freeStateReasoningLoop) agentloop.Result {
 		Status:     agentruntime.StatusWaitingConfirmation,
 		StopReason: "improvement_proposal_native_tool_confirmation_required",
 		FreeStateDecision: &agentloop.FreeStateDecision{
-			Status:            agentloop.FreeStateNeedsExperiment,
-			Summary:           "settle report for the applied round",
+			Status:              agentloop.FreeStateNeedsExperiment,
+			Summary:             "settle report for the applied round",
 			ImprovementProposal: experimentTestProposal(),
 			ExperimentMateriality: &experiment.MaterialityEvaluation{
 				State: experiment.MaterialityMaterial, Evaluation: trajectory.EvaluationAgentEvaluable,

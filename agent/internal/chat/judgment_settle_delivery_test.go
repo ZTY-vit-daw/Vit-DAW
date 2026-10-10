@@ -14,8 +14,8 @@ import (
 	"vit-daw-agent/internal/agentloop"
 	"vit-daw-agent/internal/audioclosure"
 	"vit-daw-agent/internal/history"
-	agentruntime "vit-daw-agent/internal/runtime"
 	"vit-daw-agent/internal/orchestrationcontroller"
+	agentruntime "vit-daw-agent/internal/runtime"
 )
 
 // SETTLE-DELIVER-1（2026-10-03 手测场取证，webui_murptx58 / 43 事件流）：
@@ -123,8 +123,8 @@ func TestSettledLoopLedgerDoesNotStaleSettleNextGoalClosure(t *testing.T) {
 		"project_uuid": "project-jsss1", "project_revision": "9",
 	}, semanticEntryDecision{
 		SchemaVersion: semanticEntryDecisionSchema, Route: semanticEntryRouteObservation,
-		Controller:        string(orchestrationcontroller.MinimalAudioClosure),
-		TargetScope:       semanticEntryScopeProjectContext, ControlMode: semanticEntryControlObserveOnly,
+		Controller:  string(orchestrationcontroller.MinimalAudioClosure),
+		TargetScope: semanticEntryScopeProjectContext, ControlMode: semanticEntryControlObserveOnly,
 		UserAuthorization: semanticEntryAuthorizationObserve, Confidence: 0.9, Reason: "fixture observation entry",
 	})
 	_, newState, active, err := s.prepareAudioClosureContext(loop.ConversationID, "bass 轨道低频怎么样", entryContext)

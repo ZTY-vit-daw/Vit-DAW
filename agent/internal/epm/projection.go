@@ -943,7 +943,7 @@ func compactCandidates(candidates []EditCandidate, maxItems int) []map[string]an
 			"severity":         candidate.Severity,
 			"recommendation":   candidate.Recommendation,
 			"requires_confirm": candidate.RequiresConfirm,
-			"pending_action":    candidate.PendingAction,
+			"pending_action":   candidate.PendingAction,
 		})
 		if maxItems > 0 && len(out) >= maxItems {
 			break

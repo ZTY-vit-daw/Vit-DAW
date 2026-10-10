@@ -15,8 +15,8 @@ import (
 	"vit-daw-agent/internal/harness"
 	"vit-daw-agent/internal/journal"
 	"vit-daw-agent/internal/orchestration"
-	agentruntime "vit-daw-agent/internal/runtime"
 	"vit-daw-agent/internal/orchestrationcontroller"
+	agentruntime "vit-daw-agent/internal/runtime"
 	"vit-daw-agent/internal/taskstate"
 	"vit-daw-agent/internal/trajectory"
 )
@@ -69,7 +69,7 @@ func jsssParkedBoundaryServer(t *testing.T, withClosure bool, sender ...harness.
 	// The stalled settle turn: materiality landed, the round parked at
 	// user_judgment_pending, the human_audition_ready target response never did.
 	s.recordFreeStateExperimentDecision(context.Background(), &loop, agentloop.FreeStateDecision{
-		ExperimentMateriality: &experiment.MaterialityEvaluation{State: experiment.MaterialityMaterial, Evaluation: trajectory.EvaluationAgentEvaluable, Attempt: 1, EvidenceRefs: []string{"materiality-after"}},
+		ExperimentMateriality:   &experiment.MaterialityEvaluation{State: experiment.MaterialityMaterial, Evaluation: trajectory.EvaluationAgentEvaluable, Attempt: 1, EvidenceRefs: []string{"materiality-after"}},
 		ExperimentRoundDecision: string(experiment.DecisionUserJudgment),
 	})
 	if round, err := loop.Experiment.CurrentRound(); err != nil || round.Decision != experiment.DecisionUserJudgment || round.TargetResponse != nil {
@@ -176,9 +176,9 @@ func TestParkedBoundaryJudgmentRequestArmsWithoutTargetResponse(t *testing.T) {
 func TestParkedBoundaryJudgmentSettlesRepliesAndReleasesOwnership(t *testing.T) {
 	for _, test := range []struct {
 		name, heard, preference string
-		outcome                experiment.SettlementOutcome
-		decision               experiment.RoundDecision
-		rollback               bool
+		outcome                 experiment.SettlementOutcome
+		decision                experiment.RoundDecision
+		rollback                bool
 	}{
 		{name: "retain", heard: "yes", preference: "b", outcome: experiment.OutcomeImproved, decision: experiment.DecisionRetain},
 		{name: "rollback", heard: "yes", preference: "a", outcome: experiment.OutcomeRolledBack, decision: experiment.DecisionRollback, rollback: true},
@@ -284,8 +284,8 @@ func TestJudgmentSettleFullChainNewInputStartsFreshGroup(t *testing.T) {
 		"project_uuid": "project-jsss1", "project_revision": "8",
 	}, semanticEntryDecision{
 		SchemaVersion: semanticEntryDecisionSchema, Route: semanticEntryRouteObservation,
-		Controller:        string(orchestrationcontroller.MinimalAudioClosure),
-		TargetScope:       semanticEntryScopeProjectContext, ControlMode: semanticEntryControlObserveOnly,
+		Controller:  string(orchestrationcontroller.MinimalAudioClosure),
+		TargetScope: semanticEntryScopeProjectContext, ControlMode: semanticEntryControlObserveOnly,
 		UserAuthorization: semanticEntryAuthorizationObserve, Confidence: 0.9, Reason: "fixture observation entry",
 	})
 	_, newState, active, err := s.prepareAudioClosureContext(loop.ConversationID, "drums 轨低频怎么样", entryContext)
@@ -320,8 +320,8 @@ func TestParkedBoundaryNewInputAdoptsAndNextGoalRunsClean(t *testing.T) {
 		"project_uuid": "project-jsss1", "project_revision": "8",
 	}, semanticEntryDecision{
 		SchemaVersion: semanticEntryDecisionSchema, Route: semanticEntryRouteObservation,
-		Controller:        string(orchestrationcontroller.MinimalAudioClosure),
-		TargetScope:       semanticEntryScopeProjectContext, ControlMode: semanticEntryControlObserveOnly,
+		Controller:  string(orchestrationcontroller.MinimalAudioClosure),
+		TargetScope: semanticEntryScopeProjectContext, ControlMode: semanticEntryControlObserveOnly,
 		UserAuthorization: semanticEntryAuthorizationObserve, Confidence: 0.9, Reason: "fixture observation entry",
 	})
 	_, newState, active, err := s.prepareAudioClosureContext(loop.ConversationID, "drums 轨低频怎么样", entryContext)
@@ -348,7 +348,7 @@ func TestJudgedButUnsettledParkNewInputSettlesByRecordedJudgment(t *testing.T) {
 		ConversationID: loop.ConversationID, TurnID: loop.Experiment.ID, RoundID: currentRound.ID, AuditionSessionID: loop.AuditionSessionID,
 		CandidateARef: "candidate-a", CandidateBRef: "candidate-b",
 		HeardDifference: experiment.HeardDifferenceYes, Preference: experiment.PreferenceB,
-		CreatedAt:       time.Now().UTC(),
+		CreatedAt: time.Now().UTC(),
 	}
 	if _, err := stored.Experiment.RecordUserJudgmentEvidence(evidence, time.Now().UTC()); err != nil {
 		t.Fatal(err)

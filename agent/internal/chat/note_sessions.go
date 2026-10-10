@@ -555,7 +555,7 @@ func (s *Server) buildNoteAssembly(ctx context.Context, req ChatRequest, convers
 		stateSummary = s.harness.UserStateSummary(ctx)
 	}
 	snapshot := map[string]any{
-		"note_jurisdiction": noteJurisdictionSnapshot(payload),
+		"note_jurisdiction":       noteJurisdictionSnapshot(payload),
 		"read_only_project_state": stateSummary,
 	}
 	snapshotJSON, err := json.Marshal(snapshot)
@@ -575,7 +575,7 @@ Reply with plain text only. Answer in the user's language. Be concise and concre
 			promptruntime.TextSection(promptruntime.SectionStatic, "vitnote_system", "", system, true),
 			promptruntime.TextSection(promptruntime.SectionRuntime, "vitnote_context_snapshot", "Note jurisdiction + read-only project state JSON", string(snapshotJSON), false),
 		},
-		History:     history,
+		History: history,
 		UserSections: []promptruntime.Section{
 			promptruntime.TextSection(promptruntime.SectionCurrentUser, "vitnote_current_user", "", req.Message, false),
 		},
