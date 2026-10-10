@@ -23,5 +23,5 @@
 四节齐+锚点；冻存卡重核逐张给"假设仍成立/需修订"结论。
 
 - 领取：2026-10-10 21:08 / origin/main=1c1a447a（卡移动经并行会话 MIX 领取提交 076ce106 一并入库，领取回填由本流单独提交）/ owner=GLM-5.3 flash（GEN-CAP-RECON-1 执行会话）@ D:\Vit_DAW 主工作树（PC）
-- 回执：（报告链接）
+- 回执：**报告 [coord/runs/GEN-CAP-RECON-1/report.md](../../runs/GEN-CAP-RECON-1/report.md)（四节齐+锚点+附录 A）**。零代码零真栈运行（SSH 仅 2 次只读 git/ls 核查 Mac 仓，无写操作）。核心结论：①内核 assets 三命令+ midi 写命令族（K2 后七条）+ start_render 全部已注册，LLM 工具面齐备，无注册缺口；②端到端出声两腿：K1 渲染冻结已修复（79b8ecdc）、**A1 instrument 装载通道仍缺（PCA 零 instrument 族，维持待用户裁定）**；③冻存卡重核：DRUM-GEN-1/2 需修订（小：出声腿挂 A1+候选承载形态），SHOW-REPRO 假设全成立，TIMBRE-SWITCH 阻塞在用户 A1 裁定；hub queue 实为 8 张，生成线相关 4 张（卡面"五张"差异已如实记录）；④**Mac 关键缺口：main 缺 K1/K2 修复（merge-base 实证）+ 内核二进制停在 9-18 构建 + PORT 系列对生成资产链零覆盖**；⑤首批建议：GEN-MAC-BASELINE-1（基线对齐+五命令首勘）→AIGC-DRUM-GEN-1（数据级验收）+A1-MAC-FORM-1（并行勘察），迁移登记路径见报告 §4.2（主管执行，本卡未动中枢文件）。附录 A 注记：勘察收尾时用户裁定 AMV/成片并入生成线（VIS-FILM-DESIGN-1 入池 15a7264b）——第 4 节按主管要求留待与其合并复核。端测覆盖边界：本卡为只读勘察，不涉 webui 渲染面与用户旅程，无烟测义务。
 - 验收：（裁定文件）
