@@ -22,6 +22,6 @@
 
 四节齐+逐条锚点；runtime 清单与 fastpath/A4 五标记交叉核对零遗漏。
 
-- 领取：（时间 / origin/main hash / owner）
+- 领取：2026-10-10 21:05 / origin/main=1c1a447a4315d8b5800c5dd3c4df88dfdc62f915 / owner=GLM-5.3 flash（ZCode PC 会话，PC 执行流）/ 分支=main（coord-only 提交直推）/ worktree=主工作树 D:\Vit_DAW（本卡零代码只读，仅 coord/cards 状态提交）
 - 回执：（报告链接）
 - 验收：（裁定文件）
