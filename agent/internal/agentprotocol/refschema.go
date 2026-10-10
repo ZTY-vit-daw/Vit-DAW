@@ -156,6 +156,22 @@ var legacyPrefixRegistry = []LegacyPrefixEntry{
 	// audio_observation:/fci_/fcp_ 同款）。与 audio_observation:（B2 内容指纹，
 	// 不同物）无前缀包含关系，最长匹配互不劫持。
 	{LegacyPrefix: "observation:", Family: RefFamilyEvidenceSchemeURI, TargetKind: "", Slot: RefSlotSnapshot, Anchor: "L1-1 §2 C3 mom/evidence.go:34-39"},
+	// --- REFSCHEMA-M4 addition (G1 终审记录 §4 M4 行 capabilitycontext 批次) ---
+	// CCB 自由态观察 bundle id 三形态 + 能力包 id：identity 族——remainder 是
+	// compactID 对 obs_ 观察 id（含时序戳+随机量，mixboard.go:1286）的清洗透传，
+	// cap_pack_ 的 sha256 种子含 generatedAt（pack.go:110），二者均实例身份、
+	// 非可复现内容指纹 → slot=snapshot、TargetKind 留空（对齐 observation: 先例，
+	// M4 卡承载预裁定，2026-10-10 核实成立）。rejected/batch 变体与主条目同构
+	// 同族（:420/:1584），独立词条保住子族区分、Value 不带中缀，同时构成本表
+	// 首组前缀包含对——最长匹配取 rejected/batch，主条目不劫持（有测试钉住）。
+	// ccbr_/ccbr_rejected_/ccbr_batch_（free_state_observation.go:567/:439/:1636）
+	// **缓注册**：remainder 与 ccbobs_ 同为 obs_ 身份透传（实含时序戳），与
+	// 卡面"内容寻址哈希→slot=hash"预裁定矛盾，触发停止条件按族上交待重裁
+	// （coord/runs/REFSCHEMA-M4/receipt.md）——重裁前保持 opaque 透传不动。
+	{LegacyPrefix: "ccbobs_", Family: RefFamilyEvidenceSchemeURI, TargetKind: "", Slot: RefSlotSnapshot, Anchor: "REFSCHEMA-M4 2026-10-10 capabilitycontext/free_state_observation.go:499"},
+	{LegacyPrefix: "ccbobs_rejected_", Family: RefFamilyEvidenceSchemeURI, TargetKind: "", Slot: RefSlotSnapshot, Anchor: "REFSCHEMA-M4 2026-10-10 capabilitycontext/free_state_observation.go:420"},
+	{LegacyPrefix: "ccbobs_batch_", Family: RefFamilyEvidenceSchemeURI, TargetKind: "", Slot: RefSlotSnapshot, Anchor: "REFSCHEMA-M4 2026-10-10 capabilitycontext/free_state_observation.go:1584"},
+	{LegacyPrefix: "cap_pack_", Family: RefFamilyEvidenceSchemeURI, TargetKind: "", Slot: RefSlotSnapshot, Anchor: "REFSCHEMA-M4 2026-10-10 capabilitycontext/pack.go:112 stablePackID"},
 }
 
 // ProjectionKindEntry registers a projection kind that has no legacy prefix

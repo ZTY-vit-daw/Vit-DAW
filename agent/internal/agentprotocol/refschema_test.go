@@ -304,10 +304,16 @@ func TestRegistryInitialValues(t *testing.T) {
 		{LegacyPrefix: "fcp_", Family: RefFamilyObservationFingerprint, TargetKind: "", Slot: RefSlotHash, Anchor: "L1-1 §2 B7 frequencycleanup/treatment.go:94"},
 		// REFSCHEMA-M1: mom observation ticket head (G1 终审记录 §4 首项).
 		{LegacyPrefix: "observation:", Family: RefFamilyEvidenceSchemeURI, TargetKind: "", Slot: RefSlotSnapshot, Anchor: "L1-1 §2 C3 mom/evidence.go:34-39"},
+		// REFSCHEMA-M4: capabilitycontext 批次（ccbobs_ 三形态 + cap_pack_；
+		// ccbr_ 族停止条件上交缓注册）。
+		{LegacyPrefix: "ccbobs_", Family: RefFamilyEvidenceSchemeURI, TargetKind: "", Slot: RefSlotSnapshot, Anchor: "REFSCHEMA-M4 2026-10-10 capabilitycontext/free_state_observation.go:499"},
+		{LegacyPrefix: "ccbobs_rejected_", Family: RefFamilyEvidenceSchemeURI, TargetKind: "", Slot: RefSlotSnapshot, Anchor: "REFSCHEMA-M4 2026-10-10 capabilitycontext/free_state_observation.go:420"},
+		{LegacyPrefix: "ccbobs_batch_", Family: RefFamilyEvidenceSchemeURI, TargetKind: "", Slot: RefSlotSnapshot, Anchor: "REFSCHEMA-M4 2026-10-10 capabilitycontext/free_state_observation.go:1584"},
+		{LegacyPrefix: "cap_pack_", Family: RefFamilyEvidenceSchemeURI, TargetKind: "", Slot: RefSlotSnapshot, Anchor: "REFSCHEMA-M4 2026-10-10 capabilitycontext/pack.go:112 stablePackID"},
 	}
 	got := LegacyPrefixRegistry()
 	if len(got) != len(want) {
-		t.Fatalf("registry size = %d, want %d (A 类四变体 + G 类前缀族 + L0-2 acp/DAD/fingerprint 族 + M1 observation 票头)", len(got), len(want))
+		t.Fatalf("registry size = %d, want %d (A 类四变体 + G 类前缀族 + L0-2 acp/DAD/fingerprint 族 + M1 observation 票头 + M4 capabilitycontext 批次)", len(got), len(want))
 	}
 	for i := range want {
 		if got[i] != want[i] {
