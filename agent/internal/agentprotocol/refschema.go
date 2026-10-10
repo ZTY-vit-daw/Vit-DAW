@@ -164,14 +164,28 @@ var legacyPrefixRegistry = []LegacyPrefixEntry{
 	// M4 卡承载预裁定，2026-10-10 核实成立）。rejected/batch 变体与主条目同构
 	// 同族（:420/:1584），独立词条保住子族区分、Value 不带中缀，同时构成本表
 	// 首组前缀包含对——最长匹配取 rejected/batch，主条目不劫持（有测试钉住）。
-	// ccbr_/ccbr_rejected_/ccbr_batch_（free_state_observation.go:567/:439/:1636）
-	// **缓注册**：remainder 与 ccbobs_ 同为 obs_ 身份透传（实含时序戳），与
-	// 卡面"内容寻址哈希→slot=hash"预裁定矛盾，触发停止条件按族上交待重裁
-	// （coord/runs/REFSCHEMA-M4/receipt.md）——重裁前保持 opaque 透传不动。
+	// 同构的 ccbr_ 族三前缀（free_state_observation.go:567/:439/:1636）当时触发
+	// 停止条件缓注册（coord/runs/REFSCHEMA-M4/receipt.md），后经承载重裁落地，
+	// 见下方 M4B 块。
 	{LegacyPrefix: "ccbobs_", Family: RefFamilyEvidenceSchemeURI, TargetKind: "", Slot: RefSlotSnapshot, Anchor: "REFSCHEMA-M4 2026-10-10 capabilitycontext/free_state_observation.go:499"},
 	{LegacyPrefix: "ccbobs_rejected_", Family: RefFamilyEvidenceSchemeURI, TargetKind: "", Slot: RefSlotSnapshot, Anchor: "REFSCHEMA-M4 2026-10-10 capabilitycontext/free_state_observation.go:420"},
 	{LegacyPrefix: "ccbobs_batch_", Family: RefFamilyEvidenceSchemeURI, TargetKind: "", Slot: RefSlotSnapshot, Anchor: "REFSCHEMA-M4 2026-10-10 capabilitycontext/free_state_observation.go:1584"},
 	{LegacyPrefix: "cap_pack_", Family: RefFamilyEvidenceSchemeURI, TargetKind: "", Slot: RefSlotSnapshot, Anchor: "REFSCHEMA-M4 2026-10-10 capabilitycontext/pack.go:112 stablePackID"},
+	// --- REFSCHEMA-M4B addition (ccbr_ 族承载重裁落地；裁定=coord/rulings/
+	// 2026-10-10-MORNING-BATCH-rulings.md §3，2026-10-10 生效) ---
+	// CCB 审计回执 id 三形态：生成点与 remainder 形态和 ccbobs_ 族同构
+	// （compactID 对 obs_ 观察 id 的清洗透传，实含时序戳，free_state_observation.go
+	// :567/:439/:1636）。重裁缘由（推翻 M8 报告 D4 预裁定）：compactID=首个非空
+	// 输入的清洗透传——RequestID 在场时仍取 observationID（锚点测试
+	// TestFreeStateBundleAndReceiptIDsAreObservationIDPassthrough 复证），fixture
+	// 实录 `ccbr_obs_20260911T115419_a2ef6022376c` 证明非哈希、非内容寻址；
+	// M8 报告 D4 行"观察 id+请求 id 哈希短串"描述失准记注（历史工件不改，行为
+	// 证据优先）。裁定：按 identity 族承载，slot=snapshot、TargetKind 留空，
+	// 对齐 ccbobs_ 同款。主条目与 rejected/batch 变体构成族内前缀包含对——
+	// 最长匹配取变体、主条目不劫持，与 ccbobs_ 族互不劫持（有测试钉住）。
+	{LegacyPrefix: "ccbr_", Family: RefFamilyEvidenceSchemeURI, TargetKind: "", Slot: RefSlotSnapshot, Anchor: "REFSCHEMA-M4B 2026-10-10 capabilitycontext/free_state_observation.go:567"},
+	{LegacyPrefix: "ccbr_rejected_", Family: RefFamilyEvidenceSchemeURI, TargetKind: "", Slot: RefSlotSnapshot, Anchor: "REFSCHEMA-M4B 2026-10-10 capabilitycontext/free_state_observation.go:439"},
+	{LegacyPrefix: "ccbr_batch_", Family: RefFamilyEvidenceSchemeURI, TargetKind: "", Slot: RefSlotSnapshot, Anchor: "REFSCHEMA-M4B 2026-10-10 capabilitycontext/free_state_observation.go:1636"},
 }
 
 // ProjectionKindEntry registers a projection kind that has no legacy prefix
