@@ -27,6 +27,6 @@
 
 无。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / 领取提交）
+- 领取：2026-10-10T19:54+08:00 / origin/main=596ba4808e23d7c4156f67b2b5708e552a15051d / owner=GLM-5.3-Flash（PC，ZCode flash 执行会话） / 分支=port/smoke-script-hygiene-1（worktree=D:\Vit_DAW_wt_smokehyg1） / 领取提交=本提交（coord/smoke-script-hygiene-1 fast-forward → main，仅含本卡状态）
 - 回执：（五项对照 / 修改锚点行）
 - 验收：（裁定文件 / 验收 commit）
