@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V11 · PC 端（四位台前·自动铺排 + 视图抽屉坞）— Vit-DAW GUI 收缩稿</title>
+<style>
+:root{
+  --paper:#F6F4EC; --paper-warm:#FBF9F1; --ink:#090B0E; --ink-soft:#3A4148;
+  --line-soft:rgba(9,11,14,.16); --blue:#065BC7; --blue-light:#73B8F5; --yellow:#FACC1A; --red:#DB1214;
+  --canvas:#252B2E; --ease:cubic-bezier(.22,.8,.24,1);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{font-family:"Segoe UI","Microsoft YaHei",system-ui,sans-serif;color:var(--ink);overflow:hidden;font-size:13px;
+  background:#CFCBC0;background-image:radial-gradient(rgba(9,11,14,.07) 1px,transparent 1px);background-size:22px 22px}
+button{font-family:inherit;cursor:pointer;background:none;border:none;color:inherit}
+#proto-bar{position:fixed;top:10px;right:14px;z-index:300;display:flex;align-items:center;gap:8px;background:var(--paper-warm);border:1.5px solid var(--ink);border-radius:999px;padding:4px 6px 4px 14px;box-shadow:3px 3px 0 rgba(9,11,14,.2);font-size:11px}
+#proto-bar .ann{border:1.5px solid var(--ink);border-radius:999px;padding:3px 10px;font-size:10px}
+#proto-bar .ann.on{background:var(--yellow)}
+
+/* ============ 桌面 + 双窗 ============ */
+#desktop{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:34px 20px}
+.os-win{background:var(--paper);border:1.5px solid var(--ink);border-radius:10px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 30px 80px rgba(9,11,14,.45)}
+.os-head{height:34px;flex:none;background:var(--ink);color:var(--paper);display:flex;align-items:center;gap:10px;padding:0 12px;font-size:12px;font-weight:600;cursor:grab;user-select:none}
+.os-head .app{display:flex;align-items:center;gap:7px}
+.os-head .logo{width:16px;height:16px;border:1.5px solid var(--paper);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:9px}
+.os-head .ctl{margin-left:auto;display:flex;gap:2px}
+.os-head .ctl span{width:34px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11px;border-radius:4px}
+.os-head .ctl span:hover{background:rgba(246,244,236,.18)}
+.os-head .ctl span.close:hover{background:var(--red)}
+#daw{width:1560px;height:920px}
+#agent-win{position:fixed;width:400px;height:560px;z-index:120;display:none;transform:rotate(.4deg)}
+#agent-win.show{display:flex}
+#agent-win .os-head{cursor:grab}
+
+/* ============ DAW 骨架（桌面 DAW 惯例） ============ */
+#menubar{height:30px;flex:none;background:var(--paper-warm);border-bottom:1.5px solid var(--ink);display:flex;align-items:center;padding:0 10px;gap:2px;font-size:12.5px}
+#menubar .mi{padding:3px 10px;border-radius:4px}
+#menubar .mi:hover{background:rgba(6,91,199,.12)}
+#menubar .sp{flex:1}
+#menubar .hud{font-size:11px;color:var(--ink-soft)}
+#toolbar{height:50px;flex:none;background:var(--paper-warm);border-bottom:1.5px solid var(--ink);display:flex;align-items:center;gap:8px;padding:0 14px;position:relative}
+.tp-row{display:flex;align-items:center;gap:7px;margin-top:5px}
+.tp{width:32px;height:30px;border:1.5px solid var(--ink);border-radius:6px;background:var(--paper);display:flex;align-items:center;justify-content:center;font-size:13px}
+.tp-row .tap{border:1px solid var(--paper);border-radius:3px;font-size:8.5px;padding:0 5px;opacity:.85}
+.tp-row .chk{display:flex;align-items:center;gap:4px;font-size:9.5px;opacity:.8}
+.tp-row .chk i{width:22px;height:12px;border:1.5px solid var(--paper);border-radius:999px;position:relative}
+.tp-row .chk i::after{content:"";position:absolute;top:1px;left:2px;width:7px;height:7px;border-radius:50%;background:var(--paper)}
+.dash{display:flex;gap:5px;align-items:center}
+.dash span{border:1.5px solid var(--ink);border-radius:5px;padding:5px 9px;font-size:10px;font-family:Consolas,monospace;background:var(--paper);color:var(--ink-soft)}
+.tp:hover{background:var(--blue-light)}
+.tp.play{background:var(--blue);color:#fff}
+.tp.rec.armed{background:var(--red);color:#fff}
+.lcd{background:var(--ink);color:var(--paper);font-family:Consolas,monospace;padding:4px 16px;border-radius:5px;text-align:center;line-height:1.25;box-shadow:inset 0 2px 6px rgba(0,0,0,.6)}
+.lcd .t{font-size:15px;letter-spacing:.04em}
+.lcd .s{font-size:9.5px;opacity:.75}
+#toolbar .center{position:absolute;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:8px}
+#toolbar .right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.btn-ink{border:1.5px solid var(--ink);border-radius:6px;padding:6px 16px;font-size:12.5px;background:var(--paper)}
+.btn-ink:hover{background:var(--yellow)}
+.agent-pill{display:flex;align-items:center;gap:7px;font-size:12px;border:1.5px solid var(--ink);border-radius:999px;padding:6px 15px;background:var(--paper)}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--blue);animation:pulse 1.6s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+#main{flex:1;display:flex;min-height:0;position:relative;overflow:hidden}
+/* 左资料库 */
+#lib-rail{width:22px;flex:none;background:var(--paper-warm);border-right:1.5px solid var(--ink);display:flex;align-items:center;justify-content:center;cursor:pointer}
+#lib-rail span{writing-mode:vertical-rl;font-size:10px;letter-spacing:.3em;color:var(--ink-soft)}
+#library{width:238px;flex:none;background:var(--paper-warm);border-right:1.5px solid var(--ink);display:flex;flex-direction:column;min-height:0;transition:width .28s var(--ease)}
+#library.collapsed{width:0;overflow:hidden;border-right:none}
+.lib-tabs{display:flex;border-bottom:1.5px solid var(--ink);flex:none}
+.lib-tab{flex:1;text-align:center;padding:8px 0;font-size:12px;border-right:1px solid var(--line-soft)}
+.lib-tab:last-child{border-right:none}
+.lib-tab.on{background:var(--ink);color:var(--paper)}
+.lib-search{padding:8px}
+.lib-search input{width:100%;border:1.5px solid var(--ink);border-radius:4px;padding:6px 9px;font-size:12px;background:var(--paper);font-family:inherit}
+.lib-tree{flex:1;overflow:auto;padding:2px 0 12px}
+.lib-sec{padding:6px 12px 3px;font-size:10px;color:var(--ink-soft);letter-spacing:.14em}
+.lib-item{display:flex;align-items:center;gap:7px;padding:4px 12px 4px 20px;font-size:12px}
+.lib-item:hover{background:rgba(6,91,199,.08)}
+.lib-item .ico{width:12px;height:12px;flex:none;border:1.5px solid var(--ink);border-radius:2px}
+.lib-item .ico.audio{background:repeating-linear-gradient(90deg,var(--ink) 0 1px,transparent 1px 3px)}
+.lib-item .ico.plug{background:var(--blue-light)}
+.lib-item .ico.dir{background:var(--paper);border-radius:50%}
+
+/* 主舞台（可交换） */
+#stage{flex:1.55;min-width:0;display:flex;flex-direction:column;position:relative;border-right:1.5px solid var(--ink);background:var(--paper-warm)}
+.pane-head{height:36px;flex:none;border-bottom:1.5px solid var(--ink);display:flex;align-items:center;gap:8px;padding:0 12px;background:var(--paper)}
+.pane-head .name{font-weight:700;font-size:12.5px;letter-spacing:.08em}
+.pane-head .meta{font-size:11px;color:var(--ink-soft)}
+.pane-head .spacer{flex:1}
+.chip-btn{border:1.5px solid var(--ink);border-radius:4px;font-size:11px;padding:3px 10px;background:var(--paper-warm);white-space:nowrap}
+.chip-btn:hover{background:var(--blue-light)}
+.chip-btn .kbd{font-size:9px;opacity:.6;margin-left:4px}
+#stage-body{flex:1;min-height:0;position:relative;overflow:hidden}
+#ruler{height:22px;background:var(--paper);border-bottom:1px solid var(--line-soft);display:flex;align-items:flex-end;font-size:9px;color:var(--ink-soft);padding-left:186px}
+#ruler i{flex:1;border-left:1px solid var(--line-soft);padding-left:4px;font-style:normal}
+.track-scroll{position:absolute;inset:22px 0 0 0;overflow:auto}
+.track{display:flex;height:52px;border-bottom:1px solid var(--line-soft)}
+.track.selected .tr-head{background:rgba(6,91,199,.12)}
+.tr-head{width:178px;flex:none;border-right:1.5px solid var(--ink);display:flex;align-items:center;gap:7px;padding:0 6px 0 0;position:sticky;left:0;background:var(--paper-warm);z-index:2}
+.tr-color{width:4px;height:32px;flex:none}
+.tr-name{flex:1;min-width:0}
+.tr-name .a{font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden}
+.tr-name .b{font-size:9px;color:var(--ink-soft);font-family:Consolas,monospace}
+.tr-btn{width:20px;height:20px;border:1px solid var(--ink);border-radius:3px;font-size:9px;display:flex;align-items:center;justify-content:center;flex:none}
+.tr-btn.mute.on{background:var(--yellow)}
+.tr-btn.solo.on{background:var(--blue);color:#fff}
+.tr-meter{width:7px;height:34px;border:1px solid var(--line-soft);border-radius:2px;background:var(--paper);position:relative;overflow:hidden;flex:none}
+.tr-meter i{position:absolute;bottom:0;left:0;right:0;background:var(--blue)}
+.tr-lane{flex:1;position:relative;background:repeating-linear-gradient(90deg,transparent 0 92px,var(--line-soft) 92px 93px)}
+.clip{position:absolute;top:9px;height:34px;border:1.5px solid var(--ink);border-radius:3px;background:var(--paper);overflow:hidden}
+.clip .wave{position:absolute;inset:0;background:repeating-linear-gradient(90deg,rgba(9,11,14,.5) 0 1.5px,transparent 1.5px 4px);opacity:.55}
+.clip.midi{background:var(--blue-light);cursor:pointer}
+.clip.midi .notes{position:absolute;inset:0;background:repeating-linear-gradient(180deg,rgba(9,11,14,.45) 0 2px,transparent 2px 8px)}
+.clip.sel{outline:2px solid var(--blue);outline-offset:1px}
+#playhead{position:absolute;top:22px;bottom:0;width:1.5px;background:var(--red);left:38%;z-index:3;pointer-events:none}
+/* 机架右栏 */
+#rack-pane{width:36%;min-width:300px;max-width:560px;flex:none;display:flex;flex-direction:column;position:relative;background:var(--paper-warm);transition:width .3s var(--ease),min-width .3s var(--ease)}
+#rack-pane.collapsed{width:0;min-width:0;overflow:hidden;border-right-width:0}
+#rack-body{flex:1;position:relative;min-height:0}
+.rack-canvas{position:absolute;inset:0;background:var(--canvas);background-image:linear-gradient(rgba(246,244,236,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(246,244,236,.06) 1px,transparent 1px);background-size:28px 28px}
+.rnode{position:absolute;width:138px;background:var(--paper-warm);border:1.5px solid var(--ink);border-radius:5px;font-size:11px;box-shadow:0 6px 18px rgba(0,0,0,.4)}
+.rnode .nh{padding:5px 9px;border-bottom:1.5px solid var(--ink);font-weight:700;font-size:11px;display:flex;justify-content:space-between;align-items:center}
+.rnode .nh .led{width:6px;height:6px;border-radius:50%;background:var(--blue)}
+.rnode .nb{padding:6px 9px;color:var(--ink-soft);font-size:10px;line-height:1.7}
+.port{position:absolute;width:9px;height:9px;border-radius:50%;background:var(--paper);border:1.5px solid var(--ink)}
+.port.in{left:-5px;top:12px}.port.out{right:-5px;top:12px}
+#rack-collapsed-rail{position:absolute;right:56px;top:0;bottom:0;width:22px;display:none;cursor:pointer;z-index:6;background:var(--paper-warm);border-left:1.5px solid var(--ink);align-items:center;justify-content:center}
+#rack-collapsed-rail span{writing-mode:vertical-rl;font-size:10px;letter-spacing:.3em;color:var(--ink-soft)}
+/* 视图坞 */
+#view-rail{width:54px;flex:none;background:var(--paper-warm);border-left:1.5px solid var(--ink);display:flex;flex-direction:column;align-items:center;padding:10px 0;gap:8px}
+.dock-label{font-size:8px;letter-spacing:.2em;color:var(--ink-soft)}
+.dock-icon{width:40px;height:40px;border:1.5px solid var(--ink);border-radius:9px;background:var(--paper);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-size:9px;position:relative;transition:transform .2s cubic-bezier(.34,1.45,.4,1)}
+.dock-icon:hover{transform:translateY(-3px) scale(1.06);background:var(--blue-light)}
+.dock-icon.active{background:var(--ink);color:var(--paper)}
+.dock-icon .gi{font-size:14px;line-height:1}
+.dock-icon .live-dot{position:absolute;top:-4px;right:-4px;width:9px;height:9px;border:1.5px solid var(--paper-warm)}
+
+/* 底部状态栏 */
+#statusbar{height:28px;flex:none;border-top:1.5px solid var(--ink);background:var(--paper-warm);display:flex;align-items:center;gap:18px;padding:0 14px;font-size:11px;color:var(--ink-soft)}
+#statusbar b{border:1px solid var(--ink-soft);border-radius:3px;padding:0 4px;font-weight:600;color:var(--ink)}
+
+/* ============ 视图 mock（卷帘/混音/详情） ============ */
+.mock-fill{position:absolute;inset:0}
+.piano{display:flex;height:100%}
+.piano .keys{width:66px;flex:none;background:var(--paper);border-right:1.5px solid var(--ink);display:flex;flex-direction:column}
+.piano .k{flex:1;border-bottom:1px solid var(--line-soft);font-size:8px;display:flex;align-items:center;padding-left:6px;color:var(--ink-soft)}
+.piano .k.blk{background:var(--ink);color:var(--paper)}
+.piano .grid{flex:1;position:relative;background:repeating-linear-gradient(90deg,transparent 0 47px,var(--line-soft) 47px 48px),repeating-linear-gradient(180deg,transparent 0 14px,var(--line-soft) 14px 15px)}
+.pnote{position:absolute;height:10px;background:var(--blue);border:1px solid var(--ink);border-radius:2px;opacity:.92}
+.mixer{display:flex;height:100%;background:var(--paper);padding:8px;gap:6px;overflow:auto}
+.strip{flex:1;min-width:66px;border:1.5px solid var(--ink);border-radius:4px;background:var(--paper-warm);display:flex;flex-direction:column;align-items:center;padding:6px 4px;gap:5px;font-size:10px}
+.strip .sn{white-space:nowrap;overflow:hidden;max-width:100%}
+.strip .knob{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--ink);position:relative}
+.strip .knob::after{content:"";position:absolute;width:1.5px;height:8px;background:var(--ink);left:50%;top:1px;transform-origin:bottom;transform:translateX(-50%) rotate(35deg)}
+.strip .fader{flex:1;width:28px;position:relative;border:1px solid var(--line-soft);border-radius:3px;background:var(--paper)}
+.strip .cap{position:absolute;left:50%;transform:translateX(-50%);width:26px;height:13px;border:1.5px solid var(--ink);border-radius:3px;background:var(--yellow)}
+.strip .meter{width:8px;align-self:stretch;border:1px solid var(--line-soft);position:relative;background:var(--paper)}
+.strip .meter i{position:absolute;bottom:0;left:0;right:0;background:var(--blue)}
+.strip.master{background:var(--ink);color:var(--paper)}
+.spec{display:flex;height:100%}
+.spec .sp{flex:1.4;position:relative;border-right:1.5px solid var(--ink);background:var(--paper);display:flex;align-items:flex-end;gap:3px;padding:10px 8px 22px}
+.spec .sp i{flex:1;background:var(--blue);opacity:.85;border-radius:1px 1px 0 0}
+.spec .sp i.hi{background:var(--blue-light)}
+.spec .fax{position:absolute;bottom:4px;left:8px;right:8px;display:flex;justify-content:space-between;font-size:9px;color:var(--ink-soft)}
+.spec .insp{flex:1;padding:10px 12px;font-size:11px;overflow:auto}
+.spec .insp h4{font-size:11px;letter-spacing:.1em;border-bottom:1.5px solid var(--ink);padding-bottom:4px;margin-bottom:8px}
+.kv{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px dashed var(--line-soft)}
+.kv b{font-weight:600}
+
+/* ============ 双位台前调度（第十轮裁定） ============ */
+#slot-wrap{flex:1;min-width:0;position:relative;overflow:hidden}
+#slot-grid{position:absolute;inset:0;display:grid;gap:1.5px;background:var(--ink)}
+.slot-pane{display:flex;flex-direction:column;min-width:0;min-height:0;position:relative;background:var(--paper-warm);overflow:hidden}
+.slot-body{flex:1;position:relative;min-height:0;overflow:hidden}
+.pane-head .slot-x{border:1.5px solid var(--ink);border-radius:4px;font-size:10px;padding:2px 8px;background:var(--paper-warm)}
+.pane-head .slot-x:hover{background:var(--yellow)}
+.pane-head .slot-tag{font-size:9px;border:1px dashed var(--ink-soft);color:var(--ink-soft);border-radius:999px;padding:1px 8px}
+/* 台前调度（第十一轮：左侧陈列回归 + 浮动舞台卡 + 动效） */
+#switch-layer{position:absolute;inset:0;z-index:50;display:none;background:rgba(9,11,14,.46);backdrop-filter:blur(5px)}
+#switch-layer.show{display:block}
+.sw-hint{position:absolute;top:20px;left:50%;transform:translateX(-50%);color:var(--paper);font-size:13px;display:flex;align-items:center;gap:10px;background:rgba(9,11,14,.55);padding:8px 18px;border-radius:999px;white-space:nowrap;z-index:3}
+.sw-hint .kbd{border:1px solid var(--paper);border-radius:3px;padding:0 6px;font-size:11px}
+/* 左列：台后积木陈列（台前调度原版形态） */
+#sw-shelf{position:absolute;left:3.5%;top:50%;transform:translateY(-50%);width:212px}
+.sw-card{-webkit-user-drag:none;touch-action:none;
+  position:absolute;width:208px;height:122px;background:var(--paper-warm);border:1.5px solid var(--ink);border-radius:8px;
+  box-shadow:0 14px 40px rgba(0,0,0,.45);cursor:grab;user-select:none;
+  padding:11px 13px;display:flex;flex-direction:column;gap:5px;
+  transition:transform .3s cubic-bezier(.34,1.3,.4,1),box-shadow .3s;
+  animation:cardIn .45s cubic-bezier(.22,.9,.3,1.1) backwards;
+}
+@keyframes cardIn{from{transform:translateX(-40px) scale(.9);opacity:0}to{opacity:1}}
+.sw-card:hover{transform:translateX(14px) scale(1.045)!important;z-index:9;box-shadow:0 20px 56px rgba(0,0,0,.55)}
+.sw-card.dragging{opacity:.35}
+.sw-card .ttl{font-weight:700;font-size:13.5px;display:flex;align-items:center;gap:7px}
+.sw-card .ttl .gi{width:16px;height:16px;border:1.5px solid var(--ink);border-radius:4px;flex:none}
+.sw-card .desc{font-size:10.5px;color:var(--ink-soft);line-height:1.45}
+.sw-card .row{margin-top:auto;display:flex;gap:5px;align-items:center;flex-wrap:wrap}
+.sw-card .st{font-size:10px;border-radius:999px;padding:1px 9px}
+.sw-card .st.onstage{background:var(--yellow)}
+.sw-card .st.new{border:1px dashed var(--ink-soft);color:var(--ink-soft)}
+.sw-card .act{border:1px solid var(--ink);border-radius:4px;font-size:10px;padding:1px 8px;background:var(--paper)}
+.sw-card .act:hover{background:var(--yellow)}
+/* 中央：前台双位=两张浮动舞台卡（轻微悬浮动效） */
+#sw-front{position:absolute;left:57%;top:52%;transform:translate(-50%,-50%);display:grid;gap:14px;width:560px;height:400px}
+.slotcard{
+  border-radius:12px;position:relative;overflow:hidden;
+  border:2px solid var(--ink);background:var(--paper-warm);
+  box-shadow:0 30px 80px rgba(0,0,0,.5);
+  animation:floaty 5.2s ease-in-out infinite;
+  transition:transform .25s var(--ease),border-color .2s;
+}
+.slotcard:nth-child(2){animation-delay:-2.6s}
+@keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+.slotcard.over{border-color:var(--blue);box-shadow:0 30px 80px rgba(0,0,0,.5),0 0 0 5px rgba(115,184,245,.4)}
+.slotcard .lbl{position:absolute;top:10px;left:12px;font-size:10px;font-weight:700;letter-spacing:.12em;color:var(--ink-soft);z-index:2}
+.slotcard .occ{position:absolute;inset:0}
+.slotcard .occ .nm{position:absolute;bottom:12px;left:14px;font-size:17px;font-weight:800;z-index:2}
+.slotcard .occ .rm{position:absolute;top:8px;right:8px;z-index:3;border:1.5px solid var(--ink);border-radius:6px;font-size:10px;padding:2px 9px;background:var(--paper)}
+.slotcard .occ .rm:hover{background:var(--yellow)}
+.slotcard.empty{border-style:dashed;border-width:2px}
+.slotcard.empty::after{content:"空位 · 拖积木至此";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--ink-soft)}
+/* 视图抽屉坞（第十一轮：右缘常驻坞 → 顶部下拉抽屉；拖到视窗=装载，点击=开浮窗） */
+#drawer-handle{
+  position:absolute;top:0;left:50%;transform:translateX(-50%);z-index:20;
+  border:1.5px solid var(--ink);border-bottom:none;border-radius:0 0 10px 10px;
+  background:var(--paper-warm);padding:4px 22px;font-size:11px;color:var(--ink-soft);
+  box-shadow:0 4px 14px rgba(9,11,14,.18);
+}
+#drawer-handle:hover{background:var(--paper)}
+#view-drawer{
+  position:absolute;top:0;left:50%;transform:translateX(-50%) translateY(-105%);z-index:19;
+  background:var(--paper-warm);border:1.5px solid var(--ink);border-radius:0 0 14px 14px;
+  padding:12px 18px 10px;display:flex;gap:10px;align-items:center;
+  box-shadow:0 18px 44px rgba(9,11,14,.3);
+  transition:transform .32s var(--ease);
+}
+#view-drawer.open{transform:translateX(-50%) translateY(0)}
+.vchip{-webkit-user-drag:none;touch-action:none;
+  display:flex;align-items:center;gap:7px;border:1.5px solid var(--ink);border-radius:9px;
+  background:var(--paper);padding:7px 12px;font-size:11.5px;cursor:grab;user-select:none;
+  box-shadow:2px 2px 0 rgba(9,11,14,.14);
+}
+.vchip:active{cursor:grabbing}
+.vchip .gi{width:14px;height:14px;border:1.5px solid var(--ink);border-radius:4px;flex:none}
+.vchip.active{background:var(--ink);color:var(--paper)}
+.vchip small{font-size:8.5px;opacity:.55;display:block}
+#view-drawer .tip{font-size:9.5px;color:var(--ink-soft);max-width:120px;line-height:1.5;margin-left:4px}
+
+/* ============ 多开：浮卡 + 真窗口 ============ */
+#float-layer{position:absolute;inset:0;pointer-events:none;z-index:40}
+.float-card{position:absolute;width:380px;background:var(--paper-warm);border:1.5px solid var(--ink);border-radius:8px;overflow:hidden;pointer-events:auto;box-shadow:0 24px 60px rgba(9,11,14,.4),0 4px 12px rgba(9,11,14,.25);animation:pop .34s cubic-bezier(.34,1.45,.4,1)}
+@keyframes pop{0%{transform:scale(.6);opacity:0}100%{transform:scale(1);opacity:1}}
+.float-card .fc-head{height:30px;background:var(--paper);border-bottom:1.5px solid var(--ink);display:flex;align-items:center;gap:8px;padding:0 8px;cursor:grab;user-select:none}
+.float-card .fc-head .gi{width:14px;height:14px;border:1.5px solid var(--ink);border-radius:3px;flex:none}
+.float-card .fc-head .nm{font-size:11.5px;font-weight:700}
+.float-card .fc-head .spacer{flex:1}
+.fc-act{width:24px;height:20px;border:1px solid var(--ink);border-radius:3px;font-size:10px;background:var(--paper-warm);display:flex;align-items:center;justify-content:center}
+.fc-act:hover{background:var(--yellow)}
+.fc-body{height:240px;position:relative;overflow:hidden}
+
+/* ============ agent 外置窗（webui 形态示意） ============ */
+#agent-body{flex:1;display:flex;flex-direction:column;min-height:0;background:var(--paper)}
+.ag-flow{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px}
+#agent-win .bubble{padding:9px 12px;border-radius:12px;font-size:12.5px;line-height:1.55;border:1.5px solid var(--ink);background:var(--paper);max-width:82%}
+#agent-win .msg.user{align-self:flex-end;display:flex}
+#agent-win .msg.user .bubble{background:var(--ink);color:var(--paper)}
+#agent-win .msg.agent{align-self:flex-start;display:flex}
+.ag-input{flex:none;border-top:1.5px solid var(--ink);background:var(--paper-warm);padding:10px 12px;display:flex;gap:8px}
+.ag-input .box{flex:1;border:1.5px solid var(--ink);border-radius:999px;padding:8px 14px;font-size:12px;color:var(--ink-soft);background:var(--paper)}
+.ag-input .send{width:36px;height:36px;border-radius:50%;background:var(--ink);color:var(--paper);display:flex;align-items:center;justify-content:center;font-size:13px}
+
+/* ===== 标注 ===== */
+.gd-badge{position:absolute;top:-9px;right:8px;z-index:80;display:none;align-items:center;gap:4px;font-size:10px;padding:1px 8px;border-radius:999px;border:1.5px solid var(--ink);background:var(--yellow);white-space:nowrap;cursor:help}
+.gd-badge.ok{background:var(--blue);color:#fff}
+body.ann-on .gd-badge{display:flex}
+[data-gd]{position:relative}
+#ann-legend{position:fixed;left:14px;bottom:14px;z-index:290;display:none;gap:10px;align-items:center;background:var(--paper-warm);border:1.5px solid var(--ink);border-radius:4px;padding:8px 14px;font-size:11px;box-shadow:3px 3px 0 rgba(9,11,14,.15)}
+body.ann-on #ann-legend{display:flex}
+#ann-legend .b{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:-1px;margin-right:4px}
+#info-modal{position:fixed;inset:0;z-index:320;display:none;align-items:center;justify-content:center;background:rgba(9,11,14,.5)}
+#info-modal.show{display:flex}
+#info-card{width:640px;max-height:84vh;overflow:auto;background:var(--paper-warm);border:2px solid var(--ink);border-radius:6px;padding:22px 26px;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+#info-card h2{font-size:16px;margin-bottom:4px}
+#info-card h3{font-size:12.5px;margin:14px 0 6px;letter-spacing:.08em;border-bottom:1.5px solid var(--ink);padding-bottom:3px}
+#info-card p,#info-card li{font-size:12px;line-height:1.7;color:var(--ink-soft)}
+#info-card li{margin-left:18px}
+#info-card .close-row{margin-top:16px;text-align:right}
+.flash{animation:flash .8s var(--ease)}
+@keyframes flash{0%{background:var(--yellow)}100%{background:var(--paper)}}
+</style>
+</head>
+
+<div id="proto-bar">
+  <span style="font-weight:700">PC 端</span>
+  <button class="ann" id="agent-win-btn">显示 agent 外置窗</button>
+  <button class="ann" id="ann-toggle">标注：关</button>
+  <button class="ann" id="info-btn">设计说明</button>
+</div>
+
+<div id="desktop">
+
+  <!-- ============ DAW 主窗 ============ -->
+  <div class="os-win" id="daw" data-gd="adapt" data-note="PC 端=桌面 DAW 惯例骨架（菜单栏/走带工具栏/左资料库/中编排区/右机架/底部状态栏——Cubase 惯例）+ 三件已裁定更新（F2 台前调度/机架可收浮/浮卡与真窗口双档）。agent 对话=外置独立窗口（用户裁定，不在本窗布局内）">
+    <div class="os-head"><span class="app"><span class="logo">V</span>Vit‑DAW — SATTTELITES</span><span class="ctl"><span>─</span><span>□</span><span class="close">✕</span></span></div>
+
+    <div id="menubar" data-gd="ok" data-note="菜单栏=桌面惯例（文件/编辑/视图/工程/帮助）；HUD=采样率/缓冲/CPU 只读">
+      <span class="mi">文件</span><span class="mi">编辑</span><span class="mi">视图</span><span class="mi">工程</span><span class="mi">帮助</span>
+      <span class="sp"></span><span class="hud">48 kHz · 128 smp · CPU 23%</span>
+    </div>
+
+    <div id="toolbar" data-gd="ok" data-note="播放控制器=逐节点对齐现役 Top_Transport_Bar：LCD 竖栈（主时间 001:1:1:000 → 子时间 00:00:00.000 + BPM(可点输)/TAP/拍号 → 按钮行 ⏮⏹⏵⏺🔁+停→0）；右区=VitCore 读出条（I/O·DSP·AI）+Local Node+AI 助手(C)=外置窗唤起；F2/保存为本设计新增位。本轮仅定布局；图样设计未来优先按原始资产延展（vit_mondrian_theme.gd/vit_ui_assets.gd/vit_ui_button_styles.gd/themes/vit_popup_safe_theme.tres）——当前稿色即取自该资产常量">
+      <div class="center" style="flex-direction:column;gap:0">
+        <div class="lcd">
+          <div class="t">001 : 1 : 1 : 000</div>
+          <div class="s">00:00:00.000&nbsp;&nbsp;|&nbsp;&nbsp;120.0 BPM <span class="tap" style="border:1px solid var(--paper);border-radius:3px;font-size:8.5px;padding:0 5px">TAP</span> 4/4</div>
+        </div>
+        <div class="tp-row">
+          <button class="tp" title="Return to Zero">⏮</button>
+          <button class="tp" title="Stop">⏹</button>
+          <button class="tp play" title="Play">⏵</button>
+          <button class="tp rec" onclick="this.classList.toggle('armed')" title="Record">⏺</button>
+          <button class="tp" title="Loop">🔁</button>
+          <span class="chk" title="Stop 后播放头回到起点"><i></i>停→0</span>
+        </div>
+      </div>
+      <div class="right">
+        <div class="dash"><span>I/O: …</span><span>DSP: 23%</span><span>AI: 空闲</span></div>
+        <button class="btn-ink" style="padding:6px 11px">💻 Local Node</button>
+        <button class="agent-pill" id="agent-pill" onclick="agentWinToggle()" data-gd="ok" data-note="🤖 AI 助手 (C)=现役 Btn_Toggle_Chat 语义：点击唤起/收起外置 agent 窗"><span class="live-dot"></span>🤖 AI 助手 (C)</button>
+        <button class="btn-ink" id="switch-btn" data-gd="adapt" data-note="F2 台前调度（本设计新增）：四位自动铺排+左列陈列">⊞ 视窗 F2</button>
+        <button class="btn-ink">保存</button>
+      </div>
+    </div>
+
+    <div id="main">
+      <div id="lib-rail" onclick="document.getElementById('library').classList.toggle('collapsed')" data-gd="ok" data-note="资料库柄（现有 LeftActivityRail）"><span>⋮ 库</span></div>
+
+      <div id="library" data-gd="ok" data-note="left_library_dock 原样保留（四 tab/搜索/拖拽源）；插件拖拽→轨行/机架双落点既有；右键装载=卡池 #46">
+        <div class="lib-tabs"><button class="lib-tab on">文件</button><button class="lib-tab">插件</button><button class="lib-tab">编组</button><button class="lib-tab">便签</button></div>
+        <div class="lib-search"><input placeholder="搜索声音、插件、工程…"></div>
+        <div class="lib-tree">
+          <div class="lib-sec">工程 · SATTTELITES</div>
+          <div class="lib-item"><span class="ico dir"></span>Lead Vocal</div>
+          <div class="lib-item"><span class="ico dir"></span>Drum Bus</div>
+          <div class="lib-item"><span class="ico dir"></span>Bass Synth</div>
+          <div class="lib-sec">PLACES</div>
+          <div class="lib-item"><span class="ico dir"></span>D:/Samples/Drums</div>
+          <div class="lib-item"><span class="ico audio"></span>kick_01.wav</div>
+          <div class="lib-item"><span class="ico plug"></span>Vitamin EQ.vst3</div>
+        </div>
+      </div>
+
+<div id="rack-src" style="display:none" data-gd="ok" data-note="机架源：节点数据（真实实现=graph_rack adapter 实例，节点右键=销毁/克隆/审查既有；右键装载=卡池 #46）"><div class="rack-canvas" style="position:absolute;inset:0">
+  <svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none">
+    <path d="M 160 60 C 210 60, 210 150, 250 150" stroke="#73B8F5" stroke-width="2.5" fill="none"/>
+    <path d="M 396 170 C 446 170, 446 250, 316 250 C 276 250, 276 300, 266 300" stroke="#065BC7" stroke-width="2.5" fill="none"/>
+  </svg>
+  <div class="rnode" style="left:28px;top:48px"><span class="port in"></span><span class="port out"></span><div class="nh">音量·声像<span class="led"></span></div><div class="nb">Vol −3.2 dB<br>Pan L12</div></div>
+  <div class="rnode" style="left:122px;top:146px"><span class="port in"></span><span class="port out"></span><div class="nh">Vitamin EQ<span class="led"></span></div><div class="nb">4 段 · +1.5 dB @ 8k</div></div>
+  <div class="rnode" style="left:258px;top:156px"><span class="port in"></span><span class="port out"></span><div class="nh">压缩 2A<span class="led"></span></div><div class="nb">4:1 · GR −4.8 dB</div></div>
+  <div class="rnode" style="left:160px;top:296px"><span class="port in"></span><span class="port out"></span><div class="nh">延迟 1/4<span class="led"></span></div><div class="nb">Sync 1/4 · Fbk 22%</div></div>
+</div></div>
+      <!-- 台前双位工作区（第十轮裁定：前台两个空位=左右；推一个=独占全宽，推两个=双开；机架=默认右位的普通积木） -->
+      <div id="slot-wrap" data-gd="adapt" data-note="四位台前（用户第十一轮扩展裁定）：最多四位自动铺排——1=全屏/2=左右/3=左整右分/4=田字；默认=音轨+机架两位；满员再推=挤出最久未动的；固定铺排语法，不回自由分割树">
+        <div id="slot-grid"></div>
+
+        <div id="switch-layer" data-gd="adapt" data-note="台前调度：左=台后积木卡列（层叠陈列+动效），中=前台铺排小卡（镜像当前 1-4 位形状；拖积木入位/✕拉下/按钮推位）">
+          <div class="sw-hint">台前调度 · 拖积木入位，或点「推上台前」 <span class="kbd">Esc</span> 返回</div>
+          <div id="sw-shelf"></div>
+          <div id="sw-front">
+            <div class="slotcard" id="sc-left"><span class="lbl">左 位</span></div>
+            <div class="slotcard" id="sc-right"><span class="lbl">右 位</span></div>
+          </div>
+        </div>
+        <div id="float-layer" data-gd="adapt" data-note="多开浮卡（已裁定双档之一）：可拖拽卡片；「↗」变真系统窗口（Godot Window 节点；旧 detached viewport 参考、归因按单语义重建）"></div>
+      </div>
+
+      <!-- 视图抽屉坞（收起态=顶部小柄；点开=下拉抽屉：拖到视窗=装载入槽，点击=开浮窗） -->
+      <div id="drawer-handle" onclick="toggleDrawer()">▦ 视图 ▾</div>
+      <div id="view-drawer" data-gd="adapt" data-note="视图抽屉坞（用户第十一轮裁定替代右缘常驻坞）：平时收起；落下后=视图积木条——拖拽至任一视窗槽=装载入槽（不进 F2 的直达路径），点击=开浮窗多开；与 F2 面板共用积木数据源">
+        <span class="tip">拖到视窗=装载<br>点击=开浮窗</span>
+      </div>
+
+    </div>
+
+    <div id="statusbar" data-gd="ok" data-note="底部状态栏=桌面惯例：工作区状态+快捷键提示；右端注明 agent 对话=窗外独立窗口">
+      <span>台前双位 · 左：音轨 ｜ 右：机架</span>
+      <span><b>双击 MIDI 片段</b> 卷帘上台</span>
+      <span><b>F2</b> 视窗切换</span>
+      <span><b>Del</b> 删除选中</span>
+      <span><b>Ctrl+S</b> 保存</span>
+      <span style="margin-left:auto;opacity:.6">agent 对话 = DAW 窗外独立窗口（webui）</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============ agent 外置窗（独立窗口，浮在 DAW 之上，可拖） ============ -->
+<div class="os-win" id="agent-win" data-gd="ok" data-note="agent 外置窗（用户裁定：PC 的对话流窗口一定浮动在 DAW 窗外）：独立 OS 窗口形态=webui 现状；不在 DAW 布局内、DAW 内无对话流；拖标题栏移动。内含状态/试听卡词汇与移动端同源">
+  <div class="os-head" id="ag-head"><span class="app"><span class="logo">A</span>agent · SATTTELITES（webui）</span><span class="ctl"><span>─</span><span>□</span><span class="close" onclick="agentWinToggle()">✕</span></span></div>
+  <div id="agent-body">
+    <div class="ag-flow">
+      <div class="msg user"><div class="bubble">副歌的人声再亮一点，低频收一收</div></div>
+      <div class="msg agent"><div class="bubble" style="padding:0;overflow:hidden;border-radius:10px">
+        <div style="padding:7px 11px;border-bottom:1px solid var(--line-soft);font-size:11px;font-weight:700;display:flex;gap:7px;align-items:center"><span style="width:7px;height:7px;border-radius:50%;background:var(--yellow)"></span>正在处理 · Lead Vocal</div>
+        <div style="padding:8px 11px;font-size:11.5px;line-height:1.8;color:var(--ink-soft)">
+          ✓ 定位副歌区段（0:42–1:05）<br>✓ EQ 高频搁架 +1.5 dB @ 8k<br>● 低频 180Hz 收 −2 dB…
+        </div>
+      </div></div>
+      <div class="msg agent"><div class="bubble" style="padding:0;overflow:hidden;border-radius:10px">
+        <div style="padding:7px 11px;border-bottom:1px solid var(--line-soft);font-size:11px;font-weight:700;display:flex;gap:7px;align-items:center"><span style="width:7px;height:7px;border-radius:50%;background:var(--blue)"></span>新版试听 V7 · 0:42–1:05</div>
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 11px">
+          <span style="width:30px;height:30px;border-radius:50%;border:1.5px solid var(--ink);display:flex;align-items:center;justify-content:center;font-size:11px">▶</span>
+          <span style="flex:1;height:26px;border:1px solid var(--line-soft);border-radius:4px;position:relative;overflow:hidden"><span style="position:absolute;inset:0;width:38%;background:rgba(115,184,245,.5);border-right:1.5px solid var(--blue)"></span></span>
+          <span style="font-size:10px;color:var(--ink-soft);font-family:Consolas,monospace">0:16</span>
+        </div>
+        <div style="display:flex;gap:6px;padding:0 11px 9px"><span class="fc-act" style="width:auto;padding:2px 10px;background:var(--ink);color:var(--paper)">保留 V7</span><span class="fc-act" style="width:auto;padding:2px 10px">A/B 盲听</span></div>
+      </div></div>
+      <div class="msg user"><div class="bubble">好，保留 V7</div></div>
+    </div>
+    <div class="ag-input"><div class="box">说点什么，或描述想要的声音…</div><button class="send">▶</button></div>
+  </div>
+</div>
+
+<div id="ann-legend">
+  <span><span class="b" style="background:var(--blue)"></span>现有链路直接可实现</span>
+  <span><span class="b" style="background:var(--yellow)"></span>需适配（新装配/删机制工程）</span>
+  <span style="color:var(--ink-soft)">悬停看依据 · 右上可唤起外置 agent 窗</span>
+</div>
+
+<div id="info-modal">
+  <div id="info-card">
+    <h2>V9 · PC 端（双位台前调度）</h2>
+    <p><b>骨架=桌面 DAW 惯例</b>（Cubase 式）：菜单栏 → 走带工具栏+LCD → 左资料库 / 中编排主舞台 / 右机架 → 底部状态栏；键盘密度全保留。<b>更新点=已裁定的三件</b>：① F2 台前调度切换态换主舞台（被换下视图退卡列；双击 MIDI 片段=卷帘直接上台）② 机架右栏可收可浮 ③ 多开=浮卡/真窗口双档。<b>agent 对话=外置独立窗口</b>（右上「显示 agent 外置窗」或顶栏胶囊唤起，浮在 DAW 窗之上、可拖动，不在 DAW 布局内）。</p>
+    <h3>可交互</h3>
+    <li>F2 / ⊞ 视窗 → 切换态：点卡换主舞台、卡上「浮窗」多开；双击蓝色 MIDI 片段=卷帘上台</li>
+    <li>机架「收起 ‹ / 展开 ›」「弹出 ⇱」；视图坞点图标开浮卡；浮卡 ↗=真窗口（另开外置窗形态）</li>
+    <li>右上「显示 agent 外置窗」→ 独立窗口浮现（拖标题栏移动，DAW 内无对话流）</li>
+    <h3>与收缩裁定的对应</h3>
+    <li>退役：自由分割树 / 视口标题栏 7 视图菜单 / 预设 tabs / New Window（AppHeaderShell 收敛为菜单栏）</li>
+    <li>保留：机架右键五项 / 轨行右键 / 插件拖拽双落点 / 左库四 tab；遥测红线面零触碰</li>
+    <li>外置 agent 窗=webui 现状形态的正式化（三端对话词汇同源：状态/试听/盲听/提案卡）</li>
+    <div class="close-row"><button class="chip-btn" id="info-close">关闭</button></div>
+  </div>
+</div>
+
+<script>
+/* ============ 视图池（机架=普通视图积木，默认第二位） ============ */
+const VIEWS={
+  tracks:{label:'音轨',gi:'background:var(--paper)',desc:'轨道/片段编排 · Master 置顶'},
+  rack:{label:'机架',gi:'background:var(--canvas)',desc:'插件效果链节点图'},
+  piano:{label:'钢琴卷帘',gi:'background:var(--blue-light)',desc:'双击 MIDI 片段=直接上台'},
+  mixer:{label:'混音台',gi:'background:var(--yellow)',desc:'全轨推子/声像/电平'},
+  spectral:{label:'频谱·详情',gi:'background:var(--paper)',desc:'选中对象检查器＋频谱'},
+};
+/* 四位台前（第十一轮扩展裁定）：最多 4 位自动铺排；1=全屏 2=左右 3=左整+右上下 4=田字 */
+const MAXS=4;
+let SLOTS=['tracks','rack',null,null];
+let lru=['tracks','rack']; /* 最近上台序（默认两位预置），满员时挤出队首 */
+let switching=false;
+const openFloats=new Set();
+
+function tracksHTML(){return `
+  <div id="ruler"><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i></div>
+  <div class="track-scroll"><div id="playhead" style="top:0"></div>
+    <div class="track" style="height:44px"><div class="tr-head"><span class="tr-color" style="background:var(--ink)"></span><div class="tr-name"><div class="a">Master</div><div class="b">总线 · −0.9 dB</div></div><button class="tr-btn mute">M</button></div><div class="tr-lane"></div></div>
+    ${[['Lead Vocal','var(--blue)',[['w',8,34],['w',48,22]]],['Drum Bus','var(--red)',[['w',4,60]]],
+       ['Bass Synth','var(--yellow)',[['m',12,40]]],['Synth Pad','#7B4EA8',[['m',20,52]]],
+       ['Guitar L','#2E8B57',[['w',30,38]]],['Guitar R','#B8860B',[['w',30,38]]]]
+      .map(([n,c,cl])=>`
+    <div class="track${n==='Lead Vocal'?' selected':''}">
+      <div class="tr-head"><span class="tr-color" style="background:${c}"></span>
+        <div class="tr-name"><div class="a">${n}</div><div class="b">trk_0${(['Lead Vocal','Drum Bus','Bass Synth','Synth Pad','Guitar L','Guitar R'].indexOf(n)+1)} · −3.2 dB</div></div>
+        <button class="tr-btn mute${n==='Lead Vocal'?' on':''}">M</button><button class="tr-btn solo">S</button>
+        <div class="tr-meter"><i style="height:${[62,78,55,48,66,58][['Lead Vocal','Drum Bus','Bass Synth','Synth Pad','Guitar L','Guitar R'].indexOf(n)]}%"></i></div></div>
+      <div class="tr-lane">${cl.map(([t,l,w])=>`<div class="clip ${t==='m'?'midi':''}" data-track="${n}" style="left:${l}%;width:${w}%">${t==='m'?'<div class="notes"></div>':'<div class="wave"></div>'}</div>`).join('')}</div>
+    </div>`).join('')}
+  </div>`;}
+function pianoHTML(){return `<div class="mock-fill piano">
+  <div class="keys">${['C','C#','D','D#','E','F','F#','G','G#','A','A#','B','C','C#','D'].map(n=>`<div class="k ${n.includes('#')?'blk':''}">${n.includes('#')?'':n}</div>`).join('')}</div>
+  <div class="grid"><div class="pnote" style="left:6%;top:18%;width:9%"></div><div class="pnote" style="left:18%;top:38%;width:6%"></div><div class="pnote" style="left:26%;top:8%;width:12%"></div><div class="pnote" style="left:40%;top:55%;width:8%"></div><div class="pnote" style="left:52%;top:30%;width:14%"></div><div class="pnote" style="left:70%;top:42%;width:10%"></div><div class="pnote" style="left:84%;top:15%;width:8%"></div></div></div>`;}
+function mixerHTML(){return `<div class="mock-fill mixer">
+  ${['Lead Vocal','Drum Bus','Bass','Synth Pad','Gtr L','Gtr R'].map((n,i)=>`
+  <div class="strip"><span class="sn">${n}</span><div class="knob"></div><div style="display:flex;flex:1;gap:5px;align-self:stretch">
+    <div class="fader"><div class="cap" style="bottom:${[28,18,38,46,24,30][i]}%"></div></div>
+    <div class="meter"><i style="height:${[62,78,55,48,66,58][i]}%"></i></div></div></div>`).join('')}
+  <div class="strip master"><span class="sn">MASTER</span><div class="knob"></div>
+    <div style="display:flex;flex:1;gap:5px;align-self:stretch"><div class="fader"><div class="cap" style="bottom:34%"></div></div><div class="meter"><i style="height:72%"></i></div></div></div></div>`;}
+function spectralHTML(){return `<div class="mock-fill spec">
+  <div class="sp">${[18,26,22,34,48,42,58,66,60,74,82,70,62,55,64,58,46,38,30,24,20,16,14,12].map((h,i)=>`<i class="${i>15?'hi':''}" style="height:${h}%"></i>`).join('')}
+  <div class="fax"><span>50</span><span>200</span><span>1k</span><span>5k</span><span>12k</span></div></div>
+  <div class="insp"><h4>选中 · Lead Vocal</h4><div class="kv"><span>track_id</span><b>trk_01</b></div><div class="kv"><span>电平</span><b>−14.2 dBFS</b></div><div class="kv"><span>峰值</span><b>820 Hz</b></div><div class="kv"><span>插件</span><b>EQ · 2A</b></div><div class="kv"><span>片段</span><b>2 · 42 s</b></div></div></div>`;}
+function rackHTML(){return document.getElementById('rack-src').innerHTML;}
+const RENDER={tracks:tracksHTML,piano:pianoHTML,mixer:mixerHTML,spectral:spectralHTML,rack:rackHTML};
+const METAS={tracks:'7 轨 · Master 置顶',rack:'Lead Vocal · 4 节点',piano:'Synth Pad · clip_2a',mixer:'8 通道 · 电平=遥测红线',spectral:'Lead Vocal · 检查器'};
+
+/* ============ 四位自动铺排引擎 ============ */
+const LAYOUTS={1:['"a"','1fr','1fr'],2:['"a b"','1fr 1fr','1fr'],3:['"a b" "a c"','1.4fr 1fr','1fr 1fr'],4:['"a b" "c d"','1fr 1fr','1fr 1fr']};
+function layoutFor(n){ return LAYOUTS[Math.max(1,Math.min(4,n))] || LAYOUTS[4]; }
+function renderWorkspace(){
+  const grid=document.getElementById('slot-grid');
+  const occ=SLOTS.map((k,i)=>k?i:-1).filter(i=>i>=0);
+  const n=occ.length;
+  grid.innerHTML='';
+  if(n===0){ grid.style.gridTemplateAreas='"."'; grid.style.gridTemplate='1fr 1fr / 1fr 1fr';
+    grid.insertAdjacentHTML('beforeend','<div style="grid-area:1/1/3/3;display:flex;align-items:center;justify-content:center;color:var(--ink-soft);font-size:13px;background:var(--paper-warm);border-top:1.5px solid var(--ink)">前台空 · 按 F2 或点顶部「▦ 视图」推视图上台</div>');
+  } else {
+    const [areas,cols,rows]=layoutFor(n);
+    grid.style.gridTemplateColumns=cols; grid.style.gridTemplateRows=rows; grid.style.gridTemplateAreas=areas;
+    const letters=['a','b','c','d'];
+    occ.forEach((idx,pos)=>{
+      const k=SLOTS[idx];
+      const pane=document.createElement('div'); pane.className='slot-pane'; pane.dataset.slot=idx;
+      pane.style.gridArea=letters[pos];
+      pane.innerHTML=`
+        <div class="pane-head">
+          <span class="name">${VIEWS[k].label}</span>
+          <span class="slot-tag">位${idx+1}</span>
+          <span class="meta">${METAS[k]}</span>
+          <span class="spacer"></span>
+          <button class="slot-x" onclick="pullOff(${idx})" title="拉回台后">✕ 拉下</button>
+        </div>
+        <div class="slot-body"><div style="position:absolute;inset:0" class="${k==='rack'?'rack-canvas':''}">${RENDER[k]()}</div></div>`;
+      grid.appendChild(pane);
+    });
+  }
+  document.getElementById('statusbar').children[0].textContent =
+    '台前 · '+n+' 位 '+(n?('· '+occ.map(i=>VIEWS[SLOTS[i]].label).join(' ＋ ')):'（空）')+' ｜ 上限四位：1=全屏 2=左右 3=左整右分 4=田字';
+  if(SLOTS.includes('tracks')) bindTracks();
+  buildBlocks(); buildDrawer();
+}
+function bindTracks(){
+  document.querySelectorAll('.track').forEach(tr=>tr.onclick=()=>{
+    document.querySelectorAll('.track').forEach(x=>x.classList.remove('selected'));
+    tr.classList.add('selected');
+  });
+  document.querySelectorAll('.clip.midi').forEach(c=>c.addEventListener('dblclick',()=>{
+    const ti=SLOTS.indexOf('tracks');
+    pushTo('piano', ti>=0?ti:undefined);
+    flashHead();
+  }));
+}
+function flashHead(){ const h=document.querySelector('#slot-grid .pane-head'); if(!h)return; h.classList.remove('flash'); void h.offsetWidth; h.classList.add('flash'); }
+/* 推上台前：不指定位=进最左空位；满四=挤出最久未动的；指定位被占则原住客回台后 */
+function pushTo(view,slot){
+  lru=lru.filter(x=>x!==view);
+  let cur=SLOTS.indexOf(view); if(cur>=0)SLOTS[cur]=null;
+  if(slot===undefined){
+    slot=SLOTS.indexOf(null);
+    if(slot<0){ const evict=lru.shift(); const ei=SLOTS.indexOf(evict); if(ei>=0)SLOTS[ei]=null; slot=ei>=0?ei:0; }
+  } else if(SLOTS[slot]){ lru=lru.filter(x=>x!==SLOTS[slot]); }
+  SLOTS[slot]=view; lru.push(view);
+  renderWorkspace();
+}
+function pullOff(idx){ const v=SLOTS[idx]; if(v){lru=lru.filter(x=>x!==v);} SLOTS[idx]=null; renderWorkspace(); }
+
+/* ============ 台前调度：左列陈列 + 前台铺排小卡 ============ */
+function buildBlocks(){
+  const shelf=document.getElementById('sw-shelf'); if(!shelf)return;
+  shelf.innerHTML='';
+  Object.keys(VIEWS).forEach((k,i)=>{
+    const v=VIEWS[k];
+    const onStage=SLOTS.includes(k);
+    const c=document.createElement('div'); c.className='sw-card'+(onStage?' onstage':''); c.dataset.view=k;
+    c.style.top=(i*136)+'px'; c.style.left=(i*12)+'px';
+    c.style.transform=`scale(${1-i*0.035}) rotate(${-1.2+i*0.9}deg)`;
+    c.style.zIndex=20-i;
+    c.style.animationDelay=(i*70)+'ms';
+    c.innerHTML=`<div class="ttl"><span class="gi" style="${v.gi}"></span>${v.label}</div>
+      <div class="desc">${v.desc}</div>
+      <div class="row">${onStage?'<span class="st onstage">台前中</span>':`<span class="st new">台后</span><button class="act" data-act="push">推上台前</button><button class="act" data-act="float">⊞ 浮窗</button>`}</div>`;
+    if(!onStage){
+      c.querySelectorAll('.act').forEach(btn=>btn.onclick=e=>{
+        const act=e.target.dataset.act;
+        if(act==='float'){ openFloat(k); exitSwitch(); return; }
+        pushTo(k); exitSwitch();
+      });
+      c.addEventListener('pointerdown',e=>startPointerDrag(k,c,e));
+    }
+    shelf.appendChild(c);
+  });
+  /* 前台铺排小卡（镜像当前形状） */
+  const front=document.getElementById('sw-front');
+  const occ=SLOTS.map((k,i)=>k?i:-1).filter(i=>i>=0);
+  const n=occ.length;
+  front.innerHTML='';
+  if(n===0){ front.style.gridTemplate='1fr / 1fr'; front.insertAdjacentHTML('beforeend','<div class="slotcard empty" style="border-radius:12px"></div>'); }
+  else{
+    const [areas,cols,rows]=layoutFor(n);
+    front.style.gridTemplateColumns=cols; front.style.gridTemplateRows=rows; front.style.gridTemplateAreas=areas;
+    const letters=['a','b','c','d'];
+    occ.forEach((idx,pos)=>{
+      const k=SLOTS[idx];
+      const card=document.createElement('div'); card.className='slotcard'; card.dataset.slot=idx; card.style.gridArea=letters[pos];
+      card.style.animationDelay=(pos*-1.3)+'s';
+      card.innerHTML=`<span class="lbl">位${idx+1}</span>
+        <div class="occ"><div style="position:absolute;inset:0" class="${k==='rack'?'rack-canvas':''}">${miniOf(k)}</div>
+        <div class="nm">${VIEWS[k].label}</div><button class="rm">✕ 拉下</button></div>`;
+      card.querySelector('.rm').onclick=()=>pullOff(idx);
+      front.appendChild(card);
+    });
+  }
+}
+function miniOf(k){
+  if(k==='tracks') return [92,84,96,70,60].map(w=>`<div style="height:9px;border:1px solid var(--line-soft);border-radius:2px;margin:6px 8px 0;background:linear-gradient(90deg,var(--paper) 0 30%,var(--blue-light) 30% 55%,var(--paper) 55% ${w}%)"></div>`).join('');
+  if(k==='rack') return `<div style="position:absolute;left:10px;top:26px;width:52px;height:26px;border:1.5px solid var(--ink);border-radius:4px;background:var(--paper);font-size:8px;display:flex;align-items:center;justify-content:center">EQ</div><div style="position:absolute;left:74px;top:58px;width:52px;height:26px;border:1.5px solid var(--ink);border-radius:4px;background:var(--paper);font-size:8px;display:flex;align-items:center;justify-content:center">2A</div>`;
+  if(k==='piano') return `<div style="position:absolute;inset:0;background:var(--blue-light);opacity:.8"></div>`;
+  if(k==='mixer') return `<div style="position:absolute;inset:0;background:var(--yellow);opacity:.85"></div>`;
+  return `<div style="position:absolute;inset:0;background:var(--blue);opacity:.7"></div>`;
+}
+function enterSwitch(){ switching=true; buildBlocks(); document.getElementById('switch-layer').classList.add('show'); }
+function exitSwitch(){ switching=false; document.getElementById('switch-layer').classList.remove('show'); }
+document.getElementById('switch-btn').onclick=enterSwitch;
+document.addEventListener('keydown',e=>{
+  if(e.key==='F2'){ e.preventDefault(); switching?exitSwitch():enterSwitch(); }
+  if(e.key==='Escape'){ if(switching)exitSwitch(); document.getElementById('info-modal').classList.remove('show'); }
+});
+/* 指针式拖拽（替代 HTML5 DnD，规避真实输入怪癖）：pointerdown→幽灵跟随→pointerup 落点装载 */
+let pd=null; /* pointer drag state */
+function startPointerDrag(view,el,ev){
+  if(ev.button!==undefined && ev.button!==0 && ev.pointerType==='mouse')return;
+  if(ev.target.closest('button,.act,.rm,.slot-x,input'))return; /* 按钮不被拖拽劫持 */
+  pd={view,sx:ev.clientX,sy:ev.clientY,moved:false,ghost:null,el};
+  window.addEventListener('pointermove',onPdMove);
+  window.addEventListener('pointerup',onPdUp);
+}
+function onPdMove(e){
+  if(!pd)return;
+  const dx=e.clientX-pd.sx, dy=e.clientY-pd.sy;
+  if(!pd.moved && Math.hypot(dx,dy)<6)return;
+  pd.moved=true; if(pd.el.dataset){pd.el.dataset.wasDrag='1';} pd.el.style.opacity='.35';
+  if(!pd.ghost){
+    const g=pd.el.cloneNode(true);
+    g.style.cssText+=';position:fixed;left:0;top:0;margin:0;pointer-events:none;z-index:9999;width:'+pd.el.offsetWidth+'px;opacity:.92;transform:rotate(1.2deg);box-shadow:0 18px 44px rgba(9,11,14,.4);';
+    document.body.appendChild(g); pd.ghost=g;
+    pd.el.style.opacity='.35';
+  }
+  pd.ghost.style.transform='translate('+(e.clientX-pd.ghost.offsetWidth/2)+'px,'+(e.clientY+14)+'px) rotate(1.2deg)';
+  /* 落点高亮 */
+  document.querySelectorAll('.slot-pane.over,.slotcard.over').forEach(x=>x.classList.remove('over'));
+  const t=dropTargetAt(e.clientX,e.clientY);
+  if(t)t.classList.add('over');
+}
+function dropTargetAt(x,y){
+  if(pd&&pd.ghost)pd.ghost.style.display='none';
+  const el=document.elementFromPoint(x,y);
+  if(pd&&pd.ghost)pd.ghost.style.display='';
+  return el? (el.closest('.slot-pane')||el.closest('.slotcard')) : null;
+}
+function onPdUp(e){
+  if(!pd)return;
+  window.removeEventListener('pointermove',onPdMove);
+  window.removeEventListener('pointerup',onPdUp);
+  if(pd.ghost){pd.ghost.remove();}
+  pd.el.style.opacity='';
+  document.querySelectorAll('.slot-pane.over,.slotcard.over').forEach(x=>x.classList.remove('over'));
+  const d=pd; pd=null;
+  if(!d.moved){
+    /* 未移动=点击语义：chip 开浮窗（原生 click 也在途，靠 wasDrag 去重） */
+    if(d.el.classList.contains('vchip')){ openFloat(d.view); }
+    return;
+  }
+  const t=dropTargetAt(e.clientX,e.clientY);
+  if(t){
+    const slot=parseInt(t.dataset.slot);
+    if(!isNaN(slot)) pushTo(d.view, slot);
+    if(t.classList.contains('slot-pane')) toggleDrawerOff();
+    if(document.getElementById('switch-layer').classList.contains('show') && t.classList.contains('slotcard')) exitSwitch();
+  }
+}
+/* ============ 视图抽屉坞 ============ */
+function toggleDrawer(){ document.getElementById('view-drawer').classList.toggle('open'); }
+function toggleDrawerOff(){ document.getElementById('view-drawer').classList.remove('open'); }
+function buildDrawer(){
+  const dr=document.getElementById('view-drawer'); if(!dr)return;
+  dr.querySelectorAll('.vchip').forEach(x=>x.remove());
+  Object.keys(VIEWS).forEach(k=>{
+    const v=VIEWS[k];
+    const onStage=SLOTS.includes(k);
+    const chip=document.createElement('div'); chip.className='vchip'+(onStage?' active':''); chip.dataset.view=k;
+    chip.innerHTML=`<span class="gi" style="${v.gi}"></span><span>${v.label}<small>${onStage?'台前中':'拖入视窗/点击浮窗'}</small></span>`;
+    chip.addEventListener('pointerdown',e=>startPointerDrag(k,chip,e));
+    chip.onclick=()=>{ if(!pd && !chip.dataset.wasDrag){ openFloat(k); } chip.dataset.wasDrag=''; };
+    dr.insertBefore(chip, dr.querySelector('.tip'));
+  });
+}
+
+/* 多开浮卡 */
+const floatLayer=document.getElementById('float-layer');
+let fcount=0;
+function viewBody(k){ return k==='rack'?document.getElementById('rack-src').innerHTML:RENDER[k]().replace('mock-fill',''); }
+function openFloat(k,x,y){
+  if(openFloats.has(k))return;
+  openFloats.add(k); fcount++;
+  const card=document.createElement('div'); card.className='float-card'; card.dataset.view=k;
+  card.style.left=(x!=null?x:80+fcount*44)+'px'; card.style.top=(y!=null?y:60+fcount*36)+'px';
+  card.innerHTML=`<div class="fc-head"><span class="gi" style="${k==='rack'?'background:var(--canvas)':VIEWS[k].gi}"></span>
+    <span class="nm">${k==='rack'?'机架':VIEWS[k].label}</span><span class="spacer"></span>
+    <button class="fc-act" title="独立窗口（真窗口）">↗</button><button class="fc-act" title="关闭">✕</button></div>
+    <div class="fc-body">${viewBody(k)}</div>`;
+  floatLayer.appendChild(card);
+  dragify(card,card.querySelector('.fc-head'));
+  card.querySelector('.fc-act[title="独立窗口（真窗口）"]').onclick=()=>{ agentLikeWindow(k); closeFloat(k); };
+  card.querySelector('.fc-act[title="关闭"]').onclick=()=>closeFloat(k);
+}
+function closeFloat(k){ openFloats.delete(k); floatLayer.querySelector(`.float-card[data-view="${k}"]`)?.remove(); }
+function dragify(card,head){
+  let sx,sy,ox,oy,drag=false;
+  head.addEventListener('mousedown',e=>{ if(e.target.closest('.fc-act,.ctl'))return;
+    drag=true;sx=e.clientX;sy=e.clientY;ox=card.offsetLeft;oy=card.offsetTop;e.preventDefault(); });
+  window.addEventListener('mousemove',e=>{ if(!drag)return; card.style.left=(ox+e.clientX-sx)+'px'; card.style.top=(oy+e.clientY-sy)+'px'; });
+  window.addEventListener('mouseup',()=>drag=false);
+}
+function agentLikeWindow(k){
+  const w=document.createElement('div'); w.className='os-win'; w.style.cssText='position:fixed;width:460px;height:340px;z-index:140';
+  w.style.left=(300+Math.random()*300)+'px'; w.style.top=(160+Math.random()*100)+'px';
+  w.innerHTML=`<div class="os-head"><span class="app"><span class="logo">${VIEWS[k]?.label[0]||'▦'}</span>${k==='rack'?'机架':VIEWS[k].label} — Vit‑DAW（独立窗口）</span><span class="ctl"><span>─</span><span>□</span><span class="close">✕</span></span></div>
+    <div style="flex:1;position:relative;overflow:hidden">${viewBody(k)}</div>`;
+  document.body.appendChild(w);
+  dragify(w,w.querySelector('.os-head'));
+  w.querySelector('.close').onclick=()=>w.remove();
+}
+
+/* agent 外置窗 */
+const agentWin=document.getElementById('agent-win');
+const awBtn=document.getElementById('agent-win-btn');
+function agentWinToggle(){
+  const show=!agentWin.classList.contains('show');
+  agentWin.classList.toggle('show',show);
+  awBtn.classList.toggle('on',show);
+  awBtn.textContent=show?'隐藏 agent 外置窗':'显示 agent 外置窗';
+  if(show){ agentWin.style.left=(window.innerWidth-560)+'px'; agentWin.style.top='120px'; }
+}
+dragify(agentWin,document.getElementById('ag-head'));
+/* 杂项 */
+const annBtn=document.getElementById('ann-toggle');
+annBtn.onclick=()=>{document.body.classList.toggle('ann-on');annBtn.classList.toggle('on');
+  annBtn.textContent=document.body.classList.contains('ann-on')?'标注：开':'标注：关';};
+document.getElementById('info-btn').onclick=()=>document.getElementById('info-modal').classList.add('show');
+document.getElementById('info-close').onclick=()=>document.getElementById('info-modal').classList.remove('show');
+document.getElementById('info-modal').onclick=e=>{if(e.target.id==='info-modal')e.currentTarget.classList.remove('show')};
+document.querySelectorAll('[data-gd]').forEach(el=>{
+  const b=document.createElement('span');const ok=el.dataset.gd==='ok';
+  b.className='gd-badge'+(ok?' ok':'');b.textContent=ok?'✓ 直接可实现':'⚠ 需适配';
+  b.title=el.dataset.note||'';el.appendChild(b);
+});
+function fitAll(){
+  const daw=document.getElementById('daw');
+  const sc=Math.min(1,(window.innerWidth-60)/daw.offsetWidth,(window.innerHeight-70)/daw.offsetHeight);
+  const desktop=document.getElementById('desktop');
+  desktop.style.transform=sc<1?`scale(${sc})`:'none';
+  desktop.style.transformOrigin='center center';
+}
+window.addEventListener('resize',fitAll);
+renderWorkspace();
+fitAll();
+</script>
+</body>
+</html>

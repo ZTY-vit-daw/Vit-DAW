@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V7 · 平板端（仿库乐队/音悦家 + 底部浮动输入框）— Vit-DAW GUI 收缩稿</title>
+<style>
+:root{
+  --paper:#F6F4EC; --paper-warm:#FBF9F1; --ink:#090B0E; --ink-soft:#3A4148;
+  --line-soft:rgba(9,11,14,.16); --blue:#065BC7; --blue-light:#73B8F5; --yellow:#FACC1A; --red:#DB1214;
+  --ease:cubic-bezier(.22,.8,.24,1);
+  --gb-blue:#4C8FD8; --gb-green:#63B55A; --gb-yellow:#E0A426; --gb-purple:#8E6FC8;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{font-family:"Segoe UI","Microsoft YaHei",system-ui,sans-serif;background:#DCD9CD;color:var(--ink);overflow:hidden;font-size:13px}
+button{font-family:inherit;cursor:pointer;background:none;border:none;color:inherit}
+#proto-bar{position:fixed;top:10px;right:14px;z-index:200;display:flex;align-items:center;gap:8px;background:var(--paper-warm);border:1.5px solid var(--ink);border-radius:999px;padding:4px 6px 4px 14px;box-shadow:3px 3px 0 rgba(9,11,14,.2);font-size:11px}
+#proto-bar .segs{display:flex;gap:2px}
+#proto-bar .seg{padding:3px 12px;border-radius:999px;font-size:11px;border:1.5px solid transparent}
+#proto-bar .seg.on{background:var(--ink);color:var(--paper)}
+#proto-bar .ann{border:1.5px solid var(--ink);border-radius:999px;padding:3px 10px;font-size:10px}
+#proto-bar .ann.on{background:var(--yellow)}
+#stage-wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+#device-shell{position:relative;width:1180px;height:820px;background:var(--paper);overflow:hidden;display:flex;flex-direction:column;border:10px solid var(--ink);border-radius:26px;box-shadow:0 40px 100px rgba(9,11,14,.4)}
+
+/* ============ 通用件 ============ */
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--blue);animation:pulse 1.6s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.icon-btn{width:40px;height:40px;border:1.5px solid var(--ink);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;background:var(--paper);flex:none}
+.icon-btn:active{background:var(--blue-light)}
+/* 对话流卡片族 */
+.chat-cards{display:flex;flex-direction:column;gap:10px}
+.msg{max-width:86%;display:flex;flex-direction:column;gap:3px}
+.msg .who{font-size:9.5px;color:var(--ink-soft);padding:0 4px}
+.msg.user{align-self:flex-end;align-items:flex-end}
+.bubble{padding:9px 12px;border-radius:12px;font-size:13px;line-height:1.55;border:1.5px solid var(--ink);background:var(--paper);box-shadow:2px 2px 0 rgba(9,11,14,.1)}
+.msg.user .bubble{background:var(--ink);color:var(--paper)}
+.card-msg{max-width:100%}
+.card{border:1.5px solid var(--ink);border-radius:10px;background:var(--paper-warm);overflow:hidden;box-shadow:2px 2px 0 rgba(9,11,14,.12)}
+.card .ch{display:flex;align-items:center;gap:7px;padding:7px 11px;border-bottom:1px solid var(--line-soft);font-size:11px;font-weight:700}
+.card .ch .tag{font-size:9px;border:1px solid var(--ink);border-radius:999px;padding:0 7px;font-weight:400}
+.card .ch .dot{width:7px;height:7px;border-radius:50%}
+.card .cb{padding:9px 11px}
+.card .cf{display:flex;gap:6px;padding:8px 11px;border-top:1px solid var(--line-soft);flex-wrap:wrap}
+.chip{border:1.5px solid var(--ink);border-radius:999px;padding:3px 12px;font-size:11px;background:var(--paper)}
+.chip:active{background:var(--blue-light)}
+.chip.pri{background:var(--ink);color:var(--paper)}
+.player{display:flex;align-items:center;gap:10px;padding:8px 11px}
+.player .pbtn{width:36px;height:36px;border-radius:50%;border:1.5px solid var(--ink);background:var(--paper);display:flex;align-items:center;justify-content:center;font-size:13px;flex:none}
+.player .pbtn.playing{background:var(--blue);color:#fff}
+.player .ptrack{flex:1;height:34px;position:relative;border-radius:4px;overflow:hidden;background:var(--paper);background-image:repeating-linear-gradient(90deg,rgba(9,11,14,.5) 0 1.5px,transparent 1.5px 4px)}
+.player .pfill{position:absolute;inset:0;width:38%;background:rgba(115,184,245,.45);border-right:1.5px solid var(--blue)}
+.player .ptime{font-size:10px;color:var(--ink-soft);font-family:Consolas,monospace}
+.steps{font-size:11.5px;line-height:1.9}
+.steps .s{display:flex;align-items:center;gap:7px;color:var(--ink-soft)}
+.steps .s::before{content:"";width:7px;height:7px;border-radius:50%;border:1.5px solid var(--ink-soft);flex:none}
+.steps .s.done{color:var(--ink)}
+.steps .s.done::before{background:var(--blue);border-color:var(--blue)}
+.steps .s.doing{color:var(--ink);font-weight:600}
+.steps .s.doing::before{background:var(--yellow);border-color:var(--ink);animation:pulse 1.2s infinite}
+.prow{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12px}
+.prow .pn{width:92px;color:var(--ink-soft)}
+.stepper{display:flex;align-items:center;border:1.5px solid var(--ink);border-radius:6px;overflow:hidden}
+.stepper button{width:26px;height:24px;border-right:1.5px solid var(--ink);font-size:13px;background:var(--paper)}
+.stepper button:last-child{border-right:none;border-left:1.5px solid var(--ink)}
+.stepper .val{min-width:70px;text-align:center;font-family:Consolas,monospace;font-size:11.5px}
+.who-say{font-size:11px;color:var(--ink-soft);margin-top:2px;padding:0 4px}
+
+/* ============ ① 首页（工程流，轻量） ============ */
+#feed{flex:1;overflow-y:auto;scroll-snap-type:y mandatory;display:none;flex-direction:column}
+body[data-page=feed] #feed{display:flex}
+.fp{height:100%;flex:none;scroll-snap-align:start;position:relative;overflow:hidden;border-bottom:1.5px solid var(--ink)}
+.amb{position:absolute;inset:0;overflow:hidden;background:var(--paper)}
+.amb .blob{position:absolute;border-radius:46% 54% 60% 40%/50% 44% 56% 50%;animation:drift 14s ease-in-out infinite alternate}
+.amb .b1{width:52%;height:56%;left:-10%;top:6%;background:var(--blue-light);opacity:.55}
+.amb .b2{width:44%;height:48%;right:-8%;top:28%;background:var(--yellow);opacity:.5;animation-duration:18s;animation-delay:-4s}
+.amb .b3{width:64%;height:60%;left:16%;bottom:-24%;background:var(--blue);opacity:.32;animation-duration:22s;animation-delay:-9s}
+@keyframes drift{0%{transform:translate(0,0) rotate(0deg) scale(1)}50%{transform:translate(4%,6%) rotate(8deg) scale(1.06)}100%{transform:translate(-3%,3%) rotate(-6deg) scale(.97)}}
+.viz{position:absolute;left:0;right:0;bottom:0;height:96px;display:flex;align-items:flex-end;gap:3px;padding:0 14px;opacity:.5}
+.viz i{flex:1;background:var(--ink);border-radius:2px 2px 0 0;height:22%}
+.fp.playing .viz{opacity:.85}
+.fp.playing .viz i{animation:bar .9s ease-in-out infinite alternate}
+.fp.playing .viz i:nth-child(odd){animation-duration:.7s}
+@keyframes bar{from{height:16%}to{height:82%}}
+.bigplay{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);width:92px;height:92px;border-radius:50%;border:2.5px solid var(--ink);background:var(--paper-warm);display:flex;align-items:center;justify-content:center;font-size:32px;z-index:5;box-shadow:0 10px 30px rgba(9,11,14,.35)}
+.fp.playing .bigplay{background:var(--blue);color:#fff}
+.fp .meta{position:absolute;left:26px;right:170px;bottom:110px;z-index:5}
+.fp .meta .nm{font-size:34px;font-weight:800;text-shadow:0 1px 0 var(--paper)}
+.fp .meta .ver{display:flex;gap:6px;margin:6px 0 8px}
+.fp .meta .ver span{font-size:11px;border:1.5px solid var(--ink);border-radius:999px;padding:2px 11px;background:var(--paper-warm)}
+.fp .meta .dg{font-size:13px;line-height:1.55;background:rgba(251,249,241,.9);border:1.5px solid var(--ink);border-radius:8px;padding:8px 12px;max-width:520px}
+.fp .meta .tm{margin-top:6px;font-size:11px;color:var(--ink-soft)}
+.enter-btn{position:absolute;right:26px;bottom:114px;z-index:5;width:74px;height:74px;border-radius:18px;border:2px solid var(--ink);background:var(--paper-warm);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11px;box-shadow:3px 3px 0 rgba(9,11,14,.25)}
+.enter-btn .gi{font-size:26px}
+.feed-switch{position:absolute;top:16px;right:16px;z-index:15;display:none;width:max-content;border:1.5px solid var(--ink);border-radius:999px;overflow:hidden;background:var(--paper-warm)}
+body[data-page=feed] .feed-switch{display:flex}
+.feed-switch button{padding:6px 16px;font-size:12px}
+.feed-switch button.on{background:var(--ink);color:var(--paper)}
+#feed.list-mode .fp{display:none}
+#flist{display:none;flex-direction:column;height:100%;overflow-y:auto}
+#feed.list-mode #flist{display:flex}
+#flist .fl-head{position:sticky;top:0;z-index:2;background:var(--paper-warm);border-bottom:1.5px solid var(--ink);padding:20px 24px 14px}
+#flist .fl-head .t{font-size:22px;font-weight:800}
+#flist .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding:20px 24px 28px}
+.fl-card{border:1.5px solid var(--ink);border-radius:14px;overflow:hidden;background:var(--paper-warm)}
+.fl-card .th{position:relative;height:150px;overflow:hidden;border-bottom:1.5px solid var(--ink)}
+.fl-card .th .amb{position:absolute;inset:0}
+.fl-card .th .dur{position:absolute;left:10px;bottom:10px;font-size:10px;font-family:Consolas,monospace;background:var(--ink);color:var(--paper);border-radius:4px;padding:2px 8px}
+.fl-card .bd{padding:10px 12px 12px}
+.fl-card .bd .n{font-size:14px;font-weight:700}
+.fl-card .bd .m{font-size:10px;color:var(--ink-soft);margin-top:3px}
+.fl-new{border:1.5px dashed var(--ink-soft);border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:220px;color:var(--ink-soft);font-size:13px}
+
+/* ============ ② 工程页：库乐队式 + 底部浮动输入框 ============ */
+#project{flex:1;display:none;flex-direction:column;min-height:0;position:relative}
+body[data-page=project] #project{display:flex}
+/* 顶栏：库乐队式（左工具·中走带 LCD·右状态设置） */
+#gb-top{height:58px;flex:none;border-bottom:1.5px solid var(--ink);display:flex;align-items:center;gap:10px;padding:0 12px;background:var(--paper-warm)}
+#gb-top .back{width:42px;height:42px;border:1.5px solid var(--ink);border-radius:10px;background:var(--paper);display:flex;align-items:center;justify-content:center;font-size:17px}
+.tool-btn{height:42px;padding:0 14px;border:1.5px solid var(--ink);border-radius:10px;background:var(--paper);font-size:12.5px;display:flex;align-items:center;gap:6px}
+.tool-btn:active{background:var(--blue-light)}
+.tool-btn.on{background:var(--ink);color:var(--paper)}
+#gb-transport{margin:0 auto;display:flex;align-items:center;gap:8px}
+#gb-transport .tp{width:42px;height:42px;border:1.5px solid var(--ink);border-radius:50%;background:var(--paper);display:flex;align-items:center;justify-content:center;font-size:15px}
+#gb-transport .tp.play{background:var(--gb-blue);color:#fff;border-color:var(--ink)}
+#gb-transport .tp.rec.armed{background:var(--red);color:#fff}
+.lcd{
+  background:var(--ink);color:var(--paper);border-radius:8px;padding:5px 16px;font-family:Consolas,monospace;text-align:center;line-height:1.3;min-width:150px;
+  box-shadow:inset 0 2px 6px rgba(0,0,0,.6);
+}
+.lcd .t{font-size:16px}
+.lcd .s{font-size:9.5px;opacity:.75}
+#gb-top .agent-pill{display:flex;align-items:center;gap:7px;border:1.5px solid var(--ink);border-radius:999px;padding:6px 14px;font-size:11.5px;background:var(--paper)}
+/* 画布：轨头左 + 片段 lane */
+#canvas{flex:1;display:flex;min-height:0;position:relative}
+#canvas-scroll{flex:1;overflow:auto;position:relative}
+#ruler{height:28px;position:sticky;top:0;z-index:6;display:flex;align-items:flex-end;font-size:10px;color:var(--ink-soft);padding-left:210px;background:var(--paper);border-bottom:1.5px solid var(--ink)}
+#ruler i{flex:1;border-left:1px solid var(--line-soft);padding-left:6px;font-style:normal}
+.trk-row{display:flex;height:82px;border-bottom:1px solid var(--line-soft)}
+.trk-h{width:208px;flex:none;position:sticky;left:0;z-index:5;background:var(--paper-warm);border-right:1.5px solid var(--ink);display:flex;align-items:center;gap:9px;padding:0 10px}
+.trk-h .tile{width:48px;height:48px;border-radius:10px;border:1.5px solid var(--ink);display:flex;align-items:center;justify-content:center;font-size:20px;color:#fff;flex:none;box-shadow:inset 0 -4px 0 rgba(0,0,0,.18)}
+.trk-h .info{flex:1;min-width:0}
+.trk-h .info .n{font-size:12.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.trk-h .info .vol{display:flex;align-items:center;gap:5px;margin-top:4px}
+.trk-h .info .vol input{-webkit-appearance:none;appearance:none;width:96px;height:5px;border:1px solid var(--ink);border-radius:3px;background:var(--paper);outline:none}
+.trk-h .info .vol input::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;background:var(--ink)}
+.trk-h .info .vol .db{font-size:8.5px;color:var(--ink-soft);font-family:Consolas,monospace}
+.trk-h .ms{display:flex;flex-direction:column;gap:5px}
+.trk-h .ms button{width:26px;height:26px;border:1.5px solid var(--ink);border-radius:6px;font-size:9.5px;background:var(--paper)}
+.trk-h .ms button.on-y{background:var(--yellow)}
+.trk-h .ms button.on-b{background:var(--gb-blue);color:#fff}
+.trk-lane{flex:1;position:relative;background:repeating-linear-gradient(90deg,transparent 0 118px,var(--line-soft) 118px 119px)}
+.region{position:absolute;top:12px;height:58px;border:1.5px solid var(--ink);border-radius:8px;display:flex;flex-direction:column;overflow:hidden;box-shadow:2px 2px 0 rgba(9,11,14,.15)}
+.region .rn{padding:3px 8px;font-size:9.5px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden}
+.region .rw{flex:1;margin:2px 4px 4px;background:repeating-linear-gradient(90deg,rgba(255,255,255,.55) 0 1.5px,transparent 1.5px 4px);background-size:24px 100%;background-position:center;border-radius:3px}
+.region.midi .rw{background:repeating-linear-gradient(180deg,rgba(255,255,255,.6) 0 2px,transparent 2px 6px);background-size:100% 12px;background-position:center}
+.region.hot{outline:3px solid var(--yellow);outline-offset:1px}
+#cph{position:absolute;top:28px;bottom:0;width:2px;background:var(--red);z-index:4;pointer-events:none}
+#cph::before{content:"";position:absolute;top:-1px;left:50%;transform:translateX(-50%);border-left:8px solid transparent;border-right:8px solid transparent;border-top:11px solid var(--red)}
+
+/* ===== 底部浮动输入框（本稿唯一更新点） ===== */
+#float-input{
+  position:absolute;left:50%;bottom:16px;transform:translateX(-50%);z-index:30;
+  width:560px;height:50px;background:var(--paper-warm);border:1.5px solid var(--ink);border-radius:999px;
+  display:flex;align-items:center;gap:10px;padding:0 8px 0 10px;
+  box-shadow:0 14px 36px rgba(9,11,14,.35),0 3px 8px rgba(9,11,14,.2);
+}
+#float-input .mic{width:38px;height:38px;border-radius:50%;border:1.5px solid var(--ink);background:var(--paper);font-size:15px;display:flex;align-items:center;justify-content:center;flex:none}
+#float-input .mic:active{background:var(--red);color:#fff}
+#float-input .txt{flex:1;font-size:13px;color:var(--ink-soft)}
+#float-input .chat-tog{width:38px;height:38px;border-radius:50%;border:1.5px solid var(--ink);background:var(--paper);font-size:15px;display:flex;align-items:center;justify-content:center;flex:none}
+#float-input .chat-tog.on{background:var(--yellow)}
+#float-input .send{width:38px;height:38px;border-radius:50%;background:var(--ink);color:var(--paper);font-size:14px;display:flex;align-items:center;justify-content:center;flex:none}
+/* 对话流浮动层（自输入框向上展开） */
+#float-chat{
+  position:absolute;left:50%;bottom:78px;transform:translateX(-50%);z-index:29;
+  width:560px;max-height:54%;overflow-y:auto;
+  background:rgba(251,249,241,.97);border:1.5px solid var(--ink);border-radius:16px;
+  padding:12px 14px;display:none;flex-direction:column;gap:10px;
+  box-shadow:0 18px 44px rgba(9,11,14,.3);
+}
+#float-chat.show{display:flex}
+#float-chat .fc-head{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;color:var(--ink-soft);padding:0 2px 2px}
+#float-chat .fc-head .x{margin-left:auto;border:1px solid var(--ink-soft);border-radius:6px;padding:1px 9px;font-weight:400;font-size:10px;color:var(--ink-soft)}
+/* 混音弹出（库乐队式 popover，竖推子） */
+#mixer-pop{
+  position:absolute;top:66px;left:12px;z-index:35;width:474px;height:330px;
+  background:var(--paper-warm);border:1.5px solid var(--ink);border-radius:14px;
+  box-shadow:0 18px 44px rgba(9,11,14,.35);display:none;padding:10px 12px 8px;
+}
+#mixer-pop.show{display:flex;gap:8px}
+.mx{flex:1;border:1px solid var(--line-soft);border-radius:10px;background:var(--paper);display:flex;flex-direction:column;align-items:center;gap:5px;padding:8px 4px 6px}
+.mx .n{font-size:9px;font-weight:700;white-space:nowrap;overflow:hidden;max-width:100%}
+.mx .fx{display:flex;gap:4px}
+.mx .fx button{width:20px;height:20px;border:1px solid var(--ink);border-radius:5px;font-size:8px;background:var(--paper)}
+.mx .fx button.on-y{background:var(--yellow)}
+.mx .pad{flex:1;position:relative;width:26px;border:1.5px solid var(--ink);border-radius:6px;background:var(--paper);overflow:hidden}
+.mx .pad .lv{position:absolute;left:0;right:0;bottom:0;height:58%;background:var(--blue-light)}
+.mx .pad .cap{position:absolute;left:50%;transform:translate(-50%,50%);bottom:58%;width:26px;height:13px;background:var(--yellow);border:2px solid var(--ink);border-radius:4px}
+.mx .db{font-size:8px;color:var(--ink-soft);font-family:Consolas,monospace}
+/* 循环库弹出（库乐队 signature） */
+#loops-pop{
+  position:absolute;left:12px;bottom:16px;z-index:34;width:560px;height:250px;
+  background:var(--paper-warm);border:1.5px solid var(--ink);border-radius:14px;
+  box-shadow:0 18px 44px rgba(9,11,14,.35);display:none;flex-direction:column;padding:12px;
+}
+#loops-pop.show{display:flex}
+#loops-pop .lt{font-size:11px;font-weight:700;margin-bottom:8px}
+#loops-pop .cats{display:flex;gap:6px;margin-bottom:8px}
+#loops-pop .cats span{border:1px solid var(--ink);border-radius:999px;padding:2px 10px;font-size:10px;background:var(--paper)}
+#loops-pop .cats span.on{background:var(--ink);color:var(--paper)}
+#loops-pop .grid{flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;overflow:auto}
+.loop{border:1px solid var(--ink);border-radius:9px;background:var(--paper);padding:7px 9px;display:flex;flex-direction:column;gap:3px}
+.loop .n{font-size:10.5px;font-weight:700}
+.loop .m{font-size:8.5px;color:var(--ink-soft)}
+.loop .p{align-self:flex-start;font-size:8.5px;border:1px solid var(--ink);border-radius:4px;padding:0 6px}
+
+/* ===== 标注 ===== */
+.gd-badge{position:absolute;top:-9px;right:8px;z-index:80;display:none;align-items:center;gap:4px;font-size:10px;padding:1px 8px;border-radius:999px;border:1.5px solid var(--ink);background:var(--yellow);white-space:nowrap;cursor:help}
+.gd-badge.ok{background:var(--blue);color:#fff}
+body.ann-on .gd-badge{display:flex}
+[data-gd]{position:relative}
+#ann-legend{position:fixed;left:14px;bottom:14px;z-index:190;display:none;gap:10px;align-items:center;background:var(--paper-warm);border:1.5px solid var(--ink);border-radius:4px;padding:8px 14px;font-size:11px;box-shadow:3px 3px 0 rgba(9,11,14,.15)}
+body.ann-on #ann-legend{display:flex}
+#ann-legend .b{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:-1px;margin-right:4px}
+#info-modal{position:fixed;inset:0;z-index:220;display:none;align-items:center;justify-content:center;background:rgba(9,11,14,.5)}
+#info-modal.show{display:flex}
+#info-card{width:620px;max-height:84vh;overflow:auto;background:var(--paper-warm);border:2px solid var(--ink);border-radius:6px;padding:22px 26px;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+#info-card h2{font-size:16px;margin-bottom:4px}
+#info-card h3{font-size:12.5px;margin:14px 0 6px;letter-spacing:.08em;border-bottom:1.5px solid var(--ink);padding-bottom:3px}
+#info-card p,#info-card li{font-size:12px;line-height:1.7;color:var(--ink-soft)}
+#info-card li{margin-left:18px}
+#info-card .close-row{margin-top:16px;text-align:right}
+</style>
+</head>
+
+<div id="proto-bar">
+  <span style="font-weight:700">平板端</span>
+  <div class="segs">
+    <button class="seg on" data-page="feed">① 工程流首页</button>
+    <button class="seg" data-page="project">② 工程页（主交付）</button>
+  </div>
+  <button class="ann" id="ann-toggle">标注：关</button>
+  <button class="ann" id="info-btn">设计说明</button>
+</div>
+
+<div id="stage-wrap">
+<div id="device-shell" data-gd="adapt" data-note="平板端=先仿库乐队/音悦家做像（用户第八轮裁定），唯一更新点=底部浮动输入框（浮于界面上方，画布从下面穿过）；不照抄手机端磁带机/歌单形态">
+
+  <div class="feed-switch" data-gd="ok" data-note="首页预览⟷列表（沿用手机端已定稿交互）">
+    <button id="fs-preview" class="on" onclick="feedMode('feed')">预览</button>
+    <button id="fs-list" onclick="feedMode('list')">列表</button>
+  </div>
+
+  <!-- ① 首页 -->
+  <div id="feed">
+    <div class="fp" ondblclick="gotoProject()">
+      <div class="amb"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
+      <div class="viz"></div>
+      <button class="bigplay" onclick="event.stopPropagation();toggleFeedPlay(this)" ondblclick="event.stopPropagation()">▶</button>
+      <div class="meta">
+        <div class="nm">SATTTELITES</div>
+        <div class="ver"><span>V7</span><span>main</span><span>7 轨 · 1:12</span></div>
+        <div class="dg"><b>agent：</b>Lead Vocal 副歌 EQ 完成（高频 +1.5 / 低频 −2），等你盲听确认；Bass 线已按哼唱生成两版…</div>
+        <div class="tm">2 分钟前 · 双击画面进入</div>
+      </div>
+      <button class="enter-btn" onclick="event.stopPropagation();gotoProject()"><span class="gi">↗</span>进入</button>
+    </div>
+    <div id="flist">
+      <div class="fl-head"><div class="t">我的工程</div></div>
+      <div class="grid">
+        <div class="fl-card" onclick="gotoProject()"><div class="th"><div class="amb"><div class="blob b1"></div><div class="blob b2"></div></div><span class="dur" style="position:absolute;left:10px;bottom:10px;font-size:10px;background:var(--ink);color:var(--paper);border-radius:4px;padding:2px 8px">1:12</span></div>
+          <div class="bd"><div class="n">SATTTELITES</div><div class="m">V7 · 7 轨 · 2 分钟前</div></div></div>
+        <div class="fl-card" onclick="gotoProject()"><div class="th" style="filter:hue-rotate(150deg)"><div class="amb"><div class="blob b1"></div><div class="blob b2"></div></div><span class="dur" style="position:absolute;left:10px;bottom:10px;font-size:10px;background:var(--ink);color:var(--paper);border-radius:4px;padding:2px 8px">2:38</span></div>
+          <div class="bd"><div class="n">夜航电台 · 插曲</div><div class="m">V3 · 4 轨 · 昨天</div></div></div>
+        <div class="fl-new" onclick="gotoProject()"><span style="font-size:28px">＋</span>说一句话开始新工程</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ② 工程页 -->
+  <div id="project">
+    <!-- 顶栏：库乐队式 -->
+    <div id="gb-top" data-gd="ok" data-note="库乐队式顶栏：左=返回/加轨/混音/循环库工具组；中=走带（回零/播放/录制/循环）+LCD（时间/速度/拍号，库乐队 LCD 位）；右=agent 状态胶囊+设置——全部常规控件">
+      <button class="back" onclick="gotoFeed()">‹</button>
+      <button class="tool-btn">＋ 轨道</button>
+      <button class="tool-btn" id="mixer-btn" onclick="popToggle('mixer-pop',this)">🎛 混音</button>
+      <button class="tool-btn" id="loops-btn" onclick="popToggle('loops-pop',this)">∮ 循环库</button>
+      <div id="gb-transport">
+        <button class="tp">⏮</button>
+        <button class="tp play">▶</button>
+        <button class="tp rec" onclick="this.classList.toggle('armed')">⏺</button>
+        <button class="tp">🔁</button>
+        <div class="lcd"><div class="t">42.3</div><div class="s">120.0 BPM · 4/4 · D</div></div>
+      </div>
+      <div class="agent-pill"><span class="live-dot"></span>agent · Lead Vocal</div>
+      <button class="tool-btn" style="padding:0 12px">⚙</button>
+    </div>
+
+    <!-- 画布 -->
+    <div id="canvas" data-gd="adapt" data-note="库乐队式画布：左轨头（图标瓦片+名称+音量条+M/S——库乐队原位）；片段=彩色圆角块带波形/音符纹理；黄框=agent 正在处理；红色播放指针带标尺三角。触控输入=Godot 常规面">
+      <div id="canvas-scroll">
+        <div id="ruler"><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i></div>
+        <div id="cph" style="left:calc(208px + 38%)"></div>
+        <div class="trk-row"><div class="trk-h"><div class="tile" style="background:var(--gb-blue)">🎤</div>
+          <div class="info"><div class="n">Lead Vocal</div><div class="vol"><input type="range" min="0" max="100" value="62"><span class="db">−3.2</span></div></div>
+          <div class="ms"><button class="on-y">M</button><button>S</button></div></div>
+          <div class="trk-lane">
+            <div class="region hot" style="left:2%;width:24%"><div class="rn" style="background:rgba(9,11,14,.35)">主歌·干声</div><div class="rw"></div></div>
+            <div class="region" style="left:34%;width:18%"><div class="rn" style="background:rgba(9,11,14,.35)">和声</div><div class="rw"></div></div>
+          </div></div>
+        <div class="trk-row"><div class="trk-h"><div class="tile" style="background:var(--red)">🥁</div>
+          <div class="info"><div class="n">Drum Bus</div><div class="vol"><input type="range" min="0" max="100" value="72"><span class="db">−1.8</span></div></div>
+          <div class="ms"><button>M</button><button class="on-b">S</button></div></div>
+          <div class="trk-lane">
+            <div class="region" style="left:1%;width:50%"><div class="rn" style="background:rgba(9,11,14,.35)">整轨·总线</div><div class="rw"></div></div>
+          </div></div>
+        <div class="trk-row"><div class="trk-h"><div class="tile" style="background:var(--gb-yellow)">🎛</div>
+          <div class="info"><div class="n">Bass Synth</div><div class="vol"><input type="range" min="0" max="100" value="64"><span class="db">−4.5</span></div></div>
+          <div class="ms"><button>M</button><button>S</button></div></div>
+          <div class="trk-lane">
+            <div class="region midi" style="left:9%;width:34%"><div class="rn" style="background:rgba(9,11,14,.35)">Bass 线·V2</div><div class="rw"></div></div>
+          </div></div>
+        <div class="trk-row"><div class="trk-h"><div class="tile" style="background:var(--gb-purple)">🎹</div>
+          <div class="info"><div class="n">Synth Pad</div><div class="vol"><input type="range" min="0" max="100" value="50"><span class="db">−7.0</span></div></div>
+          <div class="ms"><button>M</button><button>S</button></div></div>
+          <div class="trk-lane">
+            <div class="region midi" style="left:16%;width:44%"><div class="rn" style="background:rgba(9,11,14,.35)">Pad·长音</div><div class="rw"></div></div>
+          </div></div>
+        <div class="trk-row"><div class="trk-h"><div class="tile" style="background:var(--gb-green)">🎸</div>
+          <div class="info"><div class="n">Guitar L</div><div class="vol"><input type="range" min="0" max="100" value="66"><span class="db">−5.1</span></div></div>
+          <div class="ms"><button>M</button><button>S</button></div></div>
+          <div class="trk-lane">
+            <div class="region" style="left:24%;width:30%"><div class="rn" style="background:rgba(9,11,14,.35)">分解和弦</div><div class="rw"></div></div>
+          </div></div>
+        <div class="trk-row"><div class="trk-h"><div class="tile" style="background:#B8860B">🎸</div>
+          <div class="info"><div class="n">Guitar R</div><div class="vol"><input type="range" min="0" max="100" value="66"><span class="db">−5.3</span></div></div>
+          <div class="ms"><button>M</button><button>S</button></div></div>
+          <div class="trk-lane">
+            <div class="region" style="left:24%;width:30%"><div class="rn" style="background:rgba(9,11,14,.35)">分解和弦</div><div class="rw"></div></div>
+          </div></div>
+        <div class="trk-row" style="height:60px"><div class="trk-h"><div class="tile" style="background:var(--ink)"> Σ </div>
+          <div class="info"><div class="n">Master</div><div class="vol"><input type="range" min="0" max="100" value="76"><span class="db">−0.9</span></div></div>
+          <div class="ms"><button>M</button><button style="opacity:.3">—</button></div></div>
+          <div class="trk-lane"></div></div>
+      </div>
+    </div>
+
+    <!-- 混音弹出（库乐队 popover·竖推子） -->
+    <div id="mixer-pop" data-gd="ok" data-note="混音=库乐队式 popover（顶栏按钮唤出）：竖推子（竖向操作原则）+M/S——轨控走既有 IPC">
+      <div class="mx"><div class="n">Vocal</div><div class="fx"><button class="on-y">M</button><button>S</button></div><div class="pad"><div class="lv"></div><div class="cap"></div></div><div class="db">−3.2</div></div>
+      <div class="mx"><div class="n">Drum</div><div class="fx"><button>M</button><button class="on-y" style="background:var(--gb-blue);color:#fff">S</button></div><div class="pad"><div class="lv" style="height:72%"></div><div class="cap" style="bottom:72%"></div></div><div class="db">−1.8</div></div>
+      <div class="mx"><div class="n">Bass</div><div class="fx"><button>M</button><button>S</button></div><div class="pad"><div class="lv" style="height:64%"></div><div class="cap" style="bottom:64%"></div></div><div class="db">−4.5</div></div>
+      <div class="mx"><div class="n">Pad</div><div class="fx"><button>M</button><button>S</button></div><div class="pad"><div class="lv" style="height:50%"></div><div class="cap" style="bottom:50%"></div></div><div class="db">−7.0</div></div>
+      <div class="mx"><div class="n">Gtr L</div><div class="fx"><button>M</button><button>S</button></div><div class="pad"><div class="lv" style="height:66%"></div><div class="cap" style="bottom:66%"></div></div><div class="db">−5.1</div></div>
+      <div class="mx"><div class="n">Gtr R</div><div class="fx"><button>M</button><button>S</button></div><div class="pad"><div class="lv" style="height:66%"></div><div class="cap" style="bottom:66%"></div></div><div class="db">−5.3</div></div>
+      <div class="mx" style="background:var(--ink);color:var(--paper)"><div class="n">MASTER</div><div class="fx"><button style="background:var(--paper)">M</button><button style="opacity:.3">—</button></div><div class="pad"><div class="lv" style="height:76%"></div><div class="cap" style="bottom:76%"></div></div><div class="db">−0.9</div></div>
+    </div>
+
+    <!-- 循环库弹出 -->
+    <div id="loops-pop" data-gd="ok" data-note="循环库=库乐队 signature 件（顶栏唤出的素材浏览器）：数据源复用 left_library_dock 的插件/素材检索面">
+      <div class="lt">循环库 · Loop Browser</div>
+      <div class="cats"><span class="on">全部</span><span>鼓组</span><span>贝斯</span><span>合成器</span><span>人声</span><span>现场录音</span></div>
+      <div class="grid">
+        <div class="loop"><div class="n">Boom Bap 鼓组</div><div class="m">90 BPM · 4 小节</div><button class="p">▶ 试听</button></div>
+        <div class="loop"><div class="n">圆滑贝斯线</div><div class="m">120 BPM · 2 小节</div><button class="p">▶ 试听</button></div>
+        <div class="loop"><div class="n">氛围 Pad</div><div class="m">无速度 · 8 小节</div><button class="p">▶ 试听</button></div>
+        <div class="loop"><div class="n">雨声·现场</div><div class="m">素材 · 0:42</div><button class="p">▶ 试听</button></div>
+        <div class="loop"><div class="n">拍手&响指</div><div class="m">100 BPM · 1 小节</div><button class="p">▶ 试听</button></div>
+        <div class="loop"><div class="n">模拟合成 Lead</div><div class="m">120 BPM · 4 小节</div><button class="p">▶ 试听</button></div>
+        <div class="loop"><div class="n"> Tape 鼓机</div><div class="m">96 BPM · 2 小节</div><button class="p">▶ 试听</button></div>
+        <div class="loop"><div class="n">哼唱·上周采集</div><div class="m">素材 · 0:07</div><button class="p">▶ 试听</button></div>
+      </div>
+    </div>
+
+    <!-- 对话流浮动层（自输入框向上展开） -->
+    <div id="float-chat" data-gd="ok" data-note="对话流=浮动卡列，自输入框向上展开（可收起成纯输入框）——webui 消息流组件族复用；收起时画布零遮挡">
+      <div class="fc-head">对话 · SATTTELITES <span class="x" onclick="chatToggle(false)">收起 ✕</span></div>
+      <div class="chat-cards">
+        <div class="msg user"><div class="bubble">副歌的人声再亮一点，低频收一收</div></div>
+        <div class="card-msg"><div class="card">
+          <div class="ch"><span class="dot" style="background:var(--yellow)"></span>正在处理<span class="tag">Lead Vocal</span></div>
+          <div class="cb"><div class="steps">
+            <div class="s done">定位副歌区段（0:42–1:05）</div>
+            <div class="s done">EQ 高频搁架 +1.5 dB @ 8k</div>
+            <div class="s doing">低频 180Hz 收 −2 dB…</div>
+          </div></div>
+        </div></div>
+        <div class="card-msg"><div class="card">
+          <div class="ch"><span class="dot" style="background:var(--blue)"></span>新版试听<span class="tag">V7</span><span class="tag">0:42–1:05</span></div>
+          <div class="player"><button class="pbtn" onclick="this.classList.toggle('playing');this.textContent=this.classList.contains('playing')?'❚❚':'▶'">▶</button><div class="ptrack"><div class="pfill"></div></div><span class="ptime">0:16</span></div>
+          <div class="cf"><button class="chip pri">保留 V7</button><button class="chip">A/B 盲听</button><button class="chip">再亮一点</button></div>
+        </div></div>
+        <div class="msg user"><div class="who">录制 · 0:07</div><div class="bubble">♪ 哼唱素材（0:07）</div><div class="who-say">「转成 Bass 线，音色圆一点」</div></div>
+      </div>
+    </div>
+
+    <!-- 底部浮动输入框（唯一更新点） -->
+    <div id="float-input" data-gd="ok" data-note="本稿唯一更新点（用户第八轮裁定）：输入框浮于界面上方——底部居中浮动胶囊（投影+留边，画布从下面穿过不被挖栏）；🎤=语音输入，💬=对话流开合，▶=发送">
+      <button class="mic" title="语音输入">🎤</button>
+      <div class="txt">说点什么，或描述想要的声音…</div>
+      <button class="chat-tog" id="chat-tog" onclick="chatToggle()" title="对话流">💬</button>
+      <button class="send">▶</button>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<div id="ann-legend">
+  <span><span class="b" style="background:var(--blue)"></span>现有链路直接可实现</span>
+  <span><span class="b" style="background:var(--yellow)"></span>需适配（新装配/远期）</span>
+  <span style="color:var(--ink-soft)">悬停看依据</span>
+</div>
+
+<div id="info-modal">
+  <div id="info-card">
+    <h2>V7 · 平板端（仿库乐队/音悦家 + 底部浮动输入框）</h2>
+    <p>按你第八轮指令：<b>不照抄手机端</b>，先仿库乐队/音悦家把平板工程页做像——顶栏工具组+中央走带 LCD、左轨头（图标瓦片+音量条+M/S）、彩色片段画布、混音 popover（竖推子）、循环库浏览器；<b>唯一的更新点</b>=底部<b>浮动输入框</b>：胶囊浮在界面上方（投影+留边），画布从它下面穿过、不被挖栏；对话流从这个输入框向上展开为浮动卡列，收起后画布零遮挡。</p>
+    <h3>可交互</h3>
+    <li>顶栏：🎛 混音 / ∮ 循环库 弹出；▶ 播放；⏺ 录制变红</li>
+    <li>底部：💬 开合对话流浮动层；M/S 可点亮；轨头音量条可拖</li>
+    <li>首页：预览⟷列表；双击/↗ 进入</li>
+    <h3>库乐队件 vs 更新件</h3>
+    <li>库乐队件：顶栏+LCD、轨头瓦片、片段块、混音 popover、循环库、播放指针</li>
+    <li>更新件：底部浮动输入框（agent 入口）＋对话流浮动卡列＋黄框 agent 处理标注——就这三处，其余全按库乐队惯例</li>
+    <div class="close-row"><button class="chip pri" id="info-close">关闭</button></div>
+  </div>
+</div>
+
+<script>
+function gotoProject(){ document.body.dataset.page='project';
+  document.querySelectorAll('#proto-bar .seg').forEach(x=>x.classList.toggle('on',x.dataset.page==='project')); }
+function gotoFeed(){ document.body.dataset.page='feed';
+  document.querySelectorAll('#proto-bar .seg').forEach(x=>x.classList.toggle('on',x.dataset.page==='feed')); }
+document.querySelectorAll('#proto-bar .seg').forEach(s=>s.onclick=()=>{ s.dataset.page==='feed'?gotoFeed():gotoProject(); });
+document.body.dataset.page='feed';
+function feedMode(m){
+  document.getElementById('feed').classList.toggle('list-mode',m==='list');
+  document.getElementById('fs-preview').classList.toggle('on',m==='feed');
+  document.getElementById('fs-list').classList.toggle('on',m==='list');
+}
+function toggleFeedPlay(btn){
+  const fp=btn.closest('.fp');
+  document.querySelectorAll('.fp').forEach(x=>x.classList.remove('playing'));
+  document.querySelectorAll('.bigplay').forEach(b=>{b.textContent='▶';});
+  if(fp.classList.contains('playing')){ fp.classList.remove('playing'); return; }
+  fp.classList.add('playing'); btn.textContent='❚❚';
+}
+document.querySelectorAll('.viz').forEach(v=>{
+  v.innerHTML=Array.from({length:36},()=>'<i style="height:'+(14+Math.random()*46)+'%"></i>').join('');
+});
+/* popover 开合（互斥） */
+function popToggle(id,btn){
+  const el=document.getElementById(id);
+  const willShow=!el.classList.contains('show');
+  document.querySelectorAll('#mixer-pop,#loops-pop').forEach(p=>p.classList.remove('show'));
+  document.querySelectorAll('#mixer-btn,#loops-btn').forEach(b=>b.classList.remove('on'));
+  if(willShow){ el.classList.add('show'); if(btn)btn.classList.add('on'); }
+}
+/* 对话流开合 */
+function chatToggle(force){
+  const fc=document.getElementById('float-chat');
+  const t=document.getElementById('chat-tog');
+  const show = force!==undefined?force:!fc.classList.contains('show');
+  fc.classList.toggle('show',show);
+  t.classList.toggle('on',show);
+}
+/* M/S 点亮 */
+document.querySelectorAll('.trk-h .ms button, .mx .fx button').forEach(b=>b.onclick=()=>{
+  if(b.textContent==='—')return;
+  b.classList.toggle('on-y');
+  if(b.tagName==='BUTTON' && b.parentElement.classList.contains('ms')){ b.classList.remove('on-b'); }
+});
+/* 标尺拖动播放指针 */
+(function(){
+  const scroll=document.getElementById('canvas-scroll');
+  const cph=document.getElementById('cph');
+  const ruler=document.getElementById('ruler');
+  function setFromX(clientX){
+    const r=scroll.getBoundingClientRect();
+    const x=clientX-r.left+scroll.scrollLeft;
+    cph.style.left=Math.max(208,x)+'px';
+  }
+  ruler.addEventListener('pointerdown',e=>{
+    setFromX(e.clientX);
+    const mv=ev=>setFromX(ev.clientX);
+    const up=()=>{window.removeEventListener('pointermove',mv);window.removeEventListener('pointerup',up);};
+    window.addEventListener('pointermove',mv);
+    window.addEventListener('pointerup',up);
+  });
+})();
+const annBtn=document.getElementById('ann-toggle');
+annBtn.onclick=()=>{document.body.classList.toggle('ann-on');annBtn.classList.toggle('on');
+  annBtn.textContent=document.body.classList.contains('ann-on')?'标注：开':'标注：关';};
+document.getElementById('info-btn').onclick=()=>document.getElementById('info-modal').classList.add('show');
+document.getElementById('info-close').onclick=()=>document.getElementById('info-modal').classList.remove('show');
+document.getElementById('info-modal').onclick=e=>{if(e.target.id==='info-modal')e.currentTarget.classList.remove('show')};
+document.querySelectorAll('[data-gd]').forEach(el=>{
+  const b=document.createElement('span');const ok=el.dataset.gd==='ok';
+  b.className='gd-badge'+(ok?' ok':'');b.textContent=ok?'✓ 直接可实现':'⚠ 需适配';
+  b.title=el.dataset.note||'';el.appendChild(b);
+});
+function fitShell(){
+  const shell=document.getElementById('device-shell');
+  const sc=Math.min(1,(window.innerWidth-60)/shell.offsetWidth,(window.innerHeight-90)/shell.offsetHeight);
+  shell.style.transform=sc<1?`scale(${sc})`:'none';
+}
+window.addEventListener('resize',fitShell);
+fitShell();
+</script>
+</body>
+</html>

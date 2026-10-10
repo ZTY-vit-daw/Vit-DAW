@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>方向 B · 上下文直达 — Vit-DAW GUI 收缩稿</title>
+<style>
+:root{
+  --paper:#F6F4EC; --paper-warm:#FBF9F1; --ink:#090B0E; --ink-soft:#3A4148;
+  --line:rgba(9,11,14,.9); --line-soft:rgba(9,11,14,.16);
+  --blue:#065BC7; --blue-light:#73B8F5; --yellow:#FACC1A; --red:#DB1214;
+  --canvas:#252B2E; --canvas-dark:#1D2225;
+  --ease:cubic-bezier(.22,.8,.24,1);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{font-family:"Segoe UI","Microsoft YaHei",system-ui,sans-serif;background:var(--paper);color:var(--ink);display:flex;flex-direction:column;overflow:hidden;font-size:13px}
+button{font-family:inherit;cursor:pointer;background:none;border:none;color:inherit}
+/* 顶栏 */
+#topbar{height:46px;flex:none;background:var(--paper-warm);border-bottom:1.5px solid var(--ink);display:flex;align-items:center;gap:14px;padding:0 14px;position:relative;z-index:5}
+.wordmark{font-weight:800;letter-spacing:.06em;font-size:15px}
+.vdiv{width:1.5px;height:20px;background:var(--ink);opacity:.7}
+.menu-btn{font-size:13px;padding:4px 8px;border-radius:3px}
+.menu-btn:hover{background:rgba(6,91,199,.10)}
+#transport{position:absolute;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:10px}
+.lcd{background:var(--ink);color:var(--paper);font-family:Consolas,monospace;padding:4px 14px;border-radius:3px;text-align:center;line-height:1.25}
+.lcd .t{font-size:15px;letter-spacing:.05em}
+.lcd .sub{font-size:10px;opacity:.75}
+.tp-btn{width:30px;height:30px;border:1.5px solid var(--ink);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:13px;background:var(--paper)}
+.tp-btn:hover{background:var(--blue-light)}
+.tp-btn.on{background:var(--blue);color:#fff}
+.tp-btn.rec.on{background:var(--red);color:#fff}
+#topbar .right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.ai-pill{display:flex;align-items:center;gap:6px;font-size:12px;border:1.5px solid var(--ink);border-radius:999px;padding:3px 12px;background:var(--paper)}
+.ai-dot{width:7px;height:7px;border-radius:50%;background:var(--blue)}
+.btn-ink{border:1.5px solid var(--ink);border-radius:3px;padding:4px 14px;font-size:13px;background:var(--paper)}
+.btn-ink:hover{background:var(--yellow)}
+/* 主体 */
+#body-row{flex:1;display:flex;min-height:0;position:relative}
+#edge-rail{width:20px;flex:none;background:var(--paper-warm);border-right:1.5px solid var(--ink);display:flex;align-items:center;justify-content:center;cursor:pointer}
+#edge-rail span{writing-mode:vertical-rl;font-size:10px;letter-spacing:.3em;color:var(--ink-soft)}
+#library{width:236px;flex:none;background:var(--paper-warm);border-right:1.5px solid var(--ink);display:flex;flex-direction:column;min-height:0;transition:width .28s var(--ease)}
+#library.hidden-lib{width:0;overflow:hidden;border-right:none}
+.lib-tabs{display:flex;border-bottom:1.5px solid var(--ink);flex:none}
+.lib-tab{flex:1;text-align:center;padding:8px 0;font-size:12px;border-right:1px solid var(--line-soft)}
+.lib-tab:last-child{border-right:none}
+.lib-tab.on{background:var(--ink);color:var(--paper)}
+.lib-search{padding:8px}
+.lib-search input{width:100%;border:1.5px solid var(--ink);border-radius:3px;padding:5px 8px;font-size:12px;background:var(--paper);font-family:inherit}
+.lib-tree{flex:1;overflow:auto;padding:2px 0 12px}
+.lib-sec{padding:6px 12px 3px;font-size:10px;color:var(--ink-soft);letter-spacing:.14em}
+.lib-item{display:flex;align-items:center;gap:7px;padding:4px 12px 4px 20px;font-size:12px}
+.lib-item:hover{background:rgba(6,91,199,.08)}
+.lib-item .ico{width:12px;height:12px;flex:none;border:1.5px solid var(--ink);border-radius:2px}
+.lib-item .ico.audio{background:repeating-linear-gradient(90deg,var(--ink) 0 1px,transparent 1px 3px)}
+.lib-item .ico.plug{background:var(--blue-light)}
+.lib-item .ico.dir{background:var(--paper);border-radius:50%}
+/* 工作区 */
+#workspace{flex:1;display:flex;min-width:0;padding:10px;gap:10px}
+.pane{border:1.5px solid var(--ink);border-radius:4px;background:var(--paper-warm);display:flex;flex-direction:column;min-width:0;overflow:hidden;position:relative;box-shadow:3px 3px 0 rgba(9,11,14,.12)}
+#tracks-pane{flex:1.6}
+#rack-pane{flex:1}
+.pane-head{height:34px;flex:none;border-bottom:1.5px solid var(--ink);display:flex;align-items:center;gap:8px;padding:0 10px;background:var(--paper)}
+.pane-head .name{font-weight:700;font-size:12.5px;letter-spacing:.08em}
+.pane-head .meta{font-size:10.5px;color:var(--ink-soft)}
+.pane-head .spacer{flex:1}
+.chip-btn{border:1.5px solid var(--ink);border-radius:3px;font-size:11px;padding:2px 9px;background:var(--paper-warm)}
+.chip-btn:hover{background:var(--blue-light)}
+/* 音轨 */
+#ruler{height:20px;flex:none;border-bottom:1px solid var(--line-soft);display:flex;align-items:flex-end;font-size:9px;color:var(--ink-soft);padding-left:176px}
+#ruler i{flex:1;border-left:1px solid var(--line-soft);padding-left:4px;font-style:normal}
+#track-scroll{flex:1;overflow:auto;position:relative}
+.track{display:flex;height:40px;border-bottom:1px solid var(--line-soft);cursor:pointer}
+.track.selected .tr-head{background:rgba(6,91,199,.12)}
+.tr-head{width:168px;flex:none;border-right:1.5px solid var(--ink);display:flex;align-items:center;gap:6px;padding:0 8px 0 0;position:sticky;left:0;background:var(--paper-warm);z-index:2}
+.tr-color{width:4px;height:26px;flex:none}
+.tr-name{flex:1;font-size:12px;white-space:nowrap;overflow:hidden}
+.tr-btn{width:18px;height:18px;border:1px solid var(--ink);border-radius:2px;font-size:9px;display:flex;align-items:center;justify-content:center;flex:none}
+.tr-btn.mute.on{background:var(--yellow)}
+.tr-btn.solo.on{background:var(--blue);color:#fff}
+.tr-lane{flex:1;position:relative;background:repeating-linear-gradient(90deg,transparent 0 79px,var(--line-soft) 79px 80px)}
+.clip{position:absolute;top:6px;height:28px;border:1.5px solid var(--ink);border-radius:2px;background:var(--paper);overflow:hidden}
+.clip .wave{position:absolute;inset:0;background:repeating-linear-gradient(90deg,rgba(9,11,14,.55) 0 1.5px,transparent 1.5px 4px);opacity:.5;mask-image:linear-gradient(180deg,transparent 20%,#000 20%,#000 80%,transparent 80%);-webkit-mask-image:linear-gradient(180deg,transparent 20%,#000 20%,#000 80%,transparent 80%)}
+.clip.midi{background:var(--blue-light)}
+.clip.midi .notes{position:absolute;inset:0;background:repeating-linear-gradient(180deg,rgba(9,11,14,.5) 0 2px,transparent 2px 7px)}
+.clip.midi{cursor:pointer}
+.clip.midi:hover{outline:2px solid var(--blue);outline-offset:1px}
+#playhead{position:absolute;top:0;bottom:0;width:1.5px;background:var(--red);left:38%;z-index:3;pointer-events:none}
+/* 机架 mock（同 A 风格） */
+.rack-canvas{position:absolute;inset:0;background:var(--canvas);background-image:linear-gradient(rgba(246,244,236,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(246,244,236,.06) 1px,transparent 1px);background-size:28px 28px}
+.rnode{position:absolute;width:132px;background:var(--paper-warm);border:1.5px solid var(--ink);border-radius:4px;font-size:11px;box-shadow:0 6px 18px rgba(0,0,0,.4)}
+.rnode .nh{padding:4px 8px;border-bottom:1.5px solid var(--ink);font-weight:700;font-size:11px;display:flex;justify-content:space-between;align-items:center}
+.rnode .nh .led{width:6px;height:6px;border-radius:50%;background:var(--blue)}
+.rnode .nb{padding:6px 8px;color:var(--ink-soft);font-size:10px;line-height:1.7}
+.port{position:absolute;width:9px;height:9px;border-radius:50%;background:var(--paper);border:1.5px solid var(--ink)}
+.port.in{left:-5px;top:12px}.port.out{right:-5px;top:12px}
+#cables{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+/* ====== 上下文浮层：钢琴卷帘（就地滑出，覆盖音轨上半） ====== */
+#piano-overlay{
+  position:absolute;left:0;right:0;top:0;height:62%;z-index:10;
+  background:var(--paper-warm);border-bottom:2px solid var(--ink);
+  display:flex;flex-direction:column;
+  transform:translateY(-104%);transition:transform .34s var(--ease);
+  box-shadow:0 18px 50px rgba(9,11,14,.35);
+}
+#piano-overlay.show{transform:translateY(0)}
+.ov-head{height:32px;flex:none;border-bottom:1.5px solid var(--ink);display:flex;align-items:center;gap:8px;padding:0 10px;background:var(--paper)}
+.ov-head .name{font-weight:700;font-size:12.5px;letter-spacing:.08em}
+.ov-head .meta{font-size:10.5px;color:var(--ink-soft)}
+.ov-head .spacer{flex:1}
+.ov-close{border:1.5px solid var(--ink);border-radius:3px;font-size:11px;padding:2px 9px;background:var(--paper-warm)}
+.ov-close:hover{background:var(--yellow)}
+.piano{flex:1;display:flex;min-height:0}
+.piano .keys{width:64px;flex:none;background:var(--paper);border-right:1.5px solid var(--ink);display:flex;flex-direction:column}
+.piano .k{flex:1;border-bottom:1px solid var(--line-soft);font-size:8px;display:flex;align-items:center;padding-left:6px;color:var(--ink-soft)}
+.piano .k.blk{background:var(--ink);color:var(--paper)}
+.piano .grid{flex:1;position:relative;background:repeating-linear-gradient(90deg,transparent 0 47px,var(--line-soft) 47px 48px),repeating-linear-gradient(180deg,transparent 0 13px,var(--line-soft) 13px 14px)}
+.pnote{position:absolute;height:9px;background:var(--blue);border:1px solid var(--ink);border-radius:2px;opacity:.92}
+/* ====== 上下文浮层：检查器（右缘滑入，覆盖机架左部） ====== */
+#inspector{
+  position:absolute;top:0;bottom:0;right:0;width:288px;z-index:9;
+  background:var(--paper-warm);border-left:2px solid var(--ink);
+  transform:translateX(104%);transition:transform .3s var(--ease);
+  display:flex;flex-direction:column;box-shadow:-14px 0 40px rgba(9,11,14,.25);
+}
+#inspector.show{transform:translateX(0)}
+.insp-body{flex:1;overflow:auto;padding:10px 12px;font-size:11px}
+.insp-body h4{font-size:11px;letter-spacing:.1em;border-bottom:1.5px solid var(--ink);padding-bottom:4px;margin-bottom:8px}
+.kv{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px dashed var(--line-soft)}
+.kv b{font-weight:600}
+.insp-spec{display:flex;align-items:flex-end;gap:2px;height:64px;margin-top:10px;padding-bottom:14px;position:relative;border:1px solid var(--line-soft);border-radius:2px;background:var(--paper)}
+.insp-spec i{flex:1;background:var(--blue);opacity:.85;border-radius:1px 1px 0 0}
+.insp-spec i.hi{background:var(--blue-light)}
+/* ====== 上下文浮层：混音台（底部抽屉） ====== */
+#mixer-drawer{
+  position:absolute;left:0;right:0;bottom:0;height:44%;z-index:11;
+  background:var(--paper-warm);border-top:2px solid var(--ink);
+  transform:translateY(104%);transition:transform .34s var(--ease);
+  display:flex;flex-direction:column;box-shadow:0 -18px 50px rgba(9,11,14,.35);
+}
+#mixer-drawer.show{transform:translateY(0)}
+.mixer{flex:1;display:flex;background:var(--paper);padding:8px;gap:6px;overflow:auto}
+.strip{flex:1;min-width:64px;border:1.5px solid var(--ink);border-radius:3px;background:var(--paper-warm);display:flex;flex-direction:column;align-items:center;padding:6px 4px;gap:5px;font-size:10px}
+.strip .sn{white-space:nowrap;overflow:hidden;max-width:100%}
+.strip .knob{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--ink);position:relative}
+.strip .knob::after{content:"";position:absolute;width:1.5px;height:8px;background:var(--ink);left:50%;top:1px;transform-origin:bottom;transform:translateX(-50%) rotate(35deg)}
+.strip .fader{flex:1;width:26px;position:relative;border:1px solid var(--line-soft);border-radius:2px;background:var(--paper)}
+.strip .cap{position:absolute;left:50%;transform:translateX(-50%);width:24px;height:12px;border:1.5px solid var(--ink);border-radius:2px;background:var(--yellow)}
+.strip .meter{width:8px;align-self:stretch;border:1px solid var(--line-soft);position:relative;background:var(--paper)}
+.strip .meter i{position:absolute;bottom:0;left:0;right:0;background:var(--blue)}
+.strip.master{background:var(--ink);color:var(--paper)}
+/* 底栏 */
+#bottombar{height:30px;flex:none;border-top:1.5px solid var(--ink);background:var(--paper-warm);display:flex;align-items:center;gap:18px;padding:0 14px;font-size:11px;color:var(--ink-soft)}
+#bottombar .kbd-hint b{border:1px solid var(--ink-soft);border-radius:3px;padding:0 4px;font-weight:600;color:var(--ink)}
+#bottombar .right{margin-left:auto;display:flex;gap:8px;align-items:center}
+#ann-toggle{border:1.5px solid var(--ink);border-radius:3px;padding:1px 10px;font-size:11px;background:var(--paper)}
+#ann-toggle.on{background:var(--yellow)}
+/* 标注 */
+.gd-badge{position:absolute;top:-9px;right:8px;z-index:30;display:none;align-items:center;gap:4px;font-size:10px;padding:1px 8px;border-radius:999px;border:1.5px solid var(--ink);background:var(--yellow);white-space:nowrap;cursor:help}
+.gd-badge.ok{background:var(--blue);color:#fff}
+body.ann-on .gd-badge{display:flex}
+[data-gd]{position:relative}
+#ann-legend{position:fixed;left:14px;bottom:40px;z-index:60;display:none;gap:10px;align-items:center;background:var(--paper-warm);border:1.5px solid var(--ink);border-radius:4px;padding:8px 14px;font-size:11px;box-shadow:3px 3px 0 rgba(9,11,14,.15)}
+body.ann-on #ann-legend{display:flex}
+#ann-legend .b{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:-1px;margin-right:4px}
+/* 信息弹窗 */
+#info-modal{position:fixed;inset:0;z-index:80;display:none;align-items:center;justify-content:center;background:rgba(9,11,14,.5)}
+#info-modal.show{display:flex}
+#info-card{width:520px;max-height:80vh;overflow:auto;background:var(--paper-warm);border:2px solid var(--ink);border-radius:6px;padding:22px 26px;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+#info-card h2{font-size:16px;margin-bottom:4px}
+#info-card h3{font-size:12.5px;margin:14px 0 6px;letter-spacing:.08em;border-bottom:1.5px solid var(--ink);padding-bottom:3px}
+#info-card p,#info-card li{font-size:12px;line-height:1.7;color:var(--ink-soft)}
+#info-card li{margin-left:18px}
+#info-card .close-row{margin-top:16px;text-align:right}
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <span class="wordmark">Vit‑DAW</span>
+  <span class="vdiv"></span>
+  <button class="menu-btn">文件</button>
+  <button class="menu-btn">编辑</button>
+  <div id="transport" data-gd="ok" data-note="走带栏照搬现有 TopTransportBar——收缩不动其数据链">
+    <button class="tp-btn">⏮</button>
+    <button class="tp-btn on" id="btn-play">⏵</button>
+    <button class="tp-btn rec">⏺</button>
+    <button class="tp-btn">🔁</button>
+    <div class="lcd"><div class="t">001 : 1 : 1 : 000</div><div class="sub">00:00:00.000 · 120.0 BPM · 4/4</div></div>
+  </div>
+  <div class="right">
+    <span class="ai-pill" data-gd="ok" data-note="AI 胶囊收编进顶栏"><span class="ai-dot"></span>AI · 空闲</span>
+    <button class="btn-ink">保存</button>
+    <button class="btn-ink" id="info-btn">设计说明</button>
+  </div>
+</div>
+
+<div id="body-row">
+  <div id="edge-rail" data-gd="ok" data-note="现有 LeftActivityRail 保留"><span>⋮ 资料库</span></div>
+  <div id="library" data-gd="ok" data-note="left_library_dock 原样保留">
+    <div class="lib-tabs">
+      <button class="lib-tab on">文件</button><button class="lib-tab">插件</button>
+      <button class="lib-tab">编组</button><button class="lib-tab">便签</button>
+    </div>
+    <div class="lib-search"><input placeholder="搜索声音、插件、工程…"></div>
+    <div class="lib-tree">
+      <div class="lib-sec">工程 · SATTTELITES</div>
+      <div class="lib-item"><span class="ico dir"></span>Lead Vocal</div>
+      <div class="lib-item"><span class="ico dir"></span>Drum Bus</div>
+      <div class="lib-item"><span class="ico dir"></span>Bass Synth</div>
+      <div class="lib-sec">PLACES</div>
+      <div class="lib-item"><span class="ico dir"></span>D:/Samples/Drums</div>
+      <div class="lib-item"><span class="ico audio"></span>kick_01.wav</div>
+      <div class="lib-item"><span class="ico plug"></span>Vitamin EQ.vst3</div>
+    </div>
+  </div>
+
+  <div id="workspace">
+    <!-- 音轨 + 钢琴卷帘就地浮层 -->
+    <div class="pane" id="tracks-pane" data-gd="ok" data-note="音轨=常驻主视窗；上下文浮层盖在它上面而不换走它">
+      <div class="pane-head">
+        <span class="name">音轨</span><span class="meta">7 轨 · SATTTELITES</span>
+        <span class="spacer"></span>
+        <button class="chip-btn">＋ 新建轨道</button>
+      </div>
+      <div id="ruler"><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i></div>
+      <div id="track-scroll">
+        <div id="playhead"></div>
+        <div class="track selected"><div class="tr-head"><span class="tr-color" style="background:var(--blue)"></span><span class="tr-name">Lead Vocal</span><button class="tr-btn mute">M</button><button class="tr-btn solo">S</button></div><div class="tr-lane"><div class="clip" style="left:8%;width:34%"><div class="wave"></div></div><div class="clip" style="left:48%;width:22%"><div class="wave"></div></div></div></div>
+        <div class="track"><div class="tr-head"><span class="tr-color" style="background:var(--red)"></span><span class="tr-name">Drum Bus</span><button class="tr-btn mute">M</button><button class="tr-btn solo">S</button></div><div class="tr-lane"><div class="clip" style="left:4%;width:60%"><div class="wave"></div></div></div></div>
+        <div class="track"><div class="tr-head"><span class="tr-color" style="background:var(--yellow)"></span><span class="tr-name">Bass Synth</span><button class="tr-btn mute">M</button><button class="tr-btn solo">S</button></div><div class="tr-lane"><div class="clip midi" style="left:12%;width:40%"><div class="notes"></div></div></div></div>
+        <div class="track"><div class="tr-head"><span class="tr-color" style="background:#7B4EA8"></span><span class="tr-name">Synth Pad</span><button class="tr-btn mute">M</button><button class="tr-btn solo">S</button></div><div class="tr-lane"><div class="clip midi" style="left:20%;width:52%"><div class="notes"></div></div></div></div>
+        <div class="track"><div class="tr-head"><span class="tr-color" style="background:#2E8B57"></span><span class="tr-name">Guitar L</span><button class="tr-btn mute">M</button><button class="tr-btn solo">S</button></div><div class="tr-lane"><div class="clip" style="left:30%;width:38%"><div class="wave"></div></div></div></div>
+        <div class="track"><div class="tr-head"><span class="tr-color" style="background:#B8860B"></span><span class="tr-name">Guitar R</span><button class="tr-btn mute">M</button><button class="tr-btn solo">S</button></div><div class="tr-lane"><div class="clip" style="left:30%;width:38%"><div class="wave"></div></div></div></div>
+        <div class="track"><div class="tr-head"><span class="tr-color" style="background:var(--ink)"></span><span class="tr-name">Master</span><button class="tr-btn mute">M</button></div><div class="tr-lane"></div></div>
+      </div>
+
+      <!-- 钢琴卷帘：双击 MIDI 片段触发，就地滑出 -->
+      <div id="piano-overlay" data-gd="ok" data-note="双击 MIDI 片段→卷帘就地滑出（Tween+overlay Control）——确定可实现；比开视口路径短两步">
+        <div class="ov-head">
+          <span class="name">钢琴卷帘</span><span class="meta" id="piano-meta">Synth Pad · clip_2a</span>
+          <span class="spacer"></span>
+          <span style="font-size:10px;color:var(--ink-soft)">编辑完点片段外或 Esc 收起——它不是窗口，是这个片段的「展开态」</span>
+          <button class="ov-close" id="piano-close">收起 ✕</button>
+        </div>
+        <div class="piano">
+          <div class="keys">${''}</div>
+          <div class="grid">
+            <div class="pnote" style="left:6%;top:18%;width:9%"></div>
+            <div class="pnote" style="left:18%;top:38%;width:6%"></div>
+            <div class="pnote" style="left:26%;top:8%;width:12%"></div>
+            <div class="pnote" style="left:40%;top:55%;width:8%"></div>
+            <div class="pnote" style="left:52%;top:30%;width:14%"></div>
+            <div class="pnote" style="left:70%;top:42%;width:10%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 机架（常驻，双开永固） + 检查器右缘滑入 -->
+    <div class="pane" id="rack-pane" data-gd="ok" data-note="机架=常驻右栏（双开永固）；本方向无任何全局切换器——机架永远在">
+      <div class="pane-head">
+        <span class="name">机架</span><span class="meta">Lead Vocal · 4 节点</span>
+        <span class="spacer"></span>
+        <span style="font-size:10px;color:var(--ink-soft)">右键装载插件（卡池 #46）</span>
+      </div>
+      <div style="flex:1;position:relative">
+        <div class="rack-canvas">
+          <svg id="cables">
+            <path d="M 150 60 C 200 60, 200 150, 240 150" stroke="#73B8F5" stroke-width="2.5" fill="none"/>
+            <path d="M 380 170 C 430 170, 430 250, 300 250 C 260 250, 260 300, 250 300" stroke="#065BC7" stroke-width="2.5" fill="none"/>
+          </svg>
+          <div class="rnode" style="left:24px;top:44px"><span class="port in"></span><span class="port out"></span><div class="nh">音量·声像<span class="led"></span></div><div class="nb">Vol −3.2 dB<br>Pan L12</div></div>
+          <div class="rnode" style="left:116px;top:140px"><span class="port in"></span><span class="port out"></span><div class="nh">Vitamin EQ<span class="led"></span></div><div class="nb">4 段 · LowShelf<br>+2.5 dB @ 220</div></div>
+          <div class="rnode" style="left:246px;top:150px"><span class="port in"></span><span class="port out"></span><div class="nh">压缩 2A<span class="led"></span></div><div class="nb">Ratio 4:1<br>GR −4.8 dB</div></div>
+          <div class="rnode" style="left:150px;top:284px"><span class="port in"></span><span class="port out"></span><div class="nh">延迟 1/4<span class="led"></span></div><div class="nb">Sync 1/4<br>Fbk 22%</div></div>
+        </div>
+
+        <!-- 检查器：点轨道行触发，右缘滑入 -->
+        <div id="inspector" data-gd="ok" data-note="点轨行→检查器（详情+频谱合并）右缘滑入——确定可实现；数据=选中轨快照，不动遥测链">
+          <div class="ov-head">
+            <span class="name" id="insp-title">Lead Vocal</span><span class="meta">详情 · 频谱</span>
+            <span class="spacer"></span>
+            <button class="ov-close" id="insp-close">✕</button>
+          </div>
+          <div class="insp-body">
+            <h4>轨道</h4>
+            <div class="kv"><span>track_id</span><b id="insp-tid">trk_01</b></div>
+            <div class="kv"><span>电平</span><b>−14.2 dBFS</b></div>
+            <div class="kv"><span>片段</span><b>2 个 · 42 s</b></div>
+            <div class="kv"><span>插件</span><b>EQ · 压缩 2A</b></div>
+            <h4 style="margin-top:12px">频谱</h4>
+            <div class="insp-spec">
+              ${''}
+            </div>
+            <div class="kv" style="margin-top:8px"><span>峰值频率</span><b>820 Hz</b></div>
+            <div class="kv"><span>低频能量</span><b>−22 dB</b></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 混音台：底部抽屉（现有 BottomEdgeDrawerHost 宿主复用） -->
+  <div id="mixer-drawer" data-gd="ok" data-note="混音台收进底部抽屉——BottomEdgeDrawerHost/BottomActivityRail 现成宿主直接复用（当前放着 debug 面板）">
+    <div class="ov-head">
+      <span class="name">混音台</span><span class="meta">8 通道 · 电平=遥测数据链（红线不动）</span>
+      <span class="spacer"></span>
+      <button class="ov-close" id="mixer-close">收起 ✕</button>
+    </div>
+    <div class="mixer">
+      ${''}
+    </div>
+  </div>
+</div>
+
+<div id="bottombar">
+  <span>工作区 · 编曲（音轨＋机架，永固双开）</span>
+  <span class="kbd-hint"><b>双击 MIDI 片段</b> 钢琴卷帘</span>
+  <span class="kbd-hint"><b>点轨行</b> 检查器</span>
+  <span class="kbd-hint"><b>M</b> 混音台</span>
+  <span class="kbd-hint"><b>Del</b> 删除选中</span>
+  <span class="right">
+    <button class="btn-ink" id="mixer-btn" style="padding:1px 10px;font-size:11px">混音台 ▲</button>
+    <span style="color:var(--ink);opacity:.55">无全局切换器 · 无视窗管理</span>
+    <button id="ann-toggle">标注：关</button>
+  </span>
+</div>
+
+<div id="ann-legend">
+  <span><span class="b" style="background:var(--blue)"></span>Godot 确定可实现</span>
+  <span><span class="b" style="background:var(--yellow)"></span>Godot 需适配</span>
+  <span style="color:var(--ink-soft)">悬停标注可看依据</span>
+</div>
+
+<div id="info-modal">
+  <div id="info-card">
+    <h2>方向 B · 上下文直达（无切换器）</h2>
+    <p>与 A 的根本分歧：不设任何全局「视窗管理」概念。次要视图不是可切换的窗格，而是<b>对象的展开态</b>——你在哪里操作，它就在哪里出现：双击 MIDI 片段=钢琴卷帘；点轨行=检查器（详情+频谱合并）；混音台=底栏常驻按钮。全部即点即收，没有第二种「打开方式」。</p>
+    <h3>交互动线（本稿可点）</h3>
+    <li>双击任一蓝色 MIDI 片段 → 卷帘在音轨区就地滑出，✕/Esc 收起</li>
+    <li>点任一轨行 → 机架右缘滑入检查器；✕ 收起</li>
+    <li>底栏「混音台 ▲」或按 M → 底部抽屉升起；✕/再按 M 收起</li>
+    <li>左缘 ⋮ 柄开合资料库；底栏「标注」看全部标注</li>
+    <h3>关键假设（讨论点）</h3>
+    <li>音轨+机架双开永固，任何浮层都不挤占它们——「少窗口」不牺牲核心工作区</li>
+    <li>钢琴卷帘同时只能展开一个片段（它属于那个片段）</li>
+    <li>混音台走底部抽屉=现有 BottomEdgeDrawerHost 宿主直接复用（现在放 debug 面板）</li>
+    <h3>Godot 落地口径</h3>
+    <li>三个浮层全部=overlay Control + Tween，确定可实现；无需任何新机制</li>
+    <li>分割树/切换态/浮动窗全都不需要——机制退役得最干净</li>
+    <li>代价：无法「同屏看频谱+混音台」这类组合——一次只展开一个上下文</li>
+    <div class="close-row"><button class="btn-ink" id="info-close">关闭</button></div>
+  </div>
+</div>
+
+<script>
+/* 钢琴 keys 与频谱/混音内容 JS 生成（避免手写重复） */
+document.querySelector('#piano-overlay .keys').innerHTML =
+  ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B','C','C#','D'].map(n=>`<div class="k ${n.includes('#')?'blk':''}">${n.includes('#')?'':n}</div>`).join('');
+document.querySelector('.insp-spec').innerHTML =
+  [18,26,22,34,48,42,58,66,60,74,82,70,62,55,64,58,46,38,30,24,20,16].map((h,i)=>`<i class="${i>15?'hi':''}" style="height:${h}%"></i>`).join('');
+document.querySelector('#mixer-drawer .mixer').innerHTML =
+  ['Lead Vocal','Drum Bus','Bass','Synth Pad','Gtr L','Gtr R'].map((n,i)=>`
+  <div class="strip"><span class="sn">${n}</span><div class="knob"></div><div style="display:flex;flex:1;gap:5px;align-self:stretch">
+    <div class="fader"><div class="cap" style="bottom:${[28,18,38,46,24,30][i]}%"></div></div>
+    <div class="meter"><i style="height:${[62,78,55,48,66,58][i]}%"></i></div></div></div>`).join('') +
+  `<div class="strip master"><span class="sn">MASTER</span><div class="knob"></div>
+   <div style="display:flex;flex:1;gap:5px;align-self:stretch"><div class="fader"><div class="cap" style="bottom:34%"></div></div>
+   <div class="meter"><i style="height:72%"></i></div></div></div>`;
+
+/* 交互接线 */
+const pianoOv=document.getElementById('piano-overlay');
+document.querySelectorAll('.clip.midi').forEach(c=>c.addEventListener('dblclick',()=>{
+  const name=c.closest('.track').querySelector('.tr-name').textContent;
+  document.getElementById('piano-meta').textContent=name+' · clip_2a';
+  pianoOv.classList.add('show');
+}));
+document.getElementById('piano-close').onclick=()=>pianoOv.classList.remove('show');
+
+const insp=document.getElementById('inspector');
+document.querySelectorAll('.track').forEach(tr=>tr.onclick=()=>{
+  document.querySelectorAll('.track').forEach(x=>x.classList.remove('selected'));
+  tr.classList.add('selected');
+  document.getElementById('insp-title').textContent=tr.querySelector('.tr-name').textContent;
+  insp.classList.add('show');
+});
+document.getElementById('insp-close').onclick=()=>insp.classList.remove('show');
+
+const mixer=document.getElementById('mixer-drawer');
+const mixerBtn=document.getElementById('mixer-btn');
+function toggleMixer(){
+  mixer.classList.toggle('show');
+  mixerBtn.textContent = mixer.classList.contains('show')?'混音台 ▼':'混音台 ▲';
+}
+mixerBtn.onclick=toggleMixer;
+document.getElementById('mixer-close').onclick=toggleMixer;
+
+document.getElementById('edge-rail').onclick=()=>document.getElementById('library').classList.toggle('hidden-lib');
+document.getElementById('btn-play').onclick=function(){this.classList.toggle('on')};
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='m'||e.key==='M'){ if(document.activeElement.tagName!=='INPUT') toggleMixer(); }
+  if(e.key==='Escape'){
+    pianoOv.classList.remove('show'); insp.classList.remove('show');
+    if(mixer.classList.contains('show')) toggleMixer();
+    document.getElementById('info-modal').classList.remove('show');
+  }
+});
+
+const annBtn=document.getElementById('ann-toggle');
+annBtn.onclick=()=>{
+  document.body.classList.toggle('ann-on'); annBtn.classList.toggle('on');
+  annBtn.textContent=document.body.classList.contains('ann-on')?'标注：开':'标注：关';
+};
+document.getElementById('info-btn').onclick=()=>document.getElementById('info-modal').classList.add('show');
+document.getElementById('info-close').onclick=()=>document.getElementById('info-modal').classList.remove('show');
+document.getElementById('info-modal').onclick=e=>{if(e.target.id==='info-modal')e.currentTarget.classList.remove('show')};
+
+document.querySelectorAll('[data-gd]').forEach(el=>{
+  const b=document.createElement('span'); const ok=el.dataset.gd==='ok';
+  b.className='gd-badge'+(ok?' ok':''); b.textContent=ok?'✓ 确定可实现':'⚠ 需适配';
+  b.title=el.dataset.note||''; el.appendChild(b);
+});
+</script>
+</body>
+</html>

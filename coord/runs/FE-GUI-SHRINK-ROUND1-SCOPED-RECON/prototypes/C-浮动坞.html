@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>方向 C · 浮动坞 — Vit-DAW GUI 收缩稿</title>
+<style>
+:root{
+  --paper:#F6F4EC; --paper-warm:#FBF9F1; --ink:#090B0E; --ink-soft:#3A4148;
+  --line:rgba(9,11,14,.9); --line-soft:rgba(9,11,14,.16);
+  --blue:#065BC7; --blue-light:#73B8F5; --yellow:#FACC1A; --red:#DB1214;
+  --canvas:#252B2E; --canvas-dark:#1D2225;
+  --ease:cubic-bezier(.22,.8,.24,1); --spring:cubic-bezier(.34,1.45,.4,1);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{font-family:"Segoe UI","Microsoft YaHei",system-ui,sans-serif;background:var(--paper);color:var(--ink);display:flex;flex-direction:column;overflow:hidden;font-size:13px}
+button{font-family:inherit;cursor:pointer;background:none;border:none;color:inherit}
+/* 顶栏 */
+#topbar{height:46px;flex:none;background:var(--paper-warm);border-bottom:1.5px solid var(--ink);display:flex;align-items:center;gap:14px;padding:0 14px;position:relative;z-index:5}
+.wordmark{font-weight:800;letter-spacing:.06em;font-size:15px}
+.vdiv{width:1.5px;height:20px;background:var(--ink);opacity:.7}
+.menu-btn{font-size:13px;padding:4px 8px;border-radius:3px}
+.menu-btn:hover{background:rgba(6,91,199,.10)}
+#transport{position:absolute;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:10px}
+.lcd{background:var(--ink);color:var(--paper);font-family:Consolas,monospace;padding:4px 14px;border-radius:3px;text-align:center;line-height:1.25}
+.lcd .t{font-size:15px;letter-spacing:.05em}
+.lcd .sub{font-size:10px;opacity:.75}
+.tp-btn{width:30px;height:30px;border:1.5px solid var(--ink);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:13px;background:var(--paper)}
+.tp-btn:hover{background:var(--blue-light)}
+.tp-btn.on{background:var(--blue);color:#fff}
+#topbar .right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.ai-pill{display:flex;align-items:center;gap:6px;font-size:12px;border:1.5px solid var(--ink);border-radius:999px;padding:3px 12px;background:var(--paper)}
+.ai-dot{width:7px;height:7px;border-radius:50%;background:var(--blue)}
+.btn-ink{border:1.5px solid var(--ink);border-radius:3px;padding:4px 14px;font-size:13px;background:var(--paper)}
+.btn-ink:hover{background:var(--yellow)}
+/* 主体 */
+#body-row{flex:1;display:flex;min-height:0;position:relative}
+#edge-rail{width:20px;flex:none;background:var(--paper-warm);border-right:1.5px solid var(--ink);display:flex;align-items:center;justify-content:center;cursor:pointer}
+#edge-rail span{writing-mode:vertical-rl;font-size:10px;letter-spacing:.3em;color:var(--ink-soft)}
+#library{width:236px;flex:none;background:var(--paper-warm);border-right:1.5px solid var(--ink);display:flex;flex-direction:column;min-height:0}
+.lib-tabs{display:flex;border-bottom:1.5px solid var(--ink);flex:none}
+.lib-tab{flex:1;text-align:center;padding:8px 0;font-size:12px;border-right:1px solid var(--line-soft)}
+.lib-tab:last-child{border-right:none}
+.lib-tab.on{background:var(--ink);color:var(--paper)}
+.lib-search{padding:8px}
+.lib-search input{width:100%;border:1.5px solid var(--ink);border-radius:3px;padding:5px 8px;font-size:12px;background:var(--paper);font-family:inherit}
+.lib-tree{flex:1;overflow:auto;padding:2px 0 12px}
+.lib-sec{padding:6px 12px 3px;font-size:10px;color:var(--ink-soft);letter-spacing:.14em}
+.lib-item{display:flex;align-items:center;gap:7px;padding:4px 12px 4px 20px;font-size:12px}
+.lib-item:hover{background:rgba(6,91,199,.08)}
+.lib-item .ico{width:12px;height:12px;flex:none;border:1.5px solid var(--ink);border-radius:2px}
+.lib-item .ico.audio{background:repeating-linear-gradient(90deg,var(--ink) 0 1px,transparent 1px 3px)}
+.lib-item .ico.plug{background:var(--blue-light)}
+.lib-item .ico.dir{background:var(--paper);border-radius:50%}
+/* 工作区 */
+#workspace{flex:1;display:flex;min-width:0;padding:10px;gap:10px}
+.pane{border:1.5px solid var(--ink);border-radius:4px;background:var(--paper-warm);display:flex;flex-direction:column;min-width:0;overflow:hidden;position:relative;box-shadow:3px 3px 0 rgba(9,11,14,.12)}
+#tracks-pane{flex:1.6}
+#dock-slot{flex:1}
+.pane-head{height:34px;flex:none;border-bottom:1.5px solid var(--ink);display:flex;align-items:center;gap:8px;padding:0 10px;background:var(--paper)}
+.pane-head .name{font-weight:700;font-size:12.5px;letter-spacing:.08em}
+.pane-head .meta{font-size:10.5px;color:var(--ink-soft)}
+.pane-head .spacer{flex:1}
+.chip-btn{border:1.5px solid var(--ink);border-radius:3px;font-size:11px;padding:2px 9px;background:var(--paper-warm)}
+.chip-btn:hover{background:var(--blue-light)}
+/* 音轨 */
+#ruler{height:20px;flex:none;border-bottom:1px solid var(--line-soft);display:flex;align-items:flex-end;font-size:9px;color:var(--ink-soft);padding-left:176px}
+#ruler i{flex:1;border-left:1px solid var(--line-soft);padding-left:4px;font-style:normal}
+#track-scroll{flex:1;overflow:auto;position:relative}
+.track{display:flex;height:40px;border-bottom:1px solid var(--line-soft)}
+.track.selected .tr-head{background:rgba(6,91,199,.12)}
+.tr-head{width:168px;flex:none;border-right:1.5px solid var(--ink);display:flex;align-items:center;gap:6px;padding:0 8px 0 0;position:sticky;left:0;background:var(--paper-warm);z-index:2}
+.tr-color{width:4px;height:26px;flex:none}
+.tr-name{flex:1;font-size:12px;white-space:nowrap;overflow:hidden}
+.tr-btn{width:18px;height:18px;border:1px solid var(--ink);border-radius:2px;font-size:9px;display:flex;align-items:center;justify-content:center;flex:none}
+.tr-btn.mute.on{background:var(--yellow)}
+.tr-btn.solo.on{background:var(--blue);color:#fff}
+.tr-lane{flex:1;position:relative;background:repeating-linear-gradient(90deg,transparent 0 79px,var(--line-soft) 79px 80px)}
+.clip{position:absolute;top:6px;height:28px;border:1.5px solid var(--ink);border-radius:2px;background:var(--paper);overflow:hidden}
+.clip .wave{position:absolute;inset:0;background:repeating-linear-gradient(90deg,rgba(9,11,14,.55) 0 1.5px,transparent 1.5px 4px);opacity:.5;mask-image:linear-gradient(180deg,transparent 20%,#000 20%,#000 80%,transparent 80%);-webkit-mask-image:linear-gradient(180deg,transparent 20%,#000 20%,#000 80%,transparent 80%)}
+.clip.midi{background:var(--blue-light)}
+.clip.midi .notes{position:absolute;inset:0;background:repeating-linear-gradient(180deg,rgba(9,11,14,.5) 0 2px,transparent 2px 7px)}
+#playhead{position:absolute;top:0;bottom:0;width:1.5px;background:var(--red);left:38%;z-index:3;pointer-events:none}
+/* 机架 mock */
+.rack-canvas{position:absolute;inset:0;background:var(--canvas);background-image:linear-gradient(rgba(246,244,236,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(246,244,236,.06) 1px,transparent 1px);background-size:28px 28px}
+.rnode{position:absolute;width:132px;background:var(--paper-warm);border:1.5px solid var(--ink);border-radius:4px;font-size:11px;box-shadow:0 6px 18px rgba(0,0,0,.4)}
+.rnode .nh{padding:4px 8px;border-bottom:1.5px solid var(--ink);font-weight:700;font-size:11px;display:flex;justify-content:space-between;align-items:center}
+.rnode .nh .led{width:6px;height:6px;border-radius:50%;background:var(--blue)}
+.rnode .nb{padding:6px 8px;color:var(--ink-soft);font-size:10px;line-height:1.7}
+.port{position:absolute;width:9px;height:9px;border-radius:50%;background:var(--paper);border:1.5px solid var(--ink)}
+.port.in{left:-5px;top:12px}.port.out{right:-5px;top:12px}
+/* 空槽位状态 */
+.slot-empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--ink-soft);font-size:12px}
+.slot-empty .icons{display:flex;gap:10px}
+/* ====== 右缘视图坞 ====== */
+#view-dock{
+  width:56px;flex:none;background:var(--paper-warm);border-left:1.5px solid var(--ink);
+  display:flex;flex-direction:column;align-items:center;padding:10px 0;gap:8px;
+}
+.dock-label{font-size:8px;letter-spacing:.2em;color:var(--ink-soft);writing-mode:horizontal-tb}
+.dock-icon{
+  width:40px;height:40px;border:1.5px solid var(--ink);border-radius:8px;background:var(--paper);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+  font-size:9px;position:relative;transition:transform .2s var(--spring);
+}
+.dock-icon:hover{transform:translateY(-3px) scale(1.06);background:var(--blue-light)}
+.dock-icon .gi{font-size:15px;line-height:1}
+.dock-icon.active{background:var(--ink);color:var(--paper)}
+.dock-icon .live-dot{position:absolute;top:-4px;right:-4px;width:9px;height:9px;border-radius:50%;background:var(--blue);border:1.5px solid var(--paper-warm)}
+#dock-tidy{margin-top:auto}
+/* ====== 浮动卡片窗 ====== */
+.float-card{
+  position:absolute;z-index:20;width:360px;background:var(--paper-warm);
+  border:1.5px solid var(--ink);border-radius:8px;overflow:hidden;
+  box-shadow:0 24px 60px rgba(9,11,14,.4),0 4px 12px rgba(9,11,14,.25);
+  transform-origin:bottom right;
+  animation:pop .34s var(--spring);
+}
+@keyframes pop{0%{transform:scale(.6);opacity:0}100%{transform:scale(1);opacity:1}}
+.float-card .fc-head{
+  height:30px;background:var(--paper);border-bottom:1.5px solid var(--ink);
+  display:flex;align-items:center;gap:8px;padding:0 8px;cursor:grab;user-select:none;
+}
+.float-card .fc-head:active{cursor:grabbing}
+.float-card .fc-head .gi{width:14px;height:14px;border:1.5px solid var(--ink);border-radius:3px;flex:none}
+.float-card .fc-head .nm{font-size:11.5px;font-weight:700}
+.float-card .fc-head .spacer{flex:1}
+.fc-act{width:22px;height:20px;border:1px solid var(--ink);border-radius:3px;font-size:10px;background:var(--paper-warm);display:flex;align-items:center;justify-content:center}
+.fc-act:hover{background:var(--yellow)}
+.fc-body{height:230px;position:relative;overflow:hidden}
+/* 各视图 mock 内容 */
+.piano{display:flex;height:100%}
+.piano .keys{width:52px;flex:none;background:var(--paper);border-right:1.5px solid var(--ink);display:flex;flex-direction:column}
+.piano .k{flex:1;border-bottom:1px solid var(--line-soft);font-size:7px;display:flex;align-items:center;padding-left:4px;color:var(--ink-soft)}
+.piano .k.blk{background:var(--ink);color:var(--paper)}
+.piano .grid{flex:1;position:relative;background:repeating-linear-gradient(90deg,transparent 0 47px,var(--line-soft) 47px 48px),repeating-linear-gradient(180deg,transparent 0 13px,var(--line-soft) 13px 14px)}
+.pnote{position:absolute;height:8px;background:var(--blue);border:1px solid var(--ink);border-radius:2px;opacity:.92}
+.mixer{display:flex;height:100%;background:var(--paper);padding:6px;gap:5px;overflow:auto}
+.strip{flex:1;min-width:44px;border:1.5px solid var(--ink);border-radius:3px;background:var(--paper-warm);display:flex;flex-direction:column;align-items:center;padding:4px 3px;gap:4px;font-size:8.5px}
+.strip .sn{white-space:nowrap;overflow:hidden;max-width:100%}
+.strip .fader{flex:1;width:20px;position:relative;border:1px solid var(--line-soft);border-radius:2px;background:var(--paper)}
+.strip .cap{position:absolute;left:50%;transform:translateX(-50%);width:18px;height:10px;border:1.5px solid var(--ink);border-radius:2px;background:var(--yellow)}
+.strip .meter{width:6px;align-self:stretch;border:1px solid var(--line-soft);position:relative;background:var(--paper)}
+.strip .meter i{position:absolute;bottom:0;left:0;right:0;background:var(--blue)}
+.strip.master{background:var(--ink);color:var(--paper)}
+.spec{display:flex;height:100%}
+.spec .sp{flex:1.3;position:relative;border-right:1.5px solid var(--ink);background:var(--paper);display:flex;align-items:flex-end;gap:3px;padding:8px 6px 18px}
+.spec .sp i{flex:1;background:var(--blue);opacity:.85;border-radius:1px 1px 0 0}
+.spec .sp i.hi{background:var(--blue-light)}
+.spec .fax{position:absolute;bottom:3px;left:6px;right:6px;display:flex;justify-content:space-between;font-size:8px;color:var(--ink-soft)}
+.spec .insp{flex:1;padding:8px 10px;font-size:10px;overflow:auto}
+.spec .insp h4{font-size:10px;letter-spacing:.1em;border-bottom:1.5px solid var(--ink);padding-bottom:3px;margin-bottom:6px}
+.kv{display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px dashed var(--line-soft)}
+/* 底栏 */
+#bottombar{height:30px;flex:none;border-top:1.5px solid var(--ink);background:var(--paper-warm);display:flex;align-items:center;gap:18px;padding:0 14px;font-size:11px;color:var(--ink-soft)}
+#bottombar .kbd-hint b{border:1px solid var(--ink-soft);border-radius:3px;padding:0 4px;font-weight:600;color:var(--ink)}
+#bottombar .right{margin-left:auto;display:flex;gap:8px;align-items:center}
+#ann-toggle{border:1.5px solid var(--ink);border-radius:3px;padding:1px 10px;font-size:11px;background:var(--paper)}
+#ann-toggle.on{background:var(--yellow)}
+/* 标注 */
+.gd-badge{position:absolute;top:-9px;right:8px;z-index:40;display:none;align-items:center;gap:4px;font-size:10px;padding:1px 8px;border-radius:999px;border:1.5px solid var(--ink);background:var(--yellow);white-space:nowrap;cursor:help}
+.gd-badge.ok{background:var(--blue);color:#fff}
+body.ann-on .gd-badge{display:flex}
+[data-gd]{position:relative}
+#ann-legend{position:fixed;left:14px;bottom:40px;z-index:60;display:none;gap:10px;align-items:center;background:var(--paper-warm);border:1.5px solid var(--ink);border-radius:4px;padding:8px 14px;font-size:11px;box-shadow:3px 3px 0 rgba(9,11,14,.15)}
+body.ann-on #ann-legend{display:flex}
+#ann-legend .b{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:-1px;margin-right:4px}
+/* 信息弹窗 */
+#info-modal{position:fixed;inset:0;z-index:90;display:none;align-items:center;justify-content:center;background:rgba(9,11,14,.5)}
+#info-modal.show{display:flex}
+#info-card{width:540px;max-height:80vh;overflow:auto;background:var(--paper-warm);border:2px solid var(--ink);border-radius:6px;padding:22px 26px;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+#info-card h2{font-size:16px;margin-bottom:4px}
+#info-card h3{font-size:12.5px;margin:14px 0 6px;letter-spacing:.08em;border-bottom:1.5px solid var(--ink);padding-bottom:3px}
+#info-card p,#info-card li{font-size:12px;line-height:1.7;color:var(--ink-soft)}
+#info-card li{margin-left:18px}
+#info-card .close-row{margin-top:16px;text-align:right}
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <span class="wordmark">Vit‑DAW</span>
+  <span class="vdiv"></span>
+  <button class="menu-btn">文件</button>
+  <button class="menu-btn">编辑</button>
+  <div id="transport" data-gd="ok" data-note="走带栏照搬现有 TopTransportBar">
+    <button class="tp-btn">⏮</button>
+    <button class="tp-btn on" id="btn-play">⏵</button>
+    <button class="tp-btn rec">⏺</button>
+    <button class="tp-btn">🔁</button>
+    <div class="lcd"><div class="t">001 : 1 : 1 : 000</div><div class="sub">00:00:00.000 · 120.0 BPM · 4/4</div></div>
+  </div>
+  <div class="right">
+    <span class="ai-pill" data-gd="ok" data-note="AI 胶囊收编进顶栏"><span class="ai-dot"></span>AI · 空闲</span>
+    <button class="btn-ink">保存</button>
+    <button class="btn-ink" id="info-btn">设计说明</button>
+  </div>
+</div>
+
+<div id="body-row">
+  <div id="edge-rail" data-gd="ok" data-note="现有 LeftActivityRail 保留"><span>⋮ 资料库</span></div>
+  <div id="library" data-gd="ok" data-note="left_library_dock 原样保留">
+    <div class="lib-tabs"><button class="lib-tab on">文件</button><button class="lib-tab">插件</button><button class="lib-tab">编组</button><button class="lib-tab">便签</button></div>
+    <div class="lib-search"><input placeholder="搜索声音、插件、工程…"></div>
+    <div class="lib-tree">
+      <div class="lib-sec">工程 · SATTTELITES</div>
+      <div class="lib-item"><span class="ico dir"></span>Lead Vocal</div>
+      <div class="lib-item"><span class="ico dir"></span>Drum Bus</div>
+      <div class="lib-item"><span class="ico dir"></span>Bass Synth</div>
+      <div class="lib-sec">PLACES</div>
+      <div class="lib-item"><span class="ico dir"></span>D:/Samples/Drums</div>
+      <div class="lib-item"><span class="ico audio"></span>kick_01.wav</div>
+      <div class="lib-item"><span class="ico plug"></span>Vitamin EQ.vst3</div>
+    </div>
+  </div>
+
+  <div id="workspace">
+    <!-- 音轨：常驻 -->
+    <div class="pane" id="tracks-pane" data-gd="ok" data-note="音轨=常驻主视窗，任何浮动窗都盖在它上面而不换走它">
+      <div class="pane-head"><span class="name">音轨</span><span class="meta">7 轨 · SATTTELITES</span><span class="spacer"></span><button class="chip-btn">＋ 新建轨道</button></div>
+      <div id="ruler"><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i></div>
+      <div id="track-scroll">
+        <div id="playhead"></div>
+        <div class="track selected"><div class="tr-head"><span class="tr-color" style="background:var(--blue)"></span><span class="tr-name">Lead Vocal</span><button class="tr-btn mute">M</button><button class="tr-btn solo">S</button></div><div class="tr-lane"><div class="clip" style="left:8%;width:34%"><div class="wave"></div></div><div class="clip" style="left:48%;width:22%"><div class="wave"></div></div></div></div>
+        <div class="track"><div class="tr-head"><span class="tr-color" style="background:var(--red)"></span><span class="tr-name">Drum Bus</span><button class="tr-btn mute">M</button><button class="tr-btn solo">S</button></div><div class="tr-lane"><div class="clip" style="left:4%;width:60%"><div class="wave"></div></div></div></div>
+        <div class="track"><div class="tr-head"><span class="tr-color" style="background:var(--yellow)"></span><span class="tr-name">Bass Synth</span><button class="tr-btn mute">M</button><button class="tr-btn solo">S</button></div><div class="tr-lane"><div class="clip midi" style="left:12%;width:40%"><div class="notes"></div></div></div></div>
+        <div class="track"><div class="tr-head"><span class="tr-color" style="background:#7B4EA8"></span><span class="tr-name">Synth Pad</span><button class="tr-btn mute">M</button><button class="tr-btn solo">S</button></div><div class="tr-lane"><div class="clip midi" style="left:20%;width:52%"><div class="notes"></div></div></div></div>
+        <div class="track"><div class="tr-head"><span class="tr-color" style="background:#2E8B57"></span><span class="tr-name">Guitar L</span><button class="tr-btn mute">M</button><button class="tr-btn solo">S</button></div><div class="tr-lane"><div class="clip" style="left:30%;width:38%"><div class="wave"></div></div></div></div>
+        <div class="track"><div class="tr-head"><span class="tr-color" style="background:#B8860B"></span><span class="tr-name">Guitar R</span><button class="tr-btn mute">M</button><button class="tr-btn solo">S</button></div><div class="tr-lane"><div class="clip" style="left:30%;width:38%"><div class="wave"></div></div></div></div>
+        <div class="track"><div class="tr-head"><span class="tr-color" style="background:var(--ink)"></span><span class="tr-name">Master</span><button class="tr-btn mute">M</button></div><div class="tr-lane"></div></div>
+      </div>
+    </div>
+
+    <!-- 右槽：默认装着机架，可被坞中视图替换 -->
+    <div class="pane" id="dock-slot" data-gd="adapt" data-note="右槽=吸附位：视图可在「浮窗 ↔ 吸附右槽」两态切换——Control 重挂父节点即可实现，工程量中等">
+      <div class="pane-head">
+        <span class="name" id="slot-name">机架</span><span class="meta" id="slot-meta">Lead Vocal · 4 节点</span>
+        <span class="spacer"></span>
+        <button class="chip-btn" id="slot-float-btn" data-gd="adapt" data-note="⇱=把右槽内容弹成浮窗（状态换位）">弹出 ⇱</button>
+      </div>
+      <div style="flex:1;position:relative" id="slot-body">
+        <div class="rack-canvas" id="rack-content">
+          <svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none">
+            <path d="M 150 60 C 200 60, 200 150, 240 150" stroke="#73B8F5" stroke-width="2.5" fill="none"/>
+            <path d="M 380 170 C 430 170, 430 250, 300 250 C 260 250, 260 300, 250 300" stroke="#065BC7" stroke-width="2.5" fill="none"/>
+          </svg>
+          <div class="rnode" style="left:24px;top:44px"><span class="port in"></span><span class="port out"></span><div class="nh">音量·声像<span class="led"></span></div><div class="nb">Vol −3.2 dB<br>Pan L12</div></div>
+          <div class="rnode" style="left:116px;top:140px"><span class="port in"></span><span class="port out"></span><div class="nh">Vitamin EQ<span class="led"></span></div><div class="nb">4 段 · LowShelf<br>+2.5 dB @ 220</div></div>
+          <div class="rnode" style="left:246px;top:150px"><span class="port in"></span><span class="port out"></span><div class="nh">压缩 2A<span class="led"></span></div><div class="nb">Ratio 4:1<br>GR −4.8 dB</div></div>
+          <div class="rnode" style="left:150px;top:284px"><span class="port in"></span><span class="port out"></span><div class="nh">延迟 1/4<span class="led"></span></div><div class="nb">Sync 1/4<br>Fbk 22%</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 浮动卡片容器（浮窗的家） -->
+    <div id="float-layer" style="position:absolute;inset:0;pointer-events:none;z-index:20" data-gd="adapt" data-note="浮窗层=独立 overlay 层：可拖拽卡片窗（Control 拖拽确定可实现）；「浮窗↔吸附」状态同步为中等工程量"></div>
+  </div>
+
+  <!-- 右缘视图坞 -->
+  <div id="view-dock" data-gd="ok" data-note="视图坞=窄图标栏（现有 EdgeActivityBar 形态复用：它已支持垂直窄柄模式）——从「一个柄」扩为「视图图标列」">
+    <span class="dock-label">坞</span>
+    <button class="dock-icon active" data-view="rack" title="机架 · 已吸附右槽"><span class="gi">▦</span>机架<span class="live-dot"></span></button>
+    <button class="dock-icon" data-view="piano" title="钢琴卷帘"><span class="gi">♪</span>卷帘</button>
+    <button class="dock-icon" data-view="mixer" title="混音台"><span class="gi">≡</span>混音</button>
+    <button class="dock-icon" data-view="spectral" title="频谱·详情"><span class="gi">∿</span>详情</button>
+    <button class="dock-icon" id="dock-tidy" title="收起全部浮窗（浮窗回坞）"><span class="gi">⇤</span>收纳</button>
+  </div>
+</div>
+
+<div id="bottombar">
+  <span>工作区 · 编曲（音轨＋机架，基座永固）</span>
+  <span class="kbd-hint"><b>右缘坞</b> 唤出视图浮窗</span>
+  <span class="kbd-hint"><b>⚓</b> 浮窗吸附右槽</span>
+  <span class="kbd-hint"><b>⇤</b> 一键收纳</span>
+  <span class="right">
+    <span style="color:var(--ink);opacity:.55">浮窗=精心调过的卡片，不是自由分割</span>
+    <button id="ann-toggle">标注：关</button>
+  </span>
+</div>
+
+<div id="ann-legend">
+  <span><span class="b" style="background:var(--blue)"></span>Godot 确定可实现</span>
+  <span><span class="b" style="background:var(--yellow)"></span>Godot 需适配</span>
+  <span style="color:var(--ink-soft)">悬停标注可看依据</span>
+</div>
+
+<div id="info-modal">
+  <div id="info-card">
+    <h2>方向 C · 浮动坞（iPad dock 气质）</h2>
+    <p>你的「浮动窗口」灵感的另一诠释：不需要进入任何切换态——右缘常驻一条<b>视图坞</b>，点图标即以<b>可拖拽的浮动卡片窗</b>唤出该视图（带弹性出场动画），浮窗可 ⚓ 吸附进右槽变回固定栏，也可 ⇱ 再弹出；「收纳」一键让所有浮窗回坞。主基座（音轨＋机架）永远不动。</p>
+    <h3>交互动线（本稿可点）</h3>
+    <li>点右缘坞「卷帘 / 混音 / 详情」→ 浮窗弹出（可多开，注意克制）</li>
+    <li>拖浮窗标题栏 → 任意摆放；⚓ → 吸附进右槽（机架回坞）</li>
+    <li>右槽「弹出 ⇱」→ 把当前右槽内容弹回浮窗态</li>
+    <li>坞底「⇤ 收纳」→ 全部浮窗一键回坞；底栏「标注」看标注</li>
+    <h3>关键假设（讨论点）</h3>
+    <li>浮窗=「策展的卡片」：尺寸/层级受控，不追求任意分割——与自由分割树的边界在此</li>
+    <li>右槽同一时刻只吸附一个视图；音轨永不被覆盖为槽位</li>
+    <li>视图坞常驻右缘（对照 A 的 F2 切换态：C 无模式、A 有模式）</li>
+    <h3>Godot 落地口径</h3>
+    <li>视图坞=EdgeActivityBar 垂直窄柄形态扩展，确定可实现</li>
+    <li>浮窗拖拽/弹性动画=Control+Tween，确定可实现</li>
+    <li>「浮窗↔吸附」状态同步=需适配（中等工程量：槽位宿主与浮窗层交换父子关系）</li>
+    <div class="close-row"><button class="btn-ink" id="info-close">关闭</button></div>
+  </div>
+</div>
+
+<script>
+/* ============ 视图内容 ============ */
+const VIEW_META = {
+  rack:{name:'机架', meta:'Lead Vocal · 4 节点', gi:'background:var(--canvas)'},
+  piano:{name:'钢琴卷帘', meta:'Synth Pad · clip_2a', gi:'background:var(--blue-light)'},
+  mixer:{name:'混音台', meta:'8 通道 · 电平=遥测红线', gi:'background:var(--yellow)'},
+  spectral:{name:'频谱 · 详情', meta:'Lead Vocal', gi:'background:var(--paper)'},
+};
+function viewBody(k){
+  if(k==='rack'){
+    const rc=document.getElementById('rack-content');
+    return rc ? rc.innerHTML : '';
+  }
+  if(k==='piano') return `<div class="piano"><div class="keys">${['C','C#','D','D#','E','F','F#','G','G#','A','A#','B','C'].map(n=>`<div class="k ${n.includes('#')?'blk':''}">${n.includes('#')?'':n}</div>`).join('')}</div>
+    <div class="grid"><div class="pnote" style="left:6%;top:18%;width:9%"></div><div class="pnote" style="left:18%;top:38%;width:6%"></div><div class="pnote" style="left:26%;top:8%;width:12%"></div><div class="pnote" style="left:40%;top:55%;width:8%"></div><div class="pnote" style="left:52%;top:30%;width:14%"></div><div class="pnote" style="left:70%;top:42%;width:10%"></div></div></div>`;
+  if(k==='mixer') return `<div class="mixer">${['Vocal','Drum','Bass','Pad','Gtr L','Gtr R'].map((n,i)=>`
+    <div class="strip"><span class="sn">${n}</span><div style="display:flex;flex:1;gap:3px;align-self:stretch">
+      <div class="fader"><div class="cap" style="bottom:${[28,18,38,46,24,30][i]}%"></div></div>
+      <div class="meter"><i style="height:${[62,78,55,48,66,58][i]}%"></i></div></div></div>`).join('')}
+    <div class="strip master"><span class="sn">MST</span><div style="display:flex;flex:1;gap:3px;align-self:stretch"><div class="fader"><div class="cap" style="bottom:34%"></div></div><div class="meter"><i style="height:72%"></i></div></div></div></div>`;
+  return `<div class="spec"><div class="sp">${[18,26,22,34,48,42,58,66,60,74,82,70,62,55,64,58,46,38,30,24,20,16].map((h,i)=>`<i class="${i>15?'hi':''}" style="height:${h}%"></i>`).join('')}
+    <div class="fax"><span>50</span><span>200</span><span>1k</span><span>5k</span><span>12k</span></div></div>
+    <div class="insp"><h4>Lead Vocal</h4><div class="kv"><span>电平</span><b>−14.2 dBFS</b></div><div class="kv"><span>峰值</span><b>820 Hz</b></div><div class="kv"><span>插件</span><b>EQ · 2A</b></div><div class="kv"><span>片段</span><b>2 · 42 s</b></div></div></div>`;
+}
+
+/* ============ 状态 ============ */
+let slotView='rack';                 // 右槽当前吸附的视图
+const openFloats=new Set();          // 浮窗中的视图
+const floatLayer=document.getElementById('float-layer');
+const slotBody=document.getElementById('slot-body');
+
+/* 记住机架原始 DOM（弹出时复用） */
+const rackHTMLCache=document.getElementById('rack-content').outerHTML;
+function bodyOf(k){ return k==='rack'?rackHTMLCache:viewBody(k); }
+
+function syncDock(){
+  document.querySelectorAll('.dock-icon[data-view]').forEach(d=>{
+    const v=d.dataset.view;
+    const live = v===slotView || openFloats.has(v);
+    d.classList.toggle('active', v===slotView);
+    const dot=d.querySelector('.live-dot');
+    if(dot) dot.remove();
+    if(live && v!==slotView){
+      const s=document.createElement('span'); s.className='live-dot'; d.appendChild(s);
+    }
+    d.title = VIEW_META[v].name + (v===slotView?' · 已吸附右槽':(openFloats.has(v)?' · 浮窗中':''));
+  });
+}
+function renderSlot(){
+  document.getElementById('slot-name').textContent=VIEW_META[slotView].name;
+  document.getElementById('slot-meta').textContent=VIEW_META[slotView].meta;
+  slotBody.innerHTML=`<div style="position:absolute;inset:0" class="${slotView==='rack'?'':''}">${bodyOf(slotView)}</div>`;
+  if(slotView==='rack') slotBody.firstElementChild.classList.add('rack-canvas');
+  document.getElementById('slot-float-btn').style.display = slotView?'':'none';
+  syncDock();
+}
+/* 空槽态 */
+function emptySlotHTML(){
+  return `<div class="slot-empty"><span>右槽空置</span><div class="icons">
+    ${Object.keys(VIEW_META).map(k=>`<button class="chip-icon" data-attach="${k}" style="border:1.5px solid var(--ink);border-radius:4px;padding:6px 10px;font-size:11px;background:var(--paper)">${VIEW_META[k].name}</button>`).join('')}
+  </div><span style="font-size:10px">从右缘坞吸附一个视图，或点上方任一</span></div>`;
+}
+document.addEventListener('click',e=>{
+  const a=e.target.closest('[data-attach]');
+  if(a){ slotView=a.dataset.attach; renderSlot(); }
+});
+
+/* ============ 浮窗 ============ */
+let floatCount=0;
+function openFloat(k, x, y){
+  if(k===slotView){ // 已吸附 → 先弹出（右槽转空）
+    slotView=null; renderSlotAsEmpty();
+  }
+  if(openFloats.has(k)) return;
+  openFloats.add(k); floatCount++;
+  const card=document.createElement('div');
+  card.className='float-card'; card.dataset.view=k;
+  card.style.left=(x!=null?x:(30+floatCount*36))+'px';
+  card.style.top =(y!=null?y:(30+floatCount*30))+'px';
+  card.style.pointerEvents='auto';
+  card.innerHTML=`
+    <div class="fc-head"><span class="gi" style="${VIEW_META[k].gi}"></span><span class="nm">${VIEW_META[k].name}</span>
+      <span style="font-size:9px;color:var(--ink-soft)">${VIEW_META[k].meta}</span><span class="spacer"></span>
+      <button class="fc-act" title="吸附进右槽">⚓</button>
+      <button class="fc-act" title="关闭回坞">✕</button></div>
+    <div class="fc-body" style="${k==='rack'?'background:var(--canvas)':''}">${viewBody(k)}</div>`;
+  floatLayer.appendChild(card);
+  /* 拖拽 */
+  const head=card.querySelector('.fc-head');
+  let sx,sy,ox,oy,drag=false;
+  head.addEventListener('mousedown',e=>{
+    if(e.target.closest('.fc-act'))return;
+    drag=true;sx=e.clientX;sy=e.clientY;ox=card.offsetLeft;oy=card.offsetTop;
+    floatLayer.appendChild(card); e.preventDefault();
+  });
+  window.addEventListener('mousemove',e=>{
+    if(!drag)return;
+    card.style.left=(ox+e.clientX-sx)+'px'; card.style.top=(oy+e.clientY-sy)+'px';
+  });
+  window.addEventListener('mouseup',()=>drag=false);
+  /* 动作 */
+  card.querySelector('.fc-act[title="吸附进右槽"]').onclick=()=>{ closeFloat(k); if(slotView){openFloat(slotView);} slotView=k; renderSlot(); };
+  card.querySelector('.fc-act[title="关闭回坞"]').onclick=()=>closeFloat(k);
+  syncDock();
+}
+function closeFloat(k){
+  openFloats.delete(k);
+  const c=floatLayer.querySelector(`.float-card[data-view="${k}"]`);
+  if(c)c.remove(); syncDock();
+}
+function renderSlotAsEmpty(){
+  document.getElementById('slot-name').textContent='（空槽）';
+  document.getElementById('slot-meta').textContent='等待吸附';
+  slotBody.innerHTML=emptySlotHTML();
+  document.getElementById('slot-float-btn').style.display='none';
+  syncDock();
+}
+/* 坞点击 */
+document.querySelectorAll('.dock-icon[data-view]').forEach(d=>d.onclick=()=>{
+  const k=d.dataset.view;
+  if(k===slotView){ // 吸附中 → 弹出成浮窗
+    openFloat(k);
+  } else if(openFloats.has(k)){
+    closeFloat(k);
+  } else {
+    openFloat(k);
+  }
+});
+/* 右槽弹出按钮 */
+document.getElementById('slot-float-btn').onclick=()=>{
+  if(!slotView)return;
+  const k=slotView; slotView=null; renderSlotAsEmpty(); openFloat(k);
+};
+/* 收纳 */
+document.getElementById('dock-tidy').onclick=()=>{ [...openFloats].forEach(closeFloat); };
+
+/* 其他交互 */
+document.querySelectorAll('.track').forEach(tr=>tr.onclick=()=>{
+  document.querySelectorAll('.track').forEach(x=>x.classList.remove('selected'));
+  tr.classList.add('selected');
+});
+document.getElementById('btn-play').onclick=function(){this.classList.toggle('on')};
+const annBtn=document.getElementById('ann-toggle');
+annBtn.onclick=()=>{document.body.classList.toggle('ann-on');annBtn.classList.toggle('on');
+  annBtn.textContent=document.body.classList.contains('ann-on')?'标注：开':'标注：关';};
+document.getElementById('info-btn').onclick=()=>document.getElementById('info-modal').classList.add('show');
+document.getElementById('info-close').onclick=()=>document.getElementById('info-modal').classList.remove('show');
+document.getElementById('info-modal').onclick=e=>{if(e.target.id==='info-modal')e.currentTarget.classList.remove('show')};
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.getElementById('info-modal').classList.remove('show')});
+document.querySelectorAll('[data-gd]').forEach(el=>{
+  const b=document.createElement('span');const ok=el.dataset.gd==='ok';
+  b.className='gd-badge'+(ok?' ok':'');b.textContent=ok?'✓ 确定可实现':'⚠ 需适配';
+  b.title=el.dataset.note||'';el.appendChild(b);
+});
+renderSlot();
+</script>
+</body>
+</html>

@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V6 · 平板端（库乐队基座 + 嵌入对话流 + 手机不变量）— Vit-DAW GUI 收缩稿</title>
+<style>
+:root{
+  --paper:#F6F4EC; --paper-warm:#FBF9F1; --ink:#090B0E; --ink-soft:#3A4148;
+  --line-soft:rgba(9,11,14,.16); --blue:#065BC7; --blue-light:#73B8F5; --yellow:#FACC1A; --red:#DB1214;
+  --ease:cubic-bezier(.22,.8,.24,1);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{font-family:"Segoe UI","Microsoft YaHei",system-ui,sans-serif;background:#DCD9CD;color:var(--ink);overflow:hidden;font-size:13px}
+button{font-family:inherit;cursor:pointer;background:none;border:none;color:inherit}
+#proto-bar{position:fixed;top:10px;right:14px;z-index:200;display:flex;align-items:center;gap:8px;background:var(--paper-warm);border:1.5px solid var(--ink);border-radius:999px;padding:4px 6px 4px 14px;box-shadow:3px 3px 0 rgba(9,11,14,.2);font-size:11px}
+#proto-bar .segs{display:flex;gap:2px}
+#proto-bar .seg{padding:3px 12px;border-radius:999px;font-size:11px;border:1.5px solid transparent}
+#proto-bar .seg.on{background:var(--ink);color:var(--paper)}
+#proto-bar .ann{border:1.5px solid var(--ink);border-radius:999px;padding:3px 10px;font-size:10px}
+#proto-bar .ann.on{background:var(--yellow)}
+#stage-wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+#device-shell{position:relative;width:1180px;height:820px;background:var(--paper);overflow:hidden;display:flex;flex-direction:column;border:10px solid var(--ink);border-radius:26px;box-shadow:0 40px 100px rgba(9,11,14,.4)}
+
+/* ============ 通用件（与 V5 同源） ============ */
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--blue);animation:pulse 1.6s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.icon-btn{width:40px;height:40px;border:1.5px solid var(--ink);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;background:var(--paper);flex:none}
+.icon-btn:active{background:var(--blue-light)}
+/* 对话流卡片族 */
+.chat-flow{flex:1;overflow-y:auto;padding:14px 14px 8px;display:flex;flex-direction:column;gap:10px}
+.msg{max-width:86%;display:flex;flex-direction:column;gap:3px}
+.msg .who{font-size:9.5px;color:var(--ink-soft);padding:0 4px}
+.msg.user{align-self:flex-end;align-items:flex-end}
+.bubble{padding:9px 12px;border-radius:12px;font-size:13px;line-height:1.55;border:1.5px solid var(--ink);background:var(--paper-warm);box-shadow:2px 2px 0 rgba(9,11,14,.1)}
+.msg.user .bubble{background:var(--ink);color:var(--paper)}
+.card-msg{max-width:92%}
+.card{border:1.5px solid var(--ink);border-radius:10px;background:var(--paper-warm);overflow:hidden;box-shadow:2px 2px 0 rgba(9,11,14,.12)}
+.card .ch{display:flex;align-items:center;gap:7px;padding:7px 11px;border-bottom:1px solid var(--line-soft);font-size:11px;font-weight:700}
+.card .ch .tag{font-size:9px;border:1px solid var(--ink);border-radius:999px;padding:0 7px;font-weight:400}
+.card .ch .dot{width:7px;height:7px;border-radius:50%}
+.card .cb{padding:9px 11px}
+.card .cf{display:flex;gap:6px;padding:8px 11px;border-top:1px solid var(--line-soft);flex-wrap:wrap}
+.chip{border:1.5px solid var(--ink);border-radius:999px;padding:3px 12px;font-size:11px;background:var(--paper)}
+.chip:active{background:var(--blue-light)}
+.chip.pri{background:var(--ink);color:var(--paper)}
+.player{display:flex;align-items:center;gap:10px;padding:8px 11px}
+.player .pbtn{width:36px;height:36px;border-radius:50%;border:1.5px solid var(--ink);background:var(--paper);display:flex;align-items:center;justify-content:center;font-size:13px;flex:none}
+.player .pbtn.playing{background:var(--blue);color:#fff}
+.player .ptrack{flex:1;height:34px;position:relative;border-radius:4px;overflow:hidden;background:var(--paper);background-image:repeating-linear-gradient(90deg,rgba(9,11,14,.5) 0 1.5px,transparent 1.5px 4px)}
+.player .pfill{position:absolute;inset:0;width:38%;background:rgba(115,184,245,.45);border-right:1.5px solid var(--blue)}
+.player .ptime{font-size:10px;color:var(--ink-soft);font-family:Consolas,monospace}
+.steps{font-size:11.5px;line-height:1.9}
+.steps .s{display:flex;align-items:center;gap:7px;color:var(--ink-soft)}
+.steps .s::before{content:"";width:7px;height:7px;border-radius:50%;border:1.5px solid var(--ink-soft);flex:none}
+.steps .s.done{color:var(--ink)}
+.steps .s.done::before{background:var(--blue);border-color:var(--blue)}
+.steps .s.doing{color:var(--ink);font-weight:600}
+.steps .s.doing::before{background:var(--yellow);border-color:var(--ink);animation:pulse 1.2s infinite}
+.prow{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12px}
+.prow .pn{width:92px;color:var(--ink-soft)}
+.stepper{display:flex;align-items:center;border:1.5px solid var(--ink);border-radius:6px;overflow:hidden}
+.stepper button{width:26px;height:24px;border-right:1.5px solid var(--ink);font-size:13px;background:var(--paper)}
+.stepper button:last-child{border-right:none;border-left:1.5px solid var(--ink)}
+.stepper .val{min-width:70px;text-align:center;font-family:Consolas,monospace;font-size:11.5px}
+.who-say{font-size:11px;color:var(--ink-soft);margin-top:2px;padding:0 4px}
+/* 磁带机（手机不变量，平板加大触点） */
+#deck{display:flex;align-items:center;gap:10px;padding:8px 18px 4px}
+#deck .dk{
+  width:50px;height:50px;border-radius:12px;border:2px solid var(--ink);background:var(--paper);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:17px;
+  box-shadow:0 3px 0 rgba(9,11,14,.35);flex:none;
+}
+#deck .dk:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(9,11,14,.35)}
+#deck .dk small{font-size:8px;letter-spacing:.05em;margin-top:1px}
+#deck .dk.play{background:var(--blue);color:#fff}
+#deck .dk.rec{
+  width:62px;height:62px;border-radius:50%;background:var(--red);color:#fff;border-color:var(--ink);
+  box-shadow:0 4px 0 rgba(9,11,14,.45),0 0 0 3px rgba(219,18,20,.25);font-size:21px;
+}
+#deck .dk.rec small{font-weight:800;color:#fff}
+#deck .dk.rec.recing{animation:recpulse 1.1s infinite}
+@keyframes recpulse{0%,100%{box-shadow:0 4px 0 rgba(9,11,14,.45),0 0 0 3px rgba(219,18,20,.25)}50%{box-shadow:0 4px 0 rgba(9,11,14,.45),0 0 0 10px rgba(219,18,20,.12)}}
+#deck .vol{margin-left:auto;flex:none;position:relative}
+#deck .vol .vbtn{width:50px;height:50px;border:2px solid var(--ink);border-radius:12px;background:var(--paper);font-size:18px;box-shadow:0 3px 0 rgba(9,11,14,.35);display:flex;align-items:center;justify-content:center}
+#deck .vol .vbtn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(9,11,14,.35)}
+#volpop{position:absolute;right:-2px;bottom:60px;width:66px;height:200px;background:var(--paper-warm);border:1.5px solid var(--ink);border-radius:12px;padding:10px 0 8px;display:none;z-index:40;flex-direction:column;align-items:center;gap:8px;box-shadow:0 8px 24px rgba(9,11,14,.3)}
+#volpop.show{display:flex}
+#volpop .lbl{font-size:9px;color:var(--ink-soft)}
+#volpop .vtrack{position:relative;width:12px;flex:1;border:1.5px solid var(--ink);border-radius:6px;background:var(--paper);cursor:pointer}
+#volpop .vfill{position:absolute;left:0;right:0;bottom:0;height:66%;background:var(--blue-light);border-radius:4px}
+#volpop .vthumb{position:absolute;left:50%;transform:translate(-50%,50%);bottom:66%;width:24px;height:13px;background:var(--yellow);border:2px solid var(--ink);border-radius:4px;box-shadow:0 2px 6px rgba(9,11,14,.35);z-index:2}
+#volpop .pct{font-size:10px;font-family:Consolas,monospace;font-weight:600}
+#tape-row{display:flex;align-items:center;gap:10px;margin:2px 18px 6px}
+#tape-row .tt-t{font-size:10.5px;font-family:Consolas,monospace;color:var(--ink-soft);flex:none}
+#tape-row .tt-t b{color:var(--ink);font-weight:600}
+#tape-line{position:relative;flex:1;height:13px;border:1.5px solid var(--ink);border-radius:6px;background:var(--paper);cursor:pointer}
+#tape-line .fill{position:absolute;inset:0;width:36%;background:var(--blue-light)}
+#tape-line .loopm{position:absolute;top:0;bottom:0;left:48%;width:16%;background:rgba(250,204,26,.5);border-left:1.5px dashed var(--ink);border-right:1.5px dashed var(--ink)}
+#tape-line .knob{position:absolute;top:50%;left:36%;transform:translate(-50%,-50%);width:17px;height:26px;border-radius:5px;background:var(--red);border:2px solid var(--ink);box-shadow:0 3px 8px rgba(9,11,14,.4);z-index:3;cursor:grab}
+#tape-line .knob::after{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:4px;height:14px;background:rgba(255,255,255,.9);border-radius:2px}
+#tape-line .knob:active{cursor:grabbing}
+.rec-line{display:none;font-size:9.5px;color:var(--red);text-align:center;padding-bottom:2px}
+.rec-line.show{display:block}
+.chat-input{flex:none;border-top:1.5px solid var(--ink);background:var(--paper-warm);padding:10px 18px 14px;display:flex;align-items:center;gap:10px}
+.chat-input .box{flex:1;border:1.5px solid var(--ink);border-radius:999px;padding:11px 18px;font-size:13.5px;color:var(--ink-soft);background:var(--paper)}
+.mic-btn{width:44px;height:44px;border-radius:50%;border:1.5px solid var(--ink);background:var(--paper);display:flex;align-items:center;justify-content:center;font-size:17px}
+.mic-btn:active{background:var(--red);color:#fff}
+.plus-btn{width:38px;height:38px;border-radius:50%;border:1.5px solid var(--ink);background:var(--paper);display:flex;align-items:center;justify-content:center;font-size:16px}
+
+/* ============ ① 首页（与手机同构，横屏大画幅） ============ */
+#feed{flex:1;overflow-y:auto;scroll-snap-type:y mandatory;display:none;flex-direction:column}
+body[data-page=feed] #feed{display:flex}
+.fp{height:100%;flex:none;scroll-snap-align:start;position:relative;overflow:hidden;border-bottom:1.5px solid var(--ink)}
+.amb{position:absolute;inset:0;overflow:hidden;background:var(--paper)}
+.amb .blob{position:absolute;border-radius:46% 54% 60% 40%/50% 44% 56% 50%;animation:drift 14s ease-in-out infinite alternate}
+.amb .b1{width:52%;height:56%;left:-10%;top:6%;background:var(--blue-light);opacity:.55}
+.amb .b2{width:44%;height:48%;right:-8%;top:28%;background:var(--yellow);opacity:.5;animation-duration:18s;animation-delay:-4s}
+.amb .b3{width:64%;height:60%;left:16%;bottom:-24%;background:var(--blue);opacity:.32;animation-duration:22s;animation-delay:-9s}
+@keyframes drift{0%{transform:translate(0,0) rotate(0deg) scale(1)}50%{transform:translate(4%,6%) rotate(8deg) scale(1.06)}100%{transform:translate(-3%,3%) rotate(-6deg) scale(.97)}}
+.viz{position:absolute;left:0;right:0;bottom:0;height:96px;display:flex;align-items:flex-end;gap:3px;padding:0 14px;opacity:.5}
+.viz i{flex:1;background:var(--ink);border-radius:2px 2px 0 0;height:22%}
+.fp.playing .viz{opacity:.85}
+.fp.playing .viz i{animation:bar .9s ease-in-out infinite alternate}
+.fp.playing .viz i:nth-child(odd){animation-duration:.7s}
+.fp.playing .viz i:nth-child(3n){animation-duration:1.15s;animation-delay:-.3s}
+@keyframes bar{from{height:16%}to{height:82%}}
+.bigplay{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);width:92px;height:92px;border-radius:50%;border:2.5px solid var(--ink);background:var(--paper-warm);display:flex;align-items:center;justify-content:center;font-size:32px;z-index:5;box-shadow:0 10px 30px rgba(9,11,14,.35)}
+.bigplay:active{transform:translate(-50%,-50%) scale(.94)}
+.fp.playing .bigplay{background:var(--blue);color:#fff}
+.fp.playing .bigplay::after{content:"";position:absolute;inset:-16px;border-radius:50%;border:2px solid var(--blue);animation:ring 1.6s ease-out infinite}
+@keyframes ring{0%{transform:scale(.8);opacity:.9}100%{transform:scale(1.25);opacity:0}}
+.fp .meta{position:absolute;left:26px;right:170px;bottom:120px;z-index:5}
+.fp .meta .nm{font-size:34px;font-weight:800;text-shadow:0 1px 0 var(--paper)}
+.fp .meta .ver{display:flex;gap:6px;margin:6px 0 8px}
+.fp .meta .ver span{font-size:11px;border:1.5px solid var(--ink);border-radius:999px;padding:2px 11px;background:var(--paper-warm)}
+.fp .meta .dg{font-size:13px;line-height:1.55;background:rgba(251,249,241,.9);border:1.5px solid var(--ink);border-radius:8px;padding:8px 12px;max-width:520px;box-shadow:2px 2px 0 rgba(9,11,14,.2)}
+.fp .meta .dg b{font-weight:700}
+.fp .meta .tm{margin-top:6px;font-size:11px;color:var(--ink-soft)}
+.enter-btn{position:absolute;right:26px;bottom:124px;z-index:5;width:74px;height:74px;border-radius:18px;border:2px solid var(--ink);background:var(--paper-warm);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11px;box-shadow:3px 3px 0 rgba(9,11,14,.25)}
+.enter-btn:active{background:var(--yellow)}
+.enter-btn .gi{font-size:26px;line-height:1}
+.fp .hint{position:absolute;top:16px;left:50%;transform:translateX(-50%);z-index:5;font-size:11px;color:var(--ink-soft);background:rgba(251,249,241,.85);border:1px solid var(--line-soft);border-radius:999px;padding:4px 14px}
+.feed-switch{position:absolute;top:16px;right:16px;z-index:15;display:none;width:max-content;align-self:flex-end;border:1.5px solid var(--ink);border-radius:999px;overflow:hidden;background:var(--paper-warm);box-shadow:2px 2px 0 rgba(9,11,14,.25)}
+body[data-page=feed] .feed-switch{display:flex}
+.feed-switch button{padding:6px 16px;font-size:12px}
+.feed-switch button.on{background:var(--ink);color:var(--paper)}
+#feed.list-mode .fp{display:none}
+#flist{display:none;flex-direction:column;height:100%;overflow-y:auto}
+#feed.list-mode #flist{display:flex}
+#flist .fl-head{position:sticky;top:0;z-index:2;background:var(--paper-warm);border-bottom:1.5px solid var(--ink);padding:20px 24px 14px}
+#flist .fl-head .t{font-size:22px;font-weight:800}
+#flist .fl-head .s{font-size:11.5px;color:var(--ink-soft);margin-top:2px}
+#flist .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding:20px 24px 28px}
+.fl-card{border:1.5px solid var(--ink);border-radius:14px;overflow:hidden;background:var(--paper-warm);box-shadow:2px 2px 0 rgba(9,11,14,.12)}
+.fl-card .th{position:relative;height:150px;overflow:hidden;border-bottom:1.5px solid var(--ink)}
+.fl-card .th .amb{position:absolute;inset:0}
+.fl-card .th .pl{position:absolute;right:10px;bottom:10px;width:40px;height:40px;border-radius:50%;border:2px solid var(--ink);background:var(--paper-warm);display:flex;align-items:center;justify-content:center;font-size:15px}
+.fl-card .th .dur{position:absolute;left:10px;bottom:10px;font-size:10px;font-family:Consolas,monospace;background:var(--ink);color:var(--paper);border-radius:4px;padding:2px 8px}
+.fl-card .bd{padding:10px 12px 12px}
+.fl-card .bd .n{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fl-card .bd .m{font-size:10px;color:var(--ink-soft);margin-top:3px}
+.fl-card .bd .d{font-size:11px;color:var(--ink-soft);line-height:1.5;margin-top:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.fl-new{border:1.5px dashed var(--ink-soft);border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:220px;color:var(--ink-soft);font-size:13px}
+.fl-new .gi{font-size:28px}
+
+/* ============ ② 工程页：库乐队基座 + 对话流右栏 + 底部三件套 ============ */
+#project{flex:1;display:none;flex-direction:column;min-height:0;position:relative}
+body[data-page=project] #project{display:flex}
+.pj-head{height:56px;flex:none;border-bottom:1.5px solid var(--ink);display:flex;align-items:center;gap:12px;padding:0 16px;background:var(--paper-warm)}
+.pj-head .nm{flex:1;min-width:0}
+.pj-head .nm .t{font-weight:800;font-size:16px}
+.pj-head .nm .s{font-size:11px;color:var(--ink-soft);display:flex;align-items:center;gap:6px}
+#pmenu{position:absolute;top:60px;right:14px;z-index:60;width:220px;background:var(--paper-warm);border:1.5px solid var(--ink);border-radius:12px;overflow:hidden;display:none;box-shadow:0 12px 32px rgba(9,11,14,.35)}
+#pmenu.show{display:block}
+#pmenu button{display:block;width:100%;text-align:left;padding:13px 16px;font-size:13px;border-bottom:1px solid var(--line-soft)}
+#pmenu button:last-child{border-bottom:none}
+#pmenu button:active{background:var(--yellow)}
+#pmenu small{display:block;font-size:9.5px;color:var(--ink-soft);margin-top:1px}
+/* 主区：触控轨行 + 对话流右栏 */
+#main-area{flex:1;display:flex;min-height:0}
+#canvas{flex:1;min-width:0;display:flex;flex-direction:column;background:var(--paper-warm);position:relative}
+#ruler{height:26px;flex:none;border-bottom:1.5px solid var(--ink);display:flex;align-items:flex-end;font-size:10px;color:var(--ink-soft);padding-left:190px;background:var(--paper)}
+#ruler i{flex:1;border-left:1px solid var(--line-soft);padding-left:6px;font-style:normal}
+#rows{flex:1;overflow-y:auto;position:relative}
+.gb-row{display:flex;align-items:center;height:76px;border-bottom:1px solid var(--line-soft)}
+.gb-row .th{width:184px;flex:none;border-right:1.5px solid var(--ink);height:100%;display:flex;align-items:center;gap:9px;padding:0 8px 0 12px}
+.gb-row .th .tc{width:5px;height:36px;border-radius:2px;flex:none}
+.gb-row .th .n{flex:1;min-width:0}
+.gb-row .th .n .a{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gb-row .th .n .b{font-size:9.5px;color:var(--ink-soft);font-family:Consolas,monospace}
+.gb-row .lane{flex:1;position:relative;height:100%;background:repeating-linear-gradient(90deg,transparent 0 96px,var(--line-soft) 96px 97px)}
+.gb-row .cl{position:absolute;top:12px;height:52px;border:1.5px solid var(--ink);border-radius:8px;background:var(--paper);box-shadow:2px 2px 0 rgba(9,11,14,.1);display:flex;align-items:center;padding:0 8px;font-size:10px;color:var(--ink-soft);gap:4px}
+.gb-row .cl.midi{background:var(--blue-light)}
+.gb-row .cl.hot{outline:3px solid var(--yellow);outline-offset:1px}
+.gb-row .ops{display:flex;gap:7px;flex:none;padding:0 12px}
+.gb-row .ops button{width:44px;height:44px;border:1.5px solid var(--ink);border-radius:50%;font-size:12px;background:var(--paper);display:flex;align-items:center;justify-content:center}
+.gb-row .ops button.on-y{background:var(--yellow)}
+.gb-row .ops button.on-b{background:var(--blue);color:#fff}
+#cph{position:absolute;top:26px;bottom:0;width:2px;background:var(--red);left:38%;z-index:5;pointer-events:none}
+#cph::before{content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-top:10px solid var(--red)}
+/* 对话流右栏（嵌入，可收成抓手） */
+#chat-panel{width:390px;flex:none;border-left:1.5px solid var(--ink);display:flex;flex-direction:column;background:var(--paper);position:relative;transition:width .3s var(--ease);overflow:hidden}
+#chat-panel.collapsed{width:46px}
+#chat-panel .grabber{position:absolute;left:-2px;top:0;bottom:0;width:12px;cursor:pointer;z-index:5;background:var(--ink)}
+#chat-panel .grabber::after{content:"";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:3px;height:52px;border-radius:3px;background:var(--paper)}
+#chat-panel.collapsed .grabber::after{width:3px;height:52px}
+#chat-panel .cp-head{height:40px;flex:none;border-bottom:1.5px solid var(--ink);display:flex;align-items:center;gap:8px;padding:0 14px;font-weight:700;font-size:12.5px;background:var(--paper-warm)}
+#chat-panel .cp-head .s{font-weight:400;font-size:10px;color:var(--ink-soft);display:flex;align-items:center;gap:5px}
+#chat-panel.collapsed .cp-head span{display:none}
+#chat-panel.collapsed .chat-flow,#chat-panel.collapsed .cp-input{display:none}
+
+/* ===== 标注 ===== */
+.gd-badge{position:absolute;top:-9px;right:8px;z-index:80;display:none;align-items:center;gap:4px;font-size:10px;padding:1px 8px;border-radius:999px;border:1.5px solid var(--ink);background:var(--yellow);white-space:nowrap;cursor:help}
+.gd-badge.ok{background:var(--blue);color:#fff}
+body.ann-on .gd-badge{display:flex}
+[data-gd]{position:relative}
+#ann-legend{position:fixed;left:14px;bottom:14px;z-index:190;display:none;gap:10px;align-items:center;background:var(--paper-warm);border:1.5px solid var(--ink);border-radius:4px;padding:8px 14px;font-size:11px;box-shadow:3px 3px 0 rgba(9,11,14,.15)}
+body.ann-on #ann-legend{display:flex}
+#ann-legend .b{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:-1px;margin-right:4px}
+#info-modal{position:fixed;inset:0;z-index:220;display:none;align-items:center;justify-content:center;background:rgba(9,11,14,.5)}
+#info-modal.show{display:flex}
+#info-card{width:620px;max-height:84vh;overflow:auto;background:var(--paper-warm);border:2px solid var(--ink);border-radius:6px;padding:22px 26px;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+#info-card h2{font-size:16px;margin-bottom:4px}
+#info-card h3{font-size:12.5px;margin:14px 0 6px;letter-spacing:.08em;border-bottom:1.5px solid var(--ink);padding-bottom:3px}
+#info-card p,#info-card li{font-size:12px;line-height:1.7;color:var(--ink-soft)}
+#info-card li{margin-left:18px}
+#info-card .close-row{margin-top:16px;text-align:right}
+</style>
+</head>
+
+<div id="proto-bar">
+  <span style="font-weight:700">平板端</span>
+  <div class="segs">
+    <button class="seg on" data-page="feed">① 工程流首页</button>
+    <button class="seg" data-page="project">② 工程页</button>
+  </div>
+  <button class="ann" id="ann-toggle">标注：关</button>
+  <button class="ann" id="info-btn">设计说明</button>
+</div>
+
+<div id="stage-wrap">
+<div id="device-shell" data-gd="adapt" data-note="平板端=库乐队/音悦家式触控基座（用户第四轮裁定）+手机端全部不变量（第七轮：输入框最下/磁带机走带/竖向操作原则）+对话流嵌入右栏（第四轮：与库乐队的差异点）">
+  <div class="feed-switch" data-gd="ok" data-note="预览⟷列表双视图（与手机端同构，横屏 3 列网格）">
+    <button id="fs-preview" class="on" onclick="feedMode('feed')">预览</button>
+    <button id="fs-list" onclick="feedMode('list')">列表</button>
+  </div>
+
+  <!-- ============ ① 首页 ============ -->
+  <div id="feed" data-gd="adapt" data-note="工程流首页与手机端同构：横屏大画幅预览+气氛动态底图+中央播放+双击/按钮进入；列表态 3 列网格">
+    <div class="fp" ondblclick="gotoProject()">
+      <div class="amb"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
+      <div class="hint">双击画面或点 ↗ 进入 · 右上可切列表</div>
+      <div class="viz"></div>
+      <button class="bigplay" onclick="event.stopPropagation();toggleFeedPlay(this)" ondblclick="event.stopPropagation()">▶</button>
+      <div class="meta">
+        <div class="nm">SATTTELITES</div>
+        <div class="ver"><span>V7</span><span>main</span><span>7 轨 · 1:12</span></div>
+        <div class="dg"><b>agent：</b>Lead Vocal 副歌 EQ 完成（高频 +1.5 / 低频 −2），等你盲听确认；Bass 线已按哼唱生成两版…</div>
+        <div class="tm">2 分钟前 · 气氛图随当前混音状态生成</div>
+      </div>
+      <button class="enter-btn" onclick="event.stopPropagation();gotoProject()"><span class="gi">↗</span>进入</button>
+    </div>
+    <div class="fp" ondblclick="gotoProject()">
+      <div class="amb" style="filter:hue-rotate(150deg)"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
+      <div class="hint">双击画面或点 ↗ 进入</div>
+      <div class="viz"></div>
+      <button class="bigplay" onclick="event.stopPropagation();toggleFeedPlay(this)" ondblclick="event.stopPropagation()">▶</button>
+      <div class="meta">
+        <div class="nm">夜航电台 · 插曲</div>
+        <div class="ver"><span>V3</span><span>4 轨 · 2:38</span></div>
+        <div class="dg"><b>agent：</b>尾奏混响尾已拉长至 2.1s，等你试听…</div>
+        <div class="tm">昨天</div>
+      </div>
+      <button class="enter-btn" onclick="event.stopPropagation();gotoProject()"><span class="gi">↗</span>进入</button>
+    </div>
+    <div id="flist">
+      <div class="fl-head"><div class="t">我的工程</div><div class="s">3 个工程 · 点击进入</div></div>
+      <div class="grid">
+        <div class="fl-card" onclick="gotoProject()">
+          <div class="th"><div class="amb"><div class="blob b1"></div><div class="blob b2"></div></div><span class="dur">1:12</span><span class="pl">▶</span></div>
+          <div class="bd"><div class="n">SATTTELITES</div><div class="m">V7 · 7 轨 · 2 分钟前</div><div class="d">Lead Vocal 副歌 EQ 完成，等你盲听确认…</div></div>
+        </div>
+        <div class="fl-card" onclick="gotoProject()">
+          <div class="th" style="filter:hue-rotate(150deg)"><div class="amb"><div class="blob b1"></div><div class="blob b2"></div></div><span class="dur">2:38</span><span class="pl">▶</span></div>
+          <div class="bd"><div class="n">夜航电台 · 插曲</div><div class="m">V3 · 4 轨 · 昨天</div><div class="d">尾奏混响尾已拉长至 2.1s，等你试听…</div></div>
+        </div>
+        <div class="fl-card" onclick="gotoProject()">
+          <div class="th"><div class="amb"><div class="blob b3" style="opacity:.4"></div></div><span class="dur">0:54</span><span class="pl">▶</span></div>
+          <div class="bd"><div class="n">手账 BGM 草稿</div><div class="m">V1 · 3 天前</div><div class="d">雨声底已入库，等你选循环方式…</div></div>
+        </div>
+        <div class="fl-new" onclick="gotoProject()"><span class="gi">＋</span>说一句话开始新工程</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ ② 工程页 ============ -->
+  <div id="project">
+    <div class="pj-head">
+      <button class="icon-btn" onclick="gotoFeed()">‹</button>
+      <div class="nm"><div class="t">SATTTELITES</div><div class="s"><span class="live-dot"></span>agent 正在处理 · Lead Vocal</div></div>
+      <button class="icon-btn" onclick="togglePmenu()" title="工程菜单">☰</button>
+    </div>
+    <div id="pmenu" data-gd="ok" data-note="工程菜单（与手机端同款）：导出/分享、工程设置——回首页由左上 ‹ 承担">
+      <button>⤓ 导出 / 分享<small>音频文件 · 版本快照</small></button>
+      <button>⚙ 工程设置<small>左右手模式 · 背景图 · 气势图生成</small></button>
+    </div>
+
+    <div id="main-area">
+      <!-- 库乐队式触控基座 -->
+      <div id="canvas" data-gd="adapt" data-note="库乐队式触控基座：大触点轨行（76px）+片段直接编曲；黄框=agent 正在处理；每行右侧 M/S/👂（右手位原则）；红色播放指针带箭头。触控手势=Godot 常规输入面；轨控走既有 IPC">
+        <div id="ruler"><i>0:00</i><i>0:12</i><i>0:24</i><i>0:36</i><i>0:48</i><i>1:00</i><i>1:12</i></div>
+        <div id="rows">
+          <div id="cph"></div>
+          <div class="gb-row"><div class="th"><span class="tc" style="background:var(--blue)"></span><div class="n"><div class="a">Lead Vocal</div><div class="b">trk_01 · −3.2 dB</div></div></div>
+            <div class="lane"><div class="cl hot" style="left:5%;width:26%">主歌·干声</div><div class="cl" style="left:38%;width:20%">和声</div></div>
+            <div class="ops"><button class="on-y">M</button><button>S</button><button>👂</button></div></div>
+          <div class="gb-row"><div class="th"><span class="tc" style="background:var(--red)"></span><div class="n"><div class="a">Drum Bus</div><div class="b">trk_02 · −1.8 dB</div></div></div>
+            <div class="lane"><div class="cl" style="left:3%;width:52%">整轨·总线处理</div></div>
+            <div class="ops"><button>M</button><button class="on-b">S</button><button>👂</button></div></div>
+          <div class="gb-row"><div class="th"><span class="tc" style="background:var(--yellow)"></span><div class="n"><div class="a">Bass Synth</div><div class="b">trk_03 · −4.5 dB</div></div></div>
+            <div class="lane"><div class="cl midi" style="left:11%;width:36%">Bass 线·V2</div></div>
+            <div class="ops"><button>M</button><button>S</button><button>👂</button></div></div>
+          <div class="gb-row"><div class="th"><span class="tc" style="background:#7B4EA8"></span><div class="n"><div class="a">Synth Pad</div><div class="b">trk_04 · −7.0 dB</div></div></div>
+            <div class="lane"><div class="cl midi" style="left:18%;width:46%">Pad·长音</div></div>
+            <div class="ops"><button>M</button><button>S</button><button>👂</button></div></div>
+          <div class="gb-row"><div class="th"><span class="tc" style="background:#2E8B57"></span><div class="n"><div class="a">Guitar L</div><div class="b">trk_05 · −5.1 dB</div></div></div>
+            <div class="lane"><div class="cl" style="left:26%;width:32%">分解和弦</div></div>
+            <div class="ops"><button>M</button><button>S</button><button>👂</button></div></div>
+          <div class="gb-row"><div class="th"><span class="tc" style="background:#B8860B"></span><div class="n"><div class="a">Guitar R</div><div class="b">trk_06 · −5.3 dB</div></div></div>
+            <div class="lane"><div class="cl" style="left:26%;width:32%">分解和弦</div></div>
+            <div class="ops"><button>M</button><button>S</button><button>👂</button></div></div>
+          <div class="gb-row"><div class="th"><span class="tc" style="background:var(--ink)"></span><div class="n"><div class="a">Master</div><div class="b">总线 · −0.9 dB</div></div></div>
+            <div class="lane"></div><div class="ops"><button>M</button><button style="opacity:.3">—</button><button>👂</button></div></div>
+        </div>
+      </div>
+
+      <!-- 对话流嵌入右栏 -->
+      <div id="chat-panel" data-gd="ok" data-note="对话流嵌入（与库乐队的差异点）：常驻右栏 390px，左缘黑抓手条可收成 46px 细栏（画布随之变宽）——webui 消息流组件族直接可复用">
+        <div class="grabber" onclick="document.getElementById('chat-panel').classList.toggle('collapsed')" title="开合对话流"></div>
+        <div class="cp-head">对话 <span class="s"><span class="live-dot"></span>Lead Vocal 处理中</span></div>
+        <div class="chat-flow">
+          <div class="msg user"><div class="bubble">副歌的人声再亮一点，低频收一收</div></div>
+          <div class="card-msg"><div class="card">
+            <div class="ch"><span class="dot" style="background:var(--yellow)"></span>正在处理<span class="tag">Lead Vocal</span></div>
+            <div class="cb"><div class="steps">
+              <div class="s done">定位副歌区段（0:42–1:05）</div>
+              <div class="s done">EQ 高频搁架 +1.5 dB @ 8k</div>
+              <div class="s doing">低频 180Hz 收 −2 dB…</div>
+            </div></div>
+          </div></div>
+          <div class="card-msg"><div class="card">
+            <div class="ch"><span class="dot" style="background:var(--blue)"></span>新版试听<span class="tag">V7</span><span class="tag">0:42–1:05</span></div>
+            <div class="player"><button class="pbtn" onclick="this.classList.toggle('playing');this.textContent=this.classList.contains('playing')?'❚❚':'▶'">▶</button><div class="ptrack"><div class="pfill"></div></div><span class="ptime">0:16</span></div>
+            <div class="cf"><button class="chip pri">保留 V7</button><button class="chip">A/B 盲听</button><button class="chip">再亮一点</button></div>
+          </div></div>
+          <div class="msg user"><div class="who">录制 · 0:07</div><div class="bubble">♪ 哼唱素材（0:07）</div><div class="who-say">「转成 Bass 线，音色圆一点」</div></div>
+          <div class="card-msg"><div class="card">
+            <div class="ch"><span class="dot" style="background:var(--ink)"></span>Bass 线方案<span class="tag">按哼唱</span></div>
+            <div class="cb">
+              <div class="player"><button class="pbtn" onclick="this.classList.toggle('playing');this.textContent=this.classList.contains('playing')?'❚❚':'▶'">▶</button><div class="ptrack"><div class="pfill" style="width:64%"></div></div><span class="ptime">0:29</span></div>
+              <div class="prow"><span class="pn">音色圆度</span><div class="stepper"><button>−</button><span class="val">62 %</span><button>＋</button></div></div>
+            </div>
+            <div class="cf"><button class="chip pri">入轨</button><button class="chip">换音色再听</button></div>
+          </div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 底部三件套（手机不变量，平板放大触点） -->
+    <div id="deck-zone" data-gd="ok" data-note="底部三件套与手机端同构（输入框最下/磁带机走带/走带线+红指针/音量icon弹竖推子）——平板触点放大；走带线在平板与画布标尺联动">
+      <div id="tape-row" data-gd="ok" data-note="磁带走带线：红色指针可拖，与上方画布播放指针联动">
+        <span class="tt-t"><b id="tt-now">0:42.3</b></span>
+        <div id="tape-line"><div class="fill" id="tape-fill"></div><div class="loopm"></div><div class="knob" id="tape-knob"></div></div>
+        <span class="tt-t">1:12</span>
+      </div>
+      <div id="deck" data-gd="ok" data-note="磁带机走带（触点放大）：回退/播放/暂停/停止/录音（最大最红）/音量">
+        <button class="dk">⏪<small>回退</small></button>
+        <button class="dk play">▶<small>播放</small></button>
+        <button class="dk">❚❚<small>暂停</small></button>
+        <button class="dk">■<small>停止</small></button>
+        <button class="dk rec" onclick="toggleRec(this)">⏺<small>REC</small></button>
+        <div class="vol">
+          <button class="vbtn" onclick="document.getElementById('volpop').classList.toggle('show')">🔊</button>
+          <div id="volpop" data-gd="ok" data-note="竖推子（竖向操作原则沿用）">
+            <div class="lbl">监听音量</div>
+            <div class="vtrack" id="vtrack"><div class="vfill" id="vfill"></div><div class="vthumb" id="vthumb"></div></div>
+            <div class="pct" id="vpct">66%</div>
+          </div>
+        </div>
+      </div>
+      <div class="rec-line" id="rec-line">● 录制中…完成即作为素材发送给 agent</div>
+      <div class="chat-input" data-gd="ok" data-note="对话流输入框永远在最下面（两移动端共同不变量）">
+        <button class="plus-btn">＋</button>
+        <div class="box">说点什么，或描述想要的声音…</div>
+        <button class="mic-btn">🎤</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<div id="ann-legend">
+  <span><span class="b" style="background:var(--blue)"></span>现有链路直接可实现</span>
+  <span><span class="b" style="background:var(--yellow)"></span>需适配（新装配/远期）</span>
+  <span style="color:var(--ink-soft)">悬停看依据 · 右上切两页</span>
+</div>
+
+<div id="info-modal">
+  <div id="info-card">
+    <h2>V6 · 平板端</h2>
+    <p>合成公式：<b>库乐队/音悦家式触控基座</b>（大触点轨行 76px、片段直接编曲、右手位 M/S/监听）＋<b>手机端全部不变量</b>（输入框最下、磁带机走带＋红指针走带线、🔊 弹竖推子、工程流首页预览/列表双视图、左上 ‹ 返回、☰ 工程菜单）＋<b>对话流嵌入右栏</b>（390px 常驻，左缘黑抓手条可收成细栏，画布随之变宽——与库乐队的差异点）。</p>
+    <h3>可交互</h3>
+    <li>首页：预览⟷列表切换；中央 ▶ 播放动效；双击/↗ 进入</li>
+    <li>工程页：M/S/👂 点亮；走带线红指针拖动（时间随动）；⏺ REC；🔊 竖推子；对话流抓手条开合</li>
+    <h3>平板相对手机的增量</h3>
+    <li>触控轨行成为主基座（编曲直接在画布上发生），轨道歌单 sheet 不再需要（轨行常驻可见）</li>
+    <li>对话流从「全屏」变为「嵌入右栏」，收敛后画布变宽——扩容不加范式</li>
+    <li>走带线与画布标尺/播放指针联动（同一时间轴的两种读法：线=操作，标尺=阅读）</li>
+    <div class="close-row"><button class="chip pri" id="info-close">关闭</button></div>
+  </div>
+</div>
+
+<script>
+function gotoProject(){ document.body.dataset.page='project';
+  document.querySelectorAll('#proto-bar .seg').forEach(x=>x.classList.toggle('on',x.dataset.page==='project')); }
+function gotoFeed(){ document.body.dataset.page='feed';
+  document.querySelectorAll('#proto-bar .seg').forEach(x=>x.classList.toggle('on',x.dataset.page==='feed')); }
+document.querySelectorAll('#proto-bar .seg').forEach(s=>s.onclick=()=>{ s.dataset.page==='feed'?gotoFeed():gotoProject(); });
+document.body.dataset.page='feed';
+function feedMode(m){
+  document.getElementById('feed').classList.toggle('list-mode',m==='list');
+  document.getElementById('fs-preview').classList.toggle('on',m==='feed');
+  document.getElementById('fs-list').classList.toggle('on',m==='list');
+}
+function togglePmenu(){ document.getElementById('pmenu').classList.toggle('show'); }
+function toggleFeedPlay(btn){
+  const fp=btn.closest('.fp');
+  document.querySelectorAll('.fp').forEach(x=>x.classList.remove('playing'));
+  document.querySelectorAll('.bigplay').forEach(b=>{b.textContent='▶';});
+  if(fp.classList.contains('playing')){ fp.classList.remove('playing'); return; }
+  fp.classList.add('playing'); btn.textContent='❚❚';
+}
+document.querySelectorAll('.viz').forEach(v=>{
+  v.innerHTML=Array.from({length:36},()=>'<i style="height:'+(14+Math.random()*46)+'%"></i>').join('');
+});
+function toggleRec(btn){
+  btn.classList.toggle('recing');
+  document.getElementById('rec-line').classList.toggle('show',btn.classList.contains('recing'));
+}
+document.querySelectorAll('.gb-row .ops button').forEach(b=>b.onclick=()=>{
+  if(b.textContent==='—')return;
+  b.classList.toggle('on-y'); b.classList.remove('on-b');
+});
+/* 走带线指针拖动（联动画布指针） */
+(function(){
+  const line=document.getElementById('tape-line');
+  const fill=document.getElementById('tape-fill');
+  const knob=document.getElementById('tape-knob');
+  const now=document.getElementById('tt-now');
+  const cph=document.getElementById('cph');
+  const TOTAL=72;
+  function setPct(p){
+    p=Math.min(1,Math.max(0,p));
+    fill.style.width=(p*100).toFixed(1)+'%';
+    knob.style.left=(p*100).toFixed(1)+'%';
+    cph.style.left='calc('+(p*100).toFixed(1)+'% + 184px)';
+    const s=Math.round(TOTAL*p);
+    now.textContent=Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
+  }
+  function pctFromEvent(e){
+    const r=line.getBoundingClientRect();
+    return (e.clientX-r.left)/r.width;
+  }
+  line.addEventListener('pointerdown',e=>{
+    setPct(pctFromEvent(e));
+    const mv=ev=>setPct(pctFromEvent(ev));
+    const up=()=>{window.removeEventListener('pointermove',mv);window.removeEventListener('pointerup',up);};
+    window.addEventListener('pointermove',mv);
+    window.addEventListener('pointerup',up);
+    e.preventDefault();
+  });
+})();
+/* 竖推子 */
+(function(){
+  const tr=document.getElementById('vtrack');
+  const fl=document.getElementById('vfill');
+  const th=document.getElementById('vthumb');
+  const pct=document.getElementById('vpct');
+  function setPct(p){
+    p=Math.min(1,Math.max(0,p));
+    fl.style.height=(p*100).toFixed(0)+'%';
+    th.style.bottom=(p*100).toFixed(0)+'%';
+    pct.textContent=Math.round(p*100)+'%';
+  }
+  function pctFromEvent(e){
+    const r=tr.getBoundingClientRect();
+    return (r.bottom-e.clientY)/r.height;
+  }
+  tr.addEventListener('pointerdown',e=>{
+    setPct(pctFromEvent(e));
+    const mv=ev=>setPct(pctFromEvent(ev));
+    const up=()=>{window.removeEventListener('pointermove',mv);window.removeEventListener('pointerup',up);};
+    window.addEventListener('pointermove',mv);
+    window.addEventListener('pointerup',up);
+    e.preventDefault();
+  });
+})();
+const annBtn=document.getElementById('ann-toggle');
+annBtn.onclick=()=>{document.body.classList.toggle('ann-on');annBtn.classList.toggle('on');
+  annBtn.textContent=document.body.classList.contains('ann-on')?'标注：开':'标注：关';};
+document.getElementById('info-btn').onclick=()=>document.getElementById('info-modal').classList.add('show');
+document.getElementById('info-close').onclick=()=>document.getElementById('info-modal').classList.remove('show');
+document.getElementById('info-modal').onclick=e=>{if(e.target.id==='info-modal')e.currentTarget.classList.remove('show')};
+document.querySelectorAll('[data-gd]').forEach(el=>{
+  const b=document.createElement('span');const ok=el.dataset.gd==='ok';
+  b.className='gd-badge'+(ok?' ok':'');b.textContent=ok?'✓ 直接可实现':'⚠ 需适配';
+  b.title=el.dataset.note||'';el.appendChild(b);
+});
+function fitShell(){
+  const shell=document.getElementById('device-shell');
+  const sc=Math.min(1,(window.innerWidth-60)/shell.offsetWidth,(window.innerHeight-90)/shell.offsetHeight);
+  shell.style.transform=sc<1?`scale(${sc})`:'none';
+}
+window.addEventListener('resize',fitShell);
+fitShell();
+</script>
+</body>
+</html>

@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V4 · 手机必要集 + 库乐队式平板 + 纯 DAW 的 PC — Vit-DAW GUI 收缩稿</title>
+<style>
+:root{
+  --paper:#F6F4EC; --paper-warm:#FBF9F1; --ink:#090B0E; --ink-soft:#3A4148;
+  --line-soft:rgba(9,11,14,.16); --blue:#065BC7; --blue-light:#73B8F5; --yellow:#FACC1A; --red:#DB1214;
+  --canvas:#252B2E; --ease:cubic-bezier(.22,.8,.24,1);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{font-family:"Segoe UI","Microsoft YaHei",system-ui,sans-serif;background:#DCD9CD;color:var(--ink);overflow:hidden;font-size:13px}
+button{font-family:inherit;cursor:pointer;background:none;border:none;color:inherit}
+#proto-bar{position:fixed;top:10px;right:14px;z-index:200;display:flex;align-items:center;gap:8px;background:var(--paper-warm);border:1.5px solid var(--ink);border-radius:999px;padding:4px 6px 4px 14px;box-shadow:3px 3px 0 rgba(9,11,14,.2);font-size:11px}
+#proto-bar .segs{display:flex;gap:2px}
+#proto-bar .seg{padding:3px 10px;border-radius:999px;font-size:11px;border:1.5px solid transparent}
+#proto-bar .seg.on{background:var(--ink);color:var(--paper)}
+#proto-bar .ann{border:1.5px solid var(--ink);border-radius:999px;padding:3px 10px;font-size:10px}
+#proto-bar .ann.on{background:var(--yellow)}
+#stage-wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+#device-shell{position:relative;background:var(--paper);overflow:hidden;display:flex;flex-direction:column;border:2px solid var(--ink)}
+#device-shell.form-list,#device-shell.form-work{width:402px;height:840px;border-radius:40px;border-width:11px;box-shadow:0 40px 100px rgba(9,11,14,.45)}
+#device-shell.form-pad{width:1180px;height:820px;border-radius:26px;border-width:10px;box-shadow:0 40px 100px rgba(9,11,14,.4)}
+#device-shell.form-pc{width:1660px;height:920px;border-radius:14px;border-width:8px;box-shadow:0 40px 100px rgba(9,11,14,.4)}
+.homebar{position:absolute;bottom:6px;left:50%;transform:translateX(-50%);width:120px;height:4px;border-radius:4px;background:rgba(9,11,14,.4);pointer-events:none;z-index:99}
+[data-view]{display:none}
+#device-shell.form-list #view-list,#device-shell.form-work #view-work,#device-shell.form-pad #view-pad,#device-shell.form-pc #view-pc{display:flex}
+
+/* ============ 通用件 ============ */
+.hdr{height:52px;flex:none;border-bottom:1.5px solid var(--ink);display:flex;align-items:center;gap:10px;padding:0 12px;background:var(--paper-warm)}
+.hdr .proj{flex:1;min-width:0}
+.hdr .proj .nm{font-weight:800;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hdr .proj .st{font-size:10.5px;color:var(--ink-soft);display:flex;align-items:center;gap:5px}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--blue);animation:pulse 1.6s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.icon-btn{width:34px;height:34px;border:1.5px solid var(--ink);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;background:var(--paper);flex:none}
+.icon-btn:active{background:var(--blue-light)}
+/* 对话流件（V3 沿用） */
+.chat-flow{flex:1;overflow-y:auto;padding:12px 12px 6px;display:flex;flex-direction:column;gap:10px}
+.msg{max-width:86%;display:flex;flex-direction:column;gap:3px}
+.msg .who{font-size:9.5px;color:var(--ink-soft);padding:0 4px}
+.msg.user{align-self:flex-end;align-items:flex-end}
+.bubble{padding:9px 12px;border-radius:12px;font-size:13px;line-height:1.55;border:1.5px solid var(--ink);background:var(--paper-warm);box-shadow:2px 2px 0 rgba(9,11,14,.1)}
+.msg.user .bubble{background:var(--ink);color:var(--paper)}
+.card-msg{max-width:92%;align-self:flex-start;display:flex;flex-direction:column;gap:3px}
+.card{border:1.5px solid var(--ink);border-radius:10px;background:var(--paper-warm);overflow:hidden;box-shadow:2px 2px 0 rgba(9,11,14,.12)}
+.card .ch{display:flex;align-items:center;gap:7px;padding:7px 11px;border-bottom:1px solid var(--line-soft);font-size:11px;font-weight:700}
+.card .ch .tag{font-size:9px;border:1px solid var(--ink);border-radius:999px;padding:0 7px;font-weight:400}
+.card .ch .dot{width:7px;height:7px;border-radius:50%}
+.card .cb{padding:9px 11px}
+.card .cf{display:flex;gap:6px;padding:8px 11px;border-top:1px solid var(--line-soft);flex-wrap:wrap}
+.chip{border:1.5px solid var(--ink);border-radius:999px;padding:3px 12px;font-size:11px;background:var(--paper)}
+.chip:active{background:var(--blue-light)}
+.chip.pri{background:var(--ink);color:var(--paper)}
+.player{display:flex;align-items:center;gap:10px;padding:8px 11px}
+.player .pbtn{width:36px;height:36px;border-radius:50%;border:1.5px solid var(--ink);background:var(--paper);display:flex;align-items:center;justify-content:center;font-size:13px;flex:none}
+.player .pbtn.playing{background:var(--blue);color:#fff}
+.player .ptrack{flex:1;height:34px;position:relative;border-radius:4px;overflow:hidden;background:var(--paper);background-image:repeating-linear-gradient(90deg,rgba(9,11,14,.5) 0 1.5px,transparent 1.5px 4px)}
+.player .pfill{position:absolute;inset:0;width:38%;background:rgba(115,184,245,.45);border-right:1.5px solid var(--blue)}
+.player .ptime{font-size:10px;color:var(--ink-soft);font-family:Consolas,monospace}
+.steps{font-size:11.5px;line-height:1.9}
+.steps .s{display:flex;align-items:center;gap:7px;color:var(--ink-soft)}
+.steps .s::before{content:"";width:7px;height:7px;border-radius:50%;border:1.5px solid var(--ink-soft);flex:none}
+.steps .s.done{color:var(--ink)}
+.steps .s.done::before{background:var(--blue);border-color:var(--blue)}
+.steps .s.doing{color:var(--ink);font-weight:600}
+.steps .s.doing::before{background:var(--yellow);border-color:var(--ink);animation:pulse 1.2s infinite}
+.prow{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12px}
+.prow .pn{width:92px;color:var(--ink-soft)}
+.stepper{display:flex;align-items:center;border:1.5px solid var(--ink);border-radius:6px;overflow:hidden}
+.stepper button{width:26px;height:24px;border-right:1.5px solid var(--ink);font-size:13px;background:var(--paper)}
+.stepper button:last-child{border-right:none;border-left:1.5px solid var(--ink)}
+.stepper .val{min-width:70px;text-align:center;font-family:Consolas,monospace;font-size:11.5px}
+.ab-row{display:flex;gap:8px}
+.ab-opt{flex:1;border:1.5px solid var(--ink);border-radius:8px;padding:7px 9px;background:var(--paper);display:flex;align-items:center;gap:8px}
+.ab-opt.sel{background:var(--yellow)}
+.ab-opt .k{font-weight:800;font-size:14px}
+.ab-opt .mini{flex:1;height:20px;background:repeating-linear-gradient(90deg,rgba(9,11,14,.4) 0 1.5px,transparent 1.5px 4px)}
+.chat-input{flex:none;border-top:1.5px solid var(--ink);background:var(--paper-warm);padding:10px 12px 24px;display:flex;align-items:center;gap:8px}
+.chat-input .box{flex:1;border:1.5px solid var(--ink);border-radius:999px;padding:9px 16px;font-size:13px;color:var(--ink-soft);background:var(--paper)}
+.mic-btn{width:40px;height:40px;border-radius:50%;border:1.5px solid var(--ink);background:var(--paper);display:flex;align-items:center;justify-content:center;font-size:16px}
+.mic-btn:active{background:var(--red);color:#fff}
+.plus-btn{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--ink);background:var(--paper);display:flex;align-items:center;justify-content:center;font-size:15px}
+
+/* ============ ① 手机·对话列表（=工程列表） ============ */
+#view-list{flex:1;flex-direction:column;min-height:0}
+.list-search{padding:10px 12px 6px}
+.list-search .box{border:1.5px solid var(--ink);border-radius:999px;padding:8px 16px;font-size:12.5px;color:var(--ink-soft);background:var(--paper)}
+.proj-list{flex:1;overflow-y:auto;padding:4px 12px 20px;display:flex;flex-direction:column;gap:10px}
+.proj-card{border:1.5px solid var(--ink);border-radius:12px;background:var(--paper-warm);padding:11px 13px;box-shadow:2px 2px 0 rgba(9,11,14,.1);display:flex;flex-direction:column;gap:6px}
+.proj-card:active{background:var(--blue-light)}
+.proj-card .r1{display:flex;align-items:center;gap:8px}
+.proj-card .r1 .nm{font-weight:800;font-size:14px;flex:1}
+.proj-card .r1 .tm{font-size:10px;color:var(--ink-soft)}
+.proj-card .digest{font-size:11.5px;color:var(--ink-soft);line-height:1.5}
+.proj-card .digest b{color:var(--ink);font-weight:600}
+.mini-levels{display:flex;gap:3px;align-items:flex-end;height:16px}
+.mini-levels i{width:4px;background:var(--blue);border-radius:1px;opacity:.8}
+.tag2{font-size:9px;border:1px solid var(--ink);border-radius:999px;padding:0 7px}
+.new-fab{margin:0 12px 26px;border:1.5px solid var(--ink);border-radius:12px;padding:12px;font-weight:700;font-size:13px;background:var(--yellow);text-align:center;box-shadow:2px 2px 0 rgba(9,11,14,.15)}
+
+/* ============ ② 手机·工程页：播放器区 + 对话流 ============ */
+#view-work{flex:1;flex-direction:column;min-height:0}
+#player-zone{flex:none;border-bottom:1.5px solid var(--ink);background:var(--paper-warm);transition:max-height .32s var(--ease);overflow:hidden;max-height:270px}
+#player-zone.slim{max-height:118px}
+.pz-tabs{display:flex;align-items:center;gap:6px;padding:4px 10px 0;font-size:9.5px;color:var(--ink-soft)}
+.pz-tabs .fold{margin-left:auto;border:1px solid var(--ink-soft);border-radius:4px;padding:0 8px;font-size:10px}
+#wave-area{position:relative;height:86px;margin:4px 10px 0;border:1.5px solid var(--ink);border-radius:6px;background:var(--paper);overflow:hidden}
+#wave-area .ruler{position:absolute;top:0;left:0;right:0;height:14px;border-bottom:1px solid var(--line-soft);font-size:7.5px;color:var(--ink-soft);display:flex}
+#wave-area .ruler i{flex:1;border-left:1px solid var(--line-soft);padding-left:3px;font-style:normal}
+#wave-area .lanes{position:absolute;inset:14px 0 0 0}
+.wl{position:absolute;left:0;right:0;height:16px;margin:1px 6px;background:repeating-linear-gradient(90deg,rgba(9,11,14,.4) 0 1.5px,transparent 1.5px 4px);background-size:32px 100%;background-position:center}
+.wl.hot::after{content:"";position:absolute;inset:0;background:rgba(250,204,26,.4);border:1px solid var(--ink);border-radius:2px}
+.ph{position:absolute;top:14px;bottom:0;width:1.5px;background:var(--red);left:38%}
+.loopb{position:absolute;top:14px;bottom:0;left:48%;width:18%;background:rgba(6,91,199,.15);border-left:1.5px dashed var(--blue);border-right:1.5px dashed var(--blue)}
+/* 轨道推子条 */
+#track-strip{display:flex;gap:8px;padding:8px 10px;overflow-x:auto}
+.ts-chip{flex:none;width:96px;border:1.5px solid var(--ink);border-radius:8px;background:var(--paper);padding:6px 7px;display:flex;flex-direction:column;gap:5px}
+.ts-chip .nm{font-size:10px;font-weight:700;display:flex;align-items:center;gap:5px;white-space:nowrap;overflow:hidden}
+.ts-chip .nm .tc{width:3.5px;height:12px;border-radius:1px;flex:none}
+.ts-chip .nm .mu{margin-left:auto;font-size:8px;border:1px solid var(--ink-soft);border-radius:3px;padding:0 4px;color:var(--ink-soft)}
+.ts-chip .sl{position:relative;height:22px;border:1px solid var(--line-soft);border-radius:4px;background:var(--paper-warm)}
+.ts-chip .sl i{position:absolute;top:2px;bottom:2px;left:2px;background:var(--blue-light);border-radius:2px;width:58%}
+.ts-chip .sl b{position:absolute;top:1px;bottom:1px;left:calc(58% - 3px);width:6px;background:var(--ink);border-radius:2px}
+.ts-chip .lv{font-size:8.5px;color:var(--ink-soft);font-family:Consolas,monospace}
+.ts-chip.master{background:var(--ink);color:var(--paper)}
+.ts-chip.master .sl{background:rgba(246,244,236,.15)}
+.ts-chip.master .sl i{background:var(--blue-light)}
+.ts-chip.master .lv{color:rgba(246,244,236,.7)}
+/* 走带含录制 */
+#transport{display:flex;align-items:center;gap:8px;padding:6px 12px 10px}
+#transport .tp{width:38px;height:38px;border-radius:50%;border:1.5px solid var(--ink);background:var(--paper);display:flex;align-items:center;justify-content:center;font-size:14px}
+#transport .tp:active{background:var(--blue-light)}
+#transport .tp.play{background:var(--blue);color:#fff}
+#transport .tp.rec:active{background:var(--red);color:#fff}
+#transport .lcd{margin-left:auto;background:var(--ink);color:var(--paper);border-radius:4px;padding:3px 10px;font-family:Consolas,monospace;text-align:center;line-height:1.2}
+#transport .lcd .t{font-size:13px}
+#transport .lcd .s{font-size:8.5px;opacity:.7}
+.rec-hint{font-size:8.5px;color:var(--red);padding:0 12px 6px;display:none}
+.rec-hint.show{display:block}
+/* 对话流区 */
+#work-chat{flex:1;display:flex;flex-direction:column;min-height:0}
+
+/* ============ ③ 平板：库乐队式 + 嵌入对话流 ============ */
+#view-pad{flex:1;min-height:0}
+.gb-head{height:52px;flex:none;border-bottom:1.5px solid var(--ink);display:flex;align-items:center;gap:10px;padding:0 14px;background:var(--paper-warm)}
+.gb-head .tp{width:40px;height:40px;border-radius:50%;border:1.5px solid var(--ink);background:var(--paper);display:flex;align-items:center;justify-content:center;font-size:15px}
+.gb-head .tp.play{background:var(--blue);color:#fff}
+.gb-head .tp.rec:active{background:var(--red);color:#fff}
+.gb-head .lcd{background:var(--ink);color:var(--paper);border-radius:5px;padding:4px 12px;font-family:Consolas,monospace;text-align:center;line-height:1.25}
+.gb-head .lcd .t{font-size:15px}
+.gb-head .lcd .s{font-size:9px;opacity:.7}
+.gb-head .sp{flex:1}
+.gb-head .tool{border:1.5px solid var(--ink);border-radius:8px;padding:6px 12px;font-size:12px;background:var(--paper)}
+.gb-main{flex:1;display:flex;min-height:0}
+.gb-canvas{flex:1;display:flex;flex-direction:column;min-width:0;background:var(--paper-warm)}
+.gb-row{display:flex;align-items:center;height:64px;border-bottom:1px solid var(--line-soft)}
+.gb-row .th{width:150px;flex:none;border-right:1.5px solid var(--ink);height:100%;display:flex;align-items:center;gap:8px;padding:0 10px}
+.gb-row .th .tc{width:5px;height:30px;border-radius:2px}
+.gb-row .th .n{font-size:12.5px;font-weight:700}
+.gb-row .th .mu{font-size:9px;border:1px solid var(--ink-soft);border-radius:4px;padding:0 5px;color:var(--ink-soft)}
+.gb-row .lane{flex:1;position:relative;height:100%;background:repeating-linear-gradient(90deg,transparent 0 95px,var(--line-soft) 95px 96px)}
+.gb-row .cl{position:absolute;top:10px;height:44px;border:1.5px solid var(--ink);border-radius:6px;background:var(--paper);box-shadow:2px 2px 0 rgba(9,11,14,.1)}
+.gb-row .cl.midi{background:var(--blue-light)}
+.gb-row .cl.hot{outline:2.5px solid var(--yellow);outline-offset:1px}
+.gb-chat{width:360px;flex:none;border-left:1.5px solid var(--ink);display:flex;flex-direction:column;background:var(--paper)}
+.gb-chat .grabber{height:8px;flex:none;cursor:pointer;background:var(--ink);position:relative}
+.gb-chat .grabber::after{content:"";position:absolute;top:2.5px;left:50%;transform:translateX(-50%);width:44px;height:3px;border-radius:3px;background:var(--paper)}
+.gb-chat.collapsed{width:44px}
+.gb-chat.collapsed .chat-flow,.gb-chat.collapsed .chat-input,.gb-chat.collapsed .hdr{display:none}
+.gb-chat.collapsed .grabber::after{width:3px;height:44px;top:50%;transform:translate(-50%,-50%)}
+
+/* ============ ④ PC：纯 DAW（V2 桌面层） ============ */
+#view-pc{flex:1;min-height:0;flex-direction:column}
+.pc-top{height:46px;flex:none;background:var(--paper-warm);border-bottom:1.5px solid var(--ink);display:flex;align-items:center;gap:14px;padding:0 14px}
+.wordmark{font-weight:800;letter-spacing:.06em;font-size:15px}
+.vdiv{width:1.5px;height:20px;background:var(--ink);opacity:.7}
+.menu-btn{font-size:13px;padding:4px 8px;border-radius:3px}
+.pc-transport{margin:0 auto;display:flex;align-items:center;gap:8px}
+.pc-transport .tp{width:30px;height:30px;border:1.5px solid var(--ink);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:13px;background:var(--paper)}
+.pc-transport .lcd{background:var(--ink);color:var(--paper);font-family:Consolas,monospace;padding:3px 12px;border-radius:3px;text-align:center;line-height:1.2;font-size:13px}
+.pc-transport .lcd div:last-child{font-size:9px;opacity:.7}
+.pc-main{flex:1;display:flex;min-height:0}
+.pc-rail{width:20px;flex:none;background:var(--paper-warm);border-right:1.5px solid var(--ink);display:flex;align-items:center;justify-content:center}
+.pc-rail span{writing-mode:vertical-rl;font-size:10px;letter-spacing:.3em;color:var(--ink-soft)}
+.pc-lib{width:170px;flex:none;background:var(--paper-warm);border-right:1.5px solid var(--ink);padding:8px 0;font-size:11px}
+.pc-lib .lt{padding:6px 12px 3px;font-size:9px;color:var(--ink-soft);letter-spacing:.14em}
+.pc-lib .li{padding:4px 12px 4px 20px}
+.pc-stage{flex:1;min-width:0;border-right:1.5px solid var(--ink);position:relative;background:var(--paper-warm)}
+.pc-stage .sh{height:34px;border-bottom:1.5px solid var(--ink);display:flex;align-items:center;gap:8px;padding:0 10px;background:var(--paper);font-weight:700;font-size:12.5px}
+.pc-stage .sh .chip2{border:1.5px solid var(--ink);border-radius:3px;font-size:11px;padding:2px 9px;background:var(--paper-warm)}
+.pc-rack{width:34%;min-width:280px;background:var(--canvas);position:relative;
+  background-image:linear-gradient(rgba(246,244,236,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(246,244,236,.06) 1px,transparent 1px);background-size:28px 28px}
+.pc-rack .sh{height:34px;border-bottom:1.5px solid var(--paper);display:flex;align-items:center;gap:8px;padding:0 10px;color:var(--paper);font-weight:700;font-size:12.5px}
+.rnode{position:absolute;width:130px;background:var(--paper-warm);border:1.5px solid var(--ink);border-radius:4px;font-size:11px;box-shadow:0 6px 18px rgba(0,0,0,.4)}
+.rnode .nh{padding:4px 8px;border-bottom:1.5px solid var(--ink);font-weight:700;font-size:11px;display:flex;justify-content:space-between;align-items:center}
+.rnode .nh .led{width:6px;height:6px;border-radius:50%;background:var(--blue)}
+.rnode .nb{padding:6px 8px;color:var(--ink-soft);font-size:10px;line-height:1.7}
+.port{position:absolute;width:9px;height:9px;border-radius:50%;background:var(--paper);border:1.5px solid var(--ink)}
+.port.in{left:-5px;top:12px}.port.out{right:-5px;top:12px}
+.pc-viewrail{width:52px;flex:none;background:var(--paper-warm);border-left:1.5px solid var(--ink);display:flex;flex-direction:column;align-items:center;padding:10px 0;gap:8px}
+.dock-icon{width:38px;height:38px;border:1.5px solid var(--ink);border-radius:8px;background:var(--paper);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-size:9px}
+.dock-icon.active{background:var(--ink);color:var(--paper)}
+.dock-icon .gi{font-size:14px;line-height:1}
+.pc-bottom{height:30px;flex:none;border-top:1.5px solid var(--ink);background:var(--paper-warm);display:flex;align-items:center;gap:16px;padding:0 14px;font-size:11px;color:var(--ink-soft)}
+
+/* ===== 标注 ===== */
+.gd-badge{position:absolute;top:-9px;right:8px;z-index:80;display:none;align-items:center;gap:4px;font-size:10px;padding:1px 8px;border-radius:999px;border:1.5px solid var(--ink);background:var(--yellow);white-space:nowrap;cursor:help}
+.gd-badge.ok{background:var(--blue);color:#fff}
+body.ann-on .gd-badge{display:flex}
+[data-gd]{position:relative}
+#ann-legend{position:fixed;left:14px;bottom:14px;z-index:190;display:none;gap:10px;align-items:center;background:var(--paper-warm);border:1.5px solid var(--ink);border-radius:4px;padding:8px 14px;font-size:11px;box-shadow:3px 3px 0 rgba(9,11,14,.15)}
+body.ann-on #ann-legend{display:flex}
+#ann-legend .b{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:-1px;margin-right:4px}
+#info-modal{position:fixed;inset:0;z-index:220;display:none;align-items:center;justify-content:center;background:rgba(9,11,14,.5)}
+#info-modal.show{display:flex}
+#info-card{width:600px;max-height:84vh;overflow:auto;background:var(--paper-warm);border:2px solid var(--ink);border-radius:6px;padding:22px 26px;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+#info-card h2{font-size:16px;margin-bottom:4px}
+#info-card h3{font-size:12.5px;margin:14px 0 6px;letter-spacing:.08em;border-bottom:1.5px solid var(--ink);padding-bottom:3px}
+#info-card p,#info-card li{font-size:12px;line-height:1.7;color:var(--ink-soft)}
+#info-card li{margin-left:18px}
+#info-card .close-row{margin-top:16px;text-align:right}
+.who-say{font-size:11px;color:var(--ink-soft);margin-top:2px;padding:0 4px}
+</style>
+</head>
+<body>
+
+<div id="proto-bar">
+  <span style="font-weight:700">形态</span>
+  <div class="segs">
+    <button class="seg on" data-form="list">① 手机·列表</button>
+    <button class="seg" data-form="work">② 手机·工程</button>
+    <button class="seg" data-form="pad">③ 平板</button>
+    <button class="seg" data-form="pc">④ PC</button>
+  </div>
+  <button class="ann" id="ann-toggle">标注：关</button>
+  <button class="ann" id="info-btn">设计说明</button>
+</div>
+
+<div id="stage-wrap">
+<div id="device-shell" class="form-list" data-gd="adapt" data-note="四形态=第四轮裁定：手机必要集（时间标尺+推子+带录制的走带）+对话列表页；平板=库乐队式+嵌入对话流；PC=纯 DAW（agent 窗口浮在 DAW 外，不做进布局）">
+<div class="homebar"></div>
+
+<!-- ============ ① 手机·对话列表 ============ -->
+<div id="view-list" data-gd="ok" data-note="对话列表=工程列表（一工程一线程）：每行=工程名+最近 agent 动态摘要+时间——对齐 webui 会话列表模式；分支/版本 chip 为未来挂点（仓库已有会话图/检查点）">
+  <div class="hdr">
+    <div class="proj"><div class="nm">Vit‑DAW</div><div class="st">3 个工程 · agent 云端就绪</div></div>
+    <button class="icon-btn">⚙</button>
+  </div>
+  <div class="list-search"><div class="box">搜索工程、对话内容…</div></div>
+  <div class="proj-list">
+    <div class="proj-card" onclick="setForm('work')">
+      <div class="r1"><span class="nm">SATTTELITES</span><span class="tag2">V7</span><span class="tag2">main</span><span class="tm">2 分钟前</span></div>
+      <div class="digest"><b>agent：</b>Lead Vocal 副歌 EQ 已完成（高频 +1.5dB / 低频 −2dB），等你盲听确认；Bass 线方案按你的哼唱生成了两版…</div>
+      <div class="mini-levels"><i style="height:60%"></i><i style="height:78%"></i><i style="height:55%"></i><i style="height:48%"></i><i style="height:66%"></i><i style="height:58%"></i></div>
+    </div>
+    <div class="proj-card">
+      <div class="r1"><span class="nm">夜航电台 · 插曲</span><span class="tag2">V3</span><span class="tm">昨天</span></div>
+      <div class="digest"><b>你：</b>把尾奏的混响再拉长两小节<br><b>agent：</b>已渲染，尾奏混响尾 2.1s（原 1.4s）</div>
+    </div>
+    <div class="proj-card">
+      <div class="r1"><span class="nm">手账 BGM 草稿</span><span class="tag2">V1</span><span class="tm">3 天前</span></div>
+      <div class="digest"><b>你：</b>用上周录的雨声做一层底<br><b>agent：</b>素材已入库，等你选循环方式</div>
+    </div>
+  </div>
+  <div class="new-fab">＋ 新建工程（说一句话开始）</div>
+</div>
+
+<!-- ============ ② 手机·工程页 ============ -->
+<div id="view-work">
+  <div class="hdr">
+    <button class="icon-btn" onclick="setForm('list')">‹</button>
+    <div class="proj"><div class="nm">SATTTELITES</div><div class="st"><span class="live-dot"></span>agent 正在处理 · Lead Vocal</div></div>
+    <button class="icon-btn">☰</button>
+  </div>
+
+  <!-- 播放器区：时间标尺 + 轨道推子 + 带录制的走带（用户裁定的必要集） -->
+  <div id="player-zone" data-gd="ok" data-note="必要集（用户 2026-10-10 推演）：时间标尺=音乐制作的坐标系（必有）→ 固定推子=绝对/相对音量的连续控制 → 带录制键的走带。其余全部交对话流组件。波形/推子/走带在 Godot 或 web 均为常规控件">
+    <div class="pz-tabs">工程时间轴 · 1:12<div class="fold" onclick="document.getElementById('player-zone').classList.toggle('slim')">收起/展开</div></div>
+    <div id="wave-area" data-gd="ok" data-note="时间标尺+波形概览+播放头+循环段：用户自己播放/拖播/定位副歌的常驻面——这就是『假如用户想自己播放当前项目』的答案">
+      <div class="ruler"><i>0:00</i><i>0:12</i><i>0:24</i><i>0:36</i><i>0:48</i><i>1:00</i></div>
+      <div class="lanes">
+        <div class="wl hot" style="top:4px"></div>
+        <div class="wl" style="top:23px;width:88%"></div>
+        <div class="wl" style="top:42px;width:64%;margin-left:14%"></div>
+        <div class="wl" style="top:61px;width:74%;margin-left:20%"></div>
+      </div>
+      <div class="loopb"></div>
+      <div class="ph"></div>
+    </div>
+    <div id="track-strip" data-gd="ok" data-note="轨道推子条：横滑 chip（色条+名称+静音+微型推子+读数），末端常驻 MASTER——绝对音量（监听）与相对音量（轨间平衡）的固定控制位">
+      <div class="ts-chip"><div class="nm"><span class="tc" style="background:var(--blue)"></span>Lead Vocal<span class="mu">M</span></div><div class="sl"><i></i><b></b></div><div class="lv">−3.2 dB</div></div>
+      <div class="ts-chip"><div class="nm"><span class="tc" style="background:var(--red)"></span>Drum Bus<span class="mu">M</span></div><div class="sl"><i style="width:72%"></i><b style="left:calc(72% - 3px)"></b></div><div class="lv">−1.8 dB</div></div>
+      <div class="ts-chip"><div class="nm"><span class="tc" style="background:var(--yellow)"></span>Bass<span class="mu">M</span></div><div class="sl"><i style="width:64%"></i><b style="left:calc(64% - 3px)"></b></div><div class="lv">−4.5 dB</div></div>
+      <div class="ts-chip"><div class="nm"><span class="tc" style="background:#7B4EA8"></span>Synth Pad<span class="mu">M</span></div><div class="sl"><i style="width:50%"></i><b style="left:calc(50% - 3px)"></b></div><div class="lv">−7.0 dB</div></div>
+      <div class="ts-chip master"><div class="nm">MASTER</div><div class="sl"><i style="width:66%"></i><b style="left:calc(66% - 3px)"></b></div><div class="lv">−0.9 dB</div></div>
+    </div>
+    <div id="transport" data-gd="ok" data-note="带录制键的走带：录制=采集入口（录完入对话流成素材气泡）——必要集收口">
+      <button class="tp">⏮</button>
+      <button class="tp play" onclick="this.classList.toggle('play')">▶</button>
+      <button class="tp rec" onclick="toggleRec(this)">⏺</button>
+      <button class="tp">🔁</button>
+      <div class="lcd"><div class="t">0:42.3</div><div class="s">BPM 120 · 4/4</div></div>
+    </div>
+    <div class="rec-hint" id="rec-hint">● 录制中…松开即作为素材发送给 agent</div>
+  </div>
+
+  <!-- 对话流区：其余全部 -->
+  <div id="work-chat" data-gd="ok" data-note="对话流=其余一切交互的载体：状态/结果/盲听/提案/采集卡——播放器区收起时它占满屏">
+    <div class="chat-flow">
+      <div class="msg user"><div class="bubble">副歌的人声再亮一点，低频收一收</div></div>
+      <div class="card-msg"><div class="card">
+        <div class="ch"><span class="dot" style="background:var(--yellow)"></span>正在处理<span class="tag">Lead Vocal</span></div>
+        <div class="cb"><div class="steps">
+          <div class="s done">定位副歌区段（0:42–1:05）</div>
+          <div class="s done">EQ 高频搁架 +1.5 dB @ 8k</div>
+          <div class="s doing">低频 180Hz 收 −2 dB…</div>
+        </div></div>
+      </div></div>
+      <div class="card-msg"><div class="card">
+        <div class="ch"><span class="dot" style="background:var(--blue)"></span>新版试听<span class="tag">V7</span><span class="tag">0:42–1:05</span></div>
+        <div class="player"><button class="pbtn" onclick="this.classList.toggle('playing');this.textContent=this.classList.contains('playing')?'❚❚':'▶'">▶</button><div class="ptrack"><div class="pfill"></div></div><span class="ptime">0:16</span></div>
+        <div class="cf"><button class="chip pri">保留 V7</button><button class="chip">A/B 盲听</button><button class="chip">再亮一点</button></div>
+      </div></div>
+      <div class="msg user"><div class="who">录制 · 0:07</div><div class="bubble">♪ 哼唱素材（0:07）</div><div class="who-say">「转成 Bass 线，音色圆一点」</div></div>
+      <div class="card-msg"><div class="card">
+        <div class="ch"><span class="dot" style="background:var(--ink)"></span>Bass 线方案<span class="tag">按哼唱</span></div>
+        <div class="cb">
+          <div class="player"><button class="pbtn" onclick="this.classList.toggle('playing');this.textContent=this.classList.contains('playing')?'❚❚':'▶'">▶</button><div class="ptrack"><div class="pfill" style="width:64%"></div></div><span class="ptime">0:29</span></div>
+          <div class="prow"><span class="pn">音色圆度</span><div class="stepper"><button>−</button><span class="val">62 %</span><button>＋</button></div></div>
+        </div>
+        <div class="cf"><button class="chip pri">入轨</button><button class="chip">换音色再听</button></div>
+      </div></div>
+    </div>
+    <div class="chat-input"><button class="plus-btn">＋</button><div class="box">说点什么，或描述想要的声音…</div><button class="mic-btn">🎤</button></div>
+  </div>
+</div>
+
+<!-- ============ ③ 平板：库乐队式 + 嵌入对话流 ============ -->
+<div id="view-pad" data-gd="adapt" data-note="平板=库乐队/音悦家式触控编曲基座（大触点轨行+片段块+顶走带），差异点=对话流嵌入为常驻右栏（可收成抓手条）——用户 2026-10-10 裁定方向">
+  <div class="gb-head" data-gd="ok" data-note="顶走带（库乐队位）：播放/停止/录制/循环+LCD+工具——触点加大">
+    <button class="tp">⚙</button>
+    <button class="tp">⏮</button>
+    <button class="tp play">▶</button>
+    <button class="tp rec" onclick="this.style.background='var(--red)';this.style.color='#fff'">⏺</button>
+    <button class="tp">🔁</button>
+    <div class="lcd"><div class="t">0:42.3</div><div class="s">120 BPM · 4/4</div></div>
+    <div class="sp"></div>
+    <button class="tool">trak</button>
+    <button class="tool">混音</button>
+    <button class="tool">片段库</button>
+  </div>
+  <div class="gb-main">
+    <div class="gb-canvas" data-gd="adapt" data-note="触控轨行（64px 高触点）：轨头+片段块；黄框=agent 正在处理——库乐队式直接编曲观感，agent 处理对象可见">
+      <div class="gb-row"><div class="th"><span class="tc" style="background:var(--blue)"></span><span class="n">Lead Vocal</span><span class="mu">M</span></div><div class="lane"><div class="cl hot" style="left:6%;width:30%"></div><div class="cl" style="left:44%;width:22%"></div></div></div>
+      <div class="gb-row"><div class="th"><span class="tc" style="background:var(--red)"></span><span class="n">Drum Bus</span><span class="mu">M</span></div><div class="lane"><div class="cl" style="left:4%;width:56%"></div></div></div>
+      <div class="gb-row"><div class="th"><span class="tc" style="background:var(--yellow)"></span><span class="n">Bass Synth</span><span class="mu">M</span></div><div class="lane"><div class="cl midi" style="left:12%;width:40%"></div></div></div>
+      <div class="gb-row"><div class="th"><span class="tc" style="background:#7B4EA8"></span><span class="n">Synth Pad</span><span class="mu">M</span></div><div class="lane"><div class="cl midi" style="left:20%;width:50%"></div></div></div>
+      <div class="gb-row"><div class="th"><span class="tc" style="background:#2E8B57"></span><span class="n">Guitar L</span><span class="mu">M</span></div><div class="lane"><div class="cl" style="left:28%;width:36%"></div></div></div>
+      <div class="gb-row"><div class="th"><span class="tc" style="background:#B8860B"></span><span class="n">Guitar R</span><span class="mu">M</span></div><div class="lane"><div class="cl" style="left:28%;width:36%"></div></div></div>
+      <div class="gb-row"><div class="th"><span class="tc" style="background:var(--ink)"></span><span class="n">Master</span></div><div class="lane"></div></div>
+    </div>
+    <div class="gb-chat" id="gb-chat" data-gd="adapt" data-note="对话流嵌入：常驻右栏（360px）可收成 44px 抓手条——『把对话流嵌进去』的落位；卡片词汇与手机端同源">
+      <div class="grabber" onclick="document.getElementById('gb-chat').classList.toggle('collapsed')" title="开合对话流"></div>
+      <div class="hdr" style="border-bottom:1.5px solid var(--ink)">
+        <div class="proj"><div class="nm" style="font-size:12.5px">对话 · SATTTELITES</div><div class="st"><span class="live-dot"></span>正在处理 Lead Vocal</div></div>
+      </div>
+      <div class="chat-flow" id="pad-flow"></div>
+      <div class="chat-input" style="padding-bottom:10px"><button class="plus-btn">＋</button><div class="box">说点什么…</div><button class="mic-btn">🎤</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ ④ PC：纯 DAW ============ -->
+<div id="view-pc" data-gd="ok" data-note="PC=纯 Godot DAW（V2 桌面层原样）：agent 窗口=浮在 DAW 窗外的独立窗口（webui），不做进 DAW 布局——用户 2026-10-10 裁定">
+  <div class="pc-top">
+    <span class="wordmark">Vit‑DAW</span><span class="vdiv"></span>
+    <button class="menu-btn">文件</button><button class="menu-btn">编辑</button>
+    <div class="pc-transport">
+      <button class="tp">⏮</button><button class="tp" style="background:var(--blue);color:#fff">▶</button>
+      <button class="tp">⏺</button><button class="tp">🔁</button>
+      <div class="lcd"><div>001 : 1 : 1 : 000</div><div>120.0 BPM · 4/4</div></div>
+    </div>
+    <button class="menu-btn" style="border:1.5px solid var(--ink);border-radius:3px;padding:3px 12px;background:var(--paper)">保存</button>
+  </div>
+  <div class="pc-main">
+    <div class="pc-rail" data-gd="ok" data-note="资料库柄（现有 LeftActivityRail）"><span>⋮ 库</span></div>
+    <div class="pc-lib" data-gd="ok" data-note="left_library_dock 原样保留"><div class="lt">工程 · SATTTELITES</div>
+      <div class="li">Lead Vocal</div><div class="li">Drum Bus</div><div class="li">Bass Synth</div>
+      <div class="lt">PLACES</div><div class="li">D:/Samples/Drums</div><div class="li">Vitamin EQ.vst3</div></div>
+    <div class="pc-stage" data-gd="adapt" data-note="主舞台可交换（V2 语义继承：F2 台前调度切换/双击 MIDI 上台）">
+      <div class="sh">音轨 <span style="font-weight:400;color:var(--ink-soft);font-size:10.5px">7 轨 · 主舞台</span><span style="flex:1"></span><span class="chip2">＋ 轨道</span><span class="chip2">⊞ 视窗 F2</span></div>
+      <div style="position:absolute;top:34px;left:0;right:0;bottom:0;overflow:hidden">
+        <div class="gb-row" style="height:56px"><div class="th" style="width:168px;border-right:1.5px solid var(--ink)"><span class="tc" style="background:var(--blue)"></span><span class="n">Lead Vocal</span><span class="mu">M</span></div><div class="lane"><div class="cl hot" style="left:6%;width:30%"></div><div class="cl" style="left:44%;width:22%"></div></div></div>
+        <div class="gb-row" style="height:56px"><div class="th" style="width:168px;border-right:1.5px solid var(--ink)"><span class="tc" style="background:var(--red)"></span><span class="n">Drum Bus</span><span class="mu">M</span></div><div class="lane"><div class="cl" style="left:4%;width:56%"></div></div></div>
+        <div class="gb-row" style="height:56px"><div class="th" style="width:168px;border-right:1.5px solid var(--ink)"><span class="tc" style="background:var(--yellow)"></span><span class="n">Bass Synth</span><span class="mu">M</span></div><div class="lane"><div class="cl midi" style="left:12%;width:40%"></div></div></div>
+        <div class="gb-row" style="height:56px"><div class="th" style="width:168px;border-right:1.5px solid var(--ink)"><span class="tc" style="background:#7B4EA8"></span><span class="n">Synth Pad</span><span class="mu">M</span></div><div class="lane"><div class="cl midi" style="left:20%;width:50%"></div></div></div>
+        <div class="gb-row" style="height:56px"><div class="th" style="width:168px;border-right:1.5px solid var(--ink)"><span class="tc" style="background:var(--ink)"></span><span class="n">Master</span></div><div class="lane"></div></div>
+      </div>
+    </div>
+    <div class="pc-rack" data-gd="ok" data-note="机架右栏常驻（可收/可弹浮——V2 语义）；右键装载=卡池 #46">
+      <div class="sh">机架 <span style="font-weight:400;opacity:.6;font-size:10.5px">Lead Vocal · 4 节点</span><span style="flex:1"></span><span style="font-weight:400;opacity:.6;font-size:10.5px">弹出 ⇱</span></div>
+      <svg style="position:absolute;inset:34px 0 0 0;width:100%;height:calc(100% - 34px);pointer-events:none">
+        <path d="M 150 60 C 200 60, 200 150, 240 150" stroke="#73B8F5" stroke-width="2.5" fill="none"/>
+        <path d="M 380 170 C 430 170, 430 250, 300 250 C 260 250, 260 300, 250 300" stroke="#065BC7" stroke-width="2.5" fill="none"/>
+      </svg>
+      <div class="rnode" style="left:24px;top:60px"><span class="port in"></span><span class="port out"></span><div class="nh">音量·声像<span class="led"></span></div><div class="nb">Vol −3.2 dB<br>Pan L12</div></div>
+      <div class="rnode" style="left:118px;top:150px"><span class="port in"></span><span class="port out"></span><div class="nh">Vitamin EQ<span class="led"></span></div><div class="nb">+1.5 dB @ 8k</div></div>
+      <div class="rnode" style="left:250px;top:160px"><span class="port in"></span><span class="port out"></span><div class="nh">压缩 2A<span class="led"></span></div><div class="nb">4:1 · GR −4.8</div></div>
+      <div class="rnode" style="left:154px;top:290px"><span class="port in"></span><span class="port out"></span><div class="nh">延迟 1/4<span class="led"></span></div><div class="nb">Sync 1/4</div></div>
+    </div>
+    <div class="pc-viewrail" data-gd="ok" data-note="视图坞（多开浮卡/真窗口入口——V2 语义继承）">
+      <span style="font-size:8px;letter-spacing:.2em;color:var(--ink-soft)">坞</span>
+      <button class="dock-icon active"><span class="gi">▤</span>音轨</button>
+      <button class="dock-icon"><span class="gi">♪</span>卷帘</button>
+      <button class="dock-icon"><span class="gi">≡</span>混音</button>
+      <button class="dock-icon"><span class="gi">∿</span>详情</button>
+    </div>
+  </div>
+  <div class="pc-bottom">工作区 · 编曲（音轨＋机架） ｜ F2 视窗切换 · Del 删除 · Ctrl+S 保存 ｜ <span style="opacity:.6">agent 对话=DAW 窗外独立窗口（webui），不入本布局</span></div>
+</div>
+
+</div>
+</div>
+
+<div id="ann-legend">
+  <span><span class="b" style="background:var(--blue)"></span>现有链路直接可实现</span>
+  <span><span class="b" style="background:var(--yellow)"></span>需适配（新装配/新链路）</span>
+  <span style="color:var(--ink-soft)">悬停看依据 · 右上切四形态</span>
+</div>
+
+<div id="info-modal">
+  <div id="info-card">
+    <h2>V4 · 手机必要集 + 库乐队式平板 + 纯 DAW 的 PC</h2>
+    <p>按你第四轮裁定：<b>手机</b>必要集=时间标尺（音乐制作的坐标系）→ 固定推子（绝对/相对音量）→ 带录制键的走带，其余全部交对话流组件，另补<b>对话列表页</b>（=工程列表，一工程一线程）；<b>平板</b>=库乐队/音悦家式触控基座+把对话流嵌进去（常驻右栏可收）；<b>PC</b>=纯 Godot DAW，agent 窗口浮在 DAW 窗外，不做进布局。</p>
+    <h3>① 手机·列表（对话列表）</h3>
+    <li>每行=工程+最近 agent 动态摘要+版本 chip——点进工程页；新建=一句话开始</li>
+    <h3>② 手机·工程页（播放器区+对话流）</h3>
+    <li>播放器区（可收起）：时间标尺+波形+播放头+循环段；轨道推子条（横滑 chip，MASTER 常驻末端）；带录制键走带（⏺=采集入口，录完入流）</li>
+    <li>对话流区：状态/结果/盲听/提案/采集卡——播放器区收起后它占满屏</li>
+    <h3>③ 平板</h3>
+    <li>顶走带（大触点）+触控轨行（黄框=agent 处理对象）+片段块——库乐队式直接编曲观感</li>
+    <li>对话流嵌入为右栏（360px），可收成 44px 抓手条——「与库乐队的差异点」</li>
+    <h3>④ PC</h3>
+    <li>V2 桌面层原样：资料库+主舞台可交换（F2）+机架右栏+视图坞；agent 对话=窗外独立窗口（webui），不设计进布局</li>
+    <h3>可交互</h3>
+    <li>列表页点工程卡→工程页；⏺ 录制键切换红态+提示；播放器区「收起/展开」；平板抓手条开合对话流</li>
+    <div class="close-row"><button class="chip pri" id="info-close">关闭</button></div>
+  </div>
+</div>
+
+<script>
+function setForm(f){
+  document.querySelectorAll('#proto-bar .seg').forEach(x=>x.classList.toggle('on',x.dataset.form===f));
+  document.getElementById('device-shell').className='form-'+f;
+  if(f==='pad' && !document.getElementById('pad-flow').children.length){
+    document.getElementById('pad-flow').innerHTML=document.querySelector('#view-work .chat-flow').innerHTML;
+  }
+  fitShell();
+}
+document.querySelectorAll('#proto-bar .seg').forEach(s=>s.onclick=()=>setForm(s.dataset.form));
+function toggleRec(btn){
+  btn.classList.toggle('recing');
+  const on=btn.classList.contains('recing');
+  btn.style.background=on?'var(--red)':'';btn.style.color=on?'#fff':'';
+  document.getElementById('rec-hint').classList.toggle('show',on);
+}
+function fitShell(){
+  const shell=document.getElementById('device-shell');
+  const w=shell.offsetWidth,h=shell.offsetHeight;
+  const sc=Math.min(1,(window.innerWidth-70)/w,(window.innerHeight-100)/h);
+  shell.style.transform=`scale(${sc})`;
+}
+window.addEventListener('resize',fitShell);
+const annBtn=document.getElementById('ann-toggle');
+annBtn.onclick=()=>{document.body.classList.toggle('ann-on');annBtn.classList.toggle('on');
+  annBtn.textContent=document.body.classList.contains('ann-on')?'标注：开':'标注：关';};
+document.getElementById('info-btn').onclick=()=>document.getElementById('info-modal').classList.add('show');
+document.getElementById('info-close').onclick=()=>document.getElementById('info-modal').classList.remove('show');
+document.getElementById('info-modal').onclick=e=>{if(e.target.id==='info-modal')e.currentTarget.classList.remove('show')};
+document.querySelectorAll('[data-gd]').forEach(el=>{
+  const b=document.createElement('span');const ok=el.dataset.gd==='ok';
+  b.className='gd-badge'+(ok?' ok':'');b.textContent=ok?'✓ 直接可实现':'⚠ 需适配';
+  b.title=el.dataset.note||'';el.appendChild(b);
+});
+fitShell();
+</script>
+</body>
+</html>

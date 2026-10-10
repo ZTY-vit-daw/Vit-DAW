@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Vit-DAW GUI 收缩第一轮 · 交互稿入口</title>
+<style>
+:root{--paper:#F6F4EC;--paper-warm:#FBF9F1;--ink:#090B0E;--blue:#065BC7;--yellow:#FACC1A;--ink-soft:#3A4148}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Segoe UI","Microsoft YaHei",sans-serif;background:var(--paper);color:var(--ink);padding:40px 6%;line-height:1.6}
+h1{font-size:22px;margin-bottom:4px}
+.sub{color:var(--ink-soft);font-size:13px;margin-bottom:28px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px}
+.card{border:1.5px solid var(--ink);border-radius:6px;background:var(--paper-warm);overflow:hidden;box-shadow:3px 3px 0 rgba(9,11,14,.12);text-decoration:none;color:inherit;display:block}
+.card img{width:100%;display:block;border-bottom:1.5px solid var(--ink);background:#DCD9CD;min-height:140px;object-fit:cover}
+.card .bd{padding:12px 14px}
+.card h3{font-size:15px;margin-bottom:4px}
+.card p{font-size:12px;color:var(--ink-soft)}
+.tag{display:inline-block;font-size:10px;border:1px solid var(--ink);border-radius:999px;padding:1px 9px;margin-right:6px;margin-top:8px}
+.tag.rec{background:var(--yellow)}
+.note{margin-top:26px;border:1.5px dashed var(--ink-soft);border-radius:6px;padding:14px 18px;font-size:12.5px;color:var(--ink-soft)}
+b{color:var(--ink)}
+</style>
+</head>
+<body>
+<h1>Vit-DAW GUI 收缩第一轮 · 交互稿</h1>
+<div class="sub">FE-GUI-SHRINK-ROUND1 · 双击任一卡片打开可交互 HTML（推荐浏览器全屏观看）· 页内右上角有「标注」开关与三端切换</div>
+
+<div class="grid">
+  <a class="card" href="V11-PC端.html">
+    <img src="V11-PC-四位田字.png" alt="V11 四位田字">
+    <div class="bd">
+      <h3>V11 · PC 端（当前候选）</h3>
+      <p>四位台前自动铺排（1全屏/2左右/3左整右分/4田字，满四挤出最久）+ 左列陈列调度 + 抽屉坞（收起bug已修）+ Master 置顶 + 外置 agent 窗。</p>
+      <span class="tag rec">第十一轮扩展</span>
+    </div>
+  </a>
+  <a class="card" href="V8-PC端.html">
+    <img src="V8-PC-默认.png" alt="V8 PC 默认">
+    <div class="bd">
+      <h3>V8 · PC 端（历史）</h3>
+      <p>切换态点卡换主舞台版——被第十轮裁定取代（太繁琐缺逻辑→双位积木）。</p>
+      <span class="tag">历史方向</span>
+    </div>
+  </a>
+  <a class="card" href="V7-平板端.html">
+    <img src="V7-平板-默认.png" alt="V7 平板默认">
+    <div class="bd">
+      <h3>V7 · 平板端（已通过）</h3>
+      <p>仿库乐队/音悦家做像 + 唯一更新点=底部浮动输入框（浮于界面上方），对话流自输入框向上展开。细节后续补。</p>
+      <span class="tag">已通过</span>
+    </div>
+  </a>
+  <a class="card" href="V5-手机端.html">
+    <img src="V5-首页-工程流.png" alt="V5 首页">
+    <div class="bd">
+      <h3>V5 · 手机端（已定稿）</h3>
+      <p>工程流首页（预览⟷列表）+ 工程页（对话流+磁带机走带+红指针走带线+浮动轨道歌单+🔊竖推子+底部输入框）。</p>
+      <span class="tag">已定稿</span>
+    </div>
+  </a>
+  <a class="card" href="V6-平板端.html">
+    <img src="V6-平板-工程页.png" alt="V6 平板工程页">
+    <div class="bd">
+      <h3>V6 · 平板端（已废弃）</h3>
+      <p>照抄手机端不变量的平板稿——被裁定否决，由 V7 取代。</p>
+      <span class="tag">废弃归档</span>
+    </div>
+  </a>
+  <a class="card" href="A-台前调度.html">
+    <img src="A-默认.png" alt="A 默认态">
+    <div class="bd">
+      <h3>A · 台前调度（第一轮）</h3>
+      <p>切换器换右栏（已被裁定修正：切换对象改为主舞台）——切换态机制存活于 V2/V3。</p>
+      <span class="tag">历史方向</span>
+    </div>
+  </a>
+  <a class="card" href="B-上下文直达.html">
+    <img src="V2-桌面-切换态.png" alt="B 示意">
+    <div class="bd">
+      <h3>B · 上下文直达（第一轮）</h3>
+      <p>双击片段=卷帘——被 V2 吸收为「双击 MIDI 上台」。</p>
+      <span class="tag">历史方向</span>
+    </div>
+  </a>
+  <a class="card" href="C-浮动坞.html">
+    <img src="V2-平板.png" alt="C 示意">
+    <div class="bd">
+      <h3>C · 浮动坞（第一轮）</h3>
+      <p>浮卡/吸附机制被 V2 完整吸收（↗ 真窗口、⚓ 吸附）。</p>
+      <span class="tag">历史方向</span>
+    </div>
+  </a>
+</div>
+
+<div class="note">
+  <b>V11 终图</b>：<a href="V11-PC-四位田字.png">PC·四位田字</a> · <a href="V11-PC-台前调度.png">PC·台前调度（四位版）</a> ｜ <b>V10</b>：<a href="V10-PC-默认.png">默认</a> · <a href="V10-PC-台前调度左列.png">左列陈列</a> ｜ <b>V9</b>：<a href="V9-PC-双位默认.png">双位默认</a> · <a href="V9-PC-台前调度面板.png">面板版</a> ｜ <b>V8</b>：<a href="V8-PC-默认.png">默认</a> · <a href="V8-PC-外置agent窗.png">外置 agent 窗</a> ｜
+  <b>V7</b>：<a href="V7-平板-默认.png">平板·默认</a> · <a href="V7-平板-对话流展开.png">平板·对话流展开</a> ｜
+  <b>V5</b>：<a href="V5-首页-工程流.png">首页·工程流</a> · <a href="V5-首页-列表视图.png">首页·列表</a> · <a href="V5-工程页-修订后.png">工程页</a> · <a href="V5-工程页-歌单浮层.png">歌单浮层</a> · <a href="V5-工程页-竖推子.png">竖推子</a> ｜
+  历史稿：V6 / V4 / V3 / V2 / A·B·C。<br>
+  交互动线在各稿右上「设计说明」里；悬停「可实现性标注」看落地依据（✓ 直接可实现 / ⚠ 需适配）。
+</div>
+</body>
+</html>

@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V2 · 统一底板（主舞台交换 + 右栏机架 + 三端装配）— Vit-DAW GUI 收缩稿</title>
+<style>
+:root{
+  --paper:#F6F4EC; --paper-warm:#FBF9F1; --ink:#090B0E; --ink-soft:#3A4148;
+  --line:rgba(9,11,14,.9); --line-soft:rgba(9,11,14,.16);
+  --blue:#065BC7; --blue-light:#73B8F5; --yellow:#FACC1A; --red:#DB1214;
+  --canvas:#252B2E;
+  --ease:cubic-bezier(.22,.8,.24,1);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{font-family:"Segoe UI","Microsoft YaHei",system-ui,sans-serif;background:#DCD9CD;color:var(--ink);overflow:hidden;font-size:13px}
+button{font-family:inherit;cursor:pointer;background:none;border:none;color:inherit}
+
+/* ===== 原型控件：三端装配切换（非产品 UI） ===== */
+#proto-bar{
+  position:fixed;top:10px;right:14px;z-index:200;display:flex;align-items:center;gap:8px;
+  background:var(--paper-warm);border:1.5px solid var(--ink);border-radius:999px;padding:4px 6px 4px 14px;
+  box-shadow:3px 3px 0 rgba(9,11,14,.2);font-size:11px;
+}
+#proto-bar .segs{display:flex;gap:2px}
+#proto-bar .seg{padding:3px 12px;border-radius:999px;font-size:11px;border:1.5px solid transparent}
+#proto-bar .seg.on{background:var(--ink);color:var(--paper)}
+#proto-bar .ann{border:1.5px solid var(--ink);border-radius:999px;padding:3px 10px;font-size:10px}
+#proto-bar .ann.on{background:var(--yellow)}
+
+/* ===== 设备壳 ===== */
+#stage-wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+#device-shell{
+  position:relative;background:var(--paper);overflow:hidden;
+  display:flex;flex-direction:column;
+  border:2px solid var(--ink);
+}
+#device-shell.form-desktop{width:100%;height:100%;border:none;border-radius:0}
+#device-shell.form-tablet{width:1180px;height:820px;border-radius:26px;border-width:10px;box-shadow:0 40px 100px rgba(9,11,14,.4)}
+#device-shell.form-phone{width:402px;height:840px;border-radius:40px;border-width:11px;box-shadow:0 40px 100px rgba(9,11,14,.45)}
+#device-shell.form-tablet::after,#device-shell.form-phone::after{
+  content:"";position:absolute;bottom:6px;left:50%;transform:translateX(-50%);
+  width:120px;height:4px;border-radius:4px;background:rgba(9,11,14,.4);pointer-events:none;
+}
+
+/* ===== 应用骨架 ===== */
+#app{flex:1;display:flex;flex-direction:column;min-height:0;min-width:0;background:var(--paper)}
+#topbar{
+  height:46px;flex:none;background:var(--paper-warm);border-bottom:1.5px solid var(--ink);
+  display:flex;align-items:center;gap:14px;padding:0 14px;position:relative;z-index:5;
+}
+.wordmark{font-weight:800;letter-spacing:.06em;font-size:15px}
+.vdiv{width:1.5px;height:20px;background:var(--ink);opacity:.7}
+.menu-btn{font-size:13px;padding:4px 8px;border-radius:3px}
+.menu-btn:hover{background:rgba(6,91,199,.10)}
+#transport{position:absolute;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:10px}
+.lcd{background:var(--ink);color:var(--paper);font-family:Consolas,monospace;padding:4px 14px;border-radius:3px;text-align:center;line-height:1.25}
+.lcd .t{font-size:15px;letter-spacing:.05em}
+.lcd .sub{font-size:10px;opacity:.75}
+.tp-btn{width:30px;height:30px;border:1.5px solid var(--ink);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:13px;background:var(--paper)}
+.tp-btn:hover{background:var(--blue-light)}
+.tp-btn.on{background:var(--blue);color:#fff}
+#topbar .right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.ai-pill{display:flex;align-items:center;gap:6px;font-size:12px;border:1.5px solid var(--ink);border-radius:999px;padding:3px 12px;background:var(--paper)}
+.ai-dot{width:7px;height:7px;border-radius:50%;background:var(--blue)}
+.btn-ink{border:1.5px solid var(--ink);border-radius:3px;padding:4px 14px;font-size:13px;background:var(--paper)}
+.btn-ink:hover{background:var(--yellow)}
+
+#main{flex:1;display:flex;min-height:0;position:relative}
+
+/* 左缘柄 + 资料库 */
+#lib-rail{width:20px;flex:none;background:var(--paper-warm);border-right:1.5px solid var(--ink);display:flex;align-items:center;justify-content:center;cursor:pointer}
+#lib-rail span{writing-mode:vertical-rl;font-size:10px;letter-spacing:.3em;color:var(--ink-soft)}
+#library{
+  width:236px;flex:none;background:var(--paper-warm);border-right:1.5px solid var(--ink);
+  display:flex;flex-direction:column;min-height:0;
+  transition:margin-left .3s var(--ease),position .3s var(--ease);
+}
+#library.collapsed{margin-left:-237.5px}
+.lib-tabs{display:flex;border-bottom:1.5px solid var(--ink);flex:none}
+.lib-tab{flex:1;text-align:center;padding:8px 0;font-size:12px;border-right:1px solid var(--line-soft)}
+.lib-tab:last-child{border-right:none}
+.lib-tab.on{background:var(--ink);color:var(--paper)}
+.lib-search{padding:8px}
+.lib-search input{width:100%;border:1.5px solid var(--ink);border-radius:3px;padding:5px 8px;font-size:12px;background:var(--paper);font-family:inherit}
+.lib-tree{flex:1;overflow:auto;padding:2px 0 12px}
+.lib-sec{padding:6px 12px 3px;font-size:10px;color:var(--ink-soft);letter-spacing:.14em}
+.lib-item{display:flex;align-items:center;gap:7px;padding:4px 12px 4px 20px;font-size:12px}
+.lib-item:hover{background:rgba(6,91,199,.08)}
+.lib-item .ico{width:12px;height:12px;flex:none;border:1.5px solid var(--ink);border-radius:2px}
+.lib-item .ico.audio{background:repeating-linear-gradient(90deg,var(--ink) 0 1px,transparent 1px 3px)}
+.lib-item .ico.plug{background:var(--blue-light)}
+.lib-item .ico.dir{background:var(--paper);border-radius:50%}
+.lib-back{display:none}
+
+/* 主舞台 */
+#stage{
+  flex:1;min-width:0;display:flex;flex-direction:column;position:relative;
+  border-right:1.5px solid var(--ink);background:var(--paper-warm);
+}
+.pane-head{height:34px;flex:none;border-bottom:1.5px solid var(--ink);display:flex;align-items:center;gap:8px;padding:0 10px;background:var(--paper)}
+.pane-head .name{font-weight:700;font-size:12.5px;letter-spacing:.08em}
+.pane-head .meta{font-size:10.5px;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pane-head .spacer{flex:1}
+.chip-btn{border:1.5px solid var(--ink);border-radius:3px;font-size:11px;padding:2px 9px;background:var(--paper-warm);white-space:nowrap}
+.chip-btn:hover{background:var(--blue-light)}
+.chip-btn .kbd{font-size:9px;opacity:.6;margin-left:4px}
+#stage-body{flex:1;min-height:0;position:relative;overflow:hidden}
+
+/* 音轨内容 */
+#ruler{height:20px;flex:none;border-bottom:1px solid var(--line-soft);display:flex;align-items:flex-end;font-size:9px;color:var(--ink-soft);padding-left:176px}
+#ruler i{flex:1;border-left:1px solid var(--line-soft);padding-left:4px;font-style:normal}
+.track-scroll{position:absolute;inset:0;top:20px;overflow:auto}
+.track{display:flex;height:40px;border-bottom:1px solid var(--line-soft)}
+.track.selected .tr-head{background:rgba(6,91,199,.12)}
+.tr-head{width:168px;flex:none;border-right:1.5px solid var(--ink);display:flex;align-items:center;gap:6px;padding:0 8px 0 0;position:sticky;left:0;background:var(--paper-warm);z-index:2}
+.tr-color{width:4px;height:26px;flex:none}
+.tr-name{flex:1;font-size:12px;white-space:nowrap;overflow:hidden}
+.tr-btn{width:18px;height:18px;border:1px solid var(--ink);border-radius:2px;font-size:9px;display:flex;align-items:center;justify-content:center;flex:none}
+.tr-lane{flex:1;position:relative;background:repeating-linear-gradient(90deg,transparent 0 79px,var(--line-soft) 79px 80px)}
+.clip{position:absolute;top:6px;height:28px;border:1.5px solid var(--ink);border-radius:2px;background:var(--paper);overflow:hidden}
+.clip .wave{position:absolute;inset:0;background:repeating-linear-gradient(90deg,rgba(9,11,14,.55) 0 1.5px,transparent 1.5px 4px);opacity:.5;mask-image:linear-gradient(180deg,transparent 20%,#000 20%,#000 80%,transparent 80%);-webkit-mask-image:linear-gradient(180deg,transparent 20%,#000 20%,#000 80%,transparent 80%)}
+.clip.midi{background:var(--blue-light);cursor:pointer}
+.clip.midi .notes{position:absolute;inset:0;background:repeating-linear-gradient(180deg,rgba(9,11,14,.5) 0 2px,transparent 2px 7px)}
+.clip.midi:hover{outline:2px solid var(--blue);outline-offset:1px}
+#playhead{position:absolute;top:0;bottom:0;width:1.5px;background:var(--red);left:38%;z-index:3;pointer-events:none}
+
+/* 各视图 mock */
+.mock-fill{position:absolute;inset:0}
+.rack-canvas{background:var(--canvas);background-image:linear-gradient(rgba(246,244,236,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(246,244,236,.06) 1px,transparent 1px);background-size:28px 28px}
+.rnode{position:absolute;width:132px;background:var(--paper-warm);border:1.5px solid var(--ink);border-radius:4px;font-size:11px;box-shadow:0 6px 18px rgba(0,0,0,.4)}
+.rnode .nh{padding:4px 8px;border-bottom:1.5px solid var(--ink);font-weight:700;font-size:11px;display:flex;justify-content:space-between;align-items:center}
+.rnode .nh .led{width:6px;height:6px;border-radius:50%;background:var(--blue)}
+.rnode .nb{padding:6px 8px;color:var(--ink-soft);font-size:10px;line-height:1.7}
+.port{position:absolute;width:9px;height:9px;border-radius:50%;background:var(--paper);border:1.5px solid var(--ink)}
+.port.in{left:-5px;top:12px}.port.out{right:-5px;top:12px}
+.piano{display:flex;height:100%}
+.piano .keys{width:64px;flex:none;background:var(--paper);border-right:1.5px solid var(--ink);display:flex;flex-direction:column}
+.piano .k{flex:1;border-bottom:1px solid var(--line-soft);font-size:8px;display:flex;align-items:center;padding-left:6px;color:var(--ink-soft)}
+.piano .k.blk{background:var(--ink);color:var(--paper)}
+.piano .grid{flex:1;position:relative;background:repeating-linear-gradient(90deg,transparent 0 47px,var(--line-soft) 47px 48px),repeating-linear-gradient(180deg,transparent 0 13px,var(--line-soft) 13px 14px)}
+.pnote{position:absolute;height:9px;background:var(--blue);border:1px solid var(--ink);border-radius:2px;opacity:.92}
+.mixer{display:flex;height:100%;background:var(--paper);padding:8px;gap:6px;overflow:auto}
+.strip{flex:1;min-width:64px;border:1.5px solid var(--ink);border-radius:3px;background:var(--paper-warm);display:flex;flex-direction:column;align-items:center;padding:6px 4px;gap:5px;font-size:10px}
+.strip .sn{white-space:nowrap;overflow:hidden;max-width:100%}
+.strip .knob{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--ink);position:relative}
+.strip .knob::after{content:"";position:absolute;width:1.5px;height:8px;background:var(--ink);left:50%;top:1px;transform-origin:bottom;transform:translateX(-50%) rotate(35deg)}
+.strip .fader{flex:1;width:26px;position:relative;border:1px solid var(--line-soft);border-radius:2px;background:var(--paper)}
+.strip .cap{position:absolute;left:50%;transform:translateX(-50%);width:24px;height:12px;border:1.5px solid var(--ink);border-radius:2px;background:var(--yellow)}
+.strip .meter{width:8px;align-self:stretch;border:1px solid var(--line-soft);position:relative;background:var(--paper)}
+.strip .meter i{position:absolute;bottom:0;left:0;right:0;background:var(--blue)}
+.strip.master{background:var(--ink);color:var(--paper)}
+.spec{display:flex;height:100%}
+.spec .sp{flex:1.4;position:relative;border-right:1.5px solid var(--ink);background:var(--paper);display:flex;align-items:flex-end;gap:3px;padding:10px 8px 22px}
+.spec .sp i{flex:1;background:var(--blue);opacity:.85;border-radius:1px 1px 0 0}
+.spec .sp i.hi{background:var(--blue-light)}
+.spec .fax{position:absolute;bottom:4px;left:8px;right:8px;display:flex;justify-content:space-between;font-size:9px;color:var(--ink-soft)}
+.spec .insp{flex:1;padding:10px 12px;font-size:11px;overflow:auto}
+.spec .insp h4{font-size:11px;letter-spacing:.1em;border-bottom:1.5px solid var(--ink);padding-bottom:4px;margin-bottom:8px}
+.kv{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px dashed var(--line-soft)}
+.kv b{font-weight:600}
+
+/* 右栏（机架） */
+#rack-pane{
+  width:38%;max-width:520px;min-width:280px;flex:none;display:flex;flex-direction:column;position:relative;
+  background:var(--paper-warm);transition:width .3s var(--ease),min-width .3s var(--ease),margin-right .3s var(--ease);
+}
+#rack-pane.collapsed{width:0;min-width:0;overflow:hidden;border-right-width:0}
+#rack-collapsed-rail{
+  position:absolute;right:53px;top:0;bottom:0;width:22px;display:none;cursor:pointer;z-index:6;
+  background:var(--paper-warm);border-left:1.5px solid var(--ink);
+  align-items:center;justify-content:center;
+}
+#device-shell.form-phone #rack-collapsed-rail{display:none!important}
+#rack-collapsed-rail span{writing-mode:vertical-rl;font-size:10px;letter-spacing:.3em;color:var(--ink-soft)}
+#rack-body{flex:1;position:relative;min-height:0}
+
+/* 右缘视图坞 */
+#view-rail{
+  width:52px;flex:none;background:var(--paper-warm);border-left:1.5px solid var(--ink);
+  display:flex;flex-direction:column;align-items:center;padding:10px 0;gap:8px;
+}
+.dock-label{font-size:8px;letter-spacing:.2em;color:var(--ink-soft)}
+.dock-icon{
+  width:38px;height:38px;border:1.5px solid var(--ink);border-radius:8px;background:var(--paper);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-size:9px;position:relative;
+  transition:transform .2s cubic-bezier(.34,1.45,.4,1);
+}
+.dock-icon:hover{transform:translateY(-3px) scale(1.06);background:var(--blue-light)}
+.dock-icon .gi{font-size:14px;line-height:1}
+.dock-icon.active{background:var(--ink);color:var(--paper)}
+.dock-icon .live-dot{position:absolute;top:-4px;right:-4px;width:9px;height:9px;border-radius:50%;background:var(--blue);border:1.5px solid var(--paper-warm)}
+
+/* 底栏 */
+#bottombar{
+  height:30px;flex:none;border-top:1.5px solid var(--ink);background:var(--paper-warm);
+  display:flex;align-items:center;gap:18px;padding:0 14px;font-size:11px;color:var(--ink-soft);
+}
+#bottombar .kbd-hint b{border:1px solid var(--ink-soft);border-radius:3px;padding:0 4px;font-weight:600;color:var(--ink)}
+#bottombar .right{margin-left:auto;display:flex;gap:8px;align-items:center}
+#phone-nav{display:none}
+
+/* ===== 切换态浮层 ===== */
+#switch-layer{position:absolute;inset:0;z-index:50;display:none;background:rgba(9,11,14,.42);backdrop-filter:blur(5px)}
+#switch-layer.show{display:block}
+.sw-hint{position:absolute;top:60px;left:50%;transform:translateX(-50%);color:var(--paper);font-size:13px;display:flex;align-items:center;gap:10px;background:rgba(9,11,14,.55);padding:8px 18px;border-radius:999px;white-space:nowrap}
+.sw-hint .kbd{border:1px solid var(--paper);border-radius:3px;padding:0 6px;font-size:11px}
+#sw-active{
+  position:absolute;left:56%;top:48%;transform:translate(-50%,-50%) scale(.82);
+  width:54%;height:62%;background:var(--paper-warm);border:2px solid var(--ink);border-radius:6px;
+  box-shadow:0 30px 80px rgba(0,0,0,.5);overflow:hidden;cursor:pointer;transition:transform .3s var(--ease);
+}
+#sw-active:hover{transform:translate(-50%,-50%) scale(.845)}
+#sw-active .cap{height:30px;border-bottom:1.5px solid var(--ink);display:flex;align-items:center;gap:8px;padding:0 12px;font-size:12px;font-weight:700;background:var(--paper)}
+#sw-active .cap .dot{width:8px;height:8px;border-radius:50%;background:var(--blue)}
+#sw-active .cap .ret{margin-left:auto;font-weight:400;font-size:11px;color:var(--ink-soft)}
+#sw-active .body{position:absolute;inset:30px 0 0 0;opacity:.75}
+#sw-stack{position:absolute;left:5%;top:50%;transform:translateY(-50%);width:200px}
+.sw-card{
+  position:absolute;width:196px;height:118px;background:var(--paper-warm);
+  border:1.5px solid var(--ink);border-radius:5px;box-shadow:0 14px 40px rgba(0,0,0,.45);
+  cursor:pointer;transition:transform .28s var(--ease);
+  padding:10px 12px;display:flex;flex-direction:column;gap:5px;
+}
+.sw-card:hover{transform:translateX(12px) scale(1.03)!important;z-index:9}
+.sw-card .ttl{font-weight:700;font-size:13px;display:flex;align-items:center;gap:7px}
+.sw-card .ttl .gi{width:16px;height:16px;border:1.5px solid var(--ink);border-radius:3px;flex:none}
+.sw-card .desc{font-size:10.5px;color:var(--ink-soft);line-height:1.45}
+.sw-card .row{margin-top:auto;display:flex;gap:6px;align-items:center}
+.sw-card .st{font-size:10px;border-radius:999px;padding:1px 9px}
+.sw-card .st.new{border:1px dashed var(--ink-soft);color:var(--ink-soft)}
+.sw-card .st.opened{background:var(--blue);color:#fff}
+.sw-card .st.current{background:var(--yellow)}
+.sw-card .as-float{border:1px solid var(--ink);border-radius:3px;font-size:10px;padding:1px 8px;background:var(--paper)}
+.sw-card .as-float:hover{background:var(--yellow)}
+
+/* ===== 浮动卡片窗 / 底 sheet / 真 OS 窗 ===== */
+#float-layer{position:absolute;inset:0;pointer-events:none;z-index:40}
+.float-card{
+  position:absolute;width:360px;background:var(--paper-warm);border:1.5px solid var(--ink);border-radius:8px;
+  overflow:hidden;pointer-events:auto;
+  box-shadow:0 24px 60px rgba(9,11,14,.4),0 4px 12px rgba(9,11,14,.25);
+  animation:pop .34s cubic-bezier(.34,1.45,.4,1);
+}
+@keyframes pop{0%{transform:scale(.6);opacity:0}100%{transform:scale(1);opacity:1}}
+.float-card .fc-head{height:30px;background:var(--paper);border-bottom:1.5px solid var(--ink);display:flex;align-items:center;gap:8px;padding:0 8px;cursor:grab;user-select:none}
+.float-card .fc-head .gi{width:14px;height:14px;border:1.5px solid var(--ink);border-radius:3px;flex:none}
+.float-card .fc-head .nm{font-size:11.5px;font-weight:700}
+.float-card .fc-head .spacer{flex:1}
+.fc-act{width:24px;height:20px;border:1px solid var(--ink);border-radius:3px;font-size:10px;background:var(--paper-warm);display:flex;align-items:center;justify-content:center}
+.fc-act:hover{background:var(--yellow)}
+.fc-body{height:230px;position:relative;overflow:hidden}
+.os-window{
+  position:absolute;z-index:60;width:480px;height:340px;background:var(--paper-warm);
+  border:1.5px solid var(--ink);border-radius:10px;overflow:hidden;pointer-events:auto;
+  box-shadow:0 40px 100px rgba(9,11,14,.5);
+}
+.os-window .os-head{
+  height:34px;background:var(--ink);color:var(--paper);display:flex;align-items:center;gap:10px;padding:0 12px;cursor:grab;user-select:none;
+}
+.os-window .os-head .dots{display:flex;gap:6px}
+.os-window .os-head .dots i{width:11px;height:11px;border-radius:50%;border:1.5px solid rgba(246,244,236,.6)}
+.os-window .os-head .dots i:nth-child(1){background:#DB1214}
+.os-window .os-head .dots i:nth-child(2){background:#FACC1A}
+.os-window .os-head .dots i:nth-child(3){background:#2E8B57}
+.os-window .os-head .nm{font-size:12px;font-weight:600}
+.os-window .os-head .back{margin-left:auto;font-size:10px;border:1px solid rgba(246,244,236,.6);border-radius:3px;padding:2px 10px;cursor:pointer}
+.os-window .os-head .back:hover{background:rgba(246,244,236,.2)}
+.os-window .fc-body{height:calc(340px - 34px)}
+
+/* ===== 标注 ===== */
+.gd-badge{position:absolute;top:-9px;right:8px;z-index:80;display:none;align-items:center;gap:4px;font-size:10px;padding:1px 8px;border-radius:999px;border:1.5px solid var(--ink);background:var(--yellow);white-space:nowrap;cursor:help}
+.gd-badge.ok{background:var(--blue);color:#fff}
+body.ann-on .gd-badge{display:flex}
+[data-gd]{position:relative}
+#ann-legend{position:fixed;left:14px;bottom:14px;z-index:190;display:none;gap:10px;align-items:center;background:var(--paper-warm);border:1.5px solid var(--ink);border-radius:4px;padding:8px 14px;font-size:11px;box-shadow:3px 3px 0 rgba(9,11,14,.15)}
+body.ann-on #ann-legend{display:flex}
+#ann-legend .b{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:-1px;margin-right:4px}
+
+/* 信息弹窗 */
+#info-modal{position:fixed;inset:0;z-index:220;display:none;align-items:center;justify-content:center;background:rgba(9,11,14,.5)}
+#info-modal.show{display:flex}
+#info-card{width:560px;max-height:84vh;overflow:auto;background:var(--paper-warm);border:2px solid var(--ink);border-radius:6px;padding:22px 26px;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+#info-card h2{font-size:16px;margin-bottom:4px}
+#info-card h3{font-size:12.5px;margin:14px 0 6px;letter-spacing:.08em;border-bottom:1.5px solid var(--ink);padding-bottom:3px}
+#info-card p,#info-card li{font-size:12px;line-height:1.7;color:var(--ink-soft)}
+#info-card li{margin-left:18px}
+#info-card .close-row{margin-top:16px;text-align:right}
+
+/* ================================================
+   三端装配（同一 DOM，按 data-form 重排）
+   ================================================ */
+/* 平板 */
+#device-shell.form-tablet #library{position:absolute;left:20px;top:0;bottom:0;z-index:30;box-shadow:14px 0 40px rgba(9,11,14,.3)}
+#device-shell.form-tablet #library.collapsed{margin-left:-258px}
+#device-shell.form-tablet #rack-pane{width:300px}
+/* 手机 */
+#device-shell.form-phone #topbar{height:52px;padding:0 12px;gap:8px}
+#device-shell.form-phone .menu-btn,#device-shell.form-phone .vdiv{display:none}
+#device-shell.form-phone #transport{position:static;transform:none;gap:6px}
+#device-shell.form-phone .lcd .sub{display:none}
+#device-shell.form-phone .tp-btn{width:34px;height:34px}
+#device-shell.form-phone #topbar .right .ai-pill span:last-child{display:none}
+#device-shell.form-phone .btn-ink{padding:4px 10px;font-size:12px}
+#device-shell.form-phone #lib-rail{display:none}
+#device-shell.form-phone #library{
+  position:absolute;inset:0;z-index:35;width:auto;border-right:none;
+  transform:translateX(102%);transition:transform .3s var(--ease);margin-left:0!important;
+}
+#device-shell.form-phone #library.open{transform:translateX(0)}
+#device-shell.form-phone .lib-back{display:flex;align-items:center;gap:6px;padding:10px 12px;border-bottom:1.5px solid var(--ink);font-weight:700;font-size:13px;background:var(--paper)}
+#device-shell.form-phone #stage{border-right:none}
+#device-shell.form-phone #rack-pane{
+  position:absolute;left:0;right:0;bottom:0;top:auto;width:auto;max-width:none;height:62%;z-index:36;
+  border-top:2px solid var(--ink);border-radius:14px 14px 0 0;
+  transform:translateY(103%);transition:transform .32s var(--ease);margin-right:0!important;
+}
+#device-shell.form-phone #rack-pane.open{transform:translateY(0)}
+#device-shell.form-phone #view-rail{display:none}
+#device-shell.form-phone #bottombar{
+  height:56px;font-size:10px;gap:0;padding:0 8px;justify-content:space-around;
+}
+#device-shell.form-phone #bottombar .kbd-hint{display:none}
+#device-shell.form-phone #bottombar .right{margin-left:0}
+#phone-nav{display:none}
+#device-shell.form-phone #phone-nav{display:flex;gap:6px;align-items:center}
+#phone-nav .pn{
+  flex:1;height:40px;border:1.5px solid var(--ink);border-radius:8px;background:var(--paper);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-size:9px;
+}
+#phone-nav .pn .gi{font-size:15px;line-height:1}
+#phone-nav .pn:active{background:var(--blue-light)}
+/* 手机：切换态/浮卡变全宽列表与底 sheet */
+#device-shell.form-phone #sw-active{left:50%;top:40%;width:88%;height:44%}
+#device-shell.form-phone #sw-stack{left:4%;right:4%;top:66%;width:auto}
+#device-shell.form-phone .sw-card{position:absolute;left:0;right:0;width:auto;height:64px;flex-direction:row;align-items:center}
+#device-shell.form-phone .sw-card .desc{display:none}
+#device-shell.form-phone .sw-card:hover{transform:translateX(6px) scale(1.01)!important}
+#device-shell.form-phone .float-card{
+  position:absolute;left:3%!important;right:3%!important;top:auto!important;bottom:8px!important;width:auto!important;
+  border-radius:14px 14px 12px 12px;
+}
+#device-shell.form-phone .float-card .fc-body{height:300px}
+.flash{animation:flash .8s var(--ease)}
+@keyframes flash{0%{background:var(--yellow)}100%{background:var(--paper)}}
+</style>
+</head>
+<body>
+
+<!-- 原型控件 -->
+<div id="proto-bar">
+  <span style="font-weight:700">底板装配</span>
+  <div class="segs">
+    <button class="seg on" data-form="desktop">桌面</button>
+    <button class="seg" data-form="tablet">平板</button>
+    <button class="seg" data-form="phone">手机</button>
+  </div>
+  <button class="ann" id="ann-toggle">标注：关</button>
+  <button class="ann" id="info-btn">设计说明</button>
+</div>
+
+<div id="stage-wrap">
+<div id="device-shell" class="form-desktop" data-gd="adapt" data-note="三端装配：同一套底板元素按可用宽度重排（桌面双栏 / 平板 slide-over / 手机单栏+sheet）——Godot 用同一场景树+响应式布局脚本实现，跨端为设计层适配非三套代码">
+<div id="app">
+
+  <div id="topbar" data-gd="ok" data-note="全局 chrome：走带+AI 胶囊+保存。手机形态只精简不换元素">
+    <span class="wordmark">Vit‑DAW</span>
+    <span class="vdiv"></span>
+    <button class="menu-btn">文件</button>
+    <button class="menu-btn">编辑</button>
+    <div id="transport">
+      <button class="tp-btn">⏮</button>
+      <button class="tp-btn on" id="btn-play">⏵</button>
+      <button class="tp-btn rec">⏺</button>
+      <div class="lcd"><div class="t">001 : 1 : 1 : 000</div><div class="sub">00:00:00.000 · 120.0 BPM · 4/4</div></div>
+    </div>
+    <div class="right">
+      <span class="ai-pill" data-gd="ok" data-note="AI 胶囊=AgentCapsuleOverlay 收编顶栏；三端同位"><span class="ai-dot"></span><span>AI · 空闲</span></span>
+      <button class="btn-ink">保存</button>
+    </div>
+  </div>
+
+  <div id="main">
+    <div id="lib-rail" data-gd="ok" data-note="资料库柄（现有 LeftActivityRail）——手机形态隐藏（由底部导航替代）"><span>⋮ 资料库</span></div>
+
+    <div id="library" data-gd="ok" data-note="left_library_dock 原样保留：桌面=左抽屉；平板=侧滑覆盖；手机=全屏页（同一节点三种装配）">
+      <div class="lib-back">‹ 返回工作区</div>
+      <div class="lib-tabs"><button class="lib-tab on">文件</button><button class="lib-tab">插件</button><button class="lib-tab">编组</button><button class="lib-tab">便签</button></div>
+      <div class="lib-search"><input placeholder="搜索声音、插件、工程…"></div>
+      <div class="lib-tree">
+        <div class="lib-sec">工程 · SATTTELITES</div>
+        <div class="lib-item"><span class="ico dir"></span>Lead Vocal</div>
+        <div class="lib-item"><span class="ico dir"></span>Drum Bus</div>
+        <div class="lib-item"><span class="ico dir"></span>Bass Synth</div>
+        <div class="lib-sec">PLACES</div>
+        <div class="lib-item"><span class="ico dir"></span>D:/Samples/Drums</div>
+        <div class="lib-item"><span class="ico audio"></span>kick_01.wav</div>
+        <div class="lib-item"><span class="ico plug"></span>Vitamin EQ.vst3</div>
+      </div>
+    </div>
+
+    <!-- 主舞台：可交换 -->
+    <div id="stage" data-gd="adapt" data-note="主舞台=可交换槽：音轨(默认)/钢琴卷帘/混音台/频谱详情装同一容器——比旧自由分割树简单（删机制不是加机制）；被换下的视图退到切换卡列（状态保留）">
+      <div class="pane-head">
+        <span class="name" id="stage-name">音轨</span>
+        <span class="meta" id="stage-meta">7 轨 · SATTTELITES</span>
+        <span class="spacer"></span>
+        <button class="chip-btn" id="stage-new" style="display:none">＋ 新建轨道</button>
+        <button class="chip-btn" id="switch-btn" data-gd="adapt" data-note="触发开关：按钮+热键（暂定 F2）；按用户裁定=台前调度切换态换主舞台">⊞ 视窗<span class="kbd">F2</span></button>
+      </div>
+      <div id="stage-body"></div>
+
+      <!-- 台前调度切换态 -->
+      <div id="switch-layer" data-gd="adapt" data-note="切换态=Stage Manager 语义：当前舞台卡居中，其余视窗卡列于左（含被换下的音轨）；手机形态变全宽列表。Tween+StyleBoxFlat 可实现；背景模糊需适配">
+        <div class="sw-hint">视窗切换 · 点卡片接管主舞台 <span class="kbd">Esc</span> 返回 · 卡上「浮窗」=多开</div>
+        <div id="sw-active">
+          <div class="cap"><span class="dot"></span>主舞台<span id="sw-active-cap">音轨</span><span class="ret">点按返回 ↩</span></div>
+          <div class="body" id="sw-active-body"></div>
+        </div>
+        <div id="sw-stack"></div>
+      </div>
+
+      <!-- 浮窗层 -->
+      <div id="float-layer" data-gd="adapt" data-note="多开浮窗：可拖拽卡片（桌面/平板）；手机形态自动变底部 sheet；浮卡可「↗ 独立窗口」（真系统窗口=Godot Window 节点，确定可实现；旧 detached viewport 参考但其归因妥协按单语义重建）"></div>
+    </div>
+
+    <!-- 右栏：机架（常驻可收浮） -->
+    <div id="rack-pane" data-gd="adapt" data-note="右栏=机架常驻（可收成缘柄/可弹成浮窗）；平板=窄栏，手机=底部 sheet——三端同一节点">
+      <div class="pane-head">
+        <span class="name">机架</span>
+        <span class="meta" id="rack-meta">Lead Vocal · 4 节点</span>
+        <span class="spacer"></span>
+        <button class="chip-btn" id="rack-collapse" title="收起右栏">收起 ‹</button>
+        <button class="chip-btn" id="rack-float" data-gd="adapt" data-note="⇱ 机架弹成浮窗（多开场景），右栏收成缘柄">弹出 ⇱</button>
+      </div>
+      <div id="rack-body">
+        <div class="rack-canvas mock-fill" id="rack-content">
+          <svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none">
+            <path d="M 150 60 C 200 60, 200 150, 240 150" stroke="#73B8F5" stroke-width="2.5" fill="none"/>
+            <path d="M 380 170 C 430 170, 430 250, 300 250 C 260 250, 260 300, 250 300" stroke="#065BC7" stroke-width="2.5" fill="none"/>
+          </svg>
+          <div class="rnode" style="left:24px;top:44px"><span class="port in"></span><span class="port out"></span><div class="nh">音量·声像<span class="led"></span></div><div class="nb">Vol −3.2 dB<br>Pan L12</div></div>
+          <div class="rnode" style="left:116px;top:140px"><span class="port in"></span><span class="port out"></span><div class="nh">Vitamin EQ<span class="led"></span></div><div class="nb">4 段 · LowShelf<br>+2.5 dB @ 220</div></div>
+          <div class="rnode" style="left:246px;top:150px"><span class="port in"></span><span class="port out"></span><div class="nh">压缩 2A<span class="led"></span></div><div class="nb">Ratio 4:1<br>GR −4.8 dB</div></div>
+          <div class="rnode" style="left:150px;top:284px"><span class="port in"></span><span class="port out"></span><div class="nh">延迟 1/4<span class="led"></span></div><div class="nb">Sync 1/4<br>Fbk 22%</div></div>
+        </div>
+      </div>
+    </div>
+    <div id="rack-collapsed-rail" title="展开机架"><span>› 机架</span></div>
+
+    <!-- 右缘视图坞 -->
+    <div id="view-rail" data-gd="ok" data-note="视图坞=EdgeActivityBar 窄柄形态扩展；显示当前主舞台/浮窗占用；手机隐藏（底部导航替代）">
+      <span class="dock-label">坞</span>
+      <button class="dock-icon active" data-view="tracks" title="音轨 · 主舞台"><span class="gi">▤</span>音轨</button>
+      <button class="dock-icon" data-view="piano" title="钢琴卷帘"><span class="gi">♪</span>卷帘</button>
+      <button class="dock-icon" data-view="mixer" title="混音台"><span class="gi">≡</span>混音</button>
+      <button class="dock-icon" data-view="spectral" title="频谱·详情"><span class="gi">∿</span>详情</button>
+    </div>
+
+    <!-- 手机底部导航 -->
+    <div id="phone-nav" data-gd="ok" data-note="手机底部导航：同一底板元素的手机装配（资料库页/视窗切换/机架 sheet/混音上台）">
+      <button class="pn" id="pn-lib"><span class="gi">☰</span>资料库</button>
+      <button class="pn" id="pn-switch"><span class="gi">⊞</span>视窗</button>
+      <button class="pn" id="pn-rack"><span class="gi">▦</span>机架</button>
+      <button class="pn" id="pn-mixer"><span class="gi">≡</span>混音</button>
+    </div>
+  </div>
+
+  <div id="bottombar">
+    <span id="bb-context">主舞台 · 音轨 ｜ 右栏 · 机架</span>
+    <span class="kbd-hint"><b>双击 MIDI 片段</b> 卷帘上台</span>
+    <span class="kbd-hint"><b>F2</b> 视窗切换</span>
+    <span class="kbd-hint"><b>Del</b> 删除选中</span>
+    <span class="right"><span style="color:var(--ink);opacity:.5">已退役：自由分割树 / 预设 tabs / 视图切换菜单</span></span>
+  </div>
+
+</div>
+</div>
+</div>
+
+<div id="ann-legend">
+  <span><span class="b" style="background:var(--blue)"></span>Godot 确定可实现</span>
+  <span><span class="b" style="background:var(--yellow)"></span>Godot 需适配（有方案）</span>
+  <span style="color:var(--ink-soft)">悬停看依据 · 右上可切三端装配</span>
+</div>
+
+<div id="info-modal">
+  <div id="info-card">
+    <h2>V2 · 统一底板</h2>
+    <p>按你第二轮裁定合成：<b>主舞台可交换</b>（音轨默认；钢琴卷帘/混音台按使用习惯直接接管主舞台，被换下的视图退到切换卡列）＋<b>右栏=机架常驻</b>（可收/可弹浮）＋<b>多开=浮卡与真窗口双档</b>（桌面浮卡可「↗ 独立窗口」；平板手机只用应用内形态）＋<b>一套底板元素三端装配</b>（右上角切桌面/平板/手机看同一 DOM 重排）。</p>
+    <h3>交互动线（可点）</h3>
+    <li>F2 / ⊞ 视窗 → 台前调度切换态：点卡接管主舞台，音轨退卡列；卡上「浮窗」直接多开</li>
+    <li>双击蓝色 MIDI 片段 → 卷帘直接上台（你的习惯路径）</li>
+    <li>右栏「收起 ‹/展开 ›」；「弹出 ⇱」机架变浮卡；浮卡 ⚓ 吸回右栏、↗ 变真系统窗口（模拟）</li>
+    <li>右上「平板」：资料库变侧滑、机架窄栏；「手机」：底部导航四键、机架变底部 sheet、切换卡变全宽列表、浮卡变 sheet</li>
+    <h3>三端装配表（底板→装配）</h3>
+    <li>全局 chrome：三端同条顶栏，手机只精简不换件</li>
+    <li>主舞台：桌面/平板=大区，手机=全屏</li>
+    <li>机架：桌面右栏 ↔ 平板窄栏 ↔ 手机底部 sheet（同一节点）</li>
+    <li>资料库：桌面左抽屉 ↔ 平板侧滑 ↔ 手机全屏页（同一节点）</li>
+    <li>多开浮卡：桌面/平板=浮窗 ↔ 手机=底部 sheet；真窗口仅桌面</li>
+    <h3>Godot 落地口径</h3>
+    <li>主舞台交换+卡列=固定容器+视图实例池，删分割树机制；各 dock adapter 不动内容只换宿主</li>
+    <li>三端装配=同一场景树+按窗体尺寸的布局脚本（无三套代码）；手机/平板为未来项，本轮只锁底板结构</li>
+    <li>真窗口=Godot Window 节点（旧 detached_viewport_window.gd 可参考，归因妥协按单机架语义重建）</li>
+    <div class="close-row"><button class="btn-ink" id="info-close">关闭</button></div>
+  </div>
+</div>
+
+<script>
+/* ============ 视图定义 ============ */
+const VIEWS = {
+  tracks:  {label:'音轨',     opened:true,  gi:'background:var(--paper)', desc:'轨道/片段编排（默认主舞台）'},
+  piano:   {label:'钢琴卷帘', opened:false, gi:'background:var(--blue-light)', desc:'双击 MIDI 片段亦可直接上台'},
+  mixer:   {label:'混音台',   opened:false, gi:'background:var(--yellow)', desc:'全轨推子/声像/电平'},
+  spectral:{label:'频谱·详情',opened:false, gi:'background:var(--paper);border-color:var(--ink)', desc:'选中对象检查器＋频谱'},
+};
+let stageView='tracks';
+let switching=false;
+const openFloats=new Set();
+
+/* ============ 内容渲染 ============ */
+function tracksHTML(){return `
+  <div id="ruler"><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i></div>
+  <div class="track-scroll">
+    <div id="playhead"></div>
+    ${[['Lead Vocal','var(--blue)',[['w',8,34],['w',48,22]]],
+        ['Drum Bus','var(--red)',[['w',4,60]]],
+        ['Bass Synth','var(--yellow)',[['m',12,40]]],
+        ['Synth Pad','#7B4EA8',[['m',20,52]]],
+        ['Guitar L','#2E8B57',[['w',30,38]]],
+        ['Guitar R','#B8860B',[['w',30,38]]]
+       ].map(([n,c,clips])=>`
+    <div class="track${n==='Lead Vocal'?' selected':''}">
+      <div class="tr-head"><span class="tr-color" style="background:${c}"></span><span class="tr-name">${n}</span>
+        <button class="tr-btn">M</button><button class="tr-btn">S</button></div>
+      <div class="tr-lane">${clips.map(([t,l,w])=>`<div class="clip ${t==='m'?'midi':''}" data-track="${n}" style="left:${l}%;width:${w}%">${t==='m'?'<div class="notes"></div>':'<div class="wave"></div>'}</div>`).join('')}</div>
+    </div>`).join('')}
+    <div class="track"><div class="tr-head"><span class="tr-color" style="background:var(--ink)"></span><span class="tr-name">Master</span><button class="tr-btn">M</button></div><div class="tr-lane"></div></div>
+  </div>`;}
+function pianoHTML(){return `
+  <div class="mock-fill piano">
+    <div class="keys">${['C','C#','D','D#','E','F','F#','G','G#','A','A#','B','C','C#','D'].map(n=>`<div class="k ${n.includes('#')?'blk':''}">${n.includes('#')?'':n}</div>`).join('')}</div>
+    <div class="grid"><div class="pnote" style="left:6%;top:18%;width:9%"></div><div class="pnote" style="left:18%;top:38%;width:6%"></div><div class="pnote" style="left:26%;top:8%;width:12%"></div><div class="pnote" style="left:40%;top:55%;width:8%"></div><div class="pnote" style="left:52%;top:30%;width:14%"></div><div class="pnote" style="left:70%;top:42%;width:10%"></div><div class="pnote" style="left:84%;top:15%;width:8%"></div></div>
+  </div>`;}
+function mixerHTML(){return `
+  <div class="mock-fill mixer">
+    ${['Lead Vocal','Drum Bus','Bass','Synth Pad','Gtr L','Gtr R'].map((n,i)=>`
+    <div class="strip"><span class="sn">${n}</span><div class="knob"></div><div style="display:flex;flex:1;gap:5px;align-self:stretch">
+      <div class="fader"><div class="cap" style="bottom:${[28,18,38,46,24,30][i]}%"></div></div>
+      <div class="meter"><i style="height:${[62,78,55,48,66,58][i]}%"></i></div></div></div>`).join('')}
+    <div class="strip master"><span class="sn">MASTER</span><div class="knob"></div>
+      <div style="display:flex;flex:1;gap:5px;align-self:stretch"><div class="fader"><div class="cap" style="bottom:34%"></div></div>
+      <div class="meter"><i style="height:72%"></i></div></div></div>
+  </div>`;}
+function spectralHTML(){return `
+  <div class="mock-fill spec">
+    <div class="sp">${[18,26,22,34,48,42,58,66,60,74,82,70,62,55,64,58,46,38,30,24,20,16,14,12].map((h,i)=>`<i class="${i>15?'hi':''}" style="height:${h}%"></i>`).join('')}
+      <div class="fax"><span>50</span><span>200</span><span>1k</span><span>5k</span><span>12k</span></div></div>
+    <div class="insp"><h4>选中 · Lead Vocal</h4>
+      <div class="kv"><span>轨道</span><b>trk_01</b></div><div class="kv"><span>电平</span><b>−14.2 dBFS</b></div>
+      <div class="kv"><span>峰值</span><b>820 Hz</b></div><div class="kv"><span>插件</span><b>EQ · 2A</b></div>
+      <h4 style="margin-top:12px">频谱读数</h4>
+      <div class="kv"><span>低频能量</span><b>−22 dB</b></div><div class="kv"><span>中频能量</span><b>−16 dB</b></div></div>
+  </div>`;}
+function rackHTML(){
+  const rc=document.getElementById('rack-content');
+  return rc?rc.innerHTML:'';
+}
+const RENDER={tracks:tracksHTML,piano:pianoHTML,mixer:mixerHTML,spectral:spectralHTML};
+const METAS={
+  tracks:['7 轨 · SATTTELITES',''],
+  piano:['Synth Pad · clip_2a','选中片段编辑；F2 切回音轨'],
+  mixer:['8 通道','电平=遥测数据链（红线不动）'],
+  spectral:['Lead Vocal','点轨行刷新'],
+};
+function renderStage(){
+  document.getElementById('stage-name').textContent=VIEWS[stageView].label;
+  document.getElementById('stage-meta').textContent=METAS[stageView][0];
+  document.getElementById('stage-new').style.display=stageView==='tracks'?'':'none';
+  const body=document.getElementById('stage-body');
+  body.innerHTML=RENDER[stageView]();
+  body.classList.toggle('rack-canvas',stageView==='rackview');
+  document.getElementById('bb-context').textContent='主舞台 · '+VIEWS[stageView].label+' ｜ 右栏 · 机架';
+  document.querySelectorAll('#view-rail .dock-icon').forEach(d=>{
+    d.classList.toggle('active',d.dataset.view===stageView);
+  });
+  /* 音轨行/片段交互仅在音轨视图下绑定 */
+  if(stageView==='tracks') bindTracks();
+}
+function bindTracks(){
+  document.querySelectorAll('.track').forEach(tr=>tr.onclick=()=>{
+    document.querySelectorAll('.track').forEach(x=>x.classList.remove('selected'));
+    tr.classList.add('selected');
+  });
+  document.querySelectorAll('.clip.midi').forEach(c=>c.addEventListener('dblclick',()=>{
+    swapStage('piano');
+    document.getElementById('stage-meta').textContent=c.dataset.track+' · clip_2a';
+    flashHead();
+  }));
+}
+function swapStage(k){
+  VIEWS[stageView].opened=true;
+  stageView=k; VIEWS[k].opened=true;
+  renderStage(); flashHead();
+}
+function flashHead(){
+  const h=document.querySelector('#stage .pane-head');
+  h.classList.remove('flash'); void h.offsetWidth; h.classList.add('flash');
+}
+
+/* ============ 切换态 ============ */
+function miniOf(k){
+  if(k==='tracks') return `<div style="position:absolute;inset:0;padding:12px">
+    ${[92,84,96,70,60].map(w=>`<div style="height:12px;border:1px solid var(--line-soft);border-radius:2px;margin:8px 0;background:linear-gradient(90deg,var(--paper) 0 30%,var(--blue-light) 30% 55%,var(--paper) 55% ${w}%)"></div>`).join('')}</div>`;
+  if(k==='piano') return `<div style="position:absolute;inset:0;background:var(--blue-light);opacity:.85;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700">♪ 钢琴卷帘</div>`;
+  if(k==='mixer') return `<div style="position:absolute;inset:0;background:var(--yellow);opacity:.9;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700">推子 × 8</div>`;
+  return `<div style="position:absolute;inset:0;display:flex"><div style="flex:1.4;background:var(--blue);opacity:.8"></div><div style="flex:1;background:var(--paper);border-left:1.5px solid var(--ink);display:flex;align-items:center;justify-content:center;font-size:12px">详情</div></div>`;
+}
+function buildSwitch(){
+  document.getElementById('sw-active-cap').textContent=VIEWS[stageView].label;
+  document.getElementById('sw-active-body').innerHTML=miniOf(stageView);
+  const stack=document.getElementById('sw-stack'); stack.innerHTML='';
+  Object.keys(VIEWS).filter(k=>k!==stageView).forEach((k,i)=>{
+    const v=VIEWS[k];
+    const c=document.createElement('div'); c.className='sw-card';
+    c.style.top=(i*132)+'px'; c.style.left=(i*10)+'px'; c.style.transform=`scale(${1-i*0.03})`; c.style.zIndex=10-i;
+    c.innerHTML=`<div class="ttl"><span class="gi" style="${v.gi}"></span>${v.label}</div>
+      <div class="desc">${v.desc}</div>
+      <div class="row"><span class="st ${v.opened?'opened':'new'}">${v.opened?'已打开':'未打开'}</span>
+        <span class="as-float" data-float="${k}">⊞ 浮窗多开</span></div>`;
+    c.onclick=e=>{
+      if(e.target.dataset.float){ openFloat(e.target.dataset.float); exitSwitch(); return; }
+      swapStage(k); exitSwitch();
+    };
+    stack.appendChild(c);
+  });
+}
+function enterSwitch(){ switching=true; buildSwitch(); document.getElementById('switch-layer').classList.add('show'); }
+function exitSwitch(){ switching=false; document.getElementById('switch-layer').classList.remove('show'); }
+document.getElementById('switch-btn').onclick=enterSwitch;
+document.getElementById('sw-active').onclick=exitSwitch;
+document.getElementById('pn-switch').onclick=enterSwitch;
+
+/* ============ 浮窗 / 真窗口 ============ */
+const floatLayer=document.getElementById('float-layer');
+let fcount=0;
+function viewBody(k){
+  if(k==='rack') return rackHTML();
+  return RENDER[k]?RENDER[k]().replace('mock-fill',''):'';
+}
+function openFloat(k, x, y){
+  if(openFloats.has(k)) return;
+  openFloats.add(k); fcount++;
+  const card=document.createElement('div'); card.className='float-card'; card.dataset.view=k;
+  card.style.left=(x!=null?x:60+fcount*40)+'px'; card.style.top=(y!=null?y:40+fcount*32)+'px';
+  card.innerHTML=`
+    <div class="fc-head"><span class="gi" style="${k==='rack'?'background:var(--canvas)':VIEWS[k].gi}"></span>
+      <span class="nm">${k==='rack'?'机架':VIEWS[k].label}</span><span class="spacer"></span>
+      ${k==='rack'?'<button class="fc-act" title="吸回右栏">⚓</button>':''}
+      <button class="fc-act" title="独立窗口（桌面）">↗</button>
+      <button class="fc-act" title="关闭">✕</button></div>
+    <div class="fc-body">${viewBody(k)}</div>`;
+  floatLayer.appendChild(card);
+  dragify(card, card.querySelector('.fc-head'));
+  const dock=card.querySelector('.fc-act[title="吸回右栏"]');
+  if(dock) dock.onclick=()=>{ closeFloat(k); uncollapseRack(); };
+  card.querySelector('.fc-act[title="独立窗口（桌面）"]').onclick=()=>{ toOSWindow(k); closeFloat(k); };
+  card.querySelector('.fc-act[title="关闭"]').onclick=()=>closeFloat(k);
+}
+function closeFloat(k){ openFloats.delete(k); const c=floatLayer.querySelector(`.float-card[data-view="${k}"]`); if(c)c.remove(); }
+function dragify(card, head){
+  let sx,sy,ox,oy,drag=false;
+  head.addEventListener('mousedown',e=>{
+    if(e.target.closest('.fc-act'))return;
+    drag=true;sx=e.clientX;sy=e.clientY;ox=card.offsetLeft;oy=card.offsetTop;
+    floatLayer.appendChild(card);e.preventDefault();
+  });
+  window.addEventListener('mousemove',e=>{ if(!drag)return;
+    card.style.left=(ox+e.clientX-sx)+'px'; card.style.top=(oy+e.clientY-sy)+'px'; });
+  window.addEventListener('mouseup',()=>drag=false);
+}
+function toOSWindow(k){
+  const w=document.createElement('div'); w.className='os-window';
+  w.style.left=(120+Math.random()*160)+'px'; w.style.top=(120+Math.random()*80)+'px';
+  w.innerHTML=`<div class="os-head"><span class="dots"><i></i><i></i><i></i></span>
+    <span class="nm">${k==='rack'?'机架':VIEWS[k].label} — Vit‑DAW</span>
+    <span class="back" title="收回应用内">↩ 收回浮窗</span></div>
+    <div class="fc-body" ${k==='rack'?'style="background:var(--canvas)"':''}>${viewBody(k)}</div>`;
+  floatLayer.appendChild(w);
+  dragify(w, w.querySelector('.os-head'));
+  w.querySelector('.back').onclick=()=>{ w.remove(); openFloat(k); };
+}
+/* 坞点击：浮窗多开（当前主舞台则忽略） */
+document.querySelectorAll('#view-rail .dock-icon').forEach(d=>d.onclick=()=>{
+  const k=d.dataset.view;
+  if(openFloats.has(k)){ closeFloat(k); return; }
+  openFloat(k);
+});
+
+/* ============ 右栏收/浮 ============ */
+const rackPane=document.getElementById('rack-pane');
+function collapseRack(){ rackPane.classList.add('collapsed'); document.getElementById('rack-collapsed-rail').style.display='flex'; }
+function uncollapseRack(){ rackPane.classList.remove('collapsed'); document.getElementById('rack-collapsed-rail').style.display='none'; }
+document.getElementById('rack-collapse').onclick=collapseRack;
+document.getElementById('rack-collapsed-rail').onclick=uncollapseRack;
+document.getElementById('rack-float').onclick=()=>{ openFloat('rack', 90, 70); collapseRack(); };
+document.getElementById('pn-rack').onclick=()=>rackPane.classList.toggle('open');
+
+/* ============ 资料库开合 ============ */
+const library=document.getElementById('library');
+document.getElementById('lib-rail').onclick=()=>{
+  if(document.getElementById('device-shell').classList.contains('form-phone'))
+    library.classList.toggle('open');
+  else library.classList.toggle('collapsed');
+};
+document.querySelector('.lib-back').onclick=()=>library.classList.remove('open');
+document.getElementById('pn-lib').onclick=()=>library.classList.add('open');
+document.getElementById('pn-mixer').onclick=()=>swapStage('mixer');
+
+/* ============ 三端装配切换 ============ */
+const shell=document.getElementById('device-shell');
+document.querySelectorAll('#proto-bar .seg').forEach(s=>s.onclick=()=>{
+  document.querySelectorAll('#proto-bar .seg').forEach(x=>x.classList.remove('on'));
+  s.classList.add('on');
+  shell.className='form-'+s.dataset.form;
+  library.classList.remove('open');
+  rackPane.classList.remove('open');
+  document.getElementById('rack-collapsed-rail').style.display='none';
+  if(s.dataset.form==='tablet'){ library.classList.add('collapsed'); rackPane.classList.remove('collapsed'); }
+  else if(s.dataset.form==='phone'){ library.classList.remove('collapsed'); rackPane.classList.remove('collapsed'); }
+  else { library.classList.remove('collapsed'); rackPane.classList.remove('collapsed'); }
+  fitShell();
+});
+function fitShell(){
+  if(shell.classList.contains('form-desktop')){ shell.style.transform='none'; return; }
+  const w=shell.offsetWidth, h=shell.offsetHeight;
+  const vw=window.innerWidth, vh=window.innerHeight;
+  const sc=Math.min(1,(vw-70)/w,(vh-100)/h);
+  shell.style.transform=`scale(${sc})`;
+}
+window.addEventListener('resize',fitShell);
+
+/* ============ 键盘 / 杂项 ============ */
+document.addEventListener('keydown',e=>{
+  if(e.key==='F2'){ e.preventDefault(); switching?exitSwitch():enterSwitch(); }
+  if(e.key==='Escape'){ if(switching)exitSwitch(); document.getElementById('info-modal').classList.remove('show'); }
+});
+document.getElementById('btn-play').onclick=function(){this.classList.toggle('on')};
+document.getElementById('stage-new').onclick=()=>{};
+const annBtn=document.getElementById('ann-toggle');
+annBtn.onclick=()=>{ document.body.classList.toggle('ann-on'); annBtn.classList.toggle('on');
+  annBtn.textContent=document.body.classList.contains('ann-on')?'标注：开':'标注：关'; };
+document.getElementById('info-btn').onclick=()=>document.getElementById('info-modal').classList.add('show');
+document.getElementById('info-close').onclick=()=>document.getElementById('info-modal').classList.remove('show');
+document.getElementById('info-modal').onclick=e=>{if(e.target.id==='info-modal')e.currentTarget.classList.remove('show')};
+document.querySelectorAll('[data-gd]').forEach(el=>{
+  const b=document.createElement('span'); const ok=el.dataset.gd==='ok';
+  b.className='gd-badge'+(ok?' ok':''); b.textContent=ok?'✓ 确定可实现':'⚠ 需适配';
+  b.title=el.dataset.note||''; el.appendChild(b);
+});
+
+renderStage();
+fitShell();
+</script>
+</body>
+</html>
