@@ -47,6 +47,6 @@ execRecord 加键破坏既有序列化/快照消费方（发现消费方对未�
 
 纯单测域，不需要真栈；与 REFSCHEMA-M4B/M5 文件域不相交可并行；与 FS-LARGEPROJECT-SMOKE-1 无硬依赖（烟测验收口径为行为面，本卡并行落地、合入后烟测成本面即有读数）。
 
-- 领取：（时间 / origin/main hash / owner 模型+机器+会话 / 分支 / worktree / 领取提交）
+- 领取：2026-10-10 18:20 / origin/main 491555c8f703d94244285f2ffc61dc2b0fb21178（依赖 ≥171fb223 满足，merge-base --is-ancestor 实核） / owner=GLM-5.3-Flash（ZCode flash 会话）/ PC (Windows) / 分支 port/pull-probe-meter-1（基线 491555c8） / worktree D:/Vit_DAW_wt_pull_probe_meter_1（独立 worktree，状态净）/ 领取提交=本 mv 协调提交（hash 于 done 回执回填）
 - 回执：（commit hash / 分级表锚点 / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
