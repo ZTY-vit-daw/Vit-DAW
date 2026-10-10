@@ -128,11 +128,17 @@ func newPullSession(l *MessageLoop, r *Runner, state *runState, saved *PullConti
 	if l == nil || r == nil || state == nil {
 		return nil, fmt.Errorf("pull session requires loop, runner and state")
 	}
+	// HYGIENE-FASTPATH-1：注册面漂移=显式会话构造失败（runPull 将其 r.fail 为
+	// 显式 run 失败），不再构造期 panic。
+	router, err := l.newFastPathRouter()
+	if err != nil {
+		return nil, err
+	}
 	s := &pullSession{
 		l:                l,
 		r:                r,
 		state:            state,
-		router:           l.newFastPathRouter(),
+		router:           router,
 		drafts:           map[string]pullDraftRecord{},
 		committedResults: map[string]Result{},
 		closed:           map[string]bool{},

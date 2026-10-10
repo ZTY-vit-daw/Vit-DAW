@@ -427,7 +427,10 @@ func (l *MessageLoop) executeConfirmedStripSilenceBundle(ctx context.Context, r 
 // newFastPathRouter 构造本 loop 的确定性快路径注册面（L1-5-IMPL-C，HARNESS_V1_DESIGN §5）。
 // 注册序=原 loop() preflight 链逐项顺序（行为零变化的调用序契约）；注册清单以
 // fastpath.DefaultEntryNames 为完整性契约，漂移即显式失败（fail-visible）。
-func (l *MessageLoop) newFastPathRouter() *fastpath.Router[*Runner, *runState, Result] {
+// HYGIENE-FASTPATH-1：漂移不再构造期 panic（原实现在轮中路径上，违反
+// L1-5-IMPL-C ruling 挂账②"启动期 panic 可接受、轮中 panic 不可"），改为返回
+// 显式错误，由消费方走 r.fail 的显式 run 失败路径。
+func (l *MessageLoop) newFastPathRouter() (*fastpath.Router[*Runner, *runState, Result], error) {
 	router := fastpath.NewRouter(
 		fastpath.Entry[*Runner, *runState, Result]{Name: "static_mix_capability_contract", Handler: l.preflightStaticMixCapabilityContract},
 		fastpath.Entry[*Runner, *runState, Result]{Name: "project_blackboard_status", Handler: l.preflightProjectBlackboardStatus},
@@ -440,10 +443,21 @@ func (l *MessageLoop) newFastPathRouter() *fastpath.Router[*Runner, *runState, R
 		fastpath.Entry[*Runner, *runState, Result]{Name: "natural_mix_observation", Handler: l.preflightNaturalMixObservation},
 		fastpath.Entry[*Runner, *runState, Result]{Name: "static_mix_gain_staging_context_pack", Handler: l.preflightStaticMixGainStagingContextPack},
 	)
-	if names := router.Names(); !slices.Equal(names, fastpath.DefaultEntryNames) {
-		panic(fmt.Sprintf("fastpath 注册面漂移：Names()=%v want=%v（L1-5-IMPL-C 完整性契约）", names, fastpath.DefaultEntryNames))
+	if err := fastPathRegistrationDrift(router.Names()); err != nil {
+		return nil, err
 	}
-	return router
+	return router, nil
+}
+
+// fastPathRegistrationDrift 是注册清单完整性契约的判定面（HYGIENE-FASTPATH-1
+// 自 newFastPathRouter 内联 panic 提取，供单测直接构造漂移清单断言）：与
+// fastpath.DefaultEntryNames 相比，遗漏/多余/乱序均判漂移并返回显式错误
+// （错误消息含实际与期望两份词条清单）。契约本体零变化。
+func fastPathRegistrationDrift(names []string) error {
+	if slices.Equal(names, fastpath.DefaultEntryNames) {
+		return nil
+	}
+	return fmt.Errorf("fastpath 注册面漂移：Names()=%v want=%v（L1-5-IMPL-C 完整性契约）", names, fastpath.DefaultEntryNames)
 }
 
 func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Result {
@@ -456,7 +470,13 @@ func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Resu
 	messageLoopApplyReadOnlyMutationBarrier(state)
 	// L1-5-IMPL-C：确定性 preflight 链经 FastPathRouter 单点尝试；Router 本身无状态
 	//（diagnostic-only 每轮由原判定源刷新），注册面构造见 newFastPathRouter。
-	fastPaths := l.newFastPathRouter()
+	// HYGIENE-FASTPATH-1：注册面漂移=显式 run 失败（trace 记 fastpath_drift +
+	// r.fail），不再轮中 panic 崩进程；fail-visible 不弱化为日志静默。
+	fastPaths, err := l.newFastPathRouter()
+	if err != nil {
+		state.trace = append(state.trace, planner.TraceEvent{Kind: "fastpath_drift", Message: err.Error()})
+		return r.fail(state, err)
+	}
 	for {
 		if len(state.pendingToolQueue) > 0 {
 			queued := append([]planner.ToolCall(nil), state.pendingToolQueue...)
