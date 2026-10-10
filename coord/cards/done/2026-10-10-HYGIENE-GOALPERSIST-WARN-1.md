@@ -33,5 +33,9 @@
 
 - 领取：2026-10-10 18:14 / origin/main=3c275461e49cbfd39303225269cfdc818c5438e1 / owner=GLM-5.3-Flash（ZCode flash 执行流会话，PC 端）/ 分支=port/hygiene-goalpersist-warn-1 / worktree=D:/Vit_DAW_wt_goalpersist_warn_1 / 领取提交=（本提交）
 - 领取时锚点核对：`goalrunner_chat.go:2037-2042` 降级分支形态与卡面一致，未漂移；两处 WARN 先例（capability_routing.go:679、server.go:7192-7194）核验在案，`s.logger` nil 守卫模式与 `goal=%s=res.GoalID` 取值沿用同函数 2198 行先例。
-- 回执：（commit hash / WARN 行样例 / 端测边界声明=纯日志加法）
+- 回执：实现 commit=9ceb62ea（分支 port/hygiene-goalpersist-warn-1，已推 origin；单文件 agent/internal/chat/goalrunner_chat.go +7 行=4 行注释+3 行 nil 守卫 WARN，降级/终态/Continuation 清空逻辑零改动，diff 全文见分支）。WARN 行样例（真实 logx.Warn 渲染，scratch 程序用后即删未入库）：
+  - `2026-10-10T18:21:36 [WARN] [goal.persist] failed conversation=conv_ab12cd34 goal=goal_mix_free_state_1 error=persist project workspace: write D:\projects\demo_set\.vit\agent_runtime_state.json: Access is denied.`
+  - `2026-10-10T18:21:36 [WARN] [goal.persist] failed conversation=conv_ab12cd34 goal=goal_mix_free_state_1 error=durable continuation lease held by owner=agent@PC-MAIN pid=4128 expires_at=2026-10-10T18:31:07Z: checkpoint store busy`（含租约 owner/expires_at 的错误全文形态，即 BOUNDARY-PERSIST-1 取证时只能旁证重建、现可直接入日志的那类文本）
+  - 验收记录：`go build ./...` exit 0；`go test ./internal/chat -count=1` ok 94.7s；全量 `go test ./... -count=1` 92 包 ok / 0 FAIL / EXIT=0；触碰 blob（LF 净内容）gofmt -l/-d 均空。备注：工作树 core.autocrlf=true 使 gofmt -l 对包内全部文件报 CRLF 假阳性，按卡面「blob 级」口径以去 CR 后内容核对，改动前后 blob 均 gofmt 净。
+  - 端测边界声明：纯日志加法零行为语义变化，验收=编译+单测+全量+gofmt（卡面"纯单测域，不占真栈"），未做端侧真栈烟测，与卡面资源条款一致。
 - 验收：（裁定文件 / 验收 commit）
