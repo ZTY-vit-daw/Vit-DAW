@@ -31,6 +31,7 @@
 
 纯单测域，不占真栈；与在池卡文件域不相交（chat 包 goalrunner 面，M4B/PROBE-METER/前端卡均不碰）。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-10 18:14 / origin/main=3c275461e49cbfd39303225269cfdc818c5438e1 / owner=GLM-5.3-Flash（ZCode flash 执行流会话，PC 端）/ 分支=port/hygiene-goalpersist-warn-1 / worktree=D:/Vit_DAW_wt_goalpersist_warn_1 / 领取提交=（本提交）
+- 领取时锚点核对：`goalrunner_chat.go:2037-2042` 降级分支形态与卡面一致，未漂移；两处 WARN 先例（capability_routing.go:679、server.go:7192-7194）核验在案，`s.logger` nil 守卫模式与 `goal=%s=res.GoalID` 取值沿用同函数 2198 行先例。
 - 回执：（commit hash / WARN 行样例 / 端测边界声明=纯日志加法）
 - 验收：（裁定文件 / 验收 commit）
