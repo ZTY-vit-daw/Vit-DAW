@@ -40,10 +40,14 @@ the 61-track sattelites training folder (3.8GB, E:\ read-only source):
         (assertion template = G3-ATTRIB-1 harness_ab_confirm_roundtrip.json);
      A4 zero fixed orchestration: the C1/C2/B4 marker families
         (semantic_eq_batch / eq_plugin_load_batch / dynamic_plugin_load_
-        batch / dynamic_parameter_batch / c2_dynamic_plugin_selection)
+        batch / dynamic_parameter_batch / c2_dynamic_plugin_selection /
+        c2.dynamic_plugin_load.governed single-track)
         have ZERO hits across the chat/hop response JSONs, the event
         streams and the agent log (fastpath preflight is harness plumbing
-        and is NOT in the marker set).
+        and is NOT in the marker set), AND the telemetry LLM source face
+        carries ZERO fixed-orchestration planner sources (b4/c1/c2
+        project_*_planner tags; ordinary_agent_* / pullharness are the
+        model-driven path and expected).
 
 Probabilistic discipline pre-written (AGENTS.md section 8, card section
 "概率运行纪律"):
@@ -275,17 +279,51 @@ $TelemetryFile = Join-Path $RunRoot "telemetry_pull.jsonl"
 $failureReasons = New-Object System.Collections.Generic.List[string]
 function Add-Failure { param([string]$Message) $script:failureReasons.Add($Message); Write-FailLine $Message }
 
+# Numeric exit code recorded into run_report (review D gap 2: only the
+# verdict was recorded, the actual process exit code was not). Stamped into
+# the report by Write-Report; every exit site sets it before reporting.
+$script:PlannedExitCode = 1
+# Stack-ownership guard for the pre-net catch below: a throw before the
+# clear-field check (kernel/source path resolution) must NOT tear a stack
+# down - the field has not been verified empty yet, so a live stack at that
+# point belongs to someone else. Set only after clear-field passed and the
+# bring-up of OUR stack is starting.
+$script:StackOwnershipClaimed = $false
+
+# Review D gap 1: $MyInvocation.Line is empty under powershell -File, which
+# left command_line="" and the full invocation unrestorable from artifacts.
+# Fallback: rebuild the effective command line from the script path plus the
+# bound parameters (only explicitly passed ones are recorded).
+$invocationLine = ""
+try {
+    if (-not [string]::IsNullOrWhiteSpace([string]$MyInvocation.Line)) {
+        $invocationLine = [string]$MyInvocation.Line
+    }
+    else {
+        $invocationLine = $PSCommandPath
+        foreach ($boundParam in $PSBoundParameters.GetEnumerator()) {
+            if ($boundParam.Value -is [switch]) { $invocationLine += (" -" + $boundParam.Key) }
+            elseif ((($boundParam.Value -as [string]) -ne $null) -and ([string]$boundParam.Value).Contains(" ")) { $invocationLine += (" -" + $boundParam.Key + ' "' + [string]$boundParam.Value + '"') }
+            else { $invocationLine += (" -" + $boundParam.Key + " " + [string]$boundParam.Value) }
+        }
+    }
+}
+catch { $invocationLine = "unavailable: " + $_.Exception.Message }
+
 $report = [ordered]@{
     run_id = "fs_largeproject_smoke_" + $RunStamp
     card = "FS-LARGEPROJECT-SMOKE-1"
     started_at = (Get-Date).ToUniversalTime().ToString("o")
-    command_line = ($MyInvocation.Line)
+    command_line = $invocationLine
     repo_head = ""
     worktree = $RepoRoot
     branch = ""
     kernel_exe = ""
     kernel_sha256 = ""
-    agent_binary = ""
+    # Review D gap 3: this used to be a permanently-empty dead string field.
+    # Populated after stack bring-up with the binary the running agent really
+    # executes (path + sha256 + last_write_utc; AGENTS section 9 SkipBuild rule).
+    agent_binary = $null
     stack_mode = ""
     harness_env = "pull"
     telemetry_file = $TelemetryFile
@@ -313,16 +351,45 @@ $report = [ordered]@{
     source_integrity = ""
     environment_interrupt = ""
     verdict = ""
+    exit_code = $null
     teardown = $null
 }
 try { $report.repo_head = (git -C $RepoRoot rev-parse HEAD 2>$null | Out-String).Trim() } catch { $report.repo_head = "unavailable" }
 try { $report.branch = (git -C $RepoRoot rev-parse --abbrev-ref HEAD 2>$null | Out-String).Trim() } catch { $report.branch = "unavailable" }
 function Write-Report {
     $report.finished_at = (Get-Date).ToUniversalTime().ToString("o")
-    $report | ConvertTo-Json -Depth 14 | Out-File -FilePath (Join-Path $RunRoot "run_report.json") -Encoding utf8
+    $report.exit_code = $script:PlannedExitCode
+    try {
+        $report | ConvertTo-Json -Depth 14 | Out-File -FilePath (Join-Path $RunRoot "run_report.json") -Encoding utf8
+    }
+    catch {
+        # 184500 lesson, hardened: a crash (or an unserializable $report
+        # field) must never leave the run without any report artifact. Land a
+        # minimal fallback next to the full report and re-raise so the
+        # caller's error path keeps its evidence.
+        try {
+            @{
+                run_id = [string]$report.run_id
+                card = [string]$report.card
+                verdict = "FAIL"
+                classification = "script_exception"
+                exit_code = $script:PlannedExitCode
+                report_serialization_error = $_.Exception.Message
+                note = "full run_report.json serialization failed; minimal fallback written by Write-Report"
+            } | ConvertTo-Json -Depth 4 | Out-File -FilePath (Join-Path $RunRoot "run_report.min.json") -Encoding utf8
+        }
+        catch { }
+        throw
+    }
 }
 (git -C $RepoRoot rev-parse HEAD 2>$null | Out-String).Trim() | Set-Content -LiteralPath (Join-Path $RunRoot "head.txt") -Encoding UTF8
 (git -C $RepoRoot status --short 2>$null | Out-String) | Set-Content -LiteralPath (Join-Path $RunRoot "git_status.txt") -Encoding UTF8
+
+# Pre-net safety wrap (184500 lesson generalized: a tooling crash must never
+# leave the run without run_report.json). Phases 0-1 run before the big
+# post-health safety net below; an uncaught throw here used to kill the
+# script with no report and no teardown record.
+try {
 
 Write-Step "FS large-project free-state smoke (pull mode, sattelites 61 tracks)"
 Write-Host ("run_root: " + $RunRoot)
@@ -364,10 +431,12 @@ if ($residual.Count -gt 0) {
     foreach ($r in @($residual)) { Write-FailLine ("residual stack element: " + $r) }
     $report.verdict = "stack_occupied"
     $report.environment_interrupt = "residual stack present before bring-up: " + (@($residual) -join "; ")
+    $script:PlannedExitCode = 2
     Write-Report
     exit 2
 }
 Write-Ok "clear field: ports 7878/5555/5556 free, no VitAgent/VitApp/Godot-frontend processes"
+$script:StackOwnershipClaimed = $true
 
 # E:\ source integrity baseline (read-only manifest; compared again after
 # import+preheat and at the end of the run).
@@ -426,11 +495,35 @@ if ($devExit -ne 0) {
     Add-Failure "dev_agent_smoke stack bring-up failed (see dev_agent_smoke_console.log)"
     $report.verdict = "stack_bringup_failed"
     $report.environment_interrupt = "dev_agent_smoke bring-up failed; console log preserved"
+    $script:PlannedExitCode = 2
     Write-Report
     if (-not $KeepStack) { Clear-OwnedStack }
     exit 2
 }
 Write-Ok ("stack up (bringup " + [string]$report.bringup_seconds + "s, agent inherits VIT_DAW_HARNESS=pull)")
+
+# agent_binary face (review D gap 3: dead field): record the binary the
+# running agent actually executes, with hash + build time (AGENTS section 9
+# records the tested binary for -SkipBuild runs). Primary source = the
+# running VitAgent process path; fallback = dev_agent_smoke's agent\bin copy.
+$agentBinaryFace = @{ path = ""; sha256 = ""; last_write_utc = "" }
+try {
+    $agentProc = @(Get-CimInstance Win32_Process -Filter "Name LIKE 'VitAgent%'" -ErrorAction SilentlyContinue | Select-Object -First 1)
+    $agentBinPath = ""
+    if (@($agentProc).Count -ge 1 -and -not [string]::IsNullOrWhiteSpace([string]$agentProc[0].ExecutablePath)) {
+        $agentBinPath = [string]$agentProc[0].ExecutablePath
+    }
+    if ([string]::IsNullOrWhiteSpace($agentBinPath)) { $agentBinPath = Join-Path $RepoRoot "agent\bin\VitAgent.exe" }
+    if (Test-Path -LiteralPath $agentBinPath) {
+        $agentBinaryFace.path = $agentBinPath
+        $agentBinaryFace.sha256 = (Get-FileHash -LiteralPath $agentBinPath -Algorithm SHA256).Hash
+        $agentBinaryFace.last_write_utc = (Get-Item -LiteralPath $agentBinPath).LastWriteTimeUtc.ToString("o")
+        Write-Ok ("agent binary: " + $agentBinPath)
+    }
+    else { Write-WarnLine "agent binary not resolvable (report field left empty)" }
+}
+catch { Write-WarnLine ("agent binary face unresolved: " + $_.Exception.Message) }
+$report.agent_binary = $agentBinaryFace
 
 # Agent health + pull mode sanity on the running agent.
 $InvokeUri = $AgentHttp.TrimEnd("/") + "/agent/invoke"
@@ -464,11 +557,39 @@ if ($null -eq $state -or [string](Get-OptionalProperty -Object $state -Name "sta
     Add-Failure "GET /agent/state did not return ok (agent not reachable)"
     $report.verdict = "agent_unreachable"
     $report.environment_interrupt = "agent health check failed after bring-up"
+    $script:PlannedExitCode = 2
     Write-Report
     if (-not $KeepStack) { Clear-OwnedStack }
     exit 2
 }
 Write-Ok ("agent ok tool_count=" + [string](Get-OptionalProperty -Object $state -Name "tool_count"))
+
+}
+catch {
+    # Pre-net crash mirror: record, report, tear down, exit functional
+    # failure (classification script_exception - tooling, not an LLM class).
+    Write-FailLine ("pre-safety-net script exception: " + $_.Exception.Message)
+    try { $_ | Out-String | Set-Content -LiteralPath (Join-Path $RunRoot "script_exception_prenet.txt") -Encoding UTF8 } catch { }
+    $failureReasons.Add("pre-safety-net script exception: " + $_.Exception.Message)
+    $report.classification = "script_exception"
+    $report.verdict = "FAIL"
+    $report.failures = @($failureReasons.ToArray())
+    # Tear down only what this run owns: before clear-field passed, a live
+    # stack belongs to someone else (pre-net throws can precede Phase 0).
+    if (-not $KeepStack -and $script:StackOwnershipClaimed) {
+        Clear-OwnedStack
+        $teardownDeadlinePrenet = (Get-Date).AddSeconds(30)
+        do { Start-Sleep -Seconds 3 } while (((@(Test-StackGone)).Count -gt 0) -and ((Get-Date) -lt $teardownDeadlinePrenet))
+        $remainingPrenet = @(Test-StackGone)
+        $report.teardown = @{
+            torn_down = ($remainingPrenet.Count -eq 0)
+            remaining = @($remainingPrenet)
+        }
+    }
+    $script:PlannedExitCode = 1
+    Write-Report
+    exit 1
+}
 
 # Safety net (run-1/run-3 lesson): every uncaught throw below used to kill
 # the script BEFORE the teardown path. One try around the whole post-health
@@ -553,6 +674,7 @@ if ([string]::IsNullOrWhiteSpace($analysisJobId)) {
 }
 if ($failureReasons.Count -gt 0) {
     $report.verdict = "import_failed"
+    $script:PlannedExitCode = 1
     Write-Report
     if (-not $KeepStack) { Clear-OwnedStack }
     exit 1
@@ -626,6 +748,7 @@ if (-not $ready) {
     $stalled = ($stallPolls -ge $maxStallPolls)
     $report.verdict = "bake_preheat_environment_interrupt"
     $report.environment_interrupt = ("bake preheat not ready within budget: budget=" + $BakePreheatSeconds + "s elapsed=" + [string]$report.preheat.elapsed_seconds + "s stalled_pool=" + [string]$stalled + " final=" + ($finalRow | ConvertTo-Json -Compress))
+    $script:PlannedExitCode = 2
     Write-Report
     if (-not $KeepStack) { Clear-OwnedStack }
     exit 2
@@ -640,6 +763,7 @@ if ($midDiff -ne "") {
     $report.verdict = "source_integrity_violation"
     $report.source_integrity = "mid-check diff: " + $midDiff
     Add-Failure ("E:\ source integrity violation after import/preheat: " + $midDiff)
+    $script:PlannedExitCode = 2
     Write-Report
     if (-not $KeepStack) { Clear-OwnedStack }
     exit 2
@@ -670,6 +794,7 @@ $saveAttempts | Set-Content -LiteralPath (Join-Path $RunRoot "save_as_attempts.j
 if (-not $saveOk) {
     Add-Failure ("project.save_as failed after 3 attempts; see save_as_attempts.json")
     $report.verdict = "save_as_failed"
+    $script:PlannedExitCode = 1
     Write-Report
     if (-not $KeepStack) { Clear-OwnedStack }
     exit 1
@@ -677,6 +802,7 @@ if (-not $saveOk) {
 if (-not (Test-Path -LiteralPath $IsolatedProjectPath)) {
     Add-Failure ("isolated project file missing after successful save_as: " + $IsolatedProjectPath)
     $report.verdict = "save_as_failed"
+    $script:PlannedExitCode = 1
     Write-Report
     if (-not $KeepStack) { Clear-OwnedStack }
     exit 1
@@ -699,6 +825,7 @@ $authoritySwitch | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path
 if ([string]$authoritySwitch.status -ne "ok" -or [string](Get-OptionalProperty -Object $authoritySwitch -Name "authority_mode") -ne "full_project_access") {
     Add-Failure ("authority switch failed: " + ($authoritySwitch | ConvertTo-Json -Depth 6 -Compress))
     $report.verdict = "authority_failed"
+    $script:PlannedExitCode = 1
     Write-Report
     if (-not $KeepStack) { Clear-OwnedStack }
     exit 1
@@ -1082,6 +1209,24 @@ Write-Ok ("confirm round trip: exercised=" + [string]$faceExercised + " hops=" +
 
 # ----------------------------------------------- phase 7: telemetry + audit
 Write-Step "Phase 7: telemetry census (assertion 1 evidence)"
+# Fixed-orchestration planner LLM source tags (review A note 2): the fixed
+# C1/C2/B4 orchestrators drive their own LLM calls under dedicated source
+# tags, so a telemetry record carrying one of these proves a fixed
+# orchestration planner ran - independent of the text-marker scan faces.
+# Anchors: b4_eq_planner.go:43/124/180, c1_frequency_cleanup_planner.go:41/108,
+# c2_dynamic_control_runtime.go:214/308, c2_project_treatment.go:114.
+# ordinary_agent_* / pullharness are the model-driven path and expected.
+$fixedOrchestrationLlmSources = @(
+    "b4_project_eq_planner",
+    "b4_project_eq_instance_selection",
+    "b4_project_treatment_planner",
+    "c1_project_eq_planner",
+    "c1_project_treatment_planner",
+    "c2_project_candidate_planner",
+    "c2_project_target_planner",
+    "c2_project_treatment_planner"
+)
+$telemetrySourceHits = @()
 $telemetryCensus = @{
     file = $TelemetryFile
     exists = (Test-Path -LiteralPath $TelemetryFile)
@@ -1105,20 +1250,26 @@ if ($telemetryCensus.exists) {
     $telemetryCensus.pullharness_with_fingerprint = @($pullRecords | Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_.prompt_fingerprint) }).Count
     $fingerprints = @($pullRecords | ForEach-Object { [string]$_.prompt_fingerprint } | Where-Object { $_ -ne "" })
     $telemetryCensus.distinct_fingerprints = @($fingerprints | Sort-Object -Unique).Count
+    $telemetrySourceHits = @($records | Where-Object { $fixedOrchestrationLlmSources -contains [string]$_.source } | ForEach-Object { @{ source = [string]$_.source; created_at = [string]$_.created_at } })
 }
 $report.telemetry_census = $telemetryCensus
 
 Write-Step "Phase 8: fixed-orchestration zero-hit audit (assertion 4 evidence)"
 # Marker families: the governed command names + workflow ids of the C1/B4/C2
-# fixed orchestrations. Surfaces = what the runtime actually did (chat/hop
-# response JSONs, both event snapshots, agent log); capability advertisement
+# fixed orchestrations, including the C2 single-track governed load command
+# (review A note 1: c2.dynamic_plugin_load.governed is not covered by the
+# _batch substring form; anchor c2_dynamic_plugin_load.go:20, dispatched at
+# c2_dynamic_control_runtime.go:520). Surfaces = what the runtime actually
+# did (chat/hop response JSONs, both event snapshots, agent log) PLUS the
+# telemetry LLM source face (planner tags above); capability advertisement
 # (tool catalogs, prompt assembly) and fastpath preflight are not in scope.
 $fixedMarkers = @(
     "semantic_eq_batch",
     "eq_plugin_load_batch",
     "dynamic_plugin_load_batch",
     "dynamic_parameter_batch",
-    "c2_dynamic_plugin_selection"
+    "c2_dynamic_plugin_selection",
+    "c2.dynamic_plugin_load.governed"
 )
 $auditSurfaces = New-Object System.Collections.Generic.List[object]
 foreach ($evidenceFile in (@($nlResponseFiles.ToArray()) + @(
@@ -1148,12 +1299,19 @@ foreach ($surface in @($auditSurfaces.ToArray())) {
         }
     }
 }
+# Telemetry LLM source face joins the same zero-hit assertion: a planner
+# source tag on any telemetry record is fixed-orchestration evidence.
+foreach ($srcHit in @($telemetrySourceHits)) {
+    $markerHits.Add([pscustomobject]@{ marker = [string]$srcHit.source; surface = ("telemetry:" + $TelemetryFile); kind = "telemetry_llm_source" })
+}
 $fixedOrchestrationAudit = @{
     markers = $fixedMarkers
+    telemetry_llm_source_markers = $fixedOrchestrationLlmSources
+    telemetry_llm_source_hits = @($telemetrySourceHits)
     surfaces_scanned = @($auditSurfaces.ToArray() | ForEach-Object { $_.surface })
     hits = @($markerHits.ToArray())
     zero_hits = ($markerHits.Count -eq 0)
-    scope_note = "fastpath preflight (FastPathRouter) is harness plumbing and not in the marker set; tool catalogs / prompt advertisement not scanned (capability ads are not runtime activation)"
+    scope_note = "fastpath preflight (FastPathRouter) is harness plumbing and not in the marker set; tool catalogs / prompt advertisement not scanned (capability ads are not runtime activation); telemetry LLM source face scanned against the fixed-orchestration planner tags"
 }
 $fixedOrchestrationAudit | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $RunRoot "fixed_orchestration_audit.json") -Encoding UTF8
 
@@ -1217,6 +1375,13 @@ elseif ($settleReason -eq "budget_exhausted") {
 }
 elseif (@($nlStopReasons.ToArray()) -contains "llm_error" -or @($nlStopReasons.ToArray()) -contains "model_protocol_failure") { $classification = "llm_error" }
 elseif (@($nlStopReasons.ToArray()) -contains "capability_blocked") { $classification = "capability_blocked" }
+# Review B follow-up (run 185519 lesson): the top-level stop reasons can read
+# "done" while the free-state loop itself recorded an admission receipt - the
+# receipt status is the machine-readable admission verdict and must feed the
+# ladder, otherwise a receipt-blocked run classifies as "other" and diverges
+# from the human classification. needs_experiment / improvement_proposal are
+# continuation states, not failure classes, so they stay unconsumed.
+elseif ($fsLoopAdmissionStatus -eq "capability_blocked" -or $fsLoopAdmissionStatus -eq "blocked") { $classification = "capability_blocked" }
 elseif (@($nlStopReasons.ToArray()) -contains "no_candidate_found" -or @($nlStopReasons.ToArray()) -contains "no_pending_mix_tick_candidate") { $classification = "no_candidate_found" }
 elseif ($a1 -and $a2 -and $a3 -and $a4) { $classification = "judgment_terminal" }
 $report.classification = $classification
@@ -1263,6 +1428,7 @@ Remove-Item -LiteralPath env:VIT_AGENT_LLM_TELEMETRY_PATH -ErrorAction SilentlyC
 
 if ($failureReasons.Count -eq 0 -and $a1 -and $a2 -and $a3 -and $a4) {
     $report.verdict = "PASS"
+    $script:PlannedExitCode = 0
     Write-Report
     Write-Step "PASS"
     Write-Ok ("FS large-project free-state smoke passed (four assertion groups). run_root=" + $RunRoot)
@@ -1270,6 +1436,7 @@ if ($failureReasons.Count -eq 0 -and $a1 -and $a2 -and $a3 -and $a4) {
 }
 $report.verdict = "FAIL"
 $report.failures = @($failureReasons.ToArray())
+$script:PlannedExitCode = 1
 Write-Report
 Write-Step "FAIL"
 foreach ($reason in $failureReasons) { Write-FailLine $reason }
@@ -1295,6 +1462,7 @@ catch {
             remaining = @($remaining2)
         }
     }
+    $script:PlannedExitCode = 1
     Write-Report
     exit 1
 }
