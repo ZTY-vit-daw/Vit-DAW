@@ -34,6 +34,6 @@
 
 真栈独占（SMOKE 回归腿）；单测域与 PULL-PROBE-TIER-EXT-1/FS-RECEIPT-REVISION-1 文件域部分相交（free_state_reasoning_loop.go）——**与 FS-RECEIPT-REVISION-1 串行**（先本卡）。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-10T21:05+08:00 / origin/main=f763d37cbbc64d5dbabbb420a04693b1aa918e0b / owner=GLM-5.3（PC，ZCode 执行会话，L2） / 分支=port/fs-ledger-persist-1（worktree=D:\Vit_DAW_wt_fslp1） / 领取提交=本提交（coord/fs-ledger-persist-1 fast-forward → main，仅含本卡状态）
 - 回执：（取证根因 / 修复 diff / 最小反例 / SMOKE 回归 run ID / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
