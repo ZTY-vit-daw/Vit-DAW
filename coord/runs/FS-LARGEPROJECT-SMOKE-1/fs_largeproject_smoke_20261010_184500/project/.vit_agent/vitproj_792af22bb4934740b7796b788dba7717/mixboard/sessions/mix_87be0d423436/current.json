@@ -1,0 +1,50 @@
+{
+  "schema_version": "mixboard.v1",
+  "mix_session_id": "mix_87be0d423436",
+  "status": "partial",
+  "goal_text": "ordinary-Agent free-state CCB observation",
+  "target_ref": {
+    "kind": "project",
+    "id": "current",
+    "label": "Current project",
+    "source": "mix_observation_scope",
+    "confidence": "high"
+  },
+  "mix_objects": [
+    {
+      "mode": "scope",
+      "kind": "project",
+      "id": "current",
+      "label": "Current project",
+      "effect_scope": "track_rack",
+      "source": "mix_observation_scope"
+    }
+  ],
+  "listen_scope": {
+    "time": {
+      "mode": "full_song",
+      "source": "scope_full_project"
+    },
+    "source": {
+      "mode": "full_project"
+    }
+  },
+  "observation_count": 1,
+  "latest_observation_id": "obs_20261010T104650_e72de2d905c0",
+  "latest_observation_path": "D:\\Vit_DAW_wt_fsLPS1\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261010_184500\\project\\.vit_agent\\vitproj_792af22bb4934740b7796b788dba7717\\observations\\obs_20261010T104650_e72de2d905c0.json",
+  "active_problem_map": [
+    {
+      "confidence": 0.35,
+      "summary": "深度频段观察可用，可作为后续精修参考",
+      "tag": "deep_band_observation_available"
+    }
+  ],
+  "section_candidates": null,
+  "package_status": {
+    "deep": "async_available",
+    "environment": "partial",
+    "mix": "limited",
+    "project": "ready"
+  },
+  "updated_at": "2026-10-10T10:46:50.4677766Z"
+}

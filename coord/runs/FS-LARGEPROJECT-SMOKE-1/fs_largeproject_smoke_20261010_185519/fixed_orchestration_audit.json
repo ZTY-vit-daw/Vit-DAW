@@ -1,0 +1,20 @@
+﻿{
+    "surfaces_scanned":  [
+                             "D:\\Vit_DAW_wt_fsLPS1\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261010_185519\\nl_chat_1.json",
+                             "D:\\Vit_DAW_wt_fsLPS1\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261010_185519\\nl_events.json",
+                             "D:\\Vit_DAW_wt_fsLPS1\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261010_185519\\nl_events_after_hop.json",
+                             "D:\\Vit_DAW_wt_fsLPS1\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261010_185519\\agent_last.log"
+                         ],
+    "scope_note":  "fastpath preflight (FastPathRouter) is harness plumbing and not in the marker set; tool catalogs / prompt advertisement not scanned (capability ads are not runtime activation)",
+    "hits":  [
+
+             ],
+    "zero_hits":  true,
+    "markers":  [
+                    "semantic_eq_batch",
+                    "eq_plugin_load_batch",
+                    "dynamic_plugin_load_batch",
+                    "dynamic_parameter_batch",
+                    "c2_dynamic_plugin_selection"
+                ]
+}

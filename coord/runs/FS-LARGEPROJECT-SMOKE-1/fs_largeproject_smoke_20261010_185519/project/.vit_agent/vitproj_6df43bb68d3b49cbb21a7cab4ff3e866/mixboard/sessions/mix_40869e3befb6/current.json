@@ -1,0 +1,87 @@
+{
+  "schema_version": "mixboard.v1",
+  "mix_session_id": "mix_40869e3befb6",
+  "status": "partial",
+  "goal_text": "ordinary-Agent free-state CCB observation",
+  "target_ref": {
+    "kind": "project",
+    "id": "current",
+    "label": "Current project",
+    "source": "mix_observation_scope",
+    "confidence": "high"
+  },
+  "mix_objects": [
+    {
+      "mode": "scope",
+      "kind": "project",
+      "id": "current",
+      "label": "Current project",
+      "effect_scope": "track_rack",
+      "source": "mix_observation_scope"
+    }
+  ],
+  "listen_scope": {
+    "time": {
+      "mode": "full_song",
+      "source": "scope_full_project"
+    },
+    "source": {
+      "mode": "full_project"
+    }
+  },
+  "observation_count": 1,
+  "latest_observation_id": "obs_20261010T105649_06b2e7251024",
+  "latest_observation_path": "D:\\Vit_DAW_wt_fsLPS1\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261010_185519\\project\\.vit_agent\\vitproj_6df43bb68d3b49cbb21a7cab4ff3e866\\observations\\obs_20261010T105649_06b2e7251024.json",
+  "active_problem_map": [
+    {
+      "confidence": 0.35,
+      "summary": "深度频段观察可用，可作为后续精修参考",
+      "tag": "deep_band_observation_available"
+    }
+  ],
+  "section_candidates": null,
+  "package_status": {
+    "deep": "async_available",
+    "environment": "partial",
+    "mix": "limited",
+    "project": "ready"
+  },
+  "latest_change": {
+    "affected_scopes": [
+      "project.state"
+    ],
+    "authoritative": true,
+    "change_id": "shadow_change_000003",
+    "changed_entities": [
+      {
+        "fields": [
+          {
+            "after": "vitproj_762f730b934e4f6e93412531068d680b",
+            "path": "vit_project_parent_uuid"
+          }
+        ],
+        "id": "0/11d8e57",
+        "kind": "node"
+      }
+    ],
+    "freshness": "current_snapshot",
+    "from_project": {
+      "project_epoch": "epoch_55f19455dead93d4",
+      "project_revision": 4,
+      "project_uuid": "vitproj_6df43bb68d3b49cbb21a7cab4ff3e866",
+      "snapshot_hash": "452590c3aad17f55"
+    },
+    "from_state_epoch": 1917,
+    "observed_at": "2026-10-10T10:56:00.3670348Z",
+    "schema_version": "project_change_receipt.v1",
+    "source": "telemetry_delta",
+    "to_project": {
+      "project_epoch": "epoch_55f19455dead93d4",
+      "project_revision": 4,
+      "project_uuid": "vitproj_6df43bb68d3b49cbb21a7cab4ff3e866",
+      "snapshot_hash": "452590c3aad17f55"
+    },
+    "to_state_epoch": 1918
+  },
+  "updated_at": "2026-10-10T10:56:49.749923Z"
+}

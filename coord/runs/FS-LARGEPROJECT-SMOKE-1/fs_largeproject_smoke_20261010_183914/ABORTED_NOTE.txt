@@ -1,0 +1,1 @@
+ABORTED (tooling, not a functional run): preflight field extraction read the top-level "summary" but the agent invoke face wraps the kernel payload in "result" (result.summary.readable_file_count=61 was actually present and correct). Fixed extraction to prefer result.summary. No LLM round started; stack torn down by the script (agent pid 2508 / kernel pid 23068, cleanup logged).

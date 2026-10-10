@@ -1,0 +1,57 @@
+﻿{
+    "run_id":  "fs_largeproject_smoke_20261010_183914",
+    "card":  "FS-LARGEPROJECT-SMOKE-1",
+    "started_at":  "2026-10-10T10:39:14.8332559Z",
+    "command_line":  "",
+    "repo_head":  "3cd4efa404dfe57c294a569ed6f170dd3802cfd7",
+    "worktree":  "D:\\Vit_DAW_wt_fsLPS1",
+    "branch":  "port/fs-largeproject-smoke-1",
+    "kernel_exe":  "D:\\Vit_DAW\\Export\\staging\\runtime\\VitApp.exe",
+    "kernel_sha256":  "B6565DCF85D1DA867E16333052A7B928A5413565940603ADBCF4ABD59DD3123B",
+    "agent_binary":  "",
+    "stack_mode":  "dev_agent_smoke_started",
+    "harness_env":  "pull",
+    "telemetry_file":  "D:\\Vit_DAW_wt_fsLPS1\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261010_183914\\telemetry_pull.jsonl",
+    "probabilistic_discipline":  {
+                                     "failure_taxonomy":  [
+                                                              "no_candidate_found",
+                                                              "capability_blocked",
+                                                              "llm_error",
+                                                              "budget_exhausted",
+                                                              "environment_interrupt"
+                                                          ],
+                                     "stop_loss":  "same deterministic breakpoint failing twice in a row -\u003e stop and hand up",
+                                     "success_condition":  "exit 0 with assertion groups A1-A4 all true",
+                                     "max_runs":  2
+                                 },
+    "budget":  {
+                   "settle_seconds":  2700,
+                   "pull_max_cycles":  40,
+                   "bake_preheat_seconds":  9000,
+                   "turn_seconds":  480,
+                   "max_hops":  4,
+                   "max_nudges":  6
+               },
+    "import":  {
+                   "analysis_job_id":  "audio_analysis_1791628762668_1",
+                   "elapsed_seconds":  1,
+                   "isolated_project":  "D:\\Vit_DAW_wt_fsLPS1\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261010_183914\\project\\sattelites_61.vit",
+                   "tracks_created":  61,
+                   "started_at":  "2026-10-10T18:39:22.2934939+08:00",
+                   "tracks_to_create":  0,
+                   "clips_created":  61,
+                   "readable_file_count":  0
+               },
+    "preheat":  null,
+    "nl_round":  null,
+    "confirm_roundtrip":  null,
+    "telemetry_census":  null,
+    "assertions_block":  null,
+    "classification":  "",
+    "source_integrity":  "",
+    "environment_interrupt":  "",
+    "verdict":  "import_failed",
+    "teardown":  null,
+    "bringup_seconds":  6,
+    "finished_at":  "2026-10-10T10:39:23.2182346Z"
+}
