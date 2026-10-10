@@ -1,0 +1,203 @@
+diff --git a/agent/internal/chat/audio_closure_controller_test.go b/agent/internal/chat/audio_closure_controller_test.go
+index b4dcbca7..76431401 100644
+--- a/agent/internal/chat/audio_closure_controller_test.go
++++ b/agent/internal/chat/audio_closure_controller_test.go
+@@ -833,6 +833,7 @@ func TestAdvanceAudioClosurePhaseDerivesGuardsFromStateOnly(t *testing.T) {
+ 		t.Fatalf("self-asserted scan evidence advanced past the derived guard: %s", advanced.Phase)
+ 	}
+ }
++
+ // TestAudioClosureRoundRecordKeepsDimensionOpenOnUnboundOrEmptyDisclosure is
+ // the DIAG2 guardrail: a dimension may close only on disclosure quality — a
+ // target-bound observation with usable disclosed evidence. The DIAG1 failure
+@@ -1141,8 +1142,6 @@ func TestAudioClosureRoundClosePersistsRoundsAndAdvancesToFS6(t *testing.T) {
+ 	}
+ }
+ 
+-
+-
+ func TestSyncAudioClosureGovernedRevisionBooksAppliedRevision(t *testing.T) {
+ 	server := &Server{audioClosures: audioclosure.NewMemoryStore()}
+ 	state, err := audioclosure.Start(audioclosure.StartRequest{
+diff --git a/agent/internal/chat/continuation_scheduler.go b/agent/internal/chat/continuation_scheduler.go
+index bf33c11c..d480c91e 100644
+--- a/agent/internal/chat/continuation_scheduler.go
++++ b/agent/internal/chat/continuation_scheduler.go
+@@ -1158,6 +1158,7 @@ func (s *Server) runContinuationSchedulerOnce(ctx context.Context) error {
+ //     lifecycle (completed/cancelled/failed — the settle-time displaced-cancel
+ //     transient is repaired to completed afterwards, so completed alone would
+ //     misjudge) and the goal landed on a settled form.
++//
+ //   - B1-F2 waiting park: the chain parked at an answerable interaction
+ //     (goal waiting_confirmation/waiting_clarification). The park is a
+ //     genuine user-facing wait whose final reply is the chain's last word
+diff --git a/agent/internal/chat/continuation_scheduler_test.go b/agent/internal/chat/continuation_scheduler_test.go
+index 7f405915..e20fde19 100644
+--- a/agent/internal/chat/continuation_scheduler_test.go
++++ b/agent/internal/chat/continuation_scheduler_test.go
+@@ -130,7 +130,9 @@ func TestProductionFreeStateRunnerObservationsSurviveDurableSlices(t *testing.T)
+ 				break
+ 			}
+ 			statuses := []string{}
+-			for _, item := range s.durableContinuations { statuses = append(statuses, string(item.Status)+":"+item.ContinuationID) }
++			for _, item := range s.durableContinuations {
++				statuses = append(statuses, string(item.Status)+":"+item.ContinuationID)
++			}
+ 			t.Fatalf("slice %d did not create child checkpoint: statuses=%v result_cont=%v", slice, statuses, result.Continuation != nil)
+ 		}
+ 		s.continuationExecutor = func(ctx context.Context, item DurableContinuation) error {
+@@ -164,7 +166,9 @@ func TestProductionFreeStateRunnerObservationsSurviveDurableSlices(t *testing.T)
+ 			projectCalls++
+ 		}
+ 	}
+-	if projectCalls != 1 { t.Fatalf("duplicate project view set entered CCB executor: %d", projectCalls) }
++	if projectCalls != 1 {
++		t.Fatalf("duplicate project view set entered CCB executor: %d", projectCalls)
++	}
+ }
+ 
+ func mustFreeStateLoop(s *Server, conversationID string) freeStateReasoningLoop {
+@@ -284,7 +288,7 @@ func TestFreeStateObservationsSurviveFourDurableSlices(t *testing.T) {
+ 			"schema_version":  freeStateObservationLedgerSchema,
+ 			"receipts":        []map[string]any{{"receipt_id": receiptID, "observation_id": observationID, "requested_views": []string{views[index]}}},
+ 			"available_views": map[string]any{views[index]: map[string]any{"view_id": views[index], "observation_id": observationID, "status": "ready"}},
+-		},)
++		})
+ 		updated.LatestObservation = &agentloop.RecentObservation{Tool: "ccb.observation_request", Status: "ready", Summary: map[string]any{
+ 			"observation_id": observationID, "requested_views": []any{views[index]}, "audit_receipt": map[string]any{"receipt_id": receiptID},
+ 		}}
+diff --git a/agent/internal/chat/free_state_d1_runtime_test.go b/agent/internal/chat/free_state_d1_runtime_test.go
+index f1df5468..cba41673 100644
+--- a/agent/internal/chat/free_state_d1_runtime_test.go
++++ b/agent/internal/chat/free_state_d1_runtime_test.go
+@@ -696,7 +696,6 @@ func TestD1S1JudgmentSettlementBindsCanonicalTaskContract(t *testing.T) {
+ 	}
+ }
+ 
+-
+ func TestD1S1RollbackUsesExistingRollbackAction(t *testing.T) {
+ 	loop := d1EvaluatedLoopForTest(t)
+ 	round, _ := loop.Experiment.CurrentRound()
+diff --git a/agent/internal/chat/free_state_experiment_runtime_test.go b/agent/internal/chat/free_state_experiment_runtime_test.go
+index 872114d6..dd7f4800 100644
+--- a/agent/internal/chat/free_state_experiment_runtime_test.go
++++ b/agent/internal/chat/free_state_experiment_runtime_test.go
+@@ -193,6 +193,7 @@ func TestExperimentReportFieldsIngestedOnTerminalDecision(t *testing.T) {
+ 		t.Fatalf("round decision = %q, want user_judgment_pending", round.Decision)
+ 	}
+ }
++
+ // The human-judgment boundary is terminal for model turns. Once the round
+ // decision user_judgment_pending is recorded (or a judgment is requested /
+ // recorded), a needs_observation/needs_action/new-admission decision must not
+@@ -398,5 +399,3 @@ func TestInteractionResumeRefusedAtJudgmentBoundary(t *testing.T) {
+ 		t.Fatalf("interaction resume revived the loop at the judgment boundary: status=%s cycle=%d actions=%d", stored.Status, stored.Cycle, len(stored.Actions))
+ 	}
+ }
+-
+-
+diff --git a/agent/internal/chat/free_state_terminal_turn_chat_test.go b/agent/internal/chat/free_state_terminal_turn_chat_test.go
+index a83323ad..3f55b3c3 100644
+--- a/agent/internal/chat/free_state_terminal_turn_chat_test.go
++++ b/agent/internal/chat/free_state_terminal_turn_chat_test.go
+@@ -213,4 +213,3 @@ func TestSyncFreeStateSpineArmsNoGateSignalAfterTimingGateRemoval(t *testing.T)
+ 		}
+ 	}
+ }
+-
+diff --git a/agent/internal/chat/judgment_park_continuation.go b/agent/internal/chat/judgment_park_continuation.go
+index a5ba9d1a..1e785bcc 100644
+--- a/agent/internal/chat/judgment_park_continuation.go
++++ b/agent/internal/chat/judgment_park_continuation.go
+@@ -7,8 +7,8 @@ import (
+ 
+ 	"vit-daw-agent/internal/agentloop"
+ 	"vit-daw-agent/internal/audioclosure"
+-	agentruntime "vit-daw-agent/internal/runtime"
+ 	"vit-daw-agent/internal/experiment"
++	agentruntime "vit-daw-agent/internal/runtime"
+ )
+ 
+ // FS-PARK-TURNFAIL-1（用户裁定 2026-09-30，
+diff --git a/agent/internal/chat/judgment_park_continuation_test.go b/agent/internal/chat/judgment_park_continuation_test.go
+index 7edd345a..c9b657fb 100644
+--- a/agent/internal/chat/judgment_park_continuation_test.go
++++ b/agent/internal/chat/judgment_park_continuation_test.go
+@@ -9,8 +9,8 @@ import (
+ 	"time"
+ 
+ 	"vit-daw-agent/internal/agentloop"
+-	agentruntime "vit-daw-agent/internal/runtime"
+ 	"vit-daw-agent/internal/experiment"
++	agentruntime "vit-daw-agent/internal/runtime"
+ 	"vit-daw-agent/internal/taskstate"
+ 	"vit-daw-agent/internal/trajectory"
+ )
+diff --git a/agent/internal/chat/judgment_park_delivery_test.go b/agent/internal/chat/judgment_park_delivery_test.go
+index 2f19af76..b75db211 100644
+--- a/agent/internal/chat/judgment_park_delivery_test.go
++++ b/agent/internal/chat/judgment_park_delivery_test.go
+@@ -273,6 +273,7 @@ func TestJudgmentParkDeliveryGateSharesBoundaryPredicate(t *testing.T) {
+ 		t.Fatal("a conversation without a free-state loop must not report a judgment park")
+ 	}
+ }
++
+ // ---------------------------------------------------------------------------
+ // AUDITION-PLAY-1 验收补锚点勘察（2026-09-12）：判定请求落账前 WARN
+ // "[audition] user judgment request rejected: user judgment request requires
+diff --git a/agent/internal/chat/judgment_settle_delivery_test.go b/agent/internal/chat/judgment_settle_delivery_test.go
+index a476392d..a92e2b70 100644
+--- a/agent/internal/chat/judgment_settle_delivery_test.go
++++ b/agent/internal/chat/judgment_settle_delivery_test.go
+@@ -14,8 +14,8 @@ import (
+ 	"vit-daw-agent/internal/agentloop"
+ 	"vit-daw-agent/internal/audioclosure"
+ 	"vit-daw-agent/internal/history"
+-	agentruntime "vit-daw-agent/internal/runtime"
+ 	"vit-daw-agent/internal/orchestrationcontroller"
++	agentruntime "vit-daw-agent/internal/runtime"
+ )
+ 
+ // SETTLE-DELIVER-1（2026-10-03 手测场取证，webui_murptx58 / 43 事件流）：
+diff --git a/agent/internal/chat/judgment_settle_stall_test.go b/agent/internal/chat/judgment_settle_stall_test.go
+index 46e99fbf..7d0956d7 100644
+--- a/agent/internal/chat/judgment_settle_stall_test.go
++++ b/agent/internal/chat/judgment_settle_stall_test.go
+@@ -15,8 +15,8 @@ import (
+ 	"vit-daw-agent/internal/harness"
+ 	"vit-daw-agent/internal/journal"
+ 	"vit-daw-agent/internal/orchestration"
+-	agentruntime "vit-daw-agent/internal/runtime"
+ 	"vit-daw-agent/internal/orchestrationcontroller"
++	agentruntime "vit-daw-agent/internal/runtime"
+ 	"vit-daw-agent/internal/taskstate"
+ 	"vit-daw-agent/internal/trajectory"
+ )
+diff --git a/agent/internal/chat/mix_tick_confirmation.go b/agent/internal/chat/mix_tick_confirmation.go
+index bba02da3..d5d86a36 100644
+--- a/agent/internal/chat/mix_tick_confirmation.go
++++ b/agent/internal/chat/mix_tick_confirmation.go
+@@ -9,10 +9,10 @@ import (
+ 	"vit-daw-agent/internal/actionworkflow"
+ 	"vit-daw-agent/internal/agentloop"
+ 	"vit-daw-agent/internal/agentprotocol"
+-	agentruntime "vit-daw-agent/internal/runtime"
+ 	"vit-daw-agent/internal/executor"
+ 	"vit-daw-agent/internal/experiment"
+ 	"vit-daw-agent/internal/planner"
++	agentruntime "vit-daw-agent/internal/runtime"
+ )
+ 
+ func (s *Server) handlePendingMixTickChat(ctx context.Context, conversationID string, req ChatRequest, mode string) (ChatResponse, bool) {
+diff --git a/agent/internal/harness/processor_load_gate_fullaccess_test.go b/agent/internal/harness/processor_load_gate_fullaccess_test.go
+index 083b70b9..829a37e1 100644
+--- a/agent/internal/harness/processor_load_gate_fullaccess_test.go
++++ b/agent/internal/harness/processor_load_gate_fullaccess_test.go
+@@ -78,7 +78,6 @@ func fullProjectAccessContext() map[string]any {
+ 	return map[string]any{"authority_mode": "full_project_access", "authority_mode_explicit": true}
+ }
+ 
+-
+ func TestFullProjectAccessLoadsAdmittedProcessorWithoutUserSelectionAuthorization(t *testing.T) {
+ 	const identifier = "VST3-PCA-FullAccess-Probe-1"
+ 	fixture := newPCAFullAccessFixture(t, identifier, processorattestation.FamilyStaticEQ)

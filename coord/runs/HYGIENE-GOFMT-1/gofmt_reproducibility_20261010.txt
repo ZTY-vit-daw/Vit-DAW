@@ -1,0 +1,9 @@
+# HYGIENE-GOFMT-1 终版提交逐文件字节级 gofmt 可复现验证
+# 判据1：gofmt(HEAD~1:agent/<f>) == HEAD:agent/<f>（字节相等）——唯一变换=gofmt，零手工编辑
+# 判据2：HEAD blob 全文件 CR 字节=0（纯 LF，无行尾噪音）
+# HEAD=30bbc87149f7e029a0538cf4999b67085e5b3f6d  HEAD~1=0bec8de4607c0ba7f3fe99cb82480708077b7e11
+REPRO-PASS=51 REPRO-FAIL=0 CR-NONZERO-FILES=0
+=== diff -w HEAD~1 HEAD 汇总:
+ agent/internal/chat/mix_tick_confirmation.go                  |  2 +-
+ agent/internal/harness/processor_load_gate_fullaccess_test.go |  1 -
+ 13 files changed, 16 insertions(+), 15 deletions(-)

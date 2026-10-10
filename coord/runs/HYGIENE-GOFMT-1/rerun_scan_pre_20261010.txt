@@ -1,0 +1,56 @@
+# HYGIENE-GOFMT-1 领取时复跑扫描（pre-gofmt）
+# HEAD=0bec8de4607c0ba7f3fe99cb82480708077b7e11
+# 时间=2026-10-10T10:24:59+0800
+# 命令=基线工件内嵌命令原样复跑（blob 级 + tr -d \r 归一 vs gofmt 产物）
+#
+internal/audioclosure/types.go
+internal/capabilitycontext/low_end_relation.go
+internal/chat/audio_closure_controller_test.go
+internal/chat/audition_reseat_gate_test.go
+internal/chat/capacity_fact_short_circuit_test.go
+internal/chat/confirm_chat_1_test.go
+internal/chat/continuation_scheduler.go
+internal/chat/continuation_scheduler_test.go
+internal/chat/free_state_arm_slot_restore_test.go
+internal/chat/free_state_d1_runtime_test.go
+internal/chat/free_state_d2_multiround_execution_test.go
+internal/chat/free_state_experiment_runtime.go
+internal/chat/free_state_experiment_runtime_test.go
+internal/chat/free_state_retired_keys_compat_test.go
+internal/chat/free_state_round_surface_test.go
+internal/chat/free_state_settle_envelope_test.go
+internal/chat/free_state_settle_race_test.go
+internal/chat/free_state_settle_status_fold_test.go
+internal/chat/free_state_targeting_coverage_test.go
+internal/chat/free_state_terminal_turn_chat_test.go
+internal/chat/fs_adopt_closure_test.go
+internal/chat/fs_settle_terminal_test.go
+internal/chat/fs_stop_apply_test.go
+internal/chat/goalrunner_chat.go
+internal/chat/improvement_proposal_workflow.go
+internal/chat/judgment_park_continuation.go
+internal/chat/judgment_park_continuation_test.go
+internal/chat/judgment_park_delivery_test.go
+internal/chat/judgment_settle_delivery_test.go
+internal/chat/judgment_settle_stall_test.go
+internal/chat/mix_tick_confirmation.go
+internal/chat/note_sessions.go
+internal/chat/nudge_interception_lease_read_test.go
+internal/chat/pca_autonomy_catalog_test.go
+internal/chat/pca_fullaccess_transport_test.go
+internal/chat/scheduler_terminal_delivery_test.go
+internal/chat/terminal_report_wording_test.go
+internal/chat/traj_auto_settle_test.go
+internal/epm/projection.go
+internal/epm/types.go
+internal/executionports/staticeq_delta_test.go
+internal/executionports/staticeq_param.go
+internal/executionports/staticeq_vsp_test.go
+internal/harness/bridge_freshness_annotation_test.go
+internal/harness/materialize_shadow_test.go
+internal/harness/processor_load_gate_fullaccess_test.go
+internal/history/history.go
+internal/materialize/measurement_carried_test.go
+internal/mixboard/waveform_freshness_residual_test.go
+internal/processorattestation/coverage_axes_test.go
+internal/tim/asserter_test.go

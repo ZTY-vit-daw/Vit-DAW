@@ -1,0 +1,27 @@
+# HYGIENE-GOFMT-1 build+test（gofmt -w 后，完整证据版）
+# worktree=D:/Vit_DAW-worktrees/HYGIENE-GOFMT-1
+# HEAD=0bec8de4607c0ba7f3fe99cb82480708077b7e11（改动未提交态，51 文件 gofmt -w 已落工作树）
+# 开始=2026-10-10T10:31:40+0800
+=== go build ./...
+BUILD_EXIT=0
+=== go test ./... -count=1
+TEST_EXIT=0
+=== test tail:
+ok  	vit-daw-agent/internal/shelltools	0.408s
+ok  	vit-daw-agent/internal/staticbalance	0.472s
+ok  	vit-daw-agent/internal/taskstate	0.444s
+ok  	vit-daw-agent/internal/tim	0.383s
+ok  	vit-daw-agent/internal/tom	0.359s
+ok  	vit-daw-agent/internal/toolpolicy	0.380s
+ok  	vit-daw-agent/internal/tools	0.359s
+ok  	vit-daw-agent/internal/trajectory	0.383s
+?   	vit-daw-agent/internal/vspclient	[no test files]
+ok  	vit-daw-agent/internal/vsphub	1.022s
+ok  	vit-daw-agent/internal/vst3host	0.337s
+ok  	vit-daw-agent/internal/webtools	0.630s
+ok  	vit-daw-agent/internal/workflows/plugingrabber	0.486s
+ok  	vit-daw-agent/internal/workspace	0.351s
+ok  	vit-daw-agent/rules/ruleset	0.349s
+=== FAIL line count: 0
+=== ok line count: 92
+# 结束=2026-10-10T10:33:17+0800
