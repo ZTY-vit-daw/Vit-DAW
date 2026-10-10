@@ -36,6 +36,6 @@
 
 - 文件域=51 债文件清单本身（与 HYGIENE-FASTPATH-1 / REFSCHEMA-M4 / REFSCHEMA-M5 文件域**零重叠**，发卡侧已逐一核对：message_loop.go、gain_staging_ref.go、refschema.go、free_state_observation.go、pack.go、semantic_eq.go、c1_frequency_cleanup_runtime.go、b4_eq_runtime.go、c2_dynamic_batch.go、mixboard_decision_projection.go 均不在债清单）。可与他卡并行；不需要真栈；无资源占用。
 
-- 领取：（时间 / origin/main hash / owner 模型+机器+会话 / 分支 / worktree / 领取提交）
+- 领取：2026-10-10 晚窗 / origin/main 5558a0ce（blob 侦察=债文件全 LF、本机 autocrlf=true，CRLF 防线按逐文件 diff 核）/ owner=GLM-5.3-Flash（ZCode flash 执行会话）+ PC win32 / 分支 port/hygiene-gofmt-1 / worktree D:/Vit_DAW-worktrees/HYGIENE-GOFMT-1 / 领取提交=本提交（coord/hygiene-gofmt-1-claim，hash 记入回执）
 - 回执：（commit hash / 复跑清单链接 / 端测边界声明——纯格式化零语义面，如实声明）
 - 验收：（裁定文件 / 验收 commit）
