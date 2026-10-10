@@ -55,4 +55,4 @@ execRecord 加键破坏既有序列化/快照消费方（发现消费方对未�
   - **计量键锚点**：runner.go executeTool `started:=time.Now()` + execRecord `"elapsed_ms": time.Since(started).Milliseconds()`（与 harness.invoke :879 计时同粒度）；结算面 settleBatch→settleRecordProbeCost（单次结算去重面沿用 ledger.settle，仅对本批 fresh 回执分级结算）。**probe_spent 单位=ms**（elapsed_ms 原子），max_probe_cost 注入方（G3 复跑）需按 ms 口径设线。粗时钟实测 ~0ms 属真实计量非冒充（键存在=已计量）。
   - **诚实红线核对**：未计量不填 0——无键/不可解析翻 false 不入账（elapsedMSFromRecord ok=false 路径）；账本记 agent 观测墙钟（含调度噪音，代码注释明示勿冒称纯内核成本）；push 模式零变化——settleBatch 仅 pullSession.Execute 调用，runner.go 仅通用加法键（push 侧消费方全为内存 map 读特定键，grep 实证无严格 schema 反序列化、无 T1 Bytes 精确断言）。
   - **端测边界声明**：本卡按卡面"纯单测域，不需要真栈"口径交付，未跑真栈烟测与 webui 渲染面（无 webui 改动）；probe 成本面真栈读数归 FS-LARGEPROJECT-SMOKE-1 行为面验收（合入后 budget_state 披露行即有实测值）。
-- 验收：（裁定文件 / 验收 commit）
+- 验收：**pass（2026-10-10 晚窗主管）+分级裁定**——[rulings/2026-10-10-EVENING-BATCH-rulings.md](../../rulings/2026-10-10-EVENING-BATCH-rulings.md) §3；cherry-pick 12792d0a→main 0a7797f9。diff 亲读（unlisted 不私定/无键翻 false 诚实语义核实）；**上交项裁定：clip.warm_waveform_bake 归 probe 级**（D5 语义+L2-2 烘焙=串行瓶颈实证），落地=PULL-PROBE-TIER-EXT-1（池序 52）。probe 计量面自此真实执法。

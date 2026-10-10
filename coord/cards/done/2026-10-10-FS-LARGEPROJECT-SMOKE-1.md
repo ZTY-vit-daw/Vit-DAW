@@ -60,4 +60,4 @@
   - **§9 回执面**：完整命令（powershell -NoProfile -ExecutionPolicy Bypass -File scripts/fs_largeproject_smoke.ps1 -RepoRoot D:/Vit_DAW_wt_fsLPS1）、退出码 1、HEAD=3cd4efa4、kernel sha=B6565DCF85D1DA86（G3 同源）、agent 现建非 SkipBuild、E:\ 三 manifest 逐字节一致（61 文件 name/size/mtime 全等）、preheat 轮询史/telemetry census/断言块/teardown(torn_down=true) 俱在 run_report.json；缺口三条（command_line 字段空/exit code 未数值化/agent_binary 死字段）已记入复核报告 §D。
   - **端测边界声明**：本烟测=自动化脚本栈端侧门（AGENTS §5），非用户手测；覆盖=agent HTTP 面+事件流+遥测+内核工具面，**不覆盖** webui 渲染面与用户旅程（本卡零 webui 改动）；两轮均单轮 turn 即终局，未触发 nudge/continuation 面（run 185519 done+completed 即停），多轮长程续跑面未被本采样覆盖。
   - 工件根=coord/runs/FS-LARGEPROJECT-SMOKE-1/（四 run 目录+REVIEW-independent.md）；栈释放记录随本批推 main。
-- 验收：（裁定文件 / 验收 commit）
+- 验收：**执行 pass+verdict FAIL 正式登记（2026-10-10 晚窗主管）**——[rulings/2026-10-10-EVENING-BATCH-rulings.md](../../rulings/2026-10-10-EVENING-BATCH-rulings.md) §5；cherry-pick 2291d055→main 4ccb02dd（脚本+四 run 工件入库）。执行纪律全合规（≤2 轮/分记诚实/E:\ 三 manifest 一致/栈释放闭环）；A1/A4 pass、A2/A3 fail；高价值发现采信复核修正版归因（mix 收据未存活到终态台账+cycle=0→跨轮持久化/激活时序缺陷=G3 误杀）——**汇合点 blocker 立 FS-LEDGER-PERSIST-1（P1）**，修复+SMOKE 回归通过前三线不启动；后续卡另三张（SCRIPT-HYGIENE-1/RECEIPT-REVISION-1/PROBE-TIER-EXT-1）。

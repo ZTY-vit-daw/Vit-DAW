@@ -37,4 +37,4 @@ vit:// 文法零改动；既有 19 词条零改动；legacy 往返回归；cap_p
 - 领取：2026-10-10 18:15 / origin/main `7dff62a0`（本地 main 同点；M4 基线 51a389c8 已在 ancestor 核对通过）/ owner=GLM-5.3-Flash 执行会话 PC（ZCode flash 会话）/ 分支 `port/refschema-m4b` / worktree `D:/Vit_DAW_wt_refschema_m4b`（origin/main 干净检出，工作树零叠加 diff）/ 领取提交=本提交
 - 停止条件预核：ccbr_ 三生成点锚点实测 free_state_observation.go :567/:439/:1636，与 M4 回执证据一致，remainder=compactID 首个非空透传形态未变——未触发。
 - 回执：实现 commit `a62f7125`（port/refschema-m4b，已推远待验收合入）/ 翻面测试名 **`TestRefSchemaM4BCCBRFamilyRegistered`**（原 TestRefSchemaM4CCBRFamilyStaysUnregistered 已移除）/ 端测边界声明=纯单测域（注册表数据+解析器），卡面明示不需要真栈、无资源占用，未触碰真实运行栈，无渲染面/用户旅程改动；验收全绿（build 0、定向两包 ok、全量 92 包 0 FAIL exit 0、blob CR=0 gofmt 净）——详见 coord/runs/REFSCHEMA-M4B/receipt.md（四件目标逐条对照+红线核查+G1 缺口闭合批注回写）
-- 验收：（裁定文件 / 验收 commit）
+- 验收：**pass（2026-10-10 晚窗主管）**——[rulings/2026-10-10-EVENING-BATCH-rulings.md](../../rulings/2026-10-10-EVENING-BATCH-rulings.md) §1；cherry-pick a62f7125→main 21b70b54；diff 亲读+合并态全量 92 包 0 FAIL。G1 迁移账 capabilitycontext 批次全数完结（ccbobs_×3+cap_pack_+ccbr_×3=22 词条）。

@@ -38,4 +38,4 @@
   - `2026-10-10T18:21:36 [WARN] [goal.persist] failed conversation=conv_ab12cd34 goal=goal_mix_free_state_1 error=durable continuation lease held by owner=agent@PC-MAIN pid=4128 expires_at=2026-10-10T18:31:07Z: checkpoint store busy`（含租约 owner/expires_at 的错误全文形态，即 BOUNDARY-PERSIST-1 取证时只能旁证重建、现可直接入日志的那类文本）
   - 验收记录：`go build ./...` exit 0；`go test ./internal/chat -count=1` ok 94.7s；全量 `go test ./... -count=1` 92 包 ok / 0 FAIL / EXIT=0；触碰 blob（LF 净内容）gofmt -l/-d 均空。备注：工作树 core.autocrlf=true 使 gofmt -l 对包内全部文件报 CRLF 假阳性，按卡面「blob 级」口径以去 CR 后内容核对，改动前后 blob 均 gofmt 净。
   - 端测边界声明：纯日志加法零行为语义变化，验收=编译+单测+全量+gofmt（卡面"纯单测域，不占真栈"），未做端侧真栈烟测，与卡面资源条款一致。
-- 验收：（裁定文件 / 验收 commit）
+- 验收：**pass（2026-10-10 晚窗主管）**——[rulings/2026-10-10-EVENING-BATCH-rulings.md](../../rulings/2026-10-10-EVENING-BATCH-rulings.md) §2；cherry-pick 9ceb62ea→main 6d31fb4f；diff 亲读（nil 守卫+error 全文）。观察项 A 销项。
