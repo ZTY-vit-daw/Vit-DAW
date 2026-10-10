@@ -41,6 +41,6 @@
 
 不占真栈（headless probe + 用户手测自定窗口）；与 vitnote 卡/后端卡文件域不相交。
 
-- 领取：（时间 / 前端仓 HEAD / owner / 分支 / 领取提交）
+- 领取：2026-10-10 18:14 / 主仓 origin/main=3c275461e49cbfd39303225269cfdc818c5438e1（本地一致）/ owner=GLM-5.3-Flash · PC · ZCode flash 执行会话（用户 2026-10-10 口令指派领取本卡）/ 前端仓分支=port/fe-rack-ctx-load，基线=vit-daw-frontend ecc722d12e8d7818fbe8bd77019f2b15e37ba1d7（port/vitnote-region-time-1 tip，已推远端、tracked 干净；卡面锚点行号在该基线核实）/ 前端 worktree=D:/Godot/project/vit-daw-frontend-fe-rack-ctx（独立 worktree，不踩踏 vitnote 流主工作树）/ 领取提交=（推送后回填）
 - 回执：（commit / 设计三件 / probe 断言结果 / 手测清单）
 - 验收：（裁定文件 / 验收 commit）
