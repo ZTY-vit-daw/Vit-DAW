@@ -37,4 +37,4 @@
 
 - 领取：2026-10-10 闲时车道 / origin/main f0dc8e77 / owner=闲时任务·GLM-5.3-Flash（ZCode 主管会话 sess_1c9ec412 派发）·PC / 只读无分支（零代码勘察卡）/ 领取提交=4b339b7b+86fc935f
 - 回执：[coord/runs/G3-PROBE-METER-RECON-1/report.md](../../runs/G3-PROBE-METER-RECON-1/report.md)——**结论=有源，最小接入面成立**：①unknown 构成=账本位齐备（pullLedger.probeSpent/probeCostKnown+budget.go 账户/执法/披露面）唯缺逐笔成本生产者（execRecord 九字段无计量键、InvokeResponse 无耗时字段）；**接线点已预声明**（pull_session.go:411-430 settleBatch 注释"有真实计量源后在此接入"）。②可计量源盘点：agent 侧三源现成（Harness.Invoke 墙钟 harness.go:879-892 / message_loop.tool 墙钟 message_loop.go:66 均日志形态；**CollectL2RenderProbeBatch.ElapsedMS l2_probe_batch.go:38 结构化 probe 级测量但组合层丢弃**）+内核侧两处日志形态计时（L3AcousticAnalyzer:952-961/WaveformEnvelopeBaker:672-693）、VSP 回执结构化时长面=零（反向确认 grep 在案）。③边界结论：三层口径递进无争议（(a) agent 工具墙钟充分层≈2 文件改动可支撑重开条件①对比/(b) probe 级结构化精化层/(c) 内核渲染遥测扩展层非必要）——不触发停止条件；诚实边界=层(a)含调度噪音，未来纯内核口径走层(c)勿冒称。
-- 验收：（待主管终审——本卡执行侧自验完成，报告即验收材料）
+- 验收：**pass（2026-10-10 晚窗主管终审）**——[rulings/2026-10-10-EVENING-IDLE-FINAL-rulings.md](../../rulings/2026-10-10-EVENING-IDLE-FINAL-rulings.md) §2；八源锚点亲读复核。**G3 重开条件①计量前提由'缺失'改判'可满足（有源）'**；层(a)落地卡=PULL-PROBE-METER-1（池序 44）。

@@ -35,7 +35,7 @@
 
 ## 已知真栈形态（L2-2 情报，脚本设计须吸收）
 
-① L3 bake 串行积压（见上）；② AudioFeatureService 30s merge 窗口静默去重同 key 请求——重复观测隔 ≥30s 或变 key；③ agent 落盘白名单只认 band/stereo/loudness 三型——观察面断言按此现实设计，勿依赖白名单外特征落盘。
+① L3 bake 串行积压（见上）；② AudioFeatureService 30s merge 窗口静默去重同 key 请求——重复观测隔 ≥30s 或变 key；③ agent 落盘白名单只认 band/stereo/loudness 三型——观察面断言按此现实设计，勿依赖白名单外特征落盘；④ **启动前清场检查**（BOUNDARY-PERSIST-1 观察项 B 并入）：脚本拉栈前确认无残留 agent/内核进程——push→pull 双进程并存窗口是 runtime state 租约竞争温床（2026-10-09 run 实证），必须先清场再起栈。
 
 ## 文件域
 
