@@ -6,6 +6,7 @@
 - **归属：生成能力线（GEN）下游呈现产物**——ask vit 单入口生成 AMV/成片，生成链素材（GeneratedAssetService/MIDI/stem）直接进 film assets；与 GEN-CAP-RECON-1 报告第 4 节（启动建议输入）**合并复核**
 - 优先级 / 预估 / 依赖：P1 / 设计 2-3 天（实施线 v1 预估 5-7 周单线，多会话并行可压）/ 无硬依赖
 - 证据底座：coord/runs/VIS-FILM-OPENFILM-RECON-1/（openfilm 全量调研：架构/工程量实测/模型要求/吸收方案/时间预算）
+- **产品名裁定（2026-10-10 用户命名会话）**：成片/AMV 能力面产品名=**VitReel**。候选历程：Vit Film/VitReel/VitTape 三案 → 用户筛至 VitTape/VitReel 双候选 → tie-break 定 VitReel，论证=介质方向（主 DAW 与 V5 磁带机走带已是音频介质隐喻，新能力命名应指向新增的影像介质；reel=卷片/胶片盘，暗合 reel-to-reel 盘带血统且重心在影像，兼合工程流短内容流的行业通用词）。中文 UI 落"成片"；**磁带机保留为 V5 走带栏视觉设计语言，与产品名分层不冲突**；开发域名保持 VIS-FILM 不变（卡池内部标识，不入产品面）。产品家族：Vit-DAW（产品全名）/ Ask Vit（agent 对话面）/ VitReel（成片能力面）。
 
 ## 目标（设计基线四件）
 
