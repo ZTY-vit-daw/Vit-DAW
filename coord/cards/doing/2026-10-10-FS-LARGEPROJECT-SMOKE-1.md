@@ -51,6 +51,6 @@
 
 真栈独占（PC-RUNTIME-STACK 登记唯一 owner）；与 PULL-PROBE-METER-1/M4B/M5（纯单测域）并行安全；E: 盘源素材只读。
 
-- 领取：（时间 / origin/main hash / owner 模型+机器+会话 / 分支 / worktree / 领取提交）
+- 领取：2026-10-10 晚 / origin/main=3cd4efa404dfe57c294a569ed6f170dd3802cfd7 / owner=GLM-5.3（PC 执行会话，ZCode D:\Vit_DAW） / 分支=port/fs-largeproject-smoke-1 / worktree=D:/Vit_DAW_wt_fsLPS1 / 领取提交=协调提交（coord checkout D:/Vit_DAW_wt_fsLPS1_coord 推 main）；doing 四卡（FE-RACK-CTX/HYGIENE-GOALPERSIST/PULL-PROBE-METER/REFSCHEMA-M4B）文件域与本卡（scripts/fs_largeproject_smoke.ps1 + coord/runs/FS-LARGEPROJECT-SMOKE-1/）不相交；真栈独占按 §2.2 另行登记
 - 回执：（run ID / 退出码 / 四断言组结果 / 失败分记 / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
