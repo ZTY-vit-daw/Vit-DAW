@@ -5,7 +5,11 @@
 
 ## 当前占用
 
-- 状态：空闲
+- 状态：占用中
+- 卡：FS-LEDGER-PERSIST-1（取证日志真栈复现轮 + 修复后 SMOKE 回归，同一占用窗口内连跑）
+- Owner：GLM-5.3 PC 执行会话（ZCode，worktree D:/Vit_DAW_wt_fslp1）
+- 机器/端口：PC / 7878(agent HTTP)、5555/5556(ZMQ)
+- 时间：2026-10-10 21:40 +0800 起
 
 ## 最近一次释放
 
