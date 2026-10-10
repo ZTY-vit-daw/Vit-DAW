@@ -42,4 +42,4 @@
 
 - 领取：2026-10-10 10:16（Asia/Shanghai） / origin/main=204f0cc8 / owner=GLM-5.3-flash 执行会话（PC / ZCode flash / HYGIENE-FASTPATH-1 实现） / 分支 port/hygiene-fastpath-1 / worktree D:/Vit_DAW_wt_hygiene_fp1 / 领取提交=本条状态提交（coord/hygiene-fastpath-1-claim，推 main 后以远端 log 核对）；独立 worktree 领取前 status/diff 均为空
 - 回执：port/hygiene-fastpath-1@ed9f5ade / [coord/runs/HYGIENE-FASTPATH-1/receipt.md](../../runs/HYGIENE-FASTPATH-1/receipt.md) / 端测边界声明：本卡纯单测域，真栈覆盖=无（行为零变化面——无漂移路径由既有 agentloop/fastpath 全量零改动全绿背书；漂移路径经测试内扰动端到端覆盖）；pull_session.go 机械扩域上交裁定（receipt 上交项 1）
-- 验收：（裁定文件 / 验收 commit）
+- 验收：**pass（2026-10-10 主管决策侧）**——[rulings/2026-10-10-MORNING-BATCH-rulings.md](../../rulings/2026-10-10-MORNING-BATCH-rulings.md) §1；cherry-pick ed9f5ade→main cb591f74。四层亲核：diff 亲读（message_loop/pull_session 逐 hunk+两新测试机制核验+原件声明名 :1746/:1770/:1777 实测）/我方复跑（合并态 build+定向四包+全量 92 包 0 FAIL+全仓 blob 复扫 0）/工件核对/锚点核对。上交项裁定：pull_session.go 扩域=认可（卡面文件域漏列的强制编译适配，零逻辑新增）；trace Kind=采纳 fastpath_drift 新增案。
