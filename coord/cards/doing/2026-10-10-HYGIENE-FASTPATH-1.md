@@ -40,6 +40,6 @@
 
 - 并行域 A；与 HYGIENE-GOFMT-1 / REFSCHEMA-M4/M5 文件域不相交（已核：本卡文件均不在 gofmt 债 51 清单、不在 capabilitycontext/chat 回执族）。不需要真栈（纯单测域）；无资源占用。
 
-- 领取：（时间 / origin/main hash / owner 模型+机器+会话 / 分支 / worktree / 领取提交）
+- 领取：2026-10-10 10:16（Asia/Shanghai） / origin/main=204f0cc8 / owner=GLM-5.3-flash 执行会话（PC / ZCode flash / HYGIENE-FASTPATH-1 实现） / 分支 port/hygiene-fastpath-1 / worktree D:/Vit_DAW_wt_hygiene_fp1 / 领取提交=本条状态提交（coord/hygiene-fastpath-1-claim，推 main 后以远端 log 核对）；独立 worktree 领取前 status/diff 均为空
 - 回执：（commit hash / 报告链接 / 端测边界声明——本卡纯单测域，真栈覆盖=无（行为零变化面），如实声明）
 - 验收：（裁定文件 / 验收 commit）
