@@ -46,6 +46,6 @@
 
 - 与 HYGIENE 两卡文件域零重叠；**依赖 M4 先合入**（串行领取）。不需要真栈；无资源占用。
 
-- 领取：（时间 / origin/main hash / owner 模型+机器+会话 / 分支 / worktree / 领取提交）
+- 领取：2026-10-10T20:10+08:00 / origin/main=9c8cec8fb7613a40ff1cadced518e0c96a7280c8 / owner=GLM-5.3-Flash（PC，ZCode flash 执行会话） / 分支=port/refschema-m5（worktree=D:\Vit_DAW_wt_refm5） / 领取提交=本提交（coord/refschema-m5 fast-forward → main，仅含本卡状态）
 - 回执：（commit hash / 消费链清单 / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
