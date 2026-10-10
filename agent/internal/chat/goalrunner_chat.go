@@ -2035,6 +2035,13 @@ func (s *Server) chatResponseFromAgentLoopResult(conversationID, mode string, re
 		}
 	}
 	if err := s.recordGoalResult(conversationID, res); err != nil {
+		// The downgrade leaves only a stop-reason string on the envelope;
+		// the underlying persist error (lease owner/expiry) must reach the
+		// log for post-hoc forensics — the summary artifact cannot
+		// reconstruct it from side evidence alone.
+		if s.logger != nil {
+			s.logger.Warn("[goal.persist] failed conversation=%s goal=%s error=%v", conversationID, res.GoalID, err)
+		}
 		res.Status = agentruntime.StatusFailed
 		res.StopReason = "durable_checkpoint_persist_failed"
 		res.Error = err.Error()
