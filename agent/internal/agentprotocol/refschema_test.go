@@ -314,10 +314,17 @@ func TestRegistryInitialValues(t *testing.T) {
 		{LegacyPrefix: "ccbr_", Family: RefFamilyEvidenceSchemeURI, TargetKind: "", Slot: RefSlotSnapshot, Anchor: "REFSCHEMA-M4B 2026-10-10 capabilitycontext/free_state_observation.go:567"},
 		{LegacyPrefix: "ccbr_rejected_", Family: RefFamilyEvidenceSchemeURI, TargetKind: "", Slot: RefSlotSnapshot, Anchor: "REFSCHEMA-M4B 2026-10-10 capabilitycontext/free_state_observation.go:439"},
 		{LegacyPrefix: "ccbr_batch_", Family: RefFamilyEvidenceSchemeURI, TargetKind: "", Slot: RefSlotSnapshot, Anchor: "REFSCHEMA-M4B 2026-10-10 capabilitycontext/free_state_observation.go:1636"},
+		// REFSCHEMA-M5: E 类回执族五词条（b4/c1 semantic_eq_batch 主/reconcile +
+		// c2.dynamic_plugin_load_batch；identity 族 slot=snapshot，前缀含尾冒号）。
+		{LegacyPrefix: "b4.semantic_eq_batch:", Family: RefFamilyEvidenceSchemeURI, TargetKind: "", Slot: RefSlotSnapshot, Anchor: "REFSCHEMA-M5 2026-10-10 chat/b4_eq_runtime.go:618"},
+		{LegacyPrefix: "b4.semantic_eq_batch.reconcile:", Family: RefFamilyEvidenceSchemeURI, TargetKind: "", Slot: RefSlotSnapshot, Anchor: "REFSCHEMA-M5 2026-10-10 chat/b4_eq_runtime.go:525"},
+		{LegacyPrefix: "c1.semantic_eq_batch:", Family: RefFamilyEvidenceSchemeURI, TargetKind: "", Slot: RefSlotSnapshot, Anchor: "REFSCHEMA-M5 2026-10-10 chat/b4_eq_runtime.go:618 c1 端口同源"},
+		{LegacyPrefix: "c1.semantic_eq_batch.reconcile:", Family: RefFamilyEvidenceSchemeURI, TargetKind: "", Slot: RefSlotSnapshot, Anchor: "REFSCHEMA-M5 2026-10-10 chat/b4_eq_runtime.go:525 c1 端口同源"},
+		{LegacyPrefix: "c2.dynamic_plugin_load_batch:", Family: RefFamilyEvidenceSchemeURI, TargetKind: "", Slot: RefSlotSnapshot, Anchor: "REFSCHEMA-M5 2026-10-10 chat/c2_dynamic_batch.go:686"},
 	}
 	got := LegacyPrefixRegistry()
 	if len(got) != len(want) {
-		t.Fatalf("registry size = %d, want %d (A 类四变体 + G 类前缀族 + L0-2 acp/DAD/fingerprint 族 + M1 observation 票头 + M4 capabilitycontext 批次 + M4B ccbr_ 族)", len(got), len(want))
+		t.Fatalf("registry size = %d, want %d (A 类四变体 + G 类前缀族 + L0-2 acp/DAD/fingerprint 族 + M1 observation 票头 + M4 capabilitycontext 批次 + M4B ccbr_ 族 + M5 E 类回执族)", len(got), len(want))
 	}
 	for i := range want {
 		if got[i] != want[i] {

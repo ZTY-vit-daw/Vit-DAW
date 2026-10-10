@@ -186,6 +186,24 @@ var legacyPrefixRegistry = []LegacyPrefixEntry{
 	{LegacyPrefix: "ccbr_", Family: RefFamilyEvidenceSchemeURI, TargetKind: "", Slot: RefSlotSnapshot, Anchor: "REFSCHEMA-M4B 2026-10-10 capabilitycontext/free_state_observation.go:567"},
 	{LegacyPrefix: "ccbr_rejected_", Family: RefFamilyEvidenceSchemeURI, TargetKind: "", Slot: RefSlotSnapshot, Anchor: "REFSCHEMA-M4B 2026-10-10 capabilitycontext/free_state_observation.go:439"},
 	{LegacyPrefix: "ccbr_batch_", Family: RefFamilyEvidenceSchemeURI, TargetKind: "", Slot: RefSlotSnapshot, Anchor: "REFSCHEMA-M4B 2026-10-10 capabilitycontext/free_state_observation.go:1636"},
+	// --- REFSCHEMA-M5 addition (G1 终审记录 §4 M5 行 E 类回执族，2026-10-10) ---
+	// 能力运行时批回执 id 五形态：b4/c1 共享 projectEQBatchMutationPort 的 EQ 批
+	// apply/reconcile 回执（b4_eq_runtime.go:618/:525，SourcePrefix=b4/c1，锚点
+	// 按 c1 端口同源登记）+ c2 动态插件装载批回执（c2_dynamic_batch.go:686）。
+	// remainder=IdempotencyKey="exec:"+sessionID+":"+actionSetHash+":"+actionID
+	// （executionruntime/coordinator.go:115/:130）——session 实例身份在前，非可
+	// 复现内容指纹 → slot=snapshot、TargetKind 留空（对齐 M4 批次承载，M5 卡
+	// "含批序号与时间成分→slot=snapshot"预裁定 2026-10-10 核实成立）。前缀含
+	// 尾冒号：与 .governed 命令常量（b4.semantic_eq_batch.governed 等，非 ref）
+	// 及主/变体词条互不劫持（':' 与 '.' 分隔，无包含对，有测试钉住）。同端口
+	// 兄弟族 plugin_load_batch{,.reconcile}:（b4_eq_runtime.go:678/:564）不在
+	// G1 M5 行点名两族内，维持 opaque 登记余量（fail-visible 测试钉住，随域
+	// 触碰再注册）。
+	{LegacyPrefix: "b4.semantic_eq_batch:", Family: RefFamilyEvidenceSchemeURI, TargetKind: "", Slot: RefSlotSnapshot, Anchor: "REFSCHEMA-M5 2026-10-10 chat/b4_eq_runtime.go:618"},
+	{LegacyPrefix: "b4.semantic_eq_batch.reconcile:", Family: RefFamilyEvidenceSchemeURI, TargetKind: "", Slot: RefSlotSnapshot, Anchor: "REFSCHEMA-M5 2026-10-10 chat/b4_eq_runtime.go:525"},
+	{LegacyPrefix: "c1.semantic_eq_batch:", Family: RefFamilyEvidenceSchemeURI, TargetKind: "", Slot: RefSlotSnapshot, Anchor: "REFSCHEMA-M5 2026-10-10 chat/b4_eq_runtime.go:618 c1 端口同源"},
+	{LegacyPrefix: "c1.semantic_eq_batch.reconcile:", Family: RefFamilyEvidenceSchemeURI, TargetKind: "", Slot: RefSlotSnapshot, Anchor: "REFSCHEMA-M5 2026-10-10 chat/b4_eq_runtime.go:525 c1 端口同源"},
+	{LegacyPrefix: "c2.dynamic_plugin_load_batch:", Family: RefFamilyEvidenceSchemeURI, TargetKind: "", Slot: RefSlotSnapshot, Anchor: "REFSCHEMA-M5 2026-10-10 chat/c2_dynamic_batch.go:686"},
 }
 
 // ProjectionKindEntry registers a projection kind that has no legacy prefix
