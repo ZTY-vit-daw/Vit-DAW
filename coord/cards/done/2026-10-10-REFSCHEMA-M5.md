@@ -48,4 +48,4 @@
 
 - 领取：2026-10-10T20:10+08:00 / origin/main=9c8cec8fb7613a40ff1cadced518e0c96a7280c8 / owner=GLM-5.3-Flash（PC，ZCode flash 执行会话） / 分支=port/refschema-m5（worktree=D:\Vit_DAW_wt_refm5） / 领取提交=本提交（coord/refschema-m5 fast-forward → main，仅含本卡状态）
 - 回执：实现 commit `port/refschema-m5@9d80a573`（3 文件 +167/−1：refschema.go 五词条 22→27 + 初值表扩容 + refschema_m5_test.go 四钉住测试；chat/capabilityadapters 生产代码零改动）；消费链清单=coord/runs/REFSCHEMA-M5/receipt.md §1/§2（两族进 EvidenceRefs 面零解析消费→注册归一；兄弟族 plugin_load_batch{,.reconcile}: opaque fail-visible 钉住余量）；R5=登记不动作复跑实证 §3；验收=go build 0 + 三包 ok + 全量 92 包 0 FAIL exit 0 + blob 级 gofmt 净（§5）；端测边界声明=纯单测域（注册表+解析器），卡面明示不需要真栈，无渲染面/用户旅程改动（§5）；G1 终审 M5 行批注+R5 注记已回写
-- 验收：（裁定文件 / 验收 commit）
+- 验收：**pass（2026-10-10 夜主管）**——[rulings/2026-10-10-NIGHT-BATCH-rulings.md](../../rulings/2026-10-10-NIGHT-BATCH-rulings.md) §2；cherry-pick 9d80a573→main 2f2d0531；diff 亲读+全量 92 包 0 FAIL。**G1 迁移账 M5 行完结**（五词条 22→27，R5 登记不动作落账）。

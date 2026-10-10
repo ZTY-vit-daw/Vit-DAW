@@ -42,4 +42,4 @@
 
   验收面：语法=Parser::ParseFile 0 errors（全部编辑后复跑）；干跑=探针 run fs_largeproject_smoke_20261010_200938（worktree 内未跟踪工件，报告字段证据已引用如上）；端测覆盖边界声明=本卡为脚本 hygiene，卡面验收口径即语法+干跑/静态审查，**真栈烟测回归未执行**（不占真栈，卡面明确真栈回归归 FS-LEDGER-PERSIST-1）。已声明边界：agent_binary 填充路径与 telemetry source 扫描的运行时行为未经真栈 run 实证，属静态审查+探针间接覆盖面。
 
-- 验收：（裁定文件 / 验收 commit）
+- 验收：**pass（2026-10-10 夜主管）**——[rulings/2026-10-10-NIGHT-BATCH-rulings.md](../../rulings/2026-10-10-NIGHT-BATCH-rulings.md) §3；cherry-pick a487251e→main 5679d3c9。五项全落地+回归零弱化逐块复查；栈所有权守卫=超卡面正值项采信。

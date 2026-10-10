@@ -57,4 +57,4 @@
   **域外发现上交（建议另立卫生卡）**：harness 结构体嵌 map 契约违例（ccb_observation.go:110-113 及批量/拒绝分支同嵌 `FreeStateObservationBundle`/`RejectedFreeStateObservationScoped` 结构体）——本卡在消费侧归一化修复；源侧归一化（marshal 后嵌入）可消除其他严格断言消费者的同险（本缺陷链外未观察到新受害面，agentloop 侧已归一化）。
 
   **独立复核腿**：[REVIEW-independent.md](../../runs/FS-LEDGER-PERSIST-1/REVIEW-independent.md)（六节全读+测试实跑复现）——**支持交验收**；必办上交项①卡面验收标准"exit 0"与"A3 视模型行为如实分记"的内部冲突需主管明示裁定（复核判 A3 FAIL 属模型证据完备性行为 G6/G8，非台账缺陷残留）；②栈登记时间笔误已随批订正（21:40→20:16）。
-- 验收：（裁定文件 / 验收 commit）
+- 验收：**pass（2026-10-10 夜主管）**——[rulings/2026-10-10-NIGHT-BATCH-rulings.md](../../rulings/2026-10-10-NIGHT-BATCH-rulings.md) §1/§4；cherry-pick db6f2b11→main fc5ff01d。双层根因采信（插桩实证链完整）；A2 fail→PASS 翻转+终态对照+跨轮存活=缺陷修复验证成立；exit-0 张力裁定=发卡措辞缺陷认账，本卡判据=A2 翻转+终态对照（不要求 exit 0）；**blocker 缺陷面解除**；三线启动建议放行（A3 概率面并行追），最终决定权留用户。后续卡：HARNESS-STRUCT-NORMALIZE-1（域外发现）+FS-BLOCKED-SURFACE-CLOSURE-1（顺带核对）。
