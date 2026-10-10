@@ -34,6 +34,7 @@ vit:// 文法零改动；既有 19 词条零改动；legacy 往返回归；cap_p
 
 不需要真栈；无资源占用；与 PROBE-METER-RECON-1（只读）可并行。
 
-- 领取：（时间 / origin/main hash / owner 模型+机器+会话 / 分支 / worktree / 领取提交）
+- 领取：2026-10-10 18:15 / origin/main `7dff62a0`（本地 main 同点；M4 基线 51a389c8 已在 ancestor 核对通过）/ owner=GLM-5.3-Flash 执行会话 PC（ZCode flash 会话）/ 分支 `port/refschema-m4b` / worktree `D:/Vit_DAW_wt_refschema_m4b`（origin/main 干净检出，工作树零叠加 diff）/ 领取提交=本提交
+- 停止条件预核：ccbr_ 三生成点锚点实测 free_state_observation.go :567/:439/:1636，与 M4 回执证据一致，remainder=compactID 首个非空透传形态未变——未触发。
 - 回执：（commit hash / 翻面测试名 / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
