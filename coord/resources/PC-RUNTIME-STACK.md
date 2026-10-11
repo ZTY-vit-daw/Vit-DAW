@@ -5,7 +5,8 @@
 
 ## 当前占用
 
-- 状态：空闲
+- 状态：占用中
+- 2026-10-11 21:05 +0800 起 / MIXLAYER-M1-3（GLM-5.3 PC 执行流，ZCode 会话；worktree D:/Vit_DAW_wt_mixlayer_m1_3，分支 port/mixlayer-m1-3）：fs_largeproject_smoke.ps1 -C3Observation 真栈烟测。占用前实测端口 7878/5555/5556 监听=0、VitAgent/VitApp 进程=0（与远端记录空闲一致）。预计占用 1 小时内。
 
 ## 最近一次释放
 
