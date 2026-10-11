@@ -1,0 +1,2 @@
+midi_mutate_ok: status=kernel_error
+midi_readback_final_consistent: status=ok verdict=mismatch got={(65, 0.0, 1.0, 90): 1, (67, 2.0, 1.0, 70): 1}
