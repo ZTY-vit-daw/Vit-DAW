@@ -168,6 +168,16 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 			}, true
 		}
 	}
+	// MIXLAYER-M1-2: mix workflow queue requests are deterministic agent
+	// faces — intercept before semantic-entry classification so the queue
+	// read/write never depends on the classifier (run 194717: the annotation
+	// command was classified semantic_entry_unresolved and swallowed before
+	// the loop preflights could fire).
+	if durableInvocationID == "" {
+		if queueResp, queueHandled := s.handleMixWorkflowQueueChat(ctx, conversationID, mode, userText); queueHandled {
+			return queueResp, true
+		}
+	}
 	if durableInvocationID == "" && isContinueMessage(req.Message) {
 		if pending, ok := s.automaticContinuationForConversation(conversationID); ok {
 			return ChatResponse{
@@ -845,6 +855,11 @@ func (e pluginGrabberWorkflowExecutor) RunToolCall(ctx context.Context, in execu
 	}
 	if e.server != nil {
 		e.server.emitToolItemStarted(in, toolCallID)
+	}
+	if e.server != nil && mixWorkflowQueueToolRequest(in.ToolCall) {
+		out, err := e.invokeMixWorkflowQueueTool(ctx, in, toolCallID)
+		e.server.emitToolItemCompleted(in, out, err)
+		return out, err
 	}
 	if e.server != nil && isPluginGrabberApplyEQEditsToolCall(in.ToolCall) {
 		out, err := e.invokePluginGrabberApplyEQEdits(ctx, in, toolCallID)

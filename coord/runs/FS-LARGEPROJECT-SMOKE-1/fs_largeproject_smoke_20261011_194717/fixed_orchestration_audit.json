@@ -1,0 +1,34 @@
+﻿{
+    "markers":  [
+                    "semantic_eq_batch",
+                    "eq_plugin_load_batch",
+                    "dynamic_plugin_load_batch",
+                    "dynamic_parameter_batch",
+                    "c2_dynamic_plugin_selection",
+                    "c2.dynamic_plugin_load.governed"
+                ],
+    "telemetry_llm_source_markers":  [
+                                         "b4_project_eq_planner",
+                                         "b4_project_eq_instance_selection",
+                                         "b4_project_treatment_planner",
+                                         "c1_project_eq_planner",
+                                         "c1_project_treatment_planner",
+                                         "c2_project_candidate_planner",
+                                         "c2_project_target_planner",
+                                         "c2_project_treatment_planner"
+                                     ],
+    "zero_hits":  true,
+    "scope_note":  "fastpath preflight (FastPathRouter) is harness plumbing and not in the marker set; tool catalogs / prompt advertisement not scanned (capability ads are not runtime activation); telemetry LLM source face scanned against the fixed-orchestration planner tags",
+    "hits":  [
+
+             ],
+    "surfaces_scanned":  [
+                             "D:\\Vit_DAW_wt_mixlayer_m1_2\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261011_194717\\nl_chat_1.json",
+                             "D:\\Vit_DAW_wt_mixlayer_m1_2\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261011_194717\\nl_events.json",
+                             "D:\\Vit_DAW_wt_mixlayer_m1_2\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261011_194717\\nl_events_after_hop.json",
+                             "D:\\Vit_DAW_wt_mixlayer_m1_2\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261011_194717\\agent_last.log"
+                         ],
+    "telemetry_llm_source_hits":  [
+
+                                  ]
+}

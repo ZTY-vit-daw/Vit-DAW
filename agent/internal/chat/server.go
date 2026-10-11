@@ -83,6 +83,7 @@ type Server struct {
 	durableContinuations               map[string]DurableContinuation
 	capabilityRoutes                   map[string]CapabilityRouteRecord
 	processorSelections                map[string]ProcessorSelectionRecord
+	mixWorkflowQueueNodes              map[string]MixWorkflowQueueNodeAnnotation
 	schedulerCtx                       context.Context
 	schedulerCancel                    context.CancelFunc
 	schedulerOnce                      sync.Once
@@ -161,21 +162,27 @@ type PendingPlan struct {
 }
 
 type projectAgentRuntimeState struct {
-	SchemaVersion        string                                       `json:"schema_version"`
-	ProjectPath          string                                       `json:"project_path"`
-	ProjectUUID          string                                       `json:"project_uuid"`
-	SavedAt              time.Time                                    `json:"saved_at"`
-	Conversations        map[string][]llm.Message                     `json:"conversations,omitempty"`
-	Pending              map[string]PendingPlan                       `json:"pending,omitempty"`
-	Interactions         map[string]PendingInteraction                `json:"interactions,omitempty"`
-	MixSessions          map[string]MixSession                        `json:"mix_sessions,omitempty"`
-	GoalContinuations    map[string]agentloop.Continuation            `json:"goal_continuations,omitempty"`
-	DurableContinuations map[string]DurableContinuation               `json:"durable_continuations,omitempty"`
-	CapabilityRoutes     map[string]CapabilityRouteRecord             `json:"capability_routes,omitempty"`
-	ProcessorSelections  map[string]ProcessorSelectionRecord          `json:"processor_selections,omitempty"`
-	ConversationGoals    map[string]string                            `json:"conversation_goals,omitempty"`
-	ConversationMemory   map[string]agentloop.ExecutionMemory         `json:"conversation_memory,omitempty"`
-	PendingMixTicks      map[string]agentloop.PendingMixTickCandidate `json:"pending_mix_ticks,omitempty"`
+	SchemaVersion        string                              `json:"schema_version"`
+	ProjectPath          string                              `json:"project_path"`
+	ProjectUUID          string                              `json:"project_uuid"`
+	SavedAt              time.Time                           `json:"saved_at"`
+	Conversations        map[string][]llm.Message            `json:"conversations,omitempty"`
+	Pending              map[string]PendingPlan              `json:"pending,omitempty"`
+	Interactions         map[string]PendingInteraction       `json:"interactions,omitempty"`
+	MixSessions          map[string]MixSession               `json:"mix_sessions,omitempty"`
+	GoalContinuations    map[string]agentloop.Continuation   `json:"goal_continuations,omitempty"`
+	DurableContinuations map[string]DurableContinuation      `json:"durable_continuations,omitempty"`
+	CapabilityRoutes     map[string]CapabilityRouteRecord    `json:"capability_routes,omitempty"`
+	ProcessorSelections  map[string]ProcessorSelectionRecord `json:"processor_selections,omitempty"`
+	// MixWorkflowQueueNodes carries the mix_workflow_queue.v0 node annotation
+	// overlay (MIXLAYER-M1-2). Absent on all pre-existing records: restore
+	// leaves an empty overlay and the queue renders from blackboard evidence
+	// only (AGENTS.md §11 default). Restored entries re-validate fail-closed
+	// (unknown node ids/states dropped).
+	MixWorkflowQueueNodes map[string]MixWorkflowQueueNodeAnnotation    `json:"mix_workflow_queue_nodes,omitempty"`
+	ConversationGoals     map[string]string                            `json:"conversation_goals,omitempty"`
+	ConversationMemory    map[string]agentloop.ExecutionMemory         `json:"conversation_memory,omitempty"`
+	PendingMixTicks       map[string]agentloop.PendingMixTickCandidate `json:"pending_mix_ticks,omitempty"`
 	// Decode-only migration fields. Runtime v1 never writes or executes these
 	// legacy B2/B3 pending records; restore retires them as rejected audit data.
 	PendingStaticBalancePlans map[string]agentloop.PendingStaticBalancePlan `json:"pending_static_balance_plans,omitempty"`
@@ -7197,24 +7204,25 @@ func (s *Server) persistActiveProjectWorkspaceLocked() error {
 
 func (s *Server) projectAgentRuntimeStateLocked() projectAgentRuntimeState {
 	state := projectAgentRuntimeState{
-		SchemaVersion:        "vit_project_agent_runtime.v2",
-		ProjectPath:          s.activeWorkspacePath,
-		ProjectUUID:          s.activeWorkspaceUUID,
-		SavedAt:              time.Now().UTC(),
-		Conversations:        s.conversations,
-		Pending:              s.pending,
-		Interactions:         s.interactions,
-		MixSessions:          s.mixSessions,
-		GoalContinuations:    s.goalContinuations,
-		DurableContinuations: s.durableContinuations,
-		CapabilityRoutes:     s.capabilityRoutes,
-		ProcessorSelections:  s.processorSelections,
-		ConversationGoals:    s.conversationGoals,
-		ConversationMemory:   s.conversationMemory,
-		PendingMixTicks:      s.pendingMixTicks,
-		PendingTreatments:    s.pendingTreatments,
-		FreeStateLoops:       s.freeStateLoops,
-		AuthorityMode:        normalizeAuthorityModeOrDefault(s.authorityMode),
+		SchemaVersion:         "vit_project_agent_runtime.v2",
+		ProjectPath:           s.activeWorkspacePath,
+		ProjectUUID:           s.activeWorkspaceUUID,
+		SavedAt:               time.Now().UTC(),
+		Conversations:         s.conversations,
+		Pending:               s.pending,
+		Interactions:          s.interactions,
+		MixSessions:           s.mixSessions,
+		GoalContinuations:     s.goalContinuations,
+		DurableContinuations:  s.durableContinuations,
+		CapabilityRoutes:      s.capabilityRoutes,
+		ProcessorSelections:   s.processorSelections,
+		MixWorkflowQueueNodes: s.mixWorkflowQueueNodes,
+		ConversationGoals:     s.conversationGoals,
+		ConversationMemory:    s.conversationMemory,
+		PendingMixTicks:       s.pendingMixTicks,
+		PendingTreatments:     s.pendingTreatments,
+		FreeStateLoops:        s.freeStateLoops,
+		AuthorityMode:         normalizeAuthorityModeOrDefault(s.authorityMode),
 	}
 	if s.audioClosures != nil {
 		state.AudioClosures = s.audioClosures.Snapshot()
@@ -7252,6 +7260,7 @@ func (s *Server) restoreProjectAgentRuntimeStateLocked(state projectAgentRuntime
 	s.durableContinuations = nonNilMap(state.DurableContinuations)
 	s.capabilityRoutes = restoreCapabilityRoutes(state.CapabilityRoutes)
 	s.processorSelections = nonNilMap(state.ProcessorSelections)
+	s.mixWorkflowQueueNodes = restoreMixWorkflowQueueAnnotations(state.MixWorkflowQueueNodes)
 	s.conversationGoals = nonNilMap(state.ConversationGoals)
 	if s.durableContinuations == nil {
 		s.durableContinuations = map[string]DurableContinuation{}

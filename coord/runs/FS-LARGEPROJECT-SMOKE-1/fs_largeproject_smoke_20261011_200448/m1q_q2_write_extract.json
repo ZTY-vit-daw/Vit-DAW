@@ -1,0 +1,7 @@
+{
+  "conversation_id": "dev_fs_largeproject_20261011_200448_m1q",
+  "reply": "已回写节点标注：E1 母带 EQ[延期]（烟测写回验证）",
+  "goal_status": "completed",
+  "stop_reason": "done",
+  "workflow": "mix_workflow_queue"
+}

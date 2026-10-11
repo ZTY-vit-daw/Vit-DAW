@@ -442,6 +442,9 @@ func (l *MessageLoop) newFastPathRouter() (*fastpath.Router[*Runner, *runState, 
 		fastpath.Entry[*Runner, *runState, Result]{Name: "pending_section_markers_apply", Handler: l.preflightPendingSectionMarkersApply},
 		fastpath.Entry[*Runner, *runState, Result]{Name: "natural_mix_observation", Handler: l.preflightNaturalMixObservation},
 		fastpath.Entry[*Runner, *runState, Result]{Name: "static_mix_gain_staging_context_pack", Handler: l.preflightStaticMixGainStagingContextPack},
+		// MIXLAYER-M1-2：队列注释命令先于队列状态读（更具体的词条优先）。
+		fastpath.Entry[*Runner, *runState, Result]{Name: "mix_workflow_queue_node_state", Handler: l.preflightMixWorkflowQueueNodeState},
+		fastpath.Entry[*Runner, *runState, Result]{Name: "mix_workflow_queue_status", Handler: l.preflightMixWorkflowQueueStatus},
 	)
 	if err := fastPathRegistrationDrift(router.Names()); err != nil {
 		return nil, err

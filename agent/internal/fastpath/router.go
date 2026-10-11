@@ -87,4 +87,7 @@ var DefaultEntryNames = []string{
 	"pending_section_markers_apply",
 	"natural_mix_observation",
 	"static_mix_gain_staging_context_pack",
+	// MIXLAYER-M1-2：mix_workflow_queue.v0 确定性读写面（注释命令先于状态读）。
+	"mix_workflow_queue_node_state",
+	"mix_workflow_queue_status",
 }
