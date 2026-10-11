@@ -5,7 +5,8 @@
 
 ## 当前占用
 
-- 状态：空闲
+- 状态：占用中
+- 2026-10-11 11:05 +0800 起 / MIXLAYER-M1-1（GLM-5.3 PC 执行流，ZCode 会话 sess_30083b31；worktree D:/Vit_DAW_wt_mixlayer_m1_1，分支 port/mixlayer-m1-1）：真栈烟测 settle_deliver_smoke.ps1 -M1Survival（agent 7878 / kernel ZMQ 5555/5556）；占用登记前核对端口监听=0、VitAgent/VitApp 进程=0。
 
 ## 最近一次释放
 
