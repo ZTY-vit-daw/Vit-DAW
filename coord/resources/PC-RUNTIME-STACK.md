@@ -5,9 +5,11 @@
 
 ## 当前占用
 
-- **占用中**：2026-10-11 22:55 起 / FE-GUI-SHRINK-IMPL-1 真栈烟测腿（GLM-5.3-Flash · PC · ZCode flash 执行流会话；前端仓分支 port/fe-gui-shrink-1 @ c56e38f，主检出 D:/Godot/project/vit-daw-frontend）。计划命令=`dev_agent_smoke.ps1 -StartKernel -StartUI -MixSmoke`（7878/5555/5556 + Godot 前端）。登记前实测（M1-4 释放记录后复核）：端口 7878/5555/5556 监听=0，VitAgent/VitApp/Godot 进程=0。
+- 状态：空闲
 
 ## 最近一次释放
+
+- 2026-10-11 22:55–23:10 +0800 / FE-GUI-SHRINK-IMPL-1（GLM-5.3-Flash PC 执行流，ZCode flash 会话；前端仓主检出 D:/Godot/project/vit-daw-frontend，分支 port/fe-gui-shrink-1）：①首轮 dev_agent_smoke -StartKernel -StartUI -MixSmoke 于 Mix observe 腿中断（脚本既有 StrictMode 缺陷，非功能失败；VitApp/VitAgent 残留已由本 owner 手动清理核净）②脚本修复后复跑=**PASS exit 0**（全腿绿含 mix.observe obs_20261011T142837_56c255d1b6ff）③补充 godot 窗口启动检查（D3D12 真实渲染，start_page 就绪零 SCRIPT ERROR）④23:10 手动 teardown：Godot×2/VspHub/VitAgent(19076)/VitApp(2548) 全停，复核端口 7878/5555/5556 监听=0（仅 TIME_WAIT 残迹）、VitApp/VitAgent/Godot/VspHub 进程=0。占用登记 65cf890c；工件 coord/runs/FE-GUI-SHRINK-IMPL-1/（随 e70e817d@主仓 port/fe-gui-shrink-1 入库），详见卡回执。注：dev_agent_smoke 完成态不自带 teardown（设计如此），owner 需自行拆栈——本轮按此执行。
 
 - 2026-10-11 22:04–22:11 +0800（本机钟）/ MIXLAYER-M1-4（GLM-5.3 PC 执行流，ZCode 会话；worktree D:/Vit_DAW_wt_mixlayer_m1_4，分支 port/mixlayer-m1-4）：fs_largeproject_smoke.ps1 -D1D3Observation 一 run=**PASS exit 0**（D1D3OBS 五门全过：观察报告 schema 行 d1d3.premaster.observation.v0+D1/D2/D3 三面行+D3 参考曲命令缺口登记行+只读声明+A4 固定编排标记族零命中；A1/A4 pass；A2/A3 软记录，classification=capability_blocked 与 FS-LARGEPROJECT-SMOKE-1 基线同族归其返工线——M1-2 ruling 已接受同语义；栈自 teardown torn_down=true，agent pid 5956 / kernel pid 17452 已停）；22:12 后复核端口 7878/5555/5556 监听=0、VitAgent/VitApp 进程=0。占用登记 8e0e52ad（登记时间误写 22:35，实际提交 22:04:34、run 启动 22:06:35——此处修正，同 M1-3 修正先例）；被测=工作树（=实现 commit 7a31c6d5 内容，run 时实现未提交，head.txt=93e23954 在卷）；run 工件精简件随 7a31c6d5@port/mixlayer-m1-4 入库（coord/runs/FS-LARGEPROJECT-SMOKE-1/fs_largeproject_smoke_20261011_220635），详见卡回执。
 
