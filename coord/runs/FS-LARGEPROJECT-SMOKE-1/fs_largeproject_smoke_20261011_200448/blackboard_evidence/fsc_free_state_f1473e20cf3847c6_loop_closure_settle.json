@@ -1,0 +1,15 @@
+{
+  "schema_version": "free_state_conclusion.v1",
+  "conclusion_id": "fsc_free_state_f1473e20cf3847c6_loop_closure_settle",
+  "project_uuid": "vitproj_793ac31d40fa4131b4c68f6b4641caaa",
+  "conversation_id": "dev_fs_largeproject_20261011_200448",
+  "goal_id": "goal_3be7657bf4262aa9",
+  "run_id": "run_c70ecf4388dffbc3",
+  "loop_id": "free_state_f1473e20cf3847c6",
+  "kind": "loop_closure_settle",
+  "outcome": "blocked",
+  "decision_status": "blocked",
+  "summary": "terminal turn produced no admissible final decision after one strengthened retry",
+  "settled_at": "2026-10-11T12:10:05.1444326Z",
+  "recorded_at": "2026-10-11T12:10:05.1444326Z"
+}

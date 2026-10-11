@@ -15,6 +15,8 @@ import (
 )
 
 func TestDefaultEntryNamesMatchesTranslatedPreflightChain(t *testing.T) {
+	// 前 10 项=L1-5-IMPL-C 平移清单（顺序=原 loop() preflight 链调用序）；
+	// 尾部按登记序扩展（MIXLAYER-M1-2 增 mix_workflow_queue 两项）。
 	want := []string{
 		"static_mix_capability_contract",
 		"project_blackboard_status",
@@ -26,9 +28,11 @@ func TestDefaultEntryNamesMatchesTranslatedPreflightChain(t *testing.T) {
 		"pending_section_markers_apply",
 		"natural_mix_observation",
 		"static_mix_gain_staging_context_pack",
+		"mix_workflow_queue_node_state",
+		"mix_workflow_queue_status",
 	}
-	if len(DefaultEntryNames) != 10 {
-		t.Fatalf("DefaultEntryNames 长度=%d，期望恰 10 项（平移清单契约）", len(DefaultEntryNames))
+	if len(DefaultEntryNames) != 12 {
+		t.Fatalf("DefaultEntryNames 长度=%d，期望恰 12 项（平移清单契约+M1-2 队列两项）", len(DefaultEntryNames))
 	}
 	for i, name := range want {
 		if DefaultEntryNames[i] != name {

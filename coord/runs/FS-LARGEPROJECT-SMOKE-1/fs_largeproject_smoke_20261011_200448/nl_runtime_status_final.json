@@ -1,0 +1,694 @@
+﻿{
+    "authority_mode":  "full_project_access",
+    "capability_routes":  [
+                              {
+                                  "capacity_assessment":  {
+                                                              "schema_version":  "free_state_capacity_assessment.v1",
+                                                              "authority":  "product_runtime",
+                                                              "observed_facts":  {
+                                                                                     "project_uuid":  "vitproj_793ac31d40fa4131b4c68f6b4641caaa",
+                                                                                     "project_revision":  "4",
+                                                                                     "track_count":  61,
+                                                                                     "active_audio_track_count":  61,
+                                                                                     "duration_seconds":  228.5714375,
+                                                                                     "plugin_count":  0,
+                                                                                     "automation_lane_count":  0,
+                                                                                     "track_group_count":  0,
+                                                                                     "routing_edge_count":  0,
+                                                                                     "relationship_breadth":  0,
+                                                                                     "request_scope":  "project_context",
+                                                                                     "task_history_available":  false,
+                                                                                     "evidence_refs":  [
+                                                                                                           "project.state:vitproj_793ac31d40fa4131b4c68f6b4641caaa:4"
+                                                                                                       ]
+                                                                                 },
+                                                              "complexity_factors":  [
+                                                                                         {
+                                                                                             "code":  "large_track_set",
+                                                                                             "observed":  61,
+                                                                                             "weight":  25,
+                                                                                             "triggered":  true,
+                                                                                             "reason":  "twenty or more user tracks expand whole-project coverage"
+                                                                                         },
+                                                                                         {
+                                                                                             "code":  "long_timeline",
+                                                                                             "observed":  228.5714375,
+                                                                                             "weight":  15,
+                                                                                             "triggered":  false,
+                                                                                             "reason":  "five minutes or more increases observation span"
+                                                                                         },
+                                                                                         {
+                                                                                             "code":  "dense_processing_graph",
+                                                                                             "observed":  0,
+                                                                                             "weight":  20,
+                                                                                             "triggered":  false,
+                                                                                             "reason":  "forty or more processors increase context pressure"
+                                                                                         },
+                                                                                         {
+                                                                                             "code":  "dense_routing_graph",
+                                                                                             "observed":  0,
+                                                                                             "weight":  20,
+                                                                                             "triggered":  false,
+                                                                                             "reason":  "routing and grouping relationships require project-wide coordination"
+                                                                                         },
+                                                                                         {
+                                                                                             "code":  "automation_heavy",
+                                                                                             "observed":  0,
+                                                                                             "weight":  15,
+                                                                                             "triggered":  false,
+                                                                                             "reason":  "automation breadth increases cross-stage state"
+                                                                                         }
+                                                                                     ],
+                                                              "capacity_score":  25,
+                                                              "capacity_level":  "within_free_state",
+                                                              "selected_capability":  "free_state",
+                                                              "reason_codes":  [
+                                                                                   "large_track_set"
+                                                                               ],
+                                                              "confidence":  0.94,
+                                                              "project_revision":  "4",
+                                                              "observed_at":  "2026-10-11T12:05:33.9315195Z"
+                                                          },
+                                  "controller":  "minimal_audio_closure",
+                                  "conversation_id":  "dev_fs_largeproject_20261011_200448",
+                                  "created_at":  "2026-10-11T12:05:33.9315195Z",
+                                  "goal_id":  "goal_3be7657bf4262aa9",
+                                  "original_intent":  "检查一下当前工程有什么问题吗",
+                                  "project_revision":  "4",
+                                  "run_id":  "run_c70ecf4388dffbc3",
+                                  "schema_version":  "capability_route_decision.v1",
+                                  "semantic_entry":  {
+                                                         "confidence":  0.95,
+                                                         "control_mode":  "semantic_loop",
+                                                         "reason":  "product runtime selected free_state after project structure observation (score=25, reasons=large_track_set)",
+                                                         "route":  "open_semantic",
+                                                         "schema_version":  "semantic_entry_decision.v1",
+                                                         "target_scope":  "project_context",
+                                                         "user_authorization":  "action_requested"
+                                                     },
+                                  "task_id":  "task_7f1c55015ebcc3eb",
+                                  "updated_at":  "2026-10-11T12:05:33.9315195Z"
+                              }
+                          ],
+    "checked_at":  "2026-10-11T20:08:38.5613505+08:00",
+    "checkout_blocked":  false,
+    "continuations":  [
+                          {
+                              "attempt":  1,
+                              "capacity_assessment":  {
+                                                          "schema_version":  "free_state_capacity_assessment.v1",
+                                                          "authority":  "product_runtime",
+                                                          "observed_facts":  {
+                                                                                 "project_uuid":  "vitproj_793ac31d40fa4131b4c68f6b4641caaa",
+                                                                                 "project_revision":  "4",
+                                                                                 "track_count":  61,
+                                                                                 "active_audio_track_count":  61,
+                                                                                 "duration_seconds":  228.5714375,
+                                                                                 "plugin_count":  0,
+                                                                                 "automation_lane_count":  0,
+                                                                                 "track_group_count":  0,
+                                                                                 "routing_edge_count":  0,
+                                                                                 "relationship_breadth":  0,
+                                                                                 "request_scope":  "project_context",
+                                                                                 "task_history_available":  false,
+                                                                                 "evidence_refs":  [
+                                                                                                       "project.state:vitproj_793ac31d40fa4131b4c68f6b4641caaa:4"
+                                                                                                   ]
+                                                                             },
+                                                          "complexity_factors":  [
+                                                                                     {
+                                                                                         "code":  "large_track_set",
+                                                                                         "observed":  61,
+                                                                                         "weight":  25,
+                                                                                         "triggered":  true,
+                                                                                         "reason":  "twenty or more user tracks expand whole-project coverage"
+                                                                                     },
+                                                                                     {
+                                                                                         "code":  "long_timeline",
+                                                                                         "observed":  228.5714375,
+                                                                                         "weight":  15,
+                                                                                         "triggered":  false,
+                                                                                         "reason":  "five minutes or more increases observation span"
+                                                                                     },
+                                                                                     {
+                                                                                         "code":  "dense_processing_graph",
+                                                                                         "observed":  0,
+                                                                                         "weight":  20,
+                                                                                         "triggered":  false,
+                                                                                         "reason":  "forty or more processors increase context pressure"
+                                                                                     },
+                                                                                     {
+                                                                                         "code":  "dense_routing_graph",
+                                                                                         "observed":  0,
+                                                                                         "weight":  20,
+                                                                                         "triggered":  false,
+                                                                                         "reason":  "routing and grouping relationships require project-wide coordination"
+                                                                                     },
+                                                                                     {
+                                                                                         "code":  "automation_heavy",
+                                                                                         "observed":  0,
+                                                                                         "weight":  15,
+                                                                                         "triggered":  false,
+                                                                                         "reason":  "automation breadth increases cross-stage state"
+                                                                                     }
+                                                                                 ],
+                                                          "capacity_score":  25,
+                                                          "capacity_level":  "within_free_state",
+                                                          "selected_capability":  "free_state",
+                                                          "reason_codes":  [
+                                                                               "large_track_set"
+                                                                           ],
+                                                          "confidence":  0.94,
+                                                          "project_revision":  "4",
+                                                          "observed_at":  "2026-10-11T12:05:33.9315195Z"
+                                                      },
+                              "continuation_id":  "cont_e15c80b930075639f97a0be0",
+                              "conversation_id":  "dev_fs_largeproject_20261011_200448",
+                              "free_state_continuation_budget":  6,
+                              "free_state_continuation_used":  1,
+                              "free_state_current_phase":  "fs4_diagnostic_round",
+                              "free_state_current_round_id":  "r_53e69e2f30de",
+                              "free_state_decision_status":  "needs_observation",
+                              "free_state_status":  "observing",
+                              "free_state_stop_reason":  "",
+                              "goal_id":  "goal_3be7657bf4262aa9",
+                              "lease_expires_at":  "2026-10-11T12:10:38.3893433Z",
+                              "lease_owner":  "scheduler_acffddf9a4a08513",
+                              "original_intent":  "检查一下当前工程有什么问题吗",
+                              "project_path":  "D:\\Vit_DAW_wt_mixlayer_m1_2\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261011_200448\\project\\sattelites_61.vit",
+                              "project_revision":  "4",
+                              "project_session_id":  "session_20261011T120530_a8133817",
+                              "project_uuid":  "vitproj_793ac31d40fa4131b4c68f6b4641caaa",
+                              "run_id":  "run_c70ecf4388dffbc3",
+                              "slice_id":  "slice_2aad4385e5044ef2",
+                              "status":  "running",
+                              "task_contract":  {
+                                                    "schema_version":  "vit.task_semantic_state.v1",
+                                                    "contract_id":  "contract_task_7f1c55015ebcc3eb",
+                                                    "task_id":  "task_7f1c55015ebcc3eb",
+                                                    "goal_id":  "goal_3be7657bf4262aa9",
+                                                    "run_id":  "run_c70ecf4388dffbc3",
+                                                    "conversation_id":  "dev_fs_largeproject_20261011_200448",
+                                                    "original_intent":  "检查一下当前工程有什么问题吗",
+                                                    "kind":  "improvement",
+                                                    "scope":  {
+                                                                  "kind":  "project",
+                                                                  "id":  "vitproj_793ac31d40fa4131b4c68f6b4641caaa"
+                                                              },
+                                                    "temporary":  true,
+                                                    "target_discovery":  "agent_observation",
+                                                    "authorization_boundary":  "governed_experiment",
+                                                    "completion_criteria":  [
+                                                                                "settle only after a governed experiment outcome",
+                                                                                "or report no_candidate_found or a distinct capability boundary with evidence"
+                                                                            ],
+                                                    "evidence_requirements":  [
+                                                                                  "exact observation or audit receipt references",
+                                                                                  "project revision matching the evaluated evidence",
+                                                                                  "explicit limitations for every bounded conclusion"
+                                                                              ],
+                                                    "project_uuid":  "vitproj_793ac31d40fa4131b4c68f6b4641caaa",
+                                                    "project_revision":  "4",
+                                                    "created_at":  "2026-10-11T12:05:34.0298963Z"
+                                                },
+                              "task_id":  "task_7f1c55015ebcc3eb",
+                              "task_semantic_state":  {
+                                                          "schema_version":  "vit.task_semantic_state.v1",
+                                                          "state":  "observation_in_progress",
+                                                          "revision":  1,
+                                                          "contract_id":  "contract_task_7f1c55015ebcc3eb",
+                                                          "project_uuid":  "vitproj_793ac31d40fa4131b4c68f6b4641caaa",
+                                                          "project_revision":  "4",
+                                                          "transition_reason":  "task contract admitted",
+                                                          "terminal":  false,
+                                                          "history":  [
+                                                                          {
+                                                                              "revision":  1,
+                                                                              "event":  "observation_started",
+                                                                              "to":  "observation_in_progress",
+                                                                              "reason":  "task contract admitted",
+                                                                              "project_revision":  "4",
+                                                                              "occurred_at":  "2026-10-11T12:05:34.0298963Z"
+                                                                          }
+                                                                      ],
+                                                          "updated_at":  "2026-10-11T12:05:34.0298963Z"
+                                                      },
+                              "task_state":  "observation_in_progress",
+                              "task_state_revision":  1,
+                              "turn_id":  "turn_7cbae8a2bb94de0f",
+                              "updated_at":  "2026-10-11T12:08:38.4397224Z"
+                          }
+                      ],
+    "goal":  {
+                 "goal_id":  "goal_3be7657bf4262aa9",
+                 "run_id":  "run_c70ecf4388dffbc3",
+                 "task":  {
+                              "task_id":  "task_7f1c55015ebcc3eb",
+                              "goal_id":  "goal_3be7657bf4262aa9",
+                              "conversation_id":  "dev_fs_largeproject_20261011_200448",
+                              "original_intent":  "检查一下当前工程有什么问题吗",
+                              "status":  "waiting_continuation",
+                              "contract":  {
+                                               "schema_version":  "vit.task_semantic_state.v1",
+                                               "contract_id":  "contract_task_7f1c55015ebcc3eb",
+                                               "task_id":  "task_7f1c55015ebcc3eb",
+                                               "goal_id":  "goal_3be7657bf4262aa9",
+                                               "run_id":  "run_c70ecf4388dffbc3",
+                                               "conversation_id":  "dev_fs_largeproject_20261011_200448",
+                                               "original_intent":  "检查一下当前工程有什么问题吗",
+                                               "kind":  "improvement",
+                                               "scope":  {
+                                                             "kind":  "project",
+                                                             "id":  "vitproj_793ac31d40fa4131b4c68f6b4641caaa"
+                                                         },
+                                               "temporary":  true,
+                                               "target_discovery":  "agent_observation",
+                                               "authorization_boundary":  "governed_experiment",
+                                               "completion_criteria":  [
+                                                                           "settle only after a governed experiment outcome",
+                                                                           "or report no_candidate_found or a distinct capability boundary with evidence"
+                                                                       ],
+                                               "evidence_requirements":  [
+                                                                             "exact observation or audit receipt references",
+                                                                             "project revision matching the evaluated evidence",
+                                                                             "explicit limitations for every bounded conclusion"
+                                                                         ],
+                                               "project_uuid":  "vitproj_793ac31d40fa4131b4c68f6b4641caaa",
+                                               "project_revision":  "4",
+                                               "created_at":  "2026-10-11T12:05:34.0298963Z"
+                                           },
+                              "semantic_state":  {
+                                                     "schema_version":  "vit.task_semantic_state.v1",
+                                                     "state":  "observation_in_progress",
+                                                     "revision":  1,
+                                                     "contract_id":  "contract_task_7f1c55015ebcc3eb",
+                                                     "project_uuid":  "vitproj_793ac31d40fa4131b4c68f6b4641caaa",
+                                                     "project_revision":  "4",
+                                                     "transition_reason":  "task contract admitted",
+                                                     "terminal":  false,
+                                                     "history":  [
+                                                                     {
+                                                                         "revision":  1,
+                                                                         "event":  "observation_started",
+                                                                         "to":  "observation_in_progress",
+                                                                         "reason":  "task contract admitted",
+                                                                         "project_revision":  "4",
+                                                                         "occurred_at":  "2026-10-11T12:05:34.0298963Z"
+                                                                     }
+                                                                 ],
+                                                     "updated_at":  "2026-10-11T12:05:34.0298963Z"
+                                                 },
+                              "run":  {
+                                          "run_id":  "run_c70ecf4388dffbc3",
+                                          "task_id":  "task_7f1c55015ebcc3eb",
+                                          "current_slice_id":  "slice_2aad4385e5044ef2",
+                                          "next_slice":  2,
+                                          "next_turn":  2,
+                                          "slices":  [
+                                                         {
+                                                             "slice_id":  "slice_2aad4385e5044ef2",
+                                                             "run_id":  "run_c70ecf4388dffbc3",
+                                                             "sequence":  1,
+                                                             "max_turns":  1,
+                                                             "max_tool_calls":  6,
+                                                             "turns_used":  7,
+                                                             "tool_calls_used":  5,
+                                                             "status":  "waiting_continuation",
+                                                             "started_at":  "2026-10-11T20:05:34.0792936+08:00",
+                                                             "ended_at":  "2026-10-11T20:08:38.0764637+08:00"
+                                                         }
+                                                     ],
+                                          "turns":  [
+                                                        {
+                                                            "turn_id":  "turn_7cbae8a2bb94de0f",
+                                                            "slice_id":  "slice_2aad4385e5044ef2",
+                                                            "run_id":  "run_c70ecf4388dffbc3",
+                                                            "sequence":  1,
+                                                            "source":  "user",
+                                                            "status":  "waiting_continue",
+                                                            "started_at":  "2026-10-11T20:05:34.0792936+08:00",
+                                                            "ended_at":  "2026-10-11T20:08:38.0764637+08:00"
+                                                        }
+                                                    ]
+                                      },
+                              "created_at":  "2026-10-11T20:05:31.2853225+08:00",
+                              "updated_at":  "2026-10-11T20:08:38.2281966+08:00"
+                          },
+                 "status":  "waiting_continue",
+                 "summary":  "检查一下当前工程有什么问题吗",
+                 "created_at":  "2026-10-11T20:05:31.2853225+08:00",
+                 "updated_at":  "2026-10-11T20:08:38.2281966+08:00",
+                 "cancel_requested":  false,
+                 "last_checkpoint":  "after_tool",
+                 "project_history":  {
+                                         "baseline_commit_id":  "c_20261011T120531_e747128b",
+                                         "baseline_created":  true,
+                                         "active_branch":  "main",
+                                         "head":  "c_20261011T120531_e747128b"
+                                     }
+             },
+    "kernel":  {
+                   "connected":  true,
+                   "endpoint":  "tcp://127.0.0.1:5555",
+                   "latency_ms":  2,
+                   "message":  "pong",
+                   "reply_status":  "ok",
+                   "status":  "online"
+               },
+    "note_sessions":  [
+
+                      ],
+    "pid":  3696,
+    "service":  "VitAgent",
+    "shadow":  {
+                   "delta_seq_gaps":  1,
+                   "graph_revision":  null,
+                   "initialized":  true,
+                   "last_delta_seq":  2022,
+                   "project_path":  "D:\\Vit_DAW_wt_mixlayer_m1_2\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261011_200448\\project\\sattelites_61.vit",
+                   "track_count":  61,
+                   "user_track_count":  61
+               },
+    "status":  "ok",
+    "task":  {
+                 "task_id":  "task_7f1c55015ebcc3eb",
+                 "goal_id":  "goal_3be7657bf4262aa9",
+                 "conversation_id":  "dev_fs_largeproject_20261011_200448",
+                 "original_intent":  "检查一下当前工程有什么问题吗",
+                 "status":  "waiting_continuation",
+                 "contract":  {
+                                  "schema_version":  "vit.task_semantic_state.v1",
+                                  "contract_id":  "contract_task_7f1c55015ebcc3eb",
+                                  "task_id":  "task_7f1c55015ebcc3eb",
+                                  "goal_id":  "goal_3be7657bf4262aa9",
+                                  "run_id":  "run_c70ecf4388dffbc3",
+                                  "conversation_id":  "dev_fs_largeproject_20261011_200448",
+                                  "original_intent":  "检查一下当前工程有什么问题吗",
+                                  "kind":  "improvement",
+                                  "scope":  {
+                                                "kind":  "project",
+                                                "id":  "vitproj_793ac31d40fa4131b4c68f6b4641caaa"
+                                            },
+                                  "temporary":  true,
+                                  "target_discovery":  "agent_observation",
+                                  "authorization_boundary":  "governed_experiment",
+                                  "completion_criteria":  [
+                                                              "settle only after a governed experiment outcome",
+                                                              "or report no_candidate_found or a distinct capability boundary with evidence"
+                                                          ],
+                                  "evidence_requirements":  [
+                                                                "exact observation or audit receipt references",
+                                                                "project revision matching the evaluated evidence",
+                                                                "explicit limitations for every bounded conclusion"
+                                                            ],
+                                  "project_uuid":  "vitproj_793ac31d40fa4131b4c68f6b4641caaa",
+                                  "project_revision":  "4",
+                                  "created_at":  "2026-10-11T12:05:34.0298963Z"
+                              },
+                 "semantic_state":  {
+                                        "schema_version":  "vit.task_semantic_state.v1",
+                                        "state":  "observation_in_progress",
+                                        "revision":  1,
+                                        "contract_id":  "contract_task_7f1c55015ebcc3eb",
+                                        "project_uuid":  "vitproj_793ac31d40fa4131b4c68f6b4641caaa",
+                                        "project_revision":  "4",
+                                        "transition_reason":  "task contract admitted",
+                                        "terminal":  false,
+                                        "history":  [
+                                                        {
+                                                            "revision":  1,
+                                                            "event":  "observation_started",
+                                                            "to":  "observation_in_progress",
+                                                            "reason":  "task contract admitted",
+                                                            "project_revision":  "4",
+                                                            "occurred_at":  "2026-10-11T12:05:34.0298963Z"
+                                                        }
+                                                    ],
+                                        "updated_at":  "2026-10-11T12:05:34.0298963Z"
+                                    },
+                 "run":  {
+                             "run_id":  "run_c70ecf4388dffbc3",
+                             "task_id":  "task_7f1c55015ebcc3eb",
+                             "current_slice_id":  "slice_2aad4385e5044ef2",
+                             "next_slice":  2,
+                             "next_turn":  2,
+                             "slices":  [
+                                            {
+                                                "slice_id":  "slice_2aad4385e5044ef2",
+                                                "run_id":  "run_c70ecf4388dffbc3",
+                                                "sequence":  1,
+                                                "max_turns":  1,
+                                                "max_tool_calls":  6,
+                                                "turns_used":  7,
+                                                "tool_calls_used":  5,
+                                                "status":  "waiting_continuation",
+                                                "started_at":  "2026-10-11T20:05:34.0792936+08:00",
+                                                "ended_at":  "2026-10-11T20:08:38.0764637+08:00"
+                                            }
+                                        ],
+                             "turns":  [
+                                           {
+                                               "turn_id":  "turn_7cbae8a2bb94de0f",
+                                               "slice_id":  "slice_2aad4385e5044ef2",
+                                               "run_id":  "run_c70ecf4388dffbc3",
+                                               "sequence":  1,
+                                               "source":  "user",
+                                               "status":  "waiting_continue",
+                                               "started_at":  "2026-10-11T20:05:34.0792936+08:00",
+                                               "ended_at":  "2026-10-11T20:08:38.0764637+08:00"
+                                           }
+                                       ]
+                         },
+                 "created_at":  "2026-10-11T20:05:31.2853225+08:00",
+                 "updated_at":  "2026-10-11T20:08:38.2281966+08:00"
+             },
+    "task_contract":  {
+                          "schema_version":  "vit.task_semantic_state.v1",
+                          "contract_id":  "contract_task_7f1c55015ebcc3eb",
+                          "task_id":  "task_7f1c55015ebcc3eb",
+                          "goal_id":  "goal_3be7657bf4262aa9",
+                          "run_id":  "run_c70ecf4388dffbc3",
+                          "conversation_id":  "dev_fs_largeproject_20261011_200448",
+                          "original_intent":  "检查一下当前工程有什么问题吗",
+                          "kind":  "improvement",
+                          "scope":  {
+                                        "kind":  "project",
+                                        "id":  "vitproj_793ac31d40fa4131b4c68f6b4641caaa"
+                                    },
+                          "temporary":  true,
+                          "target_discovery":  "agent_observation",
+                          "authorization_boundary":  "governed_experiment",
+                          "completion_criteria":  [
+                                                      "settle only after a governed experiment outcome",
+                                                      "or report no_candidate_found or a distinct capability boundary with evidence"
+                                                  ],
+                          "evidence_requirements":  [
+                                                        "exact observation or audit receipt references",
+                                                        "project revision matching the evaluated evidence",
+                                                        "explicit limitations for every bounded conclusion"
+                                                    ],
+                          "project_uuid":  "vitproj_793ac31d40fa4131b4c68f6b4641caaa",
+                          "project_revision":  "4",
+                          "created_at":  "2026-10-11T12:05:34.0298963Z"
+                      },
+    "task_semantic_state":  {
+                                "schema_version":  "vit.task_semantic_state.v1",
+                                "state":  "observation_in_progress",
+                                "revision":  1,
+                                "contract_id":  "contract_task_7f1c55015ebcc3eb",
+                                "project_uuid":  "vitproj_793ac31d40fa4131b4c68f6b4641caaa",
+                                "project_revision":  "4",
+                                "transition_reason":  "task contract admitted",
+                                "terminal":  false,
+                                "history":  [
+                                                {
+                                                    "revision":  1,
+                                                    "event":  "observation_started",
+                                                    "to":  "observation_in_progress",
+                                                    "reason":  "task contract admitted",
+                                                    "project_revision":  "4",
+                                                    "occurred_at":  "2026-10-11T12:05:34.0298963Z"
+                                                }
+                                            ],
+                                "updated_at":  "2026-10-11T12:05:34.0298963Z"
+                            },
+    "task_state":  "observation_in_progress",
+    "task_state_revision":  1,
+    "task_trajectory":  {
+                            "capability_route":  {
+                                                     "capacity_assessment":  {
+                                                                                 "schema_version":  "free_state_capacity_assessment.v1",
+                                                                                 "authority":  "product_runtime",
+                                                                                 "observed_facts":  {
+                                                                                                        "project_uuid":  "vitproj_793ac31d40fa4131b4c68f6b4641caaa",
+                                                                                                        "project_revision":  "4",
+                                                                                                        "track_count":  61,
+                                                                                                        "active_audio_track_count":  61,
+                                                                                                        "duration_seconds":  228.5714375,
+                                                                                                        "plugin_count":  0,
+                                                                                                        "automation_lane_count":  0,
+                                                                                                        "track_group_count":  0,
+                                                                                                        "routing_edge_count":  0,
+                                                                                                        "relationship_breadth":  0,
+                                                                                                        "request_scope":  "project_context",
+                                                                                                        "task_history_available":  false,
+                                                                                                        "evidence_refs":  [
+                                                                                                                              "project.state:vitproj_793ac31d40fa4131b4c68f6b4641caaa:4"
+                                                                                                                          ]
+                                                                                                    },
+                                                                                 "complexity_factors":  [
+                                                                                                            {
+                                                                                                                "code":  "large_track_set",
+                                                                                                                "observed":  61,
+                                                                                                                "weight":  25,
+                                                                                                                "triggered":  true,
+                                                                                                                "reason":  "twenty or more user tracks expand whole-project coverage"
+                                                                                                            },
+                                                                                                            {
+                                                                                                                "code":  "long_timeline",
+                                                                                                                "observed":  228.5714375,
+                                                                                                                "weight":  15,
+                                                                                                                "triggered":  false,
+                                                                                                                "reason":  "five minutes or more increases observation span"
+                                                                                                            },
+                                                                                                            {
+                                                                                                                "code":  "dense_processing_graph",
+                                                                                                                "observed":  0,
+                                                                                                                "weight":  20,
+                                                                                                                "triggered":  false,
+                                                                                                                "reason":  "forty or more processors increase context pressure"
+                                                                                                            },
+                                                                                                            {
+                                                                                                                "code":  "dense_routing_graph",
+                                                                                                                "observed":  0,
+                                                                                                                "weight":  20,
+                                                                                                                "triggered":  false,
+                                                                                                                "reason":  "routing and grouping relationships require project-wide coordination"
+                                                                                                            },
+                                                                                                            {
+                                                                                                                "code":  "automation_heavy",
+                                                                                                                "observed":  0,
+                                                                                                                "weight":  15,
+                                                                                                                "triggered":  false,
+                                                                                                                "reason":  "automation breadth increases cross-stage state"
+                                                                                                            }
+                                                                                                        ],
+                                                                                 "capacity_score":  25,
+                                                                                 "capacity_level":  "within_free_state",
+                                                                                 "selected_capability":  "free_state",
+                                                                                 "reason_codes":  [
+                                                                                                      "large_track_set"
+                                                                                                  ],
+                                                                                 "confidence":  0.94,
+                                                                                 "project_revision":  "4",
+                                                                                 "observed_at":  "2026-10-11T12:05:33.9315195Z"
+                                                                             },
+                                                     "controller":  "minimal_audio_closure",
+                                                     "conversation_id":  "dev_fs_largeproject_20261011_200448",
+                                                     "created_at":  "2026-10-11T12:05:33.9315195Z",
+                                                     "goal_id":  "goal_3be7657bf4262aa9",
+                                                     "original_intent":  "检查一下当前工程有什么问题吗",
+                                                     "project_revision":  "4",
+                                                     "run_id":  "run_c70ecf4388dffbc3",
+                                                     "schema_version":  "capability_route_decision.v1",
+                                                     "semantic_entry":  {
+                                                                            "confidence":  0.95,
+                                                                            "control_mode":  "semantic_loop",
+                                                                            "reason":  "product runtime selected free_state after project structure observation (score=25, reasons=large_track_set)",
+                                                                            "route":  "open_semantic",
+                                                                            "schema_version":  "semantic_entry_decision.v1",
+                                                                            "target_scope":  "project_context",
+                                                                            "user_authorization":  "action_requested"
+                                                                        },
+                                                     "task_id":  "task_7f1c55015ebcc3eb",
+                                                     "updated_at":  "2026-10-11T12:05:33.9315195Z"
+                                                 },
+                            "continuation":  {
+                                                 "attempt":  1,
+                                                 "continuation_id":  "cont_e15c80b930075639f97a0be0",
+                                                 "slice_id":  "slice_2aad4385e5044ef2",
+                                                 "status":  "running",
+                                                 "turn_id":  "turn_7cbae8a2bb94de0f",
+                                                 "updated_at":  "2026-10-11T12:08:38.4397224Z"
+                                             },
+                            "run":  {
+                                        "current_slice_id":  "slice_2aad4385e5044ef2",
+                                        "current_turn_id":  "",
+                                        "run_id":  "run_c70ecf4388dffbc3",
+                                        "slices":  [
+                                                       {
+                                                           "slice_id":  "slice_2aad4385e5044ef2",
+                                                           "run_id":  "run_c70ecf4388dffbc3",
+                                                           "sequence":  1,
+                                                           "max_turns":  1,
+                                                           "max_tool_calls":  6,
+                                                           "turns_used":  7,
+                                                           "tool_calls_used":  5,
+                                                           "status":  "waiting_continuation",
+                                                           "started_at":  "2026-10-11T20:05:34.0792936+08:00",
+                                                           "ended_at":  "2026-10-11T20:08:38.0764637+08:00"
+                                                       }
+                                                   ],
+                                        "turns":  [
+                                                      {
+                                                          "turn_id":  "turn_7cbae8a2bb94de0f",
+                                                          "slice_id":  "slice_2aad4385e5044ef2",
+                                                          "run_id":  "run_c70ecf4388dffbc3",
+                                                          "sequence":  1,
+                                                          "source":  "user",
+                                                          "status":  "waiting_continue",
+                                                          "started_at":  "2026-10-11T20:05:34.0792936+08:00",
+                                                          "ended_at":  "2026-10-11T20:08:38.0764637+08:00"
+                                                      }
+                                                  ]
+                                    },
+                            "schema_version":  "vit.task_runtime_trajectory.v1",
+                            "semantic":  {
+                                             "contract":  {
+                                                              "contract_id":  "contract_task_7f1c55015ebcc3eb",
+                                                              "kind":  "improvement",
+                                                              "scope":  {
+                                                                            "kind":  "project",
+                                                                            "id":  "vitproj_793ac31d40fa4131b4c68f6b4641caaa"
+                                                                        },
+                                                              "temporary":  true
+                                                          },
+                                             "evidence_refs":  null,
+                                             "project_revision":  "4",
+                                             "revision":  1,
+                                             "state":  "observation_in_progress",
+                                             "summary":  "",
+                                             "terminal":  false,
+                                             "transition_reason":  "task contract admitted",
+                                             "updated_at":  "2026-10-11T12:05:34.0298963Z"
+                                         },
+                            "task":  {
+                                         "conversation_id":  "dev_fs_largeproject_20261011_200448",
+                                         "created_at":  "2026-10-11T20:05:31.2853225+08:00",
+                                         "goal_id":  "goal_3be7657bf4262aa9",
+                                         "goal_status":  "waiting_continue",
+                                         "original_intent":  "检查一下当前工程有什么问题吗",
+                                         "run_id":  "run_c70ecf4388dffbc3",
+                                         "status":  "waiting_continuation",
+                                         "task_id":  "task_7f1c55015ebcc3eb",
+                                         "updated_at":  "2026-10-11T20:08:38.2281966+08:00"
+                                     },
+                            "transitions":  [
+                                                {
+                                                    "candidate_id":  "",
+                                                    "event":  "observation_started",
+                                                    "evidence_refs":  null,
+                                                    "experiment_id":  "",
+                                                    "from":  "",
+                                                    "occurred_at":  "2026-10-11T12:05:34.0298963Z",
+                                                    "pending_interaction":  null,
+                                                    "project_revision":  "4",
+                                                    "reason":  "task contract admitted",
+                                                    "revision":  1,
+                                                    "stale_for_current_revision":  false,
+                                                    "summary":  "",
+                                                    "to":  "observation_in_progress"
+                                                }
+                                            ]
+                        }
+}
