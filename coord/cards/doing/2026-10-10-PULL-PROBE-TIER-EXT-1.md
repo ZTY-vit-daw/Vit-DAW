@@ -23,6 +23,6 @@
 
 领取时该工具名/归一形态与预期不符 → 实测形态上交。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / 领取提交）
+- 领取：2026-10-11 21:47 / origin/main 8e66e674 / owner=GLM-5.3-Flash（ZCode PC flash 执行流会话，用户指派双卡）/ 分支 port/pull-probe-tier-ext-1 / worktree D:/Vit_DAW_wt_probe_tier_1 / 领取提交=coord-claim-20261011-flash-l0
 - 回执：（commit / 测试名）
 - 验收：（裁定文件 / 验收 commit）
