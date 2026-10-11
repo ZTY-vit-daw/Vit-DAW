@@ -1695,3 +1695,33 @@ Notes:
 - Needs pyzmq. music_context is stripped symmetrically from both snapshots
   before the value diff, so the script stays re-runnable post-merge with two
   same-era binaries (the keyset gate then reports an empty delta).
+### `gen_api_adapter_smoke_mac.sh` — GEN-API-ADAPTER-1 (unified generation-API adapter)
+
+- Two-piece real stack (VitApp kernel + Go agent; same berth as
+  `gen_chain_survey_smoke_mac.sh`) plus a loopback provider simulator that
+  stands in for the self-hosted generation endpoint type: a `sync_binary`
+  surface, a de-facto relay-station Suno surface (`/suno/submit/music` +
+  `/suno/fetch/{task_id}` returning two candidate clips) and a 401 surface.
+- The user-facing config chain is exercised verbatim: a run-scoped
+  `genapi_providers.json` the user "fills in" (provider dialect / base_url /
+  api_key / model) is fed to the agent via `VIT_GENAPI_CONFIG`, with one
+  credential arriving through the per-provider env override
+  (`VIT_GENAPI_KEY_<ID>`).
+- Probes: `gen.providers` (listing with key presence only — the secret must
+  not appear in the reply); unified-template end-to-end (`track.add` ->
+  `gen.generate` on the sync_binary dialect -> artifact on disk with RIFF
+  magic -> existing `assets.register_job` + `assets.ingest_generated_asset`
+  path -> clip_id / asset_ref / active_take_id -> clip addressable in
+  `project.state`); suno_relay dialect end-to-end (submit/poll/download of
+  two candidates onto one shared take stack, `assets.switch_take` flips the
+  active candidate); simulator request-shape evidence (prompt + duration
+  normalization, inspiration-mode field mapping, relay bearer auth from env,
+  poll-to-success, both candidates downloaded); fail-closed negatives
+  (unknown provider -> config_error, 401 -> auth_error, missing prompt ->
+  config_error pre-HTTP) with the command surface alive afterwards.
+- Emits a `genapi.adapter.smoke.mac.v1` summary JSON; exit 0 requires every
+  hard data-level gate to pass. Failures are classified env vs functional.
+- Boundary: the generation provider is a LOCAL simulator (self-hosted type
+  over real HTTP). The external-provider leg (real Suno relay / Stability /
+  MusicGPT account) needs a real credential and is declared per run, never
+  faked (AGENTS §8).

@@ -2466,6 +2466,12 @@ func (h *Harness) invokeLocal(ctx context.Context, spec tools.CommandSpec, cmd m
 	case "render_profile_list":
 		result, err := h.ListRenderProfileBindings()
 		return resultWithErr(result, err), true
+	case "genapi_generate":
+		result, err := h.genGenerate(ctx, cmd)
+		return resultWithErr(result, err), true
+	case "genapi_providers":
+		result, err := h.genProviders()
+		return resultWithErr(result, err), true
 	case "mix_observe", "mix_request_observation":
 		result, err := h.requestMixObservation(ctx, cmd)
 		return resultWithErr(result, err), true
