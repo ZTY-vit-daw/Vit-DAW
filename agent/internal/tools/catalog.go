@@ -538,7 +538,9 @@ func argHint(commandName string) string {
 	case "add_midi_notes", "add_midi_notes_bulk":
 		return "clip_id:string optional track_id:string time_unit:beats notes:{pitch:number start:number length|duration:number velocity?:number id?:string}[]"
 	case "mutate_midi_notes":
-		return "clip_id:string optional track_id:string time_unit:beats notes:{id|note_id:string optional pitch/start/length|duration/velocity}[]"
+		// Kernel fail-closed (MidiService.cpp): each note requires a non-empty id
+		// (key "id" or "note_id"); a start/length region form is rejected.
+		return "clip_id:string optional track_id:string time_unit:beats notes:{id:string required non-empty (by-id lookup; note_id accepted as alias key; region form not accepted) optional pitch/start/length|duration/velocity}[]"
 	case "delete_midi_notes":
 		return "clip_id:string optional track_id:string note_ids:string[]"
 	case "apply_midi_note_patch":

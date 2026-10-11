@@ -375,6 +375,38 @@ func TestMidiPatchToolsAreCataloged(t *testing.T) {
 	}
 }
 
+// The argspec must mirror the kernel's fail-closed by-id validation
+// (MidiService.cpp: each note requires a non-empty id; region form rejected).
+func TestMutateMidiNotesArgspecMatchesKernelByIDSemantics(t *testing.T) {
+	catalog := DefaultCatalog()
+	spec, ok := catalog.LookupCommand("mutate_midi_notes")
+	if !ok {
+		t.Fatal("mutate_midi_notes missing")
+	}
+	hint := argHint(spec.CommandName)
+	for _, want := range []string{
+		"id:string required non-empty",
+		"by-id lookup",
+		"note_id accepted as alias key",
+		"region form not accepted",
+	} {
+		if !strings.Contains(hint, want) {
+			t.Fatalf("mutate_midi_notes arg hint missing %q in %q", want, hint)
+		}
+	}
+	if strings.Contains(hint, "id|note_id") {
+		t.Fatalf("mutate_midi_notes arg hint still implies optional/alias-first id: %q", hint)
+	}
+
+	deleteSpec, ok := catalog.LookupCommand("delete_midi_notes")
+	if !ok {
+		t.Fatal("delete_midi_notes missing")
+	}
+	if got := argHint(deleteSpec.CommandName); !strings.Contains(got, "note_ids:string[]") {
+		t.Fatalf("delete_midi_notes arg hint drifted from note_ids form: %q", got)
+	}
+}
+
 func TestCoreMutationToolsExposeBindingMetadata(t *testing.T) {
 	catalog := DefaultCatalog()
 	for _, tt := range []struct {
