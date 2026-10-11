@@ -153,18 +153,26 @@ type MixReportRequest struct {
 }
 
 type MixReport struct {
-	SchemaVersion       string                   `json:"schema_version"`
-	ProjectUUID         string                   `json:"project_uuid"`
-	ProjectCut          orchestration.ProjectCut `json:"project_cut"`
-	GeneratedAt         time.Time                `json:"generated_at"`
-	MixIntent           map[string]any           `json:"mix_intent,omitempty"`
-	CapabilitySummary   []map[string]any         `json:"capability_summary"`
-	DecisionTimeline    []DecisionView           `json:"decision_timeline"`
-	VerificationSummary map[string]int           `json:"verification_summary"`
-	UnresolvedItems     []string                 `json:"unresolved_items,omitempty"`
-	FinalMeasurements   map[string]any           `json:"final_measurements,omitempty"`
-	ExportReadiness     string                   `json:"export_readiness"`
-	Limitations         []string                 `json:"limitations,omitempty"`
+	SchemaVersion     string                   `json:"schema_version"`
+	ProjectUUID       string                   `json:"project_uuid"`
+	ProjectCut        orchestration.ProjectCut `json:"project_cut"`
+	GeneratedAt       time.Time                `json:"generated_at"`
+	MixIntent         map[string]any           `json:"mix_intent,omitempty"`
+	CapabilitySummary []map[string]any         `json:"capability_summary"`
+	DecisionTimeline  []DecisionView           `json:"decision_timeline"`
+	// FreeStateConclusionTimeline is the free-state settle conclusion stream
+	// (MIXLAYER-M1-1 persistence layer), folded into the report beside the
+	// ledger timeline so the F1 review sees the experiment line. Same
+	// SettledAt-ascending order as the conclusion board.
+	FreeStateConclusionTimeline []FreeStateConclusionView `json:"free_state_conclusion_timeline,omitempty"`
+	// LatestSettleConclusion is the most recent settle conclusion, or nil
+	// when the project never wrote one.
+	LatestSettleConclusion *FreeStateConclusionView `json:"latest_settle_conclusion,omitempty"`
+	VerificationSummary    map[string]int           `json:"verification_summary"`
+	UnresolvedItems        []string                 `json:"unresolved_items,omitempty"`
+	FinalMeasurements      map[string]any           `json:"final_measurements,omitempty"`
+	ExportReadiness        string                   `json:"export_readiness"`
+	Limitations            []string                 `json:"limitations,omitempty"`
 }
 
 type DecisionWriteResult struct {
@@ -383,10 +391,23 @@ func (s Store) BuildMixReport(req MixReportRequest) (MixReport, error) {
 			readiness = "needs_review"
 		}
 	}
+	// MIXLAYER-M1-5: fold the free-state settle conclusion board (M1-1
+	// persistence layer) into the report, read-only. Old projects without
+	// conclusions read as an empty board (no section, no limitation); an
+	// unreadable board is an honest limitation, never a report failure.
+	var conclusionTimeline []FreeStateConclusionView
+	var latestSettle *FreeStateConclusionView
+	if conclusionBoard, conclusionErr := s.ReadFreeStateConclusionBoard(projectUUID); conclusionErr != nil {
+		limitations = append(limitations, "free_state_conclusions_unreadable")
+	} else if conclusionBoard.ConclusionCount > 0 {
+		conclusionTimeline = conclusionBoard.Conclusions
+		latestSettle = &conclusionBoard.Conclusions[len(conclusionBoard.Conclusions)-1]
+	}
 	return MixReport{
 		SchemaVersion: MixReportSchemaVersion, ProjectUUID: projectUUID, ProjectCut: cut,
 		GeneratedAt: s.now().UTC(), MixIntent: decisionCloneMap(req.MixIntent),
 		CapabilitySummary: capabilitySummary, DecisionTimeline: board.Decisions,
+		FreeStateConclusionTimeline: conclusionTimeline, LatestSettleConclusion: latestSettle,
 		VerificationSummary: verificationSummary, UnresolvedItems: decisionUniqueStrings(unresolved),
 		FinalMeasurements: decisionCloneMap(req.FinalMeasurements), ExportReadiness: readiness,
 		Limitations: decisionUniqueStrings(limitations),

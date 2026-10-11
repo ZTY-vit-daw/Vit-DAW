@@ -861,6 +861,15 @@ func (e pluginGrabberWorkflowExecutor) RunToolCall(ctx context.Context, in execu
 		e.server.emitToolItemCompleted(in, out, err)
 		return out, err
 	}
+	// MIXLAYER-M1-5: mix.report rides the base executor (it is a registered
+	// catalog tool) and is enriched chat-side with the queue node-state view
+	// after a successful result — the F1 review must see the experiment line
+	// and the node queue, not only the ledger account.
+	if e.server != nil && mixReportToolRequest(in.ToolCall) {
+		out, err := e.invokeMixReportTool(ctx, in, toolCallID)
+		e.server.emitToolItemCompleted(in, out, err)
+		return out, err
+	}
 	if e.server != nil && isPluginGrabberApplyEQEditsToolCall(in.ToolCall) {
 		out, err := e.invokePluginGrabberApplyEQEdits(ctx, in, toolCallID)
 		e.server.emitToolItemCompleted(in, out, err)
