@@ -5,10 +5,13 @@
 
 ## 当前占用
 
-- 状态：占用中
-- 2026-10-11 11:05 +0800 起 / MIXLAYER-M1-1（GLM-5.3 PC 执行流，ZCode 会话 sess_30083b31；worktree D:/Vit_DAW_wt_mixlayer_m1_1，分支 port/mixlayer-m1-1）：真栈烟测 settle_deliver_smoke.ps1 -M1Survival（agent 7878 / kernel ZMQ 5555/5556）；占用登记前核对端口监听=0、VitAgent/VitApp 进程=0。
+- 状态：空闲
 
 ## 最近一次释放
+
+- 2026-10-11 11:05–12:18 +0800 / MIXLAYER-M1-1（GLM-5.3 PC 执行流，ZCode 会话 sess_30083b31；worktree D:/Vit_DAW_wt_mixlayer_m1_1，分支 port/mixlayer-m1-1）：settle_deliver_smoke.ps1 -M1Survival 共 9 run（105423/110451=judgment_not_armed 模型随机分支×2 触发止损→脚本场景修复；111730/112607=判定命中但行面失败→取证定位原卡 $NeedleSettle/$Round2Text B64 非法 UTF-8 遗留 bug 并修复；113450=M1 门通过但重启探针暴露 draft 隔离→门改跨会话读回；114450/120538=无 settle 形态；115519=M1 门完整通过（当轮 exit 1 系行面坏 needle）；121359=**末轮全链 exit 0**：判定 POST→M1 记录落盘+新会话黑板读回(improved)→行面 1 行→round2 无 stale→重启探针留痕 empty_draft_isolation），各 run 均脚本自 teardown；12:18 后复核端口 7878/5555/5556 监听=0、VitAgent/VitApp 进程=0。占用登记 32fcab06；内核复用主检出 B6565DCF85D1DA86（C++ 面零改动）；run 工件在本机 coord/runs/SETTLE-DELIVER-SMOKE-20261011_*（worktree 内），详见卡回执。
+
+## 历史释放（归档）
 
 - 2026-10-10 20:16–20:50 +0800 / FS-LEDGER-PERSIST-1（GLM-5.3 PC 执行会话，ZCode D:\Vit_DAW；worktree D:/Vit_DAW_wt_fslp1）：三 run（201713/202326=取证插桩复现轮，203348=修复后回归轮，均脚本自 teardown：末轮 console "stack released: ports free, processes gone"），20:50 复核端口 7878/5555/5556 监听=0、VitAgent/VitApp 进程=0。占用登记 0d3d90cc；实现 commit db6f2b11@port/fs-ledger-persist-1；回归 verdict FAIL(A3 模型行为) 但 A2 站图 PASS=缺陷修复面，详见卡回执。E:\ 三轮 mid-check 干净。
 
