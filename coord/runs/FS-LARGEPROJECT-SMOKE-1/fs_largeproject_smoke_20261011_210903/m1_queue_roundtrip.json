@@ -1,0 +1,16 @@
+﻿{
+    "q2_write_ack":  true,
+    "q1_read_datasource":  true,
+    "q3_reread_deferred":  true,
+    "zero_fixed_orchestration_markers":  true,
+    "marker_hits":  [
+
+                    ],
+    "q1_read_schema":  true,
+    "enabled":  true,
+    "responses":  [
+                      "D:\\Vit_DAW_wt_mixlayer_m1_5\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261011_210903\\m1q_q1_read.json",
+                      "D:\\Vit_DAW_wt_mixlayer_m1_5\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261011_210903\\m1q_q2_write.json",
+                      "D:\\Vit_DAW_wt_mixlayer_m1_5\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261011_210903\\m1q_q3_reread.json"
+                  ]
+}

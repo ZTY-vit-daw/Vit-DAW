@@ -1,0 +1,8 @@
+﻿{
+    "queue_sources_conclusions":  0,
+    "message":  "mix.report 三视图：决策账本 + 自由态实验线 + queue 节点队列\n最近 settle 结论：无记录（本工程自由态实验尚未收口，或旧工程无持久层记录）\nqueue 节点状态：23 节点（延期 1 · 未开始 22）\n非缺省节点：E1 母带 EQ[延期]\n数据来源：mix_workflow_queue.v0（决策账本 0 条 · 自由态结论 0 条 · 节点标注 1）",
+    "schema_version":  "mix_report.v1",
+    "timeline_count":  0,
+    "latest_conclusion_id":  "",
+    "status":  "ok"
+}
