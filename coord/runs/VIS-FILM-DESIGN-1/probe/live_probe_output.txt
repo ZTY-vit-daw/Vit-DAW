@@ -1,0 +1,10 @@
+=== RUN   TestVisionLiveProbe
+[probe] config=C:\Users\timoz\.vit\config.json baseURL=https://www.rightapi.ai/deepseek/v1 model=deepseek-v4-flash
+[probe] image_understanding route as-is: {Enabled:false Provider:default BaseURL: APIKey: Model: Priority:20 Fallback:}
+[probe][A] as-is route error (expected): image_understanding_route_unavailable
+[probe][B] rawKind=responses usage{in:230 out:41} timings{build:0ms http:1687ms total:1687ms}
+[probe][B] response text: The image shows a vertical split: left half red with a yellow glowing dot, right half blue.
+A vertical split of red on the left with a glowing yellow dot, and blue on the right.
+--- PASS: TestVisionLiveProbe (1.70s)
+PASS
+ok  	vit-daw-agent/internal/llm	2.328s
