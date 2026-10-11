@@ -33,6 +33,6 @@ agent/internal/agentloop/（blackboard report+settle 供血面）+ 新持久层�
 
 checkpoint_ref/commit_id 桥接锚点与卡面不符（上游已变）→ 锚点上交。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-11 10:30 PC / origin/main=844c6524b526e1b7366cd0b3fdf8bfc2dfd43a08 / owner=GLM-5.3 执行流（ZCode PC 会话，2026-10-11 早窗）/ 分支 port/mixlayer-m1-1 / worktree D:/Vit_DAW_wt_mixlayer_m1_1 / 领取提交=本提交（即本卡 todo→doing 移动提交）
 - 回执：（commit / run ID / 跨会话存活证据 / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
