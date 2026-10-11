@@ -36,4 +36,4 @@ argspec 定义单点文件+对应测试（若有 argspec 快照测试同步）�
 - 测试：新增 TestMutateMidiNotesArgspecMatchesKernelByIDSemantics（四要素锁定+`id|note_id` 反门+delete note_ids 无漂移锁定）；无既有 argspec 快照需同步（grep 证实）。
 - 验收命令：go build ./... exit 0；go test ./internal/tools -count=1 ok；gofmt blob 级净（工作树 `gofmt -l` 命中为 autocrlf CRLF 检出伪影——基线 blob 同样命中，去 CR 后净）。
 - 端测边界声明：纯描述面变更（argHint 字符串+注释+单测），零 handler/内核/渲染面触碰，无需真栈烟测；唯一消费方=modelSummaryLine（LLM 工具摘要面）。
-- 验收：（裁定文件）
+- 验收：**pass**（2026-10-11 晚夜：diff 亲核=仅 catalog.go argHint+注释+锁定测试（纯描述面）；tools 包测试亲跑 ok；内核核验链（readRequestedNoteId/by-id/空 id fail-closed）与停止条件核对在卷；同型漂移全表 grep 记录=add/bulk 自生成无漂移+delete 一致+patch 泛型不含误导——顺带核对项完成。argspec 前后对照在卷。裁定文件 rulings/2026-10-11-BATCH2-rulings.md）。cherry-pick 入 main=**ec963d7e**。

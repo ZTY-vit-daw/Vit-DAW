@@ -27,4 +27,4 @@
 - 回执：commit 445d4315（port/pull-probe-tier-ext-1，基线 55c997d3，分支已推 origin）；实测名称形态=`clip.warm_waveform_bake`（message_loop.go 六处等，与卡面预期一致，停止条件未触发），ReplaceAll('_','.') 归一即达卡面 `clip.warm.waveform.bake`——probe 案已增该归一形态；测试名=TestProbeToolTierTable（warm bake 两种形态断言翻 probe，原"两属性不私定"断言按裁定翻面）+TestPullSessionWarmWaveformBakeMeteredAsProbe（新：elapsed_ms 40+2 逐笔入账 probeSpent=42、probeCostKnown 保持 true）+TestPullSessionUnlistedTierKeepsUnknownSemantics（摘除 warm bake 例改 some.future.tool，unlisted→unknown 语义本身保留）；pull_session.go 三处注释随裁定更新（两属性措辞退役+裁定引用）。
 - 验收命令：go build ./... exit 0；go test ./internal/agentloop -count=1 ok；go test ./... -count=1 exit 0（92 包 0 FAIL）；gofmt blob 级净（工作树 `gofmt -l` 命中为 autocrlf CRLF 检出伪影，去 CR 后净）。
 - 端测边界声明：纯单测域（卡面口径同 PULL-PROBE-METER-1 回执）；真栈 probe 成本面读数归 FS-LARGEPROJECT-SMOKE-1（P1 blocker 未解前不启动，见 ruling §5）。
-- 验收：（裁定文件 / 验收 commit）
+- 验收：**pass**（2026-10-11 晚夜：diff 亲核=probe 分级表归一形态+三注释+三测试（表断言翻面/逐笔入账 42/unlisted 语义保留）；agentloop 包测试亲跑 ok；真实名实测与卡面预期一致停止条件未触发。裁定文件 rulings/2026-10-11-BATCH2-rulings.md）。cherry-pick 入 main=**e6cacb88**。**G3-REOPEN-COSTCMP-1 前置满足**（TIER-EXT 已收）。
