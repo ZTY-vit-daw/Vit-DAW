@@ -41,6 +41,6 @@ PC 端主工作区由「自由分割树多视口」改为「**四位台前自动
 
 真栈占用（烟测腿）按 PC-RUNTIME-STACK 登记，与其他在池烟测卡串行；纯代码阶段可并行。
 
-- 领取：（时间 / 前端仓 HEAD / owner / **写授权凭证**）
+- 领取：2026-10-11 22:20 +0800 / 主仓 origin/main=643dff54fa6daffb94ce7cca5006f23b95c47c92（本地已 ff 一致）/ 前端仓 HEAD=924318dea1f55f5c9591d573b174a1a2307398e6（活线 port/vitnote-region-time-1 tip，含 FE-RACK-CTX 装载成果=本卡红线面；前端仓 main 落后活线 13+ 笔为已登记卫生项，集成落点按 PROTOCOL §2=port 分支）/ owner=GLM-5.3-Flash · PC · ZCode flash 执行流会话（用户 2026-10-11 晚口令指派「执行前端收缩 Phase A」）/ 写授权凭证=同口令——规格 §验收负责人与流程建议「实施卡领取即授权写入前端仓」/ 分支=前端仓 port/fe-gui-shrink-1（自 924318d 建）/ worktree=前端仓主检出 D:/Godot/project/vit-daw-frontend（本卡独占；偏离 §2.1 独立 worktree 常规的理由：当前无并行前端流，真栈烟测 -StartUI 默认 GodotProjectRoot 即主检出，独立 worktree 会引入 --import 缓存与烟测路径偏差；与全部 7 张在池 doing 卡文件域不相交，纯代码阶段不占真栈）/ 领取提交=本提交（仅 coord/ 卡片变更）/doing 六卡核对=GEN-API-ADAPTER-1、GEN-CTX-DISCLOSE-1、LOUDNESS-WATCH-DESIGN-1、MIDI-ARGSPEC-ALIGN-1、MIXLAYER-M1-4、PULL-PROBE-TIER-EXT-1、VIS-FILM-P0-ROUTE-ENABLE 均为 agent 侧/webui/Mac 线，与前端仓 vit_dock/ 域不相交
 - 回执：（probe 脚本路径 + run ID + 退出码）
 - 验收：（裁定文件）
