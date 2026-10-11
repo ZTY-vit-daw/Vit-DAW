@@ -443,13 +443,13 @@ func (s *pullSession) settleBatch() []string {
 const (
 	probeTierProbe    = "probe"    // render/probe 观察与渲染面：elapsed_ms 逐笔计入
 	probeTierIndex    = "index"    // catalog/state 读：D5 定义零成本，不计不翻
-	probeTierUnlisted = "unlisted" // 分级表未列名/两属性工具：不私定，按 unknown 处置
+	probeTierUnlisted = "unlisted" // 分级表未列名工具：不私定，按 unknown 处置
 )
 
 // settleRecordProbeCost 结算单笔回执的 probe 物理成本。诚实红线：无键/
 // 不可解析=未计量，翻 probeCostKnown=false，不填 0；index 级按 D5 定义零
-// 成本不计不翻；未列名/两属性工具（如 clip.warm_waveform_bake 变异+烘焙）
-// 不私定分级——按 unknown 处置，争议上交决策侧裁定后扩表。
+// 成本不计不翻；未列名工具不私定分级——按 unknown 处置，争议上交决策侧
+// 裁定后扩表（clip.warm_waveform_bake 即经此路径由裁定扩入 probe 级）。
 func (s *pullSession) settleRecordProbeCost(record map[string]any) {
 	switch probeToolTier(fmt.Sprint(record["tool"])) {
 	case probeTierIndex:
@@ -483,10 +483,13 @@ func elapsedMSFromRecord(record map[string]any) (float64, bool) {
 
 // probeToolTier 按分级表分类工具。名称归一：下划线视作点号（命令名
 // mix_request_observation 与工具名 mix.request_observation 同类）。
+// clip.warm_waveform_bake 归 probe 级为 PULL-PROBE-TIER-EXT-1 落地（授权=
+// coord/rulings/2026-10-10-EVENING-BATCH-rulings.md §3：波形烘焙=真实渲染
+// 物理工作，L2-2 实证串行瓶颈；warm 预热属性不改变物理成本事实）。
 func probeToolTier(tool string) string {
 	name := strings.ReplaceAll(strings.ToLower(strings.TrimSpace(tool)), "_", ".")
 	switch name {
-	case "ccb.observation.request", "mix.observe", "mix.request.observation":
+	case "ccb.observation.request", "mix.observe", "mix.request.observation", "clip.warm.waveform.bake":
 		return probeTierProbe
 	case "ref.query", "ref.diff", "ccb.observation.catalog", "project.state":
 		return probeTierIndex
