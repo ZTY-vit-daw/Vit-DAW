@@ -6,10 +6,11 @@
 
 ## 当前占用
 
-- 状态：占用中 / VIS-FILM-P0-ROUTE-ENABLE（GLM-5.3 Mac 执行流，ZCode 会话；worktree /Users/timozty/Documents/Vit-DAW-visfilm-p0，分支 port/vis-film-p0）2026-10-11 22:10 起腿：vitagent（HTTP 7878，无内核/Godot——规格注明 agent 进程在位即可）+ webui vite dev（5178）+ 离屏 WKWebView 截图腿 + 读图探针（agent 树一次性文件，跑完即删）。登记前核对：7878/5178/5555/5556/5557 监听=0、VitApp/vitagent 进程=0。
+- 状态：空闲
 
 ## 最近一次释放
 
+- 2026-10-11 22:10–22:40 +0800 / VIS-FILM-P0-ROUTE-ENABLE（GLM-5.3 Mac 执行流，ZCode 会话；worktree /Users/timozty/Documents/Vit-DAW-visfilm-p0，分支 port/vis-film-p0）：vitagent（HTTP 7878，无内核/Godot，/health ok）+ webui vite dev（5178）+ 离屏 WKWebView 截图 + 读图探针一轮（读图调用成功，17.3s）。22:40 teardown 复核：7878/5178/5555/5556/5557 监听=0、vitagent/vite/VitApp 进程=0。占用登记 dd9ac1df（登记前核对空闲）；run 工件 `coord/runs/VIS-FILM-P0/run1-20261011-2215/`（实现 commit @ port/vis-film-p0 36d28dca）。
 - 2026-10-11 11:45–12:34 +0800 / GEN-MAC-BASELINE-1（GLM-5.3 Mac 执行流，ZCode 会话；worktree /Users/timozty/Documents/Vit-DAW-genbase1，分支 port/gen-mac-baseline-1）：生成链勘测脚本 `scripts/gen_chain_survey_smoke_mac.sh` 四轮（run1/run2/run3=探针迭代，脚本缺陷非栈失败；run4=权威轮 exit 0，30/30 门绿，末轮脚本自 teardown），12:34 复核端口 7878/5555/5556/5557 监听=0、VitApp/vitagent 进程=0。占用登记 de3a3b6d（登记前核对空闲）；实现 commit 见 port/gen-mac-baseline-1；run 工件 `coord/runs/GEN-MAC-BASELINE-1/run4-pass-20261011-122948/`。期间另有一次裸内核 ZMQ 直发取证（11:47–11:53，fixture 排障，结束即杀，复核端口=0）。
 
 ## 历史占用（归档）
