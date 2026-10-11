@@ -29,6 +29,6 @@ agent 侧新适配包+配置面+scripts 冒测；零内核改动（产物走既�
 
 Suno 反代探测发现根本性封闭（无法经会话完成生成任务）→ 取证上交，卡内余量转官方型收口。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-11 21:42 CST / origin/main=dba5c516ff6f6668e1c9513a0ab244f66e030236 / owner=GLM-5.3 Mac 执行流（ZCode 会话）/ 分支 port/gen-api-adapter-1 / worktree /Users/timozty/Documents/Vit-DAW-genapi1 / 领取提交=本提交（coord-only 直推 main；doing/ 目录随领取重建——origin/main 当前无在飞卡）
 - 回执：（commit / run ID / 适配器清单+可行性结论 / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
