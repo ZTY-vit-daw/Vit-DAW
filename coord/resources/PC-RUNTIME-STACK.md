@@ -5,10 +5,13 @@
 
 ## 当前占用
 
-- 状态：占用中
-- 2026-10-11 20:05 +0800 起 / MIXLAYER-M1-2（GLM-5.3 PC 执行流，ZCode 会话；worktree D:/Vit_DAW_wt_mixlayer_m1_2，分支 port/mixlayer-m1-2）：fs_largeproject_smoke.ps1 -M1QueueRoundtrip 真栈烟测（内核+Godot UI+agent，端口 7878/5555/5556）；占用前核对端口监听=0、VitAgent/VitApp 进程=0、记录状态空闲。占用登记随本提交。
+- 状态：空闲
 
 ## 最近一次释放
+
+- 2026-10-11 20:05–20:16 +0800 / MIXLAYER-M1-2（GLM-5.3 PC 执行流，ZCode 会话；worktree D:/Vit_DAW_wt_mixlayer_m1_2，分支 port/mixlayer-m1-2）：fs_largeproject_smoke.ps1 -M1QueueRoundtrip 两 run——194717=首轮（M1Q 读面过/注释命令被语义入口吞→chat 拦截修复+门槛语义补丁，round 形态 improvement_proposal 与 FS-LARGEPROJECT-SMOKE-1 基线同族）；200448=**末轮 PASS exit 0**（M1Q 读→标注 E1 延期→重读往返四门全过+A1/A4 pass+A2/A3 软记录，栈自 teardown）；20:16 后复核端口 7878/5555/5556 监听=0、VitAgent/VitApp 进程=0。占用登记 cf46f950；run 工件 coord/runs/FS-LARGEPROJECT-SMOKE-1/fs_largeproject_smoke_2026101{1_194717,1_200448}（已随实现 commit 6511d700 入库精简件），详见卡回执。
+
+## 历史释放（M1-2 期间覆盖的上一条）
 
 - 2026-10-11 11:05–12:18 +0800 / MIXLAYER-M1-1（GLM-5.3 PC 执行流，ZCode 会话 sess_30083b31；worktree D:/Vit_DAW_wt_mixlayer_m1_1，分支 port/mixlayer-m1-1）：settle_deliver_smoke.ps1 -M1Survival 共 9 run（105423/110451=judgment_not_armed 模型随机分支×2 触发止损→脚本场景修复；111730/112607=判定命中但行面失败→取证定位原卡 $NeedleSettle/$Round2Text B64 非法 UTF-8 遗留 bug 并修复；113450=M1 门通过但重启探针暴露 draft 隔离→门改跨会话读回；114450/120538=无 settle 形态；115519=M1 门完整通过（当轮 exit 1 系行面坏 needle）；121359=**末轮全链 exit 0**：判定 POST→M1 记录落盘+新会话黑板读回(improved)→行面 1 行→round2 无 stale→重启探针留痕 empty_draft_isolation），各 run 均脚本自 teardown；12:18 后复核端口 7878/5555/5556 监听=0、VitAgent/VitApp 进程=0。占用登记 32fcab06；内核复用主检出 B6565DCF85D1DA86（C++ 面零改动）；run 工件在本机 coord/runs/SETTLE-DELIVER-SMOKE-20261011_*（worktree 内），详见卡回执。
 
