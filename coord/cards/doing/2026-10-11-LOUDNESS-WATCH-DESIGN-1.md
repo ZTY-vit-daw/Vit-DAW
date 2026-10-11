@@ -39,6 +39,6 @@
 
 发现 RLM profile/绑定面与卡面锚点重大不符 → 上交。
 
-- 领取：（时间 / origin/main hash / owner / 领取提交）
+- 领取：2026-10-11 21:46 +0800 / origin/main=8e66e674c331e1d8e8e9337451e3ad1b65de9d3f / owner=GLM-5.3-Flash PC 执行流（ZCode 会话）/ 分支 port/loudness-watch-design-1 / worktree D:/Vit_DAW_wt_loudwatch1（领取时 status 干净、diff --stat 空）/ 领取提交=本提交（coord-only 直推 main）
 - 回执：（设计基线链接）
 - 验收：（裁定文件）
