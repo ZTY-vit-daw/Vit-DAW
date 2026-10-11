@@ -31,6 +31,6 @@ mixboard/mix.report 工具面（chat catalog 注册处）+ 对应单测；不越
 
 M1-1/M1-2 合入形态与本卡接口假设不符 → 上交对齐。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-11 20:35 PC / origin/main=4f185c27105bb51c860bb9fc6610d47344a08797（含 M1-3 领取 4f185c27，已核对其域 canary/routing 与本卡零交集）/ owner=GLM-5.3 执行流（ZCode PC 会话，2026-10-11 晚窗）/ 分支=port/mixlayer-m1-5 / worktree=D:/Vit_DAW_wt_mixlayer_m1_5 / 领取提交=待推后回填
 - 回执：（commit / run ID / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
