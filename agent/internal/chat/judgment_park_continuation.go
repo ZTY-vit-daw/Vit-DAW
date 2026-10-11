@@ -91,14 +91,12 @@ func (s *Server) settleJudgmentParkOnUserContinuation(conversationID, message st
 			return false
 		}
 	}
-	events, err = loop.Experiment.Settle(experiment.OutcomeAdoptedByContinuation, judgmentParkAdoptionSummary, now)
-	if err != nil {
+	if err := s.settleFreeStateExperimentTurn(&loop, experiment.OutcomeAdoptedByContinuation, judgmentParkAdoptionSummary, nil, ""); err != nil {
 		if s.logger != nil {
 			s.logger.Warn("[judgment-park-continuation] settlement rejected: %v", err)
 		}
 		return false
 	}
-	s.emitFreeStateExperimentEvents(events)
 	loop.Status = "completed"
 	loop.RequiresPostActionObservation = false
 	if len(loop.AuditionSessionSnapshot) > 0 {

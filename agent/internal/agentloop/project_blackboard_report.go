@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"vit-daw-agent/internal/mixboard"
 	"vit-daw-agent/internal/planner"
 )
 
@@ -346,6 +347,14 @@ func messageLoopProjectBlackboardReportFromProjectState(state *runState, result 
 		appendMessageLoopBullet(&lines, "本会话存在最近一次混音声学观察")
 	}
 
+	conclusionBoard, conclusionsReadable := messageLoopProjectBlackboardFreeStateConclusions(project)
+	if conclusionsReadable && conclusionBoard.ConclusionCount > 0 {
+		lines = append(lines, "", "自由态结论（跨会话）")
+		for _, conclusion := range conclusionBoard.Conclusions {
+			appendMessageLoopBullet(&lines, messageLoopFreeStateConclusionLine(conclusion))
+		}
+	}
+
 	lines = append(lines, "", "风险与遗留")
 	if status != "ok" && status != "ready" && status != "unknown" {
 		appendMessageLoopBullet(&lines, "工程快照状态："+status)
@@ -374,6 +383,9 @@ func messageLoopProjectBlackboardReportFromProjectState(state *runState, result 
 
 	lines = append(lines, "", "数据来源")
 	appendMessageLoopBullet(&lines, "project.state")
+	if conclusionsReadable && conclusionBoard.ConclusionCount > 0 {
+		appendMessageLoopBullet(&lines, "free_state_conclusions 工程级持久层（跨会话）")
+	}
 	if state != nil && (len(state.executionMemory.PendingTrackOrganization) > 0 || len(state.executionMemory.PendingSectionMarkers) > 0) {
 		appendMessageLoopBullet(&lines, "execution memory")
 	}
@@ -505,4 +517,74 @@ func messageLoopProjectBlackboardFallbackRecord(call planner.ToolCall, errText s
 		"status":       "error",
 		"error":        firstNonEmpty(strings.TrimSpace(errText), "project.state did not produce an execution record"),
 	}
+}
+
+// messageLoopProjectBlackboardFreeStateConclusions reads the project-keyed
+// free-state conclusion persistence layer (MIXLAYER-M1-1). The read follows
+// the same project-scoped mixboard root the settle-side writer used, with the
+// project uuid taken from the project.state snapshot and the bound
+// projectstore roots as fallback. Old-project default semantics: a project
+// that never wrote conclusions reads as an empty board (no error, no report
+// section); an unreadable board is an honest omission, never a report
+// failure.
+func messageLoopProjectBlackboardFreeStateConclusions(project map[string]any) (mixboard.FreeStateConclusionBoard, bool) {
+	projectUUID := firstMapText(project, "project_uuid", "project_id")
+	board, err := mixboard.NewStore("").ReadFreeStateConclusionBoard(projectUUID)
+	if err != nil {
+		return mixboard.FreeStateConclusionBoard{}, false
+	}
+	return board, true
+}
+
+// messageLoopFreeStateConclusionLine renders one persisted conclusion as a
+// blackboard bullet. Unknown outcome/kind values from later schema revisions
+// are shown verbatim rather than dropped (fail-open display for reporting
+// data).
+func messageLoopFreeStateConclusionLine(conclusion mixboard.FreeStateConclusionView) string {
+	settledAt := ""
+	if !conclusion.SettledAt.IsZero() {
+		settledAt = conclusion.SettledAt.Local().Format("2006-01-02 15:04")
+	}
+	line := strings.TrimSpace(conclusion.Outcome + "：" + messageLoopFreeStateOutcomeLabel(conclusion))
+	if summary := strings.TrimSpace(conclusion.Summary); summary != "" {
+		line += "—" + summary
+	}
+	if settledAt != "" {
+		line += "（收口于 " + settledAt + "）"
+	}
+	return line
+}
+
+func messageLoopFreeStateOutcomeLabel(conclusion mixboard.FreeStateConclusionView) string {
+	switch conclusion.Kind {
+	case mixboard.FreeStateConclusionKindExperimentStop:
+		return "自由态实验已停止"
+	case mixboard.FreeStateConclusionKindLoopClosureSettle:
+		switch conclusion.Outcome {
+		case "no_candidate_found":
+			return "有界搜索未找到候选后收口"
+		case "capability_blocked":
+			return "能力边界受阻后收口"
+		case "cancelled":
+			return "已取消收口"
+		case "completed":
+			return "诊断完成收口"
+		}
+	case mixboard.FreeStateConclusionKindExperimentSettle:
+		switch conclusion.Outcome {
+		case "improved":
+			return "已按用户人耳判定保留改动"
+		case "rolled_back":
+			return "已按用户人耳判定回滚到改动前状态"
+		case "needs_judgment":
+			return "判定未指向任一候选，按人耳判断收口，未执行进一步变更"
+		case "adopted_by_continuation":
+			return "待裁决段按默认采纳收口"
+		case "budget_exhausted":
+			return "多轮预算耗尽后收口"
+		case "stopped":
+			return "自由态实验已停止"
+		}
+	}
+	return "自由态结论已收口"
 }

@@ -1784,11 +1784,9 @@ func (s *Server) applyFreeStateJudgmentOutcome(ctx context.Context, loop *freeSt
 				return err
 			}
 		}
-		events, err = loop.Experiment.Settle(experiment.OutcomeImproved, "user preferred "+retainedLetter+"; treatment candidate retained", time.Now().UTC())
-		if err != nil {
+		if err := s.settleFreeStateExperimentTurn(loop, experiment.OutcomeImproved, "user preferred "+retainedLetter+"; treatment candidate retained", judgmentConclusionFromEvidence(evidence, loop), evidence.ProjectUUID); err != nil {
 			return err
 		}
-		s.emitFreeStateExperimentEvents(events)
 		loop.Status = "completed"
 	case experiment.DecisionRollback:
 		events, err := loop.Experiment.DecideRound(experiment.DecisionRollback, "user selected rollback to baseline candidate", time.Now().UTC())
@@ -1807,11 +1805,9 @@ func (s *Server) applyFreeStateJudgmentOutcome(ctx context.Context, loop *freeSt
 				return err
 			}
 		}
-		events, err = loop.Experiment.Settle(experiment.OutcomeRolledBack, "user selected baseline or rejected both candidates", time.Now().UTC())
-		if err != nil {
+		if err := s.settleFreeStateExperimentTurn(loop, experiment.OutcomeRolledBack, "user selected baseline or rejected both candidates", judgmentConclusionFromEvidence(evidence, loop), evidence.ProjectUUID); err != nil {
 			return err
 		}
-		s.emitFreeStateExperimentEvents(events)
 		loop.Status = "completed"
 	default:
 		if disposition.Decision == experiment.DecisionNextRound && !singleRound {
@@ -1896,11 +1892,9 @@ func (s *Server) applyFreeStateJudgmentOutcome(ctx context.Context, loop *freeSt
 				return err
 			}
 		}
-		events, err = loop.Experiment.Settle(experiment.OutcomeNeedsJudgment, "human judgment was ambiguous; no further mutation performed", time.Now().UTC())
-		if err != nil {
+		if err := s.settleFreeStateExperimentTurn(loop, experiment.OutcomeNeedsJudgment, "human judgment was ambiguous; no further mutation performed", judgmentConclusionFromEvidence(evidence, loop), evidence.ProjectUUID); err != nil {
 			return err
 		}
-		s.emitFreeStateExperimentEvents(events)
 		loop.Status = "completed"
 	}
 	return nil

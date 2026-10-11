@@ -11,6 +11,7 @@ import (
 	"vit-daw-agent/internal/agentprotocol"
 	"vit-daw-agent/internal/experiment"
 	"vit-daw-agent/internal/harness"
+	"vit-daw-agent/internal/mixboard"
 	"vit-daw-agent/internal/trajectory"
 )
 
@@ -842,14 +843,12 @@ func (s *Server) settleFreeStateExperiment(loop *freeStateReasoningLoop, outcome
 		}
 		return
 	}
-	events, err := loop.Experiment.Settle(outcome, summary, time.Now().UTC())
-	if err != nil {
+	if err := s.settleFreeStateExperimentTurn(loop, outcome, summary, nil, ""); err != nil {
 		if s != nil && s.logger != nil {
 			s.logger.Warn("[free-state-experiment] settlement rejected: %v", err)
 		}
 		return
 	}
-	s.emitFreeStateExperimentEvents(events)
 }
 
 func (s *Server) stopFreeStateExperiment(loop *freeStateReasoningLoop, summary string) {
@@ -870,6 +869,7 @@ func (s *Server) stopFreeStateExperiment(loop *freeStateReasoningLoop, summary s
 		return
 	}
 	s.emitFreeStateExperimentEvents(events)
+	s.recordFreeStateSettlement(loop, mixboard.FreeStateConclusionKindExperimentStop, string(experiment.OutcomeStopped), summary, nil, "")
 }
 
 // rollbackFreeStateExperiment delegates actual restoration to the existing

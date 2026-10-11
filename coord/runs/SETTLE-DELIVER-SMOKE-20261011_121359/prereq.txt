@@ -1,0 +1,31 @@
+﻿run_root=D:\Vit_DAW_wt_mixlayer_m1_1\coord\runs\SETTLE-DELIVER-SMOKE-20261011_121359
+head=fc0247f56125a6e5877774431cbf47f74364d6d9
+git_status= M .gitignore ;  M agent/internal/agentloop/project_blackboard_report.go ;  M agent/internal/chat/audition_candidate_adoption.go ;  M agent/internal/chat/audition_events.go ;  M agent/internal/chat/free_state_experiment_runtime.go ;  M agent/internal/chat/free_state_reasoning_loop.go ;  M agent/internal/chat/judgment_park_continuation.go ;  M scripts/settle_deliver_smoke.ps1 ; ?? agent/internal/agentloop/project_blackboard_report_free_state_test.go ; ?? agent/internal/chat/free_state_conclusion_bridge.go ; ?? agent/internal/chat/free_state_conclusion_bridge_test.go ; ?? agent/internal/mixboard/free_state_conclusion_store.go ; ?? agent/internal/mixboard/free_state_conclusion_store_test.go ; ?? coord/runs/SETTLE-DELIVER-SMOKE-20261011_105423/ ; ?? coord/runs/SETTLE-DELIVER-SMOKE-20261011_110451/ ; ?? coord/runs/SETTLE-DELIVER-SMOKE-20261011_111730/ ; ?? coord/runs/SETTLE-DELIVER-SMOKE-20261011_112607/ ; ?? coord/runs/SETTLE-DELIVER-SMOKE-20261011_113450/ ; ?? coord/runs/SETTLE-DELIVER-SMOKE-20261011_114450/ ; ?? coord/runs/SETTLE-DELIVER-SMOKE-20261011_115519/ ; ?? coord/runs/SETTLE-DELIVER-SMOKE-20261011_120538/
+port_free=7878
+port_free=5555
+port_free=5556
+agent_binary=D:\Vit_DAW_wt_mixlayer_m1_1\coord\runs\SETTLE-DELIVER-SMOKE-20261011_121359\bin\VitAgent.settledeliver.exe size=36124672 mtime=2026-10-11T12:14:01.2658967+08:00
+kernel_binary=D:\Vit_DAW_wt_mixlayer_m1_1\VitApp\build\VitApp_artefacts\Release\VitApp.exe size=30991360 mtime=2026-10-11T10:53:56.0798327+08:00
+repo_default_project_sha256_before=0BF39F256B996DF408CC3179DB0ECFC97BBD234145741DD0A4E243E69F12DC1D
+kernel_pid=10688
+agent_pid=12532
+s1_shadow_initialized=True track_count=6
+authority_mode=full_project_access
+chat1_goal=goal_12ab35491cb6a6ed status=waiting_continue stop=limit_reached
+judgment_http=ok
+m1_conclusion_dirs=1 records=1
+m1_record=D:\Vit_DAW_wt_mixlayer_m1_1\coord\runs\SETTLE-DELIVER-SMOKE-20261011_121359\agent_drafts\draft_20261011T041402_be2f5d8d\.vit_agent\vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb\mixboard\decisions\free_state_conclusions\fsc_turn_free_state_3c46365f0a047f4d_experiment_settle.json mtime=2026-10-11T12:16:01.6435201+08:00
+m1_newest_record_kind=experiment_settle outcome=improved project=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb
+m1_blackboard_goal=goal_8ed4e84d6801a26d status=completed
+chat2_goal=goal_31cfbd937ef6efc4 status=waiting_continue stop=limit_reached
+m1_restarted_former_agent_pid=12532
+m1_agent2_pid=27060
+m1_agent2_shadow_initialized=True
+m1_restart_readback=empty_draft_isolation
+stopped_agent_pid=27060
+stopped_kernel_pid=10688
+port_released=7878
+port_released=5555
+port_released=5556
+repo_default_project_sha256_after=0BF39F256B996DF408CC3179DB0ECFC97BBD234145741DD0A4E243E69F12DC1D
+finished=2026-10-11T12:18:21.3133862+08:00

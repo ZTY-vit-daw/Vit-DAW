@@ -16,6 +16,7 @@ import (
 	"vit-daw-agent/internal/config"
 	"vit-daw-agent/internal/contextruntime"
 	"vit-daw-agent/internal/experiment"
+	"vit-daw-agent/internal/mixboard"
 	"vit-daw-agent/internal/orchestrationcontroller"
 	agentruntime "vit-daw-agent/internal/runtime"
 	"vit-daw-agent/internal/taskstate"
@@ -3205,6 +3206,13 @@ func (s *Server) settleFreeStateLoopFromClosure(conversationID string, settlemen
 	loop.UpdatedAt = now
 	s.freeStateLoops[conversationID] = cloneFreeStateLoop(loop)
 	s.mu.Unlock()
+	// MIXLAYER-M1-1: the closure settle is a durable project conclusion. The
+	// record happens outside s.mu (file IO) and never unwinds the settle.
+	closureProjectUUID := ""
+	if len(closure) > 0 {
+		closureProjectUUID = closure[0].ProjectUUID
+	}
+	s.recordFreeStateSettlement(&loop, mixboard.FreeStateConclusionKindLoopClosureSettle, loopStatus, summary, nil, closureProjectUUID)
 	_ = s.persistContinuationState()
 }
 
