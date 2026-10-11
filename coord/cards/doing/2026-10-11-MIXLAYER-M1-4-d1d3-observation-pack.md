@@ -35,6 +35,6 @@ chat/ capability seam（与 M1-3 同面：capability_runtime_canary.go+capabilit
 
 mix.observe 命令面/RLM 投影与锚点不符 → 锚点上交。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-11 22:05 +0800 / origin/main=55c997d3 / GLM-5.3 PC 执行流（ZCode 会话，本会话）/ 分支 port/mixlayer-m1-4 / worktree D:/Vit_DAW_wt_mixlayer_m1_4 / 领取提交=见卡 git log（本提交）。领取前核对：卡在 todo、派发已确认、M1-3 已合入（6d2295bc 在 main）；doing 六卡（PULL-PROBE-TIER-EXT-1/GEN-API-ADAPTER-1/GEN-CTX-DISCLOSE-1/LOUDNESS-WATCH-DESIGN-1/MIDI-ARGSPEC-ALIGN-1/VIS-FILM-P0-ROUTE-ENABLE）文件域与本卡（chat capability seam+新 D 族 pack+单测+fs_largeproject_smoke.ps1）不相交；M2-TIMEFX-1 未在 doing（同域串行，排本卡合入后）。
 - 回执：（commit / run ID / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
