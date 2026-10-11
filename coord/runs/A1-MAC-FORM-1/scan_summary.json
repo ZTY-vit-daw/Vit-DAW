@@ -1,0 +1,67 @@
+{
+  "total": 719,
+  "manufacturers": {
+    "Waves": 719
+  },
+  "formats": {
+    "VST3": 719
+  },
+  "plugin_shells": {
+    "/Library/Audio/Plug-Ins/VST3/WaveShell1-VST3 17.1.vst3": 718,
+    "/Library/Audio/Plug-Ins/VST3/WaveShell1-VST3-ARA 17.1.vst3": 1
+  },
+  "is_instrument_true": 14,
+  "primary_type_instrument": 22,
+  "primary_type_instrument_false_positives": [
+    "CLA Drums Mono/Stereo",
+    "CLA Drums Stereo",
+    "GW PianoCentric Mono",
+    "GW PianoCentric Mono/Stereo",
+    "GW PianoCentric Stereo",
+    "JJP-Drums Mono",
+    "JJP-Drums Mono/Stereo",
+    "JJP-Drums Stereo"
+  ],
+  "category_counts": {
+    "Fx|Reverb": 48,
+    "Fx|Channel Strip": 25,
+    "Fx|Distortion": 29,
+    "Fx|Modulation": 39,
+    "Fx|Dynamics": 87,
+    "Fx|EQ": 77,
+    "Fx|Spatial + Panner": 40,
+    "Fx|Mastering": 16,
+    "Fx|Other": 37,
+    "Instrument|Waves": 14,
+    "Fx|Bass": 18,
+    "Fx|Vocals": 19,
+    "Fx|Surround": 78,
+    "Fx|Dynamics - Multiband": 30,
+    "Fx|Drums": 11,
+    "Fx|Effects": 23,
+    "Fx|Guitar": 40,
+    "Fx|Restoration": 24,
+    "Fx|Analyzer": 14,
+    "Fx|Generator": 6,
+    "Fx|Delay": 11,
+    "Fx|Tools": 8,
+    "Fx|Pitch Shift": 22,
+    "Fx|StudioVerse": 3
+  },
+  "semantic_summary_from_index": {
+    "analyzer": 14,
+    "compressor": 2,
+    "delay": 13,
+    "distortion": 29,
+    "dynamics": 117,
+    "eq": 77,
+    "filter": 2,
+    "instrument": 22,
+    "limiter": 2,
+    "meter": 4,
+    "modulation": 39,
+    "pitch": 22,
+    "reverb": 52,
+    "unknown": 324
+  }
+}
