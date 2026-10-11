@@ -15,6 +15,6 @@ get_project_state 新增 music_context 六键（tempo/拍号族，key_signature/
 
 CommandDispatcher.cpp 与任何在飞卡（如 PC 混音线内核腿）叠域时按 PROTOCOL §3 核对；Mac 栈按 MAC-RUNTIME-STACK 登记。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-11 21:42 +0800 / origin/main=dba5c516 / GLM-5.3 Mac 执行流（ZCode 会话）/ port/gen-ctx-disclose-1 / worktree /Users/timozty/Documents/Vit-DAW-ctxdisclose1（coord 面 /Users/timozty/Documents/Vit-DAW-ctxd1-coord）/ 领取提交=dba5c516（worktree 基线即领取提交，领取时 git status --short 空、diff --stat 空）
 - 回执：（commit / run ID / 冒测工件）
 - 验收：（裁定文件 / 验收 commit）
