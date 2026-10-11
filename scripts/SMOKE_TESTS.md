@@ -1584,3 +1584,58 @@ Notes:
   60 s) excluded with evidence and replaced. First batch of 5 runs voided
   on the step-7 kernel handoff defect above (fixed @ce495c9). Evidence
   root `~/Documents/vit-smoke-mac4-artifacts/` (RUN_LEDGER.md).
+
+## Generation-Chain Five-Command Survey Smoke (mac) (GEN-MAC-BASELINE-1)
+
+Path:
+
+```bash
+~/Documents/Vit-DAW/scripts/gen_chain_survey_smoke_mac.sh
+```
+
+Purpose:
+
+- GEN-MAC-BASELINE-1 first survey of the generation-chain command surface on
+  the mac real two-process stack (VitApp kernel + Go agent; Godot frontend out
+  of scope), dispatched through the agent tool chain (`POST /agent/invoke`,
+  dual-form: a `needs_confirmation` card is re-invoked with `confirmed:true`).
+- Probes: `clear_project`/`project.new`/`project.save_as` (file-exists gate);
+  the midi family (`midi.import_file` with a synthesised 3-note fixture,
+  read-back consistency, `midi.insert_clip`, `midi.add_notes`,
+  `midi.add_notes_bulk`, mixed-op `midi.write_clip_notes`, `midi.mutate_notes`,
+  `midi.delete_notes` by note id, `midi.read_clip_data`, final mathematical
+  read-back); render leg B (MIDI-only edit must be rejected synchronously with
+  `reason=no_renderable_audio_content` — K1 fix reply semantics — with the
+  command surface staying alive and idle `render.cancel` ok); the
+  `assets.generated` family (`assets.register_job`,
+  `assets.ingest_generated_asset` x2 onto one shared take stack,
+  `assets.set_async_ghost_state`, `assets.switch_take`); render leg A (with the
+  ingested sine stem: job started, output wav polled to completion with a RIFF
+  header, command surface alive after — the K1 freeze regression check; plus a
+  survey-recorded `render.profile.bind` telemetry probe); `project.save`; and a
+  fail-closed negative probe (ingest with a missing file must reply error).
+- All kernel/agent state lands under a fake VitApp root inside a fresh mktemp
+  workdir (AGENTS §10); fixtures (.mid/.wav) are synthesised into the workdir.
+- Emits a `gen.chain.survey.mac.v1` summary JSON; exit 0 requires every hard
+  data-level gate to pass (the write/read-back substrate a generation line
+  needs). Failures are classified env vs functional.
+
+Common commands:
+
+```bash
+# Survey with the GEN-MAC-BASELINE-1 rebuilt kernel + a fresh agent build:
+~/Documents/Vit-DAW/scripts/gen_chain_survey_smoke_mac.sh \
+  --kernel-bin /tmp/vit-genbase1-build/app/VitApp_artefacts/Debug/VitApp
+
+# Reuse a prebuilt agent binary too (skips go build):
+~/Documents/Vit-DAW/scripts/gen_chain_survey_smoke_mac.sh \
+  --kernel-bin <path>/VitApp --agent-bin <path>/vitagent
+```
+
+Notes:
+
+- The kernel is NOT built by this script — pass the kernel binary rebuilt for
+  the baseline being surveyed (sha256 recorded per AGENTS §9).
+- The default kernel path is the repo's `VitApp/build/VitApp_artefacts/Debug/
+  VitApp` (the later mac smoke convention); in an isolated worktree pass
+  `--kernel-bin` explicitly.
