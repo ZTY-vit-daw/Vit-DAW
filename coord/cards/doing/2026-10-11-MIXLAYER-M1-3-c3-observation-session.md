@@ -41,6 +41,6 @@ chat/ capability seam（capability_runtime_canary.go+capability_routing.go）+ �
 
 canary seam 结构与锚点不符（六分支已变）→ 锚点上交。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-11 20:28 PC / origin/main=09e5df456a3b5c06b6e7e7e3aceb42180df86584 / owner=GLM-5.3 执行流（ZCode PC 会话，2026-10-11 晚窗）/ 分支=port/mixlayer-m1-3 / worktree=D:/Vit_DAW_wt_mixlayer_m1_3 / 领取提交=本提交（hash 见推送后回执）
 - 回执：（commit / run ID / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
