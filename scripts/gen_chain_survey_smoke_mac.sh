@@ -540,12 +540,35 @@ else
   gate midi_apply_patch_ok 0 "transport/http failure"
 fi
 
-log "P2: midi.mutate_notes (region mutate pitch+velocity)..."
-if invoke_tool p11_mutate 90 "midi.mutate_notes" \
-  "{\"track_id\":\"$MIDI_TRACK_ID\",\"clip_id\":\"$MIDI_CLIP_ID\",\"notes\":[{\"start\":2.0,\"length\":1.0,\"pitch\":74,\"velocity\":55}]}"; then
+log "P2: midi.mutate_notes (by note id — the kernel requires ids, region form is rejected)..."
+MUTATE_NOTE_ID=""
+if invoke_tool p10b_pre_mutate_read 60 "midi.read_clip_notes" "{\"clip_id\":\"$MIDI_CLIP_ID\"}"; then
+  MUTATE_NOTE_ID="$(python3 - "$REPLY_FILE" <<'PY'
+import json, sys
+try:
+    d = json.load(open(sys.argv[1], encoding="utf-8"))
+    notes = (d.get("result") or {}).get("notes") or []
+    for n in notes:
+        if int(n.get("pitch", -1)) == 67:
+            print(str(n.get("id", n.get("note_id", ""))))
+            break
+    else:
+        print("")
+except Exception:
+    print("")
+PY
+)"
+  log "mutate target note id (pitch 67): ${MUTATE_NOTE_ID:-<none found>}"
+fi
+if [[ -n "$MUTATE_NOTE_ID" ]] && invoke_tool p11_mutate 90 "midi.mutate_notes" \
+  "{\"track_id\":\"$MIDI_TRACK_ID\",\"clip_id\":\"$MIDI_CLIP_ID\",\"notes\":[{\"id\":\"$MUTATE_NOTE_ID\",\"pitch\":74,\"velocity\":55}]}"; then
   gate midi_mutate_ok "$( [[ "$REPLY_STATUS" == "ok" ]] && echo 1 || echo 0 )" "status=$REPLY_STATUS"
 else
-  gate midi_mutate_ok 0 "transport/http failure"
+  if [[ -z "$MUTATE_NOTE_ID" ]]; then
+    gate midi_mutate_ok 0 "no pitch-67 note id surfaced by read-back (p10b)"
+  else
+    gate midi_mutate_ok 0 "transport/http failure"
+  fi
 fi
 
 log "P2: midi.delete_notes (by note id of the inserted 72)..."
