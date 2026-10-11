@@ -87,6 +87,10 @@ yarn-error.log*
 /VitApp/Workspace/agent_runtime_config.json
 /agent/backups/
 **/.vit_history/
+# MIXLAYER-M1-1: per-project agent store (mixboard decision ledger + free-state
+# conclusion store) is runtime state next to the project file, same class as
+# .vit_history — never committed.
+**/.vit_agent/
 /agent/.playwright-cli/
 /design/gui/.playwright-cli/
 /agent/output/

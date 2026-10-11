@@ -573,11 +573,9 @@ func (s *Server) applyAuditionCandidate(ctx context.Context, request auditionCan
 			s.emitFreeStateExperimentEvents(rollbackEvents)
 		}
 	}
-	settlementEvents, err := loop.Experiment.Settle(outcome, "explicit candidate adoption completed", time.Now().UTC())
-	if err != nil {
+	if err := s.settleFreeStateExperimentTurn(&loop, outcome, "explicit candidate adoption completed", judgmentConclusionFromEvidence(evidence, &loop), evidence.ProjectUUID); err != nil {
 		return receipt, err
 	}
-	s.emitFreeStateExperimentEvents(settlementEvents)
 	loop.AuditionSessionSnapshot["adoption_status"] = "applied"
 	loop.AuditionSessionSnapshot["adoption_receipt"] = receipt
 	loop.Status, loop.RequiresPostActionObservation, loop.LastError = "completed", false, ""
