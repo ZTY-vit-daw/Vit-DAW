@@ -32,6 +32,6 @@ chat/ 或 agentloop/ 新增 queue 视图文件+黑板持久层读取；与 M1-3/
 
 黑板持久层接口与 M1-1 合入形态不符（卡面描述过期）→ 上交对齐，不擅改 M1-1 文件域。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-11 19:26 PC / origin/main=78e3ef1945be52da0c12236583cf7d16f1191dc0 / owner=GLM-5.3 执行流（ZCode PC 会话，2026-10-11 晚窗）/ 分支=port/mixlayer-m1-2 / worktree=D:/Vit_DAW_wt_mixlayer_m1_2 / 领取提交=（推送后回填）
 - 回执：（commit / run ID / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
