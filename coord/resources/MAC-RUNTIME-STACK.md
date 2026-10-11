@@ -14,4 +14,4 @@
 
 ## 历史占用（归档）
 
--（尚无）
+- 2026-10-11 18:15–18:21 +0800 / GEN-MAC-BASELINE-1 验收复跑（Mac 决策侧会话，ZCode）：`gen_chain_survey_smoke_mac.sh` 独立复验一轮 exit 0 全门绿（复用同哈希双二进制，run workdir 独立临时目录，脚本自 teardown）；收尾 lsof 7878/5555/5556/5557 与 pgrep VitApp/vitagent 亲核零残留。
