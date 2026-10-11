@@ -5,7 +5,7 @@
 
 ## 当前占用
 
-- 状态：空闲
+- **占用中**：2026-10-11 22:55 起 / FE-GUI-SHRINK-IMPL-1 真栈烟测腿（GLM-5.3-Flash · PC · ZCode flash 执行流会话；前端仓分支 port/fe-gui-shrink-1 @ c56e38f，主检出 D:/Godot/project/vit-daw-frontend）。计划命令=`dev_agent_smoke.ps1 -StartKernel -StartUI -MixSmoke`（7878/5555/5556 + Godot 前端）。登记前实测（M1-4 释放记录后复核）：端口 7878/5555/5556 监听=0，VitAgent/VitApp/Godot 进程=0。
 
 ## 最近一次释放
 
