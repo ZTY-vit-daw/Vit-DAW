@@ -1,0 +1,52 @@
+GEN-UNIFY-CTX-DESIGN-1 锚点机检记录
+=====================================
+- 执行：2026-10-11 / 领取基线 origin/main=cf46f950（领取提交 12105183，worktree ~/Documents/Vit-DAW-wt-genctx）
+- 方法：sed 按 file:line 逐条取行 + 关键字断言（39 项全 PASS，exit 0）；tracktion 锚点取主仓 checkout（pin b439749，与 gitlink 一致——worktree 子模块空，GEN-MAC-BASELINE-1 同先例）
+- 用途：README §2 验收对照与各设计件内 file:line 引用的可复验底账
+
+PASS handleGetProjectState starts :3291
+PASS handler ends ~:3448 (JSON toString)
+PASS set_tempo registered :2514
+PASS handleSetTempo :3451
+PASS getTempo(0)+setBpm :3468
+PASS midi handler @:2609
+PASS midi handler @:2615
+PASS midi handler @:2633
+PASS midi handler @:2645
+PASS midi handler @:2657
+PASS markers disclosure :3421
+PASS vit_* props :3391-3396
+PASS block_size precedent :3405-3416
+PASS tracks key :3420
+PASS jlimit pitch @MidiService:822
+PASS jlimit pitch @MidiService:942
+PASS jlimit pitch @MidiService:1076
+PASS jlimit pitch @MidiService:1228
+PASS note id req :1181
+PASS tempoSequence.toTime :125
+PASS ClipService.toTime :158
+PASS add_midi_notes argspec :538-539
+PASS import argspec :534-535
+PASS risk rows :1003-1009
+PASS d1_runtime get_project_state :487
+PASS scheduler :797
+PASS processor_selection :260
+PASS semantic_strategy :142
+PASS Section model :12-29
+PASS projectAgentRuntimeState :163
+PASS save path :1211-1233
+PASS TempoSequence defaults :141-144
+PASS PitchSequence default pitch60 :101-102
+PASS getStringTimeSig :33
+PASS numerator CachedValue :50
+PASS getPitch/getScale :32-36
+PASS ScaleType enum :77-90
+PASS getSteps :125
+PASS getTimeSig/getTempo API :66-91
+ALL PASS
+
+行号漂移注记（转引修正）
+------------------------
+- GEN-MAC-BASELINE-1 report.md §二.2 所引 MidiService.cpp:1125-1144（mutate by-id 拒区域形式）在其当时 HEAD 成立；
+  本卡基线亲验=同一报错文案实际行号 :1181（上游漂移），设计件三 §5 已按亲验值修正并注明出处。
+- 卡面所写 CommandDispatcher.cpp:3279-3437（"一带"）亲验=handleGetProjectState 函数体实际 3291-3448，属"一带"成立范围。
