@@ -316,11 +316,15 @@ python3 - "$MIDI_FIXTURE" "$WAV_FIXTURE" <<'PY'
 import math, struct, sys
 
 # MIDI: format 0, one track, 480 PPQ, 120 bpm implicit; three notes
-# C4(60,v90) E4(64,v80) G4(67,v70), each 1 beat, back to back (the same
-# fixture bytes dev_agent_smoke.ps1 midi_register/render_freeze use).
+# C4(60,v90) E4(64,v80) G4(67,v70), each 1 beat, back to back — byte-for-byte
+# the archived green fixture from KERNEL-RENDER-FREEZE-FIX-1
+# (coord/runs/KERNEL-RENDER-FREEZE-FIX-1/smoke_midi_register_regress/
+# midi_register_fixture.mid). NB: the MTrk chunk id is case-sensitive
+# ("MTrk", 0x4b6B lowercase k); an uppercase-K variant is silently skipped
+# by the SMF parser as an unknown chunk and imports zero notes.
 midi = bytes([
     0x4D,0x54,0x68,0x64, 0x00,0x00,0x00,0x06, 0x00,0x00, 0x00,0x01, 0x01,0xE0,
-    0x4D,0x54,0x72,0x4B, 0x00,0x00,0x00,0x1F,
+    0x4D,0x54,0x72,0x6B, 0x00,0x00,0x00,0x1F,
     0x00,0x90,0x3C,0x5A,
     0x83,0x60,0x80,0x3C,0x00,
     0x00,0x90,0x40,0x50,
