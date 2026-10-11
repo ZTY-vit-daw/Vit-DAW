@@ -6,7 +6,7 @@
 
 ## 当前占用
 
-- 状态：空闲
+- 状态：占用中 / VIS-FILM-P0-ROUTE-ENABLE（GLM-5.3 Mac 执行流，ZCode 会话；worktree /Users/timozty/Documents/Vit-DAW-visfilm-p0，分支 port/vis-film-p0）2026-10-11 22:10 起腿：vitagent（HTTP 7878，无内核/Godot——规格注明 agent 进程在位即可）+ webui vite dev（5178）+ 离屏 WKWebView 截图腿 + 读图探针（agent 树一次性文件，跑完即删）。登记前核对：7878/5178/5555/5556/5557 监听=0、VitApp/vitagent 进程=0。
 
 ## 最近一次释放
 
