@@ -5,10 +5,11 @@
 
 ## 当前占用
 
-- 状态：占用中
-- 2026-10-11 21:03 +0800 起（本机钟）/ MIXLAYER-M1-5（GLM-5.3 PC 执行流，ZCode 会话 sess_155c5ae2；worktree D:/Vit_DAW_wt_mixlayer_m1_5，分支 port/mixlayer-m1-5 @8e9ce5f1）：fs_largeproject_smoke.ps1 -M1QueueRoundtrip -M1FiveThreeView 真栈烟测（含 61 轨导入+bake 预热，预计 1 小时内）。占用前实测端口 7878/5555/5556 监听=0、VitAgent/VitApp 进程=0，远端记录空闲（M1-3 已释放），与实测一致。
+- 状态：空闲
 
 ## 最近一次释放
+
+- 2026-10-11 21:04–21:15 +0800（本机钟）/ MIXLAYER-M1-5（GLM-5.3 PC 执行流，ZCode 会话 sess_155c5ae2；worktree D:/Vit_DAW_wt_mixlayer_m1_5，分支 port/mixlayer-m1-5）：fs_largeproject_smoke.ps1 -M1QueueRoundtrip -M1FiveThreeView 两 run——210405=**首轮 PASS exit 0**（M15 八门全过：mix_report invoke ok+schema+最近 settle 结论行+queue 节点状态行 23 节点+E1 延期可见+双折叠一致 0=0+settle 行真实性+A4 零标记；M1Q 四门+A1/A4 pass；round 形态 goal_terminal 无 settle→settle 行走无记录诚实分支）；210903=第二轮同形态 PASS exit 0（§8 止损：不再加跑，有结论分支归单测覆盖）；两轮均脚本自 teardown（ports free, processes gone），末轮后实测端口 7878/5555/5556 监听=0、VitAgent/VitApp 进程=0。占用登记 435ebd4b；被测 HEAD=8e9ce5f1（实现 commit，两轮 head.txt 在卷）；run 工件精简件随 6cc0ec06@port/mixlayer-m1-5 入库（coord/runs/FS-LARGEPROJECT-SMOKE-1/fs_largeproject_smoke_2026101{1_210405,1_210903}），详见卡回执。
 
 - 2026-10-11 20:49–21:16 +0800 / MIXLAYER-M1-3（GLM-5.3 PC 执行流，ZCode 会话；worktree D:/Vit_DAW_wt_mixlayer_m1_3，分支 port/mixlayer-m1-3）：fs_largeproject_smoke.ps1 -C3Observation 一 run=**PASS exit 0**（C3OBS 三门全过：观察报告 schema 行+只读声明+A4 标记族零命中；A1/A4 pass；A2/A3 软记录，classification=capability_blocked 与 FS-LARGEPROJECT-SMOKE-1 基线同族归其返工线——M1-2 ruling 已接受同语义；栈自 teardown torn_down=true）；21:16 后复核端口 7878/5555/5556 监听=0、VitAgent/VitApp 进程=0。占用登记 e7645a65（登记时间误写 21:05，实际占用自 20:49 run 启动——此处修正）；run 工件 coord/runs/FS-LARGEPROJECT-SMOKE-1/fs_largeproject_smoke_20261011_204949（随实现 commit 入库），详见卡回执。
 
