@@ -2,7 +2,8 @@ package agentloop
 
 // pull_probe_meter_test.go — PULL-PROBE-METER-1：probe 物理成本计量接入的
 // D5 分级结算面（execRecord.elapsed_ms → settleBatch → ledger.probeSpent）。
-// 既有测试零改动；本文件只加新面。
+// PULL-PROBE-TIER-EXT-1 修订：clip.warm_waveform_bake 经裁定扩入 probe 级
+// （rulings/2026-10-10-EVENING-BATCH §3），原"两属性不私定"断言随之翻面。
 
 import (
 	"context"
@@ -100,12 +101,13 @@ func TestPullSessionIndexTierNotCounted(t *testing.T) {
 	}
 }
 
-// 未列名/两属性工具按 unknown 处置：分级表不私定扩权（争议上交），
-// 维持既有 unknown 语义——入账零、翻 false。
+// 未列名工具按 unknown 处置：分级表不私定扩权（争议上交），维持既有
+// unknown 语义——入账零、翻 false（warm bake 已裁定入 probe 级，不再作
+// 本例；unlisted 语义本身保留）。
 func TestPullSessionUnlistedTierKeepsUnknownSemantics(t *testing.T) {
 	session := meteredSession([]map[string]any{
 		{"tool_call_id": "r1", "tool": "pull.echo", "elapsed_ms": int64(5)},
-		{"tool_call_id": "r2", "tool": "clip.warm_waveform_bake", "elapsed_ms": int64(9)},
+		{"tool_call_id": "r2", "tool": "some.future.tool", "elapsed_ms": int64(9)},
 	}, 0)
 	session.settleBatch()
 	if session.ledger.probeSpent != 0 {
@@ -128,8 +130,26 @@ func TestProbeToolTierTable(t *testing.T) {
 			t.Errorf("probeToolTier(%q) = %q, want %q", tool, got, probeTierIndex)
 		}
 	}
-	if got := probeToolTier("clip.warm_waveform_bake"); got != probeTierUnlisted {
-		t.Errorf("probeToolTier(clip.warm_waveform_bake) = %q, want %q (两属性争议工具不私定)", got, probeTierUnlisted)
+	for _, tool := range []string{"clip.warm_waveform_bake", "clip.warm.waveform.bake"} {
+		if got := probeToolTier(tool); got != probeTierProbe {
+			t.Errorf("probeToolTier(%q) = %q, want %q (裁定扩表: 波形烘焙=真实渲染物理工作)", tool, got, probeTierProbe)
+		}
+	}
+}
+
+// 裁定扩表入账：clip.warm_waveform_bake 回执的 elapsed_ms 按 probe 级逐笔
+// 入账 probeSpent，probeCostKnown 保持 true（两种名称形态同归一）。
+func TestPullSessionWarmWaveformBakeMeteredAsProbe(t *testing.T) {
+	session := meteredSession([]map[string]any{
+		{"tool_call_id": "r1", "tool": "clip.warm_waveform_bake", "elapsed_ms": int64(40)},
+		{"tool_call_id": "r2", "tool": "clip.warm.waveform.bake", "elapsed_ms": int64(2)},
+	}, 8)
+	session.settleBatch()
+	if session.ledger.probeSpent != 42 {
+		t.Errorf("probe spent = %v, want 42 (40+2 逐笔入账)", session.ledger.probeSpent)
+	}
+	if !session.ledger.probeCostKnown {
+		t.Error("metered warm bake receipts must keep probeCostKnown=true (ruling-armed probe tier)")
 	}
 }
 
