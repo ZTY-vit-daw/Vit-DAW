@@ -6,7 +6,7 @@
 
 ## 当前占用
 
-- 状态：空闲
+- 2026-10-11 22:0x +0800 起 / GEN-API-ADAPTER-1（GLM-5.3 Mac 执行流，ZCode；worktree /Users/timozty/Documents/Vit-DAW-genapi1，分支 port/gen-api-adapter-1）：gen_api_adapter_smoke_mac.sh 端到端冒测（内核复用 GEN-MAC-BASELINE-1 二进制 9a70f064…，agent 含本卡改动新构建；预计短时占用，结束复核端口零残留）
 
 ## 最近一次释放
 
