@@ -5,10 +5,11 @@
 
 ## 当前占用
 
-- 状态：占用中
-- 2026-10-11 21:05 +0800 起 / MIXLAYER-M1-3（GLM-5.3 PC 执行流，ZCode 会话；worktree D:/Vit_DAW_wt_mixlayer_m1_3，分支 port/mixlayer-m1-3）：fs_largeproject_smoke.ps1 -C3Observation 真栈烟测。占用前实测端口 7878/5555/5556 监听=0、VitAgent/VitApp 进程=0（与远端记录空闲一致）。预计占用 1 小时内。
+- 状态：空闲
 
 ## 最近一次释放
+
+- 2026-10-11 20:49–21:16 +0800 / MIXLAYER-M1-3（GLM-5.3 PC 执行流，ZCode 会话；worktree D:/Vit_DAW_wt_mixlayer_m1_3，分支 port/mixlayer-m1-3）：fs_largeproject_smoke.ps1 -C3Observation 一 run=**PASS exit 0**（C3OBS 三门全过：观察报告 schema 行+只读声明+A4 标记族零命中；A1/A4 pass；A2/A3 软记录，classification=capability_blocked 与 FS-LARGEPROJECT-SMOKE-1 基线同族归其返工线——M1-2 ruling 已接受同语义；栈自 teardown torn_down=true）；21:16 后复核端口 7878/5555/5556 监听=0、VitAgent/VitApp 进程=0。占用登记 e7645a65（登记时间误写 21:05，实际占用自 20:49 run 启动——此处修正）；run 工件 coord/runs/FS-LARGEPROJECT-SMOKE-1/fs_largeproject_smoke_20261011_204949（随实现 commit 入库），详见卡回执。
 
 - 2026-10-11 20:05–20:16 +0800 / MIXLAYER-M1-2（GLM-5.3 PC 执行流，ZCode 会话；worktree D:/Vit_DAW_wt_mixlayer_m1_2，分支 port/mixlayer-m1-2）：fs_largeproject_smoke.ps1 -M1QueueRoundtrip 两 run——194717=首轮（M1Q 读面过/注释命令被语义入口吞→chat 拦截修复+门槛语义补丁，round 形态 improvement_proposal 与 FS-LARGEPROJECT-SMOKE-1 基线同族）；200448=**末轮 PASS exit 0**（M1Q 读→标注 E1 延期→重读往返四门全过+A1/A4 pass+A2/A3 软记录，栈自 teardown）；20:16 后复核端口 7878/5555/5556 监听=0、VitAgent/VitApp 进程=0。占用登记 cf46f950；run 工件 coord/runs/FS-LARGEPROJECT-SMOKE-1/fs_largeproject_smoke_2026101{1_194717,1_200448}（已随实现 commit 6511d700 入库精简件），详见卡回执。
 
