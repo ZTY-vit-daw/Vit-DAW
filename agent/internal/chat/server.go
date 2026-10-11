@@ -1731,6 +1731,13 @@ func (s *Server) handleInvoke(w http.ResponseWriter, r *http.Request) {
 	if err != nil && resp.Status == "error" {
 		status = http.StatusBadRequest
 	}
+	// MIXLAYER-M1-5: fold the queue node-state view into a successful
+	// mix_report invoke result before transport — the /agent/invoke path does
+	// not cross the agent-loop executor, so the enrichment gets its second
+	// call site here (same read-only composition the executor path applies).
+	if err == nil && resp.Status != "error" && isMixReportInvokeRequest(req) {
+		resp.Result = s.enrichMixReportResult(r.Context(), resp.Result)
+	}
 	if isVersionProjectSavePrepareInvoke(req) {
 		resp = compactProjectSavePrepareInvokeResponseForTransport(resp)
 	} else if isProjectSaveAsFolderInvoke(req) {

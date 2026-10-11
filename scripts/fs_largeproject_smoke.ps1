@@ -111,11 +111,25 @@ param(
     # post-round queue view read + node annotation write-back + re-read, with
     # the same fixed-orchestration marker discipline applied to the queue
     # response surfaces.
-    [switch]$M1QueueRoundtrip
+    [switch]$M1QueueRoundtrip,
+    # MIXLAYER-M1-5 F1 three-view phase (off = legacy flow unchanged): a
+    # deterministic /agent/invoke mix_report call whose response must carry
+    # the latest settle conclusion line and the queue node-state line. The
+    # E1-deferred needle depends on the M1Q q2 annotation, so this switch
+    # requires -M1QueueRoundtrip (misuse fails the run up front).
+    [switch]$M1FiveThreeView
 )
 
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
+
+# MIXLAYER-M1-5 misuse guard: the three-view leg's E1-deferred needle rides
+# the M1Q q2 annotation write-back, so the switch is only meaningful together
+# with -M1QueueRoundtrip. Fail fast, before the stack starts.
+if ($M1FiveThreeView -and (-not $M1QueueRoundtrip)) {
+    Write-FailLine "-M1FiveThreeView requires -M1QueueRoundtrip (the E1-deferred needle rides the M1Q q2 annotation)"
+    exit 1
+}
 
 # ---------------------------------------------------------------- helpers
 function Resolve-RepoRoot {
@@ -1413,6 +1427,115 @@ if ($M1QueueRoundtrip) {
 }
 $report.m1_queue_roundtrip = $m1q
 
+# ------------------- phase 8.6: M1-5 mix.report three-view (opt-in)
+# MIXLAYER-M1-5: one deterministic /agent/invoke mix_report call after the
+# M1Q legs. The response must carry (1) the latest settle conclusion line
+# (mixboard fold over the M1-1 persistence layer), (2) the queue node-state
+# line (chat-side fold over the M1-2 queue view), and the two folds must
+# agree on the same free-state conclusion board. Chinese text uses the
+# script-wide B64 discipline (encoding verified before commit).
+$m15 = @{
+    enabled       = [bool]$M1FiveThreeView
+    invoke_ok     = $false
+    report_schema = $false
+    settle_line   = $false
+    queue_line    = $false
+    e1_deferred   = $false
+    fold_agree    = $false
+    settle_truth  = $false
+    a4_zero_markers = $false
+    timeline_count = -1
+    queue_sources_conclusions = -1
+    latest_conclusion_id = ""
+    response_file = ""
+    marker_hits   = @()
+}
+if ($M1FiveThreeView) {
+    Write-Step "Phase 8.6: M1-5 mix.report three-view (settle line + queue node states)"
+    $m15NeedleSettleLine = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String("5pyA6L+RIHNldHRsZSDnu5PorrrvvJo="))
+    $m15NeedleQueueLine = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String("cXVldWUg6IqC54K554q25oCB77ya"))
+    $m15NeedleNodeCount = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String("MjMg6IqC54K5"))
+    $m15NeedleE1Deferred = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String("RTEg5q+N5bimIEVRW+W7tuacn10="))
+    $m15NeedleNoRecord = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String("5peg6K6w5b2V"))
+    $m15Response = $null
+    try {
+        $m15Response = Invoke-ToolJson -Uri $InvokeUri -Body @{ tool = "mix_report" } -TimeoutSec 120
+    }
+    catch {
+        Add-Failure ("M15 transport error on mix_report invoke: " + $_.Exception.Message)
+    }
+    if ($null -ne $m15Response) {
+        $m15File = Join-Path $RunRoot "m1_5_three_view_report.json"
+        $m15Response | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $m15File -Encoding UTF8
+        $m15.response_file = $m15File
+        $m15Result = Get-OptionalProperty -Object $m15Response -Name "result"
+        $m15Status = [string](Get-OptionalProperty -Object $m15Response -Name "status")
+        $m15Message = [string](Get-OptionalProperty -Object $m15Result -Name "message")
+        $m15.invoke_ok = ($m15Status -eq "ok" -and $null -ne $m15Result)
+        if ($m15.invoke_ok) {
+            $m15.report_schema = (([string](Get-OptionalProperty -Object $m15Result -Name "schema_version")) -eq "mix_report.v1")
+            $m15.settle_line = $m15Message.Contains($m15NeedleSettleLine)
+            $m15.queue_line = ($m15Message.Contains($m15NeedleQueueLine) -and $m15Message.Contains($m15NeedleNodeCount))
+            $m15.e1_deferred = $m15Message.Contains($m15NeedleE1Deferred)
+            # Fold agreement: the report's conclusion timeline and the queue
+            # view's source count read the SAME M1-1 board - disagreement
+            # means one fold lied.
+            $m15Timeline = Get-OptionalProperty -Object $m15Result -Name "free_state_conclusion_timeline"
+            $m15Queue = Get-OptionalProperty -Object $m15Result -Name "mix_workflow_queue"
+            $m15QueueSources = Get-OptionalProperty -Object $m15Queue -Name "sources"
+            # PS 5.1: an empty JSON array decodes to $null and @($null).Count
+            # is 1, so the null case is pinned to 0 explicitly.
+            if ($null -eq $m15Timeline) { $m15.timeline_count = 0 }
+            else { $m15.timeline_count = @($m15Timeline).Count }
+            $m15QSC = Get-OptionalProperty -Object $m15QueueSources -Name "free_state_conclusions"
+            if ($null -eq $m15QSC) { $m15.queue_sources_conclusions = -1 }
+            else { $m15.queue_sources_conclusions = [int]$m15QSC }
+            $m15.fold_agree = ($m15.timeline_count -eq $m15.queue_sources_conclusions)
+            $m15Latest = Get-OptionalProperty -Object $m15Result -Name "latest_settle_conclusion"
+            $m15.latest_conclusion_id = [string](Get-FirstPropertyValue -Object $m15Latest -Names @("conclusion_id"))
+            if ($m15.timeline_count -ge 1) {
+                $m15.settle_truth = (($null -ne $m15Latest) -and (-not $m15Message.Contains($m15NeedleNoRecord)))
+            }
+            else {
+                # No conclusions this round: the honest no-record default IS
+                # the correct line content; the fold is still proven by the
+                # agreement gate above.
+                $m15.settle_truth = $m15Message.Contains($m15NeedleNoRecord)
+            }
+            # A4 discipline: the invoke response surface must stay clean of
+            # the fixed-orchestration marker families.
+            $m15Hits = New-Object System.Collections.Generic.List[object]
+            $m15Text = ""
+            try { $m15Text = [string](Get-Content -LiteralPath $m15File -Raw -Encoding UTF8) } catch { $m15Text = "" }
+            foreach ($marker in $fixedMarkers) {
+                if ($m15Text.Contains($marker)) { $m15Hits.Add([pscustomobject]@{ marker = $marker; surface = $m15File }) }
+            }
+            $m15.marker_hits = @($m15Hits.ToArray())
+            $m15.a4_zero_markers = ($m15Hits.Count -eq 0)
+        }
+        $extract = @{
+            status = $m15Status
+            schema_version = [string](Get-OptionalProperty -Object $m15Result -Name "schema_version")
+            message = $m15Message
+            timeline_count = $m15.timeline_count
+            queue_sources_conclusions = $m15.queue_sources_conclusions
+            latest_conclusion_id = $m15.latest_conclusion_id
+        }
+        $extract | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $RunRoot "m1_5_three_view_extract.json") -Encoding UTF8
+    }
+    if ($m15.invoke_ok) { Write-Ok "M15 mix_report invoke ok (mix_report.v1)" } else { Add-Failure "M15 FAIL: mix_report invoke did not return ok" }
+    if ($m15.report_schema) { Write-Ok "M15 report schema_version = mix_report.v1" } else { Add-Failure "M15 FAIL: report schema_version mismatch" }
+    if ($m15.settle_line) { Write-Ok "M15 latest settle conclusion line rendered" } else { Add-Failure "M15 FAIL: latest settle conclusion line missing" }
+    if ($m15.queue_line) { Write-Ok "M15 queue node-state line rendered (23 nodes)" } else { Add-Failure "M15 FAIL: queue node-state line missing" }
+    if ($m15.e1_deferred) { Write-Ok "M15 non-default node E1 deferred visible (rides M1Q q2 annotation)" } else { Add-Failure "M15 FAIL: E1 deferred not visible in the queue line" }
+    if ($m15.fold_agree) { Write-Ok ("M15 fold agreement: report timeline=" + [string]$m15.timeline_count + " = queue sources=" + [string]$m15.queue_sources_conclusions) } else { Add-Failure ("M15 FAIL: folds disagree (report timeline=" + [string]$m15.timeline_count + " queue sources=" + [string]$m15.queue_sources_conclusions + ")") }
+    if ($m15.settle_truth) { Write-Ok ("M15 settle line truthful (latest=" + $m15.latest_conclusion_id + ")") } else { Add-Failure "M15 FAIL: settle line content does not match the conclusion board state" }
+    if ($m15.a4_zero_markers) { Write-Ok "M15 invoke surface clean of fixed-orchestration markers" } else {
+        foreach ($hit in @($m15.marker_hits)) { Add-Failure ("M15 FAIL: marker '" + $hit.marker + "' hit on " + $hit.surface) }
+    }
+}
+$report.m1_five_three_view = $m15
+
 # --------------------------------------------- phase 9: assertion review
 # Review must never throw past this point (L2-2 lesson: run 20260926_224515
 # died inside ConvertFrom-Json and skipped both the FAIL verdict and the
@@ -1534,7 +1657,19 @@ Remove-Item -LiteralPath env:VIT_DAW_HARNESS -ErrorAction SilentlyContinue
 Remove-Item -LiteralPath env:VIT_AGENT_LLM_TELEMETRY_PATH -ErrorAction SilentlyContinue
 
 $m1qGatesHold = ($m1q.q1_read_schema -and $m1q.q1_read_datasource -and $m1q.q2_write_ack -and $m1q.q3_reread_deferred -and $m1q.zero_fixed_orchestration_markers)
+$m15GatesHold = ($m15.invoke_ok -and $m15.report_schema -and $m15.settle_line -and $m15.queue_line -and $m15.e1_deferred -and $m15.fold_agree -and $m15.settle_truth -and $m15.a4_zero_markers)
 if ($roundStatusSoft) {
+    if ($M1FiveThreeView) {
+        $report.exit_gate_semantics = "MIXLAYER-M1-5 surface gate: M1Q roundtrip + M15 three-view + A1 + A4 (A2/A3 round status recorded, not gated - FS-LARGEPROJECT-SMOKE-1 rework line owns them)"
+        if ($failureReasons.Count -eq 0 -and $a1 -and $a4 -and $m1qGatesHold -and $m15GatesHold) {
+            $report.verdict = "PASS"
+            $script:PlannedExitCode = 0
+            Write-Report
+            Write-Step "PASS"
+            Write-Ok ("FS large-project smoke passed (M1-5 three-view surface: M1Q + M15 + A1 + A4). run_root=" + $RunRoot)
+            exit 0
+        }
+    }
     $report.exit_gate_semantics = "MIXLAYER-M1-2 surface gate: M1Q roundtrip + A1 + A4 (A2/A3 round status recorded, not gated - FS-LARGEPROJECT-SMOKE-1 rework line owns them)"
     if ($failureReasons.Count -eq 0 -and $a1 -and $a4 -and $m1qGatesHold) {
         $report.verdict = "PASS"
