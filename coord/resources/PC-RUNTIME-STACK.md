@@ -5,7 +5,11 @@
 
 ## 当前占用
 
-- 状态：空闲
+- 状态：占用中
+- 卡：MIXLAYER-M1-4（D1-D3 母带前观察只读 pack 真栈烟测）
+- Owner：GLM-5.3 PC 执行流（ZCode 会话，本会话；worktree D:/Vit_DAW_wt_mixlayer_m1_4，分支 port/mixlayer-m1-4）
+- 机器/端口：PC / 7878（agent HTTP）+5555/5556（内核 ZMQ）
+- 时间：2026-10-11 22:35 +0800 起（登记前只读核对：三端口监听=0，VitAgent/VitApp 进程=0，远端记录空闲）
 
 ## 最近一次释放
 
