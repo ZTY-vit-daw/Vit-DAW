@@ -27,6 +27,6 @@ argspec 定义单点文件+对应测试（若有 argspec 快照测试同步）�
 
 发现内核近期已改收区域形式（行为漂移）→ 停手上交锚点。
 
-- 领取：（时间 / origin/main hash / owner / 领取提交）
+- 领取：2026-10-11 21:47 / origin/main 8e66e674 / owner=GLM-5.3-Flash（ZCode PC flash 执行流会话，用户指派双卡）/ 分支 port/midi-argspec-align-1 / worktree D:/Vit_DAW_wt_midi_argspec_1 / 领取提交=coord-claim-20261011-flash-l0
 - 回执：（commit / argspec 对照）
 - 验收：（裁定文件）
