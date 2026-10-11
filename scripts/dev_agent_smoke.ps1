@@ -6433,12 +6433,18 @@ if ($MixSmoke) {
             }
             source = "dev_agent_smoke"
         } -TimeoutSec 120
-        Write-Host ("mix.observe status=" + [string]$mix.status + " error=" + [string]$mix.error)
-        if ($mix.status -ne "ok") {
+        # FE-GUI-SHRINK-IMPL-1: strict-mode hygiene -- mix.observe ok-responses carry no
+        # "error"/"result" keys; bare $mix.error threw PropertyNotFoundStrict and killed the
+        # leg mid-run (pre-existing since 49a332dc, surfaced 2026-10-11).
+        $mixStatus = Get-OptionalProperty -Object $mix -Name "status"
+        $mixError = Get-OptionalProperty -Object $mix -Name "error"
+        Write-Host ("mix.observe status=" + [string]$mixStatus + " error=" + [string]$mixError)
+        if ([string]$mixStatus -ne "ok") {
             Fail-Or-Warn "mix.observe failed"
         }
         else {
-            Write-Ok ("mix.observe observation_id=" + [string]$mix.result.observation_id)
+            $mixResult = Get-OptionalProperty -Object $mix -Name "result"
+            Write-Ok ("mix.observe observation_id=" + [string](Get-OptionalProperty -Object $mixResult -Name "observation_id"))
         }
     }
 }
