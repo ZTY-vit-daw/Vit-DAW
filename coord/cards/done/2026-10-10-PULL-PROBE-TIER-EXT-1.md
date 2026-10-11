@@ -24,5 +24,7 @@
 领取时该工具名/归一形态与预期不符 → 实测形态上交。
 
 - 领取：2026-10-11 21:47 / origin/main 8e66e674 / owner=GLM-5.3-Flash（ZCode PC flash 执行流会话，用户指派双卡）/ 分支 port/pull-probe-tier-ext-1 / worktree D:/Vit_DAW_wt_probe_tier_1 / 领取提交=coord-claim-20261011-flash-l0
-- 回执：（commit / 测试名）
+- 回执：commit 445d4315（port/pull-probe-tier-ext-1，基线 55c997d3，分支已推 origin）；实测名称形态=`clip.warm_waveform_bake`（message_loop.go 六处等，与卡面预期一致，停止条件未触发），ReplaceAll('_','.') 归一即达卡面 `clip.warm.waveform.bake`——probe 案已增该归一形态；测试名=TestProbeToolTierTable（warm bake 两种形态断言翻 probe，原"两属性不私定"断言按裁定翻面）+TestPullSessionWarmWaveformBakeMeteredAsProbe（新：elapsed_ms 40+2 逐笔入账 probeSpent=42、probeCostKnown 保持 true）+TestPullSessionUnlistedTierKeepsUnknownSemantics（摘除 warm bake 例改 some.future.tool，unlisted→unknown 语义本身保留）；pull_session.go 三处注释随裁定更新（两属性措辞退役+裁定引用）。
+- 验收命令：go build ./... exit 0；go test ./internal/agentloop -count=1 ok；go test ./... -count=1 exit 0（92 包 0 FAIL）；gofmt blob 级净（工作树 `gofmt -l` 命中为 autocrlf CRLF 检出伪影，去 CR 后净）。
+- 端测边界声明：纯单测域（卡面口径同 PULL-PROBE-METER-1 回执）；真栈 probe 成本面读数归 FS-LARGEPROJECT-SMOKE-1（P1 blocker 未解前不启动，见 ruling §5）。
 - 验收：（裁定文件 / 验收 commit）
