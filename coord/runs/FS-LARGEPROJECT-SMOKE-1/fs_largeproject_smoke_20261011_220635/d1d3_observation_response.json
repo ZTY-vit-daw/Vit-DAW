@@ -1,0 +1,157 @@
+﻿{
+    "conversation_id":  "dev_fs_largeproject_20261011_220635_d1d3obs",
+    "task_id":  "task_a38c9ca1f5e066ac",
+    "goal_id":  "goal_b49660e39f720be0",
+    "run_id":  "run_81e5500897a53656",
+    "original_intent":  "d1 母带前响度峰值观察",
+    "reply":  "D1-D3 母带前观察完成（schema d1d3.premaster.observation.v0，只读）。\nD1 响度峰值面：missing；loudness ranking 0 行、headroom 风险 0 行、peak 风险 0 行。RLM 投影 status=partial（metric=rms_dbfs）。\nD2 翻译检查面：全局 stereo missing；逐轨 stereo 读取 8 轨，mono 风险 0 轨。另有 53 轨超出读取上限未读。\nD3 参考曲对比面：RLM user intent 已入投影，render→delivery 绑定 0 条（fail-closed 披露）。参考曲导入/对比命令缺口：audition.* 十命令在内核 dispatcher 而不在 agent catalog，D3 参考曲对比本体缺命令载体——如实登记，本卡不补。\n本次观察未创建 Proposal，未注册任何写命令，未修改工程。",
+    "agent_mode":  "default",
+    "needs_confirmation":  false,
+    "workflow":  "capability_runtime_v1",
+    "workflow_data":  {
+                          "canary_stage":  "observation",
+                          "capability_id":  "pre_master.observation.v0",
+                          "mutation_performed":  false,
+                          "observation":  {
+                                              "schema_version":  "d1d3.premaster.observation.v0",
+                                              "observation_id":  "obs_20261011T141119_ee46ddc90d03",
+                                              "loudness_peak_status":  "missing",
+                                              "rlm_status":  "partial",
+                                              "rlm_mode":  "coarse",
+                                              "rlm_selected_metric":  "rms_dbfs",
+                                              "rlm_summary":  {
+                                                                  "candidate_count":  60,
+                                                                  "eligible_track_count":  61,
+                                                                  "missing_metric_count":  1,
+                                                                  "not_calibratable_count":  0,
+                                                                  "reference_basis":  "median",
+                                                                  "selected_unit":  "dBFS",
+                                                                  "track_count":  61
+                                                              },
+                                              "rlm_limitations":  [
+                                                                      "rlm_missing_selected_metric_for_some_tracks",
+                                                                      "rlm_reference_level_partial_metric_coverage"
+                                                                  ],
+                                              "stereo_status":  "missing",
+                                              "track_stereo":  [
+                                                                   {
+                                                                       "track_id":  "1007",
+                                                                       "status":  "missing",
+                                                                       "mono_risk":  false
+                                                                   },
+                                                                   {
+                                                                       "track_id":  "1012",
+                                                                       "status":  "missing",
+                                                                       "mono_risk":  false
+                                                                   },
+                                                                   {
+                                                                       "track_id":  "1017",
+                                                                       "status":  "missing",
+                                                                       "mono_risk":  false
+                                                                   },
+                                                                   {
+                                                                       "track_id":  "1022",
+                                                                       "status":  "missing",
+                                                                       "mono_risk":  false
+                                                                   },
+                                                                   {
+                                                                       "track_id":  "1027",
+                                                                       "status":  "missing",
+                                                                       "mono_risk":  false
+                                                                   },
+                                                                   {
+                                                                       "track_id":  "1032",
+                                                                       "status":  "missing",
+                                                                       "mono_risk":  false
+                                                                   },
+                                                                   {
+                                                                       "track_id":  "1037",
+                                                                       "status":  "missing",
+                                                                       "mono_risk":  false
+                                                                   },
+                                                                   {
+                                                                       "track_id":  "1042",
+                                                                       "status":  "missing",
+                                                                       "mono_risk":  false
+                                                                   }
+                                                               ],
+                                              "tracks_considered":  8,
+                                              "tracks_skipped":  53,
+                                              "mono_risk_tracks":  0,
+                                              "user_intent":  "d1 母带前响度峰值观察",
+                                              "render_binding_count":  0,
+                                              "reference_track_gap":  "参考曲导入/对比命令缺口：audition.* 十命令在内核 dispatcher 而不在 agent catalog，D3 参考曲对比本体缺命令载体——如实登记，本卡不补",
+                                              "limitations":  [
+                                                                  "全局 stereo_relation 缺席（依赖声学证据，缺失原样保留不升级）",
+                                                                  "工程轨数 61 超出单次逐轨 stereo 读取上限 8，剩余 53 轨未读 stereo summary",
+                                                                  "当前无 render→delivery 绑定（render_profile_bind 写端不在本只读 pack，绑定面如实为空）",
+                                                                  "参考曲导入/对比命令缺口：audition.* 十命令在内核 dispatcher 而不在 agent catalog，D3 参考曲对比本体缺命令载体——如实登记，本卡不补"
+                                                              ]
+                                          },
+                          "read_only":  true,
+                          "schema":  "d1d3.premaster.observation.v0",
+                          "session_id":  "cap_v1_d1d3_dev_fs_largeproject_20261011_220635_d1d3obs_1"
+                      },
+    "goal_status":  "completed",
+    "goal_summary":  "d1 母带前响度峰值观察",
+    "project_history":  {
+                            "active_branch":  "main",
+                            "active_node_id":  "n_20261011T141121_66bc9e2d",
+                            "active_worktree":  "",
+                            "available":  true,
+                            "branches":  {
+                                             "main":  "c_20261011T141121_3f0436ed"
+                                         },
+                            "commit_count":  3,
+                            "conversation_messages":  [
+                                                          {
+                                                              "content":  "d1 母带前响度峰值观察",
+                                                              "logical_message_id":  "n_20261011T141002_580e4ad3",
+                                                              "message_kind":  "user",
+                                                              "node_id":  "n_20261011T141002_580e4ad3",
+                                                              "role":  "user"
+                                                          },
+                                                          {
+                                                              "content":  "D1-D3 母带前观察完成（schema d1d3.premaster.observation.v0，只读）。\nD1 响度峰值面：missing；loudness ranking 0 行、headroom 风险 0 行、peak 风险 0 行。RLM 投影 status=partial（metric=rms_dbfs）。\nD2 翻译检查面：全局 stereo missing；逐轨 stereo 读取 8 轨，mono 风险 0 轨。另有 53 轨超出读取上限未读。\nD3 参考曲对比面：RLM user intent 已入投影，render→delivery 绑定 0 条（fail-closed 披露）。参考曲导入/对比命令缺口：audition.* 十命令在内核 dispatcher 而不在 agent catalog，D3 参考曲对比本体缺命令载体——如实登记，本卡不补。\n本次观察未创建 Proposal，未注册任何写命令，未修改工程。",
+                                                              "logical_message_id":  "n_20261011T141121_66bc9e2d",
+                                                              "message_kind":  "assistant",
+                                                              "node_id":  "n_20261011T141121_66bc9e2d",
+                                                              "role":  "assistant"
+                                                          }
+                                                      ],
+                            "detached":  false,
+                            "draft":  false,
+                            "head":  "c_20261011T141121_3f0436ed",
+                            "initialized":  true,
+                            "project_label":  "sattelites_61",
+                            "project_path":  "D:\\Vit_DAW_wt_mixlayer_m1_4\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261011_220635\\project\\sattelites_61.vit",
+                            "project_uuid":  "vitproj_e2d1e8d0ad3d4981ac38cb8ddabac2bc",
+                            "refs":  {
+                                         "refs/heads/main":  "c_20261011T141121_3f0436ed"
+                                     },
+                            "root_project_path":  "",
+                            "unsaved":  false,
+                            "warnings":  [
+
+                                         ],
+                            "worktrees":  [
+                                              {
+                                                  "commit_id":  "c_20261011T141121_3f0436ed",
+                                                  "created_at":  "2026-10-11T14:11:21.1231189Z",
+                                                  "is_root":  true,
+                                                  "label":  "主工作树",
+                                                  "name":  "main",
+                                                  "origin_commit_id":  "c_20261011T141121_3f0436ed",
+                                                  "path":  "D:\\Vit_DAW_wt_mixlayer_m1_4\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261011_220635\\project",
+                                                  "project_file_path":  "D:\\Vit_DAW_wt_mixlayer_m1_4\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261011_220635\\project\\sattelites_61.vit",
+                                                  "project_path":  "D:\\Vit_DAW_wt_mixlayer_m1_4\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261011_220635\\project\\sattelites_61.vit",
+                                                  "root_project_path":  "D:\\Vit_DAW_wt_mixlayer_m1_4\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261011_220635\\project\\sattelites_61.vit"
+                                              }
+                                          ]
+                        },
+    "lifecycle":  "durable",
+    "persistence":  "project_history",
+    "message_kind":  "assistant",
+    "turn_id":  "run_81e5500897a53656",
+    "logical_message_id":  "n_20261011T141121_66bc9e2d"
+}

@@ -617,6 +617,11 @@ func capabilityIDForStage(stage string) string {
 		return "fine_mix.dynamic_control.v0"
 	case "C3":
 		return "fine_mix.space_depth.v0"
+	case "D1", "D2", "D3":
+		// MIXLAYER-M1-4：母带前段 D1-D3 观察统一收口 pre_master.observation.v0
+		// 只读 pack（stage 映射与 runtime ID 同源，不留 mixing_capability_stage.d*
+		// 第二身份）；D4 版本输出不在观察 pack 范围，维持 fallback。
+		return "pre_master.observation.v0"
 	default:
 		return "mixing_capability_stage." + strings.ToLower(strings.TrimSpace(stage))
 	}

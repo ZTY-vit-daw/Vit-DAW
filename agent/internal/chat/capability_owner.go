@@ -19,7 +19,7 @@ func (s *Server) resolveCapabilityOwner(conversationID string, req ChatRequest) 
 	if explicitCapability == retiredFocusPositionCapabilityID {
 		explicitCapability = staticBalanceCapabilityID
 	}
-	if explicitCapability != staticBalanceCapabilityID && explicitCapability != panLayoutCapabilityID && explicitCapability != lowEndRelationCapabilityID && explicitCapability != frequencyCleanupCapabilityID && explicitCapability != dynamicControlCapabilityID && explicitCapability != agentSemanticEQCapabilityID && explicitCapability != spaceDepthCapabilityID {
+	if explicitCapability != staticBalanceCapabilityID && explicitCapability != panLayoutCapabilityID && explicitCapability != lowEndRelationCapabilityID && explicitCapability != frequencyCleanupCapabilityID && explicitCapability != dynamicControlCapabilityID && explicitCapability != agentSemanticEQCapabilityID && explicitCapability != spaceDepthCapabilityID && explicitCapability != premasterObservationCapabilityID {
 		explicitCapability = ""
 	}
 	// A recovered Proposal interaction already carries the exact durable
@@ -126,7 +126,7 @@ func (s *Server) activeCapabilitySessions(conversationID string) []orchestration
 		if session.EngineOwner != orchestration.EngineV1 || session.Terminal() || !sessionBelongsToConversation(session, conversationID) {
 			continue
 		}
-		if session.Invocation.CapabilityID == staticBalanceCapabilityID || session.Invocation.CapabilityID == panLayoutCapabilityID || session.Invocation.CapabilityID == lowEndRelationCapabilityID || session.Invocation.CapabilityID == frequencyCleanupCapabilityID || session.Invocation.CapabilityID == dynamicControlCapabilityID || session.Invocation.CapabilityID == agentSemanticEQCapabilityID || session.Invocation.CapabilityID == spaceDepthCapabilityID {
+		if session.Invocation.CapabilityID == staticBalanceCapabilityID || session.Invocation.CapabilityID == panLayoutCapabilityID || session.Invocation.CapabilityID == lowEndRelationCapabilityID || session.Invocation.CapabilityID == frequencyCleanupCapabilityID || session.Invocation.CapabilityID == dynamicControlCapabilityID || session.Invocation.CapabilityID == agentSemanticEQCapabilityID || session.Invocation.CapabilityID == spaceDepthCapabilityID || session.Invocation.CapabilityID == premasterObservationCapabilityID {
 			out = append(out, session)
 		}
 	}
@@ -162,6 +162,8 @@ func capabilitySessionBase(conversationID, capabilityID string) string {
 		prefix += "_semantic_eq"
 	} else if capabilityID == spaceDepthCapabilityID {
 		prefix += "_c3"
+	} else if capabilityID == premasterObservationCapabilityID {
+		prefix += "_d1d3"
 	} else {
 		prefix += "_cap"
 	}
@@ -244,6 +246,13 @@ func inferProjectAwareCapability(message string) string {
 	for _, marker := range []string{"fine_mix.space_depth", "c3"} {
 		if strings.Contains(text, marker) {
 			return spaceDepthCapabilityID
+		}
+	}
+	// D1-D3 同 C2/C3：工程级只读观察能力入口，不做普通响度/翻译/参考曲话术
+	// 的词法后继（MIXLAYER-M1-4）；只有显式 D 标记可在此认领。
+	for _, marker := range []string{"pre_master.observation", "d1", "d2", "d3"} {
+		if strings.Contains(text, marker) {
+			return premasterObservationCapabilityID
 		}
 	}
 	return ""

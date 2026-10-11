@@ -118,6 +118,13 @@ param(
     # report (schema line + no-write line), with the fixed-orchestration
     # marker discipline applied to the response surface.
     [switch]$C3Observation,
+    # MIXLAYER-M1-4 D1-D3 pre-master read-only observation phase (off =
+    # legacy flow unchanged): a free-state chat message with an explicit D
+    # marker must reach the pre_master.observation.v0 read-only pack and
+    # return the observation report (schema line + three face lines + D3
+    # reference-track gap registration + no-write line), with the fixed-
+    # orchestration marker discipline applied to the response surface.
+    [switch]$D1D3Observation,
     # MIXLAYER-M1-5 F1 three-view phase (off = legacy flow unchanged): a
     # deterministic /agent/invoke mix_report call whose response must carry
     # the latest settle conclusion line and the queue node-state line. The
@@ -1502,6 +1509,88 @@ if ($C3Observation) {
     }
 }
 $report.c3_observation = $c3obs
+# ------------------- phase 8.7: M1-4 D1-D3 pre-master read-only observation (opt-in)
+# MIXLAYER-M1-4: one free-state chat message with an explicit D marker. The
+# canary seam routes it to the pre_master.observation.v0 read-only observation
+# pack; the gates assert the observation report (schema line + D1/D2/D3 face
+# lines + D3 reference-track gap registration + read-only line) came back and
+# the response surface carries no fixed-orchestration markers. The report is
+# deterministic (no LLM turn), so the gates are deterministic. Chinese text
+# uses the script-wide B64 discipline (encoding verified before commit).
+$d1d3obs = @{
+    enabled = [bool]$D1D3Observation
+    observation_reply_schema = $false
+    observation_face_lines = $false
+    observation_gap_line = $false
+    observation_readonly_line = $false
+    zero_fixed_orchestration_markers = $false
+    response = ""
+    marker_hits = @()
+}
+if ($D1D3Observation) {
+    Write-Step "Phase 8.7: M1-4 D1-D3 pre-master read-only observation"
+    $d1d3Message = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String("ZDEg5q+N5bim5YmN5ZON5bqm5bOw5YC86KeC5a+f"))
+    $d1d3NeedleSchema = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String("ZDFkMy5wcmVtYXN0ZXIub2JzZXJ2YXRpb24udjA="))
+    $d1d3NeedleReadOnly = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String("5pys5qyh6KeC5a+f5pyq5Yib5bu6IFByb3Bvc2Fs77yM5pyq5rOo5YaM5Lu75L2V5YaZ5ZG95Luk77yM5pyq5L+u5pS55bel56iL"))
+    $d1d3NeedleGap = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String("5Y+C6ICD5puy5a+85YWlL+WvueavlOWRveS7pOe8uuWPow=="))
+    $d1d3NeedleFace1 = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String("RDEg5ZON5bqm5bOw5YC86Z2i"))
+    $d1d3NeedleFace2 = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String("RDIg57+76K+R5qOA5p+l6Z2i"))
+    $d1d3NeedleFace3 = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String("RDMg5Y+C6ICD5puy5a+55q+U6Z2i"))
+    $d1d3Response = $null
+    try {
+        $d1d3Response = Invoke-Json -Method POST -Uri $ChatUri -Body @{
+            # Fresh conversation (C3OBS/M1Q precedent): a read-only observation
+            # must not be captured by any pending-confirmation intercept left
+            # mounted by the free-state round.
+            conversation_id = ($conversationID + "_d1d3obs")
+            message = $d1d3Message
+            context = @{ agent_mode = "chat" }
+        } -TimeoutSec $TurnSeconds
+    }
+    catch {
+        $errText = ""
+        if ($null -ne $_.ErrorDetails -and -not [string]::IsNullOrWhiteSpace($_.ErrorDetails.Message)) { $errText = $_.ErrorDetails.Message }
+        else { $errText = $_.Exception.Message }
+        Add-Failure ("D1D3OBS transport error: " + $errText)
+    }
+    if ($null -ne $d1d3Response) {
+        $d1d3File = Join-Path $RunRoot "d1d3_observation_response.json"
+        $d1d3Response | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $d1d3File -Encoding UTF8
+        $d1d3obs.response = $d1d3File
+        $d1d3Reply = [string](Get-OptionalProperty -Object $d1d3Response -Name "reply")
+        $d1d3obs.observation_reply_schema = $d1d3Reply.Contains($d1d3NeedleSchema)
+        $d1d3obs.observation_face_lines = ($d1d3Reply.Contains($d1d3NeedleFace1) -and $d1d3Reply.Contains($d1d3NeedleFace2) -and $d1d3Reply.Contains($d1d3NeedleFace3))
+        $d1d3obs.observation_gap_line = $d1d3Reply.Contains($d1d3NeedleGap)
+        $d1d3obs.observation_readonly_line = $d1d3Reply.Contains($d1d3NeedleReadOnly)
+        # A4 discipline extension: the D1-D3 response surface must stay clean of
+        # the fixed-orchestration marker families (the pack is observation-only;
+        # no governed batch command may appear on this surface).
+        $d1d3Hits = New-Object System.Collections.Generic.List[object]
+        $d1d3Text = ""
+        try { $d1d3Text = [string](Get-Content -LiteralPath $d1d3File -Raw -Encoding UTF8) } catch { $d1d3Text = "" }
+        if (-not [string]::IsNullOrWhiteSpace($d1d3Text)) {
+            foreach ($marker in $fixedMarkers) {
+                if ($d1d3Text.Contains($marker)) { $d1d3Hits.Add([pscustomobject]@{ marker = $marker; surface = $d1d3File }) }
+            }
+        }
+        $d1d3obs.marker_hits = @($d1d3Hits.ToArray())
+        $d1d3obs.zero_fixed_orchestration_markers = ($d1d3Hits.Count -eq 0)
+    }
+    $d1d3obs | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $RunRoot "d1d3_observation.json") -Encoding UTF8
+    if ($d1d3obs.observation_reply_schema) { Write-Ok "D1D3OBS observation report renders schema line (d1d3.premaster.observation.v0)" }
+    else { Add-Failure "D1D3OBS FAIL: D1-D3 observation report schema line missing (seam dispatch or report rendering broken)" }
+    if ($d1d3obs.observation_face_lines) { Write-Ok "D1D3OBS observation report renders D1/D2/D3 face lines" }
+    else { Add-Failure "D1D3OBS FAIL: D1/D2/D3 face lines missing (three-face report incomplete)" }
+    if ($d1d3obs.observation_gap_line) { Write-Ok "D1D3OBS observation report registers the D3 reference-track command gap" }
+    else { Add-Failure "D1D3OBS FAIL: D3 reference-track gap registration line missing" }
+    if ($d1d3obs.observation_readonly_line) { Write-Ok "D1D3OBS observation report carries the no-write declaration" }
+    else { Add-Failure "D1D3OBS FAIL: read-only declaration line missing" }
+    if ($d1d3obs.zero_fixed_orchestration_markers) { Write-Ok "D1D3OBS response surface clean of fixed-orchestration markers" }
+    else {
+        foreach ($hit in @($d1d3obs.marker_hits)) { Add-Failure ("D1D3OBS FAIL: marker '" + $hit.marker + "' hit on " + $hit.surface) }
+    }
+}
+$report.d1d3_observation = $d1d3obs
 # ------------------- phase 8.6: M1-5 mix.report three-view (opt-in)
 # MIXLAYER-M1-5: one deterministic /agent/invoke mix_report call after the
 # M1Q legs. The response must carry (1) the latest settle conclusion line
@@ -1630,7 +1719,7 @@ else { Add-Failure ("A1 FAIL: no pullharness telemetry record with prompt_finger
 # roundtrip + A1 + A4): the free-state round's A2/A3 outcome is recorded as
 # round-status evidence, not an exit gate - that battle belongs to
 # FS-LARGEPROJECT-SMOKE-1's rework line (4 runs 2026-10-10, best A1/A4 pass).
-$roundStatusSoft = [bool]($M1QueueRoundtrip -or $C3Observation)
+$roundStatusSoft = [bool]($M1QueueRoundtrip -or $C3Observation -or $D1D3Observation)
 if ($a2) { Write-Ok ("A2 free-state station map: rounds=" + [string]$censusAfter.trajectory_round_started + " observations=" + [string]$censusAfter.trajectory_observation_recorded + " proposals/mix_ticks=" + [string]($censusAfter.trajectory_hypothesis_proposed + $censusAfter.mix_tick_pending)) }
 elseif ($roundStatusSoft) { Write-WarnLine ("A2 not holding (recorded as round status, not an M1-2 exit gate): rounds=" + [string]$censusAfter.trajectory_round_started + " observations=" + [string]$censusAfter.trajectory_observation_recorded) }
 else { Add-Failure ("A2 FAIL: station map not recognizable in event stream (rounds=" + [string]$censusAfter.trajectory_round_started + " observations=" + [string]$censusAfter.trajectory_observation_recorded + " proposals=" + [string]$censusAfter.trajectory_hypothesis_proposed + " mix_tick=" + [string]$censusAfter.mix_tick_pending + ")") }
@@ -1734,6 +1823,7 @@ Remove-Item -LiteralPath env:VIT_AGENT_LLM_TELEMETRY_PATH -ErrorAction SilentlyC
 $m1qGatesHold = ($m1q.q1_read_schema -and $m1q.q1_read_datasource -and $m1q.q2_write_ack -and $m1q.q3_reread_deferred -and $m1q.zero_fixed_orchestration_markers)
 $m15GatesHold = ($m15.invoke_ok -and $m15.report_schema -and $m15.settle_line -and $m15.queue_line -and $m15.e1_deferred -and $m15.fold_agree -and $m15.settle_truth -and $m15.a4_zero_markers)
 $c3GatesHold = ($c3obs.observation_reply_schema -and $c3obs.observation_readonly_line -and $c3obs.zero_fixed_orchestration_markers)
+$d1d3GatesHold = ($d1d3obs.observation_reply_schema -and $d1d3obs.observation_face_lines -and $d1d3obs.observation_gap_line -and $d1d3obs.observation_readonly_line -and $d1d3obs.zero_fixed_orchestration_markers)
 if ($roundStatusSoft) {
     # Exit-gate composition per opt-in surface: each opt-in phase contributes
     # its own gate set on top of the invariant A1+A4; A2/A3 stay round-status
@@ -1747,6 +1837,10 @@ if ($roundStatusSoft) {
     if ($C3Observation) {
         $surfaceGatesHold = ($surfaceGatesHold -and $c3GatesHold)
         $surfaceGateNames += "C3OBS"
+    }
+    if ($D1D3Observation) {
+        $surfaceGatesHold = ($surfaceGatesHold -and $d1d3GatesHold)
+        $surfaceGateNames += "D1D3OBS"
     }
     if ($M1FiveThreeView) {
         $surfaceGatesHold = ($surfaceGatesHold -and $m15GatesHold)
