@@ -1,0 +1,170 @@
+LOUDNESS-WATCH-DESIGN-1 锚点机械核验
+基线: origin/main 8e66e674 / 分支 port/loudness-watch-design-1 / 2026-10-11
+方法: 在领取基线工作树实际执行 grep/sed；输出即证据；PASS=命中非空，FAIL=零命中
+
+=== 卡面底座锚点核对 ===
+[1 PASS] LoudnessBand{Min/Max} 字段
+     type LoudnessBand struct {
+     	Min *float64 `json:"min_lufs,omitempty"`
+     	Max float64  `json:"max_lufs"`
+
+[2 PASS] 内置预设 ProfileID 全集
+     70:		ProfileID:            "builtin:ebu_r128",
+     80:		ProfileID:            "builtin:aes_td1004",
+     90:		ProfileID:            "builtin:apple_music",
+
+[3 PASS] R128 ±0.5 形态(min-23.5/max-22.5)
+     		Integrated:           LoudnessBand{Min: bandPtr(-23.5), Max: -22.5},
+
+[4 PASS] ST/M 形备字段(profile.go)
+     60:	ShortTermMax         *float64     `json:"short_term_max_lufs,omitempty"`
+
+[5 PASS] render.profile.bind 工具 spec
+     1067:		spec("render_profile_bind", "render.profile.bind", "render", "Bind one completed render (kernel render job id) to exactly one delivery loudness profile (e.g. builtin:apple_music). One render one profile; rebinding to a different profile is rejected. Only renders whose telemetry reached terminal status ready can be bound.", RiskDirect, true, false, false, false),
+
+[6 PASS] BindRenderProfile + ready 门
+     25:func (h *Harness) BindRenderProfile(renderID, profileID string) (rlm.RenderProfileBinding, error) {
+     36:	if result.Status != "ready" {
+
+[7 PASS] chat 持久化 快照+恢复
+     7245:		state.RenderProfileBindings = s.harness.RenderProfileBindingsSnapshot()
+     7250:func (s *Server) restoreProjectAgentRuntimeStateLocked(state projectAgentRuntimeState) {
+
+[8 PASS] probeSpent 入账(elapsed 逐笔)
+     459:			s.ledger.probeSpent += elapsed
+
+[9 PASS] probe 分级表(probeToolTier)
+     func probeToolTier(tool string) string {
+     	name := strings.ReplaceAll(strings.ToLower(strings.TrimSpace(tool)), "_", ".")
+     	switch name {
+
+[10 PASS] 内核近似口径 algorithm 名
+     810:    obj->setProperty ("algorithm", "approximate_rms_lufs_v1");
+
+[11 PASS] integrated_lufs=rmsDb-0.691
+     807:    obj->setProperty ("integrated_lufs", rmsDb - 0.691);
+     808:    obj->setProperty ("approximate_lufs", rmsDb - 0.691);
+
+[12 PASS] LoudnessSummary 枚举位
+     16:    LoudnessSummary,
+
+[13 PASS] TP 免责注释(非 sample-accurate)
+                 crest.push_back (frame.peakDbfs - frame.bandDbfs[(size_t) band]);
+             }
+
+[14 PASS] FXM Measurement LUFS/Peak/Crest 字段
+     	LUFS           *float64          `json:"lufs,omitempty"`
+     	PeakDBFS       *float64          `json:"peak_dbfs,omitempty"`
+     	CrestDB        *float64          `json:"crest_db,omitempty"`
+
+=== 设计件新增锚点 ===
+[15 PASS] settle 桥持久化入口
+     63:func (s *Server) recordFreeStateSettlement(loop *freeStateReasoningLoop, kind, outcome, summary string, judgment *mixboard.FreeStateJudgmentOutcome, projectUUIDHint string) {
+     75:	if _, err := (mixboard.NewStore("")).RecordFreeStateConclusion(record); err != nil {
+
+[16 PASS] settle kind 枚举(六漏斗)
+     	FreeStateConclusionKindExperimentSettle  = "experiment_settle"
+     	FreeStateConclusionKindExperimentStop    = "experiment_stop"
+     	FreeStateConclusionKindLoopClosureSettle = "loop_closure_settle"
+
+[17 PASS] LatestProjectChange 字段与 overlay
+     83:	LatestProjectChange         map[string]any               `json:"latest_project_change,omitempty"`
+     362:	if len(overlay.LatestProjectChange) > 0 {
+     363:		out.LatestProjectChange = cloneContext(overlay.LatestProjectChange)
+
+[18 PASS] 后台特征请求入口
+     4279:func (h *Harness) requestMixObservationFeaturesBackground(ctx context.Context, cmd map[string]any, state map[string]any, target mixboard.TargetRef) map[string]any {
+
+[19 PASS] ready-gate 同步面(默认 preflight)
+     3852:	return intent == mom.IntentActionPreflightObservation
+
+[20 PASS] clip 源强制 blocked 计数
+     4
+
+[21 PASS] 内核 bake 命令(cmd=warm_waveform_bake)
+     4390:		"cmd":                 "warm_waveform_bake",
+     4938:			"cmd":                 "warm_waveform_bake",
+     5066:				"cmd":                 "warm_waveform_bake",
+
+[22 PASS] 内核 bake 事件发布
+     128:    obj->setProperty ("command", "audio_feature_bake_status");
+
+[23 PASS] manifest 证据分级(integrated=Primary/approx=Approximate)
+     			{ID: "integrated_lufs", Aliases: []string{"integrated_lufs"}, Semantic: "integrated loudness", EvidenceKind: "loudness", Usage: "primary B1.2 loudness reference", Primary: true},
+     			{ID: "approximate_lufs", Aliases: []string{"approximate_lufs", "lufs", "lufs_estimate"}, Semantic: "approximate loudness", EvidenceKind: "loudness", Usage: "approximate B1.2 loudness fallback", Approximate: true},
+
+[24 PASS] approximate_lufs 消费(gain_staging)
+     43:	ApproxLUFS              *float64       `json:"approximate_lufs,omitempty"`
+     359:	if value, ok := firstNumber(row, "approximate_lufs", "lufs", "lufs_estimate"); ok {
+     831:		{ID: "approximate_lufs", Unit: "LUFS", Approximate: true},
+
+[25 PASS] catalog derived/cheap 条目模式
+     265:		catalogEntry("project.risks.headroom", "derived", sourceFreshness(obs, "project_context"), "cheap", "Tracks sorted by smallest known headroom.", "mix_read key=project.risks.headroom", "project", "current", now),
+     524:	case "project.risks.headroom":
+     742:			"evidence_refs":       []string{"project.rankings.loudness", "project.rankings.level", "project.rankings.peak", "project.risks.peak", "project.risks.headroom"},
+
+[26 PASS] loudness_ranking 摘录位
+     204:	if ranking := mapRowsAny(obs.ProjectPackage["loudness_ranking"]); len(ranking) > 0 {
+     205:		out["project_loudness_ranking_excerpt"] = capRows(ranking, 6)
+     517:		return map[string]any{"status": projectRankingStatus(obs.ProjectPackage, "loudness_ranking"), "rows": capRows(mapRowsAny(obs.ProjectPackage["loudness_ranking"]), req.MaxItems)}, true
+
+[27 PASS] 三视图文件存在
+     agent/internal/chat/mix_report_three_view.go
+     agent/internal/chat/mix_report_three_view_test.go
+
+[28 PASS] typed_events 先例(harness)
+     3537:		if event := acousticPackageStatusTypedEvent(acousticStatus, acousticStorePath); len(event) > 0 {
+     3838:	if event := acousticPackageStatusTypedEvent(acousticStatus, acousticStorePath); len(event) > 0 {
+     4457:func acousticPackageStatusTypedEvent(status map[string]any, artifactPath string) map[string]any {
+
+[29 PASS] webui typed_events 类型面
+     1
+
+[30 PASS] RLM projection schema 名
+     4:	SchemaVersion = "reference_level_model.projection.v0"
+
+[31 PASS] acoustic loudness_summary 特征行
+     350:	loudness := bestFeatureRow(identity, featureSnapshot, "loudness_summary", "loudness_summaries")
+     378:			"loudness_summary":        featureFromRow("loudness_summary", loudness, identity, source, now),
+     567:		"l3_deep":   []string{"spectrogram_tiles", "band_energy_summary", "stereo_relation_summary", "loudness_summary"},
+
+[32 PASS] 冒测门控腿先例(M1FiveThreeView)
+     126:    [switch]$M1FiveThreeView
+     135:if ($M1FiveThreeView -and (-not $M1QueueRoundtrip)) {
+     136:    Write-FailLine "-M1FiveThreeView requires -M1QueueRoundtrip (the E1-deferred needle rides the M1Q q2 annotation)"
+
+[33 PASS] G3-REOPEN 卡在 todo
+     coord/cards/todo/2026-10-11-G3-REOPEN-COSTCMP-1.md
+
+[34 PASS] TIER-EXT 卡在 todo
+     coord/cards/todo/2026-10-10-PULL-PROBE-TIER-EXT-1.md
+
+[35 PASS] M1-4 卡在 todo
+     coord/cards/todo/2026-10-11-MIXLAYER-M1-4-d1d3-observation-pack.md
+
+[36 PASS] probeaudio 合成信号族
+     53:func Generate(root string, now time.Time) (Manifest, error) {
+     106:func logSweep(startHz, endHz, duration, amplitude float64) func(int, float64) (float64, float64) {
+     117:func multitone() func(int, float64) (float64, float64) {
+
+[37 PASS] 预算披露行(probe_spent=)
+     77:	line += " probe_spent=" + ftoa(probeSpent)
+
+[38 PASS] checkpoint 账本位
+     34:	ProbeSpent      float64  `json:"probe_spent"`
+     137:			ProbeSpent:      s.ledger.probeSpent,
+
+[39 PASS] budget 止损线
+     60:func (b ObservationBudget) ProbeExhausted(spent float64) bool {
+
+[40 PASS] ST/M/TP 生产者缺失(反证=0 命中)
+     0
+     (grep -c 退出非零即 0 命中=反证成立)
+
+[41 PASS] full_project 逐 clip 迭代
+     4229:	for _, current := range visibleAudioTrackFeatureTargets(state) {
+     4287:		targets := visibleAudioTrackFeatureTargets(state)
+     5021:	targets := visibleAudioTrackFeatureTargets(state)
+
+=== 汇总 ===
+总计 41 项：PASS 41 / FAIL 0
