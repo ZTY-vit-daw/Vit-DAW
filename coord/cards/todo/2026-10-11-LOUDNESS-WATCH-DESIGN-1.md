@@ -1,0 +1,44 @@
+# LOUDNESS-WATCH-DESIGN-1：响度监听（编译器式响度合规门）设计
+
+- 发卡：GLM 主管决策侧 / 2026-10-11 晚窗（依据=用户功能定义：新 harness 红利——广播/平台响度标准+编译器机制类比+手动开关+用户自定阈值）
+- 派发确认：已确认（用户 2026-10-11 晚窗定义）
+- 验收负责人：GLM 主管决策流
+- 池序 74；目标仓库=D:\Vit_DAW；设计卡零生产代码
+- 归属：PC 混音线（D1 响度域）；实现排 M1-4 合入后（观察 pack 为其消费面），设计卡可立即领
+- 优先级 / 预估 / 依赖：P2 / 设计 1 天 / 无硬依赖
+- 模型分级：L1 / GLM 或 flash 执行会话
+
+## 功能定义（用户原意钉死）
+
+工程音频被 agent 或用户处理后，后台按广播/平台响度标准校验当前响度未越设定范围——**编译器机制类比**：处理=写代码，响度检查=编译/lint，越界=告警。触发三态可选（实时监听/周期/**处理后触发（主案）**——实时若影响性能则退后两者）；**手动开关**；**阈值用户自定**。
+
+## 已就位底座（设计起点，勿重建）
+
+- 标准预设：`internal/rlm/profile.go:44-86`——EBU R128（-23 LUFS±0.5/-1 dBTP/BS.1770）+AES TD1004（-16~-20 LUFS）+LoudnessBand{min/max_lufs} 阈值形态；
+- 测量口径：RLM integrated/short_term_max/momentary_max LUFS；内核 L3AcousticAnalyzer+AudioFeatureTypes 响度面；FXM Measurement 含 LUFS/Peak/Crest；
+- 绑定面：render.profile.bind（chat/server.go+harness.go，RLM-PROFILE-2 已收）；
+- harness 红利：probe 计量账本（PULL-PROBE-METER-1 已合入）+probe 分级+pull 后台探针（G3-REOPEN-COSTCMP-1 将补物理成本证据）。
+
+## 设计五件
+
+1. **触发机制**：主案=处理后触发（mix 动作/settle 完成钩子→自动响度 probe→比对→告警/通过）；周期与实时为可配选项；性能影响评估用 probeSpent 账本证据（引用 G3-REOPEN 对比轮数据若已出）。
+2. **配置面**：工程级用户配置——开关（默认关）、标准预设选择（R128/AES/自定义）、min/max LUFS+真峰阈值自定；持久化与旧工程缺省语义（AGENTS §11）。
+3. **告警面**：双消费者——agent（自由态循环可见=证据面，模型可据此提降噪/限幅提案）+用户（webui/前端呈现；涉渲染面按 §5 渲染面烟测门槛）。
+4. **测量口径核对**：integrated/short-term/momentary+true peak 全口径就位度核对（RLM/内核 L3 现有 vs 缺口）；缺则列内核补齐面（单独实现卡）。
+5. **实施拆卡建议**：达到可直接发卡程度（预计 2-3 张：配置面/触发与探针接线/告警双面）。
+
+## 文件域
+
+设计零生产代码；产出落 coord/runs/LOUDNESS-WATCH-DESIGN-1/。
+
+## 验收标准
+
+设计五件齐+锚点（配置/触发/告警三面给到文件:行或 grep 实证）；性能影响结论有账本证据或明确实验设计；实施卡规格可直接发卡。
+
+## 停止条件
+
+发现 RLM profile/绑定面与卡面锚点重大不符 → 上交。
+
+- 领取：（时间 / origin/main hash / owner / 领取提交）
+- 回执：（设计基线链接）
+- 验收：（裁定文件）
