@@ -7,6 +7,7 @@
 ## 当前占用
 
 - 2026-10-11 22:0x +0800 起 / GEN-API-ADAPTER-1（GLM-5.3 Mac 执行流，ZCode；worktree /Users/timozty/Documents/Vit-DAW-genapi1，分支 port/gen-api-adapter-1）：gen_api_adapter_smoke_mac.sh 端到端冒测（内核复用 GEN-MAC-BASELINE-1 二进制 9a70f064…，agent 含本卡改动新构建；预计短时占用，结束复核端口零残留）
+- 排队 / GEN-CTX-DISCLOSE-1（GLM-5.3 Mac 执行流，ZCode 会话；worktree /Users/timozty/Documents/Vit-DAW-ctxdisclose1，分支 port/gen-ctx-disclose-1）：`scripts/music_context_disclosure_smoke_mac.sh` 两阶段冒测（改前基线内核 9a70f064 + 候选内核 8e445dbb + agent 两件套，固定端口 7878/5555/5556/5557，run workdir 隔离临时目录，脚本自 teardown）。22:30 核对四端口监听=0（当时空闲），与 GEN-API-ADAPTER-1 登记竞争后按协议排队；其释放登记落地+端口复核空闲后占用。
 
 ## 最近一次释放
 
