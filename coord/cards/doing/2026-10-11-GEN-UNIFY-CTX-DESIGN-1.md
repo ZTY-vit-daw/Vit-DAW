@@ -34,6 +34,6 @@
 
 设计中发现披露面/命令面与既有勘察锚点重大不符（上游已变）→ 锚点上交。
 
-- 领取：（时间 / origin/main hash / owner / 领取提交）
+- 领取：2026-10-11 晚 / origin/main cf46f950 / GLM 执行会话 ZCode Mac（worktree Vit-DAW-wt-genctx）/ 领取提交=本提交（coord-only 直推 main）
 - 回执：（设计基线链接）
 - 验收：（裁定文件）
