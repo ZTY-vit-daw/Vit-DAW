@@ -27,5 +27,5 @@ Mac 栈烟测 exit 0（五命令勘测脚本）；缺口清单+可跑面结论+�
 Mac 栈构建断裂（基线漂移）→ 断点+证据上交（对照 PORT-A5 最后绿基线）。
 
 - 领取：2026-10-11 11:29 CST / origin/main=32fcab06609e64eafd5d6e7cbdb6911538df1a42（fetch 直连覆盖代理；卡面「≥e3af3c4e」已满足，实际基线为当日最新）/ owner=GLM-5.3 Mac 执行流（ZCode 会话）/ worktree /Users/timozty/Documents/Vit-DAW-genbase1 / 分支 port/gen-mac-baseline-1
-- 回执：（待回填）
+- 回执：**done（自验 exit 0）**——权威 run `coord/runs/GEN-MAC-BASELINE-1/run4-pass-20261011-122948/`（summary 30/30 门绿，schema gen.chain.survey.mac.v1）。四件事：①基线 32fcab06（fetch 直连；远端 doing 仅 MIXLAYER-M1-1=PC/agentloop 域不相交，卡面"RLM-PROFILE-2 待验收"已过时按现状清点）；②内核重建 sha256 `9a70f064d2a20f023f35389c28fa87956595ce46dad4eb35bda571d243f54057`+vitagent `d3dc1662…`（K1/K2 均为祖先，79b8ecdc..HEAD 对 VitApp/Source 零改动；FetchContent 代理坑用 GIT_CONFIG_* 空覆盖直连解）；③五命令+扩展面首勘全绿（project 周期/midi 九命令数据级闭环含 mutate-by-id/delete-by-id 回读数学一致/ingest×2 take 栈/switch_take/ghost/render 双腿——K1 同步拒绝语义+完成不冻结 Mac 首证/render.profile.bind Mac 首勘 ok/fail-closed 负探针；17 确认卡双形态）；④MAC-RUNTIME-STACK.md 建立+占用+释放闭环（de3a3b6d 登记，12:34 复核空闲）。缺口清单与可跑面结论见 [report.md](../../runs/GEN-MAC-BASELINE-1/report.md)（A1 维持开放；新发现=mutate argspec 与内核校验漂移待决策侧定；探针迭代 3 轮均脚本缺陷，栈本体零功能红）。实现 commits：f95f4760/bd079a09/d2d8070e/9560deba/dfcb2947 @ port/gen-mac-baseline-1；零生产源码改动（VitApp/Source 与 agent/ 零触碰）。端测边界（AGENTS §5）：两件套命令/回执面；Godot 前端/webui/旅程面与插件扫描面不在本卡。
 - 验收：（裁定文件）
