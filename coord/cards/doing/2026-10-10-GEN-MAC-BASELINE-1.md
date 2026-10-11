@@ -26,6 +26,6 @@ Mac 栈烟测 exit 0（五命令勘测脚本）；缺口清单+可跑面结论+�
 
 Mac 栈构建断裂（基线漂移）→ 断点+证据上交（对照 PORT-A5 最后绿基线）。
 
-- 领取：（时间 / origin/main hash / owner / worktree / 领取提交）
-- 回执：（run ID / 缺口清单 / 可跑面结论）
+- 领取：2026-10-11 11:29 CST / origin/main=32fcab06609e64eafd5d6e7cbdb6911538df1a42（fetch 直连覆盖代理；卡面「≥e3af3c4e」已满足，实际基线为当日最新）/ owner=GLM-5.3 Mac 执行流（ZCode 会话）/ worktree /Users/timozty/Documents/Vit-DAW-genbase1 / 分支 port/gen-mac-baseline-1
+- 回执：（待回填）
 - 验收：（裁定文件）
