@@ -6,12 +6,11 @@
 
 ## 当前占用
 
-- 状态：占用中
-- 2026-10-11 11:45 +0800 起 / GEN-MAC-BASELINE-1（GLM-5.3 Mac 执行流，ZCode 会话；worktree /Users/timozty/Documents/Vit-DAW-genbase1，分支 port/gen-mac-baseline-1）：生成链五命令勘测脚本 `scripts/gen_chain_survey_smoke_mac.sh` 真栈烟测（agent 7878 / kernel ZMQ 5555/5556/5557）；占用登记前核对端口监听=0、VitApp/VitAgent 进程=0（PC 栈 MIXLAYER-M1-1 占用为 PC 机器侧，与 Mac 栈互不相干）。
+- 状态：空闲
 
 ## 最近一次释放
 
--（尚无——首次建立）
+- 2026-10-11 11:45–12:34 +0800 / GEN-MAC-BASELINE-1（GLM-5.3 Mac 执行流，ZCode 会话；worktree /Users/timozty/Documents/Vit-DAW-genbase1，分支 port/gen-mac-baseline-1）：生成链勘测脚本 `scripts/gen_chain_survey_smoke_mac.sh` 四轮（run1/run2/run3=探针迭代，脚本缺陷非栈失败；run4=权威轮 exit 0，30/30 门绿，末轮脚本自 teardown），12:34 复核端口 7878/5555/5556/5557 监听=0、VitApp/vitagent 进程=0。占用登记 de3a3b6d（登记前核对空闲）；实现 commit 见 port/gen-mac-baseline-1；run 工件 `coord/runs/GEN-MAC-BASELINE-1/run4-pass-20261011-122948/`。期间另有一次裸内核 ZMQ 直发取证（11:47–11:53，fixture 排障，结束即杀，复核端口=0）。
 
 ## 历史占用（归档）
 

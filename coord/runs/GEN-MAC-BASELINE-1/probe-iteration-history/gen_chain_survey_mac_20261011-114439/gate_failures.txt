@@ -1,0 +1,5 @@
+midi_import_ok: status=kernel_error clip= note_count=
+midi_readback_import_consistent: transport/http failure
+midi_mutate_ok: status=kernel_error
+midi_readback_final_consistent: status=ok verdict=mismatch got={(77, 0.0, 0.5, 100): 1, (76, 2.0, 0.5, 80): 1, (79, 3.0, 0.5, 70): 1, (83, 3.5, 0.25, 60): 1}
+midi_readback_clip2_consistent: status=ok count=4

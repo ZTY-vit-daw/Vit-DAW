@@ -1,0 +1,10 @@
+run_id=gen_chain_survey_mac_20261011-122948
+started_at=2026-10-11T12:29:48+0800
+repo_root=/Users/timozty/Documents/Vit-DAW-genbase1
+repo_head=9560deba4d37cb68c0520af85a79c645c7a50d97
+repo_dirty=0 entries
+kernel_bin=/tmp/vit-genbase1-build/app/VitApp_artefacts/Debug/VitApp
+kernel_sha256=9a70f064d2a20f023f35389c28fa87956595ce46dad4eb35bda571d243f54057
+agent_bin=/tmp/vit-genbase1-build/vitagent
+agent_sha256=d3dc1662c5b9bb1fd3adeb7b6dbe2c078e25c30957f630e059e8ab7bb7d08d17
+agent_http=http://127.0.0.1:7878

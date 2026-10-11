@@ -1,0 +1,43 @@
+{
+  "schema_version": "vit_agent_store_manifest.v2",
+  "project_uuid": "vitproj_d6bd26b590904fe886ffc912c3b3c891",
+  "origin_project_uuid": "vitproj_01035875886e4a398621250828bc1b41",
+  "project_path": "/var/folders/bm/9470lvs56ss6lfw1n9g66k2c0000gn/T/gen_chain_survey_mac.A2eHCOaO/project/gen_survey_saveas.vit",
+  "created_at": "2026-10-11T04:29:51.420288Z",
+  "updated_at": "2026-10-11T04:29:56.529035Z",
+  "budgets": {
+    "observation_max_bytes": 2097152,
+    "observation_max_count": 500,
+    "evidence_max_bytes": 419430400,
+    "evidence_blob_max_bytes": 67108864,
+    "journal_shard_max_bytes": 4194304,
+    "journal_shard_max_records": 1000,
+    "journal_max_shards": 50,
+    "store_total_max_bytes": 536870912
+  },
+  "counters": {
+    "journal_bytes": 88387,
+    "journal_records": 71,
+    "journal_shards": 1,
+    "observations_bytes": 0,
+    "observations_count": 0,
+    "evidence_bytes": 0,
+    "evidence_count": 0,
+    "mixboard_bytes": 90771,
+    "total_bytes": 179158
+  },
+  "classes": {
+    "authoritative": [
+      "journal",
+      "mixboard_decisions"
+    ],
+    "renewable": [
+      "evidence",
+      "context_packs"
+    ]
+  },
+  "degraded": {
+    "evidence_off": false,
+    "reason": ""
+  }
+}

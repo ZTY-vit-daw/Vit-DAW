@@ -1,0 +1,4 @@
+COMMAND   PID    USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME
+VitApp  22443 timozty   19u  IPv4 0x5888fbee18cf8152      0t0  TCP 127.0.0.1:5555 (LISTEN)
+VitApp  22443 timozty   20u  IPv4 0x3d0ece58060e93ca      0t0  TCP 127.0.0.1:5556 (LISTEN)
+VitApp  22443 timozty   21u  IPv4 0xd4b5f24e32937e20      0t0  TCP 127.0.0.1:5557 (LISTEN)

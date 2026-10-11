@@ -1,0 +1,96 @@
+{
+  "schema_version": "gen.chain.survey.mac.v1",
+  "card": "GEN-MAC-BASELINE-1",
+  "run_id": "gen_chain_survey_mac_20261011-114439",
+  "overall_status": "FAIL",
+  "failure_kind": "functional",
+  "repo": {
+    "root": "/Users/timozty/Documents/Vit-DAW-genbase1"
+  },
+  "binaries": {
+    "kernel_sha256": "9a70f064d2a20f023f35389c28fa87956595ce46dad4eb35bda571d243f54057",
+    "agent_sha256": "d3dc1662c5b9bb1fd3adeb7b6dbe2c078e25c30957f630e059e8ab7bb7d08d17"
+  },
+  "gates": {
+    "kernel_start_ports": false,
+    "agent_start_health": false,
+    "clear_project_slate": true,
+    "project_new_ok": true,
+    "project_save_as_ok": true,
+    "midi_host_track_ok": true,
+    "midi_import_ok": false,
+    "midi_readback_import_consistent": false,
+    "midi_insert_clip_ok": true,
+    "midi_add_notes_ok": true,
+    "midi_add_notes_bulk_ok": true,
+    "midi_apply_patch_ok": true,
+    "midi_mutate_ok": false,
+    "midi_delete_ok": true,
+    "midi_readback_final_consistent": false,
+    "midi_readback_clip2_consistent": false,
+    "render_legB_sync_rejection": true,
+    "render_legB_surface_alive": true,
+    "render_legB_idle_cancel_ok": true,
+    "assets_host_track_ok": true,
+    "assets_register_job_ok": true,
+    "assets_ingest1_ok": true,
+    "assets_ingest2_ok": true,
+    "assets_ghost_state_ok": true,
+    "assets_switch_take_ok": true,
+    "render_legA_job_started": true,
+    "render_legA_file_completed": true,
+    "render_legA_surface_alive": true,
+    "project_save_ok": true,
+    "ingest_failclosed_badpath": true
+  },
+  "gate_failure_details": {
+    "midi_import_ok": " status=kernel_error clip= note_count=",
+    "midi_readback_import_consistent": " transport/http failure",
+    "midi_mutate_ok": " status=kernel_error",
+    "midi_readback_final_consistent": " status=ok verdict=mismatch got={(77, 0.0, 0.5, 100): 1, (76, 2.0, 0.5, 80): 1, (79, 3.0, 0.5, 70): 1, (83, 3.5, 0.25, 60): 1}",
+    "midi_readback_clip2_consistent": " status=ok count=4"
+  },
+  "survey_recorded": {
+    "confirmation_cards_surfaced": 17,
+    "midi_clip_data_result_keys": "clip_id,command_ack,length_seconds,notes,offset_in_source_seconds,start_seconds,status,time_unit,vsp",
+    "switch_asset_take": "status=ok active_after=take:30cd68c7e3334c1188f7587d133e4aa5",
+    "render_profile_bind": "status=ok ",
+    "render_legA": {
+      "job_id": "8a4600758a584765a6603188cadb3756",
+      "file_state": "written"
+    },
+    "render_legB_reply_status": "error",
+    "ids": {
+      "midi_clip_import": "",
+      "midi_clip_inserted": "1010",
+      "ingest_clips": [
+        "1015",
+        "1017"
+      ],
+      "takes": [
+        "take:30cd68c7e3334c1188f7587d133e4aa5",
+        "take:c5a2d3da507c48b2b6b7f0f3510cd492"
+      ],
+      "asset_ref_1": "asset:8047a0fbb2321db6"
+    }
+  },
+  "kernel_stop": {
+    "record": "SIGTERM:143:1"
+  },
+  "agent_stop": {
+    "record": "SIGTERM:0:1"
+  },
+  "artifacts_dir": "/var/folders/bm/9470lvs56ss6lfw1n9g66k2c0000gn/T//gen_chain_survey_mac.QjdOgFHI",
+  "run_meta": {
+    "run_id": "gen_chain_survey_mac_20261011-114439",
+    "started_at": "2026-10-11T11:44:40+0800",
+    "repo_root": "/Users/timozty/Documents/Vit-DAW-genbase1",
+    "repo_head": "f95f4760ab55cb4e505939ac0c77c91ae610af47",
+    "repo_dirty": "0 entries",
+    "kernel_bin": "/tmp/vit-genbase1-build/app/VitApp_artefacts/Debug/VitApp",
+    "kernel_sha256": "9a70f064d2a20f023f35389c28fa87956595ce46dad4eb35bda571d243f54057",
+    "agent_bin": "/tmp/vit-genbase1-build/vitagent",
+    "agent_sha256": "d3dc1662c5b9bb1fd3adeb7b6dbe2c078e25c30957f630e059e8ab7bb7d08d17",
+    "agent_http": "http://127.0.0.1:7878"
+  }
+}
