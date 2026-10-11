@@ -1,0 +1,62 @@
+{
+  "baseUrl": "https://rightapi.ai/deepseek/v1",
+  "apiKey": "sk-11a67113d3424616aac149d996ce40af",
+  "defaultModel": "deepseek-v4-flash",
+  "multimodalRoutes": {
+    "audio_understanding": {
+      "enabled": false,
+      "provider": "default",
+      "priority": 40
+    },
+    "embeddings": {
+      "enabled": false,
+      "provider": "default",
+      "priority": 70
+    },
+    "image_generation": {
+      "enabled": false,
+      "provider": "default",
+      "priority": 30
+    },
+    "image_understanding": {
+      "enabled": false,
+      "provider": "default",
+      "priority": 20
+    },
+    "mix_observation": {
+      "enabled": false,
+      "provider": "default",
+      "priority": 100
+    },
+    "mix_strategy": {
+      "enabled": false,
+      "provider": "default",
+      "priority": 80
+    },
+    "mix_tick": {
+      "enabled": false,
+      "provider": "default",
+      "priority": 90
+    },
+    "text": {
+      "enabled": false,
+      "provider": "default",
+      "priority": 10
+    },
+    "transcription": {
+      "enabled": false,
+      "provider": "default",
+      "priority": 50
+    },
+    "video_browser": {
+      "enabled": false,
+      "provider": "default",
+      "priority": 60
+    }
+  },
+  "browser": {
+    "enabled": false,
+    "mode": "webview2_companion",
+    "rememberSession": true
+  }
+}

@@ -1,0 +1,6 @@
+You are looking at a screenshot of a software user interface. Answer in four numbered sections:
+
+1. LAYOUT: describe the overall layout (regions, panels, major visual components) in 3-5 sentences.
+2. ELEMENT COUNT: count and list the clearly visible UI elements by type (buttons, tabs, list rows, panels, icons, colored regions). Give a concrete number for each type you can identify.
+3. TEXT: transcribe the exact visible text strings you can read (window titles, labels, menu items, status text, table headers), preserving the original language exactly as shown.
+4. UNCERTAINTY: list anything that is too small, blurred, or ambiguous for you to read or count reliably.
