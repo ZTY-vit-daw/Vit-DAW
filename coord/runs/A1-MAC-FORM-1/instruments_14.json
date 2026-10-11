@@ -1,0 +1,104 @@
+{
+  "source": "/Users/timozty/.vit/plugin_semantics.json (built_at 2026-10-03T10:09:35.697929Z, source=scan_plugins)",
+  "note": "Mac 本机语义索引全量 719 主体中 is_instrument=true 的 14 条；identifier 即 instantiate_plugin 可用的 plugin_identifier",
+  "instruments": [
+    {
+      "name": "Bass Fingers Stereo",
+      "category": "Instrument|Waves",
+      "identifier": "VST3-Bass Fingers Stereo-10456661-f20c8ebc",
+      "plugin_path": "/Library/Audio/Plug-Ins/VST3/WaveShell1-VST3 17.1.vst3",
+      "confidence": 100
+    },
+    {
+      "name": "Bass Slapper Stereo",
+      "category": "Instrument|Waves",
+      "identifier": "VST3-Bass Slapper Stereo-10456661-85123bff",
+      "plugin_path": "/Library/Audio/Plug-Ins/VST3/WaveShell1-VST3 17.1.vst3",
+      "confidence": 100
+    },
+    {
+      "name": "CODEX Stereo",
+      "category": "Instrument|Waves",
+      "identifier": "VST3-CODEX Stereo-10456661-76899406",
+      "plugin_path": "/Library/Audio/Plug-Ins/VST3/WaveShell1-VST3 17.1.vst3",
+      "confidence": 100
+    },
+    {
+      "name": "COSMOS Sample Finder Stereo",
+      "category": "Instrument|Waves",
+      "identifier": "VST3-COSMOS Sample Finder Stereo-10456661-54735b52",
+      "plugin_path": "/Library/Audio/Plug-Ins/VST3/WaveShell1-VST3 17.1.vst3",
+      "confidence": 100
+    },
+    {
+      "name": "CR8 Sampler Stereo",
+      "category": "Instrument|Waves",
+      "identifier": "VST3-CR8 Sampler Stereo-10456661-c1e44bc9",
+      "plugin_path": "/Library/Audio/Plug-Ins/VST3/WaveShell1-VST3 17.1.vst3",
+      "confidence": 100
+    },
+    {
+      "name": "Clavinet Stereo",
+      "category": "Instrument|Waves",
+      "identifier": "VST3-Clavinet Stereo-10456661-55547257",
+      "plugin_path": "/Library/Audio/Plug-Ins/VST3/WaveShell1-VST3 17.1.vst3",
+      "confidence": 100
+    },
+    {
+      "name": "Electric Grand 80 Stereo",
+      "category": "Instrument|Waves",
+      "identifier": "VST3-Electric Grand 80 Stereo-10456661-33deeaa",
+      "plugin_path": "/Library/Audio/Plug-Ins/VST3/WaveShell1-VST3 17.1.vst3",
+      "confidence": 100
+    },
+    {
+      "name": "Electric200 Stereo",
+      "category": "Instrument|Waves",
+      "identifier": "VST3-Electric200 Stereo-10456661-66b705fe",
+      "plugin_path": "/Library/Audio/Plug-Ins/VST3/WaveShell1-VST3 17.1.vst3",
+      "confidence": 100
+    },
+    {
+      "name": "Electric88 Stereo",
+      "category": "Instrument|Waves",
+      "identifier": "VST3-Electric88 Stereo-10456661-7d3d0604",
+      "plugin_path": "/Library/Audio/Plug-Ins/VST3/WaveShell1-VST3 17.1.vst3",
+      "confidence": 100
+    },
+    {
+      "name": "Element Stereo",
+      "category": "Instrument|Waves",
+      "identifier": "VST3-Element Stereo-10456661-2b9a3d49",
+      "plugin_path": "/Library/Audio/Plug-Ins/VST3/WaveShell1-VST3 17.1.vst3",
+      "confidence": 100
+    },
+    {
+      "name": "Flow Motion Stereo",
+      "category": "Instrument|Waves",
+      "identifier": "VST3-Flow Motion Stereo-10456661-85502029",
+      "plugin_path": "/Library/Audio/Plug-Ins/VST3/WaveShell1-VST3 17.1.vst3",
+      "confidence": 100
+    },
+    {
+      "name": "Grand Rhapsody Piano Stereo",
+      "category": "Instrument|Waves",
+      "identifier": "VST3-Grand Rhapsody Piano Stereo-10456661-a6dc4e7d",
+      "plugin_path": "/Library/Audio/Plug-Ins/VST3/WaveShell1-VST3 17.1.vst3",
+      "confidence": 100
+    },
+    {
+      "name": "OVox Instrument Stereo",
+      "category": "Instrument|Waves",
+      "identifier": "VST3-OVox Instrument Stereo-10456661-a1f7be54",
+      "plugin_path": "/Library/Audio/Plug-Ins/VST3/WaveShell1-VST3 17.1.vst3",
+      "confidence": 100
+    },
+    {
+      "name": "StudioVerse Instruments Stereo",
+      "category": "Instrument|Waves",
+      "identifier": "VST3-StudioVerse Instruments Stereo-10456661-362cff25",
+      "plugin_path": "/Library/Audio/Plug-Ins/VST3/WaveShell1-VST3 17.1.vst3",
+      "confidence": 100
+    }
+  ]
+}
