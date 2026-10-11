@@ -1,0 +1,283 @@
+﻿{
+    "status":  "ok",
+    "agent_action_id":  "act_f14bcf64db34b322",
+    "tool":  "mix.report",
+    "command_name":  "mix_report",
+    "risk_level":  "direct",
+    "requires_confirmation":  false,
+    "result":  {
+                   "capability_summary":  [
+
+                                          ],
+                   "decision_timeline":  [
+
+                                         ],
+                   "export_readiness":  "not_assessed",
+                   "generated_at":  "2026-10-11T13:07:29.1279761Z",
+                   "message":  "mix.report 三视图：决策账本 + 自由态实验线 + queue 节点队列\n最近 settle 结论：无记录（本工程自由态实验尚未收口，或旧工程无持久层记录）\nqueue 节点状态：23 节点（延期 1 · 未开始 22）\n非缺省节点：E1 母带 EQ[延期]\n数据来源：mix_workflow_queue.v0（决策账本 0 条 · 自由态结论 0 条 · 节点标注 1）",
+                   "mix_workflow_queue":  {
+                                              "generated_at":  "2026-10-11T13:07:29.1488821Z",
+                                              "nodes":  [
+                                                            {
+                                                                "family":  "project_prep",
+                                                                "node_id":  "A1",
+                                                                "state":  "not_started",
+                                                                "state_label":  "未开始",
+                                                                "title":  "工程接收与整理"
+                                                            },
+                                                            {
+                                                                "family":  "project_prep",
+                                                                "node_id":  "A2",
+                                                                "state":  "not_started",
+                                                                "state_label":  "未开始",
+                                                                "title":  "技术完整性检查"
+                                                            },
+                                                            {
+                                                                "family":  "project_prep",
+                                                                "node_id":  "A3",
+                                                                "state":  "not_started",
+                                                                "state_label":  "未开始",
+                                                                "title":  "智能轨道整理"
+                                                            },
+                                                            {
+                                                                "family":  "project_prep",
+                                                                "node_id":  "A4",
+                                                                "state":  "not_started",
+                                                                "state_label":  "未开始",
+                                                                "title":  "片段编辑与清理"
+                                                            },
+                                                            {
+                                                                "family":  "project_prep",
+                                                                "node_id":  "A5",
+                                                                "state":  "not_started",
+                                                                "state_label":  "未开始",
+                                                                "title":  "段落地图"
+                                                            },
+                                                            {
+                                                                "family":  "static_mix",
+                                                                "node_id":  "B1",
+                                                                "state":  "not_started",
+                                                                "state_label":  "未开始",
+                                                                "title":  "增益分级"
+                                                            },
+                                                            {
+                                                                "family":  "static_mix",
+                                                                "node_id":  "B2",
+                                                                "state":  "not_started",
+                                                                "state_label":  "未开始",
+                                                                "title":  "静态主次与音量平衡"
+                                                            },
+                                                            {
+                                                                "family":  "static_mix",
+                                                                "node_id":  "B3",
+                                                                "state":  "not_started",
+                                                                "state_label":  "未开始",
+                                                                "title":  "声像布局"
+                                                            },
+                                                            {
+                                                                "family":  "static_mix",
+                                                                "node_id":  "B4",
+                                                                "state":  "not_started",
+                                                                "state_label":  "未开始",
+                                                                "title":  "低频关系"
+                                                            },
+                                                            {
+                                                                "family":  "fine_mix",
+                                                                "node_id":  "C1",
+                                                                "state":  "not_started",
+                                                                "state_label":  "未开始",
+                                                                "title":  "频段清理"
+                                                            },
+                                                            {
+                                                                "family":  "fine_mix",
+                                                                "node_id":  "C2",
+                                                                "state":  "not_started",
+                                                                "state_label":  "未开始",
+                                                                "title":  "动态控制"
+                                                            },
+                                                            {
+                                                                "family":  "fine_mix",
+                                                                "node_id":  "C3",
+                                                                "state":  "not_started",
+                                                                "state_label":  "未开始",
+                                                                "title":  "空间与深度"
+                                                            },
+                                                            {
+                                                                "family":  "fine_mix",
+                                                                "node_id":  "C4",
+                                                                "state":  "not_started",
+                                                                "state_label":  "未开始",
+                                                                "title":  "段落自动化"
+                                                            },
+                                                            {
+                                                                "family":  "fine_mix",
+                                                                "node_id":  "C5",
+                                                                "state":  "not_started",
+                                                                "state_label":  "未开始",
+                                                                "title":  "总线处理"
+                                                            },
+                                                            {
+                                                                "family":  "pre_master",
+                                                                "node_id":  "D1",
+                                                                "state":  "not_started",
+                                                                "state_label":  "未开始",
+                                                                "title":  "全局响度与峰值"
+                                                            },
+                                                            {
+                                                                "family":  "pre_master",
+                                                                "node_id":  "D2",
+                                                                "state":  "not_started",
+                                                                "state_label":  "未开始",
+                                                                "title":  "翻译检查"
+                                                            },
+                                                            {
+                                                                "family":  "pre_master",
+                                                                "node_id":  "D3",
+                                                                "state":  "not_started",
+                                                                "state_label":  "未开始",
+                                                                "title":  "参考曲对比"
+                                                            },
+                                                            {
+                                                                "family":  "pre_master",
+                                                                "node_id":  "D4",
+                                                                "state":  "not_started",
+                                                                "state_label":  "未开始",
+                                                                "title":  "版本输出"
+                                                            },
+                                                            {
+                                                                "family":  "mastering",
+                                                                "node_id":  "E1",
+                                                                "state":  "deferred",
+                                                                "state_label":  "延期",
+                                                                "title":  "母带 EQ"
+                                                            },
+                                                            {
+                                                                "family":  "mastering",
+                                                                "node_id":  "E2",
+                                                                "state":  "not_started",
+                                                                "state_label":  "未开始",
+                                                                "title":  "母带动态与响度"
+                                                            },
+                                                            {
+                                                                "family":  "mastering",
+                                                                "node_id":  "E3",
+                                                                "state":  "not_started",
+                                                                "state_label":  "未开始",
+                                                                "title":  "母带空间与立体声安全"
+                                                            },
+                                                            {
+                                                                "family":  "mastering",
+                                                                "node_id":  "E4",
+                                                                "state":  "not_started",
+                                                                "state_label":  "未开始",
+                                                                "title":  "最终导出与质检"
+                                                            },
+                                                            {
+                                                                "family":  "review",
+                                                                "node_id":  "F1",
+                                                                "state":  "not_started",
+                                                                "state_label":  "未开始",
+                                                                "title":  "混音审查"
+                                                            }
+                                                        ],
+                                              "project_uuid":  "vitproj_e9cff40b487c435a8e2a91d23f1f3c4a",
+                                              "schema_version":  "mix_workflow_queue.v0",
+                                              "sources":  {
+                                                              "decision_records":  0,
+                                                              "mapped_decision_signals":  0,
+                                                              "unmapped_decision_records":  0,
+                                                              "free_state_conclusions":  0,
+                                                              "routed_conclusion_signals":  0,
+                                                              "unrouted_conclusions":  0,
+                                                              "ambiguous_route_conversations":  0,
+                                                              "node_annotations":  1,
+                                                              "dropped_illegal_transitions":  0
+                                                          },
+                                              "state_summary":  {
+                                                                    "deferred":  1,
+                                                                    "not_started":  22
+                                                                }
+                                          },
+                   "mixboard_decision_board_ref":  "mixboard-project:vitproj_e9cff40b487c435a8e2a91d23f1f3c4a",
+                   "project_cut":  {
+                                       "base_project_revision":  "4",
+                                       "consistency":  "bounded",
+                                       "contract_versions":  [
+                                                                 "mix_decision_record.v1",
+                                                                 "mix_report.v1"
+                                                             ],
+                                       "derived_from":  [
+                                                            "vsp.snapshot:epoch_a919be90c51d46dd:4:8849abd732dd72cb"
+                                                        ],
+                                       "hash":  "7a3247dfed575ffc720593657f721ed034c7a467de2cf3255af99159a79b22ca",
+                                       "project_epoch":  "epoch_a919be90c51d46dd",
+                                       "project_uuid":  "vitproj_e9cff40b487c435a8e2a91d23f1f3c4a",
+                                       "read_barrier_token":  "vsp:epoch_a919be90c51d46dd:4:8849abd732dd72cb"
+                                   },
+                   "project_uuid":  "vitproj_e9cff40b487c435a8e2a91d23f1f3c4a",
+                   "report_ref":  "mix-report:vitproj_e9cff40b487c435a8e2a91d23f1f3c4a:7a3247dfed575ffc720593657f721ed034c7a467de2cf3255af99159a79b22ca",
+                   "schema_version":  "mix_report.v1",
+                   "status":  "ok",
+                   "verification_summary":  {
+
+                                            }
+               },
+    "project_history":  {
+                            "active_branch":  "main",
+                            "active_node_id":  "n_20261011T130728_87d286ad",
+                            "active_worktree":  "",
+                            "available":  true,
+                            "branches":  {
+                                             "main":  "c_20261011T130720_b77034c8"
+                                         },
+                            "commit_count":  2,
+                            "detached":  false,
+                            "draft":  false,
+                            "head":  "c_20261011T130720_b77034c8",
+                            "initialized":  true,
+                            "project_label":  "sattelites_61",
+                            "project_path":  "D:\\Vit_DAW_wt_mixlayer_m1_5\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261011_210405\\project\\sattelites_61.vit",
+                            "project_uuid":  "vitproj_e9cff40b487c435a8e2a91d23f1f3c4a",
+                            "recent_checkpoints":  [
+                                                       {
+                                                           "branch":  "main",
+                                                           "checkpoint_kind":  "manual",
+                                                           "created_at":  "2026-10-11T13:07:20.6603717Z",
+                                                           "goal_id":  "goal_e27abb03dee59de0",
+                                                           "id":  "c_20261011T130720_b77034c8",
+                                                           "message":  "Vit: 工程扫描显示三处频段占用重叠候选：超低频一对（鼓组轨与整体轨）、低频一对（贝斯轨 sattelites fender jbass 与旋律轨）、中频一对（两条合成器轨）。我选低频这一对做第一轮最小实验：贝斯轨 sattelites fender jbass 是低频段能量最高的一条（该段能量约 60 dB、处于候选对中的高位），与旋律轨在同一低频区重叠。方向是该轨电平下调 0.5 dB——剂量取最小可闻档，只让出一点低频空间，判断低频整体是否更干净、贝斯与旋律是否更容易分开。改动可撤销、只动这一条轨的增益，结果交给你的 A/B 试听。"
+                                                       },
+                                                       {
+                                                           "branch":  "main",
+                                                           "checkpoint_kind":  "manual",
+                                                           "created_at":  "2026-10-11T13:04:51.3483507Z",
+                                                           "goal_id":  "goal_e27abb03dee59de0",
+                                                           "id":  "c_20261011T130451_5003f818",
+                                                           "message":  "Conversation ask"
+                                                       }
+                                                   ],
+                            "refs":  {
+                                         "refs/heads/main":  "c_20261011T130720_b77034c8"
+                                     },
+                            "root_project_path":  "",
+                            "unsaved":  false,
+                            "warnings":  [
+
+                                         ],
+                            "worktree_count":  1,
+                            "worktrees":  [
+                                              {
+                                                  "commit_id":  "c_20261011T130720_b77034c8",
+                                                  "created_at":  "2026-10-11T13:07:29.1400492Z",
+                                                  "is_root":  true,
+                                                  "label":  "主工作树",
+                                                  "name":  "main",
+                                                  "origin_commit_id":  "c_20261011T130720_b77034c8",
+                                                  "path":  "D:\\Vit_DAW_wt_mixlayer_m1_5\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261011_210405\\project",
+                                                  "project_file_path":  "D:\\Vit_DAW_wt_mixlayer_m1_5\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261011_210405\\project\\sattelites_61.vit",
+                                                  "project_path":  "D:\\Vit_DAW_wt_mixlayer_m1_5\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261011_210405\\project\\sattelites_61.vit",
+                                                  "root_project_path":  "D:\\Vit_DAW_wt_mixlayer_m1_5\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261011_210405\\project\\sattelites_61.vit"
+                                              }
+                                          ]
+                        }
+}
