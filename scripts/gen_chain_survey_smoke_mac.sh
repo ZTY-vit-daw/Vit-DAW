@@ -381,7 +381,7 @@ for port in "$KERNEL_PORT_REQ" "$ZMQ_PUB_PORT" "$ZMQ_LOG_PORT"; do
   listener_pid="$(port_listener_pid "$port")"
   [[ "$listener_pid" == "$KERNEL_PID" ]] || fail_functional "port $port listener pid $listener_pid != kernel pid $KERNEL_PID"
 done
-GATE_kernel_start_ports=1
+export GATE_kernel_start_ports=1
 log "kernel ZMQ ports listening: $KERNEL_PORT_REQ (REQ) $ZMQ_PUB_PORT (PUB) $ZMQ_LOG_PORT (log) — owned by pid $KERNEL_PID"
 
 # ---------------------------------------------------------------- start agent
@@ -412,7 +412,7 @@ while (( SECONDS < deadline )); do
 done
 curl -sS --max-time 2 -o "$WORKDIR/http/health.json" "$AGENT_HTTP/health" 2>/dev/null \
   || fail_functional "agent /health not ready within ${STARTUP_TIMEOUT_SECONDS}s"
-GATE_agent_start_health=1
+export GATE_agent_start_health=1
 log "agent /health ready"
 
 # ---------------------------------------------------------------- P1 project
