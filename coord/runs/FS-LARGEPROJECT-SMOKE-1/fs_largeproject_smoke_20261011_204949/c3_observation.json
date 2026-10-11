@@ -1,0 +1,10 @@
+﻿{
+    "marker_hits":  [
+
+                    ],
+    "zero_fixed_orchestration_markers":  true,
+    "observation_readonly_line":  true,
+    "response":  "D:\\Vit_DAW_wt_mixlayer_m1_3\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261011_204949\\c3_observation_response.json",
+    "observation_reply_schema":  true,
+    "enabled":  true
+}
