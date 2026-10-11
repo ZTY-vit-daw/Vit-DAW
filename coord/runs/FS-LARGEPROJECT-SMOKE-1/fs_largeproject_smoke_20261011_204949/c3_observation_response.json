@@ -1,0 +1,95 @@
+﻿{
+    "conversation_id":  "dev_fs_largeproject_20261011_204949_c3obs",
+    "task_id":  "task_f4aea824c00fdee5",
+    "goal_id":  "goal_f6844b6b016e1639",
+    "run_id":  "run_4c5cc19499fee33d",
+    "original_intent":  "c3 观察空间与深度",
+    "reply":  "C3 空间与深度观察完成（schema c3.space_depth.observation.v0，只读）。\n插件面：识别到 0 个空间/深度类插件（plugin_path 词法识别，非语义 inspector），读取 0 份通用参数快照（get_plugin_parameters 读端）。\n静态电平面：MOM static_level_relationship status=missing。\nFXM 面：未提供手动差分；本能力不生产自动差分（M2-TIMEFX 线）。\n本观察未创建 Proposal，未注册任何写命令，未修改工程。",
+    "agent_mode":  "default",
+    "needs_confirmation":  false,
+    "workflow":  "capability_runtime_v1",
+    "workflow_data":  {
+                          "canary_stage":  "observation",
+                          "capability_id":  "fine_mix.space_depth.v0",
+                          "mutation_performed":  false,
+                          "observation":  {
+                                              "schema_version":  "c3.space_depth.observation.v0",
+                                              "observation_id":  "obs_20261011T125433_0f614b5829eb",
+                                              "mom_static_level_status":  "missing",
+                                              "plugin_candidates":  0,
+                                              "plugins_read":  0,
+                                              "plugins_skipped":  0,
+                                              "fxm_manual_diff_status":  "missing",
+                                              "limitations":  [
+                                                                  "MOM static_level_relationship 缺席（该观察依赖工程声学证据，缺失原样保留不升级）",
+                                                                  "FXM 手动差分未提供；本能力不生产自动差分（M2-TIMEFX 线）",
+                                                                  "空间/深度插件识别为 plugin_path 词法分类（内核无 reverb/delay 语义 inspector），非语义判定"
+                                                              ]
+                                          },
+                          "read_only":  true,
+                          "schema":  "c3.space_depth.observation.v0",
+                          "session_id":  "cap_v1_c3_dev_fs_largeproject_20261011_204949_c3obs_1"
+                      },
+    "goal_status":  "completed",
+    "goal_summary":  "c3 观察空间与深度",
+    "project_history":  {
+                            "active_branch":  "main",
+                            "active_node_id":  "n_20261011T125434_eeac02df",
+                            "active_worktree":  "",
+                            "available":  true,
+                            "branches":  {
+                                             "main":  "c_20261011T125258_1f8ea59a"
+                                         },
+                            "commit_count":  2,
+                            "conversation_messages":  [
+                                                          {
+                                                              "content":  "c3 观察空间与深度",
+                                                              "logical_message_id":  "n_20261011T125309_00036794",
+                                                              "message_kind":  "user",
+                                                              "node_id":  "n_20261011T125309_00036794",
+                                                              "role":  "user"
+                                                          },
+                                                          {
+                                                              "content":  "C3 空间与深度观察完成（schema c3.space_depth.observation.v0，只读）。\n插件面：识别到 0 个空间/深度类插件（plugin_path 词法识别，非语义 inspector），读取 0 份通用参数快照（get_plugin_parameters 读端）。\n静态电平面：MOM static_level_relationship status=missing。\nFXM 面：未提供手动差分；本能力不生产自动差分（M2-TIMEFX 线）。\n本观察未创建 Proposal，未注册任何写命令，未修改工程。",
+                                                              "logical_message_id":  "n_20261011T125434_eeac02df",
+                                                              "message_kind":  "assistant",
+                                                              "node_id":  "n_20261011T125434_eeac02df",
+                                                              "role":  "assistant"
+                                                          }
+                                                      ],
+                            "detached":  false,
+                            "draft":  false,
+                            "head":  "c_20261011T125258_1f8ea59a",
+                            "initialized":  true,
+                            "project_label":  "sattelites_61",
+                            "project_path":  "D:\\Vit_DAW_wt_mixlayer_m1_3\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261011_204949\\project\\sattelites_61.vit",
+                            "project_uuid":  "vitproj_56f9b2f531d646f1adad6192971a2597",
+                            "refs":  {
+                                         "refs/heads/main":  "c_20261011T125258_1f8ea59a"
+                                     },
+                            "root_project_path":  "",
+                            "unsaved":  false,
+                            "warnings":  [
+
+                                         ],
+                            "worktrees":  [
+                                              {
+                                                  "commit_id":  "c_20261011T125258_1f8ea59a",
+                                                  "created_at":  "2026-10-11T12:54:34.2621784Z",
+                                                  "is_root":  true,
+                                                  "label":  "主工作树",
+                                                  "name":  "main",
+                                                  "origin_commit_id":  "c_20261011T125258_1f8ea59a",
+                                                  "path":  "D:\\Vit_DAW_wt_mixlayer_m1_3\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261011_204949\\project",
+                                                  "project_file_path":  "D:\\Vit_DAW_wt_mixlayer_m1_3\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261011_204949\\project\\sattelites_61.vit",
+                                                  "project_path":  "D:\\Vit_DAW_wt_mixlayer_m1_3\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261011_204949\\project\\sattelites_61.vit",
+                                                  "root_project_path":  "D:\\Vit_DAW_wt_mixlayer_m1_3\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261011_204949\\project\\sattelites_61.vit"
+                                              }
+                                          ]
+                        },
+    "lifecycle":  "durable",
+    "persistence":  "project_history",
+    "message_kind":  "assistant",
+    "turn_id":  "run_4c5cc19499fee33d",
+    "logical_message_id":  "n_20261011T125434_eeac02df"
+}

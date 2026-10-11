@@ -121,6 +121,10 @@ func (s *Server) handleCapabilityRuntimeCanary(ctx context.Context, conversation
 	if capabilityID == agentSemanticEQCapabilityID {
 		return s.handleSemanticEQRuntime(ctx, conversationID, req, goal), true
 	}
+	// MIXLAYER-M1-3：C3 空间与深度·只读观察 Session（无 Proposal/授权路径）。
+	if capabilityID == spaceDepthCapabilityID {
+		return s.handleSpaceDepthRuntime(ctx, conversationID, req, goal), true
+	}
 	if capabilityID != staticBalanceCapabilityID {
 		return ChatResponse{}, false
 	}

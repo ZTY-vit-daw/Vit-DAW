@@ -111,7 +111,13 @@ param(
     # post-round queue view read + node annotation write-back + re-read, with
     # the same fixed-orchestration marker discipline applied to the queue
     # response surfaces.
-    [switch]$M1QueueRoundtrip
+    [switch]$M1QueueRoundtrip,
+    # MIXLAYER-M1-3 C3 read-only observation phase (off = legacy flow
+    # unchanged): a free-state chat message with an explicit C3 marker must
+    # reach the space/depth observation Session and return the read-only
+    # report (schema line + no-write line), with the fixed-orchestration
+    # marker discipline applied to the response surface.
+    [switch]$C3Observation
 )
 
 $ErrorActionPreference = "Stop"
@@ -1413,6 +1419,76 @@ if ($M1QueueRoundtrip) {
 }
 $report.m1_queue_roundtrip = $m1q
 
+# ------------------- phase 8.6: M1-3 C3 space/depth read-only observation (opt-in)
+# MIXLAYER-M1-3: one free-state chat message with an explicit C3 marker. The
+# canary seam routes it to the fine_mix.space_depth.v0 read-only observation
+# Session; the gates assert the observation report (schema line + read-only
+# line) came back and the response surface carries no fixed-orchestration
+# markers. The report is deterministic (no LLM turn), so the gates are
+# deterministic. Chinese text uses the script-wide B64 discipline.
+$c3obs = @{
+    enabled = [bool]$C3Observation
+    observation_reply_schema = $false
+    observation_readonly_line = $false
+    zero_fixed_orchestration_markers = $false
+    response = ""
+    marker_hits = @()
+}
+if ($C3Observation) {
+    Write-Step "Phase 8.6: M1-3 C3 space/depth read-only observation"
+    $c3Message = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String("YzMg6KeC5a+f56m66Ze05LiO5rex5bqm"))
+    $c3NeedleSchema = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String("YzMuc3BhY2VfZGVwdGgub2JzZXJ2YXRpb24udjA="))
+    $c3NeedleReadOnly = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String("5pyq5rOo5YaM5Lu75L2V5YaZ5ZG95Luk77yM5pyq5L+u5pS55bel56iL"))
+    $c3Response = $null
+    try {
+        $c3Response = Invoke-Json -Method POST -Uri $ChatUri -Body @{
+            # Fresh conversation (M1Q precedent): a read-only observation must
+            # not be captured by any pending-confirmation intercept left
+            # mounted by the free-state round.
+            conversation_id = ($conversationID + "_c3obs")
+            message = $c3Message
+            context = @{ agent_mode = "chat" }
+        } -TimeoutSec $TurnSeconds
+    }
+    catch {
+        $errText = ""
+        if ($null -ne $_.ErrorDetails -and -not [string]::IsNullOrWhiteSpace($_.ErrorDetails.Message)) { $errText = $_.ErrorDetails.Message }
+        else { $errText = $_.Exception.Message }
+        Add-Failure ("C3OBS transport error: " + $errText)
+    }
+    if ($null -ne $c3Response) {
+        $c3File = Join-Path $RunRoot "c3_observation_response.json"
+        $c3Response | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $c3File -Encoding UTF8
+        $c3obs.response = $c3File
+        $c3Reply = [string](Get-OptionalProperty -Object $c3Response -Name "reply")
+        $c3obs.observation_reply_schema = $c3Reply.Contains($c3NeedleSchema)
+        $c3obs.observation_readonly_line = $c3Reply.Contains($c3NeedleReadOnly)
+        # A4 discipline extension: the C3 response surface must stay clean of
+        # the fixed-orchestration marker families (C3 is an observation-only
+        # Session; no governed batch command may appear on this surface).
+        $c3Hits = New-Object System.Collections.Generic.List[object]
+        $c3Text = ""
+        try { $c3Text = [string](Get-Content -LiteralPath $c3File -Raw -Encoding UTF8) } catch { $c3Text = "" }
+        if (-not [string]::IsNullOrWhiteSpace($c3Text)) {
+            foreach ($marker in $fixedMarkers) {
+                if ($c3Text.Contains($marker)) { $c3Hits.Add([pscustomobject]@{ marker = $marker; surface = $c3File }) }
+            }
+        }
+        $c3obs.marker_hits = @($c3Hits.ToArray())
+        $c3obs.zero_fixed_orchestration_markers = ($c3Hits.Count -eq 0)
+    }
+    $c3obs | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $RunRoot "c3_observation.json") -Encoding UTF8
+    if ($c3obs.observation_reply_schema) { Write-Ok "C3OBS observation report renders schema line (c3.space_depth.observation.v0)" }
+    else { Add-Failure "C3OBS FAIL: C3 observation report schema line missing (seam dispatch or report rendering broken)" }
+    if ($c3obs.observation_readonly_line) { Write-Ok "C3OBS observation report carries the no-write declaration" }
+    else { Add-Failure "C3OBS FAIL: read-only declaration line missing" }
+    if ($c3obs.zero_fixed_orchestration_markers) { Write-Ok "C3OBS response surface clean of fixed-orchestration markers" }
+    else {
+        foreach ($hit in @($c3obs.marker_hits)) { Add-Failure ("C3OBS FAIL: marker '" + $hit.marker + "' hit on " + $hit.surface) }
+    }
+}
+$report.c3_observation = $c3obs
+
 # --------------------------------------------- phase 9: assertion review
 # Review must never throw past this point (L2-2 lesson: run 20260926_224515
 # died inside ConvertFrom-Json and skipped both the FAIL verdict and the
@@ -1432,7 +1508,7 @@ else { Add-Failure ("A1 FAIL: no pullharness telemetry record with prompt_finger
 # roundtrip + A1 + A4): the free-state round's A2/A3 outcome is recorded as
 # round-status evidence, not an exit gate - that battle belongs to
 # FS-LARGEPROJECT-SMOKE-1's rework line (4 runs 2026-10-10, best A1/A4 pass).
-$roundStatusSoft = [bool]$M1QueueRoundtrip
+$roundStatusSoft = [bool]($M1QueueRoundtrip -or $C3Observation)
 if ($a2) { Write-Ok ("A2 free-state station map: rounds=" + [string]$censusAfter.trajectory_round_started + " observations=" + [string]$censusAfter.trajectory_observation_recorded + " proposals/mix_ticks=" + [string]($censusAfter.trajectory_hypothesis_proposed + $censusAfter.mix_tick_pending)) }
 elseif ($roundStatusSoft) { Write-WarnLine ("A2 not holding (recorded as round status, not an M1-2 exit gate): rounds=" + [string]$censusAfter.trajectory_round_started + " observations=" + [string]$censusAfter.trajectory_observation_recorded) }
 else { Add-Failure ("A2 FAIL: station map not recognizable in event stream (rounds=" + [string]$censusAfter.trajectory_round_started + " observations=" + [string]$censusAfter.trajectory_observation_recorded + " proposals=" + [string]$censusAfter.trajectory_hypothesis_proposed + " mix_tick=" + [string]$censusAfter.mix_tick_pending + ")") }
@@ -1534,14 +1610,28 @@ Remove-Item -LiteralPath env:VIT_DAW_HARNESS -ErrorAction SilentlyContinue
 Remove-Item -LiteralPath env:VIT_AGENT_LLM_TELEMETRY_PATH -ErrorAction SilentlyContinue
 
 $m1qGatesHold = ($m1q.q1_read_schema -and $m1q.q1_read_datasource -and $m1q.q2_write_ack -and $m1q.q3_reread_deferred -and $m1q.zero_fixed_orchestration_markers)
+$c3GatesHold = ($c3obs.observation_reply_schema -and $c3obs.observation_readonly_line -and $c3obs.zero_fixed_orchestration_markers)
 if ($roundStatusSoft) {
-    $report.exit_gate_semantics = "MIXLAYER-M1-2 surface gate: M1Q roundtrip + A1 + A4 (A2/A3 round status recorded, not gated - FS-LARGEPROJECT-SMOKE-1 rework line owns them)"
-    if ($failureReasons.Count -eq 0 -and $a1 -and $a4 -and $m1qGatesHold) {
+    # Exit-gate composition per opt-in surface: each opt-in phase contributes
+    # its own gate set on top of the invariant A1+A4; A2/A3 stay round-status
+    # evidence (FS-LARGEPROJECT-SMOKE-1 rework line owns them).
+    $surfaceGatesHold = $true
+    $surfaceGateNames = @()
+    if ($M1QueueRoundtrip) {
+        $surfaceGatesHold = ($surfaceGatesHold -and $m1qGatesHold)
+        $surfaceGateNames += "M1Q"
+    }
+    if ($C3Observation) {
+        $surfaceGatesHold = ($surfaceGatesHold -and $c3GatesHold)
+        $surfaceGateNames += "C3OBS"
+    }
+    $report.exit_gate_semantics = "surface gate: " + ($surfaceGateNames -join " + ") + " + A1 + A4 (A2/A3 round status recorded, not gated - FS-LARGEPROJECT-SMOKE-1 rework line owns them)"
+    if ($failureReasons.Count -eq 0 -and $a1 -and $a4 -and $surfaceGatesHold) {
         $report.verdict = "PASS"
         $script:PlannedExitCode = 0
         Write-Report
         Write-Step "PASS"
-        Write-Ok ("FS large-project smoke passed (M1-2 queue roundtrip surface: M1Q + A1 + A4). run_root=" + $RunRoot)
+        Write-Ok ("FS large-project smoke passed (" + ($surfaceGateNames -join " + ") + " + A1 + A4). run_root=" + $RunRoot)
         exit 0
     }
 }
