@@ -1,0 +1,6 @@
+﻿{
+    "injected_at":  "2026-10-11T22:06:37.1981277+08:00",
+    "telemetry_env":  "VIT_AGENT_LLM_TELEMETRY_PATH=D:\\Vit_DAW_wt_mixlayer_m1_4\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261011_220635\\telemetry_pull.jsonl",
+    "draft_root_env":  "VIT_HISTORY_DRAFT_ROOT=D:\\Vit_DAW_wt_mixlayer_m1_4\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261011_220635\\agent_drafts",
+    "harness_env":  "VIT_DAW_HARNESS=pull"
+}

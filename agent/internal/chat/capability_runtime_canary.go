@@ -125,6 +125,10 @@ func (s *Server) handleCapabilityRuntimeCanary(ctx context.Context, conversation
 	if capabilityID == spaceDepthCapabilityID {
 		return s.handleSpaceDepthRuntime(ctx, conversationID, req, goal), true
 	}
+	// MIXLAYER-M1-4：D1-D3 母带前观察·只读观察 Session（无 Proposal/授权路径）。
+	if capabilityID == premasterObservationCapabilityID {
+		return s.handlePreMasterObservationRuntime(ctx, conversationID, req, goal), true
+	}
 	if capabilityID != staticBalanceCapabilityID {
 		return ChatResponse{}, false
 	}

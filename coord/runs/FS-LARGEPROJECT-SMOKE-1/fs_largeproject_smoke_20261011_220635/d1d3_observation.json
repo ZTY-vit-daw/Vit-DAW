@@ -1,0 +1,12 @@
+﻿{
+    "observation_readonly_line":  true,
+    "observation_face_lines":  true,
+    "zero_fixed_orchestration_markers":  true,
+    "marker_hits":  [
+
+                    ],
+    "enabled":  true,
+    "observation_reply_schema":  true,
+    "observation_gap_line":  true,
+    "response":  "D:\\Vit_DAW_wt_mixlayer_m1_4\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261011_220635\\d1d3_observation_response.json"
+}
