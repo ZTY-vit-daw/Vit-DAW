@@ -1,0 +1,1 @@
+{"sync_submit": [{"duration": 0.5, "model": "simulator/musicgen", "prompt": "steady test tone"}], "suno_submit": [{"gpt_description_prompt": "ambient pad over sea", "mv": "chirp-v3-5"}], "suno_polls": 2, "suno_submit_auth": ["Bearer smoke-relay-key-7f3a"], "downloads": ["a", "b"], "auth_fail_hits": 0}

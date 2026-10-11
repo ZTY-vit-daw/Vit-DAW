@@ -1066,6 +1066,8 @@ func defaultSpecs() []CommandSpec {
 		spec("cancel_render", "render.cancel", "render", "Cancel the current render job.", RiskDirect, false, false, false, false),
 		spec("render_profile_bind", "render.profile.bind", "render", "Bind one completed render (kernel render job id) to exactly one delivery loudness profile (e.g. builtin:apple_music). One render one profile; rebinding to a different profile is rejected. Only renders whose telemetry reached terminal status ready can be bound.", RiskDirect, true, false, false, false),
 		spec("render_profile_list", "render.profile.list", "render", "List render-to-delivery-profile bindings with assertion semantics (loudness target bands, not one-sided thresholds; unresolvable bindings stay visible) and the available built-in delivery profiles.", RiskDirect, false, false, false, false),
+		spec("genapi_generate", "gen.generate", "gen", "Generate audio through a configured generation-API provider (unified adapter template: user fills provider dialect/base_url/api_key/model in the genapi provider config). Submit, poll and download are one call; artifacts land on disk and, when track_id is given, ride the existing assets.ingest_generated_asset path onto the timeline as candidate takes. Errors come back classified (auth/quota/rate_limit/provider/timeout/network/response_parse).", RiskConfirm, true, false, true, true),
+		spec("genapi_providers", "gen.providers", "gen", "List configured generation-API providers (id, dialect, base_url, model, auth style, key presence) with the config path; never echoes api keys.", RiskDirect, false, false, false, false),
 	}
 	return withDefaultBindingSpecs(specs)
 }

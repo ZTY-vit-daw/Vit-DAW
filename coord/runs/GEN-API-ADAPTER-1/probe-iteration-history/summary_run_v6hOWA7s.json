@@ -1,0 +1,76 @@
+{
+  "schema_version": "genapi.adapter.smoke.mac.v1",
+  "card": "GEN-API-ADAPTER-1",
+  "run_id": "gen_api_adapter_smoke_mac_20261011-223632",
+  "overall_status": "FAIL",
+  "failure_kind": "functional",
+  "boundary_declaration": "generation provider = local self-hosted-type simulator over real HTTP; no external provider key was available in this environment (external leg declared as environment blocker in the card receipt, not faked)",
+  "repo": {
+    "root": "/Users/timozty/Documents/Vit-DAW-genapi1"
+  },
+  "binaries": {
+    "kernel_sha256": "9a70f064d2a20f023f35389c28fa87956595ce46dad4eb35bda571d243f54057",
+    "agent_sha256": "5959d5dba95a197564c91f8dc9e6d4b0ade830700aa0b105c3d7171b5543e82d"
+  },
+  "gates": {
+    "simulator_up": true,
+    "kernel_start_ports": true,
+    "agent_start_health": true,
+    "clear_project_slate": true,
+    "project_new_ok": true,
+    "providers_listed_secretfree": true,
+    "unified_host_track_ok": true,
+    "unified_generate_ingest_ok": false,
+    "unified_artifact_ondisk": false,
+    "unified_clip_addressable": false,
+    "suno_relay_two_candidates_ingested": false,
+    "suno_candidate_stack_switchable": false,
+    "adapter_request_shapes_normalized": false,
+    "failclosed_unknown_provider": false,
+    "failclosed_auth_classified": false,
+    "failclosed_empty_request": false,
+    "surface_alive_after_failures": true
+  },
+  "gate_failure_details": {
+    "unified_generate_ingest_ok": " transport/http failure",
+    "unified_artifact_ondisk": " transport/http failure",
+    "unified_clip_addressable": " clip= not found in project.state reply",
+    "suno_relay_two_candidates_ingested": " transport/http failure",
+    "suno_candidate_stack_switchable": " transport/http failure (clip=)",
+    "adapter_request_shapes_normalized": "",
+    "failclosed_unknown_provider": " transport/http failure",
+    "failclosed_auth_classified": " transport/http failure",
+    "failclosed_empty_request": " transport/http failure"
+  },
+  "recorded": {
+    "confirmation_cards_surfaced": 7,
+    "ids": {
+      "unified_ingest_clip": "",
+      "unified_asset_ref": "",
+      "unified_take": "",
+      "suno_candidate_b_clip": "",
+      "suno_candidate_a_take": ""
+    }
+  },
+  "kernel_stop": {
+    "record": "SIGTERM:143:1"
+  },
+  "agent_stop": {
+    "record": "SIGTERM:0:2"
+  },
+  "artifacts_dir": "/var/folders/bm/9470lvs56ss6lfw1n9g66k2c0000gn/T//gen_api_adapter_smoke.v6hOWA7s",
+  "run_meta": {
+    "run_id": "gen_api_adapter_smoke_mac_20261011-223632",
+    "started_at": "2026-10-11T22:36:36+0800",
+    "repo_root": "/Users/timozty/Documents/Vit-DAW-genapi1",
+    "repo_head": "b654a9a71e375241678000d7e1bbfcdc35ff99f5",
+    "repo_dirty": "7 entries",
+    "kernel_bin": "/tmp/vit-genbase1-build/app/VitApp_artefacts/Debug/VitApp",
+    "kernel_sha256": "9a70f064d2a20f023f35389c28fa87956595ce46dad4eb35bda571d243f54057",
+    "agent_bin": "/var/folders/bm/9470lvs56ss6lfw1n9g66k2c0000gn/T//gen_api_adapter_smoke.v6hOWA7s/bin/vitagent",
+    "agent_sha256": "5959d5dba95a197564c91f8dc9e6d4b0ade830700aa0b105c3d7171b5543e82d",
+    "agent_http": "http://127.0.0.1:7878",
+    "provider_sim_port": "53674",
+    "provider_config": "/var/folders/bm/9470lvs56ss6lfw1n9g66k2c0000gn/T//gen_api_adapter_smoke.v6hOWA7s/config/genapi_providers.json"
+  }
+}

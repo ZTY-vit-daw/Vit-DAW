@@ -1,0 +1,31 @@
+{
+  "providers": [
+    {
+      "id": "local-musicgen",
+      "dialect": "sync_binary",
+      "base_url": "http://127.0.0.1:55030",
+      "generate_path": "/generate",
+      "api_key": "",
+      "model": "simulator/musicgen",
+      "download_dir": "/var/folders/bm/9470lvs56ss6lfw1n9g66k2c0000gn/T//gen_api_adapter_smoke.PiTHrWXr/cache/local"
+    },
+    {
+      "id": "relay-sim",
+      "dialect": "suno_relay",
+      "base_url": "http://127.0.0.1:55030",
+      "api_key": "",
+      "model": "chirp-v3-5",
+      "poll_interval_seconds": 1,
+      "timeout_seconds": 120,
+      "download_dir": "/var/folders/bm/9470lvs56ss6lfw1n9g66k2c0000gn/T//gen_api_adapter_smoke.PiTHrWXr/cache/relay"
+    },
+    {
+      "id": "broken-auth",
+      "dialect": "sync_json_url",
+      "base_url": "http://127.0.0.1:55030",
+      "generate_path": "/v1/make",
+      "api_key": "wrong-key",
+      "download_dir": "/var/folders/bm/9470lvs56ss6lfw1n9g66k2c0000gn/T//gen_api_adapter_smoke.PiTHrWXr/cache/broken"
+    }
+  ]
+}
