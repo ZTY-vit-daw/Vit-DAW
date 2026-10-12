@@ -36,6 +36,12 @@ public:
 
     juce::String handleSetPluginParam (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleSetPluginParamAliases (const juce::DynamicObject&, const juce::String&) const;
+
+    // M3-KERNEL-1: automation curve command family. Time (seconds) is the
+    // write/read coordinate; get_curve discloses the engine TimeBase as-is.
+    juce::String handleAutomationGetCurve (const juce::DynamicObject&, const juce::String&) const;
+    juce::String handleAutomationSetPoints (const juce::DynamicObject&, const juce::String&) const;
+    juce::String handleAutomationClearRegion (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleControlAddNode (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleControlAddMacro (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleControlAddBinding (const juce::DynamicObject&, const juce::String&) const;
@@ -71,6 +77,31 @@ public:
 private:
     static juce::String makeStatusReply (const juce::String& status, const juce::String& message);
     static juce::String makeErrorReply (const juce::String& message);
+
+    // M3-KERNEL-1: shared plumbing for the automation.* command family.
+    struct AutomationCurveTarget
+    {
+        juce::String error;   // non-empty = ready-made error reply, plugin/param unset
+        te::Plugin* plugin = nullptr;
+        te::AutomatableParameter::Ptr param;
+    };
+
+    struct AutomationValidatedPoint
+    {
+        double t = 0.0;
+        float v = 0.0f;
+        float c = 0.0f;
+    };
+
+    static bool isFiniteNumericVar (const juce::var& value);
+    static juce::String automationTimeBaseToString (te::AutomationCurve::TimeBase timeBase);
+    // Returns an empty string on success; otherwise a plain error message.
+    static juce::String parseAutomationRegionSeconds (const juce::DynamicObject& object,
+                                                      bool regionRequired,
+                                                      bool& hasRegionOut,
+                                                      double& startOut,
+                                                      double& endOut);
+    AutomationCurveTarget resolveAutomationCurveTarget (const juce::DynamicObject& object, te::Edit& edit) const;
 
     EditGetter getEdit;
     SaveProjectAction saveProject;

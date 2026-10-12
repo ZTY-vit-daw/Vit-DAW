@@ -2377,6 +2377,7 @@ juce::String CommandDispatcher::dispatch (const juce::var& command, const juce::
             "get_midi_clip_notes",
             "get_midi_clip_data",
             "get_plugin_parameters",
+            "automation.get_curve",
             "project_health_check",
             "project.audio_analysis_status",
             "project.audio_analysis_cancel",
@@ -3108,6 +3109,21 @@ void CommandDispatcher::registerBuiltinCommands()
     handlers.emplace ("set_plugin_param", [this] (const juce::DynamicObject& object, const juce::String& raw)
     {
         return pluginRackControlService != nullptr ? pluginRackControlService->handleSetPluginParam (object, raw)
+                                             : makeErrorReply ("Plugin/rack/control service unavailable");
+    });
+    handlers.emplace ("automation.get_curve", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return pluginRackControlService != nullptr ? pluginRackControlService->handleAutomationGetCurve (object, raw)
+                                             : makeErrorReply ("Plugin/rack/control service unavailable");
+    });
+    handlers.emplace ("automation.set_points", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return pluginRackControlService != nullptr ? pluginRackControlService->handleAutomationSetPoints (object, raw)
+                                             : makeErrorReply ("Plugin/rack/control service unavailable");
+    });
+    handlers.emplace ("automation.clear_region", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return pluginRackControlService != nullptr ? pluginRackControlService->handleAutomationClearRegion (object, raw)
                                              : makeErrorReply ("Plugin/rack/control service unavailable");
     });
     handlers.emplace ("control_add_node", [this] (const juce::DynamicObject& object, const juce::String& raw)

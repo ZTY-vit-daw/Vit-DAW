@@ -21,6 +21,7 @@ param(
     # 全确定性断言：CommandSpec 广告 / 五元数据 / T10 反例 / T11 降级标注 /
     # ref.diff identity+content 边界）。
     [switch]$RefQuerySmoke,
+    [switch]$AutomationCurveSmoke,
     # VITNOTE-IMPL-4：工程级写租约并发场景（双 chat 各触发一次 B2 能力执行，
     # 双 approve 并发入栈——断言两执行段租约区间不重叠且后来者真实排队；
     # 证据=VIT_WRITE_LEASE_EVENTS_PATH JSONL 工件时间戳）。
@@ -6483,6 +6484,39 @@ if ($null -ne $req) {
         Write-Ok "ref.diff content path surfaces compile + delegated/unrouted surface (T11 口径)"
         & $assertRejected "ref.diff unknown depth" (& $invokeExpectingError "ref.diff" @{ base_revision = "current"; depth = "contents" }) "rejected"
     }
+}
+
+if ($AutomationCurveSmoke) {
+    Write-Step "automation curve smoke (M3-KERNEL-1)"
+    # automation.* 命令族冒测腿：断言体在 scripts/automation_curve_smoke.py
+    # （形态=clip_fade_gain_smoke.py，内核 ZMQ 命令面直连——与 Godot 宿主同
+    # 面）。腿：get 空曲线（time_base/bypass 披露）→ 越界 fail-closed 三反例
+    # 零写入 → 写三点 → 逐点回读一致 → 区域清除 → 回读空 → VSP 信封 CAS
+    # 反例（错 base_revision 拒绝且曲线不动）。腿只需内核栈在
+    # -StartKernel 后可用；不依赖 agent HTTP 面。
+    $automationSmokeScript = Join-Path $RepoRoot "scripts\automation_curve_smoke.py"
+    if (-not (Test-Path -LiteralPath $automationSmokeScript)) {
+        throw ("automation curve smoke script missing: " + $automationSmokeScript)
+    }
+    $automationArtifactsDir = $RunArtifactsDir
+    if ([string]::IsNullOrWhiteSpace($automationArtifactsDir)) {
+        $automationArtifactsDir = Join-Path $RepoRoot ("VitApp\Workspace\Artifacts\smoke\automation_curve_" + (Get-Date -Format "yyyyMMdd_HHmmss"))
+    }
+    if (-not (Test-Path -LiteralPath $automationArtifactsDir)) {
+        New-Item -ItemType Directory -Path $automationArtifactsDir -Force | Out-Null
+    }
+    $automationSummaryPath = Join-Path $automationArtifactsDir "automation_curve_summary.json"
+    $automationConsolePath = Join-Path $automationArtifactsDir "automation_curve_console.txt"
+    & python $automationSmokeScript --url ("tcp://127.0.0.1:" + $ZmqReqPort) --output $automationSummaryPath > $automationConsolePath 2>&1
+    $automationExit = $LASTEXITCODE
+    Get-Content -LiteralPath $automationConsolePath | ForEach-Object { Write-Host $_ }
+    if ($automationExit -ne 0) {
+        throw ("automation curve smoke failed with exit code $automationExit (console: " + $automationConsolePath + ")")
+    }
+    if (-not (Test-Path -LiteralPath $automationSummaryPath)) {
+        throw ("automation curve smoke passed but summary artifact missing: " + $automationSummaryPath)
+    }
+    Write-Ok ("automation curve smoke passed (kernel command face; summary: " + $automationSummaryPath + ")")
 }
 
 if (-not $NoChatSmoke) {

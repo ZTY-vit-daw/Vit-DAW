@@ -956,6 +956,19 @@ func (h *Harness) Invoke(ctx context.Context, req InvokeRequest) (resp InvokeRes
 			return resp, err
 		}
 	}
+	if automationWriteCommandName(spec.CommandName) != "" {
+		if err := h.validateAutomationWrite(spec.CommandName, cmd); err != nil {
+			resp := InvokeResponse{
+				Status:      "error",
+				Tool:        spec.ToolName,
+				CommandName: spec.CommandName,
+				RiskLevel:   spec.RiskLevel,
+				Error:       err.Error(),
+			}
+			h.logPreJournalInvokeFailure("validate_automation_write", req, spec, cmd, err)
+			return resp, err
+		}
+	}
 
 	actionID := "act_" + randomID()
 	runID, goalID, toolCallID := h.executionIDs(req)
@@ -3976,6 +3989,8 @@ func (h *Harness) IngestKernelTelemetry(event map[string]any) {
 		h.ingestKernelSpectralTelemetry(event)
 	case strings.EqualFold(command, "audio_feature_data_ready") && isL3AcousticSummaryFeature(featureType):
 		h.ingestKernelL3AcousticTelemetry(event)
+	case strings.EqualFold(command, "audio_feature_data_ready") && isAutomationCurveSummaryFeature(featureType):
+		h.ingestKernelAutomationCurveTelemetry(event)
 	}
 	if h.materializeNotifier != nil { // MAT-B 挂点 2：分支写完 snapshot 后纯通知尾挂（含 #9 收编：l2_render_probe_ready 经此通知，临时 SUB 保留）
 		h.materializeNotifier.NotifyTelemetry(event)
@@ -4115,6 +4130,131 @@ func isL3AcousticSummaryFeature(featureType string) bool {
 	default:
 		return false
 	}
+}
+
+// isAutomationCurveSummaryFeature 圈定 M3-KERNEL-1 裁定 4 的曲线摘要摄入
+// 白名单：只认 automation_curve_summary 一种 feature_type，其余 automation
+// 遥测形态不摄入（fail-closed，防未经裁定的新面静默落盘）。
+func isAutomationCurveSummaryFeature(featureType string) bool {
+	return strings.EqualFold(strings.TrimSpace(featureType), "automation_curve_summary")
+}
+
+// ingestKernelAutomationCurveTelemetry 摄入内核 automation 曲线摘要事件并
+// 落盘为 mixboard feature snapshot 行（DAD 证据层扩型先行，不建新 peer
+// 投影——M3-KERNEL-1 裁定 4）。行身份=plugin_id+param_id（可带 track_id）。
+func (h *Harness) ingestKernelAutomationCurveTelemetry(event map[string]any) {
+	pluginID := firstString(event, "plugin_id")
+	paramID := firstString(event, "param_id")
+	if pluginID == "" || paramID == "" {
+		return
+	}
+	row := cloneAnyMap(event)
+	if len(row) == 0 {
+		return
+	}
+	row["feature_type"] = "automation_curve_summary"
+	row["status"] = firstNonEmpty(firstString(row, "status"), firstString(row, "quality_status"), "ready")
+	row["source"] = firstNonEmpty(firstString(row, "source"), "kernel_automation_curve_telemetry")
+	row["materialized_by"] = "kernel_prepared_automation_telemetry"
+	trackID := firstString(event, "track_id", "source_track_id")
+	target := kernelFeatureMaterializerTarget(event, trackID, firstString(event, "clip_id"))
+	target["plugin_id"] = pluginID
+	target["param_id"] = paramID
+	packet := h.kernelFeatureMaterializerPacket(event, target)
+	writeMixboardReadyAutomationCurveSnapshot(nil, packet, row)
+}
+
+// automationWriteCommandName 归一 automation 写命令名（含下划线别名形态）；
+// 非写命令返回空串。
+func automationWriteCommandName(commandName string) string {
+	switch strings.ToLower(strings.TrimSpace(commandName)) {
+	case "automation.set_points", "automation_set_points":
+		return "automation.set_points"
+	case "automation.clear_region", "automation_clear_region":
+		return "automation.clear_region"
+	default:
+		return ""
+	}
+}
+
+// validateAutomationWrite 是 automation.set_points / clear_region 的 Invoke
+// pre-journal 参数校验（M3-KERNEL-1）：t >= 0、curve c ∈ [-1,1]、region
+// start >= 0 且 end > start、区域替换时点必须落在 region 内、必填身份与
+// 结构完整——一处越界整单拒绝（fail-closed，与内核同规则；v 的 valueRange
+// 域校验在内核侧完成，agent 侧无参数元数据）。
+func (h *Harness) validateAutomationWrite(commandName string, cmd map[string]any) error {
+	canonical := automationWriteCommandName(commandName)
+	if canonical == "" {
+		return nil
+	}
+	if firstString(cmd, "plugin_id") == "" || firstString(cmd, "param_id") == "" {
+		return fmt.Errorf("%s requires non-empty plugin_id and param_id", canonical)
+	}
+
+	hasRegion := false
+	var regionStart, regionEnd float64
+	regionVar, hasRegionVar := cmd["region"]
+	if hasRegionVar && !isEmptyValue(regionVar) {
+		region := mapAnyFromAny(regionVar)
+		if len(region) == 0 {
+			return fmt.Errorf("%s region must be an object with numeric start and end (seconds)", canonical)
+		}
+		start, startOK := numberValueFromMap(region, "start")
+		end, endOK := numberValueFromMap(region, "end")
+		if !startOK || !endOK {
+			return fmt.Errorf("%s region requires numeric start and end (seconds)", canonical)
+		}
+		if start < 0 {
+			return fmt.Errorf("%s region start must be >= 0 seconds", canonical)
+		}
+		if end <= start {
+			return fmt.Errorf("%s region end must be greater than region start", canonical)
+		}
+		hasRegion = true
+		regionStart, regionEnd = start, end
+	}
+	if canonical == "automation.clear_region" && !hasRegion {
+		return fmt.Errorf("automation.clear_region requires a region object with numeric start and end (seconds)")
+	}
+
+	if canonical != "automation.set_points" {
+		return nil
+	}
+	pointsVar, hasPoints := cmd["points"]
+	if !hasPoints || isEmptyValue(pointsVar) {
+		return fmt.Errorf("automation.set_points requires a non-empty points array")
+	}
+	points, ok := pointsVar.([]any)
+	if !ok || len(points) == 0 {
+		return fmt.Errorf("automation.set_points requires a non-empty points array")
+	}
+	for i, pointVar := range points {
+		point := mapAnyFromAny(pointVar)
+		if len(point) == 0 {
+			return fmt.Errorf("automation.set_points point #%d must be an object with numeric t and v", i)
+		}
+		t, tOK := numberValueFromMap(point, "t")
+		_, vOK := numberValueFromMap(point, "v")
+		if !tOK || !vOK {
+			return fmt.Errorf("automation.set_points point #%d requires numeric t and v", i)
+		}
+		if t < 0 {
+			return fmt.Errorf("automation.set_points point #%d has t < 0 seconds", i)
+		}
+		if cVar, hasC := point["c"]; hasC && !isEmptyValue(cVar) {
+			c, cOK := numberValueFromMap(point, "c")
+			if !cOK {
+				return fmt.Errorf("automation.set_points point #%d has a non-numeric curve value c", i)
+			}
+			if c < -1 || c > 1 {
+				return fmt.Errorf("automation.set_points point #%d has curve c outside [-1, 1]", i)
+			}
+		}
+		if hasRegion && (t < regionStart || t > regionEnd) {
+			return fmt.Errorf("automation.set_points point #%d lies outside the declared replacement region", i)
+		}
+	}
+	return nil
 }
 
 func (h *Harness) ingestKernelL3AcousticTelemetry(event map[string]any) {
@@ -6196,6 +6336,44 @@ func writeMixboardReadySpectralSnapshot(cmd map[string]any, packet map[string]an
 	writeMixboardFeatureSnapshotFile(path, existing, packet)
 }
 
+// writeMixboardReadyAutomationCurveSnapshot 落盘 automation 曲线摘要行
+// （M3-KERNEL-1 裁定 4：DAD 证据层扩型，section=automation_curve_summary，
+// 行集=automation_curve_summaries，按 plugin/param 身份合并）。
+func writeMixboardReadyAutomationCurveSnapshot(cmd map[string]any, packet map[string]any, row map[string]any) {
+	mixboardFeatureSnapshotWriteMu.Lock()
+	defer mixboardFeatureSnapshotWriteMu.Unlock()
+	row = stampMixboardFeatureRowIdentity(row, packet, nil)
+	path := mixboard.FeatureSnapshotPath(cmd)
+	existing := readMixboardFeatureSnapshotFile(path)
+	if len(existing) == 0 {
+		existing = map[string]any{"schema_version": "mixboard_feature_snapshot.v1"}
+	}
+	existing["schema_version"] = "mixboard_feature_snapshot.v1"
+	existing["updated_at"] = time.Now().UTC().Format(time.RFC3339Nano)
+	existing["latest_request"] = packet
+	existing["automation_curve_summary"] = row
+	existing["automation_curve_summaries"] = mergeMixboardFeatureRows(existing["automation_curve_summaries"], []map[string]any{row})
+	if _, ok := existing["waveform_envelope"]; !ok {
+		existing["waveform_envelope"] = map[string]any{"status": "missing"}
+	}
+	if _, ok := existing["track_waveform_envelopes"]; !ok {
+		existing["track_waveform_envelopes"] = []any{}
+	}
+	if _, ok := existing["spectrogram_tiles"]; !ok {
+		existing["spectrogram_tiles"] = map[string]any{"status": "missing"}
+	}
+	if _, ok := existing["band_energy_summary"]; !ok {
+		existing["band_energy_summary"] = map[string]any{"status": "missing"}
+	}
+	if _, ok := existing["stereo_relation_summary"]; !ok {
+		existing["stereo_relation_summary"] = map[string]any{"status": "missing"}
+	}
+	if _, ok := existing["loudness_summary"]; !ok {
+		existing["loudness_summary"] = map[string]any{"status": "missing"}
+	}
+	writeMixboardFeatureSnapshotFile(path, existing, packet)
+}
+
 func writeMixboardReadyL3SummarySnapshot(cmd map[string]any, packet map[string]any, row map[string]any) {
 	mixboardFeatureSnapshotWriteMu.Lock()
 	defer mixboardFeatureSnapshotWriteMu.Unlock()
@@ -7946,7 +8124,9 @@ func sameFeatureTarget(row, target map[string]any) bool {
 func featureTargetKey(row map[string]any) string {
 	trackID := firstString(row, "track_id")
 	clipID := firstString(row, "clip_id")
-	if trackID == "" && clipID == "" {
+	pluginID := firstString(row, "plugin_id")
+	paramID := firstString(row, "param_id")
+	if trackID == "" && clipID == "" && pluginID == "" && paramID == "" {
 		return ""
 	}
 	parts := []string{
@@ -7958,6 +8138,8 @@ func featureTargetKey(row map[string]any) string {
 		firstString(row, "source_fingerprint"),
 		firstString(row, "source_hash"),
 		strings.ToLower(filepath.Clean(firstNonEmpty(firstString(row, "file_path", "source_path", "current_source_path")))),
+		pluginID,
+		paramID,
 	}
 	return strings.Join(parts, "::")
 }

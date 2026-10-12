@@ -1,0 +1,7 @@
+run: automation_curve_smoke_20261012_221700 (PASS exit 0) + 20261012_220826 (exit 1, design-finding leg)
+worktree: D:/Vit_DAW-wt-m3k1 branch: port/m3-kernel-1-automation
+HEAD at run: d1a48813 (claim commit; implementation uncommitted in worktree, this commit adds it)
+kernel binary: worktree self-built VitApp.exe (Release, 22:16 incremental rebuild incl. clear_region fix; full build 21:12 exit 0)
+agent binary: worktree-built VitAgent.exe (dev_agent_smoke go build from RepoRoot=worktree)
+stack: dev_agent_smoke -StartKernel -KernelExe=<worktree build> -RestartAgent -AutomationCurveSmoke -NoChatSmoke -NoStripSilenceSmoke
+smoke command face: kernel ZMQ 5555 (raw cmds + VSP envelopes, scripts/automation_curve_smoke.py)
