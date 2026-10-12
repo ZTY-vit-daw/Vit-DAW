@@ -67,7 +67,7 @@ func (s *Server) runTimefxFXMProbe(ctx context.Context, trackID, pluginID, famil
 	}
 	pairID := firstNonEmptyText(receipt, "pair_id")
 	status := firstNonEmptyText(receipt, "status")
-	if status != "ready" {
+	if status != "ready" && status != "partial" {
 		return failure("probe_not_ready: " + firstNonEmptyText(receipt, "reason", status))
 	}
 	if pairID == "" {

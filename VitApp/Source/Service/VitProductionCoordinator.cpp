@@ -777,7 +777,7 @@ void publishTimefxDualTapResult (const VitProductionCoordinator::PublishFn& publ
     object->setProperty ("job_id", jobId);
     object->setProperty ("reason", result.reason);
     object->setProperty ("channel_count", result.channelCount);
-    object->setProperty ("determinism_proof_status", result.determinismVerified ? "ready" : "suspect");
+    object->setProperty ("determinism_proof_status", result.determinismVerified ? "ready" : "partial");
     object->setProperty ("determinism_max_abs_delta", result.determinismMaxAbsDelta);
     object->setProperty ("determinism_rms_delta", result.determinismRMSDelta);
     object->setProperty ("determinism_correlation", result.determinismCorrelation);

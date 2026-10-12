@@ -262,11 +262,14 @@ TimefxDualTapEvidenceResult analyseAndWriteTimefxDualTapEvidence (
         && result.determinismCorrelation >= 0.999
         && std::abs (result.determinismPeakDBDelta) <= 0.10
         && std::abs (result.determinismRMSDBDelta) <= 0.10;
+    // Time-domain effects with internal modulation (e.g. FabFilter Pro-R
+    // diffusion) produce genuinely different repeat renders: the variance is
+    // the plugin, not the measurement. The same-window bypass/processed pair
+    // stays valid (one render per tap), so a failed repeat check downgrades
+    // the evidence to partial with the variance disclosed instead of
+    // rejecting it. Only the format/NaN repeat guards above stay hard.
     if (! result.determinismVerified)
-    {
-        result.reason = "processed_render_not_deterministic";
-        return result;
-    }
+        result.reason = "processed_render_repeat_variance";
     if (baseline.nanInfSamples > 0 || processed.nanInfSamples > 0)
     {
         result.reason = "nan_inf_detected";
@@ -325,7 +328,7 @@ TimefxDualTapEvidenceResult analyseAndWriteTimefxDualTapEvidence (
     root->setProperty ("conditions", juce::var (conditions.release()));
 
     auto determinism = std::make_unique<juce::DynamicObject>();
-    determinism->setProperty ("status", "ready");
+    determinism->setProperty ("status", result.determinismVerified ? "ready" : "partial");
     determinism->setProperty ("method", "same_scope_repeat_render_envelope_tolerance_v1");
     determinism->setProperty ("repeat_count", 2);
     determinism->setProperty ("max_abs_delta", result.determinismMaxAbsDelta);
@@ -368,7 +371,12 @@ TimefxDualTapEvidenceResult analyseAndWriteTimefxDualTapEvidence (
         return result;
     }
     result.status = "ready";
-    result.reason = "ok";
+    if (! result.determinismVerified)
+    {
+        result.status = "partial";
+        if (result.reason == "ok")
+            result.reason = "processed_render_repeat_variance";
+    }
     return result;
 }
 
