@@ -11,6 +11,8 @@
 
 loudness_watch_config.v0 挂 projectAgentRuntimeState（RLM-PROFILE-2 先例锚点在规格内）；默认关；rlm 五内置预设+自定阈值（ValidateDeliveryProfile 借用）；持久化与旧工程缺省语义（AGENTS §11）。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-12T09:59+0800 / origin/main 809cab5d5c44b810e3bd521fc08f5a8966327044 / owner=GLM-5.3-Flash PC 执行会话（Windows PC，ZCode flash）/ 分支 port/loudness-watch-config-1 / worktree D:/Vit_DAW_wt_loudness_watch_1 / 领取提交=（本提交）
+- 领取时基线：HEAD=809cab5d 工作树已有改动=VitApp/Workspace/Settings/Settings.xml + VitApp/Workspace/default_project.xml（运行时状态，非本卡域）+ coord/runs 未跟踪工件；本卡 diff 从零起算
+- 锚点亲核：server.go:164/198/7245/7256 全命中（当前 809cab5d 基线复核，非仅引设计件 8e66e674 核验记录）；rlm/profile.go 形态与规格一致
 - 回执：（commit / 单测清单）
 - 验收：（裁定文件 / 验收 commit）
