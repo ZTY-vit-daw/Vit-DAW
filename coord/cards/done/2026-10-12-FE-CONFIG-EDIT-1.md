@@ -33,6 +33,17 @@ vitest 全绿+npm run build exit 0+浏览器级断言 exit 0+手测清单交付�
 
 保存后保持输入态与"留空保持不变"语义冲突需重新设计→上交决策侧定交互。
 
-- 领取：2026-10-12 23:02 / 151b0fcb / Mac 执行侧（GLM-5.3） / port/fe-config-edit-1 / 领取提交=本条 mv+回填（coord-only 直推 main）
+- 领取：2026-10-12 23:02 / 151b0fcb / Mac 执行侧（GLM-5.3） / port/fe-config-edit-1 / 领取提交=本条 mv+回填（coord-only 直推 main，commit be290b36）
+- 回执：实现 commit ea8df384 @ port/fe-config-edit-1（+56/-10 App.tsx + 新增 settingsConfigEdit.test.tsx 133 行 + run 工件目录）。
+  测试清单：① `npm run test` exit 0（38 文件 / 454 测试全绿，含新增 10 条：占位符正确+乱码字符类清零断言、LLM/路由 autoComplete 断言、retainSecretInputs 保存保持/留空不填值/mergeSettingsConfig 对照清空、settingsSavedStatus 两情形文案）；② `npm run build` exit 0；③ 浏览器级断言 PASS 16/16（coord/runs/FE-CONFIG-EDIT-1/20261012-2315-browser/browser_assertions.json）：真实栈=vite dev 源码态 + worktree 构建 vitagent（隔离 HOME，非用户 ~/.vit），真键盘路径（cua.type 逐字符）两轮 34 字符全部入框（无按键拦截实证）、保存后主 key/路由 key 输入态保持、状态行两情形文案在场、重载=初始加载清空语义保留、落盘核对（留空保存后服务端 PreserveBlankSecrets 保留主 key）。
+  乱码复核：全 src/ grep 双重编码字符类（[渚涘簲鍟嗘ā鍨] 及广谱 GBK→UTF8 形态）仅原 App.tsx:2001 一处，已修复；设置页 DOM 浏览器级再断言 false。
+  按键拦截复核（第 4 件）：代码面=App.tsx 全部 keydown 监听（2206/6895/7310 三处全局）均为菜单开时仅响应 Escape 且无 preventDefault，组件级 onKeyDown 不涉设置页；运行面=真键盘 34 字符无丢失。
+  端测边界声明：已覆盖=vitest DOM（renderToStaticMarkup 静态断言+保存态合并纯函数）+ 浏览器级（IAB Chromium，交互式断言非脚本化 exit-code 烟测）+ 隔离 agent 后端全链路（保存 POST→RedactSecrets 回传→UI 保持→落盘）。未覆盖=① Safari/WKWebView（Godot webview 容器）自动填充/IME 组合场景——正是用户容器归因候选，留手测核验；② 真实内核/Godot 三件套（本卡渲染面无需内核）；③ 部署 dist 构建（改动在源码，dist 由发布流程重建）。
+  [等待用户] 手测清单（Safari/Godot webview 实机，任一容器执行）：
+  1. 打开设置→LLM API：确认"默认模型"占位符显示为"供应商模型 ID"（无乱码）；
+  2. API Key 框输入一条真实 key（用系统输入法，含中文输入法开关切换一次）→ 点"保存"→ 确认框内 key 不消失、Agent 标签状态行出现"API Key 已更新，输入框保留所输内容"；
+  3. 点"重载"→ 确认 key 框清空且占位符为"API Key 已保存；留空保持不变"；再点"保存"→ 状态行出现"API Key 留空=沿用已存 key"；
+  4. 多模态路由任一卡的 API Key 框输入→保存→确认不消失；
+  5. 全程确认无"打不进字"复现（尤其 Safari 密码自动填充弹窗出现/关闭后仍可继续输入）。
 - 回执：（commit / 测试清单 / 手测清单 / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
