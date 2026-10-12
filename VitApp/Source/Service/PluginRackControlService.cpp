@@ -1956,6 +1956,307 @@ juce::String PluginRackControlService::handleSetPluginParam (const juce::Dynamic
     return juce::JSON::toString (juce::var (response.release()));
 }
 
+bool PluginRackControlService::isFiniteNumericVar (const juce::var& value)
+{
+    if (! (value.isDouble() || value.isInt() || value.isInt64()))
+        return false;
+
+    return std::isfinite (static_cast<double> (value));
+}
+
+juce::String PluginRackControlService::automationTimeBaseToString (te::AutomationCurve::TimeBase timeBase)
+{
+    return timeBase == te::AutomationCurve::TimeBase::beats ? "beats" : "time";
+}
+
+juce::String PluginRackControlService::parseAutomationRegionSeconds (const juce::DynamicObject& object,
+                                                                     bool regionRequired,
+                                                                     bool& hasRegionOut,
+                                                                     double& startOut,
+                                                                     double& endOut)
+{
+    hasRegionOut = false;
+    startOut = 0.0;
+    endOut = 0.0;
+
+    if (! object.hasProperty ("region"))
+    {
+        if (regionRequired)
+            return "requires a region object with numeric start and end (seconds)";
+
+        return {};
+    }
+
+    auto* region = object.getProperty ("region").getDynamicObject();
+    if (region == nullptr)
+        return "region must be an object with numeric start and end (seconds)";
+
+    const auto startVar = region->getProperty ("start");
+    const auto endVar = region->getProperty ("end");
+
+    if (! isFiniteNumericVar (startVar) || ! isFiniteNumericVar (endVar))
+        return "region requires numeric start and end (seconds)";
+
+    startOut = static_cast<double> (startVar);
+    endOut = static_cast<double> (endVar);
+
+    if (startOut < 0.0)
+        return "region start must be >= 0 seconds";
+
+    if (endOut <= startOut)
+        return "region end must be greater than region start";
+
+    hasRegionOut = true;
+    return {};
+}
+
+PluginRackControlService::AutomationCurveTarget PluginRackControlService::resolveAutomationCurveTarget (const juce::DynamicObject& object,
+                                                                                                       te::Edit& edit) const
+{
+    AutomationCurveTarget target;
+
+    const auto pluginIdStr = object.getProperty ("plugin_id").toString().trim();
+    const auto paramIdRaw  = object.getProperty ("param_id").toString().trim();
+
+    if (pluginIdStr.isEmpty())
+    {
+        target.error = makeErrorReply ("automation command requires a non-empty plugin_id");
+        return target;
+    }
+
+    if (paramIdRaw.isEmpty())
+    {
+        target.error = makeErrorReply ("automation command requires a non-empty param_id");
+        return target;
+    }
+
+    target.plugin = findPluginInEdit (edit, pluginIdStr);
+
+    if (target.plugin == nullptr)
+    {
+        target.error = makeErrorReply ("Plugin not found for plugin_id: " + pluginIdStr);
+        return target;
+    }
+
+    target.param = resolvePluginParameterByID (*target.plugin, paramIdRaw);
+
+    if (target.param == nullptr)
+    {
+        target.error = makeErrorReply ("Parameter not found for param_id: " + paramIdRaw);
+        return target;
+    }
+
+    return target;
+}
+
+juce::String PluginRackControlService::handleAutomationGetCurve (const juce::DynamicObject& object, const juce::String&) const
+{
+    auto* edit = getEdit != nullptr ? getEdit() : nullptr;
+
+    if (edit == nullptr)
+        return makeErrorReply ("No active edit loaded");
+
+    auto target = resolveAutomationCurveTarget (object, *edit);
+    if (target.error.isNotEmpty())
+        return target.error;
+
+    auto& curve = target.param->getCurve();
+
+    juce::Array<juce::var> points;
+    const auto numPoints = curve.getNumPoints();
+    for (int i = 0; i < numPoints; ++i)
+    {
+        const auto point = curve.getPoint (i);
+        auto pointObject = std::make_unique<juce::DynamicObject>();
+        pointObject->setProperty ("t", te::toTime (point.time, edit->tempoSequence).inSeconds());
+        pointObject->setProperty ("v", point.value);
+        pointObject->setProperty ("c", point.curve);
+        points.add (juce::var (pointObject.release()));
+    }
+
+    auto response = std::make_unique<juce::DynamicObject>();
+    response->setProperty ("status", "ok");
+    response->setProperty ("plugin_id", object.getProperty ("plugin_id").toString().trim());
+    response->setProperty ("param_id", object.getProperty ("param_id").toString().trim());
+    response->setProperty ("time_base", automationTimeBaseToString (curve.timeBase));
+    response->setProperty ("bypass", static_cast<bool> (curve.bypass.get()));
+    response->setProperty ("point_count", numPoints);
+    response->setProperty ("points", juce::var (points));
+    return juce::JSON::toString (juce::var (response.release()));
+}
+
+juce::String PluginRackControlService::handleAutomationSetPoints (const juce::DynamicObject& object, const juce::String&) const
+{
+    auto* edit = getEdit != nullptr ? getEdit() : nullptr;
+
+    if (edit == nullptr)
+        return makeErrorReply ("No active edit loaded");
+
+    auto target = resolveAutomationCurveTarget (object, *edit);
+    if (target.error.isNotEmpty())
+        return target.error;
+
+    auto* pointsArray = object.getProperty ("points").getArray();
+    if (pointsArray == nullptr || pointsArray->isEmpty())
+        return makeErrorReply ("automation.set_points requires a non-empty points array "
+                               "(use automation.clear_region to remove points)");
+
+    auto& curve = target.param->getCurve();
+    if (curve.timeBase == te::AutomationCurve::TimeBase::beats)
+        return makeErrorReply ("automation.set_points only supports time-based curves "
+                               "(this curve is beats-based; time_base is disclosed by automation.get_curve)");
+
+    bool hasRegion = false;
+    double regionStart = 0.0;
+    double regionEnd = 0.0;
+    const auto regionError = parseAutomationRegionSeconds (object, false, hasRegion, regionStart, regionEnd);
+    if (regionError.isNotEmpty())
+        return makeErrorReply ("automation.set_points " + regionError);
+
+    const auto valueRange = target.param->getValueRange();
+
+    // Validate the whole batch before mutating anything: a single out-of-domain
+    // point rejects the command without touching the curve (fail-closed).
+    std::vector<AutomationValidatedPoint> validated;
+    validated.reserve (static_cast<size_t> (pointsArray->size()));
+
+    for (int i = 0; i < pointsArray->size(); ++i)
+    {
+        auto* pointObject = (*pointsArray)[i].getDynamicObject();
+        if (pointObject == nullptr)
+            return makeErrorReply (juce::String ("automation.set_points point #")
+                                   + juce::String (i) + " must be an object with numeric t and v");
+
+        const auto tVar = pointObject->getProperty ("t");
+        const auto vVar = pointObject->getProperty ("v");
+        const auto cVar = pointObject->getProperty ("c");
+
+        if (! isFiniteNumericVar (tVar) || ! isFiniteNumericVar (vVar))
+            return makeErrorReply (juce::String ("automation.set_points point #")
+                                   + juce::String (i) + " requires numeric t and v");
+
+        AutomationValidatedPoint validatedPoint;
+        validatedPoint.t = static_cast<double> (tVar);
+        validatedPoint.v = static_cast<float> (static_cast<double> (vVar));
+        validatedPoint.c = cVar.isVoid() ? 0.0f : static_cast<float> (static_cast<double> (cVar));
+
+        if (! cVar.isVoid() && ! isFiniteNumericVar (cVar))
+            return makeErrorReply (juce::String ("automation.set_points point #")
+                                   + juce::String (i) + " has a non-numeric curve value c");
+
+        if (validatedPoint.t < 0.0)
+            return makeErrorReply (juce::String ("automation.set_points point #")
+                                   + juce::String (i) + " has t < 0 seconds");
+
+        if (std::abs (validatedPoint.c) > 1.0f)
+            return makeErrorReply (juce::String ("automation.set_points point #")
+                                   + juce::String (i) + " has curve c outside [-1, 1]");
+
+        if (validatedPoint.v < valueRange.getStart() || validatedPoint.v > valueRange.getEnd())
+            return makeErrorReply (juce::String ("automation.set_points point #")
+                                   + juce::String (i) + " has v outside the parameter value range ["
+                                   + juce::String (valueRange.getStart()) + ", "
+                                   + juce::String (valueRange.getEnd()) + "]");
+
+        if (hasRegion && (validatedPoint.t < regionStart || validatedPoint.t > regionEnd))
+            return makeErrorReply (juce::String ("automation.set_points point #")
+                                   + juce::String (i) + " lies outside the declared replacement region");
+
+        validated.push_back (validatedPoint);
+    }
+
+    auto& undo = edit->getUndoManager();
+    undo.beginNewTransaction ("automation.set_points");
+
+    if (hasRegion)
+        curve.removePoints (te::EditTimeRange (te::TimePosition::fromSeconds (regionStart),
+                                               te::TimePosition::fromSeconds (regionEnd)),
+                            &undo);
+    else
+        curve.clear (&undo);
+
+    for (const auto& validatedPoint : validated)
+        curve.addPoint (te::TimePosition::fromSeconds (validatedPoint.t),
+                        validatedPoint.v,
+                        validatedPoint.c,
+                        &undo);
+
+    flushPluginOrOwnerState (*target.plugin);
+    edit->dispatchPendingUpdatesSynchronously();
+
+    auto response = std::make_unique<juce::DynamicObject>();
+    response->setProperty ("status", "ok");
+    response->setProperty ("plugin_id", object.getProperty ("plugin_id").toString().trim());
+    response->setProperty ("param_id", object.getProperty ("param_id").toString().trim());
+    response->setProperty ("mode", hasRegion ? "region" : "full");
+    if (hasRegion)
+    {
+        auto regionObject = std::make_unique<juce::DynamicObject>();
+        regionObject->setProperty ("start", regionStart);
+        regionObject->setProperty ("end", regionEnd);
+        response->setProperty ("region", juce::var (regionObject.release()));
+    }
+    response->setProperty ("written", static_cast<int> (validated.size()));
+    response->setProperty ("point_count", curve.getNumPoints());
+    response->setProperty ("time_base", automationTimeBaseToString (curve.timeBase));
+    return juce::JSON::toString (juce::var (response.release()));
+}
+
+juce::String PluginRackControlService::handleAutomationClearRegion (const juce::DynamicObject& object, const juce::String&) const
+{
+    auto* edit = getEdit != nullptr ? getEdit() : nullptr;
+
+    if (edit == nullptr)
+        return makeErrorReply ("No active edit loaded");
+
+    auto target = resolveAutomationCurveTarget (object, *edit);
+    if (target.error.isNotEmpty())
+        return target.error;
+
+    auto& curve = target.param->getCurve();
+    if (curve.timeBase == te::AutomationCurve::TimeBase::beats)
+        return makeErrorReply ("automation.clear_region only supports time-based curves "
+                               "(this curve is beats-based; time_base is disclosed by automation.get_curve)");
+
+    bool hasRegion = false;
+    double regionStart = 0.0;
+    double regionEnd = 0.0;
+    const auto regionError = parseAutomationRegionSeconds (object, true, hasRegion, regionStart, regionEnd);
+    if (regionError.isNotEmpty())
+        return makeErrorReply ("automation.clear_region " + regionError);
+
+    const auto pointsBefore = curve.getNumPoints();
+
+    // M3-KERNEL-1: pure region removal. The engine's removePointsAndCloseGap
+    // re-anchors boundary values after the cut (AutomationCurve.cpp:630-635
+    // adds compensation points when the curve moves across the region), so a
+    // "clear" that covers the whole curve would still leave points behind
+    // (smoke run 20261012_220826: 3 in, 1 out). removePoints is the plain
+    // "region points gone" semantic this command promises.
+    auto& undo = edit->getUndoManager();
+    undo.beginNewTransaction ("automation.clear_region");
+    curve.removePoints (te::EditTimeRange (te::TimePosition::fromSeconds (regionStart),
+                                           te::TimePosition::fromSeconds (regionEnd)),
+                        &undo);
+
+    flushPluginOrOwnerState (*target.plugin);
+    edit->dispatchPendingUpdatesSynchronously();
+
+    const auto pointsAfter = curve.getNumPoints();
+
+    auto response = std::make_unique<juce::DynamicObject>();
+    response->setProperty ("status", "ok");
+    response->setProperty ("plugin_id", object.getProperty ("plugin_id").toString().trim());
+    response->setProperty ("param_id", object.getProperty ("param_id").toString().trim());
+    auto regionObject = std::make_unique<juce::DynamicObject>();
+    regionObject->setProperty ("start", regionStart);
+    regionObject->setProperty ("end", regionEnd);
+    response->setProperty ("region", juce::var (regionObject.release()));
+    response->setProperty ("removed_points", pointsBefore - pointsAfter);
+    response->setProperty ("point_count", pointsAfter);
+    return juce::JSON::toString (juce::var (response.release()));
+}
+
 juce::String PluginRackControlService::handleSetPluginParamAliases (const juce::DynamicObject& object, const juce::String&) const
 {
     auto* edit = getEdit != nullptr ? getEdit() : nullptr;

@@ -1,0 +1,19 @@
+{
+  "status": "failed",
+  "url": "tcp://127.0.0.1:5555",
+  "project_path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\vit_daw_automation_curve_smoke\\automation_curve_1791814226.vit",
+  "checks": [
+    "new_project",
+    "save_as_project",
+    "add_audio_track",
+    "volume_plugin_discovered",
+    "automation.get_curve.empty",
+    "automation.set_points.fail_closed",
+    "automation.set_points.write3",
+    "automation.get_curve.readback3"
+  ],
+  "track_id": "1007",
+  "plugin_id": "1008",
+  "time_base": "time",
+  "error": "removed_points must be 3: {'status': 'ok', 'plugin_id': '1008', 'param_id': 'volume', 'region': {'start': 0.0, 'end': 5.0}, 'removed_points': 1, 'point_count': 2}"
+}

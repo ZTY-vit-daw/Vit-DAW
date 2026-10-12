@@ -75,6 +75,9 @@ func DefaultCatalog() *Catalog {
 	}
 	c.AddAlias("plugin_get_parameters", "get_plugin_parameters")
 	c.AddAlias("plugin_set_parameter", "set_plugin_param")
+	c.AddAlias("automation_get_curve", "automation.get_curve")
+	c.AddAlias("automation_set_points", "automation.set_points")
+	c.AddAlias("automation_clear_region", "automation.clear_region")
 	c.AddAlias("plugin_explain_controls", "plugin_grabber_explain_controls")
 	c.AddAlias("plugin.explain_controls", "plugin_grabber_explain_controls")
 	c.AddAlias("plugin_grabber_explain_controls", "plugin_grabber_explain_controls")
@@ -846,6 +849,114 @@ func refDiffSpec() CommandSpec {
 	}
 }
 
+// automationGetCurveSpec / automationSetPointsSpec / automationClearRegionSpec
+// 注册 M3-KERNEL-1 的 automation 曲线三工具（内核命令 automation.get_curve /
+// set_points / clear_region）。读面 RiskDirect；写面 RiskUndoable+确认（与
+// set_plugin_param 同族姿态，另在 harness Invoke 面 pre-journal 参数校验）。
+// 坐标主形态=秒；get_curve 回执按引擎 TimeBase 原样披露。
+func automationGetCurveSpec() CommandSpec {
+	return CommandSpec{
+		CommandName: "automation.get_curve",
+		ToolName:    "automation.get_curve",
+		Category:    "automation",
+		Description: "Read one plugin parameter's automation curve: points [{t seconds, v, c}], bypass flag, point_count, and the engine time_base disclosed as-is. An empty point list means the parameter has no automation yet. Addresses the curve by plugin_id + param_id (volume/pan resolve like set_plugin_param).",
+		InputSchema: map[string]any{
+			"type":     "object",
+			"required": []string{"plugin_id", "param_id"},
+			"properties": map[string]any{
+				"cmd":       map[string]any{"type": "string", "const": "automation.get_curve"},
+				"plugin_id": map[string]any{"type": "string"},
+				"param_id":  map[string]any{"type": "string"},
+				"track_id":  map[string]any{"type": "string", "description": "Optional; the curve identity is plugin_id + param_id."},
+			},
+		},
+		OutputSchema:      map[string]any{"type": "object", "description": "automation.get_curve.v1: status, plugin_id, param_id, time_base (time|beats as stored by the engine), bypass, point_count, points [{t, v, c}]."},
+		RiskLevel:         RiskDirect,
+		RequiredTargetIDs: []string{"plugin_id", "param_id"},
+	}
+}
+
+func automationSetPointsSpec() CommandSpec {
+	return CommandSpec{
+		CommandName: "automation.set_points",
+		ToolName:    "automation.set_points",
+		Category:    "automation",
+		Description: "Replace a plugin parameter's automation points (time in seconds). Whole-curve replacement by default; with a region, existing points inside [start, end] are removed and the new points replace them (every new point must lie inside the region). Fail-closed: t >= 0, curve c in [-1, 1] (default 0), v must be inside the parameter's valueRange (read it via get_plugin_parameters first), region start >= 0 and end > start — one out-of-domain point rejects the whole command without writing.",
+		InputSchema: map[string]any{
+			"type":     "object",
+			"required": []string{"plugin_id", "param_id", "points"},
+			"properties": map[string]any{
+				"cmd":       map[string]any{"type": "string", "const": "automation.set_points"},
+				"plugin_id": map[string]any{"type": "string"},
+				"param_id":  map[string]any{"type": "string"},
+				"track_id":  map[string]any{"type": "string", "description": "Optional; the curve identity is plugin_id + param_id."},
+				"points": map[string]any{
+					"type": "array", "minItems": 1,
+					"items": map[string]any{
+						"type":     "object",
+						"required": []string{"t", "v"},
+						"properties": map[string]any{
+							"t": map[string]any{"type": "number", "minimum": 0, "description": "Point time in seconds (>= 0)."},
+							"v": map[string]any{"type": "number", "description": "Point value in the parameter's raw value range (valueRange from get_plugin_parameters)."},
+							"c": map[string]any{"type": "number", "minimum": -1, "maximum": 1, "description": "Bezier curve amount in [-1, 1]; defaults to 0."},
+						},
+					},
+				},
+				"region": map[string]any{
+					"type":     "object",
+					"required": []string{"start", "end"},
+					"properties": map[string]any{
+						"start": map[string]any{"type": "number", "minimum": 0, "description": "Region start in seconds (>= 0)."},
+						"end":   map[string]any{"type": "number", "description": "Region end in seconds; must be greater than start."},
+					},
+					"description": "Optional replacement region in seconds. Without a region the whole curve is replaced (use automation.clear_region to remove points).",
+				},
+			},
+		},
+		OutputSchema:         map[string]any{"type": "object", "description": "automation.set_points.v1: status, mode (full|region), written, point_count after write, time_base."},
+		RiskLevel:            RiskUndoable,
+		MutatesProject:       true,
+		SupportsUndo:         true,
+		RequiresConfirmation: true,
+		RequiredTargetIDs:    []string{"plugin_id", "param_id"},
+		RefreshAfter:         true,
+	}
+}
+
+func automationClearRegionSpec() CommandSpec {
+	return CommandSpec{
+		CommandName: "automation.clear_region",
+		ToolName:    "automation.clear_region",
+		Category:    "automation",
+		Description: "Remove all automation points of a plugin parameter inside a time region (seconds) and close the gap. Fail-closed: region start >= 0 and end > start are required; there is no whole-curve form (use a wide region).",
+		InputSchema: map[string]any{
+			"type":     "object",
+			"required": []string{"plugin_id", "param_id", "region"},
+			"properties": map[string]any{
+				"cmd":       map[string]any{"type": "string", "const": "automation.clear_region"},
+				"plugin_id": map[string]any{"type": "string"},
+				"param_id":  map[string]any{"type": "string"},
+				"track_id":  map[string]any{"type": "string", "description": "Optional; the curve identity is plugin_id + param_id."},
+				"region": map[string]any{
+					"type":     "object",
+					"required": []string{"start", "end"},
+					"properties": map[string]any{
+						"start": map[string]any{"type": "number", "minimum": 0, "description": "Region start in seconds (>= 0)."},
+						"end":   map[string]any{"type": "number", "description": "Region end in seconds; must be greater than start."},
+					},
+				},
+			},
+		},
+		OutputSchema:         map[string]any{"type": "object", "description": "automation.clear_region.v1: status, region echo, removed_points, point_count after clear."},
+		RiskLevel:            RiskUndoable,
+		MutatesProject:       true,
+		SupportsUndo:         true,
+		RequiresConfirmation: true,
+		RequiredTargetIDs:    []string{"plugin_id", "param_id"},
+		RefreshAfter:         true,
+	}
+}
+
 func spec(command, tool, category, description string, risk RiskLevel, mutates, undo, confirm, refresh bool, ids ...string) CommandSpec {
 	return CommandSpec{
 		CommandName:          command,
@@ -1047,6 +1158,9 @@ func defaultSpecs() []CommandSpec {
 		spec("show_plugin_editor", "plugin.show_editor", "plugin", "Open a plugin editor window.", RiskDirect, false, false, false, false, "track_id", "plugin_id"),
 		spec("get_plugin_parameters", "plugin.get_parameters", "plugin", "Read normalized plugin parameter values.", RiskDirect, false, false, false, false, "track_id", "plugin_id"),
 		spec("set_plugin_param", "plugin.set_parameter", "plugin", "Set one explicit plugin parameter by normalized value (0.0-1.0). Use display_domain_candidate from explain_controls all_parameters to convert human-unit targets to normalized before calling. Do NOT pass value_text — that path is unreliable and will silently write the wrong value.", RiskUndoable, true, true, false, true, "track_id", "plugin_id", "param_id"),
+		automationGetCurveSpec(),
+		automationSetPointsSpec(),
+		automationClearRegionSpec(),
 		spec("plugin_grabber_explain_controls", "plugin_grabber.explain_controls", "plugin_grabber", "Build a compact AI-friendly context pack for one loaded plugin without filtering full parameters.", RiskDirect, false, false, false, false, "track_id", "plugin_id"),
 		spec("plugin_grabber_inspect_compressor", "plugin_grabber.inspect_compressor", "plugin_grabber", "Read one loaded plugin and recover an identity-free broadband compressor stage/control-path topology. Returns generation-scoped control_ref values for every provable binding. Pure limiters and multiband compressors are rejected.", RiskDirect, false, false, false, false, "track_id", "plugin_id"),
 		spec("plugin_grabber_apply_compressor_controls", "plugin_grabber.apply_compressor_controls", "plugin_grabber", "Atomically write explicit compressor controls addressed by generation-scoped control_ref, or restore a successful apply with its exact normalized restore_ref. Accepts physical dB, ratio, ms, percent, measured display values, or exact enum labels only. Every field is a hard requirement; stale refs, unavailable domains, unit mismatches, side effects, and readback failures reject and restore the full preimage. Returns exact, quantized, or rejected.", RiskUndoable, true, true, false, true, "track_id", "plugin_id"),
