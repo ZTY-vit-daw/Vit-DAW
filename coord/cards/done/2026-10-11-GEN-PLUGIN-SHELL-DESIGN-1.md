@@ -31,5 +31,5 @@
 设计五件齐+通道契约与统一化件三对齐无冲突+实施卡规格可直接发卡；风险表（VST3 SDK 许可/签名分发/异步边界）逐条结论。
 
 - 领取：2026-10-12 / origin/main 813cbf58 / owner=GLM Mac 执行会话 / 分支 port/gen-plugin-shell-design-1（独立 worktree ~/Documents/Vit-DAW-gpsd1，基线=813cbf58 干净检出）
-- 回执：（设计基线链接）
+- 回执：设计基线=coord/runs/GEN-PLUGIN-SHELL-DESIGN-1/（README+件一~五+风险表06；分支 port/gen-plugin-shell-design-1 @ a51c3509 已推）。卡面五件+风险表齐；与统一化件三对齐核对在件一 §6+件三 §5；实施拆卡 6 张在件五（GENSHELL-CPP/HOST/AGENT/GUI/PCA/AUDITION，关键依赖=GEN-CTX-INJECT-1）。零生产代码零源码 diff；无真栈需求（引用 GEN-MAC-BASELINE-1 30/30+GEN-API-ADAPTER-1 17/17 既有证据）
 - 验收：（裁定文件）
