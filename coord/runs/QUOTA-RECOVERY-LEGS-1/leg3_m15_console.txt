@@ -1,0 +1,10 @@
+
+== FS large-project free-state smoke (pull mode, sattelites 61 tracks) ==
+run_root: D:\Vit_DAW_wt_qrl1\coord\runs\FS-LARGEPROJECT-SMOKE-1\fs_largeproject_smoke_20261012_213641
+repo HEAD: e1631ad97330c5d156ade32fa95e62774230d38c branch: coord/qrl1-b
+kernel: D:\Vit_DAW\VitApp\build\VitApp_artefacts\Release\VitApp.exe
+kernel sha256: B6565DCF85D1DA867E16333052A7B928A5413565940603ADBCF4ABD59DD3123B
+source folder (read-only): E:\BaiduNetdiskDownload\yingge - sattelites tracks out
+
+== Phase 0: clear-field preflight (no residual stack) ==
+   [FAIL] residual stack element: godot pid=30420

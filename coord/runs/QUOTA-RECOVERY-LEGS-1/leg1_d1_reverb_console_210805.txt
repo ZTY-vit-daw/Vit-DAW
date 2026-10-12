@@ -1,0 +1,9 @@
+Resolve-Path : 找不到路径“D:\Vit_DAW_wt_qrl1\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processo
+r_project_smoke_v1_80085263a651cf20\fixture_manifest.json”，因为该路径不存在。
+所在位置 D:\Vit_DAW_wt_qrl1\scripts\run_free_state_d1_smoke.ps1:83 字符: 20
++ $PublicManifest = (Resolve-Path -LiteralPath $PublicManifest).Path
++                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (D:\Vit_DAW_wt_q...e_manifest.json:String) [Resolve-Path], ItemNotFoundE 
+   xception
+    + FullyQualifiedErrorId : PathNotFound,Microsoft.PowerShell.Commands.ResolvePathCommand
+ 

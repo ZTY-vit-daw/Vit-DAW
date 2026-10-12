@@ -1,0 +1,107 @@
+
+== FS large-project free-state smoke (pull mode, sattelites 61 tracks) ==
+run_root: D:\Vit_DAW_wt_qrl1\coord\runs\FS-LARGEPROJECT-SMOKE-1\fs_largeproject_smoke_20261012_215718
+repo HEAD: e1631ad97330c5d156ade32fa95e62774230d38c branch: coord/qrl1-b
+kernel: D:\Vit_DAW\VitApp\build\VitApp_artefacts\Release\VitApp.exe
+kernel sha256: B6565DCF85D1DA867E16333052A7B928A5413565940603ADBCF4ABD59DD3123B
+source folder (read-only): E:\BaiduNetdiskDownload\yingge - sattelites tracks out
+
+== Phase 0: clear-field preflight (no residual stack) ==
+   [ok] clear field: ports 7878/5555/5556 free, no VitAgent/VitApp/Godot-frontend processes
+   [ok] source manifest: 61 files (read-only baseline recorded)
+
+== Phase 1: bring up real stack via dev_agent_smoke (kernel + Godot UI + agent, pull env) ==
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_wt_qrl1
+agent http: http://127.0.0.1:7878
+
+== Start kernel
+ok: started kernel: D:\Vit_DAW\VitApp\build\VitApp_artefacts\Release\VitApp.exe pid=15744 workdir=D:\Vit_DAW\VitApp\build\VitApp_artefacts\Release
+
+== Start UI
+ok: kernel command port already listening before UI start: 5555 pid=15744
+ok: UI-launched kernel command port is listening: 5555
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW_wt_qrl1\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=279
+shadow.initialized=True track_count=0
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=15744
+ok: ZMQ SUB listening: 5556 pid=15744
+
+== Project state invoke
+project.state status=ok error=
+
+== Summary
+ok: dev agent smoke completed
+   [ok] stack up (bringup 5s, agent inherits VIT_DAW_HARNESS=pull)
+   [ok] agent binary: D:\Vit_DAW_wt_qrl1\agent\bin\VitAgent.exe
+
+== Agent health ==
+   [ok] agent ok tool_count=279
+
+== Phase 2: full 61-track stems import (L2-2 command chain, agent-face order) ==
+   [ok] import complete: tracks=61 clips=61 analysis_job=audio_analysis_1791813444435_1 (1s)
+
+== Phase 3: bake preheat (explicit budget, L2-2 serialized L3 pool) ==
+   [ok] bake preheat ready: 30s, final dad_fact 61/61
+   [ok] E:\ source integrity mid-check clean
+
+== Phase 3.5: persist isolated project (save_as with bounded retry) ==
+   [ok] isolated project persisted: D:\Vit_DAW_wt_qrl1\coord\runs\FS-LARGEPROJECT-SMOKE-1\fs_largeproject_smoke_20261012_215718\project\sattelites_61.vit
+
+== Phase 4: authority grant (full_project_access) ==
+   [ok] authority = full_project_access
+
+== Phase 5: free-state NL round via goal entry (pull mode, real LLM) ==
+   [ok] NL round settled: reason=goal_terminal turns=1 nudges=0 card=none
+
+== Phase 6: confirmation hops (approve the mounted card, follow the chain) ==
+   [ok] confirm round trip: exercised=False hops=0 station=not_driven_no_card reobserved_completed=False
+
+== Phase 7: telemetry census (assertion 1 evidence) ==
+
+== Phase 8: fixed-orchestration zero-hit audit (assertion 4 evidence) ==
+
+== Phase 8.5: M1-2 queue roundtrip (read -> annotate -> re-read) ==
+   [ok] M1Q q1 queue view read renders schema + data-source line
+   [ok] M1Q q2 node annotation write-back acknowledged (E1 deferred)
+   [ok] M1Q q3 re-read shows E1 deferred (write-back roundtrip)
+   [ok] M1Q queue surfaces clean of fixed-orchestration markers
+
+== Phase 8.6: M1-5 mix.report three-view (settle line + queue node states) ==
+   [ok] M15 mix_report invoke ok (mix_report.v1)
+   [ok] M15 report schema_version = mix_report.v1
+   [ok] M15 latest settle conclusion line rendered
+   [ok] M15 queue node-state line rendered (23 nodes)
+   [ok] M15 non-default node E1 deferred visible (rides M1Q q2 annotation)
+   [ok] M15 fold agreement: report timeline=0 = queue sources=0
+   [ok] M15 settle line truthful (latest=)
+   [ok] M15 invoke surface clean of fixed-orchestration markers
+
+== Phase 9: assertion groups A1-A4 ==
+   [ok] A1 mode/telemetry: pullharness records with fingerprint=5 distinct=5
+   [warn] A2 not holding (recorded as round status, not an M1-2 exit gate): rounds=0 observations=0
+   [warn] A3 not holding (recorded as round status, not an M1-2 exit gate): card_mounted=False approve_answered=False
+   [ok] A4 zero fixed orchestration: no C1/C2/B4 marker hits on any scanned surface
+
+== Teardown: stop owned stack + verify release ==
+   [cleanup] stopped agent pid=27520
+   [cleanup] stopped kernel pid=15744
+   [ok] stack released: ports free, processes gone
+
+== PASS ==
+   [ok] FS large-project smoke passed (M1Q + M15 + A1 + A4). run_root=D:\Vit_DAW_wt_qrl1\coord\runs\FS-LARGEPROJECT-SMOKE-1\fs_largeproject_smoke_20261012_215718
