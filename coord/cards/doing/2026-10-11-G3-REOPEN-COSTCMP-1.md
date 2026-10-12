@@ -35,6 +35,6 @@ G3 终裁不切换的唯一实质依据=成本门槛（轮级 LLM 调用 17 vs 6
 
 计量账本位与 PULL-PROBE-METER-1 合入形态不符 → 上交对齐。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-12 晚窗 / origin/main 3bcaa39a（前置 PULL-PROBE-TIER-EXT-1=e6cacb88 已在 main，merge-base --is-ancestor 实核）/ owner=GLM-5.3 PC 执行流（ZCode 会话，用户指派）/ 分支 port/g3-reopen-costcmp-1 / worktree D:/Vit_DAW_wt_g3rc1 / 领取提交=coord-claim-20261012-g3rc1（卡 mv 协调提交，随本回填推 main）
 - 回执：（run ID / 对比报告链接）
 - 验收：（裁定文件）
