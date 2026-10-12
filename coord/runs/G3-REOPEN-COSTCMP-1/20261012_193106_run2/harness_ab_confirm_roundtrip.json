@@ -1,0 +1,38 @@
+﻿{
+    "mode":  "pull",
+    "round":  {
+                  "finished_at":  "2026-10-12T19:32:01.1501116+08:00",
+                  "plan_id":  "",
+                  "nudges_sent":  0,
+                  "last_stop_reason":  "failed",
+                  "goal_statuses":  [
+                                        "failed"
+                                    ],
+                  "turns_sent":  1,
+                  "stop_reasons":  [
+                                       "failed"
+                                   ],
+                  "last_goal_status":  "failed",
+                  "settled":  true,
+                  "classification":  "judgment_failed",
+                  "transport_errors":  0,
+                  "interaction_request":  "",
+                  "conversation_id":  "dev_harness_ab_pull_confirm_20261012_193158",
+                  "needs_confirmation":  false
+              },
+    "judgment_station_events":  {
+                                    "applied_like":  0,
+                                    "mix_tick":  0,
+                                    "audition":  0,
+                                    "total":  6
+                                },
+    "post_confirm_station":  "not_driven_no_card",
+    "phase":  "confirm_roundtrip",
+    "hops":  [
+
+             ],
+    "conversation_id":  "dev_harness_ab_pull_confirm_20261012_193158",
+    "finished_at":  "2026-10-12T19:32:01.7425519+08:00",
+    "confirm_face_exercised":  false,
+    "hops_used":  0
+}

@@ -1,0 +1,42 @@
+﻿{
+    "final_stop_reason":  "failed",
+    "hops":  [
+
+             ],
+    "all_stop_reasons":  [
+                             "failed"
+                         ],
+    "budget_config":  {
+                          "max_probe_cost":  8,
+                          "max_cycles":  1
+                      },
+    "finished_at":  "2026-10-12T19:32:09.3238955+08:00",
+    "hops_used":  0,
+    "trigger_miss_class":  "judgment_failed",
+    "confirm_face_exercised":  false,
+    "accounted_separately":  true,
+    "mode":  "pull",
+    "phase":  "budget_calibration",
+    "conversation_id":  "dev_harness_ab_pull_budget_20261012_193204",
+    "round":  {
+                  "finished_at":  "2026-10-12T19:32:09.3153180+08:00",
+                  "plan_id":  "",
+                  "nudges_sent":  0,
+                  "last_stop_reason":  "failed",
+                  "goal_statuses":  [
+                                        "failed"
+                                    ],
+                  "turns_sent":  1,
+                  "stop_reasons":  [
+                                       "failed"
+                                   ],
+                  "last_goal_status":  "failed",
+                  "settled":  true,
+                  "classification":  "judgment_failed",
+                  "transport_errors":  0,
+                  "interaction_request":  "",
+                  "conversation_id":  "dev_harness_ab_pull_budget_20261012_193204",
+                  "needs_confirmation":  false
+              },
+    "budget_exhausted_triggered":  false
+}

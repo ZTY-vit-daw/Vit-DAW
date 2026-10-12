@@ -1,0 +1,3 @@
+2026/10/12 周一 19:22:24.81 wrapper-start workdir=D:\Vit_DAW_wt_g3rc1\coord\runs\G3-REOPEN-COSTCMP-1\20261012_192223_run1\kernel_workspace 
+2026/10/12 周一 19:22:24.81 env VIT_PROJECT_XML=coord\runs\G3-REOPEN-COSTCMP-1\20261012_192223_run1\kernel_workspace\default_project.xml 
+2026/10/12 周一 19:22:26.40 kernel-exitcode=0 
