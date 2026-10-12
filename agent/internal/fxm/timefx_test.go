@@ -80,6 +80,7 @@ func TestInputFromTimefxEvidenceRejectsUnfaithfulArtifacts(t *testing.T) {
 		{"schema_mismatch", func(a *TimefxEvidenceArtifact) { a.SchemaVersion = "dad.compressor_dual_tap_evidence.v1" }},
 		{"family_unsupported", func(a *TimefxEvidenceArtifact) { a.ProcessorScope.Family = "eq" }},
 		{"determinism_failed", func(a *TimefxEvidenceArtifact) { a.Determinism.Status = "suspect" }},
+		{"determinism_missing", func(a *TimefxEvidenceArtifact) { a.Determinism.Status = "" }},
 		{"zero_signal", func(a *TimefxEvidenceArtifact) { a.TapMetrics.Processed.NonzeroSamples = 0 }},
 		{"nan_inf", func(a *TimefxEvidenceArtifact) { a.TapMetrics.Baseline.NaNInfSamples = 2 }},
 		{"tap_order_swapped", func(a *TimefxEvidenceArtifact) {
@@ -169,6 +170,39 @@ func TestTimefxDifferentialGateBlocksIdentityMismatch(t *testing.T) {
 	projection = Build(routingMismatch)
 	if projection.BaselineRef.ChainStateHash != "statehash-1" || projection.ProcessedRef.ChainStateHash != "statehash-other" {
 		t.Fatalf("chain state hashes must be disclosed per tap for routing audits")
+	}
+}
+
+// TestTimefxRepeatVarianceDowngradesTrust pins the modulated-family rule: a
+// partial determinism proof (Pro-R style repeat-render variance) keeps the
+// pair measurable, drops the projection to partial, and removes preflight
+// support while observation support survives.
+func TestTimefxRepeatVarianceDowngradesTrust(t *testing.T) {
+	artifact := timefxTestArtifact()
+	artifact.Determinism.Status = StatusPartial
+	artifact.Determinism.Correlation = 0.981
+	input, err := InputFromTimefxEvidence(artifact)
+	if err != nil {
+		t.Fatalf("input assembly failed: %v", err)
+	}
+	if input.Processed.Quality.Deterministic {
+		t.Fatalf("processed tap must not claim determinism under a partial proof")
+	}
+	projection := Build(input)
+	if projection.Status != StatusPartial {
+		t.Fatalf("status = %q want partial", projection.Status)
+	}
+	if projection.TrustQuality.Deterministic {
+		t.Fatalf("trust deterministic must be false")
+	}
+	if projection.TrustQuality.CanSupportActionPreflight {
+		t.Fatalf("partial determinism must not support action preflight")
+	}
+	if !projection.TrustQuality.CanSupportObservation {
+		t.Fatalf("observation support survives repeat variance")
+	}
+	if !TimefxDeltaIsMeaningful(projection.EffectDelta) {
+		t.Fatalf("delta stays meaningful under a partial proof")
 	}
 }
 

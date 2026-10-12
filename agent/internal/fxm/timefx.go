@@ -67,14 +67,16 @@ type TimefxConditions struct {
 }
 
 type TimefxDeterminismProof struct {
-	Status      string  `json:"status"`
-	Method      string  `json:"method"`
-	RepeatCount int     `json:"repeat_count"`
-	MaxAbsDelta float64 `json:"max_abs_delta"`
-	RMSDelta    float64 `json:"rms_delta"`
-	Correlation float64 `json:"correlation"`
-	PeakDBDelta float64 `json:"peak_db_delta"`
-	RMSDBDelta  float64 `json:"rms_db_delta"`
+	Status                string  `json:"status"`
+	Method                string  `json:"method"`
+	RepeatCount           int     `json:"repeat_count"`
+	MaxAbsDelta           float64 `json:"max_abs_delta"`
+	RMSDelta              float64 `json:"rms_delta"`
+	Correlation           float64 `json:"correlation"`
+	PeakDBDelta           float64 `json:"peak_db_delta"`
+	RMSDBDelta            float64 `json:"rms_db_delta"`
+	CorrelationMinimum    float64 `json:"correlation_minimum"`
+	LevelDeltaToleranceDB float64 `json:"level_delta_tolerance_db"`
 }
 
 type TimefxTapMetricsPair struct {
@@ -133,9 +135,13 @@ func ValidateTimefxEvidenceArtifact(artifact TimefxEvidenceArtifact) []string {
 	require(c.StartSample >= 0 && c.EndSample > c.StartSample, "timefx_sample_window_invalid")
 	require(finite(c.SampleRate) && c.SampleRate > 7000 && c.ChannelCount > 0, "timefx_sample_format_invalid")
 	require(c.RenderMode == "offline_probe" && c.Deterministic, "timefx_render_not_deterministic")
+	// Repeat-render variance is disclosed as a partial determinism proof
+	// (modulated time-domain effects genuinely vary between renders); the
+	// producer keeps the pair and the projection downgrades trust. A suspect
+	// or missing proof is rejected outright.
+	require(artifact.Determinism.Status == StatusReady || artifact.Determinism.Status == StatusPartial, "timefx_determinism_proof_failed")
 	require(c.BaselineTap == TimefxBaselineStage && c.ProcessedTap == TimefxProcessedStage, "timefx_tap_order_invalid")
 	require(c.TailPolicy == "same_window_pair", "timefx_tail_policy_invalid")
-	require(artifact.Determinism.Status == StatusReady, "timefx_determinism_proof_failed")
 	for _, metrics := range []TimefxTapMetricsJSON{artifact.TapMetrics.Baseline, artifact.TapMetrics.Processed} {
 		require(metrics.SampleFrames >= c.EndSample-c.StartSample, "timefx_window_coverage_failed")
 		require(metrics.NonzeroSamples > 0, "timefx_active_signal_missing")
@@ -179,7 +185,7 @@ func InputFromTimefxEvidence(artifact TimefxEvidenceArtifact) (Input, error) {
 			ChainStateHash: scope.ProcessorStateHash, Window: window,
 			RMSDBFS: &rms, LUFS: &lufs, PeakDBFS: &peak, CrestDB: &crest,
 			Quality: QualityEvidence{
-				Deterministic:      c.Deterministic && artifact.Determinism.Status == StatusReady,
+				Deterministic:      c.Deterministic && artifact.Determinism.Status == StatusReady && artifact.Determinism.RepeatCount >= 2,
 				LatencyCompensated: c.LatencyCompensated,
 				Nonzero:            metrics.NonzeroSamples > 0,
 				Coverage:           metrics.Coverage,

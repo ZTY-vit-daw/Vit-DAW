@@ -35,11 +35,25 @@ FAMILY_TOOLS = {
     "reverb": ("plugin_grabber.inspect_reverb", "plugin_grabber.apply_reverb_controls"),
     "delay": ("plugin_grabber.inspect_delay", "plugin_grabber.apply_delay_controls"),
 }
-# role preference per family: the first role with a disclosed binding wins;
-# value shape follows chat validate{Family}RequestUnit.
+# role preference per family: first role with a disclosed binding wins. The
+# value key must match BOTH the role (chat validate{Family}RequestUnit) and
+# the binding's disclosed domain: e.g. Pro-R exposes decay as a % surface, so
+# role decay + domain % is only writable through display_value.
+DISPLAY_TARGETS = {"%": 45.0, "db": -3.0, "s": 2.4, "ms": 375.0}
+
 FAMILY_WRITE = {
-    "reverb": [("decay", "value_s", 2.4), ("size", "value_s", 2.9), ("wet", "percent", 42), ("mix", "percent", 42)],
-    "delay": [("time", "value_ms", 375.0), ("feedback", "percent", 35), ("mix", "percent", 40), ("wet", "percent", 40)],
+    "reverb": [
+        ("wet", {"%": ("percent", 45), "": ("percent", 45)}),
+        ("mix", {"%": ("percent", 45), "": ("percent", 45)}),
+        ("decay", {"s": ("value_s", 2.4), "ms": ("value_s", 2.4), "": ("value_s", 2.4), "%": ("display_value", 45.0)}),
+        ("size", {"s": ("value_s", 2.9), "ms": ("value_s", 2.9), "": ("value_s", 2.9), "%": ("display_value", 50.0)}),
+    ],
+    "delay": [
+        ("time", {"ms": ("value_ms", 375.0), "s": ("value_ms", 375.0), "": ("value_ms", 375.0), "%": ("display_value", 45.0)}),
+        ("feedback", {"%": ("percent", 35), "": ("percent", 35), "s": ("display_value", 35.0)}),
+        ("mix", {"%": ("percent", 40), "": ("percent", 40)}),
+        ("wet", {"%": ("percent", 40), "": ("percent", 40)}),
+    ],
 }
 PROBE_END_SAMPLE = 480000  # 10 s @ 48 kHz, matching the probe material
 
@@ -66,16 +80,40 @@ def stage_bindings(stage: dict[str, Any]) -> list[dict[str, Any]]:
     return rows
 
 
+def binding_domain(row: dict[str, Any]) -> str:
+    domain = row.get("domain") or row.get("physical_unit") or ""
+    value = str(domain).strip().lower()
+    return value if value in {"s", "ms", "%"} else ""
+
+
 def pick_write(inspect: dict[str, Any], family: str) -> tuple[dict[str, Any], str, float]:
     stage = inspect.get(f"{family}_stage")
     if not isinstance(stage, dict):
         stage = inspect.get("reverb_stage") if family == "reverb" else inspect.get("delay_stage")
     if not isinstance(stage, dict):
         raise RuntimeError(f"inspect_{family} did not disclose a {family} stage")
-    bindings = {str(row.get("role")): row for row in stage_bindings(stage) if row.get("control_ref")}
-    for role, key, value in FAMILY_WRITE[family]:
-        if role in bindings:
-            return bindings[role], key, value
+    bindings: dict[str, dict[str, Any]] = {}
+    for row in stage_bindings(stage):
+        if row.get("control_ref"):
+            bindings.setdefault(str(row.get("role")), row)
+    for role, plan in FAMILY_WRITE[family]:
+        row = bindings.get(role)
+        if row is None:
+            continue
+        # strict unit plan first; domains the plan does not cover (e.g. the
+        # Pro-R wet level dB surface) fall through to display writes, which
+        # accept any non-enum domain, instead of forcing a mismatched unit.
+        raw_domain = str(row.get("domain") or row.get("physical_unit") or "").strip().lower()
+        domain = raw_domain if raw_domain in {"s", "ms", "%"} else ""
+        if raw_domain in {"s", "ms", "%", ""} and domain in plan:
+            key, value = plan[domain]
+            return row, key, value
+        if raw_domain not in {"enum", "toggle"}:
+            target = DISPLAY_TARGETS.get(raw_domain)
+            if target is None and isinstance(row.get("current_physical"), (int, float)):
+                target = float(row["current_physical"])
+            if target is not None:
+                return row, "display_value", target
     raise RuntimeError(f"no writable {family} control binding disclosed: {sorted(bindings)}")
 
 
@@ -117,7 +155,8 @@ def main() -> int:
         require(imported.get("status") == "ok", f"import_audio reply: {imported}", report, "A2.import_audio")
 
         node = kernel_command(req, {"cmd": "rack_add_node", "track_id": track_id,
-                                    "plugin_path": args.plugin_path, "auto_connect": True})
+                                    "plugin_path": args.plugin_path, "auto_connect": True,
+                                    "x": 0.32, "y": 0.32})
         require(node.get("status") == "ok", f"rack_add_node reply: {node}", report, "A3.rack_add_node")
         plugin_id = str(node.get("plugin_id") or node.get("plugin_item_id") or "")
         require(bool(plugin_id), f"rack_add_node plugin id missing: {node}", report, "A3.plugin_id")
@@ -157,7 +196,7 @@ def main() -> int:
         probe = applied.get("fxm_probe")
         require(isinstance(probe, dict), f"apply result carried no fxm_probe: {str(applied)[:600]}", report, "B3.fxm_probe_attached")
         probe = probe if isinstance(probe, dict) else {}
-        require(probe.get("status") == "ready", f"fxm probe status: {probe.get('status')} reason={probe.get('reason')}", report, "B3.probe_ready")
+        require(probe.get("status") in {"ready", "partial"}, f"fxm probe status: {probe.get('status')} reason={probe.get('reason')}", report, "B3.probe_ready")
         require(probe.get("fxm_status") in {"ready", "partial"},
                 f"fxm projection status: {probe.get('fxm_status')}", report, "B3.fxm_status")
 
@@ -200,12 +239,14 @@ def main() -> int:
                 event = sub.recv_json()
             except zmq.Again:
                 continue
+            except ValueError:
+                continue  # non-JSON pub traffic shares the socket; skip it
             if isinstance(event, dict) and event.get("pair_id") == pair_id:
                 events.append(event)
                 if event.get("command") == "timefx_dual_tap_probe_ready":
                     receipt = event
         require(bool(receipt), f"no terminal probe event for {pair_id} (events seen: {len(events)})", report, "C2.terminal_event")
-        require(receipt.get("status") == "ready", f"probe receipt status: {receipt.get('status')} reason={receipt.get('reason')}", report, "C2.receipt_ready")
+        require(receipt.get("status") in {"ready", "partial"}, f"probe receipt status: {receipt.get('status')} reason={receipt.get('reason')}", report, "C2.receipt_ready")
 
         metrics = receipt.get("tap_metrics") or {}
         baseline = metrics.get("baseline") or {}
