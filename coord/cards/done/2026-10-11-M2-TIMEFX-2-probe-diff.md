@@ -32,5 +32,5 @@ VitApp/Source/Service（探针注册+渲染）+ agent/internal/fxm（生产者�
 dual-tap 样板结构与锚点不符（内核已重构）→ 锚点上交。
 
 - 领取：2026-10-12 18:46 +0800 / origin/main 76ace424 / GLM-5.3 PC 执行流（L2，ZCode PC 会话，M2 时域线）/ 分支 port/m2-timefx-2 / worktree D:/Vit_DAW_wt_m2_timefx2 / 领取提交=本提交（领取前核对：远端 doing 为空无文件域冲突；M2-TIMEFX-1 dbac17ea 为 origin/main 祖先=依赖合入亲验；PC 栈远端状态空闲）
-- 回执：（commit / run ID / 差分数据样本 / 端测边界声明）
+- 回执：实现 25a2b91a+9cd14877@port/m2-timefx-2（已推）；真栈冒测 run=artifacts/timefx_probe/20261012_195100（reverb）+20261012_195128（delay）双 **PASS exit 0** 各 28/28 门（工件精简件 coord/runs/M2-TIMEFX-2/）；差分样本=Pro-R：baseline rms −30.94 vs processed −30.32 dBFS（rms Δ+0.59/peak Δ−5.74/crest Δ−6.33 dB，bypass≠processed）；Timeless 3：rms Δ+0.116 dB（peak Δ0 如实——延迟重复峰不超原峰）；直发探针往返=发令→_ready 事件→工件 sha256 逐字节核对过；内核构建 exit 0+RefSchemaTests（含 T5c timefx ref）+RenderWatchdogTests exit 0；go test ./... -count=1 exit 0（95 包 0 FAIL）+gofmt 净。**设计发现**：Pro-R/Timeless 内部调制致复渲染真差（correlation 0.946/0.991）≠测量误差→确定性证明诚实降级 partial+方差数值披露+差分照测（同窗单渲染对仍有效），硬门仅留格式/NaN/零信号/覆盖；agent 侧 partial→投影 partial、可观察不可 preflight。**附加腿**：D1 reverb 复跑 run 20261012_195448 exit 3=预扣费额度失败（余 0.000190 需 0.011956）——API 额度仍未恢复，环境中断如实记录（同 M2-TIMEFX-1 run 111841 因），挂账腿继续挂 [等待用户]，不阻塞本卡。**端测边界声明**：覆盖面=内核 ZMQ 探针往返+agent HTTP 语义写参面+pub 事件面（真实 Godot 拉栈）；webui 渲染面与用户旅程未涉（本卡零 webui 改动）；冒测迭代修复=域感知写参/rack x/y/非 JSON 事件跳过（脚本面，非功能缺陷）。
 - 验收：（裁定文件 / 验收 commit）

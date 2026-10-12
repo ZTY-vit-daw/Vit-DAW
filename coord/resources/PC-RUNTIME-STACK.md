@@ -5,10 +5,11 @@
 
 ## 当前占用
 
-- 状态：占用中
-- 卡：M2-TIMEFX-2（GLM-5.3 PC 执行流，ZCode PC 会话；worktree D:/Vit_DAW_wt_m2_timefx2，分支 port/m2-timefx-2，实现 commit 25a2b91a）
-- 栈：本机 5555/5556/7878/8787；Godot 拉栈（VIT_DAW_DEV_ROOT 指 worktree：worktree 内核 build/VitApp_artefacts/Release/VitApp.exe + worktree agent bin/VitAgent.exe）
-- 登记：2026-10-12 约 21:05 +0800；计划=timefx 探针真栈冒测（reverb/delay 两轮）+ D1 reverb 冒测复跑挂账腿（G3-REOPEN-COSTCMP-1 短卡如需占栈请排队串行）
+- 状态：空闲
+
+## 最近一次释放
+
+- 2026-10-12 19:38–19:57 +0800（本机钟）/ M2-TIMEFX-2（GLM-5.3 PC 执行流，ZCode PC 会话；worktree D:/Vit_DAW_wt_m2_timefx2，分支 port/m2-timefx-2，实现 25a2b91a+9cd14877）：①timefx 探针冒测两轮（reverb 195100 / delay 195128 均 PASS exit 0 28/28 门；迭代修复三轮为脚本面缺陷——rack x/y、域感知写参、非 JSON 事件跳过）②D1 reverb 复跑挂账腿 run 20261012_195448（exit 3=API 预扣费额度失败余 0.000190，额度仍未恢复环境中断如实记录，链路本身全通）；timefx 冒测栈由 ps1 finally 自拆，D1 栈残留 VitAgent 23576/VitApp 21324/Godot 30332 由 owner 手动拆除，19:57 复核 5555/5556/7878/8787 监听=0、VitApp/VitAgent/vsphub/Godot 进程=0。占用登记 0fc9e930（登记时间在占用行误写 21:05，实际提交约 19:38 于首轮 run 194136 前——此处修正，同 M1-3 修正先例）；工件 coord/runs/M2-TIMEFX-2/（随 port/m2-timefx-2 入库），详见卡回执。**遗留：M2-TIMEFX-1 NL 全链挂账腿继续挂 [等待用户]（API 额度恢复后复跑需重新登记占用）。**
 
 ## 最近一次释放
 
