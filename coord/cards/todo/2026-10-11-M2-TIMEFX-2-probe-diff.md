@@ -23,6 +23,10 @@ VitApp/Source/Service（探针注册+渲染）+ agent/internal/fxm（生产者�
 - FXM 投影产出断言（差分测量 RMS/LUFS/Peak/Crest 真实数值非零且 bypass≠processed）；
 - `go test ./... -count=1` 0 FAIL + gofmt 净；真栈烟测 exit 0（扩展现有 ps1 体系）。
 
+## 随轮附加腿（主管补注 2026-10-12 晚窗，M2-TIMEFX-1 验收挂账）
+
+真栈烟测轮顺带复跑 `scripts/run_free_state_d1_smoke.ps1 -PromptFlavor reverb -ExpectDomain reverb` 一轮——补 M2-TIMEFX-1 run 111841 API 额度中断腿（[rulings/2026-10-12-EVENING-BATCH1-rulings.md](../../rulings/2026-10-12-EVENING-BATCH1-rulings.md) ①）：修复后全链单 run **exit 0 即收挂账**，工件归 run 目录并在回执单列。若 API 额度仍未恢复则如实记录环境中断，不阻塞本卡其他验收项。
+
 ## 停止条件
 
 dual-tap 样板结构与锚点不符（内核已重构）→ 锚点上交。
