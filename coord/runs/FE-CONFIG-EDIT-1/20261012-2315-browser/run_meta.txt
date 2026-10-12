@@ -1,0 +1,16 @@
+run_id=fe_config_edit_1_browser_20261012-2315
+started_at=2026-10-12T23:15:00+0800（浏览器断言 23:20-23:30）
+repo_root=/Users/timozty/Documents/Vit-DAW-feconfig1（worktree，分支 port/fe-config-edit-1，基于 origin/main be290b36=151b0fcb+领取提交）
+repo_dirty=agent/webui/src/App.tsx（本卡实现）+ agent/webui/src/settingsConfigEdit.test.tsx（新增）+ 本 run 目录
+webui=vite dev（源码态，未走 dist）；VITE_AGENT_PROXY=http://127.0.0.1:7899；http://127.0.0.1:5199/app/
+agent_bin=/tmp/feconfig1-vitagent
+agent_sha256=22522ecd5d31c3e6...（go build ./cmd/vitagent @ worktree，与 origin/main 代码一致，本卡零 Go 改动）
+agent_http=http://127.0.0.1:7899
+agent_home=$RUN/home（隔离 HOME，config 落 $RUN/home/.vit/config.json；用户真实 ~/.vit 未触碰）
+kernel=无（本卡渲染面断言不需要内核；agent 内核连接失败为预期，不影响 /agent/config）
+browser=ZCode IAB Chromium（browser-use control-browser 技能）
+gate:
+  npm run test  → exit 0（38 files / 454 tests，含新增 settingsConfigEdit.test.tsx 10 条）
+  npm run build → exit 0（tsc --noEmit + vite build）
+  browser round → PASS 16/16（明细见 browser_assertions.json）
+cleanup=浏览器断言后 vitagent(59104)/vite(59113) 已停

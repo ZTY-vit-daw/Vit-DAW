@@ -1,0 +1,55 @@
+{
+  "run_id": "fe_config_edit_1_browser_20261012-2315",
+  "mode": "IAB Chromium（browser-use control-browser 技能，真键盘事件 cua.type）",
+  "stack": {
+    "webui": "vite dev @ http://127.0.0.1:5199/app/（worktree port/fe-config-edit-1 源码）",
+    "agent": "vitagent @ 127.0.0.1:7899（worktree 构建，隔离 HOME=$RUN/home，非用户真实 ~/.vit）",
+    "seed_config": "预置 apiKey=sk-preexisting-stored、image 路由 key=route-stored-key"
+  },
+  "phases": [
+    {
+      "phase": "A-initial-render",
+      "checks": [
+        { "check": "默认模型占位符", "expect": "供应商模型 ID", "actual": "供应商模型 ID", "pass": true },
+        { "check": "设置页 DOM 无双重编码乱码（[渚涘簲鍟嗘ā鍨] 字符类）", "expect": "false", "actual": "false", "pass": true },
+        { "check": "API Key 框 autocomplete", "expect": "new-password", "actual": "new-password", "pass": true },
+        { "check": "API Key 框 type=password 且已有 key 时占位符", "expect": "password + API Key 已保存；留空保持不变", "actual": "password + API Key 已保存；留空保持不变", "pass": true },
+        { "check": "Base URL / 默认模型 autocomplete", "expect": "off", "actual": "off", "pass": true }
+      ]
+    },
+    {
+      "phase": "B-type-and-save",
+      "checks": [
+        { "check": "真键盘输入（cua.type 14 字符 sk-browser-typed-999）全部入框（无按键拦截实证）", "expect": "value=sk-browser-typed-999", "actual": "value=sk-browser-typed-999", "pass": true },
+        { "check": "点击保存后 API Key 输入框值保持", "expect": "sk-browser-typed-999（旧行为此处置空）", "actual": "sk-browser-typed-999", "pass": true },
+        { "check": "状态行明示输入态保持", "expect": "含『输入框保留所输内容』+『已保存』", "actual": "两段均在设置页文本中", "pass": true }
+      ]
+    },
+    {
+      "phase": "C-reload-and-blank-save",
+      "checks": [
+        { "check": "重载后 key 框清空（初始加载语义保留）", "expect": "value=''", "actual": "value=''", "pass": true },
+        { "check": "重载后占位符", "expect": "API Key 已保存；留空保持不变", "actual": "API Key 已保存；留空保持不变", "pass": true },
+        { "check": "7 张多模态路由卡 API Key 框 autocomplete", "expect": "全部 new-password", "actual": "7/7 new-password", "pass": true },
+        { "check": "路由卡其余字段（Provider/Model/BaseURL/Fallback/Priority）autocomplete", "expect": "全部 off", "actual": "全部 off", "pass": true },
+        { "check": "真键盘输入路由 key（route-image-typed-777）入框", "expect": "route-image-typed-777", "actual": "route-image-typed-777", "pass": true },
+        { "check": "主 key 留空保存：状态行", "expect": "含『留空=沿用已存 key』", "actual": "在设置页文本中", "pass": true },
+        { "check": "保存后路由 key 输入框值保持", "expect": "route-image-typed-777", "actual": "route-image-typed-777", "pass": true }
+      ]
+    },
+    {
+      "phase": "D-disk-persistence（隔离 HOME 配置文件核对）",
+      "checks": [
+        { "check": "第一轮保存的 key 落盘", "expect": "apiKey=sk-browser-typed-999", "actual": "apiKey=sk-browser-typed-999", "pass": true },
+        { "check": "第二轮留空保存后服务端保留（PreserveBlankSecrets）", "expect": "apiKey 仍=sk-browser-typed-999", "actual": "apiKey 仍=sk-browser-typed-999", "pass": true },
+        { "check": "路由 key 落盘", "expect": "image_understanding.apiKey=route-image-typed-777", "actual": "image_understanding.apiKey=route-image-typed-777", "pass": true }
+      ]
+    }
+  ],
+  "verdict": "PASS（16/16 检查通过）",
+  "notes": [
+    "真键盘路径（cua.type 逐字符键击）两轮共 34 字符全部入框，无 keydown/preventDefault 拦截实证（代码面复核：App.tsx 三个全局 keydown 监听均为菜单开时仅响应 Escape，无 preventDefault）",
+    "Playwright locator click 在本应用因状态轮询持续重渲染无法过 actionability 稳定检查，交互统一走 DOM click/evaluate（点击目标均为快照证实元素）",
+    "未覆盖：Safari/WKWebView 与中文 IME 组合场景（归因候选 3）——留用户容器手测清单核验"
+  ]
+}
