@@ -13,4 +13,4 @@
 
 - 领取：2026-10-12 早窗 / origin/main=813cbf58 / owner=Mac 决策侧会话兼执行（用户 2026-10-12 裁定排序权移交，PC 调度件 005893b7 在案）/ 分支 port/gen-ctx-inject-1 / worktree ~/Documents/Vit-DAW-geninj1
 - 回执：done（自验全绿）——实现 <本提交>@port/gen-ctx-inject-1。genctx 四件全落地：snapshot（music_context 真键组装+markers→sections+scene fail-closed）/render（单一模板引擎+profile 只裁+用户块逐字）/validate（11 scale 集合+网格 ±1/64+音域密度长度+SMF 预解析三检）/readback（二道门+集合子集）+GuardWriteCommand 哨兵；避让红线兑现（capabilitycontext/contextruntime/promptruntime 零触碰）。门：go vet 0+gofmt 净+全量 94 包 0 FAIL exit 0+真键冒测 PASS exit 0（run genctx_truekey_mac_20261012-101819：内核直连 set_tempo 96→music_context.tempo_bpm=96 联动断言+pre-KEYFIELD 调性 null=占位可见语义，工件 coord/runs/GEN-CTX-INJECT-1/）；测试 12+golden 三例+形状黄金串。端测边界（AGENTS §5）：纯库面（零 webui/旅程改动），真栈面=内核直连只读冒测；生成端到端（LLM 产 note→门→写入）归 CONSUME 卡与烟测腿
-- 验收：（裁定文件 / 验收 commit）
+- 验收：pass（2026-10-12，Mac 决策侧先行裁定——PC 调度件 005893b7 授权+复核留档）——[rulings/2026-10-12-GEN-CTX-INJECT-1-pass.md](../../rulings/2026-10-12-GEN-CTX-INJECT-1-pass.md)；合入=cherry-pick 705916e5+6a56f065；全量 94 包 0 FAIL+真键冒测 exit 0+避让红线兑现
