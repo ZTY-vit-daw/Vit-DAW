@@ -368,7 +368,14 @@ func selectV2ReversibleControls(result map[string]any, family string) ([]map[str
 		}
 		usedAxis[axisList[0].Axis], usedParam[firstTextMap(item.row, "param_id")] = true, true
 		roles = append(roles, item.role)
-		if len(forward) >= 2 {
+		// M2-TIMEFX-1: the reversible-proof bound is three distinct-axis
+		// controls — the time-domain families' certified vocabulary is a
+		// three-axis set (reverb decay/pre-delay/wet balance, delay time/
+		// feedback/wet balance), and the pre-load coverage gate requires one
+		// attestation to cover the frozen axes. The proof stays small and
+		// bounded; the dynamic families keep exercising whichever axes their
+		// surfaces expose reversibly.
+		if len(forward) >= 3 {
 			break
 		}
 	}

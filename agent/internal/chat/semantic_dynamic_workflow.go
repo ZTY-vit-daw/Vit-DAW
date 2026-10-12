@@ -136,6 +136,10 @@ func semanticDynamicSpecForFamily(family string) (semanticDynamicSpec, bool) {
 		return semanticDynamicSpec{Family: family, Processor: "transient_shaper", Planner: "semantic_transient_shaper", InspectTool: "plugin_grabber.inspect_transient_shaper", ApplyTool: "plugin_grabber.apply_transient_shaper_controls", CoverageAxes: []string{"envelope_emphasis", "envelope_timing", "detector_focus", "shape_mode", "output_normalization", "parallel_balance", "attack", "sustain", "duration", "frequency_focus", "mode", "output_gain", "mix"}}, true
 	case processorintent.FamilyMultibandDynamics:
 		return semanticDynamicSpec{Family: family, Processor: "multiband_dynamics", Planner: "semantic_multiband", InspectTool: "plugin_grabber.inspect_multiband", ApplyTool: "plugin_grabber.apply_multiband_controls", CoverageAxes: []string{"band_dynamics", "band_timing", "crossover_layout", "detector_focus", "output_normalization", "parallel_balance", "threshold", "range", "ratio", "attack", "hold", "release", "crossover", "frequency_focus", "output_gain", "mix"}}, true
+	case processorintent.FamilyReverb:
+		return semanticDynamicSpec{Family: family, Processor: "reverb", Planner: "semantic_reverb", InspectTool: "plugin_grabber.inspect_reverb", ApplyTool: "plugin_grabber.apply_reverb_controls", CoverageAxes: []string{"decay_time", "pre_delay", "spatial_mode", "output_normalization", "wet_balance", "decay", "size", "damping", "width", "reverb_mode", "output_gain", "mix", "wet", "dry"}}, true
+	case processorintent.FamilyDelay:
+		return semanticDynamicSpec{Family: family, Processor: "delay", Planner: "semantic_delay", InspectTool: "plugin_grabber.inspect_delay", ApplyTool: "plugin_grabber.apply_delay_controls", CoverageAxes: []string{"echo_time", "feedback_amount", "spatial_mode", "output_normalization", "wet_balance", "time", "sync", "feedback", "ping_pong", "delay_mode", "output_gain", "mix", "wet", "dry"}}, true
 	default:
 		return semanticDynamicSpec{}, false
 	}

@@ -68,11 +68,11 @@ func TestD1S1PanDoseBoundsHoldAudibleCeilingEndpoints(t *testing.T) {
 // can restate a stale ceiling in prose while the validators move on.
 func TestD1S1DoseWordingDerivesFromCeilingConstants(t *testing.T) {
 	for _, spec := range D1S1DomainSpecs() {
-		if spec.AdmissionValueKey == "decay_s" {
+		if spec.AdmissionValueKey == "decay_pct" {
 			if !strings.Contains(spec.PromptParameterHint, D1S1ReverbDecayDoseHintFragment()) {
 				t.Fatalf("reverb hint lost the constant-derived bound: %q", spec.PromptParameterHint)
 			}
-			err := spec.ValidateDoseBounds("diagnostic", map[string]any{"decay_s": D1S1MaxAbsDeltaReverbDecayS + 0.01})
+			err := spec.ValidateDoseBounds("diagnostic", map[string]any{"decay_pct": D1S1MaxAbsDeltaReverbDecayPct + 0.01})
 			if err == nil || !strings.Contains(err.Error(), D1S1ReverbDecayDoseRangeText()) {
 				t.Fatalf("reverb error wording lost the constant-derived bound: %v", err)
 			}

@@ -20,11 +20,14 @@ const (
 	// pan axis (-1..1 linear): a half-scale horizontal move is clearly
 	// distinguishable in A/B comparison.
 	D1S1MaxAbsDeltaPan = 0.5
-	// D1S1MaxAbsDeltaReverbDecayS is the single-step dose ceiling for the
-	// reverb decay-time axis (physical seconds, M2-TIMEFX-1): a half-second
-	// tail change is clearly distinguishable in A/B comparison across the
-	// common 0.3-4 s working range of mix reverbs.
-	D1S1MaxAbsDeltaReverbDecayS = 0.5
+	// D1S1MaxAbsDeltaReverbDecayPct is the single-step dose ceiling for the
+	// reverb decay-rate axis (percentage points on the carrier's 0-200 %
+	// relative decay scale, M2-TIMEFX-1; the whitelisted FabFilter Pro-R
+	// surface measured 2026-10-12): eight points of decay rate is clearly
+	// distinguishable in A/B comparison on typical hall/room settings. Like
+	// the delay feedback ceiling it deliberately stays below the dB-flavored
+	// D2-2 cumulative magnitude (see the delay constant's note).
+	D1S1MaxAbsDeltaReverbDecayPct = 8.0
 	// D1S1MaxAbsDeltaDelayFeedbackPct is the single-step dose ceiling for the
 	// delay feedback axis (percentage points on the 0-100 % scale,
 	// M2-TIMEFX-1): eight points of feedback moves the audible repetition
@@ -60,15 +63,15 @@ func D1S1PanDoseHintFragment() string {
 }
 
 // D1S1ReverbDecayDoseRangeText renders the reverb decay ceiling as wording
-// ("+/-0.5 s") for hints, errors, and mirror-side texts.
+// ("+/-8 percentage points") for hints, errors, and mirror-side texts.
 func D1S1ReverbDecayDoseRangeText() string {
-	return fmt.Sprintf("+/-%g s", D1S1MaxAbsDeltaReverbDecayS)
+	return fmt.Sprintf("+/-%g percentage points", D1S1MaxAbsDeltaReverbDecayPct)
 }
 
 // D1S1ReverbDecayDoseHintFragment renders the model-facing bound fragment for
-// the reverb decay axis ("nonzero number within +/-0.5", unit seconds).
+// the reverb decay axis ("nonzero number within +/-8", unit percent).
 func D1S1ReverbDecayDoseHintFragment() string {
-	return fmt.Sprintf("nonzero number within +/-%g", D1S1MaxAbsDeltaReverbDecayS)
+	return fmt.Sprintf("nonzero number within +/-%g", D1S1MaxAbsDeltaReverbDecayPct)
 }
 
 // D1S1DelayFeedbackDoseRangeText renders the delay feedback ceiling as

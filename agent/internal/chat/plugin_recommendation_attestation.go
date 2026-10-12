@@ -39,6 +39,10 @@ func processorAttestationFamily(processorType string) string {
 		return processorattestation.FamilyTransient
 	case "multiband", "multiband_dynamics":
 		return processorattestation.FamilyMultiband
+	case "reverb":
+		return processorattestation.FamilyReverb
+	case "delay":
+		return processorattestation.FamilyDelay
 	default:
 		return ""
 	}
@@ -304,6 +308,8 @@ func filterAttestedPluginRecommendationCandidatesV2(library processorattestation
 		processorattestation.FamilyLimiter: "limiter", processorattestation.FamilyGateExpander: "gate_expander",
 		processorattestation.FamilyDeEsser: "de_esser", processorattestation.FamilyTransient: "transient_shaper",
 		processorattestation.FamilyMultiband: "multiband_dynamics",
+		processorattestation.FamilyReverb:    "reverb",
+		processorattestation.FamilyDelay:     "delay",
 	}[requirement.ProcessorFamily], requirement); err != nil {
 		return nil, err
 	}

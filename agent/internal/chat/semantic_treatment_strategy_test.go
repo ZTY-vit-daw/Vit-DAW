@@ -208,6 +208,10 @@ func TestSemanticTreatmentPostLoadAdapterMatrixCoversAllCurrentDynamicFamilies(t
 		"de_esser":           processorintent.FamilyDeEsser,
 		"transient_shaper":   processorintent.FamilyTransientShaper,
 		"multiband_dynamics": processorintent.FamilyMultibandDynamics,
+		// M2-TIMEFX-1: the time-domain families entered the dynamic adapter
+		// set with the rest of the registration chain.
+		"reverb": processorintent.FamilyReverb,
+		"delay":  processorintent.FamilyDelay,
 	}
 	for processorType, wantFamily := range cases {
 		family, planner, ok := semanticPostLoadAdapterForProcessorType(processorType)
@@ -219,7 +223,7 @@ func TestSemanticTreatmentPostLoadAdapterMatrixCoversAllCurrentDynamicFamilies(t
 			t.Fatalf("processor %s planner drift: adapter=%q spec=%+v", processorType, planner, spec)
 		}
 	}
-	for _, boundary := range []string{"spectral_dynamics", "clipper", "reverb", "delay"} {
+	for _, boundary := range []string{"spectral_dynamics", "clipper"} {
 		if _, _, ok := semanticPostLoadAdapterForProcessorType(boundary); ok {
 			t.Fatalf("boundary/future processor %s unexpectedly entered dynamic adapter", boundary)
 		}

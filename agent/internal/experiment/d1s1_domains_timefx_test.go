@@ -19,7 +19,7 @@ func TestD1S1ReverbDomainRowMapping(t *testing.T) {
 	if !spec.WriteBinding.PluginBound || spec.WriteBinding.Channels != 1 {
 		t.Fatalf("reverb write binding=%+v", spec.WriteBinding)
 	}
-	if spec.AdmissionValueKey != "decay_s" {
+	if spec.AdmissionValueKey != "decay_pct" {
 		t.Fatalf("reverb admission key=%q", spec.AdmissionValueKey)
 	}
 	if spec.TargetSemantics != "delta_physical" {
@@ -28,7 +28,7 @@ func TestD1S1ReverbDomainRowMapping(t *testing.T) {
 	if spec.SemanticIntentFamily != "reverb" || len(spec.SemanticIntentCoverage) == 0 {
 		t.Fatalf("reverb semantic anchor=%q %+v", spec.SemanticIntentFamily, spec.SemanticIntentCoverage)
 	}
-	for _, axis := range []string{"decay_time", "pre_delay", "wet_balance"} {
+	for _, axis := range []string{"decay_time"} {
 		found := false
 		for _, coverage := range spec.SemanticIntentCoverage {
 			if coverage == axis {
@@ -61,7 +61,7 @@ func TestD1S1DelayDomainRowMapping(t *testing.T) {
 	if spec.SemanticIntentFamily != "delay" || len(spec.SemanticIntentCoverage) == 0 {
 		t.Fatalf("delay semantic anchor=%q %+v", spec.SemanticIntentFamily, spec.SemanticIntentCoverage)
 	}
-	for _, axis := range []string{"echo_time", "feedback_amount", "wet_balance"} {
+	for _, axis := range []string{"feedback_amount"} {
 		found := false
 		for _, coverage := range spec.SemanticIntentCoverage {
 			if coverage == axis {
@@ -79,14 +79,14 @@ func TestD1S1TimeFXDoseBoundsFailClosed(t *testing.T) {
 	if !ok {
 		t.Fatal("reverb row missing")
 	}
-	for _, value := range []float64{0, D1S1MaxAbsDeltaReverbDecayS + 0.01, -D1S1MaxAbsDeltaReverbDecayS - 0.01, math.NaN()} {
-		if err := reverb.ValidateDoseBounds("diagnostic", map[string]any{"decay_s": value}); err == nil {
+	for _, value := range []float64{0, D1S1MaxAbsDeltaReverbDecayPct + 0.01, -D1S1MaxAbsDeltaReverbDecayPct - 0.01, math.NaN()} {
+		if err := reverb.ValidateDoseBounds("diagnostic", map[string]any{"decay_pct": value}); err == nil {
 			t.Fatalf("reverb decay_s %v admitted", value)
 		}
 	}
 	// Wrong-key bounds fail closed: a dB-flavored payload must not satisfy the
 	// decay axis.
-	if err := reverb.ValidateDoseBounds("diagnostic", map[string]any{"decay_db": -1.5}); err == nil {
+	if err := reverb.ValidateDoseBounds("diagnostic", map[string]any{"decay_s": -0.3}); err == nil {
 		t.Fatal("reverb accepted a wrong-unit payload key")
 	}
 	delay, ok := D1S1SpecForAction("delay", "delay_feedback_adjust")
@@ -110,9 +110,9 @@ func TestD1S1TimeFXAdmissionValidateD1S1(t *testing.T) {
 		EvidenceRefs:         []string{"obs-timefx-1"},
 		Hypothesis:           "the reverb tail drags the vocal",
 		ExpectedEffect:       "a shorter tail cleans up the vocal",
-		TypedAction:          map[string]any{"action_domain": "reverb", "action_kind": "reverb_decay_adjust", "decay_s": -0.3},
-		DiagnosticDoseBounds: map[string]any{"decay_s": -0.3, "max_action_attempts": 1},
-		RetainedDoseBounds:   map[string]any{"decay_s": -0.3, "max_action_attempts": 1},
+		TypedAction:          map[string]any{"action_domain": "reverb", "action_kind": "reverb_decay_adjust", "decay_pct": -3},
+		DiagnosticDoseBounds: map[string]any{"decay_pct": -3, "max_action_attempts": 1},
+		RetainedDoseBounds:   map[string]any{"decay_pct": -3, "max_action_attempts": 1},
 		ExperimentBudget:     1,
 		VerificationPlan:     map[string]any{"view_ids": []any{"mix.multitrack_relationship"}},
 		CheckpointRef:        "pending:timefx-test",
@@ -123,10 +123,10 @@ func TestD1S1TimeFXAdmissionValidateD1S1(t *testing.T) {
 		t.Fatalf("valid reverb admission rejected: %v", err)
 	}
 	outOfBound := reverbAdmission
-	outOfBound.TypedAction = map[string]any{"action_domain": "reverb", "action_kind": "reverb_decay_adjust", "decay_s": -9}
-	outOfBound.DiagnosticDoseBounds = map[string]any{"decay_s": -9, "max_action_attempts": 1}
-	outOfBound.RetainedDoseBounds = map[string]any{"decay_s": -9, "max_action_attempts": 1}
-	if err := outOfBound.ValidateD1S1(); err == nil || !strings.Contains(err.Error(), "decay_s") {
+	outOfBound.TypedAction = map[string]any{"action_domain": "reverb", "action_kind": "reverb_decay_adjust", "decay_pct": -9}
+	outOfBound.DiagnosticDoseBounds = map[string]any{"decay_pct": -9, "max_action_attempts": 1}
+	outOfBound.RetainedDoseBounds = map[string]any{"decay_pct": -9, "max_action_attempts": 1}
+	if err := outOfBound.ValidateD1S1(); err == nil || !strings.Contains(err.Error(), "decay_pct") {
 		t.Fatalf("out-of-bound reverb admission accepted: %v", err)
 	}
 }

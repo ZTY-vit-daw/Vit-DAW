@@ -1,0 +1,2420 @@
+{
+ "reverb": {
+  "track_id": "1035",
+  "plugin_id": "1041",
+  "inspect": {
+   "status": "ok",
+   "tool": "plugin_grabber.inspect_reverb",
+   "command_name": "plugin_grabber_inspect_reverb",
+   "risk_level": "direct",
+   "requires_confirmation": false,
+   "result": {
+    "auxiliary_stages": [
+     {
+      "kind": "multiband_dynamics",
+      "param_ids": [
+       "10",
+       "11",
+       "12",
+       "13",
+       "14",
+       "15",
+       "16",
+       "17",
+       "18",
+       "19",
+       "20",
+       "21",
+       "22",
+       "23",
+       "24",
+       "25",
+       "26",
+       "27",
+       "28",
+       "29",
+       "30",
+       "31",
+       "32",
+       "33",
+       "34",
+       "35",
+       "36",
+       "37",
+       "38",
+       "39",
+       "40",
+       "41",
+       "42",
+       "43",
+       "44",
+       "45",
+       "46",
+       "47",
+       "48",
+       "49",
+       "50",
+       "51",
+       "52",
+       "53",
+       "54",
+       "55",
+       "56",
+       "57",
+       "58",
+       "59",
+       "60",
+       "61",
+       "62",
+       "63",
+       "64",
+       "65",
+       "66",
+       "67",
+       "68",
+       "69",
+       "70",
+       "71",
+       "72",
+       "73",
+       "8",
+       "9"
+      ]
+     }
+    ],
+    "classification": "predelay_decay_reverb",
+    "confidence": 0.96,
+    "control_topology": {
+     "generation": "rv1t1_816949a7f97e2e7cf662dc41",
+     "schema_version": "reverb-control-topology/v1"
+    },
+    "mapping_source": "generic_structural",
+    "plugin_id": "1041",
+    "reverb_stage": {
+     "capabilities": {
+      "character": [
+       "width"
+      ],
+      "output": [
+       "dry",
+       "mix",
+       "output_gain",
+       "wet"
+      ],
+      "tail": [
+       "decay"
+      ],
+      "timing": [
+       "pre_delay"
+      ]
+     },
+     "character": [
+      {
+       "channel": "shared",
+       "compression_stage": "reverb",
+       "control_ref": "rvcr1_eyJraW5kIjoicmV2ZXJiX2NvbnRyb2xfcmVmLnYxIiwidHJhY2tfaWQiOiIxMDM1IiwicGx1Z2luX2lkIjoiMTA0MSIsImdlbmVyYXRpb24iOiJydjF0MV84MTY5NDlhN2Y5N2UyZTdjZjY2MmRjNDEiLCJzdGFnZV9rZXkiOiJyZXZlcmIiLCJzZWN0aW9uIjoiY2hhcmFjdGVyIiwicm9sZSI6IndpZHRoIiwicGFyYW1faWQiOiI1In0.003e10ce61225712",
+       "current_normalized": 0.583333313465118,
+       "current_physical": 70,
+       "current_text": "70.00%",
+       "curve": [
+        [
+         0,
+         0
+        ],
+        [
+         0.25,
+         30
+        ],
+        [
+         0.5,
+         60
+        ],
+        [
+         0.75,
+         90
+        ],
+        [
+         1,
+         120
+        ]
+       ],
+       "domain": {
+        "confidence": 0.9,
+        "max": 120,
+        "min": 0,
+        "scale": "linear",
+        "source": "display_probe_inferred",
+        "status": "inferred",
+        "text": "0~120 %",
+        "unit": "%"
+       },
+       "name": "Stereo Width",
+       "param_id": "5",
+       "physical_unit": "%",
+       "role": "width"
+      }
+     ],
+     "output": [
+      {
+       "channel": "shared",
+       "compression_stage": "reverb",
+       "control_ref": "rvcr1_eyJraW5kIjoicmV2ZXJiX2NvbnRyb2xfcmVmLnYxIiwidHJhY2tfaWQiOiIxMDM1IiwicGx1Z2luX2lkIjoiMTA0MSIsImdlbmVyYXRpb24iOiJydjF0MV84MTY5NDlhN2Y5N2UyZTdjZjY2MmRjNDEiLCJzdGFnZV9rZXkiOiJyZXZlcmIiLCJzZWN0aW9uIjoib3V0cHV0Iiwicm9sZSI6ImRyeSIsInBhcmFtX2lkIjoiZHJ5IGxldmVsIn0.9b57b9127b7e406a",
+       "current_normalized": 0,
+       "current_text": "-INF dB",
+       "curve": [
+        [
+         0.25,
+         -12
+        ],
+        [
+         0.5,
+         -6
+        ],
+        [
+         0.75,
+         -2.5
+        ],
+        [
+         1,
+         0
+        ]
+       ],
+       "domain": {
+        "confidence": 0.9,
+        "max": 0,
+        "min": -12,
+        "scale": "linear",
+        "source": "display_probe_inferred",
+        "status": "inferred",
+        "text": "-12~0 dB",
+        "unit": "dB"
+       },
+       "name": "Dry Level",
+       "param_id": "dry level",
+       "physical_unit": "dB",
+       "role": "dry"
+      },
+      {
+       "channel": "shared",
+       "compression_stage": "reverb",
+       "control_ref": "rvcr1_eyJraW5kIjoicmV2ZXJiX2NvbnRyb2xfcmVmLnYxIiwidHJhY2tfaWQiOiIxMDM1IiwicGx1Z2luX2lkIjoiMTA0MSIsImdlbmVyYXRpb24iOiJydjF0MV84MTY5NDlhN2Y5N2UyZTdjZjY2MmRjNDEiLCJzdGFnZV9rZXkiOiJyZXZlcmIiLCJzZWN0aW9uIjoib3V0cHV0Iiwicm9sZSI6Im1peCIsInBhcmFtX2lkIjoiNiJ9.0ff8028439487c38",
+       "current_normalized": 1,
+       "current_physical": 100,
+       "current_text": "100%",
+       "curve": [
+        [
+         0,
+         0
+        ],
+        [
+         0.25,
+         25
+        ],
+        [
+         0.5,
+         50
+        ],
+        [
+         0.75,
+         75
+        ],
+        [
+         1,
+         100
+        ]
+       ],
+       "domain": {
+        "confidence": 0.9,
+        "max": 100,
+        "min": 0,
+        "scale": "linear",
+        "source": "display_probe_inferred",
+        "status": "inferred",
+        "text": "0~100 %",
+        "unit": "%"
+       },
+       "name": "Mix",
+       "param_id": "6",
+       "physical_unit": "%",
+       "role": "mix"
+      },
+      {
+       "channel": "shared",
+       "compression_stage": "reverb",
+       "control_ref": "rvcr1_eyJraW5kIjoicmV2ZXJiX2NvbnRyb2xfcmVmLnYxIiwidHJhY2tfaWQiOiIxMDM1IiwicGx1Z2luX2lkIjoiMTA0MSIsImdlbmVyYXRpb24iOiJydjF0MV84MTY5NDlhN2Y5N2UyZTdjZjY2MmRjNDEiLCJzdGFnZV9rZXkiOiJyZXZlcmIiLCJzZWN0aW9uIjoib3V0cHV0Iiwicm9sZSI6Im1peCIsInBhcmFtX2lkIjoiNyJ9.86c1f48fcdb0df95",
+       "current_normalized": 1,
+       "current_text": "Locked",
+       "domain": {
+        "confidence": 0.88,
+        "scale": "enum",
+        "source": "display_probe_inferred",
+        "status": "inferred",
+        "text": "enum: Unlocked / Locked",
+        "unit": "enum"
+       },
+       "name": "Lock Mix",
+       "param_id": "7",
+       "physical_unit": "enum",
+       "reachable_values": [
+        {
+         "label": "Unlocked",
+         "normalized": 0
+        },
+        {
+         "label": "Locked",
+         "normalized": 1
+        }
+       ],
+       "role": "mix"
+      },
+      {
+       "channel": "shared",
+       "compression_stage": "reverb",
+       "control_ref": "rvcr1_eyJraW5kIjoicmV2ZXJiX2NvbnRyb2xfcmVmLnYxIiwidHJhY2tfaWQiOiIxMDM1IiwicGx1Z2luX2lkIjoiMTA0MSIsImdlbmVyYXRpb24iOiJydjF0MV84MTY5NDlhN2Y5N2UyZTdjZjY2MmRjNDEiLCJzdGFnZV9rZXkiOiJyZXZlcmIiLCJzZWN0aW9uIjoib3V0cHV0Iiwicm9sZSI6Im91dHB1dF9nYWluIiwicGFyYW1faWQiOiI3OSJ9.e2ac407b10c119b5",
+       "current_normalized": 0.5,
+       "current_physical": 0,
+       "current_text": "0.00 dB",
+       "curve": [
+        [
+         0.25,
+         -18
+        ],
+        [
+         0.5,
+         0
+        ],
+        [
+         0.75,
+         18
+        ],
+        [
+         1,
+         36
+        ]
+       ],
+       "domain": {
+        "confidence": 0.9,
+        "max": 36,
+        "min": -18,
+        "scale": "linear",
+        "source": "display_probe_inferred",
+        "status": "inferred",
+        "text": "-18~36 dB",
+        "unit": "dB"
+       },
+       "name": "Output Level",
+       "param_id": "79",
+       "physical_unit": "dB",
+       "role": "output_gain"
+      },
+      {
+       "channel": "shared",
+       "compression_stage": "reverb",
+       "control_ref": "rvcr1_eyJraW5kIjoicmV2ZXJiX2NvbnRyb2xfcmVmLnYxIiwidHJhY2tfaWQiOiIxMDM1IiwicGx1Z2luX2lkIjoiMTA0MSIsImdlbmVyYXRpb24iOiJydjF0MV84MTY5NDlhN2Y5N2UyZTdjZjY2MmRjNDEiLCJzdGFnZV9rZXkiOiJyZXZlcmIiLCJzZWN0aW9uIjoib3V0cHV0Iiwicm9sZSI6Im91dHB1dF9nYWluIiwicGFyYW1faWQiOiI4MCJ9.5aa4cc39a867490e",
+       "current_normalized": 0.5,
+       "current_physical": 0,
+       "current_text": "0.000",
+       "curve": [
+        [
+         0,
+         -1
+        ],
+        [
+         0.25,
+         -0.5
+        ],
+        [
+         0.5,
+         0
+        ],
+        [
+         0.75,
+         0.5
+        ],
+        [
+         1,
+         1
+        ]
+       ],
+       "domain": {
+        "confidence": 0.76,
+        "max": 1,
+        "min": -1,
+        "scale": "linear",
+        "source": "display_probe_inferred",
+        "status": "inferred",
+        "text": "-1~1"
+       },
+       "name": "Output Pan",
+       "param_id": "80",
+       "role": "output_gain"
+      },
+      {
+       "channel": "shared",
+       "compression_stage": "reverb",
+       "control_ref": "rvcr1_eyJraW5kIjoicmV2ZXJiX2NvbnRyb2xfcmVmLnYxIiwidHJhY2tfaWQiOiIxMDM1IiwicGx1Z2luX2lkIjoiMTA0MSIsImdlbmVyYXRpb24iOiJydjF0MV84MTY5NDlhN2Y5N2UyZTdjZjY2MmRjNDEiLCJzdGFnZV9rZXkiOiJyZXZlcmIiLCJzZWN0aW9uIjoib3V0cHV0Iiwicm9sZSI6IndldCIsInBhcmFtX2lkIjoid2V0IGxldmVsIn0.b7443d7b6271f096",
+       "current_normalized": 1,
+       "current_physical": 0,
+       "current_text": "+0.0 dB",
+       "curve": [
+        [
+         0.25,
+         -12
+        ],
+        [
+         0.5,
+         -6
+        ],
+        [
+         0.75,
+         -2.5
+        ],
+        [
+         1,
+         0
+        ]
+       ],
+       "domain": {
+        "confidence": 0.9,
+        "max": 0,
+        "min": -12,
+        "scale": "linear",
+        "source": "display_probe_inferred",
+        "status": "inferred",
+        "text": "-12~0 dB",
+        "unit": "dB"
+       },
+       "name": "Wet Level",
+       "param_id": "wet level",
+       "physical_unit": "dB",
+       "role": "wet"
+      }
+     ],
+     "stage_key": "reverb",
+     "tail": [
+      {
+       "channel": "shared",
+       "compression_stage": "reverb",
+       "control_ref": "rvcr1_eyJraW5kIjoicmV2ZXJiX2NvbnRyb2xfcmVmLnYxIiwidHJhY2tfaWQiOiIxMDM1IiwicGx1Z2luX2lkIjoiMTA0MSIsImdlbmVyYXRpb24iOiJydjF0MV84MTY5NDlhN2Y5N2UyZTdjZjY2MmRjNDEiLCJzdGFnZV9rZXkiOiJyZXZlcmIiLCJzZWN0aW9uIjoidGFpbCIsInJvbGUiOiJkZWNheSIsInBhcmFtX2lkIjoiMSJ9.5c93fa884813ba84",
+       "current_normalized": 0.5,
+       "current_physical": 100,
+       "current_text": "100.0%",
+       "curve": [
+        [
+         0,
+         50
+        ],
+        [
+         0.25,
+         70.71
+        ],
+        [
+         0.5,
+         100
+        ],
+        [
+         0.75,
+         141.4
+        ],
+        [
+         1,
+         200
+        ]
+       ],
+       "domain": {
+        "confidence": 0.9,
+        "max": 200,
+        "min": 50,
+        "scale": "log",
+        "source": "display_probe_inferred",
+        "status": "inferred",
+        "text": "50~200 %",
+        "unit": "%"
+       },
+       "name": "Decay Rate",
+       "param_id": "1",
+       "physical_unit": "%",
+       "role": "decay"
+      }
+     ],
+     "timing": [
+      {
+       "channel": "shared",
+       "compression_stage": "reverb",
+       "control_ref": "rvcr1_eyJraW5kIjoicmV2ZXJiX2NvbnRyb2xfcmVmLnYxIiwidHJhY2tfaWQiOiIxMDM1IiwicGx1Z2luX2lkIjoiMTA0MSIsImdlbmVyYXRpb24iOiJydjF0MV84MTY5NDlhN2Y5N2UyZTdjZjY2MmRjNDEiLCJzdGFnZV9rZXkiOiJyZXZlcmIiLCJzZWN0aW9uIjoidGltaW5nIiwicm9sZSI6InByZV9kZWxheSIsInBhcmFtX2lkIjoiNzQifQ.ddcbbab20d435812",
+       "current_normalized": 0.064527779817581,
+       "current_physical": 0.645,
+       "current_text": "0.645 ms",
+       "curve": [
+        [
+         0,
+         0
+        ],
+        [
+         0.25,
+         10
+        ],
+        [
+         0.5,
+         50
+        ],
+        [
+         0.75,
+         190
+        ],
+        [
+         1,
+         500
+        ]
+       ],
+       "domain": {
+        "confidence": 0.9,
+        "max": 500,
+        "min": 0,
+        "scale": "linear",
+        "source": "display_probe_inferred",
+        "status": "inferred",
+        "text": "0~500 ms",
+        "unit": "ms"
+       },
+       "name": "Predelay",
+       "param_id": "74",
+       "physical_unit": "ms",
+       "role": "pre_delay"
+      },
+      {
+       "channel": "shared",
+       "compression_stage": "reverb",
+       "control_ref": "rvcr1_eyJraW5kIjoicmV2ZXJiX2NvbnRyb2xfcmVmLnYxIiwidHJhY2tfaWQiOiIxMDM1IiwicGx1Z2luX2lkIjoiMTA0MSIsImdlbmVyYXRpb24iOiJydjF0MV84MTY5NDlhN2Y5N2UyZTdjZjY2MmRjNDEiLCJzdGFnZV9rZXkiOiJyZXZlcmIiLCJzZWN0aW9uIjoidGltaW5nIiwicm9sZSI6InByZV9kZWxheSIsInBhcmFtX2lkIjoiNzUifQ.932b7434841b906f",
+       "current_normalized": 0.5,
+       "current_physical": 100,
+       "current_text": "100%",
+       "curve": [
+        [
+         0,
+         50
+        ],
+        [
+         0.25,
+         70.7
+        ],
+        [
+         0.5,
+         100
+        ],
+        [
+         0.75,
+         141
+        ],
+        [
+         1,
+         200
+        ]
+       ],
+       "domain": {
+        "confidence": 0.9,
+        "max": 200,
+        "min": 50,
+        "scale": "log",
+        "source": "display_probe_inferred",
+        "status": "inferred",
+        "text": "50~200 %",
+        "unit": "%"
+       },
+       "name": "Predelay Offset",
+       "param_id": "75",
+       "physical_unit": "%",
+       "role": "pre_delay"
+      },
+      {
+       "channel": "shared",
+       "compression_stage": "reverb",
+       "control_ref": "rvcr1_eyJraW5kIjoicmV2ZXJiX2NvbnRyb2xfcmVmLnYxIiwidHJhY2tfaWQiOiIxMDM1IiwicGx1Z2luX2lkIjoiMTA0MSIsImdlbmVyYXRpb24iOiJydjF0MV84MTY5NDlhN2Y5N2UyZTdjZjY2MmRjNDEiLCJzdGFnZV9rZXkiOiJyZXZlcmIiLCJzZWN0aW9uIjoidGltaW5nIiwicm9sZSI6InByZV9kZWxheSIsInBhcmFtX2lkIjoiNzYifQ.c3a3dafa9249652d",
+       "current_normalized": 0,
+       "current_text": "Free",
+       "domain": {
+        "confidence": 0.88,
+        "scale": "enum",
+        "source": "display_probe_inferred",
+        "status": "inferred",
+        "text": "enum: Free / 1/4 / 1/8 / 1/16 / 1/32",
+        "unit": "enum"
+       },
+       "name": "Predelay Sync",
+       "param_id": "76",
+       "physical_unit": "enum",
+       "reachable_values": [
+        {
+         "label": "Free",
+         "normalized": 0
+        },
+        {
+         "label": "1/4",
+         "normalized": 0.25,
+         "physical": 1
+        },
+        {
+         "label": "1/8",
+         "normalized": 0.5,
+         "physical": 1
+        },
+        {
+         "label": "1/16",
+         "normalized": 0.75,
+         "physical": 1
+        },
+        {
+         "label": "1/32",
+         "normalized": 1,
+         "physical": 1
+        }
+       ],
+       "role": "pre_delay"
+      }
+     ]
+    },
+    "schema_version": "reverb-control-topology/v1",
+    "status": "ok",
+    "track_id": "1035"
+   }
+  }
+ },
+ "delay": {
+  "track_id": "1042",
+  "plugin_id": "1048",
+  "inspect": {
+   "status": "ok",
+   "tool": "plugin_grabber.inspect_delay",
+   "command_name": "plugin_grabber_inspect_delay",
+   "risk_level": "direct",
+   "requires_confirmation": false,
+   "result": {
+    "auxiliary_stages": [
+     {
+      "kind": "broadband_compressor",
+      "param_ids": [
+       "629",
+       "641",
+       "653",
+       "665",
+       "677",
+       "689"
+      ]
+     },
+     {
+      "kind": "reverb",
+      "param_ids": [
+       "149",
+       "150",
+       "633",
+       "634",
+       "645",
+       "646",
+       "657",
+       "658",
+       "669",
+       "670",
+       "681",
+       "682",
+       "693",
+       "694"
+      ]
+     }
+    ],
+    "classification": "feedback_delay",
+    "confidence": 0.96,
+    "control_topology": {
+     "generation": "dl1t1_b3634a3d0fee840b7f1758fa",
+     "schema_version": "delay-control-topology/v1"
+    },
+    "delay_stage": {
+     "capabilities": {
+      "character": [
+       "ping_pong"
+      ],
+      "feedback": [
+       "feedback"
+      ],
+      "output": [
+       "dry",
+       "mix",
+       "output_gain",
+       "wet"
+      ],
+      "timing": [
+       "sync",
+       "time"
+      ]
+     },
+     "character": [
+      {
+       "channel": "shared",
+       "compression_stage": "delay",
+       "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjEwNDIiLCJwbHVnaW5faWQiOiIxMDQ4IiwiZ2VuZXJhdGlvbiI6ImRsMXQxX2IzNjM0YTNkMGZlZTg0MGI3ZjE3NThmYSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6ImNoYXJhY3RlciIsInJvbGUiOiJwaW5nX3BvbmciLCJwYXJhbV9pZCI6IjYifQ.0f3f713ce3c2bfe9",
+       "current_normalized": 0,
+       "current_text": "Ping Pong Off",
+       "domain": {
+        "confidence": 0.88,
+        "scale": "enum",
+        "source": "display_probe_inferred",
+        "status": "inferred",
+        "text": "enum: Ping Pong Off / Ping Pong L-R / Ping Pong R-L",
+        "unit": "enum"
+       },
+       "name": "Ping Pong",
+       "param_id": "6",
+       "physical_unit": "enum",
+       "reachable_values": [
+        {
+         "label": "Ping Pong Off",
+         "normalized": 0
+        },
+        {
+         "label": "Ping Pong L-R",
+         "normalized": 0.5
+        },
+        {
+         "label": "Ping Pong R-L",
+         "normalized": 1
+        }
+       ],
+       "role": "ping_pong"
+      }
+     ],
+     "feedback": [
+      {
+       "channel": "shared",
+       "compression_stage": "delay",
+       "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjEwNDIiLCJwbHVnaW5faWQiOiIxMDQ4IiwiZ2VuZXJhdGlvbiI6ImRsMXQxX2IzNjM0YTNkMGZlZTg0MGI3ZjE3NThmYSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6ImZlZWRiYWNrIiwicm9sZSI6ImZlZWRiYWNrIiwicGFyYW1faWQiOiI4NSJ9.1d71c344e0918c34",
+       "current_normalized": 0.174999997019768,
+       "current_physical": 35,
+       "current_text": "35.0%",
+       "curve": [
+        [
+         0,
+         0
+        ],
+        [
+         0.25,
+         50
+        ],
+        [
+         0.5,
+         100
+        ],
+        [
+         0.75,
+         150
+        ],
+        [
+         1,
+         200
+        ]
+       ],
+       "domain": {
+        "confidence": 0.9,
+        "max": 200,
+        "min": 0,
+        "scale": "linear",
+        "source": "display_probe_inferred",
+        "status": "inferred",
+        "text": "0~200 %",
+        "unit": "%"
+       },
+       "name": "Feedback",
+       "param_id": "85",
+       "physical_unit": "%",
+       "role": "feedback"
+      },
+      {
+       "channel": "shared",
+       "compression_stage": "delay",
+       "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjEwNDIiLCJwbHVnaW5faWQiOiIxMDQ4IiwiZ2VuZXJhdGlvbiI6ImRsMXQxX2IzNjM0YTNkMGZlZTg0MGI3ZjE3NThmYSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6ImZlZWRiYWNrIiwicm9sZSI6ImZlZWRiYWNrIiwicGFyYW1faWQiOiI4NiJ9.887dfb25f5b5f588",
+       "current_normalized": 0.5,
+       "current_physical": 0,
+       "current_text": "0.000",
+       "curve": [
+        [
+         0,
+         -1
+        ],
+        [
+         0.25,
+         -0.5
+        ],
+        [
+         0.5,
+         0
+        ],
+        [
+         0.75,
+         0.5
+        ],
+        [
+         1,
+         1
+        ]
+       ],
+       "domain": {
+        "confidence": 0.76,
+        "max": 1,
+        "min": -1,
+        "scale": "linear",
+        "source": "display_probe_inferred",
+        "status": "inferred",
+        "text": "-1~1"
+       },
+       "name": "Feedback Pan",
+       "param_id": "86",
+       "physical_unit": "%",
+       "role": "feedback"
+      },
+      {
+       "channel": "shared",
+       "compression_stage": "delay",
+       "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjEwNDIiLCJwbHVnaW5faWQiOiIxMDQ4IiwiZ2VuZXJhdGlvbiI6ImRsMXQxX2IzNjM0YTNkMGZlZTg0MGI3ZjE3NThmYSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6ImZlZWRiYWNrIiwicm9sZSI6ImZlZWRiYWNrIiwicGFyYW1faWQiOiI4NyJ9.dcd26ae0e407a11d",
+       "current_normalized": 0,
+       "current_physical": 0,
+       "current_text": "0.00%",
+       "curve": [
+        [
+         0,
+         0
+        ],
+        [
+         0.25,
+         25
+        ],
+        [
+         0.5,
+         50
+        ],
+        [
+         0.75,
+         75
+        ],
+        [
+         1,
+         100
+        ]
+       ],
+       "domain": {
+        "confidence": 0.9,
+        "max": 100,
+        "min": 0,
+        "scale": "linear",
+        "source": "display_probe_inferred",
+        "status": "inferred",
+        "text": "0~100 %",
+        "unit": "%"
+       },
+       "name": "Feedback Cross Mix",
+       "param_id": "87",
+       "physical_unit": "%",
+       "role": "feedback"
+      },
+      {
+       "channel": "shared",
+       "compression_stage": "delay",
+       "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjEwNDIiLCJwbHVnaW5faWQiOiIxMDQ4IiwiZ2VuZXJhdGlvbiI6ImRsMXQxX2IzNjM0YTNkMGZlZTg0MGI3ZjE3NThmYSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6ImZlZWRiYWNrIiwicm9sZSI6ImZlZWRiYWNrIiwicGFyYW1faWQiOiI4OCJ9.e90f202c01cdd94a",
+       "current_normalized": 0,
+       "current_text": "Normal",
+       "domain": {
+        "confidence": 0.88,
+        "scale": "enum",
+        "source": "display_probe_inferred",
+        "status": "inferred",
+        "text": "enum: Normal / Inverted",
+        "unit": "enum"
+       },
+       "name": "Feedback Invert Left",
+       "param_id": "88",
+       "physical_unit": "enum",
+       "reachable_values": [
+        {
+         "label": "Normal",
+         "normalized": 0
+        },
+        {
+         "label": "Inverted",
+         "normalized": 1
+        }
+       ],
+       "role": "feedback"
+      },
+      {
+       "channel": "shared",
+       "compression_stage": "delay",
+       "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjEwNDIiLCJwbHVnaW5faWQiOiIxMDQ4IiwiZ2VuZXJhdGlvbiI6ImRsMXQxX2IzNjM0YTNkMGZlZTg0MGI3ZjE3NThmYSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6ImZlZWRiYWNrIiwicm9sZSI6ImZlZWRiYWNrIiwicGFyYW1faWQiOiI4OSJ9.296bd06fb293a130",
+       "current_normalized": 0,
+       "current_text": "Normal",
+       "domain": {
+        "confidence": 0.88,
+        "scale": "enum",
+        "source": "display_probe_inferred",
+        "status": "inferred",
+        "text": "enum: Normal / Inverted",
+        "unit": "enum"
+       },
+       "name": "Feedback Invert Right",
+       "param_id": "89",
+       "physical_unit": "enum",
+       "reachable_values": [
+        {
+         "label": "Normal",
+         "normalized": 0
+        },
+        {
+         "label": "Inverted",
+         "normalized": 1
+        }
+       ],
+       "role": "feedback"
+      }
+     ],
+     "output": [
+      {
+       "channel": "shared",
+       "compression_stage": "delay",
+       "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjEwNDIiLCJwbHVnaW5faWQiOiIxMDQ4IiwiZ2VuZXJhdGlvbiI6ImRsMXQxX2IzNjM0YTNkMGZlZTg0MGI3ZjE3NThmYSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6Im91dHB1dCIsInJvbGUiOiJkcnkiLCJwYXJhbV9pZCI6ImRyeSBsZXZlbCJ9.8d67a0224b9511a0",
+       "current_normalized": 0,
+       "current_text": "-INF dB",
+       "curve": [
+        [
+         0.25,
+         -12
+        ],
+        [
+         0.5,
+         -6
+        ],
+        [
+         0.75,
+         -2.5
+        ],
+        [
+         1,
+         0
+        ]
+       ],
+       "domain": {
+        "confidence": 0.9,
+        "max": 0,
+        "min": -12,
+        "scale": "linear",
+        "source": "display_probe_inferred",
+        "status": "inferred",
+        "text": "-12~0 dB",
+        "unit": "dB"
+       },
+       "name": "Dry Level",
+       "param_id": "dry level",
+       "physical_unit": "dB",
+       "role": "dry"
+      },
+      {
+       "channel": "shared",
+       "compression_stage": "delay",
+       "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjEwNDIiLCJwbHVnaW5faWQiOiIxMDQ4IiwiZ2VuZXJhdGlvbiI6ImRsMXQxX2IzNjM0YTNkMGZlZTg0MGI3ZjE3NThmYSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6Im91dHB1dCIsInJvbGUiOiJtaXgiLCJwYXJhbV9pZCI6IjE2MCJ9.fe8a72a2ad64bdf1",
+       "current_normalized": 0.300000011920929,
+       "current_physical": 30,
+       "current_text": "30.0%",
+       "curve": [
+        [
+         0,
+         0
+        ],
+        [
+         0.25,
+         25
+        ],
+        [
+         0.5,
+         50
+        ],
+        [
+         0.75,
+         75
+        ],
+        [
+         1,
+         100
+        ]
+       ],
+       "domain": {
+        "confidence": 0.9,
+        "max": 100,
+        "min": 0,
+        "scale": "linear",
+        "source": "display_probe_inferred",
+        "status": "inferred",
+        "text": "0~100 %",
+        "unit": "%"
+       },
+       "name": "Mix",
+       "param_id": "160",
+       "physical_unit": "%",
+       "role": "mix"
+      },
+      {
+       "channel": "shared",
+       "compression_stage": "delay",
+       "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjEwNDIiLCJwbHVnaW5faWQiOiIxMDQ4IiwiZ2VuZXJhdGlvbiI6ImRsMXQxX2IzNjM0YTNkMGZlZTg0MGI3ZjE3NThmYSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6Im91dHB1dCIsInJvbGUiOiJtaXgiLCJwYXJhbV9pZCI6IjE2MSJ9.4b46fb17f78c7c9c",
+       "current_normalized": 0,
+       "current_text": "Unlocked",
+       "domain": {
+        "confidence": 0.88,
+        "scale": "enum",
+        "source": "display_probe_inferred",
+        "status": "inferred",
+        "text": "enum: Unlocked / Locked",
+        "unit": "enum"
+       },
+       "name": "Lock Mix",
+       "param_id": "161",
+       "physical_unit": "enum",
+       "reachable_values": [
+        {
+         "label": "Unlocked",
+         "normalized": 0
+        },
+        {
+         "label": "Locked",
+         "normalized": 1
+        }
+       ],
+       "role": "mix"
+      },
+      {
+       "channel": "shared",
+       "compression_stage": "delay",
+       "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjEwNDIiLCJwbHVnaW5faWQiOiIxMDQ4IiwiZ2VuZXJhdGlvbiI6ImRsMXQxX2IzNjM0YTNkMGZlZTg0MGI3ZjE3NThmYSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6Im91dHB1dCIsInJvbGUiOiJvdXRwdXRfZ2FpbiIsInBhcmFtX2lkIjoiNzQ5In0.ee4844173d7300fc",
+       "current_normalized": 0.5,
+       "current_physical": 0,
+       "current_text": "0.00 dB",
+       "curve": [
+        [
+         0,
+         -36
+        ],
+        [
+         0.25,
+         -18
+        ],
+        [
+         0.5,
+         0
+        ],
+        [
+         0.75,
+         18
+        ],
+        [
+         1,
+         36
+        ]
+       ],
+       "domain": {
+        "confidence": 0.9,
+        "max": 36,
+        "min": -36,
+        "scale": "linear",
+        "source": "display_probe_inferred",
+        "status": "inferred",
+        "text": "-36~36 dB",
+        "unit": "dB"
+       },
+       "name": "Output Level",
+       "param_id": "749",
+       "physical_unit": "dB",
+       "role": "output_gain"
+      },
+      {
+       "channel": "shared",
+       "compression_stage": "delay",
+       "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjEwNDIiLCJwbHVnaW5faWQiOiIxMDQ4IiwiZ2VuZXJhdGlvbiI6ImRsMXQxX2IzNjM0YTNkMGZlZTg0MGI3ZjE3NThmYSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6Im91dHB1dCIsInJvbGUiOiJvdXRwdXRfZ2FpbiIsInBhcmFtX2lkIjoiNzUwIn0.f8170bfd51dfe62f",
+       "current_normalized": 0.5,
+       "current_physical": 0,
+       "current_text": "Left: 0 dB / Right: 0 dB",
+       "domain": {
+        "confidence": 0.9,
+        "max": 0,
+        "min": -6.02,
+        "scale": "linear",
+        "source": "display_probe_inferred",
+        "status": "inferred",
+        "text": "-6.02~0 dB",
+        "unit": "dB"
+       },
+       "name": "Output Pan",
+       "param_id": "750",
+       "physical_unit": "dB",
+       "role": "output_gain"
+      },
+      {
+       "channel": "shared",
+       "compression_stage": "delay",
+       "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjEwNDIiLCJwbHVnaW5faWQiOiIxMDQ4IiwiZ2VuZXJhdGlvbiI6ImRsMXQxX2IzNjM0YTNkMGZlZTg0MGI3ZjE3NThmYSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6Im91dHB1dCIsInJvbGUiOiJ3ZXQiLCJwYXJhbV9pZCI6IjE1OCJ9.e2d72fe5e3836df4",
+       "current_normalized": 1,
+       "current_physical": 0,
+       "current_text": "0.00 dB",
+       "curve": [
+        [
+         0.25,
+         -27
+        ],
+        [
+         0.5,
+         -18
+        ],
+        [
+         0.75,
+         -9
+        ],
+        [
+         1,
+         0
+        ]
+       ],
+       "domain": {
+        "confidence": 0.9,
+        "max": 0,
+        "min": -27,
+        "scale": "linear",
+        "source": "display_probe_inferred",
+        "status": "inferred",
+        "text": "-27~0 dB",
+        "unit": "dB"
+       },
+       "name": "Wet Level",
+       "param_id": "158",
+       "physical_unit": "dB",
+       "role": "wet"
+      },
+      {
+       "channel": "shared",
+       "compression_stage": "delay",
+       "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjEwNDIiLCJwbHVnaW5faWQiOiIxMDQ4IiwiZ2VuZXJhdGlvbiI6ImRsMXQxX2IzNjM0YTNkMGZlZTg0MGI3ZjE3NThmYSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6Im91dHB1dCIsInJvbGUiOiJ3ZXQiLCJwYXJhbV9pZCI6IjE1OSJ9.87a7dfb205355ad7",
+       "current_normalized": 0.5,
+       "current_physical": 0,
+       "current_text": "Left: 0 dB / Right: 0 dB",
+       "domain": {
+        "confidence": 0.9,
+        "max": 0,
+        "min": -6.02,
+        "scale": "linear",
+        "source": "display_probe_inferred",
+        "status": "inferred",
+        "text": "-6.02~0 dB",
+        "unit": "dB"
+       },
+       "name": "Wet Pan",
+       "param_id": "159",
+       "physical_unit": "dB",
+       "role": "wet"
+      },
+      {
+       "channel": "shared",
+       "compression_stage": "delay",
+       "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjEwNDIiLCJwbHVnaW5faWQiOiIxMDQ4IiwiZ2VuZXJhdGlvbiI6ImRsMXQxX2IzNjM0YTNkMGZlZTg0MGI3ZjE3NThmYSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6Im91dHB1dCIsInJvbGUiOiJ3ZXQiLCJwYXJhbV9pZCI6IndldCBsZXZlbCJ9.7e5eb0e846c17511",
+       "current_normalized": 1,
+       "current_physical": 0,
+       "current_text": "+0.0 dB",
+       "curve": [
+        [
+         0.25,
+         -12
+        ],
+        [
+         0.5,
+         -6
+        ],
+        [
+         0.75,
+         -2.5
+        ],
+        [
+         1,
+         0
+        ]
+       ],
+       "domain": {
+        "confidence": 0.9,
+        "max": 0,
+        "min": -12,
+        "scale": "linear",
+        "source": "display_probe_inferred",
+        "status": "inferred",
+        "text": "-12~0 dB",
+        "unit": "dB"
+       },
+       "name": "Wet Level",
+       "param_id": "wet level",
+       "physical_unit": "dB",
+       "role": "wet"
+      }
+     ],
+     "stage_key": "delay",
+     "timing": [
+      {
+       "channel": "shared",
+       "compression_stage": "delay",
+       "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjEwNDIiLCJwbHVnaW5faWQiOiIxMDQ4IiwiZ2VuZXJhdGlvbiI6ImRsMXQxX2IzNjM0YTNkMGZlZTg0MGI3ZjE3NThmYSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6InRpbWluZyIsInJvbGUiOiJzeW5jIiwicGFyYW1faWQiOiIxOTMifQ.ea292fceff8ebf04",
+       "current_normalized": 0,
+       "current_text": "Free",
+       "domain": {
+        "confidence": 0.88,
+        "scale": "enum",
+        "source": "display_probe_inferred",
+        "status": "inferred",
+        "text": "enum: Free / 16 / 8 / 4 / 2 / 1 / 1/2 / 1/4",
+        "unit": "enum"
+       },
+       "name": "XLFO 1 Sync Mode",
+       "param_id": "193",
+       "physical_unit": "enum",
+       "reachable_values": [
+        {
+         "label": "Free",
+         "normalized": 0
+        },
+        {
+         "label": "16",
+         "normalized": 0.090909093618393,
+         "physical": 16
+        },
+        {
+         "label": "8",
+         "normalized": 0.181818187236786,
+         "physical": 8
+        },
+        {
+         "label": "4",
+         "normalized": 0.272727280855179,
+         "physical": 4
+        },
+        {
+         "label": "2",
+         "normalized": 0.363636374473572,
+         "physical": 2
+        },
+        {
+         "label": "1",
+         "normalized": 0.454545468091965,
+         "physical": 1
+        },
+        {
+         "label": "1/2",
+         "normalized": 0.545454561710358,
+         "physical": 1
+        },
+        {
+         "label": "1/4",
+         "normalized": 0.636363625526428,
+         "physical": 1
+        },
+        {
+         "label": "1/8",
+         "normalized": 0.727272748947144,
+         "physical": 1
+        },
+        {
+         "label": "1/16",
+         "normalized": 0.818181872367859,
+         "physical": 1
+        },
+        {
+         "label": "1/32",
+         "normalized": 0.909090936183929,
+         "physical": 1
+        },
+        {
+         "label": "1/64",
+         "normalized": 1,
+         "physical": 1
+        }
+       ],
+       "role": "sync"
+      },
+      {
+       "channel": "shared",
+       "compression_stage": "delay",
+       "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjEwNDIiLCJwbHVnaW5faWQiOiIxMDQ4IiwiZ2VuZXJhdGlvbiI6ImRsMXQxX2IzNjM0YTNkMGZlZTg0MGI3ZjE3NThmYSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6InRpbWluZyIsInJvbGUiOiJzeW5jIiwicGFyYW1faWQiOiIyNjYifQ.f8c522099c9d6388",
+       "current_normalized": 0,
+       "current_text": "Free",
+       "domain": {
+        "confidence": 0.88,
+        "scale": "enum",
+        "source": "display_probe_inferred",
+        "status": "inferred",
+        "text": "enum: Free / 16 / 8 / 4 / 2 / 1 / 1/2 / 1/4",
+        "unit": "enum"
+       },
+       "name": "XLFO 2 Sync Mode",
+       "param_id": "266",
+       "physical_unit": "enum",
+       "reachable_values": [
+        {
+         "label": "Free",
+         "normalized": 0
+        },
+        {
+         "label": "16",
+         "normalized": 0.090909093618393,
+         "physical": 16
+        },
+        {
+         "label": "8",
+         "normalized": 0.181818187236786,
+         "physical": 8
+        },
+        {
+         "label": "4",
+         "normalized": 0.272727280855179,
+         "physical": 4
+        },
+        {
+         "label": "2",
+         "normalized": 0.363636374473572,
+         "physical": 2
+        },
+        {
+         "label": "1",
+         "normalized": 0.454545468091965,
+         "physical": 1
+        },
+        {
+         "label": "1/2",
+         "normalized": 0.545454561710358,
+         "physical": 1
+        },
+        {
+         "label": "1/4",
+         "normalized": 0.636363625526428,
+         "physical": 1
+        },
+        {
+         "label": "1/8",
+         "normalized": 0.727272748947144,
+         "physical": 1
+        },
+        {
+         "label": "1/16",
+         "normalized": 0.818181872367859,
+         "physical": 1
+        },
+        {
+         "label": "1/32",
+         "normalized": 0.909090936183929,
+         "physical": 1
+        },
+        {
+         "label": "1/64",
+         "normalized": 1,
+         "physical": 1
+        }
+       ],
+       "role": "sync"
+      },
+      {
+       "channel": "shared",
+       "compression_stage": "delay",
+       "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjEwNDIiLCJwbHVnaW5faWQiOiIxMDQ4IiwiZ2VuZXJhdGlvbiI6ImRsMXQxX2IzNjM0YTNkMGZlZTg0MGI3ZjE3NThmYSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6InRpbWluZyIsInJvbGUiOiJzeW5jIiwicGFyYW1faWQiOiIzIn0.936d3c8cdb3b83d9",
+       "current_normalized": 0,
+       "current_text": "Free",
+       "domain": {
+        "confidence": 0.88,
+        "scale": "enum",
+        "source": "display_probe_inferred",
+        "status": "inferred",
+        "text": "enum: Free / 1/2 Note / 1/4 Note / 1/8 Note / 1/16 Note",
+        "unit": "enum"
+       },
+       "name": "Delay Sync",
+       "param_id": "3",
+       "physical_unit": "enum",
+       "reachable_values": [
+        {
+         "label": "Free",
+         "normalized": 0
+        },
+        {
+         "label": "1/2 Note",
+         "normalized": 0.25,
+         "physical": 1
+        },
+        {
+         "label": "1/4 Note",
+         "normalized": 0.5,
+         "physical": 1
+        },
+        {
+         "label": "1/8 Note",
+         "normalized": 0.75,
+         "physical": 1
+        },
+        {
+         "label": "1/16 Note",
+         "normalized": 1,
+         "physical": 1
+        }
+       ],
+       "role": "sync"
+      },
+      {
+       "channel": "shared",
+       "compression_stage": "delay",
+       "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjEwNDIiLCJwbHVnaW5faWQiOiIxMDQ4IiwiZ2VuZXJhdGlvbiI6ImRsMXQxX2IzNjM0YTNkMGZlZTg0MGI3ZjE3NThmYSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6InRpbWluZyIsInJvbGUiOiJzeW5jIiwicGFyYW1faWQiOiIzMzkifQ.fabcfe6bd240ee4a",
+       "current_normalized": 0,
+       "current_text": "Free",
+       "domain": {
+        "confidence": 0.88,
+        "scale": "enum",
+        "source": "display_probe_inferred",
+        "status": "inferred",
+        "text": "enum: Free / 16 / 8 / 4 / 2 / 1 / 1/2 / 1/4",
+        "unit": "enum"
+       },
+       "name": "XLFO 3 Sync Mode",
+       "param_id": "339",
+       "physical_unit": "enum",
+       "reachable_values": [
+        {
+         "label": "Free",
+         "normalized": 0
+        },
+        {
+         "label": "16",
+         "normalized": 0.090909093618393,
+         "physical": 16
+        },
+        {
+         "label": "8",
+         "normalized": 0.181818187236786,
+         "physical": 8
+        },
+        {
+         "label": "4",
+         "normalized": 0.272727280855179,
+         "physical": 4
+        },
+        {
+         "label": "2",
+         "normalized": 0.363636374473572,
+         "physical": 2
+        },
+        {
+         "label": "1",
+         "normalized": 0.454545468091965,
+         "physical": 1
+        },
+        {
+         "label": "1/2",
+         "normalized": 0.545454561710358,
+         "physical": 1
+        },
+        {
+         "label": "1/4",
+         "normalized": 0.636363625526428,
+         "physical": 1
+        },
+        {
+         "label": "1/8",
+         "normalized": 0.727272748947144,
+         "physical": 1
+        },
+        {
+         "label": "1/16",
+         "normalized": 0.818181872367859,
+         "physical": 1
+        },
+        {
+         "label": "1/32",
+         "normalized": 0.909090936183929,
+         "physical": 1
+        },
+        {
+         "label": "1/64",
+         "normalized": 1,
+         "physical": 1
+        }
+       ],
+       "role": "sync"
+      },
+      {
+       "channel": "shared",
+       "compression_stage": "delay",
+       "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjEwNDIiLCJwbHVnaW5faWQiOiIxMDQ4IiwiZ2VuZXJhdGlvbiI6ImRsMXQxX2IzNjM0YTNkMGZlZTg0MGI3ZjE3NThmYSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6InRpbWluZyIsInJvbGUiOiJzeW5jIiwicGFyYW1faWQiOiI0MTIifQ.f3fd3bceb26acc25",
+       "current_normalized": 0,
+       "current_text": "Free",
+       "domain": {
+        "confidence": 0.88,
+        "scale": "enum",
+        "source": "display_probe_inferred",
+        "status": "inferred",
+        "text": "enum: Free / 16 / 8 / 4 / 2 / 1 / 1/2 / 1/4",
+        "unit": "enum"
+       },
+       "name": "XLFO 4 Sync Mode",
+       "param_id": "412",
+       "physical_unit": "enum",
+       "reachable_values": [
+        {
+         "label": "Free",
+         "normalized": 0
+        },
+        {
+         "label": "16",
+         "normalized": 0.090909093618393,
+         "physical": 16
+        },
+        {
+         "label": "8",
+         "normalized": 0.181818187236786,
+         "physical": 8
+        },
+        {
+         "label": "4",
+         "normalized": 0.272727280855179,
+         "physical": 4
+        },
+        {
+         "label": "2",
+         "normalized": 0.363636374473572,
+         "physical": 2
+        },
+        {
+         "label": "1",
+         "normalized": 0.454545468091965,
+         "physical": 1
+        },
+        {
+         "label": "1/2",
+         "normalized": 0.545454561710358,
+         "physical": 1
+        },
+        {
+         "label": "1/4",
+         "normalized": 0.636363625526428,
+         "physical": 1
+        },
+        {
+         "label": "1/8",
+         "normalized": 0.727272748947144,
+         "physical": 1
+        },
+        {
+         "label": "1/16",
+         "normalized": 0.818181872367859,
+         "physical": 1
+        },
+        {
+         "label": "1/32",
+         "normalized": 0.909090936183929,
+         "physical": 1
+        },
+        {
+         "label": "1/64",
+         "normalized": 1,
+         "physical": 1
+        }
+       ],
+       "role": "sync"
+      },
+      {
+       "channel": "shared",
+       "compression_stage": "delay",
+       "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjEwNDIiLCJwbHVnaW5faWQiOiIxMDQ4IiwiZ2VuZXJhdGlvbiI6ImRsMXQxX2IzNjM0YTNkMGZlZTg0MGI3ZjE3NThmYSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6InRpbWluZyIsInJvbGUiOiJzeW5jIiwicGFyYW1faWQiOiI0ODUifQ.dd55e215b1a43aeb",
+       "current_normalized": 0,
+       "current_text": "Free",
+       "domain": {
+        "confidence": 0.88,
+        "scale": "enum",
+        "source": "display_probe_inferred",
+        "status": "inferred",
+        "text": "enum: Free / 16 / 8 / 4 / 2 / 1 / 1/2 / 1/4",
+        "unit": "enum"
+       },
+       "name": "XLFO 5 Sync Mode",
+       "param_id": "485",
+       "physical_unit": "enum",
+       "reachable_values": [
+        {
+         "label": "Free",
+         "normalized": 0
+        },
+        {
+         "label": "16",
+         "normalized": 0.090909093618393,
+         "physical": 16
+        },
+        {
+         "label": "8",
+         "normalized": 0.181818187236786,
+         "physical": 8
+        },
+        {
+         "label": "4",
+         "normalized": 0.272727280855179,
+         "physical": 4
+        },
+        {
+         "label": "2",
+         "normalized": 0.363636374473572,
+         "physical": 2
+        },
+        {
+         "label": "1",
+         "normalized": 0.454545468091965,
+         "physical": 1
+        },
+        {
+         "label": "1/2",
+         "normalized": 0.545454561710358,
+         "physical": 1
+        },
+        {
+         "label": "1/4",
+         "normalized": 0.636363625526428,
+         "physical": 1
+        },
+        {
+         "label": "1/8",
+         "normalized": 0.727272748947144,
+         "physical": 1
+        },
+        {
+         "label": "1/16",
+         "normalized": 0.818181872367859,
+         "physical": 1
+        },
+        {
+         "label": "1/32",
+         "normalized": 0.909090936183929,
+         "physical": 1
+        },
+        {
+         "label": "1/64",
+         "normalized": 1,
+         "physical": 1
+        }
+       ],
+       "role": "sync"
+      },
+      {
+       "channel": "shared",
+       "compression_stage": "delay",
+       "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjEwNDIiLCJwbHVnaW5faWQiOiIxMDQ4IiwiZ2VuZXJhdGlvbiI6ImRsMXQxX2IzNjM0YTNkMGZlZTg0MGI3ZjE3NThmYSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6InRpbWluZyIsInJvbGUiOiJzeW5jIiwicGFyYW1faWQiOiI1NTgifQ.d6824491f89245e6",
+       "current_normalized": 0,
+       "current_text": "Free",
+       "domain": {
+        "confidence": 0.88,
+        "scale": "enum",
+        "source": "display_probe_inferred",
+        "status": "inferred",
+        "text": "enum: Free / 16 / 8 / 4 / 2 / 1 / 1/2 / 1/4",
+        "unit": "enum"
+       },
+       "name": "XLFO 6 Sync Mode",
+       "param_id": "558",
+       "physical_unit": "enum",
+       "reachable_values": [
+        {
+         "label": "Free",
+         "normalized": 0
+        },
+        {
+         "label": "16",
+         "normalized": 0.090909093618393,
+         "physical": 16
+        },
+        {
+         "label": "8",
+         "normalized": 0.181818187236786,
+         "physical": 8
+        },
+        {
+         "label": "4",
+         "normalized": 0.272727280855179,
+         "physical": 4
+        },
+        {
+         "label": "2",
+         "normalized": 0.363636374473572,
+         "physical": 2
+        },
+        {
+         "label": "1",
+         "normalized": 0.454545468091965,
+         "physical": 1
+        },
+        {
+         "label": "1/2",
+         "normalized": 0.545454561710358,
+         "physical": 1
+        },
+        {
+         "label": "1/4",
+         "normalized": 0.636363625526428,
+         "physical": 1
+        },
+        {
+         "label": "1/8",
+         "normalized": 0.727272748947144,
+         "physical": 1
+        },
+        {
+         "label": "1/16",
+         "normalized": 0.818181872367859,
+         "physical": 1
+        },
+        {
+         "label": "1/32",
+         "normalized": 0.909090936183929,
+         "physical": 1
+        },
+        {
+         "label": "1/64",
+         "normalized": 1,
+         "physical": 1
+        }
+       ],
+       "role": "sync"
+      },
+      {
+       "channel": "shared",
+       "compression_stage": "delay",
+       "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjEwNDIiLCJwbHVnaW5faWQiOiIxMDQ4IiwiZ2VuZXJhdGlvbiI6ImRsMXQxX2IzNjM0YTNkMGZlZTg0MGI3ZjE3NThmYSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6InRpbWluZyIsInJvbGUiOiJ0aW1lIiwicGFyYW1faWQiOiIwIn0.354fbdc8e755c3dc",
+       "current_normalized": 0.293338805437088,
+       "current_physical": 350,
+       "current_text": "350.0 ms",
+       "curve": [
+        [
+         0,
+         5
+        ],
+        [
+         0.25,
+         254.8
+        ],
+        [
+         0.5,
+         804.2
+        ],
+        [
+         0.75,
+         2490
+        ],
+        [
+         1,
+         5000
+        ]
+       ],
+       "domain": {
+        "confidence": 0.9,
+        "max": 5000,
+        "min": 5,
+        "scale": "log",
+        "source": "display_probe_inferred",
+        "status": "inferred",
+        "text": "5~5000 ms",
+        "unit": "ms"
+       },
+       "name": "Delay Time",
+       "param_id": "0",
+       "physical_unit": "ms",
+       "role": "time"
+      },
+      {
+       "channel": "shared",
+       "compression_stage": "delay",
+       "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjEwNDIiLCJwbHVnaW5faWQiOiIxMDQ4IiwiZ2VuZXJhdGlvbiI6ImRsMXQxX2IzNjM0YTNkMGZlZTg0MGI3ZjE3NThmYSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6InRpbWluZyIsInJvbGUiOiJ0aW1lIiwicGFyYW1faWQiOiIxIn0.22cd4ea7d81b14b8",
+       "current_normalized": 0.503588795661926,
+       "current_physical": 100,
+       "current_text": "Left: 100% / Right: 101%",
+       "domain": {
+        "confidence": 0.9,
+        "max": 400,
+        "min": 100,
+        "scale": "linear",
+        "source": "display_probe_inferred",
+        "status": "inferred",
+        "text": "100~400 %",
+        "unit": "%"
+       },
+       "name": "Delay Time Pan",
+       "param_id": "1",
+       "physical_unit": "%",
+       "role": "time"
+      },
+      {
+       "channel": "shared",
+       "compression_stage": "delay",
+       "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjEwNDIiLCJwbHVnaW5faWQiOiIxMDQ4IiwiZ2VuZXJhdGlvbiI6ImRsMXQxX2IzNjM0YTNkMGZlZTg0MGI3ZjE3NThmYSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6InRpbWluZyIsInJvbGUiOiJ0aW1lIiwicGFyYW1faWQiOiIxNCJ9.555764359ca0c24d",
+       "current_normalized": 0.5,
+       "current_physical": 50,
+       "current_text": "50.0%",
+       "curve": [
+        [
+         0,
+         0
+        ],
+        [
+         0.25,
+         25
+        ],
+        [
+         0.5,
+         50
+        ],
+        [
+         0.75,
+         75
+        ],
+        [
+         1,
+         100
+        ]
+       ],
+       "domain": {
+        "confidence": 0.9,
+        "max": 100,
+        "min": 0,
+        "scale": "linear",
+        "source": "display_probe_inferred",
+        "status": "inferred",
+        "text": "0~100 %",
+        "unit": "%"
+       },
+       "name": "Delay Tap 2 Time Factor",
+       "param_id": "14",
+       "physical_unit": "%",
+       "role": "time"
+      },
+      {
+       "channel": "shared",
+       "compression_stage": "delay",
+       "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjEwNDIiLCJwbHVnaW5faWQiOiIxMDQ4IiwiZ2VuZXJhdGlvbiI6ImRsMXQxX2IzNjM0YTNkMGZlZTg0MGI3ZjE3NThmYSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6InRpbWluZyIsInJvbGUiOiJ0aW1lIiwicGFyYW1faWQiOiIxOSJ9.f7a1df44e06abefb",
+       "current_normalized": 0.5,
+       "current_physical": 50,
+       "current_text": "50.0%",
+       "curve": [
+        [
+         0,
+         0
+        ],
+        [
+         0.25,
+         25
+        ],
+        [
+         0.5,
+         50
+        ],
+        [
+         0.75,
+         75
+        ],
+        [
+         1,
+         100
+        ]
+       ],
+       "domain": {
+        "confidence": 0.9,
+        "max": 100,
+        "min": 0,
+        "scale": "linear",
+        "source": "display_probe_inferred",
+        "status": "inferred",
+        "text": "0~100 %",
+        "unit": "%"
+       },
+       "name": "Delay Tap 3 Time Factor",
+       "param_id": "19",
+       "physical_unit": "%",
+       "role": "time"
+      },
+      {
+       "channel": "shared",
+       "compression_stage": "delay",
+       "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjEwNDIiLCJwbHVnaW5faWQiOiIxMDQ4IiwiZ2VuZXJhdGlvbiI6ImRsMXQxX2IzNjM0YTNkMGZlZTg0MGI3ZjE3NThmYSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6InRpbWluZyIsInJvbGUiOiJ0aW1lIiwicGFyYW1faWQiOiIyNCJ9.4d6e8195d456506d",
+       "current_normalized": 0.5,
+       "current_physical": 50,
+       "current_text": "50.0%",
+       "curve": [
+        [
+         0,
+         0
+        ],
+        [
+         0.25,
+         25
+        ],
+        [
+         0.5,
+         50
+        ],
+        [
+         0.75,
+         75
+        ],
+        [
+         1,
+         100
+        ]
+       ],
+       "domain": {
+        "confidence": 0.9,
+        "max": 100,
+        "min": 0,
+        "scale": "linear",
+        "source": "display_probe_inferred",
+        "status": "inferred",
+        "text": "0~100 %",
+        "unit": "%"
+       },
+       "name": "Delay Tap 4 Time Factor",
+       "param_id": "24",
+       "physical_unit": "%",
+       "role": "time"
+      },
+      {
+       "channel": "shared",
+       "compression_stage": "delay",
+       "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjEwNDIiLCJwbHVnaW5faWQiOiIxMDQ4IiwiZ2VuZXJhdGlvbiI6ImRsMXQxX2IzNjM0YTNkMGZlZTg0MGI3ZjE3NThmYSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6InRpbWluZyIsInJvbGUiOiJ0aW1lIiwicGFyYW1faWQiOiIyOSJ9.5eb4bee5e67ad52f",
+       "current_normalized": 0.5,
+       "current_physical": 50,
+       "current_text": "50.0%",
+       "curve": [
+        [
+         0,
+         0
+        ],
+        [
+         0.25,
+         25
+        ],
+        [
+         0.5,
+         50
+        ],
+        [
+         0.75,
+         75
+        ],
+        [
+         1,
+         100
+        ]
+       ],
+       "domain": {
+        "confidence": 0.9,
+        "max": 100,
+        "min": 0,
+        "scale": "linear",
+        "source": "display_probe_inferred",
+        "status": "inferred",
+        "text": "0~100 %",
+        "unit": "%"
+       },
+       "name": "Delay Tap 5 Time Factor",
+       "param_id": "29",
+       "physical_unit": "%",
+       "role": "time"
+      },
+      {
+       "channel": "shared",
+       "compression_stage": "delay",
+       "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjEwNDIiLCJwbHVnaW5faWQiOiIxMDQ4IiwiZ2VuZXJhdGlvbiI6ImRsMXQxX2IzNjM0YTNkMGZlZTg0MGI3ZjE3NThmYSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6InRpbWluZyIsInJvbGUiOiJ0aW1lIiwicGFyYW1faWQiOiIzNCJ9.64e19123661b07f2",
+       "current_normalized": 0.5,
+       "current_physical": 50,
+       "current_text": "50.0%",
+       "curve": [
+        [
+         0,
+         0
+        ],
+        [
+         0.25,
+         25
+        ],
+        [
+         0.5,
+         50
+        ],
+        [
+         0.75,
+         75
+        ],
+        [
+         1,
+         100
+        ]
+       ],
+       "domain": {
+        "confidence": 0.9,
+        "max": 100,
+        "min": 0,
+        "scale": "linear",
+        "source": "display_probe_inferred",
+        "status": "inferred",
+        "text": "0~100 %",
+        "unit": "%"
+       },
+       "name": "Delay Tap 6 Time Factor",
+       "param_id": "34",
+       "physical_unit": "%",
+       "role": "time"
+      },
+      {
+       "channel": "shared",
+       "compression_stage": "delay",
+       "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjEwNDIiLCJwbHVnaW5faWQiOiIxMDQ4IiwiZ2VuZXJhdGlvbiI6ImRsMXQxX2IzNjM0YTNkMGZlZTg0MGI3ZjE3NThmYSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6InRpbWluZyIsInJvbGUiOiJ0aW1lIiwicGFyYW1faWQiOiIzOSJ9.491ea5a5697018b2",
+       "current_normalized": 0.5,
+       "current_physical": 50,
+       "current_text": "50.0%",
+       "curve": [
+        [
+         0,
+         0
+        ],
+        [
+         0.25,
+         25
+        ],
+        [
+         0.5,
+         50
+        ],
+        [
+         0.75,
+         75
+        ],
+        [
+         1,
+         100
+        ]
+       ],
+       "domain": {
+        "confidence": 0.9,
+        "max": 100,
+        "min": 0,
+        "scale": "linear",
+        "source": "display_probe_inferred",
+        "status": "inferred",
+        "text": "0~100 %",
+        "unit": "%"
+       },
+       "name": "Delay Tap 7 Time Factor",
+       "param_id": "39",
+       "physical_unit": "%",
+       "role": "time"
+      },
+      {
+       "channel": "shared",
+       "compression_stage": "delay",
+       "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjEwNDIiLCJwbHVnaW5faWQiOiIxMDQ4IiwiZ2VuZXJhdGlvbiI6ImRsMXQxX2IzNjM0YTNkMGZlZTg0MGI3ZjE3NThmYSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6InRpbWluZyIsInJvbGUiOiJ0aW1lIiwicGFyYW1faWQiOiI0NCJ9.8c4299fa89b39c83",
+       "current_normalized": 0.5,
+       "current_physical": 50,
+       "current_text": "50.0%",
+       "curve": [
+        [
+         0,
+         0
+        ],
+        [
+         0.25,
+         25
+        ],
+        [
+         0.5,
+         50
+        ],
+        [
+         0.75,
+         75
+        ],
+        [
+         1,
+         100
+        ]
+       ],
+       "domain": {
+        "confidence": 0.9,
+        "max": 100,
+        "min": 0,
+        "scale": "linear",
+        "source": "display_probe_inferred",
+        "status": "inferred",
+        "text": "0~100 %",
+        "unit": "%"
+       },
+       "name": "Delay Tap 8 Time Factor",
+       "param_id": "44",
+       "physical_unit": "%",
+       "role": "time"
+      },
+      {
+       "channel": "shared",
+       "compression_stage": "delay",
+       "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjEwNDIiLCJwbHVnaW5faWQiOiIxMDQ4IiwiZ2VuZXJhdGlvbiI6ImRsMXQxX2IzNjM0YTNkMGZlZTg0MGI3ZjE3NThmYSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6InRpbWluZyIsInJvbGUiOiJ0aW1lIiwicGFyYW1faWQiOiI0OSJ9.2f0787ad3b137d37",
+       "current_normalized": 0.5,
+       "current_physical": 50,
+       "current_text": "50.0%",
+       "curve": [
+        [
+         0,
+         0
+        ],
+        [
+         0.25,
+         25
+        ],
+        [
+         0.5,
+         50
+        ],
+        [
+         0.75,
+         75
+        ],
+        [
+         1,
+         100
+        ]
+       ],
+       "domain": {
+        "confidence": 0.9,
+        "max": 100,
+        "min": 0,
+        "scale": "linear",
+        "source": "display_probe_inferred",
+        "status": "inferred",
+        "text": "0~100 %",
+        "unit": "%"
+       },
+       "name": "Delay Tap 9 Time Factor",
+       "param_id": "49",
+       "physical_unit": "%",
+       "role": "time"
+      },
+      {
+       "channel": "shared",
+       "compression_stage": "delay",
+       "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjEwNDIiLCJwbHVnaW5faWQiOiIxMDQ4IiwiZ2VuZXJhdGlvbiI6ImRsMXQxX2IzNjM0YTNkMGZlZTg0MGI3ZjE3NThmYSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6InRpbWluZyIsInJvbGUiOiJ0aW1lIiwicGFyYW1faWQiOiI1NCJ9.bc73af1267b21ae9",
+       "current_normalized": 0.5,
+       "current_physical": 50,
+       "current_text": "50.0%",
+       "curve": [
+        [
+         0,
+         0
+        ],
+        [
+         0.25,
+         25
+        ],
+        [
+         0.5,
+         50
+        ],
+        [
+         0.75,
+         75
+        ],
+        [
+         1,
+         100
+        ]
+       ],
+       "domain": {
+        "confidence": 0.9,
+        "max": 100,
+        "min": 0,
+        "scale": "linear",
+        "source": "display_probe_inferred",
+        "status": "inferred",
+        "text": "0~100 %",
+        "unit": "%"
+       },
+       "name": "Delay Tap 10 Time Factor",
+       "param_id": "54",
+       "physical_unit": "%",
+       "role": "time"
+      },
+      {
+       "channel": "shared",
+       "compression_stage": "delay",
+       "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjEwNDIiLCJwbHVnaW5faWQiOiIxMDQ4IiwiZ2VuZXJhdGlvbiI6ImRsMXQxX2IzNjM0YTNkMGZlZTg0MGI3ZjE3NThmYSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6InRpbWluZyIsInJvbGUiOiJ0aW1lIiwicGFyYW1faWQiOiI1OSJ9.69b6de923ef2f265",
+       "current_normalized": 0.5,
+       "current_physical": 50,
+       "current_text": "50.0%",
+       "curve": [
+        [
+         0,
+         0
+        ],
+        [
+         0.25,
+         25
+        ],
+        [
+         0.5,
+         50
+        ],
+        [
+         0.75,
+         75
+        ],
+        [
+         1,
+         100
+        ]
+       ],
+       "domain": {
+        "confidence": 0.9,
+        "max": 100,
+        "min": 0,
+        "scale": "linear",
+        "source": "display_probe_inferred",
+        "status": "inferred",
+        "text": "0~100 %",
+        "unit": "%"
+       },
+       "name": "Delay Tap 11 Time Factor",
+       "param_id": "59",
+       "physical_unit": "%",
+       "role": "time"
+      },
+      {
+       "channel": "shared",
+       "compression_stage": "delay",
+       "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjEwNDIiLCJwbHVnaW5faWQiOiIxMDQ4IiwiZ2VuZXJhdGlvbiI6ImRsMXQxX2IzNjM0YTNkMGZlZTg0MGI3ZjE3NThmYSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6InRpbWluZyIsInJvbGUiOiJ0aW1lIiwicGFyYW1faWQiOiI2NCJ9.0689c3e76e340e18",
+       "current_normalized": 0.5,
+       "current_physical": 50,
+       "current_text": "50.0%",
+       "curve": [
+        [
+         0,
+         0
+        ],
+        [
+         0.25,
+         25
+        ],
+        [
+         0.5,
+         50
+        ],
+        [
+         0.75,
+         75
+        ],
+        [
+         1,
+         100
+        ]
+       ],
+       "domain": {
+        "confidence": 0.9,
+        "max": 100,
+        "min": 0,
+        "scale": "linear",
+        "source": "display_probe_inferred",
+        "status": "inferred",
+        "text": "0~100 %",
+        "unit": "%"
+       },
+       "name": "Delay Tap 12 Time Factor",
+       "param_id": "64",
+       "physical_unit": "%",
+       "role": "time"
+      },
+      {
+       "channel": "shared",
+       "compression_stage": "delay",
+       "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjEwNDIiLCJwbHVnaW5faWQiOiIxMDQ4IiwiZ2VuZXJhdGlvbiI6ImRsMXQxX2IzNjM0YTNkMGZlZTg0MGI3ZjE3NThmYSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6InRpbWluZyIsInJvbGUiOiJ0aW1lIiwicGFyYW1faWQiOiI2OSJ9.cc85118c0806bb25",
+       "current_normalized": 0.5,
+       "current_physical": 50,
+       "current_text": "50.0%",
+       "curve": [
+        [
+         0,
+         0
+        ],
+        [
+         0.25,
+         25
+        ],
+        [
+         0.5,
+         50
+        ],
+        [
+         0.75,
+         75
+        ],
+        [
+         1,
+         100
+        ]
+       ],
+       "domain": {
+        "confidence": 0.9,
+        "max": 100,
+        "min": 0,
+        "scale": "linear",
+        "source": "display_probe_inferred",
+        "status": "inferred",
+        "text": "0~100 %",
+        "unit": "%"
+       },
+       "name": "Delay Tap 13 Time Factor",
+       "param_id": "69",
+       "physical_unit": "%",
+       "role": "time"
+      },
+      {
+       "channel": "shared",
+       "compression_stage": "delay",
+       "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjEwNDIiLCJwbHVnaW5faWQiOiIxMDQ4IiwiZ2VuZXJhdGlvbiI6ImRsMXQxX2IzNjM0YTNkMGZlZTg0MGI3ZjE3NThmYSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6InRpbWluZyIsInJvbGUiOiJ0aW1lIiwicGFyYW1faWQiOiI3NCJ9.4b69e058f0aaec6d",
+       "current_normalized": 0.5,
+       "current_physical": 50,
+       "current_text": "50.0%",
+       "curve": [
+        [
+         0,
+         0
+        ],
+        [
+         0.25,
+         25
+        ],
+        [
+         0.5,
+         50
+        ],
+        [
+         0.75,
+         75
+        ],
+        [
+         1,
+         100
+        ]
+       ],
+       "domain": {
+        "confidence": 0.9,
+        "max": 100,
+        "min": 0,
+        "scale": "linear",
+        "source": "display_probe_inferred",
+        "status": "inferred",
+        "text": "0~100 %",
+        "unit": "%"
+       },
+       "name": "Delay Tap 14 Time Factor",
+       "param_id": "74",
+       "physical_unit": "%",
+       "role": "time"
+      },
+      {
+       "channel": "shared",
+       "compression_stage": "delay",
+       "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjEwNDIiLCJwbHVnaW5faWQiOiIxMDQ4IiwiZ2VuZXJhdGlvbiI6ImRsMXQxX2IzNjM0YTNkMGZlZTg0MGI3ZjE3NThmYSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6InRpbWluZyIsInJvbGUiOiJ0aW1lIiwicGFyYW1faWQiOiI3OSJ9.6dac995afced82da",
+       "current_normalized": 0.5,
+       "current_physical": 50,
+       "current_text": "50.0%",
+       "curve": [
+        [
+         0,
+         0
+        ],
+        [
+         0.25,
+         25
+        ],
+        [
+         0.5,
+         50
+        ],
+        [
+         0.75,
+         75
+        ],
+        [
+         1,
+         100
+        ]
+       ],
+       "domain": {
+        "confidence": 0.9,
+        "max": 100,
+        "min": 0,
+        "scale": "linear",
+        "source": "display_probe_inferred",
+        "status": "inferred",
+        "text": "0~100 %",
+        "unit": "%"
+       },
+       "name": "Delay Tap 15 Time Factor",
+       "param_id": "79",
+       "physical_unit": "%",
+       "role": "time"
+      },
+      {
+       "channel": "shared",
+       "compression_stage": "delay",
+       "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjEwNDIiLCJwbHVnaW5faWQiOiIxMDQ4IiwiZ2VuZXJhdGlvbiI6ImRsMXQxX2IzNjM0YTNkMGZlZTg0MGI3ZjE3NThmYSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6InRpbWluZyIsInJvbGUiOiJ0aW1lIiwicGFyYW1faWQiOiI5In0.d584acf3236408e9",
+       "current_normalized": 0.5,
+       "current_physical": 50,
+       "current_text": "50.0%",
+       "curve": [
+        [
+         0,
+         0
+        ],
+        [
+         0.25,
+         25
+        ],
+        [
+         0.5,
+         50
+        ],
+        [
+         0.75,
+         75
+        ],
+        [
+         1,
+         100
+        ]
+       ],
+       "domain": {
+        "confidence": 0.9,
+        "max": 100,
+        "min": 0,
+        "scale": "linear",
+        "source": "display_probe_inferred",
+        "status": "inferred",
+        "text": "0~100 %",
+        "unit": "%"
+       },
+       "name": "Delay Tap 1 Time Factor",
+       "param_id": "9",
+       "physical_unit": "%",
+       "role": "time"
+      }
+     ]
+    },
+    "mapping_source": "generic_structural",
+    "plugin_id": "1048",
+    "schema_version": "delay-control-topology/v1",
+    "status": "ok",
+    "track_id": "1042"
+   }
+  }
+ }
+}
