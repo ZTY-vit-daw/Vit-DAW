@@ -43,4 +43,4 @@ G3 终裁不切换的唯一实质依据=成本门槛（轮级 LLM 调用 17 vs 6
   - **账本位核对**：execRecord.elapsed_ms+分级表+逐笔累加与 PULL-PROBE-METER-1/TIER-EXT 合入形态一致（停止条件未触发）；账本披露窗（budget_state 行/checkpoint probe_spent）本轮未开（额度截断所致），物理计量=账本同源逐笔和已入账。
   - 端测边界声明：真栈双轮 exit 0（fixture/open/authority/DAD/telemetry/分类/metrics 门全过）；渲染面零改动；重工件（raw 捕获 7MB/工程存储 9.2MB 每 run）留盘不入库可回指。
   - **给主管**：①条件①物理成本腿可收口（无 pull 物理反转空间）；②LLM 面健康链对比需额度恢复后复跑（建议小卡 ~0.25h 或并入 M2-TIMEFX-2 额度挂账腿并窗）；③脚本修复请追认。
-- 验收：（裁定文件）
+- 验收：**pass（LLM 面腿并入额度恢复窗）** / 2026-10-12 晚窗（[rulings/2026-10-12-EVENING-BATCH2-rulings.md](../../rulings/2026-10-12-EVENING-BATCH2-rulings.md)②；物理成本腿收口=无 pull 反转空间；脚本修复 6e66761d 追认=准并登记烟测卫生先例；impl merge 合入 main；LLM 面/mix_report 正面分支→QUOTA-RECOVERY-LEGS-1 池序 102）
