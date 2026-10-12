@@ -102,6 +102,8 @@ if(EXISTS "${VIT_TRACKTION_ENGINE_DIR}/CMakeLists.txt")
         ../Source/Service/VitProductionCoordinator.h
         ../Source/Service/CompressorDualTapEvidence.cpp
         ../Source/Service/CompressorDualTapEvidence.h
+        ../Source/Service/TimefxDualTapEvidence.cpp
+        ../Source/Service/TimefxDualTapEvidence.h
         ../Source/Service/RefSchema.cpp
         ../Source/Service/RefSchema.h)
     target_compile_features(VitRenderWatchdogTests PRIVATE cxx_std_20)

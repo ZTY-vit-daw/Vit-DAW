@@ -130,8 +130,8 @@ func TestT8KindRouteTableCoversAllRegisteredKinds(t *testing.T) {
 	if !strings.Contains(notes["dad.l3"], "legacy") {
 		t.Fatalf("dad.l3 特记应含迁移前 legacy 翻译条目注记: %q", notes["dad.l3"])
 	}
-	if len(table) != 13 {
-		t.Fatalf("九投影+DAD 裁决表应为 13 条（9 投影 kind + 4 DAD kind），实际 %d", len(table))
+	if len(table) != 14 {
+		t.Fatalf("九投影+DAD 裁决表应为 14 条（9 投影 kind + 5 DAD kind，M2-TIMEFX-2 增 timefx dual-tap），实际 %d", len(table))
 	}
 }
 
@@ -227,8 +227,8 @@ func TestT8CatalogConsistency(t *testing.T) {
 	e := NewEngine(st, NewPayloadIndexRegistry(momIndex))
 
 	cat := e.Catalog()
-	if len(cat.Kinds) != 13 {
-		t.Fatalf("Catalog kinds=%d, want 13", len(cat.Kinds))
+	if len(cat.Kinds) != 14 {
+		t.Fatalf("Catalog kinds=%d, want 14", len(cat.Kinds))
 	}
 	if len(cat.SortAliases) == 0 {
 		t.Fatalf("Catalog 应暴露 ref 排序别名")

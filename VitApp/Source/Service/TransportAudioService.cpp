@@ -1546,6 +1546,159 @@ juce::String TransportAudioService::handleCompressorDualTapProbe (const juce::Dy
     return production->startCompressorDualTapProbe (*edit, std::move (request));
 }
 
+// M2-TIMEFX-2: paired bypass/processed probe for the reverb/delay families.
+// Copies the compressor dual-tap template (identity string, window cap,
+// strict scope validation incl. the automation-as-transparency-obstacle
+// precedent) with two family deltas: the recognizer identity is
+// family+topology_class (no support_class), and the render identity prefix
+// is tfx2rp.v1. The pair is rendered over the identical window with no
+// latency alignment - for time-domain effects the displacement IS the
+// transformation being measured.
+juce::String TransportAudioService::handleTimefxDualTapProbe (const juce::DynamicObject& object,
+                                                              const juce::String&) const
+{
+    if (production == nullptr)
+        return makeErrorReply ("Offline render coordinator unavailable");
+    auto* edit = getEdit != nullptr ? getEdit() : nullptr;
+    if (edit == nullptr)
+        return makeErrorReply ("No active edit loaded");
+
+    const auto trackId = object.getProperty ("track_id").toString().trim();
+    const auto pluginId = object.getProperty ("plugin_id").toString().trim();
+    const auto topologyGeneration = object.getProperty ("topology_generation").toString().trim();
+    const auto topologyClass = object.getProperty ("topology_class").toString().trim();
+    const auto family = object.getProperty ("family").toString().trim().toLowerCase();
+    if (trackId.isEmpty() || pluginId.isEmpty())
+        return makeErrorReply ("timefx_dual_tap_probe requires track_id and plugin_id");
+    if (topologyGeneration.isEmpty() || topologyClass.isEmpty())
+        return makeErrorReply ("timefx_dual_tap_probe requires recognizer topology_generation and topology_class");
+    if (family != "reverb" && family != "delay")
+        return makeErrorReply ("timefx_dual_tap_probe requires family=reverb or family=delay");
+    if (object.hasProperty ("deterministic") && ! static_cast<bool> (object.getProperty ("deterministic")))
+        return makeErrorReply ("timefx_dual_tap_probe requires deterministic=true");
+
+    auto* track = findAudioTrackByID (*edit, trackId);
+    if (track == nullptr)
+        return makeErrorReply ("timefx_dual_tap_probe requires an audio track");
+    auto* plugin = findPluginForCompressorProbe (*edit, pluginId);
+    if (plugin == nullptr)
+        return makeErrorReply ("timefx_dual_tap_probe plugin_id was not found");
+
+    double sampleRate = 48000.0;
+    if (auto* device = edit->engine.getDeviceManager().deviceManager.getCurrentAudioDevice())
+        if (device->getCurrentSampleRate() > 0.0)
+            sampleRate = device->getCurrentSampleRate();
+
+    auto scope = validateCompressorProbeScope (*track, *plugin, sampleRate);
+    if (scope.error.isNotEmpty())
+        return makeErrorReply ("timefx_dual_tap_probe scope rejected: " + scope.error);
+
+    auto clipId = object.getProperty ("clip_id").toString().trim();
+    te::Clip* clip = clipId.isNotEmpty() ? findClipByID (*edit, clipId) : findFirstAudioClipOnTrack (*track);
+    auto* audioClip = dynamic_cast<te::AudioClipBase*> (clip);
+    if (audioClip == nullptr || clip->getTrack() != track)
+        return makeErrorReply ("timefx_dual_tap_probe requires an audio clip on the target track");
+    clipId = clip->itemID.toString();
+    if (auto* clipPlugins = audioClip->getPluginList())
+        for (auto* clipPlugin : clipPlugins->getPlugins())
+            if (clipPlugin != nullptr && clipPlugin->isEnabled())
+                return makeErrorReply ("timefx_dual_tap_probe rejects active clip processors");
+
+    int64 startSample = 0;
+    int64 endSample = 0;
+    if (object.hasProperty ("start_sample") || object.hasProperty ("end_sample"))
+    {
+        if (! object.hasProperty ("start_sample") || ! object.hasProperty ("end_sample"))
+            return makeErrorReply ("timefx_dual_tap_probe requires both start_sample and end_sample");
+        startSample = (int64) object.getProperty ("start_sample");
+        endSample = (int64) object.getProperty ("end_sample");
+    }
+    else
+    {
+        double startSeconds = clip->getEditTimeRange().getStart().inSeconds();
+        double endSeconds = clip->getEditTimeRange().getEnd().inSeconds();
+        readCommandRange (object, startSeconds, endSeconds);
+        startSample = (int64) std::llround (juce::jmax (0.0, startSeconds) * sampleRate);
+        endSample = (int64) std::llround (juce::jmax (startSeconds, endSeconds) * sampleRate);
+    }
+    if (startSample < 0 || endSample <= startSample)
+        return makeErrorReply ("timefx_dual_tap_probe requires a non-empty sample window");
+    if ((double) (endSample - startSample) / sampleRate > 120.0)
+        return makeErrorReply ("timefx_dual_tap_probe window exceeds 120 seconds");
+
+    auto sourceFile = audioClip->getCurrentSourceFile();
+    if (! sourceFile.existsAsFile())
+        sourceFile = audioClip->getOriginalFile();
+    if (! sourceFile.existsAsFile())
+        return makeErrorReply ("timefx_dual_tap_probe source audio is unavailable");
+    const auto sourceLengthSeconds = juce::jmax (0.0, clip->getPosition().getLength().inSeconds());
+    const auto sourceRevision = sha256Text ("source.v1|size=" + juce::String ((int64) sourceFile.getSize())
+                                            + "|mtime=" + juce::String ((int64) sourceFile.getLastModificationTime().toMilliseconds())
+                                            + "|length=" + juce::String (sourceLengthSeconds, 4));
+    const auto clipRevision = sha256Text ("clip.v1|clip=" + clipId
+                                          + "|track=" + trackId
+                                          + "|source=" + sourceRevision
+                                          + "|offset=" + juce::String (clip->getPosition().getOffset().inSeconds(), 4)
+                                          + "|length=" + juce::String (sourceLengthSeconds, 4));
+    const auto renderIdentity = juce::String ("tfx2rp.v1")
+        + "|family=" + family
+        + "|track=" + trackId
+        + "|clip=" + clipId
+        + "|plugin=" + pluginId
+        + "|position=" + scope.pluginPosition
+        + "|topology=" + topologyClass
+        + "|generation=" + topologyGeneration
+        + "|chain=" + scope.chainHash
+        + "|processor_state=" + scope.processorStateHash
+        + "|source=" + sourceRevision
+        + "|clip_revision=" + clipRevision
+        + "|window=" + juce::String (startSample) + "-" + juce::String (endSample)
+        + "|sample_rate=" + juce::String (sampleRate, 3);
+    const auto renderRevision = sha256Text (renderIdentity);
+    const auto pairId = "tfx2_" + juce::Uuid().toString().removeCharacters ("-").substring (0, 24);
+
+    TimefxDualTapEvidenceRequest evidence;
+    evidence.requestId = object.getProperty ("request_id").toString().trim();
+    evidence.pairId = pairId;
+    evidence.trackId = trackId;
+    evidence.clipId = clipId;
+    evidence.pluginInstanceId = pluginId;
+    evidence.pluginPosition = scope.pluginPosition;
+    evidence.family = family;
+    evidence.topologyClass = topologyClass;
+    evidence.topologyGeneration = topologyGeneration;
+    evidence.chainHash = scope.chainHash;
+    evidence.processorStateHash = scope.processorStateHash;
+    evidence.scopeRevision = scope.scopeRevision;
+    evidence.sourceRevision = sourceRevision;
+    evidence.clipRevision = clipRevision;
+    evidence.renderRevision = renderRevision;
+    evidence.startSample = startSample;
+    evidence.endSample = endSample;
+    evidence.sampleRate = sampleRate;
+    evidence.channelLayout = "stereo";
+    evidence.reportedLatencySamples = scope.reportedLatencySamples;
+
+    const auto tempRoot = juce::File::getSpecialLocation (juce::File::tempDirectory)
+        .getChildFile ("Vit_DAW_TimefxDualTap");
+    tempRoot.createDirectory();
+    VitProductionCoordinator::TimefxDualTapProbeRequest request;
+    request.evidence = evidence;
+    request.baselineRenderFile = tempRoot.getNonexistentChildFile (pairId + "_baseline", ".wav", false);
+    request.processedRenderFile = tempRoot.getNonexistentChildFile (pairId + "_processed", ".wav", false);
+    request.processedVerificationRenderFile = tempRoot.getNonexistentChildFile (pairId + "_verify", ".wav", false);
+    request.artifactDirectory = paths::getWorkspaceDirectory()
+        .getChildFile ("Artifacts")
+        .getChildFile ("timefx_evidence")
+        .getChildFile (pairId);
+    request.tracksToDo.setBit (track->getIndexInEditTrackList());
+    request.readCurrentScopeRevision = [track, plugin, rack = scope.rackInstance]
+    {
+        return compressorProbeScopeRevision (*track, *plugin, rack);
+    };
+    return production->startTimefxDualTapProbe (*edit, std::move (request));
+}
+
 juce::String TransportAudioService::handleCancelRender (const juce::DynamicObject&, const juce::String&) const
 {
     if (production == nullptr)

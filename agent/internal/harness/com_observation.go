@@ -3,15 +3,12 @@ package harness
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"math"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
-
-	"github.com/go-zeromq/zmq4"
 
 	"vit-daw-agent/internal/com"
 	"vit-daw-agent/internal/mixboard"
@@ -241,55 +238,9 @@ func (h *Harness) collectMixObservationCOMProbe(ctx context.Context, kernelCmd m
 }
 
 func collectCOMProbeEvent(ctx context.Context, subURL, requestID, trackID, pluginID string, timeout time.Duration, afterSubscribe func() error) (map[string]any, error) {
-	opCtx, cancel := context.WithTimeout(ctx, timeout)
-	defer cancel()
-	sub := zmq4.NewSub(opCtx, zmq4.WithTimeout(120*time.Millisecond), zmq4.WithAutomaticReconnect(true))
-	defer sub.Close()
-	if err := sub.SetOption(zmq4.OptionSubscribe, ""); err != nil {
-		return nil, err
-	}
-	if err := sub.Dial(firstNonEmpty(subURL, mixboardFeatureSubURL)); err != nil {
-		return nil, err
-	}
-	warmMixboardFeatureSubscriber(opCtx)
-	if afterSubscribe != nil {
-		if err := afterSubscribe(); err != nil {
-			return nil, err
-		}
-	}
-	for {
-		select {
-		case <-opCtx.Done():
-			return nil, nil
-		default:
-		}
-		msg, err := sub.Recv()
-		if err != nil {
-			if errors.Is(err, context.DeadlineExceeded) || strings.Contains(strings.ToLower(err.Error()), "timeout") {
-				continue
-			}
-			if errors.Is(err, context.Canceled) {
-				return nil, nil
-			}
-			return nil, err
-		}
-		event := map[string]any{}
-		if json.Unmarshal([]byte(zmqMsgPayload(msg)), &event) != nil || firstString(event, "feature_type") != "compressor_dual_tap_probe" {
-			continue
-		}
-		if requestID != "" && firstString(event, "request_id") != requestID {
-			continue
-		}
-		if trackID != "" && firstString(event, "track_id") != trackID {
-			continue
-		}
-		if pluginID != "" && firstString(event, "plugin_instance_id") != pluginID {
-			continue
-		}
-		if command := firstString(event, "command"); command == "compressor_dual_tap_probe_ready" || command == "compressor_dual_tap_probe_failed" {
-			return event, nil
-		}
-	}
+	return collectFeatureProbeEvent(ctx, subURL, "compressor_dual_tap_probe",
+		[]string{"compressor_dual_tap_probe_ready", "compressor_dual_tap_probe_failed"},
+		requestID, trackID, pluginID, timeout, afterSubscribe)
 }
 
 func comEvidenceArtifactPath(pairID string) string {

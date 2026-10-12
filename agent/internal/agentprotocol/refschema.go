@@ -226,6 +226,11 @@ var projectionKindRegistry = []ProjectionKindEntry{
 	{Kind: "tim", Anchor: "L1-1 §2 A5-A7 tim/types.go:25", Note: "无 legacy 前缀、新生成直接用；snapshot 段承载=observation_id（L1-3 §3.3）"},
 	{Kind: "tom", Anchor: "L1-1 §2 A5-A7 tom/types.go:21", Note: "无 legacy 前缀、新生成直接用"},
 	{Kind: "epm", Anchor: "L1-1 §2 A5-A7 epm/types.go:22", Note: "无 legacy 前缀、新生成直接用"},
+	// M2-TIMEFX-2：reverb/delay 成对 bypass/processed 渲染证据 kind（内核
+	// RefSchema.h kKindTimefxDualTap + TimefxDualTapEvidence.cpp 工件 ref）。
+	// 无 legacy 前缀（新族首代即 vit:// 形态）；snapshot 段承载=pair_id，
+	// 与 dad.compressor_dual_tap 同构。
+	{Kind: "dad.timefx_dual_tap", Anchor: "M2-TIMEFX-2 VitApp/Source/Service/TimefxDualTapEvidence.cpp makeTimefxDualTapRef", Note: "无 legacy 前缀、新生成直接用；snapshot 段=pair_id"},
 }
 
 var registeredKindSet = func() map[string]struct{} {

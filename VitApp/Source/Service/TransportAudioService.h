@@ -45,6 +45,7 @@ public:
     juce::String handleStartRender (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleL2RenderProbe (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleCompressorDualTapProbe (const juce::DynamicObject&, const juce::String&) const;
+    juce::String handleTimefxDualTapProbe (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleCancelRender (const juce::DynamicObject&, const juce::String&) const;
 
     // Deterministic ValueTree identity shared by project.state and the L2

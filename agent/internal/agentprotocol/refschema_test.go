@@ -336,6 +336,7 @@ func TestRegistryInitialValues(t *testing.T) {
 		{Kind: "tim", Anchor: "L1-1 §2 A5-A7 tim/types.go:25", Note: "无 legacy 前缀、新生成直接用；snapshot 段承载=observation_id（L1-3 §3.3）"},
 		{Kind: "tom", Anchor: "L1-1 §2 A5-A7 tom/types.go:21", Note: "无 legacy 前缀、新生成直接用"},
 		{Kind: "epm", Anchor: "L1-1 §2 A5-A7 epm/types.go:22", Note: "无 legacy 前缀、新生成直接用"},
+		{Kind: "dad.timefx_dual_tap", Anchor: "M2-TIMEFX-2 VitApp/Source/Service/TimefxDualTapEvidence.cpp makeTimefxDualTapRef", Note: "无 legacy 前缀、新生成直接用；snapshot 段=pair_id"},
 	}
 	gotKindsOnly := ProjectionKindRegistry()
 	if len(gotKindsOnly) != len(wantKindsOnly) {
@@ -347,7 +348,7 @@ func TestRegistryInitialValues(t *testing.T) {
 		}
 	}
 	kinds := RegisteredRefKinds()
-	wantKinds := []string{"dom", "fxm", "com", "rlm", "acp", "dad.l3", "dad.l2_render_probe", "dad.compressor_dual_tap", "dad.frequency_evidence", "mom", "tim", "tom", "epm"}
+	wantKinds := []string{"dom", "fxm", "com", "rlm", "acp", "dad.l3", "dad.l2_render_probe", "dad.compressor_dual_tap", "dad.frequency_evidence", "mom", "tim", "tom", "epm", "dad.timefx_dual_tap"}
 	if len(kinds) != len(wantKinds) {
 		t.Fatalf("kinds = %v, want %v", kinds, wantKinds)
 	}
