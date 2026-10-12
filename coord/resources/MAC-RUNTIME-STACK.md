@@ -6,10 +6,11 @@
 
 ## 当前占用
 
-- 状态：占用中
-- 2026-10-12 10:21 +0800 起 / GEN-CTX-KEYFIELD-1（GLM-5.3 Mac 执行流，ZCode 会话；worktree /Users/timozty/Documents/Vit-DAW-ctxdisclose1，分支 port/gen-ctx-keyfield-1）：`scripts/music_keyfield_roundtrip_smoke_mac.sh` 真栈冒测（内核直连 ZMQ 5555/5556/5557，两阶段基线+候选）。登记前亲核：5555/5556/5557/7878 监听=0、VitApp/vitagent 进程=0。注意：GEN-CTX-INJECT-1（并行卡，genctx_truekey_smoke_mac.sh）如需真栈请排队于本登记之后。
+- 状态：空闲
 
 ## 最近一次释放
+
+- 2026-10-12 10:21–18:36 +0800 / GEN-CTX-KEYFIELD-1（GLM-5.3 Mac 执行流，ZCode 会话；worktree /Users/timozty/Documents/Vit-DAW-ctxdisclose1，分支 port/gen-ctx-keyfield-1）：`music_keyfield_roundtrip_smoke_mac.sh` 四轮（run1=候选内核段错误→var 所有权修复；run2=auto-persist 静默跳写定位+两个隔离取证内核；run3=内核修复确认+脚本探针缺陷；run4=权威轮 exit 0 43/43 门，脚本自 teardown；期间另有 3 个手动隔离取证内核实例，结束即杀）。18:36 复核：5555/5556/5557/7878 监听=0、VitApp/vitagent 进程=0。占用登记 a57640f0；实现 commit 13551ab0 @ port/gen-ctx-keyfield-1；run 工件 `coord/runs/GEN-CTX-KEYFIELD-1/run4-pass-20261012-183348/`。
 
 - 2026-10-11 23:42–2026-10-12 09:40 +0800（跨夜会话）/ GEN-CTX-DISCLOSE-1（GLM-5.3 Mac 执行流，ZCode 会话；worktree /Users/timozty/Documents/Vit-DAW-ctxdisclose1，分支 port/gen-ctx-disclose-1）：`scripts/music_context_disclosure_smoke_mac.sh` 四轮（run1=内核设备管理器初始化挂起→环境中断重试；run2=agent 面探针脚本缺陷；run3=门断言脚本缺陷；run4=权威轮 exit 0 24/24 门绿，脚本自 teardown）。09:40 末轮后复核：7878/5555/5556/5557 监听=0、VitApp/vitagent 进程=0。占用登记 b48e4549（排队→占用见登记内注记）；实现 commit @ port/gen-ctx-disclose-1 dd08da4a；run 工件 `coord/runs/GEN-CTX-DISCLOSE-1/run1-pass-20261012-094027/`。
 - 2026-10-11 22:33–23:25 +0800 / GEN-API-ADAPTER-1（GLM-5.3 Mac 执行流，ZCode；worktree /Users/timozty/Documents/Vit-DAW-genapi1，分支 port/gen-api-adapter-1）：`gen_api_adapter_smoke_mac.sh` 端到端冒测四轮（run1/run2/run3=探针迭代：内核子命令名映射+错误回包 HTTP 400 误判+模拟器证据 atexit+tags 断言与契约不符，均脚本/断言缺陷非栈失败；run4=权威轮 17/17 门 exit 0），内核复用 GEN-MAC-BASELINE-1 二进制 9a70f064（VitApp/Source 与该基线零 diff 已核）+agent 含本卡改动新构建。23:25 末轮后复核：7878/5555/5556/5557 监听=0、VitApp/vitagent 进程=0。占用登记 fa25ae47（登记前核对空闲，DISCLOSE-1 按协议排队于后）；run 工件 `coord/runs/GEN-API-ADAPTER-1/run4-pass-20261011-232432/`；实现 commit 1e23fa8f @ port/gen-api-adapter-1。
