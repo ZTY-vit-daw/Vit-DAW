@@ -21,4 +21,4 @@ loudness_watch_config.v0 挂 projectAgentRuntimeState（RLM-PROFILE-2 先例锚�
 - verdict schema 名按卡 A 权威用 `loudness_watch.v0`（设计① §2.4 写 `loudness_watch.verdict.v0`，以卡为准）。
 - 端测边界声明（AGENTS §5）：卡面定为纯单测卡（"不需要真栈"）；本卡无渲染面/webui 改动，未跑真栈烟测；触发面真栈验证归卡 B `-LoudnessWatch` 腿。
 - 领取基线精确值修正：领取提交 813cbf58 的父=005893b7（主管 dispatch 提交，仅 coord/reports 单文件，agent/ 代码面与记录的 809cab5d 等同）；实现自 005893b7 起，main 在飞期间前移（Mac 线 a57640f0）与本卡文件域零交集。
-- 验收：（裁定文件 / 验收 commit）
+- 验收：**pass** / 2026-10-12 晚窗（[rulings/2026-10-12-EVENING-BATCH1-rulings.md](../../rulings/2026-10-12-EVENING-BATCH1-rulings.md)；九项单测亲核+决策侧合并态 95 包 0 FAIL；agent-loop 可达边界转 LOUDNESS-B 前置义务；impl merge 合入 main）
