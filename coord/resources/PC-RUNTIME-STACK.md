@@ -5,7 +5,10 @@
 
 ## 当前占用
 
-- 状态：空闲
+- 状态：占用中
+- 卡：M2-TIMEFX-2（GLM-5.3 PC 执行流，ZCode PC 会话；worktree D:/Vit_DAW_wt_m2_timefx2，分支 port/m2-timefx-2，实现 commit 25a2b91a）
+- 栈：本机 5555/5556/7878/8787；Godot 拉栈（VIT_DAW_DEV_ROOT 指 worktree：worktree 内核 build/VitApp_artefacts/Release/VitApp.exe + worktree agent bin/VitAgent.exe）
+- 登记：2026-10-12 约 21:05 +0800；计划=timefx 探针真栈冒测（reverb/delay 两轮）+ D1 reverb 冒测复跑挂账腿（G3-REOPEN-COSTCMP-1 短卡如需占栈请排队串行）
 
 ## 最近一次释放
 
