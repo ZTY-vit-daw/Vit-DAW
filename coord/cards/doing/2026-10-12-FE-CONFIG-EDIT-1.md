@@ -33,6 +33,6 @@ vitest 全绿+npm run build exit 0+浏览器级断言 exit 0+手测清单交付�
 
 保存后保持输入态与"留空保持不变"语义冲突需重新设计→上交决策侧定交互。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / 领取提交）
+- 领取：2026-10-12 23:02 / 151b0fcb / Mac 执行侧（GLM-5.3） / port/fe-config-edit-1 / 领取提交=本条 mv+回填（coord-only 直推 main）
 - 回执：（commit / 测试清单 / 手测清单 / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
