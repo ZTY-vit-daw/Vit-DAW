@@ -13,4 +13,4 @@
 
 - 领取：2026-10-12 晚 / origin/main=0fc9e930 / owner=Mac 决策侧会话兼执行（外部执行会话无领取痕迹，按用户排序权授权自领防撞）/ 分支 port/gen-ctx-consume-1 / worktree ~/Documents/Vit-DAW-consume1
 - 回执：done（自验全绿）——实现 <impl 提交>@port/gen-ctx-consume-1。消费对象=gen_api（gen.generate 全量经 RenderGenerationPrompt，profile=gen_api）；注入块逐字节到模拟器请求体（协议转换不改块双证）；scene 三态+写前哨兵（free_creation 拒落轨）；空 prompt 守卫；prompt_context 证据面。门：vet/gofmt/全量 95 包 0 FAIL 终态复跑/真栈冒测 21 门 exit 0（工件 coord/runs/GEN-CTX-CONSUME-1/）；过程修复两笔如实（守卫回归+形态断言更新）。端测边界：agent HTTP 面数据断言+内核只读 state；无 webui/旅程改动
-- 验收：（裁定文件 / 验收 commit）
+- 验收：pass（2026-10-12，Mac 决策侧先行裁定+PC 复核留档）——[rulings/2026-10-12-GEN-CTX-CONSUME-1-pass.md](../../rulings/2026-10-12-GEN-CTX-CONSUME-1-pass.md)；统一化四卡全闭环里程碑
