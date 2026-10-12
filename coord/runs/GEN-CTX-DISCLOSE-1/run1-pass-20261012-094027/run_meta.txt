@@ -1,0 +1,10 @@
+run_id=music_ctx_disclose_mac_20261012-094027
+started_at=2026-10-12T09:40:27+0800
+repo_root=/Users/timozty/Documents/Vit-DAW-ctxdisclose1
+repo_head=dba5c516ff6f6668e1c9513a0ab244f66e030236
+repo_dirty=3 entries
+baseline_kernel_bin=/tmp/vit-genbase1-build/app/VitApp_artefacts/Debug/VitApp
+baseline_kernel_sha256=9a70f064d2a20f023f35389c28fa87956595ce46dad4eb35bda571d243f54057
+kernel_bin=/tmp/vit-ctxd1-build/app/VitApp_artefacts/Debug/VitApp
+kernel_sha256=8e445dbbbcc3474d5ca30b19915560fc5247da6f70807bc694a4cd3de0ef2b9a
+zmq_req=tcp://127.0.0.1:5555

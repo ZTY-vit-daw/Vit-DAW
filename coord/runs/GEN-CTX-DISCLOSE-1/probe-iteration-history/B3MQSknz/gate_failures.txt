@@ -1,0 +1,10 @@
+phaseA_set_tempo_ok: status=ok reply_bpm=128
+phaseB_music_context_present: music_context key present=no
+phaseB_tempo_persisted_128: music_context absent
+phaseB_time_signature_form: music_context absent
+phaseB_setting_counts: music_context absent
+phaseB_placeholders_null: music_context absent
+phaseB_set_tempo_ok: status=ok reply_bpm=96
+phaseB_tempo_tracks_set_96: tempo_bpm_after=<absent> set_tempo_reply=96 (want 96.0/96.0)
+existing_keys_unchanged: deep_equal= diff_count= (details: /var/folders/bm/9470lvs56ss6lfw1n9g66k2c0000gn/T//music_ctx_disclose_mac.B3MQSknz/snapshot_diff.txt)
+keyset_delta_music_context_only: keyset_delta_exact=

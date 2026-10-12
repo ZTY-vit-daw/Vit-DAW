@@ -1,0 +1,10 @@
+~ $.last_delta_seq: 12 -> 2
+- $.latest_change = {"affected_scopes": ["project.state"], "authoritative": true, "change_id": "shadow_change_000011", "changed_entities": [{"fields": [{"after": "vitproj_f17b78e742e74cde9406eab897f0f3f8", "path": "project_uuid"}], "id": "current", "kind": "project"}], "freshness": "current_snapshot", "from_project": {"project_epoch": "epoch_6db0d91e518108f7", "project_revision": 3, "snapshot_hash": "277c73463591e44b"}, "from_state_epoch": 27, "observed_at": "2026-10-11T15:46:05.190407Z", "schema_version": "project_change_receipt.v1", "source": "authoritative_snapshot", "to_project": {"project_epoch": "epoch_6db0d91e518108f7", "project_revision": 3, "project_uuid": "vitproj_f17b78e742e74cde9406eab897f0f3f8", "snapshot_hash": "277c73463591e44b"}, "to_state_epoch": 28, "unresolved_refresh_scopes": ["project.state"]}
+~ $.orphan_uid_keys: 3 -> 1
+~ $.project_epoch: "epoch_6db0d91e518108f7" -> "epoch_b60242f600c2fefe"
+~ $.project_observe.project_epoch: "epoch_6db0d91e518108f7" -> "epoch_b60242f600c2fefe"
+~ $.project_observe.revision: 3 -> 2
+~ $.project_revision: 3 -> 2
+~ $.state_epoch: 28 -> 8
+~ $.vsp.project_observe.project_epoch: "epoch_6db0d91e518108f7" -> "epoch_b60242f600c2fefe"
+~ $.vsp.project_observe.revision: 3 -> 2

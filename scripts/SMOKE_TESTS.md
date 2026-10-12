@@ -1639,3 +1639,59 @@ Notes:
 - The default kernel path is the repo's `VitApp/build/VitApp_artefacts/Debug/
   VitApp` (the later mac smoke convention); in an isolated worktree pass
   `--kernel-bin` explicitly.
+
+## Music-Context Disclosure Smoke (mac) (GEN-CTX-DISCLOSE-1)
+
+Path:
+
+```bash
+~/Documents/Vit-DAW/scripts/music_context_disclosure_smoke_mac.sh
+```
+
+Purpose:
+
+- GEN-CTX-DISCLOSE-1 acceptance smoke for the `get_project_state`
+  `music_context` disclosure block (tempo_bpm / tempo_setting_count /
+  time_signature / time_signature_numerator / time_signature_denominator /
+  time_sig_setting_count; key_signature null + style_note "" placeholders for
+  the card-2 fields), probed on the real headless kernel via direct ZMQ REQ
+  on tcp://127.0.0.1:5555 (the same command surface the agent consumes
+  internally via kernel.SendCommand).
+- Why direct ZMQ: the agent user-visible get_project_state tool returns a
+  curated projection that filters kernel keys, and this card is zero-agent-diff
+  by acceptance; the card-3 snapshot assembler is the future agent consumer
+  and rides the kernel surface asserted here.
+- Two-phase same-file comparison: the BASELINE (pre-change) kernel creates
+  the probe project (new_project → save_as → set_tempo 128 → snapshots), then
+  both kernels take the identical clear_project → open_project path on the
+  identical .vit file. Gates: persisted tempo 128.0 discloses after the .vit
+  round trip; 4/4 family form; counts >= 1; null placeholders; set_tempo 96
+  live-write linkage (disclosed == reply == the getTempo(0) engine surface);
+  and a deep snapshot diff proving every pre-existing key is identical with
+  music_context stripped (B may introduce at most the music_context key). The
+  documented volatile path `$.plugin_list_hygiene.completed_at` (startup
+  wall-clock stamp, TIM-KERNEL-HYGIENE-1 semantics) is normalized from both
+  sides and recorded in the verdict.
+- All kernel state lands under a fake VitApp root inside a fresh mktemp
+  workdir (AGENTS §10). Emits a `music.context.disclosure.mac.v1` summary
+  JSON; exit 0 requires every gate green. Failures are classified env vs
+  functional (a kernel startup hang at Tracktion device-manager init is
+  env-class with the PORT-SMOKE-MAC-4 precedent).
+
+Common commands:
+
+```bash
+# Baseline = pre-change kernel, candidate = rebuilt kernel (hashes recorded):
+~/Documents/Vit-DAW/scripts/music_context_disclosure_smoke_mac.sh \
+  --baseline-kernel /tmp/vit-genbase1-build/app/VitApp_artefacts/Debug/VitApp \
+  --kernel-bin /tmp/vit-ctxd1-build/app/VitApp_artefacts/Debug/VitApp
+```
+
+Notes:
+
+- Neither kernel is built by this script — pass both binaries explicitly
+  (sha256 + mtime recorded per AGENTS §9). The baseline must be a binary
+  whose VitApp/Source predates the disclosure change.
+- Needs pyzmq. music_context is stripped symmetrically from both snapshots
+  before the value diff, so the script stays re-runnable post-merge with two
+  same-era binaries (the keyset gate then reports an empty delta).

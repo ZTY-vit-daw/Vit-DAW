@@ -1,0 +1,13 @@
+JUCE v8.0.12
+
+**********************************************************
+VitHeadlessServer session log
+Log started: 11 Oct 2026 11:42:09pm
+
+VitHeadlessServer: application startup.
+VitPaths: created cache directory: /private/var/folders/bm/9470lvs56ss6lfw1n9g66k2c0000gn/T/music_ctx_disclose_mac.MsotDj7b/kernel_root/Workspace/Cache
+VitPaths: created settings directory: /private/var/folders/bm/9470lvs56ss6lfw1n9g66k2c0000gn/T/music_ctx_disclose_mac.MsotDj7b/kernel_root/Workspace/Settings
+Settings file: /private/var/folders/bm/9470lvs56ss6lfw1n9g66k2c0000gn/T/music_ctx_disclose_mac.MsotDj7b/kernel_root/Workspace/Settings/Settings.xml
+Audio block size: 512  Rate: 44100
+Creating Default Controllers...
+VitEngineDevice: initialising Tracktion Engine device manager.

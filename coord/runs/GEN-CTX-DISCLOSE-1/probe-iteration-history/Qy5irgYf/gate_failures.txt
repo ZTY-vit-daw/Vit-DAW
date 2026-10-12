@@ -1,0 +1,4 @@
+phaseB_time_signature_form: time_signature=4/4 numerator=4 denominator=4
+phaseB_setting_counts: tempo_setting_count=1 time_sig_setting_count=1
+phaseB_tempo_tracks_set_96: tempo_bpm_after=96.0 set_tempo_reply=96.0 (want 96/96)
+existing_keys_unchanged: deep_equal=False diff_count=1 (details: /var/folders/bm/9470lvs56ss6lfw1n9g66k2c0000gn/T//music_ctx_disclose_mac.Qy5irgYf/snapshot_diff.txt)

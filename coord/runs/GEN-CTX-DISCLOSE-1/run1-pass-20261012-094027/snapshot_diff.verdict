@@ -1,0 +1,1 @@
+snapshot_diff_verdict={"deep_equal": true, "diff_count": 0, "new_top_level_keys": [], "removed_top_level_keys": [], "keyset_delta_exact": true, "normalized_volatile_paths": ["$.plugin_list_hygiene.completed_at"]}
