@@ -14,7 +14,7 @@
 
 - 卡面三目标+六裁定全兑现：三命令全栈（内核 4 文件+catalog 114 行+harness 摄入 184 行+单测 19 例）、真栈冒测 13 检 exit 0（含 fail-closed 与 CAS 双反例）、95 包 0 FAIL、gofmt 净；context_manifest 四处 Excluded 未动（裁定 5 遵守）。
 - **设计偏离采信**：clear_region 弃 removePointsAndCloseGap 改 removePoints——真栈证 closeGap 有边界补偿锚点（AutomationCurve.cpp:630-635 区域覆盖后余补偿点），与「区域清除」语义不符；机制层修正、六裁定语义未动，登记为 RECON §1.3 的在册边界特性。
-- **回执失准一处修正**：「工件随 port 分支入库」不实——run 工件仅存盘未提交；决策侧验收时亲手补录精简件（automation_curve_smoke_220826/221700，.log 留盘按 *.log 政策）。执行侧不返工，记入检查单参考（SMOKE 工件入库=回执声明必须与 git 状态核对）。
+- **验收侧自纠一处**：初稿曾判「run 工件仅存盘未提交」——**误判**：工件实随 impl 提交（main 1d19a9d2）入库，执行侧经协调线推 main 而非 port 分支 ref，验收核对时看错了 ref 面。回执「随 port 分支入库」措辞与实际入库路径（main 直推）不符但工件在卷可回指。检查单参考修正为：**工件核对以 main 实际内容为准，不按回执所述分支 ref 查证**。
 - M3 批次推进：步骤 2 ✅→步骤 3（包络车道 UI+机架状态面）/步骤 4（goal 编舞单轮+意图层）拆卡待主管后续立卡。
 
 ## ③ FE-GUI-RACK-LIST-1：pass（用户目检待排期）
