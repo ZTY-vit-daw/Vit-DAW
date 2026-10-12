@@ -31,6 +31,6 @@ chat/capability seam + 域表文件（d1s1_domains.go 同级）+ 对应单测；
 
 域表/写回链锚点与卡面不符（上游已变）→ 锚点上交。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-12 PC 晚窗 / origin/main=813cbf5850225d3edc0f70ba609a6f137d54a27e / owner=GLM-5.3 执行流（ZCode PC 会话，M2 时域线）/ 分支=port/m2-timefx-1 / worktree=D:/Vit_DAW_wt_m2_timefx1 / 领取提交=（本提交）
 - 回执：（commit / run ID / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
