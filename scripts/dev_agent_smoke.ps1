@@ -921,6 +921,18 @@ if ($ScenarioMode) {
     if (Test-Path -LiteralPath $RunArtifactsDir) {
         throw ("scenario run artifacts directory already exists; each run needs a fresh directory: " + $RunArtifactsDir)
     }
+    # G3-REOPEN-COSTCMP-1 hardening: resolve a caller-supplied relative
+    # -RunArtifactsDir to an absolute path before anything derives from it.
+    # The journey berth passes VIT_PROJECT_XML through to the kernel
+    # verbatim; a relative value is resolved by the kernel against ITS OWN
+    # working directory (the run-dir kernel_workspace), producing a doubled
+    # nonexistent path -> "failed to create default project XML" -> clean
+    # exit 0 within ~2s (three forensic runs 2026-10-12 18:58/19:17/19:22,
+    # kernel logs in the deploy Workspace\Logs). Absolute paths keep the
+    # env var kernel-CWD-independent.
+    if (-not [System.IO.Path]::IsPathRooted($RunArtifactsDir)) {
+        $RunArtifactsDir = [System.IO.Path]::GetFullPath((Join-Path -Path (Get-Location).Path -ChildPath $RunArtifactsDir))
+    }
     New-Item -ItemType Directory -Path $RunArtifactsDir -Force | Out-Null
     $ScenarioRunDir = $RunArtifactsDir
     (& git -C $RepoRoot rev-parse HEAD) | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "head.txt") -Encoding UTF8
