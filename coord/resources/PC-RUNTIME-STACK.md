@@ -5,8 +5,11 @@
 
 ## 当前占用
 
-- 状态：占用中
-- 2026-10-12 21:09 +0800 登记 / QUOTA-RECOVERY-LEGS-1（GLM-5.3 PC 执行流，ZCode 会话；worktree D:/Vit_DAW_wt_qrl1，协调分支 coord/qrl1-b，工件分支 port/quota-recovery-legs-1）：三腿顺序收口（①D1 reverb 全链 ②harness_ab 双模式 LLM 面健康链 ③mix_report 有结论正面分支），栈=VitApp 内核(5555/5556)+VitAgent(7878)+Godot 前端（D1 腿 StartUI）；登记前只读核对四端口监听=0、VitApp/VitAgent/vsphub=0；Godot 编辑器本体 PID 30420（--editor）在场但不属运行栈不占端口，不触动。M3-KERNEL-1 开发期不占栈，其烟测腿排本卡后（卡面纪律）。
+- 状态：空闲
+
+## 最近一次释放
+
+- 2026-10-12 21:09–22:35 +0800（本机钟）/ QUOTA-RECOVERY-LEGS-1（GLM-5.3 PC 执行流，ZCode 会话；worktree D:/Vit_DAW_wt_qrl1，协调分支 coord/qrl1-b，工件分支 port/quota-recovery-legs-1）：三腿五 run+一预检拦阻轮——①D1 reverb run 211011 **exit 1=非额度面功能缺陷上交**（no_axis_covered 门，9ae3aa91 修复首轮真栈验证不充分；额度面 0 错误+新配置 gpt-6.1-sol 接线验证过；栈 D1 后手动拆除 21:3x 核净）②harness_ab run 2122_harnessab **exit 0**（双模式健康链 quota_blocked=0；脚本 berth 自拆）③M1FiveThreeView 两轮 214605/215718 **均 exit 0 PASS 但 settle 面走诚实无记录分支**（正面分支新模型 0/2 未落交决策侧；首轮 213641=编辑器在场被清场预检拦，用户授权关闭后重跑；两轮均脚本自拆）。22:35 复核四端口 7878/5555/5556/8787 监听=0、VitApp/VitAgent 进程=0、Godot=0（编辑器 30420 由用户手动关闭）。占用登记 e1631ad9；被测=worktree 构建 agent（HEAD e1631ad9）+主检出 VitApp.exe B6565DCF85D1DA86（同挂账轮二进制）；工件 coord/runs/QUOTA-RECOVERY-LEGS-1/（精简件随 port/quota-recovery-legs-1），详见卡回执。
 
 ## 最近一次释放
 
