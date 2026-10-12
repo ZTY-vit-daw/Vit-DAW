@@ -5,7 +5,12 @@
 
 ## 当前占用
 
-- 状态：空闲
+- 状态：占用中
+- 卡：G3-REOPEN-COSTCMP-1（池序 73，probe 计量真栈对比轮）
+- Owner：GLM-5.3 PC 执行流（ZCode 会话；worktree D:/Vit_DAW_wt_g3rc1，分支 port/g3-reopen-costcmp-1）
+- 机器/端口：PC / 7878(HTTP)+5555/5556(ZMQ)+8787(VSP berth 预留)
+- 时间：2026-10-12 晚窗起（占用前复核：四端口 0 监听、VitApp/VitAgent 进程=0）
+- 备注：与 M2-TIMEFX-2 烟测腿串行——本卡短（harness_ab 对比轮×2+拆栈），先占先收；预计单次占用 ≤1.5h
 
 ## 最近一次释放
 
