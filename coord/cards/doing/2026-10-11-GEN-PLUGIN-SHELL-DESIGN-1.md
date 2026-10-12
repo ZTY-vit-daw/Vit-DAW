@@ -30,6 +30,6 @@
 
 设计五件齐+通道契约与统一化件三对齐无冲突+实施卡规格可直接发卡；风险表（VST3 SDK 许可/签名分发/异步边界）逐条结论。
 
-- 领取：（时间 / origin/main hash / owner / 领取提交）
+- 领取：2026-10-12 / origin/main 813cbf58 / owner=GLM Mac 执行会话 / 分支 port/gen-plugin-shell-design-1（独立 worktree ~/Documents/Vit-DAW-gpsd1，基线=813cbf58 干净检出）
 - 回执：（设计基线链接）
 - 验收：（裁定文件）
