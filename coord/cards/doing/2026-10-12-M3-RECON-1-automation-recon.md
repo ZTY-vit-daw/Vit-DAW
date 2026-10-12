@@ -32,6 +32,6 @@ tracktion automation 源不在仓内且无头文件可考 → 上交依赖清单
 
 2=内核 automation 写入命令面（依赖问 3 裁定）；3=包络车道 UI（时间线主场）+机架状态面（徽章/珠/播放头联动）；4=agent 范围 goal 编舞单轮终态（原 FREESTATE IMPL-1/2 并入，DESIGN 保留为输入）+意图层包络指令；5=后段快照统摄层（节点+过渡；先曲线后骨架再统摄）。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-12 早窗（/morning 后同会话代跑） / origin/main=f9a0d7cd057568784c354f574a4ca08bb370b96d / owner=闲时任务·主管会话代跑（GLM-5.3 主会话 sess_cf9df7ab） / 分支=main·coord-only 直推 / worktree=主工作树 D:\Vit_DAW（写面仅本卡+coord/runs/M3-RECON-1/）。并行流在场（M2-TIMEFX-1 worktree D:\Vit_DAW_wt_m2_timefx1@coord/close-m2-timefx1、LOUDNESS worktree D:\Vit_DAW_wt_loudness_watch_1@91ce26fd）——本卡零代码零触碰，写面互斥天然成立。注：闲时任务 offpeak-69cc8895（队列位 186）由本会话直接代跑，完成即核销，勿重复执行。
 - 回执：（报告路径 / 四问结论摘要 / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
