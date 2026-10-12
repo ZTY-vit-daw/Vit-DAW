@@ -26,6 +26,6 @@
 
 额度恢复后腿 1 仍失败（非额度面）→ 按功能缺陷上交换卡。
 
-- 领取：2026-10-12 21:07 +0800 / origin/main=173b417a / owner=GLM-5.3 PC 执行会话（ZCode，L1 真栈腿） / 协调分支=coord/qrl1，工件分支=port/quota-recovery-legs-1 / worktree=D:/Vit_DAW_wt_qrl1 / 领取提交=（待回填）
+- 领取：2026-10-12 21:07 +0800 / origin/main=173b417a / owner=GLM-5.3 PC 执行会话（ZCode，L1 真栈腿） / 协调分支=coord/qrl1，工件分支=port/quota-recovery-legs-1 / worktree=D:/Vit_DAW_wt_qrl1 / 领取提交=0280e14c
 - 回执：（run ID / 三腿结果 / 端测边界声明）
 - 验收：（裁定文件）

@@ -5,7 +5,8 @@
 
 ## 当前占用
 
-- 状态：空闲
+- 状态：占用中
+- 2026-10-12 21:09 +0800 登记 / QUOTA-RECOVERY-LEGS-1（GLM-5.3 PC 执行流，ZCode 会话；worktree D:/Vit_DAW_wt_qrl1，协调分支 coord/qrl1-b，工件分支 port/quota-recovery-legs-1）：三腿顺序收口（①D1 reverb 全链 ②harness_ab 双模式 LLM 面健康链 ③mix_report 有结论正面分支），栈=VitApp 内核(5555/5556)+VitAgent(7878)+Godot 前端（D1 腿 StartUI）；登记前只读核对四端口监听=0、VitApp/VitAgent/vsphub=0；Godot 编辑器本体 PID 30420（--editor）在场但不属运行栈不占端口，不触动。M3-KERNEL-1 开发期不占栈，其烟测腿排本卡后（卡面纪律）。
 
 ## 最近一次释放
 
