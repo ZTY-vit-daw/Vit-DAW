@@ -5,7 +5,14 @@
 
 ## 当前占用
 
-- 状态：占用中
+- 状态：空闲
+
+## 最近一次释放
+
+- 2026-10-12 22:08–22:26 +0800（本机钟）/ M3-KERNEL-1（GLM-5.3 PC 执行流，L2 内核 C++，ZCode 会话；worktree D:/Vit_DAW-wt-m3k1，分支 port/m3-kernel-1-automation）：automation 三命令真栈冒测两轮——220826 首轮 exit 1=设计发现腿（clear_region 用引擎 removePointsAndCloseGap 时边界值补偿锚点 AutomationCurve.cpp:630-635 使"区域覆盖全曲线"后仍余 2 点，改 removePoints 纯区域删除后修复）；221700 复轮 **PASS exit 0**（13 检全过：get 空+time_base 披露/越界 fail-closed 三反例零写入/写三点/逐点回读一致/区域清除/回读空/VSP CAS 反例错 base_revision 拒绝且曲线不动/无 CAS 基准写/cleanup）；两轮栈均 owner 手动拆除（脚本完成态不自带 teardown），22:26 复核四端口 5555/5556/7878/8787 监听=0、VitApp/VitAgent/vsphub 进程=0。占用登记 141635df；被测=worktree 自建 VitApp.exe（本卡改内核 C++，22:16 增量重建含 clear_region 修正）+worktree 构建 VitAgent；工件 coord/runs/M3-KERNEL-1/automation_curve_smoke_2026101{2_220826,2_221700}/（随 port 分支入库）。
+
+## 历史占用（上一条）
+
 - 2026-10-12 22:35 +0800 登记 / M3-KERNEL-1（GLM-5.3 PC 执行流，L2 内核 C++，ZCode 会话；worktree D:/Vit_DAW-wt-m3k1，分支 port/m3-kernel-1-automation，协调分支 coord/m3k1-stack）：automation.get_curve/set_points/clear_region 三命令真栈冒测腿（dev_agent_smoke -StartKernel -KernelExe=worktree 构建 VitApp.exe【本卡改内核 C++，必用自建二进制】+ -RestartAgent worktree 构建 + automation_curve_smoke.py 新腿：get 空→越界 fail-closed→写三点→逐点回读→区域清除→回读空→VSP CAS 反例）；登记前只读核对四端口 5555/5556/7878/8787 监听=0、VitApp/VitAgent/vsphub 进程=0（前 owner QUOTA-RECOVERY-LEGS-1 已于 e148249a 释放）。
 
 ## 最近一次释放
