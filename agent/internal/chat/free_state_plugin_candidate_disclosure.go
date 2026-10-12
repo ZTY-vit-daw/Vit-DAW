@@ -35,6 +35,8 @@ var freeStatePluginCandidateCapabilities = map[string]string{
 	d1LimiterDomain:              fmt.Sprintf("one bounded output ceiling move within %s on a single shared parameter", experiment.D1S1DBDoseRangeText()),
 	d1GateExpanderDomain:         fmt.Sprintf("one bounded gate range move within %s on a single shared parameter", experiment.D1S1DBDoseRangeText()),
 	d1MultibandDomain:            fmt.Sprintf("one bounded per-band threshold move within %s indexed by band_index", experiment.D1S1DBDoseRangeText()),
+	d1ReverbDomain:               fmt.Sprintf("one bounded reverb decay (tail) time move within %s on a single shared parameter", experiment.D1S1ReverbDecayDoseRangeText()),
+	d1DelayDomain:                fmt.Sprintf("one bounded delay feedback move within %s on a single shared parameter", experiment.D1S1DelayFeedbackDoseRangeText()),
 }
 
 // buildFreeStatePluginCandidateDisclosure loads the machine whitelist and
@@ -78,6 +80,12 @@ func buildFreeStatePluginCandidateDisclosure() map[string]any {
 		return e.PluginName, e.Manufacturer, e.Format, e.PluginIdentifier
 	}))
 	addFamily(d1MultibandDomain, identitiesOf(whitelist.Multiband, func(e experimentplugins.MultibandPlugin) (string, string, string, string) {
+		return e.PluginName, e.Manufacturer, e.Format, e.PluginIdentifier
+	}))
+	addFamily(d1ReverbDomain, identitiesOf(whitelist.Reverb, func(e experimentplugins.ReverbPlugin) (string, string, string, string) {
+		return e.PluginName, e.Manufacturer, e.Format, e.PluginIdentifier
+	}))
+	addFamily(d1DelayDomain, identitiesOf(whitelist.Delay, func(e experimentplugins.DelayPlugin) (string, string, string, string) {
 		return e.PluginName, e.Manufacturer, e.Format, e.PluginIdentifier
 	}))
 	if len(families) == 0 {

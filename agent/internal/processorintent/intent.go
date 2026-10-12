@@ -39,6 +39,8 @@ const (
 	FamilyMultibandDynamics   = "multiband_dynamics"
 	FamilySpectralDynamics    = "spectral_dynamics"
 	FamilyClipper             = "clipper"
+	FamilyReverb              = "reverb"
+	FamilyDelay               = "delay"
 )
 
 // Intent is the only model-owned family/coverage handoff. It intentionally
@@ -84,6 +86,7 @@ var supportedFamilies = map[string]bool{
 	FamilyStaticEQ: true, FamilyBroadbandCompressor: true, FamilyLimiter: true,
 	FamilyGateExpander: true, FamilyDeEsser: true, FamilyTransientShaper: true,
 	FamilyMultibandDynamics: true, FamilySpectralDynamics: true, FamilyClipper: true,
+	FamilyReverb: true, FamilyDelay: true,
 }
 
 var supportedScopes = map[string]bool{

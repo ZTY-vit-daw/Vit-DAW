@@ -233,7 +233,7 @@ func (p *StaticEQVSPPort) Apply(ctx context.Context, action orchestration.Action
 		if surfaceErr != nil {
 			return orchestration.ActionReceipt{ActionID: action.ID, Status: "failed", Error: surfaceErr.Error()}, fmt.Errorf("VSP plugin parameter mutation failed: %s", surfaceErr)
 		}
-		if strings.EqualFold(actionArgText(action, "target_semantics"), deltaSemantics) {
+		if isDeltaSemantics(actionArgText(action, "target_semantics")) {
 			channels, plan, deltaErr := p.planDeltaChannels(ctx, action.TargetRef, pluginID, requestID, txID, surface, target, channelIDs...)
 			if deltaErr != nil {
 				return orchestration.ActionReceipt{ActionID: action.ID, Status: "failed", Error: deltaErr.Error()}, fmt.Errorf("VSP plugin parameter mutation failed: %s", deltaErr)

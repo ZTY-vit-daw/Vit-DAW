@@ -167,6 +167,39 @@ type MultibandPlugin struct {
 	BandThresholdParamIDs []string `json:"band_threshold_param_ids"`
 }
 
+// ReverbPlugin is the reverb domain's whitelisted plugin (M2-TIMEFX-1): the
+// time-domain family's semantic vocabulary — decay (tail time), pre-delay,
+// and wet balance — pinned as single shared parameter ids. The domain row's
+// bounded single move targets DecayParamID; the other ids serve the family's
+// PCA attestation coverage and the inspector surface. All three must be
+// present so the attestation certifies the full declared vocabulary.
+type ReverbPlugin struct {
+	PluginName       string `json:"plugin_name"`
+	Manufacturer     string `json:"manufacturer"`
+	Format           string `json:"format"`
+	PluginIdentifier string `json:"plugin_identifier"`
+	PluginPath       string `json:"plugin_path"`
+	DecayParamID     string `json:"decay_param_id"`
+	PreDelayParamID  string `json:"pre_delay_param_id"`
+	WetParamID       string `json:"wet_param_id"`
+}
+
+// DelayPlugin is the delay domain's whitelisted plugin (M2-TIMEFX-1): the
+// time-domain family's semantic vocabulary — echo time, feedback amount, and
+// wet balance — pinned as single shared parameter ids. The domain row's
+// bounded single move targets FeedbackParamID; the other ids serve the
+// family's PCA attestation coverage and the inspector surface.
+type DelayPlugin struct {
+	PluginName       string `json:"plugin_name"`
+	Manufacturer     string `json:"manufacturer"`
+	Format           string `json:"format"`
+	PluginIdentifier string `json:"plugin_identifier"`
+	PluginPath       string `json:"plugin_path"`
+	TimeParamID      string `json:"time_param_id"`
+	FeedbackParamID  string `json:"feedback_param_id"`
+	WetParamID       string `json:"wet_param_id"`
+}
+
 // StaticEQPlugins is the v6 static_eq candidate list. Its decoder accepts the
 // v6 array form and the v5 single-object form (one-element list) with the
 // same unknown-field strictness the v5 loader enforced.
@@ -189,6 +222,12 @@ type GateExpanderPlugins []GateExpanderPlugin
 
 // MultibandPlugins is the v6 multiband candidate list.
 type MultibandPlugins []MultibandPlugin
+
+// ReverbPlugins is the v6 reverb candidate list.
+type ReverbPlugins []ReverbPlugin
+
+// DelayPlugins is the v6 delay candidate list.
+type DelayPlugins []DelayPlugin
 
 func (p *StaticEQPlugins) UnmarshalJSON(data []byte) error {
 	entries, err := unmarshalFamilyEntries[StaticEQPlugin](data)
@@ -232,6 +271,18 @@ func (p *MultibandPlugins) UnmarshalJSON(data []byte) error {
 	return err
 }
 
+func (p *ReverbPlugins) UnmarshalJSON(data []byte) error {
+	entries, err := unmarshalFamilyEntries[ReverbPlugin](data)
+	*p = entries
+	return err
+}
+
+func (p *DelayPlugins) UnmarshalJSON(data []byte) error {
+	entries, err := unmarshalFamilyEntries[DelayPlugin](data)
+	*p = entries
+	return err
+}
+
 // unmarshalFamilyEntries decodes one whitelist family in either wire form:
 // the v6 entry array or the v5 single object (normalized to a one-element
 // list). null decodes to a nil list (section absent). Unknown fields stay
@@ -268,6 +319,8 @@ type Whitelist struct {
 	Limiter              LimiterPlugins              `json:"limiter,omitempty"`
 	GateExpander         GateExpanderPlugins         `json:"gate_expander,omitempty"`
 	Multiband            MultibandPlugins            `json:"multiband,omitempty"`
+	Reverb               ReverbPlugins               `json:"reverb,omitempty"`
+	Delay                DelayPlugins                `json:"delay,omitempty"`
 }
 
 var ErrNotConfigured = errors.New("experiment plugin whitelist: static_eq plugin is not configured")
@@ -283,6 +336,10 @@ var ErrLimiterNotConfigured = errors.New("experiment plugin whitelist: limiter p
 var ErrGateExpanderNotConfigured = errors.New("experiment plugin whitelist: gate_expander plugin is not configured")
 
 var ErrMultibandNotConfigured = errors.New("experiment plugin whitelist: multiband plugin is not configured")
+
+var ErrReverbNotConfigured = errors.New("experiment plugin whitelist: reverb plugin is not configured")
+
+var ErrDelayNotConfigured = errors.New("experiment plugin whitelist: delay plugin is not configured")
 
 func DefaultPath() (string, error) {
 	home, err := os.UserHomeDir()
@@ -351,6 +408,16 @@ func Load(path string) (Whitelist, error) {
 	}
 	for _, plugin := range whitelist.Multiband {
 		if err := validateMultibandPlugin(plugin); err != nil {
+			return Whitelist{}, fmt.Errorf("experiment plugin whitelist: invalid %s: %w", path, err)
+		}
+	}
+	for _, plugin := range whitelist.Reverb {
+		if err := validateReverbPlugin(plugin); err != nil {
+			return Whitelist{}, fmt.Errorf("experiment plugin whitelist: invalid %s: %w", path, err)
+		}
+	}
+	for _, plugin := range whitelist.Delay {
+		if err := validateDelayPlugin(plugin); err != nil {
 			return Whitelist{}, fmt.Errorf("experiment plugin whitelist: invalid %s: %w", path, err)
 		}
 	}
@@ -504,6 +571,16 @@ func (w Whitelist) SelectGateExpander(pluginIdentifier string) (GateExpanderPlug
 // SelectMultiband mirrors SelectStaticEQ for multiband.
 func (w Whitelist) SelectMultiband(pluginIdentifier string) (MultibandPlugin, error) {
 	return selectFamilyEntry("multiband", pluginIdentifier, w.Multiband, ErrMultibandNotConfigured, func(p MultibandPlugin) string { return p.PluginIdentifier })
+}
+
+// SelectReverb mirrors SelectStaticEQ for reverb.
+func (w Whitelist) SelectReverb(pluginIdentifier string) (ReverbPlugin, error) {
+	return selectFamilyEntry("reverb", pluginIdentifier, w.Reverb, ErrReverbNotConfigured, func(p ReverbPlugin) string { return p.PluginIdentifier })
+}
+
+// SelectDelay mirrors SelectStaticEQ for delay.
+func (w Whitelist) SelectDelay(pluginIdentifier string) (DelayPlugin, error) {
+	return selectFamilyEntry("delay", pluginIdentifier, w.Delay, ErrDelayNotConfigured, func(p DelayPlugin) string { return p.PluginIdentifier })
 }
 
 // NearestBand maps one admitted frequency onto this plugin's nearest band
@@ -720,6 +797,44 @@ func (w Whitelist) ValidateMultibandAdmission(lib processorattestation.LibraryV2
 	)
 }
 
+// ValidateReverbAdmission mirrors ValidateMultibandAdmission for the reverb
+// whitelist section (M2-TIMEFX-1): same subject construction, same v2 library
+// predicate path (reverb is a PCA v2 family), and a distinguishable
+// not-PCA-promoted prefix naming this domain.
+func (w Whitelist) ValidateReverbAdmission(lib processorattestation.LibraryV2, pluginIdentifier string) error {
+	if len(w.Reverb) == 0 {
+		return ErrReverbNotConfigured
+	}
+	selected, err := w.SelectReverb(pluginIdentifier)
+	if err != nil {
+		return err
+	}
+	return w.validateSectionAdmissionV2(
+		"reverb",
+		selected.PluginName, selected.Manufacturer, selected.Format, selected.PluginIdentifier, selected.PluginPath,
+		processorattestation.FamilyReverb, lib,
+	)
+}
+
+// ValidateDelayAdmission mirrors ValidateReverbAdmission for the delay
+// whitelist section (M2-TIMEFX-1): same subject construction, same v2
+// library predicate path (delay is a PCA v2 family), and a distinguishable
+// not-PCA-promoted prefix naming this domain.
+func (w Whitelist) ValidateDelayAdmission(lib processorattestation.LibraryV2, pluginIdentifier string) error {
+	if len(w.Delay) == 0 {
+		return ErrDelayNotConfigured
+	}
+	selected, err := w.SelectDelay(pluginIdentifier)
+	if err != nil {
+		return err
+	}
+	return w.validateSectionAdmissionV2(
+		"delay",
+		selected.PluginName, selected.Manufacturer, selected.Format, selected.PluginIdentifier, selected.PluginPath,
+		processorattestation.FamilyDelay, lib,
+	)
+}
+
 // validateSectionAdmission is the shared admission predicate core for both
 // whitelist sections. The label appears verbatim in the returned boundary
 // prefix so each domain stays distinguishable upstream.
@@ -893,6 +1008,42 @@ func validateTransientShaperPlugin(plugin TransientShaperPlugin) error {
 	} {
 		if missing.value == "" {
 			return fmt.Errorf("transient_shaper %s must be non-empty", missing.field)
+		}
+	}
+	return nil
+}
+
+func validateReverbPlugin(plugin ReverbPlugin) error {
+	for _, missing := range []struct{ field, value string }{
+		{"plugin_name", plugin.PluginName},
+		{"manufacturer", plugin.Manufacturer},
+		{"format", plugin.Format},
+		{"plugin_identifier", plugin.PluginIdentifier},
+		{"plugin_path", plugin.PluginPath},
+		{"decay_param_id", plugin.DecayParamID},
+		{"pre_delay_param_id", plugin.PreDelayParamID},
+		{"wet_param_id", plugin.WetParamID},
+	} {
+		if missing.value == "" {
+			return fmt.Errorf("reverb %s must be non-empty", missing.field)
+		}
+	}
+	return nil
+}
+
+func validateDelayPlugin(plugin DelayPlugin) error {
+	for _, missing := range []struct{ field, value string }{
+		{"plugin_name", plugin.PluginName},
+		{"manufacturer", plugin.Manufacturer},
+		{"format", plugin.Format},
+		{"plugin_identifier", plugin.PluginIdentifier},
+		{"plugin_path", plugin.PluginPath},
+		{"time_param_id", plugin.TimeParamID},
+		{"feedback_param_id", plugin.FeedbackParamID},
+		{"wet_param_id", plugin.WetParamID},
+	} {
+		if missing.value == "" {
+			return fmt.Errorf("delay %s must be non-empty", missing.field)
 		}
 	}
 	return nil

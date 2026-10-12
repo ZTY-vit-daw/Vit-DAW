@@ -619,6 +619,10 @@ func improvementProposalProcessorType(proposal agentprotocol.ImprovementProposal
 		return "transient_shaper"
 	case agentprotocol.ImprovementActionDomainMultibandDynamics:
 		return "multiband_dynamics"
+	case agentprotocol.ImprovementActionDomainReverb:
+		return "reverb"
+	case agentprotocol.ImprovementActionDomainDelay:
+		return "delay"
 	default:
 		return ""
 	}

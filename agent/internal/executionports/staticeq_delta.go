@@ -23,6 +23,27 @@ const ThresholdDeltaToleranceDB = 0.15
 // discovers the local normalized->physical slope transactionally instead.
 const deltaSemantics = "delta_db"
 
+// deltaPhysicalSemantics (M2-TIMEFX-1) marks actions whose target_value is a
+// bounded physical delta in the row's own native unit instead of dB (reverb
+// decay seconds, delay feedback percentage points). The machine below is
+// unit-generic — slope discovery, normalized planning, and readback tolerance
+// all operate in the parameter's physical unit — so both markers route to the
+// same delta plan; the marker exists so persisted actions and receipts stay
+// truthful about the unit they carry.
+const deltaPhysicalSemantics = "delta_physical"
+
+// DeltaPhysicalSemantics exposes the non-dB delta marker for the chat plan
+// builder, which must mirror the domain row's own dose ceiling instead of
+// the shared dB ceiling for native-unit rows.
+const DeltaPhysicalSemantics = deltaPhysicalSemantics
+
+// isDeltaSemantics reports whether a target_semantics marker selects the
+// delta-on-current machine (either unit flavor).
+func isDeltaSemantics(marker string) bool {
+	marker = strings.ToLower(strings.TrimSpace(marker))
+	return marker == deltaSemantics || marker == deltaPhysicalSemantics
+}
+
 type deltaChannelPlan struct {
 	Channels        []eqGainChannel
 	CurrentPhysical float64

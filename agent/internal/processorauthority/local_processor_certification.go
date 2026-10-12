@@ -238,6 +238,8 @@ func validateV2CertificationTools(family, inspectTool, applyTool string) error {
 		processorattestation.FamilyDeEsser:      {"plugin_grabber.inspect_de_esser", "plugin_grabber.apply_de_esser_controls"},
 		processorattestation.FamilyTransient:    {"plugin_grabber.inspect_transient_shaper", "plugin_grabber.apply_transient_shaper_controls"},
 		processorattestation.FamilyMultiband:    {"plugin_grabber.inspect_multiband", "plugin_grabber.apply_multiband_controls"},
+		processorattestation.FamilyReverb:       {"plugin_grabber.inspect_reverb", "plugin_grabber.apply_reverb_controls"},
+		processorattestation.FamilyDelay:        {"plugin_grabber.inspect_delay", "plugin_grabber.apply_delay_controls"},
 	}[family]
 	if !ok {
 		return fmt.Errorf("PCA v2 certification tools do not match family %s", family)

@@ -23,6 +23,8 @@ const (
 	ImprovementActionDomainDeEsser              = "de_esser"
 	ImprovementActionDomainTransientShaper      = "transient_shaper"
 	ImprovementActionDomainMultibandDynamics    = "multiband_dynamics"
+	ImprovementActionDomainReverb               = "reverb"
+	ImprovementActionDomainDelay                = "delay"
 	ImprovementActionDomainPlugin               = "plugin"
 )
 
@@ -45,6 +47,8 @@ var improvementActionDomainVocabulary = []string{
 	ImprovementActionDomainDeEsser,
 	ImprovementActionDomainTransientShaper,
 	ImprovementActionDomainMultibandDynamics,
+	ImprovementActionDomainReverb,
+	ImprovementActionDomainDelay,
 	ImprovementActionDomainPlugin,
 }
 
