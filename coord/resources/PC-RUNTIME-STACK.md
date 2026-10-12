@@ -5,7 +5,8 @@
 
 ## 当前占用
 
-- 状态：空闲
+- 状态：占用中
+- 2026-10-12 晚窗起 / M2-TIMEFX-1（GLM-5.3 执行流，ZCode PC 会话，M2 时域线；worktree D:/Vit_DAW_wt_m2_timefx1，分支 port/m2-timefx-1）：真栈占用=参数面探测（FabFilter Pro-R / Timeless 3）+ pcactl certify-processor 两族发证 + 真栈烟测（reverb/delay 语义话术→确认→写参→回读）。领取时核对端口 5555/5556/7878/8787 监听=0。
 
 ## 最近一次释放
 
