@@ -1,0 +1,9 @@
+PASS
+  sync_prompt_normalized: ok
+  sync_duration_mapped: ok
+  suno_inspiration_mode: ok
+  suno_inspiration_no_stray_tags: ok
+  suno_mv_from_model: ok
+  suno_bearer_env_key: ok
+  suno_polled_to_success: ok
+  both_candidates_downloaded: ok

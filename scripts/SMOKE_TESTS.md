@@ -1811,3 +1811,23 @@ Notes:
 - Gates: kernel_clear / set_tempo_96 / state / music_context_tempo_96 /
   truekey_go_test; exit 0 = all green. Artifacts under
   coord/runs/GEN-CTX-INJECT-1/<run>-pass/.
+
+## Gen API Adapter Smoke (mac) — CONSUME extension (GEN-CTX-CONSUME-1)
+
+Path:
+
+- `~/Documents/Vit-DAW/scripts/gen_api_adapter_smoke_mac.sh` (P2b section, 21 gates total)
+
+Purpose:
+
+- Unified-context first consumer: gen.generate renders through the genctx
+  template engine (profile=gen_api) — auto blocks verbatim in the provider
+  request body, injection evidence in the reply, free_creation zero-block +
+  write-front sentinel refusal.
+
+Run:
+
+```sh
+./scripts/gen_api_adapter_smoke_mac.sh \
+  --kernel-bin /tmp/vit-ctxd1-build/app/VitApp_artefacts/Debug/VitApp
+```
