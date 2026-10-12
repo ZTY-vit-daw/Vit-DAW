@@ -11,6 +11,6 @@
 
 新包四件（快照组装/RenderGenerationPrompt+Profile/ValidateNotes+ValidateMidiFile/回读核验）+scene 三枚举（in_project 强制、free_creation/experiment_control 豁免+写前门哨兵）；零触碰 capabilitycontext/contextruntime/promptruntime；验收=件三 §6 清单单测+golden 集成（含黑键拒写/网格超容差拒写/合法通过）+真键冒测。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-12 早窗 / origin/main=813cbf58 / owner=Mac 决策侧会话兼执行（用户 2026-10-12 裁定排序权移交，PC 调度件 005893b7 在案）/ 分支 port/gen-ctx-inject-1 / worktree ~/Documents/Vit-DAW-geninj1
 - 回执：（commit / 单测清单）
 - 验收：（裁定文件 / 验收 commit）
