@@ -1,0 +1,393 @@
+{
+  "family": "reverb",
+  "track_id": "1037",
+  "plugin_id": "1045",
+  "classification": "predelay_decay_reverb",
+  "generation": "rv1t1_816949a7f97e2e7cf662dc41",
+  "write": {
+    "role": "wet",
+    "key": "display_value",
+    "value": 0.0
+  },
+  "fxm_probe": {
+    "crest_delta_db": -6.331,
+    "evidence_ref": "vit://dad.timefx_dual_tap/track:1037/t=0..441000@tfx2_821ac4a867484abb966a25c7#-",
+    "fxm_measurement": {
+      "baseline": {
+        "chain_state_hash": "1639e761b9f9bf3b",
+        "clip_revision": "dce143cc94027517692503e45e915d264eefc105e8473c6cbeb309798c1e071e",
+        "crest_db": 24.68039781498088,
+        "evidence_refs": [
+          "vit://dad.timefx_dual_tap/track:1037/t=0..441000@tfx2_821ac4a867484abb966a25c7#-"
+        ],
+        "id": "tfx2_821ac4a867484abb966a25c7_timefx_bypass",
+        "lufs": -31.26362680488541,
+        "peak_dbfs": -5.89222898990453,
+        "quality": {
+          "coverage": 1,
+          "deterministic": false,
+          "latency_compensated": true,
+          "nonzero": true
+        },
+        "render_revision": "a98bd01e86a10518fc2948885061f6d5bc27dae8b544560a1f0503efb87dd5b8",
+        "rms_dbfs": -30.57262680488541,
+        "source_revision": "68b4f2cafc4daf8d24b1cf3955bf7c5a52f703865faf526db8fe608d5ad1911c",
+        "stage": "timefx_bypass",
+        "status": "ready",
+        "window": {
+          "channel_count": 2,
+          "clip_revision": "dce143cc94027517692503e45e915d264eefc105e8473c6cbeb309798c1e071e",
+          "end_seconds": 10,
+          "sample_rate": 44100,
+          "source_revision": "68b4f2cafc4daf8d24b1cf3955bf7c5a52f703865faf526db8fe608d5ad1911c"
+        }
+      },
+      "chain": {
+        "chain_hash": "e2d7e2be13e4257726910b7277d014ee493f4279241e2406c8347f982bf6d16c",
+        "plugins": [
+          {
+            "order": 1,
+            "plugin_id": "1045",
+            "state_hash": "1639e761b9f9bf3b"
+          }
+        ],
+        "routing_hash": "e2d7e2be13e4257726910b7277d014ee493f4279241e2406c8347f982bf6d16c"
+      },
+      "conditions": {
+        "channel_count": 2,
+        "clip_revision": "dce143cc94027517692503e45e915d264eefc105e8473c6cbeb309798c1e071e",
+        "end_seconds": 10,
+        "sample_rate": 44100,
+        "source_revision": "68b4f2cafc4daf8d24b1cf3955bf7c5a52f703865faf526db8fe608d5ad1911c"
+      },
+      "probe_refs": [
+        "vit://dad.timefx_dual_tap/track:1037/t=0..441000@tfx2_821ac4a867484abb966a25c7#-"
+      ],
+      "processed": {
+        "chain_state_hash": "1639e761b9f9bf3b",
+        "clip_revision": "dce143cc94027517692503e45e915d264eefc105e8473c6cbeb309798c1e071e",
+        "crest_db": 18.34922944017961,
+        "evidence_refs": [
+          "vit://dad.timefx_dual_tap/track:1037/t=0..441000@tfx2_821ac4a867484abb966a25c7#-"
+        ],
+        "id": "tfx2_821ac4a867484abb966a25c7_timefx_processed",
+        "lufs": -30.67386787728825,
+        "peak_dbfs": -11.63363843710864,
+        "quality": {
+          "coverage": 1,
+          "deterministic": false,
+          "latency_compensated": true,
+          "nonzero": true
+        },
+        "render_revision": "a98bd01e86a10518fc2948885061f6d5bc27dae8b544560a1f0503efb87dd5b8",
+        "rms_dbfs": -29.98286787728825,
+        "source_revision": "68b4f2cafc4daf8d24b1cf3955bf7c5a52f703865faf526db8fe608d5ad1911c",
+        "stage": "timefx_processed",
+        "status": "ready",
+        "window": {
+          "channel_count": 2,
+          "clip_revision": "dce143cc94027517692503e45e915d264eefc105e8473c6cbeb309798c1e071e",
+          "end_seconds": 10,
+          "sample_rate": 44100,
+          "source_revision": "68b4f2cafc4daf8d24b1cf3955bf7c5a52f703865faf526db8fe608d5ad1911c"
+        }
+      },
+      "target_ref": {
+        "family": "reverb",
+        "id": "1037",
+        "kind": "track",
+        "plugin_id": "1045"
+      }
+    },
+    "fxm_projection": {
+      "baseline_stage": "timefx_bypass",
+      "chain_hash": "e2d7e2be13e4257726910b7277d014ee493f4279241e2406c8347f982bf6d16c",
+      "effect_delta": {
+        "rms_delta_db": 0.59,
+        "lufs_delta_db": 0.59,
+        "peak_delta_db": -5.741,
+        "crest_delta_db": -6.331
+      },
+      "evidence_refs": [
+        "vit://dad.timefx_dual_tap/track:1037/t=0..441000@tfx2_821ac4a867484abb966a25c7#-"
+      ],
+      "fxm_version": "v0",
+      "llm_context": {
+        "summary_md": "FXM partial projection vit://fxm/track:1037/t=all@unknown#sha256:4032f6d1d85e126a compares timefx_bypass against processed chain state.",
+        "compact_facts": [
+          {
+            "baseline_stage": "timefx_bypass",
+            "chain_hash": "e2d7e2be13e4257726910b7277d014ee493f4279241e2406c8347f982bf6d16c",
+            "projection_id": "vit://fxm/track:1037/t=all@unknown#sha256:4032f6d1d85e126a",
+            "status": "partial"
+          },
+          {
+            "metric": "rms_delta_db",
+            "value": 0.59
+          },
+          {
+            "metric": "lufs_delta_db",
+            "value": 0.59
+          },
+          {
+            "metric": "peak_delta_db",
+            "value": -5.741
+          }
+        ],
+        "do_not_include_raw_package": true,
+        "evidence_refs": [
+          "vit://dad.timefx_dual_tap/track:1037/t=0..441000@tfx2_821ac4a867484abb966a25c7#-"
+        ],
+        "limitation_notes": [
+          "one or both renders are not declared deterministic"
+        ],
+        "suggested_next_step": "Do not use this projection for action preflight until matching baseline and processed renders are available."
+      },
+      "projection_id": "vit://fxm/track:1037/t=all@unknown#sha256:4032f6d1d85e126a",
+      "schema_version": "fxm.projection.v0",
+      "status": "partial",
+      "target_ref": {
+        "family": "reverb",
+        "id": "1037",
+        "kind": "track",
+        "plugin_id": "1045"
+      },
+      "trust_quality": {
+        "overall_status": "partial",
+        "same_source": true,
+        "same_window": true,
+        "same_format": true,
+        "deterministic": false,
+        "latency_compensated": true,
+        "can_support_observation": true,
+        "can_support_suggestion": true,
+        "can_support_action_preflight": false,
+        "limitations": [
+          "one or both renders are not declared deterministic"
+        ]
+      }
+    },
+    "fxm_status": "partial",
+    "lufs_delta_db": 0.59,
+    "pair_id": "tfx2_821ac4a867484abb966a25c7",
+    "peak_delta_db": -5.741,
+    "rms_delta_db": 0.59,
+    "status": "ready"
+  },
+  "direct_receipt": {
+    "feature_family": "audio_feature",
+    "feature_type": "timefx_dual_tap_probe",
+    "schema_version": "dad.timefx_dual_tap_receipt.v1",
+    "pair_id": "tfx2_3fff654e84fb46c7b6d480ff",
+    "request_id": "timefx_smoke_direct_1791805866",
+    "track_id": "1037",
+    "clip_id": "1041",
+    "plugin_instance_id": "1045",
+    "plugin_position": "track_slot:0/rack:1044/node:0.3200,0.3200",
+    "family": "reverb",
+    "topology_class": "predelay_decay_reverb",
+    "topology_generation": "rv1t1_816949a7f97e2e7cf662dc41",
+    "chain_hash": "e2d7e2be13e4257726910b7277d014ee493f4279241e2406c8347f982bf6d16c",
+    "processor_state_hash": "1639e761b9f9bf3b",
+    "scope_revision": "d88773fe86b3e24f5da793819ed787b4e8a118022cc863139c283866fc471d09",
+    "source_revision": "68b4f2cafc4daf8d24b1cf3955bf7c5a52f703865faf526db8fe608d5ad1911c",
+    "clip_revision": "dce143cc94027517692503e45e915d264eefc105e8473c6cbeb309798c1e071e",
+    "render_revision": "66db00fe3a8fdf4a5ecb8c9eec18c12094d7814e926370602183525a9ebda1ec",
+    "start_sample": 0,
+    "end_sample": 480000,
+    "sample_rate": 44100.0,
+    "channel_layout": "stereo",
+    "render_mode": "offline_probe",
+    "deterministic": true,
+    "baseline_tap": "timefx_bypass",
+    "processed_tap": "timefx_processed",
+    "tail_policy": "same_window_pair",
+    "analyzer_version": "dad.timefx_dual_tap_analyzer.v1",
+    "evidence_ref": "vit://dad.timefx_dual_tap/track:1037/t=0..480000@tfx2_3fff654e84fb46c7b6d480ff#-",
+    "command": "timefx_dual_tap_probe_ready",
+    "status": "partial",
+    "quality_status": "partial",
+    "job_id": "04ddf64460b848bba041323d413fe3d5",
+    "reason": "processed_render_repeat_variance",
+    "channel_count": 2,
+    "determinism_proof_status": "partial",
+    "determinism_max_abs_delta": 0.060737770050764,
+    "determinism_rms_delta": 0.008148348465588,
+    "determinism_correlation": 0.959122023194132,
+    "determinism_peak_db_delta": -0.377943522662644,
+    "determinism_rms_db_delta": -0.073412416105505,
+    "latency_compensated": true,
+    "tap_metrics": {
+      "baseline": {
+        "sample_frames": 480000,
+        "nonzero_samples": 105904,
+        "nan_inf_samples": 0,
+        "coverage": 1.0,
+        "peak_dbfs": -5.89222898990453,
+        "rms_dbfs": -30.940653283962895,
+        "approximate_lufs": -31.631653283962894,
+        "crest_db": 25.048424294058364
+      },
+      "processed": {
+        "sample_frames": 480000,
+        "nonzero_samples": 959284,
+        "nan_inf_samples": 0,
+        "coverage": 1.0,
+        "peak_dbfs": -11.86452412440623,
+        "rms_dbfs": -30.31530851655132,
+        "approximate_lufs": -31.006308516551318,
+        "crest_db": 18.45078439214509
+      }
+    },
+    "effect_delta": {
+      "rms_delta_db": 0.625344767411576,
+      "lufs_delta_db": 0.625344767411576,
+      "peak_delta_db": -5.9722951345017,
+      "crest_delta_db": -6.597639901913276
+    },
+    "artifact_sha256": "980ccf2bcd698b62a7245e194f2ead44ec25549c944c3dcc2bf757975b6d4cdc",
+    "artifact_bytes": 2355
+  },
+  "gates": [
+    {
+      "gate": "A1.add_track",
+      "pass": true,
+      "detail": "add_track reply: {'status': 'ok', 'message': 'Track added', 'track_id': '1037', 'track_name': 'Track 7'}"
+    },
+    {
+      "gate": "A1.track_id",
+      "pass": true,
+      "detail": "add_track track_id missing: {'status': 'ok', 'message': 'Track added', 'track_id': '1037', 'track_name': 'Track 7'}"
+    },
+    {
+      "gate": "A2.import_audio",
+      "pass": true,
+      "detail": "import_audio reply: {'status': 'ok', 'action': 'import_audio', 'message': 'Audio clip imported', 'track_id': '1037', 'clip_id': '1041', 'clip_name': 'transient_burst_48k_10s', 'file_path': 'D:\\\\Vit_DAW\\\\PluginProbe\\\\assets\\\\probe_audio_v1\\\\transient_burst_48k_10s.wav', 'start_time': 0.0, 'clip_length_seconds': 10.0, 'length': 10.0, 'edit_length_seconds': 20.0, 'baking_status': 'baking_started'}"
+    },
+    {
+      "gate": "A3.rack_add_node",
+      "pass": true,
+      "detail": "rack_add_node reply: {'status': 'ok', 'message': 'Rack node added', 'track_id': '1037', 'rack_item_id': '1044', 'plugin_id': '1045', 'plugin_item_id': '1045', 'plugin_name': 'Pro-R', 'plugin_identifier': 'VST3-Pro-R-4bc24482-78c01fa6', 'zone_id': 'Z3', 'clip_scope': 'track', 'template_role': 'other', 'plugin_instance_ready': True, 'plugin_load_state': 'name=Pro-R id=1045 format=VST3 path=C:\\\\Program Files\\\\Common Files\\\\VST3\\\\FabFilter\\\\FabFilter Pro-R.vst3 enabled=true processing=true edit_should_load_plugins=true async=false load_error=', 'x': 0.319999992847443, 'y': 0.319999992847443, 'graph_revision': 1, 'graph_active_revision': 1, 'graph_pending_revision': 0, 'graph_last_retired_revision': 0, 'graph_retired_snapshot_count': 0, 'graph_last_diff_kind': 'node_add', 'graph_last_diff_summary': 'Added rack node Pro-R', 'graph_publish_mode': 'context_rebuild_idle', 'graph_lifecycle_state': 'active', 'graph_recent_changes': [{'revision': 1, 'kind': 'node_add', 'summary': 'Added rack node Pro-R', 'track_id': '1037', 'rack_item_id': '1044', 'node_id': '1045', 'source_id': '', 'dest_id': '', 'timestamp_ms': 1791805863284}]}"
+    },
+    {
+      "gate": "A3.plugin_id",
+      "pass": true,
+      "detail": "rack_add_node plugin id missing: {'status': 'ok', 'message': 'Rack node added', 'track_id': '1037', 'rack_item_id': '1044', 'plugin_id': '1045', 'plugin_item_id': '1045', 'plugin_name': 'Pro-R', 'plugin_identifier': 'VST3-Pro-R-4bc24482-78c01fa6', 'zone_id': 'Z3', 'clip_scope': 'track', 'template_role': 'other', 'plugin_instance_ready': True, 'plugin_load_state': 'name=Pro-R id=1045 format=VST3 path=C:\\\\Program Files\\\\Common Files\\\\VST3\\\\FabFilter\\\\FabFilter Pro-R.vst3 enabled=true processing=true edit_should_load_plugins=true async=false load_error=', 'x': 0.319999992847443, 'y': 0.319999992847443, 'graph_revision': 1, 'graph_active_revision': 1, 'graph_pending_revision': 0, 'graph_last_retired_revision': 0, 'graph_retired_snapshot_count': 0, 'graph_last_diff_kind': 'node_add', 'graph_last_diff_summary': 'Added rack node Pro-R', 'graph_publish_mode': 'context_rebuild_idle', 'graph_lifecycle_state': 'active', 'graph_recent_changes': [{'revision': 1, 'kind': 'node_add', 'summary': 'Added rack node Pro-R', 'track_id': '1037', 'rack_item_id': '1044', 'node_id': '1045', 'source_id': '', 'dest_id': '', 'timestamp_ms': 1791805863284}]}"
+    },
+    {
+      "gate": "A4.parameters",
+      "pass": true,
+      "detail": "plugin parameters unavailable: {'status': 'ok', 'track_id': '1037', 'plugin_id': '1045', 'plugin_item_id': '1045', 'template_role': 'other', 'supports_param_grabber': True, 'current_param_signature_hash': 'probe_40f22f423d15334b', 'binding_targets': [{'target_kind': 'plugin_param', 'plugin_id': '1045', 'plugin_name': 'Pro-R', 'plugin_type': 'vst', 'template_role': '', 'param_id': 'dry level', 'param_name': 'Dry Level', 'normali"
+    },
+    {
+      "gate": "B1.recognizer",
+      "pass": true,
+      "detail": "recognizer identity missing: class='predelay_decay_reverb' gen='rv1t1_816949a7f97e2e7cf662dc41'"
+    },
+    {
+      "gate": "B2.apply_status",
+      "pass": true,
+      "detail": "apply status: exact"
+    },
+    {
+      "gate": "B3.fxm_probe_attached",
+      "pass": true,
+      "detail": "apply result carried no fxm_probe: {'atomic': True, 'controls': [{'actual_readback': [{'channel': 'shared', 'normalized': 1, 'param_id': 'wet level', 'physical': None, 'role': 'wet', 'value_text': '+0.0 dB'}], 'control_ref': 'rvcr1_eyJraW5kIjoicmV2ZXJiX2NvbnRyb2xfcmVmLnYxIiwidHJhY2tfaWQiOiIxMDM3IiwicGx1Z2luX2lkIjoiMTA0NSIsImdlbmVyYXRpb24iOiJydjF0MV84MTY5NDlhN2Y5N2UyZTdjZjY2MmRjNDEiLCJzdGFnZV9rZXkiOiJyZXZlcmIiLCJzZWN0aW9uIjoib3V0cHV0Iiwicm9sZSI6IndldCIsInBhcmFtX2lkIjoid2V0IGxldmVsIn0.bd2e93d0a8e8b720', 'requested': {'control_ref': 'rvcr1_eyJraW5kIjoicmV2ZXJiX2NvbnRyb2xfcmVmLnYxIiwidHJhY2tfaWQiOiIxMDM3IiwicGx1Z2luX2lkIjoiMTA0NSIs"
+    },
+    {
+      "gate": "B3.probe_ready",
+      "pass": true,
+      "detail": "fxm probe status: ready reason=None"
+    },
+    {
+      "gate": "B3.fxm_status",
+      "pass": true,
+      "detail": "fxm projection status: partial"
+    },
+    {
+      "gate": "B4.identity_gates",
+      "pass": true,
+      "detail": "identity gates: {'overall_status': 'partial', 'same_source': True, 'same_window': True, 'same_format': True, 'deterministic': False, 'latency_compensated': True, 'can_support_observation': True, 'can_support_suggestion': True, 'can_support_action_preflight': False, 'limitations': ['one or both renders are not declared deterministic']}"
+    },
+    {
+      "gate": "B5.deltas_finite",
+      "pass": true,
+      "detail": "delta values not real numbers: {'rms_delta_db': 0.59, 'lufs_delta_db': 0.59, 'peak_delta_db': -5.741, 'crest_delta_db': -6.331}"
+    },
+    {
+      "gate": "B5.bypass_ne_processed",
+      "pass": true,
+      "detail": "bypass equals processed (rms delta 0.59): no transformation measured"
+    },
+    {
+      "gate": "B5.effect_delta_complete",
+      "pass": true,
+      "detail": "fxm projection effect_delta incomplete: {'rms_delta_db': 0.59, 'lufs_delta_db': 0.59, 'peak_delta_db': -5.741, 'crest_delta_db': -6.331}"
+    },
+    {
+      "gate": "C1.probe_accepted",
+      "pass": true,
+      "detail": "probe command rejected: {'status': 'ok', 'message': 'Timefx dual-tap probe started', 'cmd': 'timefx_dual_tap_probe', 'feature_type': 'timefx_dual_tap_probe', 'job_id': '04ddf64460b848bba041323d413fe3d5', 'pair_id': 'tfx2_3fff654e84fb46c7b6d480ff', 'evidence_ref': 'vit://dad.timefx_dual_tap/track:1037/t=0..480000@tfx2_3fff654e84fb46c7b6d480ff#-', 'probe_status': 'building'}"
+    },
+    {
+      "gate": "C1.pair_id",
+      "pass": true,
+      "detail": "pair id shape: tfx2_3fff654e84fb46c7b6d480ff"
+    },
+    {
+      "gate": "C1.evidence_ref",
+      "pass": true,
+      "detail": "evidence ref: vit://dad.timefx_dual_tap/track:1037/t=0..480000@tfx2_3fff654e84fb46c7b6d480ff#-"
+    },
+    {
+      "gate": "C2.terminal_event",
+      "pass": true,
+      "detail": "no terminal probe event for tfx2_3fff654e84fb46c7b6d480ff (events seen: 4)"
+    },
+    {
+      "gate": "C2.receipt_ready",
+      "pass": true,
+      "detail": "probe receipt status: partial reason=processed_render_repeat_variance"
+    },
+    {
+      "gate": "C3.tap_metrics",
+      "pass": true,
+      "detail": "tap metrics missing: {'baseline': {'sample_frames': 480000, 'nonzero_samples': 105904, 'nan_inf_samples': 0, 'coverage': 1.0, 'peak_dbfs': -5.89222898990453, 'rms_dbfs': -30.940653283962895, 'approximate_lufs': -31.631653283962894, 'crest_db': 25.048424294058364}, 'processed': {'sample_frames': 480000, 'nonzero_samples': 959284, 'nan_inf_samples': 0, 'coverage': 1.0, 'peak_dbfs': -11.86452412440623, 'rms_dbfs': -30.31530851655132, 'approximate_lufs': -31.006308516551318, 'crest_db': 18.45078439214509}}"
+    },
+    {
+      "gate": "C3.bypass_ne_processed",
+      "pass": true,
+      "detail": "kernel taps equal: baseline=-30.940653283962895 processed=-30.31530851655132"
+    },
+    {
+      "gate": "C3.metrics_complete",
+      "pass": true,
+      "detail": "baseline metrics incomplete: {'sample_frames': 480000, 'nonzero_samples': 105904, 'nan_inf_samples': 0, 'coverage': 1.0, 'peak_dbfs': -5.89222898990453, 'rms_dbfs': -30.940653283962895, 'approximate_lufs': -31.631653283962894, 'crest_db': 25.048424294058364}"
+    },
+    {
+      "gate": "C3.metrics_complete",
+      "pass": true,
+      "detail": "processed metrics incomplete: {'sample_frames': 480000, 'nonzero_samples': 959284, 'nan_inf_samples': 0, 'coverage': 1.0, 'peak_dbfs': -11.86452412440623, 'rms_dbfs': -30.31530851655132, 'approximate_lufs': -31.006308516551318, 'crest_db': 18.45078439214509}"
+    },
+    {
+      "gate": "C4.artifact_on_disk",
+      "pass": true,
+      "detail": "artifact missing: D:\\Vit_DAW_wt_m2_timefx2\\VitApp\\Workspace\\Artifacts\\timefx_evidence\\tfx2_3fff654e84fb46c7b6d480ff\\tfx2_3fff654e84fb46c7b6d480ff.json"
+    },
+    {
+      "gate": "C4.artifact_sha",
+      "pass": true,
+      "detail": "artifact sha mismatch: disk=980ccf2bcd698b62a7245e194f2ead44ec25549c944c3dcc2bf757975b6d4cdc receipt=980ccf2bcd698b62a7245e194f2ead44ec25549c944c3dcc2bf757975b6d4cdc"
+    },
+    {
+      "gate": "C4.artifact_schema",
+      "pass": true,
+      "detail": "artifact schema: dad.timefx_dual_tap_evidence.v1"
+    },
+    {
+      "gate": "C4.tail_policy",
+      "pass": true,
+      "detail": "artifact tail policy: same_window_pair"
+    }
+  ]
+}

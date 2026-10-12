@@ -1,0 +1,256 @@
+{
+  "schema_version": "vit.free_state_d1_smoke.v1",
+  "started_at": "2026-10-12T11:55:03.335221+00:00",
+  "public_case_id": "spv1_p01",
+  "prompt_flavor": "reverb",
+  "expect_domain": "reverb",
+  "expect_honest_refusal": false,
+  "public_source_project": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\projects\\spv1_p01\\spv1_p01.vit",
+  "material_qualification": {
+    "schema_version": "vit.free_state_d1_material_qualification.v1",
+    "status": "passed",
+    "qualification_profile": "spv1_synthetic",
+    "gates": {
+      "min_rms_dbfs_per_track": -45.0,
+      "min_crest_db_per_track": 10.0,
+      "min_best_crest_db": 14.0
+    },
+    "best_crest_db": 20.989,
+    "tracks": [
+      {
+        "track": "bass",
+        "file": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav",
+        "rms_dbfs": -31.016,
+        "peak_dbfs": -15.94,
+        "crest_db": 15.076
+      },
+      {
+        "track": "drums",
+        "file": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav",
+        "rms_dbfs": -20.997,
+        "peak_dbfs": -5.369,
+        "crest_db": 15.627
+      },
+      {
+        "track": "guitar",
+        "file": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav",
+        "rms_dbfs": -33.942,
+        "peak_dbfs": -12.953,
+        "crest_db": 20.989
+      },
+      {
+        "track": "other",
+        "file": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav",
+        "rms_dbfs": -24.813,
+        "peak_dbfs": -8.049,
+        "crest_db": 16.763
+      },
+      {
+        "track": "piano",
+        "file": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav",
+        "rms_dbfs": -30.263,
+        "peak_dbfs": -11.861,
+        "crest_db": 18.402
+      },
+      {
+        "track": "vocals",
+        "file": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav",
+        "rms_dbfs": -19.888,
+        "peak_dbfs": -5.388,
+        "crest_db": 14.5
+      }
+    ],
+    "sibilance_band": {
+      "schema_version": "vit.free_state_d1_material_qualification.v1",
+      "status": "passed",
+      "metric": "windowed high-band/full-band energy ratio dispersion (p95-p50, dB)",
+      "gates": {
+        "band_low_hz": 4800.0,
+        "band_high_hz": 10500.0,
+        "fft_size": 2048,
+        "min_contrast_db_per_track": 6.0,
+        "min_best_contrast_db": 14.0
+      },
+      "best_contrast_p95_p50_db": 19.621,
+      "tracks": [
+        {
+          "track": "bass",
+          "contrast_p95_p50_db": 18.256,
+          "p50_db": -42.079,
+          "p95_db": -23.823
+        },
+        {
+          "track": "drums",
+          "contrast_p95_p50_db": 10.823,
+          "p50_db": -16.822,
+          "p95_db": -5.998
+        },
+        {
+          "track": "guitar",
+          "contrast_p95_p50_db": 16.255,
+          "p50_db": -31.033,
+          "p95_db": -14.778
+        },
+        {
+          "track": "other",
+          "contrast_p95_p50_db": 9.901,
+          "p50_db": -28.407,
+          "p95_db": -18.506
+        },
+        {
+          "track": "piano",
+          "contrast_p95_p50_db": 9.359,
+          "p50_db": -40.497,
+          "p95_db": -31.138
+        },
+        {
+          "track": "vocals",
+          "contrast_p95_p50_db": 19.621,
+          "p50_db": -21.978,
+          "p95_db": -2.357
+        }
+      ]
+    },
+    "transient_window": {
+      "schema_version": "vit.free_state_d1_material_qualification.v1",
+      "status": "passed",
+      "metric": "short-window peak vs long-window median RMS level (dB)",
+      "gates": {
+        "short_window_seconds": 0.01,
+        "long_window_seconds": 0.2,
+        "min_contrast_db_per_track": 6.0,
+        "min_best_contrast_db": 14.0
+      },
+      "best_contrast_short_peak_long_median_db": 19.52,
+      "tracks": [
+        {
+          "track": "bass",
+          "contrast_short_peak_long_median_db": 19.52,
+          "short_peak_db": -19.619,
+          "long_median_db": -39.139
+        },
+        {
+          "track": "drums",
+          "contrast_short_peak_long_median_db": 12.358,
+          "short_peak_db": -8.536,
+          "long_median_db": -20.894
+        },
+        {
+          "track": "guitar",
+          "contrast_short_peak_long_median_db": 18.47,
+          "short_peak_db": -22.076,
+          "long_median_db": -40.546
+        },
+        {
+          "track": "other",
+          "contrast_short_peak_long_median_db": 9.806,
+          "short_peak_db": -15.375,
+          "long_median_db": -25.181
+        },
+        {
+          "track": "piano",
+          "contrast_short_peak_long_median_db": 13.551,
+          "short_peak_db": -19.047,
+          "long_median_db": -32.598
+        },
+        {
+          "track": "vocals",
+          "contrast_short_peak_long_median_db": 7.36,
+          "short_peak_db": -12.478,
+          "long_median_db": -19.838
+        }
+      ]
+    }
+  },
+  "project_setup": {
+    "project_path": "D:\\Vit_DAW_wt_m2_timefx2\\artifacts\\free_state_d1_s1\\20261012_195448\\project\\spv1_p01.vit",
+    "reused_live_binding": false,
+    "dad_fact_status": "ready",
+    "dad_fact_ready_count": 6,
+    "dad_fact_total_count": 6
+  },
+  "started_at_epoch": 1791806173.949989,
+  "ui_context_preflight": {
+    "status": "clean",
+    "keys": []
+  },
+  "conversation_id": "d1_s1_20261012T115613961412",
+  "responses": [
+    {
+      "conversation_id": "d1_s1_20261012T115613961412",
+      "task_id": "task_e7b6a99f66721f8a",
+      "goal_id": "goal_aa12fbd01a9bf060",
+      "run_id": "run_431ecab541ff8d33",
+      "slice_id": "slice_5895e4acfaecf8f3",
+      "original_intent": "有几轨的尾巴听起来拖得比较长、残响拖沓不够干净，但各轨电平平衡已经合适，不要用整体增益或 EQ 来解决。请先观察工程，再针对这个混响尾巴问题给一个有界的小步改进建议。",
+      "reply": "执行失败：预扣费额度失败, 用户剩余额度: 0.000190, 需要预扣费额度: 0.011956",
+      "agent_mode": "default",
+      "needs_confirmation": false,
+      "goal_status": "failed",
+      "goal_summary": "有几轨的尾巴听起来拖得比较长、残响拖沓不够干净，但各轨电平平衡已经合适，不要用整体增益或 EQ 来解决。请先观察工程，再针对这个混响尾巴问题给一个有界的小步改进建议。",
+      "stop_reason": "failed",
+      "project_history": {
+        "active_branch": "main",
+        "active_node_id": "n_20261012T115625_07eca813",
+        "active_worktree": "",
+        "available": true,
+        "branches": {
+          "main": "c_20261012T115624_98929707"
+        },
+        "commit_count": 1,
+        "conversation_messages": [
+          {
+            "content": "有几轨的尾巴听起来拖得比较长、残响拖沓不够干净，但各轨电平平衡已经合适，不要用整体增益或 EQ 来解决。请先观察工程，再针对这个混响尾巴问题给一个有界的小步改进建议。",
+            "logical_message_id": "n_20261012T115624_658a488d",
+            "message_kind": "user",
+            "node_id": "n_20261012T115624_658a488d",
+            "role": "user"
+          },
+          {
+            "content": "执行失败：预扣费额度失败, 用户剩余额度: 0.000190, 需要预扣费额度: 0.011956",
+            "logical_message_id": "n_20261012T115625_07eca813",
+            "message_kind": "error",
+            "node_id": "n_20261012T115625_07eca813",
+            "role": "assistant"
+          }
+        ],
+        "detached": false,
+        "draft": false,
+        "head": "c_20261012T115624_98929707",
+        "initialized": true,
+        "project_label": "spv1_p01",
+        "project_path": "D:\\Vit_DAW_wt_m2_timefx2\\artifacts\\free_state_d1_s1\\20261012_195448\\project\\spv1_p01.vit",
+        "project_uuid": "vitproj_b3f2838183d64add9ca7824b8b3ac557",
+        "refs": {
+          "refs/heads/main": "c_20261012T115624_98929707"
+        },
+        "root_project_path": "",
+        "unsaved": false,
+        "warnings": [],
+        "worktrees": [
+          {
+            "commit_id": "c_20261012T115624_98929707",
+            "created_at": "2026-10-12T11:56:25.8041827Z",
+            "is_root": true,
+            "label": "主工作树",
+            "name": "main",
+            "origin_commit_id": "c_20261012T115624_98929707",
+            "path": "D:\\Vit_DAW_wt_m2_timefx2\\artifacts\\free_state_d1_s1\\20261012_195448\\project",
+            "project_file_path": "D:\\Vit_DAW_wt_m2_timefx2\\artifacts\\free_state_d1_s1\\20261012_195448\\project\\spv1_p01.vit",
+            "project_path": "D:\\Vit_DAW_wt_m2_timefx2\\artifacts\\free_state_d1_s1\\20261012_195448\\project\\spv1_p01.vit",
+            "root_project_path": "D:\\Vit_DAW_wt_m2_timefx2\\artifacts\\free_state_d1_s1\\20261012_195448\\project\\spv1_p01.vit"
+          }
+        ]
+      },
+      "error": "预扣费额度失败, 用户剩余额度: 0.000190, 需要预扣费额度: 0.011956",
+      "lifecycle": "durable",
+      "persistence": "project_history",
+      "message_kind": "error",
+      "turn_id": "turn_9f27b55b28f521c7",
+      "logical_message_id": "n_20261012T115625_07eca813"
+    }
+  ],
+  "selected_domains": [],
+  "status": "not_exercised",
+  "reason": "spv1_p01 open run did not autonomously select reverb"
+}
