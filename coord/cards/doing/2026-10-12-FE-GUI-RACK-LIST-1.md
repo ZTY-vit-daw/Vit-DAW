@@ -27,6 +27,6 @@
 
 插件清单元数据缺厂商/类型字段致分组无米下锅 → 上交字段缺口（不私造分类）。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-12 20:52 / origin/main=41717534633fa4679b2939241c030a8dfc825f23（本地一致）/ owner=GLM-5.3 · PC · ZCode 前端执行会话（用户 2026-10-12 晚窗口令指派领取本卡）/ 前端仓分支=port/fe-rack-list-1，基线=vit-daw-frontend c56e38f586f10b8c154d538f7485c644b1d731aa（活线 port/fe-gui-shrink-1 tip，含先例 FE-RACK-CTX-PLUGIN-LOAD-1 924318d；卡面锚点 rack_plugin_search_popup.gd/left_library_dock._rebuild_plugins_tree:618 在该基线核实）/ 前端 worktree=D:/Godot/project/vit-daw-frontend-fe-rack-list（独立 worktree）/ 领取提交=见下回填
 - 回执：（commit / 探针结果 / 端测边界声明）
 - 验收：（裁定文件 / 用户目检）
