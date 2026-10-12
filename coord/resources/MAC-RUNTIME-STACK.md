@@ -17,4 +17,5 @@
 
 ## 历史占用（归档）
 
+- 2026-10-12 10:18:19–10:18:22 +0800 / GEN-CTX-INJECT-1 真键冒测（Mac 决策侧会话兼执行）：`genctx_truekey_smoke_mac.sh` 单内核直连 ZMQ 一轮 PASS exit 0（占用前 7878/5555/5556/5557 空闲亲核；脚本自 teardown，末轮后无残留）；run 工件 coord/runs/GEN-CTX-INJECT-1/genctx_truekey_mac_20261012-101819-pass/。
 - 2026-10-11 18:15–18:21 +0800 / GEN-MAC-BASELINE-1 验收复跑（Mac 决策侧会话，ZCode）：`gen_chain_survey_smoke_mac.sh` 独立复验一轮 exit 0 全门绿（复用同哈希双二进制，run workdir 独立临时目录，脚本自 teardown）；收尾 lsof 7878/5555/5556/5557 与 pgrep VitApp/vitagent 亲核零残留。
