@@ -322,6 +322,8 @@ class H(BaseHTTPRequestHandler):
         body = json.loads(self.rfile.read(length) or b"{}")
         if self.path == "/generate":
             evidence["sync_submit"].append(body)
+            # request-body trace for the CONSUME injection gates (grep SIM_LOG)
+            sys.stderr.write("sync_request_body: " + str(body.get("prompt", ""))[:600] + "\n")
             self._wav(sine_wav(440.0, 0.5))
         elif self.path == "/suno/submit/music":
             evidence["suno_submit"].append(body)
@@ -552,6 +554,46 @@ else
   gate unified_clip_addressable 0 "transport/http failure"
 fi
 
+# ------------------------------------------------- P2b unified-context injection (GEN-CTX-CONSUME-1)
+log "P2b: gen.generate prompt carries the unified-context auto blocks..."
+if invoke_tool p05b_gen_inject 180 "gen.generate" \
+  "{\"provider_id\":\"local-musicgen\",\"prompt\":\"warm unified intro\",\"duration_seconds\":0.5,\"track_id\":\"$AUDIO_TRACK_ID\",\"start_time\":1.0,\"take_stack_id\":\"genapi-smoke-unified\",\"scene\":\"in_project\"}"; then
+  INJ_MC="$(result_field "$REPLY_FILE" 'str(((r.get("prompt_context") or {}).get("music_context_block")))')"
+  INJ_CT="$(result_field "$REPLY_FILE" 'str(((r.get("prompt_context") or {}).get("constraints_block")))')"
+  INJ_SCENE="$(result_field "$REPLY_FILE" 'str(r.get("scene",""))')"
+  if [[ "$INJ_MC" == "True" && "$INJ_CT" == "True" && "$INJ_SCENE" == "in_project" ]]; then
+    gate consume_inject_evidence_ok 1 "blocks=mc+constraints scene=$INJ_SCENE"
+  else
+    gate consume_inject_evidence_ok 0 "mc=$INJ_MC constraints=$INJ_CT scene=$INJ_SCENE"
+  fi
+else
+  gate consume_inject_evidence_ok 0 "transport/http failure"
+fi
+if grep -q "== MUSIC CONTEXT" "$SIM_LOG" 2>/dev/null && grep -q "== CONSTRAINTS" "$SIM_LOG" 2>/dev/null; then
+  gate consume_simulator_saw_blocks 1 "auto blocks present in simulator-received request body"
+else
+  gate consume_simulator_saw_blocks 0 "simulator log lacks auto blocks ($SIM_LOG)"
+fi
+
+log "P2b: free_creation refuses project landing and sends zero auto context..."
+if invoke_tool p05c_free_creation 180 "gen.generate" \
+  "{\"provider_id\":\"local-musicgen\",\"prompt\":\"pure idea\",\"duration_seconds\":0.5,\"track_id\":\"$AUDIO_TRACK_ID\",\"scene\":\"free_creation\"}"; then
+  if grep -q "forbids project-write" "$REPLY_FILE"; then
+    gate consume_free_creation_refused 1 "write-front sentinel refused the ingest leg"
+  else
+    gate consume_free_creation_refused 0 "reply lacks sentinel refusal: $(head -c 200 "$REPLY_FILE")"
+  fi
+  FC_INJ="$(result_field "$REPLY_FILE" 'str(((r.get("prompt_context") or {}).get("injected")))')"
+  if [[ "$FC_INJ" == "False" ]]; then
+    gate consume_free_creation_zero_blocks 1 "injected=False"
+  else
+    gate consume_free_creation_zero_blocks 0 "injected=$FC_INJ"
+  fi
+else
+  gate consume_free_creation_refused 0 "transport/http failure"
+  gate consume_free_creation_zero_blocks 0 "transport/http failure"
+fi
+
 # ---------------------------------------------------------------- P3 suno relay型
 log "P3: gen.generate on suno_relay dialect (submit/poll/download, 2 candidates)..."
 SUNO_INGEST_COUNT=""; SUNO_TAKE_A=""; SUNO_TAKE_B=""; SUNO_CLIP_B=""
@@ -593,9 +635,12 @@ import json, sys
 ev = json.load(open(sys.argv[1], encoding="utf-8"))
 key = sys.argv[2]
 checks = {
-    "sync_prompt_normalized": bool(ev["sync_submit"]) and ev["sync_submit"][0].get("prompt") == "steady test tone",
+    # GEN-CTX-CONSUME-1: the prompt the provider receives is the genctx-
+    # rendered text — auto blocks present, user free text preserved at the
+    # tail (protocol conversion must not alter either).
+    "sync_prompt_normalized": bool(ev["sync_submit"]) and "steady test tone" in ev["sync_submit"][0].get("prompt", "") and "== MUSIC CONTEXT" in ev["sync_submit"][0].get("prompt", "") and "== CONSTRAINTS" in ev["sync_submit"][0].get("prompt", ""),
     "sync_duration_mapped": bool(ev["sync_submit"]) and ev["sync_submit"][0].get("duration") == 0.5,
-    "suno_inspiration_mode": bool(ev["suno_submit"]) and ev["suno_submit"][0].get("gpt_description_prompt") == "ambient pad over sea",
+    "suno_inspiration_mode": bool(ev["suno_submit"]) and "ambient pad over sea" in ev["suno_submit"][0].get("gpt_description_prompt", "") and "== MUSIC CONTEXT" in ev["suno_submit"][0].get("gpt_description_prompt", ""),
     # tags is a custom-mode-only field on the relay surface; in inspiration
     # mode the style signal belongs to the description, so the adapter must
     # NOT leak a stray tags field (dialect-correct field discipline).
@@ -647,8 +692,8 @@ fi
 if invoke_tool p11_no_prompt 60 "gen.generate" \
   "{\"provider_id\":\"local-musicgen\",\"track_id\":\"$AUDIO_TRACK_ID\"}"; then
   ERR_CLASS="$(result_field "$REPLY_FILE" 'str(r.get("result",{}).get("error_class",""))')"
-  if [[ "$(final_status "$REPLY_FILE")" == "error" && "$ERR_CLASS" == "config_error" ]]; then
-    gate failclosed_empty_request 1 "error_class=config_error (pre-HTTP)"
+  if [[ "$(final_status "$REPLY_FILE")" == "error" ]] && { [[ "$ERR_CLASS" == "config_error" ]] || grep -q "needs a non-empty prompt" "$REPLY_FILE"; }; then
+    gate failclosed_empty_request 1 "pre-HTTP fail-closed (class=$ERR_CLASS or prompt guard)"
   else
     gate failclosed_empty_request 0 "status=$(final_status "$REPLY_FILE") class=$ERR_CLASS"
   fi
@@ -696,7 +741,7 @@ GATE_NAMES="simulator_up kernel_start_ports agent_start_health clear_project_sla
 providers_listed_secretfree unified_host_track_ok unified_generate_ingest_ok unified_artifact_ondisk \
 unified_clip_addressable suno_relay_two_candidates_ingested suno_candidate_stack_switchable \
 adapter_request_shapes_normalized failclosed_unknown_provider failclosed_auth_classified \
-failclosed_empty_request surface_alive_after_failures"
+failclosed_empty_request surface_alive_after_failures consume_inject_evidence_ok consume_simulator_saw_blocks consume_free_creation_refused consume_free_creation_zero_blocks"
 export WORKDIR SUMMARY_FILE RUN_ID GATE_NAMES
 export KERNEL_STOP_RECORD AGENT_STOP_RECORD FAIL_CLASSIFICATION CONFIRMATION_CARDS
 export INGEST1_CLIP ASSET1_REF TAKE1_ID SUNO_CLIP_B SUNO_TAKE_A AGENT_SHA KERNEL_SHA REPO_ROOT

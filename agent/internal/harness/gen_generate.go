@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"vit-daw-agent/internal/genapi"
+	"vit-daw-agent/internal/genctx"
 	"vit-daw-agent/internal/tools"
 )
 
@@ -22,8 +23,25 @@ func (h *Harness) genGenerate(ctx context.Context, cmd map[string]any) (map[stri
 	if providerID == "" {
 		return nil, fmt.Errorf("gen.generate needs provider_id (see gen.providers for configured entries)")
 	}
+	provider, configPath, err := genapi.FindProvider(providerID)
+	if err != nil {
+		gerr := genapi.AsError(err)
+		payload := gerr.ResultPayload()
+		payload["config_path"] = configPath
+		payload["hint"] = "fill provider/base_url/api_key/model in the genapi provider config (example in agent/internal/genapi/config.go)"
+		return map[string]any{"status": "error", "error": gerr.Error(), "result": payload}, gerr
+	}
+
+	// GEN-CTX-CONSUME-1: render the prompt through the genctx template engine
+	// (profile=gen_api) after the local config check and before the provider
+	// is contacted — scene problems / missing project truth fail closed with
+	// no API round-trip.
+	renderedPrompt, scene, promptEvidence, rerr := h.genRenderPrompt(ctx, cmd)
+	if rerr != nil {
+		return map[string]any{"status": "error", "error": rerr.Error()}, rerr
+	}
 	req := genapi.GenerationRequest{
-		Prompt:          firstString(cmd, "prompt", "description", "gpt_description_prompt"),
+		Prompt:          renderedPrompt,
 		Lyrics:          firstString(cmd, "lyrics"),
 		StyleTags:       firstString(cmd, "style_tags", "tags", "style"),
 		Title:           firstString(cmd, "title"),
@@ -32,15 +50,6 @@ func (h *Harness) genGenerate(ctx context.Context, cmd map[string]any) (map[stri
 		TempoBPM:        floatValueFromMap(cmd, "tempo_bpm", "tempo"),
 		MusicalKey:      firstString(cmd, "musical_key", "key"),
 		Count:           intValueFromMap(cmd, "count"),
-	}
-
-	provider, configPath, err := genapi.FindProvider(providerID)
-	if err != nil {
-		gerr := genapi.AsError(err)
-		payload := gerr.ResultPayload()
-		payload["config_path"] = configPath
-		payload["hint"] = "fill provider/base_url/api_key/model in the genapi provider config (example in agent/internal/genapi/config.go)"
-		return map[string]any{"status": "error", "error": gerr.Error(), "result": payload}, gerr
 	}
 
 	limitations := provider.Limitations(req)
@@ -70,10 +79,24 @@ func (h *Harness) genGenerate(ctx context.Context, cmd map[string]any) (map[stri
 		out["status_seen"] = result.StatusSeen
 	}
 
+	out["scene"] = string(scene)
+	out["prompt_context"] = promptEvidence
+
 	trackID := firstString(cmd, "track_id", "target_track_id")
 	if trackID == "" {
 		out["ingest"] = "skipped: pass track_id to land artifacts on the timeline (artifacts are on disk)"
 		return out, nil
+	}
+
+	// Write-front sentinel (design doc 04 §3): exempt scenes produce zero
+	// project writes — refuse the ingest leg explicitly instead of letting
+	// the landing criterion be violated silently.
+	if serr := genctx.GuardWriteCommand(scene, "bridge_ingest_generated_asset"); serr != nil {
+		out["ingest"] = "refused: " + serr.Error()
+		out["status"] = "error"
+		out["error"] = serr.Error()
+		out["hint"] = "artifacts are on disk under the genapi cache (legal free_creation product face); import manually if this was a mistake"
+		return out, serr
 	}
 
 	ingested, err := h.genIngestArtifacts(ctx, provider, result, cmd, trackID)
