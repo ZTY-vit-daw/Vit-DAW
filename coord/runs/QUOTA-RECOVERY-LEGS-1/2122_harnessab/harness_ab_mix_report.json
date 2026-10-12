@@ -1,0 +1,16 @@
+﻿{
+    "latest_conclusion_summary":  "",
+    "board_branch":  "no_record_honest_branch",
+    "latest_conclusion_id":  "",
+    "board_conclusion_count":  -1,
+    "summary_matches_board":  false,
+    "timeline_count":  1,
+    "finished_at":  "2026-10-12T21:33:25.6383260+08:00",
+    "report_schema":  true,
+    "board_latest_summary":  "",
+    "conclusion_form":  false,
+    "invoke_ok":  true,
+    "phase":  "mix_report_settle_line",
+    "board_file":  null,
+    "board_latest_conclusion_id":  ""
+}

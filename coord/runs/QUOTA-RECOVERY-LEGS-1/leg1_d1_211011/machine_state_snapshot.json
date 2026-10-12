@@ -1,0 +1,27 @@
+{
+ "captured_at": "2026-10-12 21:3x +0800",
+ "model_id": "gpt-6.1-sol",
+ "base_url": "https://www.hejuapi.com/v1",
+ "attestation_v2_reverb_promoted": {
+  "attestation_id": "pca2_16b17b51c4984c60efb9ee9b",
+  "status": "promoted",
+  "coverage_axes": [
+   "decay_time",
+   "output_normalization",
+   "wet_balance"
+  ],
+  "binary_fingerprint": "sha256:48d5cb4f1c9ad22261f80d912293bd5821285661c2cffcf66d4c8dedb005aee1",
+  "promoted_at": "2026-10-12T03:16:32Z"
+ },
+ "whitelist_reverb_node": {
+  "plugin_identifier": "VST3-Pro-R-4bc24482-78c01fa6",
+  "source_file": "~/.vit/free_state_experiment_plugins.json",
+  "decay_param_id": "1"
+ },
+ "plugin_semantics_proR": {
+  "primary_type": "reverb",
+  "identifier": "VST3-Pro-R-4bc24482-78c01fa6",
+  "built_at": "2026-09-18T11:16:25Z"
+ },
+ "note": "三者独立面全绿 + pcactl query-v2 eligible=true（现场指纹重算匹配）；但 D1 轮内治理过滤空集——定性=运行时路径功能缺陷非机器数据缺陷"
+}
