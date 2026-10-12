@@ -5,14 +5,13 @@
 
 ## 当前占用
 
-- 状态：占用中
-- 卡：G3-REOPEN-COSTCMP-1（池序 73，probe 计量真栈对比轮）
-- Owner：GLM-5.3 PC 执行流（ZCode 会话；worktree D:/Vit_DAW_wt_g3rc1，分支 port/g3-reopen-costcmp-1）
-- 机器/端口：PC / 7878(HTTP)+5555/5556(ZMQ)+8787(VSP berth 预留)
-- 时间：2026-10-12 晚窗起（占用前复核：四端口 0 监听、VitApp/VitAgent 进程=0）
-- 备注：与 M2-TIMEFX-2 烟测腿串行——本卡短（harness_ab 对比轮×2+拆栈），先占先收；预计单次占用 ≤1.5h
+- 状态：空闲
 
 ## 最近一次释放
+
+- 2026-10-12 约 18:58–19:37 +0800（本机钟）/ G3-REOPEN-COSTCMP-1（GLM-5.3 PC 执行流，ZCode 会话；worktree D:/Vit_DAW_wt_g3rc1，分支 port/g3-reopen-costcmp-1）：①三轮启栈失败腿（18:58/19:17/19:22，取证后钉死=dev_agent_smoke 相对 -RunArtifactsDir 使 journey berth 的 VIT_PROJECT_XML 相对透传→内核按自身 CWD 拼双段路径→service startup failed exit 0 @~1.6s；包装器捕获退出码+部署目录内核日志留证；脚本已硬化修复）②对比轮两 run=**PASS exit 0**（20261012_192737_run1 / 20261012_193106_run2，双模式各 1 base+3 族轮+pull confirm/budget 腿；LLM 面被 API 额度耗尽差异性截断=环境中断如实记录，probe 物理计量完整）；两 run 均脚本自 teardown（agent/kernel stopped），19:37 后复核四端口 7878/5555/5556/8787 监听=0、VitApp/VitAgent 进程=0。占用登记 fcef17a1；被测=worktree 构建（agent @ port/g3-reopen-costcmp-1 含脚本扩展；内核复用主检出 VitApp.exe B6565DCF85D1DA86 同版二进制，C++ 面零改动）；工件 coord/runs/G3-REOPEN-COSTCMP-1/（随 port 分支入库精简件），详见卡回执。
+
+## 历史释放（上一条）
 
 - 2026-10-12 约 19:40–23:30 +0800（本机钟）/ M2-TIMEFX-1（GLM-5.3 执行流，ZCode PC 会话，M2 时域线；worktree D:/Vit_DAW_wt_m2_timefx1，分支 port/m2-timefx-1）：①参数面探测两轮（内核 ZMQ 直连 rack_add_node 装载 Pro-R/Timeless 3→get_plugin_parameters，探测轨即建即删）②in-agent 认证 job 四轮全 completed（两族各两轮，apply/readback/restore/快照核对/临时轨清理自含）③D1 冒测四轮（105611/110302/110817=功能性门暴露三轮各自修复；111841=API 额度耗尽环境中断）——各轮 dev_agent_smoke 启栈、人工/脚本拆栈交替；23:30 手动 teardown：VitApp/VitAgent/Godot 全停，复核端口 5555/5556/7878/8787 监听=0、VitApp/VitAgent 进程=0。占用登记 a7fccf41；被测=worktree 构建（agent 含全部修复；内核复用主检出 VitApp.exe 同版二进制，C++ 面零改动）；工件 coord/runs/M2-TIMEFX-1/（随 port/m2-timefx-1 入库），详见卡回执。**遗留：API 额度耗尽阻塞 NL 全链烟测末轮（卡面 [等待用户]）——额度恢复后复跑一轮需重新登记占用。**
 
