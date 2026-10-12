@@ -33,6 +33,6 @@
 
 启动页在 Godot 侧结构与假设不符（如被平台分支拆分）→ 锚点上交。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-12 21:20 +0800 / origin/main=d0b696b571b188833f171f2ef138d140026e935f / owner=GLM-5.3 · PC · ZCode 前端执行会话（用户 2026-10-12 晚窗口令指派领取本卡）/ 前端仓分支=port/fe-start-feed-1，基线=vit-daw-frontend **c56e38f586f10b8c154d538f7485c644b1d731aa**（FE-GUI-SHRINK-IMPL-1 Phase A ruling pass 活线 tip，rulings/2026-10-11-BATCH2；FE-GUI-RACK-LIST-1 7c3a7f2 done 待验收域不相交→平行分支不叠加；启动页锚点=app/startup/start_page.gd 单文件 1015 行+start_page.tscn，无平台拆分，boot 平台分支在函数内部不影响 UI 面——在该基线核实）/ 前端 worktree=D:/Godot/project/vit-daw-frontend-start-feed（独立 worktree）/ 领取提交=（本提交 hash 见回执段回填）/ 领取时实测两数据缺口已定位：①recent_projects=内核仅回路径数组（global_project_config.json 无时间戳）→信息浮层时间字取工程文件 mtime（现成数据零新查询，口径回执注明）②导出产物不可寻址（start_render 路径调用方自选、无产物索引、磁盘工程旁无 wav）→试听腿按卡面降级占位+上交数据缺口
 - 回执：（commit / 探针结果 / 试听数据源实测 / 端测边界声明）
 - 验收：（裁定文件 / 用户目检）
