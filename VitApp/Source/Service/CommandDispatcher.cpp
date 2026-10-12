@@ -79,6 +79,7 @@ juce::var createRackState (te::Track& track, const juce::String& requestScope);
 juce::var createControlGraphState (te::Edit& edit);
 void appendGraphRevisionProperties (juce::DynamicObject& object, te::Edit& edit);
 void appendGraphRevisionProperties (juce::DynamicObject& object, const VitGraphRevisionSnapshot& snapshot);
+void appendMusicContextDisclosure (juce::DynamicObject& object, te::Edit& edit);
 juce::File getEffectiveProjectFile (const CommandDispatcher::CurrentProjectPathGetter& getter);
 /** When RackType::addPlugin skips auto-connect (non-empty rack), chain new plugin after the unique tail feeding rack outputs. */
 bool vitTryChainNewRackPluginSerial (te::RackType& rackType, te::Plugin& newPlugin);
@@ -2096,6 +2097,36 @@ bool clipLocalNoteGeometryToBeats (te::Edit& edit,
     return true;
 }
 
+// GEN-CTX-DISCLOSE-1: read-only music-context disclosure block. Reads the
+// same engine surface set_tempo writes (TempoSequence setting 0); the
+// sequence auto-inserts default tempo/time-sig settings on state load, so a
+// loaded edit always carries engine truth here and the tempo/time-sig keys
+// never fabricate defaults — if a setting is somehow absent the key stays
+// absent (same discipline as the block_size disclosure). key_signature /
+// style_note are explicit null/"" placeholders for the GEN-CTX-KEYFIELD-1
+// edit-state fields: unset means unset.
+void appendMusicContextDisclosure (juce::DynamicObject& object, te::Edit& edit)
+{
+    auto musicContext = std::make_unique<juce::DynamicObject>();
+
+    if (auto* tempo = edit.tempoSequence.getTempo (0))
+        musicContext->setProperty ("tempo_bpm", tempo->getBpm());
+    musicContext->setProperty ("tempo_setting_count", edit.tempoSequence.getNumTempos());
+
+    if (auto* timeSig = edit.tempoSequence.getTimeSig (0))
+    {
+        musicContext->setProperty ("time_signature", timeSig->getStringTimeSig());
+        musicContext->setProperty ("time_signature_numerator", timeSig->numerator.get());
+        musicContext->setProperty ("time_signature_denominator", timeSig->denominator.get());
+    }
+    musicContext->setProperty ("time_sig_setting_count", edit.tempoSequence.getNumTimeSigs());
+
+    musicContext->setProperty ("key_signature", juce::var());
+    musicContext->setProperty ("style_note", juce::String());
+
+    object.setProperty ("music_context", juce::var (musicContext.release()));
+}
+
 } // namespace
 
 CommandDispatcher::CommandDispatcher (EditGetter editGetter,
@@ -3397,6 +3428,7 @@ juce::String CommandDispatcher::handleGetProjectState (const juce::DynamicObject
     if (! embeddedAnalysisManifest.isVoid())
         response->setProperty ("analysis_manifest", embeddedAnalysisManifest);
     response->setProperty ("scope", requestScope);
+    appendMusicContextDisclosure (*response, *edit);
     if (projectAudioSettingsService != nullptr)
     {
         const auto settingsReply = juce::JSON::parse (projectAudioSettingsService->handleGetAudioSettings (object, {}));

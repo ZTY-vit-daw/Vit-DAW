@@ -1,0 +1,53 @@
+==> /var/folders/bm/9470lvs56ss6lfw1n9g66k2c0000gn/T/music_ctx_disclose_mac.Qy5irgYf/logs/phaseA_kernel_stdout.log <==
+    "cleanup_ran": true,
+    "types_before": 0,
+    "types_removed": 0,
+    "blacklist_before": 0,
+    "blacklist_removed": 0,
+    "removed_total": 0,
+    "completed_at": "2026-10-12T09:38:59.382+08:00",
+    "removed_summary": ""
+  },
+  "graph_revision": 0,
+  "graph_active_revision": 0,
+  "graph_pending_revision": 0,
+  "graph_last_retired_revision": 0,
+  "graph_retired_snapshot_count": 0,
+  "graph_last_diff_kind": "edit_loaded",
+  "graph_last_diff_summary": "Edit loaded from /var/folders/bm/9470lvs56ss6lfw1n9g66k2c0000gn/T/music_ctx_disclose_mac.Qy5irgYf/project/music_ctx_probe.vit",
+  "graph_publish_mode": "initialised",
+  "graph_lifecycle_state": "idle",
+  "graph_recent_changes": []
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "project_path": "/var/folders/bm/9470lvs56ss6lfw1n9g66k2c0000gn/T/music_ctx_disclose_mac.Qy5irgYf/project/music_ctx_probe.vit",
+  "project_uuid": "vitproj_272546057510442db27e7873c6776033",
+  "p
+
+==> /var/folders/bm/9470lvs56ss6lfw1n9g66k2c0000gn/T/music_ctx_disclose_mac.Qy5irgYf/logs/phaseB_kernel_stdout.log <==
+    "cleanup_ran": true,
+    "types_before": 0,
+    "types_removed": 0,
+    "blacklist_before": 0,
+    "blacklist_removed": 0,
+    "removed_total": 0,
+    "completed_at": "2026-10-12T09:39:02.725+08:00",
+    "removed_summary": ""
+  },
+  "graph_revision": 0,
+  "graph_active_revision": 0,
+  "graph_pending_revision": 0,
+  "graph_last_retired_revision": 0,
+  "graph_retired_snapshot_count": 0,
+  "graph_last_diff_kind": "edit_loaded",
+  "graph_last_diff_summary": "Edit loaded from /var/folders/bm/9470lvs56ss6lfw1n9g66k2c0000gn/T/music_ctx_disclose_mac.Qy5irgYf/project/music_ctx_probe.vit",
+  "graph_publish_mode": "initialised",
+  "graph_lifecycle_state": "idle",
+  "graph_recent_changes": []
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "project_path": "/var/folders/bm/9470lvs56ss6lfw1n9g66k2c0000gn/T/music_ctx_disclose_mac.Qy5irgYf/project/music_ctx_probe.vit",
+  "project_uuid": "vitproj_272546057510442db27e7873c6776033",
+  "p

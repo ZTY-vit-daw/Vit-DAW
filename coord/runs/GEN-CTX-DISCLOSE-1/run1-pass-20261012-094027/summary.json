@@ -1,0 +1,73 @@
+{
+  "binaries": {
+    "baseline_kernel_sha256": "9a70f064d2a20f023f35389c28fa87956595ce46dad4eb35bda571d243f54057",
+    "kernel_sha256": "8e445dbbbcc3474d5ca30b19915560fc5247da6f70807bc694a4cd3de0ef2b9a"
+  },
+  "card": "GEN-CTX-DISCLOSE-1",
+  "failure_kind": "none",
+  "gate_failure_details": {},
+  "gates": {
+    "existing_keys_unchanged": true,
+    "keyset_delta_music_context_only": true,
+    "phaseA_clear_before_open_ok": true,
+    "phaseA_kernel_start_ports": true,
+    "phaseA_new_project_ok": true,
+    "phaseA_open_project_ok": true,
+    "phaseA_save_as_file": true,
+    "phaseA_save_as_ok": true,
+    "phaseA_set_tempo_ok": true,
+    "phaseA_state_create_ok": true,
+    "phaseA_state_open_ok": true,
+    "phaseB_clear_slate": true,
+    "phaseB_kernel_start_ports": true,
+    "phaseB_music_context_present": true,
+    "phaseB_open_project_ok": true,
+    "phaseB_placeholders_null": true,
+    "phaseB_set_tempo_ok": true,
+    "phaseB_setting_counts": true,
+    "phaseB_state_after_ok": true,
+    "phaseB_state_open_ok": true,
+    "phaseB_tempo_is_number": true,
+    "phaseB_tempo_persisted_128": true,
+    "phaseB_tempo_tracks_set_96": true,
+    "phaseB_time_signature_form": true
+  },
+  "music_context_open": {
+    "key_signature": null,
+    "style_note": "",
+    "tempo_bpm": 128.0,
+    "tempo_setting_count": 1,
+    "time_sig_setting_count": 1,
+    "time_signature": "4/4",
+    "time_signature_denominator": 4,
+    "time_signature_numerator": 4
+  },
+  "overall_status": "PASS",
+  "probe_surface": "kernel direct ZMQ REQ tcp://127.0.0.1:5555 (the agent user-visible tool projects/filters the kernel reply; zero-agent-diff card asserts on the kernel reply)",
+  "project_file": "/var/folders/bm/9470lvs56ss6lfw1n9g66k2c0000gn/T//music_ctx_disclose_mac.2a5lRF4p/project/music_ctx_probe.vit",
+  "repo": {
+    "root": "/Users/timozty/Documents/Vit-DAW-ctxdisclose1"
+  },
+  "run_id": "music_ctx_disclose_mac_20261012-094027",
+  "schema_version": "music.context.disclosure.mac.v1",
+  "set_tempo_linkage": {
+    "phaseA_set_128_reply_bpm": "128.0",
+    "phaseB_after_disclosed_bpm": "96.0",
+    "phaseB_open_disclosed_bpm": "128.0",
+    "phaseB_set_96_reply_bpm": "96.0"
+  },
+  "teardown": {
+    "phaseA_kernel": "SIGTERM:143:1",
+    "phaseB_kernel": "SIGTERM:143:1"
+  },
+  "zero_change_snapshot_diff": {
+    "deep_equal": true,
+    "diff_count": 0,
+    "keyset_delta_exact": true,
+    "new_top_level_keys": [],
+    "normalized_volatile_paths": [
+      "$.plugin_list_hygiene.completed_at"
+    ],
+    "removed_top_level_keys": []
+  }
+}

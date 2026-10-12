@@ -1,0 +1,53 @@
+==> /var/folders/bm/9470lvs56ss6lfw1n9g66k2c0000gn/T/music_ctx_disclose_mac.B3MQSknz/logs/phaseA_kernel_stdout.log <==
+    "removed_summary": ""
+  },
+  "graph_revision": 0,
+  "graph_active_revision": 0,
+  "graph_pending_revision": 0,
+  "graph_last_retired_revision": 0,
+  "graph_retired_snapshot_count": 0,
+  "graph_last_diff_kind": "edit_loaded",
+  "graph_last_diff_summary": "Edit loaded from /var/folders/bm/9470lvs56ss6lfw1n9g66k2c0000gn/T/music_ctx_disclose_mac.B3MQSknz/project/music_ctx_probe.vit",
+  "graph_publish_mode": "initialised",
+  "graph_lifecycle_state": "idle",
+  "graph_recent_changes": []
+}
+VitHeadlessService: command reply (truncated): {
+  "vsp_version": "1.0",
+  "schema": "vsp.state.snapshot.v1",
+  "message_id": "msg_kernel_1791733565189_181772288",
+  "session_id": "sess_kernel_1791733564514_859594585",
+  "client_id": "kernel.main",
+  "role": "k
+MIDI Input devices scanned in: 1 ms
+Updating MIDI I/O devices
+Found MIDI in: all_midi_in ("All MIDI Ins") (enabled)
+Updating MIDI I/O devices
+Found MIDI in: all_midi_in ("All MIDI Ins") (enabled)
+
+==> /var/folders/bm/9470lvs56ss6lfw1n9g66k2c0000gn/T/music_ctx_disclose_mac.B3MQSknz/logs/phaseB_kernel_stdout.log <==
+    "types_removed": 0,
+    "blacklist_before": 0,
+    "blacklist_removed": 0,
+    "removed_total": 0,
+    "completed_at": "2026-10-11T23:46:08.913+08:00",
+    "removed_summary": ""
+  },
+  "graph_revision": 0,
+  "graph_active_revision": 0,
+  "graph_pending_revision": 0,
+  "graph_last_retired_revision": 0,
+  "graph_retired_snapshot_count": 0,
+  "graph_last_diff_kind": "edit_loaded",
+  "graph_last_diff_summary": "Edit loaded from /var/folders/bm/9470lvs56ss6lfw1n9g66k2c0000gn/T/music_ctx_disclose_mac.B3MQSknz/project/music_ctx_probe.vit",
+  "graph_publish_mode": "initialised",
+  "graph_lifecycle_state": "idle",
+  "graph_recent_changes": []
+}
+VitHeadlessService: command reply (truncated): {
+  "vsp_version": "1.0",
+  "schema": "vsp.state.snapshot.v1",
+  "message_id": "msg_kernel_1791733571114_752557989",
+  "session_id": "sess_kernel_1791733570778_717723703",
+  "client_id": "kernel.main",
+  "role": "k
