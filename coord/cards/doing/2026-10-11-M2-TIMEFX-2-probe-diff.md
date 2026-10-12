@@ -31,6 +31,6 @@ VitApp/Source/Service（探针注册+渲染）+ agent/internal/fxm（生产者�
 
 dual-tap 样板结构与锚点不符（内核已重构）→ 锚点上交。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-12 18:46 +0800 / origin/main 76ace424 / GLM-5.3 PC 执行流（L2，ZCode PC 会话，M2 时域线）/ 分支 port/m2-timefx-2 / worktree D:/Vit_DAW_wt_m2_timefx2 / 领取提交=本提交（领取前核对：远端 doing 为空无文件域冲突；M2-TIMEFX-1 dbac17ea 为 origin/main 祖先=依赖合入亲验；PC 栈远端状态空闲）
 - 回执：（commit / run ID / 差分数据样本 / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
