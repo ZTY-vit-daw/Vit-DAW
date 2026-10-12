@@ -5,8 +5,11 @@
 
 ## 当前占用
 
-- 状态：占用中
-- 2026-10-12 晚窗起 / M2-TIMEFX-1（GLM-5.3 执行流，ZCode PC 会话，M2 时域线；worktree D:/Vit_DAW_wt_m2_timefx1，分支 port/m2-timefx-1）：真栈占用=参数面探测（FabFilter Pro-R / Timeless 3）+ pcactl certify-processor 两族发证 + 真栈烟测（reverb/delay 语义话术→确认→写参→回读）。领取时核对端口 5555/5556/7878/8787 监听=0。
+- 状态：空闲
+
+## 最近一次释放
+
+- 2026-10-12 约 19:40–23:30 +0800（本机钟）/ M2-TIMEFX-1（GLM-5.3 执行流，ZCode PC 会话，M2 时域线；worktree D:/Vit_DAW_wt_m2_timefx1，分支 port/m2-timefx-1）：①参数面探测两轮（内核 ZMQ 直连 rack_add_node 装载 Pro-R/Timeless 3→get_plugin_parameters，探测轨即建即删）②in-agent 认证 job 四轮全 completed（两族各两轮，apply/readback/restore/快照核对/临时轨清理自含）③D1 冒测四轮（105611/110302/110817=功能性门暴露三轮各自修复；111841=API 额度耗尽环境中断）——各轮 dev_agent_smoke 启栈、人工/脚本拆栈交替；23:30 手动 teardown：VitApp/VitAgent/Godot 全停，复核端口 5555/5556/7878/8787 监听=0、VitApp/VitAgent 进程=0。占用登记 a7fccf41；被测=worktree 构建（agent 含全部修复；内核复用主检出 VitApp.exe 同版二进制，C++ 面零改动）；工件 coord/runs/M2-TIMEFX-1/（随 port/m2-timefx-1 入库），详见卡回执。**遗留：API 额度耗尽阻塞 NL 全链烟测末轮（卡面 [等待用户]）——额度恢复后复跑一轮需重新登记占用。**
 
 ## 最近一次释放
 
