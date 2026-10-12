@@ -1725,3 +1725,31 @@ Notes:
   over real HTTP). The external-provider leg (real Suno relay / Stability /
   MusicGPT account) needs a real credential and is declared per run, never
   faked (AGENTS §8).
+
+## Genctx True-Key Smoke (mac) (GEN-CTX-INJECT-1)
+
+Path:
+
+- `~/Documents/Vit-DAW/scripts/genctx_truekey_smoke_mac.sh`
+
+Purpose:
+
+- GEN-CTX-INJECT-1 true-key gate: assembles a MusicContextSnapshot from a
+  real kernel get_project_state response and asserts the tempo linkage
+  (set_tempo 96 → music_context.tempo_bpm=96) plus pre-KEYFIELD null-key
+  semantics through the env-gated package test.
+
+Run:
+
+```sh
+./scripts/genctx_truekey_smoke_mac.sh \
+  --kernel-bin /tmp/vit-ctxd1-build/app/VitApp_artefacts/Debug/VitApp
+```
+
+Notes:
+
+- Kernel-direct ZMQ (single kernel, fake VitApp root under the run workdir);
+  the kernel must carry the music_context disclosure (GEN-CTX-DISCLOSE-1).
+- Gates: kernel_clear / set_tempo_96 / state / music_context_tempo_96 /
+  truekey_go_test; exit 0 = all green. Artifacts under
+  coord/runs/GEN-CTX-INJECT-1/<run>-pass/.
