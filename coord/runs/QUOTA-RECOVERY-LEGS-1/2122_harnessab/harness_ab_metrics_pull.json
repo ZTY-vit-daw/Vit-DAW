@@ -1,0 +1,583 @@
+﻿{
+    "first_call_prefix_bytes_by_goal":  {
+                                            "goal_89dac0b5f1f4b28a":  16381,
+                                            "goal_7347e3ec6ccbccd8":  16381,
+                                            "goal_c7ea4b6124fca4a5":  16381,
+                                            "goal_3b28c58694c58495":  16221,
+                                            "goal_cf6a2bff0a4bf701":  16381,
+                                            "goal_5a6f87ae42ac94f4":  16381
+                                        },
+    "budget_round":  {
+                         "final_stop_reason":  "observation_budget_exhausted",
+                         "hops":  [
+
+                                  ],
+                         "all_stop_reasons":  [
+                                                  "observation_budget_exhausted"
+                                              ],
+                         "budget_config":  {
+                                               "max_probe_cost":  8,
+                                               "max_cycles":  1
+                                           },
+                         "finished_at":  "2026-10-12T21:33:25.4289268+08:00",
+                         "hops_used":  0,
+                         "trigger_miss_class":  "",
+                         "confirm_face_exercised":  false,
+                         "accounted_separately":  true,
+                         "mode":  "pull",
+                         "phase":  "budget_calibration",
+                         "conversation_id":  "dev_harness_ab_pull_budget_20261012_213302",
+                         "round":  {
+                                       "finished_at":  "2026-10-12T21:33:25.4259278+08:00",
+                                       "plan_id":  "",
+                                       "nudges_sent":  0,
+                                       "last_stop_reason":  "observation_budget_exhausted",
+                                       "goal_statuses":  [
+                                                             "failed"
+                                                         ],
+                                       "turns_sent":  1,
+                                       "stop_reasons":  [
+                                                            "observation_budget_exhausted"
+                                                        ],
+                                       "last_goal_status":  "failed",
+                                       "settled":  true,
+                                       "classification":  "budget_exhausted",
+                                       "transport_errors":  0,
+                                       "interaction_request":  "",
+                                       "conversation_id":  "dev_harness_ab_pull_budget_20261012_213302",
+                                       "needs_confirmation":  false
+                                   },
+                         "budget_exhausted_triggered":  true
+                     },
+    "llm_calls":  22,
+    "cost":  {
+                 "prefix_bytes_total":  360222,
+                 "dynamic_bytes_total":  418356,
+                 "messages_total":  134,
+                 "llm_calls":  22
+             },
+    "stop_loss_mode":  false,
+    "rounds_classified":  1,
+    "rounds":  [
+                   {
+                       "mode":  "pull",
+                       "settled":  true,
+                       "round":  1,
+                       "nudges_sent":  0,
+                       "classification":  "judgment_failed",
+                       "stop_reasons":  [
+                                            "durable_checkpoint_persist_failed"
+                                        ],
+                       "transport_errors":  0,
+                       "conversation_id":  "dev_harness_ab_pull_20261012_212435_r1",
+                       "finished_at":  "2026-10-12T21:26:12.3414992+08:00",
+                       "goal_statuses":  [
+                                             "failed"
+                                         ],
+                       "turns_sent":  1
+                   }
+               ],
+    "agent_log":  "D:\\Vit_DAW_wt_qrl1\\VitApp\\Workspace\\Logs\\agent_harness_ab_pull.log",
+    "confirm_roundtrip":  {
+                              "mode":  "pull",
+                              "round":  {
+                                            "finished_at":  "2026-10-12T21:32:57.3268907+08:00",
+                                            "plan_id":  "",
+                                            "nudges_sent":  0,
+                                            "last_stop_reason":  "needs_confirmation",
+                                            "goal_statuses":  [
+                                                                  "waiting_confirmation"
+                                                              ],
+                                            "turns_sent":  1,
+                                            "stop_reasons":  [
+                                                                 "needs_confirmation"
+                                                             ],
+                                            "last_goal_status":  "waiting_confirmation",
+                                            "settled":  true,
+                                            "classification":  "needs_user_confirmation",
+                                            "transport_errors":  0,
+                                            "interaction_request":  {
+                                                                        "id":  "interaction_9fca34cc1ddb1e1b",
+                                                                        "kind":  "mix_tick_confirmation",
+                                                                        "source":  "vit_agent",
+                                                                        "workflow":  "mix_tick",
+                                                                        "stage":  "pending_confirmation",
+                                                                        "title":  "混音单步待确认",
+                                                                        "body":  "将 Track 1007 的电平调整 -1.00 dB，正在等待你确认；确认前不会修改工程。",
+                                                                        "status":  "waiting_for_user",
+                                                                        "conversation_id":  "dev_harness_ab_pull_confirm_20261012_213132",
+                                                                        "goal_id":  "goal_7347e3ec6ccbccd8",
+                                                                        "run_id":  "run_877bfd6d83d7a21a",
+                                                                        "payload":  {
+                                                                                        "conversation_id":  "dev_harness_ab_pull_confirm_20261012_213132",
+                                                                                        "delta_db":  -1,
+                                                                                        "display":  {
+                                                                                                        "body":  "将 Track 1007 的电平调整 -1.00 dB，正在等待你确认；确认前不会修改工程。",
+                                                                                                        "summary":  "将 Track 1007 的电平调整 -1.00 dB",
+                                                                                                        "title":  "混音单步待确认"
+                                                                                                    },
+                                                                                        "observation_id":  "",
+                                                                                        "operation":  "track_gain_adjust",
+                                                                                        "request_context":  {
+                                                                                                                "conversation_id":  "dev_harness_ab_pull_confirm_20261012_213132",
+                                                                                                                "goal_id":  "goal_7347e3ec6ccbccd8",
+                                                                                                                "run_id":  "run_877bfd6d83d7a21a"
+                                                                                                            },
+                                                                                        "track_id":  "1007",
+                                                                                        "typed_event":  {
+                                                                                                            "event_type":  "PendingCandidate",
+                                                                                                            "schema_version":  "vit_agent_protocol.v0",
+                                                                                                            "source":  {
+                                                                                                                           "conversation_id":  "dev_harness_ab_pull_confirm_20261012_213132",
+                                                                                                                           "goal_id":  "goal_7347e3ec6ccbccd8",
+                                                                                                                           "legacy_kind":  "PendingMixTickCandidate",
+                                                                                                                           "legacy_schema":  "mix_tick.pending.v0",
+                                                                                                                           "metadata":  {
+                                                                                                                                            "before_track_summary":  {
+                                                                                                                                                                         "gain_db":  0,
+                                                                                                                                                                         "id":  "1007",
+                                                                                                                                                                         "name":  "Bass",
+                                                                                                                                                                         "pan":  0,
+                                                                                                                                                                         "track_id":  "1007",
+                                                                                                                                                                         "track_name":  "Bass",
+                                                                                                                                                                         "volume_db":  0
+                                                                                                                                                                     },
+                                                                                                                                            "conversation_id":  "dev_harness_ab_pull_confirm_20261012_213132",
+                                                                                                                                            "goal_id":  "goal_7347e3ec6ccbccd8",
+                                                                                                                                            "run_id":  "run_877bfd6d83d7a21a",
+                                                                                                                                            "target_track_id":  "1007",
+                                                                                                                                            "track_count":  2,
+                                                                                                                                            "track_gain_db":  0
+                                                                                                                                        },
+                                                                                                                           "run_id":  "run_877bfd6d83d7a21a"
+                                                                                                                       },
+                                                                                                            "state":  {
+                                                                                                                          "action_kind":  "gain_balance",
+                                                                                                                          "candidate_action":  {
+                                                                                                                                                   "action_kind":  "gain_balance",
+                                                                                                                                                   "confidence":  "medium",
+                                                                                                                                                   "delta_db":  -1,
+                                                                                                                                                   "evidence":  {
+                                                                                                                                                                    "diagnosis_context":  "@{conversation_id=dev_harness_ab_pull_confirm_20261012_213132; created_at=2026-10-12T13:31:39.5604111Z; evidence_refs=System.Object[]; evidence_status=; goal_id=goal_7347e3ec6ccbccd8; id=diag_1040ed4f3962ad47; inferred_facts=System.Object[]; low_risk_next_step=conservative_level_or_peer_rebalance; missing_evidence=System.Object[]; observation_id=obs_20261012T133222_27e72b054c02; problem_kind=vocal_forward; recommendation=; run_id=run_877bfd6d83d7a21a; schema_version=mix_diagnosis_context.v0; source_refs=; target_ref=track:1007; user_intent=请对当前贴唱工程做一次自由态实验：基于观察证据改善人声与伴奏的平衡，执行后让我试听对比效果。; user_reported_facts=System.Object[]}",
+                                                                                                                                                                    "diagnosis_context_id":  "diag_1040ed4f3962ad47",
+                                                                                                                                                                    "diagnosis_evidence_refs":  "diag_1040ed4f3962ad47 obs_20261012T133222_27e72b054c02 diag_1040ed4f3962ad47.user_reported.intent diag_1040ed4f3962ad47.missing.band_energy_summary diag_1040ed4f3962ad47.missing.masking_depth",
+                                                                                                                                                                    "matched_text":  "降低 1 dB",
+                                                                                                                                                                    "source":  "assistant_reply"
+                                                                                                                                                                },
+                                                                                                                                                   "operation":  "track_gain_adjust",
+                                                                                                                                                   "processor_type":  "utility",
+                                                                                                                                                   "track_id":  "1007"
+                                                                                                                                               },
+                                                                                                                          "candidate_type":  "mix_tick",
+                                                                                                                          "confidence":  "medium",
+                                                                                                                          "domain":  "mix",
+                                                                                                                          "id":  "pending_mix_tick_dev_harness_ab_pull_confirm_20261012_213132_goal_7347e3ec6ccbccd8_track_gain_adjust_1007",
+                                                                                                                          "kind":  "PendingCandidate",
+                                                                                                                          "processor_type":  "utility",
+                                                                                                                          "rationale":  "assistant_reply",
+                                                                                                                          "required_permission_domains":  [
+                                                                                                                                                              "mix.commit"
+                                                                                                                                                          ],
+                                                                                                                          "risk":  "undoable_commit",
+                                                                                                                          "source":  {
+                                                                                                                                         "conversation_id":  "dev_harness_ab_pull_confirm_20261012_213132",
+                                                                                                                                         "goal_id":  "goal_7347e3ec6ccbccd8",
+                                                                                                                                         "legacy_kind":  "PendingMixTickCandidate",
+                                                                                                                                         "legacy_schema":  "mix_tick.pending.v0",
+                                                                                                                                         "metadata":  {
+                                                                                                                                                          "before_track_summary":  "@{gain_db=0; id=1007; name=Bass; pan=0; track_id=1007; track_name=Bass; volume_db=0}",
+                                                                                                                                                          "conversation_id":  "dev_harness_ab_pull_confirm_20261012_213132",
+                                                                                                                                                          "goal_id":  "goal_7347e3ec6ccbccd8",
+                                                                                                                                                          "run_id":  "run_877bfd6d83d7a21a",
+                                                                                                                                                          "target_track_id":  "1007",
+                                                                                                                                                          "track_count":  2,
+                                                                                                                                                          "track_gain_db":  0
+                                                                                                                                                      },
+                                                                                                                                         "run_id":  "run_877bfd6d83d7a21a"
+                                                                                                                                     },
+                                                                                                                          "status":  "waiting_user",
+                                                                                                                          "summary":  "将 Track 1007 的电平调整 -1.00 dB。",
+                                                                                                                          "target_ref":  "track:1007"
+                                                                                                                      },
+                                                                                                            "state_id":  "pending_mix_tick_dev_harness_ab_pull_confirm_20261012_213132_goal_7347e3ec6ccbccd8_track_gain_adjust_1007",
+                                                                                                            "state_kind":  "PendingCandidate",
+                                                                                                            "status":  "waiting_user"
+                                                                                                        },
+                                                                                        "typed_state":  {
+                                                                                                            "action_kind":  "gain_balance",
+                                                                                                            "candidate_action":  {
+                                                                                                                                     "action_kind":  "gain_balance",
+                                                                                                                                     "confidence":  "medium",
+                                                                                                                                     "delta_db":  -1,
+                                                                                                                                     "evidence":  {
+                                                                                                                                                      "diagnosis_context":  {
+                                                                                                                                                                                "conversation_id":  "dev_harness_ab_pull_confirm_20261012_213132",
+                                                                                                                                                                                "created_at":  "2026-10-12T13:31:39.5604111Z",
+                                                                                                                                                                                "evidence_refs":  "diag_1040ed4f3962ad47 obs_20261012T133222_27e72b054c02 diag_1040ed4f3962ad47.user_reported.intent diag_1040ed4f3962ad47.missing.band_energy_summary diag_1040ed4f3962ad47.missing.masking_depth",
+                                                                                                                                                                                "evidence_status":  "@{band_energy=missing; confidence_ceiling=medium; missing=System.Object[]; problem_kind=vocal_forward; spectral=missing; strategy=conservative_level_or_peer_rebalance}",
+                                                                                                                                                                                "goal_id":  "goal_7347e3ec6ccbccd8",
+                                                                                                                                                                                "id":  "diag_1040ed4f3962ad47",
+                                                                                                                                                                                "inferred_facts":  "",
+                                                                                                                                                                                "low_risk_next_step":  "conservative_level_or_peer_rebalance",
+                                                                                                                                                                                "missing_evidence":  " ",
+                                                                                                                                                                                "observation_id":  "obs_20261012T133222_27e72b054c02",
+                                                                                                                                                                                "problem_kind":  "vocal_forward",
+                                                                                                                                                                                "recommendation":  "@{action_kind=gain_balance; confidence=medium; next_step=prepare a small level/rebalance candidate instead of a brightness boost; processor_type=utility; risk=low; strategy=conservative_level_or_peer_rebalance}",
+                                                                                                                                                                                "run_id":  "run_877bfd6d83d7a21a",
+                                                                                                                                                                                "schema_version":  "mix_diagnosis_context.v0",
+                                                                                                                                                                                "source_refs":  "@{observation_id=obs_20261012T133222_27e72b054c02; target_ref=track:1007}",
+                                                                                                                                                                                "target_ref":  "track:1007",
+                                                                                                                                                                                "user_intent":  "请对当前贴唱工程做一次自由态实验：基于观察证据改善人声与伴奏的平衡，执行后让我试听对比效果。",
+                                                                                                                                                                                "user_reported_facts":  ""
+                                                                                                                                                                            },
+                                                                                                                                                      "diagnosis_context_id":  "diag_1040ed4f3962ad47",
+                                                                                                                                                      "diagnosis_evidence_refs":  [
+                                                                                                                                                                                      "diag_1040ed4f3962ad47",
+                                                                                                                                                                                      "obs_20261012T133222_27e72b054c02",
+                                                                                                                                                                                      "diag_1040ed4f3962ad47.user_reported.intent",
+                                                                                                                                                                                      "diag_1040ed4f3962ad47.missing.band_energy_summary",
+                                                                                                                                                                                      "diag_1040ed4f3962ad47.missing.masking_depth"
+                                                                                                                                                                                  ],
+                                                                                                                                                      "matched_text":  "降低 1 dB",
+                                                                                                                                                      "source":  "assistant_reply"
+                                                                                                                                                  },
+                                                                                                                                     "operation":  "track_gain_adjust",
+                                                                                                                                     "processor_type":  "utility",
+                                                                                                                                     "track_id":  "1007"
+                                                                                                                                 },
+                                                                                                            "candidate_type":  "mix_tick",
+                                                                                                            "confidence":  "medium",
+                                                                                                            "domain":  "mix",
+                                                                                                            "id":  "pending_mix_tick_dev_harness_ab_pull_confirm_20261012_213132_goal_7347e3ec6ccbccd8_track_gain_adjust_1007",
+                                                                                                            "kind":  "PendingCandidate",
+                                                                                                            "processor_type":  "utility",
+                                                                                                            "rationale":  "assistant_reply",
+                                                                                                            "required_permission_domains":  [
+                                                                                                                                                "mix.commit"
+                                                                                                                                            ],
+                                                                                                            "risk":  "undoable_commit",
+                                                                                                            "source":  {
+                                                                                                                           "conversation_id":  "dev_harness_ab_pull_confirm_20261012_213132",
+                                                                                                                           "goal_id":  "goal_7347e3ec6ccbccd8",
+                                                                                                                           "legacy_kind":  "PendingMixTickCandidate",
+                                                                                                                           "legacy_schema":  "mix_tick.pending.v0",
+                                                                                                                           "metadata":  {
+                                                                                                                                            "before_track_summary":  {
+                                                                                                                                                                         "gain_db":  0,
+                                                                                                                                                                         "id":  "1007",
+                                                                                                                                                                         "name":  "Bass",
+                                                                                                                                                                         "pan":  0,
+                                                                                                                                                                         "track_id":  "1007",
+                                                                                                                                                                         "track_name":  "Bass",
+                                                                                                                                                                         "volume_db":  0
+                                                                                                                                                                     },
+                                                                                                                                            "conversation_id":  "dev_harness_ab_pull_confirm_20261012_213132",
+                                                                                                                                            "goal_id":  "goal_7347e3ec6ccbccd8",
+                                                                                                                                            "run_id":  "run_877bfd6d83d7a21a",
+                                                                                                                                            "target_track_id":  "1007",
+                                                                                                                                            "track_count":  2,
+                                                                                                                                            "track_gain_db":  0
+                                                                                                                                        },
+                                                                                                                           "run_id":  "run_877bfd6d83d7a21a"
+                                                                                                                       },
+                                                                                                            "status":  "waiting_user",
+                                                                                                            "summary":  "将 Track 1007 的电平调整 -1.00 dB。",
+                                                                                                            "target_ref":  "track:1007"
+                                                                                                        }
+                                                                                    },
+                                                                        "actions":  [
+                                                                                        {
+                                                                                            "id":  "approve",
+                                                                                            "label":  "确认执行",
+                                                                                            "style":  "primary",
+                                                                                            "recommended":  true
+                                                                                        },
+                                                                                        {
+                                                                                            "id":  "cancel",
+                                                                                            "label":  "取消",
+                                                                                            "style":  "secondary"
+                                                                                        }
+                                                                                    ],
+                                                                        "type":  "mix_tick_confirmation",
+                                                                        "data":  {
+                                                                                     "conversation_id":  "dev_harness_ab_pull_confirm_20261012_213132",
+                                                                                     "delta_db":  -1,
+                                                                                     "display":  {
+                                                                                                     "body":  "将 Track 1007 的电平调整 -1.00 dB，正在等待你确认；确认前不会修改工程。",
+                                                                                                     "summary":  "将 Track 1007 的电平调整 -1.00 dB",
+                                                                                                     "title":  "混音单步待确认"
+                                                                                                 },
+                                                                                     "observation_id":  "",
+                                                                                     "operation":  "track_gain_adjust",
+                                                                                     "request_context":  {
+                                                                                                             "conversation_id":  "dev_harness_ab_pull_confirm_20261012_213132",
+                                                                                                             "goal_id":  "goal_7347e3ec6ccbccd8",
+                                                                                                             "run_id":  "run_877bfd6d83d7a21a"
+                                                                                                         },
+                                                                                     "track_id":  "1007",
+                                                                                     "typed_event":  {
+                                                                                                         "event_type":  "PendingCandidate",
+                                                                                                         "schema_version":  "vit_agent_protocol.v0",
+                                                                                                         "source":  {
+                                                                                                                        "conversation_id":  "dev_harness_ab_pull_confirm_20261012_213132",
+                                                                                                                        "goal_id":  "goal_7347e3ec6ccbccd8",
+                                                                                                                        "legacy_kind":  "PendingMixTickCandidate",
+                                                                                                                        "legacy_schema":  "mix_tick.pending.v0",
+                                                                                                                        "metadata":  {
+                                                                                                                                         "before_track_summary":  {
+                                                                                                                                                                      "gain_db":  0,
+                                                                                                                                                                      "id":  "1007",
+                                                                                                                                                                      "name":  "Bass",
+                                                                                                                                                                      "pan":  0,
+                                                                                                                                                                      "track_id":  "1007",
+                                                                                                                                                                      "track_name":  "Bass",
+                                                                                                                                                                      "volume_db":  0
+                                                                                                                                                                  },
+                                                                                                                                         "conversation_id":  "dev_harness_ab_pull_confirm_20261012_213132",
+                                                                                                                                         "goal_id":  "goal_7347e3ec6ccbccd8",
+                                                                                                                                         "run_id":  "run_877bfd6d83d7a21a",
+                                                                                                                                         "target_track_id":  "1007",
+                                                                                                                                         "track_count":  2,
+                                                                                                                                         "track_gain_db":  0
+                                                                                                                                     },
+                                                                                                                        "run_id":  "run_877bfd6d83d7a21a"
+                                                                                                                    },
+                                                                                                         "state":  {
+                                                                                                                       "action_kind":  "gain_balance",
+                                                                                                                       "candidate_action":  {
+                                                                                                                                                "action_kind":  "gain_balance",
+                                                                                                                                                "confidence":  "medium",
+                                                                                                                                                "delta_db":  -1,
+                                                                                                                                                "evidence":  {
+                                                                                                                                                                 "diagnosis_context":  "@{conversation_id=dev_harness_ab_pull_confirm_20261012_213132; created_at=2026-10-12T13:31:39.5604111Z; evidence_refs=System.Object[]; evidence_status=; goal_id=goal_7347e3ec6ccbccd8; id=diag_1040ed4f3962ad47; inferred_facts=System.Object[]; low_risk_next_step=conservative_level_or_peer_rebalance; missing_evidence=System.Object[]; observation_id=obs_20261012T133222_27e72b054c02; problem_kind=vocal_forward; recommendation=; run_id=run_877bfd6d83d7a21a; schema_version=mix_diagnosis_context.v0; source_refs=; target_ref=track:1007; user_intent=请对当前贴唱工程做一次自由态实验：基于观察证据改善人声与伴奏的平衡，执行后让我试听对比效果。; user_reported_facts=System.Object[]}",
+                                                                                                                                                                 "diagnosis_context_id":  "diag_1040ed4f3962ad47",
+                                                                                                                                                                 "diagnosis_evidence_refs":  "diag_1040ed4f3962ad47 obs_20261012T133222_27e72b054c02 diag_1040ed4f3962ad47.user_reported.intent diag_1040ed4f3962ad47.missing.band_energy_summary diag_1040ed4f3962ad47.missing.masking_depth",
+                                                                                                                                                                 "matched_text":  "降低 1 dB",
+                                                                                                                                                                 "source":  "assistant_reply"
+                                                                                                                                                             },
+                                                                                                                                                "operation":  "track_gain_adjust",
+                                                                                                                                                "processor_type":  "utility",
+                                                                                                                                                "track_id":  "1007"
+                                                                                                                                            },
+                                                                                                                       "candidate_type":  "mix_tick",
+                                                                                                                       "confidence":  "medium",
+                                                                                                                       "domain":  "mix",
+                                                                                                                       "id":  "pending_mix_tick_dev_harness_ab_pull_confirm_20261012_213132_goal_7347e3ec6ccbccd8_track_gain_adjust_1007",
+                                                                                                                       "kind":  "PendingCandidate",
+                                                                                                                       "processor_type":  "utility",
+                                                                                                                       "rationale":  "assistant_reply",
+                                                                                                                       "required_permission_domains":  [
+                                                                                                                                                           "mix.commit"
+                                                                                                                                                       ],
+                                                                                                                       "risk":  "undoable_commit",
+                                                                                                                       "source":  {
+                                                                                                                                      "conversation_id":  "dev_harness_ab_pull_confirm_20261012_213132",
+                                                                                                                                      "goal_id":  "goal_7347e3ec6ccbccd8",
+                                                                                                                                      "legacy_kind":  "PendingMixTickCandidate",
+                                                                                                                                      "legacy_schema":  "mix_tick.pending.v0",
+                                                                                                                                      "metadata":  {
+                                                                                                                                                       "before_track_summary":  "@{gain_db=0; id=1007; name=Bass; pan=0; track_id=1007; track_name=Bass; volume_db=0}",
+                                                                                                                                                       "conversation_id":  "dev_harness_ab_pull_confirm_20261012_213132",
+                                                                                                                                                       "goal_id":  "goal_7347e3ec6ccbccd8",
+                                                                                                                                                       "run_id":  "run_877bfd6d83d7a21a",
+                                                                                                                                                       "target_track_id":  "1007",
+                                                                                                                                                       "track_count":  2,
+                                                                                                                                                       "track_gain_db":  0
+                                                                                                                                                   },
+                                                                                                                                      "run_id":  "run_877bfd6d83d7a21a"
+                                                                                                                                  },
+                                                                                                                       "status":  "waiting_user",
+                                                                                                                       "summary":  "将 Track 1007 的电平调整 -1.00 dB。",
+                                                                                                                       "target_ref":  "track:1007"
+                                                                                                                   },
+                                                                                                         "state_id":  "pending_mix_tick_dev_harness_ab_pull_confirm_20261012_213132_goal_7347e3ec6ccbccd8_track_gain_adjust_1007",
+                                                                                                         "state_kind":  "PendingCandidate",
+                                                                                                         "status":  "waiting_user"
+                                                                                                     },
+                                                                                     "typed_state":  {
+                                                                                                         "action_kind":  "gain_balance",
+                                                                                                         "candidate_action":  {
+                                                                                                                                  "action_kind":  "gain_balance",
+                                                                                                                                  "confidence":  "medium",
+                                                                                                                                  "delta_db":  -1,
+                                                                                                                                  "evidence":  {
+                                                                                                                                                   "diagnosis_context":  {
+                                                                                                                                                                             "conversation_id":  "dev_harness_ab_pull_confirm_20261012_213132",
+                                                                                                                                                                             "created_at":  "2026-10-12T13:31:39.5604111Z",
+                                                                                                                                                                             "evidence_refs":  "diag_1040ed4f3962ad47 obs_20261012T133222_27e72b054c02 diag_1040ed4f3962ad47.user_reported.intent diag_1040ed4f3962ad47.missing.band_energy_summary diag_1040ed4f3962ad47.missing.masking_depth",
+                                                                                                                                                                             "evidence_status":  "@{band_energy=missing; confidence_ceiling=medium; missing=System.Object[]; problem_kind=vocal_forward; spectral=missing; strategy=conservative_level_or_peer_rebalance}",
+                                                                                                                                                                             "goal_id":  "goal_7347e3ec6ccbccd8",
+                                                                                                                                                                             "id":  "diag_1040ed4f3962ad47",
+                                                                                                                                                                             "inferred_facts":  "",
+                                                                                                                                                                             "low_risk_next_step":  "conservative_level_or_peer_rebalance",
+                                                                                                                                                                             "missing_evidence":  " ",
+                                                                                                                                                                             "observation_id":  "obs_20261012T133222_27e72b054c02",
+                                                                                                                                                                             "problem_kind":  "vocal_forward",
+                                                                                                                                                                             "recommendation":  "@{action_kind=gain_balance; confidence=medium; next_step=prepare a small level/rebalance candidate instead of a brightness boost; processor_type=utility; risk=low; strategy=conservative_level_or_peer_rebalance}",
+                                                                                                                                                                             "run_id":  "run_877bfd6d83d7a21a",
+                                                                                                                                                                             "schema_version":  "mix_diagnosis_context.v0",
+                                                                                                                                                                             "source_refs":  "@{observation_id=obs_20261012T133222_27e72b054c02; target_ref=track:1007}",
+                                                                                                                                                                             "target_ref":  "track:1007",
+                                                                                                                                                                             "user_intent":  "请对当前贴唱工程做一次自由态实验：基于观察证据改善人声与伴奏的平衡，执行后让我试听对比效果。",
+                                                                                                                                                                             "user_reported_facts":  ""
+                                                                                                                                                                         },
+                                                                                                                                                   "diagnosis_context_id":  "diag_1040ed4f3962ad47",
+                                                                                                                                                   "diagnosis_evidence_refs":  [
+                                                                                                                                                                                   "diag_1040ed4f3962ad47",
+                                                                                                                                                                                   "obs_20261012T133222_27e72b054c02",
+                                                                                                                                                                                   "diag_1040ed4f3962ad47.user_reported.intent",
+                                                                                                                                                                                   "diag_1040ed4f3962ad47.missing.band_energy_summary",
+                                                                                                                                                                                   "diag_1040ed4f3962ad47.missing.masking_depth"
+                                                                                                                                                                               ],
+                                                                                                                                                   "matched_text":  "降低 1 dB",
+                                                                                                                                                   "source":  "assistant_reply"
+                                                                                                                                               },
+                                                                                                                                  "operation":  "track_gain_adjust",
+                                                                                                                                  "processor_type":  "utility",
+                                                                                                                                  "track_id":  "1007"
+                                                                                                                              },
+                                                                                                         "candidate_type":  "mix_tick",
+                                                                                                         "confidence":  "medium",
+                                                                                                         "domain":  "mix",
+                                                                                                         "id":  "pending_mix_tick_dev_harness_ab_pull_confirm_20261012_213132_goal_7347e3ec6ccbccd8_track_gain_adjust_1007",
+                                                                                                         "kind":  "PendingCandidate",
+                                                                                                         "processor_type":  "utility",
+                                                                                                         "rationale":  "assistant_reply",
+                                                                                                         "required_permission_domains":  [
+                                                                                                                                             "mix.commit"
+                                                                                                                                         ],
+                                                                                                         "risk":  "undoable_commit",
+                                                                                                         "source":  {
+                                                                                                                        "conversation_id":  "dev_harness_ab_pull_confirm_20261012_213132",
+                                                                                                                        "goal_id":  "goal_7347e3ec6ccbccd8",
+                                                                                                                        "legacy_kind":  "PendingMixTickCandidate",
+                                                                                                                        "legacy_schema":  "mix_tick.pending.v0",
+                                                                                                                        "metadata":  {
+                                                                                                                                         "before_track_summary":  {
+                                                                                                                                                                      "gain_db":  0,
+                                                                                                                                                                      "id":  "1007",
+                                                                                                                                                                      "name":  "Bass",
+                                                                                                                                                                      "pan":  0,
+                                                                                                                                                                      "track_id":  "1007",
+                                                                                                                                                                      "track_name":  "Bass",
+                                                                                                                                                                      "volume_db":  0
+                                                                                                                                                                  },
+                                                                                                                                         "conversation_id":  "dev_harness_ab_pull_confirm_20261012_213132",
+                                                                                                                                         "goal_id":  "goal_7347e3ec6ccbccd8",
+                                                                                                                                         "run_id":  "run_877bfd6d83d7a21a",
+                                                                                                                                         "target_track_id":  "1007",
+                                                                                                                                         "track_count":  2,
+                                                                                                                                         "track_gain_db":  0
+                                                                                                                                     },
+                                                                                                                        "run_id":  "run_877bfd6d83d7a21a"
+                                                                                                                    },
+                                                                                                         "status":  "waiting_user",
+                                                                                                         "summary":  "将 Track 1007 的电平调整 -1.00 dB。",
+                                                                                                         "target_ref":  "track:1007"
+                                                                                                     }
+                                                                                 }
+                                                                    },
+                                            "conversation_id":  "dev_harness_ab_pull_confirm_20261012_213132",
+                                            "needs_confirmation":  true
+                                        },
+                              "judgment_station_events":  {
+                                                              "applied_like":  0,
+                                                              "mix_tick":  2,
+                                                              "audition":  4,
+                                                              "total":  18
+                                                          },
+                              "post_confirm_station":  "judgment_terminal",
+                              "phase":  "confirm_roundtrip",
+                              "hops":  [
+                                           {
+                                               "index":  1,
+                                               "face":  "interaction",
+                                               "card_id":  "interaction_9fca34cc1ddb1e1b",
+                                               "goal_status":  "completed",
+                                               "stop_reason":  "mix_tick_applied_reobserved",
+                                               "needs_confirmation":  false,
+                                               "expired_fallback":  false,
+                                               "error":  "",
+                                               "answered":  true
+                                           }
+                                       ],
+                              "conversation_id":  "dev_harness_ab_pull_confirm_20261012_213132",
+                              "finished_at":  "2026-10-12T21:33:00.1174222+08:00",
+                              "confirm_face_exercised":  true,
+                              "hops_used":  1
+                          },
+    "family_rounds_classified":  3,
+    "mode":  "pull",
+    "prefix_hits":  {
+                        "p1_distinct_fingerprints":  21,
+                        "p3_isolated_calls":  22,
+                        "p2_break_reasons":  {
+                                                 "snapshot_rotated":  16,
+                                                 "history_window_slid":  16
+                                             },
+                        "p2_break_calls":  0,
+                        "p1_stable_calls":  2,
+                        "p2_break_sections":  {
+                                                  "history_window_slid:dynamic":  16,
+                                                  "snapshot_rotated:dynamic":  16
+                                              }
+                    },
+    "environment_interrupt":  false,
+    "telemetry_records_total":  28,
+    "family_rounds":  [
+                          {
+                              "mode":  "pull",
+                              "family":  "f1_loudness_balance",
+                              "conversation_id":  "dev_harness_ab_pull_fam_f1_loudness_balance_20261012_212615",
+                              "classification":  "judgment_terminal",
+                              "stop_reasons":  [
+                                                   "done"
+                                               ],
+                              "goal_statuses":  [
+                                                    "completed"
+                                                ],
+                              "last_stop_reason":  "done",
+                              "last_goal_status":  "completed",
+                              "turns_sent":  1,
+                              "nudges_sent":  0,
+                              "settled":  true,
+                              "finished_at":  "2026-10-12T21:29:20.1866239+08:00"
+                          },
+                          {
+                              "mode":  "pull",
+                              "family":  "f2_low_end_cleanup",
+                              "conversation_id":  "dev_harness_ab_pull_fam_f2_low_end_cleanup_20261012_212922",
+                              "classification":  "judgment_terminal",
+                              "stop_reasons":  [
+                                                   "done"
+                                               ],
+                              "goal_statuses":  [
+                                                    "completed"
+                                                ],
+                              "last_stop_reason":  "done",
+                              "last_goal_status":  "completed",
+                              "turns_sent":  1,
+                              "nudges_sent":  0,
+                              "settled":  true,
+                              "finished_at":  "2026-10-12T21:30:27.9146055+08:00"
+                          },
+                          {
+                              "mode":  "pull",
+                              "family":  "f3_dynamic_control",
+                              "conversation_id":  "dev_harness_ab_pull_fam_f3_dynamic_control_20261012_213030",
+                              "classification":  "judgment_terminal",
+                              "stop_reasons":  [
+                                                   "capability_blocked"
+                                               ],
+                              "goal_statuses":  [
+                                                    "completed"
+                                                ],
+                              "last_stop_reason":  "capability_blocked",
+                              "last_goal_status":  "completed",
+                              "turns_sent":  1,
+                              "nudges_sent":  0,
+                              "settled":  true,
+                              "finished_at":  "2026-10-12T21:31:30.3910227+08:00"
+                          }
+                      ]
+}

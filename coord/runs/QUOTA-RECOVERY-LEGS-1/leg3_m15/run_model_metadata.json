@@ -1,0 +1,7 @@
+{
+ "model_id": "gpt-6.1-sol",
+ "base_url": "https://www.hejuapi.com/v1",
+ "leg": "3 M1FiveThreeView x2",
+ "note": "两轮均 exit 0 PASS（M1Q+M15+A1+A4 全过）但 mix_report settle 面均走诚实无记录分支（timeline=0=queue sources=0, latest=空）；正面分支（latest_conclusion_id 非空+与盘上一致）新模型 0/2 未落；旧模型对照：M1-2 20261011_194717 曾落 loop_closure_settle(blocked) 1 次、M1-5 两轮亦未落——轮形=模型随机分支，跨模型不可直接比",
+ "captured_at": "2026-10-12 22:3x +0800"
+}

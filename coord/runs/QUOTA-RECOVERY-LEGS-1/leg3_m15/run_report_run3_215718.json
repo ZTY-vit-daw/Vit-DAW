@@ -1,0 +1,292 @@
+﻿{
+    "run_id":  "fs_largeproject_smoke_20261012_215718",
+    "card":  "FS-LARGEPROJECT-SMOKE-1",
+    "started_at":  "2026-10-12T13:57:18.1633200Z",
+    "command_line":  "\u0026 \u0027D:/Vit_DAW_wt_qrl1/scripts/fs_largeproject_smoke.ps1\u0027 -RepoRoot \u0027D:/Vit_DAW_wt_qrl1\u0027 -KernelExe \u0027D:/Vit_DAW/VitApp/build/VitApp_artefacts/Release/VitApp.exe\u0027 -SkipBuild -M1QueueRoundtrip -M1FiveThreeView",
+    "repo_head":  "e1631ad97330c5d156ade32fa95e62774230d38c",
+    "worktree":  "D:\\Vit_DAW_wt_qrl1",
+    "branch":  "coord/qrl1-b",
+    "kernel_exe":  "D:\\Vit_DAW\\VitApp\\build\\VitApp_artefacts\\Release\\VitApp.exe",
+    "kernel_sha256":  "B6565DCF85D1DA867E16333052A7B928A5413565940603ADBCF4ABD59DD3123B",
+    "agent_binary":  {
+                         "path":  "D:\\Vit_DAW_wt_qrl1\\agent\\bin\\VitAgent.exe",
+                         "sha256":  "F1DAFA414260B07047A921C02A7664EC4E9C5EACFF0D9A316296082318192CC6",
+                         "last_write_utc":  "2026-10-12T13:22:36.5310155Z"
+                     },
+    "stack_mode":  "dev_agent_smoke_started",
+    "harness_env":  "pull",
+    "telemetry_file":  "D:\\Vit_DAW_wt_qrl1\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261012_215718\\telemetry_pull.jsonl",
+    "probabilistic_discipline":  {
+                                     "failure_taxonomy":  [
+                                                              "no_candidate_found",
+                                                              "capability_blocked",
+                                                              "llm_error",
+                                                              "budget_exhausted",
+                                                              "environment_interrupt"
+                                                          ],
+                                     "stop_loss":  "same deterministic breakpoint failing twice in a row -\u003e stop and hand up",
+                                     "success_condition":  "exit 0 with assertion groups A1-A4 all true",
+                                     "max_runs":  2
+                                 },
+    "budget":  {
+                   "settle_seconds":  2700,
+                   "pull_max_cycles":  40,
+                   "bake_preheat_seconds":  9000,
+                   "turn_seconds":  480,
+                   "max_hops":  4,
+                   "max_nudges":  6
+               },
+    "import":  {
+                   "analysis_job_id":  "audio_analysis_1791813444435_1",
+                   "elapsed_seconds":  1,
+                   "isolated_project":  "D:\\Vit_DAW_wt_qrl1\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261012_215718\\project\\sattelites_61.vit",
+                   "tracks_created":  61,
+                   "started_at":  "2026-10-12T21:57:24.0564526+08:00",
+                   "tracks_to_create":  61,
+                   "clips_created":  61,
+                   "readable_file_count":  61
+               },
+    "preheat":  {
+                    "elapsed_seconds":  30,
+                    "dad_ready":  true,
+                    "polls":  [
+                                  {
+                                      "pending_clips":  0,
+                                      "dad_fact_ready":  61,
+                                      "dad_fact_status":  "ready",
+                                      "elapsed_s":  30,
+                                      "at":  "2026-10-12T13:57:55.1124047Z",
+                                      "analysis_queue_status":  "submitted",
+                                      "submitted_clips":  61,
+                                      "dad_fact_total":  61,
+                                      "submitted_feature_jobs":  122
+                                  }
+                              ],
+                    "budget_seconds":  9000,
+                    "final":  {
+                                  "pending_clips":  0,
+                                  "dad_fact_ready":  61,
+                                  "dad_fact_status":  "ready",
+                                  "elapsed_s":  30,
+                                  "at":  "2026-10-12T13:57:55.1124047Z",
+                                  "analysis_queue_status":  "submitted",
+                                  "submitted_clips":  61,
+                                  "dad_fact_total":  61,
+                                  "submitted_feature_jobs":  122
+                              },
+                    "poll_interval_seconds":  30
+                },
+    "nl_round":  {
+                     "pending_card_id":  "",
+                     "nudges_sent":  0,
+                     "goal_statuses":  [
+                                           "completed"
+                                       ],
+                     "last_stop_reason":  "done",
+                     "stop_reasons":  [
+                                          "done"
+                                      ],
+                     "settle_reason":  "goal_terminal",
+                     "transport_errors":  0,
+                     "last_goal_status":  "completed",
+                     "prompt_file":  "nl_prompt.txt",
+                     "pending_card_source":  "",
+                     "pending_card_kind":  "",
+                     "conversation_id":  "dev_fs_largeproject_20261012_215718",
+                     "timeline":  [
+                                      "chat_turn_1 stop=done goal=completed needs_confirmation=False"
+                                  ],
+                     "turns_sent":  1
+                 },
+    "confirm_roundtrip":  {
+                              "mode":  "pull",
+                              "reobserved_completed_seen":  false,
+                              "judgment_station_events":  {
+                                                              "applied_like":  0,
+                                                              "mix_tick":  0,
+                                                              "audition":  0,
+                                                              "total":  12,
+                                                              "audition_session_id_seen":  false
+                                                          },
+                              "post_confirm_station":  "not_driven_no_card",
+                              "phase":  "confirm_roundtrip",
+                              "hops":  [
+
+                                       ],
+                              "conversation_id":  "dev_fs_largeproject_20261012_215718",
+                              "confirm_face_exercised":  false,
+                              "hops_used":  0
+                          },
+    "telemetry_census":  {
+                             "file":  "D:\\Vit_DAW_wt_qrl1\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261012_215718\\telemetry_pull.jsonl",
+                             "exists":  true,
+                             "pullharness_records":  5,
+                             "distinct_fingerprints":  5,
+                             "records_total":  6,
+                             "source_counts":  [
+                                                   {
+                                                       "count":  1,
+                                                       "source":  "ordinary_agent_semantic_entry"
+                                                   },
+                                                   {
+                                                       "count":  5,
+                                                       "source":  "pullharness"
+                                                   }
+                                               ],
+                             "pullharness_with_fingerprint":  5
+                         },
+    "assertions_block":  {
+                             "A4_zero_fixed_orchestration":  true,
+                             "station_map_before_hops":  {
+                                                             "total":  12,
+                                                             "type_counts":  [
+                                                                                 {
+                                                                                     "count":  4,
+                                                                                     "type":  "item.completed"
+                                                                                 },
+                                                                                 {
+                                                                                     "count":  4,
+                                                                                     "type":  "item.started"
+                                                                                 },
+                                                                                 {
+                                                                                     "count":  1,
+                                                                                     "type":  "trajectory.turn.completed"
+                                                                                 },
+                                                                                 {
+                                                                                     "count":  1,
+                                                                                     "type":  "trajectory.turn.started"
+                                                                                 },
+                                                                                 {
+                                                                                     "count":  1,
+                                                                                     "type":  "turn.completed"
+                                                                                 },
+                                                                                 {
+                                                                                     "count":  1,
+                                                                                     "type":  "turn.started"
+                                                                                 }
+                                                                             ],
+                                                             "audition_session_id_seen":  false,
+                                                             "trajectory_observation_recorded":  0,
+                                                             "label":  "before_hops",
+                                                             "trajectory_hypothesis_proposed":  0,
+                                                             "mix_tick_pending":  0,
+                                                             "audition_events":  0,
+                                                             "applied_like":  0,
+                                                             "trajectory_round_started":  0,
+                                                             "file":  "D:\\Vit_DAW_wt_qrl1\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261012_215718\\nl_events.json"
+                                                         },
+                             "A1_mode_telemetry":  true,
+                             "A3_ab_audition_roundtrip":  false,
+                             "station_map_after_hops":  {
+                                                            "total":  12,
+                                                            "type_counts":  [
+                                                                                {
+                                                                                    "count":  4,
+                                                                                    "type":  "item.completed"
+                                                                                },
+                                                                                {
+                                                                                    "count":  4,
+                                                                                    "type":  "item.started"
+                                                                                },
+                                                                                {
+                                                                                    "count":  1,
+                                                                                    "type":  "trajectory.turn.completed"
+                                                                                },
+                                                                                {
+                                                                                    "count":  1,
+                                                                                    "type":  "trajectory.turn.started"
+                                                                                },
+                                                                                {
+                                                                                    "count":  1,
+                                                                                    "type":  "turn.completed"
+                                                                                },
+                                                                                {
+                                                                                    "count":  1,
+                                                                                    "type":  "turn.started"
+                                                                                }
+                                                                            ],
+                                                            "audition_session_id_seen":  false,
+                                                            "trajectory_observation_recorded":  0,
+                                                            "label":  "after_hops",
+                                                            "trajectory_hypothesis_proposed":  0,
+                                                            "mix_tick_pending":  0,
+                                                            "audition_events":  0,
+                                                            "applied_like":  0,
+                                                            "trajectory_round_started":  0,
+                                                            "file":  "D:\\Vit_DAW_wt_qrl1\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261012_215718\\nl_events_after_hop.json"
+                                                        },
+                             "A2_free_state_station_map":  false
+                         },
+    "classification":  "capability_blocked",
+    "source_integrity":  "",
+    "environment_interrupt":  "",
+    "verdict":  "PASS",
+    "exit_code":  0,
+    "teardown":  {
+                     "remaining":  [
+
+                                   ],
+                     "torn_down":  true
+                 },
+    "bringup_seconds":  5,
+    "m1_queue_roundtrip":  {
+                               "q2_write_ack":  true,
+                               "q1_read_datasource":  true,
+                               "q3_reread_deferred":  true,
+                               "zero_fixed_orchestration_markers":  true,
+                               "marker_hits":  [
+
+                                               ],
+                               "q1_read_schema":  true,
+                               "enabled":  true,
+                               "responses":  [
+                                                 "D:\\Vit_DAW_wt_qrl1\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261012_215718\\m1q_q1_read.json",
+                                                 "D:\\Vit_DAW_wt_qrl1\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261012_215718\\m1q_q2_write.json",
+                                                 "D:\\Vit_DAW_wt_qrl1\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261012_215718\\m1q_q3_reread.json"
+                                             ]
+                           },
+    "c3_observation":  {
+                           "marker_hits":  [
+
+                                           ],
+                           "zero_fixed_orchestration_markers":  false,
+                           "observation_readonly_line":  false,
+                           "response":  "",
+                           "observation_reply_schema":  false,
+                           "enabled":  false
+                       },
+    "d1d3_observation":  {
+                             "observation_readonly_line":  false,
+                             "observation_face_lines":  false,
+                             "zero_fixed_orchestration_markers":  false,
+                             "marker_hits":  [
+
+                                             ],
+                             "enabled":  false,
+                             "observation_reply_schema":  false,
+                             "observation_gap_line":  false,
+                             "response":  ""
+                         },
+    "m1_five_three_view":  {
+                               "fold_agree":  true,
+                               "queue_line":  true,
+                               "response_file":  "D:\\Vit_DAW_wt_qrl1\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261012_215718\\m1_5_three_view_report.json",
+                               "latest_conclusion_id":  "",
+                               "a4_zero_markers":  true,
+                               "e1_deferred":  true,
+                               "queue_sources_conclusions":  0,
+                               "timeline_count":  0,
+                               "report_schema":  true,
+                               "marker_hits":  [
+
+                                               ],
+                               "invoke_ok":  true,
+                               "enabled":  true,
+                               "settle_line":  true,
+                               "settle_truth":  true
+                           },
+    "fs_loop_last_error":  "free_state_admission_gate_failed",
+    "fs_loop_admission_status":  "capability_blocked",
+    "exit_gate_semantics":  "surface gate: M1Q + M15 + A1 + A4 (A2/A3 round status recorded, not gated - FS-LARGEPROJECT-SMOKE-1 rework line owns them)",
+    "finished_at":  "2026-10-12T14:00:41.2188755Z"
+}

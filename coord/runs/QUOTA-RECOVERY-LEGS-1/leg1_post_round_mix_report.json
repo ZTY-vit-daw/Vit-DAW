@@ -1,0 +1,9 @@
+{
+ "phase": "leg1_d1_post_round_mix_report",
+ "invoke_ok": true,
+ "schema_version": "mix_report.v1",
+ "latest_settle_conclusion": null,
+ "timeline_count": 0,
+ "board_on_disk": null,
+ "captured_at": "2026-10-12T21:2x+08:00"
+}

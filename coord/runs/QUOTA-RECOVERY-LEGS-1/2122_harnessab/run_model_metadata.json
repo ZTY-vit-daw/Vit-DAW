@@ -1,0 +1,8 @@
+{
+ "model_id": "gpt-6.1-sol",
+ "base_url": "https://www.hejuapi.com/v1",
+ "config_source": "~/.vit/config.json (machine-global, modified 2026-10-12 20:51)",
+ "leg": "2 harness_ab dual-mode",
+ "cross_model_note": "G3-ATTRIB-1 17 vs 6 与 G3-REOPEN 物理成本 886/950ms 均旧模型所产，跨模型不可直接比；本轮读数=gpt-6.1-sol 新基线",
+ "captured_at": "2026-10-12 21:5x +0800"
+}

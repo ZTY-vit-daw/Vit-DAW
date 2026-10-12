@@ -1,0 +1,70 @@
+{
+  "eligible": true,
+  "effective_status": "promoted",
+  "reason": "promoted_action_covered",
+  "attestation": {
+    "schema_version": "processor_control_attestation.v2",
+    "attestation_id": "pca2_16b17b51c4984c60efb9ee9b",
+    "payload_digest": "sha256:16b17b51c4984c60efb9ee9b9e6ba750bf0171299fb7c58ef0a64648b1cad554",
+    "issuer": "vit_deterministic_local_v1",
+    "subject": {
+      "subject_key": "pcs1_b0462f625e7251fc46cbbb5c",
+      "name": "Pro-R",
+      "manufacturer": "FabFilter",
+      "format": "VST3",
+      "identifier": "VST3-Pro-R-4bc24482-78c01fa6",
+      "installed_path": "C:\\Program Files\\Common Files\\VST3\\FabFilter\\FabFilter Pro-R.vst3"
+    },
+    "binary_fingerprint": "sha256:48d5cb4f1c9ad22261f80d912293bd5821285661c2cffcf66d4c8dedb005aee1",
+    "processor_family": "reverb",
+    "coverage": [
+      {
+        "action": "adjust",
+        "axis": "decay_time"
+      },
+      {
+        "action": "adjust",
+        "axis": "output_normalization"
+      },
+      {
+        "action": "adjust",
+        "axis": "wet_balance"
+      }
+    ],
+    "evidence": [
+      {
+        "receipt_id": "pcr1_7c8feffc1bd0411b6e1dca1b",
+        "kind": "processor_authority.local_processor_certification.v2",
+        "sha256": "sha256:7c8feffc1bd0411b6e1dca1b3d49941d601c7559e29914ec9526f90751fdb36e",
+        "observed_at": "2026-10-12T03:16:32.6737828Z",
+        "corpus_record": "C:\\Users\\timoz\\.vit\\pca_certifications\\pca_job_1980b350e1bcfbf6\\summary.json"
+      },
+      {
+        "receipt_id": "pcr1_88d58582b879c2b7edef8d51",
+        "kind": "processor_control_case_evidence.v1",
+        "sha256": "sha256:88d58582b879c2b7edef8d512b9968e062c3a81c91250fc5a83a7011c69bfbee",
+        "observed_at": "2026-10-12T03:16:32.6687826Z",
+        "corpus_record": "C:\\Users\\timoz\\.vit\\pca_certifications\\pca_job_1980b350e1bcfbf6\\cases\\01_vst3_pro_r_4bc24482_78c01fa6\\evidence.json"
+      },
+      {
+        "receipt_id": "pcr1_dbb5f477151ac18e042dd30c",
+        "kind": "processor_authority.local_processor_certification.v2",
+        "sha256": "sha256:dbb5f477151ac18e042dd30cdcbe8aeb5a24be13ea24936fbbc52b2f3931ced9",
+        "observed_at": "2026-10-12T02:52:46.9609386Z",
+        "corpus_record": "C:\\Users\\timoz\\.vit\\pca_certifications\\pca_job_86c8ae2a787f43b2\\summary.json"
+      },
+      {
+        "receipt_id": "pcr1_ff3b55fb18ef34ba7efc7c3a",
+        "kind": "processor_control_case_evidence.v1",
+        "sha256": "sha256:ff3b55fb18ef34ba7efc7c3ad59585dc4e0ba3aec42280c6e414325a090a135e",
+        "observed_at": "2026-10-12T02:52:46.9574387Z",
+        "corpus_record": "C:\\Users\\timoz\\.vit\\pca_certifications\\pca_job_86c8ae2a787f43b2\\cases\\01_vst3_pro_r_4bc24482_78c01fa6\\evidence.json"
+      }
+    ],
+    "status": "promoted",
+    "status_reason": "deterministic_strong_receipt_passed",
+    "issued_at": "2026-10-12T03:16:32.6893321Z",
+    "promoted_at": "2026-10-12T03:16:32.6893321Z"
+  },
+  "fingerprint_match": true
+}
