@@ -32,4 +32,4 @@
 
 - 领取：2026-10-12 / origin/main 813cbf58 / owner=GLM Mac 执行会话 / 分支 port/gen-plugin-shell-design-1（独立 worktree ~/Documents/Vit-DAW-gpsd1，基线=813cbf58 干净检出）
 - 回执：设计基线=coord/runs/GEN-PLUGIN-SHELL-DESIGN-1/（README+件一~五+风险表06；分支 port/gen-plugin-shell-design-1 @ a51c3509 已推）。卡面五件+风险表齐；与统一化件三对齐核对在件一 §6+件三 §5；实施拆卡 6 张在件五（GENSHELL-CPP/HOST/AGENT/GUI/PCA/AUDITION，关键依赖=GEN-CTX-INJECT-1）。零生产代码零源码 diff；无真栈需求（引用 GEN-MAC-BASELINE-1 30/30+GEN-API-ADAPTER-1 17/17 既有证据）
-- 验收：（裁定文件）
+- 验收：pass（2026-10-12，Mac 决策侧先行裁定+PC 复核留档）——[rulings/2026-10-12-GEN-PLUGIN-SHELL-DESIGN-1-pass.md](../../rulings/2026-10-12-GEN-PLUGIN-SHELL-DESIGN-1-pass.md)；详裁定文件（KEYFIELD 含双内核独立复跑 PASS 与域外缺陷两件采纳立卡建议；SHELL 含与 genctx 渲染器契约互锁验证）
