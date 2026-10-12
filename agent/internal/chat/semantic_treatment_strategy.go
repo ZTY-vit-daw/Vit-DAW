@@ -494,6 +494,11 @@ func processorFamilyForTreatmentProcessorType(processorType string) string {
 		return processorintent.FamilyTransientShaper
 	case "multiband_dynamics", "multiband":
 		return processorintent.FamilyMultibandDynamics
+	case "reverb", "delay":
+		// M2-TIMEFX-1: the time-domain families ride the same semantic
+		// treatment router as the dynamic families when an admitted
+		// experiment's semantic intent names them.
+		return raw
 	default:
 		return ""
 	}

@@ -20,6 +20,8 @@ const (
 	FamilyDeEsser       = "de_esser"
 	FamilyTransient     = "transient_shaper"
 	FamilyMultiband     = "multiband_dynamics"
+	FamilyReverb        = "reverb"
+	FamilyDelay         = "delay"
 )
 
 type LibraryV2 struct {
@@ -77,6 +79,8 @@ var v2CoverageAxes = map[string][]string{
 	FamilyDeEsser:      {"detector_focus", "output_normalization", "parallel_balance", "recovery_motion", "sibilance_reduction", "split_scope", "threshold_sensitivity"},
 	FamilyTransient:    {"detector_focus", "envelope_emphasis", "envelope_timing", "output_normalization", "parallel_balance", "shape_mode"},
 	FamilyMultiband:    {"band_dynamics", "band_timing", "crossover_layout", "detector_focus", "output_normalization", "parallel_balance"},
+	FamilyReverb:       {"decay_time", "output_normalization", "pre_delay", "spatial_mode", "wet_balance"},
+	FamilyDelay:        {"echo_time", "feedback_amount", "output_normalization", "spatial_mode", "wet_balance"},
 }
 
 // V2CoverageAxes returns a sorted copy of the public action-only vocabulary.
@@ -217,6 +221,32 @@ func v2RoleAxis(family, role string) string {
 			return "output_normalization"
 		case contains("mix"):
 			return "parallel_balance"
+		}
+	case FamilyReverb:
+		switch {
+		case contains("decay", "size"):
+			return "decay_time"
+		case contains("pre_delay", "predelay"):
+			return "pre_delay"
+		case contains("damping", "character", "reverb_mode", "algorithm", "space_mode"):
+			return "spatial_mode"
+		case contains("output_gain"):
+			return "output_normalization"
+		case contains("mix", "wet", "dry"):
+			return "wet_balance"
+		}
+	case FamilyDelay:
+		switch {
+		case contains("delay_time", "time", "sync", "rate"):
+			return "echo_time"
+		case contains("feedback"):
+			return "feedback_amount"
+		case contains("character", "delay_mode", "algorithm", "ping_pong"):
+			return "spatial_mode"
+		case contains("output_gain"):
+			return "output_normalization"
+		case contains("mix", "wet", "dry"):
+			return "wet_balance"
 		}
 	}
 	return ""

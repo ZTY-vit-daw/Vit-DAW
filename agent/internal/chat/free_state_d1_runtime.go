@@ -71,6 +71,16 @@ const d1GateExpanderKind = "gate_range_adjust"
 const d1MultibandDomain = "multiband_dynamics"
 const d1MultibandKind = "multiband_band_threshold_adjust"
 
+// M2-TIMEFX-1 reverb mirrors the experiment table row as a routing label;
+// the table remains the bounds authority.
+const d1ReverbDomain = "reverb"
+const d1ReverbKind = "reverb_decay_adjust"
+
+// M2-TIMEFX-1 delay mirrors the experiment table row as a routing label;
+// the table remains the bounds authority.
+const d1DelayDomain = "delay"
+const d1DelayKind = "delay_feedback_adjust"
+
 // FAM3-S1 pan mirrors the experiment table row as a routing label; the table
 // remains the bounds authority.
 const d1PanDomain = "pan"

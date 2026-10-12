@@ -103,9 +103,14 @@ type D1S1DomainSpec struct {
 	// write target: empty means the historical absolute dB target (static_eq
 	// gain), "delta_db" means a bounded physical delta on top of the current
 	// value (broadband compression threshold, whose display probe is
-	// structurally degenerate and admits no absolute inversion). The chat
-	// plan builder forwards it as target_semantics so the execution port can
-	// pick the matching conversion machine.
+	// structurally degenerate and admits no absolute inversion), and
+	// "delta_physical" (M2-TIMEFX-1) means the same delta-on-current machine
+	// with the row's own native physical unit instead of dB (reverb decay
+	// seconds, delay feedback percentage points). The chat plan builder
+	// forwards it as target_semantics so the execution port can pick the
+	// matching conversion machine; the D2-2 cumulative bound stays
+	// dB-dimensioned, so non-dB rows fail closed on multi-round admission
+	// (the FAM3-S1 pan precedent).
 	TargetSemantics string
 	// SemanticIntentFamily and SemanticIntentCoverage anchor the server-owned
 	// structured processor intent for this row: when a free-state admitted
@@ -507,6 +512,109 @@ var d1s1Domains = []D1S1DomainSpec{
 		SemanticIntentFamily:   "multiband_dynamics",
 		SemanticIntentCoverage: []string{"band_dynamics"},
 		AppliedReplyText:       "FAM6-S1 多段压限频段阈值已应用并回读验证。动作后新证据已单独记录；声学实质性、目标响应与人工判定仍待完成。",
+	},
+	{
+		// reverb_decay_adjust moves one reverb instance's decay (tail) time by
+		// one bounded step. M2-TIMEFX-1 admits it with the same
+		// single-mutation tightness as the other PluginBound rows. Like the
+		// whitelisted de-esser/transient/limiter carriers, the whitelisted
+		// reverb resolves through the machine-local experiment whitelist with
+		// ONE shared decay parameter (single-channel write) — the time-domain
+		// family's primary axis per the M2 definition ruling (reverb/delay;
+		// dynamic families stay in C2). The dose axis is physical seconds,
+		// not dB: the write rides the same delta-on-current machine through
+		// the "delta_physical" target semantics, and multi-round admission
+		// fails closed because the D2-2 cumulative bound is dimensioned in dB
+		// (pan precedent). Post-action observation keeps the historical
+		// project relation view; the family's dedicated paired-diff probe is
+		// M2-TIMEFX-2 scope, not this row.
+		ActionDomain:        agentprotocol.ImprovementActionDomainReverb,
+		ActionKind:          "reverb_decay_adjust",
+		PromptParameterHint: fmt.Sprintf(`parameter_bounds={"decay_s":<%s>}`, D1S1ReverbDecayDoseHintFragment()),
+		ValidateDoseBounds: func(scope string, bounds map[string]any) error {
+			decay, ok := mapNumber(bounds, "decay_s")
+			if !ok || decay == 0 || math.IsNaN(decay) || math.IsInf(decay, 0) || math.Abs(decay) > D1S1MaxAbsDeltaReverbDecayS {
+				return fmt.Errorf("D1-S1 %s decay_s must be non-zero and within %s", scope, D1S1ReverbDecayDoseRangeText())
+			}
+			return nil
+		},
+		ActionIDSuffix:            "_rev",
+		CapabilityID:              "static_mix.reverb.v0",
+		ContractVersions:          []string{"free_state:d1_s1", "action:reverb_decay_adjust"},
+		TargetFingerprintTemplate: "track:{track}:rev:{param}:pending",
+		BeforeFingerprintTemplate: "track:{track}:rev:{param}:pending",
+		ObservationViewIDs:        []string{"mix.multitrack_relationship"},
+		Journal: D1S1JournalShape{
+			Summary:      "M2-TIMEFX-1 bounded reverb decay adjustment",
+			Tool:         "set_plugin_param",
+			CommandLabel: "set_plugin_param",
+			Fields: []D1S1JournalField{
+				{Arg: "plugin_id", ArgFallback: "plugin_identifier", CommandKey: "plugin_id"},
+				{Arg: "param_id", CommandKey: "param_id"},
+				{Arg: "target_value", CommandKey: "value"},
+			},
+		},
+		WriteBinding:             D1S1WriteBinding{PluginBound: true, Channels: 1},
+		AdmissionValueKey:        "decay_s",
+		AdmissionPassthroughKeys: []string{"plugin_identifier"},
+		TargetSemantics:          "delta_physical",
+		// The domain's certified semantic axis: a free-state admitted reverb
+		// experiment rides the semantic dynamic chain on the time-domain
+		// family vocabulary (decay time / pre-delay / wet balance), never on
+		// the parameter-centric axis an LLM would freeze from the literal
+		// Decay parameter name.
+		SemanticIntentFamily:   "reverb",
+		SemanticIntentCoverage: []string{"decay_time", "pre_delay", "wet_balance"},
+		AppliedReplyText:       "M2-TIMEFX-1 混响衰减时间已应用并回读验证。动作后新证据已单独记录；声学实质性、目标响应与人工判定仍待完成。",
+	},
+	{
+		// delay_feedback_adjust moves one delay instance's feedback amount by
+		// one bounded step. M2-TIMEFX-1 admits it with the same
+		// single-mutation tightness as the other PluginBound rows; the dose
+		// axis is percentage points on the 0-100 % scale (echo repetition
+		// amount — the delay family's primary mix-relevant axis; echo spacing
+		// time is rhythmically loaded and stays out of the bounded single
+		// step). The write rides the delta-on-current machine through the
+		// "delta_physical" target semantics and multi-round admission fails
+		// closed (dB-dimensioned D2-2 cumulative bound, pan precedent).
+		ActionDomain:        agentprotocol.ImprovementActionDomainDelay,
+		ActionKind:          "delay_feedback_adjust",
+		PromptParameterHint: fmt.Sprintf(`parameter_bounds={"feedback_pct":<%s>}`, D1S1DelayFeedbackDoseHintFragment()),
+		ValidateDoseBounds: func(scope string, bounds map[string]any) error {
+			feedback, ok := mapNumber(bounds, "feedback_pct")
+			if !ok || feedback == 0 || math.IsNaN(feedback) || math.IsInf(feedback, 0) || math.Abs(feedback) > D1S1MaxAbsDeltaDelayFeedbackPct {
+				return fmt.Errorf("D1-S1 %s feedback_pct must be non-zero and within %s", scope, D1S1DelayFeedbackDoseRangeText())
+			}
+			return nil
+		},
+		ActionIDSuffix:            "_dly",
+		CapabilityID:              "static_mix.delay.v0",
+		ContractVersions:          []string{"free_state:d1_s1", "action:delay_feedback_adjust"},
+		TargetFingerprintTemplate: "track:{track}:dly:{param}:pending",
+		BeforeFingerprintTemplate: "track:{track}:dly:{param}:pending",
+		ObservationViewIDs:        []string{"mix.multitrack_relationship"},
+		Journal: D1S1JournalShape{
+			Summary:      "M2-TIMEFX-1 bounded delay feedback adjustment",
+			Tool:         "set_plugin_param",
+			CommandLabel: "set_plugin_param",
+			Fields: []D1S1JournalField{
+				{Arg: "plugin_id", ArgFallback: "plugin_identifier", CommandKey: "plugin_id"},
+				{Arg: "param_id", CommandKey: "param_id"},
+				{Arg: "target_value", CommandKey: "value"},
+			},
+		},
+		WriteBinding:             D1S1WriteBinding{PluginBound: true, Channels: 1},
+		AdmissionValueKey:        "feedback_pct",
+		AdmissionPassthroughKeys: []string{"plugin_identifier"},
+		TargetSemantics:          "delta_physical",
+		// The domain's certified semantic axis: a free-state admitted delay
+		// experiment rides the semantic dynamic chain on the time-domain
+		// family vocabulary (echo time / feedback amount / wet balance),
+		// never on the parameter-centric axis an LLM would freeze from the
+		// literal Feedback parameter name.
+		SemanticIntentFamily:   "delay",
+		SemanticIntentCoverage: []string{"echo_time", "feedback_amount", "wet_balance"},
+		AppliedReplyText:       "M2-TIMEFX-1 延迟反馈量已应用并回读验证。动作后新证据已单独记录；声学实质性、目标响应与人工判定仍待完成。",
 	},
 	{
 		// track_pan_adjust moves one track's stereo pan by one bounded step.

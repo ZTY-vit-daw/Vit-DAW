@@ -1653,6 +1653,42 @@ func (s *Server) handleInvoke(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, status, resp)
 		return
 	}
+	if workflowCmd, ok := pluginGrabberInspectReverbInvokeCommand(req); ok {
+		resp, err := s.invokePluginGrabberInspectReverbWorkflow(r.Context(), req, workflowCmd)
+		status := http.StatusOK
+		if err != nil && resp.Status == "error" {
+			status = http.StatusBadRequest
+		}
+		writeJSON(w, status, resp)
+		return
+	}
+	if workflowCmd, ok := pluginGrabberApplyReverbInvokeCommand(req); ok {
+		resp, err := s.invokePluginGrabberApplyReverbWorkflow(r.Context(), req, workflowCmd)
+		status := http.StatusOK
+		if err != nil && resp.Status == "error" {
+			status = http.StatusBadRequest
+		}
+		writeJSON(w, status, resp)
+		return
+	}
+	if workflowCmd, ok := pluginGrabberInspectDelayInvokeCommand(req); ok {
+		resp, err := s.invokePluginGrabberInspectDelayWorkflow(r.Context(), req, workflowCmd)
+		status := http.StatusOK
+		if err != nil && resp.Status == "error" {
+			status = http.StatusBadRequest
+		}
+		writeJSON(w, status, resp)
+		return
+	}
+	if workflowCmd, ok := pluginGrabberApplyDelayInvokeCommand(req); ok {
+		resp, err := s.invokePluginGrabberApplyDelayWorkflow(r.Context(), req, workflowCmd)
+		status := http.StatusOK
+		if err != nil && resp.Status == "error" {
+			status = http.StatusBadRequest
+		}
+		writeJSON(w, status, resp)
+		return
+	}
 	if workflowCmd, ok := pluginGrabberInspectCompressorInvokeCommand(req); ok {
 		resp, err := s.invokePluginGrabberInspectCompressorWorkflow(r.Context(), req, workflowCmd)
 		status := http.StatusOK

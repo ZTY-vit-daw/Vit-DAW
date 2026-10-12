@@ -71,6 +71,12 @@ func resolveD1PluginParamWhitelistBinding(typedAction map[string]any) (*d1Plugin
 	if domainLabel(typedAction) == d1MultibandDomain {
 		return resolveD1MultibandWhitelistBinding(typedAction)
 	}
+	if domainLabel(typedAction) == d1ReverbDomain {
+		return resolveD1ReverbWhitelistBinding(typedAction)
+	}
+	if domainLabel(typedAction) == d1DelayDomain {
+		return resolveD1DelayWhitelistBinding(typedAction)
+	}
 	binding, err := resolveD1StaticEQWhitelistBinding(typedAction)
 	if err != nil {
 		return nil, err
@@ -395,6 +401,110 @@ var d1MultibandAttestationReader = func() (processorattestation.LibraryV2, error
 	return library, nil
 }
 
+// d1ReverbAttestationReader is the reverb companion of
+// d1MultibandAttestationReader: reverb attestations live in the same PCA v2
+// store. A missing store decodes to an empty library, which makes every
+// admission query answer not-promoted.
+var d1ReverbAttestationReader = func() (processorattestation.LibraryV2, error) {
+	store, err := processorattestation.NewStoreV2("")
+	if err != nil {
+		return processorattestation.LibraryV2{}, err
+	}
+	library, report, err := store.Read()
+	if err != nil {
+		return processorattestation.LibraryV2{}, fmt.Errorf("processor attestation v2 store is unreadable at %s: %w", report.Path, err)
+	}
+	return library, nil
+}
+
+// d1DelayAttestationReader is the delay companion of
+// d1ReverbAttestationReader: delay attestations live in the same PCA v2
+// store. A missing store decodes to an empty library, which makes every
+// admission query answer not-promoted.
+var d1DelayAttestationReader = func() (processorattestation.LibraryV2, error) {
+	store, err := processorattestation.NewStoreV2("")
+	if err != nil {
+		return processorattestation.LibraryV2{}, err
+	}
+	library, report, err := store.Read()
+	if err != nil {
+		return processorattestation.LibraryV2{}, fmt.Errorf("processor attestation v2 store is unreadable at %s: %w", report.Path, err)
+	}
+	return library, nil
+}
+
+// resolveD1ReverbWhitelistBinding mirrors the multiband gate for the reverb
+// whitelist section (M2-TIMEFX-1): same error classes, same Form A v2
+// dispatch. The whitelisted reverb carries single shared decay / pre-delay /
+// wet parameters; the bounded domain move targets the shared decay id.
+func resolveD1ReverbWhitelistBinding(typedAction map[string]any) (*d1PluginParamWhitelistBinding, error) {
+	const label = d1ReverbDomain
+	whitelist, err := d1StaticEQWhitelistLoader()
+	if err != nil {
+		if errors.Is(err, experimentplugins.ErrNotConfigured) || errors.Is(err, experimentplugins.ErrReverbNotConfigured) {
+			return nil, fmt.Errorf("%s experiment is not configured: %w", label, experimentplugins.ErrReverbNotConfigured)
+		}
+		return nil, fmt.Errorf("%s experiment whitelist is invalid: %w", label, err)
+	}
+	reverb, err := whitelist.SelectReverb(firstStringFromMap(typedAction, "plugin_identifier"))
+	if err != nil {
+		if errors.Is(err, experimentplugins.ErrReverbNotConfigured) {
+			return nil, fmt.Errorf("%s experiment is not configured: %w", label, experimentplugins.ErrReverbNotConfigured)
+		}
+		return nil, err
+	}
+	library, err := d1ReverbAttestationReader()
+	if err != nil {
+		return nil, fmt.Errorf("%s experiment could not evaluate its PCA admission: %w", label, err)
+	}
+	if err := whitelist.ValidateReverbAdmission(library, reverb.PluginIdentifier); err != nil {
+		return nil, fmt.Errorf("%s experiment was refused by the PCA admission check: %w", label, err)
+	}
+	return &d1PluginParamWhitelistBinding{
+		Section:          label,
+		PluginName:       reverb.PluginName,
+		PluginPath:       reverb.PluginPath,
+		PluginIdentifier: reverb.PluginIdentifier,
+		ParamID:          reverb.DecayParamID,
+	}, nil
+}
+
+// resolveD1DelayWhitelistBinding mirrors the reverb gate for the delay
+// whitelist section (M2-TIMEFX-1): same error classes, same Form A v2
+// dispatch. The whitelisted delay carries single shared time / feedback /
+// wet parameters; the bounded domain move targets the shared feedback id.
+func resolveD1DelayWhitelistBinding(typedAction map[string]any) (*d1PluginParamWhitelistBinding, error) {
+	const label = d1DelayDomain
+	whitelist, err := d1StaticEQWhitelistLoader()
+	if err != nil {
+		if errors.Is(err, experimentplugins.ErrNotConfigured) || errors.Is(err, experimentplugins.ErrDelayNotConfigured) {
+			return nil, fmt.Errorf("%s experiment is not configured: %w", label, experimentplugins.ErrDelayNotConfigured)
+		}
+		return nil, fmt.Errorf("%s experiment whitelist is invalid: %w", label, err)
+	}
+	delay, err := whitelist.SelectDelay(firstStringFromMap(typedAction, "plugin_identifier"))
+	if err != nil {
+		if errors.Is(err, experimentplugins.ErrDelayNotConfigured) {
+			return nil, fmt.Errorf("%s experiment is not configured: %w", label, experimentplugins.ErrDelayNotConfigured)
+		}
+		return nil, err
+	}
+	library, err := d1DelayAttestationReader()
+	if err != nil {
+		return nil, fmt.Errorf("%s experiment could not evaluate its PCA admission: %w", label, err)
+	}
+	if err := whitelist.ValidateDelayAdmission(library, delay.PluginIdentifier); err != nil {
+		return nil, fmt.Errorf("%s experiment was refused by the PCA admission check: %w", label, err)
+	}
+	return &d1PluginParamWhitelistBinding{
+		Section:          label,
+		PluginName:       delay.PluginName,
+		PluginPath:       delay.PluginPath,
+		PluginIdentifier: delay.PluginIdentifier,
+		ParamID:          delay.FeedbackParamID,
+	}, nil
+}
+
 // resolveD1MultibandWhitelistBinding mirrors the gate_expander gate for the
 // multiband whitelist section with its own label so upstream can tell the
 // domains apart. The whitelisted multiband carries ONE threshold parameter
@@ -630,8 +740,17 @@ func d1PluginParamPlanWithBinding(loop freeStateReasoningLoop, candidate agentlo
 		return orchestration.FrozenPlan{}, fmt.Errorf("D1-S1 requires one bounded %s", spec.ActionKind)
 	}
 	valueDB, ok := treatmentNumber(loop.Experiment.Admission.TypedAction, spec.AdmissionValueKey)
-	if !ok || valueDB == 0 || math.Abs(valueDB) > experiment.D1S1MaxAbsDeltaDB {
+	if !ok || valueDB == 0 || (spec.TargetSemantics != executionports.DeltaPhysicalSemantics && math.Abs(valueDB) > experiment.D1S1MaxAbsDeltaDB) {
 		return orchestration.FrozenPlan{}, fmt.Errorf("D1-S1 requires one bounded %s move within %s", spec.AdmissionValueKey, experiment.D1S1DBDoseRangeText())
+	}
+	// Native-unit rows (M2-TIMEFX-1 reverb seconds / delay percentage points)
+	// mirror their dose ceiling through the row's own validator instead of
+	// the shared dB ceiling; the row validators remain the bounds authority
+	// either way.
+	if spec.TargetSemantics == executionports.DeltaPhysicalSemantics {
+		if err := spec.ValidateDoseBounds("retained", map[string]any{spec.AdmissionValueKey: valueDB}); err != nil {
+			return orchestration.FrozenPlan{}, fmt.Errorf("D1-S1 requires one bounded %s move: %w", spec.AdmissionValueKey, err)
+		}
 	}
 	targetID := firstStringFromMap(loop.Experiment.Admission.TargetRef, "id", "track_id")
 	if candidate.TrackID != targetID {
@@ -644,7 +763,15 @@ func d1PluginParamPlanWithBinding(loop freeStateReasoningLoop, candidate agentlo
 	if writeBinding != nil && strings.TrimSpace(existingPluginInstanceID) != "" {
 		args["plugin_id"] = strings.TrimSpace(existingPluginInstanceID)
 	}
+	// The D2-2 cumulative dose machine is dimensioned in dB. Rows whose dose
+	// axis carries a native non-dB unit ("delta_physical" target semantics,
+	// M2-TIMEFX-1 reverb seconds / delay percentage points) fail closed on
+	// multi-round admission instead of reusing the dB bound with the wrong
+	// unit (the FAM3-S1 pan precedent).
 	if loop.Experiment.Admission.IsD2MultiRound() {
+		if spec.TargetSemantics != "" && spec.TargetSemantics != "delta_db" {
+			return orchestration.FrozenPlan{}, fmt.Errorf("%s multi-round execution is not admitted: the D2-2 cumulative bound is dimensioned in dB, not the %s native unit", spec.ActionDomain, spec.ActionDomain)
+		}
 		if err := d2MultiRoundCheckProjectedCumulativeDelta(loop.Experiment, spec.AdmissionValueKey, valueDB); err != nil {
 			return orchestration.FrozenPlan{}, err
 		}

@@ -910,6 +910,26 @@ func (e pluginGrabberWorkflowExecutor) RunToolCall(ctx context.Context, in execu
 		e.server.emitToolItemCompleted(in, out, err)
 		return out, err
 	}
+	if e.server != nil && isPluginGrabberInspectReverbToolCall(in.ToolCall) {
+		out, err := e.invokePluginGrabberInspectReverb(ctx, in, toolCallID)
+		e.server.emitToolItemCompleted(in, out, err)
+		return out, err
+	}
+	if e.server != nil && isPluginGrabberApplyReverbToolCall(in.ToolCall) {
+		out, err := e.invokePluginGrabberApplyReverb(ctx, in, toolCallID)
+		e.server.emitToolItemCompleted(in, out, err)
+		return out, err
+	}
+	if e.server != nil && isPluginGrabberInspectDelayToolCall(in.ToolCall) {
+		out, err := e.invokePluginGrabberInspectDelay(ctx, in, toolCallID)
+		e.server.emitToolItemCompleted(in, out, err)
+		return out, err
+	}
+	if e.server != nil && isPluginGrabberApplyDelayToolCall(in.ToolCall) {
+		out, err := e.invokePluginGrabberApplyDelay(ctx, in, toolCallID)
+		e.server.emitToolItemCompleted(in, out, err)
+		return out, err
+	}
 	if e.server != nil && isPluginGrabberInspectLimiterToolCall(in.ToolCall) {
 		out, err := e.invokePluginGrabberInspectLimiter(ctx, in, toolCallID)
 		e.server.emitToolItemCompleted(in, out, err)
@@ -1066,6 +1086,26 @@ func isPluginGrabberApplyMultibandToolCall(call planner.ToolCall) bool {
 func isPluginGrabberInspectLimiterToolCall(call planner.ToolCall) bool {
 	name := agentLoopPluginToolCallName(call)
 	return name == pluginGrabberInspectLimiterTool || name == pluginGrabberInspectLimiterCommand
+}
+
+func isPluginGrabberInspectReverbToolCall(call planner.ToolCall) bool {
+	name := agentLoopPluginToolCallName(call)
+	return name == pluginGrabberInspectReverbTool || name == pluginGrabberInspectReverbCommand
+}
+
+func isPluginGrabberApplyReverbToolCall(call planner.ToolCall) bool {
+	name := agentLoopPluginToolCallName(call)
+	return name == pluginGrabberApplyReverbTool || name == pluginGrabberApplyReverbCommand
+}
+
+func isPluginGrabberInspectDelayToolCall(call planner.ToolCall) bool {
+	name := agentLoopPluginToolCallName(call)
+	return name == pluginGrabberInspectDelayTool || name == pluginGrabberInspectDelayCommand
+}
+
+func isPluginGrabberApplyDelayToolCall(call planner.ToolCall) bool {
+	name := agentLoopPluginToolCallName(call)
+	return name == pluginGrabberApplyDelayTool || name == pluginGrabberApplyDelayCommand
 }
 
 func isPluginGrabberInspectDeEsserToolCall(call planner.ToolCall) bool {
@@ -1503,6 +1543,70 @@ func (e pluginGrabberWorkflowExecutor) invokePluginGrabberInspectLimiter(ctx con
 		workflowCmd["cmd"] = pluginGrabberInspectLimiterCommand
 	}
 	resp, err := e.server.invokePluginGrabberInspectLimiterWorkflow(ctx, req, workflowCmd)
+	return e.compressorWorkflowResult(ctx, in, toolCallID, resp, err)
+}
+
+func (e pluginGrabberWorkflowExecutor) invokePluginGrabberInspectReverb(ctx context.Context, in executorpkg.Input,
+	toolCallID string) (executorpkg.Result, error) {
+	req := harness.InvokeRequest{
+		Tool: strings.TrimSpace(in.ToolCall.Tool), Args: cloneStringAnyMap(in.ToolCall.Args), Command: cloneStringAnyMap(in.ToolCall.Command),
+		Context: contextWithAgentLoopIDs(in.Context, in.GoalID, in.RunID, toolCallID), Source: firstNonEmpty(strings.TrimSpace(in.Source), "agentloop"),
+		Confirmed: in.Confirmed || authorityModeFromContext(in.Context) == experiment.AuthorityFull, GoalID: in.GoalID, RunID: in.RunID, ToolCallID: toolCallID,
+	}
+	workflowCmd, ok := pluginGrabberInspectReverbInvokeCommand(req)
+	if !ok {
+		workflowCmd = cloneStringAnyMap(in.ToolCall.Args)
+		workflowCmd["cmd"] = pluginGrabberInspectReverbCommand
+	}
+	resp, err := e.server.invokePluginGrabberInspectReverbWorkflow(ctx, req, workflowCmd)
+	return e.compressorWorkflowResult(ctx, in, toolCallID, resp, err)
+}
+
+func (e pluginGrabberWorkflowExecutor) invokePluginGrabberApplyReverb(ctx context.Context, in executorpkg.Input,
+	toolCallID string) (executorpkg.Result, error) {
+	req := harness.InvokeRequest{
+		Tool: strings.TrimSpace(in.ToolCall.Tool), Args: cloneStringAnyMap(in.ToolCall.Args), Command: cloneStringAnyMap(in.ToolCall.Command),
+		Context: contextWithAgentLoopIDs(in.Context, in.GoalID, in.RunID, toolCallID), Source: firstNonEmpty(strings.TrimSpace(in.Source), "agentloop"),
+		Confirmed: in.Confirmed || authorityModeFromContext(in.Context) == experiment.AuthorityFull, GoalID: in.GoalID, RunID: in.RunID, ToolCallID: toolCallID,
+	}
+	workflowCmd, ok := pluginGrabberApplyReverbInvokeCommand(req)
+	if !ok {
+		workflowCmd = cloneStringAnyMap(in.ToolCall.Args)
+		workflowCmd["cmd"] = pluginGrabberApplyReverbCommand
+	}
+	resp, err := e.server.invokePluginGrabberApplyReverbWorkflow(ctx, req, workflowCmd)
+	return e.compressorWorkflowResult(ctx, in, toolCallID, resp, err)
+}
+
+func (e pluginGrabberWorkflowExecutor) invokePluginGrabberInspectDelay(ctx context.Context, in executorpkg.Input,
+	toolCallID string) (executorpkg.Result, error) {
+	req := harness.InvokeRequest{
+		Tool: strings.TrimSpace(in.ToolCall.Tool), Args: cloneStringAnyMap(in.ToolCall.Args), Command: cloneStringAnyMap(in.ToolCall.Command),
+		Context: contextWithAgentLoopIDs(in.Context, in.GoalID, in.RunID, toolCallID), Source: firstNonEmpty(strings.TrimSpace(in.Source), "agentloop"),
+		Confirmed: in.Confirmed || authorityModeFromContext(in.Context) == experiment.AuthorityFull, GoalID: in.GoalID, RunID: in.RunID, ToolCallID: toolCallID,
+	}
+	workflowCmd, ok := pluginGrabberInspectDelayInvokeCommand(req)
+	if !ok {
+		workflowCmd = cloneStringAnyMap(in.ToolCall.Args)
+		workflowCmd["cmd"] = pluginGrabberInspectDelayCommand
+	}
+	resp, err := e.server.invokePluginGrabberInspectDelayWorkflow(ctx, req, workflowCmd)
+	return e.compressorWorkflowResult(ctx, in, toolCallID, resp, err)
+}
+
+func (e pluginGrabberWorkflowExecutor) invokePluginGrabberApplyDelay(ctx context.Context, in executorpkg.Input,
+	toolCallID string) (executorpkg.Result, error) {
+	req := harness.InvokeRequest{
+		Tool: strings.TrimSpace(in.ToolCall.Tool), Args: cloneStringAnyMap(in.ToolCall.Args), Command: cloneStringAnyMap(in.ToolCall.Command),
+		Context: contextWithAgentLoopIDs(in.Context, in.GoalID, in.RunID, toolCallID), Source: firstNonEmpty(strings.TrimSpace(in.Source), "agentloop"),
+		Confirmed: in.Confirmed || authorityModeFromContext(in.Context) == experiment.AuthorityFull, GoalID: in.GoalID, RunID: in.RunID, ToolCallID: toolCallID,
+	}
+	workflowCmd, ok := pluginGrabberApplyDelayInvokeCommand(req)
+	if !ok {
+		workflowCmd = cloneStringAnyMap(in.ToolCall.Args)
+		workflowCmd["cmd"] = pluginGrabberApplyDelayCommand
+	}
+	resp, err := e.server.invokePluginGrabberApplyDelayWorkflow(ctx, req, workflowCmd)
 	return e.compressorWorkflowResult(ctx, in, toolCallID, resp, err)
 }
 
@@ -4260,6 +4364,10 @@ func agentLoopPluginTools() []string {
 		"plugin_grabber.apply_de_esser_controls",   // typed atomic De-esser control surface
 		"plugin_grabber.inspect_spectral_dynamics", // identity-free spectral field/global-law inspection
 		"plugin_grabber.apply_limiter_controls",
+		"plugin_grabber.inspect_reverb", // M2-TIMEFX-1 identity-free reverb stage inspection
+		"plugin_grabber.apply_reverb_controls",
+		"plugin_grabber.inspect_delay", // M2-TIMEFX-1 identity-free delay stage inspection
+		"plugin_grabber.apply_delay_controls",
 		"plugin_grabber.inspect_compressor", // identity-free compressor stage/control-path inspection
 		"plugin_grabber.apply_compressor_controls",
 		"plugin_grabber.apply_eq_edits", // generic static EQ atomic planner/executor

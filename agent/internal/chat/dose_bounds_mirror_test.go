@@ -60,8 +60,16 @@ func TestPluginCandidateDisclosureCapabilityTextMatchesDoseCeiling(t *testing.T)
 	if len(freeStatePluginCandidateCapabilities) == 0 {
 		t.Fatal("plugin candidate capability map is empty")
 	}
+	domainRangeText := map[string]string{
+		d1ReverbDomain: experiment.D1S1ReverbDecayDoseRangeText(),
+		d1DelayDomain:  experiment.D1S1DelayFeedbackDoseRangeText(),
+	}
 	for domain, capability := range freeStatePluginCandidateCapabilities {
-		if !strings.Contains(capability, experiment.D1S1DBDoseRangeText()) {
+		want := experiment.D1S1DBDoseRangeText()
+		if custom, ok := domainRangeText[domain]; ok {
+			want = custom
+		}
+		if !strings.Contains(capability, want) {
 			t.Fatalf("domain %s capability wording lost the constant-derived bound: %q", domain, capability)
 		}
 	}
