@@ -1,0 +1,278 @@
+﻿{
+    "status":  "ok",
+    "agent_action_id":  "act_a57751a35c8c56c9",
+    "tool":  "mix.report",
+    "command_name":  "mix_report",
+    "risk_level":  "direct",
+    "requires_confirmation":  false,
+    "result":  {
+                   "capability_summary":  [
+
+                                          ],
+                   "decision_timeline":  [
+
+                                         ],
+                   "export_readiness":  "not_assessed",
+                   "generated_at":  "2026-10-12T11:32:09.4494531Z",
+                   "message":  "mix.report 三视图：决策账本 + 自由态实验线 + queue 节点队列\n最近 settle 结论：无记录（本工程自由态实验尚未收口，或旧工程无持久层记录）\nqueue 节点状态：23 节点（未开始 23）\n数据来源：mix_workflow_queue.v0（决策账本 0 条 · 自由态结论 0 条 · 节点标注 0）",
+                   "mix_workflow_queue":  {
+                                              "generated_at":  "2026-10-12T11:32:09.4661296Z",
+                                              "nodes":  [
+                                                            {
+                                                                "family":  "project_prep",
+                                                                "node_id":  "A1",
+                                                                "state":  "not_started",
+                                                                "state_label":  "未开始",
+                                                                "title":  "工程接收与整理"
+                                                            },
+                                                            {
+                                                                "family":  "project_prep",
+                                                                "node_id":  "A2",
+                                                                "state":  "not_started",
+                                                                "state_label":  "未开始",
+                                                                "title":  "技术完整性检查"
+                                                            },
+                                                            {
+                                                                "family":  "project_prep",
+                                                                "node_id":  "A3",
+                                                                "state":  "not_started",
+                                                                "state_label":  "未开始",
+                                                                "title":  "智能轨道整理"
+                                                            },
+                                                            {
+                                                                "family":  "project_prep",
+                                                                "node_id":  "A4",
+                                                                "state":  "not_started",
+                                                                "state_label":  "未开始",
+                                                                "title":  "片段编辑与清理"
+                                                            },
+                                                            {
+                                                                "family":  "project_prep",
+                                                                "node_id":  "A5",
+                                                                "state":  "not_started",
+                                                                "state_label":  "未开始",
+                                                                "title":  "段落地图"
+                                                            },
+                                                            {
+                                                                "family":  "static_mix",
+                                                                "node_id":  "B1",
+                                                                "state":  "not_started",
+                                                                "state_label":  "未开始",
+                                                                "title":  "增益分级"
+                                                            },
+                                                            {
+                                                                "family":  "static_mix",
+                                                                "node_id":  "B2",
+                                                                "state":  "not_started",
+                                                                "state_label":  "未开始",
+                                                                "title":  "静态主次与音量平衡"
+                                                            },
+                                                            {
+                                                                "family":  "static_mix",
+                                                                "node_id":  "B3",
+                                                                "state":  "not_started",
+                                                                "state_label":  "未开始",
+                                                                "title":  "声像布局"
+                                                            },
+                                                            {
+                                                                "family":  "static_mix",
+                                                                "node_id":  "B4",
+                                                                "state":  "not_started",
+                                                                "state_label":  "未开始",
+                                                                "title":  "低频关系"
+                                                            },
+                                                            {
+                                                                "family":  "fine_mix",
+                                                                "node_id":  "C1",
+                                                                "state":  "not_started",
+                                                                "state_label":  "未开始",
+                                                                "title":  "频段清理"
+                                                            },
+                                                            {
+                                                                "family":  "fine_mix",
+                                                                "node_id":  "C2",
+                                                                "state":  "not_started",
+                                                                "state_label":  "未开始",
+                                                                "title":  "动态控制"
+                                                            },
+                                                            {
+                                                                "family":  "fine_mix",
+                                                                "node_id":  "C3",
+                                                                "state":  "not_started",
+                                                                "state_label":  "未开始",
+                                                                "title":  "空间与深度"
+                                                            },
+                                                            {
+                                                                "family":  "fine_mix",
+                                                                "node_id":  "C4",
+                                                                "state":  "not_started",
+                                                                "state_label":  "未开始",
+                                                                "title":  "段落自动化"
+                                                            },
+                                                            {
+                                                                "family":  "fine_mix",
+                                                                "node_id":  "C5",
+                                                                "state":  "not_started",
+                                                                "state_label":  "未开始",
+                                                                "title":  "总线处理"
+                                                            },
+                                                            {
+                                                                "family":  "pre_master",
+                                                                "node_id":  "D1",
+                                                                "state":  "not_started",
+                                                                "state_label":  "未开始",
+                                                                "title":  "全局响度与峰值"
+                                                            },
+                                                            {
+                                                                "family":  "pre_master",
+                                                                "node_id":  "D2",
+                                                                "state":  "not_started",
+                                                                "state_label":  "未开始",
+                                                                "title":  "翻译检查"
+                                                            },
+                                                            {
+                                                                "family":  "pre_master",
+                                                                "node_id":  "D3",
+                                                                "state":  "not_started",
+                                                                "state_label":  "未开始",
+                                                                "title":  "参考曲对比"
+                                                            },
+                                                            {
+                                                                "family":  "pre_master",
+                                                                "node_id":  "D4",
+                                                                "state":  "not_started",
+                                                                "state_label":  "未开始",
+                                                                "title":  "版本输出"
+                                                            },
+                                                            {
+                                                                "family":  "mastering",
+                                                                "node_id":  "E1",
+                                                                "state":  "not_started",
+                                                                "state_label":  "未开始",
+                                                                "title":  "母带 EQ"
+                                                            },
+                                                            {
+                                                                "family":  "mastering",
+                                                                "node_id":  "E2",
+                                                                "state":  "not_started",
+                                                                "state_label":  "未开始",
+                                                                "title":  "母带动态与响度"
+                                                            },
+                                                            {
+                                                                "family":  "mastering",
+                                                                "node_id":  "E3",
+                                                                "state":  "not_started",
+                                                                "state_label":  "未开始",
+                                                                "title":  "母带空间与立体声安全"
+                                                            },
+                                                            {
+                                                                "family":  "mastering",
+                                                                "node_id":  "E4",
+                                                                "state":  "not_started",
+                                                                "state_label":  "未开始",
+                                                                "title":  "最终导出与质检"
+                                                            },
+                                                            {
+                                                                "family":  "review",
+                                                                "node_id":  "F1",
+                                                                "state":  "not_started",
+                                                                "state_label":  "未开始",
+                                                                "title":  "混音审查"
+                                                            }
+                                                        ],
+                                              "project_uuid":  "vitproj_94eedce31b5849faa022d94fca5b130a",
+                                              "schema_version":  "mix_workflow_queue.v0",
+                                              "sources":  {
+                                                              "decision_records":  0,
+                                                              "mapped_decision_signals":  0,
+                                                              "unmapped_decision_records":  0,
+                                                              "free_state_conclusions":  0,
+                                                              "routed_conclusion_signals":  0,
+                                                              "unrouted_conclusions":  0,
+                                                              "ambiguous_route_conversations":  0,
+                                                              "node_annotations":  0,
+                                                              "dropped_illegal_transitions":  0
+                                                          },
+                                              "state_summary":  {
+                                                                    "not_started":  23
+                                                                }
+                                          },
+                   "mixboard_decision_board_ref":  "mixboard-project:vitproj_94eedce31b5849faa022d94fca5b130a",
+                   "project_cut":  {
+                                       "base_project_revision":  "6",
+                                       "consistency":  "bounded",
+                                       "contract_versions":  [
+                                                                 "mix_decision_record.v1",
+                                                                 "mix_report.v1"
+                                                             ],
+                                       "derived_from":  [
+                                                            "vsp.snapshot:epoch_225ff731ea5aeebb:6:6ce75b7d1f92a78e"
+                                                        ],
+                                       "hash":  "eab49a7f995c8947a7f35576d1778ee6d41b72281bdf4c0ebb52fac3e0310b6d",
+                                       "project_epoch":  "epoch_225ff731ea5aeebb",
+                                       "project_uuid":  "vitproj_94eedce31b5849faa022d94fca5b130a",
+                                       "read_barrier_token":  "vsp:epoch_225ff731ea5aeebb:6:6ce75b7d1f92a78e"
+                                   },
+                   "project_uuid":  "vitproj_94eedce31b5849faa022d94fca5b130a",
+                   "report_ref":  "mix-report:vitproj_94eedce31b5849faa022d94fca5b130a:eab49a7f995c8947a7f35576d1778ee6d41b72281bdf4c0ebb52fac3e0310b6d",
+                   "schema_version":  "mix_report.v1",
+                   "status":  "ok",
+                   "verification_summary":  {
+
+                                            }
+               },
+    "project_history":  {
+                            "active_branch":  "main",
+                            "active_node_id":  "n_20261012T113208_15dca577",
+                            "active_worktree":  "",
+                            "available":  true,
+                            "baseline_commit":  "c_20261012T113204_8899e01e",
+                            "baseline_created":  true,
+                            "branches":  {
+                                             "main":  "c_20261012T113204_8899e01e"
+                                         },
+                            "commit_count":  1,
+                            "detached":  false,
+                            "draft":  false,
+                            "goal_active_branch":  "main",
+                            "goal_detached":  false,
+                            "head":  "c_20261012T113204_8899e01e",
+                            "initialized":  true,
+                            "project_label":  "harness_ab_fixture",
+                            "project_path":  "D:\\Vit_DAW_wt_g3rc1\\coord\\runs\\G3-REOPEN-COSTCMP-1\\20261012_193106_run2\\project\\harness_ab_fixture.vit",
+                            "project_uuid":  "vitproj_94eedce31b5849faa022d94fca5b130a",
+                            "recent_checkpoints":  [
+                                                       {
+                                                           "branch":  "main",
+                                                           "checkpoint_kind":  "manual",
+                                                           "created_at":  "2026-10-12T11:32:04.2117491Z",
+                                                           "goal_id":  "goal_761c6d49bb86ddff",
+                                                           "id":  "c_20261012T113204_8899e01e",
+                                                           "message":  "Conversation ask"
+                                                       }
+                                                   ],
+                            "refs":  {
+                                         "refs/heads/main":  "c_20261012T113204_8899e01e"
+                                     },
+                            "root_project_path":  "",
+                            "unsaved":  false,
+                            "warnings":  [
+
+                                         ],
+                            "worktree_count":  1,
+                            "worktrees":  [
+                                              {
+                                                  "commit_id":  "c_20261012T113204_8899e01e",
+                                                  "created_at":  "2026-10-12T11:32:09.4569541Z",
+                                                  "is_root":  true,
+                                                  "label":  "主工作树",
+                                                  "name":  "main",
+                                                  "origin_commit_id":  "c_20261012T113204_8899e01e",
+                                                  "path":  "D:\\Vit_DAW_wt_g3rc1\\coord\\runs\\G3-REOPEN-COSTCMP-1\\20261012_193106_run2\\project",
+                                                  "project_file_path":  "D:\\Vit_DAW_wt_g3rc1\\coord\\runs\\G3-REOPEN-COSTCMP-1\\20261012_193106_run2\\project\\harness_ab_fixture.vit",
+                                                  "project_path":  "D:\\Vit_DAW_wt_g3rc1\\coord\\runs\\G3-REOPEN-COSTCMP-1\\20261012_193106_run2\\project\\harness_ab_fixture.vit",
+                                                  "root_project_path":  "D:\\Vit_DAW_wt_g3rc1\\coord\\runs\\G3-REOPEN-COSTCMP-1\\20261012_193106_run2\\project\\harness_ab_fixture.vit"
+                                              }
+                                          ]
+                        }
+}

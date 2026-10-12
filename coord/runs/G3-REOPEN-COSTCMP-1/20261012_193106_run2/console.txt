@@ -1,0 +1,62 @@
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_wt_g3rc1
+agent http: http://127.0.0.1:7878
+
+== Build VitAgent
+ok: build passed: D:\Vit_DAW_wt_g3rc1\agent\bin\VitAgent.dev-smoke.exe
+ok: installed agent bin: D:\Vit_DAW_wt_g3rc1\agent\bin\VitAgent.exe
+ok: installed agent root compatibility exe: D:\Vit_DAW_wt_g3rc1\agent\vitagent.exe
+
+== Start kernel
+ok: started kernel: D:\Vit_DAW\Export\staging\runtime\VitApp.exe pid=8628 workdir=D:\Vit_DAW_wt_g3rc1\coord\runs\G3-REOPEN-COSTCMP-1\20261012_193106_run2\kernel_workspace
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW_wt_g3rc1\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=279
+shadow.initialized=True track_count=6
+ok: scenario berth project identity stable: vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb
+
+== Scenario harness_ab: G3 A/B -- demo project x {push, pull} x rounds
+
+== harness_ab fixture: J1 two-stem recipe, bake DAD, persist
+ok: harness_ab fixture persisted: D:\Vit_DAW_wt_g3rc1\coord\runs\G3-REOPEN-COSTCMP-1\20261012_193106_run2\project\harness_ab_fixture.vit
+
+== harness_ab project open
+
+== harness_ab authority grant (full_project_access)
+ok: authority = full_project_access
+
+== harness_ab mode push: restart agent with mode env + per-mode telemetry
+ok: harness_ab agent up (mode=push, telemetry=D:\Vit_DAW_wt_g3rc1\coord\runs\G3-REOPEN-COSTCMP-1\20261012_193106_run2\harness_ab_telemetry_push.jsonl)
+ok: harness_ab round recorded: mode=push r1 class=judgment_terminal goal=completed stop=done
+ok: harness_ab family round: mode=push family=f1_loudness_balance class=judgment_failed goal=failed stop=failed
+ok: harness_ab family round: mode=push family=f2_low_end_cleanup class=judgment_failed goal=failed stop=failed
+ok: harness_ab family round: mode=push family=f3_dynamic_control class=needs_user_confirmation goal=waiting_confirmation stop=needs_confirmation
+ok: harness_ab mode push complete: rounds=1 family_rounds=3 llm_calls=3
+
+== harness_ab mode pull: restart agent with mode env + per-mode telemetry
+ok: harness_ab agent up (mode=pull, telemetry=D:\Vit_DAW_wt_g3rc1\coord\runs\G3-REOPEN-COSTCMP-1\20261012_193106_run2\harness_ab_telemetry_pull.jsonl)
+ok: harness_ab round recorded: mode=pull r1 class=judgment_failed goal=failed stop=failed
+ok: harness_ab family round: mode=pull family=f1_loudness_balance class=judgment_failed goal=failed stop=failed
+ok: harness_ab family round: mode=pull family=f2_low_end_cleanup class=judgment_failed goal=failed stop=failed
+ok: harness_ab family round: mode=pull family=f3_dynamic_control class=needs_user_confirmation goal=waiting_confirmation stop=needs_confirmation
+
+== harness_ab phase C (pull): confirmation round trip -- propose -> confirm -> execute/judgment station
+ok: harness_ab confirm round trip: exercised=False hops=0 station=not_driven_no_card
+
+== harness_ab phase D (pull): observation budget calibration (max_cycles=1)
+ok: harness_ab budget calibration: triggered=False final_stop=failed accounted_separately=True
+ok: harness_ab mode pull complete: rounds=1 family_rounds=3 llm_calls=5
+warn: harness_ab mix_report settle line: no conclusions on the board this run (honest no-record branch, recorded)
+ok: harness_ab summary written: D:\Vit_DAW_wt_g3rc1\coord\runs\G3-REOPEN-COSTCMP-1\20261012_193106_run2\harness_ab_summary.json
+
+== Scenario berth teardown
+ok: stopped scenario agent pid=15720
+ok: stopped scenario kernel pid=8628
+
+== Summary
+ok: dev agent smoke completed (scenario=harness_ab, artifacts=D:/Vit_DAW_wt_g3rc1/coord/runs/G3-REOPEN-COSTCMP-1/20261012_193106_run2)
+SCRIPT-LASTEXITCODE=0
