@@ -28,5 +28,5 @@
 插件清单元数据缺厂商/类型字段致分组无米下锅 → 上交字段缺口（不私造分类）。
 
 - 领取：2026-10-12 20:52 / origin/main=41717534633fa4679b2939241c030a8dfc825f23（本地一致）/ owner=GLM-5.3 · PC · ZCode 前端执行会话（用户 2026-10-12 晚窗口令指派领取本卡）/ 前端仓分支=port/fe-rack-list-1，基线=vit-daw-frontend c56e38f586f10b8c154d538f7485c644b1d731aa（活线 port/fe-gui-shrink-1 tip，含先例 FE-RACK-CTX-PLUGIN-LOAD-1 924318d；卡面锚点 rack_plugin_search_popup.gd/left_library_dock._rebuild_plugins_tree:618 在该基线核实）/ 前端 worktree=D:/Godot/project/vit-daw-frontend-fe-rack-list（独立 worktree）/ 领取提交=ebb914c2f7267fdb26d208c9dfc04d9ad71cf065
-- 回执：（commit / 探针结果 / 端测边界声明）
+- 回执：实现 commit=vit-daw-frontend **7c3a7f208c72477f89b7fea145be53d24506c3ee**（port/fe-rack-list-1 已推前端仓 origin，main 未触碰；worktree 保留供复验）/ diff 域=卡内 2 文件（rack_plugin_search_popup.gd 摊平 ItemList→厂商/类型两级 Tree+探针升级；Vit_Graph_Rack.gd 与 left_library_dock.gd 零 diff，装载链与资料库本体未动）/ 探针=109 钉×2 连跑 exit 0（分组形态+组头折叠往返+键盘跨折叠组导航+其他组 Unknown/Other+空态+装载命令面；先例装载/回归钉全保留）；回归 vitnote face_resolve+container+shrink phase A 三面 PASS；--import exit 0 零 SCRIPT ERROR / 端测边界声明=Godot 前端无浏览器断言面，headless probe 即端侧门，真实渲染视觉/指针双击节奏/焦点流转/本机真实清单元数据归手测 / 工件=D:/Vit_DAW/coord/runs/FE-GUI-RACK-LIST-1/（RECEIPT.md+探针/回归/构建日志，按 2026-09-29 政策留盘不入库）/ 停止条件未触发（分组字段=资料库同源 manufacturer/category 在场）/ [等待用户:目检排期——手测清单 6 条入 RECEIPT.md]
 - 验收：（裁定文件 / 用户目检）
