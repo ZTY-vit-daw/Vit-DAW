@@ -25,4 +25,4 @@ CommandDispatcher.cpp 与任何在飞卡（如 PC 混音线内核腿）叠域时
   - **迭代史**（AGENTS §8 分类，全脚本缺陷/环境中断非栈失败，工件 probe-iteration-history/）：run1=内核 Tracktion 设备管理器初始化挂起（环境中断，PORT-SMOKE-MAC-4 先例，重试过）；run2=探针面选错（agent 投影层过滤→改直连 ZMQ）；run3=三处门断言 bash 3.2 兼容缺陷+易变时间戳未规范化。
   - **栈登记**：排队→占用 b48e4549（与 GEN-API-ADAPTER-1 竞争登记，按协议排队，其释放后连续三轮端口空闲复核才占用）→释放 e40786d9（用毕复核四端口监听=0、进程=0）。
   - **端测边界声明（AGENTS §5）**：本卡纯内核披露面+脚本，零 webui/零用户旅程改动；真栈冒测=内核 ZMQ 面读断言（exit 0）。生成端到端归卡 4/AIGC-DRUM-GEN；agent 用户可见面接入归卡 3。
-- 验收：（裁定文件 / 验收 commit）
+- 验收：pass（2026-10-12）——[rulings/2026-10-12-GEN-CTX-DISCLOSE-1-pass.md](../../rulings/2026-10-12-GEN-CTX-DISCLOSE-1-pass.md)；决策侧复验=内核 diff 亲读/独立复跑 exit 0/全量 0 FAIL（详裁定文件）；合入=cherry-pick 实现提交；验收提交随 accept 链合 main
