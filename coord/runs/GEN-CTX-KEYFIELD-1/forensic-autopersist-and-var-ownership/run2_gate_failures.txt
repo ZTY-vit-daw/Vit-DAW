@@ -1,0 +1,4 @@
+phaseB_r2_disclose_matches_set: disclosed_key={"root_name": "A", "root_pitch": 9, "scale": "minor", "set_at": "20261012T112731.440+0800", "set_by": "user"} echo_key=None style_match=yes
+phaseB_r2_autopersist_fidelity: after auto-persist reload: key=None (echo=None) style_match=no
+phaseB_r3_save_as_fidelity: after save_as reload: key=None (echo=None) style_match=no
+phaseB_neg_state_unchanged: key={"root_name": "D", "root_pitch": 2, "scale": "ionian", "set_at": "20261012T112732.740+0800", "set_by": "user"} (want ionian echo=None) style_match=no

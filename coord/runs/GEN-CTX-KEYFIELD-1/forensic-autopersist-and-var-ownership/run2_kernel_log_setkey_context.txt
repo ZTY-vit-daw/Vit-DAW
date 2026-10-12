@@ -1,0 +1,40 @@
+  "project_uuid": "vitproj_2f9a13c081564208b1eb1cf7cb8eb171",
+  "projec
+ZmqGateway: received command payload: {"cmd":"set_project_key","root":"A","scale":"minor"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"set_project_key","root":"A","scale":"minor"}
+Command received: {"cmd":"set_project_key","root":"A","scale":"minor"}
+Command executed: set_project_key, result: {
+  "status": "ok",
+  "message": "Project key updated",
+--
+  "project_uuid": "vitproj_ee8cc05eef2741b7b9a1c235b13db3e1",
+  "project
+ZmqGateway: received command payload: {"cmd":"set_project_key","root":"D","scale":"ionian"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"set_project_key","root":"D","scale":"ionian"}
+Command received: {"cmd":"set_project_key","root":"D","scale":"ionian"}
+Command executed: set_project_key, result: {
+  "status": "ok",
+  "message": "Project key updated",
+--
+  }
+
+ZmqGateway: received command payload: {"cmd":"set_project_key","root":"E","scale":"dorian23"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"set_project_key","root":"E","scale":"dorian23"}
+Command received: {"cmd":"set_project_key","root":"E","scale":"dorian23"}
+Command executed: set_project_key, result: {
+  "status": "error",
+  "message": "set_project_key: unknown scale 'dorian23' (must be one of: major, minor, ionian, dorian, phrygian, lydian, mixolydian, aeolian, locrian, melodicMinor, harmonicMinor)"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "error",
+  "message": "set_project_key: unknown scale 'dorian23' (must be one of: major, minor, ionian, dorian, phrygian, lydian, mixolydian, aeolian, locrian, melodicMinor, harmonicMinor)"
+}
+ZmqGateway: received command payload: {"cmd":"set_project_key","root":150,"scale":"dorian"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"set_project_key","root":150,"scale":"dorian"}
+Command received: {"cmd":"set_project_key","root":150,"scale":"dorian"}
+Command executed: set_project_key, result: {
+  "status": "error",

@@ -365,6 +365,10 @@ func argHint(commandName string) string {
 		return "track_id:string"
 	case "set_tempo":
 		return "bpm:number"
+	case "set_project_key":
+		return "root:note_name(string A-G with optional #)|midi_pitch(int 0..127) scale:one_of[major,minor,ionian,dorian,phrygian,lydian,mixolydian,aeolian,locrian,melodicMinor,harmonicMinor] XOR clear:boolean"
+	case "set_project_style_note":
+		return "text:string(max 500 chars) XOR clear:boolean"
 	case "seek":
 		return "time:number_seconds"
 	case "set_click":
@@ -874,6 +878,12 @@ func defaultSpecs() []CommandSpec {
 		spec("reload_project", "project.reload", "project", "Reload the current project.", RiskConfirm, true, false, true, true),
 		spec("new_project", "project.new", "project", "Create a new project.", RiskConfirm, true, false, true, true),
 		spec("clear_project", "project.clear", "project", "Clear the current project.", RiskConfirm, true, true, true, true),
+		// GEN-CTX-KEYFIELD-1: project-level music context fields, stored as
+		// vit_music_* edit-state properties and disclosed via get_project_state
+		// music_context. Fail-closed validation (unknown scale / root outside
+		// 0-127 / text over 500 chars is rejected, never clamped or truncated).
+		spec("set_project_key", "project.set_key", "project", "Set or clear the project key signature (root note or MIDI pitch plus one of the 11 canonical scale names); persisted as the vit_music_key_signature edit-state field and disclosed in music_context.key_signature.", RiskConfirm, true, false, true, true),
+		spec("set_project_style_note", "project.set_style_note", "project", "Set or clear the project style note (free text up to 500 characters); persisted as the vit_music_style_note edit-state field and disclosed in music_context.style_note.", RiskConfirm, true, false, true, true),
 		spec("project_snapshot_export", "project.snapshot_export", "project", "Export the active in-memory project snapshot without saving the live .vit file.", RiskDirect, false, false, false, false),
 		spec("project_undo_state", "project.undo_state", "project", "Read whether the active project can undo or redo.", RiskDirect, false, false, false, false),
 		spec("project.get_audio_settings", "project.get_audio_settings", "project_audio", "Read the active project's audio specification metadata, including project sample rate, recording format defaults, import policies, and engine binding status.", RiskDirect, false, false, false, false),

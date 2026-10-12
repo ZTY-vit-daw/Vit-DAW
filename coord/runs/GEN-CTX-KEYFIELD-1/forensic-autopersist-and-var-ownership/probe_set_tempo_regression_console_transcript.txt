@@ -1,0 +1,17 @@
+# GEN-CTX-KEYFIELD-1 取证：set_tempo 在"open 既有工程"形态下的静默不落盘（控制台转录）
+# 运行：2026-10-12 18:25 +0800，候选内核（修复 markAsChanged 之前的 b2f53fc… 之前身 aa8256a0），
+#       裸内核 ZMQ 直连，与 scripts/music_keyfield_roundtrip_smoke_mac.sh 同面。
+# 序列（probe_set_tempo_regression_seq.py）：save_as p3.vit(加密, tempo=100) → clear → open p3
+#       → set_tempo 111 → clear → open p3 → get
+# 证据要点：[25] set_tempo 111 回 ok；[28] 重开后 tempo=100.0（111 丢失）——auto-persist 静默跳写。
+# 佐证：p3.vit 由后续 clear_project 的 auto-persist 落盘为明文 XML（vit_file_format_evidence.txt）。
+
+[20_set_tempo_100] status=ok tempo=None key=None
+[21_save_as_p3] status=ok tempo=None key=None
+[22_clear] status=ok tempo=None key=None
+[23_open_p3] status=ok tempo=None key=None
+[24_get_100] status=ok tempo=100.0 key={"root_pitch": 7, "root_name": "G", "scale": "phrygian", "set_by": "user", "set_at": "20261012T182523.746+0800"}
+[25_set_tempo_111] status=ok tempo=None key=None
+[26_clear] status=ok tempo=None key=None
+[27_reopen_p3] status=ok tempo=None key=None
+[28_get_after_reopen] status=ok tempo=100.0 key={"root_pitch": 7, "root_name": "G", "scale": "phrygian", "set_by": "user", "set_at": "20261012T182523.746+0800"}
