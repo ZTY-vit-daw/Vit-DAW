@@ -230,6 +230,8 @@ set(VITAPP_SOURCE_FILES
     Source/Service/RefSchema.h
     Source/Service/CompressorDualTapEvidence.cpp
     Source/Service/CompressorDualTapEvidence.h
+    Source/Service/TimefxDualTapEvidence.cpp
+    Source/Service/TimefxDualTapEvidence.h
     Source/Service/VitProductionCoordinator.cpp
     Source/Service/VitProductionCoordinator.h
     Source/Service/SharedMemoryTester.cpp

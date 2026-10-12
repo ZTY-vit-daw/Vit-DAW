@@ -246,6 +246,18 @@ int main()
         check (acceptedByAgentGrammar (built), "T5b accepted by agent grammar");
     }
 
+    // --- T5c M2-TIMEFX-2 timefx dual-tap ref shape ---------------------------
+    {
+        const auto ref = formatEvidenceRef (kKindTimefxDualTap, kScopeKindTrack, "trk_9",
+                                            false, 0, 48000, "tfx2_pair_2f3e");
+        checkEqual (ref, "vit://dad.timefx_dual_tap/track:trk_9/t=0..48000@tfx2_pair_2f3e#-",
+                    "T5c timefx dual-tap window serialization");
+        check (acceptedByAgentGrammar (ref), "T5c accepted by agent grammar");
+        const auto built = makeTimefxDualTapRef ("trk_9", 0, 48000, "tfx2_pair_2f3e");
+        checkEqual (built, ref, "T5c timefx builder emits the golden shape");
+        check (acceptedByAgentGrammar (built), "T5c built ref accepted by agent grammar");
+    }
+
     // --- T6 legacy literal lock (REFSCHEMA-D2 grace period) ------------------
     checkEqual (juce::String (kLegacyPrefixCompressorDualTap) + "pair_7",
                 "dad.compressor_dual_tap:pair_7",

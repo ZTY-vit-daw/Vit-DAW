@@ -36,6 +36,12 @@ inline constexpr const char* kKindL3 = "dad.l3";
 inline constexpr const char* kKindL2RenderProbe = "dad.l2_render_probe";
 inline constexpr const char* kKindCompressorDualTap = "dad.compressor_dual_tap";
 
+// M2-TIMEFX-2: paired bypass/processed render evidence kind for the
+// reverb/delay families. Kernel generation points:
+// VitProductionCoordinator.cpp stampTimefxDualTapIdentity + start reply,
+// TimefxDualTapEvidence.cpp artifact ref.
+inline constexpr const char* kKindTimefxDualTap = "dad.timefx_dual_tap";
+
 // Legacy prefix the D2 generation points emitted before REFSCHEMA-D2 (the
 // agent-side com consumers evidence.go/paired.go have since switched to
 // ParseRef and accept both shapes in the same frame). Kept for the grace
@@ -97,5 +103,15 @@ juce::String makeCompressorDualTapRef (const juce::String& trackId,
                                        juce::int64 sampleStart,
                                        juce::int64 sampleEnd,
                                        const juce::String& pairId);
+
+// M2-TIMEFX-2 (VitProductionCoordinator.cpp stampTimefxDualTapIdentity +
+// start reply, TimefxDualTapEvidence.cpp artifact ref):
+// vit://dad.timefx_dual_tap/track:<trackId>/t=<start>..<end>@<pairId>#-
+// Same shape as the compressor dual-tap ref: the pair id is the snapshot
+// identity the agent-side fxm producer keys on. Audio tracks only.
+juce::String makeTimefxDualTapRef (const juce::String& trackId,
+                                   juce::int64 sampleStart,
+                                   juce::int64 sampleEnd,
+                                   const juce::String& pairId);
 
 } // namespace vit::refschema

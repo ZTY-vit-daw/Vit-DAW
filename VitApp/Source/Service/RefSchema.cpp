@@ -103,4 +103,13 @@ juce::String makeCompressorDualTapRef (const juce::String& trackId,
                               false, sampleStart, sampleEnd, pairId);
 }
 
+juce::String makeTimefxDualTapRef (const juce::String& trackId,
+                                   juce::int64 sampleStart,
+                                   juce::int64 sampleEnd,
+                                   const juce::String& pairId)
+{
+    return formatEvidenceRef (kKindTimefxDualTap, kScopeKindTrack, trackId,
+                              false, sampleStart, sampleEnd, pairId);
+}
+
 } // namespace vit::refschema

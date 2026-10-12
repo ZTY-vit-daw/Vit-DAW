@@ -179,6 +179,12 @@ var kindRoutingTable = []KindRouteEntry{
 		Notes:        []string{"迁移前 legacy 翻译条目；§3.3 未建议 v1 载荷字段，目录仅登记"},
 	},
 	{
+		Kind:         "dad.timefx_dual_tap",
+		LegacyPrefix: "", // M2-TIMEFX-2：新族首代即 vit:// 形态，无 legacy 前缀
+		CentralSeed:  "内核 timefx_dual_tap_probe 成对工件（Workspace/Artifacts/timefx_evidence/<pair_id>/）",
+		Notes:        []string{"reverb/delay 成对 bypass/processed 证据；snapshot 段=pair_id，目录仅登记（对齐 dad.compressor_dual_tap v1 惯例）"},
+	},
+	{
 		Kind:         "dad.frequency_evidence",
 		LegacyPrefix: "dad.frequency_evidence:",
 		CentralSeed:  "WorkflowData/orchestration 产物（read-first 库，model.go:16/46）",

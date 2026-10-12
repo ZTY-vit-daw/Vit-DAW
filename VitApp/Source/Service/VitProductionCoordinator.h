@@ -9,6 +9,7 @@
 #include <tracktion_engine/tracktion_engine.h>
 
 #include "CompressorDualTapEvidence.h"
+#include "TimefxDualTapEvidence.h"
 
 namespace vit
 {
@@ -57,6 +58,20 @@ public:
         std::function<juce::String()> readCurrentScopeRevision;
     };
 
+    // M2-TIMEFX-2: paired bypass/processed probe for reverb/delay. Same
+    // triple-render contract as the compressor dual-tap request; the analysis
+    // is the timefx same-window differential (no latency alignment).
+    struct TimefxDualTapProbeRequest
+    {
+        TimefxDualTapEvidenceRequest evidence;
+        juce::File baselineRenderFile;
+        juce::File processedRenderFile;
+        juce::File processedVerificationRenderFile;
+        juce::File artifactDirectory;
+        juce::BigInteger tracksToDo;
+        std::function<juce::String()> readCurrentScopeRevision;
+    };
+
     explicit VitProductionCoordinator (PublishFn publish);
 
     bool isRendering() const noexcept { return rendering.load(); }
@@ -75,6 +90,9 @@ public:
 
     juce::String startCompressorDualTapProbe (te::Edit& edit,
                                               CompressorDualTapProbeRequest request);
+
+    juce::String startTimefxDualTapProbe (te::Edit& edit,
+                                          TimefxDualTapProbeRequest request);
 
     void cancelOfflineRender();
 

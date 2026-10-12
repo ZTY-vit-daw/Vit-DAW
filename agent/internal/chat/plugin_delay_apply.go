@@ -98,7 +98,12 @@ func (s *Server) applyPluginGrabberDelayControls(ctx context.Context, cmd, reque
 		if len(mapRowsValue(args["controls"])) > 0 {
 			return nil, rejectDelayControl("ambiguous_restore", "restore_ref cannot be combined with controls")
 		}
-		return s.restorePluginGrabberDelayControls(ctx, target.TrackID, target.PluginID, generation, digest, restore)
+		restored, restoreErr := s.restorePluginGrabberDelayControls(ctx, target.TrackID, target.PluginID, generation, digest, restore)
+		if restoreErr == nil {
+			s.attachTimefxFXMProbe(ctx, restored, target.TrackID, target.PluginID, "delay",
+				firstNonEmptyText(summary, "classification"), generation)
+		}
+		return restored, restoreErr
 	}
 	requests, err := parseDelayControlRequests(args)
 	if err != nil {
@@ -162,6 +167,8 @@ func (s *Server) applyPluginGrabberDelayControls(ctx context.Context, cmd, reque
 			result["transaction_id"] = accounting.TransactionID
 		}
 	}
+	s.attachTimefxFXMProbe(ctx, result, target.TrackID, target.PluginID, "delay",
+		firstNonEmptyText(summary, "classification"), generation)
 	return result, nil
 }
 

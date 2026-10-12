@@ -675,6 +675,132 @@ void publishCompressorDualTapResult (const VitProductionCoordinator::PublishFn& 
     object->setProperty ("quality_evidence", juce::var (quality.release()));
     publish (juce::JSON::toString (juce::var (object.release())));
 }
+
+// --- M2-TIMEFX-2: reverb/delay paired bypass/processed probe publishing ---
+
+juce::var timefxTapMetricsVar (const TimefxTapMetrics& metrics)
+{
+    auto object = std::make_unique<juce::DynamicObject>();
+    object->setProperty ("sample_frames", metrics.sampleFrames);
+    object->setProperty ("nonzero_samples", metrics.nonzeroSamples);
+    object->setProperty ("nan_inf_samples", metrics.nanInfSamples);
+    object->setProperty ("coverage", metrics.coverage);
+    object->setProperty ("peak_dbfs", metrics.peakDbfs);
+    object->setProperty ("rms_dbfs", metrics.rmsDbfs);
+    object->setProperty ("approximate_lufs", metrics.approximateLufs);
+    object->setProperty ("crest_db", metrics.crestDb);
+    return juce::var (object.release());
+}
+
+void stampTimefxDualTapIdentity (juce::DynamicObject& object,
+                                 const TimefxDualTapEvidenceRequest& request)
+{
+    object.setProperty ("feature_family", "audio_feature");
+    object.setProperty ("feature_type", "timefx_dual_tap_probe");
+    object.setProperty ("schema_version", "dad.timefx_dual_tap_receipt.v1");
+    object.setProperty ("pair_id", request.pairId);
+    object.setProperty ("request_id", request.requestId);
+    object.setProperty ("track_id", request.trackId);
+    object.setProperty ("clip_id", request.clipId);
+    object.setProperty ("plugin_instance_id", request.pluginInstanceId);
+    object.setProperty ("plugin_position", request.pluginPosition);
+    object.setProperty ("family", request.family);
+    object.setProperty ("topology_class", request.topologyClass);
+    object.setProperty ("topology_generation", request.topologyGeneration);
+    object.setProperty ("chain_hash", request.chainHash);
+    object.setProperty ("processor_state_hash", request.processorStateHash);
+    object.setProperty ("scope_revision", request.scopeRevision);
+    object.setProperty ("source_revision", request.sourceRevision);
+    object.setProperty ("clip_revision", request.clipRevision);
+    object.setProperty ("render_revision", request.renderRevision);
+    object.setProperty ("start_sample", request.startSample);
+    object.setProperty ("end_sample", request.endSample);
+    object.setProperty ("sample_rate", request.sampleRate);
+    object.setProperty ("channel_layout", request.channelLayout);
+    object.setProperty ("render_mode", "offline_probe");
+    object.setProperty ("deterministic", request.deterministic);
+    object.setProperty ("baseline_tap", "timefx_bypass");
+    object.setProperty ("processed_tap", "timefx_processed");
+    object.setProperty ("tail_policy", "same_window_pair");
+    object.setProperty ("analyzer_version", request.analyzerVersion);
+    object.setProperty ("evidence_ref",
+                        refschema::makeTimefxDualTapRef (request.trackId, request.startSample,
+                                                         request.endSample, request.pairId));
+}
+
+void publishTimefxDualTapBuilding (const VitProductionCoordinator::PublishFn& publish,
+                                   const TimefxDualTapEvidenceRequest& request,
+                                   const juce::String& jobId,
+                                   const juce::String& phase)
+{
+    if (! publish)
+        return;
+    auto object = std::make_unique<juce::DynamicObject>();
+    stampTimefxDualTapIdentity (*object, request);
+    object->setProperty ("command", "timefx_dual_tap_probe_status");
+    object->setProperty ("status", "building");
+    object->setProperty ("quality_status", "building");
+    object->setProperty ("job_id", jobId);
+    object->setProperty ("phase", phase);
+    publish (juce::JSON::toString (juce::var (object.release())));
+}
+
+void publishTimefxDualTapFailure (const VitProductionCoordinator::PublishFn& publish,
+                                  const TimefxDualTapEvidenceRequest& request,
+                                  const juce::String& jobId,
+                                  const juce::String& reason)
+{
+    if (! publish)
+        return;
+    auto object = std::make_unique<juce::DynamicObject>();
+    stampTimefxDualTapIdentity (*object, request);
+    object->setProperty ("command", "timefx_dual_tap_probe_ready");
+    object->setProperty ("status", "suspect");
+    object->setProperty ("quality_status", "suspect");
+    object->setProperty ("job_id", jobId);
+    object->setProperty ("reason", reason);
+    publish (juce::JSON::toString (juce::var (object.release())));
+}
+
+void publishTimefxDualTapResult (const VitProductionCoordinator::PublishFn& publish,
+                                 const TimefxDualTapEvidenceRequest& request,
+                                 const juce::String& jobId,
+                                 const TimefxDualTapEvidenceResult& result)
+{
+    if (! publish)
+        return;
+    auto object = std::make_unique<juce::DynamicObject>();
+    stampTimefxDualTapIdentity (*object, request);
+    object->setProperty ("command", "timefx_dual_tap_probe_ready");
+    object->setProperty ("status", result.status);
+    object->setProperty ("quality_status", result.status);
+    object->setProperty ("job_id", jobId);
+    object->setProperty ("reason", result.reason);
+    object->setProperty ("channel_count", result.channelCount);
+    object->setProperty ("determinism_proof_status", result.determinismVerified ? "ready" : "suspect");
+    object->setProperty ("determinism_max_abs_delta", result.determinismMaxAbsDelta);
+    object->setProperty ("determinism_rms_delta", result.determinismRMSDelta);
+    object->setProperty ("determinism_correlation", result.determinismCorrelation);
+    object->setProperty ("determinism_peak_db_delta", result.determinismPeakDBDelta);
+    object->setProperty ("determinism_rms_db_delta", result.determinismRMSDBDelta);
+    object->setProperty ("latency_compensated", result.latencyCompensated);
+
+    auto metrics = std::make_unique<juce::DynamicObject>();
+    metrics->setProperty ("baseline", timefxTapMetricsVar (result.baselineMetrics));
+    metrics->setProperty ("processed", timefxTapMetricsVar (result.processedMetrics));
+    object->setProperty ("tap_metrics", juce::var (metrics.release()));
+
+    auto delta = std::make_unique<juce::DynamicObject>();
+    delta->setProperty ("rms_delta_db", result.rmsDeltaDb);
+    delta->setProperty ("lufs_delta_db", result.lufsDeltaDb);
+    delta->setProperty ("peak_delta_db", result.peakDeltaDb);
+    delta->setProperty ("crest_delta_db", result.crestDeltaDb);
+    object->setProperty ("effect_delta", juce::var (delta.release()));
+
+    object->setProperty ("artifact_sha256", result.artifactSha256);
+    object->setProperty ("artifact_bytes", result.artifactBytes);
+    publish (juce::JSON::toString (juce::var (object.release())));
+}
 }
 
 VitProductionCoordinator::VitProductionCoordinator (PublishFn publish)
@@ -1035,6 +1161,193 @@ juce::String VitProductionCoordinator::startCompressorDualTapProbe (
     reply->setProperty ("evidence_ref",
                         refschema::makeCompressorDualTapRef (evidence.trackId, evidence.startSample,
                                                              evidence.endSample, evidence.pairId));
+    reply->setProperty ("probe_status", "building");
+    return juce::JSON::toString (juce::var (reply.release()));
+}
+
+te::Renderer::Parameters makeTimefxTapParameters (te::Edit& edit,
+                                                    const TimefxDualTapEvidenceRequest& evidence,
+                                                    const juce::File& destination,
+                                                    bool usePlugins)
+{
+    te::Renderer::Parameters params (edit);
+    params.destFile = destination;
+    params.time = te::TimeRange (
+        te::TimePosition::fromSeconds ((double) evidence.startSample / evidence.sampleRate),
+        te::TimePosition::fromSeconds ((double) evidence.endSample / evidence.sampleRate));
+    params.audioFormat = edit.engine.getAudioFileFormatManager().getWavFormat();
+    params.bitDepth = 32;
+    params.sampleRateForAudio = evidence.sampleRate;
+    params.blockSizeForAudio = 512;
+    params.tracksToDo = BigInteger {};
+    params.usePlugins = usePlugins;
+    params.useMasterPlugins = false;
+    params.canRenderInMono = false;
+    params.mustRenderInMono = false;
+    params.trimSilenceAtEnds = false;
+    params.shouldNormalise = false;
+    params.shouldNormaliseByRMS = false;
+    params.ditheringEnabled = false;
+    return params;
+}
+
+te::Renderer::Parameters makeTimefxTapParameters (te::Edit& edit,
+                                                    const TimefxDualTapEvidenceRequest& evidence,
+                                                    const juce::BigInteger& tracksToDo,
+                                                    const juce::File& destination,
+                                                    bool usePlugins)
+{
+    te::Renderer::Parameters params (edit);
+    params.destFile = destination;
+    params.time = te::TimeRange (
+        te::TimePosition::fromSeconds ((double) evidence.startSample / evidence.sampleRate),
+        te::TimePosition::fromSeconds ((double) evidence.endSample / evidence.sampleRate));
+    params.audioFormat = edit.engine.getAudioFileFormatManager().getWavFormat();
+    params.bitDepth = 32;
+    params.sampleRateForAudio = evidence.sampleRate;
+    params.blockSizeForAudio = 512;
+    params.tracksToDo = tracksToDo;
+    params.usePlugins = usePlugins;
+    params.useMasterPlugins = false;
+    params.canRenderInMono = false;
+    params.mustRenderInMono = false;
+    params.trimSilenceAtEnds = false;
+    params.shouldNormalise = false;
+    params.shouldNormaliseByRMS = false;
+    params.ditheringEnabled = false;
+    return params;
+}
+
+juce::String VitProductionCoordinator::startTimefxDualTapProbe (
+    te::Edit& edit,
+    TimefxDualTapProbeRequest request)
+{
+    if (rendering.load())
+        return makeCoordinatorError ("A render job is already in progress");
+
+    const auto& evidence = request.evidence;
+    if (evidence.sampleRate <= 0.0 || evidence.endSample <= evidence.startSample
+        || request.tracksToDo.countNumberOfSetBits() != 1)
+        return makeCoordinatorError ("Invalid timefx dual-tap render request");
+
+    request.baselineRenderFile.getParentDirectory().createDirectory();
+    request.processedRenderFile.getParentDirectory().createDirectory();
+    request.artifactDirectory.createDirectory();
+    for (const auto& file : { request.baselineRenderFile, request.processedRenderFile, request.processedVerificationRenderFile })
+        if (file.existsAsFile() && ! file.deleteFile())
+            return makeCoordinatorError ("Cannot overwrite timefx dual-tap temporary render");
+
+    jobId = juce::Uuid().toString();
+    const auto activeJobId = jobId;
+    rendering.store (true);
+    lastPublishedProgress = -1.0f;
+    armRenderWatchdog (kRenderWatchdogBaseSeconds
+                       + ((double) (evidence.endSample - evidence.startSample) / evidence.sampleRate));
+
+    publishTimefxDualTapBuilding (publishMessage, evidence, activeJobId, "render_baseline");
+    renderHandle = te::EditRenderer::render (
+        makeTimefxTapParameters (edit, request.evidence, request.tracksToDo, request.baselineRenderFile, false),
+        [this, &edit, request, activeJobId] (tl::expected<juce::File, std::string> baselineResult)
+        {
+            juce::MessageManager::callAsync (
+                [this, &edit, request, activeJobId, baselineResult]
+                {
+                    if (! baselineResult.has_value())
+                    {
+                        rendering.store (false);
+                        retireRenderHandleOffThread (std::move (renderHandle));
+                        lastPublishedProgress = -1.0f;
+                        publishTimefxDualTapFailure (publishMessage, request.evidence, activeJobId,
+                                                     "baseline_render_failed:" + juce::String (baselineResult.error()));
+                        request.baselineRenderFile.deleteFile();
+                        request.processedRenderFile.deleteFile();
+                        request.processedVerificationRenderFile.deleteFile();
+                        return;
+                    }
+
+                    publishTimefxDualTapBuilding (publishMessage, request.evidence, activeJobId, "render_processed");
+                    renderHandle = te::EditRenderer::render (
+                        makeTimefxTapParameters (edit, request.evidence, request.tracksToDo, request.processedRenderFile, true),
+                        [this, &edit, request, activeJobId] (tl::expected<juce::File, std::string> processedResult)
+                        {
+                            juce::MessageManager::callAsync (
+                                [this, &edit, request, activeJobId, processedResult]
+                                {
+                                    if (! processedResult.has_value())
+                                    {
+                                        rendering.store (false);
+                                        retireRenderHandleOffThread (std::move (renderHandle));
+                                        lastPublishedProgress = -1.0f;
+                                        publishTimefxDualTapFailure (publishMessage, request.evidence, activeJobId,
+                                                                     "processed_render_failed:" + juce::String (processedResult.error()));
+                                        request.baselineRenderFile.deleteFile();
+                                        request.processedRenderFile.deleteFile();
+                                        request.processedVerificationRenderFile.deleteFile();
+                                        return;
+                                    }
+
+                                    publishTimefxDualTapBuilding (publishMessage, request.evidence, activeJobId, "render_verify");
+                                    renderHandle = te::EditRenderer::render (
+                                        makeTimefxTapParameters (edit, request.evidence, request.tracksToDo, request.processedVerificationRenderFile, true),
+                                        [this, request, activeJobId] (tl::expected<juce::File, std::string> verificationResult)
+                                        {
+                                            juce::MessageManager::callAsync (
+                                                [this, request, activeJobId, verificationResult]
+                                                {
+                                                    rendering.store (false);
+                                                    retireRenderHandleOffThread (std::move (renderHandle));
+                                                    lastPublishedProgress = -1.0f;
+                                                    if (! verificationResult.has_value())
+                                                    {
+                                                        publishTimefxDualTapFailure (publishMessage, request.evidence, activeJobId,
+                                                                                     "verification_render_failed:" + juce::String (verificationResult.error()));
+                                                        request.baselineRenderFile.deleteFile();
+                                                        request.processedRenderFile.deleteFile();
+                                                        request.processedVerificationRenderFile.deleteFile();
+                                                        return;
+                                                    }
+                                                    const auto currentRevision = request.readCurrentScopeRevision != nullptr
+                                                        ? request.readCurrentScopeRevision() : juce::String();
+                                                    if (currentRevision.isEmpty() || currentRevision != request.evidence.scopeRevision)
+                                                    {
+                                                        publishTimefxDualTapFailure (publishMessage, request.evidence, activeJobId,
+                                                                                     "scope_revision_changed_during_capture");
+                                                        request.baselineRenderFile.deleteFile();
+                                                        request.processedRenderFile.deleteFile();
+                                                        request.processedVerificationRenderFile.deleteFile();
+                                                        return;
+                                                    }
+                                                    auto publish = publishMessage;
+                                                    std::thread ([publish, request, activeJobId]
+                                                    {
+                                                        const auto result = analyseAndWriteTimefxDualTapEvidence (
+                                                            request.baselineRenderFile,
+                                                            request.processedRenderFile,
+                                                            request.processedVerificationRenderFile,
+                                                            request.artifactDirectory,
+                                                            request.evidence);
+                                                        publishTimefxDualTapResult (publish, request.evidence, activeJobId, result);
+                                                        request.baselineRenderFile.deleteFile();
+                                                        request.processedRenderFile.deleteFile();
+                                                        request.processedVerificationRenderFile.deleteFile();
+                                                    }).detach();
+                                                });
+                                        });
+                                });
+                        });
+                });
+        });
+
+    auto reply = std::make_unique<juce::DynamicObject>();
+    reply->setProperty ("status", "ok");
+    reply->setProperty ("message", "Timefx dual-tap probe started");
+    reply->setProperty ("cmd", "timefx_dual_tap_probe");
+    reply->setProperty ("feature_type", "timefx_dual_tap_probe");
+    reply->setProperty ("job_id", activeJobId);
+    reply->setProperty ("pair_id", evidence.pairId);
+    reply->setProperty ("evidence_ref",
+                        refschema::makeTimefxDualTapRef (evidence.trackId, evidence.startSample,
+                                                         evidence.endSample, evidence.pairId));
     reply->setProperty ("probe_status", "building");
     return juce::JSON::toString (juce::var (reply.release()));
 }
