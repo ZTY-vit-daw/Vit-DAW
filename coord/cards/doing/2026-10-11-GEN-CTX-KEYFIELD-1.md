@@ -11,6 +11,6 @@
 
 set_project_key/set_project_style_note 两命令全链（edit state 属性+.vit 容器往返）+catalog 注册（RiskConfirm）；验收=§11 往返三验+四负例 fail-closed+披露联动；停止条件=容器剥离未知属性→上交换存储位。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-12 10:10 +0800 / origin/main f02cf2c8 / GLM-5.3 Mac 执行流（ZCode 会话） / 分支 port/gen-ctx-keyfield-1 / worktree /Users/timozty/Documents/Vit-DAW-ctxdisclose1（刻意复用 DISCLOSE 已清理路径以续接 /tmp/vit-ctxd1-build 增量构建缓存；领取时核对 main 的 CommandDispatcher.cpp 已含 appendMusicContextDisclosure 披露块=亲验在位）/ 领取提交=本提交
 - 回执：（commit / run ID / 往返工件）
 - 验收：（裁定文件 / 验收 commit）
