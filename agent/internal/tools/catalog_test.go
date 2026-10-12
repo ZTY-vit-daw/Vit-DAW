@@ -128,6 +128,50 @@ func TestProjectMarkerToolsAreCataloged(t *testing.T) {
 	}
 }
 
+// GEN-CTX-KEYFIELD-1: both project music-context field commands are
+// confirmation-gated project mutations (spec: RiskConfirm) with fail-closed
+// arg hints that spell out the validation domain (11 canonical scale names,
+// MIDI pitch 0..127, 500-char style note limit).
+func TestMusicKeyfieldToolsAreCataloged(t *testing.T) {
+	catalog := DefaultCatalog()
+	for _, tt := range []struct {
+		tool    string
+		command string
+		risk    RiskLevel
+		mutates bool
+		confirm bool
+		refresh bool
+		argHint string
+	}{
+		{"project.set_key", "set_project_key", RiskConfirm, true, true, true, "melodicMinor"},
+		{"project.set_style_note", "set_project_style_note", RiskConfirm, true, true, true, "500 chars"},
+	} {
+		spec, ok := catalog.LookupTool(tt.tool)
+		if !ok {
+			t.Fatalf("%s missing", tt.tool)
+		}
+		if spec.CommandName != tt.command || spec.RiskLevel != tt.risk || spec.MutatesProject != tt.mutates || spec.RequiresConfirmation != tt.confirm || spec.RefreshAfter != tt.refresh {
+			t.Fatalf("%s metadata = %+v", tt.tool, spec)
+		}
+		if modelRisk(spec) != "confirm" {
+			t.Fatalf("%s model risk = %q, want confirm", tt.tool, modelRisk(spec))
+		}
+		line := modelSummaryLine(spec)
+		if !strings.Contains(line, tt.argHint) {
+			t.Fatalf("%s arg hint missing %q in %q", tt.tool, tt.argHint, line)
+		}
+	}
+	// Both commands are confirmation-gated, so neither may appear in the
+	// direct (confirmation-free) command surface.
+	for _, command := range []string{"set_project_key", "set_project_style_note"} {
+		for _, name := range catalog.DirectCommandNames() {
+			if name == command {
+				t.Fatalf("%s must not be a direct command (RiskConfirm)", command)
+			}
+		}
+	}
+}
+
 func TestTrackGroupToolsAreCataloged(t *testing.T) {
 	catalog := DefaultCatalog()
 	for _, tt := range []struct {

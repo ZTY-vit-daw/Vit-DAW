@@ -1,0 +1,85 @@
+{
+  "binaries": {
+    "baseline_kernel_sha256": "8e445dbbbcc3474d5ca30b19915560fc5247da6f70807bc694a4cd3de0ef2b9a",
+    "kernel_sha256": "aa8256a087e5e56468a66840d9fa61ba2c20d14d4edb5aaf9e8d015a8c6d9f2f"
+  },
+  "card": "GEN-CTX-KEYFIELD-1",
+  "failure_kind": "functional",
+  "gate_failure_details": {
+    "phaseB_neg_state_unchanged": " key={\"root_name\": \"D\", \"root_pitch\": 2, \"scale\": \"ionian\", \"set_at\": \"20261012T112732.740+0800\", \"set_by\": \"user\"} (want ionian echo=None) style_match=no",
+    "phaseB_r2_autopersist_fidelity": " after auto-persist reload: key=None (echo=None) style_match=no",
+    "phaseB_r2_disclose_matches_set": " disclosed_key={\"root_name\": \"A\", \"root_pitch\": 9, \"scale\": \"minor\", \"set_at\": \"20261012T112731.440+0800\", \"set_by\": \"user\"} echo_key=None style_match=yes",
+    "phaseB_r3_save_as_fidelity": " after save_as reload: key=None (echo=None) style_match=no"
+  },
+  "gates": {
+    "phaseA_baseline_placeholders": true,
+    "phaseA_kernel_start_ports": true,
+    "phaseA_new_project_ok": true,
+    "phaseA_save_as_file": true,
+    "phaseA_save_as_ok": true,
+    "phaseA_state_ok": true,
+    "phaseB_clear_slate": true,
+    "phaseB_clr_key_idempotent_ok": true,
+    "phaseB_clr_key_null": true,
+    "phaseB_clr_key_ok": true,
+    "phaseB_clr_style_empty": true,
+    "phaseB_clr_style_ok": true,
+    "phaseB_kernel_start_ports": true,
+    "phaseB_neg_ionian_passes": true,
+    "phaseB_neg_root_150_error": true,
+    "phaseB_neg_root_H_error": true,
+    "phaseB_neg_scale_dorian23_error": true,
+    "phaseB_neg_state_unchanged": false,
+    "phaseB_neg_state_unchanged_ok": true,
+    "phaseB_neg_style_501_error": true,
+    "phaseB_open_old_ok": true,
+    "phaseB_r1_close_ok": true,
+    "phaseB_r1_defaults": true,
+    "phaseB_r1_defaults_survive_save": true,
+    "phaseB_r1_reopen_ok": true,
+    "phaseB_r1_save_in_place_ok": true,
+    "phaseB_r1_state_reopen_ok": true,
+    "phaseB_r2_autopersist_fidelity": false,
+    "phaseB_r2_close_ok": true,
+    "phaseB_r2_disclose_matches_set": false,
+    "phaseB_r2_reopen_ok": true,
+    "phaseB_r2_set_key_ok": true,
+    "phaseB_r2_set_style_ok": true,
+    "phaseB_r2_state_reload_ok": true,
+    "phaseB_r2_state_set_ok": true,
+    "phaseB_r3_close_ok": true,
+    "phaseB_r3_copy_file": true,
+    "phaseB_r3_open_copy_ok": true,
+    "phaseB_r3_save_as_fidelity": false,
+    "phaseB_r3_save_as_ok": true,
+    "phaseB_r3_state_copy_ok": true,
+    "phaseB_state_old_ok": true,
+    "phaseB_tempo_family_intact": true
+  },
+  "overall_status": "FAIL",
+  "probe_surface": "kernel direct ZMQ REQ tcp://127.0.0.1:5555 (§11 roundtrip trilogy: baseline-authored old project, auto-persist reload, save_as copy)",
+  "project_files": {
+    "old_project": "/var/folders/bm/9470lvs56ss6lfw1n9g66k2c0000gn/T//music_keyfield_mac.8xTO0SHJ/project/keyfield_probe.vit",
+    "save_as_copy": "/var/folders/bm/9470lvs56ss6lfw1n9g66k2c0000gn/T//music_keyfield_mac.8xTO0SHJ/project/keyfield_copy.vit"
+  },
+  "repo": {
+    "root": "/Users/timozty/Documents/Vit-DAW-ctxdisclose1"
+  },
+  "roundtrip_evidence": {
+    "neg_after_key": "{\"root_name\": \"D\", \"root_pitch\": 2, \"scale\": \"ionian\", \"set_at\": \"20261012T112732.740+0800\", \"set_by\": \"user\"}",
+    "neg_control_ionian_echo": "None",
+    "r1_old_project_key": "None",
+    "r2_disclosed_key_after_set": "{\"root_name\": \"A\", \"root_pitch\": 9, \"scale\": \"minor\", \"set_at\": \"20261012T112731.440+0800\", \"set_by\": \"user\"}",
+    "r2_key_after_autopersist_reload": "None",
+    "r3_key_after_save_as_reload": "None",
+    "set_time_echo_key": "None",
+    "set_time_echo_style": "温暖模拟流行：侧链泵动的垫底 + 干净的顶线 (warm analog pop, sidechain-pumped pads)"
+  },
+  "run_id": "music_keyfield_mac_20261012-112623",
+  "schema_version": "music.keyfield.roundtrip.mac.v1",
+  "style_note_probe_text": "温暖模拟流行：侧链泵动的垫底 + 干净的顶线 (warm analog pop, sidechain-pumped pads)",
+  "teardown": {
+    "phaseA_kernel": "SIGTERM:143:1",
+    "phaseB_kernel": "SIGTERM:143:1"
+  }
+}

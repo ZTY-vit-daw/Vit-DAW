@@ -1,0 +1,10 @@
+run_id=music_keyfield_mac_20261012-183254
+started_at=2026-10-12T18:32:54+0800
+repo_root=/Users/timozty/Documents/Vit-DAW-ctxdisclose1
+repo_head=f02cf2c8deeab273da3a8a35273cecc6c35f50df
+repo_dirty=5 entries
+baseline_kernel_bin=/private/tmp/vit-keyfield1-prep/baseline_kernel_8e445dbb
+baseline_kernel_sha256=8e445dbbbcc3474d5ca30b19915560fc5247da6f70807bc694a4cd3de0ef2b9a
+kernel_bin=/private/tmp/vit-ctxd1-build/app/VitApp_artefacts/Debug/VitApp
+kernel_sha256=b2f53fcdba891c1ffe66b539c3f0cf07030851411cafc680dd7749e40980c4c9
+zmq_req=tcp://127.0.0.1:5555

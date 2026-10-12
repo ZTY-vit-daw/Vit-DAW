@@ -2097,14 +2097,139 @@ bool clipLocalNoteGeometryToBeats (te::Edit& edit,
     return true;
 }
 
+// GEN-CTX-KEYFIELD-1: project-level key / style fields, stored as plain
+// edit-state properties (NOT a native PitchSequence — PitchSequence
+// auto-inserts pitch=60 on an empty list, which would make "explicitly C
+// major" and "never set" indistinguishable and break the unset semantics).
+// vit_music_key_signature holds a JSON string:
+//   {"root_pitch":60,"root_name":"C","scale":"major","set_by":"user",
+//    "set_at":"<ISO8601>"}
+// root_pitch is the authoritative field (MIDI 0-127, same domain as
+// PitchSetting::getPitch()); the 11 scale names align 1:1 with
+// te::Scale::ScaleType (tracktion_Musicality.h). Everything outside those
+// domains is rejected by the write side (no clamping, no silent
+// truncation); the read side reports unknown/corrupt values as unset with
+// the raw string preserved in debug keys (never silently corrected).
+namespace keyfield
+{
+constexpr const char* keySignatureProperty = "vit_music_key_signature";
+constexpr const char* styleNoteProperty = "vit_music_style_note";
+constexpr int styleNoteMaxLength = 500;
+
+bool isKnownScaleName (const juce::String& name)
+{
+    static const char* const scaleNames[] = { "major", "minor", "ionian", "dorian",
+                                              "phrygian", "lydian", "mixolydian", "aeolian",
+                                              "locrian", "melodicMinor", "harmonicMinor" };
+    for (auto* scaleName : scaleNames)
+        if (name == scaleName)
+            return true;
+    return false;
+}
+
+// Sharp-spelled note name for a MIDI pitch class, e.g. 9 -> "A", 10 -> "A#".
+juce::String noteNameForPitch (int pitch)
+{
+    static const char* const noteNames[] = { "C", "C#", "D", "D#", "E", "F",
+                                             "F#", "G", "G#", "A", "A#", "B" };
+    return noteNames[((pitch % 12) + 12) % 12];
+}
+
+// Accepts a note name ("C", "c#", "B" — case-insensitive, sharp spelling
+// only) or an integer MIDI pitch 0-127. Anything else is an error.
+bool parseRootPitch (const juce::var& rootVar, int& outPitch, juce::String& outError)
+{
+    if (rootVar.isInt() || rootVar.isInt64())
+    {
+        const auto pitch = static_cast<int> (rootVar);
+        if (pitch < 0 || pitch > 127)
+        {
+            outError = "set_project_key: root must be a MIDI pitch in 0-127, got " + juce::String (pitch);
+            return false;
+        }
+        outPitch = pitch;
+        return true;
+    }
+
+    if (rootVar.isString())
+    {
+        const auto spelling = rootVar.toString().trim();
+        if (spelling.length() == 2 && spelling.endsWithIgnoreCase ("#"))
+        {
+            const auto letter = juce::String::charToString (spelling[0]).toLowerCase();
+            const auto sharp = letter + "#";
+            for (int pc = 0; pc < 12; ++pc)
+                if (noteNameForPitch (pc).toLowerCase() == sharp)
+                {
+                    outPitch = pc;
+                    return true;
+                }
+        }
+        else if (spelling.length() == 1)
+        {
+            const auto letter = spelling.toLowerCase();
+            for (int pc = 0; pc < 12; ++pc)
+            {
+                const auto candidate = noteNameForPitch (pc).toLowerCase();
+                if (candidate.length() == 1 && candidate == letter)
+                {
+                    outPitch = pc;
+                    return true;
+                }
+            }
+        }
+
+        outError = "set_project_key: cannot parse root note '" + spelling + "' (use a letter A-G with optional '#', or an integer 0-127)";
+        return false;
+    }
+
+    outError = "set_project_key: root must be a note name string or an integer MIDI pitch 0-127";
+    return false;
+}
+
+// Read side for the key disclosure: absent property -> null (unset);
+// unparseable JSON -> null + parse-error debug key; unknown scale or
+// malformed root_pitch -> null + the raw string preserved. A valid stored
+// value is disclosed exactly as stored.
+void appendKeySignatureDisclosure (juce::DynamicObject& musicContext, te::Edit& edit)
+{
+    const auto rawValue = edit.state.getProperty (keySignatureProperty).toString();
+    musicContext.setProperty ("key_signature", juce::var());
+
+    if (rawValue.isEmpty())
+        return;
+
+    const auto parsed = juce::JSON::parse (rawValue);
+    if (! parsed.isObject())
+    {
+        musicContext.setProperty ("key_signature_parse_error", true);
+        return;
+    }
+
+    const auto rootPitch = parsed.getProperty ("root_pitch", juce::var());
+    const auto scale = parsed.getProperty ("scale", juce::var());
+    const bool rootValid = (rootPitch.isInt() || rootPitch.isInt64())
+                               && static_cast<int> (rootPitch) >= 0
+                               && static_cast<int> (rootPitch) <= 127;
+    if (! rootValid || ! scale.isString() || ! isKnownScaleName (scale.toString()))
+    {
+        musicContext.setProperty ("key_signature_raw", rawValue);
+        return;
+    }
+
+    musicContext.setProperty ("key_signature", parsed);
+}
+} // namespace keyfield
+
 // GEN-CTX-DISCLOSE-1: read-only music-context disclosure block. Reads the
 // same engine surface set_tempo writes (TempoSequence setting 0); the
 // sequence auto-inserts default tempo/time-sig settings on state load, so a
 // loaded edit always carries engine truth here and the tempo/time-sig keys
 // never fabricate defaults — if a setting is somehow absent the key stays
 // absent (same discipline as the block_size disclosure). key_signature /
-// style_note are explicit null/"" placeholders for the GEN-CTX-KEYFIELD-1
-// edit-state fields: unset means unset.
+// style_note read the GEN-CTX-KEYFIELD-1 edit-state fields
+// (vit_music_key_signature / vit_music_style_note); absent property means
+// unset and stays null/"".
 void appendMusicContextDisclosure (juce::DynamicObject& object, te::Edit& edit)
 {
     auto musicContext = std::make_unique<juce::DynamicObject>();
@@ -2121,8 +2246,8 @@ void appendMusicContextDisclosure (juce::DynamicObject& object, te::Edit& edit)
     }
     musicContext->setProperty ("time_sig_setting_count", edit.tempoSequence.getNumTimeSigs());
 
-    musicContext->setProperty ("key_signature", juce::var());
-    musicContext->setProperty ("style_note", juce::String());
+    keyfield::appendKeySignatureDisclosure (*musicContext, edit);
+    musicContext->setProperty ("style_note", edit.state.getProperty (keyfield::styleNoteProperty).toString());
 
     object.setProperty ("music_context", juce::var (musicContext.release()));
 }
@@ -2545,6 +2670,147 @@ void CommandDispatcher::registerBuiltinCommands()
     handlers.emplace ("set_tempo", [this] (const juce::DynamicObject& object, const juce::String& raw)
     {
         return handleSetTempo (object, raw);
+    });
+
+    // GEN-CTX-KEYFIELD-1: set/clear the project key signature. Stored as the
+    // vit_music_key_signature edit-state property (JSON string, structure in
+    // the keyfield namespace comment above). Validation is fail-closed: bad
+    // root spelling, root outside 0-127, unknown scale name, or a non-boolean
+    // clear flag are rejected without touching the stored value; clear mixed
+    // with root/scale is rejected as ambiguous.
+    handlers.emplace ("set_project_key", [this] (const juce::DynamicObject& object, const juce::String&)
+    {
+        auto* edit = getEdit != nullptr ? getEdit() : nullptr;
+
+        if (edit == nullptr)
+            return makeErrorReply ("No active edit loaded");
+
+        const auto clearVar = object.getProperty ("clear");
+
+        if (! clearVar.isVoid() && ! clearVar.isBool())
+            return makeErrorReply ("set_project_key: clear must be a boolean");
+
+        if (static_cast<bool> (clearVar))
+        {
+            if (! object.getProperty ("root").isVoid() || ! object.getProperty ("scale").isVoid())
+                return makeErrorReply ("set_project_key: clear is mutually exclusive with root/scale");
+
+            edit->state.removeProperty (keyfield::keySignatureProperty, nullptr);
+            // A raw ValueTree property write bypasses the undo/change
+            // machinery, so the edit's hasChangedSinceSaved stays false and
+            // EditFileOperations::save would silently skip the disk write
+            // while runAutoPersist still reports success. Register the
+            // change explicitly (empirically set_tempo has the same latent
+            // hole after open_project on an existing file).
+            edit->markAsChanged();
+
+            if (! runAutoPersist())
+                return makeErrorReply ("Project key cleared in memory but failed to save project");
+
+            auto response = std::make_unique<juce::DynamicObject>();
+            response->setProperty ("status", "ok");
+            response->setProperty ("message", "Project key cleared");
+            response->setProperty ("cleared", true);
+            response->setProperty ("key_signature", juce::var());
+            return juce::JSON::toString (juce::var (response.release()));
+        }
+
+        int rootPitch = -1;
+        juce::String rootError;
+        if (! keyfield::parseRootPitch (object.getProperty ("root"), rootPitch, rootError))
+            return makeErrorReply (rootError);
+
+        const auto scaleVar = object.getProperty ("scale");
+        if (! scaleVar.isString() || ! keyfield::isKnownScaleName (scaleVar.toString()))
+            return makeErrorReply ("set_project_key: unknown scale '" + scaleVar.toString()
+                                   + "' (must be one of: major, minor, ionian, dorian, phrygian, lydian, "
+                                     "mixolydian, aeolian, locrian, melodicMinor, harmonicMinor)");
+
+        auto keyValue = std::make_unique<juce::DynamicObject>();
+        keyValue->setProperty ("root_pitch", rootPitch);
+        keyValue->setProperty ("root_name", keyfield::noteNameForPitch (rootPitch));
+        keyValue->setProperty ("scale", scaleVar.toString());
+        keyValue->setProperty ("set_by", "user");
+        keyValue->setProperty ("set_at", juce::Time::getCurrentTime().toISO8601 (false));
+
+        // Sole ownership moves into the var (release() pattern — a var over a
+        // raw pointer would take the refcount from 0 back to 0 and delete the
+        // object mid-expression).
+        juce::var keyValueVar (keyValue.release());
+
+        edit->state.setProperty (keyfield::keySignatureProperty,
+                                 juce::JSON::toString (keyValueVar),
+                                 nullptr);
+        edit->markAsChanged();
+
+        if (! runAutoPersist())
+            return makeErrorReply ("Project key updated in memory but failed to save project");
+
+        auto response = std::make_unique<juce::DynamicObject>();
+        response->setProperty ("status", "ok");
+        response->setProperty ("message", "Project key updated");
+        response->setProperty ("key_signature", keyValueVar);
+        return juce::JSON::toString (juce::var (response.release()));
+    });
+
+    // GEN-CTX-KEYFIELD-1: set/clear the project style note (plain string,
+    // vit_music_style_note). Fail-closed on non-string text, notes longer
+    // than 500 characters (no silent truncation), non-boolean clear, and
+    // clear mixed with text.
+    handlers.emplace ("set_project_style_note", [this] (const juce::DynamicObject& object, const juce::String&)
+    {
+        auto* edit = getEdit != nullptr ? getEdit() : nullptr;
+
+        if (edit == nullptr)
+            return makeErrorReply ("No active edit loaded");
+
+        const auto clearVar = object.getProperty ("clear");
+
+        if (! clearVar.isVoid() && ! clearVar.isBool())
+            return makeErrorReply ("set_project_style_note: clear must be a boolean");
+
+        if (static_cast<bool> (clearVar))
+        {
+            if (! object.getProperty ("text").isVoid())
+                return makeErrorReply ("set_project_style_note: clear is mutually exclusive with text");
+
+            edit->state.removeProperty (keyfield::styleNoteProperty, nullptr);
+            edit->markAsChanged();
+
+            if (! runAutoPersist())
+                return makeErrorReply ("Style note cleared in memory but failed to save project");
+
+            auto response = std::make_unique<juce::DynamicObject>();
+            response->setProperty ("status", "ok");
+            response->setProperty ("message", "Style note cleared");
+            response->setProperty ("cleared", true);
+            response->setProperty ("style_note", juce::String());
+            return juce::JSON::toString (juce::var (response.release()));
+        }
+
+        const auto textVar = object.getProperty ("text");
+
+        if (! textVar.isString())
+            return makeErrorReply ("set_project_style_note requires a string text field");
+
+        const auto text = textVar.toString();
+
+        if (text.length() > keyfield::styleNoteMaxLength)
+            return makeErrorReply ("set_project_style_note: text exceeds the "
+                                   + juce::String (keyfield::styleNoteMaxLength)
+                                   + "-character limit (" + juce::String (text.length()) + " characters)");
+
+        edit->state.setProperty (keyfield::styleNoteProperty, text, nullptr);
+        edit->markAsChanged();
+
+        if (! runAutoPersist())
+            return makeErrorReply ("Style note updated in memory but failed to save project");
+
+        auto response = std::make_unique<juce::DynamicObject>();
+        response->setProperty ("status", "ok");
+        response->setProperty ("message", "Style note updated");
+        response->setProperty ("style_note", text);
+        return juce::JSON::toString (juce::var (response.release()));
     });
 
     handlers.emplace ("append_ghost_track", [this] (const juce::DynamicObject& object, const juce::String& raw)

@@ -1695,6 +1695,64 @@ Notes:
 - Needs pyzmq. music_context is stripped symmetrically from both snapshots
   before the value diff, so the script stays re-runnable post-merge with two
   same-era binaries (the keyset gate then reports an empty delta).
+
+## Music Key/Style Field Roundtrip Smoke (mac) (GEN-CTX-KEYFIELD-1)
+
+Path:
+
+```bash
+~/Documents/Vit-DAW/scripts/music_keyfield_roundtrip_smoke_mac.sh
+```
+
+Purpose:
+
+- GEN-CTX-KEYFIELD-1 acceptance smoke for the `set_project_key` /
+  `set_project_style_note` command chain (vit_music_key_signature /
+  vit_music_style_note edit-state properties + music_context disclosure
+  hookup), probed on the real headless kernel via direct ZMQ REQ on
+  tcp://127.0.0.1:5555 (same surface as the DISCLOSE smoke; the agent-side
+  consumption rides catalog.go registration asserted by unit tests).
+- §11 roundtrip trilogy: R1 old-project default fidelity (the BASELINE
+  pre-change kernel authors the probe .vit, so "old project" genuinely
+  predates the fields; candidate opens it → key_signature null / style_note
+  "" / no debug keys → save_project in place → reopen → defaults survive);
+  R2 set → auto-persist → clear+reopen → disclosed values equal the set-time
+  echo (canonical JSON compare incl. set_at; style note is multibyte UTF-8
+  to prove non-ASCII survival); R3 save_as_project copy → clear → open →
+  same fidelity through the new .vit path.
+- Fail-closed negatives with unchanged-state proof: scale "ionian" (legal
+  control) lands root_pitch 2; scale "dorian23" / root 150 / root "H" /
+  501-char style note each return status=error and leave the stored state
+  untouched (post-error disclosure equals the pre-error value).
+- Clear linkage: set_project_key clear → key_signature null with NO debug
+  keys; set_project_style_note clear → ""; idempotent re-clear ok. Tempo
+  family regression guard (DISCLOSE-1 keys stay intact).
+- Read-side debug branches (key_signature_raw on unknown stored scale,
+  key_signature_parse_error on corrupt JSON) are defensive against
+  hand-edited state and unreachable through the command surface (write side
+  is fail-closed) — out of scope for this probe, boundary declared in the
+  card receipt.
+- All kernel state lands under a fake VitApp root inside a fresh mktemp
+  workdir (AGENTS §10). Emits a `music.keyfield.roundtrip.mac.v1` summary
+  JSON; exit 0 requires every gate green. Failures are classified env vs
+  functional.
+
+Common commands:
+
+```bash
+# Baseline = pre-change kernel (e.g. the 8e445dbb DISCLOSE-era binary),
+# candidate = rebuilt kernel (hashes recorded):
+~/Documents/Vit-DAW/scripts/music_keyfield_roundtrip_smoke_mac.sh \
+  --baseline-kernel /tmp/vit-keyfield1-prep/baseline_kernel_8e445dbb \
+  --kernel-bin /tmp/vit-ctxd1-build/app/VitApp_artefacts/Debug/VitApp
+```
+
+Notes:
+
+- Neither kernel is built by this script — pass both binaries explicitly
+  (sha256 + mtime recorded per AGENTS §9).
+- Needs pyzmq.
+
 ### `gen_api_adapter_smoke_mac.sh` — GEN-API-ADAPTER-1 (unified generation-API adapter)
 
 - Two-piece real stack (VitApp kernel + Go agent; same berth as

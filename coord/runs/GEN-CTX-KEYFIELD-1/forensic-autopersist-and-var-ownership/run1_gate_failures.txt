@@ -1,0 +1,4 @@
+phaseB_r2_set_key_ok: status=transport_error echo=None
+phaseB_r2_set_style_ok: status=transport_error echo='None'
+phaseB_r2_state_set_ok: status=transport_error
+phaseB_r2_disclose_matches_set: disclosed_key=<absent> echo_key=None style_match=no
