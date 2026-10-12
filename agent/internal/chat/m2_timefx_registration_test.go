@@ -29,8 +29,8 @@ func TestM2TimeFXFreeStateChainRegistrationContract(t *testing.T) {
 		domain, kind, family string
 		coverage             []string
 	}{
-		{d1ReverbDomain, d1ReverbKind, "reverb", []string{"decay_time", "pre_delay", "wet_balance"}},
-		{d1DelayDomain, d1DelayKind, "delay", []string{"echo_time", "feedback_amount", "wet_balance"}},
+		{d1ReverbDomain, d1ReverbKind, "reverb", []string{"decay_time"}},
+		{d1DelayDomain, d1DelayKind, "delay", []string{"feedback_amount"}},
 	} {
 		if !agentprotocol.IsImprovementActionDomain(domain.domain) {
 			t.Fatalf("action_domain %q missing from the protocol vocabulary", domain.domain)

@@ -187,7 +187,7 @@ func d1UserFacingWordingFor(actionKind string) d1UserFacingWording {
 		return d1UserFacingWording{Parameter: "多段压限器频段阈值", Unit: " dB", WhereToLook: "该轨多段压限器效果对应频段的阈值",
 			BeforeKey: "before_readback_value", AfterKey: "actual_readback_value"}
 	case d1ReverbKind:
-		return d1UserFacingWording{Parameter: "混响衰减时间", Unit: " s", WhereToLook: "该轨混响效果的衰减时间（尾部长度）",
+		return d1UserFacingWording{Parameter: "混响衰减率", Unit: " %", WhereToLook: "该轨混响效果的衰减（尾部长度）",
 			BeforeKey: "before_readback_value", AfterKey: "actual_readback_value"}
 	case d1DelayKind:
 		return d1UserFacingWording{Parameter: "延迟反馈量", Unit: " %", WhereToLook: "该轨延迟效果的反馈量（重复次数）",

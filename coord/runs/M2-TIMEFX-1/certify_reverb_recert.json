@@ -1,0 +1,35 @@
+{
+  "schema_version": "processor_authority.local_processor_certification.v2",
+  "status": "passed",
+  "verdict": "passed",
+  "completed_at": "2026-10-12T03:16:32.6737828Z",
+  "audit": {
+    "llm_call_count": 0,
+    "natural_language_chat_count": 0
+  },
+  "results": [
+    {
+      "apply_status": "exact",
+      "expectation": "reverb",
+      "full_snapshot_restored": true,
+      "id": "vst3_pro_r_4bc24482_78c01fa6",
+      "identifier": "VST3-Pro-R-4bc24482-78c01fa6",
+      "parameter_count": 89,
+      "plugin_id": "1045",
+      "plugin_name": "Pro-R",
+      "processor_family": "reverb",
+      "restore_status": "exact",
+      "selected_roles": [
+        "mix",
+        "output_gain",
+        "decay"
+      ],
+      "status": "passed",
+      "temporary_track_deleted": true,
+      "topology_generation_stable": true,
+      "write_count": 3
+    }
+  ],
+  "summary_path": "C:\\Users\\timoz\\.vit\\pca_certifications\\pca_job_1980b350e1bcfbf6\\summary.json",
+  "evidence_path": "C:\\Users\\timoz\\.vit\\pca_certifications\\pca_job_1980b350e1bcfbf6\\cases\\01_vst3_pro_r_4bc24482_78c01fa6\\evidence.json"
+}

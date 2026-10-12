@@ -12,7 +12,9 @@ func TestDefaultRegistryHasNoPhraseRoutingSurface(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(r.List()) != 9 {
+	// M2-TIMEFX-1 adds the reverb/delay time-domain families to the nine
+	// dynamic/spectral rows.
+	if len(r.List()) != 11 {
 		t.Fatalf("registered families=%d", len(r.List()))
 	}
 	for _, definition := range r.List() {

@@ -514,27 +514,27 @@ var d1s1Domains = []D1S1DomainSpec{
 		AppliedReplyText:       "FAM6-S1 多段压限频段阈值已应用并回读验证。动作后新证据已单独记录；声学实质性、目标响应与人工判定仍待完成。",
 	},
 	{
-		// reverb_decay_adjust moves one reverb instance's decay (tail) time by
-		// one bounded step. M2-TIMEFX-1 admits it with the same
-		// single-mutation tightness as the other PluginBound rows. Like the
-		// whitelisted de-esser/transient/limiter carriers, the whitelisted
-		// reverb resolves through the machine-local experiment whitelist with
-		// ONE shared decay parameter (single-channel write) — the time-domain
-		// family's primary axis per the M2 definition ruling (reverb/delay;
-		// dynamic families stay in C2). The dose axis is physical seconds,
-		// not dB: the write rides the same delta-on-current machine through
-		// the "delta_physical" target semantics, and multi-round admission
-		// fails closed because the D2-2 cumulative bound is dimensioned in dB
-		// (pan precedent). Post-action observation keeps the historical
-		// project relation view; the family's dedicated paired-diff probe is
-		// M2-TIMEFX-2 scope, not this row.
+		// reverb_decay_adjust moves one reverb instance's decay (tail) by one
+		// bounded step. M2-TIMEFX-1 admits it with the same single-mutation
+		// tightness as the other PluginBound rows. The whitelisted reverb
+		// (FabFilter Pro-R, kernel surface measured 2026-10-12) exposes its
+		// decay control as ONE shared relative decay-rate parameter displayed
+		// in percent, so the dose axis is percentage points on the carrier's
+		// native scale — the time-domain family's primary axis per the M2
+		// definition ruling (reverb/delay; dynamic families stay in C2). The
+		// write rides the delta-on-current machine through the
+		// "delta_physical" target semantics (native unit, not dB), and
+		// multi-round admission fails closed because the D2-2 cumulative
+		// bound is dimensioned in dB (pan precedent). Post-action observation
+		// keeps the historical project relation view; the family's dedicated
+		// paired-diff probe is M2-TIMEFX-2 scope, not this row.
 		ActionDomain:        agentprotocol.ImprovementActionDomainReverb,
 		ActionKind:          "reverb_decay_adjust",
-		PromptParameterHint: fmt.Sprintf(`parameter_bounds={"decay_s":<%s>}`, D1S1ReverbDecayDoseHintFragment()),
+		PromptParameterHint: fmt.Sprintf(`parameter_bounds={"decay_pct":<%s>}`, D1S1ReverbDecayDoseHintFragment()),
 		ValidateDoseBounds: func(scope string, bounds map[string]any) error {
-			decay, ok := mapNumber(bounds, "decay_s")
-			if !ok || decay == 0 || math.IsNaN(decay) || math.IsInf(decay, 0) || math.Abs(decay) > D1S1MaxAbsDeltaReverbDecayS {
-				return fmt.Errorf("D1-S1 %s decay_s must be non-zero and within %s", scope, D1S1ReverbDecayDoseRangeText())
+			decay, ok := mapNumber(bounds, "decay_pct")
+			if !ok || decay == 0 || math.IsNaN(decay) || math.IsInf(decay, 0) || math.Abs(decay) > D1S1MaxAbsDeltaReverbDecayPct {
+				return fmt.Errorf("D1-S1 %s decay_pct must be non-zero and within %s", scope, D1S1ReverbDecayDoseRangeText())
 			}
 			return nil
 		},
@@ -555,16 +555,21 @@ var d1s1Domains = []D1S1DomainSpec{
 			},
 		},
 		WriteBinding:             D1S1WriteBinding{PluginBound: true, Channels: 1},
-		AdmissionValueKey:        "decay_s",
+		AdmissionValueKey:        "decay_pct",
 		AdmissionPassthroughKeys: []string{"plugin_identifier"},
 		TargetSemantics:          "delta_physical",
 		// The domain's certified semantic axis: a free-state admitted reverb
-		// experiment rides the semantic dynamic chain on the time-domain
-		// family vocabulary (decay time / pre-delay / wet balance), never on
+		// experiment rides the semantic dynamic chain on decay_time, never on
 		// the parameter-centric axis an LLM would freeze from the literal
-		// Decay parameter name.
+		// Decay parameter name. One primary axis per row is the family
+		// convention (de_esser=sibilance_reduction, limiter=output_ceiling);
+		// the wider time-domain vocabulary (pre_delay, wet balance) lives in
+		// the PCA v2 family axes and the whitelist entry, not the frozen
+		// intent — the pre-load coverage gate requires one attestation to
+		// cover every frozen axis, so multi-axis rows would demand
+		// axis-complete single certifications.
 		SemanticIntentFamily:   "reverb",
-		SemanticIntentCoverage: []string{"decay_time", "pre_delay", "wet_balance"},
+		SemanticIntentCoverage: []string{"decay_time"},
 		AppliedReplyText:       "M2-TIMEFX-1 混响衰减时间已应用并回读验证。动作后新证据已单独记录；声学实质性、目标响应与人工判定仍待完成。",
 	},
 	{
@@ -608,12 +613,14 @@ var d1s1Domains = []D1S1DomainSpec{
 		AdmissionPassthroughKeys: []string{"plugin_identifier"},
 		TargetSemantics:          "delta_physical",
 		// The domain's certified semantic axis: a free-state admitted delay
-		// experiment rides the semantic dynamic chain on the time-domain
-		// family vocabulary (echo time / feedback amount / wet balance),
+		// experiment rides the semantic dynamic chain on feedback_amount,
 		// never on the parameter-centric axis an LLM would freeze from the
-		// literal Feedback parameter name.
+		// literal Feedback parameter name. One primary axis per row is the
+		// family convention; the wider time-domain vocabulary (echo time,
+		// wet balance) lives in the PCA v2 family axes and the whitelist
+		// entry, not the frozen intent.
 		SemanticIntentFamily:   "delay",
-		SemanticIntentCoverage: []string{"echo_time", "feedback_amount", "wet_balance"},
+		SemanticIntentCoverage: []string{"feedback_amount"},
 		AppliedReplyText:       "M2-TIMEFX-1 延迟反馈量已应用并回读验证。动作后新证据已单独记录；声学实质性、目标响应与人工判定仍待完成。",
 	},
 	{

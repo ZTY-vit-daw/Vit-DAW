@@ -1,0 +1,35 @@
+{
+  "schema_version": "processor_authority.local_processor_certification.v2",
+  "status": "passed",
+  "verdict": "passed",
+  "completed_at": "2026-10-12T03:17:14.1441934Z",
+  "audit": {
+    "llm_call_count": 0,
+    "natural_language_chat_count": 0
+  },
+  "results": [
+    {
+      "apply_status": "exact",
+      "expectation": "delay",
+      "full_snapshot_restored": true,
+      "id": "vst3_timeless_3_72be40c7_96546ef3",
+      "identifier": "VST3-Timeless 3-72be40c7-96546ef3",
+      "parameter_count": 512,
+      "plugin_id": "1052",
+      "plugin_name": "Timeless 3",
+      "processor_family": "delay",
+      "restore_status": "exact",
+      "selected_roles": [
+        "ping_pong",
+        "feedback",
+        "mix"
+      ],
+      "status": "passed",
+      "temporary_track_deleted": true,
+      "topology_generation_stable": true,
+      "write_count": 3
+    }
+  ],
+  "summary_path": "C:\\Users\\timoz\\.vit\\pca_certifications\\pca_job_595dd30b1e2b305a\\summary.json",
+  "evidence_path": "C:\\Users\\timoz\\.vit\\pca_certifications\\pca_job_595dd30b1e2b305a\\cases\\01_vst3_timeless_3_72be40c7_96546ef3\\evidence.json"
+}

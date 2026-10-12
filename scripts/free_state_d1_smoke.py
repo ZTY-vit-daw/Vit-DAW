@@ -66,6 +66,14 @@ PROMPT_FLAVORS = {
     # 定锚）双向物理可达，前提只描述问题（低频段电平随时间起伏明显）
     # 不指定参数方向；四要素同构，case-agnostic，零 sealed 真值。
     "multiband": "有一条轨的低频段电平随时间起伏明显、这个频段内的动态听起来忽紧忽松，但各轨整体电平平衡已经合适，不要用整体增益或 EQ 来解决。请先观察工程，再针对这个频段动态问题给一个有界的小步改进建议。",
+    # M2-TIMEFX-1：时域两族话术。前提只描述听感问题（混响尾巴拖沓 / 延迟
+    # 重复偏多），不指定轨名、参数与方向——目标轨由模型观察自选；白名单
+    # 载体（FabFilter Pro-R Decay Rate / Timeless 3 Feedback）新实例默认
+    # 居中，双向物理可达；四要素同构，case-agnostic，零 sealed 真值。注意
+    # fixture 未烘焙时域 fault：模型对前提的接受是概率面，NOT_EXERCISED
+    # （exit 3）是合法的模型随机分支，与功能 FAIL 分开记录。
+    "reverb": "有几轨的尾巴听起来拖得比较长、残响拖沓不够干净，但各轨电平平衡已经合适，不要用整体增益或 EQ 来解决。请先观察工程，再针对这个混响尾巴问题给一个有界的小步改进建议。",
+    "delay": "有一条轨的延迟重复感偏多、回声叠在一起显得拖沓，但各轨电平平衡已经合适，不要用整体增益或 EQ 来解决。请先观察工程，再针对这个延迟重复问题给一个有界的小步改进建议。",
 }
 # The D2-1 domain table mirrored for runner-side gating. Admission itself is
 # always decided by the agent's experiment domain table, never here.
@@ -79,6 +87,8 @@ ADMITTED_DOMAIN_KINDS = {
     "limiter": "limiter_ceiling_adjust",
     "gate_expander": "gate_range_adjust",
     "multiband_dynamics": "multiband_band_threshold_adjust",
+    "reverb": "reverb_decay_adjust",
+    "delay": "delay_feedback_adjust",
 }
 # DOSE-AUDIBLE-1 (2026-09-28 user ruling): the single-step dose ceiling on
 # every adjustable axis is the audibility threshold. These mirror the

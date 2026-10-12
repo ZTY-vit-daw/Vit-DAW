@@ -481,6 +481,19 @@ func alternatePhysical(binding map[string]any, current float64) (float64, bool) 
 			}
 		}
 	}
+	// M2-TIMEFX-1: a measured read-only display curve is as reversible as a
+	// declared domain — every parsed sample is a physical target the typed
+	// apply can invert back to (continuous controls without a domain
+	// candidate, e.g. a reverb decay-rate percentage curve, certify through
+	// their curve samples). Curve rows serialize as {normalized, physical}
+	// pairs.
+	for _, pair := range pairRows(binding["curve"]) {
+		if len(pair) == 2 {
+			if value, ok := pair[1].(float64); ok && math.Abs(value-current) > 1e-4 {
+				candidates = append(candidates, value)
+			}
+		}
+	}
 	if len(candidates) == 0 {
 		return 0, false
 	}
@@ -492,6 +505,22 @@ func alternatePhysical(binding map[string]any, current float64) (float64, bool) 
 	}
 	return best, true
 }
+// pairRows decodes one binding's serialized display curve: a list of
+// {normalized, physical} two-element rows in either decoded JSON shape.
+func pairRows(value any) [][]any {
+	rows, ok := value.([]any)
+	if !ok {
+		return nil
+	}
+	out := make([][]any, 0, len(rows))
+	for _, row := range rows {
+		if pair, ok := row.([]any); ok && len(pair) == 2 {
+			out = append(out, pair)
+		}
+	}
+	return out
+}
+
 func restoreArgs(trackID, pluginID string, result map[string]any, restore []map[string]any) map[string]any {
 	args := map[string]any{"track_id": trackID, "plugin_id": pluginID, "atomic": true}
 	if ref := firstTextMap(result, "restore_ref"); ref != "" {
