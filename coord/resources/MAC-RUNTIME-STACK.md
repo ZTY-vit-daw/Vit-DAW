@@ -6,7 +6,8 @@
 
 ## 当前占用
 
-- 状态：空闲
+- 状态：占用中
+- 2026-10-12 10:21 +0800 起 / GEN-CTX-KEYFIELD-1（GLM-5.3 Mac 执行流，ZCode 会话；worktree /Users/timozty/Documents/Vit-DAW-ctxdisclose1，分支 port/gen-ctx-keyfield-1）：`scripts/music_keyfield_roundtrip_smoke_mac.sh` 真栈冒测（内核直连 ZMQ 5555/5556/5557，两阶段基线+候选）。登记前亲核：5555/5556/5557/7878 监听=0、VitApp/vitagent 进程=0。注意：GEN-CTX-INJECT-1（并行卡，genctx_truekey_smoke_mac.sh）如需真栈请排队于本登记之后。
 
 ## 最近一次释放
 
