@@ -35,6 +35,7 @@ import (
 	"vit-daw-agent/internal/kernel"
 	"vit-daw-agent/internal/llm"
 	"vit-daw-agent/internal/logx"
+	"vit-daw-agent/internal/loudnesswatch"
 	"vit-daw-agent/internal/macrocontrols"
 	"vit-daw-agent/internal/orchestration"
 	"vit-daw-agent/internal/orchestrationcontroller"
@@ -106,6 +107,8 @@ type Server struct {
 	mixTickAuditions                   map[string]*mixTickAuditionRecord
 	pendingTreatments                  map[string]agentloop.MixTreatmentPending
 	freeStateLoops                     map[string]freeStateReasoningLoop
+	loudnessWatchConfig                *loudnesswatch.Config
+	loudnessWatchRestoreDropped        int
 	noteSessionMu                      sync.Mutex
 	audioClosures                      *audioclosure.MemoryStore
 	controllerOwners                   *orchestrationcontroller.Registry
@@ -195,10 +198,17 @@ type projectAgentRuntimeState struct {
 	// (RLM-PROFILE-2). Absent on all pre-existing records: restore leaves zero
 	// bindings and behavior is unchanged (AGENTS.md §11 default). Individual
 	// restored entries re-validate fail-closed (unknown profile ids dropped).
-	RenderProfileBindings []rlm.RenderProfileBinding       `json:"render_profile_bindings,omitempty"`
-	PendingCandidates     []agentprotocol.PendingCandidate `json:"pending_candidates,omitempty"`
-	GoalRuntime           agentruntime.Snapshot            `json:"goal_runtime,omitempty"`
-	AuthorityMode         string                           `json:"authority_mode,omitempty"`
+	RenderProfileBindings []rlm.RenderProfileBinding `json:"render_profile_bindings,omitempty"`
+	// LoudnessWatchConfig carries the project-level loudness watch
+	// configuration (LOUDNESS-WATCH-CONFIG-1). Absent on all pre-existing
+	// records: restore leaves the watch disabled and behavior is unchanged
+	// (AGENTS.md §11 default). Restored records re-validate fail-closed (bad
+	// schema versions / unknown enums / unresolvable profile sources are
+	// dropped and counted, never silently rewritten).
+	LoudnessWatchConfig *loudnesswatch.Config            `json:"loudness_watch_config,omitempty"`
+	PendingCandidates   []agentprotocol.PendingCandidate `json:"pending_candidates,omitempty"`
+	GoalRuntime         agentruntime.Snapshot            `json:"goal_runtime,omitempty"`
+	AuthorityMode       string                           `json:"authority_mode,omitempty"`
 }
 
 type ChatRequest struct {
@@ -1478,6 +1488,104 @@ func (s *Server) handleActions(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// Loudness watch tool face (LOUDNESS-WATCH-CONFIG-1): the configure/status
+// pair lives on the chat Server because the config is chat-side project
+// runtime state — no kernel command surface is extended. Recognition mirrors
+// the plugin-grabber workflow form: dotted tool name, snake command name, or
+// cmd inside the command map.
+const (
+	loudnessWatchConfigureCommand = "loudness_watch_configure"
+	loudnessWatchConfigureTool    = "loudness.watch.configure"
+	loudnessWatchStatusCommand    = "loudness_watch_status"
+	loudnessWatchStatusTool       = "loudness.watch.status"
+)
+
+func loudnessWatchInvokeCommand(req harness.InvokeRequest, command, tool string) (map[string]any, bool) {
+	name := strings.TrimSpace(req.Tool)
+	if strings.EqualFold(name, tool) || strings.EqualFold(name, command) {
+		cmd := map[string]any{"cmd": command}
+		for key, value := range req.Args {
+			cmd[key] = value
+		}
+		return cmd, true
+	}
+	args := workflowCommandArgs(req.Command)
+	if firstNonEmptyText(args, "cmd", "command") == command {
+		return args, true
+	}
+	return nil, false
+}
+
+// invokeLoudnessWatchConfigure merges the optional arguments onto the current
+// config (omitted keys keep their values; omitting enabled never flips the
+// switch), validates the merged result fail-closed, and returns the effective
+// config. Invalid input never mutates stored state.
+func (s *Server) invokeLoudnessWatchConfigure(cmd map[string]any) harness.InvokeResponse {
+	resp := harness.InvokeResponse{Status: "ok", Tool: loudnessWatchConfigureTool, CommandName: loudnessWatchConfigureCommand, RiskLevel: tools.RiskDirect}
+	args := map[string]any{}
+	for key, value := range cmd {
+		if key == "cmd" || key == "command" {
+			continue
+		}
+		args[key] = value
+	}
+	s.mu.Lock()
+	current := loudnesswatch.Config{}
+	if s.loudnessWatchConfig != nil {
+		current = *s.loudnessWatchConfig
+	}
+	s.mu.Unlock()
+	updated, err := loudnesswatch.ApplyUpdate(current, args)
+	if err != nil {
+		resp.Status, resp.Error = "error", err.Error()
+		resp.Result = map[string]any{"status": "error", "error": err.Error()}
+		return resp
+	}
+	s.mu.Lock()
+	s.loudnessWatchConfig = &updated
+	s.mu.Unlock()
+	resp.Result = map[string]any{
+		"status":        "ok",
+		"config":        updated,
+		"config_digest": loudnesswatch.ConfigDigest(updated),
+	}
+	return resp
+}
+
+// invokeLoudnessWatchStatus discloses the effective config read-only plus the
+// honest capability-gap face: realtime mode is stored but reports
+// unavailable/no_realtime_producer (no kernel realtime loudness producer
+// exists). Verdict history arrives with the trigger wiring card; the field is
+// present and empty so consumers can rely on the shape.
+func (s *Server) invokeLoudnessWatchStatus(cmd map[string]any) harness.InvokeResponse {
+	resp := harness.InvokeResponse{Status: "ok", Tool: loudnessWatchStatusTool, CommandName: loudnessWatchStatusCommand, RiskLevel: tools.RiskDirect}
+	s.mu.Lock()
+	config := s.loudnessWatchConfigCopyLocked()
+	dropped := s.loudnessWatchRestoreDropped
+	s.mu.Unlock()
+	result := map[string]any{
+		"status":   "ok",
+		"enabled":  false,
+		"verdicts": []any{},
+	}
+	if config != nil {
+		result["config"] = *config
+		result["enabled"] = config.Enabled
+		result["config_digest"] = loudnesswatch.ConfigDigest(*config)
+		if config.TriggerMode == loudnesswatch.TriggerRealtime {
+			result["realtime"] = map[string]any{
+				"status": loudnesswatch.RealtimeUnavailableStatus,
+				"reason": loudnesswatch.RealtimeUnavailableReason,
+			}
+		}
+	}
+	if dropped > 0 {
+		result["restore_dropped"] = dropped
+	}
+	resp.Result = result
+	return resp
+}
+
 func (s *Server) handleInvoke(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		writeJSON(w, http.StatusMethodNotAllowed, map[string]any{"status": "error", "error": "POST required"})
@@ -1724,6 +1832,14 @@ func (s *Server) handleInvoke(w http.ResponseWriter, r *http.Request) {
 	}
 	if resp, blocked := s.guardMultibandOwnedGenericParameterWrite(r.Context(), req); blocked {
 		writeJSON(w, http.StatusBadRequest, resp)
+		return
+	}
+	if cmd, ok := loudnessWatchInvokeCommand(req, loudnessWatchConfigureCommand, loudnessWatchConfigureTool); ok {
+		writeJSON(w, http.StatusOK, s.invokeLoudnessWatchConfigure(cmd))
+		return
+	}
+	if cmd, ok := loudnessWatchInvokeCommand(req, loudnessWatchStatusCommand, loudnessWatchStatusTool); ok {
+		writeJSON(w, http.StatusOK, s.invokeLoudnessWatchStatus(cmd))
 		return
 	}
 	resp, err := s.harness.Invoke(r.Context(), req)
@@ -7244,7 +7360,22 @@ func (s *Server) projectAgentRuntimeStateLocked() projectAgentRuntimeState {
 		state.GoalRuntime = s.harness.RuntimeSnapshot()
 		state.RenderProfileBindings = s.harness.RenderProfileBindingsSnapshot()
 	}
+	state.LoudnessWatchConfig = s.loudnessWatchConfigCopyLocked()
 	return state
+}
+
+// loudnessWatchConfigCopyLocked returns a deep copy of the effective loudness
+// watch config (nil when the watch was never configured).
+func (s *Server) loudnessWatchConfigCopyLocked() *loudnesswatch.Config {
+	if s.loudnessWatchConfig == nil {
+		return nil
+	}
+	config := *s.loudnessWatchConfig
+	if s.loudnessWatchConfig.Custom != nil {
+		custom := *s.loudnessWatchConfig.Custom
+		config.Custom = &custom
+	}
+	return &config
 }
 
 func (s *Server) restoreProjectAgentRuntimeStateLocked(state projectAgentRuntimeState) {
@@ -7256,6 +7387,27 @@ func (s *Server) restoreProjectAgentRuntimeStateLocked(state projectAgentRuntime
 	if s.harness != nil && len(state.RenderProfileBindings) > 0 {
 		if dropped := s.harness.RestoreRenderProfileBindings(state.RenderProfileBindings); dropped > 0 && s.logger != nil {
 			s.logger.Warn("[workspace] render profile bindings restore dropped %d invalid entries", dropped)
+		}
+	}
+	// Loudness watch config restore re-validates fail-closed: a foreign
+	// schema version, unknown enums, or an unresolvable profile source drops
+	// the record and counts it, leaving the watch disabled (AGENTS.md §11;
+	// dropped-counter mode mirrors the render profile bindings restore).
+	s.loudnessWatchConfig = nil
+	s.loudnessWatchRestoreDropped = 0
+	if state.LoudnessWatchConfig != nil {
+		if err := loudnesswatch.ValidateConfig(*state.LoudnessWatchConfig); err != nil {
+			s.loudnessWatchRestoreDropped++
+			if s.logger != nil {
+				s.logger.Warn("[workspace] loudness watch config restore dropped invalid record: %v", err)
+			}
+		} else {
+			config := *state.LoudnessWatchConfig
+			if state.LoudnessWatchConfig.Custom != nil {
+				custom := *state.LoudnessWatchConfig.Custom
+				config.Custom = &custom
+			}
+			s.loudnessWatchConfig = &config
 		}
 	}
 	s.conversations = nonNilMap(state.Conversations)
