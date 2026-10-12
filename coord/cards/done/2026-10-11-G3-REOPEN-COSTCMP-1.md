@@ -36,5 +36,11 @@ G3 终裁不切换的唯一实质依据=成本门槛（轮级 LLM 调用 17 vs 6
 计量账本位与 PULL-PROBE-METER-1 合入形态不符 → 上交对齐。
 
 - 领取：2026-10-12 晚窗 / origin/main 3bcaa39a（前置 PULL-PROBE-TIER-EXT-1=e6cacb88 已在 main，merge-base --is-ancestor 实核）/ owner=GLM-5.3 PC 执行流（ZCode 会话，用户指派）/ 分支 port/g3-reopen-costcmp-1 / worktree D:/Vit_DAW_wt_g3rc1 / 领取提交=coord-claim-20261012-g3rc1（卡 mv 协调提交，随本回填推 main）
-- 回执：（run ID / 对比报告链接）
+- 回执：**run=coord/runs/G3-REOPEN-COSTCMP-1/{20261012_192737_run1, 20261012_193106_run2}（双模式各 2 run，均 SCRIPT-LASTEXITCODE=0）+ 三轮启栈取证腿（185828/191706/192223）**；报告=[G3-REOPEN-COSTCMP-1-REPORT.md](../../runs/G3-REOPEN-COSTCMP-1/G3-REOPEN-COSTCMP-1-REPORT.md)。实现=port/g3-reopen-costcmp-1（eba745df 脚本扩展：原始 chat 响应捕获+mix_report 断言腿；6e66761d 相对路径硬化；3acfd0ff 工件精简件；已推 origin）。
+  - **三口径**：③ probe 物理成本**完整有效**——push 族轮 5316ms/6 次（均 886）vs pull 5700ms/6 次（均 950），同机同 fixture 配对、调度噪音带内对称（墙钟含调度噪音已声明）；①轮级调用数②逐 turn 注入**被 API 额度耗尽差异性截断**（push 大上下文预扣 0.0249 全败/pull 小额入口偶过——任何双模差异均为额度墙伪象），健康链证据仍为 G3-ATTRIB-1 的 17 vs 6。
+  - **失败分类分记**：脚本调用形态缺陷×3（相对 -RunArtifactsDir→内核双段路径必死 exit 0@1.6s；包装器捕获退出码+部署目录内核日志钉死；G3-ATTRIB-1 当轮=偶然躲过；已修待主管追认）＋额度环境中断（与 M2-TIMEFX-1 同源）＋断言失败 0；止损线未触发。
+  - **mix_report 随轮断言**：两轮 invoke ok+mix_report.v1；盘上无结论板（判定链被额度截断从未 settle）→走诚实无记录分支（0=0 折叠一致）；**有结论分支未行使**（额度阻断面非断言面缺陷），M1-5 正面真栈证据仍缺——随额度恢复补。
+  - **账本位核对**：execRecord.elapsed_ms+分级表+逐笔累加与 PULL-PROBE-METER-1/TIER-EXT 合入形态一致（停止条件未触发）；账本披露窗（budget_state 行/checkpoint probe_spent）本轮未开（额度截断所致），物理计量=账本同源逐笔和已入账。
+  - 端测边界声明：真栈双轮 exit 0（fixture/open/authority/DAD/telemetry/分类/metrics 门全过）；渲染面零改动；重工件（raw 捕获 7MB/工程存储 9.2MB 每 run）留盘不入库可回指。
+  - **给主管**：①条件①物理成本腿可收口（无 pull 物理反转空间）；②LLM 面健康链对比需额度恢复后复跑（建议小卡 ~0.25h 或并入 M2-TIMEFX-2 额度挂账腿并窗）；③脚本修复请追认。
 - 验收：（裁定文件）
