@@ -37,6 +37,6 @@ VitApp/Source/Service/CommandDispatcher.cpp+PluginRackControlService.cpp（+VspK
 
 getCurve/resolve/白名单锚点与 M3-RECON 报告不符（内核已重构）→ 锚点上交。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-12 20:33 / origin/main=095f79edb285c32ee337d7d4f48a673cd5743b51 / owner=GLM-5.3 执行会话（L2 内核 C++）@ PC（D:\Vit_DAW-wt-m3k1）/ 分支 port/m3-kernel-1-automation / worktree D:/Vit_DAW-wt-m3k1 / 领取提交见回执（本提交）
 - 回执：（commit / run ID / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
