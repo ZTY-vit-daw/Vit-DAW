@@ -11,6 +11,6 @@
 
 原规格的消费者（鼓点编排）已随 AIGC-DRUM-GEN-1 后置作废。新消费对象=生成集成面首张：适配器（gen_api profile：prompt 组装调 RenderGenerationPrompt，注入块在场证据断言）或插件壳（gen_plugin profile）。验收骨架不变：真栈 exit 0（注入块在场+合法产物落轨回读+违例负探针拒写）+全量 go test 0 FAIL。设计件三 §2 profile 契约为准。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-12 晚 / origin/main=0fc9e930 / owner=Mac 决策侧会话兼执行（外部执行会话无领取痕迹，按用户排序权授权自领防撞）/ 分支 port/gen-ctx-consume-1 / worktree ~/Documents/Vit-DAW-consume1
 - 回执：（commit / run ID / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
