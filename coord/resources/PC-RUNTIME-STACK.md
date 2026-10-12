@@ -5,7 +5,8 @@
 
 ## 当前占用
 
-- 状态：空闲
+- 状态：占用中
+- 2026-10-12 22:35 +0800 登记 / M3-KERNEL-1（GLM-5.3 PC 执行流，L2 内核 C++，ZCode 会话；worktree D:/Vit_DAW-wt-m3k1，分支 port/m3-kernel-1-automation，协调分支 coord/m3k1-stack）：automation.get_curve/set_points/clear_region 三命令真栈冒测腿（dev_agent_smoke -StartKernel -KernelExe=worktree 构建 VitApp.exe【本卡改内核 C++，必用自建二进制】+ -RestartAgent worktree 构建 + automation_curve_smoke.py 新腿：get 空→越界 fail-closed→写三点→逐点回读→区域清除→回读空→VSP CAS 反例）；登记前只读核对四端口 5555/5556/7878/8787 监听=0、VitApp/VitAgent/vsphub 进程=0（前 owner QUOTA-RECOVERY-LEGS-1 已于 e148249a 释放）。
 
 ## 最近一次释放
 
