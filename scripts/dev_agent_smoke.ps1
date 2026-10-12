@@ -340,7 +340,13 @@ function Invoke-HarnessAbSettleRound {
         [hashtable]$ChatContext,
         [int]$TurnSeconds,
         [int]$SettleSeconds,
-        [int]$MaxNudges = 2
+        [int]$MaxNudges = 2,
+        # G3-REOPEN-COSTCMP-1 raw-response capture: when set, every /agent/chat
+        # response of this round is appended (one JSON line per turn) so the
+        # cost report can read executed_kernel_reply[].{tool,elapsed_ms} --
+        # the probe physical-cost evidence base, symmetric for both modes.
+        [string]$CaptureFile = "",
+        [string]$CapturePhase = ""
     )
     $turnsSent = 0
     $nudgesSent = 0
@@ -374,6 +380,13 @@ function Invoke-HarnessAbSettleRound {
                 $needsConfirmation = [bool](Get-OptionalProperty -Object $response -Name "needs_confirmation")
                 if ($lastStop -ne "") { $stopReasons.Add($lastStop) }
                 if ($lastGoalStatus -ne "") { $goalStatuses.Add($lastGoalStatus) }
+                if ($CaptureFile -ne "") {
+                    try {
+                        @{ phase = $CapturePhase; conversation_id = $ConversationID; turn = $turnsSent; captured_at = (Get-Date).ToString("o"); response = $response } |
+                            ConvertTo-Json -Depth 24 -Compress | Add-Content -LiteralPath $CaptureFile -Encoding UTF8
+                    }
+                    catch { }
+                }
             }
             catch {
                 $transportErrors++
@@ -447,7 +460,12 @@ function Invoke-HarnessAbConfirmHops {
         [string]$InitialPlanID,
         [object]$InitialInteractionRequest,
         [int]$MaxHops,
-        [int]$TurnSeconds
+        [int]$TurnSeconds,
+        # G3-REOPEN-COSTCMP-1 raw-response capture (same evidence base as the
+        # settle-round capture; approve/confirm hop responses can carry the
+        # post-confirm re-observation probe records).
+        [string]$CaptureFile = "",
+        [string]$CapturePhase = ""
     )
     $hops = New-Object System.Collections.Generic.List[object]
     $planID = $InitialPlanID
@@ -493,6 +511,13 @@ function Invoke-HarnessAbConfirmHops {
         $nextInteraction = $null
         if ($null -ne $hopResponse) {
             $exercised = $true
+            if ($CaptureFile -ne "") {
+                try {
+                    @{ phase = $CapturePhase; hop = $hopIndex; face = $face; card_id = $cardID; captured_at = (Get-Date).ToString("o"); response = $hopResponse } |
+                        ConvertTo-Json -Depth 24 -Compress | Add-Content -LiteralPath $CaptureFile -Encoding UTF8
+                }
+                catch { }
+            }
             $hopStop = [string](Get-OptionalProperty -Object $hopResponse -Name "stop_reason")
             $hopGoal = [string](Get-OptionalProperty -Object $hopResponse -Name "goal_status")
             $hopNeedsConfirm = [bool](Get-OptionalProperty -Object $hopResponse -Name "needs_confirmation")
@@ -5300,6 +5325,9 @@ if ($ScenarioMode) {
             Set-Item -LiteralPath env:VIT_DAW_HARNESS -Value $abMode
             $abTelemetry = Join-Path $ScenarioRunDir ("harness_ab_telemetry_" + $abMode + ".jsonl")
             Set-Item -LiteralPath env:VIT_AGENT_LLM_TELEMETRY_PATH -Value $abTelemetry
+            # G3-REOPEN-COSTCMP-1: per-mode raw chat-response capture (JSONL;
+            # probe physical-cost evidence base, see Invoke-HarnessAbSettleRound).
+            $abRawChatPath = Join-Path $ScenarioRunDir ("harness_ab_chat_raw_" + $abMode + ".jsonl")
             $abAgentLog = Join-Path $LogsDir ("agent_harness_ab_" + $abMode + ".log")
             Start-Process -FilePath $AgentExe -ArgumentList @(
                 "-http", $AgentHttpAddr,
@@ -5350,6 +5378,11 @@ if ($ScenarioMode) {
                             $abNeedsConfirmation = [bool](Get-OptionalProperty -Object $abResponse -Name "needs_confirmation")
                             if ($abLastStop -ne "") { $abStopReasons.Add($abLastStop) }
                             if ($abLastGoalStatus -ne "") { $abGoalStatuses.Add($abLastGoalStatus) }
+                            try {
+                                @{ phase = "base"; conversation_id = $abConversationID; turn = $abTurnsSent; captured_at = (Get-Date).ToString("o"); response = $abResponse } |
+                                    ConvertTo-Json -Depth 24 -Compress | Add-Content -LiteralPath $abRawChatPath -Encoding UTF8
+                            }
+                            catch { }
                         }
                         catch {
                             $abTransportErrors++
@@ -5438,7 +5471,7 @@ if ($ScenarioMode) {
                 }
                 Start-Sleep -Seconds 2
                 $abFamilyConversationID = ("dev_harness_ab_" + $abMode + "_fam_" + $abFamily.id + "_" + (Get-Date -Format "yyyyMMdd_HHmmss"))
-                $abFamilyRound = Invoke-HarnessAbSettleRound -ChatUri $abChatUri -ConversationID $abFamilyConversationID -Prompt $abFamily.prompt -Nudge $abNudge -ChatContext @{ agent_mode = "chat" } -TurnSeconds $HarnessAbTurnSeconds -SettleSeconds $HarnessAbSettleSeconds
+                $abFamilyRound = Invoke-HarnessAbSettleRound -ChatUri $abChatUri -ConversationID $abFamilyConversationID -Prompt $abFamily.prompt -Nudge $abNudge -ChatContext @{ agent_mode = "chat" } -TurnSeconds $HarnessAbTurnSeconds -SettleSeconds $HarnessAbSettleSeconds -CaptureFile $abRawChatPath -CapturePhase ("family_" + $abFamily.id)
                 $abFamilyRounds.Add([pscustomobject]@{
                     mode = $abMode
                     family = $abFamily.id
@@ -5474,10 +5507,10 @@ if ($ScenarioMode) {
                 }
                 Start-Sleep -Seconds 2
                 $abConfirmConversationID = ("dev_harness_ab_pull_confirm_" + (Get-Date -Format "yyyyMMdd_HHmmss"))
-                $abConfirmRound = Invoke-HarnessAbSettleRound -ChatUri $abChatUri -ConversationID $abConfirmConversationID -Prompt $abPrompt -Nudge $abNudge -ChatContext @{ agent_mode = "chat" } -TurnSeconds $HarnessAbTurnSeconds -SettleSeconds $HarnessAbSettleSeconds
+                $abConfirmRound = Invoke-HarnessAbSettleRound -ChatUri $abChatUri -ConversationID $abConfirmConversationID -Prompt $abPrompt -Nudge $abNudge -ChatContext @{ agent_mode = "chat" } -TurnSeconds $HarnessAbTurnSeconds -SettleSeconds $HarnessAbSettleSeconds -CaptureFile $abRawChatPath -CapturePhase "confirm"
                 $abConfirmHops = @{ hops = @(); hops_used = 0; face_exercised = $false }
                 if ($abConfirmRound.classification -eq "needs_user_confirmation") {
-                    $abConfirmHops = Invoke-HarnessAbConfirmHops -ConfirmUri $abConfirmUri -RespondUri $abRespondUri -InitialPlanID $abConfirmRound.plan_id -InitialInteractionRequest $abConfirmRound.interaction_request -MaxHops $HarnessAbConfirmHops -TurnSeconds $HarnessAbTurnSeconds
+                    $abConfirmHops = Invoke-HarnessAbConfirmHops -ConfirmUri $abConfirmUri -RespondUri $abRespondUri -InitialPlanID $abConfirmRound.plan_id -InitialInteractionRequest $abConfirmRound.interaction_request -MaxHops $HarnessAbConfirmHops -TurnSeconds $HarnessAbTurnSeconds -CaptureFile $abRawChatPath -CapturePhase "confirm_hop"
                 }
                 # Post-confirm station + A/B judgment station evidence: the
                 # conversation event stream (audition./mix_tick/applied faces).
@@ -5547,13 +5580,13 @@ if ($ScenarioMode) {
                 $abBudgetRound = Invoke-HarnessAbSettleRound -ChatUri $abChatUri -ConversationID $abBudgetConversationID -Prompt $abPrompt -Nudge $abNudge -ChatContext @{
                     agent_mode = "chat"
                     pull_observation_budget = @{ max_cycles = 1; max_probe_cost = 8 }
-                } -TurnSeconds $HarnessAbTurnSeconds -SettleSeconds $HarnessAbSettleSeconds
+                } -TurnSeconds $HarnessAbTurnSeconds -SettleSeconds $HarnessAbSettleSeconds -CaptureFile $abRawChatPath -CapturePhase "budget"
                 # A first-turn confirmation card is expected on this fixture:
                 # approve it (bounded) so the tool cycle completes and the
                 # cycle-cap face can fire on the next boundary.
                 $abBudgetHops = @{ hops = @(); hops_used = 0; face_exercised = $false }
                 if ($abBudgetRound.classification -eq "needs_user_confirmation") {
-                    $abBudgetHops = Invoke-HarnessAbConfirmHops -ConfirmUri $abConfirmUri -RespondUri $abRespondUri -InitialPlanID $abBudgetRound.plan_id -InitialInteractionRequest $abBudgetRound.interaction_request -MaxHops $HarnessAbConfirmHops -TurnSeconds $HarnessAbTurnSeconds
+                    $abBudgetHops = Invoke-HarnessAbConfirmHops -ConfirmUri $abConfirmUri -RespondUri $abRespondUri -InitialPlanID $abBudgetRound.plan_id -InitialInteractionRequest $abBudgetRound.interaction_request -MaxHops $HarnessAbConfirmHops -TurnSeconds $HarnessAbTurnSeconds -CaptureFile $abRawChatPath -CapturePhase "budget_hop"
                 }
                 $abBudgetStops = New-Object System.Collections.Generic.List[string]
                 foreach ($abStop in @($abBudgetRound.stop_reasons)) { $abBudgetStops.Add([string]$abStop) }
@@ -5726,6 +5759,98 @@ if ($ScenarioMode) {
                 throw ("harness_ab mode " + $abMode + " produced no family rounds (scenario wiring broken)")
             }
             Write-Ok ("harness_ab mode " + $abMode + " complete: rounds=" + $abRounds.Count + " family_rounds=" + $abFamilyRounds.Count + " llm_calls=" + $abCalls.Count)
+        }
+
+        # ---------------- G3-REOPEN-COSTCMP-1: mix_report settle-line leg ----
+        # Rides the comparison rounds while the stack is up (card addendum,
+        # M1-5 positive-branch real-stack evidence): one /agent/invoke
+        # mix_report call. When the on-disk free-state conclusion board
+        # carries conclusions, the latest settle conclusion line must have
+        # conclusion form: latest_conclusion_id non-empty AND equal to the
+        # board's latest record (content match on summary). Empty board =
+        # the honest no-record branch (recorded as such, never forced -- the
+        # assertion surface stays evidence-backed either way).
+        $abMixRecord = $null
+        try {
+            $abMixResponse = & $abInvoke "mix_report" @{} 120
+            $abMixResult = Get-OptionalProperty -Object $abMixResponse -Name "result"
+            $abMixLatest = Get-OptionalProperty -Object $abMixResult -Name "latest_settle_conclusion"
+            $abMixTimeline = Get-OptionalProperty -Object $abMixResult -Name "free_state_conclusion_timeline"
+            $abMixLatestID = [string](Get-FirstPropertyValue -Object $abMixLatest -Names @("conclusion_id"))
+            $abMixLatestSummary = [string](Get-FirstPropertyValue -Object $abMixLatest -Names @("summary"))
+            $abMixTimelineCount = 0
+            if ($null -ne $abMixTimeline) { $abMixTimelineCount = @($abMixTimeline).Count }
+            # On-disk board: project store lives beside the fixture project
+            # (projectstore Resolve: <project dir>/.vit_agent/<uuid>/mixboard/
+            # decisions/free_state_conclusions/free_state_conclusions.json);
+            # bounded search under the scenario run dir (the fixture + its
+            # project store never leave the run dir).
+            $abBoardFile = $null
+            $abBoardFiles = @(Get-ChildItem -LiteralPath $ScenarioRunDir -Recurse -Filter "free_state_conclusions.json" -File -ErrorAction SilentlyContinue)
+            if ($abBoardFiles.Count -gt 0) {
+                $abBoardFiles = @($abBoardFiles | Sort-Object LastWriteTime -Descending)
+                $abBoardFile = $abBoardFiles[0].FullName
+            }
+            $abBoardLatestID = ""
+            $abBoardLatestSummary = ""
+            $abBoardCount = -1
+            if ($null -ne $abBoardFile) {
+                try {
+                    $abBoard = Get-Content -LiteralPath $abBoardFile -Raw -Encoding UTF8 | ConvertFrom-Json
+                    $abBoardCount = [int]$abBoard.conclusion_count
+                    $abBoardConclusions = @($abBoard.conclusions)
+                    if ($abBoardConclusions.Count -gt 0 -and $null -ne $abBoardConclusions[$abBoardConclusions.Count - 1]) {
+                        $abBoardLatestID = [string]$abBoardConclusions[$abBoardConclusions.Count - 1].conclusion_id
+                        $abBoardLatestSummary = [string]$abBoardConclusions[$abBoardConclusions.Count - 1].summary
+                    }
+                }
+                catch { $abBoardCount = -2 }
+            }
+            $abMixHasBoard = ($abBoardCount -gt 0)
+            $abMixRecord = @{
+                phase = "mix_report_settle_line"
+                invoke_ok = ([string](Get-OptionalProperty -Object $abMixResponse -Name "status") -eq "ok")
+                report_schema = (([string](Get-OptionalProperty -Object $abMixResult -Name "schema_version")) -eq "mix_report.v1")
+                latest_conclusion_id = $abMixLatestID
+                latest_conclusion_summary = $abMixLatestSummary
+                board_file = $abBoardFile
+                board_conclusion_count = $abBoardCount
+                board_latest_conclusion_id = $abBoardLatestID
+                board_latest_summary = $abBoardLatestSummary
+                # Positive branch (board non-empty): id present AND identical
+                # to the board's latest record. Honest branch (empty board):
+                # conclusion_form=false is a negative result, not a failure
+                # of the leg; both shapes are recorded for the ruling.
+                conclusion_form = ($abMixHasBoard -and $abMixLatestID -ne "" -and $abMixLatestID -eq $abBoardLatestID)
+                summary_matches_board = ($abMixHasBoard -and $abMixLatestSummary -ne "" -and $abMixLatestSummary -eq $abBoardLatestSummary)
+                board_branch = $(if ($abMixHasBoard) { "has_conclusions" } else { "no_record_honest_branch" })
+                timeline_count = $abMixTimelineCount
+                finished_at = (Get-Date).ToString("o")
+            }
+            if ($null -ne $abMixResponse) {
+                $abMixResponse | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "harness_ab_mix_report_response.json") -Encoding UTF8
+            }
+            if ($abMixRecord.conclusion_form) {
+                Write-Ok ("harness_ab mix_report settle line: conclusion form (latest=" + $abMixLatestID + " matches board)")
+            }
+            elseif ($abMixRecord.board_branch -eq "no_record_honest_branch") {
+                Write-WarnLine "harness_ab mix_report settle line: no conclusions on the board this run (honest no-record branch, recorded)"
+            }
+            else {
+                Write-WarnLine ("harness_ab mix_report settle line: conclusion form NOT satisfied (latest=" + $abMixLatestID + " board_latest=" + $abBoardLatestID + ")")
+            }
+        }
+        catch {
+            $abMixRecord = @{
+                phase = "mix_report_settle_line"
+                invoke_ok = $false
+                error = $_.Exception.Message
+                finished_at = (Get-Date).ToString("o")
+            }
+            Write-WarnLine ("harness_ab mix_report leg transport error: " + $_.Exception.Message)
+        }
+        if ($null -ne $abMixRecord) {
+            $abMixRecord | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "harness_ab_mix_report.json") -Encoding UTF8
         }
 
         # Environment restoration for the teardown-path agent stop.
