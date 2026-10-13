@@ -1,0 +1,35 @@
+{
+ "run": "20261013_212900",
+ "status": "not_exercised",
+ "error": "spv1_p01 open run did not autonomously select reverb",
+ "selected_domains": [
+  "broadband_compression"
+ ],
+ "responses": [
+  {
+   "goal_status": "waiting_continue",
+   "stop_reason": "limit_reached",
+   "error": null
+  },
+  {
+   "goal_status": "scheduler_drained",
+   "stop_reason": "None",
+   "error": null
+  }
+ ],
+ "rounds": 3,
+ "round_status": [
+  "awaiting_experiment",
+  "awaiting_experiment",
+  "awaiting_experiment"
+ ],
+ "terminal_causes": [
+  "completed",
+  "completed",
+  "completed"
+ ],
+ "interventions": [],
+ "d1_receipt_applied": null,
+ "d1_receipt_audition_ready": null,
+ "d1_receipt_settled": null
+}
