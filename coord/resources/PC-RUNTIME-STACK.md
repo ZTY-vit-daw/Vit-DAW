@@ -5,7 +5,7 @@
 
 ## 当前占用
 
-- 状态：空闲
+- 2026-10-14 00:10 +0800（本机钟）登记 / FIX-FS-SETTLE-DEADCHAIN-1（GLM-5.3 L2 执行会话，PC，ZCode；worktree D:/Vit_DAW_wt_fsdc1，分支 port/fix-fs-settle-deadchain-1）：D1 reverb 收口腿 `run_free_state_d1_smoke.ps1 -PromptFlavor reverb -ExpectDomain reverb`（建议连过 2 轮；delay 族视余量可选）；LLM=deepseek-chat @ api.deepseek.com/v1（~/.vit/config.json 核过，flash 未动）。登记前只读核对四端口 5555/5556/7878/8787 监听=0、VitApp/VitAgent/vsphub/Godot 进程=0（TIMEFX-D1-EXIT0-DEEPSEEK-1 已于 23:38 释放）；被测=worktree 构建 agent VitAgent.exe SHA256 A0EA8B1F102CA884（含 B-i 修复 abd65f24）+主检出 VitApp.exe B6565DCF85D1DA86（C++ 面零改动）。
 
 ## 最近一次释放
 
