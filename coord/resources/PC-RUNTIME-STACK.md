@@ -5,7 +5,7 @@
 
 ## 当前占用
 
-- 状态：空闲
+- 2026-10-13 13:31 +0800 登记 / FIX-TIMEFX-AXISFILTER-1（GLM-5.3 PC 执行流，ZCode 会话；worktree D:/Vit_DAW_wt_fix106，分支 port/fix-timefx-axisfilter-1）：挂账收口腿复跑——D1 reverb `run_free_state_d1_smoke.ps1 -PromptFlavor reverb -ExpectDomain reverb`（LLM 预探测 13:27 HTTP 200/0.76s 服务恢复）+可选 delay 族加分腿同占栈；被测=worktree 构建 agent VitAgent.exe SHA256 0f9de7ed0fed4c3b（与挂账轮末版二进制逐位一致=含修复 cf5bf33f，登记前哈希亲核）+主检出 VitApp.exe b6565dcf85d1da86（C++ 面零改动）；登记前只读核对四端口 5555/5556/7878/8787 监听=0、VitApp/VitAgent/vsphub/Godot 进程=0。
 
 ## 最近一次释放
 
