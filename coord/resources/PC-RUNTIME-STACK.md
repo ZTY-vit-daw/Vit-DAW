@@ -5,7 +5,11 @@
 
 ## 当前占用
 
-- 2026-10-13 09:50 +0800（本机钟）登记 / FIX-TIMEFX-AXISFILTER-1（GLM-5.3 PC 执行流，ZCode 本会话；worktree D:/Vit_DAW_wt_fix106，分支 port/fix-timefx-axisfilter-1）：D1 reverb 全链冒测收口腿（scripts/run_free_state_d1_smoke.ps1 -PromptFlavor reverb -ExpectDomain reverb，dev_agent_smoke 启栈模式 -StartKernel -RestartAgent；delay 族同话术一轮视额度可选）；登记前只读核对四端口 5555/5556/7878/8787 监听=0、VitApp/VitAgent/vsphub/Godot 进程=0（前 owner M3-KERNEL-1 已于 2026-10-12 22:26 释放）。被测=worktree 构建 agent（含 axis coverage 修复）+主检出 VitApp.exe（C++ 面零改动）。
+- 状态：空闲
+
+## 最近一次释放
+
+- 2026-10-13 09:50–18:31 +0800（本机钟）/ FIX-TIMEFX-AXISFILTER-1（GLM-5.3 PC 执行流，ZCode 本会话；worktree D:/Vit_DAW_wt_fix106，分支 port/fix-timefx-axisfilter-1）：D1 reverb 全链冒测 11 run（095626=fixture 缺失环境腿；100927/102300/103532=三处运行时缺口逐层修复轮——post-load surface/动态族 switch/apply 分派；105238=**干预落账轮 parameter_applied=True**+settle 尾被 11:00 LLM 60s 超时吃预算；110320/111010/112913=NOT_EXERCISED×3 上游 LLM 服务不稳（连续 60s timeout 日志）；180315=服务端原文 "Our servers are currently overloaded"；181843=**干预二次复现 applied=True**+post-action CCB 观察被 18:25/18:26 连续 60s 超时阻断）——7 处修复实栈两轮复现有效，exit 0 未达成按 §8 止损收口上交；18:31 手动 teardown VitAgent 24012/VitApp 28860/Godot 25020，复核四端口 5555/5556/7878/8787 监听=0、VitApp/VitAgent/vsphub/Godot 进程=0。占用登记 bb3f9c42；被测=worktree 构建 agent（末版 0f9de7ed0fed4c3b 含全部修复）+主检出 VitApp.exe b6565dcf85d1da86（C++ 面零改动）；工件 coord/runs/FIX-TIMEFX-AXISFILTER-1/（随 port 分支入库），详见卡面回执。
 
 ## 最近一次释放
 
