@@ -29,6 +29,6 @@ diff 亲读+选型依据在卷+测试全绿；真栈腿可选（无可达路径�
 
 视图选型需要新观察投影/view catalog 契约变更（超出补 case 范围）→ 带选型方案上交决策侧定契约。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-13 21:27 +0800 / origin/main b0226b659c770a736fdc897bd5817efd5b579715 / GLM-5.3-Flash（PC，ZCode 执行会话） / port/fix-c2-timefx-views-1 / worktree D:/Vit_DAW_wt_c2views1 / 领取提交=本提交（coord/c2views1-claim）。领取基线：HEAD=b0226b65、status 净、diff 空。文件域与 SETTEMPO-101（D:/Vit_DAW_wt_settempo，VitApp/CommandDispatcher.cpp）不相交，并行合规。
 - 回执：（commit / 选型依据 / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
