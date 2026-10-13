@@ -1,0 +1,49 @@
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_wt_fsdc1r2
+agent http: http://127.0.0.1:7878
+
+== Restart existing VitAgent
+warn: stopping existing agent pid=6296
+
+== Start kernel
+ok: kernel command port already listening: 5555
+
+== Start UI
+ok: kernel command port already listening before UI start: 5555 pid=18660
+ok: UI-launched kernel command port is listening: 5555
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW_wt_fsdc1r2\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=285
+shadow.initialized=True track_count=6
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=18660
+ok: ZMQ SUB listening: 5556 pid=18660
+
+== Project state invoke
+project.state status=ok error=
+
+== Summary
+ok: dev agent smoke completed
+D1-S1 FAIL: acoustic materiality record is missing; report=D:\Vit_DAW_wt_fsdc1r2\artifacts\free_state_d1_s1\20261014_012927\d1_smoke_report.json
+D1-S1 smoke failed; report=D:\Vit_DAW_wt_fsdc1r2\artifacts\free_state_d1_s1\20261014_012927\d1_smoke_report.json
+ËùÔÚÎ»ÖÃ D:\Vit_DAW_wt_fsdc1r2\scripts\run_free_state_d1_smoke.ps1:308 ×Ö·û: 5
++     throw "D1-S1 smoke failed; report=$report"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (D1-S1 smoke fai...oke_report.json:String) [], RuntimeException
+    + FullyQualifiedErrorId : D1-S1 smoke failed; report=D:\Vit_DAW_wt_fsdc1r2\artifacts\free_state_d1_s1\20261014_012 
+   927\d1_smoke_report.json
+ 
+RUN6_EXIT=1

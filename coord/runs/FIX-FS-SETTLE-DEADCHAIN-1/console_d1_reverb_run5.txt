@@ -1,0 +1,9 @@
+Error: D:/Vit_DAW_wt_fsdc1r2/VitApp/build is not a directory
+current VitApp Release build failed
+ËùÔÚÎ»ÖÃ D:\Vit_DAW_wt_fsdc1r2\scripts\run_free_state_d1_smoke.ps1:182 ×Ö·û: 9
++         throw "current VitApp Release build failed"
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (current VitApp Release build failed:String) [], RuntimeException
+    + FullyQualifiedErrorId : current VitApp Release build failed
+ 
+RUN5_EXIT=1

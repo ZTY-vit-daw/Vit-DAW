@@ -5,7 +5,11 @@
 
 ## 当前占用
 
-- 2026-10-14 01:14 +0800（本机钟，登记提交 edc3dfe6；行文原误写"晚"，实际凌晨——此处修正，同 M1-3 修正先例）/ FIX-FS-SETTLE-DEADCHAIN-1（GLM-5.3 L2 执行会话，PC，ZCode；worktree D:/Vit_DAW_wt_fsdc1r2，分支 port/fix-fs-settle-deadchain-1-rerun2）：收口腿复跑（验收修正裁定：模型=正名 deepseek-flash 思考档链路首测）——D1 reverb `run_free_state_d1_smoke.ps1 -PromptFlavor reverb -ExpectDomain reverb`，目标 exit 0 连过 2 轮；登记前只读核对四端口 5555/5556/7878/8787 监听=0、VitApp/VitAgent/vsphub/Godot 进程=0（前 owner 本卡 00:47 已于 c1be027a 释放）；LLM 预探测 HTTP 200 echo=deepseek-flash reasoning_tokens=17（思考档在线）；被测=worktree 构建 agent（origin/main 8500fd7b 含 B-i+C 合入）+主检出 VitApp.exe B6565DCF85D1DA86（C++ 面零改动）。
+- 状态：空闲
+
+## 最近一次释放
+
+- 2026-10-14 01:14–01:47 +0800（本机钟）/ FIX-FS-SETTLE-DEADCHAIN-1（GLM-5.3 L2 执行会话，PC，ZCode；worktree D:/Vit_DAW_wt_fsdc1r2，分支 port/fix-fs-settle-deadchain-1-rerun2@8500fd7b）：收口腿复跑两 run（验收修正裁定=正名 deepseek-flash 思考档链路首测）——run5b 20261014_011644 与 run6 20261014_012927 **均 exit 1 "acoustic materiality record is missing"，同签名 2/2 §8 停**。**与 00:10-00:47 四轮的本质差异：本轮两 run 链路均首次真栈走通 B-i 全下游**——reverb 域选择→decay 提案→插件选择/装载→语义动态确认→干预 applied（actual_readback 0.2427/track 1017 guitar、原子控制 1 次、restore_ref 在卷）→post-action 重观测；死点移至执行后 settle 段：模型两次终局尝试（final=true+交人工 A/B 试听，语义正确）experiment_materiality schema 非法（state=""、attempt≤0）被 final gate 正确拒收（acted 轮证据门语义保持，非 B-i 豁免回归）→7 续轮预算耗尽 materiality 记录缺失。run6 debug 流（agent_message_loop_debug_run6.jsonl）两条 free_state_final_gate 拒收原始载荷在卷。LLM 面：run5b 1/10、run6 3/10 次 60s 整超时（思考档时延顶满，transient_llm_error 均自恢复续轮）。另有 run5 20261014_011553=参数形态失败腿（新 worktree 传外部 -KernelExe 未配 -SkipBuild，cmake 步抛错，未启栈无进程影响，工件目录空留盘）。01:47 手动 teardown VitAgent 19764/VitApp 18660/Godot 6876，复核四端口 5555/5556/7878/8787 监听=0、VitApp/VitAgent/vsphub/Godot 进程=0。占用登记 edc3dfe6+时间修正 1a0a5a97；被测=worktree 构建 agent VitAgent.exe SHA256 89D250BB0434CD1F（origin/main 8500fd7b 含 B-i+C 合入，本腿零代码改动）+主检出 VitApp.exe B6565DCF85D1DA86（C++ 面零改动）；工件 coord/runs/FIX-FS-SETTLE-DEADCHAIN-1/（console run5/5b/6+run_20261014_011644/012927+debug jsonl），重件留盘可回指 worktree artifacts/free_state_d1_s1/。**收口腿结论上交决策侧：exit 0 未达成；新签名=settle 段 materiality schema 非法（非准入前死链、非 G6 停滞、非 B-i 回归）；卡面升级阶梯（flash 思考档 2/2→v4-pro）由决策侧发。**
 
 ## 最近一次释放
 
