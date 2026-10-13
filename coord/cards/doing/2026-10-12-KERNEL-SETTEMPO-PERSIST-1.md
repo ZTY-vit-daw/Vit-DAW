@@ -29,6 +29,6 @@ VitApp/Source/Service/CommandDispatcher.cpp（+冒测脚本扩展 SMOKE_TESTS �
 
 markAsChanged 语义与 5ea95f75 修法不符（内核已重构）→ 锚点上交。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-13 21:27 +0800 / origin/main=b0226b65 / GLM-5.3 PC 执行流（ZCode 会话，本会话）/ 分支 port/kernel-settempo-persist-1 / worktree D:/Vit_DAW_wt_settempo / 领取提交=（领取 push 后回填 hash）
 - 回执：（commit / run ID / 清单 / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
