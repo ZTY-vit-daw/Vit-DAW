@@ -1,0 +1,13 @@
+{
+  "status": "fail",
+  "run_id": "20261013T134733Z_95e7724d",
+  "url": "tcp://127.0.0.1:5555",
+  "project_path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\vit_daw_settempo_persist_smoke\\settempo_persist_1791899253.vit",
+  "audio_file": "D:\\Vit_DAW_wt_settempo\\test_target_3s.wav",
+  "checks": [
+    "new_project",
+    "save_as_project"
+  ],
+  "verdict": "FAIL",
+  "error": "set_tempo open-form must write the project file (auto-persist silent skip suspected: hash unchanged)"
+}

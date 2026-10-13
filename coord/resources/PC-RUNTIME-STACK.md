@@ -5,7 +5,8 @@
 
 ## 当前占用
 
-- 状态：空闲
+- 状态：占用中
+- 2026-10-13 21:45 +0800 登记 / KERNEL-SETTEMPO-PERSIST-1（GLM-5.3 PC 执行流，ZCode 会话；worktree D:/Vit_DAW_wt_settempo，分支 port/kernel-settempo-persist-1）：内核 edit-state 变更注册冒测腿（dev_agent_smoke -StartKernel -KernelExe=<被测内核> -SetTempoPersistSmoke -NoChatSmoke -NoStripSilenceSmoke；两轮=基线差分取证轮[主检出 VitApp.exe B6565DCF85D1DA86 无本卡修复]+修复回归轮[worktree 自建 VitApp.exe 含四处 markAsChanged]）；登记前只读核对四端口 5555/5556/7878/8787 监听=0、VitApp/VitAgent/vsphub/Godot 进程=0（前 owner FIX-TIMEFX-AXISFILTER-1 已于 bb3f9c42 释放）。
 
 ## 最近一次释放
 

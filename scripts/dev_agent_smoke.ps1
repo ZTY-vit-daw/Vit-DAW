@@ -22,6 +22,10 @@ param(
     # ref.diff identity+content 边界）。
     [switch]$RefQuerySmoke,
     [switch]$AutomationCurveSmoke,
+    # KERNEL-SETTEMPO-PERSIST-1：edit-state 变更注册回归（set_tempo open 形态
+    # save/reload 往返+clear_project/undo/redo 往返正例；断言体在
+    # scripts/settempo_persist_smoke.py，内核 ZMQ 命令面直连）。
+    [switch]$SetTempoPersistSmoke,
     # VITNOTE-IMPL-4：工程级写租约并发场景（双 chat 各触发一次 B2 能力执行，
     # 双 approve 并发入栈——断言两执行段租约区间不重叠且后来者真实排队；
     # 证据=VIT_WRITE_LEASE_EVENTS_PATH JSONL 工件时间戳）。
@@ -6517,6 +6521,39 @@ if ($AutomationCurveSmoke) {
         throw ("automation curve smoke passed but summary artifact missing: " + $automationSummaryPath)
     }
     Write-Ok ("automation curve smoke passed (kernel command face; summary: " + $automationSummaryPath + ")")
+}
+
+if ($SetTempoPersistSmoke) {
+    Write-Step "settempo persist smoke (KERNEL-SETTEMPO-PERSIST-1)"
+    # edit-state 变更注册回归腿：断言体在 scripts/settempo_persist_smoke.py
+    # （形态=automation_curve_smoke.py，内核 ZMQ 命令面直连）。腿：open 形态
+    # set_tempo 写后 save/reload 往返一致（哈希变化+重开值精确回读）→
+    # clear_project 往返 clips 归零 → undo 往返 → redo 往返。覆盖
+    # CommandDispatcher 内四处显式 markAsChanged 修复面；腿只需内核栈在
+    # -StartKernel 后可用；不依赖 agent HTTP 面。
+    $settempoSmokeScript = Join-Path $RepoRoot "scripts\settempo_persist_smoke.py"
+    if (-not (Test-Path -LiteralPath $settempoSmokeScript)) {
+        throw ("settempo persist smoke script missing: " + $settempoSmokeScript)
+    }
+    $settempoArtifactsDir = $RunArtifactsDir
+    if ([string]::IsNullOrWhiteSpace($settempoArtifactsDir)) {
+        $settempoArtifactsDir = Join-Path $RepoRoot ("VitApp\Workspace\Artifacts\smoke\settempo_persist_" + (Get-Date -Format "yyyyMMdd_HHmmss"))
+    }
+    if (-not (Test-Path -LiteralPath $settempoArtifactsDir)) {
+        New-Item -ItemType Directory -Path $settempoArtifactsDir -Force | Out-Null
+    }
+    $settempoSummaryPath = Join-Path $settempoArtifactsDir "settempo_persist_summary.json"
+    $settempoConsolePath = Join-Path $settempoArtifactsDir "settempo_persist_console.txt"
+    & python $settempoSmokeScript --url ("tcp://127.0.0.1:" + $ZmqReqPort) --output $settempoSummaryPath > $settempoConsolePath 2>&1
+    $settempoExit = $LASTEXITCODE
+    Get-Content -LiteralPath $settempoConsolePath | ForEach-Object { Write-Host $_ }
+    if ($settempoExit -ne 0) {
+        throw ("settempo persist smoke failed with exit code $settempoExit (console: " + $settempoConsolePath + ")")
+    }
+    if (-not (Test-Path -LiteralPath $settempoSummaryPath)) {
+        throw ("settempo persist smoke passed but summary artifact missing: " + $settempoSummaryPath)
+    }
+    Write-Ok ("settempo persist smoke passed (kernel command face; summary: " + $settempoSummaryPath + ")")
 }
 
 if (-not $NoChatSmoke) {

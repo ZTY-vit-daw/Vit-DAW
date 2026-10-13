@@ -3501,6 +3501,11 @@ juce::String CommandDispatcher::handleUndo (const juce::DynamicObject&, const ju
     um.undo();
     edit->dispatchPendingUpdatesSynchronously();
     edit->getTransport().ensureContextAllocated (true);
+    // An undo mutates edit state but only registers the change through the
+    // undo manager's asynchronous change message; without an explicit
+    // markAsChanged a later save can silently skip the disk write — same
+    // registration hole as set_tempo (KERNEL-SETTEMPO-PERSIST-1).
+    edit->markAsChanged();
     return makeStatusReply ("ok", "Undo executed");
 }
 
@@ -3519,6 +3524,8 @@ juce::String CommandDispatcher::handleRedo (const juce::DynamicObject&, const ju
     um.redo();
     edit->dispatchPendingUpdatesSynchronously();
     edit->getTransport().ensureContextAllocated (true);
+    // Same registration hole as undo above (KERNEL-SETTEMPO-PERSIST-1).
+    edit->markAsChanged();
     return makeStatusReply ("ok", "Redo executed");
 }
 
@@ -3790,6 +3797,15 @@ juce::String CommandDispatcher::handleSetTempo (const juce::DynamicObject& objec
     else
         return makeErrorReply ("Unable to access master tempo");
 
+    // TempoSetting::setBpm reaches Edit::markAsChanged only through the
+    // undo manager's asynchronous change message, which is not dispatched
+    // before the synchronous runAutoPersist below — so an open_project'd
+    // edit (save path == EditFileOperations::save, non-forced) silently
+    // skips the disk write while reporting success. Register the change
+    // explicitly (same latent hole GEN-CTX-KEYFIELD-1 fixed for the bare
+    // edit-state property writes).
+    edit->markAsChanged();
+
     if (! runAutoPersist())
         return makeErrorReply ("Tempo updated in memory but failed to save project");
 
@@ -3883,6 +3899,14 @@ juce::String CommandDispatcher::handleClearProject (const juce::DynamicObject&, 
     edit->invalidateStoredLength();
     edit->dispatchPendingUpdatesSynchronously();
     transport.ensureContextAllocated (true);
+
+    // Structural clip removals only reach Edit::markAsChanged via the undo
+    // manager's asynchronous change message (the tree watcher's
+    // childAddedOrRemoved path just restarts playback), so without an
+    // explicit registration the non-forced save below would silently skip
+    // the disk write while reporting success — same hole as set_tempo /
+    // the GEN-CTX-KEYFIELD-1 property writes.
+    edit->markAsChanged();
 
     if (! runAutoPersist())
         juce::Logger::writeToLog ("CommandDispatcher: clear_project persist did not report success");

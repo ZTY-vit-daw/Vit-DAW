@@ -1,0 +1,12 @@
+run: settempo_persist_smoke baseline_20261013 (FAIL exit 1 = differential evidence) + fixed_20261013 (PASS exit 0, 8/8 checks)
+worktree: D:/Vit_DAW_wt_settempo branch: port/kernel-settempo-persist-1
+HEAD at run: 22a35ec9d712a234f8639771146f5a7a640b828b (claim 3d5a5feb; implementation + stack record committed, working tree)
+kernel binaries:
+  baseline = D:/Vit_DAW/Export/staging/runtime/VitApp.exe sha256=B6565DCF85D1DA86 (built 2026-10-06, pre-fix, no music_context disclosure)
+  fixed    = D:/Vit_DAW_wt_settempo/VitApp/build/VitApp_artefacts/Release/VitApp.exe (worktree self-built Release, 2026-10-13 21:42, four markAsChanged fixes; build exit 0)
+agent: worktree go build via dev_agent_smoke -RestartAgent (no Go-side changes on this card)
+stack: dev_agent_smoke -StartKernel -KernelExe=<kernel> -RestartAgent -SetTempoPersistSmoke -NoChatSmoke -NoStripSilenceSmoke -RunArtifactsDir=<run dir>
+smoke face: kernel ZMQ 5555 (scripts/settempo_persist_smoke.py)
+baseline failure point: "set_tempo open-form must write the project file (auto-persist silent skip suspected: hash unchanged)" — silent skip reproduced on pre-fix kernel
+fixed checks: set_tempo.open_form.file_written + roundtrip_96 / clear_project roundtrip_zero_clips / undo roundtrip_96 / redo roundtrip_144
+teardown: VitAgent+VitApp stopped by owner after each round; final check four ports 5555/5556/7878/8787 listen=0, VitApp/VitAgent/vsphub/Godot processes=0; temp project files removed
