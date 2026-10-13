@@ -274,6 +274,105 @@ func TestAxisCoverageGovernanceControlLocksFailClosedAndStaysInactive(t *testing
 	}
 }
 
+// FIX-TIMEFX-AXISFILTER-1 RED：TIMEFX v2 族（reverb/delay）intent、白名单节与
+// v2 认证齐全时，治理过滤曾因 axisCoverageWhitelistIdentifiers 的族 switch 漏
+// reverb/delay case 输出空集——run 20261012_211011 形态：三绿机器数据 +
+// no_axis_covered_candidates + 0 干预。两族各留一个候选，冻结轴取各自主轴
+// （decay_time / feedback_amount）。
+func TestAxisCoverageGovernedCandidatesKeepTimeDomainWhitelistForm(t *testing.T) {
+	dir := t.TempDir()
+	t.Setenv("VIT_PROCESSOR_ATTESTATIONS_V2_PATH", filepath.Join(dir, "attestations.v2.json"))
+	store, err := processorattestation.NewStoreV2("")
+	if err != nil {
+		t.Fatal(err)
+	}
+	timeFXCases := []struct {
+		processorType string
+		family        string
+		frozenAxis    string
+		name          string
+		identifier    string
+	}{
+		{"reverb", processorattestation.FamilyReverb, "decay_time", "Fixture Time Verb", "VST3-Fixture Time Verb-9e2f10ab-31c7d5a2"},
+		{"delay", processorattestation.FamilyDelay, "feedback_amount", "Fixture Time Echo", "VST3-Fixture Time Echo-5d81cc47-77b0e4f3"},
+	}
+	for index, testCase := range timeFXCases {
+		binaryPath := filepath.Join(dir, testCase.name+".vst3")
+		if err := os.WriteFile(binaryPath, []byte("timefx-fixture-binary-"+testCase.family), 0o600); err != nil {
+			t.Fatal(err)
+		}
+		fingerprint, err := processorattestation.FingerprintPath(binaryPath)
+		if err != nil {
+			t.Fatal(err)
+		}
+		subject := processorattestation.Subject{Name: testCase.name, Manufacturer: "Fixture Audio", Format: "VST3",
+			Identifier: testCase.identifier, InstalledPath: binaryPath}
+		if _, err := store.PromoteCurrent(processorattestation.IssueSpecV2{
+			Subject: subject, BinaryFingerprint: fingerprint,
+			ProcessorFamily: testCase.family, Coverage: []processorattestation.Coverage{{Action: "adjust", Axis: testCase.frozenAxis}},
+			Evidence: []processorattestation.EvidenceRef{{ReceiptID: "timefx-axis-fixture", Kind: "axis_coverage_fixture",
+				SHA256: "sha256:" + strings.Repeat("b", 64), ObservedAt: time.Now().UTC()}},
+		}, "timefx_axis_fixture"); err != nil {
+			t.Fatal(err)
+		}
+		whitelist := experimentplugins.Whitelist{SchemaVersion: experimentplugins.SchemaVersion}
+		switch testCase.family {
+		case processorattestation.FamilyReverb:
+			whitelist.Reverb = experimentplugins.ReverbPlugins{experimentplugins.ReverbPlugin{
+				PluginName: subject.Name, Manufacturer: subject.Manufacturer, Format: "VST3",
+				PluginIdentifier: subject.Identifier, PluginPath: subject.InstalledPath,
+				DecayParamID: "7001", PreDelayParamID: "7002", WetParamID: "7003"}}
+		case processorattestation.FamilyDelay:
+			whitelist.Delay = experimentplugins.DelayPlugins{experimentplugins.DelayPlugin{
+				PluginName: subject.Name, Manufacturer: subject.Manufacturer, Format: "VST3",
+				PluginIdentifier: subject.Identifier, PluginPath: subject.InstalledPath,
+				TimeParamID: "7101", FeedbackParamID: "7102", WetParamID: "7103"}}
+		}
+		previous := d1StaticEQWhitelistLoader
+		d1StaticEQWhitelistLoader = func() (experimentplugins.Whitelist, error) {
+			return whitelist, nil
+		}
+		t.Cleanup(func() { d1StaticEQWhitelistLoader = previous })
+		intent := map[string]any{
+			"schema_version":    "semantic_processor_intent.v1",
+			"status":            "resolved",
+			"family":            testCase.family,
+			"intent":            "admitted bounded experiment move on axis " + testCase.frozenAxis,
+			"required_coverage": []string{testCase.frozenAxis},
+			"scope":             "current_track",
+			"control_mode":      "semantic_loop",
+			"confidence":        1.0,
+			"evidence_refs":     []string{"obs_axis_fixture"},
+		}
+		candidates := []pluginRecommendationCandidate{{Key: "plugin_candidate_1", Name: subject.Name, Manufacturer: subject.Manufacturer,
+			Format: "VST3", Identifier: subject.Identifier, PluginPath: subject.InstalledPath, Category: "Fx|Time", PrimaryType: testCase.processorType}}
+		governed, disclosure, err := axisCoverageGovernedPluginRecommendationCandidates(candidates, testCase.processorType,
+			map[string]any{"free_state_semantic_processor_intent": intent})
+		if err != nil {
+			t.Fatalf("case %d (%s): axis coverage governance failed: %v", index+1, testCase.family, err)
+		}
+		if len(governed) != 1 || governed[0].Identifier != subject.Identifier {
+			t.Fatalf("case %d (%s): governed candidates must keep the whitelisted axis-covered subject: %+v", index+1, testCase.family, governed)
+		}
+		if governed[0].ProcessorFamily != testCase.family || governed[0].AttestationID == "" {
+			t.Fatalf("case %d (%s): governed candidate must carry family and promoted attestation id: %+v", index+1, testCase.family, governed[0])
+		}
+		if disclosure == nil {
+			t.Fatalf("case %d (%s): governed flow must disclose frozen axes", index+1, testCase.family)
+		}
+		if axes := stringSliceFromAny(disclosure["frozen_semantic_axes"]); len(axes) != 1 || axes[0] != testCase.frozenAxis {
+			t.Fatalf("case %d (%s): frozen axes disclosure=%#v", index+1, testCase.family, disclosure["frozen_semantic_axes"])
+		}
+		rows := mapRowsValue(disclosure["candidates"])
+		if len(rows) != 1 {
+			t.Fatalf("case %d (%s): per-candidate disclosure rows=%#v", index+1, testCase.family, rows)
+		}
+		if attested := stringSliceFromAny(rows[0]["attested_coverage_axes"]); len(attested) != 1 || attested[0] != testCase.frozenAxis {
+			t.Fatalf("case %d (%s): attested coverage axes=%#v", index+1, testCase.family, attested)
+		}
+	}
+}
+
 // stringSliceFromAny normalizes []string and []any-of-strings for disclosure
 // assertions.
 func stringSliceFromAny(value any) []string {

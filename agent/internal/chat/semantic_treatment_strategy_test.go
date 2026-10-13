@@ -14,6 +14,7 @@ import (
 	"vit-daw-agent/internal/config"
 	"vit-daw-agent/internal/kernel"
 	"vit-daw-agent/internal/llm"
+	"vit-daw-agent/internal/processorattestation"
 	"vit-daw-agent/internal/processorintent"
 	"vit-daw-agent/internal/semanticeffect"
 	"vit-daw-agent/internal/shadow"
@@ -551,5 +552,65 @@ func TestSemanticGenericPostLoadRejectsUnprovenLiveTopology(t *testing.T) {
 	}, processorintent.FamilyLimiter, "track-1", "limiter-1", "Limiter")
 	if err == nil || !strings.Contains(err.Error(), "topology did not expose") {
 		t.Fatalf("unproven live topology was accepted: %v", err)
+	}
+}
+
+// FIX-TIMEFX-AXISFILTER-1 second leg RED: a digest with a provable TIMEFX
+// core (reverb decay tail / delay timing) must expose the governed
+// reverb/delay surface. Before the fix semanticTreatmentBuildSurfaces added
+// only the seven v1 families, so the post-load qualification ended with
+// "post-load topology family reverb was not proven" after a successful
+// Pro-R load (run 20261013_095626).
+func TestSemanticTreatmentBuildSurfacesExposesTimeDomainFamilies(t *testing.T) {
+	timeFXCases := []struct {
+		family   string
+		plugin   string
+		rows     []map[string]any
+		unwanted string
+	}{
+		{processorintent.FamilyReverb, "Fixture Time Verb", []map[string]any{
+			{"id": "7001", "name": "Decay", "host_controllable": true},
+			{"id": "7002", "name": "Pre Delay", "host_controllable": true},
+			{"id": "7003", "name": "Mix", "host_controllable": true},
+		}, processorintent.FamilyDelay},
+		{processorintent.FamilyDelay, "Fixture Time Echo", []map[string]any{
+			{"id": "7101", "name": "Time", "host_controllable": true},
+			{"id": "7102", "name": "Feedback", "host_controllable": true},
+			{"id": "7103", "name": "Mix", "host_controllable": true},
+		}, processorintent.FamilyReverb},
+	}
+	for _, testCase := range timeFXCases {
+		digest := plugingrabber.BuildParameterDigest(map[string]any{
+			"status": "ok", "track_id": "track-timefx", "plugin_id": "plugin-timefx",
+			"plugin_name": testCase.plugin, "parameters": testCase.rows,
+		})
+		surfaces, boundary := semanticTreatmentBuildSurfaces("track-timefx", "plugin-timefx", digest)
+		var matched *semanticProcessorSurface
+		for index := range surfaces {
+			if surfaces[index].Family == testCase.family {
+				matched = &surfaces[index]
+			}
+		}
+		if matched == nil {
+			t.Fatalf("%s digest must expose the %s surface; boundary=%q surfaces=%+v", testCase.plugin, testCase.family, boundary, surfaces)
+		}
+		if matched.PCAFamily != processorattestation.FamilyReverb && matched.PCAFamily != processorattestation.FamilyDelay {
+			t.Fatalf("%s surface must carry the TIMEFX PCA family mapping: %+v", testCase.family, matched.PCAFamily)
+		}
+		if matched.QualificationStatus != "reverb_topology_qualified" && matched.QualificationStatus != "delay_topology_qualified" {
+			t.Fatalf("%s surface qualification status=%q", testCase.family, matched.QualificationStatus)
+		}
+		if matched.InspectOnly {
+			t.Fatalf("%s surface must stay executable, not inspect-only", testCase.family)
+		}
+		var cross *semanticProcessorSurface
+		for index := range surfaces {
+			if surfaces[index].Family == testCase.unwanted {
+				cross = &surfaces[index]
+			}
+		}
+		if cross != nil {
+			t.Fatalf("%s digest must not fabricate a %s surface: %+v", testCase.plugin, testCase.unwanted, cross)
+		}
 	}
 }

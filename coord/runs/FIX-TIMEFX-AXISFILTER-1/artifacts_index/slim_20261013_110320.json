@@ -1,0 +1,22 @@
+{
+ "run": "20261013_110320",
+ "status": "not_exercised",
+ "error": null,
+ "selected_domains": [],
+ "responses": [
+  {
+   "goal_status": "completed",
+   "stop_reason": "done",
+   "error": null,
+   "kernel": [
+    "mix_observe"
+   ]
+  }
+ ],
+ "rounds": 0,
+ "round_status": [],
+ "interventions": [],
+ "d1_receipt_applied": null,
+ "d1_receipt_audition_ready": null,
+ "d1_receipt_settled": null
+}
