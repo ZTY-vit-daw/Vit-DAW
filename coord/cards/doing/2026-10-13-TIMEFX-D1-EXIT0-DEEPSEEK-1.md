@@ -29,6 +29,6 @@ LLM 基线已切换 deepseek-chat（api.deepseek.com/v1；PC 决策侧探测实�
 
 取证证明 deepseek 在**自然话术**下无法可靠选中 reverb 域（需堆砌才命中）→ 带证据上交决策侧裁基线策略（选项：deepseek 全局基线+混音线专用路由 / provider 复议），不硬凑。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：（2026-10-13 23:09 / origin/main=0a7c1cc49a34a85a83b56a30f2e9e8339e410e1c / GLM-5.3 L2 执行会话·PC·ZCode 本会话 / port/timefx-d1-exit0-deepseek-1 / D:/Vit_DAW_wt_d1ds1 / 领取提交见回执）
 - 回执：（commit / run ID / 取证结论 / 适配内容 / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
