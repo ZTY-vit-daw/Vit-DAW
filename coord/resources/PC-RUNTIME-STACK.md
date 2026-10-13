@@ -5,7 +5,11 @@
 
 ## 当前占用
 
-- 2026-10-14 00:10 +0800（本机钟）登记 / FIX-FS-SETTLE-DEADCHAIN-1（GLM-5.3 L2 执行会话，PC，ZCode；worktree D:/Vit_DAW_wt_fsdc1，分支 port/fix-fs-settle-deadchain-1）：D1 reverb 收口腿 `run_free_state_d1_smoke.ps1 -PromptFlavor reverb -ExpectDomain reverb`（建议连过 2 轮；delay 族视余量可选）；LLM=deepseek-chat @ api.deepseek.com/v1（~/.vit/config.json 核过，flash 未动）。登记前只读核对四端口 5555/5556/7878/8787 监听=0、VitApp/VitAgent/vsphub/Godot 进程=0（TIMEFX-D1-EXIT0-DEEPSEEK-1 已于 23:38 释放）；被测=worktree 构建 agent VitAgent.exe SHA256 A0EA8B1F102CA884（含 B-i 修复 abd65f24）+主检出 VitApp.exe B6565DCF85D1DA86（C++ 面零改动）。
+- 状态：空闲
+
+## 最近一次释放
+
+- 2026-10-14 00:10–00:47 +0800（本机钟）/ FIX-FS-SETTLE-DEADCHAIN-1（GLM-5.3 L2 执行会话，PC，ZCode；worktree D:/Vit_DAW_wt_fsdc1，分支 port/fix-fs-settle-deadchain-1）：D1 reverb 收口腿四 run（20261014_000822/001259=B-i 构建 A0EA8B1F；20261014_003339/003935=B-i+C 腿构建 94CBFA68）——**四轮均 exit 1 且全部死于准入前模型行为，B-i seam 未被真栈触达**：run1/2=提案携带占位三件套（materiality{none,not_ready}+target_response{absent}+round_decision）且 target 与新鲜观察不匹配→admission invalid+final 吞链；run3/4（C 腿后）=提案已干净无三件套（C 腿真栈生效）但模型不做 G6 要求的轨道级观察，同签名 2/2 烧尽预算终末锁 gate-rejected。根因（环境实锤）：api.deepseek.com /models 现仅 {deepseek-flash, deepseek-v4-pro}，deepseek-chat 请求被服务端别名为 flash（探针回显 model=deepseek-flash）——档位低于基线（231930/232817 两轮 2 次准入的模型）。§8 停止，卡转 blocked 上交（模型档位裁定）。00:47 手动 teardown VitAgent 16036/VitApp 29084/Godot×3（26104/21884/16432），复核四端口 5555/5556/7878/8787 监听=0、VitApp/VitAgent/vsphub/Godot 进程=0。占用登记 0854e899；被测=worktree 构建 agent（两版哈希如上，均含 B-i 修复 abd65f24，后版含 C 腿）+主检出 VitApp.exe B6565DCF85D1DA86（C++ 面零改动）；工件 coord/runs/FIX-FS-SETTLE-DEADCHAIN-1/（随 port 分支入库），详见卡面回执。
 
 ## 最近一次释放
 
