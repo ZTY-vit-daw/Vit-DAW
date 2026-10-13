@@ -12,9 +12,11 @@ import (
 	"strings"
 	"testing"
 
+	"vit-daw-agent/internal/capabilitycontext"
 	"vit-daw-agent/internal/dynamiccontrol"
 	"vit-daw-agent/internal/harness"
 	"vit-daw-agent/internal/kernel"
+	"vit-daw-agent/internal/mixboard"
 	"vit-daw-agent/internal/processorintent"
 	agentruntime "vit-daw-agent/internal/runtime"
 	"vit-daw-agent/internal/shadow"
@@ -45,6 +47,8 @@ func TestC2VerificationViewsMatchTheExecutedFamily(t *testing.T) {
 		processorintent.FamilyDeEsser:             {"track.frequency_time_events"},
 		processorintent.FamilyTransientShaper:     {"track.transient_structure"},
 		processorintent.FamilyMultibandDynamics:   {"track.band_dynamics"},
+		processorintent.FamilyReverb:              {"track.time_dynamics", "track.stereo_space"},
+		processorintent.FamilyDelay:               {"track.time_dynamics", "track.stereo_space"},
 	}
 	for family, want := range cases {
 		if got := c2VerificationViews(family); !reflect.DeepEqual(got, want) {
@@ -53,6 +57,21 @@ func TestC2VerificationViewsMatchTheExecutedFamily(t *testing.T) {
 	}
 	if got := c2VerificationViews("unsupported"); got != nil {
 		t.Fatalf("unsupported family received C2 verification views: %#v", got)
+	}
+}
+
+func TestC2VerificationViewsStayInsideTheCCBCatalog(t *testing.T) {
+	catalog := capabilitycontext.FreeStateObservationCatalogFor(mixboard.TargetRef{Kind: "track", ID: "c2-verification-target"})
+	known := map[string]bool{}
+	for _, view := range catalog.Views {
+		known[view.ViewID] = true
+	}
+	for _, family := range c2SupportedFamilies("") {
+		for _, view := range c2VerificationViews(family) {
+			if !known[fmt.Sprint(view)] {
+				t.Fatalf("C2 verification view %v for family %s is outside the CCB catalog", view, family)
+			}
+		}
 	}
 }
 

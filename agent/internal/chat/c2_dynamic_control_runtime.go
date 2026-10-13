@@ -914,6 +914,15 @@ func c2VerificationViews(family string) []any {
 		return []any{"track.transient_structure"}
 	case processorintent.FamilyMultibandDynamics:
 		return []any{"track.band_dynamics"}
+	case processorintent.FamilyReverb, processorintent.FamilyDelay:
+		// Time-domain effects act on two observable track dimensions: energy
+		// evolution over time (decay tails, echo repeats) and stereo
+		// width/correlation (width, ping-pong, wet balance). The registry rows
+		// for these families keep mix.multitrack_relationship only as a
+		// placeholder project relation and do not fit this always-track-scoped
+		// verification request; a dedicated FXM paired-diff view would be a CCB
+		// catalog contract change, not a family case.
+		return []any{"track.time_dynamics", "track.stereo_space"}
 	default:
 		return nil
 	}
