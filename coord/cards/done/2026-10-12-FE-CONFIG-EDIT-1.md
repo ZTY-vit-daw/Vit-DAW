@@ -46,4 +46,4 @@ vitest 全绿+npm run build exit 0+浏览器级断言 exit 0+手测清单交付�
   4. 多模态路由任一卡的 API Key 框输入→保存→确认不消失；
   5. 全程确认无"打不进字"复现（尤其 Safari 密码自动填充弹窗出现/关闭后仍可继续输入）。
 - 回执：（commit / 测试清单 / 手测清单 / 端测边界声明）
-- 验收：（裁定文件 / 验收 commit）
+- 验收：pass 2026-10-13 Mac 决策侧（ruling [2026-10-13-FE-CONFIG-EDIT-1-pass.md](../../rulings/2026-10-13-FE-CONFIG-EDIT-1-pass.md)；复验 run 20261013-1015-reverify 四门全绿；merge 合入 main；手测后置=Safari/WKWebView IME 场景待 dist 重建后用户执行，复现则返工；域外 3 处存量乱码另立 FE-MOJIBAKE-CLEANUP-1）
