@@ -37,6 +37,6 @@ diff 亲读+seam 设计依据+回归测试+95 包 0 FAIL+D1 reverb exit 0（工�
 
 B 两半均与证据门语义冲突（修不动）→ 带设计分析上交；域外新发现→上交不扩域。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-13 23:54 +0800 / origin/main=f937a84d（doing/ 空、无文件域冲突；栈空闲已核）/ GLM-5.3 L2 执行会话（PC，ZCode）/ port/fix-fs-settle-deadchain-1 / D:/Vit_DAW_wt_fsdc1 / 本提交（coord-only 领取提交）
 - 回执：（commit / run ID / seam 选择依据 / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
