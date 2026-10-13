@@ -376,6 +376,20 @@ func semanticTreatmentBuildSurfaces(trackID, pluginID string, digest plugingrabb
 	multibandSummary, multibandBoundary := plugingrabber.BuildMultibandSummaryWithBoundary(digest)
 	add(processorintent.FamilyMultibandDynamics, "multiband_dynamics_topology_qualified", multibandBoundary, multibandSummary, nil)
 
+	// TIMEFX v2 families use the same builder contract as the v1 ones above:
+	// a detected model yields the governed topology summary, an undetected
+	// one yields only the boundary note. Without these adds the post-load
+	// qualification walks every surface, matches none for reverb/delay, and
+	// fails with "post-load topology family ... was not proven" even though
+	// the recognizer shipped with the family registration
+	// (FIX-TIMEFX-AXISFILTER-1 second leg — same registration-surface gap as
+	// the axis coverage whitelist switch).
+	reverbSummary, reverbBoundary := plugingrabber.BuildReverbSummaryWithBoundary(digest)
+	add(processorintent.FamilyReverb, "reverb_topology_qualified", reverbBoundary, reverbSummary, nil)
+
+	delaySummary, delayBoundary := plugingrabber.BuildDelaySummaryWithBoundary(digest)
+	add(processorintent.FamilyDelay, "delay_topology_qualified", delayBoundary, delaySummary, nil)
+
 	owners := map[string][]int{}
 	for index, surface := range surfaces {
 		for _, parameterID := range surface.OwnedParameterIDs {

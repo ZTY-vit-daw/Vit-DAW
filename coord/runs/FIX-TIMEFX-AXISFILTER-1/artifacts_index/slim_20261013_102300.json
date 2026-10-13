@@ -1,0 +1,61 @@
+{
+ "run": "20261013_102300",
+ "status": "fail",
+ "error": "D1 must contain exactly one forward mutation",
+ "selected_domains": [
+  "reverb"
+ ],
+ "responses": [
+  {
+   "goal_status": "waiting_continue",
+   "stop_reason": "limit_reached",
+   "error": null,
+   "kernel": [
+    "ccb_observation_catalog"
+   ]
+  },
+  {
+   "goal_status": "scheduler_drained",
+   "stop_reason": null,
+   "error": null,
+   "kernel": []
+  },
+  {
+   "goal_status": "waiting_clarification",
+   "stop_reason": "plugin_selection_required",
+   "error": null,
+   "kernel": []
+  },
+  {
+   "goal_status": "waiting_confirmation",
+   "stop_reason": null,
+   "error": null,
+   "kernel": []
+  },
+  {
+   "goal_status": "waiting_confirmation",
+   "stop_reason": "semantic_dynamic_confirmation_required",
+   "error": null,
+   "kernel": [
+    "rack_add_node",
+    "get_plugin_parameters"
+   ]
+  },
+  {
+   "goal_status": "completed",
+   "stop_reason": "project_revision_stale",
+   "error": null,
+   "kernel": []
+  }
+ ],
+ "rounds": 1,
+ "round_status": [
+  "observing"
+ ],
+ "interventions": [
+  0
+ ],
+ "d1_receipt_applied": null,
+ "d1_receipt_audition_ready": null,
+ "d1_receipt_settled": null
+}

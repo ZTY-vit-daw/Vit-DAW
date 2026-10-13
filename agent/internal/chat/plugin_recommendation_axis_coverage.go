@@ -54,7 +54,12 @@ func axisCoverageFrozenSemanticIntent(requestContext map[string]any) (map[string
 // one; a v5-shaped section yields its single identifier). An absent section
 // (or absent whitelist file) yields no identifiers — no candidate can then
 // be whitelist-form eligible, which surfaces as the honest empty set rather
-// than an error. A corrupt whitelist fails closed.
+// than an error. A corrupt whitelist fails closed. Every processor
+// attestation family must keep a case here: a family registered in
+// processorattestation/processorregistry but missing from this switch is
+// silently ungovernable (FIX-TIMEFX-AXISFILTER-1, reverb/delay initially
+// shipped without cases and every governed run stopped with
+// no_axis_covered_candidates despite green machine data).
 func axisCoverageWhitelistIdentifiers(family string) (map[string]bool, error) {
 	whitelist, err := d1StaticEQWhitelistLoader()
 	if err != nil {
@@ -91,6 +96,14 @@ func axisCoverageWhitelistIdentifiers(family string) (map[string]bool, error) {
 		}
 	case processorattestation.FamilyMultiband:
 		for _, entry := range whitelist.Multiband {
+			identifiers[entry.PluginIdentifier] = true
+		}
+	case processorattestation.FamilyReverb:
+		for _, entry := range whitelist.Reverb {
+			identifiers[entry.PluginIdentifier] = true
+		}
+	case processorattestation.FamilyDelay:
+		for _, entry := range whitelist.Delay {
 			identifiers[entry.PluginIdentifier] = true
 		}
 	}

@@ -261,6 +261,32 @@ func semanticDynamicRoleAliases(family, axis string) map[string]bool {
 		case "parallel_balance", "mix":
 			add("mix")
 		}
+	case processorintent.FamilyReverb:
+		switch axis {
+		case "decay_time", "decay", "size":
+			add("decay", "size")
+		case "pre_delay":
+			add("pre_delay")
+		case "spatial_mode", "damping", "width", "reverb_mode":
+			add("damping", "width", "reverb_mode")
+		case "output_normalization", "output_gain":
+			add("output_gain")
+		case "wet_balance", "mix", "wet", "dry":
+			add("wet", "dry", "mix")
+		}
+	case processorintent.FamilyDelay:
+		switch axis {
+		case "echo_time", "time", "sync":
+			add("time", "sync")
+		case "feedback_amount", "feedback":
+			add("feedback")
+		case "spatial_mode", "ping_pong", "delay_mode":
+			add("ping_pong", "delay_mode")
+		case "output_normalization", "output_gain":
+			add("output_gain")
+		case "wet_balance", "mix", "wet", "dry":
+			add("wet", "dry", "mix")
+		}
 	}
 	return roles
 }
@@ -321,6 +347,12 @@ func semanticDynamicBindings(family string, summary map[string]any) []semanticDy
 			appendSections("band/"+key, band, "operating_point", "transfer", "timing", "gain_action", "mode")
 		}
 		appendSections("shared", summary, "shared_controls")
+	case processorintent.FamilyReverb:
+		stage := mapValue(summary["reverb_stage"])
+		appendSections("stage/"+firstNonEmptyText(stage, "stage_key"), stage, "tail", "timing", "character", "output")
+	case processorintent.FamilyDelay:
+		stage := mapValue(summary["delay_stage"])
+		appendSections("stage/"+firstNonEmptyText(stage, "stage_key"), stage, "timing", "feedback", "character", "output")
 	}
 	return out
 }
@@ -391,6 +423,10 @@ func (s *Server) readSemanticDynamicSurface(ctx context.Context, family, trackID
 		summary, boundary = plugingrabber.BuildTransientShaperSummaryWithBoundary(digest)
 	case processorintent.FamilyMultibandDynamics:
 		summary, boundary = plugingrabber.BuildMultibandSummaryWithBoundary(digest)
+	case processorintent.FamilyReverb:
+		summary, boundary = plugingrabber.BuildReverbSummaryWithBoundary(digest)
+	case processorintent.FamilyDelay:
+		summary, boundary = plugingrabber.BuildDelaySummaryWithBoundary(digest)
 	default:
 		return digest, nil, fmt.Errorf("unsupported_dynamic_family:%s", family)
 	}
@@ -409,6 +445,10 @@ func (s *Server) readSemanticDynamicSurface(ctx context.Context, family, trackID
 		attachErr = attachTransientShaperControlRefs(summary, trackID, pluginID)
 	case processorintent.FamilyMultibandDynamics:
 		attachErr = attachMultibandControlRefs(summary, trackID, pluginID)
+	case processorintent.FamilyReverb:
+		attachErr = attachReverbControlRefs(summary, trackID, pluginID)
+	case processorintent.FamilyDelay:
+		attachErr = attachDelayControlRefs(summary, trackID, pluginID)
 	}
 	if attachErr != nil {
 		return digest, nil, fmt.Errorf("control_ref_binding_failed:%v", attachErr)
@@ -898,6 +938,10 @@ func (s *Server) applySemanticDynamicController(ctx context.Context, spec semant
 		return s.applyPluginGrabberTransientShaperControls(ctx, cmd, requestContext)
 	case processorintent.FamilyMultibandDynamics:
 		return s.applyPluginGrabberMultibandControls(ctx, cmd, requestContext)
+	case processorintent.FamilyReverb:
+		return s.applyPluginGrabberReverbControls(ctx, cmd, requestContext)
+	case processorintent.FamilyDelay:
+		return s.applyPluginGrabberDelayControls(ctx, cmd, requestContext)
 	default:
 		return nil, fmt.Errorf("unsupported dynamic family")
 	}

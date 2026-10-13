@@ -1,0 +1,28 @@
+{
+ "run": "20261013_111010",
+ "status": "not_exercised",
+ "error": null,
+ "selected_domains": [],
+ "responses": [
+  {
+   "goal_status": "waiting_continue",
+   "stop_reason": "limit_reached",
+   "error": null,
+   "kernel": [
+    "ccb_observation_catalog"
+   ]
+  },
+  {
+   "goal_status": "scheduler_drained",
+   "stop_reason": null,
+   "error": null,
+   "kernel": []
+  }
+ ],
+ "rounds": 0,
+ "round_status": [],
+ "interventions": [],
+ "d1_receipt_applied": null,
+ "d1_receipt_audition_ready": null,
+ "d1_receipt_settled": null
+}
