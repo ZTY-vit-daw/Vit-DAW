@@ -237,7 +237,7 @@ const settingsTabs: Array<{ key: SettingsTab; label: string; icon: LucideIcon }>
   { key: "diagnostics", label: "诊断", icon: Activity }
 ];
 
-const multimodalRouteMeta: Array<{ key: string; label: string; hint: string }> = [
+export const multimodalRouteMeta: Array<{ key: string; label: string; hint: string }> = [
   { key: "text", label: "文本 LLM", hint: "Agent 对话与规划" },
   { key: "image_understanding", label: "图片理解", hint: "图片、截图、视觉素材分析" },
   { key: "image_generation", label: "图片生成", hint: "生成图像与设计稿" },
@@ -1857,7 +1857,7 @@ function conversationIDFromURL(): string {
   return new URLSearchParams(window.location.search).get("conversation_id")?.trim() ?? "";
 }
 
-function SettingsPage({
+export function SettingsPage({
   runtimeStatus,
   uiState,
   onClose
@@ -1898,8 +1898,10 @@ function SettingsPage({
     try {
       const response = await saveAgentConfig(config);
       setConfigResponse(response);
-      setConfig(mergeSettingsConfig(response.config));
-      setStatus("已保存。下一条消息会使用新配置。");
+      // 保存成功后服务端不回传明文 key（RedactSecrets）；沿用当前输入，避免刚输入的 key 从输入框消失。
+      // 清空 key 框的语义只属于重新读取配置（loadConfig/重开设置页）。
+      setConfig((current) => retainSecretInputs(mergeSettingsConfig(response.config), current));
+      setStatus(settingsSavedStatus(config.apiKey ?? "", Boolean(response.hasApiKey)));
     } catch (saveError) {
       setStatus(saveError instanceof Error ? saveError.message : "保存失败");
     } finally {
@@ -1992,13 +1994,14 @@ function SettingsPage({
                 label="API Key"
                 value={config.apiKey ?? ""}
                 type="password"
+                autoComplete="new-password"
                 placeholder={configResponse?.hasApiKey ? "API Key 已保存；留空保持不变" : "API Key"}
                 onChange={(value) => setConfigField("apiKey", value)}
               />
               <SettingsTextField
                 label="默认模型"
                 value={config.defaultModel ?? ""}
-                placeholder="渚涘簲鍟嗘ā鍨?ID"
+                placeholder="供应商模型 ID"
                 onChange={(value) => setConfigField("defaultModel", value)}
               />
             </section>
@@ -2063,23 +2066,31 @@ function SettingsPage({
   );
 }
 
-function SettingsTextField({
+export function SettingsTextField({
   label,
   value,
   placeholder,
   type = "text",
+  autoComplete = "off",
   onChange
 }: {
   label: string;
   value: string;
   placeholder?: string;
   type?: string;
+  autoComplete?: string;
   onChange: (value: string) => void;
 }) {
   return (
     <label className="settings-field">
       <span>{label}</span>
-      <input type={type} value={value} placeholder={placeholder} onChange={(event) => onChange(event.currentTarget.value)} />
+      <input
+        type={type}
+        value={value}
+        placeholder={placeholder}
+        autoComplete={autoComplete}
+        onChange={(event) => onChange(event.currentTarget.value)}
+      />
     </label>
   );
 }
@@ -2101,7 +2112,7 @@ function SettingsCheckboxField({
   );
 }
 
-function RouteEditor({
+export function RouteEditor({
   meta,
   route,
   hasAPIKey,
@@ -2129,6 +2140,7 @@ function RouteEditor({
           label="API Key"
           value={route.apiKey ?? ""}
           type="password"
+          autoComplete="new-password"
           placeholder={hasAPIKey ? "API Key 已保存；留空保持不变" : "留空继承 LLM API key"}
           onChange={(apiKey) => onChange({ apiKey })}
         />
@@ -2137,6 +2149,7 @@ function RouteEditor({
           <span>Priority</span>
           <input
             type="number"
+            autoComplete="off"
             value={route.priority ?? 0}
             onChange={(event) => onChange({ priority: Number(event.currentTarget.value) || 0 })}
           />
@@ -11127,7 +11140,7 @@ function isMessageMergeKeyAction(action: JsonRecord): boolean {
   return source === "interaction" || isComposerInteraction(action) || isConfirmationAction(action);
 }
 
-function defaultSettingsConfig(): EngineConfig {
+export function defaultSettingsConfig(): EngineConfig {
   return {
     baseUrl: "",
     apiKey: "",
@@ -11155,7 +11168,7 @@ function defaultSettingsConfig(): EngineConfig {
   };
 }
 
-function mergeSettingsConfig(config?: EngineConfig): EngineConfig {
+export function mergeSettingsConfig(config?: EngineConfig): EngineConfig {
   const defaults = defaultSettingsConfig();
   return {
     ...defaults,
@@ -11170,6 +11183,29 @@ function mergeSettingsConfig(config?: EngineConfig): EngineConfig {
     },
     apiKey: ""
   };
+}
+
+// 保存成功后 response.config 是 RedactSecrets 的产物（主/路由 key 均无明文）；
+// 以 merged 为基准、沿用 current 的 key 输入态，其余字段以服务端回传为准。
+export function retainSecretInputs(merged: EngineConfig, current: EngineConfig): EngineConfig {
+  const mergedRoutes = merged.multimodalRoutes ?? {};
+  const currentRoutes = current.multimodalRoutes ?? {};
+  const multimodalRoutes: Record<string, MultimodalRouteConfig> = { ...mergedRoutes };
+  for (const key of Object.keys(currentRoutes)) {
+    multimodalRoutes[key] = { ...(mergedRoutes[key] ?? currentRoutes[key]), apiKey: currentRoutes[key].apiKey ?? "" };
+  }
+  return { ...merged, apiKey: current.apiKey ?? "", multimodalRoutes };
+}
+
+// 状态行区分两种保存情形：已输入 key（输入态保持）与留空（沿用已存 key）。
+export function settingsSavedStatus(apiKey: string, hasApiKey: boolean): string {
+  if (apiKey.trim()) {
+    return "已保存。API Key 已更新，输入框保留所输内容；下一条消息会使用新配置。";
+  }
+  if (hasApiKey) {
+    return "已保存。API Key 留空=沿用已存 key；下一条消息会使用新配置。";
+  }
+  return "已保存。下一条消息会使用新配置。";
 }
 
 function selectedPluginContextFromUIState(uiState: AgentUIState | null): { track_id: string; plugin_id: string; plugin_name: string } {
