@@ -45,7 +45,9 @@ func TestNeutralSemanticPromptD1DomainRuleFollowsDomainTable(t *testing.T) {
 func TestFreeStatePromptCarriesExperimentEvaluationContract(t *testing.T) {
 	prompt := messageLoopNeutralFamilySystemPrompt(&runState{input: Input{Context: map[string]any{}}})
 	for _, fragment := range []string{
-		`"experiment_materiality"`, `"experiment_target_response"`, `"experiment_round_decision"`,
+		"report experiment_materiality only from the fresh",
+		"experiment_target_response with",
+		`experiment_round_decision="user_judgment_pending"`,
 		"subthreshold state MUST use evaluation=insufficient_dose",
 		"Target response must never be inferred from parameter readback alone",
 		"MUST NOT request next_round or another mutation",
@@ -53,6 +55,28 @@ func TestFreeStatePromptCarriesExperimentEvaluationContract(t *testing.T) {
 		if !strings.Contains(prompt, fragment) {
 			t.Fatalf("experiment prompt missing %q", fragment)
 		}
+	}
+}
+
+// FIX-FS-SETTLE-DEADCHAIN-1 C-leg: the proposal-phase settle prohibition. The
+// skeleton's needs_experiment example must not teach the settle-report fields
+// (deepseek copied them verbatim onto proposal turns — the placeholder trio
+// skipped the admission audit and pre-filled hallucinated settle claims), and
+// the discipline rules must state the prohibition explicitly.
+func TestNeutralSkeletonProposalShapeOmitsSettleReportFields(t *testing.T) {
+	skeleton := messageLoopNeutralFamilySystemSkeleton(&runState{input: Input{Context: map[string]any{}}})
+	for _, line := range strings.Split(skeleton, "\n") {
+		if !strings.Contains(line, `"status":"needs_experiment"`) || !strings.Contains(line, `"final":true`) {
+			continue
+		}
+		for _, field := range []string{"experiment_materiality", "experiment_target_response", "experiment_round_decision"} {
+			if strings.Contains(line, field) {
+				t.Fatalf("needs_experiment skeleton example still teaches settle field %s", field)
+			}
+		}
+	}
+	if !strings.Contains(skeleton, "never fill experiment_materiality, experiment_target_response, or experiment_round_decision") {
+		t.Fatal("neutral skeleton lacks the proposal-phase settle prohibition rule")
 	}
 }
 
