@@ -37,6 +37,7 @@ diff 亲读+seam 设计依据+回归测试+95 包 0 FAIL+D1 reverb exit 0（工�
 
 B 两半均与证据门语义冲突（修不动）→ 带设计分析上交；域外新发现→上交不扩域。
 
-- 领取：2026-10-13 23:54 +0800 / origin/main=f937a84d（doing/ 空、无文件域冲突；栈空闲已核）/ GLM-5.3 L2 执行会话（PC，ZCode）/ port/fix-fs-settle-deadchain-1 / D:/Vit_DAW_wt_fsdc1 / 本提交（coord-only 领取提交）
-- 回执：（commit / run ID / seam 选择依据 / 端测边界声明）
+- 领取：2026-10-13 23:54 +0800 / origin/main=f937a84d（doing/ 空、无文件域冲突；栈空闲已核）/ GLM-5.3 L2 执行会话（PC，ZCode）/ port/fix-fs-settle-deadchain-1 / D:/Vit_DAW_wt_fsdc1 / 领取提交 c664ea94
+- 回执：commit=abd65f24（B-i）+aee05996（C 腿）+8e85a820（agent 日志补卷），port 分支已推 origin；run=20261014_000822/001259（B-i 版 A0EA8B1F）+20261014_003339/003935（B-i+C 版 94CBFA68），四轮 exit 1 **全死于准入前、settle seam 未被真栈触达**；seam 依据/证据链见 [coord/runs/FIX-FS-SETTLE-DEADCHAIN-1/REPORT.md](../../runs/FIX-FS-SETTLE-DEADCHAIN-1/REPORT.md)；`go test ./... -count=1` 95 包 0 FAIL+gofmt 净（LF blob）；占用/释放已登记（0854e899/c1be027a）。端测边界声明：真栈覆盖=域选择→提案→准入失败边界 4 轮；未覆盖=准入后路径（物化/settle/试听）因模型档位墙未触达。
+- **blocked 上交点（2026-10-14 00:50）**：服务端模型档位漂移——api.deepseek.com /models 现仅 {deepseek-flash, deepseek-v4-pro}，deepseek-chat 请求被别名 flash（探针回显实锤，config 未动）；flash 档下四轮全死于准入前（run1/2=占位三件套+target 错配+final；run3/4=提案已干净但 G6 轨道级观察不恢复，同签名 2/2 §8 停）。exit 0 销账在当前服务档位下不可达，需决策侧裁定：①授权改配置 deepseek-v4-pro 复跑收口腿（恢复基线档位）②等服务端恢复③按单元证据采信 B-i/C 代码+NOT_EXERCISED 类收口。域外发现一并上交：carriesExperimentReport（free_state_reasoning_loop.go:1047）对"实验未存在+占位三件套"的审计跳过是潜在吞链面（C 腿已提示面缓解并真栈验证生效），建议新卡收紧为 loop.Experiment!=nil 才跳过。
 - 验收：（裁定文件 / 验收 commit）
