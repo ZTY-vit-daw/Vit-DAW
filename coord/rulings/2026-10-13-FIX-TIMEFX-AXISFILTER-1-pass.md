@@ -31,3 +31,15 @@
 - 工件体量注记：两份 FULL report 约 23.7MB 入 main 属一次性证据成本（分支已推远端，对象已存在）；后续同类 FULL report 建议执行侧在提交前给出体量行，>5MB 时先出 slim+抽样方案再入库。
 
 - 验收 commit：（本裁定随卡面归档提交，见 card 面回填）
+
+## 补记（2026-10-13 晚）：DeepSeek 旁路收口尝试——挂账维持原条件
+
+用户切换 LLM 配置至 DeepSeek 官流（api.deepseek.com/v1，deepseek-chat；PC 决策侧探测实证 chat=非推理模式/flash=推理模式后定型）。收口腿按预案执行（预探测 200/0.76s 通过；worktree agent 0f9de7ed 哈希亲核含修复）：
+
+- run 20261013_212900 / 213535 两轮均 **NOT_EXERCISED exit 3**：selected_domains 同为 broadband_compression——reverb 引导话术在场（"残响拖沓…混响尾巴"），模型自主域选择确定性偏压缩面；轮内 LLM 全健康（1.35-4.4s err=false）。§8 同断点连续两次停止原样重跑，delay 加分腿（以 exit 0 为前提）未跑。工件 f9cfc0c1 入 main。
+- 定性：**模型分支问题，非服务故障、非修复面**（开放运行未进入 reverb 准入，七处修复未被触达）。执行侧处置正确。
+- **挂账维持原条件**：三笔销账（M2-TIMEFX-1 111841 / M2-TIMEFX-2 195448 / 本卡）仍以 gpt-6.1-sol（hejuapi 中转）服务恢复后 D1 reverb 一轮 exit 0 为准；DeepSeek 旁路证据留卷。
+- **M2 体验场次不建议在 deepseek-chat 下排**：同分支问题会复现（reverb 话术被选到压缩面）。
+- 基线取舍（hejuapi 恢复切回 vs 留 DeepSeek）→ 2026-10-14/15 中期盘点裁定。worktree D:/Vit_DAW_wt_fix106 继续保留至销账。
+
+- 验收 commit（补记）：随本批裁定提交（见 card 面回填；首轮归档=146b5cec）。

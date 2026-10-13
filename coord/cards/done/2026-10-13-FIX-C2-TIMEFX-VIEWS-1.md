@@ -37,4 +37,4 @@ diff 亲读+选型依据在卷+测试全绿；真栈腿可选（无可达路径�
   - 域外上交（AGENTS §11，待决策侧扩域或开卡）：上列 `c2SupportedFamilies`/`c2ProcessorTypeForFamily` 两道门是 C2 到 reverb/delay 的真正第一/第二 blocker；两处均在卡面文件域（同文件）内、但超出卡面任务①②清单（仅指 c2VerificationViews），未擅自扩域。
   - 文件域注记：卡面写"同包新测试文件"，实际复用既有同包测试 `c2_dynamic_control_runtime_test.go`——该文件即本函数契约测试（`TestC2VerificationViewsMatchTheExecutedFamily` 表驱动）所在，两族 case 入表 + 新守卫测试同文件；另立新文件会割裂同一契约表。
   - 验收门：`go test ./... -count=1` EXIT=0（95 包 ok、0 FAIL，日志 /tmp/c2views_gotest.log）；gofmt 按 LF blob 口径两改动文件 `gofmt -d`=0（工作树 CRLF 系 autocrlf checkout 所致，未触碰文件同被 `gofmt -l` 报出，属已知假阳性，不采信）。
-- 验收：（裁定文件 / 验收 commit）
+- 验收：**pass**（2026-10-13 晚）——[rulings/2026-10-13-FIX-C2-TIMEFX-VIEWS-1-pass.md](../../rulings/2026-10-13-FIX-C2-TIMEFX-VIEWS-1-pass.md)；独立复核=diff 亲读+95 包 0 FAIL 亲跑+gofmt blob 净+族门锚点亲核；合入 merge=2cc6c6ed；两道族门上交采信暂不立卡（C2 接 TIMEFX 三件套前置登记）；worktree 验收后拆除
