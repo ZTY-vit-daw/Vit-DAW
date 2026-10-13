@@ -11,6 +11,6 @@
 
 /GenShell/ 新目录 CMake 工程——VST3 SDK 直实现壳体（IEditController+IAudioProcessor instrument 静音骨架/T0 消费/T1 五参数/T3 chunk/VSTGUI 编辑器静态六区/T2 信封回环 echo 计数）；产物 GenShell.vst3 部署本机标准 VST3 目录。**卡内第一步=核实 VST3 SDK 获取路径**（tracktion 子模块/PluginProbe native host 来源；Mac worktree 子模块空为工件，取主仓 checkout）+VSTGUI vendoring 方式入卡记录。验收=构建 exit 0+真栈烟测（scan 发现/rack_add_node UI 路径形态/T1 参数断言/SceneMode 读写/chunk 往返/show_editor 不崩）+T2 自环。停止条件=SDK 两端均不可复用/VSTGUI 不可用→降级裁定上交。端测边界：编辑器视觉面零断言。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-13 09:48（Mac 本地）/ origin/main 1ec6ccfa / owner=GLM-5.3 Mac 执行会话 / 分支 port/genshell-cpp-1 / worktree /Users/timozty/Documents/Vit-DAW-genshell1（coord=Vit-DAW-genshell1-coord）/ 领取提交=见本提交（领取随卡面同批）
 - 回执：（commit / run ID / SDK 获取路径记录 / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
