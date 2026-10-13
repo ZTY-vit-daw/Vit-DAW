@@ -5,7 +5,7 @@
 
 ## 当前占用
 
-- 状态：空闲
+- 2026-10-13 09:50 +0800（本机钟）登记 / FIX-TIMEFX-AXISFILTER-1（GLM-5.3 PC 执行流，ZCode 本会话；worktree D:/Vit_DAW_wt_fix106，分支 port/fix-timefx-axisfilter-1）：D1 reverb 全链冒测收口腿（scripts/run_free_state_d1_smoke.ps1 -PromptFlavor reverb -ExpectDomain reverb，dev_agent_smoke 启栈模式 -StartKernel -RestartAgent；delay 族同话术一轮视额度可选）；登记前只读核对四端口 5555/5556/7878/8787 监听=0、VitApp/VitAgent/vsphub/Godot 进程=0（前 owner M3-KERNEL-1 已于 2026-10-12 22:26 释放）。被测=worktree 构建 agent（含 axis coverage 修复）+主检出 VitApp.exe（C++ 面零改动）。
 
 ## 最近一次释放
 
