@@ -631,6 +631,42 @@ func neutralizeFreeStateBoundaryResidue(loop *freeStateReasoningLoop) {
 	loop.LatestDecision = &cleared
 }
 
+// freeStateVacuousSettleClaimOnUnactedRound reports the hallucinated-settle
+// shape (2026-10-13 runs 20261013_231930/232817): the decision carries
+// experiment_materiality={state:none, evaluation:not_ready} as its ONLY settle
+// signal on a round with zero booked interventions. Field presence is not a
+// settlement claim — that pair is schema placeholder noise (deepseek filled it
+// while hallucinating the application; the project held zero plugins), and
+// counting it as a settle attempt armed the refusal marker that swallowed the
+// admitted proposal's response path (improvementProposalResponse answered
+// waiting_continue with no interaction and no continuation) and left the owed
+// withhold with nothing armable — interventions=0, exit 1 dead chain. The
+// exemption is scoped so no evidence gate moves: only the pure empty-state
+// pair (any target response, round decision, or non-none state still counts
+// as a settle attempt exactly as before) and only on a round that never
+// acted — an acted round keeps the field-presence refusal until its fresh
+// post-action observation records, and the state machine still rejects the
+// vacuous payload itself (EvaluateMateriality requires an intervention), so
+// the hallucinated settle never lands on any round.
+func freeStateVacuousSettleClaimOnUnactedRound(exp *experiment.Turn, decision agentloop.FreeStateDecision) bool {
+	if decision.ExperimentMateriality == nil || decision.ExperimentTargetResponse != nil ||
+		strings.TrimSpace(decision.ExperimentRoundDecision) != "" {
+		return false
+	}
+	if !strings.EqualFold(strings.TrimSpace(string(decision.ExperimentMateriality.State)), string(experiment.MaterialityNone)) ||
+		!strings.EqualFold(strings.TrimSpace(string(decision.ExperimentMateriality.Evaluation)), string(trajectory.EvaluationNotReady)) {
+		return false
+	}
+	if exp == nil {
+		return false
+	}
+	round, err := exp.CurrentRound()
+	if err != nil {
+		return false
+	}
+	return len(round.Interventions) == 0
+}
+
 func (s *Server) recordFreeStateExperimentDecision(ctx context.Context, loop *freeStateReasoningLoop, decision agentloop.FreeStateDecision) {
 	if loop == nil || loop.Experiment == nil {
 		return
@@ -648,6 +684,9 @@ func (s *Server) recordFreeStateExperimentDecision(ctx context.Context, loop *fr
 	// next slice observes first; no evidence gate is weakened.
 	settleReportCarried := decision.ExperimentMateriality != nil || decision.ExperimentTargetResponse != nil ||
 		strings.TrimSpace(decision.ExperimentRoundDecision) != ""
+	if settleReportCarried && freeStateVacuousSettleClaimOnUnactedRound(loop.Experiment, decision) {
+		settleReportCarried = false
+	}
 	if loop.Experiment.Admission.IsD1S1() && settleReportCarried &&
 		!freeStateExperimentRoundHasFreshPostActionObservation(loop.Experiment) {
 		if s.logger != nil {
