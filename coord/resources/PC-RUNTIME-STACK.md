@@ -5,10 +5,17 @@
 
 ## 当前占用
 
-- 状态：占用中
-- 2026-10-13 21:45 +0800 登记 / KERNEL-SETTEMPO-PERSIST-1（GLM-5.3 PC 执行流，ZCode 会话；worktree D:/Vit_DAW_wt_settempo，分支 port/kernel-settempo-persist-1）：内核 edit-state 变更注册冒测腿（dev_agent_smoke -StartKernel -KernelExe=<被测内核> -SetTempoPersistSmoke -NoChatSmoke -NoStripSilenceSmoke；两轮=基线差分取证轮[主检出 VitApp.exe B6565DCF85D1DA86 无本卡修复]+修复回归轮[worktree 自建 VitApp.exe 含四处 markAsChanged]）；登记前只读核对四端口 5555/5556/7878/8787 监听=0、VitApp/VitAgent/vsphub/Godot 进程=0（前 owner FIX-TIMEFX-AXISFILTER-1 已于 bb3f9c42 释放）。
+- 状态：空闲
 
 ## 最近一次释放
+
+- 2026-10-13 21:45–22:05 +0800（本机钟）/ KERNEL-SETTEMPO-PERSIST-1（GLM-5.3 PC 执行流，ZCode 会话；worktree D:/Vit_DAW_wt_settempo，分支 port/kernel-settempo-persist-1）：内核 edit-state 变更注册冒测两 run——baseline_20261013=基线差分取证轮（主检出 VitApp.exe B6565DCF85D1DA86，**exit 1 于 file_written 哈希门=open 形态 set_tempo 后工程文件 sha256 不变=静默跳写实锤**）；fixed_20261013=修复回归轮（worktree 自建 VitApp.exe 21:42 构建含四处 markAsChanged，**PASS exit 0 八检**：set_tempo open 形态 save/reload 往返精确 96+哈希变化/clear_project 往返 clips 归零/undo 往返 96/redo 往返 144）；两轮间 owner 手动拆栈换内核。22:05 末轮后复核四端口 5555/5556/7878/8787 监听=0、VitApp/VitAgent/vsphub/Godot 进程=0，临时工程文件已清。占用登记 bb5401c2；被测=worktree 构建 VitAgent（Go 面零改动，基线等价）；run 工件 coord/runs/KERNEL-SETTEMPO-PERSIST-1/（随 cd261982@port/kernel-settempo-persist-1 入库），详见卡面回执。
+
+## 历史占用（上一条）
+
+- 2026-10-13 21:45 +0800 登记 / KERNEL-SETTEMPO-PERSIST-1（GLM-5.3 PC 执行流，ZCode 会话；worktree D:/Vit_DAW_wt_settempo，分支 port/kernel-settempo-persist-1）：内核 edit-state 变更注册冒测腿（dev_agent_smoke -StartKernel -KernelExe=<被测内核> -SetTempoPersistSmoke -NoChatSmoke -NoStripSilenceSmoke；两轮=基线差分取证轮[主检出 VitApp.exe B6565DCF85D1DA86 无本卡修复]+修复回归轮[worktree 自建 VitApp.exe 含四处 markAsChanged]）；登记前只读核对四端口 5555/5556/7878/8787 监听=0、VitApp/VitAgent/vsphub/Godot 进程=0（前 owner FIX-TIMEFX-AXISFILTER-1 已于 bb3f9c42 释放）。
+
+## 最近一次释放（历史）
 
 - 2026-10-13 09:50–18:31 +0800（本机钟）/ FIX-TIMEFX-AXISFILTER-1（GLM-5.3 PC 执行流，ZCode 本会话；worktree D:/Vit_DAW_wt_fix106，分支 port/fix-timefx-axisfilter-1）：D1 reverb 全链冒测 11 run（095626=fixture 缺失环境腿；100927/102300/103532=三处运行时缺口逐层修复轮——post-load surface/动态族 switch/apply 分派；105238=**干预落账轮 parameter_applied=True**+settle 尾被 11:00 LLM 60s 超时吃预算；110320/111010/112913=NOT_EXERCISED×3 上游 LLM 服务不稳（连续 60s timeout 日志）；180315=服务端原文 "Our servers are currently overloaded"；181843=**干预二次复现 applied=True**+post-action CCB 观察被 18:25/18:26 连续 60s 超时阻断）——7 处修复实栈两轮复现有效，exit 0 未达成按 §8 止损收口上交；18:31 手动 teardown VitAgent 24012/VitApp 28860/Godot 25020，复核四端口 5555/5556/7878/8787 监听=0、VitApp/VitAgent/vsphub/Godot 进程=0。占用登记 bb3f9c42；被测=worktree 构建 agent（末版 0f9de7ed0fed4c3b 含全部修复）+主检出 VitApp.exe b6565dcf85d1da86（C++ 面零改动）；工件 coord/runs/FIX-TIMEFX-AXISFILTER-1/（随 port 分支入库），详见卡面回执。
 
