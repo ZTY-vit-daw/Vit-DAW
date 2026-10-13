@@ -43,3 +43,10 @@
 - 基线取舍（hejuapi 恢复切回 vs 留 DeepSeek）→ 2026-10-14/15 中期盘点裁定。worktree D:/Vit_DAW_wt_fix106 继续保留至销账。
 
 - 验收 commit（补记）：随本批裁定提交（见 card 面回填；首轮归档=146b5cec）。
+
+## 补记二（2026-10-13 深夜）：用户裁定——基线切换 DeepSeek，挂账条件改写
+
+- 用户裁定原文要旨：「我们已经更换了 API 配置，你也测试通了，肯定不能继续等 GPT 了，我们改用 deepseek 了」——**gpt-6.1-sol 等待条件作废，deepseek-chat（api.deepseek.com/v1）为新基线**。
+- 三笔挂账（M2-TIMEFX-1 111841 / M2-TIMEFX-2 195448 / 本卡）销账条件由「gpt-6.1-sol 恢复后 exit 0」改写为：**deepseek 基线下 D1 reverb 一轮 exit 0**（经意图路由适配卡 TIMEFX-D1-EXIT0-DEEPSEEK-1，池序 108）。
+- 补记一"M2 体验场次不建议 deepseek 下排"同口径改写为：体验场次待 108 卡落地后排（同一 blocker：域选择偏压缩面）。
+- 基线正式登记与跨模型证据口径 → 2026-10-14/15 中期盘点。
