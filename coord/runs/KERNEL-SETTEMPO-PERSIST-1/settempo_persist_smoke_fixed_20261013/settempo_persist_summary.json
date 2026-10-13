@@ -1,0 +1,26 @@
+{
+  "status": "pass",
+  "run_id": "20261013T134759Z_b2244c18",
+  "url": "tcp://127.0.0.1:5555",
+  "project_path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\vit_daw_settempo_persist_smoke\\settempo_persist_1791899279.vit",
+  "audio_file": "D:\\Vit_DAW_wt_settempo\\test_target_3s.wav",
+  "checks": [
+    "new_project",
+    "save_as_project",
+    "set_tempo.open_form.file_written",
+    "set_tempo.open_form.roundtrip_96",
+    "clear_project.precondition_clip_on_disk",
+    "clear_project.roundtrip_zero_clips",
+    "undo.roundtrip_96",
+    "redo.roundtrip_144"
+  ],
+  "hash_before_set_tempo": "814ea87fc3ff4696badb0a0e603cc8adb23ed574f67ccb0378428ce0033508c7",
+  "hash_after_set_tempo": "6c4f5dd802e75efa6ee0bd4d535e5335a9c70e09cf9eb8c890654dc5d8aef5c5",
+  "tempo_in_memory_bpm": 96.0,
+  "tempo_after_reopen_bpm": 96.0,
+  "clips_before_clear": 1,
+  "clips_after_clear_reopen": 0,
+  "undo_roundtrip_tempo_bpm": 96.0,
+  "redo_roundtrip_tempo_bpm": 144.0,
+  "verdict": "PASS"
+}

@@ -1,0 +1,42 @@
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_wt_settempo
+agent http: http://127.0.0.1:7878
+
+== Build VitAgent
+ok: build passed: D:\Vit_DAW_wt_settempo\agent\bin\VitAgent.dev-smoke.exe
+ok: installed agent bin: D:\Vit_DAW_wt_settempo\agent\bin\VitAgent.exe
+ok: installed agent root compatibility exe: D:\Vit_DAW_wt_settempo\agent\vitagent.exe
+
+== Start kernel
+ok: started kernel: D:\Vit_DAW_wt_settempo\VitApp\build\VitApp_artefacts\Release\VitApp.exe pid=26792 workdir=D:\Vit_DAW_wt_settempo\VitApp\build\VitApp_artefacts\Release
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW_wt_settempo\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=285
+shadow.initialized=True track_count=6
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=26792
+ok: ZMQ SUB listening: 5556 pid=26792
+
+== Project state invoke
+project.state status=ok error=
+
+== settempo persist smoke (KERNEL-SETTEMPO-PERSIST-1)
+settempo persist smoke: PASS
+{"checks": ["new_project", "save_as_project", "set_tempo.open_form.file_written", "set_tempo.open_form.roundtrip_96", "clear_project.precondition_clip_on_disk", "clear_project.roundtrip_zero_clips", "undo.roundtrip_96", "redo.roundtrip_144"]}
+ok: settempo persist smoke passed (kernel command face; summary: D:\Vit_DAW_wt_settempo\coord\runs\KERNEL-SETTEMPO-PERSIST-1\settempo_persist_smoke_fixed_20261013\settempo_persist_summary.json)
+
+== Summary
+ok: dev agent smoke completed

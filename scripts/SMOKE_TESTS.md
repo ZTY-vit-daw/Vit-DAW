@@ -1831,3 +1831,45 @@ Run:
 ./scripts/gen_api_adapter_smoke_mac.sh \
   --kernel-bin /tmp/vit-ctxd1-build/app/VitApp_artefacts/Debug/VitApp
 ```
+
+## Set-tempo Persist Roundtrip Smoke (PC) (KERNEL-SETTEMPO-PERSIST-1)
+
+Path:
+
+```powershell
+D:\Vit_DAW\scripts\dev_agent_smoke.ps1 -StartKernel -KernelExe <VitApp.exe> -SetTempoPersistSmoke -NoChatSmoke -NoStripSilenceSmoke
+```
+
+Purpose:
+
+- KERNEL-SETTEMPO-PERSIST-1 acceptance smoke for the CommandDispatcher
+  edit-state change registration fixes (explicit `markAsChanged` after
+  `set_tempo` / `clear_project` / `undo` / `redo` writes; same latent
+  silent-skip hole GEN-CTX-KEYFIELD-1 fixed for the bare property writes).
+- Probed on the real headless kernel through the dev_agent_smoke stack with
+  a worktree-built VitApp.exe (kernel C++ changed on this card); the assert
+  body lives in `scripts/settempo_persist_smoke.py` (kernel ZMQ REQ face,
+  same pattern as automation_curve_smoke.py).
+- Legs: LEG1 set_tempo open-form roundtrip — every leg starts from
+  `open_project` so the runAutoPersist save path is the non-forced
+  `EditFileOperations::save` (the silent-skip gate): set_tempo 96 → project
+  file sha256 must change across the write → reopen → disclosed
+  `music_context.tempo_bpm` exactly 96 (disk roundtrip, not an in-memory
+  echo — the tempo analogue of the KEYFIELD set_at byte-fidelity check).
+  LEG2 clear_project roundtrip: clip imported + saved → precondition clip
+  on disk → clear_project (its own auto-persist, no explicit save in
+  between) → reopen → zero clips. LEG3 undo roundtrip: set_tempo 133 →
+  undo → in-memory 96 → explicit save_project → reopen → 96. LEG4 redo
+  roundtrip: set_tempo 144 → undo → redo → in-memory 144 → save_project →
+  reopen → 144.
+- Emits `settempo_persist_summary.json` (status/checks/hashes) under the
+  run artifacts dir; exit 0 requires every leg green.
+
+Notes:
+
+- The legs only need the kernel stack after `-StartKernel`; they do not
+  depend on the agent HTTP face (pass `-NoChatSmoke -NoStripSilenceSmoke`
+  to skip it).
+- Baseline differential evidence: the same script against a pre-fix kernel
+  fails LEG1 (tempo lost after reopen / hash unchanged) — recorded in the
+  card receipt; do not re-baseline per run.

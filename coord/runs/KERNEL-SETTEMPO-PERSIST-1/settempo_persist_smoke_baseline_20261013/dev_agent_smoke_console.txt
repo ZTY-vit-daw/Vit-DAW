@@ -1,0 +1,44 @@
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_wt_settempo
+agent http: http://127.0.0.1:7878
+
+== Build VitAgent
+ok: build passed: D:\Vit_DAW_wt_settempo\agent\bin\VitAgent.dev-smoke.exe
+ok: installed agent bin: D:\Vit_DAW_wt_settempo\agent\bin\VitAgent.exe
+ok: installed agent root compatibility exe: D:\Vit_DAW_wt_settempo\agent\vitagent.exe
+
+== Start kernel
+ok: started kernel: D:\Vit_DAW\Export\staging\runtime\VitApp.exe pid=4240 workdir=D:\Vit_DAW\Export\staging\runtime
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW_wt_settempo\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=285
+shadow.initialized=True track_count=0
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=4240
+ok: ZMQ SUB listening: 5556 pid=4240
+
+== Project state invoke
+project.state status=ok error=
+
+== settempo persist smoke (KERNEL-SETTEMPO-PERSIST-1)
+python.exe : settempo persist smoke: FAIL: set_tempo open-form must write the project file (auto-persist silent skip su
+spected: hash unchanged)
+ËùÔÚÎ»ÖÃ D:\Vit_DAW_wt_settempo\scripts\dev_agent_smoke.ps1:6547 ×Ö·û: 5
++     & python $settempoSmokeScript --url ("tcp://127.0.0.1:" + $ZmqReq ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (settempo persis...hash unchanged):String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
