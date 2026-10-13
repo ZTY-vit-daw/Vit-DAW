@@ -5,7 +5,7 @@
 
 ## 当前占用
 
-- 状态：空闲
+- 2026-10-14 晚 +0800（本机钟）登记 / FIX-FS-SETTLE-DEADCHAIN-1（GLM-5.3 L2 执行会话，PC，ZCode；worktree D:/Vit_DAW_wt_fsdc1r2，分支 port/fix-fs-settle-deadchain-1-rerun2）：收口腿复跑（验收修正裁定：模型=正名 deepseek-flash 思考档链路首测）——D1 reverb `run_free_state_d1_smoke.ps1 -PromptFlavor reverb -ExpectDomain reverb`，目标 exit 0 连过 2 轮；登记前只读核对四端口 5555/5556/7878/8787 监听=0、VitApp/VitAgent/vsphub/Godot 进程=0（前 owner 本卡 00:47 已于 c1be027a 释放）；LLM 预探测 HTTP 200 echo=deepseek-flash reasoning_tokens=17（思考档在线）；被测=worktree 构建 agent（origin/main 8500fd7b 含 B-i+C 合入）+主检出 VitApp.exe B6565DCF85D1DA86（C++ 面零改动）。
 
 ## 最近一次释放
 
