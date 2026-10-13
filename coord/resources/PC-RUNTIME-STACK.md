@@ -5,11 +5,11 @@
 
 ## 当前占用
 
-- 状态：占用中
-- 2026-10-13 23:16 +0800 登记 / TIMEFX-D1-EXIT0-DEEPSEEK-1（GLM-5.3 PC 执行流，ZCode 会话；worktree D:/Vit_DAW_wt_d1ds1，分支 port/timefx-d1-exit0-deepseek-1）：deepseek 基线 D1 收口腿——`run_free_state_d1_smoke.ps1 -PromptFlavor reverb -ExpectDomain reverb` 意图声明型话术（本卡适配后）连过 2 轮 + delay 族同话术 1 轮可选加分（以 reverb exit 0 为前提）；被测 agent=worktree D:/Vit_DAW_wt_fix106 构建 VitAgent.exe SHA256 0f9de7ed0fed4c3b（含 FIX-TIMEFX-AXISFILTER-1 全部七处修复，与挂账轮末版逐位一致，启动前哈希亲核）+内核=主检出 VitApp.exe b6565dcf85d1da86（C++ 面零改动）；话术适配改动在 scripts/free_state_d1_smoke.py（worktree D:/Vit_DAW_wt_d1ds1）——被测栈跑主检出脚本+fix106 agent 的组合时，烟测脚本以本 worktree 版本运行。登记前只读核对四端口 5555/5556/7878/8787 监听=0、VitApp/VitAgent/vsphub/Godot 进程=0（前 owner KERNEL-SETTEMPO-PERSIST-1 已于 22:05 释放核净；其"当前占用"陈旧行随本次登记更新）。
+- 状态：空闲
 
 ## 最近一次释放
 
+- 2026-10-13 23:16–23:38 +0800（本机钟）/ TIMEFX-D1-EXIT0-DEEPSEEK-1（GLM-5.3 PC 执行流，ZCode 会话；worktree D:/Vit_DAW_wt_d1ds1，分支 port/timefx-d1-exit0-deepseek-1）：deepseek 基线 D1 收口腿三跑——首轮 23:17 参数解析失败（新 worktree 缺 temp/ fixture，未启栈即退出，无进程影响）；run 20261013_231930 与 20261013_232817 两轮**均 exit 1 "D1 must contain exactly one forward mutation"，同断点**（域选择适配生效：4/4 提案 reverb、2 次完整准入 decay_pct=3/4；新阻断=末轮空态 experiment_materiality+final=true 触发 settle 拒收吞链，interventions=0，§8 两轮同断点停止重跑，证据与候选修复菜单见 coord/runs/TIMEFX-D1-EXIT0-DEEPSEEK-1/FORENSICS.md，卡转 blocked 上交）。23:38 手动 teardown VitApp 22628/VitAgent 8948/Godot×4，复核四端口 5555/5556/7878/8787 监听=0、VitApp/VitAgent/vsphub/Godot 进程名核验=0。占用登记 7913e2a2；被测=fix106 构建 VitAgent 0f9de7ed0fed4c3b（复刻至本 worktree agent/bin，哈希亲核）+主检出 VitApp.exe b6565dcf85d1da86（C++ 面零改动）；工件 coord/runs/TIMEFX-D1-EXIT0-DEEPSEEK-1/（随 0814a3ae+9c50bc7f@port/timefx-d1-exit0-deepseek-1 入库），详见卡面回执。
 - 2026-10-13 21:45–22:05 +0800（本机钟）/ KERNEL-SETTEMPO-PERSIST-1（GLM-5.3 PC 执行流，ZCode 会话；worktree D:/Vit_DAW_wt_settempo，分支 port/kernel-settempo-persist-1）：内核 edit-state 变更注册冒测两 run——baseline_20261013=基线差分取证轮（主检出 VitApp.exe B6565DCF85D1DA86，**exit 1 于 file_written 哈希门=open 形态 set_tempo 后工程文件 sha256 不变=静默跳写实锤**）；fixed_20261013=修复回归轮（worktree 自建 VitApp.exe 21:42 构建含四处 markAsChanged，**PASS exit 0 八检**：set_tempo open 形态 save/reload 往返精确 96+哈希变化/clear_project 往返 clips 归零/undo 往返 96/redo 往返 144）；两轮间 owner 手动拆栈换内核。22:05 末轮后复核四端口 5555/5556/7878/8787 监听=0、VitApp/VitAgent/vsphub/Godot 进程=0，临时工程文件已清。占用登记 bb5401c2；被测=worktree 构建 VitAgent（Go 面零改动，基线等价）；run 工件 coord/runs/KERNEL-SETTEMPO-PERSIST-1/（随 cd261982@port/kernel-settempo-persist-1 入库），详见卡面回执。
 
 ## 历史占用（上一条）
