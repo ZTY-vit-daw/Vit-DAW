@@ -1,0 +1,22 @@
+{
+ "run": "20261013_180315",
+ "status": "fail",
+ "error": "D1 durable continuation failed: durable continuation failed: Our servers are currently overloaded. Please try again later.",
+ "selected_domains": null,
+ "responses": [
+  {
+   "goal_status": "waiting_continue",
+   "stop_reason": "limit_reached",
+   "error": null,
+   "kernel": [
+    "ccb_observation_catalog"
+   ]
+  }
+ ],
+ "rounds": 0,
+ "round_status": [],
+ "interventions": [],
+ "d1_receipt_applied": null,
+ "d1_receipt_audition_ready": null,
+ "d1_receipt_settled": null
+}

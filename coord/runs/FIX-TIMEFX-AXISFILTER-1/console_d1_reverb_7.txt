@@ -1,0 +1,40 @@
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_wt_fix106
+agent http: http://127.0.0.1:7878
+
+== Restart existing VitAgent
+
+== Start kernel
+ok: kernel command port already listening: 5555
+
+== Start UI
+ok: kernel command port already listening before UI start: 5555 pid=28476
+ok: UI-launched kernel command port is listening: 5555
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW_wt_fix106\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=285
+shadow.initialized=True track_count=6
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=28476
+ok: ZMQ SUB listening: 5556 pid=28476
+
+== Project state invoke
+project.state status=ok error=
+
+== Summary
+ok: dev agent smoke completed
+D1-S1 NOT_EXERCISED: report=D:\Vit_DAW_wt_fix106\artifacts\free_state_d1_s1\20261013_110320\d1_smoke_report.json
+D1-S1 NOT_EXERCISED: spv1_p01 did not autonomously select the expected admitted domain (expect=reverb); report=D:\Vit_DAW_wt_fix106\artifacts\free_state_d1_s1\20261013_110320\d1_smoke_report.json

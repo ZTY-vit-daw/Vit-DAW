@@ -1,0 +1,75 @@
+{
+ "run": "20261013_105238",
+ "status": "fail",
+ "error": "acoustic materiality record is missing",
+ "selected_domains": [
+  "reverb"
+ ],
+ "responses": [
+  {
+   "goal_status": "waiting_continue",
+   "stop_reason": "limit_reached",
+   "error": null,
+   "kernel": [
+    "ccb_observation_catalog"
+   ]
+  },
+  {
+   "goal_status": "scheduler_drained",
+   "stop_reason": null,
+   "error": null,
+   "kernel": []
+  },
+  {
+   "goal_status": "waiting_clarification",
+   "stop_reason": "plugin_selection_required",
+   "error": null,
+   "kernel": []
+  },
+  {
+   "goal_status": "waiting_confirmation",
+   "stop_reason": null,
+   "error": null,
+   "kernel": []
+  },
+  {
+   "goal_status": "waiting_confirmation",
+   "stop_reason": "semantic_dynamic_confirmation_required",
+   "error": null,
+   "kernel": [
+    "rack_add_node",
+    "get_plugin_parameters"
+   ]
+  },
+  {
+   "goal_status": "waiting_continue",
+   "stop_reason": "limit_reached",
+   "error": null,
+   "kernel": [
+    "ccb_observation_request"
+   ]
+  },
+  {
+   "goal_status": "scheduler_drained",
+   "stop_reason": null,
+   "error": null,
+   "kernel": []
+  },
+  {
+   "goal_status": "completed",
+   "stop_reason": null,
+   "error": null,
+   "kernel": []
+  }
+ ],
+ "rounds": 1,
+ "round_status": [
+  "observing"
+ ],
+ "interventions": [
+  1
+ ],
+ "d1_receipt_applied": true,
+ "d1_receipt_audition_ready": false,
+ "d1_receipt_settled": false
+}
