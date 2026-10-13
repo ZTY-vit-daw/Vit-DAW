@@ -29,6 +29,6 @@ D1 reverb 全链（run 20261012_211011，新模型 gpt-6.1-sol）：G1-G7 准入
 
 取证指向机器数据面（与上交证据矛盾）→ 带锚点上交复核。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-13 09:43 / origin/main=e7089c78（领取时本地 main=6413d23c 落后，以远端为准） / owner=GLM-5.3 执行会话（PC，ZCode 本会话，L2） / 分支=port/fix-timefx-axisfilter-1 / worktree=D:/Vit_DAW_wt_fix106 / 领取提交=本提交（仅含 coord/ 卡状态变更）
 - 回执：（commit / run ID / 取证层定位 / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
