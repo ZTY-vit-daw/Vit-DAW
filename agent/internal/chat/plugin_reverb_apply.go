@@ -315,7 +315,10 @@ func reverbUnitCompatible(role, unit, domain string) bool {
 	case "ms":
 		return reverbRoleIn(role, "pre_delay") && (domain == "ms" || domain == "s" || domain == "")
 	case "%":
-		return reverbRoleIn(role, "mix", "wet", "dry") && (domain == "%" || domain == "")
+		// decay/size ship as percent on the measured Pro-R surface (M2-TIMEFX-1
+		// decay_pct redesign); the domain-row dose writes them directly in %,
+		// so percent is a first-class decay/size unit alongside seconds.
+		return reverbRoleIn(role, "mix", "wet", "dry", "decay", "size") && (domain == "%" || domain == "")
 	case "display":
 		return domain != "enum" && domain != "toggle"
 	}
