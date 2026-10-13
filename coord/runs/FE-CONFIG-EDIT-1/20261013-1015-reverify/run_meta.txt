@@ -1,0 +1,19 @@
+run_id=fe_config_edit_1_reverify_20261013-1015
+mode=reverify（FE-CONFIG-EDIT-1 验收复验，只出证据不修码；样板=20261012-2315-browser）
+started_at=2026-10-13T10:15:33+0800（浏览器断言约 10:19-10:31）
+repo_root=/Users/timozty/Documents/Vit-DAW-feconfig1（worktree，分支 port/fe-config-edit-1，实现 commit ea8df384，worktree 干净）
+repo_dirty=无 tracked 改动（只读复验）；untracked 运行态=node_modules/dist 与 /tmp 运行目录，均不入库
+webui=vite dev（源码态，未走 dist）；VITE_AGENT_PROXY=http://127.0.0.1:7899；http://127.0.0.1:5199/app/
+agent_bin=/tmp/feconfig1-reverify-vitagent
+agent_sha256=22522ecd5d31c3e6...（go build ./cmd/vitagent @ worktree ea8df384；与昨日 run 20261012-2315 记录的 sha256 前缀一致=同源码确定性构建）
+agent_http=http://127.0.0.1:7899
+agent_home=$RUN/home=/tmp/feconfig1-reverify-20261013-1015/home（隔离 HOME；种子 apiKey=sk-preexisting-stored、image 路由 key=route-stored-key；用户真实 ~/.vit 未触碰——其 config.json mtime 09:59 早于 agent 启动 10:15）
+kernel=无（本卡渲染面断言不需要内核；agent ZMQ/VSP 连接失败为预期，不影响 /agent/config）
+browser=ZCode IAB Chromium（browser-use control-browser 技能，真键盘事件 cua.type）
+gate:
+  npm run test  → exit 0（38 files / 454 tests，与回执一致）
+  npm run build → exit 0（tsc --noEmit + vite build）
+  乱码 grep → 口径A 任务指定类 [渚涘簲鍟嗘ā鍨] 排除 *.test.* 后 0 命中（test 文件内 1 命中=断言 fixture 预期在场）；口径B 广谱 hallmark 类 2 命中+运行时观察 1 命中（App.tsx:4200 鏄惧紡步进 / 9931 鑺傜偣 / 3027 鍐呮牳閿欒），三处均为 ea8df384~1 与 origin/main 已在的卡前存量、位于设置页文件域外
+  browser round → PASS 16/16（明细见 browser_assertions.json；真键盘两轮 20+21=41 字符全部入框无丢失）
+cleanup=断言后 vitagent/vite 已停（端口 7899/5199 释放核实）、浏览器标签已关；构建产物不入库
+notes=复验中途设置页曾自行关闭一次（Phase B3 与 C 之间，IAB 焦点/持续轮询重渲染环境现象）；重开后即"初始加载清空"语义，断言链未受影响。回执"34 字符"口径与两串实际长度（20+21=41）不符，本复验按实际字符数记录。

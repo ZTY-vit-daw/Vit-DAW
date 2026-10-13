@@ -1,0 +1,69 @@
+{
+  "baseUrl": "https://api.example.com/v1",
+  "apiKey": "sk-browser-typed-999",
+  "defaultModel": "provider/model-old",
+  "multimodalRoutes": {
+    "audio_understanding": {
+      "enabled": false,
+      "provider": "default",
+      "priority": 40
+    },
+    "embeddings": {
+      "enabled": false,
+      "provider": "default",
+      "priority": 70
+    },
+    "image": {
+      "enabled": true,
+      "provider": "openai",
+      "apiKey": "route-stored-key",
+      "model": "vision-a"
+    },
+    "image_generation": {
+      "enabled": false,
+      "provider": "default",
+      "priority": 30
+    },
+    "image_understanding": {
+      "enabled": false,
+      "provider": "default",
+      "apiKey": "route-image-typed-777",
+      "priority": 20
+    },
+    "mix_observation": {
+      "enabled": false,
+      "provider": "default",
+      "priority": 100
+    },
+    "mix_strategy": {
+      "enabled": false,
+      "provider": "default",
+      "priority": 80
+    },
+    "mix_tick": {
+      "enabled": false,
+      "provider": "default",
+      "priority": 90
+    },
+    "text": {
+      "enabled": false,
+      "provider": "default",
+      "priority": 10
+    },
+    "transcription": {
+      "enabled": false,
+      "provider": "default",
+      "priority": 50
+    },
+    "video_browser": {
+      "enabled": false,
+      "provider": "default",
+      "priority": 60
+    }
+  },
+  "browser": {
+    "enabled": false,
+    "mode": "webview2_companion",
+    "rememberSession": true
+  }
+}

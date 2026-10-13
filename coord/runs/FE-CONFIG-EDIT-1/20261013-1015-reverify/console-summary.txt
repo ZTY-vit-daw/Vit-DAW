@@ -1,0 +1,20 @@
+=== console-summary（关键行摘录；完整日志在执行会话 /tmp/feconfig1-reverify-20261013-1015/，复验后清理）===
+--- vite（8 行全量）---
+
+> ask-vit-webui@0.1.0 dev
+> vite --host 127.0.0.1 --port 5199 --strictPort
+
+
+  VITE v6.4.3  ready in 84 ms
+
+  ➜  Local:   http://127.0.0.1:5199/app/
+--- vitagent（418 行；首行/告警类型统计/末行）---
+2026-10-13T10:15:33 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=1 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+[告警类型统计]
+ 393 could not dial
+ 252 kernel dial
+ 141 telemetry loop reconnecting
+  25 VSP Hub registration pending
+2026-10-13T10:36:32 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+--- 终端侧链路探针（curl）---
+GET /health → 200；GET /agent/config（经 5199 代理）→ path=/tmp/feconfig1-reverify-20261013-1015/home/.vit/config.json hasApiKey=True redactedKey=''（RedactSecrets 生效）
