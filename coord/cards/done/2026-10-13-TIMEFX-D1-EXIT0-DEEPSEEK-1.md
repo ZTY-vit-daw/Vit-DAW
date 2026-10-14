@@ -39,3 +39,4 @@ LLM 基线已切换 deepseek-chat（api.deepseek.com/v1；PC 决策侧探测实�
   - **端测边界声明**：本卡改动面=烟测话术字典（无 agent/Go/内核/webui 改动，go test/gofmt 不适用）；真栈两轮覆盖域选择/准入/自由态循环全链；**应用后路径（interventions/settlement/A-B）因新阻断未触达**；LLM 口径行（deepseek-chat）随工件入卷
   - **三笔挂账**：销账条件（deepseek 基线 D1 reverb exit 0）未满足，维持挂账；话术适配已就位，任一候选修复落地后可直接复验
 - 验收（主管裁定 2026-10-13 深夜）：**适配部分采信**——话术 diff 亲读（意图声明型/盲法四要素保持/括注为自然用户语非堆砌）+两轮 run 证据亲核（各 4×action_domain=reverb、4×reverb_decay_adjust 准入、2×空态 materiality、零 interventions、同断点 exit 1）+FORENSICS 采信；交付已合入 main（merge 随本批）。**新阻断处置=立 FIX-FS-SETTLE-DEADCHAIN-1（109，B 主修方向）**，本卡收口腿转 109 收口后复验销账（三笔挂账维持）。卡维持 blocked（依赖 109）。
+- **blocked 解除销账（2026-10-14 批量六）**：收口腿 exit 0 条件达成=109 rerun6 双 exit 0（run12/13）；本卡发现的空态 settle 死链经 109 线七腿修复闭环。**复验采信=rerun6 证据，销账转 done**（[rulings/2026-10-14-BATCH6-rulings.md](../../rulings/2026-10-14-BATCH6-rulings.md)③）。
