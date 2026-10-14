@@ -29,6 +29,6 @@ diff 亲读+三形态单测亲跑+95 包 0 FAIL；修复后由决策侧安排 10
 
 保留语义与 shadow 既有 checkpoint/回滚语义冲突（保留旧身份会污染别的读方）→ 带冲突读方清单上交。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-14 19:05 +0800 / origin/main=8291d42a（todo 在位、派发已确认；doing 三卡域=experiment_runtime+goalrunner / 前端仓焦点日志 / agentloop free_state_reasoning+free_state_gate+chat prompt，均与本卡 harness 域不相交） / GLM-5.3-Flash L1 执行会话（PC Windows，ZCode） / port/fix-shadow-binding-identity-1 / D:/Vit_DAW_wt_shadowbind1 / 领取提交=本提交
 - 回执：（commit / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
