@@ -66,5 +66,5 @@
 ## 三、池/栈终态（2026-10-14 早窗）
 
 - main=459baeed；真栈=空闲；doing=1（109 腿 D 待派）；blocked=1（108 等 109 收口后复验销账）。
-- PC 可执行余卡：110（FIX-CARRIES-REPORT-TIGHTEN-1，已确认派发）/ FE-GUI-B(91) / FE-GUI-C(92，依赖 91)——满足 ≥2；FE-MOJIBAKE（Mac 线，待用户确认派发）。
+- PC 可执行余卡（早窗勘误补全）：110（FIX-CARRIES-REPORT-TIGHTEN-1）/ FE-GUI-B(91) / FE-GUI-C(92，依赖 91) / LOUDNESS-B-TRIGGER(90，前置 A 已 pass) / HARNESS-STRUCT-NORMALIZE(53) / FS-BLOCKED-SURFACE-CLOSURE(54)——池深充足；FE-MOJIBAKE（Mac 线，待用户确认派发）；FS-RECEIPT-REVISION(51) 领取前须核对 FS-LEDGER-PERSIST-1 合入状态。注：53/54 为 10-10 后端小卡批存量，实际派发前由主管复核卡面前提是否仍成立。
 - 今日池序（早窗校准，晚窗参考序标在各卡头）：①腿 D 首件 ②中期盘点（本文档）③M3 步骤 3/4 拆卡视精力 ④110 晚窗起步参考①（纯单测不占栈，可与腿 D 并行）/ FE-GUI-B ②（前端仓域不相交，栈腿避让 109 收口时段）。
