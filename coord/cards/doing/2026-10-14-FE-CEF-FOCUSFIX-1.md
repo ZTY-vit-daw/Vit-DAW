@@ -29,6 +29,6 @@
 - 补偿方案加剧焦点抖动或引入新失焦形态 → 回退方案上交；
 - 上游仓库不可考/插件非开源分支 → 上游线记不可行结论，补偿线为主。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-14 20:29 / origin/main=f50279d2 / Mac 执行侧（GLM 会话）/ 分支 port/fe-cef-focusfix-1（主仓）+ 前端仓续用 port/fe-cef-keyinput-recon-1@6e5a459 / 主仓 worktree=Vit-DAW-fecef2（本领取提交在 fecef1-coord 复用 worktree 上完成）/ 领取提交见本行回填（coord-only 直推 main）。领取时前端仓状态：branch=port/fe-cef-keyinput-recon-1@6e5a459，status=仅未跟踪运行时目录（.vit_agent/ .vit_history/ VitApp/），diff --stat=空。
 - 回执：（commit / run ID / 上游结论件+补偿有效性证据 / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
