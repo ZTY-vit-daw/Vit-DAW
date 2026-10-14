@@ -61,3 +61,38 @@ C 腿落地（概率性、不触盲法——仅相位纪律文本，无任何 fi
 ## 六、端测边界声明
 
 改动面=agent/internal/chat（settle 谓词+测试）+ agentloop/ruleset 提示面（C 腿）；未涉 webui/内核/scripts。真栈端测覆盖：域选择→提案→（准入失败边界）全链 4 轮实跑取证；**未覆盖**：准入后路径（intervention 物化/settle/盲法试听）因模型档位墙未触达——该边界即本报告 §三主体。
+
+## 七、腿 D（final gate 拒收反馈教学硬化）+ 复跑 rerun3（2026-10-14 晨，验收裁定二授权）
+
+### 腿 D 代码面（commit 4737a0c6 @ port/fix-fs-settle-deadchain-1-rerun2，已推 origin）
+
+- 拒收消息构造链：`experiment.MaterialityEvaluation.Validate()`（agent/internal/experiment/runtime.go）产生字段错误 → `FreeStateDecision.Validate()` 包 `experiment_materiality:` 前缀（free_state_reasoning.go:157）→ message_loop 输出门包 `invalid free_state decision:`（:946）→ 以 `<final_gate>` user 消息回流模型（message_loop.go:10910/10887）——原消息零形状教学，rerun2 两轮模型续轮瞎猜实证。
+- 改动=三字段错误携带被违反字段的合法形状（常量驱动防漂移，零 fixture/轨道/参数真值）：
+  - `unsupported materiality state %q (state must be one of: none, subthreshold, material)`；
+  - `unsupported materiality evaluation %q (evaluation must be one of: not_ready, insufficient_dose, agent_evaluable, ambiguous)`；
+  - `materiality attempt must be a positive integer (attempt >= 1), got %d`。
+- 测试：agent/internal/agentloop/free_state_settle_shape_teaching_test.go 三测钉「非法输入→拒收消息含合法形状枚举」（含 run6 实形状复刻 fixture：final=true+settle 三件套+仅 materiality 形状非法）+scope control（attempt 教学不漏 state 枚举）。
+- settle 示例核对：freeStateSettleReportExample 的 evaluation 枚举（agent_evaluable|insufficient_dose|ambiguous）为 schema 合法集的**有意子集**——not_ready 须保持 schema 合法（B-i 豁免对 state=none+evaluation=not_ready 依赖它），settle 时刻语义上不该用 not_ready（无证据应走 blocked boundary）；示例与教学无矛盾，不改。
+- `go test ./... -count=1` 95 包 0 FAIL；gofmt 净（LF blob 口径，工作副本 CRLF 属本机 autocrlf checkout 形态）。
+
+### 复跑（worktree 同 rerun2，腿 D 提交叠其上；agent 构建 SHA256 AFEA9F30C32A56EF；模型=deepseek-flash 思考档 config 全程未动，启栈前探针 HTTP 200/0.68s、echo=deepseek-flash、reasoning_tokens=16；占用登记 51ed34dc）
+
+三 run 均 exit 1（run7 20261014_105719 / run8 20261014_111306 / run9 20261014_112339），干预 applied 三轮一致（reverb 语义动态执行、actual_readback 0.2427 族、原子控制、restore_ref 在卷），死点全部在执行后 post-action→settle 段，但**三形态互异**：
+
+- **run7**：terminal="acoustic materiality record is missing"。post-action 段 4/14 次 LLM 60s 整超时（transient_llm_error 自恢复）；唯一 settle 尝试 materiality 对象整个缺失 state/attempt 字段（JSON 省略→零值，run6 第一式同源）→ 带教学拒收 1 次（**教学串真栈在场实锤**）→ 模型收到教学后的唯一重试调用又被 60s 超时吃掉 → 预算耗尽 blocked。**教学有效性未被检验**（transient 主导，非同签名复发）。
+- **run8**：terminal="D1 requires one post-action CCB observation"（新形态）。LLM 面 0 超时全健康；post-action 重观察请求同一 per-track view 被防重复门连弹 5 次（bounce 消息本身有教学："decide from the recorded evidence or request a different cataloged view or target"），模型不换 view/target 不从已录证据决断 → capability_blocked（"closure made no material progress within its bounded observation window"），cont 4/6。
+- **run9**：terminal 与 run8 同签名。1/14 超时；模型完成 post-action 观察请求但**观察包部分返回**（工程绑定缺失，模型自报 limitations 在卷）→ D1 post-action 观察门不满足；随后 4 次 settle 尝试**打地鼠形态**：state=""↔attempt=0 交替（教学在场逐次拒收并指名被违反字段；模型每次只修首个被指字段、重写对象时丢掉其他字段——尝试 2/4 连 evidence_refs 也缺）。预算耗尽 8/7。
+
+### §8 停止与上交
+
+run8+run9 同代码版本（AFEA9F30）同 terminal 断点连续 2/2 → 停止线触发；三笔挂账（M2-TIMEFX-1 111841/M2-TIMEFX-2 195448/FIX-106）**未销**（exit 0 未达成）。上交决策侧的裁定菜单：
+
+1. **升级梯子下一步=deepseek-v4-pro 复跑**（卡面既定梯：flash 思考档 2/2→升 v4-pro；本腿 run8/9 构成同签名 2/2，触发条件成立但由决策侧发）。
+2. **打地鼠新证据**（腿 D 的直接产出）：单字段首错教学不足以让 flash 思考档一次拼齐 materiality 完整对象。可选硬化菜单：拒收消息附带完整 materiality 对象形状（四字段全列 JSON 骨架，仍零真值）——即把 freeStateSettleReportExample 的 experiment_materiality 子对象并入拒收反馈；或 schema 错误一次性列出全部被违反字段（Validate 由短路改全收集）。
+3. **post-action 观察门两子形态**（run8/run9）：防重复门 vs 模型不换 view；部分返回观察包（工程绑定缺失）不计入 post-action 门——是否属产品缺口（fresh post-action 证据获取被结构性阻断）建议决策侧评估是否立取证卡。
+
+### 验证与工件
+
+- 真栈 3 run：console（run7/8/9）+ d1_smoke_report.json×3 + debug jsonl 切片（run7×1/run8×5/run9×4 条 final_gate 记录含原始 raw）+ telemetry 切片（14+13+14 次调用）+ run9 agent_last_log 全部在卷 coord/runs/FIX-FS-SETTLE-DEADCHAIN-1/；重件留盘可回指 worktree D:/Vit_DAW_wt_fsdc1r2/artifacts/free_state_d1_s1/。
+- 拆栈：12:0x 手动 teardown VitAgent 22320/VitApp 30532/Godot 10836，复核四端口 5555/5556/7878/8787 监听=0、进程名核验=0。
+- 端测边界：真栈覆盖=域选择→提案→准入→装载→执行 applied→post-action 重观测边界→settle 拒收（含教学在场）边界×6；未覆盖=合法 settle 落地与人工 A/B 试听下游（三 run 均未产生合法 materiality 记录）。
