@@ -50,5 +50,12 @@ webui 层排除证据：FE-CONFIG-EDIT-1 修复版源码（IAB 真浏览器真�
 - 前端仓改动风险超界（他人 WIP 冲突）→ 前端侧日志降级为只读分析（代码审读+现有信号），不强行改。
 
 - 领取：2026-10-14 18:24 +0800 / origin/main=4476b9ed / GLM-5.3 L2 执行会话（Mac，ZCode）/ 分支 port/fe-cef-keyinput-recon-1 / 实现 worktree /Users/timozty/Documents/Vit-DAW-fecef1（coord 操作走 /Users/timozty/Documents/Vit-DAW-fecef1-coord）/ 领取提交 045ae77f（hash 回填=045ae77f 后续提交）
-- 回执：（commit / run ID / 三件工件路径 / 断点层结论）
+- 回执（执行侧交付 2026-10-14 晚，探针/日志/对照基线就位，**结论项待用户轮数据**）：
+  - 主仓 commit 74ea1f4a（分支 port/fe-cef-keyinput-recon-1，已推 origin）；前端仓本地 commit 6e5a459（分支同名，**推送被 GitHub GH001 拒**——本地历史含既有 CEF 二进制 >100MB，leg5 前序分支同样从未推成，非本卡引入；补丁全文已存档主仓 run 目录 frontend_focus_log.diff 供决策侧审阅）。
+  - run ID：coord/runs/FE-CEF-KEYINPUT-RECON-1/（服务方式 SERVICE.md、用户指引 USER_REPRO_INSTRUCTIONS.md、浏览器对照基线 JSON+PNG、dist 防护前后清单 DIST_UNTOUCHED_VERIFIED、探针构建快照）。
+  - 三件工件状态：①浏览器直开对照=IAB(Chromium 146) 四步全正常（input/onChange/commit/state-synced、值不抹回、paste 事件到达）——**边界：IAB 无法注入真实可信键盘，keydown 层仅合成（trusted=false 如实标记），真键盘+真 ⌘V 直开对照并入用户轮 R3**；②用户复现时间线=[等待用户]（R1 探针轮/R2 产品页轮/R3 Safari 轮，指引已就位）；③前端焦点链日志=代码就位（VIT_CEF_FOCUS_LOG 默认关，含 CefTexture focus_entered/exited+Window gui_focus_changed+grab_focus 前后态+0.5s 心跳；宿主脚本经 autoload 桩工程完整编译 HOST_COMPILE_OK），采集随用户轮。
+  - 取证钩子：VIT_AGENT_WEBUI_URL（默认空=生产行为不变）把 Ask Vit 窗口指向探针 7879；探针时间线经 [:INPROBE] console 镜像落 Godot 日志（VIT_CEF_DEBUG=1），下载失效也不丢数据。
+  - 断点层结论：**暂不下**（纪律：探针数据与用户复现未收回前不提前结论）。既有证据=普通 Chromium 下 webui React 层四步全正常+探针自身链路端到端可用；断点层判定与修复面定界待 R1-R3 数据齐后回填本卡。
+  - 端测覆盖边界声明：探针服务=静态构建产物（7879）；未动产品 dist（mtime+sha 前后核对一致）；CEF 容器内运行留待用户轮（AGENTS §5 手测途径）。
+- [等待用户:单轮复现采集 R1-R3（探针四步序列+产品设置页复现+Safari 直开对照），步骤=coord/runs/FE-CEF-KEYINPUT-RECON-1/USER_REPRO_INSTRUCTIONS.md；探针服务 7879 需在线，重启命令见 SERVICE.md]
 - 验收：（裁定文件 / 验收 commit）
