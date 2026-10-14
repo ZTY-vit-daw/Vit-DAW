@@ -1602,7 +1602,8 @@ func (h *Harness) executeKernelCommandVSP(ctx context.Context, vsp VSPKernelSend
 			return kernelExecutionResult{fallbackSafe: true, err: fmt.Errorf("vsp state snapshot returned nil")}
 		}
 		if before.OK() && h.shadow != nil {
-			h.shadow.Initialize(vspLegacyStateWithBinding(before))
+			state, _ := h.vspShadowState(before)
+			h.shadow.Initialize(state)
 		}
 	}
 
@@ -1679,12 +1680,14 @@ func (h *Harness) afterKernelReplyVSP(ctx context.Context, spec tools.CommandSpe
 		h.refreshShadow(ctx, spec.CommandName)
 	}
 	if h.shadow != nil && observed != nil && observed.OK() && len(observed.LegacyState) > 0 {
-		h.shadow.Initialize(vspLegacyStateWithBinding(observed))
+		state, _ := h.vspShadowState(observed)
+		h.shadow.Initialize(state)
 		return
 	}
 	if spec.CommandName == "get_project_state" {
 		if h.shadow != nil {
-			h.shadow.Initialize(reply)
+			state, _ := h.preserveVSPIdentityFromShadow(reply)
+			h.shadow.Initialize(state)
 		}
 		return
 	}
@@ -1875,6 +1878,109 @@ func vspLegacyStateWithBinding(result *kernel.VSPStateResult) map[string]any {
 		out["project"] = project
 	}
 	return out
+}
+
+// vspProjectIdentityMissing reports which kernel identity fields
+// (project_revision/project_epoch/snapshot_hash) are absent from a VSP state
+// snapshot rendered for shadow.Initialize. The lookup chains mirror how
+// shadow.Summary and the shadow change comparator read these fields back, so
+// "present" means the same thing on write and read.
+func vspProjectIdentityMissing(state map[string]any) []string {
+	project := mapAnyFromAny(state["project"])
+	chains := []struct {
+		field string
+		keys  []string
+	}{
+		{"project_epoch", []string{"project_epoch"}},
+		{"project_revision", []string{"project_revision", "revision"}},
+		{"snapshot_hash", []string{"snapshot_hash", "project_state_hash"}},
+	}
+	missing := make([]string, 0, len(chains))
+	for _, chain := range chains {
+		if firstString(state, chain.keys...) == "" && firstString(project, chain.keys...) == "" {
+			missing = append(missing, chain.field)
+		}
+	}
+	return missing
+}
+
+// preserveVSPIdentityFromShadow backfills the kernel identity triple missing
+// from an authoritative VSP snapshot with the shadow's last known identity for
+// the same project UUID. A snapshot that races a graph mutation can return
+// with the triple dropped while the project did not change (run9,
+// FORENSICS-LEG-E §二.2: latest_change project_revision before=11 → after
+// empty); letting Initialize overwrite the shadow with that partial snapshot
+// unbinds every downstream observation (CCB binding → post-action eligibility)
+// until a complete snapshot happens to arrive. Same-UUID matching keeps real
+// project switches on the identity-change baseline-reset path, and a shadow
+// that was never bound stays unbound (fail closed). Returns the state to
+// initialize with (a fresh map when anything was restored) and the names of
+// the restored fields.
+func (h *Harness) preserveVSPIdentityFromShadow(state map[string]any) (map[string]any, []string) {
+	if h == nil || h.shadow == nil || len(state) == 0 {
+		return state, nil
+	}
+	missing := vspProjectIdentityMissing(state)
+	if len(missing) == 0 {
+		return state, nil
+	}
+	project := mapAnyFromAny(state["project"])
+	stateUUID := firstNonEmpty(firstString(state, "project_uuid", "project_id"), firstString(project, "project_uuid", "project_id"))
+	lastKnown := h.shadow.Summary()
+	lastUUID := firstString(lastKnown, "project_uuid", "project_id")
+	if stateUUID == "" || lastUUID == "" || stateUUID != lastUUID {
+		return state, nil
+	}
+	out := cloneAnyMap(state)
+	project = map[string]any{}
+	if existing := mapAnyFromAny(out["project"]); existing != nil {
+		project = cloneAnyMap(existing)
+	}
+	restored := make([]string, 0, len(missing))
+	for _, field := range missing {
+		var value any
+		switch field {
+		case "project_epoch":
+			if v := firstString(lastKnown, "project_epoch"); v != "" {
+				value = v
+			}
+		case "snapshot_hash":
+			if v := firstString(lastKnown, "snapshot_hash"); v != "" {
+				value = v
+			}
+		case "project_revision":
+			if v := firstString(lastKnown, "project_revision"); v != "" {
+				if parsed, parseErr := strconv.ParseInt(v, 10, 64); parseErr == nil && parsed > 0 {
+					value = parsed
+				}
+			}
+		}
+		if value == nil {
+			continue
+		}
+		out[field] = value
+		project[field] = value
+		restored = append(restored, field)
+	}
+	if len(restored) == 0 {
+		return state, nil
+	}
+	out["project"] = project
+	if h.logger != nil {
+		h.logger.Warn("[harness] identity_preserved_on_incomplete_snapshot restored=%s project_uuid=%s project_revision=%s project_epoch=%s snapshot_hash=%s",
+			strings.Join(restored, ","), stateUUID,
+			firstString(out, "project_revision"), firstString(out, "project_epoch"), firstString(out, "snapshot_hash"))
+	}
+	return out, restored
+}
+
+// vspShadowState renders a VSP snapshot for shadow.Initialize with identity
+// preservation applied (see preserveVSPIdentityFromShadow).
+func (h *Harness) vspShadowState(observe *kernel.VSPStateResult) (map[string]any, []string) {
+	if observe == nil {
+		return nil, nil
+	}
+	return h.preserveVSPIdentityFromShadow(vspLegacyStateWithBinding(observe))
 }
 
 func attachVSPExecutionResult(result map[string]any, vsp map[string]any) {
@@ -12746,9 +12852,10 @@ func (h *Harness) refreshShadowWithStatus(ctx context.Context, reason string) ma
 				time.Since(kernelStarted).Milliseconds(), reason, err != nil)
 		}
 		if err == nil && observe != nil && observe.OK() {
-			h.shadow.Initialize(vspLegacyStateWithBinding(observe))
+			state, preserved := h.vspShadowState(observe)
+			h.shadow.Initialize(state)
 			refreshStatus = "ok"
-			return map[string]any{
+			status := map[string]any{
 				"shadow_refreshed": true,
 				"reason":           reason,
 				"source":           "vsp.state.snapshot",
@@ -12756,6 +12863,10 @@ func (h *Harness) refreshShadowWithStatus(ctx context.Context, reason string) ma
 				"project_epoch":    observe.ProjectEpoch,
 				"snapshot_hash":    observe.SnapshotHash,
 			}
+			if len(preserved) > 0 {
+				status["identity_preserved"] = strings.Join(preserved, ",")
+			}
+			return status
 		}
 		if err != nil && h.logger != nil {
 			h.logger.Warn("[harness] VSP shadow refresh after %s failed, falling back to legacy state: %v", reason, err)
