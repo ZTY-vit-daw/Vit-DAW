@@ -1,0 +1,746 @@
+From 34072f059cf1378119e4be4fa1ac5ea81adbe351 Mon Sep 17 00:00:00 2001
+From: TimoZTY <timozty@192.168.1.131>
+Date: Thu, 15 Oct 2026 00:01:32 +0800
+Subject: [PATCH] =?UTF-8?q?fix(FE-CEF-FOCUSFIX-1):=20gdcef=20=E7=84=A6?=
+ =?UTF-8?q?=E7=82=B9=E4=B9=92=E4=B9=93=E5=AE=BF=E4=B8=BB=E8=A1=A5=E5=81=BF?=
+ =?UTF-8?q?=EF=BC=88=E9=BB=98=E8=AE=A4=E5=85=B3=EF=BC=89+=E6=8E=A2?=
+ =?UTF-8?q?=E9=92=88=E9=A9=B1=E5=8A=A8=E5=9C=BA=E6=99=AF=E2=80=94=E2=80=94?=
+ =?UTF-8?q?VitDebugFlags=20=E5=A2=9E=20cef=5Ffocus=5Fcompensation=5Fenable?=
+ =?UTF-8?q?d=EF=BC=88env=20VIT=5FCEF=5FFOCUS=5FCOMPENSATION/JSON=20?=
+ =?UTF-8?q?=E9=94=AE=EF=BC=8C=E9=BB=98=E8=AE=A4=E5=85=B3=3D=E7=94=9F?=
+ =?UTF-8?q?=E4=BA=A7=E8=A1=8C=E4=B8=BA=E4=B8=8D=E5=8F=98=EF=BC=8C=E7=83=AD?=
+ =?UTF-8?q?=E9=87=8D=E8=BD=BD=EF=BC=89=EF=BC=9Bvit=5Fcef=5Fweb=5Fview=5Fho?=
+ =?UTF-8?q?st=20=E8=A1=A5=E5=81=BF=E6=80=81=E6=9C=BA=EF=BC=9A=E9=A1=B5?=
+ =?UTF-8?q?=E9=9D=A2=E7=84=A6=E7=82=B9=E6=8E=A2=E9=92=88=20shim=EF=BC=88?=
+ =?UTF-8?q?=5F=5FvitCefFocusProbeReport=20=E7=BB=8F=20console=20=E5=9B=9E?=
+ =?UTF-8?q?=E6=8A=A5=20hasFocus/=E7=BB=84=E5=90=88=E6=80=81=EF=BC=89+?=
+ =?UTF-8?q?=E4=B9=92=E4=B9=93=20churn=20=E8=AE=A1=E6=95=B0=EF=BC=88?=
+ =?UTF-8?q?=E5=86=B7=E5=8D=B4/=E9=80=80=E9=81=BF=E6=9C=9F=E8=87=AA?=
+ =?UTF-8?q?=E8=BA=AB=E4=BA=8B=E4=BB=B6=E4=B8=8D=E8=AE=A1=EF=BC=89+?=
+ =?UTF-8?q?=E5=8D=A1=E6=AD=BB=E7=AD=BE=E5=90=8D=E5=88=A4=E5=AE=9A=EF=BC=88?=
+ =?UTF-8?q?=E9=A1=B5=E9=9D=A2=E5=A4=B1=E7=84=A6=E2=89=A51.2s+owner=20?=
+ =?UTF-8?q?=E5=9C=A8=E6=B5=8F=E8=A7=88=E5=99=A8=E6=A0=91=E5=86=85+2s=20?=
+ =?UTF-8?q?=E7=AA=97=E5=8F=A3=E5=86=85=E6=8D=A2=E6=89=8B=E2=89=A54?=
+ =?UTF-8?q?=EF=BC=89=E2=86=92window.grab=5Ffocus+CefTexture.grab=5Ffocus?=
+ =?UTF-8?q?=20=E9=87=8D=E7=BD=AE=EF=BC=88=E7=BB=84=E5=90=88=E8=BE=93?=
+ =?UTF-8?q?=E5=85=A5=E8=BF=9B=E8=A1=8C=E4=B8=AD=E4=B8=8D=E5=87=BA=E6=89=8B?=
+ =?UTF-8?q?=EF=BC=89=EF=BC=9B=E8=AF=8A=E6=96=AD=E9=9D=A2=20debug=5Fwindow/?=
+ =?UTF-8?q?debug=5Fbrowser/debug=5Fconsole=5Freceived=EF=BC=88=E4=BA=A7?=
+ =?UTF-8?q?=E5=93=81=E9=93=BE=E8=B7=AF=E9=9B=B6=E6=B6=88=E8=B4=B9=EF=BC=89?=
+ =?UTF-8?q?=EF=BC=9B=E6=96=B0=20vit=5Fdock/diagnostics/cef=5Ffocus=5Fautod?=
+ =?UTF-8?q?rive=20=E9=A9=B1=E5=8A=A8=E5=9C=BA=E6=99=AF=EF=BC=88=E6=98=BE?=
+ =?UTF-8?q?=E5=BC=8F=E5=9C=BA=E6=99=AF=E5=8F=82=E6=95=B0=E5=90=AF=E5=8A=A8?=
+ =?UTF-8?q?=EF=BC=8C=E5=BC=95=E6=93=8E=E8=BE=B9=E7=95=8C=20push=5Finput=20?=
+ =?UTF-8?q?=E6=B3=A8=E5=85=A5+=E7=B4=A7=E5=87=91=E5=B8=83=E5=B1=80+?=
+ =?UTF-8?q?=E7=82=B9=E5=87=BB=E6=A0=A1=E5=87=86+=E5=8D=A1=E6=AD=BB?=
+ =?UTF-8?q?=E6=80=81=E5=90=88=E6=88=90=EF=BC=8C=E4=B8=8D=E4=BA=A7=E5=93=81?=
+ =?UTF-8?q?=E9=93=BE=E8=B7=AF=EF=BC=89=E3=80=82=E9=A9=B1=E5=8A=A8=E5=AE=9E?=
+ =?UTF-8?q?=E8=AF=81=EF=BC=9A=E5=90=88=E6=88=90=E5=8D=A1=E6=AD=BB=E6=80=81?=
+ =?UTF-8?q?=20OFF=3D=E9=A1=B5=E9=9D=A2=E5=A4=B1=E7=84=A6=E6=8C=81=E7=BB=AD?=
+ =?UTF-8?q?+owner=3D@LineEdit=EF=BC=8CON=3D=E8=A1=A5=E5=81=BF=201.3s=20?=
+ =?UTF-8?q?=E5=86=85=E8=87=AA=E4=B8=BB=E6=81=A2=E5=A4=8D=20owner=3DCefText?=
+ =?UTF-8?q?ure=C3=975=20=E8=BD=AE=EF=BC=9B=E5=8F=A6=E5=8F=91=E7=8E=B0=20IM?=
+ =?UTF-8?q?E=20=E4=BB=A3=E7=90=86=E6=96=87=E6=9C=AC=E9=87=8D=E6=94=BE?=
+ =?UTF-8?q?=E7=BC=BA=E9=99=B7=EF=BC=88gdcef=20=E5=86=85=E9=83=A8=EF=BC=8C?=
+ =?UTF-8?q?=E8=AF=A6=E8=A7=81=E4=B8=BB=E4=BB=93=20run=20=E4=BB=B6=EF=BC=89?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ app/kernel/autoloads/VitDebugFlags.gd         |  12 +
+ vit_dock/diagnostics/cef_focus_autodrive.gd   | 364 ++++++++++++++++++
+ vit_dock/diagnostics/cef_focus_autodrive.tscn |   6 +
+ vit_dock/scenes/vit_cef_web_view_host.gd      | 198 ++++++++++
+ 4 files changed, 580 insertions(+)
+ create mode 100644 vit_dock/diagnostics/cef_focus_autodrive.gd
+ create mode 100644 vit_dock/diagnostics/cef_focus_autodrive.tscn
+
+diff --git a/app/kernel/autoloads/VitDebugFlags.gd b/app/kernel/autoloads/VitDebugFlags.gd
+index 4e970a7..e646cdc 100644
+--- a/app/kernel/autoloads/VitDebugFlags.gd
++++ b/app/kernel/autoloads/VitDebugFlags.gd
+@@ -15,6 +15,11 @@ var webui_lifecycle_log_enabled: bool = false
+ ## CefTexture 的焦点进出/grab_focus/set_visible/心跳焦点态。默认关。
+ ## 开启: env VIT_CEF_FOCUS_LOG=1 或 JSON "cef_focus_log_enabled": true
+ var cef_focus_log_enabled: bool = false
++## CEF 焦点乒乓补偿（FE-CEF-FOCUSFIX-1，过渡 hack，根修=升级 gdcef）：检测
++## gdcef IME 桥乒乓失焦态（页面回报 hasFocus=false 持续 + CefTexture/IME 代理焦点
++## 高频换手）→ window.grab_focus + CefTexture.grab_focus 重置焦点环。默认关。
++## 开启: env VIT_CEF_FOCUS_COMPENSATION=1 或 JSON "cef_focus_compensation_enabled": true
++var cef_focus_compensation_enabled: bool = false
+ # Narrow, high-signal clip import/bake routing diagnostics.
+ # Enable by either:
+ # 1) env: VIT_CLIP_PIPELINE_LOG=1
+@@ -149,6 +154,11 @@ func _load_from_env() -> void:
+ 		cef_focus_log_enabled = true
+ 	elif cef_focus_raw in ["0", "false", "off", "no"]:
+ 		cef_focus_log_enabled = false
++	var cef_comp_raw := OS.get_environment("VIT_CEF_FOCUS_COMPENSATION").strip_edges().to_lower()
++	if cef_comp_raw in ["1", "true", "on", "yes"]:
++		cef_focus_compensation_enabled = true
++	elif cef_comp_raw in ["0", "false", "off", "no"]:
++		cef_focus_compensation_enabled = false
+ 	var clip_raw := OS.get_environment("VIT_CLIP_PIPELINE_LOG").strip_edges().to_lower()
+ 	if clip_raw in ["1", "true", "on", "yes"]:
+ 		clip_pipeline_log_enabled = true
+@@ -254,6 +264,8 @@ func _reload_from_commands_file_if_changed(force: bool = false) -> void:
+ 		webui_lifecycle_log_enabled = bool(d["webui_lifecycle_log_enabled"])
+ 	if d.has("cef_focus_log_enabled"):
+ 		cef_focus_log_enabled = bool(d["cef_focus_log_enabled"])
++	if d.has("cef_focus_compensation_enabled"):
++		cef_focus_compensation_enabled = bool(d["cef_focus_compensation_enabled"])
+ 	if d.has("clip_pipeline_log_enabled"):
+ 		clip_pipeline_log_enabled = bool(d["clip_pipeline_log_enabled"])
+ 	if d.has("wave_tile_diag_log_enabled"):
+diff --git a/vit_dock/diagnostics/cef_focus_autodrive.gd b/vit_dock/diagnostics/cef_focus_autodrive.gd
+new file mode 100644
+index 0000000..eae5b65
+--- /dev/null
++++ b/vit_dock/diagnostics/cef_focus_autodrive.gd
+@@ -0,0 +1,364 @@
++extends Node
++
++## FE-CEF-FOCUSFIX-1 探针驱动场景（验收自证专用，不在产品链路：仅显式以场景参数启动，
++##   Godot --path <前端仓> res://vit_dock/diagnostics/cef_focus_autodrive.tscn）。
++##
++## 直接实例化 VitCefWebViewHost 指向 input_probe 探针页（默认 http://127.0.0.1:7879/，
++## 可用 VIT_CEF_AUTODRIVE_URL 覆盖），按取证四步序列在引擎边界注入输入
++## （Window.push_input——不经 OS 键鼠，符合 AGENTS §5 主机控制禁令的边界）：
++##   ①点击 A 框输入 abc{r} → ②点击 B 框输入 hello{r} → ③点回 A 输入 xy{r} →
++##   ④点击 B 框 ⌘V 粘贴 PASTE-{r}（pbcopy 预置剪贴板）。
++## 页面实值经 host eval_js → sendIpcMessage → web_message_received 回传比对；
++## 每步在探针时间线打 mark（[:INPROBE] 镜像可对照）。结果打 [CEFAUTODRIVE] 行，
++## 全轮全步通过 quit(0)，任一失败 quit(1)，环境/宿主故障 quit(2)。
++##
++## 环境：VIT_CEF_AUTODRIVE_URL（探针地址）/ VIT_CEF_AUTODRIVE_ROUNDS（默认 5）。
++## 补偿开关沿用 VitDebugFlags（VIT_CEF_FOCUS_COMPENSATION），开关两态各跑一轮即成对照。
++
++const URL_ENV := "VIT_CEF_AUTODRIVE_URL"
++const ROUNDS_ENV := "VIT_CEF_AUTODRIVE_ROUNDS"
++const DEFAULT_URL := "http://127.0.0.1:7879/"
++const PAGE_BOOT_TIMEOUT_SEC := 25.0
++const IPC_TIMEOUT_SEC := 3.0
++const CLICK_HOLD_SEC := 0.06
++const SETTLE_AFTER_CLICK_SEC := 0.40
++const SETTLE_AFTER_STEP_SEC := 0.50
++const KEY_PRESS_SEC := 0.06
++const KEY_INTERVAL_SEC := 0.16
++
++var _host: VitCefWebViewHost
++var _window: Window = null
++var _decoy: Control = null
++var _rounds := 5
++var _field_pos: Dictionary = {}
++var _ipc_queue: Array = []
++var _expected_a := ""
++var _expected_b := ""
++# 校准出的点击映射：push_input 纹理坐标 → 页面 clientX/Y 的比例（css = texture * scale）。
++# gdcef OSR 转发实测含 device-scale 折算（M3 dpr=2 时 css=texture*0.5），不能假设 1:1。
++var _click_scale := Vector2(1.0, 1.0)
++
++
++func _ready() -> void:
++	# _ready 期场景根仍在装配子节点，直接 add_child 会失败（实测"Parent node is busy
++	# setting up children"→窗口不入树→CEF 浏览器不创建）——延迟到装配完成后再启动。
++	call_deferred("_boot")
++
++
++func _boot() -> void:
++	var rounds_raw := OS.get_environment(ROUNDS_ENV).strip_edges()
++	if rounds_raw.is_valid_int():
++		_rounds = clampi(int(rounds_raw), 1, 50)
++	_host = VitCefWebViewHost.new()
++	_host.web_message_received.connect(_on_ipc)
++	# 页面回传走 console 通道（[ADRV] 前缀）：sendIpcMessage 在焦点乒乓失焦态下会
++	# 停摆（FE-CEF-FOCUSFIX-1 实测+上游 #228 家族），console 全程可用。
++	_host.debug_console_received.connect(_on_console)
++	if not _host.create_window(0, "CEF Focus Autodrive", 1100, 880):
++		_fail_fast("host.create_window failed")
++		return
++	_window = _host.debug_window()
++	# 诱饵控件（CEF 窗口内、浏览器外）：grab_focus 交出浏览器焦点（合成卡死态用）。
++	_decoy = Button.new()
++	_decoy.name = "AutodriveDecoy"
++	_decoy.text = "decoy"
++	_decoy.position = Vector2(6, 40)
++	_decoy.focus_mode = Control.FOCUS_ALL
++	_window.add_child(_decoy)
++	var url := OS.get_environment(URL_ENV).strip_edges()
++	if url.is_empty():
++		url = DEFAULT_URL
++	print("[CEFAUTODRIVE] cfg url=%s rounds=%d compensation=%s" % [
++		url, _rounds, str(VitDebugFlags.cef_focus_compensation_enabled)])
++	_host.navigate(url)
++	_host.focus()
++	_run()
++
++
++func _run() -> void:
++	if not await _wait_page_boot():
++		_fail_fast("probe page boot timeout (sendIpcMessage 未回响)")
++		return
++	_compact_layout()
++	if not await _calibrate_click():
++		_fail_fast("click calibration failed (校准点击未回响)")
++		return
++	for id in ["native-a", "react-b"]:
++		if not await _locate_field(id):
++			_fail_fast("locate failed: %s" % id)
++			return
++	print("[CEFAUTODRIVE] page.ready scale=%s a=%s b=%s" % [str(_click_scale), str(_field_pos.get("native-a")), str(_field_pos.get("react-b"))])
++	var rounds_pass := 0
++	for r in range(1, _rounds + 1):
++		if await _run_round(r):
++			rounds_pass += 1
++	var all_pass := rounds_pass == _rounds
++	print("[CEFAUTODRIVE] FINAL %s rounds_pass=%d/%d" % ["pass" if all_pass else "fail", rounds_pass, _rounds])
++	await _sleep(0.6)
++	get_tree().quit(0 if all_pass else 1)
++
++
++func _run_round(r: int) -> bool:
++	# 预热：点击 A 建立 IME 代理（真实用户路径），再合成卡死态；随后四步序列。
++	await _click_field("native-a")
++	await _sleep(0.2)
++	await _synthesize_stuck(r)
++	var s1: bool = await _step_type(r, "s1", "A", "native-a", "a", "abc%d" % r)
++	var s2: bool = await _step_type(r, "s2", "B", "react-b", "b", "hello%d" % r)
++	var s3: bool = await _step_type(r, "s3", "A", "native-a", "a", "xy%d" % r)
++	var s4: bool = await _step_paste(r)
++	var ok := s1 and s2 and s3 and s4
++	print("[CEFAUTODRIVE] round %d verdict=%s" % [r, "pass" if ok else "fail"])
++	return ok
++
++
++func _step_type(r: int, step: String, label: String, data_w: String, state_key: String, text: String) -> bool:
++	_mark("r%d.%s click %s + type %s" % [r, step, label, text])
++	await _click_field(data_w)
++	await _type_text(text)
++	await _sleep(SETTLE_AFTER_STEP_SEC)
++	return await _check_state(r, step, label, state_key, text)
++
++
++func _step_paste(r: int) -> bool:
++	var paste_text := "PASTE-%d" % r
++	_mark("r%d.s4 click B + cmd-V paste %s" % [r, paste_text])
++	await _click_field("react-b")
++	var paste_cmd := "printf %%s '%s' | pbcopy" % paste_text
++	OS.execute("/bin/bash", ["-c", paste_cmd])
++	await _sleep(0.15)
++	_press_key(86, true, true)  # ⌘V down
++	await _sleep(KEY_PRESS_SEC)
++	_press_key(86, false, true)  # ⌘V up
++	await _sleep(SETTLE_AFTER_STEP_SEC + 0.1)
++	return await _check_state(r, "s4", "B", "b", paste_text)
++
++
++func _check_state(r: int, step: String, label: String, state_key: String, appended: String) -> bool:
++	if state_key == "a":
++		_expected_a += appended
++	else:
++		_expected_b += appended
++	var state: Dictionary = await _fetch_state()
++	if state.is_empty():
++		print("[CEFAUTODRIVE] round %d step %s(%s) verdict=fail got=no-ipc want=%s" % [r, step, label, _expected_a if state_key == "a" else _expected_b])
++		return false
++	var got := str(state.get(state_key, ""))
++	var want := _expected_a if state_key == "a" else _expected_b
++	var step_ok := got == want
++	print("[CEFAUTODRIVE] round %d step %s(%s) verdict=%s got=\"%s\" want=\"%s\"" % [r, step, label, "pass" if step_ok else "fail", got, want])
++	return step_ok
++
++
++# --- 页面交互（eval → sendIpcMessage → ipc_message 回传） ----------------------
++
++
++## 把探针页测试组件挪到视口左上（fixed 覆盖布局）：点击坐标经 gdcef OSR 转发带
++## device-scale 折算，右侧/下方元素换算后可能越出 CefTexture 范围——紧凑布局保证
++## 目标元素在可注入域内。同时隐藏探针浮层（[data-probe-overlay] 右上 fixed、
++## pointer-events:auto，窄视口下会盖住输入列吃掉点击；时间线证据走 console 镜像
++## 不依赖浮层）。
++func _compact_layout() -> void:
++	_host.eval_js("(function(){var f=document.querySelector('fieldset');if(f){f.style.position='fixed';f.style.left='16px';f.style.top='80px';f.style.margin='0';f.style.zIndex='50';f.style.background='#fff';}var o=document.querySelector('[data-probe-overlay]');if(o){o.style.display='none';}})()")
++
++
++## 校准：在已知纹理坐标 (300,200) 点击一次，取页面实测 clientX/Y，得 css=texture*k。
++func _calibrate_click() -> bool:
++	await _click_raw(Vector2(300, 200))
++	# 注意：__inputProbe.events() 活数组的字段名是 type/detail（console 镜像的 l/t/tg/d
++	# 只是打印形态），此处按源码字段取值。
++	var js := "(function(){var ev=(window.__inputProbe&&window.__inputProbe.events())||[];for(var i=ev.length-1;i>=0;i--){if(ev[i].type==='pointerdown'){console.log('[ADRV] '+JSON.stringify({t:'calib',x:ev[i].detail.x,y:ev[i].detail.y}));return;}}console.log('[ADRV] '+JSON.stringify({t:'calib',x:-1,y:-1}))})()"
++	var reply: Dictionary = await _eval_await(js, "calib", IPC_TIMEOUT_SEC)
++	if reply.is_empty() or float(reply.get("x", -1.0)) <= 0.0:
++		return false
++	_click_scale = Vector2(float(reply.get("x")) / 300.0, float(reply.get("y")) / 200.0)
++	return _click_scale.x > 0.01 and _click_scale.y > 0.01
++
++
++func _locate_field(data_w: String) -> bool:
++	var js := "(()=>{const e=document.querySelector('[data-w=\"%s\"]');if(!e){console.log('[ADRV] '+JSON.stringify({t:'pos',id:'%s',ok:false}));return;}const r=e.getBoundingClientRect();console.log('[ADRV] '+JSON.stringify({t:'pos',id:'%s',ok:true,cx:r.x+r.width/2,cy:r.y+r.height/2}))})()" % [data_w, data_w, data_w]
++	var reply: Dictionary = await _eval_await(js, "pos", IPC_TIMEOUT_SEC)
++	if reply.is_empty() or not bool(reply.get("ok", false)):
++		return false
++	# 存 css 中心；点击时按校准比例换算回纹理坐标。
++	_field_pos[data_w] = Vector2(float(reply.get("cx", 0.0)), float(reply.get("cy", 0.0)))
++	return true
++
++
++func _wait_page_boot() -> bool:
++	var deadline := Time.get_ticks_msec() + int(PAGE_BOOT_TIMEOUT_SEC * 1000.0)
++	while Time.get_ticks_msec() < deadline:
++		if not _ipc_queue.is_empty():
++			var boot := _drain_ipc("boot")
++			if not boot.is_empty():
++				# eval world 可见性诊断（决定回传策略：隔离 world 时页面 JS 全局不可见）。
++				print("[CEFAUTODRIVE] boot.diag probe=%s rep=%s ipc=%s ping=%s" % [
++					str(boot.get("probe", "?")), str(boot.get("rep", "?")),
++					str(boot.get("ipc", "?")), str(boot.get("ping", "?"))])
++			return true
++		_host.eval_js("window.__adrvPing=(window.__adrvPing||0)+1;console.log('[ADRV] '+JSON.stringify({t:'boot',probe:typeof window.__inputProbe,rep:typeof window.__vitCefFocusProbeReport,ipc:typeof window.sendIpcMessage,ping:window.__adrvPing}))")
++		await _sleep(0.5)
++	return false
++
++
++func _fetch_state() -> Dictionary:
++	var js := "console.log('[ADRV] '+JSON.stringify({t:'state',a:document.querySelector('[data-w=\"native-a\"]').value,b:document.querySelector('[data-w=\"react-b\"]').value}))"
++	return await _eval_await(js, "state", IPC_TIMEOUT_SEC)
++
++
++func _mark(label: String) -> void:
++	_host.eval_js("window.__inputProbe && window.__inputProbe.mark('%s');" % label)
++
++
++func _eval_await(js: String, tag: String, timeout_sec: float) -> Dictionary:
++	_host.eval_js(js)
++	var deadline := Time.get_ticks_msec() + int(timeout_sec * 1000.0)
++	while Time.get_ticks_msec() < deadline:
++		var hit := _drain_ipc(tag)
++		if not hit.is_empty():
++			return hit
++		await _sleep(0.08)
++	return {}
++
++
++func _drain_ipc(tag: String) -> Dictionary:
++	for i in range(_ipc_queue.size()):
++		var entry: Dictionary = _ipc_queue[i]
++		if str(entry.get("t", "")) == tag:
++			_ipc_queue.remove_at(i)
++			return entry
++	return {}
++
++
++func _on_ipc(message: String) -> void:
++	var parsed: Variant = JSON.parse_string(message)
++	if typeof(parsed) == TYPE_DICTIONARY:
++		_ipc_queue.append(parsed)
++
++
++## console 通道回传：仅认 [ADRV] 前缀（页面 eval 的诊断响应）。
++func _on_console(message: String) -> void:
++	var prefix := "[ADRV] "
++	if not message.begins_with(prefix):
++		return
++	var parsed: Variant = JSON.parse_string(message.substr(prefix.length()))
++	if typeof(parsed) == TYPE_DICTIONARY:
++		_ipc_queue.append(parsed)
++
++
++# --- 引擎边界输入注入（Window.push_input，本地坐标） ----------------------------
++
++
++## 合成 R1/R2 卡死态（FE-CEF-FOCUSFIX-1）：真实缺陷链=插件交出浏览器焦点后，迟到的
++## IME 事件把代理 LineEdit 拉回 GUI 焦点却不恢复浏览器焦点（上游文档"a delayed IME
++## event cannot take it back"），终态=页面 hasFocus=false + owner=代理 + 键入被丢。
++## 合成：诱饵控件 grab_focus（交出浏览器焦点→页面失焦）→ 立即代理 grab_focus（模拟
++## 迟到抢占）。引擎注入无法自发完整签名（需真实 OS 焦点/IME 交互），以此确定性
++## 复现卡死态来验证补偿的检测与重置。
++func _synthesize_stuck(r: int) -> void:
++	var proxy := _ime_proxy()
++	if proxy == null:
++		print("[CEFAUTODRIVE] round %d synth skip (无 IME 代理——首轮点击前)" % r)
++		return
++	_mark("r%d.synth stuck: decoy grab → proxy grab" % r)
++	_decoy.grab_focus()
++	await _sleep(0.15)
++	proxy.grab_focus()
++	# 等待越过补偿阈值（失焦判定 1.2s+tick 0.25s）——OFF 应维持失焦，ON 应见补偿
++	# 自主恢复（页面 hasFocus 回 true，无需任何点击）。
++	await _sleep(3.0)
++	var hf := await _page_has_focus()
++	print("[CEFAUTODRIVE] round %d synth page_hasFocus=%s owner=%s" % [r, str(hf), _focus_owner_path()])
++
++
++func _ime_proxy() -> Control:
++	var browser: Control = _host.debug_browser()
++	if browser == null or not is_instance_valid(browser):
++		return null
++	for child in browser.get_children():
++		if child is LineEdit:
++			return child
++	return null
++
++
++func _focus_owner_path() -> String:
++	if _window == null or not is_instance_valid(_window):
++		return "no-window"
++	var owner := _window.gui_get_focus_owner()
++	if owner == null:
++		return "none"
++	return str(owner.get_path())
++
++
++func _page_has_focus() -> bool:
++	var reply: Dictionary = await _eval_await("console.log('[ADRV] '+JSON.stringify({t:'phf',v:document.hasFocus()}))", "phf", IPC_TIMEOUT_SEC)
++	return bool(reply.get("v", true))
++
++
++func _click_field(data_w: String) -> void:
++	var css_center: Vector2 = _field_pos.get(data_w, Vector2(150, 150))
++	# css → 纹理坐标（校准比例的逆）；越界说明紧凑布局失败或映射异常，点击仍发出，
++	# 由页面侧事件对照暴露问题。
++	var pos := Vector2(css_center.x / _click_scale.x, css_center.y / _click_scale.y)
++	await _click_raw(pos)
++
++
++func _click_raw(pos: Vector2) -> void:
++	_press_mouse(pos, true)
++	await _sleep(CLICK_HOLD_SEC)
++	_press_mouse(pos, false)
++	await _sleep(SETTLE_AFTER_CLICK_SEC)
++
++
++func _press_mouse(pos: Vector2, pressed: bool) -> void:
++	if _window == null or not is_instance_valid(_window):
++		return
++	var ev := InputEventMouseButton.new()
++	ev.button_index = MOUSE_BUTTON_LEFT
++	ev.pressed = pressed
++	ev.position = pos
++	ev.global_position = pos
++	_window.push_input(ev, true)
++
++
++func _type_text(text: String) -> void:
++	for ch in text:
++		var lower := ch.to_lower()
++		var keycode := lower.unicode_at(0)
++		if keycode >= 0x61 and keycode <= 0x7A:
++			keycode = keycode - 0x20  # 字母：keycode 用大写形态（Key 枚举），unicode 保留实际字符
++		_press_key_char(keycode, ch.unicode_at(0))
++		await _sleep(KEY_INTERVAL_SEC)
++
++
++func _press_key_char(keycode: int, unicode: int) -> void:
++	_press_key_raw(keycode, unicode, true)
++	await _sleep(KEY_PRESS_SEC)
++	_press_key_raw(keycode, 0, false)
++
++
++func _press_key(keycode: int, pressed: bool, meta := false) -> void:
++	_press_key_raw(keycode, 0, pressed, meta)
++
++
++func _press_key_raw(keycode: int, unicode: int, pressed: bool, meta := false) -> void:
++	if _window == null or not is_instance_valid(_window):
++		return
++	var ev := InputEventKey.new()
++	ev.pressed = pressed
++	ev.keycode = keycode as Key
++	ev.physical_keycode = keycode as Key
++	ev.unicode = unicode
++	ev.meta_pressed = meta
++	_window.push_input(ev, true)
++
++
++func _sleep(sec: float) -> void:
++	var loop := Engine.get_main_loop()
++	if loop is SceneTree:
++		await (loop as SceneTree).create_timer(sec).timeout
++
++
++func _fail_fast(reason: String) -> void:
++	print("[CEFAUTODRIVE] FINAL abort reason=%s" % reason)
++	get_tree().quit(2)
+diff --git a/vit_dock/diagnostics/cef_focus_autodrive.tscn b/vit_dock/diagnostics/cef_focus_autodrive.tscn
+new file mode 100644
+index 0000000..efd216e
+--- /dev/null
++++ b/vit_dock/diagnostics/cef_focus_autodrive.tscn
+@@ -0,0 +1,6 @@
++[gd_scene load_steps=2 format=3]
++
++[ext_resource type="Script" path="res://vit_dock/diagnostics/cef_focus_autodrive.gd" id="1_autodrive"]
++
++[node name="CefFocusAutodrive" type="Node"]
++script = ExtResource("1_autodrive")
+diff --git a/vit_dock/scenes/vit_cef_web_view_host.gd b/vit_dock/scenes/vit_cef_web_view_host.gd
+index 9feb169..5d56c62 100644
+--- a/vit_dock/scenes/vit_cef_web_view_host.gd
++++ b/vit_dock/scenes/vit_cef_web_view_host.gd
+@@ -33,6 +33,9 @@ signal navigation_started(url: String)
+ signal page_state_changed(state: Dictionary)
+ signal load_error(message: String)
+ signal web_message_received(message: String)
++## 诊断面（FE-CEF-FOCUSFIX-1 autodrive）：CEF console 原文转发。IPC 通道在焦点
++## 乒乓失焦态下会停摆（#228 家族），console 通道保持可用——驱动经此回传页面数据。
++signal debug_console_received(message: String)
+ 
+ ## 文档创建期注入：在页面任何脚本（含 React 挂载）之前安装 chrome.webview 兼容垫片，
+ ## 使 webui（App.tsx browserBridge）在 CEF 宿主内获得与 WebView2 相同的桥接面。
+@@ -70,6 +73,25 @@ const CHROME_WEBVIEW_BRIDGE_SHIM := """
+ 			try { listeners[i]({ data: payload }); } catch (e) {}
+ 		}
+ 	};
++	// FE-CEF-FOCUSFIX-1：页面焦点探针（宿主焦点补偿检测面）。宿主在补偿开启期定期
++	// eval __vitCefFocusProbeReport()，页面经 console 回报 hasFocus/组合输入态/焦点元素，
++	// 宿主 _on_console_message 解析。幂等：同文档重复注入只装一次监听。
++	if (!window.__vitCefFocusProbeArmed) {
++		window.__vitCefFocusProbeArmed = true;
++		window.__vitCefComposing = false;
++		window.addEventListener('compositionstart', function () { window.__vitCefComposing = true; });
++		window.addEventListener('compositionend', function () { window.__vitCefComposing = false; });
++		window.__vitCefFocusProbeReport = function () {
++			try {
++				var ae = document.activeElement;
++				console.log('__vitCefFocusProbe: ' + JSON.stringify({
++					hf: document.hasFocus(),
++					comp: !!window.__vitCefComposing,
++					ae: ae ? String(ae.id || ae.tagName || 'unknown') : 'none'
++				}));
++			} catch (e) {}
++		};
++	}
+ })();
+ """
+ 
+@@ -91,6 +113,32 @@ var _debug_log := false
+ # FE-CEF-KEYINPUT-RECON-1：焦点链心跳（VIT_CEF_FOCUS_LOG=1 时启动，状态变化才打点）。
+ var _focus_heartbeat_alive := false
+ var _focus_state_last := ""
++# FE-CEF-FOCUSFIX-1：焦点乒乓补偿（VIT_CEF_FOCUS_COMPENSATION=1 时启用；根修=升级
++# gdcef ≥v1.16.1（上游 #228/#236），本补偿为过渡 hack）。检测签名（R1/R2 取证形态）：
++# 页面连续回报 hasFocus=false（CEF 浏览器失焦、键入/⌘V 被丢）+ 焦点 owner 仍在
++# CefTexture 视图树内（IME 代理 LineEdit 抢占）+ 近窗口焦点高频换手（乒乓 churn，
++# 区分用户主动切走的安静失焦）→ window.grab_focus + CefTexture.grab_focus 重置焦点环。
++# 不破坏既有焦点语义的边界：补偿只在上述签名同时成立时出手；冷却期与退避限制频率；
++# 组合输入（IME composition）进行中不出手。
++var _comp_tick_alive := false
++var _comp_event_times_msec: Array[int] = []
++var _comp_last_fire_msec := -1000000
++var _comp_fire_times_msec: Array[int] = []
++var _comp_backoff_until_msec := -1000000
++var _comp_page_focus_report_msec := -1000000
++var _comp_page_has_focus := true
++var _comp_page_composing := false
++var _comp_page_unfocused_since_msec := -1
++const _COMP_TICK_SEC := 0.25
++const _COMP_CHURN_WINDOW_MSEC := 2000
++# R2 实测每次输入框点击产生 ≥4 次焦点域换手；用户主动切走≈1-2 次（无内部换手）。
++const _COMP_CHURN_MIN_EVENTS := 4
++const _COMP_PAGE_UNFOCUSED_MSEC := 1200
++const _COMP_PAGE_REPORT_FRESH_MSEC := 1500
++const _COMP_COOLDOWN_MSEC := 1500
++const _COMP_BACKOFF_FIRE_COUNT := 4
++const _COMP_BACKOFF_WINDOW_MSEC := 6000
++const _COMP_BACKOFF_PAUSE_MSEC := 10000
+ 
+ 
+ func _init() -> void:
+@@ -188,6 +236,7 @@ func create_window(_parent_hwnd: int, title: String, width: int, height: int) ->
+ 	_log("created", {"title": _window.title, "size": [clamped_width, clamped_height]})
+ 	VitDebugFlags.log_cef_focus("host.created url_target=%s" % str(_browser.get("url") if _browser != null else ""))
+ 	_start_focus_heartbeat()
++	_start_focus_compensation()
+ 	call_deferred("_emit_ready")
+ 	return true
+ 
+@@ -210,6 +259,7 @@ func create_overlay_window(_parent_hwnd: int, _title: String, _width: int, _heig
+ 
+ func close() -> void:
+ 	_focus_heartbeat_alive = false
++	_comp_tick_alive = false
+ 	VitDebugFlags.log_cef_focus("host.close")
+ 	if _browser != null and is_instance_valid(_browser):
+ 		for signal_name in ["ipc_message", "url_changed", "title_changed", "load_started", "load_finished", "load_error", "console_message", "render_process_terminated", "focus_entered", "focus_exited"]:
+@@ -444,6 +494,26 @@ func _on_load_error(url: String, error_code: int, error_text: String) -> void:
+ 
+ 
+ func _on_console_message(_level: int, message: String, _source: String, _line: int) -> void:
++	debug_console_received.emit(message)
++	# FE-CEF-FOCUSFIX-1：页面焦点探针回报（shim 经 console 回传），解析入补偿检测态；
++	# 不走 _log 镜像（补偿开启期每 tick 一条，避免刷屏）。
++	if message.begins_with("__vitCefFocusProbe: "):
++		var payload: Variant = JSON.parse_string(message.substr("__vitCefFocusProbe: ".length()))
++		if typeof(payload) == TYPE_DICTIONARY:
++			var d: Dictionary = payload
++			_comp_page_focus_report_msec = Time.get_ticks_msec()
++			var was_focused := _comp_page_has_focus
++			_comp_page_has_focus = bool(d.get("hf", true))
++			_comp_page_composing = bool(d.get("comp", false))
++			if _comp_page_has_focus:
++				_comp_page_unfocused_since_msec = -1
++			elif _comp_page_unfocused_since_msec < 0:
++				_comp_page_unfocused_since_msec = Time.get_ticks_msec()
++			if was_focused and not _comp_page_has_focus:
++				VitDebugFlags.log_cef_focus("page.focus_lost ae=%s comp=%s" % [str(d.get("ae", "?")), str(_comp_page_composing)])
++			elif not was_focused and _comp_page_has_focus:
++				VitDebugFlags.log_cef_focus("page.focus_recovered ae=%s" % str(d.get("ae", "?")))
++		return
+ 	_log("console", {"message": message})
+ 
+ 
+@@ -478,14 +548,17 @@ func _on_window_visibility_changed() -> void:
+ # --- 焦点链日志（FE-CEF-KEYINPUT-RECON-1，VIT_CEF_FOCUS_LOG=1 才输出） -------
+ 
+ func _on_browser_focus_entered() -> void:
++	_comp_record_event()
+ 	VitDebugFlags.log_cef_focus("cef_texture.focus_entered owner=%s" % _focus_owner_path())
+ 
+ 
+ func _on_browser_focus_exited() -> void:
++	_comp_record_event()
+ 	VitDebugFlags.log_cef_focus("cef_texture.focus_exited owner=%s" % _focus_owner_path())
+ 
+ 
+ func _on_window_gui_focus_changed(node: Node) -> void:
++	_comp_record_event()
+ 	VitDebugFlags.log_cef_focus("window.gui_focus_changed node=%s" % str(node.get_path() if node != null else "null"))
+ 
+ 
+@@ -530,6 +603,131 @@ func _focus_heartbeat_tick() -> void:
+ 		_focus_heartbeat_tick()
+ 
+ 
++# --- 焦点乒乓补偿（FE-CEF-FOCUSFIX-1，VIT_CEF_FOCUS_COMPENSATION=1 时生效） -----
++
++## 探针/诊断面：内部 Window 引用（autodrive 驱动注入 push_input 用），产品链路不消费。
++func debug_window() -> Window:
++	return _window
++
++
++## 探针/诊断面：内部 CefTexture 引用（autodrive 检视 IME 代理子节点用），产品链路不消费。
++func debug_browser() -> Control:
++	return _browser
++
++
++func _start_focus_compensation() -> void:
++	if _comp_tick_alive:
++		return
++	_comp_tick_alive = true
++	_comp_tick()
++
++
++## 常驻轻量 tick（关时每 tick 仅一次旗标检查）；开启期每 tick 先向页面请求焦点回报，
++## 再评估补偿签名（回报解析见 _on_console_message）。
++func _comp_tick() -> void:
++	if not _comp_tick_alive:
++		return
++	if VitDebugFlags.cef_focus_compensation_enabled:
++		_comp_evaluate()
++	var loop := Engine.get_main_loop()
++	if loop is SceneTree:
++		var timer := (loop as SceneTree).create_timer(_COMP_TICK_SEC)
++		await timer.timeout
++		_comp_tick()
++
++
++func _comp_evaluate() -> void:
++	if _browser == null or not is_instance_valid(_browser) or not _browser.is_inside_tree():
++		return
++	_browser.call("eval", "window.__vitCefFocusProbeReport && window.__vitCefFocusProbeReport();")
++	var now := Time.get_ticks_msec()
++	if not _visible or _loading:
++		_comp_page_unfocused_since_msec = -1
++		return
++	if now - _comp_last_fire_msec < _COMP_COOLDOWN_MSEC or now < _comp_backoff_until_msec:
++		return
++	var report_fresh := now - _comp_page_focus_report_msec <= _COMP_PAGE_REPORT_FRESH_MSEC
++	var page_unfocused_long := _comp_page_unfocused_since_msec >= 0 \
++			and now - _comp_page_unfocused_since_msec >= _COMP_PAGE_UNFOCUSED_MSEC
++	var owner_in_scope := _comp_focus_owner_in_browser_scope()
++	var churn := _comp_churn_count(now)
++	if not (report_fresh and page_unfocused_long and owner_in_scope and churn >= _COMP_CHURN_MIN_EVENTS):
++		return
++	if _comp_page_composing:
++		return
++	_comp_fire(now, churn)
++
++
++func _comp_fire(now: int, churn: int) -> void:
++	_comp_last_fire_msec = now
++	_comp_fire_times_msec.append(now)
++	_comp_prune(_comp_fire_times_msec, now, _COMP_BACKOFF_WINDOW_MSEC)
++	var fire_no := _comp_fire_times_msec.size()
++	var had_window_focus := _window != null and is_instance_valid(_window) and _window.has_focus()
++	var unfocused_ms := -1
++	if _comp_page_unfocused_since_msec >= 0:
++		unfocused_ms = now - _comp_page_unfocused_since_msec
++	VitDebugFlags.log_cef_focus("compensation.fire #%d churn=%d win_focus=%s page_unfocused=%dms owner=%s" % [
++		fire_no, churn, str(had_window_focus), unfocused_ms, _focus_owner_path()])
++	if _window != null and is_instance_valid(_window) and not had_window_focus:
++		_window.grab_focus()
++	if _browser != null and is_instance_valid(_browser) and _browser.is_inside_tree():
++		_browser.grab_focus()
++	# 已出手：失焦计时作废，等页面下一轮回报重新认定（仍失焦则冷却期后重评估）。
++	_comp_page_unfocused_since_msec = -1
++	_comp_verify_after_fire(fire_no)
++	if fire_no >= _COMP_BACKOFF_FIRE_COUNT:
++		_comp_backoff_until_msec = now + _COMP_BACKOFF_PAUSE_MSEC
++		_comp_fire_times_msec.clear()
++		VitDebugFlags.log_cef_focus("compensation.backoff pause=%dms（短窗连续触发过密，暂停防抖动）" % _COMP_BACKOFF_PAUSE_MSEC)
++
++
++func _comp_verify_after_fire(fire_no: int) -> void:
++	await _comp_sleep(0.3)
++	if not _comp_tick_alive:
++		return
++	VitDebugFlags.log_cef_focus("compensation.after #%d %s" % [fire_no, _focus_state_snapshot()])
++
++
++func _comp_focus_owner_in_browser_scope() -> bool:
++	if _window == null or not is_instance_valid(_window) or _browser == null or not is_instance_valid(_browser):
++		return false
++	var owner := _window.gui_get_focus_owner()
++	if owner == null:
++		return false
++	if owner == _browser:
++		return true
++	var browser_path := str(_browser.get_path())
++	var owner_path := str(owner.get_path())
++	return owner_path.begins_with(browser_path + "/")
++
++
++## 焦点域事件计数（CefTexture 焦点进出/窗口 gui 焦点换手）。冷却/退避期内到达的事件
++## 视为补偿自身 grab 的产物，不计数——防补偿自我喂签名成环。
++func _comp_record_event() -> void:
++	var now := Time.get_ticks_msec()
++	if now - _comp_last_fire_msec < _COMP_COOLDOWN_MSEC or now < _comp_backoff_until_msec:
++		return
++	_comp_event_times_msec.append(now)
++	_comp_prune(_comp_event_times_msec, now, _COMP_CHURN_WINDOW_MSEC)
++
++
++func _comp_churn_count(now: int) -> int:
++	_comp_prune(_comp_event_times_msec, now, _COMP_CHURN_WINDOW_MSEC)
++	return _comp_event_times_msec.size()
++
++
++func _comp_prune(arr: Array[int], now: int, window_msec: int) -> void:
++	while arr.size() > 0 and now - arr[0] > window_msec:
++		arr.pop_front()
++
++
++func _comp_sleep(sec: float) -> void:
++	var loop := Engine.get_main_loop()
++	if loop is SceneTree:
++		await (loop as SceneTree).create_timer(sec).timeout
++
++
+ func _log(label: String, extra: Dictionary = {}) -> void:
+ 	if not _debug_log:
+ 		return
+-- 
+2.54.0 (Apple Git-157)
+
