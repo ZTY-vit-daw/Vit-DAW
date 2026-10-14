@@ -33,6 +33,6 @@ diff 亲读+证据门语义不弱化论证（逐断言核）+四钉亲跑+95 包
 
 子集匹配与防重复语义冲突（子集放行会造成真实重复观察浪费）→ 带冲突场景分析上交。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-14 晚窗 / origin/main=55c4d871（todo 在位、派发已确认；doing 两卡域=experiment_runtime+goalrunner / webui+前端仓，均不相交；112 未领取） / GLM-5.3 L2 执行会话（PC，ZCode） / port/fix-postaction-gate-feedback-1 / D:/Vit_DAW_wt_113 / 领取提交=本提交
 - 回执：（commit / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
