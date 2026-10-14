@@ -5,7 +5,11 @@
 
 ## 当前占用
 
-- 2026-10-14 22:10 起 +0800（本机钟）/ FIX-FS-SETTLE-DEADCHAIN-1 rerun6 收口腿（GLM-5.3 L2 执行会话，PC，ZCode；worktree D:/Vit_DAW_wt_fsdc1r2，分支 port/fix-fs-settle-deadchain-1-rerun6@0d74b331=origin/main 含 115=5ad6b797，本腿零代码改动）：D1 reverb 复跑（裁定七授权，flash 思考档 2 轮）。占用前四端口 5555/5556/7878/8787 监听=0、VitAgent/VitApp/Godot 进程=0；LLM 预探测 HTTP 200/0.97s、echo=deepseek-flash、reasoning_tokens=23=思考档在线（llm_probe_rerun6.json）。预计跑完拆栈后回填释放。
+- 状态：空闲
+
+## 最近一次释放
+
+- 2026-10-14 21:16–21:38 +0800（本机钟；占用登记 commit 901ffeb4 文本误写 22:10 起，实际以本条为准修正）/ FIX-FS-SETTLE-DEADCHAIN-1 rerun6 收口腿（GLM-5.3 L2 执行会话，PC，ZCode；worktree D:/Vit_DAW_wt_fsdc1r2，分支 port/fix-fs-settle-deadchain-1-rerun6@0d74b331=origin/main 含 115=5ad6b797，本腿零代码改动）：D1 reverb 复跑两 run（run12 20261014_211848 / run13 20261014_212916）**双 exit 0（D1-S1 PASS×2，本卡历史首次，两轮连过=三账销账条件达成）**——合法 settle 停泊 user_judgment_pending 后**存活过烟测 2s 轮询窗口**（run12 7 连续轮询/run13 5 连续，全程零 project_revision_stale、零 FS-SETTLE-TERMINAL=115 修复真栈生效）。锚点：112 标记 0 次=路径未触发（观察绑定三元组全好）；113 阶段感知弹回文案 run12 在场（run13 弹回路径未触发）；腿E 全字段+骨架教学两轮在场，一次教学后即合法 materiality。LLM 面 run12 2/15、run13 1/13 次 60s 超时（transient 自恢复）。21:38 手动 teardown VitAgent 28440/VitApp 2144/Godot_v4.6.1 21640，复核四端口 5555/5556/7878/8787 监听=0、进程名核验=0。占用登记 901ffeb4；被测=worktree 构建 agent VitAgent.exe SHA256 E99AC94DD1ADA22E（0d74b331）+主检出 VitApp.exe B6565DCF85D1DA86（C++ 面零改动）；模型=deepseek-flash 思考档 config 全程未动（预探测 HTTP 200/0.97s、echo=deepseek-flash、reasoning_tokens=23）；工件 coord/runs/FIX-FS-SETTLE-DEADCHAIN-1/（console run12/13+报告×2+agent log×2+debug/telemetry 切片+LLM 探针），重件留盘可回指 worktree artifacts/free_state_d1_s1/20261014_211848、20261014_212916。
 
 ## 最近一次释放
 

@@ -179,3 +179,53 @@ the parked human judgment: fs9_terminal settlement={"reason": "project_revision_
 1. **新 terminal 签名 2/2 成立**（FS-SETTLE-TERMINAL-1/project_revision_stale）：卡面梯子"flash 思考档 2/2→升 v4-pro"触发条件形式上满足，但本签名为**确定性产品缺陷**（§九根因链：停泊后旧修订观察回放撞跨修订守卫，与模型档位无关，任何档位产出合法 settle 即死同门）——v4-pro 复跑预判空烧，是否仍按梯子升档或先修缺陷由决策侧裁定。
 2. 三修（112+113+腿E）真栈效果全部正向：run9 绑定缺失未复发、run8 弹回教学不可达已修（新文案+模型成功换视图）、打地鼠死透（两轮一次教学后即合法 settle）——链路被推至历史最深（人工裁决停泊）。建议就 §九根因链立修复卡（audioclosure 回放面，本卡域外）。
 3. delay 加分腿未跑（exit 0 前提未达）。
+
+## 十、rerun6 收口腿（验收裁定七授权，115 合入后；2026-10-14 晚，run12/run13）
+
+**模型口径行——基线=deepseek-flash 思考档**：~/.vit/config.json defaultModel=deepseek-flash @ api.deepseek.com/v1 全程未动；启栈前 LLM 预探测 HTTP 200/0.97s、echo=deepseek-flash、reasoning_tokens=23=思考档在线（探针存卷 llm_probe_rerun6.json）。worktree D:/Vit_DAW_wt_fsdc1r2 @ **port/fix-fs-settle-deadchain-1-rerun6=origin/main 0d74b331**（含 115=5ad6b797 停泊态回放侧跳过；本腿零代码改动，分支即基线标记，已推 origin）；agent 构建 VitAgent.exe SHA256 **E99AC94DD1ADA22E**；内核=主检出 VitApp.exe B6565DCF85D1DA86（C++ 面零改动）；占用登记 901ffeb4（文本误写 22:10 起，释放记录已修正为 21:16 实际值）。
+
+### 结果：两轮连过 exit 0（D1-S1 PASS×2）——本卡历史首次，退出判据达成
+
+run12（20261014_211848）与 run13（20261014_212916）均 exit 0：
+
+```
+D1-S1 PASS: report=D:\Vit_DAW_wt_fsdc1r2\artifacts\free_state_d1_s1\20261014_211848\d1_smoke_report.json
+D1-S1 PASS: report=D:\Vit_DAW_wt_fsdc1r2\artifacts\free_state_d1_s1\20261014_212916\d1_smoke_report.json
+```
+
+两轮链路（一致）：域选择 reverb（selected_domains=['reverb']，匹配 ExpectDomain）→ decay 提案 → 干预 applied（run12：track 1027、rev3→4、readback 0.2427、原子 1 次、restore_ref 在卷；run13：rev6→7 同 readback）→ post-action 观察入账（run12 obs_132257/run13 obs_133057，绑定三元组完整）→ settle 首试 schema 非法被拒（教学在场）→ 重试一次即完整合法 materiality → **合法 settle 停泊 user_judgment_pending（run12 judgment_park=true@fs8_experiment_verification / run13 @fs7_improvement_proposal）→ 停泊存活过烟测全部 2s 轮询窗口 → PASS**。
+
+### 115 新增锚点（本腿核验重点，per run）
+
+**停泊存活过烟测 2s 轮询窗口（不再被 project_revision_stale 机器结算压过）——2/2 通过**：
+- run12：terminal_causes 7 条连续轮询全为 "experiment round is waiting for the human judgment boundary"，continuation_timeline 100 次轮询全程 0 次 project_revision_stale、0 次 FS-SETTLE-TERMINAL（rerun5 同签名死点零出现）。
+- run13：terminal_causes 5 条连续轮询同形，timeline 70 次轮询 0 次 project_revision_stale、0 次 FS-SETTLE-TERMINAL。
+- 对照 rerun5：停泊 1 秒内被机器结算压过（run10 12:01:48→12:01:49.135、run11 20:22:06→20:22:07.167）；本腿停泊从合法 settle 落位存活至烟测判定 PASS，跨修订守卫未被旧修订观察回放触发——**115 修复（停泊态回放侧跳过）真栈生效**。
+
+### 既有锚点沿用（per run）
+
+1. **112（VSP 身份保持）**：run12/run13 agent 日志 `identity_preserved_on_incomplete_snapshot` 均 0 次——run9 形态（观察包工程绑定缺失）未复发，两轮观察回执绑定三元组完整（post-action 观察直接放行入账），修复路径未被触发（标记不出现属预期而非失覆盖）。
+2. **113（post-action 观察门反馈面）**：run12 有一条弹回实录（21:21:08 debug 流 final_gate 记录）："closure candidate frontier requires only target-level track.\* observations; project.\* and mix.\* cannot be retried now"——**阶段感知新文案在场，不含 "decide from the recorded evidence"**，模型随后换 target 级视图成功（轨道级观察 obs 入账）；run13 弹回路径未被触发（模型整集重取直接放行，同 run10 形态），旧文案两轮零出现。
+3. **腿E（打地鼠硬化）**：两 run settle 拒收消息均含**全部违反字段一次列全+完整 JSON 骨架**（run12 21:25:04：state""+attempt0 两违反+四字段骨架；run13 21:35:11 同形）——教学有效性保持：两轮模型在收到一次教学后的下一个 settle 尝试即拼出完整合法对象并停泊。
+
+### 60s 超时与 LLM 面（逐 run）
+
+- run12：15 次调用全 deepseek-flash，**2 次 60s 整超时**（transient 自恢复续轮，非失败因素；max http_ms 60000）。
+- run13：13 次调用全 deepseek-flash，**1 次 60s 整超时**（transient 自恢复；max 60000）。
+- 两轮各有 1 组 parse_failed→repair_succeeded（JSON 修复流正常工作）。
+
+### 验证与工件
+
+- 真栈 2 run：console（run12/13）+ d1_smoke_report.json×2 + agent_last.log×2 + debug 切片（run12×4/run13×3 条含弹回与拒收原始载荷）+ telemetry 切片（15+13）+ LLM 探针在卷 coord/runs/FIX-FS-SETTLE-DEADCHAIN-1/；重件留盘 worktree artifacts/free_state_d1_s1/20261014_211848、20261014_212916（含 project/ 运行态）。
+- 拆栈：21:38 手动 teardown VitAgent 28440/VitApp 2144/Godot_v4.6.1 21640，复核四端口 5555/5556/7878/8787 监听=0、进程名核验=0；占用/释放登记 901ffeb4+释放行随本回执提交。
+- 本腿调用形态零失败腿（rerun2/rerun5 各一条的 bash 反斜杠教训已按正斜杠规避）。
+
+### 端测边界声明（rerun6）
+
+真栈覆盖=域选择→提案→准入→装载→干预 applied→post-action 观察入账→settle 拒收（教学在场）→**合法 settle 停泊人工裁决边界→停泊存活过烟测 2s 轮询窗口（×2，exit 0）**；**未覆盖**=guarded audition judgment POST 及其下游（人工 A/B 试听裁决回填、合法 settle 终局落账仍属用户手测/后续旅程面）。**三笔挂账（M2-TIMEFX-1 111841/M2-TIMEFX-2 195448/FIX-106）销账条件达成（两轮连过 exit 0），由决策侧复核后补记销账**。delay 加分腿未跑（exit 0 判据达成即停，加分腿可选）。
+
+### 上交决策侧
+
+1. **收口判据达成**：flash 思考档 2 轮连过 exit 0（run12/run13），卡面验收标准第 3 条满足；梯子例外条款未触发（无同签名 2/2）；v4-pro 不需要。
+2. 三笔挂账销账+体验场次解锁请决策侧复核补记；delay 族加分腿可选未跑。
+3. 本腿零代码改动、零域外新发现（112/113/腿E/115 四修真栈全部按预期工作）。
