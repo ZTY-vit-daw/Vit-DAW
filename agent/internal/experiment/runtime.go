@@ -384,20 +384,27 @@ type MaterialityEvaluation struct {
 	CalibrationProfile map[string]any             `json:"calibration_profile,omitempty"`
 }
 
+// Validate enforces the materiality schema. The rejection errors carry the
+// legal shape of the violated field (bounded enum teaching, no domain truth):
+// the free-state final gate feeds them back to the model verbatim as its only
+// retry guidance, so a bare "unsupported value" leaves the retry blind.
 func (m MaterialityEvaluation) Validate() error {
 	switch m.State {
 	case MaterialityNone, MaterialitySubthreshold, MaterialityMaterial:
 	default:
-		return fmt.Errorf("unsupported materiality state %q", m.State)
+		return fmt.Errorf("unsupported materiality state %q (state must be one of: %s, %s, %s)",
+			m.State, MaterialityNone, MaterialitySubthreshold, MaterialityMaterial)
 	}
 	switch m.Evaluation {
 	case trajectory.EvaluationNotReady, trajectory.EvaluationInsufficientDose,
 		trajectory.EvaluationAgentEvaluable, trajectory.EvaluationAmbiguous:
 	default:
-		return fmt.Errorf("unsupported materiality evaluation %q", m.Evaluation)
+		return fmt.Errorf("unsupported materiality evaluation %q (evaluation must be one of: %s, %s, %s, %s)",
+			m.Evaluation, trajectory.EvaluationNotReady, trajectory.EvaluationInsufficientDose,
+			trajectory.EvaluationAgentEvaluable, trajectory.EvaluationAmbiguous)
 	}
 	if m.Attempt <= 0 {
-		return fmt.Errorf("materiality attempt must be positive")
+		return fmt.Errorf("materiality attempt must be a positive integer (attempt >= 1), got %d", m.Attempt)
 	}
 	if len(unique(m.EvidenceRefs)) == 0 {
 		return fmt.Errorf("materiality evidence_refs are required")
