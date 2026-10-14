@@ -81,3 +81,52 @@ func TestSettleRejectionTeachesMaterialityAttemptShape(t *testing.T) {
 		t.Fatalf("attempt rejection leaked the state enum teaching: %q", issue)
 	}
 }
+
+// FIX-FS-SETTLE-DEADCHAIN-1 leg E: run9 whack-a-mole — with short-circuit
+// rejection the model fixed the one named field per bounce and dropped the
+// others (state=""↔attempt=0 alternating; evidence_refs also missing on
+// retries two and four) until the budget ran out. These tests pin that one
+// rejection lists every violated field at once and carries the complete
+// zero-truth materiality skeleton.
+
+func TestSettleRejectionListsAllViolatedFieldsAtOnce(t *testing.T) {
+	state := gateTestState(nil)
+	// run9's composite retry shape: illegal state, zero attempt, and the
+	// evidence_refs the retries kept dropping are all missing together.
+	out := settleShapeTestOutput(func(m *experiment.MaterialityEvaluation) {
+		m.State = ""
+		m.Attempt = 0
+		m.EvidenceRefs = nil
+	})
+	issue := messageLoopFreeStateOutputIssue(state, out)
+	for _, want := range []string{
+		"unsupported materiality state",
+		"materiality attempt must be a positive integer (attempt >= 1), got 0",
+		"materiality evidence_refs are required",
+	} {
+		if !strings.Contains(issue, want) {
+			t.Fatalf("combined rejection is missing a violated field: %q (want %q)", issue, want)
+		}
+	}
+}
+
+func TestSettleRejectionCarriesCompleteMaterialitySkeleton(t *testing.T) {
+	state := gateTestState(nil)
+	out := settleShapeTestOutput(func(m *experiment.MaterialityEvaluation) { m.State = "" })
+	issue := messageLoopFreeStateOutputIssue(state, out)
+	if !strings.Contains(issue, "complete object shape:") {
+		t.Fatalf("rejection does not carry the complete object skeleton: %q", issue)
+	}
+	// All four required fields must appear in the skeleton, zero truth values:
+	// enum unions and placeholders only, no fixture or track identifiers.
+	for _, want := range []string{
+		`"state":"material|subthreshold|none"`,
+		`"evaluation":"not_ready|insufficient_dose|agent_evaluable|ambiguous"`,
+		`"evidence_refs":["<fresh post-action observation id>"]`,
+		`"attempt":1`,
+	} {
+		if !strings.Contains(issue, want) {
+			t.Fatalf("rejection skeleton is missing a required field shape: %q (want %q)", issue, want)
+		}
+	}
+}
