@@ -5,7 +5,11 @@
 
 ## 当前占用
 
-- 2026-10-14 11:43 +0800 登记 / FE-GUI-B-FOURSLOT 91（GLM-5.3 L1 PC 执行流，ZCode 会话；前端仓 worktree D:/Godot/project/vit-daw-frontend-fe-gui-shrink-b，分支 port/fe-gui-shrink-b-1@1c61482；主仓主检出 4fef9336）：真栈三件套烟测腿——`dev_agent_smoke.ps1 -StartKernel -StartUI -MixSmoke`，`-GodotProjectRoot` 指向本卡前端仓 worktree（被测=Phase B 四位台前引擎装配面；agent/内核自主检出当前 main 构建，本卡零改动面）；登记前只读核对四端口 5555/5556/7878/8787 监听=0、VitApp/VitAgent/vsphub/Godot 进程=0（前 owner FIX-FS-SETTLE-DEADCHAIN-1 腿 D 已于 11:38 实测释放并于 1ed85713/4fef9336 登记释放）；编码期未占栈（headless 探针腿已完成）。
+- 状态：空闲
+
+## 最近一次释放
+
+- 2026-10-14 11:43–11:52 +0800（本机钟）/ FE-GUI-B-FOURSLOT 91（GLM-5.3 L1 PC 执行流，ZCode 会话；前端仓 worktree D:/Godot/project/vit-daw-frontend-fe-gui-shrink-b，分支 port/fe-gui-shrink-b-1@1c61482；主仓主检出 4fef9336）：真栈三件套烟测腿一 run——`dev_agent_smoke.ps1 -StartKernel -StartUI -MixSmoke -GodotProjectRoot <本卡前端仓 worktree>` **PASS exit 0**（agent 构建→内核 19876 启动→UI 端口门→agent 285 工具→strip-silence/range-context/chat-route/no-pending-confirm 全绿→mix.observe **status=ok obs_20261014T034250_80770a0c23d5**=mixboard 红线链真栈活证）；补充 godot 窗口启动证据（D3D12 RTX4070 真实渲染，start_page VSP Hub/Agent tools 就绪，启动日志零 SCRIPT ERROR，且在真栈在线状态下启动）。11:52 owner 手动 teardown VitApp 19876/VitAgent 28208，复核四端口 5555/5556/7878/8787 监听=0、VitApp/VitAgent/vsphub/Godot 进程=0。占用登记 180ca228；工件 coord/runs/FE-GUI-B-FOURSLOT/dev_agent_smoke_20261014/（console_stdout.log+godot_windowed_boot.log），详见卡回执。
 
 ## 最近一次释放
 
