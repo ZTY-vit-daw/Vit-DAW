@@ -96,3 +96,29 @@ run8+run9 同代码版本（AFEA9F30）同 terminal 断点连续 2/2 → 停止�
 - 真栈 3 run：console（run7/8/9）+ d1_smoke_report.json×3 + debug jsonl 切片（run7×1/run8×5/run9×4 条 final_gate 记录含原始 raw）+ telemetry 切片（14+13+14 次调用）+ run9 agent_last_log 全部在卷 coord/runs/FIX-FS-SETTLE-DEADCHAIN-1/；重件留盘可回指 worktree D:/Vit_DAW_wt_fsdc1r2/artifacts/free_state_d1_s1/。
 - 拆栈：12:0x 手动 teardown VitAgent 22320/VitApp 30532/Godot 10836，复核四端口 5555/5556/7878/8787 监听=0、进程名核验=0。
 - 端测边界：真栈覆盖=域选择→提案→准入→装载→执行 applied→post-action 重观测边界→settle 拒收（含教学在场）边界×6；未覆盖=合法 settle 落地与人工 A/B 试听下游（三 run 均未产生合法 materiality 记录）。
+
+## 八、腿 E（取证先行+打地鼠硬化，rerun4，验收裁定三授权；2026-10-14 下午）
+
+详细取证卷=[FORENSICS-LEG-E.md](FORENSICS-LEG-E.md)（全部锚点+工件回指，只读取证零栈启动）。
+
+### ① 取证结论：实锤产品缺口 → 按裁定三停止上交，③ 复跑腿不执行
+
+- **run9 子形态（硬实锤）**：post-action 重观测请求本身合法且执行成功（模型带 priority_reason=contradiction+unresolved_questions 通过防重复门，journal rec 26 原文在卷），但返回的观察包 project_package 身份三元组全空（revision=''/epoch=''/hash=''，uuid 在；pre-action 同路径产物 revision='9' 正常）→ binding unbound（capabilitycontext/free_state_observation.go:522-531 canonicalBound 分支）→ chat/free_state_reasoning_loop.go:1275 `freeStatePostActionObservationEligible` 要求 ProjectRevision 非空 → 观察永不记 post_action=true → D1 断言（free_state_d1_smoke.py:1693）结构性不可满足。上游=harness.go:1844 `vspLegacyStateWithBinding` 在 VSP 快照 reply 缺 revision/epoch/hash（run9 session latest_change 记录身份字段 before=11→缺失、graph_revision after=1）时用空身份**整体覆盖** shadow；**对照组 run6 同路径 post-action 观察 revision='7' 绑定正常**（run6 因此死在 materiality 而非此门）→ 时序相关间歇缺陷，任何模型档位触发即死同门（v4-pro 空烧判断成立）。修复面=harness 身份保持（agent）或 kernel/VSP 快照恒带身份（C++），**均域外，上交不扩域**。
+- **run8 子形态（缺陷候选+模型行为混合）**：5 连弹按门自身 per-view 可用性语义正当（被弹视图确有 usable 条目，录自 revision 6 改动前；partial 算 usable）；但①弹回教学"decide from the recorded evidence"在 post_action 段被 settle(:1085)/blocked(:1214)/needs_action(:1026)/satisfied(:1188) 四门结构性封死（requires_post_action_observation=true 全部要求本周期新观察）=**教的替代路径不可达**；②"换 view/target"出口可达而模型 5 次未走（第 5 次口头称换实际仍请求同一 view，debug rec 4 原文）；③revision 豁免 fingerprint 整集锚定（free_state_gate.go:1061-1076）对模型合法收窄的请求结构性够不着；④提示规则 ccb_model_prompt.go:670 明令的"experiment's view set on the applied target 重取"恰是被弹形状。修复面=agentloop 提示/门/豁免，域外上交。
+
+### ② 打地鼠硬化（commit 1923b22a @ port/fix-fs-settle-deadchain-1-rerun4，已推 origin；基线 origin/main 4476b9ed 含腿 D 3ec1cf96）
+
+- `MaterialityEvaluation.Validate`（experiment/runtime.go）短路改**全字段收集**：state/evaluation/attempt/evidence_refs 逐项+crossover 规则一次全列；拒收消息附 `materialityShapeExample` 完整骨架（四字段全列零真值；evaluation 用 schema 全集四枚举——not_ready 须保持 schema 合法供 B-i 豁免对，与 agentloop settle 示例的有意子集并存，口径注释在代码内）。
+- 单测（agentloop/free_state_settle_shape_teaching_test.go）：两新钉=组合违反（run9 实形状 state=""+attempt=0+evidence_refs 缺）一次列出三字段错误+骨架四字段在场；腿 D 三钉原样保持（含 scope control：attempt 单独违反时消息不出现 "state must be one of:" 字面句——骨架只含枚举联合不含该句，测试通过验证兼容）。
+- 自验：`go test ./... -count=1` **95 包 0 FAIL**；gofmt 净（LF blob 口径；工作副本 CRLF 属本机 autocrlf checkout 形态）。
+- 模型口径行：**本腿零真栈运行（裁定三"实锤即停栈"触发），config=~/.vit/config.json 全程未动**（deepseek-flash @ api.deepseek.com/v1 维持裁定三状态）；无新 60s 超时样本。
+
+### 端测边界声明（腿 E）
+
+真栈覆盖=零（本腿按裁定不启栈，取证全部只读自 rerun3 工件）；代码面覆盖=experiment Validate 全字段收集+骨架（单元级，95 包 0 FAIL）。未覆盖=真栈 settle 段（腿 D 后无新 run）、合法 settle 落地与人工 A/B 下游。**三笔挂账（M2-TIMEFX-1 111841/M2-TIMEFX-2 195448/FIX-106）未销**（exit 0 未达成且按裁定三停止烧栈）。
+
+### 上交决策侧
+
+1. run9 绑定缺口修复面二选一（或并行）：agent 侧 harness 保留最后已知身份 vs kernel/VSP 侧快照恒带身份（C++ 面）——建议先 agent 侧硬化（可单测钉）再真栈复跑取证间歇性。
+2. run8 教学不可达分支+豁免粒度错位+提示矛盾三锚点是否立卡（agentloop 面）。
+3. 腿 E②代码是否采信合入（1923b22a，95 包 0 FAIL+腿 D 钉保持）；若采信，下一真栈腿=修复卡落地后复跑（本腿未烧栈）。
