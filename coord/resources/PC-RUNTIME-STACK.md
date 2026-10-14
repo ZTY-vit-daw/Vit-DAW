@@ -5,7 +5,7 @@
 
 ## 当前占用
 
-- 状态：空闲
+- 2026-10-14 11:43 +0800 登记 / FE-GUI-B-FOURSLOT 91（GLM-5.3 L1 PC 执行流，ZCode 会话；前端仓 worktree D:/Godot/project/vit-daw-frontend-fe-gui-shrink-b，分支 port/fe-gui-shrink-b-1@1c61482；主仓主检出 4fef9336）：真栈三件套烟测腿——`dev_agent_smoke.ps1 -StartKernel -StartUI -MixSmoke`，`-GodotProjectRoot` 指向本卡前端仓 worktree（被测=Phase B 四位台前引擎装配面；agent/内核自主检出当前 main 构建，本卡零改动面）；登记前只读核对四端口 5555/5556/7878/8787 监听=0、VitApp/VitAgent/vsphub/Godot 进程=0（前 owner FIX-FS-SETTLE-DEADCHAIN-1 腿 D 已于 11:38 实测释放并于 1ed85713/4fef9336 登记释放）；编码期未占栈（headless 探针腿已完成）。
 
 ## 最近一次释放
 
