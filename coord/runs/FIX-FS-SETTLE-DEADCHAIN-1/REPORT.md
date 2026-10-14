@@ -122,3 +122,60 @@ run8+run9 同代码版本（AFEA9F30）同 terminal 断点连续 2/2 → 停止�
 1. run9 绑定缺口修复面二选一（或并行）：agent 侧 harness 保留最后已知身份 vs kernel/VSP 侧快照恒带身份（C++ 面）——建议先 agent 侧硬化（可单测钉）再真栈复跑取证间歇性。
 2. run8 教学不可达分支+豁免粒度错位+提示矛盾三锚点是否立卡（agentloop 面）。
 3. 腿 E②代码是否采信合入（1923b22a，95 包 0 FAIL+腿 D 钉保持）；若采信，下一真栈腿=修复卡落地后复跑（本腿未烧栈）。
+
+## 九、rerun5 收口腿（验收裁定五授权；2026-10-14 晚，run10/run11）
+
+**模型口径行——基线=deepseek-flash 思考档**：~/.vit/config.json defaultModel=deepseek-flash @ api.deepseek.com/v1 全程未动；启栈前 LLM 预探测 HTTP 200/0.84s、echo=deepseek-flash、reasoning_tokens=28=思考档在线（探针存卷 llm_probe_rerun5.json）。worktree D:/Vit_DAW_wt_fsdc1r2 @ **port/fix-fs-settle-deadchain-1-rerun5=origin/main 51752087**（含 112=26757b34+113=1f4e2919+腿E=08c64ffb；本腿零代码改动，分支即基线标记）；agent 构建 VitAgent.exe SHA256 **AEAA48053634968B**；内核=主检出 VitApp.exe B6565DCF85D1DA86（C++ 面零改动）；占用登记 46f4ce19。另记环境事实（与 rerun3 等价非新差异）：VSP Hub 8787 两 run 全程未起（run9 对照同为注册 pending 零成功），realtime publish 降级非致命，vsp_state_snapshot 走内核 ZMQ 正常。
+
+### 结果：同 terminal 签名 2/2，§8 停止上交
+
+run10（20261014_195628）与 run11（20261014_201520）均 exit 1，terminal 同签名：
+
+```
+FS-SETTLE-TERMINAL-1: a machine boundary settled the closure out from under
+the parked human judgment: fs9_terminal settlement={"reason": "project_revision_stale",
+"summary": "observation belongs to a different project revision", ...}
+```
+
+（断言源=free_state_d1_smoke.py:1106，FS-SETTLE-TERMINAL-1 停泊不变量：轮停泊 user_judgment_pending 时闭包不得带机器结算。）
+
+**链路历史最深（两轮一致）**：域选择 reverb → decay 提案 →（run10 首案 G6/G8 弹回后二次提案准入，属正常门工作）→ 插件选择 waiting_clarification（烟测确认）→ 干预 applied（run10：track 1017 guitar、rev3→4、actual_readback 0.6315、原子控制 1 次、restore_ref 在卷；run11：rev6→7、readback 0.2925、原子 true）→ **post-action CCB 观察请求直接放行入账**（run10 obs_120033@rev4 / run11 obs_121949@rev7，D1 post-action 门两轮全过=run9 签名死透）→ settle 首试 schema 非法被拒（教学在场）→ **重试一次即产出完整合法 materiality 并正确停泊 user_judgment_pending（experiment=waiting_for_user）** → 停泊后 **1 秒内**被 audioclosure 跨修订守卫以 project_revision_stale 机器结算压过 → 烟测 FAIL。
+
+### 卡面三锚点逐项记录（per run）
+
+1. **112（VSP 身份保持）**：两 run agent 日志 `identity_preserved_on_incomplete_snapshot` 均 0 次、refresh status 无 identity_preserved 键——**run9 形态（观察包工程绑定缺失）未复发**：两轮全部观察回执绑定三元组完整（run10 rev2/2/4、run11 rev5/5/7，epoch/hash 全在），112 修复路径未被触发（无缺口快照出现），标记不出现属预期而非失覆盖；若后续复跑中 run9 形态复发且标记仍缺，才构成"修复未覆盖该路径"。
+2. **113（post-action 观察门反馈面）**：run10 无弹回（模型整集重取同一组目标级视图，经精确集通道直接放行，obs ready 入账）；run11 有一条弹回实录（20:17:59 debug 流）："closure candidate frontier requires only target-level track.\* observations; project.\* and mix.\* cannot be retried now"——**阶段感知新文案在场，不含 "decide from the recorded evidence"**（锚点二通过）。模型随后换 target 级视图成功（弹回教学可达性修复真栈生效）。收窄子集豁免通道（freeStateNarrowedReObservationAdmitted）两轮均未被模型选用（整集重取已够），该分支未 exercised。
+3. **腿E（打地鼠硬化）**：两 run settle 拒收消息均含**全部违反字段一次列全+完整 JSON 骨架**（run10：state+attempt+evidence_refs 三违反+骨架四字段；run11：state+attempt 两违反+骨架）。**教学有效性首次真栈验证通过**：两轮模型在收到一次教学后的下一个 settle 尝试即拼出完整合法对象（run10 round-1 materiality={subthreshold, insufficient_dose, summary, evidence_refs=[obs_120033], attempt=1}；run11 同形）——rerun3 run9 的四连打地鼠形态死透。
+
+### 新缺陷根因链（确定性产品缺陷，域外=audioclosure/chat 闭包回放面，不扩域）
+
+触发序列（run10 亲核，run11 同构复验）：
+
+1. 干预落地使工程 revision 前进（run10 2→4、run11 5→7），闭包经 `EventProjectRevisionChanged` 重绑（事件 seq24/seq29）——该 fold（audioclosure/events.go:199-212）**按设计清空 Observations map**（旧修订证据作废）。
+2. 模型合法 settle 停泊 → `requires_post_action_observation` 翻 **false**（被合法 settle 满足；持久化 loop 实录）。
+3. 停泊轮的闭包回放（chat/audio_closure_controller.go:596-634）：ledger 再水合把全部观察（含 pre-action rev2/rev5 两枚）追加回放；post-action 过滤器（:599-606）因标志已 false **不再拦旧修订观察**；去重检查（audioClosureHasObservationID）因闭包 Observations 已被清空**不认识** pre-action 两枚 → 放行。
+4. `driver.RecordObservation`（audioclosure/driver.go:183）跨修订守卫：key rev（run10 "2"/run11 "5"）≠ 闭包 state rev（"4"/"7"），且 `SupersededProjectRevisions` 为空（revision 前进经 project_revision_changed 而非 governed booking 登记，旧 revision 未入 superseded 集）→ `settleUnchecked(StopProjectRevisionStale, "observation belongs to a different project revision")` → 机器结算在停泊 1 秒内落账（run10 12:01:48 试听启用→12:01:49.135 结算；run11 20:22:06→20:22:07.167）。
+5. 烟测 2s 轮询必输 1s 结算竞速 → **exit 0 在此形态下结构性不可达**（与裁定三 v4-pro 空烧判断同构：任何模型档位产出合法 settle 即死同门）。
+
+修复面候选（决策侧裁定，本卡不扩域）：回放侧在停泊态（round decision=user_judgment_pending / experiment waiting_for_user）不回放旧修订观察；或 project_revision_changed fold 将被替换 revision 登记 superseded（与 governed booking 对齐）；或停泊后闭包回放整段短路。
+
+### 60s 超时与 LLM 面（逐 run）
+
+- run10：11 次调用全 deepseek-flash，**0 错误 0 超时**（max http_ms 31702）——历轮最健康。
+- run11：13 次调用，**1 次 60s 整超时**（transient 自恢复续轮，非失败主因；max 60000）。
+
+### 验证与工件
+
+- 真栈 2 run：console（run10/11）+ d1_smoke_report.json×2 + agent_last_log×2 + debug 切片（run10×1/run11×2 条含弹回与拒收原始载荷）+ telemetry 切片（11+13）+ LLM 探针在卷 coord/runs/FIX-FS-SETTLE-DEADCHAIN-1/；重件留盘 worktree artifacts/free_state_d1_s1/20261014_195628、20261014_201520（含 project/ 运行态与 agent_runtime_state.json 闭包事件流）。
+- 另记调用形态失败腿一条（同 rerun2 run5 先例按环境中断类记录）：run10 首次启动命令经 bash 双引号传 `.\scripts\...` 反斜杠被吞→PowerShell -File 找不到脚本即退（未启栈零进程影响），改正斜杠后同文件覆盖重跑。
+- 拆栈：20:25 手动 teardown VitAgent 18772/VitApp 23040/Godot_v4.6.1 16708，复核四端口 5555/5556/7878/8787 监听=0、进程名核验=0；占用登记 46f4ce19/释放随本回执提交。
+
+### 端测边界声明（rerun5）
+
+真栈覆盖=域选择→提案→准入→装载→干预 applied→post-action 观察入账→settle 拒收（教学在场）→**合法 settle 停泊人工裁决边界**→机器结算压过停泊（×2）；**未覆盖**=guarded audition judgment POST 及其下游（停泊在人工裁决 POST 前被机器结算终结，合法 settle 落账与人工 A/B 试听下游仍未走通）。**三笔挂账（M2-TIMEFX-1 111841/M2-TIMEFX-2 195448/FIX-106）未销**（exit 0 未达成）。
+
+### 上交决策侧
+
+1. **新 terminal 签名 2/2 成立**（FS-SETTLE-TERMINAL-1/project_revision_stale）：卡面梯子"flash 思考档 2/2→升 v4-pro"触发条件形式上满足，但本签名为**确定性产品缺陷**（§九根因链：停泊后旧修订观察回放撞跨修订守卫，与模型档位无关，任何档位产出合法 settle 即死同门）——v4-pro 复跑预判空烧，是否仍按梯子升档或先修缺陷由决策侧裁定。
+2. 三修（112+113+腿E）真栈效果全部正向：run9 绑定缺失未复发、run8 弹回教学不可达已修（新文案+模型成功换视图）、打地鼠死透（两轮一次教学后即合法 settle）——链路被推至历史最深（人工裁决停泊）。建议就 §九根因链立修复卡（audioclosure 回放面，本卡域外）。
+3. delay 加分腿未跑（exit 0 前提未达）。

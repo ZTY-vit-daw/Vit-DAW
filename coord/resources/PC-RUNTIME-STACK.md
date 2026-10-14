@@ -5,7 +5,11 @@
 
 ## 当前占用
 
-- 2026-10-14 19:52 +0800 登记 / FIX-FS-SETTLE-DEADCHAIN-1 rerun5 收口腿（GLM-5.3 L2 执行会话，PC，ZCode；worktree D:/Vit_DAW_wt_fsdc1r2，分支 port/fix-fs-settle-deadchain-1-rerun5@51752087=origin/main 含 112=26757b34+113=1f4e2919+腿E=08c64ffb）：`run_free_state_d1_smoke.ps1 -PromptFlavor reverb -ExpectDomain reverb` flash 思考档 2 轮（验收裁定五授权；config=~/.vit/config.json defaultModel=deepseek-flash 全程不动，启栈前预探测 HTTP 200/0.84s、echo=deepseek-flash、reasoning_tokens=28=思考档在线）；登记前只读核对四端口 5555/5556/7878/8787 LISTENING=0、VitApp/VitAgent/vsphub/Godot 进程=0。
+- 状态：空闲
+
+## 最近一次释放
+
+- 2026-10-14 19:52–20:25 +0800（本机钟）/ FIX-FS-SETTLE-DEADCHAIN-1 rerun5 收口腿（GLM-5.3 L2 执行会话，PC，ZCode；worktree D:/Vit_DAW_wt_fsdc1r2，分支 port/fix-fs-settle-deadchain-1-rerun5@51752087=origin/main 含 112+113+腿E，本腿零代码改动）：D1 reverb 复跑两 run（run10 20261014_195628 / run11 20261014_201520）**均 exit 1，同 terminal 签名 2/2 §8 停止上交**——`FS-SETTLE-TERMINAL-1: a machine boundary settled the closure out from under the parked human judgment`（fs9 settlement={reason: project_revision_stale, "observation belongs to a different project revision"}）。**链路历史最深**：两轮均 干预 applied（readback 0.6315/0.2925、原子控制、restore_ref 在卷）→ post-action 观察入账（绑定三元组全好，run9 形态未复发）→ 合法 settle 停泊 user_judgment_pending（**腿E 教学有效性首次真栈验证：两轮 materiality 一次拒收教学后即完整合法，打地鼠死透**）→ 停泊 1 秒内被 audioclosure 跨修订守卫机器结算（EventProjectRevisionChanged fold 清空 Observations→账本回放 pre-action 观察撞 driver.go:183 守卫→确定性产品缺陷，exit 0 结构性不可达）。锚点：112 标记零出现=该路径未触发（快照身份全好）；113 阶段感知弹回文案在场（run11 实录，不含 decide-from-recorded-evidence）；腿E 全字段+骨架教学两轮在场。LLM 面 run10 0/11、run11 1/13 次 60s 超时。20:25 手动 teardown VitAgent 18772/VitApp 23040/Godot_v4.6.1 16708，复核四端口 5555/5556/7878/8787 监听=0、进程名核验=0。占用登记 46f4ce19；被测=worktree 构建 agent VitAgent.exe SHA256 AEAA48053634968B（51752087）+主检出 VitApp.exe B6565DCF85D1DA86（C++ 面零改动）；模型=deepseek-flash 思考档 config 全程未动（预探测 HTTP 200/0.84s、echo=deepseek-flash、reasoning_tokens=28）；工件 coord/runs/FIX-FS-SETTLE-DEADCHAIN-1/（console run10/11+报告×2+debug/telemetry 切片+LLM 探针），重件留盘可回指 worktree artifacts/free_state_d1_s1/20261014_195628、20261014_201520。
 
 ## 最近一次释放
 
