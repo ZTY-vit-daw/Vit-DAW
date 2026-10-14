@@ -570,6 +570,7 @@ func (s *Server) recordAudioClosureRound(state audioclosure.State, res agentloop
 	}
 	observations := freeStateCCBObservations(res)
 	postActionObservationRequired := false
+	parkedAtJudgmentBoundary := false
 	// SETTLE-DELIVER-1 症状 B（2026-10-03 webui_murptx58 二轮 goal 25s 即终
 	// stop_reason=project_revision_stale）：loop 按会话键存取，判定结算后
 	// round-1 的已终态 loop 连同账本残留（旧修订观察行）活到下一个 goal 的新
@@ -581,6 +582,7 @@ func (s *Server) recordAudioClosureRound(state audioclosure.State, res agentloop
 	// loop 借位——否则本回合合法观察会被旧债位错杀。
 	if loop, loopOK := s.freeStateLoop(current.ConversationID); loopOK && audioClosureLoopOwnsRound(loop, current) {
 		postActionObservationRequired = loop.RequiresPostActionObservation
+		parkedAtJudgmentBoundary = freeStateJudgmentBoundary(loop)
 		// Scheduler continuations can carry the authoritative CCB bundles only in
 		// the durable free-state ledger. Rehydrate those bundles before recording
 		// the closure round so candidate/frontier state cannot regress to empty
@@ -589,6 +591,23 @@ func (s *Server) recordAudioClosureRound(state audioclosure.State, res agentloop
 	}
 	for _, observation := range observations {
 		if observation == nil || current.Terminal() {
+			continue
+		}
+		key := audioClosureObservationKey(current, observation, requestContext)
+		if parkedAtJudgmentBoundary && key.ProjectRevision != "" && current.ProjectRevision != "" &&
+			key.ProjectRevision != current.ProjectRevision {
+			// FIX-SETTLE-PARK-REPLAY-RACE-1 (2026-10-14 run10/run11): while the
+			// loop is parked at the human-judgment boundary, the guarded
+			// judgment POST is the only legal settle (FS-SETTLE-TERMINAL-1).
+			// The park implies the post-action debt was satisfied, so the
+			// post-action filter stands down exactly when the revision fold has
+			// emptied Observations and dedup no longer recognizes the ledger's
+			// pre-action rows — replaying those rows would hand the
+			// cross-revision guard a stale key and machine-settle the parked
+			// closure within a second of the park. The feeding side must not
+			// offer them: skip exactly the keys the guard would settle (exact
+			// inequality, mirroring the driver predicate). The guard itself and
+			// its non-parked settle semantics stay untouched.
 			continue
 		}
 		if postActionObservationRequired {
@@ -625,7 +644,6 @@ func (s *Server) recordAudioClosureRound(state audioclosure.State, res agentloop
 			current = next
 			break
 		}
-		key := audioClosureObservationKey(current, observation, requestContext)
 		var outcome audioclosure.ObservationOutcome
 		var err error
 		if dutyBooked {
