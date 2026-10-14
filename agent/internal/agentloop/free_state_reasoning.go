@@ -1849,6 +1849,18 @@ func messageLoopFreeStateAlreadyObservedIssue(state *runState, requested []strin
 			}
 		}
 		if allAvailable {
+			if freeStateBool(ctx["requires_post_action_observation"]) {
+				// Post-action settlement structurally requires a fresh
+				// observation in this reasoning cycle (the settle, blocked,
+				// needs_action and satisfied gates all refuse without one), so
+				// "decide from the recorded evidence" is not a reachable exit
+				// in this phase. Teach only the two exits the gate can actually
+				// admit: re-request the recorded view set in an
+				// admission-covered shape (full set or narrowed subset, on a
+				// revision newer than the recorded receipt), or change the
+				// view/target (FIX-POSTACTION-GATE-FEEDBACK-1).
+				return "the requested per-track CCB views already returned usable evidence for this track; post-action settlement still requires a fresh observation in this reasoning cycle, so re-request the recorded view set on the applied target (the full set or a narrowed subset, admitted once the project revision is newer than the recorded receipt) or request a different cataloged view or target"
+			}
 			return "the requested per-track CCB views already returned usable evidence for this track; decide from the recorded evidence or request a different cataloged view or target instead of repeating it"
 		}
 	}

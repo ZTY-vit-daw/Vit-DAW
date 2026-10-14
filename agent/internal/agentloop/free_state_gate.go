@@ -3,6 +3,7 @@ package agentloop
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"vit-daw-agent/internal/agentprotocol"
@@ -1071,9 +1072,6 @@ func freeStateReObservationAdmitted(state *runState, fingerprint string, request
 			prior = row
 		}
 	}
-	if prior == nil {
-		return false
-	}
 	// The current turn may carry explicit round metadata, or the observation
 	// receipt itself may carry it when a scheduler continuation restored state.
 	meta := messageLoopMapValue(state.input.Context["free_state_reobservation"])
@@ -1089,6 +1087,14 @@ func freeStateReObservationAdmitted(state *runState, fingerprint string, request
 		firstMapText(state.input.Context, "project_revision"),
 		firstMapText(messageLoopMapValue(state.input.Context["minimal_audio_closure"]), "project_revision"),
 	)
+	if prior == nil {
+		// A narrowed request (subset of a prior receipt's view set on the same
+		// target) has no exact-fingerprint prior, so the admission contract
+		// above cannot reach it. Narrowing is a legal request shape, not a new
+		// view set: every requested view already returned evidence, so only the
+		// new-revision admission may re-open it (FIX-POSTACTION-GATE-FEEDBACK-1).
+		return freeStateNarrowedReObservationAdmitted(ledger, state, requestedViews, fingerprint, currentRevision)
+	}
 	priorRevision := firstNonEmpty(firstMapText(prior, "project_revision"), firstMapText(messageLoopMapValue(prior["freshness"]), "project_revision"))
 	priorStatus := audioclosure.RoundEvidenceStatus(strings.ToLower(firstNonEmpty(firstMapText(prior, "evidence_status", "status", "bundle_status"), "open")))
 	priorQuestions := messageLoopStringList(firstNonNilValue(prior["unresolved_questions"], messageLoopMapValue(prior["round"])["unresolved_questions"]))
@@ -1112,6 +1118,117 @@ func freeStateReObservationAdmitted(state *runState, fingerprint string, request
 		return true
 	}
 	return false
+}
+
+// freeStateNarrowedReObservationAdmitted is the narrowed-subset admission
+// (FIX-POSTACTION-GATE-FEEDBACK-1): a request whose view set narrows a prior
+// receipt's view set on the same target is a per-view repeat — every requested
+// view already returned usable evidence — so it may re-observe only through
+// AdmitReObservation's new-revision admission, and only when the current
+// revision is strictly newer than the NEWEST covering receipt's revision.
+// Non-covered requests, or an equal/older/not-orderable revision, keep the
+// repeat bounce (fail-closed): a subset must never admit as "new_view_set",
+// and an older covering receipt must not unlock a set a newer receipt already
+// recorded at the current revision.
+func freeStateNarrowedReObservationAdmitted(ledger map[string]any, state *runState, requestedViews []string, fingerprint, currentRevision string) bool {
+	requested := messageLoopNormalizedViewIDs(requestedViews)
+	if len(requested) == 0 {
+		return false
+	}
+	candidates := messageLoopMapRows(ledger["receipts"])
+	if state != nil && state.recentObservation != nil {
+		candidates = append(candidates, state.recentObservation.Summary)
+	}
+	newestCovering := ""
+	var newestNumber int64
+	covered := false
+	unorderable := false
+	for _, row := range candidates {
+		receiptViews := messageLoopStringList(row["requested_views"])
+		if !messageLoopViewSetCovers(receiptViews, requested) {
+			continue
+		}
+		// Same target as the request, under the same project-scope target
+		// equivalence the exact-match branch applies (omitted target and an
+		// explicit current-project target are the same observation).
+		receiptTarget := messageLoopMapValue(row["target_ref"])
+		if messageLoopFreeStateRequestFingerprint(requested, receiptTarget) != fingerprint &&
+			!(allProjectScopedCCBViews(requested) && allProjectScopedCCBViews(receiptViews)) {
+			continue
+		}
+		priorRevision := firstNonEmpty(firstMapText(row, "project_revision"), firstMapText(messageLoopMapValue(row["freshness"]), "project_revision"))
+		number, ok := freeStateRevisionTrailingNumber(priorRevision)
+		if !ok {
+			unorderable = true
+			continue
+		}
+		if !covered || number > newestNumber {
+			covered, newestNumber, newestCovering = true, number, priorRevision
+		}
+	}
+	if !covered || unorderable {
+		return false
+	}
+	if !freeStateRevisionStrictlyNewer(currentRevision, newestCovering) {
+		return false
+	}
+	// PriorViews == RequestedViews keeps the narrowed set a repeat for
+	// sameViewSet, so only the new-revision admission can fire here.
+	admitted, _ := audioclosure.AdmitReObservation(audioclosure.ReObservationRequest{
+		RequestedViews: requested, PriorViews: requested,
+		PriorProjectRevision: newestCovering, NewProjectRevision: currentRevision,
+	})
+	return admitted
+}
+
+// messageLoopViewSetCovers reports whether every requested view is present in
+// the covering set (trimmed, order-insensitive). The empty requested set
+// covers nothing.
+func messageLoopViewSetCovers(covering, requested []string) bool {
+	if len(requested) == 0 {
+		return false
+	}
+	held := make(map[string]bool, len(covering))
+	for _, view := range covering {
+		held[strings.TrimSpace(view)] = true
+	}
+	for _, view := range requested {
+		if !held[strings.TrimSpace(view)] {
+			return false
+		}
+	}
+	return true
+}
+
+// freeStateRevisionStrictlyNewer orders two project revisions by their
+// trailing integer ("8", "rev-8"). A revision without an orderable trailing
+// integer compares as not-newer, keeping the repeat bounce fail-closed.
+func freeStateRevisionStrictlyNewer(current, prior string) bool {
+	currentNumber, ok := freeStateRevisionTrailingNumber(current)
+	if !ok {
+		return false
+	}
+	priorNumber, ok := freeStateRevisionTrailingNumber(prior)
+	if !ok {
+		return false
+	}
+	return currentNumber > priorNumber
+}
+
+func freeStateRevisionTrailingNumber(revision string) (int64, bool) {
+	text := strings.TrimSpace(revision)
+	end := len(text)
+	for end > 0 && text[end-1] >= '0' && text[end-1] <= '9' {
+		end--
+	}
+	if end == len(text) {
+		return 0, false
+	}
+	value, err := strconv.ParseInt(text[end:], 10, 64)
+	if err != nil {
+		return 0, false
+	}
+	return value, true
 }
 
 func freeStateReObservationMetadata(decision *FreeStateDecision) map[string]any {
