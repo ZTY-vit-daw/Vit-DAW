@@ -5,7 +5,7 @@
 
 ## 当前占用
 
-- 状态：空闲
+- 2026-10-14 10:56 +0800 登记 / FIX-FS-SETTLE-DEADCHAIN-1（GLM-5.3 L2 执行会话，PC，ZCode；worktree D:/Vit_DAW_wt_fsdc1r2，分支 port/fix-fs-settle-deadchain-1-rerun2@4737a0c6）：腿 D 复跑——D1 reverb `run_free_state_d1_smoke.ps1 -PromptFlavor reverb -ExpectDomain reverb`（单变量=final gate 拒收反馈教学在场）；被测=worktree 构建 agent VitAgent.exe SHA256 AFEA9F30C32A56EF（4737a0c6 含腿 D 教学硬化）+主检出 VitApp.exe B6565DCF85D1DA86（C++ 面零改动）；LLM=deepseek-flash 思考档（~/.vit/config.json 全程未动，登记前探针 HTTP 200/0.68s、echo=deepseek-flash、reasoning_tokens=16=思考档在线）；登记前只读核对四端口 5555/5556/7878/8787 监听=0、VitApp/VitAgent/vsphub/Godot 进程=0（前次占用已于 01:47 释放）。
 
 ## 最近一次释放
 
