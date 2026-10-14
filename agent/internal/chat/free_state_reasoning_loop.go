@@ -1044,8 +1044,18 @@ func (s *Server) recordFreeStateDecision(conversationID string, res agentloop.Re
 		// once round 1 applied, so auditing it rejected every round-2+
 		// proposal (20260830_085624: capability_blocked
 		// free_state_admission_gate_failed, zero round-2 interventions).
-		carriesExperimentReport := decision.ExperimentMateriality != nil || decision.ExperimentTargetResponse != nil ||
-			strings.TrimSpace(decision.ExperimentRoundDecision) != ""
+		// FIX-CARRIES-REPORT-TIGHTEN-1: the exemption is grounded in the
+		// admitted experiment's existence, not in the decision's own field
+		// echo. loop.Experiment is the ground truth that this decision
+		// evaluates an already-admitted experiment; without it the report
+		// fields are placeholder shape only — the 109 rerun2 proposal turns
+		// copied the skeleton's settle placeholder triple
+		// {materiality:none,not_ready}+target_response+round_decision
+		// verbatim with no experiment admitted, and the field-presence skip
+		// let that shape bypass the admission audit — so the decision is
+		// audited as the new admission it actually is.
+		carriesExperimentReport := loop.Experiment != nil && (decision.ExperimentMateriality != nil || decision.ExperimentTargetResponse != nil ||
+			strings.TrimSpace(decision.ExperimentRoundDecision) != "")
 		var gateAudit agentloop.FreeStateGateAudit
 		gateRejected := false
 		if !carriesExperimentReport && !freeStateLoopRunningMultiRoundExperiment(&loop) {
