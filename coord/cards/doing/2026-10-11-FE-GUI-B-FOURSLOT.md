@@ -20,6 +20,6 @@
 
 规格断言②③④⑥ 逐条探针钉死+全回归（vitnote 五探针+FE-RACK+Phase A 69 钉）+真栈三件套 exit 0+手测清单更新[等待用户]。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-14 10:52 +0800 / origin/main=dad17d85 / GLM-5.3 L1 执行流（PC，ZCode 会话，用户 2026-10-14 早窗指派「领取卡池卡 91」）/ 前端仓分支 port/fe-gui-shrink-b-1（自 Phase A 基线 c56e38f 建）/ worktree=D:/Godot/project/vit-daw-frontend-fe-gui-shrink-b（独立 worktree）/ 领取时前端仓主检出 HEAD=c56e38f@port/fe-gui-shrink-1、status 净（仅运行时工程 untracked 目录，与本卡无关）/ doing 两卡核对=109 FIX-FS-SETTLE-DEADCHAIN-1、110 FIX-CARRIES-REPORT-TIGHTEN-1 均为 agent 仓域，与前端仓 vit_dock/+tools/diagnostics/ 域不相交 / 领取提交=本提交
 - 回执：（前端仓 commit / 探针结果 / 端测边界声明）
 - 验收：（裁定文件）
