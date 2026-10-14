@@ -384,38 +384,56 @@ type MaterialityEvaluation struct {
 	CalibrationProfile map[string]any             `json:"calibration_profile,omitempty"`
 }
 
-// Validate enforces the materiality schema. The rejection errors carry the
-// legal shape of the violated field (bounded enum teaching, no domain truth):
-// the free-state final gate feeds them back to the model verbatim as its only
-// retry guidance, so a bare "unsupported value" leaves the retry blind.
+// materialityShapeExample is the complete zero-truth skeleton of the
+// materiality object. Every rejection carries it so one bounce teaches the
+// whole required shape at once: run9 (leg E) showed the model fixing the one
+// field a short-circuit rejection named and silently dropping the others
+// (state=""↔attempt=0 alternating, evidence_refs dropped on retries two and
+// four) until the budget ran out. The evaluation union is the full
+// schema-legal set (not_ready stays legal for the B-i exemption pair); the
+// agentloop settle example intentionally narrows it to the settle-semantic
+// subset — both calibers coexist on purpose.
+const materialityShapeExample = `{"state":"material|subthreshold|none","evaluation":"not_ready|insufficient_dose|agent_evaluable|ambiguous","summary":"<acoustic materiality read from the fresh post-action evidence>","evidence_refs":["<fresh post-action observation id>"],"attempt":1}`
+
+// Validate enforces the materiality schema. The rejection collects every
+// violated field in one pass (no short-circuit) and appends the complete
+// object skeleton: the free-state final gate feeds the error back to the
+// model verbatim as its only retry guidance, so naming one violation at a
+// time is exactly the whack-a-mole the bounded continuation budget loses to.
+// Each field error still carries only its own field's legal shape (bounded
+// enum teaching, no domain truth).
 func (m MaterialityEvaluation) Validate() error {
+	var issues []string
 	switch m.State {
 	case MaterialityNone, MaterialitySubthreshold, MaterialityMaterial:
 	default:
-		return fmt.Errorf("unsupported materiality state %q (state must be one of: %s, %s, %s)",
-			m.State, MaterialityNone, MaterialitySubthreshold, MaterialityMaterial)
+		issues = append(issues, fmt.Sprintf("unsupported materiality state %q (state must be one of: %s, %s, %s)",
+			m.State, MaterialityNone, MaterialitySubthreshold, MaterialityMaterial))
 	}
 	switch m.Evaluation {
 	case trajectory.EvaluationNotReady, trajectory.EvaluationInsufficientDose,
 		trajectory.EvaluationAgentEvaluable, trajectory.EvaluationAmbiguous:
 	default:
-		return fmt.Errorf("unsupported materiality evaluation %q (evaluation must be one of: %s, %s, %s, %s)",
+		issues = append(issues, fmt.Sprintf("unsupported materiality evaluation %q (evaluation must be one of: %s, %s, %s, %s)",
 			m.Evaluation, trajectory.EvaluationNotReady, trajectory.EvaluationInsufficientDose,
-			trajectory.EvaluationAgentEvaluable, trajectory.EvaluationAmbiguous)
+			trajectory.EvaluationAgentEvaluable, trajectory.EvaluationAmbiguous))
 	}
 	if m.Attempt <= 0 {
-		return fmt.Errorf("materiality attempt must be a positive integer (attempt >= 1), got %d", m.Attempt)
+		issues = append(issues, fmt.Sprintf("materiality attempt must be a positive integer (attempt >= 1), got %d", m.Attempt))
 	}
 	if len(unique(m.EvidenceRefs)) == 0 {
-		return fmt.Errorf("materiality evidence_refs are required")
+		issues = append(issues, "materiality evidence_refs are required")
 	}
 	if m.State == MaterialitySubthreshold && m.Evaluation != trajectory.EvaluationInsufficientDose {
-		return fmt.Errorf("subthreshold materiality must be insufficient_dose")
+		issues = append(issues, "subthreshold materiality must be insufficient_dose")
 	}
 	if m.State == MaterialityMaterial && m.Evaluation == trajectory.EvaluationInsufficientDose {
-		return fmt.Errorf("material materiality cannot be insufficient_dose")
+		issues = append(issues, "material materiality cannot be insufficient_dose")
 	}
-	return nil
+	if len(issues) == 0 {
+		return nil
+	}
+	return fmt.Errorf("%s; complete object shape: %s", strings.Join(issues, "; "), materialityShapeExample)
 }
 
 // TargetEvaluation records the Agent's response classification after a fresh
