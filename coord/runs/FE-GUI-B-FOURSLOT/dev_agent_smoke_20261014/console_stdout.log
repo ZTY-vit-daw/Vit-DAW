@@ -1,0 +1,69 @@
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW
+agent http: http://127.0.0.1:7878
+
+== Build VitAgent
+ok: build passed: D:\Vit_DAW\agent\bin\VitAgent.dev-smoke.exe
+ok: installed agent bin: D:\Vit_DAW\agent\bin\VitAgent.exe
+ok: installed agent root compatibility exe: D:\Vit_DAW\agent\vitagent.exe
+
+== Start kernel
+ok: started kernel: D:\Vit_DAW\Export\staging\runtime\VitApp.exe pid=19876 workdir=D:\Vit_DAW\Export\staging\runtime
+
+== Start UI
+ok: kernel command port already listening before UI start: 5555 pid=19876
+ok: UI-launched kernel command port is listening: 5555
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=285
+shadow.initialized=True track_count=0
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=19876
+ok: ZMQ SUB listening: 5556 pid=19876
+
+== Project state invoke
+project.state status=ok error=
+
+== Strip Silence agent invoke smoke
+warn: no visible track found; creating a temporary smoke track
+strip.track.add status=ok track_id=1007 error=
+strip.import status=ok error=
+strip.clip_id=1011 track_id=1007
+strip.chat.stop_reason=needs_confirmation
+strip.chat.reply=这个操作需要你确认后才会执行。
+ok: Strip Silence chat route used deterministic suggest without legacy mix routing
+strip.chat.confirm status=ok goal_status=completed message=已执行片段清理：1011 已删除 3 个静音区域。
+ok: Strip Silence chat confirmation executed apply
+strip.chat.cleanup status=ok ids=1011
+warn: leaving temporary smoke track because kernel refuses deleting the last audio track: 1007
+
+== Chat route smoke
+chat.stop_reason=limit_reached
+chat.reply=我还在继续处理这个任务，完成后再向你汇报。
+ok: natural mix chat did not route through legacy mix_planner_chat
+
+== No-pending mix confirmation smoke
+confirm.stop_reason=no_pending_mix_tick_candidate
+confirm.reply=现在没有可执行的待确认混音动作。你可以让我重新观察，或者明确说要调整哪条轨道多少 dB。
+ok: bare mix confirmation did not execute without a pending candidate
+
+== Mix observe smoke
+mix.observe status=ok error=
+ok: mix.observe observation_id=obs_20261014T034250_80770a0c23d5
+
+== Summary
+ok: dev agent smoke completed
+SMOKE_EXIT=0
