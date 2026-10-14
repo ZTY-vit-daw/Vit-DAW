@@ -1,0 +1,4790 @@
+{
+ "source": "godot_user_R1.log [:INPROBE] mirror（原始 .log 因 .gitignore *.log 规则留盘于 fecef1 worktree 不入库，可回指）",
+ "parsed_by": "Mac 决策侧 2026-10-14 收尾",
+ "count": 458,
+ "events": [
+  {
+   "i": 0,
+   "wall": 1791978074223,
+   "perf": 99.5,
+   "l": "mark",
+   "t": "probe.load",
+   "tg": "",
+   "d": {
+    "sessionId": "d5bjx4",
+    "restored": 0
+   }
+  },
+  {
+   "i": 1,
+   "wall": 1791978074243,
+   "perf": 119.3,
+   "l": "react",
+   "t": "commit",
+   "tg": "",
+   "d": {
+    "widget": "react-b",
+    "value": ""
+   }
+  },
+  {
+   "i": 2,
+   "wall": 1791978074243,
+   "perf": 119.4,
+   "l": "react",
+   "t": "commit",
+   "tg": "",
+   "d": {
+    "widget": "react-c",
+    "value": ""
+   }
+  },
+  {
+   "i": 3,
+   "wall": 1791978074243,
+   "perf": 119.7,
+   "l": "mark",
+   "t": "probe.ready",
+   "tg": "",
+   "d": {
+    "href": "http://127.0.0.1:7879/",
+    "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36"
+   }
+  },
+  {
+   "i": 4,
+   "wall": 1791978074526,
+   "perf": 402.1,
+   "l": "focus",
+   "t": "hasFocus.change",
+   "tg": "",
+   "d": {
+    "hasFocus": true
+   }
+  },
+  {
+   "i": 5,
+   "wall": 1791978074526,
+   "perf": 402.3,
+   "l": "focus",
+   "t": "activeElement.change",
+   "tg": "",
+   "d": {
+    "active": "<body data-w=\"\">"
+   }
+  },
+  {
+   "i": 6,
+   "wall": 1791978074526,
+   "perf": 402.4,
+   "l": "focus",
+   "t": "visibility.change",
+   "tg": "",
+   "d": {
+    "visibility": "visible"
+   }
+  },
+  {
+   "i": 7,
+   "wall": 1791978077169,
+   "perf": 3045.1,
+   "l": "page",
+   "t": "pointerdown",
+   "tg": "<input#native-a data-w=\"native-a\">",
+   "d": {
+    "x": 338,
+    "y": 185,
+    "button": 0,
+    "trusted": true
+   }
+  },
+  {
+   "i": 8,
+   "wall": 1791978077171,
+   "perf": 3047,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 9,
+   "wall": 1791978077171,
+   "perf": 3047.2,
+   "l": "focus",
+   "t": "focusin",
+   "tg": "<input#native-a data-w=\"native-a\">",
+   "d": {
+    "to": "<input#native-a data-w=\"native-a\">"
+   }
+  },
+  {
+   "i": 10,
+   "wall": 1791978077193,
+   "perf": 3069,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 11,
+   "wall": 1791978077193,
+   "perf": 3069.1,
+   "l": "focus",
+   "t": "focusout",
+   "tg": "<input#native-a data-w=\"native-a\">",
+   "d": {
+    "from": "<input#native-a data-w=\"native-a\">"
+   }
+  },
+  {
+   "i": 12,
+   "wall": 1791978077193,
+   "perf": 3069.2,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 13,
+   "wall": 1791978077193,
+   "perf": 3069.5,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 14,
+   "wall": 1791978077193,
+   "perf": 3069.5,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 15,
+   "wall": 1791978077193,
+   "perf": 3069.5,
+   "l": "focus",
+   "t": "focusin",
+   "tg": "<input#native-a data-w=\"native-a\">",
+   "d": {
+    "to": "<input#native-a data-w=\"native-a\">"
+   }
+  },
+  {
+   "i": 16,
+   "wall": 1791978077225,
+   "perf": 3101.8,
+   "l": "focus",
+   "t": "activeElement.change",
+   "tg": "",
+   "d": {
+    "active": "<input#native-a data-w=\"native-a\">"
+   }
+  },
+  {
+   "i": 17,
+   "wall": 1791978078201,
+   "perf": 4077.6,
+   "l": "page",
+   "t": "pointerdown",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "x": 350,
+    "y": 218,
+    "button": 0,
+    "trusted": true
+   }
+  },
+  {
+   "i": 18,
+   "wall": 1791978078202,
+   "perf": 4078.6,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 19,
+   "wall": 1791978078202,
+   "perf": 4078.6,
+   "l": "focus",
+   "t": "focusout",
+   "tg": "<input#native-a data-w=\"native-a\">",
+   "d": {
+    "from": "<input#native-a data-w=\"native-a\">"
+   }
+  },
+  {
+   "i": 20,
+   "wall": 1791978078203,
+   "perf": 4078.9,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 21,
+   "wall": 1791978078203,
+   "perf": 4079,
+   "l": "focus",
+   "t": "focusin",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "to": "<input#react-b data-w=\"react-b\">"
+   }
+  },
+  {
+   "i": 22,
+   "wall": 1791978078204,
+   "perf": 4080.3,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 23,
+   "wall": 1791978078204,
+   "perf": 4080.4,
+   "l": "focus",
+   "t": "focusout",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "from": "<input#react-b data-w=\"react-b\">"
+   }
+  },
+  {
+   "i": 24,
+   "wall": 1791978078204,
+   "perf": 4080.5,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 25,
+   "wall": 1791978078425,
+   "perf": 4301.9,
+   "l": "focus",
+   "t": "hasFocus.change",
+   "tg": "",
+   "d": {
+    "hasFocus": false
+   }
+  },
+  {
+   "i": 26,
+   "wall": 1791978078426,
+   "perf": 4302.2,
+   "l": "focus",
+   "t": "activeElement.change",
+   "tg": "",
+   "d": {
+    "active": "<input#react-b data-w=\"react-b\">"
+   }
+  },
+  {
+   "i": 27,
+   "wall": 1791978078835,
+   "perf": 4711.4,
+   "l": "page",
+   "t": "pointerdown",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "x": 350,
+    "y": 217,
+    "button": 0,
+    "trusted": true
+   }
+  },
+  {
+   "i": 28,
+   "wall": 1791978078836,
+   "perf": 4712.4,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 29,
+   "wall": 1791978078836,
+   "perf": 4712.5,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 30,
+   "wall": 1791978078836,
+   "perf": 4712.6,
+   "l": "focus",
+   "t": "focusin",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "to": "<input#react-b data-w=\"react-b\">"
+   }
+  },
+  {
+   "i": 31,
+   "wall": 1791978078836,
+   "perf": 4712.9,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 32,
+   "wall": 1791978078837,
+   "perf": 4712.9,
+   "l": "focus",
+   "t": "focusout",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "from": "<input#react-b data-w=\"react-b\">"
+   }
+  },
+  {
+   "i": 33,
+   "wall": 1791978078837,
+   "perf": 4713,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 34,
+   "wall": 1791978079885,
+   "perf": 5761.2,
+   "l": "page",
+   "t": "pointerdown",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "x": 341,
+    "y": 245,
+    "button": 0,
+    "trusted": true
+   }
+  },
+  {
+   "i": 35,
+   "wall": 1791978079887,
+   "perf": 5763.4,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 36,
+   "wall": 1791978079887,
+   "perf": 5763.5,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 37,
+   "wall": 1791978079887,
+   "perf": 5763.5,
+   "l": "focus",
+   "t": "focusin",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "to": "<input#react-c data-w=\"react-c\">"
+   }
+  },
+  {
+   "i": 38,
+   "wall": 1791978079887,
+   "perf": 5763.7,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 39,
+   "wall": 1791978079887,
+   "perf": 5763.7,
+   "l": "focus",
+   "t": "focusout",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "from": "<input#react-c data-w=\"react-c\">"
+   }
+  },
+  {
+   "i": 40,
+   "wall": 1791978079887,
+   "perf": 5763.8,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 41,
+   "wall": 1791978079925,
+   "perf": 5801.8,
+   "l": "focus",
+   "t": "activeElement.change",
+   "tg": "",
+   "d": {
+    "active": "<input#react-c data-w=\"react-c\">"
+   }
+  },
+  {
+   "i": 42,
+   "wall": 1791978083419,
+   "perf": 9295.6,
+   "l": "page",
+   "t": "pointerdown",
+   "tg": "<input#native-a data-w=\"native-a\">",
+   "d": {
+    "x": 279,
+    "y": 178,
+    "button": 0,
+    "trusted": true
+   }
+  },
+  {
+   "i": 43,
+   "wall": 1791978083421,
+   "perf": 9297.8,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 44,
+   "wall": 1791978083421,
+   "perf": 9297.9,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 45,
+   "wall": 1791978083422,
+   "perf": 9297.9,
+   "l": "focus",
+   "t": "focusin",
+   "tg": "<input#native-a data-w=\"native-a\">",
+   "d": {
+    "to": "<input#native-a data-w=\"native-a\">"
+   }
+  },
+  {
+   "i": 46,
+   "wall": 1791978083422,
+   "perf": 9298.2,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 47,
+   "wall": 1791978083422,
+   "perf": 9298.2,
+   "l": "focus",
+   "t": "focusout",
+   "tg": "<input#native-a data-w=\"native-a\">",
+   "d": {
+    "from": "<input#native-a data-w=\"native-a\">"
+   }
+  },
+  {
+   "i": 48,
+   "wall": 1791978083422,
+   "perf": 9298.3,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 49,
+   "wall": 1791978083526,
+   "perf": 9402.4,
+   "l": "focus",
+   "t": "activeElement.change",
+   "tg": "",
+   "d": {
+    "active": "<input#native-a data-w=\"native-a\">"
+   }
+  },
+  {
+   "i": 50,
+   "wall": 1791978084718,
+   "perf": 10594.3,
+   "l": "page",
+   "t": "pointerdown",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "x": 345,
+    "y": 212,
+    "button": 0,
+    "trusted": true
+   }
+  },
+  {
+   "i": 51,
+   "wall": 1791978084720,
+   "perf": 10596.2,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 52,
+   "wall": 1791978084720,
+   "perf": 10596.3,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 53,
+   "wall": 1791978084720,
+   "perf": 10596.3,
+   "l": "focus",
+   "t": "focusin",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "to": "<input#react-b data-w=\"react-b\">"
+   }
+  },
+  {
+   "i": 54,
+   "wall": 1791978084720,
+   "perf": 10596.5,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 55,
+   "wall": 1791978084720,
+   "perf": 10596.5,
+   "l": "focus",
+   "t": "focusout",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "from": "<input#react-b data-w=\"react-b\">"
+   }
+  },
+  {
+   "i": 56,
+   "wall": 1791978084720,
+   "perf": 10596.5,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 57,
+   "wall": 1791978084726,
+   "perf": 10602,
+   "l": "focus",
+   "t": "activeElement.change",
+   "tg": "",
+   "d": {
+    "active": "<input#react-b data-w=\"react-b\">"
+   }
+  },
+  {
+   "i": 58,
+   "wall": 1791978085601,
+   "perf": 11477.4,
+   "l": "page",
+   "t": "pointerdown",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "x": 333,
+    "y": 249,
+    "button": 0,
+    "trusted": true
+   }
+  },
+  {
+   "i": 59,
+   "wall": 1791978085604,
+   "perf": 11479.9,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 60,
+   "wall": 1791978085604,
+   "perf": 11480.1,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 61,
+   "wall": 1791978085604,
+   "perf": 11480.1,
+   "l": "focus",
+   "t": "focusin",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "to": "<input#react-c data-w=\"react-c\">"
+   }
+  },
+  {
+   "i": 62,
+   "wall": 1791978085604,
+   "perf": 11480.3,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 63,
+   "wall": 1791978085604,
+   "perf": 11480.4,
+   "l": "focus",
+   "t": "focusout",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "from": "<input#react-c data-w=\"react-c\">"
+   }
+  },
+  {
+   "i": 64,
+   "wall": 1791978085604,
+   "perf": 11480.4,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 65,
+   "wall": 1791978085625,
+   "perf": 11501.2,
+   "l": "focus",
+   "t": "activeElement.change",
+   "tg": "",
+   "d": {
+    "active": "<input#react-c data-w=\"react-c\">"
+   }
+  },
+  {
+   "i": 66,
+   "wall": 1791978087969,
+   "perf": 13845.8,
+   "l": "page",
+   "t": "pointerdown",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "x": 261,
+    "y": 211,
+    "button": 0,
+    "trusted": true
+   }
+  },
+  {
+   "i": 67,
+   "wall": 1791978087972,
+   "perf": 13848.4,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 68,
+   "wall": 1791978087972,
+   "perf": 13848.4,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 69,
+   "wall": 1791978087972,
+   "perf": 13848.5,
+   "l": "focus",
+   "t": "focusin",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "to": "<input#react-b data-w=\"react-b\">"
+   }
+  },
+  {
+   "i": 70,
+   "wall": 1791978087972,
+   "perf": 13848.8,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 71,
+   "wall": 1791978087972,
+   "perf": 13848.9,
+   "l": "focus",
+   "t": "focusout",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "from": "<input#react-b data-w=\"react-b\">"
+   }
+  },
+  {
+   "i": 72,
+   "wall": 1791978087972,
+   "perf": 13848.9,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 73,
+   "wall": 1791978088026,
+   "perf": 13902,
+   "l": "focus",
+   "t": "activeElement.change",
+   "tg": "",
+   "d": {
+    "active": "<input#react-b data-w=\"react-b\">"
+   }
+  },
+  {
+   "i": 74,
+   "wall": 1791978088803,
+   "perf": 14679.5,
+   "l": "page",
+   "t": "pointerdown",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "x": 264,
+    "y": 245,
+    "button": 0,
+    "trusted": true
+   }
+  },
+  {
+   "i": 75,
+   "wall": 1791978088807,
+   "perf": 14683.6,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 76,
+   "wall": 1791978088807,
+   "perf": 14683.7,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 77,
+   "wall": 1791978088807,
+   "perf": 14683.7,
+   "l": "focus",
+   "t": "focusin",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "to": "<input#react-c data-w=\"react-c\">"
+   }
+  },
+  {
+   "i": 78,
+   "wall": 1791978088808,
+   "perf": 14684.2,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 79,
+   "wall": 1791978088808,
+   "perf": 14684.2,
+   "l": "focus",
+   "t": "focusout",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "from": "<input#react-c data-w=\"react-c\">"
+   }
+  },
+  {
+   "i": 80,
+   "wall": 1791978088808,
+   "perf": 14684.2,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 81,
+   "wall": 1791978088926,
+   "perf": 14802.7,
+   "l": "focus",
+   "t": "activeElement.change",
+   "tg": "",
+   "d": {
+    "active": "<input#react-c data-w=\"react-c\">"
+   }
+  },
+  {
+   "i": 82,
+   "wall": 1791978092035,
+   "perf": 17911,
+   "l": "page",
+   "t": "pointerdown",
+   "tg": "<button data-w=\"\">",
+   "d": {
+    "x": 186,
+    "y": 336,
+    "button": 0,
+    "trusted": true
+   }
+  },
+  {
+   "i": 83,
+   "wall": 1791978092036,
+   "perf": 17912.7,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 84,
+   "wall": 1791978092036,
+   "perf": 17912.7,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 85,
+   "wall": 1791978092036,
+   "perf": 17912.7,
+   "l": "focus",
+   "t": "focusin",
+   "tg": "<button data-w=\"\">",
+   "d": {
+    "to": "<button data-w=\"\">"
+   }
+  },
+  {
+   "i": 86,
+   "wall": 1791978092037,
+   "perf": 17913.1,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 87,
+   "wall": 1791978092037,
+   "perf": 17913.1,
+   "l": "focus",
+   "t": "focusout",
+   "tg": "<button data-w=\"\">",
+   "d": {
+    "from": "<button data-w=\"\">"
+   }
+  },
+  {
+   "i": 88,
+   "wall": 1791978092037,
+   "perf": 17913.1,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 89,
+   "wall": 1791978092038,
+   "perf": 17914.6,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 90,
+   "wall": 1791978092038,
+   "perf": 17914.6,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 91,
+   "wall": 1791978092038,
+   "perf": 17914.6,
+   "l": "focus",
+   "t": "focusin",
+   "tg": "<button data-w=\"\">",
+   "d": {
+    "to": "<button data-w=\"\">"
+   }
+  },
+  {
+   "i": 0,
+   "wall": 1791978092171,
+   "perf": 18046.9,
+   "l": "mark",
+   "t": "cleared",
+   "tg": ""
+  },
+  {
+   "i": 1,
+   "wall": 1791978092226,
+   "perf": 18102.2,
+   "l": "focus",
+   "t": "hasFocus.change",
+   "tg": "",
+   "d": {
+    "hasFocus": true
+   }
+  },
+  {
+   "i": 2,
+   "wall": 1791978092226,
+   "perf": 18102.5,
+   "l": "focus",
+   "t": "activeElement.change",
+   "tg": "",
+   "d": {
+    "active": "<button data-w=\"\">"
+   }
+  },
+  {
+   "i": 3,
+   "wall": 1791978093567,
+   "perf": 19443.7,
+   "l": "page",
+   "t": "pointerdown",
+   "tg": "<input#native-a data-w=\"native-a\">",
+   "d": {
+    "x": 323,
+    "y": 179,
+    "button": 0,
+    "trusted": true
+   }
+  },
+  {
+   "i": 4,
+   "wall": 1791978093569,
+   "perf": 19444.8,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 5,
+   "wall": 1791978093569,
+   "perf": 19444.9,
+   "l": "focus",
+   "t": "focusout",
+   "tg": "<button data-w=\"\">",
+   "d": {
+    "from": "<button data-w=\"\">"
+   }
+  },
+  {
+   "i": 6,
+   "wall": 1791978093569,
+   "perf": 19445,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 7,
+   "wall": 1791978093569,
+   "perf": 19445,
+   "l": "focus",
+   "t": "focusin",
+   "tg": "<input#native-a data-w=\"native-a\">",
+   "d": {
+    "to": "<input#native-a data-w=\"native-a\">"
+   }
+  },
+  {
+   "i": 8,
+   "wall": 1791978093590,
+   "perf": 19466.8,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 9,
+   "wall": 1791978093591,
+   "perf": 19466.9,
+   "l": "focus",
+   "t": "focusout",
+   "tg": "<input#native-a data-w=\"native-a\">",
+   "d": {
+    "from": "<input#native-a data-w=\"native-a\">"
+   }
+  },
+  {
+   "i": 10,
+   "wall": 1791978093591,
+   "perf": 19467,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 11,
+   "wall": 1791978093591,
+   "perf": 19467.1,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 12,
+   "wall": 1791978093591,
+   "perf": 19467.1,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 13,
+   "wall": 1791978093591,
+   "perf": 19467.1,
+   "l": "focus",
+   "t": "focusin",
+   "tg": "<input#native-a data-w=\"native-a\">",
+   "d": {
+    "to": "<input#native-a data-w=\"native-a\">"
+   }
+  },
+  {
+   "i": 14,
+   "wall": 1791978093726,
+   "perf": 19602.4,
+   "l": "focus",
+   "t": "activeElement.change",
+   "tg": "",
+   "d": {
+    "active": "<input#native-a data-w=\"native-a\">"
+   }
+  },
+  {
+   "i": 15,
+   "wall": 1791978094720,
+   "perf": 20596.7,
+   "l": "page",
+   "t": "pointerdown",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "x": 320,
+    "y": 215,
+    "button": 0,
+    "trusted": true
+   }
+  },
+  {
+   "i": 16,
+   "wall": 1791978094722,
+   "perf": 20598.2,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 17,
+   "wall": 1791978094722,
+   "perf": 20598.8,
+   "l": "focus",
+   "t": "focusout",
+   "tg": "<input#native-a data-w=\"native-a\">",
+   "d": {
+    "from": "<input#native-a data-w=\"native-a\">"
+   }
+  },
+  {
+   "i": 18,
+   "wall": 1791978094723,
+   "perf": 20599.7,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 19,
+   "wall": 1791978094724,
+   "perf": 20599.8,
+   "l": "focus",
+   "t": "focusin",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "to": "<input#react-b data-w=\"react-b\">"
+   }
+  },
+  {
+   "i": 20,
+   "wall": 1791978094727,
+   "perf": 20603.3,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 21,
+   "wall": 1791978094727,
+   "perf": 20603.5,
+   "l": "focus",
+   "t": "focusout",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "from": "<input#react-b data-w=\"react-b\">"
+   }
+  },
+  {
+   "i": 22,
+   "wall": 1791978094727,
+   "perf": 20603.7,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 23,
+   "wall": 1791978094925,
+   "perf": 20801.3,
+   "l": "focus",
+   "t": "hasFocus.change",
+   "tg": "",
+   "d": {
+    "hasFocus": false
+   }
+  },
+  {
+   "i": 24,
+   "wall": 1791978094925,
+   "perf": 20801.5,
+   "l": "focus",
+   "t": "activeElement.change",
+   "tg": "",
+   "d": {
+    "active": "<input#react-b data-w=\"react-b\">"
+   }
+  },
+  {
+   "i": 25,
+   "wall": 1791978095702,
+   "perf": 21577.9,
+   "l": "page",
+   "t": "pointerdown",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "x": 319,
+    "y": 241,
+    "button": 0,
+    "trusted": true
+   }
+  },
+  {
+   "i": 26,
+   "wall": 1791978095704,
+   "perf": 21579.8,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 27,
+   "wall": 1791978095704,
+   "perf": 21579.9,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 28,
+   "wall": 1791978095704,
+   "perf": 21579.9,
+   "l": "focus",
+   "t": "focusin",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "to": "<input#react-c data-w=\"react-c\">"
+   }
+  },
+  {
+   "i": 29,
+   "wall": 1791978095704,
+   "perf": 21580.2,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 30,
+   "wall": 1791978095704,
+   "perf": 21580.2,
+   "l": "focus",
+   "t": "focusout",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "from": "<input#react-c data-w=\"react-c\">"
+   }
+  },
+  {
+   "i": 31,
+   "wall": 1791978095704,
+   "perf": 21580.3,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 32,
+   "wall": 1791978095826,
+   "perf": 21702.4,
+   "l": "focus",
+   "t": "activeElement.change",
+   "tg": "",
+   "d": {
+    "active": "<input#react-c data-w=\"react-c\">"
+   }
+  },
+  {
+   "i": 33,
+   "wall": 1791978098286,
+   "perf": 24162.8,
+   "l": "page",
+   "t": "pointerdown",
+   "tg": "<button data-w=\"\">",
+   "d": {
+    "x": 82,
+    "y": 335,
+    "button": 0,
+    "trusted": true
+   }
+  },
+  {
+   "i": 34,
+   "wall": 1791978098288,
+   "perf": 24164.3,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 35,
+   "wall": 1791978098288,
+   "perf": 24164.6,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 36,
+   "wall": 1791978098288,
+   "perf": 24164.7,
+   "l": "focus",
+   "t": "focusin",
+   "tg": "<button data-w=\"\">",
+   "d": {
+    "to": "<button data-w=\"\">"
+   }
+  },
+  {
+   "i": 37,
+   "wall": 1791978098289,
+   "perf": 24165.3,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 38,
+   "wall": 1791978098289,
+   "perf": 24165.5,
+   "l": "focus",
+   "t": "focusout",
+   "tg": "<button data-w=\"\">",
+   "d": {
+    "from": "<button data-w=\"\">"
+   }
+  },
+  {
+   "i": 39,
+   "wall": 1791978098289,
+   "perf": 24165.7,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 40,
+   "wall": 1791978098291,
+   "perf": 24167.2,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 41,
+   "wall": 1791978098291,
+   "perf": 24167.3,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 42,
+   "wall": 1791978098291,
+   "perf": 24167.3,
+   "l": "focus",
+   "t": "focusin",
+   "tg": "<button data-w=\"\">",
+   "d": {
+    "to": "<button data-w=\"\">"
+   }
+  },
+  {
+   "i": 43,
+   "wall": 1791978098420,
+   "perf": 24296.6,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 44,
+   "wall": 1791978098420,
+   "perf": 24296.7,
+   "l": "focus",
+   "t": "focusout",
+   "tg": "<button data-w=\"\">",
+   "d": {
+    "from": "<button data-w=\"\">"
+   }
+  },
+  {
+   "i": 45,
+   "wall": 1791978098422,
+   "perf": 24298,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 46,
+   "wall": 1791978098422,
+   "perf": 24298.2,
+   "l": "focus",
+   "t": "focusin",
+   "tg": "<input#native-a data-w=\"native-a\">",
+   "d": {
+    "to": "<input#native-a data-w=\"native-a\">"
+   }
+  },
+  {
+   "i": 47,
+   "wall": 1791978098424,
+   "perf": 24300.2,
+   "l": "mark",
+   "t": "user-mark",
+   "tg": "",
+   "d": {
+    "label": "refocus-native-a"
+   }
+  },
+  {
+   "i": 48,
+   "wall": 1791978098437,
+   "perf": 24313.4,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 49,
+   "wall": 1791978098437,
+   "perf": 24313.6,
+   "l": "focus",
+   "t": "focusout",
+   "tg": "<input#native-a data-w=\"native-a\">",
+   "d": {
+    "from": "<input#native-a data-w=\"native-a\">"
+   }
+  },
+  {
+   "i": 50,
+   "wall": 1791978098437,
+   "perf": 24313.6,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 51,
+   "wall": 1791978098438,
+   "perf": 24313.9,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 52,
+   "wall": 1791978098438,
+   "perf": 24313.9,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 53,
+   "wall": 1791978098438,
+   "perf": 24313.9,
+   "l": "focus",
+   "t": "focusin",
+   "tg": "<input#native-a data-w=\"native-a\">",
+   "d": {
+    "to": "<input#native-a data-w=\"native-a\">"
+   }
+  },
+  {
+   "i": 54,
+   "wall": 1791978098526,
+   "perf": 24402.5,
+   "l": "focus",
+   "t": "hasFocus.change",
+   "tg": "",
+   "d": {
+    "hasFocus": true
+   }
+  },
+  {
+   "i": 55,
+   "wall": 1791978098526,
+   "perf": 24402.9,
+   "l": "focus",
+   "t": "activeElement.change",
+   "tg": "",
+   "d": {
+    "active": "<input#native-a data-w=\"native-a\">"
+   }
+  },
+  {
+   "i": 56,
+   "wall": 1791978100703,
+   "perf": 26579.6,
+   "l": "page",
+   "t": "pointerdown",
+   "tg": "<button data-w=\"\">",
+   "d": {
+    "x": 342,
+    "y": 300,
+    "button": 0,
+    "trusted": true
+   }
+  },
+  {
+   "i": 57,
+   "wall": 1791978100705,
+   "perf": 26581.3,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 58,
+   "wall": 1791978100706,
+   "perf": 26581.8,
+   "l": "focus",
+   "t": "focusout",
+   "tg": "<input#native-a data-w=\"native-a\">",
+   "d": {
+    "from": "<input#native-a data-w=\"native-a\">"
+   }
+  },
+  {
+   "i": 59,
+   "wall": 1791978100706,
+   "perf": 26582.8,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 60,
+   "wall": 1791978100707,
+   "perf": 26582.9,
+   "l": "focus",
+   "t": "focusin",
+   "tg": "<button data-w=\"\">",
+   "d": {
+    "to": "<button data-w=\"\">"
+   }
+  },
+  {
+   "i": 61,
+   "wall": 1791978100708,
+   "perf": 26584.8,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 62,
+   "wall": 1791978100709,
+   "perf": 26584.9,
+   "l": "focus",
+   "t": "focusout",
+   "tg": "<button data-w=\"\">",
+   "d": {
+    "from": "<button data-w=\"\">"
+   }
+  },
+  {
+   "i": 63,
+   "wall": 1791978100709,
+   "perf": 26585.1,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 64,
+   "wall": 1791978100722,
+   "perf": 26598.3,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 65,
+   "wall": 1791978100722,
+   "perf": 26598.5,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 66,
+   "wall": 1791978100722,
+   "perf": 26598.5,
+   "l": "focus",
+   "t": "focusin",
+   "tg": "<button data-w=\"\">",
+   "d": {
+    "to": "<button data-w=\"\">"
+   }
+  },
+  {
+   "i": 67,
+   "wall": 1791978100870,
+   "perf": 26746.4,
+   "l": "mark",
+   "t": "user-mark",
+   "tg": "",
+   "d": {
+    "label": "step-3"
+   }
+  },
+  {
+   "i": 68,
+   "wall": 1791978100925,
+   "perf": 26801.7,
+   "l": "focus",
+   "t": "activeElement.change",
+   "tg": "",
+   "d": {
+    "active": "<button data-w=\"\">"
+   }
+  },
+  {
+   "i": 69,
+   "wall": 1791978101668,
+   "perf": 27544.1,
+   "l": "page",
+   "t": "pointerdown",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "x": 284,
+    "y": 225,
+    "button": 0,
+    "trusted": true
+   }
+  },
+  {
+   "i": 70,
+   "wall": 1791978101669,
+   "perf": 27545.3,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 71,
+   "wall": 1791978101669,
+   "perf": 27545.3,
+   "l": "focus",
+   "t": "focusout",
+   "tg": "<button data-w=\"\">",
+   "d": {
+    "from": "<button data-w=\"\">"
+   }
+  },
+  {
+   "i": 72,
+   "wall": 1791978101669,
+   "perf": 27545.5,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 73,
+   "wall": 1791978101669,
+   "perf": 27545.6,
+   "l": "focus",
+   "t": "focusin",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "to": "<input#react-b data-w=\"react-b\">"
+   }
+  },
+  {
+   "i": 74,
+   "wall": 1791978101693,
+   "perf": 27569.1,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 75,
+   "wall": 1791978101693,
+   "perf": 27569.3,
+   "l": "focus",
+   "t": "focusout",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "from": "<input#react-b data-w=\"react-b\">"
+   }
+  },
+  {
+   "i": 76,
+   "wall": 1791978101693,
+   "perf": 27569.4,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 77,
+   "wall": 1791978101693,
+   "perf": 27569.7,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 78,
+   "wall": 1791978101693,
+   "perf": 27569.7,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 79,
+   "wall": 1791978101693,
+   "perf": 27569.7,
+   "l": "focus",
+   "t": "focusin",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "to": "<input#react-b data-w=\"react-b\">"
+   }
+  },
+  {
+   "i": 80,
+   "wall": 1791978101839,
+   "perf": 27715.2,
+   "l": "focus",
+   "t": "activeElement.change",
+   "tg": "",
+   "d": {
+    "active": "<input#react-b data-w=\"react-b\">"
+   }
+  },
+  {
+   "i": 81,
+   "wall": 1791978103301,
+   "perf": 29177.3,
+   "l": "page",
+   "t": "pointerdown",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "x": 282,
+    "y": 255,
+    "button": 0,
+    "trusted": true
+   }
+  },
+  {
+   "i": 82,
+   "wall": 1791978103302,
+   "perf": 29178.6,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 83,
+   "wall": 1791978103302,
+   "perf": 29178.7,
+   "l": "focus",
+   "t": "focusout",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "from": "<input#react-b data-w=\"react-b\">"
+   }
+  },
+  {
+   "i": 84,
+   "wall": 1791978103303,
+   "perf": 29179.1,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 85,
+   "wall": 1791978103303,
+   "perf": 29179.1,
+   "l": "focus",
+   "t": "focusin",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "to": "<input#react-c data-w=\"react-c\">"
+   }
+  },
+  {
+   "i": 86,
+   "wall": 1791978103304,
+   "perf": 29180.5,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 87,
+   "wall": 1791978103304,
+   "perf": 29180.6,
+   "l": "focus",
+   "t": "focusout",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "from": "<input#react-c data-w=\"react-c\">"
+   }
+  },
+  {
+   "i": 88,
+   "wall": 1791978103304,
+   "perf": 29180.7,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 89,
+   "wall": 1791978103326,
+   "perf": 29202.1,
+   "l": "focus",
+   "t": "hasFocus.change",
+   "tg": "",
+   "d": {
+    "hasFocus": false
+   }
+  },
+  {
+   "i": 90,
+   "wall": 1791978103326,
+   "perf": 29202.3,
+   "l": "focus",
+   "t": "activeElement.change",
+   "tg": "",
+   "d": {
+    "active": "<input#react-c data-w=\"react-c\">"
+   }
+  },
+  {
+   "i": 91,
+   "wall": 1791978104587,
+   "perf": 30462.9,
+   "l": "page",
+   "t": "pointerdown",
+   "tg": "<button data-w=\"\">",
+   "d": {
+    "x": 223,
+    "y": 295,
+    "button": 0,
+    "trusted": true
+   }
+  },
+  {
+   "i": 92,
+   "wall": 1791978104589,
+   "perf": 30465.2,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 93,
+   "wall": 1791978104589,
+   "perf": 30465.3,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 94,
+   "wall": 1791978104589,
+   "perf": 30465.4,
+   "l": "focus",
+   "t": "focusin",
+   "tg": "<button data-w=\"\">",
+   "d": {
+    "to": "<button data-w=\"\">"
+   }
+  },
+  {
+   "i": 95,
+   "wall": 1791978104590,
+   "perf": 30465.9,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 96,
+   "wall": 1791978104590,
+   "perf": 30465.9,
+   "l": "focus",
+   "t": "focusout",
+   "tg": "<button data-w=\"\">",
+   "d": {
+    "from": "<button data-w=\"\">"
+   }
+  },
+  {
+   "i": 97,
+   "wall": 1791978104590,
+   "perf": 30466,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 98,
+   "wall": 1791978104591,
+   "perf": 30466.8,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 99,
+   "wall": 1791978104591,
+   "perf": 30466.8,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 100,
+   "wall": 1791978104591,
+   "perf": 30466.9,
+   "l": "focus",
+   "t": "focusin",
+   "tg": "<button data-w=\"\">",
+   "d": {
+    "to": "<button data-w=\"\">"
+   }
+  },
+  {
+   "i": 101,
+   "wall": 1791978104718,
+   "perf": 30594.6,
+   "l": "mark",
+   "t": "user-mark",
+   "tg": "",
+   "d": {
+    "label": "step-2"
+   }
+  },
+  {
+   "i": 102,
+   "wall": 1791978104826,
+   "perf": 30702.5,
+   "l": "focus",
+   "t": "hasFocus.change",
+   "tg": "",
+   "d": {
+    "hasFocus": true
+   }
+  },
+  {
+   "i": 103,
+   "wall": 1791978104827,
+   "perf": 30702.8,
+   "l": "focus",
+   "t": "activeElement.change",
+   "tg": "",
+   "d": {
+    "active": "<button data-w=\"\">"
+   }
+  },
+  {
+   "i": 104,
+   "wall": 1791978105418,
+   "perf": 31294.4,
+   "l": "page",
+   "t": "pointerdown",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "x": 270,
+    "y": 252,
+    "button": 0,
+    "trusted": true
+   }
+  },
+  {
+   "i": 105,
+   "wall": 1791978105419,
+   "perf": 31295.8,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 106,
+   "wall": 1791978105420,
+   "perf": 31295.8,
+   "l": "focus",
+   "t": "focusout",
+   "tg": "<button data-w=\"\">",
+   "d": {
+    "from": "<button data-w=\"\">"
+   }
+  },
+  {
+   "i": 107,
+   "wall": 1791978105420,
+   "perf": 31296.1,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 108,
+   "wall": 1791978105420,
+   "perf": 31296.1,
+   "l": "focus",
+   "t": "focusin",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "to": "<input#react-c data-w=\"react-c\">"
+   }
+  },
+  {
+   "i": 109,
+   "wall": 1791978105425,
+   "perf": 31301.6,
+   "l": "focus",
+   "t": "activeElement.change",
+   "tg": "",
+   "d": {
+    "active": "<input#react-c data-w=\"react-c\">"
+   }
+  },
+  {
+   "i": 110,
+   "wall": 1791978105443,
+   "perf": 31319.6,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 111,
+   "wall": 1791978105443,
+   "perf": 31319.7,
+   "l": "focus",
+   "t": "focusout",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "from": "<input#react-c data-w=\"react-c\">"
+   }
+  },
+  {
+   "i": 112,
+   "wall": 1791978105444,
+   "perf": 31319.8,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 113,
+   "wall": 1791978105444,
+   "perf": 31320,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 114,
+   "wall": 1791978105444,
+   "perf": 31320,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 115,
+   "wall": 1791978105444,
+   "perf": 31320,
+   "l": "focus",
+   "t": "focusin",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "to": "<input#react-c data-w=\"react-c\">"
+   }
+  },
+  {
+   "i": 116,
+   "wall": 1791978108618,
+   "perf": 34493.8,
+   "l": "page",
+   "t": "pointerdown",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "x": 295,
+    "y": 218,
+    "button": 0,
+    "trusted": true
+   }
+  },
+  {
+   "i": 117,
+   "wall": 1791978108619,
+   "perf": 34495.2,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 118,
+   "wall": 1791978108619,
+   "perf": 34495.3,
+   "l": "focus",
+   "t": "focusout",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "from": "<input#react-c data-w=\"react-c\">"
+   }
+  },
+  {
+   "i": 119,
+   "wall": 1791978108619,
+   "perf": 34495.5,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 120,
+   "wall": 1791978108619,
+   "perf": 34495.5,
+   "l": "focus",
+   "t": "focusin",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "to": "<input#react-b data-w=\"react-b\">"
+   }
+  },
+  {
+   "i": 121,
+   "wall": 1791978108620,
+   "perf": 34496.7,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 122,
+   "wall": 1791978108620,
+   "perf": 34496.8,
+   "l": "focus",
+   "t": "focusout",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "from": "<input#react-b data-w=\"react-b\">"
+   }
+  },
+  {
+   "i": 123,
+   "wall": 1791978108620,
+   "perf": 34496.8,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 124,
+   "wall": 1791978108726,
+   "perf": 34602.1,
+   "l": "focus",
+   "t": "hasFocus.change",
+   "tg": "",
+   "d": {
+    "hasFocus": false
+   }
+  },
+  {
+   "i": 125,
+   "wall": 1791978108726,
+   "perf": 34602.2,
+   "l": "focus",
+   "t": "activeElement.change",
+   "tg": "",
+   "d": {
+    "active": "<input#react-b data-w=\"react-b\">"
+   }
+  },
+  {
+   "i": 126,
+   "wall": 1791978110651,
+   "perf": 36527.7,
+   "l": "page",
+   "t": "pointerdown",
+   "tg": "<button data-w=\"\">",
+   "d": {
+    "x": 400,
+    "y": 308,
+    "button": 0,
+    "trusted": true
+   }
+  },
+  {
+   "i": 127,
+   "wall": 1791978110653,
+   "perf": 36529.3,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 128,
+   "wall": 1791978110653,
+   "perf": 36529.4,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 129,
+   "wall": 1791978110653,
+   "perf": 36529.5,
+   "l": "focus",
+   "t": "focusin",
+   "tg": "<button data-w=\"\">",
+   "d": {
+    "to": "<button data-w=\"\">"
+   }
+  },
+  {
+   "i": 130,
+   "wall": 1791978110654,
+   "perf": 36529.9,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 131,
+   "wall": 1791978110654,
+   "perf": 36530,
+   "l": "focus",
+   "t": "focusout",
+   "tg": "<button data-w=\"\">",
+   "d": {
+    "from": "<button data-w=\"\">"
+   }
+  },
+  {
+   "i": 132,
+   "wall": 1791978110654,
+   "perf": 36530,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 133,
+   "wall": 1791978110656,
+   "perf": 36532,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 134,
+   "wall": 1791978110656,
+   "perf": 36532.1,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 135,
+   "wall": 1791978110656,
+   "perf": 36532.1,
+   "l": "focus",
+   "t": "focusin",
+   "tg": "<button data-w=\"\">",
+   "d": {
+    "to": "<button data-w=\"\">"
+   }
+  },
+  {
+   "i": 136,
+   "wall": 1791978110786,
+   "perf": 36662.7,
+   "l": "mark",
+   "t": "user-mark",
+   "tg": "",
+   "d": {
+    "label": "step-4"
+   }
+  },
+  {
+   "i": 137,
+   "wall": 1791978110825,
+   "perf": 36701.6,
+   "l": "focus",
+   "t": "hasFocus.change",
+   "tg": "",
+   "d": {
+    "hasFocus": true
+   }
+  },
+  {
+   "i": 138,
+   "wall": 1791978110826,
+   "perf": 36701.8,
+   "l": "focus",
+   "t": "activeElement.change",
+   "tg": "",
+   "d": {
+    "active": "<button data-w=\"\">"
+   }
+  },
+  {
+   "i": 139,
+   "wall": 1791978111500,
+   "perf": 37376.6,
+   "l": "page",
+   "t": "pointerdown",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "x": 322,
+    "y": 243,
+    "button": 0,
+    "trusted": true
+   }
+  },
+  {
+   "i": 140,
+   "wall": 1791978111501,
+   "perf": 37377.5,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 141,
+   "wall": 1791978111501,
+   "perf": 37377.5,
+   "l": "focus",
+   "t": "focusout",
+   "tg": "<button data-w=\"\">",
+   "d": {
+    "from": "<button data-w=\"\">"
+   }
+  },
+  {
+   "i": 142,
+   "wall": 1791978111502,
+   "perf": 37377.7,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 143,
+   "wall": 1791978111502,
+   "perf": 37377.8,
+   "l": "focus",
+   "t": "focusin",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "to": "<input#react-c data-w=\"react-c\">"
+   }
+  },
+  {
+   "i": 144,
+   "wall": 1791978111518,
+   "perf": 37393.8,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 145,
+   "wall": 1791978111518,
+   "perf": 37393.9,
+   "l": "focus",
+   "t": "focusout",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "from": "<input#react-c data-w=\"react-c\">"
+   }
+  },
+  {
+   "i": 146,
+   "wall": 1791978111518,
+   "perf": 37393.9,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 147,
+   "wall": 1791978111518,
+   "perf": 37394.1,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 148,
+   "wall": 1791978111518,
+   "perf": 37394.1,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 149,
+   "wall": 1791978111518,
+   "perf": 37394.1,
+   "l": "focus",
+   "t": "focusin",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "to": "<input#react-c data-w=\"react-c\">"
+   }
+  },
+  {
+   "i": 150,
+   "wall": 1791978111726,
+   "perf": 37602.3,
+   "l": "focus",
+   "t": "activeElement.change",
+   "tg": "",
+   "d": {
+    "active": "<input#react-c data-w=\"react-c\">"
+   }
+  },
+  {
+   "i": 151,
+   "wall": 1791978112335,
+   "perf": 38211,
+   "l": "page",
+   "t": "pointerdown",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "x": 322,
+    "y": 214,
+    "button": 0,
+    "trusted": true
+   }
+  },
+  {
+   "i": 152,
+   "wall": 1791978112335,
+   "perf": 38211.8,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 153,
+   "wall": 1791978112336,
+   "perf": 38211.8,
+   "l": "focus",
+   "t": "focusout",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "from": "<input#react-c data-w=\"react-c\">"
+   }
+  },
+  {
+   "i": 154,
+   "wall": 1791978112336,
+   "perf": 38212,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 155,
+   "wall": 1791978112336,
+   "perf": 38212,
+   "l": "focus",
+   "t": "focusin",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "to": "<input#react-b data-w=\"react-b\">"
+   }
+  },
+  {
+   "i": 156,
+   "wall": 1791978112337,
+   "perf": 38213,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 157,
+   "wall": 1791978112337,
+   "perf": 38213.1,
+   "l": "focus",
+   "t": "focusout",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "from": "<input#react-b data-w=\"react-b\">"
+   }
+  },
+  {
+   "i": 158,
+   "wall": 1791978112337,
+   "perf": 38213.1,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 159,
+   "wall": 1791978112626,
+   "perf": 38502.2,
+   "l": "focus",
+   "t": "hasFocus.change",
+   "tg": "",
+   "d": {
+    "hasFocus": false
+   }
+  },
+  {
+   "i": 160,
+   "wall": 1791978112626,
+   "perf": 38502.4,
+   "l": "focus",
+   "t": "activeElement.change",
+   "tg": "",
+   "d": {
+    "active": "<input#react-b data-w=\"react-b\">"
+   }
+  },
+  {
+   "i": 161,
+   "wall": 1791978113267,
+   "perf": 39143.7,
+   "l": "page",
+   "t": "pointerdown",
+   "tg": "<button data-w=\"\">",
+   "d": {
+    "x": 394,
+    "y": 306,
+    "button": 0,
+    "trusted": true
+   }
+  },
+  {
+   "i": 162,
+   "wall": 1791978113269,
+   "perf": 39145.4,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 163,
+   "wall": 1791978113269,
+   "perf": 39145.4,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 164,
+   "wall": 1791978113269,
+   "perf": 39145.5,
+   "l": "focus",
+   "t": "focusin",
+   "tg": "<button data-w=\"\">",
+   "d": {
+    "to": "<button data-w=\"\">"
+   }
+  },
+  {
+   "i": 165,
+   "wall": 1791978113270,
+   "perf": 39145.8,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 166,
+   "wall": 1791978113270,
+   "perf": 39145.9,
+   "l": "focus",
+   "t": "focusout",
+   "tg": "<button data-w=\"\">",
+   "d": {
+    "from": "<button data-w=\"\">"
+   }
+  },
+  {
+   "i": 167,
+   "wall": 1791978113270,
+   "perf": 39145.9,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 168,
+   "wall": 1791978113271,
+   "perf": 39147.6,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 169,
+   "wall": 1791978113271,
+   "perf": 39147.7,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 170,
+   "wall": 1791978113271,
+   "perf": 39147.7,
+   "l": "focus",
+   "t": "focusin",
+   "tg": "<button data-w=\"\">",
+   "d": {
+    "to": "<button data-w=\"\">"
+   }
+  },
+  {
+   "i": 171,
+   "wall": 1791978113385,
+   "perf": 39261.4,
+   "l": "mark",
+   "t": "user-mark",
+   "tg": "",
+   "d": {
+    "label": "step-4"
+   }
+  },
+  {
+   "i": 172,
+   "wall": 1791978113525,
+   "perf": 39401.4,
+   "l": "focus",
+   "t": "hasFocus.change",
+   "tg": "",
+   "d": {
+    "hasFocus": true
+   }
+  },
+  {
+   "i": 173,
+   "wall": 1791978113525,
+   "perf": 39401.7,
+   "l": "focus",
+   "t": "activeElement.change",
+   "tg": "",
+   "d": {
+    "active": "<button data-w=\"\">"
+   }
+  },
+  {
+   "i": 174,
+   "wall": 1791978113954,
+   "perf": 39829.7,
+   "l": "page",
+   "t": "pointerdown",
+   "tg": "<input#native-a data-w=\"native-a\">",
+   "d": {
+    "x": 326,
+    "y": 185,
+    "button": 0,
+    "trusted": true
+   }
+  },
+  {
+   "i": 175,
+   "wall": 1791978113956,
+   "perf": 39832.5,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 176,
+   "wall": 1791978113956,
+   "perf": 39832.7,
+   "l": "focus",
+   "t": "focusout",
+   "tg": "<button data-w=\"\">",
+   "d": {
+    "from": "<button data-w=\"\">"
+   }
+  },
+  {
+   "i": 177,
+   "wall": 1791978113957,
+   "perf": 39833.7,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 178,
+   "wall": 1791978113957,
+   "perf": 39833.7,
+   "l": "focus",
+   "t": "focusin",
+   "tg": "<input#native-a data-w=\"native-a\">",
+   "d": {
+    "to": "<input#native-a data-w=\"native-a\">"
+   }
+  },
+  {
+   "i": 179,
+   "wall": 1791978113969,
+   "perf": 39845.5,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 180,
+   "wall": 1791978113969,
+   "perf": 39845.6,
+   "l": "focus",
+   "t": "focusout",
+   "tg": "<input#native-a data-w=\"native-a\">",
+   "d": {
+    "from": "<input#native-a data-w=\"native-a\">"
+   }
+  },
+  {
+   "i": 181,
+   "wall": 1791978113969,
+   "perf": 39845.6,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 182,
+   "wall": 1791978113970,
+   "perf": 39846.1,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 183,
+   "wall": 1791978113970,
+   "perf": 39846.1,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 184,
+   "wall": 1791978113970,
+   "perf": 39846.2,
+   "l": "focus",
+   "t": "focusin",
+   "tg": "<input#native-a data-w=\"native-a\">",
+   "d": {
+    "to": "<input#native-a data-w=\"native-a\">"
+   }
+  },
+  {
+   "i": 185,
+   "wall": 1791978114126,
+   "perf": 40002.2,
+   "l": "focus",
+   "t": "activeElement.change",
+   "tg": "",
+   "d": {
+    "active": "<input#native-a data-w=\"native-a\">"
+   }
+  },
+  {
+   "i": 186,
+   "wall": 1791978115151,
+   "perf": 41026.8,
+   "l": "page",
+   "t": "pointerdown",
+   "tg": "<div data-w=\"\">",
+   "d": {
+    "x": 326,
+    "y": 333,
+    "button": 0,
+    "trusted": true
+   }
+  },
+  {
+   "i": 187,
+   "wall": 1791978115153,
+   "perf": 41029.2,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 188,
+   "wall": 1791978115153,
+   "perf": 41029.2,
+   "l": "focus",
+   "t": "focusout",
+   "tg": "<input#native-a data-w=\"native-a\">",
+   "d": {
+    "from": "<input#native-a data-w=\"native-a\">"
+   }
+  },
+  {
+   "i": 189,
+   "wall": 1791978115154,
+   "perf": 41030.4,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 190,
+   "wall": 1791978115171,
+   "perf": 41047.7,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 191,
+   "wall": 1791978115326,
+   "perf": 41202.1,
+   "l": "focus",
+   "t": "activeElement.change",
+   "tg": "",
+   "d": {
+    "active": "<body data-w=\"\">"
+   }
+  },
+  {
+   "i": 192,
+   "wall": 1791978123402,
+   "perf": 49278.2,
+   "l": "page",
+   "t": "pointerdown",
+   "tg": "<button data-w=\"\">",
+   "d": {
+    "x": 175,
+    "y": 337,
+    "button": 0,
+    "trusted": true
+   }
+  },
+  {
+   "i": 193,
+   "wall": 1791978123404,
+   "perf": 49279.9,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 194,
+   "wall": 1791978123404,
+   "perf": 49280,
+   "l": "focus",
+   "t": "focusin",
+   "tg": "<button data-w=\"\">",
+   "d": {
+    "to": "<button data-w=\"\">"
+   }
+  },
+  {
+   "i": 195,
+   "wall": 1791978123425,
+   "perf": 49301.4,
+   "l": "focus",
+   "t": "activeElement.change",
+   "tg": "",
+   "d": {
+    "active": "<button data-w=\"\">"
+   }
+  },
+  {
+   "i": 0,
+   "wall": 1791978123520,
+   "perf": 49396.6,
+   "l": "mark",
+   "t": "cleared",
+   "tg": ""
+  },
+  {
+   "i": 1,
+   "wall": 1791978123569,
+   "perf": 49445.6,
+   "l": "page",
+   "t": "pointerdown",
+   "tg": "<button data-w=\"\">",
+   "d": {
+    "x": 175,
+    "y": 337,
+    "button": 0,
+    "trusted": true
+   }
+  },
+  {
+   "i": 0,
+   "wall": 1791978123653,
+   "perf": 49529.2,
+   "l": "mark",
+   "t": "cleared",
+   "tg": ""
+  },
+  {
+   "i": 1,
+   "wall": 1791978123736,
+   "perf": 49612.3,
+   "l": "page",
+   "t": "pointerdown",
+   "tg": "<button data-w=\"\">",
+   "d": {
+    "x": 175,
+    "y": 337,
+    "button": 0,
+    "trusted": true
+   }
+  },
+  {
+   "i": 0,
+   "wall": 1791978123837,
+   "perf": 49713.1,
+   "l": "mark",
+   "t": "cleared",
+   "tg": ""
+  },
+  {
+   "i": 1,
+   "wall": 1791978124470,
+   "perf": 50346.1,
+   "l": "page",
+   "t": "pointerdown",
+   "tg": "<button data-w=\"\">",
+   "d": {
+    "x": 175,
+    "y": 337,
+    "button": 0,
+    "trusted": true
+   }
+  },
+  {
+   "i": 0,
+   "wall": 1791978124620,
+   "perf": 50495.8,
+   "l": "mark",
+   "t": "cleared",
+   "tg": ""
+  },
+  {
+   "i": 1,
+   "wall": 1791978126905,
+   "perf": 52781,
+   "l": "page",
+   "t": "pointerdown",
+   "tg": "<input#native-a data-w=\"native-a\">",
+   "d": {
+    "x": 313,
+    "y": 178,
+    "button": 0,
+    "trusted": true
+   }
+  },
+  {
+   "i": 2,
+   "wall": 1791978126906,
+   "perf": 52781.7,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 3,
+   "wall": 1791978126906,
+   "perf": 52781.7,
+   "l": "focus",
+   "t": "focusout",
+   "tg": "<button data-w=\"\">",
+   "d": {
+    "from": "<button data-w=\"\">"
+   }
+  },
+  {
+   "i": 4,
+   "wall": 1791978126906,
+   "perf": 52782,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 5,
+   "wall": 1791978126906,
+   "perf": 52782,
+   "l": "focus",
+   "t": "focusin",
+   "tg": "<input#native-a data-w=\"native-a\">",
+   "d": {
+    "to": "<input#native-a data-w=\"native-a\">"
+   }
+  },
+  {
+   "i": 6,
+   "wall": 1791978126919,
+   "perf": 52795.4,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 7,
+   "wall": 1791978126919,
+   "perf": 52795.4,
+   "l": "focus",
+   "t": "focusout",
+   "tg": "<input#native-a data-w=\"native-a\">",
+   "d": {
+    "from": "<input#native-a data-w=\"native-a\">"
+   }
+  },
+  {
+   "i": 8,
+   "wall": 1791978126919,
+   "perf": 52795.5,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 9,
+   "wall": 1791978126919,
+   "perf": 52795.7,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 10,
+   "wall": 1791978126920,
+   "perf": 52795.7,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 11,
+   "wall": 1791978126920,
+   "perf": 52795.8,
+   "l": "focus",
+   "t": "focusin",
+   "tg": "<input#native-a data-w=\"native-a\">",
+   "d": {
+    "to": "<input#native-a data-w=\"native-a\">"
+   }
+  },
+  {
+   "i": 12,
+   "wall": 1791978127026,
+   "perf": 52902.5,
+   "l": "focus",
+   "t": "activeElement.change",
+   "tg": "",
+   "d": {
+    "active": "<input#native-a data-w=\"native-a\">"
+   }
+  },
+  {
+   "i": 13,
+   "wall": 1791978127774,
+   "perf": 53650.4,
+   "l": "page",
+   "t": "keyup",
+   "tg": "<input#native-a data-w=\"native-a\">",
+   "d": {
+    "key": "Shift",
+    "code": "ShiftLeft"
+   }
+  },
+  {
+   "i": 14,
+   "wall": 1791978128047,
+   "perf": 53923.6,
+   "l": "page",
+   "t": "compositionstart",
+   "tg": "<input#native-a data-w=\"native-a\">",
+   "d": {}
+  },
+  {
+   "i": 15,
+   "wall": 1791978128049,
+   "perf": 53925.1,
+   "l": "page",
+   "t": "beforeinput",
+   "tg": "<input#native-a data-w=\"native-a\">",
+   "d": {
+    "inputType": "insertCompositionText",
+    "data": "A",
+    "isComposing": true
+   }
+  },
+  {
+   "i": 16,
+   "wall": 1791978128052,
+   "perf": 53928.1,
+   "l": "page",
+   "t": "input",
+   "tg": "<input#native-a data-w=\"native-a\">",
+   "d": {
+    "inputType": "insertCompositionText",
+    "data": "A",
+    "domValue": "A"
+   }
+  },
+  {
+   "i": 17,
+   "wall": 1791978128080,
+   "perf": 53955.9,
+   "l": "page",
+   "t": "keydown",
+   "tg": "<input#native-a data-w=\"native-a\">",
+   "d": {
+    "key": "Unidentified",
+    "code": "KeyA",
+    "keyCode": 65,
+    "ctrl": false,
+    "meta": false,
+    "alt": false,
+    "shift": true,
+    "repeat": false,
+    "isComposing": true,
+    "trusted": true
+   }
+  },
+  {
+   "i": 18,
+   "wall": 1791978129122,
+   "perf": 54998.5,
+   "l": "page",
+   "t": "beforeinput",
+   "tg": "<input#native-a data-w=\"native-a\">",
+   "d": {
+    "inputType": "insertCompositionText",
+    "data": "AB",
+    "isComposing": true
+   }
+  },
+  {
+   "i": 19,
+   "wall": 1791978129123,
+   "perf": 54999.4,
+   "l": "page",
+   "t": "input",
+   "tg": "<input#native-a data-w=\"native-a\">",
+   "d": {
+    "inputType": "insertCompositionText",
+    "data": "AB",
+    "domValue": "AB"
+   }
+  },
+  {
+   "i": 20,
+   "wall": 1791978129323,
+   "perf": 55199,
+   "l": "page",
+   "t": "beforeinput",
+   "tg": "<input#native-a data-w=\"native-a\">",
+   "d": {
+    "inputType": "insertCompositionText",
+    "data": "ABC",
+    "isComposing": true
+   }
+  },
+  {
+   "i": 21,
+   "wall": 1791978129324,
+   "perf": 55200.6,
+   "l": "page",
+   "t": "input",
+   "tg": "<input#native-a data-w=\"native-a\">",
+   "d": {
+    "inputType": "insertCompositionText",
+    "data": "ABC",
+    "domValue": "ABC"
+   }
+  },
+  {
+   "i": 22,
+   "wall": 1791978129737,
+   "perf": 55613.1,
+   "l": "page",
+   "t": "keyup",
+   "tg": "<input#native-a data-w=\"native-a\">",
+   "d": {
+    "key": "Shift",
+    "code": "ShiftLeft"
+   }
+  },
+  {
+   "i": 23,
+   "wall": 1791978130005,
+   "perf": 55881.6,
+   "l": "page",
+   "t": "beforeinput",
+   "tg": "<input#native-a data-w=\"native-a\">",
+   "d": {
+    "inputType": "insertCompositionText",
+    "data": "",
+    "isComposing": true
+   }
+  },
+  {
+   "i": 24,
+   "wall": 1791978130011,
+   "perf": 55887.5,
+   "l": "page",
+   "t": "input",
+   "tg": "<input#native-a data-w=\"native-a\">",
+   "d": {
+    "inputType": "insertCompositionText",
+    "data": null,
+    "domValue": ""
+   }
+  },
+  {
+   "i": 25,
+   "wall": 1791978130012,
+   "perf": 55888,
+   "l": "page",
+   "t": "compositionend",
+   "tg": "<input#native-a data-w=\"native-a\">",
+   "d": {
+    "data": ""
+   }
+  },
+  {
+   "i": 26,
+   "wall": 1791978130014,
+   "perf": 55889.7,
+   "l": "page",
+   "t": "beforeinput",
+   "tg": "<input#native-a data-w=\"native-a\">",
+   "d": {
+    "inputType": "insertText",
+    "data": "ABC",
+    "isComposing": false
+   }
+  },
+  {
+   "i": 27,
+   "wall": 1791978130014,
+   "perf": 55890.5,
+   "l": "page",
+   "t": "input",
+   "tg": "<input#native-a data-w=\"native-a\">",
+   "d": {
+    "inputType": "insertText",
+    "data": "ABC",
+    "domValue": "ABC"
+   }
+  },
+  {
+   "i": 28,
+   "wall": 1791978131020,
+   "perf": 56895.9,
+   "l": "page",
+   "t": "pointerdown",
+   "tg": "<fieldset data-w=\"\">",
+   "d": {
+    "x": 318,
+    "y": 231,
+    "button": 0,
+    "trusted": true
+   }
+  },
+  {
+   "i": 29,
+   "wall": 1791978131020,
+   "perf": 56896.7,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 30,
+   "wall": 1791978131021,
+   "perf": 56896.7,
+   "l": "focus",
+   "t": "focusout",
+   "tg": "<input#native-a data-w=\"native-a\">",
+   "d": {
+    "from": "<input#native-a data-w=\"native-a\">"
+   }
+  },
+  {
+   "i": 31,
+   "wall": 1791978131021,
+   "perf": 56897.4,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 32,
+   "wall": 1791978131024,
+   "perf": 56900.4,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 33,
+   "wall": 1791978131226,
+   "perf": 57101.8,
+   "l": "focus",
+   "t": "activeElement.change",
+   "tg": "",
+   "d": {
+    "active": "<body data-w=\"\">"
+   }
+  },
+  {
+   "i": 34,
+   "wall": 1791978131953,
+   "perf": 57829.4,
+   "l": "page",
+   "t": "pointerdown",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "x": 327,
+    "y": 218,
+    "button": 0,
+    "trusted": true
+   }
+  },
+  {
+   "i": 35,
+   "wall": 1791978131955,
+   "perf": 57831,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 36,
+   "wall": 1791978131955,
+   "perf": 57831.1,
+   "l": "focus",
+   "t": "focusin",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "to": "<input#react-b data-w=\"react-b\">"
+   }
+  },
+  {
+   "i": 37,
+   "wall": 1791978131970,
+   "perf": 57846.3,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 38,
+   "wall": 1791978131970,
+   "perf": 57846.4,
+   "l": "focus",
+   "t": "focusout",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "from": "<input#react-b data-w=\"react-b\">"
+   }
+  },
+  {
+   "i": 39,
+   "wall": 1791978131970,
+   "perf": 57846.4,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 40,
+   "wall": 1791978131971,
+   "perf": 57846.7,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 41,
+   "wall": 1791978131971,
+   "perf": 57846.7,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 42,
+   "wall": 1791978131971,
+   "perf": 57846.8,
+   "l": "focus",
+   "t": "focusin",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "to": "<input#react-b data-w=\"react-b\">"
+   }
+  },
+  {
+   "i": 43,
+   "wall": 1791978132126,
+   "perf": 58002.1,
+   "l": "focus",
+   "t": "activeElement.change",
+   "tg": "",
+   "d": {
+    "active": "<input#react-b data-w=\"react-b\">"
+   }
+  },
+  {
+   "i": 44,
+   "wall": 1791978133121,
+   "perf": 58997.4,
+   "l": "page",
+   "t": "keyup",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "key": "Shift",
+    "code": "ShiftLeft"
+   }
+  },
+  {
+   "i": 45,
+   "wall": 1791978133340,
+   "perf": 59216.6,
+   "l": "page",
+   "t": "compositionstart",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {}
+  },
+  {
+   "i": 46,
+   "wall": 1791978133341,
+   "perf": 59217.6,
+   "l": "page",
+   "t": "beforeinput",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "inputType": "insertCompositionText",
+    "data": "B",
+    "isComposing": true
+   }
+  },
+  {
+   "i": 47,
+   "wall": 1791978133343,
+   "perf": 59218.8,
+   "l": "page",
+   "t": "input",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "inputType": "insertCompositionText",
+    "data": "B",
+    "domValue": "B"
+   }
+  },
+  {
+   "i": 48,
+   "wall": 1791978133343,
+   "perf": 59219.5,
+   "l": "react",
+   "t": "onChange.exec",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "widget": "react-b",
+    "from": "",
+    "to": "B"
+   }
+  },
+  {
+   "i": 49,
+   "wall": 1791978133346,
+   "perf": 59222.2,
+   "l": "react",
+   "t": "commit",
+   "tg": "",
+   "d": {
+    "widget": "react-b",
+    "value": "B"
+   }
+  },
+  {
+   "i": 50,
+   "wall": 1791978133350,
+   "perf": 59225.7,
+   "l": "react",
+   "t": "value.check",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "widget": "react-b",
+    "verdict": "state-synced",
+    "dom": "B",
+    "state": "B",
+    "domAtInput": "B",
+    "stateAtInput": ""
+   }
+  },
+  {
+   "i": 51,
+   "wall": 1791978133358,
+   "perf": 59234.5,
+   "l": "page",
+   "t": "keydown",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "key": "Unidentified",
+    "code": "KeyB",
+    "keyCode": 66,
+    "ctrl": false,
+    "meta": false,
+    "alt": false,
+    "shift": true,
+    "repeat": false,
+    "isComposing": true,
+    "trusted": true
+   }
+  },
+  {
+   "i": 52,
+   "wall": 1791978133520,
+   "perf": 59396.5,
+   "l": "page",
+   "t": "beforeinput",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "inputType": "insertCompositionText",
+    "data": "BC",
+    "isComposing": true
+   }
+  },
+  {
+   "i": 53,
+   "wall": 1791978133521,
+   "perf": 59397.4,
+   "l": "page",
+   "t": "input",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "inputType": "insertCompositionText",
+    "data": "BC",
+    "domValue": "BC"
+   }
+  },
+  {
+   "i": 54,
+   "wall": 1791978133521,
+   "perf": 59397.5,
+   "l": "react",
+   "t": "onChange.exec",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "widget": "react-b",
+    "from": "B",
+    "to": "BC"
+   }
+  },
+  {
+   "i": 55,
+   "wall": 1791978133522,
+   "perf": 59397.9,
+   "l": "react",
+   "t": "commit",
+   "tg": "",
+   "d": {
+    "widget": "react-b",
+    "value": "BC"
+   }
+  },
+  {
+   "i": 56,
+   "wall": 1791978133523,
+   "perf": 59399.6,
+   "l": "react",
+   "t": "value.check",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "widget": "react-b",
+    "verdict": "state-synced",
+    "dom": "BC",
+    "state": "BC",
+    "domAtInput": "BC",
+    "stateAtInput": "B"
+   }
+  },
+  {
+   "i": 57,
+   "wall": 1791978133795,
+   "perf": 59671.6,
+   "l": "page",
+   "t": "beforeinput",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "inputType": "insertCompositionText",
+    "data": "BCD",
+    "isComposing": true
+   }
+  },
+  {
+   "i": 58,
+   "wall": 1791978133797,
+   "perf": 59673,
+   "l": "page",
+   "t": "input",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "inputType": "insertCompositionText",
+    "data": "BCD",
+    "domValue": "BCD"
+   }
+  },
+  {
+   "i": 59,
+   "wall": 1791978133797,
+   "perf": 59673.3,
+   "l": "react",
+   "t": "onChange.exec",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "widget": "react-b",
+    "from": "BC",
+    "to": "BCD"
+   }
+  },
+  {
+   "i": 60,
+   "wall": 1791978133798,
+   "perf": 59673.9,
+   "l": "react",
+   "t": "commit",
+   "tg": "",
+   "d": {
+    "widget": "react-b",
+    "value": "BCD"
+   }
+  },
+  {
+   "i": 61,
+   "wall": 1791978133801,
+   "perf": 59677.2,
+   "l": "react",
+   "t": "value.check",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "widget": "react-b",
+    "verdict": "state-synced",
+    "dom": "BCD",
+    "state": "BCD",
+    "domAtInput": "BCD",
+    "stateAtInput": "BC"
+   }
+  },
+  {
+   "i": 62,
+   "wall": 1791978134037,
+   "perf": 59912.7,
+   "l": "page",
+   "t": "keyup",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "key": "Shift",
+    "code": "ShiftLeft"
+   }
+  },
+  {
+   "i": 63,
+   "wall": 1791978134238,
+   "perf": 60114.6,
+   "l": "page",
+   "t": "beforeinput",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "inputType": "insertCompositionText",
+    "data": "",
+    "isComposing": true
+   }
+  },
+  {
+   "i": 64,
+   "wall": 1791978134240,
+   "perf": 60116.3,
+   "l": "page",
+   "t": "input",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "inputType": "insertCompositionText",
+    "data": null,
+    "domValue": ""
+   }
+  },
+  {
+   "i": 65,
+   "wall": 1791978134240,
+   "perf": 60116.5,
+   "l": "react",
+   "t": "onChange.exec",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "widget": "react-b",
+    "from": "BCD",
+    "to": ""
+   }
+  },
+  {
+   "i": 66,
+   "wall": 1791978134241,
+   "perf": 60117.5,
+   "l": "react",
+   "t": "commit",
+   "tg": "",
+   "d": {
+    "widget": "react-b",
+    "value": ""
+   }
+  },
+  {
+   "i": 67,
+   "wall": 1791978134242,
+   "perf": 60117.7,
+   "l": "page",
+   "t": "compositionend",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "data": ""
+   }
+  },
+  {
+   "i": 68,
+   "wall": 1791978134243,
+   "perf": 60119.7,
+   "l": "react",
+   "t": "value.check",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "widget": "react-b",
+    "verdict": "state-synced",
+    "dom": "",
+    "state": "",
+    "domAtInput": "",
+    "stateAtInput": "BCD"
+   }
+  },
+  {
+   "i": 69,
+   "wall": 1791978134244,
+   "perf": 60120.7,
+   "l": "page",
+   "t": "beforeinput",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "inputType": "insertText",
+    "data": "BCD",
+    "isComposing": false
+   }
+  },
+  {
+   "i": 70,
+   "wall": 1791978134245,
+   "perf": 60121.1,
+   "l": "page",
+   "t": "input",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "inputType": "insertText",
+    "data": "BCD",
+    "domValue": "BCD"
+   }
+  },
+  {
+   "i": 71,
+   "wall": 1791978134245,
+   "perf": 60121.1,
+   "l": "react",
+   "t": "onChange.exec",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "widget": "react-b",
+    "from": "",
+    "to": "BCD"
+   }
+  },
+  {
+   "i": 72,
+   "wall": 1791978134245,
+   "perf": 60121.4,
+   "l": "react",
+   "t": "commit",
+   "tg": "",
+   "d": {
+    "widget": "react-b",
+    "value": "BCD"
+   }
+  },
+  {
+   "i": 73,
+   "wall": 1791978134248,
+   "perf": 60124.2,
+   "l": "react",
+   "t": "value.check",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "widget": "react-b",
+    "verdict": "state-synced",
+    "dom": "BCD",
+    "state": "BCD",
+    "domAtInput": "BCD",
+    "stateAtInput": ""
+   }
+  },
+  {
+   "i": 74,
+   "wall": 1791978135354,
+   "perf": 61229.9,
+   "l": "page",
+   "t": "pointerdown",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "x": 322,
+    "y": 245,
+    "button": 0,
+    "trusted": true
+   }
+  },
+  {
+   "i": 75,
+   "wall": 1791978135356,
+   "perf": 61232,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 76,
+   "wall": 1791978135356,
+   "perf": 61232.2,
+   "l": "focus",
+   "t": "focusout",
+   "tg": "<input#react-b data-w=\"react-b\">",
+   "d": {
+    "from": "<input#react-b data-w=\"react-b\">"
+   }
+  },
+  {
+   "i": 77,
+   "wall": 1791978135357,
+   "perf": 61233,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 78,
+   "wall": 1791978135357,
+   "perf": 61233.1,
+   "l": "focus",
+   "t": "focusin",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "to": "<input#react-c data-w=\"react-c\">"
+   }
+  },
+  {
+   "i": 79,
+   "wall": 1791978135360,
+   "perf": 61236.3,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 80,
+   "wall": 1791978135360,
+   "perf": 61236.4,
+   "l": "focus",
+   "t": "focusout",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "from": "<input#react-c data-w=\"react-c\">"
+   }
+  },
+  {
+   "i": 81,
+   "wall": 1791978135360,
+   "perf": 61236.5,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 82,
+   "wall": 1791978135425,
+   "perf": 61301.7,
+   "l": "focus",
+   "t": "hasFocus.change",
+   "tg": "",
+   "d": {
+    "hasFocus": false
+   }
+  },
+  {
+   "i": 83,
+   "wall": 1791978135426,
+   "perf": 61301.9,
+   "l": "focus",
+   "t": "activeElement.change",
+   "tg": "",
+   "d": {
+    "active": "<input#react-c data-w=\"react-c\">"
+   }
+  },
+  {
+   "i": 84,
+   "wall": 1791978139985,
+   "perf": 65861.2,
+   "l": "page",
+   "t": "pointerdown",
+   "tg": "<button data-w=\"\">",
+   "d": {
+    "x": 207,
+    "y": 309,
+    "button": 0,
+    "trusted": true
+   }
+  },
+  {
+   "i": 85,
+   "wall": 1791978139987,
+   "perf": 65862.6,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 86,
+   "wall": 1791978139987,
+   "perf": 65862.7,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 87,
+   "wall": 1791978139987,
+   "perf": 65862.8,
+   "l": "focus",
+   "t": "focusin",
+   "tg": "<button data-w=\"\">",
+   "d": {
+    "to": "<button data-w=\"\">"
+   }
+  },
+  {
+   "i": 88,
+   "wall": 1791978139987,
+   "perf": 65863.2,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 89,
+   "wall": 1791978139987,
+   "perf": 65863.2,
+   "l": "focus",
+   "t": "focusout",
+   "tg": "<button data-w=\"\">",
+   "d": {
+    "from": "<button data-w=\"\">"
+   }
+  },
+  {
+   "i": 90,
+   "wall": 1791978139987,
+   "perf": 65863.2,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 91,
+   "wall": 1791978139988,
+   "perf": 65863.7,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 92,
+   "wall": 1791978139988,
+   "perf": 65863.9,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 93,
+   "wall": 1791978139988,
+   "perf": 65863.9,
+   "l": "focus",
+   "t": "focusin",
+   "tg": "<button data-w=\"\">",
+   "d": {
+    "to": "<button data-w=\"\">"
+   }
+  },
+  {
+   "i": 94,
+   "wall": 1791978140135,
+   "perf": 66011.1,
+   "l": "mark",
+   "t": "user-mark",
+   "tg": "",
+   "d": {
+    "label": "step-2"
+   }
+  },
+  {
+   "i": 95,
+   "wall": 1791978140226,
+   "perf": 66102.5,
+   "l": "focus",
+   "t": "hasFocus.change",
+   "tg": "",
+   "d": {
+    "hasFocus": true
+   }
+  },
+  {
+   "i": 96,
+   "wall": 1791978140227,
+   "perf": 66102.8,
+   "l": "focus",
+   "t": "activeElement.change",
+   "tg": "",
+   "d": {
+    "active": "<button data-w=\"\">"
+   }
+  },
+  {
+   "i": 97,
+   "wall": 1791978141203,
+   "perf": 67079.4,
+   "l": "page",
+   "t": "pointerdown",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "x": 283,
+    "y": 253,
+    "button": 0,
+    "trusted": true
+   }
+  },
+  {
+   "i": 98,
+   "wall": 1791978141205,
+   "perf": 67081.6,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 99,
+   "wall": 1791978141206,
+   "perf": 67081.9,
+   "l": "focus",
+   "t": "focusout",
+   "tg": "<button data-w=\"\">",
+   "d": {
+    "from": "<button data-w=\"\">"
+   }
+  },
+  {
+   "i": 100,
+   "wall": 1791978141206,
+   "perf": 67082.6,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 101,
+   "wall": 1791978141207,
+   "perf": 67082.6,
+   "l": "focus",
+   "t": "focusin",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "to": "<input#react-c data-w=\"react-c\">"
+   }
+  },
+  {
+   "i": 102,
+   "wall": 1791978141224,
+   "perf": 67100.5,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 103,
+   "wall": 1791978141225,
+   "perf": 67100.8,
+   "l": "focus",
+   "t": "focusout",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "from": "<input#react-c data-w=\"react-c\">"
+   }
+  },
+  {
+   "i": 104,
+   "wall": 1791978141225,
+   "perf": 67101.1,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 105,
+   "wall": 1791978141226,
+   "perf": 67101.7,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 106,
+   "wall": 1791978141226,
+   "perf": 67101.8,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 107,
+   "wall": 1791978141226,
+   "perf": 67101.9,
+   "l": "focus",
+   "t": "focusin",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "to": "<input#react-c data-w=\"react-c\">"
+   }
+  },
+  {
+   "i": 108,
+   "wall": 1791978141426,
+   "perf": 67302.3,
+   "l": "focus",
+   "t": "activeElement.change",
+   "tg": "",
+   "d": {
+    "active": "<input#react-c data-w=\"react-c\">"
+   }
+  },
+  {
+   "i": 109,
+   "wall": 1791978142021,
+   "perf": 67897.5,
+   "l": "page",
+   "t": "keyup",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "key": "Shift",
+    "code": "ShiftLeft"
+   }
+  },
+  {
+   "i": 110,
+   "wall": 1791978142390,
+   "perf": 68266.2,
+   "l": "page",
+   "t": "compositionstart",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {}
+  },
+  {
+   "i": 111,
+   "wall": 1791978142391,
+   "perf": 68267.5,
+   "l": "page",
+   "t": "beforeinput",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "inputType": "insertCompositionText",
+    "data": "A",
+    "isComposing": true
+   }
+  },
+  {
+   "i": 112,
+   "wall": 1791978142393,
+   "perf": 68268.9,
+   "l": "page",
+   "t": "input",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "inputType": "insertCompositionText",
+    "data": "A",
+    "domValue": "A"
+   }
+  },
+  {
+   "i": 113,
+   "wall": 1791978142393,
+   "perf": 68269.1,
+   "l": "react",
+   "t": "onChange.exec",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "widget": "react-c",
+    "from": "",
+    "to": "A"
+   }
+  },
+  {
+   "i": 114,
+   "wall": 1791978142394,
+   "perf": 68269.7,
+   "l": "react",
+   "t": "commit",
+   "tg": "",
+   "d": {
+    "widget": "react-c",
+    "value": "A"
+   }
+  },
+  {
+   "i": 115,
+   "wall": 1791978142397,
+   "perf": 68273,
+   "l": "react",
+   "t": "value.check",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "widget": "react-c",
+    "verdict": "state-synced",
+    "dom": "A",
+    "state": "A",
+    "domAtInput": "A",
+    "stateAtInput": ""
+   }
+  },
+  {
+   "i": 116,
+   "wall": 1791978142409,
+   "perf": 68285.2,
+   "l": "page",
+   "t": "keydown",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "key": "Unidentified",
+    "code": "KeyA",
+    "keyCode": 65,
+    "ctrl": false,
+    "meta": false,
+    "alt": false,
+    "shift": true,
+    "repeat": false,
+    "isComposing": true,
+    "trusted": true
+   }
+  },
+  {
+   "i": 117,
+   "wall": 1791978142570,
+   "perf": 68446.2,
+   "l": "page",
+   "t": "beforeinput",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "inputType": "insertCompositionText",
+    "data": "AB",
+    "isComposing": true
+   }
+  },
+  {
+   "i": 118,
+   "wall": 1791978142572,
+   "perf": 68447.9,
+   "l": "page",
+   "t": "input",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "inputType": "insertCompositionText",
+    "data": "AB",
+    "domValue": "AB"
+   }
+  },
+  {
+   "i": 119,
+   "wall": 1791978142572,
+   "perf": 68448.1,
+   "l": "react",
+   "t": "onChange.exec",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "widget": "react-c",
+    "from": "A",
+    "to": "AB"
+   }
+  },
+  {
+   "i": 120,
+   "wall": 1791978142572,
+   "perf": 68448.5,
+   "l": "react",
+   "t": "commit",
+   "tg": "",
+   "d": {
+    "widget": "react-c",
+    "value": "AB"
+   }
+  },
+  {
+   "i": 121,
+   "wall": 1791978142576,
+   "perf": 68451.8,
+   "l": "react",
+   "t": "value.check",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "widget": "react-c",
+    "verdict": "state-synced",
+    "dom": "AB",
+    "state": "AB",
+    "domAtInput": "AB",
+    "stateAtInput": "A"
+   }
+  },
+  {
+   "i": 122,
+   "wall": 1791978142739,
+   "perf": 68615.1,
+   "l": "page",
+   "t": "beforeinput",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "inputType": "insertCompositionText",
+    "data": "ABC",
+    "isComposing": true
+   }
+  },
+  {
+   "i": 123,
+   "wall": 1791978142740,
+   "perf": 68616.5,
+   "l": "page",
+   "t": "input",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "inputType": "insertCompositionText",
+    "data": "ABC",
+    "domValue": "ABC"
+   }
+  },
+  {
+   "i": 124,
+   "wall": 1791978142741,
+   "perf": 68616.8,
+   "l": "react",
+   "t": "onChange.exec",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "widget": "react-c",
+    "from": "AB",
+    "to": "ABC"
+   }
+  },
+  {
+   "i": 125,
+   "wall": 1791978142741,
+   "perf": 68617.4,
+   "l": "react",
+   "t": "commit",
+   "tg": "",
+   "d": {
+    "widget": "react-c",
+    "value": "ABC"
+   }
+  },
+  {
+   "i": 126,
+   "wall": 1791978142744,
+   "perf": 68620.4,
+   "l": "react",
+   "t": "value.check",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "widget": "react-c",
+    "verdict": "state-synced",
+    "dom": "ABC",
+    "state": "ABC",
+    "domAtInput": "ABC",
+    "stateAtInput": "AB"
+   }
+  },
+  {
+   "i": 127,
+   "wall": 1791978143054,
+   "perf": 68929.9,
+   "l": "page",
+   "t": "keyup",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "key": "Shift",
+    "code": "ShiftLeft"
+   }
+  },
+  {
+   "i": 128,
+   "wall": 1791978143155,
+   "perf": 69030.9,
+   "l": "page",
+   "t": "beforeinput",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "inputType": "insertCompositionText",
+    "data": "",
+    "isComposing": true
+   }
+  },
+  {
+   "i": 129,
+   "wall": 1791978143157,
+   "perf": 69033,
+   "l": "page",
+   "t": "input",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "inputType": "insertCompositionText",
+    "data": null,
+    "domValue": ""
+   }
+  },
+  {
+   "i": 130,
+   "wall": 1791978143157,
+   "perf": 69033.2,
+   "l": "react",
+   "t": "onChange.exec",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "widget": "react-c",
+    "from": "ABC",
+    "to": ""
+   }
+  },
+  {
+   "i": 131,
+   "wall": 1791978143158,
+   "perf": 69033.6,
+   "l": "react",
+   "t": "commit",
+   "tg": "",
+   "d": {
+    "widget": "react-c",
+    "value": ""
+   }
+  },
+  {
+   "i": 132,
+   "wall": 1791978143158,
+   "perf": 69033.7,
+   "l": "page",
+   "t": "compositionend",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "data": ""
+   }
+  },
+  {
+   "i": 133,
+   "wall": 1791978143160,
+   "perf": 69035.9,
+   "l": "react",
+   "t": "value.check",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "widget": "react-c",
+    "verdict": "state-synced",
+    "dom": "",
+    "state": "",
+    "domAtInput": "",
+    "stateAtInput": "ABC"
+   }
+  },
+  {
+   "i": 134,
+   "wall": 1791978143161,
+   "perf": 69037.6,
+   "l": "page",
+   "t": "beforeinput",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "inputType": "insertText",
+    "data": "ABC",
+    "isComposing": false
+   }
+  },
+  {
+   "i": 135,
+   "wall": 1791978143162,
+   "perf": 69038.1,
+   "l": "page",
+   "t": "input",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "inputType": "insertText",
+    "data": "ABC",
+    "domValue": "ABC"
+   }
+  },
+  {
+   "i": 136,
+   "wall": 1791978143162,
+   "perf": 69038.2,
+   "l": "react",
+   "t": "onChange.exec",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "widget": "react-c",
+    "from": "",
+    "to": "ABC"
+   }
+  },
+  {
+   "i": 137,
+   "wall": 1791978143162,
+   "perf": 69038.4,
+   "l": "react",
+   "t": "commit",
+   "tg": "",
+   "d": {
+    "widget": "react-c",
+    "value": "ABC"
+   }
+  },
+  {
+   "i": 138,
+   "wall": 1791978143166,
+   "perf": 69041.9,
+   "l": "react",
+   "t": "value.check",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "widget": "react-c",
+    "verdict": "state-synced",
+    "dom": "ABC",
+    "state": "ABC",
+    "domAtInput": "ABC",
+    "stateAtInput": ""
+   }
+  },
+  {
+   "i": 139,
+   "wall": 1791978144237,
+   "perf": 70112.8,
+   "l": "page",
+   "t": "pointerdown",
+   "tg": "<button data-w=\"\">",
+   "d": {
+    "x": 330,
+    "y": 309,
+    "button": 0,
+    "trusted": true
+   }
+  },
+  {
+   "i": 140,
+   "wall": 1791978144239,
+   "perf": 70115.4,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 141,
+   "wall": 1791978144239,
+   "perf": 70115.6,
+   "l": "focus",
+   "t": "focusout",
+   "tg": "<input#react-c data-w=\"react-c\">",
+   "d": {
+    "from": "<input#react-c data-w=\"react-c\">"
+   }
+  },
+  {
+   "i": 142,
+   "wall": 1791978144240,
+   "perf": 70116.3,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 143,
+   "wall": 1791978144240,
+   "perf": 70116.4,
+   "l": "focus",
+   "t": "focusin",
+   "tg": "<button data-w=\"\">",
+   "d": {
+    "to": "<button data-w=\"\">"
+   }
+  },
+  {
+   "i": 144,
+   "wall": 1791978144241,
+   "perf": 70117.4,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 145,
+   "wall": 1791978144241,
+   "perf": 70117.5,
+   "l": "focus",
+   "t": "focusout",
+   "tg": "<button data-w=\"\">",
+   "d": {
+    "from": "<button data-w=\"\">"
+   }
+  },
+  {
+   "i": 146,
+   "wall": 1791978144241,
+   "perf": 70117.5,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 147,
+   "wall": 1791978144256,
+   "perf": 70132.3,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 148,
+   "wall": 1791978144256,
+   "perf": 70132.3,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 149,
+   "wall": 1791978144256,
+   "perf": 70132.4,
+   "l": "focus",
+   "t": "focusin",
+   "tg": "<button data-w=\"\">",
+   "d": {
+    "to": "<button data-w=\"\">"
+   }
+  },
+  {
+   "i": 150,
+   "wall": 1791978144385,
+   "perf": 70261.2,
+   "l": "mark",
+   "t": "user-mark",
+   "tg": "",
+   "d": {
+    "label": "step-3"
+   }
+  },
+  {
+   "i": 151,
+   "wall": 1791978144426,
+   "perf": 70301.9,
+   "l": "focus",
+   "t": "activeElement.change",
+   "tg": "",
+   "d": {
+    "active": "<button data-w=\"\">"
+   }
+  },
+  {
+   "i": 152,
+   "wall": 1791978145252,
+   "perf": 71128.4,
+   "l": "page",
+   "t": "pointerdown",
+   "tg": "<input#native-a data-w=\"native-a\">",
+   "d": {
+    "x": 316,
+    "y": 185,
+    "button": 0,
+    "trusted": true
+   }
+  },
+  {
+   "i": 153,
+   "wall": 1791978145254,
+   "perf": 71129.7,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 154,
+   "wall": 1791978145254,
+   "perf": 71129.8,
+   "l": "focus",
+   "t": "focusout",
+   "tg": "<button data-w=\"\">",
+   "d": {
+    "from": "<button data-w=\"\">"
+   }
+  },
+  {
+   "i": 155,
+   "wall": 1791978145254,
+   "perf": 71130.2,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 156,
+   "wall": 1791978145254,
+   "perf": 71130.2,
+   "l": "focus",
+   "t": "focusin",
+   "tg": "<input#native-a data-w=\"native-a\">",
+   "d": {
+    "to": "<input#native-a data-w=\"native-a\">"
+   }
+  },
+  {
+   "i": 157,
+   "wall": 1791978145270,
+   "perf": 71146.5,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 158,
+   "wall": 1791978145271,
+   "perf": 71146.7,
+   "l": "focus",
+   "t": "focusout",
+   "tg": "<input#native-a data-w=\"native-a\">",
+   "d": {
+    "from": "<input#native-a data-w=\"native-a\">"
+   }
+  },
+  {
+   "i": 159,
+   "wall": 1791978145271,
+   "perf": 71146.7,
+   "l": "focus",
+   "t": "window.blur",
+   "tg": ""
+  },
+  {
+   "i": 160,
+   "wall": 1791978145271,
+   "perf": 71147.1,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 161,
+   "wall": 1791978145271,
+   "perf": 71147.1,
+   "l": "focus",
+   "t": "window.focus",
+   "tg": ""
+  },
+  {
+   "i": 162,
+   "wall": 1791978145271,
+   "perf": 71147.2,
+   "l": "focus",
+   "t": "focusin",
+   "tg": "<input#native-a data-w=\"native-a\">",
+   "d": {
+    "to": "<input#native-a data-w=\"native-a\">"
+   }
+  },
+  {
+   "i": 163,
+   "wall": 1791978145327,
+   "perf": 71202.7,
+   "l": "focus",
+   "t": "activeElement.change",
+   "tg": "",
+   "d": {
+    "active": "<input#native-a data-w=\"native-a\">"
+   }
+  }
+ ]
+}

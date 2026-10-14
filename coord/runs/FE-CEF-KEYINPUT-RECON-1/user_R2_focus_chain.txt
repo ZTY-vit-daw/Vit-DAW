@@ -1,0 +1,61 @@
+[VitCefFocus] dock.focus_agent_webui_window stable_detached=true
+[VitCefFocus] host.window_visibility_changed visible=true win_focus=true
+[VitCefFocus] host.created url_target=https://google.com
+[VitCefFocus] heartbeat.start win_focus=true browser_focus=false visible=true owner=none
+[VitCefFocus] heartbeat win_focus=true browser_focus=false visible=true owner=none
+[VitCefFocus] dock.set_visible should_show=true
+[VitCefFocus] host.set_visible visible=true → window.grab_focus
+[VitCefFocus] dock.set_visible should_show=true
+[VitCefFocus] host.set_visible visible=true → window.grab_focus
+[VitCefFocus] host.focus enter win_focus=true browser_focus=false
+[VitCefFocus] host.set_visible visible=true → window.grab_focus
+[VitCefFocus] window.gui_focus_changed node=/root/VitCefWebViewWindow/CefTexture
+[VitCefFocus] cef_texture.focus_entered owner=/root/VitCefWebViewWindow/CefTexture
+[VitCefFocus] host.focus after grab win_focus=true browser_focus=true owner=/root/VitCefWebViewWindow/CefTexture
+[VitCefFocus] navigate.focus_called
+[VitCefFocus] heartbeat win_focus=false browser_focus=true visible=true owner=/root/VitCefWebViewWindow/CefTexture
+[VitCefFocus] heartbeat win_focus=true browser_focus=true visible=true owner=/root/VitCefWebViewWindow/CefTexture
+[VitCefFocus] cef_texture.focus_exited owner=none
+[VitCefFocus] window.gui_focus_changed node=/root/VitCefWebViewWindow/CefTexture/@LineEdit@483
+[VitCefFocus] heartbeat win_focus=true browser_focus=false visible=true owner=/root/VitCefWebViewWindow/CefTexture/@LineEdit@483
+[VitCefFocus] window.gui_focus_changed node=/root/VitCefWebViewWindow/CefTexture
+[VitCefFocus] cef_texture.focus_entered owner=/root/VitCefWebViewWindow/CefTexture
+[VitCefFocus] cef_texture.focus_exited owner=none
+[VitCefFocus] window.gui_focus_changed node=/root/VitCefWebViewWindow/CefTexture/@LineEdit@483
+[VitCefFocus] window.gui_focus_changed node=/root/VitCefWebViewWindow/CefTexture
+[VitCefFocus] cef_texture.focus_entered owner=/root/VitCefWebViewWindow/CefTexture
+[VitCefFocus] cef_texture.focus_exited owner=none
+[VitCefFocus] window.gui_focus_changed node=/root/VitCefWebViewWindow/CefTexture/@LineEdit@483
+[VitCefFocus] window.gui_focus_changed node=/root/VitCefWebViewWindow/CefTexture
+[VitCefFocus] cef_texture.focus_entered owner=/root/VitCefWebViewWindow/CefTexture
+[VitCefFocus] cef_texture.focus_exited owner=none
+[VitCefFocus] window.gui_focus_changed node=/root/VitCefWebViewWindow/CefTexture/@LineEdit@483
+[VitCefFocus] window.gui_focus_changed node=/root/VitCefWebViewWindow/CefTexture
+[VitCefFocus] cef_texture.focus_entered owner=/root/VitCefWebViewWindow/CefTexture
+[VitCefFocus] cef_texture.focus_exited owner=none
+[VitCefFocus] window.gui_focus_changed node=/root/VitCefWebViewWindow/CefTexture/@LineEdit@483
+[VitCefFocus] window.gui_focus_changed node=/root/VitCefWebViewWindow/CefTexture
+[VitCefFocus] cef_texture.focus_entered owner=/root/VitCefWebViewWindow/CefTexture
+[VitCefFocus] cef_texture.focus_exited owner=none
+[VitCefFocus] window.gui_focus_changed node=/root/VitCefWebViewWindow/CefTexture/@LineEdit@483
+[VitCefFocus] window.gui_focus_changed node=/root/VitCefWebViewWindow/CefTexture
+[VitCefFocus] cef_texture.focus_entered owner=/root/VitCefWebViewWindow/CefTexture
+[VitCefFocus] heartbeat win_focus=true browser_focus=true visible=true owner=/root/VitCefWebViewWindow/CefTexture
+[VitCefFocus] cef_texture.focus_exited owner=none
+[VitCefFocus] window.gui_focus_changed node=/root/VitCefWebViewWindow/CefTexture/@LineEdit@483
+[VitCefFocus] heartbeat win_focus=true browser_focus=false visible=true owner=/root/VitCefWebViewWindow/CefTexture/@LineEdit@483
+[VitCefFocus] window.gui_focus_changed node=/root/VitCefWebViewWindow/CefTexture
+[VitCefFocus] cef_texture.focus_entered owner=/root/VitCefWebViewWindow/CefTexture
+[VitCefFocus] cef_texture.focus_exited owner=none
+[VitCefFocus] window.gui_focus_changed node=/root/VitCefWebViewWindow/CefTexture/@LineEdit@483
+[VitCefFocus] window.gui_focus_changed node=/root/VitCefWebViewWindow/CefTexture
+[VitCefFocus] cef_texture.focus_entered owner=/root/VitCefWebViewWindow/CefTexture
+[VitCefFocus] cef_texture.focus_exited owner=none
+[VitCefFocus] window.gui_focus_changed node=/root/VitCefWebViewWindow/CefTexture/@LineEdit@483
+[VitCefFocus] window.gui_focus_changed node=/root/VitCefWebViewWindow/CefTexture
+[VitCefFocus] cef_texture.focus_entered owner=/root/VitCefWebViewWindow/CefTexture
+[VitCefFocus] heartbeat win_focus=true browser_focus=true visible=true owner=/root/VitCefWebViewWindow/CefTexture
+[VitCefFocus] cef_texture.focus_exited owner=none
+[VitCefFocus] window.gui_focus_changed node=/root/VitCefWebViewWindow/CefTexture/@LineEdit@483
+[VitCefFocus] heartbeat win_focus=true browser_focus=false visible=true owner=/root/VitCefWebViewWindow/CefTexture/@LineEdit@483
+[VitCefFocus] heartbeat win_focus=false browser_focus=false visible=true owner=/root/VitCefWebViewWindow/CefTexture/@LineEdit@483

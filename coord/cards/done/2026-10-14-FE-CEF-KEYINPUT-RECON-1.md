@@ -58,4 +58,5 @@ webui 层排除证据：FE-CONFIG-EDIT-1 修复版源码（IAB 真浏览器真�
   - 断点层结论：**暂不下**（纪律：探针数据与用户复现未收回前不提前结论）。既有证据=普通 Chromium 下 webui React 层四步全正常+探针自身链路端到端可用；断点层判定与修复面定界待 R1-R3 数据齐后回填本卡。
   - 端测覆盖边界声明：探针服务=静态构建产物（7879）；未动产品 dist（mtime+sha 前后核对一致）；CEF 容器内运行留待用户轮（AGENTS §5 手测途径）。
 - [等待用户:单轮复现采集 R1-R3（探针四步序列+产品设置页复现+Safari 直开对照），步骤=coord/runs/FE-CEF-KEYINPUT-RECON-1/USER_REPRO_INSTRUCTIONS.md；探针服务 7879 需在线，重启命令见 SERVICE.md]
-- 验收：（裁定文件 / 验收 commit）
+- 用户轮数据已采（2026-10-14）+决策侧终判（全文 [ANALYSIS.md](../../runs/FE-CEF-KEYINPUT-RECON-1/ANALYSIS.md)，时间线 458 事件/焦点链 61 行已入库解析件）：**断点层=gdcef 插件焦点/IME 桥乒乓**——R1 每次点击输入框现窗口级 focus→blur×2 乒乓（恢复分叉决定失灵）；R2 焦点链实锤 CefTexture↔内部 @LineEdit 无限倒焦点且第二轮起 focus_entered 脱节；React/webui 三重清白；R3 Safari 全正常。用户四项观察（首次能输/按钮可重置/探针页复现/Safari 正常）全部机制归因。修复面=上游 godot_cef 调研+宿主焦点补偿（→FE-CEF-FOCUSFIX-1 池序 114）。
+- 验收：pass 2026-10-14 Mac 决策侧（取证目标全达成：三件工件+断点层数据支撑+修复面定界；用户「收尾」授权归档；后续修复=FE-CEF-FOCUSFIX-1 池序 114）
