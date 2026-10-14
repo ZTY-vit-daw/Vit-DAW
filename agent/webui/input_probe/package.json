@@ -1,0 +1,12 @@
+{
+  "name": "ask-vit-input-probe",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "FE-CEF-KEYINPUT-RECON-1 三层输入事件探针——独立诊断入口，不依赖也不写入产品 dist。依赖复用上级 ../node_modules（react/vite 与产品同版本），本目录无需 npm install。",
+  "scripts": {
+    "dev": "../node_modules/.bin/vite --host 127.0.0.1 --port 5179",
+    "build": "../node_modules/.bin/vite build",
+    "preview": "../node_modules/.bin/vite preview --host 127.0.0.1 --port 7879 --strictPort"
+  }
+}

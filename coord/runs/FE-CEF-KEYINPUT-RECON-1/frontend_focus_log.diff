@@ -1,0 +1,327 @@
+From 6e5a459814e7f521eb968ab8f8c14fd1307846b9 Mon Sep 17 00:00:00 2001
+From: TimoZTY <timozty@192.168.1.131>
+Date: Wed, 14 Oct 2026 18:43:56 +0800
+Subject: [PATCH] =?UTF-8?q?recon(FE-CEF-KEYINPUT-RECON-1):=20CEF/Godot=20?=
+ =?UTF-8?q?=E7=84=A6=E7=82=B9=E9=93=BE=E5=8F=AF=E5=BC=80=E5=85=B3=E6=97=A5?=
+ =?UTF-8?q?=E5=BF=97+webui=20URL=20=E5=8F=96=E8=AF=81=E9=92=A9=E5=AD=90?=
+ =?UTF-8?q?=E2=80=94=E2=80=94VitDebugFlags=20=E5=A2=9E=20cef=5Ffocus=5Flog?=
+ =?UTF-8?q?=5Fenabled=EF=BC=88env=20VIT=5FCEF=5FFOCUS=5FLOG=20/=20JSON=20?=
+ =?UTF-8?q?=E9=94=AE=EF=BC=8C=E9=BB=98=E8=AE=A4=E5=85=B3=EF=BC=8C=E7=83=AD?=
+ =?UTF-8?q?=E9=87=8D=E8=BD=BD=EF=BC=89=EF=BC=9Bvit=5Fcef=5Fweb=5Fview=5Fho?=
+ =?UTF-8?q?st=20=E6=8C=82=20CefTexture=20focus=5Fentered/exited+Window=20g?=
+ =?UTF-8?q?ui=5Ffocus=5Fchanged+grab=5Ffocus/set=5Fvisible=20=E5=89=8D?=
+ =?UTF-8?q?=E5=90=8E=E6=80=81+0.5s=20=E7=84=A6=E7=82=B9=E6=80=81=E5=BF=83?=
+ =?UTF-8?q?=E8=B7=B3=EF=BC=88=E5=8F=98=E5=8C=96=E6=89=8D=E6=89=93=E7=82=B9?=
+ =?UTF-8?q?=EF=BC=8Cclose=20=E5=81=9C=EF=BC=89=EF=BC=9Bvit=5Fdock=5Froot?=
+ =?UTF-8?q?=20=E5=A2=9E=20VIT=5FAGENT=5FWEBUI=5FURL=20=E8=A6=86=E7=9B=96?=
+ =?UTF-8?q?=E9=92=A9=E5=AD=90=EF=BC=88=E9=BB=98=E8=AE=A4=E7=A9=BA=3D?=
+ =?UTF-8?q?=E7=94=9F=E4=BA=A7=E8=A1=8C=E4=B8=BA=E4=B8=8D=E5=8F=98=EF=BC=8C?=
+ =?UTF-8?q?=E6=8E=A2=E9=92=88=E8=BD=AE=E6=AC=A1=E6=8C=87=E5=90=91=20127.0.?=
+ =?UTF-8?q?0.1:7879=EF=BC=89+navigate/visibility/focus=20=E4=B8=89?=
+ =?UTF-8?q?=E5=A4=84=E7=84=A6=E7=82=B9=E6=97=A5=E5=BF=97=E3=80=82=E5=AE=BF?=
+ =?UTF-8?q?=E4=B8=BB=E8=84=9A=E6=9C=AC=E7=BB=8F=20autoload=20=E6=A1=A9?=
+ =?UTF-8?q?=E5=B7=A5=E7=A8=8B=E5=AE=8C=E6=95=B4=E7=BC=96=E8=AF=91=E9=AA=8C?=
+ =?UTF-8?q?=E8=AF=81=20HOST=5FCOMPILE=5FOK=EF=BC=9Bcheck-only=20--script?=
+ =?UTF-8?q?=20=E6=A8=A1=E5=BC=8F=E4=B8=8D=E6=B3=A8=E5=86=8C=20autoload=20?=
+ =?UTF-8?q?=E5=B1=9E=E6=A8=A1=E5=BC=8F=E9=99=90=E5=88=B6=EF=BC=88=E5=AD=98?=
+ =?UTF-8?q?=E9=87=8F=E6=96=87=E4=BB=B6=E5=90=8C=E6=A0=B7=E6=8A=A5=E9=94=99?=
+ =?UTF-8?q?=EF=BC=8C=E5=B7=B2=E6=A0=B8=EF=BC=89?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ app/kernel/autoloads/VitDebugFlags.gd    | 17 +++++
+ vit_dock/scenes/vit_cef_web_view_host.gd | 86 +++++++++++++++++++++++-
+ vit_dock/scenes/vit_dock_root.gd         | 27 ++++++--
+ 3 files changed, 124 insertions(+), 6 deletions(-)
+
+diff --git a/app/kernel/autoloads/VitDebugFlags.gd b/app/kernel/autoloads/VitDebugFlags.gd
+index 8e2d4d8..4e970a7 100644
+--- a/app/kernel/autoloads/VitDebugFlags.gd
++++ b/app/kernel/autoloads/VitDebugFlags.gd
+@@ -11,6 +11,10 @@ const DEFAULT_COMMANDS_FILE_PATH := "res://app/config/debug_flags.json"
+ var ui_log_enabled: bool = false
+ # WebView2 lifecycle dumps are very large; keep them off unless debugging host startup/navigation.
+ var webui_lifecycle_log_enabled: bool = false
++## CEF/Godot 焦点链诊断（[VitCefFocus]，FE-CEF-KEYINPUT-RECON-1）：webui 宿主窗口与
++## CefTexture 的焦点进出/grab_focus/set_visible/心跳焦点态。默认关。
++## 开启: env VIT_CEF_FOCUS_LOG=1 或 JSON "cef_focus_log_enabled": true
++var cef_focus_log_enabled: bool = false
+ # Narrow, high-signal clip import/bake routing diagnostics.
+ # Enable by either:
+ # 1) env: VIT_CLIP_PIPELINE_LOG=1
+@@ -95,6 +99,12 @@ func log_waveform_peak_fit(message: String) -> void:
+ 	print("[VitWaveformPeakFit] ", message)
+ 
+ 
++func log_cef_focus(message: String) -> void:
++	if not cef_focus_log_enabled:
++		return
++	print("[VitCefFocus] ", message)
++
++
+ func log_track_sync_diag(message: String) -> void:
+ 	if not track_sync_diag_log_enabled:
+ 		return
+@@ -134,6 +144,11 @@ func _load_from_env() -> void:
+ 		webui_lifecycle_log_enabled = true
+ 	elif webui_raw in ["0", "false", "off", "no"]:
+ 		webui_lifecycle_log_enabled = false
++	var cef_focus_raw := OS.get_environment("VIT_CEF_FOCUS_LOG").strip_edges().to_lower()
++	if cef_focus_raw in ["1", "true", "on", "yes"]:
++		cef_focus_log_enabled = true
++	elif cef_focus_raw in ["0", "false", "off", "no"]:
++		cef_focus_log_enabled = false
+ 	var clip_raw := OS.get_environment("VIT_CLIP_PIPELINE_LOG").strip_edges().to_lower()
+ 	if clip_raw in ["1", "true", "on", "yes"]:
+ 		clip_pipeline_log_enabled = true
+@@ -237,6 +252,8 @@ func _reload_from_commands_file_if_changed(force: bool = false) -> void:
+ 		ui_log_enabled = bool(d["ui_log_enabled"])
+ 	if d.has("webui_lifecycle_log_enabled"):
+ 		webui_lifecycle_log_enabled = bool(d["webui_lifecycle_log_enabled"])
++	if d.has("cef_focus_log_enabled"):
++		cef_focus_log_enabled = bool(d["cef_focus_log_enabled"])
+ 	if d.has("clip_pipeline_log_enabled"):
+ 		clip_pipeline_log_enabled = bool(d["clip_pipeline_log_enabled"])
+ 	if d.has("wave_tile_diag_log_enabled"):
+diff --git a/vit_dock/scenes/vit_cef_web_view_host.gd b/vit_dock/scenes/vit_cef_web_view_host.gd
+index 8a226bc..9feb169 100644
+--- a/vit_dock/scenes/vit_cef_web_view_host.gd
++++ b/vit_dock/scenes/vit_cef_web_view_host.gd
+@@ -88,6 +88,9 @@ var _page_title := ""
+ var _loading := false
+ var _user_data_subdir := ""
+ var _debug_log := false
++# FE-CEF-KEYINPUT-RECON-1：焦点链心跳（VIT_CEF_FOCUS_LOG=1 时启动，状态变化才打点）。
++var _focus_heartbeat_alive := false
++var _focus_state_last := ""
+ 
+ 
+ func _init() -> void:
+@@ -143,6 +146,9 @@ func create_window(_parent_hwnd: int, title: String, width: int, height: int) ->
+ 	_connect_browser_signal("load_error", "_on_load_error")
+ 	_connect_browser_signal("console_message", "_on_console_message")
+ 	_connect_browser_signal("render_process_terminated", "_on_render_process_terminated")
++	# FE-CEF-KEYINPUT-RECON-1：Godot 侧控件焦点进出（CEF 键盘转发依赖该焦点态）。
++	_connect_browser_signal("focus_entered", "_on_browser_focus_entered")
++	_connect_browser_signal("focus_exited", "_on_browser_focus_exited")
+ 
+ 	var clamped_width := maxi(width, _MIN_WINDOW_WIDTH)
+ 	var clamped_height := maxi(height, _MIN_WINDOW_HEIGHT)
+@@ -173,9 +179,15 @@ func create_window(_parent_hwnd: int, title: String, width: int, height: int) ->
+ 	# popup_centered 必须延迟到入树后（同步调用实测报 !is_inside_tree() 并使窗口
+ 	# 停在半注册态——后续 move_to_foreground 连续报 !windows.has，且关窗事件失效）。
+ 	_window.call_deferred("popup_centered", Vector2i(clamped_width, clamped_height))
++	if _window.has_signal("gui_focus_changed"):
++		var focus_cb := Callable(self, "_on_window_gui_focus_changed")
++		if not _window.is_connected("gui_focus_changed", focus_cb):
++			_window.connect("gui_focus_changed", focus_cb)
+ 	_host_ready = true
+ 	_visible = true
+ 	_log("created", {"title": _window.title, "size": [clamped_width, clamped_height]})
++	VitDebugFlags.log_cef_focus("host.created url_target=%s" % str(_browser.get("url") if _browser != null else ""))
++	_start_focus_heartbeat()
+ 	call_deferred("_emit_ready")
+ 	return true
+ 
+@@ -197,8 +209,10 @@ func create_overlay_window(_parent_hwnd: int, _title: String, _width: int, _heig
+ 
+ 
+ func close() -> void:
++	_focus_heartbeat_alive = false
++	VitDebugFlags.log_cef_focus("host.close")
+ 	if _browser != null and is_instance_valid(_browser):
+-		for signal_name in ["ipc_message", "url_changed", "title_changed", "load_started", "load_finished", "load_error", "console_message", "render_process_terminated"]:
++		for signal_name in ["ipc_message", "url_changed", "title_changed", "load_started", "load_finished", "load_error", "console_message", "render_process_terminated", "focus_entered", "focus_exited"]:
+ 			if _browser.has_signal(signal_name):
+ 				for connection in _browser.get_signal_connection_list(signal_name):
+ 					var callable: Callable = connection.get("callable", Callable())
+@@ -241,17 +255,28 @@ func set_visible(visible: bool) -> void:
+ 			_window.show()
+ 		# Window.move_to_foreground 在 4.6 已废弃（每次调用打 deprecated 告警，
+ 		# 运行期实测）；官方替代 grab_focus 自带注册校验与前置语义。
++		VitDebugFlags.log_cef_focus("host.set_visible visible=true → window.grab_focus")
+ 		_window.grab_focus()
+ 	else:
++		VitDebugFlags.log_cef_focus("host.set_visible visible=false → window.hide")
+ 		_window.hide()
+ 
+ 
+ func focus() -> void:
+ 	if not _host_ready or _window == null or not is_instance_valid(_window):
+ 		return
++	VitDebugFlags.log_cef_focus("host.focus enter win_focus=%s browser_focus=%s" % [
++		str(_window.has_focus()) if _window != null else "n/a",
++		str(_browser.has_focus()) if _browser != null and is_instance_valid(_browser) else "n/a",
++	])
+ 	set_visible(true)
+ 	if _browser != null and is_instance_valid(_browser) and _browser.is_inside_tree():
+ 		_browser.grab_focus()
++	VitDebugFlags.log_cef_focus("host.focus after grab win_focus=%s browser_focus=%s owner=%s" % [
++		str(_window.has_focus()) if _window != null else "n/a",
++		str(_browser.has_focus()) if _browser != null and is_instance_valid(_browser) else "n/a",
++		_focus_owner_path(),
++	])
+ 
+ 
+ ## 契约语义：仅 create 前有效；CefTexture 无按实例 profile API，存储待 debug_state
+@@ -443,7 +468,66 @@ func _on_window_close_requested() -> void:
+ 
+ func _on_window_visibility_changed() -> void:
+ 	if _window != null and is_instance_valid(_window):
++		var was := _visible
+ 		_visible = _window.visible
++		if was != _visible:
++			VitDebugFlags.log_cef_focus("host.window_visibility_changed visible=%s win_focus=%s" % [
++				str(_visible), str(_window.has_focus())])
++
++
++# --- 焦点链日志（FE-CEF-KEYINPUT-RECON-1，VIT_CEF_FOCUS_LOG=1 才输出） -------
++
++func _on_browser_focus_entered() -> void:
++	VitDebugFlags.log_cef_focus("cef_texture.focus_entered owner=%s" % _focus_owner_path())
++
++
++func _on_browser_focus_exited() -> void:
++	VitDebugFlags.log_cef_focus("cef_texture.focus_exited owner=%s" % _focus_owner_path())
++
++
++func _on_window_gui_focus_changed(node: Node) -> void:
++	VitDebugFlags.log_cef_focus("window.gui_focus_changed node=%s" % str(node.get_path() if node != null else "null"))
++
++
++func _focus_owner_path() -> String:
++	if _window == null or not is_instance_valid(_window):
++		return "no-window"
++	var owner := _window.gui_get_focus_owner()
++	if owner == null:
++		return "none"
++	return str(owner.get_path())
++
++
++func _focus_state_snapshot() -> String:
++	var win := "n/a"
++	var brw := "n/a"
++	if _window != null and is_instance_valid(_window):
++		win = str(_window.has_focus())
++	if _browser != null and is_instance_valid(_browser):
++		brw = str(_browser.has_focus())
++	return "win_focus=%s browser_focus=%s visible=%s owner=%s" % [win, brw, str(_visible), _focus_owner_path()]
++
++
++func _start_focus_heartbeat() -> void:
++	if not VitDebugFlags.cef_focus_log_enabled:
++		return
++	_focus_heartbeat_alive = true
++	VitDebugFlags.log_cef_focus("heartbeat.start " + _focus_state_snapshot())
++	_focus_heartbeat_tick()
++
++
++func _focus_heartbeat_tick() -> void:
++	if not _focus_heartbeat_alive:
++		return
++	var state := _focus_state_snapshot()
++	if state != _focus_state_last:
++		_focus_state_last = state
++		VitDebugFlags.log_cef_focus("heartbeat " + state)
++	var loop := Engine.get_main_loop()
++	if loop is SceneTree:
++		var timer := (loop as SceneTree).create_timer(0.5)
++		await timer.timeout
++		_focus_heartbeat_tick()
+ 
+ 
+ func _log(label: String, extra: Dictionary = {}) -> void:
+diff --git a/vit_dock/scenes/vit_dock_root.gd b/vit_dock/scenes/vit_dock_root.gd
+index cf7d3f5..e2e3890 100644
+--- a/vit_dock/scenes/vit_dock_root.gd
++++ b/vit_dock/scenes/vit_dock_root.gd
+@@ -27,6 +27,10 @@ const UIAssets := preload("res://app/ui/vit_ui_assets.gd")
+ const AGENT_INVOKE_URL := "http://127.0.0.1:7878/agent/invoke"
+ const AGENT_UI_CONTEXT_URL := "http://127.0.0.1:7878/agent/ui/context"
+ const AGENT_WEBUI_URL := "http://127.0.0.1:7878/app/"
++## FE-CEF-KEYINPUT-RECON-1 取证钩子：VIT_AGENT_WEBUI_URL 可把 Ask Vit WebUI 窗口指向
++## 探针地址（默认空=生产行为逐字节不变）。诊断轮次设为 http://127.0.0.1:7879/ 采集
++## CEF 容器内三层输入时间线；不设该变量时与主线上游行为完全一致。
++var _agent_webui_url := AGENT_WEBUI_URL
+ const AGENT_HEALTH_URL := "http://127.0.0.1:7878/health"
+ const AGENT_PROJECT_LIFECYCLE_TIMEOUT_SEC := 120.0
+ const VSP_PROJECT_REFRESH_TIMEOUT_SEC := 3.0
+@@ -161,6 +165,7 @@ func _ready() -> void:
+ 	theme = load("res://vit_dock/resources/vit_dock_theme.tres")
+ 	UIAssets.apply_project_font_to_theme(theme)
+ 	_left_shell.custom_minimum_size.x = 18.0
++	_resolve_agent_webui_url_override()
+ 	_ensure_project_services()
+ 	_configure_app_header()
+ 	_wire_services()
+@@ -2511,16 +2516,26 @@ func _ping_agent_health_once(timeout_sec: float) -> bool:
+ 	return result_code == HTTPRequest.RESULT_SUCCESS and response_code >= 200 and response_code < 300
+ 
+ 
++## FE-CEF-KEYINPUT-RECON-1：仅当显式设置 VIT_AGENT_WEBUI_URL 时改道（探针取证轮次）。
++func _resolve_agent_webui_url_override() -> void:
++	var raw := OS.get_environment("VIT_AGENT_WEBUI_URL").strip_edges()
++	if raw.is_empty():
++		return
++	_agent_webui_url = raw
++	VitDebugFlags.log_cef_focus("webui_url.override url=" + _agent_webui_url)
++
++
+ func _navigate_agent_webui() -> void:
+ 	if _agent_webui_host == null or not is_instance_valid(_agent_webui_host):
+ 		return
+-	_log_agent_webui_state("navigate.before", {"url": AGENT_WEBUI_URL, "retry": _agent_webui_navigate_retry_count})
++	_log_agent_webui_state("navigate.before", {"url": _agent_webui_url, "retry": _agent_webui_navigate_retry_count})
+ 	if _agent_webui_host.has_method("navigate"):
+ 		_set_agent_webui_status("Loading Ask Vit WebUI...")
+ 		_agent_webui_page_loaded = false
+-		_agent_webui_host.call("navigate", AGENT_WEBUI_URL)
++		_agent_webui_host.call("navigate", _agent_webui_url)
+ 	if _agent_webui_host.has_method("focus"):
+ 		_agent_webui_host.call("focus")
++		VitDebugFlags.log_cef_focus("navigate.focus_called")
+ 	_log_agent_webui_state("navigate.after")
+ 
+ 
+@@ -2617,7 +2632,7 @@ func _on_agent_webui_page_state_changed(state: Dictionary) -> void:
+ 	if not bool(state.get("loading", false)):
+ 		_set_agent_webui_status("")
+ 		var page_url := str(state.get("url", "")).strip_edges()
+-		if page_url.begins_with(AGENT_WEBUI_URL):
++		if page_url.begins_with(_agent_webui_url):
+ 			_agent_webui_page_loaded = true
+ 
+ 
+@@ -3388,6 +3403,7 @@ func _sync_agent_webui_visibility() -> void:
+ 	var should_show := _agent_webui_ready and _agent_webui_detached_visible
+ 	if not _agent_webui_uses_stable_detached_window():
+ 		should_show = _agent_webui_ready and _agent_webui_window != null and is_instance_valid(_agent_webui_window) and _agent_webui_window.visible
++	VitDebugFlags.log_cef_focus("dock.set_visible should_show=" + str(should_show))
+ 	_agent_webui_host.call("set_visible", should_show)
+ 	if should_show:
+ 		_sync_agent_webui_bounds()
+@@ -3395,6 +3411,7 @@ func _sync_agent_webui_visibility() -> void:
+ 
+ 
+ func _focus_agent_webui_window() -> void:
++	VitDebugFlags.log_cef_focus("dock.focus_agent_webui_window stable_detached=" + str(_agent_webui_uses_stable_detached_window()))
+ 	if _agent_webui_uses_stable_detached_window():
+ 		if _agent_webui_host != null and is_instance_valid(_agent_webui_host) and _agent_webui_host.has_method("focus"):
+ 			_agent_webui_host.call("focus")
+@@ -3464,9 +3481,9 @@ func _close_agent_webui_host() -> void:
+ 
+ 
+ func _open_agent_webui_browser_fallback() -> void:
+-	var err := OS.shell_open(AGENT_WEBUI_URL)
++	var err := OS.shell_open(_agent_webui_url)
+ 	if err != OK:
+-		push_warning("Vit-Dock: failed to open Ask Vit WebUI %s (err=%d)" % [AGENT_WEBUI_URL, int(err)])
++		push_warning("Vit-Dock: failed to open Ask Vit WebUI %s (err=%d)" % [_agent_webui_url, int(err)])
+ 	_sync_transport_chat_button()
+ 
+ 
+-- 
+2.54.0 (Apple Git-157)
+
