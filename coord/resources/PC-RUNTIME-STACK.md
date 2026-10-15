@@ -5,7 +5,8 @@
 
 ## 当前占用
 
-- 状态：**空闲**
+- 状态：**占用中**
+- 2026-10-15 22:3x +0800 登记 / M2-EXP-TIMEDYN-GAP-1(120) 取证腿（GLM-5.3 L2 PC 执行会话，ZCode；worktree D:/Vit_DAW_wt_m2tg1，分支 port/m2-exp-timedyn-gap-1-recon@727d1dd8=origin/main+领取提交，Go 面零生产改动）：A 轮复刻用户路径（project.new+import_folder_as_stems 6 轨→M2 话术→抓观察 bundle/omission，LLM 参与）+ B 轮 fixture 只读观察单腿（ccb_observation_request，零 LLM）。登记前 22:3x 只读核对四端口 5555/5556/7878/8787 监听=0、VitApp/VitAgent/vsphub/Godot 进程=0。被测=worktree 构建 agent（main 内容）+主检出 staging VitApp.exe B6565DCF85D1DA86（C++ 面零改动）；不启 Godot UI（agent HTTP 面驱动，边界在回执声明）。
 
 ## 最近一次释放
 
