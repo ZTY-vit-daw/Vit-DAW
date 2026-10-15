@@ -43,4 +43,16 @@ agent/internal/chat/turn_control.go + goalrunner/harness 停止落账路径 + �
 
 ## 回执
 
-（待完成后回填）
+- **实现 commits**（port/fix-turnstop-wedge-1，已推远端）：
+  - `846feb63` fix(FIX-TURNSTOP-WEDGE-1)：runtime.MarkStopped 补 syncTaskStatus（与 Complete/SetStatus 簿记纪律对齐）+ handleTurnStop active 分支限时观察窗（默认 2s/50ms 轮询，`turnStopSettleWindowOverride` 注入）超时内联 finalizeStoppedTurn 幂等兜底 + 单测四景 + 烟测 probe（py `--immediate-stop-probe` / ps1 `-ImmediateStopProbe`）
+  - `74e6dd18` runs(FIX-TURNSTOP-WEDGE-1)：真栈烟测 run1 工件入库（§8 声明+report+console+agent log）
+  - 领取提交 `686e0bc5`（rebase 后含于 846feb63 祖先链）
+- **单测**（红绿已验：基线 e115fd8a 三景行为级 FAIL——字段无关版，修复版全 PASS）：
+  - `go test ./internal/chat -run 'TestTurnStop' -count=1` → ok（四景：停摆窗口兜底收敛 / 二次 stop 幂等（EventTurnStopped 去重+checkpoint 保持）/ runner 窗口内落账不误伤（真实 settle 保护）/ 窗口解析）
+  - 109 停泊回归：`TestParkedReplay|TestAudioClosure` → ok（audioclosure 零改动）；核心四包（chat/runtime/agentloop/harness）→ ok
+  - 全量 `go test ./... -count=1` → **exit 0（36 包全 ok，0 FAIL）**；gofmt 净（LF 规范化后 4 文件 CLEAN；工作树 CRLF 为 checkout 行尾，入库 LF）
+- **真栈烟测**：`run_free_state_d1_smoke.ps1 -ImmediateStopProbe -SkipBuild -KernelExe <主检出>` → **exit 0 首跑 PASS**（run ID 20261015_183315；被测 agent SHA256 6119876A26FB2700 + 内核主检出 B6565DCF85D1DA86 C++ 零改动）。probe 实录：stop 前 prior=running/active（active 窗口命中）；收敛三元组 task=settled、running_slices=[]、新收口 checkpoint `c_20261015T103449_d68a0d9d`（非 ask 回退）；二次 stop 幂等；同会话新 goal `goal_b9c10845e9eabab3` + 完整响应（degraded=False）；closure 诚实结算 owner_turn_closed（日志锚点 `[turn.stop] request received`×2 在卷）。占用 19f7fb08 / 释放见 PC-RUNTIME-STACK.md（18:37 拆栈四端口+进程零复核）。
+- **端测边界声明**：①真栈 stop 到达时 goal 已 waiting_continue（LLM 5s 快速完成）→ 真栈验证的主路径=finalizeStoppedTurn 内联分支（=M2 症状 2「二次停止救不回」同款分支，修复一在其中生效）；active 分支两条路径（runner 窗口内落账不误伤 / 停摆 2s 兜底）由单测景三/景一钉死，`fallback_anchor_seen=False`（兜底路径未被真栈触发——117 修复后无稳定停摆窗可构造）。②新 ask 断言含执行前声明的降级口径（240s 超时→持久面新 goal 绑定），本次未触发降级（完整响应）。③webui 渲染面未测（本卡无渲染改动）。
+- **并发登记竞态备忘**：本卡占用登记（19f7fb08）与 FE-CEF-UPGRADE-1(116) 七项回归登记（8dcf1a77）几乎同时落库；物理面无冲突（详见 PC-RUNTIME-STACK.md 竞态备忘条），116 后续启栈前已提示重核 7878。
+- **worktree/分支清单**：worktree `D:/Vit_DAW_wt_tsw1`；分支 `port/fix-turnstop-wedge-1`（@74e6dd18，已推远端）+ 协调分支 `coord/tsw1-stack`（本收尾提交）；run 重件留盘 `artifacts/free_state_d1_s1/20261015_183315/`。
+- 报告链接：[coord/runs/FIX-TURNSTOP-WEDGE-1/README.md](../../runs/FIX-TURNSTOP-WEDGE-1/README.md)

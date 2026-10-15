@@ -6,7 +6,13 @@
 ## 当前占用
 
 - 状态：**占用中**
-- 2026-10-15 18:31 +0800 登记 / FIX-TURNSTOP-WEDGE-1 烟测腿（GLM-5.3 L2 PC 执行会话，ZCode；worktree D:/Vit_DAW_wt_tsw1，分支 port/fix-turnstop-wedge-1@846feb63=origin/main f8e56f92 之上含修复）：`run_free_state_d1_smoke.ps1 -ImmediateStopProbe`——复现 M2「ask 后立即 stop」楔死场景：6 轨 fixture 隔离副本，首个 ask 在飞时 POST /agent/turn/stop，断言 goal/task/slice 三元组收敛 + 二次 stop 幂等 + 会话可再发新 turn；被测=worktree 构建 agent VitAgent.exe SHA256 6119876A26FB2700（846feb63 含本卡修复）+主检出 VitApp.exe B6565DCF85D1DA86（C++ 面零改动）+Godot 前端主检出。登记前只读核对四端口 5555/5556/7878/8787 监听=0、VitApp/VitAgent/vsphub/Godot 进程=0（前 owner FIX-ASK-SILENT-GAP-1 已于 1849b22f 释放，18:26 拆栈复核在卷）。
+- 2026-10-15 18:31:48 +0800 登记 / FE-CEF-UPGRADE-1(116) 七项回归腿（Mac 执行侧接管会话，GLM-5.3 ZCode；fecef1-coord worktree）：Godot 前端（9229）+探针服务 7879+webui 轮 vitagent 7878；占用前 18:31:48 三端口/四类进程零核对。**并发登记竞态备忘（2026-10-15 18:39 FIX-TURNSTOP-WEDGE-1 会话如实记录）**：本登记与 FIX-TURNSTOP-WEDGE-1 烟测腿占用登记（19f7fb08，18:31 推送）几乎同时落库，物理面未观测到冲突（116 登记的 7878/7879/9229 于 18:39 只读核对均未监听/未运行；FIX-TURNSTOP-WEDGE-1 烟测 18:33:15-18:37 用 7878 正常完成且 18:37 拆净）——116 腿登记时栈尚未启动，后续启栈前请按本记录重新核对 7878 实际监听状态。
+
+## 历史占用（FIX-TURNSTOP-WEDGE-1 烟测腿，已释放）
+
+- 2026-10-15 18:31–18:39 +0800 登记/释放 / FIX-TURNSTOP-WEDGE-1 烟测腿（GLM-5.3 L2 PC 执行会话，ZCode；worktree D:/Vit_DAW_wt_tsw1，分支 port/fix-turnstop-wedge-1@846feb63）：`run_free_state_d1_smoke.ps1 -ImmediateStopProbe` run1 **PASS exit 0 首跑**（run ID 20261015_183315）——ask 在飞时 POST stop：goal/task/slice 三元组收敛（task=settled、running slices=[]、新收口 checkpoint c_20261015T103449）、二次 stop 幂等、同会话新 goal 可再发+完整响应；路径=finalizeStoppedTurn 内联分支真栈生效（stop 到达时 goal 已 waiting_continue）。18:37 手动 teardown VitAgent 9988/VitApp 11508/Godot 2104，复核四端口 5555/5556/7878/8787 监听=0、VitApp/VitAgent/vsphub/Godot 进程=0。被测=worktree 构建 agent VitAgent.exe SHA256 6119876A26FB2700（846feb63 含修复）+主检出 VitApp.exe B6565DCF85D1DA86（C++ 面零改动）+Godot 前端主检出。占用登记 19f7fb08；工件 coord/runs/FIX-TURNSTOP-WEDGE-1/（随 port/fix-turnstop-wedge-1@74e6dd18 入库），重件留盘 worktree artifacts/free_state_d1_s1/20261015_183315。**与 116 腿的并发登记竞态备忘见上。**
+
+- 原 2026-10-15 18:31 +0800 登记 / FIX-TURNSTOP-WEDGE-1 烟测腿（GLM-5.3 L2 PC 执行会话，ZCode；worktree D:/Vit_DAW_wt_tsw1，分支 port/fix-turnstop-wedge-1@846feb63=origin/main f8e56f92 之上含修复）：`run_free_state_d1_smoke.ps1 -ImmediateStopProbe`——复现 M2「ask 后立即 stop」楔死场景：6 轨 fixture 隔离副本，首个 ask 在飞时 POST /agent/turn/stop，断言 goal/task/slice 三元组收敛 + 二次 stop 幂等 + 会话可再发新 turn；被测=worktree 构建 agent VitAgent.exe SHA256 6119876A26FB2700（846feb63 含本卡修复）+主检出 VitApp.exe B6565DCF85D1DA86（C++ 面零改动）+Godot 前端主检出。登记前只读核对四端口 5555/5556/7878/8787 监听=0、VitApp/VitAgent/vsphub/Godot 进程=0（前 owner FIX-ASK-SILENT-GAP-1 已于 1849b22f 释放，18:26 拆栈复核在卷）。
 
 ## 最近一次释放
 
