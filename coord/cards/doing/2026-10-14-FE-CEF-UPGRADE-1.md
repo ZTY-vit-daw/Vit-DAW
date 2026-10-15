@@ -35,6 +35,6 @@
 - v1.16.2 与我方 Godot 4.6/加速 OSR 栈不兼容（②渲染失败且不可绕）→ 回滚 bin/ 归档，记录不兼容证据上交；
 - 资产下载不可得 → 记录后暂停（不擅自换版本号）。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-15 / origin/main ae86b218c5193772dd74f974053d304a44e8771d / Mac 执行侧（GLM 会话） / 主仓 coord-only 直推 main + 前端仓续 port/fe-cef-focusfix-1 基础（本卡新建 port/fe-cef-upgrade-1） / worktree Vit-DAW-fecef1-coord（主仓）+ 前端仓本体 / 领取提交见下
 - 回执：（commit / run ID / 七项回归记录 / 升级前后 sha256 / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
