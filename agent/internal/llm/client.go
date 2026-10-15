@@ -128,6 +128,17 @@ func (c *Client) Complete(ctx context.Context, cfg config.EngineConfig, messages
 	return resp.Text, nil
 }
 
+// ASG1-TEMP forensic probe (FIX-ASK-SILENT-GAP-1 recon leg; never merge to main):
+// attempt-level trace hook so the ask->slice gap can be decomposed per HTTP
+// attempt (timeout/busy/backoff) instead of only as a telemetry total.
+var AttemptTrace func(format string, args ...any)
+
+func traceAttempt(format string, args ...any) {
+	if AttemptTrace != nil {
+		AttemptTrace(format, args...)
+	}
+}
+
 func (c *Client) CompleteRequest(ctx context.Context, cfg config.EngineConfig, llmReq Request) (response Response, err error) {
 	totalStart := time.Now()
 	endpoint := endpoint{}
@@ -136,6 +147,8 @@ func (c *Client) CompleteRequest(ctx context.Context, cfg config.EngineConfig, l
 		if response.RawKind == "" {
 			response.RawKind = endpoint.Kind
 		}
+		traceAttempt("llm_request_done source=%s total_ms=%d http_ms=%d err=%v",
+			llmReq.Metadata.Source, response.Timings.TotalMs, response.Timings.HTTPMs, err)
 		recordTelemetry(cfg, llmReq, response, err)
 	}()
 
@@ -190,6 +203,8 @@ func (c *Client) CompleteRequest(ctx context.Context, cfg config.EngineConfig, l
 
 		httpStart := time.Now()
 		resp, requestErr := client.Do(req)
+		traceAttempt("llm_attempt source=%s attempt=%d/%d http_ms=%d transport_err=%v",
+			llmReq.Metadata.Source, attempt+1, attempts, elapsedMs(httpStart), requestErr)
 		if requestErr != nil {
 			response.Timings.HTTPMs = elapsedMs(httpStart)
 			lastErr = requestErr
@@ -212,8 +227,12 @@ func (c *Client) CompleteRequest(ctx context.Context, cfg config.EngineConfig, l
 		response.Usage = usage
 		if parseErr == nil {
 			response.Text = text
+			traceAttempt("llm_attempt_ok source=%s attempt=%d/%d http_ms=%d", llmReq.Metadata.Source, attempt+1, attempts, elapsedMs(httpStart))
 			return response, nil
 		}
+		traceAttempt("llm_attempt_parse_err source=%s attempt=%d/%d status=%d http_ms=%d retryable=%v err=%.160v",
+			llmReq.Metadata.Source, attempt+1, attempts, resp.StatusCode, elapsedMs(httpStart),
+			retryableLLMHTTPError(resp.StatusCode, parseErr), parseErr)
 		lastErr = parseErr
 		if !retryableLLMHTTPError(resp.StatusCode, parseErr) || attempt+1 >= attempts {
 			return response, parseErr

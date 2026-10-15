@@ -29,6 +29,14 @@ import (
 
 const agentLoopConfirmationWorkflow = "agentloop_confirmation"
 
+// ASG1-TEMP forensic probe (FIX-ASK-SILENT-GAP-1 recon leg; never merge):
+// stage logger for the pre-slice segment of the ask handling chain.
+func asg1StageLog(s *Server, format string, args ...any) {
+	if s != nil && s.logger != nil {
+		s.logger.Info("[asg1] stage="+format, args...)
+	}
+}
+
 func (s *Server) beginChatGoal(conversationID, message string, requestContext map[string]any) agentruntime.Goal {
 	if s == nil || s.harness == nil {
 		return agentruntime.Goal{Status: agentruntime.StatusIdle}
@@ -231,7 +239,10 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 		}
 	}
 	if classificationRequired {
+		asg1StageLog(s, "classification_begin conversation=%s", conversationID)
+		asg1SemanticEntryStart := time.Now()
 		decision, err := s.planSemanticEntry(ctx, conversationID, userText, chatContext, cfg)
+		asg1StageLog(s, "semantic_entry_done ms=%d err=%v route=%s", time.Since(asg1SemanticEntryStart).Milliseconds(), err, decision.Route)
 		if err != nil {
 			// The frozen blind smoke must not silently fall back to legacy
 			// mix.observe after the model-owned semantic entry failed. That
@@ -247,7 +258,9 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 		if err == nil {
 			var routingIdentity CapabilityRouteRecord
 			chatContext, routingIdentity = s.ensureCapabilityRoutingTask(userText, chatContext)
+			asg1RouteStart := time.Now()
 			decision, routingIdentity, err = s.planObservationFirstCapabilityRoute(ctx, conversationID, userText, chatContext, decision, routingIdentity)
+			asg1StageLog(s, "capability_route_done ms=%d err=%v short_circuit=%v", time.Since(asg1RouteStart).Milliseconds(), err, routingIdentity.ShortCircuit != nil)
 			if err != nil {
 				return s.semanticEntryUnresolvedChatResponse(conversationID, mode, &decision, err), true
 			}
@@ -279,6 +292,7 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 		return audioClosureControllerErrorResponse(conversationID, mode, closureErr), true
 	}
 	chatContext, freeStateActive := s.prepareFreeStateReasoningContext(conversationID, userText, chatContext)
+	asg1StageLog(s, "prepare_done mix_active=%v closure_active=%v free_state_active=%v", projectMixActive, audioClosureActive, freeStateActive)
 	mode = agentModeFromContext(chatContext)
 	// An internal free-state continuation must never resurrect a completed or
 	// blocked reasoning loop. In particular, native-tool confirmations used to
@@ -429,6 +443,7 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 		}
 		toolContext := s.agentLoopToolContext(mode, userText, chatContext)
 		executionMemory := s.agentLoopExecutionMemoryForConversation(conversationID)
+		asg1StageLog(s, "message_loop_enter legacy=%v conversation=%s", useLegacyPlannerLoop() && !freeStateActive, conversationID)
 		if useLegacyPlannerLoop() && !freeStateActive {
 			res = legacyRunner.Start(ctx, agentloop.Input{
 				GoalID:          goalID,
@@ -460,6 +475,7 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 				ExecutionMemory: executionMemory,
 			})
 		}
+		asg1StageLog(s, "message_loop_returned status=%s stop=%s", res.Status, res.StopReason)
 	}
 	if res.Status == agentruntime.StatusStopped {
 		goal, checkpoint := s.finalizeStoppedTurn(ctx, conversationID, res.GoalID, res.RunID, "user_stop")

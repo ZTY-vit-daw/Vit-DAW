@@ -2521,6 +2521,10 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 	)
 	req.Context = contextWithArtifactSummaries(req.Context, requestArtifacts)
 	s.harness.RecordConversationNodeForProject(r.Context(), projectPath, "ask", req.Message, goal.GoalID, goal.RunID)
+	if s.logger != nil {
+		// ASG1-TEMP forensic probe (FIX-ASK-SILENT-GAP-1 recon leg; never merge).
+		s.logger.Info("[asg1] stage=ask_booked conversation=%s goal=%s run=%s", conversationID, goal.GoalID, goal.RunID)
+	}
 	writeChat := func(status int, resp ChatResponse) {
 		if resp.AgentMode == "" {
 			resp.AgentMode = agentMode

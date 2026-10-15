@@ -16,6 +16,7 @@ import (
 	"vit-daw-agent/internal/bridge"
 	"vit-daw-agent/internal/chat"
 	"vit-daw-agent/internal/kernel"
+	"vit-daw-agent/internal/llm"
 	"vit-daw-agent/internal/logx"
 	"vit-daw-agent/internal/mixboard"
 	"vit-daw-agent/internal/shadow"
@@ -46,6 +47,10 @@ func main() {
 	}
 
 	logger := logx.New(*verbose, *lastLogPath, *keepLogLines)
+	// ASG1-TEMP forensic probe wiring (FIX-ASK-SILENT-GAP-1 recon leg; never merge).
+	llm.AttemptTrace = func(format string, args ...any) {
+		logger.Info("[asg1] "+format, args...)
+	}
 	if strings.TrimSpace(*lastLogPath) != "" {
 		mixboard.SetObservationMetricsLogger(logx.New(false, filepath.Join(filepath.Dir(*lastLogPath), "MaterializeMetrics.log"), 5000))
 	}
