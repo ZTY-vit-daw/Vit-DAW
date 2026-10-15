@@ -214,6 +214,44 @@ func capacityFactShortCircuit(userText string, assessment FreeStateCapacityAsses
 	return nil
 }
 
+// semanticEntryUnavailableCapacityAnswer runs the zero-LLM capacity-fact
+// evaluation when the semantic entry classifier failed and the request is
+// falling open (FIX-ASK-SILENT-GAP-1 ③). The M2 incident showed the failure
+// branch skipping planObservationFirstCapabilityRoute entirely, so an empty
+// project that should have answered in ~2s was fed into the slice pipeline
+// behind a 120s classifier retry wall. The observed structural facts are
+// route-independent truths: if they already answer the request (empty project
+// or a pure count question), answer directly and say the entry classifier was
+// unavailable; otherwise return false and let the fail-open path continue as
+// before. No synthesized semantic-entry decision is persisted.
+func (s *Server) semanticEntryUnavailableCapacityAnswer(ctx context.Context, conversationID, mode, userText string,
+	requestContext map[string]any) (ChatResponse, bool) {
+	if s == nil || s.harness == nil {
+		return ChatResponse{}, false
+	}
+	facts := s.observeCapacityProjectFacts(ctx, semanticEntryScopeProjectContext)
+	explicitFixed := explicitProjectMixInvocation(userText) || explicitCapabilityStage(userText) != ""
+	assessment := assessFreeStateCapacity(facts, explicitFixed, time.Now().UTC())
+	circuit := capacityFactShortCircuit(userText, assessment)
+	if circuit == nil {
+		return ChatResponse{}, false
+	}
+	_, identity := s.ensureCapabilityRoutingTask(userText, requestContext)
+	now := time.Now().UTC()
+	record := identity
+	record.SchemaVersion = capabilityRouteSchema
+	record.ConversationID = conversationID
+	record.CreatedAt, record.UpdatedAt = now, now
+	record.Assessment = &assessment
+	record.ProjectRevision = assessment.ProjectRevision
+	record.ShortCircuit = circuit
+	s.storeCapabilityRoute(record)
+	resp := s.capacityFactShortCircuitResponse(conversationID, mode, record)
+	resp.Reply = circuit.Answer + "\n\n（意图分类服务本次不可用，以上直接来自工程结构事实。）"
+	resp.WorkflowData["semantic_entry_unavailable"] = true
+	return resp, true
+}
+
 func (s *Server) ensureCapabilityRoutingTask(userText string, requestContext map[string]any) (map[string]any, CapabilityRouteRecord) {
 	goalID, runID := s.freshAgentLoopGoalIDs(requestContext)
 	goal := s.harness.EnsureGoal(goalID, runID, userText)

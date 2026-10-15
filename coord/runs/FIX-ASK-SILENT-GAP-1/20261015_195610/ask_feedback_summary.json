@@ -1,0 +1,31 @@
+﻿{
+    "tracked_count":  6,
+    "tracked_fixture":  "D:\\Vit_DAW_wt_asg1\\artifacts\\asg1_forensics\\fixture_project_B\\spv1_p01.vit",
+    "finished_at":  "2026-10-15T19:56:32.3235291+08:00",
+    "scenario":  "ask_feedback",
+    "first_feedback_budget_ms":  3000,
+    "round_a":  {
+                    "first_event_item":  "semantic_entry",
+                    "slice_ms":  -1,
+                    "terminal_ms":  7824,
+                    "label":  "A_empty",
+                    "first_event_type":  "item.started",
+                    "stop_reason":  "capacity_fact_short_circuit",
+                    "terminal_type":  "turn.completed",
+                    "first_event_ms":  167.4,
+                    "timeline_rows":  8,
+                    "conversation":  "ask_feedback_A_empty_20261015_195617"
+                },
+    "round_b":  {
+                    "first_event_item":  "semantic_entry",
+                    "slice_ms":  13.1,
+                    "terminal_ms":  5882.9,
+                    "label":  "B_tracked",
+                    "first_event_type":  "item.started",
+                    "stop_reason":  "limit_reached",
+                    "terminal_type":  "turn.completed",
+                    "first_event_ms":  2228.7,
+                    "timeline_rows":  10,
+                    "conversation":  "ask_feedback_B_tracked_20261015_195626"
+                }
+}

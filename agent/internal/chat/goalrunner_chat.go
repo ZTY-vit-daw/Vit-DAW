@@ -231,7 +231,11 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 		}
 	}
 	if classificationRequired {
+		entryGoalID, entryRunID := goalIDsFromContext(chatContext)
 		decision, err := s.planSemanticEntry(ctx, conversationID, userText, chatContext, cfg)
+		// FIX-ASK-SILENT-GAP-1 ④：分类期不再静默——入口分类一有结局（成功或
+		// 失败）就收掉 ask 受理时发出的忙碌事件；失败态对用户可见。
+		s.emitSemanticEntryActivitySettled(conversationID, entryGoalID, entryRunID, err)
 		if err != nil {
 			// The frozen blind smoke must not silently fall back to legacy
 			// mix.observe after the model-owned semantic entry failed. That
@@ -240,6 +244,12 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 				return semanticEntryServiceFailureResponse(conversationID, mode, err), true
 			}
 			chatContext = mergeContext(chatContext, map[string]any{"semantic_entry_unavailable": true})
+			// FIX-ASK-SILENT-GAP-1 ③：入口分类失败 fail-open 时仍要跑一次本地
+			//（零 LLM）容量事实评估——空工程/纯计数事实秒级短路作答，不再被
+			// 放进 slice 管线（M2 现场 0 轨工程在 122s 静默后才进管线）。
+			if resp, answered := s.semanticEntryUnavailableCapacityAnswer(ctx, conversationID, mode, userText, chatContext); answered {
+				return resp, true
+			}
 		}
 		if err == nil && decision.Route == semanticEntryRouteUnresolved {
 			return s.semanticEntryUnresolvedChatResponse(conversationID, mode, &decision, nil), true

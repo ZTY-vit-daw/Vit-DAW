@@ -1,0 +1,52 @@
+﻿[
+    {
+        "t_ms":  13.6,
+        "kind":  "slice_first_seen",
+        "detail":  "slice_id="
+    },
+    {
+        "t_ms":  2119.9,
+        "kind":  "stop_posted",
+        "detail":  "ok"
+    },
+    {
+        "t_ms":  2228.5,
+        "kind":  "event_first_seen",
+        "detail":  "type=item.started item=semantic_entry"
+    },
+    {
+        "t_ms":  2228.8,
+        "kind":  "first_event",
+        "detail":  "type=item.started item=semantic_entry"
+    },
+    {
+        "t_ms":  2229,
+        "kind":  "event_first_seen",
+        "detail":  "type=turn.started item="
+    },
+    {
+        "t_ms":  2229.2,
+        "kind":  "event_first_seen",
+        "detail":  "type=trajectory.turn.started item=turn:run_fd15f67c3e69adb7"
+    },
+    {
+        "t_ms":  2229.4,
+        "kind":  "event_first_seen",
+        "detail":  "type=trajectory.turn.stopped item=turn-stopped:run_fd15f67c3e69adb7"
+    },
+    {
+        "t_ms":  2478.6,
+        "kind":  "event_first_seen",
+        "detail":  "type=item.completed item=semantic_entry"
+    },
+    {
+        "t_ms":  5882.6,
+        "kind":  "event_first_seen",
+        "detail":  "type=turn.completed item="
+    },
+    {
+        "t_ms":  5883,
+        "kind":  "terminal",
+        "detail":  "type=turn.completed stop_reason=limit_reached"
+    }
+]

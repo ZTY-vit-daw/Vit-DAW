@@ -37,6 +37,15 @@ import (
 // plain HTTP chat turn publishes turn.started even though the semantic-entry
 // classification that follows can never complete on this server (no LLM, no
 // harness). The event therefore cannot depend on the semantic entry.
+//
+// FIX-ASK-SILENT-GAP-1 ④⑤ amendment (2026-10-15): handleChat now emits the
+// ask busy-indicator item.started (semanticEntryActivityItemID) before the
+// goal-binding preamble, so it legitimately precedes turn.started — that is
+// the fix's whole point (tracked projects waited 4.4s for turn.started). The
+// original invariant is unchanged and still pinned below on the stream with
+// the busy-indicator family filtered out: turn.started is the first turn
+// event, carries the bound identity, and its AGENT-F1 companion follows
+// directly.
 func TestChatTurnStartedEmittedBeforeSemanticEntryForHTTPTurn(t *testing.T) {
 	server := New(nil, shadow.New(nil), nil)
 	conversationID := "chat_f4_pre_semantic"
@@ -52,19 +61,31 @@ func TestChatTurnStartedEmittedBeforeSemanticEntryForHTTPTurn(t *testing.T) {
 	if len(events) == 0 {
 		t.Fatal("no agent events recorded for the turn")
 	}
-	// The turn transport event is the first thing the turn publishes.
-	if events[0].Type != "turn.started" {
-		t.Fatalf("first event type = %q, want turn.started (events=%+v)", events[0].Type, events)
+	// ⑤ pin: the ask busy indicator is the first user-visible feedback and
+	// precedes the goal-binding preamble (and therefore turn.started).
+	if events[0].Type != "item.started" || events[0].ItemID != semanticEntryActivityItemID {
+		t.Fatalf("first event = %q(%s), want the ask busy indicator item.started", events[0].Type, events[0].ItemID)
 	}
-	if events[0].Status != "running" || events[0].GoalID == "" || events[0].RunID == "" {
-		t.Fatalf("turn.started must carry the bound goal/run identity and running status: %+v", events[0])
+	turnEvents := make([]AgentEvent, 0, len(events))
+	for _, event := range events {
+		if event.ItemID == semanticEntryActivityItemID && event.ItemType == "classification" {
+			continue
+		}
+		turnEvents = append(turnEvents, event)
 	}
-	if len(events) < 2 {
-		t.Fatalf("AGENT-F1 companion missing: %+v", events)
+	// The turn transport event is the first thing the turn itself publishes.
+	if turnEvents[0].Type != "turn.started" {
+		t.Fatalf("first turn event type = %q, want turn.started (events=%+v)", turnEvents[0].Type, turnEvents)
 	}
-	companion := events[1]
-	if companion.Type != string(trajectory.EventTurnStarted) || companion.ItemID != chatTurnTrajectoryNodeID(events[0].RunID) {
-		t.Fatalf("companion event = %+v, want %s for node turn:%s", companion, trajectory.EventTurnStarted, events[0].RunID)
+	if turnEvents[0].Status != "running" || turnEvents[0].GoalID == "" || turnEvents[0].RunID == "" {
+		t.Fatalf("turn.started must carry the bound goal/run identity and running status: %+v", turnEvents[0])
+	}
+	if len(turnEvents) < 2 {
+		t.Fatalf("AGENT-F1 companion missing: %+v", turnEvents)
+	}
+	companion := turnEvents[1]
+	if companion.Type != string(trajectory.EventTurnStarted) || companion.ItemID != chatTurnTrajectoryNodeID(turnEvents[0].RunID) {
+		t.Fatalf("companion event = %+v, want %s for node turn:%s", companion, trajectory.EventTurnStarted, turnEvents[0].RunID)
 	}
 	if companion.Payload["status"] != string(trajectory.StatusRunning) || companion.Payload["phase"] != "framing" {
 		t.Fatalf("companion payload=%+v", companion.Payload)
