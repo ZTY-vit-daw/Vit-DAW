@@ -6,7 +6,8 @@
 
 ## 当前占用
 
-- 状态：空闲
+- 状态：占用中
+- 2026-10-15 18:31– / FE-CEF-UPGRADE-1（池序 116；GLM-5.3 Mac 执行侧接管会话，ZCode；worktree Vit-DAW-fecef1-coord，前端仓 /Users/timozty/Documents/vit-daw-frontend @ port/fe-cef-upgrade-1，bin/ 已换 gdcef v1.16.2）：七项回归窗口——Godot 前端（CEF 宿主，remote_debugging 9229）+ 探针页服务 vite preview 7879 + webui 链路轮 vitagent HTTP 7878（agent/webui 零改动，只起进程）。占用前核对（18:31:48）：7878/7879/9229 监听=0、Godot/CEF Helper/vitagent/VitApp 进程=0。占用登记=本提交。
 
 ## 最近一次释放
 
