@@ -5,8 +5,11 @@
 
 ## 当前占用
 
-- 状态：**占用中**
-- 2026-10-15 18:29 +0800 登记 / FIX-ASK-SILENT-GAP-1 取证腿（GLM-5.3 L2 PC 执行会话，ZCode；worktree D:/Vit_DAW_wt_asg1，分支 port/fix-ask-silent-gap-1-recon 含 [asg1] 临时打点）：ask→slice 122s 空窗阶段分解取证——空工程（0 轨，staging 内核默认工程）+有轨工程（6 轨 fixture 临时副本）各至少一轮，chat POST 后 slice 出现即停（控 LLM 预算，§8 声明见取证件）；被测=worktree 构建 agent VitAgent.exe SHA256 669d2109bd1a0981（含打点）+主检出 VitApp.exe B6565DCF85D1DA86（C++ 面零改动）+Godot 前端主检出。登记前只读核对四端口 5555/5556/7878/8787 监听=0、VitApp/VitAgent/vsphub/Godot 进程=0（与 116 烟测腿按本记录串行）。
+- 状态：空闲
+
+## 最近一次释放
+
+- 2026-10-15 18:21–18:26 +0800（本机钟）/ FIX-ASK-SILENT-GAP-1 取证腿（GLM-5.3 L2 PC 执行会话，ZCode；worktree D:/Vit_DAW_wt_asg1，分支 port/fix-ask-silent-gap-1-recon@523f6629 含 [asg1] 临时打点）：ask→slice 122s 空窗阶段分解两轮取证（占用登记 9b817024）——A 轮空工程（staging 内核默认 0 轨）：语义入口 2092ms 成功→capacity_fact_short_circuit 短路作答，全轮 4.0s 零 slice；B 轮 6 轨 fixture（spv1_p01 隔离副本 project.open，shadow track_count=6 亲核）：ask→slice 11.6s（前导 4.4s+语义入口 6165ms+prepare<1s），slice 出现后 POST stop 控预算（goal waiting_continue→user_stop 收口）。根因=M2 现场语义入口 LLM 重试环 120.855s（60s×2 超时+退避+busy 终拒，遥测逐毫秒吻合）。LLM 面 5 次调用全成功 0 超时（预探测 0.83s/A 入口 2.09s/B 入口 6.16s/B message loop 3.78s），§8 记账见取证件 §5。18:26 手动 teardown VitAgent 15200/VitApp 11620/Godot_v4.6.1 12276+22764，复核四端口 5555/5556/7878/8787 监听=0、VitApp/VitAgent/vsphub/Godot 进程=0。被测=worktree 构建 agent VitAgent.exe SHA256 669d2109bd1a0981（含打点，0eb31135）+主检出 VitApp.exe B6565DCF85D1DA86（C++ 面零改动）+Godot 前端主检出；模型=deepseek-flash config 全程未动（预探测 HTTP 200/0.83s echo=deepseek-flash）。工件 coord/runs/FIX-ASK-SILENT-GAP-1/（随 port/fix-ask-silent-gap-1-recon 入库：FORENSICS.md+A/B 轮 timeline/events/state+asg1 日志摘录+遥测提取），重件留盘 worktree artifacts/asg1_forensics/（fixture 隔离副本）。
 
 ## 最近一次释放
 

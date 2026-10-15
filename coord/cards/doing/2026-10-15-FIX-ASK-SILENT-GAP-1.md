@@ -42,4 +42,14 @@ agent/internal/chat ask 处理链 + goalrunner slice 启动前置段（领取时
 
 ## 回执
 
-（取证腿交付后回填）
+### 取证腿（2026-10-15 晚窗交付，修复腿待派）
+
+- **取证件**：[coord/runs/FIX-ASK-SILENT-GAP-1/FORENSICS.md](../../runs/FIX-ASK-SILENT-GAP-1/FORENSICS.md)（随 port/fix-ask-silent-gap-1-recon 入库，commit 见下）
+- **结论**：122s 空窗 = 语义入口分类器一次 LLM 调用（ordinary_agent_semantic_entry，deepseek-flash）在服务退化下的重试环独占——60s 超时×2 + 退避 750ms + 104ms "Service is too busy" 终拒 = **120.855s，与 M2 现场遥测 total_ms=120855 逐毫秒吻合**；其后 1.4s 失败收尾+prepare，09:55:13.794 slice 开启。journal=0 只覆盖 message loop，语义入口调用不在 journal（卡面前提修正）。mixboard 快照 +63s 落盘=内核波形遥测后台摄取（harness.go:4180 ingestKernelWaveformTelemetry），与卡点无关。
+- **空工程真相**：非放大因素（语义入口载荷与轨数无关）；实为叠加缺陷——语义入口失败 fail-open 后**跳过空工程容量短路**（goalrunner_chat.go:247 只在 err==nil 进 planObservationFirstCapabilityRoute），0 轨工程本应 ~2s 短路作答（A 轮真栈实证：4.0s 全轮、零 slice），却被放进 slice 管线。
+- **真栈对照**：A 轮（空工程+健康 LLM）4.0s 短路作答；B 轮（6 轨 fixture+健康 LLM）ask→slice=11.6s（前导 4.4s+语义入口 6.2s+prepare <1s）。烟测无空窗=当晚服务健康（10-14 遥测 6990/8745ms 无错），非工程差异。
+- **修复面清单**（5 项，锚点=main e115fd8a 行号，详见取证件 §4）：① semantic_entry.go:132-140 入口无 deadline；② llm/client.go:157-174 默认 60s×3 尝试最坏 ~121s；③ goalrunner_chat.go:233-262 fail-open 跳过容量短路；④ server.go:2509-2523+goalrunner_chat.go:234 分类期零用户反馈（反馈面）；⑤（次级新发现）B 轮前导段 4.4s 使首个可见事件推迟至 t+4.8s，已超 ≤3s 预算。与 116 文件域：未触 turn_control.go/harness 停止路径；goalrunner_chat.go 为两卡共享文件（分类段 vs 停止段不同函数），交决策侧核对后派修复腿。
+- **§8 记账**：计划 2 轮实跑 2 轮全达成；LLM 实耗 5 次全成功 0 超时（预探测 0.83s/A 轮入口 2.09s/B 轮入口 6.16s+B 轮 message loop 3.78s）；退化态 live 复现未执行（需服务退化或改全局 config，历史遥测两独立样本+常量吻合已充分，如实登记边界）。
+- **临时打点**：port/fix-ask-silent-gap-1-recon 提交 0eb31135（[asg1] 阶段日志：cmd/vitagent/main.go+internal/chat/server.go+goalrunner_chat.go+internal/llm/client.go 四文件；探针 scripts/asg1_ask_gap_forensics.ps1+asg1_prompt_codes.txt）——**不入 main**，修复腿可按需 cherry-pick。
+- **栈占用/释放**：占用登记 9b817024；18:21–18:26 两轮取证后手动 teardown（VitAgent 15200/VitApp 11620/Godot 12276+22764），复核四端口 5555/5556/7878/8787 监听=0、四类进程=0；释放登记随本提交。
+- 取证腿到此停手；修复腿待决策侧核对派发。
