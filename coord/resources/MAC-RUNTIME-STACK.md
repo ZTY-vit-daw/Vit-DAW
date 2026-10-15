@@ -6,8 +6,11 @@
 
 ## 当前占用
 
-- 状态：占用中
-- 2026-10-15 18:31– / FE-CEF-UPGRADE-1（池序 116；GLM-5.3 Mac 执行侧接管会话，ZCode；worktree Vit-DAW-fecef1-coord，前端仓 /Users/timozty/Documents/vit-daw-frontend @ port/fe-cef-upgrade-1，bin/ 已换 gdcef v1.16.2）：七项回归窗口——Godot 前端（CEF 宿主，remote_debugging 9229）+ 探针页服务 vite preview 7879 + webui 链路轮 vitagent HTTP 7878（agent/webui 零改动，只起进程）。占用前核对（18:31:48）：7878/7879/9229 监听=0、Godot/CEF Helper/vitagent/VitApp 进程=0。占用登记=本提交。
+- 状态：空闲
+
+## 最近一次释放
+
+- 2026-10-15 18:31–19:22 +0800 / FE-CEF-UPGRADE-1（池序 116；GLM-5.3 Mac 执行侧接管会话，ZCode；worktree Vit-DAW-fecef1-coord + 前端仓 port/fe-cef-upgrade-1@140c27cb）：gdcef v1.15.4→v1.16.2 升级七项回归一轮（autodrive OFF/ON、paste_diag、resize、webui chain、watchdog sigkill）——Godot 前端（9229）+ 探针页 7879 + vitagent 7878（webui 链路轮）。19:22 拆栈复核：7878/9229 监听=0、Godot/CEF Helper/vitagent 进程=0；**7879 探针页服务按 KEYINPUT SERVICE.md 惯例保留常驻**（用户轮/复验可用）。占用登记 8dcf1a77；工件 `coord/runs/FE-CEF-UPGRADE-1/`（主仓 port/fe-cef-upgrade-1@9be696bb）；结论=硬门① FAIL+⑤ FAIL（升级未通过，详见卡面回执/VALIDATION.md）。
 
 ## 最近一次释放
 
