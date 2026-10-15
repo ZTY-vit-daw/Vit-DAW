@@ -1,0 +1,42 @@
+﻿[
+    {
+        "t_ms":  6.1,
+        "kind":  "chat_post_sent",
+        "detail":  "wall=2026-10-15T18:21:31.136+08:00"
+    },
+    {
+        "t_ms":  57.3,
+        "kind":  "state_change",
+        "detail":  "goal=completed;task=settled"
+    },
+    {
+        "t_ms":  479.8,
+        "kind":  "event_first_seen",
+        "detail":  "type=turn.started created_at=2026-10-15T18:21:31.5852569+08:00"
+    },
+    {
+        "t_ms":  480.6,
+        "kind":  "event_first_seen",
+        "detail":  "type=trajectory.turn.started created_at=2026-10-15T18:21:31.5852569+08:00"
+    },
+    {
+        "t_ms":  492.4,
+        "kind":  "state_change",
+        "detail":  "goal=running;task=active"
+    },
+    {
+        "t_ms":  3707.8,
+        "kind":  "event_first_seen",
+        "detail":  "type=turn.completed created_at=2026-10-15T18:21:34.8170659+08:00"
+    },
+    {
+        "t_ms":  3707.9,
+        "kind":  "event_first_seen",
+        "detail":  "type=trajectory.turn.completed created_at=2026-10-15T18:21:34.8170659+08:00"
+    },
+    {
+        "t_ms":  3717,
+        "kind":  "state_change",
+        "detail":  "goal=completed;task=settled"
+    }
+]

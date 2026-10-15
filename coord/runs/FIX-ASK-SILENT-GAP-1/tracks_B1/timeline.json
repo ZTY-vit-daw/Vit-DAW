@@ -1,0 +1,62 @@
+﻿[
+    {
+        "t_ms":  5.4,
+        "kind":  "chat_post_sent",
+        "detail":  "wall=2026-10-15T18:24:03.830+08:00"
+    },
+    {
+        "t_ms":  4796.7,
+        "kind":  "event_first_seen",
+        "detail":  "type=turn.started created_at=2026-10-15T18:24:08.4764269+08:00"
+    },
+    {
+        "t_ms":  4797.4,
+        "kind":  "event_first_seen",
+        "detail":  "type=trajectory.turn.started created_at=2026-10-15T18:24:08.4764269+08:00"
+    },
+    {
+        "t_ms":  4809.5,
+        "kind":  "state_change",
+        "detail":  "goal=running;task=active"
+    },
+    {
+        "t_ms":  11635.3,
+        "kind":  "slice_first_seen",
+        "detail":  "slice_id=slice_8867acc689c10d80 started_at=2026-10-15T18:24:15.3828167+08:00 seq=1"
+    },
+    {
+        "t_ms":  11637.7,
+        "kind":  "state_change",
+        "detail":  "goal=running;task=active;slice=running;turn=running"
+    },
+    {
+        "t_ms":  25666,
+        "kind":  "stop_posted",
+        "detail":  "ok=True"
+    },
+    {
+        "t_ms":  25871.3,
+        "kind":  "event_first_seen",
+        "detail":  "type=item.started created_at=2026-10-15T18:24:19.1745883+08:00"
+    },
+    {
+        "t_ms":  25871.5,
+        "kind":  "event_first_seen",
+        "detail":  "type=item.completed created_at=2026-10-15T18:24:19.191726+08:00"
+    },
+    {
+        "t_ms":  25871.5,
+        "kind":  "event_first_seen",
+        "detail":  "type=turn.completed created_at=2026-10-15T18:24:19.2841575+08:00"
+    },
+    {
+        "t_ms":  25871.6,
+        "kind":  "event_first_seen",
+        "detail":  "type=trajectory.turn.stopped created_at=2026-10-15T18:24:20.1322222+08:00"
+    },
+    {
+        "t_ms":  25884.3,
+        "kind":  "state_change",
+        "detail":  "goal=stopped;task=settled;slice=waiting_continuation;turn=waiting_continue"
+    }
+]
