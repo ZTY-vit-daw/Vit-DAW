@@ -2551,11 +2551,20 @@ if ($ScenarioMode) {
                         $task = Get-OptionalProperty -Object $goal -Name "task"
                         $run = Get-OptionalProperty -Object $task -Name "run"
                         $slices = Get-OptionalProperty -Object $run -Name "slices"
-                        if ($null -ne $slices -and @($slices).Count -gt 0) {
-                            $firstSliceRow = @($slices)[0]
+                        # Get-OptionalProperty yields "" for a missing property;
+                        # @("") would count 1 and fake a slice (run 20261015_
+                        # 195610). Gate on a real slice_id instead.
+                        $sliceIdText = ""
+                        if (-not [string]::IsNullOrWhiteSpace([string]$slices)) {
+                            $sliceRows = @($slices)
+                            if ($sliceRows.Count -gt 0) {
+                                $sliceIdText = [string](Get-OptionalProperty -Object $sliceRows[0] -Name "slice_id")
+                            }
+                        }
+                        if (-not [string]::IsNullOrWhiteSpace($sliceIdText)) {
                             if ($sliceMs -lt 0) {
                                 $sliceMs = [math]::Round($sw.Elapsed.TotalMilliseconds, 1)
-                                & $addRow "slice_first_seen" ("slice_id=" + [string](Get-OptionalProperty -Object $firstSliceRow -Name "slice_id"))
+                                & $addRow "slice_first_seen" ("slice_id=" + $sliceIdText)
                             }
                             if (-not $stopPosted) {
                                 $stopPosted = $true

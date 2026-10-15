@@ -2462,6 +2462,15 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 		conversationID = "chat_" + randomID()
 	}
 	logConversationID = conversationID
+	// FIX-ASK-SILENT-GAP-1 ④⑤：ask 受理即发首个用户可见忙碌事件。放在一切
+	// 前导段（UI 上下文快照/工作区激活，有轨工程实测 2-4s）之前——退化服务下
+	// 语义入口分类可能占住十几秒，用户在此之前不能面对静默空窗。note 会话不
+	// 走主任务管线（其回执不经 writeChat 兜底收口），故排除。事件由分类结局
+	//（goalrunner_chat）或 writeChat 兜底收口；早退路径（如 authority 409）的
+	// webui 应答面会清空活动线，不留残留。
+	if req.Note == nil {
+		s.emitSemanticEntryActivityStarted(conversationID)
+	}
 	defer s.beginContinuationSensitiveInvocation()()
 	req.Context = contextWithConversationID(req.Context, conversationID)
 	req.Context = contextWithCachedUIContext(req.Context, s.uiContextSnapshot())
@@ -2487,11 +2496,6 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 		s.handleNoteChatTurn(w, r, req, agentMode)
 		return
 	}
-	// FIX-ASK-SILENT-GAP-1 ④⑤：ask 受理即发首个用户可见忙碌事件。放在 note
-	// 分叉之后、goal 绑定/工作区激活前导段（有轨工程实测 4.4s）之前——退化
-	// 服务下语义入口分类可能占住十几秒，用户在此之前不能面对静默空窗。事件由
-	// 分类结局（goalrunner_chat）或下方 writeChat 兜底收口，不留残留。
-	s.emitSemanticEntryActivityStarted(conversationID)
 	// Bind a plain-language proposal confirmation to the persisted interaction
 	// before beginChatGoal can perform semantic entry. The confirmation is a
 	// continuation of the existing Task, never a new natural-language task.
