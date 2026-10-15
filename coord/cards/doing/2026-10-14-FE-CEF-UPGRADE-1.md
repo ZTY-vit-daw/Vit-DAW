@@ -35,6 +35,7 @@
 - v1.16.2 与我方 Godot 4.6/加速 OSR 栈不兼容（②渲染失败且不可绕）→ 回滚 bin/ 归档，记录不兼容证据上交；
 - 资产下载不可得 → 记录后暂停（不擅自换版本号）。
 
-- 领取：2026-10-15 / origin/main ae86b218c5193772dd74f974053d304a44e8771d / Mac 执行侧（GLM 会话） / 主仓 coord-only 直推 main + 前端仓续 port/fe-cef-focusfix-1 基础（本卡新建 port/fe-cef-upgrade-1） / worktree Vit-DAW-fecef1-coord（主仓）+ 前端仓本体 / 领取提交见下
+- 领取：2026-10-15 / origin/main ae86b218c5193772dd74f974053d304a44e8771d / Mac 执行侧（GLM 会话） / 主仓 coord-only 直推 main + 前端仓续 port/fe-cef-focusfix-1 基础（本卡新建 port/fe-cef-upgrade-1） / worktree Vit-DAW-fecef1-coord（主仓）+ 前端仓本体 / 领取提交 2a5c2101
+- **[等待用户:下载资产]**（2026-10-15 用户裁定：大文件下载须通知用户、由用户执行）：`godot_cef-v1.16.2.zip`（1,063,681,432 字节，https://github.com/dsh0416/godot-cef/releases/download/v1.16.2/godot_cef-v1.16.2.zip）由用户下载至 /Users/timozty/Documents/vit-daw-cef-backups/；执行侧已停止全部自行下载进程。等待期间继续不依赖资产的准备（回归场景/agent 构建/Windows 留档）。
 - 回执：（commit / run ID / 七项回归记录 / 升级前后 sha256 / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
