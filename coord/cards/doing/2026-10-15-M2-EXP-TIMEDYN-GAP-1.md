@@ -30,3 +30,12 @@
 ## 停止条件
 
 归因发现审计门语义与 CCB「partial 原样保留」红线冲突 → 上交决策侧裁定放行口径，不得自行弱化。
+
+## 领取（取证腿）
+
+- 领取时间：2026-10-15 22:0x +0800（晚窗）
+- origin/main hash：ec8efed9a9cad6cb42f9d1dbe253bcb746e9169c（≥ef54e06c 要求满足）
+- owner：GLM-5.3 L2 / PC 执行会话（ZCode，本会话）
+- 分支：port/m2-exp-timedyn-gap-1-recon（worktree D:/Vit_DAW_wt_m2tg1）
+- 领取提交：（领取 push 后回填 hash）
+- 领取时 git status：干净 worktree（新建，基于 origin/main）；主检出另有未跟踪 coord/runs/* 工件与 M VitApp/Workspace/default_project.xml，与本卡无涉
