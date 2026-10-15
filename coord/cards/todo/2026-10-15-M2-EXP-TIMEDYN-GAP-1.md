@@ -1,7 +1,7 @@
 # M2-EXP-TIMEDYN-GAP-1：真实工程时域证据缺口——track.time_dynamics 源证据缺失+project.structure partial 拦死语义编排器入口
 
 - 发卡：GLM 主管决策侧 / 2026-10-15 晚窗（依据=M2 体验场次第三轮现场取证，[events/runtime_status round3](../../runs/M2-EXPERIENCE-1/)）
-- 派发确认：未确认（待用户）；验收负责人：GLM 主管决策流
+- 派发确认：**已确认（用户 2026-10-15 晚窗「可以开始取证」=取证腿；修复腿待取证后另确认）**；验收负责人：GLM 主管决策流
 - 池序 120；目标仓库=D:\Vit_DAW；P1（M2 旅程当前唯一硬阻断）/ 取证先行
 - 模型分级：L2 / GLM 执行会话（跨内核/agent 双面）
 
