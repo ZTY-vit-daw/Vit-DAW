@@ -55,6 +55,14 @@ param(
     # Pre-fix live failure (2026-10-01 18:35): the next message failed with
     # audio_closure_controller_failure "conversation is already owned by ...".
     [switch]$StopSemanticsProbe,
+    # FIX-TURNSTOP-WEDGE-1 (2026-10-15 M2-EXPERIENCE-1 取证): fire the user
+    # stop immediately after the first ask — before any boundary — and assert
+    # the M2 wedge is gone: goal/task/slice converge out of active/running
+    # (settle-window fallback covers a stalled runner), the second stop stays
+    # idempotent, and the conversation can start a new turn afterwards.
+    # Pre-fix live failure (2026-10-15 10:05): task=active/slice=running frozen
+    # 10 minutes; second stop returned ok while converging nothing.
+    [switch]$ImmediateStopProbe,
     # AGENT-1/AGENT-2 (2026-09-05): per-domain processor-selection route
     # switch, e.g. "broadband_compression=processor_selection". The launcher
     # owns the injection into the child agent process env
@@ -95,6 +103,9 @@ if ($ContinuationAdoptionProbe -and ($MultiRoundProbe -or $AdmissionOnly -or $Se
 }
 if ($StopSemanticsProbe -and ($MultiRoundProbe -or $AdmissionOnly -or $SettlementProbe -ne "" -or $ExpectHonestRefusal -or $ContinuationAdoptionProbe)) {
     throw "-StopSemanticsProbe owns the run tail and cannot be combined with -MultiRoundProbe, -AdmissionOnly, -SettlementProbe, -ExpectHonestRefusal, or -ContinuationAdoptionProbe"
+}
+if ($ImmediateStopProbe -and ($MultiRoundProbe -or $AdmissionOnly -or $SettlementProbe -ne "" -or $ExpectHonestRefusal -or $ContinuationAdoptionProbe -or $StopSemanticsProbe)) {
+    throw "-ImmediateStopProbe owns the whole run (it stops the first ask before any boundary) and cannot be combined with -MultiRoundProbe, -AdmissionOnly, -SettlementProbe, -ExpectHonestRefusal, -ContinuationAdoptionProbe, or -StopSemanticsProbe"
 }
 $multiroundTierEnv = [string]$env:VIT_FREE_STATE_D2_MULTI_ROUND_BUDGET
 # AGENT-1/AGENT-2 domain-route env discipline: the launcher owns
@@ -258,6 +269,12 @@ try {
         # the agent log path the way the processor-selection check does.
         $smokeArgs += @("--stop-semantics-probe", "--agent-log", $agentLogPath)
     }
+    if ($ImmediateStopProbe) {
+        # FIX-TURNSTOP-WEDGE-1: the probe asserts the stop request-arrival
+        # anchor line (and records the settle-window fallback anchor), so it
+        # needs the agent log path the same way.
+        $smokeArgs += @("--immediate-stop-probe", "--agent-log", $agentLogPath)
+    }
     if ($PromptFlavor -ne "neutral") {
         $smokeArgs += @("--prompt-flavor", $PromptFlavor)
     }
@@ -333,6 +350,10 @@ if ($SettlementProbe -ne "") {
 }
 if ($ExpectHonestRefusal) {
     Write-Host ("D1-S1 HONEST_REFUSAL PASS: fail-closed refusal verified honest (four requirements, no stale misattribution); report=" + $report) -ForegroundColor Green
+    exit 0
+}
+if ($ImmediateStopProbe) {
+    Write-Host ("D1-S1 IMMEDIATE_STOP PASS: real-stack ask-then-immediate-stop converged goal/task/slice, second stop idempotent, conversation can start a new turn; report=" + $report) -ForegroundColor Green
     exit 0
 }
 if ($ExpectProcessorSelection -ne "") {

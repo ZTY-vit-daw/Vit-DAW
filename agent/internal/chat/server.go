@@ -74,6 +74,12 @@ type Server struct {
 	artifactRoot                    string
 	webUIRoot                       string
 	startedAt                       time.Time
+	// turnStopSettleWindowOverride bounds how long handleTurnStop waits for
+	// the runner's own checkpoint to land an actively-executing goal's
+	// requested stop before the inline finalize fallback runs
+	// (FIX-TURNSTOP-WEDGE-1). Zero selects turnStopSettleWindowDefault; tests
+	// inject a short window.
+	turnStopSettleWindowOverride time.Duration
 
 	mu                                 sync.Mutex
 	conversations                      map[string][]llm.Message

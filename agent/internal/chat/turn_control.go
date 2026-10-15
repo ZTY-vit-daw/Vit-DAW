@@ -425,6 +425,45 @@ func (s *Server) checkoutGuard(req harness.InvokeRequest) (map[string]any, bool)
 	return map[string]any{"status": "error", "error_code": "checkout_blocked_while_agent_running", "error": "stop_turn_before_checkout", "goal_id": goal.GoalID, "goal_status": goal.Status}, true
 }
 
+const (
+	// turnStopSettleWindowDefault bounds the wait for the runner's own
+	// checkpoint to land a requested stop on an actively-executing goal
+	// (FIX-TURNSTOP-WEDGE-1). M2-EXPERIENCE-1 measured the live runner
+	// landing the stop within ~50ms of the request; the window only needs to
+	// cover that plus margin, not an in-flight LLM call.
+	turnStopSettleWindowDefault = 2 * time.Second
+	turnStopSettlePollInterval  = 50 * time.Millisecond
+)
+
+// turnStopSettleWindow resolves the effective settle window for one server.
+func (s *Server) turnStopSettleWindow() time.Duration {
+	if s != nil && s.turnStopSettleWindowOverride > 0 {
+		return s.turnStopSettleWindowOverride
+	}
+	return turnStopSettleWindowDefault
+}
+
+// waitGoalStopSettled polls the runtime until the requested stop lands
+// (goal.Status == stopped — the runner's checkpoint path or any other
+// terminal writer) or the settle window expires. It reports whether the goal
+// reached stopped without this handler forcing it.
+func (s *Server) waitGoalStopSettled(ctx context.Context, goalID string) bool {
+	deadline := time.Now().Add(s.turnStopSettleWindow())
+	for {
+		if s.harness.RuntimeStatus(goalID).Status == agentruntime.StatusStopped {
+			return true
+		}
+		if !time.Now().Before(deadline) {
+			return false
+		}
+		select {
+		case <-ctx.Done():
+			return s.harness.RuntimeStatus(goalID).Status == agentruntime.StatusStopped
+		case <-time.After(turnStopSettlePollInterval):
+		}
+	}
+}
+
 func (s *Server) handleTurnStop(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		writeJSON(w, http.StatusMethodNotAllowed, map[string]any{"status": "error", "error": "POST required"})
@@ -468,6 +507,25 @@ func (s *Server) handleTurnStop(w http.ResponseWriter, r *http.Request) {
 	s.requestFreeStateTurnStop(req.ConversationID, reason)
 	checkpoint := ""
 	if !wasActivelyExecuting {
+		goal, checkpoint = s.finalizeStoppedTurn(r.Context(), req.ConversationID, goal.GoalID, goal.RunID, reason)
+	} else if s.waitGoalStopSettled(r.Context(), goal.GoalID) {
+		// The runner's own checkpoint landed the stop (or another terminal
+		// writer did); read back the converged state instead of finalizing
+		// inline, so the runner keeps its stable checkpoint and settle chain.
+		goal = s.harness.RuntimeStatus(goal.GoalID)
+	} else {
+		// FIX-TURNSTOP-WEDGE-1 fallback: the stop was requested while the goal
+		// was actively executing, but no runner checkpoint landed it within
+		// the settle window — a stalled runner (no in-flight polling point:
+		// wedged before slice start, dead worker) would otherwise leave
+		// goal=cancelling / task=active / slice=running forever and the
+		// user-visible stop button dead (M2-EXPERIENCE-1: 10min frozen, second
+		// stop returned ok without converging anything). finalizeStoppedTurn
+		// is idempotent, so a late runner checkpoint after this races benignly.
+		if s.logger != nil {
+			s.logger.Warn("[turn.stop] runner did not land stop within settle window, finalizing inline conversation=%s goal=%s run=%s window=%s",
+				req.ConversationID, goal.GoalID, goal.RunID, s.turnStopSettleWindow())
+		}
 		goal, checkpoint = s.finalizeStoppedTurn(r.Context(), req.ConversationID, goal.GoalID, goal.RunID, reason)
 	}
 	writeJSON(w, http.StatusOK, map[string]any{"status": "ok", "goal": goal, "goal_status": goal.Status, "conversation_id": req.ConversationID, "turn_id": req.TurnID, "checkpoint_ref": checkpoint})
