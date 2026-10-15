@@ -61,3 +61,17 @@
 - 池序 116 FIX-TURNSTOP-WEDGE-1（P1）：user_stop 半落地不收敛 + 二次停止救不回
 - 池序 117 FIX-ASK-SILENT-GAP-1（P1）：ask→slice 122s 静默空窗，LLM 前卡点未定位（二轮样本在卷）
 - 池序 118 FE-START-EMPTY-DRAFT-1（P2）：启动页双空 draft + 误入空工程 +（附带）旧 42MB 状态启动加载——**双 draft 已二次复现 + 跨工程历史泄漏新线索**
+
+## 第三轮（2026-10-15 21:00–21:04，二进制=20:15 重建含 117/119 修复+webui 重建；用户现场未关）
+
+| 检查点 | 结果 |
+|---|---|
+| 发送后反馈 | ✅ item.started 即刻（21:01:19，117 修复现场生效） |
+| shadow 轨道计数 | ✅ 6/6（今早失同步**未复现**） |
+| 观察链 | ✅ catalog→view 请求×2 完成（mix.multitrack_relationship 带 MOM 投影、track.stereo_space 带 balance 5.945dB 实值） |
+| 轨迹链 | ✅ 假设框到 1017 guitar、round 启动、observation.recorded |
+| 编排器入口 | ❌ `semantic progressive disclosure observation audit is not successful: partial` → stop_reason=semantic_treatment_capability_boundary 诚实收口（task closed，无楔死，goal 干净 completed） |
+| 双 draft | ⚠️ 第三次复现（21:00:48/51）但 shadow 未失同步——两缺陷解耦 |
+| 终态 | task=settled、goal=completed、4 slice 全收口——**现场干净可关可续** |
+
+两个 partial 源：obs#1 limitations=["project.structure: evidence status is partial"]；obs#2 omission_reasons=["track.time_dynamics: source evidence is missing"]。派生卡=池序 120 M2-EXP-TIMEDYN-GAP-1。工件：events_round3_2100.json / runtime_status_round3_2100.json。
