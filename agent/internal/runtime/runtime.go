@@ -367,6 +367,15 @@ func (r *Runtime) MarkStopped(goalID, checkpoint string) Goal {
 	goal.StopRequested = true
 	goal.LastCheckpoint = firstNonEmpty(checkpoint, goal.LastCheckpoint)
 	goal.UpdatedAt = time.Now()
+	// FIX-TURNSTOP-WEDGE-1: Complete and SetStatus both converge the task/slice
+	// bookkeeping through syncTaskStatus; MarkStopped was the one terminal
+	// writer that skipped it, so a user-stopped turn left task=active and the
+	// current slice running forever (M2-EXPERIENCE-1: goal/turn stopped,
+	// slice=running 10min, second stop's finalizeStoppedTurn could not repair
+	// it either). A task without a semantic contract converges to cancelled
+	// here; one with a non-terminal semantic state keeps its semantic mapping
+	// and is closed by the existing owner_turn_closed path instead.
+	syncTaskStatus(goal.Task, goal.Status, goal.UpdatedAt)
 	r.goals[goalID] = goal
 	return cloneGoal(goal)
 }

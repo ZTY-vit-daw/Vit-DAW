@@ -2472,6 +2472,188 @@ def run_continuation_adoption_probe(base_url: str, conversation_id: str, project
 
 STOP_SEMANTICS_PROBE_MESSAGE = "换一个话题：帮我看看当前工程的整体状况，先观察再简要回答"
 
+IMMEDIATE_STOP_PROBE_MESSAGE = "有几轨听起来比较干，想给其中一条合适的轨加一点混响（衰减短些），不要用整体增益或 EQ 来解决。请先观察工程，再给一个有界的小步改进建议。"
+
+
+def runtime_goal_row(base_url: str, timeout: float) -> dict[str, Any]:
+    status = request_json("GET", base_url.rstrip("/") + "/agent/runtime/status", None, min(timeout, 30))
+    goal = status.get("goal") if isinstance(status.get("goal"), dict) else {}
+    return goal
+
+
+def immediate_stop_converged(goal: dict[str, Any]) -> bool:
+    """FIX-TURNSTOP-WEDGE-1 convergence predicate: the user-stopped goal is
+    stopped AND the durable task left active AND no invocation slice is left
+    running. The pre-fix wedge froze exactly this trio (M2-EXPERIENCE-1:
+    goal=stopped with task=active / slice=running for 10 minutes, second stop
+    200-ok without moving anything)."""
+    if first_text(goal.get("status")).lower() != "stopped":
+        return False
+    task = goal.get("task") if isinstance(goal.get("task"), dict) else None
+    if task is None or first_text(task.get("status")).lower() == "active":
+        return False
+    run = task.get("run") if isinstance(task.get("run"), dict) else {}
+    for slice_row in rows(run.get("slices")):
+        if first_text(slice_row.get("status")).lower() == "running":
+            return False
+    return True
+
+
+def run_immediate_stop_probe(base_url: str, conversation_id: str, message: str, project_path: str, timeout: float, run_started: float, agent_log_path: str) -> dict[str, Any]:
+    """FIX-TURNSTOP-WEDGE-1 immediate-stop probe, reproducing the M2-EXPERIENCE-1
+    live shape: the user presses stop right after the ask lands, while the goal
+    is actively executing and the runner may have no in-flight polling point
+    (the 122s ask→slice silent gap). The stop must (1) return the honest
+    stopped status, (2) converge goal/task/slice out of active/running within
+    a bounded wait (the settle-window fallback when the runner is stalled),
+    (3) stay idempotent on a second stop, and (4) leave the conversation able
+    to start a new turn. Probabilistic-run protocol (AGENTS §8): one attempt;
+    fail classes immediate_stop_not_stopped / wedge_not_converged /
+    second_stop_diverged / conversation_wedged / anchor_missing; the new-turn
+    evidence records a degraded form when the reply transport outlives the
+    probe budget (the ask→slice silent gap is card 117's scope, not asserted
+    here) — the fresh goal binding on the persisted conversation_goals map is
+    the hard requirement either way."""
+    import threading
+
+    ask_outcome: dict[str, Any] = {"reply_len": 0, "error": ""}
+    ask_done = threading.Event()
+
+    def send_ask() -> None:
+        try:
+            response = request_json("POST", base_url.rstrip("/") + "/agent/chat", {"conversation_id": conversation_id, "message": message, "context": {"agent_mode": "chat"}}, timeout)
+            ask_outcome["reply_len"] = len(first_text(response.get("reply")))
+            ask_outcome["goal_status"] = first_text(response.get("goal_status"))
+            ask_outcome["error"] = first_text(response.get("error"))
+        except Exception as exc:  # noqa: BLE001 - recorded as the ask leg's outcome.
+            ask_outcome["error"] = str(exc)
+        finally:
+            ask_done.set()
+
+    worker = threading.Thread(target=send_ask, daemon=True)
+    worker.start()
+
+    # Wait for the ask to bind an actively-executing goal (the M2 press
+    # window); an idle stack or a wedged ask fails honestly here.
+    deadline = time.monotonic() + 30
+    goal: dict[str, Any] = {}
+    while time.monotonic() < deadline:
+        candidate = runtime_goal_row(base_url, timeout)
+        if first_text(candidate.get("goal_id")):
+            goal = candidate
+            status = first_text(goal.get("status")).lower()
+            if status in {"running", "processing", "executing", "cancelling"}:
+                break
+            if status in {"stopped", "completed", "failed", "cancelled"}:
+                # The turn already finished before the stop could land in the
+                # active window; keep the row and let the stop land on the
+                # terminal goal (the second-stop shape).
+                break
+        time.sleep(0.5)
+    goal_id = first_text(goal.get("goal_id"))
+    run_id = first_text(goal.get("run_id"))
+    require(bool(goal_id), "IMMEDIATE-STOP: the ask never bound a goal on the runtime status surface")
+    prior_status = first_text(goal.get("status")).lower()
+    prior_task_status = first_text((goal.get("task") or {}).get("status")).lower()
+
+    stop_response = request_json("POST", base_url.rstrip("/") + "/agent/turn/stop", {"conversation_id": conversation_id, "goal_id": goal_id, "reason": "user_stop"}, min(timeout, 60))
+    require(first_text(stop_response.get("status")).lower() == "ok", "IMMEDIATE-STOP: the stop request itself failed: " + json.dumps(stop_response, ensure_ascii=False)[:300])
+    require(first_text(stop_response.get("goal_status")).lower() == "stopped",
+            "IMMEDIATE-STOP: the stop response must project the stopped status, got: " + first_text(stop_response.get("goal_status")))
+
+    deadline = time.monotonic() + 30
+    converged = immediate_stop_converged(runtime_goal_row(base_url, timeout))
+    while not converged and time.monotonic() < deadline:
+        time.sleep(1)
+        converged = immediate_stop_converged(runtime_goal_row(base_url, timeout))
+    after = runtime_goal_row(base_url, timeout)
+    require(converged, "IMMEDIATE-STOP: the stop did not converge goal/task/slice (the M2 wedge): goal="
+            + first_text(after.get("status")) + " task=" + first_text((after.get("task") or {}).get("status")))
+    after_task = after.get("task") if isinstance(after.get("task"), dict) else {}
+    after_run = after_task.get("run") if isinstance(after_task.get("run"), dict) else {}
+    running_slices = [first_text(item.get("slice_id")) for item in rows(after_run.get("slices")) if first_text(item.get("status")).lower() == "running"]
+
+    second_stop = request_json("POST", base_url.rstrip("/") + "/agent/turn/stop", {"conversation_id": conversation_id, "goal_id": goal_id, "reason": "user_stop"}, min(timeout, 60))
+    require(first_text(second_stop.get("status")).lower() == "ok", "IMMEDIATE-STOP: the second stop request failed")
+    require(first_text(second_stop.get("goal_status")).lower() == "stopped", "IMMEDIATE-STOP: the second stop diverged from stopped")
+    still = runtime_goal_row(base_url, timeout)
+    require(immediate_stop_converged(still), "IMMEDIATE-STOP: the second stop un-converged the trio (idempotence broken)")
+
+    # New turn on the same conversation: the hard requirement is the fresh
+    # goal binding; the full reply transport may legitimately still be inside
+    # the ask→slice silent gap (card 117 scope) when the budget expires.
+    new_goal_id = ""
+    new_ask_degraded = False
+    try:
+        response = request_json("POST", base_url.rstrip("/") + "/agent/chat", {"conversation_id": conversation_id, "message": STOP_SEMANTICS_PROBE_MESSAGE, "context": {"agent_mode": "chat"}}, min(timeout, 240))
+        require(not first_text(response.get("error")), "IMMEDIATE-STOP: the post-stop message failed (wedge): " + first_text(response.get("error")))
+        new_goal_id = first_text(response.get("goal_id"))
+        require(bool(first_text(response.get("reply"))), "IMMEDIATE-STOP: the post-stop message landed no reply")
+        ask_outcome["post_stop_reply_len"] = len(first_text(response.get("reply")))
+    except Exception as exc:  # noqa: BLE001 - degraded evidence path, judged below.
+        new_ask_degraded = True
+        ask_outcome["post_stop_error"] = str(exc)
+        state = newest_agent_runtime_state_for_goal(project_path, goal_id, run_started)
+        bound = (state.get("conversation_goals") or {}) if isinstance(state.get("conversation_goals"), dict) else {}
+        new_goal_id = first_text(bound.get(conversation_id))
+    require(bool(new_goal_id) and new_goal_id != goal_id,
+            f"IMMEDIATE-STOP: the post-stop message did not run on a fresh goal (stopped={goal_id}, got={new_goal_id})")
+
+    fallback_anchor_seen = False
+    if agent_log_path and Path(agent_log_path).exists():
+        log_text = Path(agent_log_path).read_text(encoding="utf-8", errors="replace")
+        require("[turn.stop] request received" in log_text and conversation_id in log_text,
+                "IMMEDIATE-STOP: the stop request arrival anchor line is missing from the agent log")
+        fallback_anchor_seen = "[turn.stop] runner did not land stop within settle window" in log_text
+
+    return {
+        "stopped_goal_id": goal_id,
+        "stopped_run_id": run_id,
+        "prior_status": prior_status,
+        "prior_task_status": prior_task_status,
+        "task_status_after": first_text(after_task.get("status")),
+        "running_slices_after": running_slices,
+        "checkpoint_ref": first_text(stop_response.get("checkpoint_ref")),
+        "second_stop_goal_status": first_text(second_stop.get("goal_status")),
+        "post_stop_goal_id": new_goal_id,
+        "post_stop_degraded": new_ask_degraded,
+        "ask_leg": ask_outcome,
+        "fallback_anchor_seen": fallback_anchor_seen,
+    }
+
+
+def newest_agent_runtime_state_for_goal(project_path: str, goal_id: str, started_at: float) -> dict[str, Any]:
+    """Goal-keyed variant of the persisted runtime-state lookup: unlike the
+    conversation/loop-keyed helper, this matches the newest state file whose
+    goal_runtime contains the goal — an immediately-stopped ask may never
+    persist a free-state loop for the conversation."""
+    project = Path(project_path)
+    roots = {project.parent, project}
+    if project.parent.parent != project.parent:
+        roots.add(project.parent.parent)
+    candidates: list[Path] = []
+    for root in roots:
+        history_root = root / ".vit_history"
+        if history_root.is_dir():
+            candidates.extend(history_root.rglob("agent_runtime_state.json"))
+    found: dict[str, Any] = {}
+    newest_mtime = 0.0
+    for path in sorted(set(candidates), key=lambda item: item.stat().st_mtime, reverse=True):
+        try:
+            if path.stat().st_mtime < started_at - 60:
+                continue
+            state = json.loads(path.read_text(encoding="utf-8", errors="replace"))
+        except (OSError, ValueError):
+            continue
+        goal_runtime = state.get("goal_runtime") if isinstance(state.get("goal_runtime"), dict) else {}
+        goals = goal_runtime.get("goals") if isinstance(goal_runtime.get("goals"), list) else []
+        if not any(isinstance(item, dict) and first_text(item.get("goal_id")) == goal_id for item in goals):
+            continue
+        mtime = path.stat().st_mtime
+        if not found or mtime > newest_mtime:
+            found, newest_mtime = state, mtime
+    return found
+
 
 def conversation_closure_row(state: dict[str, Any], conversation_id: str) -> dict[str, Any]:
     closures = state.get("minimal_audio_closures") if isinstance(state.get("minimal_audio_closures"), dict) else {}
@@ -3159,6 +3341,7 @@ def main() -> int:
     parser.add_argument("--verify-settled", default="", help="verify a previously settled probe report after an agent restart (path to d1_smoke_report.json)")
     parser.add_argument("--continuation-adoption-probe", action="store_true", help="FS-PARK-TURNFAIL-1 + FS-ADOPT-CLOSURE-1: with the round parked at the human-judgment boundary, send a NEW user message and assert the default-adoption settlement (adopted_by_continuation, no judgment evidence, fresh goal/run/turn identity, reply landed, applied state kept); then assert the post-adoption goal really observes (never the StopTaskSettled canned zero-execution reply), the adopted closure settles as adopted_by_continuation, and a second post-adoption goal stays unwedged")
     parser.add_argument("--stop-semantics-probe", action="store_true", help="FS-STOP-APPLY-1: with the round parked at the human-judgment boundary, POST a user stop and assert the honest stopped status, the closure settle + controller-owner release, zero further interventions, the request-arrival log anchor, and an unwedged conversation (next message runs on a fresh goal)")
+    parser.add_argument("--immediate-stop-probe", action="store_true", help="FIX-TURNSTOP-WEDGE-1: fire a user stop immediately after the first ask (before any boundary), reproducing the M2-EXPERIENCE-1 wedge — the stop must converge goal/task/slice to terminal states, a second stop stays idempotent, and the conversation can start a new turn afterwards")
     parser.add_argument("--reuse-existing-project", action="store_true", help="B10 instance-reuse round: when the project workdir already exists (a previous experiment round on this live stack), reuse the project in place instead of materializing a fresh copy, so the second experiment plans against the plugin instances the first round left on the tracks")
     args = parser.parse_args()
     if args.multi_round_probe and args.settlement_probe:
@@ -3169,6 +3352,8 @@ def main() -> int:
         parser.error("--continuation-adoption-probe owns the run tail and cannot be combined with --settlement-probe, --admission-only, --multi-round-probe, or --expect-honest-refusal")
     if args.stop_semantics_probe and (args.settlement_probe or args.admission_only or args.multi_round_probe or args.expect_honest_refusal or args.continuation_adoption_probe):
         parser.error("--stop-semantics-probe owns the run tail and cannot be combined with --settlement-probe, --admission-only, --multi-round-probe, --expect-honest-refusal, or --continuation-adoption-probe")
+    if args.immediate_stop_probe and (args.settlement_probe or args.admission_only or args.multi_round_probe or args.expect_honest_refusal or args.continuation_adoption_probe or args.stop_semantics_probe):
+        parser.error("--immediate-stop-probe owns the whole run (it stops the first ask before any boundary) and cannot be combined with --settlement-probe, --admission-only, --multi-round-probe, --expect-honest-refusal, --continuation-adoption-probe, or --stop-semantics-probe")
     if args.expect_honest_refusal and (args.multi_round_probe or args.settlement_probe or args.admission_only):
         parser.error("--expect-honest-refusal owns the run tail and cannot be combined with --multi-round-probe, --settlement-probe, or --admission-only")
     output = Path(args.output).resolve()
@@ -3216,6 +3401,19 @@ def main() -> int:
         report["conversation_id"] = conversation_id
         write_report(output, report)
         run_started = float(report["started_at_epoch"])
+        if args.immediate_stop_probe:
+            # FIX-TURNSTOP-WEDGE-1: this probe owns the whole run — the first
+            # ask is stopped before any boundary, so the D1 drive loop below
+            # never starts.
+            report["immediate_stop_probe"] = run_immediate_stop_probe(
+                args.agent_http, conversation_id, PROMPT_FLAVORS[args.prompt_flavor],
+                report["project_setup"]["project_path"], args.timeout_sec, run_started, args.agent_log,
+            )
+            report["status"] = "immediate_stop_probe_pass"
+            report["finished_at"] = dt.datetime.now(dt.timezone.utc).isoformat()
+            write_report(output, report)
+            print(f"D1-S1 IMMEDIATE_STOP PASS: report={output}")
+            return 0
         response = request_json("POST", args.agent_http.rstrip("/") + "/agent/chat", {"conversation_id": conversation_id, "message": PROMPT_FLAVORS[args.prompt_flavor], "context": {"agent_mode": "chat"}}, args.timeout_sec)
         responses.append(response)
         report["responses"] = responses
