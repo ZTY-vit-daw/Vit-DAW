@@ -5,7 +5,7 @@
 
 ## 当前占用
 
-- 状态：**空闲**
+- 2026-10-15 23:25 +0800 登记 / M2-EXP-TIMEDYN-GAP-1(120) 修复腿真栈验证（GLM-5.3 L2 PC 执行会话，ZCode；worktree D:/Vit_DAW_wt_m2tg2，分支 port/m2-exp-timedyn-gap-1@0686b9b4 含修复①a）：`scripts/m2_timedyn_fixverify.ps1`（随本分支）——复刻取证 A 轮场景（project.new+import_folder_as_stems 用户同源 6 stems→确定性 CCB 观察（零 LLM）+M2 同款话术（LLM 腿））三断言：①time_dynamics 无 omission+receipt=executed ②stereo 身份=目标轨自身 ③事件面无编排器入口 partial 审计拒收签名。§8 声明（运行前）：LLM=1 chat+≤2 nudge（预计 ≤8 调用）；失败分类 llm_timeout/assertion_fail/capability_blocked/environment_interrupt；止损=同签名 assertion_fail ×2。被测=worktree 构建 agent（0686b9b4 含修复）+主检出 staging VitApp.exe（C++ 面零改动，取证腿同款 B6565DCF85D1DA86 以 run 报告 sha256 为准）；模型=deepseek-flash config 不动。登记前只读核对四端口监听=0、四类进程=0（STACK FREE 实测）。
 
 ## 最近一次释放
 
