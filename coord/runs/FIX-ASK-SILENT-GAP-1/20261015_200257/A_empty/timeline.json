@@ -1,0 +1,42 @@
+﻿[
+    {
+        "t_ms":  103.1,
+        "kind":  "event_first_seen",
+        "detail":  "type=item.started item=semantic_entry"
+    },
+    {
+        "t_ms":  118.8,
+        "kind":  "first_event",
+        "detail":  "type=item.started item=semantic_entry"
+    },
+    {
+        "t_ms":  228.5,
+        "kind":  "event_first_seen",
+        "detail":  "type=turn.started item="
+    },
+    {
+        "t_ms":  228.8,
+        "kind":  "event_first_seen",
+        "detail":  "type=trajectory.turn.started item=turn:run_3b1308fb125cc7a1"
+    },
+    {
+        "t_ms":  6464,
+        "kind":  "event_first_seen",
+        "detail":  "type=item.completed item=semantic_entry"
+    },
+    {
+        "t_ms":  6465.1,
+        "kind":  "event_first_seen",
+        "detail":  "type=turn.completed item="
+    },
+    {
+        "t_ms":  6466.1,
+        "kind":  "terminal",
+        "detail":  "type=turn.completed stop_reason=capacity_fact_short_circuit"
+    },
+    {
+        "t_ms":  6466.9,
+        "kind":  "event_first_seen",
+        "detail":  "type=trajectory.turn.completed item=turn:run_3b1308fb125cc7a1"
+    }
+]
