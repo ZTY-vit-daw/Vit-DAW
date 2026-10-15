@@ -6,6 +6,10 @@
 ## 当前占用
 
 - 状态：**占用中**
+- 2026-10-15 19:51:37 +0800 登记 / FIX-ASK-SILENT-GAP-1(117) 修复腿真栈烟测（GLM-5.3 L2 PC 执行会话，ZCode；worktree D:/Vit_DAW_wt_asg1，分支 port/fix-ask-silent-gap-1@dc534e83）：dev_agent_smoke.ps1 -Scenario ask_feedback -StartKernel（场景 berth 自启 kernel+agent，四端口 5555/5556/7878/8787）；登记前 19:51 只读核对四端口监听=0、VitApp/VitAgent/vsphub/Godot 进程=0。**前条 116 占用登记勘误归档（本会话处置）**：116 腿为 Mac 执行侧接管会话，其占用/释放均落 MAC-RUNTIME-STACK.md（释放 c98fb86a：19:22 拆栈复核 7878/9229 清、Godot/CEF/vitagent 零残留、7879 探针常驻属 Mac 端 SERVICE.md 惯例）——其在 PC 登记面的 18:31 条目为跨端误挂；PC 物理面核对（19:51 四端口零监听零进程）与 Mac 登记面释放记录双重印证后归档，原文未改写移至下方历史区。
+
+## 历史占用（116 腿 PC 面跨端误挂条目，已由 Mac 端释放记录终结，原文归档）
+
 - 2026-10-15 18:31:48 +0800 登记 / FE-CEF-UPGRADE-1(116) 七项回归腿（Mac 执行侧接管会话，GLM-5.3 ZCode；fecef1-coord worktree）：Godot 前端（9229）+探针服务 7879+webui 轮 vitagent 7878；占用前 18:31:48 三端口/四类进程零核对。**并发登记竞态备忘（2026-10-15 18:39 FIX-TURNSTOP-WEDGE-1 会话如实记录）**：本登记与 FIX-TURNSTOP-WEDGE-1 烟测腿占用登记（19f7fb08，18:31 推送）几乎同时落库，物理面未观测到冲突（116 登记的 7878/7879/9229 于 18:39 只读核对均未监听/未运行；FIX-TURNSTOP-WEDGE-1 烟测 18:33:15-18:37 用 7878 正常完成且 18:37 拆净）——116 腿登记时栈尚未启动，后续启栈前请按本记录重新核对 7878 实际监听状态。
 
 ## 历史占用（FIX-TURNSTOP-WEDGE-1 烟测腿，已释放）
