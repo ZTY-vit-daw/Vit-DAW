@@ -1,0 +1,63 @@
+# M2-EXPERIENCE-1：体验场次首跑取证（2026-10-15 早窗）
+
+- 场次：M2 时域线体验场次第一次尝试（用户经 Godot 拉起前端，09:52 入场，09:53:11 发话术）。
+- 话术（主推版，与 run12/13 同构）：「有几轨听起来比较干，想给其中一条合适的轨加一点混响（衰减短些），不要用整体增益或 EQ 来解决。请先观察工程，再给一个有界的小步改进建议。」
+- 结果：**链路未达 LLM**（journal_records=0 / observations_count=0，store 仅 391KB mixboard 快照）；卡死于 ask→slice 前置段 + user_stop 半落地不收敛。
+- 基线：main 1f85627e；VitAgent 重建于 10-15 09:49（含 115 修复，排除旧二进制因素）；VitApp pid 28456 / VitAgent pid 21120。
+
+## 时间线（亲证，来源=checkpoint/commit 时间戳 + /agent/state 轮询）
+
+| 时刻(+08) | 事件 | 证据 |
+|---|---|---|
+| 09:52:30 | VitApp 启动（pid 28456） | 进程表 |
+| 09:52:32 | 启动页建**第一个空 draft**（Unsaved.vit 75B） | drafts/draft_20261015T015232_041e9c3d |
+| 09:52:32/33 | VitAgent 启动（pid 21120，09:49 构建）+ 建**第二个空 draft**（本场次实际进入，75B/0 轨） | 进程表 + drafts/draft_20261015T015233_4a3e9fef |
+| 09:52:36 | agent 启动期写 2026-09 旧 draft 的 agent_runtime_state.json（**42MB**） | 旧 session 目录时间戳 |
+| 09:52:59 | 内核 L3 特征日志（.vit_derived，257KB） | 文件时间戳 |
+| 09:53:11 | 话术落账：Conversation ask checkpoint + baseline commit | c_20261015T015311_fca1c116 |
+| 09:54:14 | mixboard 特征快照落盘（391KB，ask 后 **+63s** 的上下文组装活动） | mixboard_feature_snapshot.json |
+| 09:55:13.794 | slice 1 与 turn 1 才启动（**距 ask 122s**）；turn **5ms** 后即 stopped | /agent/state turns/slices |
+| 09:55:13.846 | 用户停止请求落账：checkpoint「Vit: 已停止当前 Turn」+ goal stop_requested=true/stop_reason=user_stop | c_20261015T015513_51e17b9d |
+| 09:55:13→10:05 | **task=active / slice=running 永不收敛**（goal.updated_at 冻结 09:55:13.794） | state 快照×3 |
+| 10:05:2x | 决策侧二次 POST /agent/turn/stop（goal 非 active → finalizeStoppedTurn 内联分支）→ 返回 ok 但 slice/task 仍 running，**设计内恢复路径无效** | 响应体 + after_second_stop 快照 |
+
+## 关键状态（10:03-10:05 快照）
+
+- plan/agent_plan=stopped；goal stop_requested=true、cancel_requested=false、stop_reason=user_stop
+- task.status=active；slice 1 status=running、ended_at=zero；turn 1 status=stopped（started/ended 同毫秒）
+- shadow：initialized=true、track_count=0、user_track_count=0（空工程实锤）；kernel connected=true（ping ok）
+- /agent/events 需 conversation_id（本取证未取到 GUI 会话 conversation id，事件面未覆盖——后续卡可补）
+
+## 工件
+
+- agent_state_1003_check1/2.json、agent_state_1005_after_second_stop.json、runtime_status_1003.json
+- 二次停止 POST 响应（见上表 10:05 行，checkpoint_ref=c_20261015T015311 回退到 ask checkpoint=未产出新收口 checkpoint）
+
+## 【2026-10-15 晚窗勘误】「空工程」结论撤回——内核有真实音轨，shadow 计数失真
+
+用户质询「我明确新建一个工程并加载了音轨」成立，原「空工程/误入」结论**撤回**：
+
+- 两轮 draft 的 `.vit_derived/.../l3_feature_log.jsonl` 各有 **18 条真实音频分析**（每条 analyzed_sample_count=1,764,000、16bit、真实 LUFS −24.46/−22.89、立体声平衡、频带动态）——**内核侧工程有真实音轨**，时间=入场即析（09:52:59 / 12:37）；
+- mixboard 快照（391KB/400KB）含 track_waveform_envelopes / loudness_summaries / stereo_relation_summaries 等真实逐轨特征；
+- 原「空工程」推断错误根因：只读了 shadow track_count=0/user_track_count=0（09:57/10:03 两次查询）与 75B Unsaved.vit（=从未保存的占位文件，不代表内核态），**未交叉核对派生特征数据**——决策侧取证漏审，如实登记；
+- **修正后的核心异常=kernel↔shadow 轨道不同步**：内核有轨+特征已析，agent shadow 报 0 轨（delta_seq_gaps=0、last_delta_seq=209——deltas 流过但轨道计数为零）；
+- 根因假设（取证腿验证）：**「新建工程+导入音轨」路径与「打开既有工程」路径的 shadow 同步差异**——烟测（run12/13 及 PORT-JOURNEY-1）全部走「打开既有工程」（shadow track_count=6、dad_fact ready=6）；新建+导入路径的轨道增量可能未进 shadow 订阅面或早于 SUB 附着。ask→slice 122s 空窗与 LLM 零调用和此假设自洽：前置组装等待轨道相关就绪（DAD facts），shadow 认为无轨→永等/超时；
+- 环境事实（2026-10-15 晚窗核）：用户前端=D:/Godot/project/vit-daw-frontend @**port/fe-gui-shrink-1 c56e38f（10-11 Phase A 开发分支）**，工作树含大量未跟踪测试工程目录；主仓 agent/webui/dist=**10-07 构建**（09:49 Go 重建未含 webui 重建）——用户所见聊天面板为一周前 webui。两项与本故障簇的因果关系未判定，归 117/118 取证。
+
+## 第二次尝试（2026-10-15 12:37，用户自发重试；场景已由用户关闭）
+
+| 时刻(+08) | 事件 | 证据 |
+|---|---|---|
+| 12:37:31/32 | **「一秒双空 draft」二次复现**（Unsaved.vit 各 75B，与首跑 09:52:32/33 同签名） | drafts/draft_20261015T043731_c86c7a3b + draft_20261015T043732_236b4272 |
+| 12:38:23 | 话术 ask 落账（goal_060587d6f1ae2c34 / run_cb7b27ec6aca7b88 / conversation webui_mv91t2mk） | commit c_20261015T043823_99b7c286「Conversation ask」 |
+| 12:39:08 | 运行时状态保存（ask 后 +45s）；mixboard 快照再次落盘 | agent_runtime_state.json + mixboard_feature_snapshot.json |
+| ~12:4x | 用户报告「问题还是没修」→ 关闭现场；**本次无停止 checkpoint**（仅 ask 一个 commit——未按停或停止未落账，磁盘不可分辨，如实登记） | commits 目录仅 1 件 |
+| 12:5x | 决策侧复核现场：VitAgent/VitApp/Godot 进程=0，7878/5555/5556 监听=0 | 进程/端口亲核 |
+
+二次尝试结论：**同版本二进制（09:49 构建）+ 未派发任何修复 → 复现符合预期**；「双空 draft+误入空工程」拿到第二个独立样本；新线索=第二个 draft 的 .vit_history 树内出现首轮工程 uuid（vitproj_69a775…）的 state/worktrees 登记——跨工程历史状态泄漏候选，已补入 118 卡。
+
+## 派生 findings 卡
+
+- 池序 116 FIX-TURNSTOP-WEDGE-1（P1）：user_stop 半落地不收敛 + 二次停止救不回
+- 池序 117 FIX-ASK-SILENT-GAP-1（P1）：ask→slice 122s 静默空窗，LLM 前卡点未定位（二轮样本在卷）
+- 池序 118 FE-START-EMPTY-DRAFT-1（P2）：启动页双空 draft + 误入空工程 +（附带）旧 42MB 状态启动加载——**双 draft 已二次复现 + 跨工程历史泄漏新线索**

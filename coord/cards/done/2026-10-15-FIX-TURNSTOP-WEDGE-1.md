@@ -2,7 +2,7 @@
 
 - 发卡：GLM 主管决策侧 / 2026-10-15 早窗（依据=M2-EXPERIENCE-1 首跑取证，[README](../../runs/M2-EXPERIENCE-1/README.md)）
 - 派发确认：**已确认（用户 2026-10-15 晚窗「进入晚窗，可以发卡」）**；验收负责人：GLM 主管决策流
-- 池序 116；目标仓库=D:\Vit_DAW；P1 / ≤1 天
+- 池序 119（**原 116 改号，2026-10-15 晚窗裁定**：Mac 线 FE-CEF-UPGRADE-1 先发占用 116 于共享 main（ae86b218），本卡后发入库（f04b28c2/686e0bc5），按「后发者改号」惯例（108/114 先例）让号；目标仓库=D:\Vit_DAW；P1 / ≤1 天
 - 模型分级：L2 / GLM 执行会话（并发状态机收敛语义）
 - **并行注记（2026-10-15 晚窗）**：与 117 并行派发——117 本轮为取证腿（零生产代码合入），与本卡文件域不相交；真栈腿（烟测复现）与 117 取证 run 按栈占用登记串行。
 
@@ -56,3 +56,7 @@ agent/internal/chat/turn_control.go + goalrunner/harness 停止落账路径 + �
 - **并发登记竞态备忘**：本卡占用登记（19f7fb08）与 FE-CEF-UPGRADE-1(116) 七项回归登记（8dcf1a77）几乎同时落库；物理面无冲突（详见 PC-RUNTIME-STACK.md 竞态备忘条），116 后续启栈前已提示重核 7878。
 - **worktree/分支清单**：worktree `D:/Vit_DAW_wt_tsw1`；分支 `port/fix-turnstop-wedge-1`（@74e6dd18，已推远端）+ 协调分支 `coord/tsw1-stack`（本收尾提交）；run 重件留盘 `artifacts/free_state_d1_s1/20261015_183315/`。
 - 报告链接：[coord/runs/FIX-TURNSTOP-WEDGE-1/README.md](../../runs/FIX-TURNSTOP-WEDGE-1/README.md)
+
+## 验收
+
+- **pass（合入 19e5592e）** / 2026-10-15 晚窗（GLM 主管决策流）：846feb63 三面生产 diff 亲读（MarkStopped 簿记对齐+限时观察窗+幂等兜底，注释诚实含兜底未真栈触发）；**决策侧独立亲跑 95 包 0 FAIL exit 0**（回执「36 包」为计数笔误，亲跑权威 95）；触碰面 gofmt 净（gofmt -l 列出的 3 个 cmd/ 文件为基线既有、不在卡域）；烟测 run1 工件亲核（§8 声明先于运行+SHA256 在卷+收敛三元组 settled/[]/新 checkpoint+二次幂等+新 goal 可再发+closure owner_turn_closed 诚实结算）；边界采信=active 兜底路径由单测景一钉死（真栈未触发，LLM 5s 快速完成走了内联分支）+webui 零渲染改动。池序 116→119 改号裁定随本验收（见卡头）。
