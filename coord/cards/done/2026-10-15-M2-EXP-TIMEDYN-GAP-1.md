@@ -76,3 +76,7 @@
 - 已知瑕疵如实登记：脚本 (3b) 模型侧 bundle 计数器有事件形状 bug（计 0，空转通过，不影响 verdict——(3a) 原文扫描有效）；模型侧 2/2 executed 系工件直接核验（a_nl_events.json seq10/seq12）。
 - 端测边界声明：**未启 Godot GUI（agent HTTP 面驱动）**，同取证腿 FORENSICS.md §0 复现边界（导入命令与 GUI 同走内核 ImportService 分析队列，观察链全在 agent 侧）；本轮无 webui 渲染面改动。
 - 工件：coord/runs/M2-EXP-TIMEDYN-GAP-1/m2tg2_20261015_222445/（轻件随 port 分支：run_report/d_ccb_summary/a_nl_events/a_nl_chat_1/遥测/manifests/dev console/run1_console；重件 agent_drafts 8.4MB 留盘 worktree 可回指）。待决策侧终验。
+
+## 终验（决策侧）
+
+- **修复腿 pass（合入 merge 见上）** / 2026-10-15 晚窗：0686b9b4 diff 亲读（目标绑定提升+错绑 stub+trackScopedStereoSummary 读侧守卫；门与内核零改动核验）；**独立亲跑 95 包 0 FAIL**；新四测独立复跑全 PASS（身份断言/COM 跟随/无行诚实 omission/读侧守卫）；真栈工件亲核（d_ccb_summary：receipt=executed+omission_reasons=None+stereo_fact_track_id=1017 自身；话术腿双 executed 无 partial 死签）。归因补强采信（路径差异=promote 用 LatestRequest 而非观察目标，非时序）。①b 内核生产者维持另卡口径（P2 待立）。
