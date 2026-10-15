@@ -1,0 +1,464 @@
+﻿{
+    "status":  "ok",
+    "agent_action_id":  "act_d166417a06659d13",
+    "tool":  "project.import_preflight",
+    "command_name":  "project.import_preflight",
+    "risk_level":  "direct",
+    "requires_confirmation":  false,
+    "result":  {
+                   "audio_settings_snapshot":  {
+                                                   "channel_import_policy":  "preserve_interleaved",
+                                                   "import_bit_depth_policy":  "keep_source",
+                                                   "import_sample_rate_policy":  "ask",
+                                                   "media_copy_policy":  "reference_original",
+                                                   "record_bit_depth":  24,
+                                                   "sample_rate_hz":  48000
+                                               },
+                   "command":  "project.import_preflight",
+                   "command_ack":  {
+                                       "ack":  {
+                                                   "message":  "Legacy command completed",
+                                                   "stage":  "completed"
+                                               },
+                                       "command":  "legacy.command",
+                                       "legacy_command":  "project.import_preflight",
+                                       "resync_hint":  true,
+                                       "revision":  0,
+                                       "source":  "vsp.command.response",
+                                       "stage":  "completed",
+                                       "transaction_id":  "tx_1792074294376114000_23"
+                                   },
+                   "file_preview":  [
+                                        {
+                                            "bit_depth":  16,
+                                            "channel_count":  2,
+                                            "duration_seconds":  20,
+                                            "errors":  [
+
+                                                       ],
+                                            "file_name":  "bass.wav",
+                                            "file_path":  "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_02be6193fbc17bed\\cases\\spv1_p06\\stems\\bass.wav",
+                                            "file_type":  "wav",
+                                            "pcm_format":  "int16",
+                                            "readable":  true,
+                                            "sample_rate_hz":  44100,
+                                            "suggested_track_name":  "bass",
+                                            "warnings":  [
+
+                                                         ]
+                                        },
+                                        {
+                                            "bit_depth":  16,
+                                            "channel_count":  2,
+                                            "duration_seconds":  20,
+                                            "errors":  [
+
+                                                       ],
+                                            "file_name":  "drums.wav",
+                                            "file_path":  "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_02be6193fbc17bed\\cases\\spv1_p06\\stems\\drums.wav",
+                                            "file_type":  "wav",
+                                            "pcm_format":  "int16",
+                                            "readable":  true,
+                                            "sample_rate_hz":  44100,
+                                            "suggested_track_name":  "drums",
+                                            "warnings":  [
+
+                                                         ]
+                                        },
+                                        {
+                                            "bit_depth":  16,
+                                            "channel_count":  2,
+                                            "duration_seconds":  20,
+                                            "errors":  [
+
+                                                       ],
+                                            "file_name":  "guitar.wav",
+                                            "file_path":  "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_02be6193fbc17bed\\cases\\spv1_p06\\stems\\guitar.wav",
+                                            "file_type":  "wav",
+                                            "pcm_format":  "int16",
+                                            "readable":  true,
+                                            "sample_rate_hz":  44100,
+                                            "suggested_track_name":  "guitar",
+                                            "warnings":  [
+
+                                                         ]
+                                        },
+                                        {
+                                            "bit_depth":  16,
+                                            "channel_count":  2,
+                                            "duration_seconds":  20,
+                                            "errors":  [
+
+                                                       ],
+                                            "file_name":  "other.wav",
+                                            "file_path":  "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_02be6193fbc17bed\\cases\\spv1_p06\\stems\\other.wav",
+                                            "file_type":  "wav",
+                                            "pcm_format":  "int16",
+                                            "readable":  true,
+                                            "sample_rate_hz":  44100,
+                                            "suggested_track_name":  "other",
+                                            "warnings":  [
+
+                                                         ]
+                                        },
+                                        {
+                                            "bit_depth":  16,
+                                            "channel_count":  2,
+                                            "duration_seconds":  20,
+                                            "errors":  [
+
+                                                       ],
+                                            "file_name":  "piano.wav",
+                                            "file_path":  "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_02be6193fbc17bed\\cases\\spv1_p06\\stems\\piano.wav",
+                                            "file_type":  "wav",
+                                            "pcm_format":  "int16",
+                                            "readable":  true,
+                                            "sample_rate_hz":  44100,
+                                            "suggested_track_name":  "piano",
+                                            "warnings":  [
+
+                                                         ]
+                                        },
+                                        {
+                                            "bit_depth":  16,
+                                            "channel_count":  2,
+                                            "duration_seconds":  20,
+                                            "errors":  [
+
+                                                       ],
+                                            "file_name":  "vocals.wav",
+                                            "file_path":  "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_02be6193fbc17bed\\cases\\spv1_p06\\stems\\vocals.wav",
+                                            "file_type":  "wav",
+                                            "pcm_format":  "int16",
+                                            "readable":  true,
+                                            "sample_rate_hz":  44100,
+                                            "suggested_track_name":  "vocals",
+                                            "warnings":  [
+
+                                                         ]
+                                        }
+                                    ],
+                   "file_preview_count":  6,
+                   "import_plan":  {
+                                       "bit_depth_or_format_mismatch_examples":  [
+                                                                                     {
+                                                                                         "file_path":  "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_02be6193fbc17bed\\cases\\spv1_p06\\stems\\bass.wav",
+                                                                                         "policy":  "keep_source",
+                                                                                         "project_record_bit_depth":  24,
+                                                                                         "source_bit_depth":  16,
+                                                                                         "source_pcm_format":  "int16"
+                                                                                     },
+                                                                                     {
+                                                                                         "file_path":  "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_02be6193fbc17bed\\cases\\spv1_p06\\stems\\drums.wav",
+                                                                                         "policy":  "keep_source",
+                                                                                         "project_record_bit_depth":  24,
+                                                                                         "source_bit_depth":  16,
+                                                                                         "source_pcm_format":  "int16"
+                                                                                     },
+                                                                                     {
+                                                                                         "file_path":  "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_02be6193fbc17bed\\cases\\spv1_p06\\stems\\guitar.wav",
+                                                                                         "policy":  "keep_source",
+                                                                                         "project_record_bit_depth":  24,
+                                                                                         "source_bit_depth":  16,
+                                                                                         "source_pcm_format":  "int16"
+                                                                                     },
+                                                                                     {
+                                                                                         "file_path":  "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_02be6193fbc17bed\\cases\\spv1_p06\\stems\\other.wav",
+                                                                                         "policy":  "keep_source",
+                                                                                         "project_record_bit_depth":  24,
+                                                                                         "source_bit_depth":  16,
+                                                                                         "source_pcm_format":  "int16"
+                                                                                     },
+                                                                                     {
+                                                                                         "file_path":  "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_02be6193fbc17bed\\cases\\spv1_p06\\stems\\piano.wav",
+                                                                                         "policy":  "keep_source",
+                                                                                         "project_record_bit_depth":  24,
+                                                                                         "source_bit_depth":  16,
+                                                                                         "source_pcm_format":  "int16"
+                                                                                     },
+                                                                                     {
+                                                                                         "file_path":  "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_02be6193fbc17bed\\cases\\spv1_p06\\stems\\vocals.wav",
+                                                                                         "policy":  "keep_source",
+                                                                                         "project_record_bit_depth":  24,
+                                                                                         "source_bit_depth":  16,
+                                                                                         "source_pcm_format":  "int16"
+                                                                                     }
+                                                                                 ],
+                                       "copy_reference_strategy":  "reference_original",
+                                       "intended_mode":  "stems_folder",
+                                       "project_audio_settings_patch":  {
+                                                                            "render_default_sample_rate_hz":  44100,
+                                                                            "sample_rate_hz":  44100
+                                                                        },
+                                       "requires_user_confirmation":  true,
+                                       "sample_rate_decision":  {
+                                                                    "available_actions":  [
+                                                                                              "switch_project_sample_rate_then_import",
+                                                                                              "keep_project_sample_rate_and_import",
+                                                                                              "reject_import"
+                                                                                          ],
+                                                                    "can_switch_project_sample_rate":  true,
+                                                                    "import_sample_rate_policy":  "ask",
+                                                                    "project_audio_clip_count":  0,
+                                                                    "project_audio_settings_patch":  {
+                                                                                                         "render_default_sample_rate_hz":  44100,
+                                                                                                         "sample_rate_hz":  44100
+                                                                                                     },
+                                                                    "project_is_empty":  true,
+                                                                    "project_sample_rate_hz":  48000,
+                                                                    "readable_file_count":  6,
+                                                                    "recommended_action":  "ask_user_switch_or_keep_project_rate",
+                                                                    "requires_user_choice":  true,
+                                                                    "sample_rate_mismatch_count":  6,
+                                                                    "source_sample_rate_distribution":  [
+                                                                                                            {
+                                                                                                                "file_count":  6,
+                                                                                                                "sample_rate_hz":  44100
+                                                                                                            }
+                                                                                                        ],
+                                                                    "source_sample_rate_hz":  44100,
+                                                                    "source_sample_rate_is_unique":  true,
+                                                                    "status":  "mismatch"
+                                                                },
+                                       "sample_rate_mismatch_examples":  [
+                                                                             {
+                                                                                 "file_path":  "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_02be6193fbc17bed\\cases\\spv1_p06\\stems\\bass.wav",
+                                                                                 "policy":  "ask",
+                                                                                 "project_sample_rate_hz":  48000,
+                                                                                 "source_sample_rate_hz":  44100
+                                                                             },
+                                                                             {
+                                                                                 "file_path":  "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_02be6193fbc17bed\\cases\\spv1_p06\\stems\\drums.wav",
+                                                                                 "policy":  "ask",
+                                                                                 "project_sample_rate_hz":  48000,
+                                                                                 "source_sample_rate_hz":  44100
+                                                                             },
+                                                                             {
+                                                                                 "file_path":  "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_02be6193fbc17bed\\cases\\spv1_p06\\stems\\guitar.wav",
+                                                                                 "policy":  "ask",
+                                                                                 "project_sample_rate_hz":  48000,
+                                                                                 "source_sample_rate_hz":  44100
+                                                                             },
+                                                                             {
+                                                                                 "file_path":  "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_02be6193fbc17bed\\cases\\spv1_p06\\stems\\other.wav",
+                                                                                 "policy":  "ask",
+                                                                                 "project_sample_rate_hz":  48000,
+                                                                                 "source_sample_rate_hz":  44100
+                                                                             },
+                                                                             {
+                                                                                 "file_path":  "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_02be6193fbc17bed\\cases\\spv1_p06\\stems\\piano.wav",
+                                                                                 "policy":  "ask",
+                                                                                 "project_sample_rate_hz":  48000,
+                                                                                 "source_sample_rate_hz":  44100
+                                                                             },
+                                                                             {
+                                                                                 "file_path":  "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_02be6193fbc17bed\\cases\\spv1_p06\\stems\\vocals.wav",
+                                                                                 "policy":  "ask",
+                                                                                 "project_sample_rate_hz":  48000,
+                                                                                 "source_sample_rate_hz":  44100
+                                                                             }
+                                                                         ],
+                                       "start_time_seconds":  0,
+                                       "target_policy":  "create_tracks",
+                                       "track_plan_preview":  [
+                                                                  {
+                                                                      "bit_depth_or_format_differs":  true,
+                                                                      "bit_depth_policy":  "keep_source",
+                                                                      "file_path":  "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_02be6193fbc17bed\\cases\\spv1_p06\\stems\\bass.wav",
+                                                                      "media_copy_policy":  "reference_original",
+                                                                      "needs_sample_rate_conversion":  true,
+                                                                      "sample_rate_policy":  "ask",
+                                                                      "start_time_seconds":  0,
+                                                                      "suggested_track_name":  "bass"
+                                                                  },
+                                                                  {
+                                                                      "bit_depth_or_format_differs":  true,
+                                                                      "bit_depth_policy":  "keep_source",
+                                                                      "file_path":  "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_02be6193fbc17bed\\cases\\spv1_p06\\stems\\drums.wav",
+                                                                      "media_copy_policy":  "reference_original",
+                                                                      "needs_sample_rate_conversion":  true,
+                                                                      "sample_rate_policy":  "ask",
+                                                                      "start_time_seconds":  0,
+                                                                      "suggested_track_name":  "drums"
+                                                                  },
+                                                                  {
+                                                                      "bit_depth_or_format_differs":  true,
+                                                                      "bit_depth_policy":  "keep_source",
+                                                                      "file_path":  "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_02be6193fbc17bed\\cases\\spv1_p06\\stems\\guitar.wav",
+                                                                      "media_copy_policy":  "reference_original",
+                                                                      "needs_sample_rate_conversion":  true,
+                                                                      "sample_rate_policy":  "ask",
+                                                                      "start_time_seconds":  0,
+                                                                      "suggested_track_name":  "guitar"
+                                                                  },
+                                                                  {
+                                                                      "bit_depth_or_format_differs":  true,
+                                                                      "bit_depth_policy":  "keep_source",
+                                                                      "file_path":  "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_02be6193fbc17bed\\cases\\spv1_p06\\stems\\other.wav",
+                                                                      "media_copy_policy":  "reference_original",
+                                                                      "needs_sample_rate_conversion":  true,
+                                                                      "sample_rate_policy":  "ask",
+                                                                      "start_time_seconds":  0,
+                                                                      "suggested_track_name":  "other"
+                                                                  },
+                                                                  {
+                                                                      "bit_depth_or_format_differs":  true,
+                                                                      "bit_depth_policy":  "keep_source",
+                                                                      "file_path":  "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_02be6193fbc17bed\\cases\\spv1_p06\\stems\\piano.wav",
+                                                                      "media_copy_policy":  "reference_original",
+                                                                      "needs_sample_rate_conversion":  true,
+                                                                      "sample_rate_policy":  "ask",
+                                                                      "start_time_seconds":  0,
+                                                                      "suggested_track_name":  "piano"
+                                                                  },
+                                                                  {
+                                                                      "bit_depth_or_format_differs":  true,
+                                                                      "bit_depth_policy":  "keep_source",
+                                                                      "file_path":  "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_02be6193fbc17bed\\cases\\spv1_p06\\stems\\vocals.wav",
+                                                                      "media_copy_policy":  "reference_original",
+                                                                      "needs_sample_rate_conversion":  true,
+                                                                      "sample_rate_policy":  "ask",
+                                                                      "start_time_seconds":  0,
+                                                                      "suggested_track_name":  "vocals"
+                                                                  }
+                                                              ],
+                                       "tracks_to_create":  6
+                                   },
+                   "project_audio_settings_patch":  {
+                                                        "render_default_sample_rate_hz":  44100,
+                                                        "sample_rate_hz":  44100
+                                                    },
+                   "sample_rate_decision":  {
+                                                "available_actions":  [
+                                                                          "switch_project_sample_rate_then_import",
+                                                                          "keep_project_sample_rate_and_import",
+                                                                          "reject_import"
+                                                                      ],
+                                                "can_switch_project_sample_rate":  true,
+                                                "import_sample_rate_policy":  "ask",
+                                                "project_audio_clip_count":  0,
+                                                "project_audio_settings_patch":  {
+                                                                                     "render_default_sample_rate_hz":  44100,
+                                                                                     "sample_rate_hz":  44100
+                                                                                 },
+                                                "project_is_empty":  true,
+                                                "project_sample_rate_hz":  48000,
+                                                "readable_file_count":  6,
+                                                "recommended_action":  "ask_user_switch_or_keep_project_rate",
+                                                "requires_user_choice":  true,
+                                                "sample_rate_mismatch_count":  6,
+                                                "source_sample_rate_distribution":  [
+                                                                                        {
+                                                                                            "file_count":  6,
+                                                                                            "sample_rate_hz":  44100
+                                                                                        }
+                                                                                    ],
+                                                "source_sample_rate_hz":  44100,
+                                                "source_sample_rate_is_unique":  true,
+                                                "status":  "mismatch"
+                                            },
+                   "status":  "ok",
+                   "summary":  {
+                                   "bit_depth_or_format_mismatch_count":  6,
+                                   "copy_policy":  "reference_original",
+                                   "discovered_audio_file_count":  6,
+                                   "project_audio_settings_patch":  {
+                                                                        "render_default_sample_rate_hz":  44100,
+                                                                        "sample_rate_hz":  44100
+                                                                    },
+                                   "readable_file_count":  6,
+                                   "recommended_copy_policy":  "reference_original",
+                                   "requires_user_confirmation":  true,
+                                   "sample_rate_decision":  {
+                                                                "available_actions":  [
+                                                                                          "switch_project_sample_rate_then_import",
+                                                                                          "keep_project_sample_rate_and_import",
+                                                                                          "reject_import"
+                                                                                      ],
+                                                                "can_switch_project_sample_rate":  true,
+                                                                "import_sample_rate_policy":  "ask",
+                                                                "project_audio_clip_count":  0,
+                                                                "project_audio_settings_patch":  {
+                                                                                                     "render_default_sample_rate_hz":  44100,
+                                                                                                     "sample_rate_hz":  44100
+                                                                                                 },
+                                                                "project_is_empty":  true,
+                                                                "project_sample_rate_hz":  48000,
+                                                                "readable_file_count":  6,
+                                                                "recommended_action":  "ask_user_switch_or_keep_project_rate",
+                                                                "requires_user_choice":  true,
+                                                                "sample_rate_mismatch_count":  6,
+                                                                "source_sample_rate_distribution":  [
+                                                                                                        {
+                                                                                                            "file_count":  6,
+                                                                                                            "sample_rate_hz":  44100
+                                                                                                        }
+                                                                                                    ],
+                                                                "source_sample_rate_hz":  44100,
+                                                                "source_sample_rate_is_unique":  true,
+                                                                "status":  "mismatch"
+                                                            },
+                                   "sample_rate_mismatch_count":  6,
+                                   "tracks_to_create":  6,
+                                   "unreadable_file_count":  0
+                               },
+                   "vsp":  {
+                               "command_ack":  {
+                                                   "ack":  {
+                                                               "message":  "Legacy command completed",
+                                                               "stage":  "completed"
+                                                           },
+                                                   "command":  "legacy.command",
+                                                   "legacy_command":  "project.import_preflight",
+                                                   "resync_hint":  true,
+                                                   "revision":  0,
+                                                   "source":  "vsp.command.response",
+                                                   "stage":  "completed",
+                                                   "transaction_id":  "tx_1792074294376114000_23"
+                                               },
+                               "transport":  "vsp",
+                               "version":  "1.0"
+                           }
+               },
+    "project_history":  {
+                            "active_branch":  "main",
+                            "active_node_id":  "",
+                            "active_worktree":  "",
+                            "available":  true,
+                            "branches":  {
+
+                                         },
+                            "commit_count":  0,
+                            "detached":  false,
+                            "draft":  false,
+                            "head":  "",
+                            "initialized":  true,
+                            "project_label":  "Unsaved",
+                            "project_path":  "D:\\Vit_DAW_wt_m2tg2\\coord\\runs\\M2-EXP-TIMEDYN-GAP-1\\m2tg2_20261015_222445\\agent_drafts\\draft_20261015T142454_bfa6f6cf\\Unsaved.vit",
+                            "project_uuid":  "vitproj_56bacbbc896e4795bbe2b22f6c8df559",
+                            "recent_checkpoints":  [
+
+                                                   ],
+                            "refs":  {
+
+                                     },
+                            "root_project_path":  "",
+                            "unsaved":  false,
+                            "warnings":  [
+
+                                         ],
+                            "worktree_count":  1,
+                            "worktrees":  [
+                                              {
+                                                  "created_at":  "2026-10-15T14:24:54.3861386Z",
+                                                  "is_root":  true,
+                                                  "label":  "主工作树",
+                                                  "name":  "main",
+                                                  "path":  "D:\\Vit_DAW_wt_m2tg2\\coord\\runs\\M2-EXP-TIMEDYN-GAP-1\\m2tg2_20261015_222445\\agent_drafts\\draft_20261015T142454_bfa6f6cf",
+                                                  "project_file_path":  "D:\\Vit_DAW_wt_m2tg2\\coord\\runs\\M2-EXP-TIMEDYN-GAP-1\\m2tg2_20261015_222445\\agent_drafts\\draft_20261015T142454_bfa6f6cf\\Unsaved.vit",
+                                                  "project_path":  "D:\\Vit_DAW_wt_m2tg2\\coord\\runs\\M2-EXP-TIMEDYN-GAP-1\\m2tg2_20261015_222445\\agent_drafts\\draft_20261015T142454_bfa6f6cf\\Unsaved.vit",
+                                                  "root_project_path":  "D:\\Vit_DAW_wt_m2tg2\\coord\\runs\\M2-EXP-TIMEDYN-GAP-1\\m2tg2_20261015_222445\\agent_drafts\\draft_20261015T142454_bfa6f6cf\\Unsaved.vit"
+                                              }
+                                          ]
+                        }
+}
