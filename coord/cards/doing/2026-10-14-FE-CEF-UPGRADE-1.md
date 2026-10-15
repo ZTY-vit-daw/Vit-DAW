@@ -36,6 +36,7 @@
 - 资产下载不可得 → 记录后暂停（不擅自换版本号）。
 
 - 领取：2026-10-15 / origin/main ae86b218c5193772dd74f974053d304a44e8771d / Mac 执行侧（GLM 会话） / 主仓 coord-only 直推 main + 前端仓续 port/fe-cef-focusfix-1 基础（本卡新建 port/fe-cef-upgrade-1） / worktree Vit-DAW-fecef1-coord（主仓）+ 前端仓本体 / 领取提交 2a5c2101
+- 接管：2026-10-15 18:28 +0800 / origin/main 9b817024ec23e539ce12f6cebd56787e09e18d47 / Mac 执行侧接管会话（GLM-5.3，ZCode；原执行流经用户裁定弃掉，本会话为接管者） / 沿用 worktree Vit-DAW-fecef1-coord（主仓）+ 前端仓 port/fe-cef-upgrade-1@34072f0（未跟踪探针 cef_resize_probe/cef_webui_chain_probe 四件续用） / 接管提交=本提交（coord-only 直推 main）。接管底账核对：bin/ 仍 v1.15.4（与仓外归档 diff -r 逐字节一致）、上轮三项基线（resize/watchdog 完整，webui_chain 跑到页面加载被截断）、资产 zip 用户已下载至桌面待校验入位
 - **[等待用户:下载资产]**（2026-10-15 用户裁定：大文件下载须通知用户、由用户执行）：`godot_cef-v1.16.2.zip`（1,063,681,432 字节，https://github.com/dsh0416/godot-cef/releases/download/v1.16.2/godot_cef-v1.16.2.zip）由用户下载至 /Users/timozty/Documents/vit-daw-cef-backups/；执行侧已停止全部自行下载进程。等待期间继续不依赖资产的准备（回归场景/agent 构建/Windows 留档）。
 - 回执：（commit / run ID / 七项回归记录 / 升级前后 sha256 / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
