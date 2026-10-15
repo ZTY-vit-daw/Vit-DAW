@@ -33,9 +33,20 @@
 
 ## 领取（取证腿）
 
-- 领取时间：2026-10-15 22:0x +0800（晚窗）
+- 领取时间：2026-10-15 21:28 +0800（晚窗；卡内原误写 22:0x，以本行为准）
 - origin/main hash：ec8efed9a9cad6cb42f9d1dbe253bcb746e9169c（≥ef54e06c 要求满足）
 - owner：GLM-5.3 L2 / PC 执行会话（ZCode，本会话）
 - 分支：port/m2-exp-timedyn-gap-1-recon（worktree D:/Vit_DAW_wt_m2tg1）
-- 领取提交：（领取 push 后回填 hash）
+- 领取提交：727d1dd8（已推共享 main，远端卡面 owner 核对=本会话）
 - 领取时 git status：干净 worktree（新建，基于 origin/main）；主检出另有未跟踪 coord/runs/* 工件与 M VitApp/Workspace/default_project.xml，与本卡无涉
+
+## 回执（取证腿，2026-10-15 21:35 交付）
+
+- 取证件：[coord/runs/M2-EXP-TIMEDYN-GAP-1/FORENSICS.md](../../runs/M2-EXP-TIMEDYN-GAP-1/FORENSICS.md)（四问逐答+行号锚点+A/B 对照+前车之鉴核对+修复方向建议+§8 记账）；轻工件随 port 分支，重件（fixture_iso/agent_drafts）留盘 worktree。
+- 真栈 run：m2tg1_20261015_213005，exit 0，栈占用/释放登记在卷（PC-RUNTIME-STACK.md，占用 622e326e→释放见最新条）；LLM 7 次全成功 0 超时；stems 源哈希前后一致。
+- 归因一句话：**内核不存在 time_energy 生产者（枚举死路，L3 只产 band/stereo/loudness——用户工程与复刻工程 l3_feature_log 均 18 条同构）；时域段唯一生产者=agent harness 波形 tile collector，且导入路径 6/6 轨级行各带 4 段在场；拦死链路的是 CCB 轨道视图读快照单数目标槽，而导入路径该槽绑定「最后完成填充的轨」（vocals/1032）而非请求目标轨（guitar/1017）→ time_dynamics 视图 omission → receipt executed 降级 partial → 编排器入口门（semantic_progressive_disclosure.go:107-110）拒收。**
+- A 轮复现实锤：seq10 观察 omission="track.time_dynamics: source evidence is missing"+audit receipt partial，与用户 obs#2 逐字段同签名；chat 终态 stop=done（模型绕开缺证据轨，未触发入口审计——死点位置随模型分支漂移，根因证据同签名）。B 轮 fixture：time_dynamics=partial-with-evidence（4 段）+receipt=executed→门放行，解释 run12/13 为何过。
+- 附带新缺陷（确定性复现×2，建议另立卡）：guitar(1017) 视图键下 stereo 证据实为 vocals(1032) 素材（单数 L3 槽错绑；模型经 source-identity 自行拒用，诚实面正常）。project.structure partial=次级时序依赖源（static.summary←caps.waveform_envelope!=ready，mixboard.go:3168），A 轮未复现该 partial（obs#1 ready）。
+- 修复方向建议（FORENSICS.md §4，待决策侧裁定）：①a agent 侧按目标轨从 TrackWaveformEnvelopes 行取段（小改，立刻解阻断）+①b 内核 L3 增 time_energy 生产者（耐久化）为治本组合；②审计门对「not-produced 类 omission+诚实收据」放行须先过红线裁定（不升级 bundle partial，只区分未生产 vs 过期/不一致）。
+- 端测边界声明：未启 Godot GUI（agent HTTP 面驱动）；导入命令与 GUI 导入同走内核 ImportService 分析队列，观察链全在 agent 侧——复现边界已在 FORENSICS.md §0 声明。零生产代码改动（main 上只有卡片/资源登记提交）。
+- 修复腿待决策侧裁定修复方向后另派（本回执不含修复）。
