@@ -128,6 +128,19 @@ param(
     #     stable prefix grows by exactly the ledger section, so "L4 rendered
     #     when entries exist / absent when they don't" is asserted on the
     #     telemetry surface, never the reply text).
+    # "ask_feedback" (FIX-ASK-SILENT-GAP-1 fix leg, 2026-10-15): ask-time
+    #     first-feedback latency gate on the real stack. Two rounds on one
+    #     journey-style berth (kernel+agent, no UI): A = empty project
+    #     (project.new) -- first visible feedback event (the semantic-entry
+    #     busy indicator, item.started/semantic_entry) must arrive within 3s
+    #     of the chat POST and the turn must settle without minute-level
+    #     silence (capacity_fact_short_circuit expected on the healthy path,
+    #     one rerun allowed for LLM-shape misses per AGENTS.md section 8);
+    #     B = tracked project (spv1_p01 fixture copy, project.open) -- same
+    #     <=3s first-event gate (pins the preamble fix: turn.started used to
+    #     be t+4.8s), then stop after the first slice to bound the LLM
+    #     budget. The M2 122s silent gap must not reproduce: deterministic
+    #     latency/terminal violations fail the run outright.
     [string]$Scenario = "",
     # Scenario run artifacts root; defaults to
     # coord\runs\SMOKE-SCEN-RANGE-1\<timestamp> (journey_first:
@@ -169,6 +182,11 @@ param(
     # start; auditionBlindSettingsFor reads the env first at every prepare).
     # The judgment leg then asserts the blind faces on the seated session.
     [switch]$JourneyBlindAudition,
+    # ask_feedback round B fixture: the tracked .vit project to open. Empty
+    # = auto-resolve (VitApp\Workspace\spv1_p01.vit, else the forensics copy
+    # under artifacts\asg1_forensics\fixture_project_B\). The file is copied
+    # into the run dir before project.open (isolation, AGENTS.md section 10).
+    [string]$AskFeedbackProjectVit = "",
     # L1-5-IMPL-D G3 A/B: rounds per mode (>=3, AGENTS §8 probabilistic face),
     # per-turn chat timeout and per-round settle window.
     [int]$HarnessAbRounds = 3,
@@ -878,13 +896,13 @@ $listener = Get-TcpListener -Port $httpPort
 $ScenarioMode = -not [string]::IsNullOrWhiteSpace($Scenario)
 # Journeys own the full berth (kernel + agent); one flag for every journey
 # card. Defined for every mode so later references stay StrictMode-safe.
-$journeyBerth = ($ScenarioMode -and ($Scenario -eq "journey_first" -or $Scenario -eq "journey_plugin_load" -or $Scenario -eq "journey_free_state_nl" -or $Scenario -eq "journey_ab_judgment" -or $Scenario -eq "context_layering" -or $Scenario -eq "l4_genesis" -or $Scenario -eq "harness_ab"))
+$journeyBerth = ($ScenarioMode -and ($Scenario -eq "journey_first" -or $Scenario -eq "journey_plugin_load" -or $Scenario -eq "journey_free_state_nl" -or $Scenario -eq "journey_ab_judgment" -or $Scenario -eq "context_layering" -or $Scenario -eq "l4_genesis" -or $Scenario -eq "harness_ab" -or $Scenario -eq "ask_feedback"))
 $ScenarioKernelProcId = $null
 $ScenarioAgentProcId = $null
 $ScenarioRunDir = ""
 if ($ScenarioMode) {
-    if ($Scenario -notin @("note_time", "context_layering", "range_split", "ref_diff_content", "midi_register", "render_freeze", "journey_first", "journey_plugin_load", "journey_free_state_nl", "journey_ab_judgment", "l4_genesis", "harness_ab", "all")) {
-        throw ("unknown -Scenario value '" + $Scenario + "'; expected note_time, context_layering, range_split, ref_diff_content, midi_register, render_freeze, journey_first, journey_plugin_load, journey_free_state_nl, journey_ab_judgment, l4_genesis, harness_ab, or all")
+    if ($Scenario -notin @("note_time", "context_layering", "range_split", "ref_diff_content", "midi_register", "render_freeze", "journey_first", "journey_plugin_load", "journey_free_state_nl", "journey_ab_judgment", "l4_genesis", "harness_ab", "ask_feedback", "all")) {
+        throw ("unknown -Scenario value '" + $Scenario + "'; expected note_time, context_layering, range_split, ref_diff_content, midi_register, render_freeze, journey_first, journey_plugin_load, journey_free_state_nl, journey_ab_judgment, l4_genesis, harness_ab, ask_feedback, or all")
     }
     if ($StartUI) {
         throw "-Scenario berth mode never starts the Godot UI (card constraint: webui/Godot untouched)"
@@ -920,6 +938,9 @@ if ($ScenarioMode) {
         }
         elseif ($Scenario -eq "harness_ab") {
             $scenarioRunsRoot = "coord\runs\L1-5-IMPL-D"
+        }
+        elseif ($Scenario -eq "ask_feedback") {
+            $scenarioRunsRoot = "coord\runs\FIX-ASK-SILENT-GAP-1"
         }
         $RunArtifactsDir = Join-Path $RepoRoot ($scenarioRunsRoot + "\" + (Get-Date -Format "yyyyMMdd_HHmmss"))
     }
@@ -2405,6 +2426,299 @@ if ($ScenarioMode) {
             throw ("render_freeze regression: empty-range render reported done but produced no file: " + $emptyWav)
         }
         Write-Ok ("regression: empty-range render completed with render_done telemetry and a file (job " + $emptyJobId + ")")
+    }
+
+    if ($Scenario -eq "ask_feedback") {
+        # FIX-ASK-SILENT-GAP-1 fix-leg true-stack gate (2026-10-15): the ask
+        # -> first-user-visible-feedback gap must stay <=3s on both the empty
+        # and the tracked project, and the empty project must settle without
+        # minute-level silence. Probabilistic face per AGENTS.md section 8:
+        # N=1 per round (+1 rerun allowed for round A LLM-shape misses only),
+        # deterministic latency/terminal violations fail outright, two
+        # consecutive same-breakpoint failures = stop-loss. The chat POST goes
+        # over raw TCP (f4_turn_started_timing_smoke.ps1 precedent): the
+        # HTTP wrapper would block until the whole turn answers and destroy
+        # the concurrent event polling. The message is built from [char]
+        # code points (the M2 utterance, verbatim from the forensics leg).
+        Write-Step "Scenario ask_feedback: ask first-feedback latency gate"
+        $askBase = $AgentHttp.TrimEnd("/")
+        $askInvokeUri = $askBase + "/agent/invoke"
+        $askStateUri = $askBase + "/agent/state"
+        $askStopUri = $askBase + "/agent/turn/stop"
+        $askUriParts = [uri]$askBase
+        $askInvoke = {
+            param([string]$Tool, [object]$ToolArgs, [int]$TimeoutSec)
+            Invoke-Json -Method POST -Uri $askInvokeUri -Body @{
+                tool = $Tool
+                args = $ToolArgs
+                confirmed = $true
+                source = "dev_agent_smoke.ask_feedback"
+            } -TimeoutSec $TimeoutSec
+        }
+
+        # M2 experience utterance, verbatim (code-point source keeps this
+        # script safe under any console encoding).
+        $askCodePoints = @(
+            0x6709,0x51E0,0x8F68,0x542C,0x8D77,0x6765,0x6BD4,0x8F83,0x5E72,0xFF0C,0x60F3,0x7ED9,0x5176,0x4E2D,0x4E00,0x6761,
+            0x5408,0x9002,0x7684,0x8F68,0x52A0,0x4E00,0x70B9,0x6DF7,0x54CD,0xFF08,0x8870,0x51CF,0x77ED,0x4E9B,0xFF09,0xFF0C,
+            0x4E0D,0x8981,0x7528,0x6574,0x4F53,0x589E,0x76CA,0x6216,0x20,0x45,0x51,0x20,0x6765,0x89E3,0x51B3,0x3002,
+            0x8BF7,0x5148,0x89C2,0x5BDF,0x5DE5,0x7A0B,0xFF0C,0x518D,0x7ED9,0x4E00,0x4E2A,0x6709,0x754C,0x7684,0x5C0F,0x6B65,
+            0x6539,0x8FDB,0x5EFA,0x8BAE,0x3002
+        )
+        $askSb = New-Object System.Text.StringBuilder
+        foreach ($askCp in $askCodePoints) { [void]$askSb.Append([char][int]$askCp) }
+        $askMessage = $askSb.ToString()
+
+        # One measured ask round. Returns a hashtable: first_event_ms /
+        # first_event_type / first_event_item / terminal_ms / terminal_type /
+        # stop_reason / slice_ms / timeline (rows). $StopAfterSlice posts
+        # /agent/turn/stop once the first slice appears (LLM budget bound,
+        # forensics-probe precedent).
+        $askRound = {
+            param([string]$Label, [int]$TerminalBudgetSec, [bool]$StopAfterSlice)
+            $conversation = "ask_feedback_" + $Label + "_" + (Get-Date -Format "yyyyMMdd_HHmmss")
+            $eventsUri = $askBase + "/agent/events?conversation_id=" + [uri]::EscapeDataString($conversation) + "&since=0&limit=200"
+            $roundDir = Join-Path $ScenarioRunDir $Label
+            New-Item -ItemType Directory -Force -Path $roundDir | Out-Null
+
+            $payload = @{
+                conversation_id = $conversation
+                message         = $askMessage
+                context         = @{ agent_mode = "chat" }
+            } | ConvertTo-Json -Depth 6 -Compress
+            $bodyBytes = [System.Text.Encoding]::UTF8.GetBytes($payload)
+            $head = "POST /agent/chat HTTP/1.1" + [char]13 + [char]10 +
+                    "Host: " + $askUriParts.Host + ":" + [string]$askUriParts.Port + [char]13 + [char]10 +
+                    "Content-Type: application/json" + [char]13 + [char]10 +
+                    "Content-Length: " + [string]$bodyBytes.Length + [char]13 + [char]10 +
+                    "Connection: close" + [char]13 + [char]10 + [char]13 + [char]10
+            $tcp = New-Object System.Net.Sockets.TcpClient
+            $tcp.Connect($askUriParts.Host, $askUriParts.Port)
+            $netStream = $tcp.GetStream()
+            $sw = [System.Diagnostics.Stopwatch]::StartNew()
+            $netStream.Write([System.Text.Encoding]::ASCII.GetBytes($head), 0, $head.Length)
+            $netStream.Write($bodyBytes, 0, $bodyBytes.Length)
+            $netStream.Flush()
+
+            $timeline = New-Object System.Collections.Generic.List[object]
+            $addRow = {
+                param([string]$Kind, [string]$Detail)
+                $timeline.Add([pscustomobject]@{ t_ms = [math]::Round($sw.Elapsed.TotalMilliseconds, 1); kind = $Kind; detail = $Detail }) | Out-Null
+            }
+            $seenTypes = @{}
+            $firstEventMs = -1.0
+            $firstEventType = ""
+            $firstEventItem = ""
+            $terminalMs = -1.0
+            $terminalType = ""
+            $stopReason = ""
+            $sliceMs = -1.0
+            $stopPosted = $false
+            $deadline = (Get-Date).AddSeconds($TerminalBudgetSec)
+            while ((Get-Date) -lt $deadline) {
+                try {
+                    $ev = Invoke-RestMethod -Method GET -Uri $eventsUri -TimeoutSec 10
+                    if ($ev -and ($ev.PSObject.Properties.Name -contains "events") -and $ev.events) {
+                        foreach ($row in @($ev.events)) {
+                            $et = [string]$row.type
+                            $rowItem = [string](Get-OptionalProperty -Object $row -Name "item_id")
+                            if (-not $seenTypes.ContainsKey($et)) {
+                                $seenTypes[$et] = $true
+                                & $addRow "event_first_seen" ("type=" + $et + " item=" + $rowItem)
+                            }
+                            if ($firstEventMs -lt 0) {
+                                $firstEventMs = [math]::Round($sw.Elapsed.TotalMilliseconds, 1)
+                                $firstEventType = $et
+                                $firstEventItem = $rowItem
+                                & $addRow "first_event" ("type=" + $et + " item=" + $firstEventItem)
+                            }
+                            if ($et -eq "turn.completed" -or $et -eq "turn.failed" -or $et -eq "turn.stopped") {
+                                if ($terminalMs -lt 0) {
+                                    $terminalMs = [math]::Round($sw.Elapsed.TotalMilliseconds, 1)
+                                    $terminalType = $et
+                                    $payloadMap = Get-OptionalProperty -Object $row -Name "payload"
+                                    $stopReason = [string](Get-OptionalProperty -Object $payloadMap -Name "stop_reason")
+                                    & $addRow "terminal" ("type=" + $et + " stop_reason=" + $stopReason)
+                                }
+                            }
+                        }
+                    }
+                } catch { }
+                if ($StopAfterSlice) {
+                    try {
+                        $st = Invoke-RestMethod -Method GET -Uri $askStateUri -TimeoutSec 10
+                        $goal = Get-OptionalProperty -Object $st -Name "goal"
+                        $task = Get-OptionalProperty -Object $goal -Name "task"
+                        $run = Get-OptionalProperty -Object $task -Name "run"
+                        $slices = Get-OptionalProperty -Object $run -Name "slices"
+                        if ($null -ne $slices -and @($slices).Count -gt 0) {
+                            $firstSliceRow = @($slices)[0]
+                            if ($sliceMs -lt 0) {
+                                $sliceMs = [math]::Round($sw.Elapsed.TotalMilliseconds, 1)
+                                & $addRow "slice_first_seen" ("slice_id=" + [string](Get-OptionalProperty -Object $firstSliceRow -Name "slice_id"))
+                            }
+                            if (-not $stopPosted) {
+                                $stopPosted = $true
+                                try {
+                                    $null = Invoke-RestMethod -Method POST -Uri $askStopUri -ContentType "application/json" -Body (@{ conversation_id = $conversation; reason = "user_stop" } | ConvertTo-Json -Compress) -TimeoutSec 15
+                                    & $addRow "stop_posted" "ok"
+                                } catch {
+                                    & $addRow "stop_posted" ("err=" + $_.Exception.Message)
+                                }
+                            }
+                        }
+                    } catch { }
+                }
+                if ($terminalMs -ge 0 -and (-not $StopAfterSlice -or $stopPosted)) { break }
+                if ($terminalMs -ge 0 -and $sw.Elapsed.TotalSeconds -gt 15) { break }
+                Start-Sleep -Milliseconds 100
+            }
+            # Drain + close the raw TCP response, then snapshot final faces.
+            try {
+                $buffer = New-Object byte[] 8192
+                while ($netStream.Read($buffer, 0, $buffer.Length) -gt 0) { }
+            } catch { }
+            try { $tcp.Close() } catch { }
+            Start-Sleep -Milliseconds 400
+            $finalEvents = @()
+            try {
+                $final = Invoke-RestMethod -Method GET -Uri $eventsUri -TimeoutSec 10
+                if ($final -and ($final.PSObject.Properties.Name -contains "events") -and $final.events) { $finalEvents = @($final.events) }
+            } catch { }
+            $finalState = $null
+            try { $finalState = Invoke-RestMethod -Method GET -Uri $askStateUri -TimeoutSec 10 } catch { }
+            $timeline | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $roundDir "timeline.json") -Encoding UTF8
+            $finalEvents | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath (Join-Path $roundDir "events_final.json") -Encoding UTF8
+            if ($null -ne $finalState) { $finalState | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath (Join-Path $roundDir "state_final.json") -Encoding UTF8 }
+            return @{
+                label            = $Label
+                conversation     = $conversation
+                first_event_ms   = $firstEventMs
+                first_event_type = $firstEventType
+                first_event_item = $firstEventItem
+                terminal_ms      = $terminalMs
+                terminal_type    = $terminalType
+                stop_reason      = $stopReason
+                slice_ms         = $sliceMs
+                timeline_rows    = $timeline.Count
+            }
+        }
+
+        # ---------------- ROUND A: empty project ------------------------------
+        Write-Step "ask_feedback ROUND A: empty project"
+        $null = & $askInvoke "project.new" @{} 60
+        $emptyDeadline = (Get-Date).AddSeconds(30)
+        $emptyTracks = -1
+        while ((Get-Date) -lt $emptyDeadline) {
+            $stA = Invoke-Json -Method GET -Uri $askStateUri -TimeoutSec 10
+            $emptyTracksText = [string](Get-FirstPropertyValue -Object (Get-OptionalProperty -Object $stA -Name "shadow") -Names @("track_count"))
+            if (-not [string]::IsNullOrWhiteSpace($emptyTracksText)) {
+                $emptyTracks = [int]$emptyTracksText
+                if ($emptyTracks -eq 0) { break }
+            }
+            Start-Sleep -Milliseconds 500
+        }
+        if ($emptyTracks -ne 0) {
+            throw ("ask_feedback round A never reached an empty project (track_count=" + [string]$emptyTracks + ")")
+        }
+        Write-Ok ("round A project empty: track_count=0")
+        $roundA = & $askRound "A_empty" 60 $false
+        Write-Host ("round A: first_event=" + [string]$roundA.first_event_ms + "ms type=" + $roundA.first_event_type + "/" + $roundA.first_event_item + " terminal=" + [string]$roundA.terminal_ms + "ms type=" + $roundA.terminal_type + " stop=" + $roundA.stop_reason)
+        # Deterministic gates: feedback <=3s + no minute-level silence.
+        if ($roundA.first_event_ms -lt 0 -or $roundA.first_event_ms -gt 3000) {
+            throw ("ask_feedback round A first visible feedback event at " + [string]$roundA.first_event_ms + "ms, budget 3000ms (M2 silent-gap regression)")
+        }
+        if ($roundA.first_event_type -ne "item.started" -or $roundA.first_event_item -ne "semantic_entry") {
+            throw ("ask_feedback round A first event is not the ask busy indicator: type=" + $roundA.first_event_type + " item=" + $roundA.first_event_item)
+        }
+        if ($roundA.terminal_ms -lt 0) {
+            throw ("ask_feedback round A never reached a terminal turn event within 60s (minute-level silence regression)")
+        }
+        # Probabilistic gate: the empty project should settle via the capacity
+        # fact short-circuit (healthy classification route OR the fix-leg
+        # fail-open route -- both land on capacity_fact_short_circuit). One
+        # rerun is allowed for an LLM-shape miss (unresolved/routing).
+        if ($roundA.stop_reason -ne "capacity_fact_short_circuit") {
+            Write-WarnLine ("round A stop_reason=" + $roundA.stop_reason + " (shape miss; one rerun allowed, AGENTS.md section 8)")
+            $roundA2 = & $askRound "A_empty_rerun" 60 $false
+            Write-Host ("round A rerun: first_event=" + [string]$roundA2.first_event_ms + "ms terminal=" + [string]$roundA2.terminal_ms + "ms stop=" + $roundA2.stop_reason)
+            if ($roundA2.first_event_ms -lt 0 -or $roundA2.first_event_ms -gt 3000 -or $roundA2.first_event_item -ne "semantic_entry") {
+                throw ("ask_feedback round A rerun first-event gate failed: " + [string]$roundA2.first_event_ms + "ms " + $roundA2.first_event_item)
+            }
+            if ($roundA2.terminal_ms -lt 0) {
+                throw "ask_feedback round A rerun never reached a terminal turn event within 60s"
+            }
+            if ($roundA2.stop_reason -ne "capacity_fact_short_circuit") {
+                throw ("ask_feedback round A never observed capacity_fact_short_circuit (two attempts: " + $roundA.stop_reason + " / " + $roundA2.stop_reason + ") -- stop-loss per AGENTS.md section 8")
+            }
+            $roundA = $roundA2
+        }
+        Write-Ok ("round A PASS: first feedback " + [string]$roundA.first_event_ms + "ms (<=3000), terminal " + [string]$roundA.terminal_ms + "ms, stop_reason=" + $roundA.stop_reason)
+
+        # ---------------- ROUND B: tracked project ----------------------------
+        Write-Step "ask_feedback ROUND B: tracked project"
+        if ([string]::IsNullOrWhiteSpace($AskFeedbackProjectVit)) {
+            $candidatePaths = @(
+                (Join-Path $RepoRoot "VitApp\Workspace\spv1_p01.vit"),
+                (Join-Path $RepoRoot "artifacts\asg1_forensics\fixture_project_B\spv1_p01.vit")
+            )
+            foreach ($candidate in $candidatePaths) {
+                if (Test-Path -LiteralPath $candidate) { $AskFeedbackProjectVit = $candidate; break }
+            }
+        }
+        if ([string]::IsNullOrWhiteSpace($AskFeedbackProjectVit)) {
+            throw "ask_feedback round B fixture not found (VitApp\Workspace\spv1_p01.vit or forensics copy)"
+        }
+        $askProjectDir = Join-Path $ScenarioRunDir "project_B"
+        New-Item -ItemType Directory -Force -Path $askProjectDir | Out-Null
+        $askProjectCopy = Join-Path $askProjectDir "spv1_p01_ask_feedback.vit"
+        Copy-Item -LiteralPath $AskFeedbackProjectVit -Destination $askProjectCopy -Force
+        $askOpen = & $askInvoke "project.open" @{ file_path = $askProjectCopy } 180
+        if ([string]$askOpen.status -ne "ok") {
+            throw ("ask_feedback round B project.open failed: " + ($askOpen | ConvertTo-Json -Depth 8 -Compress))
+        }
+        $trackedDeadline = (Get-Date).AddSeconds(60)
+        $trackedCount = -1
+        while ((Get-Date) -lt $trackedDeadline) {
+            $stB = Invoke-Json -Method GET -Uri $askStateUri -TimeoutSec 10
+            $trackedCountText = [string](Get-FirstPropertyValue -Object (Get-OptionalProperty -Object $stB -Name "shadow") -Names @("track_count"))
+            if (-not [string]::IsNullOrWhiteSpace($trackedCountText)) {
+                $trackedCount = [int]$trackedCountText
+                if ($trackedCount -gt 0) { break }
+            }
+            Start-Sleep -Milliseconds 500
+        }
+        if ($trackedCount -le 0) {
+            throw ("ask_feedback round B never observed a tracked project (track_count=" + [string]$trackedCount + ")")
+        }
+        Write-Ok ("round B project open: track_count=" + [string]$trackedCount)
+        $roundB = & $askRound "B_tracked" 150 $true
+        Write-Host ("round B: first_event=" + [string]$roundB.first_event_ms + "ms type=" + $roundB.first_event_type + "/" + $roundB.first_event_item + " slice=" + [string]$roundB.slice_ms + "ms terminal=" + [string]$roundB.terminal_ms + "ms type=" + $roundB.terminal_type + " stop=" + $roundB.stop_reason)
+        if ($roundB.first_event_ms -lt 0 -or $roundB.first_event_ms -gt 3000) {
+            throw ("ask_feedback round B first visible feedback event at " + [string]$roundB.first_event_ms + "ms, budget 3000ms (previously turn.started arrived at t+4.8s on tracked projects)")
+        }
+        if ($roundB.first_event_type -ne "item.started" -or $roundB.first_event_item -ne "semantic_entry") {
+            throw ("ask_feedback round B first event is not the ask busy indicator: type=" + $roundB.first_event_type + " item=" + $roundB.first_event_item)
+        }
+        if ($roundB.slice_ms -lt 0) {
+            throw "ask_feedback round B never observed the first slice within the budget"
+        }
+        if ($roundB.terminal_ms -lt 0) {
+            throw "ask_feedback round B never reached a terminal turn event after stop"
+        }
+        Write-Ok ("round B PASS: first feedback " + [string]$roundB.first_event_ms + "ms (<=3000), slice " + [string]$roundB.slice_ms + "ms, terminal " + [string]$roundB.terminal_ms + "ms")
+
+        $askSummary = @{
+            scenario = "ask_feedback"
+            round_a = $roundA
+            round_b = $roundB
+            tracked_fixture = $AskFeedbackProjectVit
+            tracked_count = $trackedCount
+            first_feedback_budget_ms = 3000
+            finished_at = (Get-Date).ToString("o")
+        }
+        $askSummary | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "ask_feedback_summary.json") -Encoding UTF8
+        Write-Ok ("ask_feedback summary written: " + (Join-Path $ScenarioRunDir "ask_feedback_summary.json"))
     }
 
     if ($Scenario -eq "journey_first") {
