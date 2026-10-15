@@ -50,3 +50,8 @@
 - 修复方向建议（FORENSICS.md §4，待决策侧裁定）：①a agent 侧按目标轨从 TrackWaveformEnvelopes 行取段（小改，立刻解阻断）+①b 内核 L3 增 time_energy 生产者（耐久化）为治本组合；②审计门对「not-produced 类 omission+诚实收据」放行须先过红线裁定（不升级 bundle partial，只区分未生产 vs 过期/不一致）。
 - 端测边界声明：未启 Godot GUI（agent HTTP 面驱动）；导入命令与 GUI 导入同走内核 ImportService 分析队列，观察链全在 agent 侧——复现边界已在 FORENSICS.md §0 声明。零生产代码改动（main 上只有卡片/资源登记提交）。
 - 修复腿待决策侧裁定修复方向后另派（本回执不含修复）。
+
+## 取证腿验收（决策侧）
+
+- **采信（2026-10-15 晚窗）**：四问逐答锚点抽查一致（门锚 semantic_progressive_disclosure.go:107-110 亲核=用户现场报错原文）；A 轮 omission 与用户 obs#2 逐字段同签名；零生产代码入 main 属实；§8+栈登记在卷；GUI 复现边界如实声明（导入命令同走内核 ImportService 分析队列）。
+- **修复方向裁定（主管）**：**①a=修复腿范围**——agent 侧 CCB 轨道视图组装按目标轨读 TrackWaveformEnvelopes/StereoRelationSummaries 行（绕开单数槽 promoteBestL3FeatureRows 错绑），**同一 seam 同时覆盖附带缺陷②（stereo 身份错绑）**，验收须含目标轨身份断言（guitar 视图证据= guitar 自身素材）；若执行发现两症状不同 seam 则停手上交。**①b（内核 L3 增 time_energy 生产者）另立 P2 卡**（agent 侧波形段已提供时域证据，①b 为耐久化增强非阻断）。**②审计门放行口径不予批准**（CCB partial 红线不动；①a 落地后 receipt 自然 executed，无需动门）。project.structure partial=次级时序依赖（caps.waveform_envelope 就绪度）登记观察，A 轮未复现不立卡。
