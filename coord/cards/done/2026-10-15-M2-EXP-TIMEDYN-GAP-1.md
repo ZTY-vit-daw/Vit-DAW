@@ -55,3 +55,13 @@
 
 - **采信（2026-10-15 晚窗）**：四问逐答锚点抽查一致（门锚 semantic_progressive_disclosure.go:107-110 亲核=用户现场报错原文）；A 轮 omission 与用户 obs#2 逐字段同签名；零生产代码入 main 属实；§8+栈登记在卷；GUI 复现边界如实声明（导入命令同走内核 ImportService 分析队列）。
 - **修复方向裁定（主管）**：**①a=修复腿范围**——agent 侧 CCB 轨道视图组装按目标轨读 TrackWaveformEnvelopes/StereoRelationSummaries 行（绕开单数槽 promoteBestL3FeatureRows 错绑），**同一 seam 同时覆盖附带缺陷②（stereo 身份错绑）**，验收须含目标轨身份断言（guitar 视图证据= guitar 自身素材）；若执行发现两症状不同 seam 则停手上交。**①b（内核 L3 增 time_energy 生产者）另立 P2 卡**（agent 侧波形段已提供时域证据，①b 为耐久化增强非阻断）。**②审计门放行口径不予批准**（CCB partial 红线不动；①a 落地后 receipt 自然 executed，无需动门）。project.structure partial=次级时序依赖（caps.waveform_envelope 就绪度）登记观察，A 轮未复现不立卡。
+
+## 领取（修复腿）
+
+- 领取时间：2026-10-15 22:40 +0800（晚窗）
+- origin/main hash：5359eb4670f54944822c4282e34dec9829980157（=裁定提交，满足 ≥5359eb46）
+- owner：GLM-5.3 L2 / PC 执行会话（ZCode，本会话，修复腿）
+- 分支：port/m2-exp-timedyn-gap-1（worktree D:/Vit_DAW_wt_m2tg2）
+- 领取提交：本提交（卡面 owner 行，仅 coord/ 变更；修复腿完成后由决策侧终验，卡不回移 doing）
+- 领取时 git status：worktree 干净（新建，基于 origin/main 5359eb46）；主检出另有未跟踪 coord/runs/* 工件与 M VitApp/Workspace/default_project.xml，与本卡无涉
+- 范围硬约束复述：视图按目标轨 id 读行；目标轨无行=omission 口径不变；不动 semantic_progressive_disclosure.go；VitApp/ C++ 零改动
