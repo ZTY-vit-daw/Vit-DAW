@@ -9,6 +9,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	"vit-daw-agent/internal/config"
 	"vit-daw-agent/internal/llm"
@@ -120,6 +121,15 @@ func semanticEntryAvailableScopes(requestContext map[string]any) ([]string, []st
 	return scopes, kinds
 }
 
+// semanticEntryRequestBudget bounds one semantic-entry LLM request including
+// its retry loop (FIX-ASK-SILENT-GAP-1 ①). The entry is a fail-open prelude
+// classifier — a healthy service answers it in 2-6s (A/B true-stack rounds)
+// and a degraded one used to hold the turn for 120.855s (60s timeout ×2 +
+// backoff + busy rejection). 12s keeps ~2× headroom over the slowest healthy
+// observation before the fail-open path takes over. The decode-repair second
+// call runs only after a well-formed HTTP answer and carries the same budget.
+var semanticEntryRequestBudget = 12 * time.Second
+
 func (s *Server) planSemanticEntry(ctx context.Context, conversationID, userText string, requestContext map[string]any,
 	cfg config.EngineConfig) (semanticEntryDecision, error) {
 	if s == nil || s.llm == nil {
@@ -134,8 +144,10 @@ func (s *Server) planSemanticEntry(ctx context.Context, conversationID, userText
 			{Role: "system", Content: semanticEntrySystemPrompt()},
 			{Role: "user", Content: string(input)},
 		},
-		Metadata:   llm.RequestMetadata{Source: "ordinary_agent_semantic_entry", ConversationID: conversationID},
-		PreferJSON: true,
+		Metadata:             llm.RequestMetadata{Source: "ordinary_agent_semantic_entry", ConversationID: conversationID},
+		PreferJSON:           true,
+		Timeout:              semanticEntryRequestBudget,
+		TimeoutIsTotalBudget: true,
 	}
 	response, err := s.llm.CompleteRequest(ctx, cfg, request)
 	if err != nil {

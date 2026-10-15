@@ -21,14 +21,21 @@ type Message struct {
 }
 
 type Request struct {
-	Messages        []Message
-	Metadata        RequestMetadata
-	NoTimeout       bool
-	Timeout         time.Duration
-	MaxOutputTokens int
-	Tools           []map[string]any
-	ToolChoice      any
-	PreferJSON      bool
+	Messages  []Message
+	Metadata  RequestMetadata
+	NoTimeout bool
+	Timeout   time.Duration
+	// TimeoutIsTotalBudget bounds the whole bounded retry loop with a single
+	// deadline instead of granting every attempt a full Timeout window
+	// (FIX-ASK-SILENT-GAP-1 ②). Opt-in: without it an explicit Timeout keeps
+	// its historical per-attempt meaning, and the no-Timeout default
+	// (60s × 3 small-payload attempts) that the message loop relies on is
+	// untouched.
+	TimeoutIsTotalBudget bool
+	MaxOutputTokens      int
+	Tools                []map[string]any
+	ToolChoice           any
+	PreferJSON           bool
 }
 
 type ImageInput struct {
@@ -159,6 +166,16 @@ func (c *Client) CompleteRequest(ctx context.Context, cfg config.EngineConfig, l
 			timeout = 60 * time.Second
 		}
 		client = &http.Client{Timeout: timeout}
+	}
+	if llmReq.Timeout > 0 && llmReq.TimeoutIsTotalBudget {
+		// FIX-ASK-SILENT-GAP-1 ②: the deadline spans every remaining retry
+		// attempt, so a degraded endpoint cannot stretch one small request
+		// into Timeout × attempts (the 60s×2+backoff ≈ 121s silent wall).
+		// The per-attempt http.Client.Timeout above stays as the coarse cap;
+		// this context closes the loop the moment the total budget is spent.
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, llmReq.Timeout)
+		defer cancel()
 	}
 	// Some compatible gateways transiently return 502/503/504 while their
 	// smaller requests succeed. Retry bounded transient failures, but never

@@ -2487,6 +2487,11 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 		s.handleNoteChatTurn(w, r, req, agentMode)
 		return
 	}
+	// FIX-ASK-SILENT-GAP-1 ④⑤：ask 受理即发首个用户可见忙碌事件。放在 note
+	// 分叉之后、goal 绑定/工作区激活前导段（有轨工程实测 4.4s）之前——退化
+	// 服务下语义入口分类可能占住十几秒，用户在此之前不能面对静默空窗。事件由
+	// 分类结局（goalrunner_chat）或下方 writeChat 兜底收口，不留残留。
+	s.emitSemanticEntryActivityStarted(conversationID)
 	// Bind a plain-language proposal confirmation to the persisted interaction
 	// before beginChatGoal can perform semantic entry. The confirmation is a
 	// continuation of the existing Task, never a new natural-language task.
@@ -2528,6 +2533,9 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 	req.Context = contextWithArtifactSummaries(req.Context, requestArtifacts)
 	s.harness.RecordConversationNodeForProject(r.Context(), projectPath, "ask", req.Message, goal.GoalID, goal.RunID)
 	writeChat := func(status int, resp ChatResponse) {
+		// FIX-ASK-SILENT-GAP-1 ④兜底：ask 受理忙碌事件在此幂等收口——分类
+		// 路径已收过则无事发生，continue/续跑等不经分类的快路径也不残留。
+		s.emitSemanticEntryActivitySettled(conversationID, goal.GoalID, goal.RunID, nil)
 		if resp.AgentMode == "" {
 			resp.AgentMode = agentMode
 		}

@@ -175,6 +175,53 @@ func (s *Server) emitTurnEvent(conversationID, eventType string, resp ChatRespon
 	s.emitChatTurnTrajectory(conversationID, eventType, resp, goalID, runID)
 }
 
+// semanticEntryActivityItemID keys the ask-time busy indicator
+// (FIX-ASK-SILENT-GAP-1 ④⑤). One item.started is emitted as soon as a chat
+// ask is accepted (before the goal-binding preamble), one item.completed when
+// the semantic-entry classifier settles — plus an idempotent catch-all from
+// the chat write-back. The webui renders the started event as a pending
+// activity (spinner + "正在执行：理解请求") and the completed event dismisses
+// it, so the indicator leaves no residue in the stream.
+const semanticEntryActivityItemID = "semantic_entry"
+
+func (s *Server) emitSemanticEntryActivityStarted(conversationID string) {
+	if s == nil {
+		return
+	}
+	s.emitAgentEvent(conversationID, AgentEvent{
+		Type:             "item.started",
+		ItemID:           semanticEntryActivityItemID,
+		ItemType:         "classification",
+		Status:           "running",
+		Title:            "理解请求",
+		Body:             "正在理解你的请求",
+		LogicalMessageID: "agent_item:" + semanticEntryActivityItemID,
+	})
+}
+
+func (s *Server) emitSemanticEntryActivitySettled(conversationID, goalID, runID string, entryErr error) {
+	if s == nil {
+		return
+	}
+	event := AgentEvent{
+		Type:             "item.completed",
+		ItemID:           semanticEntryActivityItemID,
+		ItemType:         "classification",
+		GoalID:           goalID,
+		RunID:            runID,
+		LogicalMessageID: "agent_item:" + semanticEntryActivityItemID,
+	}
+	if entryErr != nil {
+		event.Status = "failed"
+		event.Title = "意图分类暂不可用"
+		event.Body = "意图分类本次没有完成，正在按工程结构事实处理这个请求。"
+	} else {
+		event.Status = "completed"
+		event.Title = "理解请求"
+	}
+	s.emitAgentEvent(conversationID, event)
+}
+
 func (s *Server) emitToolItemStarted(in executorpkg.Input, toolCallID string) {
 	conversationID := eventConversationIDFromContext(in.Context)
 	if conversationID == "" {
