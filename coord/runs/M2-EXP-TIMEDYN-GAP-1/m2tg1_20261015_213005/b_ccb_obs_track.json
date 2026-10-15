@@ -1,0 +1,345 @@
+﻿{
+    "status":  "ok",
+    "agent_action_id":  "act_a83a52faa5e6a9e7",
+    "tool":  "ccb_observation_request",
+    "command_name":  "ccb_observation_request",
+    "risk_level":  "direct",
+    "requires_confirmation":  false,
+    "result":  {
+                   "bundle":  {
+                                  "schema_version":  "ccb_observation_bundle.v1",
+                                  "bundle_id":  "ccbobs_obs_20261015T133141_22f3e684b156",
+                                  "status":  "partial",
+                                  "read_only":  true,
+                                  "mutation_authority":  false,
+                                  "observation_id":  "obs_20261015T133141_22f3e684b156",
+                                  "mix_session_id":  "mix_3f312efb7a88",
+                                  "target_ref":  {
+                                                     "confidence":  "high",
+                                                     "id":  "1017",
+                                                     "kind":  "track",
+                                                     "label":  "guitar",
+                                                     "source":  "selected_track_first_clip"
+                                                 },
+                                  "project_binding":  {
+                                                          "project_epoch":  "epoch_8f56b1360a81b291",
+                                                          "project_revision":  "2",
+                                                          "project_state_hash":  "e7bdde24af7e54e2",
+                                                          "project_uuid":  "vitproj_b3f2838183d64add9ca7824b8b3ac557"
+                                                      },
+                                  "freshness":  {
+                                                    "class":  "current_observation",
+                                                    "observed_at":  "2026-10-15T13:31:41.7717692Z",
+                                                    "project_epoch":  "epoch_8f56b1360a81b291",
+                                                    "project_revision":  "2",
+                                                    "project_uuid":  "vitproj_b3f2838183d64add9ca7824b8b3ac557",
+                                                    "status":  "ready"
+                                                },
+                                  "requested_views":  [
+                                                          "track.stereo_space",
+                                                          "track.time_dynamics"
+                                                      ],
+                                  "views":  {
+                                                "track.stereo_space":  {
+                                                                           "facts":  {
+                                                                                         "track.1017.slow.stereo.summary":  {
+                                                                                                                                "balance_db":  0.676,
+                                                                                                                                "balance_state":  "centered",
+                                                                                                                                "balance_unit":  0,
+                                                                                                                                "capture_mode":  "offline_full_song",
+                                                                                                                                "clip_id":  "1021",
+                                                                                                                                "clip_revision":  "clip=1021|track=1017|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav|size=3528044|mtime=1786324027090|length=20.0000|offset=0.0000|length=20.0000",
+                                                                                                                                "correlation_estimate":  0.227,
+                                                                                                                                "correlation_state":  "decorrelated",
+                                                                                                                                "coverage_ratio":  1,
+                                                                                                                                "coverage_seconds":  20,
+                                                                                                                                "feature_type":  "stereo_relation_summary",
+                                                                                                                                "layer":  "l3_deep",
+                                                                                                                                "left_level_db":  -32.168,
+                                                                                                                                "phase_deviation":  0,
+                                                                                                                                "phase_negative_ratio":  0,
+                                                                                                                                "quality_evidence":  {
+                                                                                                                                                         "analyzed_sample_count":  1764000,
+                                                                                                                                                         "analyzer_version":  "dad_l3_offline_analyzer.v1",
+                                                                                                                                                         "channels":  2,
+                                                                                                                                                         "coverage_ratio":  1,
+                                                                                                                                                         "duration_seconds":  20,
+                                                                                                                                                         "evidence_ref":  "dad.l3.stereo_relation_summary:D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav|size=3528044|mtime=1786324027090|length=20.0000",
+                                                                                                                                                         "expected_sample_count":  1764000,
+                                                                                                                                                         "inf_count":  0,
+                                                                                                                                                         "max_abs":  0.2640380859375,
+                                                                                                                                                         "nan_count":  0,
+                                                                                                                                                         "nan_inf_count":  0,
+                                                                                                                                                         "nonzero_count":  1756440,
+                                                                                                                                                         "quality_reasons":  [
+                                                                                                                                                                                 "ok"
+                                                                                                                                                                             ],
+                                                                                                                                                         "quality_status":  "ready",
+                                                                                                                                                         "sample_rate":  44100,
+                                                                                                                                                         "source_identity":  "source_revision+clip_revision+optional_render_revision",
+                                                                                                                                                         "sum_abs":  24285.21319580078
+                                                                                                                                                     },
+                                                                                                                                "quality_reason":  "ok",
+                                                                                                                                "quality_status":  "ready",
+                                                                                                                                "request_id":  "mixboard_20260810T042444.183345800",
+                                                                                                                                "right_level_db":  -31.492,
+                                                                                                                                "schema_version":  "dad_l3_stereo_relation_summary.v1",
+                                                                                                                                "source":  "kernel_l3_offline_analyzer",
+                                                                                                                                "source_identity":  {
+                                                                                                                                                        "analyzer_revision":  "dad_l3_offline_analyzer.v1",
+                                                                                                                                                        "analyzer_version":  "dad_l3_offline_analyzer.v1",
+                                                                                                                                                        "channels":  2,
+                                                                                                                                                        "clip_id":  "1021",
+                                                                                                                                                        "clip_revision":  "clip=1021|track=1017|source=D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav|size=3528044|mtime=1786324027090|length=20.0000|offset=0.0000|length=20.0000",
+                                                                                                                                                        "duration_seconds":  20,
+                                                                                                                                                        "project_id":  "vitproj_b3f2838183d64add9ca7824b8b3ac557",
+                                                                                                                                                        "project_uuid":  "vitproj_b3f2838183d64add9ca7824b8b3ac557",
+                                                                                                                                                        "sample_rate":  44100,
+                                                                                                                                                        "source_fingerprint":  "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav|size=3528044|mtime=1786324027090|length=20.0000",
+                                                                                                                                                        "source_id":  "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav",
+                                                                                                                                                        "source_revision":  "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav|size=3528044|mtime=1786324027090|length=20.0000",
+                                                                                                                                                        "track_id":  "1017"
+                                                                                                                                                    },
+                                                                                                                                "source_kind":  "clip",
+                                                                                                                                "source_revision":  "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav|size=3528044|mtime=1786324027090|length=20.0000",
+                                                                                                                                "status":  "ready",
+                                                                                                                                "time_basis":  "source_samples",
+                                                                                                                                "track_id":  "1017",
+                                                                                                                                "updated_at":  "2026-08-10T12:24:45.550+08:00"
+                                                                                                                            }
+                                                                                     },
+                                                                           "limitations":  null,
+                                                                           "status":  "ready",
+                                                                           "view_id":  "track.stereo_space"
+                                                                       },
+                                                "track.time_dynamics":  {
+                                                                            "facts":  {
+                                                                                          "observation.com_projection":  {
+                                                                                                                             "com_version":  "v1",
+                                                                                                                             "decision_support":  {
+                                                                                                                                                      "can_describe_source_dynamics":  true,
+                                                                                                                                                      "current_decision":  "processor_family_selection",
+                                                                                                                                                      "does_not_support":  [
+                                                                                                                                                                               "compressor_behavior_claims",
+                                                                                                                                                                               "compressor_parameter_values",
+                                                                                                                                                                               "post_action_evaluation"
+                                                                                                                                                                           ],
+                                                                                                                                                      "downstream_evidence_owner":  "governed_processor_workflow",
+                                                                                                                                                      "non_blocking_constraints":  [
+                                                                                                                                                                                       "micro_transient_detail_unresolved",
+                                                                                                                                                                                       "preserve_transients_conservatively"
+                                                                                                                                                                                   ],
+                                                                                                                                                      "paired_processor_io_required_after":  "processor_selection",
+                                                                                                                                                      "status":  "supported_with_limitations",
+                                                                                                                                                      "supports":  [
+                                                                                                                                                                       "source_macro_dynamics",
+                                                                                                                                                                       "treatment_family_selection"
+                                                                                                                                                                   ]
+                                                                                                                                                  },
+                                                                                                                             "evidence_refs":  null,
+                                                                                                                             "mode":  "source_only",
+                                                                                                                             "projection_id":  "vit://com/track:1017/t=all@obs_20261015T133141_22f3e684b156#sha256:f7595ea19fa55499",
+                                                                                                                             "schema_version":  "com.projection.v1",
+                                                                                                                             "source_dynamics":  {
+                                                                                                                                                     "activity":  {
+                                                                                                                                                                      "active_ratio":  1,
+                                                                                                                                                                      "active_seconds":  20,
+                                                                                                                                                                      "active_segment_count":  4,
+                                                                                                                                                                      "analyzed_seconds":  20,
+                                                                                                                                                                      "coverage_ratio":  1,
+                                                                                                                                                                      "segment_count":  4,
+                                                                                                                                                                      "silent_segment_count":  0,
+                                                                                                                                                                      "unknown_segment_count":  0,
+                                                                                                                                                                      "valid_segment_count":  4
+                                                                                                                                                                  },
+                                                                                                                                                     "analyzed_duration_seconds":  20,
+                                                                                                                                                     "declared_scale":  "macro_program",
+                                                                                                                                                     "events":  {
+                                                                                                                                                                    "event_count":  0
+                                                                                                                                                                },
+                                                                                                                                                     "levels":  {
+                                                                                                                                                                    "crest_db":  20.25,
+                                                                                                                                                                    "peak_dbfs":  -11.567,
+                                                                                                                                                                    "rms_dbfs":  -31.817
+                                                                                                                                                                },
+                                                                                                                                                     "macro_dynamics":  {
+                                                                                                                                                                            "crest_db_distribution":  {
+                                                                                                                                                                                                          "count":  4,
+                                                                                                                                                                                                          "max":  24.782,
+                                                                                                                                                                                                          "min":  16.098,
+                                                                                                                                                                                                          "p50":  19.993,
+                                                                                                                                                                                                          "p90":  23.605
+                                                                                                                                                                                                      },
+                                                                                                                                                                            "peak_dbfs_distribution":  {
+                                                                                                                                                                                                           "count":  4,
+                                                                                                                                                                                                           "max":  -11.567,
+                                                                                                                                                                                                           "min":  -17.065,
+                                                                                                                                                                                                           "p50":  -12.585,
+                                                                                                                                                                                                           "p90":  -11.69
+                                                                                                                                                                                                       },
+                                                                                                                                                                            "rms_dbfs_distribution":  {
+                                                                                                                                                                                                          "count":  4,
+                                                                                                                                                                                                          "max":  -27.664,
+                                                                                                                                                                                                          "min":  -37.975,
+                                                                                                                                                                                                          "p50":  -34.514,
+                                                                                                                                                                                                          "p90":  -29.214
+                                                                                                                                                                                                      },
+                                                                                                                                                                            "rms_range_db":  10.311,
+                                                                                                                                                                            "rms_stddev_db":  3.927
+                                                                                                                                                                        },
+                                                                                                                                                     "schema_version":  "com.source_dynamics.v1",
+                                                                                                                                                     "status":  "partial",
+                                                                                                                                                     "time_scale_coverage":  [
+                                                                                                                                                                                 {
+                                                                                                                                                                                     "hop_ms":  5000,
+                                                                                                                                                                                     "scale":  "macro_program",
+                                                                                                                                                                                     "segment_count":  4,
+                                                                                                                                                                                     "status":  "ready",
+                                                                                                                                                                                     "window_ms":  5000
+                                                                                                                                                                                 },
+                                                                                                                                                                                 {
+                                                                                                                                                                                     "reason":  "source_only_macro_evidence_cannot_resolve_transients",
+                                                                                                                                                                                     "scale":  "micro_transient",
+                                                                                                                                                                                     "status":  "missing"
+                                                                                                                                                                                 }
+                                                                                                                                                                             ]
+                                                                                                                                                 },
+                                                                                                                             "status":  "partial"
+                                                                                                                         },
+                                                                                          "track.1017.slow.time_energy.summary":  {
+                                                                                                                                      "rows":  [
+                                                                                                                                                   {
+                                                                                                                                                       "crest_db":  19.13,
+                                                                                                                                                       "end_seconds":  5,
+                                                                                                                                                       "energy_state":  "low",
+                                                                                                                                                       "peak_abs":  0.140198,
+                                                                                                                                                       "peak_dbfs":  -17.065,
+                                                                                                                                                       "rms":  0.015496,
+                                                                                                                                                       "rms_dbfs":  -36.195,
+                                                                                                                                                       "start_seconds":  0
+                                                                                                                                                   },
+                                                                                                                                                   {
+                                                                                                                                                       "crest_db":  16.098,
+                                                                                                                                                       "end_seconds":  10,
+                                                                                                                                                       "energy_state":  "medium",
+                                                                                                                                                       "peak_abs":  0.264038,
+                                                                                                                                                       "peak_dbfs":  -11.567,
+                                                                                                                                                       "rms":  0.04138,
+                                                                                                                                                       "rms_dbfs":  -27.664,
+                                                                                                                                                       "start_seconds":  5
+                                                                                                                                                   },
+                                                                                                                                                   {
+                                                                                                                                                       "crest_db":  20.857,
+                                                                                                                                                       "end_seconds":  15,
+                                                                                                                                                       "energy_state":  "medium",
+                                                                                                                                                       "peak_abs":  0.251892,
+                                                                                                                                                       "peak_dbfs":  -11.976,
+                                                                                                                                                       "rms":  0.022823,
+                                                                                                                                                       "rms_dbfs":  -32.832,
+                                                                                                                                                       "start_seconds":  10
+                                                                                                                                                   },
+                                                                                                                                                   {
+                                                                                                                                                       "crest_db":  24.782,
+                                                                                                                                                       "end_seconds":  20,
+                                                                                                                                                       "energy_state":  "low",
+                                                                                                                                                       "peak_abs":  0.218964,
+                                                                                                                                                       "peak_dbfs":  -13.193,
+                                                                                                                                                       "rms":  0.012626,
+                                                                                                                                                       "rms_dbfs":  -37.975,
+                                                                                                                                                       "start_seconds":  15
+                                                                                                                                                   }
+                                                                                                                                               ],
+                                                                                                                                      "status":  "missing"
+                                                                                                                                  }
+                                                                                      },
+                                                                            "limitations":  [
+                                                                                                "Fine envelopes and event lists stay in evidence storage."
+                                                                                            ],
+                                                                            "status":  "partial",
+                                                                            "view_id":  "track.time_dynamics"
+                                                                        }
+                                            },
+                                  "evidence_refs":  [
+                                                        "obs_20261015T133141_22f3e684b156"
+                                                    ],
+                                  "limitations":  [
+                                                      "track.time_dynamics: evidence status is partial"
+                                                  ],
+                                  "disclosure_bytes":  5921,
+                                  "max_disclosure_bytes":  65536,
+                                  "audit_receipt":  {
+                                                        "schema_version":  "ccb_observation_receipt.v1",
+                                                        "receipt_id":  "ccbr_obs_20261015T133141_22f3e684b156",
+                                                        "requested_by":  "caller",
+                                                        "model_requested_view_ids":  [
+                                                                                         "track.stereo_space",
+                                                                                         "track.time_dynamics"
+                                                                                     ],
+                                                        "actual_executed_view_ids":  [
+                                                                                         "track.stereo_space",
+                                                                                         "track.time_dynamics"
+                                                                                     ],
+                                                        "view_set_matches":  true,
+                                                        "scope":  "selected_track",
+                                                        "freshness":  {
+                                                                          "class":  "current_observation",
+                                                                          "observed_at":  "2026-10-15T13:31:41.7717692Z",
+                                                                          "project_epoch":  "epoch_8f56b1360a81b291",
+                                                                          "project_revision":  "2",
+                                                                          "project_uuid":  "vitproj_b3f2838183d64add9ca7824b8b3ac557",
+                                                                          "status":  "ready"
+                                                                      },
+                                                        "project_binding":  {
+                                                                                "project_epoch":  "epoch_8f56b1360a81b291",
+                                                                                "project_revision":  "2",
+                                                                                "project_state_hash":  "e7bdde24af7e54e2",
+                                                                                "project_uuid":  "vitproj_b3f2838183d64add9ca7824b8b3ac557"
+                                                                            },
+                                                        "project_revision":  "2",
+                                                        "status":  "executed"
+                                                    }
+                              },
+                   "status":  "partial"
+               },
+    "project_history":  {
+                            "active_branch":  "main",
+                            "active_node_id":  "",
+                            "active_worktree":  "",
+                            "available":  true,
+                            "branches":  {
+
+                                         },
+                            "commit_count":  0,
+                            "detached":  false,
+                            "draft":  false,
+                            "head":  "",
+                            "initialized":  true,
+                            "project_label":  "spv1_p01",
+                            "project_path":  "D:\\Vit_DAW_wt_m2tg1\\coord\\runs\\M2-EXP-TIMEDYN-GAP-1\\m2tg1_20261015_213005\\fixture_iso\\spv1_p01\\spv1_p01.vit",
+                            "project_uuid":  "vitproj_b3f2838183d64add9ca7824b8b3ac557",
+                            "recent_checkpoints":  [
+
+                                                   ],
+                            "refs":  {
+
+                                     },
+                            "root_project_path":  "",
+                            "unsaved":  false,
+                            "warnings":  [
+
+                                         ],
+                            "worktree_count":  1,
+                            "worktrees":  [
+                                              {
+                                                  "created_at":  "2026-10-15T13:31:46.8095297Z",
+                                                  "is_root":  true,
+                                                  "label":  "主工作树",
+                                                  "name":  "main",
+                                                  "path":  "D:\\Vit_DAW_wt_m2tg1\\coord\\runs\\M2-EXP-TIMEDYN-GAP-1\\m2tg1_20261015_213005\\fixture_iso\\spv1_p01",
+                                                  "project_file_path":  "D:\\Vit_DAW_wt_m2tg1\\coord\\runs\\M2-EXP-TIMEDYN-GAP-1\\m2tg1_20261015_213005\\fixture_iso\\spv1_p01\\spv1_p01.vit",
+                                                  "project_path":  "D:\\Vit_DAW_wt_m2tg1\\coord\\runs\\M2-EXP-TIMEDYN-GAP-1\\m2tg1_20261015_213005\\fixture_iso\\spv1_p01\\spv1_p01.vit",
+                                                  "root_project_path":  "D:\\Vit_DAW_wt_m2tg1\\coord\\runs\\M2-EXP-TIMEDYN-GAP-1\\m2tg1_20261015_213005\\fixture_iso\\spv1_p01\\spv1_p01.vit"
+                                              }
+                                          ]
+                        }
+}

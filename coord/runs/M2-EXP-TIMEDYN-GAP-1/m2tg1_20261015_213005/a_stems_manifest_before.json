@@ -1,0 +1,32 @@
+﻿[
+    {
+        "sha256":  "7E1AA688092BBB2BA5939958691AF8BD978EFB6D29A2CCEC519F813200B69FBD",
+        "name":  "bass.wav",
+        "len":  3528044
+    },
+    {
+        "sha256":  "DA5C4E53700F8B8D7B66CD368A1E5280B2E1D1CEC5D371369B583C3995D71E08",
+        "name":  "drums.wav",
+        "len":  3528044
+    },
+    {
+        "sha256":  "63ED3448BF2411FFA7809F2BD77F40C8BD5F17646975387103C18151C96CEE10",
+        "name":  "guitar.wav",
+        "len":  3528044
+    },
+    {
+        "sha256":  "BB9BDC3EA1384D0CB0CA817DB147FF33EB622DF2B231FEE4A39B8B4BAF4D725B",
+        "name":  "other.wav",
+        "len":  3528044
+    },
+    {
+        "sha256":  "99014D14D4177395A4616AEC342DAC839E0E06353F53C0ED9C56B1A902D61E20",
+        "name":  "piano.wav",
+        "len":  3528044
+    },
+    {
+        "sha256":  "8E53F2A7D6C7A6AAE8EEAC4A780440D4902D82A99A377DBA8C1BD7586D1F2D74",
+        "name":  "vocals.wav",
+        "len":  3528044
+    }
+]

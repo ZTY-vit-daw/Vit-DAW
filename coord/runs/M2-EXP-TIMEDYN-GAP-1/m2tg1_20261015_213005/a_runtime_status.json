@@ -1,0 +1,773 @@
+﻿{
+    "authority_mode":  "manual_confirmation",
+    "capability_routes":  [
+                              {
+                                  "capacity_assessment":  {
+                                                              "schema_version":  "free_state_capacity_assessment.v1",
+                                                              "authority":  "product_runtime",
+                                                              "observed_facts":  {
+                                                                                     "project_uuid":  "vitproj_5eb169b6c47c4fd4b474f2df9c047b23",
+                                                                                     "project_revision":  "4",
+                                                                                     "track_count":  6,
+                                                                                     "active_audio_track_count":  6,
+                                                                                     "duration_seconds":  20,
+                                                                                     "plugin_count":  0,
+                                                                                     "automation_lane_count":  0,
+                                                                                     "track_group_count":  0,
+                                                                                     "routing_edge_count":  0,
+                                                                                     "relationship_breadth":  0,
+                                                                                     "request_scope":  "project_context",
+                                                                                     "task_history_available":  false,
+                                                                                     "evidence_refs":  [
+                                                                                                           "project.state:vitproj_5eb169b6c47c4fd4b474f2df9c047b23:4"
+                                                                                                       ]
+                                                                                 },
+                                                              "complexity_factors":  [
+                                                                                         {
+                                                                                             "code":  "large_track_set",
+                                                                                             "observed":  6,
+                                                                                             "weight":  25,
+                                                                                             "triggered":  false,
+                                                                                             "reason":  "twenty or more user tracks expand whole-project coverage"
+                                                                                         },
+                                                                                         {
+                                                                                             "code":  "long_timeline",
+                                                                                             "observed":  20,
+                                                                                             "weight":  15,
+                                                                                             "triggered":  false,
+                                                                                             "reason":  "five minutes or more increases observation span"
+                                                                                         },
+                                                                                         {
+                                                                                             "code":  "dense_processing_graph",
+                                                                                             "observed":  0,
+                                                                                             "weight":  20,
+                                                                                             "triggered":  false,
+                                                                                             "reason":  "forty or more processors increase context pressure"
+                                                                                         },
+                                                                                         {
+                                                                                             "code":  "dense_routing_graph",
+                                                                                             "observed":  0,
+                                                                                             "weight":  20,
+                                                                                             "triggered":  false,
+                                                                                             "reason":  "routing and grouping relationships require project-wide coordination"
+                                                                                         },
+                                                                                         {
+                                                                                             "code":  "automation_heavy",
+                                                                                             "observed":  0,
+                                                                                             "weight":  15,
+                                                                                             "triggered":  false,
+                                                                                             "reason":  "automation breadth increases cross-stage state"
+                                                                                         }
+                                                                                     ],
+                                                              "capacity_score":  0,
+                                                              "capacity_level":  "within_free_state",
+                                                              "selected_capability":  "free_state",
+                                                              "reason_codes":  [
+                                                                                   "small_or_moderate_project"
+                                                                               ],
+                                                              "confidence":  0.94,
+                                                              "project_revision":  "4",
+                                                              "observed_at":  "2026-10-15T13:32:29.9596241Z"
+                                                          },
+                                  "controller":  "minimal_audio_closure",
+                                  "conversation_id":  "m2tg1_20261015_213005",
+                                  "created_at":  "2026-10-15T13:32:29.9596241Z",
+                                  "goal_id":  "goal_7363f0821ac5c8ec",
+                                  "original_intent":  "有几轨听起来比较干，想给其中一条合适的轨加一点混响（衰减短些），不要用整体增益或 EQ 来解决。请先观察工程，再给一个有界的小步改进建议。",
+                                  "project_revision":  "4",
+                                  "run_id":  "run_444b9fb8f06070fc",
+                                  "schema_version":  "capability_route_decision.v1",
+                                  "semantic_entry":  {
+                                                         "confidence":  0.92,
+                                                         "control_mode":  "semantic_loop",
+                                                         "reason":  "product runtime selected free_state after project structure observation (score=0, reasons=small_or_moderate_project)",
+                                                         "route":  "open_semantic",
+                                                         "schema_version":  "semantic_entry_decision.v1",
+                                                         "target_scope":  "project_context",
+                                                         "user_authorization":  "action_requested"
+                                                     },
+                                  "task_id":  "task_367d624ed999fabe",
+                                  "updated_at":  "2026-10-15T13:32:29.9596241Z"
+                              }
+                          ],
+    "checked_at":  "2026-10-15T21:33:52.4301908+08:00",
+    "checkout_blocked":  false,
+    "continuations":  [
+
+                      ],
+    "goal":  {
+                 "goal_id":  "goal_7363f0821ac5c8ec",
+                 "run_id":  "run_444b9fb8f06070fc",
+                 "task":  {
+                              "task_id":  "task_367d624ed999fabe",
+                              "goal_id":  "goal_7363f0821ac5c8ec",
+                              "conversation_id":  "m2tg1_20261015_213005",
+                              "original_intent":  "有几轨听起来比较干，想给其中一条合适的轨加一点混响（衰减短些），不要用整体增益或 EQ 来解决。请先观察工程，再给一个有界的小步改进建议。",
+                              "status":  "settled",
+                              "contract":  {
+                                               "schema_version":  "vit.task_semantic_state.v1",
+                                               "contract_id":  "contract_task_367d624ed999fabe",
+                                               "task_id":  "task_367d624ed999fabe",
+                                               "goal_id":  "goal_7363f0821ac5c8ec",
+                                               "run_id":  "run_444b9fb8f06070fc",
+                                               "conversation_id":  "m2tg1_20261015_213005",
+                                               "original_intent":  "有几轨听起来比较干，想给其中一条合适的轨加一点混响（衰减短些），不要用整体增益或 EQ 来解决。请先观察工程，再给一个有界的小步改进建议。",
+                                               "kind":  "improvement",
+                                               "scope":  {
+                                                             "kind":  "project",
+                                                             "id":  "vitproj_5eb169b6c47c4fd4b474f2df9c047b23"
+                                                         },
+                                               "temporary":  true,
+                                               "target_discovery":  "agent_observation",
+                                               "authorization_boundary":  "governed_experiment",
+                                               "completion_criteria":  [
+                                                                           "settle only after a governed experiment outcome",
+                                                                           "or report no_candidate_found or a distinct capability boundary with evidence"
+                                                                       ],
+                                               "evidence_requirements":  [
+                                                                             "exact observation or audit receipt references",
+                                                                             "project revision matching the evaluated evidence",
+                                                                             "explicit limitations for every bounded conclusion"
+                                                                         ],
+                                               "project_uuid":  "vitproj_5eb169b6c47c4fd4b474f2df9c047b23",
+                                               "project_revision":  "4",
+                                               "created_at":  "2026-10-15T13:32:29.9860909Z"
+                                           },
+                              "semantic_state":  {
+                                                     "schema_version":  "vit.task_semantic_state.v1",
+                                                     "state":  "closed",
+                                                     "revision":  4,
+                                                     "contract_id":  "contract_task_367d624ed999fabe",
+                                                     "project_uuid":  "vitproj_5eb169b6c47c4fd4b474f2df9c047b23",
+                                                     "project_revision":  "4",
+                                                     "evidence_refs":  [
+                                                                           "obs_20261015T133244_6f9aabb1ad4b",
+                                                                           "obs_20261015T133326_9e6004183d7d"
+                                                                       ],
+                                                     "candidate_id":  "1022",
+                                                     "proposal":  {
+                                                                      "proposal_id":  "proposal_35cbac706521a0a0f6e8",
+                                                                      "summary":  "让这条听起来偏干的轨获得一点短衰减的空间感，不改变其整体增益，也不做频响修正。",
+                                                                      "evidence_refs":  [
+                                                                                            "obs_20261015T133326_9e6004183d7d",
+                                                                                            "obs_20261015T133244_6f9aabb1ad4b"
+                                                                                        ],
+                                                                      "bounds":  [
+                                                                                     "空间感结论来自目标级空间关系证据（居中、去相关、低电平），并未直接测量该轨的混响/衰减含量，因此属于合理可试的假设而非缺陷证明。",
+                                                                                     "track.time_dynamics 在当前工程切分上不可用，无法取得该轨的包络与瞬态证据，故未据此调整提案方向。",
+                                                                                     "“other”轨角色未标注，若你对这条轨并非所指的那条干轨，可在回听中改判或撤销。"
+                                                                                 ],
+                                                                      "requires_experiment":  true
+                                                                  },
+                                                     "transition_reason":  "chat turn closed without governed experiment",
+                                                     "summary":  "有几轨听起来比较干，想给其中一条合适的轨加一点混响（衰减短些），不要用整体增益或 EQ 来解决。请先观察工程，再给一个有界的小步改进建议。",
+                                                     "terminal":  true,
+                                                     "history":  [
+                                                                     {
+                                                                         "revision":  1,
+                                                                         "event":  "observation_started",
+                                                                         "to":  "observation_in_progress",
+                                                                         "reason":  "task contract admitted",
+                                                                         "project_revision":  "4",
+                                                                         "occurred_at":  "2026-10-15T13:32:29.9860909Z"
+                                                                     },
+                                                                     {
+                                                                         "revision":  2,
+                                                                         "event":  "diagnostic_completed",
+                                                                         "from":  "observation_in_progress",
+                                                                         "to":  "diagnostic_complete",
+                                                                         "reason":  "candidate diagnosis established",
+                                                                         "summary":  "工程级观察（obs_20261015T133244_6f9aabb1ad4b）给出 6 条可见轨与空间维度候选前沿：相位/空间风险候选为 guitar(1017) 与 other(1022)。对 guitar(1017) 的目标级请求返回 partial（track.time_dynamics 源证据缺失），且其 track.stereo_space 事实的来源标识指向另一条素材（track 1032），目标一致性不成立；对 other(1022) 的目标级观察（obs_20261015T133326_9e6004183d7d）状态 ready、目标一致：整窗 20 秒全覆盖、平衡居中（0.34 dB）、左右高度去相关（相关系数 0.211）、电平最低（-32.4 dB）。这组证据无法证明客观缺陷，但与用户“该轨偏干、希望加一点短衰减空间感”的听感目标合理相关，因此支持一个有界可回退的小步实验。",
+                                                                         "evidence_refs":  [
+                                                                                               "obs_20261015T133244_6f9aabb1ad4b",
+                                                                                               "obs_20261015T133326_9e6004183d7d"
+                                                                                           ],
+                                                                         "project_revision":  "4",
+                                                                         "occurred_at":  "2026-10-15T13:33:49.2518845Z"
+                                                                     },
+                                                                     {
+                                                                         "revision":  3,
+                                                                         "event":  "improvement_proposed",
+                                                                         "from":  "diagnostic_complete",
+                                                                         "to":  "improvement_proposal",
+                                                                         "reason":  "runtime admitted bounded improvement proposal",
+                                                                         "summary":  "工程级观察（obs_20261015T133244_6f9aabb1ad4b）给出 6 条可见轨与空间维度候选前沿：相位/空间风险候选为 guitar(1017) 与 other(1022)。对 guitar(1017) 的目标级请求返回 partial（track.time_dynamics 源证据缺失），且其 track.stereo_space 事实的来源标识指向另一条素材（track 1032），目标一致性不成立；对 other(1022) 的目标级观察（obs_20261015T133326_9e6004183d7d）状态 ready、目标一致：整窗 20 秒全覆盖、平衡居中（0.34 dB）、左右高度去相关（相关系数 0.211）、电平最低（-32.4 dB）。这组证据无法证明客观缺陷，但与用户“该轨偏干、希望加一点短衰减空间感”的听感目标合理相关，因此支持一个有界可回退的小步实验。",
+                                                                         "evidence_refs":  [
+                                                                                               "obs_20261015T133244_6f9aabb1ad4b",
+                                                                                               "obs_20261015T133326_9e6004183d7d"
+                                                                                           ],
+                                                                         "candidate_id":  "1022",
+                                                                         "project_revision":  "4",
+                                                                         "occurred_at":  "2026-10-15T13:33:49.2598852Z"
+                                                                     },
+                                                                     {
+                                                                         "revision":  4,
+                                                                         "event":  "owner_turn_closed",
+                                                                         "from":  "improvement_proposal",
+                                                                         "to":  "closed",
+                                                                         "reason":  "chat turn closed without governed experiment",
+                                                                         "summary":  "有几轨听起来比较干，想给其中一条合适的轨加一点混响（衰减短些），不要用整体增益或 EQ 来解决。请先观察工程，再给一个有界的小步改进建议。",
+                                                                         "project_revision":  "4",
+                                                                         "occurred_at":  "2026-10-15T13:33:49.3248452Z"
+                                                                     }
+                                                                 ],
+                                                     "updated_at":  "2026-10-15T13:33:49.3248452Z"
+                                                 },
+                              "run":  {
+                                          "run_id":  "run_444b9fb8f06070fc",
+                                          "task_id":  "task_367d624ed999fabe",
+                                          "current_slice_id":  "slice_f15ce45eb1395f99",
+                                          "next_slice":  2,
+                                          "next_turn":  2,
+                                          "slices":  [
+                                                         {
+                                                             "slice_id":  "slice_f15ce45eb1395f99",
+                                                             "run_id":  "run_444b9fb8f06070fc",
+                                                             "sequence":  1,
+                                                             "max_turns":  1,
+                                                             "max_tool_calls":  6,
+                                                             "turns_used":  6,
+                                                             "tool_calls_used":  4,
+                                                             "status":  "settled",
+                                                             "started_at":  "2026-10-15T21:32:30.0157402+08:00",
+                                                             "ended_at":  "2026-10-15T13:33:49.3248452Z"
+                                                         }
+                                                     ],
+                                          "turns":  [
+                                                        {
+                                                            "turn_id":  "turn_66e356fca2df066f",
+                                                            "slice_id":  "slice_f15ce45eb1395f99",
+                                                            "run_id":  "run_444b9fb8f06070fc",
+                                                            "sequence":  1,
+                                                            "source":  "user",
+                                                            "status":  "completed",
+                                                            "started_at":  "2026-10-15T21:32:30.0157402+08:00",
+                                                            "ended_at":  "2026-10-15T21:33:49.2473465+08:00"
+                                                        }
+                                                    ]
+                                      },
+                              "created_at":  "2026-10-15T21:32:26.5332087+08:00",
+                              "updated_at":  "2026-10-15T13:33:49.3248452Z"
+                          },
+                 "status":  "completed",
+                 "summary":  "有几轨听起来比较干，想给其中一条合适的轨加一点混响（衰减短些），不要用整体增益或 EQ 来解决。请先观察工程，再给一个有界的小步改进建议。",
+                 "created_at":  "2026-10-15T21:32:26.5332087+08:00",
+                 "updated_at":  "2026-10-15T13:33:49.3248452Z",
+                 "cancel_requested":  false,
+                 "last_checkpoint":  "after_tool",
+                 "project_history":  {
+                                         "baseline_commit_id":  "c_20261015T133226_99dce0ec",
+                                         "baseline_created":  true,
+                                         "active_branch":  "main",
+                                         "head":  "c_20261015T133226_99dce0ec"
+                                     }
+             },
+    "kernel":  {
+                   "connected":  true,
+                   "endpoint":  "tcp://127.0.0.1:5555",
+                   "latency_ms":  1,
+                   "message":  "pong",
+                   "reply_status":  "ok",
+                   "status":  "online"
+               },
+    "note_sessions":  [
+
+                      ],
+    "pid":  14696,
+    "service":  "VitAgent",
+    "shadow":  {
+                   "delta_seq_gaps":  0,
+                   "graph_revision":  null,
+                   "initialized":  true,
+                   "last_delta_seq":  202,
+                   "project_path":  "",
+                   "track_count":  6,
+                   "user_track_count":  6
+               },
+    "status":  "ok",
+    "task":  {
+                 "task_id":  "task_367d624ed999fabe",
+                 "goal_id":  "goal_7363f0821ac5c8ec",
+                 "conversation_id":  "m2tg1_20261015_213005",
+                 "original_intent":  "有几轨听起来比较干，想给其中一条合适的轨加一点混响（衰减短些），不要用整体增益或 EQ 来解决。请先观察工程，再给一个有界的小步改进建议。",
+                 "status":  "settled",
+                 "contract":  {
+                                  "schema_version":  "vit.task_semantic_state.v1",
+                                  "contract_id":  "contract_task_367d624ed999fabe",
+                                  "task_id":  "task_367d624ed999fabe",
+                                  "goal_id":  "goal_7363f0821ac5c8ec",
+                                  "run_id":  "run_444b9fb8f06070fc",
+                                  "conversation_id":  "m2tg1_20261015_213005",
+                                  "original_intent":  "有几轨听起来比较干，想给其中一条合适的轨加一点混响（衰减短些），不要用整体增益或 EQ 来解决。请先观察工程，再给一个有界的小步改进建议。",
+                                  "kind":  "improvement",
+                                  "scope":  {
+                                                "kind":  "project",
+                                                "id":  "vitproj_5eb169b6c47c4fd4b474f2df9c047b23"
+                                            },
+                                  "temporary":  true,
+                                  "target_discovery":  "agent_observation",
+                                  "authorization_boundary":  "governed_experiment",
+                                  "completion_criteria":  [
+                                                              "settle only after a governed experiment outcome",
+                                                              "or report no_candidate_found or a distinct capability boundary with evidence"
+                                                          ],
+                                  "evidence_requirements":  [
+                                                                "exact observation or audit receipt references",
+                                                                "project revision matching the evaluated evidence",
+                                                                "explicit limitations for every bounded conclusion"
+                                                            ],
+                                  "project_uuid":  "vitproj_5eb169b6c47c4fd4b474f2df9c047b23",
+                                  "project_revision":  "4",
+                                  "created_at":  "2026-10-15T13:32:29.9860909Z"
+                              },
+                 "semantic_state":  {
+                                        "schema_version":  "vit.task_semantic_state.v1",
+                                        "state":  "closed",
+                                        "revision":  4,
+                                        "contract_id":  "contract_task_367d624ed999fabe",
+                                        "project_uuid":  "vitproj_5eb169b6c47c4fd4b474f2df9c047b23",
+                                        "project_revision":  "4",
+                                        "evidence_refs":  [
+                                                              "obs_20261015T133244_6f9aabb1ad4b",
+                                                              "obs_20261015T133326_9e6004183d7d"
+                                                          ],
+                                        "candidate_id":  "1022",
+                                        "proposal":  {
+                                                         "proposal_id":  "proposal_35cbac706521a0a0f6e8",
+                                                         "summary":  "让这条听起来偏干的轨获得一点短衰减的空间感，不改变其整体增益，也不做频响修正。",
+                                                         "evidence_refs":  [
+                                                                               "obs_20261015T133326_9e6004183d7d",
+                                                                               "obs_20261015T133244_6f9aabb1ad4b"
+                                                                           ],
+                                                         "bounds":  [
+                                                                        "空间感结论来自目标级空间关系证据（居中、去相关、低电平），并未直接测量该轨的混响/衰减含量，因此属于合理可试的假设而非缺陷证明。",
+                                                                        "track.time_dynamics 在当前工程切分上不可用，无法取得该轨的包络与瞬态证据，故未据此调整提案方向。",
+                                                                        "“other”轨角色未标注，若你对这条轨并非所指的那条干轨，可在回听中改判或撤销。"
+                                                                    ],
+                                                         "requires_experiment":  true
+                                                     },
+                                        "transition_reason":  "chat turn closed without governed experiment",
+                                        "summary":  "有几轨听起来比较干，想给其中一条合适的轨加一点混响（衰减短些），不要用整体增益或 EQ 来解决。请先观察工程，再给一个有界的小步改进建议。",
+                                        "terminal":  true,
+                                        "history":  [
+                                                        {
+                                                            "revision":  1,
+                                                            "event":  "observation_started",
+                                                            "to":  "observation_in_progress",
+                                                            "reason":  "task contract admitted",
+                                                            "project_revision":  "4",
+                                                            "occurred_at":  "2026-10-15T13:32:29.9860909Z"
+                                                        },
+                                                        {
+                                                            "revision":  2,
+                                                            "event":  "diagnostic_completed",
+                                                            "from":  "observation_in_progress",
+                                                            "to":  "diagnostic_complete",
+                                                            "reason":  "candidate diagnosis established",
+                                                            "summary":  "工程级观察（obs_20261015T133244_6f9aabb1ad4b）给出 6 条可见轨与空间维度候选前沿：相位/空间风险候选为 guitar(1017) 与 other(1022)。对 guitar(1017) 的目标级请求返回 partial（track.time_dynamics 源证据缺失），且其 track.stereo_space 事实的来源标识指向另一条素材（track 1032），目标一致性不成立；对 other(1022) 的目标级观察（obs_20261015T133326_9e6004183d7d）状态 ready、目标一致：整窗 20 秒全覆盖、平衡居中（0.34 dB）、左右高度去相关（相关系数 0.211）、电平最低（-32.4 dB）。这组证据无法证明客观缺陷，但与用户“该轨偏干、希望加一点短衰减空间感”的听感目标合理相关，因此支持一个有界可回退的小步实验。",
+                                                            "evidence_refs":  [
+                                                                                  "obs_20261015T133244_6f9aabb1ad4b",
+                                                                                  "obs_20261015T133326_9e6004183d7d"
+                                                                              ],
+                                                            "project_revision":  "4",
+                                                            "occurred_at":  "2026-10-15T13:33:49.2518845Z"
+                                                        },
+                                                        {
+                                                            "revision":  3,
+                                                            "event":  "improvement_proposed",
+                                                            "from":  "diagnostic_complete",
+                                                            "to":  "improvement_proposal",
+                                                            "reason":  "runtime admitted bounded improvement proposal",
+                                                            "summary":  "工程级观察（obs_20261015T133244_6f9aabb1ad4b）给出 6 条可见轨与空间维度候选前沿：相位/空间风险候选为 guitar(1017) 与 other(1022)。对 guitar(1017) 的目标级请求返回 partial（track.time_dynamics 源证据缺失），且其 track.stereo_space 事实的来源标识指向另一条素材（track 1032），目标一致性不成立；对 other(1022) 的目标级观察（obs_20261015T133326_9e6004183d7d）状态 ready、目标一致：整窗 20 秒全覆盖、平衡居中（0.34 dB）、左右高度去相关（相关系数 0.211）、电平最低（-32.4 dB）。这组证据无法证明客观缺陷，但与用户“该轨偏干、希望加一点短衰减空间感”的听感目标合理相关，因此支持一个有界可回退的小步实验。",
+                                                            "evidence_refs":  [
+                                                                                  "obs_20261015T133244_6f9aabb1ad4b",
+                                                                                  "obs_20261015T133326_9e6004183d7d"
+                                                                              ],
+                                                            "candidate_id":  "1022",
+                                                            "project_revision":  "4",
+                                                            "occurred_at":  "2026-10-15T13:33:49.2598852Z"
+                                                        },
+                                                        {
+                                                            "revision":  4,
+                                                            "event":  "owner_turn_closed",
+                                                            "from":  "improvement_proposal",
+                                                            "to":  "closed",
+                                                            "reason":  "chat turn closed without governed experiment",
+                                                            "summary":  "有几轨听起来比较干，想给其中一条合适的轨加一点混响（衰减短些），不要用整体增益或 EQ 来解决。请先观察工程，再给一个有界的小步改进建议。",
+                                                            "project_revision":  "4",
+                                                            "occurred_at":  "2026-10-15T13:33:49.3248452Z"
+                                                        }
+                                                    ],
+                                        "updated_at":  "2026-10-15T13:33:49.3248452Z"
+                                    },
+                 "run":  {
+                             "run_id":  "run_444b9fb8f06070fc",
+                             "task_id":  "task_367d624ed999fabe",
+                             "current_slice_id":  "slice_f15ce45eb1395f99",
+                             "next_slice":  2,
+                             "next_turn":  2,
+                             "slices":  [
+                                            {
+                                                "slice_id":  "slice_f15ce45eb1395f99",
+                                                "run_id":  "run_444b9fb8f06070fc",
+                                                "sequence":  1,
+                                                "max_turns":  1,
+                                                "max_tool_calls":  6,
+                                                "turns_used":  6,
+                                                "tool_calls_used":  4,
+                                                "status":  "settled",
+                                                "started_at":  "2026-10-15T21:32:30.0157402+08:00",
+                                                "ended_at":  "2026-10-15T13:33:49.3248452Z"
+                                            }
+                                        ],
+                             "turns":  [
+                                           {
+                                               "turn_id":  "turn_66e356fca2df066f",
+                                               "slice_id":  "slice_f15ce45eb1395f99",
+                                               "run_id":  "run_444b9fb8f06070fc",
+                                               "sequence":  1,
+                                               "source":  "user",
+                                               "status":  "completed",
+                                               "started_at":  "2026-10-15T21:32:30.0157402+08:00",
+                                               "ended_at":  "2026-10-15T21:33:49.2473465+08:00"
+                                           }
+                                       ]
+                         },
+                 "created_at":  "2026-10-15T21:32:26.5332087+08:00",
+                 "updated_at":  "2026-10-15T13:33:49.3248452Z"
+             },
+    "task_contract":  {
+                          "schema_version":  "vit.task_semantic_state.v1",
+                          "contract_id":  "contract_task_367d624ed999fabe",
+                          "task_id":  "task_367d624ed999fabe",
+                          "goal_id":  "goal_7363f0821ac5c8ec",
+                          "run_id":  "run_444b9fb8f06070fc",
+                          "conversation_id":  "m2tg1_20261015_213005",
+                          "original_intent":  "有几轨听起来比较干，想给其中一条合适的轨加一点混响（衰减短些），不要用整体增益或 EQ 来解决。请先观察工程，再给一个有界的小步改进建议。",
+                          "kind":  "improvement",
+                          "scope":  {
+                                        "kind":  "project",
+                                        "id":  "vitproj_5eb169b6c47c4fd4b474f2df9c047b23"
+                                    },
+                          "temporary":  true,
+                          "target_discovery":  "agent_observation",
+                          "authorization_boundary":  "governed_experiment",
+                          "completion_criteria":  [
+                                                      "settle only after a governed experiment outcome",
+                                                      "or report no_candidate_found or a distinct capability boundary with evidence"
+                                                  ],
+                          "evidence_requirements":  [
+                                                        "exact observation or audit receipt references",
+                                                        "project revision matching the evaluated evidence",
+                                                        "explicit limitations for every bounded conclusion"
+                                                    ],
+                          "project_uuid":  "vitproj_5eb169b6c47c4fd4b474f2df9c047b23",
+                          "project_revision":  "4",
+                          "created_at":  "2026-10-15T13:32:29.9860909Z"
+                      },
+    "task_semantic_state":  {
+                                "schema_version":  "vit.task_semantic_state.v1",
+                                "state":  "closed",
+                                "revision":  4,
+                                "contract_id":  "contract_task_367d624ed999fabe",
+                                "project_uuid":  "vitproj_5eb169b6c47c4fd4b474f2df9c047b23",
+                                "project_revision":  "4",
+                                "evidence_refs":  [
+                                                      "obs_20261015T133244_6f9aabb1ad4b",
+                                                      "obs_20261015T133326_9e6004183d7d"
+                                                  ],
+                                "candidate_id":  "1022",
+                                "proposal":  {
+                                                 "proposal_id":  "proposal_35cbac706521a0a0f6e8",
+                                                 "summary":  "让这条听起来偏干的轨获得一点短衰减的空间感，不改变其整体增益，也不做频响修正。",
+                                                 "evidence_refs":  [
+                                                                       "obs_20261015T133326_9e6004183d7d",
+                                                                       "obs_20261015T133244_6f9aabb1ad4b"
+                                                                   ],
+                                                 "bounds":  [
+                                                                "空间感结论来自目标级空间关系证据（居中、去相关、低电平），并未直接测量该轨的混响/衰减含量，因此属于合理可试的假设而非缺陷证明。",
+                                                                "track.time_dynamics 在当前工程切分上不可用，无法取得该轨的包络与瞬态证据，故未据此调整提案方向。",
+                                                                "“other”轨角色未标注，若你对这条轨并非所指的那条干轨，可在回听中改判或撤销。"
+                                                            ],
+                                                 "requires_experiment":  true
+                                             },
+                                "transition_reason":  "chat turn closed without governed experiment",
+                                "summary":  "有几轨听起来比较干，想给其中一条合适的轨加一点混响（衰减短些），不要用整体增益或 EQ 来解决。请先观察工程，再给一个有界的小步改进建议。",
+                                "terminal":  true,
+                                "history":  [
+                                                {
+                                                    "revision":  1,
+                                                    "event":  "observation_started",
+                                                    "to":  "observation_in_progress",
+                                                    "reason":  "task contract admitted",
+                                                    "project_revision":  "4",
+                                                    "occurred_at":  "2026-10-15T13:32:29.9860909Z"
+                                                },
+                                                {
+                                                    "revision":  2,
+                                                    "event":  "diagnostic_completed",
+                                                    "from":  "observation_in_progress",
+                                                    "to":  "diagnostic_complete",
+                                                    "reason":  "candidate diagnosis established",
+                                                    "summary":  "工程级观察（obs_20261015T133244_6f9aabb1ad4b）给出 6 条可见轨与空间维度候选前沿：相位/空间风险候选为 guitar(1017) 与 other(1022)。对 guitar(1017) 的目标级请求返回 partial（track.time_dynamics 源证据缺失），且其 track.stereo_space 事实的来源标识指向另一条素材（track 1032），目标一致性不成立；对 other(1022) 的目标级观察（obs_20261015T133326_9e6004183d7d）状态 ready、目标一致：整窗 20 秒全覆盖、平衡居中（0.34 dB）、左右高度去相关（相关系数 0.211）、电平最低（-32.4 dB）。这组证据无法证明客观缺陷，但与用户“该轨偏干、希望加一点短衰减空间感”的听感目标合理相关，因此支持一个有界可回退的小步实验。",
+                                                    "evidence_refs":  [
+                                                                          "obs_20261015T133244_6f9aabb1ad4b",
+                                                                          "obs_20261015T133326_9e6004183d7d"
+                                                                      ],
+                                                    "project_revision":  "4",
+                                                    "occurred_at":  "2026-10-15T13:33:49.2518845Z"
+                                                },
+                                                {
+                                                    "revision":  3,
+                                                    "event":  "improvement_proposed",
+                                                    "from":  "diagnostic_complete",
+                                                    "to":  "improvement_proposal",
+                                                    "reason":  "runtime admitted bounded improvement proposal",
+                                                    "summary":  "工程级观察（obs_20261015T133244_6f9aabb1ad4b）给出 6 条可见轨与空间维度候选前沿：相位/空间风险候选为 guitar(1017) 与 other(1022)。对 guitar(1017) 的目标级请求返回 partial（track.time_dynamics 源证据缺失），且其 track.stereo_space 事实的来源标识指向另一条素材（track 1032），目标一致性不成立；对 other(1022) 的目标级观察（obs_20261015T133326_9e6004183d7d）状态 ready、目标一致：整窗 20 秒全覆盖、平衡居中（0.34 dB）、左右高度去相关（相关系数 0.211）、电平最低（-32.4 dB）。这组证据无法证明客观缺陷，但与用户“该轨偏干、希望加一点短衰减空间感”的听感目标合理相关，因此支持一个有界可回退的小步实验。",
+                                                    "evidence_refs":  [
+                                                                          "obs_20261015T133244_6f9aabb1ad4b",
+                                                                          "obs_20261015T133326_9e6004183d7d"
+                                                                      ],
+                                                    "candidate_id":  "1022",
+                                                    "project_revision":  "4",
+                                                    "occurred_at":  "2026-10-15T13:33:49.2598852Z"
+                                                },
+                                                {
+                                                    "revision":  4,
+                                                    "event":  "owner_turn_closed",
+                                                    "from":  "improvement_proposal",
+                                                    "to":  "closed",
+                                                    "reason":  "chat turn closed without governed experiment",
+                                                    "summary":  "有几轨听起来比较干，想给其中一条合适的轨加一点混响（衰减短些），不要用整体增益或 EQ 来解决。请先观察工程，再给一个有界的小步改进建议。",
+                                                    "project_revision":  "4",
+                                                    "occurred_at":  "2026-10-15T13:33:49.3248452Z"
+                                                }
+                                            ],
+                                "updated_at":  "2026-10-15T13:33:49.3248452Z"
+                            },
+    "task_state":  "closed",
+    "task_state_revision":  4,
+    "task_trajectory":  {
+                            "capability_route":  {
+                                                     "capacity_assessment":  {
+                                                                                 "schema_version":  "free_state_capacity_assessment.v1",
+                                                                                 "authority":  "product_runtime",
+                                                                                 "observed_facts":  {
+                                                                                                        "project_uuid":  "vitproj_5eb169b6c47c4fd4b474f2df9c047b23",
+                                                                                                        "project_revision":  "4",
+                                                                                                        "track_count":  6,
+                                                                                                        "active_audio_track_count":  6,
+                                                                                                        "duration_seconds":  20,
+                                                                                                        "plugin_count":  0,
+                                                                                                        "automation_lane_count":  0,
+                                                                                                        "track_group_count":  0,
+                                                                                                        "routing_edge_count":  0,
+                                                                                                        "relationship_breadth":  0,
+                                                                                                        "request_scope":  "project_context",
+                                                                                                        "task_history_available":  false,
+                                                                                                        "evidence_refs":  [
+                                                                                                                              "project.state:vitproj_5eb169b6c47c4fd4b474f2df9c047b23:4"
+                                                                                                                          ]
+                                                                                                    },
+                                                                                 "complexity_factors":  [
+                                                                                                            {
+                                                                                                                "code":  "large_track_set",
+                                                                                                                "observed":  6,
+                                                                                                                "weight":  25,
+                                                                                                                "triggered":  false,
+                                                                                                                "reason":  "twenty or more user tracks expand whole-project coverage"
+                                                                                                            },
+                                                                                                            {
+                                                                                                                "code":  "long_timeline",
+                                                                                                                "observed":  20,
+                                                                                                                "weight":  15,
+                                                                                                                "triggered":  false,
+                                                                                                                "reason":  "five minutes or more increases observation span"
+                                                                                                            },
+                                                                                                            {
+                                                                                                                "code":  "dense_processing_graph",
+                                                                                                                "observed":  0,
+                                                                                                                "weight":  20,
+                                                                                                                "triggered":  false,
+                                                                                                                "reason":  "forty or more processors increase context pressure"
+                                                                                                            },
+                                                                                                            {
+                                                                                                                "code":  "dense_routing_graph",
+                                                                                                                "observed":  0,
+                                                                                                                "weight":  20,
+                                                                                                                "triggered":  false,
+                                                                                                                "reason":  "routing and grouping relationships require project-wide coordination"
+                                                                                                            },
+                                                                                                            {
+                                                                                                                "code":  "automation_heavy",
+                                                                                                                "observed":  0,
+                                                                                                                "weight":  15,
+                                                                                                                "triggered":  false,
+                                                                                                                "reason":  "automation breadth increases cross-stage state"
+                                                                                                            }
+                                                                                                        ],
+                                                                                 "capacity_score":  0,
+                                                                                 "capacity_level":  "within_free_state",
+                                                                                 "selected_capability":  "free_state",
+                                                                                 "reason_codes":  [
+                                                                                                      "small_or_moderate_project"
+                                                                                                  ],
+                                                                                 "confidence":  0.94,
+                                                                                 "project_revision":  "4",
+                                                                                 "observed_at":  "2026-10-15T13:32:29.9596241Z"
+                                                                             },
+                                                     "controller":  "minimal_audio_closure",
+                                                     "conversation_id":  "m2tg1_20261015_213005",
+                                                     "created_at":  "2026-10-15T13:32:29.9596241Z",
+                                                     "goal_id":  "goal_7363f0821ac5c8ec",
+                                                     "original_intent":  "有几轨听起来比较干，想给其中一条合适的轨加一点混响（衰减短些），不要用整体增益或 EQ 来解决。请先观察工程，再给一个有界的小步改进建议。",
+                                                     "project_revision":  "4",
+                                                     "run_id":  "run_444b9fb8f06070fc",
+                                                     "schema_version":  "capability_route_decision.v1",
+                                                     "semantic_entry":  {
+                                                                            "confidence":  0.92,
+                                                                            "control_mode":  "semantic_loop",
+                                                                            "reason":  "product runtime selected free_state after project structure observation (score=0, reasons=small_or_moderate_project)",
+                                                                            "route":  "open_semantic",
+                                                                            "schema_version":  "semantic_entry_decision.v1",
+                                                                            "target_scope":  "project_context",
+                                                                            "user_authorization":  "action_requested"
+                                                                        },
+                                                     "task_id":  "task_367d624ed999fabe",
+                                                     "updated_at":  "2026-10-15T13:32:29.9596241Z"
+                                                 },
+                            "run":  {
+                                        "current_slice_id":  "slice_f15ce45eb1395f99",
+                                        "current_turn_id":  "",
+                                        "run_id":  "run_444b9fb8f06070fc",
+                                        "slices":  [
+                                                       {
+                                                           "slice_id":  "slice_f15ce45eb1395f99",
+                                                           "run_id":  "run_444b9fb8f06070fc",
+                                                           "sequence":  1,
+                                                           "max_turns":  1,
+                                                           "max_tool_calls":  6,
+                                                           "turns_used":  6,
+                                                           "tool_calls_used":  4,
+                                                           "status":  "settled",
+                                                           "started_at":  "2026-10-15T21:32:30.0157402+08:00",
+                                                           "ended_at":  "2026-10-15T13:33:49.3248452Z"
+                                                       }
+                                                   ],
+                                        "turns":  [
+                                                      {
+                                                          "turn_id":  "turn_66e356fca2df066f",
+                                                          "slice_id":  "slice_f15ce45eb1395f99",
+                                                          "run_id":  "run_444b9fb8f06070fc",
+                                                          "sequence":  1,
+                                                          "source":  "user",
+                                                          "status":  "completed",
+                                                          "started_at":  "2026-10-15T21:32:30.0157402+08:00",
+                                                          "ended_at":  "2026-10-15T21:33:49.2473465+08:00"
+                                                      }
+                                                  ]
+                                    },
+                            "schema_version":  "vit.task_runtime_trajectory.v1",
+                            "semantic":  {
+                                             "contract":  {
+                                                              "contract_id":  "contract_task_367d624ed999fabe",
+                                                              "kind":  "improvement",
+                                                              "scope":  {
+                                                                            "kind":  "project",
+                                                                            "id":  "vitproj_5eb169b6c47c4fd4b474f2df9c047b23"
+                                                                        },
+                                                              "temporary":  true
+                                                          },
+                                             "evidence_refs":  [
+                                                                   "obs_20261015T133244_6f9aabb1ad4b",
+                                                                   "obs_20261015T133326_9e6004183d7d"
+                                                               ],
+                                             "project_revision":  "4",
+                                             "revision":  4,
+                                             "state":  "closed",
+                                             "summary":  "有几轨听起来比较干，想给其中一条合适的轨加一点混响（衰减短些），不要用整体增益或 EQ 来解决。请先观察工程，再给一个有界的小步改进建议。",
+                                             "terminal":  true,
+                                             "transition_reason":  "chat turn closed without governed experiment",
+                                             "updated_at":  "2026-10-15T13:33:49.3248452Z"
+                                         },
+                            "task":  {
+                                         "conversation_id":  "m2tg1_20261015_213005",
+                                         "created_at":  "2026-10-15T21:32:26.5332087+08:00",
+                                         "goal_id":  "goal_7363f0821ac5c8ec",
+                                         "goal_status":  "completed",
+                                         "original_intent":  "有几轨听起来比较干，想给其中一条合适的轨加一点混响（衰减短些），不要用整体增益或 EQ 来解决。请先观察工程，再给一个有界的小步改进建议。",
+                                         "run_id":  "run_444b9fb8f06070fc",
+                                         "status":  "settled",
+                                         "task_id":  "task_367d624ed999fabe",
+                                         "updated_at":  "2026-10-15T13:33:49.3248452Z"
+                                     },
+                            "transitions":  [
+                                                {
+                                                    "candidate_id":  "",
+                                                    "event":  "observation_started",
+                                                    "evidence_refs":  null,
+                                                    "experiment_id":  "",
+                                                    "from":  "",
+                                                    "occurred_at":  "2026-10-15T13:32:29.9860909Z",
+                                                    "pending_interaction":  null,
+                                                    "project_revision":  "4",
+                                                    "reason":  "task contract admitted",
+                                                    "revision":  1,
+                                                    "stale_for_current_revision":  false,
+                                                    "summary":  "",
+                                                    "to":  "observation_in_progress"
+                                                },
+                                                {
+                                                    "candidate_id":  "",
+                                                    "event":  "diagnostic_completed",
+                                                    "evidence_refs":  [
+                                                                          "obs_20261015T133244_6f9aabb1ad4b",
+                                                                          "obs_20261015T133326_9e6004183d7d"
+                                                                      ],
+                                                    "experiment_id":  "",
+                                                    "from":  "observation_in_progress",
+                                                    "occurred_at":  "2026-10-15T13:33:49.2518845Z",
+                                                    "pending_interaction":  null,
+                                                    "project_revision":  "4",
+                                                    "reason":  "candidate diagnosis established",
+                                                    "revision":  2,
+                                                    "stale_for_current_revision":  false,
+                                                    "summary":  "工程级观察（obs_20261015T133244_6f9aabb1ad4b）给出 6 条可见轨与空间维度候选前沿：相位/空间风险候选为 guitar(1017) 与 other(1022)。对 guitar(1017) 的目标级请求返回 partial（track.time_dynamics 源证据缺失），且其 track.stereo_space 事实的来源标识指向另一条素材（track 1032），目标一致性不成立；对 other(1022) 的目标级观察（obs_20261015T133326_9e6004183d7d）状态 ready、目标一致：整窗 20 秒全覆盖、平衡居中（0.34 dB）、左右高度去相关（相关系数 0.211）、电平最低（-32.4 dB）。这组证据无法证明客观缺陷，但与用户“该轨偏干、希望加一点短衰减空间感”的听感目标合理相关，因此支持一个有界可回退的小步实验。",
+                                                    "to":  "diagnostic_complete"
+                                                },
+                                                {
+                                                    "candidate_id":  "1022",
+                                                    "event":  "improvement_proposed",
+                                                    "evidence_refs":  [
+                                                                          "obs_20261015T133244_6f9aabb1ad4b",
+                                                                          "obs_20261015T133326_9e6004183d7d"
+                                                                      ],
+                                                    "experiment_id":  "",
+                                                    "from":  "diagnostic_complete",
+                                                    "occurred_at":  "2026-10-15T13:33:49.2598852Z",
+                                                    "pending_interaction":  null,
+                                                    "project_revision":  "4",
+                                                    "reason":  "runtime admitted bounded improvement proposal",
+                                                    "revision":  3,
+                                                    "stale_for_current_revision":  false,
+                                                    "summary":  "工程级观察（obs_20261015T133244_6f9aabb1ad4b）给出 6 条可见轨与空间维度候选前沿：相位/空间风险候选为 guitar(1017) 与 other(1022)。对 guitar(1017) 的目标级请求返回 partial（track.time_dynamics 源证据缺失），且其 track.stereo_space 事实的来源标识指向另一条素材（track 1032），目标一致性不成立；对 other(1022) 的目标级观察（obs_20261015T133326_9e6004183d7d）状态 ready、目标一致：整窗 20 秒全覆盖、平衡居中（0.34 dB）、左右高度去相关（相关系数 0.211）、电平最低（-32.4 dB）。这组证据无法证明客观缺陷，但与用户“该轨偏干、希望加一点短衰减空间感”的听感目标合理相关，因此支持一个有界可回退的小步实验。",
+                                                    "to":  "improvement_proposal"
+                                                },
+                                                {
+                                                    "candidate_id":  "",
+                                                    "event":  "owner_turn_closed",
+                                                    "evidence_refs":  null,
+                                                    "experiment_id":  "",
+                                                    "from":  "improvement_proposal",
+                                                    "occurred_at":  "2026-10-15T13:33:49.3248452Z",
+                                                    "pending_interaction":  null,
+                                                    "project_revision":  "4",
+                                                    "reason":  "chat turn closed without governed experiment",
+                                                    "revision":  4,
+                                                    "stale_for_current_revision":  false,
+                                                    "summary":  "有几轨听起来比较干，想给其中一条合适的轨加一点混响（衰减短些），不要用整体增益或 EQ 来解决。请先观察工程，再给一个有界的小步改进建议。",
+                                                    "to":  "closed"
+                                                }
+                                            ]
+                        }
+}

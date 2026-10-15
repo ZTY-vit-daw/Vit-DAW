@@ -1,0 +1,76 @@
+﻿{
+    "card":  "M2-EXP-TIMEDYN-GAP-1",
+    "run_id":  "20261015_213005",
+    "repo_head":  "622e326edd8cc35d109165c55920833471afa224",
+    "branch":  "port/m2-exp-timedyn-gap-1-recon",
+    "stems_folder":  "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_02be6193fbc17bed\\cases\\spv1_p06\\stems",
+    "fixture_project_dir":  "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\projects\\spv1_p01",
+    "started_at":  "2026-10-15T21:30:05.7409144+08:00",
+    "llm_round_a":  "declared: 1 NL chat, \u003c=6 calls expected, stop-loss 2 same-signature",
+    "llm_round_b":  "declared: read-only invoke, zero LLM",
+    "kernel_exe":  "D:\\Vit_DAW\\Export\\staging\\runtime\\VitApp.exe",
+    "kernel_sha256":  "B6565DCF85D1DA867E16333052A7B928A5413565940603ADBCF4ABD59DD3123B",
+    "stack_pids":  {
+                       "VitAgent":  [
+                                        14696
+                                    ],
+                       "VitApp":  [
+                                      7408
+                                  ]
+                   },
+    "agent_sha256":  "1411DD3AAE738FE8A7E49E5C4BCA720262DE2F89307E6B82713F4E1283143F3C",
+    "fixture_track_count":  36,
+    "round_b":  [
+                    {
+                        "bundle_status":  "ready",
+                        "view_ids":  [
+                                         "project.structure",
+                                         "mix.multitrack_relationship"
+                                     ],
+                        "audit_receipt_status":  "executed",
+                        "structure_view_status":  "ready",
+                        "label":  "fixture project views [project.structure, mix.multitrack_relationship]",
+                        "omission_reasons":  null,
+                        "omissions":  null,
+                        "limitations":  null
+                    },
+                    {
+                        "bundle_status":  "partial",
+                        "view_ids":  [
+                                         "track.stereo_space",
+                                         "track.time_dynamics"
+                                     ],
+                        "time_dynamics_view_status":  "partial",
+                        "audit_receipt_status":  "executed",
+                        "label":  "fixture track views [track.stereo_space, track.time_dynamics] target=1017",
+                        "stereo_space_view_status":  "ready",
+                        "omission_reasons":  null,
+                        "omissions":  null,
+                        "limitations":  [
+                                            "track.time_dynamics: evidence status is partial"
+                                        ]
+                    }
+                ],
+    "round_a_track_count":  6,
+    "round_a_chat":  {
+                         "last_goal_status":  "completed",
+                         "settle_reason":  "goal_terminal",
+                         "nudges_sent":  0,
+                         "conversation_id":  "m2tg1_20261015_213005",
+                         "turns_sent":  1,
+                         "timeline":  [
+                                          "turn 1 stop=done goal=completed"
+                                      ],
+                         "last_stop_reason":  "done"
+                     },
+    "stems_readonly_intact":  true,
+    "verdict":  "forensics_complete",
+    "teardown":  {
+                     "remaining":  [
+
+                                   ],
+                     "torn_down":  true
+                 },
+    "finished_at":  "2026-10-15T21:33:55.9628689+08:00",
+    "run_root":  "D:\\Vit_DAW_wt_m2tg1\\coord\\runs\\M2-EXP-TIMEDYN-GAP-1\\m2tg1_20261015_213005"
+}

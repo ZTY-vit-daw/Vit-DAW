@@ -1,0 +1,31 @@
+﻿[
+    {
+        "bundle_status":  "ready",
+        "view_ids":  [
+                         "project.structure",
+                         "mix.multitrack_relationship"
+                     ],
+        "audit_receipt_status":  "executed",
+        "structure_view_status":  "ready",
+        "label":  "fixture project views [project.structure, mix.multitrack_relationship]",
+        "omission_reasons":  null,
+        "omissions":  null,
+        "limitations":  null
+    },
+    {
+        "bundle_status":  "partial",
+        "view_ids":  [
+                         "track.stereo_space",
+                         "track.time_dynamics"
+                     ],
+        "time_dynamics_view_status":  "partial",
+        "audit_receipt_status":  "executed",
+        "label":  "fixture track views [track.stereo_space, track.time_dynamics] target=1017",
+        "stereo_space_view_status":  "ready",
+        "omission_reasons":  null,
+        "omissions":  null,
+        "limitations":  [
+                            "track.time_dynamics: evidence status is partial"
+                        ]
+    }
+]
