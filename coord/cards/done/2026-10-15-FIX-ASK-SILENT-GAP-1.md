@@ -84,3 +84,7 @@ agent/internal/chat ask 处理链 + goalrunner slice 启动前置段（领取时
 - **工件**：coord/runs/FIX-ASK-SILENT-GAP-1/20261015_{195610,200257}/（timeline/events_final/state_final/summary/head 轻件随 2d09b52b 入库；kernel_workspace/project_B/fixture_stems/agent_drafts 重件留盘 worktree 不入库）。
 - **打点声明**：**未 cherry-pick** recon 分支 [asg1] 打点（0eb31135）——事件/状态面自带可测性无需源内打点；探针方法（raw TCP POST+事件面 100ms 轮询+slice 后 stop 控预算）承 asg1_ask_gap_forensics.ps1 改造为 PASS/FAIL 门禁场景。
 - **遗留观察（不属本卡，供决策侧备查）**：(a) b4/c1/c2 planner 显式 Timeout=3min 仍为 per-attempt 语义（最坏 3×3min+退避）——如需收紧可按同 opt-in 机制另行启用；(b) B 轮前导段（工作区激活/uiContextSnapshot ~2.2s）本身未优化，仅用户反馈不再等待它；(c) A 轮今晚入口分类 ~6s（服务偏慢但健康）——12s 预算内，若未来常见超限可评估下调或分级。
+
+## 验收（决策侧）
+
+- **修复腿 pass（合入 merge commit 见上）** / 2026-10-15 晚窗（GLM 主管决策流）：dc534e83+a811555a 五面 diff 亲读（①12s 预算/②opt-in TimeoutIsTotalBudget 默认路径零变化/③零 LLM 短路+诚实披露文案/④⑤受理即发+幂等收口，webui 零改动）；**决策侧独立亲跑 95 包 0 FAIL**；run2 工件亲核（A 轮 first_event_ms=118.2+capacity_fact_short_circuit 收口 6.5s；B 轮 first_event_ms=1.6+slice 3477ms+turn.stopped）与回执逐项吻合；边界采信=烟测断言面 agent HTTP（Godot 未启）、渲染面由 webui 零改动+事件生命周期源码核对背书；AGENT-F4 契约修订=④⑤ 目标语义本身，过滤后原断言保持。遗留观察三项（planner per-attempt/前导 2.2s/入口 ~6s）登记备查不阻塞。
