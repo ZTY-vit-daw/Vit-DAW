@@ -1,0 +1,18 @@
+﻿{
+    "audit_receipt_status":  "executed",
+    "stereo_fact_clip_id":  "1021",
+    "time_dynamics_view_status":  "partial",
+    "omission_reasons":  null,
+    "stereo_space_view_status":  "ready",
+    "limitations":  [
+                        "track.time_dynamics: evidence status is partial"
+                    ],
+    "bundle_status":  "partial",
+    "time_energy_rows":  4,
+    "requested_views":  [
+                            "track.stereo_space",
+                            "track.time_dynamics"
+                        ],
+    "omissions":  null,
+    "stereo_fact_track_id":  "1017"
+}

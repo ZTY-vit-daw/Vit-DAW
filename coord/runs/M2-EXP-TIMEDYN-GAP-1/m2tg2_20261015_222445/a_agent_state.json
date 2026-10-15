@@ -1,0 +1,1245 @@
+﻿{
+    "active_goal":  {
+                        "agent_plan":  {
+                                           "goal_id":  "goal_564bd42155efa428",
+                                           "run_id":  "run_f5f40344016f1ed0",
+                                           "status":  "completed",
+                                           "summary":  "有几轨听起来比较干，想给其中一条合适的轨加一点混响（衰减短些），不要用整体增益或 EQ 来解决。请先观察工程，再给一个有界的小步改进建议。",
+                                           "project_history":  {
+                                                                   "active_branch":  "main",
+                                                                   "active_node_id":  "n_20261015T142644_93692c4f",
+                                                                   "active_worktree":  "",
+                                                                   "available":  true,
+                                                                   "baseline_commit":  "c_20261015T142525_a11837d5",
+                                                                   "baseline_created":  true,
+                                                                   "branches":  {
+                                                                                    "main":  "c_20261015T142644_fa198ba9"
+                                                                                },
+                                                                   "commit_count":  2,
+                                                                   "detached":  false,
+                                                                   "draft":  false,
+                                                                   "goal_active_branch":  "main",
+                                                                   "goal_detached":  false,
+                                                                   "head":  "c_20261015T142644_fa198ba9",
+                                                                   "initialized":  true,
+                                                                   "project_label":  "Unsaved",
+                                                                   "project_path":  "D:\\Vit_DAW_wt_m2tg2\\coord\\runs\\M2-EXP-TIMEDYN-GAP-1\\m2tg2_20261015_222445\\agent_drafts\\draft_20261015T142454_bfa6f6cf\\Unsaved.vit",
+                                                                   "project_uuid":  "vitproj_56bacbbc896e4795bbe2b22f6c8df559",
+                                                                   "recent_checkpoints":  [
+                                                                                              {
+                                                                                                  "branch":  "main",
+                                                                                                  "checkpoint_kind":  "manual",
+                                                                                                  "created_at":  "2026-10-15T14:26:44.165381Z",
+                                                                                                  "goal_id":  "goal_564bd42155efa428",
+                                                                                                  "id":  "c_20261015T142644_fa198ba9",
+                                                                                                  "message":  "Vit: 已观察完工程（6 轨：bass、drums、guitar、other、piano、vocals），各轨电平都留有余量、没有削波风险。其中钢琴轨在整段里能量连续、声像居中、左右相关度偏高（约 0.32，属偏“聚在中间”的相干状态），缺少空间边缘感，最符合你说的“听着比较干”；吉他轨本身左右差异更大、且中段近乎无声，用混响改善的可听性更差。建议在钢琴轨上做一次很小的、可回退的混响衰减实验：把衰减略微缩短（约 5%），给这条居中而干的轨加一点短尾巴的空间感，避免拖尾糊住中低频。请在 DAW 里对钢琴轨做 A/B：听它是否获得了轻微的房间深度，同时人声和中低频没有被糊住。"
+                                                                                              },
+                                                                                              {
+                                                                                                  "branch":  "main",
+                                                                                                  "checkpoint_kind":  "manual",
+                                                                                                  "created_at":  "2026-10-15T14:25:25.0527259Z",
+                                                                                                  "goal_id":  "goal_564bd42155efa428",
+                                                                                                  "id":  "c_20261015T142525_a11837d5",
+                                                                                                  "message":  "Conversation ask"
+                                                                                              }
+                                                                                          ],
+                                                                   "refs":  {
+                                                                                "refs/heads/main":  "c_20261015T142644_fa198ba9"
+                                                                            },
+                                                                   "root_project_path":  "",
+                                                                   "unsaved":  false,
+                                                                   "warnings":  [
+
+                                                                                ],
+                                                                   "worktree_count":  1,
+                                                                   "worktrees":  [
+                                                                                     {
+                                                                                         "commit_id":  "c_20261015T142644_fa198ba9",
+                                                                                         "created_at":  "2026-10-15T14:26:47.2569189Z",
+                                                                                         "is_root":  true,
+                                                                                         "label":  "主工作树",
+                                                                                         "name":  "main",
+                                                                                         "origin_commit_id":  "c_20261015T142644_fa198ba9",
+                                                                                         "path":  "D:\\Vit_DAW_wt_m2tg2\\coord\\runs\\M2-EXP-TIMEDYN-GAP-1\\m2tg2_20261015_222445\\agent_drafts\\draft_20261015T142454_bfa6f6cf",
+                                                                                         "project_file_path":  "D:\\Vit_DAW_wt_m2tg2\\coord\\runs\\M2-EXP-TIMEDYN-GAP-1\\m2tg2_20261015_222445\\agent_drafts\\draft_20261015T142454_bfa6f6cf\\Unsaved.vit",
+                                                                                         "project_path":  "D:\\Vit_DAW_wt_m2tg2\\coord\\runs\\M2-EXP-TIMEDYN-GAP-1\\m2tg2_20261015_222445\\agent_drafts\\draft_20261015T142454_bfa6f6cf\\Unsaved.vit",
+                                                                                         "root_project_path":  "D:\\Vit_DAW_wt_m2tg2\\coord\\runs\\M2-EXP-TIMEDYN-GAP-1\\m2tg2_20261015_222445\\agent_drafts\\draft_20261015T142454_bfa6f6cf\\Unsaved.vit"
+                                                                                     }
+                                                                                 ]
+                                                               }
+                                       },
+                        "goal":  {
+                                     "goal_id":  "goal_564bd42155efa428",
+                                     "run_id":  "run_f5f40344016f1ed0",
+                                     "task":  {
+                                                  "task_id":  "task_14305a59aa0318fc",
+                                                  "goal_id":  "goal_564bd42155efa428",
+                                                  "conversation_id":  "m2tg2_20261015_222445",
+                                                  "original_intent":  "有几轨听起来比较干，想给其中一条合适的轨加一点混响（衰减短些），不要用整体增益或 EQ 来解决。请先观察工程，再给一个有界的小步改进建议。",
+                                                  "status":  "settled",
+                                                  "contract":  {
+                                                                   "schema_version":  "vit.task_semantic_state.v1",
+                                                                   "contract_id":  "contract_task_14305a59aa0318fc",
+                                                                   "task_id":  "task_14305a59aa0318fc",
+                                                                   "goal_id":  "goal_564bd42155efa428",
+                                                                   "run_id":  "run_f5f40344016f1ed0",
+                                                                   "conversation_id":  "m2tg2_20261015_222445",
+                                                                   "original_intent":  "有几轨听起来比较干，想给其中一条合适的轨加一点混响（衰减短些），不要用整体增益或 EQ 来解决。请先观察工程，再给一个有界的小步改进建议。",
+                                                                   "kind":  "improvement",
+                                                                   "scope":  {
+                                                                                 "kind":  "project",
+                                                                                 "id":  "vitproj_56bacbbc896e4795bbe2b22f6c8df559"
+                                                                             },
+                                                                   "temporary":  true,
+                                                                   "target_discovery":  "agent_observation",
+                                                                   "authorization_boundary":  "governed_experiment",
+                                                                   "completion_criteria":  [
+                                                                                               "settle only after a governed experiment outcome",
+                                                                                               "or report no_candidate_found or a distinct capability boundary with evidence"
+                                                                                           ],
+                                                                   "evidence_requirements":  [
+                                                                                                 "exact observation or audit receipt references",
+                                                                                                 "project revision matching the evaluated evidence",
+                                                                                                 "explicit limitations for every bounded conclusion"
+                                                                                             ],
+                                                                   "project_uuid":  "vitproj_56bacbbc896e4795bbe2b22f6c8df559",
+                                                                   "project_revision":  "3",
+                                                                   "created_at":  "2026-10-15T14:25:28.6070102Z"
+                                                               },
+                                                  "semantic_state":  {
+                                                                         "schema_version":  "vit.task_semantic_state.v1",
+                                                                         "state":  "closed",
+                                                                         "revision":  4,
+                                                                         "contract_id":  "contract_task_14305a59aa0318fc",
+                                                                         "project_uuid":  "vitproj_56bacbbc896e4795bbe2b22f6c8df559",
+                                                                         "project_revision":  "3",
+                                                                         "evidence_refs":  [
+                                                                                               "obs_20261015T142539_2380990b7061",
+                                                                                               "obs_20261015T142625_80cfccae4079"
+                                                                                           ],
+                                                                         "candidate_id":  "1027",
+                                                                         "proposal":  {
+                                                                                          "proposal_id":  "proposal_364440ccf5a2d64a2ef6",
+                                                                                          "summary":  "给听起来偏干的钢琴轨加入一点混响，且衰减保持短一些",
+                                                                                          "evidence_refs":  [
+                                                                                                                "obs_20261015T142625_80cfccae4079",
+                                                                                                                "obs_20261015T142539_2380990b7061"
+                                                                                                            ],
+                                                                                          "bounds":  [
+                                                                                                         "时间动态证据为 partial（仅宏观 5 秒窗），微小瞬态细节未解析",
+                                                                                                         "混响效果与掩蔽判定需以听感 A/B 为准，观察证据不能证明客观缺陷"
+                                                                                                     ],
+                                                                                          "requires_experiment":  true
+                                                                                      },
+                                                                         "transition_reason":  "chat turn closed without governed experiment",
+                                                                         "summary":  "有几轨听起来比较干，想给其中一条合适的轨加一点混响（衰减短些），不要用整体增益或 EQ 来解决。请先观察工程，再给一个有界的小步改进建议。",
+                                                                         "terminal":  true,
+                                                                         "history":  [
+                                                                                         {
+                                                                                             "revision":  1,
+                                                                                             "event":  "observation_started",
+                                                                                             "to":  "observation_in_progress",
+                                                                                             "reason":  "task contract admitted",
+                                                                                             "project_revision":  "3",
+                                                                                             "occurred_at":  "2026-10-15T14:25:28.6070102Z"
+                                                                                         },
+                                                                                         {
+                                                                                             "revision":  2,
+                                                                                             "event":  "diagnostic_completed",
+                                                                                             "from":  "observation_in_progress",
+                                                                                             "to":  "diagnostic_complete",
+                                                                                             "reason":  "candidate diagnosis established",
+                                                                                             "summary":  "工程扫描显示 6 轨均无削波风险；钢琴轨目标级证据显示其整段能量连续（4 段均为 medium/low、无静音段）、声像居中（balance 约 +1.1 dB）、左右相关度 0.316 呈相干状态，即偏居中、缺少空间边缘感，属于“听着干”的合理候选；吉他轨虽也居中但相关度 0.172 已较分散，且第 5-10 秒能量低至约 -66 dBFS，验证可听性更差。故选择钢琴轨做一次有界、可回退的短衰减混响实验。",
+                                                                                             "evidence_refs":  [
+                                                                                                                   "obs_20261015T142539_2380990b7061",
+                                                                                                                   "obs_20261015T142625_80cfccae4079"
+                                                                                                               ],
+                                                                                             "project_revision":  "3",
+                                                                                             "occurred_at":  "2026-10-15T14:26:44.0808512Z"
+                                                                                         },
+                                                                                         {
+                                                                                             "revision":  3,
+                                                                                             "event":  "improvement_proposed",
+                                                                                             "from":  "diagnostic_complete",
+                                                                                             "to":  "improvement_proposal",
+                                                                                             "reason":  "runtime admitted bounded improvement proposal",
+                                                                                             "summary":  "工程扫描显示 6 轨均无削波风险；钢琴轨目标级证据显示其整段能量连续（4 段均为 medium/low、无静音段）、声像居中（balance 约 +1.1 dB）、左右相关度 0.316 呈相干状态，即偏居中、缺少空间边缘感，属于“听着干”的合理候选；吉他轨虽也居中但相关度 0.172 已较分散，且第 5-10 秒能量低至约 -66 dBFS，验证可听性更差。故选择钢琴轨做一次有界、可回退的短衰减混响实验。",
+                                                                                             "evidence_refs":  [
+                                                                                                                   "obs_20261015T142539_2380990b7061",
+                                                                                                                   "obs_20261015T142625_80cfccae4079"
+                                                                                                               ],
+                                                                                             "candidate_id":  "1027",
+                                                                                             "project_revision":  "3",
+                                                                                             "occurred_at":  "2026-10-15T14:26:44.0898513Z"
+                                                                                         },
+                                                                                         {
+                                                                                             "revision":  4,
+                                                                                             "event":  "owner_turn_closed",
+                                                                                             "from":  "improvement_proposal",
+                                                                                             "to":  "closed",
+                                                                                             "reason":  "chat turn closed without governed experiment",
+                                                                                             "summary":  "有几轨听起来比较干，想给其中一条合适的轨加一点混响（衰减短些），不要用整体增益或 EQ 来解决。请先观察工程，再给一个有界的小步改进建议。",
+                                                                                             "project_revision":  "3",
+                                                                                             "occurred_at":  "2026-10-15T14:26:44.1623809Z"
+                                                                                         }
+                                                                                     ],
+                                                                         "updated_at":  "2026-10-15T14:26:44.1623809Z"
+                                                                     },
+                                                  "run":  {
+                                                              "run_id":  "run_f5f40344016f1ed0",
+                                                              "task_id":  "task_14305a59aa0318fc",
+                                                              "current_slice_id":  "slice_9c7f338a5bbdd0c9",
+                                                              "next_slice":  2,
+                                                              "next_turn":  2,
+                                                              "slices":  [
+                                                                             {
+                                                                                 "slice_id":  "slice_9c7f338a5bbdd0c9",
+                                                                                 "run_id":  "run_f5f40344016f1ed0",
+                                                                                 "sequence":  1,
+                                                                                 "max_turns":  1,
+                                                                                 "max_tool_calls":  6,
+                                                                                 "turns_used":  5,
+                                                                                 "tool_calls_used":  4,
+                                                                                 "status":  "settled",
+                                                                                 "started_at":  "2026-10-15T22:25:28.6356878+08:00",
+                                                                                 "ended_at":  "2026-10-15T14:26:44.1623809Z"
+                                                                             }
+                                                                         ],
+                                                              "turns":  [
+                                                                            {
+                                                                                "turn_id":  "turn_cf3e1858a602f3b7",
+                                                                                "slice_id":  "slice_9c7f338a5bbdd0c9",
+                                                                                "run_id":  "run_f5f40344016f1ed0",
+                                                                                "sequence":  1,
+                                                                                "source":  "user",
+                                                                                "status":  "completed",
+                                                                                "started_at":  "2026-10-15T22:25:28.6356878+08:00",
+                                                                                "ended_at":  "2026-10-15T22:26:44.0753515+08:00"
+                                                                            }
+                                                                        ]
+                                                          },
+                                                  "created_at":  "2026-10-15T22:25:25.050225+08:00",
+                                                  "updated_at":  "2026-10-15T14:26:44.1623809Z"
+                                              },
+                                     "status":  "completed",
+                                     "summary":  "有几轨听起来比较干，想给其中一条合适的轨加一点混响（衰减短些），不要用整体增益或 EQ 来解决。请先观察工程，再给一个有界的小步改进建议。",
+                                     "created_at":  "2026-10-15T22:25:25.050225+08:00",
+                                     "updated_at":  "2026-10-15T14:26:44.1623809Z",
+                                     "cancel_requested":  false,
+                                     "last_checkpoint":  "after_tool",
+                                     "project_history":  {
+                                                             "baseline_commit_id":  "c_20261015T142525_a11837d5",
+                                                             "baseline_created":  true,
+                                                             "active_branch":  "main",
+                                                             "head":  "c_20261015T142525_a11837d5"
+                                                         }
+                                 },
+                        "project_history":  {
+                                                "active_branch":  "main",
+                                                "active_node_id":  "n_20261015T142644_93692c4f",
+                                                "active_worktree":  "",
+                                                "available":  true,
+                                                "baseline_commit":  "c_20261015T142525_a11837d5",
+                                                "baseline_created":  true,
+                                                "branches":  {
+                                                                 "main":  "c_20261015T142644_fa198ba9"
+                                                             },
+                                                "commit_count":  2,
+                                                "detached":  false,
+                                                "draft":  false,
+                                                "goal_active_branch":  "main",
+                                                "goal_detached":  false,
+                                                "head":  "c_20261015T142644_fa198ba9",
+                                                "initialized":  true,
+                                                "project_label":  "Unsaved",
+                                                "project_path":  "D:\\Vit_DAW_wt_m2tg2\\coord\\runs\\M2-EXP-TIMEDYN-GAP-1\\m2tg2_20261015_222445\\agent_drafts\\draft_20261015T142454_bfa6f6cf\\Unsaved.vit",
+                                                "project_uuid":  "vitproj_56bacbbc896e4795bbe2b22f6c8df559",
+                                                "recent_checkpoints":  [
+                                                                           {
+                                                                               "branch":  "main",
+                                                                               "checkpoint_kind":  "manual",
+                                                                               "created_at":  "2026-10-15T14:26:44.165381Z",
+                                                                               "goal_id":  "goal_564bd42155efa428",
+                                                                               "id":  "c_20261015T142644_fa198ba9",
+                                                                               "message":  "Vit: 已观察完工程（6 轨：bass、drums、guitar、other、piano、vocals），各轨电平都留有余量、没有削波风险。其中钢琴轨在整段里能量连续、声像居中、左右相关度偏高（约 0.32，属偏“聚在中间”的相干状态），缺少空间边缘感，最符合你说的“听着比较干”；吉他轨本身左右差异更大、且中段近乎无声，用混响改善的可听性更差。建议在钢琴轨上做一次很小的、可回退的混响衰减实验：把衰减略微缩短（约 5%），给这条居中而干的轨加一点短尾巴的空间感，避免拖尾糊住中低频。请在 DAW 里对钢琴轨做 A/B：听它是否获得了轻微的房间深度，同时人声和中低频没有被糊住。"
+                                                                           },
+                                                                           {
+                                                                               "branch":  "main",
+                                                                               "checkpoint_kind":  "manual",
+                                                                               "created_at":  "2026-10-15T14:25:25.0527259Z",
+                                                                               "goal_id":  "goal_564bd42155efa428",
+                                                                               "id":  "c_20261015T142525_a11837d5",
+                                                                               "message":  "Conversation ask"
+                                                                           }
+                                                                       ],
+                                                "refs":  {
+                                                             "refs/heads/main":  "c_20261015T142644_fa198ba9"
+                                                         },
+                                                "root_project_path":  "",
+                                                "unsaved":  false,
+                                                "warnings":  [
+
+                                                             ],
+                                                "worktree_count":  1,
+                                                "worktrees":  [
+                                                                  {
+                                                                      "commit_id":  "c_20261015T142644_fa198ba9",
+                                                                      "created_at":  "2026-10-15T14:26:47.2569189Z",
+                                                                      "is_root":  true,
+                                                                      "label":  "主工作树",
+                                                                      "name":  "main",
+                                                                      "origin_commit_id":  "c_20261015T142644_fa198ba9",
+                                                                      "path":  "D:\\Vit_DAW_wt_m2tg2\\coord\\runs\\M2-EXP-TIMEDYN-GAP-1\\m2tg2_20261015_222445\\agent_drafts\\draft_20261015T142454_bfa6f6cf",
+                                                                      "project_file_path":  "D:\\Vit_DAW_wt_m2tg2\\coord\\runs\\M2-EXP-TIMEDYN-GAP-1\\m2tg2_20261015_222445\\agent_drafts\\draft_20261015T142454_bfa6f6cf\\Unsaved.vit",
+                                                                      "project_path":  "D:\\Vit_DAW_wt_m2tg2\\coord\\runs\\M2-EXP-TIMEDYN-GAP-1\\m2tg2_20261015_222445\\agent_drafts\\draft_20261015T142454_bfa6f6cf\\Unsaved.vit",
+                                                                      "root_project_path":  "D:\\Vit_DAW_wt_m2tg2\\coord\\runs\\M2-EXP-TIMEDYN-GAP-1\\m2tg2_20261015_222445\\agent_drafts\\draft_20261015T142454_bfa6f6cf\\Unsaved.vit"
+                                                                  }
+                                                              ]
+                                            }
+                    },
+    "direct_commands":  [
+                            "add_audio_track",
+                            "add_track",
+                            "aigc_register_job",
+                            "append_ghost_track",
+                            "arm_track",
+                            "artifact_extract",
+                            "artifact_list",
+                            "artifact_read",
+                            "automation.get_curve",
+                            "browser_fetch",
+                            "browser_search",
+                            "cancel_render",
+                            "ccb_observation_catalog",
+                            "ccb_observation_request",
+                            "clip.fade.read",
+                            "clip.gain.read",
+                            "clip.strip_silence.analyze",
+                            "clip.strip_silence.suggest",
+                            "control_rename_macro",
+                            "control_set_macro_values",
+                            "control_set_node_value",
+                            "folder_track.create",
+                            "genapi_providers",
+                            "get_audio_device_types",
+                            "get_audio_devices",
+                            "get_midi_clip_data",
+                            "get_midi_clip_notes",
+                            "get_plugin_parameters",
+                            "get_project_state",
+                            "get_recent_projects",
+                            "get_wave_input_devices",
+                            "goal_cancel",
+                            "goal_status",
+                            "goal_tick",
+                            "list_tracks",
+                            "logs_read",
+                            "logs_search",
+                            "loudness_watch_configure",
+                            "loudness_watch_status",
+                            "media.inspect_files",
+                            "media_index_authorized_folder",
+                            "media_register_assets",
+                            "mix_apply_tick",
+                            "mix_derive",
+                            "mix_observe",
+                            "mix_propose_tick",
+                            "mix_read",
+                            "mix_report",
+                            "mix_request_observation",
+                            "mix_rollback_tick",
+                            "open_plugin_ui",
+                            "ping",
+                            "play",
+                            "plugin_grabber_apply_compressor_controls",
+                            "plugin_grabber_apply_de_esser_controls",
+                            "plugin_grabber_apply_delay_controls",
+                            "plugin_grabber_apply_eq_edits",
+                            "plugin_grabber_apply_gate_expander_controls",
+                            "plugin_grabber_apply_limiter_controls",
+                            "plugin_grabber_apply_multiband_controls",
+                            "plugin_grabber_apply_reverb_controls",
+                            "plugin_grabber_apply_transient_shaper_controls",
+                            "plugin_grabber_explain_controls",
+                            "plugin_grabber_inspect_compressor",
+                            "plugin_grabber_inspect_de_esser",
+                            "plugin_grabber_inspect_delay",
+                            "plugin_grabber_inspect_gate_expander",
+                            "plugin_grabber_inspect_limiter",
+                            "plugin_grabber_inspect_multiband",
+                            "plugin_grabber_inspect_reverb",
+                            "plugin_grabber_inspect_spectral_dynamics",
+                            "plugin_grabber_inspect_transient_shaper",
+                            "plugin_grabber_set_eq_point",
+                            "plugin_list_available",
+                            "plugin_search",
+                            "plugin_semantic_get",
+                            "plugin_semantic_search",
+                            "project.audio_analysis_cancel",
+                            "project.audio_analysis_start",
+                            "project.audio_analysis_status",
+                            "project.get_audio_settings",
+                            "project.import_preflight",
+                            "project.markers.list",
+                            "project.markers.rename",
+                            "project.markers.upsert",
+                            "project.set_audio_settings",
+                            "project.validate_audio_settings_change",
+                            "project_health_check",
+                            "project_snapshot_export",
+                            "project_undo_state",
+                            "redo",
+                            "ref_diff",
+                            "ref_query",
+                            "rename_track",
+                            "render_profile_bind",
+                            "render_profile_list",
+                            "return_to_zero",
+                            "route_wave_input_to_track",
+                            "seek",
+                            "select_clip",
+                            "select_plugin",
+                            "select_track",
+                            "set_async_ghost_state",
+                            "set_click",
+                            "set_mute",
+                            "set_pan",
+                            "set_plugin_param",
+                            "set_solo",
+                            "set_tempo",
+                            "set_volume",
+                            "show_plugin_editor",
+                            "start_recording",
+                            "stop",
+                            "stop_recording",
+                            "toggle_click",
+                            "track.group.create",
+                            "track.group.list",
+                            "track.group.set_members",
+                            "track.group.update",
+                            "track.move_to_folder",
+                            "transport_option_stop_return_to_start",
+                            "undo",
+                            "version_diff",
+                            "version_list",
+                            "version_project_new",
+                            "version_project_opened",
+                            "version_project_save_prepare",
+                            "version_project_saved",
+                            "version_restore_preview",
+                            "version_show",
+                            "version_status",
+                            "version_worktree_list",
+                            "warm_waveform_bake",
+                            "workspace_blob_info",
+                            "workspace_edit_preview",
+                            "workspace_file_info",
+                            "workspace_glob",
+                            "workspace_grep",
+                            "workspace_read_file"
+                        ],
+    "goal":  {
+                 "goal_id":  "goal_564bd42155efa428",
+                 "run_id":  "run_f5f40344016f1ed0",
+                 "task":  {
+                              "task_id":  "task_14305a59aa0318fc",
+                              "goal_id":  "goal_564bd42155efa428",
+                              "conversation_id":  "m2tg2_20261015_222445",
+                              "original_intent":  "有几轨听起来比较干，想给其中一条合适的轨加一点混响（衰减短些），不要用整体增益或 EQ 来解决。请先观察工程，再给一个有界的小步改进建议。",
+                              "status":  "settled",
+                              "contract":  {
+                                               "schema_version":  "vit.task_semantic_state.v1",
+                                               "contract_id":  "contract_task_14305a59aa0318fc",
+                                               "task_id":  "task_14305a59aa0318fc",
+                                               "goal_id":  "goal_564bd42155efa428",
+                                               "run_id":  "run_f5f40344016f1ed0",
+                                               "conversation_id":  "m2tg2_20261015_222445",
+                                               "original_intent":  "有几轨听起来比较干，想给其中一条合适的轨加一点混响（衰减短些），不要用整体增益或 EQ 来解决。请先观察工程，再给一个有界的小步改进建议。",
+                                               "kind":  "improvement",
+                                               "scope":  {
+                                                             "kind":  "project",
+                                                             "id":  "vitproj_56bacbbc896e4795bbe2b22f6c8df559"
+                                                         },
+                                               "temporary":  true,
+                                               "target_discovery":  "agent_observation",
+                                               "authorization_boundary":  "governed_experiment",
+                                               "completion_criteria":  [
+                                                                           "settle only after a governed experiment outcome",
+                                                                           "or report no_candidate_found or a distinct capability boundary with evidence"
+                                                                       ],
+                                               "evidence_requirements":  [
+                                                                             "exact observation or audit receipt references",
+                                                                             "project revision matching the evaluated evidence",
+                                                                             "explicit limitations for every bounded conclusion"
+                                                                         ],
+                                               "project_uuid":  "vitproj_56bacbbc896e4795bbe2b22f6c8df559",
+                                               "project_revision":  "3",
+                                               "created_at":  "2026-10-15T14:25:28.6070102Z"
+                                           },
+                              "semantic_state":  {
+                                                     "schema_version":  "vit.task_semantic_state.v1",
+                                                     "state":  "closed",
+                                                     "revision":  4,
+                                                     "contract_id":  "contract_task_14305a59aa0318fc",
+                                                     "project_uuid":  "vitproj_56bacbbc896e4795bbe2b22f6c8df559",
+                                                     "project_revision":  "3",
+                                                     "evidence_refs":  [
+                                                                           "obs_20261015T142539_2380990b7061",
+                                                                           "obs_20261015T142625_80cfccae4079"
+                                                                       ],
+                                                     "candidate_id":  "1027",
+                                                     "proposal":  {
+                                                                      "proposal_id":  "proposal_364440ccf5a2d64a2ef6",
+                                                                      "summary":  "给听起来偏干的钢琴轨加入一点混响，且衰减保持短一些",
+                                                                      "evidence_refs":  [
+                                                                                            "obs_20261015T142625_80cfccae4079",
+                                                                                            "obs_20261015T142539_2380990b7061"
+                                                                                        ],
+                                                                      "bounds":  [
+                                                                                     "时间动态证据为 partial（仅宏观 5 秒窗），微小瞬态细节未解析",
+                                                                                     "混响效果与掩蔽判定需以听感 A/B 为准，观察证据不能证明客观缺陷"
+                                                                                 ],
+                                                                      "requires_experiment":  true
+                                                                  },
+                                                     "transition_reason":  "chat turn closed without governed experiment",
+                                                     "summary":  "有几轨听起来比较干，想给其中一条合适的轨加一点混响（衰减短些），不要用整体增益或 EQ 来解决。请先观察工程，再给一个有界的小步改进建议。",
+                                                     "terminal":  true,
+                                                     "history":  [
+                                                                     {
+                                                                         "revision":  1,
+                                                                         "event":  "observation_started",
+                                                                         "to":  "observation_in_progress",
+                                                                         "reason":  "task contract admitted",
+                                                                         "project_revision":  "3",
+                                                                         "occurred_at":  "2026-10-15T14:25:28.6070102Z"
+                                                                     },
+                                                                     {
+                                                                         "revision":  2,
+                                                                         "event":  "diagnostic_completed",
+                                                                         "from":  "observation_in_progress",
+                                                                         "to":  "diagnostic_complete",
+                                                                         "reason":  "candidate diagnosis established",
+                                                                         "summary":  "工程扫描显示 6 轨均无削波风险；钢琴轨目标级证据显示其整段能量连续（4 段均为 medium/low、无静音段）、声像居中（balance 约 +1.1 dB）、左右相关度 0.316 呈相干状态，即偏居中、缺少空间边缘感，属于“听着干”的合理候选；吉他轨虽也居中但相关度 0.172 已较分散，且第 5-10 秒能量低至约 -66 dBFS，验证可听性更差。故选择钢琴轨做一次有界、可回退的短衰减混响实验。",
+                                                                         "evidence_refs":  [
+                                                                                               "obs_20261015T142539_2380990b7061",
+                                                                                               "obs_20261015T142625_80cfccae4079"
+                                                                                           ],
+                                                                         "project_revision":  "3",
+                                                                         "occurred_at":  "2026-10-15T14:26:44.0808512Z"
+                                                                     },
+                                                                     {
+                                                                         "revision":  3,
+                                                                         "event":  "improvement_proposed",
+                                                                         "from":  "diagnostic_complete",
+                                                                         "to":  "improvement_proposal",
+                                                                         "reason":  "runtime admitted bounded improvement proposal",
+                                                                         "summary":  "工程扫描显示 6 轨均无削波风险；钢琴轨目标级证据显示其整段能量连续（4 段均为 medium/low、无静音段）、声像居中（balance 约 +1.1 dB）、左右相关度 0.316 呈相干状态，即偏居中、缺少空间边缘感，属于“听着干”的合理候选；吉他轨虽也居中但相关度 0.172 已较分散，且第 5-10 秒能量低至约 -66 dBFS，验证可听性更差。故选择钢琴轨做一次有界、可回退的短衰减混响实验。",
+                                                                         "evidence_refs":  [
+                                                                                               "obs_20261015T142539_2380990b7061",
+                                                                                               "obs_20261015T142625_80cfccae4079"
+                                                                                           ],
+                                                                         "candidate_id":  "1027",
+                                                                         "project_revision":  "3",
+                                                                         "occurred_at":  "2026-10-15T14:26:44.0898513Z"
+                                                                     },
+                                                                     {
+                                                                         "revision":  4,
+                                                                         "event":  "owner_turn_closed",
+                                                                         "from":  "improvement_proposal",
+                                                                         "to":  "closed",
+                                                                         "reason":  "chat turn closed without governed experiment",
+                                                                         "summary":  "有几轨听起来比较干，想给其中一条合适的轨加一点混响（衰减短些），不要用整体增益或 EQ 来解决。请先观察工程，再给一个有界的小步改进建议。",
+                                                                         "project_revision":  "3",
+                                                                         "occurred_at":  "2026-10-15T14:26:44.1623809Z"
+                                                                     }
+                                                                 ],
+                                                     "updated_at":  "2026-10-15T14:26:44.1623809Z"
+                                                 },
+                              "run":  {
+                                          "run_id":  "run_f5f40344016f1ed0",
+                                          "task_id":  "task_14305a59aa0318fc",
+                                          "current_slice_id":  "slice_9c7f338a5bbdd0c9",
+                                          "next_slice":  2,
+                                          "next_turn":  2,
+                                          "slices":  [
+                                                         {
+                                                             "slice_id":  "slice_9c7f338a5bbdd0c9",
+                                                             "run_id":  "run_f5f40344016f1ed0",
+                                                             "sequence":  1,
+                                                             "max_turns":  1,
+                                                             "max_tool_calls":  6,
+                                                             "turns_used":  5,
+                                                             "tool_calls_used":  4,
+                                                             "status":  "settled",
+                                                             "started_at":  "2026-10-15T22:25:28.6356878+08:00",
+                                                             "ended_at":  "2026-10-15T14:26:44.1623809Z"
+                                                         }
+                                                     ],
+                                          "turns":  [
+                                                        {
+                                                            "turn_id":  "turn_cf3e1858a602f3b7",
+                                                            "slice_id":  "slice_9c7f338a5bbdd0c9",
+                                                            "run_id":  "run_f5f40344016f1ed0",
+                                                            "sequence":  1,
+                                                            "source":  "user",
+                                                            "status":  "completed",
+                                                            "started_at":  "2026-10-15T22:25:28.6356878+08:00",
+                                                            "ended_at":  "2026-10-15T22:26:44.0753515+08:00"
+                                                        }
+                                                    ]
+                                      },
+                              "created_at":  "2026-10-15T22:25:25.050225+08:00",
+                              "updated_at":  "2026-10-15T14:26:44.1623809Z"
+                          },
+                 "status":  "completed",
+                 "summary":  "有几轨听起来比较干，想给其中一条合适的轨加一点混响（衰减短些），不要用整体增益或 EQ 来解决。请先观察工程，再给一个有界的小步改进建议。",
+                 "created_at":  "2026-10-15T22:25:25.050225+08:00",
+                 "updated_at":  "2026-10-15T14:26:44.1623809Z",
+                 "cancel_requested":  false,
+                 "last_checkpoint":  "after_tool",
+                 "project_history":  {
+                                         "baseline_commit_id":  "c_20261015T142525_a11837d5",
+                                         "baseline_created":  true,
+                                         "active_branch":  "main",
+                                         "head":  "c_20261015T142525_a11837d5"
+                                     }
+             },
+    "project_history":  {
+                            "active_branch":  "main",
+                            "active_node_id":  "n_20261015T142644_93692c4f",
+                            "active_worktree":  "",
+                            "available":  true,
+                            "baseline_commit":  "c_20261015T142525_a11837d5",
+                            "baseline_created":  true,
+                            "branches":  {
+                                             "main":  "c_20261015T142644_fa198ba9"
+                                         },
+                            "commit_count":  2,
+                            "detached":  false,
+                            "draft":  false,
+                            "goal_active_branch":  "main",
+                            "goal_detached":  false,
+                            "head":  "c_20261015T142644_fa198ba9",
+                            "initialized":  true,
+                            "project_label":  "Unsaved",
+                            "project_path":  "D:\\Vit_DAW_wt_m2tg2\\coord\\runs\\M2-EXP-TIMEDYN-GAP-1\\m2tg2_20261015_222445\\agent_drafts\\draft_20261015T142454_bfa6f6cf\\Unsaved.vit",
+                            "project_uuid":  "vitproj_56bacbbc896e4795bbe2b22f6c8df559",
+                            "recent_checkpoints":  [
+                                                       {
+                                                           "branch":  "main",
+                                                           "checkpoint_kind":  "manual",
+                                                           "created_at":  "2026-10-15T14:26:44.165381Z",
+                                                           "goal_id":  "goal_564bd42155efa428",
+                                                           "id":  "c_20261015T142644_fa198ba9",
+                                                           "message":  "Vit: 已观察完工程（6 轨：bass、drums、guitar、other、piano、vocals），各轨电平都留有余量、没有削波风险。其中钢琴轨在整段里能量连续、声像居中、左右相关度偏高（约 0.32，属偏“聚在中间”的相干状态），缺少空间边缘感，最符合你说的“听着比较干”；吉他轨本身左右差异更大、且中段近乎无声，用混响改善的可听性更差。建议在钢琴轨上做一次很小的、可回退的混响衰减实验：把衰减略微缩短（约 5%），给这条居中而干的轨加一点短尾巴的空间感，避免拖尾糊住中低频。请在 DAW 里对钢琴轨做 A/B：听它是否获得了轻微的房间深度，同时人声和中低频没有被糊住。"
+                                                       },
+                                                       {
+                                                           "branch":  "main",
+                                                           "checkpoint_kind":  "manual",
+                                                           "created_at":  "2026-10-15T14:25:25.0527259Z",
+                                                           "goal_id":  "goal_564bd42155efa428",
+                                                           "id":  "c_20261015T142525_a11837d5",
+                                                           "message":  "Conversation ask"
+                                                       }
+                                                   ],
+                            "refs":  {
+                                         "refs/heads/main":  "c_20261015T142644_fa198ba9"
+                                     },
+                            "root_project_path":  "",
+                            "unsaved":  false,
+                            "warnings":  [
+
+                                         ],
+                            "worktree_count":  1,
+                            "worktrees":  [
+                                              {
+                                                  "commit_id":  "c_20261015T142644_fa198ba9",
+                                                  "created_at":  "2026-10-15T14:26:47.2569189Z",
+                                                  "is_root":  true,
+                                                  "label":  "主工作树",
+                                                  "name":  "main",
+                                                  "origin_commit_id":  "c_20261015T142644_fa198ba9",
+                                                  "path":  "D:\\Vit_DAW_wt_m2tg2\\coord\\runs\\M2-EXP-TIMEDYN-GAP-1\\m2tg2_20261015_222445\\agent_drafts\\draft_20261015T142454_bfa6f6cf",
+                                                  "project_file_path":  "D:\\Vit_DAW_wt_m2tg2\\coord\\runs\\M2-EXP-TIMEDYN-GAP-1\\m2tg2_20261015_222445\\agent_drafts\\draft_20261015T142454_bfa6f6cf\\Unsaved.vit",
+                                                  "project_path":  "D:\\Vit_DAW_wt_m2tg2\\coord\\runs\\M2-EXP-TIMEDYN-GAP-1\\m2tg2_20261015_222445\\agent_drafts\\draft_20261015T142454_bfa6f6cf\\Unsaved.vit",
+                                                  "root_project_path":  "D:\\Vit_DAW_wt_m2tg2\\coord\\runs\\M2-EXP-TIMEDYN-GAP-1\\m2tg2_20261015_222445\\agent_drafts\\draft_20261015T142454_bfa6f6cf\\Unsaved.vit"
+                                              }
+                                          ]
+                        },
+    "shadow":  {
+                   "analysis_manifest":  null,
+                   "delta_seq_gaps":  0,
+                   "engine_track_count":  6,
+                   "graph_revision":  null,
+                   "groups":  [
+
+                              ],
+                   "initialized":  true,
+                   "internal_track_count":  0,
+                   "last_delta_seq":  204,
+                   "latest_change":  {
+                                         "affected_scopes":  [
+                                                                 "project.state"
+                                                             ],
+                                         "authoritative":  true,
+                                         "change_id":  "shadow_change_000203",
+                                         "changed_entities":  [
+                                                                  {
+                                                                      "fields":  [
+                                                                                     {
+                                                                                         "after":  "INPUTDEVICE",
+                                                                                         "path":  "state"
+                                                                                     }
+                                                                                 ],
+                                                                      "id":  "INPUTDEVICE",
+                                                                      "kind":  "node"
+                                                                  }
+                                                              ],
+                                         "freshness":  "current_snapshot",
+                                         "from_project":  {
+                                                              "project_epoch":  "epoch_3da8037bd4b8001d",
+                                                              "project_revision":  3,
+                                                              "project_uuid":  "vitproj_56bacbbc896e4795bbe2b22f6c8df559",
+                                                              "snapshot_hash":  "90736286aa0eb2bd"
+                                                          },
+                                         "from_state_epoch":  209,
+                                         "observed_at":  "2026-10-15T14:24:56.2669176Z",
+                                         "schema_version":  "project_change_receipt.v1",
+                                         "source":  "telemetry_delta",
+                                         "to_project":  {
+                                                            "project_epoch":  "epoch_3da8037bd4b8001d",
+                                                            "project_revision":  3,
+                                                            "project_uuid":  "vitproj_56bacbbc896e4795bbe2b22f6c8df559",
+                                                            "snapshot_hash":  "90736286aa0eb2bd"
+                                                        },
+                                         "to_state_epoch":  210
+                                     },
+                   "nodes_by_uid":  12,
+                   "observability":  null,
+                   "orphan_uid_keys":  29,
+                   "parent_project_uuid":  "",
+                   "pending_job_data":  null,
+                   "project_epoch":  "epoch_3da8037bd4b8001d",
+                   "project_health":  null,
+                   "project_id":  "vitproj_56bacbbc896e4795bbe2b22f6c8df559",
+                   "project_path":  "",
+                   "project_revision":  3,
+                   "project_uuid":  "vitproj_56bacbbc896e4795bbe2b22f6c8df559",
+                   "snapshot_hash":  "90736286aa0eb2bd",
+                   "state_epoch":  213,
+                   "track_count":  6,
+                   "track_group_count":  0,
+                   "track_groups":  [
+
+                                    ],
+                   "tracks":  [
+                                  {
+                                      "armed":  false,
+                                      "automation_lane_count":  0,
+                                      "clips":  [
+                                                    {
+                                                        "active_take_id":  "",
+                                                        "asset_job_id":  "",
+                                                        "asset_ref":  "",
+                                                        "asset_state":  "",
+                                                        "auto_crossfade":  false,
+                                                        "clip_gain_db":  0,
+                                                        "clip_id":  "1011",
+                                                        "clip_mute":  false,
+                                                        "clip_pan":  0,
+                                                        "clip_state_revision":  "3148725503387c33",
+                                                        "clip_type":  "wave",
+                                                        "current_source_path":  "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_02be6193fbc17bed\\cases\\spv1_p06\\stems\\bass.wav",
+                                                        "end_seconds":  20,
+                                                        "fade_in_behaviour":  "gain",
+                                                        "fade_in_behaviour_type":  0,
+                                                        "fade_in_curve":  "linear",
+                                                        "fade_in_curve_type":  1,
+                                                        "fade_in_seconds":  0,
+                                                        "fade_out_behaviour":  "gain",
+                                                        "fade_out_behaviour_type":  0,
+                                                        "fade_out_curve":  "linear",
+                                                        "fade_out_curve_type":  1,
+                                                        "fade_out_seconds":  0,
+                                                        "gain_db":  0,
+                                                        "ghost_state":  "",
+                                                        "id":  "1011",
+                                                        "length_seconds":  20,
+                                                        "mute":  false,
+                                                        "name":  "bass",
+                                                        "offset_in_source_seconds":  0,
+                                                        "pan":  0,
+                                                        "playback_source_valid":  true,
+                                                        "start_seconds":  0,
+                                                        "take_stack_id":  "",
+                                                        "track_id":  "1007",
+                                                        "warp_state":  ""
+                                                    }
+                                                ],
+                                      "fader_db":  0,
+                                      "gain_db":  0,
+                                      "group_ids":  [
+
+                                                    ],
+                                      "group_names":  [
+
+                                                      ],
+                                      "id":  "1007",
+                                      "is_armed":  false,
+                                      "is_audio_track":  true,
+                                      "is_user_visible":  true,
+                                      "left_level_db":  null,
+                                      "level_db":  null,
+                                      "mute":  false,
+                                      "name":  "bass",
+                                      "pan":  0,
+                                      "pan_value":  0,
+                                      "plugin_count":  0,
+                                      "plugins":  null,
+                                      "rack":  null,
+                                      "right_level_db":  null,
+                                      "routing_edge_count":  0,
+                                      "solo":  false,
+                                      "track_group_ids":  [
+
+                                                          ],
+                                      "track_group_names":  [
+
+                                                            ],
+                                      "track_groups":  [
+
+                                                       ],
+                                      "track_id":  "1007",
+                                      "track_name":  "bass",
+                                      "track_state_revision":  "3acfcd50be62990c",
+                                      "track_type":  "hybrid",
+                                      "type":  "hybrid",
+                                      "user_track_index":  1,
+                                      "volume_db":  0
+                                  },
+                                  {
+                                      "armed":  false,
+                                      "automation_lane_count":  0,
+                                      "clips":  [
+                                                    {
+                                                        "active_take_id":  "",
+                                                        "asset_job_id":  "",
+                                                        "asset_ref":  "",
+                                                        "asset_state":  "",
+                                                        "auto_crossfade":  false,
+                                                        "clip_gain_db":  0,
+                                                        "clip_id":  "1016",
+                                                        "clip_mute":  false,
+                                                        "clip_pan":  0,
+                                                        "clip_state_revision":  "fc3b8f965067a13a",
+                                                        "clip_type":  "wave",
+                                                        "current_source_path":  "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_02be6193fbc17bed\\cases\\spv1_p06\\stems\\drums.wav",
+                                                        "end_seconds":  20,
+                                                        "fade_in_behaviour":  "gain",
+                                                        "fade_in_behaviour_type":  0,
+                                                        "fade_in_curve":  "linear",
+                                                        "fade_in_curve_type":  1,
+                                                        "fade_in_seconds":  0,
+                                                        "fade_out_behaviour":  "gain",
+                                                        "fade_out_behaviour_type":  0,
+                                                        "fade_out_curve":  "linear",
+                                                        "fade_out_curve_type":  1,
+                                                        "fade_out_seconds":  0,
+                                                        "gain_db":  0,
+                                                        "ghost_state":  "",
+                                                        "id":  "1016",
+                                                        "length_seconds":  20,
+                                                        "mute":  false,
+                                                        "name":  "drums",
+                                                        "offset_in_source_seconds":  0,
+                                                        "pan":  0,
+                                                        "playback_source_valid":  true,
+                                                        "start_seconds":  0,
+                                                        "take_stack_id":  "",
+                                                        "track_id":  "1012",
+                                                        "warp_state":  ""
+                                                    }
+                                                ],
+                                      "fader_db":  0,
+                                      "gain_db":  0,
+                                      "group_ids":  [
+
+                                                    ],
+                                      "group_names":  [
+
+                                                      ],
+                                      "id":  "1012",
+                                      "is_armed":  false,
+                                      "is_audio_track":  true,
+                                      "is_user_visible":  true,
+                                      "left_level_db":  null,
+                                      "level_db":  null,
+                                      "mute":  false,
+                                      "name":  "drums",
+                                      "pan":  0,
+                                      "pan_value":  0,
+                                      "plugin_count":  0,
+                                      "plugins":  null,
+                                      "rack":  null,
+                                      "right_level_db":  null,
+                                      "routing_edge_count":  0,
+                                      "solo":  false,
+                                      "track_group_ids":  [
+
+                                                          ],
+                                      "track_group_names":  [
+
+                                                            ],
+                                      "track_groups":  [
+
+                                                       ],
+                                      "track_id":  "1012",
+                                      "track_name":  "drums",
+                                      "track_state_revision":  "1d778f831d00ab7b",
+                                      "track_type":  "hybrid",
+                                      "type":  "hybrid",
+                                      "user_track_index":  2,
+                                      "volume_db":  0
+                                  },
+                                  {
+                                      "armed":  false,
+                                      "automation_lane_count":  0,
+                                      "clips":  [
+                                                    {
+                                                        "active_take_id":  "",
+                                                        "asset_job_id":  "",
+                                                        "asset_ref":  "",
+                                                        "asset_state":  "",
+                                                        "auto_crossfade":  false,
+                                                        "clip_gain_db":  0,
+                                                        "clip_id":  "1021",
+                                                        "clip_mute":  false,
+                                                        "clip_pan":  0,
+                                                        "clip_state_revision":  "3713eed1cd3d9004",
+                                                        "clip_type":  "wave",
+                                                        "current_source_path":  "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_02be6193fbc17bed\\cases\\spv1_p06\\stems\\guitar.wav",
+                                                        "end_seconds":  20,
+                                                        "fade_in_behaviour":  "gain",
+                                                        "fade_in_behaviour_type":  0,
+                                                        "fade_in_curve":  "linear",
+                                                        "fade_in_curve_type":  1,
+                                                        "fade_in_seconds":  0,
+                                                        "fade_out_behaviour":  "gain",
+                                                        "fade_out_behaviour_type":  0,
+                                                        "fade_out_curve":  "linear",
+                                                        "fade_out_curve_type":  1,
+                                                        "fade_out_seconds":  0,
+                                                        "gain_db":  0,
+                                                        "ghost_state":  "",
+                                                        "id":  "1021",
+                                                        "length_seconds":  20,
+                                                        "mute":  false,
+                                                        "name":  "guitar",
+                                                        "offset_in_source_seconds":  0,
+                                                        "pan":  0,
+                                                        "playback_source_valid":  true,
+                                                        "start_seconds":  0,
+                                                        "take_stack_id":  "",
+                                                        "track_id":  "1017",
+                                                        "warp_state":  ""
+                                                    }
+                                                ],
+                                      "fader_db":  0,
+                                      "gain_db":  0,
+                                      "group_ids":  [
+
+                                                    ],
+                                      "group_names":  [
+
+                                                      ],
+                                      "id":  "1017",
+                                      "is_armed":  false,
+                                      "is_audio_track":  true,
+                                      "is_user_visible":  true,
+                                      "left_level_db":  null,
+                                      "level_db":  null,
+                                      "mute":  false,
+                                      "name":  "guitar",
+                                      "pan":  0,
+                                      "pan_value":  0,
+                                      "plugin_count":  0,
+                                      "plugins":  null,
+                                      "rack":  null,
+                                      "right_level_db":  null,
+                                      "routing_edge_count":  0,
+                                      "solo":  false,
+                                      "track_group_ids":  [
+
+                                                          ],
+                                      "track_group_names":  [
+
+                                                            ],
+                                      "track_groups":  [
+
+                                                       ],
+                                      "track_id":  "1017",
+                                      "track_name":  "guitar",
+                                      "track_state_revision":  "dda076f6bd549f82",
+                                      "track_type":  "hybrid",
+                                      "type":  "hybrid",
+                                      "user_track_index":  3,
+                                      "volume_db":  0
+                                  },
+                                  {
+                                      "armed":  false,
+                                      "automation_lane_count":  0,
+                                      "clips":  [
+                                                    {
+                                                        "active_take_id":  "",
+                                                        "asset_job_id":  "",
+                                                        "asset_ref":  "",
+                                                        "asset_state":  "",
+                                                        "auto_crossfade":  false,
+                                                        "clip_gain_db":  0,
+                                                        "clip_id":  "1026",
+                                                        "clip_mute":  false,
+                                                        "clip_pan":  0,
+                                                        "clip_state_revision":  "5c876c1bcf002065",
+                                                        "clip_type":  "wave",
+                                                        "current_source_path":  "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_02be6193fbc17bed\\cases\\spv1_p06\\stems\\other.wav",
+                                                        "end_seconds":  20,
+                                                        "fade_in_behaviour":  "gain",
+                                                        "fade_in_behaviour_type":  0,
+                                                        "fade_in_curve":  "linear",
+                                                        "fade_in_curve_type":  1,
+                                                        "fade_in_seconds":  0,
+                                                        "fade_out_behaviour":  "gain",
+                                                        "fade_out_behaviour_type":  0,
+                                                        "fade_out_curve":  "linear",
+                                                        "fade_out_curve_type":  1,
+                                                        "fade_out_seconds":  0,
+                                                        "gain_db":  0,
+                                                        "ghost_state":  "",
+                                                        "id":  "1026",
+                                                        "length_seconds":  20,
+                                                        "mute":  false,
+                                                        "name":  "other",
+                                                        "offset_in_source_seconds":  0,
+                                                        "pan":  0,
+                                                        "playback_source_valid":  true,
+                                                        "start_seconds":  0,
+                                                        "take_stack_id":  "",
+                                                        "track_id":  "1022",
+                                                        "warp_state":  ""
+                                                    }
+                                                ],
+                                      "fader_db":  0,
+                                      "gain_db":  0,
+                                      "group_ids":  [
+
+                                                    ],
+                                      "group_names":  [
+
+                                                      ],
+                                      "id":  "1022",
+                                      "is_armed":  false,
+                                      "is_audio_track":  true,
+                                      "is_user_visible":  true,
+                                      "left_level_db":  null,
+                                      "level_db":  null,
+                                      "mute":  false,
+                                      "name":  "other",
+                                      "pan":  0,
+                                      "pan_value":  0,
+                                      "plugin_count":  0,
+                                      "plugins":  null,
+                                      "rack":  null,
+                                      "right_level_db":  null,
+                                      "routing_edge_count":  0,
+                                      "solo":  false,
+                                      "track_group_ids":  [
+
+                                                          ],
+                                      "track_group_names":  [
+
+                                                            ],
+                                      "track_groups":  [
+
+                                                       ],
+                                      "track_id":  "1022",
+                                      "track_name":  "other",
+                                      "track_state_revision":  "fb0d0601a5863407",
+                                      "track_type":  "hybrid",
+                                      "type":  "hybrid",
+                                      "user_track_index":  4,
+                                      "volume_db":  0
+                                  },
+                                  {
+                                      "armed":  false,
+                                      "automation_lane_count":  0,
+                                      "clips":  [
+                                                    {
+                                                        "active_take_id":  "",
+                                                        "asset_job_id":  "",
+                                                        "asset_ref":  "",
+                                                        "asset_state":  "",
+                                                        "auto_crossfade":  false,
+                                                        "clip_gain_db":  0,
+                                                        "clip_id":  "1031",
+                                                        "clip_mute":  false,
+                                                        "clip_pan":  0,
+                                                        "clip_state_revision":  "457397249b5e7ddb",
+                                                        "clip_type":  "wave",
+                                                        "current_source_path":  "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_02be6193fbc17bed\\cases\\spv1_p06\\stems\\piano.wav",
+                                                        "end_seconds":  20,
+                                                        "fade_in_behaviour":  "gain",
+                                                        "fade_in_behaviour_type":  0,
+                                                        "fade_in_curve":  "linear",
+                                                        "fade_in_curve_type":  1,
+                                                        "fade_in_seconds":  0,
+                                                        "fade_out_behaviour":  "gain",
+                                                        "fade_out_behaviour_type":  0,
+                                                        "fade_out_curve":  "linear",
+                                                        "fade_out_curve_type":  1,
+                                                        "fade_out_seconds":  0,
+                                                        "gain_db":  0,
+                                                        "ghost_state":  "",
+                                                        "id":  "1031",
+                                                        "length_seconds":  20,
+                                                        "mute":  false,
+                                                        "name":  "piano",
+                                                        "offset_in_source_seconds":  0,
+                                                        "pan":  0,
+                                                        "playback_source_valid":  true,
+                                                        "start_seconds":  0,
+                                                        "take_stack_id":  "",
+                                                        "track_id":  "1027",
+                                                        "warp_state":  ""
+                                                    }
+                                                ],
+                                      "fader_db":  0,
+                                      "gain_db":  0,
+                                      "group_ids":  [
+
+                                                    ],
+                                      "group_names":  [
+
+                                                      ],
+                                      "id":  "1027",
+                                      "is_armed":  false,
+                                      "is_audio_track":  true,
+                                      "is_user_visible":  true,
+                                      "left_level_db":  null,
+                                      "level_db":  null,
+                                      "mute":  false,
+                                      "name":  "piano",
+                                      "pan":  0,
+                                      "pan_value":  0,
+                                      "plugin_count":  0,
+                                      "plugins":  null,
+                                      "rack":  null,
+                                      "right_level_db":  null,
+                                      "routing_edge_count":  0,
+                                      "solo":  false,
+                                      "track_group_ids":  [
+
+                                                          ],
+                                      "track_group_names":  [
+
+                                                            ],
+                                      "track_groups":  [
+
+                                                       ],
+                                      "track_id":  "1027",
+                                      "track_name":  "piano",
+                                      "track_state_revision":  "b0f3d7c8b1cac882",
+                                      "track_type":  "hybrid",
+                                      "type":  "hybrid",
+                                      "user_track_index":  5,
+                                      "volume_db":  0
+                                  },
+                                  {
+                                      "armed":  false,
+                                      "automation_lane_count":  0,
+                                      "clips":  [
+                                                    {
+                                                        "active_take_id":  "",
+                                                        "asset_job_id":  "",
+                                                        "asset_ref":  "",
+                                                        "asset_state":  "",
+                                                        "auto_crossfade":  false,
+                                                        "clip_gain_db":  0,
+                                                        "clip_id":  "1036",
+                                                        "clip_mute":  false,
+                                                        "clip_pan":  0,
+                                                        "clip_state_revision":  "5c7b439f89472c4e",
+                                                        "clip_type":  "wave",
+                                                        "current_source_path":  "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_02be6193fbc17bed\\cases\\spv1_p06\\stems\\vocals.wav",
+                                                        "end_seconds":  20,
+                                                        "fade_in_behaviour":  "gain",
+                                                        "fade_in_behaviour_type":  0,
+                                                        "fade_in_curve":  "linear",
+                                                        "fade_in_curve_type":  1,
+                                                        "fade_in_seconds":  0,
+                                                        "fade_out_behaviour":  "gain",
+                                                        "fade_out_behaviour_type":  0,
+                                                        "fade_out_curve":  "linear",
+                                                        "fade_out_curve_type":  1,
+                                                        "fade_out_seconds":  0,
+                                                        "gain_db":  0,
+                                                        "ghost_state":  "",
+                                                        "id":  "1036",
+                                                        "length_seconds":  20,
+                                                        "mute":  false,
+                                                        "name":  "vocals",
+                                                        "offset_in_source_seconds":  0,
+                                                        "pan":  0,
+                                                        "playback_source_valid":  true,
+                                                        "start_seconds":  0,
+                                                        "take_stack_id":  "",
+                                                        "track_id":  "1032",
+                                                        "warp_state":  ""
+                                                    }
+                                                ],
+                                      "fader_db":  0,
+                                      "gain_db":  0,
+                                      "group_ids":  [
+
+                                                    ],
+                                      "group_names":  [
+
+                                                      ],
+                                      "id":  "1032",
+                                      "is_armed":  false,
+                                      "is_audio_track":  true,
+                                      "is_user_visible":  true,
+                                      "left_level_db":  null,
+                                      "level_db":  null,
+                                      "mute":  false,
+                                      "name":  "vocals",
+                                      "pan":  0,
+                                      "pan_value":  0,
+                                      "plugin_count":  0,
+                                      "plugins":  null,
+                                      "rack":  null,
+                                      "right_level_db":  null,
+                                      "routing_edge_count":  0,
+                                      "solo":  false,
+                                      "track_group_ids":  [
+
+                                                          ],
+                                      "track_group_names":  [
+
+                                                            ],
+                                      "track_groups":  [
+
+                                                       ],
+                                      "track_id":  "1032",
+                                      "track_name":  "vocals",
+                                      "track_state_revision":  "655f6415d92a3063",
+                                      "track_type":  "hybrid",
+                                      "type":  "hybrid",
+                                      "user_track_index":  6,
+                                      "volume_db":  0
+                                  }
+                              ],
+                   "user_track_count":  6
+               },
+    "status":  "ok",
+    "tool_count":  285
+}
