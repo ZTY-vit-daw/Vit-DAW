@@ -5,7 +5,8 @@
 
 ## 当前占用
 
-- 状态：空闲
+- 状态：**占用中**
+- 2026-10-15 18:29 +0800 登记 / FIX-ASK-SILENT-GAP-1 取证腿（GLM-5.3 L2 PC 执行会话，ZCode；worktree D:/Vit_DAW_wt_asg1，分支 port/fix-ask-silent-gap-1-recon 含 [asg1] 临时打点）：ask→slice 122s 空窗阶段分解取证——空工程（0 轨，staging 内核默认工程）+有轨工程（6 轨 fixture 临时副本）各至少一轮，chat POST 后 slice 出现即停（控 LLM 预算，§8 声明见取证件）；被测=worktree 构建 agent VitAgent.exe SHA256 669d2109bd1a0981（含打点）+主检出 VitApp.exe B6565DCF85D1DA86（C++ 面零改动）+Godot 前端主检出。登记前只读核对四端口 5555/5556/7878/8787 监听=0、VitApp/VitAgent/vsphub/Godot 进程=0（与 116 烟测腿按本记录串行）。
 
 ## 最近一次释放
 
