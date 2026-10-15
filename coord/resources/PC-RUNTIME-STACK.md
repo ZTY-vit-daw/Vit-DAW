@@ -5,8 +5,11 @@
 
 ## 当前占用
 
-- 状态：**占用中**
-- 2026-10-15 19:51:37 +0800 登记 / FIX-ASK-SILENT-GAP-1(117) 修复腿真栈烟测（GLM-5.3 L2 PC 执行会话，ZCode；worktree D:/Vit_DAW_wt_asg1，分支 port/fix-ask-silent-gap-1@dc534e83）：dev_agent_smoke.ps1 -Scenario ask_feedback -StartKernel（场景 berth 自启 kernel+agent，四端口 5555/5556/7878/8787）；登记前 19:51 只读核对四端口监听=0、VitApp/VitAgent/vsphub/Godot 进程=0。**前条 116 占用登记勘误归档（本会话处置）**：116 腿为 Mac 执行侧接管会话，其占用/释放均落 MAC-RUNTIME-STACK.md（释放 c98fb86a：19:22 拆栈复核 7878/9229 清、Godot/CEF/vitagent 零残留、7879 探针常驻属 Mac 端 SERVICE.md 惯例）——其在 PC 登记面的 18:31 条目为跨端误挂；PC 物理面核对（19:51 四端口零监听零进程）与 Mac 登记面释放记录双重印证后归档，原文未改写移至下方历史区。
+- 状态：**空闲**
+
+## 最近一次释放
+
+- 2026-10-15 19:51–20:10 +0800 / FIX-ASK-SILENT-GAP-1(117) 修复腿真栈烟测（GLM-5.3 L2 PC 执行会话，ZCode；worktree D:/Vit_DAW_wt_asg1，分支 port/fix-ask-silent-gap-1@a811555a）：dev_agent_smoke.ps1 -Scenario ask_feedback -StartKernel 两 run 均 **PASS exit 0**——run1 20261015_195610（B 轮 slice 探测踩 PowerShell @('') 陷阱致 stop 过早，门禁仍过+顺带实证分类期 stop 不楔死）、run2 20261015_200257（干净）：A 轮空工程首反馈 118ms≤3s/短路作答 6.5s 收口（stop=capacity_fact_short_circuit）、B 轮 6 轨首反馈 **1.6ms**（修复前 turn.started t+4.8s）/slice 3.5s/stop 后收口。两 run 均场景 berth 自 teardown（run1 agent 6380/kernel 7528、run2 agent 8712/kernel 4720 已停），20:10 复核四端口 5555/5556/7878/8787 监听=0、VitApp/VitAgent/vsphub/Godot 进程=0。占用登记 28c396e9；被测=worktree 构建 agent（a811555a 含修复①-⑤）+主检出 VitApp.exe B6565DCF85D1DA86（C++ 面零改动）；LLM 面≈6 次调用全成功 0 超时（入口×4+message loop×2）。工件 coord/runs/FIX-ASK-SILENT-GAP-1/20261015_{195610,200257}/（轻件随 port/fix-ask-silent-gap-1@2d09b52b 入库），重件留盘 worktree。占用期间顺带勘误归档 116 腿 PC 面跨端误挂条目（见 28c396e9 与下方历史区）。
 
 ## 历史占用（116 腿 PC 面跨端误挂条目，已由 Mac 端释放记录终结，原文归档）
 
