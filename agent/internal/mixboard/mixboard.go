@@ -211,7 +211,7 @@ func AssembleFrequencyContext(projectState map[string]any, mixSessionID, goalTex
 	// buildObservation repeats this normalization defensively; doing it here
 	// also makes the assembly contract observable before MOM projection.
 	normalizeProjectFeatureMaterialFreshness(&featureSnapshot, projectState)
-	promoteBestL3FeatureRows(&featureSnapshot)
+	promoteBestL3FeatureRows(&featureSnapshot, nil)
 	promoteBestRealtimeFeatureRows(&featureSnapshot)
 	preferUniformProjectL3FrequencyEvidence(&featureSnapshot, projectState)
 	assembly["normalized_l2_row_count"] = usableFrequencyL2TrackCount(featureSnapshot.L2RenderProbes)
@@ -1181,7 +1181,8 @@ func buildObservation(req Request, createdAt string, featureSnapshot *featureSna
 		tempo = &bpm
 	}
 	hydrateFeatureSnapshotFromAnalysisManifest(featureSnapshot, req.ProjectState)
-	normalizeTrackWaveformFeatureFreshness(featureSnapshot, req.ProjectState, listenScopeAllowsLegacyProjectWaveformRows(req.ListenScope))
+	requestedTarget := requestedTargetIdentity(req)
+	normalizeTrackWaveformFeatureFreshness(featureSnapshot, req.ProjectState, listenScopeAllowsLegacyProjectWaveformRows(req.ListenScope), requestedTarget)
 	acousticPackageStatus := compactAcousticPackageStatus(mapValue(req.Args["acoustic_package_status"]))
 	if !acousticPackageMatchesLatestRequest(acousticPackageStatus, featureSnapshot.LatestRequest) {
 		acousticPackageStatus = nil
@@ -1189,7 +1190,7 @@ func buildObservation(req Request, createdAt string, featureSnapshot *featureSna
 	applyAcousticPackageStatusToFeatureSnapshot(featureSnapshot, acousticPackageStatus)
 	normalizeProjectFeatureMaterialFreshness(featureSnapshot, req.ProjectState)
 	preserveTargetWaveformTimeSegments(featureSnapshot, req)
-	promoteBestL3FeatureRows(featureSnapshot)
+	promoteBestL3FeatureRows(featureSnapshot, requestedTarget)
 	promoteBestRealtimeFeatureRows(featureSnapshot)
 	// The general observation path (CCB mix_request_observation included) is a
 	// source-file analysis: once any L3 frequency row exists, post-fader L2
@@ -1554,7 +1555,7 @@ func normalizeFeatureSnapshot(snap featureSnapshot) featureSnapshot {
 	if snap.L2RenderProbe == nil {
 		snap.L2RenderProbe = map[string]any{"status": "missing"}
 	}
-	promoteBestL3FeatureRows(&snap)
+	promoteBestL3FeatureRows(&snap, nil)
 	normalizeBridgeFeatureFreshness(&snap)
 	return snap
 }
@@ -1634,20 +1635,68 @@ func promoteBestRealtimeFeatureRows(snap *featureSnapshot) {
 	}
 }
 
-func promoteBestL3FeatureRows(snap *featureSnapshot) {
+func promoteBestL3FeatureRows(snap *featureSnapshot, requestedTarget map[string]any) {
 	if snap == nil {
 		return
 	}
-	target := latestRequestResolvedTarget(snap.LatestRequest)
-	if row := bestRealtimeFeatureRow(snap.BandEnergySummary, snap.BandEnergySummaries, target); len(row) > 0 {
-		snap.BandEnergySummary = row
+	target := requestedTarget
+	if len(target) == 0 {
+		target = latestRequestResolvedTarget(snap.LatestRequest)
 	}
-	if row := bestRealtimeFeatureRow(snap.StereoRelationSummary, snap.StereoRelationSummaries, target); len(row) > 0 {
-		snap.StereoRelationSummary = row
+	slots := []struct {
+		featureType string
+		current     map[string]any
+		rows        []map[string]any
+		assign      func(map[string]any)
+	}{
+		{"band_energy_summary", snap.BandEnergySummary, snap.BandEnergySummaries, func(row map[string]any) { snap.BandEnergySummary = row }},
+		{"stereo_relation_summary", snap.StereoRelationSummary, snap.StereoRelationSummaries, func(row map[string]any) { snap.StereoRelationSummary = row }},
+		{"loudness_summary", snap.LoudnessSummary, snap.LoudnessSummaries, func(row map[string]any) { snap.LoudnessSummary = row }},
 	}
-	if row := bestRealtimeFeatureRow(snap.LoudnessSummary, snap.LoudnessSummaries, target); len(row) > 0 {
-		snap.LoudnessSummary = row
+	for _, slot := range slots {
+		row := bestRealtimeFeatureRow(slot.current, slot.rows, target)
+		if len(row) == 0 {
+			continue
+		}
+		// A track-scoped observation must not disclose another target's L3
+		// evidence under the requested track's view key. When the request names
+		// a target and only mismatched rows survive promotion, stub the slot
+		// honestly instead of serving the displaced material.
+		if len(requestedTarget) > 0 && featureRowMismatchesTarget(row, requestedTarget) {
+			slot.assign(stubFeatureRowNotBoundToTarget(row, requestedTarget, slot.featureType))
+			continue
+		}
+		slot.assign(row)
 	}
+}
+
+// stubFeatureRowNotBoundToTarget replaces a surviving singular slot that
+// describes a different target than the observation requested with an honest
+// missing stub carrying the displaced row's identity (same shape as
+// preserveStubUnboundWaveformEnvelope, for L3 summary slots).
+func stubFeatureRowNotBoundToTarget(displaced, requestedTarget map[string]any, featureType string) map[string]any {
+	out := map[string]any{
+		"status":       "missing",
+		"feature_type": featureType,
+		"reason":       "feature_row_not_bound_to_requested_target",
+	}
+	if displacedTrack := cleanAnyString(displaced["track_id"]); displacedTrack != "" {
+		out["judged_track_id"] = displacedTrack
+	}
+	if displacedClip := cleanAnyString(displaced["clip_id"]); displacedClip != "" {
+		out["judged_clip_id"] = displacedClip
+	}
+	if displacedRequest := cleanAnyString(displaced["request_id"]); displacedRequest != "" {
+		out["judged_request_id"] = displacedRequest
+	}
+	out["judged_status"] = featureStatus(displaced)
+	if trackID := cleanAnyString(requestedTarget["track_id"]); trackID != "" {
+		out["track_id"] = trackID
+	}
+	if clipID := cleanAnyString(requestedTarget["clip_id"]); clipID != "" {
+		out["clip_id"] = clipID
+	}
+	return out
 }
 
 func latestRequestResolvedTarget(latestRequest map[string]any) map[string]any {
@@ -1986,10 +2035,12 @@ func mergeAcousticPackageTrackWaveformRows(rows []map[string]any, row map[string
 	return out
 }
 
-func preserveTargetWaveformTimeSegments(snap *featureSnapshot, req Request) {
-	if snap == nil {
-		return
-	}
+// requestedTargetIdentity extracts the track/clip identity this observation is
+// about (request args + target ref). It is the binding identity for target-row
+// reads during assembly: the snapshot's latest_request may describe whichever
+// track was filled last (e.g. the tail of an import), which must never decide
+// which track's evidence a track-scoped observation serves.
+func requestedTargetIdentity(req Request) map[string]any {
 	trackID := cleanAnyString(req.Args["track_id"])
 	clipID := cleanAnyString(req.Args["clip_id"])
 	switch strings.ToLower(strings.TrimSpace(req.TargetRef.Kind)) {
@@ -1998,6 +2049,26 @@ func preserveTargetWaveformTimeSegments(snap *featureSnapshot, req Request) {
 	case "clip":
 		clipID = firstNonEmpty(req.TargetRef.ID, clipID)
 	}
+	target := map[string]any{}
+	if trackID != "" {
+		target["track_id"] = trackID
+	}
+	if clipID != "" {
+		target["clip_id"] = clipID
+	}
+	if len(target) == 0 {
+		return nil
+	}
+	return target
+}
+
+func preserveTargetWaveformTimeSegments(snap *featureSnapshot, req Request) {
+	if snap == nil {
+		return
+	}
+	target := requestedTargetIdentity(req)
+	trackID := cleanAnyString(target["track_id"])
+	clipID := cleanAnyString(target["clip_id"])
 	var targetRow map[string]any
 	for _, row := range snap.TrackWaveformEnvelopes {
 		if waveformRowMatchesRequestedTarget(row, trackID, clipID) && len(waveformTimeSegments(row)) > 0 {
@@ -2192,7 +2263,7 @@ func normalizeBridgeFeatureFreshness(snap *featureSnapshot) {
 	snap.LoudnessSummary = freshBridgeRowOrMissing(snap.LoudnessSummary, requestID, target, "loudness_summary")
 }
 
-func normalizeTrackWaveformFeatureFreshness(snap *featureSnapshot, projectState map[string]any, allowLegacyProjectRows bool) {
+func normalizeTrackWaveformFeatureFreshness(snap *featureSnapshot, projectState map[string]any, allowLegacyProjectRows bool, requestedTarget map[string]any) {
 	if snap == nil || len(snap.LatestRequest) == 0 {
 		return
 	}
@@ -2212,7 +2283,7 @@ func normalizeTrackWaveformFeatureFreshness(snap *featureSnapshot, projectState 
 		return
 	}
 	target, _ := snap.LatestRequest["resolved_target"].(map[string]any)
-	snap.WaveformEnvelope = freshWaveformRowOrMissing(snap.WaveformEnvelope, requestID, target, snap.LatestRequest, projectState)
+	snap.WaveformEnvelope = freshWaveformRowOrMissing(snap.WaveformEnvelope, requestID, target, snap.LatestRequest, projectState, requestedTarget)
 	rows := make([]map[string]any, 0, len(snap.TrackWaveformEnvelopes))
 	for _, row := range snap.TrackWaveformEnvelopes {
 		if allowLegacyProjectRows && featureRowHasMaterialIdentity(row) && trackWaveformRowMatchesProjectState(row, projectState) {
@@ -2220,6 +2291,15 @@ func normalizeTrackWaveformFeatureFreshness(snap *featureSnapshot, projectState 
 			continue
 		}
 		if trackWaveformRowMatchesCurrentRequest(row, requestID, target, snap.LatestRequest, projectState) {
+			rows = append(rows, row)
+			continue
+		}
+		// The snapshot's latest_request may resolve to whichever track was
+		// materialized last (import tail), not the track this observation is
+		// about. A row for the requested target is current for THIS request by
+		// definition; keep it (material/project-state validity still applies)
+		// so the target-bound read paths below can use it.
+		if len(requestedTarget) > 0 && featureRowHasMaterialIdentity(row) && sameTrackClip(row, requestedTarget) && trackWaveformRowMatchesProjectState(row, projectState) {
 			rows = append(rows, row)
 		}
 	}
@@ -2271,9 +2351,15 @@ func trackWaveformLatestRequestIsNotAWaveformBaseline(latestRequest map[string]a
 	return true
 }
 
-func freshWaveformRowOrMissing(row map[string]any, requestID string, target map[string]any, latestRequest map[string]any, projectState map[string]any) map[string]any {
+func freshWaveformRowOrMissing(row map[string]any, requestID string, target map[string]any, latestRequest map[string]any, projectState map[string]any, requestedTarget map[string]any) map[string]any {
 	status := featureStatus(row)
 	if status == "missing" || status == "invalid" {
+		return row
+	}
+	// The row this observation is about survives on its own identity: the
+	// latest_request baseline may resolve to a different (later-materialized)
+	// track, which must not condemn the requested target's row as stale.
+	if len(requestedTarget) > 0 && sameTrackClip(row, requestedTarget) && trackWaveformRowMatchesProjectState(row, projectState) {
 		return row
 	}
 	if trackWaveformRowMatchesCurrentRequest(row, requestID, target, latestRequest, projectState) {
@@ -3017,7 +3103,7 @@ func buildBandEnergySummary(row map[string]any) map[string]any {
 	out := map[string]any{
 		"status": status,
 	}
-	copyOptionalFeatureFields(out, row, "schema_version", "feature_type", "layer", "source_kind", "reason", "source", "updated_at", "track_id", "clip_id", "target", "request_id", "capture_mode", "tap_point", "capture_time", "time_basis", "quality_status", "quality_reason", "quality_evidence", "source_identity", "source_revision", "clip_revision", "render_revision", "plugin_chain_revision", "fader_revision", "tile_count_seen", "tile_count_expected", "tile_count_parsed", "coverage_seconds", "coverage_ratio", "total_duration", "derivation_status", "silence_confirmed", "silence_reason", "original_quality_status", "noise_floor_evidence", "frequency_time_events", "transient_events", "band_dynamics",
+	copyOptionalFeatureFields(out, row, "schema_version", "feature_type", "layer", "source_kind", "reason", "source", "updated_at", "track_id", "clip_id", "target", "request_id", "judged_track_id", "judged_clip_id", "judged_request_id", "judged_status", "capture_mode", "tap_point", "capture_time", "time_basis", "quality_status", "quality_reason", "quality_evidence", "source_identity", "source_revision", "clip_revision", "render_revision", "plugin_chain_revision", "fader_revision", "tile_count_seen", "tile_count_expected", "tile_count_parsed", "coverage_seconds", "coverage_ratio", "total_duration", "derivation_status", "silence_confirmed", "silence_reason", "original_quality_status", "noise_floor_evidence", "frequency_time_events", "transient_events", "band_dynamics",
 		// Measurement conditions consumed by MOM cross-track comparability
 		// (frequencyMeasurementConditions): sample format, analyzer, time
 		// window, and render mode must survive the band-energy projection or
@@ -3069,7 +3155,7 @@ func buildStereoRelationSummary(row map[string]any) map[string]any {
 	out := map[string]any{
 		"status": status,
 	}
-	copyOptionalFeatureFields(out, row, "schema_version", "feature_type", "layer", "source_kind", "reason", "source", "updated_at", "track_id", "clip_id", "target", "request_id", "capture_mode", "tap_point", "capture_time", "time_basis", "quality_status", "quality_reason", "quality_evidence", "source_identity", "source_revision", "clip_revision", "render_revision", "plugin_chain_revision", "fader_revision", "tile_count_seen", "tile_count_expected", "tile_count_parsed", "coverage_seconds", "coverage_ratio", "total_duration", "derivation_status")
+	copyOptionalFeatureFields(out, row, "schema_version", "feature_type", "layer", "source_kind", "reason", "source", "updated_at", "track_id", "clip_id", "target", "request_id", "judged_track_id", "judged_clip_id", "judged_request_id", "judged_status", "capture_mode", "tap_point", "capture_time", "time_basis", "quality_status", "quality_reason", "quality_evidence", "source_identity", "source_revision", "clip_revision", "render_revision", "plugin_chain_revision", "fader_revision", "tile_count_seen", "tile_count_expected", "tile_count_parsed", "coverage_seconds", "coverage_ratio", "total_duration", "derivation_status")
 	if status != "ready" && status != "partial" {
 		return out
 	}
@@ -3094,7 +3180,7 @@ func buildLoudnessSummary(row map[string]any) map[string]any {
 	}
 	copyOptionalFeatureFields(out, row,
 		"schema_version", "feature_type", "layer", "source_kind", "reason", "source", "updated_at",
-		"track_id", "clip_id", "target", "request_id", "quality_status", "quality_reason",
+		"track_id", "clip_id", "target", "request_id", "judged_track_id", "judged_clip_id", "judged_request_id", "judged_status", "quality_status", "quality_reason",
 		"quality_reasons", "quality_evidence", "source_identity", "source_revision", "clip_revision",
 		"render_revision", "analyzer_revision", "analyzer_version", "coverage_seconds", "coverage_ratio",
 		"duration_seconds", "total_duration", "sample_rate", "channel_count", "channels",

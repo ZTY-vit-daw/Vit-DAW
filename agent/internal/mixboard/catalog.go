@@ -568,7 +568,7 @@ func readObservationKey(obs ObservationPacket, key string, req ReadRequest, evid
 	case "track." + targetID + ".slow.band_energy.summary":
 		return metrics["band_energy"], true
 	case "track." + targetID + ".slow.stereo.summary":
-		return metrics["stereo_relation"], true
+		return trackScopedStereoSummary(metrics["stereo_relation"], obs), true
 	case "track." + targetID + ".realtime.band_energy.summary":
 		return realtimeMetrics["band_energy"], true
 	case "track." + targetID + ".realtime.stereo.summary":
@@ -600,6 +600,31 @@ func evidenceTimeEnergyRows(snapshot map[string]any) []map[string]any {
 		}
 	}
 	return nil
+}
+
+// trackScopedStereoSummary guards the track stereo view against identity
+// misbinding: a track-kind observation must only disclose stereo material that
+// positively belongs to its target track. A row naming a different track is
+// returned as an honest missing stub (displaced identity preserved), never as
+// usable evidence under the requested track's view key.
+func trackScopedStereoSummary(value any, obs ObservationPacket) any {
+	row := mapValue(value)
+	if len(row) == 0 || !strings.EqualFold(strings.TrimSpace(obs.TargetRef.Kind), "track") || strings.TrimSpace(obs.TargetRef.ID) == "" {
+		return value
+	}
+	if !featureRowMismatchesTarget(row, map[string]any{"track_id": obs.TargetRef.ID}) {
+		return value
+	}
+	return map[string]any{
+		"status":            "missing",
+		"feature_type":      "stereo_relation_summary",
+		"reason":            "feature_row_not_bound_to_requested_target",
+		"track_id":          obs.TargetRef.ID,
+		"judged_track_id":   cleanAnyString(row["track_id"]),
+		"judged_clip_id":    cleanAnyString(row["clip_id"]),
+		"judged_request_id": cleanAnyString(row["request_id"]),
+		"judged_status":     featureStatus(row),
+	}
 }
 
 func fxmProjectionFreshness(obs ObservationPacket) string {
