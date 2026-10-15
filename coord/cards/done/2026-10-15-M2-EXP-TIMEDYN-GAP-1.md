@@ -58,10 +58,21 @@
 
 ## 领取（修复腿）
 
-- 领取时间：2026-10-15 22:40 +0800（晚窗）
+- 领取时间：2026-10-15 22:02 +0800（晚窗）
 - origin/main hash：5359eb4670f54944822c4282e34dec9829980157（=裁定提交，满足 ≥5359eb46）
 - owner：GLM-5.3 L2 / PC 执行会话（ZCode，本会话，修复腿）
 - 分支：port/m2-exp-timedyn-gap-1（worktree D:/Vit_DAW_wt_m2tg2）
-- 领取提交：本提交（卡面 owner 行，仅 coord/ 变更；修复腿完成后由决策侧终验，卡不回移 doing）
+- 领取提交：c017b76e（卡面 owner 行，仅 coord/ 变更；修复腿完成后由决策侧终验，卡不回移 doing）
 - 领取时 git status：worktree 干净（新建，基于 origin/main 5359eb46）；主检出另有未跟踪 coord/runs/* 工件与 M VitApp/Workspace/default_project.xml，与本卡无涉
 - 范围硬约束复述：视图按目标轨 id 读行；目标轨无行=omission 口径不变；不动 semantic_progressive_disclosure.go；VitApp/ C++ 零改动
+
+## 回执（修复腿，2026-10-15 22:28 交付）
+
+- 实现 commit：0686b9b4@port/m2-exp-timedyn-gap-1（agent/internal/mixboard/{mixboard,catalog}.go + 新增 timedyn_gap_target_binding_test.go；文件域与裁定一致，semantic_progressive_disclosure.go 与 VitApp/ 零改动）。
+- 归因补强（勘误+深化取证腿 §3-2 的「时序或路径二选一」）：**两症状同一 seam 已实锤=路径非时序**——A 轮 seq10 存储观察证据里守卫 stub 形态在（reason=waveform_row_not_bound_to_requested_target, judged=1032）而当时 TrackWaveformEnvelopes 仅剩 1032 一行：`normalizeTrackWaveformFeatureFreshness` 在 selected_track scope 下按**快照 LatestRequest**（=导入填充尾 1032）做 request-identity 过滤，把请求目标 1017 的行（盘面在场带段）滤掉；`promoteBestL3FeatureRows` 同源用 LatestRequest 目标把 1032 stereo 行提升进 1017 观察的单数槽。观察请求自身的目标（1017）在这两处都没被使用。
+- 修复内容（①a）：①`requestedTargetIdentity(req)` 提取观察请求目标（Args track/clip + TargetRef，preserve 守卫复用同提取）；②normalize 对请求目标自身的 WE 行豁免 request-identity 过滤（material/project-state 校验保留）→ preserve 守卫把单数 WE 槽绑回目标轨带段行 → current_metrics.time_energy/caps.waveform_envelope/COM source_dynamics 同源恢复；③promoteBestL3FeatureRows 按观察目标提升 band/stereo/loudness，请求目标明确且仅剩错轨行时诚实 stub（feature_row_not_bound_to_requested_target + judged_* 披露）；④catalog 读侧 track.stereo 视图身份守卫（遗留观察 replay 面拒错绑）；⑤L3 摘要投影 judged_* 字段透出。目标轨无行=omission 口径不变（单测锁定）。
+- 单测：`go test ./... -count=1` **EXIT 0 零 FAIL**（新增 4 例：1017→1017 自身时域段+stereo 身份断言 / COM source 跟随目标 / 目标轨无行=诚实 omission+judged 披露 / 读侧守卫含 project 域与匿名行不误伤）；gofmt 净（改动包）。
+- 真栈 run：**m2tg2_20261015_222445（22:24:45–22:26:50）exit 0，verdict=fix_verify_pass**（脚本 scripts/m2_timedyn_fixverify.ps1@5c3a4587，复用取证 A 轮场景：project.new+import_folder_as_stems 用户同源 6 stems→确定性观察+M2 同款话术）。三断言：①确定性 CCB 观察（guitar/1017，零 LLM）time_dynamics=partial-with-evidence 4 段、零 omission、**audit receipt=executed**（取证 A 轮同位观察=missing+omission+receipt partial 死签消灭）；②stereo 证据身份 track_id=1017/clip=1021=目标轨自身（vocals/1032 错绑消灭）；③M2 话术 LLM 腿 seq10(1017)+seq12(1027) 两 time_dynamics bundle 均 executed 零 omission，事件面无「semantic progressive disclosure observation audit is not successful」拒收签名，chat 1 turn stop=done/goal=completed（给出钢琴轨混响建议；模型分支未入 round——门拒收前提 receipt=partial 已在确定性+模型两条腿消灭，门本身零改动如裁定）。§8 记账：LLM 6 次调用全成功 0 超时（声明 ≤8）；stems 源前后哈希一致；栈登记 5c3a4587→释放见 PC-RUNTIME-STACK.md 最新条（torn_down=true+22:28 复核四端口四进程零）。
+- 已知瑕疵如实登记：脚本 (3b) 模型侧 bundle 计数器有事件形状 bug（计 0，空转通过，不影响 verdict——(3a) 原文扫描有效）；模型侧 2/2 executed 系工件直接核验（a_nl_events.json seq10/seq12）。
+- 端测边界声明：**未启 Godot GUI（agent HTTP 面驱动）**，同取证腿 FORENSICS.md §0 复现边界（导入命令与 GUI 同走内核 ImportService 分析队列，观察链全在 agent 侧）；本轮无 webui 渲染面改动。
+- 工件：coord/runs/M2-EXP-TIMEDYN-GAP-1/m2tg2_20261015_222445/（轻件随 port 分支：run_report/d_ccb_summary/a_nl_events/a_nl_chat_1/遥测/manifests/dev console/run1_console；重件 agent_drafts 8.4MB 留盘 worktree 可回指）。待决策侧终验。

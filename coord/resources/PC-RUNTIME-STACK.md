@@ -5,11 +5,19 @@
 
 ## 当前占用
 
-- 2026-10-15 23:25 +0800 登记 / M2-EXP-TIMEDYN-GAP-1(120) 修复腿真栈验证（GLM-5.3 L2 PC 执行会话，ZCode；worktree D:/Vit_DAW_wt_m2tg2，分支 port/m2-exp-timedyn-gap-1@0686b9b4 含修复①a）：`scripts/m2_timedyn_fixverify.ps1`（随本分支）——复刻取证 A 轮场景（project.new+import_folder_as_stems 用户同源 6 stems→确定性 CCB 观察（零 LLM）+M2 同款话术（LLM 腿））三断言：①time_dynamics 无 omission+receipt=executed ②stereo 身份=目标轨自身 ③事件面无编排器入口 partial 审计拒收签名。§8 声明（运行前）：LLM=1 chat+≤2 nudge（预计 ≤8 调用）；失败分类 llm_timeout/assertion_fail/capability_blocked/environment_interrupt；止损=同签名 assertion_fail ×2。被测=worktree 构建 agent（0686b9b4 含修复）+主检出 staging VitApp.exe（C++ 面零改动，取证腿同款 B6565DCF85D1DA86 以 run 报告 sha256 为准）；模型=deepseek-flash config 不动。登记前只读核对四端口监听=0、四类进程=0（STACK FREE 实测）。
+- 状态：**空闲**
 
 ## 最近一次释放
 
+- 2026-10-15 22:24–22:28 +0800 / M2-EXP-TIMEDYN-GAP-1(120) 修复腿真栈验证（GLM-5.3 L2 PC 执行会话，ZCode；worktree D:/Vit_DAW_wt_m2tg2，分支 port/m2-exp-timedyn-gap-1@0686b9b4 含①a 修复+5c3a4587 验证脚本）：`m2_timedyn_fixverify.ps1` 一 run（m2tg2_20261015_222445，22:24:45–22:26:50）**fix_verify_pass exit 0**——三断言全过：①确定性 CCB 观察（guitar/1017，零 LLM）bundle=partial/audit=**executed**/零 omission，time_dynamics=partial-with-evidence 4 段（取证 A 轮同位观察=missing+omission+receipt partial，死签消灭）；②stereo 证据身份 track_id=1017/clip=1021 目标轨自身（vocals/1032 错绑消灭）；③M2 话术 LLM 腿 seq10(1017)+seq12(1027) 两 bundle 均 audit=executed 零 omission，事件面无编排器入口 partial 审计拒收签名，chat 1 turn stop=done/goal=completed（模型分支收口于钢琴轨混响建议，未入 round——门拒收前提 receipt=partial 已在两条腿消灭）。LLM 面 6 次调用全成功 0 超时（声明 ≤8）；stems 源前后哈希一致。脚本 finally 自 teardown（torn_down=true），22:28 复核四端口监听=0、四类进程=0。占用登记 5c3a4587（22:24:19，含 §8 声明）；被测=worktree 构建 agent SHA256 735E8CA404D32B7C（0686b9b4 含修复）+主检出 staging VitApp.exe B6565DCF85D1DA86（C++ 面零改动）；模型=deepseek-flash config 未动。工件 coord/runs/M2-EXP-TIMEDYN-GAP-1/m2tg2_20261015_222445/（轻件随 port 分支，重件 agent_drafts 留盘 worktree）。**未启 Godot GUI（agent HTTP 面驱动，同取证腿复现边界）。**已知瑕疵如实登记：脚本 (3b) 模型侧 bundle 计数器有事件形状 bug（计 0，空转通过），工件直接核验=2/2 executed。
+
+- 2026-10-15 22:24 +0800 登记 / M2-EXP-TIMEDYN-GAP-1(120) 修复腿真栈验证（GLM-5.3 L2 PC 执行会话，ZCode；worktree D:/Vit_DAW_wt_m2tg2，分支 port/m2-exp-timedyn-gap-1@0686b9b4 含修复①a）：`scripts/m2_timedyn_fixverify.ps1`（随本分支）——复刻取证 A 轮场景（project.new+import_folder_as_stems 用户同源 6 stems→确定性 CCB 观察（零 LLM）+M2 同款话术（LLM 腿））三断言：①time_dynamics 无 omission+receipt=executed ②stereo 身份=目标轨自身 ③事件面无编排器入口 partial 审计拒收签名。§8 声明（运行前）：LLM=1 chat+≤2 nudge（预计 ≤8 调用）；失败分类 llm_timeout/assertion_fail/capability_blocked/environment_interrupt；止损=同签名 assertion_fail ×2。被测=worktree 构建 agent（0686b9b4 含修复）+主检出 staging VitApp.exe（C++ 面零改动，取证腿同款 B6565DCF85D1DA86 以 run 报告 sha256 为准）；模型=deepseek-flash config 不动。登记前只读核对四端口监听=0、四类进程=0（STACK FREE 实测）。
+
+## 历史释放（上一条：取证腿，已释放）
+
 - 2026-10-15 21:30–21:35 +0800 / M2-EXP-TIMEDYN-GAP-1(120) 取证腿（GLM-5.3 L2 PC 执行会话，ZCode；worktree D:/Vit_DAW_wt_m2tg1，分支 port/m2-exp-timedyn-gap-1-recon@622e326e=origin/main 零生产改动；**登记行 622e326e 时间误写 22:3x，实际登记约 21:29 run 21:30:05 启动前——此处修正，同 M2-TIMEFX-2 先例**）：A/B 两轮一 run（m2tg1_20261015_213005）**forensics_complete exit 0**——B 轮 fixture 只读观察两 invoke（零 LLM，obs1 ready/executed、obs2 partial/executed：time_dynamics partial-with-evidence 4 段）；A 轮复刻用户路径（project.new+import_folder_as_stems 用户同源 6 stems→M2 同款话术）**逐字复现缺陷签名**：seq10 obs（track.stereo_space+track.time_dynamics @1017）omission="track.time_dynamics: source evidence is missing"+bundle partial+**audit receipt partial**（与用户 21:03:16 obs#2 同签名），另确定性复现 guitar 视图键下 stereo 证据错绑 vocals/1032（模型自行经 source-identity 一致性拒用）；chat 1 turn stop=done/goal=completed。根因=时域段非内核产物（内核枚举死路）+CCB 轨道视图读单数目标槽而导入路径该槽绑定最后填充轨非请求目标轨——6/6 轨级行带 4 段在场（采集面无缺口）。LLM 面 7 次调用全成功 0 超时（语义入口×1+pullharness×5+message_loop_repair×1，超声明预算 1 次如实登记）；stems 源前后哈希一致。脚本 finally 自 teardown，21:35 复核四端口监听=0、VitApp/VitAgent/vsphub/Godot 进程=0。占用登记 622e326e；被测=worktree 构建 agent SHA256 1411DD3AAE738FE8（main 内容）+主检出 staging VitApp.exe B6565DCF85D1DA86（C++ 面零改动）；模型=deepseek-flash config 未动。工件 coord/runs/M2-EXP-TIMEDYN-GAP-1/（FORENSICS.md+m2tg1_20261015_213005 轻件随 port 分支，重件留盘 worktree）。**未启 Godot GUI（agent HTTP 面驱动，复现边界已在 FORENSICS.md §0 声明）。**
+
+## 历史占用（上一条：FIX-ASK-SILENT-GAP-1 修复腿，已释放）
 
 ## 历史占用（上一条：FIX-ASK-SILENT-GAP-1 修复腿，已释放）
 
