@@ -1,0 +1,6 @@
+适用于 .NET Framework MSBuild 版本 18.4.0+6e61e96ac
+
+  Checking File Globs
+  VitAuxMultiReturnProbe_rc_lib.vcxproj -> D:\Vit_DAW_wt_mixsend_build\VitAuxMultiReturnProbe_rc_lib.dir\Release\VitAuxMultiReturnProbe_rc_lib.lib
+  AuxMultiReturnProbe.cpp
+  VitAuxMultiReturnProbe.vcxproj -> D:\Vit_DAW_wt_mixsend_build\VitAuxMultiReturnProbe_artefacts\Release\VitAuxMultiReturnProbe.exe

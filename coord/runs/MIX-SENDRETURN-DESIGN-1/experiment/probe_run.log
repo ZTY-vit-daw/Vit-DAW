@@ -1,0 +1,31 @@
+VitAuxMultiReturnProbe start
+LEG control       amp440=0.25119 amp880=0.25119 rms=0.25119 peak=0.44215 finite=1
+Performance count for "TestProcess" over 517 run(s)
+	 Seconds: Mean = 52 us, min = 11 us, max = 20 ms, SD = 864 us, total = 27 ms
+	 Cycles: Mean = 181549.201161, min = 38857, max = 68744519, SD = 3018581.143579, total = 93860937
+CALIBRATION R440=0.25119 R880=0.25119
+LEG full          amp440=0.50239 amp880=0.50239 rms=0.50239 peak=0.88432 finite=1
+Performance count for "TestProcess" over 517 run(s)
+	 Seconds: Mean = 17 us, min = 13 us, max = 920 us, SD = 41 us, total = 9004 us
+	 Cycles: Mean = 60864.450677, min = 46428, max = 3214302, SD = 144922.505769, total = 31466921
+ASSERT full          amp440 ratio=2.0001 (ref=0.25119) expected=2.00 -> PASS
+ASSERT full          amp880 ratio=2.0001 (ref=0.25119) expected=2.00 -> PASS
+LEG single_return amp440=0.37680 amp880=0.37680 rms=0.37680 peak=0.66325 finite=1
+Performance count for "TestProcess" over 517 run(s)
+	 Seconds: Mean = 53 us, min = 12 us, max = 19 ms, SD = 842 us, total = 27 ms
+	 Cycles: Mean = 184308.127660, min = 40964, max = 67000360, SD = 2941860.121568, total = 95287302
+ASSERT single_return amp440 ratio=1.5001 (ref=0.25119) expected=1.50 -> PASS
+ASSERT single_return amp880 ratio=1.5001 (ref=0.25119) expected=1.50 -> PASS
+LEG mute_T0       amp440=0.00000 amp880=0.37680 rms=0.26644 peak=0.37680 finite=1
+Performance count for "TestProcess" over 517 run(s)
+	 Seconds: Mean = 50 us, min = 13 us, max = 18 ms, SD = 778 us, total = 26 ms
+	 Cycles: Mean = 175186.562863, min = 44865, max = 61903531, SD = 2717717.053436, total = 90571453
+ASSERT mute_T0       amp440 amp=0.000000 (<=2% of R=0.25119) -> PASS
+ASSERT mute_T0       amp880 ratio=1.5001 (ref=0.25119) expected=1.50 -> PASS
+LEG loop_order    amp440=0.25119 amp880=0.50239 rms=0.39717 peak=0.68724 finite=1
+Performance count for "TestProcess" over 517 run(s)
+	 Seconds: Mean = 16 us, min = 12 us, max = 168 us, SD = 13 us, total = 8296 us
+	 Cycles: Mean = 56077.030948, min = 41994, max = 586465, SD = 46512.586601, total = 28991825
+ASSERT loop_order    bounded amp=0.25119 (<= 2.5xR=0.62797) -> PASS
+ASSERT loop_order    bounded amp=0.50239 (<= 2.5xR=0.62797) -> PASS
+VERDICT PASS (failures=0)

@@ -49,5 +49,5 @@
 
 - 领取：2026-10-16 18:52 CST / origin/main=5428366213b5e857ab0b1d81302d0fb5b5ef2715 / owner=GLM-5.3 L2 PC 执行会话（ZCode，本会话）/ 分支 coord/mixsend-design-claim（设计卡零生产代码：设计件+回执同分支，无实现分支）/ worktree D:/Vit_DAW_wt_mixsend_design / 领取提交=本提交（卡面入池+领取同批；入池提交为发卡侧留盘原样）
 - 领取时核对：卡在 todo（发卡侧留盘未推，本批一并入池，内容零改动）、派发已确认（用户 2026-10-16 晚窗「先设计」）；在飞 doing 两卡——LOUDNESS-B-TRIGGER（agent 内部 port/loudness-watch-trigger-1 + D:/Vit_DAW_wt_loudness_watch_b）、FE-CEF-PASTE-SHIM-2（前端仓），与本卡文件域（只读取证 + coord/runs/MIX-SENDRETURN-DESIGN-1/ + 前端仓交互规格文档）零交集；真栈不占用（headless 取证优先，如需占栈先核对 PC-RUNTIME-STACK 并登记）
-- 回执：（设计件路径 / 底座实证边界声明）
+- 回执：设计件=coord/runs/MIX-SENDRETURN-DESIGN-1/README.md（四腿方案+seam 裁定=tracktion 原语双 bus 三明治+命令 schema 5 条+话术拓扑决策表+MOM/TOM/FXM/TIM 投影+GUI 交互规格+烟测场景+K1/K2/K3 拆卡排期）；底座实证=experiment/RESULTS.md（AuxMultiReturnProbe **VERDICT PASS exit 0**：轨到轨多目标回流 2.0001× 精确实证——全接线双目标回授 vs 单回授退化 1.5001× vs 无接线 1.0× 三态可分；静音联动抑制归零；乱序防环有界不发散）；边界声明=探针直接驱动 tracktion_engine 原语（与 VitApp 同源同建图路径，不经 VitApp 命令面——命令面正是 K1 要补的），端到端能力归实现卡真栈烟测；零生产代码改动，真栈零占用（独立 console 进程零端口）；开放问题 4 项（solo 语义/FX 轨双出/旧内核反灌/bus 号段）上交 README §7；[等待用户:GUI 交互规格过目（README §4）+决策侧评审后方可拆实现卡]
 - 验收：（裁定文件 / 验收 commit）
