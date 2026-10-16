@@ -58,3 +58,25 @@ func TestInspectOnlyControlModeIsBoundToBoundaryFamilies(t *testing.T) {
 		}
 	}
 }
+
+// GENSHELL-PCA-1: generation_shell enters the family vocabulary as a
+// load-admission-only family. Its semantic coverage is the single marker
+// "load_only"; typed control routing fail-closes at the registry (no PCA
+// coverage proof exists for the marker).
+func TestGenerationShellIsSupportedLoadAdmissionFamily(t *testing.T) {
+	if !IsSupportedFamily(FamilyGenerationShell) {
+		t.Fatal("generation_shell must be in the supported family vocabulary")
+	}
+	raw := `{"schema_version":"semantic_processor_intent.v1","status":"resolved","family":"generation_shell","intent":"load the generation shell","required_coverage":["load_only"],"scope":"current_track","control_mode":"semantic_loop","confidence":0.9}`
+	if _, err := Decode(raw); err != nil {
+		t.Fatalf("generation_shell resolved intent was rejected: %v", err)
+	}
+	// inspect_only stays reserved for the spectral/clipper boundary families.
+	inspect := `{"schema_version":"semantic_processor_intent.v1","status":"resolved","family":"generation_shell","intent":"inspect","required_coverage":["inspect_only"],"scope":"current_track","control_mode":"inspect_only","confidence":0.8}`
+	if _, err := Decode(inspect); err == nil {
+		t.Fatal("inspect_only was accepted for generation_shell")
+	}
+	if IsSupportedFamily("generation_shell_x") {
+		t.Fatal("unknown family variant was accepted")
+	}
+}

@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	"vit-daw-agent/internal/processorattestation"
 	"vit-daw-agent/internal/processorintent"
 )
 
@@ -13,8 +14,9 @@ func TestDefaultRegistryHasNoPhraseRoutingSurface(t *testing.T) {
 		t.Fatal(err)
 	}
 	// M2-TIMEFX-1 adds the reverb/delay time-domain families to the nine
-	// dynamic/spectral rows.
-	if len(r.List()) != 11 {
+	// dynamic/spectral rows; GENSHELL-PCA-1 adds the generation_shell
+	// load-admission row.
+	if len(r.List()) != 12 {
 		t.Fatalf("registered families=%d", len(r.List()))
 	}
 	for _, definition := range r.List() {
@@ -106,5 +108,69 @@ func TestRegistryRejectsPCAFamilySharingAcrossBoundaryFamilies(t *testing.T) {
 	}
 	if err := registry.Register(limiter); err == nil || !strings.Contains(err.Error(), "must use its own PCA family") {
 		t.Fatalf("limiter was allowed to borrow de-esser PCA: %v", err)
+	}
+}
+
+// GENSHELL-PCA-1: the generation_shell row is load-admission only. The PCA
+// coverage vocabulary v1 is the empty set (件四 §2), so the row registers no
+// coverage proof and typed control routing must fail closed.
+func TestGenerationShellRowIsLoadAdmissionOnly(t *testing.T) {
+	r, err := Default()
+	if err != nil {
+		t.Fatal(err)
+	}
+	definition, ok := r.Resolve(processorintent.FamilyGenerationShell)
+	if !ok {
+		t.Fatal("generation_shell is not registered")
+	}
+	if definition.InspectOnly {
+		t.Fatal("generation_shell must not be an inspect-only boundary family")
+	}
+	if len(definition.CoverageVocabulary) != 1 || definition.CoverageVocabulary[0] != "load_only" {
+		t.Fatalf("generation_shell semantic vocabulary=%v", definition.CoverageVocabulary)
+	}
+	if len(definition.CoverageProofs) != 0 {
+		t.Fatalf("generation_shell registered typed control proofs: %+v", definition.CoverageProofs)
+	}
+	if _, err := r.PCARequiredCoverage(processorintent.FamilyGenerationShell, []string{"load_only"}); err == nil {
+		t.Fatal("generation_shell semantic marker was converted into a PCA coverage grant")
+	}
+	if err := r.ValidateCoverage(processorintent.FamilyGenerationShell, []string{"threshold"}); err == nil {
+		t.Fatal("generation_shell accepted a typed control semantic axis")
+	}
+}
+
+// 三处词表一致性：generation_shell 在 processorintent 家族词表、
+// processorattestation v2 家族表（coverage 空集）与 processorregistry 注册行
+// 三处在场且互指一致；未登记家族在三处全部 fail-closed。
+func TestGenerationShellVocabularyIsConsistentAcrossThreeSurfaces(t *testing.T) {
+	r, err := Default()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !processorintent.IsSupportedFamily(processorintent.FamilyGenerationShell) {
+		t.Fatal("generation_shell missing from the intent family vocabulary")
+	}
+	if !processorattestation.IsV2Family(processorattestation.FamilyGenerationShell) {
+		t.Fatal("generation_shell missing from the attestation v2 family table")
+	}
+	if axes := processorattestation.V2CoverageAxes(processorattestation.FamilyGenerationShell); len(axes) != 0 {
+		t.Fatalf("generation_shell attestation coverage vocabulary must be empty, got %v", axes)
+	}
+	definition, ok := r.Resolve(processorintent.FamilyGenerationShell)
+	if !ok || definition.PCAFamily != processorattestation.FamilyGenerationShell {
+		t.Fatalf("generation_shell registry row inconsistent: %+v ok=%v", definition, ok)
+	}
+	for _, family := range r.List() {
+		if !processorintent.IsSupportedFamily(family.Family) {
+			t.Fatalf("registered family %q is not in the intent vocabulary", family.Family)
+		}
+	}
+	if processorintent.IsSupportedFamily("generation_shell_v2") ||
+		processorattestation.IsV2Family("generation_shell_v2") {
+		t.Fatal("unknown family variant was admitted by a vocabulary")
+	}
+	if _, ok := r.Resolve("generation_shell_v2"); ok {
+		t.Fatal("unknown family variant resolved in the registry")
 	}
 }
