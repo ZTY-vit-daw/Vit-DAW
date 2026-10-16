@@ -182,7 +182,7 @@ func classifyReverbParameter(param ParameterInfo) reverbCandidate {
 	switch {
 	case reverbContains(text, "pre delay", "predelay", "pre-delay"):
 		candidate.Role, candidate.Section = "pre_delay", "timing"
-	case reverbContains(text, "decay time", "decaytime") || reverbHasToken(text, "decay"):
+	case reverbContains(text, "decay time", "decaytime", "reverb time") || reverbHasToken(text, "decay"):
 		candidate.Role, candidate.Section, candidate.TailEvidence = "decay", "tail", reverbTailEvidenceDirect
 	case reverbHasToken(text, "size") || reverbContains(text, "room size", "hall size"):
 		candidate.Role, candidate.Section, candidate.TailEvidence = "size", "tail", reverbTailEvidenceDirect
@@ -197,7 +197,7 @@ func classifyReverbParameter(param ParameterInfo) reverbCandidate {
 		candidate.Role, candidate.Section = "damping", "character"
 	case reverbHasToken(text, "width") || reverbContains(text, "stereo width", "image width"):
 		candidate.Role, candidate.Section = "width", "character"
-	case reverbContains(text, "reverb mode", "space mode", "reverb algorithm", "reverb character", "plate selector", "plate select"):
+	case reverbContains(text, "reverb mode", "space mode", "reverb algorithm", "reverb character", "reverb type", "plate selector", "plate select"):
 		candidate.Role, candidate.Section = "reverb_mode", "character"
 	case reverbHasToken(text, "modulation") || reverbContains(text, "mod rate", "mod depth", "chorus"):
 		candidate.Role, candidate.Section = "damping", "character"

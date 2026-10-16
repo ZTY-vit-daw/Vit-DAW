@@ -254,35 +254,66 @@ def spot_case(base: str, case: dict[str, Any], timeout: float, output_dir: Path,
         if not decay_rows:
             raise RuntimeError(f"no decay binding in tail: {tail_rows}")
         binding = decay_rows[0]
-        result["write_target"] = {"role": "decay", "param_id": binding.get("param_id"),
-                                  "name": binding.get("name"), "domain": binding.get("domain")}
-        current = parse_number(binding.get("current_physical"))
-        if current is None:
-            current = parse_number(binding.get("current_text"))
-        if current is None:
-            current = 0.5
-        target = current * 0.55
-        if abs(target - current) < 0.05:
-            target = current + 0.25
-        applied = require_ok(invoke(base, "plugin_grabber.apply_reverb_controls", {
-            "track_id": track_id, "plugin_id": plugin_id,
-            "controls": [{"control_ref": binding.get("control_ref"), "display_value": target}],
-        }, timeout), "apply_reverb_controls")
-        if str(applied.get("status")) not in {"exact", "quantized"}:
-            raise RuntimeError(f"apply status={applied.get('status')}")
-        after = kernel_command({"cmd": "get_plugin_parameters", "track_id": track_id,
-                                "plugin_id": plugin_id, "include_parameters": True}, timeout)
-        param_id = str(binding.get("param_id"))
 
         def find_param(payload: dict[str, Any]) -> dict[str, Any]:
+            param_id = str(binding.get("param_id"))
             for row in payload.get("parameters") or []:
                 if isinstance(row, dict) and str(row.get("id") or row.get("param_id")) == param_id:
                     return row
             return {}
 
-        before_row, after_row = find_param(before), find_param(after)
+        before_row = find_param(before)
+        raw_domain = binding.get("domain")
+        domain_unit = ""
+        if isinstance(raw_domain, dict):
+            domain_unit = str(raw_domain.get("unit") or "").strip().lower()
+        elif isinstance(raw_domain, str):
+            domain_unit = raw_domain.strip().lower()
+        if not domain_unit:
+            domain_unit = str(binding.get("physical_unit") or "").strip().lower()
+        result["write_target"] = {"role": "decay", "param_id": binding.get("param_id"),
+                                  "name": binding.get("name"), "domain": domain_unit}
+        control: dict[str, Any] = {"control_ref": binding.get("control_ref")}
+        if domain_unit in {"enum", "toggle"}:
+            # Discrete stepped decay controls (the plate damper) write a
+            # different disclosed step label; numeric units are refused here
+            # by the apply layer's enum-domain guard.
+            labels = (before_row.get("display_probe") or {}).get("discrete_labels") or []
+            current = before_row.get("normalized_value")
+            chosen = None
+            for label_row in labels:
+                if not isinstance(label_row, dict):
+                    continue
+                value = label_row.get("value")
+                if isinstance(value, (int, float)) and isinstance(current, (int, float)):
+                    if abs(float(value) - float(current)) > 1e-6:
+                        chosen = str(label_row.get("label"))
+                        break
+            if chosen is None:
+                raise RuntimeError(f"no alternative enum step for domain {domain_unit!r}: {labels}")
+            control["enum_label"] = chosen
+            result["write_target"]["enum_label"] = chosen
+        else:
+            current = parse_number(binding.get("current_physical"))
+            if current is None:
+                current = parse_number(binding.get("current_text"))
+            if current is None:
+                current = 0.5
+            target = current * 0.55
+            if abs(target - current) < 0.05:
+                target = current + 0.25
+            control["display_value"] = target
+        applied = require_ok(invoke(base, "plugin_grabber.apply_reverb_controls", {
+            "track_id": track_id, "plugin_id": plugin_id,
+            "controls": [control],
+        }, timeout), "apply_reverb_controls")
+        if str(applied.get("status")) not in {"exact", "quantized"}:
+            raise RuntimeError(f"apply status={applied.get('status')}")
+        after = kernel_command({"cmd": "get_plugin_parameters", "track_id": track_id,
+                                "plugin_id": plugin_id, "include_parameters": True}, timeout)
+        after_row = find_param(after)
         result["readback"] = {
-            "display_target": target,
+            "write": control,
             "apply_status": applied.get("status"),
             "actual_readback": (applied.get("controls") or [{}])[0].get("actual_readback"),
             "before": {"value": before_row.get("value"), "value_text": before_row.get("value_text"),
