@@ -1,0 +1,12 @@
+run_id=gen_api_adapter_smoke_mac_20261016-215333
+started_at=2026-10-16T21:53:40+0800
+repo_root=/Users/timozty/Documents/Vit-DAW-genapi-rv1
+repo_head=5ba87c42286deeb3884fa8b38844b0f37f38c3c3
+repo_dirty=1 entries
+kernel_bin=/Users/timozty/Documents/Vit-DAW-genapi-rv1/VitApp/build/VitApp_artefacts/Debug/VitApp
+kernel_sha256=099327af134451825b408efd549a353fe18a778cf98b2ee8e6abf6428d01d508
+agent_bin=/var/folders/bm/9470lvs56ss6lfw1n9g66k2c0000gn/T//gen_api_adapter_smoke.KqkLcA3i/bin/vitagent
+agent_sha256=93fd00b28f5e27af0af0a74d5101217db8a295e052c1a046e96c233f5081ea0a
+agent_http=http://127.0.0.1:7878
+provider_sim_port=55223
+provider_config=/var/folders/bm/9470lvs56ss6lfw1n9g66k2c0000gn/T//gen_api_adapter_smoke.KqkLcA3i/config/genapi_providers.json

@@ -1,0 +1,70 @@
+{
+  "schema_version": "genapi.adapter.smoke.mac.v1",
+  "card": "GEN-API-ADAPTER-1",
+  "run_id": "gen_api_adapter_smoke_mac_20261016-215333",
+  "overall_status": "PASS",
+  "failure_kind": "none",
+  "boundary_declaration": "generation provider = local self-hosted-type simulator over real HTTP; no external provider key was available in this environment (external leg declared as environment blocker in the card receipt, not faked)",
+  "repo": {
+    "root": "/Users/timozty/Documents/Vit-DAW-genapi-rv1"
+  },
+  "binaries": {
+    "kernel_sha256": "099327af134451825b408efd549a353fe18a778cf98b2ee8e6abf6428d01d508",
+    "agent_sha256": "93fd00b28f5e27af0af0a74d5101217db8a295e052c1a046e96c233f5081ea0a"
+  },
+  "gates": {
+    "simulator_up": true,
+    "kernel_start_ports": true,
+    "agent_start_health": true,
+    "clear_project_slate": true,
+    "project_new_ok": true,
+    "providers_listed_secretfree": true,
+    "unified_host_track_ok": true,
+    "unified_generate_ingest_ok": true,
+    "unified_artifact_ondisk": true,
+    "unified_clip_addressable": true,
+    "suno_relay_two_candidates_ingested": true,
+    "suno_candidate_stack_switchable": true,
+    "adapter_request_shapes_normalized": true,
+    "failclosed_unknown_provider": true,
+    "failclosed_auth_classified": true,
+    "failclosed_empty_request": true,
+    "surface_alive_after_failures": true,
+    "consume_inject_evidence_ok": true,
+    "consume_simulator_saw_blocks": true,
+    "consume_free_creation_refused": true,
+    "consume_free_creation_zero_blocks": true
+  },
+  "gate_failure_details": {},
+  "recorded": {
+    "confirmation_cards_surfaced": 10,
+    "ids": {
+      "unified_ingest_clip": "1011",
+      "unified_asset_ref": "asset:e29e5064eba7685f",
+      "unified_take": "take:ee441cdad13e443fbe23375bcbcf19ab",
+      "suno_candidate_b_clip": "1017",
+      "suno_candidate_a_take": "take:3e7d3df693b64c90a8af468f423c4ed5"
+    }
+  },
+  "kernel_stop": {
+    "record": "SIGTERM:143:1"
+  },
+  "agent_stop": {
+    "record": "SIGTERM:0:1"
+  },
+  "artifacts_dir": "/var/folders/bm/9470lvs56ss6lfw1n9g66k2c0000gn/T//gen_api_adapter_smoke.KqkLcA3i",
+  "run_meta": {
+    "run_id": "gen_api_adapter_smoke_mac_20261016-215333",
+    "started_at": "2026-10-16T21:53:40+0800",
+    "repo_root": "/Users/timozty/Documents/Vit-DAW-genapi-rv1",
+    "repo_head": "5ba87c42286deeb3884fa8b38844b0f37f38c3c3",
+    "repo_dirty": "1 entries",
+    "kernel_bin": "/Users/timozty/Documents/Vit-DAW-genapi-rv1/VitApp/build/VitApp_artefacts/Debug/VitApp",
+    "kernel_sha256": "099327af134451825b408efd549a353fe18a778cf98b2ee8e6abf6428d01d508",
+    "agent_bin": "/var/folders/bm/9470lvs56ss6lfw1n9g66k2c0000gn/T//gen_api_adapter_smoke.KqkLcA3i/bin/vitagent",
+    "agent_sha256": "93fd00b28f5e27af0af0a74d5101217db8a295e052c1a046e96c233f5081ea0a",
+    "agent_http": "http://127.0.0.1:7878",
+    "provider_sim_port": "55223",
+    "provider_config": "/var/folders/bm/9470lvs56ss6lfw1n9g66k2c0000gn/T//gen_api_adapter_smoke.KqkLcA3i/config/genapi_providers.json"
+  }
+}

@@ -46,6 +46,16 @@
 #   ./scripts/gen_api_adapter_smoke_mac.sh --kernel-bin PATH
 #   ./scripts/gen_api_adapter_smoke_mac.sh                 # repo default bins
 #   ./scripts/gen_api_adapter_smoke_mac.sh --workdir PATH  # reuse a run workdir
+#   ./scripts/gen_api_adapter_smoke_mac.sh --real-source PROVIDER_ID \
+#       [--provider-config PATH] [--real-prompt TEXT] \
+#       [--real-invoke-timeout SECONDS]
+#                                     # GENAPI-REALVERIFY-1 real-provider leg:
+#                                     # no simulator, user-level provider
+#                                     # config (default
+#                                     # ~/.vit/genapi_providers.json), ONE
+#                                     # real gen.generate call, honest
+#                                     # failure classification (no in-script
+#                                     # retry — quota is never burned twice)
 
 set -euo pipefail
 
@@ -58,6 +68,14 @@ OUTPUT_PATH=""
 STARTUP_TIMEOUT_SECONDS=90
 STOP_GRACE_SECONDS=10
 INVOKE_TIMEOUT_DEFAULT=120
+
+# GENAPI-REALVERIFY-1 real-source leg (mutually exclusive with the simulator
+# legs; when set, P0 simulator + P2/P2b/P3/P4 are skipped and the real gates
+# run instead).
+REAL_SOURCE=""
+REAL_PROVIDER_CONFIG=""
+REAL_PROMPT_DEFAULT="warm ambient pad, slow attack, gentle piano motif, calm ending"
+REAL_INVOKE_TIMEOUT_DEFAULT=900
 
 ZMQ_REQ_ENDPOINT="tcp://127.0.0.1:5555"
 ZMQ_PUB_PORT=5556
@@ -79,6 +97,14 @@ Options:
   --agent-bin PATH        Prebuilt agent binary (skips the go build)
   --workdir PATH          Reuse PATH as the run workdir instead of a fresh
                           mktemp directory (never overwrites other runs)
+  --real-source ID        GENAPI-REALVERIFY-1: run the real-provider leg only
+                          (no simulator); ID is the provider id in the
+                          user-level genapi provider config
+  --provider-config PATH  Real-source provider config (default
+                          ~/.vit/genapi_providers.json; VIT_GENAPI_CONFIG also
+                          honored if already exported)
+  --real-prompt TEXT      Prompt for the single real gen.generate call
+  --real-invoke-timeout S Tool-call timeout for the real generate (default 900)
   --startup-timeout SECONDS  Kernel/agent startup timeout (default 90)
   --stop-grace SECONDS    SIGTERM grace before SIGKILL (default 10)
   --output PATH           Also write the summary JSON to PATH
@@ -93,6 +119,10 @@ while [[ $# -gt 0 ]]; do
     --kernel-bin) KERNEL_BIN_DEFAULT="$2"; shift 2 ;;
     --agent-bin) AGENT_BIN_ARG="$2"; shift 2 ;;
     --workdir) WORKDIR_ARG="$2"; shift 2 ;;
+    --real-source) REAL_SOURCE="$2"; shift 2 ;;
+    --provider-config) REAL_PROVIDER_CONFIG="$2"; shift 2 ;;
+    --real-prompt) REAL_PROMPT_DEFAULT="$2"; shift 2 ;;
+    --real-invoke-timeout) REAL_INVOKE_TIMEOUT_DEFAULT="$2"; shift 2 ;;
     --startup-timeout) STARTUP_TIMEOUT_SECONDS="$2"; shift 2 ;;
     --stop-grace) STOP_GRACE_SECONDS="$2"; shift 2 ;;
     --output) OUTPUT_PATH="$2"; shift 2 ;;
@@ -106,7 +136,11 @@ REPO_ROOT="${REPO_ROOT_DEFAULT:-$(cd "$SCRIPT_DIR/.." && pwd)}"
 [[ -d "$REPO_ROOT" ]] || { echo "repo root not found: $REPO_ROOT" >&2; exit 2; }
 
 # ---------------------------------------------------------------- run workdir
-RUN_ID="gen_api_adapter_smoke_mac_$(date '+%Y%m%d-%H%M%S')"
+if [[ -n "$REAL_SOURCE" ]]; then
+  RUN_ID="genapi_realsource_smoke_mac_$(date '+%Y%m%d-%H%M%S')"
+else
+  RUN_ID="gen_api_adapter_smoke_mac_$(date '+%Y%m%d-%H%M%S')"
+fi
 WORKDIR="${WORKDIR_ARG:-$(mktemp -d "${TMPDIR:-/tmp}/gen_api_adapter_smoke.XXXXXXXX")}"
 mkdir -p "$WORKDIR"/{http,logs,project,config,cache}
 KERNEL_ROOT="$WORKDIR/kernel_root"
@@ -281,7 +315,10 @@ shasum -a 256 "$AGENT_BIN" > "$WORKDIR/agent_bin.sha256"
 AGENT_SHA="$(cut -d' ' -f1 "$WORKDIR/agent_bin.sha256")"
 log "agent binary: $AGENT_BIN (sha256 $AGENT_SHA)"
 
-# ---------------------------------------------------------------- P0 provider simulator
+# ---------------------------------------------------------------- P0 provider surface
+# (simulator for the adapter legs; user-level real config for the
+# GENAPI-REALVERIFY-1 real-source leg)
+if [[ -z "$REAL_SOURCE" ]]; then
 SIM_PORT="$(python3 -c 'import socket; s=socket.socket(); s.bind(("127.0.0.1",0)); print(s.getsockname()[1]); s.close()')"
 SIM_EVIDENCE="$WORKDIR/sim_evidence.json"
 SIM_LOG="$WORKDIR/logs/provider_simulator.log"
@@ -417,6 +454,44 @@ cat > "$PROVIDER_CONFIG" <<EOF
 }
 EOF
 log "user provider config: $PROVIDER_CONFIG (relay credential via env override)"
+else
+  # ------------------------------------------------- real-source config (GENAPI-REALVERIFY-1)
+  # The provider config is user-level and NEVER written by this script; the
+  # credential is read into memory only for the leak-scan/redaction guard and
+  # is never echoed. Card face records provider id + dialect only.
+  if [[ -z "$REAL_PROVIDER_CONFIG" ]]; then
+    REAL_PROVIDER_CONFIG="${VIT_GENAPI_CONFIG:-$HOME/.vit/genapi_providers.json}"
+  fi
+  if [[ ! -f "$REAL_PROVIDER_CONFIG" ]]; then
+    FAIL_CLASSIFICATION="env:no_key"
+    log "ENV FAILURE (no_key): real provider config not found at $REAL_PROVIDER_CONFIG — fill ~/.vit/genapi_providers.json (ExampleConfig in agent/internal/genapi/config.go); do not guess credentials (card stop condition)"
+    exit 1
+  fi
+  PROVIDER_CONFIG="$REAL_PROVIDER_CONFIG"
+  REAL_PROVIDER_META="$(python3 - "$PROVIDER_CONFIG" "$REAL_SOURCE" <<'PY'
+import json, sys
+try:
+    cfg = json.load(open(sys.argv[1], encoding="utf-8"))
+except Exception:
+    print("BADJSON"); raise SystemExit
+for p in cfg.get("providers", []):
+    if p.get("id") == sys.argv[2]:
+        print(json.dumps({"dialect": p.get("dialect", ""), "model": p.get("model", ""),
+                          "has_api_key": bool(p.get("api_key"))}))
+        break
+else:
+    print("MISSING")
+PY
+)"
+  case "$REAL_PROVIDER_META" in
+    MISSING)  FAIL_CLASSIFICATION="env:no_key"; log "ENV FAILURE (no_key): provider id '$REAL_SOURCE' not present in $PROVIDER_CONFIG"; exit 1 ;;
+    BADJSON)  FAIL_CLASSIFICATION="env:no_key"; log "ENV FAILURE (no_key): unparseable provider config at $PROVIDER_CONFIG"; exit 1 ;;
+  esac
+  REAL_DIALECT="$(python3 -c 'import json,sys; print(json.loads(sys.argv[1])["dialect"])' "$REAL_PROVIDER_META")"
+  REAL_MODEL="$(python3 -c 'import json,sys; print(json.loads(sys.argv[1])["model"])' "$REAL_PROVIDER_META")"
+  REAL_KEY="$(python3 -c 'import json,sys; cfg=json.load(open(sys.argv[1],encoding="utf-8")); print(next((p.get("api_key","") for p in cfg.get("providers",[]) if p.get("id")==sys.argv[2]), ""))' "$PROVIDER_CONFIG" "$REAL_SOURCE")"
+  log "real source armed: provider=$REAL_SOURCE dialect=$REAL_DIALECT model=$REAL_MODEL config=$PROVIDER_CONFIG (credential never printed)"
+fi
 
 {
   echo "run_id=$RUN_ID"
@@ -429,7 +504,13 @@ log "user provider config: $PROVIDER_CONFIG (relay credential via env override)"
   echo "agent_bin=$AGENT_BIN"
   echo "agent_sha256=$AGENT_SHA"
   echo "agent_http=$AGENT_HTTP"
-  echo "provider_sim_port=$SIM_PORT"
+  if [[ -n "$REAL_SOURCE" ]]; then
+    echo "real_source_provider=$REAL_SOURCE"
+    echo "real_source_dialect=$REAL_DIALECT"
+    echo "real_source_model=$REAL_MODEL"
+  else
+    echo "provider_sim_port=$SIM_PORT"
+  fi
   echo "provider_config=$PROVIDER_CONFIG"
 } > "$WORKDIR/run_meta.txt"
 
@@ -458,11 +539,13 @@ log "kernel ZMQ ports listening (owned by pid $KERNEL_PID)"
 
 # ---------------------------------------------------------------- start agent
 log "starting agent (state isolated under $AGENT_STATE_DIR; genapi config via env)..."
+if [[ -z "$REAL_SOURCE" ]]; then
+  export VIT_GENAPI_KEY_RELAY_SIM="$RELAY_ENV_KEY"
+fi
 (
   cd "$WORKDIR/agent_cwd"
   VIT_ORCHESTRATION_STORE_PATH="$AGENT_STATE_DIR/orchestration_v1.json" \
   VIT_GENAPI_CONFIG="$PROVIDER_CONFIG" \
-  VIT_GENAPI_KEY_RELAY_SIM="$RELAY_ENV_KEY" \
     exec "$AGENT_BIN" \
     -http "${AGENT_HTTP#http://}" \
     -last-log-path "$AGENT_STATE_DIR/agent_last.log" \
@@ -492,7 +575,21 @@ invoke_tool p02_project_new 60 "project.new" '{}' \
   || gate project_new_ok 0 "transport/http failure"
 
 log "P1: gen.providers — config listing without secrets..."
-if invoke_tool p03_providers 60 "gen.providers" '{}'; then
+if [[ -n "$REAL_SOURCE" ]]; then
+  if invoke_tool r01_providers 60 "gen.providers" '{}'; then
+    R_COUNT="$(result_field "$REPLY_FILE" 'len(r.get("providers") or [])')"
+    R_DIALECT_LISTED="$(result_field "$REPLY_FILE" 'str([p for p in (r.get("providers") or []) if p.get("id")=="'"$REAL_SOURCE"'"][0].get("dialect",""))')"
+    R_LEAK=0
+    [[ -n "$REAL_KEY" ]] && R_LEAK="$(grep -c -F -- "$REAL_KEY" "$REPLY_FILE" || true)"
+    if [[ "$REPLY_STATUS" == "ok" && "$R_COUNT" -ge 1 && "$R_DIALECT_LISTED" == "$REAL_DIALECT" && "$R_LEAK" == "0" ]]; then
+      gate realsource_providers_listed_secretfree 1 "count=$R_COUNT dialect=$R_DIALECT_LISTED key_leak=0"
+    else
+      gate realsource_providers_listed_secretfree 0 "status=$REPLY_STATUS count=$R_COUNT dialect=$R_DIALECT_LISTED want=$REAL_DIALECT leak=$R_LEAK"
+    fi
+  else
+    gate realsource_providers_listed_secretfree 0 "transport/http failure"
+  fi
+elif invoke_tool p03_providers 60 "gen.providers" '{}'; then
   PROVIDER_COUNT="$(result_field "$REPLY_FILE" 'str(r.get("count",""))')"
   SECRET_LEAK="$(grep -c "$RELAY_ENV_KEY" "$REPLY_FILE" || true)"
   HAS_RELAY_KEY="$(result_field "$REPLY_FILE" 'str([p for p in (r.get("providers") or []) if p.get("id")=="relay-sim"][0].get("has_api_key"))')"
@@ -506,6 +603,7 @@ else
 fi
 
 # ---------------------------------------------------------------- P2 unified template E2E
+if [[ -z "$REAL_SOURCE" ]]; then
 log "P2: track.add (audio host)..."
 AUDIO_TRACK_ID=""
 if invoke_tool p04_track_add 60 "track.add" '{}'; then
@@ -707,6 +805,129 @@ if invoke_tool p12_alive 30 "project.state" '{}'; then
 else
   gate surface_alive_after_failures 0 "transport/http failure"
 fi
+else
+# ------------------------------------------------- GENAPI-REALVERIFY-1 real-source leg
+# ONE real gen.generate call; a provider failure is a legal, classified result
+# (AGENTS §8) — the script never retries (quota is never burned twice); the
+# classification decides whether a rerun is meaningful at all.
+log "R2: track.add (audio host)..."
+AUDIO_TRACK_ID=""
+if invoke_tool r02_track_add 60 "track.add" '{}'; then
+  AUDIO_TRACK_ID="$(result_field "$REPLY_FILE" 'str(r.get("track_id",""))')"
+  if [[ "$REPLY_STATUS" == "ok" && -n "$AUDIO_TRACK_ID" ]]; then
+    gate realsource_host_track_ok 1 "track_id=$AUDIO_TRACK_ID"
+  else
+    gate realsource_host_track_ok 0 "status=$REPLY_STATUS track_id=$AUDIO_TRACK_ID"
+  fi
+else
+  gate realsource_host_track_ok 0 "transport/http failure"
+fi
+
+log "R3: gen.generate against the REAL provider (single call, no retry)..."
+REAL_ARGS="$(python3 -c 'import json,sys; print(json.dumps({"provider_id":sys.argv[1],"prompt":sys.argv[2],"track_id":sys.argv[3],"start_time":0.0,"take_stack_id":"genapi-realverify-1"}))' "$REAL_SOURCE" "$REAL_PROMPT_DEFAULT" "$AUDIO_TRACK_ID")"
+REAL_TASK_ID=""; REAL_ART_PATH=""; REAL_ART_FMT=""; REAL_ART_BYTES=""
+REAL_CLIP=""; REAL_REF=""; REAL_TAKE=""; REAL_TRAIL=""
+if invoke_tool r03_gen_real "$REAL_INVOKE_TIMEOUT_DEFAULT" "gen.generate" "$REAL_ARGS"; then
+  REAL_TASK_ID="$(result_field "$REPLY_FILE" 'str(r.get("task_id",""))')"
+  REAL_ART_PATH="$(result_field "$REPLY_FILE" 'str(((r.get("artifacts") or [{}])[0]).get("local_path",""))')"
+  REAL_ART_FMT="$(result_field "$REPLY_FILE" 'str(((r.get("artifacts") or [{}])[0]).get("format",""))')"
+  REAL_ART_BYTES="$(result_field "$REPLY_FILE" 'str(((r.get("artifacts") or [{}])[0]).get("bytes",""))')"
+  REAL_CLIP="$(result_field "$REPLY_FILE" 'str(((r.get("ingest") or [{}])[0]).get("clip_id",""))')"
+  REAL_REF="$(result_field "$REPLY_FILE" 'str(((r.get("ingest") or [{}])[0]).get("asset_ref",""))')"
+  REAL_TAKE="$(result_field "$REPLY_FILE" 'str(((r.get("ingest") or [{}])[0]).get("active_take_id",""))')"
+  REAL_TRAIL="$(result_field "$REPLY_FILE" '",".join(r.get("status_seen") or [])')"
+  if [[ "$REPLY_STATUS" == "ok" ]]; then
+    gate realsource_generate_ok 1 "provider=$REAL_SOURCE task=${REAL_TASK_ID:0:24}… fmt=$REAL_ART_FMT bytes=$REAL_ART_BYTES"
+  else
+    gate realsource_generate_ok 0 "status=$REPLY_STATUS"
+  fi
+  if [[ -n "$REAL_ART_PATH" && -f "$REAL_ART_PATH" && "$(head -c 4 "$REAL_ART_PATH" 2>/dev/null)" == "RIFF" ]]; then
+    shasum -a 256 -- "$REAL_ART_PATH" > "$WORKDIR/artifact.sha256" 2>/dev/null || true
+    gate realsource_artifact_ondisk_wav 1 "$(wc -c < "$REAL_ART_PATH" | tr -d ' ')B $(basename "$REAL_ART_PATH") magic=RIFF"
+  else
+    gate realsource_artifact_ondisk_wav 0 "path=$REAL_ART_PATH fmt=$REAL_ART_FMT exists=$([[ -n "$REAL_ART_PATH" && -f "$REAL_ART_PATH" ]] && echo yes || echo no) magic=$(head -c 4 "$REAL_ART_PATH" 2>/dev/null | tr -d '\0')"
+  fi
+  if [[ -n "$REAL_CLIP" && -n "$REAL_REF" && -n "$REAL_TAKE" ]]; then
+    gate realsource_ingest_landed 1 "clip=$REAL_CLIP ref=${REAL_REF:0:24}… take=$REAL_TAKE (aigc_register_job job_state=complete implied — kernel fail-closed)"
+  else
+    gate realsource_ingest_landed 0 "clip=$REAL_CLIP ref=$REAL_REF take=$REAL_TAKE"
+  fi
+  if [[ -n "$REAL_TRAIL" ]]; then
+    REAL_LAST_STATUS="$(python3 -c 'import sys; t=[s for s in sys.argv[1].split(",") if s]; print(t[-1].upper() if t else "")' "$REAL_TRAIL")"
+    case "$REAL_LAST_STATUS" in
+      SUCCESS|SUCCEEDED|COMPLETE|COMPLETED|DONE|FINISHED)
+        gate realsource_provider_job_terminal 1 "status_seen last=$REAL_LAST_STATUS (provider job terminal done-class)" ;;
+      *)
+        gate realsource_provider_job_terminal 0 "status_seen last=$REAL_LAST_STATUS trail=$REAL_TRAIL" ;;
+    esac
+  else
+    gate realsource_provider_job_terminal 1 "no poll trail: single-shot sync dialect (200 + artifact bytes = terminal)"
+  fi
+  log "R4: generated clip addressable in project.state..."
+  if invoke_tool r04_state_addr 60 "project.state" '{}'; then
+    if [[ -n "$REAL_CLIP" ]] && grep -q "\"$REAL_CLIP\"" "$REPLY_FILE"; then
+      gate realsource_clip_addressable 1 "clip $REAL_CLIP present in project.state"
+    else
+      gate realsource_clip_addressable 0 "clip=$REAL_CLIP not found in project.state reply"
+    fi
+  else
+    gate realsource_clip_addressable 0 "transport/http failure"
+  fi
+else
+  gate realsource_generate_ok 0 "transport/http failure"
+  gate realsource_artifact_ondisk_wav 0 "transport/http failure"
+  gate realsource_ingest_landed 0 "transport/http failure"
+  gate realsource_provider_job_terminal 0 "transport/http failure"
+  gate realsource_clip_addressable 0 "transport/http failure"
+fi
+
+# classified failure path: the r03 reply file carries result.status=error with
+# error_class / http_status from the genapi classifier — record honestly, exit
+# non-zero. Read the r03 file explicitly: later invocations overwrite
+# REPLY_FILE/REPLY_STATUS.
+R03_REPLY="$WORKDIR/http/r03_gen_real.json"
+if [[ -f "$R03_REPLY" ]] && [[ "$(final_status "$R03_REPLY")" == "error" ]]; then
+  REAL_ERR_CLASS="$(result_field "$R03_REPLY" 'str(r.get("result",{}).get("error_class",""))')"
+  REAL_ERR_HTTP="$(result_field "$R03_REPLY" 'str(r.get("result",{}).get("http_status",""))')"
+  REAL_ERR_MSG="$(result_field "$R03_REPLY" 'str(r.get("result",{}).get("message", r.get("error","")))[:280]')"
+  FAIL_CLASSIFICATION="provider:${REAL_ERR_CLASS:-unclassified}${REAL_ERR_HTTP:+:$REAL_ERR_HTTP}"
+  log "PROVIDER FAILURE (classified, no retry): class=$REAL_ERR_CLASS http=$REAL_ERR_HTTP msg=$REAL_ERR_MSG"
+  export REAL_ERR_CLASS REAL_ERR_HTTP REAL_ERR_MSG
+fi
+
+log "R5: command surface alive after the real-source run..."
+if invoke_tool r06_alive 30 "project.state" '{}'; then
+  gate surface_alive_after_run "$( [[ "$REPLY_STATUS" == "ok" ]] && echo 1 || echo 0 )" "status=$REPLY_STATUS"
+else
+  gate surface_alive_after_run 0 "transport/http failure"
+fi
+
+# Secret-free artifacts: scrub the in-memory credential out of every run file
+# (a provider echoing its own key back in an error body is provider behavior;
+# artifacts committed from this workdir must still carry zero key material),
+# then gate on a final zero-occurrence scan.
+REAL_REDACTIONS=0
+if [[ -n "$REAL_KEY" ]]; then
+  while IFS= read -r -d '' f; do
+    n="$(grep -c -F -- "$REAL_KEY" "$f" 2>/dev/null || true)"
+    if [[ "$n" -gt 0 ]]; then
+      python3 - "$f" "$REAL_KEY" <<'PY' || true
+import sys
+path, key = sys.argv[1], sys.argv[2]
+raw = open(path, "rb").read()
+open(path, "wb").write(raw.replace(key.encode(), b"<redacted-api-key>"))
+PY
+      REAL_REDACTIONS=$((REAL_REDACTIONS + n))
+    fi
+  done < <(find "$WORKDIR" -type f -print0)
+fi
+if [[ -z "$REAL_KEY" ]] || [[ "$(grep -r -c -F -- "$REAL_KEY" "$WORKDIR" 2>/dev/null | awk -F: '{s+=$NF} END {print s+0}')" == "0" ]]; then
+  gate realsource_secretfree_artifacts 1 "redactions=$REAL_REDACTIONS final_scan=0 occurrences"
+else
+  gate realsource_secretfree_artifacts 0 "redactions=$REAL_REDACTIONS final scan still finds the credential"
+fi
+export REAL_REDACTIONS
+fi
 
 # ---------------------------------------------------------------- P5 close
 stop_process() {
@@ -731,20 +952,29 @@ AGENT_STOP_RECORD="$STOP_RECORD"
 log "stopping kernel (pid $KERNEL_PID)..."
 stop_process "$KERNEL_PID"
 KERNEL_STOP_RECORD="$STOP_RECORD"
-log "stopping provider simulator (pid $SIM_PID)..."
-stop_process "$SIM_PID"
+if [[ -n "$SIM_PID" ]]; then
+  log "stopping provider simulator (pid $SIM_PID)..."
+  stop_process "$SIM_PID"
+fi
 KERNEL_PID=""; AGENT_PID=""; SIM_PID=""
 
 # ---------------------------------------------------------------- summary
 SUMMARY_FILE="$WORKDIR/summary.json"
-GATE_NAMES="simulator_up kernel_start_ports agent_start_health clear_project_slate project_new_ok \
+if [[ -n "$REAL_SOURCE" ]]; then
+  GATE_NAMES="kernel_start_ports agent_start_health clear_project_slate project_new_ok realsource_providers_listed_secretfree realsource_host_track_ok \
+realsource_generate_ok realsource_artifact_ondisk_wav realsource_ingest_landed realsource_provider_job_terminal \
+realsource_clip_addressable surface_alive_after_run realsource_secretfree_artifacts"
+else
+  GATE_NAMES="simulator_up kernel_start_ports agent_start_health clear_project_slate project_new_ok \
 providers_listed_secretfree unified_host_track_ok unified_generate_ingest_ok unified_artifact_ondisk \
 unified_clip_addressable suno_relay_two_candidates_ingested suno_candidate_stack_switchable \
 adapter_request_shapes_normalized failclosed_unknown_provider failclosed_auth_classified \
 failclosed_empty_request surface_alive_after_failures consume_inject_evidence_ok consume_simulator_saw_blocks consume_free_creation_refused consume_free_creation_zero_blocks"
+fi
 export WORKDIR SUMMARY_FILE RUN_ID GATE_NAMES
 export KERNEL_STOP_RECORD AGENT_STOP_RECORD FAIL_CLASSIFICATION CONFIRMATION_CARDS
 export INGEST1_CLIP ASSET1_REF TAKE1_ID SUNO_CLIP_B SUNO_TAKE_A AGENT_SHA KERNEL_SHA REPO_ROOT
+export REAL_SOURCE REAL_DIALECT REAL_MODEL REAL_TASK_ID REAL_ART_PATH REAL_ART_BYTES REAL_CLIP REAL_REF REAL_TAKE REAL_TRAIL REAL_PROMPT_DEFAULT REAL_PROVIDER_CONFIG REAL_REDACTIONS
 python3 - <<'PY'
 import json, os
 
@@ -763,12 +993,17 @@ for name in gate_names:
     gates[name] = os.environ.get("GATE_" + name, "0") == "1"
 
 summary = {
-    "schema_version": "genapi.adapter.smoke.mac.v1",
-    "card": "GEN-API-ADAPTER-1",
+    "schema_version": "genapi.realsource.smoke.mac.v1" if os.environ.get("REAL_SOURCE") else "genapi.adapter.smoke.mac.v1",
+    "card": "GENAPI-REALVERIFY-1" if os.environ.get("REAL_SOURCE") else "GEN-API-ADAPTER-1",
     "run_id": os.environ["RUN_ID"],
     "overall_status": "PASS" if all(gates.values()) else "FAIL",
     "failure_kind": os.environ.get("FAIL_CLASSIFICATION") or ("none" if all(gates.values()) else "functional"),
-    "boundary_declaration": "generation provider = local self-hosted-type simulator over real HTTP; no external provider key was available in this environment (external leg declared as environment blocker in the card receipt, not faked)",
+    "boundary_declaration": (
+        "real external generation provider over real HTTP (single call, no in-script retry); "
+        "failure_kind carries the honest genapi classification when the provider leg failed"
+        if os.environ.get("REAL_SOURCE") else
+        "generation provider = local self-hosted-type simulator over real HTTP; no external provider key was available in this environment (external leg declared as environment blocker in the card receipt, not faked)"
+    ),
     "repo": {"root": os.environ["REPO_ROOT"]},
     "binaries": {
         "kernel_sha256": os.environ["KERNEL_SHA"],
@@ -790,6 +1025,37 @@ summary = {
     "agent_stop": {"record": os.environ.get("AGENT_STOP_RECORD", "")},
     "artifacts_dir": workdir,
 }
+if os.environ.get("REAL_SOURCE"):
+    artifact_sha = ""
+    sha_path = os.path.join(workdir, "artifact.sha256")
+    if os.path.exists(sha_path):
+        artifact_sha = open(sha_path, encoding="utf-8").read().split()[0]
+    summary["real_source"] = {
+        "provider_id": os.environ.get("REAL_SOURCE", ""),
+        "dialect": os.environ.get("REAL_DIALECT", ""),
+        "model": os.environ.get("REAL_MODEL", ""),
+        "config_path": os.environ.get("REAL_PROVIDER_CONFIG", ""),
+        "prompt": os.environ.get("REAL_PROMPT_DEFAULT", ""),
+        "task_id": os.environ.get("REAL_TASK_ID", ""),
+        "status_seen_trail": os.environ.get("REAL_TRAIL", ""),
+        "artifact": {
+            "local_path": os.environ.get("REAL_ART_PATH", ""),
+            "bytes": os.environ.get("REAL_ART_BYTES", ""),
+            "sha256": artifact_sha,
+        },
+        "ingest": {
+            "clip_id": os.environ.get("REAL_CLIP", ""),
+            "asset_ref": os.environ.get("REAL_REF", ""),
+            "active_take_id": os.environ.get("REAL_TAKE", ""),
+        },
+        "provider_failure": {
+            "error_class": os.environ.get("REAL_ERR_CLASS", ""),
+            "http_status": os.environ.get("REAL_ERR_HTTP", ""),
+            "message_excerpt": os.environ.get("REAL_ERR_MSG", ""),
+        } if os.environ.get("REAL_ERR_CLASS") else None,
+        "key_redactions_applied": int(os.environ.get("REAL_REDACTIONS", "0") or 0),
+        "secret_rule": "api key never printed, never written by this script; run files scrubbed before summary (final scan gate)",
+    }
 meta = os.path.join(workdir, "run_meta.txt")
 if os.path.exists(meta):
     summary["run_meta"] = dict(
