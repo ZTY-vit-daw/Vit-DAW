@@ -35,6 +35,6 @@
 
 - Window 级也收不到（焦点路由被 gdcef 内部完全吞掉）→ 上交换捕获策略评估（含代理 LineEdit 事件桥），不硬试。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-16 18:48 CST / origin/main 6ad07ad8 / GLM-5.3 L2 Mac 执行侧 ZCode 会话（本卡会话）/ 实现=前端仓 port/fe-cef-v1162-gaps-1（基线 13d670e，前端仓主工作树，本线单流）/ 主仓协调 worktree Vit-DAW-pasteshim2-coord 分支 coord/pasteshim2-claim / 领取提交见回执
 - 回执：（commit / run ID / 路由验证证据 / 双挂点策略 / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
