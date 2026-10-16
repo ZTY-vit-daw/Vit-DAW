@@ -13,6 +13,8 @@ generation_shell processor family 三处词表（processorintent/processorattest
 
 - 领取：2026-10-16 21:34 CST / origin/main=ba820dcf / owner=GLM 执行会话（ZCode Mac 执行流，GENSHELL-PCA-1 专会话）/ 分支 port/genshell-pca-1 / worktree=/Users/timozty/Documents/Vit-DAW-pca1 / 领取提交=**6ed8824d**（fast-forward 推 main 亲核，远端卡面 owner 已核对）
 - 领取时核对：卡在 todo（远端 ba820dcf 亲核）、依赖行已勾 ✓（CPP-1 pass=7745719a）；GenShell.vst3 在位（~/Library/Audio/Plug-Ins/VST3/）；唯一 doing 卡 LOUDNESS-B-TRIGGER（loudnesswatch/chat/harness 腿）与本卡三包+scripts/gen_shell_pca_smoke_mac.sh 零交集；领取基线=ba820dcf（含 CPP-1 合入）
+- 领取（复工·修订版）：2026-10-16 深夜 / origin/main=ca86b226 / owner=GLM 执行会话（ZCode Mac 执行流，GENSHELL-PCA-1 修订复工专会话）/ 分支 port/genshell-pca-1（延续，前腿 impl=4d779236 在顶）/ worktree=/Users/timozty/Documents/Vit-DAW-pca1（延续）/ 领取提交=（本提交）
+- 领取时核对（复工）：远端 ca86b226 亲核卡在 todo+修订节（方案 B）在场；GenShell.vst3 在位；origin/port/genshell-pca-1=4d779236 与本地分支顶一致；唯一 doing 卡 LOUDNESS-B-TRIGGER 文件域（loudnesswatch/*+chat/free_state_conclusion_bridge.go+chat/free_state_reasoning_loop.go+harness/harness.go+各自测试+fs_largeproject_smoke.ps1，impl=64b3ccfd 回执亲读）与本卡修订域（processorintent/processorattestation/processorregistry 三包+启动接线一处+scripts/gen_shell_pca_smoke_mac.sh）零交集——seed 接线按 LOUDNESS-A-CONFIG 先例走 chat/server.go 装配模式（server.go:164/198/7245/7256 锚点族），不触 harness.go；真栈烟测走 Mac 栈，LOUDNESS-B 重跑腿同栈但串行按 §2.2 资源记录协调
 
 ## 回执（2026-10-16 执行侧）——停止条件触发，部分交付后移 blocked
 
