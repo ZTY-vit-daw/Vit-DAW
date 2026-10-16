@@ -1,0 +1,3 @@
+[21:54:02] kernel binary: /Users/timozty/Documents/Vit-DAW-genapi-rv1/VitApp/build/VitApp_artefacts/Debug/VitApp (sha256 099327af134451825b408efd549a353fe18a778cf98b2ee8e6abf6428d01d508)
+[21:54:02] agent binary: /var/folders/bm/9470lvs56ss6lfw1n9g66k2c0000gn/T/gen_api_adapter_smoke.KqkLcA3i/bin/vitagent (sha256 93fd00b28f5e27af0af0a74d5101217db8a295e052c1a046e96c233f5081ea0a)
+[21:54:02] ENV FAILURE (no_key): real provider config not found at /Users/timozty/.vit/genapi_providers.json — fill ~/.vit/genapi_providers.json (ExampleConfig in agent/internal/genapi/config.go); do not guess credentials (card stop condition)

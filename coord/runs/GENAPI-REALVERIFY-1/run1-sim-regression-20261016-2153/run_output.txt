@@ -1,0 +1,126 @@
+[21:53:33] kernel binary: /Users/timozty/Documents/Vit-DAW-genapi-rv1/VitApp/build/VitApp_artefacts/Debug/VitApp (sha256 099327af134451825b408efd549a353fe18a778cf98b2ee8e6abf6428d01d508)
+[21:53:33] building agent (go build)...
+[21:53:39] agent binary: /var/folders/bm/9470lvs56ss6lfw1n9g66k2c0000gn/T//gen_api_adapter_smoke.KqkLcA3i/bin/vitagent (sha256 93fd00b28f5e27af0af0a74d5101217db8a295e052c1a046e96c233f5081ea0a)
+[21:53:39] provider simulator pid=5098 port=55223
+[21:53:40] user provider config: /var/folders/bm/9470lvs56ss6lfw1n9g66k2c0000gn/T//gen_api_adapter_smoke.KqkLcA3i/config/genapi_providers.json (relay credential via env override)
+[21:53:40] starting kernel...
+[21:53:40] kernel pid=5115
+[21:53:43] kernel ZMQ ports listening (owned by pid 5115)
+[21:53:43] starting agent (state isolated under /var/folders/bm/9470lvs56ss6lfw1n9g66k2c0000gn/T//gen_api_adapter_smoke.KqkLcA3i/agent_state; genapi config via env)...
+[21:53:43] agent pid=5155
+[21:53:44] agent /health ready
+[21:53:44] P1: clear_project + project.new...
+[21:53:44] confirmation card surfaced for clear_project — re-invoking confirmed
+[21:53:44] gate ok: clear_project_slate
+[21:53:44] confirmation card surfaced for project.new — re-invoking confirmed
+[21:53:44] gate ok: project_new_ok
+[21:53:44] P1: gen.providers — config listing without secrets...
+[21:53:44] gate ok: providers_listed_secretfree
+[21:53:44] P2: track.add (audio host)...
+[21:53:44] gate ok: unified_host_track_ok
+[21:53:44] P2: gen.generate (sync_binary unified template) with auto-ingest...
+[21:53:45] confirmation card surfaced for gen.generate — re-invoking confirmed
+[21:53:45] gate ok: unified_generate_ingest_ok
+[21:53:45] gate ok: unified_artifact_ondisk
+[21:53:45] P2: generated clip is addressable in project.state...
+[21:53:45] gate ok: unified_clip_addressable
+[21:53:45] P2b: gen.generate prompt carries the unified-context auto blocks...
+[21:53:45] confirmation card surfaced for gen.generate — re-invoking confirmed
+[21:53:45] gate ok: consume_inject_evidence_ok
+[21:53:45] gate ok: consume_simulator_saw_blocks
+[21:53:45] P2b: free_creation refuses project landing and sends zero auto context...
+[21:53:45] confirmation card surfaced for gen.generate — re-invoking confirmed
+[21:53:45] gate ok: consume_free_creation_refused
+[21:53:45] gate ok: consume_free_creation_zero_blocks
+[21:53:45] P3: gen.generate on suno_relay dialect (submit/poll/download, 2 candidates)...
+[21:53:45] confirmation card surfaced for gen.generate — re-invoking confirmed
+[21:53:46] gate ok: suno_relay_two_candidates_ingested
+[21:53:46] P3: switch_asset_take flips candidate B's clip back to candidate A's take...
+[21:53:46] confirmation card surfaced for assets.switch_take — re-invoking confirmed
+[21:53:46] gate ok: suno_candidate_stack_switchable
+[21:53:46] P3: simulator request-shape evidence (param normalization + relay auth)...
+[21:53:47] gate ok: adapter_request_shapes_normalized
+[21:53:47] P4: negative probes — unknown provider / 401 / missing prompt...
+[21:53:47] confirmation card surfaced for gen.generate — re-invoking confirmed
+[21:53:47] gate ok: failclosed_unknown_provider
+[21:53:47] confirmation card surfaced for gen.generate — re-invoking confirmed
+[21:53:47] gate ok: failclosed_auth_classified
+[21:53:47] confirmation card surfaced for gen.generate — re-invoking confirmed
+[21:53:47] gate ok: failclosed_empty_request
+[21:53:47] P4: command surface alive after failures...
+[21:53:47] gate ok: surface_alive_after_failures
+[21:53:47] stopping agent (pid 5155)...
+[21:53:48] stopping kernel (pid 5115)...
+[21:53:49] stopping provider simulator (pid 5098)...
+{
+  "schema_version": "genapi.adapter.smoke.mac.v1",
+  "card": "GEN-API-ADAPTER-1",
+  "run_id": "gen_api_adapter_smoke_mac_20261016-215333",
+  "overall_status": "PASS",
+  "failure_kind": "none",
+  "boundary_declaration": "generation provider = local self-hosted-type simulator over real HTTP; no external provider key was available in this environment (external leg declared as environment blocker in the card receipt, not faked)",
+  "repo": {
+    "root": "/Users/timozty/Documents/Vit-DAW-genapi-rv1"
+  },
+  "binaries": {
+    "kernel_sha256": "099327af134451825b408efd549a353fe18a778cf98b2ee8e6abf6428d01d508",
+    "agent_sha256": "93fd00b28f5e27af0af0a74d5101217db8a295e052c1a046e96c233f5081ea0a"
+  },
+  "gates": {
+    "simulator_up": true,
+    "kernel_start_ports": true,
+    "agent_start_health": true,
+    "clear_project_slate": true,
+    "project_new_ok": true,
+    "providers_listed_secretfree": true,
+    "unified_host_track_ok": true,
+    "unified_generate_ingest_ok": true,
+    "unified_artifact_ondisk": true,
+    "unified_clip_addressable": true,
+    "suno_relay_two_candidates_ingested": true,
+    "suno_candidate_stack_switchable": true,
+    "adapter_request_shapes_normalized": true,
+    "failclosed_unknown_provider": true,
+    "failclosed_auth_classified": true,
+    "failclosed_empty_request": true,
+    "surface_alive_after_failures": true,
+    "consume_inject_evidence_ok": true,
+    "consume_simulator_saw_blocks": true,
+    "consume_free_creation_refused": true,
+    "consume_free_creation_zero_blocks": true
+  },
+  "gate_failure_details": {},
+  "recorded": {
+    "confirmation_cards_surfaced": 10,
+    "ids": {
+      "unified_ingest_clip": "1011",
+      "unified_asset_ref": "asset:e29e5064eba7685f",
+      "unified_take": "take:ee441cdad13e443fbe23375bcbcf19ab",
+      "suno_candidate_b_clip": "1017",
+      "suno_candidate_a_take": "take:3e7d3df693b64c90a8af468f423c4ed5"
+    }
+  },
+  "kernel_stop": {
+    "record": "SIGTERM:143:1"
+  },
+  "agent_stop": {
+    "record": "SIGTERM:0:1"
+  },
+  "artifacts_dir": "/var/folders/bm/9470lvs56ss6lfw1n9g66k2c0000gn/T//gen_api_adapter_smoke.KqkLcA3i",
+  "run_meta": {
+    "run_id": "gen_api_adapter_smoke_mac_20261016-215333",
+    "started_at": "2026-10-16T21:53:40+0800",
+    "repo_root": "/Users/timozty/Documents/Vit-DAW-genapi-rv1",
+    "repo_head": "5ba87c42286deeb3884fa8b38844b0f37f38c3c3",
+    "repo_dirty": "1 entries",
+    "kernel_bin": "/Users/timozty/Documents/Vit-DAW-genapi-rv1/VitApp/build/VitApp_artefacts/Debug/VitApp",
+    "kernel_sha256": "099327af134451825b408efd549a353fe18a778cf98b2ee8e6abf6428d01d508",
+    "agent_bin": "/var/folders/bm/9470lvs56ss6lfw1n9g66k2c0000gn/T//gen_api_adapter_smoke.KqkLcA3i/bin/vitagent",
+    "agent_sha256": "93fd00b28f5e27af0af0a74d5101217db8a295e052c1a046e96c233f5081ea0a",
+    "agent_http": "http://127.0.0.1:7878",
+    "provider_sim_port": "55223",
+    "provider_config": "/var/folders/bm/9470lvs56ss6lfw1n9g66k2c0000gn/T//gen_api_adapter_smoke.KqkLcA3i/config/genapi_providers.json"
+  }
+}
+[21:53:50] workdir: /var/folders/bm/9470lvs56ss6lfw1n9g66k2c0000gn/T//gen_api_adapter_smoke.KqkLcA3i
+[21:53:50] SMOKE COMPLETE: all gates green (exit 0)
