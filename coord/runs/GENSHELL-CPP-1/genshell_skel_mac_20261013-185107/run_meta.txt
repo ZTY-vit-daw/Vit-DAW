@@ -1,0 +1,11 @@
+run_id=genshell_skel_mac_20261013-185107
+started_at=2026-10-13 18:51:08
+repo_head=1ec6ccfacd8058ec0fcc6a5117a17f48b46e09b1
+repo_dirty=2
+kernel_bin=/Users/timozty/Documents/Vit-DAW/VitApp/build/VitApp_artefacts/Debug/VitApp
+kernel_sha256=8624fe9e162fe7b65ddb5e1fd55c23621020fa11c7b86d961b56944aadcdbe96
+kernel_mtime=Oct  2 11:04:50 2026
+vst3_bundle=/Users/timozty/Library/Audio/Plug-Ins/VST3/GenShell.vst3
+vst3_bundle_binary_sha256=fbc578c7e627468263f77ef51ace756fc8ed20ff8e6abaa99b7f3d9617161dbe
+selftest_bin=/Users/timozty/Documents/Vit-DAW-genshell1/GenShell/build/genshell_selftest
+legs=S,K1,K2,K3,K4,K5
