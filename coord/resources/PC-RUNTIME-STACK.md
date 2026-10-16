@@ -6,7 +6,8 @@
 ## 当前占用
 
 - 2026-10-16 20:37 +0800 登记 / PLUGGRABBER-TIMEDYN-COMPAT-1(123) 真栈验证腿（GLM-5.3 L2 PC 执行会话，ZCode；worktree D:/Vit_DAW_wt_pgtdc_compat，分支 port/pluggrabber-timedyn-compat-1@c647da7c 含板式词表+证据分级）：`scripts/pgtdc_compat_verify.ps1` 一 run（新工件目录 coord/runs/PLUGGRABBER-TIMEDYN-COMPAT-1/pgtdc_<ts>）——Waves+FabFilter 时域件兼容矩阵（plugin_search 枚举→逐件 load→参数面+inspect_reverb/inspect_delay 判定）+ 双抽验（Abbey Road Plates damper 写入 readback / Pro-R 一例写入 readback）。被测=worktree 构建 agent（c647da7c 含本卡改动）+主检出 staging VitApp.exe（C++/Godot 零改动）；**本腿不启 Godot（agent HTTP 面+内核 ZMQ 面驱动，未启 GUI，边界同 M2-EXP-TIMEDYN-GAP-1 先例）**。§8 声明（运行前）：LLM=0 次调用（全确定性工具面）；成功条件=脚本 exit 0（矩阵全行覆盖+两抽验写入 readback 变化）；失败分类=environment_interrupt（栈起不来/端口占用）/assertion_fail（inspect 语义或 readback 不符）/capability_blocked（插件装载失败=许可/壳枚举→按停止条件拆卡）；止损=同签名 assertion_fail ×2。登记前只读核对（20:36）：四端口（7878/5555/5556/8787）监听=0、VitApp/VitAgent/vsphub=0；**Godot 变体名核对（吸取 2338dba0 缺陷教训）**：仅用户 Godot 编辑器 pid 16472（--editor，6005/6006 编辑器端口）在场——非手测现场、不占栈端口、与本腿零冲突，不属本腿处置面。
-- 状态：**占用中**（owner=PLUGGRABBER-TIMEDYN-COMPAT-1 真栈验证腿，见上）
+- 2026-10-16 20:52 +0800 补记 run1 结果 / PLUGGRABBER-TIMEDYN-COMPAT-1 真栈验证腿（同 owner）：run1=pgtdc_20261016_203552 **compat_verify_fail（驱动面缺陷，非产品断言失败）**——栈起+枚举正常（90 唯一标识/49 目标），但驱动误走 agent plugin.load_to_rack 装载面被 PCA 装载门全量拒（`pca_load_gate: missing non-forgeable exact selection authorization`——产品面授权语义，无人值守探针不得伪造）；另家族关键词误排 Pro-R/IR-L/IR1/IRLive 12 件。修正（728e02ff）=装载改内核 rack_add_node（M2-TIMEFX-2 探针先例）+家族词补齐，即起 run2。run1 栈 finally 自拆（torn_down=true 零残留）；run1 不占止损计数（失败类=驱动 capability 路径错误，非同签名产品 assertion_fail）。
+- 状态：**占用中**（owner=PLUGGRABBER-TIMEDYN-COMPAT-1 真栈验证腿，run2 在飞）
 
 ## 历史（上一条：LOUDNESS-B 烟测腿环境受阻未启栈，20:35 转待用户）
 
