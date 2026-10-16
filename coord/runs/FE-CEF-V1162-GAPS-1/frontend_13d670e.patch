@@ -1,0 +1,901 @@
+From 13d670e0381c45961dce2bf055f3d5b15ea35911 Mon Sep 17 00:00:00 2001
+From: TimoZTY <timozty@192.168.1.131>
+Date: Fri, 16 Oct 2026 02:37:26 +0800
+Subject: [PATCH] =?UTF-8?q?fix(FE-CEF-V1162-GAPS-1):=20=E2=91=A4=E6=8E=A2?=
+ =?UTF-8?q?=E9=92=88=E5=81=87=E9=98=B4=E6=80=A7=E4=BF=AE=E5=A4=8D+?=
+ =?UTF-8?q?=E2=91=A0=E2=8C=98V=20=E7=B2=98=E8=B4=B4=E5=9E=AB=E7=89=87?=
+ =?UTF-8?q?=E2=80=94=E2=80=94webui=5Fchain=5Fprobe=20ipc=20=E5=8C=B9?=
+ =?UTF-8?q?=E9=85=8D=E7=BC=BA=E9=99=B7=EF=BC=88t=3D=3D'ipc'=20vs=20?=
+ =?UTF-8?q?=E6=97=A0=20t=20=E9=94=AE=E6=9D=A1=E7=9B=AE=EF=BC=8CUPGRADE=20?=
+ =?UTF-8?q?=E2=91=A4=20FAIL=20=E5=88=A4=E5=AE=9A=E6=8E=A8=E7=BF=BB?=
+ =?UTF-8?q?=EF=BC=89=E4=BF=AE=E6=AD=A3=E4=B8=BA=20type+nonce=20=E5=8C=B9?=
+ =?UTF-8?q?=E9=85=8D+=5Fon=5Fipc=20=E5=8E=9F=E5=A7=8B=E6=B6=88=E6=81=AF?=
+ =?UTF-8?q?=E6=89=93=E7=82=B9+=E7=9B=B4=E8=BF=9E=20sendIpcMessage=20?=
+ =?UTF-8?q?=E8=BF=94=E5=9B=9E=E5=80=BC=E8=85=BF=EF=BC=9Av1.15.4=20?=
+ =?UTF-8?q?=E6=AD=A3=E6=8E=A7=E4=B8=8E=20v1.16.2=20=E5=8F=8C=E5=8F=8C=20ip?=
+ =?UTF-8?q?c=20=E9=97=AD=E7=8E=AF=20PASS=EF=BC=887879=20=E6=8E=A2=E9=92=88?=
+ =?UTF-8?q?=E9=A1=B5+7878=20webui=20=E4=B8=BB=E9=93=BE=20first/close/reope?=
+ =?UTF-8?q?n=20=E5=85=A8=E8=BF=87=20exit=200=EF=BC=89=EF=BC=8Cipc=20?=
+ =?UTF-8?q?=E6=A1=A5=E4=B8=A4=E7=89=88=E5=9D=87=E5=81=A5=E5=BA=B7=E6=97=A0?=
+ =?UTF-8?q?=E4=B8=8A=E6=B8=B8=E5=9B=9E=E5=BD=92=EF=BC=9BVitDebugFlags=20?=
+ =?UTF-8?q?=E5=A2=9E=20cef=5Fpaste=5Fshim=5Fenabled=EF=BC=88=E9=BB=98?=
+ =?UTF-8?q?=E8=AE=A4=E5=BC=80=EF=BC=8Cenv=20VIT=5FCEF=5FPASTE=5FSHIM/JSON?=
+ =?UTF-8?q?=EF=BC=8Cv1.15.4=20=E5=9B=9E=E6=BB=9A=E9=A1=BB=E5=85=B3?=
+ =?UTF-8?q?=E9=98=B2=E5=8F=8C=E6=8F=92=EF=BC=89+cef=5Fpaste=5Flog=5Fenable?=
+ =?UTF-8?q?d=EF=BC=9Bvit=5Fcef=5Fweb=5Fview=5Fhost=20=E6=8C=82=20CefTextur?=
+ =?UTF-8?q?e=20gui=5Finput=20=E6=8D=95=E8=8E=B7=20=E2=8C=98V=E2=86=92Displ?=
+ =?UTF-8?q?ayServer=20=E5=89=AA=E8=B4=B4=E6=9D=BF=E2=86=92eval=5Fjs=20?=
+ =?UTF-8?q?=E8=81=9A=E7=84=A6=E5=8F=AF=E7=BC=96=E8=BE=91=E6=A1=86=20insert?=
+ =?UTF-8?q?Text=EF=BC=88=5F=5FvitCefComposing=20=E7=BB=84=E5=90=88?=
+ =?UTF-8?q?=E5=AE=88=E5=8D=AB=E5=A4=8D=E7=94=A8+activeElement=20editable/p?=
+ =?UTF-8?q?assword=20=E5=85=BC=E5=AE=B9+readOnly/disabled=20=E5=87=BA?=
+ =?UTF-8?q?=E6=89=8B=E5=AE=88=E5=8D=AB=EF=BC=89=EF=BC=9Bpaste=5Fdiag=20v2?=
+ =?UTF-8?q?=EF=BC=88eval=20=E8=81=9A=E7=84=A6=E5=89=8D=E7=BD=AE=E2=80=94?=
+ =?UTF-8?q?=E2=80=94v1.16.2=20=E8=BE=93=E5=85=A5=E9=97=A8=E9=9C=80?=
+ =?UTF-8?q?=E7=AA=97=E5=8F=A3=20OS=20key=EF=BC=8C=E6=9C=AC=E6=9C=BA?=
+ =?UTF-8?q?=E5=90=8E=E5=8F=B0=E4=BC=9A=E8=AF=9D=E5=90=88=E6=88=90=E7=82=B9?=
+ =?UTF-8?q?=E5=87=BB=E4=B8=8D=E8=BE=BE=E9=A1=B5=E9=9D=A2=EF=BC=8Cclick=5Fm?=
+ =?UTF-8?q?atrix=20=E5=8F=96=E8=AF=81=E5=9C=A8=E6=A1=88=EF=BC=89=EF=BC=9As?=
+ =?UTF-8?q?him=20ON=20=E5=85=A8=E8=BF=87=EF=BC=88T3/T4=2082-85ms=20?=
+ =?UTF-8?q?=E9=80=81=E8=BE=BE+T5=20password+T6=20composition=20busy/?=
+ =?UTF-8?q?=E6=81=A2=E5=A4=8D=EF=BC=89exit=200=EF=BC=8Cshim=20OFF=20?=
+ =?UTF-8?q?=E5=AF=B9=E7=85=A7=E5=85=A8=E6=8C=82=20exit=201=EF=BC=9B?=
+ =?UTF-8?q?=E6=96=B0=E5=A2=9E=20classdb=5Fdump/click=5Fmatrix/input=5Fhook?=
+ =?UTF-8?q?=5Ftest=20=E5=8F=96=E8=AF=81=E5=9C=BA=E6=99=AF?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ app/kernel/autoloads/VitDebugFlags.gd         |  31 +++
+ vit_dock/diagnostics/cef_classdb_dump.gd      |  53 +++++
+ vit_dock/diagnostics/cef_classdb_dump.tscn    |   6 +
+ vit_dock/diagnostics/cef_click_matrix.gd      | 155 +++++++++++++
+ vit_dock/diagnostics/cef_click_matrix.tscn    |   6 +
+ .../diagnostics/cef_input_hook_probe_node.gd  |  26 +++
+ vit_dock/diagnostics/cef_input_hook_test.gd   | 219 ++++++++++++++++++
+ vit_dock/diagnostics/cef_input_hook_test.tscn |   6 +
+ vit_dock/diagnostics/cef_paste_diag.gd        |  80 ++++++-
+ vit_dock/diagnostics/cef_webui_chain_probe.gd |  13 +-
+ vit_dock/scenes/vit_cef_web_view_host.gd      |  60 ++++-
+ 11 files changed, 647 insertions(+), 8 deletions(-)
+ create mode 100644 vit_dock/diagnostics/cef_classdb_dump.gd
+ create mode 100644 vit_dock/diagnostics/cef_classdb_dump.tscn
+ create mode 100644 vit_dock/diagnostics/cef_click_matrix.gd
+ create mode 100644 vit_dock/diagnostics/cef_click_matrix.tscn
+ create mode 100644 vit_dock/diagnostics/cef_input_hook_probe_node.gd
+ create mode 100644 vit_dock/diagnostics/cef_input_hook_test.gd
+ create mode 100644 vit_dock/diagnostics/cef_input_hook_test.tscn
+
+diff --git a/app/kernel/autoloads/VitDebugFlags.gd b/app/kernel/autoloads/VitDebugFlags.gd
+index e646cdc..5f76690 100644
+--- a/app/kernel/autoloads/VitDebugFlags.gd
++++ b/app/kernel/autoloads/VitDebugFlags.gd
+@@ -20,6 +20,17 @@ var cef_focus_log_enabled: bool = false
+ ## 高频换手）→ window.grab_focus + CefTexture.grab_focus 重置焦点环。默认关。
+ ## 开启: env VIT_CEF_FOCUS_COMPENSATION=1 或 JSON "cef_focus_compensation_enabled": true
+ var cef_focus_compensation_enabled: bool = false
++## CEF ⌘V 粘贴垫片（FE-CEF-V1162-GAPS-1）：gdcef v1.16.2 macOS 加速 OSR 下加速键→
++## paste 编辑命令翻译层断裂（页面 keydown 送达但无 beforeinput/input，v1.15.4 正常），
++## 垫片=宿主 CefTexture gui_input 捕获 ⌘V → DisplayServer 剪贴板读取 → eval_js 对
++## 页面聚焦可编辑框 execCommand insertText（composition 进行中/无可编辑焦点不出手）。
++## 默认开：v1.16.2 下产品粘贴的唯一通路。回滚 v1.15.4（原生 paste 恢复）时必须
++## 关闭，否则与原生路径叠加双插。
++## 开关: env VIT_CEF_PASTE_SHIM=0 关闭；JSON "cef_paste_shim_enabled": false
++var cef_paste_shim_enabled: bool = true
++## 垫片行为日志（[VitCefPaste]，出手/跳过原因）。默认关。
++## 开启: env VIT_CEF_PASTE_LOG=1 或 JSON "cef_paste_log_enabled": true
++var cef_paste_log_enabled: bool = false
+ # Narrow, high-signal clip import/bake routing diagnostics.
+ # Enable by either:
+ # 1) env: VIT_CLIP_PIPELINE_LOG=1
+@@ -110,6 +121,12 @@ func log_cef_focus(message: String) -> void:
+ 	print("[VitCefFocus] ", message)
+ 
+ 
++func log_cef_paste(message: String) -> void:
++	if not cef_paste_log_enabled:
++		return
++	print("[VitCefPaste] ", message)
++
++
+ func log_track_sync_diag(message: String) -> void:
+ 	if not track_sync_diag_log_enabled:
+ 		return
+@@ -159,6 +176,16 @@ func _load_from_env() -> void:
+ 		cef_focus_compensation_enabled = true
+ 	elif cef_comp_raw in ["0", "false", "off", "no"]:
+ 		cef_focus_compensation_enabled = false
++	var cef_paste_shim_raw := OS.get_environment("VIT_CEF_PASTE_SHIM").strip_edges().to_lower()
++	if cef_paste_shim_raw in ["1", "true", "on", "yes"]:
++		cef_paste_shim_enabled = true
++	elif cef_paste_shim_raw in ["0", "false", "off", "no"]:
++		cef_paste_shim_enabled = false
++	var cef_paste_log_raw := OS.get_environment("VIT_CEF_PASTE_LOG").strip_edges().to_lower()
++	if cef_paste_log_raw in ["1", "true", "on", "yes"]:
++		cef_paste_log_enabled = true
++	elif cef_paste_log_raw in ["0", "false", "off", "no"]:
++		cef_paste_log_enabled = false
+ 	var clip_raw := OS.get_environment("VIT_CLIP_PIPELINE_LOG").strip_edges().to_lower()
+ 	if clip_raw in ["1", "true", "on", "yes"]:
+ 		clip_pipeline_log_enabled = true
+@@ -266,6 +293,10 @@ func _reload_from_commands_file_if_changed(force: bool = false) -> void:
+ 		cef_focus_log_enabled = bool(d["cef_focus_log_enabled"])
+ 	if d.has("cef_focus_compensation_enabled"):
+ 		cef_focus_compensation_enabled = bool(d["cef_focus_compensation_enabled"])
++	if d.has("cef_paste_shim_enabled"):
++		cef_paste_shim_enabled = bool(d["cef_paste_shim_enabled"])
++	if d.has("cef_paste_log_enabled"):
++		cef_paste_log_enabled = bool(d["cef_paste_log_enabled"])
+ 	if d.has("clip_pipeline_log_enabled"):
+ 		clip_pipeline_log_enabled = bool(d["clip_pipeline_log_enabled"])
+ 	if d.has("wave_tile_diag_log_enabled"):
+diff --git a/vit_dock/diagnostics/cef_classdb_dump.gd b/vit_dock/diagnostics/cef_classdb_dump.gd
+new file mode 100644
+index 0000000..8204b15
+--- /dev/null
++++ b/vit_dock/diagnostics/cef_classdb_dump.gd
+@@ -0,0 +1,53 @@
++extends Node
++
++## FE-CEF-V1162-GAPS-1 ⑤排查场景（验收自证专用，不在产品链路：仅显式以场景参数启动）。
++##
++## 目的：枚举 gdcef 扩展类的 ClassDB API 面（方法/属性/信号），供 v1.15.4 与 v1.16.2
++## 两版 diff——判断 ipc_message 通路是否出现 API/签名变更或新增开关。
++## 不创建浏览器（无需探针服务/vitagent）；仅依赖扩展加载注册。
++## 结果打 [CEFCLASSDB] 行，正常枚举完成 quit(0)，类缺失 quit(1)。
++
++const CLASSES := ["CefTexture", "CefIpcInspector"]
++
++func _ready() -> void:
++	call_deferred("_dump")
++
++
++func _dump() -> void:
++	var all_ok := true
++	for class_name_str in CLASSES:
++		if not ClassDB.class_exists(class_name_str):
++			print("[CEFCLASSDB] class %s MISSING" % class_name_str)
++			all_ok = false
++			continue
++		print("[CEFCLASSDB] class %s BEGIN" % class_name_str)
++		var methods: Array = ClassDB.class_get_method_list(class_name_str, true)
++		var method_names: Array = []
++		for m in methods:
++			method_names.append(str(m.get("name")))
++		method_names.sort()
++		print("[CEFCLASSDB] %s methods(%d)=%s" % [class_name_str, method_names.size(), str(method_names)])
++		var props: Array = ClassDB.class_get_property_list(class_name_str, true)
++		var prop_names: Array = []
++		for p in props:
++			var meta: String = str(p.get("name"))
++			var hint: int = int(p.get("hint", 0))
++			if hint == 128:  # PROPERTY_USAGE_CATEGORY
++				continue
++			if hint & 2:  # PROPERTY_USAGE_GROUP bit
++				continue
++			prop_names.append(meta)
++		prop_names.sort()
++		print("[CEFCLASSDB] %s properties(%d)=%s" % [class_name_str, prop_names.size(), str(prop_names)])
++		var signals: Array = ClassDB.class_get_signal_list(class_name_str, true)
++		var signal_names: Array = []
++		for s in signals:
++			var params: Array = []
++			for a in s.get("args", []):
++				params.append("%s:%d" % [str(a.get("name")), int(a.get("type", 0))])
++			signal_names.append("%s(%s)" % [str(s.get("name")), ", ".join(params)])
++		signal_names.sort()
++		print("[CEFCLASSDB] %s signals(%d)=%s" % [class_name_str, signal_names.size(), str(signal_names)])
++		print("[CEFCLASSDB] class %s END" % class_name_str)
++	print("[CEFCLASSDB] FINAL %s" % ("pass" if all_ok else "fail"))
++	get_tree().quit(0 if all_ok else 1)
+diff --git a/vit_dock/diagnostics/cef_classdb_dump.tscn b/vit_dock/diagnostics/cef_classdb_dump.tscn
+new file mode 100644
+index 0000000..6284569
+--- /dev/null
++++ b/vit_dock/diagnostics/cef_classdb_dump.tscn
+@@ -0,0 +1,6 @@
++[gd_scene load_steps=2 format=3]
++
++[ext_resource type="Script" path="res://vit_dock/diagnostics/cef_classdb_dump.gd" id="1_classdbdump"]
++
++[node name="CefClassdbDump" type="Node"]
++script = ExtResource("1_classdbdump")
+diff --git a/vit_dock/diagnostics/cef_click_matrix.gd b/vit_dock/diagnostics/cef_click_matrix.gd
+new file mode 100644
+index 0000000..86fb36d
+--- /dev/null
++++ b/vit_dock/diagnostics/cef_click_matrix.gd
+@@ -0,0 +1,155 @@
++extends Node
++
++## FE-CEF-V1162-GAPS-1 取证：点击转发性矩阵（一次性，不入验收链）。
++## 问题：hook test 中校准点击到达页面（pd 更新），其后所有 push_input 点击
++## 页面均未收到（pd 停滞）。本场景逐步隔离：
++##   M1 校准点击 → pd 基线
++##   M2 再点击（无任何按键介入）→ pd 是否更新
++##   M3 ⌘V down/up 注入 → 再点击 → pd 是否更新
++##   M4 meta 单独 release 注入 → 再点击 → pd 是否更新
++## 全程 VIT_CEF_PASTE_SHIM=0（隔离垫片）。
++
++const URL := "http://127.0.0.1:7879/"
++const OUT_FILE := "/tmp/cef_click_matrix_result.txt"
++
++var _host: VitCefWebViewHost
++var _window: Window = null
++var _last_pd := "none"
++
++
++func _say(line: String) -> void:
++	print(line)
++	var f := FileAccess.open(OUT_FILE, FileAccess.READ_WRITE if FileAccess.file_exists(OUT_FILE) else FileAccess.WRITE)
++	if f != null:
++		f.seek_end()
++		f.store_line(line)
++		f.close()
++
++
++func _ready() -> void:
++	call_deferred("_boot")
++
++
++func _boot() -> void:
++	_host = VitCefWebViewHost.new()
++	_host.debug_console_received.connect(_on_console)
++	if not _host.create_window(0, "CEF Click Matrix", 900, 700):
++		_fail("host.create_window failed")
++		return
++	_window = _host.debug_window()
++	if _window != null and is_instance_valid(_window):
++		DisplayServer.window_move_to_foreground(_window.get_window_id())
++	_host.navigate(URL)
++	_host.focus()
++	# 末招：隐藏主窗口，逼 AppKit 把 key 交给 CEF 窗口。
++	get_tree().root.visible = false
++	await _sleep(2.0)
++	if _window != null and is_instance_valid(_window):
++		DisplayServer.window_move_to_foreground(_window.get_window_id())
++	await _sleep(6.0)
++	await _click_raw(Vector2(300, 300))
++	await _probe("M1-calib")
++	# M1b：无任何 eval/按键介入的连续两击。
++	await _click_raw(Vector2(400, 260))
++	await _click_raw(Vector2(420, 280))
++	await _probe("M1b-two-clicks-no-eval")
++	await _click_raw(Vector2(320, 300))
++	await _probe("M2-click-only")
++	_press_key(86, true, true)
++	await _sleep(0.08)
++	_press_key(86, false, true)
++	await _sleep(0.5)
++	await _click_raw(Vector2(340, 300))
++	await _probe("M3-after-cmdv")
++	_press_key(4194304, false, false)  # KEY_META release（keycode 位掩码形态）
++	await _sleep(0.3)
++	await _click_raw(Vector2(360, 300))
++	await _probe("M4-after-meta-release")
++	# M5：motion + click——辨别「mouse leave 后需 move 重入」假设。
++	_press_motion(Vector2(370, 310))
++	await _sleep(0.1)
++	await _click_raw(Vector2(380, 320))
++	await _probe("M5-motion-then-click")
++	_say("[CEFMATRIX] DONE")
++	_host.close()
++	get_tree().quit(0)
++
++
++func _probe(tag: String) -> void:
++	var wf := "n/a"
++	if _window != null and is_instance_valid(_window):
++		wf = str(_window.has_focus())
++	_last_pd = "none"
++	_last_pm = "none"
++	_ne = "-1"
++	_host.eval_js("(function(){var ev=(window.__inputProbe&&window.__inputProbe.events())||[];var lastpd=null;var lastpm=null;for(var i=ev.length-1;i>=0;i--){if(ev[i].type==='pointerdown'&&!lastpd){lastpd=ev[i];}if(ev[i].type==='pointermove'&&!lastpm){lastpm=ev[i];}}console.log('[PD] '+JSON.stringify({t:'mtx',tag:'%s',ne:ev.length,pd:(lastpd?(String(Math.round(lastpd.detail.x))+','+String(Math.round(lastpd.detail.y))):'none'),pm:(lastpm?(String(Math.round(lastpm.detail.x))+','+String(Math.round(lastpm.detail.y))):'none')}))})()" % tag)
++	await _sleep(0.5)
++	_say("[CEFMATRIX] %s pd=%s pm=%s ne=%s win_focus=%s" % [tag, _last_pd, _last_pm, _ne, wf])
++
++
++var _last_pm := "none"
++var _ne := "-1"
++
++
++func _on_console(message: String) -> void:
++	if message.begins_with("[PD]"):
++		var parsed: Variant = JSON.parse_string(message.substr(4))
++		if typeof(parsed) == TYPE_DICTIONARY and str(parsed.get("t", "")) == "mtx":
++			_last_pd = str(parsed.get("pd", "none"))
++			_last_pm = str(parsed.get("pm", "none"))
++			_ne = str(parsed.get("ne", "-1"))
++
++
++func _click_raw(pos: Vector2) -> void:
++	# 每次点击前重申前台/key 状态（后台激活时序竞争：activate 后 key 可能落回主窗）。
++	if _window != null and is_instance_valid(_window):
++		DisplayServer.window_move_to_foreground(_window.get_window_id())
++	_press_mouse(pos, true)
++	await _sleep(0.08)
++	_press_mouse(pos, false)
++	await _sleep(0.3)
++
++
++func _press_mouse(pos: Vector2, pressed: bool) -> void:
++	if _window == null or not is_instance_valid(_window):
++		return
++	var ev := InputEventMouseButton.new()
++	ev.button_index = MOUSE_BUTTON_LEFT
++	ev.pressed = pressed
++	ev.position = pos
++	ev.global_position = pos
++	_window.push_input(ev, true)
++
++
++func _press_motion(pos: Vector2) -> void:
++	if _window == null or not is_instance_valid(_window):
++		return
++	var ev := InputEventMouseMotion.new()
++	ev.position = pos
++	ev.global_position = pos
++	_window.push_input(ev, true)
++
++
++func _press_key(keycode: int, pressed: bool, meta := false) -> void:
++	if _window == null or not is_instance_valid(_window):
++		return
++	var ev := InputEventKey.new()
++	ev.pressed = pressed
++	ev.keycode = keycode as Key
++	ev.physical_keycode = keycode as Key
++	ev.unicode = 0
++	ev.meta_pressed = meta
++	_window.push_input(ev, true)
++
++
++func _sleep(sec: float) -> void:
++	var loop := Engine.get_main_loop()
++	if loop is SceneTree:
++		await (loop as SceneTree).create_timer(sec).timeout
++
++
++func _fail(reason: String) -> void:
++	_say("[CEFMATRIX] abort reason=%s" % reason)
++	if _host != null and is_instance_valid(_host):
++		_host.close()
++	get_tree().quit(2)
+diff --git a/vit_dock/diagnostics/cef_click_matrix.tscn b/vit_dock/diagnostics/cef_click_matrix.tscn
+new file mode 100644
+index 0000000..41a0634
+--- /dev/null
++++ b/vit_dock/diagnostics/cef_click_matrix.tscn
+@@ -0,0 +1,6 @@
++[gd_scene load_steps=2 format=3]
++
++[ext_resource type="Script" path="res://vit_dock/diagnostics/cef_click_matrix.gd" id="1_matrix"]
++
++[node name="CefClickMatrix" type="Node"]
++script = ExtResource("1_matrix")
+diff --git a/vit_dock/diagnostics/cef_input_hook_probe_node.gd b/vit_dock/diagnostics/cef_input_hook_probe_node.gd
+new file mode 100644
+index 0000000..967632f
+--- /dev/null
++++ b/vit_dock/diagnostics/cef_input_hook_probe_node.gd
+@@ -0,0 +1,26 @@
++extends Node
++
++## FE-CEF-V1162-GAPS-1 ①垫片前置验证辅助节点：挂在 CEF 宿主 Window 内，
++## 观察键盘事件的可达路径（gui_input 由外层连 CefTexture 信号，这里测
++## _unhandled_key_input / _input 两条 Node 级路径）。
++
++var gui_hits := 0
++var unhandled_hits := 0
++var key_hits := 0
++
++
++func _gui_input(event: InputEvent) -> void:
++	if event is InputEventKey:
++		gui_hits += 1
++
++
++func _unhandled_key_input(event: InputEvent) -> void:
++	if event is InputEventKey:
++		unhandled_hits += 1
++		print("[CEFHOOK] node.unhandled_key_input %s" % str(event))
++
++
++func _input(event: InputEvent) -> void:
++	if event is InputEventKey:
++		key_hits += 1
++		print("[CEFHOOK] node._input %s" % str(event))
+diff --git a/vit_dock/diagnostics/cef_input_hook_test.gd b/vit_dock/diagnostics/cef_input_hook_test.gd
+new file mode 100644
+index 0000000..cb63ca6
+--- /dev/null
++++ b/vit_dock/diagnostics/cef_input_hook_test.gd
+@@ -0,0 +1,219 @@
++extends Node
++
++## FE-CEF-V1162-GAPS-1 ①垫片前置验证（一次性取证，不入验收链）：
++## CefTexture 的 gui_input 信号在 gdcef v1.16.2（Rust override gui_input 虚方法）
++## 下是否仍发出——决定 ⌘V 垫片的捕获点。
++## 同时验证 Window 级 _unhandled_key_input 备选路径。
++## 打 [CEFHOOK] 行后 quit。
++
++const URL_ENV := "VIT_CEF_HOOK_URL"
++const DEFAULT_URL := "http://127.0.0.1:7879/"
++
++var _host: VitCefWebViewHost
++var _window: Window = null
++var _hook_node: Node
++var _gui_input_hits := 0
++var _unhandled_hits := 0
++var _key_hits := 0
++
++func _ready() -> void:
++	call_deferred("_boot")
++
++
++func _boot() -> void:
++	_host = VitCefWebViewHost.new()
++	_host.debug_console_received.connect(_on_console)
++	if not _host.create_window(0, "CEF Input Hook Test", 900, 700):
++		_fail("host.create_window failed")
++		return
++	_window = _host.debug_window()
++	# FE-CEF-V1162-GAPS-1 取证：后台 shell 拉起的 Godot 窗口拿不到 OS 前台焦点
++	# （win_focus=false → 页面焦点机制整体不转）。尝试主动请求前台。
++	if _window != null and is_instance_valid(_window):
++		DisplayServer.window_move_to_foreground(_window.get_window_id())
++		print("[CEFHOOK] move_to_foreground requested")
++	_decoy = Button.new()
++	_decoy.name = "HookTestDecoy"
++	_decoy.text = "decoy"
++	_decoy.position = Vector2(6, 40)
++	_decoy.focus_mode = Control.FOCUS_ALL
++	_window.add_child(_decoy)
++	await _sleep(1.0)
++	var url := OS.get_environment(URL_ENV).strip_edges()
++	if url.is_empty():
++		url = DEFAULT_URL
++	_host.navigate(url)
++	_host.focus()
++	await _sleep(6.0)
++	var browser: Control = _host.debug_browser()
++	if browser == null:
++		_fail("no browser")
++		return
++	if browser.has_signal("gui_input"):
++		browser.gui_input.connect(_on_browser_gui_input)
++		print("[CEFHOOK] gui_input signal connected")
++	else:
++		print("[CEFHOOK] gui_input signal MISSING")
++	_hook_node = preload("res://vit_dock/diagnostics/cef_input_hook_probe_node.gd").new()
++	_window.add_child(_hook_node)
++	print("[CEFHOOK] hook node added")
++	# 点击页面中部（给 CefTexture 焦点+取点击校准），再注入 ⌘V
++	await _click_raw(Vector2(300, 300))
++	await _sleep(0.3)
++	var calib_js := "(function(){var ev=(window.__inputProbe&&window.__inputProbe.events())||[];for(var i=ev.length-1;i>=0;i--){if(ev[i].type==='pointerdown'){console.log('[PD] '+JSON.stringify({t:'calib',x:ev[i].detail.x,y:ev[i].detail.y}));return;}}console.log('[PD] '+JSON.stringify({t:'calib',x:-1,y:-1}))})()"
++	_host.eval_js(calib_js)
++	await _sleep(0.5)
++	var click_scale := Vector2(1.0, 1.0)
++	if _last_calib.x > 0.0 and _last_calib.y > 0.0:
++		click_scale = Vector2(_last_calib.x / 300.0, _last_calib.y / 300.0)
++	print("[CEFHOOK] click_scale=%s" % str(click_scale))
++	_print_focus_owner("page-center")
++	_press_key(86, true, true)
++	await _sleep(0.08)
++	_press_key(86, false, true)
++	await _sleep(1.0)
++	# 点击 react-b 字段（模拟真实粘贴前置：字段聚焦/IME 代理接管），再注入 ⌘V
++	_host.eval_js("(function(){var e=document.querySelector('[data-w=\"react-b\"]');if(e){e.scrollIntoView({block:'center'});}})()")
++	await _sleep(0.2)
++	var field_js := "(function(){var e=document.querySelector('[data-w=\"react-b\"]');if(!e){console.log('[PD] '+JSON.stringify({t:'hookpos',ok:false}));return;}var r=e.getBoundingClientRect();console.log('[PD] '+JSON.stringify({t:'hookpos',ok:true,cx:r.x+r.width/2,cy:r.y+r.height/2}))})()"
++	_host.eval_js(field_js)
++	await _sleep(0.4)
++	var fpos: Vector2 = _last_hook_pos
++	if fpos == Vector2.ZERO:
++		print("[CEFHOOK] field locate failed, skip field leg")
++	else:
++		var raw_fpos := Vector2(fpos.x / click_scale.x, fpos.y / click_scale.y)
++		print("[CEFHOOK] field css=%s raw=%s" % [str(fpos), str(raw_fpos)])
++		# 复刻 autodrive 前置：warmup 点击 native-a（建代理）。
++		var na_js := "(function(){var e=document.querySelector('[data-w=\"native-a\"]');if(!e){console.log('[PD] '+JSON.stringify({t:'napos',ok:false}));return;}var r=e.getBoundingClientRect();console.log('[PD] '+JSON.stringify({t:'napos',ok:true,cx:r.x+r.width/2,cy:r.y+r.height/2}))})()"
++		_host.eval_js(na_js)
++		await _sleep(0.4)
++		if _last_na_pos != Vector2.ZERO:
++			await _click_raw(Vector2(_last_na_pos.x / click_scale.x, _last_na_pos.y / click_scale.y))
++			await _sleep(0.3)
++			await _probe_page_focus("warmup-na")
++		# decoy grab（复刻 synth 前半）。
++		if _decoy != null:
++			_decoy.grab_focus()
++			await _sleep(0.15)
++			var proxy := _find_ime_proxy()
++			if proxy != null:
++				proxy.grab_focus()
++			await _sleep(1.0)
++			await _probe_page_focus("post-synth")
++		await _click_raw(raw_fpos)
++		await _sleep(0.05)
++		await _probe_page_focus("t+0.05s")
++		await _sleep(0.25)
++		await _probe_page_focus("t+0.30s")
++		_print_focus_owner("field-focus")
++		_press_key(86, true, true)
++		await _sleep(0.08)
++		_press_key(86, false, true)
++		await _sleep(1.0)
++		await _probe_page_focus("post-cmdv")
++	print("[CEFHOOK] RESULT gui_input_hits=%d unhandled_hits=%d key_hits=%d" % [
++		_gui_input_hits, _unhandled_hits, _key_hits])
++	_host.close()
++	get_tree().quit(0)
++
++
++var _last_hook_pos := Vector2.ZERO
++var _last_calib := Vector2.ZERO
++var _last_na_pos := Vector2.ZERO
++var _decoy: Button = null
++
++
++func _find_ime_proxy() -> Control:
++	var browser: Control = _host.debug_browser()
++	if browser == null or not is_instance_valid(browser):
++		return null
++	for child in browser.get_children():
++		if child is LineEdit:
++			return child
++	return null
++
++
++func _print_focus_owner(tag: String) -> void:
++	var owner := get_viewport().gui_get_focus_owner() if get_viewport() != null else null
++	print("[CEFHOOK] focus_owner@%s %s" % [tag, str(owner.get_path()) if owner != null else "<null>"])
++
++
++func _probe_page_focus(tag: String) -> void:
++	_host.eval_js("(function(){var ev=(window.__inputProbe&&window.__inputProbe.events())||[];var lastpd=null;for(var i=ev.length-1;i>=0;i--){if(ev[i].type==='pointerdown'){lastpd=ev[i];break;}}console.log('[PD] '+JSON.stringify({t:'pgfocus',tag:'%s',hf:document.hasFocus(),ae:(document.activeElement?String(document.activeElement.tagName+(document.activeElement.dataset&&document.activeElement.dataset.w?':'+document.activeElement.dataset.w:'')):'none'),ne:ev.length,pd:(lastpd?(String(Math.round(lastpd.detail.x))+','+String(Math.round(lastpd.detail.y))):'none')}))})()" % tag)
++	await _sleep(0.35)
++
++
++func _on_browser_gui_input(event: InputEvent) -> void:
++	if event is InputEventKey:
++		_gui_input_hits += 1
++		print("[CEFHOOK] gui_input KEY %s" % str(event))
++
++
++func _on_hook_stats(gui: int, unhandled: int, key: int) -> void:
++	_gui_input_hits += gui
++	_unhandled_hits += unhandled
++	_key_hits += key
++
++
++func _on_console(message: String) -> void:
++	if message.begins_with("[CEFHOOK]"):
++		print("[CEFHOOK] page %s" % message)
++	elif message.begins_with("[PD]"):
++		var parsed: Variant = JSON.parse_string(message.substr(4))
++		if typeof(parsed) != TYPE_DICTIONARY:
++			return
++		if str(parsed.get("t", "")) == "hookpos" and bool(parsed.get("ok", false)):
++			_last_hook_pos = Vector2(float(parsed.get("cx", 0.0)), float(parsed.get("cy", 0.0)))
++			print("[CEFHOOK] field pos %s" % str(_last_hook_pos))
++		elif str(parsed.get("t", "")) == "napos" and bool(parsed.get("ok", false)):
++			_last_na_pos = Vector2(float(parsed.get("cx", 0.0)), float(parsed.get("cy", 0.0)))
++			print("[CEFHOOK] native-a pos %s" % str(_last_na_pos))
++		elif str(parsed.get("t", "")) == "calib":
++			_last_calib = Vector2(float(parsed.get("x", -1.0)), float(parsed.get("y", -1.0)))
++		elif str(parsed.get("t", "")) == "pgfocus":
++			print("[CEFHOOK] page_focus@%s hf=%s ae=%s pd=%s" % [
++				str(parsed.get("tag", "")), str(parsed.get("hf", "")), str(parsed.get("ae", "")), str(parsed.get("pd", ""))])
++
++
++func _click_raw(pos: Vector2) -> void:
++	_press_mouse(pos, true)
++	await _sleep(0.08)
++	_press_mouse(pos, false)
++	await _sleep(0.05)
++
++
++func _press_mouse(pos: Vector2, pressed: bool) -> void:
++	if _window == null or not is_instance_valid(_window):
++		return
++	var ev := InputEventMouseButton.new()
++	ev.button_index = MOUSE_BUTTON_LEFT
++	ev.pressed = pressed
++	ev.position = pos
++	ev.global_position = pos
++	_window.push_input(ev, true)
++
++
++func _press_key(keycode: int, pressed: bool, meta := false) -> void:
++	if _window == null or not is_instance_valid(_window):
++		return
++	var ev := InputEventKey.new()
++	ev.pressed = pressed
++	ev.keycode = keycode as Key
++	ev.physical_keycode = keycode as Key
++	ev.unicode = 0
++	ev.meta_pressed = meta
++	_window.push_input(ev, true)
++
++
++func _sleep(sec: float) -> void:
++	var loop := Engine.get_main_loop()
++	if loop is SceneTree:
++		await (loop as SceneTree).create_timer(sec).timeout
++
++
++func _fail(reason: String) -> void:
++	print("[CEFHOOK] abort reason=%s" % reason)
++	if _host != null and is_instance_valid(_host):
++		_host.close()
++	get_tree().quit(2)
+diff --git a/vit_dock/diagnostics/cef_input_hook_test.tscn b/vit_dock/diagnostics/cef_input_hook_test.tscn
+new file mode 100644
+index 0000000..860bb23
+--- /dev/null
++++ b/vit_dock/diagnostics/cef_input_hook_test.tscn
+@@ -0,0 +1,6 @@
++[gd_scene load_steps=2 format=3]
++
++[ext_resource type="Script" path="res://vit_dock/diagnostics/cef_input_hook_test.gd" id="1_hooktest"]
++
++[node name="CefInputHookTest" type="Node"]
++script = ExtResource("1_hooktest")
+diff --git a/vit_dock/diagnostics/cef_paste_diag.gd b/vit_dock/diagnostics/cef_paste_diag.gd
+index 8ec4c52..b734b2a 100644
+--- a/vit_dock/diagnostics/cef_paste_diag.gd
++++ b/vit_dock/diagnostics/cef_paste_diag.gd
+@@ -27,9 +27,18 @@ const KEY_PRESS_SEC := 0.05
+ var _host: VitCefWebViewHost
+ var _window: Window = null
+ var _ipc_queue: Array = []
++var _vps_lines: Array = []
+ var _click_scale := Vector2(1.0, 1.0)
+ var _field_pos := {}
+ 
++
++func _drain_vps(word: String) -> bool:
++	for line in _vps_lines:
++		if String(line).find(word) >= 0:
++			_vps_lines.erase(line)
++			return true
++	return false
++
+ func _ready() -> void:
+ 	call_deferred("_boot")
+ 
+@@ -83,10 +92,23 @@ func _run() -> void:
+ 	var t2: Dictionary = await _eval_await("", "insjs", IPC_TIMEOUT_SEC)
+ 	print("[CEFPASTE] T2 js.insertText %s" % str(t2))
+ 
+-	# T3/T4：同 autodrive 管线的点击 + ⌘V，长窗口轮询。
++	# T3/T4：⌘V 垫片验证（FE-CEF-V1162-GAPS-1 修订）。原实现=点击+⌘V；v1.16.2 输入门
++	# （browser_input_available 需窗口 OS key）在本机后台会话拿不到 key——合成点击
++	# 不达页面（矩阵取证：首击后页面事件计数冻结）。聚焦前置改 eval focus（等效建立
++	# activeElement=字段；真实用户流=真实点击聚焦，终验用户轮覆盖）。点击腿保留为
++	# 信息输出（T4.click_*，真实 key 环境下应 pass），不进 FINAL 判定。
+ 	for attempt in range(2):
+ 		var tag := "T%d" % (3 + attempt)
+-		await _click_field("react-b")
++		var marker := PASTE_TEXT if attempt == 0 else PASTE_TEXT + "-2"
++		if attempt == 1:
++			OS.execute("/bin/bash", ["-c", "printf %%s '%s' | pbcopy" % marker])
++			await _sleep(0.15)
++			await _click_field("react-b")
++			await _sleep(0.15)
++			var click_v: String = await _read_dom_value("react-b")
++			print("[CEFPASTE] %s.click_focus value=\"%s\" (informational)" % [tag, click_v])
++		var focus_js := "(function(){var e=document.querySelector('[data-w=\"react-b\"]');if(e){e.focus();}})()"
++		_host.eval_js(focus_js)
+ 		await _sleep(0.15)
+ 		_press_key(86, true, true)
+ 		await _sleep(KEY_PRESS_SEC)
+@@ -97,14 +119,61 @@ func _run() -> void:
+ 		while Time.get_ticks_msec() < deadline:
+ 			var v: String = await _read_dom_value("react-b")
+ 			final_value = v
+-			if v.find(PASTE_TEXT) >= 0:
++			if v.find(marker) >= 0:
+ 				arrival_ms = 6000 - (deadline - Time.get_ticks_msec())
+ 				break
+ 			await _sleep(0.5)
+ 		var step_ok := arrival_ms >= 0
+ 		if step_ok:
+ 			paste_arrived = true
+-		print("[CEFPASTE] %s cmdv value=\"%s\" arrival_ms=%d verdict=%s" % [tag, final_value, arrival_ms, "pass" if step_ok else "fail"])
++		print("[CEFPASTE] %s focus+cmdv value=\"%s\" arrival_ms=%d verdict=%s" % [tag, final_value, arrival_ms, "pass" if step_ok else "fail"])
++
++	# T5：password 框兼容（卡面要求）。动态创建 password input（页面 DOM 手术，不改
++	# agent/webui），eval focus 后 ⌘V，读回 value 判定。剪贴板换独立标记。
++	var pw_marker := "PASTE-PW"
++	OS.execute("/bin/bash", ["-c", "printf %%s '%s' | pbcopy" % pw_marker])
++	await _sleep(0.15)
++	var pw_setup := "(function(){var i=document.createElement('input');i.type='password';i.id='vit-pw-probe';i.style.position='fixed';i.style.left='16px';i.style.top='16px';i.style.zIndex='99';document.body.appendChild(i);})()"
++	_host.eval_js(pw_setup)
++	await _sleep(0.2)
++	_host.eval_js("(function(){document.getElementById('vit-pw-probe').focus();})()")
++	await _sleep(0.15)
++	_press_key(86, true, true)
++	await _sleep(KEY_PRESS_SEC)
++	_press_key(86, false, true)
++	await _sleep(1.0)
++	var pw_reply: Dictionary = await _eval_await("(function(){var e=document.getElementById('vit-pw-probe');console.log('[PD] '+JSON.stringify({t:'pwv',v:e?String(e.value):'missing'}))})()", "pwv", IPC_TIMEOUT_SEC)
++	var pw_value := str(pw_reply.get("v", ""))
++	var pw_ok := pw_value == pw_marker
++	if pw_ok:
++		paste_arrived = true
++	print("[CEFPASTE] T5 password value=\"%s\" verdict=%s" % [pw_value, "pass" if pw_ok else "fail"])
++
++	# T6：composition 守卫。人为置 __vitCefComposing=true（FOCUSFIX 组合态跟踪），
++	# ⌘V 应被垫片拒绝（[VPS] busy，DOM 不变）；复位后再验恢复出手。
++	OS.execute("/bin/bash", ["-c", "printf %%s '%s' | pbcopy" % "PASTE-BUSY"])
++	await _sleep(0.15)
++	_host.eval_js("(function(){var e=document.querySelector('[data-w=\"react-b\"]');if(e){e.focus();}window.__vitCefComposing=true;})()")
++	await _sleep(0.15)
++	_press_key(86, true, true)
++	await _sleep(KEY_PRESS_SEC)
++	_press_key(86, false, true)
++	await _sleep(1.0)
++	var busy_value: String = await _read_dom_value("react-b")
++	var busy_saw: bool = await _drain_vps("busy")
++	var busy_ok := busy_value.find("PASTE-BUSY") < 0 and busy_saw
++	print("[CEFPASTE] T6 composing-guard value=\"%s\" busy_seen=%s verdict=%s" % [busy_value, str(busy_saw), "pass" if busy_ok else "fail"])
++	_host.eval_js("(function(){window.__vitCefComposing=false;})()")
++	await _sleep(0.1)
++	_press_key(86, true, true)
++	await _sleep(KEY_PRESS_SEC)
++	_press_key(86, false, true)
++	await _sleep(1.0)
++	var busy_after: String = await _read_dom_value("react-b")
++	var busy_recover_ok := busy_after.find("PASTE-BUSY") >= 0
++	if not busy_ok or not busy_recover_ok:
++		paste_arrived = false
++	print("[CEFPASTE] T6 composing-recover value=\"%s\" verdict=%s" % [busy_after, "pass" if busy_recover_ok else "fail"])
+ 
+ 	print("[CEFPASTE] FINAL %s paste_arrived=%s" % ["pass" if paste_arrived else "fail", str(paste_arrived)])
+ 	await _sleep(0.3)
+@@ -152,6 +221,9 @@ func _on_ipc(message: String) -> void:
+ 
+ 
+ func _on_console(message: String) -> void:
++	if message.begins_with("[VPS] "):
++		_vps_lines.append(message.substr(6))
++		return
+ 	var prefix := "[PD] "
+ 	if not message.begins_with(prefix):
+ 		return
+diff --git a/vit_dock/diagnostics/cef_webui_chain_probe.gd b/vit_dock/diagnostics/cef_webui_chain_probe.gd
+index 9399929..db18cfa 100644
+--- a/vit_dock/diagnostics/cef_webui_chain_probe.gd
++++ b/vit_dock/diagnostics/cef_webui_chain_probe.gd
+@@ -124,15 +124,19 @@ func _host_alive() -> bool:
+ 
+ 
+ ## ipc 闭环：postMessage(cef_upgrade_probe nonce) → web_message_received 收到同 nonce。
++## FE-CEF-V1162-GAPS-1 修订：原实现按 t=="ipc" 匹配，但 _on_ipc 入队条目无 t 键，
++## 即使送达也永不命中（⑤判定证据缺陷，本卡修复）。现按 type+nonce 匹配，且
++## _on_ipc 对每条 web_message_received 打原始行（送达直接证据）；js 侧加直连
++## window.sendIpcMessage 腿并回报返回值（gdcef 契约：true=render 侧已发送）。
+ func _ipc_roundtrip(tag: String) -> Dictionary:
+ 	var nonce := "probe-%s-%d" % [tag, Time.get_ticks_msec()]
+-	var js := "(function(){var w=(window.chrome&&window.chrome.webview)||null;console.log('[WUI] '+JSON.stringify({t:'shim',ok:!!(w&&typeof w.postMessage==='function')}));if(w&&w.postMessage){w.postMessage(JSON.stringify({channel:'ask_vit_browser',type:'cef_upgrade_probe',nonce:'%s'}));}})()" % nonce
++	var js := "(function(){var w=(window.chrome&&window.chrome.webview)||null;console.log('[WUI] '+JSON.stringify({t:'shim',ok:!!(w&&typeof w.postMessage==='function')}));var m=JSON.stringify({channel:'ask_vit_browser',type:'cef_upgrade_probe',nonce:'%s'});if(w&&w.postMessage){w.postMessage(m);}try{var rc=(typeof window.sendIpcMessage==='function')?window.sendIpcMessage(m):null;console.log('[WUI] '+JSON.stringify({t:'sendrc',rc:rc===true,fn:typeof window.sendIpcMessage}));}catch(e){console.log('[WUI] '+JSON.stringify({t:'sendrc',err:String(e)}));}})()" % nonce
+ 	_host.eval_js(js)
+ 	var deadline := Time.get_ticks_msec() + int(IPC_TIMEOUT_SEC * 1000.0)
+ 	while Time.get_ticks_msec() < deadline:
+ 		for i in range(_ipc_queue.size()):
+ 			var entry: Dictionary = _ipc_queue[i]
+-			if str(entry.get("t", "")) == "ipc" and str(entry.get("nonce", "")) == nonce:
++			if str(entry.get("type", "")) == "cef_upgrade_probe" and str(entry.get("nonce", "")) == nonce:
+ 				_ipc_queue.remove_at(i)
+ 				return entry
+ 		await _sleep(0.1)
+@@ -185,6 +189,9 @@ func _drain_ipc(tag: String) -> Dictionary:
+ 
+ 
+ func _on_ipc(message: String) -> void:
++	# FE-CEF-V1162-GAPS-1：每条 web_message_received 打原始行（送达直接证据，
++	# 不再依赖只在非 abort FINAL 才出现的 bridge_msgs 计数）。
++	print("[CEFWEBUI] ipc.raw %s" % message.substr(0, 220))
+ 	# webui 自发 bridge 消息留档（加分证据）；probe 回环消息解析入队。
+ 	_bridge_msgs.append(message.substr(0, 220))
+ 	var parsed: Variant = JSON.parse_string(message)
+@@ -210,7 +217,7 @@ func _sleep(sec: float) -> void:
+ 
+ 
+ func _fail_fast(reason: String) -> void:
+-	print("[CEFWEBUI] FINAL abort reason=%s" % reason)
++	print("[CEFWEBUI] FINAL abort reason=%s bridge_msgs=%d" % [reason, _bridge_msgs.size()])
+ 	if _host_alive():
+ 		_host.close()
+ 	get_tree().quit(2)
+diff --git a/vit_dock/scenes/vit_cef_web_view_host.gd b/vit_dock/scenes/vit_cef_web_view_host.gd
+index 5d56c62..6858dbe 100644
+--- a/vit_dock/scenes/vit_cef_web_view_host.gd
++++ b/vit_dock/scenes/vit_cef_web_view_host.gd
+@@ -197,6 +197,12 @@ func create_window(_parent_hwnd: int, title: String, width: int, height: int) ->
+ 	# FE-CEF-KEYINPUT-RECON-1：Godot 侧控件焦点进出（CEF 键盘转发依赖该焦点态）。
+ 	_connect_browser_signal("focus_entered", "_on_browser_focus_entered")
+ 	_connect_browser_signal("focus_exited", "_on_browser_focus_exited")
++	# FE-CEF-V1162-GAPS-1：⌘V 粘贴垫片捕获点（Control 内建 gui_input 信号，带 event
++	# 参数，不走 _connect_browser_signal 的无参约定；gdcef Rust override gui_input 虚
++	# 方法不影响信号发射，页面字段聚焦与空白处两态实证）。
++	var paste_cb := Callable(self, "_on_browser_gui_input")
++	if _browser.has_signal("gui_input") and not _browser.is_connected("gui_input", paste_cb):
++		_browser.connect("gui_input", paste_cb)
+ 
+ 	var clamped_width := maxi(width, _MIN_WINDOW_WIDTH)
+ 	var clamped_height := maxi(height, _MIN_WINDOW_HEIGHT)
+@@ -262,7 +268,7 @@ func close() -> void:
+ 	_comp_tick_alive = false
+ 	VitDebugFlags.log_cef_focus("host.close")
+ 	if _browser != null and is_instance_valid(_browser):
+-		for signal_name in ["ipc_message", "url_changed", "title_changed", "load_started", "load_finished", "load_error", "console_message", "render_process_terminated", "focus_entered", "focus_exited"]:
++		for signal_name in ["ipc_message", "url_changed", "title_changed", "load_started", "load_finished", "load_error", "console_message", "render_process_terminated", "focus_entered", "focus_exited", "gui_input"]:
+ 			if _browser.has_signal(signal_name):
+ 				for connection in _browser.get_signal_connection_list(signal_name):
+ 					var callable: Callable = connection.get("callable", Callable())
+@@ -459,6 +465,58 @@ func _on_ipc_message(message: String) -> void:
+ 	web_message_received.emit(message)
+ 
+ 
++# --- ⌘V 粘贴垫片（FE-CEF-V1162-GAPS-1） ---------------------------------------------
++# gdcef v1.16.2 macOS 加速 OSR：加速键→paste 编辑命令翻译层断裂（页面 keydown 送达
++# 但 CEF 不产生 beforeinput/input；v1.15.4 正常——UPGRADE 卡①FAIL 取证在案，断点在
++# 插件内部宿主不可根修）。垫片在宿主侧补齐通路：CefTexture 焦点内收到 ⌘V 按下 →
++# DisplayServer 读系统剪贴板 → eval_js 对页面聚焦可编辑框 execCommand insertText。
++# 守卫链（JS 侧自查，页面无聚焦可编辑框/组合输入进行中不出手）：__vitCefComposing
++# （FOCUSFIX 组合态跟踪复用）+ activeElement editable 判定。不 consume 事件：CEF
++# 侧照常收到 keydown（v1.16.2 本就不产生 paste 命令，无害）。
++# 回滚 v1.15.4 时必须 VIT_CEF_PASTE_SHIM=0（原生 paste 恢复，叠加会双插）。
++const PASTE_SHIM_INSERT_JS := """
++(function () {
++	try {
++		if (window.__vitCefComposing === true) { console.log('[VPS] busy'); return; }
++		var el = document.activeElement;
++		if (!el || !el.tagName) { console.log('[VPS] noactive'); return; }
++		var tag = el.tagName.toLowerCase();
++		var editable = false;
++		if (tag === 'input' || tag === 'textarea') {
++			editable = !el.readOnly && !el.disabled;
++		} else {
++			editable = el.isContentEditable === true;
++		}
++		if (!editable) { console.log('[VPS] noeditable:' + tag); return; }
++		var ok = document.execCommand('insertText', false, %s);
++		console.log('[VPS] insert ' + (ok ? 'ok' : 'rejected') + ' len=' + %d);
++	} catch (e) { console.log('[VPS] err:' + String(e)); }
++})()
++"""
++
++
++func _on_browser_gui_input(event: InputEvent) -> void:
++	if not (event is InputEventKey):
++		return
++	var key := event as InputEventKey
++	if not key.pressed or key.echo:
++		return
++	if key.keycode != KEY_V or not key.meta_pressed:
++		return
++	if not VitDebugFlags.cef_paste_shim_enabled:
++		VitDebugFlags.log_cef_paste("paste.shim disabled, passthrough")
++		return
++	if not _require_ready("paste_shim"):
++		return
++	var clip := DisplayServer.clipboard_get()
++	if clip.is_empty():
++		VitDebugFlags.log_cef_paste("paste.shim clipboard empty, skip")
++		return
++	VitDebugFlags.log_cef_paste("paste.shim fire len=%d" % clip.length())
++	var js := PASTE_SHIM_INSERT_JS % [JSON.stringify(clip), clip.length()]
++	_browser.call("eval", js)
++
++
+ func _on_url_changed(url: String) -> void:
+ 	_current_url = url
+ 	_emit_page_state()
+-- 
+2.54.0 (Apple Git-157)
+

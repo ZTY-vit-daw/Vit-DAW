@@ -1,0 +1,73 @@
+Initialize godot-rust (API v4.5.stable.official, runtime v4.6.stable.official, safeguards balanced)
+Godot Engine v4.6.stable.official.89cea1439 - https://godotengine.org
+Metal 4.0 - Forward+ - Using Device #0: Apple - Apple M3 (Apple9)
+
+[CEFWEBUI] cfg url=http://127.0.0.1:7878/app/
+objc[89023]: Class ANGLESwapCGLLayer is implemented in both /Users/timozty/Applications/Godot.app/Contents/MacOS/Godot (0x109aec400) and /Users/timozty/Documents/vit-daw-frontend/addons/godot_cef/bin/universal-apple-darwin/Godot CEF.framework/Helpers/Godot CEF.app/Contents/Frameworks/Chromium Embedded Framework (ARM64).framework/Chromium Embedded Framework (0x1490eb1b8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+[AcceleratedOSR] Detected render backend: Metal (driver: metal)
+[AcceleratedOSR] Detected render backend: Metal (driver: metal)
+[AcceleratedOSR] Detected render backend: Metal (driver: metal)
+[CefInit] CEF profile: /Users/timozty/Library/Application Support/Godot/app_userdata/Vit_DAW_Frontend/cef-data
+[CefInit] Startup summary: backend=Metal, accelerated_osr_supported=true, reason=Metal backend supports accelerated OSR on macOS, remote_debugging=true, remote_port=9229, cache_size_mb=0
+[AcceleratedOSR/Metal] GPU 'Apple M3' has no PCI vendor/device IDs (expected on Apple Silicon). GPU pinning not needed on single-GPU systems.
+
+DevTools listening on ws://127.0.0.1:9229/devtools/browser/6761d114-0f05-45cb-b234-bfd338558c19
+[GodotCef] Production security baseline: godot_cef/security/allow_insecure_content=false, godot_cef/security/ignore_certificate_errors=false, godot_cef/security/disable_web_security=false, godot_cef/advanced/custom_command_line_switches should not include insecure switches.
+[VitCefWebViewHost] {"label":"created","size":[1280,900],"title":"CEF WebUI Chain Probe 533"}
+[CEFWEBUI] nav.start http://127.0.0.1:7878/app/
+[CEFWEBUI] page.state@0.1s { "url": "http://127.0.0.1:7878/app/", "title": "", "loading": true, "can_go_back": false, "can_go_forward": false }
+[CEFWEBUI] host.ready
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+[AcceleratedOSR] Detected render backend: Metal (driver: metal)
+[AcceleratedOSR] Detected render backend: Metal (driver: metal)
+[CefTexture] Creating browser in accelerated rendering mode
+[AcceleratedOSR] Detected render backend: Metal (driver: metal)
+launch process utility
+[CEFWEBUI] page.state@0.2s { "url": "http://127.0.0.1:7878/app/", "title": "", "loading": true, "can_go_back": false, "can_go_forward": false }
+[CEFWEBUI] page.state@0.2s { "url": "http://127.0.0.1:7878/app/", "title": "Ask Vit", "loading": true, "can_go_back": false, "can_go_forward": false }
+[CEFWEBUI] nav.start http://127.0.0.1:7878/app/
+[CEFWEBUI] page.state@0.2s { "url": "http://127.0.0.1:7878/app/", "title": "Ask Vit", "loading": true, "can_go_back": false, "can_go_forward": false }
+[CEFWEBUI] page.state@0.2s { "url": "http://127.0.0.1:7878/app/", "title": "Ask Vit", "loading": true, "can_go_back": false, "can_go_forward": false }
+[CEFWEBUI] page.state@0.2s { "url": "http://127.0.0.1:7878/app/", "title": "Ask Vit", "loading": false, "can_go_back": false, "can_go_forward": false, "http_status_code": 200 }
+[VitCefWebViewHost] {"label":"console","message":"[VitWebUI] loaded vit-confirmation-consumption-v1-20260801"}
+[VitCefWebViewHost] {"label":"console","message":"[WUI] {\"t\":\"root\",\"ok\":true}"}
+[CEFWEBUI] ipc.raw {"channel":"ask_vit_browser","type":"cef_upgrade_probe","nonce":"probe-first-1055"}
+[CEFWEBUI] ipc.raw {"channel":"ask_vit_browser","type":"cef_upgrade_probe","nonce":"probe-first-1055"}
+[VitCefWebViewHost] {"label":"console","message":"[WUI] {\"t\":\"shim\",\"ok\":true}"}
+[VitCefWebViewHost] {"label":"console","message":"[WUI] {\"t\":\"sendrc\",\"rc\":true,\"fn\":\"function\"}"}
+[CEFWEBUI] first open verdict=pass loaded={ "t": "state_boot", "title": "Ask Vit" } root={ "t": "root", "ok": true } ipc={ "channel": "ask_vit_browser", "type": "cef_upgrade_probe", "nonce": "probe-first-1055" }
+[CEFWEBUI] close verdict=true (window freed=true)
+[VitCefWebViewHost] {"label":"created","size":[1280,900],"title":"CEF WebUI Chain Probe 2156"}
+[CEFWEBUI] nav.start http://127.0.0.1:7878/app/
+[CEFWEBUI] page.state@1.6s { "url": "http://127.0.0.1:7878/app/", "title": "", "loading": true, "can_go_back": false, "can_go_forward": false }
+[CEFWEBUI] host.ready
+[AcceleratedOSR] Detected render backend: Metal (driver: metal)
+[AcceleratedOSR] Detected render backend: Metal (driver: metal)
+[CefTexture] Creating browser in accelerated rendering mode
+[AcceleratedOSR] Detected render backend: Metal (driver: metal)
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+[CEFWEBUI] page.state@1.7s { "url": "http://127.0.0.1:7878/app/", "title": "", "loading": true, "can_go_back": false, "can_go_forward": false }
+[CEFWEBUI] page.state@1.7s { "url": "http://127.0.0.1:7878/app/", "title": "Ask Vit", "loading": true, "can_go_back": false, "can_go_forward": false }
+[CEFWEBUI] nav.start http://127.0.0.1:7878/app/
+[CEFWEBUI] page.state@1.7s { "url": "http://127.0.0.1:7878/app/", "title": "Ask Vit", "loading": true, "can_go_back": false, "can_go_forward": false }
+[CEFWEBUI] page.state@1.7s { "url": "http://127.0.0.1:7878/app/", "title": "Ask Vit", "loading": false, "can_go_back": false, "can_go_forward": false, "http_status_code": 200 }
+[VitCefWebViewHost] {"label":"console","message":"[VitWebUI] loaded vit-confirmation-consumption-v1-20260801"}
+[CEFWEBUI] page.state@1.7s { "url": "http://127.0.0.1:7878/app/", "title": "Ask Vit", "loading": false, "can_go_back": false, "can_go_forward": false }
+[89027:2940955:1015/222855.121624:WARNING:net/spdy/spdy_session.cc:3188] Received HEADERS for invalid stream 1
+[VitCefWebViewHost] {"label":"console","message":"[WUI] {\"t\":\"root\",\"ok\":true}"}
+[CEFWEBUI] ipc.raw {"channel":"ask_vit_browser","type":"cef_upgrade_probe","nonce":"probe-reopen-2496"}
+[CEFWEBUI] ipc.raw {"channel":"ask_vit_browser","type":"cef_upgrade_probe","nonce":"probe-reopen-2496"}
+[VitCefWebViewHost] {"label":"console","message":"[WUI] {\"t\":\"shim\",\"ok\":true}"}
+[VitCefWebViewHost] {"label":"console","message":"[WUI] {\"t\":\"sendrc\",\"rc\":true,\"fn\":\"function\"}"}
+[CEFWEBUI] reopen open verdict=pass loaded={ "t": "state_boot", "title": "Ask Vit" } root={ "t": "root", "ok": true } ipc={ "channel": "ask_vit_browser", "type": "cef_upgrade_probe", "nonce": "probe-reopen-2496" }
+[CEFWEBUI] FINAL pass first={ "load": { "t": "state_boot", "title": "Ask Vit" }, "root": { "t": "root", "ok": true }, "ipc": { "channel": "ask_vit_browser", "type": "cef_upgrade_probe", "nonce": "probe-first-1055" } } close=true reopen={ "load": { "t": "state_boot", "title": "Ask Vit" }, "root": { "t": "root", "ok": true }, "ipc": { "channel": "ask_vit_browser", "type": "cef_upgrade_probe", "nonce": "probe-reopen-2496" } } bridge_msgs=4
+WARNING: ObjectDB instances leaked at exit (run with --verbose for details).
+     at: cleanup (core/object/object.cpp:2641)

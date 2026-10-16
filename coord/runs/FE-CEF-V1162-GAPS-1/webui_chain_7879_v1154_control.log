@@ -1,0 +1,63 @@
+Initialize godot-rust (API v4.5.stable.official, runtime v4.6.stable.official, safeguards balanced)
+Godot Engine v4.6.stable.official.89cea1439 - https://godotengine.org
+Metal 4.0 - Forward+ - Using Device #0: Apple - Apple M3 (Apple9)
+
+[CEFWEBUI] cfg url=http://127.0.0.1:7879/
+objc[88766]: Class ANGLESwapCGLLayer is implemented in both /Users/timozty/Applications/Godot.app/Contents/MacOS/Godot (0x109d18400) and /Users/timozty/Documents/vit-daw-frontend/addons/godot_cef/bin/universal-apple-darwin/Godot CEF.framework/Helpers/Godot CEF.app/Contents/Frameworks/Chromium Embedded Framework (ARM64).framework/Chromium Embedded Framework (0x15507a790). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+[AcceleratedOSR] Detected render backend: Metal (driver: metal)
+[AcceleratedOSR] Detected render backend: Metal (driver: metal)
+[AcceleratedOSR] Detected render backend: Metal (driver: metal)
+[CefInit] Startup summary: backend=Metal, accelerated_osr_supported=true, reason=Metal backend supports accelerated OSR on macOS, remote_debugging=true, remote_port=9229, cache_size_mb=0
+[AcceleratedOSR/Metal] GPU 'Apple M3' has no PCI vendor/device IDs (expected on Apple Silicon). GPU pinning not needed on single-GPU systems.
+
+DevTools listening on ws://127.0.0.1:9229/devtools/browser/9889e28b-735a-4041-a656-27f4a2b230ef
+[GodotCef] Production security baseline: godot_cef/security/allow_insecure_content=false, godot_cef/security/ignore_certificate_errors=false, godot_cef/security/disable_web_security=false, godot_cef/advanced/custom_command_line_switches should not include insecure switches.
+[VitCefWebViewHost] {"label":"created","size":[1280,900],"title":"CEF WebUI Chain Probe 637"}
+[CEFWEBUI] nav.start http://127.0.0.1:7879/
+[CEFWEBUI] page.state@2.9s { "url": "http://127.0.0.1:7879/", "title": "", "loading": true, "can_go_back": false, "can_go_forward": false }
+[CEFWEBUI] host.ready
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+[AcceleratedOSR] Detected render backend: Metal (driver: metal)
+[AcceleratedOSR] Detected render backend: Metal (driver: metal)
+[CefTexture] Creating browser in accelerated rendering mode
+[AcceleratedOSR] Detected render backend: Metal (driver: metal)
+launch process utility
+[CEFWEBUI] page.state@3.0s { "url": "http://127.0.0.1:7879/", "title": "", "loading": true, "can_go_back": false, "can_go_forward": false }
+[CEFWEBUI] page.state@3.0s { "url": "http://127.0.0.1:7879/", "title": "Input Probe — FE-CEF-KEYINPUT-RECON-1", "loading": true, "can_go_back": false, "can_go_forward": false }
+[CEFWEBUI] nav.start http://127.0.0.1:7879/
+[CEFWEBUI] page.state@3.0s { "url": "http://127.0.0.1:7879/", "title": "Input Probe — FE-CEF-KEYINPUT-RECON-1", "loading": true, "can_go_back": false, "can_go_forward": false }
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":0,\"wall\":1792072752597,\"perf\":100.6,\"l\":\"mark\",\"t\":\"probe.load\",\"tg\":\"\",\"d\":{\"sessionId\":\"asva86\",\"restored\":0}}"}
+[CEFWEBUI] page.state@3.0s { "url": "http://127.0.0.1:7879/", "title": "Input Probe — FE-CEF-KEYINPUT-RECON-1", "loading": true, "can_go_back": false, "can_go_forward": false }
+[CEFWEBUI] page.state@3.0s { "url": "http://127.0.0.1:7879/", "title": "Input Probe — FE-CEF-KEYINPUT-RECON-1", "loading": false, "can_go_back": false, "can_go_forward": false, "http_status_code": 200 }
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":1,\"wall\":1792072752615,\"perf\":119.2,\"l\":\"react\",\"t\":\"commit\",\"tg\":\"\",\"d\":{\"widget\":\"react-b\",\"value\":\"\"}}"}
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":2,\"wall\":1792072752615,\"perf\":119.3,\"l\":\"react\",\"t\":\"commit\",\"tg\":\"\",\"d\":{\"widget\":\"react-c\",\"value\":\"\"}}"}
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":3,\"wall\":1792072752615,\"perf\":119.4,\"l\":\"mark\",\"t\":\"probe.ready\",\"tg\":\"\",\"d\":{\"href\":\"http://127.0.0.1:7879/\",\"ua\":\"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36\"}}"}
+[VitCefWebViewHost] {"label":"console","message":"[WUI] {\"t\":\"root\",\"ok\":true}"}
+[VitCefWebViewHost] {"label":"console","message":"[WUI] {\"t\":\"shim\",\"ok\":true}"}
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":4,\"wall\":1792072752898,\"perf\":401.8,\"l\":\"focus\",\"t\":\"hasFocus.change\",\"tg\":\"\",\"d\":{\"hasFocus\":true}}"}
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":5,\"wall\":1792072752898,\"perf\":401.9,\"l\":\"focus\",\"t\":\"activeElement.change\",\"tg\":\"\",\"d\":{\"active\":\"<body data-w=\\\"\\\">\"}}"}
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":6,\"wall\":1792072752898,\"perf\":402,\"l\":\"focus\",\"t\":\"visibility.change\",\"tg\":\"\",\"d\":{\"visibility\":\"visible\"}}"}
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":7,\"wall\":1792073134088,\"perf\":2674,\"l\":\"page\",\"t\":\"keydown\",\"tg\":\"<body data-w=\\\"\\\">\",\"d\":{\"key\":\"Unidentified\",\"code\":\"KeyA\",\"keyCode\":65,\"ctrl\":false,\"meta\":false,\"alt\":false,\"shift\":false,\"repeat\":false,\"isComposing\":false,\"trusted\":true}}"}
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+[CEFWEBUI] first open verdict=fail loaded={ "t": "state_boot", "title": "Input Probe — FE-CEF-KEYINPUT-RECON-1" } root={ "t": "root", "ok": true } ipc={  }
+[CEFWEBUI] FINAL abort reason=first open failed
+WARNING: ObjectDB instances leaked at exit (run with --verbose for details).
+     at: cleanup (core/object/object.cpp:2641)

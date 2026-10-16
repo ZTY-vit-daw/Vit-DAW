@@ -1,0 +1,160 @@
+Initialize godot-rust (API v4.5.stable.official, runtime v4.6.stable.official, safeguards balanced)
+Godot Engine v4.6.stable.official.89cea1439 - https://godotengine.org
+Metal 4.0 - Forward+ - Using Device #0: Apple - Apple M3 (Apple9)
+
+objc[90387]: Class ANGLESwapCGLLayer is implemented in both /Users/timozty/Applications/Godot.app/Contents/MacOS/Godot (0x10dae0400) and /Users/timozty/Documents/vit-daw-frontend/addons/godot_cef/bin/universal-apple-darwin/Godot CEF.framework/Helpers/Godot CEF.app/Contents/Frameworks/Chromium Embedded Framework (ARM64).framework/Chromium Embedded Framework (0x14fac31b8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+[AcceleratedOSR] Detected render backend: Metal (driver: metal)
+[AcceleratedOSR] Detected render backend: Metal (driver: metal)
+[AcceleratedOSR] Detected render backend: Metal (driver: metal)
+[CefInit] CEF profile: /Users/timozty/Library/Application Support/Godot/app_userdata/Vit_DAW_Frontend/cef-data
+[CefInit] Startup summary: backend=Metal, accelerated_osr_supported=true, reason=Metal backend supports accelerated OSR on macOS, remote_debugging=true, remote_port=9229, cache_size_mb=0
+[AcceleratedOSR/Metal] GPU 'Apple M3' has no PCI vendor/device IDs (expected on Apple Silicon). GPU pinning not needed on single-GPU systems.
+
+DevTools listening on ws://127.0.0.1:9229/devtools/browser/b43fec6e-8be5-4e18-8498-d0568ab281cd
+[GodotCef] Production security baseline: godot_cef/security/allow_insecure_content=false, godot_cef/security/ignore_certificate_errors=false, godot_cef/security/disable_web_security=false, godot_cef/advanced/custom_command_line_switches should not include insecure switches.
+[VitCefWebViewHost] {"label":"created","size":[1100,880],"title":"CEF Paste Diag"}
+[CEFPASTE] cfg url=http://127.0.0.1:7879/
+WARNING: [CefTexture2D] Cannot execute JS: no browser
+     at: gdcef::cef_texture2d::CefTexture2D::eval (crates/gdcef/src/cef_texture2d/api.rs:116)
+     GDScript backtrace (most recent call first):
+         [0] eval_js (res://vit_dock/scenes/vit_cef_web_view_host.gd:366)
+         [1] _wait_page_boot (res://vit_dock/diagnostics/cef_paste_diag.gd:191)
+         [2] _run (res://vit_dock/diagnostics/cef_paste_diag.gd:64)
+         [3] _boot (res://vit_dock/diagnostics/cef_paste_diag.gd:60)
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+[AcceleratedOSR] Detected render backend: Metal (driver: metal)
+[AcceleratedOSR] Detected render backend: Metal (driver: metal)
+[CefTexture] Creating browser in accelerated rendering mode
+[AcceleratedOSR] Detected render backend: Metal (driver: metal)
+launch process utility
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":0,\"wall\":1792088294470,\"perf\":58.5,\"l\":\"mark\",\"t\":\"probe.load\",\"tg\":\"\",\"d\":{\"sessionId\":\"r6ry6u\",\"restored\":1396}}"}
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":1,\"wall\":1792088294483,\"perf\":72.3,\"l\":\"react\",\"t\":\"commit\",\"tg\":\"\",\"d\":{\"widget\":\"react-b\",\"value\":\"\"}}"}
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":2,\"wall\":1792088294484,\"perf\":72.3,\"l\":\"react\",\"t\":\"commit\",\"tg\":\"\",\"d\":{\"widget\":\"react-c\",\"value\":\"\"}}"}
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":3,\"wall\":1792088294484,\"perf\":72.5,\"l\":\"mark\",\"t\":\"probe.ready\",\"tg\":\"\",\"d\":{\"href\":\"http://127.0.0.1:7879/\",\"ua\":\"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36\"}}"}
+[VitCefWebViewHost] {"label":"console","message":"[PD] {\"t\":\"boot\",\"ready\":\"complete\",\"probe\":\"object\"}"}
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":4,\"wall\":1792088294773,\"perf\":361.5,\"l\":\"focus\",\"t\":\"hasFocus.change\",\"tg\":\"\",\"d\":{\"hasFocus\":false}}"}
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":5,\"wall\":1792088294773,\"perf\":361.6,\"l\":\"focus\",\"t\":\"activeElement.change\",\"tg\":\"\",\"d\":{\"active\":\"<body data-w=\\\"\\\">\"}}"}
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":6,\"wall\":1792088294773,\"perf\":361.7,\"l\":\"focus\",\"t\":\"visibility.change\",\"tg\":\"\",\"d\":{\"visibility\":\"visible\"}}"}
+[VitCefWebViewHost] {"label":"console","message":"[PD] {\"t\":\"calib\",\"x\":353,\"y\":133}"}
+[VitCefWebViewHost] {"label":"console","message":"[PD] {\"t\":\"pos\",\"id\":\"native-a\",\"ok\":true,\"cx\":353,\"cy\":133.25}"}
+[VitCefWebViewHost] {"label":"console","message":"[PD] {\"t\":\"pos\",\"id\":\"react-b\",\"ok\":true,\"cx\":353,\"cy\":166.75}"}
+[CEFPASTE] page.ready scale=(1.176667, 0.665) b=(353.0, 166.75)
+[CEFPASTE] T0 godot.clipboard got="PASTE-DIAG" verdict=pass
+[VitCefWebViewHost] {"label":"console","message":"[PD] {\"t\":\"clipread\",\"ok\":false,\"err\":\"NotAllowedError: Failed to execute 'readText' on 'Clipboard': Document is not focused.\"}"}
+[CEFPASTE] T1 js.clipread { "t": "clipread", "ok": false, "err": "NotAllowedError: Failed to execute \'readText\' on \'Clipboard\': Document is not focused." }
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":7,\"wall\":1792088295795,\"perf\":1384.1,\"l\":\"page\",\"t\":\"input\",\"tg\":\"<input#react-b data-w=\\\"react-b\\\">\",\"d\":{\"inputType\":\"insertText\",\"data\":\"INS-JS\",\"domValue\":\"INS-JS\"}}"}
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":8,\"wall\":1792088295797,\"perf\":1385.6,\"l\":\"react\",\"t\":\"onChange.exec\",\"tg\":\"<input#react-b data-w=\\\"react-b\\\">\",\"d\":{\"widget\":\"react-b\",\"from\":\"\",\"to\":\"INS-JS\"}}"}
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":9,\"wall\":1792088295799,\"perf\":1387.7,\"l\":\"react\",\"t\":\"commit\",\"tg\":\"\",\"d\":{\"widget\":\"react-b\",\"value\":\"INS-JS\"}}"}
+[VitCefWebViewHost] {"label":"console","message":"[PD] {\"t\":\"insjs\",\"ok\":true,\"v\":\"INS-JS\"}"}
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":10,\"wall\":1792088295801,\"perf\":1389.4,\"l\":\"react\",\"t\":\"value.check\",\"tg\":\"<input#react-b data-w=\\\"react-b\\\">\",\"d\":{\"widget\":\"react-b\",\"verdict\":\"state-synced\",\"dom\":\"INS-JS\",\"state\":\"INS-JS\",\"domAtInput\":\"INS-JS\",\"stateAtInput\":\"\"}}"}
+[CEFPASTE] T2 js.insertText { "t": "insjs", "ok": true, "v": "INS-JS" }
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":11,\"wall\":1792088295973,\"perf\":1561.8,\"l\":\"focus\",\"t\":\"activeElement.change\",\"tg\":\"\",\"d\":{\"active\":\"<input#react-b data-w=\\\"react-b\\\">\"}}"}
+[VitCefPaste] paste.shim disabled, passthrough
+[VitCefWebViewHost] {"label":"console","message":"[PD] {\"t\":\"val\",\"v\":\"INS-JS\"}"}
+launch process utility
+launch process utility
+launch process utility
+[VitCefWebViewHost] {"label":"console","message":"[PD] {\"t\":\"val\",\"v\":\"INS-JS\"}"}
+[VitCefWebViewHost] {"label":"console","message":"[PD] {\"t\":\"val\",\"v\":\"INS-JS\"}"}
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+[VitCefWebViewHost] {"label":"console","message":"[PD] {\"t\":\"val\",\"v\":\"INS-JS\"}"}
+[VitCefWebViewHost] {"label":"console","message":"[PD] {\"t\":\"val\",\"v\":\"INS-JS\"}"}
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+[VitCefWebViewHost] {"label":"console","message":"[PD] {\"t\":\"val\",\"v\":\"INS-JS\"}"}
+[VitCefWebViewHost] {"label":"console","message":"[PD] {\"t\":\"val\",\"v\":\"INS-JS\"}"}
+[VitCefWebViewHost] {"label":"console","message":"[PD] {\"t\":\"val\",\"v\":\"INS-JS\"}"}
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+[VitCefWebViewHost] {"label":"console","message":"[PD] {\"t\":\"val\",\"v\":\"INS-JS\"}"}
+[VitCefWebViewHost] {"label":"console","message":"[PD] {\"t\":\"val\",\"v\":\"INS-JS\"}"}
+[VitCefWebViewHost] {"label":"console","message":"[PD] {\"t\":\"val\",\"v\":\"INS-JS\"}"}
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+[CEFPASTE] T3 focus+cmdv value="INS-JS" arrival_ms=-1 verdict=fail
+[VitCefWebViewHost] {"label":"console","message":"[PD] {\"t\":\"val\",\"v\":\"INS-JS\"}"}
+[CEFPASTE] T4.click_focus value="INS-JS" (informational)
+[VitCefPaste] paste.shim disabled, passthrough
+[VitCefWebViewHost] {"label":"console","message":"[PD] {\"t\":\"val\",\"v\":\"INS-JS\"}"}
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+[VitCefWebViewHost] {"label":"console","message":"[PD] {\"t\":\"val\",\"v\":\"INS-JS\"}"}
+[VitCefWebViewHost] {"label":"console","message":"[PD] {\"t\":\"val\",\"v\":\"INS-JS\"}"}
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+[VitCefWebViewHost] {"label":"console","message":"[PD] {\"t\":\"val\",\"v\":\"INS-JS\"}"}
+[VitCefWebViewHost] {"label":"console","message":"[PD] {\"t\":\"val\",\"v\":\"INS-JS\"}"}
+[VitCefWebViewHost] {"label":"console","message":"[PD] {\"t\":\"val\",\"v\":\"INS-JS\"}"}
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+[VitCefWebViewHost] {"label":"console","message":"[PD] {\"t\":\"val\",\"v\":\"INS-JS\"}"}
+[VitCefWebViewHost] {"label":"console","message":"[PD] {\"t\":\"val\",\"v\":\"INS-JS\"}"}
+[VitCefWebViewHost] {"label":"console","message":"[PD] {\"t\":\"val\",\"v\":\"INS-JS\"}"}
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+[VitCefWebViewHost] {"label":"console","message":"[PD] {\"t\":\"val\",\"v\":\"INS-JS\"}"}
+[CEFPASTE] T4 focus+cmdv value="INS-JS" arrival_ms=-1 verdict=fail
+[VitCefWebViewHost] {"label":"console","message":"[DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o"}
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+[VitCefPaste] paste.shim disabled, passthrough
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":12,\"wall\":1792088334970,\"perf\":15661.7,\"l\":\"focus\",\"t\":\"activeElement.change\",\"tg\":\"\",\"d\":{\"active\":\"<input#vit-pw-probe data-w=\\\"\\\">\"}}"}
+[VitCefWebViewHost] {"label":"console","message":"[PD] {\"t\":\"pwv\",\"v\":\"\"}"}
+[CEFPASTE] T5 password value="" verdict=fail
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":13,\"wall\":1792088336168,\"perf\":16860.2,\"l\":\"focus\",\"t\":\"activeElement.change\",\"tg\":\"\",\"d\":{\"active\":\"<input#react-b data-w=\\\"react-b\\\">\"}}"}
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+[VitCefPaste] paste.shim disabled, passthrough
+[VitCefWebViewHost] {"label":"console","message":"[PD] {\"t\":\"val\",\"v\":\"INS-JS\"}"}
+[CEFPASTE] T6 composing-guard value="INS-JS" busy_seen=false verdict=fail
+[VitCefPaste] paste.shim disabled, passthrough
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+[VitCefWebViewHost] {"label":"console","message":"[PD] {\"t\":\"val\",\"v\":\"INS-JS\"}"}
+[CEFPASTE] T6 composing-recover value="INS-JS" verdict=fail
+[CEFPASTE] FINAL fail paste_arrived=false
+WARNING: ObjectDB instances leaked at exit (run with --verbose for details).
+     at: cleanup (core/object/object.cpp:2641)

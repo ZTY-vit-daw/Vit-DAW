@@ -1,0 +1,347 @@
+Initialize godot-rust (API v4.5.stable.official, runtime v4.6.stable.official, safeguards balanced)
+Godot Engine v4.6.stable.official.89cea1439 - https://godotengine.org
+Metal 4.0 - Forward+ - Using Device #0: Apple - Apple M3 (Apple9)
+
+[VitCefFocus] host.window_visibility_changed visible=true win_focus=false
+objc[89333]: Class ANGLESwapCGLLayer is implemented in both /Users/timozty/Applications/Godot.app/Contents/MacOS/Godot (0x10a048400) and /Users/timozty/Documents/vit-daw-frontend/addons/godot_cef/bin/universal-apple-darwin/Godot CEF.framework/Helpers/Godot CEF.app/Contents/Frameworks/Chromium Embedded Framework (ARM64).framework/Chromium Embedded Framework (0x1512c31b8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+[AcceleratedOSR] Detected render backend: Metal (driver: metal)
+[AcceleratedOSR] Detected render backend: Metal (driver: metal)
+[AcceleratedOSR] Detected render backend: Metal (driver: metal)
+[CefInit] CEF profile: /Users/timozty/Library/Application Support/Godot/app_userdata/Vit_DAW_Frontend/cef-data
+[CefInit] Startup summary: backend=Metal, accelerated_osr_supported=true, reason=Metal backend supports accelerated OSR on macOS, remote_debugging=true, remote_port=9229, cache_size_mb=0
+[AcceleratedOSR/Metal] GPU 'Apple M3' has no PCI vendor/device IDs (expected on Apple Silicon). GPU pinning not needed on single-GPU systems.
+
+DevTools listening on ws://127.0.0.1:9229/devtools/browser/38526f97-75a1-40b1-9ef0-e9830355b548
+[GodotCef] Production security baseline: godot_cef/security/allow_insecure_content=false, godot_cef/security/ignore_certificate_errors=false, godot_cef/security/disable_web_security=false, godot_cef/advanced/custom_command_line_switches should not include insecure switches.
+[VitCefWebViewHost] {"label":"created","size":[1100,880],"title":"CEF Focus Autodrive"}
+[VitCefFocus] host.created url_target=https://google.com
+[VitCefFocus] heartbeat.start win_focus=false browser_focus=false visible=true owner=none
+[VitCefFocus] heartbeat win_focus=false browser_focus=false visible=true owner=none
+[CEFAUTODRIVE] cfg url=http://127.0.0.1:7879/ rounds=5 compensation=false
+[VitCefFocus] host.focus enter win_focus=false browser_focus=false
+[VitCefFocus] host.set_visible visible=true → window.grab_focus
+[VitCefFocus] window.gui_focus_changed node=/root/VitCefWebViewWindow/CefTexture
+[VitCefFocus] cef_texture.focus_entered owner=/root/VitCefWebViewWindow/CefTexture
+[VitCefFocus] host.focus after grab win_focus=false browser_focus=true owner=/root/VitCefWebViewWindow/CefTexture
+WARNING: [CefTexture2D] Cannot execute JS: no browser
+     at: gdcef::cef_texture2d::CefTexture2D::eval (crates/gdcef/src/cef_texture2d/api.rs:116)
+     GDScript backtrace (most recent call first):
+         [0] eval_js (res://vit_dock/scenes/vit_cef_web_view_host.gd:366)
+         [1] _wait_page_boot (res://vit_dock/diagnostics/cef_focus_autodrive.gd:199)
+         [2] _run (res://vit_dock/diagnostics/cef_focus_autodrive.gd:79)
+         [3] _boot (res://vit_dock/diagnostics/cef_focus_autodrive.gd:75)
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+[AcceleratedOSR] Detected render backend: Metal (driver: metal)
+[AcceleratedOSR] Detected render backend: Metal (driver: metal)
+[CefTexture] Creating browser in accelerated rendering mode
+[AcceleratedOSR] Detected render backend: Metal (driver: metal)
+launch process utility
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":0,\"wall\":1792077799617,\"perf\":53.8,\"l\":\"mark\",\"t\":\"probe.load\",\"tg\":\"\",\"d\":{\"sessionId\":\"v8ugoy\",\"restored\":1203}}"}
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":1,\"wall\":1792077799631,\"perf\":68.1,\"l\":\"react\",\"t\":\"commit\",\"tg\":\"\",\"d\":{\"widget\":\"react-b\",\"value\":\"\"}}"}
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":2,\"wall\":1792077799632,\"perf\":68.2,\"l\":\"react\",\"t\":\"commit\",\"tg\":\"\",\"d\":{\"widget\":\"react-c\",\"value\":\"\"}}"}
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":3,\"wall\":1792077799632,\"perf\":68.3,\"l\":\"mark\",\"t\":\"probe.ready\",\"tg\":\"\",\"d\":{\"href\":\"http://127.0.0.1:7879/\",\"ua\":\"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36\"}}"}
+[VitCefFocus] heartbeat win_focus=false browser_focus=true visible=true owner=/root/VitCefWebViewWindow/CefTexture
+[VitCefWebViewHost] {"label":"console","message":"[ADRV] {\"t\":\"boot\",\"probe\":\"object\",\"rep\":\"function\",\"ipc\":\"function\",\"ping\":1}"}
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":4,\"wall\":1792077799920,\"perf\":357.1,\"l\":\"focus\",\"t\":\"hasFocus.change\",\"tg\":\"\",\"d\":{\"hasFocus\":false}}"}
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":5,\"wall\":1792077799921,\"perf\":357.4,\"l\":\"focus\",\"t\":\"activeElement.change\",\"tg\":\"\",\"d\":{\"active\":\"<body data-w=\\\"\\\">\"}}"}
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":6,\"wall\":1792077799921,\"perf\":357.5,\"l\":\"focus\",\"t\":\"visibility.change\",\"tg\":\"\",\"d\":{\"visibility\":\"visible\"}}"}
+[CEFAUTODRIVE] boot.diag probe=object rep=function ipc=function ping=1.0
+[VitCefWebViewHost] {"label":"console","message":"[ADRV] {\"t\":\"calib\",\"x\":353,\"y\":133}"}
+[VitCefWebViewHost] {"label":"console","message":"[ADRV] {\"t\":\"pos\",\"id\":\"native-a\",\"ok\":true,\"cx\":353,\"cy\":133.25}"}
+[VitCefWebViewHost] {"label":"console","message":"[ADRV] {\"t\":\"pos\",\"id\":\"react-b\",\"ok\":true,\"cx\":353,\"cy\":166.75}"}
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+[CEFAUTODRIVE] page.ready scale=(1.176667, 0.665) a=(353.0, 133.25) b=(353.0, 166.75)
+[VitCefFocus] cef_texture.focus_exited owner=none
+[VitCefFocus] window.gui_focus_changed node=/root/VitCefWebViewWindow/AutodriveDecoy
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":7,\"wall\":1792077801719,\"perf\":2155.2,\"l\":\"mark\",\"t\":\"user-mark\",\"tg\":\"\",\"d\":{\"label\":\"r1.synth stuck: decoy grab → proxy grab\"}}"}
+[VitCefFocus] heartbeat win_focus=false browser_focus=false visible=true owner=/root/VitCefWebViewWindow/AutodriveDecoy
+[VitCefFocus] window.gui_focus_changed node=/root/VitCefWebViewWindow/CefTexture/@LineEdit@6
+[VitCefFocus] heartbeat win_focus=false browser_focus=false visible=true owner=/root/VitCefWebViewWindow/CefTexture/@LineEdit@6
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+[VitCefWebViewHost] {"label":"console","message":"[ADRV] {\"t\":\"phf\",\"v\":false}"}
+[CEFAUTODRIVE] round 1 synth page_hasFocus=false owner=/root/VitCefWebViewWindow/CefTexture/@LineEdit@6
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":8,\"wall\":1792077804956,\"perf\":5392.4,\"l\":\"mark\",\"t\":\"user-mark\",\"tg\":\"\",\"d\":{\"label\":\"r1.s1 click A + type abc1\"}}"}
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+[VitCefWebViewHost] {"label":"console","message":"[ADRV] {\"t\":\"state\",\"a\":\"\",\"b\":\"\"}"}
+[CEFAUTODRIVE] round 1 step s1(A) verdict=fail got="" want="abc1"
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":9,\"wall\":1792077806667,\"perf\":7103.3,\"l\":\"mark\",\"t\":\"user-mark\",\"tg\":\"\",\"d\":{\"label\":\"r1.s2 click B + type hello1\"}}"}
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+launch process utility
+launch process utility
+launch process utility
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+[VitCefWebViewHost] {"label":"console","message":"[ADRV] {\"t\":\"state\",\"a\":\"\",\"b\":\"\"}"}
+[CEFAUTODRIVE] round 1 step s2(B) verdict=fail got="" want="hello1"
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":10,\"wall\":1792077808718,\"perf\":9154.5,\"l\":\"mark\",\"t\":\"user-mark\",\"tg\":\"\",\"d\":{\"label\":\"r1.s3 click A + type xy1\"}}"}
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+[VitCefWebViewHost] {"label":"console","message":"[ADRV] {\"t\":\"state\",\"a\":\"\",\"b\":\"\"}"}
+[CEFAUTODRIVE] round 1 step s3(A) verdict=fail got="" want="abc1xy1"
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":11,\"wall\":1792077835409,\"perf\":10949.3,\"l\":\"mark\",\"t\":\"user-mark\",\"tg\":\"\",\"d\":{\"label\":\"r1.s4 click B + cmd-V paste PASTE-1\"}}"}
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+[VitCefWebViewHost] {"label":"console","message":"[ADRV] {\"t\":\"state\",\"a\":\"\",\"b\":\"\"}"}
+[CEFAUTODRIVE] round 1 step s4(B) verdict=fail got="" want="hello1PASTE-1"
+[CEFAUTODRIVE] round 1 verdict=fail
+[VitCefFocus] window.gui_focus_changed node=/root/VitCefWebViewWindow/AutodriveDecoy
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":12,\"wall\":1792077837465,\"perf\":13004.9,\"l\":\"mark\",\"t\":\"user-mark\",\"tg\":\"\",\"d\":{\"label\":\"r2.synth stuck: decoy grab → proxy grab\"}}"}
+[VitCefFocus] heartbeat win_focus=false browser_focus=false visible=true owner=/root/VitCefWebViewWindow/AutodriveDecoy
+[VitCefFocus] window.gui_focus_changed node=/root/VitCefWebViewWindow/CefTexture/@LineEdit@6
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+[VitCefFocus] heartbeat win_focus=false browser_focus=false visible=true owner=/root/VitCefWebViewWindow/CefTexture/@LineEdit@6
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+[VitCefWebViewHost] {"label":"console","message":"[ADRV] {\"t\":\"phf\",\"v\":false}"}
+[CEFAUTODRIVE] round 2 synth page_hasFocus=false owner=/root/VitCefWebViewWindow/CefTexture/@LineEdit@6
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":13,\"wall\":1792077840717,\"perf\":16257.1,\"l\":\"mark\",\"t\":\"user-mark\",\"tg\":\"\",\"d\":{\"label\":\"r2.s1 click A + type abc2\"}}"}
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+[VitCefWebViewHost] {"label":"console","message":"[ADRV] {\"t\":\"state\",\"a\":\"\",\"b\":\"\"}"}
+[CEFAUTODRIVE] round 2 step s1(A) verdict=fail got="" want="abc1xy1abc2"
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":14,\"wall\":1792077842434,\"perf\":17974.5,\"l\":\"mark\",\"t\":\"user-mark\",\"tg\":\"\",\"d\":{\"label\":\"r2.s2 click B + type hello2\"}}"}
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+[VitCefWebViewHost] {"label":"console","message":"[ADRV] {\"t\":\"state\",\"a\":\"\",\"b\":\"\"}"}
+[CEFAUTODRIVE] round 2 step s2(B) verdict=fail got="" want="hello1PASTE-1hello2"
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":15,\"wall\":1792077844489,\"perf\":20029.7,\"l\":\"mark\",\"t\":\"user-mark\",\"tg\":\"\",\"d\":{\"label\":\"r2.s3 click A + type xy2\"}}"}
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+[VitCefWebViewHost] {"label":"console","message":"[ADRV] {\"t\":\"state\",\"a\":\"\",\"b\":\"\"}"}
+[CEFAUTODRIVE] round 2 step s3(A) verdict=fail got="" want="abc1xy1abc2xy2"
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":16,\"wall\":1792077871206,\"perf\":21864.3,\"l\":\"mark\",\"t\":\"user-mark\",\"tg\":\"\",\"d\":{\"label\":\"r2.s4 click B + cmd-V paste PASTE-2\"}}"}
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+[VitCefWebViewHost] {"label":"console","message":"[ADRV] {\"t\":\"state\",\"a\":\"\",\"b\":\"\"}"}
+[CEFAUTODRIVE] round 2 step s4(B) verdict=fail got="" want="hello1PASTE-1hello2PASTE-2"
+[CEFAUTODRIVE] round 2 verdict=fail
+[VitCefFocus] window.gui_focus_changed node=/root/VitCefWebViewWindow/AutodriveDecoy
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":17,\"wall\":1792077873255,\"perf\":23913,\"l\":\"mark\",\"t\":\"user-mark\",\"tg\":\"\",\"d\":{\"label\":\"r3.synth stuck: decoy grab → proxy grab\"}}"}
+[VitCefFocus] heartbeat win_focus=false browser_focus=false visible=true owner=/root/VitCefWebViewWindow/AutodriveDecoy
+[VitCefFocus] window.gui_focus_changed node=/root/VitCefWebViewWindow/CefTexture/@LineEdit@6
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+[VitCefFocus] heartbeat win_focus=false browser_focus=false visible=true owner=/root/VitCefWebViewWindow/CefTexture/@LineEdit@6
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+[VitCefWebViewHost] {"label":"console","message":"[ADRV] {\"t\":\"phf\",\"v\":false}"}
+[CEFAUTODRIVE] round 3 synth page_hasFocus=false owner=/root/VitCefWebViewWindow/CefTexture/@LineEdit@6
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":18,\"wall\":1792077876496,\"perf\":27154.2,\"l\":\"mark\",\"t\":\"user-mark\",\"tg\":\"\",\"d\":{\"label\":\"r3.s1 click A + type abc3\"}}"}
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+[VitCefWebViewHost] {"label":"console","message":"[ADRV] {\"t\":\"state\",\"a\":\"\",\"b\":\"\"}"}
+[CEFAUTODRIVE] round 3 step s1(A) verdict=fail got="" want="abc1xy1abc2xy2abc3"
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":19,\"wall\":1792077878213,\"perf\":28871.4,\"l\":\"mark\",\"t\":\"user-mark\",\"tg\":\"\",\"d\":{\"label\":\"r3.s2 click B + type hello3\"}}"}
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+[VitCefWebViewHost] {"label":"console","message":"[ADRV] {\"t\":\"state\",\"a\":\"\",\"b\":\"\"}"}
+[CEFAUTODRIVE] round 3 step s2(B) verdict=fail got="" want="hello1PASTE-1hello2PASTE-2hello3"
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":20,\"wall\":1792077880268,\"perf\":30926,\"l\":\"mark\",\"t\":\"user-mark\",\"tg\":\"\",\"d\":{\"label\":\"r3.s3 click A + type xy3\"}}"}
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+[VitCefWebViewHost] {"label":"console","message":"[ADRV] {\"t\":\"state\",\"a\":\"\",\"b\":\"\"}"}
+[CEFAUTODRIVE] round 3 step s3(A) verdict=fail got="" want="abc1xy1abc2xy2abc3xy3"
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":21,\"wall\":1792077881817,\"perf\":32475.1,\"l\":\"mark\",\"t\":\"user-mark\",\"tg\":\"\",\"d\":{\"label\":\"r3.s4 click B + cmd-V paste PASTE-3\"}}"}
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+[VitCefWebViewHost] {"label":"console","message":"[ADRV] {\"t\":\"state\",\"a\":\"\",\"b\":\"\"}"}
+[CEFAUTODRIVE] round 3 step s4(B) verdict=fail got="" want="hello1PASTE-1hello2PASTE-2hello3PASTE-3"
+[CEFAUTODRIVE] round 3 verdict=fail
+[VitCefFocus] window.gui_focus_changed node=/root/VitCefWebViewWindow/AutodriveDecoy
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":22,\"wall\":1792077908989,\"perf\":34730.6,\"l\":\"mark\",\"t\":\"user-mark\",\"tg\":\"\",\"d\":{\"label\":\"r4.synth stuck: decoy grab → proxy grab\"}}"}
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+[VitCefFocus] heartbeat win_focus=false browser_focus=false visible=true owner=/root/VitCefWebViewWindow/AutodriveDecoy
+[VitCefFocus] window.gui_focus_changed node=/root/VitCefWebViewWindow/CefTexture/@LineEdit@6
+[VitCefFocus] heartbeat win_focus=false browser_focus=false visible=true owner=/root/VitCefWebViewWindow/CefTexture/@LineEdit@6
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+[VitCefWebViewHost] {"label":"console","message":"[ADRV] {\"t\":\"phf\",\"v\":false}"}
+[CEFAUTODRIVE] round 4 synth page_hasFocus=false owner=/root/VitCefWebViewWindow/CefTexture/@LineEdit@6
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":23,\"wall\":1792077912213,\"perf\":37954,\"l\":\"mark\",\"t\":\"user-mark\",\"tg\":\"\",\"d\":{\"label\":\"r4.s1 click A + type abc4\"}}"}
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+[VitCefWebViewHost] {"label":"console","message":"[ADRV] {\"t\":\"state\",\"a\":\"\",\"b\":\"\"}"}
+[CEFAUTODRIVE] round 4 step s1(A) verdict=fail got="" want="abc1xy1abc2xy2abc3xy3abc4"
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":24,\"wall\":1792077913929,\"perf\":39670.7,\"l\":\"mark\",\"t\":\"user-mark\",\"tg\":\"\",\"d\":{\"label\":\"r4.s2 click B + type hello4\"}}"}
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+[VitCefWebViewHost] {"label":"console","message":"[ADRV] {\"t\":\"state\",\"a\":\"\",\"b\":\"\"}"}
+[CEFAUTODRIVE] round 4 step s2(B) verdict=fail got="" want="hello1PASTE-1hello2PASTE-2hello3PASTE-3hello4"
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":25,\"wall\":1792077915983,\"perf\":41724,\"l\":\"mark\",\"t\":\"user-mark\",\"tg\":\"\",\"d\":{\"label\":\"r4.s3 click A + type xy4\"}}"}
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+[VitCefWebViewHost] {"label":"console","message":"[ADRV] {\"t\":\"state\",\"a\":\"\",\"b\":\"\"}"}
+[CEFAUTODRIVE] round 4 step s3(A) verdict=fail got="" want="abc1xy1abc2xy2abc3xy3abc4xy4"
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":26,\"wall\":1792077917534,\"perf\":43275.8,\"l\":\"mark\",\"t\":\"user-mark\",\"tg\":\"\",\"d\":{\"label\":\"r4.s4 click B + cmd-V paste PASTE-4\"}}"}
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+[VitCefWebViewHost] {"label":"console","message":"[ADRV] {\"t\":\"state\",\"a\":\"\",\"b\":\"\"}"}
+[CEFAUTODRIVE] round 4 step s4(B) verdict=fail got="" want="hello1PASTE-1hello2PASTE-2hello3PASTE-3hello4PASTE-4"
+[CEFAUTODRIVE] round 4 verdict=fail
+[VitCefFocus] window.gui_focus_changed node=/root/VitCefWebViewWindow/AutodriveDecoy
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":27,\"wall\":1792077919585,\"perf\":45326.6,\"l\":\"mark\",\"t\":\"user-mark\",\"tg\":\"\",\"d\":{\"label\":\"r5.synth stuck: decoy grab → proxy grab\"}}"}
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+[VitCefFocus] window.gui_focus_changed node=/root/VitCefWebViewWindow/CefTexture/@LineEdit@6
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+[VitCefWebViewHost] {"label":"console","message":"[ADRV] {\"t\":\"phf\",\"v\":false}"}
+[CEFAUTODRIVE] round 5 synth page_hasFocus=false owner=/root/VitCefWebViewWindow/CefTexture/@LineEdit@6
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":28,\"wall\":1792077947950,\"perf\":48831.6,\"l\":\"mark\",\"t\":\"user-mark\",\"tg\":\"\",\"d\":{\"label\":\"r5.s1 click A + type abc5\"}}"}
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+[VitCefWebViewHost] {"label":"console","message":"[ADRV] {\"t\":\"state\",\"a\":\"\",\"b\":\"\"}"}
+[CEFAUTODRIVE] round 5 step s1(A) verdict=fail got="" want="abc1xy1abc2xy2abc3xy3abc4xy4abc5"
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":29,\"wall\":1792077949667,\"perf\":50548.7,\"l\":\"mark\",\"t\":\"user-mark\",\"tg\":\"\",\"d\":{\"label\":\"r5.s2 click B + type hello5\"}}"}
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+[VitCefWebViewHost] {"label":"console","message":"[ADRV] {\"t\":\"state\",\"a\":\"\",\"b\":\"\"}"}
+[CEFAUTODRIVE] round 5 step s2(B) verdict=fail got="" want="hello1PASTE-1hello2PASTE-2hello3PASTE-3hello4PASTE-4hello5"
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":30,\"wall\":1792077951718,\"perf\":52599.5,\"l\":\"mark\",\"t\":\"user-mark\",\"tg\":\"\",\"d\":{\"label\":\"r5.s3 click A + type xy5\"}}"}
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+[VitCefWebViewHost] {"label":"console","message":"[ADRV] {\"t\":\"state\",\"a\":\"\",\"b\":\"\"}"}
+[CEFAUTODRIVE] round 5 step s3(A) verdict=fail got="" want="abc1xy1abc2xy2abc3xy3abc4xy4abc5xy5"
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":31,\"wall\":1792077953267,\"perf\":54149,\"l\":\"mark\",\"t\":\"user-mark\",\"tg\":\"\",\"d\":{\"label\":\"r5.s4 click B + cmd-V paste PASTE-5\"}}"}
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+[VitCefWebViewHost] {"label":"console","message":"[ADRV] {\"t\":\"state\",\"a\":\"\",\"b\":\"\"}"}
+[CEFAUTODRIVE] round 5 step s4(B) verdict=fail got="" want="hello1PASTE-1hello2PASTE-2hello3PASTE-3hello4PASTE-4hello5PASTE-5"
+[CEFAUTODRIVE] round 5 verdict=fail
+[CEFAUTODRIVE] FINAL fail rounds_pass=0/5
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+WARNING: ObjectDB instances leaked at exit (run with --verbose for details).
+     at: cleanup (core/object/object.cpp:2641)
+gdcef parent process 
