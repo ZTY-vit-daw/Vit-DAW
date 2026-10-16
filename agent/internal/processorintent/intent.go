@@ -41,6 +41,10 @@ const (
 	FamilyClipper             = "clipper"
 	FamilyReverb              = "reverb"
 	FamilyDelay               = "delay"
+	// GENSHELL-PCA-1: load-admission-only family (件四 §2). The generation
+	// shell's control verb is the generation job (audit face), not parameter
+	// writes; no typed control coverage is promised for it anywhere.
+	FamilyGenerationShell = "generation_shell"
 )
 
 // Intent is the only model-owned family/coverage handoff. It intentionally
@@ -86,7 +90,7 @@ var supportedFamilies = map[string]bool{
 	FamilyStaticEQ: true, FamilyBroadbandCompressor: true, FamilyLimiter: true,
 	FamilyGateExpander: true, FamilyDeEsser: true, FamilyTransientShaper: true,
 	FamilyMultibandDynamics: true, FamilySpectralDynamics: true, FamilyClipper: true,
-	FamilyReverb: true, FamilyDelay: true,
+	FamilyReverb: true, FamilyDelay: true, FamilyGenerationShell: true,
 }
 
 var supportedScopes = map[string]bool{
