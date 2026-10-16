@@ -13,9 +13,22 @@ import (
 // identity, vendor names, and current values stay out of classification.
 // The provable core is the decay-time evidence (decay / size / length
 // wording); pre-delay, character, and wet-balance bindings extend the same
-// stage but never substitute for the core.
+// stage but never substitute for the core. The plate-family damper wording
+// (PLUGGRABBER-TIMEDYN-COMPAT-1) proves the same tail stage at a reduced
+// evidence tier: a plate's damper is its decay-time control by construction,
+// but it does not name the decay time itself, so it stays below the
+// direct-wording tier and a discrete plate/model selector stays character.
 
 const reverbTopologySchema = "reverb-control-topology/v1"
+
+// Reverb tail evidence tiers. Direct wording names the decay-time family
+// outright; plate-family wording proves the same tail through plate physics
+// and therefore carries a reduced confidence, never substituting for direct
+// wording where both are present.
+const (
+	reverbTailEvidenceDirect      = "direct_wording"
+	reverbTailEvidencePlateFamily = "plate_damper_family"
+)
 
 type ReverbModel struct {
 	Classification  string
@@ -32,6 +45,7 @@ type ReverbStage struct {
 	Character    []CompressorBinding
 	Output       []CompressorBinding
 	Capabilities ReverbCapabilities
+	TailEvidence string
 }
 
 type ReverbCapabilities struct {
@@ -51,6 +65,7 @@ type reverbCandidate struct {
 	Role          string
 	Section       string
 	AuxiliaryKind string
+	TailEvidence  string
 }
 
 // DetectReverbModelWithBoundary recovers independently provable reverb stages
@@ -107,6 +122,7 @@ func BuildReverbSummaryWithBoundary(digest ParameterDigest) (map[string]any, str
 		"mapping_source": "generic_structural",
 		"classification": model.Classification,
 		"confidence":     model.Confidence,
+		"tail_evidence":  model.Stage.TailEvidence,
 		"control_topology": map[string]any{
 			"schema_version": reverbTopologySchema,
 			"generation":     model.Generation,
@@ -167,16 +183,21 @@ func classifyReverbParameter(param ParameterInfo) reverbCandidate {
 	case reverbContains(text, "pre delay", "predelay", "pre-delay"):
 		candidate.Role, candidate.Section = "pre_delay", "timing"
 	case reverbContains(text, "decay time", "decaytime") || reverbHasToken(text, "decay"):
-		candidate.Role, candidate.Section = "decay", "tail"
+		candidate.Role, candidate.Section, candidate.TailEvidence = "decay", "tail", reverbTailEvidenceDirect
 	case reverbHasToken(text, "size") || reverbContains(text, "room size", "hall size"):
-		candidate.Role, candidate.Section = "size", "tail"
+		candidate.Role, candidate.Section, candidate.TailEvidence = "size", "tail", reverbTailEvidenceDirect
 	case reverbContains(text, "reverb length", "tail length") || reverbHasToken(text, "length"):
-		candidate.Role, candidate.Section = "decay", "tail"
+		candidate.Role, candidate.Section, candidate.TailEvidence = "decay", "tail", reverbTailEvidenceDirect
+	case reverbHasToken(text, "damper") && !reverbContains(text, "pedal", "sustain"):
+		// Plate-family decay core: a plate reverb's Damper is its decay-time
+		// control; sustain/damper-pedal wording belongs to keyboard
+		// instruments and must not fabricate a reverb tail.
+		candidate.Role, candidate.Section, candidate.TailEvidence = "decay", "tail", reverbTailEvidencePlateFamily
 	case reverbContains(text, "damping", "damp", "diffusion", "diffuse"):
 		candidate.Role, candidate.Section = "damping", "character"
 	case reverbHasToken(text, "width") || reverbContains(text, "stereo width", "image width"):
 		candidate.Role, candidate.Section = "width", "character"
-	case reverbContains(text, "reverb mode", "space mode", "reverb algorithm", "reverb character"):
+	case reverbContains(text, "reverb mode", "space mode", "reverb algorithm", "reverb character", "plate selector", "plate select"):
 		candidate.Role, candidate.Section = "reverb_mode", "character"
 	case reverbHasToken(text, "modulation") || reverbContains(text, "mod rate", "mod depth", "chorus"):
 		candidate.Role, candidate.Section = "damping", "character"
@@ -203,6 +224,7 @@ func buildReverbStage(candidates []reverbCandidate) ReverbStage {
 		switch candidate.Section {
 		case "tail":
 			stage.Tail = append(stage.Tail, binding)
+			stage.TailEvidence = reverbTailEvidenceTier(stage.TailEvidence, candidate.TailEvidence)
 		case "timing":
 			stage.Timing = append(stage.Timing, binding)
 		case "character":
@@ -216,6 +238,19 @@ func buildReverbStage(candidates []reverbCandidate) ReverbStage {
 	}
 	stage.Capabilities = reverbCapabilities(stage)
 	return stage
+}
+
+// reverbTailEvidenceTier folds one tail candidate's evidence into the stage
+// tier; direct wording outranks family wording so a surface exposing both
+// keeps the stronger core.
+func reverbTailEvidenceTier(current, incoming string) string {
+	if current == reverbTailEvidenceDirect || incoming == reverbTailEvidenceDirect {
+		return reverbTailEvidenceDirect
+	}
+	if current != "" {
+		return current
+	}
+	return incoming
 }
 
 func reverbBinding(candidate reverbCandidate) CompressorBinding {
@@ -345,6 +380,11 @@ func classifyReverbStage(stage ReverbStage) string {
 
 func reverbStageConfidence(stage ReverbStage) float64 {
 	if len(stage.Tail) == 0 {
+		return 0.90
+	}
+	if stage.TailEvidence == reverbTailEvidencePlateFamily {
+		// Plate-family tail wording proves the stage but rests on plate
+		// physics rather than the parameter naming the decay time itself.
 		return 0.90
 	}
 	return 0.96
