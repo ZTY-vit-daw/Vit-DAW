@@ -1,0 +1,39 @@
+no_running_kernel_at_start=confirmed
+project_copy_sha256=32a39c061132202008f004eab7d820469a007159e6c8fd68fdf3d4adf5123b39 (source project never written; VIT_PROJECT_XML redirect)
+semantic_index_isolated=/Users/timozty/Documents/vit-genshell-artifacts/pca/genshell_pca_mac_20261016-231931/state/plugin_semantics_empty.json (empty entries — token fallback probe isolation)
+agent_bin=/Users/timozty/Documents/vit-genshell-artifacts/pca/genshell_pca_mac_20261016-231931/state/vitagent sha256=b6f240786db821762d2ff74598fa4fc91c85124fac90be8ed1ebc07ca8240d08
+kernel_pid=17111 log=/Users/timozty/Documents/vit-genshell-artifacts/pca/genshell_pca_mac_20261016-231931/logs/kernel_main.log
+agent_pid=17134 log=/Users/timozty/Documents/vit-genshell-artifacts/pca/genshell_pca_mac_20261016-231931/state/agent_last.log
+bundle_fingerprint=sha256:e4a3e14569702cae7ca89e5766afb7d948bbfe820b7a609acad2251e1c6db1d3
+seed_store id=pca2_2ee398467825cc9897d85540 status=promoted fingerprint=sha256:e4a3e14569702cae7ca89e5766afb7d948bbfe820b7a609acad2251e1c6db1d3 identifier=VST3-GenShell-15b5622d-b818da1c
+ok: LEG A: agent log carries [pca-native-seed] seeded=true ([pca-native-seed] family=generation_shell identifier=VST3-GenShell-15b5622d-b818da1c seeded=true)
+ok: LEG A: permanent native admission seeded and bound to deployed bundle (id=pca2_2ee398467825cc9897d85540)
+scan_terminal=completed
+ok: scan: GenShell discovered by kernel (identifier=VST3-GenShell-15b5622d-b818da1c)
+authority_activate http=200 body=full_project_access
+ok: authority: full_project_access activated
+B_track_id=1037
+B_invoke_http=200
+B_invoke status=ok action_id=act_9490d52968602203 error=
+ok: B: agent-path rack_add_node admitted (status=ok agent_action_id=act_9490d52968602203 — journal/audit face)
+ok: revoke: seed record pca2_2ee398467825cc9897d85540 flipped to revoked in isolated store
+C_track_id=1044
+C_invoke_http=400
+C_invoke status=error action_id= error=pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier
+ok: C: agent-path load rejected by pca_load_gate (error=pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier)
+D_rack_add status=ok plugin_id=1053
+ok: LEG D: UI-path rack_add_node ok under revoked agent admission (plugin_id=1053 — UI/C++ face independent of Harness gate)
+agent_stop=SIGTERM pid_reaped
+agent_pid=17272 log=/Users/timozty/Documents/vit-genshell-artifacts/pca/genshell_pca_mac_20261016-231931/state/agent_last.log
+reseeded_id=pca2_14cab154b69ce11c6ec9c632 (revoked=pca2_2ee398467825cc9897d85540)
+ok: LEG E: restart log carries [pca-native-seed] seeded=true
+authority_activate http=200 body=full_project_access
+ok: authority: full_project_access re-activated after restart
+E_track_id=1054
+E_invoke_http=200
+E_invoke status=ok action_id=act_5b6accc5a4346fba error=
+ok: E: agent-path rack_add_node admitted (status=ok agent_action_id=act_5b6accc5a4346fba — journal/audit face)
+ok: LEG E: native admission re-seeded and load recovered (id=pca2_14cab154b69ce11c6ec9c632)
+agent_stop=SIGTERM pid_reaped
+kernel_stop=SIGTERM elapsed=1s
+finished=2026-10-16 23:19:54

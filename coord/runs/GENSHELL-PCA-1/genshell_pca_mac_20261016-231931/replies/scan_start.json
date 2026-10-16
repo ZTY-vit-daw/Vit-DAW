@@ -1,0 +1,22 @@
+{
+  "status": "scanning",
+  "scan_id": "3ad6eeaced16438eacdf585bd9a4aa5d",
+  "progress": 0.0,
+  "current_file": "",
+  "total_files": 0,
+  "completed_files": 0,
+  "cached_count_before": 720,
+  "plugin_count": 720,
+  "discovered_count": 0,
+  "scanned_paths": [
+    "/Users/timozty/Library/Audio/Plug-Ins/VST3"
+  ],
+  "invalid_paths": [],
+  "failed_files": [],
+  "started_at": "2026-10-16T23:19:43.593+08:00",
+  "finished_at": "",
+  "error": "",
+  "coalesced": false,
+  "out_of_process": true,
+  "watchdog_timeout_ms": 600000
+}

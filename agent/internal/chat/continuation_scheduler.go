@@ -734,6 +734,9 @@ func (s *Server) Start() {
 	if s == nil {
 		return
 	}
+	// GENSHELL-PCA-1 方案 B: process-start seeding of native load-only
+	// admissions happens before any worker starts, exactly once per process.
+	s.seedNativeProcessorAdmissions()
 	s.startContinuationScheduler()
 	s.wakeContinuationScheduler()
 }

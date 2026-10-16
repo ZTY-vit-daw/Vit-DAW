@@ -174,3 +174,36 @@ func TestGenerationShellVocabularyIsConsistentAcrossThreeSurfaces(t *testing.T) 
 		t.Fatal("unknown family variant resolved in the registry")
 	}
 }
+
+func TestGenerationShellDeclaresNativeSeedFact(t *testing.T) {
+	r, err := Default()
+	if err != nil {
+		t.Fatal(err)
+	}
+	seeds := r.NativeSeeds()
+	if len(seeds) != 1 {
+		t.Fatalf("expected exactly one native seed declaration, got %+v", seeds)
+	}
+	seed := seeds[0]
+	if seed.Family != processorintent.FamilyGenerationShell {
+		t.Fatalf("native seed family=%q", seed.Family)
+	}
+	if seed.Fact.Identifier != "VST3-GenShell-15b5622d-b818da1c" || seed.Fact.Name != "GenShell" || seed.Fact.Manufacturer != "Vit Audio" || seed.Fact.Format != "VST3" {
+		t.Fatalf("native seed fact=%+v", seed.Fact)
+	}
+	if !strings.HasPrefix(seed.Fact.BundlePath, "~/Library/Audio/Plug-Ins/VST3/GenShell.vst3") {
+		t.Fatalf("native seed bundle path=%q", seed.Fact.BundlePath)
+	}
+}
+
+func TestRegistryRejectsNativeSeedOnTypedFamilies(t *testing.T) {
+	invalid := []Definition{
+		{Family: processorintent.FamilyReverb, PCAFamily: processorattestation.FamilyReverb, Recognizer: "x", CoverageVocabulary: []string{"decay"}, Planner: "p", Materializer: "m", TypedExecutor: "t", ReceiptProjector: "r", ObservationViews: []string{"v"}, NativeSeed: &NativeSeedFact{BundlePath: "/tmp/B.vst3", Identifier: "VST3-B-1", Name: "B", Manufacturer: "V", Format: "VST3"}},
+		{Family: processorintent.FamilyGenerationShell, PCAFamily: processorattestation.FamilyGenerationShell, Recognizer: "x", CoverageVocabulary: []string{"load_only"}, Planner: "load_admission", Materializer: "none", TypedExecutor: "none", ReceiptProjector: "generation_job_audit", ObservationViews: []string{"mix.multitrack_relationship"}, NativeSeed: &NativeSeedFact{BundlePath: "", Identifier: "VST3-B-1", Name: "B", Manufacturer: "V", Format: "VST3"}},
+	}
+	for index, definition := range invalid {
+		if _, err := New(definition); err == nil {
+			t.Fatalf("invalid native seed definition %d was accepted", index)
+		}
+	}
+}
