@@ -5,7 +5,7 @@
 - 硬输入：四项用户裁定（2026-10-16 晚窗）+ 混合轨道模型——见卡面，本设计不改动任何一条
 - 底座实证：[experiment/RESULTS.md](experiment/RESULTS.md)（AuxMultiReturnProbe **VERDICT PASS**：
   轨到轨多目标回流 2.0001× 实证 + 静音联动 + 乱序防环有界）
-- 状态：**待决策侧评审 + 用户过目 GUI 交互规格（§5）后方可拆实现卡**
+- 状态：~~待决策侧评审 + 用户过目 GUI 交互规格（§5）后方可拆实现卡~~ → **决策侧评审 pass（2026-10-16）+ GUI 经用户四轮迭代定稿（§9，v4）——实现卡已拆：K1(127)/K2(128)/宏设计(129)/K3(130)，见 §9.5**
 
 ---
 
@@ -157,6 +157,8 @@ insert 直挂（rack_add_node 到目标轨自己机架，效果器硬编码 Z3�
 
 ## 4. 腿 4：机架 GUI 交互规格（Godot 前端）
 
+> **【2026-10-16 晚窗】本节方案已被 §9 v4 定稿取代**（用户四轮迭代：v1 FX icon+跨轨画线 → v2 链内 icon → v3 并联支路 → **v4 SendOut/SendIn 串联节点**）。原文留作设计历程存档，不再作为实现依据。
+
 > 现状事实（取证）：`Vit_Graph_Rack.gd`（GraphEdit，单轨画布，clip/z1/z2/z3 泳道）；
 > **拖拽画线链路已存在**（`connection_request`→`_on_connection_request:4894`→`rack_connect_pins`，
 > 经 UDP 4445→godot_bridge→ZMQ 内核）；自绘电缆 `_draw:5224`；边只画内核确认边；
@@ -247,3 +249,42 @@ send 边不在 `get_rack_edges_for_track` 快照（需内核快照面扩展 send
   mixboard/project_package.go:70-76（agent 侧轻量派生 inputs 模式）
 - 前端接缝：Vit_Graph_Rack.gd（画线链 4894/自绘边 5224/单轨绑定 168）、rack_client.gd:19-32（命令面）、
   vit_daw_track_kind.gd:9（EFFECT_RETURN 枚举）、rack_ipc_payload_rules.gd:62-77（x/y 消费）
+
+---
+
+## 9. GUI 定稿（2026-10-16 晚窗，用户四轮迭代 v4）——**权威，取代 §4/§6**
+
+### 9.0 用户裁定（定稿依据，全程用户参与迭代）
+
+1. **send=两个普通串联节点**：SendOut（穿通+副本岔出）/ SendIn（湿声注入），与效果器完全同构——串联占位、拖排序换位（SendOut 链位=tap 点、SendIn 链位=汇入点）、右键成对移除、加载逻辑与效果器一致；
+2. **统一 send 原语**：音频发送（目标=FX 轨，成对插 SendOut/SendIn）与控制发送（目标=效果器侧链口，只插 SendOut、无 SendIn、不混音）GUI 形态与操作**完全一致**，区别只在目标标注文字——不人为二分，用户自知用途（侧链走 tracktion 原生 sidechainSourceID，tap v1 固定链后）；
+3. **创建一步化**：目标轨机架右键/菜单「新建发送」→ 目标选择器（列已有轨 + 每轨可展开效果器侧链口 + 底部「＋新建 FX 轨」现场建轨命名）→ 选定即连；**不设 aux 轨「发送开关」**（混合轨道模型任何轨可被发送；列表收敛用分组+搜索，不引入第二套机制与状态）；
+4. **典型用法**：原轨不再挂混响（湿声经 SendIn 回来）；FX 轨=普通混合轨（顶部标签页有自己的画布），**源轨画布无跨轨实体 icon**；
+5. **成对加载默认链尾**（传统 post 语义），拖排序即改 pre/post——「位置即语义」。
+
+### 9.1 呈现与实现一一对应
+
+SendOut/SendIn 直接就是 pluginList 里的 AuxSend/AuxReturn 插件的 GUI 呈名——**零聚合投影层**（v2 曾聚合为一个 icon，v4 放弃）。GUI 链位=pluginList 位置=引擎链序，三层同值。
+
+### 9.2 创建流程工程细节（K1 验收项）
+
+「＋新建 FX 轨」一步化=add_track+aux 插件对插入+建边的**单命令事务**（`track.send.connect{auto_create_fx_track}`）；**undo 原子性**（一个 undo 单元全撤）、**幂等**（同连接重发不重复建轨）、**重名追加序号**、**新轨落位源轨相邻**（K3 细化）。FX 轨内部节点（AuxReturn(send_bus)@首位+AuxSend(return_bus)@链尾+vol-96dB+fx_role）首连 lazy 自动就绪。
+
+### 9.3 控制面与 FX 轨视角
+
+- 通道条 **SEND 槽位=发送量主控面**（FX 名+量+通/断开关；裁定 2 传统习惯）；
+- **FX 轨画布**：自己的效果器链 + 顶部**只读来源列表**（哪些轨在发+各自量，点击跳源轨画布）；
+- 样图存档：send/return 机架 GUI 交互样图 v4（含创建流程），决策侧会话可视化工件（2026-10-16）。
+
+### 9.4 宏控制层整合（关联卡 129）
+
+机架两层模型：**信号层**（rack in→效果器串联→SendOut/SendIn→rack out，实线）+**控制层**（宏节点+binding 虚线到参数口，含 send 发送量——一个宏旋钮同时带 send 量+decay 的经典混音宏）。控制层节点不占信号链。侧面板 MacroPanel（agent 推送）保留为会话视图，持久编辑归机架控制层。现状盘点（2026-10-16 决策侧）：内核 control graph 已实现（macropanel 节点 x/y+binding+set_macro_values，PluginRackControlService:2360-2800，11 条 control_* 命令在册）；机架画布已有 KIND_MACRO_CONTROL 节点类型（Vit_Graph_Rack.gd:151-165）；参数绑定工作台（rack_param_surface_panel_factory.gd）；B2-RACK-VIZ-SKETCH 草稿在案（rack_viz.png/html）。**宏控制层样图须再经用户过目定稿后才进 K3**（send 同模式）。
+
+### 9.5 实现拆卡（权威，取代 §6；用户裁定 2026-10-16「一起执行，并不着急」）
+
+| 卡 | 池序 | 内容 | 文件域 | 依赖 |
+|---|---|---|---|---|
+| **K1** KERNEL-SENDROUTE-IMPL-1 | 127 | SendRouteService：5 命令（connect 含 auto_create 成对插入+lazy FX 初始化/单事务 undo/幂等）+双 bus 三明治+bus 分配器+拓扑 DAG 校验+链序强制+读回；SendRouteTests（五腿收编）；烟测脚本 | VitApp/Source/Service、VitApp/Tests、scripts/ | 无（可即领） |
+| **K2** AGENT-SENDROUTE-SEMANTICS-1 | 128 | harness 命令表+guard 白名单+policy 变更类别；plugin_grabber 拓扑决策表+pendingplan 拓扑 diff+话术模板；C3 空间域升级；MOM send_topology+TOM v0_3+FXM 指纹+TIM 悬空断言 | agent/internal/{chat,harness,policy,mom,tom,fxm,tim,mixboard,capabilitycontext} | K1 |
+| 宏设计 FE-RACK-MACRO-LAYER-DESIGN-1 | 129 | 控制层样图+规格（宏节点/binding 线/send amount 绑定面/侧面板角色/两层线型）——决策侧对话式样图迭代，**经用户过目定稿** | coord/runs（设计件） | 无（与 K1/K2 并行） |
+| **K3** FE-SENDROUTE-MACRO-GUI-1 | 130 | send 节点渲染+创建选择器+SEND 槽位+FX 轨视角+宏控制层——**与宏设计一次落地**（Vit_Graph_Rack.gd 同文件一轮改净） | Godot 前端仓 app/rack、app/shell/side_panel、rack_client | K1 + 129 定稿；[等待用户] 手测（画布操作听感） |
