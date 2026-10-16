@@ -5,8 +5,9 @@
 
 ## 当前占用
 
+- 2026-10-16 20:35 +0800 修订 / LOUDNESS-B-TRIGGER(90) 烟测腿**环境受阻转待用户**（同 owner，GLM-5.3 L2 PC 执行会话 ZCode）：run1=fs_largeproject_smoke_20261016_185317 **exit 2 环境中断**（Phase 0 clear-field 拒起：残留 Godot pid 16472=**用户 Godot 编辑器**（--editor，18:16 起，command line 含 vit-daw-frontend，监听 6005/6006 编辑器端口不占栈端口）——纪律不擅杀无 owner 用户进程；等待至 20:31 编辑器仍在场，监视器按期退出未启 run）。20:31 复核四端口（7878/5555/5556/8787）监听=0、VitApp/VitAgent/vsphub=0——**栈从未启动，零残留**；占用登记 2338dba0 中的进程核对声明有一处缺陷如实更正：核对用进程名 'Godot' 未覆盖变体名 'Godot_v4.6.1-stable_win64'（编辑器当时已在场而未被捕获）。状态改**待用户**：用户关闭 Godot 编辑器后由任一执行会话按协议重新登记占用再启 run（被测 worktree D:/Vit_DAW_wt_loudness_watch_b@64b3ccfd 与 -LoudnessWatch 腿就绪）。
 - 2026-10-16 19:05 +0800 登记 / LOUDNESS-B-TRIGGER(90) 真栈烟测腿（GLM-5.3 L2 PC 执行会话，ZCode；worktree D:/Vit_DAW_wt_loudness_watch_b，分支 port/loudness-watch-trigger-1@64b3ccfd 含触发接线）：`scripts/fs_largeproject_smoke.ps1 -LoudnessWatch` 一 run（新工件目录）——61 轨导入+bake 预热+自由态 NL 轮+LW 四门（披露载体/verdict 落盘/dedupe/配置关零行为）。被测=worktree 构建 agent（64b3ccfd）+主检出 VitApp.exe+Godot 前端主检出（agent 侧 Go 面改动，C++/Godot 零改动）。§8 声明（运行前）：LLM=NL 轮 1 chat+≤6 nudge+≤4 hop（脚本既有预算）；LW 腿自身确定性零 LLM；成功条件=脚本 exit 0（A1-A4+LW 四门全过）；失败分类=environment_interrupt（栈起不来/端口占用）/assertion_fail（LW 门或 A 门）/llm_settle_fail（NL 轮不收口）/capability_blocked；止损=同签名 assertion_fail ×2 即停转取证。登记前只读核对四端口（5555/5556/7878/8787）监听=0、四类进程（VitApp/VitAgent/vsphub/Godot）=0。
-- 状态：**占用中**（owner=LOUDNESS-B-TRIGGER 烟测腿，见上）
+- 状态：**空闲（LOUDNESS-B 烟测腿环境受阻待用户，栈未启动零残留，重跑须重新登记）**
 
 ## 最近一次释放
 
