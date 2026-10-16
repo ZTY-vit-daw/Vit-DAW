@@ -5,7 +5,8 @@
 
 ## 当前占用
 
-- 状态：**空闲**
+- 2026-10-16 19:05 +0800 登记 / LOUDNESS-B-TRIGGER(90) 真栈烟测腿（GLM-5.3 L2 PC 执行会话，ZCode；worktree D:/Vit_DAW_wt_loudness_watch_b，分支 port/loudness-watch-trigger-1@64b3ccfd 含触发接线）：`scripts/fs_largeproject_smoke.ps1 -LoudnessWatch` 一 run（新工件目录）——61 轨导入+bake 预热+自由态 NL 轮+LW 四门（披露载体/verdict 落盘/dedupe/配置关零行为）。被测=worktree 构建 agent（64b3ccfd）+主检出 VitApp.exe+Godot 前端主检出（agent 侧 Go 面改动，C++/Godot 零改动）。§8 声明（运行前）：LLM=NL 轮 1 chat+≤6 nudge+≤4 hop（脚本既有预算）；LW 腿自身确定性零 LLM；成功条件=脚本 exit 0（A1-A4+LW 四门全过）；失败分类=environment_interrupt（栈起不来/端口占用）/assertion_fail（LW 门或 A 门）/llm_settle_fail（NL 轮不收口）/capability_blocked；止损=同签名 assertion_fail ×2 即停转取证。登记前只读核对四端口（5555/5556/7878/8787）监听=0、四类进程（VitApp/VitAgent/vsphub/Godot）=0。
+- 状态：**占用中**（owner=LOUDNESS-B-TRIGGER 烟测腿，见上）
 
 ## 最近一次释放
 
