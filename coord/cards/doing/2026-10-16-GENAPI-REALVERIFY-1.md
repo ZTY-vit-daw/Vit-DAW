@@ -38,6 +38,6 @@
 
 agent HTTP/harness 工具面数据断言；无 webui/前端改动；真源音频质量不评估（可听性留给后续 AUDITION 卡）。
 
-- 领取：2026-10-16 晚 CST / origin/main 3cd3f325 / GLM-5.3 L2 Mac 执行侧 ZCode 会话（本卡会话）/ 实现分支 port/genapi-realverify-1（零生产代码，脚本最小扩展+工件）/ worktree Vit-DAW-genapi-rv1 / 协调 worktree Vit-DAW-genapi-rv1-coord 分支 coord/genapi-rv1-claim / 领取提交（回填于下一提交）
+- 领取：2026-10-16 晚 CST / origin/main 3cd3f325 / GLM-5.3 L2 Mac 执行侧 ZCode 会话（本卡会话）/ 实现分支 port/genapi-realverify-1（零生产代码，脚本最小扩展+工件）/ worktree Vit-DAW-genapi-rv1 / 协调 worktree Vit-DAW-genapi-rv1-coord 分支 coord/genapi-rv1-claim / 领取提交 5ba87c42（本行哈希回填提交随后）
 - 回执：（run ID / 真源响应摘要 / 产物哈希 / 失败分类如适用 / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
