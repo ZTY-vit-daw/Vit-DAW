@@ -314,6 +314,27 @@ func (s *Server) prepareFreeStateReasoningContext(conversationID, userText strin
 	loop.PluginCandidateDisclosure = buildFreeStatePluginCandidateDisclosure()
 	loop.UpdatedAt = time.Now().UTC()
 	s.storeFreeStateLoop(loop)
+	// LOUDNESS-WATCH-TRIGGER-1 T3: the assembled loop context carries the
+	// latest project change (kernel revision reached the agent). Fire the
+	// background watch check; dedupe + the config gate make repeats free, and
+	// the loop cadence constraint is the documented honesty boundary (the
+	// check fires when the agent observes the change, not the instant the
+	// user edits). The panic guard lives at the spawn point.
+	if len(loop.LatestProjectChange) > 0 {
+		if hook := s.loudnessWatchHook(); hook != nil {
+			change := cloneContext(loop.LatestProjectChange)
+			go func() {
+				defer func() {
+					if err := recover(); err != nil {
+						if s != nil && s.logger != nil {
+							s.logger.Warn("[loudness-watch] project-change check panicked err=%v", err)
+						}
+					}
+				}()
+				hook.CheckProjectChange(change)
+			}()
+		}
+	}
 	return mergeContext(requestContext, map[string]any{"free_state_reasoning_loop": freeStateLoopMap(loop)}), true
 }
 
