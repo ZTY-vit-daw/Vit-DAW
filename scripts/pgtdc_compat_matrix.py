@@ -53,8 +53,6 @@ DISCOVERY_QUERIES = [
 REVERB_WORDS = ("reverb", "verb", "plates", "chambers", "supermassive")
 DELAY_WORDS = ("delay", "timeless", "echo", "doubler")
 
-CASE_ORDER = ["fabfilter_pror", "fabfilter_timeless"]
-
 
 def vendor_of(name: str, path: str) -> str:
     combined = (name + " " + path).lower()
@@ -109,10 +107,7 @@ def discover(timeout: float) -> tuple[list[dict[str, Any]], list[dict[str, Any]]
             out_of_scope.append({**entry, "reason": f"{vendor} non-time-domain name"})
         else:
             targets.append(entry)
-    targets.sort(key=lambda case: (
-        CASE_ORDER.index(case_id_for(case["plugin_name"]))
-        if case_id_for(case["plugin_name"]) in CASE_ORDER else len(CASE_ORDER),
-        case["plugin_name"]))
+    targets.sort(key=lambda case: case["plugin_name"])
     return targets, out_of_scope, sorted(rows)
 
 
