@@ -11,6 +11,6 @@
 
 内核 GenerationShellService（壳实例注册表+IConnectionPoint host 端+提交队列+新读命令 gen_shell.pending+五类下行推送）。文件域=GenerationShellService.{h,cpp} 新文件+CommandDispatcher.cpp 仅注册区 2784-2803 邻域（**不触披露块 3291-3448——GEN-CTX 域避让**）+CMakeLists 登记+冒测脚本。验收=真栈烟测（伪提交/pending 应答/JobState 镜像/cancel/ghost 断言）+主选路径核实结论+agent 零改动零 diff。停止条件=裸 VST3 接口无路径（主选+降级 A 均不通）→上交降级 B 决策点。
 
-- 领取：2026-10-16 21:34（Mac 本地）/ origin/main ba820dcf / owner=GLM-5.3 Mac 执行会话 / 分支 port/genshell-host-1 / worktree /Users/timozty/Documents/Vit-DAW-genshell2（coord=Vit-DAW-genshell2-coord）/ 领取提交=（coord-only 直推 main 后回填）
+- 领取：2026-10-16 21:34（Mac 本地）/ origin/main ba820dcf / owner=GLM-5.3 Mac 执行会话 / 分支 port/genshell-host-1 / worktree /Users/timozty/Documents/Vit-DAW-genshell2（coord=Vit-DAW-genshell2-coord）/ 领取提交=eec9d65b（coord-only 直推 main，重订基于并发 PCA-1 领取 6ed8824d 之上）
 - 回执：（commit / run ID / 主选路径核实结论 / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
