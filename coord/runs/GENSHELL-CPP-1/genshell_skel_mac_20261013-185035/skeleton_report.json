@@ -1,0 +1,27 @@
+{
+  "schema_version": "vit_gen_shell_skeleton_smoke.mac.v1",
+  "card": "GENSHELL-CPP-1",
+  "run_id": "genshell_skel_mac_20261013-185035",
+  "run_root": "/Users/timozty/Documents/vit-genshell-artifacts/skeleton/genshell_skel_mac_20261013-185035",
+  "legs_requested": "S,K1,K2,K3,K4,K5",
+  "ok_count": 14,
+  "red_count": 0,
+  "ok": [
+    "LEG S: selftest exit 0 (46 PASS / 0 FAIL)",
+    "LEG K1: scan completed",
+    "LEG K1: GenShell discovered (identifier=VST3-GenShell-15b5622d-b818da1c)",
+    "LEG K2: track added",
+    "LEG K2: rack_add_node landed (UI path form, direct kernel command; plugin_id=1043)",
+    "LEG K2: T1 five params present via get_plugin_parameters (host-visible count=7 incl. tracktion Dry/Wet wrapper params)",
+    "LEG K3: set_plugin_param ok",
+    "LEG K3: SceneMode readback 0.5 (value_text=free_creation)",
+    "LEG K3: SceneMode value_text=free_creation (StringListParameter 显示面)",
+    "LEG K4: save_project ok (443e77333e4a45ca)",
+    "LEG K4: open_project ok (same track/plugin EditItemIDs)",
+    "LEG K4: SceneMode survives save->open (chunk roundtrip; value_text=free_creation)",
+    "LEG K5: show_plugin_editor ok (editor view provided)",
+    "LEG K5: kernel process alive 3s after editor open (process-survival assertion)"
+  ],
+  "red": [],
+  "verdict": "all_green"
+}

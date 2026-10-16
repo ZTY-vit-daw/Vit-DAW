@@ -1,0 +1,28 @@
+no_running_kernel_at_start=confirmed
+project_copy_sha256=32a39c061132202008f004eab7d820469a007159e6c8fd68fdf3d4adf5123b39 (source project never written; VIT_PROJECT_XML redirect)
+ok: LEG S: selftest exit 0 (46 PASS / 0 FAIL)
+kernel_pid=66736 log=/Users/timozty/Documents/vit-genshell-artifacts/skeleton/genshell_skel_mac_20261013-185035/logs/kernel_main.log
+K1_scan_terminal=completed
+ok: LEG K1: scan completed
+ok: LEG K1: GenShell discovered (identifier=VST3-GenShell-15b5622d-b818da1c)
+K2_track_id=1037
+ok: LEG K2: track added
+K2_rack_add status=ok plugin_id=1043 error=Rack node added
+ok: LEG K2: rack_add_node landed (UI path form, direct kernel command; plugin_id=1043)
+K2_get_params status=ok
+ok: LEG K2: T1 five params present via get_plugin_parameters (host-visible count=7 incl. tracktion Dry/Wet wrapper params)
+info: LEG K2: debug count params (MsgEchoCount/MsgUnknownSchemaCount) are kIsReadOnly -> not in JUCE automatable surface; verified by LEG S selftest via direct IEditController reads
+K2_scenemode_param_id=3
+ok: LEG K3: set_plugin_param ok
+K3_readback normalized=0.5 text=free_creation
+ok: LEG K3: SceneMode readback 0.5 (value_text=free_creation)
+ok: LEG K3: SceneMode value_text=free_creation (StringListParameter 显示面)
+ok: LEG K4: save_project ok (443e77333e4a45ca)
+ok: LEG K4: open_project ok (same track/plugin EditItemIDs)
+K4_readback normalized=0.5 text=free_creation
+ok: LEG K4: SceneMode survives save->open (chunk roundtrip; value_text=free_creation)
+K5_show status=ok
+ok: LEG K5: show_plugin_editor ok (editor view provided)
+ok: LEG K5: kernel process alive 3s after editor open (process-survival assertion)
+kernel_stop=SIGTERM elapsed=1s
+finished=2026-10-13 18:50:59
