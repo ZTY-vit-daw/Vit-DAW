@@ -8,7 +8,9 @@ faces only, zero LLM):
   1. discovery: plugin_search enumeration of the in-presence time-domain
      targets (FabFilter Pro-R / Timeless 3, Waves WaveShell time-domain
      plugins, ValhallaSupermassive) with honest out-of-scope reasons;
-  2. matrix: per case one disposable track -> plugin.load_to_rack ->
+  2. matrix: per case one disposable track -> kernel rack_add_node (the
+     M2-TIMEFX-2 probe load face; the agent plugin.load_to_rack tool is a
+     PCA-gated product path an unattended probe must not forge) ->
      kernel get_plugin_parameters (saved) -> plugin_grabber.inspect_reverb
      AND inspect_delay (both saved; a rejection is recorded as its code,
      never retried away) -> track.delete;
@@ -35,7 +37,6 @@ from compressor_compat_matrix_smoke import (
     invoke,
     kernel_command,
     require_ok,
-    resolve_identifier,
     result_of,
 )
 
@@ -45,13 +46,16 @@ DISCOVERY_QUERIES = [
     # Waves shell time-domain families (enumeration + licensing decide)
     "Abbey Road Plates", "Abbey Road Chambers", "Abbey Road Reverb",
     "H-Reverb", "H-Delay", "TrueVerb", "Doubler", "Manny Marroquin Delay",
-    "Reverb", "Delay",
+    "Reverb", "Delay", "IR-L", "IR1", "IRLive",
     # P3 freebie
     "Supermassive",
 ]
 
 REVERB_WORDS = ("reverb", "verb", "plates", "chambers", "supermassive")
 DELAY_WORDS = ("delay", "timeless", "echo", "doubler")
+# Convolution reverb families whose names carry no reverb wording, plus the
+# FabFilter decay-wording flagship.
+REVERB_NAME_PREFIXES = ("pro-r", "ir-l", "ir1", "irlive")
 
 
 def vendor_of(name: str, path: str) -> str:
@@ -70,6 +74,8 @@ def family_of(name: str) -> str:
     if any(word in lowered for word in DELAY_WORDS):
         return "delay"
     if any(word in lowered for word in REVERB_WORDS):
+        return "reverb"
+    if lowered.startswith(REVERB_NAME_PREFIXES):
         return "reverb"
     return ""
 
@@ -158,35 +164,21 @@ def load_case(base: str, case: dict[str, Any], timeout: float) -> tuple[str, str
     track = require_ok(invoke(base, "track.add_audio", {
         "name": f"PGTDC matrix {case['plugin_name']}"}, timeout, True), "track.add_audio")
     track_id = first_text(track, "track_id", "id")
-    try:
-        identifier, resolution = resolve_identifier(case, timeout)
-    except RuntimeError as error:
-        if "did not uniquely resolve" not in str(error):
-            raise
-        # Multi-shell ambiguity is a stop-condition face: record every
-        # candidate row so the matrix keeps an honest reason row instead of
-        # an opaque uniqueness failure.
-        reply = kernel_command({"cmd": "plugin_search", "query": case["plugin_name"], "limit": 64}, timeout)
-        batch: list[dict[str, Any]] = []
-        for key in ("plugins", "entries", "results"):
-            if isinstance(reply.get(key), list):
-                batch = [row for row in reply[key] if isinstance(row, dict)]
-                break
-        candidates = [first_text(row, "identifier", "plugin_identifier") or
-                      first_text(row, "file_or_identifier", "plugin_path", "path")
-                      for row in batch
-                      if first_text(row, "name", "plugin_name").casefold() == case["plugin_name"].casefold()]
-        raise RuntimeError(f"{error}; candidates={candidates}") from error
-    loaded = require_ok(invoke(base, "plugin.load_to_rack", {
-        "track_id": track_id,
-        "plugin_path": case["plugin_path"],
-        "plugin_name": case["plugin_name"],
-        "plugin_identifier": identifier,
-    }, timeout, True), "plugin.load_to_rack")
-    plugin_id = first_text(loaded, "plugin_id", "node_id", "id")
+    # Probe-observation load face: the kernel rack_add_node command (the
+    # M2-TIMEFX-2 probe precedent), not the agent plugin.load_to_rack tool —
+    # the agent load face is a product path gated by PCA non-forgeable
+    # selection authorization, which an unattended matrix probe must not
+    # forge. Inspect/apply stay on the agent tool face.
+    node = kernel_command({"cmd": "rack_add_node", "track_id": track_id,
+                           "plugin_path": case["plugin_path"],
+                           "plugin_identifier": case["plugin_identifier"],
+                           "auto_connect": True, "x": 0.32, "y": 0.32}, timeout)
+    if node.get("status") != "ok":
+        raise RuntimeError(f"rack_add_node rejected: {str(node)[:400]}")
+    plugin_id = first_text(node, "plugin_id", "plugin_item_id", "id")
     if not plugin_id:
-        raise RuntimeError(f"plugin.load_to_rack returned no plugin id: {loaded}")
-    return track_id, plugin_id, resolution
+        raise RuntimeError(f"rack_add_node returned no plugin id: {str(node)[:300]}")
+    return track_id, plugin_id, {"rack_add_node": {k: v for k, v in node.items() if k != "parameters"}}
 
 
 def capture_case(base: str, case: dict[str, Any], timeout: float,
