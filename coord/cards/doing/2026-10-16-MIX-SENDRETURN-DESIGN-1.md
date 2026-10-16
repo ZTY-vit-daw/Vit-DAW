@@ -47,6 +47,7 @@
 - 取证发现轨到轨多目标回流在引擎与 graph 封装层均不可达 → 上交裁定替代路径（多 FX 轨折衷/自实现 send 节点成本评估），不擅自定架构；
 - 涉及渲染路径（audio graph）行为不确定 → 渲染取证拆卡先行，设计件如实登记边界。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-16 18:52 CST / origin/main=5428366213b5e857ab0b1d81302d0fb5b5ef2715 / owner=GLM-5.3 L2 PC 执行会话（ZCode，本会话）/ 分支 coord/mixsend-design-claim（设计卡零生产代码：设计件+回执同分支，无实现分支）/ worktree D:/Vit_DAW_wt_mixsend_design / 领取提交=本提交（卡面入池+领取同批；入池提交为发卡侧留盘原样）
+- 领取时核对：卡在 todo（发卡侧留盘未推，本批一并入池，内容零改动）、派发已确认（用户 2026-10-16 晚窗「先设计」）；在飞 doing 两卡——LOUDNESS-B-TRIGGER（agent 内部 port/loudness-watch-trigger-1 + D:/Vit_DAW_wt_loudness_watch_b）、FE-CEF-PASTE-SHIM-2（前端仓），与本卡文件域（只读取证 + coord/runs/MIX-SENDRETURN-DESIGN-1/ + 前端仓交互规格文档）零交集；真栈不占用（headless 取证优先，如需占栈先核对 PC-RUNTIME-STACK 并登记）
 - 回执：（设计件路径 / 底座实证边界声明）
 - 验收：（裁定文件 / 验收 commit）
