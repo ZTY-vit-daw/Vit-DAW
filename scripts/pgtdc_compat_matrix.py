@@ -163,7 +163,25 @@ def load_case(base: str, case: dict[str, Any], timeout: float) -> tuple[str, str
     track = require_ok(invoke(base, "track.add_audio", {
         "name": f"PGTDC matrix {case['plugin_name']}"}, timeout, True), "track.add_audio")
     track_id = first_text(track, "track_id", "id")
-    identifier, resolution = resolve_identifier(case, timeout)
+    try:
+        identifier, resolution = resolve_identifier(case, timeout)
+    except RuntimeError as error:
+        if "did not uniquely resolve" not in str(error):
+            raise
+        # Multi-shell ambiguity is a stop-condition face: record every
+        # candidate row so the matrix keeps an honest reason row instead of
+        # an opaque uniqueness failure.
+        reply = kernel_command({"cmd": "plugin_search", "query": case["plugin_name"], "limit": 64}, timeout)
+        batch: list[dict[str, Any]] = []
+        for key in ("plugins", "entries", "results"):
+            if isinstance(reply.get(key), list):
+                batch = [row for row in reply[key] if isinstance(row, dict)]
+                break
+        candidates = [first_text(row, "identifier", "plugin_identifier") or
+                      first_text(row, "file_or_identifier", "plugin_path", "path")
+                      for row in batch
+                      if first_text(row, "name", "plugin_name").casefold() == case["plugin_name"].casefold()]
+        raise RuntimeError(f"{error}; candidates={candidates}") from error
     loaded = require_ok(invoke(base, "plugin.load_to_rack", {
         "track_id": track_id,
         "plugin_path": case["plugin_path"],
