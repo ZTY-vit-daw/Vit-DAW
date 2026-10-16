@@ -1,0 +1,25 @@
+{
+  "case": {
+    "plugin_name": "IR-L Mono/Stereo",
+    "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "plugin_identifier": "VST3-IR-L Mono/Stereo-695648d-405b0955",
+    "vendor": "waves",
+    "family": "reverb"
+  },
+  "inspects": {
+    "reverb": {
+      "tool": "plugin_grabber.inspect_reverb",
+      "invoke_status": "error",
+      "resolved": false,
+      "rejection_code": "unresolved_reverb_surface",
+      "error": "unresolved_reverb_surface: no provable supported reverb stage/control-path topology"
+    },
+    "delay": {
+      "tool": "plugin_grabber.inspect_delay",
+      "invoke_status": "error",
+      "resolved": false,
+      "rejection_code": "unresolved_delay_surface",
+      "error": "unresolved_delay_surface: no provable supported delay stage/control-path topology"
+    }
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "case_id": "fabfilter_pro_r",
+  "plugin_name": "Pro-R",
+  "expect_tail_evidence": "direct_wording",
+  "inspect": {
+    "classification": "predelay_decay_reverb",
+    "confidence": 0.96,
+    "tail_evidence": "direct_wording",
+    "generation": "rv1t1_816949a7f97e2e7cf662dc41"
+  },
+  "write_target": {
+    "role": "decay",
+    "param_id": "1",
+    "name": "Decay Rate",
+    "domain": "%"
+  },
+  "readback": {
+    "write": {
+      "control_ref": "rvcr1_eyJraW5kIjoicmV2ZXJiX2NvbnRyb2xfcmVmLnYxIiwidHJhY2tfaWQiOiIxODgyIiwicGx1Z2luX2lkIjoiMTg4OCIsImdlbmVyYXRpb24iOiJydjF0MV84MTY5NDlhN2Y5N2UyZTdjZjY2MmRjNDEiLCJzdGFnZV9rZXkiOiJyZXZlcmIiLCJzZWN0aW9uIjoidGFpbCIsInJvbGUiOiJkZWNheSIsInBhcmFtX2lkIjoiMSJ9.166bc4faf6163683",
+      "display_value": 55.00000000000001
+    },
+    "apply_status": "exact",
+    "actual_readback": [
+      {
+        "channel": "shared",
+        "normalized": 0.068751759827137,
+        "param_id": "1",
+        "physical": null,
+        "role": "decay",
+        "value_text": "55.00%"
+      }
+    ],
+    "before": {
+      "value": 0.5,
+      "value_text": "100.0%",
+      "normalized": 0.5
+    },
+    "after": {
+      "value": 0.068751759827137,
+      "value_text": "55.00%",
+      "normalized": 0.068751759827137
+    }
+  }
+}

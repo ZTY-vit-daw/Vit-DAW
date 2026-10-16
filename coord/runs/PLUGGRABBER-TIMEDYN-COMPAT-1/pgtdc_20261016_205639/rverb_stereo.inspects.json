@@ -1,0 +1,57 @@
+{
+  "case": {
+    "plugin_name": "RVerb Stereo",
+    "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "plugin_identifier": "VST3-RVerb Stereo-695648d-1bdcffa3",
+    "vendor": "waves",
+    "family": "reverb"
+  },
+  "inspects": {
+    "reverb": {
+      "tool": "plugin_grabber.inspect_reverb",
+      "invoke_status": "ok",
+      "resolved": true,
+      "classification": "predelay_decay_reverb",
+      "confidence": 0.96,
+      "tail_evidence": "direct_wording",
+      "generation": "rv1t1_5d04f5fe878db77833be3a41",
+      "sections": {
+        "tail": [
+          "decay",
+          "size"
+        ],
+        "timing": [
+          "pre_delay"
+        ],
+        "character": [
+          "damping",
+          "reverb_mode"
+        ],
+        "output": [
+          "dry",
+          "mix",
+          "wet"
+        ]
+      }
+    },
+    "delay": {
+      "tool": "plugin_grabber.inspect_delay",
+      "invoke_status": "ok",
+      "resolved": true,
+      "classification": "time_delay",
+      "confidence": 0.96,
+      "tail_evidence": null,
+      "generation": "dl1t1_9fd8ea82889ca2e7759b02c3",
+      "sections": {
+        "timing": [
+          "time"
+        ],
+        "output": [
+          "dry",
+          "mix",
+          "wet"
+        ]
+      }
+    }
+  }
+}

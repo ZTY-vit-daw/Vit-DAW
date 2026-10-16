@@ -1,0 +1,40 @@
+{
+  "case": {
+    "plugin_name": "ValhallaSupermassive",
+    "plugin_path": "C:\\Program Files\\Common Files\\VST3\\ValhallaSupermassive.vst3",
+    "plugin_identifier": "VST3-ValhallaSupermassive-5cffe1ee-7e8fe5d5",
+    "vendor": "valhalla",
+    "family": "reverb"
+  },
+  "inspects": {
+    "reverb": {
+      "tool": "plugin_grabber.inspect_reverb",
+      "invoke_status": "error",
+      "resolved": false,
+      "rejection_code": "unsupported_delay",
+      "error": "unsupported_delay: no provable supported reverb stage/control-path topology"
+    },
+    "delay": {
+      "tool": "plugin_grabber.inspect_delay",
+      "invoke_status": "ok",
+      "resolved": true,
+      "classification": "feedback_delay",
+      "confidence": 0.96,
+      "tail_evidence": null,
+      "generation": "dl1t1_f8c727d71e6fa98e3d3729fe",
+      "sections": {
+        "timing": [
+          "sync"
+        ],
+        "output": [
+          "dry",
+          "mix",
+          "wet"
+        ],
+        "feedback": [
+          "feedback"
+        ]
+      }
+    }
+  }
+}

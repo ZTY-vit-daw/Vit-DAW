@@ -1,0 +1,59 @@
+{
+  "case": {
+    "plugin_name": "H-Reverb long Stereo/5.0",
+    "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "plugin_identifier": "VST3-H-Reverb long Stereo/5.0-695648d-c77c6c8a",
+    "vendor": "waves",
+    "family": "reverb"
+  },
+  "inspects": {
+    "reverb": {
+      "tool": "plugin_grabber.inspect_reverb",
+      "invoke_status": "ok",
+      "resolved": true,
+      "classification": "predelay_decay_reverb",
+      "confidence": 0.96,
+      "tail_evidence": "direct_wording",
+      "generation": "rv1t1_ab5b5831bf9d19b3d6149fba",
+      "sections": {
+        "tail": [
+          "decay",
+          "size"
+        ],
+        "timing": [
+          "pre_delay"
+        ],
+        "character": [
+          "damping"
+        ],
+        "output": [
+          "dry",
+          "mix",
+          "output_gain",
+          "wet"
+        ]
+      }
+    },
+    "delay": {
+      "tool": "plugin_grabber.inspect_delay",
+      "invoke_status": "ok",
+      "resolved": true,
+      "classification": "time_delay",
+      "confidence": 0.96,
+      "tail_evidence": null,
+      "generation": "dl1t1_6aa18d670e9e0f78b1d3b5ad",
+      "sections": {
+        "timing": [
+          "sync",
+          "time"
+        ],
+        "output": [
+          "dry",
+          "mix",
+          "output_gain",
+          "wet"
+        ]
+      }
+    }
+  }
+}

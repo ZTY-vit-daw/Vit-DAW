@@ -1,0 +1,40 @@
+{
+  "case": {
+    "plugin_name": "MannyM Delay Stereo",
+    "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "plugin_identifier": "VST3-MannyM Delay Stereo-695648d-121c1dcc",
+    "vendor": "waves",
+    "family": "delay"
+  },
+  "inspects": {
+    "reverb": {
+      "tool": "plugin_grabber.inspect_reverb",
+      "invoke_status": "ok",
+      "resolved": true,
+      "classification": "decay_time_reverb",
+      "confidence": 0.96,
+      "tail_evidence": "direct_wording",
+      "generation": "rv1t1_9113ada0711a76e2b60d4b7b",
+      "sections": {
+        "tail": [
+          "size"
+        ],
+        "character": [
+          "width"
+        ],
+        "output": [
+          "dry",
+          "output_gain",
+          "wet"
+        ]
+      }
+    },
+    "delay": {
+      "tool": "plugin_grabber.inspect_delay",
+      "invoke_status": "error",
+      "resolved": false,
+      "rejection_code": "unresolved_delay_surface",
+      "error": "unresolved_delay_surface: no provable supported delay stage/control-path topology"
+    }
+  }
+}

@@ -1,0 +1,31 @@
+﻿{
+    "card":  "PLUGGRABBER-TIMEDYN-COMPAT-1",
+    "leg":  "compat-matrix-verify",
+    "run_id":  "20261016_203552",
+    "repo_head":  "d8d3b1f29e5247d4277de84e9be2085affda7d6b",
+    "branch":  "port/pluggrabber-timedyn-compat-1",
+    "started_at":  "2026-10-16T20:35:52.5259544+08:00",
+    "sec8_decl":  "zero LLM (deterministic tool faces only); success=full matrix coverage + both spot write readbacks changed + exit 0; failure classes environment_interrupt/assertion_fail/capability_blocked; stop-loss 2 same-signature assertion_fail",
+    "kernel_exe":  "D:\\Vit_DAW\\Export\\staging\\runtime\\VitApp.exe",
+    "kernel_sha256":  "B6565DCF85D1DA867E16333052A7B928A5413565940603ADBCF4ABD59DD3123B",
+    "stack_pids":  {
+                       "VitAgent":  [
+                                        11664
+                                    ],
+                       "VitApp":  [
+                                      16284
+                                  ]
+                   },
+    "agent_sha256":  "01E38633F682BC57A6F64D2AE8154A318462DFC8FAA6C6A27AA7BDDE535E9C76",
+    "driver_exit":  1,
+    "run_root":  "D:\\Vit_DAW_wt_pgtdc_compat\\coord\\runs\\PLUGGRABBER-TIMEDYN-COMPAT-1\\pgtdc_20261016_203552",
+    "verdict":  "compat_verify_fail",
+    "error":  "matrix driver failed exit=1 (see pgtdc_matrix_console.log / matrix_summary.json)",
+    "teardown":  {
+                     "remaining":  [
+
+                                   ],
+                     "torn_down":  true
+                 },
+    "finished_at":  "2026-10-16T20:37:26.8817315+08:00"
+}

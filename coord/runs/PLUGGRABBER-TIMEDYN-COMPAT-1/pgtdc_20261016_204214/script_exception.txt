@@ -1,0 +1,8 @@
+﻿matrix driver failed exit=1 (see pgtdc_matrix_console.log / matrix_summary.json)
+所在位置 D:\Vit_DAW_wt_pgtdc_compat\scripts\pgtdc_compat_verify.ps1:117 字符: 28
++ ... DE -ne 0) { throw ("matrix driver failed exit=" + $LASTEXITCODE + " ( ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (matrix driver f...x_summary.json):String) [], RuntimeException
+    + FullyQualifiedErrorId : matrix driver failed exit=1 (see pgtdc_matrix_console.log / matrix_summary.json)
+ 
+

@@ -1,0 +1,45 @@
+{
+  "case_id": "abbey_road_plates",
+  "plugin_name": "Abbey Road Plates Mono",
+  "expect_tail_evidence": "plate_damper_family",
+  "inspect": {
+    "classification": "predelay_decay_reverb",
+    "confidence": 0.9,
+    "tail_evidence": "plate_damper_family",
+    "generation": "rv1t1_d3e5e2be7eeec714bc1f22ec"
+  },
+  "write_target": {
+    "role": "decay",
+    "param_id": "1",
+    "name": "Damper",
+    "domain": "enum",
+    "enum_label": "0 "
+  },
+  "readback": {
+    "write": {
+      "control_ref": "rvcr1_eyJraW5kIjoicmV2ZXJiX2NvbnRyb2xfcmVmLnYxIiwidHJhY2tfaWQiOiIxODc1IiwicGx1Z2luX2lkIjoiMTg4MSIsImdlbmVyYXRpb24iOiJydjF0MV9kM2U1ZTJiZTdlZWVjNzE0YmMxZjIyZWMiLCJzdGFnZV9rZXkiOiJyZXZlcmIiLCJzZWN0aW9uIjoidGFpbCIsInJvbGUiOiJkZWNheSIsInBhcmFtX2lkIjoiMSJ9.f61c63d4169b3e03",
+      "enum_label": "0 "
+    },
+    "apply_status": "exact",
+    "actual_readback": [
+      {
+        "channel": "shared",
+        "normalized": 0,
+        "param_id": "1",
+        "physical": null,
+        "role": "decay",
+        "value_text": "0"
+      }
+    ],
+    "before": {
+      "value": 0.200000002980232,
+      "value_text": "2 ",
+      "normalized": 0.200000002980232
+    },
+    "after": {
+      "value": 0.0,
+      "value_text": "0 ",
+      "normalized": 0.0
+    }
+  }
+}

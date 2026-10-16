@@ -1,0 +1,62 @@
+{
+  "case": {
+    "plugin_name": "Timeless 3",
+    "plugin_path": "C:\\Program Files\\Common Files\\VST3\\FabFilter\\FabFilter Timeless 3.vst3",
+    "plugin_identifier": "VST3-Timeless 3-72be40c7-96546ef3",
+    "vendor": "fabfilter",
+    "family": "delay"
+  },
+  "inspects": {
+    "reverb": {
+      "tool": "plugin_grabber.inspect_reverb",
+      "invoke_status": "ok",
+      "resolved": true,
+      "classification": "decay_time_reverb",
+      "confidence": 0.96,
+      "tail_evidence": "direct_wording",
+      "generation": "rv1t1_b3a90194301ac19ba8c68fce",
+      "sections": {
+        "tail": [
+          "decay"
+        ],
+        "character": [
+          "damping",
+          "width"
+        ],
+        "output": [
+          "dry",
+          "mix",
+          "output_gain",
+          "wet"
+        ]
+      }
+    },
+    "delay": {
+      "tool": "plugin_grabber.inspect_delay",
+      "invoke_status": "ok",
+      "resolved": true,
+      "classification": "feedback_delay",
+      "confidence": 0.96,
+      "tail_evidence": null,
+      "generation": "dl1t1_e81654418db988b83337c56d",
+      "sections": {
+        "timing": [
+          "sync",
+          "time"
+        ],
+        "character": [
+          "ping_pong"
+        ],
+        "output": [
+          "dry",
+          "mix",
+          "output_gain",
+          "wet"
+        ],
+        "feedback": [
+          "feedback"
+        ]
+      }
+    }
+  }
+}

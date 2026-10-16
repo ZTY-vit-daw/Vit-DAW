@@ -1,0 +1,42 @@
+{
+  "case": {
+    "plugin_name": "Abbey Road Chambers Stereo",
+    "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "plugin_identifier": "VST3-Abbey Road Chambers Stereo-695648d-2dbc9ef6",
+    "vendor": "waves",
+    "family": "reverb"
+  },
+  "inspects": {
+    "reverb": {
+      "tool": "plugin_grabber.inspect_reverb",
+      "invoke_status": "error",
+      "resolved": false,
+      "rejection_code": "unsupported_delay",
+      "error": "unsupported_delay: no provable supported reverb stage/control-path topology"
+    },
+    "delay": {
+      "tool": "plugin_grabber.inspect_delay",
+      "invoke_status": "ok",
+      "resolved": true,
+      "classification": "feedback_delay",
+      "confidence": 0.96,
+      "tail_evidence": null,
+      "generation": "dl1t1_34b548986d8d4ed26eeb8989",
+      "sections": {
+        "timing": [
+          "sync",
+          "time"
+        ],
+        "output": [
+          "dry",
+          "mix",
+          "output_gain",
+          "wet"
+        ],
+        "feedback": [
+          "feedback"
+        ]
+      }
+    }
+  }
+}
