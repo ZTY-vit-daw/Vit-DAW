@@ -19,4 +19,5 @@
   - **既有命令面零回归**：agent 全量 `go test ./... -count=1` **0 FAIL**（584 包 ok）+agent/ 零 diff；内核全量编译 Built target VitApp，本卡文件零警告（基线既有警告=tracktion 子模块内部+CommandDispatcher 既有 unused-function 行 1316-1771，均在 diff 外）
   - **调试期 RED 两次已根修**（run 220552：appendPendingAnswer 对 snapshotProjectJobs 临时返回数组的悬垂指针——map 改持 var 引用；脚本 python 格式串/标识断言两处；run 221004：debug 钩子先于注册表刷新的顺序缺陷——首调用即提交场景）
   - **边界如实**：① providers 恒空数组（内核无 genapi 知识，卡 3 runner 自带目录；形态按件二 §4 在场）；② cancel_requested/interrupted 无 JobState 参数枚举值不镜像（记录态照常应答，件一 §3 枚举无此二值）；③ context_snapshot/provider_catalog/audition_ready 壳侧消费者在卡 4（骨架壳无下行消费面），v1 由服务状态承载（GUI 500ms 进程内轮询语义）；④ 请求载荷 v1 服务内存态（重启恢复依赖壳 chunk 写入口=卡 4）；⑤ requestHash=sha256 为服务内自含实现（JuceHeader 无 cryptography 模块）；⑥ 端测边界：内核数据面断言（ZMQ 直驱），无 Godot 前端旅程断言，无 webui 改动；⑦ VitApp/Workspace/Settings.xml 为内核运行残留未入 commit
-- 验收：（裁定文件 / 验收 commit）
+
+- 验收：（2026-10-16 深夜 pass——[ruling](../../rulings/2026-10-16-GENSHELL-HOST-1-pass.md)；合入=cherry-pick dce49fac→db84003e@main；决策侧独立复验=diff 域亲读（CommandDispatcher 仅注册面+13，未触披露块）+两次全绿 run 工件亲读（26ok/0red×2）并补档 coord/runs/GENSHELL-HOST-1/+降级 A 锚点亲核（vstcomponentbase.cpp 单 peer fail-closed+H2 探针腿在案）+agent 零 diff；构建采信执行侧两次 run 内核 sha a08f7593（复验边界如实入 ruling）；解锁池序 97 AGENT-1）
