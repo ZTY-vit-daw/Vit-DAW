@@ -6,7 +6,8 @@
 
 ## 当前占用
 
-- 状态：空闲
+- 状态：占用中
+- 2026-10-16 21:52 +0800 起 / GENAPI-REALVERIFY-1（池序 125；GLM-5.3 L2 Mac 执行侧 ZCode 会话；主仓 worktree Vit-DAW-genapi-rv1 @ port/genapi-realverify-1）：两件套栈（VitApp 内核 5555/5556/5557 + vitagent 7878，无 Godot）。占用前亲核：5555/5556/5557/7878 监听=0、VitApp/vitagent 进程=0（记录空闲属实）。用途=①脚本扩展后的模拟器回归轮（本地回环，零外呼）②真源腿 no_key 分类实证轮（无凭据，预期 env:no_key 快速失败）；真源生成调用因**生成源未选定（用户 2026-10-16 21:49 会话确认）不执行**——零外呼零 quota。
 
 ## 最近一次释放
 
