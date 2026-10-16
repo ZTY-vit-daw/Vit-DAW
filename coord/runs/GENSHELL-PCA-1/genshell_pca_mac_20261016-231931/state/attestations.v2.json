@@ -1,0 +1,66 @@
+{
+  "schema_version": "processor_control_attestations.v2",
+  "revision": 2,
+  "updated_at": "2026-10-16T15:19:48.69699Z",
+  "attestations": [
+    {
+      "schema_version": "processor_control_attestation.v2",
+      "attestation_id": "pca2_14cab154b69ce11c6ec9c632",
+      "payload_digest": "sha256:14cab154b69ce11c6ec9c6328c7aabfb2837c46cfc263f6d4f2c47bbcd6faf25",
+      "issuer": "vit_deterministic_local_v1",
+      "subject": {
+        "subject_key": "pcs1_dbb880d77c6ca397bb0e5930",
+        "name": "GenShell",
+        "manufacturer": "Vit Audio",
+        "format": "VST3",
+        "identifier": "VST3-GenShell-15b5622d-b818da1c",
+        "installed_path": "/Users/timozty/Library/Audio/Plug-Ins/VST3/GenShell.vst3"
+      },
+      "binary_fingerprint": "sha256:e4a3e14569702cae7ca89e5766afb7d948bbfe820b7a609acad2251e1c6db1d3",
+      "processor_family": "generation_shell",
+      "coverage": [],
+      "evidence": [
+        {
+          "receipt_id": "native-registry:generation_shell",
+          "kind": "native_registry_seed",
+          "sha256": "sha256:e4a3e14569702cae7ca89e5766afb7d948bbfe820b7a609acad2251e1c6db1d3",
+          "observed_at": "2026-10-16T15:19:48.695127Z"
+        }
+      ],
+      "status": "promoted",
+      "status_reason": "native_registry_seeded",
+      "issued_at": "2026-10-16T15:19:48.69698Z",
+      "promoted_at": "2026-10-16T15:19:48.696989Z"
+    },
+    {
+      "schema_version": "processor_control_attestation.v2",
+      "attestation_id": "pca2_2ee398467825cc9897d85540",
+      "payload_digest": "sha256:2ee398467825cc9897d85540ae3e4c56ef09758f6563ff1bfb40ae547b505252",
+      "issuer": "vit_deterministic_local_v1",
+      "subject": {
+        "subject_key": "pcs1_dbb880d77c6ca397bb0e5930",
+        "name": "GenShell",
+        "manufacturer": "Vit Audio",
+        "format": "VST3",
+        "identifier": "VST3-GenShell-15b5622d-b818da1c",
+        "installed_path": "/Users/timozty/Library/Audio/Plug-Ins/VST3/GenShell.vst3"
+      },
+      "binary_fingerprint": "sha256:e4a3e14569702cae7ca89e5766afb7d948bbfe820b7a609acad2251e1c6db1d3",
+      "processor_family": "generation_shell",
+      "coverage": [],
+      "evidence": [
+        {
+          "receipt_id": "native-registry:generation_shell",
+          "kind": "native_registry_seed",
+          "sha256": "sha256:e4a3e14569702cae7ca89e5766afb7d948bbfe820b7a609acad2251e1c6db1d3",
+          "observed_at": "2026-10-16T15:19:40.338678Z"
+        }
+      ],
+      "status": "revoked",
+      "status_reason": "smoke_runtime_revoke",
+      "issued_at": "2026-10-16T15:19:40.339892Z",
+      "promoted_at": "2026-10-16T15:19:40.340158Z",
+      "revoked_at": "2026-10-16T15:19:47.282837Z"
+    }
+  ]
+}

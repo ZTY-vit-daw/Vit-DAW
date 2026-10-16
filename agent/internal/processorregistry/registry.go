@@ -26,6 +26,22 @@ type Definition struct {
 	ReceiptProjector string                                     `json:"receipt_projector"`
 	ObservationViews []string                                   `json:"observation_views"`
 	InspectOnly      bool                                       `json:"inspect_only"`
+	// NativeSeed declares the shipped first-party bundle behind a native
+	// load-only family (GENSHELL-PCA-1 方案 B). Its presence marks the family
+	// as native: agent startup idempotently seeds a permanent load-only v2
+	// attestation from these registration facts, bound to the bundle
+	// fingerprint. BundlePath may carry a leading "~" that the consumer
+	// expands against the user home; no other shell syntax is promised.
+	NativeSeed *NativeSeedFact `json:"native_seed,omitempty"`
+}
+
+// NativeSeedFact is the data-only registration fact for one native bundle.
+type NativeSeedFact struct {
+	BundlePath   string `json:"bundle_path"`
+	Identifier   string `json:"identifier"`
+	Name         string `json:"name"`
+	Manufacturer string `json:"manufacturer"`
+	Format       string `json:"format"`
 }
 
 type Registry struct{ definitions map[string]Definition }
@@ -61,6 +77,18 @@ func (r *Registry) Register(definition Definition) error {
 	if definition.Family == processorintent.FamilySpectralDynamics || definition.Family == processorintent.FamilyClipper {
 		if !definition.InspectOnly {
 			return fmt.Errorf("boundary family %s must be inspect_only", definition.Family)
+		}
+	}
+	if definition.NativeSeed != nil {
+		// A native seed is the permanent load admission for a shipped bundle:
+		// it is only meaningful for a load-only PCA family whose typed
+		// coverage vocabulary is the empty set. Typed families keep their
+		// evidence-driven certification path unchanged.
+		if len(processorattestation.V2CoverageAxes(definition.PCAFamily)) != 0 {
+			return fmt.Errorf("processor family %s declares a native seed but PCA family %s has a typed coverage vocabulary", definition.Family, definition.PCAFamily)
+		}
+		if strings.TrimSpace(definition.NativeSeed.BundlePath) == "" || strings.TrimSpace(definition.NativeSeed.Identifier) == "" || strings.TrimSpace(definition.NativeSeed.Name) == "" || strings.TrimSpace(definition.NativeSeed.Format) == "" {
+			return fmt.Errorf("native seed for processor family %s requires bundle_path, identifier, name, and format", definition.Family)
 		}
 	}
 	if definition.Family != processorintent.FamilySpectralDynamics && definition.Family != processorintent.FamilyClipper && definition.InspectOnly {
@@ -121,10 +149,38 @@ func (r *Registry) List() []Definition {
 		definition.CoverageVocabulary = append([]string(nil), definition.CoverageVocabulary...)
 		definition.ObservationViews = append([]string(nil), definition.ObservationViews...)
 		definition.CoverageProofs = normalizeCoverageProofs(definition.CoverageProofs)
+		if definition.NativeSeed != nil {
+			fact := *definition.NativeSeed
+			definition.NativeSeed = &fact
+		}
 		out = append(out, definition)
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i].Family < out[j].Family })
 	return out
+}
+
+// NativeSeeds returns the registration facts of every native load-only
+// family, ordered by family. Each entry pairs the fact with its family so the
+// consumer can seed one attestation per declaration without re-resolving.
+func (r *Registry) NativeSeeds() []NativeSeedEntry {
+	if r == nil {
+		return nil
+	}
+	out := make([]NativeSeedEntry, 0, len(r.definitions))
+	for family, definition := range r.definitions {
+		if definition.NativeSeed == nil {
+			continue
+		}
+		out = append(out, NativeSeedEntry{Family: family, Fact: *definition.NativeSeed})
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].Family < out[j].Family })
+	return out
+}
+
+// NativeSeedEntry is one registry declaration pair for seeding.
+type NativeSeedEntry struct {
+	Family string
+	Fact   NativeSeedFact
 }
 
 func (r *Registry) ValidateCoverage(family string, coverage []string) error {
@@ -211,7 +267,14 @@ func Default() (*Registry, error) {
 		// face, not by parameter writes. ObservationViews keeps the historical
 		// project relation view — the shell's dedicated generation-jobs
 		// observation surface is the shell line's later scope, not this row.
-		Definition{Family: processorintent.FamilyGenerationShell, PCAFamily: processorattestation.FamilyGenerationShell, Recognizer: "genshell.instrument_identity", CoverageVocabulary: []string{"load_only"}, Planner: "load_admission", Materializer: "none", TypedExecutor: "none", ReceiptProjector: "generation_job_audit", ObservationViews: []string{"mix.multitrack_relationship"}},
+		Definition{Family: processorintent.FamilyGenerationShell, PCAFamily: processorattestation.FamilyGenerationShell, Recognizer: "genshell.instrument_identity", CoverageVocabulary: []string{"load_only"}, Planner: "load_admission", Materializer: "none", TypedExecutor: "none", ReceiptProjector: "generation_job_audit", ObservationViews: []string{"mix.multitrack_relationship"},
+			// GENSHELL-PCA-1 方案 B: the shell is a shipped first-party
+			// bundle, so its load admission is the code-level registration
+			// fact itself — agent startup seeds the permanent v2 attestation
+			// from this declaration, bound to the deployed bundle
+			// fingerprint. The identifier matches the kernel enumeration
+			// identity of the fixed processor FUID.
+			NativeSeed: &NativeSeedFact{BundlePath: "~/Library/Audio/Plug-Ins/VST3/GenShell.vst3", Identifier: "VST3-GenShell-15b5622d-b818da1c", Name: "GenShell", Manufacturer: "Vit Audio", Format: "VST3"}},
 		Definition{Family: processorintent.FamilySpectralDynamics, PCAFamily: "inspect_only", Recognizer: "plugingrabber.spectral_dynamics_topology", CoverageVocabulary: []string{"inspect_only"}, Planner: "inspect_only", Materializer: "none", TypedExecutor: "none", ReceiptProjector: "spectral_dynamics_receipt", ObservationViews: []string{"track.frequency_time_events"}, InspectOnly: true},
 		Definition{Family: processorintent.FamilyClipper, PCAFamily: "inspect_only", Recognizer: "plugingrabber.clipper_boundary", CoverageVocabulary: []string{"inspect_only"}, Planner: "inspect_only", Materializer: "none", TypedExecutor: "none", ReceiptProjector: "clipper_boundary_receipt", ObservationViews: []string{"track.peak_structure"}, InspectOnly: true},
 	)
