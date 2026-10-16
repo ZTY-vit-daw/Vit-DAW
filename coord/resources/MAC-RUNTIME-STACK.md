@@ -6,8 +6,11 @@
 
 ## 当前占用
 
-- 状态：占用中
-- 2026-10-16 深夜起 +0800 / GENSHELL-PCA-1（池序 99；GLM 执行会话 ZCode Mac 执行流，修订复工专会话；worktree Vit-DAW-pca1 @ port/genshell-pca-1）：`scripts/gen_shell_pca_smoke_mac.sh` 真栈烟测（VitApp 内核 + vitagent 7878，无 Godot）。占用前亲核 5555/5556/5557/7878 监听=0、VitApp/vitagent 进程=0（上轮 GENAPI-REALVERIFY-1 释放记录属实）；领取提交 32cb8bfa。
+- 状态：空闲
+
+## 最近一次释放
+
+- 2026-10-16 23:19–23:20 +0800 / GENSHELL-PCA-1（池序 99；GLM 执行会话 ZCode Mac 执行流，修订复工专会话；worktree Vit-DAW-pca1 @ port/genshell-pca-1）：`gen_shell_pca_smoke_mac.sh` 真栈烟测一轮全绿（run genshell_pca_mac_20261016-231931 exit 0，12 ok/0 red——内核 8624fe9e+agent 含本卡改动；VitApp 内核+vitagent 7878，无 Godot）。23:20 拆栈复核：5555/5556/5557/7878 监听=0、VitApp/vitagent 进程=0。占用登记 e93d7d5d；实现 commit a198e1c3 @ port/genshell-pca-1；工件 coord/runs/GENSHELL-PCA-1/genshell_pca_mac_20261016-231931/。
 
 ## 最近一次释放
 
