@@ -1,0 +1,102 @@
+Initialize godot-rust (API v4.5.stable.official, runtime v4.6.stable.official, safeguards balanced)
+Godot Engine v4.6.stable.official.89cea1439 - https://godotengine.org
+Metal 4.0 - Forward+ - Using Device #0: Apple - Apple M3 (Apple9)
+
+objc[90295]: Class ANGLESwapCGLLayer is implemented in both /Users/timozty/Applications/Godot.app/Contents/MacOS/Godot (0x1094b0400) and /Users/timozty/Documents/vit-daw-frontend/addons/godot_cef/bin/universal-apple-darwin/Godot CEF.framework/Helpers/Godot CEF.app/Contents/Frameworks/Chromium Embedded Framework (ARM64).framework/Chromium Embedded Framework (0x1502c31b8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+[AcceleratedOSR] Detected render backend: Metal (driver: metal)
+[AcceleratedOSR] Detected render backend: Metal (driver: metal)
+[AcceleratedOSR] Detected render backend: Metal (driver: metal)
+[CefInit] CEF profile: /Users/timozty/Library/Application Support/Godot/app_userdata/Vit_DAW_Frontend/cef-data
+[CefInit] Startup summary: backend=Metal, accelerated_osr_supported=true, reason=Metal backend supports accelerated OSR on macOS, remote_debugging=true, remote_port=9229, cache_size_mb=0
+[AcceleratedOSR/Metal] GPU 'Apple M3' has no PCI vendor/device IDs (expected on Apple Silicon). GPU pinning not needed on single-GPU systems.
+[GodotCef] Production security baseline: godot_cef/security/allow_insecure_content=false, godot_cef/security/ignore_certificate_errors=false, godot_cef/security/disable_web_security=false, godot_cef/advanced/custom_command_line_switches should not include insecure switches.
+[VitCefWebViewHost] {"label":"created","size":[1100,880],"title":"CEF Paste Diag"}
+[CEFPASTE] cfg url=http://127.0.0.1:7879/
+
+DevTools listening on ws://127.0.0.1:9229/devtools/browser/a60a2053-0e55-4fdf-ad3e-700b2d62de04
+WARNING: [CefTexture2D] Cannot execute JS: no browser
+     at: gdcef::cef_texture2d::CefTexture2D::eval (crates/gdcef/src/cef_texture2d/api.rs:116)
+     GDScript backtrace (most recent call first):
+         [0] eval_js (res://vit_dock/scenes/vit_cef_web_view_host.gd:366)
+         [1] _wait_page_boot (res://vit_dock/diagnostics/cef_paste_diag.gd:156)
+         [2] _run (res://vit_dock/diagnostics/cef_paste_diag.gd:55)
+         [3] _boot (res://vit_dock/diagnostics/cef_paste_diag.gd:51)
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+[AcceleratedOSR] Detected render backend: Metal (driver: metal)
+[AcceleratedOSR] Detected render backend: Metal (driver: metal)
+[CefTexture] Creating browser in accelerated rendering mode
+[AcceleratedOSR] Detected render backend: Metal (driver: metal)
+launch process utility
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":0,\"wall\":1792087261883,\"perf\":58.1,\"l\":\"mark\",\"t\":\"probe.load\",\"tg\":\"\",\"d\":{\"sessionId\":\"ulw2bm\",\"restored\":1347}}"}
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":1,\"wall\":1792087261899,\"perf\":74.1,\"l\":\"react\",\"t\":\"commit\",\"tg\":\"\",\"d\":{\"widget\":\"react-b\",\"value\":\"\"}}"}
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":2,\"wall\":1792087261899,\"perf\":74.1,\"l\":\"react\",\"t\":\"commit\",\"tg\":\"\",\"d\":{\"widget\":\"react-c\",\"value\":\"\"}}"}
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":3,\"wall\":1792087261900,\"perf\":74.3,\"l\":\"mark\",\"t\":\"probe.ready\",\"tg\":\"\",\"d\":{\"href\":\"http://127.0.0.1:7879/\",\"ua\":\"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36\"}}"}
+[VitCefWebViewHost] {"label":"console","message":"[PD] {\"t\":\"boot\",\"ready\":\"complete\",\"probe\":\"object\"}"}
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":4,\"wall\":1792087262186,\"perf\":360.8,\"l\":\"focus\",\"t\":\"hasFocus.change\",\"tg\":\"\",\"d\":{\"hasFocus\":false}}"}
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":5,\"wall\":1792087262186,\"perf\":361,\"l\":\"focus\",\"t\":\"activeElement.change\",\"tg\":\"\",\"d\":{\"active\":\"<body data-w=\\\"\\\">\"}}"}
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":6,\"wall\":1792087262186,\"perf\":361.1,\"l\":\"focus\",\"t\":\"visibility.change\",\"tg\":\"\",\"d\":{\"visibility\":\"visible\"}}"}
+[VitCefWebViewHost] {"label":"console","message":"[PD] {\"t\":\"calib\",\"x\":353,\"y\":133}"}
+[VitCefWebViewHost] {"label":"console","message":"[PD] {\"t\":\"pos\",\"id\":\"native-a\",\"ok\":true,\"cx\":353,\"cy\":133.25}"}
+[VitCefWebViewHost] {"label":"console","message":"[PD] {\"t\":\"pos\",\"id\":\"react-b\",\"ok\":true,\"cx\":353,\"cy\":166.75}"}
+[CEFPASTE] page.ready scale=(1.176667, 0.665) b=(353.0, 166.75)
+[CEFPASTE] T0 godot.clipboard got="PASTE-DIAG" verdict=pass
+[VitCefWebViewHost] {"label":"console","message":"[PD] {\"t\":\"clipread\",\"ok\":false,\"err\":\"NotAllowedError: Failed to execute 'readText' on 'Clipboard': Document is not focused.\"}"}
+[CEFPASTE] T1 js.clipread { "t": "clipread", "ok": false, "err": "NotAllowedError: Failed to execute \'readText\' on \'Clipboard\': Document is not focused." }
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":7,\"wall\":1792087263205,\"perf\":1379.7,\"l\":\"page\",\"t\":\"input\",\"tg\":\"<input#react-b data-w=\\\"react-b\\\">\",\"d\":{\"inputType\":\"insertText\",\"data\":\"INS-JS\",\"domValue\":\"INS-JS\"}}"}
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":8,\"wall\":1792087263207,\"perf\":1381.5,\"l\":\"react\",\"t\":\"onChange.exec\",\"tg\":\"<input#react-b data-w=\\\"react-b\\\">\",\"d\":{\"widget\":\"react-b\",\"from\":\"\",\"to\":\"INS-JS\"}}"}
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":9,\"wall\":1792087263210,\"perf\":1384.6,\"l\":\"react\",\"t\":\"commit\",\"tg\":\"\",\"d\":{\"widget\":\"react-b\",\"value\":\"INS-JS\"}}"}
+[VitCefWebViewHost] {"label":"console","message":"[PD] {\"t\":\"insjs\",\"ok\":true,\"v\":\"INS-JS\"}"}
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":10,\"wall\":1792087263211,\"perf\":1385.6,\"l\":\"react\",\"t\":\"value.check\",\"tg\":\"<input#react-b data-w=\\\"react-b\\\">\",\"d\":{\"widget\":\"react-b\",\"verdict\":\"state-synced\",\"dom\":\"INS-JS\",\"state\":\"INS-JS\",\"domAtInput\":\"INS-JS\",\"stateAtInput\":\"\"}}"}
+[CEFPASTE] T2 js.insertText { "t": "insjs", "ok": true, "v": "INS-JS" }
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":11,\"wall\":1792087263385,\"perf\":1559.5,\"l\":\"focus\",\"t\":\"activeElement.change\",\"tg\":\"\",\"d\":{\"active\":\"<input#react-b data-w=\\\"react-b\\\">\"}}"}
+[VitCefPaste] paste.shim fire len=10
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":12,\"wall\":1792087263442,\"perf\":1617.2,\"l\":\"page\",\"t\":\"input\",\"tg\":\"<input#react-b data-w=\\\"react-b\\\">\",\"d\":{\"inputType\":\"insertText\",\"data\":\"PASTE-DIAG\",\"domValue\":\"INS-JSPASTE-DIAG\"}}"}
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":13,\"wall\":1792087263443,\"perf\":1617.7,\"l\":\"react\",\"t\":\"onChange.exec\",\"tg\":\"<input#react-b data-w=\\\"react-b\\\">\",\"d\":{\"widget\":\"react-b\",\"from\":\"INS-JS\",\"to\":\"INS-JSPASTE-DIAG\"}}"}
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":14,\"wall\":1792087263444,\"perf\":1618.4,\"l\":\"react\",\"t\":\"commit\",\"tg\":\"\",\"d\":{\"widget\":\"react-b\",\"value\":\"INS-JSPASTE-DIAG\"}}"}
+[VitCefWebViewHost] {"label":"console","message":"[VPS] insert ok len=10"}
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":15,\"wall\":1792087263446,\"perf\":1621.2,\"l\":\"react\",\"t\":\"value.check\",\"tg\":\"<input#react-b data-w=\\\"react-b\\\">\",\"d\":{\"widget\":\"react-b\",\"verdict\":\"state-synced\",\"dom\":\"INS-JSPASTE-DIAG\",\"state\":\"INS-JSPASTE-DIAG\",\"domAtInput\":\"INS-JSPASTE-DIAG\",\"stateAtInput\":\"INS-JS\"}}"}
+[VitCefWebViewHost] {"label":"console","message":"[PD] {\"t\":\"val\",\"v\":\"INS-JSPASTE-DIAG\"}"}
+[CEFPASTE] T3 focus+cmdv value="INS-JSPASTE-DIAG" arrival_ms=82 verdict=pass
+launch process utility
+launch process utility
+[VitCefWebViewHost] {"label":"console","message":"[PD] {\"t\":\"val\",\"v\":\"INS-JSPASTE-DIAG\"}"}
+[CEFPASTE] T4.click_focus value="INS-JSPASTE-DIAG" (informational)
+launch process utility
+[VitCefPaste] paste.shim fire len=12
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":16,\"wall\":1792087264274,\"perf\":2449,\"l\":\"page\",\"t\":\"input\",\"tg\":\"<input#react-b data-w=\\\"react-b\\\">\",\"d\":{\"inputType\":\"insertText\",\"data\":\"PASTE-DIAG-2\",\"domValue\":\"INS-JSPASTE-DIAGPASTE-DIAG-2\"}}"}
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":17,\"wall\":1792087264275,\"perf\":2449.3,\"l\":\"react\",\"t\":\"onChange.exec\",\"tg\":\"<input#react-b data-w=\\\"react-b\\\">\",\"d\":{\"widget\":\"react-b\",\"from\":\"INS-JSPASTE-DIAG\",\"to\":\"INS-JSPASTE-DIAGPASTE-DIAG-2\"}}"}
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":18,\"wall\":1792087264275,\"perf\":2449.5,\"l\":\"react\",\"t\":\"commit\",\"tg\":\"\",\"d\":{\"widget\":\"react-b\",\"value\":\"INS-JSPASTE-DIAGPASTE-DIAG-2\"}}"}
+[VitCefWebViewHost] {"label":"console","message":"[VPS] insert ok len=12"}
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":19,\"wall\":1792087264276,\"perf\":2450.7,\"l\":\"react\",\"t\":\"value.check\",\"tg\":\"<input#react-b data-w=\\\"react-b\\\">\",\"d\":{\"widget\":\"react-b\",\"verdict\":\"state-synced\",\"dom\":\"INS-JSPASTE-DIAGPASTE-DIAG-2\",\"state\":\"INS-JSPASTE-DIAGPASTE-DIAG-2\",\"domAtInput\":\"INS-JSPASTE-DIAGPASTE-DIAG-2\",\"stateAtInput\":\"INS-JSPASTE-DIAG\"}}"}
+[VitCefWebViewHost] {"label":"console","message":"[PD] {\"t\":\"val\",\"v\":\"INS-JSPASTE-DIAGPASTE-DIAG-2\"}"}
+[CEFPASTE] T4 focus+cmdv value="INS-JSPASTE-DIAGPASTE-DIAG-2" arrival_ms=84 verdict=pass
+[VitCefWebViewHost] {"label":"console","message":"[DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o"}
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":20,\"wall\":1792087264885,\"perf\":3060.3,\"l\":\"focus\",\"t\":\"activeElement.change\",\"tg\":\"\",\"d\":{\"active\":\"<input#vit-pw-probe data-w=\\\"\\\">\"}}"}
+[VitCefPaste] paste.shim fire len=8
+[VitCefWebViewHost] {"label":"console","message":"[:INPROBE] {\"i\":21,\"wall\":1792087264935,\"perf\":3110,\"l\":\"page\",\"t\":\"input\",\"tg\":\"<input#vit-pw-probe data-w=\\\"\\\">\",\"d\":{\"inputType\":\"insertText\",\"data\":\"PASTE-PW\",\"domValue\":\"PASTE-PW\"}}"}
+[VitCefWebViewHost] {"label":"console","message":"[VPS] insert ok len=8"}
+[VitCefWebViewHost] {"label":"console","message":"[PD] {\"t\":\"pwv\",\"v\":\"PASTE-PW\"}"}
+[CEFPASTE] T5 password value="PASTE-PW" verdict=pass
+[CEFPASTE] FINAL pass paste_arrived=true
+WARNING: Unable to set TCP no delay option.
+     at: set_tcp_no_delay_enabled (drivers/unix/net_socket_unix.cpp:718)
+     GDScript backtrace (most recent call first):
+         [0] _poll_ws (res://app/kernel/autoloads/vsp_realtime_adapter.gd:625)
+         [1] _process (res://app/kernel/autoloads/vsp_realtime_adapter.gd:101)
+WARNING: ObjectDB instances leaked at exit (run with --verbose for details).
+     at: cleanup (core/object/object.cpp:2641)
+gdcef parent process 90295 exited; helper is exiting

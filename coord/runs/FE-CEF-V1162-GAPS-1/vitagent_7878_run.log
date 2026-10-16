@@ -1,0 +1,580 @@
+2026-10-15T22:28:39 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=1 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-15T22:28:42 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:28:45 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:28:49 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:28:52 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:28:53 [WARN] [harness] VSP shadow refresh after state_summary failed, falling back to legacy state: kernel dial tcp://127.0.0.1:5555: zmq4: could not dial to "tcp://127.0.0.1:5555" (retry=250ms): dial tcp 127.0.0.1:5555: connect: connection refused
+2026-10-15T22:28:53 [WARN] [harness] VSP shadow refresh after state_summary failed, falling back to legacy state: kernel dial tcp://127.0.0.1:5555: zmq4: could not dial to "tcp://127.0.0.1:5555" (retry=250ms): dial tcp 127.0.0.1:5555: connect: connection refused
+2026-10-15T22:28:54 [WARN] [harness] VSP shadow refresh after state_summary failed, falling back to legacy state: kernel dial tcp://127.0.0.1:5555: zmq4: could not dial to "tcp://127.0.0.1:5555" (retry=250ms): dial tcp 127.0.0.1:5555: operation was canceled
+2026-10-15T22:28:54 [WARN] [harness] shadow refresh after state_summary failed: kernel dial tcp://127.0.0.1:5555: zmq4: could not dial to "tcp://127.0.0.1:5555" (retry=250ms): dial tcp 127.0.0.1:5555: operation was canceled
+2026-10-15T22:28:54 [WARN] [harness] shadow refresh after state_summary failed: kernel dial tcp://127.0.0.1:5555: zmq4: could not dial to "tcp://127.0.0.1:5555" (retry=250ms): dial tcp 127.0.0.1:5555: operation was canceled
+2026-10-15T22:28:54 [WARN] [harness] shadow refresh after state_summary failed: kernel dial tcp://127.0.0.1:5555: zmq4: could not dial to "tcp://127.0.0.1:5555" (retry=250ms): dial tcp 127.0.0.1:5555: operation was canceled
+2026-10-15T22:28:54 [WARN] [harness] VSP shadow refresh after state_summary failed, falling back to legacy state: kernel dial tcp://127.0.0.1:5555: zmq4: could not dial to "tcp://127.0.0.1:5555" (retry=250ms): dial tcp 127.0.0.1:5555: operation was canceled
+2026-10-15T22:28:54 [WARN] [harness] shadow refresh after state_summary failed: kernel dial tcp://127.0.0.1:5555: zmq4: could not dial to "tcp://127.0.0.1:5555" (retry=250ms): dial tcp 127.0.0.1:5555: operation was canceled
+2026-10-15T22:28:55 [WARN] [harness] VSP shadow refresh after state_summary failed, falling back to legacy state: kernel dial tcp://127.0.0.1:5555: zmq4: could not dial to "tcp://127.0.0.1:5555" (retry=250ms): dial tcp 127.0.0.1:5555: connect: connection refused
+2026-10-15T22:28:55 [WARN] [harness] VSP shadow refresh after state_summary failed, falling back to legacy state: kernel dial tcp://127.0.0.1:5555: zmq4: could not dial to "tcp://127.0.0.1:5555" (retry=250ms): dial tcp 127.0.0.1:5555: connect: connection refused
+2026-10-15T22:28:55 [WARN] [harness] shadow refresh after state_summary failed: kernel dial tcp://127.0.0.1:5555: zmq4: could not dial to "tcp://127.0.0.1:5555" (retry=250ms): dial tcp 127.0.0.1:5555: connect: connection refused
+2026-10-15T22:28:55 [WARN] [harness] VSP shadow refresh after state_summary failed, falling back to legacy state: kernel dial tcp://127.0.0.1:5555: zmq4: could not dial to "tcp://127.0.0.1:5555" (retry=250ms): dial tcp 127.0.0.1:5555: connect: connection refused
+2026-10-15T22:28:55 [WARN] [harness] shadow refresh after state_summary failed: kernel dial tcp://127.0.0.1:5555: zmq4: could not dial to "tcp://127.0.0.1:5555" (retry=250ms): dial tcp 127.0.0.1:5555: connect: connection refused
+2026-10-15T22:28:55 [WARN] [harness] shadow refresh after state_summary failed: kernel dial tcp://127.0.0.1:5555: zmq4: could not dial to "tcp://127.0.0.1:5555" (retry=250ms): dial tcp 127.0.0.1:5555: connect: connection refused
+2026-10-15T22:28:55 [WARN] [harness] VSP shadow refresh after state_summary failed, falling back to legacy state: kernel dial tcp://127.0.0.1:5555: zmq4: could not dial to "tcp://127.0.0.1:5555" (retry=250ms): dial tcp 127.0.0.1:5555: connect: connection refused
+2026-10-15T22:28:56 [WARN] [harness] VSP shadow refresh after state_summary failed, falling back to legacy state: kernel dial tcp://127.0.0.1:5555: zmq4: could not dial to "tcp://127.0.0.1:5555" (retry=250ms): dial tcp 127.0.0.1:5555: operation was canceled
+2026-10-15T22:28:56 [WARN] [harness] shadow refresh after state_summary failed: kernel dial tcp://127.0.0.1:5555: zmq4: could not dial to "tcp://127.0.0.1:5555" (retry=250ms): dial tcp 127.0.0.1:5555: operation was canceled
+2026-10-15T22:28:56 [WARN] [harness] shadow refresh after state_summary failed: kernel dial tcp://127.0.0.1:5555: zmq4: could not dial to "tcp://127.0.0.1:5555" (retry=250ms): dial tcp 127.0.0.1:5555: operation was canceled
+2026-10-15T22:28:56 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:28:57 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=10 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-15T22:28:59 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:29:03 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:29:06 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:29:10 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:29:13 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:29:17 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:29:17 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=20 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-15T22:29:20 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:29:24 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:29:28 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:29:31 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:29:35 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:29:37 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=30 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-15T22:29:38 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:29:42 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:29:45 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:29:49 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:29:52 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:29:56 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:29:57 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=40 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-15T22:29:59 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:30:03 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:30:06 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:30:10 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:30:13 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:38:37 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:38:37 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=50 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-15T22:38:40 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:38:44 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:38:47 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:39:16 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:39:19 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:39:22 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=60 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-15T22:39:23 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:39:51 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:39:55 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:39:58 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:40:02 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:40:30 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:40:32 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=70 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-15T22:40:34 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:40:37 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:41:05 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:41:09 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:41:13 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:41:16 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:41:41 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=80 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-15T22:41:44 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:41:48 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:41:52 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:42:20 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:42:24 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:42:26 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=90 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-15T22:42:27 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:42:56 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:42:59 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:43:03 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:43:06 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:43:35 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:43:36 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=100 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-15T22:43:38 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:43:42 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:44:10 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:44:14 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:44:17 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:44:21 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:44:46 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=110 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-15T22:44:49 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:44:53 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:44:56 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:45:25 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:45:28 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:45:31 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=120 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-15T22:45:32 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:45:35 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:45:39 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:45:42 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:45:46 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:45:49 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T22:45:51 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=130 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-15T22:45:53 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:01:21 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:01:25 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:01:28 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:01:32 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:01:35 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:01:36 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=140 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-15T23:01:39 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:01:42 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:01:46 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:01:49 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:01:53 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:01:56 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=150 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-15T23:01:57 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:02:00 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:02:04 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:02:07 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:02:11 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:02:14 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:02:16 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=160 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-15T23:02:18 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:02:21 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:02:25 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:02:28 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:02:32 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:02:35 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:02:36 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=170 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-15T23:02:39 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:02:42 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:02:46 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:02:49 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:02:53 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:02:56 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=180 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-15T23:02:56 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:03:00 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:03:04 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:03:07 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:03:11 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:03:14 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:03:16 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=190 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-15T23:03:18 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:03:21 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:03:25 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:18:53 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:18:57 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:19:00 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:19:01 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=200 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-15T23:19:04 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:19:07 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:19:36 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:19:39 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:19:43 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:20:11 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=210 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-15T23:20:11 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:20:15 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:20:18 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:20:22 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:20:50 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:20:54 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:20:56 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=220 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-15T23:20:57 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:21:26 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:21:29 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:21:33 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:21:36 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:22:05 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:22:06 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=230 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-15T23:22:08 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:22:12 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:22:40 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:22:44 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:22:47 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:22:51 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=240 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-15T23:22:51 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:23:19 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:23:23 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:23:26 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:23:55 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:23:58 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:24:01 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=250 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-15T23:24:02 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:24:05 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:24:34 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:24:37 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:24:41 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:25:09 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:25:10 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=260 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-15T23:25:13 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:25:16 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:25:45 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:25:48 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:25:52 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:25:55 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=270 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-15T23:25:55 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:25:59 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:26:02 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:26:06 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:26:09 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:26:13 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:26:15 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=280 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-15T23:26:16 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:26:20 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:26:23 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:26:27 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:26:31 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:26:34 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:26:35 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=290 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-15T23:26:38 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:26:41 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:26:45 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:26:48 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:26:52 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:26:55 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:26:55 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=300 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-15T23:26:59 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:27:02 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:27:06 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:27:09 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:27:13 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:28:39 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=310 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-15T23:28:39 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:28:43 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:28:47 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:28:50 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:28:54 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:28:57 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:28:59 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=320 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-15T23:29:01 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:29:04 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:29:08 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:29:11 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:29:15 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:44:43 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:44:44 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=330 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-15T23:44:47 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:44:50 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:44:54 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:44:57 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:45:01 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:45:04 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=340 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-15T23:45:04 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:45:08 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:45:12 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:45:15 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:45:19 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:45:22 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:45:24 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=350 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-15T23:45:26 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:45:29 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:45:33 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:45:36 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:45:40 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:45:43 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-15T23:45:44 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=360 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-16T00:01:02 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:01:05 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:01:09 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:01:37 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:01:41 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:01:43 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=370 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-16T00:01:44 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:01:48 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:02:16 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:02:20 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:02:23 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:02:51 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:02:53 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=380 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-16T00:02:55 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:02:59 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:03:02 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:03:30 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:03:34 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:03:38 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:03:38 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=390 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-16T00:04:06 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:04:09 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:04:13 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:04:17 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:04:20 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:04:23 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=400 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-16T00:04:24 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:04:52 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:04:56 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:04:59 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:05:03 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:05:06 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:05:33 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=410 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-16T00:05:34 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:05:38 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:05:42 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:05:45 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:05:49 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:06:17 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:06:18 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=420 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-16T00:06:21 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:06:24 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:06:28 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:06:31 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:06:35 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:06:38 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=430 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-16T00:06:38 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:07:06 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:07:10 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:07:14 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:07:42 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:07:45 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:07:48 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=440 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-16T00:07:49 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:07:53 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:07:56 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:08:00 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:08:03 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:23:32 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:23:33 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=450 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-16T00:23:35 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:23:39 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:23:42 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:24:11 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:24:14 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:24:18 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=460 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-16T00:24:18 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:24:46 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:24:50 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:24:53 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:25:22 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:25:25 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:25:28 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=470 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-16T00:25:29 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:25:32 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:26:01 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:26:04 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:26:08 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:26:36 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:26:37 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=480 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-16T00:26:40 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:26:43 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:26:47 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:27:15 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:27:19 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:27:22 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:27:22 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=490 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-16T00:27:51 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:27:54 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:27:58 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:28:01 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:28:30 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:28:32 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=500 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-16T00:28:33 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:28:37 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:29:05 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:29:09 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:29:12 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:29:16 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:29:17 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=510 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-16T00:29:19 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:29:23 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:29:26 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:29:30 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:29:33 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:29:37 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:44:40 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=520 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-16T00:44:43 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:44:46 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:44:50 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:44:53 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:44:57 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:45:00 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=530 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-16T00:45:00 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:45:04 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:45:07 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:45:11 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:45:15 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:45:18 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:45:20 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=540 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-16T00:45:22 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:45:25 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:45:29 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:45:32 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:45:36 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:45:39 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T00:45:40 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=550 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-16T00:45:43 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:01:11 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:01:15 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:01:18 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:01:47 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:01:50 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=560 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-16T01:01:50 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:01:54 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:01:57 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:02:26 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:02:29 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:02:33 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:02:34 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=570 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-16T01:03:01 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:03:05 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:03:08 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:03:12 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:03:40 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:03:44 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:03:44 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=580 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-16T01:03:47 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:04:16 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:04:19 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:04:23 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:04:51 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:04:54 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=590 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-16T01:04:55 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:04:58 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:05:02 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:05:30 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:05:33 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:05:37 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:05:39 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=600 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-16T01:06:05 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:06:09 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:06:12 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:06:16 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:06:44 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:06:48 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:06:49 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=610 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-16T01:06:51 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:07:20 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:07:23 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:07:27 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:07:30 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:07:34 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=620 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-16T01:07:34 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:07:38 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:07:41 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:07:45 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:07:48 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:23:17 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:23:19 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=630 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-16T01:23:20 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:23:24 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:23:27 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:23:31 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:23:34 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:23:38 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:23:39 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=640 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-16T01:23:41 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:23:45 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:23:48 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:23:52 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:23:55 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:23:59 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=650 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-16T01:23:59 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:24:02 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:24:06 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:24:10 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:24:13 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:24:17 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:24:19 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=660 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-16T01:24:20 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:24:24 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:24:27 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:24:31 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:24:34 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:24:38 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:24:39 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=670 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-16T01:24:41 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:24:45 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:24:48 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:24:52 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:24:55 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:24:59 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:24:59 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=680 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-16T01:40:28 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:40:31 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:40:35 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:40:38 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:40:42 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:40:44 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=690 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-16T01:40:45 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:40:49 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:40:52 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:40:56 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:40:59 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:41:03 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:41:04 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=700 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-16T01:41:06 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:41:10 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:41:13 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:41:17 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:41:20 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:41:24 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:41:24 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=710 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-16T01:41:27 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:56:36 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:56:40 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:56:43 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:56:47 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:57:14 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=720 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-16T01:57:15 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:57:19 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:57:22 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:57:51 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:57:54 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:57:58 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:57:59 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=730 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-16T01:58:01 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:58:30 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:58:33 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:58:37 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:58:40 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:59:09 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:59:09 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=740 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-16T01:59:12 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:59:16 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:59:44 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:59:48 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:59:51 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T01:59:54 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=750 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-16T01:59:55 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T02:00:23 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T02:00:27 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T02:00:30 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T02:00:59 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T02:01:02 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T02:01:04 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=760 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-16T02:01:06 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T02:01:09 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T02:01:37 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T02:01:41 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T02:01:45 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T02:01:48 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T02:02:13 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=770 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-16T02:02:16 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T02:02:20 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T02:02:24 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T02:02:27 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T02:02:31 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T02:02:33 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=780 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-16T02:02:34 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T02:02:38 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T02:02:41 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T02:02:45 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T02:18:13 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T02:18:17 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T02:18:18 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=790 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-16T02:18:20 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T02:18:24 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T02:18:52 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T02:18:56 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T02:18:59 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T02:19:03 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T02:19:03 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=800 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-16T02:19:06 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T02:19:35 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T02:19:38 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T02:19:42 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T02:20:10 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T02:20:13 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=810 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-16T02:20:14 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T02:20:17 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T02:20:21 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T02:20:24 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T02:20:28 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T02:20:31 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T02:20:58 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=820 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-16T02:21:00 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T02:21:03 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T02:21:07 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T02:21:10 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T02:21:14 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T02:21:17 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T02:21:18 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=830 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-16T02:21:21 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T02:21:24 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T02:21:28 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T02:36:56 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T02:37:00 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused
+2026-10-16T02:37:03 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=840 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connect: connection refused
+2026-10-16T02:37:03 [WARN] telemetry loop reconnecting after error: zmq4: could not dial to "tcp://127.0.0.1:5556" (retry=250ms): dial tcp 127.0.0.1:5556: connect: connection refused

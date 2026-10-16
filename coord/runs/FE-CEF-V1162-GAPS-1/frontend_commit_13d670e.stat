@@ -1,0 +1,13 @@
+13d670e fix(FE-CEF-V1162-GAPS-1): ⑤探针假阴性修复+①⌘V 粘贴垫片——webui_chain_probe ipc 匹配缺陷（t=='ipc' vs 无 t 键条目，UPGRADE ⑤ FAIL 判定推翻）修正为 type+nonce 匹配+_on_ipc 原始消息打点+直连 sendIpcMessage 返回值腿：v1.15.4 正控与 v1.16.2 双双 ipc 闭环 PASS（7879 探针页+7878 webui 主链 first/close/reopen 全过 exit 0），ipc 桥两版均健康无上游回归；VitDebugFlags 增 cef_paste_shim_enabled（默认开，env VIT_CEF_PASTE_SHIM/JSON，v1.15.4 回滚须关防双插）+cef_paste_log_enabled；vit_cef_web_view_host 挂 CefTexture gui_input 捕获 ⌘V→DisplayServer 剪贴板→eval_js 聚焦可编辑框 insertText（__vitCefComposing 组合守卫复用+activeElement editable/password 兼容+readOnly/disabled 出手守卫）；paste_diag v2（eval 聚焦前置——v1.16.2 输入门需窗口 OS key，本机后台会话合成点击不达页面，click_matrix 取证在案）：shim ON 全过（T3/T4 82-85ms 送达+T5 password+T6 composition busy/恢复）exit 0，shim OFF 对照全挂 exit 1；新增 classdb_dump/click_matrix/input_hook_test 取证场景
+ app/kernel/autoloads/VitDebugFlags.gd             |  31 +++
+ vit_dock/diagnostics/cef_classdb_dump.gd          |  53 ++++++
+ vit_dock/diagnostics/cef_classdb_dump.tscn        |   6 +
+ vit_dock/diagnostics/cef_click_matrix.gd          | 155 +++++++++++++++
+ vit_dock/diagnostics/cef_click_matrix.tscn        |   6 +
+ vit_dock/diagnostics/cef_input_hook_probe_node.gd |  26 +++
+ vit_dock/diagnostics/cef_input_hook_test.gd       | 219 ++++++++++++++++++++++
+ vit_dock/diagnostics/cef_input_hook_test.tscn     |   6 +
+ vit_dock/diagnostics/cef_paste_diag.gd            |  80 +++++++-
+ vit_dock/diagnostics/cef_webui_chain_probe.gd     |  13 +-
+ vit_dock/scenes/vit_cef_web_view_host.gd          |  60 +++++-
+ 11 files changed, 647 insertions(+), 8 deletions(-)
