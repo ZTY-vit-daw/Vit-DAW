@@ -33,3 +33,15 @@ generation_shell processor family 三处词表（processorintent/processorattest
 - **烟测脚本 scripts/gen_shell_pca_smoke_mac.sh 未写**：签发步形态取决于方案选择，先写必然返工；方案裁定后修订卡补（脚本域在本卡内，随修订卡走）。
 - **端测边界声明**：本回执全部证据=代码锚点亲读+单测（95 包 0 FAIL exit 0）+pcactl 本机探针；**无真栈 run**（烟测被停止条件阻断，无 run ID 可报）。
 - 验收：（裁定文件 / 验收 commit）
+
+---
+
+## 修订（2026-10-16 深夜，决策侧）：方案 B 裁定落地——native 永久准入，blocked→todo 复工
+
+- **用户裁定**（[decisions/2026-10-16-pca-b-native-and-gen-source.md](../../decisions/2026-10-16-pca-b-native-and-gen-source.md)）：GenShell=原生打包插件，非第三方效果器，直接永久认证（方案 B 原则）。
+- **落地设计（决策侧裁决，实现上述原则）**：不走 token 介质，改由 **registry 注册事实驱动的 native 永久准入**——agent 启动时对 processorregistry 声明的 native load_only 家族（generation_shell）**幂等 seed 一条永久 v2 attestation**（绑定 GenShell.vst3 bundle 指纹，复用本卡前腿已落地的零 coverage 签发→晋升→admission 语义）；装载门/admission/audit 全走现有查询路径。**三道现行门零改动**：chat 认证入口不动、token 通道（harness.go:2192）保留一次性授权语义不动、typed coverage 硬要求不弱化。
+- **复工范围**：①前腿词表（impl=4d779236 @ port/genshell-pca-1 已推）延续同分支续做；②新增 seed 函数（processorattestation 包内，native 家族幂等 seed+bundle 指纹绑定+revoke 尊重——运行时 revoke 生效即拒，重启 re-seed=native 家族会话级语义，回执如实声明）；③agent 启动接线一处（按 LOUDNESS-A-CONFIG 锚点模式定位装配点）；④补 `scripts/gen_shell_pca_smoke_mac.sh`。
+- **文件域（修订后）**：原三包（processorintent/processorattestation/processorregistry）+agent 启动接线一处+smoke 脚本。**不触** chat 认证入口/local_processor_certification 工具对映射/receipts_v2 typed 控制门（三处按裁定保持原样）。
+- **验收标准（修订）**：①真栈烟测 exit 0：agent 起栈→（seed 自动发生）→agent 路径 rack_add_node 装载 GenShell 成功（job/audit 留痕）→运行时 revoke seed 记录→同进程再装载被拒（pca_load_gate 错误串断言）→UI 路径（直接内核命令）装载不受影响回归→重启 agent→re-seed 后装载恢复；②三处词表一致性单测+native seed 幂等/revoke 单测；③全量 `go test ./... -count=1` 0 FAIL+gofmt 净。
+- **停止条件（修订）**：seed 与现有 store 生命周期冲突（promoted 淘汰策略覆盖 seed 记录）→ 锚点上交换持久层决策；装载门 admission 查询路径与 seed 记录形态不符（eligibility.go:130-166 之外的分叉）→ 上交。
+- **端测边界**：agent HTTP 面断言；无 webui/前端改动。
