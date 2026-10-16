@@ -39,6 +39,6 @@ agent/internal/workflows/plugingrabber/reverb_topology.go + 同包测试；probe
 - Waves 壳内插件枚举或参数读回不稳定（param_id string/numeric 混排、四版本壳冲突）→ 壳取证拆独立小卡，矩阵如实记录已覆盖件，不硬凑；
 - 取证发现 Damper→decay 映射无法给出可辩护的置信语义 → 上交裁定，不硬入词表。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：（2026-10-16 18:54 +0800 / origin/main=2338dba08450bfadd2a715fd17d9fda9b3aaacc7 / GLM-5.3 L2 PC 执行会话 ZCode（本会话专场） / 实现 port/pluggrabber-timedyn-compat-1 + 协调 coord/pgtdc-compat-claim / worktree D:/Vit_DAW_wt_pgtdc_compat / 入池+领取提交见本提交及前一提交；领取时核对：卡在 todo 未入远端（发卡侧留盘，按 cd68da79 先例原样入库），doing 三卡文件域零交集（LOUDNESS-B=agent-loop 面、FE-CEF=前端仓、MIX-SENDRETURN=设计取证），PC-RUNTIME-STACK 被 LOUDNESS-B-TRIGGER 占用中——本卡真栈腿先等待释放再登记）
 - 回执：（commit / run ID / 兼容矩阵路径 / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
