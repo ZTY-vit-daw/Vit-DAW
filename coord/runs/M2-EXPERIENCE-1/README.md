@@ -75,3 +75,19 @@
 | 终态 | task=settled、goal=completed、4 slice 全收口——**现场干净可关可续** |
 
 两个 partial 源：obs#1 limitations=["project.structure: evidence status is partial"]；obs#2 omission_reasons=["track.time_dynamics: source evidence is missing"]。派生卡=池序 120 M2-EXP-TIMEDYN-GAP-1。工件：events_round3_2100.json / runtime_status_round3_2100.json。
+
+## 第四轮（2026-10-16 18:16–18:18，二进制=18:15 重建含 120 修复①a；用户现场未关，决策侧入场取证）
+
+| 检查点 | 结果 |
+|---|---|
+| 话术 | 「帮我在vocals轨道加载一个混响并调整一下」（18:17:24 ask 落账） |
+| 链路 | ✅ classification→观察→list_tracks→get_project_state→插件搜索→装载→settle 一气呵成，18:18:38 done（ask→done 约 74s，2 turn） |
+| shadow 轨道计数 | ✅ 6/6（engine_track_count=6，last_delta_seq=471） |
+| 编排器入口/partial 死签 | ✅ **零复现——120 修复在用户真实工程+Godot GUI 路径成立**（goal completed、stop_reason=done、task settled，事件面无 partial 审计拒收签名） |
+| 插件装载 | ✅ Abbey Road Plates Stereo（VST3/Waves WaveShell 壳，id=1040）装载 vocals(1032) 机架 Z3，processing=true、零 load_error |
+| typed 参数写入 | ❌ `plugin_grabber.inspect_reverb` 拒绝：`unresolved_reverb_surface`（seq14）——decay 可证核心只认 decay/size/length 词族（reverb_topology.go:169-174），板式 Damper 不在词表→hasWet+hasCharacter 无 tail 核心即拒（:378-383）；agent 诚实不绕道（**本轮零参数写入**），开插件编辑器+给起点值；explain_controls 读到通用参数外壳（Damper/BassCut/Predelay/Wet/Dry 等 normalized_role=other） |
+| track.list | ⚠️ 返回 0 轨（seq7 body 自述），agent 以 get_project_state 自愈——列表工具面与 shadow/权威态不一致新样本（118 归因腿域） |
+| 双 draft | ⚠️ **第四次复现**（18:16:33/34，draft_20261016T101633+T101634，1 秒间隔；shadow 正常） |
+| l3_feature_log | 18 条=6 轨×3 族（band/stereo/loudness），**无 time_energy**——与 ①b（122 卡 KERNEL-L3-TIMEENERGY-1）未实现一致，旅程靠 ①a 波形绑定走通 |
+
+结论：**M2 旅程在用户真实工程+GUI 路径首次完整走通**（120 修复真机成立）；「成功加载」属实、「调整」实为 agent 开编辑器交用户手调——受控写入被板式混响词表缺位诚实拒绝。新发现派生卡=池序 123 PLUGGRABBER-TIMEDYN-COMPAT-1（当晚经用户范围升级指令自 PLUGGRABBER-REVERB-PLATE-1 扩为 Waves+FabFilter 时域批量兼容 pass）+ 池序 124 MIX-SENDRETURN-DESIGN-1（用户 bus 发送质询派生）。工件：events_round4_1817.json / agent_state_round4_1820.json / runtime_status_round4_1820.json（只读取证：/agent/state、/agent/runtime/status、/agent/events?conversation_id=webui_mvatcjnw；进程 pid VitAgent=20056@18:16:33/VitApp=17000@18:16:31）。

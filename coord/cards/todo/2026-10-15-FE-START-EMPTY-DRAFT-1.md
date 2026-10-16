@@ -12,6 +12,7 @@
 3. 新线索（领取时归因）：第二个 draft 的 `.vit_history/` 树内出现**首轮工程 uuid（vitproj_69a775…）的 state/worktrees 登记**——跨工程历史状态泄漏候选；另有 VitAgent 启动期（09:52:36）写 2026-09 旧 draft 的 agent_runtime_state.json（42MB）——启动加载未区分会话/工程归属或未清理；
 4. 环境登记：用户前端=@port/fe-gui-shrink-1 c56e38f（10-11 Phase A 开发分支，非 10-14 合入 91 后主线）——双 draft 创建与前端工程进入握手的因果关系待归因（前端侧 or agent 侧建了第二个 draft）。
 5. **第三轮样本（2026-10-15 21:00，晚窗）**：双 draft **第三次复现**（21:00:48/21:00:51，3 秒间隔）；**但 shadow 正常同步（track_count=6）**——shadow 失同步未复现。归因更新：**双 draft 与 shadow 失同步解耦**（双 draft 稳定复现≠必致失同步；今早失同步另有条件——疑与对话绑定到哪一个 draft/时序竞态有关，归因腿验证）；另本轮 12 个 draft 目录晚窗新建（20:00 后）待一并清点归因。
+6. **第四轮样本（2026-10-16 18:16，晚窗，M2 体验第四轮）**：双 draft **第四次复现**（18:16:33/34，draft_20261016T101633_4494fa5a + draft_20261016T101634_b87bbe28，1 秒间隔；shadow 正常 6/6）。新关联观察（决策侧入场取证，[README 第四轮](../../runs/M2-EXPERIENCE-1/)）：本场 `track.list` 工具返回 0 轨（events seq7 body 自述）而 shadow/engine 均为 6 轨，agent 以 get_project_state 自愈——**列表工具面失真**与首轮 shadow 失同步是否同根（「新建+导入」路径的轨道枚举缺口），归因腿一并核。
 
 ## 修复目标
 
