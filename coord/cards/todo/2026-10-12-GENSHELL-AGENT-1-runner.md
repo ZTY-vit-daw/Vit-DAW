@@ -4,7 +4,7 @@
 - 派发确认：已确认（用户 2026-10-12「可以发卡」）
 - 验收负责人：Mac 决策侧先行裁定+PC 主管复核留档
 - 池序 97；**规格全文=[件五 卡3](../../runs/GEN-PLUGIN-SHELL-DESIGN-1/05-impl-card-specs.md)（权威）**
-- 归属：Mac 生成线；P1 / 1-1.5 天 / **GEN-CTX-INJECT-1 合入（✓已合入）+GENSHELL-HOST-1**
+- 归属：Mac 生成线；P1 / 1-2 天 / **GEN-CTX-INJECT-1 合入（✓已合入）+GENSHELL-HOST-1（✓ 2026-10-16 pass 合入 db84003e——双前置满足，可领；锚点=HOST-1 ruling 对卡 3 交接：providers 由 runner 自填、job upsert 走 aigc_register_job 同面（H4 实证）、gen_shell.pending 应答形态以 H3 断言为准、壳内部 genshell_state_sync 按未知 messageID 丢弃）**
 - 模型分级：L2 / GLM 执行会话
 
 ## 要点摘录（以规格为准）

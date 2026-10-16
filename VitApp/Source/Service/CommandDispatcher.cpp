@@ -3,6 +3,7 @@
 #include "AuditionPreviewService.h"
 #include "ClipService.h"
 #include "GeneratedAssetService.h"
+#include "GenerationShellService.h"
 #include "ImportService.h"
 #include "JobEventService.h"
 #include "MidiService.h"
@@ -3476,6 +3477,18 @@ void CommandDispatcher::registerBuiltinCommands()
         return transportAudioService != nullptr ? transportAudioService->handleCancelRender (object, raw)
                                              : makeErrorReply ("Transport/audio service unavailable");
     });
+
+    // GENSHELL-HOST-1: gen_shell.pending —— 生成壳服务读命令（件二 §4，唯一新命令）。
+    // 服务实例由本注册 lambda 持有（handlers 生命周期=dispatcher 生命周期），
+    // 免去 CommandDispatcher.h 成员扩展（文件域：仅注册面）。
+    {
+        auto service = std::make_shared<GenerationShellService> (getEdit, getCurrentProjectPath);
+        handlers.emplace ("gen_shell.pending",
+                          [service] (const juce::DynamicObject& object, const juce::String& raw)
+        {
+            return service->handleGenShellPending (object, raw);
+        });
+    }
 
 }
 

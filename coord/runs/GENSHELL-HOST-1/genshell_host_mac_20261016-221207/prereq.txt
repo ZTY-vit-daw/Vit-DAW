@@ -1,0 +1,46 @@
+no_running_kernel_at_start=confirmed
+project_copy_sha256=32a39c061132202008f004eab7d820469a007159e6c8fd68fdf3d4adf5123b39 (source project never written; VIT_PROJECT_XML redirect)
+ok: LEG S: selftest exit 0 (46 PASS / 0 FAIL) — deployed bundle unchanged
+kernel_pid=13255 log=/Users/timozty/Documents/vit-genshell-artifacts/host/genshell_host_mac_20261016-221207/logs/kernel_main.log
+H1_scan_terminal=completed
+ok: LEG H1: scan completed
+ok: LEG H1: GenShell discovered (identifier=VST3-GenShell-15b5622d-b818da1c)
+H1_track_id=1037
+ok: LEG H1: track added
+H1_rack_add status=ok plugin_id=1043 error=Rack node added
+ok: LEG H1: rack_add_node landed (UI path form, direct kernel command; plugin_id=1043)
+ok: LEG H1: T1 five params present via get_plugin_parameters (count=7 incl. wrapper params)
+H2_probes=kNoInterface|kResultOk|kResultFalse|downgrade_a_param_chunk ident_ok=True instance_ready=True
+ok: LEG H2: shell registered in service registry (identifier match)
+ok: LEG H2: shell instance ready
+ok: LEG H2: probe_qi_edit_controller=kNoInterface (separate-class shell; primary path step 1 fails)
+ok: LEG H2: probe_qi_connection_point=kResultOk (processor endpoint reachable)
+ok: LEG H2: probe_connect_attempt=kResultFalse (endpoint occupied by JUCE interconnect — single-peer fail-closed)
+ok: LEG H2: t2_transport=downgrade_a_param_chunk (fallback A engaged, queue semantics unchanged)
+ok: LEG H3: debug_submit accepted (job_id=smoke-host1-221219)
+H3_pending state=queued cancel=False payload_ok=True providers_ok=True
+ok: LEG H3: gen_shell.pending answers queued job + full request payload
+ok: LEG H3: providers array present (v1 empty — kernel has no genapi knowledge)
+H3_snapshot job_state=queued ghost=mute source=gen_shell:1043 hash=True
+ok: LEG H3: jobs snapshot: queued + ghost=mute + source=gen_shell:<node> + request_hash present
+H3_dup status=error msg=gen_shell.pending debug_submit rejected: job_id already submitted: smoke-host1-221219
+ok: LEG H3: duplicate job_id rejected (fail-closed idempotency)
+H4_advance_running status=ok
+H4_mirror_running text=running normalized=0.28571429848671 (expected 0.2857142857142857)
+ok: LEG H4: JobState mirror=running (value_text + normalized 0.28571429848671)
+H4_advance_done status=ok
+H4_mirror_done text=done normalized=0.714285731315613 (expected 0.7142857142857143)
+ok: LEG H4: JobState mirror=done (value_text + normalized 0.714285731315613)
+ok: LEG H5: job B submitted (smoke-host1-cancel-221220)
+ok: LEG H5: debug_cancel accepted
+H5_pending state=cancel_requested cancel_requested=True
+ok: LEG H5: pending answer shows cancel_requested + flag
+H5_snapshot job_state=cancel_requested
+ok: LEG H5: jobs snapshot job_state=cancel_requested (cancel path upsert visible)
+ok: LEG H6: terminal upsert cancelled accepted
+H6_snapshot job_state=cancelled ghost=bypass
+ok: LEG H6: ghost cleared on terminal cancelled (mute -> bypass)
+H6_mirror text=cancelled
+ok: LEG H6: JobState mirror=cancelled (job_terminal downlink)
+kernel_stop=SIGTERM elapsed=1s
+finished=2026-10-16 22:12:22

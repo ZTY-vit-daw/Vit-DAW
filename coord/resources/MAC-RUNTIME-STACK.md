@@ -10,6 +10,10 @@
 
 ## 最近一次释放
 
+- 2026-10-16 21:52–21:54 +0800 / GENAPI-REALVERIFY-1（池序 125；GLM-5.3 L2 Mac 执行侧 ZCode 会话，ZCode；worktree Vit-DAW-genapi-rv1 @ port/genapi-realverify-1）：run1 模拟器回归（内核 099327af+agent 93fd00b2，exit 0 21/21 门，脚本自 teardown）+run2 真源 no_key 实证（exit 1 env:no_key，未启栈）。21:54 拆栈复核：5555/5556/5557/7878 监听=0、VitApp/vitagent 进程=0。占用登记 48a54f72；工件 coord/runs/GENAPI-REALVERIFY-1/（port/genapi-realverify-1@33c551cc）；卡面转 blocked（生成源未选定，no_key 环境阻塞）。
+
+## 最近一次释放
+
 - 2026-10-15 21:21–23:33 +0800 / FE-CEF-V1162-GAPS-1（池序 121；GLM-5.3 L2 Mac 执行侧会话，ZCode；主仓 worktree Vit-DAW-cefgaps1-coord + 前端仓 port/fe-cef-v1162-gaps-1）：⑤ipc 排查（含 v1.15.4 bin 临时换装正控后换回，487/487 sha256 双向复核）+①⌘V 垫片验证+硬门环境取证共约 20 次 Godot 探针场景运行（classdb/chain/paste_diag/matrix/hook）+ vitagent 7878（webui 主链验收轮，自起自停）。占用前亲核 7878/9229 监听=0、无 Godot/vitagent 进程（记录空闲属实）；**占用前登记未推（本条为事后补记，如实）**；23:33 拆栈复核：7878 监听=0、Godot/vitagent 进程=0；7879 探针页服务为上轮常驻实例未动。实现 commit 前端 13d670e@port/fe-cef-v1162-gaps-1（GH001 未推）；工件主仓 port/fe-cef-v1162-gaps-1@cc195810；卡面 done 提交 25043393。
 - 2026-10-15 18:31–19:22 +0800 / FE-CEF-UPGRADE-1（池序 116；GLM-5.3 Mac 执行侧接管会话，ZCode；worktree Vit-DAW-fecef1-coord + 前端仓 port/fe-cef-upgrade-1@140c27cb）：gdcef v1.15.4→v1.16.2 升级七项回归一轮（autodrive OFF/ON、paste_diag、resize、webui chain、watchdog sigkill）——Godot 前端（9229）+ 探针页 7879 + vitagent 7878（webui 链路轮）。19:22 拆栈复核：7878/9229 监听=0、Godot/CEF Helper/vitagent 进程=0；**7879 探针页服务按 KEYINPUT SERVICE.md 惯例保留常驻**（用户轮/复验可用）。占用登记 8dcf1a77；工件 `coord/runs/FE-CEF-UPGRADE-1/`（主仓 port/fe-cef-upgrade-1@9be696bb）；结论=硬门① FAIL+⑤ FAIL（升级未通过，详见卡面回执/VALIDATION.md）。
 
