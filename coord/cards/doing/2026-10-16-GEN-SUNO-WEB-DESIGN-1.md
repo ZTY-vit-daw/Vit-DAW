@@ -35,6 +35,6 @@ coord/runs/GEN-SUNO-WEB-DESIGN-1/**（报告与设计件）；勘察探针脚本
 
 零生产代码零外呼承诺不适用于本卡——勘察腿允许向 suno.com 发真实请求（用户自己的订阅，低频 ≤10 次探测）；产物不入库；key/cookie 材料只进用户级本地文件，不入仓不入卡面不入工件。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：（2026-10-16 23:05 +0800 / origin/main=ca86b226d8af0bc85dc3390aa49028a3c9f3697a2 / GLM-5.3 L2 Mac 执行侧 ZCode 会话（本卡会话，用户口令指定领取）/ 分支=port/gen-suno-web-design-1（worktree /Users/timozty/Documents/Vit-DAW-gensunoweb1）+ 协调 worktree Vit-DAW-gensunoweb1-coord（coord/gensunoweb1-claim）/ 领取提交=本提交；领取时核对：卡在 todo 派发已确认（用户 2026-10-16 深夜裁定）、依赖无、doing 空、文件域零冲突、真栈零占用（纯勘察+设计，无栈需求）。本轮=勘察腿公开信息部分先行（用户不在场），真会话腿 [等待用户]）
 - 回执：（报告链接 / 风险评估结论 / 用户配合项状态 / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
