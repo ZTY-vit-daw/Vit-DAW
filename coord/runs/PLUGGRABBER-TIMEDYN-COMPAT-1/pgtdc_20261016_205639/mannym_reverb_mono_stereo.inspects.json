@@ -1,0 +1,25 @@
+{
+  "case": {
+    "plugin_name": "MannyM Reverb Mono/Stereo",
+    "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "plugin_identifier": "VST3-MannyM Reverb Mono/Stereo-695648d-46bcf0cc",
+    "vendor": "waves",
+    "family": "reverb"
+  },
+  "inspects": {
+    "reverb": {
+      "tool": "plugin_grabber.inspect_reverb",
+      "invoke_status": "error",
+      "resolved": false,
+      "rejection_code": "unsupported_broadband_compressor",
+      "error": "unsupported_broadband_compressor: no provable supported reverb stage/control-path topology"
+    },
+    "delay": {
+      "tool": "plugin_grabber.inspect_delay",
+      "invoke_status": "error",
+      "resolved": false,
+      "rejection_code": "unsupported_broadband_compressor",
+      "error": "unsupported_broadband_compressor: no provable supported delay stage/control-path topology"
+    }
+  }
+}

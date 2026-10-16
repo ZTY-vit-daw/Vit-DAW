@@ -1,0 +1,39 @@
+{
+  "case": {
+    "plugin_name": "Doubler4 Mono/Stereo",
+    "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "plugin_identifier": "VST3-Doubler4 Mono/Stereo-695648d-b84ca6e1",
+    "vendor": "waves",
+    "family": "delay"
+  },
+  "inspects": {
+    "reverb": {
+      "tool": "plugin_grabber.inspect_reverb",
+      "invoke_status": "error",
+      "resolved": false,
+      "rejection_code": "unsupported_delay",
+      "error": "unsupported_delay: no provable supported reverb stage/control-path topology"
+    },
+    "delay": {
+      "tool": "plugin_grabber.inspect_delay",
+      "invoke_status": "ok",
+      "resolved": true,
+      "classification": "feedback_delay",
+      "confidence": 0.96,
+      "tail_evidence": null,
+      "generation": "dl1t1_580252df4f98bc86541cdeeb",
+      "sections": {
+        "timing": [
+          "time"
+        ],
+        "output": [
+          "dry",
+          "wet"
+        ],
+        "feedback": [
+          "feedback"
+        ]
+      }
+    }
+  }
+}

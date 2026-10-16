@@ -1,0 +1,40 @@
+{
+  "case": {
+    "plugin_name": "TrueVerb Stereo",
+    "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "plugin_identifier": "VST3-TrueVerb Stereo-695648d-a7394d0a",
+    "vendor": "waves",
+    "family": "reverb"
+  },
+  "inspects": {
+    "reverb": {
+      "tool": "plugin_grabber.inspect_reverb",
+      "invoke_status": "ok",
+      "resolved": true,
+      "classification": "predelay_decay_reverb",
+      "confidence": 0.96,
+      "tail_evidence": "direct_wording",
+      "generation": "rv1t1_5d72cf9c34276732e1ade56c",
+      "sections": {
+        "tail": [
+          "decay"
+        ],
+        "timing": [
+          "pre_delay"
+        ],
+        "output": [
+          "dry",
+          "mix",
+          "wet"
+        ]
+      }
+    },
+    "delay": {
+      "tool": "plugin_grabber.inspect_delay",
+      "invoke_status": "error",
+      "resolved": false,
+      "rejection_code": "unsupported_broadband_compressor",
+      "error": "unsupported_broadband_compressor: no provable supported delay stage/control-path topology"
+    }
+  }
+}

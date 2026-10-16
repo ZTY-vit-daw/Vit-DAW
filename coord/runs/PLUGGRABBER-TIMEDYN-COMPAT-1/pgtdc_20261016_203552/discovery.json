@@ -1,0 +1,693 @@
+{
+  "queries": [
+    "Pro-R",
+    "Timeless",
+    "Abbey Road Plates",
+    "Abbey Road Chambers",
+    "Abbey Road Reverb",
+    "H-Reverb",
+    "H-Delay",
+    "TrueVerb",
+    "Doubler",
+    "Manny Marroquin Delay",
+    "Reverb",
+    "Delay",
+    "Supermassive"
+  ],
+  "unique_identifiers": 90,
+  "targets": [
+    {
+      "plugin_name": "Abbey Road Chambers Mono",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-Abbey Road Chambers Mono-695648d-2da618f6",
+      "vendor": "waves",
+      "family": "reverb"
+    },
+    {
+      "plugin_name": "Abbey Road Chambers Mono/Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-Abbey Road Chambers Mono/Stereo-695648d-2dcf63f6",
+      "vendor": "waves",
+      "family": "reverb"
+    },
+    {
+      "plugin_name": "Abbey Road Chambers Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-Abbey Road Chambers Stereo-695648d-2dbc9ef6",
+      "vendor": "waves",
+      "family": "reverb"
+    },
+    {
+      "plugin_name": "Abbey Road Plates Mono",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-Abbey Road Plates Mono-695648d-5df3bbd9",
+      "vendor": "waves",
+      "family": "reverb"
+    },
+    {
+      "plugin_name": "Abbey Road Plates Mono/Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-Abbey Road Plates Mono/Stereo-695648d-5e1d06d9",
+      "vendor": "waves",
+      "family": "reverb"
+    },
+    {
+      "plugin_name": "Abbey Road Plates Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-Abbey Road Plates Stereo-695648d-5e0a41d9",
+      "vendor": "waves",
+      "family": "reverb"
+    },
+    {
+      "plugin_name": "Clarity Vx - DeReverb Mono",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-Clarity Vx - DeReverb Mono-695648d-d85a9121",
+      "vendor": "waves",
+      "family": "reverb"
+    },
+    {
+      "plugin_name": "Clarity Vx - DeReverb Pro Mono",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-Clarity Vx - DeReverb Pro Mono-695648d-2a45910c",
+      "vendor": "waves",
+      "family": "reverb"
+    },
+    {
+      "plugin_name": "Clarity Vx - DeReverb Pro Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-Clarity Vx - DeReverb Pro Stereo-695648d-2a5c170c",
+      "vendor": "waves",
+      "family": "reverb"
+    },
+    {
+      "plugin_name": "Clarity Vx - DeReverb Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-Clarity Vx - DeReverb Stereo-695648d-d8711721",
+      "vendor": "waves",
+      "family": "reverb"
+    },
+    {
+      "plugin_name": "Doubler2 Mono",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-Doubler2 Mono-695648d-b0a159e1",
+      "vendor": "waves",
+      "family": "delay"
+    },
+    {
+      "plugin_name": "Doubler2 Mono/Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-Doubler2 Mono/Stereo-695648d-b0caa4e1",
+      "vendor": "waves",
+      "family": "delay"
+    },
+    {
+      "plugin_name": "Doubler2 Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-Doubler2 Stereo-695648d-b0b7dfe1",
+      "vendor": "waves",
+      "family": "delay"
+    },
+    {
+      "plugin_name": "Doubler4 Mono",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-Doubler4 Mono-695648d-b8235be1",
+      "vendor": "waves",
+      "family": "delay"
+    },
+    {
+      "plugin_name": "Doubler4 Mono/Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-Doubler4 Mono/Stereo-695648d-b84ca6e1",
+      "vendor": "waves",
+      "family": "delay"
+    },
+    {
+      "plugin_name": "Doubler4 Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-Doubler4 Stereo-695648d-b839e1e1",
+      "vendor": "waves",
+      "family": "delay"
+    },
+    {
+      "plugin_name": "H-Delay Mono",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-H-Delay Mono-695648d-6e24e2a1",
+      "vendor": "waves",
+      "family": "delay"
+    },
+    {
+      "plugin_name": "H-Delay Mono/Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-H-Delay Mono/Stereo-695648d-6e4e2da1",
+      "vendor": "waves",
+      "family": "delay"
+    },
+    {
+      "plugin_name": "H-Delay Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-H-Delay Stereo-695648d-6e3b68a7",
+      "vendor": "waves",
+      "family": "delay"
+    },
+    {
+      "plugin_name": "H-Reverb 5.0",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-H-Reverb 5.0-695648d-bbc50d8a",
+      "vendor": "waves",
+      "family": "reverb"
+    },
+    {
+      "plugin_name": "H-Reverb 5.1",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-H-Reverb 5.1-695648d-bbc8ce8a",
+      "vendor": "waves",
+      "family": "reverb"
+    },
+    {
+      "plugin_name": "H-Reverb Mono",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-H-Reverb Mono-695648d-bc1f258a",
+      "vendor": "waves",
+      "family": "reverb"
+    },
+    {
+      "plugin_name": "H-Reverb Mono/5.0",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-H-Reverb Mono/5.0-695648d-bc4c318a",
+      "vendor": "waves",
+      "family": "reverb"
+    },
+    {
+      "plugin_name": "H-Reverb Mono/5.1",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-H-Reverb Mono/5.1-695648d-bc4ff28a",
+      "vendor": "waves",
+      "family": "reverb"
+    },
+    {
+      "plugin_name": "H-Reverb Mono/Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-H-Reverb Mono/Stereo-695648d-bc48708a",
+      "vendor": "waves",
+      "family": "reverb"
+    },
+    {
+      "plugin_name": "H-Reverb Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-H-Reverb Stereo-695648d-bc35ab8a",
+      "vendor": "waves",
+      "family": "reverb"
+    },
+    {
+      "plugin_name": "H-Reverb Stereo/5.0",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-H-Reverb Stereo/5.0-695648d-bc396c8a",
+      "vendor": "waves",
+      "family": "reverb"
+    },
+    {
+      "plugin_name": "H-Reverb Stereo/5.1",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-H-Reverb Stereo/5.1-695648d-bc3d2d8a",
+      "vendor": "waves",
+      "family": "reverb"
+    },
+    {
+      "plugin_name": "H-Reverb long 5.0",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-H-Reverb long 5.0-695648d-c7080d8a",
+      "vendor": "waves",
+      "family": "reverb"
+    },
+    {
+      "plugin_name": "H-Reverb long 5.1",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-H-Reverb long 5.1-695648d-c70bce8a",
+      "vendor": "waves",
+      "family": "reverb"
+    },
+    {
+      "plugin_name": "H-Reverb long Mono",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-H-Reverb long Mono-695648d-c762258a",
+      "vendor": "waves",
+      "family": "reverb"
+    },
+    {
+      "plugin_name": "H-Reverb long Mono/5.0",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-H-Reverb long Mono/5.0-695648d-c78f318a",
+      "vendor": "waves",
+      "family": "reverb"
+    },
+    {
+      "plugin_name": "H-Reverb long Mono/5.1",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-H-Reverb long Mono/5.1-695648d-c792f28a",
+      "vendor": "waves",
+      "family": "reverb"
+    },
+    {
+      "plugin_name": "H-Reverb long Mono/Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-H-Reverb long Mono/Stereo-695648d-c78b708a",
+      "vendor": "waves",
+      "family": "reverb"
+    },
+    {
+      "plugin_name": "H-Reverb long Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-H-Reverb long Stereo-695648d-c778ab8a",
+      "vendor": "waves",
+      "family": "reverb"
+    },
+    {
+      "plugin_name": "H-Reverb long Stereo/5.0",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-H-Reverb long Stereo/5.0-695648d-c77c6c8a",
+      "vendor": "waves",
+      "family": "reverb"
+    },
+    {
+      "plugin_name": "H-Reverb long Stereo/5.1",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-H-Reverb long Stereo/5.1-695648d-c7802d8a",
+      "vendor": "waves",
+      "family": "reverb"
+    },
+    {
+      "plugin_name": "MannyM Delay Mono/Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-MannyM Delay Mono/Stereo-695648d-122ee2cc",
+      "vendor": "waves",
+      "family": "delay"
+    },
+    {
+      "plugin_name": "MannyM Delay Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-MannyM Delay Stereo-695648d-121c1dcc",
+      "vendor": "waves",
+      "family": "delay"
+    },
+    {
+      "plugin_name": "MannyM Reverb Mono",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-MannyM Reverb Mono-695648d-4693a5cc",
+      "vendor": "waves",
+      "family": "reverb"
+    },
+    {
+      "plugin_name": "MannyM Reverb Mono/Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-MannyM Reverb Mono/Stereo-695648d-46bcf0cc",
+      "vendor": "waves",
+      "family": "reverb"
+    },
+    {
+      "plugin_name": "MannyM Reverb Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-MannyM Reverb Stereo-695648d-46aa2bcc",
+      "vendor": "waves",
+      "family": "reverb"
+    },
+    {
+      "plugin_name": "RVerb Mono/Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-RVerb Mono/Stereo-695648d-1be9bfac",
+      "vendor": "waves",
+      "family": "reverb"
+    },
+    {
+      "plugin_name": "RVerb Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-RVerb Stereo-695648d-1bdcffa3",
+      "vendor": "waves",
+      "family": "reverb"
+    },
+    {
+      "plugin_name": "Timeless 3",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\FabFilter\\FabFilter Timeless 3.vst3",
+      "plugin_identifier": "VST3-Timeless 3-72be40c7-96546ef3",
+      "vendor": "fabfilter",
+      "family": "delay"
+    },
+    {
+      "plugin_name": "TrueVerb Mono",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-TrueVerb Mono-695648d-1b81c70a",
+      "vendor": "waves",
+      "family": "reverb"
+    },
+    {
+      "plugin_name": "TrueVerb Mono/Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-TrueVerb Mono/Stereo-695648d-525120a",
+      "vendor": "waves",
+      "family": "reverb"
+    },
+    {
+      "plugin_name": "TrueVerb Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-TrueVerb Stereo-695648d-a7394d0a",
+      "vendor": "waves",
+      "family": "reverb"
+    },
+    {
+      "plugin_name": "ValhallaSupermassive",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\ValhallaSupermassive.vst3",
+      "plugin_identifier": "VST3-ValhallaSupermassive-5cffe1ee-7e8fe5d5",
+      "vendor": "valhalla",
+      "family": "reverb"
+    }
+  ],
+  "out_of_scope": [
+    {
+      "plugin_name": "ADA STD-1 Stereo Tapped Delay",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\ADA STD-1 Stereo Tapped Delay.vst3",
+      "plugin_identifier": "VST3-ADA STD-1 Stereo Tapped Delay-9f79d012-e795835e",
+      "vendor": "other",
+      "family": "delay",
+      "reason": "non-target vendor"
+    },
+    {
+      "plugin_name": "ADPTR Utopia",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\ADPTR Utopia.vst3",
+      "plugin_identifier": "VST3-ADPTR Utopia-124f78d9-2e1319e9",
+      "vendor": "other",
+      "family": "",
+      "reason": "non-target vendor"
+    },
+    {
+      "plugin_name": "Bettermaker BM60",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\Bettermaker BM60.vst3",
+      "plugin_identifier": "VST3-Bettermaker BM60-50e7a495-9d1777d0",
+      "vendor": "other",
+      "family": "",
+      "reason": "non-target vendor"
+    },
+    {
+      "plugin_name": "IR-L Mono",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-IR-L Mono-695648d-4031be55",
+      "vendor": "waves",
+      "family": "",
+      "reason": "waves non-time-domain name"
+    },
+    {
+      "plugin_name": "IR-L Mono/Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-IR-L Mono/Stereo-695648d-405b0955",
+      "vendor": "waves",
+      "family": "",
+      "reason": "waves non-time-domain name"
+    },
+    {
+      "plugin_name": "IR-L efficient Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-IR-L efficient Stereo-695648d-383f3c4f",
+      "vendor": "waves",
+      "family": "",
+      "reason": "waves non-time-domain name"
+    },
+    {
+      "plugin_name": "IR-L full Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-IR-L full Stereo-695648d-3d0f4252",
+      "vendor": "waves",
+      "family": "",
+      "reason": "waves non-time-domain name"
+    },
+    {
+      "plugin_name": "IR1 Mono",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-IR1 Mono-695648d-e8a39439",
+      "vendor": "waves",
+      "family": "",
+      "reason": "waves non-time-domain name"
+    },
+    {
+      "plugin_name": "IR1 Mono/Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-IR1 Mono/Stereo-695648d-e8ccdf68",
+      "vendor": "waves",
+      "family": "",
+      "reason": "waves non-time-domain name"
+    },
+    {
+      "plugin_name": "IR1 efficient Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-IR1 efficient Stereo-695648d-dfb213a4",
+      "vendor": "waves",
+      "family": "",
+      "reason": "waves non-time-domain name"
+    },
+    {
+      "plugin_name": "IR1 full Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-IR1 full Stereo-695648d-f2791680",
+      "vendor": "waves",
+      "family": "",
+      "reason": "waves non-time-domain name"
+    },
+    {
+      "plugin_name": "IRLive Mono",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-IRLive Mono-695648d-18836abf",
+      "vendor": "waves",
+      "family": "",
+      "reason": "waves non-time-domain name"
+    },
+    {
+      "plugin_name": "IRLive Mono/Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-IRLive Mono/Stereo-695648d-18acb5bf",
+      "vendor": "waves",
+      "family": "",
+      "reason": "waves non-time-domain name"
+    },
+    {
+      "plugin_name": "IRLive Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-IRLive Stereo-695648d-1899f6c4",
+      "vendor": "waves",
+      "family": "",
+      "reason": "waves non-time-domain name"
+    },
+    {
+      "plugin_name": "Magma Springs Mono",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-Magma Springs Mono-695648d-7f0d81f1",
+      "vendor": "waves",
+      "family": "",
+      "reason": "waves non-time-domain name"
+    },
+    {
+      "plugin_name": "Magma Springs Mono/Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-Magma Springs Mono/Stereo-695648d-7f36ccf1",
+      "vendor": "waves",
+      "family": "",
+      "reason": "waves non-time-domain name"
+    },
+    {
+      "plugin_name": "Magma Springs Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-Magma Springs Stereo-695648d-7f2407f1",
+      "vendor": "waves",
+      "family": "",
+      "reason": "waves non-time-domain name"
+    },
+    {
+      "plugin_name": "NEOLD OLDTIMER",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\NEOLD OLDTIMER.vst3",
+      "plugin_identifier": "VST3-NEOLD OLDTIMER-ff5f8bb8-83513e60",
+      "vendor": "other",
+      "family": "",
+      "reason": "non-target vendor"
+    },
+    {
+      "plugin_name": "Pro-R",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\FabFilter\\FabFilter Pro-R.vst3",
+      "plugin_identifier": "VST3-Pro-R-4bc24482-78c01fa6",
+      "vendor": "fabfilter",
+      "family": "",
+      "reason": "fabfilter non-time-domain name"
+    },
+    {
+      "plugin_name": "Space Rider Mono/Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-Space Rider Mono/Stereo-695648d-e36b784c",
+      "vendor": "waves",
+      "family": "",
+      "reason": "waves non-time-domain name"
+    },
+    {
+      "plugin_name": "Space Rider Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-Space Rider Stereo-695648d-e358b34c",
+      "vendor": "waves",
+      "family": "",
+      "reason": "waves non-time-domain name"
+    },
+    {
+      "plugin_name": "SuperTap 2-Taps Mono",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-SuperTap 2-Taps Mono-695648d-88f1a234",
+      "vendor": "waves",
+      "family": "",
+      "reason": "waves non-time-domain name"
+    },
+    {
+      "plugin_name": "SuperTap 2-Taps Mono/Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-SuperTap 2-Taps Mono/Stereo-695648d-891aed34",
+      "vendor": "waves",
+      "family": "",
+      "reason": "waves non-time-domain name"
+    },
+    {
+      "plugin_name": "SuperTap 2-Taps Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-SuperTap 2-Taps Stereo-695648d-89082834",
+      "vendor": "waves",
+      "family": "",
+      "reason": "waves non-time-domain name"
+    },
+    {
+      "plugin_name": "SuperTap 6-Taps Mono",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-SuperTap 6-Taps Mono-695648d-97f5a234",
+      "vendor": "waves",
+      "family": "",
+      "reason": "waves non-time-domain name"
+    },
+    {
+      "plugin_name": "SuperTap 6-Taps Mono/Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-SuperTap 6-Taps Mono/Stereo-695648d-981eed34",
+      "vendor": "waves",
+      "family": "",
+      "reason": "waves non-time-domain name"
+    },
+    {
+      "plugin_name": "SuperTap 6-Taps Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-SuperTap 6-Taps Stereo-695648d-980c2834",
+      "vendor": "waves",
+      "family": "",
+      "reason": "waves non-time-domain name"
+    },
+    {
+      "plugin_name": "Unfiltered Audio Byome",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\Unfiltered Audio Byome.vst3",
+      "plugin_identifier": "VST3-Unfiltered Audio Byome-ff423630-b80f6219",
+      "vendor": "other",
+      "family": "",
+      "reason": "non-target vendor"
+    },
+    {
+      "plugin_name": "Unfiltered Audio Fault",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\Unfiltered Audio Fault.vst3",
+      "plugin_identifier": "VST3-Unfiltered Audio Fault-3df715de-c7316a19",
+      "vendor": "other",
+      "family": "",
+      "reason": "non-target vendor"
+    },
+    {
+      "plugin_name": "Unfiltered Audio Instant Delay",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\Unfiltered Audio Instant Delay.vst3",
+      "plugin_identifier": "VST3-Unfiltered Audio Instant Delay-58481cdc-d2078d19",
+      "vendor": "other",
+      "family": "delay",
+      "reason": "non-target vendor"
+    },
+    {
+      "plugin_name": "Unfiltered Audio Sandman Pro",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\Unfiltered Audio Sandman Pro.vst3",
+      "plugin_identifier": "VST3-Unfiltered Audio Sandman Pro-26daa25d-f74dfb19",
+      "vendor": "other",
+      "family": "",
+      "reason": "non-target vendor"
+    },
+    {
+      "plugin_name": "Unfiltered Audio Sandman",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\Unfiltered Audio Sandman.vst3",
+      "plugin_identifier": "VST3-Unfiltered Audio Sandman-51ad4caa-8c636d5b",
+      "vendor": "other",
+      "family": "",
+      "reason": "non-target vendor"
+    },
+    {
+      "plugin_name": "Unfiltered Audio Triad",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\Unfiltered Audio Triad.vst3",
+      "plugin_identifier": "VST3-Unfiltered Audio Triad-32c67472-fb871b19",
+      "vendor": "other",
+      "family": "",
+      "reason": "non-target vendor"
+    },
+    {
+      "plugin_name": "ZamDelay",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\zam-plugins-4.5-win64\\zam-plugins-4.5\\ZamDelay.vst3\\Contents\\x86_64-win\\ZamDelay.vst3",
+      "plugin_identifier": "VST3-ZamDelay-573883f1-c7fe1c32",
+      "vendor": "other",
+      "family": "delay",
+      "reason": "non-target vendor"
+    },
+    {
+      "plugin_name": "ZamEcho",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\zam-plugins-4.5-win64\\zam-plugins-4.5\\ZamEcho.vst3\\Contents\\x86_64-win\\ZamEcho.vst3",
+      "plugin_identifier": "VST3-ZamEcho-dfdeb637-b11d1c32",
+      "vendor": "other",
+      "family": "delay",
+      "reason": "non-target vendor"
+    },
+    {
+      "plugin_name": "ZamGrains",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\zam-plugins-4.5-win64\\zam-plugins-4.5\\ZamGrains.vst3\\Contents\\x86_64-win\\ZamGrains.vst3",
+      "plugin_identifier": "VST3-ZamGrains-deed6f57-825b1c32",
+      "vendor": "other",
+      "family": "",
+      "reason": "non-target vendor"
+    },
+    {
+      "plugin_name": "ZamVerb",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\zam-plugins-4.5-win64\\zam-plugins-4.5\\ZamVerb.vst3\\Contents\\x86_64-win\\ZamVerb.vst3",
+      "plugin_identifier": "VST3-ZamVerb-4c1376f7-93b13332",
+      "vendor": "other",
+      "family": "reverb",
+      "reason": "non-target vendor"
+    },
+    {
+      "plugin_name": "bx_aura",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\bx_aura.vst3",
+      "plugin_identifier": "VST3-bx_aura-6357df82-b6f02a6b",
+      "vendor": "other",
+      "family": "",
+      "reason": "non-target vendor"
+    },
+    {
+      "plugin_name": "bx_delay2500",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\bx_delay2500.vst3",
+      "plugin_identifier": "VST3-bx_delay2500-817b3e9-bc1235ad",
+      "vendor": "other",
+      "family": "delay",
+      "reason": "non-target vendor"
+    },
+    {
+      "plugin_name": "bx_pulsar",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\bx_pulsar.vst3",
+      "plugin_identifier": "VST3-bx_pulsar-f9bf0ae8-e9535cdd",
+      "vendor": "other",
+      "family": "",
+      "reason": "non-target vendor"
+    },
+    {
+      "plugin_name": "bx_rooMS",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\bx_rooMS.vst3",
+      "plugin_identifier": "VST3-bx_rooMS-a877e637-f3b1a3b1",
+      "vendor": "other",
+      "family": "",
+      "reason": "non-target vendor"
+    }
+  ]
+}

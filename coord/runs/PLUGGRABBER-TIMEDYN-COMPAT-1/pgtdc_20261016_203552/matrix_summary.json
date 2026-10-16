@@ -1,0 +1,845 @@
+{
+  "schema_version": "plugin_grabber.timefx_compat_matrix_report.v1",
+  "card": "PLUGGRABBER-TIMEDYN-COMPAT-1",
+  "target_count": 49,
+  "out_of_scope": [
+    {
+      "plugin_name": "ADA STD-1 Stereo Tapped Delay",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\ADA STD-1 Stereo Tapped Delay.vst3",
+      "plugin_identifier": "VST3-ADA STD-1 Stereo Tapped Delay-9f79d012-e795835e",
+      "vendor": "other",
+      "family": "delay",
+      "reason": "non-target vendor"
+    },
+    {
+      "plugin_name": "ADPTR Utopia",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\ADPTR Utopia.vst3",
+      "plugin_identifier": "VST3-ADPTR Utopia-124f78d9-2e1319e9",
+      "vendor": "other",
+      "family": "",
+      "reason": "non-target vendor"
+    },
+    {
+      "plugin_name": "Bettermaker BM60",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\Bettermaker BM60.vst3",
+      "plugin_identifier": "VST3-Bettermaker BM60-50e7a495-9d1777d0",
+      "vendor": "other",
+      "family": "",
+      "reason": "non-target vendor"
+    },
+    {
+      "plugin_name": "IR-L Mono",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-IR-L Mono-695648d-4031be55",
+      "vendor": "waves",
+      "family": "",
+      "reason": "waves non-time-domain name"
+    },
+    {
+      "plugin_name": "IR-L Mono/Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-IR-L Mono/Stereo-695648d-405b0955",
+      "vendor": "waves",
+      "family": "",
+      "reason": "waves non-time-domain name"
+    },
+    {
+      "plugin_name": "IR-L efficient Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-IR-L efficient Stereo-695648d-383f3c4f",
+      "vendor": "waves",
+      "family": "",
+      "reason": "waves non-time-domain name"
+    },
+    {
+      "plugin_name": "IR-L full Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-IR-L full Stereo-695648d-3d0f4252",
+      "vendor": "waves",
+      "family": "",
+      "reason": "waves non-time-domain name"
+    },
+    {
+      "plugin_name": "IR1 Mono",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-IR1 Mono-695648d-e8a39439",
+      "vendor": "waves",
+      "family": "",
+      "reason": "waves non-time-domain name"
+    },
+    {
+      "plugin_name": "IR1 Mono/Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-IR1 Mono/Stereo-695648d-e8ccdf68",
+      "vendor": "waves",
+      "family": "",
+      "reason": "waves non-time-domain name"
+    },
+    {
+      "plugin_name": "IR1 efficient Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-IR1 efficient Stereo-695648d-dfb213a4",
+      "vendor": "waves",
+      "family": "",
+      "reason": "waves non-time-domain name"
+    },
+    {
+      "plugin_name": "IR1 full Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-IR1 full Stereo-695648d-f2791680",
+      "vendor": "waves",
+      "family": "",
+      "reason": "waves non-time-domain name"
+    },
+    {
+      "plugin_name": "IRLive Mono",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-IRLive Mono-695648d-18836abf",
+      "vendor": "waves",
+      "family": "",
+      "reason": "waves non-time-domain name"
+    },
+    {
+      "plugin_name": "IRLive Mono/Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-IRLive Mono/Stereo-695648d-18acb5bf",
+      "vendor": "waves",
+      "family": "",
+      "reason": "waves non-time-domain name"
+    },
+    {
+      "plugin_name": "IRLive Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-IRLive Stereo-695648d-1899f6c4",
+      "vendor": "waves",
+      "family": "",
+      "reason": "waves non-time-domain name"
+    },
+    {
+      "plugin_name": "Magma Springs Mono",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-Magma Springs Mono-695648d-7f0d81f1",
+      "vendor": "waves",
+      "family": "",
+      "reason": "waves non-time-domain name"
+    },
+    {
+      "plugin_name": "Magma Springs Mono/Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-Magma Springs Mono/Stereo-695648d-7f36ccf1",
+      "vendor": "waves",
+      "family": "",
+      "reason": "waves non-time-domain name"
+    },
+    {
+      "plugin_name": "Magma Springs Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-Magma Springs Stereo-695648d-7f2407f1",
+      "vendor": "waves",
+      "family": "",
+      "reason": "waves non-time-domain name"
+    },
+    {
+      "plugin_name": "NEOLD OLDTIMER",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\NEOLD OLDTIMER.vst3",
+      "plugin_identifier": "VST3-NEOLD OLDTIMER-ff5f8bb8-83513e60",
+      "vendor": "other",
+      "family": "",
+      "reason": "non-target vendor"
+    },
+    {
+      "plugin_name": "Pro-R",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\FabFilter\\FabFilter Pro-R.vst3",
+      "plugin_identifier": "VST3-Pro-R-4bc24482-78c01fa6",
+      "vendor": "fabfilter",
+      "family": "",
+      "reason": "fabfilter non-time-domain name"
+    },
+    {
+      "plugin_name": "Space Rider Mono/Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-Space Rider Mono/Stereo-695648d-e36b784c",
+      "vendor": "waves",
+      "family": "",
+      "reason": "waves non-time-domain name"
+    },
+    {
+      "plugin_name": "Space Rider Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-Space Rider Stereo-695648d-e358b34c",
+      "vendor": "waves",
+      "family": "",
+      "reason": "waves non-time-domain name"
+    },
+    {
+      "plugin_name": "SuperTap 2-Taps Mono",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-SuperTap 2-Taps Mono-695648d-88f1a234",
+      "vendor": "waves",
+      "family": "",
+      "reason": "waves non-time-domain name"
+    },
+    {
+      "plugin_name": "SuperTap 2-Taps Mono/Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-SuperTap 2-Taps Mono/Stereo-695648d-891aed34",
+      "vendor": "waves",
+      "family": "",
+      "reason": "waves non-time-domain name"
+    },
+    {
+      "plugin_name": "SuperTap 2-Taps Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-SuperTap 2-Taps Stereo-695648d-89082834",
+      "vendor": "waves",
+      "family": "",
+      "reason": "waves non-time-domain name"
+    },
+    {
+      "plugin_name": "SuperTap 6-Taps Mono",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-SuperTap 6-Taps Mono-695648d-97f5a234",
+      "vendor": "waves",
+      "family": "",
+      "reason": "waves non-time-domain name"
+    },
+    {
+      "plugin_name": "SuperTap 6-Taps Mono/Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-SuperTap 6-Taps Mono/Stereo-695648d-981eed34",
+      "vendor": "waves",
+      "family": "",
+      "reason": "waves non-time-domain name"
+    },
+    {
+      "plugin_name": "SuperTap 6-Taps Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "plugin_identifier": "VST3-SuperTap 6-Taps Stereo-695648d-980c2834",
+      "vendor": "waves",
+      "family": "",
+      "reason": "waves non-time-domain name"
+    },
+    {
+      "plugin_name": "Unfiltered Audio Byome",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\Unfiltered Audio Byome.vst3",
+      "plugin_identifier": "VST3-Unfiltered Audio Byome-ff423630-b80f6219",
+      "vendor": "other",
+      "family": "",
+      "reason": "non-target vendor"
+    },
+    {
+      "plugin_name": "Unfiltered Audio Fault",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\Unfiltered Audio Fault.vst3",
+      "plugin_identifier": "VST3-Unfiltered Audio Fault-3df715de-c7316a19",
+      "vendor": "other",
+      "family": "",
+      "reason": "non-target vendor"
+    },
+    {
+      "plugin_name": "Unfiltered Audio Instant Delay",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\Unfiltered Audio Instant Delay.vst3",
+      "plugin_identifier": "VST3-Unfiltered Audio Instant Delay-58481cdc-d2078d19",
+      "vendor": "other",
+      "family": "delay",
+      "reason": "non-target vendor"
+    },
+    {
+      "plugin_name": "Unfiltered Audio Sandman Pro",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\Unfiltered Audio Sandman Pro.vst3",
+      "plugin_identifier": "VST3-Unfiltered Audio Sandman Pro-26daa25d-f74dfb19",
+      "vendor": "other",
+      "family": "",
+      "reason": "non-target vendor"
+    },
+    {
+      "plugin_name": "Unfiltered Audio Sandman",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\Unfiltered Audio Sandman.vst3",
+      "plugin_identifier": "VST3-Unfiltered Audio Sandman-51ad4caa-8c636d5b",
+      "vendor": "other",
+      "family": "",
+      "reason": "non-target vendor"
+    },
+    {
+      "plugin_name": "Unfiltered Audio Triad",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\Unfiltered Audio Triad.vst3",
+      "plugin_identifier": "VST3-Unfiltered Audio Triad-32c67472-fb871b19",
+      "vendor": "other",
+      "family": "",
+      "reason": "non-target vendor"
+    },
+    {
+      "plugin_name": "ZamDelay",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\zam-plugins-4.5-win64\\zam-plugins-4.5\\ZamDelay.vst3\\Contents\\x86_64-win\\ZamDelay.vst3",
+      "plugin_identifier": "VST3-ZamDelay-573883f1-c7fe1c32",
+      "vendor": "other",
+      "family": "delay",
+      "reason": "non-target vendor"
+    },
+    {
+      "plugin_name": "ZamEcho",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\zam-plugins-4.5-win64\\zam-plugins-4.5\\ZamEcho.vst3\\Contents\\x86_64-win\\ZamEcho.vst3",
+      "plugin_identifier": "VST3-ZamEcho-dfdeb637-b11d1c32",
+      "vendor": "other",
+      "family": "delay",
+      "reason": "non-target vendor"
+    },
+    {
+      "plugin_name": "ZamGrains",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\zam-plugins-4.5-win64\\zam-plugins-4.5\\ZamGrains.vst3\\Contents\\x86_64-win\\ZamGrains.vst3",
+      "plugin_identifier": "VST3-ZamGrains-deed6f57-825b1c32",
+      "vendor": "other",
+      "family": "",
+      "reason": "non-target vendor"
+    },
+    {
+      "plugin_name": "ZamVerb",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\zam-plugins-4.5-win64\\zam-plugins-4.5\\ZamVerb.vst3\\Contents\\x86_64-win\\ZamVerb.vst3",
+      "plugin_identifier": "VST3-ZamVerb-4c1376f7-93b13332",
+      "vendor": "other",
+      "family": "reverb",
+      "reason": "non-target vendor"
+    },
+    {
+      "plugin_name": "bx_aura",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\bx_aura.vst3",
+      "plugin_identifier": "VST3-bx_aura-6357df82-b6f02a6b",
+      "vendor": "other",
+      "family": "",
+      "reason": "non-target vendor"
+    },
+    {
+      "plugin_name": "bx_delay2500",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\bx_delay2500.vst3",
+      "plugin_identifier": "VST3-bx_delay2500-817b3e9-bc1235ad",
+      "vendor": "other",
+      "family": "delay",
+      "reason": "non-target vendor"
+    },
+    {
+      "plugin_name": "bx_pulsar",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\bx_pulsar.vst3",
+      "plugin_identifier": "VST3-bx_pulsar-f9bf0ae8-e9535cdd",
+      "vendor": "other",
+      "family": "",
+      "reason": "non-target vendor"
+    },
+    {
+      "plugin_name": "bx_rooMS",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\bx_rooMS.vst3",
+      "plugin_identifier": "VST3-bx_rooMS-a877e637-f3b1a3b1",
+      "vendor": "other",
+      "family": "",
+      "reason": "non-target vendor"
+    }
+  ],
+  "matrix": [
+    {
+      "id": "abbey_road_chambers_mono",
+      "plugin_name": "Abbey Road Chambers Mono",
+      "status": "capture_failed",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "abbey_road_chambers_mono_stereo",
+      "plugin_name": "Abbey Road Chambers Mono/Stereo",
+      "status": "capture_failed",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "abbey_road_chambers_stereo",
+      "plugin_name": "Abbey Road Chambers Stereo",
+      "status": "capture_failed",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "abbey_road_plates_mono",
+      "plugin_name": "Abbey Road Plates Mono",
+      "status": "capture_failed",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "abbey_road_plates_mono_stereo",
+      "plugin_name": "Abbey Road Plates Mono/Stereo",
+      "status": "capture_failed",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "abbey_road_plates_stereo",
+      "plugin_name": "Abbey Road Plates Stereo",
+      "status": "capture_failed",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "clarity_vx_dereverb_mono",
+      "plugin_name": "Clarity Vx - DeReverb Mono",
+      "status": "capture_failed",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "clarity_vx_dereverb_pro_mono",
+      "plugin_name": "Clarity Vx - DeReverb Pro Mono",
+      "status": "capture_failed",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "clarity_vx_dereverb_pro_stereo",
+      "plugin_name": "Clarity Vx - DeReverb Pro Stereo",
+      "status": "capture_failed",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "clarity_vx_dereverb_stereo",
+      "plugin_name": "Clarity Vx - DeReverb Stereo",
+      "status": "capture_failed",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "doubler2_mono",
+      "plugin_name": "Doubler2 Mono",
+      "status": "capture_failed",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "doubler2_mono_stereo",
+      "plugin_name": "Doubler2 Mono/Stereo",
+      "status": "capture_failed",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "doubler2_stereo",
+      "plugin_name": "Doubler2 Stereo",
+      "status": "capture_failed",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "doubler4_mono",
+      "plugin_name": "Doubler4 Mono",
+      "status": "capture_failed",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "doubler4_mono_stereo",
+      "plugin_name": "Doubler4 Mono/Stereo",
+      "status": "capture_failed",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "doubler4_stereo",
+      "plugin_name": "Doubler4 Stereo",
+      "status": "capture_failed",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "h_delay_mono",
+      "plugin_name": "H-Delay Mono",
+      "status": "capture_failed",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "h_delay_mono_stereo",
+      "plugin_name": "H-Delay Mono/Stereo",
+      "status": "capture_failed",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "h_delay_stereo",
+      "plugin_name": "H-Delay Stereo",
+      "status": "capture_failed",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "h_reverb_5_0",
+      "plugin_name": "H-Reverb 5.0",
+      "status": "capture_failed",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "h_reverb_5_1",
+      "plugin_name": "H-Reverb 5.1",
+      "status": "capture_failed",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "h_reverb_mono",
+      "plugin_name": "H-Reverb Mono",
+      "status": "capture_failed",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "h_reverb_mono_5_0",
+      "plugin_name": "H-Reverb Mono/5.0",
+      "status": "capture_failed",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "h_reverb_mono_5_1",
+      "plugin_name": "H-Reverb Mono/5.1",
+      "status": "capture_failed",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "h_reverb_mono_stereo",
+      "plugin_name": "H-Reverb Mono/Stereo",
+      "status": "capture_failed",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "h_reverb_stereo",
+      "plugin_name": "H-Reverb Stereo",
+      "status": "capture_failed",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "h_reverb_stereo_5_0",
+      "plugin_name": "H-Reverb Stereo/5.0",
+      "status": "capture_failed",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "h_reverb_stereo_5_1",
+      "plugin_name": "H-Reverb Stereo/5.1",
+      "status": "capture_failed",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "h_reverb_long_5_0",
+      "plugin_name": "H-Reverb long 5.0",
+      "status": "capture_failed",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "h_reverb_long_5_1",
+      "plugin_name": "H-Reverb long 5.1",
+      "status": "capture_failed",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "h_reverb_long_mono",
+      "plugin_name": "H-Reverb long Mono",
+      "status": "capture_failed",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "h_reverb_long_mono_5_0",
+      "plugin_name": "H-Reverb long Mono/5.0",
+      "status": "capture_failed",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "h_reverb_long_mono_5_1",
+      "plugin_name": "H-Reverb long Mono/5.1",
+      "status": "capture_failed",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "h_reverb_long_mono_stereo",
+      "plugin_name": "H-Reverb long Mono/Stereo",
+      "status": "capture_failed",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "h_reverb_long_stereo",
+      "plugin_name": "H-Reverb long Stereo",
+      "status": "capture_failed",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "h_reverb_long_stereo_5_0",
+      "plugin_name": "H-Reverb long Stereo/5.0",
+      "status": "capture_failed",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "h_reverb_long_stereo_5_1",
+      "plugin_name": "H-Reverb long Stereo/5.1",
+      "status": "capture_failed",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "mannym_delay_mono_stereo",
+      "plugin_name": "MannyM Delay Mono/Stereo",
+      "status": "capture_failed",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "mannym_delay_stereo",
+      "plugin_name": "MannyM Delay Stereo",
+      "status": "capture_failed",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "mannym_reverb_mono",
+      "plugin_name": "MannyM Reverb Mono",
+      "status": "capture_failed",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "mannym_reverb_mono_stereo",
+      "plugin_name": "MannyM Reverb Mono/Stereo",
+      "status": "capture_failed",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "mannym_reverb_stereo",
+      "plugin_name": "MannyM Reverb Stereo",
+      "status": "capture_failed",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "rverb_mono_stereo",
+      "plugin_name": "RVerb Mono/Stereo",
+      "status": "capture_failed",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "rverb_stereo",
+      "plugin_name": "RVerb Stereo",
+      "status": "capture_failed",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "timeless_3",
+      "plugin_name": "Timeless 3",
+      "status": "capture_failed",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "trueverb_mono",
+      "plugin_name": "TrueVerb Mono",
+      "status": "capture_failed",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "trueverb_mono_stereo",
+      "plugin_name": "TrueVerb Mono/Stereo",
+      "status": "capture_failed",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "trueverb_stereo",
+      "plugin_name": "TrueVerb Stereo",
+      "status": "capture_failed",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "valhallasupermassive",
+      "plugin_name": "ValhallaSupermassive",
+      "status": "capture_failed",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    }
+  ],
+  "spot": [
+    {
+      "case_id": "abbey_road_plates",
+      "status": "spot_failed",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    }
+  ],
+  "failures": [
+    {
+      "id": "abbey_road_chambers_mono",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "abbey_road_chambers_mono_stereo",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "abbey_road_chambers_stereo",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "abbey_road_plates_mono",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "abbey_road_plates_mono_stereo",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "abbey_road_plates_stereo",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "clarity_vx_dereverb_mono",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "clarity_vx_dereverb_pro_mono",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "clarity_vx_dereverb_pro_stereo",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "clarity_vx_dereverb_stereo",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "doubler2_mono",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "doubler2_mono_stereo",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "doubler2_stereo",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "doubler4_mono",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "doubler4_mono_stereo",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "doubler4_stereo",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "h_delay_mono",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "h_delay_mono_stereo",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "h_delay_stereo",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "h_reverb_5_0",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "h_reverb_5_1",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "h_reverb_mono",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "h_reverb_mono_5_0",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "h_reverb_mono_5_1",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "h_reverb_mono_stereo",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "h_reverb_stereo",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "h_reverb_stereo_5_0",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "h_reverb_stereo_5_1",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "h_reverb_long_5_0",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "h_reverb_long_5_1",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "h_reverb_long_mono",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "h_reverb_long_mono_5_0",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "h_reverb_long_mono_5_1",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "h_reverb_long_mono_stereo",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "h_reverb_long_stereo",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "h_reverb_long_stereo_5_0",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "h_reverb_long_stereo_5_1",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "mannym_delay_mono_stereo",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "mannym_delay_stereo",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "mannym_reverb_mono",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "mannym_reverb_mono_stereo",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "mannym_reverb_stereo",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "rverb_mono_stereo",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "rverb_stereo",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "timeless_3",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "trueverb_mono",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "trueverb_mono_stereo",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "trueverb_stereo",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "valhallasupermassive",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "abbey_road_plates",
+      "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+    },
+    {
+      "id": "fabfilter_pro_r",
+      "error": "spot target not discovered"
+    }
+  ],
+  "status": "failed"
+}

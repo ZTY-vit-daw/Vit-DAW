@@ -11,7 +11,10 @@ import (
 // M2-TIMEFX-1 delay control topology. The recognizer recovers only a
 // parameter-proved echo-time stage from the live parameter surface; the
 // provable core is the delay-time evidence (time / delay time / sync
-// subdivision wording). Feedback, character, and wet-balance bindings extend
+// subdivision wording, plus the bare or unit-qualified delay wordings
+// "Voice1 Delay" / "Delay Left ms" / "Delay Sec R" and the tempo/BPM sync
+// and "fdbk" abbreviation families observed on the Waves/FabFilter
+// compatibility pass). Feedback, character, and wet-balance bindings extend
 // the same stage but never substitute for the core. Reverb-specific controls
 // stay auxiliary evidence so hybrid delay-reverb surfaces resolve honestly.
 
@@ -164,9 +167,10 @@ func classifyDelayParameter(param ParameterInfo) delayCandidate {
 	switch {
 	case delayContains(text, "delay time", "time", "delay length") || delayHasToken(text, "time"):
 		candidate.Role, candidate.Section = "time", "timing"
-	case delayContains(text, "sync", "subdivision", "note length"):
+	case delayContains(text, "sync", "subdivision", "note length", "tempo") ||
+		(delayHasToken(text, "delay") && delayContains(text, "bpm")):
 		candidate.Role, candidate.Section = "sync", "timing"
-	case delayHasToken(text, "feedback") || delayContains(text, "repeats", "repetitions"):
+	case delayHasToken(text, "feedback") || delayContains(text, "repeats", "repetitions", "fdbk"):
 		candidate.Role, candidate.Section = "feedback", "feedback"
 	case delayContains(text, "ping pong", "pingpong"):
 		candidate.Role, candidate.Section = "ping_pong", "character"
@@ -180,8 +184,27 @@ func classifyDelayParameter(param ParameterInfo) delayCandidate {
 		candidate.Role, candidate.Section = "mix", "output"
 	case delayContains(text, "output gain", "output level") || delayHasToken(text, "output"):
 		candidate.Role, candidate.Section = "output_gain", "output"
+	case delayHasToken(text, "delay") && (delayHasToken(text, "ms") || delayHasToken(text, "sec")):
+		// Delay-qualified second/millisecond quantities ("Delay Left ms",
+		// "Delay Sec R") are the free delay time even without "time" wording.
+		candidate.Role, candidate.Section = "time", "timing"
+	case delayLastTokenIs(text, "delay"):
+		// Bare per-voice delay wording ("Voice1 Delay") names the delay time
+		// itself once every stronger wording above is excluded; trailing
+		// qualifiers ("Delay Mod", "Delay Link") stay out.
+		candidate.Role, candidate.Section = "time", "timing"
 	}
 	return candidate
+}
+
+// delayLastTokenIs reports whether the parameter text ends with the given
+// word, so trailing-qualifier wordings ("Delay Mod", "Delay Link") stay out
+// while delay-time names themselves ("Voice1 Delay") match.
+func delayLastTokenIs(text, token string) bool {
+	parts := strings.FieldsFunc(strings.ToLower(strings.TrimSpace(text)), func(r rune) bool {
+		return r == ' ' || r == '_' || r == '-' || r == '/' || r == '(' || r == ')'
+	})
+	return len(parts) > 0 && parts[len(parts)-1] == strings.ToLower(strings.TrimSpace(token))
 }
 
 func buildDelayStage(candidates []delayCandidate) DelayStage {

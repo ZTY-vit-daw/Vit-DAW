@@ -1,0 +1,43 @@
+{
+  "case": {
+    "plugin_name": "Abbey Road Plates Stereo",
+    "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "plugin_identifier": "VST3-Abbey Road Plates Stereo-695648d-5e0a41d9",
+    "vendor": "waves",
+    "family": "reverb"
+  },
+  "inspects": {
+    "reverb": {
+      "tool": "plugin_grabber.inspect_reverb",
+      "invoke_status": "ok",
+      "resolved": true,
+      "classification": "predelay_decay_reverb",
+      "confidence": 0.9,
+      "tail_evidence": "plate_damper_family",
+      "generation": "rv1t1_0002b7271b503fd7f3ec6011",
+      "sections": {
+        "tail": [
+          "decay"
+        ],
+        "timing": [
+          "pre_delay"
+        ],
+        "character": [
+          "reverb_mode"
+        ],
+        "output": [
+          "dry",
+          "output_gain",
+          "wet"
+        ]
+      }
+    },
+    "delay": {
+      "tool": "plugin_grabber.inspect_delay",
+      "invoke_status": "error",
+      "resolved": false,
+      "rejection_code": "unsupported_reverb",
+      "error": "unsupported_reverb: no provable supported delay stage/control-path topology"
+    }
+  }
+}

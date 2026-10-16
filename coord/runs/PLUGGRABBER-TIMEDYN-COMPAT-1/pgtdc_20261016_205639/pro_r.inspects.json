@@ -1,0 +1,44 @@
+{
+  "case": {
+    "plugin_name": "Pro-R",
+    "plugin_path": "C:\\Program Files\\Common Files\\VST3\\FabFilter\\FabFilter Pro-R.vst3",
+    "plugin_identifier": "VST3-Pro-R-4bc24482-78c01fa6",
+    "vendor": "fabfilter",
+    "family": "reverb"
+  },
+  "inspects": {
+    "reverb": {
+      "tool": "plugin_grabber.inspect_reverb",
+      "invoke_status": "ok",
+      "resolved": true,
+      "classification": "predelay_decay_reverb",
+      "confidence": 0.96,
+      "tail_evidence": "direct_wording",
+      "generation": "rv1t1_816949a7f97e2e7cf662dc41",
+      "sections": {
+        "tail": [
+          "decay"
+        ],
+        "timing": [
+          "pre_delay"
+        ],
+        "character": [
+          "width"
+        ],
+        "output": [
+          "dry",
+          "mix",
+          "output_gain",
+          "wet"
+        ]
+      }
+    },
+    "delay": {
+      "tool": "plugin_grabber.inspect_delay",
+      "invoke_status": "error",
+      "resolved": false,
+      "rejection_code": "unsupported_multiband_dynamics",
+      "error": "unsupported_multiband_dynamics: no provable supported delay stage/control-path topology"
+    }
+  }
+}
