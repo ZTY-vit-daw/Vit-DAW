@@ -204,6 +204,8 @@ set(VITAPP_SOURCE_FILES
     Source/Service/ClipService.h
     Source/Service/GeneratedAssetService.cpp
     Source/Service/GeneratedAssetService.h
+    Source/Service/GenerationShellService.cpp
+    Source/Service/GenerationShellService.h
     Source/Service/ImportService.cpp
     Source/Service/ImportService.h
     Source/Service/JobEventService.cpp
@@ -263,8 +265,16 @@ set(VITAPP_SOURCE_FILES
 target_sources(VitApp PRIVATE ${VITAPP_SOURCE_FILES})
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${VITAPP_SOURCE_FILES})
 
+# GENSHELL-HOST-1: JUCE 内嵌 VST3 SDK 接口头（GenerationShellService 的
+# IConnectionPoint/IEditController 探针；与 GenShell 构建/PluginProbe 同源）
+set(VIT_VST3_SDK_DIR "${VIT_TRACKTION_ENGINE_DIR}/modules/juce/modules/juce_audio_processors_headless/format_types/VST3_SDK")
+if(NOT EXISTS "${VIT_VST3_SDK_DIR}/pluginterfaces/vst/ivstcomponent.h")
+    message(FATAL_ERROR "VST3 SDK pluginterfaces not found at: ${VIT_VST3_SDK_DIR}")
+endif()
+
 target_include_directories(VitApp PRIVATE
-    "${CMAKE_CURRENT_SOURCE_DIR}/Source")
+    "${CMAKE_CURRENT_SOURCE_DIR}/Source"
+    "${VIT_VST3_SDK_DIR}")
 
 target_compile_definitions(VitApp PRIVATE
     SODIUM_STATIC
