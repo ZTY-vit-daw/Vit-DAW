@@ -5,6 +5,15 @@
 
 ## 当前占用
 
+（无——空闲）
+
+## 本次释放（2026-10-17 21:05 +0800）
+
+- 2026-10-17 20:35–21:05 +0800 / KERNEL-SENDROUTE-IMPL-1(127) 真栈烟测腿三 run 收口（GLM-5.3 L2 PC 执行会话，ZCode；worktree D:/Vit_DAW_wt_sendroute1，分支 port/kernel-sendroute-impl-1@7526b3a2）：**run3=sendroute_20261017_204856 sendroute kernel smoke PASS exit 0**——七腿全过（setup 定标 R≈0.1995/connect auto_create+list 读回/防环闸 1 四类拒绝/auto_create 幂等重发/湿渲染 ratio440=2.00001 ratio880=2.00001（湿回注双目标特征值，5% 容差）/单次 undo 全撤/disconnect 归零+对照渲染回 1.0x）。run1=sendroute_20261017_203636 assertion_fail（湿渲染 ratio 1.01≠2.0）→ 诊断=烟测脚本夹具缺陷非产品缺陷：①本栈离线渲染对渲染轨施加恒定 ~2x 逐声道增益（预存行为，见下）+②源幅度 0.5 时双轨+湿分量叠加越过 16bit 写入器线性区削波致比值非线性——脚本降源幅度至 0.1（比值断言对恒定增益免疫）。run2 assertion_fail（auto_create created=false）→ 诊断=夹具确定性缺陷：run1 自动持久化把带 FX 轨状态留在工作副本、run2 冷启动加载后 clear_project 只清 clip 不清轨，auto_create 幂等按名复用（服务语义正确）——脚本改为开跑前清多余音频轨+FX 名带时间戳。§8 计数如实：两失败均归因烟测脚本自身夹具（不同签名、非产品 assertion_fail），修复后 run3 一次通过。21:05 拆栈复核：四端口监听=0、VitApp/VitAgent/vsphub/Godot 变体=0。
+- **域外发现（交决策侧，非本卡处置）**：stock 内核（主检出 Export/staging/runtime/VitApp.exe，零本卡改动）离线渲染逐声道恒定 ~2x 增益——最小复现：clear_project→add_track→import_audio(48k 立体声 0.5 正弦)→start_render 16bit→逐声道 0.9976；左独占源复现 L=0.9976/R=0.0000（排除声道和）；44.1k 源（含重采样）同现。归 VitProductionCoordinator/te::Renderer 域，影响一切以绝对幅度解读离线渲染的断言（比值断言免疫）。诊断工件 D:/Vit_DAW_wt_sendroute1_build/diag_*.wav + smoke 工件 sendroute_20261017_204856/。
+
+## 最近一次占用（已释放）
+
 - 2026-10-17 21:0x +0800 登记 / KERNEL-SENDROUTE-IMPL-1(127) 真栈烟测腿（GLM-5.3 L2 PC 执行会话，ZCode；worktree D:/Vit_DAW_wt_sendroute1，分支 port/kernel-sendroute-impl-1，内核 C++ 新增 SendRouteService）：`scripts/dev_agent_smoke.ps1 -RepoRoot <worktree> -StartKernel -SendRouteSmoke -NoChatSmoke -NoStripSilenceSmoke` 一 run（新工件目录）——send/return 命令面端侧腿（connect auto_create→track.send.list 读回核对→离线渲染湿分量 Goertzel 断言→disconnect→list 归零→渲染对照；防环闸 1 拒绝+auto_create 幂等/重名序号/单次 undo 全撤）。被测=worktree 构建 VitApp.exe（含 SendRouteService，staging 布局 Export/staging/runtime 内）+worktree 源构建 agent（Go 零改动）；不启 Godot GUI（内核 ZMQ 面驱动）。§8 声明（运行前）：LLM=0 次调用（chat/strip-silence 腿已关，纯确定性命令面）；成功条件=脚本 exit 0；失败分类=environment_interrupt（栈起不来/端口占用）/assertion_fail（读回或音频断言）/script_exception；止损=同签名 assertion_fail ×2。登记前只读核对（21:0x）：四端口（7878/5555/5556/8787）监听=0、四类进程（VitApp/VitAgent/vsphub/Godot 含变体名）=0；上一占用 LOUDNESS-B 已释放（19:46 复核记录在案）。
 
 ## 最近一次释放
