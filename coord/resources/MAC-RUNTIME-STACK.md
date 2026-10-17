@@ -6,8 +6,11 @@
 
 ## 当前占用
 
-- 状态：占用中
-- 2026-10-17 21:55 +0800 起 / GENSHELL-AGENT-1（池序 97；GLM-5.3 L2 Mac 执行侧 ZCode 会话；worktree Vit-DAW-genshell3 @ port/genshell-agent-1）：`gen_shell_agent_smoke_mac.sh` 真栈烟测（VitApp 内核 5555/5556/5557 + vitagent 7878 + 本地回环 provider 模拟器，无 Godot）。占用前亲核 5555/5556/5557/7878 监听=0、无 VitApp/vitagent 进程（记录空闲属实）。
+- 状态：空闲
+
+## 最近一次释放
+
+- 2026-10-17 21:55–22:04 +0800 / GENSHELL-AGENT-1（池序 97；GLM-5.3 L2 Mac 执行侧 ZCode 会话，ZCode；worktree Vit-DAW-genshell3 @ port/genshell-agent-1）：`gen_shell_agent_smoke_mac.sh` 两轮（run1 exit 1=脚本断言文件名缺陷（`_wait_state` vs `_state`），链路门全绿非栈失败；run2=权威轮 exit 0 44ok/0red，脚本自 teardown——内核复用 HOST-1 二进制 dce49fac 构建（genshell2 worktree）+agent 含本卡改动 dce05b8c 新构建；VitApp 内核+vitagent 7878+回环模拟器，无 Godot）。22:04 拆栈复核：5555/5556/5557/7878 监听=0、VitApp/vitagent 进程=0。占用登记 9653134e；实现 commit dce05b8c @ port/genshell-agent-1（已推 origin）；工件 coord/runs/GENSHELL-AGENT-1/genshell_agent_mac_20261017-220010/（随 port 分支入库）。
 
 ## 最近一次释放
 
