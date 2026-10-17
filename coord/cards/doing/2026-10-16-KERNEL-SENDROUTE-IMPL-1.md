@@ -30,6 +30,6 @@ VitApp/Source/Service/{SendRouteService.cpp/.h,CommandDispatcher.cpp}、VitApp/T
 - tracktion aux 原语在 VitApp 封装层（graph swap/revision 体系）下行为与探针实证不符 → 停手上交（探针为直接驱动，封装层差异属架构级）；
 - 侧链原生面在命令面暴露遇阻 → 侧链腿如实记录挂账，音频发送腿独立交付，不硬凑。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-17 早窗 / origin/main=5942bb65 / GLM-5.3 L2 PC 执行会话（ZCode，本卡会话）/ 分支 port/kernel-sendroute-impl-1（worktree D:/Vit_DAW_wt_sendroute1，领取基线 HEAD=5942bb65，status 干净，diff-stat 空）+ 协调分支 coord/kernel-sendroute-impl-1-claim（worktree D:/Vit_DAW_wt_sendroute1_coord）/ 领取提交=本提交；领取核对：卡在 todo+派发已确认、依赖无；doing 三卡（LOUDNESS-B=agent Go 域+fs_largeproject_smoke.ps1、GENSHELL-PCA=Mac processor 三包+Mac 脚本、GEN-SUNO=纯设计勘察）文件域零交集（本卡烟测扩 dev_agent_smoke 体系，不碰 fs_largeproject_smoke.ps1）；seam 亲核通过：CommandDispatcher 服务注册模式（unique_ptr 服务+handlers.emplace，:2303 先例）、TrackService handleAddTrack :509 / handleSetFolderRoutingBus :669 收尾模式、AuxSendPlugin/AuxReturnPlugin 原语（busNum 属性+setGainDb）、VitKernelUtils.ensureSingleRackForTrack、Plugin::setSidechainSourceByName 原生侧链面、Tests juce_add_console_app 模式——与设计件 §1/§9 锚点一致，停止条件未触发；真栈烟测腿按 PC-RUNTIME-STACK 另行登记（实现阶段不占栈）
 - 回执：（commit / run ID / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
