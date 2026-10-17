@@ -1,0 +1,49 @@
+﻿{
+    "run_id":  "fs_largeproject_smoke_20261017_192734",
+    "card":  "FS-LARGEPROJECT-SMOKE-1",
+    "started_at":  "2026-10-17T11:27:34.4159089Z",
+    "command_line":  "D:\\Vit_DAW_wt_loudness_watch_b\\scripts\\fs_largeproject_smoke.ps1 -LoudnessWatch",
+    "repo_head":  "8ada13371fd6e1e9c7904d4c2e2cd4590bdd9c56",
+    "worktree":  "D:\\Vit_DAW_wt_loudness_watch_b",
+    "branch":  "port/loudness-watch-trigger-1",
+    "kernel_exe":  "D:\\Vit_DAW\\Export\\staging\\runtime\\VitApp.exe",
+    "kernel_sha256":  "B6565DCF85D1DA867E16333052A7B928A5413565940603ADBCF4ABD59DD3123B",
+    "agent_binary":  null,
+    "stack_mode":  "dev_agent_smoke_started",
+    "harness_env":  "pull",
+    "telemetry_file":  "D:\\Vit_DAW_wt_loudness_watch_b\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261017_192734\\telemetry_pull.jsonl",
+    "probabilistic_discipline":  {
+                                     "failure_taxonomy":  [
+                                                              "no_candidate_found",
+                                                              "capability_blocked",
+                                                              "llm_error",
+                                                              "budget_exhausted",
+                                                              "environment_interrupt"
+                                                          ],
+                                     "stop_loss":  "same deterministic breakpoint failing twice in a row -\u003e stop and hand up",
+                                     "success_condition":  "exit 0 with assertion groups A1-A4 all true",
+                                     "max_runs":  2
+                                 },
+    "budget":  {
+                   "settle_seconds":  2700,
+                   "pull_max_cycles":  40,
+                   "bake_preheat_seconds":  9000,
+                   "turn_seconds":  480,
+                   "max_hops":  4,
+                   "max_nudges":  6
+               },
+    "import":  null,
+    "preheat":  null,
+    "nl_round":  null,
+    "confirm_roundtrip":  null,
+    "telemetry_census":  null,
+    "assertions_block":  null,
+    "classification":  "",
+    "source_integrity":  "",
+    "environment_interrupt":  "dev_agent_smoke bring-up failed; console log preserved",
+    "verdict":  "stack_bringup_failed",
+    "exit_code":  2,
+    "teardown":  null,
+    "bringup_seconds":  44,
+    "finished_at":  "2026-10-17T11:28:19.2704840Z"
+}

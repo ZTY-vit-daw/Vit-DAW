@@ -1,0 +1,14 @@
+﻿{
+    "status":  "ok",
+    "tool":  "loudness.watch.status",
+    "command_name":  "loudness_watch_status",
+    "risk_level":  "direct",
+    "requires_confirmation":  false,
+    "result":  {
+                   "enabled":  false,
+                   "status":  "ok",
+                   "verdicts":  [
+
+                                ]
+               }
+}
