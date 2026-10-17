@@ -5,7 +5,7 @@
 
 ## 当前占用
 
-（无——空闲）
+- 2026-10-17 22:00 +0800 / AGENT-SENDROUTE-SEMANTICS-1（K2/128，GLM-5.3 L2 PC 执行会话 ZCode；worktree D:/Vit_DAW_wt_sendroute2，分支 port/agent-sendroute-semantics-1）：真栈烟测（send 话术→pendingplan→确认→track.send.list+MOM 投影断言；FX 轨装载腿；单轨 insert 回归）。登记前亲核四端口（7878/5555/5556/4445）监听=0、四类进程（VitApp/VitAgent/Godot 变体名/VspHub）=0；上一占用 KERNEL-SENDROUTE-IMPL-1 已释放（21:05 复核在案）。
 
 ## 本次释放（2026-10-17 21:05 +0800）
 
