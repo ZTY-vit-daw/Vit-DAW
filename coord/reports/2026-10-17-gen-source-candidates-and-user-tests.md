@@ -39,3 +39,21 @@
 - YuE2：github.com/multimodal-art-projection/YuE、huggingface.co/m-a-p/YuE2-3B
 - MiniMax Music 3.0/2.5 API：ir.minimax.io、minimaxi.com/news（music-01 起 API 在线）、platform.minimax.io 定价
 - HappyShrimp：happyshrimpmusic.com、alibabacloud.com/blog（v1.0 beta 官宣）
+
+## 四、使用途径与封装架构调查（2026-10-17 第二轮，决策侧即时搜索）
+
+用户核心问题：各家使用途径能否统一成一种通用方式（API/网页）？→ **不能完全统一，但两层分界清晰**：
+
+| 途径类型 | 覆盖 | 封装归属 |
+|---|---|---|
+| 聚合 API 型 | **fal.ai**（一个 key：MiniMax Music 1.5/2.0/2.5/2.6+ACE-Step+Sonauto V2+Lyria+ElevenLabs，$0.03-0.15/次，队列式 API）/ Replicate | **通用层零新增代码**：形状与 genapi async_poll dialect 对口，一个 provider 配置多模型 |
+| 官方 API 型 | Stable Audio、Lyria（Gemini API）、ElevenLabs、MiniMax（见变数） | 通用层（参数化 dialect 承载） |
+| 网页-only 型 | **Suno**（官方 API 不对个人+fal 无官方合作+非官方 API 被打击+WMG/BMG 行业授权路线）、HappyShrimp（beta 待确认） | **专用适配插件**：Suno 网页边车（131 卡）；HappyShrimp 视 API 归层 |
+
+**MiniMax 澄清（用户疑问）**：API 真开放（开放平台 10 万+开发者，非自家平台专属，fal/Replicate 正规转售）；**变数=付费音乐 API 2026-08-20 起对新用户关闭**（存量可用；Music 3 开源上 HF 但 3B 级 Air 跑不动）→ 新注册需实测可开性，不可开走 fal 同模型。
+
+**封装结论（套壳架构裁定方向）**：通用 provider 层（现有 genapi）覆盖聚合型+官方型=**大多数品牌不需单独适配**；专用适配仅 Suno 确定（+HappyShrimp 视情况）——用户"优先给 SUNO 和个别品牌做单独适配"直觉正确且范围更小。REALVERIFY-1 最快真源路径修正：**MiniMax 官方 → fal.ai**（注册+$10 充值即测多家，横向质量对比同账号完成）。摩擦点：fal 需外网（Mac 7890 代理可用）+外币支付；纯国内备选=MiniMax 中文站（若新用户可开）或中转站（suno_relay 已实现，非官方）。
+
+**手测清单修正（第二节第 2 项）**：MiniMax 项加实测步骤——注册开放平台→确认音乐 API 新用户可开性；**不可开即转 fal.ai**（$10 充值，playground 横测 MiniMax Music 2.6/ACE-Step/Sonauto 等，一次覆盖大部分 API 型候选）。其余项不变。
+
+搜索证据（第二轮）：platform.minimax.io/docs/api-reference/music-generation（8/20 新用户关闭条款+HF 开源 Music 3）；fal.ai/explore/text-to-music-apis（聚合阵容与定价）；TeamDay 2026-09 评（"Suno 无官方 API，第三方皆非官方包装，勿在其上建产品"）；Billboard（Suno×WMG）/BMG 2026-08 行业授权；fal.ai/learn 2026-03（fal 官方音乐模型阵容=MiniMax/ACE-Step/Sonauto，无 Suno）。
