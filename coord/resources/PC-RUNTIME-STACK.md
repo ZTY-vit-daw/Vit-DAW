@@ -5,7 +5,7 @@
 
 ## 当前占用
 
-（无——空闲）
+- 2026-10-17 21:0x +0800 登记 / KERNEL-SENDROUTE-IMPL-1(127) 真栈烟测腿（GLM-5.3 L2 PC 执行会话，ZCode；worktree D:/Vit_DAW_wt_sendroute1，分支 port/kernel-sendroute-impl-1，内核 C++ 新增 SendRouteService）：`scripts/dev_agent_smoke.ps1 -RepoRoot <worktree> -StartKernel -SendRouteSmoke -NoChatSmoke -NoStripSilenceSmoke` 一 run（新工件目录）——send/return 命令面端侧腿（connect auto_create→track.send.list 读回核对→离线渲染湿分量 Goertzel 断言→disconnect→list 归零→渲染对照；防环闸 1 拒绝+auto_create 幂等/重名序号/单次 undo 全撤）。被测=worktree 构建 VitApp.exe（含 SendRouteService，staging 布局 Export/staging/runtime 内）+worktree 源构建 agent（Go 零改动）；不启 Godot GUI（内核 ZMQ 面驱动）。§8 声明（运行前）：LLM=0 次调用（chat/strip-silence 腿已关，纯确定性命令面）；成功条件=脚本 exit 0；失败分类=environment_interrupt（栈起不来/端口占用）/assertion_fail（读回或音频断言）/script_exception；止损=同签名 assertion_fail ×2。登记前只读核对（21:0x）：四端口（7878/5555/5556/8787）监听=0、四类进程（VitApp/VitAgent/vsphub/Godot 含变体名）=0；上一占用 LOUDNESS-B 已释放（19:46 复核记录在案）。
 
 ## 最近一次释放
 
