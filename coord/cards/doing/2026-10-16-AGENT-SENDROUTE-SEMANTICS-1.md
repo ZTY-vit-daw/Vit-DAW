@@ -28,6 +28,7 @@ agent/internal/{chat,harness,policy,mom,tom,fxm,tim,mixboard,capabilitycontext}�
 - K1 命令面实测 schema 与设计件偏差 → 停手上交对齐，不自行改内核；
 - CCB/MOM 注册遇 view 目录红线（自动选择/partial 升级）→ 上交裁定。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-17 深夜 +0800 / origin/main=b0ab76556bce20c531a1769fbf16f00086390b5e（本地=远端一致亲核） / owner=GLM-5.3 L2 PC 执行会话（ZCode，本会话） / 分支 port/agent-sendroute-semantics-1 / worktree D:/Vit_DAW_wt_sendroute2 / 领取提交=coord/agent-sendroute-semantics-1-claim（本提交）；领取基线 HEAD=b0ab7655、status 净、diff 空（亲核）
+- 领取时核对：卡在 todo、派发已确认（同 K1 链）；前置 K1 已合入 main（f4926543 在历史，SendRouteService 五命令+点式/下划线双别名亲核=CommandDispatcher.cpp:3439-3497）；schema 与设计件 §1.3 对齐亲核（connect 含 auto_create 按名幂等复用+回执内嵌 sends/dangling/fx_tracks/sidechain 拓扑快照——停止条件第一条不触发）；doing 池两卡文件域零交集（LOUDNESS-B 修订腿只动 scripts/run_free_state_d1_smoke.ps1，其 chat 域阶段一已按裁定先落 5e9d2f65；GEN-SUNO 零生产代码）；agent 侧九包接缝亲核=catalog spec 表/guard :87 白名单/server :2987 broad-mix 面/events :431 toolDisplayName/plugin_grabber_workflow :68-140 insert 直挂+Z3/c3 :22-46 三载体/mixboard project_package inputs 模式/mom-tom-fxm-tim 投影结构/CCB view 目录=capabilitycontext+contextruntime+harness 三处
 - 回执：（commit / run ID / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
