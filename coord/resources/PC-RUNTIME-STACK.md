@@ -5,8 +5,11 @@
 
 ## 当前占用
 
-- 2026-10-17 22:00 +0800 / AGENT-SENDROUTE-SEMANTICS-1（K2/128，GLM-5.3 L2 PC 执行会话 ZCode；worktree D:/Vit_DAW_wt_sendroute2，分支 port/agent-sendroute-semantics-1）：真栈烟测（send 话术→pendingplan→确认→track.send.list+MOM 投影断言；FX 轨装载腿；单轨 insert 回归）。登记前亲核四端口（7878/5555/5556/4445）监听=0、四类进程（VitApp/VitAgent/Godot 变体名/VspHub）=0；上一占用 KERNEL-SENDROUTE-IMPL-1 已释放（21:05 复核在案）。
+（无——空闲）
 
+## 本次释放（2026-10-17 22:20 +0800）
+
+- 2026-10-17 22:00–22:20 +0800 / AGENT-SENDROUTE-SEMANTICS-1（K2/128，GLM-5.3 L2 PC 执行会话 ZCode；worktree D:/Vit_DAW_wt_sendroute2，分支 port/agent-sendroute-semantics-1@cd5d7a9d）：dev_agent_smoke.ps1 -StartKernel -RestartAgent -SendRouteAgentSmoke 四 run——run1=环境中断（worktree 无内核构建产物，agent 起内核缺→补建含 K1 的 main HEAD 内核 CMake Release exit 0，staging exe=worktree VitApp/build_release 产物 F5526C944651877E）；run2=集成缺陷（默认 chat 走 agent-loop，legacy 尾部 send 分叉未到达+full-access 循环直执行装载撞 PCA 闸）→修=循环入口确定性拦截（M1-2 queue 先例同层）+烟测回 manual 缺省；run3=五腿全过但 param 误删（SendRouteSmoke 行被补丁吞掉）StrictMode 中止→恢复；**run4=sendroute_agent_20261017_221712 PASS exit 0 五腿全绿**（send 话术→pendingplan send_topology_connect→确认→track.send.list 2 边+MOM send_topology 投影 ready/2edges/1fx/0dangling+FX 轨 rack 装载 ZamVerb 边保持+单轨 insert 回归零 send 执行），脚本完整收尾 dev agent smoke completed。22:18 拆栈：VitApp(11776)/VitAgent(8988) 已停，复核四端口（7878/5555/5556/4445）监听=0、四类进程（VitApp/VitAgent/Godot 变体/VspHub）=0。run 工件+agent 原始日志随 cd5d7a9d 入库（coord/runs/AGENT-SENDROUTE-SEMANTICS-1/sendroute_agent_20261017_221712）。
 ## 本次释放（2026-10-17 21:05 +0800）
 
 - 2026-10-17 20:35–21:05 +0800 / KERNEL-SENDROUTE-IMPL-1(127) 真栈烟测腿三 run 收口（GLM-5.3 L2 PC 执行会话，ZCode；worktree D:/Vit_DAW_wt_sendroute1，分支 port/kernel-sendroute-impl-1@7526b3a2）：**run3=sendroute_20261017_204856 sendroute kernel smoke PASS exit 0**——七腿全过（setup 定标 R≈0.1995/connect auto_create+list 读回/防环闸 1 四类拒绝/auto_create 幂等重发/湿渲染 ratio440=2.00001 ratio880=2.00001（湿回注双目标特征值，5% 容差）/单次 undo 全撤/disconnect 归零+对照渲染回 1.0x）。run1=sendroute_20261017_203636 assertion_fail（湿渲染 ratio 1.01≠2.0）→ 诊断=烟测脚本夹具缺陷非产品缺陷：①本栈离线渲染对渲染轨施加恒定 ~2x 逐声道增益（预存行为，见下）+②源幅度 0.5 时双轨+湿分量叠加越过 16bit 写入器线性区削波致比值非线性——脚本降源幅度至 0.1（比值断言对恒定增益免疫）。run2 assertion_fail（auto_create created=false）→ 诊断=夹具确定性缺陷：run1 自动持久化把带 FX 轨状态留在工作副本、run2 冷启动加载后 clear_project 只清 clip 不清轨，auto_create 幂等按名复用（服务语义正确）——脚本改为开跑前清多余音频轨+FX 名带时间戳。§8 计数如实：两失败均归因烟测脚本自身夹具（不同签名、非产品 assertion_fail），修复后 run3 一次通过。21:05 拆栈复核：四端口监听=0、VitApp/VitAgent/vsphub/Godot 变体=0。
