@@ -89,6 +89,9 @@ type AssertionResult struct {
 	Threshold    *float64 `json:"threshold,omitempty"`
 	Code         string   `json:"code,omitempty"`
 	EvidenceRefs []string `json:"evidence_refs,omitempty"`
+	// Detail carries an optional human-facing fail note (repair suggestion
+	// for the send-edge asserter); pass rows leave it empty.
+	Detail string `json:"detail,omitempty"`
 }
 
 // AssertInput is the complete, read-only input for the assertion pass.
@@ -98,8 +101,11 @@ type AssertInput struct {
 	// ProjectBlockSize is the kernel-disclosed block size actually in use
 	// (audio_settings.block_size); nil when no device is open / key absent,
 	// keeping the block_size check not_evaluable (TIM-KERNEL-DISCLOSE-1).
-	ProjectBlockSize  *float64
-	RackSummaries     []RackSummary
+	ProjectBlockSize *float64
+	RackSummaries    []RackSummary
+	// SendEdges: agent-side track.send.list derivation; nil keeps the
+	// send-edge asserter not_evaluable (AGENT-SENDROUTE-SEMANTICS-1).
+	SendEdges         []SendEdgeFact
 	KnownPluginPaths  map[string]bool
 	CeilingDBFS       float64
 	PluginListHygiene map[string]any
@@ -141,6 +147,67 @@ type RackSummary struct {
 	Edges   []RackEdge
 }
 
+// SendEdgeFact is one send/return topology edge from the kernel read-back
+// (track.send.list): a healthy edge names both endpoints; a dangling edge
+// names a source whose FX target is gone (deleted track / bus-pair loss /
+// AuxSend without an owning FX track).
+type SendEdgeFact struct {
+	SourceTrackID string
+	SourceName    string
+	FXTrackID     string
+	FXName        string
+	AmountDB      float64
+	Dangling      bool
+}
+
+// SendEdgesFromTopology derives the assertion facts from the raw
+// track.send.list reply (sends + dangling rows). Any other shape yields nil
+// so the asserter reports not_evaluable instead of fabricating.
+func SendEdgesFromTopology(topology any) []SendEdgeFact {
+	row, ok := topology.(map[string]any)
+	if !ok || len(row) == 0 {
+		return nil
+	}
+	out := []SendEdgeFact{}
+	appendRows := func(value any, dangling bool) {
+		switch rows := value.(type) {
+		case []any:
+			for _, raw := range rows {
+				edge, _ := raw.(map[string]any)
+				if len(edge) == 0 {
+					continue
+				}
+				out = append(out, sendEdgeFactFromRow(edge, dangling))
+			}
+		case []map[string]any:
+			for _, edge := range rows {
+				out = append(out, sendEdgeFactFromRow(edge, dangling))
+			}
+		}
+	}
+	appendRows(row["sends"], false)
+	appendRows(row["dangling"], true)
+	return out
+}
+
+func sendEdgeFactFromRow(edge map[string]any, dangling bool) SendEdgeFact {
+	return SendEdgeFact{
+		SourceTrackID: firstNonEmpty(text(edge["source_track_id"]), text(edge["track_id"])),
+		SourceName:    text(edge["source_name"]),
+		FXTrackID:     text(edge["fx_track_id"]),
+		FXName:        text(edge["fx_name"]),
+		AmountDB:      numberFromAnyText(edge["amount_db"]),
+		Dangling:      dangling,
+	}
+}
+
+func numberFromAnyText(value any) float64 {
+	if n, ok := numberFromAny(value); ok {
+		return n
+	}
+	return 0
+}
+
 // AssertWarnLogger, when set by the host process, receives one formatted
 // "[tim.assert] ..." line per fail row (capped per asserter). Wiring it to the
 // agent logx logger is host-side work; nil keeps Build silent and pure.
@@ -157,6 +224,11 @@ func acousticAssertionRefs(observationID string) []string {
 func rackAssertionRefs(observationID string) []string {
 	return mixReadRefs(observationID, "project.tracks.summary")
 }
+
+const (
+	codeSendEdgeDangling    = "send_edge_dangling"
+	codeSendEdgeReadMissing = "send_edge_read_missing"
+)
 
 var hygieneAssertionRefs = []string{"project.state:plugin_list_hygiene"}
 
@@ -175,10 +247,35 @@ func Evaluate(input AssertInput) []AssertionResult {
 	results = append(results, evaluatePluginHygiene(input.PluginListHygiene)...)
 	results = append(results, evaluateBlockSize(input.TrackFacts, input.ProjectBlockSize, observationID)...)
 	results = append(results, evaluatePluginLoadState(input.RackSummaries, observationID)...)
+	results = append(results, evaluateSendEdges(input.SendEdges, observationID)...)
 	warnAssertionFailures(results)
 	return results
 }
 
+// evaluateSendEdges asserts the send/return topology read-back
+// (AGENT-SENDROUTE-SEMANTICS-1 design §3 TIM row): dangling edges (fx target
+// deleted / bus pair mismatched / AuxSend without an owning FX track) fail
+// with a repair suggestion; healthy edges pass; a missing read-back keeps
+// the whole check not_evaluable.
+func evaluateSendEdges(edges []SendEdgeFact, observationID string) []AssertionResult {
+	out := []AssertionResult{}
+	refs := mixReadRefs(observationID, "project.send_topology")
+	if edges == nil {
+		out = append(out, assertionRow("send_edges", "topology_dangling", AssertionStatusNotEvaluable, "", codeSendEdgeReadMissing, nil, nil, refs))
+		return out
+	}
+	for _, edge := range edges {
+		trackID := edge.SourceTrackID
+		if !edge.Dangling {
+			out = append(out, passRow("send_edges", "topology_dangling", trackID, floatPtr(edge.AmountDB), nil, refs))
+			continue
+		}
+		row := failRow("send_edges", "topology_dangling", trackID, codeSendEdgeDangling, floatPtr(edge.AmountDB), nil, refs)
+		row.Detail = fmt.Sprintf("send edge %s -> %s is dangling (FX track deleted or bus pair lost); repair with track.send.disconnect {source_track_id:%s} or reconnect to a live FX track", firstNonEmpty(edge.SourceName, edge.SourceTrackID), firstNonEmpty(edge.FXName, edge.FXTrackID, "<gone>"), edge.SourceTrackID)
+		out = append(out, row)
+	}
+	return out
+}
 func evaluateSignalHygiene(facts []TrackFact, observationID string) []AssertionResult {
 	out := []AssertionResult{}
 	for _, fact := range facts {
@@ -628,6 +725,9 @@ func formatOptionalFloat(value *float64) string {
 
 // assertionIssueDetail renders the human-facing fail detail for an issue row.
 func assertionIssueDetail(row AssertionResult) string {
+	if strings.TrimSpace(row.Detail) != "" {
+		return row.Detail
+	}
 	detail := fmt.Sprintf("Structural assertion %s/%s failed", row.Asserter, row.Check)
 	if row.TrackID != "" {
 		detail += " on track " + row.TrackID

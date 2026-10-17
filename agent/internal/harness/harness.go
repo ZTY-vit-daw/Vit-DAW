@@ -2124,6 +2124,49 @@ func AuthorizeProcessorCertificationLoad(requestContext map[string]any, trackID,
 	return out
 }
 
+// AGENT-SENDROUTE-SEMANTICS-1: a confirmed send-topology pending plan is a
+// concrete structural request (share phrasing plus >=2 named source tracks
+// resolved by the chat workflow), not a broad mix request. The chat workflow
+// stamps this authorization into the plan context; the observe-first write
+// guard honours it only for the plan's own source tracks. JSON-shaped on
+// purpose so a persisted-then-reloaded plan context keeps working.
+const sendTopologyPlanContextKey = "__vit_internal_send_topology_plan"
+
+func AuthorizeSendTopologyConnect(requestContext map[string]any, sourceTrackIDs []string) map[string]any {
+	out := cloneAnyMap(requestContext)
+	ids := make([]string, 0, len(sourceTrackIDs))
+	for _, id := range sourceTrackIDs {
+		if trimmed := strings.TrimSpace(id); trimmed != "" {
+			ids = append(ids, trimmed)
+		}
+	}
+	out[sendTopologyPlanContextKey] = map[string]any{"source_track_ids": ids}
+	return out
+}
+
+func qualifiedSendTopologyConnect(requestContext map[string]any, spec tools.CommandSpec, cmd map[string]any) bool {
+	plan, ok := requestContext[sendTopologyPlanContextKey].(map[string]any)
+	if !ok || len(plan) == 0 {
+		return false
+	}
+	name := strings.ToLower(strings.TrimSpace(firstNonEmpty(spec.CommandName, tools.CommandName(cmd), fmt.Sprint(cmd["tool"]))))
+	switch name {
+	case "track.send.connect", "track_send_connect", "track.send.set_amount", "track_send_set_amount":
+	default:
+		return false
+	}
+	source := strings.TrimSpace(firstString(cmd, "source_track_id"))
+	if source == "" {
+		return false
+	}
+	for _, allowed := range stringSliceFromAny(plan["source_track_ids"]) {
+		if allowed == source {
+			return true
+		}
+	}
+	return false
+}
+
 func agentPluginLoadCommand(name string) bool {
 	switch strings.ToLower(strings.TrimSpace(name)) {
 	case "rack_add_node", "rack.add_node", "plugin.load_to_rack", "instantiate_plugin", "plugin.instantiate":
@@ -2425,6 +2468,9 @@ func broadMixObserveFirstWriteGuard(requestContext map[string]any, spec tools.Co
 	if qualifiedSemanticPluginSelectionLoad(requestContext, spec, cmd) {
 		return nil
 	}
+	if qualifiedSendTopologyConnect(requestContext, spec, cmd) {
+		return nil
+	}
 	userText := broadMixGuardUserText(requestContext)
 	knownPluginNames := toolpolicy.CollectPluginNames(requestContext, cmd)
 	if !broadMixNaturalRequest(userText) || toolpolicy.ExplicitPluginRequest(userText, knownPluginNames) {
@@ -2462,6 +2508,10 @@ func broadMixWriteCommand(spec tools.CommandSpec, cmd map[string]any) bool {
 		"set_volume", "track.volume",
 		"track.group.apply_control", "track_group.apply_control", "track_group_apply_control",
 		"set_pan", "track.pan",
+		"track.send.connect", "track_send_connect",
+		"track.send.set_amount", "track_send_set_amount",
+		"track.send.disconnect", "track_send_disconnect",
+		"track.send.set_fx_role", "track_send_set_fx_role",
 		"control_add_macro", "control.add_macro", "rack.add_macro", "control_add_binding", "control.add_binding":
 		return true
 	default:
@@ -3538,6 +3588,34 @@ func (h *Harness) artifactStore() artifacts.Store {
 	return artifacts.NewStore("")
 }
 
+// readSendTopologyForObservation reads the kernel send/return topology once
+// per observation assembly. The reply shape is the track.send.list contract
+// (sends/dangling/fx_tracks/sidechain rows) and is consumed read-only.
+func (h *Harness) readSendTopologyForObservation(ctx context.Context) map[string]any {
+	if h == nil || h.kernel == nil {
+		return nil
+	}
+	sendCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+	reply, _, err := h.kernel.SendCommand(sendCtx, map[string]any{"cmd": "track_send_list"})
+	if err != nil || !kernelReplySucceeded(reply) {
+		if h.logger != nil {
+			reason := firstNonEmpty(fmt.Sprint(err), firstString(reply, "message", "error"), "reply_not_ok")
+			h.logger.Warn("[mixboard] send topology read failed; send projections report missing: %s", reason)
+		}
+		return nil
+	}
+	return reply
+}
+
+// projectStateWithSendTopology returns a shallow copy carrying the send
+// topology under state["send_topology"]; the shadow-owned map is never
+// mutated in place.
+func projectStateWithSendTopology(state map[string]any, sendTopology map[string]any) map[string]any {
+	out := cloneAnyMap(state)
+	out["send_topology"] = sendTopology
+	return out
+}
 func (h *Harness) requestMixObservation(ctx context.Context, cmd map[string]any) (map[string]any, error) {
 	cmd = cloneAnyMap(cmd)
 	state := map[string]any{}
@@ -3680,6 +3758,14 @@ func (h *Harness) requestMixObservation(ctx context.Context, cmd map[string]any)
 	}
 	// MAT-E on 态读端 consult（装配前询问物化层；nil=off/shadow 原路径）。
 	domConsult := h.materializeDOMSource()
+	// AGENT-SENDROUTE-SEMANTICS-1: send-topology input is an agent-side
+	// lightweight derivation from the kernel track.send.list read-back
+	// (design §3). Read happens after the final state resolution so the
+	// topology snapshot matches the assembled observation; read failure
+	// keeps the key absent and projections report the topology as missing.
+	if sendTopology := h.readSendTopologyForObservation(ctx); len(sendTopology) > 0 {
+		state = projectStateWithSendTopology(state, sendTopology)
+	}
 	observationRequest := mixboard.Request{
 		MixSessionID: firstString(cmd, "mix_session_id", "session_id"),
 		Round:        int(numberFromAny(cmd["round"])),

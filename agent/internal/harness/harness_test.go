@@ -5226,6 +5226,21 @@ func TestProjectSnapshotExportFallsBackWhenKernelCommandMissing(t *testing.T) {
 	}
 }
 
+// kernelCommandsExcludingSendTopologyRead filters the AGENT-SENDROUTE-SEMANTICS-1
+// read-only track_send_list fetch out of the recorded kernel commands: the
+// observe-assembly send-topology input is a legitimate read, and these tests
+// assert the absence of FEATURE requests / side effects, not topology reads.
+func kernelCommandsExcludingSendTopologyRead(commands []map[string]any) []map[string]any {
+	out := make([]map[string]any, 0, len(commands))
+	for _, command := range commands {
+		if name, _ := command["cmd"].(string); name == "track_send_list" {
+			continue
+		}
+		out = append(out, command)
+	}
+	return out
+}
+
 func TestInvokeMixRequestObservationDoesNotRequestAudioFeatures(t *testing.T) {
 	root := t.TempDir()
 	t.Setenv("VIT_MIXBOARD_ROOT", filepath.Join(root, "mixboard"))
@@ -5253,8 +5268,8 @@ func TestInvokeMixRequestObservationDoesNotRequestAudioFeatures(t *testing.T) {
 	if resp.Status != "ok" {
 		t.Fatalf("resp = %+v", resp)
 	}
-	if len(kernel.commands) != 0 {
-		t.Fatalf("kernel commands = %+v resp=%+v", kernel.commands, resp.Result)
+	if filtered := kernelCommandsExcludingSendTopologyRead(kernel.commands); len(filtered) != 0 {
+		t.Fatalf("kernel commands = %+v resp=%+v", filtered, resp.Result)
 	}
 	if _, ok := resp.Result["feature_request"]; ok {
 		t.Fatalf("feature_request should be absent for read-only observation: %+v", resp.Result["feature_request"])
@@ -5417,8 +5432,8 @@ func TestInvokeMixObserveReadFirstUsesStoredBuildingPackageWithoutKernelRequest(
 	if resp.Status != "ok" {
 		t.Fatalf("resp = %+v", resp)
 	}
-	if len(kernel.commands) != 0 {
-		t.Fatalf("read-first observe should not request more features while package is building: %+v", kernel.commands)
+	if filtered := kernelCommandsExcludingSendTopologyRead(kernel.commands); len(filtered) != 0 {
+		t.Fatalf("read-first observe should not request more features while package is building: %+v", filtered)
 	}
 	if _, ok := resp.Result["feature_request"]; ok {
 		t.Fatalf("feature_request should be absent when store already reports building: %+v", resp.Result["feature_request"])
@@ -5610,8 +5625,8 @@ func TestInvokeMixRequestObservationResolvesVisibleTrackClipSource(t *testing.T)
 	if resp.Status != "ok" {
 		t.Fatalf("resp = %+v", resp)
 	}
-	if len(kernel.commands) != 0 {
-		t.Fatalf("kernel commands = %+v resp=%+v", kernel.commands, resp.Result)
+	if filtered := kernelCommandsExcludingSendTopologyRead(kernel.commands); len(filtered) != 0 {
+		t.Fatalf("kernel commands = %+v resp=%+v", filtered, resp.Result)
 	}
 	resolved := testMap(t, resp.Result["resolved_target"])
 	if resolved["track_id"] != "1007" || resolved["clip_id"] != "1011" {
@@ -5678,8 +5693,8 @@ func TestInvokeMixRequestObservationResolvesTrackAliasAmongMultipleTracks(t *tes
 	if resp.Status != "ok" {
 		t.Fatalf("resp = %+v", resp)
 	}
-	if len(kernel.commands) != 0 {
-		t.Fatalf("kernel commands = %+v resp=%+v", kernel.commands, resp.Result)
+	if filtered := kernelCommandsExcludingSendTopologyRead(kernel.commands); len(filtered) != 0 {
+		t.Fatalf("kernel commands = %+v resp=%+v", filtered, resp.Result)
 	}
 	resolved := testMap(t, resp.Result["resolved_target"])
 	if resolved["track_id"] != "1007" || resolved["clip_id"] != "1011" {
@@ -5855,8 +5870,8 @@ func TestInvokeMixRequestObservationRefreshesStaleAliasTarget(t *testing.T) {
 	if resp.Status != "ok" {
 		t.Fatalf("resp = %+v", resp)
 	}
-	if len(kernel.commands) != 1 {
-		t.Fatalf("kernel commands = %+v", kernel.commands)
+	if filtered := kernelCommandsExcludingSendTopologyRead(kernel.commands); len(filtered) != 1 {
+		t.Fatalf("kernel commands = %+v", filtered)
 	}
 	if kernel.commands[0]["cmd"] != "get_project_state" {
 		t.Fatalf("first command should refresh shadow: %+v", kernel.commands)

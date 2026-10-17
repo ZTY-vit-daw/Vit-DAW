@@ -31,6 +31,7 @@ const c3ObservationSchema = "c3.space_depth.observation.v0"
 // set_plugin_param / plugin_grabber_apply_* / mix_apply_* 等）一律不在表内
 // ——单测以写命令黑名单交叉断言（TestC3ReadOnlyToolWhitelistHasNoWriteCommands）。
 var c3ReadOnlyTools = map[string]bool{
+	"track.send.list":                 true, // 载体 4：send/return 拓扑结构读回（AGENT-SENDROUTE-SEMANTICS-1；空间观察从插件参数扩展到轨间结构）
 	"mix.observe":                     true, // 载体 1+3：MOM static_level + FXM 手动差分通道
 	"plugin_grabber_explain_controls": true, // 载体 2：通用插件参数快照读端
 }
@@ -129,7 +130,12 @@ func (s *Server) handleSpaceDepthRuntime(ctx context.Context, conversationID str
 		snapshots = append(snapshots, s.c3ReadPluginParams(ctx, sessionID, plugin))
 	}
 
+	// 载体 4（AGENT-SENDROUTE-SEMANTICS-1）：send/return 拓扑结构读回——空间观察
+	// 从插件参数（词法）扩展到轨间结构事实（track.send.list 读源），恰好绕开
+	// MIX-CAP-RECON-1 §2 词法缺口；读失败如实缺席不虚构。
+	sendTopology, sendTopologyErr := s.c3InvokeReadOnly(ctx, sessionID, "track.send.list", map[string]any{})
 	report := c3AssembleSpaceDepthReport(observationID, momStatic, len(spacePlugins), snapshots, fxmProjection, observeErr)
+	report.SendTopology = c3CompactSendTopology(sendTopology, sendTopologyErr)
 	workflowData := map[string]any{
 		"session_id":         sessionID,
 		"capability_id":      spaceDepthCapabilityID,
@@ -291,6 +297,7 @@ func c3MatchSpaceParamMarker(paramID string) string {
 
 type c3SpaceDepthReport struct {
 	SchemaVersion    string                  `json:"schema_version"`
+	SendTopology     map[string]any          `json:"send_topology,omitempty"`
 	ObservationID    string                  `json:"observation_id,omitempty"`
 	MOMStaticStatus  string                  `json:"mom_static_level_status"`
 	MOMCoverage      string                  `json:"mom_static_coverage,omitempty"`
@@ -349,6 +356,38 @@ func c3AssembleSpaceDepthReport(observationID string, momStatic map[string]any, 
 	return report
 }
 
+func c3Count(value any) int {
+	if n, ok := value.(float64); ok {
+		return int(n)
+	}
+	if n, ok := value.(int); ok {
+		return n
+	}
+	return 0
+}
+
+// c3CompactSendTopology 裁剪 track.send.list 读回为报告面（计数+边行），
+// 读失败返回带 send_topology_status=missing 的说明行，不升级不虚构。
+func c3CompactSendTopology(topology map[string]any, err error) map[string]any {
+	if err != nil {
+		return map[string]any{"status": "missing", "reason": "track_send_list_read_failed: " + err.Error()}
+	}
+	if len(topology) == 0 {
+		return nil
+	}
+	sends := mapRowsFromAny(topology["sends"])
+	fxTracks := mapRowsFromAny(topology["fx_tracks"])
+	dangling := mapRowsFromAny(topology["dangling"])
+	status := firstStringFromMap(topology, "status")
+	if status == "" {
+		status = "ok"
+	}
+	return map[string]any{
+		"status": status, "send_edge_count": len(sends),
+		"fx_track_count": len(fxTracks), "dangling_edge_count": len(dangling),
+		"sends": sends, "fx_tracks": fxTracks,
+	}
+}
 func c3RenderSpaceDepthReply(report c3SpaceDepthReport) string {
 	var b strings.Builder
 	b.WriteString("C3 空间与深度观察完成（schema " + c3ObservationSchema + "，只读）。\n")
@@ -369,6 +408,13 @@ func c3RenderSpaceDepthReply(report c3SpaceDepthReport) string {
 		b.WriteString("FXM 面：携带手动差分，effect_delta 已并入报告。\n")
 	default:
 		b.WriteString("FXM 面：未提供手动差分；本能力不生产自动差分（M2-TIMEFX 线）。\n")
+	}
+	if report.SendTopology != nil {
+		if sendStatus := firstStringFromMap(report.SendTopology, "status"); sendStatus != "" && sendStatus != "missing" {
+			b.WriteString(fmt.Sprintf("结构面：send/return 拓扑 %d 条边、%d 条 FX 轨、%d 条悬空边（track.send.list 结构读回，非插件语义）。\n", c3Count(report.SendTopology["send_edge_count"]), c3Count(report.SendTopology["fx_track_count"]), c3Count(report.SendTopology["dangling_edge_count"])))
+		} else {
+			b.WriteString("结构面：send 拓扑读回缺席（track.send.list 读取失败），如实缺席不虚构。\n")
+		}
 	}
 	b.WriteString("本观察未创建 Proposal，未注册任何写命令，未修改工程。")
 	return b.String()

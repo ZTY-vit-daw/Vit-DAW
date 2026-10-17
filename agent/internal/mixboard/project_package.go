@@ -40,6 +40,7 @@ func buildProjectPackage(state map[string]any, target TargetRef, scope ListenSco
 	projectIdentity := mapValue(state["project"])
 	projectCutRef := firstNonEmpty(cleanAnyString(state["snapshot_hash"]), cleanAnyString(state["project_state_hash"]), cleanAnyString(state["project_revision"]), cleanAnyString(state["revision"]), cleanAnyString(projectIdentity["snapshot_hash"]), cleanAnyString(projectIdentity["revision"]))
 	staticLevelInputs := projectStaticLevelRelationshipInputs(tracks, projectCutRef)
+	sendTopologyInputs := projectSendTopologyInputs(state)
 	maskingInputs := compactMaskingMeasurement(snap.MaskingMeasurement)
 	return map[string]any{
 		"schema_version":                   "mixboard_project_packet.v1",
@@ -69,17 +70,71 @@ func buildProjectPackage(state map[string]any, target TargetRef, scope ListenSco
 		"conflict_candidates":              conflictCandidates,
 		"frequency_relationship_inputs":    frequencyInputs,
 		"static_level_relationship_inputs": staticLevelInputs,
+		"send_topology_inputs":             sendTopologyInputs,
 		"masking_relationship_inputs":      maskingInputs,
 		"likely_first_attention_target":    projectFirstAttentionTarget(tracks, loudnessRanking, peakRanking, headroomRisk),
 		"relationship_inputs":              relationshipInputStatus(tracks),
 		"analysis_boundary": map[string]any{
-			"agent_side_lightweight": []string{"loudness_ranking", "level_ranking", "peak_ranking", "headroom_risk", "project_band_occupancy", "project_stereo_spread", "level_distribution", "conflict_candidates", "frequency_relationship_inputs", "static_level_relationship_inputs", "masking_relationship_inputs", "likely_first_attention_target"},
+			"agent_side_lightweight": []string{"loudness_ranking", "level_ranking", "peak_ranking", "headroom_risk", "project_band_occupancy", "project_stereo_spread", "level_distribution", "conflict_candidates", "frequency_relationship_inputs", "static_level_relationship_inputs", "send_topology_inputs", "masking_relationship_inputs", "likely_first_attention_target"},
 			"kernel_deferred":        []string{"project_contrast_analyzer", "lufs_analysis", "reference_match", "post_fx_shadow_render"},
 		},
 		"limitations": projectPackageLimitations(tracks, maskingInputs),
 	}
 }
 
+// projectSendTopologyInputs（AGENT-SENDROUTE-SEMANTICS-1 设计件 §3）：send 拓扑
+// 输入=agent 侧轻量派生自内核 track.send.list 读回（观察装配时注入
+// state["send_topology"]）。缺键=读源缺席，inputs 整体 missing，投影如实
+// 报缺失不升级。行只保留结构事实字段，关系细节归 MOM 投影不在此展开。
+func projectSendTopologyInputs(state map[string]any) map[string]any {
+	topology := mapValue(state["send_topology"])
+	if len(topology) == 0 {
+		return map[string]any{
+			"schema_version": "mom.send_topology.v0_1",
+			"status":         "missing",
+			"reason":         "track_send_list_read_absent",
+			"sends":          []map[string]any{}, "fx_tracks": []map[string]any{}, "dangling": []map[string]any{},
+		}
+	}
+	sends := compactSendTopologyRows(topology["sends"], "source_track_id", "source_name", "fx_track_id", "fx_name", "amount_db", "send_bus", "return_bus")
+	dangling := compactSendTopologyRows(topology["dangling"], "source_track_id", "source_name", "fx_track_id", "fx_name", "amount_db", "send_bus", "return_bus")
+	fxTracks := compactSendTopologyRows(topology["fx_tracks"], "track_id", "name", "send_bus", "return_bus", "source_count")
+	status := "ready"
+	if len(sends) == 0 && len(fxTracks) == 0 {
+		status = "partial" // topology read succeeded but the project has no send structure
+	}
+	if len(dangling) > 0 {
+		status = "partial"
+	}
+	return map[string]any{
+		"schema_version": "mom.send_topology.v0_1",
+		"status":         status,
+		"sends":          sends, "dangling": dangling, "fx_tracks": fxTracks,
+		"evidence_refs": []string{"project_package.send_topology_inputs", "kernel.track_send_list"},
+		"note":          "shared-space structural facts from the track.send.list read-back; not effect semantics",
+	}
+}
+
+func compactSendTopologyRows(value any, keys ...string) []map[string]any {
+	rows := anySlice(value)
+	out := make([]map[string]any, 0, len(rows))
+	for _, raw := range rows {
+		row, _ := raw.(map[string]any)
+		if len(row) == 0 {
+			continue
+		}
+		compact := map[string]any{}
+		for _, key := range keys {
+			if value, ok := row[key]; ok && value != nil {
+				compact[key] = value
+			}
+		}
+		if len(compact) > 0 {
+			out = append(out, compact)
+		}
+	}
+	return out
+}
 func buildTrackSummaries(state map[string]any, target TargetRef, scope ListenScope, snap featureSnapshot) []map[string]any {
 	rows := anySlice(state["tracks"])
 	out := make([]map[string]any, 0, len(rows))

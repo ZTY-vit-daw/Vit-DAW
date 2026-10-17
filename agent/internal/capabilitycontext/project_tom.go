@@ -17,6 +17,7 @@ func BuildProjectTOMProjection(projectState map[string]any, observationID, mixSe
 		return nil
 	}
 	projection := tom.BuildFromImportRows(tom.ImportInput{
+		SendTopology:  projectSendTopologyRows(projectState),
 		ObservationID: strings.TrimSpace(observationID),
 		MixSessionID:  strings.TrimSpace(mixSessionID),
 		CreatedAt:     time.Now().UTC().Format(time.RFC3339Nano),
@@ -28,6 +29,16 @@ func BuildProjectTOMProjection(projectState map[string]any, observationID, mixSe
 		Rows: rows,
 	})
 	return tom.ContextProjectionMap(projection)
+}
+
+// projectSendTopologyRows surfaces the observation-assembly send topology
+// (state["send_topology"], AGENT-SENDROUTE-SEMANTICS-1) to the TOM v0_3
+// build; states without the key keep v0_2-shaped rows.
+func projectSendTopologyRows(projectState map[string]any) map[string]any {
+	if topology, ok := projectState["send_topology"].(map[string]any); ok {
+		return topology
+	}
+	return nil
 }
 
 func projectTOMRows(projectState map[string]any) []map[string]any {

@@ -15,6 +15,7 @@ func Build(input Input) Projection {
 	projectMixProfile := buildProjectMixProfile(input)
 	multitrackRelation := buildMultitrackRelation(input, projectMixProfile)
 	staticLevelRelationship := buildStaticLevelRelationship(input)
+	sendTopology := buildSendTopology(input)
 	frequencyRelationship := FrequencyRelationship{}
 	var frequencyRelationshipProjection *FrequencyRelationship
 	if intent == IntentProjectFrequencyObservation {
@@ -46,6 +47,7 @@ func Build(input Input) Projection {
 		ProjectMixProfile:       projectMixProfile,
 		MultitrackRelation:      multitrackRelation,
 		StaticLevelRelationship: staticLevelRelationship,
+		SendTopology:            sendTopology,
 		FrequencyRelationship:   frequencyRelationshipProjection,
 		MaskingRelationship:     maskingRelationshipProjection,
 		Layers:                  layers,

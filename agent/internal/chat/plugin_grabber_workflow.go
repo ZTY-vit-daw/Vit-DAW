@@ -208,6 +208,14 @@ func (s *Server) runPluginGrabberLoadWorkflow(ctx context.Context, conversationI
 		name = filepath.Base(target.PluginPath)
 	}
 	reply := fmt.Sprintf("将加载%s %s 到当前轨道。确认后我会抓取参数摘要。", pluginKindForUser(pluginKind), name)
+	// AGENT-SENDROUTE-SEMANTICS-1 决策表 agent_suggest 分支：单轨 insert 计划保持
+	// 不变，回复附共享空间建议（可拒）；词法+机架证据，非语义判定。
+	if s != nil && s.harness != nil {
+		spatialHint := target.PluginQuery + " " + target.PluginName + " " + target.PluginPath
+		if c3MatchSpacePluginMarker(spatialHint) != "" {
+			reply += sendTopologyAgentSuggestionNote(s.harness.UserStateSummary(ctx), target.TrackID)
+		}
+	}
 	return ChatResponse{
 		ConversationID:    conversationID,
 		Reply:             reply + "\n\n" + confirmationReply(decisions),

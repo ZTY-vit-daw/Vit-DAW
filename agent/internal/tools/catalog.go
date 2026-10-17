@@ -132,6 +132,11 @@ func DefaultCatalog() *Catalog {
 	c.AddAlias("track_group.set_members", "track.group.set_members")
 	c.AddAlias("track_group.delete", "track.group.delete")
 	c.AddAlias("track_group.apply_control", "track.group.apply_control")
+	c.AddAlias("track_send_connect", "track.send.connect")
+	c.AddAlias("track_send_set_amount", "track.send.set_amount")
+	c.AddAlias("track_send_disconnect", "track.send.disconnect")
+	c.AddAlias("track_send_list", "track.send.list")
+	c.AddAlias("track_send_set_fx_role", "track.send.set_fx_role")
 	c.AddAlias("project.track_organization.apply", "project.apply_track_organization")
 	c.AddAlias("browser.fetch", "browser_fetch")
 	c.AddAlias("browser.search", "browser_search")
@@ -667,7 +672,7 @@ func ccbObservationCatalogSpec() CommandSpec {
 				"target_id":   map[string]any{"type": "string"},
 				"dimension": map[string]any{
 					"type":        "string",
-					"enum":        []string{"dynamics", "frequency_occupancy", "level_headroom", "stereo_space", "transient_event"},
+					"enum":        []string{"dynamics", "frequency_occupancy", "level_headroom", "space_structure", "stereo_space", "transient_event"},
 					"description": "Filter catalog views by declared diagnostic dimension; unknown dimensions are rejected with the known vocabulary.",
 				},
 			},
@@ -1107,6 +1112,11 @@ func defaultSpecs() []CommandSpec {
 		spec("set_solo", "track.solo", "track", "Set track solo state.", RiskUndoable, true, true, false, true, "track_id"),
 		spec("set_volume", "track.volume", "track", "Set track volume in dB.", RiskUndoable, true, true, false, true, "track_id"),
 		spec("set_pan", "track.pan", "track", "Set track pan from -1.0 left to +1.0 right.", RiskUndoable, true, true, false, true, "track_id"),
+		spec("track.send.connect", "track.send.connect", "track", "Connect one source track to a send/return FX track (double-bus sandwich: AuxSend on the source, wet return into the source after the send). Takes fx_track_id or auto_create_fx_track (a name; an existing FX track with that name is reused idempotently); amount_db defaults to -6.0 on first connect. Reply embeds the track.send.list topology snapshot.", RiskConfirm, true, true, true, true, "source_track_id"),
+		spec("track.send.set_amount", "track.send.set_amount", "track", "Adjust one source track's send amount in dB into an FX track (source-side main control surface; the FX side is read-only).", RiskUndoable, true, true, false, true, "source_track_id", "fx_track_id"),
+		spec("track.send.disconnect", "track.send.disconnect", "track", "Remove one send edge from a source track to an FX track; the last disconnect releases the FX track (aux pair removed, role cleared, bus pair recycled).", RiskConfirm, true, true, true, true, "source_track_id", "fx_track_id"),
+		spec("track.send.list", "track.send.list", "track", "Read the send/return topology: sends (source->fx with amount_db and bus pair), dangling edges, FX tracks, and control-sidechain rows. The single read source for the observation plane.", RiskDirect, false, false, false, false),
+		spec("track.send.set_fx_role", "track.send.set_fx_role", "track", "Manually promote or demote a track's send/return FX role (role none or send_return_fx); the underlying primitive behind auto_create and the GUI new-FX-track action.", RiskConfirm, true, true, true, true, "track_id"),
 		spec("freeze_track", "track.freeze", "track", "Freeze a track.", RiskConfirm, true, true, true, true, "track_id"),
 		spec("unfreeze_track", "track.unfreeze", "track", "Unfreeze a track.", RiskConfirm, true, true, true, true, "track_id"),
 

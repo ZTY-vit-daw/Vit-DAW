@@ -33,7 +33,13 @@ param(
     # Goertzel，湿回注双目标=2.0x 特征值）→disconnect→list 归零→渲染对照回
     # 1.0x；防环闸 1 拒绝（FX 作源/自环/源轨作 FX 目标）+auto_create 幂等/
     # 重名序号/单次 undo 全撤。腿只需内核栈在 -StartKernel 后可用。
-    [switch]$SendRouteSmoke,
+    # AGENT-SENDROUTE-SEMANTICS-1：agent 侧 send/return 语义腿（设计件 §5 场景
+    # 2 端侧版；断言体在 scripts/sendroute_agent_smoke.py，agent HTTP 面+内核
+    # ZMQ 面驱动）。腿：send 话术→pendingplan(send_topology_connect)→确认→
+    # track.send.list 读回+MOM send_topology 投影断言；FX 轨 rack 装载腿（K1
+    # 验收边界：归一钩子路径 rack 装载到 FX 轨必经）；单轨话术仍 insert 回归。
+    # 需要 -StartKernel 后的 agent HTTP+内核在栈（LLM chat 腿走真实模型）。
+    [switch]$SendRouteAgentSmoke,
     # VITNOTE-IMPL-4：工程级写租约并发场景（双 chat 各触发一次 B2 能力执行，
     # 双 approve 并发入栈——断言两执行段租约区间不重叠且后来者真实排队；
     # 证据=VIT_WRITE_LEASE_EVENTS_PATH JSONL 工件时间戳）。
@@ -6887,6 +6893,32 @@ if ($SetTempoPersistSmoke) {
     Write-Ok ("settempo persist smoke passed (kernel command face; summary: " + $settempoSummaryPath + ")")
 }
 
+if ($SendRouteAgentSmoke) {
+    Write-Step "sendroute agent smoke (AGENT-SENDROUTE-SEMANTICS-1)"
+    $sendRouteAgentScript = Join-Path $RepoRoot "scripts\sendroute_agent_smoke.py"
+    if (-not (Test-Path -LiteralPath $sendRouteAgentScript)) {
+        throw ("sendroute agent smoke script missing: " + $sendRouteAgentScript)
+    }
+    $sendRouteAgentArtifactsDir = $RunArtifactsDir
+    if ([string]::IsNullOrWhiteSpace($sendRouteAgentArtifactsDir)) {
+        $sendRouteAgentArtifactsDir = Join-Path $RepoRoot ("VitApp\Workspace\Artifacts\smoke\sendroute_agent_" + (Get-Date -Format "yyyyMMdd_HHmmss"))
+    }
+    if (-not (Test-Path -LiteralPath $sendRouteAgentArtifactsDir)) {
+        New-Item -ItemType Directory -Path $sendRouteAgentArtifactsDir -Force | Out-Null
+    }
+    $sendRouteAgentSummaryPath = Join-Path $sendRouteAgentArtifactsDir "sendroute_agent_smoke_summary.json"
+    $sendRouteAgentConsolePath = Join-Path $sendRouteAgentArtifactsDir "sendroute_agent_smoke_console.txt"
+    & python $sendRouteAgentScript --agent-http $AgentHttp --kernel-zmq ("tcp://127.0.0.1:" + $ZmqReqPort) --output $sendRouteAgentSummaryPath > $sendRouteAgentConsolePath 2>&1
+    $sendRouteAgentExit = $LASTEXITCODE
+    Get-Content -LiteralPath $sendRouteAgentConsolePath | ForEach-Object { Write-Host $_ }
+    if ($sendRouteAgentExit -ne 0) {
+        throw ("sendroute agent smoke failed with exit code $sendRouteAgentExit (console: " + $sendRouteAgentConsolePath + ")")
+    }
+    if (-not (Test-Path -LiteralPath $sendRouteAgentSummaryPath)) {
+        throw ("sendroute agent smoke passed but summary artifact missing: " + $sendRouteAgentSummaryPath)
+    }
+    Write-Ok ("sendroute agent smoke passed (agent chat+kernel faces; summary: " + $sendRouteAgentSummaryPath + ")")
+}
 if ($SendRouteSmoke) {
     Write-Step "sendroute kernel smoke (KERNEL-SENDROUTE-IMPL-1)"
     # send/return 轨间路由命令面腿（设计件 §5 场景 1）：断言体在

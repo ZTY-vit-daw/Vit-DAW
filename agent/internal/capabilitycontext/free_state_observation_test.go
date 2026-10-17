@@ -15,7 +15,7 @@ func TestFreeStateObservationCatalogIsSemanticAndBounded(t *testing.T) {
 	if catalog.SchemaVersion != FreeStateObservationCatalogSchema || catalog.Boundary != "semantic_views_only" {
 		t.Fatalf("catalog header = %+v", catalog)
 	}
-	if len(catalog.Views) != 18 {
+	if len(catalog.Views) != 19 {
 		t.Fatalf("catalog view count = %d", len(catalog.Views))
 	}
 	for _, view := range catalog.Views {

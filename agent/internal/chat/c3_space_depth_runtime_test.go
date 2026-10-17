@@ -100,6 +100,7 @@ func TestC3ReadOnlyToolWhitelistHasNoWriteCommands(t *testing.T) {
 		"mix_apply_static_balance_batch", "mix_apply_pan_layout_batch", "mix_rollback_tick",
 		"track.apply_control", "set_transport", "clip.gain.set_batch", "clip.fade.set",
 		"remove_track", "add_track", "set_fader", "set_project_key", "set_project_style_note",
+		"track.send.connect", "track.send.set_amount", "track.send.disconnect", "track.send.set_fx_role",
 	}
 	for _, command := range writeCommands {
 		if c3ReadOnlyTools[command] {
@@ -115,7 +116,7 @@ func TestC3ReadOnlyToolWhitelistHasNoWriteCommands(t *testing.T) {
 			}
 		}
 	}
-	if len(c3ReadOnlyTools) != 2 {
+	if len(c3ReadOnlyTools) != 3 {
 		t.Fatalf("C3 白名单=%v（改动需同步只读性契约测试与卡面声明）", c3ReadOnlyTools)
 	}
 }

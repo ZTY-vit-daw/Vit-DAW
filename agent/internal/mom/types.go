@@ -53,6 +53,7 @@ type Projection struct {
 	ProjectMixProfile       ProjectMixProfile        `json:"project_mix_profile"`
 	MultitrackRelation      MultitrackRelation       `json:"multitrack_relation"`
 	StaticLevelRelationship *StaticLevelRelationship `json:"static_level_relationship,omitempty"`
+	SendTopology            *SendTopology            `json:"send_topology,omitempty"`
 	FrequencyRelationship   *FrequencyRelationship   `json:"frequency_relationship,omitempty"`
 	MaskingRelationship     *MaskingRelationship     `json:"masking_relationship,omitempty"`
 	Layers                  Layers                   `json:"layers"`
