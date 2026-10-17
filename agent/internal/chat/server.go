@@ -44,6 +44,7 @@ import (
 	"vit-daw-agent/internal/planner"
 	"vit-daw-agent/internal/policy"
 	"vit-daw-agent/internal/processorattestation"
+	"vit-daw-agent/internal/processorregistry"
 	"vit-daw-agent/internal/projectworkspace"
 	"vit-daw-agent/internal/promptruntime"
 	"vit-daw-agent/internal/pullharness"
@@ -576,6 +577,68 @@ func New(kernelClient *kernel.Client, shadowProject *shadow.Project, logger *log
 		}
 	}
 	return server
+}
+
+// seedNativeProcessorAdmissions seeds the permanent load-only v2 attestation
+// for every native family declared in the processor registry (GENSHELL-PCA-1
+// 方案 B). The product host runs it once from Start, so test and embedded
+// Server constructions never touch the real attestation store. Steady-state
+// restarts are zero-write (a promoted record with the current bundle
+// fingerprint short-circuits the seed); a missing bundle or store failure is
+// an environment state that warns and never blocks agent startup.
+func (s *Server) seedNativeProcessorAdmissions() {
+	if s == nil {
+		return
+	}
+	registry, err := processorregistry.Default()
+	if err != nil {
+		if s.logger != nil {
+			s.logger.Warn("[pca-native-seed] processor registry unavailable: %v", err)
+		}
+		return
+	}
+	store, err := processorattestation.NewStoreV2("")
+	if err != nil {
+		if s.logger != nil {
+			s.logger.Warn("[pca-native-seed] PCA v2 store unavailable: %v", err)
+		}
+		return
+	}
+	for _, entry := range registry.NativeSeeds() {
+		bundlePath := expandNativeSeedBundlePath(entry.Fact.BundlePath)
+		result, seedErr := processorattestation.SeedNativeLoadOnly(store, processorattestation.NativeSeedSpec{
+			ProcessorFamily: entry.Family,
+			BundlePath:      bundlePath,
+			Identifier:      entry.Fact.Identifier,
+			Name:            entry.Fact.Name,
+			Manufacturer:    entry.Fact.Manufacturer,
+			Format:          entry.Fact.Format,
+		}, time.Now().UTC())
+		if seedErr != nil {
+			if s.logger != nil {
+				s.logger.Warn("[pca-native-seed] family=%s bundle=%s seed failed: %v", entry.Family, bundlePath, seedErr)
+			}
+			continue
+		}
+		if s.logger != nil {
+			s.logger.Info("[pca-native-seed] family=%s identifier=%s seeded=%t attestation=%s fingerprint=%s", entry.Family, entry.Fact.Identifier, result.Seeded, result.Attestation.AttestationID, result.Attestation.BinaryFingerprint)
+		}
+	}
+}
+
+// expandNativeSeedBundlePath expands a leading "~" of a registry-declared
+// bundle path against the user home. No other shell syntax is supported; an
+// unexpandable path is returned as-is so the seed reports the concrete error.
+func expandNativeSeedBundlePath(path string) string {
+	if path == "~" || strings.HasPrefix(path, "~/") {
+		if home, err := os.UserHomeDir(); err == nil {
+			if path == "~" {
+				return home
+			}
+			return filepath.Join(home, path[2:])
+		}
+	}
+	return path
 }
 
 func (s *Server) HandleKernelTelemetry(event map[string]any) {

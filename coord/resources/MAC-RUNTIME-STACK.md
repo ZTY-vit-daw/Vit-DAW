@@ -6,7 +6,8 @@
 
 ## 当前占用
 
-- 状态：空闲
+- 状态：占用中
+- 2026-10-17 21:55 +0800 起 / GENSHELL-AGENT-1（池序 97；GLM-5.3 L2 Mac 执行侧 ZCode 会话；worktree Vit-DAW-genshell3 @ port/genshell-agent-1）：`gen_shell_agent_smoke_mac.sh` 真栈烟测（VitApp 内核 5555/5556/5557 + vitagent 7878 + 本地回环 provider 模拟器，无 Godot）。占用前亲核 5555/5556/5557/7878 监听=0、无 VitApp/vitagent 进程（记录空闲属实）。
 
 ## 最近一次释放
 

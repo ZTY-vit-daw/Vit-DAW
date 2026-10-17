@@ -26,6 +26,22 @@ type Definition struct {
 	ReceiptProjector string                                     `json:"receipt_projector"`
 	ObservationViews []string                                   `json:"observation_views"`
 	InspectOnly      bool                                       `json:"inspect_only"`
+	// NativeSeed declares the shipped first-party bundle behind a native
+	// load-only family (GENSHELL-PCA-1 方案 B). Its presence marks the family
+	// as native: agent startup idempotently seeds a permanent load-only v2
+	// attestation from these registration facts, bound to the bundle
+	// fingerprint. BundlePath may carry a leading "~" that the consumer
+	// expands against the user home; no other shell syntax is promised.
+	NativeSeed *NativeSeedFact `json:"native_seed,omitempty"`
+}
+
+// NativeSeedFact is the data-only registration fact for one native bundle.
+type NativeSeedFact struct {
+	BundlePath   string `json:"bundle_path"`
+	Identifier   string `json:"identifier"`
+	Name         string `json:"name"`
+	Manufacturer string `json:"manufacturer"`
+	Format       string `json:"format"`
 }
 
 type Registry struct{ definitions map[string]Definition }
@@ -61,6 +77,18 @@ func (r *Registry) Register(definition Definition) error {
 	if definition.Family == processorintent.FamilySpectralDynamics || definition.Family == processorintent.FamilyClipper {
 		if !definition.InspectOnly {
 			return fmt.Errorf("boundary family %s must be inspect_only", definition.Family)
+		}
+	}
+	if definition.NativeSeed != nil {
+		// A native seed is the permanent load admission for a shipped bundle:
+		// it is only meaningful for a load-only PCA family whose typed
+		// coverage vocabulary is the empty set. Typed families keep their
+		// evidence-driven certification path unchanged.
+		if len(processorattestation.V2CoverageAxes(definition.PCAFamily)) != 0 {
+			return fmt.Errorf("processor family %s declares a native seed but PCA family %s has a typed coverage vocabulary", definition.Family, definition.PCAFamily)
+		}
+		if strings.TrimSpace(definition.NativeSeed.BundlePath) == "" || strings.TrimSpace(definition.NativeSeed.Identifier) == "" || strings.TrimSpace(definition.NativeSeed.Name) == "" || strings.TrimSpace(definition.NativeSeed.Format) == "" {
+			return fmt.Errorf("native seed for processor family %s requires bundle_path, identifier, name, and format", definition.Family)
 		}
 	}
 	if definition.Family != processorintent.FamilySpectralDynamics && definition.Family != processorintent.FamilyClipper && definition.InspectOnly {
@@ -121,10 +149,38 @@ func (r *Registry) List() []Definition {
 		definition.CoverageVocabulary = append([]string(nil), definition.CoverageVocabulary...)
 		definition.ObservationViews = append([]string(nil), definition.ObservationViews...)
 		definition.CoverageProofs = normalizeCoverageProofs(definition.CoverageProofs)
+		if definition.NativeSeed != nil {
+			fact := *definition.NativeSeed
+			definition.NativeSeed = &fact
+		}
 		out = append(out, definition)
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i].Family < out[j].Family })
 	return out
+}
+
+// NativeSeeds returns the registration facts of every native load-only
+// family, ordered by family. Each entry pairs the fact with its family so the
+// consumer can seed one attestation per declaration without re-resolving.
+func (r *Registry) NativeSeeds() []NativeSeedEntry {
+	if r == nil {
+		return nil
+	}
+	out := make([]NativeSeedEntry, 0, len(r.definitions))
+	for family, definition := range r.definitions {
+		if definition.NativeSeed == nil {
+			continue
+		}
+		out = append(out, NativeSeedEntry{Family: family, Fact: *definition.NativeSeed})
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].Family < out[j].Family })
+	return out
+}
+
+// NativeSeedEntry is one registry declaration pair for seeding.
+type NativeSeedEntry struct {
+	Family string
+	Fact   NativeSeedFact
 }
 
 func (r *Registry) ValidateCoverage(family string, coverage []string) error {
@@ -202,6 +258,23 @@ func Default() (*Registry, error) {
 		Definition{Family: processorintent.FamilyReverb, PCAFamily: processorattestation.FamilyReverb, Recognizer: "plugingrabber.reverb_topology", CoverageVocabulary: append(processorattestation.V2CoverageAxes(processorattestation.FamilyReverb), "decay", "size", "pre_delay", "damping", "width", "reverb_mode", "output_gain", "mix", "wet", "dry"), CoverageProofs: v2SemanticCoverageProofs(processorattestation.FamilyReverb, map[string]string{"decay": "decay_time", "size": "decay_time", "pre_delay": "pre_delay", "damping": "spatial_mode", "reverb_mode": "spatial_mode", "output_gain": "output_normalization", "mix": "wet_balance", "wet": "wet_balance", "dry": "wet_balance"}), Planner: "semantic_reverb", Materializer: "reverb_materializer", TypedExecutor: "plugin_grabber.apply_reverb_controls", ReceiptProjector: "reverb_receipt", ObservationViews: []string{"mix.multitrack_relationship"}},
 		Definition{Family: processorintent.FamilyDelay, PCAFamily: processorattestation.FamilyDelay, Recognizer: "plugingrabber.delay_topology", CoverageVocabulary: append(processorattestation.V2CoverageAxes(processorattestation.FamilyDelay), "time", "sync", "feedback", "ping_pong", "delay_mode", "output_gain", "mix", "wet", "dry"), CoverageProofs: v2SemanticCoverageProofs(processorattestation.FamilyDelay, map[string]string{"time": "echo_time", "sync": "echo_time", "feedback": "feedback_amount", "ping_pong": "spatial_mode", "delay_mode": "spatial_mode", "output_gain": "output_normalization", "mix": "wet_balance", "wet": "wet_balance", "dry": "wet_balance"}), Planner: "semantic_delay", Materializer: "delay_materializer", TypedExecutor: "plugin_grabber.apply_delay_controls", ReceiptProjector: "delay_receipt", ObservationViews: []string{"mix.multitrack_relationship"}},
 		Definition{Family: processorintent.FamilyMultibandDynamics, PCAFamily: processorattestation.FamilyMultiband, Recognizer: "plugingrabber.multiband_topology", CoverageVocabulary: append(processorattestation.V2CoverageAxes(processorattestation.FamilyMultiband), "threshold", "range", "ratio", "attack", "hold", "release", "crossover", "frequency_focus", "output_gain", "mix"), CoverageProofs: v2SemanticCoverageProofs(processorattestation.FamilyMultiband, map[string]string{"threshold": "band_dynamics", "range": "band_dynamics", "ratio": "band_dynamics", "attack": "band_timing", "hold": "band_timing", "release": "band_timing", "crossover": "crossover_layout", "frequency_focus": "detector_focus", "output_gain": "output_normalization", "mix": "parallel_balance"}), Planner: "semantic_multiband", Materializer: "multiband_materializer", TypedExecutor: "plugin_grabber.apply_multiband_controls", ReceiptProjector: "multiband_receipt", ObservationViews: []string{"track.band_dynamics"}},
+		// GENSHELL-PCA-1: generation_shell is a load-admission-only family
+		// (件四 §2). The semantic vocabulary is the single marker "load_only"
+		// and the PCA coverage vocabulary v1 is the empty set, so this row
+		// deliberately registers no CoverageProofs: typed control routing
+		// fail-closes (PCARequiredCoverage errors on the missing proof). The
+		// shell's control verb is the generation job, carried by the job/audit
+		// face, not by parameter writes. ObservationViews keeps the historical
+		// project relation view — the shell's dedicated generation-jobs
+		// observation surface is the shell line's later scope, not this row.
+		Definition{Family: processorintent.FamilyGenerationShell, PCAFamily: processorattestation.FamilyGenerationShell, Recognizer: "genshell.instrument_identity", CoverageVocabulary: []string{"load_only"}, Planner: "load_admission", Materializer: "none", TypedExecutor: "none", ReceiptProjector: "generation_job_audit", ObservationViews: []string{"mix.multitrack_relationship"},
+			// GENSHELL-PCA-1 方案 B: the shell is a shipped first-party
+			// bundle, so its load admission is the code-level registration
+			// fact itself — agent startup seeds the permanent v2 attestation
+			// from this declaration, bound to the deployed bundle
+			// fingerprint. The identifier matches the kernel enumeration
+			// identity of the fixed processor FUID.
+			NativeSeed: &NativeSeedFact{BundlePath: "~/Library/Audio/Plug-Ins/VST3/GenShell.vst3", Identifier: "VST3-GenShell-15b5622d-b818da1c", Name: "GenShell", Manufacturer: "Vit Audio", Format: "VST3"}},
 		Definition{Family: processorintent.FamilySpectralDynamics, PCAFamily: "inspect_only", Recognizer: "plugingrabber.spectral_dynamics_topology", CoverageVocabulary: []string{"inspect_only"}, Planner: "inspect_only", Materializer: "none", TypedExecutor: "none", ReceiptProjector: "spectral_dynamics_receipt", ObservationViews: []string{"track.frequency_time_events"}, InspectOnly: true},
 		Definition{Family: processorintent.FamilyClipper, PCAFamily: "inspect_only", Recognizer: "plugingrabber.clipper_boundary", CoverageVocabulary: []string{"inspect_only"}, Planner: "inspect_only", Materializer: "none", TypedExecutor: "none", ReceiptProjector: "clipper_boundary_receipt", ObservationViews: []string{"track.peak_structure"}, InspectOnly: true},
 	)

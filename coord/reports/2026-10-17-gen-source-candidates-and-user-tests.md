@@ -57,3 +57,11 @@
 **手测清单修正（第二节第 2 项）**：MiniMax 项加实测步骤——注册开放平台→确认音乐 API 新用户可开性；**不可开即转 fal.ai**（$10 充值，playground 横测 MiniMax Music 2.6/ACE-Step/Sonauto 等，一次覆盖大部分 API 型候选）。其余项不变。
 
 搜索证据（第二轮）：platform.minimax.io/docs/api-reference/music-generation（8/20 新用户关闭条款+HF 开源 Music 3）；fal.ai/explore/text-to-music-apis（聚合阵容与定价）；TeamDay 2026-09 评（"Suno 无官方 API，第三方皆非官方包装，勿在其上建产品"）；Billboard（Suno×WMG）/BMG 2026-08 行业授权；fal.ai/learn 2026-03（fal 官方音乐模型阵容=MiniMax/ACE-Step/Sonauto，无 Suno）。
+
+## 五、通道优先级终裁（2026-10-17 第三轮，覆盖 §四建议）
+
+用户裁定**网页侧为主路线**（[decisions/2026-10-17-gen-web-first.md](../decisions/2026-10-17-gen-web-first.md)）——§四"API 为主、网页兜底"建议被推翻：必有网页=商业存续性最硬（API 说关就关，MiniMax 8/20 实证）；主流程解耦论证成立（Vit 机架输入→网页产出→下载导入，对面复杂度封在 profile 层）。架构=平台化边车引擎（通用流程）+薄站点 profile（五槽位：认证/提交/轮询/下载/风控）；API provider 降并行通道保留。三工程约束入设计件：profile 非零工作量/契约自检腿/低频拟人节流默认。
+
+## 六、Suno 原型路线图（2026-10-17 第四轮裁定，终版）
+
+暂缓外部 API 对接、全力网页端（内部 API 抽象保留——边车以 provider 形态接入，GenShell 全链零改动）。双线：A=AGENT-1（97，修订增 gen_shell.submit 对话流提交工具，模拟器烟测不等订阅）→GUI/AUDITION；B=用户开通 Suno 订阅→131 真会话腿→设计定稿（平台化引擎+profile 五槽位）→边车实现卡；合流=provider 指向边车=Suno 真源端到端，REALVERIFY-1 意图吸收销账。用户行动=直接开通 Suno 订阅（清单第 1/2 项可跳过）。

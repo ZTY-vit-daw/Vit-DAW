@@ -1,0 +1,10 @@
+run_id=genshell_pca_mac_20261016-231931
+started_at=2026-10-16 23:19:31
+repo_head=4d7792368ae991aae75346f34e623c4a26195c30
+repo_dirty=7
+kernel_bin=/Users/timozty/Documents/Vit-DAW/VitApp/build/VitApp_artefacts/Debug/VitApp
+kernel_sha256=8624fe9e162fe7b65ddb5e1fd55c23621020fa11c7b86d961b56944aadcdbe96
+kernel_mtime=Oct  2 11:04:50 2026
+vst3_bundle=/Users/timozty/Library/Audio/Plug-Ins/VST3/GenShell.vst3
+vst3_bundle_binary_sha256=fbc578c7e627468263f77ef51ace756fc8ed20ff8e6abaa99b7f3d9617161dbe
+legs=A,B,C,D,E

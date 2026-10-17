@@ -22,6 +22,11 @@ const (
 	FamilyMultiband     = "multiband_dynamics"
 	FamilyReverb        = "reverb"
 	FamilyDelay         = "delay"
+	// GENSHELL-PCA-1: the generation shell family (件四 §2). Its coverage
+	// vocabulary v1 is the empty set — admission is load-level only, with no
+	// typed control promise — so an attestation for it carries zero coverage
+	// entries and every typed control axis is rejected.
+	FamilyGenerationShell = "generation_shell"
 )
 
 type LibraryV2 struct {
@@ -81,6 +86,11 @@ var v2CoverageAxes = map[string][]string{
 	FamilyMultiband:    {"band_dynamics", "band_timing", "crossover_layout", "detector_focus", "output_normalization", "parallel_balance"},
 	FamilyReverb:       {"decay_time", "output_normalization", "pre_delay", "spatial_mode", "wet_balance"},
 	FamilyDelay:        {"echo_time", "feedback_amount", "output_normalization", "spatial_mode", "wet_balance"},
+	// GENSHELL-PCA-1: load-admission-only family. The empty axis list is the
+	// contract: IsV2Family admits the family to the store and admission
+	// queries, while ValidateV2Coverage rejects every typed axis and issued
+	// attestations carry zero coverage entries.
+	FamilyGenerationShell: {},
 }
 
 // V2CoverageAxes returns a sorted copy of the public action-only vocabulary.
@@ -357,7 +367,12 @@ func validateIssueSpecV2(spec IssueSpecV2) error {
 	if !IsV2Family(spec.ProcessorFamily) {
 		return fmt.Errorf("processor attestation v2: unsupported processor family %q", spec.ProcessorFamily)
 	}
-	if len(spec.Coverage) == 0 {
+	// GENSHELL-PCA-1: a family whose coverage vocabulary is the empty set
+	// (load-admission-only, e.g. generation_shell) issues with zero coverage
+	// entries; families with a non-empty vocabulary still require coverage,
+	// and any coverage entry on a zero-axis family is rejected by
+	// ValidateV2Coverage below.
+	if len(spec.Coverage) == 0 && len(v2CoverageAxes[spec.ProcessorFamily]) > 0 {
 		return fmt.Errorf("processor attestation v2: coverage is required")
 	}
 	for _, coverage := range spec.Coverage {
