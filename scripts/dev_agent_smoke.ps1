@@ -26,6 +26,14 @@ param(
     # save/reload 往返+clear_project/undo/redo 往返正例；断言体在
     # scripts/settempo_persist_smoke.py，内核 ZMQ 命令面直连）。
     [switch]$SetTempoPersistSmoke,
+    # KERNEL-SENDROUTE-IMPL-1：send/return 轨间路由命令面烟测（设计件
+    # MIX-SENDRETURN-DESIGN-1 §5 场景 1 的端侧版；断言体在
+    # scripts/sendroute_kernel_smoke.py，内核 ZMQ 命令面直连）。腿：
+    # connect auto_create→track.send.list 读回核对→渲染断言湿分量（440/880
+    # Goertzel，湿回注双目标=2.0x 特征值）→disconnect→list 归零→渲染对照回
+    # 1.0x；防环闸 1 拒绝（FX 作源/自环/源轨作 FX 目标）+auto_create 幂等/
+    # 重名序号/单次 undo 全撤。腿只需内核栈在 -StartKernel 后可用。
+    [switch]$SendRouteSmoke,
     # VITNOTE-IMPL-4：工程级写租约并发场景（双 chat 各触发一次 B2 能力执行，
     # 双 approve 并发入栈——断言两执行段租约区间不重叠且后来者真实排队；
     # 证据=VIT_WRITE_LEASE_EVENTS_PATH JSONL 工件时间戳）。
@@ -6877,6 +6885,39 @@ if ($SetTempoPersistSmoke) {
         throw ("settempo persist smoke passed but summary artifact missing: " + $settempoSummaryPath)
     }
     Write-Ok ("settempo persist smoke passed (kernel command face; summary: " + $settempoSummaryPath + ")")
+}
+
+if ($SendRouteSmoke) {
+    Write-Step "sendroute kernel smoke (KERNEL-SENDROUTE-IMPL-1)"
+    # send/return 轨间路由命令面腿（设计件 §5 场景 1）：断言体在
+    # scripts/sendroute_kernel_smoke.py，内核 ZMQ 命令面直连
+    # （形态=settempo_persist_smoke.py）。腿：connect auto_create→list 读回
+    # 核对→渲染断言湿分量（Goertzel 2.0x 特征值）→disconnect→list 归零→
+    # 渲染对照 1.0x；防环拒绝+幂等+重名序号+单次 undo 全撤。只需内核栈在
+    # -StartKernel 后可用；不依赖 agent HTTP 面。
+    $sendRouteSmokeScript = Join-Path $RepoRoot "scripts\sendroute_kernel_smoke.py"
+    if (-not (Test-Path -LiteralPath $sendRouteSmokeScript)) {
+        throw ("sendroute kernel smoke script missing: " + $sendRouteSmokeScript)
+    }
+    $sendRouteArtifactsDir = $RunArtifactsDir
+    if ([string]::IsNullOrWhiteSpace($sendRouteArtifactsDir)) {
+        $sendRouteArtifactsDir = Join-Path $RepoRoot ("VitApp\Workspace\Artifacts\smoke\sendroute_" + (Get-Date -Format "yyyyMMdd_HHmmss"))
+    }
+    if (-not (Test-Path -LiteralPath $sendRouteArtifactsDir)) {
+        New-Item -ItemType Directory -Path $sendRouteArtifactsDir -Force | Out-Null
+    }
+    $sendRouteSummaryPath = Join-Path $sendRouteArtifactsDir "sendroute_kernel_smoke_summary.json"
+    $sendRouteConsolePath = Join-Path $sendRouteArtifactsDir "sendroute_kernel_smoke_console.txt"
+    & python $sendRouteSmokeScript --url ("tcp://127.0.0.1:" + $ZmqReqPort) --output $sendRouteSummaryPath > $sendRouteConsolePath 2>&1
+    $sendRouteExit = $LASTEXITCODE
+    Get-Content -LiteralPath $sendRouteConsolePath | ForEach-Object { Write-Host $_ }
+    if ($sendRouteExit -ne 0) {
+        throw ("sendroute kernel smoke failed with exit code $sendRouteExit (console: " + $sendRouteConsolePath + ")")
+    }
+    if (-not (Test-Path -LiteralPath $sendRouteSummaryPath)) {
+        throw ("sendroute kernel smoke passed but summary artifact missing: " + $sendRouteSummaryPath)
+    }
+    Write-Ok ("sendroute kernel smoke passed (kernel command face; summary: " + $sendRouteSummaryPath + ")")
 }
 
 if (-not $NoChatSmoke) {

@@ -202,6 +202,27 @@ if(EXISTS "${VIT_TRACKTION_ENGINE_DIR}/CMakeLists.txt")
         juce::juce_audio_utils
         juce::juce_recommended_config_flags)
     add_test(NAME VitRefSchemaTests COMMAND VitRefSchemaTests)
+
+    # KERNEL-SENDROUTE-IMPL-1: send/return inter-track routing — command face
+    # (5 commands, bus allocator, anti-loop gates, auto-create transaction,
+    # fail-open compatibility) plus the five audio legs inherited from the
+    # AuxMultiReturnProbe evidence. Tracktion-linked like the watchdog tests.
+    juce_add_console_app(VitSendRouteTests PRODUCT_NAME "VitSendRouteTests")
+    juce_generate_juce_header(VitSendRouteTests)
+    target_sources(VitSendRouteTests PRIVATE
+        SendRouteTests.cpp
+        ../Source/Service/SendRouteService.cpp
+        ../Source/Service/SendRouteService.h)
+    target_compile_features(VitSendRouteTests PRIVATE cxx_std_20)
+    target_include_directories(VitSendRouteTests PRIVATE ../Source)
+    target_compile_definitions(VitSendRouteTests PRIVATE JUCE_USE_CURL=0 JUCE_WEB_BROWSER=0)
+    target_link_libraries(VitSendRouteTests PRIVATE
+        tracktion::tracktion_core
+        tracktion::tracktion_engine
+        tracktion::tracktion_graph
+        juce::juce_audio_utils
+        juce::juce_recommended_config_flags)
+    add_test(NAME VitSendRouteTests COMMAND VitSendRouteTests)
 else()
     message(FATAL_ERROR
         "Tracktion Engine not found. Set -DVIT_TRACKTION_ENGINE_DIR=<path> to a populated Tracktion Engine checkout.")
@@ -230,6 +251,9 @@ if(MSVC)
     if(TARGET VitRefSchemaTests)
         target_compile_options(VitRefSchemaTests PRIVATE /W4 /permissive-)
     endif()
+    if(TARGET VitSendRouteTests)
+        target_compile_options(VitSendRouteTests PRIVATE /W4 /permissive-)
+    endif()
 else()
     target_compile_options(VitAuditionPreviewStateTests PRIVATE -Wall -Wextra -Wpedantic)
     target_compile_options(VitWorkingCopyPersistPolicyTests PRIVATE -Wall -Wextra -Wpedantic)
@@ -252,6 +276,9 @@ else()
     endif()
     if(TARGET VitRefSchemaTests)
         target_compile_options(VitRefSchemaTests PRIVATE -Wall -Wextra -Wpedantic)
+    endif()
+    if(TARGET VitSendRouteTests)
+        target_compile_options(VitSendRouteTests PRIVATE -Wall -Wextra -Wpedantic)
     endif()
 endif()
 

@@ -1,0 +1,47 @@
+{
+  "feature": "sendroute_kernel_smoke",
+  "started_utc": "2026-10-17T12:48:56.452695+00:00",
+  "url": "tcp://127.0.0.1:5555",
+  "legs": [
+    {
+      "r440": 0.19946631634214346,
+      "r880": 0.19941875985660062,
+      "leg": "setup",
+      "pass": true
+    },
+    {
+      "fx_id": "1050",
+      "fx_name": "Smoke FX Bus 204857",
+      "leg": "connect",
+      "pass": true
+    },
+    {
+      "leg": "rejections",
+      "pass": true
+    },
+    {
+      "leg": "idempotency",
+      "pass": true
+    },
+    {
+      "amp440": 0.39893430608139574,
+      "amp880": 0.3988392172175203,
+      "ratio440": 2.0000083893718976,
+      "ratio880": 2.000008512259931,
+      "leg": "wet_render",
+      "pass": true
+    },
+    {
+      "leg": "undo_atomicity",
+      "pass": true
+    },
+    {
+      "amp440": 0.19946631634214346,
+      "amp880": 0.19941875985660062,
+      "leg": "disconnect",
+      "pass": true
+    }
+  ],
+  "pass": true,
+  "finished_utc": "2026-10-17T12:49:00.026727+00:00"
+}

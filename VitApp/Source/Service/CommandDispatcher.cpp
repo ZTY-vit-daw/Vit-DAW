@@ -11,6 +11,7 @@
 #include "ProjectMarkerService.h"
 #include "ProjectService.h"
 #include "PluginRackControlService.h"
+#include "SendRouteService.h"
 #include "PluginLoadState.h"
 #include "TrackGroupService.h"
 #include "TiledSpectrogramBaker.h"
@@ -2301,6 +2302,7 @@ CommandDispatcher::CommandDispatcher (EditGetter editGetter,
     midiService = std::make_unique<MidiService> (getEdit);
     transportAudioService = std::make_unique<TransportAudioService> (getEdit, autoPersist, production);
     pluginRackControlService = std::make_unique<PluginRackControlService> (getEdit, autoPersist, getCurrentProjectPath, engine);
+    sendRouteService = std::make_unique<SendRouteService> (getEdit, autoPersist);
     auditionPreviewService = std::make_unique<AuditionPreviewService> (engine, getEdit, publishMessage);
     registerBuiltinCommands();
 }
@@ -2396,6 +2398,8 @@ juce::String CommandDispatcher::dispatch (const juce::var& command, const juce::
             "audition.stop",
             "audition.inspect_candidate",
             "audition.apply_candidate",
+            "track.send.list",
+            "track_send_list",
         };
 
         if (renderAllowlist.find (cmd.toStdString()) == renderAllowlist.end())
@@ -2405,6 +2409,18 @@ juce::String CommandDispatcher::dispatch (const juce::var& command, const juce::
     if (const auto it = handlers.find (cmd.toStdString()); it != handlers.end())
     {
         auto result = it->second (*object, rawPayload);
+
+        // KERNEL-SENDROUTE-IMPL-1: rack mutations insert or move RackInstances
+        // at the first monitoring index, which can land after an FX track's
+        // wet SendOut. Re-assert the FX chain order (AuxReturn head / rack /
+        // SendOut / volume) inside the same undo transaction before replying.
+        if (sendRouteService != nullptr && result.contains ("\"status\":\"ok\"")
+            && (cmd == "rack_add_node" || cmd == "delete_plugin" || cmd == "move_plugin"))
+        {
+            if (auto* editForSendRoute = getEdit != nullptr ? getEdit() : nullptr)
+                sendRouteService->normaliseFxChainsForEdit (*editForSendRoute);
+        }
+
         juce::Logger::writeToLog ("Command executed: " + cmd + ", result: " + result);
         return result;
     }
@@ -3416,6 +3432,68 @@ void CommandDispatcher::registerBuiltinCommands()
     {
         return pluginRackControlService != nullptr ? pluginRackControlService->handleRackRemoveConnection (object, raw)
                                              : makeErrorReply ("Plugin/rack/control service unavailable");
+    });
+
+    // KERNEL-SENDROUTE-IMPL-1: send/return inter-track routing command family
+    // (dotted canonical + underscore alias, mirroring the track.group pattern).
+    handlers.emplace ("track.send.connect", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return sendRouteService != nullptr ? sendRouteService->handleConnect (object, raw)
+                                           : makeErrorReply ("Send route service unavailable");
+    });
+
+    handlers.emplace ("track_send_connect", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return sendRouteService != nullptr ? sendRouteService->handleConnect (object, raw)
+                                           : makeErrorReply ("Send route service unavailable");
+    });
+
+    handlers.emplace ("track.send.set_amount", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return sendRouteService != nullptr ? sendRouteService->handleSetAmount (object, raw)
+                                           : makeErrorReply ("Send route service unavailable");
+    });
+
+    handlers.emplace ("track_send_set_amount", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return sendRouteService != nullptr ? sendRouteService->handleSetAmount (object, raw)
+                                           : makeErrorReply ("Send route service unavailable");
+    });
+
+    handlers.emplace ("track.send.disconnect", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return sendRouteService != nullptr ? sendRouteService->handleDisconnect (object, raw)
+                                           : makeErrorReply ("Send route service unavailable");
+    });
+
+    handlers.emplace ("track_send_disconnect", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return sendRouteService != nullptr ? sendRouteService->handleDisconnect (object, raw)
+                                           : makeErrorReply ("Send route service unavailable");
+    });
+
+    handlers.emplace ("track.send.list", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return sendRouteService != nullptr ? sendRouteService->handleList (object, raw)
+                                           : makeErrorReply ("Send route service unavailable");
+    });
+
+    handlers.emplace ("track_send_list", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return sendRouteService != nullptr ? sendRouteService->handleList (object, raw)
+                                           : makeErrorReply ("Send route service unavailable");
+    });
+
+    handlers.emplace ("track.send.set_fx_role", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return sendRouteService != nullptr ? sendRouteService->handleSetFxRole (object, raw)
+                                           : makeErrorReply ("Send route service unavailable");
+    });
+
+    handlers.emplace ("track_send_set_fx_role", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return sendRouteService != nullptr ? sendRouteService->handleSetFxRole (object, raw)
+                                           : makeErrorReply ("Send route service unavailable");
     });
 
     handlers.emplace ("arm_track", [this] (const juce::DynamicObject& object, const juce::String& raw)
