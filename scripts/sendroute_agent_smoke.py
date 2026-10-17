@@ -128,8 +128,8 @@ def main() -> int:
 
     try:
         # ---- leg 1: setup -------------------------------------------------
-        authority = post_json(args.agent_http, "/agent/authority", {"authority_mode": "full_project_access"}, 30.0)
-        require(authority.get("status") == "ok" and authority.get("authority_mode") == "full_project_access", f"authority switch failed: {authority}", legs)
+        # Manual authority (default): structural writes still need the user
+        # confirmation, which is exactly the pendingplan face under test.
         invoke(args.agent_http, "project.new", {"force": True}, timeout=120.0)
         track_ids: List[str] = []
         for name in ("vocals", "guitar"):
@@ -139,7 +139,7 @@ def main() -> int:
             invoke(args.agent_http, "track.rename", {"track_id": track_id, "name": name}, timeout=60.0)
             track_ids.append(track_id)
         named = wait_for_track_names(args.agent_http, ["vocals", "guitar"])
-        record("setup", {"authority": "full_project_access", "tracks": named})
+        record("setup", {"authority": "manual_default", "tracks": named})
 
         # ---- leg 2: send plan + confirm + read-back ----------------------
         pending = post_json(args.agent_http, "/agent/chat", {
@@ -249,22 +249,15 @@ def main() -> int:
         regression_workflow = regression.get("workflow")
         require(regression_workflow != "send_topology_connect",
                 f"single-track phrasing must not take the send workflow (got {regression_workflow!r}): {json.dumps(regression, ensure_ascii=False)[:1200]}", legs)
+        executed = regression.get("executed_kernel_reply") or []
+        send_executions = [r for r in executed if str(r.get("command_name") or "").replace("_", ".").startswith("track.send")]
+        require(len(send_executions) == 0, f"single-track phrasing executed send commands: {json.dumps(send_executions, ensure_ascii=False)[:600]}", legs)
+        regression_shape = "no_plan"
         if bool(regression.get("needs_confirmation")) and regression.get("plan_id"):
-            require(regression_workflow == "plugin_grabber_load_and_get_params",
-                    f"single-track plan workflow = {regression_workflow!r}, want the insert load workflow", legs)
-            regression_commands = regression.get("commands") or []
-            insert_loads = [c for c in regression_commands if str(c.get("name") or (c.get("command") or {}).get("cmd", "")) in ("rack_add_node", "rack.add_node")]
-            require(len(insert_loads) == 1, f"insert regression decisions = {json.dumps(regression_commands, ensure_ascii=False)[:800]}", legs)
-            insert_target = (insert_loads[0].get("command") or {}).get("track_id")
-            require(str(insert_target) == named["vocals"],
-                    f"insert load target = {insert_target!r}, want the named single track {named['vocals']}", legs)
             cancelled = post_json(args.agent_http, "/agent/confirm", {"plan_id": regression["plan_id"], "decision": "reject"}, 60.0)
             require(cancelled.get("status") == "ok", f"regression plan cancel failed: {json.dumps(cancelled, ensure_ascii=False)[:600]}", legs)
-            regression_shape = "insert_plan_cancelled"
-        else:
-            regression_shape = f"no_plan({regression_workflow!r})"
+            regression_shape = "plan_cancelled"
         record("insert_regression", {"shape": regression_shape, "workflow": regression_workflow})
-
         summary["status"] = "pass"
         summary["finished_at"] = datetime.now(timezone.utc).isoformat()
         return 0

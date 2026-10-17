@@ -177,6 +177,13 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 		if queueResp, queueHandled := s.handleMixWorkflowQueueChat(ctx, conversationID, mode, userText); queueHandled {
 			return queueResp, true
 		}
+	}	// AGENT-SENDROUTE-SEMANTICS-1: concrete send-structure requests (share
+	// phrasing plus >=2 named source tracks) are deterministic agent faces —
+	// intercept before semantic-entry classification, same posture as the mix
+	// workflow queue above, so the topology decision never depends on the
+	// classifier. The send plan itself still waits for user confirmation.
+	if sendReq, sendOK := s.coerceSendTopologyConnectRequest(ctx, userText, chatContext); sendOK {
+		return s.runSendTopologyConnectWorkflow(ctx, conversationID, userText, chatContext, sendReq), true
 	}
 	if durableInvocationID == "" && isContinueMessage(req.Message) {
 		if pending, ok := s.automaticContinuationForConversation(conversationID); ok {

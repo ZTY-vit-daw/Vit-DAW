@@ -40,6 +40,7 @@ param(
     # 验收边界：归一钩子路径 rack 装载到 FX 轨必经）；单轨话术仍 insert 回归。
     # 需要 -StartKernel 后的 agent HTTP+内核在栈（LLM chat 腿走真实模型）。
     [switch]$SendRouteAgentSmoke,
+    [switch]$SendRouteSmoke,
     # VITNOTE-IMPL-4：工程级写租约并发场景（双 chat 各触发一次 B2 能力执行，
     # 双 approve 并发入栈——断言两执行段租约区间不重叠且后来者真实排队；
     # 证据=VIT_WRITE_LEASE_EVENTS_PATH JSONL 工件时间戳）。
