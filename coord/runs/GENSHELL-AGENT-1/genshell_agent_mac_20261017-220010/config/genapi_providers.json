@@ -1,0 +1,16 @@
+{
+  "providers": [
+    {"id": "sim-fast", "dialect": "sync_binary", "base_url": "http://127.0.0.1:59497",
+     "generate_path": "/generate", "api_key": "", "model": "simulator/fast",
+     "download_dir": "/Users/timozty/Documents/vit-genshell-artifacts/agent/genshell_agent_mac_20261017-220010/cache/fast"},
+    {"id": "sim-multi", "dialect": "suno_relay", "base_url": "http://127.0.0.1:59497",
+     "api_key": "", "model": "chirp-v3-5", "poll_interval_seconds": 1, "timeout_seconds": 60,
+     "download_dir": "/Users/timozty/Documents/vit-genshell-artifacts/agent/genshell_agent_mac_20261017-220010/cache/multi"},
+    {"id": "sim-slow", "dialect": "sync_binary", "base_url": "http://127.0.0.1:59497",
+     "generate_path": "/generate_slow", "api_key": "", "model": "simulator/slow",
+     "download_dir": "/Users/timozty/Documents/vit-genshell-artifacts/agent/genshell_agent_mac_20261017-220010/cache/slow"},
+    {"id": "sim-broken", "dialect": "sync_json_url", "base_url": "http://127.0.0.1:59497",
+     "generate_path": "/v1/make", "api_key": "wrong-key-smoke-9f3a2b",
+     "download_dir": "/Users/timozty/Documents/vit-genshell-artifacts/agent/genshell_agent_mac_20261017-220010/cache/broken"}
+  ]
+}

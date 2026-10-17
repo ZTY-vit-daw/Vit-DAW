@@ -25,6 +25,7 @@ import (
 	"vit-daw-agent/internal/artifacts"
 	"vit-daw-agent/internal/browsercapture"
 	"vit-daw-agent/internal/com"
+	"vit-daw-agent/internal/genshell"
 	"vit-daw-agent/internal/history"
 	"vit-daw-agent/internal/journal"
 	"vit-daw-agent/internal/kernel"
@@ -85,6 +86,12 @@ type Harness struct {
 	materializeNotifier materialize.Notifier // MAT-B 三挂点物化侧入口（nil=现状逐字节一致）
 	materializeStore    *materialize.Store   // MAT-C 三态 flag 物化库（nil=off 零接线现状；shadow/on 影子轮旁路）
 	materializeMode     materialize.Mode     // MAT-E 三态记名（读端 consult 仅 on 装配；零值=off）
+
+	// Generation-shell execution leg (GENSHELL-AGENT-1): background queue
+	// runner over the kernel GenerationShellService. Constructed with the
+	// harness kernel face; started once by the product host (chat server
+	// Start) — tests/embedded callers that never Start get no goroutine.
+	genShell *genshell.Runner
 
 	// ref.query/ref.diff 工具面的查询引擎句柄（L1-3-IMPL-C）：按解析出的
 	// bootstrap 配置惰性构建并缓存，配置指纹变化（工程切换）即重建；每次
@@ -290,6 +297,10 @@ func newWithSender(sender KernelSender, shadowProject *shadow.Project, logger *l
 		journalOverride: journalPath != "",
 	}
 	h.initMaterialization() // MAT-C 三态 flag 装配（off=零接线现状）
+	h.genShell = genshell.NewRunner(func(ctx context.Context, command map[string]any) (map[string]any, error) {
+		reply, _, err := h.KernelSendCommand(ctx, command)
+		return reply, err
+	}, logger)
 	return h
 }
 
@@ -2672,6 +2683,18 @@ func (h *Harness) invokeLocal(ctx context.Context, spec tools.CommandSpec, cmd m
 		return resultWithErr(result, err), true
 	case "genapi_providers":
 		result, err := h.genProviders()
+		return resultWithErr(result, err), true
+	case "gen_shell_status":
+		result, err := h.genShellStatus()
+		return resultWithErr(result, err), true
+	case "gen_shell_start":
+		result, err := h.genShellStart()
+		return resultWithErr(result, err), true
+	case "gen_shell_stop":
+		result, err := h.genShellStop()
+		return resultWithErr(result, err), true
+	case "gen_shell_submit":
+		result, err := h.genShellSubmit(ctx, cmd)
 		return resultWithErr(result, err), true
 	case "mix_observe", "mix_request_observation":
 		result, err := h.requestMixObservation(ctx, cmd)

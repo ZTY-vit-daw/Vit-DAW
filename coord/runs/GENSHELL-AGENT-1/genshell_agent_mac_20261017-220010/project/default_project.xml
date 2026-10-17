@@ -1,0 +1,287 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<EDIT appVersion="Unknown" projectID="0/a696bc" creationTime="0" modifiedBy="VitHeadlessServer"
+      vit_project_uuid="vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb" lastSignificantChange="1a14a2a6510">
+  <TRANSPORT endToEnd="1" position="0.0" start="0.0" loopPoint1="0.0" loopPoint2="0.0"/>
+  <TEMPOSEQUENCE>
+    <TEMPO startBeat="0.0" bpm="96.0" curve="1.0"/>
+    <TIMESIG numerator="4" denominator="4" startBeat="0.0"/>
+  </TEMPOSEQUENCE>
+  <VIDEO/>
+  <CLICKTRACK level="0.6000000238418579"/>
+  <MASTERVOLUME>
+    <PLUGIN type="volume" id="1001" enabled="1" volume="1.0">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+  </MASTERVOLUME>
+  <RACKS>
+    <RACK id="1040" name="New Rack">
+      <WINDOWSTATE windowPos=""/>
+      <OUTPUT name="midi output"/>
+      <OUTPUT name="output 1 (left)"/>
+      <OUTPUT name="output 2 (right)"/>
+      <INPUT name="midi input"/>
+      <INPUT name="input 1 (left)"/>
+      <INPUT name="input 2 (right)"/>
+      <MODIFIERS/>
+      <MACROPARAMETERS id="1041" remapOnTempoChange="1"/>
+      <PLUGININSTANCE x="0.0" y="0.0" plugin_identifier="VST3-GenShell-15b5622d-b818da1c"
+                      vit_zone_id="Z2" vit_clip_scope="track" vit_template_role="instrument">
+        <PLUGIN type="vst" uniqueId="b818da1c" uid="949504f5" filename="/Users/timozty/Library/Audio/Plug-Ins/VST3/GenShell.vst3"
+                name="GenShell" manufacturer="Vit Audio" id="1043" enabled="1"
+                remapOnTempoChange="1" process="1" state="725.VMjLgvr....O+fWarAhckI2bo8la8HRLt.iHfTlai8FYo41Y8HRUTYTK3HxO9.BOVMEUy.Ea0cVZtMEcgQWY9vSRC8Vav8lak4Fc9HSL03hMIIEVvDkUZo2ZwDFc3rFVvjEaYsVRxbEdUwVVn4VdjglawDFZ3TkVpkDZNQWUGElb2gFR5UTLZsFNUokZIglSzU0QgIGLGsDZXESX3ASLWoVRWgEaQ0FR0H2UkIGRnoUcIEyUtsVLhoGNrIFMIglSgASQKglKWkEcQYkVzMVLWgWUVIFLUEiX50TaHUibUckbHgmXoUEagsFNUEVcQYUVn4VZH8FMwbkcIISXvUULXoWRBsDZLICVtUkUgcFNqM1ZIIiXugCagglaogTLqYzXzIlUYQWSGo0Z2YTXzwzQicVTWkEcXcESnYGZHkWUFE1ZMYzXqEULWoWUVElc2YEV5UEaHUCR3IVczDSVk0zUY0FLVkEcQIyUwTTZHgSPtvyKIMzasA2atUlaz4COIUDYoQ2Pu4Fcx8FarUlb9HSL03hMIIEVvDkUZo2ZwDFc3rFVvjEaYsVRxbEdUwVVn4VdjglawDFZ3TkVpkDZNQWUGElb2gFR5UTLZsFNUokZIglSzU0QgIGLGsDZXESX3ASLWoVRWgEaQ0FR0H2UkIGRnoUcIEyUtsVLhoGNrIFMIglSgASQKglKWkEcQYkVzMVLWgWUVIFLUEiX50TaHUibUckbHgmXoUEagsFNUEVcQYUVn4VZH8FMwbkcIISXvUULXoWRBsDZLICVtUkUgcFNqM1ZIIiXugCagglaogTLqYzXzIlUYQWSGo0Z2YTXzwzQicVTWkEcXcESnYGZHkWUFE1ZMYzXqEULWoWUVElc2YEV5UEaHUCR3IVczDSVk0zUY0FLVkEcQIyUwTTZHgSPtvyKIUDYoQ2Pu4Fcx8FarUlb9vyKVMEUy.Ea0cVZtMEcgQWY9.."
+                base64:layout="55.LETVOUEU..P.A7TUTAUUTME..DP.BU0T.Df.o4FYkgG.ATP......vVX48VczAP.ET.SfHE...">
+          <MODIFIERASSIGNMENTS/>
+        </PLUGIN>
+      </PLUGININSTANCE>
+      <CONNECTION src="1043" dst="0" srcPin="1" dstPin="1"/>
+      <CONNECTION src="1043" dst="0" srcPin="2" dstPin="2"/>
+      <CONNECTION src="0" dst="1043" srcPin="0" dstPin="0"/>
+      <CONNECTION src="1043" dst="0" srcPin="0" dstPin="0"/>
+    </RACK>
+  </RACKS>
+  <MASTERPLUGINS/>
+  <INPUTDEVICES>
+    <INPUTDEVICE deviceID="all_midi_in" name="All MIDI Ins"/>
+    <INPUTDEVICE deviceID="wavein_31" name="1"/>
+  </INPUTDEVICES>
+  <TRACKCOMPS/>
+  <SCENES/>
+  <PITCHSEQUENCE>
+    <PITCH startBeat="0.0" pitch="60"/>
+  </PITCHSEQUENCE>
+  <VIT_AUDIO_SETTINGS migration_state="stored" defaulted_origin="new_project" schema_version="vit_project_audio_settings.v1"
+                      sample_rate_hz="44100" record_file_type="WAV/BWF" record_bit_depth="16"
+                      pcm_format="int16" internal_processing_format="unknown" import_sample_rate_policy="ask"
+                      import_bit_depth_policy="keep_source" media_copy_policy="reference_original"
+                      channel_import_policy="preserve_interleaved" render_default_sample_rate_hz="44100"
+                      render_default_bit_depth="16" render_default_file_type="WAV"
+                      dither_policy="unknown"/>
+  <ARRANGERTRACK name="Arranger" id="1002"/>
+  <CHORDTRACK name="Chord" id="1003"/>
+  <MARKERTRACK id="1004" name="Marker"/>
+  <TEMPOTRACK name="Global" id="1005">
+    <MODIFIERS/>
+  </TEMPOTRACK>
+  <MASTERTRACK name="Master" id="1006">
+    <MODIFIERS/>
+  </MASTERTRACK>
+  <TRACK id="1007" name="bass" vit_import_role="stem" vit_import_source_file="D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\bass.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <CLIPSLOTS/>
+    <AUDIOCLIP name="bass" start="0.0" length="20.0" offset="0.0" id="1011"
+               source="D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\bass.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ff55ff00" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\bass.wav"
+               vit_import_insert_file="D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\bass.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="40.0" oneShot="0" denominator="4" numerator="4"
+                bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+    <PLUGIN type="volume" id="1008" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1009" enabled="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+  </TRACK>
+  <TRACK id="1012" name="drums" vit_import_role="stem" vit_import_source_file="D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\drums.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <CLIPSLOTS/>
+    <AUDIOCLIP name="drums" start="0.0" length="20.0" offset="0.0" id="1016"
+               source="D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\drums.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ff00ff00" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\drums.wav"
+               vit_import_insert_file="D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\drums.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="40.0" oneShot="0" denominator="4" numerator="4"
+                bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+    <PLUGIN type="volume" id="1013" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1014" enabled="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+  </TRACK>
+  <TRACK id="1017" name="guitar" vit_import_role="stem" vit_import_source_file="D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\guitar.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <CLIPSLOTS/>
+    <AUDIOCLIP name="guitar" start="0.0" length="20.0" offset="0.0" id="1021"
+               source="D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\guitar.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ff00ff55" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\guitar.wav"
+               vit_import_insert_file="D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\guitar.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="40.0" oneShot="0" denominator="4" numerator="4"
+                bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+    <PLUGIN type="volume" id="1018" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1019" enabled="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+  </TRACK>
+  <TRACK id="1022" name="other" vit_import_role="stem" vit_import_source_file="D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\other.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <CLIPSLOTS/>
+    <AUDIOCLIP name="other" start="0.0" length="20.0" offset="0.0" id="1026"
+               source="D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\other.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ff00ffaa" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\other.wav"
+               vit_import_insert_file="D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\other.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="40.0" oneShot="0" denominator="4" numerator="4"
+                bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+    <PLUGIN type="volume" id="1023" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1024" enabled="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+  </TRACK>
+  <TRACK id="1027" name="piano" vit_import_role="stem" vit_import_source_file="D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\piano.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <CLIPSLOTS/>
+    <AUDIOCLIP name="piano" start="0.0" length="20.0" offset="0.0" id="1031"
+               source="D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\piano.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ff00ffff" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\piano.wav"
+               vit_import_insert_file="D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\piano.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="40.0" oneShot="0" denominator="4" numerator="4"
+                bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+    <PLUGIN type="volume" id="1028" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1029" enabled="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+  </TRACK>
+  <TRACK id="1032" name="vocals" vit_import_role="stem" vit_import_source_file="D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\vocals.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <CLIPSLOTS/>
+    <AUDIOCLIP name="vocals" start="0.0" length="20.0" offset="0.0" id="1036"
+               source="D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\vocals.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ff00aaff" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\vocals.wav"
+               vit_import_insert_file="D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\vocals.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="40.0" oneShot="0" denominator="4" numerator="4"
+                bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+    <PLUGIN type="volume" id="1033" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1034" enabled="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+  </TRACK>
+  <TRACK id="1037">
+    <MODIFIERS/>
+    <CLIPSLOTS/>
+    <AUDIOCLIP name="b71eb9dc950e8418" start="0.0" length="0.5" offset="0.0"
+               id="1045" source="default_project_Media/Generated/b71eb9dc950e8418.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ff0055ff" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_asset_ref="asset:b71eb9dc950e8418"
+               vit_asset_hash="b71eb9dc950e8418" vit_asset_relative_path="default_project_Media/Generated/b71eb9dc950e8418.wav"
+               vit_asset_bucket="Generated" vit_asset_kind="audio" vit_asset_state="present"
+               vit_asset_lifecycle_state="kept" vit_asset_job_id="smoke-agent1-happy-220022"
+               vit_node_role="audio_injector" vit_origin_bpm="0.0" vit_origin_key=""
+               vit_warp_target_bpm="96.0" vit_warp_mode="bypassed" vit_warp_state="bypassed"
+               vit_take_stack_id="genshell-smoke-agent1-happy-220022" vit_active_take_id="take:17dd5c991b44488595bf2850d9fb1a73"
+               vit_async_ghost_state="bypass">
+      <LOOPINFO rootNote="-1" numBeats="0.8" oneShot="0" denominator="4" numerator="4"
+                bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+    <AUDIOCLIP name="67296831403cc240" start="0.0" length="0.5" offset="0.0"
+               id="1047" source="/Users/timozty/Documents/vit-genshell-artifacts/agent/genshell_agent_mac_20261017-220010/project/default_project_Media/Generated/c0f8d2848d570792.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ff0055ff" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_asset_ref="asset:c0f8d2848d570792"
+               vit_asset_hash="67296831403cc240" vit_asset_relative_path="default_project_Media/Generated/67296831403cc240.wav"
+               vit_asset_bucket="Generated" vit_asset_kind="audio" vit_asset_state="present"
+               vit_asset_lifecycle_state="kept" vit_asset_job_id="smoke-agent1-multi-220028"
+               vit_node_role="audio_injector" vit_origin_bpm="0.0" vit_origin_key=""
+               vit_warp_target_bpm="96.0" vit_warp_mode="bypassed" vit_warp_state="bypassed"
+               vit_take_stack_id="genshell-smoke-agent1-multi-220028" vit_active_take_id="take:f7829b48314742019fcc65b5ad4b67ce"
+               vit_async_ghost_state="bypass">
+      <LOOPINFO rootNote="-1" numBeats="0.8" oneShot="0" denominator="4" numerator="4"
+                bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+    <AUDIOCLIP name="c0f8d2848d570792" start="0.0" length="0.5" offset="0.0"
+               id="1049" source="default_project_Media/Generated/c0f8d2848d570792.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ff0055ff" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_asset_ref="asset:c0f8d2848d570792"
+               vit_asset_hash="c0f8d2848d570792" vit_asset_relative_path="default_project_Media/Generated/c0f8d2848d570792.wav"
+               vit_asset_bucket="Generated" vit_asset_kind="audio" vit_asset_state="present"
+               vit_asset_lifecycle_state="kept" vit_asset_job_id="smoke-agent1-multi-220028"
+               vit_node_role="audio_injector" vit_origin_bpm="0.0" vit_origin_key=""
+               vit_warp_target_bpm="96.0" vit_warp_mode="bypassed" vit_warp_state="bypassed"
+               vit_take_stack_id="genshell-smoke-agent1-multi-220028" vit_active_take_id="take:f7829b48314742019fcc65b5ad4b67ce"
+               vit_async_ghost_state="bypass">
+      <LOOPINFO rootNote="-1" numBeats="0.8" oneShot="0" denominator="4" numerator="4"
+                bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+    <PLUGIN type="rack" rackType="1040" id="1042" enabled="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="volume" id="1038" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1039" enabled="1"/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <AUDIOCLIP name="b71eb9dc950e8418" start="0.0" length="0.5" offset="0.0"
+               id="1051" source="default_project_Media/Generated/b71eb9dc950e8418.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ff0055ff" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_asset_ref="asset:b71eb9dc950e8418"
+               vit_asset_hash="b71eb9dc950e8418" vit_asset_relative_path="default_project_Media/Generated/b71eb9dc950e8418.wav"
+               vit_asset_bucket="Generated" vit_asset_kind="audio" vit_asset_state="present"
+               vit_asset_lifecycle_state="kept" vit_asset_job_id="genshell-de3a7438712ff2cfef033548"
+               vit_node_role="audio_injector" vit_origin_bpm="0.0" vit_origin_key=""
+               vit_warp_target_bpm="96.0" vit_warp_mode="bypassed" vit_warp_state="bypassed"
+               vit_take_stack_id="genshell-genshell-de3a7438712ff2cfef033548"
+               vit_active_take_id="take:223484d4a9354f0d9545188c87cbf55e" vit_async_ghost_state="bypass">
+      <LOOPINFO rootNote="-1" numBeats="0.8" oneShot="0" denominator="4" numerator="4"
+                bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+  </TRACK>
+</EDIT>

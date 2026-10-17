@@ -1,0 +1,37 @@
+{
+  "status": "ok",
+  "source": "knownPluginList",
+  "plugin_count": 1,
+  "plugins": [
+    {
+      "name": "GenShell",
+      "descriptive_name": "GenShell",
+      "manufacturer": "Vit Audio",
+      "format": "VST3",
+      "category": "Instrument|Synth",
+      "identifier": "VST3-GenShell-15b5622d-b818da1c",
+      "file_or_identifier": "/Users/timozty/Library/Audio/Plug-Ins/VST3/GenShell.vst3",
+      "plugin_path": "/Users/timozty/Library/Audio/Plug-Ins/VST3/GenShell.vst3",
+      "path": "/Users/timozty/Library/Audio/Plug-Ins/VST3/GenShell.vst3",
+      "uid": "-1206330852",
+      "deprecated_uid": "-1802173195",
+      "is_instrument": true
+    }
+  ],
+  "entries": [
+    {
+      "name": "GenShell",
+      "descriptive_name": "GenShell",
+      "manufacturer": "Vit Audio",
+      "format": "VST3",
+      "category": "Instrument|Synth",
+      "identifier": "VST3-GenShell-15b5622d-b818da1c",
+      "file_or_identifier": "/Users/timozty/Library/Audio/Plug-Ins/VST3/GenShell.vst3",
+      "plugin_path": "/Users/timozty/Library/Audio/Plug-Ins/VST3/GenShell.vst3",
+      "path": "/Users/timozty/Library/Audio/Plug-Ins/VST3/GenShell.vst3",
+      "uid": "-1206330852",
+      "deprecated_uid": "-1802173195",
+      "is_instrument": true
+    }
+  ]
+}

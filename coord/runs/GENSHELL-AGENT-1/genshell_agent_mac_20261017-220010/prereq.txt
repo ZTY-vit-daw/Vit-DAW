@@ -1,0 +1,59 @@
+ports_free_at_start=confirmed
+project_copy_sha256=32a39c061132202008f004eab7d820469a007159e6c8fd68fdf3d4adf5123b39 (source project never written; VIT_PROJECT_XML redirect)
+agent_bin=/Users/timozty/Documents/vit-genshell-artifacts/agent/genshell_agent_mac_20261017-220010/bin/vitagent sha256=b8a155bdf1b72209391f84e3892cadd1f064e131a5750aeeb264e4c7414cff5f
+simulator_up port=59497
+provider_config=/Users/timozty/Documents/vit-genshell-artifacts/agent/genshell_agent_mac_20261017-220010/config/genapi_providers.json (run-scoped via VIT_GENAPI_CONFIG)
+kernel_pid=25600 log=/Users/timozty/Documents/vit-genshell-artifacts/agent/genshell_agent_mac_20261017-220010/logs/kernel_main.log
+agent_pid=25620 http=http://127.0.0.1:7878
+A0 status=ok started=True enabled=True providers=4
+ok: A0: runner started+enabled via chat Server Start single wiring point
+ok: A1: set_tempo 96 accepted (music_context determinism)
+A1_scan_terminal=completed
+ok: A1: scan completed
+ok: A1: GenShell discovered (identifier=VST3-GenShell-15b5622d-b818da1c)
+ok: A1: track added (1037)
+ok: A1: rack_add_node landed (plugin_id=1043)
+ok: A1: T1 five params present
+ok: A2: debug_submit accepted (smoke-agent1-happy-220022)
+ok: A2: pending answer shows job on queue (queued)
+ok: A2: job terminal done
+A2_record ghost/source/hash=
+ok: A2: done receipt carries class=none + clip_id=1045 + take_stack=genshell-smoke-agent1-happy-220022
+ok: A2: artifact WAV on disk (cache/fast count=1)
+ok: A2: T1 JobState mirror=done
+ok: A2: simulator request body carries MUSIC CONTEXT + CONSTRAINTS blocks
+ok: A2: snapshot tempo 96.0 injected (set_tempo linkage)
+ok: A2: user free text verbatim in request body
+ok: A3: submit accepted
+ok: A3: job done
+ok: A3: two takes landed on one stack (clip=1047 takes=take:238f3033e77b4f5db94c32342f804a79 take:f7829b48314742019fcc65b5ad4b67ce )
+ok: A3: switch_asset_take -> active_take=take:f7829b48314742019fcc65b5ad4b67ce
+ok: A4: slow job submitted
+ok: A4: runner claimed job (running)
+ok: A4: debug_cancel accepted
+ok: A4: terminal cancelled
+ok: A4: cancelled job has zero landing evidence
+ok: A4: ghost cleared (bypass) after cancelled terminal
+ok: A5: submit accepted
+ok: A5: terminal failed
+ok: A5: status class=auth_error (class=auth_error genapi auth_error: http=401: invalid api key)
+ok: A5: T1 JobErrorClass mirror=auth_error
+ok: A6: submit accepted
+ok: A6: terminal done
+ok: A6: free_creation receipt = artifact paths, no landing
+ok: A6: simulator request body has ZERO injection blocks (exempt scene)
+ok: A7: slow job submitted
+ok: A7: job running at agent shutdown
+A7_agent_stopped pid_reaped
+A7_agent_restarted pid=25937
+ok: A7: runner restart swept job -> interrupted (class=interrupted agent runner restart swept in-flight job; resubmit from the shell)
+ok: A8: gen_shell.stop accepted (claiming paused)
+A8_submit status=ok job=genshell-de3a7438712ff2cfef033548 queued=True
+ok: A8: gen_shell.submit accepted job=genshell-de3a7438712ff2cfef033548 (conversation flow -> HOST queue)
+ok: A8: gen_shell.pending answers state=queued (paused runner)
+ok: A8: gen_shell.start resumed claiming
+ok: A8: chain closed — submit -> queued -> claim (simulator) -> done + landed
+ok: A9: zero key hits across simulator log / kernel log / agent logs / pending answers / HTTP replies
+ok: A9: pending answer providers array present (v1 kernel-empty)
+agent_stopped
+ports_free_after_teardown=confirmed

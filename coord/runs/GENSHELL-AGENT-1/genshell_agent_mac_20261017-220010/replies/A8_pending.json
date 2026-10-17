@@ -1,0 +1,29 @@
+{
+  "status": "ok",
+  "jobs": [
+    {
+      "job_id": "genshell-de3a7438712ff2cfef033548",
+      "state": "queued",
+      "cancel_requested": false,
+      "request": {
+        "free_text": "SMOKE-A8-CHAT generate a conversation-flow pad",
+        "gen_params": {
+          "count": 1,
+          "duration_seconds": 0,
+          "instrumental": false,
+          "style_tags": "",
+          "title": ""
+        },
+        "job_id": "genshell-de3a7438712ff2cfef033548",
+        "length_beats": 8,
+        "provider_id": "sim-fast",
+        "scene": "in_project",
+        "schema_version": "vit.genshell.request.v1",
+        "shell_node_id": "1043",
+        "start_time": 0,
+        "track_id": "1037"
+      }
+    }
+  ],
+  "providers": []
+}

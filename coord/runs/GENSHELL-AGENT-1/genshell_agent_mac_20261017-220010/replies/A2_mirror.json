@@ -1,0 +1,866 @@
+{
+  "status": "ok",
+  "track_id": "1037",
+  "plugin_id": "1043",
+  "plugin_item_id": "1043",
+  "template_role": "instrument",
+  "supports_param_grabber": true,
+  "current_param_signature_hash": "probe_f23dce789787774e",
+  "binding_targets": [
+    {
+      "target_kind": "plugin_param",
+      "plugin_id": "1043",
+      "plugin_name": "GenShell",
+      "plugin_type": "vst",
+      "template_role": "",
+      "param_id": "dry level",
+      "param_name": "Dry Level",
+      "normalized_role": "common_mix",
+      "alias": "Dry Level"
+    },
+    {
+      "target_kind": "plugin_param",
+      "plugin_id": "1043",
+      "plugin_name": "GenShell",
+      "plugin_type": "vst",
+      "template_role": "",
+      "param_id": "wet level",
+      "param_name": "Wet Level",
+      "normalized_role": "common_mix",
+      "alias": "Wet Level"
+    },
+    {
+      "target_kind": "plugin_param",
+      "plugin_id": "1043",
+      "plugin_name": "GenShell",
+      "plugin_type": "vst",
+      "template_role": "",
+      "param_id": "0",
+      "param_name": "JobState",
+      "normalized_role": "other",
+      "alias": "JobState"
+    },
+    {
+      "target_kind": "plugin_param",
+      "plugin_id": "1043",
+      "plugin_name": "GenShell",
+      "plugin_type": "vst",
+      "template_role": "",
+      "param_id": "1",
+      "param_name": "JobProgress",
+      "normalized_role": "other",
+      "alias": "JobProgress"
+    },
+    {
+      "target_kind": "plugin_param",
+      "plugin_id": "1043",
+      "plugin_name": "GenShell",
+      "plugin_type": "vst",
+      "template_role": "",
+      "param_id": "2",
+      "param_name": "JobErrorClass",
+      "normalized_role": "other",
+      "alias": "JobErrorClass"
+    },
+    {
+      "target_kind": "plugin_param",
+      "plugin_id": "1043",
+      "plugin_name": "GenShell",
+      "plugin_type": "vst",
+      "template_role": "",
+      "param_id": "3",
+      "param_name": "SceneMode",
+      "normalized_role": "other",
+      "alias": "SceneMode"
+    },
+    {
+      "target_kind": "plugin_param",
+      "plugin_id": "1043",
+      "plugin_name": "GenShell",
+      "plugin_type": "vst",
+      "template_role": "",
+      "param_id": "4",
+      "param_name": "Bypass",
+      "normalized_role": "common_bypass",
+      "alias": "Bypass"
+    }
+  ],
+  "recommended_groups": [
+    {
+      "name": "Mix",
+      "parameter_ids": [
+        "dry level",
+        "wet level"
+      ]
+    },
+    {
+      "name": "Utility",
+      "parameter_ids": [
+        "4"
+      ]
+    },
+    {
+      "name": "Other",
+      "parameter_ids": [
+        "0",
+        "1",
+        "2",
+        "3"
+      ]
+    }
+  ],
+  "quick_controls": [
+    {
+      "param_id": "4",
+      "raw_param_id": "4",
+      "label": "Bypass",
+      "widget": "toggle",
+      "normalized_role": "common_bypass",
+      "display_group": "Utility",
+      "host_controllable": true,
+      "control_relevance": "utility_control",
+      "control_priority": 75,
+      "value": 0.0
+    },
+    {
+      "param_id": "dry level",
+      "raw_param_id": "dry level",
+      "label": "Dry Level",
+      "widget": "slider",
+      "normalized_role": "common_mix",
+      "display_group": "Mix",
+      "host_controllable": true,
+      "control_relevance": "musical_control",
+      "control_priority": 100,
+      "value": 0.0
+    },
+    {
+      "param_id": "wet level",
+      "raw_param_id": "wet level",
+      "label": "Wet Level",
+      "widget": "slider",
+      "normalized_role": "common_mix",
+      "display_group": "Mix",
+      "host_controllable": true,
+      "control_relevance": "musical_control",
+      "control_priority": 100,
+      "value": 1.0
+    }
+  ],
+  "control_shell": {
+    "template_role": "instrument",
+    "default_tabs": [
+      "Parameters",
+      "Search",
+      "Recommended"
+    ],
+    "advanced_tabs": [
+      "Template",
+      "Link",
+      "History",
+      "Macro",
+      "Freeze",
+      "Bypass"
+    ],
+    "recommended_groups": [
+      {
+        "name": "Mix",
+        "parameter_ids": [
+          "dry level",
+          "wet level"
+        ]
+      },
+      {
+        "name": "Utility",
+        "parameter_ids": [
+          "4"
+        ]
+      },
+      {
+        "name": "Other",
+        "parameter_ids": [
+          "0",
+          "1",
+          "2",
+          "3"
+        ]
+      }
+    ],
+    "supports_param_grabber": true
+  },
+  "capability_manifest": [
+    "open_ui",
+    "get_param",
+    "template_shell",
+    "quick_controls"
+  ],
+  "parameters": [
+    {
+      "id": "dry level",
+      "param_id": "dry level",
+      "raw_param_id": "dry level",
+      "raw_param_name": "Dry Level",
+      "name": "Dry Level",
+      "value": 0.0,
+      "normalized_value": 0.0,
+      "value_text": "-INF dB",
+      "min": 0.0,
+      "max": 1.0,
+      "is_discrete": false,
+      "num_steps": 0,
+      "is_boolean": false,
+      "normalized_role": "common_mix",
+      "display_group": "Mix",
+      "host_controllable": true,
+      "control_relevance": "musical_control",
+      "control_priority": 100,
+      "alias": "Dry Level",
+      "supports_automation": true,
+      "source": "tracktion_wrapper",
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "-INF dB",
+        "label": "",
+        "samples": [
+          {
+            "normalized_value": 0.0,
+            "value": 0.0,
+            "text": "-INF dB"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "-12.0 dB"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "-6.0 dB"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "-2.5 dB"
+          },
+          {
+            "normalized_value": 1.0,
+            "value": 1.0,
+            "text": "+0.0 dB"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "binding_target": {
+        "target_kind": "plugin_param",
+        "plugin_id": "1043",
+        "plugin_name": "GenShell",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "dry level",
+        "param_name": "Dry Level",
+        "normalized_role": "common_mix",
+        "alias": "Dry Level"
+      }
+    },
+    {
+      "id": "wet level",
+      "param_id": "wet level",
+      "raw_param_id": "wet level",
+      "raw_param_name": "Wet Level",
+      "name": "Wet Level",
+      "value": 1.0,
+      "normalized_value": 1.0,
+      "value_text": "+0.0 dB",
+      "min": 0.0,
+      "max": 1.0,
+      "is_discrete": false,
+      "num_steps": 0,
+      "is_boolean": false,
+      "normalized_role": "common_mix",
+      "display_group": "Mix",
+      "host_controllable": true,
+      "control_relevance": "musical_control",
+      "control_priority": 100,
+      "alias": "Wet Level",
+      "supports_automation": true,
+      "source": "tracktion_wrapper",
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "+0.0 dB",
+        "label": "",
+        "samples": [
+          {
+            "normalized_value": 0.0,
+            "value": 0.0,
+            "text": "-INF dB"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "-12.0 dB"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "-6.0 dB"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "-2.5 dB"
+          },
+          {
+            "normalized_value": 1.0,
+            "value": 1.0,
+            "text": "+0.0 dB"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "binding_target": {
+        "target_kind": "plugin_param",
+        "plugin_id": "1043",
+        "plugin_name": "GenShell",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "wet level",
+        "param_name": "Wet Level",
+        "normalized_role": "common_mix",
+        "alias": "Wet Level"
+      }
+    },
+    {
+      "id": "0",
+      "param_id": "0",
+      "raw_param_id": "0",
+      "raw_param_name": "JobState",
+      "name": "JobState",
+      "value": 0.714285731315613,
+      "normalized_value": 0.714285731315613,
+      "value_text": "done",
+      "min": 0.0,
+      "max": 1.0,
+      "is_discrete": true,
+      "num_steps": 8,
+      "is_boolean": false,
+      "normalized_role": "other",
+      "display_group": "Other",
+      "host_controllable": true,
+      "control_relevance": "unknown_control",
+      "control_priority": 40,
+      "alias": "JobState",
+      "supports_automation": true,
+      "source": "hosted_plugin_parameter",
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "done",
+        "label": "",
+        "discrete_labels": [
+          {
+            "index": 0,
+            "value": 0.0,
+            "label": "idle"
+          },
+          {
+            "index": 1,
+            "value": 0.142857149243355,
+            "label": "queued"
+          },
+          {
+            "index": 2,
+            "value": 0.28571429848671,
+            "label": "running"
+          },
+          {
+            "index": 3,
+            "value": 0.428571462631226,
+            "label": "downloading"
+          },
+          {
+            "index": 4,
+            "value": 0.571428596973419,
+            "label": "landing"
+          },
+          {
+            "index": 5,
+            "value": 0.714285731315613,
+            "label": "done"
+          },
+          {
+            "index": 6,
+            "value": 0.857142925262451,
+            "label": "failed"
+          },
+          {
+            "index": 7,
+            "value": 1.0,
+            "label": "cancelled"
+          }
+        ],
+        "all_labels": [],
+        "samples": [
+          {
+            "normalized_value": 0.0,
+            "value": 0.0,
+            "text": "idle"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "running"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "landing"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "failed"
+          },
+          {
+            "normalized_value": 1.0,
+            "value": 1.0,
+            "text": "cancelled"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples",
+          "discrete_labels"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "binding_target": {
+        "target_kind": "plugin_param",
+        "plugin_id": "1043",
+        "plugin_name": "GenShell",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "0",
+        "param_name": "JobState",
+        "normalized_role": "other",
+        "alias": "JobState"
+      }
+    },
+    {
+      "id": "1",
+      "param_id": "1",
+      "raw_param_id": "1",
+      "raw_param_name": "JobProgress",
+      "name": "JobProgress",
+      "value": 1.0,
+      "normalized_value": 1.0,
+      "value_text": "1.0000",
+      "min": 0.0,
+      "max": 1.0,
+      "is_discrete": false,
+      "num_steps": 0,
+      "is_boolean": false,
+      "normalized_role": "other",
+      "display_group": "Other",
+      "host_controllable": true,
+      "control_relevance": "unknown_control",
+      "control_priority": 40,
+      "alias": "JobProgress",
+      "supports_automation": true,
+      "source": "hosted_plugin_parameter",
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "1.0000",
+        "label": "",
+        "samples": [
+          {
+            "normalized_value": 0.0,
+            "value": 0.0,
+            "text": "0.0000"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "0.2500"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "0.5000"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "0.7500"
+          },
+          {
+            "normalized_value": 1.0,
+            "value": 1.0,
+            "text": "1.0000"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "binding_target": {
+        "target_kind": "plugin_param",
+        "plugin_id": "1043",
+        "plugin_name": "GenShell",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "1",
+        "param_name": "JobProgress",
+        "normalized_role": "other",
+        "alias": "JobProgress"
+      }
+    },
+    {
+      "id": "2",
+      "param_id": "2",
+      "raw_param_id": "2",
+      "raw_param_name": "JobErrorClass",
+      "name": "JobErrorClass",
+      "value": 0.0,
+      "normalized_value": 0.0,
+      "value_text": "none",
+      "min": 0.0,
+      "max": 1.0,
+      "is_discrete": true,
+      "num_steps": 15,
+      "is_boolean": false,
+      "normalized_role": "other",
+      "display_group": "Other",
+      "host_controllable": true,
+      "control_relevance": "unknown_control",
+      "control_priority": 40,
+      "alias": "JobErrorClass",
+      "supports_automation": true,
+      "source": "hosted_plugin_parameter",
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "none",
+        "label": "",
+        "discrete_labels": [
+          {
+            "index": 0,
+            "value": 0.0,
+            "label": "none"
+          },
+          {
+            "index": 1,
+            "value": 0.071428574621677,
+            "label": "config_error"
+          },
+          {
+            "index": 2,
+            "value": 0.142857149243355,
+            "label": "auth_error"
+          },
+          {
+            "index": 3,
+            "value": 0.214285731315613,
+            "label": "quota_error"
+          },
+          {
+            "index": 4,
+            "value": 0.28571429848671,
+            "label": "rate_limit"
+          },
+          {
+            "index": 5,
+            "value": 0.357142865657806,
+            "label": "not_found"
+          },
+          {
+            "index": 6,
+            "value": 0.428571462631226,
+            "label": "provider_error"
+          },
+          {
+            "index": 7,
+            "value": 0.5,
+            "label": "moderation_error"
+          },
+          {
+            "index": 8,
+            "value": 0.571428596973419,
+            "label": "timeout"
+          },
+          {
+            "index": 9,
+            "value": 0.642857193946838,
+            "label": "network_error"
+          },
+          {
+            "index": 10,
+            "value": 0.714285731315613,
+            "label": "response_parse_error"
+          },
+          {
+            "index": 11,
+            "value": 0.785714328289032,
+            "label": "unsupported_format"
+          },
+          {
+            "index": 12,
+            "value": 0.857142925262451,
+            "label": "landing_error"
+          },
+          {
+            "index": 13,
+            "value": 0.928571462631226,
+            "label": "context_error"
+          },
+          {
+            "index": 14,
+            "value": 1.0,
+            "label": "interrupted"
+          }
+        ],
+        "all_labels": [],
+        "samples": [
+          {
+            "normalized_value": 0.0,
+            "value": 0.0,
+            "text": "none"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "quota_error"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "moderation_error"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "unsupported_form"
+          },
+          {
+            "normalized_value": 1.0,
+            "value": 1.0,
+            "text": "interrupted"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples",
+          "discrete_labels"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "binding_target": {
+        "target_kind": "plugin_param",
+        "plugin_id": "1043",
+        "plugin_name": "GenShell",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "2",
+        "param_name": "JobErrorClass",
+        "normalized_role": "other",
+        "alias": "JobErrorClass"
+      }
+    },
+    {
+      "id": "3",
+      "param_id": "3",
+      "raw_param_id": "3",
+      "raw_param_name": "SceneMode",
+      "name": "SceneMode",
+      "value": 0.0,
+      "normalized_value": 0.0,
+      "value_text": "in_project",
+      "min": 0.0,
+      "max": 1.0,
+      "is_discrete": true,
+      "num_steps": 3,
+      "is_boolean": false,
+      "normalized_role": "other",
+      "display_group": "Other",
+      "host_controllable": true,
+      "control_relevance": "mode_control",
+      "control_priority": 65,
+      "alias": "SceneMode",
+      "supports_automation": true,
+      "source": "hosted_plugin_parameter",
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "in_project",
+        "label": "",
+        "discrete_labels": [
+          {
+            "index": 0,
+            "value": 0.0,
+            "label": "in_project"
+          },
+          {
+            "index": 1,
+            "value": 0.5,
+            "label": "free_creation"
+          },
+          {
+            "index": 2,
+            "value": 1.0,
+            "label": "experiment_control"
+          }
+        ],
+        "all_labels": [],
+        "samples": [
+          {
+            "normalized_value": 0.0,
+            "value": 0.0,
+            "text": "in_project"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "in_project"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "free_creation"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "experiment_contr"
+          },
+          {
+            "normalized_value": 1.0,
+            "value": 1.0,
+            "text": "experiment_contr"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples",
+          "discrete_labels"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "binding_target": {
+        "target_kind": "plugin_param",
+        "plugin_id": "1043",
+        "plugin_name": "GenShell",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "3",
+        "param_name": "SceneMode",
+        "normalized_role": "other",
+        "alias": "SceneMode"
+      }
+    },
+    {
+      "id": "4",
+      "param_id": "4",
+      "raw_param_id": "4",
+      "raw_param_name": "Bypass",
+      "name": "Bypass",
+      "value": 0.0,
+      "normalized_value": 0.0,
+      "value_text": "Off",
+      "min": 0.0,
+      "max": 1.0,
+      "is_discrete": true,
+      "num_steps": 2,
+      "is_boolean": false,
+      "normalized_role": "common_bypass",
+      "display_group": "Utility",
+      "host_controllable": true,
+      "control_relevance": "utility_control",
+      "control_priority": 75,
+      "alias": "Bypass",
+      "supports_automation": true,
+      "source": "hosted_plugin_parameter",
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "Off",
+        "label": "",
+        "discrete_labels": [
+          {
+            "index": 0,
+            "value": 0.0,
+            "label": "Off"
+          },
+          {
+            "index": 1,
+            "value": 1.0,
+            "label": "On"
+          }
+        ],
+        "all_labels": [],
+        "samples": [
+          {
+            "normalized_value": 0.0,
+            "value": 0.0,
+            "text": "Off"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "Off"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "Off"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "On"
+          },
+          {
+            "normalized_value": 1.0,
+            "value": 1.0,
+            "text": "On"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples",
+          "discrete_labels"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "binding_target": {
+        "target_kind": "plugin_param",
+        "plugin_id": "1043",
+        "plugin_name": "GenShell",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "4",
+        "param_name": "Bypass",
+        "normalized_role": "common_bypass",
+        "alias": "Bypass"
+      }
+    }
+  ]
+}

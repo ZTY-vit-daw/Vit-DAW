@@ -1,0 +1,14 @@
+run_id=genshell_agent_mac_20261017-220010
+started_at=2026-10-17 22:00:10
+repo_head=b532ed3f44090e7b4f3f9300846710326544e155
+repo_branch=port/genshell-agent-1
+repo_dirty_files=6
+kernel_bin=/Users/timozty/Documents/Vit-DAW-genshell2/VitApp/build/VitApp_artefacts/Debug/VitApp
+kernel_sha256=a08f75932f3ba486b168f3ef6f6b89a9746c2bc4a34cfed14a8ae3ba389cd084
+kernel_mtime=Oct 16 22:11:45 2026
+kernel_source_tree=dce49facb8933d14e1d25317fe1081cb79c6f6f9
+vst3_bundle=/Users/timozty/Library/Audio/Plug-Ins/VST3/GenShell.vst3
+vst3_bundle_binary_sha256=fbc578c7e627468263f77ef51ace756fc8ed20ff8e6abaa99b7f3d9617161dbe
+legs=A0,A1,A2,A3,A4,A5,A6,A7,A8,A9
+finished_at=2026-10-17 22:01:01
+overall_pass=1

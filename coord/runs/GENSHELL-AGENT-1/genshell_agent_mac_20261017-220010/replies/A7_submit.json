@@ -1,0 +1,32 @@
+{
+  "status": "ok",
+  "jobs": [
+    {
+      "job_id": "smoke-agent1-orphan-220048",
+      "state": "queued",
+      "cancel_requested": false,
+      "request": {
+        "schema_version": "vit.genshell.request.v1",
+        "job_id": "smoke-agent1-orphan-220048",
+        "shell_node_id": "1043",
+        "track_id": "1037",
+        "start_time": 0.0,
+        "length_beats": 8,
+        "scene": "in_project",
+        "provider_id": "sim-slow",
+        "template_id": "song_segment_v1",
+        "form": {
+        },
+        "free_text": "SMOKE-A7-ORPHAN will be interrupted",
+        "gen_params": {
+          "duration_seconds": 4,
+          "count": 1,
+          "style_tags": "smoke",
+          "instrumental": false,
+          "title": ""
+        }
+      }
+    }
+  ],
+  "providers": []
+}

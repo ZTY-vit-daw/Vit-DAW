@@ -1,0 +1,39 @@
+{
+  "status": "ok",
+  "message": "Rack node added",
+  "track_id": "1037",
+  "rack_item_id": "1042",
+  "plugin_id": "1043",
+  "plugin_item_id": "1043",
+  "plugin_name": "GenShell",
+  "plugin_identifier": "VST3-GenShell-15b5622d-b818da1c",
+  "zone_id": "Z2",
+  "clip_scope": "track",
+  "template_role": "instrument",
+  "plugin_instance_ready": true,
+  "plugin_load_state": "name=GenShell id=1043 format=VST3 path=/Users/timozty/Library/Audio/Plug-Ins/VST3/GenShell.vst3 enabled=true processing=true edit_should_load_plugins=true async=false load_error=",
+  "x": 0.0,
+  "y": 0.0,
+  "graph_revision": 1,
+  "graph_active_revision": 1,
+  "graph_pending_revision": 0,
+  "graph_last_retired_revision": 0,
+  "graph_retired_snapshot_count": 0,
+  "graph_last_diff_kind": "node_add",
+  "graph_last_diff_summary": "Added rack node GenShell",
+  "graph_publish_mode": "context_rebuild_idle",
+  "graph_lifecycle_state": "active",
+  "graph_recent_changes": [
+    {
+      "revision": 1,
+      "kind": "node_add",
+      "summary": "Added rack node GenShell",
+      "track_id": "1037",
+      "rack_item_id": "1042",
+      "node_id": "1043",
+      "source_id": "",
+      "dest_id": "",
+      "timestamp_ms": 1792245621944
+    }
+  ]
+}

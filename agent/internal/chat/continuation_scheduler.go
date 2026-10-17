@@ -736,6 +736,7 @@ func (s *Server) Start() {
 	}
 	s.startContinuationScheduler()
 	s.wakeContinuationScheduler()
+	s.harness.StartGenShellRunner() // GENSHELL-AGENT-1: background queue runner (agent startup single wiring point)
 }
 
 func (s *Server) startContinuationScheduler() {
@@ -812,6 +813,9 @@ func (s *Server) recoverContinuationWorkspace(ctx context.Context) {
 func (s *Server) Close() error {
 	if s == nil {
 		return nil
+	}
+	if s.harness != nil {
+		s.harness.StopGenShellRunner()
 	}
 	s.mu.Lock()
 	started, done := s.schedulerStarted, s.schedulerDone
