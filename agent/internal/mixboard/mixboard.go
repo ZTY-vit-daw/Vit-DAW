@@ -4092,6 +4092,12 @@ func finalizeFXMProjection(obs *ObservationPacket, req Request) {
 	if len(input.TargetRef) == 0 {
 		input.TargetRef = map[string]any{"kind": obs.TargetRef.Kind, "id": obs.TargetRef.ID, "label": obs.TargetRef.Label}
 	}
+	// AGENT-SENDROUTE-SEMANTICS-1: fold the send-topology fingerprint into the
+	// FXM routing identity; send edge changes break the same-routing premise
+	// and rotate the projection id (reuses the fingerprint invalidation).
+	if sendHash := fxm.SendTopologyHash(req.ProjectState["send_topology"]); sendHash != "" {
+		input.Chain.RoutingHash = fxm.RoutingHashWithSendTopology(input.Chain.RoutingHash, sendHash)
+	}
 	projection := fxm.Build(input)
 	obs.FXMProjection = &projection
 }
@@ -4145,6 +4151,7 @@ func timInputFromObservation(obs ObservationPacket, req Request) tim.Input {
 		// All read-only; missing evidence degrades to not_evaluable in TIM.
 		AudioSettings:           timAudioSettings(req.ProjectState),
 		RackSummaries:           tim.RackSummariesFromProjectState(req.ProjectState),
+		SendEdges:               tim.SendEdgesFromTopology(req.ProjectState["send_topology"]),
 		KnownPluginPaths:        knownTIMPluginPaths(),
 		AcousticEvidenceByTrack: timAcousticEvidenceByTrack(obs),
 	}

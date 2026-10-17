@@ -1,0 +1,2 @@
+impl commit a57e0621 (port/agent-sendroute-semantics-1)
++ uncommitted-at-run loop-entry intercept fix (goalrunner_chat.go send fork + smoke script manual-authority/regression fix + ps1 param restore), committed as the follow-up commit directly after this run

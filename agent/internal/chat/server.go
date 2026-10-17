@@ -2928,6 +2928,15 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 	if len(env.Commands) == 0 && !legacyChatBroadMixRequestNeedsObservation(req.Message) {
 		env.Commands = synthesizePluginGrabberLoadCommands(req.Message, chatContext)
 	}
+	// AGENT-SENDROUTE-SEMANTICS-1: concrete send-structure requests (share
+	// phrasing plus >=2 named source tracks) take the send workflow before the
+	// broad-mix observation gate; they are structural requests, not broad ones.
+	if sendReq, ok := s.coerceSendTopologyConnectRequest(r.Context(), req.Message, chatContext); ok && !chatCommandsContainSendRoute(env.Commands) {
+		resp := s.runSendTopologyConnectWorkflow(r.Context(), conversationID, req.Message, chatContext, sendReq)
+		s.remember(conversationID, req.Message, resp.Reply)
+		writeChat(http.StatusOK, resp)
+		return
+	}
 	if resp, blocked := s.legacyChatBroadMixWriteBlockedResponse(r.Context(), conversationID, req.Message, env.Commands, chatContext); blocked {
 		s.remember(conversationID, req.Message, resp.Reply)
 		writeChat(http.StatusOK, resp)
@@ -3058,6 +3067,10 @@ func legacyChatBroadMixDecisionBlocked(decision policy.Decision) bool {
 		"plugin_grabber_apply_de_esser_controls", "plugin_grabber.apply_de_esser_controls",
 		"set_plugin_param", "plugin.set_parameter", "plugin_set_parameter",
 		"set_volume", "track.volume",
+		"track.send.connect", "track_send_connect",
+		"track.send.set_amount", "track_send_set_amount",
+		"track.send.disconnect", "track_send_disconnect",
+		"track.send.set_fx_role", "track_send_set_fx_role",
 		"control_add_macro", "control.add_macro", "rack.add_macro", "control_add_binding", "control.add_binding":
 		return true
 	default:
@@ -3251,7 +3264,7 @@ func chatAgentPlanFromAny(value any) *AgentPlan {
 }
 
 func (s *Server) legacyPendingPlanBroadMixBlockedConfirmResponse(ctx context.Context, planID string, plan PendingPlan, goalID, runID, agentMode, projectPath string) (map[string]any, bool) {
-	if pendingPlanIsMixTreatmentPreparation(plan) || pendingPlanHasQualifiedSemanticPluginSelection(plan) {
+	if pendingPlanIsMixTreatmentPreparation(plan) || pendingPlanHasQualifiedSemanticPluginSelection(plan) || pendingPlanIsConfirmedSendTopology(plan) {
 		return nil, false
 	}
 	userMessage := legacyPendingPlanUserMessage(plan)
@@ -3322,6 +3335,13 @@ func pendingPlanHasQualifiedSemanticPluginSelection(plan PendingPlan) bool {
 // load. Keeping this token out of the persisted/client payload prevents a
 // caller from asserting that an arbitrary broad-mix load was selected.
 func pendingPlanExecutionContext(plan PendingPlan) (map[string]any, error) {
+	if pendingPlanIsConfirmedSendTopology(plan) {
+		ids := sendSourceIDsFromPlanWorkflowData(plan.WorkflowData)
+		if len(ids) == 0 {
+			return plan.Context, nil
+		}
+		return harness.AuthorizeSendTopologyConnect(plan.Context, ids), nil
+	}
 	if !pendingPlanHasQualifiedSemanticPluginSelection(plan) {
 		return plan.Context, nil
 	}
@@ -4969,6 +4989,9 @@ func (s *Server) handleConfirm(w http.ResponseWriter, r *http.Request) {
 	message := executedReply(beforeState, s.harness.UserStateSummary(r.Context()), plan.Decisions, replies)
 	var pluginPrep pluginPrepContinuation
 	var semanticProcessorHandoff *ChatResponse
+	if plan.Workflow == sendTopologyConnectWorkflow {
+		message, replies = s.finishSendTopologyConnectWorkflow(r.Context(), plan, replies, message)
+	}
 	if plan.Workflow == pluginGrabberLoadCommand {
 		message, replies = s.finishPluginGrabberLoadWorkflow(r.Context(), plan, replies, message)
 		pluginPrep = s.pluginPrepContinuationFromReplies(plan, replies, message)
@@ -5126,6 +5149,9 @@ func (s *Server) resolvePendingPlanDecision(ctx context.Context, planID, decisio
 	message := executedReply(beforeState, s.harness.UserStateSummary(ctx), plan.Decisions, replies)
 	var pluginPrep pluginPrepContinuation
 	var semanticProcessorHandoff *ChatResponse
+	if plan.Workflow == sendTopologyConnectWorkflow {
+		message, replies = s.finishSendTopologyConnectWorkflow(ctx, plan, replies, message)
+	}
 	if plan.Workflow == pluginGrabberLoadCommand {
 		message, replies = s.finishPluginGrabberLoadWorkflow(ctx, plan, replies, message)
 		pluginPrep = s.pluginPrepContinuationFromReplies(plan, replies, message)

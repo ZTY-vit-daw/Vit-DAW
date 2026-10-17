@@ -280,7 +280,7 @@ func TestFreeStateTopKSelectionOnMaskingView(t *testing.T) {
 // —— 缺口 6：dimension 目录过滤接线 GetViewsForDimension ——
 
 func TestFreeStateDimensionCatalogContract(t *testing.T) {
-	expectedDimensions := []string{"dynamics", "frequency_occupancy", "level_headroom", "stereo_space", "transient_event"}
+	expectedDimensions := []string{"dynamics", "frequency_occupancy", "level_headroom", "space_structure", "stereo_space", "transient_event"}
 	dimensions := FreeStateObservationDimensions()
 	if len(dimensions) != len(expectedDimensions) {
 		t.Fatalf("dimension vocabulary = %v, want %v", dimensions, expectedDimensions)

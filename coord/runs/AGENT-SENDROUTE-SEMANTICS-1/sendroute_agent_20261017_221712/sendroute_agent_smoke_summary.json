@@ -1,0 +1,44 @@
+{
+  "scenario": "AGENT-SENDROUTE-SEMANTICS-1 agent-side send/return semantics",
+  "agent_http": "http://127.0.0.1:7878",
+  "started_at": "2026-10-17T14:17:12.908412+00:00",
+  "legs": [
+    "setup",
+    "send_plan_confirmed",
+    "mom_send_topology_projection",
+    "fx_track_rack_load",
+    "insert_regression"
+  ],
+  "setup": {
+    "authority": "manual_default",
+    "tracks": {
+      "vocals": "1007",
+      "guitar": "1010"
+    }
+  },
+  "send_plan_confirmed": {
+    "plan_id": "plan_6d0f51745a3c8882",
+    "send_edge_count": 2,
+    "fx_track_id": "1013",
+    "fx_name": "Reverb Bus",
+    "reply_excerpt": "send/return 结构已建立：回路 = 源轨 --发送--> FX 轨「Reverb Bus」--湿声回流--> 各源轨（轨内干湿混合，FX 轨主输出压低只走回流）。（fx_track_id=1013）\n发送量列表：\n- vocals → Reverb Bus：-6 dB\n- guitar → Reverb Bus：-6 dB\n可在机架视窗的发送列表里手动接回/断开/调量（每源一条，量在源轨侧主控）；给 FX 轨装载空间效果器走常"
+  },
+  "mom_send_topology_projection": {
+    "status": "ready",
+    "edges": 2,
+    "fx_tracks": 1,
+    "dangling_edge_count": 0
+  },
+  "fx_track_rack_load": {
+    "plugin": "ZamVerb",
+    "fx_track_id": "1013",
+    "rack_node_count": 1,
+    "send_edges_intact": 2
+  },
+  "insert_regression": {
+    "shape": "no_plan",
+    "workflow": null
+  },
+  "status": "pass",
+  "finished_at": "2026-10-17T14:17:39.724858+00:00"
+}

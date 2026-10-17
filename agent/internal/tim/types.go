@@ -19,8 +19,12 @@ type Input struct {
 	AuthoritativeState map[string]any
 	// Assertion inputs (L2-1-TIM-1). All optional and read-only; missing
 	// evidence yields not_evaluable assertion rows, never pass.
-	AudioSettings    map[string]any
-	RackSummaries    []RackSummary
+	AudioSettings map[string]any
+	RackSummaries []RackSummary
+	// SendEdges carries the agent-side derivation of the kernel track.send.list
+	// read-back (AGENT-SENDROUTE-SEMANTICS-1); nil keeps the send-edge asserter
+	// not_evaluable, never pass.
+	SendEdges        []SendEdgeFact
 	KnownPluginPaths map[string]bool
 	// CeilingDBFS overrides the default -1.0 dBFS level ceiling when a profile
 	// (e.g. RLM true_peak_max) supplies one; nil keeps the default.

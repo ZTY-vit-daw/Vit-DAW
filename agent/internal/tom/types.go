@@ -1,11 +1,15 @@
 package tom
 
 const (
-	Version       = "v0.2"
-	SchemaVersion = "tom.projection.v0_2"
+	Version       = "v0.3"
+	SchemaVersion = "tom.projection.v0_3"
 )
 
 type ImportInput struct {
+	// SendTopology is the raw track.send.list read-back (sends/dangling/
+	// fx_tracks rows) agent-side derived during observation assembly;
+	// nil keeps v0_2-shaped rows (no fx_role/send_edge_count facts).
+	SendTopology    map[string]any
 	ObservationID   string
 	MixSessionID    string
 	CreatedAt       string
@@ -139,8 +143,13 @@ type GroupProposal struct {
 }
 
 type TrackAssignment struct {
-	TrackID         string     `json:"track_id,omitempty"`
-	TrackName       string     `json:"track_name,omitempty"`
+	TrackID   string `json:"track_id,omitempty"`
+	TrackName string `json:"track_name,omitempty"`
+	// AGENT-SENDROUTE-SEMANTICS-1 (v0_3): send/return role facts from the
+	// track.send.list read-back. Absent input keeps them zero-valued and
+	// omitted; relationship detail stays in MOM send_topology (not repeated).
+	FxRole          string     `json:"fx_role,omitempty"`
+	SendEdgeCount   int        `json:"send_edge_count,omitempty"`
 	ClipID          string     `json:"clip_id,omitempty"`
 	ClipName        string     `json:"clip_name,omitempty"`
 	SourcePath      string     `json:"source_path,omitempty"`

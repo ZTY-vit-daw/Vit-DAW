@@ -66,6 +66,12 @@ func llmFactsForIntent(proj Projection) []map[string]any {
 			compactFact("l2_realtime_status", proj.TrustQuality.OverallStatus, "L2 realtime available only as status unless explicitly requested.", proj.TrustQuality.EvidenceRefs),
 		)
 	}
+	// AGENT-SENDROUTE-SEMANTICS-1: send topology rides along as compact facts
+	// whenever the observation assembly provided the input (zero auto view
+	// selection; presence is assembly-driven, not intent-driven).
+	if proj.SendTopology != nil {
+		facts = append(facts, sendTopologyLLMFacts(proj.SendTopology)...)
+	}
 	if len(proj.TrustQuality.DeferredLayers) > 0 {
 		facts = append(facts, map[string]any{
 			"layer":           "deferred_layers",
@@ -242,6 +248,9 @@ func ContextProjection(proj Projection) map[string]any {
 	}
 	if proj.StaticLevelRelationship != nil {
 		out["static_level_relationship"] = proj.StaticLevelRelationship
+	}
+	if proj.SendTopology != nil {
+		out["send_topology"] = proj.SendTopology
 	}
 	if proj.FrequencyRelationship != nil {
 		out["frequency_relationship"] = proj.FrequencyRelationship

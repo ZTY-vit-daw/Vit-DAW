@@ -750,6 +750,16 @@ func projectCCBDecisionDigest(viewID string, source map[string]any, opts Options
 			"relationship_inputs": projectDecisionMap(inputs, opts,
 				"status", "track_count", "usable_track_count", "tap_points"),
 		}
+	case "mix.send_topology":
+		topology := modelMap(source["send_topology"])
+		out = map[string]any{
+			"status":    topology["status"],
+			"freshness": topology["freshness"],
+			"coverage":  projectDecisionMap(topology["coverage"], opts, "send_edge_count", "fx_track_count"),
+			"edges":     projectDecisionRows(topology["edges"], opts, "source_track_id", "source_name", "fx_track_id", "fx_name", "amount_db", "send_bus", "return_bus", "return_edge"),
+			"fx_tracks": projectDecisionRows(topology["fx_tracks"], opts, "track_id", "name", "send_bus", "return_bus", "source_count"),
+			"note":      topology["note"],
+		}
 	case "mix.masking_relationship":
 		relation := modelMap(source["masking_relationship"])
 		out = map[string]any{
@@ -1330,6 +1340,8 @@ func equivalentCCBViewProjection(viewID string, facts map[string]any, opts Optio
 			"relationship_inputs": modelFactFields(facts, "project.frequency_relationship_inputs", opts,
 				"status", "track_count", "usable_track_count", "tap_points", "decision_tracks_truncated", "tracks"),
 		}
+	case "mix.send_topology":
+		out = map[string]any{"send_topology": modelFactFields(facts, "observation.mom_projection", opts, "status", "freshness", "coverage", "edges", "fx_tracks", "dangling_edge_count", "note", "evidence_refs")}
 	case "mix.masking_relationship":
 		out = map[string]any{
 			"masking_relationship": compactMaskingRelationshipForModel(

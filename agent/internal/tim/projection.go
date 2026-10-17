@@ -64,6 +64,7 @@ func Build(input Input) Projection {
 		KnownPluginPaths:    input.KnownPluginPaths,
 		CeilingDBFS:         levelCeilingDBFS(input.CeilingDBFS),
 		PluginListHygiene:   input.PluginListHygiene,
+		SendEdges:           input.SendEdges,
 		ObservationID:       observationID,
 	})
 	issues = append(issues, assertionIssues(assertions, issues, trackFacts)...)

@@ -155,6 +155,7 @@ var ignoredNameTokens = map[string]bool{
 }
 
 func BuildFromImportRows(input ImportInput) Projection {
+	fxRoles, sendEdgeCounts := tomSendTopologyFacts(input.SendTopology)
 	profiles := buildTrackProfiles(input)
 	maxDuration := maxProfileDuration(profiles, input.Summary)
 	groups := map[string]*GroupProposal{}
@@ -170,6 +171,8 @@ func BuildFromImportRows(input ImportInput) Projection {
 		decision := decideAssignment(profile, maxDuration)
 		assignment := TrackAssignment{
 			TrackID:         profile.TrackID,
+			FxRole:          fxRoles[profile.TrackID],
+			SendEdgeCount:   sendEdgeCounts[profile.TrackID],
 			TrackName:       profile.TrackName,
 			ClipID:          profile.ClipID,
 			ClipName:        profile.ClipName,
@@ -1203,6 +1206,32 @@ func compactGroups(groups []GroupProposal, maxGroups int, maxAssignments int) []
 	return out
 }
 
+// tomSendTopologyFacts derives the v0_3 track-row facts from the raw
+// track.send.list read-back: fx_role marks FX-role tracks (send_return_fx)
+// and send_edge_count counts live outgoing send edges per source track.
+// A nil topology yields empty maps (fields stay omitted, v0_2 shape).
+func tomSendTopologyFacts(topology map[string]any) (fxRoles map[string]string, sendEdgeCounts map[string]int) {
+	fxRoles = map[string]string{}
+	sendEdgeCounts = map[string]int{}
+	if len(topology) == 0 {
+		return fxRoles, sendEdgeCounts
+	}
+	for _, row := range rowsFromAny(topology["fx_tracks"]) {
+		trackID := fieldString(row, "track_id", "id")
+		if trackID == "" {
+			continue
+		}
+		fxRoles[trackID] = "send_return_fx"
+	}
+	for _, row := range rowsFromAny(topology["sends"]) {
+		sourceID := fieldString(row, "source_track_id", "track_id")
+		if sourceID == "" {
+			continue
+		}
+		sendEdgeCounts[sourceID]++
+	}
+	return fxRoles, sendEdgeCounts
+}
 func compactAssignments(assignments []TrackAssignment, maxItems int) []map[string]any {
 	out := []map[string]any{}
 	for _, assignment := range assignments {
@@ -1216,6 +1245,8 @@ func compactAssignments(assignments []TrackAssignment, maxItems int) []map[strin
 			"confidence":       assignment.Confidence,
 			"confidence_score": assignment.ConfidenceScore,
 			"cluster_keys":     assignment.ClusterKeys,
+			"fx_role":          assignment.FxRole,
+			"send_edge_count":  assignment.SendEdgeCount,
 		}
 		out = append(out, row)
 		if maxItems > 0 && len(out) >= maxItems {

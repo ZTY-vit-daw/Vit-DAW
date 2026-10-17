@@ -93,6 +93,10 @@ func freeStateKnownMutationName(name string) bool {
 		"plugin_grabber.apply_gate_expander_controls", "plugin_grabber_apply_gate_expander_controls",
 		"plugin_grabber.apply_de_esser_controls", "plugin_grabber_apply_de_esser_controls",
 		"plugin_grabber.apply_transient_shaper_controls", "plugin_grabber_apply_transient_shaper_controls",
+		"track.send.connect", "track_send_connect",
+		"track.send.set_amount", "track_send_set_amount",
+		"track.send.disconnect", "track_send_disconnect",
+		"track.send.set_fx_role", "track_send_set_fx_role",
 		"plugin_grabber.apply_multiband_controls", "plugin_grabber_apply_multiband_controls":
 		return true
 	default:

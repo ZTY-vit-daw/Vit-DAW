@@ -432,6 +432,16 @@ func toolDisplayName(name string) string {
 		return "加载插件"
 	case "set_plugin_param", "plugin.set_parameter":
 		return "写入插件参数"
+	case "track.send.connect", "track_send_connect":
+		return "接通发送路由"
+	case "track.send.set_amount", "track_send_set_amount":
+		return "调整发送量"
+	case "track.send.disconnect", "track_send_disconnect":
+		return "断开发送路由"
+	case "track.send.list", "track_send_list":
+		return "发送拓扑读取"
+	case "track.send.set_fx_role", "track_send_set_fx_role":
+		return "设置 FX 轨角色"
 	case "play", "transport.play":
 		return "播放"
 	default:

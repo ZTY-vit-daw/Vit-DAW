@@ -1,0 +1,47 @@
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_wt_sendroute2
+agent http: http://127.0.0.1:7878
+
+== Build VitAgent
+ok: build passed: D:\Vit_DAW_wt_sendroute2\agent\bin\VitAgent.dev-smoke.exe
+warn: stopping existing agent pid=27996
+ok: installed agent bin: D:\Vit_DAW_wt_sendroute2\agent\bin\VitAgent.exe
+ok: installed agent root compatibility exe: D:\Vit_DAW_wt_sendroute2\agent\vitagent.exe
+
+== Start kernel
+ok: kernel command port already listening: 5555
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW_wt_sendroute2\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=295
+shadow.initialized=True track_count=3
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=11776
+ok: ZMQ SUB listening: 5556 pid=11776
+
+== Project state invoke
+project.state status=ok error=
+
+== sendroute agent smoke (AGENT-SENDROUTE-SEMANTICS-1)
+[ok] setup: {"authority": "manual_default", "tracks": {"vocals": "1007", "guitar": "1010"}}
+[ok] send_plan_confirmed: {"plan_id": "plan_6d0f51745a3c8882", "send_edge_count": 2, "fx_track_id": "1013", "fx_name": "Reverb Bus", "reply_excerpt": "send/return 结构已建立：回路 = 源轨 --发�?-> FX 轨「Reverb Bus�?-湿声回流--> 各源轨（轨内干湿混合，FX 轨主输出压低只走回流）。（fx_track_id=1013）\n发送量列表：\n- vocals �?Reverb Bus�?6 dB\n- guitar �?Reverb Bus�?6 dB\n可在机架视窗的发送列表里手动接回/断开/调量（每源一条，量在源轨侧主控）；给 FX 轨装载空间效果器走常"}
+[ok] mom_send_topology_projection: {"status": "ready", "edges": 2, "fx_tracks": 1, "dangling_edge_count": 0}
+[ok] fx_track_rack_load: {"plugin": "ZamVerb", "fx_track_id": "1013", "rack_node_count": 1, "send_edges_intact": 2}
+[ok] insert_regression: {"shape": "no_plan", "workflow": null}
+[summary] D:\Vit_DAW_wt_sendroute2\VitApp\Workspace\Artifacts\smoke\sendroute_agent_20261017_221712\sendroute_agent_smoke_summary.json
+ok: sendroute agent smoke passed (agent chat+kernel faces; summary: D:\Vit_DAW_wt_sendroute2\VitApp\Workspace\Artifacts\smoke\sendroute_agent_20261017_221712\sendroute_agent_smoke_summary.json)
+
+== Summary
+ok: dev agent smoke completed

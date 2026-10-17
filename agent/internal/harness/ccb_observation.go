@@ -446,7 +446,12 @@ func ccbObservationCommand(cmd map[string]any, req capabilitycontext.FreeStateOb
 	if req.TargetRef.Label != "" {
 		out["target_label"] = req.TargetRef.Label
 	}
-	if containsCCBView(req.ViewIDs, "mix.masking_relationship") {
+	// AGENT-SENDROUTE-SEMANTICS-1: mix.send_topology shares the multitrack
+	// relation observation intent — the topology rides the same project read;
+	// disclosure stays bounded to the explicitly requested view.
+	if containsCCBView(req.ViewIDs, "mix.send_topology") {
+		out["mom_intent"] = "project_multitrack_relation_observation"
+	} else if containsCCBView(req.ViewIDs, "mix.masking_relationship") {
 		out["mom_intent"] = "project_masking_relationship_observation"
 	} else if containsCCBView(req.ViewIDs, "mix.frequency_relationship") {
 		out["mom_intent"] = "project_frequency_relationship_observation"
