@@ -95,6 +95,14 @@ type Harness struct {
 	refQueryConfigKey      string
 	refQueryConfigOverride *queryengine.BootstrapConfig
 
+	// Loudness watch seam (LOUDNESS-WATCH-TRIGGER-1): the chat side lazily
+	// registers a hook once a free-state surface first touches it. nil = no
+	// watcher wired: the piggyback trigger, the mix.observe disclosure and
+	// the agent-loop tool cases all degrade to exactly the pre-watch
+	// behavior (zero new response keys, zero goroutines).
+	loudnessWatchHookMu sync.RWMutex
+	loudnessWatchHook   LoudnessWatchHook
+
 	// Conversation-checkpoint revision gate (HARNESS-1): per-project kernel
 	// revision already covered by a (possibly in-flight) vit checkpoint. The
 	// optimistic value is set when an async checkpoint is launched and rolled
@@ -104,6 +112,64 @@ type Harness struct {
 	vitPendingRebindNodes map[string][]string
 	vitCheckpointLive     map[string]bool
 	vitWorkerMu           map[string]*sync.Mutex
+}
+
+// LoudnessWatchHook is the chat-registered loudness watch seam. The harness
+// owns the narrow consumer face (the T2 observation piggyback, the
+// mix.observe status disclosure, the agent-loop tool cases) and the chat
+// trigger points call the T1/T3 entries through the same interface; the
+// HTTP /agent/invoke face stays owned by chat's own interceptors. Every
+// method must be safe to call from a background goroutine and must never
+// panic the caller's flow (the watch is an observation parasite).
+type LoudnessWatchHook interface {
+	// CheckSettle runs the T1 check after one settle conclusion persisted.
+	CheckSettle(projectUUID, projectRevision, conclusionID string)
+	// CheckProjectChange runs the T3 check for one observed project change.
+	CheckProjectChange(change map[string]any)
+	// PiggybackCheck runs the T2 comparison over the observation's covered
+	// clips. It never issues new bakes (design 01 §2.2).
+	PiggybackCheck(cmd map[string]any, coveredTargets []map[string]any, projectRevision string)
+	// Configure applies a loudness.watch.configure argument map.
+	Configure(args map[string]any) (map[string]any, error)
+	// Status discloses config + verdict history counters.
+	Status() map[string]any
+	// Disclosure is the additive mix.observe response section.
+	Disclosure() map[string]any
+}
+
+// SetLoudnessWatchHook registers the watch hook (idempotent overwrite is
+// allowed for tests; production wiring goes through the set-if-absent
+// EnsureLoudnessWatchHook).
+func (h *Harness) SetLoudnessWatchHook(hook LoudnessWatchHook) {
+	if h == nil {
+		return
+	}
+	h.loudnessWatchHookMu.Lock()
+	h.loudnessWatchHook = hook
+	h.loudnessWatchHookMu.Unlock()
+}
+
+// EnsureLoudnessWatchHook registers the hook only when none is present and
+// returns the effective hook (possibly nil when build is nil).
+func (h *Harness) EnsureLoudnessWatchHook(build func() LoudnessWatchHook) LoudnessWatchHook {
+	if h == nil {
+		return nil
+	}
+	h.loudnessWatchHookMu.Lock()
+	defer h.loudnessWatchHookMu.Unlock()
+	if h.loudnessWatchHook == nil && build != nil {
+		h.loudnessWatchHook = build()
+	}
+	return h.loudnessWatchHook
+}
+
+func (h *Harness) loudnessWatchHookSnapshot() LoudnessWatchHook {
+	if h == nil {
+		return nil
+	}
+	h.loudnessWatchHookMu.RLock()
+	defer h.loudnessWatchHookMu.RUnlock()
+	return h.loudnessWatchHook
 }
 
 // RenderResult is the compact terminal telemetry for an existing Kernel
@@ -2585,6 +2651,22 @@ func (h *Harness) invokeLocal(ctx context.Context, spec tools.CommandSpec, cmd m
 	case "render_profile_list":
 		result, err := h.ListRenderProfileBindings()
 		return resultWithErr(result, err), true
+	case "loudness_watch_configure", "loudness.watch.configure":
+		// LOUDNESS-WATCH-TRIGGER-1 agent-loop reachability (card A boundary
+		// obligation): the HTTP /agent/invoke face is served by chat's own
+		// interceptors; this case covers the executor path.
+		hook := h.loudnessWatchHookSnapshot()
+		if hook == nil {
+			return resultWithErr(nil, errors.New("loudness watch is not wired in this session yet (no free-state loop or settlement has run)")), true
+		}
+		result, err := hook.Configure(cmd)
+		return resultWithErr(result, err), true
+	case "loudness_watch_status", "loudness.watch.status":
+		hook := h.loudnessWatchHookSnapshot()
+		if hook == nil {
+			return resultWithErr(nil, errors.New("loudness watch is not wired in this session yet (no free-state loop or settlement has run)")), true
+		}
+		return resultWithErr(hook.Status(), nil), true
 	case "genapi_generate":
 		result, err := h.genGenerate(ctx, cmd)
 		return resultWithErr(result, err), true
@@ -3672,6 +3754,14 @@ func (h *Harness) requestMixObservation(ctx context.Context, cmd map[string]any)
 	if len(comEvidenceCapture) > 0 {
 		out["com_evidence_capture"] = comEvidenceCapture
 	}
+	// LOUDNESS-WATCH-TRIGGER-1 disclosure: the watch status rides the
+	// read-only observation carrier (the M1-4 D1 pack consumes this face);
+	// additive key, absent entirely while no hook is wired.
+	if hook := h.loudnessWatchHookSnapshot(); hook != nil {
+		if disclosure := hook.Disclosure(); len(disclosure) > 0 {
+			out["loudness_watch"] = disclosure
+		}
+	}
 	return out, nil
 }
 
@@ -3855,7 +3945,89 @@ func (h *Harness) prepareMixObservationAcousticPackage(ctx context.Context, cmd 
 	if h != nil && h.kernel != nil && mixObservationProjectBackgroundFillNeeded(cmd, featureSnapshot, status) {
 		featureRequest = h.requestMixObservationFeaturesBackground(ctx, cmd, state, target)
 	}
+	// LOUDNESS-WATCH-TRIGGER-1 T2: the observation flow is the completion
+	// fact "post-action observation ran with loudness rows" — piggyback the
+	// watch comparison on the snapshot's fresh loudness rows. The hook fires
+	// in the background, never blocks the response, and never issues new
+	// bakes; nil hook = pre-watch behavior unchanged.
+	h.triggerLoudnessWatchPiggyback(cmd, state, target)
 	return acousticpackage.ToMap(status), storePath, featureRequest
+}
+
+// RequestLoudnessWatchBake issues one background loudness_summary bake per
+// target (LOUDNESS-WATCH-TRIGGER-1 T1/T3 stale fill). The caller enforces
+// the ≤4-clip cap; each send is bounded by the background send budget and a
+// failure only WARNs (never fails the calling flow).
+func (h *Harness) RequestLoudnessWatchBake(targets []map[string]any) int {
+	if h == nil || h.kernel == nil {
+		return 0
+	}
+	issued := 0
+	for _, target := range targets {
+		trackID := firstString(target, "track_id")
+		clipID := firstString(target, "clip_id")
+		if trackID == "" && clipID == "" {
+			continue
+		}
+		packet := map[string]any{
+			"schema_version": "mixboard_feature_request.v1",
+			"request_id":     "loudness_watch_" + time.Now().UTC().Format("20060102T150405.000000000"),
+			"project_id":     "current",
+			"priority":       "background_warm",
+			"lifecycle":      "loudness_watch_stale_fill",
+		}
+		kernelCmd := mixObservationBackgroundFeatureKernelCommand(packet, target, "loudness_summary")
+		kernelCmd["source_kind"] = "loudness_watch_stale_fill"
+		sendCtx, cancel := context.WithTimeout(context.Background(), mixboardFeatureBackgroundSendWait())
+		reply, _, err := h.kernel.SendCommand(sendCtx, kernelCmd)
+		cancel()
+		if err != nil || !kernelReplySucceeded(reply) {
+			if h.logger != nil {
+				reason := firstNonEmpty(fmt.Sprint(reply["message"]), fmt.Sprint(reply["error"]), fmt.Sprint(err), "kernel_feature_request_failed")
+				h.logger.Warn("[loudness-watch] stale-fill bake failed track_id=%s clip_id=%s err=%s", trackID, clipID, reason)
+			}
+			continue
+		}
+		issued++
+	}
+	return issued
+}
+
+// triggerLoudnessWatchPiggyback fires the T2 loudness watch comparison for
+// one mix observation. Covered scope mirrors the background fill targeting
+// (project scope for full-project observations, the resolved clip/track
+// otherwise) so the comparison never invents project-level conclusions from
+// a single-clip observation (design 01 §2.2).
+func (h *Harness) triggerLoudnessWatchPiggyback(cmd map[string]any, state map[string]any, target mixboard.TargetRef) {
+	hook := h.loudnessWatchHookSnapshot()
+	if h == nil || hook == nil {
+		return
+	}
+	covered := []map[string]any{resolveMixboardFeatureTarget(cmd, state, target)}
+	if mixObservationWantsProjectAcoustics(cmd) {
+		covered = visibleAudioTrackFeatureTargets(state)
+	}
+	projectRevision := firstString(state, "project_revision", "revision")
+	if projectRevision == "" && h.shadow != nil {
+		if receipt := h.shadow.LatestChangeReceipt(); len(receipt) > 0 {
+			projectRevision = firstString(receipt, "project_revision", "revision")
+		}
+	}
+	cmdCopy := cloneAnyMap(cmd)
+	coveredCopy := make([]map[string]any, 0, len(covered))
+	for _, row := range covered {
+		coveredCopy = append(coveredCopy, cloneAnyMap(row))
+	}
+	go func() {
+		defer func() {
+			if err := recover(); err != nil {
+				if h.logger != nil {
+					h.logger.Warn("[loudness-watch] observation piggyback panicked err=%v", err)
+				}
+			}
+		}()
+		hook.PiggybackCheck(cmdCopy, coveredCopy, projectRevision)
+	}()
 }
 
 func hydratePersistedProjectL3Packages(store acousticpackage.Store, state map[string]any) {

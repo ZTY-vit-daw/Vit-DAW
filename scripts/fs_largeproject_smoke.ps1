@@ -130,7 +130,16 @@ param(
     # the latest settle conclusion line and the queue node-state line. The
     # E1-deferred needle depends on the M1Q q2 annotation, so this switch
     # requires -M1QueueRoundtrip (misuse fails the run up front).
-    [switch]$M1FiveThreeView
+    [switch]$M1FiveThreeView,
+    # LOUDNESS-B loudness watch phase (off = legacy flow unchanged,
+    # LOUDNESS-WATCH-TRIGGER-1): configure the project watch before the
+    # free-state round (so the round's settle fires the T1 hook), then after
+    # the round assert the verdict landed on disk, the dedupe key held
+    # (repeat observation -> recheck, not a duplicate record), and the
+    # disabled config is silent (zero new checks). All leg surfaces are
+    # deterministic /agent/invoke calls; no needle depends on fixture audio
+    # values (verdict kind is fixture-dependent and stays unasserted).
+    [switch]$LoudnessWatch
 )
 
 $ErrorActionPreference = "Stop"
@@ -863,6 +872,46 @@ if ([string]$authoritySwitch.status -ne "ok" -or [string](Get-OptionalProperty -
     exit 1
 }
 Write-Ok "authority = full_project_access"
+
+# ------------------- phase 4.6: LOUDNESS-B watch pre-round configure (opt-in)
+# LOUDNESS-WATCH-TRIGGER-1: the watch must be enabled BEFORE the free-state
+# round so the round's settle persistence fires the T1 hook. Two deterministic
+# invoke calls (no LLM): a disabled-baseline status read, then the configure
+# itself (R128 preset). Both responses land in the run dir as evidence.
+$lwPre = @{
+    enabled              = [bool]$LoudnessWatch
+    pre_status_disabled  = $false
+    configure_ok         = $false
+    config_digest        = ""
+    status_response_file = ""
+    configure_file       = ""
+}
+if ($LoudnessWatch) {
+    Write-Step "Phase 4.6: loudness watch pre-round configure (disabled baseline -> enable, builtin:ebu_r128)"
+    $lwStatusBefore = & $invoke "loudness_watch_status" @{} 30
+    if ($null -ne $lwStatusBefore) {
+        $lwPre.status_response_file = Join-Path $RunRoot "loudness_watch_status_before.json"
+        $lwStatusBefore | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $lwPre.status_response_file -Encoding UTF8
+        $lwBeforeResult = Get-OptionalProperty -Object $lwStatusBefore -Name "result"
+        $lwBeforeConfig = Get-OptionalProperty -Object $lwBeforeResult -Name "config"
+        $lwBeforeEnabled = $false
+        if ($null -ne $lwBeforeConfig) { $lwBeforeEnabled = [bool](Get-OptionalProperty -Object $lwBeforeConfig -Name "enabled") }
+        $lwPre.pre_status_disabled = (-not $lwBeforeEnabled)
+    }
+    $lwConfigure = & $invoke "loudness_watch_configure" @{ enabled = $true; profile_source = "builtin:ebu_r128" } 30
+    if ($null -ne $lwConfigure) {
+        $lwPre.configure_file = Join-Path $RunRoot "loudness_watch_configure.json"
+        $lwConfigure | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $lwPre.configure_file -Encoding UTF8
+        $lwCfgResult = Get-OptionalProperty -Object $lwConfigure -Name "result"
+        $lwPre.configure_ok = (([string](Get-OptionalProperty -Object $lwConfigure -Name "status")) -eq "ok" -and $null -ne $lwCfgResult)
+        $lwPre.config_digest = [string](Get-OptionalProperty -Object $lwCfgResult -Name "config_digest")
+    }
+    if ($lwPre.pre_status_disabled) { Write-Ok "LW pre-round status discloses the watch disabled (zero-cost baseline)" }
+    else { Add-Failure "LW FAIL: pre-round status did not disclose a disabled watch (configure face or status face broken)" }
+    if ($lwPre.configure_ok -and -not [string]::IsNullOrWhiteSpace($lwPre.config_digest)) { Write-Ok ("LW configure ok (digest=" + $lwPre.config_digest.Substring(0, 12) + "...)") }
+    else { Add-Failure "LW FAIL: loudness_watch_configure did not return ok with a config digest" }
+}
+$report.loudness_watch_pre = $lwPre
 
 Write-Step "Phase 5: free-state NL round via goal entry (pull mode, real LLM)"
 # B9/J3-era verbatim utterance (the free-state-era same-source diagnostic
@@ -1699,6 +1748,170 @@ if ($M1FiveThreeView) {
     }
 }
 $report.m1_five_three_view = $m15
+
+# ------------------- phase 8.8: LOUDNESS-B watch verdict + dedupe + config-off (opt-in)
+# LOUDNESS-WATCH-TRIGGER-1 post-round gates. All surfaces are deterministic
+# /agent/invoke calls (read-only observes + the watch tool face); no assertion
+# depends on fixture audio values (the verdict kind is fixture-dependent).
+#   1. observe #1 -> the mix_request_observation response must carry the
+#      additive loudness_watch disclosure with the verdict-store path (the
+#      M1-4 D1 read-only carrier face);
+#   2. the verdict store file must exist on disk with the pinned schema and
+#      at least one record whose trigger rode the round (settle/project_change)
+#      -> T1 verdict-on-disk gate;
+#   3. observe #2 -> checks_total must advance while the record count stays
+#      stable (same dedupe key -> recheck, not a duplicate) -> dedupe gate;
+#   4. configure off -> observe #3 -> checks_total must NOT advance (the
+#      disabled watch is silent zero cost) -> config-off gate.
+function Read-LwVerdictStore {
+    param([string]$Path)
+    try {
+        $text = [string](Get-Content -LiteralPath $Path -Raw -Encoding UTF8)
+        if ([string]::IsNullOrWhiteSpace($text)) { return $null }
+        return $text | ConvertFrom-Json
+    }
+    catch { return $null }
+}
+$lwPost = @{
+    enabled              = [bool]$LoudnessWatch
+    disclosure_present   = $false
+    verdicts_path        = ""
+    verdict_file_exists  = $false
+    verdict_schema_ok    = $false
+    round_trigger_record = $false
+    checks_before        = -1
+    checks_after         = -1
+    records_before       = -1
+    records_after        = -1
+    dedupe_stable        = $false
+    keys_unique          = $false
+    config_off_silent    = $false
+    observe_files        = @()
+    marker_hits          = @()
+}
+if ($LoudnessWatch) {
+    Write-Step "Phase 8.8: loudness watch verdict + dedupe + config-off"
+    $lwObs1 = & $invoke "mix_request_observation" @{ scope = "full_project" } 180
+    if ($null -ne $lwObs1) {
+        $lwObs1File = Join-Path $RunRoot "loudness_watch_observe1.json"
+        $lwObs1 | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $lwObs1File -Encoding UTF8
+        $lwPost.observe_files += $lwObs1File
+        $lwObs1Result = Get-OptionalProperty -Object $lwObs1 -Name "result"
+        $lwDisclosure = Get-OptionalProperty -Object $lwObs1Result -Name "loudness_watch"
+        if ($null -ne $lwDisclosure) {
+            $lwPost.disclosure_present = $true
+            $lwPost.verdicts_path = [string](Get-OptionalProperty -Object $lwDisclosure -Name "verdicts_path")
+        }
+    }
+    # Gate 2: verdict file on disk with the pinned schema + a round-borne
+    # trigger record (the settle fired the T1 hook during phase 5).
+    if (-not [string]::IsNullOrWhiteSpace($lwPost.verdicts_path)) {
+        $lwStore = $null
+        $lwFileDeadline = (Get-Date).AddSeconds(30)
+        while ((Get-Date) -lt $lwFileDeadline -and $null -eq $lwStore) {
+            if (Test-Path -LiteralPath $lwPost.verdicts_path) {
+                $lwStore = Read-LwVerdictStore -Path $lwPost.verdicts_path
+                if ($null -ne $lwStore) {
+                    $lwRoundRows = @($lwStore.verdicts | Where-Object { $_.trigger_kind -eq "settle" -or $_.trigger_kind -eq "project_change" })
+                    if ($lwRoundRows.Count -lt 1) { $lwStore = $null } # not landed yet
+                }
+            }
+            if ($null -eq $lwStore) { Start-Sleep -Seconds 2 }
+        }
+        if ($null -ne $lwStore) {
+            $lwPost.verdict_file_exists = $true
+            $lwPost.verdict_schema_ok = (([string](Get-OptionalProperty -Object $lwStore -Name "schema_version")) -eq "loudness_watch_verdicts.v0")
+            $lwRoundRows = @($lwStore.verdicts | Where-Object { $_.trigger_kind -eq "settle" -or $_.trigger_kind -eq "project_change" })
+            $lwPost.round_trigger_record = ($lwRoundRows.Count -ge 1)
+        }
+    }
+    # Baseline counters: wait for observe #1's piggyback check to land and
+    # the counter to go stable (two equal reads a second apart).
+    $lwPost.checks_before = -1
+    $lwPost.records_before = -1
+    $lwStableDeadline = (Get-Date).AddSeconds(30)
+    while ((Get-Date) -lt $lwStableDeadline) {
+        $lwStoreA = Read-LwVerdictStore -Path $lwPost.verdicts_path
+        if ($null -ne $lwStoreA) {
+            Start-Sleep -Seconds 1
+            $lwStoreB = Read-LwVerdictStore -Path $lwPost.verdicts_path
+            if ($null -ne $lwStoreB -and ([long]$lwStoreA.checks_total -eq [long]$lwStoreB.checks_total)) {
+                $lwPost.checks_before = [long]$lwStoreB.checks_total
+                $lwPost.records_before = @($lwStoreB.verdicts).Count
+                break
+            }
+        }
+        Start-Sleep -Seconds 1
+    }
+    # Gate 3: observe #2 must advance the check counter without adding a
+    # duplicate record (dedupe key held).
+    $lwObs2 = & $invoke "mix_request_observation" @{ scope = "full_project" } 180
+    if ($null -ne $lwObs2) {
+        $lwObs2File = Join-Path $RunRoot "loudness_watch_observe2.json"
+        $lwObs2 | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $lwObs2File -Encoding UTF8
+        $lwPost.observe_files += $lwObs2File
+    }
+    $lwDedupeDeadline = (Get-Date).AddSeconds(30)
+    while ((Get-Date) -lt $lwDedupeDeadline) {
+        $lwStoreC = Read-LwVerdictStore -Path $lwPost.verdicts_path
+        if ($null -ne $lwStoreC -and ([long]$lwStoreC.checks_total -gt $lwPost.checks_before)) {
+            $lwPost.checks_after = [long]$lwStoreC.checks_total
+            $lwPost.records_after = @($lwStoreC.verdicts).Count
+            break
+        }
+        Start-Sleep -Seconds 1
+    }
+    if ($lwPost.checks_after -gt $lwPost.checks_before -and $lwPost.checks_before -ge 0) {
+        $lwPost.dedupe_stable = ($lwPost.records_after -eq $lwPost.records_before)
+        $lwKeys = @((Read-LwVerdictStore -Path $lwPost.verdicts_path).verdicts | ForEach-Object { [string]$_.key })
+        $lwPost.keys_unique = ($lwKeys.Count -eq ($lwKeys | Select-Object -Unique).Count)
+    }
+    # Gate 4: disable the watch; observe #3 must not move the counter.
+    $lwOff = & $invoke "loudness_watch_configure" @{ enabled = $false } 30
+    $lwObs3 = & $invoke "mix_request_observation" @{ scope = "full_project" } 180
+    if ($null -ne $lwObs3) {
+        $lwObs3File = Join-Path $RunRoot "loudness_watch_observe3_disabled.json"
+        $lwObs3 | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $lwObs3File -Encoding UTF8
+        $lwPost.observe_files += $lwObs3File
+    }
+    Start-Sleep -Seconds 3
+    $lwStoreD = Read-LwVerdictStore -Path $lwPost.verdicts_path
+    if ($null -ne $lwStoreD -and $lwPost.checks_after -ge 0) {
+        $lwPost.config_off_silent = ([long]$lwStoreD.checks_total -eq $lwPost.checks_after)
+    }
+    # Evidence: the verdict store snapshot rides the run dir (E1 cost rows
+    # check_duration_ms / bakes_issued / fresh_rows / stale_rows included).
+    if (Test-Path -LiteralPath $lwPost.verdicts_path) {
+        Copy-Item -LiteralPath $lwPost.verdicts_path -Destination (Join-Path $RunRoot "loudness_watch_verdicts.json") -Force
+    }
+    # A4 discipline: every leg response surface stays clean of the
+    # fixed-orchestration marker families.
+    $lwHits = New-Object System.Collections.Generic.List[object]
+    foreach ($lwSurface in @($lwPost.observe_files)) {
+        $lwText = ""
+        try { $lwText = [string](Get-Content -LiteralPath $lwSurface -Raw -Encoding UTF8) } catch { $lwText = "" }
+        if (-not [string]::IsNullOrWhiteSpace($lwText)) {
+            foreach ($marker in $fixedMarkers) {
+                if ($lwText.Contains($marker)) { $lwHits.Add([pscustomobject]@{ marker = $marker; surface = $lwSurface }) }
+            }
+        }
+    }
+    $lwPost.marker_hits = @($lwHits.ToArray())
+    # Gate review.
+    if ($lwPost.disclosure_present) { Write-Ok "LW mix.observe response carries the loudness_watch disclosure (D1 read-only carrier)" }
+    else { Add-Failure "LW FAIL: loudness_watch disclosure missing from the mix_request_observation response" }
+    if ($lwPost.verdict_schema_ok -and $lwPost.round_trigger_record) { Write-Ok "LW verdict store on disk (schema pinned, round-borne trigger record present)" }
+    else { Add-Failure "LW FAIL: verdict store missing, foreign schema, or no settle/project_change record (T1 wiring broken)" }
+    if ($lwPost.dedupe_stable -and $lwPost.keys_unique) { Write-Ok ("LW dedupe held (checks " + [string]$lwPost.checks_before + "->" + [string]$lwPost.checks_after + ", records " + [string]$lwPost.records_before + "=" + [string]$lwPost.records_after + ", keys unique)") }
+    else { Add-Failure ("LW FAIL: dedupe broken (checks " + [string]$lwPost.checks_before + "->" + [string]$lwPost.checks_after + ", records " + [string]$lwPost.records_before + "->" + [string]$lwPost.records_after + ", keys_unique=" + [string]$lwPost.keys_unique + ")") }
+    if ($lwPost.config_off_silent) { Write-Ok "LW config-off is silent (checks_total unchanged after the disabled observe)" }
+    else { Add-Failure "LW FAIL: disabled watch still ran checks (zero-cost gate broken)" }
+    if ($lwHits.Count -eq 0) { Write-Ok "LW response surfaces clean of fixed-orchestration markers" }
+    else {
+        foreach ($hit in @($lwPost.marker_hits)) { Add-Failure ("LW FAIL: marker '" + $hit.marker + "' hit on " + $hit.surface) }
+    }
+}
+$report.loudness_watch_post = $lwPost
 
 # --------------------------------------------- phase 9: assertion review
 # Review must never throw past this point (L2-2 lesson: run 20260926_224515

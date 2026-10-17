@@ -1,0 +1,26 @@
+{
+  "evidence": "run3 observe1 result key census (loudness_watch disclosure absence proof)",
+  "result_keys": [
+    "acoustic_digest",
+    "acoustic_package_status",
+    "acoustic_package_status_path",
+    "board_path",
+    "catalog",
+    "com_projection",
+    "context_pack",
+    "context_pack_path",
+    "digest",
+    "feature_request",
+    "mix_session_id",
+    "mixboard",
+    "mom_projection",
+    "observation",
+    "observation_id",
+    "observation_path",
+    "status",
+    "typed_events"
+  ],
+  "loudness_watch_in_result": false,
+  "status": "ok",
+  "tool": "mix.request_observation"
+}

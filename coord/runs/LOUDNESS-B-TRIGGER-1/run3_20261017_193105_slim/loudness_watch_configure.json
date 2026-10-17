@@ -1,0 +1,17 @@
+﻿{
+    "status":  "ok",
+    "tool":  "loudness.watch.configure",
+    "command_name":  "loudness_watch_configure",
+    "risk_level":  "direct",
+    "requires_confirmation":  false,
+    "result":  {
+                   "config":  {
+                                  "schema_version":  "loudness_watch_config.v0",
+                                  "enabled":  true,
+                                  "trigger_mode":  "after_processing",
+                                  "profile_source":  "builtin:ebu_r128"
+                              },
+                   "config_digest":  "0079aa999954c1ee44a7709594791263a8e7a2183c5965b0501160df33f0c60e",
+                   "status":  "ok"
+               }
+}

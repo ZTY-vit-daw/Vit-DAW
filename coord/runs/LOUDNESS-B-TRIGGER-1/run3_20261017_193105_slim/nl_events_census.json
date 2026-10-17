@@ -1,0 +1,13 @@
+{
+  "evidence": "run3 NL round event census (no free-state station map events -> no settle -> T1 unfired)",
+  "event_counts": {
+    "item.started": 4,
+    "turn.started": 1,
+    "trajectory.turn.started": 1,
+    "item.completed": 5,
+    "turn.completed": 1,
+    "trajectory.turn.completed": 1
+  },
+  "has_trajectory_events": true,
+  "sample_reply_head": "见 FORENSICS；reply 为纯文本混音分析（moog 轨中频堆积建议），stop=done goal=completed"
+}
