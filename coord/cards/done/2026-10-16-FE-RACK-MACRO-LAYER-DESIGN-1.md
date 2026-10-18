@@ -35,3 +35,5 @@
 - **v2 迭代（2026-10-18 深夜）**：用户反馈=方向对+要 MAX/MSP 式多类型控件库+agent 侧同步生成控件双面考虑 → [02-design-draft-v2.md](../../runs/FE-RACK-MACRO-LAYER-DESIGN-1/02-design-draft-v2.md)+[macro_layer_v2.html](../../runs/FE-RACK-MACRO-LAYER-DESIGN-1/macro_layer_v2.html) 已出。新核验=内核原生十类控件词表（VitParamSurface supportedControlKinds）+xypad/range 双输出绑定 schema 原生+macropanel macro_count 混排容器；新增规格=控件族谱三组十类/混排宏卡/双面架构（kind 十词表统一内核-artifact-渲染器三处）/类型建议确定性规则/K3 缺口 m-n-o。**待用户表态 5 问（v2 三问+v1 遗留两问）后定稿放行 K3**。
 - 回执：（设计件路径 / 样图定稿记录）
 - 验收：（用户定稿记录 / 评审 commit）
+- 回执（设计件定稿·2026-10-18 深夜）：**用户过目 v2 全盘接受**（「我已看过，没有问题，就定这个了」）——五问全按 v2 建议默认锁定：①第一批=七静态类（knob/slider/numberbox/xypad/toggle/button/range），时变三类（envelope/lfo/stepsequencer）渲染壳先行、时变绑定语义另卡；②侧面板渲染器扩展归 K3 一并做；③类型建议规则=图 4 确定性表；④控制层默认双显；⑤控制色=紫。设计件=01-design-draft-v1.md（两层模型/绑定手势）+02-design-draft-v2.md（控件族谱/混排/双面/分期）+macro_layer_v1/v2.html 样图存档。
+- 验收（2026-10-18 深夜 GLM 主管决策流）：**定稿 pass**——现状核验锚点齐（内核十类词表/绑定 schema source_output/macro_count/rack_client 零封装=缺口 G1/send level 寻径核对闭环）；零生产代码改动属实；K3（130）解锁，宏规格按设计件回填卡面。卡终态=done。
