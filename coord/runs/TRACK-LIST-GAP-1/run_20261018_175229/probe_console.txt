@@ -1,0 +1,15 @@
+[stage] S0_fresh_baseline: kernel_user=0 hub_cmd_user=0 hub_state=0 shadow=0 tool=0 | tool==shadow:True tool==kernel:True
+[stage] S1_round1_external_new_import: kernel_user=6 hub_cmd_user=6 hub_state=6 shadow=0 tool=0 | tool==shadow:True tool==kernel:False
+[stage] S1_round2_external_new_import: kernel_user=6 hub_cmd_user=6 hub_state=6 shadow=0 tool=0 | tool==shadow:True tool==kernel:False
+[stage] S1_refresh: project.state tool -> status=ok tracks=6 observe_uuid=vitproj_60926ce408264dd99db2a8b27cae0f91
+[stage] S1_refresh_after_project_state: kernel_user=6 hub_cmd_user=6 hub_state=6 shadow=6 tool=6 | tool==shadow:True tool==kernel:True
+[stage] S2_external_open_existing: kernel_user=2 hub_cmd_user=2 hub_state=2 shadow=6 tool=6 | tool==shadow:True tool==kernel:False
+[stage] S3_agent_path_mutation: kernel_user=3 hub_cmd_user=3 hub_state=3 shadow=3 tool=3 | tool==shadow:True tool==kernel:True
+candidate 1 (VSP channel hits a different kernel/edit instance): RULED OUT �� kernel/hub-canonical/hub-state USER track ids agree in all stages=True, kernel==hub_state project_uuid in all stages=True
+candidate 2 (new+import path track enumeration gap): RULED OUT as path-specific �� tool!=kernel in external new+import round1=True, round2=True, external open-existing=True
+minimal repro determinism: external new+import -> tool track_count=0 while kernel user tracks >0 in rounds=[1, 2] (>=2 required: True)
+shadow projection face: tool==shadow in all stages=True; tool!=kernel (stale projection) stages=['S1_round1_external_new_import', 'S1_round2_external_new_import', 'S2_external_open_existing']; tool==kernel (synced) stages=['S0_fresh_baseline', 'S1_refresh_after_project_state', 'S3_agent_path_mutation']
+root-cause face (agent tool result = shadow summary, not the kernel reply): CONFIRMED �� tool==shadow in all stages=True; tool!=kernel in stages=['S1_round1_external_new_import', 'S1_round2_external_new_import', 'S2_external_open_existing']
+self-heal face (get_project_state refreshes shadow from the VSP state snapshot): CONFIRMED �� after project.state tool: tool==kernel=True
+same-frame chain: agent track.list responses carry kernel VSP acks in stages=['S0_fresh_baseline', 'S1_round1_external_new_import', 'S1_round2_external_new_import', 'S1_refresh_after_project_state', 'S2_external_open_existing', 'S3_agent_path_mutation'] while their track rows equal the shadow summary
+tracklist gap probe: PASS
