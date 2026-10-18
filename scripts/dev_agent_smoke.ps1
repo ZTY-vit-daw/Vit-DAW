@@ -7064,7 +7064,9 @@ if ($SendRouteGuiSmoke) {
     $priorSkipDev = [Environment]::GetEnvironmentVariable("VIT_SKIP_DEV_AUTOSTART", "Process")
     $env:VIT_SKIP_DEV_AUTOSTART = "1"
     try {
-        & $ResolvedGodotExe --headless --path $ResolvedGodotProjectRoot "res://tools/stack_probe_sendroute_macro.tscn" --log-file $guiGodotLog > $guiConsolePath 2>&1
+        # PS5.1 原生 stderr 重定向把首条 NativeCommandError 记录外抛（GDExtension 缺库
+        # 噪音必现）——经 cmd /c 原生重定向捕获完整 stdout+stderr 到工件。
+        & cmd /c ('"' + $ResolvedGodotExe + '" --headless --path "' + $ResolvedGodotProjectRoot + '" res://tools/stack_probe_sendroute_macro.tscn > "' + $guiConsolePath + '" 2>&1')
         $guiExit = $LASTEXITCODE
     }
     finally {
