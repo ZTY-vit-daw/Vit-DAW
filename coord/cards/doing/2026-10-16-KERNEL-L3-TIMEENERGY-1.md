@@ -33,6 +33,14 @@ VitApp/Source/Service/ 音频特征分析实现（AudioFeatureTypes.* + L3 分�
 - 内核 L3 分析器架构与「按轨补族」假设不符（如分析队列按族分派不可加）→ 上交决策侧，不擅自重构；
 - 发现 time_energy 语义与 agent 派生口径矛盾且无法对齐 → 上交裁定口径归属，不硬凑。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：（2026-10-18 21:02 +0800 / origin/main=445c49ce7312bd8127b016faad07a485038639e1 / GLM-5.3 L2 PC 执行会话（ZCode 本会话，用户任务领取口令指定） / 分支=port/kernel-l3-timeenergy-1 / worktree=D:\Vit_DAW_wt_klte1 / 协调分支=coord/klte1-claim；领取核对=卡在 todo 派发已确认、依赖无、doing 仅 GEN-SUNO-WEB-DESIGN-1（纯 coord/runs 勘察零生产代码零冲突）、真栈无占用）
+
+### 领取前 seam 核对（记卡面报决策侧）
+
+1. **触发链零改动**：`ImportService.cpp` `requestImportAcousticPackages`（:548-592）每轨导入时已发一次 `L3AcousticSummary` 请求 → `publishSummaries` 按请求扇出三族 publish。time_energy 挂同一扇出（`requested==TimeEnergy || requested==L3AcousticSummary`）即天然满足「与三族同生命周期、同触发」，ImportService 不动。
+2. **内核 seam**（卡面文件域内）：`L3AcousticAnalyzer.cpp` 补 `publishTimeEnergy`（L3 FFT 帧网格=4096 样本非重叠窗的时域 RMS/峰值包络，数据源=`FrameObservation.rmsDbfs/peakDbfs` 已在卷）+ `publishSummaries` 派发；`AudioFeatureService.cpp` 路由表加 `TimeEnergy`（当前该类型落 `publishDeferredStatus`「feature_baker_not_yet_promoted」即枚举死路）。
+3. **agent 侧落卷门**（目标①的必需通路，非 acousticpackage——登记请决策侧知悉）：`harness.go:4560 isL3AcousticSummaryFeature`（事件入口门）与 `projectworkspace/l3_feature_log.go:366 isL3FeatureType`（落卷白名单）各需收 `time_energy`，否则内核行在持久化前被丢弃。两处均为白名单加一行，`acousticpackage` 零改动；`writeMixboardReadyL3SummarySnapshot` 对 time_energy 为无害空操作（落卷先于快照）。
+4. **口径声明（显式差异、不矛盾）**：agent `l1_static.time_energy` = 波形包络 `time_segments` 派生（细网格，status.go:359）；内核 L3 time_energy = 同一音频在 L3 帧网格（~93ms@44.1k）的时域 RMS/峰值实测，payload 显式 `method/window_ms/hop_ms/segment_publish_limit` 可比性键（循 segmentation primitives 先例）。同族测量、不同网格、各自声明参数——不逐字节一致也不互相矛盾。读侧绑定（`semantic_progressive_disclosure.go` / TrackWaveformEnvelopes）零触碰。
+
 - 回执：（commit / run ID / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
