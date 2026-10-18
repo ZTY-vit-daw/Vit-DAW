@@ -5,9 +5,17 @@
 
 ## 当前占用
 
-- 2026-10-18 14:32 +0800 登记 / **FE-START-EMPTY-DRAFT-1(118) 真栈复验腿**（owner=DSH PC 执行流 exec-start-draft；worktree D:/Vit_DAW_wt_fedraft1，分支 port/fe-start-empty-draft-1@1dcb20f8；被测 agent=本分支构建（记录 SHA256）+主检出 stock 内核 SHA256=B6565DCF…）：`dev_agent_smoke.ps1 -RepoRoot <fedraft worktree> -StartKernel -RestartAgent -KernelExe D:\Vit_DAW\Export\staging\runtime\VitApp.exe` 体系（不启 Godot UI），经 `/agent/invoke` 触发前端同款 `version.project_new` 生命周期通知 + 既有工程 project.open；**agent 以隔离 draft 根环境启动（VIT_HISTORY_DRAFT_ROOT=<run 目录>）**，不动用户真实 `C:\Users\timoz\AppData\Local\Vit\ProjectHistory\drafts\`。断言=新建后 draft 根只新增 1 个目录/旧 uuid 不泄漏/既有工程 open 不落空壳。§8：LLM=0；成功=脚本 exit 0+断言全过；失败分类=environment_interrupt/assertion_fail/script_exception；止损=同签名 assertion_fail×2。登记前只读核对（14:32）：四端口/进程=0（用户 92 手测已结束、栈归零）。窗口 14:32–15:00；执行流启栈前须再次亲核，跑完拆净复核=0。
-- 排队（不占用）：**FIX-MASTERVOL-CALIBRATION-1(134) 真栈验证腿**（owner=DSH PC 执行流 exec-mastervol；worktree D:/Vit_DAW_wt_mastervol1，分支 port/fix-mastervol-calibration-1）：模板修正+构建/单测不占栈；kernel 真栈腿待本腿释放+构建完成后由 Lead 登记。**MEM-SCHEMA-1(135)** 纯文档、零真栈。
+（无——空闲；**用户 92 手测复测优先**，执行流未获 Lead 放行不得占栈）
 
+纪律记录（2026-10-18）：
+- **未登记未 GO 启动（违规，自报）**：14:18:49–14:19:07 exec-mastervol（FIX-MASTERVOL-CALIBRATION-1）以「预检拒绝 dry-run」为由启动 kernel-only berth 并跑完 L0–L6（预检六端口/进程=0 后 runner 按设计继续；只杀自起 kernel pid=20128；14:19:07 复核六端口/四进程=0）；**未写本记录、未获 Lead GO**，且启动窗口与 118 腿拆栈（14:18:50–52，118 报告记录到其 pid 20128 在场未触碰）有真实重叠（功能性无踩踏）。裁定：该 run 仅作**工程参考**、**不作验收证据**；134 须在正式 GO+占用登记后重跑（~1 min）为验收级证据；要求 berth runner 增 `-PreflightOnly/-NoStart` 纯预检模式，杜绝"dry-run 可启栈"。自报与证据见 coord/runs/FIX-MASTERVOL-CALIBRATION-1/RESULTS.md §〇。
+
+## 最近一次释放（2026-10-18 14:18 +0800）
+
+- 2026-10-18 14:10–14:18 / **FE-START-EMPTY-DRAFT-1(118) 真栈复验腿**（owner=DSH exec-start-draft；worktree D:/Vit_DAW_wt_fedraft1，分支 port/fe-start-empty-draft-1@922e6305；被测 agent=本分支构建 SHA256 69B8D77C…、内核 stock B6565DCF…）：`dev_agent_smoke -StartKernel -RestartAgent`（无 UI；隔离 draft 根 `ProjectHistory/drafts`）+ `/agent/invoke version.project_new` 前端同款通知；四轮迭代 A/B/C/D（最终 probe_final PASS 8/8）；用户真实 draft 根全程零写入（10177→10177）；拆栈 14:18:52 六端口=0+本腿进程=0（只杀自起 pid 10100/3620/17352）；**遗留事项**：14:18:52 观察到 134 未登记 run 的 kernel pid 20128 在场（未触碰）；**适用边界**=启动期自主 history reader（version.list/version.worktree_list，activation 后 1.5–2s）会物化隐藏 draft 破坏 pristine 前置 → 根因修复归 FIX-START-DRAFT-SIDE-EFFECT-1。工件 coord/runs/FE-START-EMPTY-DRAFT-1/realstack_*/+REALSTACK_REPORT.md（随 922e6305 入分支）。
+- 排队（未占用）：**FIX-MASTERVOL-CALIBRATION-1(134) 正式验收腿**（GO+登记后重跑 L0–L6，~1min；等用户 92 复测结束/Lead GO）。
+
+## 最近一次释放（2026-10-18 14:05 +0800）
 ## 最近一次释放（2026-10-18 14:05 +0800）
 ## 最近一次释放（2026-10-18 14:05 +0800）
 
