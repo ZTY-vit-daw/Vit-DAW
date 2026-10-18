@@ -4,6 +4,32 @@ This directory contains stable development smoke-test entry points. Keep these
 paths stable so future agent, kernel, and mix-loop work can reuse the same
 commands.
 
+## Draft Root Isolation Contract (Card 144, 2026-10-18)
+
+Every script in this directory that starts the real stack — the VitAgent
+process directly, a kernel+agent berth, or a Godot-launched stack — must
+redirect the agent's conversation draft root away from the user's real
+`%LOCALAPPDATA%\Vit\ProjectHistory\drafts` before the first process start
+(same spirit as AGENTS.md section 10; agent reads the env in
+`agent/internal/history/history.go` `defaultDraftProjectRoot`).
+
+Contract:
+
+- Set `VIT_HISTORY_DRAFT_ROOT` before the stack start; an externally provided
+  value always wins.
+- Default: `<RunDir>\agent_drafts` when the leg has its own per-run artifact
+  dir, else a per-invocation dir under `%TEMP%\VitStackDrafts\<label>_<ts>\`.
+- Assert before the start that the env is set, the path exists, and a
+  script-owned root sits inside its isolation base (helper:
+  `scripts\vit_stack_draft_isolation.ps1`, functions
+  `Enable-VitDraftRootIsolation` / `Assert-VitDraftRootIsolation`; the central
+  `dev_agent_smoke.ps1` implements the same contract inline plus
+  `Assert-DraftRootIsolation`).
+- Kernel-only berths (no agent) need no draft-root isolation; build-only and
+  read-only HTTP probe scripts are out of scope.
+- Full script-by-script audit table:
+  `coord/runs/FIX-STACK-DRAFT-ROOT-ISOLATION-1/audit_table.md`.
+
 ## Observation v1 Acceptance Smoke
 
 Path:

@@ -117,6 +117,14 @@ $statusPath = Join-Path $artifactDir "acoustic_package_status.json"
 $summaryPath = Join-Path $artifactDir "summary.json"
 $httpPort = [int](($AgentHttpAddr -split ":")[-1])
 
+# Card 144 (FIX-STACK-DRAFT-ROOT-ISOLATION-1): redirect the agent draft root
+# away from the user's real %LOCALAPPDATA%\Vit\ProjectHistory\drafts; external
+# VIT_HISTORY_DRAFT_ROOT wins. No run dir here (the artifact dir is a shared
+# repo path), so the default is a per-invocation dir under %TEMP%.
+. (Join-Path $RepoRoot "scripts\vit_stack_draft_isolation.ps1")
+$draftInfo = Enable-VitDraftRootIsolation -Label "run_acoustic_source_identity_smoke"
+Assert-VitDraftRootIsolation -Info $draftInfo
+
 try {
     Write-Step "Clear generated acoustic observation state"
     & (Join-Path $RepoRoot "scripts\clear_acoustic_observation_state.ps1") -RepoRoot $RepoRoot -IncludeSmokeObservationCache | Write-Host

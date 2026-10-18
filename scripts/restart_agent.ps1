@@ -4,6 +4,14 @@ $ErrorActionPreference = "Stop"
 
 $AgentExe = "D:\Vit_DAW\agent\bin\VitAgent.exe"
 
+# Card 144 (FIX-STACK-DRAFT-ROOT-ISOLATION-1): redirect the agent's draft root
+# away from the user's real %LOCALAPPDATA%\Vit\ProjectHistory\drafts before the
+# start; external VIT_HISTORY_DRAFT_ROOT wins.
+. "D:\Vit_DAW\scripts\vit_stack_draft_isolation.ps1"
+$draftInfo = Enable-VitDraftRootIsolation -Label "restart_agent"
+Assert-VitDraftRootIsolation -Info $draftInfo
+Write-Host ("draft root isolation: source=" + $draftInfo.source + " root=" + $draftInfo.draft_root)
+
 if ($OldPid -gt 0) {
     $proc = Get-Process -Id $OldPid -ErrorAction SilentlyContinue
     if ($null -ne $proc) {

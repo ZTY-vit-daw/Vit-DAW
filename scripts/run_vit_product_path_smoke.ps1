@@ -2124,6 +2124,13 @@ $LogsDir = Join-Path $WorkspaceDir "Logs"
 $SmokeRoot = Join-Path $WorkspaceDir "Artifacts\smoke"
 $Stamp = Get-Date -Format "yyyyMMdd_HHmmss"
 $ArtifactDir = Join-Path $SmokeRoot ("product_path_" + $Stamp)
+# Card 144 (FIX-STACK-DRAFT-ROOT-ISOLATION-1): redirect the agent draft root
+# away from the user's real %LOCALAPPDATA%\Vit\ProjectHistory\drafts before the
+# stack start; external VIT_HISTORY_DRAFT_ROOT wins. Default drafts live under
+# this leg's run dir.
+. (Join-Path $RepoRoot "scripts\vit_stack_draft_isolation.ps1")
+$draftInfo = Enable-VitDraftRootIsolation -Label "run_vit_product_path_smoke" -RunDir $ArtifactDir
+Assert-VitDraftRootIsolation -Info $draftInfo
 New-Item -ItemType Directory -Path $ArtifactDir -Force | Out-Null
 New-Item -ItemType Directory -Path $LogsDir -Force | Out-Null
 

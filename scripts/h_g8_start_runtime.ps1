@@ -30,12 +30,20 @@ if ([string]::IsNullOrWhiteSpace($BaseURL)) {
 if ([string]::IsNullOrWhiteSpace($Model)) {
     throw "H runtime model is not configured; pass -Model or save defaultModel in $vitConfigPath"
 }
+# Card 144 (FIX-STACK-DRAFT-ROOT-ISOLATION-1): explicit draft-root isolation on
+# top of the LOCALAPPDATA override below (equivalent isolation); external
+# VIT_HISTORY_DRAFT_ROOT wins.
+. (Join-Path $PSScriptRoot "vit_stack_draft_isolation.ps1")
+$draftInfo = Enable-VitDraftRootIsolation -Label "h_g8_start_runtime" -RunDir $RuntimeRoot
+Assert-VitDraftRootIsolation -Info $draftInfo
+
 $environment = @{
     VIT_AGENT_LLM_MODEL = $Model
     VIT_AGENT_LLM_BASE_URL = $BaseURL
     VIT_AGENT_VSP_HUB_URL = ""
     VIT_AGENT_VSP_HUB_REQUIRED = "0"
     LOCALAPPDATA = $local
+    VIT_HISTORY_DRAFT_ROOT = [System.Environment]::GetEnvironmentVariable("VIT_HISTORY_DRAFT_ROOT", "Process")
     VIT_AGENT_LLM_TELEMETRY_PATH = (Join-Path $logs "llm_telemetry.jsonl")
     VIT_ORCHESTRATION_STORE_PATH = (Join-Path $local "Vit\orchestration.json")
 }

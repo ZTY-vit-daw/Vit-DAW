@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 <##
 .SYNOPSIS
     Live smoke test for all three Plugin Grabber EQ operation models.
@@ -23,6 +23,13 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 $RepoRoot = (Resolve-Path -LiteralPath $RepoRoot).Path
+# Card 144 (FIX-STACK-DRAFT-ROOT-ISOLATION-1): redirect the agent draft root
+# away from the user's real %LOCALAPPDATA%\Vit\ProjectHistory\drafts before the
+# stack start; external VIT_HISTORY_DRAFT_ROOT wins. Default drafts live under
+# this leg's run dir (per-invocation %TEMP% dir when no run dir applies).
+. (Join-Path $RepoRoot "scripts\vit_stack_draft_isolation.ps1")
+$draftInfo = Enable-VitDraftRootIsolation -Label "run_eq_three_models_smoke"
+Assert-VitDraftRootIsolation -Info $draftInfo
 
 function Fail([string]$Message) { throw $Message }
 function Step([string]$Message) { Write-Host "`n== $Message" -ForegroundColor Cyan }

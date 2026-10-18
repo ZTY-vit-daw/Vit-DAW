@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 [CmdletBinding()]
 param(
     [ValidateSet("Matrix", "Blind", "All")]
@@ -42,6 +42,13 @@ foreach ($port in @(5555, 5556, 7878, 8787)) {
 
 $stamp = Get-Date -Format "yyyyMMdd_HHmmss"
 $runDir = Join-Path $RepoRoot ("VitApp\Workspace\Artifacts\smoke\limiter_control\" + $stamp)
+# Card 144 (FIX-STACK-DRAFT-ROOT-ISOLATION-1): redirect the agent draft root
+# away from the user's real %LOCALAPPDATA%\Vit\ProjectHistory\drafts before the
+# stack start; external VIT_HISTORY_DRAFT_ROOT wins. Default drafts live under
+# this leg's run dir.
+. (Join-Path $RepoRoot "scripts\vit_stack_draft_isolation.ps1")
+$draftInfo = Enable-VitDraftRootIsolation -Label "run_limiter_control_validation" -RunDir $runDir
+Assert-VitDraftRootIsolation -Info $draftInfo
 $null = New-Item -ItemType Directory -Force -Path $runDir
 $projectCopy = Join-Path $runDir "disposable_project.xml"
 Copy-Item -LiteralPath (Join-Path $RepoRoot "VitApp\Workspace\default_project.xml") -Destination $projectCopy

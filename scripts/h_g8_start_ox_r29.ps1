@@ -24,6 +24,13 @@ if ([string]::IsNullOrWhiteSpace($apiKey)) {
     throw "The isolated H run requires the current session API key in the process environment."
 }
 
+# Card 144 (FIX-STACK-DRAFT-ROOT-ISOLATION-1): explicit draft-root isolation on
+# top of the LOCALAPPDATA override below (equivalent isolation); external
+# VIT_HISTORY_DRAFT_ROOT wins.
+. (Join-Path $PSScriptRoot "vit_stack_draft_isolation.ps1")
+$draftInfo = Enable-VitDraftRootIsolation -Label "h_g8_start_ox_r29" -RunDir $RuntimeRoot
+Assert-VitDraftRootIsolation -Info $draftInfo
+
 $environment = @{
     VIT_AGENT_LLM_MODEL = "ox-alpha-free"
     VIT_AGENT_LLM_BASE_URL = "https://opencode.ai/zen/go/v1"
@@ -31,6 +38,7 @@ $environment = @{
     VIT_AGENT_VSP_HUB_URL = ""
     VIT_AGENT_VSP_HUB_REQUIRED = "0"
     LOCALAPPDATA = $local
+    VIT_HISTORY_DRAFT_ROOT = [System.Environment]::GetEnvironmentVariable("VIT_HISTORY_DRAFT_ROOT", "Process")
     VIT_AGENT_LLM_TELEMETRY_PATH = (Join-Path $logs "llm_telemetry.jsonl")
     VIT_ORCHESTRATION_STORE_PATH = (Join-Path $local "Vit\orchestration.json")
 }

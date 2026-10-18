@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
     [string]$RepoRoot = "D:\Vit_DAW",
     [string]$GodotProjectRoot = "D:\Godot\project\vit-daw-frontend",
@@ -11,6 +11,13 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 $RepoRoot = (Resolve-Path -LiteralPath $RepoRoot).Path
+# Card 144 (FIX-STACK-DRAFT-ROOT-ISOLATION-1): redirect the agent draft root
+# away from the user's real %LOCALAPPDATA%\Vit\ProjectHistory\drafts before the
+# stack start; external VIT_HISTORY_DRAFT_ROOT wins. Default drafts live under
+# this leg's run dir (per-invocation %TEMP% dir when no run dir applies).
+. (Join-Path $RepoRoot "scripts\vit_stack_draft_isolation.ps1")
+$draftInfo = Enable-VitDraftRootIsolation -Label "run_gui_project_save_matrix_smoke"
+Assert-VitDraftRootIsolation -Info $draftInfo
 $GodotProjectRoot = (Resolve-Path -LiteralPath $GodotProjectRoot).Path
 $GodotExe = (Resolve-Path -LiteralPath $GodotExe).Path
 $SourceProject = (Resolve-Path -LiteralPath $SourceProject).Path

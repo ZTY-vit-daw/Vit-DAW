@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 # Free-state open-intent acceptance smoke (ADR docs/FREE_STATE_MINIMUM_IMPROVEMENT_WORKFLOW_UPDATE_2026-08-22.md §13 artifact 6).
 # Starts the real three-piece stack (VitApp kernel + Godot frontend + rebuilt Go agent) using the
 # same build/start sequence as scripts/dev_agent_smoke.ps1 -StartKernel -StartUI (kernel exe, Godot
@@ -69,6 +69,13 @@ foreach ($port in @(4445)) {
 
 $stamp = Get-Date -Format "yyyyMMdd_HHmmss"
 $runDir = Join-Path $RepoRoot ("artifacts\free_state_open_intent_acceptance\" + $stamp)
+# Card 144 (FIX-STACK-DRAFT-ROOT-ISOLATION-1): redirect the agent draft root
+# away from the user's real %LOCALAPPDATA%\Vit\ProjectHistory\drafts before the
+# stack start; external VIT_HISTORY_DRAFT_ROOT wins. Default drafts live under
+# this leg's run dir.
+. (Join-Path $RepoRoot "scripts\vit_stack_draft_isolation.ps1")
+$draftInfo = Enable-VitDraftRootIsolation -Label "run_free_state_open_intent_acceptance" -RunDir $runDir
+Assert-VitDraftRootIsolation -Info $draftInfo
 $null = New-Item -ItemType Directory -Force -Path $runDir
 $report = Join-Path $runDir "free_state_open_intent_acceptance.json"
 $journal = Join-Path $runDir "agent_journal.json"

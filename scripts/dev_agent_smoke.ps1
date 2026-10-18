@@ -809,6 +809,21 @@ function Get-AgentProcessesForPaths {
     }
 }
 
+function Assert-DraftRootIsolation {
+    # Card 144 (FIX-STACK-DRAFT-ROOT-ISOLATION-1): the agent's conversation
+    # draft root must be redirected away from the user's real
+    # %LOCALAPPDATA%\Vit\ProjectHistory\drafts before any VitAgent start
+    # (direct start, scenario berth, or Godot-launched stack). Throws when the
+    # env is empty or the path is missing on disk.
+    $draftRoot = [System.Environment]::GetEnvironmentVariable("VIT_HISTORY_DRAFT_ROOT", "Process")
+    if ([string]::IsNullOrWhiteSpace($draftRoot)) {
+        throw "VIT_HISTORY_DRAFT_ROOT is empty before agent start (144 isolation contract)"
+    }
+    if (-not (Test-Path -LiteralPath $draftRoot -PathType Container)) {
+        throw "VIT_HISTORY_DRAFT_ROOT path does not exist or is not a directory: " + $draftRoot
+    }
+}
+
 function Resolve-GodotExecutable {
     param([string]$RequestedGodotExe)
     $candidates = @()
@@ -1020,6 +1035,56 @@ if ($ScenarioMode) {
     }
 }
 
+# Card 144 (FIX-STACK-DRAFT-ROOT-ISOLATION-1): default draft-root isolation
+# for every stack this script starts -- kernel berth, Godot-launched stack, or
+# the directly started/restarted agent. The journey berth above already set
+# the env for its run dir; an externally provided VIT_HISTORY_DRAFT_ROOT
+# always wins. Non-journey scenarios reuse the scenario run dir; non-scenario
+# invocations have no run dir, so drafts go to a per-invocation dir under
+# %TEMP% -- never the user's real %LOCALAPPDATA%\Vit\ProjectHistory\drafts.
+# Set before ANY process start so kernel/Godot/agent children inherit it; it
+# stays set for the whole script lifetime so late agent restarts (harness_ab)
+# inherit it too.
+$VitDraftRootSource = "external"
+if ([string]::IsNullOrWhiteSpace([System.Environment]::GetEnvironmentVariable("VIT_HISTORY_DRAFT_ROOT"))) {
+    $VitDraftRootSource = "default"
+    $VitDraftIsolationBase = ""
+    if (-not [string]::IsNullOrWhiteSpace($ScenarioRunDir)) {
+        $VitDraftIsolationBase = $ScenarioRunDir
+    }
+    else {
+        $VitDraftIsolationBase = Join-Path ([System.IO.Path]::GetTempPath()) `
+            ("VitStackDrafts\dev_agent_smoke_" + (Get-Date -Format "yyyyMMdd_HHmmss"))
+    }
+    $VitDraftRoot = Join-Path $VitDraftIsolationBase "agent_drafts"
+    New-Item -ItemType Directory -Path $VitDraftRoot -Force | Out-Null
+    Set-Item -LiteralPath "env:VIT_HISTORY_DRAFT_ROOT" -Value $VitDraftRoot
+    $VitDraftRootResolved = (Resolve-Path -LiteralPath $VitDraftRoot).Path.TrimEnd('\')
+    $VitDraftBaseResolved = (Resolve-Path -LiteralPath $VitDraftIsolationBase).Path.TrimEnd('\')
+    if (-not $VitDraftRootResolved.StartsWith($VitDraftBaseResolved + '\', [System.StringComparison]::OrdinalIgnoreCase)) {
+        throw ("default draft root is not inside its isolation base: " + $VitDraftRootResolved + " vs " + $VitDraftBaseResolved)
+    }
+    $VitDraftMarkerDir = $VitDraftIsolationBase
+}
+else {
+    $VitDraftIsolationBase = ""
+    $VitDraftMarkerDir = ""
+    if (-not [string]::IsNullOrWhiteSpace($ScenarioRunDir)) {
+        $VitDraftMarkerDir = $ScenarioRunDir
+    }
+}
+if (-not [string]::IsNullOrWhiteSpace($VitDraftMarkerDir)) {
+    @{
+        card          = "FIX-STACK-DRAFT-ROOT-ISOLATION-1"
+        source        = $VitDraftRootSource
+        draft_root    = [System.Environment]::GetEnvironmentVariable("VIT_HISTORY_DRAFT_ROOT", "Process")
+        isolation_base = $VitDraftIsolationBase
+        timestamp     = (Get-Date).ToString("o")
+    } | ConvertTo-Json -Depth 3 | Set-Content -LiteralPath (Join-Path $VitDraftMarkerDir "draft_root_isolation.json") -Encoding UTF8
+}
+Write-Ok ("draft root isolation: source=" + $VitDraftRootSource + " VIT_HISTORY_DRAFT_ROOT=" + [System.Environment]::GetEnvironmentVariable("VIT_HISTORY_DRAFT_ROOT", "Process"))
+Assert-DraftRootIsolation
+
 Write-Step "VitAgent dev smoke"
 Write-Host ("repo: " + $RepoRoot)
 Write-Host ("agent http: " + $AgentHttp)
@@ -1204,6 +1269,7 @@ if ($RestartAgent) {
 }
 
 if ($null -eq $listener) {
+    Assert-DraftRootIsolation
     New-Item -ItemType Directory -Path $LogsDir -Force | Out-Null
     $args = @(
         "-http", $AgentHttpAddr,
@@ -5684,6 +5750,7 @@ if ($ScenarioMode) {
             # probe physical-cost evidence base, see Invoke-HarnessAbSettleRound).
             $abRawChatPath = Join-Path $ScenarioRunDir ("harness_ab_chat_raw_" + $abMode + ".jsonl")
             $abAgentLog = Join-Path $LogsDir ("agent_harness_ab_" + $abMode + ".log")
+            Assert-DraftRootIsolation
             Start-Process -FilePath $AgentExe -ArgumentList @(
                 "-http", $AgentHttpAddr,
                 "-last-log-path", $abAgentLog,

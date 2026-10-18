@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 param(
     [string]$RepoRoot = "D:\Vit_DAW",
     [string]$GodotExe = "D:\Godot\Godot_v4.6.1-stable_win64.exe",
@@ -51,6 +51,13 @@ if (-not $SkipBuild) {
 
 $stamp = Get-Date -Format "yyyyMMdd_HHmmss"
 $runDir = Join-Path $RepoRoot ("artifacts\plugin_alliance_eq_two_level\" + $stamp)
+# Card 144 (FIX-STACK-DRAFT-ROOT-ISOLATION-1): redirect the agent draft root
+# away from the user's real %LOCALAPPDATA%\Vit\ProjectHistory\drafts before the
+# stack start; external VIT_HISTORY_DRAFT_ROOT wins. Default drafts live under
+# this leg's run dir.
+. (Join-Path $RepoRoot "scripts\vit_stack_draft_isolation.ps1")
+$draftInfo = Enable-VitDraftRootIsolation -Label "run_plugin_alliance_eq_two_level_smoke" -RunDir $runDir
+Assert-VitDraftRootIsolation -Info $draftInfo
 $null = New-Item -ItemType Directory -Force -Path $runDir
 $projectXml = Join-Path $runDir "isolated_project.xml"
 $protectedFiles = @(

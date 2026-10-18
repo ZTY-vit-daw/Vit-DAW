@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 <#
 .SYNOPSIS
     Runs the bounded Waves static-EQ production smoke through Godot -> Kernel -> Agent.
@@ -52,6 +52,13 @@ if (-not (Test-Path -LiteralPath $pythonScript)) { Fail "Missing smoke runner: $
 $stamp = Get-Date -Format "yyyyMMdd_HHmmss"
 $phase3Dir = Join-Path $RepoRoot "artifacts\waves_eq_topology_census\20260727_201627\analysis\static_eq_phase3"
 $runDir = Join-Path $phase3Dir ("live_smoke\" + $stamp)
+# Card 144 (FIX-STACK-DRAFT-ROOT-ISOLATION-1): redirect the agent draft root
+# away from the user's real %LOCALAPPDATA%\Vit\ProjectHistory\drafts before the
+# stack start; external VIT_HISTORY_DRAFT_ROOT wins. Default drafts live under
+# this leg's run dir.
+. (Join-Path $RepoRoot "scripts\vit_stack_draft_isolation.ps1")
+$draftInfo = Enable-VitDraftRootIsolation -Label "run_waves_static_eq_phase3_smoke" -RunDir $runDir
+Assert-VitDraftRootIsolation -Info $draftInfo
 $null = New-Item -ItemType Directory -Force -Path $runDir
 $projectXml = Join-Path $runDir "isolated_project.xml"
 $godotStdout = Join-Path $runDir "godot.stdout.log"

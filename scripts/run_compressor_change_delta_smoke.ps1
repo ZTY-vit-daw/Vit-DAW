@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
     [string]$RepoRoot = "D:\Vit_DAW",
     [string]$TrackId = "1007",
@@ -18,6 +18,13 @@ $output = Join-Path $RepoRoot "VitApp\Workspace\Artifacts\com_evidence\com4_chan
 $stdout = Join-Path $RepoRoot "VitApp\Workspace\Logs\com4_smoke_kernel_stdout.log"
 $stderr = Join-Path $RepoRoot "VitApp\Workspace\Logs\com4_smoke_kernel_stderr.log"
 $started = @()
+# Card 144 (FIX-STACK-DRAFT-ROOT-ISOLATION-1): redirect the agent draft root
+# away from the user's real %LOCALAPPDATA%\Vit\ProjectHistory\drafts before
+# the stack start; external VIT_HISTORY_DRAFT_ROOT wins (per-invocation %TEMP%
+# dir as default).
+. (Join-Path $RepoRoot "scripts\vit_stack_draft_isolation.ps1")
+$draftInfo = Enable-VitDraftRootIsolation -Label "run_compressor_change_delta_smoke"
+Assert-VitDraftRootIsolation -Info $draftInfo
 try {
     if (-not (Get-NetTCPConnection -State Listen -LocalPort 5555 -ErrorAction SilentlyContinue)) {
         $p = Start-Process -FilePath $kernel -WorkingDirectory (Join-Path $RepoRoot "VitApp") -WindowStyle Hidden -RedirectStandardOutput $stdout -RedirectStandardError $stderr -PassThru

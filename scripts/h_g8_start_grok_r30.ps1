@@ -13,6 +13,12 @@ $env:VIT_AGENT_VSP_HUB_REQUIRED = "0"
 $env:LOCALAPPDATA = Join-Path $root "localappdata"
 $env:VIT_AGENT_LLM_TELEMETRY_PATH = Join-Path $root "logs\llm_telemetry.jsonl"
 $env:VIT_ORCHESTRATION_STORE_PATH = Join-Path $root "localappdata\Vit\orchestration.json"
+# Card 144 (FIX-STACK-DRAFT-ROOT-ISOLATION-1): explicit draft-root isolation on
+# top of the process-wide LOCALAPPDATA override above (equivalent isolation);
+# external VIT_HISTORY_DRAFT_ROOT wins.
+. (Join-Path $PSScriptRoot "vit_stack_draft_isolation.ps1")
+$draftInfo = Enable-VitDraftRootIsolation -Label "h_g8_start_grok_r30" -RunDir $root
+Assert-VitDraftRootIsolation -Info $draftInfo
 $kernel = Start-Process -FilePath (Join-Path $root "kernel\VitApp.exe") -WorkingDirectory (Join-Path $root "kernel") -WindowStyle Hidden -PassThru
 Start-Sleep -Seconds 3
 $agent = Start-Process -FilePath (Join-Path $root "VitAgent-H-remediated.exe") -ArgumentList @("-http",("127.0.0.1:{0}" -f $AgentPort),"-last-log-path",(Join-Path $root "logs\agent_last.log"),"-keep-last-log-lines","1200") -WorkingDirectory $root -WindowStyle Hidden -PassThru
