@@ -5,11 +5,9 @@
 
 ## 当前占用
 
-（无——空闲；**用户 92 手测复测优先**，执行流未获 Lead 放行不得占栈）
+- 2026-10-18 14:30 +0800 登记 / **FIX-MASTERVOL-CALIBRATION-1(134) 正式验收腿（kernel-only berth，重跑）**（owner=DSH PC 执行流 exec-mastervol；worktree D:/Vit_DAW_wt_mastervol1，分支 port/fix-mastervol-calibration-1@d7e11ff9；被测内核=本卡构建 `VitApp/build/VitApp_artefacts/Release/VitApp.exe` SHA256=B8CD2E4D7C77A2D695BBE86D09A27EDBAF3F03CDFABA285BC0FD47CA6455A594）：`run_master_volume_diag.ps1 -PreflightOnly` 预检（要求 exit 0）→ 正式 L0–L6 run（新 run ID，~18s–1min）→ 只杀自起 pid → 六端口/四类进程复核=0。§8：LLM=0；成功=脚本 exit 0+L0–L6 全 PASS；失败分类 environment_interrupt/assertion_fail/script_exception；止损=同签名×2。登记前只读核对（14:30）：六端口（5555/5556/5557/7878/8787/4445）监听=0、VitApp/VitAgent/vsphub/Godot=0；用户 Godot 编辑器不占栈端口。**窗口 14:30–14:40（实际 ~1 分钟）**；用户 92 复测顺延至本腿拆栈后（Lead 即时通知）。纪律备注：前次未登记/未 GO 启动的 run 仅作工程参考（见纪律记录），本腿为验收级；`-PreflightOnly` 整改在 d7e11ff9。
 
-纪律记录（2026-10-18）：
-- **未登记未 GO 启动（违规，自报）**：14:18:49–14:19:07 exec-mastervol（FIX-MASTERVOL-CALIBRATION-1）以「预检拒绝 dry-run」为由启动 kernel-only berth 并跑完 L0–L6（预检六端口/进程=0 后 runner 按设计继续；只杀自起 kernel pid=20128；14:19:07 复核六端口/四进程=0）；**未写本记录、未获 Lead GO**，且启动窗口与 118 腿拆栈（14:18:50–52，118 报告记录到其 pid 20128 在场未触碰）有真实重叠（功能性无踩踏）。裁定：该 run 仅作**工程参考**、**不作验收证据**；134 须在正式 GO+占用登记后重跑（~1 min）为验收级证据；要求 berth runner 增 `-PreflightOnly/-NoStart` 纯预检模式，杜绝"dry-run 可启栈"。自报与证据见 coord/runs/FIX-MASTERVOL-CALIBRATION-1/RESULTS.md §〇。
-
+## 最近一次释放（2026-10-18 14:18 +0800）
 ## 最近一次释放（2026-10-18 14:18 +0800）
 
 - 2026-10-18 14:10–14:18 / **FE-START-EMPTY-DRAFT-1(118) 真栈复验腿**（owner=DSH exec-start-draft；worktree D:/Vit_DAW_wt_fedraft1，分支 port/fe-start-empty-draft-1@922e6305；被测 agent=本分支构建 SHA256 69B8D77C…、内核 stock B6565DCF…）：`dev_agent_smoke -StartKernel -RestartAgent`（无 UI；隔离 draft 根 `ProjectHistory/drafts`）+ `/agent/invoke version.project_new` 前端同款通知；四轮迭代 A/B/C/D（最终 probe_final PASS 8/8）；用户真实 draft 根全程零写入（10177→10177）；拆栈 14:18:52 六端口=0+本腿进程=0（只杀自起 pid 10100/3620/17352）；**遗留事项**：14:18:52 观察到 134 未登记 run 的 kernel pid 20128 在场（未触碰）；**适用边界**=启动期自主 history reader（version.list/version.worktree_list，activation 后 1.5–2s）会物化隐藏 draft 破坏 pristine 前置 → 根因修复归 FIX-START-DRAFT-SIDE-EFFECT-1。工件 coord/runs/FE-START-EMPTY-DRAFT-1/realstack_*/+REALSTACK_REPORT.md（随 922e6305 入分支）。
