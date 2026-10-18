@@ -41,6 +41,10 @@ param(
     # 需要 -StartKernel 后的 agent HTTP+内核在栈（LLM chat 腿走真实模型）。
     [switch]$SendRouteAgentSmoke,
     [switch]$SendRouteSmoke,
+    # FE-SENDROUTE-MACRO-GUI-1: GUI-source send/macro command-face leg over the
+    # live stack (frontend probe scene drives VitIpcClient UDP 4445 -> agent
+    # bridge -> kernel ZMQ, the production GUI transport).
+    [switch]$SendRouteGuiSmoke,
     # VITNOTE-IMPL-4：工程级写租约并发场景（双 chat 各触发一次 B2 能力执行，
     # 双 approve 并发入栈——断言两执行段租约区间不重叠且后来者真实排队；
     # 证据=VIT_WRITE_LEASE_EVENTS_PATH JSONL 工件时间戳）。
@@ -7018,6 +7022,67 @@ if ($SendRouteSmoke) {
         throw ("sendroute kernel smoke passed but summary artifact missing: " + $sendRouteSummaryPath)
     }
     Write-Ok ("sendroute kernel smoke passed (kernel command face; summary: " + $sendRouteSummaryPath + ")")
+}
+
+if ($SendRouteGuiSmoke) {
+    Write-Step "sendroute GUI smoke (FE-SENDROUTE-MACRO-GUI-1)"
+    # GUI 同源命令面腿：断言体=前端仓 tools/stack_probe_sendroute_macro.tscn（场景模式，
+    # autoload VitIpcClient→UDP 4445→agent bridge→内核 ZMQ——生产 GUI 同一传输链）；payload
+    # 全部经前端 rack_ipc_payload_rules 构造（选择器选定即连/SEND 槽位调量/绑定菜单确认/
+    # 宏值施加同一构造面）。腿：connect auto_create→list 读回→state aux 插件对→set_amount
+    # 回读→control_add_macro/add_binding(SendOut send level)/set_macro_values→control_graph
+    # 快照+send dB 联动→disconnect 归零。需要 kernel+agent berth（-StartKernel -RestartAgent）。
+    if ([string]::IsNullOrWhiteSpace($ResolvedGodotProjectRoot)) {
+        throw ("sendroute GUI smoke requires -GodotProjectRoot (frontend repo with tools/stack_probe_sendroute_macro.tscn)")
+    }
+    if ([string]::IsNullOrWhiteSpace($ResolvedGodotExe)) {
+        throw ("sendroute GUI smoke requires -GodotExe")
+    }
+    $probeScene = Join-Path $ResolvedGodotProjectRoot "tools\stack_probe_sendroute_macro.tscn"
+    if (-not (Test-Path -LiteralPath $probeScene)) {
+        throw ("sendroute GUI smoke probe scene missing: " + $probeScene)
+    }
+    $bridgeUp = $false
+    $bridgeDeadline = (Get-Date).AddSeconds(30)
+    while ((Get-Date) -lt $bridgeDeadline) {
+        $udpEp = Get-NetUDPEndpoint -LocalPort 4445 -ErrorAction SilentlyContinue
+        if (($udpEp | Measure-Object).Count -gt 0) { $bridgeUp = $true; break }
+        Start-Sleep -Milliseconds 500
+    }
+    if (-not $bridgeUp) {
+        throw ("sendroute GUI smoke: agent bridge UDP 4445 not listening (need -RestartAgent)")
+    }
+    $guiArtifactsDir = $RunArtifactsDir
+    if ([string]::IsNullOrWhiteSpace($guiArtifactsDir)) {
+        $guiArtifactsDir = Join-Path $RepoRoot ("VitApp\Workspace\Artifacts\smoke\sendroute_gui_" + (Get-Date -Format "yyyyMMdd_HHmmss"))
+    }
+    if (-not (Test-Path -LiteralPath $guiArtifactsDir)) {
+        New-Item -ItemType Directory -Path $guiArtifactsDir -Force | Out-Null
+    }
+    $guiConsolePath = Join-Path $guiArtifactsDir "sendroute_gui_smoke_console.txt"
+    $guiGodotLog = Join-Path $guiArtifactsDir "sendroute_gui_smoke_godot.log"
+    $priorSkipDev = [Environment]::GetEnvironmentVariable("VIT_SKIP_DEV_AUTOSTART", "Process")
+    $env:VIT_SKIP_DEV_AUTOSTART = "1"
+    try {
+        & $ResolvedGodotExe --headless --path $ResolvedGodotProjectRoot "res://tools/stack_probe_sendroute_macro.tscn" --log-file $guiGodotLog > $guiConsolePath 2>&1
+        $guiExit = $LASTEXITCODE
+    }
+    finally {
+        if ($null -eq $priorSkipDev) {
+            Remove-Item Env:VIT_SKIP_DEV_AUTOSTART -ErrorAction SilentlyContinue
+        }
+        else {
+            $env:VIT_SKIP_DEV_AUTOSTART = $priorSkipDev
+        }
+    }
+    Get-Content -LiteralPath $guiConsolePath -ErrorAction SilentlyContinue | ForEach-Object { Write-Host $_ }
+    if ($guiExit -ne 0) {
+        throw ("sendroute GUI smoke failed with exit code $guiExit (console: " + $guiConsolePath + ")")
+    }
+    if (-not (Select-String -LiteralPath $guiConsolePath -Pattern "SUMMARY_JSON" -Quiet)) {
+        throw ("sendroute GUI smoke exited 0 but summary line missing (console: " + $guiConsolePath + ")")
+    }
+    Write-Ok ("sendroute GUI smoke passed (GUI command face over live stack; console: " + $guiConsolePath + ")")
 }
 
 if (-not $NoChatSmoke) {
