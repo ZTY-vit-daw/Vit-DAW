@@ -1,7 +1,7 @@
 # 2026-10-18 晚窗 批量八裁定（137/139 真栈腿 pass + 141/142 收口 + 140 解阻）
 
 - 验收会话：12:00-18:00 决策流（DSH PC，本机）；裁定来源=用户 2026-10-18 午窗确认派发（137/139/140）+ 晚窗真栈窗口执行。
-- 基线：origin/main=**7333bb48**（137/139 分支 cherry-pick 后）；本批合入后 main=__MAIN_AFTER__。
+- 基线：origin/main=**7333bb48**（137/139 分支 cherry-pick 后）；本批合入后 main=c96049e0。
 - 执行侧：DSH exec-start-draft（task-12）、exec-rendergain（task-13）；协调面由 12:00-18:00 决策流单写。
 
 ## 一、FIX-START-DRAFT-SIDE-EFFECT-1（137）——**pass**
