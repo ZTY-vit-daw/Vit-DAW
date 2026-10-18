@@ -1,0 +1,751 @@
+﻿[
+    {
+        "idx":  1,
+        "package":  "vit-daw-agent/cmd/comderive",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  2,
+        "package":  "vit-daw-agent/cmd/domreadiness",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  3,
+        "package":  "vit-daw-agent/cmd/eqtopologyreplay",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  4,
+        "package":  "vit-daw-agent/cmd/mixlab",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  5,
+        "package":  "vit-daw-agent/cmd/pcactl",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  6,
+        "package":  "vit-daw-agent/cmd/pluginprobe",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  7,
+        "package":  "vit-daw-agent/cmd/vitagent",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  8,
+        "package":  "vit-daw-agent/cmd/vsphub",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  9,
+        "package":  "vit-daw-agent/internal",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  10,
+        "package":  "vit-daw-agent/internal/acousticpackage",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  11,
+        "package":  "vit-daw-agent/internal/actionworkflow",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  12,
+        "package":  "vit-daw-agent/internal/agentloop",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  13,
+        "package":  "vit-daw-agent/internal/agentprotocol",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  14,
+        "package":  "vit-daw-agent/internal/artifacts",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  15,
+        "package":  "vit-daw-agent/internal/audioclosure",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  16,
+        "package":  "vit-daw-agent/internal/bridge",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  17,
+        "package":  "vit-daw-agent/internal/browsercapture",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  18,
+        "package":  "vit-daw-agent/internal/capabilityadapters",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  19,
+        "package":  "vit-daw-agent/internal/capabilitycontext",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  20,
+        "package":  "vit-daw-agent/internal/capabilityinteraction",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  21,
+        "package":  "vit-daw-agent/internal/capabilityruntime",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  22,
+        "package":  "vit-daw-agent/internal/chat",
+        "exit":  0,
+        "added_dirs":  2,
+        "added":  "draft_20261018T095847_4011c972,draft_20261018T100015_3f676ddc"
+    },
+    {
+        "idx":  23,
+        "package":  "vit-daw-agent/internal/com",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  24,
+        "package":  "vit-daw-agent/internal/config",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  25,
+        "package":  "vit-daw-agent/internal/contextruntime",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  26,
+        "package":  "vit-daw-agent/internal/contextruntime/carriers",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  27,
+        "package":  "vit-daw-agent/internal/conversation",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  28,
+        "package":  "vit-daw-agent/internal/daw",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  29,
+        "package":  "vit-daw-agent/internal/dom",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  30,
+        "package":  "vit-daw-agent/internal/dynamiccontrol",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  31,
+        "package":  "vit-daw-agent/internal/epm",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  32,
+        "package":  "vit-daw-agent/internal/executionports",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  33,
+        "package":  "vit-daw-agent/internal/executionruntime",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  34,
+        "package":  "vit-daw-agent/internal/executionverifiers",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  35,
+        "package":  "vit-daw-agent/internal/executor",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  36,
+        "package":  "vit-daw-agent/internal/experiment",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  37,
+        "package":  "vit-daw-agent/internal/experimentplugins",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  38,
+        "package":  "vit-daw-agent/internal/fastpath",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  39,
+        "package":  "vit-daw-agent/internal/frequencycleanup",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  40,
+        "package":  "vit-daw-agent/internal/fxm",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  41,
+        "package":  "vit-daw-agent/internal/genapi",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  42,
+        "package":  "vit-daw-agent/internal/genctx",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  43,
+        "package":  "vit-daw-agent/internal/goalrunner",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  44,
+        "package":  "vit-daw-agent/internal/harness",
+        "exit":  0,
+        "added_dirs":  1,
+        "added":  "draft_20261018T100244_86802fcd"
+    },
+    {
+        "idx":  45,
+        "package":  "vit-daw-agent/internal/history",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  46,
+        "package":  "vit-daw-agent/internal/journal",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  47,
+        "package":  "vit-daw-agent/internal/kernel",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  48,
+        "package":  "vit-daw-agent/internal/levelsafety",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  49,
+        "package":  "vit-daw-agent/internal/llm",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  50,
+        "package":  "vit-daw-agent/internal/logx",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  51,
+        "package":  "vit-daw-agent/internal/loudnesswatch",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  52,
+        "package":  "vit-daw-agent/internal/lowendrelation",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  53,
+        "package":  "vit-daw-agent/internal/macrocontrols",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  54,
+        "package":  "vit-daw-agent/internal/masking",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  55,
+        "package":  "vit-daw-agent/internal/materialize",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  56,
+        "package":  "vit-daw-agent/internal/mixboard",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  57,
+        "package":  "vit-daw-agent/internal/mixdiagnosis",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  58,
+        "package":  "vit-daw-agent/internal/mixstyle",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  59,
+        "package":  "vit-daw-agent/internal/mom",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  60,
+        "package":  "vit-daw-agent/internal/observationrouter",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  61,
+        "package":  "vit-daw-agent/internal/orchestration",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  62,
+        "package":  "vit-daw-agent/internal/orchestrationcontroller",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  63,
+        "package":  "vit-daw-agent/internal/orchestrationruntime",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  64,
+        "package":  "vit-daw-agent/internal/panlayout",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  65,
+        "package":  "vit-daw-agent/internal/pendingmanager",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  66,
+        "package":  "vit-daw-agent/internal/planner",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  67,
+        "package":  "vit-daw-agent/internal/pluginprobe",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  68,
+        "package":  "vit-daw-agent/internal/pluginsemantics",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  69,
+        "package":  "vit-daw-agent/internal/policy",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  70,
+        "package":  "vit-daw-agent/internal/presenter",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  71,
+        "package":  "vit-daw-agent/internal/preview",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  72,
+        "package":  "vit-daw-agent/internal/probeaudio",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  73,
+        "package":  "vit-daw-agent/internal/processorattestation",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  74,
+        "package":  "vit-daw-agent/internal/processorauthority",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  75,
+        "package":  "vit-daw-agent/internal/processorintent",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  76,
+        "package":  "vit-daw-agent/internal/processorregistry",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  77,
+        "package":  "vit-daw-agent/internal/projectcut",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  78,
+        "package":  "vit-daw-agent/internal/projectpackage",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  79,
+        "package":  "vit-daw-agent/internal/projectstore",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  80,
+        "package":  "vit-daw-agent/internal/projectworkspace",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  81,
+        "package":  "vit-daw-agent/internal/promptruntime",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  82,
+        "package":  "vit-daw-agent/internal/protocolvalue",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  83,
+        "package":  "vit-daw-agent/internal/pullharness",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  84,
+        "package":  "vit-daw-agent/internal/queryengine",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  85,
+        "package":  "vit-daw-agent/internal/resourceintake",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  86,
+        "package":  "vit-daw-agent/internal/rlm",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  87,
+        "package":  "vit-daw-agent/internal/rollback",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  88,
+        "package":  "vit-daw-agent/internal/runtime",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  89,
+        "package":  "vit-daw-agent/internal/segmentation",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  90,
+        "package":  "vit-daw-agent/internal/semanticeffect",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  91,
+        "package":  "vit-daw-agent/internal/semanticorchestrator",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  92,
+        "package":  "vit-daw-agent/internal/shadow",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  93,
+        "package":  "vit-daw-agent/internal/shelltools",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  94,
+        "package":  "vit-daw-agent/internal/staticbalance",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  95,
+        "package":  "vit-daw-agent/internal/taskstate",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  96,
+        "package":  "vit-daw-agent/internal/tim",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  97,
+        "package":  "vit-daw-agent/internal/tom",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  98,
+        "package":  "vit-daw-agent/internal/toolpolicy",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  99,
+        "package":  "vit-daw-agent/internal/tools",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  100,
+        "package":  "vit-daw-agent/internal/trajectory",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  101,
+        "package":  "vit-daw-agent/internal/vspclient",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  102,
+        "package":  "vit-daw-agent/internal/vsphub",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  103,
+        "package":  "vit-daw-agent/internal/vst3host",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  104,
+        "package":  "vit-daw-agent/internal/webtools",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  105,
+        "package":  "vit-daw-agent/internal/workflows/plugingrabber",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  106,
+        "package":  "vit-daw-agent/internal/workspace",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    },
+    {
+        "idx":  107,
+        "package":  "vit-daw-agent/rules/ruleset",
+        "exit":  0,
+        "added_dirs":  0,
+        "added":  ""
+    }
+]

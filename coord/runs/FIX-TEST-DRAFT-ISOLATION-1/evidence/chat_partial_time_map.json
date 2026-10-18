@@ -1,0 +1,56 @@
+﻿[
+    {
+        "dir":  "draft_20261018T101510_52abe5a8",
+        "created":  "18:15:10",
+        "likely_test":  "TestActedRoundSettleRefusalKeepsObservationGuidance",
+        "hasAgent":  false
+    },
+    {
+        "dir":  "draft_20261018T101621_2deb70a2",
+        "created":  "18:16:21",
+        "likely_test":  "TestAdoptionSettlesSessionClosureAndReleasesOwner",
+        "hasAgent":  false
+    },
+    {
+        "dir":  "draft_20261018T101637_5a6bad44",
+        "created":  "18:16:37",
+        "likely_test":  "TestAgentLoopBroadMixConfirmationDoesNotResumePluginLoad",
+        "hasAgent":  false
+    },
+    {
+        "dir":  "draft_20261018T101709_8edeef31",
+        "created":  "18:17:09",
+        "likely_test":  "TestAgentLoopClarificationReplyResumesConversationGoal",
+        "hasAgent":  false
+    },
+    {
+        "dir":  "draft_20261018T102111_0d401439",
+        "created":  "18:21:11",
+        "likely_test":  "TestAppliedBoundaryArmsSettleCheckpointOverAnswerablePark",
+        "hasAgent":  false
+    },
+    {
+        "dir":  "draft_20261018T102116_721e8104",
+        "created":  "18:21:16",
+        "likely_test":  "TestAppliedBoundaryArmsSettleCheckpointOverCompletedGoal",
+        "hasAgent":  false
+    },
+    {
+        "dir":  "draft_20261018T102122_ac38071c",
+        "created":  "18:21:22",
+        "likely_test":  "TestAppliedBoundaryDoesNotArmWhileGoalStillRunning",
+        "hasAgent":  false
+    },
+    {
+        "dir":  "draft_20261018T102258_86f7c377",
+        "created":  "18:22:58",
+        "likely_test":  "TestArmDisplacesUndrivableShellOccupantAndSurvivesReload",
+        "hasAgent":  false
+    },
+    {
+        "dir":  "draft_20261018T102304_213efc8e",
+        "created":  "18:23:04",
+        "likely_test":  "TestArmNeverDisplacesDrivableOccupant",
+        "hasAgent":  false
+    }
+]

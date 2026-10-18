@@ -1,0 +1,22 @@
+﻿{
+    "schema_version":  "fix_test_draft_isolation_pollution_map.v2",
+    "package":  "./internal/harness",
+    "agent_dir":  "D:\\Vit_DAW_wt_testiso1\\agent",
+    "real_draft_root":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts",
+    "go_test_exit_code":  {
+                              "value":  0,
+                              "PSComputerName":  "localhost",
+                              "RunspaceId":  "a4a97f0a-4de3-43a5-9f8f-ab21336161b9",
+                              "PSShowComputerName":  false
+                          },
+    "events":  [
+                   {
+                       "dir":  "draft_20261018T101406_38f8f157",
+                       "attributed_test":  "TestLoudnessWatchPiggybackContainsPanics",
+                       "last_run_at":  "2026-10-18T18:14:06.5163990+08:00",
+                       "detected_at":  "2026-10-18T18:14:06.9514494+08:00"
+                   }
+               ],
+    "verbose_log":  "D:\\Vit_DAW_wt_testiso1\\coord\\runs\\FIX-TEST-DRAFT-ISOLATION-1\\evidence\\go_test_verbose_harness_pollution_map.log",
+    "captured_at":  "2026-10-18T18:14:10.2853118+08:00"
+}
