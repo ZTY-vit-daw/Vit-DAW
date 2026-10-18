@@ -42,3 +42,11 @@
 - owner=GLM ZCode PC 执行会话（本会话，L1/L2）；仓库主检出 D:\Vit_DAW（脚本域直接改主检出，无独立 worktree——文件域仅 scripts/*.ps1 + coord 工件，与 doing 其余卡零冲突）
 - 领取基线：HEAD=e4d113f3（ff 同步 origin/main 后）；领取前工作树既有改动=VitApp/Workspace 两 xml（既存运行时状态，非本卡）+ coord 未跟踪工件
 - 真栈验证腿占用登记见 coord/resources/PC-RUNTIME-STACK.md（19:12 窗口）
+
+## 验收（2026-10-18 晚窗 GLM 主管决策流）：pass
+
+- diff 亲读：helper（外部 env 优先/run 目录默认/%TEMP% 兜底/断言三查含路径包含）+dev_agent_smoke 中心修复（任何进程启动前置 env、全脚本生命周期保持供晚到 restart 继承、两处 agent 启动断言、run 目录 draft_root_isolation.json 标记）+berth 接入模式（dot-source+Enable+Assert）抽查 restart_agent.ps1 干净；零业务断言改动零产品代码核实。
+- 决策侧独立复验：全部 scripts/*.ps1 PowerShell Parser 亲跑 **0 错误**（94+ 文件）；工件亲核=zero_delta=true（10185→10185，19:13:25→19:14:45 包夹 run 窗）+isolation marker（source=default，%TEMP% 隔离基）+isolated_root_listing（隔离根 1 运行时 draft）。
+- **处置裁定（执行侧上交的 10181→10185 四个 18:44–18:57 draft）**：时间窗=用户 R2 手测时段（含「新建工程」流程项），判定=**用户合法手测产物非泄漏**（真实使用写真实根为正确行为），保留不动、不入隔离区；后续用户手测如需干净根可自行清理。
+- **流程瑕疵登记**：执行侧 release 提交（bea42f83）只含工件漏脚本本体——交付未入库；验收侧补救提交（scripts 28 文件 +366/−19）随本裁定入 main。执行侧后续卡须在 release 提交核对交付物完整性。
+- 卡终态=done（随本裁定移池）。

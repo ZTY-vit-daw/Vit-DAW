@@ -52,3 +52,11 @@
 
 - 取证卡：TRACK-LIST-GAP-1（139，done）；修复锚点/草案见 `coord/runs/TRACK-LIST-GAP-1/RESULTS.md` §3
 - 发现来源：FE-START-EMPTY-DRAFT-1（118）round4 seq5-8 用户 M2 体验样本
+
+## 验收（2026-10-18 晚窗 GLM 主管决策流）：pass
+
+- diff 亲读：A 面 publicListTracksResult 内核回包权威+异常回包诚实降级（tracks_source=shadow_snapshot+warning 不冒充权威）+userTrackIDSetsDiffer 集合比对正确；B 面 structureRefreshPending 触发条件=未知 uid node_added/已知轨 node_removed（orphan 记账原样）+bridge 去抖 1s 再武装（防去抖窗口吞改）+VSP 快照优先 legacy 回退+shadowRefresh 测试注入缝（生产恒等）。语义变更与停止条件零越界。
+- 决策侧独立复跑：worktree trackfix1 `go build ./...` exit 0 + `go test ./... -count=1` **95 包 ok / 0 FAIL**。
+- 真栈工件亲核：run_20261018_192615 probe_summary **pass=True**——六面全阶段 tool≡kernel（a_face ok/silent_stale=∅/undisclosed=∅）、stale_disclosure violations=∅、B 面 S1 两轮 heal 0.01-0.02s/S2 0.26s、agent 日志 3 条 `refreshed after structural_delta source=vsp.state.snapshot`（rev 2/3/4）实证；run_meta 被测 SHA 齐（worktree agent C57EB917/vsphub D35519BC+stock kernel 只读）。
+- 消费面清单（execution_memory/TOM/message_loop 空工程分支）核查采信，无需另卡。
+- impl 372ab2c9 已 cherry-pick 入 main=**88e88327**；卡终态=done。
