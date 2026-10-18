@@ -7310,14 +7310,17 @@ func (s *Server) activateCurrentProjectWorkspace(ctx context.Context) {
 		return
 	}
 	// FIX-START-DRAFT-SIDE-EFFECT-1: activation is a read/identity step and must
-	// not materialize a default draft. A restarted Agent can receive a project
-	// UUID before it has a stable project path; recover the durable working
-	// session created by the previous process with a read-only scan of the
-	// ProjectHistory draft root, then fall back to a draft that a write path
-	// (history.ProjectNew) already materialized.
-	if projectPath == "" {
-		projectPath = history.RecoverableProjectPathForUUIDInRoot(projectUUID)
-	} else if recoveredPath := history.RecoverableProjectPathForUUID(projectPath, projectUUID); recoveredPath != "" && !sameWorkspacePath(recoveredPath, projectPath) {
+	// not materialize a default draft; it only falls back to a draft that a
+	// write path (history.ProjectNew) already materialized in this process.
+	// FIX-START-STATE-RECOVERY-1 (user ruling, 2026-10-18 evening window): the
+	// kernel-reported project UUID is not a recovery basis — activation never
+	// scans the draft root for an older draft by UUID, and startup begins a new
+	// session. Startup recovery has exactly one decision point,
+	// history.StartupWorkspaceRecovery, which is disabled today; an explicit
+	// "recent projects" entry plugs in there. Disabled also means activation
+	// neither reads nor writes the persisted working state of previous runs.
+	recoveredPath, recoveryReason := history.StartupWorkspaceRecovery(projectPath, projectUUID)
+	if recoveredPath != "" && !sameWorkspacePath(recoveredPath, projectPath) {
 		projectPath = recoveredPath
 	}
 	if projectPath == "" {
@@ -7325,7 +7328,7 @@ func (s *Server) activateCurrentProjectWorkspace(ctx context.Context) {
 	}
 	if projectPath == "" {
 		if s.logger != nil {
-			s.logger.Info("[workspace] activation pending uuid=%s reason=no_materialized_or_recoverable_draft", projectUUID)
+			s.logger.Info("[workspace] activation pending uuid=%s reason=%s", projectUUID, recoveryReason)
 		}
 		return
 	}

@@ -1,0 +1,555 @@
+﻿{
+    "schema_version":  "fix_start_state_recovery_stack_leg.v1",
+    "mode":  "fixed",
+    "sentinel":  true,
+    "run_dir":  "D:\\Vit_DAW_wt_fxstartrec1\\coord\\runs\\FIX-START-STATE-RECOVERY-1\\realstack_fixed_sentinel",
+    "agent_http":  "http://127.0.0.1:7878",
+    "kernel_zmq":  "tcp://127.0.0.1:5555",
+    "started_at":  "2026-10-18T21:31:40.9274409+08:00",
+    "assertions":  {
+                       "A1_no_recovery_by_kernel_uuid":  true,
+                       "A2_startup_zero_materialization":  true,
+                       "B_project_new_exactly_one_draft":  true,
+                       "C_identity_gate":  true,
+                       "D_reader_read_only":  true,
+                       "Z_seed_zero_touch_full_leg":  true,
+                       "S_sentinel_zero_open_attempts":  true,
+                       "BASE_phenomenon_reproduced":  true
+                   },
+    "observations":  {
+                         "activation_ms_from_agent_start":  562
+                     },
+    "failures":  [
+
+                 ],
+    "notes":  [
+                  "OK: precheck: six stack ports free, stack processes=0, Godot interactive=0 (headless scratches=2, editor=0)",
+                  "OK: seed: 42083948B state seeded for uuid=vitproj_b3f2838183d64add9ca7824b8b3ac557",
+                  "OK: sentinel: exclusive handle held on D:\\Vit_DAW_wt_fxstartrec1\\coord\\runs\\FIX-START-STATE-RECOVERY-1\\realstack_fixed_sentinel\\ProjectHistory\\drafts\\draft_20260905T134132_3866b080\\.vit_history\\.sessions\\vitproj_b3f2838183d64add9ca7824b8b3ac557\\session_20260908T102051_099b621b\\workspace\\state\\agent_runtime_state.json",
+                  "OK: kernel up pid=9608 ready_ms=2171",
+                  "OK: agent up pid=12592 ready_ms=544",
+                  "OK: A1) startup activation stayed pending (new session): 2026-10-18T21:31:44 [INFO] [workspace] activation pending uuid=vitproj_b3f2838183d64add9ca7824b8b3ac557 reason=startup_recovery_disabled_new_session",
+                  "OK: A2) startup materialized zero draft dirs (137 no-regression)",
+                  "OK: Z) seeded previous-session draft ZERO-touch through startup+settle (42MB state sha+mtime identical, no adds/removes)",
+                  "OK: S) sentinel leg: zero sharing-violation evidence 鈥?no open was attempted on the 42MB state",
+                  "OK: B) version.project_new added exactly 1 draft (118 no-regression): draft_20261018T133151_89efa39e",
+                  "OK: B) new draft carries the new project uuid ",
+                  "OK: C) new draft carries the new uuid and the seeded draft keeps its .sessions old-uuid layout",
+                  "OK: D) reader faces created zero drafts and wrote nothing outside the active workspace",
+                  "OK: Z-final) seeded old draft ZERO-touch across the whole leg (startup+project_new+readers)"
+              ],
+    "drafts_root":  "D:\\Vit_DAW_wt_fxstartrec1\\coord\\runs\\FIX-START-STATE-RECOVERY-1\\realstack_fixed_sentinel\\ProjectHistory\\drafts",
+    "git_head":  "45dcef054896f77dec4b16219e627b0ca733c37f",
+    "git_status":  "M agent/internal/chat/server.go\r\n M agent/internal/chat/start_side_effect_test.go\r\n M agent/internal/history/working_session.go\r\n?? agent/internal/history/startup_recovery_test.go\r\n?? coord/runs/FIX-START-STATE-RECOVERY-1/",
+    "agent_sha256":  "991230032C53A79993844B732777E3D7A9209851679005AA2F0E028D140C7C7F",
+    "kernel_sha256":  "B6565DCF85D1DA867E16333052A7B928A5413565940603ADBCF4ABD59DD3123B",
+    "seed_state_source":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20260905T134132_3866b080\\.vit_history\\.sessions\\vitproj_b3f2838183d64add9ca7824b8b3ac557\\session_20260908T102051_099b621b\\workspace\\state\\agent_runtime_state.json",
+    "seed_state_source_sha256":  "EDF11C5D1B5F9617928C286EA0AB85C63D94E3839F9AC225226DD9715245CE3B",
+    "seed_state_source_bytes":  41980404,
+    "kernel_startup_uuid":  "vitproj_b3f2838183d64add9ca7824b8b3ac557",
+    "precheck_godot_editor":  [
+                                  "pid=9036",
+                                  "pid=21188"
+                              ],
+    "precheck_godot_headless":  [
+                                    "pid=9036",
+                                    "pid=21188"
+                                ],
+    "seed_state_bytes":  42083948,
+    "seed_state_sha256":  "1A27C1A210FA9DED00CCF7B161B0C07D2FDDB5466F1E2704E9CB27329A770AB5",
+    "seed_name":  "draft_20260905T134132_3866b080",
+    "kernel_project_xml":  "D:\\Vit_DAW_wt_fxstartrec1\\coord\\runs\\FIX-START-STATE-RECOVERY-1\\realstack_fixed_sentinel\\default_project.xml",
+    "snapshot_prestart":  {
+                              "label":  "prestart",
+                              "at":  "2026-10-18T21:31:42.1147278+08:00",
+                              "dirs":  [
+                                           "draft_20260905T134132_3866b080"
+                                       ],
+                              "identities":  [
+                                                 {
+                                                     "name":  "draft_20260905T134132_3866b080",
+                                                     "history":  true,
+                                                     "agent":  false,
+                                                     "uuids":  [
+
+                                                               ],
+                                                     "sessions_uuids":  [
+                                                                            "vitproj_b3f2838183d64add9ca7824b8b3ac557"
+                                                                        ]
+                                                 }
+                                             ],
+                              "tree":  {
+                                           "draft_20260905T134132_3866b080\\.vit_history\\.sessions\\vitproj_b3f2838183d64add9ca7824b8b3ac557\\session_20260908T102051_099b621b\\session.json":  {
+                                                                                                                                                                                                     "sha256":  "2505449A3178CDA6AF0EF30DD23B47BF723B98FCD1770F2EB8704AD630DD67D6",
+                                                                                                                                                                                                     "mtime":  "2026-10-18T13:31:42.0503867Z",
+                                                                                                                                                                                                     "size":  773
+                                                                                                                                                                                                 },
+                                           "draft_20260905T134132_3866b080\\Unsaved.vit":  {
+                                                                                               "sha256":  "3A5C061E37BAA18AC847749DEA4581A1A36EE1694B080A97623116D791B0548A",
+                                                                                               "mtime":  "2026-10-18T13:31:41.8103864Z",
+                                                                                               "size":  75
+                                                                                           }
+                                       }
+                          },
+    "kernel_pid":  9608,
+    "kernel_ready_ms":  2171,
+    "agent_pid":  12592,
+    "agent_ready_ms":  544,
+    "activation_verdict":  "pending",
+    "activation_line":  "2026-10-18T21:31:44 [INFO] [workspace] activation pending uuid=vitproj_b3f2838183d64add9ca7824b8b3ac557 reason=startup_recovery_disabled_new_session",
+    "activation_ms_from_agent_start":  562,
+    "startup_quiescence":  {
+                               "stable":  true,
+                               "probes":  7,
+                               "waited_ms":  3099,
+                               "stable_probes":  6
+                           },
+    "startup_probe_response":  {
+                                   "status":  "ok",
+                                   "agent_action_id":  "act_4b89d1c7ab5c2c8e",
+                                   "tool":  "version.list",
+                                   "command_name":  "version_list",
+                                   "risk_level":  "direct",
+                                   "requires_confirmation":  false,
+                                   "result":  {
+                                                  "active_branch":  "",
+                                                  "active_node_id":  "",
+                                                  "active_worktree":  "",
+                                                  "available":  false,
+                                                  "branches":  {
+
+                                                               },
+                                                  "commit_count":  0,
+                                                  "conversation_graph":  {
+                                                                             "active_branch":  "",
+                                                                             "active_node_id":  "",
+                                                                             "active_worktree":  "",
+                                                                             "project_path":  "",
+                                                                             "project_uuid":  ""
+                                                                         },
+                                                  "current_project_path":  "",
+                                                  "detached":  false,
+                                                  "draft":  false,
+                                                  "head":  "",
+                                                  "history_dir":  "",
+                                                  "initialized":  false,
+                                                  "project_path":  "",
+                                                  "project_uuid":  "",
+                                                  "refs":  {
+
+                                                           },
+                                                  "root_project_path":  "",
+                                                  "state_dir":  "",
+                                                  "unsaved":  false,
+                                                  "warnings":  [
+
+                                                               ],
+                                                  "worktree_count":  0,
+                                                  "worktrees":  [
+
+                                                                ]
+                                              }
+                               },
+    "startup_probe_quiescence":  {
+                                     "stable":  true,
+                                     "probes":  7,
+                                     "waited_ms":  3059,
+                                     "stable_probes":  6
+                                 },
+    "snapshot_after_startup":  {
+                                   "label":  "after_startup",
+                                   "at":  "2026-10-18T21:31:51.1326993+08:00",
+                                   "dirs":  [
+                                                "draft_20260905T134132_3866b080"
+                                            ],
+                                   "identities":  [
+                                                      {
+                                                          "name":  "draft_20260905T134132_3866b080",
+                                                          "history":  true,
+                                                          "agent":  false,
+                                                          "uuids":  [
+
+                                                                    ],
+                                                          "sessions_uuids":  [
+                                                                                 "vitproj_b3f2838183d64add9ca7824b8b3ac557"
+                                                                             ]
+                                                      }
+                                                  ],
+                                   "tree":  {
+                                                "draft_20260905T134132_3866b080\\.vit_history\\.sessions\\vitproj_b3f2838183d64add9ca7824b8b3ac557\\session_20260908T102051_099b621b\\session.json":  {
+                                                                                                                                                                                                          "sha256":  "2505449A3178CDA6AF0EF30DD23B47BF723B98FCD1770F2EB8704AD630DD67D6",
+                                                                                                                                                                                                          "mtime":  "2026-10-18T13:31:42.0503867Z",
+                                                                                                                                                                                                          "size":  773
+                                                                                                                                                                                                      },
+                                                "draft_20260905T134132_3866b080\\Unsaved.vit":  {
+                                                                                                    "sha256":  "3A5C061E37BAA18AC847749DEA4581A1A36EE1694B080A97623116D791B0548A",
+                                                                                                    "mtime":  "2026-10-18T13:31:41.8103864Z",
+                                                                                                    "size":  75
+                                                                                                }
+                                            }
+                               },
+    "startup_tree_diff":  [
+
+                          ],
+    "seed_diffs_at_startup":  [
+
+                              ],
+    "seed_state_after_startup":  null,
+    "agent_created_dirs_at_startup":  [
+
+                                      ],
+    "sentinel_sharing_violations":  0,
+    "kernel_new_project_raw":  "{\"status\": \"ok\", \"message\": \"Blank project created\", \"project_lifecycle\": \"new\", \"project_uuid\": \"vitproj_fcb0a3642baa4937bfdefdc9b0974132\", \"project_id\": \"vitproj_fcb0a3642baa4937bfdefdc9b0974132\", \"project_path\": \"\", \"current_project_path\": \"\"}\r\n",
+    "new_project_uuid":  "vitproj_fcb0a3642baa4937bfdefdc9b0974132",
+    "version_project_new_response":  {
+                                         "status":  "ok",
+                                         "agent_action_id":  "act_eb3e552fa0ff948c",
+                                         "tool":  "version.project_new",
+                                         "command_name":  "version_project_new",
+                                         "risk_level":  "direct",
+                                         "requires_confirmation":  false,
+                                         "result":  {
+                                                        "accepted":  true,
+                                                        "async":  true,
+                                                        "message":  "Project new notification accepted",
+                                                        "status":  "ok"
+                                                    }
+                                     },
+    "new_project_quiescence":  {
+                                   "stable":  true,
+                                   "probes":  8,
+                                   "waited_ms":  3836,
+                                   "stable_probes":  6
+                               },
+    "snapshot_after_project_new":  {
+                                       "label":  "after_project_new",
+                                       "at":  "2026-10-18T21:31:55.2564140+08:00",
+                                       "dirs":  [
+                                                    "draft_20260905T134132_3866b080",
+                                                    "draft_20261018T133151_89efa39e"
+                                                ],
+                                       "identities":  [
+                                                          {
+                                                              "name":  "draft_20260905T134132_3866b080",
+                                                              "history":  true,
+                                                              "agent":  false,
+                                                              "uuids":  [
+
+                                                                        ],
+                                                              "sessions_uuids":  [
+                                                                                     "vitproj_b3f2838183d64add9ca7824b8b3ac557"
+                                                                                 ]
+                                                          },
+                                                          {
+                                                              "name":  "draft_20261018T133151_89efa39e",
+                                                              "history":  true,
+                                                              "agent":  true,
+                                                              "uuids":  [
+                                                                            "vitproj_b3f2838183d64add9ca7824b8b3ac557",
+                                                                            "vitproj_fcb0a3642baa4937bfdefdc9b0974132"
+                                                                        ],
+                                                              "sessions_uuids":  [
+                                                                                     "vitproj_b3f2838183d64add9ca7824b8b3ac557",
+                                                                                     "vitproj_fcb0a3642baa4937bfdefdc9b0974132"
+                                                                                 ]
+                                                          }
+                                                      ],
+                                       "tree":  {
+                                                    "draft_20260905T134132_3866b080\\.vit_history\\.sessions\\vitproj_b3f2838183d64add9ca7824b8b3ac557\\session_20260908T102051_099b621b\\session.json":  {
+                                                                                                                                                                                                              "sha256":  "2505449A3178CDA6AF0EF30DD23B47BF723B98FCD1770F2EB8704AD630DD67D6",
+                                                                                                                                                                                                              "mtime":  "2026-10-18T13:31:42.0503867Z",
+                                                                                                                                                                                                              "size":  773
+                                                                                                                                                                                                          },
+                                                    "draft_20260905T134132_3866b080\\Unsaved.vit":  {
+                                                                                                        "sha256":  "3A5C061E37BAA18AC847749DEA4581A1A36EE1694B080A97623116D791B0548A",
+                                                                                                        "mtime":  "2026-10-18T13:31:41.8103864Z",
+                                                                                                        "size":  75
+                                                                                                    },
+                                                    "draft_20261018T133151_89efa39e\\.vit_agent\\vitproj_b3f2838183d64add9ca7824b8b3ac557\\manifest.v2.json":  {
+                                                                                                                                                                   "sha256":  "FED08A0AB60C97640500B8F7AB68277C8D744B90649E0819A282344149F837D0",
+                                                                                                                                                                   "mtime":  "2026-10-18T13:31:51.3792268Z",
+                                                                                                                                                                   "size":  1186
+                                                                                                                                                               },
+                                                    "draft_20261018T133151_89efa39e\\.vit_agent\\vitproj_fcb0a3642baa4937bfdefdc9b0974132\\manifest.v2.json":  {
+                                                                                                                                                                   "sha256":  "B366C47B4B490803ED7B8B6F76B0F01209B15E6325E326AEEB4DC776C9E0F320",
+                                                                                                                                                                   "mtime":  "2026-10-18T13:31:51.6677447Z",
+                                                                                                                                                                   "size":  1187
+                                                                                                                                                               },
+                                                    "draft_20261018T133151_89efa39e\\.vit_history\\.sessions\\vitproj_b3f2838183d64add9ca7824b8b3ac557\\session_20261018T133151_e05a15ee\\session.json":  {
+                                                                                                                                                                                                              "sha256":  "6DB8F7D5A55756145E9DFFAE479856381C4D00E4C7B1C6202C2184348DE6FB68",
+                                                                                                                                                                                                              "mtime":  "2026-10-18T13:31:51.3917271Z",
+                                                                                                                                                                                                              "size":  798
+                                                                                                                                                                                                          },
+                                                    "draft_20261018T133151_89efa39e\\.vit_history\\.sessions\\vitproj_b3f2838183d64add9ca7824b8b3ac557\\session_20261018T133151_e05a15ee\\workspace\\state\\agent_runtime_state.json":  {
+                                                                                                                                                                                                                                            "sha256":  "19D47C2869DD47B13E0FE71FEA56B5D3EE97C0E85D8093087705A2E04EDE1047",
+                                                                                                                                                                                                                                            "mtime":  "2026-10-18T13:31:51.6687461Z",
+                                                                                                                                                                                                                                            "size":  411
+                                                                                                                                                                                                                                        },
+                                                    "draft_20261018T133151_89efa39e\\.vit_history\\.sessions\\vitproj_b3f2838183d64add9ca7824b8b3ac557\\session_20261018T133151_e05a15ee\\workspace\\state\\worktrees\\main\\.vit_worktree.json":  {
+                                                                                                                                                                                                                                                       "sha256":  "867220CF642B94C581F767DF9C6C56081F726372F188A5572002A1625F777CAB",
+                                                                                                                                                                                                                                                       "mtime":  "2026-10-18T13:31:51.3897274Z",
+                                                                                                                                                                                                                                                       "size":  839
+                                                                                                                                                                                                                                                   },
+                                                    "draft_20261018T133151_89efa39e\\.vit_history\\.sessions\\vitproj_b3f2838183d64add9ca7824b8b3ac557\\session_20261018T133151_e05a15ee\\workspace\\workspace.json":  {
+                                                                                                                                                                                                                           "sha256":  "4706681775889EF99827523CCC18011FBAB255059890899D3002F9BD0419BC93",
+                                                                                                                                                                                                                           "mtime":  "2026-10-18T13:31:51.3917271Z",
+                                                                                                                                                                                                                           "size":  853
+                                                                                                                                                                                                                       },
+                                                    "draft_20261018T133151_89efa39e\\.vit_history\\.sessions\\vitproj_fcb0a3642baa4937bfdefdc9b0974132\\session_20261018T133151_2278db85\\session.json":  {
+                                                                                                                                                                                                              "sha256":  "3E031CF929EC6989527653087C08E0B06578C24532FB7AB14DB09C0680DFC8D1",
+                                                                                                                                                                                                              "mtime":  "2026-10-18T13:31:51.6757449Z",
+                                                                                                                                                                                                              "size":  809
+                                                                                                                                                                                                          },
+                                                    "draft_20261018T133151_89efa39e\\.vit_history\\.sessions\\vitproj_fcb0a3642baa4937bfdefdc9b0974132\\session_20261018T133151_2278db85\\workspace\\state\\worktrees\\main\\.vit_worktree.json":  {
+                                                                                                                                                                                                                                                       "sha256":  "867220CF642B94C581F767DF9C6C56081F726372F188A5572002A1625F777CAB",
+                                                                                                                                                                                                                                                       "mtime":  "2026-10-18T13:31:51.3716827Z",
+                                                                                                                                                                                                                                                       "size":  839
+                                                                                                                                                                                                                                                   },
+                                                    "draft_20261018T133151_89efa39e\\.vit_history\\.sessions\\vitproj_fcb0a3642baa4937bfdefdc9b0974132\\session_20261018T133151_2278db85\\workspace\\workspace.json":  {
+                                                                                                                                                                                                                           "sha256":  "97488FEC98EA2560F7A907A87B5F6B45457475EA1F1DEEBC3BC0709FA16767C4",
+                                                                                                                                                                                                                           "mtime":  "2026-10-18T13:31:51.3787270Z",
+                                                                                                                                                                                                                           "size":  852
+                                                                                                                                                                                                                       },
+                                                    "draft_20261018T133151_89efa39e\\.vit_history\\.sessions\\vitproj_fcb0a3642baa4937bfdefdc9b0974132\\session_20261018T133151_77088845\\session.json":  {
+                                                                                                                                                                                                              "sha256":  "9E515A2375F84994D72B9539CA3F526F779CF49FC93BEB25C2061E6FC3AFCD7D",
+                                                                                                                                                                                                              "mtime":  "2026-10-18T13:31:51.6817451Z",
+                                                                                                                                                                                                              "size":  796
+                                                                                                                                                                                                          },
+                                                    "draft_20261018T133151_89efa39e\\.vit_history\\.sessions\\vitproj_fcb0a3642baa4937bfdefdc9b0974132\\session_20261018T133151_77088845\\workspace\\state\\worktrees\\main\\.vit_worktree.json":  {
+                                                                                                                                                                                                                                                       "sha256":  "867220CF642B94C581F767DF9C6C56081F726372F188A5572002A1625F777CAB",
+                                                                                                                                                                                                                                                       "mtime":  "2026-10-18T13:31:51.6787465Z",
+                                                                                                                                                                                                                                                       "size":  839
+                                                                                                                                                                                                                                                   },
+                                                    "draft_20261018T133151_89efa39e\\.vit_history\\.sessions\\vitproj_fcb0a3642baa4937bfdefdc9b0974132\\session_20261018T133151_77088845\\workspace\\workspace.json":  {
+                                                                                                                                                                                                                           "sha256":  "73A0A50C5D440A19B68FDD36F3491C4649498E7058C718779533E92455E2073B",
+                                                                                                                                                                                                                           "mtime":  "2026-10-18T13:31:51.6812451Z",
+                                                                                                                                                                                                                           "size":  853
+                                                                                                                                                                                                                       },
+                                                    "draft_20261018T133151_89efa39e\\.vit_history\\projects\\Unsaved_50f9597e9f85\\worktrees\\main\\.vit_worktree.json":  {
+                                                                                                                                                                              "sha256":  "867220CF642B94C581F767DF9C6C56081F726372F188A5572002A1625F777CAB",
+                                                                                                                                                                              "mtime":  "2026-10-18T13:31:51.3631838Z",
+                                                                                                                                                                              "size":  839
+                                                                                                                                                                          },
+                                                    "draft_20261018T133151_89efa39e\\.vit_history\\vitproj_b3f2838183d64add9ca7824b8b3ac557\\state\\worktrees\\main\\.vit_worktree.json":  {
+                                                                                                                                                                                               "sha256":  "867220CF642B94C581F767DF9C6C56081F726372F188A5572002A1625F777CAB",
+                                                                                                                                                                                               "mtime":  "2026-10-18T13:31:51.3817283Z",
+                                                                                                                                                                                               "size":  839
+                                                                                                                                                                                           },
+                                                    "draft_20261018T133151_89efa39e\\.vit_history\\vitproj_b3f2838183d64add9ca7824b8b3ac557\\workspace.json":  {
+                                                                                                                                                                   "sha256":  "5A87DBBC91AE19DB67A3F091F46E2CC56C550AF22C74923019E1BA0E1F9C418B",
+                                                                                                                                                                   "mtime":  "2026-10-18T13:31:51.3822283Z",
+                                                                                                                                                                   "size":  805
+                                                                                                                                                               },
+                                                    "draft_20261018T133151_89efa39e\\.vit_history\\vitproj_fcb0a3642baa4937bfdefdc9b0974132\\state\\worktrees\\main\\.vit_worktree.json":  {
+                                                                                                                                                                                               "sha256":  "867220CF642B94C581F767DF9C6C56081F726372F188A5572002A1625F777CAB",
+                                                                                                                                                                                               "mtime":  "2026-10-18T13:31:51.3681823Z",
+                                                                                                                                                                                               "size":  839
+                                                                                                                                                                                           },
+                                                    "draft_20261018T133151_89efa39e\\.vit_history\\vitproj_fcb0a3642baa4937bfdefdc9b0974132\\workspace.json":  {
+                                                                                                                                                                   "sha256":  "AD16F7C5FC8E1EAA8C5AE25224B1F2BC24732290E48C25921D8FAFBF4665D17C",
+                                                                                                                                                                   "mtime":  "2026-10-18T13:31:51.3686825Z",
+                                                                                                                                                                   "size":  805
+                                                                                                                                                               },
+                                                    "draft_20261018T133151_89efa39e\\Unsaved.vit":  {
+                                                                                                        "sha256":  "3A5C061E37BAA18AC847749DEA4581A1A36EE1694B080A97623116D791B0548A",
+                                                                                                        "mtime":  "2026-10-18T13:31:51.3531818Z",
+                                                                                                        "size":  75
+                                                                                                    }
+                                                }
+                                   },
+    "new_dirs_after_project_new":  [
+                                       "draft_20261018T133151_89efa39e"
+                                   ],
+    "new_draft_uuids":  [
+                            "vitproj_b3f2838183d64add9ca7824b8b3ac557",
+                            "vitproj_fcb0a3642baa4937bfdefdc9b0974132"
+                        ],
+    "new_draft_old_uuid_residue":  [
+                                       "vitproj_b3f2838183d64add9ca7824b8b3ac557"
+                                   ],
+    "reader_responses":  {
+                             "version.list":  {
+                                                  "status":  "ok",
+                                                  "project_path":  "D:\\Vit_DAW_wt_fxstartrec1\\coord\\runs\\FIX-START-STATE-RECOVERY-1\\realstack_fixed_sentinel\\ProjectHistory\\drafts\\draft_20261018T133151_89efa39e\\Unsaved.vit"
+                                              },
+                             "version.worktree_list":  {
+                                                           "status":  "ok",
+                                                           "project_path":  "D:\\Vit_DAW_wt_fxstartrec1\\coord\\runs\\FIX-START-STATE-RECOVERY-1\\realstack_fixed_sentinel\\ProjectHistory\\drafts\\draft_20261018T133151_89efa39e\\Unsaved.vit"
+                                                       }
+                         },
+    "snapshot_after_reader":  {
+                                  "label":  "after_reader",
+                                  "at":  "2026-10-18T21:31:57.9536824+08:00",
+                                  "dirs":  [
+                                               "draft_20260905T134132_3866b080",
+                                               "draft_20261018T133151_89efa39e"
+                                           ],
+                                  "identities":  [
+                                                     {
+                                                         "name":  "draft_20260905T134132_3866b080",
+                                                         "history":  true,
+                                                         "agent":  false,
+                                                         "uuids":  [
+
+                                                                   ],
+                                                         "sessions_uuids":  [
+                                                                                "vitproj_b3f2838183d64add9ca7824b8b3ac557"
+                                                                            ]
+                                                     },
+                                                     {
+                                                         "name":  "draft_20261018T133151_89efa39e",
+                                                         "history":  true,
+                                                         "agent":  true,
+                                                         "uuids":  [
+                                                                       "vitproj_b3f2838183d64add9ca7824b8b3ac557",
+                                                                       "vitproj_fcb0a3642baa4937bfdefdc9b0974132"
+                                                                   ],
+                                                         "sessions_uuids":  [
+                                                                                "vitproj_b3f2838183d64add9ca7824b8b3ac557",
+                                                                                "vitproj_fcb0a3642baa4937bfdefdc9b0974132"
+                                                                            ]
+                                                     }
+                                                 ],
+                                  "tree":  {
+                                               "draft_20260905T134132_3866b080\\.vit_history\\.sessions\\vitproj_b3f2838183d64add9ca7824b8b3ac557\\session_20260908T102051_099b621b\\session.json":  {
+                                                                                                                                                                                                         "sha256":  "2505449A3178CDA6AF0EF30DD23B47BF723B98FCD1770F2EB8704AD630DD67D6",
+                                                                                                                                                                                                         "mtime":  "2026-10-18T13:31:42.0503867Z",
+                                                                                                                                                                                                         "size":  773
+                                                                                                                                                                                                     },
+                                               "draft_20260905T134132_3866b080\\Unsaved.vit":  {
+                                                                                                   "sha256":  "3A5C061E37BAA18AC847749DEA4581A1A36EE1694B080A97623116D791B0548A",
+                                                                                                   "mtime":  "2026-10-18T13:31:41.8103864Z",
+                                                                                                   "size":  75
+                                                                                               },
+                                               "draft_20261018T133151_89efa39e\\.vit_agent\\vitproj_b3f2838183d64add9ca7824b8b3ac557\\manifest.v2.json":  {
+                                                                                                                                                              "sha256":  "FED08A0AB60C97640500B8F7AB68277C8D744B90649E0819A282344149F837D0",
+                                                                                                                                                              "mtime":  "2026-10-18T13:31:51.3792268Z",
+                                                                                                                                                              "size":  1186
+                                                                                                                                                          },
+                                               "draft_20261018T133151_89efa39e\\.vit_agent\\vitproj_fcb0a3642baa4937bfdefdc9b0974132\\journal\\000001.jsonl":  {
+                                                                                                                                                                   "sha256":  "B1523507C1A4456074C3BDC2287092675E1837A89035118EB34BAD0D1D6DDAFF",
+                                                                                                                                                                   "mtime":  "2026-10-18T13:31:55.4145227Z",
+                                                                                                                                                                   "size":  6997
+                                                                                                                                                               },
+                                               "draft_20261018T133151_89efa39e\\.vit_agent\\vitproj_fcb0a3642baa4937bfdefdc9b0974132\\manifest.v2.json":  {
+                                                                                                                                                              "sha256":  "4EE5DAEB632440CB995D7F285AE3315E0C84F8A0EFAFE255FF7968E1096FC285",
+                                                                                                                                                              "mtime":  "2026-10-18T13:31:55.4336093Z",
+                                                                                                                                                              "size":  1193
+                                                                                                                                                          },
+                                               "draft_20261018T133151_89efa39e\\.vit_history\\.sessions\\vitproj_b3f2838183d64add9ca7824b8b3ac557\\session_20261018T133151_e05a15ee\\session.json":  {
+                                                                                                                                                                                                         "sha256":  "6DB8F7D5A55756145E9DFFAE479856381C4D00E4C7B1C6202C2184348DE6FB68",
+                                                                                                                                                                                                         "mtime":  "2026-10-18T13:31:51.3917271Z",
+                                                                                                                                                                                                         "size":  798
+                                                                                                                                                                                                     },
+                                               "draft_20261018T133151_89efa39e\\.vit_history\\.sessions\\vitproj_b3f2838183d64add9ca7824b8b3ac557\\session_20261018T133151_e05a15ee\\workspace\\state\\agent_runtime_state.json":  {
+                                                                                                                                                                                                                                       "sha256":  "19D47C2869DD47B13E0FE71FEA56B5D3EE97C0E85D8093087705A2E04EDE1047",
+                                                                                                                                                                                                                                       "mtime":  "2026-10-18T13:31:51.6687461Z",
+                                                                                                                                                                                                                                       "size":  411
+                                                                                                                                                                                                                                   },
+                                               "draft_20261018T133151_89efa39e\\.vit_history\\.sessions\\vitproj_b3f2838183d64add9ca7824b8b3ac557\\session_20261018T133151_e05a15ee\\workspace\\state\\worktrees\\main\\.vit_worktree.json":  {
+                                                                                                                                                                                                                                                  "sha256":  "867220CF642B94C581F767DF9C6C56081F726372F188A5572002A1625F777CAB",
+                                                                                                                                                                                                                                                  "mtime":  "2026-10-18T13:31:51.3897274Z",
+                                                                                                                                                                                                                                                  "size":  839
+                                                                                                                                                                                                                                              },
+                                               "draft_20261018T133151_89efa39e\\.vit_history\\.sessions\\vitproj_b3f2838183d64add9ca7824b8b3ac557\\session_20261018T133151_e05a15ee\\workspace\\workspace.json":  {
+                                                                                                                                                                                                                      "sha256":  "4706681775889EF99827523CCC18011FBAB255059890899D3002F9BD0419BC93",
+                                                                                                                                                                                                                      "mtime":  "2026-10-18T13:31:51.3917271Z",
+                                                                                                                                                                                                                      "size":  853
+                                                                                                                                                                                                                  },
+                                               "draft_20261018T133151_89efa39e\\.vit_history\\.sessions\\vitproj_fcb0a3642baa4937bfdefdc9b0974132\\session_20261018T133151_2278db85\\session.json":  {
+                                                                                                                                                                                                         "sha256":  "3E031CF929EC6989527653087C08E0B06578C24532FB7AB14DB09C0680DFC8D1",
+                                                                                                                                                                                                         "mtime":  "2026-10-18T13:31:51.6757449Z",
+                                                                                                                                                                                                         "size":  809
+                                                                                                                                                                                                     },
+                                               "draft_20261018T133151_89efa39e\\.vit_history\\.sessions\\vitproj_fcb0a3642baa4937bfdefdc9b0974132\\session_20261018T133151_2278db85\\workspace\\state\\worktrees\\main\\.vit_worktree.json":  {
+                                                                                                                                                                                                                                                  "sha256":  "867220CF642B94C581F767DF9C6C56081F726372F188A5572002A1625F777CAB",
+                                                                                                                                                                                                                                                  "mtime":  "2026-10-18T13:31:51.3716827Z",
+                                                                                                                                                                                                                                                  "size":  839
+                                                                                                                                                                                                                                              },
+                                               "draft_20261018T133151_89efa39e\\.vit_history\\.sessions\\vitproj_fcb0a3642baa4937bfdefdc9b0974132\\session_20261018T133151_2278db85\\workspace\\workspace.json":  {
+                                                                                                                                                                                                                      "sha256":  "97488FEC98EA2560F7A907A87B5F6B45457475EA1F1DEEBC3BC0709FA16767C4",
+                                                                                                                                                                                                                      "mtime":  "2026-10-18T13:31:51.3787270Z",
+                                                                                                                                                                                                                      "size":  852
+                                                                                                                                                                                                                  },
+                                               "draft_20261018T133151_89efa39e\\.vit_history\\.sessions\\vitproj_fcb0a3642baa4937bfdefdc9b0974132\\session_20261018T133151_77088845\\session.json":  {
+                                                                                                                                                                                                         "sha256":  "9E515A2375F84994D72B9539CA3F526F779CF49FC93BEB25C2061E6FC3AFCD7D",
+                                                                                                                                                                                                         "mtime":  "2026-10-18T13:31:51.6817451Z",
+                                                                                                                                                                                                         "size":  796
+                                                                                                                                                                                                     },
+                                               "draft_20261018T133151_89efa39e\\.vit_history\\.sessions\\vitproj_fcb0a3642baa4937bfdefdc9b0974132\\session_20261018T133151_77088845\\workspace\\state\\agent_runtime_state.json":  {
+                                                                                                                                                                                                                                       "sha256":  "A2D7E113649719236D07C93D198BC8F4D8706B2A4F536245C0C14AFF9837F4EF",
+                                                                                                                                                                                                                                       "mtime":  "2026-10-18T13:31:55.4351142Z",
+                                                                                                                                                                                                                                       "size":  410
+                                                                                                                                                                                                                                   },
+                                               "draft_20261018T133151_89efa39e\\.vit_history\\.sessions\\vitproj_fcb0a3642baa4937bfdefdc9b0974132\\session_20261018T133151_77088845\\workspace\\state\\worktrees\\main\\.vit_worktree.json":  {
+                                                                                                                                                                                                                                                  "sha256":  "867220CF642B94C581F767DF9C6C56081F726372F188A5572002A1625F777CAB",
+                                                                                                                                                                                                                                                  "mtime":  "2026-10-18T13:31:51.6787465Z",
+                                                                                                                                                                                                                                                  "size":  839
+                                                                                                                                                                                                                                              },
+                                               "draft_20261018T133151_89efa39e\\.vit_history\\.sessions\\vitproj_fcb0a3642baa4937bfdefdc9b0974132\\session_20261018T133151_77088845\\workspace\\workspace.json":  {
+                                                                                                                                                                                                                      "sha256":  "73A0A50C5D440A19B68FDD36F3491C4649498E7058C718779533E92455E2073B",
+                                                                                                                                                                                                                      "mtime":  "2026-10-18T13:31:51.6812451Z",
+                                                                                                                                                                                                                      "size":  853
+                                                                                                                                                                                                                  },
+                                               "draft_20261018T133151_89efa39e\\.vit_history\\projects\\Unsaved_50f9597e9f85\\worktrees\\main\\.vit_worktree.json":  {
+                                                                                                                                                                         "sha256":  "867220CF642B94C581F767DF9C6C56081F726372F188A5572002A1625F777CAB",
+                                                                                                                                                                         "mtime":  "2026-10-18T13:31:51.3631838Z",
+                                                                                                                                                                         "size":  839
+                                                                                                                                                                     },
+                                               "draft_20261018T133151_89efa39e\\.vit_history\\vitproj_b3f2838183d64add9ca7824b8b3ac557\\state\\worktrees\\main\\.vit_worktree.json":  {
+                                                                                                                                                                                          "sha256":  "867220CF642B94C581F767DF9C6C56081F726372F188A5572002A1625F777CAB",
+                                                                                                                                                                                          "mtime":  "2026-10-18T13:31:51.3817283Z",
+                                                                                                                                                                                          "size":  839
+                                                                                                                                                                                      },
+                                               "draft_20261018T133151_89efa39e\\.vit_history\\vitproj_b3f2838183d64add9ca7824b8b3ac557\\workspace.json":  {
+                                                                                                                                                              "sha256":  "5A87DBBC91AE19DB67A3F091F46E2CC56C550AF22C74923019E1BA0E1F9C418B",
+                                                                                                                                                              "mtime":  "2026-10-18T13:31:51.3822283Z",
+                                                                                                                                                              "size":  805
+                                                                                                                                                          },
+                                               "draft_20261018T133151_89efa39e\\.vit_history\\vitproj_fcb0a3642baa4937bfdefdc9b0974132\\state\\worktrees\\main\\.vit_worktree.json":  {
+                                                                                                                                                                                          "sha256":  "867220CF642B94C581F767DF9C6C56081F726372F188A5572002A1625F777CAB",
+                                                                                                                                                                                          "mtime":  "2026-10-18T13:31:51.3681823Z",
+                                                                                                                                                                                          "size":  839
+                                                                                                                                                                                      },
+                                               "draft_20261018T133151_89efa39e\\.vit_history\\vitproj_fcb0a3642baa4937bfdefdc9b0974132\\workspace.json":  {
+                                                                                                                                                              "sha256":  "AD16F7C5FC8E1EAA8C5AE25224B1F2BC24732290E48C25921D8FAFBF4665D17C",
+                                                                                                                                                              "mtime":  "2026-10-18T13:31:51.3686825Z",
+                                                                                                                                                              "size":  805
+                                                                                                                                                          },
+                                               "draft_20261018T133151_89efa39e\\Unsaved.vit":  {
+                                                                                                   "sha256":  "3A5C061E37BAA18AC847749DEA4581A1A36EE1694B080A97623116D791B0548A",
+                                                                                                   "mtime":  "2026-10-18T13:31:51.3531818Z",
+                                                                                                   "size":  75
+                                                                                               }
+                                           }
+                              },
+    "reader_tree_diff":  [
+                             "changed:draft_20261018T133151_89efa39e\\.vit_agent\\vitproj_fcb0a3642baa4937bfdefdc9b0974132\\manifest.v2.json",
+                             "mtime:draft_20261018T133151_89efa39e\\.vit_agent\\vitproj_fcb0a3642baa4937bfdefdc9b0974132\\manifest.v2.json",
+                             "added:draft_20261018T133151_89efa39e\\.vit_agent\\vitproj_fcb0a3642baa4937bfdefdc9b0974132\\journal\\000001.jsonl",
+                             "added:draft_20261018T133151_89efa39e\\.vit_history\\.sessions\\vitproj_fcb0a3642baa4937bfdefdc9b0974132\\session_20261018T133151_77088845\\workspace\\state\\agent_runtime_state.json"
+                         ],
+    "reader_new_dirs":  [
+
+                        ],
+    "reader_forbidden_diffs":  [
+
+                               ],
+    "seed_diffs_full_leg":  [
+
+                            ],
+    "activated_line_count":  2,
+    "activation_pending_line_count":  29,
+    "last_activated_line":  "2026-10-18T21:31:51 [INFO] [workspace] activated project=\"D:\\\\Vit_DAW_wt_fxstartrec1\\\\coord\\\\runs\\\\FIX-START-STATE-RECOVERY-1\\\\realstack_fixed_sentinel\\\\ProjectHistory\\\\drafts\\\\draft_20261018T133151_89efa39e\\\\Unsaved.vit\" uuid=vitproj_fcb0a3642baa4937bfdefdc9b0974132 recovered=false conversations=0 retired_legacy_b2=0 retired_legacy_b3=0",
+    "last_pending_line":  "2026-10-18T21:31:51 [INFO] [workspace] activation pending uuid=vitproj_b3f2838183d64add9ca7824b8b3ac557 reason=startup_recovery_disabled_new_session",
+    "finished_at":  "2026-10-18T21:31:58.0091093+08:00",
+    "teardown":  {
+                     "ports_listening":  [
+
+                                         ],
+                     "stack_processes":  [
+
+                                         ],
+                     "at":  "2026-10-18T21:31:59.4519613+08:00"
+                 }
+}
