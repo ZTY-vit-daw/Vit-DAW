@@ -1,0 +1,168 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - heading "机架宏控制层 v1 · 两层模型样图" [level=1] [ref=e3]
+    - generic [ref=e4]: 卡 129 FE-RACK-MACRO-LAYER-DESIGN-1 · 2026-10-18 早窗 · 决策侧第一轮样稿（待迭代，定稿后放行 K3/130） · 视觉语言承接 B2 机架可视化草稿 + send GUI v4 节点族 · 配套设计稿 01-design-draft-v1.md
+  - figure "图 1全景 · 信号层 + 控制层同显（默认视图）" [ref=e5]:
+    - generic [ref=e7]: 经典混音宏示例：一个「空间感」旋钮同时驱动 ZamVerb·Decay（插件参数口）与 SendOut·发送量（发送量参数口）。 控制线=紫虚线；信号线=灰实线（现状电缆不变）。宏节点自由摆放，不占 z1/z2/z3 泳道。
+    - img [ref=e8]:
+      - generic [ref=e9]:
+        - generic [ref=e12]: 信号层
+        - generic [ref=e15]: 控制层
+      - generic [ref=e16]:
+        - generic [ref=e18]: clip · 干声源
+        - generic [ref=e20]: z1 · 预处理
+        - generic [ref=e22]: z2 · 空间
+        - generic [ref=e24]: z3 · 动态 + 发送
+        - generic [ref=e25]: 控制层 · 自由区（宏节点 x/y 自由摆放，不入泳道）
+      - generic [ref=e26]:
+        - generic [ref=e29]: Clip · 干声源
+        - generic [ref=e30]: lead_vox_01.wav
+      - generic [ref=e31]:
+        - generic [ref=e34]: ZamEQ
+        - generic [ref=e35]: EQ · z1
+        - generic [ref=e36]: ⌗ 7
+      - generic [ref=e39]:
+        - generic [ref=e42]: ZamVerb
+        - generic [ref=e43]: 混响 · z2
+        - generic [ref=e44]: Decay 1.9s
+        - generic [ref=e48]: ⌗ 12
+      - generic [ref=e51]:
+        - generic [ref=e54]: ZamComp
+        - generic [ref=e55]: 压缩 · z3
+        - generic [ref=e56]: Thresh −18
+      - generic [ref=e60]:
+        - generic [ref=e63]: SEND ▸
+        - generic [ref=e64]: Reverb Bus
+        - generic [ref=e66]: −6.0dB
+        - generic [ref=e67]: 发送量 −6dB
+      - generic [ref=e71]:
+        - generic [ref=e74]: ◂ SEND
+        - generic [ref=e75]: Reverb Bus（湿声注入）
+      - generic [ref=e76]: OUT
+      - generic [ref=e83]: 穿通继续 · 副本岔出
+      - generic [ref=e84]:
+        - generic [ref=e87]: 宏 · 空间感 Space
+        - generic [ref=e91]: 62%
+        - generic [ref=e92]: 2 映射
+        - generic [ref=e96]: 绑定拖拽起点
+      - generic [ref=e103]:
+        - generic [ref=e105]: 空间感 → ZamVerb · Decay
+        - generic [ref=e106]: 0.0 … 4.0s · ease_out · 点击编辑
+      - generic [ref=e107]:
+        - generic [ref=e108]: 信号（实线 · 现状）
+        - generic [ref=e109]: 控制（紫虚线 · 新增）
+        - generic [ref=e110]: 时间限段（B2 语言 · 沿用）
+  - figure "图 2控制层单显（绑定期视图）" [ref=e111]:
+    - generic [ref=e113]: 层 chip 切到「仅控制」：信号层压暗至 15%（仍可辨位置，不参与命中），控制层全显——密集绑定时的编辑视图。 第二个宏「冲击力 Punch」示例多宏共存：一卡可多旋钮（内核 macroCount 原生支持）。
+    - img [ref=e114]:
+      - generic [ref=e115]:
+        - generic [ref=e118]: 信号层
+        - generic [ref=e121]: 控制层
+      - generic [ref=e122]:
+        - generic [ref=e124]: Clip · 干声源
+        - generic [ref=e126]: ZamVerb
+        - generic [ref=e128]: SEND ▸ Reverb Bus
+      - generic [ref=e131]:
+        - generic [ref=e134]: 宏 · 空间感 Space
+        - generic [ref=e137]: 62%
+        - generic [ref=e139]: 2 映射
+      - generic [ref=e141]:
+        - generic [ref=e144]: 宏 · 冲击力 Punch
+        - generic [ref=e147]: 38%
+        - generic [ref=e149]: 1 映射
+      - generic [ref=e155]:
+        - generic [ref=e157]: ZamVerb · Decay
+        - generic [ref=e159]: SendOut · 发送量
+        - generic [ref=e161]: ZamComp · Thresh
+      - generic [ref=e162]: 层过滤只改渲染不改数据；控制连线手势不触发信号拓扑门（独立通道）
+  - figure "图 3绑定创建流（三步 + 建成态）" [ref=e163]:
+    - generic [ref=e165]: 手势从宏输出锚拖出虚线——不走 GraphEdit 的 connection_request（信号拓扑门零介入）； 松手在参数口上弹出绑定小菜单（curve 四选=内核原生词表）。
+    - img [ref=e166]:
+      - generic [ref=e167]:
+        - generic [ref=e169]: ① 画布右键 → 新建宏
+        - generic [ref=e170]:
+          - generic [ref=e173]: 载入效果器…
+          - generic [ref=e175]: ◆ 新建宏
+          - generic [ref=e177]: 新建发送…（v4）
+        - generic [ref=e178]: control_add_macro · x/y=落点
+      - generic [ref=e179]:
+        - generic [ref=e181]: ② 从输出锚拖出紫虚线
+        - generic [ref=e184]: 宏 · 空间感
+        - generic [ref=e189]: Decay
+        - generic [ref=e194]: ZamVerb 卡（参数口命中放大）
+        - generic [ref=e195]: 手势独立于信号连线；悬停参数口高亮
+      - generic [ref=e196]:
+        - generic [ref=e198]: ③ 松手 → 绑定小菜单
+        - generic [ref=e199]:
+          - generic [ref=e201]: 空间感 → ZamVerb · Decay
+          - generic [ref=e202]: 曲线 curve（内核词表）
+          - generic [ref=e203]:
+            - generic [ref=e205]: linear
+            - generic [ref=e207]: invert
+            - generic [ref=e209]: ease_in
+            - generic [ref=e211]: ease_out
+          - generic [ref=e212]: 范围
+          - generic [ref=e214]: "0.0"
+          - generic [ref=e215]: …
+          - generic [ref=e217]: 4.0s
+          - generic [ref=e219]: ✓ 绑定
+        - generic [ref=e220]: control_add_binding · 回执自带 control_graph 全量快照
+      - generic [ref=e221]:
+        - generic [ref=e223]: ④ 建成：虚线+把手+tooltip
+        - generic [ref=e226]: 宏 · 空间感
+        - generic [ref=e231]:
+          - generic [ref=e233]: 空间感 → ZamVerb · Decay
+          - generic [ref=e234]: 0.0…4.0s · linear · 点击编辑
+        - generic [ref=e235]: 右键线=断开（control_remove_binding）
+  - figure "图 4宏节点解剖 · 绑定编辑卡" [ref=e236]:
+    - generic [ref=e238]: 左=宏卡各部件（macroCount>1 时一卡多旋钮 slot）；右=点开绑定把手后的编辑卡（曲线四选+范围+断开）， 与「N 映射」列表内编辑同数据双入口。
+    - img [ref=e239]:
+      - generic [ref=e240]:
+        - generic [ref=e243]: 宏 · 空间感 Space
+        - generic [ref=e244]: ✎ 双击改名
+        - generic [ref=e248]: 62%
+        - generic [ref=e249]: 空间量
+        - generic [ref=e252]: 38%
+        - generic [ref=e253]: 亮度
+        - generic [ref=e255]: 2 映射
+        - generic [ref=e257]:
+          - generic [ref=e258]: 主旋钮（值=control_set_macro_values 批量提交）
+          - generic [ref=e259]: slot 第 2 钮（macroCount）
+          - generic [ref=e261]: 输出锚（绑定起点）
+          - generic [ref=e263]: 「N 映射」badge 点击=该宏绑定列表
+          - generic [ref=e264]: 紫竖条=控制层族色 · 卡尺寸沿 RACK_GRAPH_MACRO_NODE_MIN 236×116
+      - generic [ref=e265]:
+        - generic [ref=e267]: 绑定编辑
+        - generic [ref=e268]: 空间感 · 空间量 → ZamVerb · Decay
+        - generic [ref=e269]: 曲线
+        - generic [ref=e270]:
+          - generic [ref=e272]: linear
+          - generic [ref=e274]: invert
+          - generic [ref=e276]: ease_in
+          - generic [ref=e278]: ease_out
+        - generic [ref=e284]:
+          - generic [ref=e285]: linear
+          - generic [ref=e286]: invert
+          - generic [ref=e287]: ease_in
+          - generic [ref=e288]: ease_out（选中）
+        - generic [ref=e289]: 范围 min … max
+        - generic [ref=e291]: "0.0"
+        - generic [ref=e293]: 4.0s
+        - generic [ref=e295]: ✕ 断开绑定
+        - generic [ref=e296]: control_update_binding / remove
+      - generic [ref=e297]:
+        - generic [ref=e298]: 角色边界（v1 提案）
+        - generic [ref=e299]: · 机架控制层 = 持久编辑面（建宏/绑定/曲线）
+        - generic [ref=e300]: · 侧面板 MacroPanel = agent 会话视图（保留）
+        - generic [ref=e301]: · 参数工作台 = 批量绑定入口（产物落控制层）
+        - generic [ref=e302]: · 宏值施加统一走 control_set_macro_values
+        - generic [ref=e303]: send 量绑定 = SendOut 插件 send level 参数口
+        - generic [ref=e304]: （plugin_param 目标，零新内核机制）
+  - generic [ref=e305]:
+    - heading "开放问题（迭代点 · 请逐条表态，默认值=可接受的保守项）" [level=2] [ref=e306]
+    - list [ref=e307]:
+      - listitem [ref=e308]: 控制层默认显示？ v1=默认双显（宏少时不碍事） 备选：默认只显信号层，点 chip 才开控制层
+      - listitem [ref=e309]: 控制语义色=紫？ v1=紫罗兰（与橙/青不撞） 备选：绿（Bitwig 调制习惯）/ 黄（MIDI learn 习惯）
+      - listitem [ref=e310]: 宏卡形态？ v1=一卡多旋钮 slot（内核 macroCount 原生） 备选：一卡一旋钮（更简单，多宏=多卡）
+      - listitem [ref=e311]: 绑定编辑入口？ v1=线把手点击 + 宏卡「N 映射」列表双入口 备选：只留一处（更收敛）
+  - contentinfo [ref=e312]: FE-RACK-MACRO-LAYER-DESIGN-1 · v1 样图（2026-10-18）· 本图为交互规格示意，非最终视觉稿（视觉以 Godot 实现为准）； 内核锚点与缺口清单见 01-design-draft-v1.md §1/§6。迭代记录将归档本目录（v2/v3…）。

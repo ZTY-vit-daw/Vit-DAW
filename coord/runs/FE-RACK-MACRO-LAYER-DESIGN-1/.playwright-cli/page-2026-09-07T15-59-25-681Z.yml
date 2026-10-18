@@ -1,0 +1,191 @@
+- generic [active] [ref=f23e1]:
+  - generic [ref=f23e2]:
+    - generic [ref=f23e3]:
+      - link "Skip to content" [ref=f23e4] [cursor=pointer]:
+        - /url: "#start-of-content"
+      - banner [ref=f23e9]:
+        - heading "Navigation Menu" [level=2] [ref=f23e10]
+        - generic [ref=f23e11]:
+          - link "Homepage" [ref=f23e13] [cursor=pointer]:
+            - /url: /
+          - generic [ref=f23e16]:
+            - navigation "Global" [ref=f23e17]:
+              - list [ref=f23e18]:
+                - listitem [ref=f23e19]:
+                  - button "Platform" [ref=f23e21] [cursor=pointer]
+                - listitem [ref=f23e24]:
+                  - button "Solutions" [ref=f23e26] [cursor=pointer]
+                - listitem [ref=f23e29]:
+                  - button "Resources" [ref=f23e31] [cursor=pointer]
+                - listitem [ref=f23e34]:
+                  - button "Open Source" [ref=f23e36] [cursor=pointer]
+                - listitem [ref=f23e39]:
+                  - button "Enterprise" [ref=f23e41] [cursor=pointer]
+                - listitem [ref=f23e44]:
+                  - link "Pricing" [ref=f23e45] [cursor=pointer]:
+                    - /url: https://github.com/pricing
+            - generic [ref=f23e46]:
+              - button "Search or jump to, type / to search" [ref=f23e48] [cursor=pointer]
+              - link "Sign in" [ref=f23e55] [cursor=pointer]:
+                - /url: /login?return_to=https%3A%2F%2Fgithub.com%2FSonyResearch%2FLLM2Fx%2Ftree%2Fmain%2Fllm2fx-tools%2Fllm4mp%2Fmodules
+              - link "Sign up" [ref=f23e58] [cursor=pointer]:
+                - /url: /signup?ref_cta=Sign+up&ref_loc=header+logged+out&ref_page=%2F%3Cuser-name%3E%2F%3Crepo-name%3E%2Ffiles%2Fdisambiguate&source=header-repo&source_repo=SonyResearch%2FLLM2Fx
+              - button "Appearance settings" [ref=f23e61] [cursor=pointer]
+    - main [ref=f23e68]:
+      - generic [ref=f23e69]:
+        - generic [ref=f23e70]:
+          - generic [ref=f23e72]:
+            - link "SonyResearch" [ref=f23e76] [cursor=pointer]:
+              - /url: /SonyResearch
+            - generic [ref=f23e77]: /
+            - strong [ref=f23e78]:
+              - link "LLM2Fx" [ref=f23e79] [cursor=pointer]:
+                - /url: /SonyResearch/LLM2Fx
+            - generic [ref=f23e80]: Public
+          - generic [ref=f23e81]:
+            - list:
+              - listitem [ref=f23e82]:
+                - link "You must be signed in to change notification settings" [ref=f23e83] [cursor=pointer]:
+                  - /url: /login?return_to=%2FSonyResearch%2FLLM2Fx
+                  - text: Notifications
+              - listitem [ref=f23e86]:
+                - link "Fork 6" [ref=f23e87] [cursor=pointer]:
+                  - /url: /login?return_to=%2FSonyResearch%2FLLM2Fx
+                  - text: Fork
+                  - generic "6" [ref=f23e90]
+              - listitem [ref=f23e91]:
+                - link "You must be signed in to star a repository" [ref=f23e93] [cursor=pointer]:
+                  - /url: /login?return_to=%2FSonyResearch%2FLLM2Fx
+                  - text: Star
+                  - generic "51 users starred this repository" [ref=f23e96]: "51"
+        - navigation "Repository" [ref=f23e97]:
+          - list [ref=f23e98]:
+            - listitem [ref=f23e99]:
+              - link "Code" [ref=f23e100] [cursor=pointer]:
+                - /url: /SonyResearch/LLM2Fx
+            - listitem [ref=f23e104]:
+              - link "Issues 1" [ref=f23e105] [cursor=pointer]:
+                - /url: /SonyResearch/LLM2Fx/issues
+                - generic [ref=f23e109]: Issues
+                - generic "1" [ref=f23e110]
+            - listitem [ref=f23e111]:
+              - link "Pull requests 1" [ref=f23e112] [cursor=pointer]:
+                - /url: /SonyResearch/LLM2Fx/pulls
+                - generic [ref=f23e115]: Pull requests
+                - generic "1" [ref=f23e116]
+            - listitem [ref=f23e117]:
+              - link "Actions" [ref=f23e118] [cursor=pointer]:
+                - /url: /SonyResearch/LLM2Fx/actions
+            - listitem [ref=f23e122]:
+              - link "Projects" [ref=f23e123] [cursor=pointer]:
+                - /url: /SonyResearch/LLM2Fx/projects
+            - listitem [ref=f23e127]:
+              - link "Security and quality" [ref=f23e128] [cursor=pointer]:
+                - /url: /SonyResearch/LLM2Fx/security
+            - listitem [ref=f23e132]:
+              - link "Insights" [ref=f23e133] [cursor=pointer]:
+                - /url: /SonyResearch/LLM2Fx/pulse
+      - generic [ref=f23e144]:
+        - generic [ref=f23e146]:
+          - generic [ref=f23e149]:
+            - generic [ref=f23e150]:
+              - generic [ref=f23e151]:
+                - heading "Collapse file tree" [level=2] [ref=f23e152]:
+                  - button "Collapse file tree" [expanded] [ref=f23e153] [cursor=pointer]
+                - heading "Files" [level=2] [ref=f23e157]
+              - generic [ref=f23e158]:
+                - button "main branch" [ref=f23e160] [cursor=pointer]:
+                  - generic [ref=f23e161]: main
+                - button "Search this repository (forward slash)" [ref=f23e166] [cursor=pointer]
+            - combobox "Go to file" [ref=f23e174]
+            - navigation "File Tree Navigation" [ref=f23e180]:
+              - tree "Files" [ref=f23e182]:
+                - treeitem "llm2fx-1" [level=1] [ref=f23e183]
+                - treeitem "llm2fx-tools" [expanded] [level=1] [ref=f23e195]:
+                  - group "llm2fx-tools" [ref=f23e207]:
+                    - treeitem "llm4mp" [expanded] [level=2] [ref=f23e208]:
+                      - group "llm4mp" [ref=f23e223]:
+                        - treeitem "common_utils" [level=3] [ref=f23e224]
+                        - treeitem "models" [level=3] [ref=f23e240]
+                        - treeitem "modules" [expanded] [level=3] [ref=f23e256]:
+                          - group "modules" [ref=f23e272]:
+                            - treeitem "adapter" [level=4] [ref=f23e273]
+                            - treeitem "audio_encoder" [level=4] [ref=f23e290]
+                            - treeitem "ntloss" [level=4] [ref=f23e307]
+                        - treeitem "preprocessing" [level=3] [ref=f23e324]
+                    - treeitem "README.md" [level=2] [ref=f23e340]
+                    - treeitem "pyproject.toml" [level=2] [ref=f23e351]
+                    - treeitem "train.py" [level=2] [ref=f23e362]
+                - treeitem ".gitignore" [level=1] [ref=f23e373]
+                - treeitem "README.md" [level=1] [ref=f23e381]
+          - slider "Draggable pane splitter" [ref=f23e390]
+        - generic [ref=f23e393]:
+          - generic [ref=f23e397]:
+            - generic [ref=f23e399]:
+              - navigation [ref=f23e400]:
+                - heading "Breadcrumbs" [level=2] [ref=f23e401]
+                - list [ref=f23e402]:
+                  - listitem [ref=f23e403]:
+                    - link "LLM2Fx" [ref=f23e404] [cursor=pointer]:
+                      - /url: /SonyResearch/LLM2Fx/tree/main
+                  - listitem [ref=f23e405]:
+                    - text: /
+                    - link "llm2fx-tools" [ref=f23e406] [cursor=pointer]:
+                      - /url: /SonyResearch/LLM2Fx/tree/main/llm2fx-tools
+                  - listitem [ref=f23e407]:
+                    - text: /
+                    - link "llm4mp" [ref=f23e408] [cursor=pointer]:
+                      - /url: /SonyResearch/LLM2Fx/tree/main/llm2fx-tools/llm4mp
+              - generic [ref=f23e409]:
+                - text: /
+                - heading "modules" [level=1] [ref=f23e410]
+                - text: /
+              - button "Copy path" [ref=f23e411] [cursor=pointer]
+            - generic [ref=f23e417]:
+              - heading "Directory actions" [level=2] [ref=f23e418]
+              - heading "More options" [level=2] [ref=f23e419]
+              - button "More options" [ref=f23e420] [cursor=pointer]
+          - generic [ref=f23e423]:
+            - generic [ref=f23e425]:
+              - heading "Latest commit" [level=2] [ref=f23e426]
+              - generic [ref=f23e429]:
+                - heading "History" [level=2] [ref=f23e430]
+                - link "History" [ref=f23e431] [cursor=pointer]:
+                  - /url: /SonyResearch/LLM2Fx/commits/main/llm2fx-tools/llm4mp/modules
+            - generic [ref=f23e435]:
+              - heading "Folders and files" [level=2] [ref=f23e436]
+              - table "Folders and files" [ref=f23e437]:
+                - rowgroup [ref=f23e438]:
+                  - row [ref=f23e439]:
+                    - columnheader "Name" [ref=f23e440]
+                    - columnheader "Last commit message" [ref=f23e441]
+                    - columnheader "Last commit date" [ref=f23e443]
+                - rowgroup [ref=f23e445]:
+                  - row [ref=f23e446]:
+                    - cell [ref=f23e447]:
+                      - heading "parent directory" [level=3] [ref=f23e448]
+                      - link "Parent directory" [ref=f23e449] [cursor=pointer]:
+                        - /url: /SonyResearch/LLM2Fx/tree/main/llm2fx-tools/llm4mp
+                        - generic [ref=f23e450]: ..
+                  - row "adapter, (Directory)" [ref=f23e453]:
+                    - cell [ref=f23e454]:
+                      - link "adapter, (Directory)" [ref=f23e461] [cursor=pointer]:
+                        - /url: /SonyResearch/LLM2Fx/tree/main/llm2fx-tools/llm4mp/modules/adapter
+                        - text: adapter
+                    - cell [ref=f23e462]
+                    - cell [ref=f23e464]
+                  - row "audio_encoder, (Directory)" [ref=f23e467]:
+                    - cell [ref=f23e468]:
+                      - link "audio_encoder, (Directory)" [ref=f23e475] [cursor=pointer]:
+                        - /url: /SonyResearch/LLM2Fx/tree/main/llm2fx-tools/llm4mp/modules/audio_encoder
+                        - text: audio_encoder
+                    - cell [ref=f23e476]
+                    - cell [ref=f23e478]
+                  - row "ntloss, (Directory)" [ref=f23e481]:
+                    - cell [ref=f23e482]:
+                      - link "ntloss, (Directory)" [ref=f23e489] [cursor=pointer]:
+                        - /url: /SonyResearch/LLM2Fx/tree/main/llm2fx-tools/llm4mp/modules/ntloss
+                        - text: ntloss
+                    - cell [ref=f23e490]
+                    - cell [ref=f23e492]
+  - alert [ref=f23e498]

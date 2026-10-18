@@ -1,0 +1,412 @@
+- generic [active] [ref=f18e1]:
+  - region "Announcement" [ref=f18e2]:
+    - generic [ref=f18e4]: arXiv is now an independent nonprofit!
+    - link "Learn more" [ref=f18e5] [cursor=pointer]:
+      - /url: https://info.arxiv.org/about
+    - button "Dismiss announcement" [ref=f18e6] [cursor=pointer]: ×
+  - banner [ref=f18e7]:
+    - link "arXiv logo Back to arXiv" [ref=f18e9] [cursor=pointer]:
+      - /url: /
+      - img "arXiv logo" [ref=f18e10]
+      - generic [ref=f18e11]: Back to arXiv
+    - navigation [ref=f18e12]:
+      - link "Why HTML?" [ref=f18e13] [cursor=pointer]:
+        - /url: https://info.arxiv.org/about/accessible_HTML.html
+      - link "Report Issue" [ref=f18e14] [cursor=pointer]:
+        - /url: "#"
+      - link "Back to abstract page" [ref=f18e16] [cursor=pointer]:
+        - /url: /abs/2411.06576v1
+        - generic [ref=f18e17]: Back to Abstract
+      - link "Download PDF" [ref=f18e18] [cursor=pointer]:
+        - /url: /pdf/2411.06576v1
+      - link "Toggle navigation" [ref=f18e20] [cursor=pointer]:
+        - /url: javascript:toggleNavTOC();
+      - link "Disable reading mode, show header and footer" [ref=f18e21] [cursor=pointer]:
+        - /url: javascript:toggleReadingMode();
+      - button "Toggle color scheme" [ref=f18e23] [cursor=pointer]
+  - navigation [ref=f18e25]:
+    - navigation [ref=f18e26]:
+      - list [ref=f18e27]:
+        - listitem [ref=f18e28]:
+          - link "Abstract" [ref=f18e29] [cursor=pointer]:
+            - /url: "#abstract1"
+        - listitem [ref=f18e30]:
+          - link "1 Introduction" [ref=f18e31] [cursor=pointer]:
+            - /url: "#S1"
+            - generic [ref=f18e32]:
+              - generic [ref=f18e33]: "1"
+              - text: Introduction
+        - listitem [ref=f18e34]:
+          - link "2 Diff-MSTC" [ref=f18e35] [cursor=pointer]:
+            - /url: "#S2"
+            - generic [ref=f18e36]:
+              - generic [ref=f18e37]: "2"
+              - text: Diff-MST
+              - superscript [ref=f18e38]: C
+        - listitem [ref=f18e39]:
+          - link "3 Conclusion" [ref=f18e40] [cursor=pointer]:
+            - /url: "#S3"
+            - generic [ref=f18e41]:
+              - generic [ref=f18e42]: "3"
+              - text: Conclusion
+        - listitem [ref=f18e43]:
+          - link "4 Acknowledgement" [ref=f18e44] [cursor=pointer]:
+            - /url: "#S4"
+            - generic [ref=f18e45]:
+              - generic [ref=f18e46]: "4"
+              - text: Acknowledgement
+        - listitem [ref=f18e47]:
+          - link "References" [ref=f18e48] [cursor=pointer]:
+            - /url: "#bib"
+  - generic [ref=f18e49]:
+    - generic [ref=f18e50]:
+      - 'link "License: CC BY-NC-ND 4.0" [ref=f18e51] [cursor=pointer]':
+        - /url: https://info.arxiv.org/help/license/index.html#licenses-available
+      - generic [ref=f18e52]: arXiv:2411.06576v1 [eess.AS] 10 Nov 2024
+    - article [ref=f18e54]:
+      - 'heading "Diff-MST : A Mixing style Transfer Prototype for Cubase" [level=1] [ref=f18e55]':
+        - text: Diff-MST
+        - math [ref=f18e56]:
+          - generic [ref=f18e57]: C
+        - text: ": A Mixing style Transfer Prototype for Cubase"
+      - generic [ref=f18e60]:
+        - heading "Abstract" [level=6] [ref=f18e61]
+        - paragraph [ref=f18e62]:
+          - text: In our demo, participants are invited to explore the
+          - generic [ref=f18e63]:
+            - text: Diff-MST
+            - math [ref=f18e64]:
+              - generic [ref=f18e65]: C
+          - text: prototype, which integrates the Diff-MST model into Steinberg’s digital audio workstation (DAW), Cubase. Diff-MST, a deep learning model for mixing style transfer, forecasts mixing console parameters for tracks using a reference song. The system processes up to 20 raw tracks along with a reference song to predict mixing console parameters that can be used to create an initial mix. Users have the option to manually adjust these parameters further for greater control. In contrast to earlier deep learning systems that are limited to research ideas, Diff-MST
+          - superscript [ref=f18e68]: C
+          - text: is a first-of-its-kind prototype integrated into a DAW. This integration facilitates mixing decisions on multitracks and lets users input context through a reference song, followed by fine-tuning of audio effects in a traditional manner.
+      - generic:
+        - paragraph
+      - 'figure "Figure 1: A High-level Overview of Diff-MST [ 1 ]" [ref=f18e69]':
+        - generic [ref=f18e71]:
+          - generic [ref=f18e72]: "Figure 1:"
+          - text: A High-level Overview of Diff-MST
+          - generic [ref=f18e73]:
+            - text: "["
+            - link "1" [ref=f18e74] [cursor=pointer]:
+              - /url: "#bib.bib1"
+            - text: "]"
+      - generic [ref=f18e75]:
+        - heading "1 Introduction" [level=2] [ref=f18e76]:
+          - generic [ref=f18e77]: "1"
+          - text: Introduction
+        - paragraph [ref=f18e79]:
+          - text: The democratisation of music production has introduced a spectrum of users ranging from amateurs, pro-ams, and professionals
+          - generic [ref=f18e80]:
+            - text: "["
+            - link "2" [ref=f18e81] [cursor=pointer]:
+              - /url: "#bib.bib2"
+            - text: "]"
+          - text: . Each of the user groups is skilled differently and makes use of the available technology in varied ways. Whilst amateurs want automated systems, pro-ams and professionals prefer assistive systems that are controllable and nuanced
+          - generic [ref=f18e82]:
+            - text: "["
+            - link "2" [ref=f18e83] [cursor=pointer]:
+              - /url: "#bib.bib2"
+            - text: "]"
+          - text: . The process of mixing music involves adjusting recorded music to produce an aesthetic, cohesive mix that evokes emotion. This is achieved using various audio effects like gain, pan, equalisation (EQ), compressor, reverb etc
+          - generic [ref=f18e84]:
+            - text: "["
+            - link "3" [ref=f18e85] [cursor=pointer]:
+              - /url: "#bib.bib3"
+            - text: ","
+            - link "4" [ref=f18e86] [cursor=pointer]:
+              - /url: "#bib.bib4"
+            - text: "]"
+          - text: . Due to the technical and engineered nature of tools required to attain the desired artistic outcomes in the mixing process, mastering this craft requires years of training and experience. Automatic mixing is a field of research that has explored ways for aiding, automating, and assisting in the various aspects of the mixing process
+          - generic [ref=f18e87]:
+            - text: "["
+            - link "5" [ref=f18e88] [cursor=pointer]:
+              - /url: "#bib.bib5"
+            - text: ","
+            - link "6" [ref=f18e89] [cursor=pointer]:
+              - /url: "#bib.bib6"
+            - text: "]"
+          - text: . These tools are designed to help amateurs for educational purposes and to achieve satisfactory sound quality, while also supporting professional users by streamlining technically demanding tasks and enabling faster iteration
+          - generic [ref=f18e90]:
+            - text: "["
+            - link "5" [ref=f18e91] [cursor=pointer]:
+              - /url: "#bib.bib5"
+            - text: "]"
+          - text: . Beyond many classical and engineered methods explored in the past, deep learning-based approaches have shown promise in the field
+          - generic [ref=f18e92]:
+            - text: "["
+            - link "7" [ref=f18e93] [cursor=pointer]:
+              - /url: "#bib.bib7"
+            - text: ","
+            - link "6" [ref=f18e94] [cursor=pointer]:
+              - /url: "#bib.bib6"
+            - text: "]"
+          - text: ". Deep learning-based systems for multitrack music mixing can be divided into two types: Direct Transformation (DT) systems and Parameter Estimation (PE) systems"
+          - generic [ref=f18e95]:
+            - text: "["
+            - link "7" [ref=f18e96] [cursor=pointer]:
+              - /url: "#bib.bib7"
+            - text: "]"
+          - text: . Whilst DT systems assume a black box approach offering no control, PE systems predict control parameters for the desired effect chain, allowing control and further fine-tuning. Further, the earliest systems framed multitrack mixing problem using neural networks as a supervised task
+          - generic [ref=f18e97]:
+            - text: "["
+            - link "8" [ref=f18e98] [cursor=pointer]:
+              - /url: "#bib.bib8"
+            - text: ","
+            - link "9" [ref=f18e99] [cursor=pointer]:
+              - /url: "#bib.bib9"
+            - text: "]"
+          - text: ", disregarding mixing fundamentally being a one-to-many problem. In real-world practice, mixing engineers receive various objects of tacit agreement like demo mixes, reference songs, and verbal descriptions for understanding the client’s objective for the mix"
+          - generic [ref=f18e100]:
+            - text: "["
+            - link "10" [ref=f18e101] [cursor=pointer]:
+              - /url: "#bib.bib10"
+            - text: "]"
+          - text: ", thus underlining the importance of context in the mixing process"
+          - generic [ref=f18e102]:
+            - text: "["
+            - link "11" [ref=f18e103] [cursor=pointer]:
+              - /url: "#bib.bib11"
+            - text: "]"
+          - text: . Mixing engineers decide the direction for the mix based on the context that is delivered by these objects. The Diff-MST system incorporates context into the model architecture, developing on previous work
+          - generic [ref=f18e104]:
+            - text: "["
+            - link "12" [ref=f18e105] [cursor=pointer]:
+              - /url: "#bib.bib12"
+            - text: "]"
+          - text: .
+        - 'figure "Figure 2: Diff-MSTC in Cubase" [ref=f18e106]':
+          - img "Refer to caption" [ref=f18e107]
+          - generic [ref=f18e108]:
+            - generic [ref=f18e109]: "Figure 2:"
+            - text: Diff-MSTC in Cubase
+        - generic [ref=f18e110]:
+          - heading "1.1 Diff-MST" [level=3] [ref=f18e111]:
+            - generic [ref=f18e112]: "1.1"
+            - text: Diff-MST
+          - paragraph [ref=f18e114]:
+            - text: Diff-MST is a deep learning model implemented using the PE approach to conduct mixing style transfer
+            - generic [ref=f18e115]:
+              - text: "["
+              - link "1" [ref=f18e116] [cursor=pointer]:
+                - /url: "#bib.bib1"
+              - text: "]"
+            - text: . The system accepts multitracks and a reference song as input and provides control parameters for the mixing console along with a predicted mix styled after the reference song, as depicted in Figure
+            - link "1" [ref=f18e117] [cursor=pointer]:
+              - /url: "#S0.F1"
+            - text: . It leverages differentiable effects from the
+            - generic [ref=f18e118]:
+              - text: dasp-pytorch
+              - superscript [ref=f18e120]: "1"
+            - text: library, facilitating end-to-end training. The mixing console incorporates a channel strip with audio effects like gain, panorama, EQ, and compressor applied to each track. The sum of the modified outputs from all tracks is then processed through a master bus comprising an EQ, compressor, and fader. A segment of the reference song and multitrack is selected and run through the encoder. The produced embeddings are passed to a transformer encoder to obtain contextually-aware embeddings using self-attention. Finally, a controller made up of linear layers predicts the mixing console control parameters, which are fed through the mixing console with the input multitrack to produce the mix.
+      - generic [ref=f18e121]:
+        - heading "2 Diff-MSTC" [level=2] [ref=f18e122]:
+          - generic [ref=f18e123]: "2"
+          - text: Diff-MST
+          - superscript [ref=f18e124]: C
+        - paragraph [ref=f18e126]:
+          - text: Previous studies have demonstrated that skilled users prefer intelligent and assistive mixing systems that alleviate the technical and repetitive aspects of their work while promoting swift idea iteration
+          - generic [ref=f18e127]:
+            - text: "["
+            - link "2" [ref=f18e128] [cursor=pointer]:
+              - /url: "#bib.bib2"
+            - text: "]"
+          - text: . While multiple deep learning-based mixing systems have been created recently, none have been integrated into a DAW for user testing and practical application in traditional workflows. Although RoEx
+          - superscript [ref=f18e130]: "2"
+          - text: pioneered automated mixing systems, it remains web-based. Users are hesitant to send personal data to private servers, and the system’s inability to run locally limits its use in studios with poor internet. Thus, there is a need for a DAW-integrated, locally run prototype. In this demonstration, we will introduce an initial prototype of a multitrack mixing system integrated into the widely-used DAW, Cubase
+        - superscript [ref=f18e132]: "3"
+        - paragraph [ref=f18e134]:
+          - text: . We employed a user-centric design methodology to identify the ideal interaction and experience for the prototype. This involved an iterative process where stakeholders used brainstorming sessions to understand user needs. Ultimately, considering Cubase’s existing workflows and the model’s constraints, the prototype is developed to facilitate an optimal workflow. The Diff-MST model is incorporated as a Steinberg Kernel Interface (SKI) plugin within Cubase. The SKI is a private software development kit (SDK) extending virtual studio technology (VST3) capabilities. The Pytorch model is optimised for Cubase using TorchScript
+          - superscript [ref=f18e136]: "4"
+          - text: . Further, we develop the user-interface for the prototype using Steinberg’s VST3SDK
+          - superscript [ref=f18e138]: "5"
+          - text: .
+        - generic [ref=f18e139]:
+          - heading "2.1 Workflow" [level=3] [ref=f18e140]:
+            - generic [ref=f18e141]: "2.1"
+            - text: Workflow
+          - paragraph [ref=f18e143]:
+            - text: The Diff-MST
+            - superscript [ref=f18e144]: C
+            - text: shown in Figure
+            - link "2" [ref=f18e145] [cursor=pointer]:
+              - /url: "#S1.F2"
+            - text: includes a panel where users can either select an audio file from a muted track on their Cubase project or choose suggested songs from various genres as a reference. The user is then prompted to select a segment of the reference song. Subsequently, all tracks in the project are treated as input tracks for the model, except for those that are muted. The user must also pick a section from the project using the playback cursor to use as input for generating embeddings. The accuracy of the predicted mix largely depends on the chosen sections of the input tracks and reference song. In the final step, the user instructs the mix assistant to generate a mix. The system forecasts the control parameters for the effects. These predicted values are then applied to the effect controls of the channel strip for every active track. The user can then play back the predicted mix and make any necessary adjustments and refinements to the audio mix. The demo project can be found
+            - link "here" [ref=f18e146] [cursor=pointer]:
+              - /url: https://youtu.be/-wXFBgWi_tw
+            - text: .
+      - generic [ref=f18e147]:
+        - heading "3 Conclusion" [level=2] [ref=f18e148]:
+          - generic [ref=f18e149]: "3"
+          - text: Conclusion
+        - paragraph [ref=f18e151]:
+          - text: "In this demonstration, we will showcase an intelligent multitrack mixing system embedded in Cubase. This presentation supports our accepted work at ISMIR 2024 on ‘Diff-MST: Differentiable Mixing Style Transfer‘"
+          - generic [ref=f18e152]:
+            - text: "["
+            - link "1" [ref=f18e153] [cursor=pointer]:
+              - /url: "#bib.bib1"
+            - text: "]"
+          - text: . Participants will have the chance to try out the prototype firsthand and provide their feedback. Additionally, in the future, we’ll be conducting user experience studies to scientifically evaluate the prototype and invite attendees to sign up. This work aims to bridge the gap in academic research regarding controllability of DAW-integrated intelligent mixing systems. Bridging this gap will offer valuable insights for enhancing the design of mixing systems to better cater to user needs. Moreover, this will enable us to assess the human impact of these systems and ultimately develop human-centered solutions.
+      - generic [ref=f18e154]:
+        - heading "4 Acknowledgement" [level=2] [ref=f18e155]:
+          - generic [ref=f18e156]: "4"
+          - text: Acknowledgement
+        - paragraph [ref=f18e158]: This work is funded and supported by UK Research and Innovation [grant number EP/S022694/1] and Steinberg Media Technologies GmbH under the AI and Music Centre for Doctoral Training (AIM-CDT) at the Centre for Digital Music, Queen Mary University of London, London, UK.
+      - generic [ref=f18e159]:
+        - heading "References" [level=2] [ref=f18e160]
+        - list [ref=f18e161]:
+          - listitem [ref=f18e162]:
+            - generic [ref=f18e163]: "[1]"
+            - generic [ref=f18e164]:
+              - text: "S. S. Vanka, C. Steinmetz, J.-B. Rolland, J. Reiss, and G. Fazekas, “Diff-mst: Differentiable mixing style transfer,”"
+              - emphasis [ref=f18e165]: arXiv preprint arXiv:2407.08889
+              - text: ", 2024."
+          - listitem [ref=f18e166]:
+            - generic [ref=f18e167]: "[2]"
+            - generic [ref=f18e168]:
+              - text: "S. Vanka, M. Safi, J.-B. Rolland, and G. Fazekas, “Adoption of AI technology in music mixing workflow: An investigation,” in"
+              - emphasis [ref=f18e169]: 154th Audio Engineering Society Convention
+              - text: . Audio Engineering Society, 2023.
+          - listitem [ref=f18e170]:
+            - generic [ref=f18e171]: "[3]"
+            - generic [ref=f18e172]:
+              - text: M. Miller,
+              - emphasis [ref=f18e173]: Mixing Music
+              - text: ". London, UK: Dorling Kindersley Ltd, 2016."
+          - listitem [ref=f18e174]:
+            - generic [ref=f18e175]: "[4]"
+            - generic [ref=f18e176]:
+              - text: R. Izhaki,
+              - emphasis [ref=f18e177]: "Mixing Audio: Concepts, Practices, and Tools"
+              - text: ". New York, USA: Routledge, 2017."
+          - listitem [ref=f18e178]:
+            - generic [ref=f18e179]: "[5]"
+            - generic [ref=f18e180]:
+              - text: B. De Man, R. Stables, and J. D. Reiss,
+              - emphasis [ref=f18e181]: Intelligent Music Production
+              - text: . Routledge, 2019.
+          - listitem [ref=f18e182]:
+            - generic [ref=f18e183]: "[6]"
+            - generic [ref=f18e184]:
+              - text: B. De Man, J. D. Reiss, and R. Stables, “Ten years of automatic mixing,” in
+              - emphasis [ref=f18e185]: 3rd Workshop on Intelligent Music Production
+              - text: ", September 2017."
+          - listitem [ref=f18e186]:
+            - generic [ref=f18e187]: "[7]"
+            - generic [ref=f18e188]:
+              - text: C. J. Steinmetz, S. S. Vanka, M. A. Martínez Ramírez, and G. Bromham,
+              - emphasis [ref=f18e189]: Deep Learning for Automatic Mixing
+              - text: ". Bengaluru, India: Proc. of the 23rd Int. Society for Music Information Retrieval Conf. (ISMIR), December 2022. [Online]. Available:"
+              - link "https://dl4am.github.io/tutorial" [ref=f18e190] [cursor=pointer]:
+                - /url: https://dl4am.github.io/tutorial
+          - listitem [ref=f18e191]:
+            - generic [ref=f18e192]: "[8]"
+            - generic [ref=f18e193]:
+              - text: M. A. Martínez-Ramírez, D. Stoller, and D. Moffat, “A deep learning approach to intelligent drum mixing with the Wave-U-Net,”
+              - emphasis [ref=f18e194]: Journal of the Audio Engineering Society
+              - text: ", vol. 69, pp. 142–151, March 2021."
+          - listitem [ref=f18e195]:
+            - generic [ref=f18e196]: "[9]"
+            - generic [ref=f18e197]:
+              - text: C. J. Steinmetz, J. Pons, S. Pascual, and J. Serrà, “Automatic multitrack mixing with a differentiable mixing console of neural audio effects,” in
+              - emphasis [ref=f18e198]: IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)
+              - text: . IEEE, 2021.
+          - listitem [ref=f18e199]:
+            - generic [ref=f18e200]: "[10]"
+            - generic [ref=f18e201]: "S. Vanka, M. Safi, J.-B. Rolland, and G. Fazekas, “The role of communication and reference songs in the mixing process: Insights from professional mix engineers,” 2023."
+          - listitem [ref=f18e202]:
+            - generic [ref=f18e203]: "[11]"
+            - generic [ref=f18e204]:
+              - text: M. N. Lefford, G. Bromham, G. Fazekas, and D. Moffat, “Context-aware intelligent mixing systems,”
+              - emphasis [ref=f18e205]: Journal of the Audio Engineering Society
+              - text: ", vol. 69, pp. 128–141, March 2021."
+          - listitem [ref=f18e206]:
+            - generic [ref=f18e207]: "[12]"
+            - generic [ref=f18e208]:
+              - text: J. Koo
+              - emphasis [ref=f18e209]: et al.
+              - text: ", “Music mixing style transfer: A contrastive learning approach to disentangle audio effects,” in"
+              - emphasis [ref=f18e210]: IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)
+              - text: ". Rhodes Island, Greece: IEEE, April 2023, pp. 1–5."
+  - contentinfo [ref=f18e211]:
+    - generic [ref=f18e212]:
+      - text: Experimental support, please
+      - link "view the build logs" [ref=f18e213] [cursor=pointer]:
+        - /url: ./2411.06576v1/__stdout.txt
+      - text: for errors. Generated by
+      - link "L A T E xml [LOGO]" [ref=f18e214] [cursor=pointer]:
+        - /url: https://math.nist.gov/~BMiller/LaTeXML/
+        - generic [ref=f18e215]: L A T E
+        - text: xml
+        - img "[LOGO]" [ref=f18e216]
+      - text: .
+    - generic [ref=f18e217]:
+      - heading "Instructions for reporting errors" [level=2] [ref=f18e218]
+      - paragraph [ref=f18e219]: "We are continuing to improve HTML versions of papers, and your feedback helps enhance accessibility and mobile support. To report errors in the HTML that will help us improve conversion and rendering, choose any of the methods listed below:"
+      - list [ref=f18e220]:
+        - listitem [ref=f18e221]: Click the "Report Issue" button, located in the page header.
+      - paragraph [ref=f18e222]:
+        - strong [ref=f18e223]: "Tip:"
+        - text: You can select the relevant text first, to include it in your report.
+      - paragraph [ref=f18e224]:
+        - text: Our team has already identified
+        - link "the following issues" [ref=f18e225] [cursor=pointer]:
+          - /url: https://github.com/arXiv/html_feedback/issues
+        - text: . We appreciate your time reviewing and reporting rendering errors we may not have found yet. Your efforts will help us improve the HTML versions for all readers, because disability should not be a barrier to accessing research. Thank you for your continued support in championing open access for all.
+      - paragraph [ref=f18e226]:
+        - text: Have a free development cycle? Help support accessibility at arXiv! Our collaborators at LaTeXML maintain a
+        - link "list of packages that need conversion" [ref=f18e227] [cursor=pointer]:
+          - /url: https://github.com/brucemiller/LaTeXML/wiki/Porting-LaTeX-packages-for-LaTeXML
+        - text: ", and welcome"
+        - link "developer contributions" [ref=f18e228] [cursor=pointer]:
+          - /url: https://github.com/brucemiller/LaTeXML/issues
+        - text: .
+  - contentinfo [ref=f18e229]:
+    - generic [ref=f18e230]:
+      - generic [ref=f18e231]:
+        - generic [ref=f18e232]:
+          - text: We gratefully acknowledge support from our
+          - strong [ref=f18e233]: major funders
+          - text: ","
+          - link [ref=f18e234] [cursor=pointer]:
+            - /url: https://info.arxiv.org/about/ourmembers.html
+            - strong [ref=f18e235]: member institutions
+          - text: ", and all contributors."
+        - navigation "Site navigation" [ref=f18e236]:
+          - link "About" [ref=f18e237] [cursor=pointer]:
+            - /url: https://info.arxiv.org/about
+          - generic [aria-hidden] [ref=f18e238]: ·
+          - link "Help" [ref=f18e239] [cursor=pointer]:
+            - /url: https://info.arxiv.org/help
+          - generic [aria-hidden] [ref=f18e240]: ·
+          - link "Contact" [ref=f18e241] [cursor=pointer]:
+            - /url: https://info.arxiv.org/help/contact.html
+          - generic [aria-hidden] [ref=f18e242]: ·
+          - link "Subscribe" [ref=f18e243] [cursor=pointer]:
+            - /url: https://info.arxiv.org/help/subscribe
+          - generic [aria-hidden] [ref=f18e244]: ·
+          - link "Copyright" [ref=f18e245] [cursor=pointer]:
+            - /url: https://info.arxiv.org/help/license/index.html
+          - generic [aria-hidden] [ref=f18e246]: ·
+          - link "Privacy" [ref=f18e247] [cursor=pointer]:
+            - /url: https://info.arxiv.org/help/policies/privacy_policy.html
+          - generic [aria-hidden] [ref=f18e248]: ·
+          - link "Accessibility" [ref=f18e249] [cursor=pointer]:
+            - /url: https://info.arxiv.org/help/web_accessibility.html
+          - generic [aria-hidden] [ref=f18e250]: ·
+          - link "Operational Status (opens in new tab)" [ref=f18e251] [cursor=pointer]:
+            - /url: https://status.arxiv.org
+            - text: Operational Status
+            - generic [ref=f18e252]: (opens in new tab)
+      - generic "Major funders" [ref=f18e253]:
+        - generic [ref=f18e254]: Major funding support from
+        - generic [ref=f18e255]:
+          - link [ref=f18e256] [cursor=pointer]:
+            - /url: https://www.simonsfoundation.org/
+            - img "Simons Foundation" [ref=f18e257]
+          - link [ref=f18e258] [cursor=pointer]:
+            - /url: https://www.sfi.org.bm/
+            - img "Simons Foundation International" [ref=f18e259]
+          - link [ref=f18e260] [cursor=pointer]:
+            - /url: https://www.schmidtsciences.org/
+            - img "Schmidt Sciences" [ref=f18e261]

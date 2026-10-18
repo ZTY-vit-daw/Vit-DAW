@@ -1,0 +1,390 @@
+- generic [active] [ref=f20e1]:
+  - generic [ref=f20e2]:
+    - generic [ref=f20e3]:
+      - link "Skip to content" [ref=f20e4] [cursor=pointer]:
+        - /url: "#start-of-content"
+      - banner [ref=f20e9]:
+        - heading "Navigation Menu" [level=2] [ref=f20e10]
+        - generic [ref=f20e11]:
+          - link "Homepage" [ref=f20e13] [cursor=pointer]:
+            - /url: /
+          - generic [ref=f20e16]:
+            - navigation "Global" [ref=f20e17]:
+              - list [ref=f20e18]:
+                - listitem [ref=f20e19]:
+                  - button "Platform" [ref=f20e21] [cursor=pointer]
+                - listitem [ref=f20e24]:
+                  - button "Solutions" [ref=f20e26] [cursor=pointer]
+                - listitem [ref=f20e29]:
+                  - button "Resources" [ref=f20e31] [cursor=pointer]
+                - listitem [ref=f20e34]:
+                  - button "Open Source" [ref=f20e36] [cursor=pointer]
+                - listitem [ref=f20e39]:
+                  - button "Enterprise" [ref=f20e41] [cursor=pointer]
+                - listitem [ref=f20e44]:
+                  - link "Pricing" [ref=f20e45] [cursor=pointer]:
+                    - /url: https://github.com/pricing
+            - generic [ref=f20e46]:
+              - button "Search or jump to, type / to search" [ref=f20e48] [cursor=pointer]
+              - link "Sign in" [ref=f20e55] [cursor=pointer]:
+                - /url: /login?return_to=https%3A%2F%2Fgithub.com%2FSonyResearch%2FLLM2Fx
+              - link "Sign up" [ref=f20e58] [cursor=pointer]:
+                - /url: /signup?ref_cta=Sign+up&ref_loc=header+logged+out&ref_page=%2F%3Cuser-name%3E%2F%3Crepo-name%3E&source=header-repo&source_repo=SonyResearch%2FLLM2Fx
+              - button "Appearance settings" [ref=f20e61] [cursor=pointer]
+    - main [ref=f20e68]:
+      - generic [ref=f20e69]:
+        - generic [ref=f20e70]:
+          - generic [ref=f20e72]:
+            - link "SonyResearch" [ref=f20e76] [cursor=pointer]:
+              - /url: /SonyResearch
+            - generic [ref=f20e77]: /
+            - strong [ref=f20e78]:
+              - link "LLM2Fx" [ref=f20e79] [cursor=pointer]:
+                - /url: /SonyResearch/LLM2Fx
+            - generic [ref=f20e80]: Public
+          - generic [ref=f20e81]:
+            - list:
+              - listitem [ref=f20e82]:
+                - link "You must be signed in to change notification settings" [ref=f20e83] [cursor=pointer]:
+                  - /url: /login?return_to=%2FSonyResearch%2FLLM2Fx
+                  - text: Notifications
+              - listitem [ref=f20e86]:
+                - link "Fork 6" [ref=f20e87] [cursor=pointer]:
+                  - /url: /login?return_to=%2FSonyResearch%2FLLM2Fx
+                  - text: Fork
+                  - generic "6" [ref=f20e90]
+              - listitem [ref=f20e91]:
+                - link "You must be signed in to star a repository" [ref=f20e93] [cursor=pointer]:
+                  - /url: /login?return_to=%2FSonyResearch%2FLLM2Fx
+                  - text: Star
+                  - generic "51 users starred this repository" [ref=f20e96]: "51"
+        - navigation "Repository" [ref=f20e97]:
+          - list [ref=f20e98]:
+            - listitem [ref=f20e99]:
+              - link "Code" [ref=f20e100] [cursor=pointer]:
+                - /url: /SonyResearch/LLM2Fx
+            - listitem [ref=f20e104]:
+              - link "Issues 1" [ref=f20e105] [cursor=pointer]:
+                - /url: /SonyResearch/LLM2Fx/issues
+                - generic [ref=f20e109]: Issues
+                - generic "1" [ref=f20e110]
+            - listitem [ref=f20e111]:
+              - link "Pull requests 1" [ref=f20e112] [cursor=pointer]:
+                - /url: /SonyResearch/LLM2Fx/pulls
+                - generic [ref=f20e115]: Pull requests
+                - generic "1" [ref=f20e116]
+            - listitem [ref=f20e117]:
+              - link "Actions" [ref=f20e118] [cursor=pointer]:
+                - /url: /SonyResearch/LLM2Fx/actions
+            - listitem [ref=f20e122]:
+              - link "Projects" [ref=f20e123] [cursor=pointer]:
+                - /url: /SonyResearch/LLM2Fx/projects
+            - listitem [ref=f20e127]:
+              - link "Security and quality" [ref=f20e128] [cursor=pointer]:
+                - /url: /SonyResearch/LLM2Fx/security
+            - listitem [ref=f20e132]:
+              - link "Insights" [ref=f20e133] [cursor=pointer]:
+                - /url: /SonyResearch/LLM2Fx/pulse
+      - generic [ref=f20e150]:
+        - generic [ref=f20e153]:
+          - generic [ref=f20e154]:
+            - generic [ref=f20e155]:
+              - button "main branch" [ref=f20e157] [cursor=pointer]:
+                - generic [ref=f20e158]: main
+              - generic [ref=f20e162]:
+                - link [ref=f20e163] [cursor=pointer]:
+                  - /url: /SonyResearch/LLM2Fx/branches
+                  - generic [ref=f20e166]:
+                    - strong [ref=f20e167]: "1"
+                    - text: Branch
+                - link [ref=f20e168] [cursor=pointer]:
+                  - /url: /SonyResearch/LLM2Fx/tags
+                  - generic [ref=f20e171]:
+                    - strong [ref=f20e172]: "0"
+                    - text: Tags
+            - generic [ref=f20e173]:
+              - combobox "Go to file" [ref=f20e181]
+              - button "Code" [ref=f20e182] [cursor=pointer]
+          - generic [ref=f20e185]:
+            - generic [ref=f20e186]:
+              - generic [ref=f20e188]:
+                - heading "Latest commit" [level=2] [ref=f20e189]
+                - generic [ref=f20e190]:
+                  - generic [ref=f20e192]:
+                    - link [ref=f20e193] [cursor=pointer]:
+                      - /url: /seungheondoh
+                      - img "seungheondoh" [ref=f20e194]
+                    - link "commits by seungheondoh" [ref=f20e195] [cursor=pointer]:
+                      - /url: /SonyResearch/LLM2Fx/commits?author=seungheondoh
+                      - text: seungheondoh
+                  - link "update preprocessor" [ref=f20e199] [cursor=pointer]:
+                    - /url: /SonyResearch/LLM2Fx/commit/55883b10b105c0e286a23bb2f990c7e4cfd9aef0
+                - generic [ref=f20e200]:
+                  - generic [ref=f20e202]:
+                    - link "Commit 55883b1" [ref=f20e203] [cursor=pointer]:
+                      - /url: /SonyResearch/LLM2Fx/commit/55883b10b105c0e286a23bb2f990c7e4cfd9aef0
+                      - text: 55883b1
+                    - text: ·
+                    - generic "Mar 31, 2026, 21:58 GMT+8" [ref=f20e204]: Mar 31, 20266 months ago
+                  - generic [ref=f20e205]:
+                    - heading "History" [level=2] [ref=f20e206]
+                    - link "17 Commits" [ref=f20e207] [cursor=pointer]:
+                      - /url: /SonyResearch/LLM2Fx/commits/main/
+              - heading "Folders and files" [level=2] [ref=f20e210]
+              - table "Folders and files" [ref=f20e211]:
+                - rowgroup:
+                  - row "Name Last commit message Last commit date":
+                    - columnheader "Name"
+                    - columnheader "Last commit message"
+                    - columnheader "Last commit date"
+                - rowgroup [ref=f20e212]:
+                  - row [ref=f20e213]:
+                    - cell [ref=f20e214]:
+                      - link "llm2fx-1, (Directory)" [ref=f20e221] [cursor=pointer]:
+                        - /url: /SonyResearch/LLM2Fx/tree/main/llm2fx-1
+                        - text: llm2fx-1
+                    - cell [ref=f20e222]:
+                      - link "update" [ref=f20e225] [cursor=pointer]:
+                        - /url: /SonyResearch/LLM2Fx/commit/edb19386273f4a4ba854bfb0928a0db20f731126
+                    - cell "Mar 31, 20266 months ago" [ref=f20e226]
+                  - row [ref=f20e228]:
+                    - cell [ref=f20e229]:
+                      - link "llm2fx-tools, (Directory)" [ref=f20e236] [cursor=pointer]:
+                        - /url: /SonyResearch/LLM2Fx/tree/main/llm2fx-tools
+                        - text: llm2fx-tools
+                    - cell [ref=f20e237]:
+                      - link "update preprocessor" [ref=f20e240] [cursor=pointer]:
+                        - /url: /SonyResearch/LLM2Fx/commit/55883b10b105c0e286a23bb2f990c7e4cfd9aef0
+                    - cell "Mar 31, 20266 months ago" [ref=f20e241]
+                  - row [ref=f20e243]:
+                    - cell [ref=f20e244]:
+                      - link ".gitignore, (File)" [ref=f20e251] [cursor=pointer]:
+                        - /url: /SonyResearch/LLM2Fx/blob/main/.gitignore
+                        - text: .gitignore
+                    - cell [ref=f20e252]:
+                      - link "add icl" [ref=f20e255] [cursor=pointer]:
+                        - /url: /SonyResearch/LLM2Fx/commit/65bd17657a6e5347c938061d47881ebd9bfbba52
+                    - cell "May 27, 2025last year" [ref=f20e256]
+                  - row [ref=f20e258]:
+                    - cell [ref=f20e259]:
+                      - link "README.md, (File)" [ref=f20e266] [cursor=pointer]:
+                        - /url: /SonyResearch/LLM2Fx/blob/main/README.md
+                        - text: README.md
+                    - cell [ref=f20e267]:
+                      - link "update readme" [ref=f20e270] [cursor=pointer]:
+                        - /url: /SonyResearch/LLM2Fx/commit/d43f0910d2146f1e16abc20c360d05f06ec62ecc
+                    - cell "Mar 31, 20266 months ago" [ref=f20e271]
+            - generic [ref=f20e274]:
+              - generic [ref=f20e275]:
+                - heading "Repository files navigation" [level=2] [ref=f20e276]
+                - navigation "Repository files" [ref=f20e277]:
+                  - list [ref=f20e278]:
+                    - listitem [ref=f20e279]:
+                      - link "README" [ref=f20e280] [cursor=pointer]:
+                        - /url: "#"
+                - button "Outline" [ref=f20e285] [cursor=pointer]
+              - article [ref=f20e289]:
+                - generic [ref=f20e290]:
+                  - heading "LLM for Music Post-Production" [level=1] [ref=f20e291]
+                  - 'link "Permalink: LLM for Music Post-Production" [ref=f20e292] [cursor=pointer]':
+                    - /url: "#llm-for-music-post-production"
+                - paragraph [ref=f20e295]: This repository contains the resources for two research papers that explore how Large Language Models can be applied to audio effect parameter prediction in music post-production. The first paper (LLM2Fx) investigates zero-shot and in-context learning approaches for text-to-parameter prediction, while the second paper (LLM2Fx-Tools) introduces a multimodal framework that fine-tunes LLMs to generate executable sequences of audio effect tool calls from audio-to-audio pairs.
+                - paragraph [ref=f20e296]:
+                  - link [ref=f20e297] [cursor=pointer]:
+                    - /url: https://camo.githubusercontent.com/dd0f73f261a9dddec37b678a128cb72b8c30c2853cefe4af69775e40655fac7d/68747470733a2f2f692e696d6775722e636f6d2f463962755a4f4c2e706e67
+                    - img "LLM for Music Post-Production" [ref=f20e298]
+                - separator [ref=f20e299]
+                - generic [ref=f20e300]:
+                  - heading "LLM2Fx — Text-to-Parameter" [level=2] [ref=f20e301]
+                  - 'link "Permalink: LLM2Fx — Text-to-Parameter" [ref=f20e302] [cursor=pointer]':
+                    - /url: "#llm2fx--text-to-parameter"
+                - paragraph [ref=f20e305]:
+                  - strong [ref=f20e306]: Can Large Language Models Predict Audio Effects Parameters from Natural Language?
+                - paragraph [ref=f20e307]:
+                  - link [ref=f20e308] [cursor=pointer]:
+                    - /url: https://arxiv.org/abs/2505.20770
+                    - img "arXiv" [ref=f20e309]
+                  - link [ref=f20e310] [cursor=pointer]:
+                    - /url: https://seungheondoh.github.io/llm2fx-demo/
+                    - img "Demo" [ref=f20e311]
+                  - link [ref=f20e312] [cursor=pointer]:
+                    - /url: https://huggingface.co/collections/seungheondoh/llm2fx-6821b961b982fe1eab1b00bf
+                    - img "Dataset" [ref=f20e313]
+                - generic [ref=f20e314]:
+                  - heading "Overview" [level=3] [ref=f20e315]
+                  - 'link "Permalink: Overview" [ref=f20e316] [cursor=pointer]':
+                    - /url: "#overview"
+                - paragraph [ref=f20e319]:
+                  - text: LLM2Fx investigates whether LLMs can translate natural language descriptions into audio effect parameters (EQ, reverb) without task-specific training. We show that off-the-shelf LLMs can perform this
+                  - strong [ref=f20e320]: Text-to-Parameter
+                  - text: task in a zero-shot manner, and propose three in-context learning strategies — audio DSP features, DSP function code, and few-shot examples — that further boost performance.
+                - list [ref=f20e321]:
+                  - listitem [ref=f20e322]:
+                    - strong [ref=f20e323]: Zero-shot Text-to-Parameter
+                    - text: ": LLMs can generate audio effect parameters directly from text without fine-tuning"
+                  - listitem [ref=f20e324]:
+                    - strong [ref=f20e325]: In-context learning strategies
+                    - text: ": DSP feature injection, DSP function code, and few-shot examples for improved accuracy"
+                - separator [ref=f20e326]
+                - generic [ref=f20e327]:
+                  - heading "LLM2Fx-Tools — Audio-to-Parameter via Tool Calling" [level=2] [ref=f20e328]
+                  - 'link "Permalink: LLM2Fx-Tools — Audio-to-Parameter via Tool Calling" [ref=f20e329] [cursor=pointer]':
+                    - /url: "#llm2fx-tools--audio-to-parameter-via-tool-calling"
+                - paragraph [ref=f20e332]:
+                  - strong [ref=f20e333]: "LLM2Fx-Tools: Tool Calling For Music Post-Production"
+                - paragraph [ref=f20e334]:
+                  - link [ref=f20e335] [cursor=pointer]:
+                    - /url: https://arxiv.org/abs/2512.01559
+                    - img "arXiv" [ref=f20e336]
+                  - link [ref=f20e337] [cursor=pointer]:
+                    - /url: https://seungheondoh.github.io/llm2fx-tools-demo/
+                    - img "Demo" [ref=f20e338]
+                  - link [ref=f20e339] [cursor=pointer]:
+                    - /url: "#"
+                    - img "Dataset(soon)" [ref=f20e340]
+                - generic [ref=f20e341]:
+                  - heading "Overview" [level=3] [ref=f20e342]
+                  - 'link "Permalink: Overview" [ref=f20e343] [cursor=pointer]':
+                    - /url: "#overview-1"
+                - paragraph [ref=f20e346]:
+                  - text: LLM2Fx-Tools extends the LLM2Fx paradigm to
+                  - strong [ref=f20e347]: Audio-to-Parameter
+                  - text: prediction using an LLM tool-calling framework. Given a pair of unprocessed and processed audio signals, the model generates an executable sequence of audio effect modules (tool calls) along with their parameters.
+                - list [ref=f20e348]:
+                  - listitem [ref=f20e349]:
+                    - strong [ref=f20e350]: Tool-calling framework for audio effects
+                    - text: ": LLMs generate structured, executable sequences of audio effect module calls"
+                  - listitem [ref=f20e351]:
+                    - strong [ref=f20e352]: SFT on tool sequences
+                    - text: ": LLM fine-tuned to predict effect type, ordering, and parameters autoregressively"
+                - separator [ref=f20e353]
+                - generic [ref=f20e354]:
+                  - heading "Citation" [level=2] [ref=f20e355]
+                  - 'link "Permalink: Citation" [ref=f20e356] [cursor=pointer]':
+                    - /url: "#citation"
+                - paragraph [ref=f20e359]: "If you use this work, please cite the relevant paper(s):"
+                - generic [ref=f20e360]:
+                  - generic [ref=f20e361]:
+                    - text: "@inproceedings{doh2025can, title="
+                    - generic [ref=f20e362]: "{Can large language models predict audio effects parameters from natural language?}"
+                    - text: ", author="
+                    - generic [ref=f20e363]: "{Doh, Seungheon and Koo, Junghyun and Mart{\\'\\i}nez-Ram{\\'\\i}rez, Marco A and Liao, Wei-Hsiang and Nam, Juhan and Mitsufuji, Yuki}"
+                    - text: ", booktitle="
+                    - generic [ref=f20e364]: "{2025 IEEE Workshop on Applications of Signal Processing to Audio and Acoustics (WASPAA)}"
+                    - text: ", year="
+                    - generic [ref=f20e365]: "{2025}"
+                    - text: ", organization="
+                    - generic [ref=f20e366]: "{IEEE}"
+                    - text: "} @inproceedings{doh2026llm2fx, title="
+                    - generic [ref=f20e367]: "{LLM2Fx-Tools: Tool Calling For Music Post-Production}"
+                    - text: ", author="
+                    - generic [ref=f20e368]: "{Doh*, Seungheon and Koo*, Junghyun and Mart{\\'\\i}nez-Ram{\\'\\i}rez, Marco A and Choi, Woosung and Liao, Wei-Hsiang and Wu, Qiyu and Nam, Juhan and Mitsufuji, Yuki}"
+                    - text: ", note="
+                    - generic [ref=f20e369]: "{* Equal contribution}"
+                    - text: ", booktitle="
+                    - generic [ref=f20e370]: "{The Thirteenth International Conference on Learning Representations (ICLR)}"
+                    - text: ", year="
+                    - generic [ref=f20e371]: "{2026}"
+                    - text: "}"
+                  - button "Copy code to clipboard" [ref=f20e373] [cursor=pointer]
+                - generic [ref=f20e377]:
+                  - heading "Contact" [level=2] [ref=f20e378]
+                  - 'link "Permalink: Contact" [ref=f20e379] [cursor=pointer]':
+                    - /url: "#contact"
+                - list [ref=f20e382]:
+                  - listitem [ref=f20e383]:
+                    - link "seungheondoh@kaist.ac.kr" [ref=f20e384] [cursor=pointer]:
+                      - /url: mailto:seungheondoh@kaist.ac.kr
+        - generic [ref=f20e387]:
+          - generic [ref=f20e388]:
+            - heading "About" [level=2] [ref=f20e389]
+            - paragraph [ref=f20e390]: Large Language Models for Music Post Production
+            - heading "Resources" [level=3] [ref=f20e391]
+            - link "Readme" [ref=f20e393] [cursor=pointer]:
+              - /url: "#readme-ov-file"
+            - link "Activity" [ref=f20e397] [cursor=pointer]:
+              - /url: /SonyResearch/LLM2Fx/activity
+            - link "Custom properties" [ref=f20e401] [cursor=pointer]:
+              - /url: /SonyResearch/LLM2Fx/custom-properties
+            - heading "Stars" [level=3] [ref=f20e404]
+            - generic [ref=f20e406]:
+              - strong [ref=f20e409]: "51"
+              - text: stars
+            - heading "Watchers" [level=3] [ref=f20e410]
+            - generic [ref=f20e412]:
+              - strong [ref=f20e415]: "3"
+              - text: watching
+            - heading "Forks" [level=3] [ref=f20e416]
+            - link [ref=f20e418] [cursor=pointer]:
+              - /url: /SonyResearch/LLM2Fx/forks
+              - strong [ref=f20e422]: "6"
+              - text: forks
+            - link "Report repository" [ref=f20e424] [cursor=pointer]:
+              - /url: /contact/report-content?content_url=https%3A%2F%2Fgithub.com%2FSonyResearch%2FLLM2Fx&report=SonyResearch+%28user%29
+          - generic [ref=f20e425]:
+            - heading [level=2] [ref=f20e426]:
+              - link "Releases" [ref=f20e428] [cursor=pointer]:
+                - /url: /SonyResearch/LLM2Fx/releases
+            - generic [ref=f20e429]: No releases published
+          - generic [ref=f20e430]:
+            - heading "Contributors (1)" [level=2] [ref=f20e431]:
+              - generic [ref=f20e432]:
+                - link "Contributors" [ref=f20e433] [cursor=pointer]:
+                  - /url: /SonyResearch/LLM2Fx/graphs/contributors
+                - generic [aria-hidden] [ref=f20e434]: "1"
+                - generic [ref=f20e435]: (1)
+            - list [ref=f20e436]:
+              - listitem [ref=f20e437]:
+                - link [ref=f20e438] [cursor=pointer]:
+                  - /url: /seungheondoh
+                  - img "@seungheondoh" [ref=f20e439]
+                - generic "seungheondoh Seungheon Doh" [ref=f20e440]:
+                  - link [ref=f20e441] [cursor=pointer]:
+                    - /url: /seungheondoh
+                    - strong [ref=f20e442]: seungheondoh
+                    - text: Seungheon Doh
+          - generic [ref=f20e443]:
+            - heading "Languages" [level=2] [ref=f20e444]
+            - 'progressbar "Python: 100%" [ref=f20e447]'
+            - list [ref=f20e448]:
+              - listitem [ref=f20e449]:
+                - link "Python 100%" [ref=f20e450] [cursor=pointer]:
+                  - /url: /SonyResearch/LLM2Fx/search?l=python
+                  - generic [ref=f20e452]: Python
+                  - generic [ref=f20e453]: 100%
+    - contentinfo [ref=f20e455]:
+      - heading "Footer" [level=2] [ref=f20e456]
+      - generic [ref=f20e457]:
+        - generic [ref=f20e458]:
+          - link "GitHub Homepage" [ref=f20e459] [cursor=pointer]:
+            - /url: https://github.com
+          - generic [ref=f20e462]: © 2026 GitHub, Inc.
+        - navigation "Footer" [ref=f20e463]:
+          - heading "Footer navigation" [level=3] [ref=f20e464]
+          - list "Footer navigation" [ref=f20e465]:
+            - listitem [ref=f20e466]:
+              - link "Terms" [ref=f20e467] [cursor=pointer]:
+                - /url: https://docs.github.com/site-policy/github-terms/github-terms-of-service
+            - listitem [ref=f20e468]:
+              - link "Privacy" [ref=f20e469] [cursor=pointer]:
+                - /url: https://docs.github.com/site-policy/privacy-policies/github-privacy-statement
+            - listitem [ref=f20e470]:
+              - link "Security" [ref=f20e471] [cursor=pointer]:
+                - /url: https://github.com/security
+            - listitem [ref=f20e472]:
+              - link "Status" [ref=f20e473] [cursor=pointer]:
+                - /url: https://www.githubstatus.com/
+            - listitem [ref=f20e474]:
+              - link "Community" [ref=f20e475] [cursor=pointer]:
+                - /url: https://github.community/
+            - listitem [ref=f20e476]:
+              - link "Docs" [ref=f20e477] [cursor=pointer]:
+                - /url: https://docs.github.com/
+            - listitem [ref=f20e478]:
+              - link "Contact" [ref=f20e479] [cursor=pointer]:
+                - /url: https://support.github.com?tags=dotcom-footer
+            - listitem [ref=f20e480]:
+              - button "Manage cookies" [ref=f20e482] [cursor=pointer]
+            - listitem [ref=f20e483]:
+              - button "Do not share my personal information" [ref=f20e485] [cursor=pointer]
+  - alert [ref=f20e488]

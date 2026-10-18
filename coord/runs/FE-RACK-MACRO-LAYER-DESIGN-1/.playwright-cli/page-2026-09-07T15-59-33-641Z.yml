@@ -1,0 +1,354 @@
+- generic [active] [ref=f24e1]:
+  - generic [ref=f24e2]:
+    - generic [ref=f24e3]:
+      - link "Skip to content" [ref=f24e4] [cursor=pointer]:
+        - /url: "#start-of-content"
+      - banner [ref=f24e9]:
+        - heading "Navigation Menu" [level=2] [ref=f24e10]
+        - generic [ref=f24e11]:
+          - link "Homepage" [ref=f24e13] [cursor=pointer]:
+            - /url: /
+          - generic [ref=f24e16]:
+            - navigation "Global" [ref=f24e17]:
+              - list [ref=f24e18]:
+                - listitem [ref=f24e19]:
+                  - button "Platform" [ref=f24e21] [cursor=pointer]
+                - listitem [ref=f24e24]:
+                  - button "Solutions" [ref=f24e26] [cursor=pointer]
+                - listitem [ref=f24e29]:
+                  - button "Resources" [ref=f24e31] [cursor=pointer]
+                - listitem [ref=f24e34]:
+                  - button "Open Source" [ref=f24e36] [cursor=pointer]
+                - listitem [ref=f24e39]:
+                  - button "Enterprise" [ref=f24e41] [cursor=pointer]
+                - listitem [ref=f24e44]:
+                  - link "Pricing" [ref=f24e45] [cursor=pointer]:
+                    - /url: https://github.com/pricing
+            - generic [ref=f24e46]:
+              - button "Search or jump to, type / to search" [ref=f24e48] [cursor=pointer]
+              - link "Sign in" [ref=f24e55] [cursor=pointer]:
+                - /url: /login?return_to=https%3A%2F%2Fgithub.com%2FSonyResearch%2FLLM2Fx%2Ftree%2Fmain%2Fllm2fx-1
+              - link "Sign up" [ref=f24e58] [cursor=pointer]:
+                - /url: /signup?ref_cta=Sign+up&ref_loc=header+logged+out&ref_page=%2F%3Cuser-name%3E%2F%3Crepo-name%3E%2Ffiles%2Fdisambiguate&source=header-repo&source_repo=SonyResearch%2FLLM2Fx
+              - button "Appearance settings" [ref=f24e61] [cursor=pointer]
+    - main [ref=f24e68]:
+      - generic [ref=f24e69]:
+        - generic [ref=f24e70]:
+          - generic [ref=f24e72]:
+            - link "SonyResearch" [ref=f24e76] [cursor=pointer]:
+              - /url: /SonyResearch
+            - generic [ref=f24e77]: /
+            - strong [ref=f24e78]:
+              - link "LLM2Fx" [ref=f24e79] [cursor=pointer]:
+                - /url: /SonyResearch/LLM2Fx
+            - generic [ref=f24e80]: Public
+          - generic [ref=f24e81]:
+            - list:
+              - listitem [ref=f24e82]:
+                - link "You must be signed in to change notification settings" [ref=f24e83] [cursor=pointer]:
+                  - /url: /login?return_to=%2FSonyResearch%2FLLM2Fx
+                  - text: Notifications
+              - listitem [ref=f24e86]:
+                - link "Fork 6" [ref=f24e87] [cursor=pointer]:
+                  - /url: /login?return_to=%2FSonyResearch%2FLLM2Fx
+                  - text: Fork
+                  - generic "6" [ref=f24e90]
+              - listitem [ref=f24e91]:
+                - link "You must be signed in to star a repository" [ref=f24e93] [cursor=pointer]:
+                  - /url: /login?return_to=%2FSonyResearch%2FLLM2Fx
+                  - text: Star
+                  - generic "51 users starred this repository" [ref=f24e96]: "51"
+        - navigation "Repository" [ref=f24e97]:
+          - list [ref=f24e98]:
+            - listitem [ref=f24e99]:
+              - link "Code" [ref=f24e100] [cursor=pointer]:
+                - /url: /SonyResearch/LLM2Fx
+            - listitem [ref=f24e104]:
+              - link "Issues 1" [ref=f24e105] [cursor=pointer]:
+                - /url: /SonyResearch/LLM2Fx/issues
+                - generic [ref=f24e109]: Issues
+                - generic "1" [ref=f24e110]
+            - listitem [ref=f24e111]:
+              - link "Pull requests 1" [ref=f24e112] [cursor=pointer]:
+                - /url: /SonyResearch/LLM2Fx/pulls
+                - generic [ref=f24e115]: Pull requests
+                - generic "1" [ref=f24e116]
+            - listitem [ref=f24e117]:
+              - link "Actions" [ref=f24e118] [cursor=pointer]:
+                - /url: /SonyResearch/LLM2Fx/actions
+            - listitem [ref=f24e122]:
+              - link "Projects" [ref=f24e123] [cursor=pointer]:
+                - /url: /SonyResearch/LLM2Fx/projects
+            - listitem [ref=f24e127]:
+              - link "Security and quality" [ref=f24e128] [cursor=pointer]:
+                - /url: /SonyResearch/LLM2Fx/security
+            - listitem [ref=f24e132]:
+              - link "Insights" [ref=f24e133] [cursor=pointer]:
+                - /url: /SonyResearch/LLM2Fx/pulse
+      - generic [ref=f24e144]:
+        - generic [ref=f24e146]:
+          - generic [ref=f24e149]:
+            - generic [ref=f24e150]:
+              - generic [ref=f24e151]:
+                - heading "Collapse file tree" [level=2] [ref=f24e152]:
+                  - button "Collapse file tree" [expanded] [ref=f24e153] [cursor=pointer]
+                - heading "Files" [level=2] [ref=f24e157]
+              - generic [ref=f24e158]:
+                - button "main branch" [ref=f24e160] [cursor=pointer]:
+                  - generic [ref=f24e161]: main
+                - button "Search this repository (forward slash)" [ref=f24e166] [cursor=pointer]
+            - combobox "Go to file" [ref=f24e174]
+            - navigation "File Tree Navigation" [ref=f24e180]:
+              - tree "Files" [ref=f24e182]:
+                - treeitem "llm2fx-1" [expanded] [level=1] [ref=f24e183]:
+                  - group "llm2fx-1" [ref=f24e195]:
+                    - treeitem "llm2fx" [level=2] [ref=f24e196]
+                    - treeitem "outputs" [level=2] [ref=f24e211]
+                    - treeitem "README.md" [level=2] [ref=f24e226]
+                    - treeitem "pyproject.toml" [level=2] [ref=f24e237]
+                - treeitem "llm2fx-tools" [level=1] [ref=f24e248]
+                - treeitem ".gitignore" [level=1] [ref=f24e260]
+                - treeitem "README.md" [level=1] [ref=f24e268]
+          - slider "Draggable pane splitter" [ref=f24e277]
+        - generic [ref=f24e280]:
+          - generic [ref=f24e284]:
+            - generic [ref=f24e286]:
+              - navigation [ref=f24e287]:
+                - heading "Breadcrumbs" [level=2] [ref=f24e288]
+                - list [ref=f24e289]:
+                  - listitem [ref=f24e290]:
+                    - link "LLM2Fx" [ref=f24e291] [cursor=pointer]:
+                      - /url: /SonyResearch/LLM2Fx/tree/main
+              - generic [ref=f24e292]:
+                - text: /
+                - heading "llm2fx-1" [level=1] [ref=f24e293]
+                - text: /
+              - button "Copy path" [ref=f24e294] [cursor=pointer]
+            - generic [ref=f24e300]:
+              - heading "Directory actions" [level=2] [ref=f24e301]
+              - heading "More options" [level=2] [ref=f24e302]
+              - button "More options" [ref=f24e303] [cursor=pointer]
+          - generic [ref=f24e306]:
+            - generic [ref=f24e308]:
+              - heading "Latest commit" [level=2] [ref=f24e309]
+              - generic [ref=f24e312]:
+                - heading "History" [level=2] [ref=f24e313]
+                - link "History" [ref=f24e314] [cursor=pointer]:
+                  - /url: /SonyResearch/LLM2Fx/commits/main/llm2fx-1
+            - generic [ref=f24e317]:
+              - generic [ref=f24e318]:
+                - heading "Folders and files" [level=2] [ref=f24e319]
+                - table "Folders and files" [ref=f24e320]:
+                  - rowgroup [ref=f24e321]:
+                    - row [ref=f24e322]:
+                      - columnheader "Name" [ref=f24e323]
+                      - columnheader "Last commit message" [ref=f24e324]
+                      - columnheader "Last commit date" [ref=f24e326]
+                  - rowgroup [ref=f24e328]:
+                    - row [ref=f24e329]:
+                      - cell [ref=f24e330]:
+                        - heading "parent directory" [level=3] [ref=f24e331]
+                        - link "Parent directory" [ref=f24e332] [cursor=pointer]:
+                          - /url: /SonyResearch/LLM2Fx/tree/main
+                          - generic [ref=f24e333]: ..
+                    - row "llm2fx, (Directory)" [ref=f24e336]:
+                      - cell [ref=f24e337]:
+                        - link "llm2fx, (Directory)" [ref=f24e344] [cursor=pointer]:
+                          - /url: /SonyResearch/LLM2Fx/tree/main/llm2fx-1/llm2fx
+                          - text: llm2fx
+                      - cell [ref=f24e345]
+                      - cell [ref=f24e347]
+                    - row "outputs/text2fx/mistral_7b/reverb/guitar/church, (Directory)" [ref=f24e350]:
+                      - cell [ref=f24e351]:
+                        - link "outputs/text2fx/mistral_7b/reverb/guitar/church, (Directory)" [ref=f24e358] [cursor=pointer]:
+                          - /url: /SonyResearch/LLM2Fx/tree/main/llm2fx-1/outputs/text2fx/mistral_7b/reverb/guitar/church
+                          - text: outputs/text2fx/mistral_7b/reverb/guitar/church
+                      - cell [ref=f24e359]
+                      - cell [ref=f24e361]
+                    - row "README.md, (File)" [ref=f24e364]:
+                      - cell [ref=f24e365]:
+                        - link "README.md, (File)" [ref=f24e372] [cursor=pointer]:
+                          - /url: /SonyResearch/LLM2Fx/blob/main/llm2fx-1/README.md
+                          - text: README.md
+                      - cell [ref=f24e373]
+                      - cell [ref=f24e375]
+                    - row "pyproject.toml, (File)" [ref=f24e378]:
+                      - cell [ref=f24e379]:
+                        - link "pyproject.toml, (File)" [ref=f24e386] [cursor=pointer]:
+                          - /url: /SonyResearch/LLM2Fx/blob/main/llm2fx-1/pyproject.toml
+                          - text: pyproject.toml
+                      - cell [ref=f24e387]
+                      - cell [ref=f24e389]
+              - generic [ref=f24e393]:
+                - generic [ref=f24e394]:
+                  - heading [level=2] [ref=f24e395]:
+                    - link "README.md" [ref=f24e396] [cursor=pointer]:
+                      - /url: "#readme"
+                  - button "Outline" [ref=f24e397] [cursor=pointer]
+                - article [ref=f24e401]:
+                  - generic [ref=f24e402]:
+                    - 'heading "LLM2Fx: Large Language Models for Audio Effect Parameter Prediction" [level=1] [ref=f24e403]'
+                    - 'link "Permalink: LLM2Fx: Large Language Models for Audio Effect Parameter Prediction" [ref=f24e404] [cursor=pointer]':
+                      - /url: "#llm2fx-large-language-models-for-audio-effect-parameter-prediction"
+                  - list [ref=f24e407]:
+                    - listitem [ref=f24e408]:
+                      - strong [ref=f24e409]: Paper
+                      - text: ":"
+                      - link "Arxiv" [ref=f24e410] [cursor=pointer]:
+                        - /url: "#"
+                    - listitem [ref=f24e411]:
+                      - strong [ref=f24e412]: Demo
+                      - text: ":"
+                      - link "llm2fx-demo" [ref=f24e413] [cursor=pointer]:
+                        - /url: https://seungheondoh.github.io/llm2fx-demo/
+                    - listitem [ref=f24e414]:
+                      - strong [ref=f24e415]: Dataset
+                      - text: ":"
+                      - link "huggingface" [ref=f24e416] [cursor=pointer]:
+                        - /url: https://huggingface.co/collections/seungheondoh/llm2fx-6821b961b982fe1eab1b00bf
+                    - listitem [ref=f24e417]:
+                      - strong [ref=f24e418]: Re-Synthesize SocialFX
+                      - text: ":"
+                      - link "fx-processor" [ref=f24e419] [cursor=pointer]:
+                        - /url: https://github.com/seungheondoh/fx-processor
+                  - paragraph [ref=f24e420]: A research project that leverages Large Language Models (LLMs) to intelligently predict audio effect parameters for music production. This system bridges the gap between natural language descriptions and technical audio processing parameters.
+                  - generic [ref=f24e421]:
+                    - heading "📦 Installation" [level=2] [ref=f24e422]
+                    - 'link "Permalink: 📦 Installation" [ref=f24e423] [cursor=pointer]':
+                      - /url: "#-installation"
+                  - generic [ref=f24e426]:
+                    - heading "Prerequisites" [level=3] [ref=f24e427]
+                    - 'link "Permalink: Prerequisites" [ref=f24e428] [cursor=pointer]':
+                      - /url: "#prerequisites"
+                  - list [ref=f24e431]:
+                    - listitem [ref=f24e432]: Python 3.10 or higher
+                    - listitem [ref=f24e433]: CUDA-compatible GPU (recommended)
+                    - listitem [ref=f24e434]: FFmpeg
+                  - generic [ref=f24e435]:
+                    - heading "Setup" [level=3] [ref=f24e436]
+                    - 'link "Permalink: Setup" [ref=f24e437] [cursor=pointer]':
+                      - /url: "#setup"
+                  - generic [ref=f24e440]:
+                    - code [ref=f24e442]: git clone conda create -n llm2fx python=3.10 conda activate llm2fx python -m pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126 python -m pip install -e .
+                    - button "Copy code to clipboard" [ref=f24e444] [cursor=pointer]
+                  - generic [ref=f24e448]:
+                    - heading "Text2FX (LLM predict Fx Parmas)" [level=3] [ref=f24e449]
+                    - 'link "Permalink: Text2FX (LLM predict Fx Parmas)" [ref=f24e450] [cursor=pointer]':
+                      - /url: "#text2fx-llm-predict-fx-parmas"
+                  - list [ref=f24e453]:
+                    - listitem [ref=f24e454]: "Purpose: Translates natural language descriptions into precise audio effect parameters"
+                    - listitem [ref=f24e455]: "Input: Text descriptions (e.g., \"make it sound warm and spacious\")"
+                    - listitem [ref=f24e456]: "Output: JSON-formatted audio effect parameters (EQ, reverb, etc.)"
+                    - listitem [ref=f24e457]: "Use Case: Allows producers to describe desired sound characteristics in plain English"
+                  - generic [ref=f24e458]:
+                    - generic [ref=f24e459]: python llm2fx/inference/text2fx/run_llm.py --model_name mistral_7b --eq_type reverb --timbre_word church --inst_type guitar --use_incontext True
+                    - button "Copy code to clipboard" [ref=f24e461] [cursor=pointer]
+                  - generic [ref=f24e465]:
+                    - code [ref=f24e467]: "Parameters: - `--fx_type`: Effect type (`eq`, `reverb`) - `--model_name`: LLM model (`llama3_1b`, `llama3_3b`, `llama3_8b`, `mistral_7b`) - `--inst_type`: Instrument type - `--use_incontext`: Use in-context information or not (if not, it is zero-shot case) - `--output_path`: Directory for output files - `--device`: Compute device"
+                    - button "Copy code to clipboard" [ref=f24e469] [cursor=pointer]
+                  - generic [ref=f24e473]:
+                    - heading "LLM Output" [level=3] [ref=f24e474]
+                    - 'link "Permalink: LLM Output" [ref=f24e475] [cursor=pointer]':
+                      - /url: "#llm-output"
+                  - paragraph [ref=f24e478]:
+                    - text: You can find example outputs in the
+                    - code [ref=f24e479]: ./outputs
+                    - text: directory, which contains the results of running the inference process. These examples demonstrate how the model generates audio effect parameters based on different input combinations of instrument types and timbre descriptions. Each output includes both the technical parameters and a human-readable explanation of the reasoning behind the parameter choices.
+                  - generic [ref=f24e480]:
+                    - heading "Audio Examples" [level=3] [ref=f24e481]
+                    - 'link "Permalink: Audio Examples" [ref=f24e482] [cursor=pointer]':
+                      - /url: "#audio-examples"
+                  - paragraph [ref=f24e485]:
+                    - text: You can listen to the generated audio examples in the
+                    - code [ref=f24e486]: "./outputs/text2fx/{model_name}/{fx_type}/{inst_type}/{timbre_word}/audio"
+                    - text: directory.
+                  - table [ref=f24e488]:
+                    - rowgroup [ref=f24e489]:
+                      - row [ref=f24e490]:
+                        - columnheader "Instrument" [ref=f24e491]
+                        - columnheader "Timbre" [ref=f24e492]
+                        - columnheader "Audio Example" [ref=f24e493]
+                    - rowgroup [ref=f24e494]:
+                      - row [ref=f24e495]:
+                        - cell "Guitar" [ref=f24e496]
+                        - cell "Church" [ref=f24e497]
+                        - cell [ref=f24e498]:
+                          - link [ref=f24e499] [cursor=pointer]:
+                            - /url: /SonyResearch/LLM2Fx/blob/main/llm2fx-1/outputs/text2fx/mistral_7b/reverb/guitar/church/audio/582cf088-4941-4453-9d90-2c75dc76bbd5.mp3
+                            - img "Audio Example" [ref=f24e500]
+                  - generic [ref=f24e501]:
+                    - generic [ref=f24e502]:
+                      - text: "{"
+                      - generic [ref=f24e503]: "\"reverb\""
+                      - text: ": {"
+                      - generic [ref=f24e504]: "\"band0_gain\""
+                      - text: ": 0.0,"
+                      - generic [ref=f24e505]: "\"band1_gain\""
+                      - text: ": 0.1,"
+                      - generic [ref=f24e506]: "\"band2_gain\""
+                      - text: ": 0.2,"
+                      - generic [ref=f24e507]: "\"band3_gain\""
+                      - text: ": 0.3,"
+                      - generic [ref=f24e508]: "\"band4_gain\""
+                      - text: ": 0.4,"
+                      - generic [ref=f24e509]: "\"band5_gain\""
+                      - text: ": 0.5,"
+                      - generic [ref=f24e510]: "\"band6_gain\""
+                      - text: ": 0.6,"
+                      - generic [ref=f24e511]: "\"band7_gain\""
+                      - text: ": 0.7,"
+                      - generic [ref=f24e512]: "\"band8_gain\""
+                      - text: ": 0.8,"
+                      - generic [ref=f24e513]: "\"band9_gain\""
+                      - text: ": 0.9,"
+                      - generic [ref=f24e514]: "\"band10_gain\""
+                      - text: ": 1.0,"
+                      - generic [ref=f24e515]: "\"band11_gain\""
+                      - text: ": 0.9,"
+                      - generic [ref=f24e516]: "\"band0_decay\""
+                      - text: ": 3.0,"
+                      - generic [ref=f24e517]: "\"band1_decay\""
+                      - text: ": 2.5,"
+                      - generic [ref=f24e518]: "\"band2_decay\""
+                      - text: ": 2.0,"
+                      - generic [ref=f24e519]: "\"band3_decay\""
+                      - text: ": 1.5,"
+                      - generic [ref=f24e520]: "\"band4_decay\""
+                      - text: ": 1.2,"
+                      - generic [ref=f24e521]: "\"band5_decay\""
+                      - text: ": 1.0,"
+                      - generic [ref=f24e522]: "\"band6_decay\""
+                      - text: ": 0.8,"
+                      - generic [ref=f24e523]: "\"band7_decay\""
+                      - text: ": 0.6,"
+                      - generic [ref=f24e524]: "\"band8_decay\""
+                      - text: ": 0.4,"
+                      - generic [ref=f24e525]: "\"band9_decay\""
+                      - text: ": 0.3,"
+                      - generic [ref=f24e526]: "\"band10_decay\""
+                      - text: ": 0.2,"
+                      - generic [ref=f24e527]: "\"band11_decay\""
+                      - text: ": 0.1,"
+                      - generic [ref=f24e528]: "\"mix\""
+                      - text: ": 0.7 },"
+                      - generic [ref=f24e529]: "\"reason\""
+                      - text: ":"
+                      - generic [ref=f24e530]: "\"A church-like guitar sound is often characterized by a warm, spacious, and reverberant tone."
+                      - text: This design boosts the gain in all frequency bands to achieve a warm and full sound, while using longer decay times to create a sense of space and ambiance.
+                      - generic [ref=f24e531]: The mix level is set to 0.7 to ensure a balanced level between the dry and wet signals."
+                      - text: "}"
+                    - button "Copy code to clipboard" [ref=f24e533] [cursor=pointer]
+                  - generic [ref=f24e537]:
+                    - heading "Embedding Extraction for Evaluation" [level=3] [ref=f24e538]
+                    - 'link "Permalink: Embedding Extraction for Evaluation" [ref=f24e539] [cursor=pointer]':
+                      - /url: "#embedding-extraction-for-evaluation"
+                  - paragraph [ref=f24e542]:
+                    - text: We use embedding distribution as an evaluation metric based on the fx encoder. For this purpose, we provide embedding extractor code and evaluation metrics (
+                    - code [ref=f24e543]: ./evaluation/text2fx/llm_eval.py
+                    - text: ).
+                  - generic [ref=f24e544]:
+                    - generic [ref=f24e545]:
+                      - generic [ref=f24e546]: "# embedding extraction code"
+                      - text: python llm2fx/evaluation/embeds/fx_encoder.py --target_dir outputs/text2fx --output_dir outputs/embeds --audio_extension wav
+                    - button "Copy code to clipboard" [ref=f24e548] [cursor=pointer]
+  - alert [ref=f24e555]

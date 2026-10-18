@@ -1,0 +1,100 @@
+- main [ref=f6e3]:
+  - generic [ref=f6e4]:
+    - generic [ref=f6e5]:
+      - generic "Vit" [ref=f6e6]:
+        - strong [ref=f6e7]: V
+      - generic [ref=f6e10]:
+        - button [ref=f6e270] [cursor=pointer]:
+          - strong [ref=f6e12]: 把 bass 轨道 200Hz 附近的低频能量往下压 …
+        - 'generic "D:\\Vit_DAW\\artifacts\\free_state_d1_s1\\20260905_170648\\project\\spv1_p01.vit · Agent: VitAgent pid=24960 内核: 已连接 tcp://127.0.0.1:5555 影子状态: 已初始化 轨道: 6 最新状态版本 0" [ref=f6e220]': "spv1_p01.vit · VitAgent 路 内核已连接 路 6 条轨道 路 状态 #0"
+    - generic "Transport" [ref=f6e17]:
+      - button "Play" [ref=f6e18] [cursor=pointer]
+      - button "Return to zero" [ref=f6e21] [cursor=pointer]
+      - button "Stop" [ref=f6e24] [cursor=pointer]
+      - generic [ref=f6e27]: 00:00:00
+      - spinbutton "Seek seconds" [ref=f6e28]
+    - generic [ref=f6e35]:
+      - generic [ref=f6e36]: 就绪
+      - generic [ref=f6e43]: "-- BPM"
+      - generic [ref=f6e47]: "--"
+      - button "Refresh" [ref=f6e52] [cursor=pointer]
+  - generic [ref=f6e58]:
+    - navigation "Ask Vit modes" [ref=f6e59]:
+      - generic [ref=f6e60]:
+        - button "对话" [ref=f6e61] [cursor=pointer]
+        - button "轨道" [ref=f6e66] [cursor=pointer]
+        - button "机架" [ref=f6e72] [cursor=pointer]
+        - button "MIDI" [ref=f6e76] [cursor=pointer]
+        - button "混音台" [ref=f6e80] [cursor=pointer]
+      - generic [ref=f6e85]:
+        - button "新建" [ref=f6e86] [cursor=pointer]
+        - button "设置" [ref=f6e89] [cursor=pointer]
+    - generic [ref=f6e94]:
+      - generic [ref=f6e95]:
+        - generic "对话模式" [ref=f6e96]:
+          - generic [ref=f6e97]:
+            - button "协作 自然对话" [ref=f6e98] [cursor=pointer]:
+              - generic [ref=f6e102]: 协作
+              - generic [ref=f6e103]: 自然对话
+            - button "计划 只读分析" [ref=f6e104] [cursor=pointer]:
+              - generic [ref=f6e115]: 计划
+              - generic [ref=f6e116]: 只读分析
+            - button "目标 长任务" [ref=f6e117] [cursor=pointer]:
+              - generic [ref=f6e121]: 目标
+              - generic [ref=f6e122]: 长任务
+        - generic [ref=f6e123]:
+          - article [ref=f6e271]:
+            - generic [ref=f6e275]:
+              - generic [ref=f6e276]: 用户
+              - paragraph [ref=f6e278]: 把 bass 轨道 200Hz 附近的低频能量往下压 2dB，让低频更干净
+          - article [ref=f6e221]:
+            - generic [ref=f6e226]:
+              - generic [ref=f6e227]: Vit
+              - paragraph [ref=f6e229]: Ask Vit 就绪。
+          - region "执行轨迹：正在处理" [ref=f6e279]:
+            - status [ref=f6e280]:
+              - strong [ref=f6e283]: 正在处理
+              - generic [ref=f6e284]: "--"
+            - generic [ref=f6e285]: 正在处理…
+        - generic [ref=f6e134]:
+          - textbox "和 Vit 说..." [ref=f6e135]
+          - generic [ref=f6e136]:
+            - button "添加上下文、文件或模式选项" [ref=f6e138] [cursor=pointer]
+            - button "普通确认" [disabled] [ref=f6e141]
+            - button "Stop Turn" [active] [ref=f6e293] [cursor=pointer]
+      - separator "右侧面板宽度" [ref=f6e153]
+      - complementary [ref=f6e154]:
+        - generic [ref=f6e155]:
+          - button "资料库" [ref=f6e156] [cursor=pointer]
+          - button "宏控制" [ref=f6e161] [cursor=pointer]
+          - button "历史树" [ref=f6e166] [cursor=pointer]
+          - button "收起右侧面板" [ref=f6e171] [cursor=pointer]
+        - generic [ref=f6e231]:
+          - generic [ref=f6e232]:
+            - generic [ref=f6e233]:
+              - heading "工程历史" [level=2] [ref=f6e234]
+              - generic [ref=f6e235]: spv1_p01.vit
+            - button "刷新历史" [ref=f6e236] [cursor=pointer]
+          - generic [ref=f6e242]:
+            - generic [ref=f6e243]:
+              - heading "工作树" [level=2] [ref=f6e244]
+              - generic [ref=f6e245]: "1"
+            - button "主工作树 spv1_p01.vit 当前" [ref=f6e247] [cursor=pointer]:
+              - generic [ref=f6e249]:
+                - strong [ref=f6e250]: 主工作树
+                - generic [ref=f6e251]: spv1_p01.vit
+              - emphasis [ref=f6e252]: 当前
+          - generic [ref=f6e253]:
+            - generic [ref=f6e254]:
+              - heading "分支" [level=2] [ref=f6e255]
+              - generic [ref=f6e256]: "1"
+            - button "main - 当前" [disabled] [ref=f6e258]:
+              - generic [ref=f6e260]:
+                - strong [ref=f6e261]: main
+                - generic [ref=f6e262]: "-"
+              - emphasis [ref=f6e263]: 当前
+          - generic [ref=f6e264]:
+            - generic [ref=f6e265]:
+              - heading "Ask Vit 历史树" [level=2] [ref=f6e266]
+              - generic [ref=f6e267]: "0"
+            - generic [ref=f6e268]: 暂无历史节点

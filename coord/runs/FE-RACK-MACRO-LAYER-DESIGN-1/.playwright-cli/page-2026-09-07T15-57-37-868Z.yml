@@ -1,0 +1,3059 @@
+- generic [active] [ref=f4e1]:
+  - region "Announcement" [ref=f4e2]:
+    - generic [ref=f4e4]: arXiv is now an independent nonprofit!
+    - link "Learn more" [ref=f4e5] [cursor=pointer]:
+      - /url: https://info.arxiv.org/about
+    - button "Dismiss announcement" [ref=f4e6] [cursor=pointer]: ×
+  - banner [ref=f4e7]:
+    - link "arXiv logo Back to arXiv" [ref=f4e9] [cursor=pointer]:
+      - /url: /
+      - img "arXiv logo" [ref=f4e10]
+      - generic [ref=f4e11]: Back to arXiv
+    - navigation [ref=f4e12]:
+      - link "Why HTML?" [ref=f4e13] [cursor=pointer]:
+        - /url: https://info.arxiv.org/about/accessible_HTML.html
+      - link "Report Issue" [ref=f4e14] [cursor=pointer]:
+        - /url: "#"
+      - link "Back to abstract page" [ref=f4e16] [cursor=pointer]:
+        - /url: /abs/2607.19605v2
+        - generic [ref=f4e17]: Back to Abstract
+      - link "Download PDF" [ref=f4e18] [cursor=pointer]:
+        - /url: /pdf/2607.19605v2
+      - link "Toggle navigation" [ref=f4e20] [cursor=pointer]:
+        - /url: javascript:toggleNavTOC();
+      - link "Disable reading mode, show header and footer" [ref=f4e21] [cursor=pointer]:
+        - /url: javascript:toggleReadingMode();
+      - button "Toggle color scheme" [ref=f4e23] [cursor=pointer]
+  - navigation [ref=f4e25]:
+    - navigation [ref=f4e26]:
+      - list [ref=f4e27]:
+        - listitem [ref=f4e28]:
+          - link "Abstract" [ref=f4e29] [cursor=pointer]:
+            - /url: "#abstract1"
+        - listitem [ref=f4e30]:
+          - link "1 Introduction" [ref=f4e31] [cursor=pointer]:
+            - /url: "#S1"
+            - generic [ref=f4e32]:
+              - generic [ref=f4e33]: "1"
+              - text: Introduction
+        - listitem [ref=f4e34]:
+          - link "2 Related Work" [ref=f4e35] [cursor=pointer]:
+            - /url: "#S2"
+            - generic [ref=f4e36]:
+              - generic [ref=f4e37]: "2"
+              - text: Related Work
+        - listitem [ref=f4e38]:
+          - link "3 The POEMS Toolkit" [ref=f4e39] [cursor=pointer]:
+            - /url: "#S3"
+            - generic [ref=f4e40]:
+              - generic [ref=f4e41]: "3"
+              - text: The POEMS Toolkit
+        - listitem [ref=f4e42]:
+          - link "4 RIME" [ref=f4e43] [cursor=pointer]:
+            - /url: "#S4"
+            - generic [ref=f4e44]:
+              - generic [ref=f4e45]: "4"
+              - text: RIME
+        - listitem [ref=f4e46]:
+          - link "5 Experiments" [ref=f4e47] [cursor=pointer]:
+            - /url: "#S5"
+            - generic [ref=f4e48]:
+              - generic [ref=f4e49]: "5"
+              - text: Experiments
+        - listitem [ref=f4e50]:
+          - link "6 Results" [ref=f4e51] [cursor=pointer]:
+            - /url: "#S6"
+            - generic [ref=f4e52]:
+              - generic [ref=f4e53]: "6"
+              - text: Results
+        - listitem [ref=f4e54]:
+          - link "7 Conclusion" [ref=f4e55] [cursor=pointer]:
+            - /url: "#S7"
+            - generic [ref=f4e56]:
+              - generic [ref=f4e57]: "7"
+              - text: Conclusion
+        - listitem [ref=f4e58]:
+          - link "References" [ref=f4e59] [cursor=pointer]:
+            - /url: "#bib"
+        - listitem [ref=f4e60]:
+          - link "A Compute Resources" [ref=f4e61] [cursor=pointer]:
+            - /url: "#A1"
+            - generic [ref=f4e62]:
+              - generic [ref=f4e63]: A
+              - text: Compute Resources
+        - listitem [ref=f4e64]:
+          - link "B POEMS Toolkit Details" [ref=f4e65] [cursor=pointer]:
+            - /url: "#A2"
+            - generic [ref=f4e66]:
+              - generic [ref=f4e67]: B
+              - text: POEMS Toolkit Details
+        - listitem [ref=f4e68]:
+          - link "C RIME Details" [ref=f4e69] [cursor=pointer]:
+            - /url: "#A3"
+            - generic [ref=f4e70]:
+              - generic [ref=f4e71]: C
+              - text: RIME Details
+        - listitem [ref=f4e72]:
+          - link "D Zero-Shot Agent Details" [ref=f4e73] [cursor=pointer]:
+            - /url: "#A4"
+            - generic [ref=f4e74]:
+              - generic [ref=f4e75]: D
+              - text: Zero-Shot Agent Details
+        - listitem [ref=f4e76]:
+          - link "E Auxiliary Results" [ref=f4e77] [cursor=pointer]:
+            - /url: "#A5"
+            - generic [ref=f4e78]:
+              - generic [ref=f4e79]: E
+              - text: Auxiliary Results
+  - generic [ref=f4e80]:
+    - generic [ref=f4e81]:
+      - 'link "License: CC BY 4.0" [ref=f4e82] [cursor=pointer]':
+        - /url: https://info.arxiv.org/help/license/index.html#licenses-available
+      - generic [ref=f4e83]: arXiv:2607.19605v2 [cs.SD] 23 Jul 2026
+    - article [ref=f4e85]:
+      - 'heading "RIME: Enabling Large-Scale Agentic Music Post-Production" [level=1] [ref=f4e86]'
+      - generic [ref=f4e87]:
+        - generic [ref=f4e88]: Noah Schaffer
+        - generic [ref=f4e90]:
+          - generic [ref=f4e91]: Nikhil Singh
+          - generic [ref=f4e93]:
+            - generic [ref=f4e94]: Dartmouth College
+            - 'link "{noah.schaffer.gr,nikhil.u.singh}@dartmouth.edu" [ref=f4e96] [cursor=pointer]':
+              - /url: "mailto:"
+      - generic [ref=f4e97]:
+        - heading "Abstract" [level=6] [ref=f4e98]
+        - paragraph [ref=f4e99]:
+          - text: "Almost every piece of recorded music you have ever heard was modified before it reached you; commercial releases rarely spring fully-formed from the mind of a musician. Despite the promise of music generation models for one-shot output, such fine-grained iterative refinement workflows are a complementary problem, and largely out of their reach. There is also a gap for musicians: while they can express what they want to hear, not all have the facility with studio production tools to implement the complex set of actions needed to realize these intuitions. We formalize this task as agentic post-production, wherein individual aspects of a song are targeted, refined, and combined into a final track. We argue the bottleneck is data: existing corpora do not reflect how realistic post-production chains map onto the vocabulary musicians and engineers actually use. We argue there is a language for modifying recorded music that is dense, consistent, and learnable. We introduce the"
+          - generic [ref=f4e100]: Rule-based Instructions for Music Editing (RIME)
+          - text: framework, which generates realistic paired edit-instruction data from any baseline music dataset grounded in canonical methods, design patterns, and constraints derived from real production workflows. RIME leverages POEMS, a new toolkit that combines stem separation, mixing, and common studio effects for use by multimodal agents. We use POEMS and RIME to generate 3,000 pairs of edit instructions and ground truth audio, and use this data to evaluate existing multimodal LLMs as agents on this task, showing persistent challenges in current models’ post-production capabilities. We also demonstrate RIME’s ability to improve post-production agent performance via supervised fine-tuning. We see RIME as an early step toward iterative musical agents, collaborative systems that could transform music production much as interactive coding agents have reshaped software engineering.
+      - 'figure "Figure 1: Agentic music post-production with RIME. Starting from a multitrack mix, RIME creates rule-based plans and calls POEMS tools to generate data triples of source audio, output audio, and editing instruction. Downstream multimodal agents then use POEMS to implement an agentic loop in which they realize the provided instruction." [ref=f4e101]':
+        - img "Refer to caption" [ref=f4e102]
+        - generic [ref=f4e103]:
+          - generic [ref=f4e104]: "Figure 1:"
+          - text: Agentic music post-production with RIME. Starting from a multitrack mix, RIME creates rule-based plans and calls POEMS tools to generate data triples of source audio, output audio, and editing instruction. Downstream multimodal agents then use POEMS to implement an agentic loop in which they realize the provided instruction.
+      - generic [ref=f4e105]:
+        - heading "1 Introduction" [level=2] [ref=f4e106]:
+          - generic [ref=f4e107]: "1"
+          - text: Introduction
+        - paragraph [ref=f4e109]: There is a pervasive loop in the studio. When a producer listens to a recording they’re working on, they will often hear something wrong, or something that could be better. They may isolate the offending stem, apply a chain of effects, blend it back in, and listen again. The musician being recorded may hear something else and make a request. The producer implements a fix, then listens again. Then again. Then again.
+        - paragraph [ref=f4e111]: This loop has its own peculiar language. When a musician asks for something “warmer” or “bigger,” a seasoned engineer can translate it into a specific recipe (e.g. a high-shelf cut at 8 kHz, parallel compression on the drum bus, and a tempo-synced reverb send on the vocal) and run it. The translation between what music feels like and the sequence of operations that produces that feeling is not, in fact, magic. It is a dense and surprisingly consistent vocabulary, built up over decades of studio practice.
+        - paragraph [ref=f4e113]: "Today’s AI music systems are typically not part of this loop. Yet, we have good reason to desire them to be: it admits an iterative, interactive workflow that is musician-centered at its core. It is now reasonable to ask whether a software agent could join it, because these agents live in loops of their own; loops of perception, action, reasoning, and tool-use. Indeed, this would also be a strong testbed for such agents. Each iteration in this loop couples a perceptual judgment, an instruction context, a large assortment of potential tools, planning, and reasoning. What would it take, then, to bring an agent’s loop into dialog with this post-production loop?"
+        - paragraph [ref=f4e115]:
+          - text: We argue what is needed is a general framework for modifying music, beyond the capabilities of one-shot generators. To this end, we introduce the
+          - generic [ref=f4e116]: Rule-based Instructions for Music Editing (RIME)
+          - text: framework, which aims to generate large-scale music editing data that follows a process closer to what you would see in studio music production. RIME starts from individual mixes, creates edit “recipes" using a large vocabulary of common studio engineering rules, constraints, and design patterns, and executes a series of tool calls to isolate sources, apply edits, and create a final mix. This then creates supervision for agents to do the same. Additionally, RIME creates prompts at varying levels of abstraction to describe the edit chain for a given recipe, mimicking the variation in how precisely these intents are described in the real world. To create editing data, RIME leverages a newly built suite of tools that allow for pitch, ornamentation (various effects), equalization, mixing, and source separation (POEMS) edits, which we call POEMS.
+        - paragraph [ref=f4e118]: RIME is also unique in that it is extensible to any dataset which contains musical tracks, and especially designed for mixed tracks (or even generated ones, potentially, which normally come without individual instrument stems). We demonstrate using RIME in conjunction with state-of-the-art music understanding models to generate triplet edit data from untagged musical mixes.
+        - generic [ref=f4e119]:
+          - paragraph [ref=f4e120]: "Overall, our contributions are:"
+          - list [ref=f4e121]:
+            - listitem [ref=f4e122]:
+              - generic [ref=f4e123]: "1."
+              - paragraph [ref=f4e125]: "We formalize agentic post-production as an iterative task: starting from a mixed track and an arbitrarily clear instruction, an agent targets individual elements, refines them, and recombines them into a finished mix"
+            - listitem [ref=f4e126]:
+              - generic [ref=f4e127]: "2."
+              - paragraph [ref=f4e129]: We introduce RIME, a scalable, reusable data generation framework for transforming virtually any corpus of musical audio into a structured set of (input, output, instruction) triples. RIME encodes recipes, motifs, ordering constraints, and pattern policies of real studio post-production, and generates prompts at multiple levels of abstraction
+            - listitem [ref=f4e130]:
+              - generic [ref=f4e131]: "3."
+              - paragraph [ref=f4e133]: To support this, we introduce POEMS, an audio post-production toolkit spanning over 20 operators exposed via the Model Context Protocol for use by tool-calling agents
+            - listitem [ref=f4e134]:
+              - generic [ref=f4e135]: "4."
+              - paragraph [ref=f4e137]:
+                - text: We run a paired triplet benchmark with
+                - math [ref=f4e138]:
+                  - generic [ref=f4e139]: ≈
+                - text: 3,000 (input, output, instruction) triples generated with RIME on MTG-Jamendo
+                - generic [ref=f4e141]:
+                  - text: "["
+                  - link "1" [ref=f4e142] [cursor=pointer]:
+                    - /url: "#bib.bib18"
+                  - text: "]"
+                - text: ", together with 300 additional triples for artifact-removal tasks (e.g. mains hum, low-end rumble, or vocal sibilance), enabling evaluation across instrument families, edit categories, and abstraction levels"
+            - listitem [ref=f4e143]:
+              - generic [ref=f4e144]: "5."
+              - paragraph [ref=f4e146]: As part of this, we design and evaluate zero-shot agent baselines, in the form of multi-step tool-calling agents, surfacing major limitations to current-generation models’ abilities on this task, such as their ability to assemble the correct chain of operators vs. parameterize those operators correctly
+            - listitem [ref=f4e147]:
+              - generic [ref=f4e148]: "6."
+              - paragraph [ref=f4e150]: Additionally, we fine-tune an open-weight LLM orchestrator with RIME-synthesized data and demonstrate improvements over the zero-shot agent baselines
+      - generic [ref=f4e151]:
+        - heading "2 Related Work" [level=2] [ref=f4e152]:
+          - generic [ref=f4e153]: "2"
+          - text: Related Work
+        - paragraph [ref=f4e155]:
+          - text: Many previous text-prompted generative editing tasks have relied solely on paired prompt/audio data and deltas within audio-language embedding spaces to perform edits
+          - generic [ref=f4e156]:
+            - text: "["
+            - link "2" [ref=f4e157] [cursor=pointer]:
+              - /url: "#bib.bib8"
+            - text: ","
+            - link "3" [ref=f4e158] [cursor=pointer]:
+              - /url: "#bib.bib2"
+            - text: ","
+            - link "4" [ref=f4e159] [cursor=pointer]:
+              - /url: "#bib.bib17"
+            - text: ","
+            - link "5" [ref=f4e160] [cursor=pointer]:
+              - /url: "#bib.bib4"
+            - text: ","
+            - link "6" [ref=f4e161] [cursor=pointer]:
+              - /url: "#bib.bib6"
+            - text: ","
+            - link "7" [ref=f4e162] [cursor=pointer]:
+              - /url: "#bib.bib7"
+            - text: ","
+            - link "8" [ref=f4e163] [cursor=pointer]:
+              - /url: "#bib.bib9"
+            - text: "]"
+          - text: . While this allows for certain edits without the need for triplet (input, output, text) data, it often limits these methods to higher-level edits that operate with less specificity. Additionally, it can often render the output of these methods unusable in actual post-production workflows as the precision required for post-production edits cannot be estimated solely through embedding spaces like CLAP and MERT
+          - generic [ref=f4e164]:
+            - text: "["
+            - link "9" [ref=f4e165] [cursor=pointer]:
+              - /url: "#bib.bib32"
+            - text: ","
+            - link "10" [ref=f4e166] [cursor=pointer]:
+              - /url: "#bib.bib23"
+            - text: "]"
+          - text: .
+        - paragraph [ref=f4e168]:
+          - text: There exist several general audio editing frameworks that leverage triplet data (input audio, edited audio, prompt); however, their datasets largely focus on more general edits such as addition, deletion, replacement (via text-to-audio synthesis), inpainting, and superresolution
+          - generic [ref=f4e169]:
+            - text: "["
+            - link "11" [ref=f4e170] [cursor=pointer]:
+              - /url: "#bib.bib1"
+            - text: ","
+            - link "12" [ref=f4e171] [cursor=pointer]:
+              - /url: "#bib.bib5"
+            - text: ","
+            - link "13" [ref=f4e172] [cursor=pointer]:
+              - /url: "#bib.bib3"
+            - text: ","
+            - link "14" [ref=f4e173] [cursor=pointer]:
+              - /url: "#bib.bib33"
+            - text: "]"
+          - text: . Music editing often requires much more subtle and finer-grained edits than are captured with these approaches. InstructME
+          - generic [ref=f4e174]:
+            - text: "["
+            - link "15" [ref=f4e175] [cursor=pointer]:
+              - /url: "#bib.bib28"
+            - text: "]"
+          - text: creates paired triplet edit data from musical variations focusing on specific edits such as remixing, adding, replacing, extracting, and removing. Outside of remixing, this dataset focuses primarily on instrumentation variation rather than the application of studio effects that are seen in the post-production process. LLM2Fx-Tools
+          - generic [ref=f4e176]:
+            - text: "["
+            - link "16" [ref=f4e177] [cursor=pointer]:
+              - /url: "#bib.bib10"
+            - text: "]"
+          - text: creates a benchmark from the MedleyDB
+          - generic [ref=f4e178]:
+            - text: "["
+            - link "17" [ref=f4e179] [cursor=pointer]:
+              - /url: "#bib.bib30"
+            - text: ","
+            - link "18" [ref=f4e180] [cursor=pointer]:
+              - /url: "#bib.bib31"
+            - text: "]"
+          - text: which randomly samples musically realistic FX chains on single sources and uses a language model to create specific natural language instructions. Though this is the closest benchmark to simulate effects which are applied in music post-production, it focuses on only applying effects to individual stems. In post-production workflows, it is often much more important to analyze how edits on sources sound when they sit in a mix rather than in isolation. Additionally, this benchmark only focuses on adding effects to ornament sources, not using effects to remove issues which may arise in recording.
+        - paragraph [ref=f4e182]:
+          - text: There exists work on audio effects removal
+          - generic [ref=f4e183]:
+            - text: "["
+            - link "19" [ref=f4e184] [cursor=pointer]:
+              - /url: "#bib.bib34"
+            - text: ","
+            - link "20" [ref=f4e185] [cursor=pointer]:
+              - /url: "#bib.bib35"
+            - text: "]"
+          - text: ", which uses paired wet/dry FX data to recover clean sources from an effected source. While this can be useful in post-production, audio engineering workflows are often more focused on removing errors which occur in the recording process (e.g. 60 cycle hum, vocal sibilance) than removing targeted effects. Very recently, SonicMaster"
+          - generic [ref=f4e186]:
+            - text: "["
+            - link "21" [ref=f4e187] [cursor=pointer]:
+              - /url: "#bib.bib29"
+            - text: "]"
+          - text: attempts to benchmark generalized audio degradation by systematically applying five categories of degradations (EQ, Dynamics, Reverb, Amplitude, and Stereo) to audio from the MTG Jamendo dataset
+          - generic [ref=f4e188]:
+            - text: "["
+            - link "1" [ref=f4e189] [cursor=pointer]:
+              - /url: "#bib.bib18"
+            - text: "]"
+          - text: . However, they apply audio only to mixes and do not focus on certain source-specific errors (e.g. excessive vocal sibilance) and how those errors may sound in the context of a mix.
+        - paragraph [ref=f4e191]: In all, no existing benchmarks match the characteristics of real-world post-production loops, as described earlier. For this, such a benchmark would need to (i) introduce both intentional modifications and degradations to audio , (ii) apply edits to individual stems and introduce them back into a mix, (iii) be able to handle instructions at varying abstraction levels, and (iv) support an iterative, listen-and-tweak workflow. In this paper, we introduce exactly this suite of components.
+      - generic [ref=f4e192]:
+        - heading "3 The POEMS Toolkit" [level=2] [ref=f4e193]:
+          - generic [ref=f4e194]: "3"
+          - text: The POEMS Toolkit
+        - paragraph [ref=f4e196]: We introduce the Pitch, Ornamentation, Equalization, Mixing, and Separation (POEMS) toolkit, which contains an extensive suite of tools for end-to-end music post-production.
+        - generic [ref=f4e197]:
+          - heading "3.1 Pitch" [level=3] [ref=f4e198]:
+            - generic [ref=f4e199]: "3.1"
+            - text: Pitch
+          - paragraph [ref=f4e201]:
+            - text: "We focus on two pitch-based edits for vocal stems: pitch correction (autotuning) and harmony generation. Autotuning quantizes the fundamental frequency ("
+            - math [ref=f4e202]:
+              - generic [ref=f4e204]:
+                - generic [ref=f4e205]: f
+                - generic [ref=f4e206]: "0"
+            - text: ) contour of a monophonic vocal track to the nearest pitch within a target scale, specified by a key and mode. We estimate
+            - math [ref=f4e207]:
+              - generic [ref=f4e209]:
+                - generic [ref=f4e210]: f
+                - generic [ref=f4e211]: "0"
+            - text: frame-wise with CREPE
+            - generic [ref=f4e212]:
+              - text: "["
+              - link "22" [ref=f4e213] [cursor=pointer]:
+                - /url: "#bib.bib12"
+              - text: "]"
+            - text: ", detect the key with S-KEY"
+            - generic [ref=f4e214]:
+              - text: "["
+              - link "23" [ref=f4e215] [cursor=pointer]:
+                - /url: "#bib.bib13"
+              - text: "]"
+            - text: ", and resynthesize the corrected signal with PSOLA"
+            - generic [ref=f4e216]:
+              - text: "["
+              - link "24" [ref=f4e217] [cursor=pointer]:
+                - /url: "#bib.bib14"
+              - text: "]"
+            - text: ", which preserves formant structure and local timing while shifting the pitch contour."
+        - generic [ref=f4e218]:
+          - heading "3.2 Ornamentation and Equalization" [level=3] [ref=f4e219]:
+            - generic [ref=f4e220]: "3.2"
+            - text: Ornamentation and Equalization
+          - paragraph [ref=f4e222]: "We organize spectral and temporal effects into four families: time-based, modulation, dynamics, and equalization. Time-based effects introduce delayed copies of the signal. POEMS includes delay (single-tap with feedback and dry/wet mix) and an algorithmic reverb parameterized by room size, damping, wet and dry levels, stereo width, and freeze mode. Modulation effects vary a parameter of the signal periodically. POEMS includes chorus (low-frequency delay-line modulation with feedback) and phaser (all-pass-based phase modulation around a center frequency). Dynamics effects apply level-dependent gain. POEMS includes a feed-forward compressor (threshold, ratio, attack, release), a peak limiter (a high-ratio compressor with fast release and a brick-wall ceiling), waveshaping distortion, a noise gate (downward expansion below a threshold), and a split-band de-esser that applies compression to the sibilant band to reduce harsh sibilant sounds such as “s”."
+          - paragraph [ref=f4e224]:
+            - text: Equalization effects shape the magnitude response of the signal across frequency. POEMS provides high-pass, low-pass, high-shelf, low-shelf, and parametric peaking filters, each parameterized by cutoff frequency and, where applicable, gain and quality factor (
+            - math [ref=f4e225]:
+              - generic [ref=f4e226]: Q
+            - text: ). We use Spotify’s Pedalboard
+            - generic [ref=f4e228]:
+              - text: "["
+              - link "25" [ref=f4e229] [cursor=pointer]:
+                - /url: "#bib.bib15"
+              - text: "]"
+            - text: library for ornamentation and equalization processing.
+        - generic [ref=f4e230]:
+          - heading "3.3 Mixing & Separation" [level=3] [ref=f4e231]:
+            - generic [ref=f4e232]: "3.3"
+            - text: Mixing & Separation
+          - paragraph [ref=f4e234]:
+            - text: Source separation decomposes a mixture into a set of instrument stems and a residual track. We use the 6-stem variant of Demucs
+            - generic [ref=f4e235]:
+              - text: "["
+              - link "26" [ref=f4e236] [cursor=pointer]:
+                - /url: "#bib.bib20"
+              - text: "]"
+            - text: ", which restricts the set of editable stems in POEMS to vocals, drums, bass, piano, and guitar; extending separation to open-vocabulary stem queries is left to future work (we attempted to use SAM Audio"
+            - generic [ref=f4e237]:
+              - text: "["
+              - link "27" [ref=f4e238] [cursor=pointer]:
+                - /url: "#bib.bib11"
+              - text: "]"
+            - text: ", but found it produced poor results in this setting). Mixing then covers the operations that combine and balance stems. Within an edit graph, we re-combine a processed stem with its residual via linear summation in the time domain."
+        - generic [ref=f4e239]:
+          - heading "3.4 MCP Tool-Calling" [level=3] [ref=f4e240]:
+            - generic [ref=f4e241]: "3.4"
+            - text: MCP Tool-Calling
+          - paragraph [ref=f4e243]:
+            - text: We expose the POEMS toolkit via Model Context Protocol (MCP)
+            - generic [ref=f4e244]:
+              - text: "["
+              - link "28" [ref=f4e245] [cursor=pointer]:
+                - /url: "#bib.bib24"
+              - text: "]"
+            - text: . GPU-bound tools (key detection, source separation) are served behind a FIFO queue that serializes device access. The remaining CPU-bound effects are stateless and can be invoked concurrently. This interface lets a tool-calling agent issue a sequence of MCP calls (e.g. separating the input mix, applying processing to one or more stems, and recombining them with the residual) to produce an edited mix end-to-end. To our knowledge, this is the first toolkit that exposes the full separate
+            - math [ref=f4e246]:
+              - generic [ref=f4e247]: →
+            - text: process
+            - math [ref=f4e249]:
+              - generic [ref=f4e250]: →
+            - text: recombine loop as MCP-callable tools, enabling agents to perform stem-aware post-production rather than operating only on full mixes or pre-isolated sources.
+      - generic [ref=f4e252]:
+        - heading "4 RIME" [level=2] [ref=f4e253]:
+          - generic [ref=f4e254]: "4"
+          - text: RIME
+        - 'figure "Figure 2: Example edit graph for a vocal harmony recipe" [ref=f4e255]':
+          - generic [ref=f4e257]:
+            - generic [ref=f4e258]: "Figure 2:"
+            - text: Example edit graph for a vocal harmony recipe
+        - generic [ref=f4e259]:
+          - heading "4.1 Graph Generation and Subsampling" [level=3] [ref=f4e260]:
+            - generic [ref=f4e261]: "4.1"
+            - text: Graph Generation and Subsampling
+          - generic [ref=f4e262]:
+            - heading "4.1.1 Recipes and Motifs" [level=4] [ref=f4e263]:
+              - generic [ref=f4e264]: 4.1.1
+              - text: Recipes and Motifs
+            - paragraph [ref=f4e266]:
+              - text: A recipe is a symbolic template for an edit graph (see an example in
+              - link "Figure 2" [ref=f4e267] [cursor=pointer]:
+                - /url: "#S4.F2"
+              - text: "). Each recipe is specified by a four-field schema: bindings (references to clip metadata that are resolved at plan-generation time, such as the target stem or detected key), when (a predicate that gates eligibility, e.g. vocal_harmony_support requires both a vocal stem and a detectable key), weight_rules (recipe-local multipliers that compose with global pattern-policy weights described later, to indicate how common certain recipes should be), and graph (a declarative three-stage edit graph, normally of the form SEPARATE"
+              - math [ref=f4e268]:
+                - generic [ref=f4e269]: →
+              - text: PROCESS
+              - math [ref=f4e271]:
+                - generic [ref=f4e272]: →
+              - text: MIX).
+            - paragraph [ref=f4e275]:
+              - text: The PROCESS stage holds the recipe’s actual processing sub-graph. The SEPARATE and MIX stages scaffold it with stem isolation and residual recombination steps, so every recipe operates in a stem-aware fashion. Each recipe encodes a single post-production intent, such as adding modulation texture, applying vocal-leveling compression, or imparting a “vintage” lower-fidelity character, among others. Recipes are symbolic in that their tool-call arguments and certain structural slots (such as the target stem) are unbound at definition time and resolved at instantiation. To share structure across recipes, we factor commonly co-occurring sub-chains into reusable units we call motifs. A motif is a named, typed sub-graph that can be expanded inline within any recipe that references it. For example, the retro_tilt_eq motif expands to high_shelf()
+              - math [ref=f4e276]:
+                - generic [ref=f4e277]: →
+              - text: "lowpass(), capturing the joint high-frequency roll-off characteristic of a vintage sound. Each operator is also associated with a sampling prior, i.e. a distribution over its argument space calibrated so that draws produce audibly plausible edits rather than degenerate ones (e.g. a high-pass cutoff used for low-end cleanup is sampled in the 60–250Hz range, not from a uniform 20Hz–20kHz prior). Priors are defined per tool and per role: the same tool may carry a different prior when it appears in a different motif."
+            - paragraph [ref=f4e280]:
+              - link "Appendix C" [ref=f4e281] [cursor=pointer]:
+                - /url: "#A3"
+              - text: contains more details on recipes, motifs, and parameter priors. We additionally provide a web-based UI that allows authoring and auditioning all aspects. An audio engineer with professional production credits reviewed, auditioned, and tweaked all of our components.
+          - generic [ref=f4e282]:
+            - heading "4.1.2 Constraints" [level=4] [ref=f4e283]:
+              - generic [ref=f4e284]: 4.1.2
+              - text: Constraints
+            - paragraph [ref=f4e286]: RIME enforces two classes of constraints over candidate edit graphs.
+            - generic [ref=f4e287]:
+              - heading "Chain Order Constraints" [level=5] [ref=f4e288]
+              - paragraph [ref=f4e290]:
+                - text: Real signal chains follow conventions about the order in which effect families are applied. We adopt the default ordering EQ
+                - math [ref=f4e291]:
+                  - generic [ref=f4e292]: →
+                - text: Dynamics
+                - math [ref=f4e294]:
+                  - generic [ref=f4e295]: →
+                - text: Distortion
+                - math [ref=f4e297]:
+                  - generic [ref=f4e298]: →
+                - text: Modulation
+                - math [ref=f4e300]:
+                  - generic [ref=f4e301]: →
+                - text: Time-Based Effects
+                - math [ref=f4e303]:
+                  - generic [ref=f4e304]: →
+                - text: Leveling and reject any candidate graph that violates it. Certain recipes carry recipe-specific orderings that override the default (e.g. vocal-harmony recipes place pitch processing upstream of dynamics) and here the recipe-level ordering is checked instead.
+            - generic [ref=f4e306]:
+              - heading "Pattern Policy Constraints" [level=5] [ref=f4e307]
+              - paragraph [ref=f4e309]:
+                - text: Not every valid recipe is equally common in practice (e.g. modulation is rare on drums, spatial effects are more common in pop than classical, etc.). Pattern-policy constraints encode these priors as multiplicative weights on candidate recipes, conditioned on metadata of the clip (e.g. genre) and the target (e.g. instrument family). Full policy in
+                - link "Section C.3" [ref=f4e310] [cursor=pointer]:
+                  - /url: "#A3.SS3"
+                - text: .
+          - generic [ref=f4e311]:
+            - heading "4.1.3 Data Poisoning" [level=4] [ref=f4e312]:
+              - generic [ref=f4e313]: 4.1.3
+              - text: Data Poisoning
+            - paragraph [ref=f4e315]: "Real recordings rarely arrive in pristine condition, but often carry artifacts that post-production is tasked with removing. To capture this side of the workflow, we define two parallel families of recipes: degradation recipes, which introduce realistic recording artifacts (vocal sibilance, 50/60Hz mains hum, low-end rumble, buried or overpowering target stems), and matched remediation recipes, which apply the corresponding cleanup."
+          - generic [ref=f4e316]:
+            - heading "4.1.4 Constructing an Edit Graph" [level=4] [ref=f4e317]:
+              - generic [ref=f4e318]: 4.1.4
+              - text: Constructing an Edit Graph
+            - generic [ref=f4e319]:
+              - paragraph [ref=f4e320]: "Given an input clip, RIME constructs an edit graph in eight stages:"
+              - list [ref=f4e321]:
+                - listitem [ref=f4e322]:
+                  - generic [ref=f4e323]: "1."
+                  - paragraph [ref=f4e325]:
+                    - text: Identify the clip’s available stems, genre tags, and tempo, using upstream music-understanding models (e.g. Music Flamingo
+                    - generic [ref=f4e326]:
+                      - text: "["
+                      - link "29" [ref=f4e327] [cursor=pointer]:
+                        - /url: "#bib.bib19"
+                      - text: "]"
+                    - text: )
+                - listitem [ref=f4e328]:
+                  - generic [ref=f4e329]: "2."
+                  - paragraph [ref=f4e331]: For each recipe in the catalog, generate one or more candidate instances by binding its free slots (e.g. target stem) to concrete values from the clip
+                - listitem [ref=f4e332]:
+                  - generic [ref=f4e333]: "3."
+                  - paragraph [ref=f4e335]: Reject candidates whose preconditions are not met
+                - listitem [ref=f4e336]:
+                  - generic [ref=f4e337]: "4."
+                  - paragraph [ref=f4e339]: Score remaining candidates by multiplying the pattern-policy weights
+                - listitem [ref=f4e340]:
+                  - generic [ref=f4e341]: "5."
+                  - paragraph [ref=f4e343]: For every tool call in the candidate, draw arguments from the corresponding sampling prior
+                - listitem [ref=f4e344]:
+                  - generic [ref=f4e345]: "6."
+                  - paragraph [ref=f4e347]: Replace each motif reference in the candidate with its expansion sub-graph, propagating sampled parameters into the expanded nodes
+                - listitem [ref=f4e348]:
+                  - generic [ref=f4e349]: "7."
+                  - paragraph [ref=f4e351]: Verify expanded graph satisfies applicable chain-ordering constraint, else re-sample
+                - listitem [ref=f4e352]:
+                  - generic [ref=f4e353]: "8."
+                  - paragraph [ref=f4e355]: Emit the validated edit graph as an executable sequence of POEMS tool calls
+        - generic [ref=f4e356]:
+          - heading "4.2 Generating and Subsampling Edit Plans" [level=3] [ref=f4e357]:
+            - generic [ref=f4e358]: "4.2"
+            - text: Generating and Subsampling Edit Plans
+          - paragraph [ref=f4e360]: The previous sequence produces a single edit graph for a single (clip, recipe) cell. To build a corpus, we execute it densely across the recipe catalog and the source dataset, and then subsample the resulting pool to a target size with controlled coverage.
+          - paragraph [ref=f4e362]:
+            - text: For each clip in the source dataset, we instantiate every recipe whose when predicate is satisfied by the clip’s metadata, and run the construction procedure with multiple independent parameter draws per (clip, recipe) cell. We refer to the union of all resulting edit graphs as the
+            - emphasis [ref=f4e363]: permissible plan pool
+            - text: ". The pool is large but highly redundant: a few high-density (clip, recipe) cells contribute many near-duplicate plans that differ only in resampled argument values, and the marginal distribution over recipes and target stems is uneven by design (some recipes apply far more broadly than others). A naively retained corpus would thus inherit this skew. We rank and stratify to prioritize common edits and sample across the editorial categories that downstream evaluation cares about (harmony, delay, reverb, compression, modulation, and so on). We then draw the highest-ranked unselected candidates iteratively subject to a cardinality constraint: at most"
+            - math [ref=f4e364]:
+              - generic [ref=f4e365]: k
+            - text: plans per (clip, recipe) pair (we use
+            - math [ref=f4e367]:
+              - generic [ref=f4e369]:
+                - generic [ref=f4e370]: k
+                - generic [ref=f4e371]: =
+                - generic [ref=f4e372]: "1"
+            - text: in our experiments). The procedure halts when the requested sample size is reached or when no bin yields a candidate satisfying both constraints.
+        - generic [ref=f4e373]:
+          - heading "4.3 Prompt Generation" [level=3] [ref=f4e374]:
+            - generic [ref=f4e375]: "4.3"
+            - text: Prompt Generation
+          - paragraph [ref=f4e377]: In music post-production, there are varying degrees of granularity with which you can describe the same set of edits. A sound engineer may be able to describe an edit with extreme specificity (e.g. "apply a highpass filter at 100 Hz"), while a musician may only be able to describe the edit in more general terms (e.g. "get rid of the low end rumble").
+          - paragraph [ref=f4e379]:
+            - text: To simulate this, we generate prompts in an iterative manner as shown in
+            - link "Algorithm 1" [ref=f4e380] [cursor=pointer]:
+              - /url: "#alg1"
+            - text: .
+          - figure "Algorithm 1 Prompt abstraction." [ref=f4e381]:
+            - generic [ref=f4e382]:
+              - generic [ref=f4e383]: Algorithm 1
+              - text: Prompt abstraction.
+            - generic [ref=f4e384]:
+              - generic [ref=f4e385]:
+                - text: edit graph
+                - math [ref=f4e386]:
+                  - generic [ref=f4e387]: G
+                - text: ; language model
+                - math [ref=f4e389]:
+                  - generic [ref=f4e390]: π
+                - text: ; abstraction depth
+                - math [ref=f4e392]:
+                  - generic [ref=f4e394]:
+                    - generic [ref=f4e395]: K
+                    - generic [ref=f4e396]: ∈
+                    - generic [ref=f4e397]: ℕ
+              - generic [ref=f4e398]:
+                - text: prompt templates
+                - math [ref=f4e399]:
+                  - generic [ref=f4e401]:
+                    - generic [ref=f4e402]:
+                      - generic [ref=f4e403]: T
+                      - generic [ref=f4e404]: graph
+                    - generic [ref=f4e405]: ","
+                    - generic [ref=f4e406]:
+                      - generic [ref=f4e407]: T
+                      - generic [ref=f4e408]: abs
+              - generic [ref=f4e409]:
+                - math [ref=f4e410]:
+                  - generic [ref=f4e412]:
+                    - generic [ref=f4e413]:
+                      - generic [ref=f4e414]: p
+                      - generic [ref=f4e415]: "0"
+                    - generic [ref=f4e416]: ∼
+                    - generic [ref=f4e417]: π
+                    - generic [ref=f4e418]:
+                      - generic [ref=f4e419]: (
+                      - generic [ref=f4e420]: ⋅
+                      - generic [ref=f4e421]: ∣
+                      - generic [ref=f4e422]:
+                        - generic [ref=f4e423]: T
+                        - generic [ref=f4e424]: graph
+                      - generic [ref=f4e425]:
+                        - generic [ref=f4e426]: (
+                        - generic [ref=f4e427]: G
+                        - generic [ref=f4e428]: )
+                      - generic [ref=f4e429]: )
+                - generic [ref=f4e430]:
+                  - math [ref=f4e431]:
+                    - generic [ref=f4e432]: ⊳
+                  - math [ref=f4e434]:
+                    - generic [ref=f4e436]:
+                      - generic [ref=f4e437]: G
+                      - generic [ref=f4e438]: →
+                  - text: initial instruction
+              - generic [ref=f4e439]:
+                - text: for
+                - math [ref=f4e440]:
+                  - generic [ref=f4e442]:
+                    - generic [ref=f4e443]:
+                      - generic [ref=f4e444]: k
+                      - generic [ref=f4e445]: =
+                      - generic [ref=f4e446]: "1"
+                    - generic [ref=f4e447]: ","
+                    - generic [ref=f4e448]: …
+                    - generic [ref=f4e449]: ","
+                    - generic [ref=f4e450]: K
+                - text: do
+              - generic [ref=f4e451]:
+                - math [ref=f4e452]:
+                  - generic [ref=f4e454]:
+                    - generic [ref=f4e455]:
+                      - generic [ref=f4e456]: p
+                      - generic [ref=f4e457]: k
+                    - generic [ref=f4e458]: ∼
+                    - generic [ref=f4e459]: π
+                    - generic [ref=f4e460]:
+                      - generic [ref=f4e461]: (
+                      - generic [ref=f4e462]: ⋅
+                      - generic [ref=f4e463]: ∣
+                      - generic [ref=f4e464]:
+                        - generic [ref=f4e465]: T
+                        - generic [ref=f4e466]: abs
+                      - generic [ref=f4e467]:
+                        - generic [ref=f4e468]: (
+                        - generic [ref=f4e469]:
+                          - generic [ref=f4e470]: p
+                          - generic [ref=f4e471]:
+                            - generic [ref=f4e472]: k
+                            - generic [ref=f4e473]: −
+                            - generic [ref=f4e474]: "1"
+                        - generic [ref=f4e475]: )
+                      - generic [ref=f4e476]: )
+                - generic [ref=f4e477]:
+                  - math [ref=f4e478]:
+                    - generic [ref=f4e479]: ⊳
+                  - text: rewrite at increased abstraction
+              - generic [ref=f4e481]:
+                - text: return
+                - math [ref=f4e482]:
+                  - generic [ref=f4e484]:
+                    - generic [ref=f4e485]: (
+                    - generic [ref=f4e486]:
+                      - generic [ref=f4e487]: p
+                      - generic [ref=f4e488]: "0"
+                    - generic [ref=f4e489]: ","
+                    - generic [ref=f4e490]:
+                      - generic [ref=f4e491]: p
+                      - generic [ref=f4e492]: "1"
+                    - generic [ref=f4e493]: ","
+                    - generic [ref=f4e494]: …
+                    - generic [ref=f4e495]: ","
+                    - generic [ref=f4e496]:
+                      - generic [ref=f4e497]: p
+                      - generic [ref=f4e498]: K
+                    - generic [ref=f4e499]: )
+          - paragraph [ref=f4e501]:
+            - text: We use Gemini Flash Lite
+            - generic [ref=f4e502]:
+              - text: "["
+              - link "30" [ref=f4e503] [cursor=pointer]:
+                - /url: "#bib.bib25"
+              - text: "]"
+            - text: as
+            - math [ref=f4e504]:
+              - generic [ref=f4e505]: π
+            - text: and set
+            - math [ref=f4e507]:
+              - generic [ref=f4e509]:
+                - generic [ref=f4e510]: K
+                - generic [ref=f4e511]: =
+                - generic [ref=f4e512]: "2"
+            - text: in our experiments, yielding three abstraction levels per edit graph. Both templates are listed in
+            - link "Section C.5" [ref=f4e513] [cursor=pointer]:
+              - /url: "#A3.SS5"
+            - text: .
+      - generic [ref=f4e514]:
+        - heading "5 Experiments" [level=2] [ref=f4e515]:
+          - generic [ref=f4e516]: "5"
+          - text: Experiments
+        - generic [ref=f4e517]:
+          - heading "5.1 Generating Synthetic Data with RIME" [level=3] [ref=f4e518]:
+            - generic [ref=f4e519]: "5.1"
+            - text: Generating Synthetic Data with RIME
+          - paragraph [ref=f4e521]:
+            - text: We use RIME to synthesize training and evaluation triplet (input audio, edited audio, instruction) datasets starting from a corpus of full mixes with no available stem-level annotations. For each dataset, we draw disjoint 10,000-track random subsamples from MTG-Jamendo
+            - generic [ref=f4e522]:
+              - text: "["
+              - link "1" [ref=f4e523] [cursor=pointer]:
+                - /url: "#bib.bib18"
+              - text: "]"
+            - text: ", in which instrument tags are largely absent, and tag every clip with Music Flamingo"
+            - generic [ref=f4e524]:
+              - text: "["
+              - link "29" [ref=f4e525] [cursor=pointer]:
+                - /url: "#bib.bib19"
+              - text: "]"
+            - text: ", a multimodal music-understanding model. We retain only clips that contain both vocals and drums (these are most targeted by recipes), yielding 549 source tracks (37 hours) for the training set and 297 source tracks (20 hours) for the evaluation set."
+          - paragraph [ref=f4e527]:
+            - text: For these 549/297 tracks, we run the plan-generation procedure and obtain permissible-plan pools of 178,744 candidates. We subsample these pools to
+            - math [ref=f4e528]:
+              - generic [ref=f4e529]: ≈
+            - text: 1,000 plans for each dataset using the stratified random policy described earlier. For each selected plan we generate
+            - math [ref=f4e531]:
+              - generic [ref=f4e533]:
+                - generic [ref=f4e534]: K
+                - generic [ref=f4e535]: =
+                - generic [ref=f4e536]: "2"
+            - text: rounds of abstraction-increasing prompts, yielding
+            - math [ref=f4e537]:
+              - generic [ref=f4e539]:
+                - generic [ref=f4e540]:
+                  - generic [ref=f4e541]: 1,000
+                  - generic [ref=f4e542]: ×
+                  - generic [ref=f4e543]:
+                    - generic [ref=f4e544]: (
+                    - generic [ref=f4e545]:
+                      - generic [ref=f4e546]: K
+                      - generic [ref=f4e547]: +
+                      - generic [ref=f4e548]: "1"
+                    - generic [ref=f4e549]: )
+                - generic [ref=f4e550]: =
+                - generic [ref=f4e551]: 3,000
+            - text: unique triples for both the training and evaluation datasets.
+          - paragraph [ref=f4e553]:
+            - text: We additionally synthesize an artifact-removal split, used only for evaluation. Following the data-poisoning procedure described earlier, we generate a permissible pool of 22,164 paired degradation–remediation chains, subsample 100 plans, and again produce three abstraction levels per plan, for 300 triples. For these examples the agent receives the poisoned audio
+            - math [ref=f4e554]:
+              - generic [ref=f4e556]:
+                - generic [ref=f4e557]: x
+                - generic [ref=f4e558]: ~
+            - text: as input and is evaluated against the cleaned audio
+            - math [ref=f4e559]:
+              - generic [ref=f4e561]:
+                - generic [ref=f4e562]: x
+                - generic [ref=f4e563]: ^
+            - text: as ground truth (rather than the original clip
+            - math [ref=f4e564]:
+              - generic [ref=f4e565]: x
+            - text: ).
+        - generic [ref=f4e567]:
+          - heading "5.2 Zero-Shot Agents using POEMS" [level=3] [ref=f4e568]:
+            - generic [ref=f4e569]: "5.2"
+            - text: Zero-Shot Agents using POEMS
+          - generic [ref=f4e570]:
+            - paragraph [ref=f4e571]: "We design an agent to perform POEMS tool calls using pretrained multimodal language models. This agent can operate end-to-end, meaning it can take a mixture in as input, isolate the target sources, perform the necessary processing on those stems, and mix them back into the track. We use the agent to perform multi-turn tool calls, with the following steps:"
+            - list [ref=f4e572]:
+              - listitem [ref=f4e573]:
+                - generic [ref=f4e574]: "1."
+                - paragraph [ref=f4e576]: "Preliminary listening step: Listen to the audio and determine whether the audio is a single source or a mixture."
+              - listitem [ref=f4e577]:
+                - generic [ref=f4e578]: "2."
+                - paragraph [ref=f4e580]: "Reasoning step: Based on the prompt and results of the listening step, obtain a plan for what tools need to be called in what order. This step is advisory only."
+              - listitem [ref=f4e581]:
+                - generic [ref=f4e582]: "3."
+                - paragraph [ref=f4e584]: "Tool calling step: Listen to the audio, look at the plans obtained in step 2 and the edits that have already been performed and determine the next tool to call."
+              - listitem [ref=f4e585]:
+                - generic [ref=f4e586]: "4."
+                - paragraph [ref=f4e588]:
+                  - text: "Failure/recovery step: If the agent fails to make a properly-formed tool call, it can repeat the tool-calling attempt with the failed arguments to the tool call. After"
+                  - math [ref=f4e589]:
+                    - generic [ref=f4e590]: "n"
+                  - text: steps, which can be configured by the user, the tool is called with default arguments (see
+                  - link "Section B.2" [ref=f4e592] [cursor=pointer]:
+                    - /url: "#A2.SS2"
+                  - text: ). For our experiments, we set
+                  - math [ref=f4e593]:
+                    - generic [ref=f4e595]:
+                      - generic [ref=f4e596]: "n"
+                      - generic [ref=f4e597]: =
+                      - generic [ref=f4e598]: "1"
+                  - text: .
+              - listitem [ref=f4e599]:
+                - generic [ref=f4e600]: "5."
+                - paragraph [ref=f4e602]: "Listen and repeat: the agent listens to the audio at the current step and analyzes which edits are already completed and which edits are still left to be completed. Based on the plan and the result of the listening, it decides whether the output audio fulfills the user’s request or if there are additional tool calls to make."
+          - paragraph [ref=f4e604]:
+            - text: We limit the agent to a maximum of 20 tool calling steps (not including recovery steps). More specifics about the agent framework can be found in
+            - link "Appendix D" [ref=f4e605] [cursor=pointer]:
+              - /url: "#A4"
+            - text: . We set up zero shot agents using two state-of-the-art multimodal models (Gemini 3 Flash
+            - generic [ref=f4e606]:
+              - text: "["
+              - link "30" [ref=f4e607] [cursor=pointer]:
+                - /url: "#bib.bib25"
+              - text: "]"
+            - text: and GPT-4o Mini
+            - generic [ref=f4e608]:
+              - text: "["
+              - link "31" [ref=f4e609] [cursor=pointer]:
+                - /url: "#bib.bib26"
+              - text: "]"
+            - text: ) and one open-weight multimodal model (Gemma 3n
+            - generic [ref=f4e610]:
+              - text: "["
+              - link "32" [ref=f4e611] [cursor=pointer]:
+                - /url: "#bib.bib16"
+              - text: "]"
+            - text: ) as orchestrators. We run the multi-step tool calling framework on the 3,000 baseline examples as well as the additional 300 poisoning examples.
+        - generic [ref=f4e612]:
+          - heading "5.3 Supervised Finetuning" [level=3] [ref=f4e613]:
+            - generic [ref=f4e614]: "5.3"
+            - text: Supervised Finetuning
+          - paragraph [ref=f4e616]:
+            - text: We perform supervised finetuning on an agent using Gemma 3n
+            - generic [ref=f4e617]:
+              - text: "["
+              - link "32" [ref=f4e618] [cursor=pointer]:
+                - /url: "#bib.bib16"
+              - text: "]"
+            - text: orchestration. We fine-tune only the reasoning step and do not enforce any specific tool calls. We use low-rank adaptation
+            - generic [ref=f4e619]:
+              - text: "["
+              - link "33" [ref=f4e620] [cursor=pointer]:
+                - /url: "#bib.bib27"
+              - text: "]"
+            - text: with a rank of
+            - math [ref=f4e621]:
+              - generic [ref=f4e622]: "16"
+            - text: ","
+            - math [ref=f4e624]:
+              - generic [ref=f4e625]: α
+            - text: of
+            - math [ref=f4e627]:
+              - generic [ref=f4e628]: "16"
+            - text: and learning rate of
+            - math [ref=f4e630]:
+              - generic [ref=f4e632]:
+                - generic [ref=f4e633]: "2"
+                - generic [ref=f4e634]: ×
+                - generic [ref=f4e635]:
+                  - generic [ref=f4e636]: "10"
+                  - generic [ref=f4e637]:
+                    - generic [ref=f4e638]: −
+                    - generic [ref=f4e639]: "4"
+            - text: . We train for one epoch on the 3,000 data triplets from the training dataset. The multi-turn tool calling framework is kept identical to the zero-shot agent for comparison.
+        - generic [ref=f4e640]:
+          - heading "5.4 Evaluation Metrics" [level=3] [ref=f4e641]:
+            - generic [ref=f4e642]: "5.4"
+            - text: Evaluation Metrics
+          - paragraph [ref=f4e644]:
+            - text: "We use two primary modes of evaluation: audio similarity, and edit-graph similarity. We use Fréchet Audio Distance"
+            - generic [ref=f4e645]:
+              - text: "["
+              - link "34" [ref=f4e646] [cursor=pointer]:
+                - /url: "#bib.bib22"
+              - text: "]"
+            - text: and Kernel Audio Distance
+            - generic [ref=f4e647]:
+              - text: "["
+              - link "35" [ref=f4e648] [cursor=pointer]:
+                - /url: "#bib.bib21"
+              - text: "]"
+            - text: in the MERT
+            - generic [ref=f4e649]:
+              - text: "["
+              - link "10" [ref=f4e650] [cursor=pointer]:
+                - /url: "#bib.bib23"
+              - text: "]"
+            - text: embedding space. We also introduce edit similarity (
+            - math [ref=f4e651]:
+              - generic [ref=f4e653]:
+                - generic [ref=f4e654]: Δ
+                - generic [ref=f4e655]:
+                  - generic [ref=f4e656]: sim
+                  - generic [ref=f4e657]: a
+            - text: ), which measures the similarity between the direction of change (in the MERT embedding space) of the agent’s output vs. input compared to the direction of change of the ground-truth edited audio from RIME. For graphs, our primary metric is Graph F1, which is the arithmetic mean of four F1 scores, on graph kind, operator, stem, and edge. In the Appendix, we provide several additional evaluations to corroborate the primary metric results.
+      - generic [ref=f4e658]:
+        - heading "6 Results" [level=2] [ref=f4e659]:
+          - generic [ref=f4e660]: "6"
+          - text: Results
+        - 'figure "Table 1: Primary evaluation metrics between agent output and ground truth. Slight negative KAD/FADinf values indicate upstream numerical instability." [ref=f4e661]':
+          - generic [ref=f4e662]:
+            - generic [ref=f4e663]: "Table 1:"
+            - text: Primary evaluation metrics between agent output and ground truth. Slight negative KAD/FAD
+            - subscript [ref=f4e664]: inf
+            - text: values indicate upstream numerical instability.
+          - table [ref=f4e665]:
+            - rowgroup [ref=f4e666]:
+              - row [ref=f4e667]:
+                - columnheader [ref=f4e668]
+                - columnheader [ref=f4e669]
+                - columnheader [ref=f4e670]
+                - columnheader [ref=f4e671]
+                - columnheader "Metrics" [ref=f4e672]
+              - row [ref=f4e673]:
+                - columnheader [ref=f4e674]
+                - columnheader [ref=f4e675]
+                - columnheader "Category" [ref=f4e676]
+                - columnheader [ref=f4e677]:
+                  - math [ref=f4e678]:
+                    - generic [ref=f4e679]: "N"
+                - columnheader "FAD" [ref=f4e681]:
+                  - text: FAD
+                  - math [ref=f4e682]:
+                    - generic [ref=f4e683]: ↓
+                - columnheader [ref=f4e685]:
+                  - text: FAD
+                  - subscript [ref=f4e686]: inf
+                  - math [ref=f4e687]:
+                    - generic [ref=f4e688]: ↓
+                - columnheader "KAD" [ref=f4e690]:
+                  - text: KAD
+                  - math [ref=f4e691]:
+                    - generic [ref=f4e692]: ↓
+                - columnheader [ref=f4e694]:
+                  - math [ref=f4e695]:
+                    - generic [ref=f4e697]:
+                      - generic [ref=f4e698]: Δ
+                      - generic [ref=f4e699]:
+                        - generic [ref=f4e700]: sim
+                        - generic [ref=f4e701]: a
+                  - math [ref=f4e702]:
+                    - generic [ref=f4e703]: ↑
+                - columnheader "Graph F1" [ref=f4e705]:
+                  - text: Graph F1
+                  - math [ref=f4e706]:
+                    - generic [ref=f4e707]: ↑
+            - rowgroup [ref=f4e709]:
+              - row [ref=f4e710]:
+                - columnheader "GPT-4o Mini" [ref=f4e711]
+                - columnheader [ref=f4e716]
+                - columnheader "Overall" [ref=f4e717]
+                - rowheader "2730" [ref=f4e718]
+                - cell "0.046" [ref=f4e719]
+                - cell "0.027" [ref=f4e720]
+                - cell "0.086" [ref=f4e721]
+                - cell "0.611" [ref=f4e722]
+                - cell "0.845" [ref=f4e723]
+              - row [ref=f4e724]:
+                - columnheader [ref=f4e725]
+                - columnheader "Abstraction Level" [ref=f4e726]
+                - columnheader [ref=f4e727]
+                - cell [ref=f4e728]
+                - cell [ref=f4e729]
+                - cell [ref=f4e730]
+                - cell [ref=f4e731]
+                - cell [ref=f4e732]
+              - row [ref=f4e733]:
+                - columnheader [ref=f4e734]
+                - columnheader "0" [ref=f4e735]
+                - rowheader "972" [ref=f4e736]
+                - cell "0.032" [ref=f4e737]
+                - cell "-0.047" [ref=f4e738]
+                - cell "-0.021" [ref=f4e739]
+                - cell "0.733" [ref=f4e740]
+                - cell "0.929" [ref=f4e741]
+              - row [ref=f4e742]:
+                - columnheader [ref=f4e743]
+                - columnheader "1" [ref=f4e744]
+                - rowheader "934" [ref=f4e745]
+                - cell "0.049" [ref=f4e746]
+                - cell "-0.041" [ref=f4e747]
+                - cell "-0.005" [ref=f4e748]
+                - cell "0.628" [ref=f4e749]
+                - cell "0.849" [ref=f4e750]
+              - row [ref=f4e751]:
+                - columnheader [ref=f4e752]
+                - columnheader "2" [ref=f4e753]
+                - rowheader "824" [ref=f4e754]
+                - cell "0.134" [ref=f4e755]
+                - cell "0.007" [ref=f4e756]
+                - cell "0.410" [ref=f4e757]
+                - cell "0.449" [ref=f4e758]
+                - cell "0.743" [ref=f4e759]
+              - row [ref=f4e760]:
+                - columnheader [ref=f4e761]
+                - columnheader "Target Family" [ref=f4e762]
+                - columnheader [ref=f4e763]
+                - cell [ref=f4e764]
+                - cell [ref=f4e765]
+                - cell [ref=f4e766]
+                - cell [ref=f4e767]
+                - cell [ref=f4e768]
+              - row [ref=f4e769]:
+                - columnheader [ref=f4e770]
+                - columnheader "drums" [ref=f4e771]
+                - rowheader "1006" [ref=f4e772]
+                - cell "0.126" [ref=f4e773]
+                - cell "0.043" [ref=f4e774]
+                - cell "0.275" [ref=f4e775]
+                - cell "0.564" [ref=f4e776]
+                - cell "0.850" [ref=f4e777]
+              - row [ref=f4e778]:
+                - columnheader [ref=f4e779]
+                - columnheader "guitar" [ref=f4e780]
+                - rowheader "791" [ref=f4e781]
+                - cell "0.045" [ref=f4e782]
+                - cell "-0.057" [ref=f4e783]
+                - cell "-0.061" [ref=f4e784]
+                - cell "0.688" [ref=f4e785]
+                - cell "0.855" [ref=f4e786]
+              - row [ref=f4e787]:
+                - columnheader [ref=f4e788]
+                - columnheader "vocals" [ref=f4e789]
+                - rowheader "928" [ref=f4e790]
+                - cell "0.076" [ref=f4e791]
+                - cell "0.015" [ref=f4e792]
+                - cell "0.161" [ref=f4e793]
+                - cell "0.595" [ref=f4e794]
+                - cell "0.831" [ref=f4e795]
+              - row [ref=f4e796]:
+                - columnheader "Gemini 3 Flash" [ref=f4e797]
+                - columnheader [ref=f4e802]
+                - columnheader "Overall" [ref=f4e803]
+                - rowheader "2918" [ref=f4e804]
+                - cell "0.120" [ref=f4e805]
+                - cell "0.112" [ref=f4e806]
+                - cell "0.245" [ref=f4e807]
+                - cell "0.512" [ref=f4e808]
+                - cell "0.702" [ref=f4e809]
+              - row [ref=f4e810]:
+                - columnheader [ref=f4e811]
+                - columnheader "Abstraction Level" [ref=f4e812]
+                - columnheader [ref=f4e813]
+                - cell [ref=f4e814]
+                - cell [ref=f4e815]
+                - cell [ref=f4e816]
+                - cell [ref=f4e817]
+                - cell [ref=f4e818]
+              - row [ref=f4e819]:
+                - columnheader [ref=f4e820]
+                - columnheader "0" [ref=f4e821]
+                - rowheader "970" [ref=f4e822]
+                - cell "0.147" [ref=f4e823]
+                - cell "0.041" [ref=f4e824]
+                - cell "0.296" [ref=f4e825]
+                - cell "0.526" [ref=f4e826]
+                - cell "0.711" [ref=f4e827]
+              - row [ref=f4e828]:
+                - columnheader [ref=f4e829]
+                - columnheader "1" [ref=f4e830]
+                - rowheader "974" [ref=f4e831]
+                - cell "0.131" [ref=f4e832]
+                - cell "0.051" [ref=f4e833]
+                - cell "0.125" [ref=f4e834]
+                - cell "0.577" [ref=f4e835]
+                - cell "0.761" [ref=f4e836]
+              - row [ref=f4e837]:
+                - columnheader [ref=f4e838]
+                - columnheader "2" [ref=f4e839]
+                - rowheader "974" [ref=f4e840]
+                - cell "0.136" [ref=f4e841]
+                - cell "0.060" [ref=f4e842]
+                - cell "0.250" [ref=f4e843]
+                - cell "0.431" [ref=f4e844]
+                - cell "0.634" [ref=f4e845]
+              - row [ref=f4e846]:
+                - columnheader [ref=f4e847]
+                - columnheader "Target Family" [ref=f4e848]
+                - columnheader [ref=f4e849]
+                - cell [ref=f4e850]
+                - cell [ref=f4e851]
+                - cell [ref=f4e852]
+                - cell [ref=f4e853]
+                - cell [ref=f4e854]
+              - row [ref=f4e855]:
+                - columnheader [ref=f4e856]
+                - columnheader "drums" [ref=f4e857]
+                - rowheader "1025" [ref=f4e858]
+                - cell "0.240" [ref=f4e859]
+                - cell "0.171" [ref=f4e860]
+                - cell "0.466" [ref=f4e861]
+                - cell "0.507" [ref=f4e862]
+                - cell "0.751" [ref=f4e863]
+              - row [ref=f4e864]:
+                - columnheader [ref=f4e865]
+                - columnheader "guitar" [ref=f4e866]
+                - rowheader "843" [ref=f4e867]
+                - cell "0.136" [ref=f4e868]
+                - cell "0.026" [ref=f4e869]
+                - cell "0.180" [ref=f4e870]
+                - cell "0.479" [ref=f4e871]
+                - cell "0.602" [ref=f4e872]
+              - row [ref=f4e873]:
+                - columnheader [ref=f4e874]
+                - columnheader "vocals" [ref=f4e875]
+                - rowheader "1044" [ref=f4e876]
+                - cell "0.168" [ref=f4e877]
+                - cell "0.117" [ref=f4e878]
+                - cell "0.256" [ref=f4e879]
+                - cell "0.540" [ref=f4e880]
+                - cell "0.736" [ref=f4e881]
+              - row [ref=f4e882]:
+                - columnheader "Gemma 3n" [ref=f4e883]
+                - columnheader [ref=f4e888]
+                - columnheader "Overall" [ref=f4e889]
+                - rowheader "2787" [ref=f4e890]
+                - cell "0.227" [ref=f4e891]
+                - cell "0.165" [ref=f4e892]
+                - cell "0.597" [ref=f4e893]
+                - cell "0.480" [ref=f4e894]
+                - cell "0.803" [ref=f4e895]
+              - row [ref=f4e896]:
+                - columnheader [ref=f4e897]
+                - columnheader "Abstraction Level" [ref=f4e898]
+                - columnheader [ref=f4e899]
+                - cell [ref=f4e900]
+                - cell [ref=f4e901]
+                - cell [ref=f4e902]
+                - cell [ref=f4e903]
+                - cell [ref=f4e904]
+              - row [ref=f4e905]:
+                - columnheader [ref=f4e906]
+                - columnheader "0" [ref=f4e907]
+                - rowheader "966" [ref=f4e908]
+                - cell "0.037" [ref=f4e909]
+                - cell "-0.047" [ref=f4e910]
+                - cell "-0.027" [ref=f4e911]
+                - cell "0.673" [ref=f4e912]
+                - cell "0.917" [ref=f4e913]
+              - row [ref=f4e914]:
+                - columnheader [ref=f4e915]
+                - columnheader "1" [ref=f4e916]
+                - rowheader "902" [ref=f4e917]
+                - cell "0.213" [ref=f4e918]
+                - cell "0.119" [ref=f4e919]
+                - cell "0.519" [ref=f4e920]
+                - cell "0.432" [ref=f4e921]
+                - cell "0.778" [ref=f4e922]
+              - row [ref=f4e923]:
+                - columnheader [ref=f4e924]
+                - columnheader "2" [ref=f4e925]
+                - rowheader "919" [ref=f4e926]
+                - cell "0.608" [ref=f4e927]
+                - cell "0.540" [ref=f4e928]
+                - cell "2.222" [ref=f4e929]
+                - cell "0.325" [ref=f4e930]
+                - cell "0.707" [ref=f4e931]
+              - row [ref=f4e932]:
+                - columnheader [ref=f4e933]
+                - columnheader "Target Family" [ref=f4e934]
+                - columnheader [ref=f4e935]
+                - cell [ref=f4e936]
+                - cell [ref=f4e937]
+                - cell [ref=f4e938]
+                - cell [ref=f4e939]
+                - cell [ref=f4e940]
+              - row [ref=f4e941]:
+                - columnheader [ref=f4e942]
+                - columnheader "drums" [ref=f4e943]
+                - rowheader "999" [ref=f4e944]
+                - cell "0.210" [ref=f4e945]
+                - cell "0.117" [ref=f4e946]
+                - cell "0.720" [ref=f4e947]
+                - cell "0.499" [ref=f4e948]
+                - cell "0.827" [ref=f4e949]
+              - row [ref=f4e950]:
+                - columnheader [ref=f4e951]
+                - columnheader "guitar" [ref=f4e952]
+                - rowheader "833" [ref=f4e953]
+                - cell "0.252" [ref=f4e954]
+                - cell "0.150" [ref=f4e955]
+                - cell "0.323" [ref=f4e956]
+                - cell "0.508" [ref=f4e957]
+                - cell "0.829" [ref=f4e958]
+              - row [ref=f4e959]:
+                - columnheader [ref=f4e960]
+                - columnheader "vocals" [ref=f4e961]
+                - rowheader "949" [ref=f4e962]
+                - cell "0.452" [ref=f4e963]
+                - cell "0.369" [ref=f4e964]
+                - cell "1.028" [ref=f4e965]
+                - cell "0.436" [ref=f4e966]
+                - cell "0.755" [ref=f4e967]
+              - row [ref=f4e968]:
+                - columnheader "Gemma 3n SFT" [ref=f4e969]
+                - columnheader [ref=f4e974]
+                - columnheader "Overall" [ref=f4e975]
+                - rowheader "2843" [ref=f4e976]
+                - cell "0.043" [ref=f4e977]
+                - cell "0.042" [ref=f4e978]
+                - cell "0.109" [ref=f4e979]
+                - cell "0.559" [ref=f4e980]
+                - cell "0.772" [ref=f4e981]
+              - row [ref=f4e982]:
+                - columnheader [ref=f4e983]
+                - columnheader "Abstraction Level" [ref=f4e984]
+                - columnheader [ref=f4e985]
+                - cell [ref=f4e986]
+                - cell [ref=f4e987]
+                - cell [ref=f4e988]
+                - cell [ref=f4e989]
+                - cell [ref=f4e990]
+              - row [ref=f4e991]:
+                - columnheader [ref=f4e992]
+                - columnheader "0" [ref=f4e993]
+                - rowheader "934" [ref=f4e994]
+                - cell "0.046" [ref=f4e995]
+                - cell "0.028" [ref=f4e996]
+                - cell "-0.003" [ref=f4e997]
+                - cell "0.633" [ref=f4e998]
+                - cell "0.773" [ref=f4e999]
+              - row [ref=f4e1000]:
+                - columnheader [ref=f4e1001]
+                - columnheader "1" [ref=f4e1002]
+                - rowheader "962" [ref=f4e1003]
+                - cell "0.044" [ref=f4e1004]
+                - cell "0.034" [ref=f4e1005]
+                - cell "0.055" [ref=f4e1006]
+                - cell "0.572" [ref=f4e1007]
+                - cell "0.795" [ref=f4e1008]
+              - row [ref=f4e1009]:
+                - columnheader [ref=f4e1010]
+                - columnheader "2" [ref=f4e1011]
+                - rowheader "947" [ref=f4e1012]
+                - cell "0.066" [ref=f4e1013]
+                - cell "0.055" [ref=f4e1014]
+                - cell "0.162" [ref=f4e1015]
+                - cell "0.474" [ref=f4e1016]
+                - cell "0.747" [ref=f4e1017]
+              - row [ref=f4e1018]:
+                - columnheader [ref=f4e1019]
+                - columnheader "Target Family" [ref=f4e1020]
+                - columnheader [ref=f4e1021]
+                - cell [ref=f4e1022]
+                - cell [ref=f4e1023]
+                - cell [ref=f4e1024]
+                - cell [ref=f4e1025]
+                - cell [ref=f4e1026]
+              - row [ref=f4e1027]:
+                - columnheader [ref=f4e1028]
+                - columnheader "drums" [ref=f4e1029]
+                - rowheader "1001" [ref=f4e1030]
+                - cell "0.166" [ref=f4e1031]
+                - cell "0.155" [ref=f4e1032]
+                - cell "0.890" [ref=f4e1033]
+                - cell "0.434" [ref=f4e1034]
+                - cell "0.715" [ref=f4e1035]
+              - row [ref=f4e1036]:
+                - columnheader [ref=f4e1037]
+                - columnheader "guitar" [ref=f4e1038]
+                - rowheader "824" [ref=f4e1039]
+                - cell "0.064" [ref=f4e1040]
+                - cell "0.043" [ref=f4e1041]
+                - cell "-0.048" [ref=f4e1042]
+                - cell "0.623" [ref=f4e1043]
+                - cell "0.739" [ref=f4e1044]
+              - row [ref=f4e1045]:
+                - columnheader [ref=f4e1046]
+                - columnheader "vocals" [ref=f4e1047]
+                - rowheader "1012" [ref=f4e1048]
+                - cell "0.039" [ref=f4e1049]
+                - cell "0.038" [ref=f4e1050]
+                - cell "0.034" [ref=f4e1051]
+                - cell "0.631" [ref=f4e1052]
+                - cell "0.855" [ref=f4e1053]
+        - generic [ref=f4e1054]:
+          - heading "6.1 Post-Production Agents Struggle in Zero-Shot Settings" [level=3] [ref=f4e1055]:
+            - generic [ref=f4e1056]: "6.1"
+            - text: Post-Production Agents Struggle in Zero-Shot Settings
+          - paragraph [ref=f4e1058]:
+            - text: "No zero-shot agent we evaluate produces edits that are consistently aligned with the ground-truth target. Sometimes, they fail altogether: of 2,922 valid ground truth edits, Gemini 3 Flash successfully produces some output for 2,918, GPT-4o Mini for 2,730, and Gemma 3n for 2,787. The failures are largely repeated tool call issues or looping up to the max steps without completion."
+            - link "Table 1" [ref=f4e1059] [cursor=pointer]:
+              - /url: "#S6.T1"
+            - text: reports FAD, KAD, edit similarity (
+            - math [ref=f4e1060]:
+              - generic [ref=f4e1062]:
+                - generic [ref=f4e1063]: Δ
+                - generic [ref=f4e1064]:
+                  - generic [ref=f4e1065]: sim
+                  - generic [ref=f4e1066]: a
+            - text: ", the cosine between"
+            - math [ref=f4e1067]:
+              - generic [ref=f4e1069]:
+                - generic [ref=f4e1070]: δ
+                - generic [ref=f4e1071]: gt
+            - text: and
+            - math [ref=f4e1072]:
+              - generic [ref=f4e1074]:
+                - generic [ref=f4e1075]: δ
+                - generic [ref=f4e1076]: out
+            - text: ), and Graph F1 averaged over the full benchmark. On edit similarity, GPT-4o Mini reaches
+            - math [ref=f4e1077]:
+              - generic [ref=f4e1078]: "0.611"
+            - text: ", Gemini 3 Flash"
+            - math [ref=f4e1080]:
+              - generic [ref=f4e1081]: "0.511"
+            - text: ", and Gemma 3n"
+            - math [ref=f4e1083]:
+              - generic [ref=f4e1084]: "0.480"
+            - text: ". There is a notable gap between graph structure recovery and audio quality, even at rank level: Gemma 3n strongly beats Gemini 3 Flash on graph F1 despite not doing so on audio. The FAD and KAD metrics both place Gemma 3n in the lowest position , which is reasonable as it is a much smaller, open-weight baseline, but disagree with"
+            - math [ref=f4e1086]:
+              - generic [ref=f4e1088]:
+                - generic [ref=f4e1089]: Δ
+                - generic [ref=f4e1090]:
+                  - generic [ref=f4e1091]: sim
+                  - generic [ref=f4e1092]: a
+            - text: on Gemini 3 Flash vs. GPT-4o Mini. We attribute the deviation between agent output and ground truth edits to struggles with proper effect parameterization, struggles with edits of increasing complexity, and struggles with specific categories of edits.
+        - generic [ref=f4e1093]:
+          - heading "6.2 Effect of Abstraction Layer" [level=3] [ref=f4e1094]:
+            - generic [ref=f4e1095]: "6.2"
+            - text: Effect of Abstraction Layer
+          - paragraph [ref=f4e1097]:
+            - text: The dominant axis of failure is how the prompt describes the edit. As prompts move from precise (AL0, with explicit parameter values) to evocative (AL2, with no numerical detail), nearly every metric we track degrades. However, the magnitude and shape of that degradation is sharply model-specific. GPT-4o Mini falls from
+            - math [ref=f4e1098]:
+              - generic [ref=f4e1099]: "0.733"
+            - text: at AL0 to
+            - math [ref=f4e1101]:
+              - generic [ref=f4e1102]: "0.449"
+            - text: at AL2 (a
+            - math [ref=f4e1104]:
+              - generic [ref=f4e1106]:
+                - generic [ref=f4e1107]: "39"
+                - generic [ref=f4e1108]: "%"
+            - text: "relative drop). Gemma 3n falls further:"
+            - math [ref=f4e1109]:
+              - generic [ref=f4e1111]:
+                - generic [ref=f4e1112]: "0.673"
+                - generic [ref=f4e1113]: →
+                - generic [ref=f4e1114]: "0.325"
+            - text: (
+            - math [ref=f4e1115]:
+              - generic [ref=f4e1117]:
+                - generic [ref=f4e1118]: "52"
+                - generic [ref=f4e1119]: "%"
+            - text: ). Gemini 3 Flash alone is approximately flat at
+            - math [ref=f4e1120]:
+              - generic [ref=f4e1122]:
+                - generic [ref=f4e1123]: "0.526"
+                - generic [ref=f4e1124]: →
+                - generic [ref=f4e1125]: "0.577"
+                - generic [ref=f4e1126]: →
+                - generic [ref=f4e1127]: "0.431"
+            - text: across the three levels, but starts already lower at AL0 than either competitor and gains essentially nothing from the explicit-parameter prompt. A consequence of these shapes is that the headline ranking changes at AL0. Gemma 3n, which is the worst zero-shot model overall, is the second-best at AL0 (
+            - math [ref=f4e1128]:
+              - generic [ref=f4e1129]: "0.673"
+            - text: ", only"
+            - math [ref=f4e1131]:
+              - generic [ref=f4e1132]: "0.06"
+            - text: below GPT-4o Mini) and easily ahead of Gemini 3 Flash (
+            - math [ref=f4e1134]:
+              - generic [ref=f4e1135]: "0.526"
+            - text: ). Despite this, Graph F1 holds up reasonably well across abstraction levels, which we attribute to models selecting the right operators more often than they can parameterize them correctly.
+        - generic [ref=f4e1137]:
+          - heading "6.3 Edits are Non-Uniformly Challenging" [level=3] [ref=f4e1138]:
+            - generic [ref=f4e1139]: "6.3"
+            - text: Edits are Non-Uniformly Challenging
+          - 'figure "Figure 3: Audio similarity and operator F1 for edit graphs based on number of operations and abstraction level." [ref=f4e1140]':
+            - generic [ref=f4e1142]:
+              - generic [ref=f4e1143]: "Figure 3:"
+              - text: Audio similarity and operator F1 for edit graphs based on number of operations and abstraction level.
+          - paragraph [ref=f4e1145]:
+            - link "Table 1" [ref=f4e1146] [cursor=pointer]:
+              - /url: "#S6.T1"
+            - text: shows that every model has a target stem it cannot edit well, and the three models do not necessarily agree on which one. GPT-4o Mini and Gemini 3 Flash are weakest on drums (by FAD and KAD). Gemma 3n, by contrast, is weakest on vocals by a substantial margin. A second pattern emerges when we stratify by graph complexity.
+            - link "Figure 3" [ref=f4e1147] [cursor=pointer]:
+              - /url: "#S6.F3"
+            - text: also shows that models generally struggle as edit graphs contain more operations. Specifically, in abstraction layers 1 and 2 (where parameterizations or even effects, sometimes are not explicitly defined in the prompt), there is a clear downward trend. Interestingly, the graph-level metric degrades less, suggesting that even long chains can be inferred; however, the baseline depends on the abstraction level. Together with the abstraction analysis, this suggests that zero-shot agents fail at parameter inference from natural language descriptions, struggle with operator inference at higher abstraction levels, and that such errors may compound multiplicatively along the edit chain resulting in significant deviations in the audio output.
+        - generic [ref=f4e1148]:
+          - heading "6.4 Finetuning Improves Abstraction Handling" [level=3] [ref=f4e1149]:
+            - generic [ref=f4e1150]: "6.4"
+            - text: Finetuning Improves Abstraction Handling
+          - 'figure "Figure 4: Graph correctness metrics by abstraction layer for 5 graph components: kinds, stems, operators, parameters, edges. Parameter accuracy represents proportion of correct normalized parameter values at an exact match rounded to the nearest 4 decimals (for threshold sweeping, see Figure 13). Error bars show 95% CIs." [ref=f4e1151]':
+            - generic [ref=f4e1153]:
+              - generic [ref=f4e1154]: "Figure 4:"
+              - text: "Graph correctness metrics by abstraction layer for 5 graph components: kinds, stems, operators, parameters, edges. Parameter accuracy represents proportion of correct normalized parameter values at an exact match rounded to the nearest 4 decimals (for threshold sweeping, see"
+              - link "Figure 13" [ref=f4e1155] [cursor=pointer]:
+                - /url: "#A5.F13"
+              - text: ). Error bars show 95% CIs.
+          - paragraph [ref=f4e1157]:
+            - text: When trained on disjoint MTG-Jamendo tracks with independently sampled recipes,
+            - link "Table 1" [ref=f4e1158] [cursor=pointer]:
+              - /url: "#S6.T1"
+            - text: shows that Gemma 3n SFT exhibits a much slower rate of performance degradation across abstraction layers. While it performs worse than two of the baselines (Gemma 3n and GPT-4o Mini) at abstraction layer 0, we see improvement at both abstraction layers 1 and 2. At AL1, Gemma 3n SFT outperforms all 3 models in FAD, outperforms Gemini 3 Flash and Gemma 3n in KAD and graph F1, and outperforms Gemma 3n in edit similarity. At AL2, it outperforms all baselines in FAD, KAD, audio similarity and graph F1.
+          - paragraph [ref=f4e1160]:
+            - link "Figure 4" [ref=f4e1161] [cursor=pointer]:
+              - /url: "#S6.F4"
+            - text: "shows a clear reason for this performance improvement: at abstraction layers 1 and 2 Gemma 3n SFT is the only model which correctly predicts many parameters. Interestingly, we see that for certain graph metrics (kinds, stems) Gemma 3n SFT underperforms Gemma 3n and GPT-4o Mini, however, the stronger parameterization results in higher audio and graph similarity. This indicates that even lower-capacity LLMs can learn to improve at this task, given the right data."
+          - paragraph [ref=f4e1163]:
+            - text: "We also note that the performance of Gemma 3n SFT is far from perfect: it correctly predicts roughly"
+            - math [ref=f4e1164]:
+              - generic [ref=f4e1166]:
+                - generic [ref=f4e1167]: "50"
+                - generic [ref=f4e1168]: "%"
+            - text: of parameters within operators on average and still shows considerable degradations from abstraction layer 0 to layers 1 and 2. We draw two main conclusions from this. The first is that fine-tuning does not rely on recipe-memorization effects, and that SFT on only the planning step may not be a fully sufficient recipe for post-production agents.
+        - generic [ref=f4e1169]:
+          - heading "6.5 Poisoning" [level=3] [ref=f4e1170]:
+            - generic [ref=f4e1171]: "6.5"
+            - text: Poisoning
+          - 'figure "Table 2: Metrics for poisoning experiments." [ref=f4e1172]':
+            - table [ref=f4e1173]:
+              - rowgroup [ref=f4e1174]:
+                - row [ref=f4e1175]:
+                  - columnheader "Model" [ref=f4e1176]
+                  - columnheader "AL0" [ref=f4e1177]
+                  - columnheader "AL1" [ref=f4e1178]
+                  - columnheader "AL2" [ref=f4e1179]
+                - row [ref=f4e1180]:
+                  - columnheader [ref=f4e1181]
+                  - columnheader "Aud." [ref=f4e1182]:
+                    - math [ref=f4e1183]:
+                      - generic [ref=f4e1184]: Δ
+                    - text: Aud.
+                    - math [ref=f4e1186]:
+                      - generic [ref=f4e1187]: ↑
+                  - columnheader "Graph F1" [ref=f4e1189]:
+                    - text: Graph F1
+                    - math [ref=f4e1190]:
+                      - generic [ref=f4e1191]: ↑
+                  - columnheader "Aud." [ref=f4e1193]:
+                    - math [ref=f4e1194]:
+                      - generic [ref=f4e1195]: Δ
+                    - text: Aud.
+                    - math [ref=f4e1197]:
+                      - generic [ref=f4e1198]: ↑
+                  - columnheader "Graph F1" [ref=f4e1200]:
+                    - text: Graph F1
+                    - math [ref=f4e1201]:
+                      - generic [ref=f4e1202]: ↑
+                  - columnheader "Aud." [ref=f4e1204]:
+                    - math [ref=f4e1205]:
+                      - generic [ref=f4e1206]: Δ
+                    - text: Aud.
+                    - math [ref=f4e1208]:
+                      - generic [ref=f4e1209]: ↑
+                  - columnheader "Graph F1" [ref=f4e1211]:
+                    - text: Graph F1
+                    - math [ref=f4e1212]:
+                      - generic [ref=f4e1213]: ↑
+              - rowgroup [ref=f4e1215]:
+                - row [ref=f4e1216]:
+                  - rowheader "Gemini 3 Flash" [ref=f4e1217]
+                  - cell "0.892" [ref=f4e1218]
+                  - cell "0.823" [ref=f4e1219]
+                  - cell "0.702" [ref=f4e1220]
+                  - cell "0.753" [ref=f4e1221]
+                  - cell "0.475" [ref=f4e1222]
+                  - cell "0.598" [ref=f4e1223]
+                - row [ref=f4e1224]:
+                  - rowheader "GPT-4o Mini" [ref=f4e1225]
+                  - cell "0.987" [ref=f4e1226]
+                  - cell "0.879" [ref=f4e1227]
+                  - cell "0.658" [ref=f4e1228]
+                  - cell "0.775" [ref=f4e1229]
+                  - cell "0.476" [ref=f4e1230]
+                  - cell "0.656" [ref=f4e1231]
+                - row [ref=f4e1232]:
+                  - rowheader "Gemma 3n" [ref=f4e1233]
+                  - cell "0.885" [ref=f4e1234]
+                  - cell "0.826" [ref=f4e1235]
+                  - cell "0.415" [ref=f4e1236]
+                  - cell "0.594" [ref=f4e1237]
+                  - cell "0.313" [ref=f4e1238]
+                  - cell "0.494" [ref=f4e1239]
+            - generic [ref=f4e1240]:
+              - generic [ref=f4e1241]: "Table 2:"
+              - text: Metrics for poisoning experiments.
+          - paragraph [ref=f4e1243]:
+            - text: "The artifact-removal split tests a different ability: identifying what is wrong with a track and reaching for the correct corrective tools, rather than executing on a request. Results are shown in"
+            - link "Table 2" [ref=f4e1244] [cursor=pointer]:
+              - /url: "#S6.T2"
+            - text: . At AL0, where the corrective tool is often named, all three models reach audio
+            - math [ref=f4e1245]:
+              - generic [ref=f4e1247]:
+                - generic [ref=f4e1248]: ≥
+                - generic [ref=f4e1249]: "0.85"
+            - text: and operator F1
+            - math [ref=f4e1250]:
+              - generic [ref=f4e1252]:
+                - generic [ref=f4e1253]: ≥
+                - generic [ref=f4e1254]: "0.8"
+            - text: . At AL2, audio match scores drop to
+            - math [ref=f4e1255]:
+              - generic [ref=f4e1256]: "0.3"
+            - text: –
+            - math [ref=f4e1258]:
+              - generic [ref=f4e1259]: "0.5"
+            - text: and operator F1 falls below
+            - math [ref=f4e1261]:
+              - generic [ref=f4e1262]: "0.6"
+            - text: for 2/3 models. This suggests that even structurally simple chains (most poisoning recipes are 1–3 operations) are not reliably reconstructed under ambiguity.
+      - generic [ref=f4e1264]:
+        - heading "7 Conclusion" [level=2] [ref=f4e1265]:
+          - generic [ref=f4e1266]: "7"
+          - text: Conclusion
+        - paragraph [ref=f4e1268]: "The dominant paradigm in music ML is one-shot generation. The dominant paradigm in studio practice is iteration. Reconciling these competing visions requires data and infrastructure, and our work presents a scalable first step on this front. A first step always has limitations: our dependence on human-coded recipes, a limited operator pool, no external baselines yet available, and no perfect metrics for this problem. We invite the community to build on our work to reduce these limitations."
+      - generic [ref=f4e1269]:
+        - heading "References" [level=2] [ref=f4e1270]
+        - list [ref=f4e1271]:
+          - listitem [ref=f4e1272]:
+            - generic [ref=f4e1273]: "[1]"
+            - generic [ref=f4e1274]: D. Bogdanov, M. Won, P. Tovstogan, A. Porter, and X. Serra (2019)
+            - generic [ref=f4e1275]: The mtg-jamendo dataset for automatic music tagging.
+            - generic [ref=f4e1276]: In Machine learning for music discovery workshop, international conference on machine learning (ICML 2019),
+            - generic [ref=f4e1277]: pp. 1–3.
+            - generic [ref=f4e1278]:
+              - text: "Cited by:"
+              - link "item 4" [ref=f4e1279] [cursor=pointer]:
+                - /url: "#S1.I1.i4.p1.1"
+              - text: ","
+              - link "§2" [ref=f4e1280] [cursor=pointer]:
+                - /url: "#S2.p3.1"
+              - text: ","
+              - link "§5.1" [ref=f4e1281] [cursor=pointer]:
+                - /url: "#S5.SS1.p1.1"
+              - text: .
+          - listitem [ref=f4e1282]:
+            - generic [ref=f4e1283]: "[2]"
+            - generic [ref=f4e1284]: J. Liang, H. Zhang, H. Liu, Y. Cao, Q. Kong, X. Liu, W. Wang, M. D. Plumbley, H. Phan, and E. Benetos
+            - generic [ref=f4e1285]: "WavCraft: audio editing and generation with large language models."
+            - generic [ref=f4e1286]: In ICLR 2024 Workshop on Large Language Model (LLM) Agents,
+            - generic [ref=f4e1287]:
+              - text: "Cited by:"
+              - link "§2" [ref=f4e1288] [cursor=pointer]:
+                - /url: "#S2.p1.1"
+              - text: .
+          - listitem [ref=f4e1289]:
+            - generic [ref=f4e1290]: "[3]"
+            - generic [ref=f4e1291]: F. Tsai, S. Wu, H. Kim, B. Chen, H. Cheng, and Y. Yang (2024)
+            - generic [ref=f4e1292]: "Audio prompt adapter: unleashing music editing abilities for text-to-music with lightweight finetuning."
+            - generic [ref=f4e1293]: In Ismir 2024 Conference,
+            - generic [ref=f4e1294]:
+              - text: "Cited by:"
+              - link "§2" [ref=f4e1295] [cursor=pointer]:
+                - /url: "#S2.p1.1"
+              - text: .
+          - listitem [ref=f4e1296]:
+            - generic [ref=f4e1297]: "[4]"
+            - generic [ref=f4e1298]: A. Chu, P. O’Reilly, J. Barnett, and B. Pardo (2025)
+            - generic [ref=f4e1299]: "Text2fx: harnessing clap embeddings for text-guided audio effects."
+            - generic [ref=f4e1300]: In ICASSP 2025-2025 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP),
+            - generic [ref=f4e1301]: pp. 1–5.
+            - generic [ref=f4e1302]:
+              - text: "Cited by:"
+              - link "§2" [ref=f4e1303] [cursor=pointer]:
+                - /url: "#S2.p1.1"
+              - text: .
+          - listitem [ref=f4e1304]:
+            - generic [ref=f4e1305]: "[5]"
+            - generic [ref=f4e1306]: Y. Zhang, Y. Ikemiya, G. Xia, N. Murata, M. A. Martínez-Ramírez, W. Liao, Y. Mitsufuji, and S. Dixon (2024)
+            - generic [ref=f4e1307]: "MusicMagus: zero-shot text-to-music editing via diffusion models."
+            - generic [ref=f4e1308]: In Proceedings of the Thirty-Third International Joint Conference on Artificial Intelligence,
+            - generic [ref=f4e1309]: pp. 7805–7813.
+            - generic [ref=f4e1310]:
+              - text: "Cited by:"
+              - link "§2" [ref=f4e1311] [cursor=pointer]:
+                - /url: "#S2.p1.1"
+              - text: .
+          - listitem [ref=f4e1312]:
+            - generic [ref=f4e1313]: "[6]"
+            - generic [ref=f4e1314]: H. Manor and T. Michaeli (2024)
+            - generic [ref=f4e1315]: Zero-shot unsupervised and text-based audio editing using ddpm inversion.
+            - generic [ref=f4e1316]: In International Conference on Machine Learning,
+            - generic [ref=f4e1317]: pp. 34603–34629.
+            - generic [ref=f4e1318]:
+              - text: "Cited by:"
+              - link "§2" [ref=f4e1319] [cursor=pointer]:
+                - /url: "#S2.p1.1"
+              - text: .
+          - listitem [ref=f4e1320]:
+            - generic [ref=f4e1321]: "[7]"
+            - generic [ref=f4e1322]: Y. Yang, H. Li, T. Li, B. Cao, X. Zhang, L. Chen, and Q. Liu (2026)
+            - generic [ref=f4e1323]: "Melodia: training-free music editing guided by attention probing in diffusion models."
+            - generic [ref=f4e1324]: In Proceedings of the AAAI Conference on Artificial Intelligence,
+            - generic [ref=f4e1325]: Vol. 40, pp. 2209–2217.
+            - generic [ref=f4e1326]:
+              - text: "Cited by:"
+              - link "§2" [ref=f4e1327] [cursor=pointer]:
+                - /url: "#S2.p1.1"
+              - text: .
+          - listitem [ref=f4e1328]:
+            - generic [ref=f4e1329]: "[8]"
+            - generic [ref=f4e1330]: Z. Lan, Y. Hao, and M. Zhao (2026)
+            - generic [ref=f4e1331]: Declarative audio editing with audio language model.
+            - generic [ref=f4e1332]: In The Fourteenth International Conference on Learning Representations,
+            - generic [ref=f4e1333]:
+              - text: "Cited by:"
+              - link "§2" [ref=f4e1334] [cursor=pointer]:
+                - /url: "#S2.p1.1"
+              - text: .
+          - listitem [ref=f4e1335]:
+            - generic [ref=f4e1336]: "[9]"
+            - generic [ref=f4e1337]: Y. Wu, K. Chen, T. Zhang, Y. Hui, T. Berg-Kirkpatrick, and S. Dubnov (2023)
+            - generic [ref=f4e1338]: Large-scale contrastive language-audio pretraining with feature fusion and keyword-to-caption augmentation.
+            - generic [ref=f4e1339]: In ICASSP 2023-2023 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP),
+            - generic [ref=f4e1340]: pp. 1–5.
+            - generic [ref=f4e1341]:
+              - text: "Cited by:"
+              - link "§2" [ref=f4e1342] [cursor=pointer]:
+                - /url: "#S2.p1.1"
+              - text: .
+          - listitem [ref=f4e1343]:
+            - generic [ref=f4e1344]: "[10]"
+            - generic [ref=f4e1345]:
+              - generic [ref=f4e1346]: L. Yizhi, R. Yuan, G. Zhang, Y. Ma, X. Chen, H. Yin, C. Xiao, C. Lin, A. Ragni, E. Benetos, et al.
+              - text: (2023)
+            - generic [ref=f4e1347]: "Mert: acoustic music understanding model with large-scale self-supervised training."
+            - generic [ref=f4e1348]: In The Twelfth International Conference on Learning Representations,
+            - generic [ref=f4e1349]:
+              - text: "Cited by:"
+              - link "§2" [ref=f4e1350] [cursor=pointer]:
+                - /url: "#S2.p1.1"
+              - text: ","
+              - link "§5.4" [ref=f4e1351] [cursor=pointer]:
+                - /url: "#S5.SS4.p1.1"
+              - text: .
+          - listitem [ref=f4e1352]:
+            - generic [ref=f4e1353]: "[11]"
+            - generic [ref=f4e1354]:
+              - generic [ref=f4e1355]: Y. Wang, Z. Ju, X. Tan, L. He, Z. Wu, J. Bian, et al.
+              - text: (2023)
+            - generic [ref=f4e1356]: "Audit: audio editing by following instructions with latent diffusion models."
+            - generic [ref=f4e1357]: Advances in Neural Information Processing Systems 36, pp. 71340–71357.
+            - generic [ref=f4e1358]:
+              - text: "Cited by:"
+              - link "§2" [ref=f4e1359] [cursor=pointer]:
+                - /url: "#S2.p2.1"
+              - text: .
+          - listitem [ref=f4e1360]:
+            - generic [ref=f4e1361]: "[12]"
+            - generic [ref=f4e1362]: J. Liang, Y. Chen, Y. Yuan, D. Jia, X. Zhuang, Z. Chen, Y. Wang, and Y. Wang (2025)
+            - generic [ref=f4e1363]: "AudioMorphix: training-free audio editing with diffusion probabilistic models."
+            - generic [ref=f4e1364]: arXiv preprint arXiv:2505.16076.
+            - generic [ref=f4e1365]:
+              - text: "Cited by:"
+              - link "§2" [ref=f4e1366] [cursor=pointer]:
+                - /url: "#S2.p2.1"
+              - text: .
+          - listitem [ref=f4e1367]:
+            - generic [ref=f4e1368]: "[13]"
+            - generic [ref=f4e1369]: Y. Jia, Y. Chen, J. Zhao, S. Zhao, W. Zeng, Y. Chen, and Y. Qin (2025)
+            - generic [ref=f4e1370]: "Audioeditor: a training-free diffusion-based audio editing framework."
+            - generic [ref=f4e1371]: In ICASSP 2025-2025 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP),
+            - generic [ref=f4e1372]: pp. 1–5.
+            - generic [ref=f4e1373]:
+              - text: "Cited by:"
+              - link "§2" [ref=f4e1374] [cursor=pointer]:
+                - /url: "#S2.p2.1"
+              - text: .
+          - listitem [ref=f4e1375]:
+            - generic [ref=f4e1376]: "[14]"
+            - generic [ref=f4e1377]: D. P. Ellis, E. Fonseca, R. J. Weiss, K. Wilson, S. Wisdom, H. Erdogan, J. R. Hershey, A. Jansen, R. C. Moore, and M. Plakal (2025)
+            - generic [ref=f4e1378]: "Recomposer: event-roll-guided generative audio editing."
+            - generic [ref=f4e1379]: arXiv preprint arXiv:2509.05256.
+            - generic [ref=f4e1380]:
+              - text: "Cited by:"
+              - link "§2" [ref=f4e1381] [cursor=pointer]:
+                - /url: "#S2.p2.1"
+              - text: .
+          - listitem [ref=f4e1382]:
+            - generic [ref=f4e1383]: "[15]"
+            - generic [ref=f4e1384]: B. Han, J. Dai, W. Hao, X. He, D. Guo, J. Chen, Y. Wang, Y. Qian, and X. Song (2024)
+            - generic [ref=f4e1385]: "InstructME: an instruction guided music edit framework with latent diffusion models."
+            - generic [ref=f4e1386]: In Proceedings of the Thirty-Third International Joint Conference on Artificial Intelligence,
+            - generic [ref=f4e1387]: pp. 5835–5843.
+            - generic [ref=f4e1388]:
+              - text: "Cited by:"
+              - link "§2" [ref=f4e1389] [cursor=pointer]:
+                - /url: "#S2.p2.1"
+              - text: .
+          - listitem [ref=f4e1390]:
+            - generic [ref=f4e1391]: "[16]"
+            - generic [ref=f4e1392]: S. Doh, J. Koo, M. A. Martínez-Ramírez, W. Choi, W. Liao, Q. Wu, J. Nam, and Y. Mitsufuji (2026)
+            - generic [ref=f4e1393]: "LLM2Fx-tools: tool calling for music post-production."
+            - generic [ref=f4e1394]: In The Fourteenth International Conference on Learning Representations,
+            - generic [ref=f4e1395]:
+              - text: "Cited by:"
+              - link "§2" [ref=f4e1396] [cursor=pointer]:
+                - /url: "#S2.p2.1"
+              - text: .
+          - listitem [ref=f4e1397]:
+            - generic [ref=f4e1398]: "[17]"
+            - generic [ref=f4e1399]: R. M. Bittner, J. Salamon, M. Tierney, M. Mauch, C. Cannam, and J. P. Bello (2014)
+            - generic [ref=f4e1400]: "Medleydb: a multitrack dataset for annotation-intensive mir research.."
+            - generic [ref=f4e1401]: In Ismir,
+            - generic [ref=f4e1402]: Vol. 14, pp. 155–160.
+            - generic [ref=f4e1403]:
+              - text: "Cited by:"
+              - link "§2" [ref=f4e1404] [cursor=pointer]:
+                - /url: "#S2.p2.1"
+              - text: .
+          - listitem [ref=f4e1405]:
+            - generic [ref=f4e1406]: "[18]"
+            - generic [ref=f4e1407]: R. M. Bittner, J. Wilkins, H. Yip, and J. P. Bello (2016)
+            - generic [ref=f4e1408]: "MedleyDB 2.0: new data and a system for sustainable data collection."
+            - generic [ref=f4e1409]: ISMIR Late Breaking and Demo Papers 36.
+            - generic [ref=f4e1410]:
+              - text: "Cited by:"
+              - link "§2" [ref=f4e1411] [cursor=pointer]:
+                - /url: "#S2.p2.1"
+              - text: .
+          - listitem [ref=f4e1412]:
+            - generic [ref=f4e1413]: "[19]"
+            - generic [ref=f4e1414]: J. Imort, G. Fabbro, M. A. Martinez Ramirez, S. Uhlich, Y. Koyama, and Y. Mitsufuji (2022)
+            - generic [ref=f4e1415]: "Distortion audio effects: learning how to recover the clean signal."
+            - generic [ref=f4e1416]: In Ismir 2022 Hybrid Conference,
+            - generic [ref=f4e1417]:
+              - text: "Cited by:"
+              - link "§2" [ref=f4e1418] [cursor=pointer]:
+                - /url: "#S2.p3.1"
+              - text: .
+          - listitem [ref=f4e1419]:
+            - generic [ref=f4e1420]: "[20]"
+            - generic [ref=f4e1421]: M. Rice, C. J. Steinmetz, G. Fazekas, and J. D. Reiss (2023)
+            - generic [ref=f4e1422]: General purpose audio effect removal.
+            - generic [ref=f4e1423]: In 2023 IEEE Workshop on Applications of Signal Processing to Audio and Acoustics (WASPAA),
+            - generic [ref=f4e1424]: pp. 1–5.
+            - generic [ref=f4e1425]:
+              - text: "Cited by:"
+              - link "§2" [ref=f4e1426] [cursor=pointer]:
+                - /url: "#S2.p3.1"
+              - text: .
+          - listitem [ref=f4e1427]:
+            - generic [ref=f4e1428]: "[21]"
+            - generic [ref=f4e1429]: J. Melechovsky, A. Mehrish, A. Roy, and D. Herremans (2025)
+            - generic [ref=f4e1430]: "SonicMaster: towards controllable all-in-one music restoration and mastering."
+            - generic [ref=f4e1431]: arXiv preprint arXiv:2508.03448.
+            - generic [ref=f4e1432]:
+              - text: "Cited by:"
+              - link "§2" [ref=f4e1433] [cursor=pointer]:
+                - /url: "#S2.p3.1"
+              - text: .
+          - listitem [ref=f4e1434]:
+            - generic [ref=f4e1435]: "[22]"
+            - generic [ref=f4e1436]: J. W. Kim, J. Salamon, P. Li, and J. P. Bello (2018)
+            - generic [ref=f4e1437]: "Crepe: a convolutional representation for pitch estimation."
+            - generic [ref=f4e1438]: In 2018 IEEE international conference on acoustics, speech and signal processing (ICASSP),
+            - generic [ref=f4e1439]: pp. 161–165.
+            - generic [ref=f4e1440]:
+              - text: "Cited by:"
+              - link "§3.1" [ref=f4e1441] [cursor=pointer]:
+                - /url: "#S3.SS1.p1.1"
+              - text: .
+          - listitem [ref=f4e1442]:
+            - generic [ref=f4e1443]: "[23]"
+            - generic [ref=f4e1444]: Y. Kong, G. Meseguer-Brocal, V. Lostanlen, M. Lagrange, and R. Hennequin (2025)
+            - generic [ref=f4e1445]: "S-key: self-supervised learning of major and minor keys from audio."
+            - generic [ref=f4e1446]: In ICASSP 2025-2025 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP),
+            - generic [ref=f4e1447]: pp. 1–5.
+            - generic [ref=f4e1448]:
+              - text: "Cited by:"
+              - link "§3.1" [ref=f4e1449] [cursor=pointer]:
+                - /url: "#S3.SS1.p1.1"
+              - text: .
+          - listitem [ref=f4e1450]:
+            - generic [ref=f4e1451]: "[24]"
+            - generic [ref=f4e1452]: H. Valbret, E. Moulines, and J. Tubach (1992)
+            - generic [ref=f4e1453]: Voice transformation using psola technique.
+            - generic [ref=f4e1454]: Speech communication 11 (2-3), pp. 175–187.
+            - generic [ref=f4e1455]:
+              - text: "Cited by:"
+              - link "§3.1" [ref=f4e1456] [cursor=pointer]:
+                - /url: "#S3.SS1.p1.1"
+              - text: .
+          - listitem [ref=f4e1457]:
+            - generic [ref=f4e1458]: "[25]"
+            - generic [ref=f4e1459]: Pedalboard
+            - generic [ref=f4e1460]:
+              - text: "External Links:"
+              - generic [ref=f4e1461]:
+                - link "Document" [ref=f4e1462] [cursor=pointer]:
+                  - /url: https://dx.doi.org/10.5281/zenodo.7817838
+                - text: ","
+                - link "Link" [ref=f4e1463] [cursor=pointer]:
+                  - /url: https://doi.org/10.5281/zenodo.7817838
+            - generic [ref=f4e1464]:
+              - text: "Cited by:"
+              - link "§3.2" [ref=f4e1465] [cursor=pointer]:
+                - /url: "#S3.SS2.p2.1"
+              - text: .
+          - listitem [ref=f4e1466]:
+            - generic [ref=f4e1467]: "[26]"
+            - generic [ref=f4e1468]: S. Rouard, F. Massa, and A. Défossez (2023)
+            - generic [ref=f4e1469]: Hybrid transformers for music source separation.
+            - generic [ref=f4e1470]: In ICASSP 2023-2023 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP),
+            - generic [ref=f4e1471]: pp. 1–5.
+            - generic [ref=f4e1472]:
+              - text: "Cited by:"
+              - link "§3.3" [ref=f4e1473] [cursor=pointer]:
+                - /url: "#S3.SS3.p1.1"
+              - text: .
+          - listitem [ref=f4e1474]:
+            - generic [ref=f4e1475]: "[27]"
+            - generic [ref=f4e1476]:
+              - generic [ref=f4e1477]: B. Shi, A. Tjandra, J. Hoffman, H. Wang, Y. Wu, L. Gao, J. Richter, M. Le, A. Vyas, S. Chen, et al.
+              - text: (2025)
+            - generic [ref=f4e1478]: "Sam audio: segment anything in audio."
+            - generic [ref=f4e1479]: arXiv preprint arXiv:2512.18099.
+            - generic [ref=f4e1480]:
+              - text: "Cited by:"
+              - link "§3.3" [ref=f4e1481] [cursor=pointer]:
+                - /url: "#S3.SS3.p1.1"
+              - text: .
+          - listitem [ref=f4e1482]:
+            - generic [ref=f4e1483]: "[28]"
+            - generic [ref=f4e1484]: P. Anthropic (2024)
+            - generic [ref=f4e1485]: Introducing the model context protocol.
+            - generic [ref=f4e1486]: "URL: https://www. anthropic. com/news/model-contextprotocol, Accessed 19, pp. 2025."
+            - generic [ref=f4e1487]:
+              - text: "Cited by:"
+              - link "§3.4" [ref=f4e1488] [cursor=pointer]:
+                - /url: "#S3.SS4.p1.1"
+              - text: .
+          - listitem [ref=f4e1489]:
+            - generic [ref=f4e1490]: "[29]"
+            - generic [ref=f4e1491]:
+              - generic [ref=f4e1492]: S. Ghosh, A. Goel, L. Koroshinadze, S. Lee, Z. Kong, J. F. Santos, R. Duraiswami, D. Manocha, W. Ping, M. Shoeybi, et al.
+              - text: (2026)
+            - generic [ref=f4e1493]: "Music flamingo: scaling music understanding in audio language models."
+            - generic [ref=f4e1494]: In The Fourteenth International Conference on Learning Representations,
+            - generic [ref=f4e1495]:
+              - text: "Cited by:"
+              - link "item 1" [ref=f4e1496] [cursor=pointer]:
+                - /url: "#S4.I1.i1.p1.1"
+              - text: ","
+              - link "§5.1" [ref=f4e1497] [cursor=pointer]:
+                - /url: "#S5.SS1.p1.1"
+              - text: .
+          - listitem [ref=f4e1498]:
+            - generic [ref=f4e1499]: "[30]"
+            - generic [ref=f4e1500]:
+              - generic [ref=f4e1501]: G. Team, R. Anil, S. Borgeaud, J. Alayrac, J. Yu, R. Soricut, J. Schalkwyk, A. M. Dai, A. Hauth, K. Millican, et al.
+              - text: (2023)
+            - generic [ref=f4e1502]: "Gemini: a family of highly capable multimodal models."
+            - generic [ref=f4e1503]: arXiv preprint arXiv:2312.11805.
+            - generic [ref=f4e1504]:
+              - text: "Cited by:"
+              - link "§4.3" [ref=f4e1505] [cursor=pointer]:
+                - /url: "#S4.SS3.p3.1"
+              - text: ","
+              - link "§5.2" [ref=f4e1506] [cursor=pointer]:
+                - /url: "#S5.SS2.p2.1"
+              - text: .
+          - listitem [ref=f4e1507]:
+            - generic [ref=f4e1508]: "[31]"
+            - generic [ref=f4e1509]:
+              - generic [ref=f4e1510]: A. Hurst, A. Lerer, A. P. Goucher, A. Perelman, A. Ramesh, A. Clark, A. Ostrow, A. Welihinda, A. Hayes, A. Radford, et al.
+              - text: (2024)
+            - generic [ref=f4e1511]: Gpt-4o system card.
+            - generic [ref=f4e1512]: arXiv preprint arXiv:2410.21276.
+            - generic [ref=f4e1513]:
+              - text: "Cited by:"
+              - link "§5.2" [ref=f4e1514] [cursor=pointer]:
+                - /url: "#S5.SS2.p2.1"
+              - text: .
+          - listitem [ref=f4e1515]:
+            - generic [ref=f4e1516]: "[32]"
+            - generic [ref=f4e1517]:
+              - generic [ref=f4e1518]: G. Team, T. Mesnard, C. Hardin, R. Dadashi, S. Bhupatiraju, S. Pathak, L. Sifre, M. Rivière, M. S. Kale, J. Love, et al.
+              - text: (2024)
+            - generic [ref=f4e1519]: "Gemma: open models based on gemini research and technology."
+            - generic [ref=f4e1520]: arXiv preprint arXiv:2403.08295.
+            - generic [ref=f4e1521]:
+              - text: "Cited by:"
+              - link "§5.2" [ref=f4e1522] [cursor=pointer]:
+                - /url: "#S5.SS2.p2.1"
+              - text: ","
+              - link "§5.3" [ref=f4e1523] [cursor=pointer]:
+                - /url: "#S5.SS3.p1.1"
+              - text: .
+          - listitem [ref=f4e1524]:
+            - generic [ref=f4e1525]: "[33]"
+            - generic [ref=f4e1526]:
+              - generic [ref=f4e1527]: E. J. Hu, Y. Shen, P. Wallis, Z. Allen-Zhu, Y. Li, S. Wang, L. Wang, W. Chen, et al.
+              - text: (2022)
+            - generic [ref=f4e1528]: "Lora: low-rank adaptation of large language models.."
+            - generic [ref=f4e1529]: Iclr 1 (2), pp. 3.
+            - generic [ref=f4e1530]:
+              - text: "Cited by:"
+              - link "§5.3" [ref=f4e1531] [cursor=pointer]:
+                - /url: "#S5.SS3.p1.1"
+              - text: .
+          - listitem [ref=f4e1532]:
+            - generic [ref=f4e1533]: "[34]"
+            - generic [ref=f4e1534]: D. Roblek, K. Kilgour, M. Sharifi, and M. Zuluaga (2019)
+            - generic [ref=f4e1535]:
+              - generic [ref=f4e1536]:
+                - text: Fr
+                - math [ref=f4e1537]:
+                  - generic [ref=f4e1538]: \
+                - text: "’echet audio distance: a reference-free metric for evaluating music enhancement algorithms"
+              - text: .
+            - generic [ref=f4e1540]: In Proc. Interspeech,
+            - generic [ref=f4e1541]: pp. 2350–2354.
+            - generic [ref=f4e1542]:
+              - text: "Cited by:"
+              - link "§5.4" [ref=f4e1543] [cursor=pointer]:
+                - /url: "#S5.SS4.p1.1"
+              - text: .
+          - listitem [ref=f4e1544]:
+            - generic [ref=f4e1545]: "[35]"
+            - generic [ref=f4e1546]: Y. Chung, P. Eu, J. Lee, K. Choi, J. Nam, and B. S. Chon (2025)
+            - generic [ref=f4e1547]: "KAD: no more fad! an effective and efficient evaluation metric for audio generation."
+            - generic [ref=f4e1548]: arXiv preprint arXiv:2502.15602.
+            - generic [ref=f4e1549]:
+              - text: "Cited by:"
+              - link "§5.4" [ref=f4e1550] [cursor=pointer]:
+                - /url: "#S5.SS4.p1.1"
+              - text: .
+      - generic [ref=f4e1551]:
+        - heading "Appendix A Compute Resources" [level=2] [ref=f4e1552]:
+          - generic [ref=f4e1553]: Appendix A
+          - text: Compute Resources
+        - paragraph [ref=f4e1555]: We run all experiments on a compute cluster with L40S GPUs. Zero-shot models are called via API.
+      - generic [ref=f4e1556]:
+        - heading "Appendix B POEMS Toolkit Details" [level=2] [ref=f4e1557]:
+          - generic [ref=f4e1558]: Appendix B
+          - text: POEMS Toolkit Details
+        - generic [ref=f4e1559]:
+          - heading "B.1 POEMS Tool List" [level=3] [ref=f4e1560]:
+            - generic [ref=f4e1561]: B.1
+            - text: POEMS Tool List
+          - paragraph [ref=f4e1563]:
+            - link "Table 3" [ref=f4e1564] [cursor=pointer]:
+              - /url: "#A2.T3"
+            - text: shows a complete list of POEMS tools with descriptions and parameters.
+          - 'figure "Table 3: The Pitch, Ornamentation, Equalization, Mixing, and Separation tools of the POEMS toolkit" [ref=f4e1565]':
+            - generic [ref=f4e1566]:
+              - generic [ref=f4e1567]: "Table 3:"
+              - text: The Pitch, Ornamentation, Equalization, Mixing, and Separation tools of the POEMS toolkit
+            - table [ref=f4e1568]:
+              - rowgroup [ref=f4e1569]:
+                - row [ref=f4e1570]:
+                  - columnheader "Tool name" [ref=f4e1571]
+                  - columnheader "Tool type" [ref=f4e1574]
+                  - columnheader "Description" [ref=f4e1577]
+                  - columnheader "Tool arguments" [ref=f4e1580]
+              - rowgroup [ref=f4e1583]:
+                - row [ref=f4e1584]:
+                  - cell "apply_chorus" [ref=f4e1585]
+                  - cell "Ornamentation" [ref=f4e1588]
+                  - cell "Chorus modulation effect." [ref=f4e1591]
+                  - cell "audio, sr, rate_hz, depth, centre_delay_ms, feedback, mix" [ref=f4e1594]
+                - row [ref=f4e1597]:
+                  - cell "apply_phaser" [ref=f4e1598]
+                  - cell "Ornamentation" [ref=f4e1601]
+                  - cell "Phaser modulation effect." [ref=f4e1604]
+                  - cell "audio, sr, rate_hz, depth, centre_frequency_hz, feedback, mix" [ref=f4e1607]
+                - row [ref=f4e1610]:
+                  - cell "apply_distortion" [ref=f4e1611]
+                  - cell "Ornamentation" [ref=f4e1614]
+                  - cell "Waveshaping distortion / saturation." [ref=f4e1617]
+                  - cell "audio, sr, drive_db" [ref=f4e1620]
+                - row [ref=f4e1623]:
+                  - cell "apply_reverb" [ref=f4e1624]
+                  - cell "Ornamentation" [ref=f4e1627]
+                  - cell "Algorithmic reverb." [ref=f4e1630]
+                  - cell "audio, sr, room_size, damping, wet_level, dry_level, width, freeze_mode" [ref=f4e1633]
+                - row [ref=f4e1636]:
+                  - cell "apply_delay" [ref=f4e1637]
+                  - cell "Ornamentation" [ref=f4e1640]
+                  - cell "Delay / echo with feedback." [ref=f4e1643]
+                  - cell "audio, sr, delay_seconds, feedback, mix" [ref=f4e1646]
+                - row [ref=f4e1649]:
+                  - cell "apply_compressor" [ref=f4e1650]
+                  - cell "Ornamentation" [ref=f4e1653]
+                  - cell "Dynamic-range compressor." [ref=f4e1656]
+                  - cell "audio, sr, threshold_db, ratio, attack_ms, release_ms" [ref=f4e1659]
+                - row [ref=f4e1662]:
+                  - cell "apply_limiter" [ref=f4e1663]
+                  - cell "Ornamentation" [ref=f4e1666]
+                  - cell "Peak limiter." [ref=f4e1669]
+                  - cell "audio, sr, threshold_db, release_ms" [ref=f4e1672]
+                - row [ref=f4e1675]:
+                  - cell "apply_noisegate" [ref=f4e1676]
+                  - cell "Ornamentation" [ref=f4e1679]
+                  - cell "Noise gate." [ref=f4e1682]
+                  - cell "audio, sr, threshold_db, ratio, attack_ms, release_ms" [ref=f4e1685]
+                - row [ref=f4e1688]:
+                  - cell "apply_deesser" [ref=f4e1689]
+                  - cell "Ornamentation" [ref=f4e1692]
+                  - cell "Split-band de-esser with relative-threshold detection." [ref=f4e1695]
+                  - cell "audio, sr, ess_low_hz, ess_high_hz, threshold_db, ratio, attack_ms, release_ms, relative_threshold_db, max_reduction_db, filter_order" [ref=f4e1698]
+                - row [ref=f4e1701]:
+                  - cell "apply_highpass" [ref=f4e1702]
+                  - cell "EQ" [ref=f4e1705]
+                  - cell "Highpass filter." [ref=f4e1708]
+                  - cell "audio, sr, cutoff_frequency_hz" [ref=f4e1711]
+                - row [ref=f4e1714]:
+                  - cell "apply_lowpass" [ref=f4e1715]
+                  - cell "EQ" [ref=f4e1718]
+                  - cell "Lowpass filter." [ref=f4e1721]
+                  - cell "audio, sr, cutoff_frequency_hz" [ref=f4e1724]
+                - row [ref=f4e1727]:
+                  - cell "apply_highshelf" [ref=f4e1728]
+                  - cell "EQ" [ref=f4e1731]
+                  - cell "High-shelf filter." [ref=f4e1734]
+                  - cell "audio, sr, cutoff_frequency_hz, gain_db, q" [ref=f4e1737]
+                - row [ref=f4e1740]:
+                  - cell "apply_lowshelf" [ref=f4e1741]
+                  - cell "EQ" [ref=f4e1744]
+                  - cell "Low-shelf filter." [ref=f4e1747]
+                  - cell "audio, sr, cutoff_frequency_hz, gain_db, q" [ref=f4e1750]
+                - row [ref=f4e1753]:
+                  - cell "apply_peakfilter" [ref=f4e1754]
+                  - cell "EQ" [ref=f4e1757]
+                  - cell "Parametric peaking EQ band." [ref=f4e1760]
+                  - cell "audio, sr, cutoff_frequency_hz, gain_db, q" [ref=f4e1763]
+                - row [ref=f4e1766]:
+                  - cell "apply_gain" [ref=f4e1767]
+                  - cell "Mixing" [ref=f4e1770]
+                  - cell "Apply linear gain in decibels." [ref=f4e1773]
+                  - cell "audio, sr, gain_db" [ref=f4e1776]
+                - row [ref=f4e1779]:
+                  - cell "normalize_peak" [ref=f4e1780]
+                  - cell "Mixing" [ref=f4e1783]
+                  - cell "Scale audio so its peak reaches a target level." [ref=f4e1786]
+                  - cell "audio, sr, target_peak" [ref=f4e1789]
+                - row [ref=f4e1792]:
+                  - cell "apply_fade_in_out" [ref=f4e1793]
+                  - cell "Mixing" [ref=f4e1796]
+                  - cell "Linear fade-in and fade-out at edit boundaries." [ref=f4e1799]
+                  - cell "audio, sr, fade_in_seconds, fade_out_seconds" [ref=f4e1802]
+                - row [ref=f4e1805]:
+                  - cell "apply_pan" [ref=f4e1806]
+                  - cell "Mixing" [ref=f4e1809]
+                  - cell "Constant-power stereo panning." [ref=f4e1812]
+                  - cell "audio, sr, pan" [ref=f4e1815]
+                - row [ref=f4e1818]:
+                  - cell "mix_stem_with_residual" [ref=f4e1819]
+                  - cell "Mixing" [ref=f4e1822]
+                  - cell "Sum a separated stem with its residual." [ref=f4e1825]
+                  - cell "stem, residual" [ref=f4e1828]
+                - row [ref=f4e1831]:
+                  - cell "autotune" [ref=f4e1832]
+                  - cell "Pitch" [ref=f4e1835]
+                  - cell "Quantize vocal pitch to a (detected or supplied) key, resynthesized via PSOLA." [ref=f4e1838]
+                  - cell "audio, sr, hcqt, chromanet, crop_fn, device, key, mode" [ref=f4e1841]
+                - row [ref=f4e1844]:
+                  - cell "generate_harmony" [ref=f4e1845]
+                  - cell "Pitch" [ref=f4e1848]
+                  - cell "Generate a key-quantized harmony shifted by a given interval." [ref=f4e1851]
+                  - cell "audio, sr, hcqt, chromanet, crop_fn, device, semitones, key, mode" [ref=f4e1854]
+                - row [ref=f4e1857]:
+                  - cell "apply_pitch_shift" [ref=f4e1858]
+                  - cell "Pitch" [ref=f4e1861]
+                  - cell "Constant pitch shift in semitones." [ref=f4e1864]
+                  - cell "audio, sr, semitones" [ref=f4e1867]
+                - row [ref=f4e1870]:
+                  - cell "separate" [ref=f4e1871]
+                  - cell "Separation" [ref=f4e1874]
+                  - cell "Separate a target stem and residual using either a SAM-Audio or a Demucs model." [ref=f4e1877]
+                  - cell "model, processor, device, audio, description, sample_rate" [ref=f4e1880]
+        - generic [ref=f4e1883]:
+          - heading "B.2 POEMS Tool Defaults" [level=3] [ref=f4e1884]:
+            - generic [ref=f4e1885]: B.2
+            - text: POEMS Tool Defaults
+          - paragraph [ref=f4e1887]:
+            - link "Table 4" [ref=f4e1888] [cursor=pointer]:
+              - /url: "#A2.T4"
+            - text: shows the default parameters used when an agent fails to make a properly formed tool call.
+          - 'figure "Table 4: Fallback default arguments used when the agent produces an invalid tool call." [ref=f4e1889]':
+            - generic [ref=f4e1890]:
+              - generic [ref=f4e1891]: "Table 4:"
+              - text: Fallback default arguments used when the agent produces an invalid tool call.
+            - table [ref=f4e1892]:
+              - rowgroup [ref=f4e1893]:
+                - row [ref=f4e1894]:
+                  - columnheader "Tool name" [ref=f4e1895]
+                  - columnheader "Argument" [ref=f4e1898]
+                  - columnheader "Default" [ref=f4e1901]
+              - rowgroup [ref=f4e1904]:
+                - row [ref=f4e1905]:
+                  - cell "apply_chorus" [ref=f4e1906]
+                  - cell "rate_hz" [ref=f4e1909]
+                  - cell "1.5" [ref=f4e1912]
+                - row [ref=f4e1915]:
+                  - cell [ref=f4e1916]
+                  - cell "depth" [ref=f4e1917]
+                  - cell "0.35" [ref=f4e1920]
+                - row [ref=f4e1923]:
+                  - cell [ref=f4e1924]
+                  - cell "centre_delay_ms" [ref=f4e1925]
+                  - cell "8.0" [ref=f4e1928]
+                - row [ref=f4e1931]:
+                  - cell [ref=f4e1932]
+                  - cell "feedback" [ref=f4e1933]
+                  - cell "0.15" [ref=f4e1936]
+                - row [ref=f4e1939]:
+                  - cell [ref=f4e1940]
+                  - cell "mix" [ref=f4e1941]
+                  - cell "0.35" [ref=f4e1944]
+                - row [ref=f4e1947]:
+                  - cell "apply_phaser" [ref=f4e1948]
+                  - cell "rate_hz" [ref=f4e1951]
+                  - cell "0.8" [ref=f4e1954]
+                - row [ref=f4e1957]:
+                  - cell [ref=f4e1958]
+                  - cell "depth" [ref=f4e1959]
+                  - cell "0.4" [ref=f4e1962]
+                - row [ref=f4e1965]:
+                  - cell [ref=f4e1966]
+                  - cell "centre_frequency_hz" [ref=f4e1967]
+                  - cell "1200.0" [ref=f4e1970]
+                - row [ref=f4e1973]:
+                  - cell [ref=f4e1974]
+                  - cell "feedback" [ref=f4e1975]
+                  - cell "0.2" [ref=f4e1978]
+                - row [ref=f4e1981]:
+                  - cell [ref=f4e1982]
+                  - cell "mix" [ref=f4e1983]
+                  - cell "0.35" [ref=f4e1986]
+                - row [ref=f4e1989]:
+                  - cell "apply_distortion" [ref=f4e1990]
+                  - cell "drive_db" [ref=f4e1993]
+                  - cell "18.0" [ref=f4e1996]
+                - row [ref=f4e1999]:
+                  - cell "apply_reverb" [ref=f4e2000]
+                  - cell "room_size" [ref=f4e2003]
+                  - cell "0.65" [ref=f4e2006]
+                - row [ref=f4e2009]:
+                  - cell [ref=f4e2010]
+                  - cell "damping" [ref=f4e2011]
+                  - cell "0.45" [ref=f4e2014]
+                - row [ref=f4e2017]:
+                  - cell [ref=f4e2018]
+                  - cell "wet_level" [ref=f4e2019]
+                  - cell "0.25" [ref=f4e2022]
+                - row [ref=f4e2025]:
+                  - cell [ref=f4e2026]
+                  - cell "dry_level" [ref=f4e2027]
+                  - cell "0.75" [ref=f4e2030]
+                - row [ref=f4e2033]:
+                  - cell [ref=f4e2034]
+                  - cell "width" [ref=f4e2035]
+                  - cell "1.0" [ref=f4e2038]
+                - row [ref=f4e2041]:
+                  - cell [ref=f4e2042]
+                  - cell "freeze_mode" [ref=f4e2043]
+                  - cell "0.0" [ref=f4e2046]
+                - row [ref=f4e2049]:
+                  - cell "apply_delay" [ref=f4e2050]
+                  - cell "delay_seconds" [ref=f4e2053]
+                  - cell "0.25" [ref=f4e2056]
+                - row [ref=f4e2059]:
+                  - cell [ref=f4e2060]
+                  - cell "feedback" [ref=f4e2061]
+                  - cell "0.3" [ref=f4e2064]
+                - row [ref=f4e2067]:
+                  - cell [ref=f4e2068]
+                  - cell "mix" [ref=f4e2069]
+                  - cell "0.35" [ref=f4e2072]
+                - row [ref=f4e2075]:
+                  - cell "apply_compressor" [ref=f4e2076]
+                  - cell "threshold_db" [ref=f4e2079]
+                  - cell [ref=f4e2082]:
+                    - generic [ref=f4e2084]:
+                      - math [ref=f4e2085]:
+                        - generic [ref=f4e2086]: −
+                      - text: "18.0"
+                - row [ref=f4e2088]:
+                  - cell [ref=f4e2089]
+                  - cell "ratio" [ref=f4e2090]
+                  - cell "3.0" [ref=f4e2093]
+                - row [ref=f4e2096]:
+                  - cell [ref=f4e2097]
+                  - cell "attack_ms" [ref=f4e2098]
+                  - cell "10.0" [ref=f4e2101]
+                - row [ref=f4e2104]:
+                  - cell [ref=f4e2105]
+                  - cell "release_ms" [ref=f4e2106]
+                  - cell "100.0" [ref=f4e2109]
+                - row [ref=f4e2112]:
+                  - cell "apply_limiter" [ref=f4e2113]
+                  - cell "threshold_db" [ref=f4e2116]
+                  - cell [ref=f4e2119]:
+                    - generic [ref=f4e2121]:
+                      - math [ref=f4e2122]:
+                        - generic [ref=f4e2123]: −
+                      - text: "1.0"
+                - row [ref=f4e2125]:
+                  - cell [ref=f4e2126]
+                  - cell "release_ms" [ref=f4e2127]
+                  - cell "100.0" [ref=f4e2130]
+                - row [ref=f4e2133]:
+                  - cell "apply_deesser" [ref=f4e2134]
+                  - cell "ess_highpass_hz" [ref=f4e2137]
+                  - cell "4000.0" [ref=f4e2140]
+                - row [ref=f4e2143]:
+                  - cell [ref=f4e2144]
+                  - cell "ess_lowpass_hz" [ref=f4e2145]
+                  - cell "10000.0" [ref=f4e2148]
+                - row [ref=f4e2151]:
+                  - cell [ref=f4e2152]
+                  - cell "threshold_db" [ref=f4e2153]
+                  - cell [ref=f4e2156]:
+                    - generic [ref=f4e2158]:
+                      - math [ref=f4e2159]:
+                        - generic [ref=f4e2160]: −
+                      - text: "24.0"
+                - row [ref=f4e2162]:
+                  - cell [ref=f4e2163]
+                  - cell "ratio" [ref=f4e2164]
+                  - cell "4.0" [ref=f4e2167]
+                - row [ref=f4e2170]:
+                  - cell [ref=f4e2171]
+                  - cell "attack_ms" [ref=f4e2172]
+                  - cell "10.0" [ref=f4e2175]
+                - row [ref=f4e2178]:
+                  - cell [ref=f4e2179]
+                  - cell "release_ms" [ref=f4e2180]
+                  - cell "100.0" [ref=f4e2183]
+                - row [ref=f4e2186]:
+                  - cell [ref=f4e2187]
+                  - cell "relative_threshold_db" [ref=f4e2188]
+                  - cell [ref=f4e2191]:
+                    - generic [ref=f4e2193]:
+                      - math [ref=f4e2194]:
+                        - generic [ref=f4e2195]: −
+                      - text: "12.0"
+                - row [ref=f4e2197]:
+                  - cell [ref=f4e2198]
+                  - cell "max_reduction_db" [ref=f4e2199]
+                  - cell "9.0" [ref=f4e2202]
+                - row [ref=f4e2205]:
+                  - cell [ref=f4e2206]
+                  - cell "filter_order" [ref=f4e2207]
+                  - cell "4" [ref=f4e2210]
+                - row [ref=f4e2213]:
+                  - cell "apply_gain" [ref=f4e2214]
+                  - cell "gain_db" [ref=f4e2217]
+                  - cell "3.0" [ref=f4e2220]
+                - row [ref=f4e2223]:
+                  - cell "apply_highpass_filter" [ref=f4e2224]
+                  - cell "cutoff_frequency_hz" [ref=f4e2227]
+                  - cell "120.0" [ref=f4e2230]
+                - row [ref=f4e2233]:
+                  - cell "apply_lowpass_filter" [ref=f4e2234]
+                  - cell "cutoff_frequency_hz" [ref=f4e2237]
+                  - cell "8000.0" [ref=f4e2240]
+                - row [ref=f4e2243]:
+                  - cell "apply_highshelf_filter" [ref=f4e2244]
+                  - cell "cutoff_frequency_hz" [ref=f4e2247]
+                  - cell "5000.0" [ref=f4e2250]
+                - row [ref=f4e2253]:
+                  - cell [ref=f4e2254]
+                  - cell "gain_db" [ref=f4e2255]
+                  - cell "2.0" [ref=f4e2258]
+                - row [ref=f4e2261]:
+                  - cell [ref=f4e2262]
+                  - cell "q" [ref=f4e2263]
+                  - cell "0.707" [ref=f4e2266]
+                - row [ref=f4e2269]:
+                  - cell "apply_lowshelf_filter" [ref=f4e2270]
+                  - cell "cutoff_frequency_hz" [ref=f4e2273]
+                  - cell "120.0" [ref=f4e2276]
+                - row [ref=f4e2279]:
+                  - cell [ref=f4e2280]
+                  - cell "gain_db" [ref=f4e2281]
+                  - cell "2.0" [ref=f4e2284]
+                - row [ref=f4e2287]:
+                  - cell [ref=f4e2288]
+                  - cell "q" [ref=f4e2289]
+                  - cell "0.707" [ref=f4e2292]
+                - row [ref=f4e2295]:
+                  - cell "apply_peak_filter" [ref=f4e2296]
+                  - cell "cutoff_frequency_hz" [ref=f4e2299]
+                  - cell "2500.0" [ref=f4e2302]
+                - row [ref=f4e2305]:
+                  - cell [ref=f4e2306]
+                  - cell "gain_db" [ref=f4e2307]
+                  - cell "2.0" [ref=f4e2310]
+                - row [ref=f4e2313]:
+                  - cell [ref=f4e2314]
+                  - cell "q" [ref=f4e2315]
+                  - cell "1.0" [ref=f4e2318]
+                - row [ref=f4e2321]:
+                  - cell "apply_noisegate" [ref=f4e2322]
+                  - cell "threshold_db" [ref=f4e2325]
+                  - cell [ref=f4e2328]:
+                    - generic [ref=f4e2330]:
+                      - math [ref=f4e2331]:
+                        - generic [ref=f4e2332]: −
+                      - text: "45.0"
+                - row [ref=f4e2334]:
+                  - cell [ref=f4e2335]
+                  - cell "ratio" [ref=f4e2336]
+                  - cell "2.0" [ref=f4e2339]
+                - row [ref=f4e2342]:
+                  - cell [ref=f4e2343]
+                  - cell "attack_ms" [ref=f4e2344]
+                  - cell "10.0" [ref=f4e2347]
+                - row [ref=f4e2350]:
+                  - cell [ref=f4e2351]
+                  - cell "release_ms" [ref=f4e2352]
+                  - cell "150.0" [ref=f4e2355]
+                - row [ref=f4e2358]:
+                  - cell "normalize_peak" [ref=f4e2359]
+                  - cell "target_peak" [ref=f4e2362]
+                  - cell "0.95" [ref=f4e2365]
+                - row [ref=f4e2368]:
+                  - cell "apply_fade_in_out" [ref=f4e2369]
+                  - cell "fade_in_seconds" [ref=f4e2372]
+                  - cell "0.02" [ref=f4e2375]
+                - row [ref=f4e2378]:
+                  - cell [ref=f4e2379]
+                  - cell "fade_out_seconds" [ref=f4e2380]
+                  - cell "0.02" [ref=f4e2383]
+                - row [ref=f4e2386]:
+                  - cell "apply_pan" [ref=f4e2387]
+                  - cell "pan" [ref=f4e2390]
+                  - cell "0.0" [ref=f4e2393]
+                - row [ref=f4e2396]:
+                  - cell "apply_pitch_shift" [ref=f4e2397]
+                  - cell "semitones" [ref=f4e2400]
+                  - cell "3.0" [ref=f4e2403]
+                - row [ref=f4e2406]:
+                  - cell "apply_harmony" [ref=f4e2407]
+                  - cell "semitones" [ref=f4e2410]
+                  - cell "7.0" [ref=f4e2413]
+      - generic [ref=f4e2416]:
+        - heading "Appendix C RIME Details" [level=2] [ref=f4e2417]:
+          - generic [ref=f4e2418]: Appendix C
+          - text: RIME Details
+        - generic [ref=f4e2419]:
+          - heading "C.1 Recipe Catalog" [level=3] [ref=f4e2420]:
+            - generic [ref=f4e2421]: C.1
+            - text: Recipe Catalog
+          - paragraph [ref=f4e2423]:
+            - text: "All RIME recipes share a common four-field schema: bindings (metadata references resolved at plan-generation time), when (a predicate that gates eligibility), weight_rules (optional prior-shaping multipliers), and graph (a declarative three-step edit graph of the form Separate"
+            - math [ref=f4e2424]:
+              - generic [ref=f4e2425]: →
+            - text: Process
+            - math [ref=f4e2427]:
+              - generic [ref=f4e2428]: →
+            - text: Mix).
+            - link "Table 5" [ref=f4e2430] [cursor=pointer]:
+              - /url: "#A3.T5"
+            - text: provides a quick-reference overview; full listings follow.
+          - paragraph [ref=f4e2432]:
+            - text: For each recipe, we list a series of references we used to determine the heuristics for each category of edit.
+            - superscript [ref=f4e2434]: "1"
+          - 'figure "Table 5: Summary of RIME recipe catalog." [ref=f4e2435]':
+            - generic [ref=f4e2436]:
+              - generic [ref=f4e2437]: "Table 5:"
+              - text: Summary of RIME recipe catalog.
+            - table [ref=f4e2440]:
+              - rowgroup [ref=f4e2441]:
+                - row [ref=f4e2442]:
+                  - columnheader "Recipe ID" [ref=f4e2443]
+                  - columnheader "Category" [ref=f4e2444]
+                  - columnheader "Tags" [ref=f4e2445]
+                  - columnheader "Target Family" [ref=f4e2446]
+                  - columnheader "Base Weight" [ref=f4e2447]
+              - rowgroup [ref=f4e2448]:
+                - row [ref=f4e2449]:
+                  - cell [ref=f4e2450]:
+                    - generic [ref=f4e2451]:
+                      - text: target_space_send_synced
+                      - superscript [ref=f4e2453]: "2"
+                  - cell "Time-based" [ref=f4e2454]
+                  - cell "delay, reverb, send/return" [ref=f4e2455]
+                  - cell "non-drum, non-other" [ref=f4e2456]
+                  - cell "0.80" [ref=f4e2457]
+                - row [ref=f4e2458]:
+                  - cell "target_space_send_free" [ref=f4e2459]
+                  - cell "Time-based" [ref=f4e2460]
+                  - cell "delay, reverb, send/return" [ref=f4e2461]
+                  - cell "non-drum, non-other" [ref=f4e2462]
+                  - cell "0.35" [ref=f4e2463]
+                - row [ref=f4e2464]:
+                  - cell [ref=f4e2465]:
+                    - generic [ref=f4e2466]:
+                      - text: parallel_drum_compression
+                      - superscript [ref=f4e2468]: "3"
+                  - cell "Dynamics" [ref=f4e2469]
+                  - cell "compression, send/return" [ref=f4e2470]
+                  - cell "drums" [ref=f4e2471]
+                  - cell "0.95" [ref=f4e2472]
+                - row [ref=f4e2473]:
+                  - cell "light_drum_distortion" [ref=f4e2474]
+                  - cell "Color" [ref=f4e2475]
+                  - cell "distortion" [ref=f4e2476]
+                  - cell "drums" [ref=f4e2477]
+                  - cell "0.70" [ref=f4e2478]
+                - row [ref=f4e2479]:
+                  - cell "make_target_louder" [ref=f4e2480]
+                  - cell "Level" [ref=f4e2481]
+                  - cell "gain" [ref=f4e2482]
+                  - cell "non-other" [ref=f4e2483]
+                  - cell "0.75" [ref=f4e2484]
+                - row [ref=f4e2485]:
+                  - cell "make_target_quieter" [ref=f4e2486]
+                  - cell "Level" [ref=f4e2487]
+                  - cell "gain" [ref=f4e2488]
+                  - cell "non-other" [ref=f4e2489]
+                  - cell "0.75" [ref=f4e2490]
+                - row [ref=f4e2491]:
+                  - cell [ref=f4e2492]:
+                    - generic [ref=f4e2493]:
+                      - text: vocal_control_compression
+                      - superscript [ref=f4e2495]: "4"
+                  - cell "Dynamics" [ref=f4e2496]
+                  - cell "compression" [ref=f4e2497]
+                  - cell "vocals" [ref=f4e2498]
+                  - cell "0.90" [ref=f4e2499]
+                - row [ref=f4e2500]:
+                  - cell [ref=f4e2501]:
+                    - generic [ref=f4e2502]:
+                      - text: vocal_harmony_support
+                      - superscript [ref=f4e2504]: "5"
+                  - cell "Pitch" [ref=f4e2505]
+                  - cell "harmony, send/return" [ref=f4e2506]
+                  - cell "vocals" [ref=f4e2507]
+                  - cell "0.45" [ref=f4e2508]
+                - row [ref=f4e2509]:
+                  - cell [ref=f4e2510]:
+                    - generic [ref=f4e2511]:
+                      - text: retro_tilt
+                      - superscript [ref=f4e2513]: "6"
+                  - cell "Color" [ref=f4e2514]
+                  - cell "EQ (shelf, pass)" [ref=f4e2515]
+                  - cell "non-drum, non-other" [ref=f4e2516]
+                  - cell "0.35" [ref=f4e2517]
+                - row [ref=f4e2518]:
+                  - cell [ref=f4e2519]:
+                    - generic [ref=f4e2520]:
+                      - text: modulation_texture
+                      - superscript [ref=f4e2522]: "7"
+                  - cell "Modulation" [ref=f4e2523]
+                  - cell "chorus" [ref=f4e2524]
+                  - cell "non-drum, non-other" [ref=f4e2525]
+                  - cell "0.30" [ref=f4e2526]
+                - row [ref=f4e2527]:
+                  - cell [ref=f4e2528]:
+                    - text: hum_cleanup
+                    - superscript [ref=f4e2530]: "8"
+                  - cell "Cleanup" [ref=f4e2531]
+                  - cell "EQ (highpass)" [ref=f4e2532]
+                  - cell "mixture-level" [ref=f4e2533]
+                  - cell "0.95" [ref=f4e2534]
+                - row [ref=f4e2535]:
+                  - cell [ref=f4e2536]:
+                    - generic [ref=f4e2537]:
+                      - text: vocal_sibilance_cleanup
+                      - superscript [ref=f4e2539]: "9"
+                  - cell "Cleanup" [ref=f4e2540]
+                  - cell "de-esser" [ref=f4e2541]
+                  - cell "vocals" [ref=f4e2542]
+                  - cell "1.00" [ref=f4e2543]
+        - generic [ref=f4e2544]:
+          - heading "C.2 Motifs" [level=3] [ref=f4e2545]:
+            - generic [ref=f4e2546]: C.2
+            - text: Motifs
+          - paragraph [ref=f4e2548]:
+            - link "Table 6" [ref=f4e2549] [cursor=pointer]:
+              - /url: "#A3.T6"
+            - text: highlights the reusable edit chains (“motifs") for certain recipes. We describe both the types of effects used as well as the real-world application for each motif.
+          - 'figure "Table 6: Summary of RIME motifs" [ref=f4e2550]':
+            - generic [ref=f4e2551]:
+              - generic [ref=f4e2552]: "Table 6:"
+              - text: Summary of RIME motifs
+            - table [ref=f4e2555]:
+              - rowgroup [ref=f4e2556]:
+                - row [ref=f4e2557]:
+                  - columnheader "Motif ID" [ref=f4e2558]
+                  - columnheader "Tags" [ref=f4e2559]
+                  - columnheader "Real-world Editing Role" [ref=f4e2560]
+              - rowgroup [ref=f4e2561]:
+                - row [ref=f4e2562]:
+                  - cell "band_limited_space_send_synced" [ref=f4e2563]
+                  - cell "delay, reverb, EQ pass filters" [ref=f4e2564]
+                  - cell "tempo-synced filtered ambience send" [ref=f4e2565]
+                - row [ref=f4e2566]:
+                  - cell "band_limited_space_send_free" [ref=f4e2567]
+                  - cell "delay, reverb, EQ pass filters" [ref=f4e2568]
+                  - cell "free-time filtered ambience send" [ref=f4e2569]
+                - row [ref=f4e2570]:
+                  - cell "parallel_compression_bus" [ref=f4e2571]
+                  - cell "compression" [ref=f4e2572]
+                  - cell "compressed parallel drum bus" [ref=f4e2573]
+                - row [ref=f4e2574]:
+                  - cell "vocal_control_compression" [ref=f4e2575]
+                  - cell "compression" [ref=f4e2576]
+                  - cell "serial vocal leveling compression" [ref=f4e2577]
+                - row [ref=f4e2578]:
+                  - cell "retro_tilt_eq" [ref=f4e2579]
+                  - cell "EQ shelf, EQ pass filter" [ref=f4e2580]
+                  - cell "vintage-style high-frequency rolloff" [ref=f4e2581]
+                - row [ref=f4e2582]:
+                  - cell "modulation_texture" [ref=f4e2583]
+                  - cell "chorus" [ref=f4e2584]
+                  - cell "width and movement texture" [ref=f4e2585]
+        - generic [ref=f4e2586]:
+          - heading "C.3 Recipe Constraints" [level=3] [ref=f4e2587]:
+            - generic [ref=f4e2588]: C.3
+            - text: Recipe Constraints
+          - paragraph [ref=f4e2590]:
+            - link "Figure 5" [ref=f4e2591] [cursor=pointer]:
+              - /url: "#A3.F5"
+            - text: "highlights how we use policy constraints to determine weighting for possible RIME recipes. Note that there are two policies which are immediately rejected: applying delay on drums and applying any edits on the “other\" source from Demucs."
+          - 'figure "Figure 5: Pattern constraints in RIME. Patten constraints control how edit recipe candidates are ranked during edit graph construction" [ref=f4e2592]':
+            - generic [ref=f4e2594]:
+              - generic [ref=f4e2595]: "Figure 5:"
+              - text: Pattern constraints in RIME. Patten constraints control how edit recipe candidates are ranked during edit graph construction
+        - generic [ref=f4e2596]:
+          - heading "C.4 Parameter Priors" [level=3] [ref=f4e2597]:
+            - generic [ref=f4e2598]: C.4
+            - text: Parameter Priors
+          - paragraph [ref=f4e2600]:
+            - link "Table 7" [ref=f4e2601] [cursor=pointer]:
+              - /url: "#A3.T7"
+            - text: shows the parameter priors for RIME tools. See the footnote references from
+            - link "Section C.1" [ref=f4e2602] [cursor=pointer]:
+              - /url: "#A3.SS1"
+            - text: for more details on how we chose this prior distribution.
+          - 'figure "Table 7: Summary of RIME distribution priors." [ref=f4e2603]':
+            - generic [ref=f4e2604]:
+              - generic [ref=f4e2605]: "Table 7:"
+              - text: Summary of RIME distribution priors.
+            - table [ref=f4e2608]:
+              - rowgroup [ref=f4e2609]:
+                - row [ref=f4e2610]:
+                  - columnheader "Prior Group" [ref=f4e2611]
+                  - columnheader "Category" [ref=f4e2614]
+                  - columnheader "Sampled Parameters" [ref=f4e2617]
+                  - columnheader "Typical Support / Bias" [ref=f4e2620]
+              - rowgroup [ref=f4e2623]:
+                - row [ref=f4e2624]:
+                  - cell "space.shared_send" [ref=f4e2625]
+                  - cell "Time-based" [ref=f4e2628]
+                  - cell "send level, return level, delay timing, feedback, reverb, wet-path EQ" [ref=f4e2631]
+                  - cell "moderate send/return levels; synced delay preferred; filtered wet return" [ref=f4e2634]
+                - row [ref=f4e2637]:
+                  - cell "balance.target_gain" [ref=f4e2638]
+                  - cell "Level" [ref=f4e2641]
+                  - cell "gain up/down" [ref=f4e2644]
+                  - cell [ref=f4e2647]:
+                    - generic [ref=f4e2649]:
+                      - math [ref=f4e2650]:
+                        - generic [ref=f4e2652]:
+                          - generic [ref=f4e2653]: ±
+                          - generic [ref=f4e2654]: "3"
+                      - text: ","
+                      - math [ref=f4e2655]:
+                        - generic [ref=f4e2657]:
+                          - generic [ref=f4e2658]: ±
+                          - generic [ref=f4e2659]: "5"
+                      - text: ", or"
+                      - math [ref=f4e2660]:
+                        - generic [ref=f4e2662]:
+                          - generic [ref=f4e2663]: ±
+                          - generic [ref=f4e2664]: "7"
+                      - text: dB, biased toward moderate changes
+                - row [ref=f4e2665]:
+                  - cell "cleanup.vocal_sibilance" [ref=f4e2666]
+                  - cell "Cleanup" [ref=f4e2669]
+                  - cell "peak-cut frequency, gain cut, Q" [ref=f4e2672]
+                  - cell [ref=f4e2675]:
+                    - generic [ref=f4e2677]:
+                      - text: 3.8–4.5 kHz cuts;
+                      - math [ref=f4e2678]:
+                        - generic [ref=f4e2680]:
+                          - generic [ref=f4e2681]: −
+                          - generic [ref=f4e2682]: "3"
+                      - text: or
+                      - math [ref=f4e2683]:
+                        - generic [ref=f4e2685]:
+                          - generic [ref=f4e2686]: −
+                          - generic [ref=f4e2687]: "5"
+                      - text: dB; moderate/narrow Q
+                - row [ref=f4e2688]:
+                  - cell "cleanup.hum" [ref=f4e2689]
+                  - cell "Cleanup" [ref=f4e2692]
+                  - cell "highpass cutoff" [ref=f4e2695]
+                  - cell "50 or 60 Hz cleanup proxy" [ref=f4e2698]
+                - row [ref=f4e2701]:
+                  - cell "cleanup.rumble" [ref=f4e2702]
+                  - cell "Cleanup" [ref=f4e2705]
+                  - cell "highpass cutoff" [ref=f4e2708]
+                  - cell "30–50 Hz low-end cleanup" [ref=f4e2711]
+                - row [ref=f4e2714]:
+                  - cell "drums.parallel_compression" [ref=f4e2715]
+                  - cell "Dynamics" [ref=f4e2718]
+                  - cell "send level, return level, threshold, ratio" [ref=f4e2721]
+                  - cell "strong compression on a parallel bus; moderate wet blend" [ref=f4e2724]
+                - row [ref=f4e2727]:
+                  - cell "drums.distortion" [ref=f4e2728]
+                  - cell "Color" [ref=f4e2731]
+                  - cell "drive" [ref=f4e2734]
+                  - cell "6–14 dB drive, biased toward lighter saturation" [ref=f4e2737]
+                - row [ref=f4e2740]:
+                  - cell "vocals.compression" [ref=f4e2741]
+                  - cell "Dynamics" [ref=f4e2744]
+                  - cell "threshold, ratio, attack, release" [ref=f4e2747]
+                  - cell "conservative pop-style vocal control compression" [ref=f4e2750]
+                - row [ref=f4e2753]:
+                  - cell "vocals.harmony" [ref=f4e2754]
+                  - cell "Pitch" [ref=f4e2757]
+                  - cell "harmony interval, backoff gain, post-EQ" [ref=f4e2760]
+                  - cell "thirds favored; harmony tucked back and band-limited" [ref=f4e2763]
+                - row [ref=f4e2766]:
+                  - cell "poison.noise" [ref=f4e2767]
+                  - cell "Synthetic cleanup" [ref=f4e2770]
+                  - cell "hum/rumble level, bands, modulation" [ref=f4e2773]
+                  - cell "synthetic hum or rumble paired with cleanup tasks" [ref=f4e2776]
+                - row [ref=f4e2779]:
+                  - cell "tone.retro" [ref=f4e2780]
+                  - cell "Color" [ref=f4e2783]
+                  - cell "shelf cutoff, shelf gain, lowpass cutoff" [ref=f4e2786]
+                  - cell "high-frequency rolloff for older playback-chain tone" [ref=f4e2789]
+                - row [ref=f4e2792]:
+                  - cell "tone.modulation.chorus" [ref=f4e2793]
+                  - cell "Modulation" [ref=f4e2796]
+                  - cell "chorus mix, depth, rate" [ref=f4e2799]
+                  - cell "moderate chorus texture; two rate choices" [ref=f4e2802]
+        - generic [ref=f4e2805]:
+          - heading "C.5 Prompt Generation" [level=3] [ref=f4e2806]:
+            - generic [ref=f4e2807]: C.5
+            - text: Prompt Generation
+          - paragraph [ref=f4e2809]: We show the prompts used for Gemini Flash Lite to generate edit instructions at varying levels of abstraction
+          - paragraph [ref=f4e2811]: "Prompt for abstraction layer 0:"
+          - paragraph [ref=f4e2813]:
+            - generic [ref=f4e2814]: "Given the following edit graph and the set of tools, draft a fully complete instruction that a professional audio producer would specify to recreate it. Please return only the instruction and make it sound conversational. Edit graph: <edit_graph>"
+          - paragraph [ref=f4e2816]:
+            - generic [ref=f4e2817]:
+              - text: Prompt for abstraction layers 1-
+              - math [ref=f4e2818]:
+                - generic [ref=f4e2820]:
+                  - generic [ref=f4e2821]: "n"
+                  - generic [ref=f4e2822]: u
+                  - generic [ref=f4e2823]: m
+                  - generic [ref=f4e2824]: _
+                  - generic [ref=f4e2825]: r
+                  - generic [ref=f4e2826]: o
+                  - generic [ref=f4e2827]: u
+                  - generic [ref=f4e2828]: "n"
+                  - generic [ref=f4e2829]: d
+                  - generic [ref=f4e2830]: s
+              - text: ":"
+          - paragraph [ref=f4e2832]:
+            - generic [ref=f4e2833]: "Rewrite the following music production instruction so it becomes slightly more abstract and less technically precise than the previous version. Description: <description>"
+      - generic [ref=f4e2834]:
+        - heading "Appendix D Zero-Shot Agent Details" [level=2] [ref=f4e2835]:
+          - generic [ref=f4e2836]: Appendix D
+          - text: Zero-Shot Agent Details
+        - generic [ref=f4e2837]:
+          - heading "D.1 Agent States" [level=3] [ref=f4e2838]:
+            - generic [ref=f4e2839]: D.1
+            - text: Agent States
+          - generic [ref=f4e2840]:
+            - paragraph [ref=f4e2841]: We keep track of four main states in the agent
+            - list [ref=f4e2842]:
+              - listitem [ref=f4e2843]:
+                - generic [ref=f4e2844]: "1."
+                - paragraph [ref=f4e2846]: Working Audio State - The agent keeps track of the working audio, the active isolated source, the path of the stem, path of the residual, the latest version of the processed stem.
+              - listitem [ref=f4e2847]:
+                - generic [ref=f4e2848]: "2."
+                - paragraph [ref=f4e2850]: Planning/Assignment State - The tools selected during the planning step are stored of in a list of ’assignments.’ Each assignment tracks status (pending, in progress, retrying, done, failed) as well as the next pending assignment.
+              - listitem [ref=f4e2851]:
+                - generic [ref=f4e2852]: "3."
+                - paragraph [ref=f4e2854]:
+                  - text: Execution State - Tracks all aspects of a tool-calling step including current assignment, active source, if a branch (see
+                  - link "Section D.2" [ref=f4e2855] [cursor=pointer]:
+                    - /url: "#A4.SS2"
+                  - text: ) is open, if there are any remaining assignments, and if the audio is ready to return
+              - listitem [ref=f4e2856]:
+                - generic [ref=f4e2857]: "4."
+                - paragraph [ref=f4e2859]: Failure/Repair State - Tracks the failed tool name, failed tool assignment, and failed arguments to the tool call.
+        - generic [ref=f4e2860]:
+          - heading "D.2 Enforcing Agent Behavior" [level=3] [ref=f4e2861]:
+            - generic [ref=f4e2862]: D.2
+            - text: Enforcing Agent Behavior
+          - paragraph [ref=f4e2864]: We place a few mechanisms to steer the behavior of the agent
+          - list [ref=f4e2866]:
+            - listitem [ref=f4e2867]:
+              - text: •
+              - paragraph [ref=f4e2869]: Separation and Mixing “Branches" - When a stem is isolated, a branch is opened and kept track of in the execution state and closed when the source is mixed back in with the residual. This branch keeps track of which source is isolated and the location of the corresponding residual track. The system will not allow another separation tool call or operation on another source until the source has been mixed in with the residual.
+            - listitem [ref=f4e2870]:
+              - text: •
+              - paragraph [ref=f4e2872]: Forced Separation - The system can force separation if agent tries to operate on a source before isolating that source
+            - listitem [ref=f4e2873]:
+              - text: •
+              - paragraph [ref=f4e2875]: Branch Recombination Gate - If a branch is open and there is no pending assignment, the system can force a mix tool call so the agent does not stray
+            - listitem [ref=f4e2876]:
+              - text: •
+              - paragraph [ref=f4e2878]: Forced Pending Assignment Processing - If the agent tries to return or mix sources before it has completed all of its assignments, system will force it to perform another tool call. Forced return - If there are no more assignments and no branch is open, system will force the agent to return the audio
+      - generic [ref=f4e2879]:
+        - heading "Appendix E Auxiliary Results" [level=2] [ref=f4e2880]:
+          - generic [ref=f4e2881]: Appendix E
+          - text: Auxiliary Results
+        - generic [ref=f4e2882]:
+          - heading "E.1 FAD Scores Against Reference" [level=3] [ref=f4e2883]:
+            - generic [ref=f4e2884]: E.1
+            - text: FAD Scores Against Reference
+          - paragraph [ref=f4e2886]:
+            - link "Tables 8" [ref=f4e2887] [cursor=pointer]:
+              - /url: "#A5.T8"
+            - text: and
+            - link "9" [ref=f4e2888] [cursor=pointer]:
+              - /url: "#A5.T9"
+            - text: show FAD and KAD similar to
+            - link "Table 1" [ref=f4e2889] [cursor=pointer]:
+              - /url: "#S6.T1"
+            - text: with MERT and CLAP embeddings respectively with two added reference columns. The reference columns show the FAD between the ground truth and the input as well as the FAD between the input and the agent output.
+          - 'figure "Table 8: FAD and KAD between agent output and ground truth edit MERT embeddings" [ref=f4e2890]':
+            - generic [ref=f4e2891]:
+              - generic [ref=f4e2892]: "Table 8:"
+              - text: FAD and KAD between agent output and ground truth edit MERT embeddings
+            - table [ref=f4e2895]:
+              - rowgroup [ref=f4e2896]:
+                - row [ref=f4e2897]:
+                  - columnheader "Model" [ref=f4e2898]
+                  - columnheader [ref=f4e2899]:
+                    - math [ref=f4e2900]:
+                      - generic [ref=f4e2901]: "n"
+                  - columnheader [ref=f4e2903]:
+                    - text: FAD
+                    - subscript [ref=f4e2904]: i
+                    - math [ref=f4e2905]:
+                      - generic [ref=f4e2906]: ↓
+                  - columnheader "Input–Target" [ref=f4e2908]:
+                    - text: Input–Target
+                    - math [ref=f4e2909]:
+                      - generic [ref=f4e2910]: ↑
+                  - columnheader "Input–Output" [ref=f4e2912]:
+                    - text: Input–Output
+                    - math [ref=f4e2913]:
+                      - generic [ref=f4e2914]: ↑
+                  - columnheader "Output–Target" [ref=f4e2916]:
+                    - text: Output–Target
+                    - math [ref=f4e2917]:
+                      - generic [ref=f4e2918]: ↑
+                  - columnheader "Audio Sim." [ref=f4e2920]:
+                    - math [ref=f4e2921]:
+                      - generic [ref=f4e2922]: Δ
+                    - text: Audio Sim.
+                    - math [ref=f4e2924]:
+                      - generic [ref=f4e2925]: ↑
+                  - columnheader "Graph F1" [ref=f4e2927]:
+                    - text: Graph F1
+                    - math [ref=f4e2928]:
+                      - generic [ref=f4e2929]: ↑
+              - rowgroup [ref=f4e2931]:
+                - row [ref=f4e2932]:
+                  - columnheader "Gemini 3 Flash" [ref=f4e2933]
+                  - rowheader "2918" [ref=f4e2934]
+                  - cell "33.857" [ref=f4e2935]
+                  - cell "0.991" [ref=f4e2936]
+                  - cell "0.976" [ref=f4e2937]
+                  - cell "0.978" [ref=f4e2938]
+                  - cell "0.512" [ref=f4e2939]
+                  - cell "0.702" [ref=f4e2940]
+                - row [ref=f4e2941]:
+                  - columnheader "GPT-4o Mini" [ref=f4e2942]
+                  - rowheader "2730" [ref=f4e2943]
+                  - cell "32.398" [ref=f4e2944]
+                  - cell "0.990" [ref=f4e2945]
+                  - cell "0.983" [ref=f4e2946]
+                  - cell "0.986" [ref=f4e2947]
+                  - cell "0.611" [ref=f4e2948]
+                  - cell "0.845" [ref=f4e2949]
+                - row [ref=f4e2950]:
+                  - columnheader "Gemma 3n" [ref=f4e2951]
+                  - rowheader "2787" [ref=f4e2952]
+                  - cell "32.898" [ref=f4e2953]
+                  - cell "0.990" [ref=f4e2954]
+                  - cell "0.971" [ref=f4e2955]
+                  - cell "0.974" [ref=f4e2956]
+                  - cell "0.480" [ref=f4e2957]
+                  - cell "0.803" [ref=f4e2958]
+                - row [ref=f4e2959]:
+                  - columnheader "Gemma 3n SFT" [ref=f4e2960]
+                  - rowheader "2843" [ref=f4e2961]
+                  - cell "31.995" [ref=f4e2962]
+                  - cell "0.990" [ref=f4e2963]
+                  - cell "0.990" [ref=f4e2964]
+                  - cell "0.988" [ref=f4e2965]
+                  - cell "0.559" [ref=f4e2966]
+                  - cell "0.772" [ref=f4e2967]
+          - 'figure "Table 9: FAD and KAD between agent output and ground truth edit CLAP embeddings" [ref=f4e2968]':
+            - generic [ref=f4e2969]:
+              - generic [ref=f4e2970]: "Table 9:"
+              - text: FAD and KAD between agent output and ground truth edit CLAP embeddings
+            - table [ref=f4e2973]:
+              - rowgroup [ref=f4e2974]:
+                - row [ref=f4e2975]:
+                  - columnheader "Model" [ref=f4e2976]
+                  - columnheader [ref=f4e2977]:
+                    - math [ref=f4e2978]:
+                      - generic [ref=f4e2979]: "n"
+                  - columnheader [ref=f4e2981]:
+                    - text: FAD
+                    - subscript [ref=f4e2982]: i
+                    - math [ref=f4e2983]:
+                      - generic [ref=f4e2984]: ↓
+                  - columnheader "Input–Target" [ref=f4e2986]:
+                    - text: Input–Target
+                    - math [ref=f4e2987]:
+                      - generic [ref=f4e2988]: ↑
+                  - columnheader "Input–Output" [ref=f4e2990]:
+                    - text: Input–Output
+                    - math [ref=f4e2991]:
+                      - generic [ref=f4e2992]: ↑
+                  - columnheader "Output–Target" [ref=f4e2994]:
+                    - text: Output–Target
+                    - math [ref=f4e2995]:
+                      - generic [ref=f4e2996]: ↑
+                  - columnheader "Audio Sim." [ref=f4e2998]:
+                    - math [ref=f4e2999]:
+                      - generic [ref=f4e3000]: Δ
+                    - text: Audio Sim.
+                    - math [ref=f4e3002]:
+                      - generic [ref=f4e3003]: ↑
+                  - columnheader "Graph F1" [ref=f4e3005]:
+                    - text: Graph F1
+                    - math [ref=f4e3006]:
+                      - generic [ref=f4e3007]: ↑
+              - rowgroup [ref=f4e3009]:
+                - row [ref=f4e3010]:
+                  - columnheader "Gemini 3 Flash" [ref=f4e3011]
+                  - rowheader "2918" [ref=f4e3012]
+                  - cell "0.802" [ref=f4e3013]
+                  - cell "0.470" [ref=f4e3014]
+                  - cell "0.462" [ref=f4e3015]
+                  - cell "0.461" [ref=f4e3016]
+                  - cell "0.378" [ref=f4e3017]
+                  - cell "0.702" [ref=f4e3018]
+                - row [ref=f4e3019]:
+                  - columnheader "GPT-4o Mini" [ref=f4e3020]
+                  - rowheader "2730" [ref=f4e3021]
+                  - cell "0.785" [ref=f4e3022]
+                  - cell "0.470" [ref=f4e3023]
+                  - cell "0.458" [ref=f4e3024]
+                  - cell "0.473" [ref=f4e3025]
+                  - cell "0.385" [ref=f4e3026]
+                  - cell "0.845" [ref=f4e3027]
+                - row [ref=f4e3028]:
+                  - columnheader "Gemma 3n" [ref=f4e3029]
+                  - rowheader "2787" [ref=f4e3030]
+                  - cell "0.806" [ref=f4e3031]
+                  - cell "0.471" [ref=f4e3032]
+                  - cell "0.440" [ref=f4e3033]
+                  - cell "0.462" [ref=f4e3034]
+                  - cell "0.386" [ref=f4e3035]
+                  - cell "0.803" [ref=f4e3036]
+                - row [ref=f4e3037]:
+                  - columnheader "Gemma 3n SFT" [ref=f4e3038]
+                  - rowheader "2843" [ref=f4e3039]
+                  - cell "0.773" [ref=f4e3040]
+                  - cell "0.461" [ref=f4e3041]
+                  - cell "0.481" [ref=f4e3042]
+                  - cell "0.484" [ref=f4e3043]
+                  - cell "0.385" [ref=f4e3044]
+                  - cell "0.772" [ref=f4e3045]
+        - generic [ref=f4e3046]:
+          - heading "E.2 Head-to-head Model Performance" [level=3] [ref=f4e3047]:
+            - generic [ref=f4e3048]: E.2
+            - text: Head-to-head Model Performance
+          - paragraph [ref=f4e3050]:
+            - text: We analyze head-to-head results for audio matching tasks in figures
+            - link "Figure 6" [ref=f4e3051] [cursor=pointer]:
+              - /url: "#A5.F6"
+            - text: and
+            - link "Figure 7" [ref=f4e3052] [cursor=pointer]:
+              - /url: "#A5.F7"
+            - text: . Both GPT-4o Mini and Gemini 3 Flash significantly outperform Gemma 3n, while GPT-4o Mini slightly outperforms Gemini 3 Flash
+          - paragraph [ref=f4e3054]:
+            - text: Gemma 3n SFT has a
+            - math [ref=f4e3055]:
+              - generic [ref=f4e3057]:
+                - generic [ref=f4e3058]: "66"
+                - generic [ref=f4e3059]: "%"
+            - text: win rate against baseline Gemma 3n and outperforms both frontier models,Gemini 3 Flash and GPT-4o Mini, with winrates of
+            - math [ref=f4e3060]:
+              - generic [ref=f4e3062]:
+                - generic [ref=f4e3063]: "60"
+                - generic [ref=f4e3064]: "%"
+            - text: and
+            - math [ref=f4e3065]:
+              - generic [ref=f4e3067]:
+                - generic [ref=f4e3068]: "55"
+                - generic [ref=f4e3069]: "%"
+            - text: respectively
+          - 'figure "Figure 6: Aggregated head-to-head win rates for audio matching" [ref=f4e3070]':
+            - generic [ref=f4e3072]:
+              - generic [ref=f4e3073]: "Figure 6:"
+              - text: Aggregated head-to-head win rates for audio matching
+          - 'figure "Figure 7: Model pairwise win rates for audio matching" [ref=f4e3074]':
+            - generic [ref=f4e3076]:
+              - generic [ref=f4e3077]: "Figure 7:"
+              - text: Model pairwise win rates for audio matching
+        - generic [ref=f4e3078]:
+          - heading "E.3 Prompt Alignment" [level=3] [ref=f4e3079]:
+            - generic [ref=f4e3080]: E.3
+            - text: Prompt Alignment
+          - paragraph [ref=f4e3082]:
+            - link "Figure 8" [ref=f4e3083] [cursor=pointer]:
+              - /url: "#A5.F8"
+            - text: highlights the CLAP embedding alignment between the prompt text and the audio for the input, agent output, and ground-truth edit.
+          - 'figure "Figure 8: Prompt alignment by abstraction level" [ref=f4e3084]':
+            - generic [ref=f4e3086]:
+              - generic [ref=f4e3087]: "Figure 8:"
+              - text: Prompt alignment by abstraction level
+        - generic [ref=f4e3088]:
+          - heading "E.4 Agent Poisoning Performance by Artifact Type" [level=3] [ref=f4e3089]:
+            - generic [ref=f4e3090]: E.4
+            - text: Agent Poisoning Performance by Artifact Type
+          - paragraph [ref=f4e3092]:
+            - link "Figure 9" [ref=f4e3093] [cursor=pointer]:
+              - /url: "#A5.F9"
+            - text: shows graph and audio metrics for each type of poisoning artifact. We see considerable performance degradation for Gemma 3n at abstraction levels 1 and 2 specifically for overpowered/buried target. For edits like low frequency rumble and mains hum, there are slight degradations between abstraction level in audio match for all three models and more considerable graph structure matching degradations.
+          - 'figure "Figure 9: Graph and audio metrics by class of error and abstraction level for poisoning experiments" [ref=f4e3094]':
+            - generic [ref=f4e3096]:
+              - generic [ref=f4e3097]: "Figure 9:"
+              - text: Graph and audio metrics by class of error and abstraction level for poisoning experiments
+        - generic [ref=f4e3098]:
+          - heading "E.5 Further Abstraction Level Analysis" [level=3] [ref=f4e3099]:
+            - generic [ref=f4e3100]: E.5
+            - text: Further Abstraction Level Analysis
+          - paragraph [ref=f4e3102]:
+            - text: We further explore the role of abstraction level in zero-shot agent performance.
+            - link "Figure 10" [ref=f4e3103] [cursor=pointer]:
+              - /url: "#A5.F10"
+            - text: highlights a clear decrease in both audio match and direction match for all three models from abstraction layer 0 to abstraction layer 2. Gemma 3n SFT does decrease across abstraction level, but at a much smaller rate than any baseline model and outperforms all baselines on audio match at AL1 and AL2 and direction match at AL2.
+          - 'figure "Figure 10: Audio and graph abstraction layer metrics" [ref=f4e3104]':
+            - generic [ref=f4e3106]:
+              - generic [ref=f4e3107]: "Figure 10:"
+              - text: Audio and graph abstraction layer metrics
+          - paragraph [ref=f4e3109]:
+            - link "Figure 11" [ref=f4e3110] [cursor=pointer]:
+              - /url: "#A5.F11"
+            - text: shows a clear decrease by abstraction layer in audio composite and graph composite scores for both GPT-4o Mini and Gemma 3n. While Gemma 3n SFT has comparable or worse performance than baseline models at AL0 and AL1, it clearly outperforms all three models in both audio and graph composite at AL2.
+          - 'figure "Figure 11: Audio and graph composite scores with confidence intervals by abstraction level" [ref=f4e3111]':
+            - generic [ref=f4e3113]:
+              - generic [ref=f4e3114]: "Figure 11:"
+              - text: Audio and graph composite scores with confidence intervals by abstraction level
+          - paragraph [ref=f4e3116]:
+            - link "Figure 12" [ref=f4e3117] [cursor=pointer]:
+              - /url: "#A5.F12"
+            - text: at
+            - math [ref=f4e3118]:
+              - generic [ref=f4e3119]: ϵ
+            - text: values of
+            - math [ref=f4e3121]:
+              - generic [ref=f4e3123]:
+                - generic [ref=f4e3124]:
+                  - generic [ref=f4e3125]: "1"
+                  - generic [ref=f4e3126]:
+                    - generic [ref=f4e3127]: e
+                    - generic [ref=f4e3128]:
+                      - generic [ref=f4e3129]: −
+                      - generic [ref=f4e3130]: "4"
+                - generic [ref=f4e3131]: ","
+                - generic [ref=f4e3132]: "0.001"
+            - text: and
+            - math [ref=f4e3133]:
+              - generic [ref=f4e3134]: ".01"
+            - text: show decreased accuracy for all three models across abstraction layers, primarily with MERT embeddings. At thresholds of
+            - math [ref=f4e3136]:
+              - generic [ref=f4e3138]:
+                - generic [ref=f4e3139]: "1"
+                - generic [ref=f4e3140]: ×
+                - generic [ref=f4e3141]:
+                  - generic [ref=f4e3142]: "10"
+                  - generic [ref=f4e3143]:
+                    - generic [ref=f4e3144]: −
+                    - generic [ref=f4e3145]: "4"
+            - text: ","
+            - math [ref=f4e3146]:
+              - generic [ref=f4e3147]: ".001"
+            - text: and
+            - math [ref=f4e3149]:
+              - generic [ref=f4e3150]: ".01"
+            - text: ", Gemma 3n SFT outperforms all models at AL1 and AL2 with MERT embeddings."
+          - 'figure "Figure 12: Epsilon thresholding accuracy by abstraction level" [ref=f4e3152]':
+            - generic [ref=f4e3154]:
+              - generic [ref=f4e3155]: "Figure 12:"
+              - text: Epsilon thresholding accuracy by abstraction level
+          - paragraph [ref=f4e3157]:
+            - link "Figure 13" [ref=f4e3158] [cursor=pointer]:
+              - /url: "#A5.F13"
+            - text: shows an expanded view of
+            - link "Figure 4" [ref=f4e3159] [cursor=pointer]:
+              - /url: "#S6.F4"
+            - text: sweeping tolerance values of 0 (exact match),
+            - math [ref=f4e3160]:
+              - generic [ref=f4e3161]: ".0001"
+            - text: ","
+            - math [ref=f4e3163]:
+              - generic [ref=f4e3164]: ".001"
+            - text: ","
+            - math [ref=f4e3166]:
+              - generic [ref=f4e3167]: ".005"
+            - text: ", MIDI ("
+            - math [ref=f4e3169]:
+              - generic [ref=f4e3171]:
+                - generic [ref=f4e3172]: OPEN
+                - generic [ref=f4e3173]:
+                  - generic [ref=f4e3174]: "1"
+                  - generic [ref=f4e3175]: "128"
+                - generic [ref=f4e3176]: )
+            - text: ","
+            - math [ref=f4e3177]:
+              - generic [ref=f4e3178]: ".01"
+            - text: ","
+            - math [ref=f4e3180]:
+              - generic [ref=f4e3181]: ".025"
+            - text: ","
+            - math [ref=f4e3183]:
+              - generic [ref=f4e3184]: ".05"
+            - text: ", and"
+            - math [ref=f4e3186]:
+              - generic [ref=f4e3187]: ".1"
+            - text: in normalized parameter space (
+            - math [ref=f4e3189]:
+              - generic [ref=f4e3191]:
+                - generic [ref=f4e3192]: ∈
+                - generic [ref=f4e3193]:
+                  - generic [ref=f4e3194]: "["
+                  - generic [ref=f4e3195]:
+                    - generic [ref=f4e3196]: "0"
+                    - generic [ref=f4e3197]: ","
+                    - generic [ref=f4e3198]: "1"
+                  - generic [ref=f4e3199]: "]"
+            - text: ). Gemma 3n SFT improvement remains consistent across all thresholds.
+          - 'figure "Figure 13: Sweep of tolerance thresholds for graph-level accuracy CIs" [ref=f4e3200]':
+            - generic [ref=f4e3202]:
+              - generic [ref=f4e3203]: "Figure 13:"
+              - text: Sweep of tolerance thresholds for graph-level accuracy CIs
+  - contentinfo [ref=f4e3204]:
+    - generic [ref=f4e3205]:
+      - text: Experimental support, please
+      - link "view the build logs" [ref=f4e3206] [cursor=pointer]:
+        - /url: ./2607.19605v2/__stdout.txt
+      - text: for errors. Generated by
+      - link "L A T E xml [LOGO]" [ref=f4e3207] [cursor=pointer]:
+        - /url: https://math.nist.gov/~BMiller/LaTeXML/
+        - generic [ref=f4e3208]: L A T E
+        - text: xml
+        - img "[LOGO]" [ref=f4e3209]
+      - text: .
+    - generic [ref=f4e3210]:
+      - heading "Instructions for reporting errors" [level=2] [ref=f4e3211]
+      - paragraph [ref=f4e3212]: "We are continuing to improve HTML versions of papers, and your feedback helps enhance accessibility and mobile support. To report errors in the HTML that will help us improve conversion and rendering, choose any of the methods listed below:"
+      - list [ref=f4e3213]:
+        - listitem [ref=f4e3214]: Click the "Report Issue" button, located in the page header.
+      - paragraph [ref=f4e3215]:
+        - strong [ref=f4e3216]: "Tip:"
+        - text: You can select the relevant text first, to include it in your report.
+      - paragraph [ref=f4e3217]:
+        - text: Our team has already identified
+        - link "the following issues" [ref=f4e3218] [cursor=pointer]:
+          - /url: https://github.com/arXiv/html_feedback/issues
+        - text: . We appreciate your time reviewing and reporting rendering errors we may not have found yet. Your efforts will help us improve the HTML versions for all readers, because disability should not be a barrier to accessing research. Thank you for your continued support in championing open access for all.
+      - paragraph [ref=f4e3219]:
+        - text: Have a free development cycle? Help support accessibility at arXiv! Our collaborators at LaTeXML maintain a
+        - link "list of packages that need conversion" [ref=f4e3220] [cursor=pointer]:
+          - /url: https://github.com/brucemiller/LaTeXML/wiki/Porting-LaTeX-packages-for-LaTeXML
+        - text: ", and welcome"
+        - link "developer contributions" [ref=f4e3221] [cursor=pointer]:
+          - /url: https://github.com/brucemiller/LaTeXML/issues
+        - text: .
+  - contentinfo [ref=f4e3222]:
+    - generic [ref=f4e3223]:
+      - generic [ref=f4e3224]:
+        - generic [ref=f4e3225]:
+          - text: We gratefully acknowledge support from our
+          - strong [ref=f4e3226]: major funders
+          - text: ","
+          - link [ref=f4e3227] [cursor=pointer]:
+            - /url: https://info.arxiv.org/about/ourmembers.html
+            - strong [ref=f4e3228]: member institutions
+          - text: ", and all contributors."
+        - navigation "Site navigation" [ref=f4e3229]:
+          - link "About" [ref=f4e3230] [cursor=pointer]:
+            - /url: https://info.arxiv.org/about
+          - generic [aria-hidden] [ref=f4e3231]: ·
+          - link "Help" [ref=f4e3232] [cursor=pointer]:
+            - /url: https://info.arxiv.org/help
+          - generic [aria-hidden] [ref=f4e3233]: ·
+          - link "Contact" [ref=f4e3234] [cursor=pointer]:
+            - /url: https://info.arxiv.org/help/contact.html
+          - generic [aria-hidden] [ref=f4e3235]: ·
+          - link "Subscribe" [ref=f4e3236] [cursor=pointer]:
+            - /url: https://info.arxiv.org/help/subscribe
+          - generic [aria-hidden] [ref=f4e3237]: ·
+          - link "Copyright" [ref=f4e3238] [cursor=pointer]:
+            - /url: https://info.arxiv.org/help/license/index.html
+          - generic [aria-hidden] [ref=f4e3239]: ·
+          - link "Privacy" [ref=f4e3240] [cursor=pointer]:
+            - /url: https://info.arxiv.org/help/policies/privacy_policy.html
+          - generic [aria-hidden] [ref=f4e3241]: ·
+          - link "Accessibility" [ref=f4e3242] [cursor=pointer]:
+            - /url: https://info.arxiv.org/help/web_accessibility.html
+          - generic [aria-hidden] [ref=f4e3243]: ·
+          - link "Operational Status (opens in new tab)" [ref=f4e3244] [cursor=pointer]:
+            - /url: https://status.arxiv.org
+            - text: Operational Status
+            - generic [ref=f4e3245]: (opens in new tab)
+      - generic "Major funders" [ref=f4e3246]:
+        - generic [ref=f4e3247]: Major funding support from
+        - generic [ref=f4e3248]:
+          - link [ref=f4e3249] [cursor=pointer]:
+            - /url: https://www.simonsfoundation.org/
+            - img "Simons Foundation" [ref=f4e3250]
+          - link [ref=f4e3251] [cursor=pointer]:
+            - /url: https://www.sfi.org.bm/
+            - img "Simons Foundation International" [ref=f4e3252]
+          - link [ref=f4e3253] [cursor=pointer]:
+            - /url: https://www.schmidtsciences.org/
+            - img "Schmidt Sciences" [ref=f4e3254]

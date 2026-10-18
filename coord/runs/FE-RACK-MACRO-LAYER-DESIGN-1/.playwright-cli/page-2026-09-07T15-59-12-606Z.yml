@@ -1,0 +1,402 @@
+- generic [active] [ref=f21e1]:
+  - generic [ref=f21e2]:
+    - generic [ref=f21e3]:
+      - link "Skip to content" [ref=f21e4] [cursor=pointer]:
+        - /url: "#start-of-content"
+      - banner [ref=f21e9]:
+        - heading "Navigation Menu" [level=2] [ref=f21e10]
+        - generic [ref=f21e11]:
+          - link "Homepage" [ref=f21e13] [cursor=pointer]:
+            - /url: /
+          - generic [ref=f21e16]:
+            - navigation "Global" [ref=f21e17]:
+              - list [ref=f21e18]:
+                - listitem [ref=f21e19]:
+                  - button "Platform" [ref=f21e21] [cursor=pointer]
+                - listitem [ref=f21e24]:
+                  - button "Solutions" [ref=f21e26] [cursor=pointer]
+                - listitem [ref=f21e29]:
+                  - button "Resources" [ref=f21e31] [cursor=pointer]
+                - listitem [ref=f21e34]:
+                  - button "Open Source" [ref=f21e36] [cursor=pointer]
+                - listitem [ref=f21e39]:
+                  - button "Enterprise" [ref=f21e41] [cursor=pointer]
+                - listitem [ref=f21e44]:
+                  - link "Pricing" [ref=f21e45] [cursor=pointer]:
+                    - /url: https://github.com/pricing
+            - generic [ref=f21e46]:
+              - button "Search or jump to, type / to search" [ref=f21e48] [cursor=pointer]
+              - link "Sign in" [ref=f21e55] [cursor=pointer]:
+                - /url: /login?return_to=https%3A%2F%2Fgithub.com%2FSonyResearch%2FLLM2Fx%2Ftree%2Fmain%2Fllm2fx-tools
+              - link "Sign up" [ref=f21e58] [cursor=pointer]:
+                - /url: /signup?ref_cta=Sign+up&ref_loc=header+logged+out&ref_page=%2F%3Cuser-name%3E%2F%3Crepo-name%3E%2Ffiles%2Fdisambiguate&source=header-repo&source_repo=SonyResearch%2FLLM2Fx
+              - button "Appearance settings" [ref=f21e61] [cursor=pointer]
+    - main [ref=f21e68]:
+      - generic [ref=f21e69]:
+        - generic [ref=f21e70]:
+          - generic [ref=f21e72]:
+            - link "SonyResearch" [ref=f21e76] [cursor=pointer]:
+              - /url: /SonyResearch
+            - generic [ref=f21e77]: /
+            - strong [ref=f21e78]:
+              - link "LLM2Fx" [ref=f21e79] [cursor=pointer]:
+                - /url: /SonyResearch/LLM2Fx
+            - generic [ref=f21e80]: Public
+          - generic [ref=f21e81]:
+            - list:
+              - listitem [ref=f21e82]:
+                - link "You must be signed in to change notification settings" [ref=f21e83] [cursor=pointer]:
+                  - /url: /login?return_to=%2FSonyResearch%2FLLM2Fx
+                  - text: Notifications
+              - listitem [ref=f21e86]:
+                - link "Fork 6" [ref=f21e87] [cursor=pointer]:
+                  - /url: /login?return_to=%2FSonyResearch%2FLLM2Fx
+                  - text: Fork
+                  - generic "6" [ref=f21e90]
+              - listitem [ref=f21e91]:
+                - link "You must be signed in to star a repository" [ref=f21e93] [cursor=pointer]:
+                  - /url: /login?return_to=%2FSonyResearch%2FLLM2Fx
+                  - text: Star
+                  - generic "51 users starred this repository" [ref=f21e96]: "51"
+        - navigation "Repository" [ref=f21e97]:
+          - list [ref=f21e98]:
+            - listitem [ref=f21e99]:
+              - link "Code" [ref=f21e100] [cursor=pointer]:
+                - /url: /SonyResearch/LLM2Fx
+            - listitem [ref=f21e104]:
+              - link "Issues 1" [ref=f21e105] [cursor=pointer]:
+                - /url: /SonyResearch/LLM2Fx/issues
+                - generic [ref=f21e109]: Issues
+                - generic "1" [ref=f21e110]
+            - listitem [ref=f21e111]:
+              - link "Pull requests 1" [ref=f21e112] [cursor=pointer]:
+                - /url: /SonyResearch/LLM2Fx/pulls
+                - generic [ref=f21e115]: Pull requests
+                - generic "1" [ref=f21e116]
+            - listitem [ref=f21e117]:
+              - link "Actions" [ref=f21e118] [cursor=pointer]:
+                - /url: /SonyResearch/LLM2Fx/actions
+            - listitem [ref=f21e122]:
+              - link "Projects" [ref=f21e123] [cursor=pointer]:
+                - /url: /SonyResearch/LLM2Fx/projects
+            - listitem [ref=f21e127]:
+              - link "Security and quality" [ref=f21e128] [cursor=pointer]:
+                - /url: /SonyResearch/LLM2Fx/security
+            - listitem [ref=f21e132]:
+              - link "Insights" [ref=f21e133] [cursor=pointer]:
+                - /url: /SonyResearch/LLM2Fx/pulse
+      - generic [ref=f21e144]:
+        - generic [ref=f21e146]:
+          - generic [ref=f21e149]:
+            - generic [ref=f21e150]:
+              - generic [ref=f21e151]:
+                - heading "Collapse file tree" [level=2] [ref=f21e152]:
+                  - button "Collapse file tree" [expanded] [ref=f21e153] [cursor=pointer]
+                - heading "Files" [level=2] [ref=f21e157]
+              - generic [ref=f21e158]:
+                - button "main branch" [ref=f21e160] [cursor=pointer]:
+                  - generic [ref=f21e161]: main
+                - button "Search this repository (forward slash)" [ref=f21e166] [cursor=pointer]
+            - combobox "Go to file" [ref=f21e174]
+            - navigation "File Tree Navigation" [ref=f21e180]:
+              - tree "Files" [ref=f21e182]:
+                - treeitem "llm2fx-1" [level=1] [ref=f21e183]
+                - treeitem "llm2fx-tools" [expanded] [level=1] [ref=f21e195]:
+                  - group "llm2fx-tools" [ref=f21e207]:
+                    - treeitem "llm4mp" [level=2] [ref=f21e208]
+                    - treeitem "README.md" [level=2] [ref=f21e223]
+                    - treeitem "pyproject.toml" [level=2] [ref=f21e234]
+                    - treeitem "train.py" [level=2] [ref=f21e245]
+                - treeitem ".gitignore" [level=1] [ref=f21e256]
+                - treeitem "README.md" [level=1] [ref=f21e264]
+          - slider "Draggable pane splitter" [ref=f21e273]
+        - generic [ref=f21e276]:
+          - generic [ref=f21e280]:
+            - generic [ref=f21e282]:
+              - navigation [ref=f21e283]:
+                - heading "Breadcrumbs" [level=2] [ref=f21e284]
+                - list [ref=f21e285]:
+                  - listitem [ref=f21e286]:
+                    - link "LLM2Fx" [ref=f21e287] [cursor=pointer]:
+                      - /url: /SonyResearch/LLM2Fx/tree/main
+              - generic [ref=f21e288]:
+                - text: /
+                - heading "llm2fx-tools" [level=1] [ref=f21e289]
+                - text: /
+              - button "Copy path" [ref=f21e290] [cursor=pointer]
+            - generic [ref=f21e296]:
+              - heading "Directory actions" [level=2] [ref=f21e297]
+              - heading "More options" [level=2] [ref=f21e298]
+              - button "More options" [ref=f21e299] [cursor=pointer]
+          - generic [ref=f21e302]:
+            - generic [ref=f21e304]:
+              - heading "Latest commit" [level=2] [ref=f21e305]
+              - generic [ref=f21e308]:
+                - heading "History" [level=2] [ref=f21e309]
+                - link "History" [ref=f21e310] [cursor=pointer]:
+                  - /url: /SonyResearch/LLM2Fx/commits/main/llm2fx-tools
+            - generic [ref=f21e313]:
+              - generic [ref=f21e314]:
+                - heading "Folders and files" [level=2] [ref=f21e315]
+                - table "Folders and files" [ref=f21e316]:
+                  - rowgroup [ref=f21e317]:
+                    - row [ref=f21e318]:
+                      - columnheader "Name" [ref=f21e319]
+                      - columnheader "Last commit message" [ref=f21e320]
+                      - columnheader "Last commit date" [ref=f21e322]
+                  - rowgroup [ref=f21e324]:
+                    - row [ref=f21e325]:
+                      - cell [ref=f21e326]:
+                        - heading "parent directory" [level=3] [ref=f21e327]
+                        - link "Parent directory" [ref=f21e328] [cursor=pointer]:
+                          - /url: /SonyResearch/LLM2Fx/tree/main
+                          - generic [ref=f21e329]: ..
+                    - row "llm4mp, (Directory)" [ref=f21e332]:
+                      - cell [ref=f21e333]:
+                        - link "llm4mp, (Directory)" [ref=f21e340] [cursor=pointer]:
+                          - /url: /SonyResearch/LLM2Fx/tree/main/llm2fx-tools/llm4mp
+                          - text: llm4mp
+                      - cell [ref=f21e341]
+                      - cell [ref=f21e343]
+                    - row "README.md, (File)" [ref=f21e346]:
+                      - cell [ref=f21e347]:
+                        - link "README.md, (File)" [ref=f21e354] [cursor=pointer]:
+                          - /url: /SonyResearch/LLM2Fx/blob/main/llm2fx-tools/README.md
+                          - text: README.md
+                      - cell [ref=f21e355]
+                      - cell [ref=f21e357]
+                    - row "pyproject.toml, (File)" [ref=f21e360]:
+                      - cell [ref=f21e361]:
+                        - link "pyproject.toml, (File)" [ref=f21e368] [cursor=pointer]:
+                          - /url: /SonyResearch/LLM2Fx/blob/main/llm2fx-tools/pyproject.toml
+                          - text: pyproject.toml
+                      - cell [ref=f21e369]
+                      - cell [ref=f21e371]
+                    - row "train.py, (File)" [ref=f21e374]:
+                      - cell [ref=f21e375]:
+                        - link "train.py, (File)" [ref=f21e382] [cursor=pointer]:
+                          - /url: /SonyResearch/LLM2Fx/blob/main/llm2fx-tools/train.py
+                          - text: train.py
+                      - cell [ref=f21e383]
+                      - cell [ref=f21e385]
+              - generic [ref=f21e389]:
+                - generic [ref=f21e390]:
+                  - heading [level=2] [ref=f21e391]:
+                    - link "README.md" [ref=f21e392] [cursor=pointer]:
+                      - /url: "#readme"
+                  - button "Outline" [ref=f21e393] [cursor=pointer]
+                - article [ref=f21e397]:
+                  - generic [ref=f21e398]:
+                    - 'heading "LLM2Fx-Tools: Tool Calling For Music Post-Production" [level=1] [ref=f21e399]'
+                    - 'link "Permalink: LLM2Fx-Tools: Tool Calling For Music Post-Production" [ref=f21e400] [cursor=pointer]':
+                      - /url: "#llm2fx-tools-tool-calling-for-music-post-production"
+                  - list [ref=f21e403]:
+                    - listitem [ref=f21e404]:
+                      - strong [ref=f21e405]: Paper
+                      - text: ":"
+                      - link "arXiv:2512.01559" [ref=f21e406] [cursor=pointer]:
+                        - /url: https://arxiv.org/abs/2512.01559
+                    - listitem [ref=f21e407]:
+                      - strong [ref=f21e408]: Demo
+                      - text: ":"
+                      - link "llm2fx-tools-demo" [ref=f21e409] [cursor=pointer]:
+                        - /url: https://seungheondoh.github.io/llm2fx-tools-demo/
+                    - listitem [ref=f21e410]:
+                      - strong [ref=f21e411]: Dataset
+                      - text: ": (coming soon)"
+                  - paragraph [ref=f21e412]: A multimodal framework that fine-tunes LLMs to generate executable sequences of audio effect tool calls for music post-production. Given a pair of dry and wet audio signals, the model predicts the effect chain (type, order, and parameters) as structured tool calls via Supervised Fine-Tuning (SFT).
+                  - generic [ref=f21e413]:
+                    - heading "Architecture" [level=2] [ref=f21e414]
+                    - 'link "Permalink: Architecture" [ref=f21e415] [cursor=pointer]':
+                      - /url: "#architecture"
+                  - paragraph [ref=f21e418]: "The system is composed of three trainable components:"
+                  - generic [ref=f21e419]:
+                    - code [ref=f21e421]: "[Dry Audio] ──► Audio Encoder ──►┐ ├──► Projection Layer ──► LLM (LoRA SFT) ──► Tool Call Sequence [Wet Audio] ──► Audio Encoder ──►┘"
+                    - button "Copy code to clipboard" [ref=f21e423] [cursor=pointer]
+                  - list [ref=f21e427]:
+                    - listitem [ref=f21e428]:
+                      - strong [ref=f21e429]: Audio Encoder
+                      - text: ": Encodes dry/wet audio pairs into embeddings ("
+                      - code [ref=f21e430]: fxenc_plusplus
+                      - text: ","
+                      - code [ref=f21e431]: fxenc
+                      - text: ","
+                      - code [ref=f21e432]: clap
+                      - text: ", or"
+                      - code [ref=f21e433]: stito_encoder
+                      - text: )
+                    - listitem [ref=f21e434]:
+                      - strong [ref=f21e435]: Projection Layer
+                      - text: ": MLP or cross-attention adapter that maps audio embeddings to the LLM's hidden dimension"
+                    - listitem [ref=f21e436]:
+                      - strong [ref=f21e437]: LLM
+                      - text: ": Qwen3 / Llama / Mistral fine-tuned with LoRA; generates chain-of-thought reasoning followed by structured tool calls"
+                  - paragraph [ref=f21e438]:
+                    - strong [ref=f21e439]: "Supported effects (DASP backend):"
+                    - code [ref=f21e440]: gain
+                    - text: ","
+                    - code [ref=f21e441]: distortion
+                    - text: ","
+                    - code [ref=f21e442]: compressor_expander
+                    - text: ","
+                    - code [ref=f21e443]: limiter
+                    - text: ","
+                    - code [ref=f21e444]: panner
+                    - text: ","
+                    - code [ref=f21e445]: imager
+                    - text: ","
+                    - code [ref=f21e446]: reverb
+                    - text: ","
+                    - code [ref=f21e447]: parametric_eq
+                  - paragraph [ref=f21e448]:
+                    - strong [ref=f21e449]: "Supported effects (NDSP/Pedalboard backend):"
+                    - code [ref=f21e450]: gain
+                    - text: ","
+                    - code [ref=f21e451]: distortion
+                    - text: ","
+                    - code [ref=f21e452]: reverb
+                    - text: ","
+                    - code [ref=f21e453]: compressor
+                    - text: ","
+                    - code [ref=f21e454]: delay
+                    - text: ","
+                    - code [ref=f21e455]: limiter
+                    - text: ","
+                    - code [ref=f21e456]: equalizer
+                    - text: ","
+                    - code [ref=f21e457]: panner
+                    - text: ","
+                    - code [ref=f21e458]: stereo_widener
+                  - generic [ref=f21e459]:
+                    - heading "Installation" [level=2] [ref=f21e460]
+                    - 'link "Permalink: Installation" [ref=f21e461] [cursor=pointer]':
+                      - /url: "#installation"
+                  - generic [ref=f21e464]:
+                    - generic [ref=f21e465]: uv venv .venv source .venv/bin/activate uv add torch torchvision torchaudio lightning uv pip install -e .
+                    - button "Copy code to clipboard" [ref=f21e467] [cursor=pointer]
+                  - generic [ref=f21e471]:
+                    - heading "Training" [level=2] [ref=f21e472]
+                    - 'link "Permalink: Training" [ref=f21e473] [cursor=pointer]':
+                      - /url: "#training"
+                  - paragraph [ref=f21e476]: Training is driven by a YAML config file using PyTorch Lightning with FSDP or DDP support.
+                  - generic [ref=f21e477]:
+                    - generic [ref=f21e478]:
+                      - generic [ref=f21e479]: "# Single GPU"
+                      - text: python train.py --config configs/your_config.yaml
+                      - generic [ref=f21e480]: "# Multi-GPU with FSDP"
+                      - text: torchrun --nproc_per_node=8 train.py --config configs/your_config.yaml
+                    - button "Copy code to clipboard" [ref=f21e482] [cursor=pointer]
+                  - paragraph [ref=f21e486]: "Key config options:"
+                  - table [ref=f21e488]:
+                    - rowgroup [ref=f21e489]:
+                      - row [ref=f21e490]:
+                        - columnheader "Option" [ref=f21e491]
+                        - columnheader "Values" [ref=f21e492]
+                        - columnheader "Description" [ref=f21e493]
+                    - rowgroup [ref=f21e494]:
+                      - row [ref=f21e495]:
+                        - cell [ref=f21e496]:
+                          - code [ref=f21e497]: model_type
+                        - cell [ref=f21e498]:
+                          - code [ref=f21e499]: qwen3
+                          - text: ","
+                          - code [ref=f21e500]: llama
+                          - text: ","
+                          - code [ref=f21e501]: mistral
+                        - cell "Base LLM backbone" [ref=f21e502]
+                      - row [ref=f21e503]:
+                        - cell [ref=f21e504]:
+                          - code [ref=f21e505]: audio_encoder_type
+                        - cell [ref=f21e506]:
+                          - code [ref=f21e507]: fxenc_plusplus
+                          - text: ","
+                          - code [ref=f21e508]: fxenc
+                          - text: ","
+                          - code [ref=f21e509]: clap
+                        - cell "Audio encoder" [ref=f21e510]
+                      - row [ref=f21e511]:
+                        - cell [ref=f21e512]:
+                          - code [ref=f21e513]: projector_type
+                        - cell [ref=f21e514]:
+                          - code [ref=f21e515]: mlp
+                          - text: ","
+                          - code [ref=f21e516]: adapter
+                        - cell "Audio-to-LLM projection" [ref=f21e517]
+                      - row [ref=f21e518]:
+                        - cell [ref=f21e519]:
+                          - code [ref=f21e520]: apply_lora
+                        - cell [ref=f21e521]:
+                          - code [ref=f21e522]: "true"
+                          - text: /
+                          - code [ref=f21e523]: "false"
+                        - cell "LoRA fine-tuning" [ref=f21e524]
+                      - row [ref=f21e525]:
+                        - cell [ref=f21e526]:
+                          - code [ref=f21e527]: loss_type
+                        - cell [ref=f21e528]:
+                          - code [ref=f21e529]: ce
+                          - text: ","
+                          - code [ref=f21e530]: ce_ntl
+                        - cell "Cross-entropy or CE + NT-Loss" [ref=f21e531]
+                      - row [ref=f21e532]:
+                        - cell [ref=f21e533]:
+                          - code [ref=f21e534]: use_cot
+                        - cell [ref=f21e535]:
+                          - code [ref=f21e536]: "true"
+                          - text: /
+                          - code [ref=f21e537]: "false"
+                        - cell "Chain-of-thought in training output" [ref=f21e538]
+                      - row [ref=f21e539]:
+                        - cell [ref=f21e540]:
+                          - code [ref=f21e541]: online_sampling
+                        - cell [ref=f21e542]:
+                          - code [ref=f21e543]: "true"
+                          - text: /
+                          - code [ref=f21e544]: "false"
+                        - cell "Apply FX chains at runtime vs. use pre-computed pairs" [ref=f21e545]
+                      - row [ref=f21e546]:
+                        - cell [ref=f21e547]:
+                          - code [ref=f21e548]: dry_audio_dropout
+                        - cell [ref=f21e549]:
+                          - code [ref=f21e550]: "0.0"
+                          - text: –
+                          - code [ref=f21e551]: "1.0"
+                        - cell "Probability to mask dry audio during training" [ref=f21e552]
+                  - generic [ref=f21e553]:
+                    - heading "Dataset Format" [level=2] [ref=f21e554]
+                    - 'link "Permalink: Dataset Format" [ref=f21e555] [cursor=pointer]':
+                      - /url: "#dataset-format"
+                  - paragraph [ref=f21e558]: "The dataset is loaded from Hugging Face datasets. Each sample contains audio file paths and conversation metadata:"
+                  - generic [ref=f21e559]:
+                    - code [ref=f21e561]: "audio_dir/ └── {fname}/ └── {filename}/ └── {id}/ ├── dry_0.flac ├── wet_0.flac └── ..."
+                    - button "Copy code to clipboard" [ref=f21e563] [cursor=pointer]
+                  - paragraph [ref=f21e567]: "Each metadata record includes:"
+                  - list [ref=f21e568]:
+                    - listitem [ref=f21e569]:
+                      - code [ref=f21e570]: conversations
+                      - text: ": user query / assistant response pairs"
+                    - listitem [ref=f21e571]:
+                      - code [ref=f21e572]: tools
+                      - text: ": list of audio effect tool schemas"
+                    - listitem [ref=f21e573]:
+                      - code [ref=f21e574]: chain_of_thought
+                      - text: ": reasoning text for CoT training"
+                  - generic [ref=f21e575]:
+                    - heading "Citation" [level=2] [ref=f21e576]
+                    - 'link "Permalink: Citation" [ref=f21e577] [cursor=pointer]':
+                      - /url: "#citation"
+                  - generic [ref=f21e580]:
+                    - generic [ref=f21e581]:
+                      - text: "@inproceedings{doh2026llm2fx, title="
+                      - generic [ref=f21e582]: "{LLM2Fx-Tools: Tool Calling For Music Post-Production}"
+                      - text: ", author="
+                      - generic [ref=f21e583]: "{Doh*, Seungheon and Koo*, Junghyun and Mart{\\'\\i}nez-Ram{\\'\\i}rez, Marco A and Choi, Woosung and Liao, Wei-Hsiang and Wu, Qiyu and Nam, Juhan and Mitsufuji, Yuki}"
+                      - text: ", note="
+                      - generic [ref=f21e584]: "{* Equal contribution}"
+                      - text: ", booktitle="
+                      - generic [ref=f21e585]: "{The Thirteenth International Conference on Learning Representations (ICLR)}"
+                      - text: ", year="
+                      - generic [ref=f21e586]: "{2026}"
+                      - text: "}"
+                    - button "Copy code to clipboard" [ref=f21e588] [cursor=pointer]
+  - alert [ref=f21e595]

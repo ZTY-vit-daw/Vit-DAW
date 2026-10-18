@@ -1,0 +1,106 @@
+- main [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - generic "Vit" [ref=e6]:
+        - strong [ref=e7]: V
+      - generic [ref=e10]:
+        - button [active] [ref=e220] [cursor=pointer]:
+          - strong [ref=e12]: /smoke range_context
+        - 'generic "Vit Project · Agent: VitAgent pid=25068 内核: 已连接 tcp://127.0.0.1:5555 影子状态: 已初始化 轨道: 1 最新状态版本 0" [ref=e221]': "Vit Project · VitAgent 路 内核已连接 路 1 条轨道 路 状态 #0"
+    - generic "Transport" [ref=e17]:
+      - button "Play" [ref=e18] [cursor=pointer]
+      - button "Return to zero" [ref=e21] [cursor=pointer]
+      - button "Stop" [ref=e24] [cursor=pointer]
+      - generic [ref=e27]: 00:00:00
+      - spinbutton "Seek seconds" [ref=e28]
+    - generic [ref=e35]:
+      - generic [ref=e36]: 就绪
+      - generic [ref=e43]: "-- BPM"
+      - generic [ref=e47]: "--"
+      - button "Refresh" [ref=e52] [cursor=pointer]
+  - generic [ref=e58]:
+    - navigation "Ask Vit modes" [ref=e59]:
+      - generic [ref=e60]:
+        - button "对话" [ref=e61] [cursor=pointer]
+        - button "轨道" [ref=e66] [cursor=pointer]
+        - button "机架" [ref=e72] [cursor=pointer]
+        - button "MIDI" [ref=e76] [cursor=pointer]
+        - button "混音台" [ref=e80] [cursor=pointer]
+      - generic [ref=e85]:
+        - button "新建" [ref=e86] [cursor=pointer]
+        - button "设置" [ref=e89] [cursor=pointer]
+    - generic [ref=e94]:
+      - generic [ref=e95]:
+        - generic "对话模式" [ref=e96]:
+          - generic [ref=e97]:
+            - button "协作 自然对话" [ref=e98] [cursor=pointer]:
+              - generic [ref=e102]: 协作
+              - generic [ref=e103]: 自然对话
+            - button "计划 只读分析" [ref=e104] [cursor=pointer]:
+              - generic [ref=e115]: 计划
+              - generic [ref=e116]: 只读分析
+            - button "目标 长任务" [ref=e117] [cursor=pointer]:
+              - generic [ref=e121]: 目标
+              - generic [ref=e122]: 长任务
+        - generic [ref=e123]:
+          - article [ref=e222]:
+            - generic [ref=e226]:
+              - generic [ref=e227]: 用户
+              - paragraph [ref=e229]: /smoke range_context
+          - article [ref=e230]:
+            - generic [ref=e235]:
+              - generic [ref=e236]: Vit
+              - paragraph [ref=e238]: "range_context smoke ok: top_level, current_selection, ui_context, prompt_context"
+        - region "任务规划" [ref=e239]:
+          - button "已完成 /smoke range_context" [ref=e240] [cursor=pointer]:
+            - strong [ref=e244]: 已完成
+            - generic "/smoke range_context" [ref=e245]
+          - paragraph [ref=e249]: /smoke range_context
+        - generic [ref=e134]:
+          - textbox "和 Vit 说..." [ref=e135]
+          - generic [ref=e136]:
+            - button "添加上下文、文件或模式选项" [ref=e138] [cursor=pointer]
+            - button "普通确认" [ref=e141] [cursor=pointer]
+            - button "发送" [ref=e148] [cursor=pointer]
+      - separator "右侧面板宽度" [ref=e153]
+      - complementary [ref=e154]:
+        - generic [ref=e155]:
+          - button "资料库" [ref=e156] [cursor=pointer]
+          - button "宏控制" [ref=e161] [cursor=pointer]
+          - button "历史树" [ref=e166] [cursor=pointer]
+          - button "收起右侧面板" [ref=e171] [cursor=pointer]
+        - generic [ref=e251]:
+          - generic [ref=e252]:
+            - generic [ref=e253]:
+              - heading "工程历史" [level=2] [ref=e254]
+              - generic [ref=e255]: Unsaved.vit
+            - button "刷新历史" [ref=e256] [cursor=pointer]
+          - generic [ref=e262]:
+            - generic [ref=e263]:
+              - heading "工作树" [level=2] [ref=e264]
+              - generic [ref=e265]: "1"
+            - button "主工作树 c_20260905 当前" [ref=e267] [cursor=pointer]:
+              - generic [ref=e269]:
+                - strong [ref=e270]: 主工作树
+                - generic [ref=e271]: c_20260905
+              - emphasis [ref=e272]: 当前
+          - generic [ref=e273]:
+            - generic [ref=e274]:
+              - heading "分支" [level=2] [ref=e275]
+              - generic [ref=e276]: "1"
+            - button "main c_20260905 当前" [ref=e278] [cursor=pointer]:
+              - generic [ref=e280]:
+                - strong [ref=e281]: main
+                - generic [ref=e282]: c_20260905
+              - emphasis [ref=e283]: 当前
+          - generic [ref=e284]:
+            - generic [ref=e285]:
+              - heading "Ask Vit 历史树" [level=2] [ref=e286]
+              - generic [ref=e287]: "2"
+            - generic [ref=e289]:
+              - button "Ask c_20260905" [ref=e290] [cursor=pointer]:
+                - strong [ref=e291]: Ask
+                - generic [ref=e292]: c_20260905
+              - button "Vit c_20260905" [ref=e293] [cursor=pointer]:
+                - strong [ref=e294]: Vit
+                - generic [ref=e295]: c_20260905

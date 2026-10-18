@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>机架宏控制层 v2 · 控件族谱+双面架构 — FE-RACK-MACRO-LAYER-DESIGN-1</title>
+<style>
+  :root {
+    --bg: #0a0d12; --canvas: #0d1117; --panel: #161b22; --card: #1e2430;
+    --border: #2d333b; --text: #c9d1d9; --dim: #8b949e;
+    --violet: #a78bfa; --violet-dim: #7c6bb8; --violet-bg: #1a1530;
+    --orange: #f0883e; --cyan: #39c5cf; --green: #3fb950; --signal: #8b949e;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif; padding: 28px 36px 60px; }
+  .mono { font-family: Consolas, "Cascadia Code", monospace; }
+  header { margin-bottom: 22px; }
+  header h1 { font-size: 21px; font-weight: 600; }
+  header h1 .ver { color: var(--violet); }
+  header .meta { color: var(--dim); font-size: 12.5px; margin-top: 6px; line-height: 1.6; }
+  header .meta b { color: var(--text); }
+  figure { margin: 30px 0 8px; }
+  figcaption { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  figcaption .tag { font-size: 11px; font-weight: 600; background: #21262d; border: 1px solid var(--border); border-radius: 4px; padding: 2px 7px; margin-right: 8px; vertical-align: 1px; }
+  .note { color: var(--dim); font-size: 12.5px; margin-bottom: 10px; line-height: 1.6; }
+  .note b { color: var(--text); }
+  svg { display: block; background: var(--canvas); border: 1px solid var(--border); border-radius: 10px; }
+  .qa { margin-top: 34px; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 18px 22px; }
+  .qa h2 { font-size: 15px; margin-bottom: 10px; color: var(--orange); }
+  .qa ol { padding-left: 22px; line-height: 1.9; font-size: 13.5px; }
+  .qa .opt { color: var(--cyan); }
+  footer { color: var(--dim); font-size: 12px; margin-top: 26px; line-height: 1.7; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>机架宏控制层 <span class="ver">v2</span> · 控件族谱 + 双面架构</h1>
+  <div class="meta">卡 <b>129</b> · 2026-10-18 深夜 · 第二轮样稿（<b>待迭代</b>） · v1 反馈=方向对/要 MAX·MSP 式<b>多类型控件库</b>+<b>agent 侧同步生成控件</b>双面考虑 ·
+    内核事实：control graph 原生支持 <b class="mono">slider / knob / xypad / toggle / button / numberbox / range / envelope / lfo / stepsequencer</b> 十类控件节点（VitParamSurface::supportedControlKinds，未知类型 fail-open 归 slider）——族谱不是新机制，是把内核已有词汇画全。</div>
+</header>
+
+<!-- ═══════════════ 图 1：控件族谱 ═══════════════ -->
+<figure>
+  <figcaption><span class="tag">图 1</span>控件族谱（十类，内核原生 kind 词表）</figcaption>
+  <div class="note">三组分区：<b style="color:var(--violet)">连续量</b>（knob/slider/numberbox/xypad——日常混音主力）·
+    <b style="color:var(--cyan)">开关触发</b>（toggle/button）·
+    <b style="color:var(--orange)">时变形</b>（range/envelope/lfo/stepsequencer——调制类，<b>K3 第一批只做静态绑定，时变类渲染壳先落、绑定语义后续卡</b>，分期见表 4）。
+    每卡左下=kind 名（内核词表原词），右下=适用参数特征。</div>
+  <svg viewBox="0 0 1360 620" width="1360">
+    <defs>
+      <linearGradient id="dialArc" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#c4b5fd"/><stop offset="1" stop-color="#8b5cf6"/>
+      </linearGradient>
+    </defs>
+
+    <!-- ── 第一行：连续量 ── -->
+    <!-- knob -->
+    <g>
+      <rect x="30" y="30" width="248" height="270" rx="10" fill="#1e2430" stroke="#a78bfa" stroke-opacity=".35"/>
+      <rect x="30" y="30" width="4" height="270" rx="2" fill="#a78bfa"/>
+      <circle cx="154" cy="120" r="40" fill="#0d1117" stroke="#3d444d" stroke-width="3"/>
+      <path d="M 154 120 L 154 80 A 40 40 0 1 1 124 94" fill="none" stroke="url(#dialArc)" stroke-width="7" stroke-linecap="round"/>
+      <circle cx="154" cy="120" r="4.5" fill="#c4b5fd"/>
+      <text x="120" y="190" font-size="15" class="mono" fill="#c4b5fd">62%</text>
+      <text x="50" y="262" font-size="13" font-weight="600" fill="#c9d1d9">knob 旋钮</text>
+      <text x="50" y="282" font-size="11" fill="#8b949e">连续量·单参数·缺省首选</text>
+      <text x="248" y="282" font-size="10" class="mono" fill="#7c6bb8" text-anchor="end">kind=knob</text>
+    </g>
+    <!-- slider 横+竖 -->
+    <g>
+      <rect x="294" y="30" width="248" height="270" rx="10" fill="#1e2430" stroke="#a78bfa" stroke-opacity=".35"/>
+      <rect x="294" y="30" width="4" height="270" rx="2" fill="#a78bfa"/>
+      <!-- 横滑杆 -->
+      <rect x="322" y="86" width="150" height="8" rx="4" fill="#0d1117" stroke="#3d444d"/>
+      <rect x="322" y="86" width="94" height="8" rx="4" fill="url(#dialArc)"/>
+      <circle cx="416" cy="90" r="11" fill="#1e2430" stroke="#a78bfa" stroke-width="2.4"/>
+      <text x="322" y="72" font-size="10.5" fill="#8b949e">space</text>
+      <text x="472" y="72" font-size="10.5" class="mono" fill="#c4b5fd" text-anchor="end">0.62</text>
+      <!-- 竖滑杆 -->
+      <rect x="500" y="106" width="8" height="120" rx="4" fill="#0d1117" stroke="#3d444d"/>
+      <rect x="500" y="170" width="8" height="56" rx="4" fill="url(#dialArc)"/>
+      <circle cx="504" cy="170" r="11" fill="#1e2430" stroke="#a78bfa" stroke-width="2.4"/>
+      <text x="314" y="262" font-size="13" font-weight="600" fill="#c9d1d9">slider 滑杆（横/竖）</text>
+      <text x="314" y="282" font-size="11" fill="#8b949e">连续量·精细拖拽·长行程</text>
+      <text x="512" y="282" font-size="10" class="mono" fill="#7c6bb8" text-anchor="end">kind=slider</text>
+    </g>
+    <!-- numberbox -->
+    <g>
+      <rect x="558" y="30" width="248" height="270" rx="10" fill="#1e2430" stroke="#a78bfa" stroke-opacity=".35"/>
+      <rect x="558" y="30" width="4" height="270" rx="2" fill="#a78bfa"/>
+      <rect x="590" y="88" width="184" height="46" rx="6" fill="#0d1117" stroke="#a78bfa" stroke-opacity=".7"/>
+      <text x="604" y="118" font-size="19" class="mono" fill="#c4b5fd">1.90</text>
+      <text x="742" y="106" font-size="10" fill="#7c6bb8">▲</text>
+      <text x="742" y="128" font-size="10" fill="#7c6bb8">▼</text>
+      <text x="590" y="168" font-size="10.5" fill="#8b949e">s（单位标注可选）</text>
+      <rect x="590" y="188" width="120" height="34" rx="6" fill="#0d1117" stroke="#3d444d"/>
+      <text x="600" y="210" font-size="13" class="mono" fill="#c9d1d9">-6.0 dB</text>
+      <text x="578" y="262" font-size="13" font-weight="600" fill="#c9d1d9">numberbox 数字框</text>
+      <text x="578" y="282" font-size="11" fill="#8b949e">精确键入·步进·跳变对比</text>
+      <text x="782" y="282" font-size="10" class="mono" fill="#7c6bb8" text-anchor="end">kind=numberbox</text>
+    </g>
+    <!-- xypad -->
+    <g>
+      <rect x="822" y="30" width="248" height="270" rx="10" fill="#1e2430" stroke="#a78bfa" stroke-opacity=".5"/>
+      <rect x="822" y="30" width="4" height="270" rx="2" fill="#a78bfa"/>
+      <rect x="856" y="62" width="164" height="164" rx="8" fill="#0d1117" stroke="#a78bfa" stroke-opacity=".7"/>
+      <line x1="856" y1="144" x2="1020" y2="144" stroke="#2d333b" stroke-dasharray="4 4"/>
+      <line x1="938" y1="62" x2="938" y2="226" stroke="#2d333b" stroke-dasharray="4 4"/>
+      <circle cx="974" cy="112" r="12" fill="#1a1530" stroke="#a78bfa" stroke-width="2.6"/>
+      <circle cx="974" cy="112" r="3.5" fill="#c4b5fd"/>
+      <text x="856" y="52" font-size="10.5" fill="#8b949e">Y → decay</text>
+      <text x="1020" y="244" font-size="10.5" fill="#8b949e" text-anchor="end">X → 发送量</text>
+      <!-- 双输出锚 -->
+      <circle cx="1052" cy="100" r="5.5" fill="#0d1117" stroke="#a78bfa" stroke-width="2.2"/>
+      <circle cx="1052" cy="188" r="5.5" fill="#0d1117" stroke="#a78bfa" stroke-width="2.2"/>
+      <text x="1062" y="96" font-size="9.5" fill="#7c6bb8">out_x</text>
+      <text x="1062" y="206" font-size="9.5" fill="#7c6bb8">out_y</text>
+      <text x="842" y="262" font-size="13" font-weight="600" fill="#c9d1d9">xypad XY 垫</text>
+      <text x="842" y="282" font-size="11" fill="#8b949e">一控件双输出·绑两个参数</text>
+      <text x="1046" y="282" font-size="10" class="mono" fill="#7c6bb8" text-anchor="end">kind=xypad</text>
+    </g>
+    <!-- 第一行第五格：连续量小结牌 -->
+    <g>
+      <rect x="1086" y="30" width="244" height="270" rx="10" fill="#131820" stroke="#21262d"/>
+      <text x="1104" y="60" font-size="13" font-weight="700" fill="#a78bfa">连续量组</text>
+      <text x="1104" y="88" font-size="11.5" fill="#8b949e">· 单参数单绑定</text>
+      <text x="1104" y="110" font-size="11.5" fill="#8b949e">· xypad 双参数双绑定</text>
+      <text x="1104" y="132" font-size="11.5" fill="#8b949e">  （binding.source_output）</text>
+      <text x="1104" y="168" font-size="11.5" fill="#c9d1d9">典型宏：</text>
+      <text x="1104" y="190" font-size="11.5" fill="#8b949e">「空间感」knob 同时带</text>
+      <text x="1104" y="212" font-size="11.5" fill="#8b949e">send 量+decay（v1 示例）</text>
+      <text x="1104" y="248" font-size="11.5" fill="#c9d1d9">「声像/滤波联动」= xypad</text>
+      <text x="1104" y="270" font-size="11.5" fill="#8b949e">X=pan Y=filter</text>
+    </g>
+
+    <!-- ── 第二行：开关触发 + 时变形 ── -->
+    <!-- toggle -->
+    <g>
+      <rect x="30" y="322" width="248" height="270" rx="10" fill="#1e2430" stroke="#39c5cf" stroke-opacity=".35"/>
+      <rect x="30" y="322" width="4" height="270" rx="2" fill="#39c5cf"/>
+      <rect x="86" y="382" width="76" height="40" rx="20" fill="#0d1117" stroke="#3d444d"/>
+      <circle cx="122" cy="402" r="15" fill="#39c5cf"/>
+      <rect x="180" y="386" width="56" height="32" rx="16" fill="#0d1117" stroke="#3d444d"/>
+      <circle cx="196" cy="402" r="12" fill="#3d444d"/>
+      <text x="86" y="446" font-size="10.5" fill="#8b949e">开（发送通）</text>
+      <text x="180" y="446" font-size="10.5" fill="#8b949e">关</text>
+      <rect x="86" y="466" width="26" height="26" rx="4" fill="#0d1117" stroke="#39c5cf"/>
+      <path d="M 92 480 l 6 6 l 11 -13" stroke="#39c5cf" stroke-width="2.6" fill="none"/>
+      <text x="124" y="484" font-size="10.5" fill="#8b949e">A/B 快照切换位</text>
+      <text x="50" y="554" font-size="13" font-weight="600" fill="#c9d1d9">toggle 开关</text>
+      <text x="50" y="574" font-size="11" fill="#8b949e">两态参数·bypass/通断</text>
+      <text x="248" y="574" font-size="10" class="mono" fill="#7c6bb8" text-anchor="end">kind=toggle</text>
+    </g>
+    <!-- button -->
+    <g>
+      <rect x="294" y="322" width="248" height="270" rx="10" fill="#1e2430" stroke="#39c5cf" stroke-opacity=".35"/>
+      <rect x="294" y="322" width="4" height="270" rx="2" fill="#39c5cf"/>
+      <circle cx="360" cy="400" r="26" fill="#0d1117" stroke="#a78bfa" stroke-width="2.6"/>
+      <circle cx="360" cy="400" r="36" fill="none" stroke="#a78bfa" stroke-opacity=".28" stroke-width="5"/>
+      <circle cx="360" cy="400" r="46" fill="none" stroke="#a78bfa" stroke-opacity=".1" stroke-width="5"/>
+      <text x="410" y="394" font-size="10.5" fill="#8b949e">bang（触发涟漪）</text>
+      <rect x="410" y="410" width="102" height="34" rx="6" fill="#21262d" stroke="#8b949e"/>
+      <text x="440" y="432" font-size="12" fill="#c9d1d9"> Punch!</text>
+      <text x="314" y="554" font-size="13" font-weight="600" fill="#c9d1d9">button 触发</text>
+      <text x="314" y="574" font-size="11" fill="#8b949e">瞬时动作·无保持值</text>
+      <text x="512" y="574" font-size="10" class="mono" fill="#7c6bb8" text-anchor="end">kind=button</text>
+    </g>
+    <!-- range -->
+    <g>
+      <rect x="558" y="322" width="248" height="270" rx="10" fill="#1e2430" stroke="#f0883e" stroke-opacity=".4"/>
+      <rect x="558" y="322" width="4" height="270" rx="2" fill="#f0883e"/>
+      <rect x="590" y="400" width="184" height="8" rx="4" fill="#0d1117" stroke="#3d444d"/>
+      <rect x="640" y="400" width="82" height="8" rx="4" fill="#f0883e" fill-opacity=".75"/>
+      <circle cx="640" cy="404" r="10" fill="#1e2430" stroke="#f0883e" stroke-width="2.2"/>
+      <circle cx="722" cy="404" r="10" fill="#1e2430" stroke="#f0883e" stroke-width="2.2"/>
+      <text x="590" y="388" font-size="10" class="mono" fill="#8b949e">200 Hz</text>
+      <text x="774" y="388" font-size="10" class="mono" fill="#8b949e" text-anchor="end">2.4 kHz</text>
+      <text x="578" y="554" font-size="13" font-weight="600" fill="#c9d1d9">range 范围杆</text>
+      <text x="578" y="574" font-size="11" fill="#8b949e">双端参数·频段/时间窗</text>
+      <text x="782" y="574" font-size="10" class="mono" fill="#7c6bb8" text-anchor="end">kind=range</text>
+    </g>
+    <!-- envelope -->
+    <g>
+      <rect x="822" y="322" width="248" height="270" rx="10" fill="#1e2430" stroke="#f0883e" stroke-opacity=".4"/>
+      <rect x="822" y="322" width="4" height="270" rx="2" fill="#f0883e"/>
+      <rect x="854" y="360" width="184" height="100" rx="6" fill="#0d1117" stroke="#3d444d"/>
+      <path d="M 862 448 L 862 380 L 916 408 L 990 444 L 1030 448" fill="none" stroke="#f0883e" stroke-width="2.2"/>
+      <circle cx="862" cy="380" r="4.5" fill="#0d1117" stroke="#f0883e" stroke-width="2"/>
+      <circle cx="916" cy="408" r="4.5" fill="#0d1117" stroke="#f0883e" stroke-width="2"/>
+      <circle cx="990" cy="444" r="4.5" fill="#0d1117" stroke="#f0883e" stroke-width="2"/>
+      <text x="854" y="480" font-size="10" fill="#8b949e">A · D · S · R 拖点</text>
+      <text x="842" y="554" font-size="13" font-weight="600" fill="#c9d1d9">envelope 包络</text>
+      <text x="842" y="574" font-size="11" fill="#8b949e">时变形·<K3 渲染壳先行></text>
+      <text x="1046" y="574" font-size="10" class="mono" fill="#7c6bb8" text-anchor="end">kind=envelope</text>
+    </g>
+    <!-- lfo + stepsequencer 合卡 -->
+    <g>
+      <rect x="1086" y="322" width="244" height="270" rx="10" fill="#1e2430" stroke="#f0883e" stroke-opacity=".4"/>
+      <rect x="1086" y="322" width="4" height="270" rx="2" fill="#f0883e"/>
+      <rect x="1110" y="348" width="196" height="64" rx="6" fill="#0d1117" stroke="#3d444d"/>
+      <path d="M 1116 380 Q 1132 352 1148 380 T 1180 380 T 1212 380 T 1244 380 T 1276 380 T 1296 380" fill="none" stroke="#f0883e" stroke-width="2"/>
+      <text x="1110" y="428" font-size="10" fill="#8b949e">lfo（速率/波形/深度）</text>
+      <rect x="1110" y="446" width="196" height="52" rx="6" fill="#0d1117" stroke="#3d444d"/>
+      <g fill="#f0883e" fill-opacity=".85">
+        <rect x="1118" y="478" width="10" height="16" rx="2"/>
+        <rect x="1132" y="462" width="10" height="32" rx="2"/>
+        <rect x="1146" y="470" width="10" height="24" rx="2"/>
+        <rect x="1160" y="486" width="10" height="8" rx="2"/>
+        <rect x="1174" y="466" width="10" height="28" rx="2"/>
+        <rect x="1188" y="474" width="10" height="20" rx="2"/>
+        <rect x="1202" y="482" width="10" height="12" rx="2"/>
+        <rect x="1216" y="460" width="10" height="34" rx="2"/>
+      </g>
+      <g fill="#21262d">
+        <rect x="1230" y="486" width="10" height="8" rx="2"/><rect x="1244" y="486" width="10" height="8" rx="2"/>
+        <rect x="1258" y="486" width="10" height="8" rx="2"/><rect x="1272" y="486" width="10" height="8" rx="2"/>
+      </g>
+      <text x="1110" y="514" font-size="10" fill="#8b949e">stepsequencer（8-16 步）</text>
+      <text x="1106" y="554" font-size="13" font-weight="600" fill="#c9d1d9">lfo / stepseq</text>
+      <text x="1106" y="574" font-size="11" fill="#8b949e">时变形·调制源·<K3 壳先行></text>
+    </g>
+  </svg>
+</figure>
+
+<!-- ═══════════════ 图 2：机架控制层全景 v2（混排宏卡） ═══════════════ -->
+<figure>
+  <figcaption><span class="tag">图 2</span>机架控制层全景 v2 · 混排宏卡（一卡多类型控件）</figcaption>
+  <div class="note">v1 的「空间感」升级为<b>混排卡</b>：knob（空间量）+toggle（发送通/断）+numberbox（decay 直显）；新增「声像运动」卡=xypad+滑杆。
+    xypad 一控件出<b>两条</b>紫虚线（out_x→发送量、out_y→ZamVerb Decay）。信号层压淡为背景。</div>
+  <svg viewBox="0 0 1360 560" width="1360">
+    <!-- 信号层（压淡） -->
+    <g opacity=".22">
+      <rect x="40" y="60" width="140" height="48" rx="8" fill="#1e2430" stroke="#3d444d"/>
+      <text x="56" y="89" font-size="12.5" fill="#c9d1d9">Clip·干声</text>
+      <rect x="230" y="60" width="140" height="48" rx="8" fill="#1e2430" stroke="#3d444d"/>
+      <text x="246" y="89" font-size="12.5" fill="#c9d1d9">ZamEQ</text>
+      <rect x="420" y="60" width="140" height="48" rx="8" fill="#1e2430" stroke="#3d444d"/>
+      <text x="436" y="89" font-size="12.5" fill="#c9d1d9">ZamVerb</text>
+      <rect x="610" y="60" width="140" height="48" rx="8" fill="#1e2430" stroke="#39c5cf"/>
+      <text x="626" y="82" font-size="11" fill="#39c5cf">SEND ▸</text>
+      <text x="626" y="98" font-size="10.5" fill="#c9d1d9">Reverb Bus</text>
+      <rect x="800" y="60" width="150" height="48" rx="8" fill="#1e2430" stroke="#39c5cf"/>
+      <text x="816" y="82" font-size="11" fill="#39c5cf">◂ SEND</text>
+      <text x="816" y="98" font-size="10.5" fill="#c9d1d9">湿声注入</text>
+      <g fill="none" stroke="#8b949e" stroke-width="2">
+        <path d="M 180 84 L 230 84"/><path d="M 370 84 L 420 84"/><path d="M 560 84 L 610 84"/><path d="M 750 84 L 800 84"/>
+      </g>
+      <text x="40" y="130" font-size="10.5" fill="#6e7681">信号层（层 chip 单显控制时压淡——v1 图 2 语义）</text>
+    </g>
+    <!-- 参数口 -->
+    <g>
+      <rect x="424" y="118" width="132" height="20" rx="10" fill="#1a1530" stroke="#a78bfa" stroke-opacity=".8"/>
+      <circle cx="436" cy="128" r="4" fill="#0d1117" stroke="#a78bfa" stroke-width="1.6"/>
+      <text x="446" y="132" font-size="10" fill="#c4b5fd">Decay 1.9s</text>
+      <rect x="614" y="118" width="132" height="20" rx="10" fill="#1a1530" stroke="#a78bfa" stroke-opacity=".8"/>
+      <circle cx="626" cy="128" r="4" fill="#0d1117" stroke="#a78bfa" stroke-width="1.6"/>
+      <text x="636" y="132" font-size="10" fill="#c4b5fd">发送量 −6dB</text>
+      <rect x="614" y="148" width="132" height="20" rx="10" fill="#1a1530" stroke="#a78bfa" stroke-opacity=".8"/>
+      <circle cx="626" cy="158" r="4" fill="#0d1117" stroke="#a78bfa" stroke-width="1.6"/>
+      <text x="636" y="162" font-size="10" fill="#c4b5fd">Predelay 20ms</text>
+    </g>
+
+    <!-- 宏卡 1：空间感（混排） -->
+    <g>
+      <rect x="120" y="210" width="420" height="240" rx="10" fill="#1e2430" stroke="#a78bfa" stroke-opacity=".45"/>
+      <rect x="120" y="210" width="4" height="240" rx="2" fill="#a78bfa"/>
+      <text x="140" y="238" font-size="13.5" font-weight="600" fill="#c9d1d9">宏 · 空间感 Space</text>
+      <text x="478" y="238" font-size="10" fill="#7c6bb8" text-anchor="end">✎ 改名 · 3 控件</text>
+      <!-- knob 空间量 -->
+      <circle cx="196" cy="320" r="30" fill="#0d1117" stroke="#3d444d" stroke-width="2.4"/>
+      <path d="M 196 320 L 196 290 A 30 30 0 1 1 175 300" fill="none" stroke="url(#dialArc)" stroke-width="5" stroke-linecap="round"/>
+      <text x="172" y="368" font-size="11" class="mono" fill="#c4b5fd">62%</text>
+      <text x="150" y="386" font-size="10" fill="#8b949e">空间量 knob</text>
+      <!-- numberbox decay -->
+      <rect x="266" y="296" width="110" height="40" rx="6" fill="#0d1117" stroke="#a78bfa" stroke-opacity=".7"/>
+      <text x="278" y="322" font-size="15" class="mono" fill="#c4b5fd">1.90 s</text>
+      <text x="266" y="358" font-size="10" fill="#8b949e">▲▼ 步进可编</text>
+      <text x="252" y="386" font-size="10" fill="#8b949e">decay 直显 numberbox</text>
+      <!-- toggle 发送通断 -->
+      <rect x="406" y="300" width="66" height="34" rx="17" fill="#0d1117" stroke="#3d444d"/>
+      <circle cx="438" cy="317" r="13" fill="#39c5cf"/>
+      <text x="398" y="362" font-size="10" fill="#8b949e">发送 toggle</text>
+      <!-- 映射数 badge + 输出锚 -->
+      <rect x="140" y="404" width="72" height="22" rx="11" fill="#1a1530" stroke="#a78bfa" stroke-opacity=".6"/>
+      <text x="152" y="419" font-size="11" fill="#c4b5fd">2 映射</text>
+      <circle cx="534" cy="330" r="6" fill="#0d1117" stroke="#a78bfa" stroke-width="2.4"/>
+      <text x="140" y="436" font-size="10" fill="#7c6bb8">混排=MAX/MSP patch 习惯 · 右缘输出锚</text>
+    </g>
+
+    <!-- 宏卡 2：声像运动（xypad） -->
+    <g>
+      <rect x="620" y="200" width="330" height="250" rx="10" fill="#1e2430" stroke="#a78bfa" stroke-opacity=".45"/>
+      <rect x="620" y="200" width="4" height="250" rx="2" fill="#a78bfa"/>
+      <text x="640" y="228" font-size="13.5" font-weight="600" fill="#c9d1d9">宏 · 声像运动 Motion</text>
+      <rect x="652" y="248" width="180" height="180" rx="10" fill="#0d1117" stroke="#a78bfa" stroke-opacity=".7"/>
+      <line x1="652" y1="338" x2="832" y2="338" stroke="#2d333b" stroke-dasharray="4 4"/>
+      <line x1="742" y1="248" x2="742" y2="428" stroke="#2d333b" stroke-dasharray="4 4"/>
+      <circle cx="782" cy="296" r="13" fill="#1a1530" stroke="#a78bfa" stroke-width="2.6"/>
+      <circle cx="782" cy="296" r="3.6" fill="#c4b5fd"/>
+      <text x="652" y="242" font-size="10" fill="#8b949e">Y→Predelay</text>
+      <text x="832" y="446" font-size="10" fill="#8b949e" text-anchor="end">X→发送量</text>
+      <circle cx="856" cy="280" r="5.5" fill="#0d1117" stroke="#a78bfa" stroke-width="2.2"/>
+      <circle cx="856" cy="396" r="5.5" fill="#0d1117" stroke="#a78bfa" stroke-width="2.2"/>
+      <text x="864" y="276" font-size="9.5" fill="#7c6bb8">x</text>
+      <text x="864" y="414" font-size="9.5" fill="#7c6bb8">y</text>
+      <rect x="640" y="404" width="72" height="22" rx="11" fill="#1a1530" stroke="#a78bfa" stroke-opacity=".6"/>
+      <text x="652" y="419" font-size="11" fill="#c4b5fd">2 映射</text>
+    </g>
+
+    <!-- 控制虚线：knob→Decay；xypad x→发送量；xypad y→Predelay -->
+    <g fill="none" stroke="#a78bfa" stroke-width="2" stroke-dasharray="7 5">
+      <path d="M 540 324 C 560 300, 520 200, 500 140"/>
+      <path d="M 862 278 C 900 220, 740 190, 700 152"/>
+      <path d="M 862 394 C 920 360, 780 220, 720 170"/>
+    </g>
+    <path d="M 522 214 l 6 -8 l 6 8 l -6 8 z" fill="#a78bfa"/>
+    <path d="M 706 168 l 6 -8 l 6 8 l -6 8 z" fill="#a78bfa"/>
+    <text x="960" y="300" font-size="11" fill="#8b949e">一个 xypad 两条绑定线</text>
+    <text x="960" y="318" font-size="11" fill="#8b949e">（source_output=x / y）</text>
+    <text x="960" y="352" font-size="11" fill="#7c6bb8">时变类（envelope/lfo/stepseq）</text>
+    <text x="960" y="370" font-size="11" fill="#7c6bb8">K3 渲染壳先行、绑定后续卡</text>
+  </svg>
+</figure>
+
+<!-- ═══════════════ 图 3：双面架构（机架 ⇄ agent 侧面板） ═══════════════ -->
+<figure>
+  <figcaption><span class="tag">图 3</span>双面架构 · 同一套控件词汇，两个面</figcaption>
+  <div class="note"><b>左</b>=机架控制层（持久编辑面：建宏/绑定/曲线都在这）；<b>右</b>=侧面板 MacroPanel（agent 会话生成面）。
+    两面共用 <b class="mono">kind 十词表</b>与同一渲染器组件族——agent 推送 macro_panel artifact 的 type 字段直接用内核词表，前端不再各画一套。
+    用户在机架建的宏，agent 会话视图可引用呈现；agent 生成的控制，落库后同样出现在机架控制层（数据流箭头）。</div>
+  <svg viewBox="0 0 1360 430" width="1360">
+    <!-- 左：机架画布局部 -->
+    <g>
+      <rect x="24" y="30" width="640" height="380" rx="10" fill="#0d1117" stroke="#2d333b"/>
+      <text x="44" y="58" font-size="13" font-weight="600" fill="#c9d1d9">机架控制层（持久编辑面）</text>
+      <text x="44" y="76" font-size="10.5" fill="#8b949e">coord: control_graph 快照 · 建/绑/改全操作 · 紫=控制</text>
+      <!-- 宏卡缩略 -->
+      <rect x="60" y="100" width="300" height="140" rx="8" fill="#1e2430" stroke="#a78bfa" stroke-opacity=".45"/>
+      <rect x="60" y="100" width="4" height="140" rx="2" fill="#a78bfa"/>
+      <text x="78" y="124" font-size="12" font-weight="600" fill="#c9d1d9">宏 · 空间感</text>
+      <circle cx="118" cy="176" r="22" fill="#0d1117" stroke="#3d444d" stroke-width="2"/>
+      <path d="M 118 176 L 118 154 A 22 22 0 1 1 103 162" fill="none" stroke="url(#dialArc)" stroke-width="4"/>
+      <rect x="168" y="160" width="80" height="30" rx="6" fill="#0d1117" stroke="#a78bfa" stroke-opacity=".7"/>
+      <text x="178" y="180" font-size="11.5" class="mono" fill="#c4b5fd">1.90s</text>
+      <rect x="268" y="162" width="52" height="26" rx="13" fill="#0d1117" stroke="#3d444d"/>
+      <circle cx="292" cy="175" r="10" fill="#39c5cf"/>
+      <text x="78" y="224" font-size="10" fill="#7c6bb8">2 映射 · 输出锚→参数口（虚线）</text>
+      <!-- xypad 卡缩略 -->
+      <rect x="380" y="100" width="250" height="140" rx="8" fill="#1e2430" stroke="#a78bfa" stroke-opacity=".45"/>
+      <rect x="380" y="100" width="4" height="140" rx="2" fill="#a78bfa"/>
+      <text x="398" y="124" font-size="12" font-weight="600" fill="#c9d1d9">宏 · 声像运动</text>
+      <rect x="404" y="136" width="140" height="88" rx="8" fill="#0d1117" stroke="#a78bfa" stroke-opacity=".7"/>
+      <circle cx="462" cy="172" r="10" fill="#1a1530" stroke="#a78bfa" stroke-width="2.2"/>
+      <text x="404" y="240" font-size="10" fill="#7c6bb8">xypad · x/y 双绑定</text>
+      <text x="44" y="290" font-size="11" fill="#8b949e">编辑动作：新建宏 / 拖绑定 / 曲线四选 / 范围 / 断开</text>
+      <text x="44" y="310" font-size="11" fill="#8b949e">命令面：control_*（内核 9 写命令）</text>
+      <text x="44" y="330" font-size="11" fill="#8b949e">真源：VIT_PARAM_LINK_GRAPH（快照回读）</text>
+      <text x="44" y="368" font-size="10.5" fill="#6e7681">层 chip：●信号 ◆控制（v1 语义不变）</text>
+    </g>
+
+    <!-- 中：数据流 -->
+    <g>
+      <path d="M 676 160 C 700 160, 700 200, 720 200" fill="none" stroke="#39c5cf" stroke-width="2"/>
+      <path d="M 716 194 l 8 6 l -8 6 z" fill="#39c5cf"/>
+      <text x="690" y="148" font-size="10" fill="#39c5cf">macro_panel</text>
+      <text x="690" y="136" font-size="10" fill="#39c5cf">artifact 推送</text>
+      <path d="M 720 260 C 700 260, 700 300, 676 300" fill="none" stroke="#a78bfa" stroke-width="2"/>
+      <path d="M 680 294 l -8 6 l 8 6 z" fill="#a78bfa"/>
+      <text x="700" y="288" font-size="10" fill="#a78bfa">落库 control_*</text>
+      <text x="690" y="302" font-size="10" fill="#a78bafa">（生成物持久化）</text>
+      <text x="672" y="392" font-size="10.5" fill="#6e7681" text-anchor="middle">同一 kind 十词表</text>
+    </g>
+
+    <!-- 右：侧面板 -->
+    <g>
+      <rect x="740" y="30" width="596" height="380" rx="10" fill="#11151c" stroke="#2d333b"/>
+      <text x="760" y="58" font-size="13" font-weight="600" fill="#c9d1d9">侧面板 MacroPanel（agent 会话生成面）</text>
+      <text x="760" y="76" font-size="10.5" fill="#8b949e">agent 推送 · 只读倾向 · 施加走 control_set_macro_values（与机架同命令面）</text>
+      <text x="760" y="102" font-size="11.5" fill="#c9d1d9">Generated macro controls</text>
+      <!-- knob 行 -->
+      <rect x="760" y="114" width="556" height="56" rx="8" fill="#161b22"/>
+      <circle cx="800" cy="142" r="18" fill="#0d1117" stroke="#3d444d" stroke-width="2"/>
+      <path d="M 800 142 L 800 124 A 18 18 0 1 1 788 130" fill="none" stroke="url(#dialArc)" stroke-width="3.4"/>
+      <text x="834" y="138" font-size="11.5" fill="#c9d1d9">空间量</text>
+      <text x="834" y="156" font-size="10" class="mono" fill="#8b949e">0.0–1.0 · ease_out</text>
+      <text x="1300" y="146" font-size="11.5" class="mono" fill="#c4b5fd" text-anchor="end">62%</text>
+      <!-- toggle 行 -->
+      <rect x="760" y="180" width="556" height="48" rx="8" fill="#161b22"/>
+      <rect x="776" y="190" width="44" height="24" rx="12" fill="#0d1117" stroke="#3d444d"/>
+      <circle cx="792" cy="202" r="9" fill="#39c5cf"/>
+      <text x="834" y="208" font-size="11.5" fill="#c9d1d9">发送通断</text>
+      <text x="1300" y="208" font-size="10.5" fill="#8b949e" text-anchor="end">toggle</text>
+      <!-- xypad 行 -->
+      <rect x="760" y="238" width="556" height="88" rx="8" fill="#161b22"/>
+      <rect x="776" y="250" width="64" height="64" rx="8" fill="#0d1117" stroke="#a78bfa" stroke-opacity=".7"/>
+      <circle cx="812" cy="274" r="7" fill="#1a1530" stroke="#a78bfa" stroke-width="2"/>
+      <text x="856" y="272" font-size="11.5" fill="#c9d1d9">声像运动</text>
+      <text x="856" y="290" font-size="10" class="mono" fill="#8b949e">x→发送量 · y→predelay</text>
+      <text x="1300" y="282" font-size="10.5" fill="#8b949e" text-anchor="end">xypad</text>
+      <!-- slider 行 -->
+      <rect x="760" y="338" width="556" height="56" rx="8" fill="#161b22"/>
+      <rect x="784" y="362" width="480" height="7" rx="3.5" fill="#0d1117" stroke="#3d444d"/>
+      <rect x="784" y="362" width="316" height="7" rx="3.5" fill="url(#dialArc)"/>
+      <circle cx="1100" cy="365.5" r="9" fill="#1e2430" stroke="#a78bfa" stroke-width="2.2"/>
+      <text x="784" y="354" font-size="11" fill="#c9d1d9">predelay</text>
+      <text x="1300" y="368" font-size="11.5" class="mono" fill="#c4b5fd" text-anchor="end">20ms</text>
+      <text x="760" y="404" font-size="10" fill="#6e7681">现状渲染器只认 slider/toggle/button 三类（macro_panel.gd）→ v2 扩到十词表同族渲染</text>
+    </g>
+  </svg>
+</figure>
+
+<!-- ═══════════════ 图 4：类型→参数映射与分期 ═══════════════ -->
+<figure>
+  <figcaption><span class="tag">图 4</span>控件类型 ⇄ 参数特征映射 · K3 分期</figcaption>
+  <div class="note">选型规则（确定性，不查 LLM）：按<b>绑定目标参数特征</b>建议控件类型，用户可改——创建绑定时默认给建议项，下拉换任意类型。</div>
+  <svg viewBox="0 0 1360 330" width="1360">
+    <!-- 表头 -->
+    <g font-size="12" font-weight="600" fill="#c9d1d9">
+      <rect x="30" y="24" width="180" height="34" fill="#161b22" stroke="#2d333b"/><text x="44" y="46">控件 kind</text>
+      <rect x="210" y="24" width="330" height="34" fill="#161b22" stroke="#2d333b"/><text x="224" y="46">适用参数特征</text>
+      <rect x="540" y="24" width="330" height="34" fill="#161b22" stroke="#2d333b"/><text x="554" y="46">典型绑定目标</text>
+      <rect x="870" y="24" width="180" height="34" fill="#161b22" stroke="#2d333b"/><text x="884" y="46">绑定语义</text>
+      <rect x="1050" y="24" width="280" height="34" fill="#161b22" stroke="#2d333b"/><text x="1064" y="46">K3 分期</text>
+    </g>
+    <g font-size="11.5" fill="#8b949e">
+      <rect x="30" y="58" width="180" height="34" fill="#11151c" stroke="#21262d"/><text x="44" y="80" class="mono" fill="#c4b5fd">knob</text>
+      <rect x="210" y="58" width="330" height="34" fill="#11151c" stroke="#21262d"/><text x="224" y="80">连续·单参数（缺省首选）</text>
+      <rect x="540" y="58" width="330" height="34" fill="#11151c" stroke="#21262d"/><text x="554" y="80">decay / mix / amount / tone</text>
+      <rect x="870" y="58" width="180" height="34" fill="#11151c" stroke="#21262d"/><text x="884" y="80">静态映射+曲线</text>
+      <rect x="1050" y="58" width="280" height="34" fill="#11280f" stroke="#2ea043" stroke-opacity=".5"/><text x="1064" y="80" fill="#3fb950">第一批</text>
+
+      <rect x="30" y="92" width="180" height="34" fill="#0d1117" stroke="#21262d"/><text x="44" y="114" class="mono" fill="#c4b5fd">slider</text>
+      <rect x="210" y="92" width="330" height="34" fill="#0d1117" stroke="#21262d"/><text x="224" y="114">连续·长行程精细</text>
+      <rect x="540" y="92" width="330" height="34" fill="#0d1117" stroke="#21262d"/><text x="554" y="114">gain / freq / 时间窗</text>
+      <rect x="870" y="92" width="180" height="34" fill="#0d1117" stroke="#21262d"/><text x="884" y="114">静态映射+曲线</text>
+      <rect x="1050" y="92" width="280" height="34" fill="#11280f" stroke="#2ea043" stroke-opacity=".5"/><text x="1064" y="114" fill="#3fb950">第一批</text>
+
+      <rect x="30" y="126" width="180" height="34" fill="#11151c" stroke="#21262d"/><text x="44" y="148" class="mono" fill="#c4b5fd">numberbox</text>
+      <rect x="210" y="126" width="330" height="34" fill="#11151c" stroke="#21262d"/><text x="224" y="148">精确值·步进·单位敏感</text>
+      <rect x="540" y="126" width="330" height="34" fill="#11151c" stroke="#21262d"/><text x="554" y="148">predelay ms / BPM / ratio</text>
+      <rect x="870" y="126" width="180" height="34" fill="#11151c" stroke="#21262d"/><text x="884" y="148">静态映射（线性）</text>
+      <rect x="1050" y="126" width="280" height="34" fill="#11280f" stroke="#2ea043" stroke-opacity=".5"/><text x="1064" y="148" fill="#3fb950">第一批</text>
+
+      <rect x="30" y="160" width="180" height="34" fill="#0d1117" stroke="#21262d"/><text x="44" y="182" class="mono" fill="#c4b5fd">xypad</text>
+      <rect x="210" y="160" width="330" height="34" fill="#0d1117" stroke="#21262d"/><text x="224" y="182">双相关参数联动</text>
+      <rect x="540" y="160" width="330" height="34" fill="#0d1117" stroke="#21262d"/><text x="554" y="182">send量×decay / pan×width</text>
+      <rect x="870" y="160" width="180" height="34" fill="#0d1117" stroke="#21262d"/><text x="884" y="182">双输出双绑定</text>
+      <rect x="1050" y="160" width="280" height="34" fill="#11280f" stroke="#2ea043" stroke-opacity=".5"/><text x="1064" y="182" fill="#3fb950">第一批</text>
+
+      <rect x="30" y="194" width="180" height="34" fill="#11151c" stroke="#21262d"/><text x="44" y="216" class="mono" fill="#39c5cf">toggle</text>
+      <rect x="210" y="194" width="330" height="34" fill="#11151c" stroke="#21262d"/><text x="224" y="216">两态/枚举二值</text>
+      <rect x="540" y="194" width="330" height="34" fill="#11151c" stroke="#21262d"/><text x="554" y="216">bypass / send 通断 / 极性</text>
+      <rect x="870" y="194" width="180" height="34" fill="#11151c" stroke="#21262d"/><text x="884" y="216">min/max 两点映射</text>
+      <rect x="1050" y="194" width="280" height="34" fill="#11280f" stroke="#2ea043" stroke-opacity=".5"/><text x="1064" y="216" fill="#3fb950">第一批</text>
+
+      <rect x="30" y="228" width="180" height="34" fill="#0d1117" stroke="#21262d"/><text x="44" y="250" class="mono" fill="#39c5cf">button</text>
+      <rect x="210" y="228" width="330" height="34" fill="#0d1117" stroke="#21262d"/><text x="224" y="250">瞬时触发（无保持值）</text>
+      <rect x="540" y="228" width="330" height="34" fill="#0d1117" stroke="#21262d"/><text x="554" y="250">重置 / punch / 采样触发</text>
+      <rect x="870" y="228" width="180" height="34" fill="#0d1117" stroke="#21262d"/><text x="884" y="250">脉冲（无绑定或瞬发）</text>
+      <rect x="1050" y="228" width="280" height="34" fill="#11280f" stroke="#2ea043" stroke-opacity=".5"/><text x="1064" y="250" fill="#3fb950">第一批</text>
+
+      <rect x="30" y="262" width="180" height="34" fill="#11151c" stroke="#21262d"/><text x="44" y="284" class="mono" fill="#f0883e">range</text>
+      <rect x="210" y="262" width="330" height="34" fill="#11151c" stroke="#21262d"/><text x="224" y="284">双端（min+max 成对）</text>
+      <rect x="540" y="262" width="330" height="34" fill="#11151c" stroke="#21262d"/><text x="554" y="284">EQ 频段 / 时间窗</text>
+      <rect x="870" y="262" width="180" height="34" fill="#11151c" stroke="#21262d"/><text x="884" y="284">双输出双绑定</text>
+      <rect x="1050" y="262" width="280" height="34" fill="#11280f" stroke="#2ea043" stroke-opacity=".5"/><text x="1064" y="284" fill="#3fb950">第一批</text>
+
+      <rect x="30" y="296" width="180" height="34" fill="#0d1117" stroke="#21262d"/><text x="44" y="318" class="mono" fill="#f0883e">envelope/lfo/stepseq</text>
+      <rect x="210" y="296" width="330" height="34" fill="#0d1117" stroke="#21262d"/><text x="224" y="318">时变形·调制源</text>
+      <rect x="540" y="296" width="330" height="34" fill="#0d1117" stroke="#21262d"/><text x="554" y="318">ducking / 颤音 / 节奏门</text>
+      <rect x="870" y="296" width="180" height="34" fill="#0d1117" stroke="#21262d"/><text x="884" y="318">动态调制（非静态映射）</text>
+      <rect x="1050" y="296" width="280" height="34" fill="#2a1c0d" stroke="#f0883e" stroke-opacity=".5"/><text x="1064" y="318" fill="#f0883e">渲染壳先行·绑定后续卡</text>
+    </g>
+    <text x="30" y="346" font-size="10.5" fill="#6e7681">说明：unknown kind → slider（内核 fail-open 归一已定）；旧 macro_panel artifact 的 switch/checkbox/trigger 别名在前端渲染器保留兼容。</text>
+  </svg>
+</figure>
+
+<!-- ═══════════════ 开放问题 ═══════════════ -->
+<div class="qa">
+  <h2>开放问题（v2 迭代点 + v1 遗留）</h2>
+  <ol>
+    <li><b>第一批控件范围？</b>　v2 建议=<span class="opt">knob/slider/numberbox/xypad/toggle/button/range 七种静态类</span>进 K3；<span class="opt">envelope/lfo/stepsequencer 渲染壳先行、绑定语义另卡</span>——同意则定稿面就绪</li>
+    <li><b>agent 侧面板渲染器扩展归 K3 一并做？</b>　v2 建议=同一组件族一次做（侧面板 macro_panel.gd 从三类扩到十词表；文件域加 app/shell/side_panel）　<span class="opt">备选：K3 只做机架面，侧面板扩展另卡</span></li>
+    <li><b>类型建议规则</b>（图 4 映射，创建绑定时默认建议+可下拉改）——够不够？要不要再加「按已绑定参数自动换型」的提示？</li>
+    <li><b>（v1 遗留）控制层默认双显？</b>　v1=默认双显　<span class="opt">备选：默认只信号、点 chip 开控制</span></li>
+    <li><b>（v1 遗留）控制色=紫？</b>　<span class="opt">备选：绿 / 黄</span>（图 1-3 均按紫画，换色只改主题变量）</li>
+  </ol>
+</div>
+
+<footer>
+  FE-RACK-MACRO-LAYER-DESIGN-1 · v2 样图（2026-10-18 深夜）· 新增=控件族谱十类（内核原生词表）+混排宏卡+xypad 双绑定+双面架构（机架⇄agent 侧面板同词汇）+类型映射与 K3 分期；
+  v1 的两层模型/绑定手势/层 chip/创建流语义不变（见 macro_layer_v1.html）。
+</footer>
+</body>
+</html>

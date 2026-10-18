@@ -1,0 +1,729 @@
+- generic [ref=f1e2]:
+  - article [ref=f1e4]:
+    - generic [ref=f1e5]:
+      - text: \workshoptitle
+      - paragraph [ref=f1e6]: AI for Music
+    - 'heading "DAWZY: A New Addition to AI powered \"Human in the Loop\" Music Co-creation" [level=1] [ref=f1e7]'
+    - generic [ref=f1e9]:
+      - generic [ref=f1e12]:
+        - generic [ref=f1e13]:
+          - generic [ref=f1e14]: Aaron C Elkins
+          - generic [ref=f1e15]: Sanchit Singh
+          - generic [ref=f1e16]: Adrian Kieback
+        - generic [ref=f1e17]:
+          - generic [ref=f1e18]: San Diego State University
+          - generic [ref=f1e19]: San Diego State University
+          - generic [ref=f1e20]: San Diego State University
+        - generic [ref=f1e21]:
+          - generic [ref=f1e22]: aelkins@sdsu.edu
+          - generic [ref=f1e23]: ssingh1949@sdsu.edu
+          - generic [ref=f1e24]: akieback@sdsu.edu
+        - generic [ref=f1e25]:
+          - generic [ref=f1e26]: Sawyer Blankenship
+          - generic [ref=f1e27]: Uyiosa Philip Amadasun
+          - generic [ref=f1e28]: Aman Chadha
+        - generic [ref=f1e29]:
+          - generic [ref=f1e30]: San Diego State University
+          - generic [ref=f1e31]: San Diego State University
+          - generic [ref=f1e32]: San Diego State University
+        - generic [ref=f1e33]:
+          - generic [ref=f1e34]: sablankenship@ucdavis.edu
+          - generic [ref=f1e35]: uamadasun@sdsu.edu
+          - generic [ref=f1e36]: hi@aman.ai
+      - generic [ref=f1e37]: Work done outside role at Amazon.
+    - generic [ref=f1e40]:
+      - heading "Abstract" [level=6] [ref=f1e41]
+      - paragraph [ref=f1e42]:
+        - text: Digital Audio Workstations (DAWs) offer fine control, but mapping high-level intent (e.g., “warm the vocals”) to low-level edits breaks creative flow. Existing artificial intelligence (AI) music generators are typically one-shot, limiting opportunities for iterative development and human contribution. We present DAWZY, an open-source assistant that turns natural-language (text/voice/hum) requests into reversible actions in REAPER. DAWZY keeps the DAW as the creative hub with a minimal GUI and voice-first interface. Its LLM-based code generation replaces complex menus with a simple chat box, reducing time spent learning interfaces. DAWZY also uses three Model Context Protocol tools for live state queries, parameter adjustment, and AI beat generation. It maintains grounding by refreshing state before mutation; and ensures safety and reversibility with atomic scripts and undo. In evaluations, DAWZY performed reliably on common production tasks and was rated positively by users across Usability, Control, Learning, Collaboration, and Enjoyment. We show reliability on common production tasks; code and a short demo are available.
+        - superscript [ref=f1e44]: "1"
+    - generic [ref=f1e45]:
+      - heading "1 Introduction" [level=2] [ref=f1e46]:
+        - generic [ref=f1e47]: "1"
+        - text: Introduction
+      - paragraph [ref=f1e49]:
+        - text: Modern music production centers on Digital Audio Workstations (DAWs)
+        - link "14" [ref=f1e51] [cursor=pointer]:
+          - /url: "#bib.bib20"
+        - text: ", which democratize pro-quality creation but burden users with option overload that disrupts flow"
+        - generic [ref=f1e52]:
+          - text: (
+          - link "13" [ref=f1e53] [cursor=pointer]:
+            - /url: "#bib.bib19"
+          - text: )
+        - text: . A gap persists between high-level intent (e.g., “make the vocals warmer”) and the low-level steps to realize it.
+      - paragraph [ref=f1e55]:
+        - text: "Prior work points to a path forward: mature DAW scripting (Ableton’s Max for Live/Live API"
+        - generic [ref=f1e56]:
+          - text: (
+          - link "2" [ref=f1e57] [cursor=pointer]:
+            - /url: "#bib.bib10"
+          - text: )
+        - text: ", REAPER’s ReaScript/JSFX"
+        - generic [ref=f1e58]:
+          - text: (
+          - link "10" [ref=f1e59] [cursor=pointer]:
+            - /url: "#bib.bib11"
+          - text: )
+        - text: ), co-creative agents inside production loops (e.g., Juice
+        - generic [ref=f1e60]:
+          - text: (
+          - link "8" [ref=f1e61] [cursor=pointer]:
+            - /url: "#bib.bib2"
+          - text: )
+        - text: ), fully generative systems largely outside fine-grained editing (e.g., Suno
+        - generic [ref=f1e62]:
+          - text: (
+          - link "23" [ref=f1e63] [cursor=pointer]:
+            - /url: "#bib.bib3"
+          - text: )
+        - text: ), advances in code generation
+        - generic [ref=f1e64]:
+          - text: (
+          - link "9" [ref=f1e65] [cursor=pointer]:
+            - /url: "#bib.bib7"
+          - text: )
+        - text: ", and standardized tool invocation via the Model Context Protocol (MCP)"
+        - generic [ref=f1e66]:
+          - text: (
+          - link "5" [ref=f1e67] [cursor=pointer]:
+            - /url: "#bib.bib12"
+          - text: ;
+          - link "12" [ref=f1e68] [cursor=pointer]:
+            - /url: "#bib.bib22"
+          - text: )
+        - text: .
+      - paragraph [ref=f1e70]:
+        - text: We introduce DAWZY, an open-source assistant that maps natural-language requests to precise, context-aware, reversible ReaScript actions in REAPER. DAWZY queries live session state, emits auditable edits, and favors a minimal-GUI, voice-first workflow with plain-language explanations to support learning. It primarily interacts with REAPER through LLM code generation. Ableton-MCP
+        - generic [ref=f1e71]:
+          - text: (
+          - link "3" [ref=f1e72] [cursor=pointer]:
+            - /url: "#bib.bib18"
+          - text: )
+        - text: is an open-source, similar but less powerful tool that allows LLMs to c the Ableton Live API. Related efforts (e.g., Mozart AI
+        - generic [ref=f1e73]:
+          - text: (
+          - link "16" [ref=f1e74] [cursor=pointer]:
+            - /url: "#bib.bib4"
+          - text: )
+        - text: ) explore closed-source adjacent ideas; DAWZY emphasizes open-source availability and ReaScript-specific reliability, complementing rather than replacing existing tools.
+      - generic [ref=f1e75]:
+        - heading "Primary Contributions" [level=4] [ref=f1e76]
+        - list [ref=f1e78]:
+          - listitem [ref=f1e79]:
+            - text: •
+            - paragraph [ref=f1e81]:
+              - text: System design & open-source prototype. REAPER-targeted pipeline mapping natural language to safe, reversible ReaScript grounded in live state (Sec.
+              - link "2" [ref=f1e82] [cursor=pointer]:
+                - /url: "#S2"
+              - text: ).
+          - listitem [ref=f1e83]:
+            - text: •
+            - paragraph [ref=f1e85]:
+              - text: MCP tool suite. Permissioned tools for state query, unit-consistent FX parameter adjustment, and AI beat generation; supports future cross-DAW portability (Sec.
+              - link "2.2" [ref=f1e86] [cursor=pointer]:
+                - /url: "#S2.SS2"
+              - text: ).
+          - listitem [ref=f1e87]:
+            - text: •
+            - paragraph [ref=f1e89]:
+              - text: Minimal-GUI, voice-first interaction. Natural-language control with buttons for common tasks(“start,” “stop,” “record,” “undo”) to reduce GUI micromanagement (Sec.
+              - link "2.1" [ref=f1e90] [cursor=pointer]:
+                - /url: "#S2.SS1"
+              - text: ).
+          - listitem [ref=f1e91]:
+            - text: •
+            - paragraph [ref=f1e93]: Explain-as-you-go pedagogy. Plain-language rationales accompany each edit to support learning and auditability.
+          - listitem [ref=f1e94]:
+            - text: •
+            - paragraph [ref=f1e96]:
+              - text: ReaScript-focused model adaptation. Plan to fine-tune an open-source LLM for reliable REAPER code generation (Sec.
+              - link "4" [ref=f1e97] [cursor=pointer]:
+                - /url: "#S4"
+              - text: ).
+    - generic [ref=f1e98]:
+      - heading "2 DAWZY Architecture" [level=2] [ref=f1e99]:
+        - generic [ref=f1e100]: "2"
+        - text: DAWZY Architecture
+      - paragraph [ref=f1e102]:
+        - text: DAWZY comprises three layers (Figure
+        - link "1" [ref=f1e103] [cursor=pointer]:
+          - /url: "#S2.F1"
+        - text: "):"
+        - emphasis [ref=f1e104]: User Interaction
+        - text: ","
+        - emphasis [ref=f1e105]: Processing
+        - text: ", and"
+        - emphasis [ref=f1e106]: Execution
+        - text: ", which capture natural-language intent, interpret it, and translate it into precise DAW operations."
+      - generic [ref=f1e107]:
+        - heading "2.1 User Interaction Layer" [level=3] [ref=f1e108]:
+          - generic [ref=f1e109]: "2.1"
+          - text: User Interaction Layer
+        - paragraph [ref=f1e111]:
+          - text: The User Interaction Layer is a minimal-GUI entry point for expressing intent via text, speech, or humming, mediated by an Electron.js app
+          - generic [ref=f1e112]:
+            - text: (
+            - link "19" [ref=f1e113] [cursor=pointer]:
+              - /url: "#bib.bib5"
+            - text: )
+          - text: . Given the complexity of traditional DAW interfaces, DAWZY prioritizes direct, natural-language control to reduce GUI micromanagement. (1) Text — Users type commands/questions in Electron; queries are forwarded as text. (2) Speech - Spoken commands are transcribed by Whisper
+          - generic [ref=f1e114]:
+            - text: (
+            - link "21" [ref=f1e115] [cursor=pointer]:
+              - /url: "#bib.bib8"
+            - text: )
+          - text: and follow the same downstream path (hands-free). (3) Humming - A “record hum” button captures sketches; a local BasicPitch pipeline
+          - generic [ref=f1e116]:
+            - text: (
+            - link "22" [ref=f1e117] [cursor=pointer]:
+              - /url: "#bib.bib14"
+            - text: ;
+            - link "7" [ref=f1e118] [cursor=pointer]:
+              - /url: "#bib.bib24"
+            - text: )
+          - text: converts audio to MIDI, which is auto-imported into REAPER as a new track.
+      - generic [ref=f1e119]:
+        - heading "2.2 Processing Layer" [level=3] [ref=f1e120]:
+          - generic [ref=f1e121]: "2.2"
+          - text: Processing Layer
+        - paragraph [ref=f1e123]: The Processing Layer turns user input into context-aware DAW operations. Off-the-shelf LLM approaches often hallucinate commands, mis-index tracks/parameters, or ignore live state. DAWZY constrains behavior via a reliable LLM, and context grounding.
+        - list [ref=f1e125]:
+          - listitem [ref=f1e126]:
+            - text: •
+            - paragraph [ref=f1e128]: Electron gateway. Routes all queries to the LLM and returns responses/confirmations; hummed audio is sent to the hum-to-MIDI pipeline.
+          - listitem [ref=f1e129]:
+            - text: •
+            - paragraph [ref=f1e131]:
+              - text: LLM. We use OpenAI GPT-5
+              - generic [ref=f1e132]:
+                - text: (
+                - link "18" [ref=f1e133] [cursor=pointer]:
+                  - /url: "#bib.bib16"
+                - text: ;
+                - link "17" [ref=f1e134] [cursor=pointer]:
+                  - /url: "#bib.bib17"
+                - text: )
+              - text: to interpret intent, call MCP tools, and emit Lua ReaScript. Open-source baselines (e.g., Qwen3-Coder-480B-A35B-Instruct
+              - generic [ref=f1e135]:
+                - text: (
+                - link "20" [ref=f1e136] [cursor=pointer]:
+                  - /url: "#bib.bib15"
+                - text: ;
+                - link "24" [ref=f1e137] [cursor=pointer]:
+                  - /url: "#bib.bib23"
+                - text: )
+              - text: ) underperformed, frequently producing invalid indices when the full context (track/parameter mappings) was not considered; GPT-5 generated reliable edits.
+          - listitem [ref=f1e138]:
+            - text: •
+            - paragraph [ref=f1e140]: "Model Context Protocol (MCP). Exposes DAW capabilities as explicit, permissioned functions between the LLM and REAPER:"
+            - list [ref=f1e142]:
+              - listitem [ref=f1e143]:
+                - generic [ref=f1e144]: –
+                - paragraph [ref=f1e146]: State query. Enumerates tracks, items, FX, and routing to ground edits in live session state and keep tool calls synchronized.
+              - listitem [ref=f1e147]:
+                - generic [ref=f1e148]: –
+                - paragraph [ref=f1e150]:
+                  - generic [ref=f1e151]: FX parameterization (fxparam).
+                  - text: Converts human units (dB, ms) to ReaScript slider ranges (e.g., 0–1, 0–4) to prevent scaling errors. Code generation failed here because the LLM could not reliably convert between units.
+              - listitem [ref=f1e152]:
+                - generic [ref=f1e153]: –
+                - paragraph [ref=f1e155]:
+                  - text: Beat generation. Meta’s MusicGen-small (300M) model is run locally to create an audio waveform based on a text description
+                  - generic [ref=f1e156]:
+                    - text: (
+                    - link "15" [ref=f1e157] [cursor=pointer]:
+                      - /url: "#bib.bib13"
+                    - text: ;
+                    - link "11" [ref=f1e158] [cursor=pointer]:
+                      - /url: "#bib.bib21"
+                    - text: )
+                  - text: .
+          - listitem [ref=f1e159]:
+            - text: •
+            - paragraph [ref=f1e161]:
+              - text: Hum to MIDI. The open-source Spotify BasicPitch model is run locally to convert hums into MIDI data
+              - generic [ref=f1e162]:
+                - text: (
+                - link "22" [ref=f1e163] [cursor=pointer]:
+                  - /url: "#bib.bib14"
+                - text: ;
+                - link "6" [ref=f1e164] [cursor=pointer]:
+                  - /url: "#bib.bib9"
+                - text: )
+              - text: .
+        - 'figure "Figure 1: DAWZY Architecture. User intent (text/speech/hum) flows through the Electron gateway to the LLM and MCP tools, then executes as reversible ReaScripts in REAPER. Rounded rectangles denote AI/MCP components; sharp rectangles denote DAW/runtime components; dashed arrows indicate data queries; solid arrows indicate state-changing actions." [ref=f1e165]':
+          - generic [ref=f1e167]:
+            - generic [ref=f1e168]: "Figure 1:"
+            - text: DAWZY Architecture. User intent (text/speech/hum) flows through the Electron gateway to the LLM and MCP tools, then executes as reversible ReaScripts in REAPER. Rounded rectangles denote AI/MCP components; sharp rectangles denote DAW/runtime components; dashed arrows indicate data queries; solid arrows indicate state-changing actions.
+      - generic [ref=f1e169]:
+        - heading "2.3 Execution Layer" [level=3] [ref=f1e170]:
+          - generic [ref=f1e171]: "2.3"
+          - text: Execution Layer
+        - paragraph [ref=f1e173]:
+          - text: The Execution Layer (Figure
+          - link "1" [ref=f1e174] [cursor=pointer]:
+            - /url: "#S2.F1"
+          - text: ) performs edits in REAPER safely, reversibly, and transparently by grounding actions in live project state. (1) ReaScript actuation - GPT-5 generates Lua that ReaPy executes to modify the project; changes are reversible. (2) Utility scripts - Specialized scripts handle (i) FX parameter updates, (ii) project-state summaries, and (iii) audio/MIDI import as new tracks.
+    - generic [ref=f1e175]:
+      - heading "3 Evaluation" [level=2] [ref=f1e176]:
+        - generic [ref=f1e177]: "3"
+        - text: Evaluation
+      - paragraph [ref=f1e179]: We evaluate DAWZY using both objective and qualitative performance tasks, as well as subjective user ratings.
+      - generic [ref=f1e180]:
+        - heading "3.1 Objective Evaluation" [level=3] [ref=f1e181]:
+          - generic [ref=f1e182]: "3.1"
+          - text: Objective Evaluation
+        - paragraph [ref=f1e184]: "To test reliability, we designed four reproducible tasks: (1) Multi-instruction FX processing — \"Double the first track’s volume, increase the decay, and set the attack to 10 ms,\" (2) GUI navigation — \"Open the FX browser for the first track,\" (3) Workflow automation — \"Duplicate the first track, pitch it up one octave, and blend it in at 20%,\" and (4) Educational interaction — \"What does attack time do in the second track’s compressor?\". Building on the four tasks, we ran 3 trials per task for 4 different LLMs. Open-source baselines (QWEN-480B, GPT-OSS-120B, GPT-OSS-20B) achieved only 25–50% success, often failing due to hallucinated or invalid ReaScript functions and mis-indexed parameters. All models did however pass all 3 trials on the Education task."
+      - generic [ref=f1e185]:
+        - heading "3.2 Ableton-MCP Comparison" [level=3] [ref=f1e186]:
+          - generic [ref=f1e187]: "3.2"
+          - text: Ableton-MCP Comparison
+        - paragraph [ref=f1e189]: "We compared DAWZY and Ableton-MCP on three qualitative tasks: \"Make notes slide into each other\" (Wavy), \"Make the track bouncy\" (Bouncy), and \"Make the track fade\" (Fade). Success was determined by perceived audio changes or external validation (Google/ChatGPT). Both systems used Claude Sonnet 4.5. DAWZY (REAPER with custom prompt) encountered 3 execution errors on Fade but otherwise performed successfully. Ableton-MCP (Ableton Live via Claude Desktop) failed Wavy and Fade due to reported API limitations for modifying notes and volume. For Bouncy, it either incorrectly claimed success or created new segments instead of modifying existing ones. DAWZY’s superior performance likely reflects Claude’s pre-training on REAPER’s publicly available documentation, whereas Ableton Live’s API is newer and underrepresented in training data. Based of this result we expect similar results for open-source models like GPT-OSS-120B."
+        - 'figure "Table 1: Task success comparison. Scores denote successful trials out of three attempts per task." [ref=f1e190]':
+          - table [ref=f1e191]:
+            - rowgroup [ref=f1e192]:
+              - row [ref=f1e193]:
+                - rowheader "Task" [ref=f1e194]
+                - cell "DAWZY" [ref=f1e195]
+                - cell "Ableton-MCP" [ref=f1e196]
+              - row [ref=f1e197]:
+                - rowheader "Wavy" [ref=f1e198]
+                - cell "3" [ref=f1e199]
+                - cell "0" [ref=f1e200]
+              - row [ref=f1e201]:
+                - rowheader "Bouncy" [ref=f1e202]
+                - cell "1" [ref=f1e203]
+                - cell "0" [ref=f1e204]
+              - row [ref=f1e205]:
+                - rowheader "Fade" [ref=f1e206]
+                - cell "0" [ref=f1e207]
+                - cell "0" [ref=f1e208]
+              - row [ref=f1e209]:
+                - rowheader "Success Rate" [ref=f1e210]
+                - cell "44%" [ref=f1e211]
+                - cell "0%" [ref=f1e212]
+          - generic [ref=f1e213]:
+            - generic [ref=f1e214]: "Table 1:"
+            - text: Task success comparison. Scores denote successful trials out of three attempts per task.
+      - generic [ref=f1e215]:
+        - heading "3.3 Subjective Evaluation (MOS Test)" [level=3] [ref=f1e216]:
+          - generic [ref=f1e217]: "3.3"
+          - text: Subjective Evaluation (MOS Test)
+        - paragraph [ref=f1e219]:
+          - text: We conducted a Mean Opinion Score (MOS) test with 21 participants, who rated DAWZY’s Enjoyment as
+          - math [ref=f1e220]:
+            - generic [ref=f1e221]: "4.48"
+          - text: ", Learning as"
+          - math [ref=f1e223]:
+            - generic [ref=f1e224]: "4.38"
+          - text: ", Collaboration as 4.29, Usability as 4.14, and Control as 3.81 out of 5."
+        - 'figure "Figure 2: Mean Opinion Score (MOS) results for DAWZY (N=21). All categories scored above neutral (3)." [ref=f1e226]':
+          - generic [ref=f1e228]:
+            - generic [ref=f1e229]: "Figure 2:"
+            - text: Mean Opinion Score (MOS) results for DAWZY (N=21). All categories scored above neutral (3).
+    - generic [ref=f1e230]:
+      - heading "4 Conclusion" [level=2] [ref=f1e231]:
+        - generic [ref=f1e232]: "4"
+        - text: Conclusion
+      - paragraph [ref=f1e234]:
+        - text: DAWZY shows that natural-language control can enhance—not replace—human creativity in music software. By combining state tracking with context-aware code generation, it makes precise, reversible edits while keeping users in control. Current limitations stem from software-specific scripting languages and the need to adapt our system for each music program; our prototype focuses on core functions rather than advanced plugin features. As music software expands scripting capabilities
+        - generic [ref=f1e235]:
+          - text: (
+          - link "1" [ref=f1e236] [cursor=pointer]:
+            - /url: "#bib.bib6"
+          - text: )
+        - text: and AI code generation improves
+        - generic [ref=f1e237]:
+          - text: (
+          - link "4" [ref=f1e238] [cursor=pointer]:
+            - /url: "#bib.bib1"
+          - text: ", p. 2)"
+        - text: ", we expect wider adoption in professional settings. Our key contribution is transparency: users can see and modify what the system does. Next steps: (i) qualitative user studies, (ii) training or finetuning models specifically for more accurate music software scripting, and (iii) supporting scriptable DAWs beyond REAPER. We invite the community to try our demo and collaborate on this open framework for natural-language creative software control."
+    - generic [ref=f1e239]:
+      - heading "References" [level=2] [ref=f1e240]
+      - list [ref=f1e241]:
+        - listitem [ref=f1e242]:
+          - generic [ref=f1e243]: Ableton AG (2025)
+          - generic [ref=f1e244]: Ableton AG
+          - generic [ref=f1e245]: Ableton live 12.
+          - generic [ref=f1e246]:
+            - text: "Note:"
+            - generic [ref=f1e247]:
+              - link "https://www.ableton.com/" [ref=f1e248] [cursor=pointer]:
+                - /url: https://www.ableton.com/
+              - text: Accessed 18 Aug 2025
+          - generic [ref=f1e249]:
+            - text: "Cited by:"
+            - link "§4" [ref=f1e250] [cursor=pointer]:
+              - /url: "#S4.p1.1"
+            - text: .
+        - listitem [ref=f1e251]:
+          - generic [ref=f1e252]: Ableton (2024)
+          - generic [ref=f1e253]: Ableton
+          - generic [ref=f1e254]: Ableton reference manual, version 12 — max for live.
+          - generic [ref=f1e255]: "Note: Accessed 2025-08-18"
+          - generic [ref=f1e256]:
+            - text: "External Links:"
+            - link "Link" [ref=f1e258] [cursor=pointer]:
+              - /url: https://www.ableton.com/en/manual/max-for-live/
+          - generic [ref=f1e259]:
+            - text: "Cited by:"
+            - link "§1" [ref=f1e260] [cursor=pointer]:
+              - /url: "#S1.p2.1"
+            - text: .
+        - listitem [ref=f1e261]:
+          - generic [ref=f1e262]: Ableton (2025)
+          - generic [ref=f1e263]: Ableton
+          - generic [ref=f1e264]: AbletonMCP overview.
+          - generic [ref=f1e265]:
+            - text: "Note:"
+            - link "https://deepwiki.com/ahujasid/ableton-mcp" [ref=f1e267] [cursor=pointer]:
+              - /url: https://deepwiki.com/ahujasid/ableton-mcp
+          - generic [ref=f1e268]:
+            - text: "Cited by:"
+            - link "§1" [ref=f1e269] [cursor=pointer]:
+              - /url: "#S1.p3.1"
+            - text: .
+        - listitem [ref=f1e270]:
+          - generic [ref=f1e271]: Alenezi and Akour (2025)
+          - generic [ref=f1e272]: M. Alenezi and M. Akour
+          - generic [ref=f1e273]: "AI-driven innovations in software engineering: a review of current practices and future directions."
+          - generic [ref=f1e274]: Applied Sciences 15 (3), pp. 1344.
+          - generic [ref=f1e275]:
+            - text: "External Links:"
+            - generic [ref=f1e276]:
+              - link "Document" [ref=f1e277] [cursor=pointer]:
+                - /url: https://dx.doi.org/10.3390/app15031344
+              - text: ","
+              - link "Link" [ref=f1e278] [cursor=pointer]:
+                - /url: https://www.mdpi.com/2076-3417/15/3/1344
+          - generic [ref=f1e279]:
+            - text: "Cited by:"
+            - link "§4" [ref=f1e280] [cursor=pointer]:
+              - /url: "#S4.p1.1"
+            - text: .
+        - listitem [ref=f1e281]:
+          - generic [ref=f1e282]: Anthropic (2024)
+          - generic [ref=f1e283]: Anthropic
+          - generic [ref=f1e284]: Introducing the model context protocol.
+          - generic [ref=f1e285]:
+            - text: "Note:"
+            - generic [ref=f1e286]:
+              - link "https://www.anthropic.com/news/model-context-protocol" [ref=f1e287] [cursor=pointer]:
+                - /url: https://www.anthropic.com/news/model-context-protocol
+              - text: Accessed 18 Aug 2025
+          - generic [ref=f1e288]:
+            - text: "Cited by:"
+            - link "§1" [ref=f1e289] [cursor=pointer]:
+              - /url: "#S1.p2.1"
+            - text: .
+        - listitem [ref=f1e290]:
+          - generic [ref=f1e291]: Bittner et al. (2022a)
+          - generic [ref=f1e292]: R. Bittner, M. Kim, J. J. Bosch, A. Jansen, G. Wichern, and L. Hantrakul
+          - generic [ref=f1e293]: A lightweight polyphonic pitch transcription model.
+          - generic [ref=f1e294]: arXiv preprint arXiv:2203.09893.
+          - generic [ref=f1e295]:
+            - text: "External Links:"
+            - link "Link" [ref=f1e297] [cursor=pointer]:
+              - /url: https://arxiv.org/abs/2203.09893
+          - generic [ref=f1e298]:
+            - text: "Cited by:"
+            - link "4th item" [ref=f1e299] [cursor=pointer]:
+              - /url: "#S2.I1.i4.p1.1"
+            - text: .
+        - listitem [ref=f1e300]:
+          - generic [ref=f1e301]: Bittner et al. (2022b)
+          - generic [ref=f1e302]: R. M. Bittner, J. J. Bosch, D. Rubinstein, G. Meseguer-Brocal, and S. Ewert
+          - generic [ref=f1e303]: A lightweight instrument-agnostic model for polyphonic note transcription and multipitch estimation.
+          - generic [ref=f1e304]: In Proceedings of the IEEE International Conference on Acoustics, Speech, and Signal Processing (ICASSP),
+          - generic [ref=f1e305]: Singapore.
+          - generic [ref=f1e306]:
+            - text: "Cited by:"
+            - link "§2.1" [ref=f1e307] [cursor=pointer]:
+              - /url: "#S2.SS1.p1.1"
+            - text: .
+        - listitem [ref=f1e308]:
+          - generic [ref=f1e309]: Bricard et al. (2024)
+          - generic [ref=f1e310]: S. Bricard, F. D’Errico, M. Devis, A. Bitton, D. ADC, and E. Vincent
+          - generic [ref=f1e311]: "Juice: a framework for co-creative agents in digital audio workstations."
+          - generic [ref=f1e312]: "Note: arXiv:2402.19323"
+          - generic [ref=f1e313]:
+            - text: "External Links:"
+            - link "Link" [ref=f1e315] [cursor=pointer]:
+              - /url: https://arxiv.org/abs/2402.19323
+          - generic [ref=f1e316]:
+            - text: "Cited by:"
+            - link "§1" [ref=f1e317] [cursor=pointer]:
+              - /url: "#S1.p2.1"
+            - text: .
+        - listitem [ref=f1e318]:
+          - generic [ref=f1e319]: Chen et al. (2021)
+          - generic [ref=f1e320]: M. Chen, J. Tworek, H. Jun, Q. Yuan, and et al.
+          - generic [ref=f1e321]: Evaluating large language models trained on code.
+          - generic [ref=f1e322]: arXiv preprint arXiv:2107.03374.
+          - generic [ref=f1e323]:
+            - text: "External Links:"
+            - link "Link" [ref=f1e325] [cursor=pointer]:
+              - /url: https://arxiv.org/abs/2107.03374
+          - generic [ref=f1e326]:
+            - text: "Cited by:"
+            - link "§1" [ref=f1e327] [cursor=pointer]:
+              - /url: "#S1.p2.1"
+            - text: .
+        - listitem [ref=f1e328]:
+          - generic [ref=f1e329]: Cockos Incorporated (2024)
+          - generic [ref=f1e330]: Cockos Incorporated
+          - generic [ref=f1e331]: ReaScript documentation.
+          - generic [ref=f1e332]:
+            - text: "Note:"
+            - generic [ref=f1e333]:
+              - link "https://www.reaper.fm/sdk/reascript/reascript.php" [ref=f1e334] [cursor=pointer]:
+                - /url: https://www.reaper.fm/sdk/reascript/reascript.php
+              - text: Accessed 18 Aug 2025
+          - generic [ref=f1e335]:
+            - text: "Cited by:"
+            - link "§1" [ref=f1e336] [cursor=pointer]:
+              - /url: "#S1.p2.1"
+            - text: .
+        - listitem [ref=f1e337]:
+          - generic [ref=f1e338]: Copet et al. (2023)
+          - generic [ref=f1e339]: J. Copet, F. Kreuk, I. Gat, T. Remez, D. Kant, G. Synnaeve, Y. Adi, and A. Défossez
+          - generic [ref=f1e340]: Simple and controllable music generation.
+          - generic [ref=f1e341]: Advances in Neural Information Processing Systems 36, pp. 47704–47720.
+          - generic [ref=f1e342]:
+            - text: "Cited by:"
+            - link "3rd item" [ref=f1e343] [cursor=pointer]:
+              - /url: "#S2.I1.i3.I1.i3.p1.1"
+            - text: .
+        - listitem [ref=f1e344]:
+          - generic [ref=f1e345]: Hou et al. (2025)
+          - generic [ref=f1e346]: X. Hou, Y. Zhao, S. Wang, and H. Wang
+          - generic [ref=f1e347]: "Model context protocol (mcp): landscape, security threats, and future research directions."
+          - generic [ref=f1e348]:
+            - text: "External Links:"
+            - generic [ref=f1e349]:
+              - text: 2503.23278,
+              - link "Link" [ref=f1e350] [cursor=pointer]:
+                - /url: https://arxiv.org/abs/2503.23278
+          - generic [ref=f1e351]:
+            - text: "Cited by:"
+            - link "§1" [ref=f1e352] [cursor=pointer]:
+              - /url: "#S1.p2.1"
+            - text: .
+        - listitem [ref=f1e353]:
+          - generic [ref=f1e354]: Kjus (2024)
+          - generic [ref=f1e355]: Y. Kjus
+          - generic [ref=f1e356]: "The platformization of music production: how digital audio workstations are turned into platforms of labor market relations."
+          - generic [ref=f1e357]: New Media & Society.
+          - generic [ref=f1e358]: "Note: First published online December 11, 2024"
+          - generic [ref=f1e359]:
+            - text: "External Links:"
+            - link "Document" [ref=f1e361] [cursor=pointer]:
+              - /url: https://dx.doi.org/10.1177/14614448241304660
+          - generic [ref=f1e362]:
+            - text: "Cited by:"
+            - link "§1" [ref=f1e363] [cursor=pointer]:
+              - /url: "#S1.p1.1"
+            - text: .
+        - listitem [ref=f1e364]:
+          - generic [ref=f1e365]: Leider (2004)
+          - generic [ref=f1e366]: C. N. Leider
+          - generic [ref=f1e367]: Digital audio workstation.
+          - generic [ref=f1e368]: 1 edition, McGraw-Hill, Inc., USA.
+          - generic [ref=f1e369]:
+            - text: "External Links:"
+            - generic [ref=f1e370]: ISBN 0071422862
+          - generic [ref=f1e371]:
+            - text: "Cited by:"
+            - link "§1" [ref=f1e372] [cursor=pointer]:
+              - /url: "#S1.p1.1"
+            - text: .
+        - listitem [ref=f1e373]:
+          - generic [ref=f1e374]: "[15]"
+          - generic [ref=f1e375]: Meta AI
+          - generic [ref=f1e376]: Facebook/musicgen-small.
+          - generic [ref=f1e377]:
+            - text: "Note:"
+            - generic [ref=f1e378]:
+              - link "https://huggingface.co/facebook/musicgen-small" [ref=f1e379] [cursor=pointer]:
+                - /url: https://huggingface.co/facebook/musicgen-small
+              - text: Hugging Face model card; accessed 18 Aug 2025
+          - generic [ref=f1e380]:
+            - text: "Cited by:"
+            - link "3rd item" [ref=f1e381] [cursor=pointer]:
+              - /url: "#S2.I1.i3.I1.i3.p1.1"
+            - text: .
+        - listitem [ref=f1e382]:
+          - generic [ref=f1e383]: Mozart AI (2025)
+          - generic [ref=f1e384]: Mozart AIMozart ai — ai-powered music production daw(Website)
+          - generic [ref=f1e385]: "Note: Product site; Accessed 2025-08-18"
+          - generic [ref=f1e386]:
+            - text: "External Links:"
+            - link "Link" [ref=f1e388] [cursor=pointer]:
+              - /url: https://getmozart.ai/
+          - generic [ref=f1e389]:
+            - text: "Cited by:"
+            - link "§1" [ref=f1e390] [cursor=pointer]:
+              - /url: "#S1.p3.1"
+            - text: .
+        - listitem [ref=f1e391]:
+          - generic [ref=f1e392]: OpenAI (2025a)
+          - generic [ref=f1e393]: OpenAI
+          - generic [ref=f1e394]: GPT-5 system card.
+          - generic [ref=f1e395]:
+            - text: "Note:"
+            - generic [ref=f1e396]:
+              - link "https://openai.com/index/gpt-5-system-card/" [ref=f1e397] [cursor=pointer]:
+                - /url: https://openai.com/index/gpt-5-system-card/
+              - text: Accessed 18 Aug 2025
+          - generic [ref=f1e398]:
+            - text: "Cited by:"
+            - link "2nd item" [ref=f1e399] [cursor=pointer]:
+              - /url: "#S2.I1.i2.p1.1"
+            - text: .
+        - listitem [ref=f1e400]:
+          - generic [ref=f1e401]: OpenAI (2025b)
+          - generic [ref=f1e402]: OpenAI
+          - generic [ref=f1e403]: Introducing gpt-5.
+          - generic [ref=f1e404]:
+            - text: "Note:"
+            - generic [ref=f1e405]:
+              - link "https://openai.com/index/introducing-gpt-5/" [ref=f1e406] [cursor=pointer]:
+                - /url: https://openai.com/index/introducing-gpt-5/
+              - text: Accessed 18 Aug 2025
+          - generic [ref=f1e407]:
+            - text: "Cited by:"
+            - link "2nd item" [ref=f1e408] [cursor=pointer]:
+              - /url: "#S2.I1.i2.p1.1"
+            - text: .
+        - listitem [ref=f1e409]:
+          - generic [ref=f1e410]: OpenJS Foundation (2024)
+          - generic [ref=f1e411]: OpenJS Foundation
+          - generic [ref=f1e412]: Electron.
+          - generic [ref=f1e413]:
+            - text: "Note:"
+            - generic [ref=f1e414]:
+              - link "https://www.electronjs.org/" [ref=f1e415] [cursor=pointer]:
+                - /url: https://www.electronjs.org/
+              - text: Accessed 18 Aug 2025
+          - generic [ref=f1e416]:
+            - text: "Cited by:"
+            - link "§2.1" [ref=f1e417] [cursor=pointer]:
+              - /url: "#S2.SS1.p1.1"
+            - text: .
+        - listitem [ref=f1e418]:
+          - generic [ref=f1e419]: "[20]"
+          - generic [ref=f1e420]: Qwen Team
+          - generic [ref=f1e421]: Qwen3 models — hugging face collection.
+          - generic [ref=f1e422]:
+            - text: "Note:"
+            - generic [ref=f1e423]:
+              - link "https://huggingface.co/collections/Qwen/qwen3-67dd247413f0e2e4f653967f" [ref=f1e424] [cursor=pointer]:
+                - /url: https://huggingface.co/collections/Qwen/qwen3-67dd247413f0e2e4f653967f
+              - text: Collection page; accessed 18 Aug 2025
+          - generic [ref=f1e425]:
+            - text: "Cited by:"
+            - link "2nd item" [ref=f1e426] [cursor=pointer]:
+              - /url: "#S2.I1.i2.p1.1"
+            - text: .
+        - listitem [ref=f1e427]:
+          - generic [ref=f1e428]: Radford et al. (2022)
+          - generic [ref=f1e429]: A. Radford, J. W. Kim, T. Xu, G. Brockman, C. McLeavey, and I. Sutskever
+          - generic [ref=f1e430]: Robust speech recognition via large-scale weak supervision.
+          - generic [ref=f1e431]: arXiv preprint arXiv:2212.04356.
+          - generic [ref=f1e432]:
+            - text: "External Links:"
+            - generic [ref=f1e433]:
+              - link "Document" [ref=f1e434] [cursor=pointer]:
+                - /url: https://dx.doi.org/10.48550/arXiv.2212.04356
+              - text: ","
+              - link "Link" [ref=f1e435] [cursor=pointer]:
+                - /url: https://arxiv.org/abs/2212.04356
+          - generic [ref=f1e436]:
+            - text: "Cited by:"
+            - link "§2.1" [ref=f1e437] [cursor=pointer]:
+              - /url: "#S2.SS1.p1.1"
+            - text: .
+        - listitem [ref=f1e438]:
+          - generic [ref=f1e439]: "[22]"
+          - generic [ref=f1e440]: Spotify
+          - generic [ref=f1e441]: Basic pitch — about.
+          - generic [ref=f1e442]:
+            - text: "Note:"
+            - generic [ref=f1e443]:
+              - link "https://basicpitch.spotify.com/about" [ref=f1e444] [cursor=pointer]:
+                - /url: https://basicpitch.spotify.com/about
+              - text: Product page; accessed 18 Aug 2025
+          - generic [ref=f1e445]:
+            - text: "Cited by:"
+            - link "4th item" [ref=f1e446] [cursor=pointer]:
+              - /url: "#S2.I1.i4.p1.1"
+            - text: ","
+            - link "§2.1" [ref=f1e447] [cursor=pointer]:
+              - /url: "#S2.SS1.p1.1"
+            - text: .
+        - listitem [ref=f1e448]:
+          - generic [ref=f1e449]: Suno (2024)
+          - generic [ref=f1e450]: Suno
+          - generic [ref=f1e451]: Suno.
+          - generic [ref=f1e452]:
+            - text: "Note:"
+            - generic [ref=f1e453]:
+              - link "https://suno.com/" [ref=f1e454] [cursor=pointer]:
+                - /url: https://suno.com/
+              - text: Accessed 18 Aug 2025
+          - generic [ref=f1e455]:
+            - text: "Cited by:"
+            - link "§1" [ref=f1e456] [cursor=pointer]:
+              - /url: "#S1.p2.1"
+            - text: .
+        - listitem [ref=f1e457]:
+          - generic [ref=f1e458]: Team (2025)
+          - generic [ref=f1e459]: Q. Team
+          - generic [ref=f1e460]: Qwen3 technical report.
+          - generic [ref=f1e461]:
+            - text: "External Links:"
+            - generic [ref=f1e462]:
+              - text: 2505.09388,
+              - link "Link" [ref=f1e463] [cursor=pointer]:
+                - /url: https://arxiv.org/abs/2505.09388
+          - generic [ref=f1e464]:
+            - text: "Cited by:"
+            - link "2nd item" [ref=f1e465] [cursor=pointer]:
+              - /url: "#S2.I1.i2.p1.1"
+            - text: .
+  - generic [ref=f1e466]:
+    - link "◄" [ref=f1e467] [cursor=pointer]:
+      - /url: /html/2512.03288
+    - link [ref=f1e468] [cursor=pointer]:
+      - /url: /
+      - img "ar5iv homepage" [ref=f1e469]
+    - link "Feeling lucky?" [ref=f1e470] [cursor=pointer]:
+      - /url: /feeling_lucky
+      - text: Feelinglucky?
+    - link "Conversion report (E)" [ref=f1e471] [cursor=pointer]:
+      - /url: /log/2512.03289
+      - text: Conversionreport (E)
+    - link "Report an issue" [ref=f1e472] [cursor=pointer]:
+      - /url: https://github.com/dginev/ar5iv/issues/new?template=improve-article--arxiv-id-.md&title=Improve+article+2512.03289
+      - text: Reportan issue
+    - link "View original on arXiv" [ref=f1e473] [cursor=pointer]:
+      - /url: https://arxiv.org/abs/2512.03289
+      - text: View originalon arXiv
+    - link "►" [ref=f1e474] [cursor=pointer]:
+      - /url: /html/2512.03290
+  - contentinfo [ref=f1e475]:
+    - link "🌙" [ref=f1e476] [cursor=pointer]:
+      - /url: javascript:toggleColorScheme()
+    - link "Copyright" [ref=f1e478] [cursor=pointer]:
+      - /url: https://arxiv.org/help/license
+    - link "Privacy Policy" [ref=f1e479] [cursor=pointer]:
+      - /url: https://arxiv.org/help/policies/privacy_policy
+    - generic [ref=f1e480]:
+      - text: Generated by
+      - link "LaTeXMLMascot Sammy" [ref=f1e481] [cursor=pointer]:
+        - /url: http://dlmf.nist.gov/LaTeXML/
+        - generic [ref=f1e482]: LaTe
+        - text: XML
+        - img "Mascot Sammy" [ref=f1e483]
+      - text: oxide

@@ -1,0 +1,57 @@
+- main [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - generic "Vit" [ref=e6]:
+        - strong [ref=e7]: V
+      - generic [ref=e10]:
+        - button [ref=e11] [cursor=pointer]:
+          - strong [ref=e12]: 新对话
+        - generic "Vit Project · Agent 运行状态不可用" [ref=e15]: Vit Project · 连接中
+    - generic "Transport" [ref=e17]:
+      - button "Play" [disabled] [ref=e18]
+      - button "Return to zero" [disabled] [ref=e21]
+      - button "Stop" [disabled] [ref=e24]
+      - generic [ref=e27]: 00:00:00
+      - spinbutton "Seek seconds" [disabled] [ref=e28]
+    - button "Refresh" [ref=e36] [cursor=pointer]
+  - generic [ref=e42]:
+    - navigation "Ask Vit modes" [ref=e43]:
+      - generic [ref=e44]:
+        - button "对话" [ref=e45] [cursor=pointer]
+        - button "轨道" [ref=e50] [cursor=pointer]
+        - button "机架" [ref=e56] [cursor=pointer]
+        - button "MIDI" [ref=e60] [cursor=pointer]
+        - button "混音台" [ref=e64] [cursor=pointer]
+      - generic [ref=e69]:
+        - button "新建" [ref=e70] [cursor=pointer]
+        - button "设置" [ref=e73] [cursor=pointer]
+    - generic [ref=e78]:
+      - generic [ref=e79]:
+        - generic "对话模式" [ref=e80]:
+          - generic [ref=e81]:
+            - button "协作 自然对话" [ref=e82] [cursor=pointer]:
+              - generic [ref=e86]: 协作
+              - generic [ref=e87]: 自然对话
+            - button "计划 只读分析" [ref=e88] [cursor=pointer]:
+              - generic [ref=e99]: 计划
+              - generic [ref=e100]: 只读分析
+            - button "目标 长任务" [ref=e101] [cursor=pointer]:
+              - generic [ref=e105]: 目标
+              - generic [ref=e106]: 长任务
+        - article [ref=e108]:
+          - generic [ref=e113]:
+            - generic [ref=e114]: Vit
+            - paragraph [ref=e116]: Ask Vit 就绪。
+        - generic [ref=e118]:
+          - button "添加上下文、文件或模式选项" [ref=e120] [cursor=pointer]
+          - generic "控制可逆工程动作是否逐项请求确认" [ref=e122]:
+            - generic [ref=e123]: Agent 权限模式
+            - combobox "Agent 权限模式" [ref=e124]:
+              - option "Manual Confirmation" [selected]
+              - option "Full Project Access"
+          - textbox "和 Vit 说..." [ref=e125]
+          - button "发送" [ref=e126] [cursor=pointer]
+      - complementary "右侧工程面板" [ref=e131]:
+        - button "资料库" [ref=e132] [cursor=pointer]
+        - button "宏控制" [ref=e137] [cursor=pointer]
+        - button "历史树" [ref=e142] [cursor=pointer]

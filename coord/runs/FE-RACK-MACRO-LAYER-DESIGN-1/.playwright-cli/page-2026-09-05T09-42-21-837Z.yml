@@ -1,0 +1,82 @@
+- main [ref=f7e3]:
+  - generic [ref=f7e4]:
+    - generic [ref=f7e5]:
+      - generic "Vit" [ref=f7e6]:
+        - strong [ref=f7e7]: V
+      - generic [ref=f7e10]:
+        - button [ref=f7e11] [cursor=pointer]:
+          - strong [ref=f7e12]: 新对话
+        - generic "Vit Project · Agent 运行状态不可用" [ref=f7e15]: Vit Project · 连接中
+    - generic "Transport" [ref=f7e17]:
+      - button "Play" [disabled] [ref=f7e18]
+      - button "Return to zero" [disabled] [ref=f7e21]
+      - button "Stop" [disabled] [ref=f7e24]
+      - generic [ref=f7e27]: 00:00:00
+      - spinbutton "Seek seconds" [disabled] [ref=f7e28]
+    - generic [ref=f7e35]:
+      - generic [ref=f7e36]: 未连接
+      - generic [ref=f7e43]: "-- BPM"
+      - generic [ref=f7e47]: "--"
+      - button "Refresh" [ref=f7e52] [cursor=pointer]
+  - generic [ref=f7e58]:
+    - navigation "Ask Vit modes" [ref=f7e59]:
+      - generic [ref=f7e60]:
+        - button "对话" [ref=f7e61] [cursor=pointer]
+        - button "轨道" [ref=f7e66] [cursor=pointer]
+        - button "机架" [ref=f7e72] [cursor=pointer]
+        - button "MIDI" [ref=f7e76] [cursor=pointer]
+        - button "混音台" [ref=f7e80] [cursor=pointer]
+      - generic [ref=f7e85]:
+        - button "新建" [ref=f7e86] [cursor=pointer]
+        - button "设置" [ref=f7e89] [cursor=pointer]
+    - generic [ref=f7e94]:
+      - generic [ref=f7e95]:
+        - generic "对话模式" [ref=f7e96]:
+          - generic [ref=f7e97]:
+            - button "协作 自然对话" [ref=f7e98] [cursor=pointer]:
+              - generic [ref=f7e102]: 协作
+              - generic [ref=f7e103]: 自然对话
+            - button "计划 只读分析" [ref=f7e104] [cursor=pointer]:
+              - generic [ref=f7e115]: 计划
+              - generic [ref=f7e116]: 只读分析
+            - button "目标 长任务" [ref=f7e117] [cursor=pointer]:
+              - generic [ref=f7e121]: 目标
+              - generic [ref=f7e122]: 长任务
+        - article [ref=f7e124]:
+          - generic [ref=f7e129]:
+            - generic [ref=f7e130]: Vit
+            - paragraph [ref=f7e132]: Ask Vit 就绪。
+        - generic [ref=f7e134]:
+          - textbox "和 Vit 说..." [ref=f7e135]
+          - generic [ref=f7e136]:
+            - button "添加上下文、文件或模式选项" [ref=f7e138] [cursor=pointer]
+            - button "普通确认" [ref=f7e141] [cursor=pointer]
+            - button "发送" [ref=f7e148] [cursor=pointer]
+      - separator "右侧面板宽度" [ref=f7e153]
+      - complementary [ref=f7e154]:
+        - generic [ref=f7e155]:
+          - button "资料库" [ref=f7e156] [cursor=pointer]
+          - button "宏控制" [ref=f7e161] [cursor=pointer]
+          - button "历史树" [ref=f7e166] [cursor=pointer]
+          - button "收起右侧面板" [ref=f7e171] [cursor=pointer]
+        - generic [ref=f7e174]:
+          - generic [ref=f7e175]:
+            - button "资料库 0 个文件" [ref=f7e176] [cursor=pointer]:
+              - generic [ref=f7e180]:
+                - strong [ref=f7e181]: 资料库
+                - generic [ref=f7e182]: 0 个文件
+            - button "上传" [ref=f7e184] [cursor=pointer]
+          - generic [ref=f7e189]:
+            - textbox [ref=f7e194]:
+              - /placeholder: 输入网址；留空打开浏览器
+            - button "打开" [ref=f7e195] [cursor=pointer]
+            - button "保存链接到资料库" [ref=f7e200] [cursor=pointer]
+            - button "扫描本次会话下载" [ref=f7e202] [cursor=pointer]
+          - generic [ref=f7e208]:
+            - region "资料库文件列表" [ref=f7e209]:
+              - generic [ref=f7e210]:
+                - generic [ref=f7e211]: 文件
+                - generic [ref=f7e212]: "-"
+                - button "隐藏文件列表" [ref=f7e213] [cursor=pointer]
+              - generic [ref=f7e217]: 暂无资料
+            - generic [ref=f7e219]: 尚未选择资料
