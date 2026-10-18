@@ -1,7 +1,7 @@
 # 2026-10-18 午窗 批量一裁定（92 FE-GUI-C 终验 / 90 LOUDNESS-B 修订腿 A 收口 / 133 派发）
 
 - 验收会话：12:00-18:00 决策流（DSH PC，本机）；裁定来源=用户 2026-10-18 午窗「两卡检查后派发并在 dsh 执行」+ 批准「现在派发第三执行流」。
-- 基线：origin/main=43e7004d（验收前）；本批合入后 main=__MAIN_AFTER__（含 92 探针分支三笔 cherry-pick：2f871de6/070e8be2/20187f38）。
+- 基线：origin/main=43e7004d（验收前）；本批合入后 main=dc5b0e1b（含 92 探针分支三笔 cherry-pick：2f871de6/070e8be2/20187f38）。
 - 执行侧：DSH 团队执行流（exec-loudness-b / exec-fe-gui-c / exec-lw-fix）；协调面由 12:00-18:00 决策流单写。
 
 ## 一、FE-GUI-C-FLOATING（92）——**终验 pass**（Phase C 浮卡/真窗口双档）
