@@ -10,3 +10,6 @@ run_*/kernel_stderr.log
 __pycache__/
 build_kernel.log
 build_tests.log
+# Whole run directories stay on disk (worktree); run IDs + artifact sha256 are recorded in
+# RESULTS.md / README.md. Heavy wavs + the run-dir kernel workspace are never committed.
+run_*/
