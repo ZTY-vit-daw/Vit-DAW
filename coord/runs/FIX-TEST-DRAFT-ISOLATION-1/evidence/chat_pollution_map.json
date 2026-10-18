@@ -1,0 +1,28 @@
+﻿{
+    "schema_version":  "fix_test_draft_isolation_pollution_map.v2",
+    "package":  "./internal/chat",
+    "agent_dir":  "D:\\Vit_DAW_wt_testiso1\\agent",
+    "real_draft_root":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts",
+    "go_test_exit_code":  {
+                              "value":  0,
+                              "PSComputerName":  "localhost",
+                              "RunspaceId":  "faf0e5a3-538c-4426-b1e3-0b282d8ec56d",
+                              "PSShowComputerName":  false
+                          },
+    "events":  [
+                   {
+                       "dir":  "draft_20261018T101203_334e0441",
+                       "attributed_test":  "\u003cbefore-first-test\u003e",
+                       "last_run_at":  "2026-10-18T18:12:00.2387444+08:00",
+                       "detected_at":  "2026-10-18T18:12:03.8940075+08:00"
+                   },
+                   {
+                       "dir":  "draft_20261018T101342_bbf8486c",
+                       "attributed_test":  "TestActivateWorkspaceUsesMaterializedDraftWithoutNewDir",
+                       "last_run_at":  "2026-10-18T18:13:42.0597258+08:00",
+                       "detected_at":  "2026-10-18T18:13:42.5245570+08:00"
+                   }
+               ],
+    "verbose_log":  "D:\\Vit_DAW_wt_testiso1\\coord\\runs\\FIX-TEST-DRAFT-ISOLATION-1\\evidence\\go_test_verbose_chat_pollution_map.log",
+    "captured_at":  "2026-10-18T18:13:48.8367394+08:00"
+}
