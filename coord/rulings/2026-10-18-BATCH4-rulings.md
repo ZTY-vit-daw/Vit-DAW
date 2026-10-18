@@ -1,7 +1,7 @@
 # 2026-10-18 午窗 批量四裁定（118 FE-START-EMPTY-DRAFT 终验 pass + 拆卡四张）
 
 - 验收会话：12:00-18:00 决策流（DSH PC，本机）；裁定来源=用户 2026-10-18 午窗派发（118+132 并行）。
-- 基线：origin/main=**e5fc38fa**（验收前）；本批合入后 main=__MAIN_AFTER__。
+- 基线：origin/main=**e5fc38fa**（验收前）；本批合入后 main=92485584。
 - 执行侧：DSH exec-start-draft（task-4）；协调面由 12:00-18:00 决策流单写。
 
 ## 一、FE-START-EMPTY-DRAFT-1（118）——**终验 pass**（最小修复口径；适用边界如实登记）
