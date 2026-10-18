@@ -1,0 +1,23 @@
+2026-10-18T14:18:35 [WARN] [pca-native-seed] family=generation_shell bundle=C:\Users\timoz\Library\Audio\Plug-Ins\VST3\GenShell.vst3 seed failed: processor attestation: inspect plug-in path: GetFileAttributesEx C:\Users\timoz\Library\Audio\Plug-Ins\VST3\GenShell.vst3: The system cannot find the path specified.
+2026-10-18T14:18:35 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=<none>
+2026-10-18T14:18:35 [INFO] VitAgent started req=tcp://127.0.0.1:5555 sub=tcp://127.0.0.1:5556 udp_to=4444 udp_from=4445
+2026-10-18T14:18:35 [INFO] HTTP agent API listening on http://127.0.0.1:7878
+2026-10-18T14:18:35 [INFO] VSP realtime publisher enabled client=vit.agent.transport_publisher hub=http://127.0.0.1:8787/vsp
+2026-10-18T14:18:35 [INFO] VSP realtime publisher enabled client=vit.agent.realtime_publisher hub=http://127.0.0.1:8787/vsp
+2026-10-18T14:18:35 [INFO] control loop started: UDP:4445 -> tcp://127.0.0.1:5555
+2026-10-18T14:18:35 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=1 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-18T14:18:35 [INFO] telemetry thread started: tcp://127.0.0.1:5556 -> UDP:4444
+2026-10-18T14:18:35 [WARN] VSP realtime publish pending failures=1 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-18T14:18:35 [INFO] [shadow] initialized tracks=5 project_path="" replayed_deltas=0
+2026-10-18T14:18:35 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-18T14:18:35 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_2978f634009346708875bf5774c2120b
+2026-10-18T14:18:35 [INFO] [workspace] activated project="D:\\Vit_DAW_wt_fedraft1\\coord\\runs\\FE-START-EMPTY-DRAFT-1\\realstack_d_clean_20261018_1421\\ProjectHistory\\drafts\\draft_20261001T120000_prev2978\\Unsaved.vit" uuid=vitproj_2978f634009346708875bf5774c2120b recovered=false conversations=0 retired_legacy_b2=0 retired_legacy_b3=0
+2026-10-18T14:18:38 [INFO] [timing] kernel.vsp_state_snapshot ms=5 reason=version_project_new err=false
+2026-10-18T14:18:38 [INFO] [shadow] initialized tracks=0 project_path="" replayed_deltas=0
+2026-10-18T14:18:38 [INFO] [timing] harness.refresh_shadow ms=6 reason=version_project_new status=ok err=false
+2026-10-18T14:18:38 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_2508a2ff49be450b8fc0297792015a42
+2026-10-18T14:18:38 [INFO] [workspace] activated project="D:\\Vit_DAW_wt_fedraft1\\coord\\runs\\FE-START-EMPTY-DRAFT-1\\realstack_d_clean_20261018_1421\\ProjectHistory\\drafts\\draft_20261018T061835_d2743dd5\\Unsaved.vit" uuid=vitproj_2508a2ff49be450b8fc0297792015a42 recovered=false conversations=0 retired_legacy_b2=0 retired_legacy_b3=0
+2026-10-18T14:18:38 [INFO] [timing] harness.invoke total_ms=70 tool=version.project_new command=version_project_new status=ok confirmed=true err=false
+2026-10-18T14:18:38 [INFO] [timing] async version_project_new total_ms=73 ack_action=act_0bec4366396f64b0 status=ok err=false
+2026-10-18T14:18:40 [WARN] VSP realtime publish pending failures=21 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-18T14:18:45 [WARN] VSP realtime publish pending failures=41 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.

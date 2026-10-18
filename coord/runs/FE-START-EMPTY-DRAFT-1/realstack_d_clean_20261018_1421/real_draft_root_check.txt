@@ -1,0 +1,9 @@
+﻿FE-START-EMPTY-DRAFT-1 real-stack leg: user real draft root read-only check
+checked_at=
+2026-10-18T14:19:28.6394553+08:00
+real_root=C:\Users\timoz\AppData\Local\Vit\ProjectHistory\drafts
+dir_count=
+10177
+dirs_modified_after_14:00:
+draft_20261018T060416_4bcdde3a @ 14:04:16; draft_20261018T060418_5450cd7c @ 14:04:18
+note=two 14:04 dirs belong to KERNEL-RENDERGAIN-1(132) stack leg observed at 14:04; this leg (118) wrote nothing here (all drafts under run\\ProjectHistory\\drafts)
