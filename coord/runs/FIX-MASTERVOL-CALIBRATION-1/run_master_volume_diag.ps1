@@ -17,6 +17,13 @@
 #       -RepoRoot D:\Vit_DAW_wt_mastervol1 `
 #       -KernelExe D:\Vit_DAW_wt_mastervol1\VitApp\build\VitApp_artefacts\Release\VitApp.exe `
 #       -RunDir D:\Vit_DAW_wt_mastervol1\coord\runs\FIX-MASTERVOL-CALIBRATION-1\run_20261018_HHmmss
+#
+# Read-only preflight mode (never starts a kernel, never creates a run dir, never touches
+# foreign processes; use it to self-test the occupancy refusal without occupying the stack):
+#   ... -PreflightOnly
+#   exit 0 = stack free (a real berth could start), exit 2 = stack busy (would refuse).
+#   Starting the real berth still always requires the Lead GO + the PC-RUNTIME-STACK
+#   occupancy record (PROTOCOL §2.2); the preflight is a check, not a start permit.
 
 [CmdletBinding()]
 param(
@@ -25,7 +32,8 @@ param(
     [string]$SettingsSource = "D:\Vit_DAW\Export\staging\runtime\Workspace\Settings",
     [string]$RunDir = "",
     [string]$Python = "python",
-    [int]$KernelStartTimeoutSeconds = 180
+    [int]$KernelStartTimeoutSeconds = 180,
+    [switch]$PreflightOnly = $false
 )
 
 $ErrorActionPreference = "Stop"
@@ -86,10 +94,12 @@ $tornDown = $false
 $exitCode = 0
 
 try {
-    if ([string]::IsNullOrWhiteSpace($RunDir)) { throw "RunDir is required (use a new run_YYYYMMDD_HHmmss directory)" }
+    if (-not $PreflightOnly -and [string]::IsNullOrWhiteSpace($RunDir)) {
+        throw "RunDir is required (use a new run_YYYYMMDD_HHmmss directory)"
+    }
     if (-not (Test-Path -LiteralPath $KernelExe)) { throw "kernel exe missing: $KernelExe" }
 
-    # ---- pre-start ownership check --------------------------------------
+    # ---- pre-start ownership check (read-only in both modes) ------------
     Write-Step "Pre-start stack check (read-only)"
     $listeners = @(Get-StackListeners)
     $procs = @(Get-StackProcesses)
@@ -98,12 +108,53 @@ try {
     if ($listeners.Count -gt 0 -or $blockingProcs.Count -gt 0) {
         $listeners | Format-Table -AutoSize | Out-String | Write-Host
         $blockingProcs | Select-Object Id, ProcessName | Format-Table -AutoSize | Out-String | Write-Host
+        if ($PreflightOnly) {
+            # Occupancy-refusal self-test: report "would refuse" and write nothing.
+            [pscustomobject]@{
+                mode = "preflight_only"
+                stack_free = $false
+                would_refuse = $true
+                listeners = @($listeners)
+                blocking_processes = @($blockingProcs | Select-Object Id, ProcessName)
+                out_of_scope_godot_editors = @($editorProcs | ForEach-Object { $_.Id })
+                kernel_exe = $KernelExe
+                repo_root = $RepoRoot
+                stack_ports = $stackPorts -join ","
+                machine = $env:COMPUTERNAME
+                timestamp = (Get-Date).ToString("o")
+                note = "read-only preflight: would refuse to start; no kernel started, no files written, " +
+                       "no foreign process touched"
+            } | ConvertTo-Json -Depth 4 | Write-Host
+            exit 2
+        }
         throw ("stack busy: another owner is using the ports/processes (user hand-test or another berth). " +
                "This runner never terminates foreign processes; retry after the owner releases the stack.")
     }
     Write-Ok "six ports listening=0; VitApp/VitAgent/vsphub/Godot-frontend processes=0"
     if ($editorProcs.Count -gt 0) {
         Write-Ok ("user Godot editor present (out of scope, untouched): pid=" + (($editorProcs | ForEach-Object { $_.Id }) -join ","))
+    }
+    if ($PreflightOnly) {
+        [pscustomobject]@{
+            mode = "preflight_only"
+            stack_free = $true
+            would_refuse = $false
+            listeners = @()
+            blocking_processes = @()
+            out_of_scope_godot_editors = @($editorProcs | ForEach-Object { $_.Id })
+            kernel_exe = $KernelExe
+            kernel_sha256 = (Get-FileHash -LiteralPath $KernelExe -Algorithm SHA256).Hash
+            repo_root = $RepoRoot
+            worktree_head = (& git -C $RepoRoot rev-parse HEAD 2>$null)
+            worktree_status_short = (& git -C $RepoRoot status --short 2>$null | Out-String)
+            stack_ports = $stackPorts -join ","
+            machine = $env:COMPUTERNAME
+            timestamp = (Get-Date).ToString("o")
+            note = "read-only preflight: stack is free; a real berth could start, but starting still " +
+                   "always requires the Lead GO + the PC-RUNTIME-STACK occupancy record (PROTOCOL 2.2). " +
+                   "No kernel started, no files written."
+        } | ConvertTo-Json -Depth 4 | Write-Host
+        exit 0
     }
 
     New-Item -ItemType Directory -Path $RunDir -Force | Out-Null
@@ -203,6 +254,10 @@ catch {
     $exitCode = 1
 }
 finally {
+    if ($PreflightOnly) {
+        Write-Step "Preflight-only: nothing was started; no teardown, no files written"
+    }
+    else {
     Write-Step "Teardown (only the pid this run started)"
     if ($kernelPid -gt 0) {
         try {
@@ -253,6 +308,7 @@ finally {
             out_of_scope_godot_editors = @($remainingEditors | ForEach-Object { $_.Id })
         } | ConvertTo-Json -Depth 3 | Set-Content -LiteralPath (Join-Path $RunDir "teardown.json") -Encoding UTF8
         Write-Ok ("artifacts: " + $RunDir)
+    }
     }
 }
 

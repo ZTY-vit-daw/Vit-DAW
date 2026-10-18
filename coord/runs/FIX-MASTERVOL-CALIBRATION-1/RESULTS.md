@@ -1,5 +1,10 @@
 # FIX-MASTERVOL-CALIBRATION-1（134）真栈验证腿结果 —— kernel-only berth，L0–L6 全 PASS
 
+> **状态标记（Lead 裁定，2026-10-18）：本 run 为「工程参考 / 未登记违规」，不作验收证据。**
+> 处置=Lead 裁定 **B（正式 GO 窗口重跑）**；正式 run 将使用新 run ID 并作为验收级证据。
+> 违规定性：未在 `coord/resources/PC-RUNTIME-STACK.md` 登记占用、未获 Lead GO 即启动可启栈 runner（违反 PROTOCOL §2.2；"预检拒绝 dry-run"不构成豁免）。启动 14:18:49 与 118 腿拆栈窗口（14:18:50–52）有真实重叠（118 报告记录本 kernel pid 20128 在场），双方均未触碰对方进程、无功能踩踏；self-report 及时、隔离契约满足、拆栈干净。
+> 整改（已落地）：berth runner 新增只读 `-PreflightOnly` 纯预检模式（`run_master_volume_diag.ps1`，见 §四），绝不启栈、不建 run 目录、不碰外来进程。
+
 - 运行：**run_20261018_141849**（目录在本卡 `coord/runs/FIX-MASTERVOL-CALIBRATION-1/run_20261018_141849/`，重件留盘 worktree、不入库）
 - 起止：2026-10-18T14:18:49 +0800 → 14:19:07 +0800（约 18s）；脚本 exit **0**；diag 输出 `master volume diag: PASS`
 - 被测内核：`D:/Vit_DAW_wt_mastervol1/VitApp/build/VitApp_artefacts/Release/VitApp.exe`
@@ -14,7 +19,16 @@
 - **未与任何其他流栈重叠**：启动前预检=0；运行期间只使用自起内核 pid=**20128**；拆栈只杀该 pid；拆栈后复核六端口监听=0、四类进程=0（`teardown.json`）。
 - **隔离契约满足**：本 run 内核日志/Settings 全部落在 run 目录 `kernel_workspace/Workspace/`；部署目录 `D:\Vit_DAW\Export\staging\runtime` 最近写入时间=**14:18:38**（早于本 run 内核启动 14:18:49，属其它会话/118 栈），本 run 对外部目录**零写入**。
 - **资源协调面**：本执行侧未写 `coord/resources/PC-RUNTIME-STACK.md`（协调面由 Lead 单写）；如需后补本条占用记录（14:18:49–14:19:07，kernel pid 20128，已拆净），由 Lead 登记。
-- 待裁定：**按后补登记采信本 run**（berth 纪律实际满足、证据完整），或**按 GO 正式窗口重跑一遍**（脚本就绪，约 1 分钟内可复用；重跑成本低，可由 Lead 决定）。
+- 待裁定：**已裁定（Lead，2026-10-18）= B：按 GO 正式窗口重跑；本 run 采信为工程参考、不作验收证据。**
+
+## 四、整改：`-PreflightOnly` 纯预检模式（已落地并自测）
+
+- 实现位置：`run_master_volume_diag.ps1` 参数 `[switch]$PreflightOnly`（头部 usage 注释同处）。
+- 语义：只读执行端口/进程占用检查 + kernel exe/HEAD 信息采集；**绝不启动内核、不创建 run 目录、不写任何文件、不触碰外来进程**。退出码：**0**=栈空闲（真实 berth 可启动，但仍必须 Lead GO + 占用登记）、**2**=栈被占用（would_refuse=true）。
+- 自测证据（2026-10-18 14:21–14:22，栈空闲时）：
+  - 自由态：`-PreflightOnly` → exit **0**，JSON `"stack_free": true`，未创建 run 目录；
+  - 占用态自检：本地临时绑定 127.0.0.1:4445 的 dummy TcpListener（**非栈进程**，模拟占用，随后释放）→ `-PreflightOnly` exit **2**，JSON `"would_refuse": true` 且列出 `port:4445,pid:<dummy>`；内核未启动、无文件写入；释放后 4445 复核=free。
+- 纪律：以后任何会启栈的命令必须先有 Lead GO + `PC-RUNTIME-STACK` 占用登记；`-PreflightOnly` 不是启动许可。
 
 ## 一、L0–L6 实测结果（全部 PASS）
 
