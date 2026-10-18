@@ -1,0 +1,50 @@
+﻿{
+    "card":  "KERNEL-L3-TIMEENERGY-1",
+    "leg":  "real-stack verify (deterministic, zero LLM)",
+    "run_id":  "20261018_211544",
+    "repo_head":  "484a11cc6327172607a9a7a55481463fd2c33de2",
+    "branch":  "port/kernel-l3-timeenergy-1",
+    "stems_folder":  "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_02be6193fbc17bed\\cases\\spv1_p06\\stems",
+    "kernel_exe":  "D:\\Vit_DAW_wt_klte1\\VitApp\\build-klte1\\VitApp_artefacts\\Release\\VitApp.exe",
+    "started_at":  "2026-10-18T21:15:44.4785275+08:00",
+    "sec8_decl":  "0 LLM rounds; success=(1) 6 tracks x 4 families in l3_feature_log with well-formed time_energy rows (2) time_dynamics present + own-track identity + receipt executed + rows\u003e0; failure classes assertion_fail/environment_interrupt/stack_occupied; stop-loss 2 same-signature assertion_fail",
+    "kernel_sha256":  "AF3DE9289B07AAF4AB7965DD4F336705221E30014449041E92E346B74703A72A",
+    "stack_pids":  {
+                       "VitAgent":  [
+                                        14532
+                                    ],
+                       "VitApp":  [
+                                      1632
+                                  ]
+                   },
+    "agent_sha256":  "8138DB8EF5C940393261977EF1FF9C05117D1D232981ACFDCF4EE8B9E0736670",
+    "round_a_track_count":  6,
+    "l3_log_path":  "D:\\Vit_DAW_wt_klte1\\coord\\runs\\KERNEL-L3-TIMEENERGY-1\\klte1_20261018_211544\\agent_drafts\\draft_20261018T131556_f6ff20b0\\.vit_derived\\vitproj_3ced1ae26d27465093037d9de2095b60\\l3_feature_log.jsonl",
+    "l3_row_count":  24,
+    "time_energy_sample":  {
+                               "track_id":  "1007",
+                               "method":  "time_domain_frame_rms_envelope_v1",
+                               "truncated":  "False",
+                               "window_ms":  "92.87981859410431",
+                               "feature_version":  "time_energy.v1",
+                               "segment_count":  216,
+                               "hop_ms":  "92.87981859410431",
+                               "integrated_rms_dbfs":  "-23.768000194370813",
+                               "status":  "ready",
+                               "layer":  "l3_deep"
+                           },
+    "guitar_track_id":  "1017",
+    "stems_readonly_intact":  true,
+    "assert_failures":  [
+
+                        ],
+    "verdict":  "timeenergy_verify_pass",
+    "teardown":  {
+                     "remaining":  [
+
+                                   ],
+                     "torn_down":  true
+                 },
+    "finished_at":  "2026-10-18T21:16:12.2206045+08:00",
+    "run_root":  "D:\\Vit_DAW_wt_klte1\\coord\\runs\\KERNEL-L3-TIMEENERGY-1\\klte1_20261018_211544"
+}
