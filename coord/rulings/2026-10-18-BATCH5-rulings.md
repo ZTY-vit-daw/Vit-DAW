@@ -1,7 +1,7 @@
 # 2026-10-18 午窗 批量五裁定（134 FIX-MASTERVOL 终验 pass + 纪律闭环）
 
 - 验收会话：12:00-18:00 决策流（DSH PC，本机）；裁定来源=用户 2026-10-18 午窗「FIX-MASTERVOL + MEM-SCHEMA 派发」选择。
-- 基线：origin/main=**02ea6c8b**（验收前）；本批合入后 main=__MAIN_AFTER__。
+- 基线：origin/main=**02ea6c8b**（验收前）；本批合入后 main=f080d908。
 - 执行侧：DSH exec-mastervol（task-6）；协调面由 12:00-18:00 决策流单写。
 
 ## 一、FIX-MASTERVOL-CALIBRATION-1（134）——**终验 pass**
