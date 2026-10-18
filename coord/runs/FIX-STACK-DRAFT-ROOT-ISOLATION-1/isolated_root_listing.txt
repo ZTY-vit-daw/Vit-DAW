@@ -1,0 +1,17 @@
+C:/Users/timoz/AppData/Local/Temp/VitStackDrafts/dev_agent_smoke_20261018_191332:
+agent_drafts
+draft_root_isolation.json
+
+C:/Users/timoz/AppData/Local/Temp/VitStackDrafts/dev_agent_smoke_20261018_191332/agent_drafts:
+draft_20261018T111335_172f30e1
+
+C:/Users/timoz/AppData/Local/Temp/VitStackDrafts/dev_agent_smoke_20261018_191332/agent_drafts/draft_20261018T111335_172f30e1:
+Unsaved.vit
+--- isolated drafts detail ---
+total 5
+drwxr-xr-x 1 timoz 197609  0 Oct 18 19:13 .
+drwxr-xr-x 1 timoz 197609  0 Oct 18 19:13 ..
+drwxr-xr-x 1 timoz 197609  0 Oct 18 19:13 .vit_agent
+drwxr-xr-x 1 timoz 197609  0 Oct 18 19:13 .vit_derived
+drwxr-xr-x 1 timoz 197609  0 Oct 18 19:13 .vit_history
+-rw-r--r-- 1 timoz 197609 75 Oct 18 19:13 Unsaved.vit

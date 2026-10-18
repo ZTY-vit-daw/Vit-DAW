@@ -36,3 +36,9 @@
 
 - 发现卡：FIX-TEST-DRAFT-ISOLATION-1（140，done）；139 TRACK-LIST-GAP-1 run 窗口残留
 - 纪律：真实根残留事件已记录 BATCH9 §二
+
+## 领取记录（2026-10-18 19:12 +0800）
+
+- owner=GLM ZCode PC 执行会话（本会话，L1/L2）；仓库主检出 D:\Vit_DAW（脚本域直接改主检出，无独立 worktree——文件域仅 scripts/*.ps1 + coord 工件，与 doing 其余卡零冲突）
+- 领取基线：HEAD=e4d113f3（ff 同步 origin/main 后）；领取前工作树既有改动=VitApp/Workspace 两 xml（既存运行时状态，非本卡）+ coord 未跟踪工件
+- 真栈验证腿占用登记见 coord/resources/PC-RUNTIME-STACK.md（19:12 窗口）

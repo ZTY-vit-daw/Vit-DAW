@@ -3,7 +3,11 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
-- 2026-10-18 19:12 起 / **FIX-STACK-DRAFT-ROOT-ISOLATION-1(144) 真栈验证腿**（owner=GLM ZCode PC 执行会话；主检出 D:\Vit_DAW@e4d113f3 + 未提交脚本改动=本卡 diff；kernel+agent 不启 UI，`dev_agent_smoke.ps1 -StartKernel -RestartAgent -SkipBuild` 代表腿）：19:12:38 预检六端口（5555/5556/5557/7878/8787/4445/19876）=0、四类栈进程=0；GO 依据=用户 2026-10-18 晚窗派卡令（"登记+GO 后跑，与 143 栈腿避让"）；预计短窗（单腿+拆栈）。
+（无——空闲；**用户目检优先**，执行流未获 Lead 放行不得占栈）
+
+## 最近一次释放（2026-10-18 19:16 +0800）
+
+- 2026-10-18 19:13:25–19:15:20 / **FIX-STACK-DRAFT-ROOT-ISOLATION-1(144) 真栈验证腿**（owner=GLM ZCode PC 执行会话；主检出 D:\Vit_DAW@9aaf9c4b + 未提交脚本改动=本卡 diff；`dev_agent_smoke.ps1 -RepoRoot D:\Vit_DAW -StartKernel -RestartAgent -SkipBuild`，kernel+agent 不启 UI）：run=**dev_agent_smoke_20261018_191332**，脚本 exit **0**（"dev agent smoke completed"）。被测 kernel SHA256=B6565DCF…（stock）/agent SHA256=6C4443EA…（-SkipBuild，测的是脚本行为非 agent 代码）。**隔离验证**：draft_root_isolation.json（source=default，隔离根=%TEMP%\VitStackDrafts\dev_agent_smoke_20261018_191332\agent_drafts）；隔离根出现 1 个运行时 draft（19:13:35，.vit_agent/.vit_derived/.vit_history/Unsaved.vit）；**真实根 C:\Users\timoz\AppData\Local\Vit\ProjectHistory\drafts 前后快照 10185→10185 零新增零删除**（T0=19:13:25，T1=19:14:45，draft_root_delta.json zero_delta=true）。拆栈=只杀本腿 VitApp:26356+VitAgent:6224，19:15:20 复核六端口=0、四类栈进程=0。另记录：领取预检时真实根已又现 4 个 18:44–18:57 运行时 draft（10181→10185，非本腿，未动，交决策侧）。工件 coord/runs/FIX-STACK-DRAFT-ROOT-ISOLATION-1/。
 
 ## 最近一次释放（2026-10-18 17:53 +0800）
 

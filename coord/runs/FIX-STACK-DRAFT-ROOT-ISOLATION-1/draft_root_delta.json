@@ -1,0 +1,14 @@
+﻿{
+    "card":  "FIX-STACK-DRAFT-ROOT-ISOLATION-1",
+    "before_snapshot":  "2026-10-18T19:13:25.0877504+08:00",
+    "after_snapshot":  "2026-10-18T19:14:45.8334182+08:00",
+    "before_count":  10185,
+    "after_count":  10185,
+    "added_dirs":  [
+
+                   ],
+    "removed_dirs":  [
+
+                     ],
+    "zero_delta":  true
+}
