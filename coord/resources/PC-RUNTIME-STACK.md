@@ -3,8 +3,12 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
-- 2026-10-18 17:51 +0800 登记 / **TRACK-LIST-GAP-1(139) 正式同帧对照 run**（P2 取证，owner=DSH exec-rendergain；worktree D:/Vit_DAW_wt_tracklist1，分支 port/track-list-gap-1@30abfa0a；kernel+vsphub+agent berth；S0/S1×2/S1-refresh/S2/S3；§8 LLM=0；窗口 17:51–18:10，~2-3min；跑完只杀自起 pid+六端口/四类进程复核=0）。
+（无——空闲；**用户目检优先**，执行流未获 Lead 放行不得占栈）
 
+## 最近一次释放（2026-10-18 17:53 +0800）
+
+- 2026-10-18 17:52:29–17:52:44 / **TRACK-LIST-GAP-1(139) 正式同帧对照 run**（P2 取证，owner=DSH exec-rendergain；worktree D:/Vit_DAW_wt_tracklist1，分支 port/track-list-gap-1@6bce31fe；kernel+vsphub+agent berth，不启 UI）：run=**run_20261018_175229**，脚本 exit **0**（probe PASS，§8 LLM=0，零 assertion_fail）；17:52:20 启动前六端口/栈进程=0 → 起栈 kernel pid15144+vsphub 11892+agent 5264 → 拆栈只杀自起 pid → 17:52:49 复核六端口=0、四类栈进程/Godot 变体=0。同帧六面（user-track 口径）坐实：S0 全 0；S1×2 外部新建+导入 kernel/hub_cmd/hub_state=6 而 shadow/tool=0（tool≡shadow，tool≠kernel）；S1_refresh 后全 6（自愈）；S2 外部打开 2 轨 kernel/hub=2 而 shadow/tool=6；S3 agent 路径写全 3。候选①（不同内核/编辑实例）排除；②非路径特异（S1×2 与 S2 同签名，S3 同步）；根因=工具面返回 shadow Summary（每回包含内核 VSP command_ack 却返回 shadow 行）。工件 coord/runs/TRACK-LIST-GAP-1/run_20261018_175229/；修复卡草案 FIX-TRACKLIST-SHADOW-FRESHNESS-1 见 RESULTS §3。
+- 纪律记录（保留）：134 14:18、139 14:58 未登记未 GO 启动自报在案（两个 run 均不作验收证据；整改均已落地 `-PreflightOnly`）；137/139 正式证据均在本窗口 GO+登记下产生。
 ## 最近一次释放（2026-10-18 17:51 +0800）
 
 - 2026-10-18 17:50:30–17:50:47 / **FIX-START-DRAFT-SIDE-EFFECT-1(137) 真栈腿**（P1，owner=exec-start-draft；worktree D:/Vit_DAW_wt_startside1，分支 port/fix-start-draft-side-effect-1@cc297f64（生产实现 b8f0bb9e）；被测 stock kernel `D:\Vit_DAW\Export\staging\runtime\VitApp.exe` SHA256=B6565DCF… + 本分支 agent SHA256=32A095A7…）：run=**realstack_20261018_1750c**，脚本 exit **0**，四断言 A/B/C/D **全 true**（A 启动/激活阶段新增 draft=0；D reader 面新增 draft=0/白名单外写入=0；B `version.project_new` 后新增恰好 1 个 draft（旧行为 2：A+B）；C 新 draft 无旧内核 uuid 泄漏、种子保留旧 uuid）；§8 LLM=0；teardown 17:50:47 六端口=0+本腿进程=0（只杀自起 kernel 16944/agent 17764）；用户 Godot 未触碰。工件 coord/runs/FIX-START-DRAFT-SIDE-EFFECT-1/realstack_20261018_1750c/。
