@@ -49,6 +49,8 @@ agent/internal/history/history_test.go | 110 +++++++++++++++++++++++++++++
 
 **未做真栈/UI 验证**（遵守：用户 92 手测优先、栈未放行不得启栈）：本修复无前端改动、无运行栈依赖；UI 类验证条款见 `ATTRIBUTION.md` §9 用户手测清单。真栈复验（启动页→新建工程→核对 draft 根只新增 1 个）需 Lead 排窗口后进行。
 
+> **真栈复验腿（2026-10-18 14:10–14:19，Lead GO + PC-RUNTIME-STACK 450c4c47）**：`dev_agent_smoke.ps1 -StartKernel -RestartAgent` 体系（kernel=主检出 stock SHA256 B6565DCF…；agent=本分支 SHA256 69B8D77C…；隔离 draft 根；不启 Godot UI）**PASS**——启动恢复认领种子旧 draft 后，前端同款 kernel `new_project`+agent `version.project_new` 通知**未新增 draft 目录**，隐式默认 draft 被复用、只含新 uuid、无旧 uuid 泄漏；用户真实 draft 根 0 写入；拆栈后本腿端口/进程=0。详见 `REALSTACK_REPORT.md` 与 `realstack_d_clean_20261018_1421/probe_final/probe_final_result.json`。边界：真实栈存在启动期自主历史 reader（`version.list`/`version.worktree_list`，无外部请求）会在 activation 后 1.5–2s 物化隐式 draft，最终轮由并发探针在该窗口内完成通知而通过；reader 根因归新卡 `FIX-START-DRAFT-SIDE-EFFECT-1`，空隔离根（首装）场景仍会双 draft（本腿 A 轮实证）。
+
 ## 5. 测试隔离性偏差（如实登记，重要）
 
 - 首次全量 `go test ./... -count=1` 时，仓库内**既有**测试存在 draft 根隔离缺陷：部分 history/chat/harness 测试未设置 `VIT_HISTORY_DRAFT_ROOT`，直接向真实 draft 根 `C:\Users\timoz\AppData\Local\Vit\ProjectHistory\drafts\` 写入了 4 个 `draft_20261018T0559*/*T0600*` 测试工件（内容为 `project-capacity`/`project-targeting-coverage` 等测试工程历史，无用户数据；见 `evidence/test_isolation_finding.md`）。

@@ -1,0 +1,242 @@
+﻿{
+    "schema_version":  "fe_start_empty_draft_probe.v1",
+    "mode":  "naive",
+    "drafts_root":  "D:\\Vit_DAW_wt_fedraft1\\coord\\runs\\FE-START-EMPTY-DRAFT-1\\realstack_a_20261018_1410\\drafts",
+    "agent_http":  "http://127.0.0.1:7878",
+    "started_at":  "2026-10-18T14:11:11.8369734+08:00",
+    "seed_name":  "",
+    "assertions":  {
+                       "new_project_reuse":  {
+                                                 "new_dirs":  [
+                                                                  "draft_20261018T061113_1538f22a"
+                                                              ],
+                                                 "agent_created_dirs":  [
+                                                                            "draft_20261018T061055_c78c4a27",
+                                                                            "draft_20261018T061113_1538f22a"
+                                                                        ],
+                                                 "reused_draft_dirs":  [
+                                                                           "draft_20261018T061113_1538f22a"
+                                                                       ],
+                                                 "pass":  false
+                                             },
+                       "existing_project_open":  {
+                                                     "new_dirs":  [
+
+                                                                  ],
+                                                     "status":  "ok",
+                                                     "pass":  true
+                                                 }
+                   },
+    "failures":  [
+                     "version.project_new added 1 new draft dir(s): draft_20261018T061113_1538f22a",
+                     "agent-created draft dirs = 2 (expected 1): draft_20261018T061055_c78c4a27, draft_20261018T061113_1538f22a",
+                     "old kernel-uuid workspace vitproj_71a82045523b4c8f83e5e553c9f1406a,vitproj_71a82045523b4c8f83e5e553c9f1406a leaked into reused draft draft_20261018T061113_1538f22a",
+                     "old kernel-uuid workspace leaked outside recovery target: draft_20261018T061055_c78c4a27, draft_20261018T061113_1538f22a"
+                 ],
+    "notes":  [
+                  "OK: new project uuid materialized in exactly one draft: draft_20261018T061113_1538f22a",
+                  "OK: version.project_opened added no draft/shell (status=ok)"
+              ],
+    "kernel_project_uuid_observed":  "vitproj_71a82045523b4c8f83e5e553c9f1406a",
+    "kernel_project_path_observed":  "",
+    "kernel_uuid_used":  "vitproj_71a82045523b4c8f83e5e553c9f1406a",
+    "snapshot_before_invoke":  {
+                                   "captured_at":  "2026-10-18T14:11:13.9465675+08:00",
+                                   "dirs":  "draft_20261018T061055_c78c4a27",
+                                   "identities":  [
+                                                      {
+                                                          "name":  "draft_20261018T061055_c78c4a27",
+                                                          "has_history":  true,
+                                                          "has_agent":  true,
+                                                          "history_uuids":  [
+
+                                                                            ],
+                                                          "agent_uuids":  [
+                                                                              "vitproj_71a82045523b4c8f83e5e553c9f1406a"
+                                                                          ]
+                                                      }
+                                                  ]
+                               },
+    "version_project_new_response":  {
+                                         "status":  "ok",
+                                         "agent_action_id":  "act_70b013e2f9798e43",
+                                         "tool":  "version.project_new",
+                                         "command_name":  "version_project_new",
+                                         "risk_level":  "direct",
+                                         "requires_confirmation":  false,
+                                         "result":  {
+                                                        "accepted":  true,
+                                                        "async":  true,
+                                                        "message":  "Project new notification accepted",
+                                                        "status":  "ok"
+                                                    }
+                                     },
+    "new_project_uuid":  "vitproj_probe20261018141113",
+    "snapshot_after_new":  {
+                               "captured_at":  "2026-10-18T14:11:16.0065037+08:00",
+                               "dirs":  [
+                                            "draft_20261018T061055_c78c4a27",
+                                            "draft_20261018T061113_1538f22a"
+                                        ],
+                               "identities":  [
+                                                  {
+                                                      "name":  "draft_20261018T061055_c78c4a27",
+                                                      "has_history":  true,
+                                                      "has_agent":  true,
+                                                      "history_uuids":  [
+                                                                            "vitproj_71a82045523b4c8f83e5e553c9f1406a"
+                                                                        ],
+                                                      "agent_uuids":  [
+                                                                          "vitproj_71a82045523b4c8f83e5e553c9f1406a"
+                                                                      ]
+                                                  },
+                                                  {
+                                                      "name":  "draft_20261018T061113_1538f22a",
+                                                      "has_history":  true,
+                                                      "has_agent":  true,
+                                                      "history_uuids":  [
+                                                                            "vitproj_71a82045523b4c8f83e5e553c9f1406a",
+                                                                            "vitproj_probe20261018141113"
+                                                                        ],
+                                                      "agent_uuids":  [
+                                                                          "vitproj_71a82045523b4c8f83e5e553c9f1406a",
+                                                                          "vitproj_probe20261018141113"
+                                                                      ]
+                                                  }
+                                              ]
+                           },
+    "new_dirs_after_new":  [
+                               "draft_20261018T061113_1538f22a"
+                           ],
+    "agent_created_dirs":  [
+                               "draft_20261018T061055_c78c4a27",
+                               "draft_20261018T061113_1538f22a"
+                           ],
+    "reused_draft_dirs":  [
+                              "draft_20261018T061113_1538f22a"
+                          ],
+    "version_project_opened_response":  {
+                                            "status":  "ok",
+                                            "agent_action_id":  "act_680481dfa3246c22",
+                                            "tool":  "version.project_opened",
+                                            "command_name":  "version_project_opened",
+                                            "risk_level":  "direct",
+                                            "requires_confirmation":  false,
+                                            "result":  {
+                                                           "project_path":  "D:\\Vit_DAW_wt_fedraft1\\coord\\runs\\FE-START-EMPTY-DRAFT-1\\realstack_a_20261018_1410\\drafts\\draft_20261018T061113_1538f22a\\Unsaved.vit",
+                                                           "project_uuid":  "vitproj_probe20261018141113",
+                                                           "refresh":  {
+                                                                           "project_epoch":  "epoch_7341acd7f4d54494",
+                                                                           "reason":  "version_project_opened",
+                                                                           "revision":  1,
+                                                                           "shadow_refreshed":  true,
+                                                                           "snapshot_hash":  "d4878b7ab715d060",
+                                                                           "source":  "vsp.state.snapshot"
+                                                                       },
+                                                           "status":  "ok"
+                                                       },
+                                            "project_history":  {
+                                                                    "active_branch":  "main",
+                                                                    "active_node_id":  "",
+                                                                    "active_worktree":  "",
+                                                                    "available":  true,
+                                                                    "branches":  {
+
+                                                                                 },
+                                                                    "commit_count":  0,
+                                                                    "detached":  false,
+                                                                    "draft":  false,
+                                                                    "head":  "",
+                                                                    "initialized":  true,
+                                                                    "project_label":  "Unsaved",
+                                                                    "project_path":  "D:\\Vit_DAW_wt_fedraft1\\coord\\runs\\FE-START-EMPTY-DRAFT-1\\realstack_a_20261018_1410\\drafts\\draft_20261018T061113_1538f22a\\Unsaved.vit",
+                                                                    "project_uuid":  "vitproj_71a82045523b4c8f83e5e553c9f1406a",
+                                                                    "recent_checkpoints":  [
+
+                                                                                           ],
+                                                                    "refs":  {
+
+                                                                             },
+                                                                    "root_project_path":  "",
+                                                                    "unsaved":  false,
+                                                                    "warnings":  [
+
+                                                                                 ],
+                                                                    "worktree_count":  1,
+                                                                    "worktrees":  [
+                                                                                      {
+                                                                                          "created_at":  "2026-10-18T06:11:16.1379642Z",
+                                                                                          "is_root":  true,
+                                                                                          "label":  "主工作树",
+                                                                                          "name":  "main",
+                                                                                          "path":  "D:\\Vit_DAW_wt_fedraft1\\coord\\runs\\FE-START-EMPTY-DRAFT-1\\realstack_a_20261018_1410\\drafts\\draft_20261018T061113_1538f22a",
+                                                                                          "project_file_path":  "D:\\Vit_DAW_wt_fedraft1\\coord\\runs\\FE-START-EMPTY-DRAFT-1\\realstack_a_20261018_1410\\drafts\\draft_20261018T061113_1538f22a\\Unsaved.vit",
+                                                                                          "project_path":  "D:\\Vit_DAW_wt_fedraft1\\coord\\runs\\FE-START-EMPTY-DRAFT-1\\realstack_a_20261018_1410\\drafts\\draft_20261018T061113_1538f22a\\Unsaved.vit",
+                                                                                          "root_project_path":  "D:\\Vit_DAW_wt_fedraft1\\coord\\runs\\FE-START-EMPTY-DRAFT-1\\realstack_a_20261018_1410\\drafts\\draft_20261018T061113_1538f22a\\Unsaved.vit"
+                                                                                      }
+                                                                                  ]
+                                                                }
+                                        },
+    "new_dirs_after_open":  [
+
+                            ],
+    "open_target":  {
+                        "label":  "reused new-project draft",
+                        "project_path":  "D:\\Vit_DAW_wt_fedraft1\\coord\\runs\\FE-START-EMPTY-DRAFT-1\\realstack_a_20261018_1410\\drafts\\draft_20261018T061113_1538f22a\\Unsaved.vit",
+                        "project_uuid":  "vitproj_probe20261018141113"
+                    },
+    "list_tracks_response_summary":  {
+                                         "status":  "ok",
+                                         "track_count":  2
+                                     },
+    "snapshot_final":  {
+                           "captured_at":  "2026-10-18T14:11:17.2389850+08:00",
+                           "dirs":  [
+                                        "draft_20261018T061055_c78c4a27",
+                                        "draft_20261018T061113_1538f22a"
+                                    ],
+                           "identities":  [
+                                              {
+                                                  "name":  "draft_20261018T061055_c78c4a27",
+                                                  "has_history":  true,
+                                                  "has_agent":  true,
+                                                  "history_uuids":  [
+                                                                        "vitproj_71a82045523b4c8f83e5e553c9f1406a"
+                                                                    ],
+                                                  "agent_uuids":  [
+                                                                      "vitproj_71a82045523b4c8f83e5e553c9f1406a"
+                                                                  ]
+                                              },
+                                              {
+                                                  "name":  "draft_20261018T061113_1538f22a",
+                                                  "has_history":  true,
+                                                  "has_agent":  true,
+                                                  "history_uuids":  [
+                                                                        "vitproj_71a82045523b4c8f83e5e553c9f1406a",
+                                                                        "vitproj_probe20261018141113"
+                                                                    ],
+                                                  "agent_uuids":  [
+                                                                      "vitproj_71a82045523b4c8f83e5e553c9f1406a",
+                                                                      "vitproj_probe20261018141113"
+                                                                  ]
+                                              }
+                                          ]
+                       },
+    "old_uuid_leak_rows":  [
+                               {
+                                   "name":  "draft_20261018T061055_c78c4a27",
+                                   "uuids":  [
+                                                 "vitproj_71a82045523b4c8f83e5e553c9f1406a",
+                                                 "vitproj_71a82045523b4c8f83e5e553c9f1406a"
+                                             ]
+                               },
+                               {
+                                   "name":  "draft_20261018T061113_1538f22a",
+                                   "uuids":  [
+                                                 "vitproj_71a82045523b4c8f83e5e553c9f1406a",
+                                                 "vitproj_71a82045523b4c8f83e5e553c9f1406a"
+                                             ]
+                               }
+                           ],
+    "finished_at":  "2026-10-18T14:11:17.2505088+08:00"
+}

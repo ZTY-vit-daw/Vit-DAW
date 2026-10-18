@@ -1,0 +1,4 @@
+﻿stop VitAgent.exe pid=17352
+stop VitApp.exe pid=10100
+ports_listening=0; stack_processes=1; at=2026-10-18T14:18:51.0650908+08:00
+note=at 14:18:52 the only stack process present was VitApp.exe pid=20128 from D:\Vit_DAW_wt_mastervol1 (FIX-MASTERVOL-CALIBRATION-1 stack leg, started 14:18:50 by its own run_master_volume_diag.ps1); this leg's VitApp(10100)/VitAgent(17352) were stopped; ports 7878/5555/5556/8787/4445/19876 listening=0 at 14:18:52 and 14:19:07

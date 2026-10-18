@@ -1,0 +1,9 @@
+﻿DIR  draft_20261001T120000_seedprev
+DIR  draft_20261001T120000_seedprev\.vit_history
+FILE 75 draft_20261001T120000_seedprev\Unsaved.vit
+DIR  draft_20261001T120000_seedprev\.vit_history\.sessions
+DIR  draft_20261001T120000_seedprev\.vit_history\.sessions\vitproj_71a82045523b4c8f83e5e553c9f1406a
+DIR  draft_20261001T120000_seedprev\.vit_history\.sessions\vitproj_71a82045523b4c8f83e5e553c9f1406a\session_20261001T120000_seed
+DIR  draft_20261001T120000_seedprev\.vit_history\.sessions\vitproj_71a82045523b4c8f83e5e553c9f1406a\session_20261001T120000_seed\workspace
+DIR  draft_20261001T120000_seedprev\.vit_history\.sessions\vitproj_71a82045523b4c8f83e5e553c9f1406a\session_20261001T120000_seed\workspace\state
+FILE 398 draft_20261001T120000_seedprev\.vit_history\.sessions\vitproj_71a82045523b4c8f83e5e553c9f1406a\session_20261001T120000_seed\workspace\state\agent_runtime_state.json
