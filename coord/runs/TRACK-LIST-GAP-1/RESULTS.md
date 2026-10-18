@@ -58,13 +58,42 @@ round4（2026-10-16 18:17–18:18，用户真实工程+GUI 路径，VitApp pid 1
   - 待改测试口径：`harness_test.go:4236 TestPublicResultSanitizesProjectState`（get_project_state shadow-only 断言）、`shadow_test.go:35 TestShadowTracksOrphanDeltas`（orphan 语义需保留但新增触发刷新断言）、`chat/reply_test.go:19`（list_tracks risk 声明，无内容语义）。
 - **建议修复卡（草案，交 Lead 决定是否立）**：`FIX-TRACKLIST-SHADOW-FRESHNESS-1`（P2/P1 视裁定）：A 工具面回包以 kernel reply 为准 + `shadow_stale` 披露；B 未知新轨 delta 去抖触发权威刷新；C 回归用例（S1 场景：外部新建+导入 6 轨、shadow 空 → tool 仍应返回 6 或显式 stale）；验收=`cd agent && go test ./internal/harness ./internal/shadow ./internal/bridge ./internal/agentloop ./internal/chat -count=1`（0 FAIL）+ 真栈 S1/S2 复跑；文件域=`agent/internal/harness/harness.go`、`agent/internal/shadow/shadow.go`、`agent/internal/bridge/bridge.go`(+对应 *_test.go)。
 
-## 4. 栈腿同帧实测（待 GO 后补）
+## 4. 栈腿同帧实测（**正式 run，Lead GO 17:51–18:10 窗口**）
 
-- run ID / 脚本 exit / 六面逐数值与 track_id 列表 / 候选①②裁决 / 最小复现次数（≥2 次确定性）/ 栈证据与拆栈复核 → 见后续追加节。
+- **run ID=`run_20261018_175229`**；脚本 exit **0**（probe `PASS`）；17:52:29 起，栈/探针/拆栈总时长 ~15s 探针段。
+- 被测二进制：stock kernel `D:\Vit_DAW\Export\staging\runtime\VitApp.exe` SHA256=`B6565DCF85D1DA867E16333052A7B928A5413565940603ADBCF4ABD59DD3123B`；worktree 构建 VitAgent SHA256=`C7A010578DED0A8AE41B7CF58BCD500752EB89CABB9CF39B4EDA599AEEB81441`；vsphub SHA256=`A1811FA595999CBCA47DBB3FB490FE7657FF7A63E7931E0A0C520AD92D7748AE`；worktree HEAD=`30abfa0a`。
+- 启动前亲核（17:52:20）：六端口 5555/5556/5557/7878/8787/4445 全 free、VitApp/VitAgent/vsphub=0、Godot 变体=0。
+- 栈=自起 kernel pid 15144 + vsphub pid 11892 + agent pid 5264（不启 UI）；**只杀自起 pid**；拆栈后独立复核（17:52:49）六端口=0、栈进程=0（teardown.json: exit_code=0/remaining_listeners=0/remaining_processes=0）。
+- 内核会话日志：`kernel_workspace/Workspace/Logs/VitHeadlessServer2026-10-18_17-52-29.log`；VSP envelope 行=116、legacy list_tracks 行=30（VSP/hub 链路确证）；hub `/vsp/status`（kernel_req=tcp://127.0.0.1:5555）记录于 probe_summary.json。
 
-### 4.1 干跑记录（仅 harness 干跑，**不作验收证据**）
+### 4.1 六面同帧数值（user-track 口径；kernel=ZMQ 直查，hub_cmd=VSP canonical project.tracks.list，hub_state=VSP state snapshot，shadow=/agent/state，tool=/agent/invoke track.list）
 
-- `run_20261018_145825`：14:58:25–14:59:45 一次**未获 GO** 的 berth 启动（harness `-PreflightOnly` 开关替换 bug 导致意外执行；已自报 Lead，按要求仅作工程参考）。该 run 暴露并促成两项 harness 修复（`-PreflightOnly` 真生效 + user-track 投影比较口径 + 两轮确定性 S1），原始工件 slim 入库但不用于卡面结论；正式证据待 GO 后新 run。
+| 阶段 | kernel | hub_cmd | hub_state | shadow | tool | tool==shadow | tool==kernel |
+|---|---|---|---|---|---|---|---|
+| S0 fresh baseline（空白工程） | 0 | 0 | 0 | 0 | 0 | True | True |
+| **S1 round1 外部新建+导入** | **6** | **6** | **6** | **0** | **0** | True | **False** |
+| **S1 round2 外部新建+导入** | **6** | **6** | **6** | **0** | **0** | True | **False** |
+| S1_refresh（project.state 后） | 6 | 6 | 6 | 6 | 6 | True | True |
+| S2 外部打开既有 2 轨工程 | 2 | 2 | 2 | 6 | 6 | True | **False** |
+| S3 agent 路径写操作（add_track） | 3 | 3 | 3 | 3 | 3 | True | True |
+
+（kernel 全量 `list_tracks` 含 5 个内部轨（Master/Tempo/Chord/Marker/Arranger），原始计数为 5/11/11/11/7/8；上表为 `is_audio_track` 过滤后的 user-track 口径。）
+
+### 4.2 候选面裁决（正式数据）
+
+- **候选①（VSP 通道命中不同内核/编辑实例）→ 排除**：全部 6 阶段 kernel 直查 / hub canonical / hub state snapshot 的 user-track id 列表一致；kernel↔hub_state `project_uuid` 全阶段一致（S0 `vitproj_legacy_03397935`、S1/S1_refresh `vitproj_60926ce4…`、S2/S3 同 fixture uuid）；hub kernel_req=127.0.0.1:5555；内核会话日志 116 条 VSP envelope 证明 canonical 命令回到同一内核。
+- **候选②（新建+导入路径轨道枚举差）→ 排除为路径特异**：tool≠kernel 在 S1 两轮=True、S2（外部打开既有工程）=True 同签名；S3（agent 路径写）同步=True → 差异不在 new-vs-open，而在**变更是否经 agent 工具路径（触发 shadow 权威刷新）**。
+- **根因面：工具面=shadow 投影 → 坐实**：全部 6 阶段 tool rows==shadow tracks=True；3 个 stale 阶段（S1×2、S2）tool≠kernel。同帧链：每个 `track.list` 回包都带内核 VSP `command_ack`（command=project.tracks.list / legacy_command=list_tracks / message="Track list fetched"），但 tracks 行来自 shadow。
+- **最小复现确定性：2/2**——S1 两轮均「kernel user tracks=6 而 tool track_count=0」，与 118 round4 seq5-8 签名一致。
+- **自愈面：坐实**——`project.state` 工具（VSP state snapshot → `shadow.Initialize`）后 shadow/tool=6=match kernel；与 118「agent 以 get_project_state 自愈」一致。
+
+### 4.3 结论
+
+`track.list` 0 轨 = **agent 工具面返回 shadow Summary（非内核回包）**；shadow 对「外部（GUI/内核直连）新建+导入」只收到 delta、不更新 `engine_snapshot.tracks` 且无权威刷新触发 → Summary 仍 0；内核与 VSP canonical/state 三面均正确且同实例。候选①②排除；修复见 §3（另卡 `FIX-TRACKLIST-SHADOW-FRESHNESS-1` 草案）。
+
+### 4.4 干跑记录（仅 harness 干跑，**不作验收证据**）
+
+- `run_20261018_145825`：14:58:25–14:59:45 一次**未获 GO** 的 berth 启动（harness `-PreflightOnly` 开关替换 bug 导致意外执行；已自报 Lead 并登记纪律记录，仅作工程参考）。该 run 暴露并促成两项 harness 修复（`-PreflightOnly` 真生效 + user-track 投影比较口径 + 两轮确定性 S1）；其 slim 工件入库但不用于卡面结论。
 
 ## 5. 工件清单
 

@@ -1,0 +1,17 @@
+﻿{
+    "started":  "2026-10-18T17:52:29.6115997+08:00",
+    "repo_root":  "D:\\Vit_DAW_wt_tracklist1",
+    "kernel_exe":  "D:\\Vit_DAW\\Export\\staging\\runtime\\VitApp.exe",
+    "kernel_sha256":  "B6565DCF85D1DA867E16333052A7B928A5413565940603ADBCF4ABD59DD3123B",
+    "agent_exe":  "D:\\Vit_DAW_wt_tracklist1\\agent\\bin\\VitAgent.exe",
+    "agent_sha256":  "C7A010578DED0A8AE41B7CF58BCD500752EB89CABB9CF39B4EDA599AEEB81441",
+    "vsphub_exe":  "D:\\Vit_DAW_wt_tracklist1\\agent\\bin\\vsphub.exe",
+    "vsphub_sha256":  "A1811FA595999CBCA47DBB3FB490FE7657FF7A63E7931E0A0C520AD92D7748AE",
+    "worktree_head":  "30abfa0a1a8a1bcc141b30b8882fccd8a7301afa",
+    "worktree_status_short":  "?? coord/runs/TRACK-LIST-GAP-1/run_20261018_175229/\r\n",
+    "python":  "python",
+    "machine":  "ZTY",
+    "stack_ports":  "5555,5556,5557,7878,8787,4445",
+    "out_of_scope_godot_editor_pids":  "",
+    "out_of_scope_godot_helper_pids":  ""
+}
