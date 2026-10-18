@@ -16,19 +16,20 @@ const orphanHistoryMax = 20
 type Project struct {
 	logger *logx.Logger
 
-	mu             sync.RWMutex
-	state          map[string]any
-	initialized    bool
-	preInitDeltas  []map[string]any
-	orphanDeltas   map[string][]map[string]any
-	bootstrapUIDs  map[string]bool
-	lastDeltaSeqID int64
-	seqGapCount    int64
-	stateEpoch     int64
-	changeSequence int64
-	lastChange     ChangeReceipt
-	changeHistory  []ChangeReceipt
-	changeNotifier func(ChangeReceipt) // MAT-B 挂点 1 观察者（纯通知尾挂，nil=现状）
+	mu                      sync.RWMutex
+	state                   map[string]any
+	initialized             bool
+	preInitDeltas           []map[string]any
+	orphanDeltas            map[string][]map[string]any
+	bootstrapUIDs           map[string]bool
+	structureRefreshPending bool // FIX-TRACKLIST-SHADOW-FRESHNESS-1 B：结构 delta 待权威刷新提示
+	lastDeltaSeqID          int64
+	seqGapCount             int64
+	stateEpoch              int64
+	changeSequence          int64
+	lastChange              ChangeReceipt
+	changeHistory           []ChangeReceipt
+	changeNotifier          func(ChangeReceipt) // MAT-B 挂点 1 观察者（纯通知尾挂，nil=现状）
 }
 
 func New(logger *logx.Logger) *Project {
@@ -132,6 +133,21 @@ func (p *Project) confirmPendingChangeLocked(project map[string]any) {
 
 func (p *Project) ApplyDelta(delta map[string]any) {
 	p.ApplyDeltaWithSource(delta, ChangeSourceTelemetryDelta)
+}
+
+// ConsumeStructureRefreshHint 原子读取并清除结构刷新提示（FIX-TRACKLIST-SHADOW-FRESHNESS-1 B）。
+// applyDeltaLocked 在收到快照无法吸收的结构 delta（未知 uid 新节点 / 已知轨道节点被移除）
+// 时置位；遥测消费方取到 true 后应去抖调度一次权威快照刷新，使外部新建/删除的轨道进入
+// engine_snapshot。orphan 记账语义不变：结构 delta 仍按原规则进 orphanDeltas。
+func (p *Project) ConsumeStructureRefreshHint() bool {
+	if p == nil {
+		return false
+	}
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	pending := p.structureRefreshPending
+	p.structureRefreshPending = false
+	return pending
 }
 
 // ApplyDeltaWithSource records a low-latency state hint. Unlike an
@@ -296,6 +312,14 @@ func (p *Project) applyDeltaLocked(delta map[string]any, fromReplay bool, source
 		p.orphanDeltas[uid] = h
 	}
 
+	// 结构 delta 不并入 engine_snapshot（快照权威语义），轨道集合只会靠下一次
+	// 权威快照更新。新节点 uid 不在 bootstrap / 已知轨道节点被移除这两种形态
+	// 会留下陈旧轨道集合，置一次性提示让遥测消费方去抖拉一次权威快照。
+	if (action == "node_added" && !p.bootstrapUIDs[uid]) ||
+		(action == "node_removed" && p.bootstrapUIDs[uid]) {
+		p.structureRefreshPending = true
+	}
+
 	if p.logger != nil && !isTransportPositionNoise(uid, action) {
 		tag := "live"
 		if fromReplay {
@@ -428,6 +452,13 @@ func compactUserTracks(tracks []any, nodes map[string]any, groupsByTrack map[str
 		out = append(out, compactTrack(merged, len(out)+1))
 	}
 	return out
+}
+
+// CompactUserTrackRows 用与 Summary 相同的用户可见性规则过滤并压缩原始内核轨道行
+// （如 list_tracks 回包的 tracks 数组），渲染为标准紧凑行形。不合并任何 shadow 状态：
+// 行内容保持内核回包原样（FIX-TRACKLIST-SHADOW-FRESHNESS-1 A：工具面内核权威）。
+func CompactUserTrackRows(rows []any) []map[string]any {
+	return compactUserTracks(rows, nil, nil)
 }
 
 func trackRowWithDeltaProperties(row map[string]any, nodes map[string]any) map[string]any {

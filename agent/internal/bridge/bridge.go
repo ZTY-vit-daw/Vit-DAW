@@ -40,6 +40,9 @@ type Bridge struct {
 	transportPublishCh chan map[string]any
 	realtimePublishCh  chan map[string]any
 	legacyDiag         legacyTelemetryDiag
+	// shadowRefresh 默认指向 (*Bridge).refreshShadow；测试注入用（kernel.Client
+	// 为具体类型，无法伪造 VSP 回包）。
+	shadowRefresh func(ctx context.Context, reason string)
 }
 
 type legacyTelemetryDiag struct {
@@ -73,6 +76,7 @@ func New(cfg Config, kernelClient *kernel.Client, shadowProject *shadow.Project,
 		cfg.FileReplyDir = defaultFileReplyDir()
 	}
 	b := &Bridge{cfg: cfg, kernel: kernelClient, shadow: shadowProject, logger: logger}
+	b.shadowRefresh = b.refreshShadow
 	if strings.TrimSpace(cfg.VSPHubURL) != "" {
 		// Realtime streams are latest-only. Keep transport independent from the
 		// heavier meter payloads so multi-track load cannot queue stale playheads.
@@ -86,8 +90,15 @@ func New(cfg Config, kernelClient *kernel.Client, shadowProject *shadow.Project,
 const maxDirectUDPReplyBytes = 32 * 1024
 const maxDirectUDPTelemetryBytes = 32 * 1024
 
+// FIX-TRACKLIST-SHADOW-FRESHNESS-1 B：外部（GUI/内核直连）结构变更只以 delta 到达时，
+// shadow 的轨道集合保持陈旧。结构 delta 提示走该 reason；runShadowRefresh 对其去抖
+// （突发 node_added 合并为一次权威快照刷新），recording_stopped 保持即时刷新。
+const shadowRefreshReasonRecording = "recording_stopped"
+const shadowRefreshReasonStructural = "structural_delta"
+const structuralShadowRefreshDebounce = time.Second
+
 func (b *Bridge) Run(ctx context.Context) error {
-	refreshCh := make(chan struct{}, 1)
+	refreshCh := make(chan string, 1)
 	errCh := make(chan error, 3)
 	if b.realtimePublishCh != nil {
 		go b.runVSPRealtimePublisher(ctx)
@@ -247,7 +258,7 @@ func (b *Bridge) forwardCommand(ctx context.Context, payload string) string {
 	return reply
 }
 
-func (b *Bridge) runTelemetry(ctx context.Context, refreshCh chan<- struct{}) error {
+func (b *Bridge) runTelemetry(ctx context.Context, refreshCh chan<- string) error {
 	dest, err := net.ResolveUDPAddr("udp4", fmt.Sprintf("%s:%d", b.cfg.GodotIP, b.cfg.UDPToGodot))
 	if err != nil {
 		return err
@@ -276,7 +287,7 @@ func (b *Bridge) runTelemetry(ctx context.Context, refreshCh chan<- struct{}) er
 	}
 }
 
-func (b *Bridge) telemetryOnce(ctx context.Context, conn *net.UDPConn, refreshCh chan<- struct{}) error {
+func (b *Bridge) telemetryOnce(ctx context.Context, conn *net.UDPConn, refreshCh chan<- string) error {
 	sub := zmq4.NewSub(ctx, zmq4.WithTimeout(time.Second), zmq4.WithAutomaticReconnect(true))
 	defer sub.Close()
 	if err := sub.SetOption(zmq4.OptionSubscribe, ""); err != nil {
@@ -397,7 +408,7 @@ func (b *Bridge) spillTelemetryPacket(packet []byte) ([]byte, bool, error) {
 	return out, true, nil
 }
 
-func (b *Bridge) normalizeTelemetry(text string, refreshCh chan<- struct{}, lastSeq *int64) []byte {
+func (b *Bridge) normalizeTelemetry(text string, refreshCh chan<- string, lastSeq *int64) []byte {
 	var d map[string]any
 	if err := json.Unmarshal([]byte(text), &d); err != nil {
 		return []byte(text)
@@ -405,6 +416,11 @@ func (b *Bridge) normalizeTelemetry(text string, refreshCh chan<- struct{}, last
 	if fmt.Sprint(d["type"]) == "delta_update" {
 		if b.shadow != nil {
 			b.shadow.ApplyDelta(d)
+			// FIX-TRACKLIST-SHADOW-FRESHNESS-1 B：结构 delta（外部新建/删除轨道）
+			// 快照吸收不了，置提示后由 runShadowRefresh 去抖拉一次权威快照。
+			if b.shadow.ConsumeStructureRefreshHint() {
+				b.signalShadowRefresh(refreshCh, shadowRefreshReasonStructural)
+			}
 		}
 		seq := int64From(d["seq_id"])
 		if seq > 0 && lastSeq != nil {
@@ -415,10 +431,7 @@ func (b *Bridge) normalizeTelemetry(text string, refreshCh chan<- struct{}, last
 		}
 	}
 	if fmt.Sprint(d["topic"]) == "recording" && strings.TrimSpace(fmt.Sprint(d["subtopic"])) == "recording_stopped" {
-		select {
-		case refreshCh <- struct{}{}:
-		default:
-		}
+		b.signalShadowRefresh(refreshCh, shadowRefreshReasonRecording)
 	}
 	if b.cfg.TelemetryHook != nil {
 		b.cfg.TelemetryHook(d)
@@ -432,6 +445,25 @@ func (b *Bridge) normalizeTelemetry(text string, refreshCh chan<- struct{}, last
 		return []byte(text)
 	}
 	return out
+}
+
+// signalShadowRefresh 非阻塞投递一次 shadow 刷新信号（容量 1 天然合并并发提示）。
+func (b *Bridge) signalShadowRefresh(refreshCh chan<- string, reason string) {
+	if refreshCh == nil {
+		return
+	}
+	select {
+	case refreshCh <- reason:
+	default:
+	}
+}
+
+func (b *Bridge) dispatchShadowRefresh(ctx context.Context, reason string) {
+	if b.shadowRefresh == nil {
+		b.refreshShadow(ctx, reason)
+		return
+	}
+	b.shadowRefresh(ctx, reason)
 }
 
 func (b *Bridge) vspHubOwnsLegacyTelemetryPacket(packet map[string]any) bool {
@@ -463,18 +495,47 @@ func envBool(key string, fallback bool) bool {
 	}
 }
 
-func (b *Bridge) runShadowRefresh(ctx context.Context, refreshCh <-chan struct{}) error {
+func (b *Bridge) runShadowRefresh(ctx context.Context, refreshCh <-chan string) error {
+	var structuralArmed <-chan time.Time
 	for {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
-		case <-refreshCh:
-			b.refreshShadow(ctx, "recording_stopped")
+		case reason := <-refreshCh:
+			if reason == shadowRefreshReasonStructural {
+				// 去抖：外部导入/工程加载会连发大量 node_added，合并为一次刷新。
+				if structuralArmed == nil {
+					structuralArmed = time.After(structuralShadowRefreshDebounce)
+				}
+				continue
+			}
+			b.dispatchShadowRefresh(ctx, reason)
+		case <-structuralArmed:
+			structuralArmed = nil
+			b.dispatchShadowRefresh(ctx, shadowRefreshReasonStructural)
+			// 与快照竞态的 delta 会重新置提示：再武装一轮，避免改动被去抖窗口吞掉。
+			if b.shadow != nil && b.shadow.ConsumeStructureRefreshHint() {
+				structuralArmed = time.After(structuralShadowRefreshDebounce)
+			}
 		}
 	}
 }
 
+// refreshShadow 拉一次权威工程快照写入 shadow（VSP state snapshot 优先，legacy
+// get_project_state 回退）。FIX-TRACKLIST-SHADOW-FRESHNESS-1 B。
 func (b *Bridge) refreshShadow(ctx context.Context, reason string) {
+	if b == nil || b.kernel == nil || b.shadow == nil {
+		return
+	}
+	if observe, err := b.kernel.VSPStateSnapshot(ctx, "project.timeline"); err == nil && observe != nil && observe.OK() && len(observe.LegacyState) > 0 {
+		b.shadow.Initialize(observe.LegacyState)
+		if b.logger != nil {
+			b.logger.Info("[shadow] refreshed after %s source=vsp.state.snapshot revision=%d", reason, observe.Revision)
+		}
+		return
+	} else if err != nil && b.logger != nil {
+		b.logger.Warn("[shadow] %s vsp state snapshot failed, falling back to legacy get_project_state: %v", reason, err)
+	}
 	reply, _, err := b.kernel.SendCommand(ctx, map[string]any{"cmd": "get_project_state"})
 	if err != nil {
 		if b.logger != nil {

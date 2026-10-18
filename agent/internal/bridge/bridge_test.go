@@ -13,6 +13,7 @@ import (
 	"testing"
 	"time"
 
+	"vit-daw-agent/internal/shadow"
 	"vit-daw-agent/internal/vspclient"
 	"vit-daw-agent/internal/vsphub"
 )
@@ -381,5 +382,119 @@ func TestVSPRealtimePublisherSendsFramesToHubCache(t *testing.T) {
 	payload := reply["payload"].(map[string]any)
 	if payload["stream"] != "transport.playhead" || payload["frame_index"].(float64) != 99 {
 		t.Fatalf("unexpected frame payload: %#v", payload)
+	}
+}
+
+func bridgeShadowWithTrack() *shadow.Project {
+	project := shadow.New(nil)
+	project.Initialize(map[string]any{"tracks": []any{
+		map[string]any{"track_id": "1007", "name": "Audio 1", "track_type": "hybrid", "is_audio_track": true},
+	}})
+	return project
+}
+
+// FIX-TRACKLIST-SHADOW-FRESHNESS-1 B：外部新轨 node_added delta（未知 uid）必须在
+// ApplyDelta 后投递一次 structural 刷新信号；属性 delta 不投递。
+func TestNormalizeTelemetryStructuralDeltaSignalsRefresh(t *testing.T) {
+	b := New(Config{FileReplyDir: t.TempDir()}, nil, bridgeShadowWithTrack(), nil)
+	refreshCh := make(chan string, 1)
+	var lastSeq int64
+
+	b.normalizeTelemetry(`{"type":"delta_update","seq_id":1,"action":"property_changed:volume","target_uid":"1007","value":0.5}`, refreshCh, &lastSeq)
+	select {
+	case reason := <-refreshCh:
+		t.Fatalf("property delta must not signal refresh, got %q", reason)
+	default:
+	}
+
+	b.normalizeTelemetry(`{"type":"delta_update","seq_id":2,"action":"node_added","target_uid":"2001","value":"TRACK"}`, refreshCh, &lastSeq)
+	select {
+	case reason := <-refreshCh:
+		if reason != shadowRefreshReasonStructural {
+			t.Fatalf("structural signal reason = %q, want %q", reason, shadowRefreshReasonStructural)
+		}
+	default:
+		t.Fatal("node_added on an unknown uid must signal a shadow refresh")
+	}
+
+	// 已知 uid 的重复 node_added（回放形态）不再触发
+	b.normalizeTelemetry(`{"type":"delta_update","seq_id":3,"action":"node_added","target_uid":"1007","value":"TRACK"}`, refreshCh, &lastSeq)
+	select {
+	case reason := <-refreshCh:
+		t.Fatalf("node_added for a bootstrapped uid must not re-signal, got %q", reason)
+	default:
+	}
+}
+
+// FIX-TRACKLIST-SHADOW-FRESHNESS-1 B：结构信号去抖——突发合并为一次刷新；
+// recording_stopped 保持即时；刷新后仍 pending 的提示（竞态 delta）再武装一轮。
+func TestRunShadowRefreshDebouncesStructuralBurst(t *testing.T) {
+	project := bridgeShadowWithTrack()
+	b := New(Config{FileReplyDir: t.TempDir()}, nil, project, nil)
+	refreshCh := make(chan string, 1)
+
+	reasons := make(chan string, 8)
+	var raceOnce sync.Once
+	b.shadowRefresh = func(_ context.Context, reason string) {
+		if reason != shadowRefreshReasonStructural {
+			reasons <- reason
+			return
+		}
+		// 模拟一次竞态：第一轮刷新期间又有一条结构 delta 落到 shadow
+		raceOnce.Do(func() {
+			project.ApplyDelta(map[string]any{"type": "delta_update", "seq_id": float64(9), "target_uid": "3001", "action": "node_added", "value": "TRACK"})
+		})
+		reasons <- reason
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	done := make(chan error, 1)
+	go func() { done <- b.runShadowRefresh(ctx, refreshCh) }()
+
+	refreshCh <- shadowRefreshReasonStructural
+	refreshCh <- shadowRefreshReasonStructural // 容量 1 合并
+	refreshCh <- shadowRefreshReasonRecording  // 即时腿先执行
+
+	select {
+	case reason := <-reasons:
+		if reason != shadowRefreshReasonRecording {
+			t.Fatalf("recording signal must refresh immediately, got %q", reason)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("recording_stopped refresh never ran")
+	}
+
+	// 去抖窗口后恰好一次结构刷新；随后竞态提示再武装一轮 → 第二次结构刷新
+	deadline := time.Now().Add(4 * time.Second)
+	var structuralCalls int
+	for structuralCalls < 2 && time.Now().Before(deadline) {
+		select {
+		case reason := <-reasons:
+			if reason != shadowRefreshReasonStructural {
+				t.Fatalf("unexpected refresh reason %q", reason)
+			}
+			structuralCalls++
+		case <-time.After(500 * time.Millisecond):
+		}
+	}
+	if structuralCalls != 2 {
+		t.Fatalf("structural refresh calls = %d, want 2 (burst-coalesced + race re-arm)", structuralCalls)
+	}
+
+	select {
+	case reason := <-reasons:
+		t.Fatalf("no further refresh expected, got %q", reason)
+	case <-time.After(structuralShadowRefreshDebounce + 300*time.Millisecond):
+	}
+
+	cancel()
+	select {
+	case err := <-done:
+		if err != context.Canceled {
+			t.Fatalf("runShadowRefresh returned %v, want context.Canceled", err)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("runShadowRefresh did not stop")
 	}
 }

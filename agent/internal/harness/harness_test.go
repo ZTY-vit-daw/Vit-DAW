@@ -4267,6 +4267,143 @@ func TestPublicResultSanitizesProjectState(t *testing.T) {
 	}
 }
 
+// kernelListTracksReplyFixture 镜像内核 list_tracks 回包形状：全量轨道
+// （1 条 master 内部轨 + n 条用户 audio 轨，TrackService::createTrackState 字段）。
+func kernelListTracksReplyFixture(userTracks int) map[string]any {
+	rows := []any{
+		map[string]any{"track_id": "m", "name": "Master", "track_type": "master", "is_audio_track": false},
+	}
+	for i := 1; i <= userTracks; i++ {
+		rows = append(rows, map[string]any{
+			"track_id":       fmt.Sprintf("t%d", i),
+			"name":           fmt.Sprintf("Audio %d", i),
+			"track_type":     "hybrid",
+			"is_audio_track": true,
+			"volume_db":      -6.0,
+		})
+	}
+	return map[string]any{"status": "ok", "message": "Track list fetched", "tracks": rows}
+}
+
+func shadowProjectWithUserTracks(userTracks int) *shadow.Project {
+	project := shadow.New(nil)
+	rows := []any{}
+	for i := 1; i <= userTracks; i++ {
+		rows = append(rows, map[string]any{
+			"track_id":       fmt.Sprintf("t%d", i),
+			"track_name":     fmt.Sprintf("Audio %d", i),
+			"track_type":     "hybrid",
+			"is_audio_track": true,
+		})
+	}
+	project.Initialize(map[string]any{"status": "ok", "tracks": rows})
+	return project
+}
+
+// FIX-TRACKLIST-SHADOW-FRESHNESS-1 回归①：内核回包 user=6 / shadow 空 →
+// track.list 返回 6 并显式 shadow_stale（不得静默返回 0）；反向同样显式。
+func TestPublicListTracksKernelAuthoritativeDisclosesStaleShadow(t *testing.T) {
+	emptyShadow := shadow.New(nil)
+	emptyShadow.Initialize(map[string]any{"status": "ok", "tracks": []any{}})
+	h := New(nil, emptyShadow, nil)
+
+	forward := h.publicResult(tools.CommandSpec{CommandName: "list_tracks"}, nil, kernelListTracksReplyFixture(6))
+	if forward["track_count"] != 6 || forward["user_track_count"] != 6 {
+		t.Fatalf("kernel-authoritative counts missing: %+v", forward)
+	}
+	if forward["shadow_stale"] != true || forward["kernel_user_track_count"] != 6 || forward["shadow_user_track_count"] != 0 {
+		t.Fatalf("forward staleness must be explicit with dual counts: %+v", forward)
+	}
+	rows := forward["tracks"].([]map[string]any)
+	if len(rows) != 6 || rows[0]["track_id"] != "t1" || rows[0]["user_track_index"] != 1 {
+		t.Fatalf("tracks must be kernel rows: %+v", rows)
+	}
+
+	staleShadow := shadowProjectWithUserTracks(6)
+	hReverse := New(nil, staleShadow, nil)
+	reverse := hReverse.publicResult(tools.CommandSpec{CommandName: "list_tracks"}, nil, kernelListTracksReplyFixture(2))
+	if reverse["track_count"] != 2 {
+		t.Fatalf("reverse case must stay kernel-authoritative: %+v", reverse)
+	}
+	if reverse["shadow_stale"] != true || reverse["kernel_user_track_count"] != 2 || reverse["shadow_user_track_count"] != 6 {
+		t.Fatalf("reverse staleness must be explicit with dual counts: %+v", reverse)
+	}
+	if rows := reverse["tracks"].([]map[string]any); len(rows) != 2 {
+		t.Fatalf("reverse tracks must be the 2 kernel rows: %+v", rows)
+	}
+
+	consistent := shadowProjectWithUserTracks(2)
+	hConsistent := New(nil, consistent, nil)
+	fresh := hConsistent.publicResult(tools.CommandSpec{CommandName: "list_tracks"}, nil, kernelListTracksReplyFixture(2))
+	if fresh["shadow_stale"] != nil {
+		t.Fatalf("consistent snapshot must not be flagged stale: %+v", fresh)
+	}
+}
+
+// FIX-TRACKLIST-SHADOW-FRESHNESS-1 回归②：VSP 执行路径（S1 场景）——
+// 外部新建+导入后 shadow 空，tool.list 必须以本命令 canonical 回包为准。
+func TestInvokeListTracksVSPKernelReplyAuthoritative(t *testing.T) {
+	project := shadow.New(nil)
+	project.Initialize(map[string]any{"status": "ok", "tracks": []any{}})
+	kernelClient := &fakeVSPKernelClient{commandReplies: []*kernel.VSPCommandResult{
+		fakeVSPCommandReply("project.tracks.list", "list_tracks", kernelListTracksReplyFixture(6)),
+	}}
+	h := NewWithSender(kernelClient, project, nil)
+
+	resp, err := h.Invoke(context.Background(), InvokeRequest{Tool: "track.list", Args: map[string]any{}, Source: "test"})
+	if err != nil || resp.Status != "ok" {
+		t.Fatalf("invoke failed: resp=%+v err=%v", resp, err)
+	}
+	if len(kernelClient.vspCommands) != 1 || kernelClient.vspCommands[0] != "project.tracks.list" {
+		t.Fatalf("expected canonical project.tracks.list, got %+v", kernelClient.vspCommands)
+	}
+	if resp.Result["track_count"] != 6 || resp.Result["shadow_stale"] != true || resp.Result["shadow_user_track_count"] != 0 {
+		t.Fatalf("tool must return the 6 kernel rows with explicit staleness, got: %+v", resp.Result)
+	}
+	if rows := resp.Result["tracks"].([]map[string]any); len(rows) != 6 {
+		t.Fatalf("tool rows = %+v", rows)
+	}
+}
+
+// FIX-TRACKLIST-SHADOW-FRESHNESS-1 回归③：legacy 执行路径反向（S2 场景）——
+// shadow 陈旧 6 轨、内核现 2 轨 → 不得静默返回 6。
+func TestInvokeListTracksLegacyKernelReplyAuthoritative(t *testing.T) {
+	project := shadowProjectWithUserTracks(6)
+	kernelClient := &fakeKernelClient{replies: []map[string]any{kernelListTracksReplyFixture(2)}}
+	h := NewWithSender(kernelClient, project, nil)
+
+	resp, err := h.Invoke(context.Background(), InvokeRequest{Tool: "track.list", Args: map[string]any{}, Source: "test"})
+	if err != nil || resp.Status != "ok" {
+		t.Fatalf("invoke failed: resp=%+v err=%v", resp, err)
+	}
+	if resp.Result["track_count"] != 2 || resp.Result["shadow_stale"] != true ||
+		resp.Result["kernel_user_track_count"] != 2 || resp.Result["shadow_user_track_count"] != 6 {
+		t.Fatalf("reverse stale must stay explicit: %+v", resp.Result)
+	}
+}
+
+// FIX-TRACKLIST-SHADOW-FRESHNESS-1 回归④：project.state（legacy 路径）以本命令
+// 回包初始化 shadow 后投影——内核 6 / shadow 空 → 返回 6，不静默 0。
+func TestInvokeGetProjectStateInitializesShadowFromKernelReply(t *testing.T) {
+	project := shadow.New(nil)
+	project.Initialize(map[string]any{"status": "ok", "tracks": []any{}})
+	reply := kernelListTracksReplyFixture(6)
+	reply["project_uuid"] = "vitproj_state_fix"
+	kernelClient := &fakeKernelClient{replies: []map[string]any{reply}}
+	h := NewWithSender(kernelClient, project, nil)
+
+	resp, err := h.Invoke(context.Background(), InvokeRequest{Tool: "project.state", Args: map[string]any{}, Source: "test"})
+	if err != nil || resp.Status != "ok" {
+		t.Fatalf("invoke failed: resp=%+v err=%v", resp, err)
+	}
+	if resp.Result["track_count"] != 6 {
+		t.Fatalf("project.state must reflect this command's kernel reply, got: %+v", resp.Result)
+	}
+	if summary := project.Summary(); summary["track_count"] != 6 {
+		t.Fatalf("shadow must be initialized from the reply, got: %+v", summary)
+	}
+}
+
 func shadowProjectWithClips() *shadow.Project {
 	project := shadow.New(nil)
 	project.Initialize(map[string]any{
