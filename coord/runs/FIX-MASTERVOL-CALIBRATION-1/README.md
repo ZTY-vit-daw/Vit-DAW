@@ -149,9 +149,10 @@ VitMasterVolumeCalibrationTests: all checks passed
 - 断言：`new_project`（blank 模板）/默认模板渲染 master 比 ≈ **0.707918**（-3 dB）；16-bit 0.9 源峰不提前削波（peak ≈0.6372，不再 clamp）；master 节点存在但读回不可见（E8 复验）。
 - 栈纪律：启栈前亲核六端口（5555/5556/5557/7878/8787/4445）监听=0 + 四类进程=0；只杀自起 pid；跑完拆净复核=0；占用记录由 Lead 在 `coord/resources/PC-RUNTIME-STACK.md` 单写（执行侧不碰协调面）。
 - 脚本就绪：`master_volume_diag.py`（L0 启动读回/MASTERVOLUME 值 + master 不可见、L1 启动默认工程渲染比、L2 new_project、L3 16/24/32bit、L4 0.9 源峰削波边界、L5 存量 volume=1.0 仍 +6 dB、L6 44.1k 源）+ `run_master_volume_diag.ps1`（berth 运行器，已在 worktree 内通过 Python 语法检查/PowerShell 解析检查；未占用栈、未启动）。
-- 状态：**已执行一次（run_20261018_141849，L0–L6 全 PASS，脚本 exit 0）**；但该次运行发生在 Lead 给出 GO 之前（原意为"预检应拒绝"的 runner 自检，当时实测栈空闲故按设计继续），属**流程偏差**，已在 `RESULTS.md` §〇 如实登记并提交 Lead 裁定（后补登记采信 or 按 GO 重跑）。运行细节与实测值见 `RESULTS.md`。
-  - 摘要：L1/L2 渲染比 **0.707918（-3.0003 dB）**；L4 0.9 源峰 16/24/32bit peak≈**0.6371**（不 clamp，旧 +6dB 反事实 1.7957）；L5 存量 `volume="1.0"` 仍 **+5.9996 dB**（不迁移实测）；L0 master 读回不可见；L3 位深恒定；L6 44.1k 恒定。
-  - berth 纪律：启动前预检=0、只杀自起 pid=20128、拆栈后六端口/四类进程复核=0；run-dir 隔离（部署目录最后写入 14:18:38 早于本 run 内核启动 14:18:49，本 run 零外部写入）。
+- 状态：**Lead 已裁定处置 B（要正式 GO 窗口重跑，本 run 仅作工程参考、不作验收证据）**。前一次运行 `run_20261018_141849` 发生在 GO 之前（未登记占用即启动可启栈 runner，违反 PROTOCOL §2.2），违规定性、真实重叠窗口与自报处置见 `RESULTS.md` §〇；L0–L6 实测数值（工程参考）见 `RESULTS.md` 表。
+  - 摘要（工程参考 run）：L1/L2 渲染比 **0.707918（-3.0003 dB）**；L4 0.9 源峰 16/24/32bit peak≈**0.6371**（不 clamp，旧 +6dB 反事实 1.7957）；L5 存量 `volume="1.0"` 仍 **+5.9996 dB**（不迁移实测）；L0 master 读回不可见；L3 位深恒定；L6 44.1k 恒定。
+  - 整改已落地：berth runner 增加只读 **`-PreflightOnly`** 纯预检模式（只做端口/进程/隔离检查与占用拒绝自检，**绝不启栈、不建 run 目录、不写文件**；exit 0=栈空闲 / exit 2=栈占用 would_refuse），已用 dummy listener 自测 0/2 两条分支（`RESULTS.md` §四）。以后任何会启栈命令必须先 Lead GO + PC-RUNTIME-STACK 登记。
+  - 正式验收级 run：**等待 Lead 的 134 占用登记 + GO**（用户 92 测完释放栈后），将使用新 run ID 重跑 L0–L6 并更新本报告/RESULTS。
 
 ## 8. 工件（本目录）
 
