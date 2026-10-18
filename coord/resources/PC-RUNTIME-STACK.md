@@ -3,7 +3,7 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
-（无——空闲；**用户目检优先**，执行流未获 Lead 放行不得占栈）
+- 2026-10-18 21:20 +0800 起占用 / **FIX-START-STATE-RECOVERY-1(138) 真栈测量腿**（owner=GLM-5.3 L2 PC ZCode 执行会话；worktree D:/Vit_DAW_wt_fxstartrec1，分支 port/fix-start-state-recovery-1；kernel+agent berth 不启 UI 不启 vsphub）：占用前预检六端口（7878/5555/5556/8787/4445/19876）监听=0、VitApp/VitAgent/vsphub/Godot 进程=0（21:05 领取时已核，启动前复核）。计划 4 腿：基线/修复 × 干净/独占哨兵；被测 agent=分支构建与 origin/main 基线构建各一，kernel=stock 只读复用。释放记录随腿后回填。
 
 ## 最近一次释放（2026-10-18 21:29 +0800）
 
