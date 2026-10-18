@@ -5,6 +5,7 @@
 - 验收负责人：GLM 主管决策流（或当班决策流）
 - 池序 134；目标仓库=D:\Vit_DAW；**P1** / 预估 0.5-1 天 / 无代码依赖（证据在 132 取证分支）
 - 模型分级：L2 / GLM 执行会话（内核 C++ 模板/迁移 + 回归）
+- 领取（2026-10-18 午窗）：2026-10-18 14:03 +0800 / origin/main=aec47ad8 / owner=**DSH PC 执行流 exec-mastervol**（用户 2026-10-18 午窗选择派发 FIX-MASTERVOL+MEM-SCHEMA）/ 分支 **port/fix-mastervol-calibration-1** / worktree **D:/Vit_DAW_wt_mastervol1** / 领取提交=（本提交）。**决策点代理裁定（决策流裁定，用户可覆写）**：①模板目标值=**-3dB（fader 位置 0.6376281516）**，对齐引擎 Edit::Options defaultMasterVolumedB=-3 与 scripts/gen_vit_project.py；②存量工程=**不静默迁移**（只修模板/新建工程；存量保持原值+文档登记差异，迁移候选另评）；③master UI/命令控制面不在本卡。执行口径=先落模板修正+回归测试（kernel Release 构建/ctest+比值/绝对电平断言；不占栈），真栈验证腿等用户 92 手测后（PC-RUNTIME-STACK 排队条）。协作模式（DSH 团队）：协调面由 12-18 决策流单写，实现面由执行流在独立 worktree 写。
 
 ## 缺陷（132 真栈取证，证据在卷）
 
