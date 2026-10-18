@@ -1,0 +1,12 @@
+# Heavy runtime artifacts stay on disk (worktree), not in git: paths + sha256 are
+# recorded in the run's diag_summary.json / README.md.
+run_*/renders/
+run_*/sources/
+run_*/fixtures_live/
+run_*/fixtures/
+run_*/kernel_workspace/
+run_*/kernel_stdout.log
+run_*/kernel_stderr.log
+__pycache__/
+build_kernel.log
+build_tests.log

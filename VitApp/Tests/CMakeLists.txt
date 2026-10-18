@@ -223,6 +223,27 @@ if(EXISTS "${VIT_TRACKTION_ENGINE_DIR}/CMakeLists.txt")
         juce::juce_audio_utils
         juce::juce_recommended_config_flags)
     add_test(NAME VitSendRouteTests COMMAND VitSendRouteTests)
+
+    # FIX-MASTERVOL-CALIBRATION-1: project templates must carry the -3.0 dB
+    # master volume *fader position* (0.6376281516), not the legacy 1.0 (+6.0 dB)
+    # value. JUCE-core-only linkage: the test parses the embedded templates, the
+    # on-disk startup project and the committed existing project, and checks the
+    # fader-position -> dB mapping pinned by KERNEL-RENDERGAIN-1(132).
+    juce_add_console_app(VitMasterVolumeCalibrationTests PRODUCT_NAME "VitMasterVolumeCalibrationTests")
+    juce_generate_juce_header(VitMasterVolumeCalibrationTests)
+    target_sources(VitMasterVolumeCalibrationTests PRIVATE
+        MasterVolumeCalibrationTests.cpp)
+    target_compile_features(VitMasterVolumeCalibrationTests PRIVATE cxx_std_20)
+    target_include_directories(VitMasterVolumeCalibrationTests PRIVATE ../Source/Core)
+    target_compile_definitions(VitMasterVolumeCalibrationTests PRIVATE
+        JUCE_USE_CURL=0
+        JUCE_WEB_BROWSER=0
+        VIT_TEST_VITAPP_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/.."
+        VIT_TEST_REPO_ROOT="${CMAKE_CURRENT_SOURCE_DIR}/../..")
+    target_link_libraries(VitMasterVolumeCalibrationTests PRIVATE
+        juce::juce_core
+        juce::juce_recommended_config_flags)
+    add_test(NAME VitMasterVolumeCalibrationTests COMMAND VitMasterVolumeCalibrationTests)
 else()
     message(FATAL_ERROR
         "Tracktion Engine not found. Set -DVIT_TRACKTION_ENGINE_DIR=<path> to a populated Tracktion Engine checkout.")
@@ -254,6 +275,9 @@ if(MSVC)
     if(TARGET VitSendRouteTests)
         target_compile_options(VitSendRouteTests PRIVATE /W4 /permissive-)
     endif()
+    if(TARGET VitMasterVolumeCalibrationTests)
+        target_compile_options(VitMasterVolumeCalibrationTests PRIVATE /W4 /permissive-)
+    endif()
 else()
     target_compile_options(VitAuditionPreviewStateTests PRIVATE -Wall -Wextra -Wpedantic)
     target_compile_options(VitWorkingCopyPersistPolicyTests PRIVATE -Wall -Wextra -Wpedantic)
@@ -279,6 +303,9 @@ else()
     endif()
     if(TARGET VitSendRouteTests)
         target_compile_options(VitSendRouteTests PRIVATE -Wall -Wextra -Wpedantic)
+    endif()
+    if(TARGET VitMasterVolumeCalibrationTests)
+        target_compile_options(VitMasterVolumeCalibrationTests PRIVATE -Wall -Wextra -Wpedantic)
     endif()
 endif()
 

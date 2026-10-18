@@ -170,6 +170,11 @@ def build_edit_xml(mood: str, prompt: str, audio_tracks: int) -> str:
     ET.SubElement(root, "VIDEO")
     ET.SubElement(root, "CLICKTRACK", {"level": "0.6000000238418579"})
 
+    # -3.0 dB master level expressed as a tracktion volume *fader position*:
+    # decibelsToVolumeFaderPosition(-3.0) = exp((-3 - 6) / 20) = 0.6376281516217733.
+    # The literal below is the float32-exact rounding of that position (the engine
+    # stores the volume property as float32), so it is semantically identical to the
+    # 0.6376281516 used by the VitPaths project templates (FIX-MASTERVOL-CALIBRATION-1).
     master_volume = ET.SubElement(root, "MASTERVOLUME")
     append_plugin(master_volume, allocator, "volume", volume="0.6376281380653381")
 

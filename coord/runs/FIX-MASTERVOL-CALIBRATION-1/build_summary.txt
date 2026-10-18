@@ -1,0 +1,26 @@
+﻿FIX-MASTERVOL-CALIBRATION-1 (134) build evidence summary
+generated: 2026-10-18T14:17:31.0837810+08:00
+worktree: D:/Vit_DAW_wt_mastervol1
+branch: port/fix-mastervol-calibration-1
+base HEAD (claim): a99117a0 (latest origin/main at fetch time)
+
+== kernel Release build (full log on disk: build_kernel.log, not committed) ==
+cmake -S VitApp -B VitApp/build -G "Visual Studio 18 2026" -DVIT_TRACKTION_ENGINE_DIR=D:/Vit_DAW/tracktion_engine -DFETCHCONTENT_SOURCE_DIR_LIBZMQ=D:/Vit_DAW/VitApp/build/_deps/libzmq-src -DFETCHCONTENT_SOURCE_DIR_CPPZMQ=D:/Vit_DAW/VitApp/build/_deps/cppzmq-src
+  > configure exit=0 at 2026-10-18T14:12:56+08:00
+cmake --build VitApp/build --config Release --target VitApp --parallel 4
+  > build exit=0 at 2026-10-18T14:17:16+08:00
+  > VitApp.vcxproj -> D:\Vit_DAW_wt_mastervol1\VitApp\build\VitApp_artefacts\Release\VitApp.exe
+  > exe size=31757824 B
+  > exe sha256=B8CD2E4D7C77A2D695BBE86D09A27EDBAF3F03CDFABA285BC0FD47CA6455A594
+  > toolchain: MSVC 19.50.35726.0 / Visual Studio 18 2026 / Release
+  > warnings: pre-existing C4819 (code page 936) / C4244 / C4996 only; no "error C"/"error LNK" lines
+  > environment note: tracktion_engine referenced read-only from the main checkout at pin b4397498 (worktree submodule re-clone from GitHub aborted as too slow; no submodule pointer change committed);
+    libzmq/cppzmq built from the main checkout FetchContent sources via FETCHCONTENT_SOURCE_DIR_* (no new network download); VitApp/build is gitignored.
+
+== VitApp/Tests (full log on disk: build_tests.log, not committed) ==
+cmake -S VitApp/Tests -B VitApp/Tests/build -G "Visual Studio 18 2026" -DVIT_TRACKTION_ENGINE_DIR=D:/Vit_DAW/tracktion_engine
+  > configure exit=0 at 2026-10-18T14:14:26+08:00
+cmake --build VitApp/Tests/build --config Release --target VitMasterVolumeCalibrationTests --parallel 3
+  > build exit=0 at 2026-10-18T14:14:32+08:00
+  > VitMasterVolumeCalibrationTests.vcxproj -> D:\Vit_DAW_wt_mastervol1\VitApp\Tests\build\VitMasterVolumeCalibrationTests_artefacts\Release\VitMasterVolumeCalibrationTests.exe
+  > see test_results.txt for ctest + direct-run output

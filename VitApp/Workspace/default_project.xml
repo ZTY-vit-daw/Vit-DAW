@@ -10,7 +10,7 @@
   <VIDEO/>
   <CLICKTRACK level="0.6000000238418579"/>
   <MASTERVOLUME>
-    <PLUGIN type="volume" id="1001" enabled="1" volume="1.0">
+    <PLUGIN type="volume" id="1001" enabled="1" volume="0.6376281516">
       <MODIFIERASSIGNMENTS/>
     </PLUGIN>
   </MASTERVOLUME>

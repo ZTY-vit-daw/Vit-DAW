@@ -1,0 +1,20 @@
+﻿== ctest (VitApp/Tests/build, Release) ==
+ctest --test-dir VitApp/Tests/build -C Release -R VitMasterVolumeCalibrationTests --output-on-failure
+Test project D:/Vit_DAW_wt_mastervol1/VitApp/Tests/build
+    Start 8: VitMasterVolumeCalibrationTests
+1/1 Test #8: VitMasterVolumeCalibrationTests ...   Passed    0.01 sec
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =   0.02 sec
+ctest exit=0
+
+== direct run: VitMasterVolumeCalibrationTests.exe ==
+  default_project_xml_template: MASTERVOLUME volume="0.6376281516"
+  blank_project_xml_template: MASTERVOLUME volume="0.6376281516"
+  Workspace/default_project.xml: MASTERVOLUME volume="0.6376281516"
+  PCM clip boundary: legacy peak=1.795736 fixed peak=0.637151
+  scripts/gen_vit_project.py: MASTERVOLUME volume="0.6376281380653381"
+  Workspace/VitDAW_Project.tracktionedit: MASTERVOLUME volume="1.0"
+VitMasterVolumeCalibrationTests: all checks passed
+direct run exit=0

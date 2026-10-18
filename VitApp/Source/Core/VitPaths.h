@@ -11,6 +11,13 @@ namespace vit::paths
 
 namespace detail
 {
+// FIX-MASTERVOL-CALIBRATION-1: the MASTERVOLUME `volume` attribute below is an
+// engine fader position, not a linear gain. tracktion_AudioUtilities.cpp maps
+// pos=1.0 -> +6.0 dB, pos=0.7408182 -> 0 dB and pos=0.6376282 -> -3.0 dB.
+// The default master level is -3.0 dB (see Edit::Options defaultMasterVolumedB
+// in VitKernelUtils::loadEditFromXmlString), i.e.
+// decibelsToVolumeFaderPosition(-3.0) = exp((-3 - 6) / 20) = 0.6376281516.
+// Do not "normalise" this back to 1.0: on the fader scale 1.0 is +6.0 dB.
 inline juce::String getDefaultProjectXmlTemplate()
 {
     return R"VIT(<?xml version='1.0' encoding='utf-8'?>
@@ -23,7 +30,7 @@ inline juce::String getDefaultProjectXmlTemplate()
   <VIDEO />
   <CLICKTRACK level="0.6000000238418579" />
   <MASTERVOLUME>
-    <PLUGIN type="volume" id="1001" enabled="1" volume="1.0">
+    <PLUGIN type="volume" id="1001" enabled="1" volume="0.6376281516">
       <MODIFIERASSIGNMENTS />
     </PLUGIN>
   </MASTERVOLUME>
@@ -58,7 +65,8 @@ inline juce::String getDefaultProjectXmlTemplate()
 )VIT";
 }
 
-/** Minimal session: system / master / marker tracks only — no user audio tracks (for IPC new_project). */
+/** Minimal session: system / master / marker tracks only — no user audio tracks (for IPC new_project).
+    Master volume uses the same -3.0 dB fader position as getDefaultProjectXmlTemplate() above. */
 inline juce::String getBlankProjectXmlTemplate()
 {
     return R"VIT(<?xml version='1.0' encoding='utf-8'?>
@@ -71,7 +79,7 @@ inline juce::String getBlankProjectXmlTemplate()
   <VIDEO />
   <CLICKTRACK level="0.6000000238418579" />
   <MASTERVOLUME>
-    <PLUGIN type="volume" id="1001" enabled="1" volume="1.0">
+    <PLUGIN type="volume" id="1001" enabled="1" volume="0.6376281516">
       <MODIFIERASSIGNMENTS />
     </PLUGIN>
   </MASTERVOLUME>
