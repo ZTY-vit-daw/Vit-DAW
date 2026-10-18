@@ -112,6 +112,14 @@ type Harness struct {
 	vitPendingRebindNodes map[string][]string
 	vitCheckpointLive     map[string]bool
 	vitWorkerMu           map[string]*sync.Mutex
+
+	// FIX-START-DRAFT-SIDE-EFFECT-1: the chat server records the activated
+	// workspace path/uuid here. Read-side identity resolution (CurrentProjectIdentity,
+	// the autonomous history reader) prefers this hint over materializing a new
+	// default draft when the shadow summary carries a UUID but no project path.
+	projectHintMu   sync.RWMutex
+	projectHintPath string
+	projectHintUUID string
 }
 
 // LoudnessWatchHook is the chat-registered loudness watch seam. The harness
@@ -289,6 +297,15 @@ func newWithSender(sender KernelSender, shadowProject *shadow.Project, logger *l
 		renderWaiters:   map[string][]chan RenderResult{},
 		journalOverride: journalPath != "",
 	}
+	// FIX-START-DRAFT-SIDE-EFFECT-1: refused identity rebinds (stale uuid trying
+	// to take over an active workspace binding) are surfaced as WARN lines
+	// instead of being swallowed silently.
+	history.SetProjectIdentityRebindObserver(func(rejection history.ProjectIdentityRebindRejection) {
+		if logger != nil {
+			logger.Warn("[workspace] refused stale project identity rebind path=%s active_uuid=%s rejected_uuid=%s",
+				rejection.ProjectPath, rejection.ActiveProjectUUID, rejection.RejectedProjectUUID)
+		}
+	})
 	h.initMaterialization() // MAT-C 三态 flag 装配（off=零接线现状）
 	return h
 }
@@ -515,6 +532,35 @@ func (h *Harness) UserStateSummary(ctx context.Context) map[string]any {
 	return userVisibleState(h.StateSummary(ctx))
 }
 
+// SetProjectPathHint records the workspace the chat server has just activated.
+// Read-side identity resolution uses it when the kernel/shadow summary carries a
+// project UUID but no project path (unsaved project), so the history faces can
+// target the live workspace without materializing a new default draft.
+func (h *Harness) SetProjectPathHint(projectPath, projectUUID string) {
+	if h == nil {
+		return
+	}
+	h.projectHintMu.Lock()
+	h.projectHintPath = strings.TrimSpace(projectPath)
+	h.projectHintUUID = strings.TrimSpace(projectUUID)
+	h.projectHintMu.Unlock()
+}
+
+// ProjectPathHint returns the last activated workspace path/uuid hint.
+func (h *Harness) ProjectPathHint() (string, string) {
+	if h == nil {
+		return "", ""
+	}
+	h.projectHintMu.RLock()
+	defer h.projectHintMu.RUnlock()
+	return h.projectHintPath, h.projectHintUUID
+}
+
+// CurrentProjectIdentity resolves the current project identity from the shadow
+// summary. FIX-START-DRAFT-SIDE-EFFECT-1: this is a read path — it must never
+// materialize the default draft. When the summary has a UUID but no path
+// (kernel unsaved project) the previously activated workspace hint is used;
+// otherwise the path stays empty and write-intent callers explicitly bind one.
 func (h *Harness) CurrentProjectIdentity(ctx context.Context) (string, string) {
 	if h == nil || h.shadow == nil {
 		return "", ""
@@ -522,8 +568,10 @@ func (h *Harness) CurrentProjectIdentity(ctx context.Context) (string, string) {
 	state := userVisibleState(h.shadow.Summary())
 	projectPath := projectPathFromState(state)
 	projectUUID := firstString(state, "project_uuid", "project_id")
-	if projectUUID != "" {
-		projectPath = history.BindProjectIdentity(projectPath, projectUUID)
+	if projectUUID != "" && projectPath == "" {
+		if hintPath, hintUUID := h.ProjectPathHint(); hintPath != "" && strings.EqualFold(hintUUID, projectUUID) {
+			projectPath = hintPath
+		}
 	}
 	_ = ctx
 	return projectPath, projectUUID
@@ -587,6 +635,12 @@ func (h *Harness) ProjectHistorySummaryForProject(ctx context.Context, goalID, p
 	}
 	out = cloneAnyMap(status)
 	out["available"] = true
+	// FIX-START-DRAFT-SIDE-EFFECT-1: a read never materializes the default
+	// draft. Keep the historical shape but disclose the pending state so callers
+	// can distinguish "no project history yet" from "empty history".
+	if boolValueDefault(out["draft_pending"], false) {
+		out["available"] = false
+	}
 	if worktrees, ok := out["worktrees"].([]map[string]any); ok {
 		out["worktree_count"] = len(worktrees)
 	}
@@ -1316,15 +1370,23 @@ func (h *Harness) prepareProjectLifecycleCommand(spec tools.CommandSpec, cmd map
 	switch spec.CommandName {
 	case "save_as_project", "save_project":
 		projectPath, projectUUID := h.CurrentProjectIdentity(context.Background())
-		if projectPath == "" || projectUUID == "" {
+		if projectUUID == "" {
 			return nil
 		}
-		if projectPath != "" {
-			cmd["source_project_path"] = projectPath
+		if projectPath == "" {
+			// Save is a write-intent path: it may bind/materialize the process
+			// default draft when the kernel reports an unsaved project (explicit
+			// caller-side binding after the read path stopped doing it).
+			projectPath = history.CurrentDraftProjectPath()
 		}
-		if projectUUID != "" {
-			cmd["source_project_uuid"] = projectUUID
+		if projectPath == "" {
+			projectPath = history.EnsureProjectPathForWrite(projectUUID)
 		}
+		if projectPath == "" {
+			return nil
+		}
+		cmd["source_project_path"] = projectPath
+		cmd["source_project_uuid"] = projectUUID
 		ensureAppBoundVitSaveCommand(cmd, projectPath)
 		saveKind := "save"
 		if spec.CommandName == "save_as_project" {
@@ -2960,6 +3022,14 @@ func (h *Harness) invokeLocal(ctx context.Context, spec tools.CommandSpec, cmd m
 		if projectPath == "" || projectUUID == "" {
 			h.refreshShadow(ctx, "version_project_save_prepare_identity")
 			projectPath, projectUUID = h.CurrentProjectIdentity(ctx)
+		}
+		if projectPath == "" && projectUUID != "" {
+			// Save preparation is a write-intent path: bind/materialize the
+			// process draft explicitly now that the read path no longer does.
+			projectPath = history.CurrentDraftProjectPath()
+			if projectPath == "" {
+				projectPath = history.EnsureProjectPathForWrite(projectUUID)
+			}
 		}
 		saveKind := firstString(cmd, "save_kind")
 		result, err := history.PrepareWorkingSessionSave(projectPath, projectUUID, saveKind)
