@@ -1,0 +1,12 @@
+﻿FE-START-EMPTY-DRAFT-1 verification record
+date: 2026-10-18 14:06 +0800
+baseline: origin/main c33a5cfe + commit b24aae8f
+
+command: cd agent && go build ./...
+result: exit 0
+
+command: VIT_HISTORY_DRAFT_ROOT=<temp> go test ./... -count=1
+result: exit 0; 95 packages ok; 12 packages no test files; 0 FAIL
+full log: evidence/gotest.txt (tee output of the isolated run)
+
+note: earlier non-isolated run's output overwritten by the isolated run log; test isolation deviation documented in evidence/test_isolation_finding.md
