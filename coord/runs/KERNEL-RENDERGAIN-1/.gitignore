@@ -1,0 +1,6 @@
+﻿# Heavy runtime artifacts stay on disk (worktree), not in git: paths + sha256 are
+# recorded in the run's diag_summary.json / RESULTS.md.
+run_*/renders/
+run_*/sources/
+run_*/fixtures_live/
+run_*/kernel_workspace/

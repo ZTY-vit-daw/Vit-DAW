@@ -1,0 +1,156 @@
+# KERNEL-RENDERGAIN-1 stack-leg kernel session excerpt (VitHeadlessServer2026-10-18_13-57-10.log)
+# full log retained on disk: coord/runs/KERNEL-RENDERGAIN-1/run_20261018_135710/kernel_workspace/Workspace/Logs/
+
+VitHeadlessService: edit loaded from D:\Vit_DAW_wt_rendergain1\coord\runs\KERNEL-RENDERGAIN-1\run_20261018_135710\startup_default_project.xml
+ZmqGateway: received command payload: {"cmd": "get_project_state"}
+ZmqGateway: received command payload: {"cmd": "list_tracks"}
+ZmqGateway: received command payload: {"cmd": "clear_project"}
+ZmqGateway: received command payload: {"cmd": "list_tracks"}
+ZmqGateway: received command payload: {"cmd": "delete_track", "track_id": "1007"}
+ZmqGateway: received command payload: {"cmd": "list_tracks"}
+ZmqGateway: received command payload: {"cmd": "delete_track", "track_id": "1012"}
+ZmqGateway: received command payload: {"cmd": "list_tracks"}
+ZmqGateway: received command payload: {"cmd": "delete_track", "track_id": "1017"}
+ZmqGateway: received command payload: {"cmd": "list_tracks"}
+ZmqGateway: received command payload: {"cmd": "delete_track", "track_id": "1022"}
+ZmqGateway: received command payload: {"cmd": "list_tracks"}
+ZmqGateway: received command payload: {"cmd": "delete_track", "track_id": "1027"}
+ZmqGateway: received command payload: {"cmd": "list_tracks"}
+ZmqGateway: received command payload: {"cmd": "add_track"}
+ZmqGateway: received command payload: {"cmd": "import_audio", "file_path": "D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135710\\sources\\sine440_48k_stereo_0.5.wav", "track_id": "1035"}
+ZmqGateway: received command payload: {"cmd": "start_render", "file_path": "D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135710\\renders\\E1_baseline_16bit_master_on.wav", "range": [0.0, 3.0], "bit_depth": 16, "use_master_plugins": true}
+Command executed: start_render, result: {
+ZmqGateway: received command payload: {"cmd": "start_render", "file_path": "D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135710\\renders\\E2_master_plugins_off.wav", "range": [0.0, 3.0], "bit_depth": 16, "use_master_plugins": false}
+Command executed: start_render, result: {
+ZmqGateway: received command payload: {"cmd": "start_render", "file_path": "D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135710\\renders\\E5_bitdepth16.wav", "range": [0.0, 3.0], "bit_depth": 16, "use_master_plugins": true}
+Command executed: start_render, result: {
+ZmqGateway: received command payload: {"cmd": "start_render", "file_path": "D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135710\\renders\\E5_bitdepth24.wav", "range": [0.0, 3.0], "bit_depth": 24, "use_master_plugins": true}
+Command executed: start_render, result: {
+ZmqGateway: received command payload: {"cmd": "start_render", "file_path": "D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135710\\renders\\E5_bitdepth32.wav", "range": [0.0, 3.0], "bit_depth": 32, "use_master_plugins": true}
+Command executed: start_render, result: {
+ZmqGateway: received command payload: {"cmd": "clear_project"}
+ZmqGateway: received command payload: {"cmd": "list_tracks"}
+ZmqGateway: received command payload: {"cmd": "delete_track", "track_id": "1032"}
+ZmqGateway: received command payload: {"cmd": "list_tracks"}
+ZmqGateway: received command payload: {"cmd": "add_track"}
+ZmqGateway: received command payload: {"cmd": "import_audio", "file_path": "D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135710\\sources\\sine440_48k_stereo_0.9.wav", "track_id": "1040"}
+ZmqGateway: received command payload: {"cmd": "start_render", "file_path": "D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135710\\renders\\E5_hot_16bit.wav", "range": [0.0, 3.0], "bit_depth": 16, "use_master_plugins": true}
+Command executed: start_render, result: {
+ZmqGateway: received command payload: {"cmd": "start_render", "file_path": "D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135710\\renders\\E5_hot_24bit.wav", "range": [0.0, 3.0], "bit_depth": 24, "use_master_plugins": true}
+Command executed: start_render, result: {
+ZmqGateway: received command payload: {"cmd": "start_render", "file_path": "D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135710\\renders\\E5_hot_32bit_float.wav", "range": [0.0, 3.0], "bit_depth": 32, "use_master_plugins": true}
+Command executed: start_render, result: {
+ZmqGateway: received command payload: {"cmd": "clear_project"}
+ZmqGateway: received command payload: {"cmd": "list_tracks"}
+ZmqGateway: received command payload: {"cmd": "delete_track", "track_id": "1035"}
+ZmqGateway: received command payload: {"cmd": "list_tracks"}
+ZmqGateway: received command payload: {"cmd": "add_track"}
+ZmqGateway: received command payload: {"cmd": "import_audio", "file_path": "D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135710\\sources\\sine440_48k_stereo_0.05.wav", "track_id": "1045"}
+ZmqGateway: received command payload: {"cmd": "start_render", "file_path": "D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135710\\renders\\E6_sweep_0.05.wav", "range": [0.0, 3.0], "bit_depth": 16, "use_master_plugins": true}
+Command executed: start_render, result: {
+ZmqGateway: received command payload: {"cmd": "clear_project"}
+ZmqGateway: received command payload: {"cmd": "list_tracks"}
+ZmqGateway: received command payload: {"cmd": "delete_track", "track_id": "1040"}
+ZmqGateway: received command payload: {"cmd": "list_tracks"}
+ZmqGateway: received command payload: {"cmd": "add_track"}
+ZmqGateway: received command payload: {"cmd": "import_audio", "file_path": "D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135710\\sources\\sine440_48k_stereo_0.1.wav", "track_id": "1050"}
+ZmqGateway: received command payload: {"cmd": "start_render", "file_path": "D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135710\\renders\\E6_sweep_0.1.wav", "range": [0.0, 3.0], "bit_depth": 16, "use_master_plugins": true}
+Command executed: start_render, result: {
+ZmqGateway: received command payload: {"cmd": "clear_project"}
+ZmqGateway: received command payload: {"cmd": "list_tracks"}
+ZmqGateway: received command payload: {"cmd": "delete_track", "track_id": "1045"}
+ZmqGateway: received command payload: {"cmd": "list_tracks"}
+ZmqGateway: received command payload: {"cmd": "add_track"}
+ZmqGateway: received command payload: {"cmd": "import_audio", "file_path": "D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135710\\sources\\sine440_48k_stereo_0.25.wav", "track_id": "1055"}
+ZmqGateway: received command payload: {"cmd": "start_render", "file_path": "D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135710\\renders\\E6_sweep_0.25.wav", "range": [0.0, 3.0], "bit_depth": 16, "use_master_plugins": true}
+Command executed: start_render, result: {
+ZmqGateway: received command payload: {"cmd": "clear_project"}
+ZmqGateway: received command payload: {"cmd": "list_tracks"}
+ZmqGateway: received command payload: {"cmd": "delete_track", "track_id": "1050"}
+ZmqGateway: received command payload: {"cmd": "list_tracks"}
+ZmqGateway: received command payload: {"cmd": "add_track"}
+ZmqGateway: received command payload: {"cmd": "import_audio", "file_path": "D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135710\\sources\\sine440_48k_stereo_0.5.wav", "track_id": "1060"}
+ZmqGateway: received command payload: {"cmd": "clear_project"}
+ZmqGateway: received command payload: {"cmd": "list_tracks"}
+ZmqGateway: received command payload: {"cmd": "delete_track", "track_id": "1055"}
+ZmqGateway: received command payload: {"cmd": "list_tracks"}
+ZmqGateway: received command payload: {"cmd": "add_track"}
+ZmqGateway: received command payload: {"cmd": "import_audio", "file_path": "D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135710\\sources\\sine440_44100_stereo_0.5.wav", "track_id": "1065"}
+ZmqGateway: received command payload: {"cmd": "start_render", "file_path": "D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135710\\renders\\E7_44k1.wav", "range": [0.0, 3.0], "bit_depth": 16, "use_master_plugins": true}
+Command executed: start_render, result: {
+ZmqGateway: received command payload: {"cmd": "clear_project"}
+ZmqGateway: received command payload: {"cmd": "list_tracks"}
+ZmqGateway: received command payload: {"cmd": "delete_track", "track_id": "1060"}
+ZmqGateway: received command payload: {"cmd": "list_tracks"}
+ZmqGateway: received command payload: {"cmd": "add_track"}
+ZmqGateway: received command payload: {"cmd": "import_audio", "file_path": "D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135710\\sources\\sine440_48k_mono_0.5.wav", "track_id": "1070"}
+ZmqGateway: received command payload: {"cmd": "start_render", "file_path": "D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135710\\renders\\E7_mono.wav", "range": [0.0, 3.0], "bit_depth": 16, "use_master_plugins": true}
+Command executed: start_render, result: {
+ZmqGateway: received command payload: {"cmd": "clear_project"}
+ZmqGateway: received command payload: {"cmd": "list_tracks"}
+ZmqGateway: received command payload: {"cmd": "delete_track", "track_id": "1065"}
+ZmqGateway: received command payload: {"cmd": "list_tracks"}
+ZmqGateway: received command payload: {"cmd": "add_track"}
+ZmqGateway: received command payload: {"cmd": "import_audio", "file_path": "D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135710\\sources\\sine440_48k_left_0.5.wav", "track_id": "1075"}
+ZmqGateway: received command payload: {"cmd": "start_render", "file_path": "D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135710\\renders\\E7_left_only.wav", "range": [0.0, 3.0], "bit_depth": 16, "use_master_plugins": true}
+Command executed: start_render, result: {
+ZmqGateway: received command payload: {"cmd": "load_project", "file_path": "D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135710\\fixtures_live\\fixture_master_1.0_live.vit"}
+Command executed: load_project, result: {
+ZmqGateway: received command payload: {"cmd": "get_project_state"}
+"graph_last_diff_summary": "Edit loaded from D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135710\\fixtures_live\\fixture_master_1.0_live.vit",
+ZmqGateway: received command payload: {"cmd": "clear_project"}
+ZmqGateway: received command payload: {"cmd": "list_tracks"}
+ZmqGateway: received command payload: {"cmd": "add_track"}
+ZmqGateway: received command payload: {"cmd": "import_audio", "file_path": "D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135710\\sources\\sine440_48k_stereo_0.5.wav", "track_id": "1007"}
+ZmqGateway: received command payload: {"cmd": "start_render", "file_path": "D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135710\\renders\\E3_pos_1.0.wav", "range": [0.0, 3.0], "bit_depth": 16, "use_master_plugins": true}
+Command executed: start_render, result: {
+ZmqGateway: received command payload: {"cmd": "load_project", "file_path": "D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135710\\fixtures_live\\fixture_master_0db_live.vit"}
+Command executed: load_project, result: {
+ZmqGateway: received command payload: {"cmd": "get_project_state"}
+"graph_last_diff_summary": "Edit loaded from D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135710\\fixtures_live\\fixture_master_0db_live.vit",
+ZmqGateway: received command payload: {"cmd": "clear_project"}
+ZmqGateway: received command payload: {"cmd": "list_tracks"}
+ZmqGateway: received command payload: {"cmd": "add_track"}
+ZmqGateway: received command payload: {"cmd": "import_audio", "file_path": "D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135710\\sources\\sine440_48k_stereo_0.5.wav", "track_id": "1007"}
+ZmqGateway: received command payload: {"cmd": "start_render", "file_path": "D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135710\\renders\\E3_pos_0db.wav", "range": [0.0, 3.0], "bit_depth": 16, "use_master_plugins": true}
+Command executed: start_render, result: {
+ZmqGateway: received command payload: {"cmd": "load_project", "file_path": "D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135710\\fixtures_live\\fixture_master_minus3db_live.vit"}
+Command executed: load_project, result: {
+ZmqGateway: received command payload: {"cmd": "get_project_state"}
+"graph_last_diff_summary": "Edit loaded from D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135710\\fixtures_live\\fixture_master_minus3db_live.vit",
+ZmqGateway: received command payload: {"cmd": "clear_project"}
+ZmqGateway: received command payload: {"cmd": "list_tracks"}
+ZmqGateway: received command payload: {"cmd": "add_track"}
+ZmqGateway: received command payload: {"cmd": "import_audio", "file_path": "D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135710\\sources\\sine440_48k_stereo_0.5.wav", "track_id": "1007"}
+ZmqGateway: received command payload: {"cmd": "start_render", "file_path": "D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135710\\renders\\E3_pos_minus3db.wav", "range": [0.0, 3.0], "bit_depth": 16, "use_master_plugins": true}
+Command executed: start_render, result: {
+ZmqGateway: received command payload: {"cmd": "load_project", "file_path": "D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135710\\fixtures_live\\fixture_master_absent_live.vit"}
+Command executed: load_project, result: {
+ZmqGateway: received command payload: {"cmd": "get_project_state"}
+"graph_last_diff_summary": "Edit loaded from D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135710\\fixtures_live\\fixture_master_absent_live.vit",
+ZmqGateway: received command payload: {"cmd": "clear_project"}
+ZmqGateway: received command payload: {"cmd": "list_tracks"}
+ZmqGateway: received command payload: {"cmd": "add_track"}
+ZmqGateway: received command payload: {"cmd": "import_audio", "file_path": "D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135710\\sources\\sine440_48k_stereo_0.5.wav", "track_id": "1008"}
+ZmqGateway: received command payload: {"cmd": "start_render", "file_path": "D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135710\\renders\\E3_absent.wav", "range": [0.0, 3.0], "bit_depth": 16, "use_master_plugins": true}
+Command executed: start_render, result: {
+ZmqGateway: received command payload: {"cmd": "load_project", "file_path": "D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135710\\fixtures_live\\fixture_master_attr_absent_live.vit"}
+Command executed: load_project, result: {
+ZmqGateway: received command payload: {"cmd": "get_project_state"}
+"graph_last_diff_summary": "Edit loaded from D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135710\\fixtures_live\\fixture_master_attr_absent_live.vit",
+ZmqGateway: received command payload: {"cmd": "clear_project"}
+ZmqGateway: received command payload: {"cmd": "list_tracks"}
+ZmqGateway: received command payload: {"cmd": "add_track"}
+ZmqGateway: received command payload: {"cmd": "import_audio", "file_path": "D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135710\\sources\\sine440_48k_stereo_0.5.wav", "track_id": "1007"}
+ZmqGateway: received command payload: {"cmd": "start_render", "file_path": "D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135710\\renders\\E3_attr_absent.wav", "range": [0.0, 3.0], "bit_depth": 16, "use_master_plugins": true}
+Command executed: start_render, result: {
+ZmqGateway: received command payload: {"cmd": "new_project"}
+Command executed: new_project, result: {
+ZmqGateway: received command payload: {"cmd": "get_project_state"}
+ZmqGateway: received command payload: {"cmd": "clear_project"}
+ZmqGateway: received command payload: {"cmd": "list_tracks"}
+ZmqGateway: received command payload: {"cmd": "add_track"}
+ZmqGateway: received command payload: {"cmd": "import_audio", "file_path": "D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135710\\sources\\sine440_48k_stereo_0.5.wav", "track_id": "1007"}
+ZmqGateway: received command payload: {"cmd": "start_render", "file_path": "D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135710\\renders\\E4_new_project.wav", "range": [0.0, 3.0], "bit_depth": 16, "use_master_plugins": true}
+Command executed: start_render, result: {
+ZmqGateway: received command payload: {"cmd": "list_tracks"}

@@ -1,0 +1,284 @@
+{
+  "feature": "render_gain_diag",
+  "card": "KERNEL-RENDERGAIN-1",
+  "started_utc": "2026-10-18T05:54:56.609491+00:00",
+  "url": "tcp://127.0.0.1:5555",
+  "expected": {
+    "gain_pos_1_0": 1.9952623149688795,
+    "gain_pos_0db": 1.0,
+    "gain_pos_minus3db": 0.7079457843841379
+  },
+  "legs": [
+    {
+      "master_volume_attr": null,
+      "master_track_db": [
+        [
+          "1006",
+          null
+        ]
+      ],
+      "audio_track_dbs": [
+        [
+          "1007",
+          0.0
+        ],
+        [
+          "1012",
+          0.0
+        ],
+        [
+          "1017",
+          0.0
+        ],
+        [
+          "1022",
+          0.0
+        ],
+        [
+          "1027",
+          0.0
+        ],
+        [
+          "1032",
+          0.0
+        ]
+      ],
+      "project_path": "",
+      "leg": "E0_startup_state",
+      "pass": false
+    },
+    {
+      "ratio": 1.99518054,
+      "db": 5.999644,
+      "expected": 1.995262,
+      "leg": "E1_minimal_repro",
+      "pass": true
+    },
+    {
+      "ratio": 0.99995946,
+      "db": -0.000352,
+      "expected": 1.0,
+      "use_master_plugins": false,
+      "leg": "E2_master_plugins_off",
+      "pass": true
+    }
+  ],
+  "pass": false,
+  "sources": {
+    "sine440_48k_stereo_0.5.wav": {
+      "file": "sine440_48k_stereo_0.5.wav",
+      "rate": 48000,
+      "sampwidth": 2,
+      "channels": 2,
+      "peak": [
+        0.49998474,
+        0.49998474
+      ],
+      "rms": [
+        0.35353906,
+        0.35353906
+      ],
+      "amp440": [
+        0.49997973,
+        0.49997973
+      ],
+      "bytes": 576044,
+      "sha256": "7a58cd5a6beeb532"
+    },
+    "sine440_44100_stereo_0.5.wav": {
+      "file": "sine440_44100_stereo_0.5.wav",
+      "rate": 44100,
+      "sampwidth": 2,
+      "channels": 2,
+      "peak": [
+        0.49998474,
+        0.49998474
+      ],
+      "rms": [
+        0.35353969,
+        0.35353969
+      ],
+      "amp440": [
+        0.49998062,
+        0.49998062
+      ],
+      "bytes": 529244,
+      "sha256": "e98b7f3ed9f7888e"
+    },
+    "sine440_48k_mono_0.5.wav": {
+      "file": "sine440_48k_mono_0.5.wav",
+      "rate": 48000,
+      "sampwidth": 2,
+      "channels": 1,
+      "peak": [
+        0.49998474
+      ],
+      "rms": [
+        0.35353906
+      ],
+      "amp440": [
+        0.49997973
+      ],
+      "bytes": 288044,
+      "sha256": "7f98295d8652a4b6"
+    },
+    "sine440_48k_left_0.5.wav": {
+      "file": "sine440_48k_left_0.5.wav",
+      "rate": 48000,
+      "sampwidth": 2,
+      "channels": 2,
+      "peak": [
+        0.49998474,
+        0.0
+      ],
+      "rms": [
+        0.35353906,
+        0.0
+      ],
+      "amp440": [
+        0.49997973,
+        0.0
+      ],
+      "bytes": 576044,
+      "sha256": "ad6d198be562e456"
+    },
+    "sine440_48k_stereo_0.9.wav": {
+      "file": "sine440_48k_stereo_0.9.wav",
+      "rate": 48000,
+      "sampwidth": 2,
+      "channels": 2,
+      "peak": [
+        0.89999084,
+        0.89999084
+      ],
+      "rms": [
+        0.63638171,
+        0.63638171
+      ],
+      "amp440": [
+        0.89997964,
+        0.89997964
+      ],
+      "bytes": 576044,
+      "sha256": "1957a85a2cebed45"
+    }
+  },
+  "fixtures": {
+    "pos_1.0": {
+      "path": "D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135453\\fixtures\\fixture_master_1.0.vit",
+      "sha256": "190bdd7daa2eed118ee9d8a706b03a0723ab8b32b05ae62deab6faa469974eb7"
+    },
+    "pos_0db": {
+      "path": "D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135453\\fixtures\\fixture_master_0db.vit",
+      "sha256": "e0e80bc33a15ecdb2234e438e53e0cc3ee15d1d8d0400582d0130e872e0ce38b"
+    },
+    "pos_minus3db": {
+      "path": "D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135453\\fixtures\\fixture_master_minus3db.vit",
+      "sha256": "239c47bc6a28952032f88406f2f675a554beccfb1bc1f2dc1182685bb2cb37a0"
+    },
+    "absent": {
+      "path": "D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135453\\fixtures\\fixture_master_absent.vit",
+      "sha256": "207b5815016336f332d796eff344e701537dd82a8fe265f5a787c96c5cf04ba1"
+    },
+    "attr_absent": {
+      "path": "D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135453\\fixtures\\fixture_master_attr_absent.vit",
+      "sha256": "dbbaf8d0059f9bb8c048b9c5adde2ce935273a2d988aa6038468d4ea7c086d58"
+    }
+  },
+  "E0_startup": {
+    "master_volume_attr": null,
+    "master_track_db": [
+      [
+        "1006",
+        null
+      ]
+    ],
+    "audio_track_dbs": [
+      [
+        "1007",
+        0.0
+      ],
+      [
+        "1012",
+        0.0
+      ],
+      [
+        "1017",
+        0.0
+      ],
+      [
+        "1022",
+        0.0
+      ],
+      [
+        "1027",
+        0.0
+      ],
+      [
+        "1032",
+        0.0
+      ]
+    ],
+    "project_path": ""
+  },
+  "E1_minimal_repro": {
+    "stats": {
+      "file": "E1_baseline_16bit_master_on.wav",
+      "rate": 48000,
+      "sampwidth": 2,
+      "channels": 2,
+      "peak": [
+        0.99761956,
+        0.99761956
+      ],
+      "rms": [
+        0.70540277,
+        0.70540277
+      ],
+      "amp440": [
+        0.99759027,
+        0.99759027
+      ],
+      "bytes": 576784,
+      "sha256": "0c4353bb86a9ed71",
+      "requested": {
+        "bit_depth": 16,
+        "use_master_plugins": true
+      },
+      "job_id": "854d5bf53f9849039b6b5fefa54cbd3a"
+    },
+    "ratio": 1.99518054,
+    "db": 5.999644005249162
+  },
+  "E2_master_off": {
+    "stats": {
+      "file": "E2_master_plugins_off.wav",
+      "rate": 48000,
+      "sampwidth": 2,
+      "channels": 2,
+      "peak": [
+        0.49998474,
+        0.49998474
+      ],
+      "rms": [
+        0.35353902,
+        0.35353902
+      ],
+      "amp440": [
+        0.49997973,
+        0.49997973
+      ],
+      "bytes": 576784,
+      "sha256": "7398e6964e743d0d",
+      "requested": {
+        "bit_depth": 16,
+        "use_master_plugins": false
+      },
+      "job_id": "84c10e60d2244673b08363dbf3732a3d"
+    },
+    "ratio": 0.99995946,
+    "db": -0.00035213310371320444
+  },
+  "error": "Error: unknown format: 3",
+  "finished_utc": "2026-10-18T05:55:02.425502+00:00"
+}
