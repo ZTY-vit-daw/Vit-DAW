@@ -1,0 +1,15 @@
+﻿run_start=2026-10-18T12:30:56.4139530+08:00
+frontend_worktree=D:/Godot/project/vit-daw-frontend-fe-gui-c
+frontend_head=1c6148278bbb4da3c846861fb54185c2e254382c+4b8bb9c9c7d69f717aa238e20bde17165fa5b5f2
+probe_worktree_head=5d17853b21e0dca22a79414b2c3d34ab8802d543
+kernel=D:\\Vit_DAW\\Export\\staging\\runtime\\VitApp.exe sha256=B6565DCF85D1DA867E16333052A7B928A5413565940603ADBCF4ABD59DD3123B
+agent_prebuilt=136137E55F9EE586F1848FAEE0F82B1E04C66A48472FAA8B855250C7FCAE80FC (script rebuilds by default)
+port 7878=free; port 5555=free; port 5556=free; port 8787=free; port 4445=free; port 19876=free
+preflight_processes=0
+smoke_exit=0
+smoke_run_dir=dev_agent_smoke_20261018_123056
+godot_boot_exit=0 (supplementary windowed boot: --quit-after 1200, start_page VSP Hub ready + Agent v0.5 tools ready)
+mix_observe=status=ok observation_id=obs_20261018T043129_0819166048df
+llm_calls=6 model=deepseek-flash errors=0 (MixSmoke chat legs; Lead expected 0, recorded honestly)
+agent_run_binary_sha256=136137E55F9EE586F1848FAEE0F82B1E04C66A48472FAA8B855250C7FCAE80FC
+teardown=stopped VitApp pid15952 + VitAgent pid17064 (own leg) + ad-hoc/controlled Godot; VspHub autostart child pid15088 stopped by start_page on quit; post: 4 ports=0, 4 process classes=0
