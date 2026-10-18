@@ -9,6 +9,116 @@ import (
 	"unicode/utf8"
 )
 
+func resetDraftProjectStateForTest() {
+	draftProject.Lock()
+	draftProject.root = ""
+	draftProject.path = ""
+	draftProject.Unlock()
+}
+
+func draftDirectoriesForTest(t *testing.T, root string) []string {
+	t.Helper()
+	entries, err := os.ReadDir(root)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		}
+		t.Fatalf("read draft root %s: %v", root, err)
+	}
+	out := make([]string, 0, len(entries))
+	for _, entry := range entries {
+		if entry.IsDir() && strings.HasPrefix(strings.ToLower(entry.Name()), "draft_") {
+			out = append(out, entry.Name())
+		}
+	}
+	return out
+}
+
+// FE-START-EMPTY-DRAFT-1 回归：启动期身份探测（uuid 已知、project_path 为空）
+// 会物化默认 draft；随后 ProjectNew 必须复用这个仍为原始空壳的 draft，而不是
+// 清缓存再建一个（启动页双 draft 的直接成因）。
+func TestProjectNewReusesPristineDefaultDraft(t *testing.T) {
+	root := filepath.Join(t.TempDir(), "drafts")
+	t.Setenv("VIT_HISTORY_DRAFT_ROOT", root)
+	resetDraftProjectStateForTest()
+
+	placeholder, err := defaultDraftProjectPath()
+	if err != nil {
+		t.Fatalf("defaultDraftProjectPath: %v", err)
+	}
+	// 复刻 agent 启动路径：CurrentProjectIdentity -> BindProjectIdentity("", 旧uuid)。
+	bound := BindProjectIdentity("", "vitproj_previous")
+	if !sameProjectPath(bound, placeholder) {
+		t.Fatalf("identity binding path = %q, want placeholder %q", bound, placeholder)
+	}
+
+	created, err := ProjectNew(map[string]any{})
+	if err != nil {
+		t.Fatalf("project new: %v", err)
+	}
+	createdPath := fmt.Sprint(created["project_path"])
+	if !sameProjectPath(createdPath, placeholder) {
+		t.Fatalf("ProjectNew created %q, want reuse of pristine default draft %q", createdPath, placeholder)
+	}
+	if created["reused_default_draft"] != true {
+		t.Fatalf("reused_default_draft = %v, want true (result=%+v)", created["reused_default_draft"], created)
+	}
+	if dirs := draftDirectoriesForTest(t, root); len(dirs) != 1 {
+		t.Fatalf("draft dirs after project new = %v, want exactly 1 (no abandoned twin)", dirs)
+	}
+
+	// 新工程身份只允许把历史材料化到自己的 uuid 下；启动期旧 uuid 的绑定必须被清掉。
+	BindProjectIdentity(createdPath, "vitproj_new")
+	if _, err := EnsureWorkingSession(createdPath, "vitproj_new"); err != nil {
+		t.Fatalf("ensure working session: %v", err)
+	}
+	repo, err := Open(createdPath)
+	if err != nil {
+		t.Fatalf("open reused draft: %v", err)
+	}
+	if repo.ProjectUUID != "vitproj_new" {
+		t.Fatalf("reused draft project uuid = %q, want vitproj_new", repo.ProjectUUID)
+	}
+	historyRoot := filepath.Join(filepath.Dir(createdPath), DirName)
+	if dirExists(filepath.Join(historyRoot, "vitproj_previous")) {
+		t.Fatalf("stale startup uuid workspace leaked into the reused draft: %s", filepath.Join(historyRoot, "vitproj_previous"))
+	}
+	if !dirExists(filepath.Join(historyRoot, "vitproj_new")) {
+		t.Fatalf("new project workspace missing under %s", filepath.Join(historyRoot, "vitproj_new"))
+	}
+}
+
+// 空壳判定必须严格：一旦默认 draft 已有历史/agent store，ProjectNew 仍须新建
+// 独立 draft（既有“新建工程=全新历史”语义不变）。
+func TestProjectNewCreatesFreshDraftWhenDefaultDraftIsInitialized(t *testing.T) {
+	root := filepath.Join(t.TempDir(), "drafts")
+	t.Setenv("VIT_HISTORY_DRAFT_ROOT", root)
+	resetDraftProjectStateForTest()
+
+	placeholder, err := defaultDraftProjectPath()
+	if err != nil {
+		t.Fatalf("defaultDraftProjectPath: %v", err)
+	}
+	if err := os.MkdirAll(filepath.Join(filepath.Dir(placeholder), DirName), 0o755); err != nil {
+		t.Fatalf("materialize history dir: %v", err)
+	}
+
+	created, err := ProjectNew(map[string]any{})
+	if err != nil {
+		t.Fatalf("project new: %v", err)
+	}
+	createdPath := fmt.Sprint(created["project_path"])
+	if sameProjectPath(createdPath, placeholder) {
+		t.Fatalf("ProjectNew reused an initialized default draft %q", placeholder)
+	}
+	if created["reused_default_draft"] == true {
+		t.Fatalf("reused_default_draft = true for initialized default draft")
+	}
+	if dirs := draftDirectoriesForTest(t, root); len(dirs) != 2 {
+		t.Fatalf("draft dirs = %v, want 2 (pristine placeholder + fresh draft)", dirs)
+	}
+}
+
 func TestDefaultDraftProjectPathUsesEditRoot(t *testing.T) {
 	root := t.TempDir()
 	t.Setenv("VIT_HISTORY_DRAFT_ROOT", root)
