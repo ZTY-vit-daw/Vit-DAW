@@ -139,7 +139,24 @@ agent/internal/chat/server.go                 |  28 +++-
 | gofmt | `gofmt -l` 本卡改动文件 | 无输出（干净） |
 | 测试隔离核对 | 隔离 env 全量跑前后真实 draft 根目录数 | **10189→10189（0 新增）** |
 | 测试污染偏差（既有基线问题） | 本卡未隔离的首轮包测试向真实 draft 根写入 18 个测试工件 | 已移出到 `C:\Users\timoz\AppData\Local\Temp\fedraft1\startside_test_quarantine\`（未删除，可复核；目录内无 `.vit_agent`/session，纯测试历史脚手架）；随后隔离复跑真实根零新增。并入 140/FIX-TEST-DRAFT-ISOLATION-1 域 |
-| 真栈腿 | 需栈窗口；脚本 `scripts/run_stack_leg_137.ps1`（自起 stock kernel + 本分支 agent、隔离根+种子旧 draft、含 reader 抢跑、断言 A–D、finally 只杀自起 pid） | 待 Lead 登记 PC-RUNTIME-STACK 后 GO（回执附 run ID/断言/拆栈证据） |
+| 真栈腿 | `run_stack_leg_137.ps1`（自起 stock kernel + 本分支 agent、隔离根+种子旧 draft、含 reader 抢跑、四断言 A–D、finally 只杀自起 pid） | **PASS**——run=`realstack_20261018_1750c`（2026-10-18 17:50:30–17:50:47，窗口 17:50–18:20）；A/B/C/D 全 true；teardown 六端口监听=0、本腿进程=0。详见 §4.1 |
+
+### 4.1 真栈腿结果（Lead GO 窗口 17:50–18:20）
+
+- **run ID**：`realstack_20261018_1750c`；脚本 exit **0**；结果 `realstack_20261018_1750c/stack_leg_result.json`。
+- 被测：kernel `D:\Vit_DAW\Export\staging\runtime\VitApp.exe` SHA256=`B6565DCF85D1DA867E16333052A7B928A5413565940603ADBCF4ABD59DD3123B`；agent 本分支构建 SHA256=`32A095A7BEB8B8F4B73B6F7D58DDF9E2CB1D792BFFD8C031109BDCE88C13F649`；HEAD=`b8f0bb9e`。
+- 场景：隔离 `ProjectHistory/drafts` + 预置与内核启动 uuid（本次 `vitproj_1d7e7367…`）匹配的种子旧 draft；正常起 kernel+agent 后启动恢复只读认领种子。
+- **四断言/四个数字（全部如实）**：
+  - **A) 启动/激活阶段新增 draft = 0**（旧行为=1 个 75B 空壳 A）：root 只有种子 draft，`agent_created_dirs_at_startup=[]`。
+  - **D) reader 面（version.list/worktree_list//agent/state）新增 draft = 0、白名单外写入 = 0**：`reader_new_dirs=[]`；`reader_forbidden_diffs=[]`；reader 目标=激活的种子工程（`project_path=…seedprev\Unsaved.vit`，非跨工程）；允许的请求边界持久化 4 项（激活 workspace 的 journal 审计/manifest/session runtime_state；属既有设计，非读路径物化 draft），单列 `reader_allowed_persistence_diffs`。
+  - **B) `version.project_new` 后新增 draft = 恰好 1 个**（旧行为=2：A+B）：`new_dirs_after_project_new=[draft_20261018T095042_5857d9cc]`，携带新 uuid `vitproj_80b78ac7…`。
+  - **C) 新工程 draft 内旧内核 uuid workspace 泄漏 = 0**：新 draft uuids=`[新uuid]`；种子 draft 保留旧 uuid `vitproj_1d7e7367…`。
+- reader 回包：`version.list`/`version.worktree_list` status=ok，`project_path` 均指向激活种子工程（worktrees=1）——证明 hint 生效、未回退到“物化默认 draft”分支。
+- 日志：`stale_rebind_warnings=0`、`activation_pending_lines=0`；quiescence 基线：startup 稳定 6×500ms（3091ms）/project_new 后 3658ms。
+- 拆栈：只 Stop-Process 自起 kernel pid=16944 / agent pid=17764；`teardown={ports_listening:[], stack_processes:[]}`（17:50:47 复核，六端口 7878/5555/5556/8787/4445/19876=0，本腿进程=0）。
+- **前三次尝试的脚本/断言口径修正（如实登记，非产品失败）**：attempt1/2 的 D 基线取在 activation 后固定 0.5s，早于 agent 自身激活持久化落盘→误报；attempt3 出现 `agent_runtime_state.lock.json` 瞬态文件被 TreeSnapshot 读到即消失的脚本竞态。最终脚本改为 **quiescence 基线（连续 6×500ms 全树稳定）+ 瞬态 lock/tmp 过滤 + D 白名单（激活 workspace 请求边界持久化允许、其它任何写入/新 draft 失败）**。attempt1–3 stdout 留档 `evidence/attempts/`；原始运行时 draft 树移仓外 `%TEMP%\fedraft1\startside_stack_attempts\`。
+- §8：**LLM=0**（本腿无 chat/LLM；仅 kernel ZMQ 命令 + agent 生命周期/历史读工具）；失败分类 environment_interrupt/assertion_fail/script_exception 已写脚本；未触发止损。
+- 窗口/资源：PC-RUNTIME-STACK 由 Lead 登记；本执行流只读预检后启栈、finally 拆净；本腿期间用户 Godot 进程=0、未触碰。
 
 ## 5. 偏差/边界
 
