@@ -1,7 +1,7 @@
 # 2026-10-18 MEM-SCHEMA-1 设计评审裁定（pass）
 
 - 验收会话：12:00-18:00 决策流（DSH PC，本机）；裁定来源=用户 2026-10-18「可以出卡，放入池中」授权出卡（[decisions/2026-10-18-plugin-memory-and-boundary-cards.md](../decisions/2026-10-18-plugin-memory-and-boundary-cards.md)）+ 卡面验收负责人=主管决策流（PC）。
-- 交付：分支 **port/mem-schema-1@b6ce75d8**（8 个新增文件：`docs/PLUGIN_MEMORY_SCHEMA_V1.md` 1502 行 + `coord/runs/MEM-SCHEMA-1/` 7 项）；已 cherry-pick 入 main=**c6de193e**（本裁定提交后 main=__MAIN_AFTER__）。
+- 交付：分支 **port/mem-schema-1@b6ce75d8**（8 个新增文件：`docs/PLUGIN_MEMORY_SCHEMA_V1.md` 1502 行 + `coord/runs/MEM-SCHEMA-1/` 7 项）；已 cherry-pick 入 main=**c6de193e**（本裁定提交后 main=ec2a77a1）。
 - 执行侧：DSH 团队执行流 exec-memschema（task-7）；协调面由 12:00-18:00 决策流单写。
 
 ## 一、决策侧评审（亲做）
