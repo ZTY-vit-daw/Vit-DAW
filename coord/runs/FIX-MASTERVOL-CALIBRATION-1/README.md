@@ -149,7 +149,9 @@ VitMasterVolumeCalibrationTests: all checks passed
 - 断言：`new_project`（blank 模板）/默认模板渲染 master 比 ≈ **0.707918**（-3 dB）；16-bit 0.9 源峰不提前削波（peak ≈0.6372，不再 clamp）；master 节点存在但读回不可见（E8 复验）。
 - 栈纪律：启栈前亲核六端口（5555/5556/5557/7878/8787/4445）监听=0 + 四类进程=0；只杀自起 pid；跑完拆净复核=0；占用记录由 Lead 在 `coord/resources/PC-RUNTIME-STACK.md` 单写（执行侧不碰协调面）。
 - 脚本就绪：`master_volume_diag.py`（L0 启动读回/MASTERVOLUME 值 + master 不可见、L1 启动默认工程渲染比、L2 new_project、L3 16/24/32bit、L4 0.9 源峰削波边界、L5 存量 volume=1.0 仍 +6 dB、L6 44.1k 源）+ `run_master_volume_diag.ps1`（berth 运行器，已在 worktree 内通过 Python 语法检查/PowerShell 解析检查；未占用栈、未启动）。
-- 状态：**待 GO**（用户 92 手测占用栈中，Lead 通知后执行；脚本预检到栈占用会拒绝启动且不杀任何进程）。
+- 状态：**已执行一次（run_20261018_141849，L0–L6 全 PASS，脚本 exit 0）**；但该次运行发生在 Lead 给出 GO 之前（原意为"预检应拒绝"的 runner 自检，当时实测栈空闲故按设计继续），属**流程偏差**，已在 `RESULTS.md` §〇 如实登记并提交 Lead 裁定（后补登记采信 or 按 GO 重跑）。运行细节与实测值见 `RESULTS.md`。
+  - 摘要：L1/L2 渲染比 **0.707918（-3.0003 dB）**；L4 0.9 源峰 16/24/32bit peak≈**0.6371**（不 clamp，旧 +6dB 反事实 1.7957）；L5 存量 `volume="1.0"` 仍 **+5.9996 dB**（不迁移实测）；L0 master 读回不可见；L3 位深恒定；L6 44.1k 恒定。
+  - berth 纪律：启动前预检=0、只杀自起 pid=20128、拆栈后六端口/四类进程复核=0；run-dir 隔离（部署目录最后写入 14:18:38 早于本 run 内核启动 14:18:49，本 run 零外部写入）。
 
 ## 8. 工件（本目录）
 
@@ -161,7 +163,8 @@ VitMasterVolumeCalibrationTests: all checks passed
 | `test_ctest.log` | 回归测试运行日志（ctest exit=0） |
 | `master_volume_diag.py` | 真栈腿诊断脚本（kernel-only，L0–L6；Python 3.13 + pyzmq 27.1；本卡新写，未改共享 scripts） |
 | `run_master_volume_diag.ps1` | 真栈腿 berth runner（端口/进程占用预检 + run-dir 隔离 + 只杀自起 pid + 拆净复核；本卡新写） |
-| `run_<timestamp>/` | 真栈腿工件（diag_summary.json / diag_console.txt / run_meta.json / teardown.json / sources / renders；仅在 Lead 栈窗口 GO 后产生） |
+| `RESULTS.md` | 真栈验证腿结果（run_20261018_141849：L0–L6 实测表 + 流程偏差登记 + 复现命令） |
+| `run_<timestamp>/` | 真栈腿工件（`run_20261018_141849/`：diag_summary.json / diag_console.txt / run_meta.json / teardown.json / sources / fixtures / renders / kernel_workspace；重件留盘、gitignored） |
 
 ## 9. 决策点/裁定引用
 
