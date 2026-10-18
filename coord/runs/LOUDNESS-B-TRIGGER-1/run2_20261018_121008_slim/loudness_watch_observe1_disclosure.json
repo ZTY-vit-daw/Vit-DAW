@@ -1,0 +1,23 @@
+{
+  "status": "ok",
+  "loudness_watch": {
+    "checks_total": 7,
+    "config": {
+      "schema_version": "loudness_watch_config.v0",
+      "enabled": true,
+      "trigger_mode": "after_processing",
+      "profile_source": "builtin:ebu_r128"
+    },
+    "config_digest": "0079aa999954c1ee44a7709594791263a8e7a2183c5965b0501160df33f0c60e",
+    "last_verdict": {
+      "breach_count": 3,
+      "recorded_at": "2026-10-18T04:13:20.0124108Z",
+      "summary": "近似口径（approximate）：integrated 为 RMS 偏移近似值（approximate_rms_lufs_v1，未加 K 加权/门控），非 BS.1770 认证口径；peak 为 sample 精度必要条件检查。peak 未见 breach（inter-sample 峰不可见，不构成 TP 合规判定）。检出 3 处越界（近似级）。",
+      "trigger_kind": "observation_piggyback",
+      "verdict": "breach"
+    },
+    "schema_version": "loudness_watch_verdicts.v0",
+    "verdict_count": 2,
+    "verdicts_path": "D:\\Vit_DAW_wt_loudness_watch_b\\artifacts\\free_state_d1_s1\\20261018_121008\\project\\.vit_agent\\vitproj_b3f2838183d64add9ca7824b8b3ac557\\mixboard\\loudness_watch_verdicts.json"
+  }
+}
