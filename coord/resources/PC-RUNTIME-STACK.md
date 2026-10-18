@@ -3,13 +3,12 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
-- 2026-10-18 17:50 +0800 登记 / **FIX-START-DRAFT-SIDE-EFFECT-1(137) 真栈腿**（P1，owner=DSH exec-start-draft；worktree D:/Vit_DAW_wt_startside1，分支 port/fix-start-draft-side-effect-1@b8f0bb9e；被测=stock kernel `D:\Vit_DAW\Export\staging\runtime\VitApp.exe` 只读 + 本分支 agent SHA256=32A095A7…；隔离 draft 根 `<RunDir>/ProjectHistory/drafts` 预置种子；四断言 A 启动/reader 零物化、B project_new 恰好 1 draft、C 无旧 uuid 泄漏、D reader 全树零变化；§8 LLM=0；跑完只杀自起 pid+六端口/四类进程复核=0）。
-- 紧随 **TRACK-LIST-GAP-1(139) 正式同帧对照 run**（P2 取证，owner=DSH exec-rendergain；worktree D:/Vit_DAW_wt_tracklist1，分支 port/track-list-gap-1@30abfa0a；kernel+vsphub+agent berth；S0/S1×2/S1-refresh/S2/S3；§8 LLM=0；~2-3min）——**必须等 137 拆栈复核=0 后由 Lead 发 GO**，两腿不得并行。
+- 2026-10-18 17:51 +0800 登记 / **TRACK-LIST-GAP-1(139) 正式同帧对照 run**（P2 取证，owner=DSH exec-rendergain；worktree D:/Vit_DAW_wt_tracklist1，分支 port/track-list-gap-1@30abfa0a；kernel+vsphub+agent berth；S0/S1×2/S1-refresh/S2/S3；§8 LLM=0；窗口 17:51–18:10，~2-3min；跑完只杀自起 pid+六端口/四类进程复核=0）。
 
-纪律记录（2026-10-18）：
-- **134 未登记未 GO 启动（违规，自报）**：14:18:49–14:19:07 exec-mastervol 以「预检拒绝 dry-run」为由启动 kernel-only berth 并跑完 L0–L6；未登记/未获 GO，且与 118 腿拆栈有 2s 重叠（无功能踩踏）。裁定：该 run 仅作工程参考、不作验收证据；整改 `-PreflightOnly/-NoStart` 已落地（d7e11ff9）；134 验收=正式 GO+登记后的 run_20261018_142520（pass）。
-- **139 未登记未 GO 启动（违规，自报）**：14:58:25–14:59:45 exec-rendergain 因 `-PreflightOnly` 字符串替换 bug 意外完整启动一次栈（自起 kernel/vsphub/agent 只杀自起 pid；拆净复核=0；用户栈未在跑）。裁定：`run_20261018_145825` 仅 harness 干跑、不作证据；整改落地（75f3caf2：`-PreflightOnly` 实测只预检不启栈 + 比较口径按 user-track 修正）；正式证据以本窗口 GO 后 run 为准。
-- 用户 Godot 编辑器/前端进程一律不杀、不干扰；栈腿只认登记窗口。
+## 最近一次释放（2026-10-18 17:51 +0800）
+
+- 2026-10-18 17:50:30–17:50:47 / **FIX-START-DRAFT-SIDE-EFFECT-1(137) 真栈腿**（P1，owner=exec-start-draft；worktree D:/Vit_DAW_wt_startside1，分支 port/fix-start-draft-side-effect-1@cc297f64（生产实现 b8f0bb9e）；被测 stock kernel `D:\Vit_DAW\Export\staging\runtime\VitApp.exe` SHA256=B6565DCF… + 本分支 agent SHA256=32A095A7…）：run=**realstack_20261018_1750c**，脚本 exit **0**，四断言 A/B/C/D **全 true**（A 启动/激活阶段新增 draft=0；D reader 面新增 draft=0/白名单外写入=0；B `version.project_new` 后新增恰好 1 个 draft（旧行为 2：A+B）；C 新 draft 无旧内核 uuid 泄漏、种子保留旧 uuid）；§8 LLM=0；teardown 17:50:47 六端口=0+本腿进程=0（只杀自起 kernel 16944/agent 17764）；用户 Godot 未触碰。工件 coord/runs/FIX-START-DRAFT-SIDE-EFFECT-1/realstack_20261018_1750c/。
+- 纪律记录（保留）：134 14:18、139 14:58 未登记未 GO 启动自报在案；139 正式证据=本窗口 GO 后 run。
 ## 最近一次释放（2026-10-18 14:27 +0800）
 
 - 2026-10-18 14:25:20–14:25:38 / **FIX-MASTERVOL-CALIBRATION-1(134) 正式验收腿（kernel-only berth，重跑）**（owner=DSH PC 执行流 exec-mastervol；worktree D:/Vit_DAW_wt_mastervol1，分支 port/fix-mastervol-calibration-1@b81aabc7；被测内核=本卡构建 `VitApp/build/VitApp_artefacts/Release/VitApp.exe` SHA256=B8CD2E4D7C77A2D695BBE86D09A27EDBAF3F03CDFABA285BC0FD47CA6455A594）：`-PreflightOnly` 预检 exit 0（六端口/进程=0）→ 正式 run=**run_20261018_142520**（脚本 exit **0**，`master volume diag: PASS`，~16.7s）→ 只杀自起 kernel pid=25832 → 14:25:38 复核六端口（5555/5556/5557/7878/8787/4445）监听=0、四类进程=0（teardown.json: exit_code=0/torn_down=true/remaining_listeners=0/remaining_processes=0）；部署目录 14:25 后零写入、内核日志 4 件在 run kernel_workspace。L0–L6 全 PASS：L1/L2 ratio=0.70791812（-3.000339dB）；L3 16/24/32bit=0.707918/0.707896/0.707895；L4 0.9 源峰 16bit=0.63716544/24=0.63712533/32f=0.63712525 均<1.0 不削波（旧 +6dB 反事实 1.795736 会 clamp）；L5 存量 volume=1.0 → 1.99518054（+5.999644dB，不迁移实测）；L6 44.1k=0.70786142。前 run_20261018_141849 保留标注「工程参考/未登记违规」。工件 coord/runs/FIX-MASTERVOL-CALIBRATION-1/（RESULTS.md+run_20261018_142520/）。裁定=BATCH5 §一（终验 pass）。
