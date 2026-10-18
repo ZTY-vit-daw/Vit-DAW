@@ -7,6 +7,10 @@
 
 （无——空闲）
 
+排队（不占用；**用户 92 手测优先**）：
+- 2026-10-18 13:41 +0800 排队 / **KERNEL-RENDERGAIN-1(132) 内核栈腿**（owner=DSH PC 执行流 exec-rendergain；worktree D:/Vit_DAW_wt_rendergain1，分支 port/kernel-rendergain-1）：`dev_agent_smoke -StartKernel` 体系驱动的最小复现+差分实验（不启 Godot UI），等待用户 92 手测窗口后由 Lead 登记占用；启栈前亲核四端口/四类进程=0，跑完拆净复核=0。
+- 2026-10-18 13:41 +0800 排队 / **FE-START-EMPTY-DRAFT-1(118) 验证腿**（owner=DSH PC 执行流 exec-start-draft；worktree D:/Vit_DAW_wt_fedraft1，分支 port/fe-start-empty-draft-1）：归因腿先行不占栈；如需真栈/UI 验证，等待用户 92 手测与 132 栈腿之后由 Lead 登记占用。
+
 ## 最近一次释放（2026-10-18 12:53 +0800）
 
 - 2026-10-18 12:38–12:52 / **FIX-LW-CONFIG-PERSIST-1(133) 真栈复验腿**（owner=DSH PC 执行流 exec-lw-fix；worktree D:/Vit_DAW_wt_lwfix1，分支 port/fix-lw-config-persist-1@2097653b；脚本=经 Lead 授权只读复用 D:/Vit_DAW_wt_loudness_watch_b 的 90 修订腿脚本 port/loudness-watch-trigger-1-d1@4f97bc7e，未在该 worktree 提交 git 改动，仅拷入 gitignored agent/bin 被测二进制）：run1=20261018_124040 **D1 腿模型随机分支失败**（`acoustic materiality record is missing`，free-state 续跑 7-continuation budget 耗尽、round 停 post_action_evaluation、settle tail 未落地；非 gate4 签名；script exit 1；拆栈 12:46:34 六端口=0/四类进程=0）；run2=**20261018_124639 PASS exit 0**——D1 status=pass+validation=pass（reverb/rev 3→4/readback 0.3827673793/human_audition_ready=true/park fs7），**LW 四门+E1 全 PASS，gate4 config-off silent 由 FAIL 转 PASS（checks_total 8→8 不推进）**，E1=[settle/project_change] n=1 median=18.041ms bakes=0 fresh=19 stale=0 reuse=1.00；被测 agent SHA256=5A25452ADCCE8923AEEE6C361AC9476CEEDBEE1A22A634A4C36823949109247A（133 fix 构建）/kernel SHA256=B6565DCF85D1DA867E16333052A7B928A5413565940603ADBCF4ABD59DD3123B；拆栈=12:52:54 停本腿 VitApp 21556/VitAgent 12068/Godot 24972（只杀本腿 pid），复核六端口（7878/5555/5556/8787/4445/19876）监听=0、四类进程（VitApp/VitAgent/vsphub/Godot 含变体）=0。该 run 同时作为 90 补证证据（BATCH2 §二）。工件 coord/runs/FIX-LW-CONFIG-PERSIST-1/（随分支入 main），大件留盘 loudness worktree artifacts/free_state_d1_s1/20261018_{124040,124639}/。
