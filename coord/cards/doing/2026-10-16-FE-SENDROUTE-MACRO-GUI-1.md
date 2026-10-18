@@ -36,6 +36,7 @@
 - 129 宏设计未定稿不得领取本卡 send+宏合并实现（可申请拆 send 先行的例外，须用户单点确认）；
 - 快照面/IPC payload 扩展与内核 schema 偏差 → 停手对齐 K1。
 
-- 领取：（时间 / 前端仓+主仓基线 / owner / 分支 / worktree / 领取提交）
+- 领取：（2026-10-18 晚窗 / 前端仓 origin/main=4bdbf51 + 主仓 origin/main=611305f5（领取提交前再核）/ owner=GLM-5.3 L2 PC ZCode 执行会话（K3/130）/ 分支 port/fe-sendroute-macro-gui-1 / worktree D:/Godot/project-vit-daw-frontend-sendmacro / 领取提交=本提交）
+- **领取时决策点上报（卡面 §规格 4 参数口）**：① aux send level 发现面选 **前端硬接线**——SendOut 卡发送量口数据源=track.send.list amount_db，绑定走 target_kind=plugin_param + target_plugin_id=<SendOut 插件实例> + target_param_id="send level"（129 设计件 v1 §1.3 亲核寻径 getAutomatableParameterByID 原生可用）；理由=K1 已合入无需内核改动（内核域 126 在飞）、设计件明示两选项非设计阻塞；报主管复核，若裁定内核补 aux 描述符另拆小卡。② 文件域核对（2026-10-18 晚窗亲核 doing 三卡）：126=VitApp/Source/Service（内核仓）、131=coord/runs 设计件（零生产代码）、138=agent/internal/{history,chat}——前端仓零在飞卡，本卡文件域无冲突。本卡 SEND 槽位落 vit_dock/views/mixer/vit_mixer_channel_strip.gd、轨列表徽标落 app/tracks/track_scene/Track_Row_Controller.gd（卡面 §规格 3/4「通道条 SEND 槽位」「轨列表角色徽标」的文件域落点，属卡面「等」域内）。
 - 回执：（commit / run ID / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
