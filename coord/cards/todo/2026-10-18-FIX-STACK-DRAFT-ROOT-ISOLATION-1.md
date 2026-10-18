@@ -1,7 +1,7 @@
 # FIX-STACK-DRAFT-ROOT-ISOLATION-1：真栈/烟测脚本默认隔离 VIT_HISTORY_DRAFT_ROOT（139 腿发现真实 draft 根被写）
 
 - 发卡：12:00-18:00 决策流 / 2026-10-18 晚窗（依据=FIX-TEST-DRAFT-ISOLATION-1(140) 定位窗口发现：139 真栈腿 agent 未设隔离 draft 根，向真实根写 4 个运行时 draft；Lead 已隔离到 `%TEMP%\fedraft1\stack_leg_orphan_drafts\`）
-- 派发确认：**待用户确认**（P2 hygiene；不阻塞功能）
+- 派发确认：**已确认（用户 2026-10-18 晚窗）**（P2 hygiene；不阻塞功能）
 - 验收负责人：GLM 主管决策流（或当班决策流）
 - 池序 144；目标仓库=D:\Vit_DAW；P2 / 0.5 天 / 无依赖
 - 模型分级：L1/L2 / PC 执行流

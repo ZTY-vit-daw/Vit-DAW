@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>机架宏控制层 v1 · 两层模型样图 — FE-RACK-MACRO-LAYER-DESIGN-1</title>
+<style>
+  :root {
+    --bg: #0a0d12; --canvas: #0d1117; --panel: #161b22; --card: #1e2430;
+    --border: #2d333b; --text: #c9d1d9; --dim: #8b949e;
+    --violet: #a78bfa; --violet-dim: #7c6bb8;
+    --orange: #f0883e; --cyan: #39c5cf; --green: #3fb950;
+    --signal: #8b949e;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif; padding: 28px 36px 60px; }
+  .mono { font-family: Consolas, "Cascadia Code", monospace; }
+  header { margin-bottom: 22px; }
+  header h1 { font-size: 21px; font-weight: 600; letter-spacing: .5px; }
+  header h1 .ver { color: var(--violet); }
+  header .meta { color: var(--dim); font-size: 12.5px; margin-top: 6px; }
+  header .meta b { color: var(--text); font-weight: 600; }
+  figure { margin: 30px 0 8px; }
+  figcaption { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  figcaption .tag { font-size: 11px; font-weight: 600; background: #21262d; border: 1px solid var(--border); border-radius: 4px; padding: 2px 7px; margin-right: 8px; vertical-align: 1px; }
+  .note { color: var(--dim); font-size: 12.5px; margin-bottom: 10px; line-height: 1.6; }
+  .note b { color: var(--text); }
+  svg { display: block; background: var(--canvas); border: 1px solid var(--border); border-radius: 10px; }
+  .qa { margin-top: 34px; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 18px 22px; }
+  .qa h2 { font-size: 15px; margin-bottom: 10px; color: var(--orange); }
+  .qa ol { padding-left: 22px; line-height: 1.9; font-size: 13.5px; }
+  .qa .opt { color: var(--cyan); }
+  footer { color: var(--dim); font-size: 12px; margin-top: 26px; line-height: 1.7; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>机架宏控制层 <span class="ver">v1</span> · 两层模型样图</h1>
+  <div class="meta">卡 <b>129 FE-RACK-MACRO-LAYER-DESIGN-1</b> · 2026-10-18 早窗 · 决策侧第一轮样稿（<b>待迭代</b>，定稿后放行 K3/130） ·
+    视觉语言承接 <b>B2 机架可视化草稿</b> + <b>send GUI v4 节点族</b> · 配套设计稿 <b>01-design-draft-v1.md</b></div>
+</header>
+
+<!-- ═══════════════ 图 1：全景 · 两层同显 ═══════════════ -->
+<figure>
+  <figcaption><span class="tag">图 1</span>全景 · 信号层 + 控制层同显（默认视图）</figcaption>
+  <div class="note">经典混音宏示例：一个「空间感」旋钮同时驱动 <b>ZamVerb·Decay</b>（插件参数口）与 <b>SendOut·发送量</b>（发送量参数口）。
+    控制线=<b style="color:var(--violet)">紫虚线</b>；信号线=灰实线（现状电缆不变）。宏节点自由摆放，不占 z1/z2/z3 泳道。</div>
+  <svg viewBox="0 0 1360 640" width="1360">
+    <defs>
+      <linearGradient id="dialArc" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#c4b5fd"/><stop offset="1" stop-color="#8b5cf6"/>
+      </linearGradient>
+    </defs>
+
+    <!-- 画布内层 chips（右上） -->
+    <g font-size="12.5" font-weight="600">
+      <rect x="1082" y="34" width="118" height="26" rx="13" fill="#21262d" stroke="#8b949e" stroke-opacity=".7"/>
+      <circle cx="1100" cy="47" r="4.5" fill="#8b949e"/>
+      <text x="1112" y="51" fill="#c9d1d9">信号层</text>
+      <rect x="1208" y="34" width="118" height="26" rx="13" fill="#1a1530" stroke="#a78bfa"/>
+      <path d="M 1226 47 l 5 -6 l 5 6 l -5 6 z" fill="#a78bfa"/>
+      <text x="1242" y="51" fill="#c9d1d9">控制层</text>
+    </g>
+
+    <!-- 泳道横带 -->
+    <g font-size="11" fill="#6e7681">
+      <rect x="30" y="66" width="1300" height="76" rx="6" fill="#131820" stroke="#21262d"/>
+      <text x="44" y="158" fill="#f0883e" opacity=".85">clip · 干声源</text>
+      <rect x="30" y="166" width="1300" height="76" rx="6" fill="#131820" stroke="#21262d"/>
+      <text x="44" y="258">z1 · 预处理</text>
+      <rect x="30" y="266" width="1300" height="76" rx="6" fill="#131820" stroke="#21262d"/>
+      <text x="44" y="358">z2 · 空间</text>
+      <rect x="30" y="366" width="1300" height="90" rx="6" fill="#131820" stroke="#21262d"/>
+      <text x="44" y="464">z3 · 动态 + 发送</text>
+      <text x="44" y="596" fill="#7c6bb8">控制层 · 自由区（宏节点 x/y 自由摆放，不入泳道）</text>
+    </g>
+
+    <!-- ── 信号层节点 ── -->
+    <!-- Clip 卡 -->
+    <g>
+      <rect x="90" y="84" width="170" height="56" rx="8" fill="#1e2430" stroke="#3d444d"/>
+      <rect x="90" y="84" width="4" height="56" rx="2" fill="#f0883e"/>
+      <text x="106" y="107" font-size="13.5" font-weight="600" fill="#c9d1d9">Clip · 干声源</text>
+      <text x="106" y="126" font-size="11" fill="#8b949e">lead_vox_01.wav</text>
+    </g>
+    <!-- ZamEQ -->
+    <g>
+      <rect x="300" y="184" width="150" height="56" rx="8" fill="#1e2430" stroke="#3d444d"/>
+      <rect x="300" y="184" width="4" height="56" rx="2" fill="#58a6ff"/>
+      <text x="316" y="207" font-size="13.5" font-weight="600" fill="#c9d1d9">ZamEQ</text>
+      <text x="316" y="226" font-size="11" fill="#8b949e">EQ · z1</text>
+      <!-- 参数口（收起态计数） -->
+      <g font-size="10" fill="#8b949e">
+        <rect x="404" y="192" width="38" height="16" rx="8" fill="#161b22" stroke="#2d333b"/>
+        <text x="411" y="204">⌗ 7</text>
+      </g>
+    </g>
+    <!-- ZamVerb（带 Decay 参数口 · 绑定目标高亮） -->
+    <g>
+      <rect x="500" y="284" width="160" height="56" rx="8" fill="#1e2430" stroke="#3d444d"/>
+      <rect x="500" y="284" width="4" height="56" rx="2" fill="#58a6ff"/>
+      <text x="516" y="307" font-size="13.5" font-weight="600" fill="#c9d1d9">ZamVerb</text>
+      <text x="516" y="326" font-size="11" fill="#8b949e">混响 · z2</text>
+      <!-- 参数口：Decay（已绑定 → 紫环） -->
+      <g>
+        <rect x="510" y="266" width="102" height="18" rx="9" fill="#1a1530" stroke="#a78bfa" stroke-opacity=".8"/>
+        <circle cx="522" cy="275" r="4" fill="#0d1117" stroke="#a78bfa" stroke-width="1.6"/>
+        <text x="532" y="279" font-size="10.5" fill="#c4b5fd">Decay 1.9s</text>
+      </g>
+      <g font-size="10" fill="#8b949e">
+        <rect x="616" y="292" width="38" height="16" rx="8" fill="#161b22" stroke="#2d333b"/>
+        <text x="623" y="304">⌗ 12</text>
+      </g>
+    </g>
+    <!-- ZamComp（带门限参数口 · 未绑定态） -->
+    <g>
+      <rect x="710" y="384" width="150" height="56" rx="8" fill="#1e2430" stroke="#3d444d"/>
+      <rect x="710" y="384" width="4" height="56" rx="2" fill="#58a6ff"/>
+      <text x="726" y="407" font-size="13.5" font-weight="600" fill="#c9d1d9">ZamComp</text>
+      <text x="726" y="426" font-size="11" fill="#8b949e">压缩 · z3</text>
+      <g>
+        <rect x="720" y="366" width="96" height="18" rx="9" fill="#161b22" stroke="#2d333b"/>
+        <circle cx="732" cy="375" r="4" fill="#0d1117" stroke="#8b949e" stroke-width="1.4"/>
+        <text x="742" y="379" font-size="10.5" fill="#8b949e">Thresh −18</text>
+      </g>
+    </g>
+    <!-- SendOut（v4 节点族：SEND ▸ tag + 目标名 + 量 badge；发送量参数口=绑定目标） -->
+    <g>
+      <rect x="900" y="384" width="180" height="56" rx="8" fill="#1e2430" stroke="#39c5cf" stroke-opacity=".55"/>
+      <rect x="900" y="384" width="4" height="56" rx="2" fill="#39c5cf"/>
+      <text x="916" y="405" font-size="12.5" font-weight="700" fill="#39c5cf">SEND ▸</text>
+      <text x="916" y="424" font-size="11.5" fill="#c9d1d9">Reverb Bus</text>
+      <rect x="1010" y="390" width="60" height="18" rx="9" fill="#161b22" stroke="#2d333b"/>
+      <text x="1018" y="403" font-size="10.5" class="mono" fill="#c9d1d9">−6.0dB</text>
+      <!-- 发送量参数口（已绑定 → 紫环） -->
+      <g>
+        <rect x="910" y="366" width="96" height="18" rx="9" fill="#1a1530" stroke="#a78bfa" stroke-opacity=".8"/>
+        <circle cx="922" cy="375" r="4" fill="#0d1117" stroke="#a78bfa" stroke-width="1.6"/>
+        <text x="932" y="379" font-size="10.5" fill="#c4b5fd">发送量 −6dB</text>
+      </g>
+    </g>
+    <!-- SendIn -->
+    <g>
+      <rect x="1106" y="384" width="172" height="56" rx="8" fill="#1e2430" stroke="#39c5cf" stroke-opacity=".55"/>
+      <rect x="1106" y="384" width="4" height="56" rx="2" fill="#39c5cf"/>
+      <text x="1122" y="405" font-size="12.5" font-weight="700" fill="#39c5cf">◂ SEND</text>
+      <text x="1122" y="424" font-size="11.5" fill="#c9d1d9">Reverb Bus（湿声注入）</text>
+    </g>
+    <!-- Rack Out bus -->
+    <g>
+      <rect x="1288" y="392" width="42" height="40" rx="8" fill="#161b22" stroke="#2d333b"/>
+      <text x="1296" y="416" font-size="11" fill="#8b949e">OUT</text>
+    </g>
+
+    <!-- ── 信号线（实线灰，现状电缆） ── -->
+    <g fill="none" stroke="#8b949e" stroke-width="2.25" stroke-opacity=".92">
+      <path d="M 260 112 C 285 112, 280 212, 300 212"/>
+      <path d="M 450 212 C 480 212, 475 312, 500 312"/>
+      <path d="M 660 312 C 690 312, 685 412, 710 412"/>
+      <path d="M 860 412 L 900 412"/>
+      <path d="M 1080 412 L 1106 412"/>
+      <path d="M 1278 412 L 1288 412"/>
+    </g>
+    <!-- SendOut 副本岔出小标注意：穿通+副本 -->
+    <text x="922" y="452" font-size="10" fill="#6e7681">穿通继续 · 副本岔出</text>
+
+    <!-- ── 控制层：宏节点 ── -->
+    <g>
+      <rect x="920" y="516" width="236" height="116" rx="8" fill="#1e2430" stroke="#a78bfa" stroke-opacity=".45"/>
+      <rect x="920" y="516" width="4" height="116" rx="2" fill="#a78bfa"/>
+      <text x="940" y="538" font-size="12.5" font-weight="600" fill="#c9d1d9">宏 · 空间感 Space</text>
+      <!-- 旋钮 -->
+      <circle cx="975" cy="585" r="24" fill="#0d1117" stroke="#3d444d" stroke-width="2"/>
+      <path d="M 975 585 L 975 561 A 24 24 0 1 1 954 572" fill="none" stroke="url(#dialArc)" stroke-width="4" stroke-linecap="round"/>
+      <circle cx="975" cy="585" r="3" fill="#c4b5fd"/>
+      <text x="955" y="626" font-size="12" class="mono" fill="#c4b5fd">62%</text>
+      <!-- N 映射 badge -->
+      <g>
+        <rect x="1042" y="570" width="66" height="22" rx="11" fill="#1a1530" stroke="#a78bfa" stroke-opacity=".6"/>
+        <text x="1054" y="585" font-size="11" fill="#c4b5fd">2 映射</text>
+      </g>
+      <!-- 输出锚 -->
+      <circle cx="1156" cy="574" r="6" fill="#0d1117" stroke="#a78bfa" stroke-width="2.4"/>
+      <text x="1088" y="552" font-size="10" fill="#7c6bb8">绑定拖拽起点</text>
+    </g>
+
+    <!-- ── 控制线（紫虚线） ── -->
+    <g fill="none" stroke="#a78bfa" stroke-width="2" stroke-dasharray="7 5" stroke-opacity=".95">
+      <path d="M 1162 570 C 1180 540, 900 420, 660 300 C 640 292, 630 282, 614 276"/>
+      <path d="M 1162 576 C 1190 560, 1030 420, 1010 386"/>
+    </g>
+    <!-- 绑定把手（线中点菱形）+ hover tooltip 示意 -->
+    <g>
+      <path d="M 895 405 l 7 -9 l 7 9 l -7 9 z" fill="#a78bfa"/>
+      <path d="M 1090 500 l 6 -8 l 6 8 l -6 8 z" fill="#a78bfa"/>
+      <g>
+        <rect x="700" y="196" width="238" height="44" rx="6" fill="#161b22" stroke="#a78bfa" stroke-opacity=".5"/>
+        <text x="714" y="214" font-size="11" fill="#c9d1d9">空间感 → ZamVerb · Decay</text>
+        <text x="714" y="231" font-size="10.5" fill="#8b949e">0.0 … 4.0s · <tspan fill="#a78bfa">ease_out</tspan> · 点击编辑</text>
+      </g>
+    </g>
+
+    <!-- 图例 -->
+    <g font-size="11" fill="#8b949e">
+      <line x1="44" y1="622" x2="86" y2="622" stroke="#8b949e" stroke-width="2.25"/>
+      <text x="94" y="626">信号（实线 · 现状）</text>
+      <line x1="240" y1="622" x2="282" y2="622" stroke="#a78bfa" stroke-width="2" stroke-dasharray="7 5"/>
+      <text x="290" y="626">控制（紫虚线 · 新增）</text>
+      <line x1="440" y1="622" x2="482" y2="622" stroke="#f0883e" stroke-width="2" stroke-dasharray="4 4"/>
+      <text x="490" y="626">时间限段（B2 语言 · 沿用）</text>
+    </g>
+  </svg>
+</figure>
+
+<!-- ═══════════════ 图 2：控制层单显 ═══════════════ -->
+<figure>
+  <figcaption><span class="tag">图 2</span>控制层单显（绑定期视图）</figcaption>
+  <div class="note">层 chip 切到「仅控制」：信号层压暗至 15%（仍可辨位置，不参与命中），控制层全显——密集绑定时的编辑视图。
+    第二个宏「冲击力 Punch」示例多宏共存：一卡可多旋钮（内核 macroCount 原生支持）。</div>
+  <svg viewBox="0 0 1360 360" width="1360">
+    <!-- 层 chips：仅控制 -->
+    <g font-size="12.5" font-weight="600">
+      <rect x="1082" y="30" width="118" height="26" rx="13" fill="#161b22" stroke="#2d333b"/>
+      <circle cx="1100" cy="43" r="4.5" fill="#4d535c"/>
+      <text x="1112" y="47" fill="#5c6370">信号层</text>
+      <rect x="1208" y="30" width="118" height="26" rx="13" fill="#1a1530" stroke="#a78bfa" stroke-width="1.6"/>
+      <path d="M 1226 43 l 5 -6 l 5 6 l -5 6 z" fill="#a78bfa"/>
+      <text x="1242" y="47" fill="#c9d1d9">控制层</text>
+    </g>
+
+    <!-- 压暗的信号层（示意残影） -->
+    <g opacity=".15">
+      <rect x="90" y="90" width="170" height="52" rx="8" fill="#1e2430" stroke="#3d444d"/>
+      <text x="106" y="120" font-size="13" fill="#c9d1d9">Clip · 干声源</text>
+      <rect x="500" y="190" width="160" height="52" rx="8" fill="#1e2430" stroke="#3d444d"/>
+      <text x="516" y="220" font-size="13" fill="#c9d1d9">ZamVerb</text>
+      <rect x="900" y="190" width="180" height="52" rx="8" fill="#1e2430" stroke="#39c5cf"/>
+      <text x="916" y="220" font-size="12.5" fill="#39c5cf">SEND ▸ Reverb Bus</text>
+      <g fill="none" stroke="#8b949e" stroke-width="2.25">
+        <path d="M 260 116 C 360 116, 400 216, 500 216"/>
+        <path d="M 660 216 L 900 216"/>
+      </g>
+    </g>
+
+    <!-- 宏 1：空间感（双绑定） -->
+    <g>
+      <rect x="180" y="180" width="236" height="116" rx="8" fill="#1e2430" stroke="#a78bfa" stroke-opacity=".45"/>
+      <rect x="180" y="180" width="4" height="116" rx="2" fill="#a78bfa"/>
+      <text x="200" y="202" font-size="12.5" font-weight="600" fill="#c9d1d9">宏 · 空间感 Space</text>
+      <circle cx="235" cy="250" r="22" fill="#0d1117" stroke="#3d444d" stroke-width="2"/>
+      <path d="M 235 250 L 235 228 A 22 22 0 1 1 216 238" fill="none" stroke="url(#dialArc)" stroke-width="4" stroke-linecap="round"/>
+      <text x="216" y="288" font-size="12" class="mono" fill="#c4b5fd">62%</text>
+      <rect x="300" y="236" width="66" height="22" rx="11" fill="#1a1530" stroke="#a78bfa" stroke-opacity=".6"/>
+      <text x="312" y="251" font-size="11" fill="#c4b5fd">2 映射</text>
+      <circle cx="416" cy="238" r="6" fill="#0d1117" stroke="#a78bfa" stroke-width="2.4"/>
+    </g>
+    <!-- 宏 2：冲击力（单绑定 + 第二旋钮 slot 示意） -->
+    <g>
+      <rect x="180" y="40" width="236" height="116" rx="8" fill="#1e2430" stroke="#a78bfa" stroke-opacity=".45"/>
+      <rect x="180" y="40" width="4" height="116" rx="2" fill="#a78bfa"/>
+      <text x="200" y="62" font-size="12.5" font-weight="600" fill="#c9d1d9">宏 · 冲击力 Punch</text>
+      <circle cx="235" cy="105" r="16" fill="#0d1117" stroke="#3d444d" stroke-width="2"/>
+      <path d="M 235 105 L 235 89 A 16 16 0 1 1 221 95" fill="none" stroke="url(#dialArc)" stroke-width="3.4" stroke-linecap="round"/>
+      <text x="216" y="138" font-size="11.5" class="mono" fill="#c4b5fd">38%</text>
+      <rect x="300" y="92" width="66" height="22" rx="11" fill="#1a1530" stroke="#a78bfa" stroke-opacity=".6"/>
+      <text x="312" y="107" font-size="11" fill="#c4b5fd">1 映射</text>
+      <circle cx="416" cy="98" r="6" fill="#0d1117" stroke="#a78bfa" stroke-width="2.4"/>
+    </g>
+
+    <!-- 控制线 -->
+    <g fill="none" stroke="#a78bfa" stroke-width="2" stroke-dasharray="7 5">
+      <path d="M 422 234 C 560 200, 760 150, 960 200 C 1000 210, 1005 212, 1010 214"/>
+      <path d="M 422 242 C 600 260, 640 232, 662 218"/>
+      <path d="M 422 96 C 560 120, 720 300, 776 316"/>
+    </g>
+    <!-- 压暗层上的紫参数口（命中目标保持全显） -->
+    <g>
+      <circle cx="662" cy="218" r="5" fill="#0d1117" stroke="#a78bfa" stroke-width="2"/>
+      <text x="676" y="222" font-size="10.5" fill="#c4b5fd">ZamVerb · Decay</text>
+      <circle cx="1010" cy="214" r="5" fill="#0d1117" stroke="#a78bfa" stroke-width="2"/>
+      <text x="1024" y="218" font-size="10.5" fill="#c4b5fd">SendOut · 发送量</text>
+      <circle cx="776" cy="316" r="5" fill="#0d1117" stroke="#a78bfa" stroke-width="2"/>
+      <text x="790" y="320" font-size="10.5" fill="#c4b5fd">ZamComp · Thresh</text>
+    </g>
+    <text x="44" y="330" font-size="11" fill="#7c6bb8">层过滤只改渲染不改数据；控制连线手势不触发信号拓扑门（独立通道）</text>
+  </svg>
+</figure>
+
+<!-- ═══════════════ 图 3：绑定创建流 ═══════════════ -->
+<figure>
+  <figcaption><span class="tag">图 3</span>绑定创建流（三步 + 建成态）</figcaption>
+  <div class="note">手势从宏<b>输出锚</b>拖出虚线——不走 GraphEdit 的 connection_request（信号拓扑门零介入）；
+    松手在参数口上弹出绑定小菜单（curve 四选=内核原生词表）。</div>
+  <svg viewBox="0 0 1360 270" width="1360">
+    <!-- ① 右键新建宏 -->
+    <g>
+      <rect x="20" y="20" width="316" height="230" rx="10" fill="#0d1117" stroke="#2d333b"/>
+      <text x="36" y="46" font-size="12.5" font-weight="600" fill="#8b949e">① 画布右键 → 新建宏</text>
+      <g>
+        <rect x="60" y="70" width="180" height="118" rx="6" fill="#161b22" stroke="#3d444d"/>
+        <rect x="72" y="84" width="156" height="24" rx="4" fill="#21262d"/>
+        <text x="84" y="100" font-size="11.5" fill="#c9d1d9">载入效果器…</text>
+        <rect x="72" y="114" width="156" height="24" rx="4" fill="#1a1530" stroke="#a78bfa"/>
+        <text x="84" y="130" font-size="11.5" fill="#c4b5fd" font-weight="600">◆ 新建宏</text>
+        <rect x="72" y="144" width="156" height="24" rx="4" fill="#21262d"/>
+        <text x="84" y="160" font-size="11.5" fill="#c9d1d9">新建发送…（v4）</text>
+      </g>
+      <text x="60" y="216" font-size="10.5" fill="#6e7681">control_add_macro · x/y=落点</text>
+    </g>
+    <!-- ② 拖出虚线 -->
+    <g>
+      <rect x="356" y="20" width="316" height="230" rx="10" fill="#0d1117" stroke="#2d333b"/>
+      <text x="372" y="46" font-size="12.5" font-weight="600" fill="#8b949e">② 从输出锚拖出紫虚线</text>
+      <rect x="386" y="120" width="150" height="76" rx="8" fill="#1e2430" stroke="#a78bfa" stroke-opacity=".45"/>
+      <rect x="386" y="120" width="4" height="76" rx="2" fill="#a78bfa"/>
+      <text x="402" y="142" font-size="11.5" font-weight="600" fill="#c9d1d9">宏 · 空间感</text>
+      <circle cx="436" cy="172" r="14" fill="#0d1117" stroke="#3d444d" stroke-width="2"/>
+      <path d="M 436 172 L 436 158 A 14 14 0 1 1 426 164" fill="none" stroke="url(#dialArc)" stroke-width="3"/>
+      <circle cx="536" cy="158" r="6" fill="#0d1117" stroke="#a78bfa" stroke-width="2.4"/>
+      <path d="M 542 156 C 580 140, 590 120, 606 106" fill="none" stroke="#a78bfa" stroke-width="2" stroke-dasharray="6 4"/>
+      <!-- 目标参数口高亮放大 -->
+      <g>
+        <rect x="586" y="76" width="110" height="30" rx="15" fill="#1a1530" stroke="#a78bfa" stroke-width="2"/>
+        <circle cx="602" cy="91" r="6" fill="#0d1117" stroke="#a78bfa" stroke-width="2.4"/>
+        <text x="614" y="95" font-size="11.5" fill="#c4b5fd" font-weight="600">Decay</text>
+      </g>
+      <rect x="560" y="60" width="170" height="150" rx="8" fill="none" stroke="#3d444d" stroke-dasharray="3 3" opacity=".5"/>
+      <text x="568" y="196" font-size="10" fill="#6e7681">ZamVerb 卡（参数口命中放大）</text>
+      <text x="386" y="224" font-size="10.5" fill="#6e7681">手势独立于信号连线；悬停参数口高亮</text>
+    </g>
+    <!-- ③ 绑定小菜单 -->
+    <g>
+      <rect x="692" y="20" width="316" height="230" rx="10" fill="#0d1117" stroke="#2d333b"/>
+      <text x="708" y="46" font-size="12.5" font-weight="600" fill="#8b949e">③ 松手 → 绑定小菜单</text>
+      <g>
+        <rect x="716" y="62" width="268" height="150" rx="8" fill="#161b22" stroke="#3d444d"/>
+        <text x="732" y="88" font-size="11.5" fill="#c9d1d9">空间感 → ZamVerb · Decay</text>
+        <text x="732" y="112" font-size="10.5" fill="#8b949e">曲线 curve（内核词表）</text>
+        <g font-size="10.5">
+          <rect x="732" y="120" width="56" height="20" rx="10" fill="#1a1530" stroke="#a78bfa"/>
+          <text x="744" y="134" fill="#c4b5fd">linear</text>
+          <rect x="794" y="120" width="54" height="20" rx="10" fill="#21262d" stroke="#2d333b"/>
+          <text x="804" y="134" fill="#8b949e">invert</text>
+          <rect x="854" y="120" width="60" height="20" rx="10" fill="#21262d" stroke="#2d333b"/>
+          <text x="864" y="134" fill="#8b949e">ease_in</text>
+          <rect x="920" y="120" width="64" height="20" rx="10" fill="#21262d" stroke="#2d333b"/>
+          <text x="930" y="134" fill="#8b949e">ease_out</text>
+        </g>
+        <text x="732" y="164" font-size="10.5" fill="#8b949e">范围</text>
+        <rect x="770" y="152" width="52" height="20" rx="4" fill="#0d1117" stroke="#2d333b"/>
+        <text x="780" y="166" font-size="10.5" class="mono" fill="#c9d1d9">0.0</text>
+        <text x="830" y="166" font-size="10.5" fill="#8b949e">…</text>
+        <rect x="844" y="152" width="52" height="20" rx="4" fill="#0d1117" stroke="#2d333b"/>
+        <text x="854" y="166" font-size="10.5" class="mono" fill="#c9d1d9">4.0s</text>
+        <rect x="732" y="182" width="76" height="22" rx="6" fill="#1a1530" stroke="#a78bfa"/>
+        <text x="752" y="197" font-size="11" fill="#c4b5fd">✓ 绑定</text>
+      </g>
+      <text x="716" y="234" font-size="10.5" fill="#6e7681">control_add_binding · 回执自带 control_graph 全量快照</text>
+    </g>
+    <!-- ④ 建成态 -->
+    <g>
+      <rect x="1028" y="20" width="312" height="230" rx="10" fill="#0d1117" stroke="#2d333b"/>
+      <text x="1044" y="46" font-size="12.5" font-weight="600" fill="#8b949e">④ 建成：虚线+把手+tooltip</text>
+      <rect x="1052" y="120" width="150" height="76" rx="8" fill="#1e2430" stroke="#a78bfa" stroke-opacity=".45"/>
+      <rect x="1052" y="120" width="4" height="76" rx="2" fill="#a78bfa"/>
+      <text x="1068" y="142" font-size="11.5" font-weight="600" fill="#c9d1d9">宏 · 空间感</text>
+      <circle cx="1092" cy="172" r="13" fill="#0d1117" stroke="#3d444d" stroke-width="2"/>
+      <circle cx="1202" cy="158" r="5" fill="#0d1117" stroke="#a78bfa" stroke-width="2.2"/>
+      <path d="M 1208 156 C 1240 144, 1248 130, 1258 118" fill="none" stroke="#a78bfa" stroke-width="2" stroke-dasharray="7 5"/>
+      <path d="M 1236 132 l 5.5 -7 l 5.5 7 l -5.5 7 z" fill="#a78bfa"/>
+      <g>
+        <rect x="1140" y="66" width="186" height="40" rx="6" fill="#161b22" stroke="#a78bfa" stroke-opacity=".5"/>
+        <text x="1152" y="82" font-size="10.5" fill="#c9d1d9">空间感 → ZamVerb · Decay</text>
+        <text x="1152" y="97" font-size="10" fill="#8b949e">0.0…4.0s · linear · 点击编辑</text>
+      </g>
+      <text x="1052" y="224" font-size="10.5" fill="#6e7681">右键线=断开（control_remove_binding）</text>
+    </g>
+  </svg>
+</figure>
+
+<!-- ═══════════════ 图 4：宏节点解剖 + 绑定编辑卡 ═══════════════ -->
+<figure>
+  <figcaption><span class="tag">图 4</span>宏节点解剖 · 绑定编辑卡</figcaption>
+  <div class="note">左=宏卡各部件（macroCount&gt;1 时一卡多旋钮 slot）；右=点开绑定把手后的编辑卡（曲线四选+范围+断开），
+    与「N 映射」列表内编辑同数据双入口。</div>
+  <svg viewBox="0 0 1360 330" width="1360">
+    <!-- 宏卡放大解剖 -->
+    <g>
+      <rect x="60" y="40" width="330" height="250" rx="10" fill="#1e2430" stroke="#a78bfa" stroke-opacity=".45"/>
+      <rect x="60" y="40" width="5" height="250" rx="2" fill="#a78bfa"/>
+      <text x="84" y="70" font-size="14" font-weight="600" fill="#c9d1d9">宏 · 空间感 Space</text>
+      <text x="286" y="68" font-size="10" fill="#6e7681">✎ 双击改名</text>
+      <!-- 旋钮1 -->
+      <circle cx="130" cy="130" r="28" fill="#0d1117" stroke="#3d444d" stroke-width="2.4"/>
+      <path d="M 130 130 L 130 102 A 28 28 0 1 1 106 112" fill="none" stroke="url(#dialArc)" stroke-width="5" stroke-linecap="round"/>
+      <circle cx="130" cy="130" r="3.4" fill="#c4b5fd"/>
+      <text x="106" y="176" font-size="11" class="mono" fill="#c4b5fd">62%</text>
+      <text x="100" y="194" font-size="10" fill="#8b949e">空间量</text>
+      <!-- 旋钮2（slot 第二钮） -->
+      <circle cx="230" cy="130" r="28" fill="#0d1117" stroke="#3d444d" stroke-width="2.4"/>
+      <path d="M 230 130 L 230 102 A 28 28 0 1 1 206 112" fill="none" stroke="url(#dialArc)" stroke-width="5" stroke-linecap="round" opacity=".55"/>
+      <text x="206" y="176" font-size="11" class="mono" fill="#c4b5fd">38%</text>
+      <text x="206" y="194" font-size="10" fill="#8b949e">亮度</text>
+      <!-- badge + 锚 -->
+      <rect x="290" y="118" width="76" height="24" rx="12" fill="#1a1530" stroke="#a78bfa" stroke-opacity=".6"/>
+      <text x="302" y="134" font-size="11.5" fill="#c4b5fd">2 映射</text>
+      <circle cx="384" cy="130" r="7" fill="#0d1117" stroke="#a78bfa" stroke-width="2.6"/>
+      <!-- 标注 -->
+      <g font-size="10.5" fill="#7c6bb8">
+        <line x1="130" y1="86" x2="130" y2="26" stroke="#7c6bb8" stroke-dasharray="3 3"/>
+        <text x="60" y="20">主旋钮（值=control_set_macro_values 批量提交）</text>
+        <line x1="230" y1="86" x2="230" y2="40" stroke="#7c6bb8" stroke-dasharray="3 3"/>
+        <text x="196" y="36">slot 第 2 钮（macroCount）</text>
+        <line x1="384" y1="123" x2="430" y2="100" stroke="#7c6bb8" stroke-dasharray="3 3"/>
+        <text x="436" y="98">输出锚（绑定起点）</text>
+        <line x1="366" y1="130" x2="430" y2="150" stroke="#7c6bb8" stroke-dasharray="3 3"/>
+        <text x="436" y="154">「N 映射」badge 点击=该宏绑定列表</text>
+        <text x="84" y="270" fill="#6e7681">紫竖条=控制层族色 · 卡尺寸沿 RACK_GRAPH_MACRO_NODE_MIN 236×116</text>
+      </g>
+    </g>
+    <!-- 绑定编辑卡 -->
+    <g>
+      <rect x="700" y="40" width="330" height="250" rx="10" fill="#161b22" stroke="#3d444d"/>
+      <text x="720" y="68" font-size="13" font-weight="600" fill="#c9d1d9">绑定编辑</text>
+      <text x="720" y="96" font-size="11.5" fill="#8b949e">空间感 · 空间量 → <tspan fill="#c9d1d9">ZamVerb · Decay</tspan></text>
+      <text x="720" y="124" font-size="11" fill="#8b949e">曲线</text>
+      <g font-size="11.5">
+        <rect x="770" y="110" width="58" height="22" rx="11" fill="#1a1530" stroke="#a78bfa"/>
+        <text x="782" y="125" fill="#c4b5fd">linear</text>
+        <rect x="834" y="110" width="56" height="22" rx="11" fill="#21262d" stroke="#2d333b"/>
+        <text x="844" y="125" fill="#8b949e">invert</text>
+        <rect x="896" y="110" width="62" height="22" rx="11" fill="#21262d" stroke="#2d333b"/>
+        <text x="908" y="125" fill="#8b949e">ease_in</text>
+        <rect x="962" y="110" width="66" height="22" rx="11" fill="#1a1530" stroke="#a78bfa" stroke-width="1.6"/>
+        <text x="972" y="125" fill="#c4b5fd" font-weight="600">ease_out</text>
+      </g>
+      <!-- 曲线小图 -->
+      <g stroke="#a78bfa" stroke-width="1.8" fill="none">
+        <path d="M 720 190 L 800 150" />
+        <path d="M 820 190 C 850 190, 860 150, 890 150"/>
+        <path d="M 910 190 C 910 175, 960 155, 980 150"/>
+        <path d="M 1000 190 C 1000 150, 1030 150, 1060 150" opacity=".35"/>
+      </g>
+      <g font-size="9.5" fill="#6e7681">
+        <text x="720" y="204">linear</text><text x="822" y="204">invert</text><text x="908" y="204">ease_in</text><text x="1000" y="204">ease_out（选中）</text>
+      </g>
+      <text x="720" y="234" font-size="11" fill="#8b949e">范围 min … max</text>
+      <rect x="812" y="222" width="56" height="22" rx="4" fill="#0d1117" stroke="#2d333b"/>
+      <text x="824" y="237" font-size="11" class="mono" fill="#c9d1d9">0.0</text>
+      <rect x="888" y="222" width="56" height="22" rx="4" fill="#0d1117" stroke="#2d333b"/>
+      <text x="900" y="237" font-size="11" class="mono" fill="#c9d1d9">4.0s</text>
+      <rect x="720" y="254" width="96" height="24" rx="6" fill="#21262d" stroke="#f85149" stroke-opacity=".6"/>
+      <text x="736" y="270" font-size="11" fill="#f85149">✕ 断开绑定</text>
+      <text x="840" y="270" font-size="10" fill="#6e7681">control_update_binding / remove</text>
+    </g>
+    <!-- 右侧：角色重定位小结 -->
+    <g font-size="11.5" fill="#8b949e">
+      <text x="1080" y="60" fill="#c9d1d9" font-weight="600" font-size="12.5">角色边界（v1 提案）</text>
+      <text x="1080" y="88">· 机架控制层 = <tspan fill="#c4b5fd">持久编辑面</tspan>（建宏/绑定/曲线）</text>
+      <text x="1080" y="112">· 侧面板 MacroPanel = agent 会话视图（保留）</text>
+      <text x="1080" y="136">· 参数工作台 = 批量绑定入口（产物落控制层）</text>
+      <text x="1080" y="160">· 宏值施加统一走 control_set_macro_values</text>
+      <text x="1080" y="196" fill="#7c6bb8">send 量绑定 = SendOut 插件 send level 参数口</text>
+      <text x="1080" y="216" fill="#7c6bb8">（plugin_param 目标，零新内核机制）</text>
+    </g>
+  </svg>
+</figure>
+
+<!-- ═══════════════ 开放问题 ═══════════════ -->
+<div class="qa">
+  <h2>开放问题（迭代点 · 请逐条表态，默认值=可接受的保守项）</h2>
+  <ol>
+    <li><b>控制层默认显示？</b>　v1=默认双显（宏少时不碍事）　<span class="opt">备选：默认只显信号层，点 chip 才开控制层</span></li>
+    <li><b>控制语义色=紫？</b>　v1=紫罗兰（与橙/青不撞）　<span class="opt">备选：绿（Bitwig 调制习惯）/ 黄（MIDI learn 习惯）</span></li>
+    <li><b>宏卡形态？</b>　v1=一卡多旋钮 slot（内核 macroCount 原生）　<span class="opt">备选：一卡一旋钮（更简单，多宏=多卡）</span></li>
+    <li><b>绑定编辑入口？</b>　v1=线把手点击 + 宏卡「N 映射」列表双入口　<span class="opt">备选：只留一处（更收敛）</span></li>
+  </ol>
+</div>
+
+<footer>
+  FE-RACK-MACRO-LAYER-DESIGN-1 · v1 样图（2026-10-18）· 本图为交互规格示意，非最终视觉稿（视觉以 Godot 实现为准）；
+  内核锚点与缺口清单见 01-design-draft-v1.md §1/§6。迭代记录将归档本目录（v2/v3…）。
+</footer>
+
+</body>
+</html>

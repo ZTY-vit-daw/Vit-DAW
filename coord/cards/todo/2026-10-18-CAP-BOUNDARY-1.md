@@ -3,7 +3,7 @@
 - 发卡：PC 调研/决策会话（DSH lead）/ 2026-10-18（依据=用户 2026-10-18「可以出卡，放入池中」+ 调研结论报告 §5.4）
 - 派发确认：**已确认（用户 2026-10-18 明确授权出卡）**；授权记录见 [decisions/2026-10-18-plugin-memory-and-boundary-cards.md](../../decisions/2026-10-18-plugin-memory-and-boundary-cards.md)
 - 验收负责人：主管决策流（PC）
-- 池序：待主管排定；P2 / 2–3 天 / **无硬依赖**；**与池序 54 `FS-BLOCKED-SURFACE-CLOSURE-1` 同触 `agent/internal/chat/goalrunner_chat.go`，领取前须由主管排序，两卡串行**；与 MEM-SCHEMA-1 零文件域交集
+- 池序：**136（2026-10-18 晚窗 GLM 主管裁定：与 54 FS-BLOCKED-SURFACE-CLOSURE-1 同触 goalrunner_chat.go，两卡串行=54 先、136 后——54 为 10-10 老卡先行解阻，136 2-3 天大卡随其后）**；P2 / 2–3 天 / **无硬依赖**；**与池序 54 `FS-BLOCKED-SURFACE-CLOSURE-1` 同触 `agent/internal/chat/goalrunner_chat.go`，领取前须由主管排序，两卡串行**；与 MEM-SCHEMA-1 零文件域交集
 - 目标仓库=D:\Vit_DAW；模型分级：L2（agent 多包面）
 - 归属：PC 决策侧；执行方须为 PC 执行流
 
