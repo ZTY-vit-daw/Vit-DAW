@@ -42,6 +42,58 @@ type projectWorkspaceBinding struct {
 
 var identityMigrationMu sync.Mutex
 
+// ProjectIdentityRebindRejection records one refused identity rebind: a path
+// that already carried an active workspace/session binding was asked to bind a
+// different (typically stale) project UUID. Silently honoring that rebind is how
+// a new project draft used to inherit the previous project's uuid history
+// (FE-START-EMPTY-DRAFT-1 round2 leak, FIX-START-DRAFT-SIDE-EFFECT-1).
+type ProjectIdentityRebindRejection struct {
+	ProjectPath         string    `json:"project_path"`
+	ActiveProjectUUID   string    `json:"active_project_uuid"`
+	RejectedProjectUUID string    `json:"rejected_project_uuid"`
+	At                  time.Time `json:"at"`
+}
+
+const projectIdentityRebindRejectionLimit = 32
+
+var projectIdentityRebindRejections = struct {
+	sync.Mutex
+	items    []ProjectIdentityRebindRejection
+	observer func(ProjectIdentityRebindRejection)
+}{}
+
+// SetProjectIdentityRebindObserver registers a process-wide observer used by
+// the harness to surface refused rebinds as WARN logs instead of swallowing
+// them. Passing nil removes the observer.
+func SetProjectIdentityRebindObserver(observer func(ProjectIdentityRebindRejection)) {
+	projectIdentityRebindRejections.Lock()
+	projectIdentityRebindRejections.observer = observer
+	projectIdentityRebindRejections.Unlock()
+}
+
+// ProjectIdentityRebindRejections returns a snapshot of the recent refused
+// rebinds (oldest first, bounded).
+func ProjectIdentityRebindRejections() []ProjectIdentityRebindRejection {
+	projectIdentityRebindRejections.Lock()
+	defer projectIdentityRebindRejections.Unlock()
+	out := make([]ProjectIdentityRebindRejection, len(projectIdentityRebindRejections.items))
+	copy(out, projectIdentityRebindRejections.items)
+	return out
+}
+
+func recordProjectIdentityRebindRejection(rejection ProjectIdentityRebindRejection) {
+	projectIdentityRebindRejections.Lock()
+	projectIdentityRebindRejections.items = append(projectIdentityRebindRejections.items, rejection)
+	if len(projectIdentityRebindRejections.items) > projectIdentityRebindRejectionLimit {
+		projectIdentityRebindRejections.items = projectIdentityRebindRejections.items[len(projectIdentityRebindRejections.items)-projectIdentityRebindRejectionLimit:]
+	}
+	observer := projectIdentityRebindRejections.observer
+	projectIdentityRebindRejections.Unlock()
+	if observer != nil {
+		observer(rejection)
+	}
+}
+
 type FileEntry struct {
 	Path   string `json:"path"`
 	Hash   string `json:"sha256"`
@@ -145,6 +197,23 @@ func BindProjectIdentity(projectPath, projectUUID string) string {
 	projectIdentityRegistry.Lock()
 	key := normalizeProjectPath(projectPath)
 	binding := projectIdentityRegistry.byPath[key]
+	// FIX-START-DRAFT-SIDE-EFFECT-1 leak guard: an already bound active
+	// workspace/session is authoritative. A stale reader that still sees the
+	// previous project uuid must not rebind it, otherwise Open/migration
+	// materializes the previous uuid's history inside the new project draft
+	// (FE-START-EMPTY-DRAFT-1 round2 evidence).
+	if binding.ProjectUUID != "" && binding.ProjectUUID != projectUUID &&
+		(binding.WorkspaceDir != "" || binding.SessionID != "") {
+		rejection := ProjectIdentityRebindRejection{
+			ProjectPath:         projectPath,
+			ActiveProjectUUID:   binding.ProjectUUID,
+			RejectedProjectUUID: projectUUID,
+			At:                  time.Now().UTC(),
+		}
+		projectIdentityRegistry.Unlock()
+		recordProjectIdentityRebindRejection(rejection)
+		return projectPath
+	}
 	if binding.ProjectUUID != projectUUID {
 		binding = projectWorkspaceBinding{}
 	}
@@ -152,6 +221,18 @@ func BindProjectIdentity(projectPath, projectUUID string) string {
 	projectIdentityRegistry.byPath[key] = binding
 	projectIdentityRegistry.Unlock()
 	return projectPath
+}
+
+// EnsureProjectPathForWrite resolves the project path for a write-intent caller
+// that only knows the project uuid: it may materialize and bind the process
+// default draft. Read-path callers must use CurrentDraftProjectPath (cached
+// only) or the read-only history faces instead of this helper.
+func EnsureProjectPathForWrite(projectUUID string) string {
+	projectUUID = safeName(strings.TrimSpace(projectUUID))
+	if projectUUID == "" {
+		return ""
+	}
+	return BindProjectIdentity("", projectUUID)
 }
 
 func IsDraftProjectPath(projectPath string) bool {
@@ -224,12 +305,15 @@ func Open(projectPath string) (Repo, error) {
 }
 
 func Status(args map[string]any) (map[string]any, error) {
-	repo, err := Open(projectPath(args))
+	repo, ok, err := openRepoForRead(projectPath(args))
 	if err != nil {
 		return nil, err
 	}
+	if !ok {
+		return unmaterializedHistoryState(), nil
+	}
 	commits, _ := listCommits(repo)
-	out := historyState(repo, len(commits))
+	out := historyStateReadOnly(repo, len(commits))
 	out["project_path"] = repo.ProjectPath
 	out["project_uuid"] = repo.ProjectUUID
 	out["history_dir"] = repo.HistoryDir
@@ -237,7 +321,78 @@ func Status(args map[string]any) (map[string]any, error) {
 	return out, nil
 }
 
+// openRepoForRead resolves a history repo for a read-only face without the
+// project-open side effect: when no explicit path is given it may only reuse the
+// already cached default draft path, never materialize a new one
+// (FIX-START-DRAFT-SIDE-EFFECT-1: startup readers must not create drafts).
+func openRepoForRead(projectPathArg string) (Repo, bool, error) {
+	projectPathArg = strings.TrimSpace(projectPathArg)
+	fromDefaultDraft := false
+	if projectPathArg == "" {
+		projectPathArg = currentDraftProjectPathForRoot(defaultDraftProjectRoot())
+		if projectPathArg == "" {
+			return Repo{}, false, nil
+		}
+		fromDefaultDraft = true
+	}
+	repo, err := Open(projectPathArg)
+	if err != nil {
+		return Repo{}, false, err
+	}
+	if fromDefaultDraft {
+		// Open() marks the draft only on its empty-path branch; a cached default
+		// draft resolved here is still the same unsaved process draft, so keep
+		// the historical draft/unsaved projection identical.
+		repo.Draft = true
+	}
+	return repo, true, nil
+}
+
+// unmaterializedHistoryState keeps the established history JSON shape for
+// callers while marking that no draft exists yet (read paths must not create
+// one). Consumers switch on available=false / draft_pending=true.
+func unmaterializedHistoryState() map[string]any {
+	return map[string]any{
+		"status":                "ok",
+		"available":             false,
+		"draft_pending":         true,
+		"initialized":           false,
+		"draft":                 false,
+		"unsaved":               false,
+		"project_path":          "",
+		"current_project_path":  "",
+		"project_uuid":          "",
+		"history_dir":           "",
+		"state_dir":             "",
+		"root_project_path":     "",
+		"active_branch":         "",
+		"active_node_id":        "",
+		"active_worktree":       "",
+		"detached":              false,
+		"head":                  "",
+		"branches":              map[string]string{},
+		"refs":                  map[string]string{},
+		"worktrees":             []map[string]any{},
+		"worktree_count":        0,
+		"conversation_graph":    ConversationGraph{},
+		"conversation_messages": []ConversationMessage{},
+		"commits":               []Commit{},
+		"commit_count":          0,
+		"warnings":              []string{},
+	}
+}
+
 func historyState(repo Repo, commitCount int) map[string]any {
+	return historyStateWithWorktrees(repo, commitCount, true)
+}
+
+// historyStateReadOnly is the read-path projection of historyState: identical
+// field shape and content, but it must not materialize the root worktree item.
+func historyStateReadOnly(repo Repo, commitCount int) map[string]any {
+	return historyStateWithWorktrees(repo, commitCount, false)
+}
+
+func historyStateWithWorktrees(repo Repo, commitCount int, ensureRootWorktree bool) map[string]any {
 	graph := readConversationGraphOrDefault(repo)
 	return map[string]any{
 		"project_path":          repo.ProjectPath,
@@ -256,7 +411,7 @@ func historyState(repo Repo, commitCount int) map[string]any {
 		"head":                  currentHead(repo),
 		"branches":              listBranches(repo),
 		"refs":                  listRefs(repo),
-		"worktrees":             listWorktreeItems(repo),
+		"worktrees":             listWorktreeItemsMode(repo, ensureRootWorktree),
 		"conversation_graph":    graph,
 		"conversation_messages": conversationMessagesForGraph(graph),
 		"commit_count":          commitCount,
@@ -272,6 +427,9 @@ func Checkpoint(args map[string]any) (map[string]any, error) {
 	if err := os.MkdirAll(repo.HistoryDir, 0o755); err != nil {
 		return nil, err
 	}
+	// Write path: Checkpoint explicitly materializes the root worktree item;
+	// read-only history faces never do (historyStateReadOnly).
+	ensureRootWorktreeItem(repo)
 	head := currentHead(repo)
 	detached := isDetached(repo)
 	activeBranch := activeBranch(repo)
@@ -344,15 +502,18 @@ func Checkpoint(args map[string]any) (map[string]any, error) {
 }
 
 func List(args map[string]any) (map[string]any, error) {
-	repo, err := Open(projectPath(args))
+	repo, ok, err := openRepoForRead(projectPath(args))
 	if err != nil {
 		return nil, err
+	}
+	if !ok {
+		return unmaterializedHistoryState(), nil
 	}
 	commits, err := listCommits(repo)
 	if err != nil {
 		return nil, err
 	}
-	out := historyState(repo, len(commits))
+	out := historyStateReadOnly(repo, len(commits))
 	out["project_path"] = repo.ProjectPath
 	out["history_dir"] = repo.HistoryDir
 	out["state_dir"] = repo.StateDir
@@ -553,9 +714,12 @@ func WorktreeCreate(args map[string]any) (map[string]any, error) {
 }
 
 func WorktreeList(args map[string]any) (map[string]any, error) {
-	repo, err := Open(projectPath(args))
+	repo, ok, err := openRepoForRead(projectPath(args))
 	if err != nil {
 		return nil, err
+	}
+	if !ok {
+		return unmaterializedHistoryState(), nil
 	}
 	rootPath := rootProjectPath(repo)
 	listRepo := repo
@@ -564,7 +728,6 @@ func WorktreeList(args map[string]any) (map[string]any, error) {
 			listRepo = rootRepo
 		}
 	}
-	ensureRootWorktreeItem(listRepo)
 	return map[string]any{
 		"project_path":      repo.ProjectPath,
 		"history_dir":       repo.HistoryDir,
@@ -574,7 +737,7 @@ func WorktreeList(args map[string]any) (map[string]any, error) {
 		"unsaved":           repo.Draft,
 		"project_label":     projectLabel(repo),
 		"active_worktree":   activeWorktree(repo),
-		"worktrees":         listWorktreeItems(listRepo),
+		"worktrees":         listWorktreeItemsMode(listRepo, false),
 	}, nil
 }
 
@@ -800,6 +963,10 @@ func ProjectNew(args map[string]any) (map[string]any, error) {
 	if err != nil {
 		return nil, err
 	}
+	// Write path: ProjectNew explicitly materializes the legacy root worktree
+	// item so the freshly created draft still carries the established Project
+	// History scaffolding (migration marker consumers expect it).
+	ensureRootWorktreeItem(repo)
 	commits, _ := listCommits(repo)
 	out := historyState(repo, len(commits))
 	out["status"] = "ok"
@@ -1962,12 +2129,22 @@ func rootProjectPath(repo Repo) string {
 }
 
 func listWorktreeItems(repo Repo) []map[string]any {
+	return listWorktreeItemsMode(repo, true)
+}
+
+// listWorktreeItemsMode projects the worktree items for one repo. Read-path
+// callers pass ensureRootWorktree=false so a read never materializes the root
+// worktree item on disk (FIX-START-DRAFT-SIDE-EFFECT-1); write paths keep the
+// historical ensure-on-read behavior via listWorktreeItems.
+func listWorktreeItemsMode(repo Repo, ensureRootWorktree bool) []map[string]any {
 	if root := rootProjectPath(repo); root != "" {
 		if rootRepo, err := Open(root); err == nil {
-			return listWorktreeItems(rootRepo)
+			return listWorktreeItemsMode(rootRepo, ensureRootWorktree)
 		}
 	}
-	ensureRootWorktreeItem(repo)
+	if ensureRootWorktree {
+		ensureRootWorktreeItem(repo)
+	}
 	items := []map[string]any{}
 	seen := map[string]bool{}
 	rootItem := rootWorktreeItem(repo)
@@ -2476,6 +2653,29 @@ func hashBytes(b []byte) string {
 func currentDraftProjectPath() string {
 	draftProject.Lock()
 	defer draftProject.Unlock()
+	return draftProject.path
+}
+
+// DraftProjectRoot returns the ProjectHistory draft root currently in effect
+// (VIT_HISTORY_DRAFT_ROOT override or the per-user cache directory). Read-only.
+func DraftProjectRoot() string {
+	return defaultDraftProjectRoot()
+}
+
+// CurrentDraftProjectPath returns the process-cached default draft path without
+// materializing a new draft directory. Read-path callers use this as the only
+// allowed no-write source of a pending draft path; a write-intent caller that
+// only knows the uuid uses EnsureProjectPathForWrite instead.
+func CurrentDraftProjectPath() string {
+	return currentDraftProjectPathForRoot(defaultDraftProjectRoot())
+}
+
+func currentDraftProjectPathForRoot(root string) string {
+	draftProject.Lock()
+	defer draftProject.Unlock()
+	if draftProject.path == "" || !sameProjectPath(draftProject.root, root) {
+		return ""
+	}
 	return draftProject.path
 }
 

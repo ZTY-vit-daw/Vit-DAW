@@ -612,6 +612,28 @@ func RecoverableProjectPathForUUID(referenceProjectPath, projectUUID string) str
 	// .../ProjectHistory/drafts/draft_<id>/Unsaved.vit -> drafts.
 	draftDir := filepath.Dir(abs)
 	root := filepath.Dir(draftDir)
+	return recoverableProjectPathInRoot(root, projectUUID)
+}
+
+// RecoverableProjectPathForUUIDInRoot is the read-only, materialization-free
+// variant used when the in-memory project path is still unknown (no draft has
+// been materialized yet). It scans the ProjectHistory draft root for a durable
+// runtime-state row carrying projectUUID and returns the newest matching draft
+// path, or "" when none exists. FIX-START-DRAFT-SIDE-EFFECT-1: startup recovery
+// must not require (or create) a reference draft just to find the root.
+func RecoverableProjectPathForUUIDInRoot(projectUUID string) string {
+	projectUUID = safeName(strings.TrimSpace(projectUUID))
+	if projectUUID == "" {
+		return ""
+	}
+	return recoverableProjectPathInRoot(defaultDraftProjectRoot(), projectUUID)
+}
+
+func recoverableProjectPathInRoot(root, projectUUID string) string {
+	root = strings.TrimSpace(root)
+	if root == "" {
+		return ""
+	}
 	entries, err := os.ReadDir(root)
 	if err != nil {
 		return ""

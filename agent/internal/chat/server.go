@@ -7309,12 +7309,25 @@ func (s *Server) activateCurrentProjectWorkspace(ctx context.Context) {
 	if projectUUID == "" {
 		return
 	}
-	// A restarted Agent can receive a project UUID before it has a stable
-	// project path. Draft paths are process-local, so recover the durable
-	// working session created by the previous process before reading runtime
-	// state. The lookup is UUID-scoped and remains inside ProjectHistory.
-	if recoveredPath := history.RecoverableProjectPathForUUID(projectPath, projectUUID); recoveredPath != "" && !sameWorkspacePath(recoveredPath, projectPath) {
+	// FIX-START-DRAFT-SIDE-EFFECT-1: activation is a read/identity step and must
+	// not materialize a default draft. A restarted Agent can receive a project
+	// UUID before it has a stable project path; recover the durable working
+	// session created by the previous process with a read-only scan of the
+	// ProjectHistory draft root, then fall back to a draft that a write path
+	// (history.ProjectNew) already materialized.
+	if projectPath == "" {
+		projectPath = history.RecoverableProjectPathForUUIDInRoot(projectUUID)
+	} else if recoveredPath := history.RecoverableProjectPathForUUID(projectPath, projectUUID); recoveredPath != "" && !sameWorkspacePath(recoveredPath, projectPath) {
 		projectPath = recoveredPath
+	}
+	if projectPath == "" {
+		projectPath = history.CurrentDraftProjectPath()
+	}
+	if projectPath == "" {
+		if s.logger != nil {
+			s.logger.Info("[workspace] activation pending uuid=%s reason=no_materialized_or_recoverable_draft", projectUUID)
+		}
+		return
 	}
 	if _, err := s.harness.ActivateProjectStore(projectPath, projectUUID); err != nil {
 		if s.logger != nil {
@@ -7327,6 +7340,7 @@ func (s *Server) activateCurrentProjectWorkspace(ctx context.Context) {
 	boundSessionID := history.WorkingSessionID(projectPath)
 	sameIdentity := s.activeWorkspaceUUID == projectUUID && sameWorkspacePath(s.activeWorkspacePath, projectPath)
 	if sameIdentity && boundSessionID != "" && s.activeWorkspaceSessionID == boundSessionID {
+		s.harness.SetProjectPathHint(projectPath, projectUUID)
 		return
 	}
 	// B5：跨身份切换（不同 uuid 或不同路径）会整体替换内存会话态。切换前
@@ -7407,6 +7421,10 @@ func (s *Server) activateCurrentProjectWorkspace(ctx context.Context) {
 	s.activeWorkspaceUUID = projectUUID
 	s.activeWorkspaceSessionID = session.SessionID
 	s.mu.Unlock()
+	// FIX-START-DRAFT-SIDE-EFFECT-1: publish the activated workspace as the
+	// read-side identity hint; autonomous history readers resolve to it instead
+	// of materializing a fresh default draft.
+	s.harness.SetProjectPathHint(projectPath, projectUUID)
 	s.wakeContinuationScheduler()
 	s.emitRestoredAuditionProjections()
 	if s.logger != nil {
