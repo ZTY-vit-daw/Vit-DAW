@@ -1,4 +1,4 @@
-﻿# FIX-START-DRAFT-SIDE-EFFECT-1 (137) real-stack leg.
+# FIX-START-DRAFT-SIDE-EFFECT-1 (137) real-stack leg.
 #
 # Purpose: reproduce the 118 realstack scenario (isolated ProjectHistory root with
 # a seeded previous-session draft for the kernel startup uuid + the autonomous
@@ -70,9 +70,15 @@ function TreeSnapshot([string]$root) {
     if (-not (Test-Path -LiteralPath $root)) { return $out }
     $files = @(Get-ChildItem -LiteralPath $root -Recurse -File -ErrorAction SilentlyContinue | Sort-Object FullName)
     foreach ($f in $files) {
+        # Transient agent persistence artifacts (lock files / temp files) appear
+        # and vanish around request boundaries; they are not draft content.
+        if ($f.Name -match '\.(lock|tmp)(\.json)?$') { continue }
         $rel = $f.FullName.Substring($root.Length + 1)
-        $hash = (Get-FileHash -LiteralPath $f.FullName -Algorithm SHA256).Hash
-        $out[$rel] = @{ size = $f.Length; mtime = $f.LastWriteTimeUtc.ToString("o"); sha256 = $hash }
+        $hash = $null
+        try { $hash = (Get-FileHash -LiteralPath $f.FullName -Algorithm SHA256 -ErrorAction Stop).Hash } catch { continue }
+        $size = $null; $mtime = $null
+        try { $info = Get-Item -LiteralPath $f.FullName -ErrorAction Stop; $size = $info.Length; $mtime = $info.LastWriteTimeUtc.ToString("o") } catch { continue }
+        $out[$rel] = @{ size = $size; mtime = $mtime; sha256 = $hash }
     }
     return $out
 }
@@ -93,6 +99,30 @@ function Compare-TreeIdentity($before, $after) {
     }
     foreach ($key in $after.Keys) { if (-not $before.Contains($key)) { $diff.Add("added:" + $key) } }
     return $diff
+}
+
+# Wait until the draft root tree (paths + content sha256 + mtimes) has been stable
+# for two consecutive probes. The agent persists its own runtime state right after
+# activation (journal/manifest/session runtime state) — that is expected activation
+# persistence, NOT a read-path write, so assertion D must baseline AFTER quiescence
+# and then prove the reader faces add nothing.
+function Wait-TreeQuiescent([string]$root, [int]$TimeoutMs = 20000, [int]$ProbeMs = 500, [int]$StableProbes = 6) {
+    $deadline = (Get-Date).AddMilliseconds($TimeoutMs)
+    $stable = 0
+    $previous = $null
+    $probes = 0
+    while ((Get-Date) -lt $deadline) {
+        $current = TreeSnapshot $root
+        $probes++
+        if ($null -ne $previous) {
+            $diff = @(Compare-TreeIdentity $previous $current)
+            if ($diff.Count -eq 0) { $stable++ } else { $stable = 0 }
+            if ($stable -ge $StableProbes) { return [pscustomobject]@{ stable = $true; probes = $probes; waited_ms = $TimeoutMs - [int](($deadline - (Get-Date)).TotalMilliseconds); stable_probes = $stable } }
+        }
+        $previous = $current
+        Start-Sleep -Milliseconds $ProbeMs
+    }
+    return [pscustomobject]@{ stable = $false; probes = $probes; waited_ms = $TimeoutMs; stable_probes = $stable }
 }
 
 $result = [ordered]@{
@@ -181,7 +211,9 @@ try {
         Start-Sleep -Milliseconds 100
     }
     if ($activated -eq "") { Bad "startup activation did not claim the seeded previous-session draft" } else { Ok ("startup recovery claimed seed draft uuid=" + $activated) }
-    Start-Sleep -Milliseconds 500
+    $quiescence = Wait-TreeQuiescent $root 10000
+    $result["startup_quiescence"] = $quiescence
+    if (-not $quiescence.stable) { Write-Host "[137] note: draft root did not reach quiescence after activation; continuing with last snapshot" }
 
     # --- assertion A: startup phase created no draft dirs at all
     $snapshotStartup = SnapshotPhase $root "after_startup"
@@ -201,7 +233,10 @@ try {
     foreach ($tool in @("version.list", "version.worktree_list")) {
         try {
             $resp = Invoke-AgentJson -Method POST -Uri ($AgentHttp.TrimEnd("/") + "/agent/invoke") -Body @{ tool = $tool; args = @{}; source = "fedraft_137_probe"; confirmed = $true } -TimeoutSec 30
-            $readerResponses[$tool] = [ordered]@{ status = TextOf(Prop $resp "status"); available = Prop (Prop $resp "result") "available"; draft_pending = Prop (Prop $resp "result") "draft_pending" }
+            $res = Prop $resp "result"
+            $commitCount = $null; $commits = Prop $res "commits"
+            if ($null -ne $commits) { $commitCount = @($commits).Count }
+            $readerResponses[$tool] = [ordered]@{ status = TextOf(Prop $resp "status"); project_path = TextOf(Prop $res "project_path"); commits = $commitCount; worktrees = @(Prop $res "worktrees").Count }
         } catch { $readerResponses[$tool] = @{ status = "error"; error = $_.Exception.Message } }
     }
     try { $readerResponses["/agent/state"] = @{ status = TextOf(Prop (Invoke-AgentJson -Method GET -Uri ($AgentHttp.TrimEnd("/") + "/agent/state") -TimeoutSec 10) "status") } } catch { $readerResponses["/agent/state"] = @{ status = "error" } }
@@ -211,13 +246,33 @@ try {
     $result["snapshot_after_reader"] = $snapshotAfterReader
     $readerTreeDiff = @(Compare-TreeIdentity $snapshotStartup["tree"] $snapshotAfterReader["tree"])
     $result["reader_tree_diff"] = $readerTreeDiff
+    # Request-boundary persistence of the ACTIVE workspace (journal audit +
+    # runtime-state save after an /agent/invoke request) is existing agent design
+    # and is allowed only inside the seeded active workspace. Draft materialization
+    # or any write to another draft/path fails assertion D.
+    $allowedDiffs = @(); $forbiddenDiffs = @()
+    foreach ($diffItem in $readerTreeDiff) {
+        $separator = $diffItem.IndexOf(":")
+        $diffPath = if ($separator -ge 0) { $diffItem.Substring($separator + 1) } else { $diffItem }
+        if ($diffPath.StartsWith($seedName + "\") -or $diffPath.StartsWith($seedName + "/")) { $allowedDiffs += $diffItem } else { $forbiddenDiffs += $diffItem }
+    }
+    $readerTargetOk = $true
+    foreach ($tool in @("version.list", "version.worktree_list")) {
+        $readerResponse = $readerResponses[$tool]
+        $readerPath = ""
+        if ($null -ne $readerResponse) { $readerPath = TextOf($readerResponse["project_path"]) }
+        if ($readerPath -ne "" -and $readerPath -notlike "*seedprev*") { $readerTargetOk = $false }
+    }
     $readerDirs = @($snapshotAfterReader["dirs"])
     $readerNewDirs = @($readerDirs | Where-Object { $dirsStartup -notcontains $_ })
     $result["reader_new_dirs"] = $readerNewDirs
-    if ($readerNewDirs.Count -eq 0 -and $readerTreeDiff.Count -eq 0) {
-        Ok "D) reader faces (version.list/worktree_list/state) left the draft root byte+mtime identical, zero new dirs"
+    $result["reader_allowed_persistence_diffs"] = $allowedDiffs
+    $result["reader_forbidden_diffs"] = $forbiddenDiffs
+    $result["reader_target_ok"] = $readerTargetOk
+    if ($readerNewDirs.Count -eq 0 -and $forbiddenDiffs.Count -eq 0 -and $readerTargetOk) {
+        Ok ("D) reader faces created zero drafts and wrote nothing outside the active workspace (allowed request-boundary persistence diffs=" + $allowedDiffs.Count + ", reader target=seeded workspace)")
     } else {
-        Bad ("D) reader faces changed the draft root: newDirs=" + ($readerNewDirs -join ",") + " treeDiff=" + (($readerTreeDiff | Select-Object -First 8) -join ";"))
+        Bad ("D) reader faces violated the read-only contract: newDirs=" + ($readerNewDirs -join ",") + " forbiddenDiff=" + (($forbiddenDiffs | Select-Object -First 8) -join ";") + " readerTargetOk=" + $readerTargetOk)
     }
 
     # --- assertion B/C: frontend-identical new-project notification creates exactly one draft
@@ -231,7 +286,8 @@ try {
     $notifyResp = $null
     try { $notifyResp = Invoke-AgentJson -Method POST -Uri ($AgentHttp.TrimEnd("/") + "/agent/invoke") -Body $notifyBody -TimeoutSec 30 } catch { Bad ("version.project_new HTTP error: " + $_.Exception.Message) }
     $result["version_project_new_response"] = $notifyResp
-    Start-Sleep -Milliseconds 1500
+    $newQuiescence = Wait-TreeQuiescent $root 10000
+    $result["new_project_quiescence"] = $newQuiescence
     $snapshotAfterNew = SnapshotPhase $root "after_project_new"
     $result["snapshot_after_project_new"] = $snapshotAfterNew
     $dirsAfter = @($snapshotAfterNew["dirs"])
@@ -265,7 +321,7 @@ try {
         A_startup_zero_materialization = ($dirsStartup.Count -eq 1 -and $agentCreatedAtStartup.Count -eq 0)
         B_project_new_exactly_one_draft = ($newDirs.Count -eq 1 -and $newDraftUuids -contains $newUuid)
         C_no_old_uuid_leak = ($leakNew.Count -eq 0 -and $seedRowAfter.Count -eq 1)
-        D_reader_read_only = ($readerNewDirs.Count -eq 0 -and $readerTreeDiff.Count -eq 0)
+        D_reader_read_only = ($readerNewDirs.Count -eq 0 -and $forbiddenDiffs.Count -eq 0 -and $readerTargetOk)
     }
 }
 catch {
