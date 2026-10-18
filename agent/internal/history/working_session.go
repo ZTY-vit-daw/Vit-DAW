@@ -593,12 +593,40 @@ func ProjectPathForUUID(referenceProjectPath, projectUUID string) string {
 	return ""
 }
 
+// startupWorkspaceRecoveryDisabledReason is the activation log reason emitted
+// whenever startup recovery is skipped: the kernel-reported identity alone
+// never selects a durable workspace.
+const startupWorkspaceRecoveryDisabledReason = "startup_recovery_disabled_new_session"
+
+// StartupWorkspaceRecovery is the single decision point for startup workspace
+// recovery: given the kernel-reported project identity (path may be empty when
+// the kernel restored a previous project uuid without saving a project), it
+// resolves the durable workspace a startup activation should bind to, or ""
+// to begin a new session.
+//
+// FIX-START-STATE-RECOVERY-1 (user ruling, 2026-10-18 evening window): the
+// kernel-reported project UUID is NOT a recovery basis — agent startup always
+// begins a new session, so this hook is disabled and performs no I/O at all:
+// no draft-root scan, no runtime-state read, no write-back. "Do not recover"
+// means the persisted state of previous sessions is neither read nor written
+// (and never deleted). An explicit "recent projects" entry is a future
+// enhancement; it plugs in HERE and only here, reusing
+// RecoverableProjectPathForUUID / RecoverableProjectPathForUUIDInRoot below as
+// its read-only scan primitives.
+func StartupWorkspaceRecovery(kernelProjectPath, kernelProjectUUID string) (projectPath, reason string) {
+	_, _ = kernelProjectPath, kernelProjectUUID
+	return "", startupWorkspaceRecoveryDisabledReason
+}
+
 // RecoverableProjectPathForUUID finds a previously persisted project draft
 // when the host has only restored the project UUID. This is intentionally
 // scoped to the ProjectHistory root containing the current draft; it does not
 // search arbitrary user directories or infer a project from media paths.
 // Working-session workspace.json is the identity authority, and the newest
 // durable agent runtime state wins when several sessions exist for the UUID.
+// FIX-START-STATE-RECOVERY-1: startup activation no longer calls this — the
+// kernel-reported UUID is not a recovery basis. The scan stays available as
+// the read-only primitive a future explicit "recent projects" entry reuses.
 func RecoverableProjectPathForUUID(referenceProjectPath, projectUUID string) string {
 	referenceProjectPath = strings.TrimSpace(referenceProjectPath)
 	projectUUID = safeName(strings.TrimSpace(projectUUID))
