@@ -1,0 +1,79 @@
+﻿{
+    "failures":  [
+                     "LW FAIL: disabled watch still moved checks_total (8-\u003e9)"
+                 ],
+    "run_stamp":  "20261018_121008",
+    "schema_version":  "loudness_watch_d1_gates.v0",
+    "setup":  {
+                  "configure_ok":  true,
+                  "project_poll_seconds":  0,
+                  "prepared":  true,
+                  "config_digest":  "0079aa999954c1ee44a7709594791263a8e7a2183c5965b0501160df33f0c60e",
+                  "runner_stdout_log":  "D:\\Vit_DAW_wt_loudness_watch_b\\artifacts\\free_state_d1_s1\\20261018_121008\\runner_stdout.log",
+                  "agent_sha256":  "1C2400BC300FB7892D3AB4CADEDCD2B6F972A280350EC6CC8242AC8318C126D2",
+                  "agent_exe":  "D:\\Vit_DAW_wt_loudness_watch_b\\agent\\bin\\VitAgent.exe",
+                  "kernel_exe":  "D:\\Vit_DAW\\VitApp\\build\\VitApp_artefacts\\Release\\VitApp.exe",
+                  "ui_port_wait_seconds":  90,
+                  "enabled":  true,
+                  "kernel_sha256":  "B6565DCF85D1DA867E16333052A7B928A5413565940603ADBCF4ABD59DD3123B",
+                  "config_error":  "",
+                  "project_path_seen":  "D:\\Vit_DAW_wt_loudness_watch_b\\artifacts\\free_state_d1_s1\\20261018_121008\\project\\spv1_p01.vit",
+                  "project_open_ok":  true
+              },
+    "a4_markers":  [
+                       "semantic_eq_batch",
+                       "eq_plugin_load_batch",
+                       "dynamic_plugin_load_batch",
+                       "dynamic_parameter_batch",
+                       "c2_dynamic_plugin_selection",
+                       "c2.dynamic_plugin_load.governed"
+                   ],
+    "gate_results":  {
+                         "a4_zero_markers":  true,
+                         "verdict_store_round_trigger":  true,
+                         "e1_samples":  1,
+                         "dedupe":  true,
+                         "config_off_silent":  false,
+                         "disclosure":  true
+                     },
+    "runner_exit":  0,
+    "post":  {
+                 "records_after_run":  2,
+                 "observe_files":  [
+                                       "D:\\Vit_DAW_wt_loudness_watch_b\\artifacts\\free_state_d1_s1\\20261018_121008\\loudness_watch_observe1.json",
+                                       "D:\\Vit_DAW_wt_loudness_watch_b\\artifacts\\free_state_d1_s1\\20261018_121008\\loudness_watch_observe2.json",
+                                       "D:\\Vit_DAW_wt_loudness_watch_b\\artifacts\\free_state_d1_s1\\20261018_121008\\loudness_watch_observe3_disabled.json"
+                                   ],
+                 "keys_unique":  true,
+                 "disclosure_present":  true,
+                 "verdict_schema_version":  "loudness_watch_verdicts.v0",
+                 "verdict_schema_ok":  true,
+                 "e1_output":  [
+                                   "schema=loudness_watch_verdicts.v0 checks_total=9 records=2",
+                                   "[settle/project_change] n=1 duration_ms median=21.575 max=21.575 bakes_total=0 fresh_rows_total=19 stale_rows_total=0 fresh_reuse_ratio=1.00",
+                                   "[observation_piggyback] n=1 duration_ms median=161.815 max=161.815 bakes_total=0 fresh_rows_total=18 stale_rows_total=0 fresh_reuse_ratio=1.00",
+                                   "  key=vitproj_b3f2838183d64add9ca7824b8b3ac557||breach kind=breach trigger=project_change recorded=2026-10-18T04:13:11.6213825Z rechecks=4 dur_ms=21.575 bakes=0 fresh=19 stale=0 reason=",
+                                   "  key=vitproj_b3f2838183d64add9ca7824b8b3ac557|4|breach kind=breach trigger=observation_piggyback recorded=2026-10-18T04:13:20.0124108Z rechecks=3 dur_ms=161.8155 bakes=0 fresh=18 stale=0 reason="
+                               ],
+                 "verdict_file_exists":  true,
+                 "e1_extract_file":  "D:\\Vit_DAW_wt_loudness_watch_b\\artifacts\\free_state_d1_s1\\20261018_121008\\e1_extract.txt",
+                 "checks_after_off":  9,
+                 "records_after":  2,
+                 "checks_after":  8,
+                 "checks_before":  7,
+                 "dedupe_stable":  true,
+                 "marker_hits":  [
+
+                                 ],
+                 "config_off_silent":  false,
+                 "records_before":  2,
+                 "verdicts_path":  "D:\\Vit_DAW_wt_loudness_watch_b\\artifacts\\free_state_d1_s1\\20261018_121008\\project\\.vit_agent\\vitproj_b3f2838183d64add9ca7824b8b3ac557\\mixboard\\loudness_watch_verdicts.json",
+                 "round_trigger_kinds":  [
+                                             "project_change"
+                                         ],
+                 "round_trigger_record":  true,
+                 "pre_observe_snapshot":  "D:\\Vit_DAW_wt_loudness_watch_b\\artifacts\\free_state_d1_s1\\20261018_121008\\loudness_watch_verdicts_preobserve.json",
+                 "enabled":  true,
+                 "e1_settle_sample_count":  1
+             }
+}

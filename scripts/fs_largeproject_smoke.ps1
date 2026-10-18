@@ -89,6 +89,11 @@ param(
     [int]$ExpectedTrackCount = 61,
     # TIM-SMOKE lesson: cold kernel/plugin-table start can exceed 20s.
     [int]$WaitSeconds = 90,
+    # Same cold-start lesson on the dev_agent_smoke UI gate face (run2
+    # fs_largeproject_smoke_20261017_192734 died on the never-transmitted 20s
+    # default while the cold Waves VST3 table scan held the kernel port):
+    # pass an explicit >=90s budget through instead of relying on the default.
+    [int]$UiPortWaitSeconds = 90,
     # Import of 61 x 3.8GB: header reads + track/clip creation.
     [int]$ImportTimeoutSec = 1800,
     [int]$ImportCommandTimeoutMs = 600000,
@@ -514,6 +519,7 @@ $devParams = @{
     NoStripSilenceSmoke = $true
     Strict = $true
     WaitSeconds = $WaitSeconds
+    UiPortWaitSeconds = $UiPortWaitSeconds
     RepoRoot = $RepoRoot
     KernelExe = $KernelExe
 }
@@ -1803,6 +1809,19 @@ if ($LoudnessWatch) {
             $lwPost.verdicts_path = [string](Get-OptionalProperty -Object $lwDisclosure -Name "verdicts_path")
         }
     }
+    # Empty-path guard (LOUDNESS-B revision leg): a nil watch hook (no
+    # settle/project_change trigger registered it) discloses no verdicts_path.
+    # Without this guard the gates below spin the three 30s deadlines on an
+    # empty path and the Test-Path copy step throws an uncaught
+    # ParameterBindingValidationException (run3
+    # fs_largeproject_smoke_20261017_193105, exit 1 script_exception).
+    $lwPathPresent = -not [string]::IsNullOrWhiteSpace($lwPost.verdicts_path)
+    if (-not $lwPathPresent) {
+        Add-Failure "LW FAIL: loudness_watch disclosure carries no verdicts_path (watch hook not registered / no settle or project_change trigger fired); verdict-store, dedupe and config-off gates skipped by the empty-path guard (no deadline spin)"
+    }
+    # Gates 2-4 need a disclosed verdicts_path: an empty path fast-fails above
+    # and must never be used with the deadline loops or Test-Path.
+    if ($lwPathPresent) {
     # Gate 2: verdict file on disk with the pinned schema + a round-borne
     # trigger record (the settle fired the T1 hook during phase 5).
     if (-not [string]::IsNullOrWhiteSpace($lwPost.verdicts_path)) {
@@ -1884,6 +1903,7 @@ if ($LoudnessWatch) {
     if (Test-Path -LiteralPath $lwPost.verdicts_path) {
         Copy-Item -LiteralPath $lwPost.verdicts_path -Destination (Join-Path $RunRoot "loudness_watch_verdicts.json") -Force
     }
+    }
     # A4 discipline: every leg response surface stays clean of the
     # fixed-orchestration marker families.
     $lwHits = New-Object System.Collections.Generic.List[object]
@@ -1900,11 +1920,20 @@ if ($LoudnessWatch) {
     # Gate review.
     if ($lwPost.disclosure_present) { Write-Ok "LW mix.observe response carries the loudness_watch disclosure (D1 read-only carrier)" }
     else { Add-Failure "LW FAIL: loudness_watch disclosure missing from the mix_request_observation response" }
-    if ($lwPost.verdict_schema_ok -and $lwPost.round_trigger_record) { Write-Ok "LW verdict store on disk (schema pinned, round-borne trigger record present)" }
+    if (-not $lwPathPresent) {
+        Add-Failure "LW FAIL: verdict store gate not exercised (empty verdicts_path; the empty-path guard above fast-failed instead of spinning deadlines)"
+    }
+    elseif ($lwPost.verdict_schema_ok -and $lwPost.round_trigger_record) { Write-Ok "LW verdict store on disk (schema pinned, round-borne trigger record present)" }
     else { Add-Failure "LW FAIL: verdict store missing, foreign schema, or no settle/project_change record (T1 wiring broken)" }
-    if ($lwPost.dedupe_stable -and $lwPost.keys_unique) { Write-Ok ("LW dedupe held (checks " + [string]$lwPost.checks_before + "->" + [string]$lwPost.checks_after + ", records " + [string]$lwPost.records_before + "=" + [string]$lwPost.records_after + ", keys unique)") }
+    if (-not $lwPathPresent) {
+        Add-Failure "LW FAIL: dedupe gate not exercised (empty verdicts_path)"
+    }
+    elseif ($lwPost.dedupe_stable -and $lwPost.keys_unique) { Write-Ok ("LW dedupe held (checks " + [string]$lwPost.checks_before + "->" + [string]$lwPost.checks_after + ", records " + [string]$lwPost.records_before + "=" + [string]$lwPost.records_after + ", keys unique)") }
     else { Add-Failure ("LW FAIL: dedupe broken (checks " + [string]$lwPost.checks_before + "->" + [string]$lwPost.checks_after + ", records " + [string]$lwPost.records_before + "->" + [string]$lwPost.records_after + ", keys_unique=" + [string]$lwPost.keys_unique + ")") }
-    if ($lwPost.config_off_silent) { Write-Ok "LW config-off is silent (checks_total unchanged after the disabled observe)" }
+    if (-not $lwPathPresent) {
+        Add-Failure "LW FAIL: config-off gate not exercised (empty verdicts_path)"
+    }
+    elseif ($lwPost.config_off_silent) { Write-Ok "LW config-off is silent (checks_total unchanged after the disabled observe)" }
     else { Add-Failure "LW FAIL: disabled watch still ran checks (zero-cost gate broken)" }
     if ($lwHits.Count -eq 0) { Write-Ok "LW response surfaces clean of fixed-orchestration markers" }
     else {

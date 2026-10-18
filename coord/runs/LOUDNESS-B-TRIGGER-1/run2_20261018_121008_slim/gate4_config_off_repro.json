@@ -1,0 +1,33 @@
+﻿{
+    "purpose":  "minimal repro: loudness_watch_configure(enabled:false) persistence in ordinary vs D1-post-run project context",
+    "timestamp_local":  "2026-10-18 12:24:56-12:25:50 +0800",
+    "stack":  "run2 stack (kernel pid 22076, agent worktree build 1C2400BC..., Godot GUI)",
+    "part_a_ordinary_project":  {
+                                    "project":  "D:\\Vit_DAW_wt_loudness_watch_b\\artifacts\\lw_repro_20261018\\project\\spv1_p03.vit (fixture spv1_p03 fresh copy, non-D1)",
+                                    "status_before":  "enabled=False",
+                                    "after_configure_on":  "enabled=True digest=0079aa99...",
+                                    "configure_off_response":  "enabled=false digest=75d39682...",
+                                    "status_immediate":  "enabled=False digest=75d39682...",
+                                    "status_plus2s":  "enabled=False",
+                                    "status_plus5s":  "enabled=False",
+                                    "state_file_after_off":  "enabled=false (mtime rewritten 12:25:03.332 -\u003e 12:25:10.479, value stays false)",
+                                    "conclusion":  "ordinary context: disabled config persists and is stable"
+                                },
+    "part_b_d1_postrun_project":  {
+                                      "project":  "run2 D1 project (artifacts\\free_state_d1_s1\\20261018_121008\\project\\spv1_p01.vit)",
+                                      "configure_off_response":  "enabled=false (resp ms=14775)",
+                                      "status_immediate":  "enabled=True digest=0079aa99... (ms=8298)",
+                                      "status_plus2s":  "enabled=True",
+                                      "state_file_after_off":  "enabled=true, mtime 12:25:49.928",
+                                      "invoke_latency_observation":  "ordinary context status ms=33-45; D1 post-run context status ms=8298-8330 / configure_off ms=14775 -\u003e request-boundary ownership contention",
+                                      "conclusion":  "D1 post-run context: disabled config is reverted before/at the next request"
+                                  },
+    "agent_log_anchors":  "agent_last.log excerpt: [workspace] activated project ... recovered=true at 12:22:37 (project.open restore); [continuation.stall] reason=invocations-active at 12:11:48/12:13:24; runtime state file for run2 session keeps enabled=true",
+    "code_anchors":  [
+                         "agent/internal/chat/server.go:1658 handleInvoke (preamble activate+persist 1675-1677, defer syncCurrentProjectWorkspace 1678)",
+                         "agent/internal/chat/server.go:7449 syncCurrentProjectWorkspace -\u003e 7284 activateCurrentProjectWorkspace",
+                         "agent/internal/chat/server.go:7524 restoreProjectAgentRuntimeStateLocked (7539-7554 rebuilds s.loudnessWatchConfig from persisted state)",
+                         "agent/internal/chat/server.go:1592 invokeLoudnessWatchConfigure (sets s.loudnessWatchConfig)"
+                     ],
+    "classification":  "product defect (out of executor file domain; no Go changes made); gate-4 blocked by it; LW config-off semantic backed by unit tests only on real stack"
+}

@@ -1,0 +1,20 @@
+﻿
+[12:24:56.915] === PART A: ordinary (non-D1) project context ===
+[12:25:01.159] [A0] project.open repro ms=4199 ok=True resp_status=ok
+[12:25:03.233] [A1 status_before_configure] status ms=43 enabled=False digest=
+[12:25:03.270] [A2] configure_on ms=33 ok=True {"status":"ok","tool":"loudness.watch.configure","command_name":"loudness_watch_configure","risk_level":"direct","requires_confirmation":false,"result":{"config":{"schema_version":"loudness_watch_config.v0","enabled":true,"trigger_mode":"af
+[12:25:03.309] [A3 status_after_on] status ms=37 enabled=True digest=0079aa999954
+[12:25:03.344] [A4] configure_off ms=33 ok=True resp_enabled=false
+[12:25:03.363] [A4s state_after_off_resp] state mtime=12:25:03.332 enabled=false cfg_present=True path=D:\Vit_DAW_wt_loudness_watch_b\artifacts\lw_repro_20261018\project\.vit_history\.sessions\vitproj_e4f98ffc50a048d2ac937d7cd0dde0e5\session_20261018T042501_5e587225\workspace\state\agent_runtime_state.json
+[12:25:03.401] [A5 status_immediate] status ms=36 enabled=False digest=75d39682f703
+[12:25:05.437] [A6 status_plus2s] status ms=33 enabled=False digest=75d39682f703
+[12:25:05.443] [A6s state_plus2s] state mtime=12:25:05.425 enabled=false cfg_present=True path=D:\Vit_DAW_wt_loudness_watch_b\artifacts\lw_repro_20261018\project\.vit_history\.sessions\vitproj_e4f98ffc50a048d2ac937d7cd0dde0e5\session_20261018T042501_5e587225\workspace\state\agent_runtime_state.json
+[12:25:10.492] [A7 status_plus5s] status ms=45 enabled=False digest=75d39682f703
+[12:25:10.496] [A7s state_plus5s] state mtime=12:25:10.479 enabled=false cfg_present=True path=D:\Vit_DAW_wt_loudness_watch_b\artifacts\lw_repro_20261018\project\.vit_history\.sessions\vitproj_e4f98ffc50a048d2ac937d7cd0dde0e5\session_20261018T042501_5e587225\workspace\state\agent_runtime_state.json
+[12:25:10.501] === PART B: run2 (D1 post-run) project context ===
+[12:25:14.527] [B0] project.open run2 ms=4018 ok=True
+[12:25:31.303] [B1] configure_off ms=14775 resp_enabled=false
+[12:25:39.603] [B2 status_immediate] status ms=8298 enabled=True digest=0079aa999954
+[12:25:49.935] [B3 status_plus2s] status ms=8330 enabled=True digest=0079aa999954
+[12:25:50.081] [B3s state_plus2s] state mtime=12:25:49.928 enabled=true cfg_present=True path=D:\Vit_DAW_wt_loudness_watch_b\artifacts\free_state_d1_s1\20261018_121008\project\.vit_history\.sessions\vitproj_b3f2838183d64add9ca7824b8b3ac557\session_20261018T041057_d7ef4833\workspace\state\agent_runtime_state.json
+[12:25:50.082] === DONE ===

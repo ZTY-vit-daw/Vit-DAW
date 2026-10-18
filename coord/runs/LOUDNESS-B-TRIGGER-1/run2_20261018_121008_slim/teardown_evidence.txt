@@ -1,0 +1,9 @@
+﻿teardown_start=2026-10-18 12:26:05
+teardown_targets=VitAgent(7878):20908,VitApp(5555):22076,GodotGUI(main-frontend):10336
+stopped VitAgent(7878) pid=20908
+stopped VitApp(5555) pid=22076
+stopped GodotGUI(main-frontend) pid=10336
+ports_after_teardown=0 (7878/5555/5556/8787/4445 all free)
+stack_processes_after_teardown=0 (VitApp/VitAgent/vsphub)
+godot_processes_after_teardown=0 (incl. variants/headless)
+teardown_end=2026-10-18 12:26:10
