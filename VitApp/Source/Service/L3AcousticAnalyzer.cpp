@@ -70,6 +70,12 @@ constexpr double kSegOnsetRiseDb = 3.0; // same rise criterion as the fine trans
 constexpr int kSegOnsetPublishLimit = 1024; // event disclosure cap; density uses the full scan
 constexpr double kSegDensityWindowSeconds = 1.0;
 
+// Time-energy disclosure cap (KERNEL-L3-TIMEENERGY-1): the per-frame segment
+// list persisted in l3_feature_log stays bounded for long sources; the frame
+// rms/peak/crest distributions below always summarize the full scan so the
+// truncated disclosure never masquerades as the complete envelope.
+constexpr int kTimeEnergySegmentPublishLimit = 512;
+
 struct SegmentationPrimitives
 {
     // Full unbounded onset scan; the published event list is capped separately
@@ -815,6 +821,96 @@ void publishLoudnessSummary (const AudioFeatureBakeRequest& request,
 	publish (payload);
 }
 
+std::unique_ptr<juce::DynamicObject> makeDistributionObject (const BoundedDistribution& distribution)
+{
+    auto obj = std::make_unique<juce::DynamicObject>();
+    obj->setProperty ("count", distribution.count);
+    obj->setProperty ("min", distribution.min);
+    obj->setProperty ("p50", distribution.p50);
+    obj->setProperty ("p90", distribution.p90);
+    obj->setProperty ("max", distribution.max);
+    return obj;
+}
+
+// Time-domain energy envelope publication (KERNEL-L3-TIMEENERGY-1). Same frame
+// grid and lifecycle as the band/stereo/loudness summaries: the per-frame rms
+// and peak already observed by the L3 sweep, disclosed as a bounded segment
+// list plus full-scan distributions. The grid is the non-overlapping L3 FFT
+// window, coarser than the waveform-envelope grid the agent-side l1
+// time_energy derivation reads; method/window_ms/hop_ms are echoed so the two
+// measurements stay comparable-but-declared rather than contradictory.
+void publishTimeEnergy (const AudioFeatureBakeRequest& request,
+                        const L3Analysis& analysis,
+                        const L3AcousticAnalyzer::PublishCallback& publish)
+{
+    if (! publish)
+        return;
+
+    const auto& frames = analysis.frames;
+    const bool ready = analysis.evidence.status == "ready" && ! frames.empty();
+
+    auto obj = std::make_unique<juce::DynamicObject>();
+    stampCommon (*obj, request, analysis, AudioFeatureType::TimeEnergy);
+    obj->setProperty ("frame_count", (int64) frames.size());
+    obj->setProperty ("window_ms", analysis.frameWindowMs);
+    obj->setProperty ("hop_ms", analysis.frameHopMs);
+
+    {
+        auto envelope = std::make_unique<juce::DynamicObject>();
+        envelope->setProperty ("status", ready ? "ready" : "not_evaluable");
+        envelope->setProperty ("method", "time_domain_frame_rms_envelope_v1");
+        envelope->setProperty ("domain", "dbfs");
+        envelope->setProperty ("window_ms", analysis.frameWindowMs);
+        envelope->setProperty ("hop_ms", analysis.frameHopMs);
+        envelope->setProperty ("segment_count", (int64) frames.size());
+        envelope->setProperty ("publish_limit", kTimeEnergySegmentPublishLimit);
+        envelope->setProperty ("truncated", frames.size() > (size_t) kTimeEnergySegmentPublishLimit);
+        juce::Array<juce::var> segments;
+        const size_t publishedCount = std::min (frames.size(), (size_t) kTimeEnergySegmentPublishLimit);
+        for (size_t i = 0; ready && i < publishedCount; ++i)
+        {
+            const auto& frame = frames[i];
+            auto row = std::make_unique<juce::DynamicObject>();
+            row->setProperty ("start_seconds", frame.startSeconds);
+            row->setProperty ("end_seconds", frame.endSeconds);
+            row->setProperty ("rms_dbfs", frame.rmsDbfs);
+            row->setProperty ("peak_dbfs", frame.peakDbfs);
+            row->setProperty ("crest_db", frame.peakDbfs - frame.rmsDbfs);
+            segments.add (juce::var (row.release()));
+        }
+        envelope->setProperty ("published_count", (int64) publishedCount);
+        envelope->setProperty ("segments", segments);
+        envelope->setProperty ("evidence_refs", juce::Array<juce::var> {
+            refschema::makeL3FeatureRef ("time_energy.energy_envelope", request.sourceRevision, request.filePath) });
+        obj->setProperty ("energy_envelope", juce::var (envelope.release()));
+    }
+
+    std::vector<double> rmsLevels;
+    std::vector<double> peakLevels;
+    std::vector<double> crestLevels;
+    rmsLevels.reserve (frames.size());
+    peakLevels.reserve (frames.size());
+    crestLevels.reserve (frames.size());
+    for (const auto& frame : frames)
+    {
+        rmsLevels.push_back (frame.rmsDbfs);
+        peakLevels.push_back (frame.peakDbfs);
+        crestLevels.push_back (frame.peakDbfs - frame.rmsDbfs);
+    }
+    obj->setProperty ("rms_distribution", juce::var (makeDistributionObject (summarize (rmsLevels)).release()));
+    obj->setProperty ("peak_distribution", juce::var (makeDistributionObject (summarize (peakLevels)).release()));
+    obj->setProperty ("crest_distribution", juce::var (makeDistributionObject (summarize (crestLevels)).release()));
+
+    // Whole-source anchors reuse the exact quantities published in the
+    // loudness_summary row of the same analysis pass, so cross-family reads
+    // can never disagree about integrated level.
+    obj->setProperty ("integrated_rms_dbfs", dbFromLinear (analysis.rms));
+    obj->setProperty ("integrated_peak_dbfs", dbFromLinear (analysis.peakAbs));
+
+	const auto payload = juce::JSON::toString (juce::var (obj.release()), true);
+	publish (payload);
+}
+
 // Discovery-layer primitives publication. The payload always publishes - also
 // for degenerate sources - with explicit not_evaluable sub-states, so an
 // absent feature is never conflated with a silent empty one. All derivation
@@ -1113,6 +1209,8 @@ void publishSummaries (const AudioFeatureBakeRequest& request,
         publishStereoSummary (request, analysis, publish);
     if (requested == AudioFeatureType::LoudnessSummary || requested == AudioFeatureType::L3AcousticSummary)
         publishLoudnessSummary (request, analysis, publish);
+    if (requested == AudioFeatureType::TimeEnergy || requested == AudioFeatureType::L3AcousticSummary)
+        publishTimeEnergy (request, analysis, publish);
     if (requested == AudioFeatureType::SegmentationPrimitives)
         publishSegmentationPrimitives (request, analysis, publish);
 }

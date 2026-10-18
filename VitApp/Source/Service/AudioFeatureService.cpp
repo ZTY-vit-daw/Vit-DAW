@@ -193,7 +193,8 @@ void AudioFeatureService::requestBake (AudioFeatureBakeRequest request,
         return;
     }
 
-    if (request.featureType == AudioFeatureType::BandEnergySummary
+    if (request.featureType == AudioFeatureType::TimeEnergy
+        || request.featureType == AudioFeatureType::BandEnergySummary
         || request.featureType == AudioFeatureType::StereoRelationSummary
         || request.featureType == AudioFeatureType::LoudnessSummary
         || request.featureType == AudioFeatureType::L3AcousticSummary

@@ -4559,7 +4559,7 @@ func (h *Harness) ingestKernelSpectralTelemetry(event map[string]any) {
 
 func isL3AcousticSummaryFeature(featureType string) bool {
 	switch strings.ToLower(strings.TrimSpace(featureType)) {
-	case "band_energy_summary", "stereo_relation_summary", "loudness_summary":
+	case "time_energy", "band_energy_summary", "stereo_relation_summary", "loudness_summary":
 		return true
 	default:
 		return false

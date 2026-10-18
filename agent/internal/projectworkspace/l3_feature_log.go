@@ -365,7 +365,7 @@ func stampL3ProjectIdentity(row map[string]any, projectPath, projectUUID string)
 
 func isL3FeatureType(value string) bool {
 	switch strings.ToLower(strings.TrimSpace(value)) {
-	case "band_energy_summary", "stereo_relation_summary", "loudness_summary":
+	case "time_energy", "band_energy_summary", "stereo_relation_summary", "loudness_summary":
 		return true
 	default:
 		return false
