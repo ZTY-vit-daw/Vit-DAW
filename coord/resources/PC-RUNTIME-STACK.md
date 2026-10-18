@@ -3,7 +3,7 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
-（无——空闲；**用户目检优先**，执行流未获 Lead 放行不得占栈）
+- 2026-10-18 21:5x +0800 登记 / **FE-SENDROUTE-MACRO-GUI-1(130) 真栈烟测腿**（owner=GLM-5.3 L2 PC ZCode 执行会话，K3 本卡会话；前端仓 worktree D:/Godot/project-vit-daw-frontend-sendmacro@31e4f0e（port/fe-sendroute-macro-gui-1），主仓构建 worktree D:/Vit_DAW_wt_fesendmacro_stack（origin/main 基线自建 kernel——stock B6565DCF 不含 K1，须含 track.send.*/control_* 命令面））：两 run（新工件目录）——①dev_agent_smoke 标准腿（-StartKernel -StartUI -MixSmoke -GodotProjectRoot 本卡前端 worktree，窗口态启动证据+栈链）②新增 -SendRouteGuiSmoke 腿（kernel-only berth：Godot headless 场景模式经 UDP 4445 真实 IPC 驱动——GUI 同源 payload 构造器+rack_client：add_track×2→track.send.connect auto_create→list 读回核对→set_amount 回读→get_project_state aux 插件对断言→control_add_macro/add_binding(SendOut send level)/set_macro_values→control_graph 快照核对+send amount dB 联动断言→disconnect 归零）。GO=用户 2026-10-18 任务领取口令（明示「真栈腿登记 PC-RUNTIME-STACK 先登先用」）+卡面验收标准（真栈 exit 0）。§8 声明（运行前）：LLM=0 次调用（全确定性命令面）；成功条件=脚本 exit 0；失败分类=environment_interrupt（栈起不来/端口占用）/assertion_fail（读回或快照断言）/script_exception；止损=同签名 assertion_fail ×2。登记前只读核对（21:5x）：六端口（7878/5555/5556/8787/4445/19876）监听=0、VitApp/VitAgent/vsphub=0；Godot 变体 2=138 已上报的 20:08 起孤儿（pid 9036/21188，%TEMP%it_scratch_customstep，非本腿未动，不占栈端口，继续交主管）。
 
 ## 最近一次释放（2026-10-18 21:36 +0800）
 
