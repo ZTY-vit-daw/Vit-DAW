@@ -53,10 +53,18 @@ round4（2026-10-16 18:17–18:18，用户真实工程+GUI 路径，VitApp pid 1
 - **首选（用户面正确性）**：`harness.publicResult` 的 `list_tracks` 以**本命令内核回包**为准（shadow 仅作 enrichment/命名/分组；若 shadow 陈旧则在结果中显式 `shadow_stale:true` + 双计数，禁止静默返回旧快照）。文件域：`agent/internal/harness/harness.go`（publicResult list_tracks 分支）+ `harness_test.go` 对应测试；同样口径复核 `get_project_state`（至少披露 shadow 快照 revision 与内核 revision 差异）。
 - **加固（时效性）**：shadow 收到「未知 uid 的新轨道 delta」时触发一次**去抖**权威快照刷新（VSP state snapshot 优先，参考 `harness.refreshShadow`），而不是把新轨静默留在 orphanDeltas。文件域：`agent/internal/shadow/shadow.go`（orphan 触发点）+ `agent/internal/bridge/bridge.go`（delta 处理处，`normalizeTelemetry`/`runShadowRefresh`）+ 单测（保留 `TestShadowTracksOrphanDeltas` 语义：orphan 仍然不直接并入快照，但触发刷新）。
 - **测试防线**：新增 tools/harness 层用例「内核回包 6 轨 + shadow 空 → list_tracks 结果应为 6（或显式 stale 标注）」，防止回归到 shadow-only 静默。
+- **影响面边界（静态评估，供修复卡定范围）**：
+  - 消费面：`agentloop/execution_memory.go:229,373-376`（把 track.list/project.state 的 tracks 写入执行记忆）、`agentloop/message_loop.go:2681,3563-3684,7836,9253`（mix candidate/prompt 组装；注意 `:7836 if messageLoopListCount(projectState["tracks"]) == 0` 是另一处「0 轨即空工程」分支，陈旧 shadow 会同样误判）。
+  - 待改测试口径：`harness_test.go:4236 TestPublicResultSanitizesProjectState`（get_project_state shadow-only 断言）、`shadow_test.go:35 TestShadowTracksOrphanDeltas`（orphan 语义需保留但新增触发刷新断言）、`chat/reply_test.go:19`（list_tracks risk 声明，无内容语义）。
+- **建议修复卡（草案，交 Lead 决定是否立）**：`FIX-TRACKLIST-SHADOW-FRESHNESS-1`（P2/P1 视裁定）：A 工具面回包以 kernel reply 为准 + `shadow_stale` 披露；B 未知新轨 delta 去抖触发权威刷新；C 回归用例（S1 场景：外部新建+导入 6 轨、shadow 空 → tool 仍应返回 6 或显式 stale）；验收=`cd agent && go test ./internal/harness ./internal/shadow ./internal/bridge ./internal/agentloop ./internal/chat -count=1`（0 FAIL）+ 真栈 S1/S2 复跑；文件域=`agent/internal/harness/harness.go`、`agent/internal/shadow/shadow.go`、`agent/internal/bridge/bridge.go`(+对应 *_test.go)。
 
 ## 4. 栈腿同帧实测（待 GO 后补）
 
 - run ID / 脚本 exit / 六面逐数值与 track_id 列表 / 候选①②裁决 / 最小复现次数（≥2 次确定性）/ 栈证据与拆栈复核 → 见后续追加节。
+
+### 4.1 干跑记录（仅 harness 干跑，**不作验收证据**）
+
+- `run_20261018_145825`：14:58:25–14:59:45 一次**未获 GO** 的 berth 启动（harness `-PreflightOnly` 开关替换 bug 导致意外执行；已自报 Lead，按要求仅作工程参考）。该 run 暴露并促成两项 harness 修复（`-PreflightOnly` 真生效 + user-track 投影比较口径 + 两轮确定性 S1），原始工件 slim 入库但不用于卡面结论；正式证据待 GO 后新 run。
 
 ## 5. 工件清单
 
