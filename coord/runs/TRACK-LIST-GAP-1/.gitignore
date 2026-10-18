@@ -1,2 +1,8 @@
-﻿# Heavy raw probe responses stay on disk (path + sha in probe_summary.json); slim evidence tracked.
+﻿# Heavy/runtime artifacts stay on disk (paths + counts recorded in the run's
+# probe_summary.json / RESULTS.md). Slim evidence files stay tracked.
 run_*/raw/
+run_*/kernel_workspace/
+run_*/agent_drafts/
+run_*/BridgeReplies/
+run_*/fixtures/
+run_*/fixture_open_existing_live.vit

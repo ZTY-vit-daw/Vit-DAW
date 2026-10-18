@@ -1,4 +1,4 @@
-# run_tracklist_gap_probe.ps1 鈥?TRACK-LIST-GAP-1 (139) stack berth runner.
+# run_tracklist_gap_probe.ps1 閳?TRACK-LIST-GAP-1 (139) stack berth runner.
 #
 # Same discipline as scripts/dev_agent_smoke.ps1 (unchanged):
 #   - one stack owner: refuse if any stack port/process is already live;
@@ -22,6 +22,7 @@ param(
     [string]$Python = "python",
     [switch]$SkipBuild,
     [switch]$AllowOutOfScopeGodot,
+    [switch]$PreflightOnly,
     [int]$KernelStartTimeoutSeconds = 180,
     [int]$AgentStartTimeoutSeconds = 120
 )
@@ -171,6 +172,11 @@ try {
         Write-WarnLine ("out-of-scope Godot helper processes allowed by -AllowOutOfScopeGodot (never touched): pid=" + (($outOfScopeGodot | ForEach-Object { $_.Id }) -join ","))
     }
     Write-Ok "ports 5555/5556/5557/7878/8787/4445 listening=0; VitApp/VitAgent/vsphub/Godot-frontend=0"
+    if ($PreflightOnly) {
+        Write-Ok "preflight-only mode: preflight passed; NO build, NO stack start, NO teardown needed"
+        $preflightOnlyMode = $true
+        return
+    }
 
     # ---- build agent + vsp hub (worktree binaries) ---------------------
     if (-not $SkipBuild -or -not (Test-Path -LiteralPath $agentExe) -or -not (Test-Path -LiteralPath $hubExe)) {

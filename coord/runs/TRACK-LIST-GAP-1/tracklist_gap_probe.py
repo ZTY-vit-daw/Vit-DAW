@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """TRACK-LIST-GAP-1 (139) same-frame probe: track.list tool vs kernel vs VSP hub vs shadow.
 
 Surfaces captured at one moment (read-only; no mutations between the calls):
@@ -181,13 +181,21 @@ class HubVsp:
 
 # ---------------------------------------------------------------- summaries
 
-def tracks_from_rows(rows: Any, id_keys: List[str]) -> List[str]:
+def tracks_from_rows(rows: Any, id_keys: List[str], user_only: bool = False) -> List[str]:
     out: List[str] = []
     if not isinstance(rows, list):
         return out
     for row in rows:
         if not isinstance(row, dict):
             continue
+        if user_only:
+            # kernel/hub `list_tracks` enumerate te::getAllTracks (internal Master/Tempo/
+            # Chord/Marker/Arranger tracks included); the state snapshot/shadow/tool rows
+            # only carry user tracks. Compare the user-track projections across surfaces.
+            is_audio = row.get("is_audio_track")
+            track_type = str(row.get("track_type") or "").strip().lower()
+            if not (is_audio is True or track_type in ("hybrid", "audio")):
+                continue
         for key in id_keys:
             value = row.get(key)
             if value is not None and str(value).strip() != "":
@@ -199,11 +207,14 @@ def tracks_from_rows(rows: Any, id_keys: List[str]) -> List[str]:
 def summarize_kernel_list(reply: Dict[str, Any]) -> Dict[str, Any]:
     tracks = reply.get("tracks")
     ids = tracks_from_rows(tracks, ["track_id", "id"])
+    user_ids = tracks_from_rows(tracks, ["track_id", "id"], user_only=True)
     return {
         "status": reply.get("status"),
         "message": reply.get("message"),
         "track_count": len(ids) if isinstance(tracks, list) else None,
         "track_ids": ids,
+        "user_track_count": len(user_ids),
+        "user_track_ids": user_ids,
         "has_no_active_edit_error": "No active edit loaded" in json.dumps(reply)[:2000],
     }
 
@@ -226,6 +237,7 @@ def summarize_hub_command(reply: Dict[str, Any]) -> Dict[str, Any]:
     ack = reply.get("ack") if isinstance(reply.get("ack"), dict) else {}
     rows = legacy.get("tracks")
     ids = tracks_from_rows(rows, ["track_id", "id"])
+    user_ids = tracks_from_rows(rows, ["track_id", "id"], user_only=True)
     return {
         "http_status": reply.get("_http_status"),
         "type": reply.get("type"),
@@ -238,6 +250,8 @@ def summarize_hub_command(reply: Dict[str, Any]) -> Dict[str, Any]:
         "legacy_message": legacy.get("message"),
         "legacy_track_count": len(ids) if isinstance(rows, list) else None,
         "legacy_track_ids": ids,
+        "legacy_user_track_count": len(user_ids) if isinstance(rows, list) else None,
+        "legacy_user_track_ids": user_ids,
         "transaction_id": reply.get("transaction_id"),
         "error": reply.get("error"),
     }
@@ -505,8 +519,8 @@ class Probe:
         stage["comparison"] = comparison
         self.summary["stages"][label] = stage
         self.summary["comparisons"].append(comparison)
-        print(f"[stage] {label}: kernel={comparison['kernel_track_count']} "
-              f"hub_cmd={comparison['hub_canonical_track_count']} "
+        print(f"[stage] {label}: kernel_user={comparison['kernel_user_track_count']} "
+              f"hub_cmd_user={comparison['hub_canonical_user_track_count']} "
               f"hub_state={comparison['hub_state_track_count']} "
               f"shadow={comparison['shadow_track_count']} "
               f"tool={comparison['tool_track_count']} "
@@ -516,28 +530,34 @@ class Probe:
 
     @staticmethod
     def compare(label: str, stage: Dict[str, Any]) -> Dict[str, Any]:
-        kernel_ids = stage["kernel_list_tracks"]["track_ids"]
+        kernel_user_ids = stage["kernel_list_tracks"]["user_track_ids"]
         hub_cmd = stage["hub_canonical_project_tracks_list"]
         hub_state = stage["hub_state_snapshot"]
         shadow = stage["agent_shadow"]
         tool = stage["agent_tool_track_list"]
         tool_ids = tool["result_track_ids"] or []
         shadow_ids = shadow["track_ids"] or []
+        hub_user_ids = hub_cmd["legacy_user_track_ids"] or []
+        hub_state_ids = hub_state["track_ids"] or []
         shadow_count = shadow["track_count"]
         tool_count = tool["result_track_count"]
         if tool_count is None:
             tool_count = len(tool_ids)
+        kernel_uuid = (stage["kernel_get_project_state"].get("project_uuid") or "").strip()
+        hub_state_uuid = (hub_state.get("project_uuid") or "").strip()
         return {
             "label": label,
-            "kernel_track_count": len(kernel_ids),
-            "kernel_track_ids": kernel_ids,
-            "kernel_project_uuid": stage["kernel_get_project_state"]["project_uuid"],
-            "hub_canonical_track_count": hub_cmd["legacy_track_count"],
-            "hub_canonical_track_ids": hub_cmd["legacy_track_ids"],
+            "kernel_user_track_count": len(kernel_user_ids),
+            "kernel_user_track_ids": kernel_user_ids,
+            "kernel_all_track_count": stage["kernel_list_tracks"]["track_count"],
+            "kernel_project_uuid": kernel_uuid,
+            "hub_canonical_user_track_count": len(hub_user_ids),
+            "hub_canonical_user_track_ids": hub_user_ids,
+            "hub_canonical_all_track_count": hub_cmd["legacy_track_count"],
             "hub_canonical_vsp_ack_message": hub_cmd["ack_message"],
-            "hub_state_track_count": hub_state["tracks_len"],
-            "hub_state_track_ids": hub_state["track_ids"],
-            "hub_state_project_uuid": hub_state["project_uuid"],
+            "hub_state_track_count": len(hub_state_ids),
+            "hub_state_track_ids": hub_state_ids,
+            "hub_state_project_uuid": hub_state_uuid,
             "hub_state_revision": hub_state["revision"],
             "shadow_track_count": shadow_count,
             "shadow_tracks_len": shadow["tracks_len"],
@@ -549,10 +569,11 @@ class Probe:
             "tool_vsp_legacy_command": tool["vsp_legacy_command"],
             "tool_status": tool["status"],
             "tool_matches_shadow": bool(tool_ids == shadow_ids and (tool_count == shadow_count)),
-            "tool_matches_kernel": bool(tool_ids == kernel_ids),
-            "hub_matches_kernel": bool((hub_cmd["legacy_track_ids"] or []) == kernel_ids),
-            "hub_state_matches_kernel": bool((hub_state["track_ids"] or []) == kernel_ids),
-            "same_project_uuid_across_surfaces": self_same_uuid(stage),
+            "tool_matches_kernel": bool(tool_ids == kernel_user_ids),
+            "hub_matches_kernel": bool(hub_user_ids == kernel_user_ids),
+            "hub_state_matches_kernel": bool(hub_state_ids == kernel_user_ids),
+            "kernel_hub_state_uuid_match": bool(kernel_uuid and hub_state_uuid and kernel_uuid == hub_state_uuid),
+            "shadow_uuid_matches_kernel": bool(kernel_uuid and (shadow.get("project_uuid") or "").strip() == kernel_uuid),
         }
 
     # -- mutations (external path == GUI/kernel-direct path) ------------
@@ -635,15 +656,18 @@ class Probe:
             # S0 baseline
             self.capture("S0_fresh_baseline")
 
-            # S1 external new_project + import (the GUI/external mutation path)
-            self.summary["mutation_S1"] = self.external_new_project_and_import(6)
-            time.sleep(0.5)
-            self.capture("S1_external_new_import")
+            # S1 external new_project + import, TWICE: the card requires the minimal repro to
+            # show deterministically (>=2 occurrences). Each round is an independent external
+            # mutation (kernel-direct == GUI/external path, bypassing the agent tool plane).
+            for round_no in (1, 2):
+                self.summary[f"mutation_S1_round{round_no}"] = self.external_new_project_and_import(6)
+                time.sleep(0.5)
+                self.capture(f"S1_round{round_no}_external_new_import")
 
-            # S1b shadow refresh through the agent project.state tool (the self-heal path)
-            self.refresh_shadow_via_project_state("S1b")
+            # S1-refresh: shadow refresh through the agent project.state tool (the self-heal path)
+            self.refresh_shadow_via_project_state("S1_refresh")
             time.sleep(0.3)
-            self.capture("S1b_after_project_state_refresh")
+            self.capture("S1_refresh_after_project_state")
 
             # S2 external open-existing (same external path class, different project origin)
             self.summary["mutation_S2"] = self.external_open_existing()
@@ -676,65 +700,97 @@ class Probe:
         comps = {row["label"]: row for row in self.summary["comparisons"]}
         findings: List[str] = []
 
-        s1 = comps.get("S1_external_new_import")
+        s1 = comps.get("S1_round1_external_new_import")
+        s1_round2 = comps.get("S1_round2_external_new_import")
         s2 = comps.get("S2_external_open_existing")
-        s1b = comps.get("S1b_after_project_state_refresh")
+        s1_refresh = comps.get("S1_refresh_after_project_state")
 
-        # Candidate 1: VSP channel instance mismatch -> all three kernel-facing surfaces
-        # must agree on track ids/project uuid in every stage.
+        # Candidate 1: VSP channel hits a different kernel/edit instance -> the three
+        # kernel-facing surfaces (kernel direct / hub canonical command / hub state snapshot)
+        # must agree on user-track ids and project uuid in every stage. The shadow is a
+        # known-stale projection and is excluded from this instance check by design.
         vsp_same = True
         uuid_same = True
         for label, comp in comps.items():
             if not comp.get("hub_matches_kernel") or not comp.get("hub_state_matches_kernel"):
                 vsp_same = False
-            if not comp.get("same_project_uuid_across_surfaces"):
+            if not comp.get("kernel_hub_state_uuid_match"):
                 uuid_same = False
         findings.append(
             "candidate 1 (VSP channel hits a different kernel/edit instance): "
             + ("RULED OUT" if (vsp_same and uuid_same) else "NOT ruled out")
-            + f" 鈥?kernel/hub-canonical/hub-state track ids agree in all stages={vsp_same}, "
-              f"project_uuid agrees across surfaces={uuid_same}")
+            + f" — kernel/hub-canonical/hub-state USER track ids agree in all stages={vsp_same}, "
+              f"kernel==hub_state project_uuid in all stages={uuid_same}")
         self.summary["candidate1_vsp_instance"] = {
             "verdict": "ruled_out" if (vsp_same and uuid_same) else "not_ruled_out",
             "kernel_hub_track_ids_agree": vsp_same,
-            "project_uuid_agree": uuid_same,
+            "kernel_hub_state_uuid_agree": uuid_same,
         }
 
         # Candidate 2: new+import path specifically -> S2 external open-existing must show
-        # the same tool-vs-kernel gap as S1.
+        # the same tool-vs-kernel gap as both S1 rounds.
         gap_s1 = bool(s1 and s1["tool_matches_kernel"] is False)
+        gap_s1_round2 = bool(s1_round2 and s1_round2["tool_matches_kernel"] is False)
         gap_s2 = bool(s2 and s2["tool_matches_kernel"] is False)
-        same_gap = gap_s1 and gap_s2
+        same_gap = gap_s1 and gap_s1_round2 and gap_s2
         findings.append(
             "candidate 2 (new+import path track enumeration gap): "
             + ("RULED OUT as path-specific" if same_gap else "needs review")
-            + f" 鈥?tool!=kernel in external new+import={gap_s1}, in external open-existing={gap_s2}")
+            + f" — tool!=kernel in external new+import round1={gap_s1}, round2={gap_s1_round2}, "
+              f"external open-existing={gap_s2}")
         self.summary["candidate2_new_import_path"] = {
             "verdict": "ruled_out_as_path_specific" if same_gap else "needs_review",
-            "tool_gap_external_new_import": gap_s1,
+            "tool_gap_external_new_import_round1": gap_s1,
+            "tool_gap_external_new_import_round2": gap_s1_round2,
             "tool_gap_external_open_existing": gap_s2,
         }
 
+        # Deterministic minimal repro: both external new+import rounds must show the 0-track
+        # tool result against a non-zero kernel user-track count.
+        repro_rounds = []
+        for round_no, comp in ((1, s1), (2, s1_round2)):
+            if comp and comp["kernel_user_track_count"] > 0 and comp["tool_track_count"] == 0:
+                repro_rounds.append(round_no)
+        deterministic_repro = len(repro_rounds) == 2
+        findings.append(
+            "minimal repro determinism: external new+import -> tool track_count=0 while kernel "
+            f"user tracks >0 in rounds={repro_rounds} (>=2 required: {deterministic_repro})")
+        self.summary["minimal_repro_determinism"] = {
+            "rounds_with_tool_zero_kernel_nonzero": repro_rounds,
+            "deterministic_2_of_2": deterministic_repro,
+        }
+
+        # Shadow-staleness face: which stages show the shadow projection != kernel user tracks.
+        shadow_stale_stages = [label for label, comp in comps.items() if not comp["tool_matches_kernel"]]
+        shadow_synced_stages = [label for label, comp in comps.items() if comp["tool_matches_kernel"]]
+        findings.append(
+            "shadow projection face: tool==shadow in all stages="
+            + str(all(comp["tool_matches_shadow"] for comp in comps.values()))
+            + f"; tool!=kernel (stale projection) stages={shadow_stale_stages}"
+            + f"; tool==kernel (synced) stages={shadow_synced_stages}")
+        self.summary["shadow_projection"] = {
+            "stale_stages": shadow_stale_stages,
+            "synced_stages": shadow_synced_stages,
+        }
+
         # Root cause face: the track.list tool result is the shadow Summary, not the kernel reply.
-        tool_is_shadow = all(
-            comp["tool_matches_shadow"] for comp in comps.values()
-        )
-        gap_stages = [label for label, comp in comps.items() if not comp["tool_matches_kernel"]]
+        tool_is_shadow = all(comp["tool_matches_shadow"] for comp in comps.values())
+        gap_stages = shadow_stale_stages
         findings.append(
             "root-cause face (agent tool result = shadow summary, not the kernel reply): "
             + ("CONFIRMED" if tool_is_shadow else "not confirmed")
-            + f" 鈥?tool==shadow in all stages={tool_is_shadow}; tool!=kernel in stages={gap_stages}")
+            + f" — tool==shadow in all stages={tool_is_shadow}; tool!=kernel in stages={gap_stages}")
         self.summary["root_cause_tool_is_shadow"] = {
             "tool_matches_shadow_all_stages": tool_is_shadow,
             "tool_mismatch_kernel_stages": gap_stages,
         }
 
         # Self-heal: after project.state refresh, shadow (and tool) catches up with the kernel.
-        heal = bool(s1b and s1b["tool_matches_kernel"])
+        heal = bool(s1_refresh and s1_refresh["tool_matches_kernel"])
         findings.append(
             "self-heal face (get_project_state refreshes shadow from the VSP state snapshot): "
             + ("CONFIRMED" if heal else "not confirmed")
-            + f" 鈥?after project.state tool: tool==kernel={heal}")
+            + f" — after project.state tool: tool==kernel={heal}")
         self.summary["self_heal_after_project_state"] = {"tool_matches_kernel": heal}
 
         # kernel reply itself was correct in the same response: agent tool response carries a
@@ -752,19 +808,10 @@ class Probe:
             and self.summary["candidate2_new_import_path"]["verdict"] == "ruled_out_as_path_specific"
             and tool_is_shadow
             and heal
-            and gap_stages
+            and deterministic_repro
+            and shadow_stale_stages
         )
         print("\n".join(findings))
-
-
-def self_same_uuid(stage: Dict[str, Any]) -> bool:
-    kernel_uuid = (stage["kernel_get_project_state"].get("project_uuid") or "").strip()
-    hub_uuid = (stage["hub_state_snapshot"].get("project_uuid") or "").strip()
-    shadow_uuid = (stage["agent_shadow"].get("project_uuid") or "").strip()
-    known = [u for u in (kernel_uuid, hub_uuid, shadow_uuid) if u]
-    if len(known) < 2:
-        return False
-    return len(set(known)) == 1
 
 
 def main() -> int:
