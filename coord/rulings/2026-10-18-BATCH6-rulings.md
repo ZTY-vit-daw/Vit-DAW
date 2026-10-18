@@ -1,7 +1,7 @@
 # 2026-10-18 午窗 批量六裁定（92 终验 pass + GUI 实时链路/主整合立项）
 
 - 验收会话：12:00-18:00 决策流（DSH PC，本机）；裁定来源=用户 2026-10-18 午窗 R2 复测「没问题了 / GUI 改版可以验收」+ 新增观察与主整合要求。
-- 基线：origin/main=**b9f26258**（本轮探针工件 cherry-pick 后）；本批合入后 main=__MAIN_AFTER__。
+- 基线：origin/main=**b9f26258**（本轮探针工件 cherry-pick 后）；本批合入后 main=9eeaf4c8。
 - 执行侧：DSH exec-fe-gui-c（92-R1/R2）；协调面由 12:00-18:00 决策流单写。
 
 ## 一、FE-GUI-C-FLOATING（92）——**终验 pass（GUI 改版范围）**
