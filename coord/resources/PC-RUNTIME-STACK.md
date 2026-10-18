@@ -3,7 +3,11 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
-- 2026-10-18 晚窗起 / **FIX-TRACKLIST-SHADOW-FRESHNESS-1(143) 真栈修复验收腿**（owner=GLM L2 PC ZCode 执行会话=本卡会话；worktree D:/Vit_DAW_wt_trackfix1，分支 port/fix-tracklist-shadow-freshness-1@372ab2c9；kernel+vsphub+agent berth，不启 UI；被测 agent/vsphub=本分支构建，kernel=stock B6565DCF…）。领取时亲核六端口/四类进程=0（登记前复核过 144 已释放）。预计单 run ~15s 探针段；完成后即拆栈并回填释放记录。
+（无——空闲；**用户目检优先**，执行流未获 Lead 放行不得占栈）
+
+## 最近一次释放（2026-10-18 19:27 +0800）
+
+- 2026-10-18 19:26:15–19:26:52 / **FIX-TRACKLIST-SHADOW-FRESHNESS-1(143) 修复验收 run**（owner=GLM L2 PC ZCode 执行会话；worktree D:/Vit_DAW_wt_trackfix1，分支 port/fix-tracklist-shadow-freshness-1@372ab2c9；kernel+vsphub+agent berth，不启 UI）：run=**run_20261018_192615**，脚本 exit **0**（probe **PASS**，§8 LLM=0，零 silent-stale）。被测 agent SHA256=C57EB91797BF27DC…（本分支构建）/vsphub D35519BCB0A3DBD8…/kernel=stock B6565DCF85D1DA86…（只读）。19:26:15 起栈前预检六端口/四类进程=0（占用记录 a1593143）→ kernel pid15776+vsphub 16240+agent 21196 → 探针六面（S0/S1×2/S1_refresh/S2/S3）全绿：**全部阶段 tool≡kernel**（含 S2 反向 shadow=6/kernel=2 时 tool=2+shadow_stale 双计数 2/6 披露）；B 面去抖刷新 3 次（agent 日志 `refreshed after structural_delta source=vsp.state.snapshot` revision=2/3/4），S1 两轮 shadow heal 确认；拆栈只杀自起 pid → 19:26:52 复核六端口=0、四类进程=0（teardown.json exit_code=0/remaining=0）。内核会话 VSP envelope 128 行。工件 coord/runs/FIX-TRACKLIST-SHADOW-FRESHNESS-1/run_20261018_192615/。
 
 ## 最近一次释放（2026-10-18 19:16 +0800）
 
