@@ -775,10 +775,26 @@ func ProjectFork(args map[string]any) (map[string]any, error) {
 }
 
 func ProjectNew(args map[string]any) (map[string]any, error) {
+	// FE-START-EMPTY-DRAFT-1: a read-side identity probe (BindProjectIdentity
+	// with an empty project path) may already have materialized the process
+	// default draft. If that draft is still the pristine placeholder, adopt it
+	// for this new project instead of resetting the cache and creating a second
+	// directory — otherwise every "new project" entry leaves an abandoned 75-byte
+	// draft behind (启动页双 draft).
 	draftProject.Lock()
+	previousPath := draftProject.path
+	reusedPath := pristineDefaultDraftPathLocked()
 	draftProject.root = ""
 	draftProject.path = ""
+	if reusedPath != "" {
+		draftProject.root = defaultDraftProjectRoot()
+		draftProject.path = reusedPath
+	}
 	draftProject.Unlock()
+	clearProjectIdentityBinding(previousPath)
+	if reusedPath != "" {
+		clearProjectIdentityBinding(reusedPath)
+	}
 
 	repo, err := Open("")
 	if err != nil {
@@ -789,6 +805,9 @@ func ProjectNew(args map[string]any) (map[string]any, error) {
 	out["status"] = "ok"
 	out["created_draft"] = true
 	out["draft_project_path"] = repo.ProjectPath
+	if reusedPath != "" {
+		out["reused_default_draft"] = true
+	}
 	return out, nil
 }
 
@@ -2257,7 +2276,7 @@ func projectKey(projectPath string) string {
 	return base + "_" + hex.EncodeToString(sum[:])[:12]
 }
 
-func defaultDraftProjectPath() (string, error) {
+func defaultDraftProjectRoot() string {
 	root := strings.TrimSpace(os.Getenv("VIT_HISTORY_DRAFT_ROOT"))
 	if root == "" {
 		if cacheDir, err := os.UserCacheDir(); err == nil && strings.TrimSpace(cacheDir) != "" {
@@ -2267,6 +2286,51 @@ func defaultDraftProjectPath() (string, error) {
 	if root == "" {
 		root = filepath.Join(os.TempDir(), "Vit", "ProjectHistory", "drafts")
 	}
+	return root
+}
+
+// pristineDefaultDraftPath reports whether the cached default draft is still
+// the untouched placeholder written by defaultDraftProjectPath: exactly one
+// entry (Unsaved.vit), no .vit_history/.vit_agent/.vit_derived and therefore no
+// history, session or agent store that a project-new reset would discard.
+// The caller must hold draftProject's lock.
+func pristineDefaultDraftPathLocked() string {
+	path := draftProject.path
+	if path == "" || !sameProjectPath(draftProject.root, defaultDraftProjectRoot()) {
+		return ""
+	}
+	if !fileExists(path) {
+		return ""
+	}
+	entries, err := os.ReadDir(filepath.Dir(path))
+	if err != nil {
+		return ""
+	}
+	for _, entry := range entries {
+		if strings.EqualFold(entry.Name(), draftProjectFileName) {
+			continue
+		}
+		return ""
+	}
+	return path
+}
+
+// clearProjectIdentityBinding drops the in-memory identity binding for a draft
+// path. ProjectNew abandons (or re-adopts) the cached default draft, so a
+// binding left over from a startup identity probe must not decide where the
+// new project's history is materialized.
+func clearProjectIdentityBinding(projectPath string) {
+	projectPath = strings.TrimSpace(projectPath)
+	if projectPath == "" {
+		return
+	}
+	projectIdentityRegistry.Lock()
+	delete(projectIdentityRegistry.byPath, normalizeProjectPath(projectPath))
+	projectIdentityRegistry.Unlock()
+}
+
+func defaultDraftProjectPath() (string, error) {
+	root := defaultDraftProjectRoot()
 	draftProject.Lock()
 	defer draftProject.Unlock()
 	if draftProject.path != "" && draftProject.root == root {
