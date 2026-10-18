@@ -1,0 +1,12 @@
+﻿{
+    "finished":  "2026-10-18T13:54:46.6480493+08:00",
+    "kernel_pid":  null,
+    "torn_down":  false,
+    "exit_code":  1,
+    "diag_summary":  "D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135443\\diag_summary.json",
+    "remaining_listeners":  0,
+    "remaining_processes":  0,
+    "out_of_scope_godot_editors":  [
+                                       17188
+                                   ]
+}

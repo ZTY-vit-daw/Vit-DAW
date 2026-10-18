@@ -116,8 +116,21 @@ try {
     }
     if (Test-Path -LiteralPath $RunDir) { throw "run artifacts directory already exists; each run needs a fresh directory: $RunDir" }
     $KernelWorkspace = Join-Path $RunDir "kernel_workspace"
-    foreach ($dir in @($RunDir, $KernelWorkspace, (Join-Path $KernelWorkspace "Settings"), (Join-Path $KernelWorkspace "Logs"))) {
+    # Isolation scaffold: VitPaths::getProjectRootDirectory() climbs from the kernel CWD for a dir
+    # containing CMakeLists.txt + Source/. Putting those markers in the run-dir workspace makes the
+    # kernel resolve Workspace/ (Settings/Logs/Cache) INSIDE this run dir, so the shared deployment
+    # Workspace under D:\Vit_DAW\Export\staging\runtime is never written (journey-berth isolation
+    # contract; the first attempt without the markers only redirected the project XML via
+    # VIT_PROJECT_XML and the kernel still logged into the deployment Workspace -- recorded).
+    $KernelWorkspaceSub = Join-Path $KernelWorkspace "Workspace"
+    foreach ($dir in @($RunDir, $KernelWorkspace, $KernelWorkspaceSub,
+                       (Join-Path $KernelWorkspaceSub "Settings"),
+                       (Join-Path $KernelWorkspaceSub "Logs"),
+                       (Join-Path $KernelWorkspace "Source"))) {
         New-Item -ItemType Directory -Path $dir -Force | Out-Null
+    }
+    if (-not (Test-Path -LiteralPath (Join-Path $KernelWorkspace "CMakeLists.txt"))) {
+        New-Item -ItemType File -Path (Join-Path $KernelWorkspace "CMakeLists.txt") -Force | Out-Null
     }
     Write-Ok ("run dir: " + $RunDir)
 
@@ -144,8 +157,9 @@ try {
     Copy-Item -LiteralPath (Join-Path $RepoRoot "VitApp\Workspace\default_project.xml") `
               -Destination (Join-Path $RunDir "startup_default_project.xml") -Force
     if (Test-Path -LiteralPath $SettingsSource) {
+        $settingsTargetDir = Join-Path $KernelWorkspace "Workspace\Settings"
         Get-ChildItem -LiteralPath $SettingsSource -File | ForEach-Object {
-            Copy-Item -LiteralPath $_.FullName -Destination (Join-Path $KernelWorkspace "Settings" $_.Name) -Force
+            Copy-Item -LiteralPath $_.FullName -Destination (Join-Path $settingsTargetDir $_.Name) -Force
         }
         Write-Ok ("copied kernel Settings cache from " + $SettingsSource)
     }
@@ -187,7 +201,8 @@ try {
     if (-not (Test-Path -LiteralPath $diagScript)) { throw "diag script missing: $diagScript" }
     $summaryPath = Join-Path $RunDir "diag_summary.json"
     $consolePath = Join-Path $RunDir "diag_console.txt"
-    & $Python $diagScript --url "tcp://127.0.0.1:5555" --output $summaryPath 2>&1 | Tee-Object -FilePath $consolePath
+    $startupProject = Join-Path $RunDir "startup_default_project.xml"
+    & $Python -u $diagScript --url "tcp://127.0.0.1:5555" --output $summaryPath --startup-project $startupProject 2>&1 | Tee-Object -FilePath $consolePath
     $diagExit = $LASTEXITCODE
     Write-Ok ("diag exit code: " + $diagExit)
     if ($diagExit -ne 0) { $exitCode = 1 }

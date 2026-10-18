@@ -1,0 +1,658 @@
+{
+  "feature": "render_gain_diag",
+  "card": "KERNEL-RENDERGAIN-1",
+  "started_utc": "2026-10-18T05:56:30.708848+00:00",
+  "url": "tcp://127.0.0.1:5555",
+  "expected": {
+    "gain_pos_1_0": 1.9952623149688795,
+    "gain_pos_0db": 1.0,
+    "gain_pos_minus3db": 0.7079457843841379
+  },
+  "legs": [
+    {
+      "startup_project_file": "D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135628\\startup_default_project.xml",
+      "startup_project_master_volume_attr": "1.0",
+      "kernel_snapshot_master_volume_attr": null,
+      "master_track_db": [
+        [
+          "1006",
+          null
+        ]
+      ],
+      "audio_track_dbs": [
+        [
+          "1007",
+          0.0
+        ],
+        [
+          "1012",
+          0.0
+        ],
+        [
+          "1017",
+          0.0
+        ],
+        [
+          "1022",
+          0.0
+        ],
+        [
+          "1027",
+          0.0
+        ],
+        [
+          "1032",
+          0.0
+        ]
+      ],
+      "project_path": "",
+      "note": "kernel command face exposes no master-volume readback (snapshot_xml absent or without MASTERVOLUME); the loaded project file is the state source of truth.",
+      "leg": "E0_startup_state",
+      "pass": true
+    },
+    {
+      "ratio": 1.99518054,
+      "db": 5.999644,
+      "expected": 1.995262,
+      "leg": "E1_minimal_repro",
+      "pass": true
+    },
+    {
+      "ratio": 0.99995946,
+      "db": -0.000352,
+      "expected": 1.0,
+      "use_master_plugins": false,
+      "leg": "E2_master_plugins_off",
+      "pass": true
+    },
+    {
+      "16": {
+        "ratio": 1.995181,
+        "sampwidth": 2,
+        "format": "pcm"
+      },
+      "24": {
+        "ratio": 1.995121,
+        "sampwidth": 3,
+        "format": "pcm"
+      },
+      "32": {
+        "ratio": 1.995121,
+        "sampwidth": 4,
+        "format": "float32"
+      },
+      "leg": "E5_bitdepth_invariance",
+      "pass": true
+    },
+    {
+      "peak16": [
+        1.00003052,
+        1.00003052
+      ],
+      "peak24": [
+        1.00000012,
+        1.00000012
+      ],
+      "peak32_float": [
+        1.79566312,
+        1.79566312
+      ],
+      "formats": {
+        "16": "pcm",
+        "24": "pcm",
+        "32": "float32"
+      },
+      "note": "PCM 16/24 clamp at full scale; 32-bit float keeps the +6 dB over-unity value",
+      "leg": "E5_hot_source_clipping",
+      "pass": true
+    },
+    {
+      "0.05": {
+        "ratio": 1.994502
+      },
+      "0.1": {
+        "ratio": 1.994847
+      },
+      "0.25": {
+        "ratio": 1.995106
+      },
+      "leg": "E6_amplitude_linearity",
+      "pass": true
+    },
+    {
+      "E7_44k1": {
+        "ratio_L": 1.995025,
+        "peak": [
+          0.99765007,
+          0.99765007
+        ]
+      },
+      "E7_mono": {
+        "ratio_L": 1.995181,
+        "peak": [
+          0.99761956,
+          0.99761956
+        ]
+      },
+      "E7_left_only": {
+        "ratio_L": 1.995181,
+        "peak": [
+          0.99761956,
+          0.0
+        ]
+      },
+      "leg": "E7_rate_and_channels",
+      "pass": true
+    },
+    {
+      "pos_1.0": {
+        "ratio": 1.995181,
+        "db": 5.9996,
+        "master_attr": null
+      },
+      "pos_0db": {
+        "ratio": 0.999959,
+        "db": -0.0004,
+        "master_attr": null
+      },
+      "pos_minus3db": {
+        "ratio": 0.707918,
+        "db": -3.0003,
+        "master_attr": null
+      },
+      "absent": {
+        "ratio": 0.707918,
+        "db": -3.0003,
+        "master_attr": null
+      },
+      "attr_absent": {
+        "ratio": 0.999959,
+        "db": -0.0004,
+        "master_attr": null
+      },
+      "leg": "E3_project_state_mapping",
+      "pass": true
+    },
+    {
+      "ratio": 1.995181,
+      "db": 5.9996,
+      "master_attr": null,
+      "leg": "E4_new_project_template",
+      "pass": false
+    },
+    {
+      "master_track_volume_db": [
+        [
+          "1006",
+          null
+        ]
+      ],
+      "note": "master volume (Edit-level VolumeAndPanPlugin) is not reported on any track row; no master-volume command/UI surface exists in the kernel command face.",
+      "leg": "E8_readback_invisibility",
+      "pass": false
+    }
+  ],
+  "pass": false,
+  "sources": {
+    "sine440_48k_stereo_0.5.wav": {
+      "file": "sine440_48k_stereo_0.5.wav",
+      "rate": 48000,
+      "sampwidth": 2,
+      "format": "pcm",
+      "channels": 2,
+      "peak": [
+        0.49998474,
+        0.49998474
+      ],
+      "rms": [
+        0.35353906,
+        0.35353906
+      ],
+      "amp440": [
+        0.49997973,
+        0.49997973
+      ],
+      "bytes": 576044,
+      "sha256": "7a58cd5a6beeb532"
+    },
+    "sine440_44100_stereo_0.5.wav": {
+      "file": "sine440_44100_stereo_0.5.wav",
+      "rate": 44100,
+      "sampwidth": 2,
+      "format": "pcm",
+      "channels": 2,
+      "peak": [
+        0.49998474,
+        0.49998474
+      ],
+      "rms": [
+        0.35353969,
+        0.35353969
+      ],
+      "amp440": [
+        0.49998062,
+        0.49998062
+      ],
+      "bytes": 529244,
+      "sha256": "e98b7f3ed9f7888e"
+    },
+    "sine440_48k_mono_0.5.wav": {
+      "file": "sine440_48k_mono_0.5.wav",
+      "rate": 48000,
+      "sampwidth": 2,
+      "format": "pcm",
+      "channels": 1,
+      "peak": [
+        0.49998474
+      ],
+      "rms": [
+        0.35353906
+      ],
+      "amp440": [
+        0.49997973
+      ],
+      "bytes": 288044,
+      "sha256": "7f98295d8652a4b6"
+    },
+    "sine440_48k_left_0.5.wav": {
+      "file": "sine440_48k_left_0.5.wav",
+      "rate": 48000,
+      "sampwidth": 2,
+      "format": "pcm",
+      "channels": 2,
+      "peak": [
+        0.49998474,
+        0.0
+      ],
+      "rms": [
+        0.35353906,
+        0.0
+      ],
+      "amp440": [
+        0.49997973,
+        0.0
+      ],
+      "bytes": 576044,
+      "sha256": "ad6d198be562e456"
+    },
+    "sine440_48k_stereo_0.9.wav": {
+      "file": "sine440_48k_stereo_0.9.wav",
+      "rate": 48000,
+      "sampwidth": 2,
+      "format": "pcm",
+      "channels": 2,
+      "peak": [
+        0.89999084,
+        0.89999084
+      ],
+      "rms": [
+        0.63638171,
+        0.63638171
+      ],
+      "amp440": [
+        0.89997964,
+        0.89997964
+      ],
+      "bytes": 576044,
+      "sha256": "1957a85a2cebed45"
+    }
+  },
+  "fixtures": {
+    "pos_1.0": {
+      "path": "D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135628\\fixtures\\fixture_master_1.0.vit",
+      "sha256": "190bdd7daa2eed118ee9d8a706b03a0723ab8b32b05ae62deab6faa469974eb7"
+    },
+    "pos_0db": {
+      "path": "D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135628\\fixtures\\fixture_master_0db.vit",
+      "sha256": "e0e80bc33a15ecdb2234e438e53e0cc3ee15d1d8d0400582d0130e872e0ce38b"
+    },
+    "pos_minus3db": {
+      "path": "D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135628\\fixtures\\fixture_master_minus3db.vit",
+      "sha256": "239c47bc6a28952032f88406f2f675a554beccfb1bc1f2dc1182685bb2cb37a0"
+    },
+    "absent": {
+      "path": "D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135628\\fixtures\\fixture_master_absent.vit",
+      "sha256": "207b5815016336f332d796eff344e701537dd82a8fe265f5a787c96c5cf04ba1"
+    },
+    "attr_absent": {
+      "path": "D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135628\\fixtures\\fixture_master_attr_absent.vit",
+      "sha256": "dbbaf8d0059f9bb8c048b9c5adde2ce935273a2d988aa6038468d4ea7c086d58"
+    }
+  },
+  "E0_startup": {
+    "startup_project_file": "D:\\Vit_DAW_wt_rendergain1\\coord\\runs\\KERNEL-RENDERGAIN-1\\run_20261018_135628\\startup_default_project.xml",
+    "startup_project_master_volume_attr": "1.0",
+    "kernel_snapshot_master_volume_attr": null,
+    "master_track_db": [
+      [
+        "1006",
+        null
+      ]
+    ],
+    "audio_track_dbs": [
+      [
+        "1007",
+        0.0
+      ],
+      [
+        "1012",
+        0.0
+      ],
+      [
+        "1017",
+        0.0
+      ],
+      [
+        "1022",
+        0.0
+      ],
+      [
+        "1027",
+        0.0
+      ],
+      [
+        "1032",
+        0.0
+      ]
+    ],
+    "project_path": "",
+    "note": "kernel command face exposes no master-volume readback (snapshot_xml absent or without MASTERVOLUME); the loaded project file is the state source of truth."
+  },
+  "E1_minimal_repro": {
+    "stats": {
+      "file": "E1_baseline_16bit_master_on.wav",
+      "rate": 48000,
+      "sampwidth": 2,
+      "format": "pcm",
+      "channels": 2,
+      "peak": [
+        0.99761956,
+        0.99761956
+      ],
+      "rms": [
+        0.70540277,
+        0.70540277
+      ],
+      "amp440": [
+        0.99759027,
+        0.99759027
+      ],
+      "bytes": 576784,
+      "sha256": "7b3c68925e9b2d83",
+      "requested": {
+        "bit_depth": 16,
+        "use_master_plugins": true
+      },
+      "job_id": "201ac5e7bdb54db785c2a2e7a10f2ac5"
+    },
+    "ratio": 1.99518054,
+    "db": 5.999644005249162
+  },
+  "E2_master_off": {
+    "stats": {
+      "file": "E2_master_plugins_off.wav",
+      "rate": 48000,
+      "sampwidth": 2,
+      "format": "pcm",
+      "channels": 2,
+      "peak": [
+        0.49998474,
+        0.49998474
+      ],
+      "rms": [
+        0.35353902,
+        0.35353902
+      ],
+      "amp440": [
+        0.49997973,
+        0.49997973
+      ],
+      "bytes": 576784,
+      "sha256": "2de5290165bdcd55",
+      "requested": {
+        "bit_depth": 16,
+        "use_master_plugins": false
+      },
+      "job_id": "83f6d8de6bb74b60b259dc6d89d31ec1"
+    },
+    "ratio": 0.99995946,
+    "db": -0.00035213310371320444
+  },
+  "E5_bitdepth": {
+    "16": {
+      "stats": {
+        "file": "E5_bitdepth16.wav",
+        "rate": 48000,
+        "sampwidth": 2,
+        "format": "pcm",
+        "channels": 2,
+        "peak": [
+          0.99761956,
+          0.99761956
+        ],
+        "rms": [
+          0.70540277,
+          0.70540277
+        ],
+        "amp440": [
+          0.99759027,
+          0.99759027
+        ],
+        "bytes": 576784,
+        "sha256": "7af18b239183810e",
+        "requested": {
+          "bit_depth": 16,
+          "use_master_plugins": true
+        },
+        "job_id": "5df9f8704a8f4b4084a5853c3a4e9558"
+      },
+      "ratio": 1.99518054,
+      "db": 5.999644005249162
+    },
+    "24": {
+      "stats": {
+        "file": "E5_bitdepth24.wav",
+        "rate": 48000,
+        "sampwidth": 3,
+        "format": "pcm",
+        "channels": 2,
+        "peak": [
+          0.9975704,
+          0.9975704
+        ],
+        "rms": [
+          0.70538164,
+          0.70538164
+        ],
+        "amp440": [
+          0.99756039,
+          0.99756039
+        ],
+        "bytes": 864784,
+        "sha256": "8efef945782a8f61",
+        "requested": {
+          "bit_depth": 24,
+          "use_master_plugins": true
+        },
+        "job_id": "d02e8e39579b4aa588461eeee1b4289f"
+      },
+      "ratio": 1.99512078,
+      "db": 5.999383840052008
+    },
+    "32": {
+      "stats": {
+        "file": "E5_bitdepth32.wav",
+        "rate": 48000,
+        "sampwidth": 4,
+        "format": "float32",
+        "channels": 2,
+        "peak": [
+          0.99757028,
+          0.99757028
+        ],
+        "rms": [
+          0.70538157,
+          0.70538157
+        ],
+        "amp440": [
+          0.9975603,
+          0.9975603
+        ],
+        "bytes": 1152784,
+        "sha256": "ea91025bc766b55b",
+        "requested": {
+          "bit_depth": 32,
+          "use_master_plugins": true
+        },
+        "job_id": "6d0c17651af7436e92a0b41e15f30ba8"
+      },
+      "ratio": 1.9951206,
+      "db": 5.9993830564101245
+    }
+  },
+  "E5_hot_clip": {
+    "source_amp": 0.9,
+    "expected_linear_peak": 1.7957360834719915,
+    "peak_16": [
+      1.00003052,
+      1.00003052
+    ],
+    "peak_24": [
+      1.00000012,
+      1.00000012
+    ],
+    "peak_32_float": [
+      1.79566312,
+      1.79566312
+    ],
+    "amp16": [
+      1.20397954,
+      1.20397954
+    ],
+    "amp32_float": [
+      1.79564073,
+      1.79564073
+    ],
+    "formats": {
+      "16": "pcm",
+      "24": "pcm",
+      "32": "float32"
+    }
+  },
+  "E6_amplitude_sweep": {
+    "0.05": {
+      "ratio": 1.9945024,
+      "db": 5.996691264720923,
+      "peak": 0.09976501
+    },
+    "0.1": {
+      "ratio": 1.9948472,
+      "db": 5.998192709846043,
+      "peak": 0.1994995
+    },
+    "0.25": {
+      "ratio": 1.99510616,
+      "db": 5.999320190686487,
+      "peak": 0.49879452
+    }
+  },
+  "E7_rate_channel": {
+    "E7_44k1": {
+      "ratio_L": 1.99502466,
+      "db": 5.998965365224597,
+      "peak": [
+        0.99765007,
+        0.99765007
+      ],
+      "amp440": [
+        0.99751233,
+        0.99751233
+      ]
+    },
+    "E7_mono": {
+      "ratio_L": 1.99518054,
+      "db": 5.999644005249162,
+      "peak": [
+        0.99761956,
+        0.99761956
+      ],
+      "amp440": [
+        0.99759027,
+        0.99759027
+      ]
+    },
+    "E7_left_only": {
+      "ratio_L": 1.99518054,
+      "db": 5.999644005249162,
+      "peak": [
+        0.99761956,
+        0.0
+      ],
+      "amp440": [
+        0.99759027,
+        0.0
+      ]
+    }
+  },
+  "E3_fixture_mapping": {
+    "measured": {
+      "pos_1.0": {
+        "ratio": 1.99518054,
+        "db": 5.999644005249162,
+        "master_volume_attr": null,
+        "fixture_volume_attr": "1.0",
+        "peak": 0.99761956
+      },
+      "pos_0db": {
+        "ratio": 0.99995946,
+        "db": -0.00035213310371320444,
+        "master_volume_attr": null,
+        "fixture_volume_attr": "0.7408182206817179",
+        "peak": 0.49998474
+      },
+      "pos_minus3db": {
+        "ratio": 0.70791812,
+        "db": -3.0003394249783666,
+        "master_volume_attr": null,
+        "fixture_volume_attr": "0.6376281516217733",
+        "peak": 0.35398419
+      },
+      "absent": {
+        "ratio": 0.70791812,
+        "db": -3.0003394249783666,
+        "master_volume_attr": null,
+        "fixture_volume_attr": null,
+        "peak": 0.35398419
+      },
+      "attr_absent": {
+        "ratio": 0.99995946,
+        "db": -0.00035213310371320444,
+        "master_volume_attr": null,
+        "fixture_volume_attr": "<absent_attr>",
+        "peak": 0.49998474
+      }
+    },
+    "expected": {
+      "pos_1.0": 1.9952623149688795,
+      "pos_0db": 1.0,
+      "pos_minus3db": 0.7079457843841379,
+      "absent": 0.7079457843841379,
+      "attr_absent": 1.0
+    }
+  },
+  "E4_new_project": {
+    "ratio": 1.99518054,
+    "db": 5.999644005249162,
+    "master_volume_attr": null
+  },
+  "E8_readback_invisibility": {
+    "master_track_volume_db": [
+      [
+        "1006",
+        null
+      ]
+    ],
+    "note": "master volume (Edit-level VolumeAndPanPlugin) is not reported on any track row; no master-volume command/UI surface exists in the kernel command face."
+  },
+  "finished_utc": "2026-10-18T05:56:53.117814+00:00"
+}

@@ -1,0 +1,12 @@
+﻿{
+    "started":  "2026-10-18T13:57:10.6253522+08:00",
+    "repo_root":  "D:\\Vit_DAW_wt_rendergain1",
+    "kernel_exe":  "D:\\Vit_DAW\\Export\\staging\\runtime\\VitApp.exe",
+    "kernel_sha256":  "B6565DCF85D1DA867E16333052A7B928A5413565940603ADBCF4ABD59DD3123B",
+    "worktree_head":  "f2038da94ee18681eea19a08cf5413a360ee95f3",
+    "worktree_status_short":  " M coord/runs/KERNEL-RENDERGAIN-1/render_gain_diag.py\r\n M coord/runs/KERNEL-RENDERGAIN-1/run_render_gain_diag.ps1\r\n?? coord/runs/KERNEL-RENDERGAIN-1/run_20261018_135443/\r\n?? coord/runs/KERNEL-RENDERGAIN-1/run_20261018_135453/\r\n?? coord/runs/KERNEL-RENDERGAIN-1/run_20261018_135628/\r\n?? coord/runs/KERNEL-RENDERGAIN-1/run_20261018_135710/\r\n",
+    "python":  "python",
+    "machine":  "ZTY",
+    "stack_ports":  "5555,5556,5557,7878,8787,4445",
+    "out_of_scope_godot_editor_pids":  "17188"
+}
