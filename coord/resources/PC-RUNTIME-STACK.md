@@ -3,7 +3,11 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
-- 2026-10-18 21:14:22 起占用 / **KERNEL-L3-TIMEENERGY-1(126) 真栈验证腿**（owner=GLM-5.3 L2 PC ZCode 执行会话，本卡会话；worktree D:/Vit_DAW_wt_klte1，分支 port/kernel-l3-timeenergy-1@484a11cc；kernel+agent berth，不启 UI）：被测 kernel=本卡构建 `VitApp/build-klte1/VitApp_artefacts/Release/VitApp.exe`（含 publishTimeEnergy 改动，构建 exit 0）+本分支构建 agent。21:14 预检四端口（7878/5555/5556/8787）监听=0、四类进程（VitApp/VitAgent/vsphub/godot）=0；GO=用户 2026-10-18 任务领取口令（明示真栈 run 登记占用）+卡面验收标准②；脚本=scripts/kernel_l3_timeenergy_verify.ps1（同构 m2 场景，§8 零 LLM），finally 自拆栈。与 GEN-SUNO-WEB-DESIGN-1（纯勘察无栈需求）无冲突。
+（无——空闲；**用户目检优先**，执行流未获 Lead 放行不得占栈）
+
+## 最近一次释放（2026-10-18 21:29 +0800）
+
+- 2026-10-18 21:15:44–21:29 / **KERNEL-L3-TIMEENERGY-1(126) 真栈验证腿**（owner=GLM-5.3 L2 PC ZCode 执行会话；worktree D:/Vit_DAW_wt_klte1，分支 port/kernel-l3-timeenergy-1@484a11cc+bb6d59fc；kernel+agent berth，不启 UI；占用登记 bffd0224，GO=用户任务领取口令+卡面验收②）：run=**klte1_20261018_211544**，脚本 exit **0**（verdict=**timeenergy_verify_pass**，§8 零 LLM 全确定性）。被测 kernel=本卡构建 build-klte1/VitApp_artefacts/Release/VitApp.exe（含 publishTimeEnergy）+本分支构建 agent（dev_agent_smoke 自建）。断言九门全绿：①面 l3_feature_log 恰 24 行=6 轨×4 族（18 条基线零回退+6 条 time_energy 增量在卷；行结构 status=ready/method=time_domain_frame_rms_envelope_v1/window_ms=92.88/segments=216 无截断）；②面 time_dynamics=partial-with-evidence+身份=目标轨 1017+audit receipt=executed+time_energy rows=4（①a 绑定零回退）；stems 源前后哈希一致（只读完好）。21:29 拆栈=脚本 finally 自拆（VitApp/VitAgent 只杀自起 pid）+owner 独立复核四端口（7878/5555/5556/8787）监听=0、四类栈进程=0。工件 coord/runs/KERNEL-L3-TIMEENERGY-1/klte1_20261018_211544/（随 bb6d59fc@port 分支入库）。
 
 ## 最近一次释放（2026-10-18 19:27 +0800）
 
