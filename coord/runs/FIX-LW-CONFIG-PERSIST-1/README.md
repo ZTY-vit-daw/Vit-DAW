@@ -39,7 +39,7 @@ after deferred sync: enabled=false, want true   (explicit_on_over_stale_off)
 
 ```
 cd agent
-go build ./...                    # exit 0（evidence/go_build.log）
+go build ./...                    # exit 0（evidence/go_build_exit.txt + test_summary.txt）
 go test ./... -count=1            # 95 包 0 FAIL，exit 0（evidence/go_test_all.log）
 go test ./internal/chat -run 'TestLoudnessWatchExplicit' -v
   修复前：FAIL（evidence/pre_fix_failure.txt）
@@ -106,7 +106,7 @@ D1 摘要（`evidence/run2_20261018_124639_d1_report_summary.json`）：status=p
 ## 6. 证据清单（本目录）
 
 - `pre_fix_failure.txt` / `post_fix_pass.txt`：新回归修复前失败签名 / 修复后通过。
-- `go_build.log` / `go_test_all.log`：全量 build/test 结果（95 包 0 FAIL）。
+- `go_build_exit.txt` / `go_test_all.log` / `test_summary.txt`：全量 build/test 结果（95 包 0 FAIL，exit 0）。
 - `preflight.txt`：启栈前四端口+19876/四类进程=0 + 被测 SHA。
 - `run1_20261018_124040_*`：fail summary、loop state（budget exhausted/rounds materiality 缺席）、agent log 摘录、console、binary face、teardown。
 - `run2_20261018_124639_*`：gates.json、E1、verdicts、configure(+off)、binary face、runner log、d1/loop summary、agent log 摘录、console、teardown。
