@@ -24,6 +24,14 @@
 - **探针/电池**：Phase C **319 钉**（R1 167 全保留；新增 152：6 spawnable 视图 × 2/3/4 位最窄槽宽真实装配 ViewportFrame 的 ①clip 链 ②root⊆content rect(1px)+root 尺寸钳制 ③content 不宽于槽 ④mixer toolbar 滚动/group 自动收起/宽槽恢复/strips 滚动条；另含 R2 静态契约 8 钉）；Phase B 119 / Phase A 69 / vitnote 六 / FE-RACK 76 全 exit 0；红线 9 文件零命中。工件=`20261018_143854/`。
 - **视觉证据**（同 R1 窗口态离屏诊断边界）：`20261018_143854/r2_visual_evidence/` 两图=双窗 mixer 内容被窗格边界裁住（无相邻窗溢出）/ 四窗 mixer 同；窗口态实测 root=`content rect`（1:1 尺寸钳制，clip=true）。
 
+## MIXER-LIVE-REFRESH-1（2026-10-18 用户 R2 复测后新增 P1，池序 141 / task-10）
+
+- 现象：**新建轨道后 mixer 不出新通道条/推子不刷新**（同期 kernel/agent/vsp hub 在场，非未连）。
+- 事件链断点：`vit_dock_root.gd` 的 IPC 完成回拉白名单缺轨道结构命令（add_track/delete_track/folder_track.*）；`ProjectEventHub` 无轨道集合变更信号；mixer 仅订阅 project_loaded + track.group.*；GUI 外部（agent）建删轨道无命令完成事件。
+- 修复：root 增 `TRACK_STRUCTURE_COMMANDS` 白名单 + `is_track_structure_command()`，结构命令完成即回拉快照并广播 project_loaded（mixer `_on_project_loaded → _rebuild_strips`）；mixer 增实时电平事件流轨道集合变化检测 → 500ms 节流合并的结构重同步（覆盖 agent/外部建删轨道）+ standalone IPC 兜底；新增 `mixer_state()` 探针面。无全量轮询、保留虚拟化/滚动/组/预设。
+- 探针：Phase C **342 钉**（新增 23：静态契约 8 + 真实装配 mixer 经 project_loaded 链注入 2 轨/加轨/改名/删轨的 strips/推子/命名/颜色断言 + 实时事件流检测调度 + predicate）。电池/工件见 [`../MIXER-LIVE-REFRESH-1/`](../MIXER-LIVE-REFRESH-1/README.md)。
+- main 同源核对：主检出 Phase A（c56e38f）同样缺该白名单/事件链 → 缺陷同源，修复随 C 分支由 FE-GUI-MAINLINE-1 带入 main。
+
 ## 落地面（Phase C）
 
 - **浮卡**：抽屉 chip 点击 / F2 面板台后卡「⊞ 浮窗」→ Dock 内浮卡实例化（可拖拽 Control 卡、卡体=实时视图实例 `vp_float_<n>_<view>`）；动作后抽屉/面板自动收起；同视图重复打开=聚焦既有项（多开=不同视图各一份，V11 原型 openFloats 语义）。
@@ -38,6 +46,7 @@
 | `20261018_120623/` | Phase C 首版探针电池一次性全量日志（godot_import 预热 + **Phase C 129 钉** + Phase B 119 钉 + Phase A 69 钉 + vitnote 六探针 + FE-RACK 76 钉，全部 exit 0；红线门通过行在电池 stdout） |
 | `20261018_141711/` | 92-R1 返工探针电池全量日志（**Phase C 167 钉** + Phase B 119 + Phase A 69 + vitnote 六 + FE-RACK 76，全 exit 0）+ `visual_evidence/` 三张返工视觉证据（抽屉/F2 面板/浮卡窗口态离屏渲染） |
 | `20261018_143854/` | 92-R2 返工探针电池全量日志（**Phase C 319 钉** + Phase B 119 + Phase A 69 + vitnote 六 + FE-RACK 76，全 exit 0）+ `r2_visual_evidence/` 两图（双窗/四窗 mixer 内容被窗格裁剪，无相邻窗溢出） |
+| `20261018_145205/` | MIXER-LIVE-REFRESH-1 探针电池全量日志（**Phase C 342 钉** = R2 319 + 轨道结构事件链 23 钉；Phase B 119 + Phase A 69 + vitnote 六 + FE-RACK 76，全 exit 0）；本卡索引见 [`../MIXER-LIVE-REFRESH-1/`](../MIXER-LIVE-REFRESH-1/README.md) |
 | `dev_agent_smoke_20261018_123056/` | 真栈三件套腿（见下节）：`console_stdout.log`（SMOKE_EXIT=0 + mix.observe 活证）+ `agent_last.log` + `agent_llm_telemetry.jsonl`（6 调用 0 错误）+ `MaterializeMetrics.log` + `godot_windowed_boot.log`（补充窗口态启动：start_page VSP Hub/Agent tools ready）+ `VitHeadlessServer2026-10-18_12-30-58.log`（内核日志，504KB）+ `run_meta.txt`（命令/头/SHA256/拆栈证据） |
 
 ## 真栈三件套腿（2026-10-18 12:30–12:35 +0800）
