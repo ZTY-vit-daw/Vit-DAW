@@ -5,13 +5,10 @@
 
 ## 当前占用
 
-（无——空闲；**用户 92 手测优先**，执行流未获 Lead 放行不得占栈）
+- 2026-10-18 14:32 +0800 登记 / **FE-START-EMPTY-DRAFT-1(118) 真栈复验腿**（owner=DSH PC 执行流 exec-start-draft；worktree D:/Vit_DAW_wt_fedraft1，分支 port/fe-start-empty-draft-1@1dcb20f8；被测 agent=本分支构建（记录 SHA256）+主检出 stock 内核 SHA256=B6565DCF…）：`dev_agent_smoke.ps1 -RepoRoot <fedraft worktree> -StartKernel -RestartAgent -KernelExe D:\Vit_DAW\Export\staging\runtime\VitApp.exe` 体系（不启 Godot UI），经 `/agent/invoke` 触发前端同款 `version.project_new` 生命周期通知 + 既有工程 project.open；**agent 以隔离 draft 根环境启动（VIT_HISTORY_DRAFT_ROOT=<run 目录>）**，不动用户真实 `C:\Users\timoz\AppData\Local\Vit\ProjectHistory\drafts\`。断言=新建后 draft 根只新增 1 个目录/旧 uuid 不泄漏/既有工程 open 不落空壳。§8：LLM=0；成功=脚本 exit 0+断言全过；失败分类=environment_interrupt/assertion_fail/script_exception；止损=同签名 assertion_fail×2。登记前只读核对（14:32）：四端口/进程=0（用户 92 手测已结束、栈归零）。窗口 14:32–15:00；执行流启栈前须再次亲核，跑完拆净复核=0。
+- 排队（不占用）：**FIX-MASTERVOL-CALIBRATION-1(134) 真栈验证腿**（owner=DSH PC 执行流 exec-mastervol；worktree D:/Vit_DAW_wt_mastervol1，分支 port/fix-mastervol-calibration-1）：模板修正+构建/单测不占栈；kernel 真栈腿待本腿释放+构建完成后由 Lead 登记。**MEM-SCHEMA-1(135)** 纯文档、零真栈。
 
-排队（不占用）：
-- 2026-10-18 14:03 +0800 排队 / **FE-START-EMPTY-DRAFT-1(118) 验证腿**（owner=DSH PC 执行流 exec-start-draft；worktree D:/Vit_DAW_wt_fedraft1，分支 port/fe-start-empty-draft-1）：归因腿先行不占栈；如需真栈/UI 验证，等待用户 92 手测后由 Lead 登记占用。
-- 2026-10-18 14:03 +0800 排队 / **FIX-MASTERVOL-CALIBRATION-1(134) 真栈验证腿**（owner=DSH PC 执行流 exec-mastervol；worktree D:/Vit_DAW_wt_mastervol1，分支 port/fix-mastervol-calibration-1）：模板修正+构建/单测不占栈；kernel 真栈验证腿等待用户 92 手测后由 Lead 登记占用（`dev_agent_smoke -StartKernel` 体系）。
-- 2026-10-18 14:03 +0800 / **MEM-SCHEMA-1(135)**：纯文档域、零真栈，不排队不占栈。
-
+## 最近一次释放（2026-10-18 14:05 +0800）
 ## 最近一次释放（2026-10-18 14:05 +0800）
 
 - 2026-10-18 13:56–14:05 / **KERNEL-RENDERGAIN-1(132) 内核栈腿（kernel-only berth）**（owner=DSH PC 执行流 exec-rendergain；worktree D:/Vit_DAW_wt_rendergain1，分支 port/kernel-rendergain-1@e3b4ac32）：run=**run_20261018_135710**，脚本 exit **0**（10/10 腿 PASS，容差内）。结论=注入点**工程 master volume 节点**（Edit 级 VolumeAndPanPlugin 状态=fader 位置 1.0；pin 引擎 volumeFaderPositionToDB(1.0)=+6.000000dB，0.7408182=0dB、0.6376282=-3dB）——非 Renderer/写入器/归一化、非故意 headroom；缺陷=三处模板 volume="1.0" 陈旧值（VitPaths.h:25-29/73-77 + 仓库 default_project.xml:14-18；与 gen_vit_project.py 的 -3dB 期望不一致）。真栈证据：E2 use_master_plugins A/B 1.995181 vs 0.999959；E3 五份 MASTERVOLUME fixture 映射 1.995181/0.999959/0.707918/0.707918/0.999959 与 fader 换算精确对应；E4 new_project +6；E5 16/24/32bit 恒定且 16/24bit 削波 clamp、32bit float 1.79566 不 clamp；E6 幅度扫描/44.1k/mono/左独占逐声道一致；E8 list_tracks master volume_db=null+无 master 命令=用户不可见。被测 stock 内核 SHA256=B6565DCF…（只读）。拆栈=只杀自起 pid 22544；14:05 复核六端口（5555/5556/5557/7878/8787/4445）=0、四类进程（含 Godot 变体）=0；用户 Godot 编辑器 pid 17188 全程未碰。偏差如实登记：首轮非隔离尝试（run_135453）内核按 exe 目录解析 Workspace，向 `D:\Vit_DAW\Export\staging\runtime\Workspace\Logs\` 写/追加 4 个运行时日志（baker_diag/l3_acoustic_analyzer_diag/waveform_envelope_baker_diag/VitHeadlessServer_13-54-54；非源码、非其它卡工件；13:56 后改 run-dir 隔离并复验部署目录零写入；日志保留未删作证）；主检出未提交改动 default_project.xml/Settings.xml 为既存运行时状态（非本腿）。工件：coord/runs/KERNEL-RENDERGAIN-1/（RESULTS.md/ARCHAEOLOGY.md/RUNBOOK.md + run_20261018_135710/），重件留盘 worktree。裁定=BATCH3 §一（取证 pass + 升级 P1 候选 + 修复卡 FIX-MASTERVOL-CALIBRATION-1 池序 134 已派发）。## 最近一次释放（2026-10-18 12:53 +0800）
