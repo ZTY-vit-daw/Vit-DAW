@@ -1,0 +1,11 @@
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+D3D12 12_0 - Forward+ - Using Device #0: NVIDIA - NVIDIA GeForce RTX 4070
+
+SCRIPT ERROR: Parse Error: Identifier "VitWaveformReader" not declared in the current scope.
+   at: GDScript::reload (res://app/kernel/autoloads/telemetry_manager.gd:171)
+ERROR: Failed to load script "res://app/kernel/autoloads/telemetry_manager.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript.cpp:2907)
+ERROR: Failed to instantiate an autoload, script 'res://app/kernel/autoloads/telemetry_manager.gd' does not inherit from 'Node'.
+   at: start (main/main.cpp:4407)
+WARNING: ObjectDB instances leaked at exit (run with --verbose for details).
+   at: cleanup (core/object/object.cpp:2641)
