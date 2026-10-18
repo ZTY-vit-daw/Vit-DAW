@@ -1,8 +1,17 @@
 # FE-GUI-C-FLOATING（卡 92）工件索引
 
 - 领取：2026-10-18 12:0x +0800 / 主仓 origin/main=a71b54bb / owner=DSH PC 执行流 exec-fe-gui-c（本机 DSH 团队会话）/ 前端仓分支 **port/fe-gui-shrink-c-floating**（自 1c61482 建）/ 前端仓 worktree **D:/Godot/project/vit-daw-frontend-fe-gui-c** / 主仓探针分支 **port/fe-gui-shrink-c-probe-1**（自 origin/main a71b54bb 建）/ 主仓探针 worktree **D:/Vit_DAW_wt_feguic_probe**
-- 前端仓实现 commit：**4b8bb9c**（port/fe-gui-shrink-c-floating 已推 origin；4 改 + 4 新增产品脚本 + 4 .uid + C 探针，vit_dock/ 域 + tools/，红线 9 文件零触碰）
+- 前端仓实现 commit：**4b8bb9c**（Phase C 首版）→ **f6abe20**（92-R1 手测返工；9 文件 +746/−43：ui_motion.gd 新增 + 抽屉/面板/浮卡/真窗/管理器/root/C 探针；port/fe-gui-shrink-c-floating 均已推 origin；vit_dock/ 域 + tools/，红线 9 文件零触碰）
 - 主仓脚本：`scripts/run_fe_gui_shrink_phase_c_probe.ps1`（Phase B wrapper 模式：Godot import 预热 + 红线 git 门 924318d..worktree 9 文件零命中 + 十探针电池）
+
+## 92-R1 手测返工（2026-10-18 午窗用户实机反馈 3 项）
+
+1. **抽屉被台前视窗遮挡**（根因）：台前视图内部元素带 z_index（实测轨行 10/20、MIDI 层 3/88、卷帘 lasso 50/100、机架菜单 4096），CanvasItem 按有效 z 全局排序——z=0 的抽屉被这些元素越过。修复=`view_drawer_bar.gd` OVERLAY_Z=300（root 装配时 set_overlay_z 显式设置），抽屉浮于全部台前窗格之上；`StageSlotGrid`/帧结构零改动（不删窗格、不降级）。
+2. **F2 面板贴屏幕上缘/被走带栏遮挡**：修复=`stage_switch_panel.gd` 顶层 overlay——z_index=4096（=APP_CHROME_Z_INDEX；同 z 时按树序 root 面板在 TopLevelShell 之后=盖住走带栏与台前内容）、row 顶部 offset=header+transport 实际高度+12px（root `_sync_stage_overlay_metrics` 在布局后/窗口 resize 时按真实 chrome 高度同步）、左列包 ScrollContainer（小窗口可滚动不越屏）。
+3. **无 UI 动效**：新增 `vit_dock/core/ui_motion.gd`（时长 0.12/0.16/0.20s∈[120,220]ms、cubic ease-in/out、headless 禁用=探针确定性）；抽屉 slide+fade、F2 面板 backdrop+内容淡入+上移、浮卡出现/吸回/关闭/浮出 scale+fade、真窗口内容淡入、台前位推上（新帧淡入+0.97→1）/拉下（存活帧回稳）。全部可中断幂等（先 kill 旧 tween 再重建；连点只留终态）。
+
+- 92-R1 探针/电池：**Phase C 167 钉**（原 129 钉全保留 + 新增 38：层级 7 / 顶部定位 5 / 动效策略与幂等 22 / 浮卡落位等）；Phase B 119 / Phase A 69 / vitnote 六 / FE-RACK 76 全 exit 0；红线 9 文件零命中。工件=`20261018_141711/`。
+- 92-R1 视觉证据（本机窗口态离屏渲染诊断，非真栈；未占栈端口、VIT_SKIP_DEV_AUTOSTART=1、音频 Dummy）：`20261018_141711/visual_evidence/` 三图=抽屉完整浮于台前窗格之上 / F2 面板让出 chrome 且盖住台前内容 / 浮卡落于台前主区。窗口态实测动效在场（drawer mid alpha=0.899→1.0、panel mid row_alpha=0.16/offset 257.6→终态 266/1.0）。
 
 ## 落地面（Phase C）
 
@@ -15,7 +24,8 @@
 
 | 目录/文件 | 内容 |
 |---|---|
-| `20261018_120623/` | 探针电池一次性全量日志（godot_import 预热 + **Phase C 129 钉** + Phase B 119 钉 + Phase A 69 钉 + vitnote 六探针 + FE-RACK 76 钉，全部 exit 0；红线门通过行在电池 stdout） |
+| `20261018_120623/` | Phase C 首版探针电池一次性全量日志（godot_import 预热 + **Phase C 129 钉** + Phase B 119 钉 + Phase A 69 钉 + vitnote 六探针 + FE-RACK 76 钉，全部 exit 0；红线门通过行在电池 stdout） |
+| `20261018_141711/` | 92-R1 返工探针电池全量日志（**Phase C 167 钉** + Phase B 119 + Phase A 69 + vitnote 六 + FE-RACK 76，全 exit 0）+ `visual_evidence/` 三张返工视觉证据（抽屉/F2 面板/浮卡窗口态离屏渲染） |
 | `dev_agent_smoke_20261018_123056/` | 真栈三件套腿（见下节）：`console_stdout.log`（SMOKE_EXIT=0 + mix.observe 活证）+ `agent_last.log` + `agent_llm_telemetry.jsonl`（6 调用 0 错误）+ `MaterializeMetrics.log` + `godot_windowed_boot.log`（补充窗口态启动：start_page VSP Hub/Agent tools ready）+ `VitHeadlessServer2026-10-18_12-30-58.log`（内核日志，504KB）+ `run_meta.txt`（命令/头/SHA256/拆栈证据） |
 
 ## 真栈三件套腿（2026-10-18 12:30–12:35 +0800）
