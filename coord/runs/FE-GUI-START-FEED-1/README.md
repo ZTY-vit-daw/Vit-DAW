@@ -1,5 +1,17 @@
 # FE-GUI-START-FEED-1 R2 工件索引（task-15 / 用户手测 6 条返工）
 
+## R2.1 返工（Lead R2 预检驳回 #3 居中/缩放 → 已修，commit **bb30af1**）
+
+- **缺陷根因**：卡在未父化时用 `PRESET_CENTER`，偏移按自身尺寸计算成 0 → 加入满视口宿主后矩形从视口中心向右下展开（1920 下视觉中心偏移、竖屏右下裁切）；翻转动画又把 scale 回写为 1.0。
+- **修复**：`_apply_responsive_layout` 显式布局——anchors=top-left、size=560×340、pivot=卡中心、position=(viewport-CARD_SIZE)/2（pivot=中心时缩放后卡中心=视口中心）；翻转动画保持响应式 scale 目标；空白磁带卡同法居中。索引标签移至左下安全区（左 0–52%）、状态标签移至右下（锚定/右对齐/clip）→ 不再重叠。
+- **探针新增 16 钉**（共 **186 钉 PASS**）：1920×1080 / 1366×768 / 900×1600（含 resize 重排）三尺寸下 `_cards_host` 满视口、卡视觉中心==视口中心 ±1px、卡 rect 全在视口内（安全边距≥8px）、缩放尺寸在界内、索引/状态矩形不相交。
+- **视觉证据重拍**（`visual_evidence/`，截图含红色视口中心十字+青色卡视觉矩形+顶部量测文字）：`r2_display_1920x1080.png`、`r2_list_1920x1080.png`、`r2_new_tape_overlay_1920x1080.png`、`r2_display_1366x768.png`、`r2_display_900x1600.png`、`r2_list_900x1600.png`；shot 日志实测三尺寸 `delta=(0.00,0.00)`（`visual_evidence/shot_console_r2fix.log`）。
+- **列表页整理**：页头「全部工程」+计数/操作提示；网格列数按最大 tile 宽推导（2–6）+ tile 横向撑满（96px 磁带 icon、200px 最小高）→ 不再是左上单行孤岛。
+- **回归电池**（`regression_battery_r2fix/`）：Phase C 342 / B 119 / A 69 / vitnote 六 / rack 109 全 exit 0；红线门 47 变更文件、9 红线零命中。
+- 前端修复 commit **bb30af1**（port/fe-start-feed-r2-1，已推）；探针工件 commit **a57a5a40**。
+
+## 初版 R2（244946d）内容
+
 - owner=DSH PC 执行流 exec-fe-gui-c；前端仓 worktree `D:/Godot/project/vit-daw-frontend-startfeed-r2`，分支 **port/fe-start-feed-r2-1**，自 frontend main=3ab4dfd；**未 push main**、未动用户主检出。
 - 实现 commit：**244946d**（4 文件 +775/−361：start_feed_view.gd / start_page.gd / start_page.tscn / tools/probe_start_feed_view.gd）。
 - 全程未占真栈（headless 探针 + 窗口态离屏诊断）；无栈端口占用，窗口进程用完退出。
