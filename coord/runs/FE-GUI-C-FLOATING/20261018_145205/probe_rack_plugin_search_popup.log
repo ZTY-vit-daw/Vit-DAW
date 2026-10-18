@@ -1,0 +1,92 @@
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: GDExtension dynamic library not found: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: open_library (core/extension/gdextension.cpp:740)
+ERROR: Error loading extension: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: load_extensions (core/extension/gdextension_manager.cpp:329)
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+[probe] FE-RACK-CTX-PLUGIN-LOAD-1 rack plugin search popup suite start
+[probe] PASS static popup has filter_plugins/2 args
+[probe] PASS static popup has plugin_drop_payload/1 args
+[probe] PASS static popup has open_at/3 args
+[probe] PASS static popup has close_popup/0 args
+[probe] PASS static popup has set_footer_text/1 args
+[probe] PASS static popup has apply_query/1 args
+[probe] PASS static popup has visible_count/0 args
+[probe] PASS static popup signal plugin_selected
+[probe] PASS static rack hook has _build_plugin_search_popup/0 args
+[probe] PASS static rack hook has _hide_plugin_search_popup/0 args
+[probe] PASS static rack hook has _open_plugin_search_popup/1 args
+[probe] PASS static rack hook has _plugin_entries_for_search_popup/0 args
+[probe] PASS static rack hook has _plugin_popup_target_track_text/0 args
+[probe] PASS static rack hook has _on_plugin_search_selected/1 args
+[probe] PASS filter empty query keeps all
+[probe] PASS filter empty query natural name order
+[probe] PASS filter prefix tier only name-prefix hits
+[probe] PASS filter token AND narrows to Pro-Q 3
+[probe] PASS filter manufacturer substring hits sorted natural
+[probe] PASS filter case-insensitive
+[probe] PASS filter format field hit
+[probe] PASS filter drops non-dictionary entries
+[probe] PASS filter zero hit empty array
+[probe] PASS filter instrument prefix hit
+[probe] PASS payload key type
+[probe] PASS payload key file_name
+[probe] PASS payload key file_path
+[probe] PASS payload key plugin_name
+[probe] PASS payload key plugin_identifier
+[probe] PASS payload key manufacturer
+[probe] PASS payload key category
+[probe] PASS payload key format
+[probe] PASS payload key is_instrument
+[probe] PASS payload key media_kind
+[probe] PASS payload key count == library drag contract
+[probe] PASS payload path fallback
+[probe] PASS payload name fallback descriptive_name
+[probe] PASS payload name fallback file from identifier
+[probe] PASS scene popup built as child
+[probe] PASS scene empty-area right click opens popup
+[probe] PASS scene popup lists all fixture entries
+[probe] PASS scene popup footer shows target track
+[probe] PASS scene node context menu not opened by empty-area click
+[probe] PASS scene popup filtered to 3 fabfilter
+[probe] PASS scene popup first row is natural-first substring hit
+[probe] PASS scene popup token AND narrows to 1
+[probe] PASS scene popup zero-hit shows empty row
+[probe] PASS scene popup empty row text
+[probe] PASS scene selection clamps to last
+[rack.drop] selected_scene_track_id= bound_scene_track_id= kernel_track_id=t_probe plugin_path=C:/CLAP/Auburn/Graillon 3.clap plugin_identifier=auburn.graillon-3
+[probe] PASS scene confirm closes popup
+[probe] PASS scene confirm issued exactly one command
+[probe] PASS scene cmd is rack_add_node
+[probe] PASS scene cmd track from main controller
+[probe] PASS scene cmd plugin identifier
+[probe] PASS scene cmd plugin path
+[probe] PASS scene cmd auto_connect true
+[probe] PASS scene cmd zone non-empty
+[probe] PASS scene cmd finite position
+[probe] PASS scene reopen visible
+[probe] PASS scene escape closes popup
+[probe] PASS scene keyboard move down selects index 1
+[probe] PASS scene keyboard move clamps to 0
+[probe] PASS regression node right click opens node menu
+[probe] PASS regression node right click does not open plugin popup
+[probe] PASS regression right-drag does not open plugin popup
+[probe] PASS regression right-drag does not open node menu
+[probe] PASS regression can_drop plugin identifier
+[probe] PASS regression can_drop plugin vst3 path
+[probe] PASS regression can_drop rejects non-plugin
+[probe] PASS regression can_drop rejects other extension
+[rack.drop] selected_scene_track_id= bound_scene_track_id= kernel_track_id=t_probe plugin_path= plugin_identifier=vital.vital
+[probe] PASS regression auto_spawn issues command
+[probe] PASS regression auto_spawn targets vital
+[probe] PASS scene empty entries returns empty array
+[probe] PASS scene empty entries triggers dock refresh once
+[probe] PASS scene in-flight request does not re-trigger refresh
+[probe] PASS teardown stage queued free
+[probe] PROBE PASS (checks_total=76)
+WARNING: ObjectDB instances leaked at exit (run with --verbose for details).
+   at: cleanup (core/object/object.cpp:2641)

@@ -1,0 +1,17 @@
+﻿[probe] PASS mixersync: mixer frame mounted
+[probe] PASS mixersync: mixer adapter root reachable
+[probe] PASS mixersync: project_loaded applied
+[probe] PASS mixersync: strips follow project snapshot (2 tracks)  |  { "strip_count": 2, "track_ids": ["trk_lr_a", "trk_lr_b"], "fader_db_by_id": { "trk_lr_a": 0.0, "trk_lr_b": -6.0 }, "record_name_by_id": { "trk_lr_a": "Alpha", "trk_lr_b": "Beta" }, "record_color_by_id": { "trk_lr_a": "#d96f6f", "trk_lr_b": "#6fb3d9" }, "record_volume_db_by_id": { "trk_lr_a": 0.0, "trk_lr_b": -6.0 }, "virtualized": false, "resync_pending": false, "resync_reason": "", "last_known_track_ids": ["trk_lr_a", "trk_lr_b"], "min_interval_msec": 500 }
+[probe] PASS mixersync: strip track ids match  |  ["trk_lr_a", "trk_lr_b"]
+[probe] PASS mixersync: new tracks named from repository  |  { "trk_lr_a": "Alpha", "trk_lr_b": "Beta" }
+[probe] PASS mixersync: new track fader at 0 dB  |  fader_a=0.0
+[probe] PASS mixersync: new track color assigned  |  #d96f6f
+[probe] PASS mixersync: add track grows strips to 3  |  { "strip_count": 3, "track_ids": ["trk_lr_a", "trk_lr_b", "trk_lr_c"], "fader_db_by_id": { "trk_lr_a": 0.0, "trk_lr_b": -6.0, "trk_lr_c": 0.0 }, "record_name_by_id": { "trk_lr_a": "Alpha", "trk_lr_b": "Beta", "trk_lr_c": "Gamma" }, "record_color_by_id": { "trk_lr_a": "#d96f6f", "trk_lr_b": "#6fb3d9", "trk_lr_c": "#c98cff" }, "record_volume_db_by_id": { "trk_lr_a": 0.0, "trk_lr_b": -6.0, "trk_lr_c": 0.0 }, "virtualized": false, "resync_pending": false, "resync_reason": "", "last_known_track_ids": ["trk_lr_a", "trk_lr_b", "trk_lr_c"], "min_interval_msec": 500 }
+[probe] PASS mixersync: added strip fader 0 dB  |  { "trk_lr_a": 0.0, "trk_lr_b": -6.0, "trk_lr_c": 0.0 }
+[probe] PASS mixersync: rename synced  |  { "trk_lr_a": "Alpha Renamed", "trk_lr_b": "Beta", "trk_lr_c": "Gamma" }
+[probe] PASS mixersync: delete track shrinks strips to 2  |  { "strip_count": 2, "track_ids": ["trk_lr_a", "trk_lr_c"], "fader_db_by_id": { "trk_lr_a": 0.0, "trk_lr_c": 0.0 }, "record_name_by_id": { "trk_lr_a": "Alpha Renamed", "trk_lr_c": "Gamma" }, "record_color_by_id": { "trk_lr_a": "#d96f6f", "trk_lr_c": "#6fb3d9" }, "record_volume_db_by_id": { "trk_lr_a": 0.0, "trk_lr_c": 0.0 }, "virtualized": false, "resync_pending": false, "resync_reason": "", "last_known_track_ids": ["trk_lr_a", "trk_lr_c"], "min_interval_msec": 500 }
+[probe] PASS mixersync: telemetry track-set change schedules resync  |  { "strip_count": 2, "track_ids": ["trk_lr_a", "trk_lr_c"], "fader_db_by_id": { "trk_lr_a": 0.0, "trk_lr_c": 0.0 }, "record_name_by_id": { "trk_lr_a": "Alpha Renamed", "trk_lr_c": "Gamma" }, "record_color_by_id": { "trk_lr_a": "#d96f6f", "trk_lr_c": "#6fb3d9" }, "record_volume_db_by_id": { "trk_lr_a": 0.0, "trk_lr_c": 0.0 }, "virtualized": false, "resync_pending": false, "resync_reason": "telemetry_track_set_changed", "last_known_track_ids": ["trk_lr_a", "trk_lr_external"], "min_interval_msec": 500 }
+[probe] PASS mixersync: root predicate accepts track commands
+[probe] PASS mixersync: root predicate rejects non-structure commands
+[probe] checks=342 failed=0 setup_failed=false
+[probe] PROBE PASS
