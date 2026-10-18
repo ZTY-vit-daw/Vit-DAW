@@ -1,0 +1,109 @@
+From 6404a52050f968978324099c5d210ef9ca4fe0a5 Mon Sep 17 00:00:00 2001
+From: ZTY-vit-daw <131217zty@gmail.com>
+Date: Sun, 18 Oct 2026 22:28:13 +0800
+Subject: [PATCH 3/3] =?UTF-8?q?fix(FE-SENDROUTE-MACRO-GUI-1,=20card=20130)?=
+ =?UTF-8?q?:=20=E7=9C=9F=E6=A0=88=E6=8E=A2=E9=92=88=E4=BF=AE=E6=AD=A3?=
+ =?UTF-8?q?=E2=80=94=E2=80=94send=20=E5=8F=8C=E5=8F=82=E8=B0=83=E7=94=A8/f?=
+ =?UTF-8?q?ader=20dB=20=E6=9C=9F=E6=9C=9B=E5=BC=8F=2020=C2=B7ln(pos)+6?=
+ =?UTF-8?q?=EF=BC=88volScaleFactor=3D20=EF=BC=8C0.8=E2=86=92+1.537=20?=
+ =?UTF-8?q?=E5=AE=9E=E6=B5=8B=E7=B2=BE=E7=A1=AE=EF=BC=89/FX=20=E5=90=8D?=
+ =?UTF-8?q?=E6=97=B6=E9=97=B4=E6=88=B3+=E6=8C=89=E6=9C=AC=E8=85=BF=20node?=
+ =?UTF-8?q?=5Fid=20=E8=AE=A1=E6=95=B0=EF=BC=88=E4=B8=8A=E4=B8=80=E8=85=BF?=
+ =?UTF-8?q?=E6=AE=8B=E7=95=99=E9=9A=94=E7=A6=BB=EF=BC=8CK1=20run2=20?=
+ =?UTF-8?q?=E5=90=8C=E8=AF=BE=EF=BC=89=E2=80=94=E2=80=94=E7=9C=9F=E6=A0=88?=
+ =?UTF-8?q?=2025/25=20PASS=20exit=200=EF=BC=88=E6=B4=BB=E6=A0=88=E6=89=8B?=
+ =?UTF-8?q?=E8=B7=91=EF=BC=89?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ tools/stack_probe_sendroute_macro.gd | 33 ++++++++++++++++++----------
+ 1 file changed, 22 insertions(+), 11 deletions(-)
+
+diff --git a/tools/stack_probe_sendroute_macro.gd b/tools/stack_probe_sendroute_macro.gd
+index 1f852e9..b788732 100644
+--- a/tools/stack_probe_sendroute_macro.gd
++++ b/tools/stack_probe_sendroute_macro.gd
+@@ -22,7 +22,9 @@ const _KERNEL_COMMAND_CLIENT_SCRIPT: Variant = preload("res://app/kernel/clients
+ const _PAYLOAD_RULES_SCRIPT: Variant = preload("res://app/rack/rack_ipc_payload_rules.gd")
+ 
+ const _WATCHDOG_SEC := 150.0
+-const _FX_NAME := "Reverb Bus K3"
++## K1 烟测同款确定性：FX 名带时间戳（上一腿 auto_create 留下的同名普通轨会使
++## uniqueFxTrackName 追加序号——断言用前缀匹配）。
++const _FX_NAME_PREFIX := "Reverb Bus K3"
+ 
+ var _client: Variant = null
+ var _checks_total := 0
+@@ -79,9 +81,7 @@ func _finish() -> void:
+ func _send(command_name: String, payload: Dictionary = {}) -> Dictionary:
+ 	if _client == null:
+ 		_client = _KERNEL_COMMAND_CLIENT_SCRIPT.new()
+-	var wire := payload.duplicate(true)
+-	wire["cmd"] = command_name
+-	return await _client.send(wire, 8.0)
++	return await _client.send(command_name, payload, 8.0)
+ 
+ 
+ func _require_ok(label: String, reply: Dictionary) -> Dictionary:
+@@ -121,14 +121,15 @@ func _run_suite() -> void:
+ 		return
+ 
+ 	# --- L1：GUI 选择器「＋新建 FX 轨」同构 payload → connect auto_create ---
+-	var connect_payload: Dictionary = _PAYLOAD_RULES_SCRIPT.track_send_connect_auto_create_payload(source_id, _FX_NAME, -6.0)
++	var fx_name := "%s %d" % [_FX_NAME_PREFIX, Time.get_ticks_msec()]
++	var connect_payload: Dictionary = _PAYLOAD_RULES_SCRIPT.track_send_connect_auto_create_payload(source_id, fx_name, -6.0)
+ 	var connect_reply: Dictionary = await _send("track.send.connect", connect_payload)
+ 	connect_reply = _require_ok("L1 connect auto_create", connect_reply)
+ 	if connect_reply.is_empty():
+ 		_finish()
+ 		return
+ 	var fx_id := str(connect_reply.get("fx_track_id", ""))
+-	_check("L1 fx track created", bool(connect_reply.get("created_fx_track", false)) and str(connect_reply.get("fx_name", "")) == _FX_NAME, str(connect_reply))
++	_check("L1 fx track created", bool(connect_reply.get("created_fx_track", false)) and str(connect_reply.get("fx_name", "")).begins_with(_FX_NAME_PREFIX), str(connect_reply))
+ 	_check("L1 default amount -6.0", is_equal_approx(float(connect_reply.get("amount_db", 99.0)), -6.0), str(connect_reply.get("amount_db", "")))
+ 
+ 	# --- L2：track.send.list 读回一致 ---
+@@ -182,7 +183,12 @@ func _run_suite() -> void:
+ 		macro_node_id = str(node.get("node_id", ""))
+ 		var graph1: Dictionary = macro_reply.get("control_graph", {}) as Dictionary
+ 		_check("L5 macro node snapshot", not macro_node_id.is_empty() and str(node.get("kind", "")) == "macropanel" and int(node.get("macro_count", 0)) == 1, str(node))
+-		_check("L5 control_graph nodes 1", (graph1.get("nodes", []) as Array).size() == 1, str((graph1.get("nodes", []) as Array).size()))
++		var graph_nodes: Array = graph1.get("nodes", []) as Array
++		var has_our_macro := false
++		for node_variant in graph_nodes:
++			if str((node_variant as Dictionary).get("node_id", "")) == macro_node_id:
++				has_our_macro = true
++		_check("L5 control_graph has new macro node", has_our_macro, str(graph_nodes.size()))
+ 	if macro_node_id.is_empty():
+ 		_finish()
+ 		return
+@@ -208,15 +214,20 @@ func _run_suite() -> void:
+ 			var node: Dictionary = node_variant
+ 			if str(node.get("node_id", "")) == macro_node_id:
+ 				macro_values = node.get("current_values", {}) as Dictionary
+-	_check("L5 graph snapshot bindings 1", bindings_after.size() == 1, str(bindings_after.size()))
++	var our_bindings := 0
++	for binding_variant in bindings_after:
++		if str((binding_variant as Dictionary).get("source_node_id", "")) == macro_node_id:
++			our_bindings += 1
++	_check("L5 graph snapshot our bindings 1", our_bindings == 1, "ours=%d total=%d" % [our_bindings, bindings_after.size()])
+ 	_check("L5 graph snapshot macro_1 0.8", is_equal_approx(float(macro_values.get("macro_1", -1.0)), 0.8), str(macro_values))
+-	# 宏施加→send 量 dB 联动断言（AuxSend level 0..1 → gainToDecibels(0.8)≈-1.938）。
++	# 宏施加→send 量 dB 联动断言（AuxSend "send level" 0..1 = fader 位置：dB=20·ln(pos)+6
++	# ——tracktion_AudioUtilities.cpp volScaleFactor=20；实测 0.8→+1.537 精确吻合）。
+ 	var topo3: Dictionary = await _send("track.send.list", _PAYLOAD_RULES_SCRIPT.track_send_list_payload())
+ 	if str(topo3.get("status", "")) == "ok":
+ 		var sends3: Array = topo3.get("sends", []) as Array
+ 		var amount_after: float = float((sends3[0] as Dictionary).get("amount_db", 99.0)) if sends3.size() >= 1 else 99.0
+-		var expected_db := 20.0 * log(0.8) / log(10.0)
+-		_check("L5 macro drives send amount", sends3.size() == 1 and absf(amount_after - expected_db) < 0.15, "amount=%s expected≈%.3f" % [str(amount_after), expected_db])
++		var expected_db := 20.0 * log(0.8) + 6.0
++		_check("L5 macro drives send amount", sends3.size() == 1 and absf(amount_after - expected_db) < 0.05, "amount=%s expected≈%.3f" % [str(amount_after), expected_db])
+ 
+ 	# --- L6：成对移除同构 payload → list 归零 + fx_released ---
+ 	var disconnect_payload: Dictionary = _PAYLOAD_RULES_SCRIPT.track_send_disconnect_payload(source_id, fx_id)
+-- 
+2.53.0.windows.1
+

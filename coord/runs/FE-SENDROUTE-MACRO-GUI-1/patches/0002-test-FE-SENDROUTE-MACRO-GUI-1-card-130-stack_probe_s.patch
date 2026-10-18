@@ -1,0 +1,286 @@
+From 8cc6787a94e28d1c952ee88e4983a81153de0c16 Mon Sep 17 00:00:00 2001
+From: ZTY-vit-daw <131217zty@gmail.com>
+Date: Sun, 18 Oct 2026 22:16:26 +0800
+Subject: [PATCH 2/3] =?UTF-8?q?test(FE-SENDROUTE-MACRO-GUI-1,=20card=20130?=
+ =?UTF-8?q?):=20=E7=9C=9F=E6=A0=88=E6=8E=A2=E9=92=88=E5=9C=BA=E6=99=AF?=
+ =?UTF-8?q?=E2=80=94=E2=80=94stack=5Fprobe=5Fsendroute=5Fmacro=20=E5=9C=BA?=
+ =?UTF-8?q?=E6=99=AF=E6=A8=A1=E5=BC=8F=EF=BC=88autoload=20VitIpcClient?=
+ =?UTF-8?q?=E2=86=92UDP=204445=E2=86=92agent=20bridge=E2=86=92=E5=86=85?=
+ =?UTF-8?q?=E6=A0=B8=20ZMQ=20=E7=94=9F=E4=BA=A7=E4=BC=A0=E8=BE=93=E9=93=BE?=
+ =?UTF-8?q?=EF=BC=89=EF=BC=8Cpayload=20=E5=85=A8=E7=BB=8F=E5=89=8D?=
+ =?UTF-8?q?=E7=AB=AF=20rack=5Fipc=5Fpayload=5Frules=20=E6=9E=84=E9=80=A0?=
+ =?UTF-8?q?=EF=BC=88GUI=20=E5=90=8C=E6=BA=90=E5=91=BD=E4=BB=A4=E9=9D=A2?=
+ =?UTF-8?q?=EF=BC=89=EF=BC=9B=E5=85=AD=E8=85=BF=EF=BC=9Aconnect=20auto=5Fc?=
+ =?UTF-8?q?reate=20=E5=9B=9E=E6=89=A7=E6=8B=93=E6=89=91/list=20=E8=AF=BB?=
+ =?UTF-8?q?=E5=9B=9E=E4=B8=80=E8=87=B4/state=20aux=20=E6=8F=92=E4=BB=B6?=
+ =?UTF-8?q?=E5=AF=B9=EF=BC=88SendOut/SendIn=20=E6=B8=B2=E6=9F=93=E6=95=B0?=
+ =?UTF-8?q?=E6=8D=AE=E6=BA=90=EF=BC=89/set=5Famount=20=E5=9B=9E=E8=AF=BB/?=
+ =?UTF-8?q?=E5=AE=8F=E4=B8=89=E6=AD=A5=EF=BC=88add=5Fmacro=E2=86=92add=5Fb?=
+ =?UTF-8?q?inding(SendOut=20send=20level)=E2=86=92set=5Fmacro=5Fvalues?=
+ =?UTF-8?q?=E2=86=92control=5Fgraph=20=E5=BF=AB=E7=85=A7+send=20dB=20?=
+ =?UTF-8?q?=E8=81=94=E5=8A=A8=20gainToDecibels(0.8)=EF=BC=89/disconnect=20?=
+ =?UTF-8?q?=E5=BD=92=E9=9B=B6+fx=5Freleased=EF=BC=9Bwatchdog=20150s?=
+ =?UTF-8?q?=EF=BC=9BSUMMARY=5FJSON=20=E5=B0=BE=E8=A1=8C=E4=BE=9B=20dev=5Fa?=
+ =?UTF-8?q?gent=5Fsmoke=20-SendRouteGuiSmoke=20=E8=85=BF=E6=A0=A1=E9=AA=8C?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ tools/stack_probe_sendroute_macro.gd   | 230 +++++++++++++++++++++++++
+ tools/stack_probe_sendroute_macro.tscn |   6 +
+ 2 files changed, 236 insertions(+)
+ create mode 100644 tools/stack_probe_sendroute_macro.gd
+ create mode 100644 tools/stack_probe_sendroute_macro.tscn
+
+diff --git a/tools/stack_probe_sendroute_macro.gd b/tools/stack_probe_sendroute_macro.gd
+new file mode 100644
+index 0000000..1f852e9
+--- /dev/null
++++ b/tools/stack_probe_sendroute_macro.gd
+@@ -0,0 +1,230 @@
++extends Node
++
++## FE-SENDROUTE-MACRO-GUI-1（K3/130）真栈探针（场景模式——autoload 在位，生产传输链：
++## VitIpcClient UDP → agent bridge 4445 → 内核 ZMQ）。断言体=GUI 同源命令面：
++## 全部 payload 经前端 rack_ipc_payload_rules 构造（选择器「选定即连」/SEND 槽位调量/
++## 绑定菜单确认/宏值施加的同一构造函数），transport 经 kernel_command_client（rack_client
++## 同款底座）。腿（§8 运行前声明：LLM=0 全确定性；成功=进程退出码 0；失败分类=
++## assertion_fail/environment_interrupt/script_exception）：
++##   L1 connect auto_create（GUI 选择器→＋新建 FX 轨同构 payload）→回执拓扑核对；
++##   L2 track.send.list 读回一致（源/fx 名/量）；
++##   L3 get_project_state 源轨 auxsend/auxreturn 插件对在场（SendOut/SendIn 渲染数据源）；
++##   L4 set_amount（SEND 槽位同构 payload）→list 回读；
++##   L5 宏三步：control_add_macro→control_add_binding(SendOut send level 硬接线口同构
++##      payload)→control_set_macro_values→control_graph 快照核对+send amount dB 联动断言；
++##   L6 disconnect（成对移除同构 payload）→list 归零+fx_released。
++## 工件：PASS/FAIL 行打 stdout（ps1 捕获 console 落 run 目录）；摘要 JSON 打 stdout 尾行。
++## 用法（须先有 kernel+agent berth 在 5555/4445）：
++##   godot --headless --path <前端仓> res://tools/stack_probe_sendroute_macro.tscn
++## 退出码：0=全绿；1=断言失败；2=环境不可用。
++
++const _KERNEL_COMMAND_CLIENT_SCRIPT: Variant = preload("res://app/kernel/clients/kernel_command_client.gd")
++const _PAYLOAD_RULES_SCRIPT: Variant = preload("res://app/rack/rack_ipc_payload_rules.gd")
++
++const _WATCHDOG_SEC := 150.0
++const _FX_NAME := "Reverb Bus K3"
++
++var _client: Variant = null
++var _checks_total := 0
++var _checks_failed := 0
++var _fail_lines: Array[String] = []
++var _finished := false
++
++
++func _ready() -> void:
++	var watchdog := Timer.new()
++	watchdog.wait_time = _WATCHDOG_SEC
++	watchdog.one_shot = true
++	watchdog.timeout.connect(func() -> void:
++		if not _finished:
++			_record("watchdog timeout", false, "suite did not finish in %fs" % _WATCHDOG_SEC)
++			_finish()
++	)
++	add_child(watchdog)
++	watchdog.start()
++	_run_suite()
++
++
++func _check(label: String, ok: bool, detail: String = "") -> void:
++	_checks_total += 1
++	if ok:
++		print("[stack-probe] PASS %s" % label)
++		return
++	_checks_failed += 1
++	_fail_lines.append("%s | %s" % [label, detail])
++	print("[stack-probe] FAIL %s | %s" % [label, detail])
++
++
++func _record(label: String, ok: bool, detail: String = "") -> void:
++	_check(label, ok, detail)
++
++
++func _finish() -> void:
++	if _finished:
++		return
++	_finished = true
++	var summary := {
++		"status": "pass" if _checks_failed == 0 else "fail",
++		"checks_total": _checks_total,
++		"checks_failed": _checks_failed,
++		"failures": _fail_lines,
++	}
++	print("[stack-probe] SUMMARY_JSON " + JSON.stringify(summary))
++	if _checks_failed == 0:
++		get_tree().quit(0)
++	else:
++		get_tree().quit(1)
++
++
++func _send(command_name: String, payload: Dictionary = {}) -> Dictionary:
++	if _client == null:
++		_client = _KERNEL_COMMAND_CLIENT_SCRIPT.new()
++	var wire := payload.duplicate(true)
++	wire["cmd"] = command_name
++	return await _client.send(wire, 8.0)
++
++
++func _require_ok(label: String, reply: Dictionary) -> Dictionary:
++	if str(reply.get("status", "")) != "ok":
++		_check(label, false, "status=%s message=%s" % [str(reply.get("status", "")), str(reply.get("message", ""))])
++		return {}
++	_check(label, true)
++	return reply
++
++
++func _run_suite() -> void:
++	# --- setup：清场（clear_project 保轨——K1 烟测同款先删多余轨）+ 建 1 源轨 ---
++	var clear_reply: Dictionary = await _send("clear_project")
++	if str(clear_reply.get("status", "")) != "ok":
++		_record("setup clear_project", false, str(clear_reply.get("message", "")))
++		_finish()
++		return
++	_record("setup clear_project", true)
++	var list_reply: Dictionary = await _send("list_tracks")
++	var audio_ids: Array = []
++	if str(list_reply.get("status", "")) == "ok":
++		for track_variant in list_reply.get("tracks", []) as Array:
++			var track: Dictionary = track_variant
++			if str(track.get("type", "")) == "audio":
++				audio_ids.append(str(track.get("track_id", track.get("id", ""))))
++	for id_variant in audio_ids:
++		await _send("delete_track", {"track_id": str(id_variant)})
++	var add_reply: Dictionary = await _send("add_track")
++	if str(add_reply.get("status", "")) != "ok":
++		_record("setup add_track", false, str(add_reply.get("message", "")))
++		_finish()
++		return
++	var source_id := str(add_reply.get("track_id", add_reply.get("id", "")))
++	_record("setup add_track", not source_id.is_empty(), "source_id empty")
++	if source_id.is_empty():
++		_finish()
++		return
++
++	# --- L1：GUI 选择器「＋新建 FX 轨」同构 payload → connect auto_create ---
++	var connect_payload: Dictionary = _PAYLOAD_RULES_SCRIPT.track_send_connect_auto_create_payload(source_id, _FX_NAME, -6.0)
++	var connect_reply: Dictionary = await _send("track.send.connect", connect_payload)
++	connect_reply = _require_ok("L1 connect auto_create", connect_reply)
++	if connect_reply.is_empty():
++		_finish()
++		return
++	var fx_id := str(connect_reply.get("fx_track_id", ""))
++	_check("L1 fx track created", bool(connect_reply.get("created_fx_track", false)) and str(connect_reply.get("fx_name", "")) == _FX_NAME, str(connect_reply))
++	_check("L1 default amount -6.0", is_equal_approx(float(connect_reply.get("amount_db", 99.0)), -6.0), str(connect_reply.get("amount_db", "")))
++
++	# --- L2：track.send.list 读回一致 ---
++	var list_payload: Dictionary = _PAYLOAD_RULES_SCRIPT.track_send_list_payload()
++	var topo_reply: Dictionary = _require_ok("L2 send list", await _send("track.send.list", list_payload))
++	var sends: Array = topo_reply.get("sends", []) as Array if not topo_reply.is_empty() else []
++	if not topo_reply.is_empty():
++		var row: Dictionary = sends[0] as Dictionary if sends.size() >= 1 else {}
++		_check("L2 edge readback", sends.size() == 1 and str(row.get("source_track_id", "")) == source_id and str(row.get("fx_track_id", "")) == fx_id and is_equal_approx(float(row.get("amount_db", 99.0)), -6.0), str(row))
++
++	# --- L3：SendOut/SendIn 渲染数据源（源轨 plugins auxsend/auxreturn 在场） ---
++	var state_reply: Dictionary = await _send("get_project_state")
++	var has_send_out := false
++	var has_send_in := false
++	var send_out_plugin_id := ""
++	if str(state_reply.get("status", "")) == "ok":
++		for track_variant in state_reply.get("tracks", []) as Array:
++			var track: Dictionary = track_variant
++			if str(track.get("track_id", track.get("id", ""))) != source_id:
++				continue
++			for plugin_variant in track.get("plugins", []) as Array:
++				var plugin: Dictionary = plugin_variant
++				var plugin_type := str(plugin.get("type", "")).strip_edges().to_lower()
++				if plugin_type == "auxsend":
++					has_send_out = true
++					send_out_plugin_id = str(plugin.get("plugin_item_id", plugin.get("id", "")))
++				elif plugin_type == "auxreturn":
++					has_send_in = true
++	_check("L3 SendOut plugin in state", has_send_out, "auxsend missing in source track plugins")
++	_check("L3 SendIn plugin in state", has_send_in, "auxreturn missing in source track plugins")
++	if not has_send_out:
++		_finish()
++		return
++
++	# --- L4：SEND 槽位调量同构 payload → list 回读 ---
++	var amount_payload: Dictionary = _PAYLOAD_RULES_SCRIPT.track_send_set_amount_payload(source_id, fx_id, -12.5)
++	var amount_reply: Dictionary = _require_ok("L4 set_amount", await _send("track.send.set_amount", amount_payload))
++	if not amount_reply.is_empty():
++		_check("L4 amount echo -12.5", is_equal_approx(float(amount_reply.get("amount_db", 99.0)), -12.5), str(amount_reply.get("amount_db", "")))
++	var topo2: Dictionary = await _send("track.send.list", _PAYLOAD_RULES_SCRIPT.track_send_list_payload())
++	if str(topo2.get("status", "")) == "ok":
++		var sends2: Array = topo2.get("sends", []) as Array
++		_check("L4 list readback -12.5", sends2.size() == 1 and is_equal_approx(float((sends2[0] as Dictionary).get("amount_db", 99.0)), -12.5), str(sends2))
++
++	# --- L5：宏三步（GUI 绑定菜单/宏值施加同构 payload） ---
++	var macro_payload: Dictionary = _PAYLOAD_RULES_SCRIPT.control_add_macro_payload("Space K3", Vector2(640, 320), 1)
++	var macro_reply: Dictionary = _require_ok("L5 control_add_macro", await _send("control_add_macro", macro_payload))
++	var macro_node_id := ""
++	if not macro_reply.is_empty():
++		var node: Dictionary = macro_reply.get("node", {}) as Dictionary
++		macro_node_id = str(node.get("node_id", ""))
++		var graph1: Dictionary = macro_reply.get("control_graph", {}) as Dictionary
++		_check("L5 macro node snapshot", not macro_node_id.is_empty() and str(node.get("kind", "")) == "macropanel" and int(node.get("macro_count", 0)) == 1, str(node))
++		_check("L5 control_graph nodes 1", (graph1.get("nodes", []) as Array).size() == 1, str((graph1.get("nodes", []) as Array).size()))
++	if macro_node_id.is_empty():
++		_finish()
++		return
++	var binding_payload: Dictionary = _PAYLOAD_RULES_SCRIPT.control_add_binding_payload(macro_node_id, "macro_1", "plugin_param", send_out_plugin_id, "send level", 0.0, 1.0, "linear")
++	var binding_reply: Dictionary = _require_ok("L5 control_add_binding", await _send("control_add_binding", binding_payload))
++	if not binding_reply.is_empty():
++		var binding: Dictionary = binding_reply.get("binding", {}) as Dictionary
++		_check("L5 binding target send level", str(binding.get("target_param_id", "")) == "send level" and str(binding.get("target_plugin_id", "")) == send_out_plugin_id, str(binding))
++	var values_payload: Dictionary = _PAYLOAD_RULES_SCRIPT.control_set_macro_values_payload(macro_node_id, {"macro_1": 0.8})
++	var apply_reply: Dictionary = _require_ok("L5 control_set_macro_values", await _send("control_set_macro_values", values_payload))
++	if not apply_reply.is_empty():
++		var applied: Array = apply_reply.get("applied_bindings", []) as Array
++		_check("L5 applied bindings 1", applied.size() == 1, str(applied))
++	# 控制图快照核对（节点 current_values macro_1≈0.8 + bindings 1）。
++	var graph_after: Dictionary = {}
++	if not apply_reply.is_empty():
++		graph_after = apply_reply.get("control_graph", {}) as Dictionary
++	var nodes_after: Array = graph_after.get("nodes", []) as Array
++	var bindings_after: Array = graph_after.get("bindings", []) as Array
++	var macro_values: Dictionary = {}
++	if nodes_after.size() >= 1:
++		for node_variant in nodes_after:
++			var node: Dictionary = node_variant
++			if str(node.get("node_id", "")) == macro_node_id:
++				macro_values = node.get("current_values", {}) as Dictionary
++	_check("L5 graph snapshot bindings 1", bindings_after.size() == 1, str(bindings_after.size()))
++	_check("L5 graph snapshot macro_1 0.8", is_equal_approx(float(macro_values.get("macro_1", -1.0)), 0.8), str(macro_values))
++	# 宏施加→send 量 dB 联动断言（AuxSend level 0..1 → gainToDecibels(0.8)≈-1.938）。
++	var topo3: Dictionary = await _send("track.send.list", _PAYLOAD_RULES_SCRIPT.track_send_list_payload())
++	if str(topo3.get("status", "")) == "ok":
++		var sends3: Array = topo3.get("sends", []) as Array
++		var amount_after: float = float((sends3[0] as Dictionary).get("amount_db", 99.0)) if sends3.size() >= 1 else 99.0
++		var expected_db := 20.0 * log(0.8) / log(10.0)
++		_check("L5 macro drives send amount", sends3.size() == 1 and absf(amount_after - expected_db) < 0.15, "amount=%s expected≈%.3f" % [str(amount_after), expected_db])
++
++	# --- L6：成对移除同构 payload → list 归零 + fx_released ---
++	var disconnect_payload: Dictionary = _PAYLOAD_RULES_SCRIPT.track_send_disconnect_payload(source_id, fx_id)
++	var disconnect_reply: Dictionary = _require_ok("L6 disconnect", await _send("track.send.disconnect", disconnect_payload))
++	if not disconnect_reply.is_empty():
++		_check("L6 fx released", bool(disconnect_reply.get("fx_released", false)), str(disconnect_reply))
++	var topo4: Dictionary = await _send("track.send.list", _PAYLOAD_RULES_SCRIPT.track_send_list_payload())
++	if str(topo4.get("status", "")) == "ok":
++		_check("L6 list empty after disconnect", (topo4.get("sends", []) as Array).is_empty() and (topo4.get("dangling", []) as Array).is_empty(), str(topo4.get("sends", [])))
++
++	_finish()
+diff --git a/tools/stack_probe_sendroute_macro.tscn b/tools/stack_probe_sendroute_macro.tscn
+new file mode 100644
+index 0000000..3107100
+--- /dev/null
++++ b/tools/stack_probe_sendroute_macro.tscn
+@@ -0,0 +1,6 @@
++[gd_scene load_steps=2 format=3]
++
++[ext_resource type="Script" path="res://tools/stack_probe_sendroute_macro.gd" id="1_probe"]
++
++[node name="StackProbeSendRouteMacro" type="Node"]
++script = ExtResource("1_probe")
+-- 
+2.53.0.windows.1
+
