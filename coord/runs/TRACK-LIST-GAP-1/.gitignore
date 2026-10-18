@@ -1,0 +1,2 @@
+﻿# Heavy raw probe responses stay on disk (path + sha in probe_summary.json); slim evidence tracked.
+run_*/raw/
