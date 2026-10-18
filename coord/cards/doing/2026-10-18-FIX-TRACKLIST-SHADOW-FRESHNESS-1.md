@@ -33,6 +33,12 @@
 
 - 需改内核/VSP 协议或跨层架构 → 先上报；不得用 WARN/静默降级掩盖 stale；不得弱化 139 探针口径；不得删 orphan 语义测试。
 
+## 领取
+
+- （2026-10-18 晚窗 / origin/main=d7079a64a715cadd0d64cb90f5320d18c4bc967d / GLM-5.3 L2 PC 执行会话 ZCode（用户口令指定领取，本会话）/ 分支=port/fix-tracklist-shadow-freshness-1（worktree D:/Vit_DAW_wt_trackfix1）/ 领取提交=本提交）
+- 领取时核对：卡在 todo 派发已确认（用户 2026-10-18 晚窗，commit d27f6dbc）；依赖 139 已闭合；doing 三卡（FE-GUI-START-FEED/GEN-SUNO/MIXER-LIVE-REFRESH）文件域均为前端仓/Godot/coord-runs，与本卡 agent/internal/{harness,shadow,bridge} 零冲突；真栈亲核 2026-10-18 晚窗：六端口（5555/5556/5557/7878/8787/4445）全 free、四类进程（VitApp/VitAgent/vsphub/Godot 含变体）=0，PC-RUNTIME-STACK 当前占用=空闲。
+- 方案裁定：A+B 组合（按卡面推荐，139 §3 草案）。
+
 ## 关联
 
 - 取证卡：TRACK-LIST-GAP-1（139，done）；修复锚点/草案见 `coord/runs/TRACK-LIST-GAP-1/RESULTS.md` §3
