@@ -149,6 +149,20 @@ type Server struct {
 	// (every restoreProjectAgentRuntimeStateLocked caller holds it).
 	authorityRestoreSeen bool
 	authorityRestoreLast authorityRestoreLogState
+
+	// loudnessWatchConfigExplicit marks an in-process explicit watch config
+	// selection (loudness_watch_configure). Both restore surfaces — the
+	// workspace activation path and the scheduler's durable-snapshot reload
+	// (continuationSchedulerTick replay) — overwrite in-memory state from the
+	// persisted snapshot; an explicit selection must survive those replays
+	// (AUTHORITY-LOST-1 sibling, FIX-LW-CONFIG-PERSIST-1), otherwise a configure
+	// whose persist has not landed yet is silently reverted to the stale
+	// persisted config and the next status/observe reads enabled=true again.
+	// Cleared when the workspace identity changes: the config rides the
+	// per-session runtime state and must never leak across projects. Not
+	// persisted: a restart restores the disk config. Access is under s.mu
+	// (every restoreProjectAgentRuntimeStateLocked caller holds it).
+	loudnessWatchConfigExplicit bool
 }
 
 // authorityRestoreLogState captures the values an authority restore line was
@@ -1612,6 +1626,9 @@ func (s *Server) invokeLoudnessWatchConfigure(cmd map[string]any) harness.Invoke
 	}
 	s.mu.Lock()
 	s.loudnessWatchConfig = &updated
+	// Latch the explicit selection over the durable-snapshot replays until a
+	// workspace identity switch (or restart) clears it.
+	s.loudnessWatchConfigExplicit = true
 	s.mu.Unlock()
 	resp.Result = map[string]any{
 		"status":        "ok",
@@ -7321,12 +7338,20 @@ func (s *Server) activateCurrentProjectWorkspace(ctx context.Context) {
 		// AUTHORITY-LOST-1: the explicit-mode latch is per-workspace. Crossing a
 		// project identity boundary drops it so project A's full access cannot
 		// leak into project B; B's persisted mode is authoritative again.
+		// FIX-LW-CONFIG-PERSIST-1: the same per-workspace rule applies to an
+		// explicit loudness watch config (held over the scheduler's snapshot
+		// replay); project B's persisted config is authoritative on arrival.
 		s.mu.Lock()
 		previousExplicit := s.authorityModeExplicit
 		s.authorityModeExplicit = false
+		previousWatchExplicit := s.loudnessWatchConfigExplicit
+		s.loudnessWatchConfigExplicit = false
 		s.mu.Unlock()
 		if previousExplicit && s.logger != nil {
 			s.logger.Info("[authority] explicit latch dropped on identity switch from_uuid=%s to_uuid=%s", s.activeWorkspaceUUID, projectUUID)
+		}
+		if previousWatchExplicit && s.logger != nil {
+			s.logger.Info("[workspace] explicit loudness watch config latch dropped on identity switch from_uuid=%s to_uuid=%s", s.activeWorkspaceUUID, projectUUID)
 		}
 	}
 	// Reopening the same project binds a new draft from Saved HEAD. Do not copy
@@ -7536,21 +7561,33 @@ func (s *Server) restoreProjectAgentRuntimeStateLocked(state projectAgentRuntime
 	// schema version, unknown enums, or an unresolvable profile source drops
 	// the record and counts it, leaving the watch disabled (AGENTS.md §11;
 	// dropped-counter mode mirrors the render profile bindings restore).
-	s.loudnessWatchConfig = nil
-	s.loudnessWatchRestoreDropped = 0
-	if state.LoudnessWatchConfig != nil {
-		if err := loudnesswatch.ValidateConfig(*state.LoudnessWatchConfig); err != nil {
-			s.loudnessWatchRestoreDropped++
-			if s.logger != nil {
-				s.logger.Warn("[workspace] loudness watch config restore dropped invalid record: %v", err)
+	// FIX-LW-CONFIG-PERSIST-1: an explicit in-process selection must survive
+	// the durable-snapshot replay (AUTHORITY-LOST-1 sibling). The scheduler
+	// replays this snapshot on every drive; a configure whose persist has not
+	// landed yet would otherwise be reverted to the stale disk config here,
+	// and the deferred persist would then write the revert back to disk. Keep
+	// the in-memory config in that case; the project's other state still
+	// restores from the snapshot.
+	if s.loudnessWatchConfigExplicit {
+		// Keep the in-memory config (not persisted yet); the next persist
+		// writes it to disk.
+	} else {
+		s.loudnessWatchConfig = nil
+		s.loudnessWatchRestoreDropped = 0
+		if state.LoudnessWatchConfig != nil {
+			if err := loudnesswatch.ValidateConfig(*state.LoudnessWatchConfig); err != nil {
+				s.loudnessWatchRestoreDropped++
+				if s.logger != nil {
+					s.logger.Warn("[workspace] loudness watch config restore dropped invalid record: %v", err)
+				}
+			} else {
+				config := *state.LoudnessWatchConfig
+				if state.LoudnessWatchConfig.Custom != nil {
+					custom := *state.LoudnessWatchConfig.Custom
+					config.Custom = &custom
+				}
+				s.loudnessWatchConfig = &config
 			}
-		} else {
-			config := *state.LoudnessWatchConfig
-			if state.LoudnessWatchConfig.Custom != nil {
-				custom := *state.LoudnessWatchConfig.Custom
-				config.Custom = &custom
-			}
-			s.loudnessWatchConfig = &config
 		}
 	}
 	s.conversations = nonNilMap(state.Conversations)
