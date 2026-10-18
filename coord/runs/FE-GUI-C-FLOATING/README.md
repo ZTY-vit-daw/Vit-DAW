@@ -13,6 +13,17 @@
 - 92-R1 探针/电池：**Phase C 167 钉**（原 129 钉全保留 + 新增 38：层级 7 / 顶部定位 5 / 动效策略与幂等 22 / 浮卡落位等）；Phase B 119 / Phase A 69 / vitnote 六 / FE-RACK 76 全 exit 0；红线 9 文件零命中。工件=`20261018_141711/`。
 - 92-R1 视觉证据（本机窗口态离屏渲染诊断，非真栈；未占栈端口、VIT_SKIP_DEV_AUTOSTART=1、音频 Dummy）：`20261018_141711/visual_evidence/` 三图=抽屉完整浮于台前窗格之上 / F2 面板让出 chrome 且盖住台前内容 / 浮卡落于台前主区。窗口态实测动效在场（drawer mid alpha=0.899→1.0、panel mid row_alpha=0.16/offset 257.6→终态 266/1.0）。
 
+## 92-R2 手测返工（2026-10-18 午窗用户 R1 复测新增唯一问题）
+
+- **现象**：mixer 视图放入双窗后内容穿过窗格边界、占据相邻窗（其他视图未见）。
+- **根因**：`ViewportFrame.tscn` 的 ContentHost→Stack→ViewInstanceHost 整链无 `clip_contents`，`viewport_frame.gd::_load_view_scene` 装载后不做裁剪/尺寸钳制；mixer 内部（track group 面板固定 220、toolbar 一排按钮最小宽）在窄槽（双窗 0.58/0.42）下最小宽度超槽宽，子项直接画出窗格。
+- **实现点**：
+  1) **裁剪链**：`ViewportFrame`/`Stack`/`ViewInstanceHost` 三处 `clip_contents=true`（tscn + `viewport_frame.gd::_ready` 运行期重申）；任何视图内容不得画出本窗格，StageSlotEngine 布局语义零改动。
+  2) **根尺寸钳制**：装载后与窗格尺寸变化时 `_sync_loaded_view_bounds()` 对视图 root 重申 anchors full rect + 显式 size=宿主尺寸（防 root 被内部最小尺寸撑出）。
+  3) **窄槽可用性**（mixer adapter 最小改动）：toolbar 收进横向 `ToolbarScroll`（按钮可横向滚动可达，不再把 root 最小宽撑出）；`TrackGroupListPanel` 在窄槽（<820 设计单位）自动收起到 36px（保留 Groups 切换按钮可手动展开），变宽后自动恢复（仅撤销"自动收起"，不抢用户手动折叠）；MainSplit 分隔位 40/220 随宽度切换；strips 原 `%ScrollContainer` 横向滚动保留。
+- **探针/电池**：Phase C **319 钉**（R1 167 全保留；新增 152：6 spawnable 视图 × 2/3/4 位最窄槽宽真实装配 ViewportFrame 的 ①clip 链 ②root⊆content rect(1px)+root 尺寸钳制 ③content 不宽于槽 ④mixer toolbar 滚动/group 自动收起/宽槽恢复/strips 滚动条；另含 R2 静态契约 8 钉）；Phase B 119 / Phase A 69 / vitnote 六 / FE-RACK 76 全 exit 0；红线 9 文件零命中。工件=`20261018_143854/`。
+- **视觉证据**（同 R1 窗口态离屏诊断边界）：`20261018_143854/r2_visual_evidence/` 两图=双窗 mixer 内容被窗格边界裁住（无相邻窗溢出）/ 四窗 mixer 同；窗口态实测 root=`content rect`（1:1 尺寸钳制，clip=true）。
+
 ## 落地面（Phase C）
 
 - **浮卡**：抽屉 chip 点击 / F2 面板台后卡「⊞ 浮窗」→ Dock 内浮卡实例化（可拖拽 Control 卡、卡体=实时视图实例 `vp_float_<n>_<view>`）；动作后抽屉/面板自动收起；同视图重复打开=聚焦既有项（多开=不同视图各一份，V11 原型 openFloats 语义）。
@@ -26,6 +37,7 @@
 |---|---|
 | `20261018_120623/` | Phase C 首版探针电池一次性全量日志（godot_import 预热 + **Phase C 129 钉** + Phase B 119 钉 + Phase A 69 钉 + vitnote 六探针 + FE-RACK 76 钉，全部 exit 0；红线门通过行在电池 stdout） |
 | `20261018_141711/` | 92-R1 返工探针电池全量日志（**Phase C 167 钉** + Phase B 119 + Phase A 69 + vitnote 六 + FE-RACK 76，全 exit 0）+ `visual_evidence/` 三张返工视觉证据（抽屉/F2 面板/浮卡窗口态离屏渲染） |
+| `20261018_143854/` | 92-R2 返工探针电池全量日志（**Phase C 319 钉** + Phase B 119 + Phase A 69 + vitnote 六 + FE-RACK 76，全 exit 0）+ `r2_visual_evidence/` 两图（双窗/四窗 mixer 内容被窗格裁剪，无相邻窗溢出） |
 | `dev_agent_smoke_20261018_123056/` | 真栈三件套腿（见下节）：`console_stdout.log`（SMOKE_EXIT=0 + mix.observe 活证）+ `agent_last.log` + `agent_llm_telemetry.jsonl`（6 调用 0 错误）+ `MaterializeMetrics.log` + `godot_windowed_boot.log`（补充窗口态启动：start_page VSP Hub/Agent tools ready）+ `VitHeadlessServer2026-10-18_12-30-58.log`（内核日志，504KB）+ `run_meta.txt`（命令/头/SHA256/拆栈证据） |
 
 ## 真栈三件套腿（2026-10-18 12:30–12:35 +0800）
