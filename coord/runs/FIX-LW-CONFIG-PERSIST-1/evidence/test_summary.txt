@@ -1,0 +1,7 @@
+﻿[FIX-LW-CONFIG-PERSIST-1 unit test summary]
+worktree=D:/Vit_DAW_wt_lwfix1  branch=port/fix-lw-config-persist-1  HEAD=36323529 (impl)
+command: cd agent && go build ./...            -> exit 0
+command: cd agent && go test ./... -count=1    -> exit 0 (95 packages ok, 0 FAIL lines)
+command: go test ./internal/chat -run 'TestLoudnessWatchExplicit' -v  -> pre-fix FAIL / post-fix PASS
+gofmt: changed files clean (CRLF checkout artifact; verified on LF-normalized copies per TIER-EXT precedent)
+time: 2026-10-18 12:38-12:40 +0800

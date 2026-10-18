@@ -1,0 +1,5 @@
+schema=loudness_watch_verdicts.v0 checks_total=8 records=2
+[settle/project_change] n=1 duration_ms median=18.041 max=18.041 bakes_total=0 fresh_rows_total=19 stale_rows_total=0 fresh_reuse_ratio=1.00
+[observation_piggyback] n=1 duration_ms median=57.164 max=57.164 bakes_total=0 fresh_rows_total=18 stale_rows_total=0 fresh_reuse_ratio=1.00
+  key=vitproj_b3f2838183d64add9ca7824b8b3ac557||breach kind=breach trigger=project_change recorded=2026-10-18T04:50:02.490457Z rechecks=3 dur_ms=18.0415 bakes=0 fresh=19 stale=0 reason=
+  key=vitproj_b3f2838183d64add9ca7824b8b3ac557|4|breach kind=breach trigger=observation_piggyback recorded=2026-10-18T04:50:06.9679116Z rechecks=3 dur_ms=57.1637 bakes=0 fresh=18 stale=0 reason=
