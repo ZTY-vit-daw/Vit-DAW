@@ -36,7 +36,7 @@ agent/internal/history/history_test.go | 110 +++++++++++++++++++++++++++++
 
 ## 4. 验证（命令 + 退出码）
 
-见本目录 `evidence/build.log`、`evidence/gotest.log`（复跑命令与退出码记录如下）：
+见本目录 `evidence/verification.txt`、`evidence/gotest.txt`（`*.log` 被仓库 `.gitignore` 忽略，故验证记录以 `.txt` 入卷）：
 
 | 验证 | 命令 | 结果 |
 |---|---|---|
