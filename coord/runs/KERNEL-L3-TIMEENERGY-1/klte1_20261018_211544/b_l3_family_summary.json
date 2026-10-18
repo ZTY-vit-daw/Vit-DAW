@@ -1,0 +1,60 @@
+﻿{
+    "log_path":  "D:\\Vit_DAW_wt_klte1\\coord\\runs\\KERNEL-L3-TIMEENERGY-1\\klte1_20261018_211544\\agent_drafts\\draft_20261018T131556_f6ff20b0\\.vit_derived\\vitproj_3ced1ae26d27465093037d9de2095b60\\l3_feature_log.jsonl",
+    "row_count":  24,
+    "track_families":  [
+                           {
+                               "families":  [
+                                                "band_energy_summary",
+                                                "stereo_relation_summary",
+                                                "time_energy",
+                                                "loudness_summary"
+                                            ],
+                               "track_id":  "1032"
+                           },
+                           {
+                               "families":  [
+                                                "band_energy_summary",
+                                                "stereo_relation_summary",
+                                                "time_energy",
+                                                "loudness_summary"
+                                            ],
+                               "track_id":  "1012"
+                           },
+                           {
+                               "families":  [
+                                                "band_energy_summary",
+                                                "stereo_relation_summary",
+                                                "time_energy",
+                                                "loudness_summary"
+                                            ],
+                               "track_id":  "1007"
+                           },
+                           {
+                               "families":  [
+                                                "band_energy_summary",
+                                                "stereo_relation_summary",
+                                                "time_energy",
+                                                "loudness_summary"
+                                            ],
+                               "track_id":  "1027"
+                           },
+                           {
+                               "families":  [
+                                                "band_energy_summary",
+                                                "stereo_relation_summary",
+                                                "time_energy",
+                                                "loudness_summary"
+                                            ],
+                               "track_id":  "1022"
+                           },
+                           {
+                               "families":  [
+                                                "band_energy_summary",
+                                                "stereo_relation_summary",
+                                                "time_energy",
+                                                "loudness_summary"
+                                            ],
+                               "track_id":  "1017"
+                           }
+                       ]
+}
