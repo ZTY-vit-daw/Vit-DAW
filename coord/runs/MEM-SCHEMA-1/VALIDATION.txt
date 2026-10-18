@@ -1,0 +1,33 @@
+# MEM-SCHEMA-1 样例自校验报告
+
+- 生成时间：2026-10-18（设计期）
+- schema_version：plugin-memory.entry/v1
+- 样例条目数：13（Pro-Q 3 / Pro-C 2 / ValhallaSupermassive）
+- 校验结果：PASS
+
+## 校验覆盖
+- 必填字段全集、schema_version、entry_type/trust 枚举与每类型 trust 允许集；
+- confidence ∈ [0,1]、evidence_count ≥ 1、evidence_refs 文法、context_tags 词法；
+- created_at/updated_at/expires_at 时序；environment.env_key 可由字段重算；
+- entry_ref 模板（vit://memory.entry/memory.env:…）、env key 与内容摘要自洽；
+- plugin_identity/surface_fingerprint 结构；sample_mode 下 null 必须带 [待用户确认]；
+- content 允许键闭合（additionalProperties=false 语义）+ 禁止可执行载荷键递归扫描；
+- user_approved_setting 的 approval/setting 结构；limitations 非空字符串列表。
+
+## 结果
+- 13/13 entries PASS
+
+## 警告（设计期可接受，生产捕获不允许）
+- WARN [schema-sample-c1#sha256:c8614d12fb89425d] plugin_identity.plugin_identifier=null（sample_mode，已标 [待用户确认]）
+- WARN [schema-sample-c1#sha256:c8614d12fb89425d] plugin_identity.plugin_version=null（sample_mode，已标 [待用户确认]）
+- WARN [schema-sample-c2#sha256:30b3b107caf76c9b] plugin_identity.plugin_identifier=null（sample_mode，已标 [待用户确认]）
+- WARN [schema-sample-c2#sha256:30b3b107caf76c9b] plugin_identity.plugin_version=null（sample_mode，已标 [待用户确认]）
+- WARN [schema-sample-c3#sha256:355ee13d8821d27e] plugin_identity.plugin_identifier=null（sample_mode，已标 [待用户确认]）
+- WARN [schema-sample-c3#sha256:355ee13d8821d27e] plugin_identity.plugin_version=null（sample_mode，已标 [待用户确认]）
+- WARN [schema-sample-c4#sha256:6dd6390b1304e9da] plugin_identity.plugin_identifier=null（sample_mode，已标 [待用户确认]）
+- WARN [schema-sample-c4#sha256:6dd6390b1304e9da] plugin_identity.plugin_version=null（sample_mode，已标 [待用户确认]）
+- WARN [schema-sample-c5#sha256:8c636a7b056df5f2] plugin_identity.plugin_identifier=null（sample_mode，已标 [待用户确认]）
+- WARN [schema-sample-c5#sha256:8c636a7b056df5f2] plugin_identity.plugin_version=null（sample_mode，已标 [待用户确认]）
+- WARN [schema-sample-v1#sha256:ac65edc7e2208c92] plugin_identity.plugin_version=null（sample_mode，已标 [待用户确认]）
+- WARN [schema-sample-v2#sha256:77ebee516db5f793] plugin_identity.plugin_version=null（sample_mode，已标 [待用户确认]）
+- WARN [schema-sample-v3#sha256:33d82309f88e7640] plugin_identity.plugin_version=null（sample_mode，已标 [待用户确认]）
