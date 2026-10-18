@@ -1,10 +1,11 @@
 # FIX-LW-CONFIG-PERSIST-1：loudness watch 配置关（enabled=false）在 free-state post-run 上下文被还原
 
 - 发卡：12:00-18:00 决策流 / 2026-10-18 午窗（依据=LOUDNESS-B-TRIGGER(90) 修订腿 run2 gate4 缺陷上交；证据 [coord/runs/LOUDNESS-B-TRIGGER-1/run2_20261018_121008_slim/](../../runs/LOUDNESS-B-TRIGGER-1/run2_20261018_121008_slim/) 的 `gate4_config_off_repro.{txt,json}`/`gate4_agent_log_excerpt.txt`）
-- 派发确认：**待用户确认**（新卡默认；决策流建议下一执行窗口派发，可与 92 并行实现——本卡主体为 Go 单测面、真栈复验腿排在 92 释放后）
+- 派发确认：**已确认（用户 2026-10-18 午窗选择「现在派发第三执行流」；由 12:00-18:00 决策流派发）**
 - 验收负责人：GLM 主管决策流（或当班决策流）
 - 池序 133；目标仓库=D:\Vit_DAW；P1（阻断 90 终验；loudness watch 配置面状态持久化缺陷）/ 预估 0.5-1 天 / 无代码依赖
 - 模型分级：L2 / GLM 执行会话（agent Go 运行时状态与并发/ownership 面）
+- 领取（2026-10-18 午窗）：2026-10-18 12:29 +0800 / origin/main=f946e271（派发提交；修复分支自最新 origin/main 建）/ owner=**DSH PC 执行流 exec-lw-fix**（本机 DSH 团队会话；用户指名派发第三流）/ 分支 **port/fix-lw-config-persist-1** / worktree **D:/Vit_DAW_wt_lwfix1** / 领取提交=（本提交）。文件域=`agent/internal/chat/server.go`+同包测试（+`coord/runs/FIX-LW-CONFIG-PERSIST-1/` 工件）；真栈复验腿经 Lead 授权复用 D:/Vit_DAW_wt_loudness_watch_b 的 revision-leg 脚本（只读：不在该 worktree 提交 git 改动，只把本卡构建的 gitignored agent 二进制拷入其 agent/bin），真栈窗口排队等 92 释放（PC-RUNTIME-STACK 排队条）。协作模式（DSH 团队）：协调面由 12-18 决策流单写，实现面由执行流在独立 worktree 写。
 
 ## 缺陷（真栈实证，2026-10-18 午窗）
 
