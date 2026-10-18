@@ -1,6 +1,6 @@
 # 插件域 Memory Entry Schema 与 Advisory 策略 V1
 
-> **状态：设计件（spec-only，待决策侧设计评审）**。日期 2026-10-18。卡：MEM-SCHEMA-1（池序 135，P2，L2 设计件；owner=DSH PC 执行流 exec-memschema）。授权：用户 2026-10-18「可以出卡，放入池中」明确授权（授权记录见 [decisions/2026-10-18-plugin-memory-and-boundary-cards.md](../coord/decisions/2026-10-18-plugin-memory-and-boundary-cards.md)）。
+> **状态：设计件（spec-only，决策侧设计评审 pass：2026-10-18，[rulings/2026-10-18-MEM-SCHEMA-1-pass.md](../coord/rulings/2026-10-18-MEM-SCHEMA-1-pass.md)）**。日期 2026-10-18。卡：MEM-SCHEMA-1（池序 135，P2，L2 设计件；owner=DSH PC 执行流 exec-memschema）。授权：用户 2026-10-18「可以出卡，放入池中」明确授权（授权记录见 [decisions/2026-10-18-plugin-memory-and-boundary-cards.md](../coord/decisions/2026-10-18-plugin-memory-and-boundary-cards.md)）。
 >
 > **定位**：D14 Memory 系统的**插件域（客观经验类）前置规格**——只定义 entry schema、写入策略与消费边界；**存储、检索、失效、consolidation、画像机制归 [`AGENTIC_OBSERVATION_ROADMAP_2026-09-25.md`](AGENTIC_OBSERVATION_ROADMAP_2026-09-25.md) D14**。本文**不建 store、不写 Go 代码、不接 runtime、不改变 PCA/typed executor 准入门槛**。
 >
