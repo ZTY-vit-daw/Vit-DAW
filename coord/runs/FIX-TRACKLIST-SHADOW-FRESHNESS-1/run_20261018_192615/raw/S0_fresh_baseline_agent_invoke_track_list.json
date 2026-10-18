@@ -1,0 +1,69 @@
+{
+  "status": "ok",
+  "agent_action_id": "act_3b24572be89e6650",
+  "tool": "track.list",
+  "command_name": "list_tracks",
+  "risk_level": "direct",
+  "requires_confirmation": false,
+  "result": {
+    "command_ack": {
+      "ack": {
+        "message": "Track list fetched",
+        "stage": "completed"
+      },
+      "command": "project.tracks.list",
+      "legacy_command": "list_tracks",
+      "resync_hint": false,
+      "revision": 0,
+      "source": "vsp.command.response",
+      "stage": "completed",
+      "transaction_id": "tx_1792322782778541100_4"
+    },
+    "kernel_user_track_count": 0,
+    "shadow_user_track_count": 0,
+    "status": "ok",
+    "track_count": 0,
+    "tracks": [],
+    "user_track_count": 0,
+    "vsp": {
+      "command_ack": {
+        "ack": {
+          "message": "Track list fetched",
+          "stage": "completed"
+        },
+        "command": "project.tracks.list",
+        "legacy_command": "list_tracks",
+        "resync_hint": false,
+        "revision": 0,
+        "source": "vsp.command.response",
+        "stage": "completed",
+        "transaction_id": "tx_1792322782778541100_4"
+      },
+      "transport": "vsp",
+      "version": "1.0"
+    }
+  },
+  "project_history": {
+    "active_branch": "",
+    "active_node_id": "",
+    "active_worktree": "",
+    "available": false,
+    "branches": {},
+    "commit_count": 0,
+    "current_project_path": "",
+    "detached": false,
+    "draft": false,
+    "head": "",
+    "initialized": false,
+    "project_path": "",
+    "project_uuid": "",
+    "recent_checkpoints": [],
+    "refs": {},
+    "root_project_path": "",
+    "unsaved": false,
+    "warnings": [],
+    "worktree_count": 0,
+    "worktrees": []
+  },
+  "_http_status": 200
+}

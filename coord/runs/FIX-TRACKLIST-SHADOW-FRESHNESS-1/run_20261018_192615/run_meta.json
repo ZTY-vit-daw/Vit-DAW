@@ -1,0 +1,17 @@
+﻿{
+    "started":  "2026-10-18T19:26:16.2633794+08:00",
+    "repo_root":  "D:/Vit_DAW_wt_trackfix1",
+    "kernel_exe":  "D:\\Vit_DAW\\Export\\staging\\runtime\\VitApp.exe",
+    "kernel_sha256":  "B6565DCF85D1DA867E16333052A7B928A5413565940603ADBCF4ABD59DD3123B",
+    "agent_exe":  "D:\\Vit_DAW_wt_trackfix1\\agent\\bin\\VitAgent.exe",
+    "agent_sha256":  "C57EB91797BF27DC12D1C818AE0F82435E7ECEFFA89EF9C60E93D9A9EBBDB057",
+    "vsphub_exe":  "D:\\Vit_DAW_wt_trackfix1\\agent\\bin\\vsphub.exe",
+    "vsphub_sha256":  "D35519BCB0A3DBD83CE27DEDB16A77C875D44871043C365E36E690147CA62C89",
+    "worktree_head":  "372ab2c9b984e9b2e17be1155a110aa5e38372b2",
+    "worktree_status_short":  "?? coord/runs/FIX-TRACKLIST-SHADOW-FRESHNESS-1/run_20261018_192615/\r\n",
+    "python":  "python",
+    "machine":  "ZTY",
+    "stack_ports":  "5555,5556,5557,7878,8787,4445",
+    "out_of_scope_godot_editor_pids":  "",
+    "out_of_scope_godot_helper_pids":  ""
+}
