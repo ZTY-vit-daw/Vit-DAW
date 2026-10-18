@@ -5,7 +5,8 @@
 
 ## 当前占用
 
-（无——空闲）
+- 2026-10-18 12:0x +0800 登记 / **LOUDNESS-B-TRIGGER(90) 修订腿（BATCH1 §二 案① D1 settle 重锚）真栈烟测**（owner=DSH PC 执行流 exec-loudness-b，本机 DSH 团队会话；worktree D:/Vit_DAW_wt_loudness_watch_b，分支 port/loudness-watch-trigger-1-d1 自 origin/main b61a773e）：`scripts/run_free_state_d1_smoke.ps1 -PromptFlavor reverb -ExpectDomain reverb -LoudnessWatch`（worktree 无 VitApp/build：执行流须先 `go build -o bin\VitAgent.exe .\cmd\vitagent` 重建被测 agent，再以 `-SkipBuild -KernelExe D:\Vit_DAW\VitApp\build\VitApp_artefacts\Release\VitApp.exe`（或主检出同版 staging 内核）运行，内核 C++ 零改动、记录被测二进制 SHA256；D1 script 不自拆栈，跑完须手动拆净）。§8 声明（运行前）：LLM=D1 脚本既有预算（NL 轮 1 chat+≤6 nudge+≤4 hop；模型=agent 现行 config，回执记录模型名/调用数/超时）；成功条件=脚本 exit 0（D1-S1 PASS + LW 四门[披露载体/verdict 落盘+round 触发/dedupe/配置关静默] + E1 提取样本非空）；失败分类=environment_interrupt（栈起不来/端口占用/冷启动超 UI 门）/assertion_fail（D1 或 LW 门）/llm_settle_fail（NL 轮不收口）/script_exception（脚本缺陷；修脚本不计产品轮次）；止损=同签名 assertion_fail ×2 或 D1 NOT_EXERCISED ×2 → 停止并上交决策侧（兜底案②，执行侧不降口径）。登记前只读核对（2026-10-18 11:5x）：四端口（7878/5555/5556/8787/4445/19876）监听=0、四类进程（VitApp/VitAgent/vsphub/Godot 含变体名）=0。计划窗口=12:15–15:30；执行流启栈前须再次亲核端口/进程，异常即停并上报。
+- 2026-10-18 12:0x +0800 排队（未占用）/ **FE-GUI-C-FLOATING(92)** 真栈三件套腿（owner=DSH PC 执行流 exec-fe-gui-c；前端仓 worktree D:/Godot/project/vit-daw-frontend-fe-gui-c）：`dev_agent_smoke.ps1 -StartKernel -StartUI -MixSmoke -GodotProjectRoot <本卡前端 worktree>`——**等待上一 LOUDNESS-B 修订腿释放并复核=0 后**再登记占用，本条仅排队；headless 探针电池不占栈（Godot headless 探针，不用 5555/5556/7878/8787 栈端口）。
 
 ## 本次释放（2026-10-17 22:20 +0800）
 

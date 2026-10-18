@@ -31,6 +31,6 @@
 
 - 现状宏节点/参数面板的功能面盘点发现与本设计前提冲突（如 control graph 语义与样图假设不符）→ 上交对齐再继续。
 
-- 领取：（决策侧对话迭代启动时间 / 基线）
+- 领取：2026-10-18 早窗 / 决策侧对话迭代启动（用户 /morning 四线确认指定 129 开线）/ main=b61a773e / 现状勘察已复核并补新发现（rack_client 对 control_* 零封装=缺口 G1；宏节点渲染链/绑定 schema/curve 词表锚点见 [01-design-draft-v1.md](../../runs/FE-RACK-MACRO-LAYER-DESIGN-1/01-design-draft-v1.md) §1）
 - 回执：（设计件路径 / 样图定稿记录）
 - 验收：（用户定稿记录 / 评审 commit）
