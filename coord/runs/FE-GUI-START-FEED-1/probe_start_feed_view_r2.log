@@ -122,6 +122,58 @@ If you want to set size, change the anchors or consider using set_deferred().
        [0] _run_scene_suite (res://tools/probe_start_feed_view.gd:483)
        [1] _process (res://tools/probe_start_feed_view.gd:71)
 [probe][ ok ] responsive scale applied to cards
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _run_scene_suite (res://tools/probe_start_feed_view.gd:489)
+       [1] _process (res://tools/probe_start_feed_view.gd:71)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _run_scene_suite (res://tools/probe_start_feed_view.gd:490)
+       [1] _process (res://tools/probe_start_feed_view.gd:71)
+[probe][ ok ] cards host fills viewport 1920x1080
+[probe][ ok ] card center at viewport center 1920x1080
+[probe][ ok ] card fully inside viewport 1920x1080
+[probe][ ok ] card scaled size within design bounds 1920x1080
+[probe][ ok ] index label exists 1920x1080
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _run_scene_suite (res://tools/probe_start_feed_view.gd:489)
+       [1] _process (res://tools/probe_start_feed_view.gd:71)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _run_scene_suite (res://tools/probe_start_feed_view.gd:490)
+       [1] _process (res://tools/probe_start_feed_view.gd:71)
+[probe][ ok ] cards host fills viewport 1366x768
+[probe][ ok ] card center at viewport center 1366x768
+[probe][ ok ] card fully inside viewport 1366x768
+[probe][ ok ] card scaled size within design bounds 1366x768
+[probe][ ok ] index label exists 1366x768
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _run_scene_suite (res://tools/probe_start_feed_view.gd:489)
+       [1] _process (res://tools/probe_start_feed_view.gd:71)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _run_scene_suite (res://tools/probe_start_feed_view.gd:490)
+       [1] _process (res://tools/probe_start_feed_view.gd:71)
+[probe][ ok ] cards host fills viewport 900x1600
+[probe][ ok ] card center at viewport center 900x1600
+[probe][ ok ] card fully inside viewport 900x1600
+[probe][ ok ] card scaled size within design bounds 900x1600
+[probe][ ok ] index label exists 900x1600
+[probe][ ok ] index/status labels do not overlap
 [probe][ ok ] new tape overlay hidden initially
 [probe][ ok ] new project pill opens blank tape
 [probe][ ok ] blank tape default name
@@ -170,7 +222,7 @@ If you want to set size, change the anchors or consider using set_deferred().
 ERROR: Attempt to disconnect a nonexistent connection from 'FeedLayer:<Control#40214988329>'. Signal: 'open_requested', callable: '<anonymous lambda>(lambda)'.
    at: _disconnect (core/object/object.cpp:1733)
    GDScript backtrace (most recent call first):
-       [0] _run_scene_suite (res://tools/probe_start_feed_view.gd:587)
+       [0] _run_scene_suite (res://tools/probe_start_feed_view.gd:595)
        [1] _process (res://tools/probe_start_feed_view.gd:71)
 [probe][ ok ] enter activates open path
 [probe][ ok ] probe feed cards 2+tail
@@ -190,4 +242,4 @@ ERROR: Attempt to disconnect a nonexistent connection from 'FeedLayer:<Control#4
 [probe][ ok ] corrupt source honest decode error
 [probe][ ok ] interaction off disables nav
 [probe][ ok ] interaction off blocks activate
-[probe] PROBE PASS (checks_total=170 failed=0 setup_failed=false)
+[probe] PROBE PASS (checks_total=186 failed=0 setup_failed=false)
