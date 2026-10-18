@@ -12247,6 +12247,9 @@ func (h *Harness) applyKernelReplyShadowDelta(spec tools.CommandSpec, reply map[
 func (h *Harness) publicResult(spec tools.CommandSpec, cmd map[string]any, reply map[string]any) map[string]any {
 	switch spec.CommandName {
 	case "get_project_state":
+		// 内核权威按构造成立：afterKernelReply/afterKernelReplyVSP 在 publicResult
+		// 之前已用本命令回包 shadow.Initialize，此处的 shadow 投影即本回包投影
+		//（FIX-TRACKLIST-SHADOW-FRESHNESS-1 A 口径核查）。
 		if h.shadow != nil {
 			return withOKStatus(userVisibleState(h.shadow.Summary()))
 		}
@@ -12261,15 +12264,7 @@ func (h *Harness) publicResult(spec tools.CommandSpec, cmd map[string]any, reply
 	case "get_plugin_parameters":
 		return publicPluginParametersResult(cmd, reply)
 	case "list_tracks":
-		if h.shadow != nil {
-			summary := h.shadow.Summary()
-			return map[string]any{
-				"status":           "ok",
-				"track_count":      summary["track_count"],
-				"user_track_count": summary["user_track_count"],
-				"tracks":           summary["tracks"],
-			}
-		}
+		return publicListTracksResult(h, reply)
 	case "track.group.list":
 		out := cloneAnyMap(reply)
 		groupValue := reply["track_groups"]
@@ -12382,6 +12377,76 @@ func (h *Harness) publicResult(spec tools.CommandSpec, cmd map[string]any, reply
 		return out
 	}
 	return reply
+}
+
+// publicListTracksResult 使 track.list 工具面以本命令内核回包为权威
+// （FIX-TRACKLIST-SHADOW-FRESHNESS-1 A）。行与计数来自刚拿到的内核回包；
+// shadow 只用于不一致披露：轨道集合不一致时显式 shadow_stale + 双计数
+// （kernel_user_track_count / shadow_user_track_count），禁止静默返回旧快照。
+// 回包缺 tracks 载荷（异常形态）时回落 shadow 投影但必须标注来源，不得冒充权威。
+func publicListTracksResult(h *Harness, reply map[string]any) map[string]any {
+	var summary map[string]any
+	if h != nil && h.shadow != nil {
+		summary = h.shadow.Summary()
+	} else {
+		summary = map[string]any{}
+	}
+	rows, hasRows := reply["tracks"].([]any)
+	if !hasRows {
+		out := map[string]any{
+			"status":           "ok",
+			"track_count":      summary["track_count"],
+			"user_track_count": summary["user_track_count"],
+			"tracks":           summary["tracks"],
+			"tracks_source":    "shadow_snapshot",
+			"warning":          "kernel reply carried no tracks payload; shadow snapshot is not kernel-authoritative",
+		}
+		return out
+	}
+	kernelTracks := shadow.CompactUserTrackRows(rows)
+	kernelCount := len(kernelTracks)
+	shadowCount, _ := summary["track_count"].(int)
+	out := map[string]any{
+		"status":                  "ok",
+		"track_count":             kernelCount,
+		"user_track_count":        kernelCount,
+		"tracks":                  kernelTracks,
+		"kernel_user_track_count": kernelCount,
+		"shadow_user_track_count": shadowCount,
+	}
+	if userTrackIDSetsDiffer(kernelTracks, summary["tracks"]) {
+		out["shadow_stale"] = true
+		out["warning"] = fmt.Sprintf(
+			"shadow snapshot disagrees with the kernel reply (kernel user tracks=%d, shadow tracks=%d); tracks above are kernel-authoritative",
+			kernelCount, shadowCount)
+	}
+	return out
+}
+
+func userTrackIDSetsDiffer(kernelTracks []map[string]any, shadowTracks any) bool {
+	shadowRows, _ := shadowTracks.([]map[string]any)
+	if len(kernelTracks) != len(shadowRows) {
+		return true
+	}
+	kernelIDs := make(map[string]bool, len(kernelTracks))
+	for _, row := range kernelTracks {
+		if id := firstString(row, "track_id", "id"); id != "" {
+			kernelIDs[id] = true
+		}
+	}
+	for _, row := range shadowRows {
+		id := firstString(row, "track_id", "id")
+		if id == "" || !kernelIDs[id] {
+			return true
+		}
+		kernelIDs[id] = false
+	}
+	for _, seen := range kernelIDs {
+		if seen {
+			return true
+		}
+	}
+	return false
 }
 
 func publicProjectAudioSettingsResult(reply map[string]any) map[string]any {

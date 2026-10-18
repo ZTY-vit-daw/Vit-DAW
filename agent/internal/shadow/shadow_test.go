@@ -424,3 +424,57 @@ func TestInitializeDropsTrackVolumePluginDeltaForDifferentProject(t *testing.T) 
 		t.Fatalf("volume delta leaked across projects: %+v", tracks[0])
 	}
 }
+
+func TestStructureDeltaRaisesRefreshHint(t *testing.T) {
+	p := New(nil)
+	p.Initialize(map[string]any{"tracks": []any{
+		map[string]any{"track_id": "1007", "name": "Audio 1", "track_type": "hybrid", "is_audio_track": true},
+	}})
+	if p.ConsumeStructureRefreshHint() {
+		t.Fatal("fresh snapshot must not raise a refresh hint")
+	}
+
+	// 未知 uid 的属性 delta（既有 orphan 形态）不触发结构提示
+	p.ApplyDelta(map[string]any{"type": "delta_update", "seq_id": float64(1), "target_uid": "2001", "action": "property_changed:name", "value": "X"})
+	if p.ConsumeStructureRefreshHint() {
+		t.Fatal("property delta on an unknown uid must not raise a structural hint")
+	}
+
+	// 未知 uid 新节点（外部新建轨只以 delta 到达）触发一次性提示
+	p.ApplyDelta(map[string]any{"type": "delta_update", "seq_id": float64(2), "target_uid": "2001", "action": "node_added", "value": "TRACK"})
+	if !p.ConsumeStructureRefreshHint() {
+		t.Fatal("node_added on an unknown uid must raise the structural refresh hint")
+	}
+	if p.ConsumeStructureRefreshHint() {
+		t.Fatal("hint must be consumed exactly once")
+	}
+
+	// orphan 记账语义保留：结构 delta 仍按原规则进 orphanDeltas
+	if got := p.Summary()["orphan_uid_keys"]; got != 1 {
+		t.Fatalf("orphan_uid_keys = %#v, want 1 (orphan semantics must be preserved)", got)
+	}
+
+	// 已知轨被外部移除（node_removed 命中 bootstrap uid）同样触发
+	p.ApplyDelta(map[string]any{"type": "delta_update", "seq_id": float64(3), "target_uid": "1007", "action": "node_removed", "value": "TRACK"})
+	if !p.ConsumeStructureRefreshHint() {
+		t.Fatal("node_removed on a known track uid must raise the structural refresh hint")
+	}
+}
+
+func TestCompactUserTrackRowsFiltersKernelRows(t *testing.T) {
+	rows := []any{
+		map[string]any{"track_id": "1", "name": "Master", "track_type": "master"},
+		map[string]any{"track_id": "2", "name": "Tempo", "track_type": "track", "is_audio_track": false},
+		map[string]any{"track_id": "1007", "name": "Audio 1", "track_type": "hybrid", "is_audio_track": true, "volume_db": -6.0, "pan": 0.25},
+	}
+	out := CompactUserTrackRows(rows)
+	if len(out) != 1 {
+		t.Fatalf("user rows = %d, want 1: %#v", len(out), out)
+	}
+	if out[0]["track_id"] != "1007" || out[0]["user_track_index"] != 1 || out[0]["is_user_visible"] != true {
+		t.Fatalf("kernel row rendering = %#v", out[0])
+	}
+	if out[0]["volume_db"] != -6.0 || out[0]["pan"] != 0.25 {
+		t.Fatalf("kernel row values must pass through unchanged: %#v", out[0])
+	}
+}
