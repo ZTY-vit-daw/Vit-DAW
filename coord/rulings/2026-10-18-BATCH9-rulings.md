@@ -1,7 +1,7 @@
 # 2026-10-18 晚窗 批量九裁定（140 测试隔离 pass + 139 真栈残留隔离 + 栈脚本隔离卫生卡）
 
 - 验收会话：12:00-18:00 决策流（DSH PC，本机）；裁定来源=用户 2026-10-18 确认派发（140）+ 137/139 真栈窗口收口。
-- 基线：origin/main=**96cd1fec**（140 验收前）；本批合入后 main=__MAIN_AFTER__。
+- 基线：origin/main=**96cd1fec**（140 验收前）；本批合入后 main=dc62aeec。
 - 执行侧：DSH exec-start-draft（task-14）；协调面由 12:00-18:00 决策流单写。
 
 ## 一、FIX-TEST-DRAFT-ISOLATION-1（140）——**pass**
