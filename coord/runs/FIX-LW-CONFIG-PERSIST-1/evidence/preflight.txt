@@ -1,0 +1,13 @@
+﻿[preflight] 2026-10-18 12:38:41 +0800
+port 7878 listen=0
+port 5555 listen=0
+port 5556 listen=0
+port 8787 listen=0
+port 4445 listen=0
+port 19876 listen=0
+process_count=0
+fix_agent_sha256=5A25452ADCCE8923AEEE6C361AC9476CEEDBEE1A22A634A4C36823949109247A
+loudness_worktree_agent_sha256=5A25452ADCCE8923AEEE6C361AC9476CEEDBEE1A22A634A4C36823949109247A
+kernel_sha256=B6565DCF85D1DA867E16333052A7B928A5413565940603ADBCF4ABD59DD3123B
+loudness_worktree_head=4f97bc7e041fe3bfda35dd4eecd431e08c65f880 (port/loudness-watch-trigger-1-d1)
+script_readonly=scripts/run_free_state_d1_smoke.ps1 used as-is (no edits)

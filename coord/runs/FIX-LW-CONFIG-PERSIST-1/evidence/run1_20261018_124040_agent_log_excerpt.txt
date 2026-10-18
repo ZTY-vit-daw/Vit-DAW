@@ -1,0 +1,226 @@
+﻿2026-10-18T12:40:44 [WARN] [pca-native-seed] family=generation_shell bundle=C:\Users\timoz\Library\Audio\Plug-Ins\VST3\GenShell.vst3 seed failed: processor attestation: inspect plug-in path: GetFileAttributesEx C:\Users\timoz\Library\Audio\Plug-Ins\VST3\GenShell.vst3: The system cannot find the path specified.
+2026-10-18T12:40:44 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=<none>
+2026-10-18T12:40:44 [INFO] HTTP agent API listening on http://127.0.0.1:7878
+2026-10-18T12:40:44 [INFO] VitAgent started req=tcp://127.0.0.1:5555 sub=tcp://127.0.0.1:5556 udp_to=4444 udp_from=4445
+2026-10-18T12:40:44 [INFO] VSP realtime publisher enabled client=vit.agent.realtime_publisher hub=http://127.0.0.1:8787/vsp
+2026-10-18T12:40:44 [INFO] VSP realtime publisher enabled client=vit.agent.transport_publisher hub=http://127.0.0.1:8787/vsp
+2026-10-18T12:40:44 [INFO] control loop started: UDP:4445 -> tcp://127.0.0.1:5555
+2026-10-18T12:40:44 [INFO] telemetry thread started: tcp://127.0.0.1:5556 -> UDP:4444
+2026-10-18T12:40:44 [INFO] [shadow] initialized tracks=11 project_path="" replayed_deltas=0
+2026-10-18T12:40:45 [INFO] [workspace] parent history recovery skipped parent=vitproj_ce374a4572d94040a168dc9a69f63aa2 target=vitproj_b3f2838183d64add9ca7824b8b3ac557 reason=parent project path not found for UUID vitproj_ce374a4572d94040a168dc9a69f63aa2
+2026-10-18T12:40:46 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-18T12:40:46 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-10-18T12:40:46 [INFO] [workspace] activated project="C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20260905T134132_3866b080\\Unsaved.vit" uuid=vitproj_b3f2838183d64add9ca7824b8b3ac557 recovered=true conversations=156 retired_legacy_b2=0 retired_legacy_b3=0
+2026-10-18T12:40:47 [INFO] [media_refs] ms=0 conversation=dev_range_context_20261018_124045 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-10-18T12:40:47 [INFO] [chat.artifacts] conversation=dev_range_context_20261018_124045 response_artifacts=0 request_artifacts=0 executed=0 reply_len=80
+2026-10-18T12:40:48 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-10-18T12:40:48 [INFO] [timing] http.chat total_ms=3517 conversation=dev_range_context_20261018_124045 message_len=20
+2026-10-18T12:40:51 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-10-18T12:40:51 [INFO] [continuation.park] answerable park holds the chain non_terminal=7 skipped_status=67 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-10-18T12:40:52 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-10-18T12:40:52 [INFO] [timing] kernel.send_command ms=12 command=get_project_state tool=project.state confirmed=false err=false
+2026-10-18T12:40:52 [INFO] [timing] harness.invoke total_ms=21 tool=project.state command=get_project_state status=ok confirmed=false err=false
+2026-10-18T12:40:54 [INFO] [continuation.park] answerable park holds the chain non_terminal=7 skipped_status=67 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-10-18T12:40:57 [INFO] [continuation.park] answerable park holds the chain non_terminal=7 skipped_status=67 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-10-18T12:40:59 [INFO] [continuation.park] answerable park holds the chain non_terminal=7 skipped_status=67 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-10-18T12:41:00 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-10-18T12:41:00 [INFO] [timing] kernel.vsp_state_snapshot ms=9 reason=open_project err=false
+2026-10-18T12:41:00 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW_wt_loudness_watch_b\\artifacts\\free_state_d1_s1\\20261018_124040\\project\\spv1_p01.vit" replayed_deltas=0
+2026-10-18T12:41:00 [INFO] [timing] harness.refresh_shadow ms=17 reason=open_project status=ok err=false
+2026-10-18T12:41:00 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW_wt_loudness_watch_b\\artifacts\\free_state_d1_s1\\20261018_124040\\project\\spv1_p01.vit" replayed_deltas=0
+2026-10-18T12:41:00 [INFO] [timing] kernel.send_command ms=93 command=open_project tool=project.open confirmed=true err=false
+2026-10-18T12:41:02 [INFO] [continuation.park] answerable park holds the chain non_terminal=7 skipped_status=67 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-10-18T12:41:41 [INFO] [authority] explicit latch dropped on identity switch from_uuid=vitproj_b3f2838183d64add9ca7824b8b3ac557 to_uuid=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-10-18T12:41:41 [INFO] [workspace] parent history recovery skipped parent=vitproj_ce374a4572d94040a168dc9a69f63aa2 target=vitproj_b3f2838183d64add9ca7824b8b3ac557 reason=parent project path not found for UUID vitproj_ce374a4572d94040a168dc9a69f63aa2
+2026-10-18T12:41:41 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-18T12:41:41 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-10-18T12:41:41 [INFO] [workspace] activated project="D:\\Vit_DAW_wt_loudness_watch_b\\artifacts\\free_state_d1_s1\\20261018_124040\\project\\spv1_p01.vit" uuid=vitproj_b3f2838183d64add9ca7824b8b3ac557 recovered=false conversations=0 retired_legacy_b2=0 retired_legacy_b3=0
+2026-10-18T12:41:46 [INFO] [timing] harness.invoke total_ms=45402 tool=project.open command=open_project status=ok confirmed=true err=false
+2026-10-18T12:42:04 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW_wt_loudness_watch_b\\artifacts\\free_state_d1_s1\\20261018_124040\\project\\spv1_p01.vit" replayed_deltas=0
+2026-10-18T12:42:04 [INFO] [timing] kernel.send_command ms=10 command=get_project_state tool=project.state confirmed=false err=false
+2026-10-18T12:42:04 [INFO] [timing] harness.invoke total_ms=18 tool=project.state command=get_project_state status=ok confirmed=false err=false
+2026-10-18T12:42:13 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW_wt_loudness_watch_b\\artifacts\\free_state_d1_s1\\20261018_124040\\project\\spv1_p01.vit" replayed_deltas=0
+2026-10-18T12:42:13 [INFO] [timing] kernel.send_command ms=10 command=get_project_state tool=project.state confirmed=false err=false
+2026-10-18T12:42:13 [INFO] [timing] harness.invoke total_ms=16 tool=project.state command=get_project_state status=ok confirmed=false err=false
+2026-10-18T12:42:22 [INFO] [timing] kernel.send_command ms=1 command=project.audio_analysis_status tool=project.audio_analysis_status confirmed=false err=false
+2026-10-18T12:42:22 [INFO] [timing] harness.invoke total_ms=13 tool=project.audio_analysis_status command=project.audio_analysis_status status=ok confirmed=false err=false
+2026-10-18T12:42:34 [INFO] [timing] kernel.vsp_state_snapshot ms=9 reason=capacity_project_facts err=false
+2026-10-18T12:42:34 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW_wt_loudness_watch_b\\artifacts\\free_state_d1_s1\\20261018_124040\\project\\spv1_p01.vit" replayed_deltas=0
+2026-10-18T12:42:34 [INFO] [timing] harness.refresh_shadow ms=18 reason=capacity_project_facts status=ok err=false
+2026-10-18T12:42:37 [INFO] [timing] message_loop.llm ms=2443 goal=goal_c6d7a9daacaf1dbe conversation=d1_s1_20261018T044222518033 turn=1 messages=2 chars=48441 message_chars=0:system:14331,1:user:34110 err=false
+2026-10-18T12:42:37 [INFO] [timing] harness.invoke total_ms=12 tool=ccb.observation_catalog command=ccb_observation_catalog status=ok confirmed=false err=false
+2026-10-18T12:42:37 [INFO] [timing] message_loop.tool ms=13 goal=goal_c6d7a9daacaf1dbe tool=ccb.observation_catalog confirmed=false stopped=false status=
+2026-10-18T12:42:37 [INFO] [free-state.ledger] boundary conversation=d1_s1_20261018T044222518033 goal=goal_c6d7a9daacaf1dbe executed=1 ccb_observations=0 ids=[] snapshot_loop=true continuation_loop=true stored_receipts=0
+2026-10-18T12:42:37 [INFO] [continuation.wake] has_scheduled_work=true executor=false workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-10-18T12:42:37 [INFO] [continuation.arm] conversation=d1_s1_20261018T044222518033 goal=goal_c6d7a9daacaf1dbe status=waiting_continue stop=limit_reached limit=max_turns continuation=true durable=cont_4306abad0049f3c06308fbf6 lifecycle=pending scheduled=true budget_stop=false requires_user_interaction=false owes_outcome=false settle_checkpoint=false
+2026-10-18T12:42:37 [WARN] [continuation.stall] reason=invocations-active drivable=1: a request-boundary invocation still owns the in-memory runtime state
+2026-10-18T12:42:37 [INFO] [timing] agent_loop_chat total_ms=4660 conversation=d1_s1_20261018T044222518033 goal=goal_c6d7a9daacaf1dbe mode=default status=waiting_continue stop=limit_reached completed_steps=1 executed=1
+2026-10-18T12:42:37 [INFO] [media_refs] ms=0 conversation=d1_s1_20261018T044222518033 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-10-18T12:42:37 [INFO] [vit_checkpoint] async checkpoint launched project=D:\Vit_DAW_wt_loudness_watch_b\artifacts\free_state_d1_s1\20261018_124040\project\spv1_p01.vit revision=2
+2026-10-18T12:42:37 [INFO] [chat.artifacts] conversation=d1_s1_20261018T044222518033 response_artifacts=0 request_artifacts=0 executed=1 reply_len=63
+2026-10-18T12:42:37 [INFO] [vit_checkpoint] async checkpoint done project=D:\Vit_DAW_wt_loudness_watch_b\artifacts\free_state_d1_s1\20261018_124040\project\spv1_p01.vit revision=2 commit=c_20261018T044237_87ed7042 rebound=1 total_ms=18
+2026-10-18T12:42:41 [INFO] [continuation.wake] has_scheduled_work=true executor=false workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-10-18T12:42:41 [INFO] [timing] http.chat total_ms=19125 conversation=d1_s1_20261018T044222518033 message_len=199
+2026-10-18T12:42:41 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-10-18T12:42:41 [INFO] [continuation.claim] claimed id=cont_4306abad0049f3c06308fbf6 goal=goal_c6d7a9daacaf1dbe conversation=d1_s1_20261018T044222518033 attempt=1 lease_until=2026-10-18T04:44:41Z
+2026-10-18T12:42:41 [INFO] [timing] kernel.vsp_state_snapshot ms=8 reason=capacity_project_facts err=false
+2026-10-18T12:42:41 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW_wt_loudness_watch_b\\artifacts\\free_state_d1_s1\\20261018_124040\\project\\spv1_p01.vit" replayed_deltas=0
+2026-10-18T12:42:41 [INFO] [timing] harness.refresh_shadow ms=15 reason=capacity_project_facts status=ok err=false
+2026-10-18T12:42:44 [INFO] [timing] message_loop.llm ms=3031 goal=goal_c6d7a9daacaf1dbe conversation=d1_s1_20261018T044222518033 turn=2 messages=2 chars=55146 message_chars=0:system:14331,1:user:40815 err=false
+2026-10-18T12:42:44 [INFO] [timing] kernel.vsp_state_snapshot ms=9 reason=mix_request_observation_project_scope_state err=false
+2026-10-18T12:42:44 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW_wt_loudness_watch_b\\artifacts\\free_state_d1_s1\\20261018_124040\\project\\spv1_p01.vit" replayed_deltas=0
+2026-10-18T12:42:44 [INFO] [timing] harness.refresh_shadow ms=17 reason=mix_request_observation_project_scope_state status=ok err=false
+2026-10-18T12:42:44 [WARN] [mixboard] send topology read failed; send projections report missing: Unknown command: track_send_list
+2026-10-18T12:42:50 [INFO] [timing] harness.invoke total_ms=5247 tool=ccb.observation_request command=ccb_observation_request status=ok confirmed=false err=false
+2026-10-18T12:42:50 [INFO] [timing] message_loop.tool ms=5250 goal=goal_c6d7a9daacaf1dbe tool=ccb.observation_request confirmed=false stopped=false status=
+2026-10-18T12:42:50 [INFO] [free-state.ledger] boundary conversation=d1_s1_20261018T044222518033 goal=goal_c6d7a9daacaf1dbe executed=1 ccb_observations=1 ids=[obs_20261018T044244_69a8fe0700be] snapshot_loop=true continuation_loop=true stored_receipts=0
+2026-10-18T12:42:50 [INFO] [continuation.wake] has_scheduled_work=true executor=false workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-10-18T12:42:50 [INFO] [continuation.arm] conversation=d1_s1_20261018T044222518033 goal=goal_c6d7a9daacaf1dbe status=waiting_continue stop=limit_reached limit=max_turns continuation=true durable=cont_cde578a7667587ddecba567d lifecycle=pending scheduled=true budget_stop=false requires_user_interaction=false owes_outcome=false settle_checkpoint=false
+2026-10-18T12:42:50 [INFO] [timing] agent_loop_chat total_ms=8396 conversation=d1_s1_20261018T044222518033 goal=goal_c6d7a9daacaf1dbe mode=default status=waiting_continue stop=limit_reached completed_steps=2 executed=1
+2026-10-18T12:42:50 [INFO] [f6.gate] conversation=d1_s1_20261018T044222518033 goal=goal_c6d7a9daacaf1dbe chainEnded=false status=completed respGoal=waiting_continue runtimeGoal=waiting_continue
+2026-10-18T12:42:50 [INFO] [continuation.claim] claimed id=cont_cde578a7667587ddecba567d goal=goal_c6d7a9daacaf1dbe conversation=d1_s1_20261018T044222518033 attempt=1 lease_until=2026-10-18T04:44:50Z
+2026-10-18T12:42:50 [INFO] [timing] kernel.vsp_state_snapshot ms=10 reason=capacity_project_facts err=false
+2026-10-18T12:42:50 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW_wt_loudness_watch_b\\artifacts\\free_state_d1_s1\\20261018_124040\\project\\spv1_p01.vit" replayed_deltas=0
+2026-10-18T12:42:50 [INFO] [timing] harness.refresh_shadow ms=20 reason=capacity_project_facts status=ok err=false
+2026-10-18T12:42:55 [INFO] [timing] message_loop.llm ms=5562 goal=goal_c6d7a9daacaf1dbe conversation=d1_s1_20261018T044222518033 turn=3 messages=2 chars=57257 message_chars=0:system:14331,1:user:42926 err=false
+2026-10-18T12:42:55 [WARN] [mixboard] send topology read failed; send projections report missing: Unknown command: track_send_list
+2026-10-18T12:43:00 [INFO] [timing] harness.invoke total_ms=5020 tool=ccb.observation_request command=ccb_observation_request status=ok confirmed=false err=false
+2026-10-18T12:43:00 [INFO] [timing] message_loop.tool ms=5022 goal=goal_c6d7a9daacaf1dbe tool=ccb.observation_request confirmed=false stopped=false status=
+2026-10-18T12:43:11 [INFO] [timing] message_loop.llm ms=10594 goal=goal_c6d7a9daacaf1dbe conversation=d1_s1_20261018T044222518033 turn=4 messages=2 chars=55874 message_chars=0:system:14331,1:user:41543 err=false
+2026-10-18T12:43:11 [INFO] [free-state.ledger] boundary conversation=d1_s1_20261018T044222518033 goal=goal_c6d7a9daacaf1dbe executed=1 ccb_observations=1 ids=[obs_20261018T044255_3793a84f3004] snapshot_loop=true continuation_loop=false stored_receipts=1
+2026-10-18T12:43:11 [INFO] [timing] harness.invoke total_ms=23 tool=version.checkpoint command=version_checkpoint status=ok confirmed=true err=false
+2026-10-18T12:43:11 [INFO] [continuation.arm] conversation=d1_s1_20261018T044222518033 goal=goal_c6d7a9daacaf1dbe status=completed stop=done limit= continuation=false durable= lifecycle=none scheduled=false budget_stop=false requires_user_interaction=false owes_outcome=false settle_checkpoint=false
+2026-10-18T12:43:11 [INFO] [timing] agent_loop_chat total_ms=21413 conversation=d1_s1_20261018T044222518033 goal=goal_c6d7a9daacaf1dbe mode=default status=waiting_confirmation stop=improvement_proposal_confirmation_required completed_steps=3 executed=1
+2026-10-18T12:43:11 [INFO] [f6.gate] conversation=d1_s1_20261018T044222518033 goal=goal_c6d7a9daacaf1dbe chainEnded=true status=waiting_interaction respGoal=waiting_confirmation runtimeGoal=waiting_confirmation
+2026-10-18T12:43:11 [INFO] [vit_checkpoint] gate skipped zero-change turn project=D:\Vit_DAW_wt_loudness_watch_b\artifacts\free_state_d1_s1\20261018_124040\project\spv1_p01.vit revision=2
+2026-10-18T12:43:11 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-10-18T12:43:11 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-10-18T12:43:11 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-10-18T12:43:12 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-10-18T12:43:12 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-10-18T12:43:12 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-10-18T12:43:12 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-10-18T12:43:13 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-10-18T12:43:13 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-10-18T12:43:29 [INFO] [timing] harness.invoke total_ms=4081 tool=plugin.semantic_search command=plugin_semantic_search status=ok confirmed=false err=false
+2026-10-18T12:43:33 [INFO] [continuation.arm] conversation=d1_s1_20261018T044222518033 goal=goal_c6d7a9daacaf1dbe status=waiting_clarification stop=plugin_selection_required limit= continuation=false durable= lifecycle=none scheduled=false budget_stop=false requires_user_interaction=false owes_outcome=false settle_checkpoint=false
+2026-10-18T12:43:33 [INFO] [vit_checkpoint] gate skipped zero-change turn project=D:\Vit_DAW_wt_loudness_watch_b\artifacts\free_state_d1_s1\20261018_124040\project\spv1_p01.vit revision=2
+2026-10-18T12:43:37 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-10-18T12:43:37 [INFO] [timing] http.interaction_respond total_ms=24117 interaction=interaction_d4a7021dfa69fe1f action=approve
+2026-10-18T12:43:42 [INFO] [timing] confirmation_preview ms=5 decisions=1 preview_len=107 err=false
+2026-10-18T12:43:42 [INFO] [vit_checkpoint] gate skipped zero-change turn project=D:\Vit_DAW_wt_loudness_watch_b\artifacts\free_state_d1_s1\20261018_124040\project\spv1_p01.vit revision=2
+2026-10-18T12:43:46 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-10-18T12:43:46 [INFO] [timing] http.interaction_respond total_ms=13776 interaction=interaction_29889f9413fede89 action=select_plugin_candidate_1
+2026-10-18T12:43:51 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW_wt_loudness_watch_b\\artifacts\\free_state_d1_s1\\20261018_124040\\project\\spv1_p01.vit" replayed_deltas=0
+2026-10-18T12:43:51 [DEBUG] [shadow] live delta uid="WINDOWSTATE" action="node_added"
+2026-10-18T12:43:51 [DEBUG] [shadow] live delta uid="1039" action="property_changed:name"
+2026-10-18T12:43:51 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-10-18T12:43:51 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-10-18T12:43:51 [INFO] [timing] kernel.vsp_state_snapshot ms=10 reason=rack_add_node err=false
+2026-10-18T12:43:51 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-10-18T12:43:51 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW_wt_loudness_watch_b\\artifacts\\free_state_d1_s1\\20261018_124040\\project\\spv1_p01.vit" replayed_deltas=0
+2026-10-18T12:43:51 [INFO] [timing] harness.refresh_shadow ms=27 reason=rack_add_node status=ok err=false
+2026-10-18T12:43:51 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-10-18T12:43:51 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-10-18T12:43:51 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW_wt_loudness_watch_b\\artifacts\\free_state_d1_s1\\20261018_124040\\project\\spv1_p01.vit" replayed_deltas=0
+2026-10-18T12:43:51 [INFO] [timing] kernel.send_command ms=130 command=rack_add_node tool=rack.add_node confirmed=true err=false
+2026-10-18T12:43:51 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-10-18T12:43:51 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-10-18T12:43:51 [DEBUG] [shadow] live delta uid="1039" action="node_added"
+2026-10-18T12:43:51 [DEBUG] [shadow] live delta uid="MACROPARAMETERS" action="node_added"
+2026-10-18T12:43:51 [DEBUG] [shadow] live delta uid="1040" action="property_changed:id"
+2026-10-18T12:43:51 [DEBUG] [shadow] live delta uid="1040" action="property_changed:remapOnTempoChange"
+2026-10-18T12:43:51 [INFO] [timing] harness.invoke total_ms=194 tool=rack.add_node command=rack_add_node status=ok confirmed=true err=false
+2026-10-18T12:43:51 [INFO] [timing] execute_decisions total_ms=195 decisions=1 replies=1 confirmed=true err=false
+2026-10-18T12:43:51 [DEBUG] [shadow] live delta uid="1041" action="node_added"
+2026-10-18T12:43:51 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="node_added"
+2026-10-18T12:43:51 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-10-18T12:43:51 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-10-18T12:43:51 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-10-18T12:43:51 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-10-18T12:43:51 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-10-18T12:43:51 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-10-18T12:43:51 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:plugin_identifier"
+2026-10-18T12:43:51 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_zone_id"
+2026-10-18T12:43:51 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_clip_scope"
+2026-10-18T12:43:51 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_template_role"
+2026-10-18T12:43:51 [DEBUG] [shadow] live delta uid="1042" action="property_changed:state"
+2026-10-18T12:43:51 [WARN] [shadow] delta seq gap #1 last=28 current=30
+2026-10-18T12:43:51 [DEBUG] [shadow] live delta uid="0/0" action="property_changed:lastSignificantChange"
+2026-10-18T12:43:51 [WARN] [telemetry] delta seq gap last=28 current=30
+2026-10-18T12:43:56 [INFO] [vit_checkpoint] async checkpoint launched project=D:\Vit_DAW_wt_loudness_watch_b\artifacts\free_state_d1_s1\20261018_124040\project\spv1_p01.vit revision=3
+2026-10-18T12:43:56 [INFO] [vit_checkpoint] async checkpoint done project=D:\Vit_DAW_wt_loudness_watch_b\artifacts\free_state_d1_s1\20261018_124040\project\spv1_p01.vit revision=3 commit=c_20261018T044356_c0f14e4d rebound=1 total_ms=108
+2026-10-18T12:44:01 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-10-18T12:44:01 [INFO] [timing] http.interaction_respond total_ms=18991 interaction=interaction_eaf2c7e361da2c76 action=approve
+2026-10-18T12:44:07 [INFO] [timing] kernel.vsp_state_snapshot ms=10 reason=free_state_post_action_refresh err=false
+2026-10-18T12:44:07 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW_wt_loudness_watch_b\\artifacts\\free_state_d1_s1\\20261018_124040\\project\\spv1_p01.vit" replayed_deltas=0
+2026-10-18T12:44:07 [INFO] [timing] harness.refresh_shadow ms=21 reason=free_state_post_action_refresh status=ok err=false
+2026-10-18T12:44:07 [INFO] [timing] kernel.vsp_state_snapshot ms=9 reason=capacity_project_facts err=false
+2026-10-18T12:44:07 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW_wt_loudness_watch_b\\artifacts\\free_state_d1_s1\\20261018_124040\\project\\spv1_p01.vit" replayed_deltas=0
+2026-10-18T12:44:07 [INFO] [timing] harness.refresh_shadow ms=30 reason=capacity_project_facts status=ok err=false
+2026-10-18T12:44:07 [DEBUG] [shadow] live delta uid="0/0" action="property_changed:lastSignificantChange"
+2026-10-18T12:44:14 [INFO] [timing] message_loop.llm ms=7035 goal=goal_c6d7a9daacaf1dbe conversation=d1_s1_20261018T044222518033 turn=3 messages=2 chars=56189 message_chars=0:system:14331,1:user:41858 err=false
+2026-10-18T12:44:15 [INFO] telemetry spilled to file label=l2_render_probe_ready bytes=57984 file=D:\Vit_DAW_wt_loudness_watch_b\VitApp\Workspace\Logs\BridgeReplies\20261018_124415_000000000_telemetry_l2_render_probe_ready.json
+2026-10-18T12:44:15 [WARN] [mixboard] send topology read failed; send projections report missing: Unknown command: track_send_list
+2026-10-18T12:44:20 [INFO] [timing] harness.invoke total_ms=6404 tool=ccb.observation_request command=ccb_observation_request status=ok confirmed=false err=false
+2026-10-18T12:44:20 [INFO] [timing] message_loop.tool ms=6406 goal=goal_c6d7a9daacaf1dbe tool=ccb.observation_request confirmed=false stopped=false status=
+2026-10-18T12:44:20 [INFO] [free-state.ledger] boundary conversation=d1_s1_20261018T044222518033 goal=goal_c6d7a9daacaf1dbe executed=1 ccb_observations=1 ids=[obs_20261018T044415_14ea4f36ccb4] snapshot_loop=true continuation_loop=true stored_receipts=2
+2026-10-18T12:44:21 [INFO] [continuation.wake] has_scheduled_work=true executor=false workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-10-18T12:44:21 [INFO] [continuation.arm] conversation=d1_s1_20261018T044222518033 goal=goal_c6d7a9daacaf1dbe status=waiting_continue stop=limit_reached limit=max_turns continuation=true durable=cont_98cbec68877fe7aa0b794369 lifecycle=pending scheduled=true budget_stop=false requires_user_interaction=false owes_outcome=true settle_checkpoint=false
+2026-10-18T12:44:21 [WARN] [continuation.stall] reason=invocations-active drivable=1: a request-boundary invocation still owns the in-memory runtime state
+2026-10-18T12:44:21 [INFO] [timing] agent_loop_chat total_ms=13701 conversation=d1_s1_20261018T044222518033 goal=goal_c6d7a9daacaf1dbe mode=default status=waiting_continue stop=limit_reached completed_steps=3 executed=1
+2026-10-18T12:44:21 [INFO] [vit_checkpoint] async checkpoint launched project=D:\Vit_DAW_wt_loudness_watch_b\artifacts\free_state_d1_s1\20261018_124040\project\spv1_p01.vit revision=4
+2026-10-18T12:44:21 [INFO] [vit_checkpoint] async checkpoint done project=D:\Vit_DAW_wt_loudness_watch_b\artifacts\free_state_d1_s1\20261018_124040\project\spv1_p01.vit revision=4 commit=c_20261018T044421_8f9fd581 rebound=1 total_ms=106
+2026-10-18T12:44:25 [INFO] [continuation.wake] has_scheduled_work=true executor=false workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-10-18T12:44:25 [INFO] [timing] http.interaction_respond total_ms=28953 interaction=interaction_b60867a54262307d action=approve
+2026-10-18T12:44:25 [INFO] [continuation.claim] claimed id=cont_98cbec68877fe7aa0b794369 goal=goal_c6d7a9daacaf1dbe conversation=d1_s1_20261018T044222518033 attempt=1 lease_until=2026-10-18T04:46:25Z
+2026-10-18T12:44:26 [INFO] [timing] kernel.vsp_state_snapshot ms=9 reason=capacity_project_facts err=false
+2026-10-18T12:44:26 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW_wt_loudness_watch_b\\artifacts\\free_state_d1_s1\\20261018_124040\\project\\spv1_p01.vit" replayed_deltas=0
+2026-10-18T12:44:26 [INFO] [timing] harness.refresh_shadow ms=17 reason=capacity_project_facts status=ok err=false
+2026-10-18T12:44:38 [INFO] [timing] message_loop.llm ms=12301 goal=goal_c6d7a9daacaf1dbe conversation=d1_s1_20261018T044222518033 turn=4 messages=2 chars=54842 message_chars=0:system:14331,1:user:40511 err=false
+2026-10-18T12:44:38 [INFO] [free-state.ledger] boundary conversation=d1_s1_20261018T044222518033 goal=goal_c6d7a9daacaf1dbe executed=0 ccb_observations=1 ids=[obs_20261018T044415_14ea4f36ccb4] snapshot_loop=true continuation_loop=true stored_receipts=3
+2026-10-18T12:44:38 [INFO] [continuation.wake] has_scheduled_work=true executor=false workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-10-18T12:44:38 [INFO] [continuation.arm] conversation=d1_s1_20261018T044222518033 goal=goal_c6d7a9daacaf1dbe status=waiting_continue stop=limit_reached limit=max_turns continuation=true durable=cont_9aeb5be1ec62963028324aa6 lifecycle=pending scheduled=true budget_stop=false requires_user_interaction=false owes_outcome=true settle_checkpoint=false
+2026-10-18T12:44:38 [INFO] [timing] agent_loop_chat total_ms=12673 conversation=d1_s1_20261018T044222518033 goal=goal_c6d7a9daacaf1dbe mode=default status=waiting_continue stop=limit_reached completed_steps=3 executed=0
+2026-10-18T12:44:38 [INFO] [f6.gate] conversation=d1_s1_20261018T044222518033 goal=goal_c6d7a9daacaf1dbe chainEnded=false status=completed respGoal=waiting_continue runtimeGoal=waiting_continue
+2026-10-18T12:44:39 [INFO] [continuation.claim] claimed id=cont_9aeb5be1ec62963028324aa6 goal=goal_c6d7a9daacaf1dbe conversation=d1_s1_20261018T044222518033 attempt=1 lease_until=2026-10-18T04:46:39Z
+2026-10-18T12:44:39 [INFO] [timing] kernel.vsp_state_snapshot ms=10 reason=capacity_project_facts err=false
+2026-10-18T12:44:39 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW_wt_loudness_watch_b\\artifacts\\free_state_d1_s1\\20261018_124040\\project\\spv1_p01.vit" replayed_deltas=0
+2026-10-18T12:44:39 [INFO] [timing] harness.refresh_shadow ms=21 reason=capacity_project_facts status=ok err=false
+2026-10-18T12:44:50 [INFO] [timing] message_loop.llm ms=10586 goal=goal_c6d7a9daacaf1dbe conversation=d1_s1_20261018T044222518033 turn=5 messages=3 chars=55390 message_chars=0:system:14331,1:user:548,2:user:40511 err=false
+2026-10-18T12:44:50 [INFO] [free-state.ledger] boundary conversation=d1_s1_20261018T044222518033 goal=goal_c6d7a9daacaf1dbe executed=0 ccb_observations=1 ids=[obs_20261018T044415_14ea4f36ccb4] snapshot_loop=true continuation_loop=true stored_receipts=3
+2026-10-18T12:44:51 [INFO] [continuation.wake] has_scheduled_work=true executor=false workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-10-18T12:44:51 [INFO] [continuation.arm] conversation=d1_s1_20261018T044222518033 goal=goal_c6d7a9daacaf1dbe status=waiting_continue stop=limit_reached limit=max_turns continuation=true durable=cont_e108c6b7024f522fccbb1ca3 lifecycle=pending scheduled=true budget_stop=false requires_user_interaction=false owes_outcome=true settle_checkpoint=false
+2026-10-18T12:44:51 [INFO] [timing] agent_loop_chat total_ms=11615 conversation=d1_s1_20261018T044222518033 goal=goal_c6d7a9daacaf1dbe mode=default status=waiting_continue stop=limit_reached completed_steps=3 executed=0
+2026-10-18T12:44:51 [INFO] [f6.gate] conversation=d1_s1_20261018T044222518033 goal=goal_c6d7a9daacaf1dbe chainEnded=false status=completed respGoal=waiting_continue runtimeGoal=waiting_continue
+2026-10-18T12:44:51 [INFO] [continuation.claim] claimed id=cont_e108c6b7024f522fccbb1ca3 goal=goal_c6d7a9daacaf1dbe conversation=d1_s1_20261018T044222518033 attempt=1 lease_until=2026-10-18T04:46:51Z
+2026-10-18T12:44:52 [INFO] [timing] kernel.vsp_state_snapshot ms=10 reason=capacity_project_facts err=false
+2026-10-18T12:44:52 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW_wt_loudness_watch_b\\artifacts\\free_state_d1_s1\\20261018_124040\\project\\spv1_p01.vit" replayed_deltas=0
+2026-10-18T12:44:52 [INFO] [timing] harness.refresh_shadow ms=17 reason=capacity_project_facts status=ok err=false
+2026-10-18T12:45:04 [INFO] [timing] message_loop.llm ms=11645 goal=goal_c6d7a9daacaf1dbe conversation=d1_s1_20261018T044222518033 turn=6 messages=3 chars=55103 message_chars=0:system:14331,1:user:124,2:user:40648 err=false
+2026-10-18T12:45:04 [INFO] [free-state.ledger] boundary conversation=d1_s1_20261018T044222518033 goal=goal_c6d7a9daacaf1dbe executed=0 ccb_observations=1 ids=[obs_20261018T044415_14ea4f36ccb4] snapshot_loop=true continuation_loop=true stored_receipts=3
+2026-10-18T12:45:05 [INFO] [continuation.wake] has_scheduled_work=true executor=false workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-10-18T12:45:05 [INFO] [continuation.arm] conversation=d1_s1_20261018T044222518033 goal=goal_c6d7a9daacaf1dbe status=waiting_continue stop=limit_reached limit=max_turns continuation=true durable=cont_fe11a7449ba11a7c79d160fc lifecycle=pending scheduled=true budget_stop=false requires_user_interaction=false owes_outcome=true settle_checkpoint=false
+2026-10-18T12:45:05 [INFO] [timing] agent_loop_chat total_ms=12940 conversation=d1_s1_20261018T044222518033 goal=goal_c6d7a9daacaf1dbe mode=default status=waiting_continue stop=limit_reached completed_steps=3 executed=0
+2026-10-18T12:45:05 [INFO] [f6.gate] conversation=d1_s1_20261018T044222518033 goal=goal_c6d7a9daacaf1dbe chainEnded=false status=completed respGoal=waiting_continue runtimeGoal=waiting_continue
+2026-10-18T12:45:05 [INFO] [continuation.claim] claimed id=cont_fe11a7449ba11a7c79d160fc goal=goal_c6d7a9daacaf1dbe conversation=d1_s1_20261018T044222518033 attempt=1 lease_until=2026-10-18T04:47:05Z
+2026-10-18T12:45:06 [INFO] [timing] kernel.vsp_state_snapshot ms=9 reason=capacity_project_facts err=false
+2026-10-18T12:45:06 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW_wt_loudness_watch_b\\artifacts\\free_state_d1_s1\\20261018_124040\\project\\spv1_p01.vit" replayed_deltas=0
+2026-10-18T12:45:06 [INFO] [timing] harness.refresh_shadow ms=18 reason=capacity_project_facts status=ok err=false
+2026-10-18T12:45:21 [INFO] [timing] message_loop.llm ms=13634 goal=goal_c6d7a9daacaf1dbe conversation=d1_s1_20261018T044222518033 turn=7 messages=3 chars=55487 message_chars=0:system:14331,1:user:508,2:user:40648 err=false
+2026-10-18T12:45:21 [INFO] [free-state.ledger] boundary conversation=d1_s1_20261018T044222518033 goal=goal_c6d7a9daacaf1dbe executed=0 ccb_observations=1 ids=[obs_20261018T044415_14ea4f36ccb4] snapshot_loop=true continuation_loop=true stored_receipts=3
+2026-10-18T12:45:21 [INFO] [continuation.wake] has_scheduled_work=true executor=false workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-10-18T12:45:21 [INFO] [continuation.arm] conversation=d1_s1_20261018T044222518033 goal=goal_c6d7a9daacaf1dbe status=waiting_continue stop=limit_reached limit=max_turns continuation=true durable=cont_9588646aef70c29b4209fae0 lifecycle=pending scheduled=true budget_stop=false requires_user_interaction=false owes_outcome=true settle_checkpoint=false
+2026-10-18T12:45:21 [INFO] [timing] agent_loop_chat total_ms=15382 conversation=d1_s1_20261018T044222518033 goal=goal_c6d7a9daacaf1dbe mode=default status=waiting_continue stop=limit_reached completed_steps=3 executed=0
+2026-10-18T12:45:21 [INFO] [f6.gate] conversation=d1_s1_20261018T044222518033 goal=goal_c6d7a9daacaf1dbe chainEnded=false status=completed respGoal=waiting_continue runtimeGoal=waiting_continue
+2026-10-18T12:45:22 [INFO] [continuation.claim] claimed id=cont_9588646aef70c29b4209fae0 goal=goal_c6d7a9daacaf1dbe conversation=d1_s1_20261018T044222518033 attempt=1 lease_until=2026-10-18T04:47:22Z
+2026-10-18T12:45:23 [INFO] [timing] kernel.vsp_state_snapshot ms=9 reason=capacity_project_facts err=false
+2026-10-18T12:45:23 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW_wt_loudness_watch_b\\artifacts\\free_state_d1_s1\\20261018_124040\\project\\spv1_p01.vit" replayed_deltas=0
+2026-10-18T12:45:23 [INFO] [timing] harness.refresh_shadow ms=17 reason=capacity_project_facts status=ok err=false
+2026-10-18T12:45:32 [INFO] [timing] message_loop.llm ms=8579 goal=goal_c6d7a9daacaf1dbe conversation=d1_s1_20261018T044222518033 turn=8 messages=3 chars=55103 message_chars=0:system:14331,1:user:124,2:user:40648 err=false
+2026-10-18T12:45:32 [INFO] [free-state.ledger] boundary conversation=d1_s1_20261018T044222518033 goal=goal_c6d7a9daacaf1dbe executed=0 ccb_observations=1 ids=[obs_20261018T044415_14ea4f36ccb4] snapshot_loop=true continuation_loop=true stored_receipts=3
+2026-10-18T12:45:34 [INFO] [continuation.arm] conversation=d1_s1_20261018T044222518033 goal=goal_c6d7a9daacaf1dbe status=waiting_continue stop=limit_reached limit=max_turns continuation=true durable=cont_aca0dc61c5a00d60b16911c1 lifecycle=completed scheduled=false budget_stop=true requires_user_interaction=false owes_outcome=true settle_checkpoint=false
+2026-10-18T12:45:34 [INFO] [timing] agent_loop_chat total_ms=10714 conversation=d1_s1_20261018T044222518033 goal=goal_c6d7a9daacaf1dbe mode=default status=waiting_continue stop=limit_reached completed_steps=3 executed=0
+2026-10-18T12:45:34 [INFO] [f6.gate] conversation=d1_s1_20261018T044222518033 goal=goal_c6d7a9daacaf1dbe chainEnded=false status=completed respGoal=waiting_continue runtimeGoal=waiting_continue
+2026-10-18T12:45:48 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-10-18T12:45:48 [INFO] [timing] http.interaction_respond total_ms=10834 interaction=interaction_b60867a54262307d action=approve
