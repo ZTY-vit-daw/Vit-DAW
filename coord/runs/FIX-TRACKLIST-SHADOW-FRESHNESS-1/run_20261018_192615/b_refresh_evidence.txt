@@ -1,0 +1,3 @@
+2026-10-18T19:26:22 [INFO] [shadow] refreshed after structural_delta source=vsp.state.snapshot revision=2
+2026-10-18T19:26:23 [INFO] [shadow] refreshed after structural_delta source=vsp.state.snapshot revision=3
+2026-10-18T19:26:25 [INFO] [shadow] refreshed after structural_delta source=vsp.state.snapshot revision=4

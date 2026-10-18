@@ -1,0 +1,172 @@
+{
+  "status": "ok",
+  "agent_action_id": "act_be5f25a167b8cef1",
+  "tool": "track.list",
+  "command_name": "list_tracks",
+  "risk_level": "direct",
+  "requires_confirmation": false,
+  "result": {
+    "command_ack": {
+      "ack": {
+        "message": "Track list fetched",
+        "stage": "completed"
+      },
+      "command": "project.tracks.list",
+      "legacy_command": "list_tracks",
+      "resync_hint": false,
+      "revision": 0,
+      "source": "vsp.command.response",
+      "stage": "completed",
+      "transaction_id": "tx_1792322784958493300_29"
+    },
+    "kernel_user_track_count": 2,
+    "shadow_stale": true,
+    "shadow_user_track_count": 6,
+    "status": "ok",
+    "track_count": 2,
+    "tracks": [
+      {
+        "armed": null,
+        "automation_lane_count": 0,
+        "clips": null,
+        "fader_db": 0,
+        "gain_db": 0,
+        "group_ids": [],
+        "group_names": [],
+        "id": "1007",
+        "is_armed": null,
+        "is_audio_track": true,
+        "is_user_visible": true,
+        "left_level_db": null,
+        "level_db": null,
+        "mute": false,
+        "name": "probe_a",
+        "pan": 0,
+        "pan_value": 0,
+        "plugin_count": 2,
+        "plugins": [
+          {
+            "enabled": true,
+            "id": "1008",
+            "name": "Volume & Pan Plugin",
+            "plugin_item_id": "1008",
+            "type": "volume"
+          },
+          {
+            "enabled": true,
+            "id": "1009",
+            "name": "Level Meter",
+            "plugin_item_id": "1009",
+            "type": "level"
+          }
+        ],
+        "rack": null,
+        "right_level_db": null,
+        "routing_edge_count": 0,
+        "solo": false,
+        "track_group_ids": [],
+        "track_group_names": [],
+        "track_groups": [],
+        "track_id": "1007",
+        "track_name": "probe_a",
+        "track_state_revision": null,
+        "track_type": "hybrid",
+        "type": "hybrid",
+        "user_track_index": 1,
+        "volume_db": 0
+      },
+      {
+        "armed": null,
+        "automation_lane_count": 0,
+        "clips": null,
+        "fader_db": 0,
+        "gain_db": 0,
+        "group_ids": [],
+        "group_names": [],
+        "id": "1010",
+        "is_armed": null,
+        "is_audio_track": true,
+        "is_user_visible": true,
+        "left_level_db": null,
+        "level_db": null,
+        "mute": false,
+        "name": "probe_b",
+        "pan": 0,
+        "pan_value": 0,
+        "plugin_count": 2,
+        "plugins": [
+          {
+            "enabled": true,
+            "id": "1011",
+            "name": "Volume & Pan Plugin",
+            "plugin_item_id": "1011",
+            "type": "volume"
+          },
+          {
+            "enabled": true,
+            "id": "1012",
+            "name": "Level Meter",
+            "plugin_item_id": "1012",
+            "type": "level"
+          }
+        ],
+        "rack": null,
+        "right_level_db": null,
+        "routing_edge_count": 0,
+        "solo": false,
+        "track_group_ids": [],
+        "track_group_names": [],
+        "track_groups": [],
+        "track_id": "1010",
+        "track_name": "probe_b",
+        "track_state_revision": null,
+        "track_type": "hybrid",
+        "type": "hybrid",
+        "user_track_index": 2,
+        "volume_db": 0
+      }
+    ],
+    "user_track_count": 2,
+    "vsp": {
+      "command_ack": {
+        "ack": {
+          "message": "Track list fetched",
+          "stage": "completed"
+        },
+        "command": "project.tracks.list",
+        "legacy_command": "list_tracks",
+        "resync_hint": false,
+        "revision": 0,
+        "source": "vsp.command.response",
+        "stage": "completed",
+        "transaction_id": "tx_1792322784958493300_29"
+      },
+      "transport": "vsp",
+      "version": "1.0"
+    },
+    "warning": "shadow snapshot disagrees with the kernel reply (kernel user tracks=2, shadow tracks=6); tracks above are kernel-authoritative"
+  },
+  "project_history": {
+    "active_branch": "",
+    "active_node_id": "",
+    "active_worktree": "",
+    "available": false,
+    "branches": {},
+    "commit_count": 0,
+    "current_project_path": "",
+    "detached": false,
+    "draft": false,
+    "head": "",
+    "initialized": false,
+    "project_path": "",
+    "project_uuid": "",
+    "recent_checkpoints": [],
+    "refs": {},
+    "root_project_path": "",
+    "unsaved": false,
+    "warnings": [],
+    "worktree_count": 0,
+    "worktrees": []
+  },
+  "_http_status": 200
+}

@@ -39,6 +39,15 @@
 - 领取时核对：卡在 todo 派发已确认（用户 2026-10-18 晚窗，commit d27f6dbc）；依赖 139 已闭合；doing 三卡（FE-GUI-START-FEED/GEN-SUNO/MIXER-LIVE-REFRESH）文件域均为前端仓/Godot/coord-runs，与本卡 agent/internal/{harness,shadow,bridge} 零冲突；真栈亲核 2026-10-18 晚窗：六端口（5555/5556/5557/7878/8787/4445）全 free、四类进程（VitApp/VitAgent/vsphub/Godot 含变体）=0，PC-RUNTIME-STACK 当前占用=空闲。
 - 方案裁定：A+B 组合（按卡面推荐，139 §3 草案）。
 
+## 回执
+
+- （2026-10-18 晚窗；commit=**372ab2c9**（分支 port/fix-tracklist-shadow-freshness-1，8 文件 +1779/−33）；报告=[RESULTS.md](../../runs/FIX-TRACKLIST-SHADOW-FRESHNESS-1/RESULTS.md)）
+- 方案=A+B 组合：A=`publicListTracksResult` 内核回包权威+`shadow_stale` 双计数披露（get_project_state 按构造已权威，补契约注释+回归）；B=shadow 结构 delta（未知 uid `node_added`/已知轨 `node_removed`）一次性刷新提示（orphan 语义原样保留）+bridge 去抖 1s、VSP state snapshot 优先权威刷新、事件驱动非轮询。
+- 验收①②：新增回归 8 例（S1 正反向 publicResult/VSP/legacy、project.state 回包初始化、结构提示/orphan 保留、内核行过滤、bridge 信号/去抖/竞态再武装）；既有 `TestPublicResultSanitizesProjectState`/`TestShadowTracksOrphanDeltas` 原样通过；`go build ./... && go test ./... -count=1` **exit 0（95 包 ok，0 FAIL）**+gofmt 净（CRLF 归一后 diff=0）。
+- 验收③真栈：占用登记 a1593143→释放 c074be36；**run=run_20261018_192615 脚本 exit 0 probe PASS**（§8 LLM=0）；被测 agent SHA256=C57EB91797BF27DC…/vsphub D35519BCB0A3DBD8…/kernel stock B6565DCF…（只读），HEAD=372ab2c9；六面 S0/S1×2/S1_refresh/S2/S3 **全阶段 tool≡kernel、零静默旧快照**；S2 反向面 tool=2（kernel 行）+shadow_stale=true+双计数 2/6；B 面直接证据=agent 日志 3 条 `refreshed after structural_delta source=vsp.state.snapshot`（revision=2/3/4）+S1 两轮 heal 确认；拆栈复核六端口/四类进程=0。139 探针六面口径原样复刻未弱化。
+- 验收④消费面（只读核查零改动，详见报告 §4）：execution_memory/TOM 重建、message_loop:7836 空工程分支——内核行兼容且 0 轨误判消除；新增字段纯增量。无需另卡。
+- 边界声明：S1 即时捕获未观测到披露瞬态（B heal 快于捕获序，披露路径由 S2 真栈+单测双覆盖）；bridge 加 `shadowRefresh` 测试注入缝（生产路径恒等 refreshShadow）；`node_added` 含 clip/plugin 节点受 1s 去抖约束。
+
 ## 关联
 
 - 取证卡：TRACK-LIST-GAP-1（139，done）；修复锚点/草案见 `coord/runs/TRACK-LIST-GAP-1/RESULTS.md` §3
