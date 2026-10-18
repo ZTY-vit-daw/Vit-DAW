@@ -3,7 +3,11 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
-- 2026-10-18 21:20 +0800 起占用 / **FIX-START-STATE-RECOVERY-1(138) 真栈测量腿**（owner=GLM-5.3 L2 PC ZCode 执行会话；worktree D:/Vit_DAW_wt_fxstartrec1，分支 port/fix-start-state-recovery-1；kernel+agent berth 不启 UI 不启 vsphub）：占用前预检六端口（7878/5555/5556/8787/4445/19876）监听=0、VitApp/VitAgent/vsphub/Godot 进程=0（21:05 领取时已核，启动前复核）。计划 4 腿：基线/修复 × 干净/独占哨兵；被测 agent=分支构建与 origin/main 基线构建各一，kernel=stock 只读复用。释放记录随腿后回填。
+（无——空闲；**用户目检优先**，执行流未获 Lead 放行不得占栈）
+
+## 最近一次释放（2026-10-18 21:36 +0800）
+
+- 2026-10-18 21:20–21:36 +0800 / **FIX-START-STATE-RECOVERY-1(138) 真栈测量 4 腿**（owner=GLM-5.3 L2 PC ZCode 执行会话；worktree D:/Vit_DAW_wt_fxstartrec1，分支 port/fix-start-state-recovery-1；kernel+agent berth 不启 UI/vsphub）：四 run 全部脚本自起自拆（各腿 teardown 端口=0、本腿进程=0）——①baseline_clean（基线 agent SHA=7537AB63…，现象复现：uuid 恢复认领种子旧 draft recovered=true conversations=158 + 42MB 状态启动期重写）②fixed_clean（修复 agent SHA=99123003…：activation pending reason=startup_recovery_disabled_new_session、种子全腿零触碰、project_new 恰 1 draft）③fixed_sentinel（42MB 独占句柄全程持有：行为与②零差异、零 sharing violation=零 open 反证）④baseline_sentinel（阳性对照：独占句柄阻断基线扫描→恢复未发生）。kernel=stock B6565DCF…（只读复用，VIT_PROJECT_XML 指向 run 目录副本，stock workspace 零触碰）。占用登记 85ba26ff；21:36 释放复核六端口=0、四类进程=0。工件 coord/runs/FIX-START-STATE-RECOVERY-1/（精简件随 port 分支）。另记：期间发现两个 20:08 起的 headless Godot 脚本孤儿进程（pid 9036/21188，%TEMP%\vit_scratch_customstep，非本腿所启未动，交主管知悉）。
 
 ## 最近一次释放（2026-10-18 21:29 +0800）
 
