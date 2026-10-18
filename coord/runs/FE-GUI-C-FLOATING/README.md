@@ -16,7 +16,18 @@
 | 目录/文件 | 内容 |
 |---|---|
 | `20261018_120623/` | 探针电池一次性全量日志（godot_import 预热 + **Phase C 129 钉** + Phase B 119 钉 + Phase A 69 钉 + vitnote 六探针 + FE-RACK 76 钉，全部 exit 0；红线门通过行在电池 stdout） |
-| （真栈工件） | 真栈三件套腿工件目录（dev_agent_smoke_<stamp>）在栈窗口获批后补入本索引 |
+| `dev_agent_smoke_20261018_123056/` | 真栈三件套腿（见下节）：`console_stdout.log`（SMOKE_EXIT=0 + mix.observe 活证）+ `agent_last.log` + `agent_llm_telemetry.jsonl`（6 调用 0 错误）+ `MaterializeMetrics.log` + `godot_windowed_boot.log`（补充窗口态启动：start_page VSP Hub/Agent tools ready）+ `VitHeadlessServer2026-10-18_12-30-58.log`（内核日志，504KB）+ `run_meta.txt`（命令/头/SHA256/拆栈证据） |
+
+## 真栈三件套腿（2026-10-18 12:30–12:35 +0800）
+
+- 占用：Lead 登记 PC-RUNTIME-STACK 协调提交 f946e271（owner=exec-fe-gui-c，窗口 12:30–15:30）；启栈前亲核（12:30:40）四端口 7878/5555/5556/8787/4445/19876 监听=0、四类进程（VitApp/VitAgent/vsphub/Godot 含变体名）=0。
+- 命令：`powershell -NoProfile -ExecutionPolicy Bypass -File D:\Vit_DAW\scripts\dev_agent_smoke.ps1 -RepoRoot D:\Vit_DAW_wt_feguic_probe -KernelExe D:\Vit_DAW\Export\staging\runtime\VitApp.exe -StartKernel -StartUI -MixSmoke -GodotProjectRoot D:\Godot\project\vit-daw-frontend-fe-gui-c`（console 全量入工件；新工件目录，不覆盖旧 run）
+- 结果：**SMOKE_EXIT=0**；`mix.observe status=ok` **observation_id=obs_20261018T043129_0819166048df**（红线#8 链路真栈活证）；agent 构建 passed；内核 pid=15952（工作目录=主检出 staging runtime）；agent pid=17064。
+- 被测二进制：内核=`D:\Vit_DAW\Export\staging\runtime\VitApp.exe` SHA256 **B6565DCF85D1DA867E16333052A7B928A5413565940603ADBCF4ABD59DD3123B**（主检出 staging，C++ 本卡零改动，未在探针 worktree 重建）；agent=探针 worktree Go 源构建 `agent\bin\VitAgent.exe` SHA256 **136137E55F9EE586F1848FAEE0F82B1E04C66A48472FAA8B855250C7FCAE80FC**（Go 本卡零改动，探针 worktree 分支 origin/main a71b54bb 谱系）。
+- **Godot UI 说明（如实）**：脚本 `-StartUI` 在本 run 未实际拉起重启 Godot——日志明示 `kernel command port already listening before UI start: 5555 pid=15952`（-StartKernel 的内核先绑定 5555，脚本按既有逻辑跳过 UI 启动；91 Phase B run 同款行为：其 console 亦有此行）。故按 91 先例补**窗口态启动证据**：`Godot_v4.6.1-stable_win64_console.exe --path <本卡前端 worktree> --quit-after 1200`（退出码 0），日志=D3D12 RTX 4070 真渲染 + `VitIpcClient: registered autostart child hub pid=15088` + `start_page: VSP Hub ready.` + `start_page: Agent v0.5 tools ready.`，无 SCRIPT ERROR；退出时 start_page 自动停 hub（pid15088），无残留。唯一环境缺陷=worktree 缺 `addons/godot_cef` 构建产物 dll（.gitignore 构建输出，未复制；仅玻璃浏览器面受影响，start page/dock 面无影响，Phase B 同源边界）。
+- LLM 记账（§8 如实）：`agent_llm_telemetry.jsonl` 共 **6 次**调用（deepseek-flash；MixSmoke 的 strip-silence chat/mix chat/no-pending confirm 腿，脚本既有行为，非本卡驱动），errors=0，总耗时 3.86s/1.71s/3.15s/5.58s/7.82s/5.56s。Lead 预期 0 次，如实登记为 6 次。
+- 脚本告警（非致命，exit 0）：`warn: Strip Silence chat confirmation did not complete`（模型分支走 waiting_confirmation）与 `warn: Strip Silence suggest did not produce expected pending apply regions`（pending=2）——chat 语义腿模型行为差异；91 Phase B run 同一模型分支为 completed。不改变 exit 0/mix.observe 门。
+- 拆栈（12:34–12:35）：停本腿自起 VitApp pid15952 + VitAgent pid17064（仅本腿 pid，未杀用户进程/编辑器）；Godot 补充启动进程按 --quit-after 自行退出、其 autostart hub pid15088 由 start_page 停；复核**四端口 7878/5555/5556/8787/4445/19876 监听=0、四类进程（VitApp/VitAgent/vsphub/Godot 含变体名）=0**。真栈已释放（Lead 侧登记释放）。
 
 ## 端测覆盖边界（AGENTS §5，FE-RACK/91 先例口径）
 
