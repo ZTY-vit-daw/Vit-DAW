@@ -3,7 +3,7 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
-（无——空闲；**用户目检优先**，执行流未获 Lead 放行不得占栈）
+- 2026-10-18 晚窗起 / **FIX-TRACKLIST-SHADOW-FRESHNESS-1(143) 真栈修复验收腿**（owner=GLM L2 PC ZCode 执行会话=本卡会话；worktree D:/Vit_DAW_wt_trackfix1，分支 port/fix-tracklist-shadow-freshness-1@372ab2c9；kernel+vsphub+agent berth，不启 UI；被测 agent/vsphub=本分支构建，kernel=stock B6565DCF…）。领取时亲核六端口/四类进程=0（登记前复核过 144 已释放）。预计单 run ~15s 探针段；完成后即拆栈并回填释放记录。
 
 ## 最近一次释放（2026-10-18 19:16 +0800）
 
