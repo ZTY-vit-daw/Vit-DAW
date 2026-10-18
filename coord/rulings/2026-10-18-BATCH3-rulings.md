@@ -1,7 +1,7 @@
 # 2026-10-18 午窗 批量三裁定（132 KERNEL-RENDERGAIN 取证 pass + P1 升级 + 修复卡立项）
 
 - 验收会话：12:00-18:00 决策流（DSH PC，本机）；裁定来源=132 已确认卡（用户 2026-10-18 午窗选择「118+132 并行」派发）。
-- 基线：origin/main=b428ad90（验收前）；本批合入后 main=__MAIN_AFTER__。
+- 基线：origin/main=b428ad90（验收前）；本批合入后 main=3132c5e9。
 - 执行侧：DSH 团队执行流 exec-rendergain；协调面由 12:00-18:00 决策流单写。
 
 ## 一、KERNEL-RENDERGAIN-1（132）——取证腿 **pass** + 定性 **P1 候选升级**
