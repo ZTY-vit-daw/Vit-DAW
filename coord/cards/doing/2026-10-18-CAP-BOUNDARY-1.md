@@ -62,6 +62,6 @@
 - 要求把 L5 近似写并入本卡 → 停止（另卡另裁定）；
 - 真栈环境中断 → 按 AGENTS §8 记录为环境中断，不把下游断言失败当功能结论。
 
-- 领取：（时间 / origin/main hash / owner 模型+机器+会话 / 分支 / worktree / 领取提交）
+- 领取：（2026-10-19 18:03 +0800 / origin/main=f32fae4d / GLM-5.3 L2 PC ZCode 执行会话（用户口令「开工 136」指定领取）/ 分支=port/cap-boundary-1 / worktree=D:/Vit_DAW_wt_capbnd1 / 领取提交=本提交；领取时核对：卡在 todo 派发已确认（用户 2026-10-18 授权）、依赖无硬依赖（串行前置 54 已验收合入 32810859）、doing 仅 GEN-SUNO-WEB-DESIGN-1（设计件零生产码）文件域零冲突、行号锚已按 54 回执重锚（settledTurnFaceResponse :2105-2132、capabilityBlockedBoundaryResponse 现 :2134 起、C2 锚点 c2_dynamic_control_runtime.go:931-934 待现场核对）；真栈腿用前登记 PC-RUNTIME-STACK.md（当前空闲，今晚用户 K3.1 手测优先，遇占用让行））
 - 回执：（commit hash / 单测名 / 真栈 run ID+工件 / 端测边界声明 / git status）
 - 验收：（裁定文件 / 验收 commit）
