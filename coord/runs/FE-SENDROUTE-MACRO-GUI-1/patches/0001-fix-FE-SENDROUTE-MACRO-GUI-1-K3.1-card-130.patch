@@ -1,0 +1,769 @@
+From 1e332844b5ee0134f99a04f6605b70612a62a37b Mon Sep 17 00:00:00 2001
+From: ZTY-vit-daw <131217zty@gmail.com>
+Date: Mon, 19 Oct 2026 11:30:10 +0800
+Subject: [PATCH] =?UTF-8?q?fix(FE-SENDROUTE-MACRO-GUI-1=20K3.1,=20card=201?=
+ =?UTF-8?q?30):=20=E7=A9=BA=E7=99=BD=E5=8F=B3=E9=94=AE=E8=8F=9C=E5=8D=95?=
+ =?UTF-8?q?=E5=9D=90=E6=A0=87+=E4=BE=A7=E6=A0=8F=E5=AE=8F=E8=B0=83?=
+ =?UTF-8?q?=E5=8F=96=E7=AC=AC=E4=B8=80=E5=85=A5=E5=8F=A3=E2=80=94=E2=80=94?=
+ =?UTF-8?q?=20=E2=91=A0=E5=9D=90=E6=A0=87=20bug=20=E6=A0=B9=E5=9B=A0=3Dpop?=
+ =?UTF-8?q?up=5Fon=5Fparent=20=E5=AE=9E=E6=B5=8B=E5=90=83=E4=B8=BB?=
+ =?UTF-8?q?=E7=AA=97=E5=8F=A3=20viewport=20=E5=9D=90=E6=A0=87=EF=BC=88?=
+ =?UTF-8?q?=E7=AA=97=E5=8F=A3=E6=80=81=E5=8F=96=E8=AF=81=E4=BA=B2=E9=AA=8C?=
+ =?UTF-8?q?=EF=BC=9A=E8=8F=9C=E5=8D=95=E5=B1=8F=E5=B9=95=3D=E7=AA=97?=
+ =?UTF-8?q?=E5=8F=A3=E5=8E=9F=E7=82=B9+arg=20=E5=8E=9F=E6=A0=B7=EF=BC=8Cpa?=
+ =?UTF-8?q?rent=20=E5=85=A8=E5=B1=80=E6=8D=A2=E7=AE=97=E6=9C=AA=E5=8F=91?=
+ =?UTF-8?q?=E7=94=9F=EF=BC=89=EF=BC=8C:1037=20=E5=B1=80=E9=83=A8=E5=9D=90?=
+ =?UTF-8?q?=E6=A0=87=E7=9B=B4=E4=BC=A0=3D=E7=B3=BB=E7=BB=9F=E6=80=A7?=
+ =?UTF-8?q?=E5=81=8F=E5=B7=A6=20GraphEdit=20=E5=81=8F=E7=A7=BB=E9=87=8F?=
+ =?UTF-8?q?=EF=BC=9B=E4=BF=AE=3D=E7=AC=AC=E4=B8=89=E5=8F=82=20get=5Fglobal?=
+ =?UTF-8?q?=5Ftransform()*mb.position=EF=BC=88local=E2=86=92viewport?=
+ =?UTF-8?q?=EF=BC=8C=E5=AF=B9=E9=BD=90=20:6478=20=E5=85=88=E4=BE=8B?=
+ =?UTF-8?q?=E5=BC=8F=EF=BC=89+=5Fopen=5Fcanvas=5Faction=5Fmenu=20=E5=8F=8C?=
+ =?UTF-8?q?=E8=BD=A8=EF=BC=88popup=20=E5=90=83=20viewport=EF=BC=8C?=
+ =?UTF-8?q?=E4=B8=8B=E6=B8=B8=E4=B8=89=E5=85=A5=E5=8F=A3=E9=94=9A=E7=82=B9?=
+ =?UTF-8?q?=E5=AD=98=E5=9B=9E=E5=B1=80=E9=83=A8=EF=BC=89=20=E2=91=A1send?=
+ =?UTF-8?q?=20=E9=80=89=E6=8B=A9=E5=99=A8=3D=E2=91=A0=E4=BC=A0=E5=AF=BC?=
+ =?UTF-8?q?=E7=97=87=E7=8A=B6=EF=BC=88open=5Fat=20=E5=90=8C=20plugin=5Fpop?=
+ =?UTF-8?q?up=20=E6=A8=A1=E5=BC=8F=E5=90=83=E5=B1=80=E9=83=A8=E7=B3=BB?=
+ =?UTF-8?q?=EF=BC=8C=E6=97=A0=E7=8B=AC=E7=AB=8B=E7=BC=BA=E9=99=B7=EF=BC=89?=
+ =?UTF-8?q?=EF=BC=8C=E4=BF=AE=E2=91=A0=E5=90=8E=E5=A4=8D=E9=AA=8C=20?=
+ =?UTF-8?q?=E2=91=A2=E4=BE=A7=E6=A0=8F=E5=AE=8F=E6=8E=A7=E4=BB=B6=E5=8C=BA?=
+ =?UTF-8?q?=E5=8D=87=E7=BA=A7=E7=AC=AC=E4=B8=80=E5=85=A5=E5=8F=A3=EF=BC=9A?=
+ =?UTF-8?q?=E5=8D=81=E8=AF=8D=E8=A1=A8=20OptionButton+suggest=5Fcontrol=5F?=
+ =?UTF-8?q?kind=20=E5=BB=BA=E8=AE=AE=E8=A1=8C+=E5=88=9B=E5=BB=BA=E5=AE=8F?=
+ =?UTF-8?q?=E8=B5=B0=20control=5Fadd=5Fmacro=EF=BC=88vit=5Fsidebar=5Fcreat?=
+ =?UTF-8?q?e=5Fmacro=EF=BC=89+=E5=88=9B=E5=BB=BA=E6=8E=A7=E4=BB=B6?=
+ =?UTF-8?q?=E5=8D=A1=20control=5Fadd=5Fnode+=E8=B0=83=E5=8F=96=E5=B7=B2?=
+ =?UTF-8?q?=E6=9C=89=E6=8E=A7=E5=88=B6=E5=88=97=E8=A1=A8=EF=BC=88control?=
+ =?UTF-8?q?=5Fgraph=20=E5=BF=AB=E7=85=A7=E8=AF=BB=E4=BE=A7=EF=BC=8C?=
+ =?UTF-8?q?=E7=82=B9=E5=87=BB=E5=AE=9A=E4=BD=8D/=E6=96=BD=E5=8A=A0=3Dset?=
+ =?UTF-8?q?=5Fmacro=5Fvalues/set=5Fnode=5Fvalue=EF=BC=89=EF=BC=9B=E6=97=A7?=
+ =?UTF-8?q?=20repository=20=E5=AE=8F=E6=96=87=E6=A1=A3=E5=86=99=E9=93=BE?=
+ =?UTF-8?q?=E8=B7=AF=EF=BC=88create=5Frack=5Fcontrol=5Fmacro/CONTROL=5FTYP?=
+ =?UTF-8?q?E=5FCHOICES=20=E4=B8=89=E9=80=89=EF=BC=89=E7=A7=BB=E9=99=A4?=
+ =?UTF-8?q?=EF=BC=8C=E8=AF=BB=E4=BE=A7=E4=BB=85=E7=95=99=E5=85=BC=E5=AE=B9?=
+ =?UTF-8?q?=20=E6=8E=A2=E9=92=88=20151=E2=86=92178=20=E6=96=AD=E8=A8=80?=
+ =?UTF-8?q?=EF=BC=88k31=20=E5=9D=90=E6=A0=87=C2=B12px/selector=20=E5=8F=AF?=
+ =?UTF-8?q?=E8=A7=81=E6=80=A7/=E4=BE=A7=E6=A0=8F=E6=A1=A5=E5=91=BD?=
+ =?UTF-8?q?=E4=BB=A4=E9=9D=A2/adapter=20=E5=A5=91=E7=BA=A6=EF=BC=89exit=20?=
+ =?UTF-8?q?0=EF=BC=9B9=20=E5=A5=97=E5=9B=9E=E5=BD=92=E9=9B=B6=E5=9B=9E?=
+ =?UTF-8?q?=E9=80=80=EF=BC=884=20rack=20=E6=B5=8B=E8=AF=95+111=20=E8=A3=85?=
+ =?UTF-8?q?=E8=BD=BD=E5=BC=B9=E7=AA=97+shrink=20a/b/c=EF=BC=89?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ app/rack/Vit_Graph_Rack.gd                | 142 +++++++++-
+ tools/probe_rack_sendroute_macro.gd       |  87 ++++++
+ vit_dock/views/graph_rack_dock_adapter.gd | 330 ++++++++++++++--------
+ 3 files changed, 436 insertions(+), 123 deletions(-)
+
+diff --git a/app/rack/Vit_Graph_Rack.gd b/app/rack/Vit_Graph_Rack.gd
+index 4cb8882..cadb478 100644
+--- a/app/rack/Vit_Graph_Rack.gd
++++ b/app/rack/Vit_Graph_Rack.gd
+@@ -1034,7 +1034,10 @@ func _gui_input(event: InputEvent) -> void:
+ 			return
+ 		if bi == MOUSE_BUTTON_RIGHT:
+ 			if mb.pressed:
+-				_rack_begin_right_pan(mb.position, null, mb.position)
++				# K3.1①：popup_on_parent 实测吃主窗口 viewport 坐标（窗口态取证
++				# 2026-10-19），局部坐标直传=菜单系统性偏左 GraphEdit 全局偏移量；
++				# 对齐 :6478 节点先例做 local→viewport 换算。
++				_rack_begin_right_pan(mb.position, null, get_global_transform() * mb.position)
+ 			else:
+ 				_rack_finish_right_pan()
+ 			accept_event()
+@@ -2228,9 +2231,13 @@ func _build_canvas_action_menu() -> void:
+ 
+ func _open_canvas_action_menu(viewport_pos: Vector2) -> void:
+ 	_build_canvas_action_menu()
+-	_canvas_action_menu_pos = viewport_pos
++	# K3.1①：坐标双轨——popup_on_parent 吃主窗口 viewport 坐标；下游三入口
++	# （装载插件弹窗/发送选择器/新建宏）吃 GraphEdit 局部坐标（锚点换算分流）。
++	var local_anchor: Vector2 = get_global_transform().affine_inverse() * viewport_pos
++	_canvas_action_menu_pos = local_anchor
+ 	_canvas_action_menu.reset_size()
+-	var popup_rect := Rect2i(Vector2i(_clamp_context_menu_viewport_position(viewport_pos).round()), Vector2i(1, 1))
++	var clamped_viewport: Vector2 = get_global_transform() * _clamp_context_menu_viewport_position(local_anchor)
++	var popup_rect := Rect2i(Vector2i(clamped_viewport.round()), Vector2i(1, 1))
+ 	_canvas_action_menu.popup_on_parent(popup_rect)
+ 
+ 
+@@ -2730,6 +2737,135 @@ func _create_macro_at(canvas_pos: Vector2) -> void:
+ 		_rack_diag_log("control_add_macro queued at %s" % str(graph_pos))
+ 
+ 
++# ==========================================
++# K3.1③：侧栏宏调取第一入口桥（机架左侧工具栏与画布右键同一
++# control_* 命令面；快照读侧=control_graph，旧 repository 宏文档仅留兼容读）
++# ==========================================
++func vit_sidebar_control_nodes() -> Array:
++	var out: Array = []
++	for node_variant in _control_graph_snapshot.get("nodes", []):
++		if typeof(node_variant) != TYPE_DICTIONARY:
++			continue
++		var snap := node_variant as Dictionary
++		var node_id := str(snap.get("node_id", "")).strip_edges()
++		if node_id.is_empty():
++			continue
++		var kind: String = _RACK_CONTROL_LAYER_RULES_SCRIPT.normalize_control_kind(str(snap.get("kind", "slider")))
++		out.append({
++			"node_id": node_id,
++			"name": str(snap.get("name", node_id)),
++			"kind": kind,
++			"binding_count": _control_binding_count_for_node(node_id),
++		})
++	return out
++
++
++## 类型建议（复用 rack_control_layer_rules 建议表）：选中插件 + 首个选中参数
++## （无选中取首参数行）的特征 → {kind, reason, param_name}；无参数面返回空。
++func vit_sidebar_suggest_control_kind() -> Dictionary:
++	var plugin_id := get_selected_plugin_id()
++	if plugin_id.is_empty():
++		return {}
++	var selected: Dictionary = _selected_param_surface_ids(plugin_id)
++	var rows: Array = _param_port_rows_by_plugin.get(plugin_id, []) as Array
++	var param_row: Dictionary = {}
++	for row_variant in rows:
++		if typeof(row_variant) != TYPE_DICTIONARY:
++			continue
++		var row := row_variant as Dictionary
++		var pid := str(row.get("param_id", row.get("id", "")))
++		if selected.is_empty() or selected.has(pid):
++			param_row = row
++			break
++	if param_row.is_empty():
++		return {}
++	var suggestion: Dictionary = _RACK_CONTROL_LAYER_RULES_SCRIPT.suggest_control_kind(param_row)
++	suggestion["param_name"] = str(param_row.get("param_name", param_row.get("name", param_row.get("param_id", ""))))
++	return suggestion
++
++
++func _sidebar_spawn_canvas_pos() -> Vector2:
++	# 侧栏入口无画布锚点：创建物落当前视野中心（画布逻辑坐标）。
++	return (size * 0.5 + scroll_offset) / maxf(zoom, 0.001)
++
++
++func vit_sidebar_create_macro() -> bool:
++	var macro_count := 0
++	for node_variant in _control_graph_snapshot.get("nodes", []):
++		if typeof(node_variant) == TYPE_DICTIONARY \
++				and _RACK_CONTROL_LAYER_RULES_SCRIPT.normalize_control_kind(str((node_variant as Dictionary).get("kind", ""))) == _RACK_CONTROL_LAYER_RULES_SCRIPT.KIND_MACROPANEL:
++			macro_count += 1
++	var payload: Dictionary = _RACK_IPC_PAYLOAD_RULES_SCRIPT.control_add_macro_payload(
++		"Macro %d" % (macro_count + 1), _sidebar_spawn_canvas_pos(), 1)
++	var rack_client: Variant = _vit_rack_client()
++	if _rack_command_queued(rack_client.control_add_macro(payload), "control_add_macro"):
++		_rack_diag_log("sidebar control_add_macro queued")
++		return true
++	return false
++
++
++func vit_sidebar_create_control(kind: String, display_name: String = "") -> bool:
++	var normalized: String = _RACK_CONTROL_LAYER_RULES_SCRIPT.normalize_control_kind(kind)
++	var name := display_name.strip_edges()
++	if name.is_empty():
++		name = normalized
++	var payload: Dictionary = _RACK_IPC_PAYLOAD_RULES_SCRIPT.control_add_node_payload(
++		normalized, name, _sidebar_spawn_canvas_pos())
++	var rack_client: Variant = _vit_rack_client()
++	if _rack_command_queued(rack_client.control_add_node(payload), "control_add_node"):
++		_rack_diag_log("sidebar control_add_node(%s) queued" % normalized)
++		return true
++	return false
++
++
++func vit_sidebar_focus_control_node(node_id: String) -> bool:
++	var clean := node_id.strip_edges()
++	for c in get_children():
++		if c is GraphNode and str((c as GraphNode).get_meta("control_node_id", "")) == clean:
++			var gn := c as GraphNode
++			gn.selected = true
++			scroll_offset = gn.position_offset * zoom - size * 0.5
++			_rack_clamp_scroll_to_content_x()
++			queue_redraw()
++			return true
++	return false
++
++
++## 施加：以快照当前值重推内核（宏卡=control_set_macro_values 批量；
++## 单控件卡=control_set_node_value 首输出）。
++func vit_sidebar_reapply_control_node(node_id: String) -> bool:
++	var clean := node_id.strip_edges()
++	var snap: Dictionary = {}
++	for node_variant in _control_graph_snapshot.get("nodes", []):
++		if typeof(node_variant) == TYPE_DICTIONARY and str((node_variant as Dictionary).get("node_id", "")) == clean:
++			snap = node_variant as Dictionary
++			break
++	if snap.is_empty():
++		return false
++	var kind: String = _RACK_CONTROL_LAYER_RULES_SCRIPT.normalize_control_kind(str(snap.get("kind", "slider")))
++	var values := _dict_from_snapshot(snap.get("current_values", {}))
++	var rack_client: Variant = _vit_rack_client()
++	if kind == _RACK_CONTROL_LAYER_RULES_SCRIPT.KIND_MACROPANEL:
++		var payload_values: Dictionary = {}
++		for output in _RACK_CONTROL_LAYER_RULES_SCRIPT.macro_output_names(int(snap.get("macro_count", 1))):
++			var value_variant: Variant = values.get(output, snap.get("min", 0.0))
++			if typeof(value_variant) == TYPE_FLOAT or typeof(value_variant) == TYPE_INT:
++				payload_values[output] = float(value_variant)
++		if payload_values.is_empty():
++			return false
++		var macro_payload: Dictionary = _RACK_IPC_PAYLOAD_RULES_SCRIPT.control_set_macro_values_payload(clean, payload_values)
++		return _rack_command_queued(rack_client.control_set_macro_values(macro_payload), "control_set_macro_values")
++	var outputs: Array[String] = _RACK_CONTROL_LAYER_RULES_SCRIPT.outputs_for_kind(kind)
++	var output_name := "value"
++	if not outputs.is_empty():
++		output_name = outputs[0]
++	var current: Variant = values.get("value", values.get(output_name, snap.get("min", 0.0)))
++	if not (typeof(current) == TYPE_FLOAT or typeof(current) == TYPE_INT):
++		current = snap.get("min", 0.0)
++	var node_payload: Dictionary = _RACK_IPC_PAYLOAD_RULES_SCRIPT.control_set_node_value_payload(clean, output_name, float(current))
++	return _rack_command_queued(rack_client.control_set_node_value(node_payload), "control_set_node_value")
++
++
+ # ==========================================
+ # K3：参数口（效果器卡 ⌗ params 行 + 注册表；SendOut 硬接线口）
+ # ==========================================
+diff --git a/tools/probe_rack_sendroute_macro.gd b/tools/probe_rack_sendroute_macro.gd
+index 09b8801..44222d3 100644
+--- a/tools/probe_rack_sendroute_macro.gd
++++ b/tools/probe_rack_sendroute_macro.gd
+@@ -420,6 +420,75 @@ func _run_scene_suite() -> void:
+ 	# --- 场景 9：SEND 槽位（通道条场景） ---
+ 	_suite_mixer_strip()
+ 
++	# --- 场景 8.5：K3.1① 空白右键菜单坐标（局部→viewport 换算）+② selector 可见性 ---
++	# 偏移挂载（dock 同构）：rack global=(300,100)，空白右键局部 (400,300)
++	# → popup_on_parent 应收 viewport 坐标（菜单屏幕位置=窗口+viewport 坐标，
++	# 窗口态取证 2026-10-19 亲验）；下游三入口锚点存回局部坐标。
++	rack.size = Vector2(1200, 800)
++	rack.position = Vector2(300, 100)
++	rack._rack_viewport_target_zoom = 1.0
++	rack._canvas_action_menu = null
++	var k31_click_local := Vector2(400.0, 300.0)
++	rack._gui_input(_right_button(k31_click_local, true))
++	rack._gui_input(_right_button(k31_click_local, false))
++	var k31_menu: Node = rack._canvas_action_menu
++	_check("k31 blank right-click menu opened", k31_menu != null and is_instance_valid(k31_menu) and k31_menu.visible, "menu missing/not visible")
++	var k31_anchor: Vector2 = rack._canvas_action_menu_pos
++	_check("k31 blank right-click downstream anchor = mouse local ±2px", k31_anchor.distance_to(k31_click_local) <= 2.0, "anchor=%s expected=%s" % [k31_anchor, k31_click_local])
++	# 菜单窗口态屏幕坐标=主窗口原点+viewport 坐标——headless 读不到窗口原点，
++	# 已由窗口态取证（2026-10-19）亲验；此处钉链路+锚点，窗口原点断言归窗口态取证。
++	rack._canvas_action_menu = null
++	# ② 传导症状复验：动作菜单「新建发送」→ selector 弹于锚点（可见、画布矩形内、近锚点）。
++	rack._on_canvas_action_menu_id_pressed(2)
++	var k31_selector: Node = rack._send_target_selector
++	_check("k31 send selector opened via canvas action menu", k31_selector != null and is_instance_valid(k31_selector) and k31_selector.visible, "selector missing/not visible")
++	if k31_selector != null and is_instance_valid(k31_selector):
++		var k31_sel_pos: Vector2 = k31_selector.position
++		_check("k31 selector position inside graph rect", Rect2(Vector2.ZERO, rack.size).grow(4.0).has_point(k31_sel_pos), "pos=%s rack_size=%s" % [k31_sel_pos, rack.size])
++		_check("k31 selector near click anchor", k31_sel_pos.distance_to(k31_anchor) <= 16.0, "pos=%s anchor=%s" % [k31_sel_pos, k31_anchor])
++	rack.position = Vector2.ZERO
++
++	# --- 场景 11：K3.1③ 侧栏宏调取第一入口桥（control_* 同一命令面） ---
++	var k31_nodes: Array = rack.vit_sidebar_control_nodes()
++	_check("k31 sidebar control nodes listed", k31_nodes.size() == 2, "count=%d" % k31_nodes.size())
++	var k31_macro_listed := false
++	var k31_knob_listed := false
++	for k31_node_variant in k31_nodes:
++		var k31_node: Dictionary = k31_node_variant as Dictionary
++		if str(k31_node.get("node_id", "")) == "ctrl_macro_1" and int(k31_node.get("binding_count", -1)) == 2:
++			k31_macro_listed = true
++		if str(k31_node.get("node_id", "")) == "ctrl_knob_1" and int(k31_node.get("binding_count", -1)) == 0:
++			k31_knob_listed = true
++	_check("k31 sidebar lists macropanel with bindings", k31_macro_listed, "macro row wrong")
++	_check("k31 sidebar lists knob without bindings", k31_knob_listed, "knob row wrong")
++	var k31_before_macro_add := _collect_cmds("control_add_macro").size()
++	_check("k31 sidebar create macro queues control_add_macro", bool(rack.vit_sidebar_create_macro()) and _collect_cmds("control_add_macro").size() == k31_before_macro_add + 1, "command not queued")
++	var k31_macro_add_cmds := _collect_cmds("control_add_macro")
++	if k31_macro_add_cmds.size() > k31_before_macro_add:
++		var k31_macro_cmd: Dictionary = k31_macro_add_cmds[k31_macro_add_cmds.size() - 1]
++		_check("k31 sidebar create macro payload", str(k31_macro_cmd.get("name", "")) == "Macro 2" and int(k31_macro_cmd.get("macro_count", 0)) == 1, str(k31_macro_cmd))
++	var k31_before_node_add := _collect_cmds("control_add_node").size()
++	_check("k31 sidebar create control queues control_add_node", bool(rack.vit_sidebar_create_control("xypad", "XY Pad")) and _collect_cmds("control_add_node").size() == k31_before_node_add + 1, "command not queued")
++	var k31_node_add_cmds := _collect_cmds("control_add_node")
++	if k31_node_add_cmds.size() > k31_before_node_add:
++		var k31_node_cmd: Dictionary = k31_node_add_cmds[k31_node_add_cmds.size() - 1]
++		_check("k31 sidebar create control payload kind/name", str(k31_node_cmd.get("kind", "")) == "xypad" and str(k31_node_cmd.get("name", "")) == "XY Pad", str(k31_node_cmd))
++	_check("k31 sidebar focus control node", bool(rack.vit_sidebar_focus_control_node("ctrl_knob_1")), "focus failed")
++	var k31_knob_gn := _find_control_node_by_id(rack, "ctrl_knob_1")
++	_check("k31 sidebar focus selects node", k31_knob_gn != null and k31_knob_gn.selected, "not selected")
++	_check("k31 sidebar focus unknown node false", not bool(rack.vit_sidebar_focus_control_node("ctrl_missing")), "unexpected focus")
++	var k31_before_macro_apply := _collect_cmds("control_set_macro_values").size()
++	_check("k31 sidebar reapply macro queues set_macro_values", bool(rack.vit_sidebar_reapply_control_node("ctrl_macro_1")) and _collect_cmds("control_set_macro_values").size() == k31_before_macro_apply + 1, "command not queued")
++	var k31_apply_cmds := _collect_cmds("control_set_macro_values")
++	if k31_apply_cmds.size() > k31_before_macro_apply:
++		var k31_apply_cmd: Dictionary = k31_apply_cmds[k31_apply_cmds.size() - 1]
++		var k31_values: Dictionary = k31_apply_cmd.get("values", {}) as Dictionary
++		_check("k31 sidebar reapply macro payload values", str(k31_apply_cmd.get("node_id", "")) == "ctrl_macro_1" and is_equal_approx(float(k31_values.get("macro_1", -1.0)), 0.25) and is_equal_approx(float(k31_values.get("macro_2", -1.0)), 0.5), str(k31_apply_cmd))
++	var k31_before_node_apply := _collect_cmds("control_set_node_value").size()
++	_check("k31 sidebar reapply knob queues set_node_value", bool(rack.vit_sidebar_reapply_control_node("ctrl_knob_1")) and _collect_cmds("control_set_node_value").size() == k31_before_node_apply + 1, "command not queued")
++	_check("k31 sidebar suggest empty without param surface", (rack.vit_sidebar_suggest_control_kind() as Dictionary).is_empty(), "suggest not empty")
++	_suite_k31_sidebar_adapter_contract()
++
+ 	# --- 场景 10：Track_Row FX 徽标契约面（3D 场景依赖，DOM 徽标归真栈腿） ---
+ 	var track_row_script: Variant = load(TRACK_ROW_CONTROLLER_PATH)
+ 	var track_row_scene_instance: Variant = track_row_script.new() if track_row_script != null else null
+@@ -431,6 +500,24 @@ func _run_scene_suite() -> void:
+ 	_check("scene track row refresh reads repo is_fx_track", _fake_repo.is_fx_track_calls >= 0, "repo callable")
+ 
+ 
++## K3.1③：侧栏 adapter 契约断言（adapter 场景树重、autoload 依赖——headless
++## 以源码文本钉接线面；运行时命令面已在场景 11 经 Vit_Graph_Rack 桥覆盖）。
++func _suite_k31_sidebar_adapter_contract() -> void:
++	var path := "res://vit_dock/views/graph_rack_dock_adapter.gd"
++	var source := FileAccess.get_file_as_string(path)
++	_check("k31 adapter source readable", not source.is_empty(), "file unreadable: %s" % path)
++	if source.is_empty():
++		return
++	_check("k31 adapter sidebar create macro wired to vit bridge", source.contains("vit_sidebar_create_macro"), "bridge call missing")
++	_check("k31 adapter sidebar create control wired to vit bridge", source.contains("vit_sidebar_create_control"), "bridge call missing")
++	_check("k31 adapter retrieval list reads control_graph bridge", source.contains("vit_sidebar_control_nodes") and source.contains("vit_sidebar_focus_control_node") and source.contains("vit_sidebar_reapply_control_node"), "retrieval bridge missing")
++	_check("k31 adapter kind vocabulary from control rules", source.contains("_CONTROL_RULES_SCRIPT.CONTROL_KINDS"), "kind vocabulary not shared")
++	_check("k31 adapter suggestion uses suggest bridge", source.contains("vit_sidebar_suggest_control_kind"), "suggest bridge missing")
++	_check("k31 adapter old repository macro write path removed", not source.contains("create_rack_control_macro"), "old write path still present")
++	_check("k31 adapter old three-choice constant removed", not source.contains("CONTROL_TYPE_CHOICES"), "old constant still present")
++
++
++
+ func _suite_mixer_strip() -> void:
+ 	var strip_scene: Variant = load(STRIP_SCENE_PATH)
+ 	if strip_scene == null:
+diff --git a/vit_dock/views/graph_rack_dock_adapter.gd b/vit_dock/views/graph_rack_dock_adapter.gd
+index b620b74..d27e923 100644
+--- a/vit_dock/views/graph_rack_dock_adapter.gd
++++ b/vit_dock/views/graph_rack_dock_adapter.gd
+@@ -2,6 +2,7 @@ extends Control
+ 
+ const GRAPH_RACK_SCRIPT := preload("res://app/rack/Vit_Graph_Rack.gd")
+ const TRACK_GROUP_LIST_PANEL_SCENE := preload("res://vit_dock/views/track_group_list_panel.tscn")
++const _CONTROL_RULES_SCRIPT: Variant = preload("res://app/rack/rack_control_layer_rules.gd")
+ const CLIP_SCOPE_MIN_WIDTH := 200
+ const CLIP_SCOPE_DEFAULT_WIDTH := 220
+ const _CLIP_CLIENT_SCRIPT: Variant = preload("res://app/kernel/clients/clip_client.gd")
+@@ -13,14 +14,19 @@ const RACK_TOOLS_ACTIONS := [
+ 	{"id": "use_quick", "label": "使用推荐", "requires_snapshot": true},
+ 	{"id": "generate_controls", "label": "生成", "requires_snapshot": true},
+ ]
+-const CONTROL_TYPE_CHOICES := [
+-	{"id": "slider", "label": "滑条"},
+-	{"id": "knob", "label": "旋钮"},
+-	{"id": "toggle", "label": "开关"},
+-]
+-const RACK_MACRO_ACTIONS := [
+-	{"id": "create_macro", "label": "创建宏"},
+-]
++# K3.1③：控件类型十词表（rack_control_layer_rules 同源）中文标签。
++const CONTROL_KIND_LABELS := {
++	"knob": "旋钮",
++	"slider": "滑条",
++	"numberbox": "数字框",
++	"xypad": "XY Pad",
++	"toggle": "开关",
++	"button": "按钮",
++	"range": "双端范围",
++	"envelope": "包络（壳）",
++	"lfo": "LFO（壳）",
++	"stepsequencer": "步进音序（壳）",
++}
+ 
+ @onready var _graph_host: Control = %GraphHost
+ @onready var _status_label: Label = %StatusLabel
+@@ -60,11 +66,14 @@ var _rack_tools_content: VBoxContainer
+ var _rack_tools_plugin_label: Label
+ var _rack_tools_status_label: Label
+ var _rack_tools_action_buttons: Dictionary = {}
+-var _rack_macro_action_buttons: Dictionary = {}
+-var _rack_control_pref_group: ButtonGroup
+-var _rack_control_pref_buttons: Dictionary = {}
++var _rack_control_kind_option: OptionButton
++var _rack_suggest_label: Label
++var _rack_suggest_button: Button
++var _rack_create_macro_button: Button
++var _rack_create_control_button: Button
++var _rack_existing_controls_box: VBoxContainer
+ var _rack_sidebar_active_tab: String = SIDEBAR_TAB_LIST
+-var _rack_control_pref: String = "slider"
++var _rack_control_pref: String = "knob"
+ 
+ 
+ func _ready() -> void:
+@@ -303,26 +312,36 @@ func _build_rack_tools_panel() -> void:
+ 	_rack_tools_content.add_child(HSeparator.new())
+ 
+ 	_rack_tools_content.add_child(_new_tools_section_label("机架控件类型"))
+-	var pref_row := HBoxContainer.new()
+-	pref_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+-	pref_row.add_theme_constant_override("separation", 4)
+-	_rack_control_pref_group = ButtonGroup.new()
+-	_rack_control_pref_group.allow_unpress = false
+-	for pref_def in CONTROL_TYPE_CHOICES:
+-		var pref_id := str((pref_def as Dictionary).get("id", ""))
+-		var pref_button := _new_control_pref_button(str((pref_def as Dictionary).get("label", pref_id)), pref_id)
+-		_rack_control_pref_buttons[pref_id] = pref_button
+-		pref_row.add_child(pref_button)
+-	_rack_tools_content.add_child(pref_row)
++	_rack_control_kind_option = OptionButton.new()
++	_rack_control_kind_option.name = "RackControlKindOption"
++	_rack_control_kind_option.custom_minimum_size = Vector2(0.0, 28.0)
++	_rack_control_kind_option.focus_mode = Control.FOCUS_NONE
++	for kind_id in _CONTROL_RULES_SCRIPT.CONTROL_KINDS:
++		_rack_control_kind_option.add_item("%s · %s" % [str(CONTROL_KIND_LABELS.get(kind_id, kind_id)), kind_id])
++		_rack_control_kind_option.set_item_metadata(_rack_control_kind_option.item_count - 1, kind_id)
++	_rack_control_kind_option.item_selected.connect(_on_control_kind_selected)
++	_rack_tools_content.add_child(_rack_control_kind_option)
++	_rack_suggest_label = _new_tools_text_label("建议：选中插件参数后可用", 10, Color(0.22, 0.24, 0.28, 0.84))
++	_rack_suggest_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
++	_rack_tools_content.add_child(_rack_suggest_label)
++	_rack_suggest_button = _new_tools_action_button("采用建议类型")
++	_rack_suggest_button.visible = false
++	_rack_suggest_button.pressed.connect(_on_suggest_kind_pressed)
++	_rack_tools_content.add_child(_rack_suggest_button)
+ 	_rack_tools_content.add_child(HSeparator.new())
+ 
+-	_rack_tools_content.add_child(_new_tools_section_label("宏控件"))
+-	for macro_def in RACK_MACRO_ACTIONS:
+-		var macro_action_id := str((macro_def as Dictionary).get("id", ""))
+-		var macro_button := _new_tools_action_button(str((macro_def as Dictionary).get("label", macro_action_id)))
+-		macro_button.pressed.connect(_on_rack_macro_action_pressed.bind(macro_action_id))
+-		_rack_macro_action_buttons[macro_action_id] = macro_button
+-		_rack_tools_content.add_child(macro_button)
++	_rack_tools_content.add_child(_new_tools_section_label("宏控件（第一入口）"))
++	_rack_create_macro_button = _new_tools_action_button("创建宏（混排宏卡）")
++	_rack_create_macro_button.pressed.connect(_on_sidebar_create_macro_pressed)
++	_rack_tools_content.add_child(_rack_create_macro_button)
++	_rack_create_control_button = _new_tools_action_button("创建控件卡")
++	_rack_create_control_button.pressed.connect(_on_sidebar_create_control_pressed)
++	_rack_tools_content.add_child(_rack_create_control_button)
++	_rack_tools_content.add_child(_new_tools_text_label("调取已有控制（点击定位）", 10, Color(0.22, 0.24, 0.28, 0.84)))
++	_rack_existing_controls_box = VBoxContainer.new()
++	_rack_existing_controls_box.name = "RackExistingControlsList"
++	_rack_existing_controls_box.add_theme_constant_override("separation", 2)
++	_rack_tools_content.add_child(_rack_existing_controls_box)
+ 
+ 	_refresh_control_pref_buttons()
+ 	_refresh_rack_tools_panel()
+@@ -353,19 +372,6 @@ func _new_tools_action_button(text: String) -> Button:
+ 	return action_button
+ 
+ 
+-func _new_control_pref_button(text: String, pref_id: String) -> Button:
+-	var pref_button := _new_tools_action_button(text)
+-	pref_button.toggle_mode = true
+-	pref_button.button_group = _rack_control_pref_group
+-	pref_button.tooltip_text = text
+-	pref_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+-	pref_button.set_meta("vit_drag_kind", "rack_control_type")
+-	pref_button.set_meta("vit_control_type", pref_id)
+-	pref_button.set_meta("vit_control_type_label", text)
+-	pref_button.pressed.connect(_on_control_pref_pressed.bind(pref_id))
+-	return pref_button
+-
+-
+ func _on_rack_sidebar_tab_pressed(tab_id: String) -> void:
+ 	_rack_sidebar_active_tab = tab_id if tab_id == SIDEBAR_TAB_TOOLS or tab_id == SIDEBAR_TAB_GROUPS else SIDEBAR_TAB_LIST
+ 	_apply_rack_sidebar_tab_visibility()
+@@ -395,23 +401,40 @@ func _apply_rack_sidebar_tab_visibility() -> void:
+ 		_refresh_rack_tools_panel()
+ 
+ 
+-func _on_control_pref_pressed(pref_id: String) -> void:
+-	_rack_control_pref = pref_id
+-	_refresh_control_pref_buttons()
++func _on_control_kind_selected(index: int) -> void:
++	if _rack_control_kind_option == null:
++		return
++	var kind_id := str(_rack_control_kind_option.get_item_metadata(index))
++	_rack_control_pref = kind_id
+ 	_update_status_label("机架控件类型=%s" % _rack_control_pref)
+ 
+ 
++func _apply_suggested_kind(kind_id: String) -> void:
++	_rack_control_pref = kind_id
++	_refresh_control_pref_buttons()
++	_update_status_label("机架控件类型=%s（建议）" % _rack_control_pref)
++
++
++func _on_suggest_kind_pressed() -> void:
++	if _graph_rack == null or not _graph_rack.has_method("vit_sidebar_suggest_control_kind"):
++		return
++	var suggestion: Dictionary = _graph_rack.call("vit_sidebar_suggest_control_kind") as Dictionary
++	var kind_id := str(suggestion.get("kind", "")).strip_edges()
++	if kind_id.is_empty():
++		return
++	_apply_suggested_kind(kind_id)
++
++
+ func _refresh_control_pref_buttons() -> void:
+-	if _rack_control_pref_buttons.is_empty():
++	if _rack_control_kind_option == null:
+ 		return
+-	if not _rack_control_pref_buttons.has(_rack_control_pref):
+-		_rack_control_pref = "slider"
+-	for pref_id in _rack_control_pref_buttons.keys():
+-		var pref_button := _rack_control_pref_buttons[pref_id] as Button
+-		if pref_button == null:
+-			continue
+-		pref_button.button_pressed = str(pref_id) == _rack_control_pref
+-		VitUIButtonStyles.apply_tool_icon_button(pref_button, pref_button.button_pressed)
++	var kinds: Array = _CONTROL_RULES_SCRIPT.CONTROL_KINDS
++	if not kinds.has(_rack_control_pref):
++		_rack_control_pref = "knob"
++	for i in range(kinds.size()):
++		if str(kinds[i]) == _rack_control_pref:
++			_rack_control_kind_option.select(i)
++			break
+ 
+ 
+ func _refresh_rack_tools_panel() -> void:
+@@ -431,9 +454,9 @@ func _refresh_rack_tools_panel() -> void:
+ 	var generated_count := int(state.get("generated_control_count", 0))
+ 	var quick_count := int(state.get("quick_control_count", 0))
+ 	var profile_status := str(state.get("profile_status", "")).strip_edges()
+-	var macro_stats := _rack_macro_stats_for_track(track_id)
+-	var macro_count := int(macro_stats.get("macro_count", 0))
+-	var binding_count := int(macro_stats.get("binding_count", 0))
++	var control_stats := _rack_control_stats_for_track()
++	var macro_count := int(control_stats.get("macro_count", 0))
++	var binding_count := int(control_stats.get("binding_count", 0))
+ 
+ 	if _rack_tools_plugin_label != null:
+ 		var plugin_name := str(state.get("plugin_name", "")).strip_edges()
+@@ -466,7 +489,8 @@ func _refresh_rack_tools_panel() -> void:
+ 			"generate_controls":
+ 				enabled = enabled and selected_count > 0
+ 		action_button.disabled = not enabled
+-	_refresh_rack_macro_buttons(has_track)
++	_refresh_sidebar_macro_area(has_track)
++	_refresh_suggest_row()
+ 
+ 
+ func _on_rack_tool_action_pressed(action_id: String) -> void:
+@@ -482,80 +506,138 @@ func _on_rack_tool_action_pressed(action_id: String) -> void:
+ 	call_deferred("_refresh_rack_tools_panel")
+ 
+ 
+-func _rack_macro_stats_for_track(track_id: String) -> Dictionary:
+-	if _project_repository == null:
+-		return {"macro_count": 0, "binding_count": 0}
+-	if _project_repository.has_method("get_rack_control_macro_track_stats"):
+-		return _project_repository.call("get_rack_control_macro_track_stats", track_id.strip_edges()) as Dictionary
+-	if not _project_repository.has_method("get_rack_control_macros"):
+-		return {"macro_count": 0, "binding_count": 0}
+-	var binding_count := 0
++# K3.1③：统计走 control_graph 快照（新链路读侧；旧 repository 宏文档仅留兼容读）。
++func _rack_control_stats_for_track() -> Dictionary:
++	var nodes := _sidebar_control_nodes_safe()
+ 	var macro_count := 0
+-	var doc: Dictionary = _project_repository.call("get_rack_control_macros") as Dictionary
+-	var raw_macros: Variant = doc.get("macros", [])
+-	if typeof(raw_macros) != TYPE_ARRAY:
+-		return {"macro_count": 0, "binding_count": 0}
+-	for macro_variant in raw_macros as Array:
+-		if typeof(macro_variant) != TYPE_DICTIONARY:
+-			continue
+-		var macro := macro_variant as Dictionary
+-		if str(macro.get("track_id", "")).strip_edges() != track_id.strip_edges():
++	var binding_count := 0
++	for node_variant in nodes:
++		if typeof(node_variant) != TYPE_DICTIONARY:
+ 			continue
+-		macro_count += 1
+-		var raw_bindings: Variant = macro.get("bindings", [])
+-		if typeof(raw_bindings) == TYPE_ARRAY:
+-			binding_count += (raw_bindings as Array).size()
++		var node := node_variant as Dictionary
++		if str(node.get("kind", "")) == _CONTROL_RULES_SCRIPT.KIND_MACROPANEL:
++			macro_count += 1
++		binding_count += int(node.get("binding_count", 0))
+ 	return {"macro_count": macro_count, "binding_count": binding_count}
+ 
+ 
+-func _refresh_rack_macro_buttons(has_track: bool) -> void:
+-	for action_id in _rack_macro_action_buttons.keys():
+-		var macro_button := _rack_macro_action_buttons[action_id] as Button
+-		if macro_button == null:
+-			continue
+-		match str(action_id):
+-			"create_macro":
+-				macro_button.disabled = not has_track
+-			_:
+-				macro_button.disabled = true
++func _sidebar_control_nodes_safe() -> Array:
++	if _graph_rack == null or not _graph_rack.has_method("vit_sidebar_control_nodes"):
++		return []
++	return _graph_rack.call("vit_sidebar_control_nodes") as Array
+ 
+ 
+-func _on_rack_macro_action_pressed(action_id: String) -> void:
+-	var state: Dictionary = {}
+-	if _graph_rack != null and _graph_rack.has_method("get_selected_plugin_tools_state"):
+-		state = _graph_rack.call("get_selected_plugin_tools_state") as Dictionary
+-	var track_id := str(state.get("track_id", _selected_kernel_track_id)).strip_edges()
+-	if track_id.is_empty():
+-		track_id = _selected_kernel_track_id
+-	if track_id.is_empty():
+-		_update_status_label("宏控件需要当前轨道")
++func _refresh_sidebar_macro_area(has_track: bool) -> void:
++	if _rack_create_macro_button != null:
++		_rack_create_macro_button.disabled = not has_track
++	if _rack_create_control_button != null:
++		_rack_create_control_button.disabled = not has_track
++	_refresh_existing_controls_list()
++
++
++func _refresh_suggest_row() -> void:
++	if _rack_suggest_label == null or _rack_suggest_button == null:
++		return
++	var suggestion: Dictionary = {}
++	if _graph_rack != null and _graph_rack.has_method("vit_sidebar_suggest_control_kind"):
++		suggestion = _graph_rack.call("vit_sidebar_suggest_control_kind") as Dictionary
++	var kind_id := str(suggestion.get("kind", "")).strip_edges()
++	if kind_id.is_empty():
++		_rack_suggest_label.text = "建议：选中插件参数后可用"
++		_rack_suggest_button.visible = false
++		return
++	var param_name := str(suggestion.get("param_name", "")).strip_edges()
++	var reason := str(suggestion.get("reason", "")).strip_edges()
++	_rack_suggest_label.text = "建议 %s：%s%s" % [
++		str(CONTROL_KIND_LABELS.get(kind_id, kind_id)),
++		param_name,
++		("（%s）" % reason) if not reason.is_empty() else "",
++	]
++	_rack_suggest_button.visible = true
++
++
++func _on_sidebar_create_macro_pressed() -> void:
++	if _graph_rack == null or not _graph_rack.has_method("vit_sidebar_create_macro"):
++		_update_status_label("宏命令面不可用")
++		return
++	if _graph_rack.call("vit_sidebar_create_macro") == true:
++		_update_status_label("已请求创建宏（control_add_macro）")
++	else:
++		_update_status_label("创建宏失败（命令未入队）")
++	_refresh_rack_tools_panel()
++
++
++func _on_sidebar_create_control_pressed() -> void:
++	if _graph_rack == null or not _graph_rack.has_method("vit_sidebar_create_control"):
++		_update_status_label("控件命令面不可用")
+ 		return
+-	match action_id:
+-		"create_macro":
+-			_create_macro_for_track(track_id)
+-		_:
+-			_update_status_label("宏控件动作暂未接入")
++	var kind_id := _rack_control_pref
++	if _graph_rack.call("vit_sidebar_create_control", kind_id, str(CONTROL_KIND_LABELS.get(kind_id, kind_id))) == true:
++		_update_status_label("已请求创建控件卡 %s（control_add_node）" % kind_id)
++	else:
++		_update_status_label("创建控件卡失败（命令未入队）")
+ 	_refresh_rack_tools_panel()
+ 
+ 
+-func _create_macro_for_track(track_id: String) -> void:
+-	if _project_command_service == null or not _project_command_service.has_method("create_rack_control_macro"):
+-		_update_status_label("宏 schema 不可用")
++## 调取已有控制列表（control_graph 快照读侧）：点击行=画布定位；「施加」=当前值重推内核。
++func _refresh_existing_controls_list() -> void:
++	if _rack_existing_controls_box == null:
+ 		return
+-	var stats := _rack_macro_stats_for_track(track_id)
+-	var macro_name := "Macro %d" % (int(stats.get("macro_count", 0)) + 1)
+-	var macro: Dictionary = _project_command_service.call(
+-		"create_rack_control_macro",
+-		track_id,
+-		"",
+-		macro_name,
+-		_rack_control_pref,
+-		_viewport_id
+-	) as Dictionary
+-	if macro.is_empty():
+-		_update_status_label("创建宏失败")
++	for child in _rack_existing_controls_box.get_children():
++		child.queue_free()
++	var nodes := _sidebar_control_nodes_safe()
++	if nodes.is_empty():
++		var hint := _new_tools_text_label("（暂无控制卡——用上方按钮或画布右键创建）", 10, Color(0.22, 0.24, 0.28, 0.7))
++		_rack_existing_controls_box.add_child(hint)
+ 		return
+-	_update_status_label("已创建轨道宏=%s" % str(macro.get("name", "")))
++	for node_variant in nodes:
++		var node := node_variant as Dictionary
++		var node_id := str(node.get("node_id", "")).strip_edges()
++		if node_id.is_empty():
++			continue
++		var kind_id := str(node.get("kind", ""))
++		var row := HBoxContainer.new()
++		row.add_theme_constant_override("separation", 4)
++		var label := _new_tools_text_label("%s · %s · 映射%d" % [
++			str(node.get("name", node_id)),
++			str(CONTROL_KIND_LABELS.get(kind_id, kind_id)),
++			int(node.get("binding_count", 0)),
++		], 10, Color(0.035, 0.042, 0.055, 0.88))
++		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
++		label.clip_text = true
++		label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
++		label.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
++		label.gui_input.connect(_on_existing_control_label_input.bind(node_id))
++		row.add_child(label)
++		var reapply_button := Button.new()
++		reapply_button.text = "施加"
++		reapply_button.custom_minimum_size = Vector2(40.0, 22.0)
++		reapply_button.focus_mode = Control.FOCUS_NONE
++		reapply_button.tooltip_text = "以快照当前值重新施加到内核"
++		VitUIButtonStyles.apply_paper_button(reapply_button, Vector2(40.0, 22.0), 10)
++		reapply_button.pressed.connect(_on_existing_control_reapply_pressed.bind(node_id))
++		row.add_child(reapply_button)
++		_rack_existing_controls_box.add_child(row)
++
++
++func _on_existing_control_label_input(event: InputEvent, node_id: String) -> void:
++	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
++		if _graph_rack != null and _graph_rack.has_method("vit_sidebar_focus_control_node"):
++			var focused: bool = _graph_rack.call("vit_sidebar_focus_control_node", node_id)
++			var focus_text := "未找到控制卡 %s" % node_id
++			if focused:
++				focus_text = "已定位控制卡 %s" % node_id
++			_update_status_label(focus_text)
++
++
++func _on_existing_control_reapply_pressed(node_id: String) -> void:
++	if _graph_rack == null or not _graph_rack.has_method("vit_sidebar_reapply_control_node"):
++		_update_status_label("施加命令面不可用")
++		return
++	if _graph_rack.call("vit_sidebar_reapply_control_node", node_id) == true:
++		_update_status_label("已施加 %s（当前值重推）" % node_id)
++	else:
++		_update_status_label("施加 %s 失败" % node_id)
+ 
+ 
+ func _on_graph_rack_tools_selection_changed(_node: Node) -> void:
+@@ -713,6 +795,9 @@ func _bind_project_events() -> void:
+ 	_project_event_hub.parameter_changed.connect(_on_project_nodes_changed)
+ 	_project_event_hub.project_dirty_changed.connect(_on_project_dirty_changed)
+ 	_project_event_hub.rack_control_macros_changed.connect(_on_rack_control_macros_changed)
++	if _project_event_hub.has_signal("control_graph_changed") \
++			and not _project_event_hub.control_graph_changed.is_connected(_on_control_graph_changed):
++		_project_event_hub.control_graph_changed.connect(_on_control_graph_changed)
+ 	_events_bound = true
+ 
+ 
+@@ -807,6 +892,11 @@ func _on_rack_control_macros_changed(_macros: Dictionary, _source_viewport_id: S
+ 	_refresh_rack_tools_panel()
+ 
+ 
++func _on_control_graph_changed(_graph: Dictionary) -> void:
++	# K3.1③：control_graph 快照变更 → 调取列表/统计同步（新链路读侧）。
++	_refresh_rack_tools_panel()
++
++
+ func _set_selected_track(kernel_track_id: String) -> void:
+ 	_selected_kernel_track_id = kernel_track_id.strip_edges()
+ 	_selected_scene_track_id = _scene_track_id_from_kernel_track_id(_selected_kernel_track_id)
+-- 
+2.53.0.windows.1
+
