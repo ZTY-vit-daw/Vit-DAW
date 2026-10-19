@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"vit-daw-agent/internal/agentloop"
+	"vit-daw-agent/internal/capabilityboundary"
 	"vit-daw-agent/internal/config"
 	"vit-daw-agent/internal/dynamiccontrol"
 	"vit-daw-agent/internal/harness"
@@ -586,18 +587,22 @@ func c2ProcessorTypeForFamily(family string) string {
 func (s *Server) c2DynamicPluginLoadSelection(ctx context.Context, conversationID, goalText string, requestContext map[string]any, goal agentruntime.Goal, sessionID string, hypothesis dynamiccontrol.TargetHypothesis, discovery map[string]any, family string, coverage []processorattestation.Coverage) ChatResponse {
 	processorType := c2ProcessorTypeForFamily(family)
 	if processorType == "" {
-		return c2BoundaryResponse(conversationID, goal, sessionID, "unsupported_dynamic_family", fmt.Errorf("C2 family %s has no load adapter", family))
+		return c2BoundaryResponse(conversationID, goal, sessionID, "unsupported_dynamic_family", fmt.Errorf("C2 family %s has no load adapter", family),
+			s.c2BoundaryRemediation(ctx, "unsupported_dynamic_family", "C2 family "+family+" has no load adapter", family, coverage, hypothesis.TrackID))
 	}
 	candidates, err := s.localPluginRecommendationCandidates(ctx, processorType)
 	if err != nil {
-		return c2BoundaryResponse(conversationID, goal, sessionID, "dynamic_plugin_catalog_unavailable", err)
+		return c2BoundaryResponse(conversationID, goal, sessionID, "dynamic_plugin_catalog_unavailable", err,
+			s.c2BoundaryRemediation(ctx, "dynamic_plugin_catalog_unavailable", errorText(err), family, coverage, hypothesis.TrackID))
 	}
 	candidates, err = c2CoverageAttestedPluginRecommendationCandidates(candidates, processorType, coverage)
 	if err != nil {
-		return c2BoundaryResponse(conversationID, goal, sessionID, "dynamic_plugin_pca_catalog_unavailable", err)
+		return c2BoundaryResponse(conversationID, goal, sessionID, "dynamic_plugin_pca_catalog_unavailable", err,
+			s.c2BoundaryRemediation(ctx, "dynamic_plugin_pca_catalog_unavailable", errorText(err), family, coverage, hypothesis.TrackID))
 	}
 	if len(candidates) == 0 {
-		return c2BoundaryResponse(conversationID, goal, sessionID, "no_pca_admitted_dynamic_plugin_candidate", fmt.Errorf("no locally loadable PCA-admitted %s candidate", family))
+		return c2BoundaryResponse(conversationID, goal, sessionID, "no_pca_admitted_dynamic_plugin_candidate", fmt.Errorf("no locally loadable PCA-admitted %s candidate", family),
+			s.c2BoundaryRemediation(ctx, "no_pca_admitted_dynamic_plugin_candidate", "no locally loadable PCA-admitted "+family+" candidate", family, coverage, hypothesis.TrackID))
 	}
 	cfg, _, err := config.Load()
 	if err != nil || !cfg.Complete() {
@@ -928,9 +933,34 @@ func c2VerificationViews(family string) []any {
 	}
 }
 
-func c2BoundaryResponse(conversationID string, goal agentruntime.Goal, sessionID, code string, err error) ChatResponse {
+// c2BoundaryResponse renders the C2 governed-boundary face. CAP-BOUNDARY-1:
+// every C2 boundary response carries the structured capability_boundary.v1
+// payload. The base payload is resolver output over the facts available at
+// this signature (code + message); call sites that own family/coverage/track
+// context pass the enriched snapshot so next_actions carry real governed
+// options. The StopReason, receipt fields, and the mutation_performed=false
+// law stay untouched — the payload only discloses options.
+func c2BoundaryResponse(conversationID string, goal agentruntime.Goal, sessionID, code string, err error, remediation ...capabilityboundary.Boundary) ChatResponse {
 	message := firstNonEmpty(errorText(err), code)
-	return ChatResponse{ConversationID: conversationID, GoalID: goal.GoalID, RunID: goal.RunID, Reply: "C2 在受治理边界停止：" + message + "；没有修改工程。", Error: message, Workflow: "capability_runtime_v1", GoalStatus: string(agentruntime.StatusFailed), StopReason: code, WorkflowData: map[string]any{"session_id": sessionID, "capability_id": dynamicControlCapabilityID, "stage": code, "mutation_performed": false}}
+	resp := ChatResponse{ConversationID: conversationID, GoalID: goal.GoalID, RunID: goal.RunID, Reply: "C2 在受治理边界停止：" + message + "；没有修改工程。", Error: message, Workflow: "capability_runtime_v1", GoalStatus: string(agentruntime.StatusFailed), StopReason: code, WorkflowData: map[string]any{"session_id": sessionID, "capability_id": dynamicControlCapabilityID, "stage": code, "mutation_performed": false}}
+	boundary := capabilityboundary.Resolve(capabilityboundary.Input{Code: code, Class: capabilityboundary.ClassDynamicControl, Reason: message})
+	if len(remediation) > 0 {
+		boundary = remediation[0]
+	}
+	resp.WorkflowData["capability_boundary"] = boundary
+	return resp
+}
+
+// c2BoundaryRemediation assembles the enriched capability_boundary.v1
+// snapshot for a family-bearing C2 boundary (CAP-BOUNDARY-1). Deterministic
+// and LLM-free: alternates come from the existing PCA admission/coverage
+// queries, manual guidance from the loaded-instance scan of the target track.
+func (s *Server) c2BoundaryRemediation(ctx context.Context, code, reason, family string, requiredCoverage []processorattestation.Coverage, trackID string) capabilityboundary.Boundary {
+	return s.assembleCapabilityBoundary(ctx, capabilityboundary.Input{
+		Code: code, Class: capabilityboundary.ClassDynamicControl,
+		Family: capabilityboundary.NormalizeFamily(family), Reason: reason,
+		TrackID: trackID,
+	}, requiredCoverage)
 }
 
 func c2ObservationPendingResponse(conversationID string, goal agentruntime.Goal, sessionID string, pending *c2ObservationPendingError) ChatResponse {
