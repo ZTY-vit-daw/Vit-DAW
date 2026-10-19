@@ -1,0 +1,9 @@
+{
+  "style": "Mandarin city pop, female vocal, warm electric piano, bass and drums, 108 BPM",
+  "lyrics": "[Verse]\n夜色落在窗台\n城市在呼吸\n[Chorus]\n把这一刻写成歌",
+  "cot": "full",
+  "duration": 60,
+  "seed": 5678,
+  "steps": 32,
+  "output_format": "wav16"
+}

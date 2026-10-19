@@ -1,0 +1,9 @@
+{
+  "style": "acoustic piano, lofi pop, jazz, trap",
+  "lyrics": "[Verse]\n夜色落在窗台\n城市在呼吸\n霓虹淹没了街角\n我在人海里\n[Pre-Chorus]\n耳机里的节拍\n替我说着秘密\n[Chorus]\n把这一刻写成歌\n唱给晚风听\n把这一刻写成歌\n留给明天的自己\n[Verse 2]\n咖啡凉了一半\n心事还滚烫\n路灯把影子拉长\n陪我一直走\n[Chorus]\n把这一刻写成歌\n唱给晚风听\n把这一刻写成歌\n留给明天的自己\n[Bridge]\n如果时间会停\n就停在这一秒\n[Final Chorus]\n把这一刻写成歌\n唱给整座城市听",
+  "cot": "full",
+  "duration": 360,
+  "seed": 2026,
+  "steps": 32,
+  "output_format": "wav16"
+}

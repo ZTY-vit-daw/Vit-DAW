@@ -1,0 +1,686 @@
+[Store] Created (policy=STRICT)
+[BPE] Loaded from GGUF: 151851 vocab, 151387 merges
+[GGUF] E:/AI/YuE2/models/YuE2-3B-Q8_0.gguf: 627 tensors, data at offset 5367296
+ggml_cuda_init: found 1 CUDA devices (Total VRAM: 12281 MiB):
+  Device 0: NVIDIA GeForce RTX 4070, compute capability 8.9, VMM: yes, VRAM: 12281 MiB
+load_backend: loaded CUDA backend from E:\AI\YuE2\engine\ggml-cuda.dll
+load_backend: loaded Vulkan backend from E:\AI\YuE2\engine\ggml-vulkan.dll
+load_backend: loaded CPU backend from E:\AI\YuE2\engine\ggml-cpu-alderlake.dll
+[Load] Self-test on CUDA0: ok (94.1 ms)
+[Load] KV backend: CUDA0 (CPU threads: 10)
+[Server] yue-server c8516db (2026-10-09)
+[Server] Listening on 127.0.0.1:8087
+[Request] ERROR: malformed JSON
+[Server] Job e215a29a16796d8f: {
+  "style": "Mandarin city pop, female vocal, warm electric piano, bass and drums, 108 BPM",
+  "lyrics": "[Verse]\n夜色落在窗台\n城市在呼吸\n[Chorus]\n把这一刻写成歌",
+  "duration": 60.0,
+  "lm_seed": 8031574401328414521,
+  "seed": 1234,
+  "output_format": "wav16"
+}
+load_backend: loaded CUDA backend from E:\AI\YuE2\engine\ggml-cuda.dll
+load_backend: loaded Vulkan backend from E:\AI\YuE2\engine\ggml-vulkan.dll
+load_backend: loaded CPU backend from E:\AI\YuE2\engine\ggml-cpu-alderlake.dll
+[Load] Self-test on CUDA0: ok (4.3 ms)
+[Load] LM backend: CUDA0 (CPU threads: 10)
+[GGUF] E:/AI/YuE2/models/YuE2-3B-Q8_0.gguf: 627 tensors, data at offset 5367296
+[LM-Config] 28L, H=2048, V=184704, Nh=16, Nkv=8, D=128, tied=0
+[Qwen3] Attn: Q+K+V fused
+[Qwen3] MLP: gate+up fused
+[WeightCtx] Loaded 311 tensors, 2195.1 MB into backend
+[Store] Load LM: 1067 ms
+[LM-KV] Allocated 1 sets x 28 layers (4D batched), 476.0 MB
+[AR] Score song 0: 75 tokens prefilled, 208 ms
+[AR] Score prefill: 208 ms, CFG=1.00, top_k=30, budget=4096, songs=1, batch=1
+[AR] Score 0/4096
+[AR] Score 100/4096
+[AR] Score 200/4096
+[AR] Score 300/4096
+[AR] Score 400/4096
+[AR] Score 500/4096
+[AR] Score song 0: end token at step 599
+[AR] Score song 0: 599 tokens
+[AR] Score: 599 tokens over 1 songs, 600 steps, 4.0 s (6.7 ms/step)
+[Prompt] cot=full, songs=1, variations=1, 1 tracks
+[AR] Frame budget clamped to 1500 by the requested duration (60.0 s)
+[LM-KV] Allocated 1 sets x 28 layers (4D batched), 420.0 MB
+[AR] Semantic song 0: 676 tokens prefilled, 47 ms
+[AR] Semantic prefill: 47 ms, CFG=1.00, top_k=100, budget=1500, songs=1, batch=1
+[AR] Semantic 0/1500
+[AR] Semantic 100/1500
+[AR] Semantic 200/1500
+[AR] Semantic 300/1500
+[AR] Semantic 400/1500
+[AR] Semantic 500/1500
+[AR] Semantic 600/1500
+[AR] Semantic 700/1500
+[AR] Semantic 800/1500
+[AR] Semantic 900/1500
+[AR] Semantic 1000/1500
+[AR] Semantic 1100/1500
+[AR] Semantic 1200/1500
+[AR] Semantic 1300/1500
+[AR] Semantic song 0: end token at step 1392
+[AR] Semantic song 0: 1392 tokens
+[AR] Semantic: 1392 tokens over 1 songs, 1393 steps, 7.9 s (5.7 ms/step)
+[Store] Unload LM (2195.1 MB)
+[NAR] Song 0: 1392 frames (55.7 s), prefix 676, 1 chunk of 1580, 1 variation
+[GGUF] E:/AI/YuE2/models/YuE2-3B-Q8_0.gguf: 627 tensors, data at offset 5367296
+load_backend: loaded CUDA backend from E:\AI\YuE2\engine\ggml-cuda.dll
+load_backend: loaded Vulkan backend from E:\AI\YuE2\engine\ggml-vulkan.dll
+load_backend: loaded CPU backend from E:\AI\YuE2\engine\ggml-cpu-alderlake.dll
+[Load] Self-test on CUDA0: ok (1.0 ms)
+[Load] NAR backend: CUDA0 (CPU threads: 10)
+[NAR] Attn: Q+K+V fused
+[NAR] MLP: gate+up fused
+[WeightCtx] Loaded 317 tensors, 1433.5 MB into backend
+[NAR] Loaded: 28 layers, latent_dim=64, timestep_shift=1.000
+[Store] Load NAR: 700 ms
+[NAR] Graph: 1303 nodes, T_lat=1392, variations=1, prefix=2069, set=0
+[NAR] Step 1/32, 241 ms
+[NAR] Step 2/32, 213 ms
+[NAR] Step 3/32, 210 ms
+[NAR] Step 4/32, 210 ms
+[NAR] Step 5/32, 211 ms
+[NAR] Step 6/32, 211 ms
+[NAR] Step 7/32, 210 ms
+[NAR] Step 8/32, 209 ms
+[NAR] Step 9/32, 210 ms
+[NAR] Step 10/32, 210 ms
+[NAR] Step 11/32, 210 ms
+[NAR] Step 12/32, 210 ms
+[NAR] Step 13/32, 210 ms
+[NAR] Step 14/32, 212 ms
+[NAR] Step 15/32, 210 ms
+[NAR] Step 16/32, 209 ms
+[NAR] Step 17/32, 211 ms
+[NAR] Step 18/32, 213 ms
+[NAR] Step 19/32, 211 ms
+[NAR] Step 20/32, 211 ms
+[NAR] Step 21/32, 212 ms
+[NAR] Step 22/32, 211 ms
+[NAR] Step 23/32, 210 ms
+[NAR] Step 24/32, 211 ms
+[NAR] Step 25/32, 211 ms
+[NAR] Step 26/32, 214 ms
+[NAR] Step 27/32, 210 ms
+[NAR] Step 28/32, 210 ms
+[NAR] Step 29/32, 213 ms
+[NAR] Step 30/32, 210 ms
+[NAR] Step 31/32, 211 ms
+[NAR] Step 32/32, 211 ms
+[NAR] Solved: T_lat=1392, 1 variations, 32 steps (midpoint, 64 evaluations), 6776 ms (211.8 ms/step)
+[NAR] Song 0 chunk 1/1: 1392 frames, cache 2069 rows, 0 forwarded, 7.5 s
+[Store] Unload NAR (1433.5 MB)
+[GGUF] E:/AI/YuE2/models/YuE2-Vae-F32.gguf: 435 tensors, data at offset 32800
+load_backend: loaded CUDA backend from E:\AI\YuE2\engine\ggml-cuda.dll
+load_backend: loaded Vulkan backend from E:\AI\YuE2\engine\ggml-vulkan.dll
+load_backend: loaded CPU backend from E:\AI\YuE2\engine\ggml-cpu-alderlake.dll
+[Load] Self-test on CUDA0: ok (0.9 ms)
+[Load] VAE backend: CUDA0 (CPU threads: 10)
+[VAE] Backend: CUDA0, Weight buffer: 126.7 MB
+[VAE] Loaded: 6 blocks, upsample=1920x, F32 activations
+[Store] Load VAE: 706 ms
+[VAE] Track 1/1: song 0 variation 0
+[VAE] Tiled decode: 3 tiles (core=512, halo=16)
+[VAE] Graph: 571 nodes, T_latent=528
+[VAE] Graph: 571 nodes, T_latent=544
+[VAE] Graph: 571 nodes, T_latent=384
+[VAE] Tiled decode done: 3 tiles -> T_audio=2672576 (55.68s @ 48kHz), 756 ms
+[Pipeline] Done: 1 tracks, 55.7 s of audio in 22.0 s (2.5x realtime)
+[Store] Unload VAE (126.7 MB)
+[Server] Job 8570f53eed7f8678: {
+  "style": "Mandarin city pop, female vocal, warm electric piano, bass and drums, 108 BPM",
+  "lyrics": "[Verse]\n夜色落在窗台\n城市在呼吸\n[Chorus]\n把这一刻写成歌",
+  "duration": 60.0,
+  "lm_seed": 7000435032360890192,
+  "seed": 1234,
+  "output_format": "wav16"
+}
+load_backend: loaded CUDA backend from E:\AI\YuE2\engine\ggml-cuda.dll
+load_backend: loaded Vulkan backend from E:\AI\YuE2\engine\ggml-vulkan.dll
+load_backend: loaded CPU backend from E:\AI\YuE2\engine\ggml-cpu-alderlake.dll
+[Load] Self-test on CUDA0: ok (1.3 ms)
+[Load] LM backend: CUDA0 (CPU threads: 10)
+[GGUF] E:/AI/YuE2/models/YuE2-3B-Q8_0.gguf: 627 tensors, data at offset 5367296
+[LM-Config] 28L, H=2048, V=184704, Nh=16, Nkv=8, D=128, tied=0
+[Qwen3] Attn: Q+K+V fused
+[Qwen3] MLP: gate+up fused
+[WeightCtx] Loaded 311 tensors, 2195.1 MB into backend
+[Store] Load LM: 1057 ms
+[LM-KV] Allocated 1 sets x 28 layers (4D batched), 476.0 MB
+[AR] Score song 0: 75 tokens prefilled, 154 ms
+[AR] Score prefill: 154 ms, CFG=1.00, top_k=30, budget=4096, songs=1, batch=1
+[AR] Score 0/4096
+[AR] Score 100/4096
+[AR] Score 200/4096
+[AR] Score 300/4096
+[AR] Score song 0: end token at step 379
+[AR] Score song 0: 379 tokens
+[AR] Score: 379 tokens over 1 songs, 380 steps, 2.5 s (6.7 ms/step)
+[Prompt] cot=full, songs=1, variations=1, 1 tracks
+[AR] Frame budget clamped to 1500 by the requested duration (60.0 s)
+[LM-KV] Allocated 1 sets x 28 layers (4D batched), 392.0 MB
+[AR] Semantic song 0: 456 tokens prefilled, 31 ms
+[AR] Semantic prefill: 31 ms, CFG=1.00, top_k=100, budget=1500, songs=1, batch=1
+[AR] Semantic 0/1500
+[AR] Semantic 100/1500
+[AR] Semantic 200/1500
+[AR] Semantic 300/1500
+[AR] Semantic 400/1500
+[AR] Semantic 500/1500
+[AR] Semantic 600/1500
+[AR] Semantic 700/1500
+[AR] Semantic song 0: end token at step 743
+[AR] Semantic song 0: 743 tokens
+[AR] Semantic: 743 tokens over 1 songs, 744 steps, 4.1 s (5.5 ms/step)
+[Store] Unload LM (2195.1 MB)
+[NAR] Song 0: 743 frames (29.7 s), prefix 456, 1 chunk of 1562, 1 variation
+[GGUF] E:/AI/YuE2/models/YuE2-3B-Q8_0.gguf: 627 tensors, data at offset 5367296
+load_backend: loaded CUDA backend from E:\AI\YuE2\engine\ggml-cuda.dll
+load_backend: loaded Vulkan backend from E:\AI\YuE2\engine\ggml-vulkan.dll
+load_backend: loaded CPU backend from E:\AI\YuE2\engine\ggml-cpu-alderlake.dll
+[Load] Self-test on CUDA0: ok (1.0 ms)
+[Load] NAR backend: CUDA0 (CPU threads: 10)
+[NAR] Attn: Q+K+V fused
+[NAR] MLP: gate+up fused
+[WeightCtx] Loaded 317 tensors, 1433.5 MB into backend
+[NAR] Loaded: 28 layers, latent_dim=64, timestep_shift=1.000
+[Store] Load NAR: 682 ms
+[NAR] Graph: 1303 nodes, T_lat=743, variations=1, prefix=1200, set=0
+[NAR] Step 1/32, 123 ms
+[NAR] Step 2/32, 109 ms
+[NAR] Step 3/32, 106 ms
+[NAR] Step 4/32, 106 ms
+[NAR] Step 5/32, 107 ms
+[NAR] Step 6/32, 105 ms
+[NAR] Step 7/32, 107 ms
+[NAR] Step 8/32, 106 ms
+[NAR] Step 9/32, 106 ms
+[NAR] Step 10/32, 105 ms
+[NAR] Step 11/32, 105 ms
+[NAR] Step 12/32, 106 ms
+[NAR] Step 13/32, 106 ms
+[NAR] Step 14/32, 106 ms
+[NAR] Step 15/32, 105 ms
+[NAR] Step 16/32, 105 ms
+[NAR] Step 17/32, 106 ms
+[NAR] Step 18/32, 106 ms
+[NAR] Step 19/32, 106 ms
+[NAR] Step 20/32, 106 ms
+[NAR] Step 21/32, 106 ms
+[NAR] Step 22/32, 106 ms
+[NAR] Step 23/32, 106 ms
+[NAR] Step 24/32, 107 ms
+[NAR] Step 25/32, 105 ms
+[NAR] Step 26/32, 106 ms
+[NAR] Step 27/32, 106 ms
+[NAR] Step 28/32, 106 ms
+[NAR] Step 29/32, 107 ms
+[NAR] Step 30/32, 105 ms
+[NAR] Step 31/32, 107 ms
+[NAR] Step 32/32, 105 ms
+[NAR] Solved: T_lat=743, 1 variations, 32 steps (midpoint, 64 evaluations), 3408 ms (106.5 ms/step)
+[NAR] Song 0 chunk 1/1: 743 frames, cache 1200 rows, 0 forwarded, 4.1 s
+[Store] Unload NAR (1433.5 MB)
+[GGUF] E:/AI/YuE2/models/YuE2-Vae-F32.gguf: 435 tensors, data at offset 32800
+load_backend: loaded CUDA backend from E:\AI\YuE2\engine\ggml-cuda.dll
+load_backend: loaded Vulkan backend from E:\AI\YuE2\engine\ggml-vulkan.dll
+load_backend: loaded CPU backend from E:\AI\YuE2\engine\ggml-cpu-alderlake.dll
+[Load] Self-test on CUDA0: ok (0.9 ms)
+[Load] VAE backend: CUDA0 (CPU threads: 10)
+[VAE] Backend: CUDA0, Weight buffer: 126.7 MB
+[VAE] Loaded: 6 blocks, upsample=1920x, F32 activations
+[Store] Load VAE: 709 ms
+[VAE] Track 1/1: song 0 variation 0
+[VAE] Tiled decode: 2 tiles (core=512, halo=16)
+[VAE] Graph: 571 nodes, T_latent=528
+[VAE] Graph: 571 nodes, T_latent=247
+[VAE] Tiled decode done: 2 tiles -> T_audio=1426496 (29.72s @ 48kHz), 365 ms
+[Pipeline] Done: 1 tracks, 29.7 s of audio in 12.9 s (2.3x realtime)
+[Store] Unload VAE (126.7 MB)
+[Server] Job 8b1ffb00a254acba: {
+  "style": "Mandarin city pop, female vocal, warm electric piano, bass and drums, 108 BPM",
+  "lyrics": "[Verse]\n夜色落在窗台\n城市在呼吸\n[Chorus]\n把这一刻写成歌",
+  "duration": 60.0,
+  "lm_seed": 2757803950817001984,
+  "seed": 5678,
+  "output_format": "wav16"
+}
+load_backend: loaded CUDA backend from E:\AI\YuE2\engine\ggml-cuda.dll
+load_backend: loaded Vulkan backend from E:\AI\YuE2\engine\ggml-vulkan.dll
+load_backend: loaded CPU backend from E:\AI\YuE2\engine\ggml-cpu-alderlake.dll
+[Load] Self-test on CUDA0: ok (2.2 ms)
+[Load] LM backend: CUDA0 (CPU threads: 10)
+[GGUF] E:/AI/YuE2/models/YuE2-3B-Q8_0.gguf: 627 tensors, data at offset 5367296
+[LM-Config] 28L, H=2048, V=184704, Nh=16, Nkv=8, D=128, tied=0
+[Qwen3] Attn: Q+K+V fused
+[Qwen3] MLP: gate+up fused
+[WeightCtx] Loaded 311 tensors, 2195.1 MB into backend
+[Store] Load LM: 1026 ms
+[LM-KV] Allocated 1 sets x 28 layers (4D batched), 476.0 MB
+[AR] Score song 0: 75 tokens prefilled, 36 ms
+[AR] Score prefill: 36 ms, CFG=1.00, top_k=30, budget=4096, songs=1, batch=1
+[AR] Score 0/4096
+[AR] Score 100/4096
+[AR] Score 200/4096
+[AR] Score 300/4096
+[AR] Score 400/4096
+[AR] Score 500/4096
+[AR] Score 600/4096
+[AR] Score 700/4096
+[AR] Score 800/4096
+[AR] Score 900/4096
+[AR] Score 1000/4096
+[AR] Score 1100/4096
+[AR] Score 1200/4096
+[AR] Score 1300/4096
+[AR] Score 1400/4096
+[AR] Score 1500/4096
+[AR] Score 1600/4096
+[AR] Score 1700/4096
+[AR] Score song 0: end token at step 1790
+[AR] Score song 0: 1790 tokens
+[AR] Score: 1790 tokens over 1 songs, 1791 steps, 11.8 s (6.6 ms/step)
+[Prompt] cot=full, songs=1, variations=1, 1 tracks
+[AR] Frame budget clamped to 1500 by the requested duration (60.0 s)
+[LM-KV] Allocated 1 sets x 28 layers (4D batched), 560.0 MB
+[AR] Semantic song 0: 1867 tokens prefilled, 128 ms
+[AR] Semantic prefill: 128 ms, CFG=1.00, top_k=100, budget=1500, songs=1, batch=1
+[AR] Semantic 0/1500
+[AR] Semantic 100/1500
+[AR] Semantic 200/1500
+[AR] Semantic 300/1500
+[AR] Semantic 400/1500
+[AR] Semantic 500/1500
+[AR] Semantic 600/1500
+[AR] Semantic 700/1500
+[AR] Semantic 800/1500
+[AR] Semantic 900/1500
+[AR] Semantic 1000/1500
+[AR] Semantic 1100/1500
+[AR] Semantic 1200/1500
+[AR] Semantic 1300/1500
+[AR] Semantic 1400/1500
+[AR] Semantic 1500/1500
+[AR] Semantic song 0: 1500 tokens (truncated)
+[AR] Semantic: 1500 tokens over 1 songs, 1501 steps, 9.1 s (6.1 ms/step)
+[Store] Unload LM (2195.1 MB)
+[NAR] Song 0: 1500 frames (60.0 s), prefix 1867, 1 chunk of 1625, 1 variation
+[GGUF] E:/AI/YuE2/models/YuE2-3B-Q8_0.gguf: 627 tensors, data at offset 5367296
+load_backend: loaded CUDA backend from E:\AI\YuE2\engine\ggml-cuda.dll
+load_backend: loaded Vulkan backend from E:\AI\YuE2\engine\ggml-vulkan.dll
+load_backend: loaded CPU backend from E:\AI\YuE2\engine\ggml-cpu-alderlake.dll
+[Load] Self-test on CUDA0: ok (0.9 ms)
+[Load] NAR backend: CUDA0 (CPU threads: 10)
+[NAR] Attn: Q+K+V fused
+[NAR] MLP: gate+up fused
+[WeightCtx] Loaded 317 tensors, 1433.5 MB into backend
+[NAR] Loaded: 28 layers, latent_dim=64, timestep_shift=1.000
+[Store] Load NAR: 659 ms
+[NAR] Graph: 1303 nodes, T_lat=1500, variations=1, prefix=3368, set=0
+[NAR] Step 1/32, 288 ms
+[NAR] Step 2/32, 256 ms
+[NAR] Step 3/32, 256 ms
+[NAR] Step 4/32, 254 ms
+[NAR] Step 5/32, 253 ms
+[NAR] Step 6/32, 253 ms
+[NAR] Step 7/32, 255 ms
+[NAR] Step 8/32, 256 ms
+[NAR] Step 9/32, 255 ms
+[NAR] Step 10/32, 254 ms
+[NAR] Step 11/32, 256 ms
+[NAR] Step 12/32, 255 ms
+[NAR] Step 13/32, 255 ms
+[NAR] Step 14/32, 255 ms
+[NAR] Step 15/32, 254 ms
+[NAR] Step 16/32, 255 ms
+[NAR] Step 17/32, 255 ms
+[NAR] Step 18/32, 254 ms
+[NAR] Step 19/32, 256 ms
+[NAR] Step 20/32, 255 ms
+[NAR] Step 21/32, 254 ms
+[NAR] Step 22/32, 255 ms
+[NAR] Step 23/32, 256 ms
+[NAR] Step 24/32, 255 ms
+[NAR] Step 25/32, 255 ms
+[NAR] Step 26/32, 254 ms
+[NAR] Step 27/32, 254 ms
+[NAR] Step 28/32, 256 ms
+[NAR] Step 29/32, 255 ms
+[NAR] Step 30/32, 257 ms
+[NAR] Step 31/32, 254 ms
+[NAR] Step 32/32, 255 ms
+[NAR] Solved: T_lat=1500, 1 variations, 32 steps (midpoint, 64 evaluations), 8191 ms (256.0 ms/step)
+[NAR] Song 0 chunk 1/1: 1500 frames, cache 3368 rows, 0 forwarded, 8.9 s
+[Store] Unload NAR (1433.5 MB)
+[GGUF] E:/AI/YuE2/models/YuE2-Vae-F32.gguf: 435 tensors, data at offset 32800
+load_backend: loaded CUDA backend from E:\AI\YuE2\engine\ggml-cuda.dll
+load_backend: loaded Vulkan backend from E:\AI\YuE2\engine\ggml-vulkan.dll
+load_backend: loaded CPU backend from E:\AI\YuE2\engine\ggml-cpu-alderlake.dll
+[Load] Self-test on CUDA0: ok (0.9 ms)
+[Load] VAE backend: CUDA0 (CPU threads: 10)
+[VAE] Backend: CUDA0, Weight buffer: 126.7 MB
+[VAE] Loaded: 6 blocks, upsample=1920x, F32 activations
+[Store] Load VAE: 698 ms
+[VAE] Track 1/1: song 0 variation 0
+[VAE] Tiled decode: 3 tiles (core=512, halo=16)
+[VAE] Graph: 571 nodes, T_latent=528
+[VAE] Graph: 571 nodes, T_latent=544
+[VAE] Graph: 571 nodes, T_latent=492
+[VAE] Tiled decode done: 3 tiles -> T_audio=2879936 (60.00s @ 48kHz), 757 ms
+[Pipeline] Done: 1 tracks, 60.0 s of audio in 32.3 s (1.9x realtime)
+[Store] Unload VAE (126.7 MB)
+[Server] Job 54d930194a8362f7: {
+  "style": "Mandarin city pop, female vocal, warm electric piano, bass and drums, 108 BPM",
+  "lyrics": "[Verse]\n夜色落在窗台\n城市在呼吸\n霓虹淹没了街角\n我在人海里\n[Pre-Chorus]\n耳机里的节拍\n替我说着秘密\n[Chorus]\n把这一刻写成歌\n唱给晚风听\n把这一刻写成歌\n留给明天的自己\n[Verse 2]\n咖啡凉了一半\n心事还滚烫\n路灯把影子拉长\n陪我一直走\n[Chorus]\n把这一刻写成歌\n唱给晚风听\n把这一刻写成歌\n留给明天的自己\n[Bridge]\n如果时间会停\n就停在这一秒\n[Final Chorus]\n把这一刻写成歌\n唱给整座城市听",
+  "duration": 180.0,
+  "lm_seed": 7579189003126114991,
+  "seed": 777,
+  "output_format": "wav16"
+}
+load_backend: loaded CUDA backend from E:\AI\YuE2\engine\ggml-cuda.dll
+load_backend: loaded Vulkan backend from E:\AI\YuE2\engine\ggml-vulkan.dll
+load_backend: loaded CPU backend from E:\AI\YuE2\engine\ggml-cpu-alderlake.dll
+[Load] Self-test on CUDA0: ok (2.2 ms)
+[Load] LM backend: CUDA0 (CPU threads: 10)
+[GGUF] E:/AI/YuE2/models/YuE2-3B-Q8_0.gguf: 627 tensors, data at offset 5367296
+[LM-Config] 28L, H=2048, V=184704, Nh=16, Nkv=8, D=128, tied=0
+[Qwen3] Attn: Q+K+V fused
+[Qwen3] MLP: gate+up fused
+[WeightCtx] Loaded 311 tensors, 2195.1 MB into backend
+[Store] Load LM: 1049 ms
+[LM-KV] Allocated 1 sets x 28 layers (4D batched), 476.0 MB
+[AR] Score song 0: 205 tokens prefilled, 258 ms
+[AR] Score prefill: 258 ms, CFG=1.00, top_k=30, budget=4096, songs=1, batch=1
+[AR] Score 0/4096
+[AR] Score 100/4096
+[AR] Score 200/4096
+[AR] Score 300/4096
+[AR] Score 400/4096
+[AR] Score 500/4096
+[AR] Score 600/4096
+[AR] Score 700/4096
+[AR] Score 800/4096
+[AR] Score 900/4096
+[AR] Score song 0: end token at step 965
+[AR] Score song 0: 965 tokens
+[AR] Score: 965 tokens over 1 songs, 966 steps, 6.5 s (6.7 ms/step)
+[Prompt] cot=full, songs=1, variations=1, 1 tracks
+[AR] Frame budget clamped to 4500 by the requested duration (180.0 s)
+[LM-KV] Allocated 1 sets x 28 layers (4D batched), 896.0 MB
+[AR] Semantic song 0: 1172 tokens prefilled, 80 ms
+[AR] Semantic prefill: 80 ms, CFG=1.00, top_k=100, budget=4500, songs=1, batch=1
+[AR] Semantic 0/4500
+[AR] Semantic 100/4500
+[AR] Semantic 200/4500
+[AR] Semantic 300/4500
+[AR] Semantic 400/4500
+[AR] Semantic 500/4500
+[AR] Semantic 600/4500
+[AR] Semantic 700/4500
+[AR] Semantic 800/4500
+[AR] Semantic 900/4500
+[AR] Semantic 1000/4500
+[AR] Semantic 1100/4500
+[AR] Semantic 1200/4500
+[AR] Semantic 1300/4500
+[AR] Semantic 1400/4500
+[AR] Semantic 1500/4500
+[AR] Semantic 1600/4500
+[AR] Semantic 1700/4500
+[AR] Semantic 1800/4500
+[AR] Semantic 1900/4500
+[AR] Semantic 2000/4500
+[AR] Semantic 2100/4500
+[AR] Semantic 2200/4500
+[AR] Semantic 2300/4500
+[AR] Semantic 2400/4500
+[AR] Semantic song 0: end token at step 2491
+[AR] Semantic song 0: 2491 tokens
+[AR] Semantic: 2491 tokens over 1 songs, 2492 steps, 14.9 s (6.0 ms/step)
+[Store] Unload LM (2195.1 MB)
+[NAR] Song 0: 2491 frames (99.6 s), prefix 1172, 1 chunk of 3508, 1 variation
+[GGUF] E:/AI/YuE2/models/YuE2-3B-Q8_0.gguf: 627 tensors, data at offset 5367296
+load_backend: loaded CUDA backend from E:\AI\YuE2\engine\ggml-cuda.dll
+load_backend: loaded Vulkan backend from E:\AI\YuE2\engine\ggml-vulkan.dll
+load_backend: loaded CPU backend from E:\AI\YuE2\engine\ggml-cpu-alderlake.dll
+[Load] Self-test on CUDA0: ok (0.9 ms)
+[Load] NAR backend: CUDA0 (CPU threads: 10)
+[NAR] Attn: Q+K+V fused
+[NAR] MLP: gate+up fused
+[WeightCtx] Loaded 317 tensors, 1433.5 MB into backend
+[NAR] Loaded: 28 layers, latent_dim=64, timestep_shift=1.000
+[Store] Load NAR: 671 ms
+[NAR] Graph: 1303 nodes, T_lat=2491, variations=1, prefix=3664, set=0
+[NAR] Step 1/32, 498 ms
+[NAR] Step 2/32, 443 ms
+[NAR] Step 3/32, 441 ms
+[NAR] Step 4/32, 441 ms
+[NAR] Step 5/32, 439 ms
+[NAR] Step 6/32, 438 ms
+[NAR] Step 7/32, 440 ms
+[NAR] Step 8/32, 439 ms
+[NAR] Step 9/32, 442 ms
+[NAR] Step 10/32, 442 ms
+[NAR] Step 11/32, 442 ms
+[NAR] Step 12/32, 441 ms
+[NAR] Step 13/32, 442 ms
+[NAR] Step 14/32, 439 ms
+[NAR] Step 15/32, 440 ms
+[NAR] Step 16/32, 440 ms
+[NAR] Step 17/32, 441 ms
+[NAR] Step 18/32, 442 ms
+[NAR] Step 19/32, 441 ms
+[NAR] Step 20/32, 440 ms
+[NAR] Step 21/32, 440 ms
+[NAR] Step 22/32, 441 ms
+[NAR] Step 23/32, 440 ms
+[NAR] Step 24/32, 441 ms
+[NAR] Step 25/32, 441 ms
+[NAR] Step 26/32, 439 ms
+[NAR] Step 27/32, 443 ms
+[NAR] Step 28/32, 439 ms
+[NAR] Step 29/32, 442 ms
+[NAR] Step 30/32, 442 ms
+[NAR] Step 31/32, 442 ms
+[NAR] Step 32/32, 439 ms
+[NAR] Solved: T_lat=2491, 1 variations, 32 steps (midpoint, 64 evaluations), 14161 ms (442.5 ms/step)
+[NAR] Song 0 chunk 1/1: 2491 frames, cache 3664 rows, 0 forwarded, 14.8 s
+[Store] Unload NAR (1433.5 MB)
+[GGUF] E:/AI/YuE2/models/YuE2-Vae-F32.gguf: 435 tensors, data at offset 32800
+load_backend: loaded CUDA backend from E:\AI\YuE2\engine\ggml-cuda.dll
+load_backend: loaded Vulkan backend from E:\AI\YuE2\engine\ggml-vulkan.dll
+load_backend: loaded CPU backend from E:\AI\YuE2\engine\ggml-cpu-alderlake.dll
+[Load] Self-test on CUDA0: ok (0.9 ms)
+[Load] VAE backend: CUDA0 (CPU threads: 10)
+[VAE] Backend: CUDA0, Weight buffer: 126.7 MB
+[VAE] Loaded: 6 blocks, upsample=1920x, F32 activations
+[Store] Load VAE: 732 ms
+[VAE] Track 1/1: song 0 variation 0
+[VAE] Tiled decode: 5 tiles (core=512, halo=16)
+[VAE] Graph: 571 nodes, T_latent=528
+[VAE] Graph: 571 nodes, T_latent=544
+[VAE] Graph: 571 nodes, T_latent=459
+[VAE] Tiled decode done: 5 tiles -> T_audio=4782656 (99.64s @ 48kHz), 1228 ms
+[Pipeline] Done: 1 tracks, 99.6 s of audio in 39.3 s (2.5x realtime)
+[Store] Unload VAE (126.7 MB)
+[Server] Job 5d0c25d47bc8d67f: {
+  "style": "Mandarin city pop, female vocal, warm electric piano, bass and drums, 108 BPM",
+  "lyrics": "[Verse]\n夜色落在窗台\n城市在呼吸\n[Chorus]\n把这一刻写成歌",
+  "duration": 60.0,
+  "lm_seed": 259107615540272819,
+  "seed": 5678,
+  "semantic_tokens": "32081,31002,6576,14883,223,9275,16833,3955,25302,27090,28730,30737,27359,3864,20193,3955,31581,32313,29895,31106,31747,12960,17156,7594,1418,22511,11980,18576,4786,17589,4395,17497,32480,9491,1833,2173,11746,11993,29038,14057,24956,26058,2260,28275,29258,22879,6277,1105,25310,6740,19354,16942,1692,27656,5801,12736,18078,22780,17417,10909,32559,5500,5358,11244,7700,20720,20695,10225,11960,26275,2911,4082,2205,8098,29010,6231,21272,223,16089,505,15695,28994,12336,28186,30349,17579,1974,16117,16127,17328,14416,14926,10114,9427,20351,4928,15318,311,22879,26416,17271,20752,10603,23959,263,14199,5988,8834,494,21536,31943,32610,22126,875,22765,13042,1622,8375,14715,13990,24835,14451,31146,5304,12143,2997,24569,20615,30757,18078,15578,3144,20424,12770,6447,2502,8070,31085,2098,16814,23765,22511,24329,9417,2205,4006,12801,1333,6527,3551,3955,2282,30786,22003,14734,8573,14889,4957,18078,9053,25091,14223,30649,4468,32690,12796,2948,32178,15951,29937,11244,6184,9133,17918,968,10909,12618,28127,656,5358,8895,27361,7032,15073,1382,2284,1101,13109,17822,15554,19416,20125,23443,26,23443,16985,28106,14926,6379,20646,5437,1368,8087,16117,10909,11888,8221,6462,698,25063,20351,18704,7967,16365,2746,30126,21892,29599,15901,19842,21602,17964,19842,25989,17599,15932,26507,7469,31746,16095,24851,1709,4818,31341,328,6383,15357,9451,4058,8856,30741,31844,4843,16399,7532,12292,8868,21265,13205,7522,18399,15920,752,5080,8290,4090,20486,19792,25690,10956,27536,7769,482,18186,28926,14222,16309,9374,9161,13192,18002,20792,8394,2691,31085,25923,26143,3668,18552,24604,13875,7007,25411,8126,17328,8318,19211,8378,14704,2557,28909,28126,6312,19313,27089,9154,10333,10579,5063,2646,17735,23934,20496,5342,13704,8570,22022,23019,26420,29367,30756,31106,13451,29942,13828,32458,31406,12294,23260,19019,25690,32293,11441,2332,24795,9825,7491,22727,7157,9136,27877,5972,25610,277,629,2611,29361,13910,21823,11720,6393,7419,6726,4902,3764,6221,26558,5596,21859,14330,6301,30900,29038,27705,9396,9443,20315,11219,16019,9388,14147,28368,19642,2014,32743,15838,1381,11993,18826,1426,32256,1894,2296,9093,14539,27155,22948,6257,548,20255,3049,5997,3674,11990,15844,1991,25052,16915,18565,15831,24649,32139,8255,4571,11600,1623,18848,30840,22312,5743,6241,25591,30840,23625,28454,4127,1988,2391,4756,10194,28273,19429,20936,23060,13070,11219,2997,8418,18472,21082,21981,30884,21606,10412,9872,4862,4862,28421,515,4168,8072,28624,28297,18410,27277,4284,1763,19413,6282,6525,19024,12279,14532,17068,24019,15304,5972,8412,5972,3234,22406,15254,27879,26333,972,3586,9288,12993,2339,10510,2192,8093,8507,19680,2005,14537,24315,16995,6586,4649,9474,6904,22221,11888,22759,15031,10310,5112,22097,7751,3761,21140,24229,15874,15661,27092,14734,20043,18509,11223,15200,14202,10055,20514,28575,25433,8234,25000,6000,27196,1354,22092,15452,9520,24209,17849,24396,22463,21355,12354,20819,21176,3804,26536,16729,16174,9531,8086,351,22855,1045,17760,13889,5549,14999,285,32219,14036,28643,17417,1105,1444,25805,6158,29935,2684,6645,20583,20813,19431,23027,6797,8053,9621,21430,19102,3544,22309,20421,3246,3737,27085,10313,13036,17322,3416,3225,17211,8767,13556,22254,28186,25819,8783,27634,1633,14639,26288,16729,24807,8511,27933,16485,18255,18069,18630,1935,26096,12657,13648,7917,12739,20752,30477,24575,15248,13042,12216,17685,21834,688,12352,17169,29618,12870,29376,19785,8763,9531,18419,13374,26353,22323,9649,32519,16906,32607,27066,25540,27234,17061,31214,2299,2747,22342,29270,14240,3235,3731,30326,6293,17849,16832,4230,4158,27175,8338,12354,12617,28359,20546,18725,10223,18441,21228,21849,9598,19180,6194,16188,16644,17747,20035,11107,23970,16289,23083,27957,8715,4250,765,26478,29489,10078,30515,1875,3742,16356,22828,6519,27422,17691,25835,24636,5164,26416,20292,11907,15629,29599,29054,32187,23498,31013,3825,19017,9682,27423,20998,21104,8783,22505,10304,58,25221,1974,19642,31885,5403,20039,14221,9138,2710,12013,1633,21928,16127,20193,10164,30418,17485,5358,11244,8020,8695,32240,32131,13362,7434,5304,4354,12753,28272,11505,13879,4212,2472,9456,19108,23443,5359,19663,13824,6640,10249,24111,19546,5369,25433,6612,13636,3533,2337,3544,2096,5437,3967,11371,7128,3208,26719,24089,26559,2544,3133,11332,10051,13663,6826,15332,17227,625,23206,7380,6470,14961,31743,8078,17042,8157,10622,10079,21170,5564,16434,11916,19695,17002,15788,29198,25878,19584,32181,18171,1856,11502,11045,19072,15863,5478,32454,7625,3457,6194,11510,20908,1107,7077,31516,16217,7965,15452,15303,8816,6298,18928,8660,15139,12434,2997,28191,17766,11222,19352,22023,24843,2030,2440,23486,27028,2639,11503,11907,11251,5789,18078,1636,12679,22802,456,23264,21436,22786,27706,20607,18364,13481,7037,28612,9739,34,3259,3401,26891,17087,3224,22611,9018,22180,14479,22153,7833,31729,20813,10773,2715,18589,6950,490,18640,18228,9766,9834,32313,16619,27687,19098,12487,19039,14687,10499,13235,1005,14003,9217,16652,18751,22344,9264,31619,11907,9988,24331,3175,11497,10283,1376,23601,1202,27842,10077,10083,22194,20087,21957,22486,15246,26059,1898,6689,4675,4957,26212,1898,311,10392,24279,16485,6838,15544,24111,13990,25502,12147,9018,11244,27971,6909,14930,21857,13422,27536,15349,14419,5403,9035,23821,7501,17592,10138,32554,9021,484,17579,4221,13042,14459,22607,4284,7917,27212,15697,25217,9427,15531,17644,24445,16053,11888,13340,700,32713,9819,6689,20958,8878,21165,31786,5755,4821,21289,10967,16737,21736,1392,6640,1926,3695,4288,7607,5218,6612,8802,17419,12848,27066,26295,1633,11095,22622,23362,5982,30376,1921,20114,5363,3133,20557,58,9309,8664,795,25098,10097,24933,10097,11907,9740,1996,23796,27200,17042,26438,3529,20663,2696,11224,8102,25433,14903,15465,29651,3066,17541,16249,18171,10911,13816,2425,19072,25916,16813,17759,30034,17760,3780,18023,14999,452,7077,15656,5345,1420,26349,21170,14196,18202,15139,102,6710,30376,10009,2571,539,22787,31245,28764,10417,4223,16658,32089,15951,795,25586,15453,5801,26416,27917,3267,16729,6379,11618,14433,11240,7309,13282,23504,24758,19378,22234,3417,5795,8447,303,24687,32504,27571,10011,13500,17897,3259,20764,19856,18301,17129,30707,4623,12275,9878,3685,14725,5419,11959,4654,1134,21818,5600,6819,32397,5929,17163,20264,25429,353,18336,8471,30796,15464,5734,9277,16433,11711,29626,4647,26707,5437,17094,19032,7187,4674,2507,2607,6474,58,8867,27670,12764,8736,26217,148,15010,21955,7020,10561,4867,16943,6446,31515,18218,3206,31016,7917,2650,28186,22365,12355,22309,3812,4478,882,25521,32208,3362,2016,2849,28092,7877,8012,14953,7410,21602,6164,6622,6986,21285,29703,28812,23210,9232,230,8375,14937,16358,32379,13063,4254,25941,31650,7101,15813,10966,26586,29056,10834,20099,4207,8474,31053,7040,32002,644,8092,26876,10417,19354,6991,1870,6640,31516,13512,14685,9138,5369,6612,8802,4079,16772,29630,4089,15697,22622,1926,12806,19824,16574,12624,18957,15139,2436,12648,517,17042,4031,6144,23206,17503,15197,476,9159,24256,17165,7027,22576,9260,7282,11930,20913,9963,32250,10461,4903,22439,8516,12623,24871,12386,15355,28215,5068,18410,7133,4649,29707,10043,6380,11055,5472,8375,19170,20193,430,30099,25147,311,11813,2303,8196,9321,1815,10941,28913,5251,11515,24203,23663,15744,10777,29864,23049,23638,26850,3318,13269,1641,6652,6920,18988,19767,1892,7187,18015,24839,1122,17905,19164,27240,28804,12529,27363,6949,28958,12131,17558,15630,25619,11433,3742,25591,24076,16915,12484,11915,12354,4475,10838,5980,14297,8975,4786,28483,14853,10694,32519,7995,17589,513,7906,1096,9254,29067,31759,10071,17380,24275,19098,15620,31802,22731,26168,32630,17274,3235,2625,29059,13116,19625,8939,25246,22264,13480,11184,25041,30616,1907,1397,30168,25521,32401,10412,2214,15252,32664,15252,30567,4862,8406,27483,4368,18069,13932,18410,9474,4219,11907,21389,19271,3761,22201,3761,17948,31318,2688,15304,2997,9662,4478,337,28092,6712,7564,11589,2339,4024,9288,2339,546,6986,1508,26588,26480,20682,11597,16127,12938,4839,9294,7630,18752,16137,25041,8309,8072,14984,25215,11650,5204,2715,31146,468,17524,7040,32002,31630,29594,15280,6367,10001,29659,9492,6640,7395,7917,12865,2400,6612,1862,32587,19950,27066,1563,3646,13391,22622,1926,5538,25779,2100,18564,25433,22033,13948,16174,21249,17042,26438,25924,19785,15804,5274,1045,6144,9349,32517,14269,22576,4551,4027,30941,371,13704,22188,30515,23772,4560,11469,7965,9584,17251,8783,32161,1996,7758,24206,13042,23199,14459,9630,25425,9724,11503,20319,1100,430,20269,311,12355,4403,27267,18546,27200,1815,32141,4997,10170,599,365,22816,15744,9535,23049",
+  "output_format": "wav16"
+}
+[Prompt] cot=off, songs=1, variations=1, 1 tracks
+[Pipeline] Replay: 1500 frames supplied
+[LM-KV] Allocated 1 sets x 28 layers (4D batched), 336.0 MB
+[NAR] Song 0: 1500 frames (60.0 s), prefix 67, 1 chunk of 1501, 1 variation
+load_backend: loaded CUDA backend from E:\AI\YuE2\engine\ggml-cuda.dll
+load_backend: loaded Vulkan backend from E:\AI\YuE2\engine\ggml-vulkan.dll
+load_backend: loaded CPU backend from E:\AI\YuE2\engine\ggml-cpu-alderlake.dll
+[Load] Self-test on CUDA0: ok (5.1 ms)
+[Load] LM backend: CUDA0 (CPU threads: 10)
+[GGUF] E:/AI/YuE2/models/YuE2-3B-Q8_0.gguf: 627 tensors, data at offset 5367296
+[LM-Config] 28L, H=2048, V=184704, Nh=16, Nkv=8, D=128, tied=0
+[Qwen3] Attn: Q+K+V fused
+[Qwen3] MLP: gate+up fused
+[WeightCtx] Loaded 311 tensors, 2195.1 MB into backend
+[Store] Load LM: 1081 ms
+[Store] Unload LM (2195.1 MB)
+[GGUF] E:/AI/YuE2/models/YuE2-3B-Q8_0.gguf: 627 tensors, data at offset 5367296
+load_backend: loaded CUDA backend from E:\AI\YuE2\engine\ggml-cuda.dll
+load_backend: loaded Vulkan backend from E:\AI\YuE2\engine\ggml-vulkan.dll
+load_backend: loaded CPU backend from E:\AI\YuE2\engine\ggml-cpu-alderlake.dll
+[Load] Self-test on CUDA0: ok (0.9 ms)
+[Load] NAR backend: CUDA0 (CPU threads: 10)
+[NAR] Attn: Q+K+V fused
+[NAR] MLP: gate+up fused
+[WeightCtx] Loaded 317 tensors, 1433.5 MB into backend
+[NAR] Loaded: 28 layers, latent_dim=64, timestep_shift=1.000
+[Store] Load NAR: 690 ms
+[NAR] Graph: 1303 nodes, T_lat=1500, variations=1, prefix=1568, set=0
+[NAR] Step 1/32, 252 ms
+[NAR] Step 2/32, 223 ms
+[NAR] Step 3/32, 221 ms
+[NAR] Step 4/32, 219 ms
+[NAR] Step 5/32, 221 ms
+[NAR] Step 6/32, 220 ms
+[NAR] Step 7/32, 221 ms
+[NAR] Step 8/32, 221 ms
+[NAR] Step 9/32, 221 ms
+[NAR] Step 10/32, 222 ms
+[NAR] Step 11/32, 222 ms
+[NAR] Step 12/32, 223 ms
+[NAR] Step 13/32, 223 ms
+[NAR] Step 14/32, 222 ms
+[NAR] Step 15/32, 223 ms
+[NAR] Step 16/32, 222 ms
+[NAR] Step 17/32, 221 ms
+[NAR] Step 18/32, 223 ms
+[NAR] Step 19/32, 222 ms
+[NAR] Step 20/32, 222 ms
+[NAR] Step 21/32, 221 ms
+[NAR] Step 22/32, 221 ms
+[NAR] Step 23/32, 221 ms
+[NAR] Step 24/32, 221 ms
+[NAR] Step 25/32, 222 ms
+[NAR] Step 26/32, 221 ms
+[NAR] Step 27/32, 222 ms
+[NAR] Step 28/32, 222 ms
+[NAR] Step 29/32, 222 ms
+[NAR] Step 30/32, 224 ms
+[NAR] Step 31/32, 222 ms
+[NAR] Step 32/32, 222 ms
+[NAR] Solved: T_lat=1500, 1 variations, 32 steps (midpoint, 64 evaluations), 7128 ms (222.8 ms/step)
+[NAR] Song 0 chunk 1/1: 1500 frames, cache 1568 rows, 1568 forwarded, 9.3 s
+[Store] Unload NAR (1433.5 MB)
+[GGUF] E:/AI/YuE2/models/YuE2-Vae-F32.gguf: 435 tensors, data at offset 32800
+load_backend: loaded CUDA backend from E:\AI\YuE2\engine\ggml-cuda.dll
+load_backend: loaded Vulkan backend from E:\AI\YuE2\engine\ggml-vulkan.dll
+load_backend: loaded CPU backend from E:\AI\YuE2\engine\ggml-cpu-alderlake.dll
+[Load] Self-test on CUDA0: ok (0.9 ms)
+[Load] VAE backend: CUDA0 (CPU threads: 10)
+[VAE] Backend: CUDA0, Weight buffer: 126.7 MB
+[VAE] Loaded: 6 blocks, upsample=1920x, F32 activations
+[Store] Load VAE: 715 ms
+[VAE] Track 1/1: song 0 variation 0
+[VAE] Tiled decode: 3 tiles (core=512, halo=16)
+[VAE] Graph: 571 nodes, T_latent=528
+[VAE] Graph: 571 nodes, T_latent=544
+[VAE] Graph: 571 nodes, T_latent=492
+[VAE] Tiled decode done: 3 tiles -> T_audio=2879936 (60.00s @ 48kHz), 758 ms
+[Pipeline] Done: 1 tracks, 60.0 s of audio in 10.8 s (5.6x realtime)
+[Store] Unload VAE (126.7 MB)
+[Server] Job 11ae31f629e06d15: {
+  "style": "Mandarin city pop, female vocal, warm electric piano, bass and drums, 108 BPM",
+  "lyrics": "[Verse]\n夜色落在窗台\n城市在呼吸\n[Chorus]\n把这一刻写成歌",
+  "duration": 60.0,
+  "lm_seed": 2953515461905090802,
+  "seed": 5678,
+  "semantic_tokens": "32081,31002,6576,14883,223,9275,16833,3955,25302,27090,28730,30737,27359,3864,20193,3955,31581,32313,29895,31106,31747,12960,17156,7594,1418,22511,11980,18576,4786,17589,4395,17497,32480,9491,1833,2173,11746,11993,29038,14057,24956,26058,2260,28275,29258,22879,6277,1105,25310,6740,19354,16942,1692,27656,5801,12736,18078,22780,17417,10909,32559,5500,5358,11244,7700,20720,20695,10225,11960,26275,2911,4082,2205,8098,29010,6231,21272,223,16089,505,15695,28994,12336,28186,30349,17579,1974,16117,16127,17328,14416,14926,10114,9427,20351,4928,15318,311,22879,26416,17271,20752,10603,23959,263,14199,5988,8834,494,21536,31943,32610,22126,875,22765,13042,1622,8375,14715,13990,24835,14451,31146,5304,12143,2997,24569,20615,30757,18078,15578,3144,20424,12770,6447,2502,8070,31085,2098,16814,23765,22511,24329,9417,2205,4006,12801,1333,6527,3551,3955,2282,30786,22003,14734,8573,14889,4957,18078,9053,25091,14223,30649,4468,32690,12796,2948,32178,15951,29937,11244,6184,9133,17918,968,10909,12618,28127,656,5358,8895,27361,7032,15073,1382,2284,1101,13109,17822,15554,19416,20125,23443,26,23443,16985,28106,14926,6379,20646,5437,1368,8087,16117,10909,11888,8221,6462,698,25063,20351,18704,7967,16365,2746,30126,21892,29599,15901,19842,21602,17964,19842,25989,17599,15932,26507,7469,31746,16095,24851,1709,4818,31341,328,6383,15357,9451,4058,8856,30741,31844,4843,16399,7532,12292,8868,21265,13205,7522,18399,15920,752,5080,8290,4090,20486,19792,25690,10956,27536,7769,482,18186,28926,14222,16309,9374,9161,13192,18002,20792,8394,2691,31085,25923,26143,3668,18552,24604,13875,7007,25411,8126,17328,8318,19211,8378,14704,2557,28909,28126,6312,19313,27089,9154,10333,10579,5063,2646,17735,23934,20496,5342,13704,8570,22022,23019,26420,29367,30756,31106,13451,29942,13828,32458,31406,12294,23260,19019,25690,32293,11441,2332,24795,9825,7491,22727,7157,9136,27877,5972,25610,277,629,2611,29361,13910,21823,11720,6393,7419,6726,4902,3764,6221,26558,5596,21859,14330,6301,30900,29038,27705,9396,9443,20315,11219,16019,9388,14147,28368,19642,2014,32743,15838,1381,11993,18826,1426,32256,1894,2296,9093,14539,27155,22948,6257,548,20255,3049,5997,3674,11990,15844,1991,25052,16915,18565,15831,24649,32139,8255,4571,11600,1623,18848,30840,22312,5743,6241,25591,30840,23625,28454,4127,1988,2391,4756,10194,28273,19429,20936,23060,13070,11219,2997,8418,18472,21082,21981,30884,21606,10412,9872,4862,4862,28421,515,4168,8072,28624,28297,18410,27277,4284,1763,19413,6282,6525,19024,12279,14532,17068,24019,15304,5972,8412,5972,3234,22406,15254,27879,26333,972,3586,9288,12993,2339,10510,2192,8093,8507,19680,2005,14537,24315,16995,6586,4649,9474,6904,22221,11888,22759,15031,10310,5112,22097,7751,3761,21140,24229,15874,15661,27092,14734,20043,18509,11223,15200,14202,10055,20514,28575,25433,8234,25000,6000,27196,1354,22092,15452,9520,24209,17849,24396,22463,21355,12354,20819,21176,3804,26536,16729,16174,9531,8086,351,22855,1045,17760,13889,5549,14999,285,32219,14036,28643,17417,1105,1444,25805,6158,29935,2684,6645,20583,20813,19431,23027,6797,8053,9621,21430,19102,3544,22309,20421,3246,3737,27085,10313,13036,17322,3416,3225,17211,8767,13556,22254,28186,25819,8783,27634,1633,14639,26288,16729,24807,8511,27933,16485,18255,18069,18630,1935,26096,12657,13648,7917,12739,20752,30477,24575,15248,13042,12216,17685,21834,688,12352,17169,29618,12870,29376,19785,8763,9531,18419,13374,26353,22323,9649,32519,16906,32607,27066,25540,27234,17061,31214,2299,2747,22342,29270,14240,3235,3731,30326,6293,17849,16832,4230,4158,27175,8338,12354,12617,28359,20546,18725,10223,18441,21228,21849,9598,19180,6194,16188,16644,17747,20035,11107,23970,16289,23083,27957,8715,4250,765,26478,29489,10078,30515,1875,3742,16356,22828,6519,27422,17691,25835,24636,5164,26416,20292,11907,15629,29599,29054,32187,23498,31013,3825,19017,9682,27423,20998,21104,8783,22505,10304,58,25221,1974,19642,31885,5403,20039,14221,9138,2710,12013,1633,21928,16127,20193,10164,30418,17485,5358,11244,8020,8695,32240,32131,13362,7434,5304,4354,12753,28272,11505,13879,4212,2472,9456,19108,23443,5359,19663,13824,6640,10249,24111,19546,5369,25433,6612,13636,3533,2337,3544,2096,5437,3967,11371,7128,3208,26719,24089,26559,2544,3133,11332,10051,13663,6826,15332,17227,625,23206,7380,6470,14961,31743,8078,17042,8157,10622,10079,21170,5564,16434,11916,19695,17002,15788,29198,25878,19584,32181,18171,1856,11502,11045,19072,15863,5478,32454,7625,3457,6194,11510,20908,1107,7077,31516,16217,7965,15452,15303,8816,6298,18928,8660,15139,12434,2997,28191,17766,11222,19352,22023,24843,2030,2440,23486,27028,2639,11503,11907,11251,5789,18078,1636,12679,22802,456,23264,21436,22786,27706,20607,18364,13481,7037,28612,9739,34,3259,3401,26891,17087,3224,22611,9018,22180,14479,22153,7833,31729,20813,10773,2715,18589,6950,490,18640,18228,9766,9834,32313,16619,27687,19098,12487,19039,14687,10499,13235,1005,14003,9217,16652,18751,22344,9264,31619,11907,9988,24331,3175,11497,10283,1376,23601,1202,27842,10077,10083,22194,20087,21957,22486,15246,26059,1898,6689,4675,4957,26212,1898,311,10392,24279,16485,6838,15544,24111,13990,25502,12147,9018,11244,27971,6909,14930,21857,13422,27536,15349,14419,5403,9035,23821,7501,17592,10138,32554,9021,484,17579,4221,13042,14459,22607,4284,7917,27212,15697,25217,9427,15531,17644,24445,16053,11888,13340,700,32713,9819,6689,20958,8878,21165,31786,5755,4821,21289,10967,16737,21736,1392,6640,1926,3695,4288,7607,5218,6612,8802,17419,12848,27066,26295,1633,11095,22622,23362,5982,30376,1921,20114,5363,3133,20557,58,9309,8664,795,25098,10097,24933,10097,11907,9740,1996,23796,27200,17042,26438,3529,20663,2696,11224,8102,25433,14903,15465,29651,3066,17541,16249,18171,10911,13816,2425,19072,25916,16813,17759,30034,17760,3780,18023,14999,452,7077,15656,5345,1420,26349,21170,14196,18202,15139,102,6710,30376,10009,2571,539,22787,31245,28764,10417,4223,16658,32089,15951,795,25586,15453,5801,26416,27917,3267,16729,6379,11618,14433,11240,7309,13282,23504,24758,19378,22234,3417,5795,8447,303,24687,32504,27571,10011,13500,17897,3259,20764,19856,18301,17129,30707,4623,12275,9878,3685,14725,5419,11959,4654,1134,21818,5600,6819,32397,5929,17163,20264,25429,353,18336,8471,30796,15464,5734,9277,16433,11711,29626,4647,26707,5437,17094,19032,7187,4674,2507,2607,6474,58,8867,27670,12764,8736,26217,148,15010,21955,7020,10561,4867,16943,6446,31515,18218,3206,31016,7917,2650,28186,22365,12355,22309,3812,4478,882,25521,32208,3362,2016,2849,28092,7877,8012,14953,7410,21602,6164,6622,6986,21285,29703,28812,23210,9232,230,8375,14937,16358,32379,13063,4254,25941,31650,7101,15813,10966,26586,29056,10834,20099,4207,8474,31053,7040,32002,644,8092,26876,10417,19354,6991,1870,6640,31516,13512,14685,9138,5369,6612,8802,4079,16772,29630,4089,15697,22622,1926,12806,19824,16574,12624,18957,15139,2436,12648,517,17042,4031,6144,23206,17503,15197,476,9159,24256,17165,7027,22576,9260,7282,11930,20913,9963,32250,10461,4903,22439,8516,12623,24871,12386,15355,28215,5068,18410,7133,4649,29707,10043,6380,11055,5472,8375,19170,20193,430,30099,25147,311,11813,2303,8196,9321,1815,10941,28913,5251,11515,24203,23663,15744,10777,29864,23049,23638,26850,3318,13269,1641,6652,6920,18988,19767,1892,7187,18015,24839,1122,17905,19164,27240,28804,12529,27363,6949,28958,12131,17558,15630,25619,11433,3742,25591,24076,16915,12484,11915,12354,4475,10838,5980,14297,8975,4786,28483,14853,10694,32519,7995,17589,513,7906,1096,9254,29067,31759,10071,17380,24275,19098,15620,31802,22731,26168,32630,17274,3235,2625,29059,13116,19625,8939,25246,22264,13480,11184,25041,30616,1907,1397,30168,25521,32401,10412,2214,15252,32664,15252,30567,4862,8406,27483,4368,18069,13932,18410,9474,4219,11907,21389,19271,3761,22201,3761,17948,31318,2688,15304,2997,9662,4478,337,28092,6712,7564,11589,2339,4024,9288,2339,546,6986,1508,26588,26480,20682,11597,16127,12938,4839,9294,7630,18752,16137,25041,8309,8072,14984,25215,11650,5204,2715,31146,468,17524,7040,32002,31630,29594,15280,6367,10001,29659,9492,6640,7395,7917,12865,2400,6612,1862,32587,19950,27066,1563,3646,13391,22622,1926,5538,25779,2100,18564,25433,22033,13948,16174,21249,17042,26438,25924,19785,15804,5274,1045,6144,9349,32517,14269,22576,4551,4027,30941,371,13704,22188,30515,23772,4560,11469,7965,9584,17251,8783,32161,1996,7758,24206,13042,23199,14459,9630,25425,9724,11503,20319,1100,430,20269,311,12355,4403,27267,18546,27200,1815,32141,4997,10170,599,365,22816,15744,9535,23049",
+  "output_format": "wav16"
+}
+[Prompt] cot=off, songs=1, variations=1, 1 tracks
+[Pipeline] Replay: 1500 frames supplied
+[LM-KV] Allocated 1 sets x 28 layers (4D batched), 336.0 MB
+[NAR] Song 0: 1500 frames (60.0 s), prefix 67, 1 chunk of 1501, 1 variation
+load_backend: loaded CUDA backend from E:\AI\YuE2\engine\ggml-cuda.dll
+load_backend: loaded Vulkan backend from E:\AI\YuE2\engine\ggml-vulkan.dll
+load_backend: loaded CPU backend from E:\AI\YuE2\engine\ggml-cpu-alderlake.dll
+[Load] Self-test on CUDA0: ok (2.5 ms)
+[Load] LM backend: CUDA0 (CPU threads: 10)
+[GGUF] E:/AI/YuE2/models/YuE2-3B-Q8_0.gguf: 627 tensors, data at offset 5367296
+[LM-Config] 28L, H=2048, V=184704, Nh=16, Nkv=8, D=128, tied=0
+[Qwen3] Attn: Q+K+V fused
+[Qwen3] MLP: gate+up fused
+[WeightCtx] Loaded 311 tensors, 2195.1 MB into backend
+[Store] Load LM: 1013 ms
+[Store] Unload LM (2195.1 MB)
+[GGUF] E:/AI/YuE2/models/YuE2-3B-Q8_0.gguf: 627 tensors, data at offset 5367296
+load_backend: loaded CUDA backend from E:\AI\YuE2\engine\ggml-cuda.dll
+load_backend: loaded Vulkan backend from E:\AI\YuE2\engine\ggml-vulkan.dll
+load_backend: loaded CPU backend from E:\AI\YuE2\engine\ggml-cpu-alderlake.dll
+[Load] Self-test on CUDA0: ok (0.9 ms)
+[Load] NAR backend: CUDA0 (CPU threads: 10)
+[NAR] Attn: Q+K+V fused
+[NAR] MLP: gate+up fused
+[WeightCtx] Loaded 317 tensors, 1433.5 MB into backend
+[NAR] Loaded: 28 layers, latent_dim=64, timestep_shift=1.000
+[Store] Load NAR: 668 ms
+[NAR] Graph: 1303 nodes, T_lat=1500, variations=1, prefix=1568, set=0
+[NAR] Step 1/32, 279 ms
+[NAR] Step 2/32, 226 ms
+[NAR] Step 3/32, 219 ms
+[NAR] Step 4/32, 222 ms
+[NAR] Step 5/32, 220 ms
+[NAR] Step 6/32, 223 ms
+[NAR] Step 7/32, 222 ms
+[NAR] Step 8/32, 221 ms
+[NAR] Step 9/32, 221 ms
+[NAR] Step 10/32, 222 ms
+[NAR] Step 11/32, 221 ms
+[NAR] Step 12/32, 222 ms
+[NAR] Step 13/32, 222 ms
+[NAR] Step 14/32, 221 ms
+[NAR] Step 15/32, 221 ms
+[NAR] Step 16/32, 222 ms
+[NAR] Step 17/32, 219 ms
+[NAR] Step 18/32, 222 ms
+[NAR] Step 19/32, 224 ms
+[NAR] Step 20/32, 221 ms
+[NAR] Step 21/32, 222 ms
+[NAR] Step 22/32, 221 ms
+[NAR] Step 23/32, 222 ms
+[NAR] Step 24/32, 221 ms
+[NAR] Step 25/32, 222 ms
+[NAR] Step 26/32, 222 ms
+[NAR] Step 27/32, 223 ms
+[NAR] Step 28/32, 223 ms
+[NAR] Step 29/32, 222 ms
+[NAR] Step 30/32, 224 ms
+[NAR] Step 31/32, 222 ms
+[NAR] Step 32/32, 222 ms
+[NAR] Solved: T_lat=1500, 1 variations, 32 steps (midpoint, 64 evaluations), 7160 ms (223.7 ms/step)
+[NAR] Song 0 chunk 1/1: 1500 frames, cache 1568 rows, 1568 forwarded, 9.2 s
+[Store] Unload NAR (1433.5 MB)
+[GGUF] E:/AI/YuE2/models/YuE2-Vae-F32.gguf: 435 tensors, data at offset 32800
+load_backend: loaded CUDA backend from E:\AI\YuE2\engine\ggml-cuda.dll
+load_backend: loaded Vulkan backend from E:\AI\YuE2\engine\ggml-vulkan.dll
+load_backend: loaded CPU backend from E:\AI\YuE2\engine\ggml-cpu-alderlake.dll
+[Load] Self-test on CUDA0: ok (1.5 ms)
+[Load] VAE backend: CUDA0 (CPU threads: 10)
+[VAE] Backend: CUDA0, Weight buffer: 126.7 MB
+[VAE] Loaded: 6 blocks, upsample=1920x, F32 activations
+[Store] Load VAE: 706 ms
+[VAE] Track 1/1: song 0 variation 0
+[VAE] Tiled decode: 3 tiles (core=512, halo=16)
+[VAE] Graph: 571 nodes, T_latent=528
+[VAE] Graph: 571 nodes, T_latent=544
+[VAE] Graph: 571 nodes, T_latent=492
+[VAE] Tiled decode done: 3 tiles -> T_audio=2879936 (60.00s @ 48kHz), 761 ms
+[Pipeline] Done: 1 tracks, 60.0 s of audio in 10.7 s (5.6x realtime)
+[Store] Unload VAE (126.7 MB)
