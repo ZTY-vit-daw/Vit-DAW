@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"sort"
 	"strings"
@@ -13,6 +14,7 @@ import (
 	"vit-daw-agent/internal/agentloop"
 	"vit-daw-agent/internal/agentprotocol"
 	"vit-daw-agent/internal/audioclosure"
+	"vit-daw-agent/internal/capabilityboundary"
 	"vit-daw-agent/internal/config"
 	executorpkg "vit-daw-agent/internal/executor"
 	"vit-daw-agent/internal/experiment"
@@ -21,6 +23,8 @@ import (
 	"vit-daw-agent/internal/panlayout"
 	"vit-daw-agent/internal/planner"
 	"vit-daw-agent/internal/policy"
+	"vit-daw-agent/internal/processorattestation"
+	"vit-daw-agent/internal/processorregistry"
 	agentruntime "vit-daw-agent/internal/runtime"
 	"vit-daw-agent/internal/staticbalance"
 	"vit-daw-agent/internal/toolpolicy"
@@ -177,7 +181,7 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 		if queueResp, queueHandled := s.handleMixWorkflowQueueChat(ctx, conversationID, mode, userText); queueHandled {
 			return queueResp, true
 		}
-	}	// AGENT-SENDROUTE-SEMANTICS-1: concrete send-structure requests (share
+	} // AGENT-SENDROUTE-SEMANTICS-1: concrete send-structure requests (share
 	// phrasing plus >=2 named source tracks) are deterministic agent faces —
 	// intercept before semantic-entry classification, same posture as the mix
 	// workflow queue above, so the topology decision never depends on the
@@ -2148,8 +2152,243 @@ func (s *Server) capabilityBlockedBoundaryResponse(conversationID, mode string, 
 		"capability_blocked":           true,
 		"mutation_performed":           false,
 		"free_state_admission_receipt": receipt,
+		// CAP-BOUNDARY-1: the refusal keeps its receipt and no-retry law; the
+		// structured remediation payload only discloses governed next options.
+		// The fact snapshot queries are read-only local index/store reads, so
+		// a background context cannot stall the boundary face on a live turn.
+		"capability_boundary": s.freeStateCapabilityBoundaryRemediation(context.Background(), receipt, loop),
 	})
 	return resp, true
+}
+
+// freeStateCapabilityBoundaryRemediation assembles the deterministic fact
+// snapshot for a free-state capability_blocked turn and renders the
+// capability_boundary.v1 payload through the pure resolver (zero LLM). Every
+// fact comes from an existing read-only query: PCA admission/coverage via the
+// plugin recommendation attestation filters, loaded instances via the
+// semantic-treatment instance scan, and the certification entry endpoints.
+// Missing facts are disclosed as unavailable reasons, never fabricated.
+func (s *Server) freeStateCapabilityBoundaryRemediation(ctx context.Context, receipt map[string]any, loop freeStateReasoningLoop) capabilityboundary.Boundary {
+	code := firstNonEmpty(firstStringFromMap(receipt, "boundary"), "capability_boundary")
+	reason := "自由态推理在能力边界停止"
+	if failed := freeStateCapabilityBlockedStringList(receipt["failed_gate_ids"]); len(failed) > 0 {
+		reason = "自由态准入门未通过：" + strings.Join(failed, "、")
+	} else if loop.LatestDecision != nil {
+		if summary := strings.TrimSpace(loop.LatestDecision.Summary); summary != "" {
+			reason = summary
+		}
+	}
+	family := ""
+	requiredCoverage := []processorattestation.Coverage(nil)
+	if loop.LatestDecision != nil {
+		if intent := loop.LatestDecision.SemanticProcessorIntent; intent != nil {
+			family = capabilityboundary.NormalizeFamily(intent.Family)
+			if family != "" && len(intent.RequiredCoverage) > 0 {
+				if registry, err := processorregistry.Default(); err == nil {
+					if coverage, coverageErr := registry.PCARequiredCoverage(family, intent.RequiredCoverage); coverageErr == nil {
+						requiredCoverage = coverage
+					}
+				}
+			}
+		}
+		if processorType := strings.TrimSpace(loop.LatestDecision.ProcessorType); family == "" && processorType != "" {
+			family = processorAttestationFamily(processorType)
+		}
+	}
+	trackID := firstStringFromMap(loop.TargetRef, "track_id")
+	if strings.EqualFold(firstStringFromMap(loop.TargetRef, "kind"), "track") {
+		trackID = firstNonEmpty(trackID, firstStringFromMap(loop.TargetRef, "id"))
+	}
+	trackName := firstStringFromMap(loop.TargetRef, "track_name", "label", "name")
+	evidenceRefs := append([]string(nil), freeStateCapabilityBlockedStringList(receipt["target_evidence_ref"])...)
+	blockedBy := append([]string(nil), freeStateCapabilityBlockedStringList(receipt["failed_gate_ids"])...)
+	return s.assembleCapabilityBoundary(ctx, capabilityboundary.Input{
+		Code: code, Class: capabilityboundary.ClassFreeState, Family: family,
+		Reason: reason, EvidenceRefs: evidenceRefs, BlockedBy: blockedBy,
+		TrackID: trackID, TrackName: trackName,
+	}, requiredCoverage)
+}
+
+// assembleCapabilityBoundary fills the remediation fact snapshot for a
+// boundary family: PCA-admitted same/adjacent-family alternates, loaded
+// instances for manual guidance, the ungated native path fact, and the
+// certification entry for families that own a product runner. Query failures
+// degrade to absent facts (the resolver discloses them), never to errors on
+// the boundary face.
+func (s *Server) assembleCapabilityBoundary(ctx context.Context, input capabilityboundary.Input, requiredCoverage []processorattestation.Coverage) capabilityboundary.Boundary {
+	input.Candidates = s.capabilityBoundaryAlternateCandidates(ctx, input.Family, requiredCoverage)
+	input.Instances = s.capabilityBoundaryManualInstances(ctx, input.TrackID, input.TrackName)
+	if input.Family != "" && !capabilityboundary.IsReadOnlyFamily(input.Family) && capabilityBoundaryProcessorType(input.Family) != "" {
+		input.Native = &capabilityboundary.NativeOption{
+			Family:      input.Family,
+			Label:       "改走 DAW 原生（手动）路径",
+			Description: "由你在 DAW 中手动加载与调整；原生 rack 服务路径不经 agent 的 PCA 装载门（docs/PCA_PLUGIN_LOAD_GATE_V1.md）。",
+		}
+	}
+	if family := input.Family; family != "" && capabilityBoundaryCertificationSupported(family) {
+		input.Certification = &capabilityboundary.CertificationEntry{
+			Family:       family,
+			Endpoint:     "/agent/processor-certification/candidates?family=" + url.QueryEscape(family),
+			ConsentToken: processorCertificationConsent,
+			Note:         "认证流程在临时轨上做 typed apply/readback/restore 并删除临时轨，不保存当前工程。",
+		}
+	}
+	return capabilityboundary.Resolve(input)
+}
+
+// capabilityBoundaryProcessorType inverts the canonical family back to the
+// plugin-recommendation processor type through the existing attestation
+// mapping — the resolver never sees a family the gates do not know.
+func capabilityBoundaryProcessorType(family string) string {
+	family = capabilityboundary.NormalizeFamily(family)
+	for _, processorType := range []string{"eq", "compressor", "limiter", "gate_expander", "de_esser", "transient_shaper", "multiband_dynamics", "reverb", "delay"} {
+		if processorAttestationFamily(processorType) == family {
+			return processorType
+		}
+	}
+	return ""
+}
+
+// capabilityBoundaryAlternateCandidates reuses the existing PCA queries
+// verbatim: family-level admission for adjacent families, and — when the
+// boundary carried a semantic intent with required coverage — the
+// coverage-attested filter for the same family. No gate is widened or
+// re-implemented here.
+func (s *Server) capabilityBoundaryAlternateCandidates(ctx context.Context, family string, requiredCoverage []processorattestation.Coverage) []capabilityboundary.Candidate {
+	family = capabilityboundary.NormalizeFamily(family)
+	if family == "" || capabilityboundary.IsReadOnlyFamily(family) {
+		return nil
+	}
+	out := []capabilityboundary.Candidate{}
+	for _, candidateFamily := range append([]string{family}, capabilityboundary.AdjacentFamilies(family)...) {
+		processorType := capabilityBoundaryProcessorType(candidateFamily)
+		if processorType == "" {
+			continue
+		}
+		candidates, err := s.localPluginRecommendationCandidates(ctx, processorType)
+		if err != nil {
+			continue
+		}
+		if candidateFamily == family && len(requiredCoverage) > 0 {
+			candidates, err = attestedPluginRecommendationCandidates(candidates, pluginControlRequirement{
+				SchemaVersion: pluginControlRequirementSchema, ProcessorFamily: candidateFamily,
+				Coverage: requiredCoverage, Reason: "capability_boundary remediation",
+			})
+		} else {
+			candidates, err = admittedPluginRecommendationCandidates(candidates, processorType)
+		}
+		if err != nil {
+			continue
+		}
+		for _, candidate := range candidates {
+			out = append(out, capabilityboundary.Candidate{
+				Family: candidateFamily, Identifier: candidate.Identifier, PluginPath: candidate.PluginPath,
+				PluginName: firstNonEmpty(candidate.Name, candidate.DescriptiveName), Manufacturer: candidate.Manufacturer,
+				SubjectKey: candidate.SubjectKey, BinaryFingerprint: candidate.BinaryFingerprint,
+				AttestationID: candidate.AttestationID,
+			})
+		}
+	}
+	return out
+}
+
+// capabilityBoundaryManualInstances derives the manual-guidance rows from the
+// live loaded-instance scan of the boundary's target track: qualified
+// (non-inspect-only) surfaces contribute their owned parameter ids, and the
+// first instance gets one bounded live parameter read so current values and
+// ranges come from the project, not from memory. No parameter is ever written.
+func (s *Server) capabilityBoundaryManualInstances(ctx context.Context, trackID, trackName string) []capabilityboundary.InstanceRef {
+	if strings.TrimSpace(trackID) == "" {
+		return nil
+	}
+	instances, _ := s.semanticTreatmentInstances(ctx, trackID)
+	out := []capabilityboundary.InstanceRef{}
+	for _, instance := range instances {
+		if len(out) >= 3 {
+			break
+		}
+		instanceFamily := ""
+		params := []capabilityboundary.ParamRef{}
+		for _, surface := range instance.QualifiedSurfaces {
+			if surface.InspectOnly {
+				continue
+			}
+			if instanceFamily == "" {
+				instanceFamily = capabilityboundary.NormalizeFamily(surface.Family)
+			}
+			for _, paramID := range surface.OwnedParameterIDs {
+				params = append(params, capabilityboundary.ParamRef{Role: paramID, ParamID: paramID})
+			}
+		}
+		if instanceFamily == "" {
+			continue
+		}
+		out = append(out, capabilityboundary.InstanceRef{
+			TrackID: trackID, TrackName: trackName, PluginID: instance.PluginID,
+			PluginName: instance.PluginName, Family: instanceFamily, Params: params,
+		})
+	}
+	if len(out) > 0 {
+		out[0].Params = s.capabilityBoundaryLiveParams(ctx, trackID, out[0].PluginID, out[0].Params)
+	}
+	return out
+}
+
+// capabilityBoundaryLiveParams performs one read-only get_plugin_parameters
+// call for the first guided instance. Missing or failing reads leave the row
+// descriptive (role/param id only) — the boundary never guesses a value.
+func (s *Server) capabilityBoundaryLiveParams(ctx context.Context, trackID, pluginID string, params []capabilityboundary.ParamRef) []capabilityboundary.ParamRef {
+	if s == nil || s.harness == nil || len(params) == 0 {
+		return params
+	}
+	response, err := s.harness.Invoke(ctx, harness.InvokeRequest{
+		Tool: "get_plugin_parameters", Source: "capability_boundary_manual_guidance",
+		Args: map[string]any{"track_id": trackID, "plugin_id": pluginID, "include_parameters": true},
+	})
+	if err != nil || !strings.EqualFold(response.Status, "ok") {
+		return params
+	}
+	rows := mapRowsValue(response.Result["parameters"])
+	if len(rows) == 0 {
+		rows = mapRowsValue(response.Result["params"])
+	}
+	if len(rows) == 0 {
+		return params
+	}
+	values := map[string]map[string]string{}
+	for _, row := range rows {
+		paramID := firstStringFromMap(row, "id", "param_id", "name")
+		if paramID == "" {
+			continue
+		}
+		entry := map[string]string{}
+		if value := firstStringFromMap(row, "value", "current_value", "normalized_value"); value != "" {
+			entry["value"] = value
+		}
+		if valueRange := firstStringFromMap(row, "value_range", "valueRange", "range"); valueRange != "" {
+			entry["range"] = valueRange
+		}
+		values[paramID] = entry
+	}
+	out := append([]capabilityboundary.ParamRef(nil), params...)
+	for index := range out {
+		if entry, ok := values[out[index].ParamID]; ok {
+			out[index].CurrentValue = entry["value"]
+			out[index].Range = entry["range"]
+		}
+	}
+	return out
+}
+
+// capabilityBoundaryCertificationSupported names the families whose product
+// certification runner exists; static_eq (no generic runner), spectral_dynamics
+// and clipper (inspect-only boundaries) expose no entry.
+func capabilityBoundaryCertificationSupported(family string) bool {
+	family = capabilityboundary.NormalizeFamily(family)
+	if family == processorattestation.FamilyStaticEQ || capabilityboundary.IsReadOnlyFamily(family) {
+		return false
+	}
+	return processorCertificationFamilyKnown(family)
 }
 
 func (s *Server) chatResponseFromAgentLoopResult(conversationID, mode string, res agentloop.Result) ChatResponse {

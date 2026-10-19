@@ -17,6 +17,14 @@ param(
     [switch]$NoStripSilenceSmoke,
     [switch]$MixSmoke,
     [switch]$AuthoritySmoke,
+    # CAP-BOUNDARY-1：能力边界结构化 remediation 端侧腿（全确定性，零 LLM）。
+    # A) /agent/chat 显式 C2 capability + 畸形 c2_referral → invalid_referral
+    #    边界面必须携带 capability_boundary.v1（resolver 确定性生成、
+    #    mutation_performed=false、族缺失时诚实空 next_actions+unavailable_reasons），
+    #    两次独立会话载荷逐字节一致=确定性证据；
+    # B) 未授权 plugin.load_to_rack → PCA 装载门稳定 pca_load_gate: 拒绝且
+    #    工程修订零变化（未发生 mutation）。
+    [switch]$CapabilityBoundarySmoke,
     # L1-3-IMPL-C：查询引擎工具面只读场景（ref.query/ref.diff 经 /agent/invoke；
     # 全确定性断言：CommandSpec 广告 / 五元数据 / T10 反例 / T11 降级标注 /
     # ref.diff identity+content 边界）。
@@ -6892,6 +6900,119 @@ if ($null -ne $req) {
         }
         Write-Ok "ref.diff content path surfaces compile + delegated/unrouted surface (T11 口径)"
         & $assertRejected "ref.diff unknown depth" (& $invokeExpectingError "ref.diff" @{ base_revision = "current"; depth = "contents" }) "rejected"
+    }
+
+    if ($CapabilityBoundarySmoke) {
+        Write-Step "capability boundary smoke (CAP-BOUNDARY-1)"
+        $capbndChatUri = $AgentHttp.TrimEnd("/") + "/agent/chat"
+        $capbndInvokeUri = $AgentHttp.TrimEnd("/") + "/agent/invoke"
+        $capbndStamp = Get-Date -Format "yyyyMMdd_HHmmss"
+
+        # Leg A：C2 invalid_referral 边界面携带 capability_boundary.v1（两次驱动比对确定性）。
+        $capbndDrive = {
+            param([string]$ConvID)
+            return Invoke-Json -Method POST -Uri $capbndChatUri -Body @{
+                conversation_id = $ConvID
+                message         = "全工程动态处理"
+                context         = @{
+                    capability_id = "fine_mix.dynamic_control.v1"
+                    c2_referral   = @{ schema_version = "dynamic_control.referral.v1"; project_revision = 3 }
+                }
+            } -TimeoutSec ([Math]::Max(60, $WaitSeconds))
+        }
+        $capbndOne = & $capbndDrive ("capbnd_smoke_a_" + $capbndStamp + "_1")
+        if ([string]$capbndOne.workflow -ne "capability_runtime_v1" -or [string]$capbndOne.stop_reason -ne "invalid_referral") {
+            throw ("C2 boundary face mismatch: workflow=" + [string]$capbndOne.workflow + " stop_reason=" + [string]$capbndOne.stop_reason + " reply=" + [string]$capbndOne.reply)
+        }
+        $capbndData = Get-OptionalProperty -Object $capbndOne -Name "workflow_data"
+        if ($null -eq $capbndData -or $null -eq $capbndData.PSObject.Properties["capability_boundary"]) {
+            throw ("C2 boundary response carries no capability_boundary payload: " + ($capbndData | ConvertTo-Json -Depth 8 -Compress))
+        }
+        $capbndPayload = $capbndData.capability_boundary
+        if ([string]$capbndPayload.schema_version -ne "capability_boundary.v1") {
+            throw ("capability_boundary schema_version mismatch: " + [string]$capbndPayload.schema_version)
+        }
+        if ([string]$capbndPayload.class -ne "c2_dynamic_control") {
+            throw ("capability_boundary class mismatch: " + [string]$capbndPayload.class)
+        }
+        if ([string]$capbndPayload.mutation_performed -ne "False" -or [string]$capbndData.mutation_performed -ne "False") {
+            throw ("capability_boundary mutation_performed must stay false in both places")
+        }
+        if ($null -eq $capbndPayload.PSObject.Properties["next_actions"] -or @($capbndPayload.next_actions).Count -ne 0) {
+            throw ("family-less infra boundary must carry an empty deterministic next_actions: " + ([string]$capbndPayload.next_actions))
+        }
+        $capbndReasons = (@($capbndPayload.unavailable_reasons) | ForEach-Object { [string]$_ }) -join ","
+        if (-not $capbndReasons.Contains("family_unresolved") -or -not $capbndReasons.Contains("certification_entry_unavailable_for_family")) {
+            throw ("unavailable_reasons must disclose the absent remediation classes: " + $capbndReasons)
+        }
+        $capbndPayloadJson = $capbndPayload | ConvertTo-Json -Depth 12 -Compress
+        Write-Ok "C2 invalid_referral boundary carries capability_boundary.v1 (deterministic empty next_actions + honest reasons)"
+
+        $capbndTwo = & $capbndDrive ("capbnd_smoke_a_" + $capbndStamp + "_2")
+        $capbndDataTwo = Get-OptionalProperty -Object $capbndTwo -Name "workflow_data"
+        $capbndPayloadTwoJson = [string]((Get-OptionalProperty -Object $capbndDataTwo -Name "capability_boundary") | ConvertTo-Json -Depth 12 -Compress)
+        if ($capbndPayloadJson -ne $capbndPayloadTwoJson) {
+            throw ("capability_boundary payload is not deterministic across independent boundary drives: 1=" + $capbndPayloadJson + " 2=" + $capbndPayloadTwoJson)
+        }
+        Write-Ok "capability_boundary payload byte-identical across two independent boundary drives (resolver determinism)"
+
+        # Leg B：PCA 装载门拒绝 + 零 mutation（拒绝必须发生在任何内核派发之前）。
+        $capbndStateBefore = Invoke-Json -Method GET -Uri ($AgentHttp.TrimEnd("/") + "/agent/state") -TimeoutSec 15
+        $capbndRevisionBefore = [string](Get-OptionalProperty -Object (Get-OptionalProperty -Object $capbndStateBefore -Name "shadow") -Name "project_revision")
+        if ([string]::IsNullOrWhiteSpace($capbndRevisionBefore)) {
+            throw "cannot establish project_revision baseline for the no-mutation assertion"
+        }
+        $capbndSearch = Invoke-Json -Method POST -Uri $capbndInvokeUri -Body @{
+            tool   = "plugin.semantic_search"
+            args   = @{ query = "dynamics"; type = "dynamics"; limit = 5 }
+            source = "dev_agent_smoke.capability_boundary"
+        } -TimeoutSec ([Math]::Max(30, $WaitSeconds))
+        if ([string]$capbndSearch.status -ne "ok") {
+            throw ("plugin.semantic_search unavailable: " + ($capbndSearch | ConvertTo-Json -Depth 6 -Compress))
+        }
+        $capbndResult = Get-OptionalProperty -Object $capbndSearch -Name "result"
+        $capbndEntries = @(Get-OptionalProperty -Object $capbndResult -Name "entries")
+        if ($capbndEntries.Count -eq 0) { $capbndEntries = @(Get-OptionalProperty -Object $capbndResult -Name "plugins") }
+        if ($capbndEntries.Count -eq 0) {
+            throw "plugin.semantic_search returned no entries; PCA rejection leg needs one real indexed path"
+        }
+        $capbndPath = Get-FirstPropertyValue -Object $capbndEntries[0] -Names @("plugin_path", "path", "file_or_identifier")
+        $capbndIdentifier = Get-FirstPropertyValue -Object $capbndEntries[0] -Names @("identifier", "id", "name")
+        if ([string]::IsNullOrWhiteSpace($capbndPath) -or [string]::IsNullOrWhiteSpace($capbndIdentifier)) {
+            throw ("semantic entry lacks path/identifier: " + ($capbndEntries[0] | ConvertTo-Json -Depth 6 -Compress))
+        }
+        $capbndLoadBody = @{
+            tool      = "plugin.load_to_rack"
+            args      = @{ track_id = "1017"; plugin_path = $capbndPath; plugin_identifier = $capbndIdentifier }
+            confirmed = $true
+            source    = "dev_agent_smoke.capability_boundary"
+        }
+        $capbndLoadJson = $capbndLoadBody | ConvertTo-Json -Depth 20 -Compress
+        $capbndLoadBytes = [System.Text.Encoding]::UTF8.GetBytes($capbndLoadJson)
+        $capbndLoadResp = $null
+        try {
+            $capbndRaw = Invoke-WebRequest -UseBasicParsing -Method POST -Uri $capbndInvokeUri -Body $capbndLoadBytes -ContentType "application/json; charset=utf-8" -TimeoutSec ([Math]::Max(30, $WaitSeconds))
+            $capbndLoadResp = $capbndRaw.Content | ConvertFrom-Json
+        }
+        catch {
+            $capbndContent = [string]$_.ErrorDetails.Message
+            if (-not [string]::IsNullOrWhiteSpace($capbndContent)) {
+                $capbndLoadResp = $capbndContent | ConvertFrom-Json
+            }
+            else {
+                throw
+            }
+        }
+        $capbndLoadError = [string](Get-OptionalProperty -Object $capbndLoadResp -Name "error")
+        if ([string]$capbndLoadResp.status -eq "ok" -or -not $capbndLoadError.Contains("pca_load_gate:")) {
+            throw ("unauthorized plugin.load_to_rack must be rejected with a stable pca_load_gate: reason, got status=" + [string]$capbndLoadResp.status + " error=" + $capbndLoadError)
+        }
+        $capbndStateAfter = Invoke-Json -Method GET -Uri ($AgentHttp.TrimEnd("/") + "/agent/state") -TimeoutSec 15
+        $capbndRevisionAfter = [string](Get-OptionalProperty -Object (Get-OptionalProperty -Object $capbndStateAfter -Name "shadow") -Name "project_revision")
+        if ($capbndRevisionAfter -ne $capbndRevisionBefore) {
+            throw ("project revision moved during a rejected load (before=" + $capbndRevisionBefore + " after=" + $capbndRevisionAfter + ") - the gate must reject pre-dispatch with zero mutation")
+        }
+        Write-Ok ("PCA load gate rejected the unauthorized load with a stable reason and zero mutation (revision=" + $capbndRevisionAfter + ")")
     }
 }
 
