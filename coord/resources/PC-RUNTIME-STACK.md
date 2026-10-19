@@ -3,7 +3,11 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
-- 2026-10-19 18:39 +0800 登记 / **CAP-BOUNDARY-1(136) 真栈烟测腿**（owner=GLM-5.3 L2 PC ZCode 执行会话，用户口令「开工 136」；worktree D:/Vit_DAW_wt_capbnd1，分支 port/cap-boundary-1）：`dev_agent_smoke.ps1 -RepoRoot <worktree> -StartKernel -RestartAgent -NoChatSmoke -NoStripSilenceSmoke -CapabilityBoundarySmoke`——本卡新增确定性能力边界腿（C2 invalid_referral 边界面×2 载荷逐字节一致 + 未授权 plugin.load_to_rack PCA 门拒绝零 mutation）+既有确定性基础腿；不启 UI/vsphub。被测=worktree 构建 agent（含 136 改动）+内核只读复用（-KernelExe 主检出 staging，C++ 零改动）。§8 声明（运行前）：LLM=0（chat/strip-silence 腿已关，腿内全确定性）；成功条件=脚本 exit 0；失败分类=environment_interrupt / assertion_fail / script_exception；止损=同签名 assertion_fail ×2。登记前只读核对（18:39）：六端口（7878/5555/5556/5557/8787/4445/19876）tcp+udp 监听=0、VitApp/VitAgent/vsphub=0；Godot pid 7712 在场=用户 Godot 编辑器（--path sendmacro worktree，6005/6006 编辑器端口，非栈端口）不属本腿处置面全程不动。今晚用户 K3.1 手测优先：本腿遇占用即让行。
+（无——空闲）
+
+## 最近一次释放（2026-10-19 18:5x +0800）
+
+- 2026-10-19 18:39 登记–18:5x 释放 / **CAP-BOUNDARY-1(136) 真栈烟测腿**（owner=GLM-5.3 L2 PC ZCode 执行会话；worktree D:/Vit_DAW_wt_capbnd1，分支 port/cap-boundary-1@2d209ab9；占用登记 f4067e4b）：一 run=**dev_agent_smoke_20261019_184026，`dev_agent_smoke -StartKernel -RestartAgent -NoChatSmoke -NoStripSilenceSmoke -CapabilityBoundarySmoke -KernelExe <主检出 staging>` 脚本 exit 0（"dev agent smoke completed"）——本卡新增确定性能力边界腿三断言全绿**：①C2 invalid_referral 边界面携 capability_boundary.v1（class=c2_dynamic_control、mutation_performed=false 双位、族缺失诚实空 next_actions+unavailable_reasons 含 family_unresolved/certification_entry_unavailable_for_family）；②两次独立会话驱动载荷逐字节一致（resolver 确定性）；③未授权 plugin.load_to_rack（confirmed=true 无授权上下文）被 PCA 装载门稳定 `pca_load_gate:` 拒绝且工程修订 1→1 零变化（拒绝先于内核派发）。既有确定性基础腿（tools 295/range context/ZMQ 双端口/project.state/draft root 隔离）全绿。被测 agent=worktree 构建 SHA256=8CC481F82E5A5C52BEAA25FCA02F199E5CCACEDC3BBE8A284AC97D7AE1DEE1A9（HEAD d42deed1 含 136 改动）+内核只读复用 stock B6565DCF85D1DA86…；§8：LLM=0（全确定性腿）。偏差如实记录：首轮命令行 bash 吞反斜杠 -RepoRoot 路径无效，脚本 Resolve-Path 即退未起栈零副作用，正斜杠重跑一次过（K3.1 同款坑）。拆栈=只杀本腿 pid（VitApp 19252/VitAgent 18756）→复核六端口 tcp+udp=0、VitApp/VitAgent/vsphub=0；用户 Godot 编辑器 7712 全程未动。工件 coord/runs/CAP-BOUNDARY-1/capbnd_smoke_20261019_184026/console_stdout.txt（随 port/cap-boundary-1@2d209ab9 入库）。
 
 ## 最近一次释放（2026-10-19 11:4x +0800）
 
