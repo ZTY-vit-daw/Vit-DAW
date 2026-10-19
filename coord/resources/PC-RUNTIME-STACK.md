@@ -3,7 +3,11 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
-- 2026-10-19 11:31 +0800 登记 / **FE-SENDROUTE-MACRO-GUI-1(130) K3.1 真栈复跑腿**（owner=GLM-5.3 L2 PC ZCode 执行会话，K3.1 返工会话；前端仓 worktree D:/Godot/project-vit-daw-frontend-sendmacro@1e33284（port/fe-sendroute-macro-gui-1，K3.1=空白右键坐标修复+侧栏宏调取第一入口），主仓构建/工件 worktree D:/Vit_DAW_wt_fesendmacro_stack@port/fe-sendroute-macro-stack）：一 run——dev_agent_smoke -SendRouteGuiSmoke（-StartKernel -RestartAgent，被测 kernel=复用 K3 自建 build-feguik3 Release **SHA256=722A79D7…复核一致**（含 K1），Godot headless 场景=stack_probe_sendroute_macro 六腿 GUI 同源 payload 经生产传输链）。GO=用户 2026-10-19 K3.1 开工口令（明示真栈复跑+用栈前登记）+卡面 K3.1 验收标准。§8 声明（运行前）：LLM=0；成功条件=脚本 exit 0；失败分类=environment_interrupt/assertion_fail/script_exception；止损=同签名 assertion_fail ×2。登记前只读核对（11:31）：六端口（5555/5556/5557/7878/8787/4445）tcp+udp 监听=0、VitApp/VitAgent/vsphub/Godot 进程=0（上轮 Godot 孤儿 9036/21188 已不在）。
+（无——空闲；**用户目检优先**，执行流未获 Lead 放行不得占栈）
+
+## 最近一次释放（2026-10-19 11:4x +0800）
+
+- 2026-10-19 11:31 登记–11:4x 释放 / **FE-SENDROUTE-MACRO-GUI-1(130) K3.1 真栈复跑腿收口**（owner=GLM-5.3 L2 PC ZCode 执行会话，K3.1 返工会话；占用登记 4062a98d；前端仓 worktree D:/Godot/project-vit-daw-frontend-sendmacro@1e33284（port/fe-sendroute-macro-gui-1），主仓构建/工件 worktree D:/Vit_DAW_wt_fesendmacro_stack@port/fe-sendroute-macro-stack）：一 run=**k31_sendroute_gui_20261019_1135，dev_agent_smoke -StartKernel -RestartAgent -SendRouteGuiSmoke 脚本 exit 0——真栈探针 25/25 PASS**（SUMMARY_JSON status=pass checks_failed=0：L1 connect auto_create/FX 轨创建/默认量 -6.0；L2 list+edge 读回；L3 state aux 插件对；L4 set_amount -12.5 双回读；L5 宏五步 add_macro→快照节点→add_binding(send level)→set_macro_values→control_graph 快照+macro_1 0.8+宏驱动 send amount；L6 disconnect 归零+fx_released）+chat/confirm 腿过。被测 kernel=复用 K3 自建 build-feguik3 Release SHA256=722A79D7…（11:29 SHA 复核一致，含 K1）+腿内 go build agent+前端 worktree@1e33284（K3.1 改动：空白右键坐标 popup_on_parent viewport 换算+侧栏宏调取第一入口 control_* 桥）。§8：LLM=0（chat 腿走脚本既有白名单话术非验收面）；首轮命令行 bash 吞反斜杠未起栈即失败（无副作用，立即修正重跑，如实记录）。拆栈=只杀本腿 pid（VitAgent 27560/VitApp 7440，11:33 自起）→复核 VitApp/VitAgent/vsphub/Godot=0、六端口 tcp+udp=0。工件 coord/runs/FE-SENDROUTE-MACRO-GUI-1/{k31_sendroute_gui_20261019_1135,k31_forensic,K31_RESULTS.md}（随 port/fe-sendroute-macro-stack 入库）。
 
 ## 最近一次释放（2026-10-18 21:36 +0800）
 
