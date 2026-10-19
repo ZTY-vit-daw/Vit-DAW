@@ -43,5 +43,12 @@
 - FE-GUI-B-FOURSLOT 槽位头改动影响其测试契约且无法域内解决 → 上交。
 
 - 领取：2026-10-19 19:31 / 主仓 origin/main=25518b61（前端基线 1e33284，两 worktree 开工前核对干净）/ owner=GLM-5.3 L2 PC 执行会话（前端线，ZCode）/ 分支 port/fe-sendroute-macro-gui-1（前端仓续用）/ worktree D:\Godot\project-vit-daw-frontend-sendmacro + D:\Vit_DAW_wt_fesendmacro_stack（构建/工件）/ 领取提交=coord/fek32-claim→main（hash 见 git log）
-- 回执：（commit / 探针断言数 / 真栈 run ID+工件 / 端测边界声明 / git status）
+- 回执（2026-10-19 20:0x，执行侧自验完成待主管验收）：
+  - **commit**：前端仓 **d195b3b**（port/fe-sendroute-macro-gui-1 本地，GH001 照旧；补丁存 `coord/runs/FE-RACK-K32-POLISH-1/k32_sendroute_gui_20261019_194757/patches/0001-fix-FE-RACK-K32-POLISH-1-card-145.patch`，随主仓 port/fe-sendroute-macro-stack@f39f595e 入库）。完整回执=coord/runs/FE-RACK-K32-POLISH-1/K32_RESULTS.md。
+  - **②根因钉死（非预钉的 adapter 重建 pref 回退本身，更深一层）**：view_state 保存链整体断裂——`get_view_state()` 全仓无调用方+`capture_all_view_states()` 空 pass+dock context view_state 硬编码三键 ⇒ 任何 adapter 重建后 pref 必回退 knob 且 OptionButton 同步回退（用户感知「创建的仍是 knob」；「调取总落最新旋钮」=画布全是 knob 卡的伴生感知，focus 按 node_id 精确匹配无独立缺陷）。静态 payload/normalize/widget factory 链逐环核验无罪。**修复=域内补链**：viewport_frame 按 view_type 缓存视图状态（拆旧前存/同类型重载灌回）+默认口径统一常量 DEFAULT_RACK_CONTROL_KIND；dock 布局层保存链活化不在卡域（如需彻底持久化到布局另立卡）。
+  - **探针断言**：178→**206 全绿 exit 0**（+28：payload.kind=slider/重建后 pref 保持+UI 同步/位号三断言/③按钮存在+触发+回车并存/⑤B 未确认回滚+auto_create 保留防误报+超时清+反馈/源码契约 5）。
+  - **9 套回归零回退**：4 rack 测试 exit 0+plugin_search_popup 111/111+shrink a/b/c PASS。
+  - **真栈 run**：**k32_sendroute_gui_20261019_194757** `dev_agent_smoke -StartKernel -RestartAgent -SendRouteGuiSmoke -KernelExe <build-feguik3 722A79D7 SHA 复核> -GodotProjectRoot <前端 worktree@d195b3b>` **exit 0**，探针 25/25 PASS+chat/confirm 腿过；占用登记 9b5a4b7a/释放复核净（六端口 tcp+udp=0；用户 Godot 7712 未动）。§8 LLM=0，一次过零重跑。
+  - **端测边界声明**：不覆盖渲染视觉（位号像素消失/按钮/tooltip 悬停呈现）与真实指针交互——归 **[等待用户] 手测复测四点**（位号消失/类型选择生效含切走视图再切回/按钮创建 send/宏语义清晰）；手测入口=用户从 Godot 拉起前端（worktree D:/Godot/project-vit-daw-frontend-sendmacro@d195b3b），AGENTS §5 途径。
+  - **git status**：前端 worktree 领取基线 1e33284 干净，本卡 d195b3b 后干净；stack worktree 领取时已有 default_project.xml 运行态改动+build-feguik3/（K3 遗留未动），本卡新增仅 coord/runs/FE-RACK-K32-POLISH-1/（已提交 f39f595e）+运行态改动。
 - 验收：（裁定文件 / 验收 commit）
