@@ -509,18 +509,8 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 					return audioClosureControllerErrorResponse(conversationID, mode, closureErr), true
 				}
 				chatContext = bindAudioClosureContext(chatContext, audioClosure)
-				return s.bindFreeStateContextToResponse(s.audioClosureResponse(conversationID, mode, audioClosure, res), chatContext), true
 			}
-			// FS-CAPABILITY-BLOCKED-SURFACE-1: a loop that settled at the
-			// capability_blocked boundary (admission gate refusal or a
-			// model-declared terminal boundary) must not deliver the model's
-			// prose as a successful done turn (RECON-1 R3: the prose promised an
-			// experiment that would never run). The gate refusal itself stays
-			// untouched law — this only surfaces it.
-			if response, boundaryBlocked := s.capabilityBlockedBoundaryResponse(conversationID, mode, res, loop); boundaryBlocked {
-				return s.bindFreeStateContextToResponse(response, chatContext), true
-			}
-			return s.bindFreeStateContextToResponse(s.chatResponseFromAgentLoopResult(conversationID, mode, res), chatContext), true
+			return s.bindFreeStateContextToResponse(s.settledTurnFaceResponse(conversationID, mode, res, loop, audioClosureActive, audioClosure), chatContext), true
 		}
 		if awaitingExperiment {
 			// FS-STOP-APPLY-1 Part A: a decision that returned while a user
@@ -2110,6 +2100,35 @@ func freeStateCapabilityBlockedReply(receipt map[string]any, decision *agentloop
 		return "自由态推理申报了能力边界（" + boundary + "）。" + boundaryTail
 	}
 	return "自由态推理在能力边界停止。" + boundaryTail
+}
+
+// settledTurnFaceResponse presents a settled turn for the plain and the
+// closure-active branch. FS-CAPABILITY-BLOCKED-SURFACE-1: a loop that settled
+// at the capability_blocked boundary (admission gate refusal or a
+// model-declared terminal boundary) must not deliver the model's prose as a
+// successful done turn (RECON-1 R3: the prose promised an experiment that
+// would never run). The gate refusal itself stays untouched law — this only
+// surfaces it. FS-BLOCKED-SURFACE-CLOSURE-1: the closure-active branch used to
+// return audioClosureResponse before the boundary check ran, so the same
+// blocked settle reached the user through the closure's face — goal_status=
+// completed beside a capability_blocked fs_loop (run 203348 shape). The
+// boundary check therefore precedes the closure face in both branches; the
+// closure state still binds onto the boundary response so the closure view
+// rides along, and the round recording at the call site stays untouched. On
+// the rare terminal-closure overlap the settlement's loop/spine mirroring is
+// skipped: settleFreeStateLoopFromClosure no-ops on the already-terminal
+// blocked loop, and syncFreeStateSpine only mirrors audit projection fields.
+func (s *Server) settledTurnFaceResponse(conversationID, mode string, res agentloop.Result, loop freeStateReasoningLoop, audioClosureActive bool, audioClosure audioclosure.State) ChatResponse {
+	if response, boundaryBlocked := s.capabilityBlockedBoundaryResponse(conversationID, mode, res, loop); boundaryBlocked {
+		if audioClosureActive {
+			response = bindAudioClosureToResponse(response, audioClosure)
+		}
+		return response
+	}
+	if audioClosureActive {
+		return s.audioClosureResponse(conversationID, mode, audioClosure, res)
+	}
+	return s.chatResponseFromAgentLoopResult(conversationID, mode, res)
 }
 
 // capabilityBlockedBoundaryResponse replaces the prose final answer the plain
