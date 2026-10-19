@@ -3,7 +3,7 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
-（无——空闲）
+- 2026-10-19 19:5x 登记 / **FE-RACK-K32-POLISH-1(145) 真栈 SendRouteGuiSmoke 复跑腿**（owner=GLM-5.3 L2 PC ZCode 执行会话，K3.2 会话；前端仓 worktree D:/Godot/project-vit-daw-frontend-sendmacro@port/fe-sendroute-macro-gui-1 d195b3b，主仓构建/工件 worktree D:/Vit_DAW_wt_fesendmacro_stack@port/fe-sendroute-macro-stack；GO=用户开工口令+卡面 K3.2 验收「真栈 SendRouteGuiSmoke 复跑 exit 0」）：19:5x 预检六端口（5555/5556/7878/8787/4445/18080）tcp+udp=0、VitApp/VitAgent/vsphub=0；用户 Godot 编辑器 7712 在跑未动。被测 kernel=复用 K3 自建 build-feguik3 Release 722A79D7（含 K1，起栈前 SHA 复核）+腿内 go build agent+前端 worktree@d195b3b。
 
 ## 最近一次释放（2026-10-19 18:5x +0800）
 
