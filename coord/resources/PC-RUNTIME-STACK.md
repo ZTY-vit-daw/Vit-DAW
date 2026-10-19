@@ -3,7 +3,7 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
-（无——空闲；**用户目检优先**，执行流未获 Lead 放行不得占栈）
+- 2026-10-19 18:39 +0800 登记 / **CAP-BOUNDARY-1(136) 真栈烟测腿**（owner=GLM-5.3 L2 PC ZCode 执行会话，用户口令「开工 136」；worktree D:/Vit_DAW_wt_capbnd1，分支 port/cap-boundary-1）：`dev_agent_smoke.ps1 -RepoRoot <worktree> -StartKernel -RestartAgent -NoChatSmoke -NoStripSilenceSmoke -CapabilityBoundarySmoke`——本卡新增确定性能力边界腿（C2 invalid_referral 边界面×2 载荷逐字节一致 + 未授权 plugin.load_to_rack PCA 门拒绝零 mutation）+既有确定性基础腿；不启 UI/vsphub。被测=worktree 构建 agent（含 136 改动）+内核只读复用（-KernelExe 主检出 staging，C++ 零改动）。§8 声明（运行前）：LLM=0（chat/strip-silence 腿已关，腿内全确定性）；成功条件=脚本 exit 0；失败分类=environment_interrupt / assertion_fail / script_exception；止损=同签名 assertion_fail ×2。登记前只读核对（18:39）：六端口（7878/5555/5556/5557/8787/4445/19876）tcp+udp 监听=0、VitApp/VitAgent/vsphub=0；Godot pid 7712 在场=用户 Godot 编辑器（--path sendmacro worktree，6005/6006 编辑器端口，非栈端口）不属本腿处置面全程不动。今晚用户 K3.1 手测优先：本腿遇占用即让行。
 
 ## 最近一次释放（2026-10-19 11:4x +0800）
 
