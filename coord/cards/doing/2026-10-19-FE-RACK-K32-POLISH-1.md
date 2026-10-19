@@ -42,6 +42,6 @@
 - ③涉及选择器架构重构（超出加按钮粒度）→ 上交方案再定；
 - FE-GUI-B-FOURSLOT 槽位头改动影响其测试契约且无法域内解决 → 上交。
 
-- 领取：（时间 / origin 前端基线 hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-19 19:31 / 主仓 origin/main=25518b61（前端基线 1e33284，两 worktree 开工前核对干净）/ owner=GLM-5.3 L2 PC 执行会话（前端线，ZCode）/ 分支 port/fe-sendroute-macro-gui-1（前端仓续用）/ worktree D:\Godot\project-vit-daw-frontend-sendmacro + D:\Vit_DAW_wt_fesendmacro_stack（构建/工件）/ 领取提交=coord/fek32-claim→main（hash 见 git log）
 - 回执：（commit / 探针断言数 / 真栈 run ID+工件 / 端测边界声明 / git status）
 - 验收：（裁定文件 / 验收 commit）
