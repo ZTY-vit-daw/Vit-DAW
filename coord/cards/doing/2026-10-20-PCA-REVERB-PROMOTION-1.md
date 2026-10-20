@@ -37,6 +37,6 @@ v2 store reverb 族 ≥2 件 promoted（每件 attestation_id+evidence receipts+
 - Waves 壳枚举/许可在认证环境下不稳定 → 按环境中断记录，不归因插件能力；
 - 指纹验证连续失败（同一签名×2）→ 停，上交壳版本诊断。
 
-- 领取：2026-10-20 19:00 +0800 / origin/main=0a4488be / owner=GLM-5.3 L2 PC ZCode 执行会话（port=pca-reverb-promotion-1）/ 分支 port/pca-reverb-promotion-1 / worktree D:/Vit_DAW_wt_reverb1 / 领取提交见下（推送后回填）
+- 领取：2026-10-20 19:00 +0800 / origin/main=0a4488be / owner=GLM-5.3 L2 PC ZCode 执行会话（port=pca-reverb-promotion-1）/ 分支 port/pca-reverb-promotion-1 / worktree D:/Vit_DAW_wt_reverb1 / 领取提交 c08de366（worktree 内 cherry-pick 重放后推送；主检出另有未推本地副本 57bd3c56 同内容）
 - 回执：（store revision 前后 / 晋升清单+attestation_id / run 记录与工件路径 / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）

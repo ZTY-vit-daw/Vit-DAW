@@ -3,7 +3,7 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
-（无——空闲）
+- 2026-10-20 19:1x +0800 登记 / **PCA-REVERB-PROMOTION-1(150) 认证战役真栈腿**（owner=GLM-5.3 L2 PC ZCode 执行会话，port=pca-reverb-promotion-1；worktree D:/Vit_DAW_wt_reverb1；领取提交 c08de366）：kernel+agent berth（dev_agent_smoke -StartKernel -RestartAgent，不启 UI/Godot——认证走 agent HTTP /agent/processor-certification/* + 内核 ZMQ，PLUGGRABBER 先例边界）。19:1x 起栈前预检：VitApp/VitAgent/vsphub 进程=0、六端口（7878/5555/5556/8787 tcp+udp）无监听。预计时长=认证 29 件（每件 1-3 分钟）+ 起栈等待，完成即拆栈释放；147 烟测腿如需真栈见本记录等待。
 
 ## 最近一次释放（2026-10-19 20:0x +0800）
 
