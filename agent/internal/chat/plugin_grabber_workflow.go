@@ -988,8 +988,11 @@ func semanticTopologyBusLoadCommand(fxTrackID string, workflowData map[string]an
 
 // semanticTopologyLoadAuthorization 铸造 FX 轨装载 token：PCA receipt 在场
 // 时走 AuthorizeProcessorSelectionLoad（与确认期 pendingPlanExecutionContext
-// 同源校验：指纹新鲜度+权威准入查询），否则退 AuthorizeSemanticPluginSelection
-// Load（无族准入的语义选择装载，同样不可由 JSON/模型伪造）。
+// 同源校验：指纹新鲜度+权威准入查询）。无 receipt 时：显式 full access 下
+// 不铸造降级 token——装载门的 full-access 回落（authorizeFullProjectAccess
+// Load）自行解析当前已晋升准入，铸造空指纹 token 反而先死于门的指纹/
+// 完整性检查；manual 面退 AuthorizeSemanticPluginSelectionLoad（无族准入的
+// 语义选择装载，同样不可由 JSON/模型伪造）。
 func (s *Server) semanticTopologyLoadAuthorization(plan PendingPlan, trackID, pluginPath, identifier string) (map[string]any, error) {
 	receipt, found, err := semanticValidatePCAAdmissionReceipt(plan, "", "")
 	if err != nil {
@@ -1001,6 +1004,9 @@ func (s *Server) semanticTopologyLoadAuthorization(plan PendingPlan, trackID, pl
 			processorattestation.EligibilityRequirement{ProcessorFamily: receipt.ProcessorFamily},
 			receipt.SubjectKey, receipt.BinaryFingerprint, receipt.AttestationID,
 		), nil
+	}
+	if explicitFullAccessRequestContext(plan.Context) {
+		return plan.Context, nil
 	}
 	return harness.AuthorizeSemanticPluginSelectionLoad(plan.Context, trackID, pluginPath, identifier), nil
 }
