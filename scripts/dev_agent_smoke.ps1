@@ -943,13 +943,13 @@ $listener = Get-TcpListener -Port $httpPort
 $ScenarioMode = -not [string]::IsNullOrWhiteSpace($Scenario)
 # Journeys own the full berth (kernel + agent); one flag for every journey
 # card. Defined for every mode so later references stay StrictMode-safe.
-$journeyBerth = ($ScenarioMode -and ($Scenario -eq "journey_first" -or $Scenario -eq "journey_plugin_load" -or $Scenario -eq "journey_free_state_nl" -or $Scenario -eq "journey_ab_judgment" -or $Scenario -eq "context_layering" -or $Scenario -eq "l4_genesis" -or $Scenario -eq "harness_ab" -or $Scenario -eq "ask_feedback" -or $Scenario -eq "fullaccess_semantic_chain"))
+$journeyBerth = ($ScenarioMode -and ($Scenario -eq "journey_first" -or $Scenario -eq "journey_plugin_load" -or $Scenario -eq "journey_free_state_nl" -or $Scenario -eq "journey_ab_judgment" -or $Scenario -eq "context_layering" -or $Scenario -eq "l4_genesis" -or $Scenario -eq "harness_ab" -or $Scenario -eq "ask_feedback" -or $Scenario -eq "fullaccess_semantic_chain" -or $Scenario -eq "timefx_bus_topoplan"))
 $ScenarioKernelProcId = $null
 $ScenarioAgentProcId = $null
 $ScenarioRunDir = ""
 if ($ScenarioMode) {
-    if ($Scenario -notin @("note_time", "context_layering", "range_split", "ref_diff_content", "midi_register", "render_freeze", "journey_first", "journey_plugin_load", "journey_free_state_nl", "journey_ab_judgment", "l4_genesis", "harness_ab", "ask_feedback", "fullaccess_semantic_chain", "all")) {
-        throw ("unknown -Scenario value '" + $Scenario + "'; expected note_time, context_layering, range_split, ref_diff_content, midi_register, render_freeze, journey_first, journey_plugin_load, journey_free_state_nl, journey_ab_judgment, l4_genesis, harness_ab, ask_feedback, fullaccess_semantic_chain, or all")
+    if ($Scenario -notin @("note_time", "context_layering", "range_split", "ref_diff_content", "midi_register", "render_freeze", "journey_first", "journey_plugin_load", "journey_free_state_nl", "journey_ab_judgment", "l4_genesis", "harness_ab", "ask_feedback", "fullaccess_semantic_chain", "timefx_bus_topoplan", "all")) {
+        throw ("unknown -Scenario value '" + $Scenario + "'; expected note_time, context_layering, range_split, ref_diff_content, midi_register, render_freeze, journey_first, journey_plugin_load, journey_free_state_nl, journey_ab_judgment, l4_genesis, harness_ab, ask_feedback, fullaccess_semantic_chain, timefx_bus_topoplan, or all")
     }
     if ($StartUI) {
         throw "-Scenario berth mode never starts the Godot UI (card constraint: webui/Godot untouched)"
@@ -991,6 +991,9 @@ if ($ScenarioMode) {
         }
         elseif ($Scenario -eq "fullaccess_semantic_chain") {
             $scenarioRunsRoot = "coord\runs\FULLACCESS-SEMANTIC-CHAIN-1"
+        }
+        elseif ($Scenario -eq "timefx_bus_topoplan") {
+            $scenarioRunsRoot = "coord\runs\TIMEFX-BUS-TOPOPLAN-1"
         }
         $RunArtifactsDir = Join-Path $RepoRoot ($scenarioRunsRoot + "\" + (Get-Date -Format "yyyyMMdd_HHmmss"))
     }
@@ -5015,6 +5018,480 @@ if ($ScenarioMode) {
             finished_at = (Get-Date).ToString("o")
         }
         $faSummary | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "fa_summary.json") -Encoding UTF8
+    }
+
+    if ($Scenario -eq "timefx_bus_topoplan") {
+        # TIMEFX-BUS-TOPOPLAN-1 (card 154) real-stack leg: the time-domain
+        # default bus topology. Deterministic legs under MANUAL authority
+        # (default; no authority switch -- the acceptance chain is the manual
+        # card journey): explicit family+recommendation utterance -> selection
+        # card carries topology_plan (bus, FX track, send default) -> script
+        # answers the selection -> load confirmation card presents the bus
+        # topology -> approve -> connect+load legs execute -> track.send.list
+        # readback. Contrast leg: inline exception (user_explicit wording)
+        # keeps the source-track load and dispatches NO connect. Probabilistic
+        # face (AGENTS.md section 8): the entry routing depends on the model
+        # turn not hijacking the recommendation synthesis; a miss is recorded
+        # by class and allows one rerun; the same deterministic break point
+        # twice = stop-loss. The fuzzy M2-class utterance is a recorded-only
+        # probe (the upstream free-state delivery gap is cards 156/E
+        # territory, out of this card's file domain).
+        Write-Step "Scenario timefx_bus_topoplan: fixture -> explicit bus journey (card->confirm->legs->readback) -> inline contrast -> fuzzy probe (recorded)"
+        $tpInvokeUri = $AgentHttp.TrimEnd("/") + "/agent/invoke"
+        $tpChatUri = $AgentHttp.TrimEnd("/") + "/agent/chat"
+        $tpRespondUri = $AgentHttp.TrimEnd("/") + "/agent/interaction/respond"
+        $tpConfirmUri = $AgentHttp.TrimEnd("/") + "/agent/confirm"
+        $tpStamp = Get-Date -Format "yyyyMMdd_HHmmss"
+        $tpInvoke = {
+            param([string]$Tool, [object]$ToolArgs, [int]$TimeoutSec)
+            Invoke-Json -Method POST -Uri $tpInvokeUri -Body @{
+                tool = $Tool
+                args = $ToolArgs
+                confirmed = $true
+                source = "dev_agent_smoke.timefx_bus_topoplan"
+            } -TimeoutSec $TimeoutSec
+        }
+
+        # ---------------- LEG A: fixture (six stems, M2 shape) + open -------
+        Write-Step "LEG A (fixture): six-stem project, bake DAD, persist, reopen"
+        $tpStemSpecs = @(
+            @{ Name = "bass.wav";   Amplitude = 0.35; Frequency = 110.0 },
+            @{ Name = "drums.wav";  Amplitude = 0.45; Frequency = 60.0 },
+            @{ Name = "guitar.wav"; Amplitude = 0.4;  Frequency = 330.0 },
+            @{ Name = "other.wav";  Amplitude = 0.3;  Frequency = 220.0 },
+            @{ Name = "piano.wav";  Amplitude = 0.4;  Frequency = 440.0 },
+            @{ Name = "vocals.wav"; Amplitude = 0.5;  Frequency = 660.0 }
+        )
+        foreach ($tpStem in $tpStemSpecs) {
+            Write-LeaseSmokeStemWav -Path (Join-Path $JourneyStemsDir $tpStem.Name) -Amplitude $tpStem.Amplitude -Frequency $tpStem.Frequency | Out-Null
+        }
+        $tpProjectPath = Join-Path $JourneyProjectDir "tp_fixture.vit"
+        $null = & $tpInvoke "project.new" @{} 60
+        $tpImport = & $tpInvoke "project.import_folder_as_stems" @{
+            folder_path = $JourneyStemsDir
+            recursive = $false
+            target_policy = "create_tracks"
+            start_time_seconds = 0.0
+            skip_unreadable = $false
+            command_timeout_ms = 60000
+        } 120
+        if ([string]$tpImport.status -ne "ok") {
+            throw ("tp fixture stems import failed: " + ($tpImport | ConvertTo-Json -Depth 8 -Compress))
+        }
+        $tpImportResult = Get-OptionalProperty -Object $tpImport -Name "result"
+        $tpJobId = [string](Get-FirstPropertyValue -Object $tpImportResult -Names @("analysis_job_id"))
+        if ([string]::IsNullOrWhiteSpace($tpJobId)) {
+            $tpImportJob = Get-OptionalProperty -Object $tpImportResult -Name "analysis_job"
+            $tpJobId = [string](Get-FirstPropertyValue -Object $tpImportJob -Names @("analysis_job_id", "job_id"))
+        }
+        $null = & $tpInvoke "project.audio_analysis_start" @{ analysis_job_id = $tpJobId; interval_ms = 10 } 60
+        $tpDadDeadline = (Get-Date).AddSeconds(240)
+        $tpDadReady = $false
+        while ((Get-Date) -lt $tpDadDeadline) {
+            $tpDad = & $tpInvoke "project.audio_analysis_status" @{ analysis_job_id = $tpJobId; latest = $true } 60
+            $tpDadJob = Get-OptionalProperty -Object (Get-OptionalProperty -Object $tpDad -Name "result") -Name "analysis_job"
+            $tpDadTotal = [int](Get-FirstPropertyValue -Object $tpDadJob -Names @("dad_fact_total_count", "dad_fact_total"))
+            $tpDadReadyCount = [int](Get-FirstPropertyValue -Object $tpDadJob -Names @("dad_fact_ready_count"))
+            $tpDadStatus = [string](Get-FirstPropertyValue -Object $tpDadJob -Names @("dad_fact_status"))
+            if ($tpDadTotal -gt 0 -and $tpDadReadyCount -ge $tpDadTotal -and $tpDadStatus.ToLower() -eq "ready") { $tpDadReady = $true; break }
+            Start-Sleep -Seconds 1
+        }
+        if (-not $tpDadReady) { throw "tp fixture DAD analysis did not become ready within 240s" }
+        $tpSave = & $tpInvoke "project.save_as" @{ file_path = $tpProjectPath } 60
+        if ([string]$tpSave.status -ne "ok") { throw ("tp fixture save_as failed: " + ($tpSave | ConvertTo-Json -Depth 8 -Compress)) }
+        $null = & $tpInvoke "project.new" @{} 60
+        $tpOpen = & $tpInvoke "project.open" @{ file_path = $tpProjectPath } 180
+        $tpOpen | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "tp_open_response.json") -Encoding UTF8
+        if ([string]$tpOpen.status -ne "ok") { throw ("tp project.open failed: " + ($tpOpen | ConvertTo-Json -Depth 8 -Compress)) }
+        Start-Sleep -Seconds 4
+        $tpTracks = & $tpInvoke "list_tracks" @{} 60
+        $tpTracks | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "tp_tracks.json") -Encoding UTF8
+        $tpVocalsID = ""
+        foreach ($tpTrackRow in @(Get-OptionalProperty -Object (Get-OptionalProperty -Object $tpTracks -Name "result") -Name "tracks")) {
+            if ($null -eq $tpTrackRow -or -not ($tpTrackRow -is [System.Management.Automation.PSCustomObject])) { continue }
+            if ([string](Get-FirstPropertyValue -Object $tpTrackRow -Names @("track_name", "name")) -eq "vocals") {
+                $tpVocalsID = [string](Get-FirstPropertyValue -Object $tpTrackRow -Names @("track_id", "id"))
+            }
+        }
+        if ([string]::IsNullOrWhiteSpace($tpVocalsID)) {
+            throw ("tp fixture did not expose a vocals track for the source binding: " + ($tpTracks | ConvertTo-Json -Depth 6 -Compress))
+        }
+        Write-Ok ("fixture open ok: " + $tpProjectPath + " (vocals=" + $tpVocalsID + ")")
+
+        # ---------------- LEG A2: authority grant (J3/147 verbatim) ---------
+        # Run-1/Run-2 finding (20261020_222048 / _222920, classes
+        # model_turn_prose_complete x2): under MANUAL authority the ordinary
+        # agent-loop turn answers treatment phrasing with advice prose and
+        # completes the goal itself -- the semantic chain (and with it the
+        # selection/load faces) is never entered. Every recorded instance of
+        # the semantic chain reaching the load face (M2 session, the 146
+        # experiment arms, 147 legs) ran under explicit full_project_access,
+        # where the 147 fork answers the selection autonomously and executes
+        # the load with zero cards. This leg therefore runs the full-access
+        # shape; the MANUAL card faces (selection card with topology_plan,
+        # bus load confirmation card) stay pinned by unit tests
+        # (semantic_topology_plan_test.go).
+        Write-Step "LEG A2 (authority): full project access grant + input-chain probe"
+        $tpAuthorityUri = $AgentHttp.TrimEnd("/") + "/agent/authority"
+        $tpAuthoritySwitch = Invoke-Json -Method POST -Uri $tpAuthorityUri -Body @{ authority_mode = "full_project_access" } -TimeoutSec 30
+        $tpAuthoritySwitch | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "tp_authority_switch.json") -Encoding UTF8
+        if ([string]$tpAuthoritySwitch.status -ne "ok" -or [string](Get-OptionalProperty -Object $tpAuthoritySwitch -Name "authority_mode") -ne "full_project_access") {
+            throw ("tp authority switch refused: " + ($tpAuthoritySwitch | ConvertTo-Json -Depth 6 -Compress))
+        }
+        $tpAuthorityProbe = Invoke-Json -Method POST -Uri $tpChatUri -Body @{
+            conversation_id = ("dev_tp_authority_" + $tpStamp)
+            message = "/smoke authority"
+            context = @{ agent_mode = "chat" }
+        } -TimeoutSec ([Math]::Max(30, $WaitSeconds))
+        $tpAuthorityProbe | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "tp_authority_probe.json") -Encoding UTF8
+        if ([string](Get-OptionalProperty -Object $tpAuthorityProbe -Name "stop_reason") -ne "authority_smoke_ok" -or -not (([string](Get-OptionalProperty -Object $tpAuthorityProbe -Name "reply")).Contains("full_project_access"))) {
+            throw ("tp authority input-chain probe did not bind full access: " + ($tpAuthorityProbe | ConvertTo-Json -Depth 8 -Compress))
+        }
+        Write-Ok "authority bound full_project_access"
+
+        # ---------------- journey driver (147 LEG C settle-loop shape) -------
+        # Drive one NL journey: send the utterance, poll the goal, nudge on
+        # waiting_continue without an active continuation (bounded), collect
+        # every turn response + events as the evidence text, and settle on a
+        # terminal goal. Zero confirmation cards is the expected shape under
+        # full access (147); the bus evidence lives in the executed replies
+        # and the load workflow data.
+        $tpRuntimeUri = $AgentHttp.TrimEnd("/") + "/agent/runtime/status"
+        $tpEventsUri = $AgentHttp.TrimEnd("/") + "/agent/events"
+        $tpNudge = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String("5Y+v5Lul5omn6KGM"))
+        $tpDriveJourney = {
+            param([string]$JourneyConversationID, [string]$JourneyMessage, [string]$ArtifactPrefix, [int]$MaxNudges = 4, [int]$MaxHops = 3)
+            $journeyTurns = 0
+            $journeyNudges = 0
+            $journeySendPending = $true
+            $journeyReason = "budget_exhausted"
+            $journeyGoalStatus = ""
+            $journeyEvidence = ""
+            $journeyCardSeen = $false
+            $journeyHops = 0
+            $journeyHopsText = ""
+            $journeyTerminal = @("completed", "failed", "stopped", "cancelled")
+            $journeyDeadline = (Get-Date).AddSeconds($JourneyNlSettleSeconds)
+            while ((Get-Date) -lt $journeyDeadline) {
+                if ($journeySendPending) {
+                    $journeySendPending = $false
+                    $journeyTurns++
+                    $journeyIsNudge = ($journeyTurns -gt 1)
+                    if ($journeyIsNudge) { $journeyNudges++ }
+                    $journeyTurnMessage = $JourneyMessage
+                    if ($journeyIsNudge) { $journeyTurnMessage = $tpNudge }
+                    $journeyTurnRaw = $null
+                    $journeyTurnError = ""
+                    try {
+                        $journeyTurnRaw = Invoke-Json -Method POST -Uri $tpChatUri -Body @{
+                            conversation_id = $JourneyConversationID
+                            message = $journeyTurnMessage
+                            context = @{
+                                agent_mode = "chat"
+                            }
+                        } -TimeoutSec $JourneyNlTurnSeconds
+                    }
+                    catch {
+                        $journeyTurnRaw = $null
+                        if ($null -ne $_.ErrorDetails -and -not [string]::IsNullOrWhiteSpace($_.ErrorDetails.Message)) { $journeyTurnError = $_.ErrorDetails.Message }
+                        else { $journeyTurnError = $_.Exception.Message }
+                    }
+                    if ($null -ne $journeyTurnRaw) {
+                        $journeyTurnRaw | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir ($ArtifactPrefix + "_chat_" + [string]$journeyTurns + ".json")) -Encoding UTF8
+                        $journeyEvidence += ($journeyTurnRaw | ConvertTo-Json -Depth 20 -Compress)
+                        foreach ($journeyCardRow in @(Get-OptionalProperty -Object $journeyTurnRaw -Name "interaction_requests")) {
+                            if ($null -ne $journeyCardRow -and $journeyCardRow -is [System.Management.Automation.PSCustomObject]) { $journeyCardSeen = $true }
+                        }
+                    }
+                    else {
+                        $journeyTurnError | Set-Content -LiteralPath (Join-Path $ScenarioRunDir ($ArtifactPrefix + "_chat_" + [string]$journeyTurns + "_error.txt")) -Encoding UTF8
+                        if ($journeyTurns -eq 1) { $journeyReason = "initial_transport_error"; break }
+                    }
+                }
+                Start-Sleep -Seconds 5
+                $journeyPoll = $null
+                try { $journeyPoll = Invoke-Json -Method GET -Uri $tpRuntimeUri -TimeoutSec 30 } catch { $journeyPoll = $null }
+                if ($null -eq $journeyPoll) { continue }
+                $journeyPoll | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir ($ArtifactPrefix + "_runtime_status.json")) -Encoding UTF8
+                $journeyGoalStatus = [string](Get-OptionalProperty -Object (Get-OptionalProperty -Object $journeyPoll -Name "goal") -Name "status")
+                $journeyContinuationActive = $false
+                foreach ($journeyContinuationRow in @(Get-OptionalProperty -Object $journeyPoll -Name "continuations")) {
+                    if ($null -eq $journeyContinuationRow -or -not ($journeyContinuationRow -is [System.Management.Automation.PSCustomObject])) { continue }
+                    if (@("pending", "claimed", "running") -contains [string](Get-OptionalProperty -Object $journeyContinuationRow -Name "status")) { $journeyContinuationActive = $true }
+                    $journeyPendingInteraction = Get-OptionalProperty -Object $journeyContinuationRow -Name "pending_interaction"
+                    if ($null -eq $journeyPendingInteraction -or -not ($journeyPendingInteraction -is [System.Management.Automation.PSCustomObject])) { continue }
+                    $journeyPendingKind = [string](Get-OptionalProperty -Object $journeyPendingInteraction -Name "kind")
+                    # 147 regression face: the three semantic-chain confirmations
+                    # must NOT park under full access. Other interaction kinds
+                    # (mix_treatment_confirmation etc., 146 ctrl-B4 precedent)
+                    # legitimately park and are auto-answered here with bounded
+                    # hops (146 driver auto-answer shape).
+                    if ($journeyPendingKind.ToLower().Contains("confirmation") -and $journeyPendingKind -ne "mix_treatment_confirmation" -and $journeyPendingKind -ne "mix_tick_confirmation") {
+                        $journeyCardSeen = $true
+                        continue
+                    }
+                    if ($journeyPendingKind -eq "plugin_recommendation_question") {
+                        $journeyCardSeen = $true
+                        continue
+                    }
+                    if ($journeyHops -lt $MaxHops) {
+                        $journeyHops++
+                        $journeyHopDecision = "approve"
+                        $journeyHopActions = @()
+                        foreach ($journeyHopActionRow in @(Get-OptionalProperty -Object $journeyPendingInteraction -Name "actions")) {
+                            if ($null -ne $journeyHopActionRow -and $journeyHopActionRow -is [System.Management.Automation.PSCustomObject]) { $journeyHopActions += $journeyHopActionRow }
+                        }
+                        if ($journeyHopActions.Count -gt 0) { $journeyHopDecision = [string](Get-OptionalProperty -Object $journeyHopActions[0] -Name "id") }
+                        $journeyHopRaw = $null
+                        try {
+                            $journeyHopRaw = Invoke-Json -Method POST -Uri $tpRespondUri -Body @{
+                                interaction_id = [string](Get-FirstPropertyValue -Object $journeyPendingInteraction -Names @("interaction_id", "id"))
+                                decision = $journeyHopDecision
+                            } -TimeoutSec 240
+                        }
+                        catch { $journeyHopRaw = $null }
+                        if ($null -ne $journeyHopRaw) {
+                            $journeyHopRaw | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir ($ArtifactPrefix + "_hop_" + [string]$journeyHops + ".json")) -Encoding UTF8
+                            $journeyEvidence += ($journeyHopRaw | ConvertTo-Json -Depth 20 -Compress)
+                            $journeyHopsText += ($journeyPendingKind + ";")
+                        }
+                    }
+                }
+                if ($journeyTerminal -contains $journeyGoalStatus) {
+                    $journeyReason = "goal_terminal_" + $journeyGoalStatus
+                    break
+                }
+                if ($journeyGoalStatus -eq "waiting_continue" -and -not $journeyContinuationActive) {
+                    if ($journeyNudges -lt $MaxNudges) {
+                        $journeySendPending = $true
+                    }
+                    else {
+                        $journeyReason = "boundary_no_nudges_left"
+                        break
+                    }
+                }
+            }
+            $journeyEvents = $null
+            try { $journeyEvents = Invoke-Json -Method GET -Uri ($tpEventsUri + "?conversation_id=" + [uri]::EscapeDataString($JourneyConversationID) + "&since=0&limit=500") -TimeoutSec 60 } catch { $journeyEvents = $null }
+            if ($null -ne $journeyEvents) {
+                $journeyEvents | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir ($ArtifactPrefix + "_events.json")) -Encoding UTF8
+                $journeyEvidence += ($journeyEvents | ConvertTo-Json -Depth 20 -Compress)
+            }
+            $journeyEvidence | Set-Content -LiteralPath (Join-Path $ScenarioRunDir ($ArtifactPrefix + "_evidence_text.json")) -Encoding UTF8
+            [pscustomobject]@{
+                reason = $journeyReason
+                goal_status = $journeyGoalStatus
+                turns = [int]$journeyTurns
+                nudges = [int]$journeyNudges
+                card_seen = [bool]$journeyCardSeen
+                hops = [int]$journeyHops
+                hops_text = $journeyHopsText
+                evidence = $journeyEvidence
+            }
+        }
+
+        # ---------------- LEG B/C/D: NL journey probes (recorded, stop-loss) --
+        # Runs 20261020_224614 / _225625 / _232517: with the 146-verbatim
+        # driver (preface + no track context) the chain enters the free-state
+        # loop, observes (including mix.send_topology), and is then bounced by
+        # the free-state admission gate -- F-gate family x3 (target evidence /
+        # freshness / frontier, the documented 146 stop-loss-2 mechanism,
+        # cards 156/E territory). Per the pre-declared stop-loss these legs are
+        # RECORDED, not gated; the card's own faces are pinned by the
+        # deterministic legs below (147 LEG E pattern).
+        Write-Step "LEG B (NL bus probe, recorded): explicit time-domain utterance"
+        $tpBusConversationID = "dev_tp_bus_" + $tpStamp
+        $tpBusJourney = & $tpDriveJourney $tpBusConversationID "请先观察工程，再给一个有界的小步改进建议：给 vocals 加一点混响，衰减短些，不要动整体增益或 EQ" "tp_bus"
+        $tpBusNlClass = "nl_" + $tpBusJourney.reason
+        if ($tpBusJourney.evidence.Contains("semantic_topology_plan")) { $tpBusNlClass = "nl_topology_plan_surface" }
+        elseif ($tpBusJourney.evidence.Contains("capability_blocked")) { $tpBusNlClass = "nl_fgate_capability_blocked" }
+        Write-WarnLine ("LEG B RECORDED (non-fatal): NL bus probe class=" + $tpBusNlClass + " turns=" + [string]$tpBusJourney.turns + " hops=" + [string]$tpBusJourney.hops)
+
+        Write-Step "LEG C (NL inline probe, recorded): user_explicit wording"
+        $tpInlineConversationID = "dev_tp_inline_" + $tpStamp
+        $tpInlineJourney = & $tpDriveJourney $tpInlineConversationID "请先观察工程，再给一个有界的小步改进建议：给 vocals 加一点混响，直接插在这条轨上，不要建轨" "tp_inline"
+        Write-WarnLine ("LEG C RECORDED (non-fatal): NL inline probe class=nl_" + $tpInlineJourney.reason)
+
+        Write-Step "LEG D (NL fuzzy probe, recorded): M2-class utterance"
+        $tpFuzzyConversationID = "dev_tp_fuzzy_" + $tpStamp
+        $tpFuzzyJourney = & $tpDriveJourney $tpFuzzyConversationID "请先观察工程，再给一个有界的小步改进建议：给 vocals 加点空间感" "tp_fuzzy" 2
+        $tpFuzzyClass = "fuzzy_no_topology_surface"
+        if ($tpFuzzyJourney.evidence.Contains("semantic_topology_plan")) { $tpFuzzyClass = "fuzzy_topology_plan_surface" }
+        elseif ($tpFuzzyJourney.evidence.Contains("rack_add_node")) { $tpFuzzyClass = "fuzzy_load_without_topoplan" }
+        else { $tpFuzzyClass = "fuzzy_" + $tpFuzzyJourney.reason }
+        Write-WarnLine ("LEG D RECORDED (non-fatal): fuzzy probe class=" + $tpFuzzyClass)
+
+        # ---------------- LEG E2: deterministic bus load (HARD gate) --------
+        # The 147 LEG E pattern: an explicit load utterance with use_legacy_chat
+        # reaches runPluginGrabberLoadWorkflow deterministically. The bus
+        # consumption face is pinned by carrying the topology plan on the
+        # request context (a client-expressible surface; every harness gate
+        # still runs -- the send write-guard key and the PCA load token are
+        # minted server-side at dispatch -- and the executed legs land on the
+        # real kernel). Expected under full access: ZERO parked plans/cards,
+        # connect+load legs executed, load on the created/reused FX track,
+        # reply carries the topology receipt.
+        Write-Step "LEG E2 (deterministic bus): explicit load + bus topology plan under full access -> connect+load legs -> readback"
+        $tpPlanPayload = @{
+            schema_version = "semantic_topology_plan.v1"
+            mode = "bus"
+            fx_track = @{ action = "create"; name = "Reverb Bus" }
+            loads = @()
+            sends = @(@{ source_track_id = $tpVocalsID; source_track_name = "vocals"; default_amount_db = -6.0 })
+            template_basis = "smoke_deterministic_leg"
+        }
+        $tpBusLoadConversationID = "dev_tp_busload_" + $tpStamp
+        $tpBusLoadRaw = $null
+        $tpBusLoadError = ""
+        try {
+            $tpBusLoadRaw = Invoke-Json -Method POST -Uri $tpChatUri -Body @{
+                conversation_id = $tpBusLoadConversationID
+                message = "加载插件 FabFilter Pro-R 2 到 vocals 轨"
+                context = @{
+                    agent_mode = "chat"
+                    use_legacy_chat = $true
+                    selected_track_id = $tpVocalsID
+                    selected_track_name = "vocals"
+                    semantic_topology_plan = $tpPlanPayload
+                }
+            } -TimeoutSec 300
+        }
+        catch {
+            $tpBusLoadRaw = $null
+            if ($null -ne $_.ErrorDetails -and -not [string]::IsNullOrWhiteSpace($_.ErrorDetails.Message)) { $tpBusLoadError = $_.ErrorDetails.Message }
+            else { $tpBusLoadError = $_.Exception.Message }
+        }
+        if ($null -ne $tpBusLoadRaw) {
+            $tpBusLoadRaw | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "tp_busload_chat.json") -Encoding UTF8
+        }
+        else {
+            $tpBusLoadError | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "tp_busload_chat_error.txt") -Encoding UTF8
+            throw ("deterministic bus load transport failed: " + $tpBusLoadError)
+        }
+        if ([bool](Get-OptionalProperty -Object $tpBusLoadRaw -Name "needs_confirmation") -or -not [string]::IsNullOrWhiteSpace([string](Get-OptionalProperty -Object $tpBusLoadRaw -Name "plan_id"))) {
+            throw ("deterministic bus load parked a confirmation under full access (needs=" + [string](Get-OptionalProperty -Object $tpBusLoadRaw -Name "needs_confirmation") + ")")
+        }
+        $tpRackTrackID = ""
+        $tpConnectOkSeen = $false
+        $tpConnectSourceID = ""
+        $tpConnectFxID = ""
+        foreach ($tpExecRow in @(Get-OptionalProperty -Object $tpBusLoadRaw -Name "executed_kernel_reply")) {
+            if ($null -eq $tpExecRow -or -not ($tpExecRow -is [System.Management.Automation.PSCustomObject])) { continue }
+            $tpCommandName = [string](Get-OptionalProperty -Object $tpExecRow -Name "command_name")
+            if ($tpCommandName -eq "track.send.connect" -and [string]$tpExecRow.status -eq "ok") {
+                $tpConnectOkSeen = $true
+                $tpConnectSourceID = [string](Get-FirstPropertyValue -Object (Get-OptionalProperty -Object $tpExecRow -Name "result") -Names @("source_track_id"))
+                $tpConnectFxID = [string](Get-FirstPropertyValue -Object (Get-OptionalProperty -Object $tpExecRow -Name "result") -Names @("fx_track_id"))
+            }
+            if ($tpCommandName -eq "rack_add_node" -and [string]$tpExecRow.status -eq "ok") {
+                $tpRackTrackID = [string](Get-FirstPropertyValue -Object (Get-OptionalProperty -Object $tpExecRow -Name "result") -Names @("track_id"))
+            }
+        }
+        if (-not $tpConnectOkSeen) {
+            throw ("deterministic bus load executed no ok track.send.connect leg: " + ($tpBusLoadRaw | ConvertTo-Json -Depth 8 -Compress).Substring(0, 600))
+        }
+        if ([string]::IsNullOrWhiteSpace($tpRackTrackID)) { throw "deterministic bus load executed no ok rack_add_node leg" }
+        if ($tpConnectSourceID -ne $tpVocalsID) { throw ("bus connect source=" + $tpConnectSourceID + " want vocals " + $tpVocalsID) }
+        if ($tpRackTrackID -eq $tpVocalsID) { throw ("bus load landed on the SOURCE track (inline regression): " + $tpRackTrackID) }
+        if ($tpConnectFxID -ne "" -and $tpRackTrackID -ne $tpConnectFxID) { throw ("load track != connect fx track: " + $tpRackTrackID + " vs " + $tpConnectFxID) }
+        $tpBusLoadText = $tpBusLoadRaw | ConvertTo-Json -Depth 20 -Compress
+        if (-not $tpBusLoadText.Contains("总线拓扑已建立")) { throw ("bus load response missing the topology receipt text") }
+        if ($tpBusLoadText.Contains("当前轨道")) { throw ("148 contract violation: reply says 当前轨道") }
+        Write-Ok ("E2 PASS: bus legs executed (vocals " + $tpVocalsID + " -> FX " + $tpRackTrackID + "), topology receipt in reply")
+        # E2 readback: track.send.list edge.
+        $tpSendList = & $tpInvoke "track.send.list" @{} 60
+        $tpSendList | ConvertTo-Json -Depth 16 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "tp_busload_send_list.json") -Encoding UTF8
+        if ([string]$tpSendList.status -ne "ok") { throw ("track.send.list readback failed: " + ($tpSendList | ConvertTo-Json -Depth 8 -Compress)) }
+        $tpEdgeFound = $false
+        foreach ($tpEdgeRow in @(Get-OptionalProperty -Object (Get-OptionalProperty -Object $tpSendList -Name "result") -Name "sends")) {
+            if ($null -eq $tpEdgeRow -or -not ($tpEdgeRow -is [System.Management.Automation.PSCustomObject])) { continue }
+            if ([string](Get-OptionalProperty -Object $tpEdgeRow -Name "source_track_id") -eq $tpVocalsID -and
+                [string](Get-OptionalProperty -Object $tpEdgeRow -Name "fx_track_id") -eq $tpRackTrackID -and
+                [double](Get-OptionalProperty -Object $tpEdgeRow -Name "amount_db") -eq -6.0) {
+                $tpEdgeFound = $true
+            }
+        }
+        if (-not $tpEdgeFound) {
+            throw ("track.send.list readback has no vocals -> FX edge at -6.0: " + ($tpSendList | ConvertTo-Json -Depth 10 -Compress))
+        }
+        Write-Ok "E2 readback PASS: track.send.list shows the vocals -> Reverb Bus edge at -6.0 dB"
+
+        # ---------------- LEG E3: deterministic inline contrast (HARD) ------
+        Write-Step "LEG E3 (deterministic inline contrast): explicit load + inline_exception plan -> source load, no connect"
+        $tpInlinePlanPayload = @{
+            schema_version = "semantic_topology_plan.v1"
+            mode = "inline_exception"
+            fx_track = @{ action = "create"; name = "Reverb Bus" }
+            loads = @()
+            sends = @(@{ source_track_id = $tpVocalsID; source_track_name = "vocals"; default_amount_db = -6.0 })
+            exception = @{ code = "user_explicit"; reason = "smoke deterministic inline contrast" }
+            template_basis = "smoke_deterministic_leg"
+        }
+        $tpInlineLoadConversationID = "dev_tp_inlineload_" + $tpStamp
+        $tpInlineLoadRaw = $null
+        $tpInlineLoadError = ""
+        try {
+            $tpInlineLoadRaw = Invoke-Json -Method POST -Uri $tpChatUri -Body @{
+                conversation_id = $tpInlineLoadConversationID
+                message = "加载插件 FabFilter Pro-R 2 到 vocals 轨，直接插在这条轨上不要建轨"
+                context = @{
+                    agent_mode = "chat"
+                    use_legacy_chat = $true
+                    selected_track_id = $tpVocalsID
+                    selected_track_name = "vocals"
+                    semantic_topology_plan = $tpInlinePlanPayload
+                }
+            } -TimeoutSec 300
+        }
+        catch {
+            $tpInlineLoadRaw = $null
+            if ($null -ne $_.ErrorDetails -and -not [string]::IsNullOrWhiteSpace($_.ErrorDetails.Message)) { $tpInlineLoadError = $_.ErrorDetails.Message }
+            else { $tpInlineLoadError = $_.Exception.Message }
+        }
+        if ($null -ne $tpInlineLoadRaw) {
+            $tpInlineLoadRaw | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "tp_inlineload_chat.json") -Encoding UTF8
+        }
+        else {
+            $tpInlineLoadError | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "tp_inlineload_chat_error.txt") -Encoding UTF8
+            throw ("deterministic inline load transport failed: " + $tpInlineLoadError)
+        }
+        $tpInlineRackTrack = ""
+        foreach ($tpExecRow in @(Get-OptionalProperty -Object $tpInlineLoadRaw -Name "executed_kernel_reply")) {
+            if ($null -eq $tpExecRow -or -not ($tpExecRow -is [System.Management.Automation.PSCustomObject])) { continue }
+            $tpCommandName = [string](Get-OptionalProperty -Object $tpExecRow -Name "command_name")
+            if ($tpCommandName -eq "track.send.connect") {
+                throw ("inline exception dispatched a connect leg (bus regression): " + ($tpExecRow | ConvertTo-Json -Depth 6 -Compress))
+            }
+            if ($tpCommandName -eq "rack_add_node" -and [string]$tpExecRow.status -eq "ok") {
+                $tpInlineRackTrack = [string](Get-FirstPropertyValue -Object (Get-OptionalProperty -Object $tpExecRow -Name "result") -Names @("track_id"))
+            }
+        }
+        if ($tpInlineRackTrack -ne $tpVocalsID) {
+            throw ("inline exception must load on the source track (rack=" + $tpInlineRackTrack + " want vocals " + $tpVocalsID + ")")
+        }
+        $tpInlineLoadText = $tpInlineLoadRaw | ConvertTo-Json -Depth 20 -Compress
+        if ($tpInlineLoadText.Contains("总线拓扑")) { throw ("inline contrast reply must NOT present the bus topology") }
+        Write-Ok ("E3 PASS: inline exception loaded on the source track (" + $tpInlineRackTrack + "), zero connect legs, no bus wording")
+
+        $tpSummary = [pscustomobject]@{
+            scenario = "timefx_bus_topoplan"
+            card = "TIMEFX-BUS-TOPOPLAN-1"
+            nl_bus_class = $tpBusNlClass
+            nl_bus_turns = [int]$tpBusJourney.turns
+            nl_inline_class = ("nl_" + $tpInlineJourney.reason)
+            nl_fuzzy_class = $tpFuzzyClass
+            deterministic_bus_load = "pass"
+            bus_source_track_id = $tpVocalsID
+            bus_fx_track_id = $tpRackTrackID
+            bus_connect_fx_track_id = $tpConnectFxID
+            bus_send_list_readback = "pass"
+            deterministic_inline_load = "pass"
+            inline_source_load_track = $tpInlineRackTrack
+            inline_zero_connect = "pass"
+            nl_probes_note = "NL journeys recorded: F-gate family x3 upstream (156/E territory); card faces pinned by E2/E3"
+            finished_at = (Get-Date).ToString("o")
+        }
+        $tpSummary | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "tp_summary.json") -Encoding UTF8
     }
 
     if ($Scenario -eq "journey_ab_judgment") {

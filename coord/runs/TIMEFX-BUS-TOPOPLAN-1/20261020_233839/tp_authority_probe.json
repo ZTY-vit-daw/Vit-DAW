@@ -1,0 +1,73 @@
+﻿{
+    "conversation_id":  "dev_tp_authority_20261020_233846",
+    "task_id":  "task_87458c96bdd48f16",
+    "goal_id":  "goal_c3912a239c9e1784",
+    "run_id":  "run_819cde560b35633e",
+    "original_intent":  "/smoke authority",
+    "reply":  "authority smoke: bound=full_project_access server=full_project_access",
+    "agent_mode":  "default",
+    "needs_confirmation":  false,
+    "goal_status":  "completed",
+    "goal_summary":  "/smoke authority",
+    "stop_reason":  "authority_smoke_ok",
+    "project_history":  {
+                            "active_branch":  "main",
+                            "active_node_id":  "n_20261020T153853_d24a12f9",
+                            "active_worktree":  "",
+                            "available":  true,
+                            "branches":  {
+                                             "main":  "c_20261020T153853_f74ac209"
+                                         },
+                            "commit_count":  1,
+                            "conversation_messages":  [
+                                                          {
+                                                              "content":  "/smoke authority",
+                                                              "logical_message_id":  "n_20261020T153853_79c5a634",
+                                                              "message_kind":  "user",
+                                                              "node_id":  "n_20261020T153853_79c5a634",
+                                                              "role":  "user"
+                                                          },
+                                                          {
+                                                              "content":  "authority smoke: bound=full_project_access server=full_project_access",
+                                                              "logical_message_id":  "n_20261020T153853_d24a12f9",
+                                                              "message_kind":  "assistant",
+                                                              "node_id":  "n_20261020T153853_d24a12f9",
+                                                              "role":  "assistant"
+                                                          }
+                                                      ],
+                            "detached":  false,
+                            "draft":  false,
+                            "head":  "c_20261020T153853_f74ac209",
+                            "initialized":  true,
+                            "project_label":  "tp_fixture",
+                            "project_path":  "D:\\Vit_DAW_wt_topoplan154\\coord\\runs\\TIMEFX-BUS-TOPOPLAN-1\\20261020_233839\\project\\tp_fixture.vit",
+                            "project_uuid":  "vitproj_a00fa5f255fd4de29b12eebbf14d66c8",
+                            "refs":  {
+                                         "refs/heads/main":  "c_20261020T153853_f74ac209"
+                                     },
+                            "root_project_path":  "",
+                            "unsaved":  false,
+                            "warnings":  [
+
+                                         ],
+                            "worktrees":  [
+                                              {
+                                                  "commit_id":  "c_20261020T153853_f74ac209",
+                                                  "created_at":  "2026-10-20T15:38:53.8094948Z",
+                                                  "is_root":  true,
+                                                  "label":  "主工作树",
+                                                  "name":  "main",
+                                                  "origin_commit_id":  "c_20261020T153853_f74ac209",
+                                                  "path":  "D:\\Vit_DAW_wt_topoplan154\\coord\\runs\\TIMEFX-BUS-TOPOPLAN-1\\20261020_233839\\project",
+                                                  "project_file_path":  "D:\\Vit_DAW_wt_topoplan154\\coord\\runs\\TIMEFX-BUS-TOPOPLAN-1\\20261020_233839\\project\\tp_fixture.vit",
+                                                  "project_path":  "D:\\Vit_DAW_wt_topoplan154\\coord\\runs\\TIMEFX-BUS-TOPOPLAN-1\\20261020_233839\\project\\tp_fixture.vit",
+                                                  "root_project_path":  "D:\\Vit_DAW_wt_topoplan154\\coord\\runs\\TIMEFX-BUS-TOPOPLAN-1\\20261020_233839\\project\\tp_fixture.vit"
+                                              }
+                                          ]
+                        },
+    "lifecycle":  "durable",
+    "persistence":  "project_history",
+    "message_kind":  "assistant",
+    "turn_id":  "run_819cde560b35633e",
+    "logical_message_id":  "n_20261020T153853_d24a12f9"
+}

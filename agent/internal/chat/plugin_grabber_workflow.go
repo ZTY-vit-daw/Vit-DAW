@@ -13,6 +13,7 @@ import (
 	"vit-daw-agent/internal/harness"
 	"vit-daw-agent/internal/pluginsemantics"
 	"vit-daw-agent/internal/policy"
+	"vit-daw-agent/internal/processorattestation"
 	agentruntime "vit-daw-agent/internal/runtime"
 
 	daw "vit-daw-agent/internal/daw"
@@ -73,6 +74,14 @@ func (s *Server) runPluginGrabberLoadWorkflow(ctx context.Context, conversationI
 			Reply:          reply,
 			GoalStatus:     string(agentruntime.StatusCompleted),
 		}
+	}
+	// TIMEFX-BUS-TOPOPLAN-1：bus 拓扑计划走专用装载面——装载目标=FX 轨，
+	// 不再是 selected_track_id 直通。计划决策（静态命令）为空：send.connect
+	// 的 auto_create 在执行期才能拿到 FX 轨 ID，rack_add_node 的装载 token
+	// 也必须绑定执行期 ID，两步都在确认后的 finish 期派发（同一 harness
+	// 门照跑：写闸=send 拓扑授权键，装载门=PCA 不可伪造 token）。
+	if topologyPlan := semanticTopologyPlanFromAny(requestContext[semanticTopologyPlanContextKey]); topologyPlan != nil && topologyPlan.Mode == semanticTopologyModeBus && len(topologyPlan.Sends) > 0 {
+		return s.runSemanticTopologyBusLoadWorkflow(ctx, conversationID, userText, requestContext, workflowCmd, topologyPlan)
 	}
 	target, err := s.resolvePluginLoadTarget(ctx, workflowCmd, requestContext, userText)
 	if err != nil {
@@ -242,6 +251,144 @@ func (s *Server) runPluginGrabberLoadWorkflow(ctx context.Context, conversationI
 		Workflow:          pluginGrabberLoadCommand,
 		WorkflowData:      copyStringAnyMap(plan.WorkflowData),
 		Commands:          decisions,
+	}
+}
+
+// runSemanticTopologyBusLoadWorkflow 构建 bus 拓扑装载计划（TIMEFX-BUS-
+// TOPOPLAN-1）。与单轨 insert 计划的差别：Decisions 为空（connect+load 的
+// 静态命令无法在计划期成对成形——auto_create 的 FX 轨 ID 只在 connect 执行
+// 后存在），完整拓扑（建什么轨/复用哪条/连谁/默认发送量）在确认卡文案与
+// WorkflowData 里呈现；确认后由 finishSemanticTopologyBusLoad 按同一 harness
+// 门派发。用户确认面保持：NeedsConfirmation=true 停泊计划，卡面遵 148 指名
+// 合同（FX 轨带名+ID/待创建标注，绝不回"当前轨道"）。
+func (s *Server) runSemanticTopologyBusLoadWorkflow(ctx context.Context, conversationID, userText string, requestContext map[string]any, workflowCmd map[string]any, topologyPlan *semanticTopologyPlan) ChatResponse {
+	if s.kernel == nil && s.harness == nil {
+		err := fmt.Errorf("kernel client is nil")
+		return ChatResponse{ConversationID: conversationID, Reply: friendlyExecutionError(err), Error: err.Error()}
+	}
+	args := workflowCommandArgs(workflowCmd)
+	pluginName := firstNonEmptyText(args, "plugin_name", "name")
+	pluginPath := firstNonEmptyText(args, "plugin_path", "path", "file_path")
+	identifier := firstNonEmptyText(args, "plugin_identifier", "identifier", "file_or_identifier")
+	pluginQuery := firstNonEmptyText(args, "plugin_query", "query", "plugin")
+	intent := firstNonEmptyText(args, "intent", "user_intent")
+	if intent == "" {
+		intent = strings.TrimSpace(userText)
+	}
+	if len(topologyPlan.Loads) > 0 {
+		pluginName = firstNonEmpty(pluginName, topologyPlan.Loads[0].PluginName)
+		pluginPath = firstNonEmpty(pluginPath, topologyPlan.Loads[0].PluginPath)
+		identifier = firstNonEmpty(identifier, topologyPlan.Loads[0].PluginIdentifier)
+	}
+	if pluginPath == "" {
+		candidates, err := s.searchPluginLoadCandidates(ctx, firstNonEmpty(pluginQuery, pluginName), strings.TrimSpace(intent))
+		if err != nil {
+			return ChatResponse{ConversationID: conversationID, Reply: friendlyExecutionError(err), Error: err.Error()}
+		}
+		if len(candidates) == 0 {
+			err := fmt.Errorf("no indexed plugin matched %q; run plugin.scan first if the plugin has not been scanned", firstNonEmpty(pluginQuery, pluginName))
+			return ChatResponse{ConversationID: conversationID, Reply: friendlyExecutionError(err), Error: err.Error()}
+		}
+		pluginPath = candidates[0].Path
+		identifier = firstNonEmpty(identifier, candidates[0].Identifier)
+		pluginName = firstNonEmpty(pluginName, candidates[0].Name)
+	}
+	if strings.TrimSpace(pluginPath) == "" {
+		err := fmt.Errorf("plugin search matched %q but did not return a loadable plugin_path", firstNonEmpty(pluginQuery, pluginName))
+		return ChatResponse{ConversationID: conversationID, Reply: friendlyExecutionError(err), Error: err.Error()}
+	}
+	plan := PendingPlan{
+		ID:        "plan_" + randomID(),
+		CreatedAt: time.Now(),
+		Decisions: []policy.Decision{},
+		// 确认执行时的写闸凭据：本计划自己的源轨集合（与 K2 send 结构计划
+		// 同一键；finish 期对 connect 派发前重新铸造，此处压 plan.Context
+		// 供持久化往返形态保持一致）。
+		Context:  harness.AuthorizeSendTopologyConnect(requestContext, []string{topologyPlan.Sends[0].SourceTrackID}),
+		Workflow: pluginGrabberLoadCommand,
+		WorkflowData: map[string]any{
+			"cmd":                          "plugin_grabber_load_and_get_params",
+			semanticTopologyPlanContextKey: semanticTopologyPlanPayload(topologyPlan),
+			"track_id":                     topologyPlan.FXTrack.TrackID,
+			"track_name":                   topologyPlan.FXTrack.Name,
+			"fx_track_action":              topologyPlan.FXTrack.Action,
+			"fx_track_name":                topologyPlan.FXTrack.Name,
+			"source_track_id":              topologyPlan.Sends[0].SourceTrackID,
+			"source_track_name":            topologyPlan.Sends[0].SourceTrackName,
+			"default_send_amount_db":       topologyPlan.Sends[0].DefaultAmountDB,
+			"plugin_query":                 firstNonEmpty(pluginQuery, pluginName),
+			"plugin_name":                  pluginName,
+			"plugin_path":                  pluginPath,
+			"plugin_identifier":            identifier,
+			"plugin_kind":                  "Effect",
+			"user_message":                 userText,
+			"intent":                       intent,
+		},
+	}
+	if len(topologyPlan.Loads) > 0 {
+		topologyPlan.Loads[0].PluginName = pluginName
+		topologyPlan.Loads[0].PluginPath = pluginPath
+		topologyPlan.Loads[0].PluginIdentifier = identifier
+		plan.WorkflowData[semanticTopologyPlanContextKey] = semanticTopologyPlanPayload(topologyPlan)
+	}
+	// PCA 准入凭据照单轨计划同样保留（finish 期铸造装载 token 的依据）。
+	if selected := firstMapFromAny(requestContext["semantic_plugin_recommendation_candidate"]); len(selected) > 0 {
+		plan.WorkflowData["selected_candidate"] = cloneContext(selected)
+		if firstStringFromMap(selected, "processor_family") != "" {
+			plan.WorkflowData["pca_admission_receipt"] = map[string]any{
+				"processor_family":   firstStringFromMap(selected, "processor_family"),
+				"name":               firstStringFromMap(selected, "name", "plugin_name"),
+				"manufacturer":       firstStringFromMap(selected, "manufacturer", "vendor"),
+				"format":             firstStringFromMap(selected, "format"),
+				"identifier":         firstStringFromMap(selected, "identifier", "plugin_identifier"),
+				"plugin_path":        firstStringFromMap(selected, "plugin_path", "path"),
+				"subject_key":        firstStringFromMap(selected, "subject_key"),
+				"binary_fingerprint": firstStringFromMap(selected, "binary_fingerprint"),
+				"attestation_id":     firstStringFromMap(selected, "attestation_id"),
+			}
+		}
+	}
+	if boolValue(requestContext["semantic_post_load_handoff"]) {
+		plan.WorkflowData["semantic_post_load_handoff"] = true
+		plan.WorkflowData["semantic_post_load_family"] = firstStringFromMap(requestContext, "semantic_post_load_family")
+		plan.WorkflowData["semantic_post_load_planner"] = firstStringFromMap(requestContext, "semantic_post_load_planner")
+		plan.WorkflowData["semantic_post_load_goal"] = firstNonEmpty(firstStringFromMap(requestContext, "semantic_post_load_goal"), strings.TrimSpace(userText))
+		plan.WorkflowData["semantic_post_load_request_context"] = cloneContext(requestContext)
+		plan.WorkflowData["semantic_post_load_observation_context"] = cloneContext(firstMapFromAny(requestContext["semantic_post_load_observation_context"]))
+		plan.WorkflowData["semantic_post_load_semantic_processor_intent"] = cloneContext(firstMapFromAny(requestContext["semantic_post_load_semantic_processor_intent"]))
+	}
+	// FULLACCESS-SEMANTIC-CHAIN-1：显式完全访问=用户常设授权，立即执行
+	// （同一 finish 派发路径，harness 门照跑）。
+	if explicitFullAccessRequestContext(requestContext) {
+		return s.pluginGrabberLoadFullAccessResponse(context.Background(), conversationID, plan)
+	}
+	s.mu.Lock()
+	s.pending[plan.ID] = plan
+	s.mu.Unlock()
+
+	source := topologyPlan.Sends[0]
+	sourceLabel := "轨道 " + source.SourceTrackID
+	if source.SourceTrackName != "" && source.SourceTrackName != source.SourceTrackID {
+		sourceLabel = fmt.Sprintf("轨道「%s」（ID: %s）", source.SourceTrackName, source.SourceTrackID)
+	}
+	fxLabel := fmt.Sprintf("新建 FX 轨「%s」（待创建，可改名）", topologyPlan.FXTrack.Name)
+	if topologyPlan.FXTrack.Action == semanticTopologyFXActionReuse {
+		fxLabel = fmt.Sprintf("既有 FX 轨「%s」（ID: %s）", topologyPlan.FXTrack.Name, topologyPlan.FXTrack.TrackID)
+	}
+	name := pluginName
+	if name == "" {
+		name = filepath.Base(pluginPath)
+	}
+	reply := fmt.Sprintf("将按总线拓扑装载：效果器 %s 装载到%s，%s 以 send 接入（默认发送量 %.1f dB，确认后可调）。本次只装载插件与接线，不会写入任何插件参数；确认后我会抓取参数摘要。",
+		name, fxLabel, sourceLabel, topologyPlan.Sends[0].DefaultAmountDB)
+	return ChatResponse{
+		ConversationID:    conversationID,
+		Reply:             reply + "\n\n" + confirmationReply(plan.Decisions),
+		NeedsConfirmation: true,
+		PlanID:            plan.ID,
+		Workflow:          pluginGrabberLoadCommand,
+		WorkflowData:      copyStringAnyMap(plan.WorkflowData),
+		Commands:          plan.Decisions,
 	}
 }
 
@@ -734,7 +881,176 @@ func semanticTermScore(haystack, term string, score int) int {
 	return 0
 }
 
+// finishPluginGrabberLoadWorkflow 确认执行后的收尾入口：bus 拓扑计划先
+// 派发 connect+load 两腿（同一 harness 门：写闸授权键+PCA 装载 token 均在
+// 派发前铸造），再进入共用的参数抓取尾段；单轨 insert 计划（含 inline
+// 例外）维持原路径零变化。
 func (s *Server) finishPluginGrabberLoadWorkflow(ctx context.Context, plan PendingPlan, replies []map[string]any, fallbackMessage string) (string, []map[string]any) {
+	if topologyPlan := semanticTopologyPlanFromAny(plan.WorkflowData[semanticTopologyPlanContextKey]); topologyPlan != nil && topologyPlan.Mode == semanticTopologyModeBus && len(topologyPlan.Sends) > 0 {
+		busReplies, busErr := s.executeSemanticTopologyBusLegs(ctx, plan, topologyPlan)
+		replies = append(busReplies, replies...)
+		summary := semanticTopologyBusFinishSummary(topologyPlan, busReplies, busErr)
+		if busErr != nil {
+			return strings.TrimSpace(fallbackMessage + "\n" + summary), replies
+		}
+		message, replies := s.finishPluginGrabberLoadSteps(ctx, plan, replies, fallbackMessage)
+		return strings.TrimSpace(summary + "\n" + message), replies
+	}
+	return s.finishPluginGrabberLoadSteps(ctx, plan, replies, fallbackMessage)
+}
+
+// executeSemanticTopologyBusLegs 执行 bus 拓扑两腿：
+//  1. track.send.connect——create 场景 auto_create（内核按名幂等复用），
+//     reuse 场景直接 fx_track_id；不显式传 amount_db（内核首连缺省即
+//     -6.0 dB=提案承诺的默认量；既有边保留用户已调量，不被 -6 覆写）；
+//  2. rack_add_node 到 connect 回执解析出的 FX 轨——装载 token 在此刻
+//     铸造（TrackID 绑定执行期 FX 轨 ID；PCA receipt 校验与确认期同源，
+//     不可伪造面不变）。
+func (s *Server) executeSemanticTopologyBusLegs(ctx context.Context, plan PendingPlan, topologyPlan *semanticTopologyPlan) ([]map[string]any, error) {
+	replies := []map[string]any{}
+	send := topologyPlan.Sends[0]
+	if s == nil || s.harness == nil {
+		return replies, fmt.Errorf("harness 不可用，无法执行总线拓扑")
+	}
+	connectCommand := map[string]any{
+		"cmd":             "track.send.connect",
+		"source_track_id": send.SourceTrackID,
+	}
+	if topologyPlan.FXTrack.Action == semanticTopologyFXActionReuse {
+		connectCommand["fx_track_id"] = topologyPlan.FXTrack.TrackID
+	} else {
+		connectCommand["auto_create_fx_track"] = topologyPlan.FXTrack.Name
+	}
+	connectCtx := harness.AuthorizeSendTopologyConnect(plan.Context, []string{send.SourceTrackID})
+	connectResp, err := s.harness.Invoke(ctx, harness.InvokeRequest{
+		Command: connectCommand, Context: connectCtx, Source: "chat", Confirmed: true,
+	})
+	if err != nil {
+		return replies, fmt.Errorf("send.connect 执行失败：%w", err)
+	}
+	replies = append(replies, semanticTopologyInvokeReplyRow(connectResp))
+	if !strings.EqualFold(connectResp.Status, "ok") {
+		return replies, fmt.Errorf("send.connect 被拒绝：%s", firstNonEmpty(connectResp.Error, connectResp.Status))
+	}
+	fxTrackID := firstNonEmptyText(connectResp.Result, "fx_track_id")
+	if fxTrackID == "" {
+		if snapshotID, snapshot := sendTopologySnapshotFromReplies(replies); snapshotID != "" {
+			fxTrackID = snapshotID
+		} else if snapshot != nil {
+			fxTrackID = firstNonEmptyText(snapshot, "fx_track_id")
+		}
+	}
+	if fxTrackID == "" {
+		return replies, fmt.Errorf("send.connect 回执未携带 fx_track_id，无法继续装载（边已建立，可用 track.send.list 核对后手动装载）")
+	}
+	pluginPath := firstNonEmptyText(plan.WorkflowData, "plugin_path")
+	if pluginPath == "" {
+		return replies, fmt.Errorf("装载计划缺少 plugin_path")
+	}
+	identifier := firstNonEmptyText(plan.WorkflowData, "plugin_identifier")
+	loadCtx, err := s.semanticTopologyLoadAuthorization(plan, fxTrackID, pluginPath, identifier)
+	if err != nil {
+		return replies, fmt.Errorf("装载授权核对失败：%w", err)
+	}
+	loadCommand := semanticTopologyBusLoadCommand(fxTrackID, plan.WorkflowData)
+	loadResp, err := s.harness.Invoke(ctx, harness.InvokeRequest{
+		Command: loadCommand, Context: loadCtx, Source: "chat", Confirmed: true,
+	})
+	if err != nil {
+		return replies, fmt.Errorf("FX 轨装载执行失败：%w", err)
+	}
+	replies = append(replies, semanticTopologyInvokeReplyRow(loadResp))
+	if !strings.EqualFold(loadResp.Status, "ok") {
+		return replies, fmt.Errorf("FX 轨装载被拒绝：%s", firstNonEmpty(loadResp.Error, loadResp.Status))
+	}
+	return replies, nil
+}
+
+// semanticTopologyBusLoadCommand 构造 FX 轨装载命令（纯函数，单测直测形态；
+// 派发仍走 harness PCA 装载门——token 在 executeSemanticTopologyBusLegs 内
+// 绑定执行期 FX 轨 ID 铸造）。
+func semanticTopologyBusLoadCommand(fxTrackID string, workflowData map[string]any) map[string]any {
+	loadCommand := map[string]any{
+		"cmd":         "rack_add_node",
+		"track_id":    fxTrackID,
+		"plugin_path": firstNonEmptyText(workflowData, "plugin_path"),
+		"plugin_name": firstNonEmptyText(workflowData, "plugin_name"),
+		"plugin_kind": "Effect",
+		"x":           360.0,
+		"y":           260.0,
+		"zone_id":     "Z3",
+	}
+	if identifier := firstNonEmptyText(workflowData, "plugin_identifier"); identifier != "" {
+		loadCommand["plugin_identifier"] = identifier
+	}
+	return loadCommand
+}
+
+// semanticTopologyLoadAuthorization 铸造 FX 轨装载 token：PCA receipt 在场
+// 时走 AuthorizeProcessorSelectionLoad（与确认期 pendingPlanExecutionContext
+// 同源校验：指纹新鲜度+权威准入查询）。无 receipt 时：显式 full access 下
+// 不铸造降级 token——装载门的 full-access 回落（authorizeFullProjectAccess
+// Load）自行解析当前已晋升准入，铸造空指纹 token 反而先死于门的指纹/
+// 完整性检查；manual 面退 AuthorizeSemanticPluginSelectionLoad（无族准入的
+// 语义选择装载，同样不可由 JSON/模型伪造）。
+func (s *Server) semanticTopologyLoadAuthorization(plan PendingPlan, trackID, pluginPath, identifier string) (map[string]any, error) {
+	receipt, found, err := semanticValidatePCAAdmissionReceipt(plan, "", "")
+	if err != nil {
+		return nil, err
+	}
+	if found {
+		return harness.AuthorizeProcessorSelectionLoad(
+			plan.Context, trackID, pluginPath, identifier,
+			processorattestation.EligibilityRequirement{ProcessorFamily: receipt.ProcessorFamily},
+			receipt.SubjectKey, receipt.BinaryFingerprint, receipt.AttestationID,
+		), nil
+	}
+	if explicitFullAccessRequestContext(plan.Context) {
+		return plan.Context, nil
+	}
+	return harness.AuthorizeSemanticPluginSelectionLoad(plan.Context, trackID, pluginPath, identifier), nil
+}
+
+func semanticTopologyInvokeReplyRow(resp harness.InvokeResponse) map[string]any {
+	return map[string]any{
+		"status":          resp.Status,
+		"agent_action_id": resp.AgentActionID,
+		"tool":            resp.Tool,
+		"command_name":    resp.CommandName,
+		"risk_level":      resp.RiskLevel,
+		"undo_label":      resp.UndoLabel,
+		"result":          resp.Result,
+		"error":           resp.Error,
+	}
+}
+
+// semanticTopologyBusFinishSummary 渲染执行后拓扑回执文案：回路+发送量
+// （connect 回执内嵌拓扑快照），偏差如实（reuse 计划与实际 FX 轨不一致、
+// 失败腿停在哪一步），不虚构。
+func semanticTopologyBusFinishSummary(topologyPlan *semanticTopologyPlan, replies []map[string]any, execErr error) string {
+	send := topologyPlan.Sends[0]
+	sourceLabel := firstNonEmpty(send.SourceTrackName, send.SourceTrackID)
+	fxID, snapshot := sendTopologySnapshotFromReplies(replies)
+	fxName := firstNonEmpty(firstNonEmptyText(snapshot, "fx_name"), topologyPlan.FXTrack.Name)
+	if execErr != nil {
+		return fmt.Sprintf("总线拓扑装载未完成：%v。已执行与未执行步骤以上方回执为准；未执行步骤不再自动重试。", execErr)
+	}
+	var b strings.Builder
+	b.WriteString(fmt.Sprintf("总线拓扑已建立：效果器装载到 FX 轨「%s」，%s --发送(%.1f dB 默认)--> %s --湿声回流--> %s（轨内干湿混合）。",
+		fxName, sourceLabel, send.DefaultAmountDB, fxName, sourceLabel))
+	if fxID != "" {
+		b.WriteString(fmt.Sprintf("（fx_track_id=%s）", fxID))
+	}
+	if topologyPlan.FXTrack.Action == semanticTopologyFXActionReuse && topologyPlan.FXTrack.TrackID != "" && fxID != "" && fxID != topologyPlan.FXTrack.TrackID {
+		b.WriteString(fmt.Sprintf(" 注：计划复用 %s，实际连接到 %s（以内核回执为准）。", topologyPlan.FXTrack.TrackID, fxID))
+	}
+	if len(mapRowsFromAny(mapValue(snapshot)["sends"])) == 0 {
+		b.WriteString(" 注：connect 回执未内嵌拓扑快照，可用 track.send.list 读回核对。")
+	}
+	return b.String()
+}
+
+func (s *Server) finishPluginGrabberLoadSteps(ctx context.Context, plan PendingPlan, replies []map[string]any, fallbackMessage string) (string, []map[string]any) {
 	trackID, pluginID, pluginName := pluginLoadResultIDs(replies)
 	if trackID == "" {
 		trackID = firstNonEmptyText(plan.WorkflowData, "track_id")

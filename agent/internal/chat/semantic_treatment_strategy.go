@@ -1764,3 +1764,337 @@ func applySemanticPostLoadHandoffResponse(base map[string]any, handoff ChatRespo
 	base["message_kind"] = firstNonEmpty(handoff.MessageKind, chatResponseMessageKind(handoff))
 	return base
 }
+
+// ————— TIMEFX-BUS-TOPOPLAN-1：时域族默认总线拓扑计划 —————
+//
+// 146 实验判读（B2 0/2≪80%）裁定：默认拓扑计划生成由硬规则接管（136
+// posture：软提示词管解释、确定性模板管落笔）。语义链此前没有任何一层
+// 持有装载位置决策——plugin_recommendation 链的 track 引用全部是
+// selected_track_id 直通投影，"inline 于源轨"是唯一可表达形态。本段补上
+// 拓扑计划对象与确定性默认模板：时域族（reverb/delay）词表命中且无显式
+// 拓扑指示 → bus 模板（复用既有可用时域 FX 轨或新建默认名 → 装载 → 源轨
+// send.connect 默认 -6dB 起步入提案供改）；inline 仅凭例外码放行（取证④
+// 清单：user_explicit / single_track_ab / experiment_probe）。
+
+const (
+	semanticTopologyPlanSchema = "semantic_topology_plan.v1"
+
+	semanticTopologyModeBus             = "bus"
+	semanticTopologyModeInlineException = "inline_exception"
+
+	semanticTopologyFXActionCreate = "create"
+	semanticTopologyFXActionReuse  = "reuse"
+
+	// track.send.connect 内核首连缺省即 -6.0 dB；模板显式带值入提案，
+	// 用户可在确认前改。
+	semanticTopologyDefaultSendAmountDB = -6.0
+
+	semanticTopologyExceptionUserExplicit    = "user_explicit"
+	semanticTopologyExceptionSingleTrackAB   = "single_track_ab"
+	semanticTopologyExceptionExperimentProbe = "experiment_probe"
+
+	// requestContext / WorkflowData / 卡面 payload 共用的拓扑计划键。
+	semanticTopologyPlanContextKey = "semantic_topology_plan"
+)
+
+// semanticTopologyPlan 是时域族装载的拓扑计划（设计稿 §二.1 结构）。
+// bus 模式：效果器装载到 FX/return 轨（create 复用内核按名幂等，reuse
+// 直接给出既有轨 ID），源轨以 send 连接；inline_exception 模式：装载
+// 目标=源轨，必须携带例外码。
+type semanticTopologyPlan struct {
+	SchemaVersion string                       `json:"schema_version"`
+	Mode          string                       `json:"mode"`
+	FXTrack       semanticTopologyFXTrackRef   `json:"fx_track"`
+	Loads         []semanticTopologyLoadRef    `json:"loads"`
+	Sends         []semanticTopologySendRef    `json:"sends"`
+	Exception     semanticTopologyExceptionRef `json:"exception,omitempty"`
+	Basis         string                       `json:"template_basis,omitempty"`
+}
+
+type semanticTopologyFXTrackRef struct {
+	Action  string `json:"action"` // create | reuse
+	Name    string `json:"name"`
+	TrackID string `json:"track_id,omitempty"` // reuse 时必填
+}
+
+type semanticTopologyLoadRef struct {
+	PluginName       string `json:"plugin_name,omitempty"`
+	PluginPath       string `json:"plugin_path,omitempty"`
+	PluginIdentifier string `json:"plugin_identifier,omitempty"`
+	// bus=FX 轨（create 场景在执行期由 connect 回执解析）；inline=源轨。
+	TrackID string `json:"track_id,omitempty"`
+}
+
+type semanticTopologySendRef struct {
+	SourceTrackID   string  `json:"source_track_id"`
+	SourceTrackName string  `json:"source_track_name,omitempty"`
+	DefaultAmountDB float64 `json:"default_amount_db"`
+}
+
+type semanticTopologyExceptionRef struct {
+	Code   string `json:"code"`
+	Reason string `json:"reason"`
+}
+
+// semanticTopologyTemplateInput 是确定性模板的纯函数输入。观察面全部来自
+// C3 可读面（get_project_state 轨行/机架 + track.send.list 拓扑读回），
+// 不引入 C3 之外的观察依赖（卡面停止条件①的边界）。
+type semanticTopologyTemplateInput struct {
+	UserText        string
+	ProcessorType   string
+	PluginQuery     string
+	SourceTrackID   string
+	SourceTrackName string
+	// K2 面（AGENT-SENDROUTE-SEMANTICS-1）：共享话术命中词与话术内可解析
+	// 源轨数。命中且 ≥2 源轨=显式 send 结构请求，模板不接管（K2 上游已
+	// 处理；此处防御性让位）。
+	ShareSignal      string
+	SourceTrackCount int
+	AuditionProbe    bool
+	ExperimentProbe  bool
+	// get_project_state 形态（tracks[].rack.nodes[]）；nil=无工程态可读。
+	State map[string]any
+	// track.send.list 读回（fx_tracks/sends）；nil=读不到（create-by-name
+	// 由内核幂等复用兜底，不虚构复用主张）。
+	SendTopology map[string]any
+}
+
+// semanticTopologyInlineLockMarkers 用户明说 inline/插入的话术标记（取证④
+// 清单第 1 条）。与 sendLockSignalMarkers（只给这条轨）互补：那边锁共享，
+// 这边锁插入方式。
+var semanticTopologyInlineLockMarkers = []string{
+	"直接插在", "直接插到", "插在这条轨", "插在这一轨", "插在源轨", "就插在",
+	"插进去", "inline", "insert on this track", "insert directly", "insert here",
+	"直接挂在这", "挂在这条轨上", "不要建轨", "不用建轨", "不要发送", "别建轨",
+}
+
+// semanticTopologyTimeDomainFamilyHit 报告本次处理是否时域族：族决策
+// （processorType）优先；词表命中（复用 C3 空间插件词法标记，含话术与
+// 插件查询）兜底英文显式词。中文模糊词（空间感/氛围/远近/干湿）不落词表
+// ——族归属由语义链/推荐链的 LLM 推断先行给出，词表只做确定性英文面。
+func semanticTopologyTimeDomainFamilyHit(processorType, userText, pluginQuery string) string {
+	switch canonicalPluginRecommendationProcessorType(processorType) {
+	case "reverb", "delay":
+		return canonicalPluginRecommendationProcessorType(processorType)
+	}
+	if marker := c3MatchSpacePluginMarker(strings.TrimSpace(userText) + " " + strings.TrimSpace(pluginQuery)); marker != "" {
+		return marker
+	}
+	return ""
+}
+
+// semanticTopologyFamilyMarkers 时域族内的词表细分：reverb 与 delay 各自的
+// 主标记（复用 c3SpacePluginPathMarkers 的词，按族分组，单一事实源仍在那边）。
+func semanticTopologyFamilyMarkers(processorType string) []string {
+	switch canonicalPluginRecommendationProcessorType(processorType) {
+	case "delay":
+		return []string{"delay", "echo"}
+	default:
+		return []string{"reverb", "verb", "room", "hall", "chamber", "plate", "convolution", "ambience", "space", "spring"}
+	}
+}
+
+// planSemanticTopologyTemplate 是确定性默认模板（纯函数，单测直喂）。
+// 返回 nil = 模板不适用（非时域族 / 无显式源轨 / K2 显式 send 让位），
+// 装载链维持既有形态。
+func planSemanticTopologyTemplate(input semanticTopologyTemplateInput) *semanticTopologyPlan {
+	family := semanticTopologyTimeDomainFamilyHit(input.ProcessorType, input.UserText, input.PluginQuery)
+	if family == "" {
+		return nil
+	}
+	sourceTrackID := strings.TrimSpace(input.SourceTrackID)
+	if sourceTrackID == "" {
+		return nil
+	}
+	// K2 让位：显式 send 结构请求（共享话术+≥2 具名源轨）走确定性 send
+	// 工作流，不在默认惯例的软路由范围。
+	if strings.TrimSpace(input.ShareSignal) != "" && input.SourceTrackCount >= 2 {
+		return nil
+	}
+	plan := &semanticTopologyPlan{
+		SchemaVersion: semanticTopologyPlanSchema,
+		Sends: []semanticTopologySendRef{{
+			SourceTrackID:   sourceTrackID,
+			SourceTrackName: strings.TrimSpace(input.SourceTrackName),
+			DefaultAmountDB: semanticTopologyDefaultSendAmountDB,
+		}},
+	}
+	// 例外码优先于 bus 默认（取证④清单：明说插入 > 单轨 A/B > 实验探测）。
+	if sendTextHasAny(input.UserText, semanticTopologyInlineLockMarkers) {
+		plan.Mode = semanticTopologyModeInlineException
+		plan.Exception = semanticTopologyExceptionRef{
+			Code:   semanticTopologyExceptionUserExplicit,
+			Reason: "话术明说 inline 插入（词法命中），显式指示优先于总线惯例",
+		}
+		plan.Loads = []semanticTopologyLoadRef{{TrackID: sourceTrackID}}
+		plan.Basis = "family=" + family + ";inline_lock_lexical"
+		return plan
+	}
+	if input.AuditionProbe {
+		plan.Mode = semanticTopologyModeInlineException
+		plan.Exception = semanticTopologyExceptionRef{
+			Code:   semanticTopologyExceptionSingleTrackAB,
+			Reason: "单轨快速 A/B 或试听探测（即建即删形态，拓扑对即删对象无意义）",
+		}
+		plan.Loads = []semanticTopologyLoadRef{{TrackID: sourceTrackID}}
+		plan.Basis = "family=" + family + ";single_track_ab"
+		return plan
+	}
+	if input.ExperimentProbe {
+		plan.Mode = semanticTopologyModeInlineException
+		plan.Exception = semanticTopologyExceptionRef{
+			Code:   semanticTopologyExceptionExperimentProbe,
+			Reason: "实验探测轨装载（M2 认证/探测线，生命周期=即建即删）",
+		}
+		plan.Loads = []semanticTopologyLoadRef{{TrackID: sourceTrackID}}
+		plan.Basis = "family=" + family + ";experiment_probe"
+		return plan
+	}
+	plan.Mode = semanticTopologyModeBus
+	plan.FXTrack = semanticTopologyReuseFXTrack(input.ProcessorType, input.State, input.SendTopology)
+	plan.Loads = []semanticTopologyLoadRef{{TrackID: plan.FXTrack.TrackID}}
+	plan.Basis = "family=" + family + ";bus_default"
+	return plan
+}
+
+// semanticTopologyReuseFXTrack 复用判定（确定性，C3 观察面内）：
+//  1. track.send.list 的 fx_tracks 里轨名与默认名整名相等 → 复用；
+//  2. 否则 fx_tracks 里机架挂有同族时域插件的轨（c3 词法标记）→ 复用；
+//  3. 否则 create（默认名 Reverb Bus / Delay Bus——内核 connect 按名幂等，
+//     读面缺席时同名既有轨仍被内核复用，不产生重复轨）。
+func semanticTopologyReuseFXTrack(processorType string, state, sendTopology map[string]any) semanticTopologyFXTrackRef {
+	fxName := sendFXTrackNameForPluginQuery(canonicalPluginRecommendationProcessorType(processorType))
+	fxRows := mapRowsFromAny(mapValue(sendTopology)["fx_tracks"])
+	if len(fxRows) == 0 && len(state) == 0 {
+		return semanticTopologyFXTrackRef{Action: semanticTopologyFXActionCreate, Name: fxName}
+	}
+	byID := map[string]bool{}
+	for _, row := range fxRows {
+		id := firstStringFromMap(row, "track_id", "id", "fx_track_id")
+		name := firstStringFromMap(row, "track_name", "name", "fx_name")
+		if id == "" {
+			continue
+		}
+		byID[id] = true
+		if strings.EqualFold(strings.TrimSpace(name), fxName) {
+			return semanticTopologyFXTrackRef{Action: semanticTopologyFXActionReuse, Name: name, TrackID: id}
+		}
+	}
+	familyMarkers := semanticTopologyFamilyMarkers(processorType)
+	for _, row := range fxRows {
+		id := firstStringFromMap(row, "track_id", "id", "fx_track_id")
+		if id == "" || !byID[id] {
+			continue
+		}
+		for _, plugin := range c3SpacePluginsFromState(state) {
+			if plugin.TrackID != id {
+				continue
+			}
+			lower := strings.ToLower(plugin.PluginPath)
+			for _, marker := range familyMarkers {
+				if strings.Contains(lower, marker) {
+					name := firstStringFromMap(row, "track_name", "name", "fx_name")
+					if name == "" {
+						name = fxName
+					}
+					return semanticTopologyFXTrackRef{Action: semanticTopologyFXActionReuse, Name: name, TrackID: id}
+				}
+			}
+		}
+	}
+	return semanticTopologyFXTrackRef{Action: semanticTopologyFXActionCreate, Name: fxName}
+}
+
+// semanticTopologyPlanPayload 计划 → 卡面/persist 往返形态。
+func semanticTopologyPlanPayload(plan *semanticTopologyPlan) map[string]any {
+	if plan == nil {
+		return nil
+	}
+	raw, err := json.Marshal(plan)
+	if err != nil {
+		return nil
+	}
+	var out map[string]any
+	if err := json.Unmarshal(raw, &out); err != nil {
+		return nil
+	}
+	return out
+}
+
+// semanticTopologyPlanFromPayload payload → 计划（往返；损坏形态返回 nil，
+// 装载链回落既有行为，不虚构拓扑）。
+func semanticTopologyPlanFromPayload(payload map[string]any) *semanticTopologyPlan {
+	if len(payload) == 0 {
+		return nil
+	}
+	raw, err := json.Marshal(payload)
+	if err != nil {
+		return nil
+	}
+	var plan semanticTopologyPlan
+	if err := json.Unmarshal(raw, &plan); err != nil {
+		return nil
+	}
+	if plan.SchemaVersion != semanticTopologyPlanSchema {
+		return nil
+	}
+	switch plan.Mode {
+	case semanticTopologyModeBus:
+		if plan.FXTrack.Action == semanticTopologyFXActionReuse && strings.TrimSpace(plan.FXTrack.TrackID) == "" {
+			return nil
+		}
+	case semanticTopologyModeInlineException:
+		if strings.TrimSpace(plan.Exception.Code) == "" {
+			return nil
+		}
+	default:
+		return nil
+	}
+	return &plan
+}
+
+// semanticTopologyPlanFromAny 从 requestContext / WorkflowData / 卡面
+// payload 任一形态读回计划（两处同键语义：直接 map 或 marshal 往返）。
+func semanticTopologyPlanFromAny(value any) *semanticTopologyPlan {
+	if plan := semanticTopologyPlanFromPayload(firstMapFromAny(value)); plan != nil {
+		return plan
+	}
+	return nil
+}
+
+// semanticTopologyPlanCardLines 渲染拓扑计划卡面文案（148 指名合同风格：
+// 轨道必须带名+ID，新建轨如实标"待创建"，绝不回"当前轨道"）。
+func semanticTopologyPlanCardLines(plan *semanticTopologyPlan) []string {
+	if plan == nil {
+		return nil
+	}
+	source := plan.Sends[0]
+	sourceLabel := "源轨 ID " + source.SourceTrackID
+	if source.SourceTrackName != "" {
+		sourceLabel = fmt.Sprintf("源轨「%s」（ID: %s）", source.SourceTrackName, source.SourceTrackID)
+	}
+	switch plan.Mode {
+	case semanticTopologyModeBus:
+		fx := plan.FXTrack
+		lines := []string{fmt.Sprintf("拓扑计划（总线默认，时域族惯例）：")}
+		switch fx.Action {
+		case semanticTopologyFXActionReuse:
+			lines = append(lines, fmt.Sprintf("  复用既有 FX 轨「%s」（ID: %s）作为装载位置", fx.Name, fx.TrackID))
+		default:
+			lines = append(lines, fmt.Sprintf("  新建 FX 轨「%s」（待创建，可改名）作为装载位置", fx.Name))
+		}
+		lines = append(lines, fmt.Sprintf("  %s --发送(-6.0 dB 默认，可在确认前改)--> %s（湿声回流各自源轨）", sourceLabel, fx.Name))
+		return lines
+	case semanticTopologyModeInlineException:
+		target := "源轨"
+		if strings.TrimSpace(plan.Loads[0].TrackID) != "" {
+			target = sourceLabel
+		}
+		return []string{
+			fmt.Sprintf("拓扑计划（inline 例外：%s）：%s", plan.Exception.Code, target),
+			"  例外原因：" + plan.Exception.Reason,
+		}
+	default:
+		return nil
+	}
+}

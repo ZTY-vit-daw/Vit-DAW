@@ -542,6 +542,11 @@ func (s *Server) ordinaryAgentPluginRecommendationResponse(ctx context.Context, 
 
 func (s *Server) ordinaryAgentPluginRecommendationResponseForProcessor(ctx context.Context, conversationID, mode, userText string, requestContext map[string]any, res agentloop.Result, processorType string, cfg config.EngineConfig) ChatResponse {
 	requestContext = s.bindFreeStateAuthoritativeTrack(conversationID, requestContext)
+	// TIMEFX-BUS-TOPOPLAN-1：确定性默认模板在提案组装前落笔——时域族且无
+	// 显式拓扑指示 → bus 拓扑计划（复用/新建 FX 轨+send 默认量）；inline
+	// 仅凭例外码。计划随 requestContext 走选卡→确认→装载链，装载目标不再
+	// 是 selected_track_id 的盲直通。
+	requestContext = s.attachSemanticTopologyPlan(ctx, userText, processorType, requestContext)
 	processorType = canonicalPluginRecommendationProcessorType(processorType)
 	if processorType == "" {
 		return pluginRecommendationErrorResponse(conversationID, res, "processor_choice_invalid", fmt.Errorf("processor type is unavailable"))
@@ -632,6 +637,57 @@ func (s *Server) pluginRecommendationNoCandidatesResponse(conversationID, mode, 
 	return resp
 }
 
+// attachSemanticTopologyPlan 组装确定性拓扑模板的输入面并落笔计划：
+// 观察输入全部来自 C3 可读面（UserStateSummary 工程态 + track.send.list
+// 拓扑读回）；读不到时如实缺席（复用判定退 create-by-name，内核幂等兜底）。
+// 计划为 nil（非时域族/无源轨/K2 让位）时不改 context。
+func (s *Server) attachSemanticTopologyPlan(ctx context.Context, userText, processorType string, requestContext map[string]any) map[string]any {
+	if requestContext == nil {
+		requestContext = map[string]any{}
+	}
+	// 族命中先行：非时域族零额外内核往返（模板必然返回 nil）。
+	if semanticTopologyTimeDomainFamilyHit(processorType, userText, extractPluginLoadQuery(userText)) == "" {
+		return requestContext
+	}
+	sourceTrackID := firstStringFromMap(requestContext, "selected_track_id", "selected_plugin_track_id")
+	if sourceTrackID == "" {
+		return requestContext
+	}
+	var state map[string]any
+	if s != nil && s.harness != nil {
+		state = s.harness.UserStateSummary(ctx)
+	}
+	input := semanticTopologyTemplateInput{
+		UserText:        userText,
+		ProcessorType:   processorType,
+		PluginQuery:     extractPluginLoadQuery(userText),
+		SourceTrackID:   sourceTrackID,
+		SourceTrackName: firstStringFromMap(requestContext, "selected_track_name"),
+		ShareSignal:     SendShareSignalText(userText),
+		AuditionProbe:   boolValue(requestContext["semantic_topology_probe_single_track_ab"]),
+		ExperimentProbe: boolValue(requestContext["semantic_topology_probe_experiment"]),
+		State:           state,
+	}
+	if sources := resolveSendSourceTracks(userText, state); len(sources) >= 2 {
+		input.SourceTrackCount = len(sources)
+	}
+	if s != nil && s.harness != nil {
+		if sendTopology, err := s.harness.Invoke(ctx, harness.InvokeRequest{
+			Tool: "track.send.list", Args: map[string]any{},
+			Source: "semantic_topology_plan", Confirmed: true,
+		}); err == nil && strings.EqualFold(sendTopology.Status, "ok") {
+			input.SendTopology = sendTopology.Result
+		}
+	}
+	topologyPlan := planSemanticTopologyTemplate(input)
+	if topologyPlan == nil {
+		return requestContext
+	}
+	return mergeContext(requestContext, map[string]any{
+		semanticTopologyPlanContextKey: semanticTopologyPlanPayload(topologyPlan),
+	})
+}
+
 func (s *Server) pluginRecommendationSelectionResponse(conversationID, mode string, requestContext map[string]any, res agentloop.Result, plan pluginRecommendationPlan, candidates []pluginRecommendationCandidate) ChatResponse {
 	requestContext = s.bindFreeStateAuthoritativeTrack(conversationID, requestContext)
 	// FULLACCESS-SEMANTIC-CHAIN-1: an explicit full-access turn answers the
@@ -676,15 +732,21 @@ func (s *Server) pluginRecommendationSelectionResponse(conversationID, mode stri
 	if boundaryLine := pluginRecommendationAdmissionBoundaryLine(admissionBoundary); boundaryLine != "" {
 		lines = append(lines, boundaryLine)
 	}
+	// 拓扑计划行随选卡面呈现（bus=建什么轨/连谁/默认量；inline=例外码），
+	// 用户在选插件时即可见装载形态。
+	if topologyPlan := semanticTopologyPlanFromAny(requestContext[semanticTopologyPlanContextKey]); topologyPlan != nil {
+		lines = append(lines, semanticTopologyPlanCardLines(topologyPlan)...)
+	}
 	trackID := firstStringFromMap(requestContext, "selected_track_id", "selected_plugin_track_id")
 	trackName := firstStringFromMap(requestContext, "selected_track_name")
+	targetRef := map[string]any{"kind": "track", "id": trackID, "label": trackName}
 	payload := map[string]any{
 		"schema_version":  pluginRecommendationSchema,
 		"status":          "awaiting_selection",
 		"processor_type":  plan.ProcessorType,
 		"listening_goal":  plan.UserGoal,
 		"summary":         plan.Summary,
-		"target_ref":      map[string]any{"kind": "track", "id": trackID, "label": trackName},
+		"target_ref":      targetRef,
 		"recommendations": rows,
 		"limitations":     appendPluginRecommendationCatalogLimitation(plan.Limitations),
 		"catalog_evidence": map[string]any{
@@ -695,6 +757,18 @@ func (s *Server) pluginRecommendationSelectionResponse(conversationID, mode stri
 		"load_proposed":       false,
 		"mutation_performed":  false,
 		"request_context":     cloneContext(requestContext),
+	}
+	// TIMEFX-BUS-TOPOPLAN-1：bus 模式下装载目标=FX 轨（不是 UI 选中轨），
+	// target_ref 如实改指 FX 轨（reuse 带 ID；create 待创建只有名），完整
+	// 拓扑（源轨/send 默认量/例外码）进 topology_plan。148 指名合同保持：
+	// 有名带名、无名裸 ID、create 场景明标待创建，绝不回"当前轨道"。
+	if topologyPlan := semanticTopologyPlanFromAny(requestContext[semanticTopologyPlanContextKey]); topologyPlan != nil {
+		payload["topology_plan"] = semanticTopologyPlanPayload(topologyPlan)
+		if topologyPlan.Mode == semanticTopologyModeBus {
+			targetRef["id"] = topologyPlan.FXTrack.TrackID
+			targetRef["label"] = topologyPlan.FXTrack.Name
+			targetRef["fx_track_action"] = topologyPlan.FXTrack.Action
+		}
 	}
 	if len(admissionBoundary) > 0 {
 		payload["admission_boundary"] = cloneContext(admissionBoundary)
@@ -915,7 +989,24 @@ func (s *Server) continuePluginRecommendationInteraction(ctx context.Context, in
 	}
 	target := firstMapFromAny(interaction.Payload["target_ref"])
 	trackID := firstStringFromMap(target, "id")
-	if trackID == "" {
+	// TIMEFX-BUS-TOPOPLAN-1：拓扑计划优先于 target_ref 直通。bus 模式下
+	// 装载目标=FX 轨（create 场景此刻还没有 ID，由执行期 connect 回执解
+	// 析），源轨来自计划 Sends；inline 例外维持源轨目标但必须携带例外码。
+	topologyPlan := semanticTopologyPlanFromAny(interaction.Payload["topology_plan"])
+	if topologyPlan == nil {
+		topologyPlan = semanticTopologyPlanFromAny(interaction.RequestContext[semanticTopologyPlanContextKey])
+	}
+	if topologyPlan != nil {
+		if len(topologyPlan.Loads) > 0 {
+			topologyPlan.Loads[0].PluginName = firstNonEmpty(firstStringFromMap(selected, "name"), topologyPlan.Loads[0].PluginName)
+			topologyPlan.Loads[0].PluginPath = firstNonEmpty(firstStringFromMap(selected, "plugin_path"), topologyPlan.Loads[0].PluginPath)
+			topologyPlan.Loads[0].PluginIdentifier = firstNonEmpty(firstStringFromMap(selected, "identifier"), topologyPlan.Loads[0].PluginIdentifier)
+		}
+		if topologyPlan.Mode == semanticTopologyModeInlineException && len(topologyPlan.Sends) > 0 {
+			trackID = firstNonEmpty(trackID, topologyPlan.Sends[0].SourceTrackID)
+		}
+	}
+	if trackID == "" && (topologyPlan == nil || topologyPlan.Mode != semanticTopologyModeBus) {
 		return ChatResponse{
 			ConversationID: interaction.ConversationID, GoalID: interaction.GoalID, RunID: interaction.RunID,
 			Reply:        "插件已经选定，但当前没有精确目标轨道，因此没有生成加载动作。请先选择目标轨道。",
@@ -933,6 +1024,9 @@ func (s *Server) continuePluginRecommendationInteraction(ctx context.Context, in
 		"goal_id":                                  interaction.GoalID,
 		"run_id":                                   interaction.RunID,
 	})
+	if topologyPlan != nil {
+		requestContext[semanticTopologyPlanContextKey] = semanticTopologyPlanPayload(topologyPlan)
+	}
 	if firstStringFromMap(interaction.Payload, "post_load_planner") == "semantic_eq" &&
 		canonicalPluginRecommendationProcessorType(firstStringFromMap(interaction.Payload, "processor_type")) == "eq" {
 		requestContext["semantic_eq_post_load_handoff"] = true
