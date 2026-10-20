@@ -1,0 +1,44 @@
+{
+ "command_ack": {
+  "ack": {
+   "message": "Unknown command: track.send.list",
+   "stage": "rejected"
+  },
+  "command": "legacy.command",
+  "error": {
+   "code": "not_found",
+   "message": "Unknown command: track.send.list",
+   "retryable": false
+  },
+  "legacy_command": "track.send.list",
+  "resync_hint": true,
+  "revision": 0,
+  "source": "vsp.command.response",
+  "stage": "rejected",
+  "transaction_id": "tx_1792500156319172500_982"
+ },
+ "message": "Unknown command: track.send.list",
+ "status": "error",
+ "vsp": {
+  "command_ack": {
+   "ack": {
+    "message": "Unknown command: track.send.list",
+    "stage": "rejected"
+   },
+   "command": "legacy.command",
+   "error": {
+    "code": "not_found",
+    "message": "Unknown command: track.send.list",
+    "retryable": false
+   },
+   "legacy_command": "track.send.list",
+   "resync_hint": true,
+   "revision": 0,
+   "source": "vsp.command.response",
+   "stage": "rejected",
+   "transaction_id": "tx_1792500156319172500_982"
+  },
+  "transport": "vsp",
+  "version": "1.0"
+ }
+}

@@ -1,0 +1,53 @@
+fixture DAD ready (tracks=6)
+fixture built: D:\Vit_DAW_wt_sge1\coord\runs\146-SOFT-GUIDE-EXP\20261020_b2arm\fixture\softguide_fixture.vit
+authority bound full_project_access
+[A1] turn_1 send
+[A1] turn_1 stop=limit_reached goal=waiting_continue needs_confirm=False
+[A1] turn_2_nudge send
+[A1] turn_2 stop=no_pending_mix_tick_candidate goal=completed needs_confirm=False
+[A1] fixture open ok: bass,drums,guitar,other,piano,vocals
+[A2] turn_1 send
+[A2] turn_1 stop=limit_reached goal=waiting_continue needs_confirm=False
+[A2] turn_2_nudge send
+[A2] turn_2 stop=no_pending_mix_tick_candidate goal=completed needs_confirm=False
+[A2] fixture open ok: bass,drums,guitar,other,piano,vocals
+[A3] turn_1 send
+[A3] turn_1 stop=limit_reached goal=waiting_continue needs_confirm=False
+[A3] turn_2_nudge send
+[A3] turn_2 stop=no_pending_mix_tick_candidate goal=completed needs_confirm=False
+[A3] fixture open ok: bass,drums,guitar,other,piano,vocals
+[A4] turn_1 send
+[A4] turn_1 stop=limit_reached goal=waiting_continue needs_confirm=False
+[A4] turn_2_nudge send
+[A4] turn_2 stop=no_pending_mix_tick_candidate goal=completed needs_confirm=False
+[A4] fixture open ok: bass,drums,guitar,other,piano,vocals
+[A5] turn_1 send
+[A5] turn_1 stop=limit_reached goal=waiting_continue needs_confirm=False
+[A5] turn_2_nudge send
+[A5] turn_2 stop=no_pending_mix_tick_candidate goal=completed needs_confirm=False
+[A5] fixture open ok: bass,drums,guitar,other,piano,vocals
+[B1] turn_1 send
+[B1] turn_1 stop=limit_reached goal=waiting_continue needs_confirm=False
+[B1] turn_2_nudge send
+[B1] turn_2 stop=no_pending_mix_tick_candidate goal=completed needs_confirm=False
+[B1] fixture open ok: bass,drums,guitar,other,piano,vocals
+[B2] turn_1 send
+[B2] turn_1 stop=limit_reached goal=waiting_continue needs_confirm=False
+[B2] turn_2_nudge send
+[B2] turn_2 stop=no_pending_mix_tick_candidate goal=completed needs_confirm=False
+[B2] fixture open ok: bass,drums,guitar,other,piano,vocals
+[B3] turn_1 send
+[B3] turn_1 stop=limit_reached goal=waiting_continue needs_confirm=False
+[B3] turn_2_nudge send
+[B3] turn_2 stop=no_pending_mix_tick_candidate goal=completed needs_confirm=False
+[B3] fixture open ok: bass,drums,guitar,other,piano,vocals
+[B4] turn_1 send
+[B4] turn_1 stop=limit_reached goal=waiting_continue needs_confirm=False
+[B4] turn_2_nudge send
+[B4] turn_2 stop=no_pending_mix_tick_candidate goal=completed needs_confirm=False
+[B4] fixture open ok: bass,drums,guitar,other,piano,vocals
+[B5] turn_1 send
+[B5] turn_1 stop=limit_reached goal=waiting_continue needs_confirm=False
+[B5] turn_2_nudge send
+[B5] turn_2 stop=no_pending_mix_tick_candidate goal=completed needs_confirm=False
+[B5] fixture open ok: bass,drums,guitar,other,piano,vocals
