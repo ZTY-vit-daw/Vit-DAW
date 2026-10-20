@@ -5160,7 +5160,7 @@ if ($ScenarioMode) {
         $tpEventsUri = $AgentHttp.TrimEnd("/") + "/agent/events"
         $tpNudge = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String("5Y+v5Lul5omn6KGM"))
         $tpDriveJourney = {
-            param([string]$JourneyConversationID, [string]$JourneyMessage, [string]$ArtifactPrefix, [int]$MaxNudges = 4)
+            param([string]$JourneyConversationID, [string]$JourneyMessage, [string]$ArtifactPrefix, [int]$MaxNudges = 4, [int]$MaxHops = 3)
             $journeyTurns = 0
             $journeyNudges = 0
             $journeySendPending = $true
@@ -5168,6 +5168,8 @@ if ($ScenarioMode) {
             $journeyGoalStatus = ""
             $journeyEvidence = ""
             $journeyCardSeen = $false
+            $journeyHops = 0
+            $journeyHopsText = ""
             $journeyTerminal = @("completed", "failed", "stopped", "cancelled")
             $journeyDeadline = (Get-Date).AddSeconds($JourneyNlSettleSeconds)
             while ((Get-Date) -lt $journeyDeadline) {
@@ -5217,7 +5219,43 @@ if ($ScenarioMode) {
                     if ($null -eq $journeyContinuationRow -or -not ($journeyContinuationRow -is [System.Management.Automation.PSCustomObject])) { continue }
                     if (@("pending", "claimed", "running") -contains [string](Get-OptionalProperty -Object $journeyContinuationRow -Name "status")) { $journeyContinuationActive = $true }
                     $journeyPendingInteraction = Get-OptionalProperty -Object $journeyContinuationRow -Name "pending_interaction"
-                    if ($null -ne $journeyPendingInteraction -and $journeyPendingInteraction -is [System.Management.Automation.PSCustomObject]) { $journeyCardSeen = $true }
+                    if ($null -eq $journeyPendingInteraction -or -not ($journeyPendingInteraction -is [System.Management.Automation.PSCustomObject])) { continue }
+                    $journeyPendingKind = [string](Get-OptionalProperty -Object $journeyPendingInteraction -Name "kind")
+                    # 147 regression face: the three semantic-chain confirmations
+                    # must NOT park under full access. Other interaction kinds
+                    # (mix_treatment_confirmation etc., 146 ctrl-B4 precedent)
+                    # legitimately park and are auto-answered here with bounded
+                    # hops (146 driver auto-answer shape).
+                    if ($journeyPendingKind.ToLower().Contains("confirmation") -and $journeyPendingKind -ne "mix_treatment_confirmation" -and $journeyPendingKind -ne "mix_tick_confirmation") {
+                        $journeyCardSeen = $true
+                        continue
+                    }
+                    if ($journeyPendingKind -eq "plugin_recommendation_question") {
+                        $journeyCardSeen = $true
+                        continue
+                    }
+                    if ($journeyHops -lt $MaxHops) {
+                        $journeyHops++
+                        $journeyHopDecision = "approve"
+                        $journeyHopActions = @()
+                        foreach ($journeyHopActionRow in @(Get-OptionalProperty -Object $journeyPendingInteraction -Name "actions")) {
+                            if ($null -ne $journeyHopActionRow -and $journeyHopActionRow -is [System.Management.Automation.PSCustomObject]) { $journeyHopActions += $journeyHopActionRow }
+                        }
+                        if ($journeyHopActions.Count -gt 0) { $journeyHopDecision = [string](Get-OptionalProperty -Object $journeyHopActions[0] -Name "id") }
+                        $journeyHopRaw = $null
+                        try {
+                            $journeyHopRaw = Invoke-Json -Method POST -Uri $tpRespondUri -Body @{
+                                interaction_id = [string](Get-FirstPropertyValue -Object $journeyPendingInteraction -Names @("interaction_id", "id"))
+                                decision = $journeyHopDecision
+                            } -TimeoutSec 240
+                        }
+                        catch { $journeyHopRaw = $null }
+                        if ($null -ne $journeyHopRaw) {
+                            $journeyHopRaw | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir ($ArtifactPrefix + "_hop_" + [string]$journeyHops + ".json")) -Encoding UTF8
+                            $journeyEvidence += ($journeyHopRaw | ConvertTo-Json -Depth 20 -Compress)
+                            $journeyHopsText += ($journeyPendingKind + ";")
+                        }
+                    }
                 }
                 if ($journeyTerminal -contains $journeyGoalStatus) {
                     $journeyReason = "goal_terminal_" + $journeyGoalStatus
@@ -5246,6 +5284,8 @@ if ($ScenarioMode) {
                 turns = [int]$journeyTurns
                 nudges = [int]$journeyNudges
                 card_seen = [bool]$journeyCardSeen
+                hops = [int]$journeyHops
+                hops_text = $journeyHopsText
                 evidence = $journeyEvidence
             }
         }
