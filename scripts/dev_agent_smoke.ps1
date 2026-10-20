@@ -34,6 +34,15 @@ param(
     # save/reload 往返+clear_project/undo/redo 往返正例；断言体在
     # scripts/settempo_persist_smoke.py，内核 ZMQ 命令面直连）。
     [switch]$SetTempoPersistSmoke,
+    # PCA-REVERB-PROMOTION-1（卡 150）：时域混响族 PCA 准入晋升战役腿（全确定性
+    # 零 LLM）。断言体在 scripts/pca_reverb_promotion_smoke.py：对兼容矩阵
+    # reverb 可证件（首件 Abbey Road Plates Stereo）逐件走既有认证作业流
+    # （/agent/processor-certification/start family=reverb → 三门装载 → typed
+    # apply/readback/restore → 全参数快照核对 → auto import/promote），另跑两件
+    # 矩阵原因行件记录认证侧诚实拒绝；终态门=candidates 面 reverb promoted≥2
+    # （含 Pro-R 与新晋件）+ plugin.semantic_search 候选源含新晋件 + 零静默丢件。
+    # 腿需 agent HTTP 面在栈（-StartKernel -RestartAgent 后可用；不启 UI）。
+    [switch]$PcaReverbPromotionSmoke,
     # KERNEL-SENDROUTE-IMPL-1：send/return 轨间路由命令面烟测（设计件
     # MIX-SENDRETURN-DESIGN-1 §5 场景 1 的端侧版；断言体在
     # scripts/sendroute_kernel_smoke.py，内核 ZMQ 命令面直连）。腿：
@@ -7080,6 +7089,29 @@ if ($SetTempoPersistSmoke) {
         throw ("settempo persist smoke passed but summary artifact missing: " + $settempoSummaryPath)
     }
     Write-Ok ("settempo persist smoke passed (kernel command face; summary: " + $settempoSummaryPath + ")")
+}
+
+if ($PcaReverbPromotionSmoke) {
+    Write-Step "pca reverb promotion smoke (PCA-REVERB-PROMOTION-1)"
+    $pcaReverbScript = Join-Path $RepoRoot "scripts\pca_reverb_promotion_smoke.py"
+    if (-not (Test-Path -LiteralPath $pcaReverbScript)) {
+        throw ("pca reverb promotion smoke script missing: " + $pcaReverbScript)
+    }
+    $pcaReverbArtifactsDir = $RunArtifactsDir
+    if ([string]::IsNullOrWhiteSpace($pcaReverbArtifactsDir)) {
+        $pcaReverbArtifactsDir = Join-Path $RepoRoot ("VitApp\Workspace\Artifacts\smoke\pca_reverb_promotion_" + (Get-Date -Format "yyyyMMdd_HHmmss"))
+    }
+    if (-not (Test-Path -LiteralPath $pcaReverbArtifactsDir)) {
+        New-Item -ItemType Directory -Path $pcaReverbArtifactsDir -Force | Out-Null
+    }
+    $pcaReverbConsolePath = Join-Path $pcaReverbArtifactsDir "pca_reverb_promotion_console.txt"
+    & python $pcaReverbScript --agent-http $AgentHttp > $pcaReverbConsolePath 2>&1
+    $pcaReverbExit = $LASTEXITCODE
+    Get-Content -LiteralPath $pcaReverbConsolePath | ForEach-Object { Write-Host $_ }
+    if ($pcaReverbExit -ne 0) {
+        throw ("pca reverb promotion smoke failed with exit code $pcaReverbExit (console: " + $pcaReverbConsolePath + ")")
+    }
+    Write-Ok ("pca reverb promotion smoke passed (campaign records under coord\runs\PCA-REVERB-PROMOTION-1; console: " + $pcaReverbConsolePath + ")")
 }
 
 if ($SendRouteAgentSmoke) {

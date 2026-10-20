@@ -1,0 +1,610 @@
+[
+  {
+    "plugin_name": "Abbey Road Plates Stereo",
+    "identifier": "VST3-Abbey Road Plates Stereo-695648d-5e0a41d9",
+    "job_id": "pca_job_b552b1eee699f68d",
+    "expected_reject": false,
+    "seconds": 6.0,
+    "summary_path": "C:\\Users\\timoz\\.vit\\pca_certifications\\pca_job_b552b1eee699f68d\\summary.json",
+    "selected_roles": [
+      "reverb_mode",
+      "output_gain",
+      "wet"
+    ],
+    "apply_status": "exact",
+    "status": "completed",
+    "stage": "completed",
+    "error": "",
+    "promoted_attestation_ids": [
+      "pca2_b5a48ef89aa051e0fa6f2184"
+    ]
+  },
+  {
+    "plugin_name": "Abbey Road Plates Mono/Stereo",
+    "identifier": "VST3-Abbey Road Plates Mono/Stereo-695648d-5e1d06d9",
+    "job_id": "pca_job_b08249499e7b0500",
+    "expected_reject": false,
+    "seconds": 3.0,
+    "summary_path": "C:\\Users\\timoz\\.vit\\pca_certifications\\pca_job_b08249499e7b0500\\summary.json",
+    "selected_roles": [
+      "reverb_mode",
+      "output_gain",
+      "wet"
+    ],
+    "apply_status": "exact",
+    "status": "completed",
+    "stage": "completed",
+    "error": "",
+    "promoted_attestation_ids": [
+      "pca2_cab8ae51ccbc1bc6f9b6a98a"
+    ]
+  },
+  {
+    "plugin_name": "Abbey Road Plates Mono",
+    "identifier": "VST3-Abbey Road Plates Mono-695648d-5df3bbd9",
+    "job_id": "pca_job_0fee2867f360bcb8",
+    "expected_reject": false,
+    "seconds": 3.0,
+    "summary_path": "C:\\Users\\timoz\\.vit\\pca_certifications\\pca_job_0fee2867f360bcb8\\summary.json",
+    "selected_roles": [
+      "reverb_mode",
+      "output_gain",
+      "wet"
+    ],
+    "apply_status": "exact",
+    "status": "completed",
+    "stage": "completed",
+    "error": "",
+    "promoted_attestation_ids": [
+      "pca2_b98aaf32151f0eff9ab3da39"
+    ]
+  },
+  {
+    "plugin_name": "Abbey Road Chambers Mono",
+    "identifier": "VST3-Abbey Road Chambers Mono-695648d-2da618f6",
+    "job_id": "pca_job_8445da859486fccd",
+    "expected_reject": false,
+    "seconds": 6.0,
+    "summary_path": "C:\\Users\\timoz\\.vit\\pca_certifications\\pca_job_8445da859486fccd\\summary.json",
+    "selected_roles": [
+      "reverb_mode",
+      "mix",
+      "output_gain"
+    ],
+    "apply_status": "exact",
+    "status": "completed",
+    "stage": "completed",
+    "error": "",
+    "promoted_attestation_ids": [
+      "pca2_200326432f38efc8e5f29ca2"
+    ]
+  },
+  {
+    "plugin_name": "Abbey Road Chambers Mono/Stereo",
+    "identifier": "VST3-Abbey Road Chambers Mono/Stereo-695648d-2dcf63f6",
+    "job_id": "pca_job_5f9b565d6c7d5128",
+    "expected_reject": false,
+    "seconds": 3.0,
+    "summary_path": "C:\\Users\\timoz\\.vit\\pca_certifications\\pca_job_5f9b565d6c7d5128\\summary.json",
+    "selected_roles": [
+      "reverb_mode",
+      "mix",
+      "output_gain"
+    ],
+    "apply_status": "exact",
+    "status": "completed",
+    "stage": "completed",
+    "error": "",
+    "promoted_attestation_ids": [
+      "pca2_b2a125420983f96c7db4b9e5"
+    ]
+  },
+  {
+    "plugin_name": "Abbey Road Chambers Stereo",
+    "identifier": "VST3-Abbey Road Chambers Stereo-695648d-2dbc9ef6",
+    "job_id": "pca_job_5e55f2fb2e98aebc",
+    "expected_reject": false,
+    "seconds": 3.0,
+    "summary_path": "C:\\Users\\timoz\\.vit\\pca_certifications\\pca_job_5e55f2fb2e98aebc\\summary.json",
+    "selected_roles": [
+      "reverb_mode",
+      "mix",
+      "output_gain"
+    ],
+    "apply_status": "exact",
+    "status": "completed",
+    "stage": "completed",
+    "error": "",
+    "promoted_attestation_ids": [
+      "pca2_f2683030fd0665aeaf69c65f"
+    ]
+  },
+  {
+    "plugin_name": "H-Reverb Stereo",
+    "identifier": "VST3-H-Reverb Stereo-695648d-bc35ab8a",
+    "job_id": "pca_job_4da5012d792d9ce7",
+    "expected_reject": false,
+    "seconds": 3.0,
+    "summary_path": "C:\\Users\\timoz\\.vit\\pca_certifications\\pca_job_4da5012d792d9ce7\\summary.json",
+    "selected_roles": [
+      "damping",
+      "mix",
+      "output_gain"
+    ],
+    "apply_status": "exact",
+    "status": "completed",
+    "stage": "completed",
+    "error": "",
+    "promoted_attestation_ids": [
+      "pca2_fee39b2bc01d6755b4d7841d"
+    ]
+  },
+  {
+    "plugin_name": "H-Reverb Mono/Stereo",
+    "identifier": "VST3-H-Reverb Mono/Stereo-695648d-bc48708a",
+    "job_id": "pca_job_4512edb1bea36802",
+    "expected_reject": false,
+    "seconds": 3.0,
+    "summary_path": "C:\\Users\\timoz\\.vit\\pca_certifications\\pca_job_4512edb1bea36802\\summary.json",
+    "selected_roles": [
+      "damping",
+      "mix",
+      "output_gain"
+    ],
+    "apply_status": "exact",
+    "status": "completed",
+    "stage": "completed",
+    "error": "",
+    "promoted_attestation_ids": [
+      "pca2_ea2b84991d8b4b9ad40d8f1a"
+    ]
+  },
+  {
+    "plugin_name": "H-Reverb Mono",
+    "identifier": "VST3-H-Reverb Mono-695648d-bc1f258a",
+    "job_id": "pca_job_53addfba0b05d61b",
+    "expected_reject": false,
+    "seconds": 3.0,
+    "summary_path": "C:\\Users\\timoz\\.vit\\pca_certifications\\pca_job_53addfba0b05d61b\\summary.json",
+    "selected_roles": [
+      "damping",
+      "mix",
+      "output_gain"
+    ],
+    "apply_status": "exact",
+    "status": "completed",
+    "stage": "completed",
+    "error": "",
+    "promoted_attestation_ids": [
+      "pca2_d2e9ad1b7a90b4c128022d8d"
+    ]
+  },
+  {
+    "plugin_name": "H-Reverb 5.0",
+    "identifier": "VST3-H-Reverb 5.0-695648d-bbc50d8a",
+    "job_id": "pca_job_b7281a2ebc5b227d",
+    "expected_reject": false,
+    "seconds": 3.0,
+    "summary_path": "C:\\Users\\timoz\\.vit\\pca_certifications\\pca_job_b7281a2ebc5b227d\\summary.json",
+    "selected_roles": [
+      "damping",
+      "mix",
+      "output_gain"
+    ],
+    "apply_status": "exact",
+    "status": "completed",
+    "stage": "completed",
+    "error": "",
+    "promoted_attestation_ids": [
+      "pca2_98e80304a51d0f941f1cd656"
+    ]
+  },
+  {
+    "plugin_name": "H-Reverb 5.1",
+    "identifier": "VST3-H-Reverb 5.1-695648d-bbc8ce8a",
+    "job_id": "pca_job_757cbc1b88033d2a",
+    "expected_reject": false,
+    "seconds": 3.0,
+    "summary_path": "C:\\Users\\timoz\\.vit\\pca_certifications\\pca_job_757cbc1b88033d2a\\summary.json",
+    "selected_roles": [
+      "damping",
+      "mix",
+      "output_gain"
+    ],
+    "apply_status": "exact",
+    "status": "completed",
+    "stage": "completed",
+    "error": "",
+    "promoted_attestation_ids": [
+      "pca2_4e54e2156e01362168b79c1d"
+    ]
+  },
+  {
+    "plugin_name": "H-Reverb Mono/5.0",
+    "identifier": "VST3-H-Reverb Mono/5.0-695648d-bc4c318a",
+    "job_id": "pca_job_09bb0e53e6a55258",
+    "expected_reject": false,
+    "seconds": 3.0,
+    "summary_path": "C:\\Users\\timoz\\.vit\\pca_certifications\\pca_job_09bb0e53e6a55258\\summary.json",
+    "selected_roles": [
+      "damping",
+      "mix",
+      "output_gain"
+    ],
+    "apply_status": "exact",
+    "status": "completed",
+    "stage": "completed",
+    "error": "",
+    "promoted_attestation_ids": [
+      "pca2_c3e27ec92203e3a5d56a0d46"
+    ]
+  },
+  {
+    "plugin_name": "H-Reverb Mono/5.1",
+    "identifier": "VST3-H-Reverb Mono/5.1-695648d-bc4ff28a",
+    "job_id": "pca_job_51b78366f4a6823d",
+    "expected_reject": false,
+    "seconds": 3.0,
+    "summary_path": "C:\\Users\\timoz\\.vit\\pca_certifications\\pca_job_51b78366f4a6823d\\summary.json",
+    "selected_roles": [
+      "damping",
+      "mix",
+      "output_gain"
+    ],
+    "apply_status": "exact",
+    "status": "completed",
+    "stage": "completed",
+    "error": "",
+    "promoted_attestation_ids": [
+      "pca2_22e74f725f04edfcd691ee9d"
+    ]
+  },
+  {
+    "plugin_name": "H-Reverb Stereo/5.0",
+    "identifier": "VST3-H-Reverb Stereo/5.0-695648d-bc396c8a",
+    "job_id": "pca_job_adb57bd4a03f54ad",
+    "expected_reject": false,
+    "seconds": 3.0,
+    "summary_path": "C:\\Users\\timoz\\.vit\\pca_certifications\\pca_job_adb57bd4a03f54ad\\summary.json",
+    "selected_roles": [
+      "damping",
+      "mix",
+      "output_gain"
+    ],
+    "apply_status": "exact",
+    "status": "completed",
+    "stage": "completed",
+    "error": "",
+    "promoted_attestation_ids": [
+      "pca2_814c1bbfdbb763424ee39a22"
+    ]
+  },
+  {
+    "plugin_name": "H-Reverb Stereo/5.1",
+    "identifier": "VST3-H-Reverb Stereo/5.1-695648d-bc3d2d8a",
+    "job_id": "pca_job_1639c42563048df4",
+    "expected_reject": false,
+    "seconds": 3.0,
+    "summary_path": "C:\\Users\\timoz\\.vit\\pca_certifications\\pca_job_1639c42563048df4\\summary.json",
+    "selected_roles": [
+      "damping",
+      "mix",
+      "output_gain"
+    ],
+    "apply_status": "exact",
+    "status": "completed",
+    "stage": "completed",
+    "error": "",
+    "promoted_attestation_ids": [
+      "pca2_baaca439362082a3f2c7bff0"
+    ]
+  },
+  {
+    "plugin_name": "H-Reverb long Stereo",
+    "identifier": "VST3-H-Reverb long Stereo-695648d-c778ab8a",
+    "job_id": "pca_job_a65dcaff683dffa0",
+    "expected_reject": false,
+    "seconds": 3.0,
+    "summary_path": "C:\\Users\\timoz\\.vit\\pca_certifications\\pca_job_a65dcaff683dffa0\\summary.json",
+    "selected_roles": [
+      "damping",
+      "mix",
+      "output_gain"
+    ],
+    "apply_status": "exact",
+    "status": "completed",
+    "stage": "completed",
+    "error": "",
+    "promoted_attestation_ids": [
+      "pca2_37bb14a7ef79a0d329d96314"
+    ]
+  },
+  {
+    "plugin_name": "H-Reverb long Mono/Stereo",
+    "identifier": "VST3-H-Reverb long Mono/Stereo-695648d-c78b708a",
+    "job_id": "pca_job_85ad211f7e8ff7df",
+    "expected_reject": false,
+    "seconds": 6.1,
+    "summary_path": "C:\\Users\\timoz\\.vit\\pca_certifications\\pca_job_85ad211f7e8ff7df\\summary.json",
+    "selected_roles": [
+      "damping",
+      "mix",
+      "output_gain"
+    ],
+    "apply_status": "exact",
+    "status": "completed",
+    "stage": "completed",
+    "error": "",
+    "promoted_attestation_ids": [
+      "pca2_6611be0ef20ab72a64658e95"
+    ]
+  },
+  {
+    "plugin_name": "H-Reverb long Mono",
+    "identifier": "VST3-H-Reverb long Mono-695648d-c762258a",
+    "job_id": "pca_job_e81d91e09224210e",
+    "expected_reject": false,
+    "seconds": 3.0,
+    "summary_path": "C:\\Users\\timoz\\.vit\\pca_certifications\\pca_job_e81d91e09224210e\\summary.json",
+    "selected_roles": [
+      "damping",
+      "mix",
+      "output_gain"
+    ],
+    "apply_status": "exact",
+    "status": "completed",
+    "stage": "completed",
+    "error": "",
+    "promoted_attestation_ids": [
+      "pca2_ca8382332fc35298bc027e96"
+    ]
+  },
+  {
+    "plugin_name": "H-Reverb long 5.0",
+    "identifier": "VST3-H-Reverb long 5.0-695648d-c7080d8a",
+    "job_id": "pca_job_a82b1147d1218d3e",
+    "expected_reject": false,
+    "seconds": 3.1,
+    "summary_path": "C:\\Users\\timoz\\.vit\\pca_certifications\\pca_job_a82b1147d1218d3e\\summary.json",
+    "selected_roles": [
+      "damping",
+      "mix",
+      "output_gain"
+    ],
+    "apply_status": "exact",
+    "status": "completed",
+    "stage": "completed",
+    "error": "",
+    "promoted_attestation_ids": [
+      "pca2_176238dfc6e04097ff8283b8"
+    ]
+  },
+  {
+    "plugin_name": "H-Reverb long 5.1",
+    "identifier": "VST3-H-Reverb long 5.1-695648d-c70bce8a",
+    "job_id": "pca_job_b6398310ee0d84b2",
+    "expected_reject": false,
+    "seconds": 3.0,
+    "summary_path": "C:\\Users\\timoz\\.vit\\pca_certifications\\pca_job_b6398310ee0d84b2\\summary.json",
+    "selected_roles": [
+      "damping",
+      "mix",
+      "output_gain"
+    ],
+    "apply_status": "exact",
+    "status": "completed",
+    "stage": "completed",
+    "error": "",
+    "promoted_attestation_ids": [
+      "pca2_feb5850bc0da2385e3130c4a"
+    ]
+  },
+  {
+    "plugin_name": "H-Reverb long Mono/5.0",
+    "identifier": "VST3-H-Reverb long Mono/5.0-695648d-c78f318a",
+    "job_id": "pca_job_b808534ea5b76954",
+    "expected_reject": false,
+    "seconds": 3.0,
+    "summary_path": "C:\\Users\\timoz\\.vit\\pca_certifications\\pca_job_b808534ea5b76954\\summary.json",
+    "selected_roles": [
+      "damping",
+      "mix",
+      "output_gain"
+    ],
+    "apply_status": "exact",
+    "status": "completed",
+    "stage": "completed",
+    "error": "",
+    "promoted_attestation_ids": [
+      "pca2_cab9f1dc2cea35bc607195d0"
+    ]
+  },
+  {
+    "plugin_name": "H-Reverb long Mono/5.1",
+    "identifier": "VST3-H-Reverb long Mono/5.1-695648d-c792f28a",
+    "job_id": "pca_job_9d19109e185fff43",
+    "expected_reject": false,
+    "seconds": 3.0,
+    "summary_path": "C:\\Users\\timoz\\.vit\\pca_certifications\\pca_job_9d19109e185fff43\\summary.json",
+    "selected_roles": [
+      "damping",
+      "mix",
+      "output_gain"
+    ],
+    "apply_status": "exact",
+    "status": "completed",
+    "stage": "completed",
+    "error": "",
+    "promoted_attestation_ids": [
+      "pca2_67d50856cae3e2e6fed8dd27"
+    ]
+  },
+  {
+    "plugin_name": "H-Reverb long Stereo/5.0",
+    "identifier": "VST3-H-Reverb long Stereo/5.0-695648d-c77c6c8a",
+    "job_id": "pca_job_8be3bc64e46874bf",
+    "expected_reject": false,
+    "seconds": 3.0,
+    "summary_path": "C:\\Users\\timoz\\.vit\\pca_certifications\\pca_job_8be3bc64e46874bf\\summary.json",
+    "selected_roles": [
+      "damping",
+      "mix",
+      "output_gain"
+    ],
+    "apply_status": "exact",
+    "status": "completed",
+    "stage": "completed",
+    "error": "",
+    "promoted_attestation_ids": [
+      "pca2_3d4e5df1b0775022e1f10225"
+    ]
+  },
+  {
+    "plugin_name": "H-Reverb long Stereo/5.1",
+    "identifier": "VST3-H-Reverb long Stereo/5.1-695648d-c7802d8a",
+    "job_id": "pca_job_adb290a29bfb92e3",
+    "expected_reject": false,
+    "seconds": 3.0,
+    "summary_path": "C:\\Users\\timoz\\.vit\\pca_certifications\\pca_job_adb290a29bfb92e3\\summary.json",
+    "selected_roles": [
+      "damping",
+      "mix",
+      "output_gain"
+    ],
+    "apply_status": "exact",
+    "status": "completed",
+    "stage": "completed",
+    "error": "",
+    "promoted_attestation_ids": [
+      "pca2_cb277ff1c6d34b9abbf42709"
+    ]
+  },
+  {
+    "plugin_name": "RVerb Stereo",
+    "identifier": "VST3-RVerb Stereo-695648d-1bdcffa3",
+    "job_id": "pca_job_2ad1bb58b32cc2c1",
+    "expected_reject": false,
+    "seconds": 6.0,
+    "summary_path": "C:\\Users\\timoz\\.vit\\pca_certifications\\pca_job_2ad1bb58b32cc2c1\\summary.json",
+    "selected_roles": [
+      "damping",
+      "mix",
+      "size"
+    ],
+    "apply_status": "exact",
+    "status": "completed",
+    "stage": "completed",
+    "error": "",
+    "promoted_attestation_ids": [
+      "pca2_10efd84638d1309cf2530bd8"
+    ]
+  },
+  {
+    "plugin_name": "RVerb Mono/Stereo",
+    "identifier": "VST3-RVerb Mono/Stereo-695648d-1be9bfac",
+    "job_id": "pca_job_6e7b5065ac1bc162",
+    "expected_reject": false,
+    "seconds": 3.0,
+    "summary_path": "C:\\Users\\timoz\\.vit\\pca_certifications\\pca_job_6e7b5065ac1bc162\\summary.json",
+    "selected_roles": [
+      "damping",
+      "mix",
+      "size"
+    ],
+    "apply_status": "exact",
+    "status": "completed",
+    "stage": "completed",
+    "error": "",
+    "promoted_attestation_ids": [
+      "pca2_e5d199c35e2e53db7dffea6c"
+    ]
+  },
+  {
+    "plugin_name": "TrueVerb Stereo",
+    "identifier": "VST3-TrueVerb Stereo-695648d-a7394d0a",
+    "job_id": "pca_job_3ba9629c3bd8aeba",
+    "expected_reject": false,
+    "seconds": 3.0,
+    "summary_path": "C:\\Users\\timoz\\.vit\\pca_certifications\\pca_job_3ba9629c3bd8aeba\\summary.json",
+    "selected_roles": [
+      "mix",
+      "decay",
+      "pre_delay"
+    ],
+    "apply_status": "exact",
+    "status": "completed",
+    "stage": "completed",
+    "error": "",
+    "promoted_attestation_ids": [
+      "pca2_fee5fcdb4af66ba43068c1c6"
+    ]
+  },
+  {
+    "plugin_name": "TrueVerb Mono/Stereo",
+    "identifier": "VST3-TrueVerb Mono/Stereo-695648d-525120a",
+    "job_id": "pca_job_1e7b3586664a8d09",
+    "expected_reject": false,
+    "seconds": 3.0,
+    "summary_path": "C:\\Users\\timoz\\.vit\\pca_certifications\\pca_job_1e7b3586664a8d09\\summary.json",
+    "selected_roles": [
+      "mix",
+      "decay",
+      "pre_delay"
+    ],
+    "apply_status": "exact",
+    "status": "completed",
+    "stage": "completed",
+    "error": "",
+    "promoted_attestation_ids": [
+      "pca2_696d39205b1109c70ee6bcfc"
+    ]
+  },
+  {
+    "plugin_name": "TrueVerb Mono",
+    "identifier": "VST3-TrueVerb Mono-695648d-1b81c70a",
+    "job_id": "pca_job_1fd6c99218595ec8",
+    "expected_reject": false,
+    "seconds": 3.0,
+    "summary_path": "C:\\Users\\timoz\\.vit\\pca_certifications\\pca_job_1fd6c99218595ec8\\summary.json",
+    "selected_roles": [
+      "mix",
+      "decay",
+      "pre_delay"
+    ],
+    "apply_status": "exact",
+    "status": "completed",
+    "stage": "completed",
+    "error": "",
+    "promoted_attestation_ids": [
+      "pca2_de2523893e298b910ec611b3"
+    ]
+  },
+  {
+    "plugin_name": "MannyM Reverb Stereo",
+    "identifier": "VST3-MannyM Reverb Stereo-695648d-46aa2bcc",
+    "job_id": "pca_job_a745fda4a838c9cf",
+    "expected_reject": true,
+    "seconds": 3.0,
+    "summary_path": "C:\\Users\\timoz\\.vit\\pca_certifications\\pca_job_a745fda4a838c9cf\\summary.json",
+    "selected_roles": [],
+    "apply_status": "",
+    "status": "failed",
+    "stage": "failed",
+    "error": "invoke plugin_grabber.inspect_reverb failed: unsupported_broadband_compressor: no provable supported reverb stage/control-path topology",
+    "matrix_reason_row": "matrix: unsupported_broadband_compressor — 无衰减时间控制（Reverb Amount=湿量）"
+  },
+  {
+    "plugin_name": "IR1 full Stereo",
+    "identifier": "VST3-IR1 full Stereo-695648d-f2791680",
+    "job_id": "pca_job_5f38ce68c7047a99",
+    "expected_reject": true,
+    "seconds": 3.0,
+    "summary_path": "C:\\Users\\timoz\\.vit\\pca_certifications\\pca_job_5f38ce68c7047a99\\summary.json",
+    "selected_roles": [],
+    "apply_status": "",
+    "status": "failed",
+    "stage": "failed",
+    "error": "invoke plugin_grabber.inspect_reverb failed: unresolved_reverb_surface: no provable supported reverb stage/control-path topology",
+    "matrix_reason_row": "matrix: unresolved_reverb_surface — 卷积衰减固化于 IR 采样选择，参数面无衰减控制"
+  }
+]

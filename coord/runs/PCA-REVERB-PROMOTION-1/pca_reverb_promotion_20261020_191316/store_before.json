@@ -1,0 +1,39 @@
+{
+  "revision": 79,
+  "updated_at": "2026-10-12T03:17:14.1661931Z",
+  "reverb_attestations": [
+    {
+      "attestation_id": "pca2_16b17b51c4984c60efb9ee9b",
+      "status": "promoted",
+      "name": "Pro-R",
+      "identifier": "VST3-Pro-R-4bc24482-78c01fa6",
+      "coverage": [
+        "decay_time",
+        "output_normalization",
+        "wet_balance"
+      ],
+      "binary_fingerprint": "sha256:48d5cb4f1c9ad22261f80d912293bd5821285661c2cffcf66d4c8dedb005aee1",
+      "evidence_receipt_ids": [
+        "pcr1_7c8feffc1bd0411b6e1dca1b",
+        "pcr1_88d58582b879c2b7edef8d51",
+        "pcr1_dbb5f477151ac18e042dd30c",
+        "pcr1_ff3b55fb18ef34ba7efc7c3a"
+      ]
+    },
+    {
+      "attestation_id": "pca2_763ba85359d1d02114be214e",
+      "status": "stale",
+      "name": "Pro-R",
+      "identifier": "VST3-Pro-R-4bc24482-78c01fa6",
+      "coverage": [
+        "output_normalization",
+        "wet_balance"
+      ],
+      "binary_fingerprint": "sha256:48d5cb4f1c9ad22261f80d912293bd5821285661c2cffcf66d4c8dedb005aee1",
+      "evidence_receipt_ids": [
+        "pcr1_dbb5f477151ac18e042dd30c",
+        "pcr1_ff3b55fb18ef34ba7efc7c3a"
+      ]
+    }
+  ]
+}

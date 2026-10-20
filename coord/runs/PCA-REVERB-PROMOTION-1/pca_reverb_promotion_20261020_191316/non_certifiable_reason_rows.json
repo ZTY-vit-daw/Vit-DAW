@@ -1,0 +1,116 @@
+[
+  {
+    "plugin_name": "Clarity Vx - DeReverb Mono",
+    "plugin_identifier": "VST3-Clarity Vx - DeReverb Mono-695648d-d85a9121",
+    "rejection_code": "unresolved_reverb_surface",
+    "error": "unresolved_reverb_surface: no provable supported reverb stage/control-path topology"
+  },
+  {
+    "plugin_name": "Clarity Vx - DeReverb Pro Mono",
+    "plugin_identifier": "VST3-Clarity Vx - DeReverb Pro Mono-695648d-2a45910c",
+    "rejection_code": "unsupported_limiter",
+    "error": "unsupported_limiter: no provable supported reverb stage/control-path topology"
+  },
+  {
+    "plugin_name": "Clarity Vx - DeReverb Pro Stereo",
+    "plugin_identifier": "VST3-Clarity Vx - DeReverb Pro Stereo-695648d-2a5c170c",
+    "rejection_code": "unsupported_limiter",
+    "error": "unsupported_limiter: no provable supported reverb stage/control-path topology"
+  },
+  {
+    "plugin_name": "Clarity Vx - DeReverb Stereo",
+    "plugin_identifier": "VST3-Clarity Vx - DeReverb Stereo-695648d-d8711721",
+    "rejection_code": "unresolved_reverb_surface",
+    "error": "unresolved_reverb_surface: no provable supported reverb stage/control-path topology"
+  },
+  {
+    "plugin_name": "IR-L Mono",
+    "plugin_identifier": "VST3-IR-L Mono-695648d-4031be55",
+    "rejection_code": "unresolved_reverb_surface",
+    "error": "unresolved_reverb_surface: no provable supported reverb stage/control-path topology"
+  },
+  {
+    "plugin_name": "IR-L Mono/Stereo",
+    "plugin_identifier": "VST3-IR-L Mono/Stereo-695648d-405b0955",
+    "rejection_code": "unresolved_reverb_surface",
+    "error": "unresolved_reverb_surface: no provable supported reverb stage/control-path topology"
+  },
+  {
+    "plugin_name": "IR-L efficient Stereo",
+    "plugin_identifier": "VST3-IR-L efficient Stereo-695648d-383f3c4f",
+    "rejection_code": "unresolved_reverb_surface",
+    "error": "unresolved_reverb_surface: no provable supported reverb stage/control-path topology"
+  },
+  {
+    "plugin_name": "IR-L full Stereo",
+    "plugin_identifier": "VST3-IR-L full Stereo-695648d-3d0f4252",
+    "rejection_code": "unresolved_reverb_surface",
+    "error": "unresolved_reverb_surface: no provable supported reverb stage/control-path topology"
+  },
+  {
+    "plugin_name": "IR1 Mono",
+    "plugin_identifier": "VST3-IR1 Mono-695648d-e8a39439",
+    "rejection_code": "unresolved_reverb_surface",
+    "error": "unresolved_reverb_surface: no provable supported reverb stage/control-path topology"
+  },
+  {
+    "plugin_name": "IR1 Mono/Stereo",
+    "plugin_identifier": "VST3-IR1 Mono/Stereo-695648d-e8ccdf68",
+    "rejection_code": "unresolved_reverb_surface",
+    "error": "unresolved_reverb_surface: no provable supported reverb stage/control-path topology"
+  },
+  {
+    "plugin_name": "IR1 efficient Stereo",
+    "plugin_identifier": "VST3-IR1 efficient Stereo-695648d-dfb213a4",
+    "rejection_code": "unresolved_reverb_surface",
+    "error": "unresolved_reverb_surface: no provable supported reverb stage/control-path topology"
+  },
+  {
+    "plugin_name": "IR1 full Stereo",
+    "plugin_identifier": "VST3-IR1 full Stereo-695648d-f2791680",
+    "rejection_code": "unresolved_reverb_surface",
+    "error": "unresolved_reverb_surface: no provable supported reverb stage/control-path topology"
+  },
+  {
+    "plugin_name": "IRLive Mono",
+    "plugin_identifier": "VST3-IRLive Mono-695648d-18836abf",
+    "rejection_code": "unresolved_reverb_surface",
+    "error": "unresolved_reverb_surface: no provable supported reverb stage/control-path topology"
+  },
+  {
+    "plugin_name": "IRLive Mono/Stereo",
+    "plugin_identifier": "VST3-IRLive Mono/Stereo-695648d-18acb5bf",
+    "rejection_code": "unresolved_reverb_surface",
+    "error": "unresolved_reverb_surface: no provable supported reverb stage/control-path topology"
+  },
+  {
+    "plugin_name": "IRLive Stereo",
+    "plugin_identifier": "VST3-IRLive Stereo-695648d-1899f6c4",
+    "rejection_code": "unresolved_reverb_surface",
+    "error": "unresolved_reverb_surface: no provable supported reverb stage/control-path topology"
+  },
+  {
+    "plugin_name": "MannyM Reverb Mono",
+    "plugin_identifier": "VST3-MannyM Reverb Mono-695648d-4693a5cc",
+    "rejection_code": "unsupported_broadband_compressor",
+    "error": "unsupported_broadband_compressor: no provable supported reverb stage/control-path topology"
+  },
+  {
+    "plugin_name": "MannyM Reverb Mono/Stereo",
+    "plugin_identifier": "VST3-MannyM Reverb Mono/Stereo-695648d-46bcf0cc",
+    "rejection_code": "unsupported_broadband_compressor",
+    "error": "unsupported_broadband_compressor: no provable supported reverb stage/control-path topology"
+  },
+  {
+    "plugin_name": "MannyM Reverb Stereo",
+    "plugin_identifier": "VST3-MannyM Reverb Stereo-695648d-46aa2bcc",
+    "rejection_code": "unsupported_broadband_compressor",
+    "error": "unsupported_broadband_compressor: no provable supported reverb stage/control-path topology"
+  },
+  {
+    "plugin_name": "ValhallaSupermassive",
+    "plugin_identifier": "VST3-ValhallaSupermassive-5cffe1ee-7e8fe5d5",
+    "rejection_code": "unsupported_delay",
+    "error": "unsupported_delay: no provable supported reverb stage/control-path topology"
+  }
+]
