@@ -3,7 +3,11 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
-- 2026-10-20 19:1x +0800 登记 / **PCA-REVERB-PROMOTION-1(150) 认证战役真栈腿**（owner=GLM-5.3 L2 PC ZCode 执行会话，port=pca-reverb-promotion-1；worktree D:/Vit_DAW_wt_reverb1；领取提交 c08de366）：kernel+agent berth（dev_agent_smoke -StartKernel -RestartAgent，不启 UI/Godot——认证走 agent HTTP /agent/processor-certification/* + 内核 ZMQ，PLUGGRABBER 先例边界）。19:1x 起栈前预检：VitApp/VitAgent/vsphub 进程=0、六端口（7878/5555/5556/8787 tcp+udp）无监听。预计时长=认证 29 件（每件 1-3 分钟）+ 起栈等待，完成即拆栈释放；147 烟测腿如需真栈见本记录等待。
+（无——空闲）
+
+## 最近一次释放（2026-10-20 19:2x +0800，PCA-REVERB-PROMOTION-1）
+
+- 2026-10-20 19:1x 登记–19:2x 释放 / **PCA-REVERB-PROMOTION-1(150) 认证战役真栈腿**（owner=GLM-5.3 L2 PC ZCode 执行会话，port=pca-reverb-promotion-1；worktree D:/Vit_DAW_wt_reverb1；占用登记 80a1bd81）：一 run=**pca_reverb_promotion_20261020_191316，`dev_agent_smoke -StartKernel -RestartAgent -NoChatSmoke -NoStripSilenceSmoke -PcaReverbPromotionSmoke -KernelExe <主检出 staging>` 脚本 exit 0**——29/29 reverb 可证件经既有认证作业流晋升 v2 promoted（store rev79→108，reverb promoted 1→30，首件 Plates Stereo=pca2_b5a48ef8）+三门断言全绿（G1 candidates 面 30 件含 Pro-R/G2 semantic_search 候选源含全部新晋/G3 零静默丢件）+2 件 spot-reject 诚实拒绝在卷。§8：LLM=0（全确定性认证流+驱动脚本）；一次过零重跑；失败分类=2 件预期拒绝（矩阵原因行认证侧确认）。被测 agent=worktree 构建（=origin/main 代码）+内核只读复用主检出 staging。拆栈=脚本 best-effort 后残留本腿 pid（VitApp 11456/VitAgent 23136，145 卡同款）手动清杀→复核 VitApp/VitAgent/vsphub=0、栈端口（7878/5555/5556/8787/4445）监听=0。工件 coord/runs/PCA-REVERB-PROMOTION-1/pca_reverb_promotion_20261020_191316/（随 port/pca-reverb-promotion-1@a5d1933d 入库）。
 
 ## 最近一次释放（2026-10-19 20:0x +0800）
 
