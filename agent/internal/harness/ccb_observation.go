@@ -2,6 +2,7 @@ package harness
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -9,11 +10,45 @@ import (
 	"vit-daw-agent/internal/mixboard"
 )
 
+// ccbObservationBundleMap / ccbObservationCatalogMap 经 marshal→unmarshal 往返
+// 把结构体值归一成 JSON 形态 map：工具结果 map 的嵌套值必须全是 JSON 基元/
+// 容器——严格 map 断言消费者读到结构体即得空。消费侧归一（chat
+// freeStateNormalizeMapAny / agentloop messageLoopMapValue）是纵深防御，不因
+// 源侧归一而撤销。
+func ccbObservationBundleMap(bundle capabilitycontext.FreeStateObservationBundle) map[string]any {
+	raw, err := json.Marshal(bundle)
+	if err != nil {
+		return map[string]any{}
+	}
+	out := map[string]any{}
+	if err := json.Unmarshal(raw, &out); err != nil {
+		return map[string]any{}
+	}
+	return out
+}
+
+func ccbObservationCatalogMap(catalog capabilitycontext.FreeStateObservationCatalog) map[string]any {
+	raw, err := json.Marshal(catalog)
+	if err != nil {
+		return map[string]any{}
+	}
+	out := map[string]any{}
+	if err := json.Unmarshal(raw, &out); err != nil {
+		return map[string]any{}
+	}
+	return out
+}
+
+// ccbObservationRejected 构造拒绝响应：bundle 归一后嵌入（同上 JSON 形态契约）。
+func ccbObservationRejected(bundle capabilitycontext.FreeStateObservationBundle) map[string]any {
+	return map[string]any{"status": "rejected", "bundle": ccbObservationBundleMap(bundle)}
+}
+
 func (h *Harness) ccbObservationCatalog(cmd map[string]any) map[string]any {
 	target := ccbObservationTarget(cmd)
 	dimension := strings.TrimSpace(firstString(cmd, "dimension"))
 	if dimension == "" {
-		return map[string]any{"status": "ok", "catalog": capabilitycontext.FreeStateObservationCatalogFor(target)}
+		return map[string]any{"status": "ok", "catalog": ccbObservationCatalogMap(capabilitycontext.FreeStateObservationCatalogFor(target))}
 	}
 	// §2.6 缺口 6：目录 dimension 过滤（接线 GetViewsForDimension，F7）。
 	// 未知维度拒绝并回词表——dimension 是目录过滤不是推荐，CCB 不做自动 view 选择。
@@ -25,7 +60,7 @@ func (h *Harness) ccbObservationCatalog(cmd map[string]any) map[string]any {
 			"dimensions": capabilitycontext.FreeStateObservationDimensions(),
 		}
 	}
-	return map[string]any{"status": "ok", "catalog": catalog}
+	return map[string]any{"status": "ok", "catalog": ccbObservationCatalogMap(catalog)}
 }
 
 func (h *Harness) ccbObservationRequest(ctx context.Context, cmd map[string]any, requestContext map[string]any, source string) (map[string]any, error) {
@@ -48,13 +83,13 @@ func (h *Harness) ccbObservationRequest(ctx context.Context, cmd map[string]any,
 	req = capabilitycontext.NormalizeFreeStateObservationRequest(req)
 	req.Scope = ccbObservationScope(req)
 	if reasons := capabilitycontext.ValidateFreeStateObservationViewIDs(rawViewIDs); len(reasons) > 0 {
-		return map[string]any{"status": "rejected", "bundle": capabilitycontext.RejectedFreeStateObservationScoped(req, ccbObservationBlockingViewsFromReasons(req, reasons), reasons...)}, nil
+		return ccbObservationRejected(capabilitycontext.RejectedFreeStateObservationScoped(req, ccbObservationBlockingViewsFromReasons(req, reasons), reasons...)), nil
 	}
 	if reasons := capabilitycontext.ValidateFreeStateObservationParameters(req); len(reasons) > 0 {
-		return map[string]any{"status": "rejected", "bundle": capabilitycontext.RejectedFreeStateObservationScoped(req, ccbObservationBlockingViewsFromReasons(req, reasons), reasons...)}, nil
+		return ccbObservationRejected(capabilitycontext.RejectedFreeStateObservationScoped(req, ccbObservationBlockingViewsFromReasons(req, reasons), reasons...)), nil
 	}
 	if reasons := ccbObservationUnknownViewReasons(req); len(reasons) > 0 {
-		return map[string]any{"status": "rejected", "bundle": capabilitycontext.RejectedFreeStateObservationScoped(req, ccbObservationBlockingViewsFromReasons(req, reasons), reasons...)}, nil
+		return ccbObservationRejected(capabilitycontext.RejectedFreeStateObservationScoped(req, ccbObservationBlockingViewsFromReasons(req, reasons), reasons...)), nil
 	}
 	// A track.* view observes exactly one track. A fresh request without an
 	// explicit target materializes project-wide and yields the track-less
@@ -63,13 +98,13 @@ func (h *Harness) ccbObservationRequest(ctx context.Context, cmd map[string]any,
 	// visible track next turn. A replay carrying an existing observation_id
 	// inherits its target from the authoritative binding and stays legal.
 	if blocking, reasons := ccbObservationTrackTargetReasons(req); len(reasons) > 0 {
-		return map[string]any{"status": "rejected", "bundle": capabilitycontext.RejectedFreeStateObservationScoped(req, blocking, reasons...)}, nil
+		return ccbObservationRejected(capabilitycontext.RejectedFreeStateObservationScoped(req, blocking, reasons...)), nil
 	}
 	// Catalog entries marked deferred/unavailable are explicit capability
 	// boundaries. Reject before materializing an observation so the model gets
 	// a durable receipt and can deterministically choose another view or block.
 	if blocking, reasons := ccbObservationUnavailableViewDetails(req); len(reasons) > 0 {
-		return map[string]any{"status": "rejected", "bundle": capabilitycontext.RejectedFreeStateObservationScoped(req, blocking, reasons...)}, nil
+		return ccbObservationRejected(capabilitycontext.RejectedFreeStateObservationScoped(req, blocking, reasons...)), nil
 	}
 	// §2.6 targets 批量：多目标 fan-out 到逐目标观察并合并（参数验证已保证
 	// 全部 view 为 track.*、无 replay）。
@@ -85,18 +120,18 @@ func (h *Harness) ccbObservationRequest(ctx context.Context, cmd map[string]any,
 		if containsCCBView(req.ViewIDs, "mix.masking_relationship") {
 			if _, err := h.prepareCCBMaskingObservation(ctx, observeCmd, req.MixSessionID); err != nil {
 				reason := "mix.masking_relationship: " + err.Error()
-				return map[string]any{"status": "rejected", "bundle": capabilitycontext.RejectedFreeStateObservationScoped(req, []string{"mix.masking_relationship"}, reason)}, nil
+				return ccbObservationRejected(capabilitycontext.RejectedFreeStateObservationScoped(req, []string{"mix.masking_relationship"}, reason)), nil
 			}
 		}
 		observed, err := h.requestMixObservation(ctx, observeCmd)
 		if err != nil {
-			return map[string]any{"status": "rejected", "bundle": capabilitycontext.RejectedFreeStateObservationScoped(req, req.ViewIDs, err.Error())}, nil
+			return ccbObservationRejected(capabilitycontext.RejectedFreeStateObservationScoped(req, req.ViewIDs, err.Error())), nil
 		}
 		req.ObservationID = firstString(observed, "observation_id")
 		req.MixSessionID = firstString(observed, "mix_session_id")
 		if req.ObservationID == "" {
 			reason := firstNonEmpty(firstString(observed, "reason", "error", "message"), "authoritative observation was not materialized")
-			return map[string]any{"status": "rejected", "bundle": capabilitycontext.RejectedFreeStateObservationScoped(req, req.ViewIDs, reason)}, nil
+			return ccbObservationRejected(capabilitycontext.RejectedFreeStateObservationScoped(req, req.ViewIDs, reason)), nil
 		}
 		// T11 半边（QUERY_ENGINE §2.6 响应字段）：物化 on 态的 observe 响应携带
 		// actual_cost_class/recomputed（MAT-E 已落的字段面）——"observe 便宜"的
@@ -105,11 +140,11 @@ func (h *Harness) ccbObservationRequest(ctx context.Context, cmd map[string]any,
 	}
 	bundle, err := h.ccbObservationReadAndAssemble(req)
 	if err != nil {
-		return map[string]any{"status": "rejected", "bundle": capabilitycontext.RejectedFreeStateObservationScoped(req, req.ViewIDs, err.Error())}, nil
+		return ccbObservationRejected(capabilitycontext.RejectedFreeStateObservationScoped(req, req.ViewIDs, err.Error())), nil
 	}
 	response := map[string]any{
 		"status": bundle.Status,
-		"bundle": bundle,
+		"bundle": ccbObservationBundleMap(bundle),
 	}
 	for key, value := range onFields {
 		response[key] = value
@@ -170,26 +205,26 @@ func (h *Harness) ccbObservationBatchRequest(ctx context.Context, cmd map[string
 		observed, err := h.requestMixObservation(ctx, ccbObservationCommand(cmd, sub))
 		if err != nil {
 			reason := "targets[" + target.ID + "]: " + err.Error()
-			return map[string]any{"status": "rejected", "bundle": capabilitycontext.RejectedFreeStateObservationScoped(req, req.ViewIDs, reason)}, nil
+			return ccbObservationRejected(capabilitycontext.RejectedFreeStateObservationScoped(req, req.ViewIDs, reason)), nil
 		}
 		sub.ObservationID = firstString(observed, "observation_id")
 		sub.MixSessionID = firstString(observed, "mix_session_id")
 		if sub.ObservationID == "" {
 			reason := "targets[" + target.ID + "]: " + firstNonEmpty(firstString(observed, "reason", "error", "message"), "authoritative observation was not materialized")
-			return map[string]any{"status": "rejected", "bundle": capabilitycontext.RejectedFreeStateObservationScoped(req, req.ViewIDs, reason)}, nil
+			return ccbObservationRejected(capabilitycontext.RejectedFreeStateObservationScoped(req, req.ViewIDs, reason)), nil
 		}
 		ccbObservationMergeOnFields(onFields, observed)
 		bundle, err := h.ccbObservationReadAndAssemble(sub)
 		if err != nil {
 			reason := "targets[" + target.ID + "]: " + err.Error()
-			return map[string]any{"status": "rejected", "bundle": capabilitycontext.RejectedFreeStateObservationScoped(req, req.ViewIDs, reason)}, nil
+			return ccbObservationRejected(capabilitycontext.RejectedFreeStateObservationScoped(req, req.ViewIDs, reason)), nil
 		}
 		entries = append(entries, capabilitycontext.FreeStateObservationBatchEntry{Target: target, Bundle: bundle})
 	}
 	merged := capabilitycontext.MergeFreeStateObservationBundles(req, entries)
 	response := map[string]any{
 		"status": merged.Status,
-		"bundle": merged,
+		"bundle": ccbObservationBundleMap(merged),
 	}
 	for key, value := range onFields {
 		response[key] = value
