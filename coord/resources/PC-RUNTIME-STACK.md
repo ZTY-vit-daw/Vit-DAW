@@ -3,7 +3,7 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
-（无——空闲）
+- 2026-10-20 20:17 +0800 登记 / **SEMANTIC-TIMEFX-SOFTGUIDE-EXP-1（146 软引导实验腿）真栈双会话**（owner=GLM-5.3 L2 PC ZCode 执行会话，主管批准派发，方案=coord/reports/2026-10-20-146-timefx-design-and-experiment.md §一/§E 预声明协议跑前未改；worktree D:/Vit_DAW_wt_sge1 @ port/semantic-timefx-softguide-exp-1[B2 补丁臂] + D:/Vit_DAW_wt_sge1_ctrl @ port/semantic-timefx-softguide-exp-1-ctrl[B1 对照臂，origin/main 零生产改动]）：`dev_agent_smoke -StartKernel -StartUI -KernelExe <主检出 staging>` 模式两段会话（B2 10 变体 + B1 对照 5 run，python NL 驱动逐变体新会话），栈端口 7878/5555/5556/8787/4445。**与 151（BUDGETSTOP-CHAINEND-DELIVERY-1，20:09 已领取未占栈）错峰**：本腿预计持栈至 22:3x 前后，151 真栈腿（d1_stall_repro+147 三面补验）请在本腿释放登记后启栈。预检（20:16）：六端口监听=0、VitApp/VitAgent/vsphub=0；用户 Godot 编辑器 pid 29744（--editor，编辑器端口非栈端口）在场未动。工件目标 coord/runs/146-SOFT-GUIDE-EXP/。
 
 ## 最近一次释放（2026-10-20 19:5x +0800，FULLACCESS-SEMANTIC-CHAIN-1）
 
