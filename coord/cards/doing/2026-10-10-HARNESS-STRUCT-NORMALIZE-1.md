@@ -27,6 +27,6 @@
 
 marshal 往返造成字段丢失/精度变化（如 time.Time 时区）→ 形态上交。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / 领取提交）
+- 领取：2026-10-20 18:52 / origin/main a2a04355（派单时口头基线 03fea178，领取前远端已前进至 a2a04355，本卡按 a2a04355 领取）/ owner=GLM-5.3-Flash（ZCode PC 执行会话）/ 分支=port/harness-struct-normalize-1 / worktree=D:/Vit_DAW_wt_hsnorm1 / 领取提交=本提交（coord/hsnorm1-claim 仅含本卡面变更，fast-forward 推 main）。领取时核对：doing 池=GEN-SUNO-WEB-DESIGN-1（webui 域）/FS-RECEIPT-REVISION-1（chat 域）/SEMANTIC-TIMEFX-BUS-CONVENTION-1（设计卡不改生产代码），与本卡文件域零冲突；目标文件 blob f7ac9b2f 在 03fea178/358b3de7/3c4176b7/a2a04355 四基线一致
 - 回执：（commit / 契约测试名 / 响应面零变化对照）
 - 验收：（裁定文件 / 验收 commit）
