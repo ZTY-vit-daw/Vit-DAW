@@ -27,6 +27,6 @@
 
 宽回退链语义与 :738 场景不符（如该函数有副作用）→ 形态上交。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / 领取提交）
+- 领取：2026-10-20 18:45 / origin/main 03fea178 / owner=GLM-5.3-Flash ZCode PC 执行会话 / 分支=port/fs-receipt-revision-1 / worktree=D:/Vit_DAW_wt_fsrr1 / 领取提交=本提交（coord/fsrr1-claim 仅含本卡面变更 fast-forward 推 main）。领取时核对：doing 池仅 GEN-SUNO-WEB-DESIGN-1（webui 域），文件域零冲突；宽回退链 freeStateObservationProjectRevision 实测为纯提取函数无副作用，停止条件不触发
 - 回执：（commit / 测试名 / 端测边界声明=纯单测域）
 - 验收：（裁定文件 / 验收 commit）
