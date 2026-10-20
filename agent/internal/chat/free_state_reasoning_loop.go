@@ -742,9 +742,9 @@ func (s *Server) recordFreeStateAdmissionReceipt(loop *freeStateReasoningLoop, d
 	default:
 		boundary = "admitted"
 	}
-	observationBinding := map[string]any{}
+	observationRevision := ""
 	if loop.LatestObservation != nil {
-		observationBinding = firstMapFromAny(loop.LatestObservation.Summary["project_binding"])
+		observationRevision = freeStateObservationProjectRevision(loop.LatestObservation.Summary)
 	}
 	loop.AdmissionReceipt = map[string]any{
 		"schema_version":      "free_state_admission_receipt.v1",
@@ -757,7 +757,7 @@ func (s *Server) recordFreeStateAdmissionReceipt(loop *freeStateReasoningLoop, d
 		"proposal_present":    audit.Proposal,
 		"proposal_valid":      audit.ProposalValid,
 		"proposal_error":      audit.ProposalError,
-		"project_revision":    firstNonEmpty(firstStringFromMap(loop.LatestProjectChange, "project_revision", "revision"), firstStringFromMap(observationBinding, "project_revision")),
+		"project_revision":    firstNonEmpty(firstStringFromMap(loop.LatestProjectChange, "project_revision", "revision"), observationRevision),
 		"recorded_at":         time.Now().UTC().Format(time.RFC3339Nano),
 	}
 }
