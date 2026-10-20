@@ -49,6 +49,6 @@
 - 取证发现惯例已部分存在（某层已有拓扑决策）→ 如实报告并收窄设计范围；
 - 注入需要内核新命令（现有 track.send.* 不够表达）→ 上交缺口锚点。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-20 18:50 +0800 / origin/main=03fea178（基线=本地 main 358b3de7，主管 18:39 findings 提交尚未推送，本领取推送连带 fast-forward 入远端）/ owner=GLM-5.3 执行会话（ZCode，PC，本会话，L2 agent 语义面）/ 分支=port/semantic-timefx-bus-1（报告与设计稿）+coord/timefx146-claim（卡态） / worktree=D:/Vit_DAW_wt_timefx146 + D:/Vit_DAW_wt_timefx146_coord / 领取提交=见回执栏
 - 回执：（结论文件 / 锚点清单 / 设计稿路径 / 体验场次实录关联）
 - 验收：（裁定文件 / 验收 commit）
