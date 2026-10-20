@@ -3,7 +3,7 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
-（无——空闲）
+- 2026-10-20 22:4x +0800 登记 / **TIMEFX-BUS-TOPOPLAN-1(154) 真栈烟测腿**（owner=GLM-5.3 L2 PC ZCode 执行会话，本卡会话；worktree D:/Vit_DAW_wt_topoplan154@port/timefx-bus-topoplan-1@52944fb5；占用登记=本 commit）：`dev_agent_smoke -StartKernel -RestartAgent -Scenario timefx_bus_topoplan -KernelExe <主检出 staging>`——时域族默认总线拓扑验收腿（AGENTS §5）：显式话术→选卡含 topology_plan→确认→connect+load 两腿→track.send.list 读回四门+inline 例外对照两门+模糊探测记录面；§8=LLM 真 deepseek 链（选卡 plan 一调用+模型 turn），路由 miss 记类允许一次重跑，同确定性断点 ×2 止损。被测 agent=worktree 构建（含本卡 Go 改动）；内核=主检出 staging Export/staging/runtime/VitApp.exe SHA256=B6565DCF85D1DA867E16333052A7B928A5413565940603ADBCF4ABD59DD3123B（只读复用，本卡零内核改动；22:44 哈希亲核一致）。登记前只读核对（22:4x）：五端口（7878/5555/5556/8787/4445）监听=0；VitApp/VitAgent/vsphub/Godot 运行态=0（151 已于 22:3x 释放后复核；用户 Godot 编辑器不触碰）；LLM 预探测 22:4x api.deepseek.com HTTP 401（可达，鉴权由 config 侧持有=200 先例同面）。
 
 ## 最近一次释放（2026-10-20 22:3x +0800，BUDGETSTOP-CHAINEND-DELIVERY-1）
 
