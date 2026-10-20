@@ -3326,6 +3326,20 @@ func (s *Server) recordGoalResult(conversationID string, res agentloop.Result) e
 					durable.LeaseExpiresAt = time.Time{}
 					durable.UpdatedAt = now
 					autoContinuationBudgetExhausted = true
+					// The legacy arm above (s.goalContinuations[res.GoalID] =
+					// durable.Continuation) means "the next automatic slice is
+					// armed". After this settle that meaning is gone: the loop is
+					// blocked and every record for the goal is terminal, so no
+					// next slice will ever be scheduled or answered. Leaving the
+					// entry armed kept goalHasLiveContinuationOwner counting the
+					// completed checkpoint as a live owner, which silenced the
+					// chain-end delivery gate's D1-STALL-1 receipt and the turn
+					// projection behind the same predicate (2026-10-20 real
+					// stack: [f6.gate] chainEnded=false over a fully completed
+					// record set). The resumable goal stays waiting_continue;
+					// that admission (shouldResumeGoalFromStatus) reads the goal
+					// status, not this map.
+					delete(s.goalContinuations, durable.GoalID)
 					// Includes the just-stored copy of this item: the map write
 					// above already captured its pending status.
 					for continuationID, other := range s.durableContinuations {
