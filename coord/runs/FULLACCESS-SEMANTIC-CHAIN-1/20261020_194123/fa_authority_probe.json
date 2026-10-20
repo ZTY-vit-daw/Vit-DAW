@@ -1,0 +1,73 @@
+﻿{
+    "conversation_id":  "dev_fa_chain_authority_20261020_194128",
+    "task_id":  "task_d9406117b8541b2a",
+    "goal_id":  "goal_ba6320067107c671",
+    "run_id":  "run_6c98fe6ddf921e3c",
+    "original_intent":  "/smoke authority",
+    "reply":  "authority smoke: bound=full_project_access server=full_project_access",
+    "agent_mode":  "default",
+    "needs_confirmation":  false,
+    "goal_status":  "completed",
+    "goal_summary":  "/smoke authority",
+    "stop_reason":  "authority_smoke_ok",
+    "project_history":  {
+                            "active_branch":  "main",
+                            "active_node_id":  "n_20261020T114136_9c65ef08",
+                            "active_worktree":  "",
+                            "available":  true,
+                            "branches":  {
+                                             "main":  "c_20261020T114135_b3ec8013"
+                                         },
+                            "commit_count":  1,
+                            "conversation_messages":  [
+                                                          {
+                                                              "content":  "/smoke authority",
+                                                              "logical_message_id":  "n_20261020T114135_cdc3b422",
+                                                              "message_kind":  "user",
+                                                              "node_id":  "n_20261020T114135_cdc3b422",
+                                                              "role":  "user"
+                                                          },
+                                                          {
+                                                              "content":  "authority smoke: bound=full_project_access server=full_project_access",
+                                                              "logical_message_id":  "n_20261020T114136_9c65ef08",
+                                                              "message_kind":  "assistant",
+                                                              "node_id":  "n_20261020T114136_9c65ef08",
+                                                              "role":  "assistant"
+                                                          }
+                                                      ],
+                            "detached":  false,
+                            "draft":  false,
+                            "head":  "c_20261020T114135_b3ec8013",
+                            "initialized":  true,
+                            "project_label":  "fa_fixture",
+                            "project_path":  "D:\\Vit_DAW_wt_fasc1\\coord\\runs\\FULLACCESS-SEMANTIC-CHAIN-1\\20261020_194123\\project\\fa_fixture.vit",
+                            "project_uuid":  "vitproj_537c5b10db854b9e91218154ffd9c84d",
+                            "refs":  {
+                                         "refs/heads/main":  "c_20261020T114135_b3ec8013"
+                                     },
+                            "root_project_path":  "",
+                            "unsaved":  false,
+                            "warnings":  [
+
+                                         ],
+                            "worktrees":  [
+                                              {
+                                                  "commit_id":  "c_20261020T114135_b3ec8013",
+                                                  "created_at":  "2026-10-20T11:41:36.257412Z",
+                                                  "is_root":  true,
+                                                  "label":  "主工作树",
+                                                  "name":  "main",
+                                                  "origin_commit_id":  "c_20261020T114135_b3ec8013",
+                                                  "path":  "D:\\Vit_DAW_wt_fasc1\\coord\\runs\\FULLACCESS-SEMANTIC-CHAIN-1\\20261020_194123\\project",
+                                                  "project_file_path":  "D:\\Vit_DAW_wt_fasc1\\coord\\runs\\FULLACCESS-SEMANTIC-CHAIN-1\\20261020_194123\\project\\fa_fixture.vit",
+                                                  "project_path":  "D:\\Vit_DAW_wt_fasc1\\coord\\runs\\FULLACCESS-SEMANTIC-CHAIN-1\\20261020_194123\\project\\fa_fixture.vit",
+                                                  "root_project_path":  "D:\\Vit_DAW_wt_fasc1\\coord\\runs\\FULLACCESS-SEMANTIC-CHAIN-1\\20261020_194123\\project\\fa_fixture.vit"
+                                              }
+                                          ]
+                        },
+    "lifecycle":  "durable",
+    "persistence":  "project_history",
+    "message_kind":  "assistant",
+    "turn_id":  "run_6c98fe6ddf921e3c",
+    "logical_message_id":  "n_20261020T114136_9c65ef08"
+}

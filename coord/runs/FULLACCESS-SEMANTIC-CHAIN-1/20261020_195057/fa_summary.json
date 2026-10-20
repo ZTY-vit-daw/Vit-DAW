@@ -1,0 +1,28 @@
+﻿{
+    "scenario":  "fullaccess_semantic_chain",
+    "card":  "FULLACCESS-SEMANTIC-CHAIN-1",
+    "conversation_id":  "dev_fa_chain_20261020_195102",
+    "turns_sent":  1,
+    "nudges_sent":  0,
+    "settle_reason":  "goal_terminal",
+    "goal_status":  "completed",
+    "final_stop_reason":  "limit_reached",
+    "card_issued":  false,
+    "card_kind":  "",
+    "card_source":  "",
+    "nl_chain_class":  "upstream_delivery_gap_no_materialization",
+    "rack_add_node_seen":  false,
+    "full_access_auto_authorized_seen":  false,
+    "typed_controller_executed_seen":  false,
+    "fresh_observation_receipt_seen":  false,
+    "deterministic_load_leg":  "pass",
+    "deterministic_load_plugin_id":  "1044",
+    "manual_control_leg":  "pass",
+    "manual_control_plan_id":  "plan_685131ba9728c873",
+    "authority_probe":  "authority_smoke_ok",
+    "timeline":  [
+                     "chat_turn_1 stop_reason=limit_reached goal_status=waiting_continue",
+                     "settle goal_terminal status=completed"
+                 ],
+    "finished_at":  "2026-10-20T19:52:09.3392709+08:00"
+}
