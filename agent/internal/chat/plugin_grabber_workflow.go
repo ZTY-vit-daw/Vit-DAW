@@ -129,6 +129,10 @@ func (s *Server) runPluginGrabberLoadWorkflow(ctx context.Context, conversationI
 	if err != nil {
 		return ChatResponse{ConversationID: conversationID, Reply: friendlyExecutionError(err), Error: err.Error(), Commands: decisions}
 	}
+	// SEMANTIC-CARD-COPY-1 ②: the load confirmation card names the target
+	// track (name + ID) instead of "当前轨道"; an unresolved name degrades to
+	// the bare ID, never to an unnamed claim.
+	trackName := s.pluginLoadTrackDisplayName(ctx, target.TrackID, requestContext)
 	plan := PendingPlan{
 		ID:        "plan_" + randomID(),
 		CreatedAt: time.Now(),
@@ -138,6 +142,7 @@ func (s *Server) runPluginGrabberLoadWorkflow(ctx context.Context, conversationI
 		Workflow:  pluginGrabberLoadCommand,
 		WorkflowData: map[string]any{
 			"track_id":          target.TrackID,
+			"track_name":        trackName,
 			"plugin_query":      target.PluginQuery,
 			"plugin_name":       target.PluginName,
 			"plugin_path":       target.PluginPath,
@@ -215,7 +220,11 @@ func (s *Server) runPluginGrabberLoadWorkflow(ctx context.Context, conversationI
 	if name == "" {
 		name = filepath.Base(target.PluginPath)
 	}
-	reply := fmt.Sprintf("将加载%s %s 到当前轨道。确认后我会抓取参数摘要。", pluginKindForUser(pluginKind), name)
+	trackLabel := "轨道 " + target.TrackID
+	if trackName != "" && trackName != target.TrackID {
+		trackLabel = fmt.Sprintf("轨道「%s」（ID: %s）", trackName, target.TrackID)
+	}
+	reply := fmt.Sprintf("将加载%s %s 到%s。本次只装载插件，不会写入任何参数；确认后我会抓取参数摘要。", pluginKindForUser(pluginKind), name, trackLabel)
 	// AGENT-SENDROUTE-SEMANTICS-1 决策表 agent_suggest 分支：单轨 insert 计划保持
 	// 不变，回复附共享空间建议（可拒）；词法+机架证据，非语义判定。
 	if s != nil && s.harness != nil {
@@ -566,6 +575,37 @@ func pluginKindForUser(kind string) string {
 	default:
 		return "插件"
 	}
+}
+
+// pluginLoadTrackDisplayNameFromState resolves the user-facing track name for
+// a track ID from the state summary's tracks rows; the request context's
+// selected-track name is trusted only when its ID agrees. An empty result
+// means no honest name is available and the caller renders the bare ID.
+func pluginLoadTrackDisplayNameFromState(state map[string]any, trackID string, requestContext map[string]any) string {
+	trackID = strings.TrimSpace(trackID)
+	if trackID == "" {
+		return ""
+	}
+	for _, track := range mapRowsFromAny(state["tracks"]) {
+		if firstStringFromMap(track, "track_id", "id") == trackID {
+			return firstStringFromMap(track, "track_name", "name")
+		}
+	}
+	if firstStringFromMap(requestContext, "selected_track_id", "selected_plugin_track_id") == trackID {
+		return firstStringFromMap(requestContext, "selected_track_name")
+	}
+	return ""
+}
+
+func (s *Server) pluginLoadTrackDisplayName(ctx context.Context, trackID string, requestContext map[string]any) string {
+	if s != nil && s.harness != nil {
+		if state := s.harness.UserStateSummary(ctx); state != nil {
+			if name := pluginLoadTrackDisplayNameFromState(state, trackID, requestContext); name != "" {
+				return name
+			}
+		}
+	}
+	return pluginLoadTrackDisplayNameFromState(nil, trackID, requestContext)
 }
 
 func pluginLoadIntentKind(query, intent string) string {

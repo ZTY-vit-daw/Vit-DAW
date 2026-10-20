@@ -143,8 +143,9 @@ func (s *Server) pluginRecommendationFullAccessSelectionResponse(conversationID,
 	resp := s.continuePluginRecommendationInteraction(context.Background(), interaction, "select_"+primary.CandidateKey)
 	resp.NeedsConfirmation = false
 	resp.InteractionRequests = nil
-	resp.Reply = fmt.Sprintf("完全访问权限下我自主选择了主推荐：%s——%s。\n%s",
-		firstNonEmpty(candidate.Name, primary.CandidateKey), strings.TrimSpace(firstNonEmpty(primary.Reason, plan.Summary)), resp.Reply)
+	resp.Reply = fmt.Sprintf("完全访问权限下我自主选择了主推荐：%s——%s。",
+		firstNonEmpty(candidate.Name, primary.CandidateKey), strings.TrimSpace(firstNonEmpty(primary.Reason, plan.Summary))) +
+		pluginRecommendationAdmissionBoundaryReplySuffix(requestContext) + "\n" + resp.Reply
 	resp.WorkflowData = mergeContext(resp.WorkflowData, map[string]any{
 		"authority_mode": authorityModeFull, "full_access_auto_authorized": true,
 		"recommendation_schema_version": pluginRecommendationSchema,
