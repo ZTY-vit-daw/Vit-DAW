@@ -38,6 +38,13 @@
 - **F4（146 核心取证）**：模糊意图的实际路径=**到不了任何提案**。server-side 自由态准入门拒绝（stop_reason=free_state_admission_gate_failed，failed_gate_ids=G3/G5/G6/G7/G8，`internal/chat/goalrunner_chat.go:2096-2104`），模型 prose 终答被响应路由扣下，用户收到 G 门代号拼接文案。146 待证 1 的预答：比「规划层零拓扑概念」更早——模糊意图在准入门就断，拓扑决策无从发生；且 turn10 零观察（模型把新话术当延续，未做本轮观察，五门全悬空有内在一致性）。修复 146 的注入设计必须先回答：语义意图路由在 G 门评估之前还是之后分流。
 - **F5（主旅程断裂，卡 149）**：模型在 18:21:34 与 18:21:45 **两次产出完整合格的 A/B 试听交接正文**（「请在 DAW 里对 bass 轨做整体开关对比（旁通/启用这条轨的混响）…交由你的耳朵判断」），均被 free_state_final_gate 以决策对象形状违规**整条驳回**：第一次 experiment_materiality 形状违规（state=""、attempt=0——错误信息已含完整 shape 教学）；第二次 status=needs_action 携带 improvement_proposal（要求 improvement_proposal|needs_experiment）。两次驳回后预算耗尽，owes_outcome=true 但用户面零交付。109 线双 exit 0 与今晚逐字同构话术+同模型档，验证面未覆盖该失败路径。
 - **F6（卫生，不占卡）**：continuation.park 日志 ~3 条/秒刷屏（18:19:35-18:20:35 共 ~180 行）；后续归入日志卫生池。
+- **F7（面差缺口，待用户裁定）**：准入推荐面与探针兼容面之间存在断层——探针兼容面已验证 **42 件可证时域插件**（含 Abbey Road Plates 的 Damper 受控写证据，PLUGGRABBER-TIMEDYN-COMPAT-1，2026-10-16），但准入推荐面（`~/.vit/processor_control_attestations.v2.json`）reverb 族**仅 1 件 promoted（Pro-R，rev78/79 均为 2026-10-12 状态）**。断层项=PCA 认证晋升战役（control case evidence → attestation → admission）。是否开晋升卡由用户裁定。
+
+## 用户三问（2026-10-20 晚窗原话）与决策侧答案
+
+1. **完全访问权限为什么会弹出交互卡片？**→F1/卡 147：语义链三处确认面（plugin_recommendation.go:536-640 选择卡+装载确认+typed controller 确认）均无权限模式分叉；完全访问=全链自主的契约（2026-09-13 裁定）在 mix_tick 面与 harness 装载门已实现，唯独本链未接线。
+2. **为什么不用 FX 轨而是直接（inline）加载？**→146 主题：整场唯一内核命令=一次 `rack_add_node`，零 `track.send.*`/零建轨。语义链**没有任何拓扑决策层**（146 已钉事实 2/3：规划层零拓扑概念、控制面未建）；send 底座（K1/K2/K3）10-19 才收官，语义面尚未接入。146 的设计方向即「时域族默认 send/return 拓扑、inline 为显式例外」。
+3. **为什么说只有 Pro-R？（记忆：之前测试提供过 Waves 板式混响）**→两面之差，非回归：准入推荐面 reverb 仅 Pro-R promoted（F7 上面）；用户记忆的 Abbey Road Plates 来自 10-16 **探针兼容面**（PLUGGRABBER 卡内核 rack_add_node 直连+inspect 放行+Damper 受控写——该面明确「PCA 产品装载门未触碰未绕过」，run1 里 Plates 走 agent 装载面即被 PCA 门拒）。卡面「唯一可加载」措辞失真（F2/卡 148），但候选集本身是准入面的诚实呈现。
 
 ## 正向证据（链路做对的部分）
 
