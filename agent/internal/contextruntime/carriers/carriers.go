@@ -28,6 +28,10 @@ import (
 )
 
 // 四层+目录的 Section ID（§2.0：ctx.layer.<name>；目录归 L1 族排尾）。
+
+// softGuideTimeDomainTopologyConvention 是 SEMANTIC-TIMEFX-SOFTGUIDE-EXP-1
+// B2 臂的软引导惯例文本（146 实验方案 §一.D，逐字；协议跑前不得改）。
+const softGuideTimeDomainTopologyConvention = `时域效果惯例（默认拓扑）：当计划的处理属于时域族（reverb/delay/echo/room/hall，及空间感/氛围/远近/干湿类请求），且用户未明说插入方式时，默认规划为总线拓扑：效果器装载到一条 FX/return 轨（新建时默认命名 Reverb Bus / Delay Bus，工程已有可用时域 FX 轨时复用之），源轨以 send 连接该轨并设默认发送量；inline 插入源轨仅当用户明说插入、单轨快速 A/B 或实验探测。提案必须呈现拓扑计划（建什么轨或复用哪条、装载位置、send 连接与默认发送量）。只能引用观察披露过的真实轨道与结构，不得发明轨道或拓扑。`
 const (
 	LayerRules   = "ctx.layer.rules"
 	LayerProfile = "ctx.layer.profile"
@@ -118,6 +122,13 @@ func (b *Bundle) assembleRules(opts Options) {
 		rules, _ = result.Manifest.RenderChatLayers(opts.ModeInstruction, opts.CommandCatalog)
 	case ruleset.FamilyNeutralFamily:
 		rules, _ = result.Manifest.RenderNeutralFamilyLayers(opts.ObservationCatalog, opts.AllowedTools)
+		// [SEMANTIC-TIMEFX-SOFTGUIDE-EXP-1] 一次性实验补丁（活性路径）：中性
+		// 族 L1 规则层尾部追加时域族默认总线拓扑惯例段（B2 臂；文本=146 实
+		// 验方案 §一.D 逐字）。临时 build，不入生产；生产注入走卡 146-IMPL-
+		// SOFT（届时进 ruleset embed 并 bump 版本）。注意：本补丁未 bump
+		// RulesetVersion（CacheKey 不变），跨进程持久缓存若按版本键命中旧
+		// 前缀属已知实验边界，起腿后以 prompt_render 亲核为准。
+		rules = strings.TrimSpace(rules) + "\n\n" + softGuideTimeDomainTopologyConvention
 	default:
 		b.LayerStates[LayerRules] = StateCorrupt
 		b.Warnings = append(b.Warnings, fmt.Sprintf("ruleset family %q outside closed enum {chat, neutral_family}: L1 layer corrupt (fail-closed)", opts.Family))
