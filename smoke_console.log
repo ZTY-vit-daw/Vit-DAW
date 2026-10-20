@@ -1,0 +1,52 @@
+ok: draft root isolation: source=external VIT_HISTORY_DRAFT_ROOT=D:\Vit_DAW_wt_topoplan154\coord\runs\TIMEFX-BUS-TOPOPLAN-1\20261020_235001\agent_drafts
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_wt_topoplan154
+agent http: http://127.0.0.1:7878
+
+== Build VitAgent
+ok: build passed: D:\Vit_DAW_wt_topoplan154\agent\bin\VitAgent.dev-smoke.exe
+ok: installed agent bin: D:\Vit_DAW_wt_topoplan154\agent\bin\VitAgent.exe
+ok: installed agent root compatibility exe: D:\Vit_DAW_wt_topoplan154\agent\vitagent.exe
+
+== Start kernel
+ok: started kernel: D:\Vit_DAW\VitApp\build\VitApp_artefacts\Release\VitApp.exe pid=6600 workdir=D:\Vit_DAW_wt_topoplan154\coord\runs\TIMEFX-BUS-TOPOPLAN-1\20261020_235001\kernel_workspace
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW_wt_topoplan154\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=295
+shadow.initialized=True track_count=6
+ok: scenario berth project identity stable: vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb
+
+== Scenario timefx_bus_topoplan: fixture -> explicit bus journey (card->confirm->legs->readback) -> inline contrast -> fuzzy probe (recorded)
+
+== LEG A (fixture): six-stem project, bake DAD, persist, reopen
+ok: fixture open ok: D:\Vit_DAW_wt_topoplan154\coord\runs\TIMEFX-BUS-TOPOPLAN-1\20261020_235001\project\tp_fixture.vit (vocals=1032)
+
+== LEG A2 (authority): full project access grant + input-chain probe
+ok: authority bound full_project_access
+
+== LEG B (NL bus probe, recorded): explicit time-domain utterance
+warn: LEG B RECORDED (non-fatal): NL bus probe class=nl_fgate_capability_blocked turns=1 hops=0
+
+== LEG C (NL inline probe, recorded): user_explicit wording
+warn: LEG C RECORDED (non-fatal): NL inline probe class=nl_goal_terminal_completed
+
+== LEG D (NL fuzzy probe, recorded): M2-class utterance
+warn: LEG D RECORDED (non-fatal): fuzzy probe class=fuzzy_goal_terminal_completed
+
+== LEG E2 (deterministic bus): explicit load + bus topology plan under full access -> connect+load legs -> readback
+ok: E2 PASS: bus legs executed (vocals 1032 -> FX 1037), topology receipt in reply
+ok: E2 readback PASS: track.send.list shows the vocals -> Reverb Bus edge at -6.0 dB
+
+== LEG E3 (deterministic inline contrast): explicit load + inline_exception plan -> source load, no connect
+ok: E3 PASS: inline exception loaded on the source track (1032), zero connect legs, no bus wording
+
+== Scenario berth teardown
+ok: stopped scenario agent pid=21792
+ok: stopped scenario kernel pid=6600
+
+== Summary
+ok: dev agent smoke completed (scenario=timefx_bus_topoplan, artifacts=D:\Vit_DAW_wt_topoplan154\coord\runs\TIMEFX-BUS-TOPOPLAN-1\20261020_235001)
