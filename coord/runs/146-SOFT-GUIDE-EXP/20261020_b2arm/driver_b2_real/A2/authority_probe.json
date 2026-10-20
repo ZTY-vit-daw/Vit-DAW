@@ -1,0 +1,71 @@
+{
+ "conversation_id": "softguide_b2_authority_20261020_205234",
+ "task_id": "task_96c545051e392d09",
+ "goal_id": "goal_01a8c33bbfb79f47",
+ "run_id": "run_588b7577d90396a2",
+ "original_intent": "/smoke authority",
+ "reply": "authority smoke: bound=full_project_access server=full_project_access",
+ "agent_mode": "default",
+ "needs_confirmation": false,
+ "goal_status": "completed",
+ "goal_summary": "/smoke authority",
+ "stop_reason": "authority_smoke_ok",
+ "project_history": {
+  "active_branch": "main",
+  "active_node_id": "n_20261020T125235_a7c4ce7d",
+  "active_worktree": "",
+  "available": true,
+  "branches": {
+   "main": "c_20261020T125205_416b287b"
+  },
+  "commit_count": 4,
+  "conversation_messages": [
+   {
+    "content": "/smoke authority",
+    "logical_message_id": "n_20261020T125235_f58c554c",
+    "message_kind": "user",
+    "node_id": "n_20261020T125235_f58c554c",
+    "role": "user"
+   },
+   {
+    "content": "authority smoke: bound=full_project_access server=full_project_access",
+    "logical_message_id": "n_20261020T125235_a7c4ce7d",
+    "message_kind": "assistant",
+    "node_id": "n_20261020T125235_a7c4ce7d",
+    "role": "assistant"
+   }
+  ],
+  "detached": false,
+  "draft": false,
+  "head": "c_20261020T125205_416b287b",
+  "initialized": true,
+  "project_label": "softguide_fixture",
+  "project_path": "D:\\Vit_DAW_wt_sge1\\coord\\runs\\146-SOFT-GUIDE-EXP\\20261020_b2arm\\fixture\\softguide_fixture.vit",
+  "project_uuid": "vitproj_7277276ec2c04fd189ae3550a291cceb",
+  "refs": {
+   "refs/heads/main": "c_20261020T125205_416b287b"
+  },
+  "root_project_path": "",
+  "unsaved": false,
+  "warnings": [],
+  "worktrees": [
+   {
+    "commit_id": "c_20261020T125205_416b287b",
+    "created_at": "2026-10-20T12:52:35.7094653Z",
+    "is_root": true,
+    "label": "主工作树",
+    "name": "main",
+    "origin_commit_id": "c_20261020T125205_416b287b",
+    "path": "D:\\Vit_DAW_wt_sge1\\coord\\runs\\146-SOFT-GUIDE-EXP\\20261020_b2arm\\fixture",
+    "project_file_path": "D:\\Vit_DAW_wt_sge1\\coord\\runs\\146-SOFT-GUIDE-EXP\\20261020_b2arm\\fixture\\softguide_fixture.vit",
+    "project_path": "D:\\Vit_DAW_wt_sge1\\coord\\runs\\146-SOFT-GUIDE-EXP\\20261020_b2arm\\fixture\\softguide_fixture.vit",
+    "root_project_path": "D:\\Vit_DAW_wt_sge1\\coord\\runs\\146-SOFT-GUIDE-EXP\\20261020_b2arm\\fixture\\softguide_fixture.vit"
+   }
+  ]
+ },
+ "lifecycle": "durable",
+ "persistence": "project_history",
+ "message_kind": "assistant",
+ "turn_id": "run_588b7577d90396a2",
+ "logical_message_id": "n_20261020T125235_a7c4ce7d"
+}

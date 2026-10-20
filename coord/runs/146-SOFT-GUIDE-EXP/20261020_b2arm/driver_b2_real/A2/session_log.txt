@@ -1,0 +1,6 @@
+fixture reused: D:\Vit_DAW_wt_sge1\coord\runs\146-SOFT-GUIDE-EXP\20261020_b2arm\fixture\softguide_fixture.vit
+authority bound full_project_access
+[A2] turn_1 send
+[A2] turn_1 stop=limit_reached goal=waiting_continue needs_confirm=False
+[A2] settle runtime_goal=completed
+[A2] fixture open ok: bass,drums,guitar,other,piano,vocals

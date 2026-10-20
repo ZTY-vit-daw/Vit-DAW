@@ -1,0 +1,2590 @@
+{
+ "authority_mode": "full_project_access",
+ "capability_routes": [
+  {
+   "capacity_assessment": {
+    "schema_version": "free_state_capacity_assessment.v1",
+    "authority": "product_runtime",
+    "observed_facts": {
+     "project_uuid": "vitproj_7277276ec2c04fd189ae3550a291cceb",
+     "project_revision": "39",
+     "track_count": 6,
+     "active_audio_track_count": 6,
+     "duration_seconds": 2.2,
+     "plugin_count": 0,
+     "automation_lane_count": 0,
+     "track_group_count": 0,
+     "routing_edge_count": 0,
+     "relationship_breadth": 0,
+     "request_scope": "project_context",
+     "task_history_available": false,
+     "evidence_refs": [
+      "project.state:vitproj_7277276ec2c04fd189ae3550a291cceb:39"
+     ]
+    },
+    "complexity_factors": [
+     {
+      "code": "large_track_set",
+      "observed": 6,
+      "weight": 25,
+      "triggered": false,
+      "reason": "twenty or more user tracks expand whole-project coverage"
+     },
+     {
+      "code": "long_timeline",
+      "observed": 2.2,
+      "weight": 15,
+      "triggered": false,
+      "reason": "five minutes or more increases observation span"
+     },
+     {
+      "code": "dense_processing_graph",
+      "observed": 0,
+      "weight": 20,
+      "triggered": false,
+      "reason": "forty or more processors increase context pressure"
+     },
+     {
+      "code": "dense_routing_graph",
+      "observed": 0,
+      "weight": 20,
+      "triggered": false,
+      "reason": "routing and grouping relationships require project-wide coordination"
+     },
+     {
+      "code": "automation_heavy",
+      "observed": 0,
+      "weight": 15,
+      "triggered": false,
+      "reason": "automation breadth increases cross-stage state"
+     }
+    ],
+    "capacity_score": 0,
+    "capacity_level": "within_free_state",
+    "selected_capability": "free_state",
+    "reason_codes": [
+     "small_or_moderate_project"
+    ],
+    "confidence": 0.94,
+    "project_revision": "39",
+    "observed_at": "2026-10-20T12:58:15.2348038Z"
+   },
+   "controller": "minimal_audio_closure",
+   "conversation_id": "softguide_b1_B4_20261020_205812",
+   "created_at": "2026-10-20T12:58:15.2348038Z",
+   "goal_id": "goal_642645ff02b0386d",
+   "original_intent": "请先观察工程，再给一个有界的小步改进建议：人声有点贴脸，往后放一点",
+   "project_revision": "39",
+   "run_id": "run_5c349db8d357a098",
+   "schema_version": "capability_route_decision.v1",
+   "semantic_entry": {
+    "confidence": 0.93,
+    "control_mode": "semantic_loop",
+    "reason": "product runtime selected free_state after project structure observation (score=0, reasons=small_or_moderate_project)",
+    "route": "open_semantic",
+    "schema_version": "semantic_entry_decision.v1",
+    "target_scope": "project_context",
+    "user_authorization": "action_requested"
+   },
+   "task_id": "task_8172e1636bdad853",
+   "updated_at": "2026-10-20T12:58:15.2348038Z"
+  }
+ ],
+ "checked_at": "2026-10-20T20:58:48.6992873+08:00",
+ "checkout_blocked": false,
+ "continuations": [
+  {
+   "attempt": 1,
+   "capacity_assessment": {
+    "schema_version": "free_state_capacity_assessment.v1",
+    "authority": "product_runtime",
+    "observed_facts": {
+     "project_uuid": "vitproj_7277276ec2c04fd189ae3550a291cceb",
+     "project_revision": "39",
+     "track_count": 6,
+     "active_audio_track_count": 6,
+     "duration_seconds": 2.2,
+     "plugin_count": 0,
+     "automation_lane_count": 0,
+     "track_group_count": 0,
+     "routing_edge_count": 0,
+     "relationship_breadth": 0,
+     "request_scope": "project_context",
+     "task_history_available": false,
+     "evidence_refs": [
+      "project.state:vitproj_7277276ec2c04fd189ae3550a291cceb:39"
+     ]
+    },
+    "complexity_factors": [
+     {
+      "code": "large_track_set",
+      "observed": 6,
+      "weight": 25,
+      "triggered": false,
+      "reason": "twenty or more user tracks expand whole-project coverage"
+     },
+     {
+      "code": "long_timeline",
+      "observed": 2.2,
+      "weight": 15,
+      "triggered": false,
+      "reason": "five minutes or more increases observation span"
+     },
+     {
+      "code": "dense_processing_graph",
+      "observed": 0,
+      "weight": 20,
+      "triggered": false,
+      "reason": "forty or more processors increase context pressure"
+     },
+     {
+      "code": "dense_routing_graph",
+      "observed": 0,
+      "weight": 20,
+      "triggered": false,
+      "reason": "routing and grouping relationships require project-wide coordination"
+     },
+     {
+      "code": "automation_heavy",
+      "observed": 0,
+      "weight": 15,
+      "triggered": false,
+      "reason": "automation breadth increases cross-stage state"
+     }
+    ],
+    "capacity_score": 0,
+    "capacity_level": "within_free_state",
+    "selected_capability": "free_state",
+    "reason_codes": [
+     "small_or_moderate_project"
+    ],
+    "confidence": 0.94,
+    "project_revision": "39",
+    "observed_at": "2026-10-20T12:58:15.2348038Z"
+   },
+   "continuation_id": "cont_82078581bbcae4389a26bed5",
+   "conversation_id": "softguide_b1_B4_20261020_205812",
+   "free_state_admission_receipt": {
+    "boundary": "admitted",
+    "candidate_id": "",
+    "failed_gate_ids": null,
+    "gate_results": {
+     "G1_project_binding": "pass",
+     "G2_capacity_assessed": "pass",
+     "G3_project_scan": "pass",
+     "G4_dimension_closed": "pass",
+     "G5_frontier_established": "pass",
+     "G6_target_evidence": "pass",
+     "G7_fresh_revision_bound_refs": "pass",
+     "G8_target_consistency": "pass"
+    },
+    "project_revision": "39",
+    "proposal_error": "",
+    "proposal_present": true,
+    "proposal_valid": true,
+    "recorded_at": "2026-10-20T12:58:43.5137322Z",
+    "schema_version": "free_state_admission_receipt.v1",
+    "status": "needs_experiment",
+    "target_evidence_ref": "obs_20261020T125833_d5d03dbe9487"
+   },
+   "free_state_continuation_budget": 6,
+   "free_state_continuation_used": 2,
+   "free_state_current_phase": "fs6_target_confirmed",
+   "free_state_current_round_id": "r_5d9ea27887b2",
+   "free_state_decision_status": "needs_experiment",
+   "free_state_status": "awaiting_experiment",
+   "free_state_stop_reason": "",
+   "goal_id": "goal_642645ff02b0386d",
+   "original_intent": "请先观察工程，再给一个有界的小步改进建议：人声有点贴脸，往后放一点",
+   "pending_interaction": {
+    "continuation_id": "cont_82078581bbcae4389a26bed5",
+    "goal_id": "goal_642645ff02b0386d",
+    "interaction_id": "interaction_ea0038a64b3159e9",
+    "kind": "mix_tick_confirmation",
+    "requests": [
+     {
+      "actions": [
+       {
+        "id": "approve",
+        "label": "确认执行",
+        "recommended": true,
+        "style": "primary"
+       },
+       {
+        "id": "cancel",
+        "label": "取消",
+        "style": "secondary"
+       }
+      ],
+      "body": "将 Track 1032 的电平调整 -1.00 dB，正在等待你确认；确认前不会修改工程。",
+      "conversation_id": "softguide_b1_B4_20261020_205812",
+      "data": {
+       "conversation_id": "softguide_b1_B4_20261020_205812",
+       "delta_db": -1,
+       "display": {
+        "body": "将 Track 1032 的电平调整 -1.00 dB，正在等待你确认；确认前不会修改工程。",
+        "summary": "将 Track 1032 的电平调整 -1.00 dB",
+        "title": "混音单步待确认"
+       },
+       "observation_id": "",
+       "operation": "track_gain_adjust",
+       "request_context": {
+        "conversation_id": "softguide_b1_B4_20261020_205812",
+        "goal_id": "goal_642645ff02b0386d",
+        "run_id": "run_5c349db8d357a098"
+       },
+       "track_id": "1032",
+       "typed_event": {
+        "event_type": "PendingCandidate",
+        "schema_version": "vit_agent_protocol.v0",
+        "source": {
+         "conversation_id": "softguide_b1_B4_20261020_205812",
+         "goal_id": "goal_642645ff02b0386d",
+         "legacy_kind": "PendingMixTickCandidate",
+         "legacy_schema": "mix_tick.pending.v0",
+         "metadata": {
+          "before_track_summary": {
+           "gain_db": 0,
+           "id": "1032",
+           "name": "vocals",
+           "pan": 0,
+           "track_id": "1032",
+           "track_name": "vocals",
+           "volume_db": 0
+          },
+          "conversation_id": "softguide_b1_B4_20261020_205812",
+          "goal_id": "goal_642645ff02b0386d",
+          "run_id": "run_5c349db8d357a098",
+          "target_track_id": "1032",
+          "track_count": 6,
+          "track_gain_db": 0
+         },
+         "run_id": "run_5c349db8d357a098"
+        },
+        "state": {
+         "action_kind": "gain_balance",
+         "candidate_action": {
+          "action_kind": "gain_balance",
+          "confidence": "medium",
+          "delta_db": -1,
+          "evidence": {
+           "diagnosis_context": {
+            "conversation_id": "softguide_b1_B4_20261020_205812",
+            "created_at": "2026-10-20T12:58:22.4649876Z",
+            "evidence_refs": [
+             "diag_09f39021bc463dbc",
+             "obs_20261020T125821_a5ee4ac02d30",
+             "diag_09f39021bc463dbc.user_reported.intent",
+             "diag_09f39021bc463dbc.missing.band_energy_summary",
+             "diag_09f39021bc463dbc.missing.masking_depth"
+            ],
+            "evidence_status": {
+             "band_energy": "missing",
+             "confidence_ceiling": "medium",
+             "missing": [
+              "band_energy_summary",
+              "masking_depth"
+             ],
+             "problem_kind": "vocal_forward",
+             "spectral": "missing",
+             "strategy": "conservative_level_or_peer_rebalance"
+            },
+            "goal_id": "goal_642645ff02b0386d",
+            "id": "diag_09f39021bc463dbc",
+            "inferred_facts": [
+             {
+              "key": "vocal_forward_safe_route",
+              "ref": "diag_09f39021bc463dbc.inferred.vocal_forward_safe_route",
+              "summary": "prefer a conservative level or peer rebalance move; avoid tonal-brightness boosts without masking evidence"
+             }
+            ],
+            "low_risk_next_step": "conservative_level_or_peer_rebalance",
+            "missing_evidence": [
+             {
+              "key": "band_energy_summary",
+              "reason": "vocal-forward decisions should avoid brightness or presence assumptions without band/masking evidence"
+             },
+             {
+              "key": "masking_depth",
+              "reason": "masking depth is unavailable, so do not infer a precise presence-band conflict"
+             }
+            ],
+            "mix_session_id": "mix_ba230f86322d",
+            "observation_id": "obs_20261020T125821_a5ee4ac02d30",
+            "problem_kind": "vocal_forward",
+            "recommendation": {
+             "action_kind": "gain_balance",
+             "confidence": "medium",
+             "next_step": "prepare a small level/rebalance candidate instead of a brightness boost",
+             "processor_type": "utility",
+             "risk": "low",
+             "strategy": "conservative_level_or_peer_rebalance"
+            },
+            "run_id": "run_5c349db8d357a098",
+            "schema_version": "mix_diagnosis_context.v0",
+            "source_refs": {
+             "mix_session_id": "mix_ba230f86322d",
+             "observation_id": "obs_20261020T125821_a5ee4ac02d30",
+             "target_ref": "track:1032"
+            },
+            "target_ref": "track:1032",
+            "user_intent": "请先观察工程，再给一个有界的小步改进建议：人声有点贴脸，往后放一点",
+            "user_reported_facts": [
+             {
+              "key": "user_intent",
+              "ref": "diag_09f39021bc463dbc.user_reported.intent",
+              "summary": "user asked for a vocal-forward mix result: 请先观察工程，再给一个有界的小步改进建议：人声有点贴脸，往后放一点"
+             }
+            ]
+           },
+           "diagnosis_context_id": "diag_09f39021bc463dbc",
+           "diagnosis_evidence_refs": [
+            "diag_09f39021bc463dbc",
+            "obs_20261020T125821_a5ee4ac02d30",
+            "diag_09f39021bc463dbc.user_reported.intent",
+            "diag_09f39021bc463dbc.missing.band_energy_summary",
+            "diag_09f39021bc463dbc.missing.masking_depth"
+           ],
+           "matched_text": "减，幅度只有 1 dB",
+           "source": "assistant_reply"
+          },
+          "operation": "track_gain_adjust",
+          "processor_type": "utility",
+          "track_id": "1032"
+         },
+         "candidate_type": "mix_tick",
+         "confidence": "medium",
+         "domain": "mix",
+         "id": "pending_mix_tick_softguide_b1_B4_20261020_205812_goal_642645ff02b0386d_track_gain_adjust_1032",
+         "kind": "PendingCandidate",
+         "processor_type": "utility",
+         "rationale": "assistant_reply",
+         "required_permission_domains": [
+          "mix.commit"
+         ],
+         "risk": "undoable_commit",
+         "source": {
+          "conversation_id": "softguide_b1_B4_20261020_205812",
+          "goal_id": "goal_642645ff02b0386d",
+          "legacy_kind": "PendingMixTickCandidate",
+          "legacy_schema": "mix_tick.pending.v0",
+          "metadata": {
+           "before_track_summary": {
+            "gain_db": 0,
+            "id": "1032",
+            "name": "vocals",
+            "pan": 0,
+            "track_id": "1032",
+            "track_name": "vocals",
+            "volume_db": 0
+           },
+           "conversation_id": "softguide_b1_B4_20261020_205812",
+           "goal_id": "goal_642645ff02b0386d",
+           "run_id": "run_5c349db8d357a098",
+           "target_track_id": "1032",
+           "track_count": 6,
+           "track_gain_db": 0
+          },
+          "run_id": "run_5c349db8d357a098"
+         },
+         "status": "waiting_user",
+         "summary": "将 Track 1032 的电平调整 -1.00 dB。",
+         "target_ref": "track:1032"
+        },
+        "state_id": "pending_mix_tick_softguide_b1_B4_20261020_205812_goal_642645ff02b0386d_track_gain_adjust_1032",
+        "state_kind": "PendingCandidate",
+        "status": "waiting_user"
+       },
+       "typed_state": {
+        "action_kind": "gain_balance",
+        "candidate_action": {
+         "action_kind": "gain_balance",
+         "confidence": "medium",
+         "delta_db": -1,
+         "evidence": {
+          "diagnosis_context": {
+           "conversation_id": "softguide_b1_B4_20261020_205812",
+           "created_at": "2026-10-20T12:58:22.4649876Z",
+           "evidence_refs": [
+            "diag_09f39021bc463dbc",
+            "obs_20261020T125821_a5ee4ac02d30",
+            "diag_09f39021bc463dbc.user_reported.intent",
+            "diag_09f39021bc463dbc.missing.band_energy_summary",
+            "diag_09f39021bc463dbc.missing.masking_depth"
+           ],
+           "evidence_status": {
+            "band_energy": "missing",
+            "confidence_ceiling": "medium",
+            "missing": [
+             "band_energy_summary",
+             "masking_depth"
+            ],
+            "problem_kind": "vocal_forward",
+            "spectral": "missing",
+            "strategy": "conservative_level_or_peer_rebalance"
+           },
+           "goal_id": "goal_642645ff02b0386d",
+           "id": "diag_09f39021bc463dbc",
+           "inferred_facts": [
+            {
+             "key": "vocal_forward_safe_route",
+             "ref": "diag_09f39021bc463dbc.inferred.vocal_forward_safe_route",
+             "summary": "prefer a conservative level or peer rebalance move; avoid tonal-brightness boosts without masking evidence"
+            }
+           ],
+           "low_risk_next_step": "conservative_level_or_peer_rebalance",
+           "missing_evidence": [
+            {
+             "key": "band_energy_summary",
+             "reason": "vocal-forward decisions should avoid brightness or presence assumptions without band/masking evidence"
+            },
+            {
+             "key": "masking_depth",
+             "reason": "masking depth is unavailable, so do not infer a precise presence-band conflict"
+            }
+           ],
+           "mix_session_id": "mix_ba230f86322d",
+           "observation_id": "obs_20261020T125821_a5ee4ac02d30",
+           "problem_kind": "vocal_forward",
+           "recommendation": {
+            "action_kind": "gain_balance",
+            "confidence": "medium",
+            "next_step": "prepare a small level/rebalance candidate instead of a brightness boost",
+            "processor_type": "utility",
+            "risk": "low",
+            "strategy": "conservative_level_or_peer_rebalance"
+           },
+           "run_id": "run_5c349db8d357a098",
+           "schema_version": "mix_diagnosis_context.v0",
+           "source_refs": {
+            "mix_session_id": "mix_ba230f86322d",
+            "observation_id": "obs_20261020T125821_a5ee4ac02d30",
+            "target_ref": "track:1032"
+           },
+           "target_ref": "track:1032",
+           "user_intent": "请先观察工程，再给一个有界的小步改进建议：人声有点贴脸，往后放一点",
+           "user_reported_facts": [
+            {
+             "key": "user_intent",
+             "ref": "diag_09f39021bc463dbc.user_reported.intent",
+             "summary": "user asked for a vocal-forward mix result: 请先观察工程，再给一个有界的小步改进建议：人声有点贴脸，往后放一点"
+            }
+           ]
+          },
+          "diagnosis_context_id": "diag_09f39021bc463dbc",
+          "diagnosis_evidence_refs": [
+           "diag_09f39021bc463dbc",
+           "obs_20261020T125821_a5ee4ac02d30",
+           "diag_09f39021bc463dbc.user_reported.intent",
+           "diag_09f39021bc463dbc.missing.band_energy_summary",
+           "diag_09f39021bc463dbc.missing.masking_depth"
+          ],
+          "matched_text": "减，幅度只有 1 dB",
+          "source": "assistant_reply"
+         },
+         "operation": "track_gain_adjust",
+         "processor_type": "utility",
+         "track_id": "1032"
+        },
+        "candidate_type": "mix_tick",
+        "confidence": "medium",
+        "domain": "mix",
+        "id": "pending_mix_tick_softguide_b1_B4_20261020_205812_goal_642645ff02b0386d_track_gain_adjust_1032",
+        "kind": "PendingCandidate",
+        "processor_type": "utility",
+        "rationale": "assistant_reply",
+        "required_permission_domains": [
+         "mix.commit"
+        ],
+        "risk": "undoable_commit",
+        "source": {
+         "conversation_id": "softguide_b1_B4_20261020_205812",
+         "goal_id": "goal_642645ff02b0386d",
+         "legacy_kind": "PendingMixTickCandidate",
+         "legacy_schema": "mix_tick.pending.v0",
+         "metadata": {
+          "before_track_summary": {
+           "gain_db": 0,
+           "id": "1032",
+           "name": "vocals",
+           "pan": 0,
+           "track_id": "1032",
+           "track_name": "vocals",
+           "volume_db": 0
+          },
+          "conversation_id": "softguide_b1_B4_20261020_205812",
+          "goal_id": "goal_642645ff02b0386d",
+          "run_id": "run_5c349db8d357a098",
+          "target_track_id": "1032",
+          "track_count": 6,
+          "track_gain_db": 0
+         },
+         "run_id": "run_5c349db8d357a098"
+        },
+        "status": "waiting_user",
+        "summary": "将 Track 1032 的电平调整 -1.00 dB。",
+        "target_ref": "track:1032"
+       }
+      },
+      "goal_id": "goal_642645ff02b0386d",
+      "id": "interaction_ea0038a64b3159e9",
+      "kind": "mix_tick_confirmation",
+      "payload": {
+       "conversation_id": "softguide_b1_B4_20261020_205812",
+       "delta_db": -1,
+       "display": {
+        "body": "将 Track 1032 的电平调整 -1.00 dB，正在等待你确认；确认前不会修改工程。",
+        "summary": "将 Track 1032 的电平调整 -1.00 dB",
+        "title": "混音单步待确认"
+       },
+       "observation_id": "",
+       "operation": "track_gain_adjust",
+       "request_context": {
+        "conversation_id": "softguide_b1_B4_20261020_205812",
+        "goal_id": "goal_642645ff02b0386d",
+        "run_id": "run_5c349db8d357a098"
+       },
+       "track_id": "1032",
+       "typed_event": {
+        "event_type": "PendingCandidate",
+        "schema_version": "vit_agent_protocol.v0",
+        "source": {
+         "conversation_id": "softguide_b1_B4_20261020_205812",
+         "goal_id": "goal_642645ff02b0386d",
+         "legacy_kind": "PendingMixTickCandidate",
+         "legacy_schema": "mix_tick.pending.v0",
+         "metadata": {
+          "before_track_summary": {
+           "gain_db": 0,
+           "id": "1032",
+           "name": "vocals",
+           "pan": 0,
+           "track_id": "1032",
+           "track_name": "vocals",
+           "volume_db": 0
+          },
+          "conversation_id": "softguide_b1_B4_20261020_205812",
+          "goal_id": "goal_642645ff02b0386d",
+          "run_id": "run_5c349db8d357a098",
+          "target_track_id": "1032",
+          "track_count": 6,
+          "track_gain_db": 0
+         },
+         "run_id": "run_5c349db8d357a098"
+        },
+        "state": {
+         "action_kind": "gain_balance",
+         "candidate_action": {
+          "action_kind": "gain_balance",
+          "confidence": "medium",
+          "delta_db": -1,
+          "evidence": {
+           "diagnosis_context": {
+            "conversation_id": "softguide_b1_B4_20261020_205812",
+            "created_at": "2026-10-20T12:58:22.4649876Z",
+            "evidence_refs": [
+             "diag_09f39021bc463dbc",
+             "obs_20261020T125821_a5ee4ac02d30",
+             "diag_09f39021bc463dbc.user_reported.intent",
+             "diag_09f39021bc463dbc.missing.band_energy_summary",
+             "diag_09f39021bc463dbc.missing.masking_depth"
+            ],
+            "evidence_status": {
+             "band_energy": "missing",
+             "confidence_ceiling": "medium",
+             "missing": [
+              "band_energy_summary",
+              "masking_depth"
+             ],
+             "problem_kind": "vocal_forward",
+             "spectral": "missing",
+             "strategy": "conservative_level_or_peer_rebalance"
+            },
+            "goal_id": "goal_642645ff02b0386d",
+            "id": "diag_09f39021bc463dbc",
+            "inferred_facts": [
+             {
+              "key": "vocal_forward_safe_route",
+              "ref": "diag_09f39021bc463dbc.inferred.vocal_forward_safe_route",
+              "summary": "prefer a conservative level or peer rebalance move; avoid tonal-brightness boosts without masking evidence"
+             }
+            ],
+            "low_risk_next_step": "conservative_level_or_peer_rebalance",
+            "missing_evidence": [
+             {
+              "key": "band_energy_summary",
+              "reason": "vocal-forward decisions should avoid brightness or presence assumptions without band/masking evidence"
+             },
+             {
+              "key": "masking_depth",
+              "reason": "masking depth is unavailable, so do not infer a precise presence-band conflict"
+             }
+            ],
+            "mix_session_id": "mix_ba230f86322d",
+            "observation_id": "obs_20261020T125821_a5ee4ac02d30",
+            "problem_kind": "vocal_forward",
+            "recommendation": {
+             "action_kind": "gain_balance",
+             "confidence": "medium",
+             "next_step": "prepare a small level/rebalance candidate instead of a brightness boost",
+             "processor_type": "utility",
+             "risk": "low",
+             "strategy": "conservative_level_or_peer_rebalance"
+            },
+            "run_id": "run_5c349db8d357a098",
+            "schema_version": "mix_diagnosis_context.v0",
+            "source_refs": {
+             "mix_session_id": "mix_ba230f86322d",
+             "observation_id": "obs_20261020T125821_a5ee4ac02d30",
+             "target_ref": "track:1032"
+            },
+            "target_ref": "track:1032",
+            "user_intent": "请先观察工程，再给一个有界的小步改进建议：人声有点贴脸，往后放一点",
+            "user_reported_facts": [
+             {
+              "key": "user_intent",
+              "ref": "diag_09f39021bc463dbc.user_reported.intent",
+              "summary": "user asked for a vocal-forward mix result: 请先观察工程，再给一个有界的小步改进建议：人声有点贴脸，往后放一点"
+             }
+            ]
+           },
+           "diagnosis_context_id": "diag_09f39021bc463dbc",
+           "diagnosis_evidence_refs": [
+            "diag_09f39021bc463dbc",
+            "obs_20261020T125821_a5ee4ac02d30",
+            "diag_09f39021bc463dbc.user_reported.intent",
+            "diag_09f39021bc463dbc.missing.band_energy_summary",
+            "diag_09f39021bc463dbc.missing.masking_depth"
+           ],
+           "matched_text": "减，幅度只有 1 dB",
+           "source": "assistant_reply"
+          },
+          "operation": "track_gain_adjust",
+          "processor_type": "utility",
+          "track_id": "1032"
+         },
+         "candidate_type": "mix_tick",
+         "confidence": "medium",
+         "domain": "mix",
+         "id": "pending_mix_tick_softguide_b1_B4_20261020_205812_goal_642645ff02b0386d_track_gain_adjust_1032",
+         "kind": "PendingCandidate",
+         "processor_type": "utility",
+         "rationale": "assistant_reply",
+         "required_permission_domains": [
+          "mix.commit"
+         ],
+         "risk": "undoable_commit",
+         "source": {
+          "conversation_id": "softguide_b1_B4_20261020_205812",
+          "goal_id": "goal_642645ff02b0386d",
+          "legacy_kind": "PendingMixTickCandidate",
+          "legacy_schema": "mix_tick.pending.v0",
+          "metadata": {
+           "before_track_summary": {
+            "gain_db": 0,
+            "id": "1032",
+            "name": "vocals",
+            "pan": 0,
+            "track_id": "1032",
+            "track_name": "vocals",
+            "volume_db": 0
+           },
+           "conversation_id": "softguide_b1_B4_20261020_205812",
+           "goal_id": "goal_642645ff02b0386d",
+           "run_id": "run_5c349db8d357a098",
+           "target_track_id": "1032",
+           "track_count": 6,
+           "track_gain_db": 0
+          },
+          "run_id": "run_5c349db8d357a098"
+         },
+         "status": "waiting_user",
+         "summary": "将 Track 1032 的电平调整 -1.00 dB。",
+         "target_ref": "track:1032"
+        },
+        "state_id": "pending_mix_tick_softguide_b1_B4_20261020_205812_goal_642645ff02b0386d_track_gain_adjust_1032",
+        "state_kind": "PendingCandidate",
+        "status": "waiting_user"
+       },
+       "typed_state": {
+        "action_kind": "gain_balance",
+        "candidate_action": {
+         "action_kind": "gain_balance",
+         "confidence": "medium",
+         "delta_db": -1,
+         "evidence": {
+          "diagnosis_context": {
+           "conversation_id": "softguide_b1_B4_20261020_205812",
+           "created_at": "2026-10-20T12:58:22.4649876Z",
+           "evidence_refs": [
+            "diag_09f39021bc463dbc",
+            "obs_20261020T125821_a5ee4ac02d30",
+            "diag_09f39021bc463dbc.user_reported.intent",
+            "diag_09f39021bc463dbc.missing.band_energy_summary",
+            "diag_09f39021bc463dbc.missing.masking_depth"
+           ],
+           "evidence_status": {
+            "band_energy": "missing",
+            "confidence_ceiling": "medium",
+            "missing": [
+             "band_energy_summary",
+             "masking_depth"
+            ],
+            "problem_kind": "vocal_forward",
+            "spectral": "missing",
+            "strategy": "conservative_level_or_peer_rebalance"
+           },
+           "goal_id": "goal_642645ff02b0386d",
+           "id": "diag_09f39021bc463dbc",
+           "inferred_facts": [
+            {
+             "key": "vocal_forward_safe_route",
+             "ref": "diag_09f39021bc463dbc.inferred.vocal_forward_safe_route",
+             "summary": "prefer a conservative level or peer rebalance move; avoid tonal-brightness boosts without masking evidence"
+            }
+           ],
+           "low_risk_next_step": "conservative_level_or_peer_rebalance",
+           "missing_evidence": [
+            {
+             "key": "band_energy_summary",
+             "reason": "vocal-forward decisions should avoid brightness or presence assumptions without band/masking evidence"
+            },
+            {
+             "key": "masking_depth",
+             "reason": "masking depth is unavailable, so do not infer a precise presence-band conflict"
+            }
+           ],
+           "mix_session_id": "mix_ba230f86322d",
+           "observation_id": "obs_20261020T125821_a5ee4ac02d30",
+           "problem_kind": "vocal_forward",
+           "recommendation": {
+            "action_kind": "gain_balance",
+            "confidence": "medium",
+            "next_step": "prepare a small level/rebalance candidate instead of a brightness boost",
+            "processor_type": "utility",
+            "risk": "low",
+            "strategy": "conservative_level_or_peer_rebalance"
+           },
+           "run_id": "run_5c349db8d357a098",
+           "schema_version": "mix_diagnosis_context.v0",
+           "source_refs": {
+            "mix_session_id": "mix_ba230f86322d",
+            "observation_id": "obs_20261020T125821_a5ee4ac02d30",
+            "target_ref": "track:1032"
+           },
+           "target_ref": "track:1032",
+           "user_intent": "请先观察工程，再给一个有界的小步改进建议：人声有点贴脸，往后放一点",
+           "user_reported_facts": [
+            {
+             "key": "user_intent",
+             "ref": "diag_09f39021bc463dbc.user_reported.intent",
+             "summary": "user asked for a vocal-forward mix result: 请先观察工程，再给一个有界的小步改进建议：人声有点贴脸，往后放一点"
+            }
+           ]
+          },
+          "diagnosis_context_id": "diag_09f39021bc463dbc",
+          "diagnosis_evidence_refs": [
+           "diag_09f39021bc463dbc",
+           "obs_20261020T125821_a5ee4ac02d30",
+           "diag_09f39021bc463dbc.user_reported.intent",
+           "diag_09f39021bc463dbc.missing.band_energy_summary",
+           "diag_09f39021bc463dbc.missing.masking_depth"
+          ],
+          "matched_text": "减，幅度只有 1 dB",
+          "source": "assistant_reply"
+         },
+         "operation": "track_gain_adjust",
+         "processor_type": "utility",
+         "track_id": "1032"
+        },
+        "candidate_type": "mix_tick",
+        "confidence": "medium",
+        "domain": "mix",
+        "id": "pending_mix_tick_softguide_b1_B4_20261020_205812_goal_642645ff02b0386d_track_gain_adjust_1032",
+        "kind": "PendingCandidate",
+        "processor_type": "utility",
+        "rationale": "assistant_reply",
+        "required_permission_domains": [
+         "mix.commit"
+        ],
+        "risk": "undoable_commit",
+        "source": {
+         "conversation_id": "softguide_b1_B4_20261020_205812",
+         "goal_id": "goal_642645ff02b0386d",
+         "legacy_kind": "PendingMixTickCandidate",
+         "legacy_schema": "mix_tick.pending.v0",
+         "metadata": {
+          "before_track_summary": {
+           "gain_db": 0,
+           "id": "1032",
+           "name": "vocals",
+           "pan": 0,
+           "track_id": "1032",
+           "track_name": "vocals",
+           "volume_db": 0
+          },
+          "conversation_id": "softguide_b1_B4_20261020_205812",
+          "goal_id": "goal_642645ff02b0386d",
+          "run_id": "run_5c349db8d357a098",
+          "target_track_id": "1032",
+          "track_count": 6,
+          "track_gain_db": 0
+         },
+         "run_id": "run_5c349db8d357a098"
+        },
+        "status": "waiting_user",
+        "summary": "将 Track 1032 的电平调整 -1.00 dB。",
+        "target_ref": "track:1032"
+       }
+      },
+      "run_id": "run_5c349db8d357a098",
+      "source": "vit_agent",
+      "stage": "pending_confirmation",
+      "status": "waiting_for_user",
+      "title": "混音单步待确认",
+      "type": "mix_tick_confirmation",
+      "workflow": "mix_tick"
+     }
+    ],
+    "run_id": "run_5c349db8d357a098",
+    "status": "waiting_confirmation",
+    "task_id": "task_8172e1636bdad853"
+   },
+   "project_path": "D:\\Vit_DAW_wt_sge1\\coord\\runs\\146-SOFT-GUIDE-EXP\\20261020_b2arm\\fixture\\softguide_fixture.vit",
+   "project_revision": "39",
+   "project_session_id": "session_20261020T125807_2306dbef",
+   "project_uuid": "vitproj_7277276ec2c04fd189ae3550a291cceb",
+   "run_id": "run_5c349db8d357a098",
+   "slice_id": "slice_9c9175d4b50309b2",
+   "status": "waiting_interaction",
+   "task_contract": {
+    "schema_version": "vit.task_semantic_state.v1",
+    "contract_id": "contract_task_8172e1636bdad853",
+    "task_id": "task_8172e1636bdad853",
+    "goal_id": "goal_642645ff02b0386d",
+    "run_id": "run_5c349db8d357a098",
+    "conversation_id": "softguide_b1_B4_20261020_205812",
+    "original_intent": "请先观察工程，再给一个有界的小步改进建议：人声有点贴脸，往后放一点",
+    "kind": "improvement",
+    "scope": {
+     "kind": "project",
+     "id": "vitproj_7277276ec2c04fd189ae3550a291cceb"
+    },
+    "temporary": true,
+    "target_discovery": "agent_observation",
+    "authorization_boundary": "governed_experiment",
+    "completion_criteria": [
+     "settle only after a governed experiment outcome",
+     "or report no_candidate_found or a distinct capability boundary with evidence"
+    ],
+    "evidence_requirements": [
+     "exact observation or audit receipt references",
+     "project revision matching the evaluated evidence",
+     "explicit limitations for every bounded conclusion"
+    ],
+    "project_uuid": "vitproj_7277276ec2c04fd189ae3550a291cceb",
+    "project_revision": "39",
+    "created_at": "2026-10-20T12:58:15.2605096Z"
+   },
+   "task_id": "task_8172e1636bdad853",
+   "task_semantic_state": {
+    "schema_version": "vit.task_semantic_state.v1",
+    "state": "needs_experiment",
+    "revision": 4,
+    "contract_id": "contract_task_8172e1636bdad853",
+    "project_uuid": "vitproj_7277276ec2c04fd189ae3550a291cceb",
+    "project_revision": "39",
+    "evidence_refs": [
+     "obs_20261020T125833_d5d03dbe9487"
+    ],
+    "candidate_id": "1032",
+    "proposal": {
+     "proposal_id": "proposal_c821a4e30ce046ac3538",
+     "summary": "把人声在混音中的位置稍微往后放一点，减轻贴脸、靠前的感觉",
+     "evidence_refs": [
+      "obs_20261020T125833_d5d03dbe9487"
+     ],
+     "bounds": [
+      "频段能量读数不是原始频谱，也不能直接等同于听感上的“贴脸”，所以这里只是可逆的试听级推测，不是确定性结论。"
+     ],
+     "requires_experiment": true
+    },
+    "experiment_id": "turn:free_state_fa1fad56f04d95f8",
+    "transition_reason": "free-state experiment runtime admitted",
+    "summary": "bounded experiment admitted",
+    "terminal": false,
+    "history": [
+     {
+      "revision": 1,
+      "event": "observation_started",
+      "to": "observation_in_progress",
+      "reason": "task contract admitted",
+      "project_revision": "39",
+      "occurred_at": "2026-10-20T12:58:15.2605096Z"
+     },
+     {
+      "revision": 2,
+      "event": "diagnostic_completed",
+      "from": "observation_in_progress",
+      "to": "diagnostic_complete",
+      "reason": "candidate diagnosis established",
+      "summary": "人声轨的频段能量显示中频（约 500–2000 Hz）能量占据绝对主导，而存在感与空气频段相对偏低，这种中频集中堆积与人声“贴脸、靠前”的听感相符。证据只支持一个可逆的小步推测，不能证明存在客观缺陷，因此建议在人声轨上做一次极小幅度（1 dB）的中频削减实验，而不调整整体音量。",
+      "evidence_refs": [
+       "obs_20261020T125833_d5d03dbe9487"
+      ],
+      "project_revision": "39",
+      "occurred_at": "2026-10-20T12:58:43.5137322Z"
+     },
+     {
+      "revision": 3,
+      "event": "improvement_proposed",
+      "from": "diagnostic_complete",
+      "to": "improvement_proposal",
+      "reason": "runtime admitted bounded improvement proposal",
+      "summary": "人声轨的频段能量显示中频（约 500–2000 Hz）能量占据绝对主导，而存在感与空气频段相对偏低，这种中频集中堆积与人声“贴脸、靠前”的听感相符。证据只支持一个可逆的小步推测，不能证明存在客观缺陷，因此建议在人声轨上做一次极小幅度（1 dB）的中频削减实验，而不调整整体音量。",
+      "evidence_refs": [
+       "obs_20261020T125833_d5d03dbe9487"
+      ],
+      "candidate_id": "1032",
+      "project_revision": "39",
+      "occurred_at": "2026-10-20T12:58:43.5260944Z"
+     },
+     {
+      "revision": 4,
+      "event": "experiment_required",
+      "from": "improvement_proposal",
+      "to": "needs_experiment",
+      "reason": "free-state experiment runtime admitted",
+      "summary": "bounded experiment admitted",
+      "experiment_id": "turn:free_state_fa1fad56f04d95f8",
+      "project_revision": "39",
+      "occurred_at": "2026-10-20T12:58:43.5678268Z"
+     }
+    ],
+    "updated_at": "2026-10-20T12:58:43.5678268Z"
+   },
+   "task_state": "needs_experiment",
+   "task_state_revision": 4,
+   "turn_id": "turn_a9996b8b336d49c2",
+   "updated_at": "2026-10-20T12:58:43.6229337Z"
+  },
+  {
+   "attempt": 1,
+   "capacity_assessment": {
+    "schema_version": "free_state_capacity_assessment.v1",
+    "authority": "product_runtime",
+    "observed_facts": {
+     "project_uuid": "vitproj_7277276ec2c04fd189ae3550a291cceb",
+     "project_revision": "39",
+     "track_count": 6,
+     "active_audio_track_count": 6,
+     "duration_seconds": 2.2,
+     "plugin_count": 0,
+     "automation_lane_count": 0,
+     "track_group_count": 0,
+     "routing_edge_count": 0,
+     "relationship_breadth": 0,
+     "request_scope": "project_context",
+     "task_history_available": false,
+     "evidence_refs": [
+      "project.state:vitproj_7277276ec2c04fd189ae3550a291cceb:39"
+     ]
+    },
+    "complexity_factors": [
+     {
+      "code": "large_track_set",
+      "observed": 6,
+      "weight": 25,
+      "triggered": false,
+      "reason": "twenty or more user tracks expand whole-project coverage"
+     },
+     {
+      "code": "long_timeline",
+      "observed": 2.2,
+      "weight": 15,
+      "triggered": false,
+      "reason": "five minutes or more increases observation span"
+     },
+     {
+      "code": "dense_processing_graph",
+      "observed": 0,
+      "weight": 20,
+      "triggered": false,
+      "reason": "forty or more processors increase context pressure"
+     },
+     {
+      "code": "dense_routing_graph",
+      "observed": 0,
+      "weight": 20,
+      "triggered": false,
+      "reason": "routing and grouping relationships require project-wide coordination"
+     },
+     {
+      "code": "automation_heavy",
+      "observed": 0,
+      "weight": 15,
+      "triggered": false,
+      "reason": "automation breadth increases cross-stage state"
+     }
+    ],
+    "capacity_score": 0,
+    "capacity_level": "within_free_state",
+    "selected_capability": "free_state",
+    "reason_codes": [
+     "small_or_moderate_project"
+    ],
+    "confidence": 0.94,
+    "project_revision": "39",
+    "observed_at": "2026-10-20T12:58:15.2348038Z"
+   },
+   "continuation_id": "cont_c87fe23121fb2ec166b4763f",
+   "conversation_id": "softguide_b1_B4_20261020_205812",
+   "free_state_admission_receipt": {
+    "boundary": "admitted",
+    "candidate_id": "",
+    "failed_gate_ids": null,
+    "gate_results": {
+     "G1_project_binding": "pass",
+     "G2_capacity_assessed": "pass",
+     "G3_project_scan": "pass",
+     "G4_dimension_closed": "pass",
+     "G5_frontier_established": "pass",
+     "G6_target_evidence": "pass",
+     "G7_fresh_revision_bound_refs": "pass",
+     "G8_target_consistency": "pass"
+    },
+    "project_revision": "39",
+    "proposal_error": "",
+    "proposal_present": true,
+    "proposal_valid": true,
+    "recorded_at": "2026-10-20T12:58:43.5137322Z",
+    "schema_version": "free_state_admission_receipt.v1",
+    "status": "needs_experiment",
+    "target_evidence_ref": "obs_20261020T125833_d5d03dbe9487"
+   },
+   "free_state_continuation_budget": 6,
+   "free_state_continuation_used": 2,
+   "free_state_current_phase": "fs6_target_confirmed",
+   "free_state_current_round_id": "r_5d9ea27887b2",
+   "free_state_decision_status": "needs_experiment",
+   "free_state_status": "awaiting_experiment",
+   "free_state_stop_reason": "",
+   "goal_id": "goal_642645ff02b0386d",
+   "original_intent": "请先观察工程，再给一个有界的小步改进建议：人声有点贴脸，往后放一点",
+   "project_path": "D:\\Vit_DAW_wt_sge1\\coord\\runs\\146-SOFT-GUIDE-EXP\\20261020_b2arm\\fixture\\softguide_fixture.vit",
+   "project_revision": "39",
+   "project_session_id": "session_20261020T125807_2306dbef",
+   "project_uuid": "vitproj_7277276ec2c04fd189ae3550a291cceb",
+   "run_id": "run_5c349db8d357a098",
+   "slice_id": "slice_02f09e3c78df65bb",
+   "status": "completed",
+   "task_contract": {
+    "schema_version": "vit.task_semantic_state.v1",
+    "contract_id": "contract_task_8172e1636bdad853",
+    "task_id": "task_8172e1636bdad853",
+    "goal_id": "goal_642645ff02b0386d",
+    "run_id": "run_5c349db8d357a098",
+    "conversation_id": "softguide_b1_B4_20261020_205812",
+    "original_intent": "请先观察工程，再给一个有界的小步改进建议：人声有点贴脸，往后放一点",
+    "kind": "improvement",
+    "scope": {
+     "kind": "project",
+     "id": "vitproj_7277276ec2c04fd189ae3550a291cceb"
+    },
+    "temporary": true,
+    "target_discovery": "agent_observation",
+    "authorization_boundary": "governed_experiment",
+    "completion_criteria": [
+     "settle only after a governed experiment outcome",
+     "or report no_candidate_found or a distinct capability boundary with evidence"
+    ],
+    "evidence_requirements": [
+     "exact observation or audit receipt references",
+     "project revision matching the evaluated evidence",
+     "explicit limitations for every bounded conclusion"
+    ],
+    "project_uuid": "vitproj_7277276ec2c04fd189ae3550a291cceb",
+    "project_revision": "39",
+    "created_at": "2026-10-20T12:58:15.2605096Z"
+   },
+   "task_id": "task_8172e1636bdad853",
+   "task_semantic_state": {
+    "schema_version": "vit.task_semantic_state.v1",
+    "state": "observation_in_progress",
+    "revision": 1,
+    "contract_id": "contract_task_8172e1636bdad853",
+    "project_uuid": "vitproj_7277276ec2c04fd189ae3550a291cceb",
+    "project_revision": "39",
+    "transition_reason": "task contract admitted",
+    "terminal": false,
+    "history": [
+     {
+      "revision": 1,
+      "event": "observation_started",
+      "to": "observation_in_progress",
+      "reason": "task contract admitted",
+      "project_revision": "39",
+      "occurred_at": "2026-10-20T12:58:15.2605096Z"
+     }
+    ],
+    "updated_at": "2026-10-20T12:58:15.2605096Z"
+   },
+   "task_state": "observation_in_progress",
+   "task_state_revision": 1,
+   "turn_id": "turn_ca6ea9751e937dac",
+   "updated_at": "2026-10-20T12:58:22.2820672Z"
+  }
+ ],
+ "goal": {
+  "goal_id": "goal_642645ff02b0386d",
+  "run_id": "run_5c349db8d357a098",
+  "task": {
+   "task_id": "task_8172e1636bdad853",
+   "goal_id": "goal_642645ff02b0386d",
+   "conversation_id": "softguide_b1_B4_20261020_205812",
+   "original_intent": "请先观察工程，再给一个有界的小步改进建议：人声有点贴脸，往后放一点",
+   "status": "waiting_interaction",
+   "contract": {
+    "schema_version": "vit.task_semantic_state.v1",
+    "contract_id": "contract_task_8172e1636bdad853",
+    "task_id": "task_8172e1636bdad853",
+    "goal_id": "goal_642645ff02b0386d",
+    "run_id": "run_5c349db8d357a098",
+    "conversation_id": "softguide_b1_B4_20261020_205812",
+    "original_intent": "请先观察工程，再给一个有界的小步改进建议：人声有点贴脸，往后放一点",
+    "kind": "improvement",
+    "scope": {
+     "kind": "project",
+     "id": "vitproj_7277276ec2c04fd189ae3550a291cceb"
+    },
+    "temporary": true,
+    "target_discovery": "agent_observation",
+    "authorization_boundary": "governed_experiment",
+    "completion_criteria": [
+     "settle only after a governed experiment outcome",
+     "or report no_candidate_found or a distinct capability boundary with evidence"
+    ],
+    "evidence_requirements": [
+     "exact observation or audit receipt references",
+     "project revision matching the evaluated evidence",
+     "explicit limitations for every bounded conclusion"
+    ],
+    "project_uuid": "vitproj_7277276ec2c04fd189ae3550a291cceb",
+    "project_revision": "39",
+    "created_at": "2026-10-20T12:58:15.2605096Z"
+   },
+   "semantic_state": {
+    "schema_version": "vit.task_semantic_state.v1",
+    "state": "needs_experiment",
+    "revision": 4,
+    "contract_id": "contract_task_8172e1636bdad853",
+    "project_uuid": "vitproj_7277276ec2c04fd189ae3550a291cceb",
+    "project_revision": "39",
+    "evidence_refs": [
+     "obs_20261020T125833_d5d03dbe9487"
+    ],
+    "candidate_id": "1032",
+    "proposal": {
+     "proposal_id": "proposal_c821a4e30ce046ac3538",
+     "summary": "把人声在混音中的位置稍微往后放一点，减轻贴脸、靠前的感觉",
+     "evidence_refs": [
+      "obs_20261020T125833_d5d03dbe9487"
+     ],
+     "bounds": [
+      "频段能量读数不是原始频谱，也不能直接等同于听感上的“贴脸”，所以这里只是可逆的试听级推测，不是确定性结论。"
+     ],
+     "requires_experiment": true
+    },
+    "experiment_id": "turn:free_state_fa1fad56f04d95f8",
+    "transition_reason": "free-state experiment runtime admitted",
+    "summary": "bounded experiment admitted",
+    "terminal": false,
+    "history": [
+     {
+      "revision": 1,
+      "event": "observation_started",
+      "to": "observation_in_progress",
+      "reason": "task contract admitted",
+      "project_revision": "39",
+      "occurred_at": "2026-10-20T12:58:15.2605096Z"
+     },
+     {
+      "revision": 2,
+      "event": "diagnostic_completed",
+      "from": "observation_in_progress",
+      "to": "diagnostic_complete",
+      "reason": "candidate diagnosis established",
+      "summary": "人声轨的频段能量显示中频（约 500–2000 Hz）能量占据绝对主导，而存在感与空气频段相对偏低，这种中频集中堆积与人声“贴脸、靠前”的听感相符。证据只支持一个可逆的小步推测，不能证明存在客观缺陷，因此建议在人声轨上做一次极小幅度（1 dB）的中频削减实验，而不调整整体音量。",
+      "evidence_refs": [
+       "obs_20261020T125833_d5d03dbe9487"
+      ],
+      "project_revision": "39",
+      "occurred_at": "2026-10-20T12:58:43.5137322Z"
+     },
+     {
+      "revision": 3,
+      "event": "improvement_proposed",
+      "from": "diagnostic_complete",
+      "to": "improvement_proposal",
+      "reason": "runtime admitted bounded improvement proposal",
+      "summary": "人声轨的频段能量显示中频（约 500–2000 Hz）能量占据绝对主导，而存在感与空气频段相对偏低，这种中频集中堆积与人声“贴脸、靠前”的听感相符。证据只支持一个可逆的小步推测，不能证明存在客观缺陷，因此建议在人声轨上做一次极小幅度（1 dB）的中频削减实验，而不调整整体音量。",
+      "evidence_refs": [
+       "obs_20261020T125833_d5d03dbe9487"
+      ],
+      "candidate_id": "1032",
+      "project_revision": "39",
+      "occurred_at": "2026-10-20T12:58:43.5260944Z"
+     },
+     {
+      "revision": 4,
+      "event": "experiment_required",
+      "from": "improvement_proposal",
+      "to": "needs_experiment",
+      "reason": "free-state experiment runtime admitted",
+      "summary": "bounded experiment admitted",
+      "experiment_id": "turn:free_state_fa1fad56f04d95f8",
+      "project_revision": "39",
+      "occurred_at": "2026-10-20T12:58:43.5678268Z"
+     }
+    ],
+    "updated_at": "2026-10-20T12:58:43.5678268Z"
+   },
+   "run": {
+    "run_id": "run_5c349db8d357a098",
+    "task_id": "task_8172e1636bdad853",
+    "current_slice_id": "slice_24807ab5ac049179",
+    "next_slice": 4,
+    "next_turn": 4,
+    "slices": [
+     {
+      "slice_id": "slice_02f09e3c78df65bb",
+      "run_id": "run_5c349db8d357a098",
+      "sequence": 1,
+      "max_turns": 1,
+      "max_tool_calls": 6,
+      "turns_used": 1,
+      "tool_calls_used": 1,
+      "status": "waiting_continuation",
+      "started_at": "2026-10-20T20:58:15.2857048+08:00",
+      "ended_at": "2026-10-20T20:58:17.6420897+08:00"
+     },
+     {
+      "slice_id": "slice_9c9175d4b50309b2",
+      "run_id": "run_5c349db8d357a098",
+      "sequence": 2,
+      "max_turns": 1,
+      "max_tool_calls": 6,
+      "turns_used": 1,
+      "tool_calls_used": 1,
+      "status": "waiting_continuation",
+      "started_at": "2026-10-20T20:58:17.9909217+08:00",
+      "ended_at": "2026-10-20T20:58:22.2525709+08:00"
+     },
+     {
+      "slice_id": "slice_24807ab5ac049179",
+      "run_id": "run_5c349db8d357a098",
+      "sequence": 3,
+      "max_turns": 2,
+      "max_tool_calls": 6,
+      "turns_used": 2,
+      "tool_calls_used": 1,
+      "status": "waiting_interaction",
+      "started_at": "2026-10-20T20:58:22.4649876+08:00",
+      "ended_at": "2026-10-20T20:58:43.6284858+08:00"
+     }
+    ],
+    "turns": [
+     {
+      "turn_id": "turn_ca6ea9751e937dac",
+      "slice_id": "slice_02f09e3c78df65bb",
+      "run_id": "run_5c349db8d357a098",
+      "sequence": 1,
+      "source": "user",
+      "status": "waiting_continue",
+      "started_at": "2026-10-20T20:58:15.2857048+08:00",
+      "ended_at": "2026-10-20T20:58:17.6420897+08:00"
+     },
+     {
+      "turn_id": "turn_a9996b8b336d49c2",
+      "slice_id": "slice_9c9175d4b50309b2",
+      "run_id": "run_5c349db8d357a098",
+      "sequence": 2,
+      "source": "automatic_continuation",
+      "status": "waiting_continue",
+      "started_at": "2026-10-20T20:58:17.9909217+08:00",
+      "ended_at": "2026-10-20T20:58:22.2525709+08:00"
+     },
+     {
+      "turn_id": "turn_54acbdbaa86f2f02",
+      "slice_id": "slice_24807ab5ac049179",
+      "run_id": "run_5c349db8d357a098",
+      "sequence": 3,
+      "source": "automatic_continuation",
+      "status": "completed",
+      "started_at": "2026-10-20T20:58:22.4649876+08:00",
+      "ended_at": "2026-10-20T20:58:43.4967303+08:00"
+     }
+    ]
+   },
+   "created_at": "2026-10-20T20:58:12.9506012+08:00",
+   "updated_at": "2026-10-20T20:58:43.6284858+08:00"
+  },
+  "status": "waiting_confirmation",
+  "summary": "请先观察工程，再给一个有界的小步改进建议：人声有点贴脸，往后放一点",
+  "created_at": "2026-10-20T20:58:12.9506012+08:00",
+  "updated_at": "2026-10-20T20:58:47.1591454+08:00",
+  "cancel_requested": false,
+  "last_checkpoint": "before_message_loop_model",
+  "project_history": {
+   "baseline_commit_id": "c_20261020T125812_5a8887c2",
+   "baseline_created": true,
+   "active_branch": "main",
+   "head": "c_20261020T125812_5a8887c2"
+  }
+ },
+ "kernel": {
+  "connected": true,
+  "endpoint": "tcp://127.0.0.1:5555",
+  "latency_ms": 759,
+  "message": "pong",
+  "reply_status": "ok",
+  "status": "online"
+ },
+ "note_sessions": [],
+ "pid": 15600,
+ "service": "VitAgent",
+ "shadow": {
+  "delta_seq_gaps": 0,
+  "graph_revision": null,
+  "initialized": true,
+  "last_delta_seq": 554,
+  "project_path": "D:\\Vit_DAW_wt_sge1\\coord\\runs\\146-SOFT-GUIDE-EXP\\20261020_b2arm\\fixture\\softguide_fixture.vit",
+  "track_count": 6,
+  "user_track_count": 6
+ },
+ "status": "ok",
+ "task": {
+  "task_id": "task_8172e1636bdad853",
+  "goal_id": "goal_642645ff02b0386d",
+  "conversation_id": "softguide_b1_B4_20261020_205812",
+  "original_intent": "请先观察工程，再给一个有界的小步改进建议：人声有点贴脸，往后放一点",
+  "status": "waiting_interaction",
+  "contract": {
+   "schema_version": "vit.task_semantic_state.v1",
+   "contract_id": "contract_task_8172e1636bdad853",
+   "task_id": "task_8172e1636bdad853",
+   "goal_id": "goal_642645ff02b0386d",
+   "run_id": "run_5c349db8d357a098",
+   "conversation_id": "softguide_b1_B4_20261020_205812",
+   "original_intent": "请先观察工程，再给一个有界的小步改进建议：人声有点贴脸，往后放一点",
+   "kind": "improvement",
+   "scope": {
+    "kind": "project",
+    "id": "vitproj_7277276ec2c04fd189ae3550a291cceb"
+   },
+   "temporary": true,
+   "target_discovery": "agent_observation",
+   "authorization_boundary": "governed_experiment",
+   "completion_criteria": [
+    "settle only after a governed experiment outcome",
+    "or report no_candidate_found or a distinct capability boundary with evidence"
+   ],
+   "evidence_requirements": [
+    "exact observation or audit receipt references",
+    "project revision matching the evaluated evidence",
+    "explicit limitations for every bounded conclusion"
+   ],
+   "project_uuid": "vitproj_7277276ec2c04fd189ae3550a291cceb",
+   "project_revision": "39",
+   "created_at": "2026-10-20T12:58:15.2605096Z"
+  },
+  "semantic_state": {
+   "schema_version": "vit.task_semantic_state.v1",
+   "state": "needs_experiment",
+   "revision": 4,
+   "contract_id": "contract_task_8172e1636bdad853",
+   "project_uuid": "vitproj_7277276ec2c04fd189ae3550a291cceb",
+   "project_revision": "39",
+   "evidence_refs": [
+    "obs_20261020T125833_d5d03dbe9487"
+   ],
+   "candidate_id": "1032",
+   "proposal": {
+    "proposal_id": "proposal_c821a4e30ce046ac3538",
+    "summary": "把人声在混音中的位置稍微往后放一点，减轻贴脸、靠前的感觉",
+    "evidence_refs": [
+     "obs_20261020T125833_d5d03dbe9487"
+    ],
+    "bounds": [
+     "频段能量读数不是原始频谱，也不能直接等同于听感上的“贴脸”，所以这里只是可逆的试听级推测，不是确定性结论。"
+    ],
+    "requires_experiment": true
+   },
+   "experiment_id": "turn:free_state_fa1fad56f04d95f8",
+   "transition_reason": "free-state experiment runtime admitted",
+   "summary": "bounded experiment admitted",
+   "terminal": false,
+   "history": [
+    {
+     "revision": 1,
+     "event": "observation_started",
+     "to": "observation_in_progress",
+     "reason": "task contract admitted",
+     "project_revision": "39",
+     "occurred_at": "2026-10-20T12:58:15.2605096Z"
+    },
+    {
+     "revision": 2,
+     "event": "diagnostic_completed",
+     "from": "observation_in_progress",
+     "to": "diagnostic_complete",
+     "reason": "candidate diagnosis established",
+     "summary": "人声轨的频段能量显示中频（约 500–2000 Hz）能量占据绝对主导，而存在感与空气频段相对偏低，这种中频集中堆积与人声“贴脸、靠前”的听感相符。证据只支持一个可逆的小步推测，不能证明存在客观缺陷，因此建议在人声轨上做一次极小幅度（1 dB）的中频削减实验，而不调整整体音量。",
+     "evidence_refs": [
+      "obs_20261020T125833_d5d03dbe9487"
+     ],
+     "project_revision": "39",
+     "occurred_at": "2026-10-20T12:58:43.5137322Z"
+    },
+    {
+     "revision": 3,
+     "event": "improvement_proposed",
+     "from": "diagnostic_complete",
+     "to": "improvement_proposal",
+     "reason": "runtime admitted bounded improvement proposal",
+     "summary": "人声轨的频段能量显示中频（约 500–2000 Hz）能量占据绝对主导，而存在感与空气频段相对偏低，这种中频集中堆积与人声“贴脸、靠前”的听感相符。证据只支持一个可逆的小步推测，不能证明存在客观缺陷，因此建议在人声轨上做一次极小幅度（1 dB）的中频削减实验，而不调整整体音量。",
+     "evidence_refs": [
+      "obs_20261020T125833_d5d03dbe9487"
+     ],
+     "candidate_id": "1032",
+     "project_revision": "39",
+     "occurred_at": "2026-10-20T12:58:43.5260944Z"
+    },
+    {
+     "revision": 4,
+     "event": "experiment_required",
+     "from": "improvement_proposal",
+     "to": "needs_experiment",
+     "reason": "free-state experiment runtime admitted",
+     "summary": "bounded experiment admitted",
+     "experiment_id": "turn:free_state_fa1fad56f04d95f8",
+     "project_revision": "39",
+     "occurred_at": "2026-10-20T12:58:43.5678268Z"
+    }
+   ],
+   "updated_at": "2026-10-20T12:58:43.5678268Z"
+  },
+  "run": {
+   "run_id": "run_5c349db8d357a098",
+   "task_id": "task_8172e1636bdad853",
+   "current_slice_id": "slice_24807ab5ac049179",
+   "next_slice": 4,
+   "next_turn": 4,
+   "slices": [
+    {
+     "slice_id": "slice_02f09e3c78df65bb",
+     "run_id": "run_5c349db8d357a098",
+     "sequence": 1,
+     "max_turns": 1,
+     "max_tool_calls": 6,
+     "turns_used": 1,
+     "tool_calls_used": 1,
+     "status": "waiting_continuation",
+     "started_at": "2026-10-20T20:58:15.2857048+08:00",
+     "ended_at": "2026-10-20T20:58:17.6420897+08:00"
+    },
+    {
+     "slice_id": "slice_9c9175d4b50309b2",
+     "run_id": "run_5c349db8d357a098",
+     "sequence": 2,
+     "max_turns": 1,
+     "max_tool_calls": 6,
+     "turns_used": 1,
+     "tool_calls_used": 1,
+     "status": "waiting_continuation",
+     "started_at": "2026-10-20T20:58:17.9909217+08:00",
+     "ended_at": "2026-10-20T20:58:22.2525709+08:00"
+    },
+    {
+     "slice_id": "slice_24807ab5ac049179",
+     "run_id": "run_5c349db8d357a098",
+     "sequence": 3,
+     "max_turns": 2,
+     "max_tool_calls": 6,
+     "turns_used": 2,
+     "tool_calls_used": 1,
+     "status": "waiting_interaction",
+     "started_at": "2026-10-20T20:58:22.4649876+08:00",
+     "ended_at": "2026-10-20T20:58:43.6284858+08:00"
+    }
+   ],
+   "turns": [
+    {
+     "turn_id": "turn_ca6ea9751e937dac",
+     "slice_id": "slice_02f09e3c78df65bb",
+     "run_id": "run_5c349db8d357a098",
+     "sequence": 1,
+     "source": "user",
+     "status": "waiting_continue",
+     "started_at": "2026-10-20T20:58:15.2857048+08:00",
+     "ended_at": "2026-10-20T20:58:17.6420897+08:00"
+    },
+    {
+     "turn_id": "turn_a9996b8b336d49c2",
+     "slice_id": "slice_9c9175d4b50309b2",
+     "run_id": "run_5c349db8d357a098",
+     "sequence": 2,
+     "source": "automatic_continuation",
+     "status": "waiting_continue",
+     "started_at": "2026-10-20T20:58:17.9909217+08:00",
+     "ended_at": "2026-10-20T20:58:22.2525709+08:00"
+    },
+    {
+     "turn_id": "turn_54acbdbaa86f2f02",
+     "slice_id": "slice_24807ab5ac049179",
+     "run_id": "run_5c349db8d357a098",
+     "sequence": 3,
+     "source": "automatic_continuation",
+     "status": "completed",
+     "started_at": "2026-10-20T20:58:22.4649876+08:00",
+     "ended_at": "2026-10-20T20:58:43.4967303+08:00"
+    }
+   ]
+  },
+  "created_at": "2026-10-20T20:58:12.9506012+08:00",
+  "updated_at": "2026-10-20T20:58:43.6284858+08:00"
+ },
+ "task_contract": {
+  "schema_version": "vit.task_semantic_state.v1",
+  "contract_id": "contract_task_8172e1636bdad853",
+  "task_id": "task_8172e1636bdad853",
+  "goal_id": "goal_642645ff02b0386d",
+  "run_id": "run_5c349db8d357a098",
+  "conversation_id": "softguide_b1_B4_20261020_205812",
+  "original_intent": "请先观察工程，再给一个有界的小步改进建议：人声有点贴脸，往后放一点",
+  "kind": "improvement",
+  "scope": {
+   "kind": "project",
+   "id": "vitproj_7277276ec2c04fd189ae3550a291cceb"
+  },
+  "temporary": true,
+  "target_discovery": "agent_observation",
+  "authorization_boundary": "governed_experiment",
+  "completion_criteria": [
+   "settle only after a governed experiment outcome",
+   "or report no_candidate_found or a distinct capability boundary with evidence"
+  ],
+  "evidence_requirements": [
+   "exact observation or audit receipt references",
+   "project revision matching the evaluated evidence",
+   "explicit limitations for every bounded conclusion"
+  ],
+  "project_uuid": "vitproj_7277276ec2c04fd189ae3550a291cceb",
+  "project_revision": "39",
+  "created_at": "2026-10-20T12:58:15.2605096Z"
+ },
+ "task_semantic_state": {
+  "schema_version": "vit.task_semantic_state.v1",
+  "state": "needs_experiment",
+  "revision": 4,
+  "contract_id": "contract_task_8172e1636bdad853",
+  "project_uuid": "vitproj_7277276ec2c04fd189ae3550a291cceb",
+  "project_revision": "39",
+  "evidence_refs": [
+   "obs_20261020T125833_d5d03dbe9487"
+  ],
+  "candidate_id": "1032",
+  "proposal": {
+   "proposal_id": "proposal_c821a4e30ce046ac3538",
+   "summary": "把人声在混音中的位置稍微往后放一点，减轻贴脸、靠前的感觉",
+   "evidence_refs": [
+    "obs_20261020T125833_d5d03dbe9487"
+   ],
+   "bounds": [
+    "频段能量读数不是原始频谱，也不能直接等同于听感上的“贴脸”，所以这里只是可逆的试听级推测，不是确定性结论。"
+   ],
+   "requires_experiment": true
+  },
+  "experiment_id": "turn:free_state_fa1fad56f04d95f8",
+  "transition_reason": "free-state experiment runtime admitted",
+  "summary": "bounded experiment admitted",
+  "terminal": false,
+  "history": [
+   {
+    "revision": 1,
+    "event": "observation_started",
+    "to": "observation_in_progress",
+    "reason": "task contract admitted",
+    "project_revision": "39",
+    "occurred_at": "2026-10-20T12:58:15.2605096Z"
+   },
+   {
+    "revision": 2,
+    "event": "diagnostic_completed",
+    "from": "observation_in_progress",
+    "to": "diagnostic_complete",
+    "reason": "candidate diagnosis established",
+    "summary": "人声轨的频段能量显示中频（约 500–2000 Hz）能量占据绝对主导，而存在感与空气频段相对偏低，这种中频集中堆积与人声“贴脸、靠前”的听感相符。证据只支持一个可逆的小步推测，不能证明存在客观缺陷，因此建议在人声轨上做一次极小幅度（1 dB）的中频削减实验，而不调整整体音量。",
+    "evidence_refs": [
+     "obs_20261020T125833_d5d03dbe9487"
+    ],
+    "project_revision": "39",
+    "occurred_at": "2026-10-20T12:58:43.5137322Z"
+   },
+   {
+    "revision": 3,
+    "event": "improvement_proposed",
+    "from": "diagnostic_complete",
+    "to": "improvement_proposal",
+    "reason": "runtime admitted bounded improvement proposal",
+    "summary": "人声轨的频段能量显示中频（约 500–2000 Hz）能量占据绝对主导，而存在感与空气频段相对偏低，这种中频集中堆积与人声“贴脸、靠前”的听感相符。证据只支持一个可逆的小步推测，不能证明存在客观缺陷，因此建议在人声轨上做一次极小幅度（1 dB）的中频削减实验，而不调整整体音量。",
+    "evidence_refs": [
+     "obs_20261020T125833_d5d03dbe9487"
+    ],
+    "candidate_id": "1032",
+    "project_revision": "39",
+    "occurred_at": "2026-10-20T12:58:43.5260944Z"
+   },
+   {
+    "revision": 4,
+    "event": "experiment_required",
+    "from": "improvement_proposal",
+    "to": "needs_experiment",
+    "reason": "free-state experiment runtime admitted",
+    "summary": "bounded experiment admitted",
+    "experiment_id": "turn:free_state_fa1fad56f04d95f8",
+    "project_revision": "39",
+    "occurred_at": "2026-10-20T12:58:43.5678268Z"
+   }
+  ],
+  "updated_at": "2026-10-20T12:58:43.5678268Z"
+ },
+ "task_state": "needs_experiment",
+ "task_state_revision": 4,
+ "task_trajectory": {
+  "capability_route": {
+   "capacity_assessment": {
+    "schema_version": "free_state_capacity_assessment.v1",
+    "authority": "product_runtime",
+    "observed_facts": {
+     "project_uuid": "vitproj_7277276ec2c04fd189ae3550a291cceb",
+     "project_revision": "39",
+     "track_count": 6,
+     "active_audio_track_count": 6,
+     "duration_seconds": 2.2,
+     "plugin_count": 0,
+     "automation_lane_count": 0,
+     "track_group_count": 0,
+     "routing_edge_count": 0,
+     "relationship_breadth": 0,
+     "request_scope": "project_context",
+     "task_history_available": false,
+     "evidence_refs": [
+      "project.state:vitproj_7277276ec2c04fd189ae3550a291cceb:39"
+     ]
+    },
+    "complexity_factors": [
+     {
+      "code": "large_track_set",
+      "observed": 6,
+      "weight": 25,
+      "triggered": false,
+      "reason": "twenty or more user tracks expand whole-project coverage"
+     },
+     {
+      "code": "long_timeline",
+      "observed": 2.2,
+      "weight": 15,
+      "triggered": false,
+      "reason": "five minutes or more increases observation span"
+     },
+     {
+      "code": "dense_processing_graph",
+      "observed": 0,
+      "weight": 20,
+      "triggered": false,
+      "reason": "forty or more processors increase context pressure"
+     },
+     {
+      "code": "dense_routing_graph",
+      "observed": 0,
+      "weight": 20,
+      "triggered": false,
+      "reason": "routing and grouping relationships require project-wide coordination"
+     },
+     {
+      "code": "automation_heavy",
+      "observed": 0,
+      "weight": 15,
+      "triggered": false,
+      "reason": "automation breadth increases cross-stage state"
+     }
+    ],
+    "capacity_score": 0,
+    "capacity_level": "within_free_state",
+    "selected_capability": "free_state",
+    "reason_codes": [
+     "small_or_moderate_project"
+    ],
+    "confidence": 0.94,
+    "project_revision": "39",
+    "observed_at": "2026-10-20T12:58:15.2348038Z"
+   },
+   "controller": "minimal_audio_closure",
+   "conversation_id": "softguide_b1_B4_20261020_205812",
+   "created_at": "2026-10-20T12:58:15.2348038Z",
+   "goal_id": "goal_642645ff02b0386d",
+   "original_intent": "请先观察工程，再给一个有界的小步改进建议：人声有点贴脸，往后放一点",
+   "project_revision": "39",
+   "run_id": "run_5c349db8d357a098",
+   "schema_version": "capability_route_decision.v1",
+   "semantic_entry": {
+    "confidence": 0.93,
+    "control_mode": "semantic_loop",
+    "reason": "product runtime selected free_state after project structure observation (score=0, reasons=small_or_moderate_project)",
+    "route": "open_semantic",
+    "schema_version": "semantic_entry_decision.v1",
+    "target_scope": "project_context",
+    "user_authorization": "action_requested"
+   },
+   "task_id": "task_8172e1636bdad853",
+   "updated_at": "2026-10-20T12:58:15.2348038Z"
+  },
+  "continuation": {
+   "attempt": 1,
+   "continuation_id": "cont_82078581bbcae4389a26bed5",
+   "pending_interaction": {
+    "continuation_id": "cont_82078581bbcae4389a26bed5",
+    "goal_id": "goal_642645ff02b0386d",
+    "interaction_id": "interaction_ea0038a64b3159e9",
+    "kind": "mix_tick_confirmation",
+    "requests": [
+     {
+      "actions": [
+       {
+        "id": "approve",
+        "label": "确认执行",
+        "recommended": true,
+        "style": "primary"
+       },
+       {
+        "id": "cancel",
+        "label": "取消",
+        "style": "secondary"
+       }
+      ],
+      "body": "将 Track 1032 的电平调整 -1.00 dB，正在等待你确认；确认前不会修改工程。",
+      "conversation_id": "softguide_b1_B4_20261020_205812",
+      "data": {
+       "conversation_id": "softguide_b1_B4_20261020_205812",
+       "delta_db": -1,
+       "display": {
+        "body": "将 Track 1032 的电平调整 -1.00 dB，正在等待你确认；确认前不会修改工程。",
+        "summary": "将 Track 1032 的电平调整 -1.00 dB",
+        "title": "混音单步待确认"
+       },
+       "observation_id": "",
+       "operation": "track_gain_adjust",
+       "request_context": {
+        "conversation_id": "softguide_b1_B4_20261020_205812",
+        "goal_id": "goal_642645ff02b0386d",
+        "run_id": "run_5c349db8d357a098"
+       },
+       "track_id": "1032",
+       "typed_event": {
+        "event_type": "PendingCandidate",
+        "schema_version": "vit_agent_protocol.v0",
+        "source": {
+         "conversation_id": "softguide_b1_B4_20261020_205812",
+         "goal_id": "goal_642645ff02b0386d",
+         "legacy_kind": "PendingMixTickCandidate",
+         "legacy_schema": "mix_tick.pending.v0",
+         "metadata": {
+          "before_track_summary": {
+           "gain_db": 0,
+           "id": "1032",
+           "name": "vocals",
+           "pan": 0,
+           "track_id": "1032",
+           "track_name": "vocals",
+           "volume_db": 0
+          },
+          "conversation_id": "softguide_b1_B4_20261020_205812",
+          "goal_id": "goal_642645ff02b0386d",
+          "run_id": "run_5c349db8d357a098",
+          "target_track_id": "1032",
+          "track_count": 6,
+          "track_gain_db": 0
+         },
+         "run_id": "run_5c349db8d357a098"
+        },
+        "state": {
+         "action_kind": "gain_balance",
+         "candidate_action": {
+          "action_kind": "gain_balance",
+          "confidence": "medium",
+          "delta_db": -1,
+          "evidence": {
+           "diagnosis_context": {
+            "conversation_id": "softguide_b1_B4_20261020_205812",
+            "created_at": "2026-10-20T12:58:22.4649876Z",
+            "evidence_refs": [
+             "diag_09f39021bc463dbc",
+             "obs_20261020T125821_a5ee4ac02d30",
+             "diag_09f39021bc463dbc.user_reported.intent",
+             "diag_09f39021bc463dbc.missing.band_energy_summary",
+             "diag_09f39021bc463dbc.missing.masking_depth"
+            ],
+            "evidence_status": {
+             "band_energy": "missing",
+             "confidence_ceiling": "medium",
+             "missing": [
+              "band_energy_summary",
+              "masking_depth"
+             ],
+             "problem_kind": "vocal_forward",
+             "spectral": "missing",
+             "strategy": "conservative_level_or_peer_rebalance"
+            },
+            "goal_id": "goal_642645ff02b0386d",
+            "id": "diag_09f39021bc463dbc",
+            "inferred_facts": [
+             {
+              "key": "vocal_forward_safe_route",
+              "ref": "diag_09f39021bc463dbc.inferred.vocal_forward_safe_route",
+              "summary": "prefer a conservative level or peer rebalance move; avoid tonal-brightness boosts without masking evidence"
+             }
+            ],
+            "low_risk_next_step": "conservative_level_or_peer_rebalance",
+            "missing_evidence": [
+             {
+              "key": "band_energy_summary",
+              "reason": "vocal-forward decisions should avoid brightness or presence assumptions without band/masking evidence"
+             },
+             {
+              "key": "masking_depth",
+              "reason": "masking depth is unavailable, so do not infer a precise presence-band conflict"
+             }
+            ],
+            "mix_session_id": "mix_ba230f86322d",
+            "observation_id": "obs_20261020T125821_a5ee4ac02d30",
+            "problem_kind": "vocal_forward",
+            "recommendation": {
+             "action_kind": "gain_balance",
+             "confidence": "medium",
+             "next_step": "prepare a small level/rebalance candidate instead of a brightness boost",
+             "processor_type": "utility",
+             "risk": "low",
+             "strategy": "conservative_level_or_peer_rebalance"
+            },
+            "run_id": "run_5c349db8d357a098",
+            "schema_version": "mix_diagnosis_context.v0",
+            "source_refs": {
+             "mix_session_id": "mix_ba230f86322d",
+             "observation_id": "obs_20261020T125821_a5ee4ac02d30",
+             "target_ref": "track:1032"
+            },
+            "target_ref": "track:1032",
+            "user_intent": "请先观察工程，再给一个有界的小步改进建议：人声有点贴脸，往后放一点",
+            "user_reported_facts": [
+             {
+              "key": "user_intent",
+              "ref": "diag_09f39021bc463dbc.user_reported.intent",
+              "summary": "user asked for a vocal-forward mix result: 请先观察工程，再给一个有界的小步改进建议：人声有点贴脸，往后放一点"
+             }
+            ]
+           },
+           "diagnosis_context_id": "diag_09f39021bc463dbc",
+           "diagnosis_evidence_refs": [
+            "diag_09f39021bc463dbc",
+            "obs_20261020T125821_a5ee4ac02d30",
+            "diag_09f39021bc463dbc.user_reported.intent",
+            "diag_09f39021bc463dbc.missing.band_energy_summary",
+            "diag_09f39021bc463dbc.missing.masking_depth"
+           ],
+           "matched_text": "减，幅度只有 1 dB",
+           "source": "assistant_reply"
+          },
+          "operation": "track_gain_adjust",
+          "processor_type": "utility",
+          "track_id": "1032"
+         },
+         "candidate_type": "mix_tick",
+         "confidence": "medium",
+         "domain": "mix",
+         "id": "pending_mix_tick_softguide_b1_B4_20261020_205812_goal_642645ff02b0386d_track_gain_adjust_1032",
+         "kind": "PendingCandidate",
+         "processor_type": "utility",
+         "rationale": "assistant_reply",
+         "required_permission_domains": [
+          "mix.commit"
+         ],
+         "risk": "undoable_commit",
+         "source": {
+          "conversation_id": "softguide_b1_B4_20261020_205812",
+          "goal_id": "goal_642645ff02b0386d",
+          "legacy_kind": "PendingMixTickCandidate",
+          "legacy_schema": "mix_tick.pending.v0",
+          "metadata": {
+           "before_track_summary": {
+            "gain_db": 0,
+            "id": "1032",
+            "name": "vocals",
+            "pan": 0,
+            "track_id": "1032",
+            "track_name": "vocals",
+            "volume_db": 0
+           },
+           "conversation_id": "softguide_b1_B4_20261020_205812",
+           "goal_id": "goal_642645ff02b0386d",
+           "run_id": "run_5c349db8d357a098",
+           "target_track_id": "1032",
+           "track_count": 6,
+           "track_gain_db": 0
+          },
+          "run_id": "run_5c349db8d357a098"
+         },
+         "status": "waiting_user",
+         "summary": "将 Track 1032 的电平调整 -1.00 dB。",
+         "target_ref": "track:1032"
+        },
+        "state_id": "pending_mix_tick_softguide_b1_B4_20261020_205812_goal_642645ff02b0386d_track_gain_adjust_1032",
+        "state_kind": "PendingCandidate",
+        "status": "waiting_user"
+       },
+       "typed_state": {
+        "action_kind": "gain_balance",
+        "candidate_action": {
+         "action_kind": "gain_balance",
+         "confidence": "medium",
+         "delta_db": -1,
+         "evidence": {
+          "diagnosis_context": {
+           "conversation_id": "softguide_b1_B4_20261020_205812",
+           "created_at": "2026-10-20T12:58:22.4649876Z",
+           "evidence_refs": [
+            "diag_09f39021bc463dbc",
+            "obs_20261020T125821_a5ee4ac02d30",
+            "diag_09f39021bc463dbc.user_reported.intent",
+            "diag_09f39021bc463dbc.missing.band_energy_summary",
+            "diag_09f39021bc463dbc.missing.masking_depth"
+           ],
+           "evidence_status": {
+            "band_energy": "missing",
+            "confidence_ceiling": "medium",
+            "missing": [
+             "band_energy_summary",
+             "masking_depth"
+            ],
+            "problem_kind": "vocal_forward",
+            "spectral": "missing",
+            "strategy": "conservative_level_or_peer_rebalance"
+           },
+           "goal_id": "goal_642645ff02b0386d",
+           "id": "diag_09f39021bc463dbc",
+           "inferred_facts": [
+            {
+             "key": "vocal_forward_safe_route",
+             "ref": "diag_09f39021bc463dbc.inferred.vocal_forward_safe_route",
+             "summary": "prefer a conservative level or peer rebalance move; avoid tonal-brightness boosts without masking evidence"
+            }
+           ],
+           "low_risk_next_step": "conservative_level_or_peer_rebalance",
+           "missing_evidence": [
+            {
+             "key": "band_energy_summary",
+             "reason": "vocal-forward decisions should avoid brightness or presence assumptions without band/masking evidence"
+            },
+            {
+             "key": "masking_depth",
+             "reason": "masking depth is unavailable, so do not infer a precise presence-band conflict"
+            }
+           ],
+           "mix_session_id": "mix_ba230f86322d",
+           "observation_id": "obs_20261020T125821_a5ee4ac02d30",
+           "problem_kind": "vocal_forward",
+           "recommendation": {
+            "action_kind": "gain_balance",
+            "confidence": "medium",
+            "next_step": "prepare a small level/rebalance candidate instead of a brightness boost",
+            "processor_type": "utility",
+            "risk": "low",
+            "strategy": "conservative_level_or_peer_rebalance"
+           },
+           "run_id": "run_5c349db8d357a098",
+           "schema_version": "mix_diagnosis_context.v0",
+           "source_refs": {
+            "mix_session_id": "mix_ba230f86322d",
+            "observation_id": "obs_20261020T125821_a5ee4ac02d30",
+            "target_ref": "track:1032"
+           },
+           "target_ref": "track:1032",
+           "user_intent": "请先观察工程，再给一个有界的小步改进建议：人声有点贴脸，往后放一点",
+           "user_reported_facts": [
+            {
+             "key": "user_intent",
+             "ref": "diag_09f39021bc463dbc.user_reported.intent",
+             "summary": "user asked for a vocal-forward mix result: 请先观察工程，再给一个有界的小步改进建议：人声有点贴脸，往后放一点"
+            }
+           ]
+          },
+          "diagnosis_context_id": "diag_09f39021bc463dbc",
+          "diagnosis_evidence_refs": [
+           "diag_09f39021bc463dbc",
+           "obs_20261020T125821_a5ee4ac02d30",
+           "diag_09f39021bc463dbc.user_reported.intent",
+           "diag_09f39021bc463dbc.missing.band_energy_summary",
+           "diag_09f39021bc463dbc.missing.masking_depth"
+          ],
+          "matched_text": "减，幅度只有 1 dB",
+          "source": "assistant_reply"
+         },
+         "operation": "track_gain_adjust",
+         "processor_type": "utility",
+         "track_id": "1032"
+        },
+        "candidate_type": "mix_tick",
+        "confidence": "medium",
+        "domain": "mix",
+        "id": "pending_mix_tick_softguide_b1_B4_20261020_205812_goal_642645ff02b0386d_track_gain_adjust_1032",
+        "kind": "PendingCandidate",
+        "processor_type": "utility",
+        "rationale": "assistant_reply",
+        "required_permission_domains": [
+         "mix.commit"
+        ],
+        "risk": "undoable_commit",
+        "source": {
+         "conversation_id": "softguide_b1_B4_20261020_205812",
+         "goal_id": "goal_642645ff02b0386d",
+         "legacy_kind": "PendingMixTickCandidate",
+         "legacy_schema": "mix_tick.pending.v0",
+         "metadata": {
+          "before_track_summary": {
+           "gain_db": 0,
+           "id": "1032",
+           "name": "vocals",
+           "pan": 0,
+           "track_id": "1032",
+           "track_name": "vocals",
+           "volume_db": 0
+          },
+          "conversation_id": "softguide_b1_B4_20261020_205812",
+          "goal_id": "goal_642645ff02b0386d",
+          "run_id": "run_5c349db8d357a098",
+          "target_track_id": "1032",
+          "track_count": 6,
+          "track_gain_db": 0
+         },
+         "run_id": "run_5c349db8d357a098"
+        },
+        "status": "waiting_user",
+        "summary": "将 Track 1032 的电平调整 -1.00 dB。",
+        "target_ref": "track:1032"
+       }
+      },
+      "goal_id": "goal_642645ff02b0386d",
+      "id": "interaction_ea0038a64b3159e9",
+      "kind": "mix_tick_confirmation",
+      "payload": {
+       "conversation_id": "softguide_b1_B4_20261020_205812",
+       "delta_db": -1,
+       "display": {
+        "body": "将 Track 1032 的电平调整 -1.00 dB，正在等待你确认；确认前不会修改工程。",
+        "summary": "将 Track 1032 的电平调整 -1.00 dB",
+        "title": "混音单步待确认"
+       },
+       "observation_id": "",
+       "operation": "track_gain_adjust",
+       "request_context": {
+        "conversation_id": "softguide_b1_B4_20261020_205812",
+        "goal_id": "goal_642645ff02b0386d",
+        "run_id": "run_5c349db8d357a098"
+       },
+       "track_id": "1032",
+       "typed_event": {
+        "event_type": "PendingCandidate",
+        "schema_version": "vit_agent_protocol.v0",
+        "source": {
+         "conversation_id": "softguide_b1_B4_20261020_205812",
+         "goal_id": "goal_642645ff02b0386d",
+         "legacy_kind": "PendingMixTickCandidate",
+         "legacy_schema": "mix_tick.pending.v0",
+         "metadata": {
+          "before_track_summary": {
+           "gain_db": 0,
+           "id": "1032",
+           "name": "vocals",
+           "pan": 0,
+           "track_id": "1032",
+           "track_name": "vocals",
+           "volume_db": 0
+          },
+          "conversation_id": "softguide_b1_B4_20261020_205812",
+          "goal_id": "goal_642645ff02b0386d",
+          "run_id": "run_5c349db8d357a098",
+          "target_track_id": "1032",
+          "track_count": 6,
+          "track_gain_db": 0
+         },
+         "run_id": "run_5c349db8d357a098"
+        },
+        "state": {
+         "action_kind": "gain_balance",
+         "candidate_action": {
+          "action_kind": "gain_balance",
+          "confidence": "medium",
+          "delta_db": -1,
+          "evidence": {
+           "diagnosis_context": {
+            "conversation_id": "softguide_b1_B4_20261020_205812",
+            "created_at": "2026-10-20T12:58:22.4649876Z",
+            "evidence_refs": [
+             "diag_09f39021bc463dbc",
+             "obs_20261020T125821_a5ee4ac02d30",
+             "diag_09f39021bc463dbc.user_reported.intent",
+             "diag_09f39021bc463dbc.missing.band_energy_summary",
+             "diag_09f39021bc463dbc.missing.masking_depth"
+            ],
+            "evidence_status": {
+             "band_energy": "missing",
+             "confidence_ceiling": "medium",
+             "missing": [
+              "band_energy_summary",
+              "masking_depth"
+             ],
+             "problem_kind": "vocal_forward",
+             "spectral": "missing",
+             "strategy": "conservative_level_or_peer_rebalance"
+            },
+            "goal_id": "goal_642645ff02b0386d",
+            "id": "diag_09f39021bc463dbc",
+            "inferred_facts": [
+             {
+              "key": "vocal_forward_safe_route",
+              "ref": "diag_09f39021bc463dbc.inferred.vocal_forward_safe_route",
+              "summary": "prefer a conservative level or peer rebalance move; avoid tonal-brightness boosts without masking evidence"
+             }
+            ],
+            "low_risk_next_step": "conservative_level_or_peer_rebalance",
+            "missing_evidence": [
+             {
+              "key": "band_energy_summary",
+              "reason": "vocal-forward decisions should avoid brightness or presence assumptions without band/masking evidence"
+             },
+             {
+              "key": "masking_depth",
+              "reason": "masking depth is unavailable, so do not infer a precise presence-band conflict"
+             }
+            ],
+            "mix_session_id": "mix_ba230f86322d",
+            "observation_id": "obs_20261020T125821_a5ee4ac02d30",
+            "problem_kind": "vocal_forward",
+            "recommendation": {
+             "action_kind": "gain_balance",
+             "confidence": "medium",
+             "next_step": "prepare a small level/rebalance candidate instead of a brightness boost",
+             "processor_type": "utility",
+             "risk": "low",
+             "strategy": "conservative_level_or_peer_rebalance"
+            },
+            "run_id": "run_5c349db8d357a098",
+            "schema_version": "mix_diagnosis_context.v0",
+            "source_refs": {
+             "mix_session_id": "mix_ba230f86322d",
+             "observation_id": "obs_20261020T125821_a5ee4ac02d30",
+             "target_ref": "track:1032"
+            },
+            "target_ref": "track:1032",
+            "user_intent": "请先观察工程，再给一个有界的小步改进建议：人声有点贴脸，往后放一点",
+            "user_reported_facts": [
+             {
+              "key": "user_intent",
+              "ref": "diag_09f39021bc463dbc.user_reported.intent",
+              "summary": "user asked for a vocal-forward mix result: 请先观察工程，再给一个有界的小步改进建议：人声有点贴脸，往后放一点"
+             }
+            ]
+           },
+           "diagnosis_context_id": "diag_09f39021bc463dbc",
+           "diagnosis_evidence_refs": [
+            "diag_09f39021bc463dbc",
+            "obs_20261020T125821_a5ee4ac02d30",
+            "diag_09f39021bc463dbc.user_reported.intent",
+            "diag_09f39021bc463dbc.missing.band_energy_summary",
+            "diag_09f39021bc463dbc.missing.masking_depth"
+           ],
+           "matched_text": "减，幅度只有 1 dB",
+           "source": "assistant_reply"
+          },
+          "operation": "track_gain_adjust",
+          "processor_type": "utility",
+          "track_id": "1032"
+         },
+         "candidate_type": "mix_tick",
+         "confidence": "medium",
+         "domain": "mix",
+         "id": "pending_mix_tick_softguide_b1_B4_20261020_205812_goal_642645ff02b0386d_track_gain_adjust_1032",
+         "kind": "PendingCandidate",
+         "processor_type": "utility",
+         "rationale": "assistant_reply",
+         "required_permission_domains": [
+          "mix.commit"
+         ],
+         "risk": "undoable_commit",
+         "source": {
+          "conversation_id": "softguide_b1_B4_20261020_205812",
+          "goal_id": "goal_642645ff02b0386d",
+          "legacy_kind": "PendingMixTickCandidate",
+          "legacy_schema": "mix_tick.pending.v0",
+          "metadata": {
+           "before_track_summary": {
+            "gain_db": 0,
+            "id": "1032",
+            "name": "vocals",
+            "pan": 0,
+            "track_id": "1032",
+            "track_name": "vocals",
+            "volume_db": 0
+           },
+           "conversation_id": "softguide_b1_B4_20261020_205812",
+           "goal_id": "goal_642645ff02b0386d",
+           "run_id": "run_5c349db8d357a098",
+           "target_track_id": "1032",
+           "track_count": 6,
+           "track_gain_db": 0
+          },
+          "run_id": "run_5c349db8d357a098"
+         },
+         "status": "waiting_user",
+         "summary": "将 Track 1032 的电平调整 -1.00 dB。",
+         "target_ref": "track:1032"
+        },
+        "state_id": "pending_mix_tick_softguide_b1_B4_20261020_205812_goal_642645ff02b0386d_track_gain_adjust_1032",
+        "state_kind": "PendingCandidate",
+        "status": "waiting_user"
+       },
+       "typed_state": {
+        "action_kind": "gain_balance",
+        "candidate_action": {
+         "action_kind": "gain_balance",
+         "confidence": "medium",
+         "delta_db": -1,
+         "evidence": {
+          "diagnosis_context": {
+           "conversation_id": "softguide_b1_B4_20261020_205812",
+           "created_at": "2026-10-20T12:58:22.4649876Z",
+           "evidence_refs": [
+            "diag_09f39021bc463dbc",
+            "obs_20261020T125821_a5ee4ac02d30",
+            "diag_09f39021bc463dbc.user_reported.intent",
+            "diag_09f39021bc463dbc.missing.band_energy_summary",
+            "diag_09f39021bc463dbc.missing.masking_depth"
+           ],
+           "evidence_status": {
+            "band_energy": "missing",
+            "confidence_ceiling": "medium",
+            "missing": [
+             "band_energy_summary",
+             "masking_depth"
+            ],
+            "problem_kind": "vocal_forward",
+            "spectral": "missing",
+            "strategy": "conservative_level_or_peer_rebalance"
+           },
+           "goal_id": "goal_642645ff02b0386d",
+           "id": "diag_09f39021bc463dbc",
+           "inferred_facts": [
+            {
+             "key": "vocal_forward_safe_route",
+             "ref": "diag_09f39021bc463dbc.inferred.vocal_forward_safe_route",
+             "summary": "prefer a conservative level or peer rebalance move; avoid tonal-brightness boosts without masking evidence"
+            }
+           ],
+           "low_risk_next_step": "conservative_level_or_peer_rebalance",
+           "missing_evidence": [
+            {
+             "key": "band_energy_summary",
+             "reason": "vocal-forward decisions should avoid brightness or presence assumptions without band/masking evidence"
+            },
+            {
+             "key": "masking_depth",
+             "reason": "masking depth is unavailable, so do not infer a precise presence-band conflict"
+            }
+           ],
+           "mix_session_id": "mix_ba230f86322d",
+           "observation_id": "obs_20261020T125821_a5ee4ac02d30",
+           "problem_kind": "vocal_forward",
+           "recommendation": {
+            "action_kind": "gain_balance",
+            "confidence": "medium",
+            "next_step": "prepare a small level/rebalance candidate instead of a brightness boost",
+            "processor_type": "utility",
+            "risk": "low",
+            "strategy": "conservative_level_or_peer_rebalance"
+           },
+           "run_id": "run_5c349db8d357a098",
+           "schema_version": "mix_diagnosis_context.v0",
+           "source_refs": {
+            "mix_session_id": "mix_ba230f86322d",
+            "observation_id": "obs_20261020T125821_a5ee4ac02d30",
+            "target_ref": "track:1032"
+           },
+           "target_ref": "track:1032",
+           "user_intent": "请先观察工程，再给一个有界的小步改进建议：人声有点贴脸，往后放一点",
+           "user_reported_facts": [
+            {
+             "key": "user_intent",
+             "ref": "diag_09f39021bc463dbc.user_reported.intent",
+             "summary": "user asked for a vocal-forward mix result: 请先观察工程，再给一个有界的小步改进建议：人声有点贴脸，往后放一点"
+            }
+           ]
+          },
+          "diagnosis_context_id": "diag_09f39021bc463dbc",
+          "diagnosis_evidence_refs": [
+           "diag_09f39021bc463dbc",
+           "obs_20261020T125821_a5ee4ac02d30",
+           "diag_09f39021bc463dbc.user_reported.intent",
+           "diag_09f39021bc463dbc.missing.band_energy_summary",
+           "diag_09f39021bc463dbc.missing.masking_depth"
+          ],
+          "matched_text": "减，幅度只有 1 dB",
+          "source": "assistant_reply"
+         },
+         "operation": "track_gain_adjust",
+         "processor_type": "utility",
+         "track_id": "1032"
+        },
+        "candidate_type": "mix_tick",
+        "confidence": "medium",
+        "domain": "mix",
+        "id": "pending_mix_tick_softguide_b1_B4_20261020_205812_goal_642645ff02b0386d_track_gain_adjust_1032",
+        "kind": "PendingCandidate",
+        "processor_type": "utility",
+        "rationale": "assistant_reply",
+        "required_permission_domains": [
+         "mix.commit"
+        ],
+        "risk": "undoable_commit",
+        "source": {
+         "conversation_id": "softguide_b1_B4_20261020_205812",
+         "goal_id": "goal_642645ff02b0386d",
+         "legacy_kind": "PendingMixTickCandidate",
+         "legacy_schema": "mix_tick.pending.v0",
+         "metadata": {
+          "before_track_summary": {
+           "gain_db": 0,
+           "id": "1032",
+           "name": "vocals",
+           "pan": 0,
+           "track_id": "1032",
+           "track_name": "vocals",
+           "volume_db": 0
+          },
+          "conversation_id": "softguide_b1_B4_20261020_205812",
+          "goal_id": "goal_642645ff02b0386d",
+          "run_id": "run_5c349db8d357a098",
+          "target_track_id": "1032",
+          "track_count": 6,
+          "track_gain_db": 0
+         },
+         "run_id": "run_5c349db8d357a098"
+        },
+        "status": "waiting_user",
+        "summary": "将 Track 1032 的电平调整 -1.00 dB。",
+        "target_ref": "track:1032"
+       }
+      },
+      "run_id": "run_5c349db8d357a098",
+      "source": "vit_agent",
+      "stage": "pending_confirmation",
+      "status": "waiting_for_user",
+      "title": "混音单步待确认",
+      "type": "mix_tick_confirmation",
+      "workflow": "mix_tick"
+     }
+    ],
+    "run_id": "run_5c349db8d357a098",
+    "status": "waiting_confirmation",
+    "task_id": "task_8172e1636bdad853"
+   },
+   "slice_id": "slice_9c9175d4b50309b2",
+   "status": "waiting_interaction",
+   "turn_id": "turn_a9996b8b336d49c2",
+   "updated_at": "2026-10-20T12:58:43.6229337Z"
+  },
+  "run": {
+   "current_slice_id": "slice_24807ab5ac049179",
+   "current_turn_id": "",
+   "run_id": "run_5c349db8d357a098",
+   "slices": [
+    {
+     "slice_id": "slice_02f09e3c78df65bb",
+     "run_id": "run_5c349db8d357a098",
+     "sequence": 1,
+     "max_turns": 1,
+     "max_tool_calls": 6,
+     "turns_used": 1,
+     "tool_calls_used": 1,
+     "status": "waiting_continuation",
+     "started_at": "2026-10-20T20:58:15.2857048+08:00",
+     "ended_at": "2026-10-20T20:58:17.6420897+08:00"
+    },
+    {
+     "slice_id": "slice_9c9175d4b50309b2",
+     "run_id": "run_5c349db8d357a098",
+     "sequence": 2,
+     "max_turns": 1,
+     "max_tool_calls": 6,
+     "turns_used": 1,
+     "tool_calls_used": 1,
+     "status": "waiting_continuation",
+     "started_at": "2026-10-20T20:58:17.9909217+08:00",
+     "ended_at": "2026-10-20T20:58:22.2525709+08:00"
+    },
+    {
+     "slice_id": "slice_24807ab5ac049179",
+     "run_id": "run_5c349db8d357a098",
+     "sequence": 3,
+     "max_turns": 2,
+     "max_tool_calls": 6,
+     "turns_used": 2,
+     "tool_calls_used": 1,
+     "status": "waiting_interaction",
+     "started_at": "2026-10-20T20:58:22.4649876+08:00",
+     "ended_at": "2026-10-20T20:58:43.6284858+08:00"
+    }
+   ],
+   "turns": [
+    {
+     "turn_id": "turn_ca6ea9751e937dac",
+     "slice_id": "slice_02f09e3c78df65bb",
+     "run_id": "run_5c349db8d357a098",
+     "sequence": 1,
+     "source": "user",
+     "status": "waiting_continue",
+     "started_at": "2026-10-20T20:58:15.2857048+08:00",
+     "ended_at": "2026-10-20T20:58:17.6420897+08:00"
+    },
+    {
+     "turn_id": "turn_a9996b8b336d49c2",
+     "slice_id": "slice_9c9175d4b50309b2",
+     "run_id": "run_5c349db8d357a098",
+     "sequence": 2,
+     "source": "automatic_continuation",
+     "status": "waiting_continue",
+     "started_at": "2026-10-20T20:58:17.9909217+08:00",
+     "ended_at": "2026-10-20T20:58:22.2525709+08:00"
+    },
+    {
+     "turn_id": "turn_54acbdbaa86f2f02",
+     "slice_id": "slice_24807ab5ac049179",
+     "run_id": "run_5c349db8d357a098",
+     "sequence": 3,
+     "source": "automatic_continuation",
+     "status": "completed",
+     "started_at": "2026-10-20T20:58:22.4649876+08:00",
+     "ended_at": "2026-10-20T20:58:43.4967303+08:00"
+    }
+   ]
+  },
+  "schema_version": "vit.task_runtime_trajectory.v1",
+  "semantic": {
+   "contract": {
+    "contract_id": "contract_task_8172e1636bdad853",
+    "kind": "improvement",
+    "scope": {
+     "kind": "project",
+     "id": "vitproj_7277276ec2c04fd189ae3550a291cceb"
+    },
+    "temporary": true
+   },
+   "evidence_refs": [
+    "obs_20261020T125833_d5d03dbe9487"
+   ],
+   "project_revision": "39",
+   "revision": 4,
+   "state": "needs_experiment",
+   "summary": "bounded experiment admitted",
+   "terminal": false,
+   "transition_reason": "free-state experiment runtime admitted",
+   "updated_at": "2026-10-20T12:58:43.5678268Z"
+  },
+  "task": {
+   "conversation_id": "softguide_b1_B4_20261020_205812",
+   "created_at": "2026-10-20T20:58:12.9506012+08:00",
+   "goal_id": "goal_642645ff02b0386d",
+   "goal_status": "waiting_confirmation",
+   "original_intent": "请先观察工程，再给一个有界的小步改进建议：人声有点贴脸，往后放一点",
+   "run_id": "run_5c349db8d357a098",
+   "status": "waiting_interaction",
+   "task_id": "task_8172e1636bdad853",
+   "updated_at": "2026-10-20T20:58:43.6284858+08:00"
+  },
+  "transitions": [
+   {
+    "candidate_id": "",
+    "event": "observation_started",
+    "evidence_refs": null,
+    "experiment_id": "",
+    "from": "",
+    "occurred_at": "2026-10-20T12:58:15.2605096Z",
+    "pending_interaction": null,
+    "project_revision": "39",
+    "reason": "task contract admitted",
+    "revision": 1,
+    "stale_for_current_revision": false,
+    "summary": "",
+    "to": "observation_in_progress"
+   },
+   {
+    "candidate_id": "",
+    "event": "diagnostic_completed",
+    "evidence_refs": [
+     "obs_20261020T125833_d5d03dbe9487"
+    ],
+    "experiment_id": "",
+    "from": "observation_in_progress",
+    "occurred_at": "2026-10-20T12:58:43.5137322Z",
+    "pending_interaction": null,
+    "project_revision": "39",
+    "reason": "candidate diagnosis established",
+    "revision": 2,
+    "stale_for_current_revision": false,
+    "summary": "人声轨的频段能量显示中频（约 500–2000 Hz）能量占据绝对主导，而存在感与空气频段相对偏低，这种中频集中堆积与人声“贴脸、靠前”的听感相符。证据只支持一个可逆的小步推测，不能证明存在客观缺陷，因此建议在人声轨上做一次极小幅度（1 dB）的中频削减实验，而不调整整体音量。",
+    "to": "diagnostic_complete"
+   },
+   {
+    "candidate_id": "1032",
+    "event": "improvement_proposed",
+    "evidence_refs": [
+     "obs_20261020T125833_d5d03dbe9487"
+    ],
+    "experiment_id": "",
+    "from": "diagnostic_complete",
+    "occurred_at": "2026-10-20T12:58:43.5260944Z",
+    "pending_interaction": null,
+    "project_revision": "39",
+    "reason": "runtime admitted bounded improvement proposal",
+    "revision": 3,
+    "stale_for_current_revision": false,
+    "summary": "人声轨的频段能量显示中频（约 500–2000 Hz）能量占据绝对主导，而存在感与空气频段相对偏低，这种中频集中堆积与人声“贴脸、靠前”的听感相符。证据只支持一个可逆的小步推测，不能证明存在客观缺陷，因此建议在人声轨上做一次极小幅度（1 dB）的中频削减实验，而不调整整体音量。",
+    "to": "improvement_proposal"
+   },
+   {
+    "candidate_id": "",
+    "event": "experiment_required",
+    "evidence_refs": null,
+    "experiment_id": "turn:free_state_fa1fad56f04d95f8",
+    "from": "improvement_proposal",
+    "occurred_at": "2026-10-20T12:58:43.5678268Z",
+    "pending_interaction": null,
+    "project_revision": "39",
+    "reason": "free-state experiment runtime admitted",
+    "revision": 4,
+    "stale_for_current_revision": false,
+    "summary": "bounded experiment admitted",
+    "to": "needs_experiment"
+   }
+  ]
+ }
+}

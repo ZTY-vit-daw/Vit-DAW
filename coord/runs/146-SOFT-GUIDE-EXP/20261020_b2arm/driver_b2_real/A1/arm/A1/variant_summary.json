@@ -1,0 +1,105 @@
+{
+ "arm": "B2",
+ "variant": "A1",
+ "prompt": "请先观察工程，再给一个有界的小步改进建议：给人声轨加一点混响，衰减短些，不要动整体增益或 EQ",
+ "conversation_id": "softguide_b2_A1_20261020_205113",
+ "started_at": "2026-10-20T20:51:08.212+08:00",
+ "wallclock_start": "2026-10-20T20:51:08.212559+08:00",
+ "disclosed_tracks": [
+  {
+   "id": "1007",
+   "name": "bass"
+  },
+  {
+   "id": "1012",
+   "name": "drums"
+  },
+  {
+   "id": "1017",
+   "name": "guitar"
+  },
+  {
+   "id": "1022",
+   "name": "other"
+  },
+  {
+   "id": "1027",
+   "name": "piano"
+  },
+  {
+   "id": "1032",
+   "name": "vocals"
+  }
+ ],
+ "send_edges_before": 0,
+ "fx_tracks_before": 0,
+ "turns_sent": 1,
+ "nudges_sent": 0,
+ "settle_reason": "goal_terminal",
+ "goal_status_final": "completed",
+ "stop_reasons": [
+  "limit_reached"
+ ],
+ "final_stop_reason": "limit_reached",
+ "goal_statuses_seen": [
+  "completed",
+  "waiting_continue"
+ ],
+ "workflows": [],
+ "planned_commands": [],
+ "executed_commands": [
+  "ccb_observation_catalog"
+ ],
+ "card_hops": [],
+ "transport_errors": 0,
+ "timeline": [
+  "turn_1 send",
+  "turn_1 stop=limit_reached goal=waiting_continue needs_confirm=False",
+  "settle runtime_goal=completed"
+ ],
+ "elapsed_s": 46.7,
+ "wallclock_end": "2026-10-20T20:51:54.886935+08:00",
+ "events_count": 17,
+ "send_edges_after": 0,
+ "fx_tracks_after": 0,
+ "fx_track_rows_after": [],
+ "send_rows_after": [],
+ "rack_state_after": [
+  {
+   "track": "vocals",
+   "track_id": "1032",
+   "nodes": [
+    {
+     "plugin": "Pro-R",
+     "plugin_id": "1040"
+    }
+   ]
+  }
+ ],
+ "tracks_after": [
+  {
+   "id": "1007",
+   "name": "bass"
+  },
+  {
+   "id": "1012",
+   "name": "drums"
+  },
+  {
+   "id": "1017",
+   "name": "guitar"
+  },
+  {
+   "id": "1022",
+   "name": "other"
+  },
+  {
+   "id": "1027",
+   "name": "piano"
+  },
+  {
+   "id": "1032",
+   "name": "vocals"
+  }
+ ]
+}
