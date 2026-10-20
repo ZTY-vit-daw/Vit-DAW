@@ -85,7 +85,7 @@ func messageLoopNeutralFamilySystemPrompt(state *runState) string {
 
 // messageLoopNeutralFamilySystemSkeleton renders the byte-stable system
 // skeleton: the fixed rule frame plus the session-constant observation catalog
-// and allowed-tools list. It must stay byte-identical across eventless turns
+// and allowed-tools list. It must stay byte-stable across eventless turns
 // (T-A3); every per-turn variable piece lives in TurnDirectives instead.
 func messageLoopNeutralFamilySystemSkeleton(state *runState) string {
 	catalog := ""
@@ -94,8 +94,17 @@ func messageLoopNeutralFamilySystemSkeleton(state *runState) string {
 		catalog = messageLoopNeutralFamilyCatalog(state.input.AllowedTools)
 		allowed = strings.Join(messageLoopNeutralFamilyAllowedTools(state.input.AllowedTools), ", ")
 	}
-	return neutralFamilySkeletonFromRuleset(catalog, allowed)
+	// [SEMANTIC-TIMEFX-SOFTGUIDE-EXP-1] 一次性实验补丁：自由态系统提示词尾部
+	// 追加时域族默认总线拓扑惯例段（B2 臂；文本=coord/reports/2026-10-20-146-
+	// timefx-design-and-experiment.md §一.D 逐字）。临时 build，不入生产——
+	// 生产注入走卡 146-IMPL-SOFT（软引导惯例段+词表抽公共）。常量后缀保持
+	// 骨架跨事件轮字节稳定（T-A3 语义不被破坏）。
+	return neutralFamilySkeletonFromRuleset(catalog, allowed) + "\n\n" + softGuideTimeDomainTopologyConvention
 }
+
+// softGuideTimeDomainTopologyConvention 是 SEMANTIC-TIMEFX-SOFTGUIDE-EXP-1
+// B2 臂的软引导惯例文本（146 实验方案 §一.D，逐字；协议跑前不得改）。
+const softGuideTimeDomainTopologyConvention = `时域效果惯例（默认拓扑）：当计划的处理属于时域族（reverb/delay/echo/room/hall，及空间感/氛围/远近/干湿类请求），且用户未明说插入方式时，默认规划为总线拓扑：效果器装载到一条 FX/return 轨（新建时默认命名 Reverb Bus / Delay Bus，工程已有可用时域 FX 轨时复用之），源轨以 send 连接该轨并设默认发送量；inline 插入源轨仅当用户明说插入、单轨快速 A/B 或实验探测。提案必须呈现拓扑计划（建什么轨或复用哪条、装载位置、send 连接与默认发送量）。只能引用观察披露过的真实轨道与结构，不得发明轨道或拓扑。`
 
 // freeStateImprovementProposalPromptShape renders the needs_experiment
 // proposal example for the effective experiment budget. The budget is
