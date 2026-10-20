@@ -813,9 +813,12 @@ func (s *Server) semanticDynamicWaitingResponse(conversationID string, requestCo
 	if _, ok := semanticProgressiveDisclosureState(requestContext["semantic_progressive_disclosure"]); ok {
 		workflowData["semantic_progressive_disclosure"] = requestContext["semantic_progressive_disclosure"]
 	}
-	interaction := AgentInteractionRequest{ID: interactionID, Kind: "confirmation", Type: "confirmation", Source: "vit_agent", Workflow: semanticDynamicWorkflow, Stage: "waiting_for_user", Title: "Confirm semantic processor adjustment", Body: string(previewJSON), Status: "waiting_for_user", ConversationID: conversationID, GoalID: firstStringFromMap(requestContext, "goal_id"), RunID: firstStringFromMap(requestContext, "run_id"), PlanID: ticket.TicketID, Payload: map[string]any{"ticket_id": ticket.TicketID, "preview": previewMap, "workflow": semanticDynamicWorkflow, "request_context": cloneContext(requestContext)}, Actions: []AgentInteractionAction{{ID: "approve", Label: "Confirm", Style: "primary", Recommended: true}, {ID: "cancel", Label: "Cancel", Style: "secondary"}}}
+	// SEMANTIC-CARD-COPY-1 ③: the typed-controller confirmation card speaks
+	// natural Chinese (清单 §4); the structured preview payload above stays
+	// machine-auditable and is not prose-translated.
+	interaction := AgentInteractionRequest{ID: interactionID, Kind: "confirmation", Type: "confirmation", Source: "vit_agent", Workflow: semanticDynamicWorkflow, Stage: "waiting_for_user", Title: "确认执行语义参数控制器", Body: string(previewJSON), Status: "waiting_for_user", ConversationID: conversationID, GoalID: firstStringFromMap(requestContext, "goal_id"), RunID: firstStringFromMap(requestContext, "run_id"), PlanID: ticket.TicketID, Payload: map[string]any{"ticket_id": ticket.TicketID, "preview": previewMap, "workflow": semanticDynamicWorkflow, "request_context": cloneContext(requestContext)}, Actions: []AgentInteractionAction{{ID: "approve", Label: "确认执行", Style: "primary", Recommended: true}, {ID: "cancel", Label: "取消", Style: "secondary"}}}
 	s.storePendingInteraction(interaction, map[string]any{"workflow_data": workflowData, "ticket": ticket})
-	return ChatResponse{ConversationID: conversationID, GoalID: interaction.GoalID, RunID: interaction.RunID, Reply: "The semantic plan is ready. No parameter has been written. Confirm to execute the typed controller.", NeedsConfirmation: true, PlanID: ticket.TicketID, Preview: string(previewJSON), Workflow: semanticDynamicWorkflow, WorkflowData: workflowData, InteractionRequests: []AgentInteractionRequest{interaction}, GoalStatus: string(agentruntime.StatusWaitingConfirmation), StopReason: "semantic_dynamic_confirmation_required"}
+	return ChatResponse{ConversationID: conversationID, GoalID: interaction.GoalID, RunID: interaction.RunID, Reply: "语义控制计划已就绪，尚未写入任何参数；确认后才会执行参数控制器，取消则不会改动工程。", NeedsConfirmation: true, PlanID: ticket.TicketID, Preview: string(previewJSON), Workflow: semanticDynamicWorkflow, WorkflowData: workflowData, InteractionRequests: []AgentInteractionRequest{interaction}, GoalStatus: string(agentruntime.StatusWaitingConfirmation), StopReason: "semantic_dynamic_confirmation_required"}
 }
 
 func (s *Server) continueSemanticDynamicExecutionInteraction(ctx context.Context, interaction PendingInteraction, decision string) ChatResponse {
@@ -826,7 +829,7 @@ func (s *Server) continueSemanticDynamicExecutionInteraction(ctx context.Context
 	}
 	clean := strings.ToLower(strings.TrimSpace(decision))
 	if clean == "cancel" || clean == "deny" || clean == "reject" {
-		return ChatResponse{ConversationID: interaction.ConversationID, GoalID: interaction.GoalID, RunID: interaction.RunID, Reply: "The semantic processor adjustment was cancelled; no parameters changed.", Workflow: semanticDynamicWorkflow, WorkflowData: map[string]any{"schema_version": semanticDynamicSchema, "status": "cancelled", "mutation_performed": false}, GoalStatus: string(agentruntime.StatusCancelled), StopReason: "semantic_dynamic_cancelled"}
+		return ChatResponse{ConversationID: interaction.ConversationID, GoalID: interaction.GoalID, RunID: interaction.RunID, Reply: "已取消语义参数控制；没有修改任何参数。", Workflow: semanticDynamicWorkflow, WorkflowData: map[string]any{"schema_version": semanticDynamicSchema, "status": "cancelled", "mutation_performed": false}, GoalStatus: string(agentruntime.StatusCancelled), StopReason: "semantic_dynamic_cancelled"}
 	}
 	if !isApprovalDecision(clean) {
 		s.restorePendingInteraction(interaction)

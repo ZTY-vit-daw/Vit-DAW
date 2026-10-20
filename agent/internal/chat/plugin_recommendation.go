@@ -16,7 +16,102 @@ import (
 const (
 	pluginRecommendationWorkflow = "plugin_recommendation_selection"
 	pluginRecommendationSchema   = "plugin_recommendation_selection.v1"
+
+	// SEMANTIC-CARD-COPY-1 ①: the selection face carries a renderer-owned
+	// admission boundary so the card can never claim library-wide loadability.
+	// Numbers come from the two faces the caller actually queried (catalog
+	// search face vs PCA-admitted face), never from model prose.
+	pluginRecommendationAdmissionBoundaryKey = "plugin_recommendation_admission_boundary"
 )
+
+// pluginRecommendationAdmissionBoundaryDisclosure freezes the two-face counts
+// the honest boundary sentence renders from: the catalog search face and the
+// PCA-admitted subset of it.
+func pluginRecommendationAdmissionBoundaryDisclosure(catalogFace, admitted []pluginRecommendationCandidate, processorType string) map[string]any {
+	names := make([]string, 0, len(admitted))
+	for _, candidate := range admitted {
+		if name := strings.TrimSpace(candidate.Name); name != "" {
+			names = append(names, name)
+		}
+	}
+	if len(names) > 5 {
+		names = names[:5]
+	}
+	return map[string]any{
+		"catalog_search_type": pluginRecommendationCatalogSearchType(processorType),
+		"catalog_face_count":  len(catalogFace),
+		"admitted_count":      len(admitted),
+		"admitted_names":      names,
+	}
+}
+
+func pluginRecommendationBoundaryCount(value any) int {
+	switch v := value.(type) {
+	case int:
+		return v
+	case int64:
+		return int(v)
+	case float64:
+		return int(v)
+	default:
+		return 0
+	}
+}
+
+// pluginRecommendationAdmissionBoundaryLine renders the deterministic
+// honest-boundary sentence. Loadable (library face) and semantically
+// controllable (PCA admission face) are different claims; the sentence keeps
+// both counts explicit and never lets "可加载" stand in for "可控".
+func pluginRecommendationAdmissionBoundaryLine(disclosure map[string]any) string {
+	if len(disclosure) == 0 {
+		return ""
+	}
+	catalogCount := pluginRecommendationBoundaryCount(disclosure["catalog_face_count"])
+	admittedCount := pluginRecommendationBoundaryCount(disclosure["admitted_count"])
+	if catalogCount <= 0 || admittedCount <= 0 {
+		return ""
+	}
+	faceLabel := pluginRecommendationCatalogFaceLabel(firstStringFromMap(disclosure, "catalog_search_type"))
+	notAdmitted := catalogCount - admittedCount
+	if notAdmitted < 0 {
+		notAdmitted = 0
+	}
+	if admittedCount == 1 {
+		names := contextStringSlice(disclosure["admitted_names"])
+		name := "1 款候选"
+		if len(names) > 0 && strings.TrimSpace(names[0]) != "" {
+			name = names[0]
+		}
+		if notAdmitted == 0 {
+			return fmt.Sprintf("准入边界：本机插件库检索到的 %d 款%s当前全部通过 PCA 语义控制准入（%s）。", catalogCount, faceLabel, name)
+		}
+		return fmt.Sprintf("准入边界：本机插件库检索到 %d 款%s，当前通过 PCA 语义控制准入的只有 %s；其余 %d 款可装载，但未接入本类语义控制，不在本次推荐面。", catalogCount, faceLabel, name, notAdmitted)
+	}
+	if notAdmitted == 0 {
+		return fmt.Sprintf("准入边界：本机插件库检索到的 %d 款%s已全部通过 PCA 语义控制准入。", catalogCount, faceLabel)
+	}
+	return fmt.Sprintf("准入边界：本机插件库检索到 %d 款%s，其中 %d 款已通过 PCA 语义控制准入；其余 %d 款可装载，但未接入本类语义控制，不在本次推荐面。", catalogCount, faceLabel, admittedCount, notAdmitted)
+}
+
+// pluginRecommendationCatalogFaceLabel names the catalog search face in user
+// language. The dynamics families share one broad catalog face, so the label
+// must not narrow it to a single processor label.
+func pluginRecommendationCatalogFaceLabel(searchType string) string {
+	if strings.TrimSpace(searchType) == "dynamics" {
+		return "动态类效果器"
+	}
+	return pluginRecommendationProcessorLabel(searchType)
+}
+
+// pluginRecommendationAdmissionBoundaryReplySuffix carries the same honest
+// admission boundary onto reply faces that answered a selection without
+// parking the selection card (full-access autonomous selection).
+func pluginRecommendationAdmissionBoundaryReplySuffix(requestContext map[string]any) string {
+	if line := pluginRecommendationAdmissionBoundaryLine(firstMapFromAny(requestContext[pluginRecommendationAdmissionBoundaryKey])); line != "" {
+		return "\n" + line
+	}
+	return ""
+}
 
 type pluginRecommendationCandidate struct {
 	Key               string `json:"candidate_key"`
@@ -302,6 +397,7 @@ Rules:
 - The first choice must be role=recommended; all others role=alternative. Candidate keys must be unique.
 - LLM pretrained knowledge may inform soft suitability, workflow, era/model/style, and likely character. Clearly keep that reasoning probabilistic; do not present it as a measured property or a local catalog fact.
 - Catalog match scores, type confidence, alphabetical order, and the first candidate are not recommendation reasons.
+- Never claim a candidate is the only loadable plugin or make library-wide loadability claims: loadable and admitted for semantic control are different faces, and the system appends the authoritative admission boundary line after your summary.
 - Do not use offline measurement, stored plugin mappings, B4, or parameter/topology claims.
 - This phase recommends and selects only. It must not load a plugin or propose parameter writes.
 - If product-specific knowledge is weak, prefer a versatile, well-known candidate and disclose the limitation rather than fabricating detail.`
@@ -463,6 +559,7 @@ func (s *Server) ordinaryAgentPluginRecommendationResponseForProcessor(ctx conte
 	if len(candidates) == 0 {
 		return s.pluginRecommendationNoCandidatesResponse(conversationID, mode, userText, requestContext, res, processorType)
 	}
+	catalogFace := candidates
 	if processorAttestationFamily(processorType) != "" {
 		candidates, err = admittedPluginRecommendationCandidates(candidates, processorType)
 		if err != nil {
@@ -471,6 +568,9 @@ func (s *Server) ordinaryAgentPluginRecommendationResponseForProcessor(ctx conte
 		if len(candidates) == 0 {
 			return s.pluginRecommendationNoCandidatesResponse(conversationID, mode, userText, requestContext, res, processorType)
 		}
+		requestContext = mergeContext(requestContext, map[string]any{
+			pluginRecommendationAdmissionBoundaryKey: pluginRecommendationAdmissionBoundaryDisclosure(catalogFace, candidates, processorType),
+		})
 		// D2-FAM2-S3: with a frozen semantic intent riding the free-state
 		// channel, narrow the offered set to candidates that are
 		// simultaneously family-promoted, axis-covered, and whitelist-form
@@ -572,6 +672,10 @@ func (s *Server) pluginRecommendationSelectionResponse(conversationID, mode stri
 		})
 	}
 	actions = append(actions, AgentInteractionAction{ID: "cancel", Label: "暂不加载", Style: "secondary"})
+	admissionBoundary := firstMapFromAny(requestContext[pluginRecommendationAdmissionBoundaryKey])
+	if boundaryLine := pluginRecommendationAdmissionBoundaryLine(admissionBoundary); boundaryLine != "" {
+		lines = append(lines, boundaryLine)
+	}
 	trackID := firstStringFromMap(requestContext, "selected_track_id", "selected_plugin_track_id")
 	trackName := firstStringFromMap(requestContext, "selected_track_name")
 	payload := map[string]any{
@@ -591,6 +695,9 @@ func (s *Server) pluginRecommendationSelectionResponse(conversationID, mode stri
 		"load_proposed":       false,
 		"mutation_performed":  false,
 		"request_context":     cloneContext(requestContext),
+	}
+	if len(admissionBoundary) > 0 {
+		payload["admission_boundary"] = cloneContext(admissionBoundary)
 	}
 	if requirement, ok := pluginControlRequirementFromAny(requestContext["processor_control_requirement"]); ok {
 		payload["processor_control_requirement"] = requirement
