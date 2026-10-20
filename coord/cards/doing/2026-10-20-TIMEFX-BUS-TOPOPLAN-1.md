@@ -28,6 +28,6 @@
 - 复用既有 FX 轨判定需 C3 之外的观察面 → 上交锚点收窄；
 - 提案链消费点与 K2 send_route 确定性工作流冲突（显式 send 请求被误拦）→ 锚点上交，K2 面零触碰红线保持。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：（2026-10-20 深夜 +0800 / origin/main=f7459c5681466543490d8ab10bee80d9d08b06ad / GLM-5.3 L2 PC 执行会话 ZCode（本会话，用户口令指定领取） / 分支=port/timefx-bus-topoplan-1（worktree D:/Vit_DAW_wt_topoplan154）+ 协调 worktree D:/Vit_DAW_wt_topoplan154_coord（coord/topoplan154-claim）/ 领取提交=本提交；领取核对：卡在 todo 派发已确认、147 已合入（f7459c56 含 148 验收链）、155（WRITEGATE）仍在 todo 串行前提成立、doing 两卡（GEN-SUNO 零生产代码 / BUDGETSTOP goalrunner_chat.go）文件域零冲突）
 - 回执：（commit / 单测名 / 真栈 run ID 与断言面 / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
