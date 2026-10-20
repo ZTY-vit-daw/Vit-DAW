@@ -11,4 +11,5 @@
 
 - 领取：2026-10-20 20:08 +0800 / origin/main=18ea58ec / owner=GLM-5.3 L2 PC ZCode 执行会话（本卡会话）/ 分支=port/budgetstop-chainend-delivery-1 / worktree=D:/Vit_DAW_wt_bscd1 / 领取提交=本 commit
 - 回执：（commit / 单测红→绿证据 / d1_stall_repro 真栈 run ID 与分类 / 端测边界声明）
-- 验收：（裁定文件 / 验收 commit）
+- 回执（**单测腿完成 / 2026-10-20 深夜，实现 ffdc25e2@port/budgetstop-chainend-delivery-1**）：goalrunner_chat.go 预算耗尽 settle 段补 delete(s.goalContinuations, durable.GoalID)（撤 legacy arm，注释含 2026-10-20 真栈 chainEnded=false 直证引用+resumable 路径读 goal 状态不读该 map 的核对说明）；新增 budget_stop_chainend_delivery_test.go（131 行，budget-stop 形态后 goalHasLiveContinuationOwner==false+投递含「继续」needle 的红→绿）。
+- 验收（**单测腿 pass / 2026-10-20 深夜，GLM 主管决策流；卡留 doing**）：diff 亲读（+14 行窄修贴规格主案，撤 arm 不改总谓词）；实现 ffdc25e2 cherry-pick 入 main（152 解锁条件=本段合入即视为满足文件域串行前提）；主管集成态全量复跑见当日验收 commit。**挂账腿（卡未完）**：①真栈腿 d1_stall_repro_smoke（到达 budget stop 形态分类=parked_owe exit 0；到达方式概率性如实声明或低预算确定性注入）——栈已由 146 实验 21:0x 释放可登记开跑；②147 转移的 NL 三面 full-access 复验。两腿完成后整卡验收。
