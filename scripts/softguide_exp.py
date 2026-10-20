@@ -436,6 +436,14 @@ def run_variant(base_url: str, arm: str, variant: str, prompt: str, fixture_path
                 settle_reason = "goal_terminal" if goal in TERMINAL_GOALS else "awaiting_user"
                 timeline.append(f"settle runtime_goal={goal}")
                 break
+            if goal == "waiting_continue":
+                continuation_active = any(
+                    str(row.get("status") or "") in ("pending", "claimed", "running")
+                    for row in (runtime.get("continuations") or [])
+                )
+                if not continuation_active and nudges_sent < args.max_nudges:
+                    timeline.append(f"boundary: waiting_continue no continuation -> nudge {nudges_sent + 1}/{args.max_nudges}")
+                    send_pending = True
 
     signals.update({
         "turns_sent": turns_sent,
