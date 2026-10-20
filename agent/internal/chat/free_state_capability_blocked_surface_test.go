@@ -162,9 +162,16 @@ func TestCapabilityBlockedBoundaryResponseSurface(t *testing.T) {
 		t.Fatalf("workflow data boundary markers wrong: %+v", resp.WorkflowData)
 	}
 	// Face 3: the reply is a capability boundary statement — it names the
-	// refusal, never delivers the model's promise, and claims no execution.
-	if !strings.Contains(resp.Reply, "准入门") || !strings.Contains(resp.Reply, "G6_target_evidence") || !strings.Contains(resp.Reply, "G8_target_consistency") {
-		t.Fatalf("boundary reply does not state the admission refusal: %q", resp.Reply)
+	// refusal in user language, never delivers the model's promise, and claims
+	// no execution. SEMANTIC-CARD-COPY-1④: the gate codenames stay in the
+	// structured receipt (Face 2) and must not re-enter the prose.
+	if !strings.Contains(resp.Reply, "准入门") || !strings.Contains(resp.Reply, "目标证据") || !strings.Contains(resp.Reply, "目标一致性") {
+		t.Fatalf("boundary reply does not state the admission refusal in user language: %q", resp.Reply)
+	}
+	for _, id := range failed {
+		if strings.Contains(resp.Reply, id) {
+			t.Fatalf("boundary reply leaked internal gate codename %q: %q", id, resp.Reply)
+		}
 	}
 	if strings.Contains(resp.Reply, "A/B 试听") || strings.Contains(resp.Reply, "执行后请") {
 		t.Fatalf("boundary reply leaked the model's promised experiment: %q", resp.Reply)
@@ -258,5 +265,38 @@ func TestCapabilityBlockedBoundaryDetectsModelTerminalConcession(t *testing.T) {
 	}
 	if !strings.Contains(reply, "no governed processor family") {
 		t.Fatalf("model-terminal boundary reply dropped the model's stated boundary: %q", reply)
+	}
+}
+
+// SEMANTIC-CARD-COPY-1④: the admission refusal names the failed gates in
+// user language; the codenames stay in the structured receipt payload.
+func TestCapabilityBlockedReplyRendersGateNamesWithoutCodenames(t *testing.T) {
+	const boundaryTail = "任务在能力边界停止：没有执行任何实验或修改，也不会自动重试。"
+	r3Shape := []string{"G3_project_scan", "G5_frontier_established", "G6_target_evidence", "G7_fresh_revision_bound_refs", "G8_target_consistency"}
+	reply := freeStateCapabilityBlockedReply(map[string]any{"failed_gate_ids": r3Shape}, &agentloop.FreeStateDecision{})
+	want := "本次有界改进提案未通过自由态准入门（工程扫描/前沿建立/目标证据/证据新鲜度/目标一致性 五项准入检查未过），" + boundaryTail
+	if reply != want {
+		t.Fatalf("R3-shape reply = %q, want %q", reply, want)
+	}
+	for _, id := range r3Shape {
+		if strings.Contains(reply, id) {
+			t.Fatalf("reply leaked gate codename %q: %q", id, reply)
+		}
+	}
+
+	pairReply := freeStateCapabilityBlockedReply(map[string]any{"failed_gate_ids": []string{"G8_target_consistency", "G3_project_scan"}}, &agentloop.FreeStateDecision{})
+	if !strings.Contains(pairReply, "目标一致性/工程扫描 两项准入检查未过") {
+		t.Fatalf("pair reply lost receipt order or count word: %q", pairReply)
+	}
+
+	allEight := []string{"G1_project_binding", "G2_capacity_assessed", "G3_project_scan", "G4_dimension_closed", "G5_frontier_established", "G6_target_evidence", "G7_fresh_revision_bound_refs", "G8_target_consistency"}
+	everything := freeStateCapabilityBlockedGatePhrase(allEight)
+	if !strings.Contains(everything, "八项准入检查未过") || strings.Contains(everything, "其他") {
+		t.Fatalf("full-gate phrase wrong: %q", everything)
+	}
+
+	unknown := freeStateCapabilityBlockedGatePhrase([]string{"G3_project_scan", "G9_future_gate"})
+	if unknown != "工程扫描/其他 两项准入检查未过" {
+		t.Fatalf("unknown gate must collapse into 其他 without leaking the codename: %q", unknown)
 	}
 }

@@ -79,10 +79,16 @@ func TestCapabilityBlockedBoundaryOwnsClosureActiveSettledFace(t *testing.T) {
 		t.Fatalf("workflow receipt lost the R3 gate signature: %q", joined)
 	}
 	// Face 3: the reply is the capability boundary statement — it names the
-	// refusal, never delivers the model's promise, and never borrows the
-	// closure settlement's converged voice.
-	if !strings.Contains(resp.Reply, "准入门") || !strings.Contains(resp.Reply, "G6_target_evidence") || !strings.Contains(resp.Reply, "G8_target_consistency") {
-		t.Fatalf("boundary reply does not state the admission refusal: %q", resp.Reply)
+	// refusal in user language, never delivers the model's promise, and never
+	// borrows the closure settlement's converged voice. SEMANTIC-CARD-COPY-1④:
+	// gate codenames stay in the structured receipt, not the prose.
+	if !strings.Contains(resp.Reply, "准入门") || !strings.Contains(resp.Reply, "目标证据") || !strings.Contains(resp.Reply, "目标一致性") {
+		t.Fatalf("boundary reply does not state the admission refusal in user language: %q", resp.Reply)
+	}
+	for _, id := range gateReceiptFailedIDs(t, receipt) {
+		if strings.Contains(resp.Reply, id) {
+			t.Fatalf("boundary reply leaked internal gate codename %q: %q", id, resp.Reply)
+		}
 	}
 	if !strings.Contains(resp.Reply, "没有执行任何实验或修改") || !strings.Contains(resp.Reply, "不会自动重试") {
 		t.Fatalf("boundary reply does not state the no-execution/no-retry boundary: %q", resp.Reply)

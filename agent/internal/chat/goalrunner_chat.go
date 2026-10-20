@@ -2095,10 +2095,52 @@ func freeStateCapabilityBlockedBoundary(loop freeStateReasoningLoop) (map[string
 	return cloneContext(loop.AdmissionReceipt), true
 }
 
+// freeStateGateUserNames renders the free-state admission gate ids in user
+// language for the capability-boundary reply. The codenames themselves stay
+// machine-facing: they ride the structured admission receipt in workflow data
+// and must never re-enter the prose.
+var freeStateGateUserNames = map[string]string{
+	"G1_project_binding":           "工程绑定",
+	"G2_capacity_assessed":         "容量评估",
+	"G3_project_scan":              "工程扫描",
+	"G4_dimension_closed":          "维度闭合",
+	"G5_frontier_established":      "前沿建立",
+	"G6_target_evidence":           "目标证据",
+	"G7_fresh_revision_bound_refs": "证据新鲜度",
+	"G8_target_consistency":        "目标一致性",
+}
+
+// freeStateCapabilityBlockedGatePhrase joins the failed gates as a
+// user-language admission checklist, e.g.
+// 「工程扫描/前沿建立/目标证据/证据新鲜度/目标一致性 五项准入检查未过」.
+// Unmapped ids (a future gate without a name yet) collapse into one trailing
+// 「其他」 instead of leaking a codename; the count still covers every failed
+// gate so the wording never understates the refusal.
+func freeStateCapabilityBlockedGatePhrase(failed []string) string {
+	names := make([]string, 0, len(failed)+1)
+	unmapped := 0
+	for _, id := range failed {
+		if name, ok := freeStateGateUserNames[id]; ok {
+			names = append(names, name)
+		} else {
+			unmapped++
+		}
+	}
+	if unmapped > 0 {
+		names = append(names, "其他")
+	}
+	countWords := []string{"", "一", "两", "三", "四", "五", "六", "七", "八"}
+	count := "多"
+	if len(failed) >= 1 && len(failed) < len(countWords) {
+		count = countWords[len(failed)]
+	}
+	return strings.Join(names, "/") + " " + count + "项准入检查未过"
+}
+
 func freeStateCapabilityBlockedReply(receipt map[string]any, decision *agentloop.FreeStateDecision) string {
 	const boundaryTail = "任务在能力边界停止：没有执行任何实验或修改，也不会自动重试。"
 	if failed := freeStateCapabilityBlockedStringList(receipt["failed_gate_ids"]); len(failed) > 0 {
-		return "本次有界改进提案未通过自由态准入门（" + strings.Join(failed, "、") + "），" + boundaryTail
+		return "本次有界改进提案未通过自由态准入门（" + freeStateCapabilityBlockedGatePhrase(failed) + "），" + boundaryTail
 	}
 	if boundary := strings.TrimSpace(decision.Summary); boundary != "" {
 		return "自由态推理申报了能力边界（" + boundary + "）。" + boundaryTail
