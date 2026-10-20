@@ -5255,7 +5255,7 @@ if ($ScenarioMode) {
         # ---------------- LEG B: explicit time-domain bus journey (gate) ----
         Write-Step "LEG B (bus journey): explicit time-domain utterance under full access -> autonomous chain -> connect+load legs -> readback"
         $tpBusConversationID = "dev_tp_bus_" + $tpStamp
-        $tpBusJourney = & $tpDriveJourney $tpBusConversationID "给 vocals 加一点混响，衰减短些，不要动整体增益或 EQ" "tp_bus"
+        $tpBusJourney = & $tpDriveJourney $tpBusConversationID "请先观察工程，再给一个有界的小步改进建议：给 vocals 加一点混响，衰减短些，不要动整体增益或 EQ" "tp_bus"
         # B-gate 1: the chain settled honestly (a miss here is the declared
         # probabilistic face: class the miss, one rerun, same break x2 = stop).
         if ($tpBusJourney.reason -in @("budget_exhausted", "initial_transport_error")) {
@@ -5314,7 +5314,7 @@ if ($ScenarioMode) {
         # ---------------- LEG C: inline exception contrast -------------------
         Write-Step "LEG C (inline contrast): user_explicit wording under full access -> load on the source track, NO connect leg"
         $tpInlineConversationID = "dev_tp_inline_" + $tpStamp
-        $tpInlineJourney = & $tpDriveJourney $tpInlineConversationID "给 vocals 加一点混响，直接插在这条轨上，不要建轨" "tp_inline"
+        $tpInlineJourney = & $tpDriveJourney $tpInlineConversationID "请先观察工程，再给一个有界的小步改进建议：给 vocals 加一点混响，直接插在这条轨上，不要建轨" "tp_inline"
         if ($tpInlineJourney.reason -in @("budget_exhausted", "initial_transport_error")) {
             throw ("inline contrast did not settle honestly (reason=" + $tpInlineJourney.reason + ")")
         }
@@ -5349,7 +5349,7 @@ if ($ScenarioMode) {
         # territory). Recorded only.
         Write-Step "LEG D (fuzzy probe, recorded): M2-class utterance -> topology surface or honest miss class"
         $tpFuzzyConversationID = "dev_tp_fuzzy_" + $tpStamp
-        $tpFuzzyJourney = & $tpDriveJourney $tpFuzzyConversationID "给 vocals 加点空间感" "tp_fuzzy" 2
+        $tpFuzzyJourney = & $tpDriveJourney $tpFuzzyConversationID "请先观察工程，再给一个有界的小步改进建议：给 vocals 加点空间感" "tp_fuzzy" 2
         $tpFuzzyClass = "fuzzy_no_topology_surface"
         if ($tpFuzzyJourney.evidence.Contains("semantic_topology_plan")) { $tpFuzzyClass = "fuzzy_topology_plan_surface" }
         elseif ($tpFuzzyJourney.evidence.Contains("rack_add_node")) { $tpFuzzyClass = "fuzzy_load_without_topoplan" }
