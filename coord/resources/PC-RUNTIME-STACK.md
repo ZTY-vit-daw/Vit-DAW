@@ -3,7 +3,7 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
-（无——空闲）
+- 2026-10-20 19:39 登记 / **FULLACCESS-SEMANTIC-CHAIN-1(147) 真栈烟测腿**（owner=GLM-5.3 L2 PC ZCode 执行会话，本卡会话；worktree D:/Vit_DAW_wt_fasc1，分支 port/fullaccess-semantic-chain-1@be57f496+烟测场景改动）：`dev_agent_smoke -StartKernel -RestartAgent -Scenario fullaccess_semantic_chain`——M2 场次①主话术（逐字）在显式 full_project_access 下的零交互卡自主链验证；被测 agent=worktree 构建（含本卡 Go 改动），内核只读复用主检出 staging B6565DCF85D1DA867（本卡零内核改动）；端口 7878/5555/5556/8787。登记前只读核对：四端口监听=0、VitApp/VitAgent/vsphub/Godot 进程=0（前 owner 150 已于 19:2x 释放）。预计 30-60 分钟（含 DAD 烘焙与 LLM 链）。
 
 ## 最近一次释放（2026-10-20 19:2x +0800，PCA-REVERB-PROMOTION-1）
 
