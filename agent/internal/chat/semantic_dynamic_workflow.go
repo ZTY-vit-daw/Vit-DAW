@@ -767,6 +767,15 @@ func (s *Server) planBoundSemanticDynamic(ctx context.Context, conversationID, u
 			return semanticDynamicFailure(conversationID, requestContext, "progressive_disclosure_boundary", err)
 		}
 	}
+	// FULLACCESS-SEMANTIC-CHAIN-1: on the plugin-recommendation semantic chain
+	// an explicit full-access turn executes the typed controller immediately
+	// (the same executor, PCA re-admission, staleness checks, atomic readback,
+	// and settlement bracket an approve provides) instead of parking the
+	// confirmation card. The chain key keeps C2 capability sessions and the
+	// B4 treatment faces on their own confirmation surfaces.
+	if fullAccessSemanticChainContext(requestContext) {
+		return s.semanticDynamicFullAccessExecution(context.Background(), conversationID, requestContext, ticket)
+	}
 	return s.semanticDynamicWaitingResponse(conversationID, requestContext, ticket, brief, decision, digest)
 }
 

@@ -534,6 +534,13 @@ func (s *Server) pluginRecommendationNoCandidatesResponse(conversationID, mode, 
 
 func (s *Server) pluginRecommendationSelectionResponse(conversationID, mode string, requestContext map[string]any, res agentloop.Result, plan pluginRecommendationPlan, candidates []pluginRecommendationCandidate) ChatResponse {
 	requestContext = s.bindFreeStateAuthoritativeTrack(conversationID, requestContext)
+	// FULLACCESS-SEMANTIC-CHAIN-1: an explicit full-access turn answers the
+	// selection itself (the plan's primary recommendation) and continues the
+	// chain autonomously instead of parking the selection card. Every other
+	// mode keeps the manual face below byte-identical.
+	if explicitFullAccessRequestContext(requestContext) {
+		return s.pluginRecommendationFullAccessSelectionResponse(conversationID, mode, requestContext, res, plan, candidates)
+	}
 	candidateByKey := map[string]pluginRecommendationCandidate{}
 	for _, candidate := range candidates {
 		candidateByKey[candidate.Key] = candidate

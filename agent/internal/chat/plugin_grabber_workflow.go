@@ -199,6 +199,14 @@ func (s *Server) runPluginGrabberLoadWorkflow(ctx context.Context, conversationI
 		plan.WorkflowData["semantic_post_load_observation_context"] = cloneContext(firstMapFromAny(requestContext["semantic_post_load_observation_context"]))
 		plan.WorkflowData["semantic_post_load_semantic_processor_intent"] = cloneContext(firstMapFromAny(requestContext["semantic_post_load_semantic_processor_intent"]))
 	}
+	// FULLACCESS-SEMANTIC-CHAIN-1: an explicit full-access turn executes the
+	// admitted load immediately — the same pendingPlanExecutionContext
+	// authorization and confirmed dispatch a user confirm provides — instead
+	// of parking the confirmation plan. The harness PCA load gate still runs
+	// unchanged on the executed command.
+	if explicitFullAccessRequestContext(requestContext) {
+		return s.pluginGrabberLoadFullAccessResponse(context.Background(), conversationID, plan)
+	}
 	s.mu.Lock()
 	s.pending[plan.ID] = plan
 	s.mu.Unlock()
