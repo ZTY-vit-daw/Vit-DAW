@@ -33,6 +33,6 @@ authority=full_project_access（显式，agent_last.log 18:18:15 switch accepted
 - 发现更晚的用户裁定要求「插件装载必须用户确认」（与 2026-09-13 冲突）→ 上交裁定锚点停止；
 - 语义链确认面牵出 K2 send_route 之类的确定性工作流共用代码 → 锚点清单上交，防越域改坏显式 send 面。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：（2026-10-20 18:58 +0800 / origin/main=0596dbda13c2b907758f77004228502fd7690017 / GLM-5.3 L2 执行会话 PC/ZCode（本卡会话，用户指令指定领取）/ 分支=port/fullaccess-semantic-chain-1 / worktree=D:/Vit_DAW_wt_fasc1 / 领取提交=本提交；领取时核对：卡在 todo 派发已确认（用户 2026-09-13 裁定在卷）、依赖无、doing 三卡文件域零冲突（146 探查设计卡零生产代码/FS-RECEIPT-REVISION-1 在 goalrunner 面/GEN-SUNO 零生产代码）；真栈腿与 146 实验腿串行——栈占用开工前另行登记 PC-RUNTIME-STACK.md）
 - 回执：（commit / 测试名 / 真栈 run ID / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
