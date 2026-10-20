@@ -1,0 +1,54 @@
+ok: draft root isolation: source=external VIT_HISTORY_DRAFT_ROOT=D:\Vit_DAW_wt_fasc1\coord\runs\FULLACCESS-SEMANTIC-CHAIN-1\20261020_194123\agent_drafts
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_wt_fasc1
+agent http: http://127.0.0.1:7878
+
+== Build VitAgent
+ok: build passed: D:\Vit_DAW_wt_fasc1\agent\bin\VitAgent.dev-smoke.exe
+ok: installed agent bin: D:\Vit_DAW_wt_fasc1\agent\bin\VitAgent.exe
+ok: installed agent root compatibility exe: D:\Vit_DAW_wt_fasc1\agent\vitagent.exe
+
+== Start kernel
+ok: started kernel: D:\Vit_DAW\Export\staging\runtime\VitApp.exe pid=30708 workdir=D:\Vit_DAW_wt_fasc1\coord\runs\FULLACCESS-SEMANTIC-CHAIN-1\20261020_194123\kernel_workspace
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW_wt_fasc1\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=295
+shadow.initialized=True track_count=6
+ok: scenario berth project identity stable: vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb
+
+== Scenario fullaccess_semantic_chain: fixture + authority grant -> M2 utterance -> zero-card autonomous chain -> executed evidence gate
+
+== LEG A (fixture): six-stem project (M2 shape), bake DAD, persist, reopen
+ok: fixture open ok: D:\Vit_DAW_wt_fasc1\coord\runs\FULLACCESS-SEMANTIC-CHAIN-1\20261020_194123\project\fa_fixture.vit
+
+== LEG B (authority grant): full project access switch + input-chain probe
+ok: authority bound full_project_access
+
+== LEG C (NL round): M2 utterance -> settle; any confirmation card = reproduced defect
+
+== timeline: chat_turn_1 stop_reason=limit_reached goal_status=waiting_continue
+
+== timeline: settle goal_terminal status=completed
+
+== LEG D (gates): zero-card + executed evidence + no card stop reasons
+ok: gate 1 PASS: zero confirmation cards across the whole settle
+ok: gate 2 PASS: settle_reason=goal_terminal goal_status=completed
+ok: gate 3 PASS: no card stop reason in any captured surface
+
+== Scenario berth teardown
+ok: stopped scenario agent pid=6600
+ok: stopped scenario kernel pid=30708
+full-access chain settled without executed evidence (class=llm_shape_or_boundary): rack_add_node=False full_access_auto
+_authorized=False semantic_dynamic_execution_completed=False settle=goal_terminal goal=completed
+ËùÔÚÎ»ÖÃ D:\Vit_DAW_wt_fasc1\scripts\dev_agent_smoke.ps1:4850 ×Ö·û: 13
++             throw ("full-access chain settled without executed eviden ...
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (full-access cha... goal=completed:String) [], RuntimeException
+    + FullyQualifiedErrorId : full-access chain settled without executed evidence (class=llm_shape_or_boundary): rack_ 
+   add_node=False full_access_auto_authorized=False semantic_dynamic_execution_completed=False settle=goal_terminal g  
+  oal=completed
+ 

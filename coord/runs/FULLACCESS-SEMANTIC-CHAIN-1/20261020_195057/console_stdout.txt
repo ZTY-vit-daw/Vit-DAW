@@ -1,0 +1,55 @@
+ok: draft root isolation: source=external VIT_HISTORY_DRAFT_ROOT=D:\Vit_DAW_wt_fasc1\coord\runs\FULLACCESS-SEMANTIC-CHAIN-1\20261020_195057\agent_drafts
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_wt_fasc1
+agent http: http://127.0.0.1:7878
+
+== Build VitAgent
+ok: build passed: D:\Vit_DAW_wt_fasc1\agent\bin\VitAgent.dev-smoke.exe
+ok: installed agent bin: D:\Vit_DAW_wt_fasc1\agent\bin\VitAgent.exe
+ok: installed agent root compatibility exe: D:\Vit_DAW_wt_fasc1\agent\vitagent.exe
+
+== Start kernel
+ok: started kernel: D:\Vit_DAW\Export\staging\runtime\VitApp.exe pid=23576 workdir=D:\Vit_DAW_wt_fasc1\coord\runs\FULLACCESS-SEMANTIC-CHAIN-1\20261020_195057\kernel_workspace
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW_wt_fasc1\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=295
+shadow.initialized=True track_count=6
+ok: scenario berth project identity stable: vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb
+
+== Scenario fullaccess_semantic_chain: fixture + authority grant -> M2 utterance -> zero-card autonomous chain -> executed evidence gate
+
+== LEG A (fixture): six-stem project (M2 shape), bake DAD, persist, reopen
+ok: fixture open ok: D:\Vit_DAW_wt_fasc1\coord\runs\FULLACCESS-SEMANTIC-CHAIN-1\20261020_195057\project\fa_fixture.vit
+
+== LEG B (authority grant): full project access switch + input-chain probe
+ok: authority bound full_project_access
+
+== LEG C (NL round): M2 utterance -> settle; any confirmation card = reproduced defect
+
+== timeline: chat_turn_1 stop_reason=limit_reached goal_status=waiting_continue
+
+== timeline: settle goal_terminal status=completed
+
+== LEG D (gates): zero-card + executed evidence + no card stop reasons
+ok: gate 1 PASS: zero confirmation cards across the whole settle
+ok: gate 2 PASS: settle_reason=goal_terminal goal_status=completed
+ok: gate 3 PASS: no card stop reason in any captured surface
+warn: gate 4 RECORDED (non-fatal): NL chain did not reach the fork surfaces (rack=False auto=False typed=False settle=goal_terminal) -- upstream free-state delivery gap, cards 146/149 territory
+warn: gate 5 RECORDED (non-fatal): no fresh-observation receipt in this run's surfaces (chain did not execute)
+
+== LEG E (deterministic load): explicit Pro-R load under full access -> immediate execution, zero cards
+ok: LEG E PASS: rack_add_node executed autonomously (plugin_id=1044), zero cards, zero parked plans
+
+== LEG F (manual control): authority back to manual -> same load parks its confirmation plan
+ok: LEG F PASS: manual keeps the confirmation plan (plan_id=plan_685131ba9728c873)
+
+== Scenario berth teardown
+ok: stopped scenario agent pid=4184
+ok: stopped scenario kernel pid=23576
+
+== Summary
+ok: dev agent smoke completed (scenario=fullaccess_semantic_chain, artifacts=D:\Vit_DAW_wt_fasc1\coord\runs\FULLACCESS-SEMANTIC-CHAIN-1\20261020_195057)
