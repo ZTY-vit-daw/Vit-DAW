@@ -5118,43 +5118,121 @@ if ($ScenarioMode) {
         }
         Write-Ok ("fixture open ok: " + $tpProjectPath + " (vocals=" + $tpVocalsID + ")")
 
-        # ---------------- LEG B: explicit bus journey (THE gate) ------------
-        Write-Step "LEG B (bus journey): recommendation utterance -> selection card with topology_plan -> confirm -> connect+load legs -> readback"
-        $tpBusConversationID = "dev_tp_bus_" + $tpStamp
-        $tpBusChat = $null
-        $tpBusError = ""
-        try {
-            $tpBusChat = Invoke-Json -Method POST -Uri $tpChatUri -Body @{
-                conversation_id = $tpBusConversationID
-                message = "给 vocals 推荐一款混响插件，衰减短一点"
-                context = @{
-                    agent_mode = "chat"
-                    selected_track_id = $tpVocalsID
-                    selected_track_name = "vocals"
+        # ---------------- journey driver (147 LEG C settle-loop shape) -------
+        # Run-1 finding (20261020_222048, class model_turn_prose_complete): a
+        # RECOMMENDATION-QUESTION utterance lets the ordinary model turn answer
+        # with prose itself (it holds plugin.semantic_search + observation
+        # tools), so the goal settles inside the turn and the selection face
+        # is never parked. The journey legs therefore use TREATMENT-phrased
+        # utterances (146 A1 class) that the model cannot self-answer, drive
+        # the free-state settle with bounded nudges, and fish the parked
+        # plugin_recommendation_selection card from chat responses or the
+        # runtime pending-interaction surface.
+        $tpRuntimeUri = $AgentHttp.TrimEnd("/") + "/agent/runtime/status"
+        $tpNudge = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String("5Y+v5Lul5omn6KGM"))
+        $tpDriveJourney = {
+            param([string]$JourneyConversationID, [string]$JourneyMessage, [string]$ArtifactPrefix, [int]$MaxNudges = 4)
+            $journeyTurns = 0
+            $journeyNudges = 0
+            $journeySendPending = $true
+            $journeyCard = $null
+            $journeyReason = "budget_exhausted"
+            $journeyGoalStatus = ""
+            $journeyTerminal = @("completed", "failed", "stopped", "cancelled")
+            $journeyDeadline = (Get-Date).AddSeconds($JourneyNlSettleSeconds)
+            while ((Get-Date) -lt $journeyDeadline) {
+                if ($journeySendPending) {
+                    $journeySendPending = $false
+                    $journeyTurns++
+                    $journeyIsNudge = ($journeyTurns -gt 1)
+                    if ($journeyIsNudge) { $journeyNudges++ }
+                    $journeyTurnRaw = $null
+                    $journeyTurnError = ""
+                    $journeyTurnMessage = $JourneyMessage
+                    if ($journeyIsNudge) { $journeyTurnMessage = $tpNudge }
+                    try {
+                        $journeyTurnRaw = Invoke-Json -Method POST -Uri $tpChatUri -Body @{
+                            conversation_id = $JourneyConversationID
+                            message = $journeyTurnMessage
+                            context = @{
+                                agent_mode = "chat"
+                                selected_track_id = $tpVocalsID
+                                selected_track_name = "vocals"
+                            }
+                        } -TimeoutSec $JourneyNlTurnSeconds
+                    }
+                    catch {
+                        $journeyTurnRaw = $null
+                        if ($null -ne $_.ErrorDetails -and -not [string]::IsNullOrWhiteSpace($_.ErrorDetails.Message)) { $journeyTurnError = $_.ErrorDetails.Message }
+                        else { $journeyTurnError = $_.Exception.Message }
+                    }
+                    if ($null -ne $journeyTurnRaw) {
+                        $journeyTurnRaw | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir ($ArtifactPrefix + "_chat_" + [string]$journeyTurns + ".json")) -Encoding UTF8
+                        foreach ($journeyCardRow in @(Get-OptionalProperty -Object $journeyTurnRaw -Name "interaction_requests")) {
+                            if ($null -eq $journeyCardRow -or -not ($journeyCardRow -is [System.Management.Automation.PSCustomObject])) { continue }
+                            $journeyRowType = [string](Get-OptionalProperty -Object $journeyCardRow -Name "type")
+                            if ($journeyRowType -eq "plugin_recommendation_selection" -and $null -eq $journeyCard) {
+                                $journeyCard = $journeyCardRow
+                                $journeyReason = "card_parked_chat"
+                            }
+                        }
+                    }
+                    else {
+                        $journeyTurnError | Set-Content -LiteralPath (Join-Path $ScenarioRunDir ($ArtifactPrefix + "_chat_" + [string]$journeyTurns + "_error.txt")) -Encoding UTF8
+                        if ($journeyTurns -eq 1) { $journeyReason = "initial_transport_error"; break }
+                    }
                 }
-            } -TimeoutSec $JourneyNlTurnSeconds
+                if ($null -ne $journeyCard) { break }
+                Start-Sleep -Seconds 5
+                $journeyPoll = $null
+                try { $journeyPoll = Invoke-Json -Method GET -Uri $tpRuntimeUri -TimeoutSec 30 } catch { $journeyPoll = $null }
+                if ($null -eq $journeyPoll) { continue }
+                $journeyPoll | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir ($ArtifactPrefix + "_runtime_status.json")) -Encoding UTF8
+                $journeyGoalStatus = [string](Get-OptionalProperty -Object (Get-OptionalProperty -Object $journeyPoll -Name "goal") -Name "status")
+                $journeyContinuationActive = $false
+                foreach ($journeyContinuationRow in @(Get-OptionalProperty -Object $journeyPoll -Name "continuations")) {
+                    if ($null -eq $journeyContinuationRow -or -not ($journeyContinuationRow -is [System.Management.Automation.PSCustomObject])) { continue }
+                    if (@("pending", "claimed", "running") -contains [string](Get-OptionalProperty -Object $journeyContinuationRow -Name "status")) { $journeyContinuationActive = $true }
+                    $journeyPendingInteraction = Get-OptionalProperty -Object $journeyContinuationRow -Name "pending_interaction"
+                    if ($null -eq $journeyPendingInteraction -or -not ($journeyPendingInteraction -is [System.Management.Automation.PSCustomObject])) { continue }
+                    if ([string](Get-OptionalProperty -Object $journeyPendingInteraction -Name "kind") -eq "plugin_recommendation_question" -and $null -eq $journeyCard) {
+                        # Runtime-parked card: rebuild the minimal answer shape
+                        # from the durable record.
+                        $journeyCard = $journeyPendingInteraction
+                        $journeyReason = "card_parked_runtime"
+                    }
+                }
+                if ($null -ne $journeyCard) { break }
+                if ($journeyTerminal -contains $journeyGoalStatus) {
+                    $journeyReason = "goal_terminal_" + $journeyGoalStatus
+                    break
+                }
+                if ($journeyGoalStatus -eq "waiting_continue" -and -not $journeyContinuationActive) {
+                    if ($journeyNudges -lt $MaxNudges) {
+                        $journeySendPending = $true
+                    }
+                    else {
+                        $journeyReason = "boundary_no_nudges_left"
+                        break
+                    }
+                }
+            }
+            [pscustomobject]@{
+                card = $journeyCard
+                reason = $journeyReason
+                goal_status = $journeyGoalStatus
+                turns = [int]$journeyTurns
+                nudges = [int]$journeyNudges
+            }
         }
-        catch {
-            $tpBusChat = $null
-            if ($null -ne $_.ErrorDetails -and -not [string]::IsNullOrWhiteSpace($_.ErrorDetails.Message)) { $tpBusError = $_.ErrorDetails.Message }
-            else { $tpBusError = $_.Exception.Message }
-        }
-        if ($null -ne $tpBusChat) {
-            $tpBusChat | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "tp_bus_chat.json") -Encoding UTF8
-        }
-        else {
-            $tpBusError | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "tp_bus_chat_error.txt") -Encoding UTF8
-            throw ("bus journey chat turn transport failed: " + $tpBusError)
-        }
-        # B-gate 1: the selection card carries the bus topology plan.
-        $tpSelectionCard = $null
-        foreach ($tpCardRow in @(Get-OptionalProperty -Object $tpBusChat -Name "interaction_requests")) {
-            if ($null -eq $tpCardRow -or -not ($tpCardRow -is [System.Management.Automation.PSCustomObject])) { continue }
-            $tpRowType = [string](Get-OptionalProperty -Object $tpCardRow -Name "type")
-            if ($tpRowType -eq "plugin_recommendation_selection") { $tpSelectionCard = $tpCardRow }
-        }
+
+        # ---------------- LEG B: explicit time-domain bus journey (gate) ----
+        Write-Step "LEG B (bus journey): explicit time-domain utterance -> settle -> selection card with topology_plan -> confirm -> connect+load legs -> readback"
+        $tpBusConversationID = "dev_tp_bus_" + $tpStamp
+        $tpBusJourney = & $tpDriveJourney $tpBusConversationID "给 vocals 加一点混响，衰减短些" "tp_bus"
+        $tpSelectionCard = $tpBusJourney.card
         if ($null -eq $tpSelectionCard) {
-            throw ("bus journey did not park the plugin selection card (routing miss; class per AGENTS section 8, one rerun allowed): stop_reason=" + [string](Get-OptionalProperty -Object $tpBusChat -Name "stop_reason") + " reply=" + ([string](Get-OptionalProperty -Object $tpBusChat -Name "reply")).Substring(0, [Math]::Min(400, ([string](Get-OptionalProperty -Object $tpBusChat -Name "reply")).Length)))
+            throw ("bus journey did not park the plugin selection card (class=" + $tpBusJourney.reason + " goal=" + $tpBusJourney.goal_status + " turns=" + [string]$tpBusJourney.turns + "; AGENTS section 8: one rerun allowed, same deterministic break x2 = stop-loss)")
         }
         $tpTopologyPlan = Get-OptionalProperty -Object (Get-OptionalProperty -Object $tpSelectionCard -Name "payload") -Name "topology_plan"
         if ($null -eq $tpTopologyPlan) {
@@ -5182,9 +5260,9 @@ if ($ScenarioMode) {
         foreach ($tpActionRow in @(Get-OptionalProperty -Object $tpSelectionCard -Name "actions")) {
             if ($null -ne $tpActionRow -and $tpActionRow -is [System.Management.Automation.PSCustomObject]) { $tpActions += $tpActionRow }
         }
-        if ($tpActions.Count -lt 1) { throw "selection card has no actions to answer" }
+        if ($tpActions.Count -lt 1) { throw ("selection card has no actions to answer (source=" + $tpBusJourney.reason + "); runtime-parked card shapes must be answered from the chat surface") }
         $tpRespond = Invoke-Json -Method POST -Uri $tpRespondUri -Body @{
-            interaction_id = [string](Get-OptionalProperty -Object $tpSelectionCard -Name "id")
+            interaction_id = [string](Get-FirstPropertyValue -Object $tpSelectionCard -Names @("id", "interaction_id"))
             decision = [string](Get-OptionalProperty -Object $tpActions[0] -Name "id")
         } -TimeoutSec 240
         $tpRespond | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "tp_bus_respond.json") -Encoding UTF8
@@ -5252,38 +5330,10 @@ if ($ScenarioMode) {
         # ---------------- LEG C: inline exception contrast -------------------
         Write-Step "LEG C (inline contrast): user_explicit wording -> inline plan on the source track, NO connect leg"
         $tpInlineConversationID = "dev_tp_inline_" + $tpStamp
-        $tpInlineChat = $null
-        $tpInlineError = ""
-        try {
-            $tpInlineChat = Invoke-Json -Method POST -Uri $tpChatUri -Body @{
-                conversation_id = $tpInlineConversationID
-                message = "给 vocals 推荐一款混响插件，直接插在这条轨上，不要建轨"
-                context = @{
-                    agent_mode = "chat"
-                    selected_track_id = $tpVocalsID
-                    selected_track_name = "vocals"
-                }
-            } -TimeoutSec $JourneyNlTurnSeconds
-        }
-        catch {
-            $tpInlineChat = $null
-            if ($null -ne $_.ErrorDetails -and -not [string]::IsNullOrWhiteSpace($_.ErrorDetails.Message)) { $tpInlineError = $_.ErrorDetails.Message }
-            else { $tpInlineError = $_.Exception.Message }
-        }
-        if ($null -ne $tpInlineChat) {
-            $tpInlineChat | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "tp_inline_chat.json") -Encoding UTF8
-        }
-        else {
-            $tpInlineError | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "tp_inline_chat_error.txt") -Encoding UTF8
-            throw ("inline contrast chat turn transport failed: " + $tpInlineError)
-        }
-        $tpInlineCard = $null
-        foreach ($tpCardRow in @(Get-OptionalProperty -Object $tpInlineChat -Name "interaction_requests")) {
-            if ($null -eq $tpCardRow -or -not ($tpCardRow -is [System.Management.Automation.PSCustomObject])) { continue }
-            if ([string](Get-OptionalProperty -Object $tpCardRow -Name "type") -eq "plugin_recommendation_selection") { $tpInlineCard = $tpCardRow }
-        }
+        $tpInlineJourney = & $tpDriveJourney $tpInlineConversationID "给 vocals 加一点混响，直接插在这条轨上，不要建轨" "tp_inline"
+        $tpInlineCard = $tpInlineJourney.card
         if ($null -eq $tpInlineCard) {
-            throw ("inline contrast did not park the selection card: stop_reason=" + [string](Get-OptionalProperty -Object $tpInlineChat -Name "stop_reason"))
+            throw ("inline contrast did not park the selection card (class=" + $tpInlineJourney.reason + " goal=" + $tpInlineJourney.goal_status + ")")
         }
         $tpInlinePlan = Get-OptionalProperty -Object (Get-OptionalProperty -Object $tpInlineCard -Name "payload") -Name "topology_plan"
         if ($null -eq $tpInlinePlan -or [string](Get-OptionalProperty -Object $tpInlinePlan -Name "mode") -ne "inline_exception") {
@@ -5298,8 +5348,9 @@ if ($ScenarioMode) {
         foreach ($tpActionRow in @(Get-OptionalProperty -Object $tpInlineCard -Name "actions")) {
             if ($null -ne $tpActionRow -and $tpActionRow -is [System.Management.Automation.PSCustomObject]) { $tpInlineActions += $tpActionRow }
         }
+        if ($tpInlineActions.Count -lt 1) { throw "inline selection card has no actions to answer" }
         $tpInlineRespond = Invoke-Json -Method POST -Uri $tpRespondUri -Body @{
-            interaction_id = [string](Get-OptionalProperty -Object $tpInlineCard -Name "id")
+            interaction_id = [string](Get-FirstPropertyValue -Object $tpInlineCard -Names @("id", "interaction_id"))
             decision = [string](Get-OptionalProperty -Object $tpInlineActions[0] -Name "id")
         } -TimeoutSec 240
         $tpInlineRespond | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "tp_inline_respond.json") -Encoding UTF8
@@ -5332,46 +5383,31 @@ if ($ScenarioMode) {
         Write-Ok ("C-gate 2 PASS: inline exception loads on the source track (" + $tpInlineRackTrack + "), zero connect legs")
 
         # ---------------- LEG D: fuzzy probe (recorded, non-fatal) ----------
-        # The M2-class fuzzy utterance depends on the upstream free-state
-        # chain (observation/ledger, cards 156/E territory). Recorded only:
-        # success = any topology_plan surface in the settle evidence.
+        # The M2-class fuzzy utterance rides the same free-state chain; its
+        # reachability is probabilistic (F-gate / upstream delivery gap,
+        # cards 156/E territory). Recorded only: success = the settle parked
+        # a selection card carrying topology_plan.
         Write-Step "LEG D (fuzzy probe, recorded): M2-class utterance -> topology_plan surface or honest miss class"
         $tpFuzzyConversationID = "dev_tp_fuzzy_" + $tpStamp
-        $tpFuzzyChat = $null
-        $tpFuzzyError = ""
-        try {
-            $tpFuzzyChat = Invoke-Json -Method POST -Uri $tpChatUri -Body @{
-                conversation_id = $tpFuzzyConversationID
-                message = "给 vocals 加点空间感"
-                context = @{
-                    agent_mode = "chat"
-                    selected_track_id = $tpVocalsID
-                    selected_track_name = "vocals"
-                }
-            } -TimeoutSec $JourneyNlTurnSeconds
-        }
-        catch {
-            $tpFuzzyChat = $null
-            if ($null -ne $_.ErrorDetails -and -not [string]::IsNullOrWhiteSpace($_.ErrorDetails.Message)) { $tpFuzzyError = $_.ErrorDetails.Message }
-            else { $tpFuzzyError = $_.Exception.Message }
-        }
-        if ($null -ne $tpFuzzyChat) {
-            $tpFuzzyChat | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "tp_fuzzy_chat.json") -Encoding UTF8
+        $tpFuzzyJourney = & $tpDriveJourney $tpFuzzyConversationID "给 vocals 加点空间感" "tp_fuzzy" 2
+        $tpFuzzyClass = "fuzzy_no_topology_surface"
+        if ($null -ne $tpFuzzyJourney.card) {
+            $tpFuzzyPlan = Get-OptionalProperty -Object (Get-OptionalProperty -Object $tpFuzzyJourney.card -Name "payload") -Name "topology_plan"
+            if ($null -ne $tpFuzzyPlan) { $tpFuzzyClass = "fuzzy_topology_plan_surface" }
+            else { $tpFuzzyClass = "fuzzy_selection_card_without_topoplan" }
         }
         else {
-            $tpFuzzyError | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "tp_fuzzy_chat_error.txt") -Encoding UTF8
+            $tpFuzzyClass = "fuzzy_" + $tpFuzzyJourney.reason
         }
-        $tpFuzzyText = ""
-        if ($null -ne $tpFuzzyChat) { $tpFuzzyText = $tpFuzzyChat | ConvertTo-Json -Depth 20 -Compress }
-        $tpFuzzyClass = "fuzzy_no_topology_surface"
-        if ($tpFuzzyText.Contains("topology_plan")) { $tpFuzzyClass = "fuzzy_topology_plan_surface" }
-        if ($tpFuzzyText -eq "") { $tpFuzzyClass = "fuzzy_transport_error" }
-        Write-WarnLine ("LEG D RECORDED (non-fatal): fuzzy probe class=" + $tpFuzzyClass + " (upstream free-state delivery gap is 156/E territory; deterministic legs above are the card gate)")
+        Write-WarnLine ("LEG D RECORDED (non-fatal): fuzzy probe class=" + $tpFuzzyClass + " turns=" + [string]$tpFuzzyJourney.turns + " (deterministic legs above are the card gate)")
 
         $tpSummary = [pscustomobject]@{
             scenario = "timefx_bus_topoplan"
             card = "TIMEFX-BUS-TOPOPLAN-1"
             bus_conversation_id = $tpBusConversationID
+            bus_journey_reason = $tpBusJourney.reason
+            bus_journey_turns = [int]$tpBusJourney.turns
+            bus_journey_nudges = [int]$tpBusJourney.nudges
             bus_selection_topoplan = "pass"
             bus_load_confirm_card = "pass"
             bus_legs_executed = "pass"
@@ -5379,6 +5415,7 @@ if ($ScenarioMode) {
             bus_source_track_id = $tpVocalsID
             bus_send_list_readback = "pass"
             inline_conversation_id = $tpInlineConversationID
+            inline_journey_reason = $tpInlineJourney.reason
             inline_exception_code = "user_explicit"
             inline_source_load = "pass"
             inline_zero_connect = "pass"
