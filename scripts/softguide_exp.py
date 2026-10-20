@@ -387,12 +387,11 @@ def run_variant(base_url: str, arm: str, variant: str, prompt: str, fixture_path
             if final_stop == "observation_budget_exhausted":
                 settle_reason = "budget_exhausted"
                 break
-            if goal_status == "waiting_continue" or final_stop in ("limit_reached", "transient_llm_error", "interrupted"):
-                if nudges_sent < args.max_nudges:
-                    send_pending = True
-                    continue
-                settle_reason = "boundary_no_nudges_left"
-                break
+            # waiting_continue / limit_reached / transient_llm_error from a turn
+            # response are NOT nudge triggers on their own: the chain usually
+            # keeps running on its durable continuation. Fall through to the
+            # runtime poll; only the poll side nudges after checking that no
+            # continuation is live (the fs_largeproject / fullaccess fa shape).
         time.sleep(5.0)
         runtime = get_json(base_url, "/agent/runtime/status", 30)
         if runtime:
@@ -441,9 +440,14 @@ def run_variant(base_url: str, arm: str, variant: str, prompt: str, fixture_path
                     str(row.get("status") or "") in ("pending", "claimed", "running")
                     for row in (runtime.get("continuations") or [])
                 )
-                if not continuation_active and nudges_sent < args.max_nudges:
-                    timeline.append(f"boundary: waiting_continue no continuation -> nudge {nudges_sent + 1}/{args.max_nudges}")
-                    send_pending = True
+                if not continuation_active:
+                    if nudges_sent < args.max_nudges:
+                        timeline.append(f"boundary: waiting_continue no continuation -> nudge {nudges_sent + 1}/{args.max_nudges}")
+                        send_pending = True
+                    else:
+                        settle_reason = "boundary_no_nudges_left"
+                        timeline.append("boundary: no nudges left; chain parked without a card")
+                        break
 
     signals.update({
         "turns_sent": turns_sent,
