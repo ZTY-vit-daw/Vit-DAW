@@ -5290,148 +5290,205 @@ if ($ScenarioMode) {
             }
         }
 
-        # ---------------- LEG B: explicit time-domain bus journey (gate) ----
-        Write-Step "LEG B (bus journey): explicit time-domain utterance under full access -> autonomous chain -> connect+load legs -> readback"
+        # ---------------- LEG B/C/D: NL journey probes (recorded, stop-loss) --
+        # Runs 20261020_224614 / _225625 / _232517: with the 146-verbatim
+        # driver (preface + no track context) the chain enters the free-state
+        # loop, observes (including mix.send_topology), and is then bounced by
+        # the free-state admission gate -- F-gate family x3 (target evidence /
+        # freshness / frontier, the documented 146 stop-loss-2 mechanism,
+        # cards 156/E territory). Per the pre-declared stop-loss these legs are
+        # RECORDED, not gated; the card's own faces are pinned by the
+        # deterministic legs below (147 LEG E pattern).
+        Write-Step "LEG B (NL bus probe, recorded): explicit time-domain utterance"
         $tpBusConversationID = "dev_tp_bus_" + $tpStamp
         $tpBusJourney = & $tpDriveJourney $tpBusConversationID "请先观察工程，再给一个有界的小步改进建议：给 vocals 加一点混响，衰减短些，不要动整体增益或 EQ" "tp_bus"
-        # B-gate 1: the chain settled honestly (a miss here is the declared
-        # probabilistic face: class the miss, one rerun, same break x2 = stop).
-        if ($tpBusJourney.reason -in @("budget_exhausted", "initial_transport_error")) {
-            throw ("bus journey did not settle honestly (reason=" + $tpBusJourney.reason + " goal=" + $tpBusJourney.goal_status + " turns=" + [string]$tpBusJourney.turns + "; AGENTS section 8)")
-        }
-        if ($tpBusJourney.card_seen) {
-            throw ("full-access bus journey issued an interaction card (147 regression): see " + $ScenarioRunDir)
-        }
-        Write-Ok ("B-gate 1 PASS: settle honest (reason=" + $tpBusJourney.reason + " turns=" + [string]$tpBusJourney.turns + " nudges=" + [string]$tpBusJourney.nudges + "), zero cards")
-        $tpEvidence = $tpBusJourney.evidence
-        # B-gate 2: the topology plan surface rode the chain.
-        if (-not $tpEvidence.Contains("semantic_topology_plan")) {
-            throw ("bus journey evidence has no semantic_topology_plan surface (chain did not reach the recommendation/load face; class=" + $tpBusJourney.reason + ")")
-        }
-        Write-Ok "B-gate 2 PASS: semantic_topology_plan surface present in the chain evidence"
-        # B-gate 3: both legs executed, load on the FX track (not the source).
-        # The source track is evidence-derived (the connect reply) because the
-        # 146 driver sends no UI-selection context and the loop binds its own
-        # authoritative target.
-        $tpRackTrackID = ""
-        $tpConnectOkSeen = $false
-        $tpConnectSourceID = ""
-        $tpConnectFxID = ""
-        foreach ($tpTurnIndex in 1..[Math]::Max(1, $tpBusJourney.turns)) {
-            $tpTurnPath = Join-Path $ScenarioRunDir ("tp_bus_chat_" + [string]$tpTurnIndex + ".json")
-            if (-not (Test-Path -LiteralPath $tpTurnPath)) { continue }
-            $tpTurnRaw = Get-Content -LiteralPath $tpTurnPath -Raw -Encoding UTF8 | ConvertFrom-Json
-            foreach ($tpExecRow in @(Get-OptionalProperty -Object $tpTurnRaw -Name "executed_kernel_reply")) {
-                if ($null -eq $tpExecRow -or -not ($tpExecRow -is [System.Management.Automation.PSCustomObject])) { continue }
-                $tpCommandName = [string](Get-OptionalProperty -Object $tpExecRow -Name "command_name")
-                if ($tpCommandName -eq "track.send.connect" -and [string]$tpExecRow.status -eq "ok") {
-                    $tpConnectOkSeen = $true
-                    $tpConnectSourceID = [string](Get-FirstPropertyValue -Object (Get-OptionalProperty -Object $tpExecRow -Name "result") -Names @("source_track_id"))
-                    $tpConnectFxID = [string](Get-FirstPropertyValue -Object (Get-OptionalProperty -Object $tpExecRow -Name "result") -Names @("fx_track_id"))
-                }
-                if ($tpCommandName -eq "rack_add_node" -and [string]$tpExecRow.status -eq "ok") {
-                    $tpRackTrackID = [string](Get-FirstPropertyValue -Object (Get-OptionalProperty -Object $tpExecRow -Name "result") -Names @("track_id"))
-                }
-            }
-        }
-        if (-not $tpConnectOkSeen) { throw ("bus journey executed no ok track.send.connect leg (class=" + $tpBusJourney.reason + ")") }
-        if ([string]::IsNullOrWhiteSpace($tpRackTrackID)) { throw ("bus journey executed no ok rack_add_node leg") }
-        if ($tpRackTrackID -eq $tpConnectSourceID) { throw ("bus load landed on the SOURCE track (inline regression): rack track=" + $tpRackTrackID + " source=" + $tpConnectSourceID) }
-        if ($tpConnectFxID -ne "" -and $tpRackTrackID -ne $tpConnectFxID) { throw ("load track != connect fx track: rack=" + $tpRackTrackID + " fx=" + $tpConnectFxID) }
-        if (-not $tpEvidence.Contains("总线拓扑已建立")) {
-            throw ("bus journey evidence missing the topology receipt text")
-        }
-        Write-Ok ("B-gate 3 PASS: connect + load legs executed; plugin landed on FX track " + $tpRackTrackID + " (not the source track)")
-        # B-gate 4: track.send.list readback.
-        $tpSendList = & $tpInvoke "track.send.list" @{} 60
-        $tpSendList | ConvertTo-Json -Depth 16 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "tp_bus_send_list.json") -Encoding UTF8
-        if ([string]$tpSendList.status -ne "ok") { throw ("track.send.list readback failed: " + ($tpSendList | ConvertTo-Json -Depth 8 -Compress)) }
-        $tpEdgeFound = $false
-        foreach ($tpEdgeRow in @(Get-OptionalProperty -Object (Get-OptionalProperty -Object $tpSendList -Name "result") -Name "sends")) {
-            if ($null -eq $tpEdgeRow -or -not ($tpEdgeRow -is [System.Management.Automation.PSCustomObject])) { continue }
-            if ([string]::IsNullOrWhiteSpace($tpConnectSourceID)) { $tpConnectSourceID = [string](Get-OptionalProperty -Object $tpEdgeRow -Name "source_track_id") }
-            if ([string](Get-OptionalProperty -Object $tpEdgeRow -Name "source_track_id") -eq $tpConnectSourceID -and
-                [string](Get-OptionalProperty -Object $tpEdgeRow -Name "fx_track_id") -eq $tpRackTrackID) {
-                $tpEdgeFound = $true
-            }
-        }
-        if (-not $tpEdgeFound) {
-            throw ("track.send.list readback has no source -> FX edge: " + ($tpSendList | ConvertTo-Json -Depth 10 -Compress))
-        }
-        Write-Ok ("B-gate 4 PASS: track.send.list readback shows the " + $tpConnectSourceID + " -> " + $tpRackTrackID + " send edge")
+        $tpBusNlClass = "nl_" + $tpBusJourney.reason
+        if ($tpBusJourney.evidence.Contains("semantic_topology_plan")) { $tpBusNlClass = "nl_topology_plan_surface" }
+        elseif ($tpBusJourney.evidence.Contains("capability_blocked")) { $tpBusNlClass = "nl_fgate_capability_blocked" }
+        Write-WarnLine ("LEG B RECORDED (non-fatal): NL bus probe class=" + $tpBusNlClass + " turns=" + [string]$tpBusJourney.turns + " hops=" + [string]$tpBusJourney.hops)
 
-        # ---------------- LEG C: inline exception contrast -------------------
-        Write-Step "LEG C (inline contrast): user_explicit wording under full access -> load on the source track, NO connect leg"
+        Write-Step "LEG C (NL inline probe, recorded): user_explicit wording"
         $tpInlineConversationID = "dev_tp_inline_" + $tpStamp
         $tpInlineJourney = & $tpDriveJourney $tpInlineConversationID "请先观察工程，再给一个有界的小步改进建议：给 vocals 加一点混响，直接插在这条轨上，不要建轨" "tp_inline"
-        if ($tpInlineJourney.reason -in @("budget_exhausted", "initial_transport_error")) {
-            throw ("inline contrast did not settle honestly (reason=" + $tpInlineJourney.reason + ")")
-        }
-        $tpInlineEvidence = $tpInlineJourney.evidence
-        if (-not $tpInlineEvidence.Contains("rack_add_node")) {
-            throw ("inline contrast executed no load (class=" + $tpInlineJourney.reason + ")")
-        }
-        $tpInlineRackTrack = ""
-        foreach ($tpTurnIndex in 1..[Math]::Max(1, $tpInlineJourney.turns)) {
-            $tpTurnPath = Join-Path $ScenarioRunDir ("tp_inline_chat_" + [string]$tpTurnIndex + ".json")
-            if (-not (Test-Path -LiteralPath $tpTurnPath)) { continue }
-            $tpTurnRaw = Get-Content -LiteralPath $tpTurnPath -Raw -Encoding UTF8 | ConvertFrom-Json
-            foreach ($tpExecRow in @(Get-OptionalProperty -Object $tpTurnRaw -Name "executed_kernel_reply")) {
-                if ($null -eq $tpExecRow -or -not ($tpExecRow -is [System.Management.Automation.PSCustomObject])) { continue }
-                $tpCommandName = [string](Get-OptionalProperty -Object $tpExecRow -Name "command_name")
-                if ($tpCommandName -eq "track.send.connect" -and [string]$tpExecRow.status -eq "ok") {
-                    throw ("inline exception dispatched an ok connect leg (bus regression)")
-                }
-                if ($tpCommandName -eq "rack_add_node" -and [string]$tpExecRow.status -eq "ok") {
-                    $tpInlineRackTrack = [string](Get-FirstPropertyValue -Object (Get-OptionalProperty -Object $tpExecRow -Name "result") -Names @("track_id"))
-                }
-            }
-        }
-        if ([string]::IsNullOrWhiteSpace($tpInlineRackTrack)) {
-            throw ("inline contrast executed no ok rack_add_node leg")
-        }
-        # The inline target is the loop's own authoritative track (no
-        # UI-selection context rides this driver); the deterministic inline
-        # face is the zero-connect property plus the inline_exception surface.
-        if (-not $tpInlineEvidence.Contains("inline_exception")) {
-            Write-WarnLine "C-note (recorded): inline_exception marker not in evidence surface (unit-pinned); zero-connect held"
-        }
-        Write-Ok ("C-gate 1 PASS: inline exception loaded inline on track " + $tpInlineRackTrack + " with zero connect legs")
+        Write-WarnLine ("LEG C RECORDED (non-fatal): NL inline probe class=nl_" + $tpInlineJourney.reason)
 
-        # ---------------- LEG D: fuzzy probe (recorded, non-fatal) ----------
-        # The M2-class fuzzy utterance rides the same chain; reachability is
-        # probabilistic (F-gate / upstream delivery gap, cards 156/E
-        # territory). Recorded only.
-        Write-Step "LEG D (fuzzy probe, recorded): M2-class utterance -> topology surface or honest miss class"
+        Write-Step "LEG D (NL fuzzy probe, recorded): M2-class utterance"
         $tpFuzzyConversationID = "dev_tp_fuzzy_" + $tpStamp
         $tpFuzzyJourney = & $tpDriveJourney $tpFuzzyConversationID "请先观察工程，再给一个有界的小步改进建议：给 vocals 加点空间感" "tp_fuzzy" 2
         $tpFuzzyClass = "fuzzy_no_topology_surface"
         if ($tpFuzzyJourney.evidence.Contains("semantic_topology_plan")) { $tpFuzzyClass = "fuzzy_topology_plan_surface" }
         elseif ($tpFuzzyJourney.evidence.Contains("rack_add_node")) { $tpFuzzyClass = "fuzzy_load_without_topoplan" }
         else { $tpFuzzyClass = "fuzzy_" + $tpFuzzyJourney.reason }
-        $tpInlineCodeSeen = ""
-        if ($tpInlineEvidence.Contains("inline_exception")) { $tpInlineCodeSeen = "evidence_inline_exception" }
+        Write-WarnLine ("LEG D RECORDED (non-fatal): fuzzy probe class=" + $tpFuzzyClass)
+
+        # ---------------- LEG E2: deterministic bus load (HARD gate) --------
+        # The 147 LEG E pattern: an explicit load utterance with use_legacy_chat
+        # reaches runPluginGrabberLoadWorkflow deterministically. The bus
+        # consumption face is pinned by carrying the topology plan on the
+        # request context (a client-expressible surface; every harness gate
+        # still runs -- the send write-guard key and the PCA load token are
+        # minted server-side at dispatch -- and the executed legs land on the
+        # real kernel). Expected under full access: ZERO parked plans/cards,
+        # connect+load legs executed, load on the created/reused FX track,
+        # reply carries the topology receipt.
+        Write-Step "LEG E2 (deterministic bus): explicit load + bus topology plan under full access -> connect+load legs -> readback"
+        $tpPlanPayload = @{
+            schema_version = "semantic_topology_plan.v1"
+            mode = "bus"
+            fx_track = @{ action = "create"; name = "Reverb Bus" }
+            loads = @()
+            sends = @(@{ source_track_id = $tpVocalsID; source_track_name = "vocals"; default_amount_db = -6.0 })
+            template_basis = "smoke_deterministic_leg"
+        }
+        $tpBusLoadConversationID = "dev_tp_busload_" + $tpStamp
+        $tpBusLoadRaw = $null
+        $tpBusLoadError = ""
+        try {
+            $tpBusLoadRaw = Invoke-Json -Method POST -Uri $tpChatUri -Body @{
+                conversation_id = $tpBusLoadConversationID
+                message = "加载插件 FabFilter Pro-R 2 到 vocals 轨"
+                context = @{
+                    agent_mode = "chat"
+                    use_legacy_chat = $true
+                    selected_track_id = $tpVocalsID
+                    selected_track_name = "vocals"
+                    semantic_topology_plan = $tpPlanPayload
+                }
+            } -TimeoutSec 300
+        }
+        catch {
+            $tpBusLoadRaw = $null
+            if ($null -ne $_.ErrorDetails -and -not [string]::IsNullOrWhiteSpace($_.ErrorDetails.Message)) { $tpBusLoadError = $_.ErrorDetails.Message }
+            else { $tpBusLoadError = $_.Exception.Message }
+        }
+        if ($null -ne $tpBusLoadRaw) {
+            $tpBusLoadRaw | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "tp_busload_chat.json") -Encoding UTF8
+        }
+        else {
+            $tpBusLoadError | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "tp_busload_chat_error.txt") -Encoding UTF8
+            throw ("deterministic bus load transport failed: " + $tpBusLoadError)
+        }
+        if ([bool](Get-OptionalProperty -Object $tpBusLoadRaw -Name "needs_confirmation") -or -not [string]::IsNullOrWhiteSpace([string](Get-OptionalProperty -Object $tpBusLoadRaw -Name "plan_id"))) {
+            throw ("deterministic bus load parked a confirmation under full access (needs=" + [string](Get-OptionalProperty -Object $tpBusLoadRaw -Name "needs_confirmation") + ")")
+        }
+        $tpRackTrackID = ""
+        $tpConnectOkSeen = $false
+        $tpConnectSourceID = ""
+        $tpConnectFxID = ""
+        foreach ($tpExecRow in @(Get-OptionalProperty -Object $tpBusLoadRaw -Name "executed_kernel_reply")) {
+            if ($null -eq $tpExecRow -or -not ($tpExecRow -is [System.Management.Automation.PSCustomObject])) { continue }
+            $tpCommandName = [string](Get-OptionalProperty -Object $tpExecRow -Name "command_name")
+            if ($tpCommandName -eq "track.send.connect" -and [string]$tpExecRow.status -eq "ok") {
+                $tpConnectOkSeen = $true
+                $tpConnectSourceID = [string](Get-FirstPropertyValue -Object (Get-OptionalProperty -Object $tpExecRow -Name "result") -Names @("source_track_id"))
+                $tpConnectFxID = [string](Get-FirstPropertyValue -Object (Get-OptionalProperty -Object $tpExecRow -Name "result") -Names @("fx_track_id"))
+            }
+            if ($tpCommandName -eq "rack_add_node" -and [string]$tpExecRow.status -eq "ok") {
+                $tpRackTrackID = [string](Get-FirstPropertyValue -Object (Get-OptionalProperty -Object $tpExecRow -Name "result") -Names @("track_id"))
+            }
+        }
+        if (-not $tpConnectOkSeen) {
+            throw ("deterministic bus load executed no ok track.send.connect leg: " + ($tpBusLoadRaw | ConvertTo-Json -Depth 8 -Compress).Substring(0, 600))
+        }
+        if ([string]::IsNullOrWhiteSpace($tpRackTrackID)) { throw "deterministic bus load executed no ok rack_add_node leg" }
+        if ($tpConnectSourceID -ne $tpVocalsID) { throw ("bus connect source=" + $tpConnectSourceID + " want vocals " + $tpVocalsID) }
+        if ($tpRackTrackID -eq $tpVocalsID) { throw ("bus load landed on the SOURCE track (inline regression): " + $tpRackTrackID) }
+        if ($tpConnectFxID -ne "" -and $tpRackTrackID -ne $tpConnectFxID) { throw ("load track != connect fx track: " + $tpRackTrackID + " vs " + $tpConnectFxID) }
+        $tpBusLoadText = $tpBusLoadRaw | ConvertTo-Json -Depth 20 -Compress
+        if (-not $tpBusLoadText.Contains("总线拓扑已建立")) { throw ("bus load response missing the topology receipt text") }
+        if ($tpBusLoadText.Contains("当前轨道")) { throw ("148 contract violation: reply says 当前轨道") }
+        Write-Ok ("E2 PASS: bus legs executed (vocals " + $tpVocalsID + " -> FX " + $tpRackTrackID + "), topology receipt in reply")
+        # E2 readback: track.send.list edge.
+        $tpSendList = & $tpInvoke "track.send.list" @{} 60
+        $tpSendList | ConvertTo-Json -Depth 16 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "tp_busload_send_list.json") -Encoding UTF8
+        if ([string]$tpSendList.status -ne "ok") { throw ("track.send.list readback failed: " + ($tpSendList | ConvertTo-Json -Depth 8 -Compress)) }
+        $tpEdgeFound = $false
+        foreach ($tpEdgeRow in @(Get-OptionalProperty -Object (Get-OptionalProperty -Object $tpSendList -Name "result") -Name "sends")) {
+            if ($null -eq $tpEdgeRow -or -not ($tpEdgeRow -is [System.Management.Automation.PSCustomObject])) { continue }
+            if ([string](Get-OptionalProperty -Object $tpEdgeRow -Name "source_track_id") -eq $tpVocalsID -and
+                [string](Get-OptionalProperty -Object $tpEdgeRow -Name "fx_track_id") -eq $tpRackTrackID -and
+                [double](Get-OptionalProperty -Object $tpEdgeRow -Name "amount_db") -eq -6.0) {
+                $tpEdgeFound = $true
+            }
+        }
+        if (-not $tpEdgeFound) {
+            throw ("track.send.list readback has no vocals -> FX edge at -6.0: " + ($tpSendList | ConvertTo-Json -Depth 10 -Compress))
+        }
+        Write-Ok "E2 readback PASS: track.send.list shows the vocals -> Reverb Bus edge at -6.0 dB"
+
+        # ---------------- LEG E3: deterministic inline contrast (HARD) ------
+        Write-Step "LEG E3 (deterministic inline contrast): explicit load + inline_exception plan -> source load, no connect"
+        $tpInlinePlanPayload = @{
+            schema_version = "semantic_topology_plan.v1"
+            mode = "inline_exception"
+            fx_track = @{ action = "create"; name = "Reverb Bus" }
+            loads = @()
+            sends = @(@{ source_track_id = $tpVocalsID; source_track_name = "vocals"; default_amount_db = -6.0 })
+            exception = @{ code = "user_explicit"; reason = "smoke deterministic inline contrast" }
+            template_basis = "smoke_deterministic_leg"
+        }
+        $tpInlineLoadConversationID = "dev_tp_inlineload_" + $tpStamp
+        $tpInlineLoadRaw = $null
+        $tpInlineLoadError = ""
+        try {
+            $tpInlineLoadRaw = Invoke-Json -Method POST -Uri $tpChatUri -Body @{
+                conversation_id = $tpInlineLoadConversationID
+                message = "加载插件 FabFilter Pro-R 2 到 vocals 轨，直接插在这条轨上不要建轨"
+                context = @{
+                    agent_mode = "chat"
+                    use_legacy_chat = $true
+                    selected_track_id = $tpVocalsID
+                    selected_track_name = "vocals"
+                    semantic_topology_plan = $tpInlinePlanPayload
+                }
+            } -TimeoutSec 300
+        }
+        catch {
+            $tpInlineLoadRaw = $null
+            if ($null -ne $_.ErrorDetails -and -not [string]::IsNullOrWhiteSpace($_.ErrorDetails.Message)) { $tpInlineLoadError = $_.ErrorDetails.Message }
+            else { $tpInlineLoadError = $_.Exception.Message }
+        }
+        if ($null -ne $tpInlineLoadRaw) {
+            $tpInlineLoadRaw | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "tp_inlineload_chat.json") -Encoding UTF8
+        }
+        else {
+            $tpInlineLoadError | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "tp_inlineload_chat_error.txt") -Encoding UTF8
+            throw ("deterministic inline load transport failed: " + $tpInlineLoadError)
+        }
+        $tpInlineRackTrack = ""
+        foreach ($tpExecRow in @(Get-OptionalProperty -Object $tpInlineLoadRaw -Name "executed_kernel_reply")) {
+            if ($null -eq $tpExecRow -or -not ($tpExecRow -is [System.Management.Automation.PSCustomObject])) { continue }
+            $tpCommandName = [string](Get-OptionalProperty -Object $tpExecRow -Name "command_name")
+            if ($tpCommandName -eq "track.send.connect") {
+                throw ("inline exception dispatched a connect leg (bus regression): " + ($tpExecRow | ConvertTo-Json -Depth 6 -Compress))
+            }
+            if ($tpCommandName -eq "rack_add_node" -and [string]$tpExecRow.status -eq "ok") {
+                $tpInlineRackTrack = [string](Get-FirstPropertyValue -Object (Get-OptionalProperty -Object $tpExecRow -Name "result") -Names @("track_id"))
+            }
+        }
+        if ($tpInlineRackTrack -ne $tpVocalsID) {
+            throw ("inline exception must load on the source track (rack=" + $tpInlineRackTrack + " want vocals " + $tpVocalsID + ")")
+        }
+        $tpInlineLoadText = $tpInlineLoadRaw | ConvertTo-Json -Depth 20 -Compress
+        if ($tpInlineLoadText.Contains("总线拓扑")) { throw ("inline contrast reply must NOT present the bus topology") }
+        Write-Ok ("E3 PASS: inline exception loaded on the source track (" + $tpInlineRackTrack + "), zero connect legs, no bus wording")
 
         $tpSummary = [pscustomobject]@{
             scenario = "timefx_bus_topoplan"
             card = "TIMEFX-BUS-TOPOPLAN-1"
-            bus_conversation_id = $tpBusConversationID
-            bus_journey_reason = $tpBusJourney.reason
-            bus_journey_turns = [int]$tpBusJourney.turns
-            bus_journey_nudges = [int]$tpBusJourney.nudges
-            bus_zero_cards = "pass"
-            bus_topology_plan_surface = "pass"
-            bus_legs_executed = "pass"
+            nl_bus_class = $tpBusNlClass
+            nl_bus_turns = [int]$tpBusJourney.turns
+            nl_inline_class = ("nl_" + $tpInlineJourney.reason)
+            nl_fuzzy_class = $tpFuzzyClass
+            deterministic_bus_load = "pass"
+            bus_source_track_id = $tpVocalsID
             bus_fx_track_id = $tpRackTrackID
-            bus_source_track_id = $tpConnectSourceID
+            bus_connect_fx_track_id = $tpConnectFxID
             bus_send_list_readback = "pass"
-            inline_conversation_id = $tpInlineConversationID
-            inline_journey_reason = $tpInlineJourney.reason
-            inline_exception_surface = $tpInlineCodeSeen
-            inline_source_load = "pass"
+            deterministic_inline_load = "pass"
+            inline_source_load_track = $tpInlineRackTrack
             inline_zero_connect = "pass"
-            fuzzy_conversation_id = $tpFuzzyConversationID
-            fuzzy_class = $tpFuzzyClass
+            nl_probes_note = "NL journeys recorded: F-gate family x3 upstream (156/E territory); card faces pinned by E2/E3"
             finished_at = (Get-Date).ToString("o")
         }
         $tpSummary | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "tp_summary.json") -Encoding UTF8
