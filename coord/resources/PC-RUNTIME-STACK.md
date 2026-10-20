@@ -3,7 +3,7 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
-（无——空闲）
+- 2026-10-20 21:22 +0800 登记 / **BUDGETSTOP-CHAINEND-DELIVERY-1(151) 真栈两腿**（owner=GLM-5.3 L2 PC ZCode 执行会话，本卡会话；worktree D:/Vit_DAW_wt_bscd1@port/budgetstop-chainend-delivery-1，实现=f7459c56 已合入 main，worktree 文件与 main diff 空；占用登记=本 commit）：①`d1_stall_repro_smoke.ps1` 多轮（§8：LLM=真 deepseek-flash 链，到达 budget-stop 形态概率性——无现成低预算注入面已核实（freeStateDefaultMaxCycles=6 硬编码无 env override）；轮次 ≤4；成功=exit 0 且 verdict=parked_owe；finished=健康不触达修复面重跑；止损=同签名缺陷类 ×2）②`dev_agent_smoke -StartKernel -RestartAgent -Scenario fullaccess_semantic_chain`（147 转移 NL 三面补验，1 run+miss 允许 1 重跑，场景自带 §8 口径）。被测 agent=worktree 构建（=main 代码）；内核=主检出 staging VitApp.exe SHA256=B6565DCF85D1DA867E16333052A7B928A5413565940603ADBCF4ABD59DD3123B（只读复用，本卡零内核改动）；d1_stall 腿 VIT_PROJECT_XML 指 run 目录工程副本（六轨 git-HEAD 工程，主检出/staging workspace 工程零触碰）。登记前只读核对（21:21）：五端口（7878/5555/5556/8787/4445）监听=0；VitApp/VitAgent/vsphub/Godot=0；用户 Godot 编辑器 pid 29744（--editor）在场非栈占用不触碰；LLM 预探测 20:37 api.deepseek.com HTTP 200/0.09s。
 
 ## 最近一次释放（2026-10-20 21:0x +0800，SEMANTIC-TIMEFX-SOFTGUIDE-EXP-1）
 
