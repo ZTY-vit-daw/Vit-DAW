@@ -134,7 +134,33 @@ func (b *Bundle) assembleRules(opts Options) {
 		CacheKey: result.Manifest.RulesetVersion,
 		Stable:   true,
 	})
+	// TIMEFX-BUS-TOPOPLAN-1：时域族总线拓扑惯例段（自由态系统提示词软面，
+	// 146 设计稿 §一.D 文本）。独立 Section 挂载：CacheKey 自治（不伪装成
+	// ruleset 版本的一部分），L1 装载失败（corrupt/absent）时随之缺席，
+	// 与既有 fail-open 语义一致。词表语义由确定性模板在装载链落笔（136
+	// posture：软的管解释、硬的管落笔）——本段只声明惯例与例外路由。
+	if opts.Family == ruleset.FamilyNeutralFamily {
+		b.Sections = append(b.Sections, promptruntime.Section{
+			ID:       LayerRules + ".semantic_topology_convention",
+			Kind:     promptruntime.SectionStatic,
+			Content:  strings.TrimSpace(semanticTopologyConventionText),
+			CacheKey: semanticTopologyConventionCacheKey,
+			Stable:   true,
+		})
+	}
 }
+
+// semanticTopologyConventionCacheKey 惯例段内容指纹自治：文本变更时必须
+// 改版本号（与 ruleset 版本纪律同向，避免 CacheKey 与内容漂移）。
+const semanticTopologyConventionCacheKey = "semantic-timefx-bus-convention:v1"
+
+// semanticTopologyConventionText 时域效果默认拓扑惯例（146 设计稿 §一.D
+// 逐字 + 例外路由解释 + 136 posture 落笔边界声明）。
+const semanticTopologyConventionText = `
+时域效果惯例（默认拓扑）：当计划的处理属于时域族（reverb/delay/echo/room/hall，及空间感/氛围/远近/干湿类请求），且用户未明说插入方式时，默认规划为总线拓扑：效果器装载到一条 FX/return 轨（新建时默认命名 Reverb Bus / Delay Bus，工程已有可用时域 FX 轨时复用之），源轨以 send 连接该轨并设默认发送量；inline 插入源轨仅当用户明说插入、单轨快速 A/B 或实验探测。提案必须呈现拓扑计划（建什么轨或复用哪条、装载位置、send 连接与默认发送量）。只能引用观察披露过的真实轨道与结构，不得发明轨道或拓扑。
+
+拓扑计划由装载链的确定性模板生成与呈现：提案卡与确认卡会给出总线拓扑计划（FX 轨名或复用目标、源轨 send 连接、默认发送量）供你解释与对齐。你的职责是解释该计划与用户听感目标的关系，并在用户意图与计划不符时指出；不要自行发明轨道、send 目标或插入位置，也不要把 inline 说成默认。
+`
 
 // assembleProfile 挂 L2（SectionSession；活跃集渲染，CacheKey=活跃集摘要）。
 func (b *Bundle) assembleProfile(opts Options) {
