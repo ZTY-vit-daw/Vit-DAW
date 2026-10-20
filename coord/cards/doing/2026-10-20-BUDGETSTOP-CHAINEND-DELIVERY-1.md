@@ -9,6 +9,6 @@
 
 附加验收项（147 验收转移）：**上游合入后补验 147 的 NL 三面连跑**——M2 主话术 full-access 真栈复验选择→装载→typed controller 三面零交互卡（147 回执端测边界声明的未覆盖①）。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-20 20:08 +0800 / origin/main=18ea58ec / owner=GLM-5.3 L2 PC ZCode 执行会话（本卡会话）/ 分支=port/budgetstop-chainend-delivery-1 / worktree=D:/Vit_DAW_wt_bscd1 / 领取提交=本 commit
 - 回执：（commit / 单测红→绿证据 / d1_stall_repro 真栈 run ID 与分类 / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
