@@ -1,0 +1,117 @@
+﻿{
+    "conversation_id":  "dev_tp_busload_20261020_233846",
+    "task_id":  "task_9b16761eff1faff9",
+    "goal_id":  "goal_3197a675f420822c",
+    "run_id":  "run_4ceb498dc65e080a",
+    "original_intent":  "加载插件 FabFilter Pro-R 2 到 vocals 轨",
+    "reply":  "完全访问权限下装载已自主执行（无确认卡）。\n总线拓扑装载未完成：send.connect 执行失败：Unknown command: track.send.connect。已执行与未执行步骤以上方回执为准；未执行步骤不再自动重试。",
+    "agent_mode":  "default",
+    "needs_confirmation":  false,
+    "workflow":  "plugin_grabber_load_and_get_params",
+    "workflow_data":  {
+                          "authority_mode":  "full_project_access",
+                          "cmd":  "plugin_grabber_load_and_get_params",
+                          "default_send_amount_db":  -6,
+                          "full_access_auto_authorized":  true,
+                          "fx_track_action":  "create",
+                          "fx_track_name":  "Reverb Bus",
+                          "intent":  "加载 FabFilter Pro-R 2 到 vocals 轨",
+                          "interaction_card_issued":  false,
+                          "mutation_performed":  true,
+                          "plugin_identifier":  "VST3-Pro-R-4bc24482-78c01fa6",
+                          "plugin_kind":  "Effect",
+                          "plugin_name":  "Pro-R",
+                          "plugin_path":  "C:\\Program Files\\Common Files\\VST3\\FabFilter\\FabFilter Pro-R.vst3",
+                          "plugin_query":  "FabFilter Pro-R 2",
+                          "semantic_topology_plan":  {
+                                                         "exception":  {
+                                                                           "code":  "",
+                                                                           "reason":  ""
+                                                                       },
+                                                         "fx_track":  {
+                                                                          "action":  "create",
+                                                                          "name":  "Reverb Bus"
+                                                                      },
+                                                         "loads":  [
+
+                                                                   ],
+                                                         "mode":  "bus",
+                                                         "schema_version":  "semantic_topology_plan.v1",
+                                                         "sends":  [
+                                                                       {
+                                                                           "default_amount_db":  -6,
+                                                                           "source_track_id":  "1032",
+                                                                           "source_track_name":  "vocals"
+                                                                       }
+                                                                   ],
+                                                         "template_basis":  "smoke_deterministic_leg"
+                                                     },
+                          "source_track_id":  "1032",
+                          "source_track_name":  "vocals",
+                          "track_id":  "",
+                          "track_name":  "Reverb Bus",
+                          "user_message":  "加载插件 FabFilter Pro-R 2 到 vocals 轨"
+                      },
+    "goal_status":  "completed",
+    "goal_summary":  "加载插件 FabFilter Pro-R 2 到 vocals 轨",
+    "project_history":  {
+                            "active_branch":  "main",
+                            "active_node_id":  "n_20261020T154209_6dcc4283",
+                            "active_worktree":  "",
+                            "available":  true,
+                            "branches":  {
+                                             "main":  "c_20261020T154209_5a7d4e90"
+                                         },
+                            "commit_count":  6,
+                            "conversation_messages":  [
+                                                          {
+                                                              "content":  "加载插件 FabFilter Pro-R 2 到 vocals 轨",
+                                                              "logical_message_id":  "n_20261020T154202_df260738",
+                                                              "message_kind":  "user",
+                                                              "node_id":  "n_20261020T154202_df260738",
+                                                              "role":  "user"
+                                                          },
+                                                          {
+                                                              "content":  "完全访问权限下装载已自主执行（无确认卡）。\n总线拓扑装载未完成：send.connect 执行失败：Unknown command: track.send.connect。已执行与未执行步骤以上方回执为准；未执行步骤不再自动重试。",
+                                                              "logical_message_id":  "n_20261020T154209_6dcc4283",
+                                                              "message_kind":  "assistant",
+                                                              "node_id":  "n_20261020T154209_6dcc4283",
+                                                              "role":  "assistant"
+                                                          }
+                                                      ],
+                            "detached":  false,
+                            "draft":  false,
+                            "head":  "c_20261020T154209_5a7d4e90",
+                            "initialized":  true,
+                            "project_label":  "tp_fixture",
+                            "project_path":  "D:\\Vit_DAW_wt_topoplan154\\coord\\runs\\TIMEFX-BUS-TOPOPLAN-1\\20261020_233839\\project\\tp_fixture.vit",
+                            "project_uuid":  "vitproj_a00fa5f255fd4de29b12eebbf14d66c8",
+                            "refs":  {
+                                         "refs/heads/main":  "c_20261020T154209_5a7d4e90"
+                                     },
+                            "root_project_path":  "",
+                            "unsaved":  false,
+                            "warnings":  [
+
+                                         ],
+                            "worktrees":  [
+                                              {
+                                                  "commit_id":  "c_20261020T154209_5a7d4e90",
+                                                  "created_at":  "2026-10-20T15:42:09.3477446Z",
+                                                  "is_root":  true,
+                                                  "label":  "主工作树",
+                                                  "name":  "main",
+                                                  "origin_commit_id":  "c_20261020T154209_5a7d4e90",
+                                                  "path":  "D:\\Vit_DAW_wt_topoplan154\\coord\\runs\\TIMEFX-BUS-TOPOPLAN-1\\20261020_233839\\project",
+                                                  "project_file_path":  "D:\\Vit_DAW_wt_topoplan154\\coord\\runs\\TIMEFX-BUS-TOPOPLAN-1\\20261020_233839\\project\\tp_fixture.vit",
+                                                  "project_path":  "D:\\Vit_DAW_wt_topoplan154\\coord\\runs\\TIMEFX-BUS-TOPOPLAN-1\\20261020_233839\\project\\tp_fixture.vit",
+                                                  "root_project_path":  "D:\\Vit_DAW_wt_topoplan154\\coord\\runs\\TIMEFX-BUS-TOPOPLAN-1\\20261020_233839\\project\\tp_fixture.vit"
+                                              }
+                                          ]
+                        },
+    "lifecycle":  "durable",
+    "persistence":  "project_history",
+    "message_kind":  "assistant",
+    "turn_id":  "run_4ceb498dc65e080a",
+    "logical_message_id":  "n_20261020T154209_6dcc4283"
+}

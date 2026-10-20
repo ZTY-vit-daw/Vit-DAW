@@ -1,0 +1,18 @@
+﻿{
+    "scenario":  "timefx_bus_topoplan",
+    "card":  "TIMEFX-BUS-TOPOPLAN-1",
+    "nl_bus_class":  "nl_fgate_capability_blocked",
+    "nl_bus_turns":  1,
+    "nl_inline_class":  "nl_goal_terminal_completed",
+    "nl_fuzzy_class":  "fuzzy_goal_terminal_completed",
+    "deterministic_bus_load":  "pass",
+    "bus_source_track_id":  "1032",
+    "bus_fx_track_id":  "1037",
+    "bus_connect_fx_track_id":  "1037",
+    "bus_send_list_readback":  "pass",
+    "deterministic_inline_load":  "pass",
+    "inline_source_load_track":  "1032",
+    "inline_zero_connect":  "pass",
+    "nl_probes_note":  "NL journeys recorded: F-gate family x3 upstream (156/E territory); card faces pinned by E2/E3",
+    "finished_at":  "2026-10-20T23:54:32.6135378+08:00"
+}

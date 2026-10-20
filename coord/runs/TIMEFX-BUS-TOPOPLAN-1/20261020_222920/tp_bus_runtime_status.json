@@ -1,0 +1,183 @@
+﻿{
+    "authority_mode":  "manual_confirmation",
+    "capability_routes":  [
+
+                          ],
+    "checked_at":  "2026-10-20T22:29:49.5594772+08:00",
+    "checkout_blocked":  false,
+    "continuations":  [
+
+                      ],
+    "goal":  {
+                 "goal_id":  "goal_449cdaa1ed5ad601",
+                 "run_id":  "run_b62e1bd2a9dcacea",
+                 "task":  {
+                              "task_id":  "task_64d7177036f50e0f",
+                              "goal_id":  "goal_449cdaa1ed5ad601",
+                              "original_intent":  "给 vocals 加一点混响，衰减短些",
+                              "status":  "settled",
+                              "run":  {
+                                          "run_id":  "run_b62e1bd2a9dcacea",
+                                          "task_id":  "task_64d7177036f50e0f",
+                                          "current_slice_id":  "slice_02a0f87cd381fc7d",
+                                          "next_slice":  2,
+                                          "next_turn":  2,
+                                          "slices":  [
+                                                         {
+                                                             "slice_id":  "slice_02a0f87cd381fc7d",
+                                                             "run_id":  "run_b62e1bd2a9dcacea",
+                                                             "sequence":  1,
+                                                             "max_turns":  8,
+                                                             "max_tool_calls":  12,
+                                                             "turns_used":  1,
+                                                             "tool_calls_used":  1,
+                                                             "status":  "settled",
+                                                             "started_at":  "2026-10-20T22:29:34.9776322+08:00",
+                                                             "ended_at":  "2026-10-20T22:29:43.8970331+08:00"
+                                                         }
+                                                     ],
+                                          "turns":  [
+                                                        {
+                                                            "turn_id":  "turn_673aecb024f112f7",
+                                                            "slice_id":  "slice_02a0f87cd381fc7d",
+                                                            "run_id":  "run_b62e1bd2a9dcacea",
+                                                            "sequence":  1,
+                                                            "source":  "user",
+                                                            "status":  "completed",
+                                                            "started_at":  "2026-10-20T22:29:34.9776322+08:00",
+                                                            "ended_at":  "2026-10-20T22:29:43.8970331+08:00"
+                                                        }
+                                                    ]
+                                      },
+                              "created_at":  "2026-10-20T22:29:31.8229043+08:00",
+                              "updated_at":  "2026-10-20T22:29:43.9562255+08:00"
+                          },
+                 "status":  "completed",
+                 "summary":  "给 vocals 加一点混响，衰减短些",
+                 "created_at":  "2026-10-20T22:29:31.8229043+08:00",
+                 "updated_at":  "2026-10-20T22:29:43.9562255+08:00",
+                 "cancel_requested":  false,
+                 "last_checkpoint":  "before_message_loop_model",
+                 "project_history":  {
+                                         "baseline_commit_id":  "c_20261020T142931_c5aa4c2d",
+                                         "baseline_created":  true,
+                                         "active_branch":  "main",
+                                         "head":  "c_20261020T142931_c5aa4c2d"
+                                     }
+             },
+    "kernel":  {
+                   "connected":  true,
+                   "endpoint":  "tcp://127.0.0.1:5555",
+                   "latency_ms":  1,
+                   "message":  "pong",
+                   "reply_status":  "ok",
+                   "status":  "online"
+               },
+    "note_sessions":  [
+
+                      ],
+    "pid":  11208,
+    "service":  "VitAgent",
+    "shadow":  {
+                   "delta_seq_gaps":  0,
+                   "graph_revision":  null,
+                   "initialized":  true,
+                   "last_delta_seq":  208,
+                   "project_path":  "D:\\Vit_DAW_wt_topoplan154\\coord\\runs\\TIMEFX-BUS-TOPOPLAN-1\\20261020_222920\\project\\tp_fixture.vit",
+                   "track_count":  6,
+                   "user_track_count":  6
+               },
+    "status":  "ok",
+    "task":  {
+                 "task_id":  "task_64d7177036f50e0f",
+                 "goal_id":  "goal_449cdaa1ed5ad601",
+                 "original_intent":  "给 vocals 加一点混响，衰减短些",
+                 "status":  "settled",
+                 "run":  {
+                             "run_id":  "run_b62e1bd2a9dcacea",
+                             "task_id":  "task_64d7177036f50e0f",
+                             "current_slice_id":  "slice_02a0f87cd381fc7d",
+                             "next_slice":  2,
+                             "next_turn":  2,
+                             "slices":  [
+                                            {
+                                                "slice_id":  "slice_02a0f87cd381fc7d",
+                                                "run_id":  "run_b62e1bd2a9dcacea",
+                                                "sequence":  1,
+                                                "max_turns":  8,
+                                                "max_tool_calls":  12,
+                                                "turns_used":  1,
+                                                "tool_calls_used":  1,
+                                                "status":  "settled",
+                                                "started_at":  "2026-10-20T22:29:34.9776322+08:00",
+                                                "ended_at":  "2026-10-20T22:29:43.8970331+08:00"
+                                            }
+                                        ],
+                             "turns":  [
+                                           {
+                                               "turn_id":  "turn_673aecb024f112f7",
+                                               "slice_id":  "slice_02a0f87cd381fc7d",
+                                               "run_id":  "run_b62e1bd2a9dcacea",
+                                               "sequence":  1,
+                                               "source":  "user",
+                                               "status":  "completed",
+                                               "started_at":  "2026-10-20T22:29:34.9776322+08:00",
+                                               "ended_at":  "2026-10-20T22:29:43.8970331+08:00"
+                                           }
+                                       ]
+                         },
+                 "created_at":  "2026-10-20T22:29:31.8229043+08:00",
+                 "updated_at":  "2026-10-20T22:29:43.9562255+08:00"
+             },
+    "task_trajectory":  {
+                            "run":  {
+                                        "current_slice_id":  "slice_02a0f87cd381fc7d",
+                                        "current_turn_id":  "",
+                                        "run_id":  "run_b62e1bd2a9dcacea",
+                                        "slices":  [
+                                                       {
+                                                           "slice_id":  "slice_02a0f87cd381fc7d",
+                                                           "run_id":  "run_b62e1bd2a9dcacea",
+                                                           "sequence":  1,
+                                                           "max_turns":  8,
+                                                           "max_tool_calls":  12,
+                                                           "turns_used":  1,
+                                                           "tool_calls_used":  1,
+                                                           "status":  "settled",
+                                                           "started_at":  "2026-10-20T22:29:34.9776322+08:00",
+                                                           "ended_at":  "2026-10-20T22:29:43.8970331+08:00"
+                                                       }
+                                                   ],
+                                        "turns":  [
+                                                      {
+                                                          "turn_id":  "turn_673aecb024f112f7",
+                                                          "slice_id":  "slice_02a0f87cd381fc7d",
+                                                          "run_id":  "run_b62e1bd2a9dcacea",
+                                                          "sequence":  1,
+                                                          "source":  "user",
+                                                          "status":  "completed",
+                                                          "started_at":  "2026-10-20T22:29:34.9776322+08:00",
+                                                          "ended_at":  "2026-10-20T22:29:43.8970331+08:00"
+                                                      }
+                                                  ]
+                                    },
+                            "schema_version":  "vit.task_runtime_trajectory.v1",
+                            "semantic":  {
+
+                                         },
+                            "task":  {
+                                         "conversation_id":  "",
+                                         "created_at":  "2026-10-20T22:29:31.8229043+08:00",
+                                         "goal_id":  "goal_449cdaa1ed5ad601",
+                                         "goal_status":  "completed",
+                                         "original_intent":  "给 vocals 加一点混响，衰减短些",
+                                         "run_id":  "run_b62e1bd2a9dcacea",
+                                         "status":  "settled",
+                                         "task_id":  "task_64d7177036f50e0f",
+                                         "updated_at":  "2026-10-20T22:29:43.9562255+08:00"
+                                     },
+                            "transitions":  [
+
+                                            ]
+                        }
+}
