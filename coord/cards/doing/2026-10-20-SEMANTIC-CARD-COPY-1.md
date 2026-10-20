@@ -29,6 +29,6 @@
 
 文案模板被多处共享致改动面扩散（如 G 门文案映射被非用户面复用）→ 上交清单收窄，不硬改。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-20 19:06 +0800 / origin/main=9b9854ad152bf8c069bc0dbd31fbd306416c5249（派发基线 a958fc40 已被 146 回执推进，领取时重核远端）/ owner=GLM-5.3-Flash ZCode PC 执行会话（本卡会话，用户指令指定领取）/ 分支=port/semantic-card-copy-1 / worktree=D:/Vit_DAW_wt_scopy1 / 领取提交=本提交。**分段执行**：④腿（goalrunner_chat.go 边界文案去代号）先行；①②③腿文件域 plugin_recommendation.go 与 147 重叠，等 147 合入共享 main 后同卡续做（派发 a958fc40 载明串行）。领取时核对：卡在 todo 派发已确认（用户 2026-10-20 晚窗「可以发卡」）、依赖无；doing 五卡文件域与本卡零冲突（147=plugin_recommendation.go 域未合入、149 零生产代码、150 认证战役零生产代码、HARNESS-STRUCT-NORMALIZE=harness 域、GEN-SUNO=webui 域）；纯单测域不占真栈，无需登记 PC-RUNTIME-STACK.md
 - 回执：（commit / 测试名 / 端测边界声明=纯单测域）
 - 验收：（裁定文件 / 验收 commit）
