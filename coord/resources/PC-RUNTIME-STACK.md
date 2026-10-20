@@ -3,7 +3,11 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
-- 2026-10-20 22:4x +0800 登记（23:5x 修正内核选型）/ **TIMEFX-BUS-TOPOPLAN-1(154) 真栈烟测腿**（owner=GLM-5.3 L2 PC ZCode 执行会话，本卡会话；worktree D:/Vit_DAW_wt_topoplan154@port/timefx-bus-topoplan-1；占用登记=本 commit + 修正 commit）：`dev_agent_smoke -StartKernel -RestartAgent -Scenario timefx_bus_topoplan -KernelExe <K3 内核 build-feguik3>`——时域族默认总线拓扑验收腿（AGENTS §5）：确定性 E2 bus 两腿（connect+load→track.send.list -6.0 读回）+E3 inline 对照+NL 旅程三探（记录面）。§8 纪律预声明：LLM 真 deepseek 链；NL 旅程 F-gate 族×3（runs 224614/225625/232517）已止损转记录面（156/E 域上游）；确定性腿断点分类重跑。被测 agent=worktree 构建（含本卡 Go 改动）；**内核修正（run 233839 判明）**：主检出 staging B6565DCF… 早于 send-route 命令族（track.send.* 于内核侧报 Unknown command）——本卡验收面含 track.send.connect/list，改用 K3 腿内核 build-feguik3=D:/Vit_DAW/VitApp/build/VitApp_artefacts/Release/VitApp.exe SHA256=722A79D7A3F53797F5713209D812D8CE9F2888CB2A7E743286FA56B99629DFEC（只读复用，本卡零内核改动，含 K1 send-route 命令族；23:5x 哈希亲核一致）。登记前只读核对：五端口（7878/5555/5556/8787/4445）监听=0；VitApp/VitAgent/vsphub/Godot 运行态=0；用户 Godot 编辑器不触碰；LLM 可达（api.deepseek.com）。
+（无——空闲）
+
+## 最近一次释放（2026-10-20 23:5x +0800，TIMEFX-BUS-TOPOPLAN-1）
+
+- 2026-10-20 22:4x 登记–23:5x 释放 / **TIMEFX-BUS-TOPOPLAN-1(154) 真栈烟测腿收口——末轮 PASS exit 0**（owner=GLM-5.3 L2 PC ZCode 执行会话，本卡会话；worktree D:/Vit_DAW_wt_topoplan154@port/timefx-bus-topoplan-1；占用登记 c3ae8c25+内核修正 6630030b）：九 run 迭代（222048/222920/223815=manual 与无前缀话术下模型自答 prose×3→驱动形态修正；224614/225625/232517=146 逐字协议下 F-gate 族×3 止损转记录面+驱动补卡应答 hop；233839=staging 内核无 send-route 命令族判明→换 K3 内核；**235001=末轮 `dev_agent_smoke -StartKernel -RestartAgent -Scenario timefx_bus_topoplan -KernelExe build-feguik3` exit 0**）：E2 确定性 bus 腿全过（vocals/1032 --send.connect(auto_create Reverb Bus)--> FX/1037 + rack_add_node 落 FX 轨 + track.send.list 读回 vocals→Reverb Bus @-6.0dB + 拓扑回执文案 + 148 合同无「当前轨道」）+E3 inline 对照全过（inline_exception 计划→rack 落源轨 1032、零 connect 腿、无总线文案）+NL 旅程三探记录面（F-gate 族上游=156/E 域）；执行侧缺陷如实记录×3（run1 推荐问句形态/run3 漏 146 前缀/run8 staging 内核选型——全部驱动与选型面，非产品断言失败；产品侧补充修一枚：无 PCA receipt 的 full-access bus 装载授权回落 c9708940）。被测 agent=worktree 构建（含本卡 Go 改动）+内核只读复用 K3 build-feguik3 722A79D7（含 K1 send 命令族，本卡零内核改动）；LLM=真 deepseek 链（NL 探测+legacy envelope）。拆栈=脚本自 teardown 后复核五端口监听=0、VitApp/VitAgent/vsphub/Godot 运行态=0。工件 coord/runs/TIMEFX-BUS-TOPOPLAN-1/（九 run 轻工件随 port 分支入库，重件留盘）。
 
 ## 最近一次释放（2026-10-20 22:3x +0800，BUDGETSTOP-CHAINEND-DELIVERY-1）
 
