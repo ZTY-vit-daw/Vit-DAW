@@ -37,6 +37,6 @@ M2 主旅程断在停泊/试听交付（清单 §3 步骤 4-6 未达用户）：
 - 发现 continuation 预算/budget_stop 行为已有更晚用户裁定在卷 → 引用裁定收窄范围，不重开已裁定面；
 - 归因牵出 FS 状态机统一收敛（T10 答辩后任务）级别的结构性问题 → 上交边界，本卡只覆盖停泊交付面。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-20 19:02 +0800 / origin/main=c08de366（用户提示基线 a958fc40 已被 146 回执与 150 领取推进；首推被 150 并发领取所拒，按 §2.1-3 从新 origin/main 重放重推，本卡全程无人竞争） / owner=GLM-5.3 L2 PC ZCode 执行会话（parking-delivery-1）/ 设计件分支 port/parking-delivery-1（待 cherry-pick）/ worktree D:/Vit_DAW_wt_parkdeli1 / 领取提交=协调分支 coord/parkdeli1-claim 直推 main
 - 回执：（结论文件 / 锚点清单 / 设计稿路径）
 - 验收：（裁定文件 / 验收 commit）
