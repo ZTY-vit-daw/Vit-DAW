@@ -3,7 +3,11 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
-- 2026-10-20 20:17 +0800 登记 / **SEMANTIC-TIMEFX-SOFTGUIDE-EXP-1（146 软引导实验腿）真栈双会话**（owner=GLM-5.3 L2 PC ZCode 执行会话，主管批准派发，方案=coord/reports/2026-10-20-146-timefx-design-and-experiment.md §一/§E 预声明协议跑前未改；worktree D:/Vit_DAW_wt_sge1 @ port/semantic-timefx-softguide-exp-1[B2 补丁臂] + D:/Vit_DAW_wt_sge1_ctrl @ port/semantic-timefx-softguide-exp-1-ctrl[B1 对照臂，origin/main 零生产改动]）：`dev_agent_smoke -StartKernel -StartUI -KernelExe <主检出 staging>` 模式两段会话（B2 10 变体 + B1 对照 5 run，python NL 驱动逐变体新会话），栈端口 7878/5555/5556/8787/4445。**与 151（BUDGETSTOP-CHAINEND-DELIVERY-1，20:09 已领取未占栈）错峰**：本腿预计持栈至 22:3x 前后，151 真栈腿（d1_stall_repro+147 三面补验）请在本腿释放登记后启栈。预检（20:16）：六端口监听=0、VitApp/VitAgent/vsphub=0；用户 Godot 编辑器 pid 29744（--editor，编辑器端口非栈端口）在场未动。工件目标 coord/runs/146-SOFT-GUIDE-EXP/。
+（无——空闲）
+
+## 最近一次释放（2026-10-20 21:0x +0800，SEMANTIC-TIMEFX-SOFTGUIDE-EXP-1）
+
+- 2026-10-20 20:17 登记–21:0x 释放 / **SEMANTIC-TIMEFX-SOFTGUIDE-EXP-1（146 软引导实验腿）真栈收口**（owner=GLM-5.3 L2 PC ZCode 执行会话；占用登记 adbd1a9a；worktree D:/Vit_DAW_wt_sge1@port/semantic-timefx-softguide-exp-1[B2 补丁臂 b168fba6] + D:/Vit_DAW_wt_sge1_ctrl[对照臂 origin/main]）：**止损①触发收口——真 B2 臂（惯例段 prompt_render 亲核在场）连续 2×F-inline（A1=Pro-R→vocals/1032、A2=Pro-R→piano/1027，均 0 总线 0 send）→ §E 预声明逐字示例命中，B2 停于 2/10；判读按预绑定规则走硬规则接管默认拓扑计划生成分支（0/2≪80%，硬判据 0 幻觉过）**。B1 对照臂 5/5 齐（A1 F-gate/A2 F-inline/A3 F-gate/A4 F-inline/A5 F-inline/B1 F-inline+域漂移/B2 F-gate/B3 F-inline/B4 F-inline——8 轮为补丁失活期对照形态轮[render 亲核 0/49 含惯例]+B4 真对照）全 0 总线。F-gate 机制取证上交：candidate frontier 不含用户指名轨→final_gate 4 连弹回→自报边界（A1/A3/B2，L1/L3 修复优先）。执行侧缺陷如实记录×3（驱动 nudge 误杀活性链 attempt1 十轮废/补丁 v1 挂错回落路径 attempt2 八轮变对照/ctrl 重启未停异 worktree agent 致 B4 条件错标）——全部有工件留档不占 §8 产品轮。栈=staging kernel B6565DCF 只读+三 agent 迭代构建+vsphub/UI 手动补起（-StartUI 先绑 5555 跳过自启 92 卡同款）；LLM=deepseek-flash 110+7 遥测行 0 error；拆栈 21:0x 复核六端口=0、VitApp/VitAgent/vsphub/Godot 运行态=0（用户编辑器 29744 未动）；staging Logs 增量=本腿内核日志 1 件（132 先例面）。工件 coord/runs/146-SOFT-GUIDE-EXP/20261020_b2arm/（RESULTS.md；随 port 分支入库）；**151 真栈腿解锁**。
 
 ## 最近一次释放（2026-10-20 19:5x +0800，FULLACCESS-SEMANTIC-CHAIN-1）
 
