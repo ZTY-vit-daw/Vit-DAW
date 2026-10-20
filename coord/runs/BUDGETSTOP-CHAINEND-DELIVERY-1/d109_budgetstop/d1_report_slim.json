@@ -1,0 +1,28 @@
+{
+ "schema_version": "vit.free_state_d1_smoke.v1",
+ "public_case_id": "spv1_p01",
+ "prompt_flavor": "reverb",
+ "expect_domain": "reverb",
+ "status": "fail",
+ "error": "D1 requires one post-action CCB observation",
+ "task_state": null,
+ "conversation_id": "d1_s1_20261020T135806388143",
+ "terminal_causes": [
+  "completed",
+  "completed",
+  "completed",
+  "completed"
+ ],
+ "selected_domains": [
+  "reverb"
+ ],
+ "finished_at": "2026-10-20T14:00:54.443557+00:00",
+ "goal_status": "waiting_continue",
+ "loop": {
+  "status": "awaiting_experiment",
+  "continuation_used": 4,
+  "continuation_budget": 6,
+  "requires_post_action_observation": true
+ },
+ "task_semantic_state": "improvement_proposal"
+}

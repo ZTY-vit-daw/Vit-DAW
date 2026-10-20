@@ -1,0 +1,23 @@
+﻿run_root=D:\Vit_DAW_wt_bscd1\artifacts\d1_stall\20261020_213521
+head=ffdc25e293dfecc309c4606565da416814f8c12a
+git_status=
+port_free=7878
+port_free=5555
+port_free=5556
+agent_binary=D:\Vit_DAW_wt_bscd1\artifacts\d1_stall\20261020_213521\bin\VitAgent.d1stall.exe size=37483008 mtime=2026-10-20T21:35:24.0829642+08:00
+kernel_binary=D:/Vit_DAW/Export/staging/runtime/VitApp.exe size=30991360 mtime=2026-10-06T22:02:38.6636805+08:00
+repo_default_project_sha256_before=947E4D00886F146F7DB082215BC8A69E1727A41D5EA339FA064DEE814E0D521C
+kernel_pid=4792
+agent_pid=14028
+s1_shadow_initialized=True track_count=0
+authority_mode=full_project_access
+chat_goal_id=goal_a179d6d8d5db9554 goal_status=waiting_continue stop_reason=limit_reached
+verdict=defect_fake_complete
+park1_settle_summary=False
+stopped_agent_pid=14028
+stopped_kernel_pid=4792
+port_released=7878
+port_released=5555
+port_released=5556
+repo_default_project_sha256_after=947E4D00886F146F7DB082215BC8A69E1727A41D5EA339FA064DEE814E0D521C
+finished=2026-10-20T21:37:44.4515325+08:00
