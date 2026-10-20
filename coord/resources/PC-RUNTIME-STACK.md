@@ -3,7 +3,11 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
-- 2026-10-20 19:39 登记 / **FULLACCESS-SEMANTIC-CHAIN-1(147) 真栈烟测腿**（owner=GLM-5.3 L2 PC ZCode 执行会话，本卡会话；worktree D:/Vit_DAW_wt_fasc1，分支 port/fullaccess-semantic-chain-1@be57f496+烟测场景改动）：`dev_agent_smoke -StartKernel -RestartAgent -Scenario fullaccess_semantic_chain`——M2 场次①主话术（逐字）在显式 full_project_access 下的零交互卡自主链验证；被测 agent=worktree 构建（含本卡 Go 改动），内核只读复用主检出 staging B6565DCF85D1DA867（本卡零内核改动）；端口 7878/5555/5556/8787。登记前只读核对：四端口监听=0、VitApp/VitAgent/vsphub/Godot 进程=0（前 owner 150 已于 19:2x 释放）。预计 30-60 分钟（含 DAD 烘焙与 LLM 链）。
+（无——空闲）
+
+## 最近一次释放（2026-10-20 19:5x +0800，FULLACCESS-SEMANTIC-CHAIN-1）
+
+- 2026-10-20 19:39 登记–19:5x 释放 / **FULLACCESS-SEMANTIC-CHAIN-1(147) 真栈烟测腿**（owner=GLM-5.3 L2 PC ZCode 执行会话，本卡会话；worktree D:/Vit_DAW_wt_fasc1，分支 port/fullaccess-semantic-chain-1@be57f496+fb8de04e；占用登记 37a52892）：四 run=**FULLACCESS-SEMANTIC-CHAIN-1/{20261020_193433,194123,194750,195057}，`dev_agent_smoke -StartKernel -RestartAgent -Scenario fullaccess_semantic_chain -KernelExe <主检出 staging>`——run4 脚本 exit 0 全绿**：M2 主话术（逐字）在显式 full_project_access 下零交互卡门 4/4 run PASS（chat 响应+runtime 续泊双源扫描，含选卡/确认族 kind）；LEG E 确定性装载腿 rack_add_node 自主执行（plugin_id=1044、89 参数回读、零驻留 plan、full_access_auto_authorized=true）；LEG F manual 对照保留确认 plan_685131ba（分叉判别实证）。NL 链执行证据 2/2 未达分叉面（模型在改进提案段 final 收束零物化——上游自由态交付缺口=146/149 域，§8 同断点止损记录非致命，run1/run2 工件在卷）。被测 agent=worktree 构建（含本卡 Go 改动）+内核只读复用主检出 staging B6565DCF85D1DA867（本卡零内核改动）。LLM 面=4 轮真 deepseek-flash 链（NL 腿）+确定性腿（LEG E/F 经 1 次 envelope 调用）。拆栈=脚本 best-effort 后复核 VitApp/VitAgent/vsphub/Godot=0、四端口监听=0，无残留。工件 coord/runs/FULLACCESS-SEMANTIC-CHAIN-1/（随 port/fullaccess-semantic-chain-1@fb8de04e 入库）。
 
 ## 最近一次释放（2026-10-20 19:2x +0800，PCA-REVERB-PROMOTION-1）
 
