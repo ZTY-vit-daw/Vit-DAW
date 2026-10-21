@@ -1,0 +1,103 @@
+﻿{
+    "conversation_id":  "dev_tp_hallu_source_20261021_184028",
+    "task_id":  "task_e0bb0045d61f8bdc",
+    "goal_id":  "goal_6f5dc076ba9714fc",
+    "run_id":  "run_f1980ee1f4b014eb",
+    "original_intent":  "加载插件 FabFilter Pro-R 2 到 guitar 轨",
+    "reply":  "拓扑写门拒载：源轨 [ 999999 ] 不在观察披露中（幻觉拓扑，仅本提案新建 FX 轨可豁免）；没有执行任何连接或装载",
+    "agent_mode":  "default",
+    "needs_confirmation":  false,
+    "workflow":  "plugin_grabber_load_and_get_params",
+    "workflow_data":  {
+                          "cmd":  "plugin_grabber_load_and_get_params",
+                          "mutation_performed":  false,
+                          "semantic_topology_plan":  {
+                                                         "exception":  {
+                                                                           "code":  "",
+                                                                           "reason":  ""
+                                                                       },
+                                                         "fx_track":  {
+                                                                          "action":  "create",
+                                                                          "name":  "Hallu Bus"
+                                                                      },
+                                                         "loads":  [
+
+                                                                   ],
+                                                         "mode":  "bus",
+                                                         "schema_version":  "semantic_topology_plan.v1",
+                                                         "sends":  [
+                                                                       {
+                                                                           "default_amount_db":  -6,
+                                                                           "source_track_id":  "999999",
+                                                                           "source_track_name":  "ghost"
+                                                                       }
+                                                                   ],
+                                                         "template_basis":  "smoke_writegate_probe"
+                                                     },
+                          "topology_write_gate":  "refused"
+                      },
+    "goal_status":  "failed",
+    "goal_summary":  "加载插件 FabFilter Pro-R 2 到 guitar 轨",
+    "stop_reason":  "semantic_topology_write_gate_refused",
+    "project_history":  {
+                            "active_branch":  "main",
+                            "active_node_id":  "n_20261021T104439_89f574a7",
+                            "active_worktree":  "",
+                            "available":  true,
+                            "branches":  {
+                                             "main":  "c_20261021T104436_4aec392a"
+                                         },
+                            "commit_count":  16,
+                            "conversation_messages":  [
+                                                          {
+                                                              "content":  "加载插件 FabFilter Pro-R 2 到 guitar 轨",
+                                                              "logical_message_id":  "n_20261021T104437_3ecabd39",
+                                                              "message_kind":  "user",
+                                                              "node_id":  "n_20261021T104437_3ecabd39",
+                                                              "role":  "user"
+                                                          },
+                                                          {
+                                                              "content":  "拓扑写门拒载：源轨 [ 999999 ] 不在观察披露中（幻觉拓扑，仅本提案新建 FX 轨可豁免）；没有执行任何连接或装载",
+                                                              "logical_message_id":  "n_20261021T104439_89f574a7",
+                                                              "message_kind":  "error",
+                                                              "node_id":  "n_20261021T104439_89f574a7",
+                                                              "role":  "assistant"
+                                                          }
+                                                      ],
+                            "detached":  false,
+                            "draft":  false,
+                            "head":  "c_20261021T104436_4aec392a",
+                            "initialized":  true,
+                            "project_label":  "tp_fixture",
+                            "project_path":  "D:\\Vit_DAW_wt_writegate155\\coord\\runs\\TIMEFX-BUS-TOPOPLAN-1\\20261021_184021\\project\\tp_fixture.vit",
+                            "project_uuid":  "vitproj_6f00ee1bfb05468ab4ef1dfb5c8843ed",
+                            "refs":  {
+                                         "refs/heads/main":  "c_20261021T104436_4aec392a"
+                                     },
+                            "root_project_path":  "",
+                            "unsaved":  false,
+                            "warnings":  [
+
+                                         ],
+                            "worktrees":  [
+                                              {
+                                                  "commit_id":  "c_20261021T104436_4aec392a",
+                                                  "created_at":  "2026-10-21T10:44:39.5521155Z",
+                                                  "is_root":  true,
+                                                  "label":  "主工作树",
+                                                  "name":  "main",
+                                                  "origin_commit_id":  "c_20261021T104436_4aec392a",
+                                                  "path":  "D:\\Vit_DAW_wt_writegate155\\coord\\runs\\TIMEFX-BUS-TOPOPLAN-1\\20261021_184021\\project",
+                                                  "project_file_path":  "D:\\Vit_DAW_wt_writegate155\\coord\\runs\\TIMEFX-BUS-TOPOPLAN-1\\20261021_184021\\project\\tp_fixture.vit",
+                                                  "project_path":  "D:\\Vit_DAW_wt_writegate155\\coord\\runs\\TIMEFX-BUS-TOPOPLAN-1\\20261021_184021\\project\\tp_fixture.vit",
+                                                  "root_project_path":  "D:\\Vit_DAW_wt_writegate155\\coord\\runs\\TIMEFX-BUS-TOPOPLAN-1\\20261021_184021\\project\\tp_fixture.vit"
+                                              }
+                                          ]
+                        },
+    "error":  "topology_write_gate_refused",
+    "lifecycle":  "durable",
+    "persistence":  "project_history",
+    "message_kind":  "error",
+    "turn_id":  "run_f1980ee1f4b014eb",
+    "logical_message_id":  "n_20261021T104439_89f574a7"
+}
