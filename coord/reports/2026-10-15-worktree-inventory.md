@@ -56,3 +56,14 @@
 4. g7：核对后拆（.vit_history 残迹随拆消除）；
 5. 4 处无卡时代 codex 线：分支去留裁定后拆（建议同批处理减少 Windows 路径操作次数）；
 6. 全部完成后 `git worktree prune`（本次无 prunable 项，仅未来拆除后收尾用）。
+
+## 追记：2026-10-21 晚挂账拆除（GLM 主管决策流）
+
+gate(10-20) 挂账的四个 worktree 已拆（用户确认 Godot 编辑器未开；拆除前复核 VitApp/VitAgent/vsphub/Godot 进程=0、五端口=0）：
+
+- `D:/Vit_DAW_wt_fsclosure1`（port/fs-blocked-surface-closure-1，已全量合入+已推远端）——worktree 干净直拆。
+- `D:/Vit_DAW_wt_fesendmacro_coord`（coord/fek32-claim）——干净直拆。
+- `D:/Vit_DAW_wt_fesendmacro_stack`（port/fe-sendroute-macro-stack）——worktree 仅 `M VitApp/Workspace/default_project.xml`（运行态）+未跟踪 `VitApp/build-feguik3/`（K3 内核构建，SHA256=722A79D7… 与主检出 VitApp/build 逐字节哈希一致=冗余）核实后 --force 拆；**分支保留本地**（K3.2 终态工件已另路进 main coord/runs/FE-RACK-K32-POLISH-1；GH001 推送限制照旧）。
+- `D:/Godot/project-vit-daw-frontend-sendmacro`（前端仓 port/fe-sendroute-macro-gui-1@d195b3b）——干净直拆；**分支保留前端仓本地**（K3.2 前端改动未合 frontend main=0e244f0，GH001 照旧）。
+
+四卡的今日执行 worktree（writegate155/rfbl1/stnd1/fsog1 及 coord 面）保留不拆——重件工件留盘在卷（各卡回执声明）。其余存量 worktree 去留仍按本清单 §待办序处理。
