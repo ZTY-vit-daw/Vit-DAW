@@ -5036,7 +5036,7 @@ if ($ScenarioMode) {
         # twice = stop-loss. The fuzzy M2-class utterance is a recorded-only
         # probe (the upstream free-state delivery gap is cards 156/E
         # territory, out of this card's file domain).
-        Write-Step "Scenario timefx_bus_topoplan: fixture -> explicit bus journey (card->confirm->legs->readback) -> inline contrast -> fuzzy probe (recorded)"
+        Write-Step "Scenario timefx_bus_topoplan: fixture -> explicit bus journey (card->confirm->legs->readback) -> inline contrast -> existing-bus reuse (E4) -> write-gate hallucination refusal (E5) -> fuzzy probe (recorded)"
         $tpInvokeUri = $AgentHttp.TrimEnd("/") + "/agent/invoke"
         $tpChatUri = $AgentHttp.TrimEnd("/") + "/agent/chat"
         $tpRespondUri = $AgentHttp.TrimEnd("/") + "/agent/interaction/respond"
@@ -5107,16 +5107,23 @@ if ($ScenarioMode) {
         $tpTracks = & $tpInvoke "list_tracks" @{} 60
         $tpTracks | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "tp_tracks.json") -Encoding UTF8
         $tpVocalsID = ""
+        $tpGuitarID = ""
         foreach ($tpTrackRow in @(Get-OptionalProperty -Object (Get-OptionalProperty -Object $tpTracks -Name "result") -Name "tracks")) {
             if ($null -eq $tpTrackRow -or -not ($tpTrackRow -is [System.Management.Automation.PSCustomObject])) { continue }
             if ([string](Get-FirstPropertyValue -Object $tpTrackRow -Names @("track_name", "name")) -eq "vocals") {
                 $tpVocalsID = [string](Get-FirstPropertyValue -Object $tpTrackRow -Names @("track_id", "id"))
             }
+            if ([string](Get-FirstPropertyValue -Object $tpTrackRow -Names @("track_name", "name")) -eq "guitar") {
+                $tpGuitarID = [string](Get-FirstPropertyValue -Object $tpTrackRow -Names @("track_id", "id"))
+            }
         }
         if ([string]::IsNullOrWhiteSpace($tpVocalsID)) {
             throw ("tp fixture did not expose a vocals track for the source binding: " + ($tpTracks | ConvertTo-Json -Depth 6 -Compress))
         }
-        Write-Ok ("fixture open ok: " + $tpProjectPath + " (vocals=" + $tpVocalsID + ")")
+        if ([string]::IsNullOrWhiteSpace($tpGuitarID)) {
+            throw ("tp fixture did not expose a guitar track for the E4 reuse leg: " + ($tpTracks | ConvertTo-Json -Depth 6 -Compress))
+        }
+        Write-Ok ("fixture open ok: " + $tpProjectPath + " (vocals=" + $tpVocalsID + " guitar=" + $tpGuitarID + ")")
 
         # ---------------- LEG A2: authority grant (J3/147 verbatim) ---------
         # Run-1/Run-2 finding (20261020_222048 / _222920, classes
@@ -5473,6 +5480,182 @@ if ($ScenarioMode) {
         if ($tpInlineLoadText.Contains("总线拓扑")) { throw ("inline contrast reply must NOT present the bus topology") }
         Write-Ok ("E3 PASS: inline exception loaded on the source track (" + $tpInlineRackTrack + "), zero connect legs, no bus wording")
 
+        # ---------------- LEG E4: deterministic bus REUSE face (HARD) -------
+        # TIMEFX-BUS-WRITEGATE-1 (155): the 146 design honest-boundary #3 face
+        # -- the fixture ships no pre-existing FX track, so E2 CREATED Reverb
+        # Bus. This leg drives a second bus load whose plan carries
+        # action=reuse with the E2-resolved FX track id and a DIFFERENT real
+        # source (guitar): the write gate validates the reuse target against
+        # the observed track set, connect targets the EXISTING FX track (no
+        # second bus is created), and the load lands on that same track.
+        Write-Step "LEG E4 (deterministic bus reuse): existing-bus plan -> reuse fx_track_id, no new track"
+        $tpReusePlanPayload = @{
+            schema_version = "semantic_topology_plan.v1"
+            mode = "bus"
+            fx_track = @{ action = "reuse"; name = "Reverb Bus"; track_id = $tpRackTrackID }
+            loads = @()
+            sends = @(@{ source_track_id = $tpGuitarID; source_track_name = "guitar"; default_amount_db = -6.0 })
+            template_basis = "smoke_deterministic_reuse_leg"
+        }
+        $tpReuseConversationID = "dev_tp_reuse_" + $tpStamp
+        $tpReuseRaw = $null
+        $tpReuseError = ""
+        try {
+            $tpReuseRaw = Invoke-Json -Method POST -Uri $tpChatUri -Body @{
+                conversation_id = $tpReuseConversationID
+                message = "加载插件 FabFilter Pro-R 2 到 guitar 轨，接到既有 Reverb Bus"
+                context = @{
+                    agent_mode = "chat"
+                    use_legacy_chat = $true
+                    selected_track_id = $tpGuitarID
+                    selected_track_name = "guitar"
+                    semantic_topology_plan = $tpReusePlanPayload
+                }
+            } -TimeoutSec 300
+        }
+        catch {
+            $tpReuseRaw = $null
+            if ($null -ne $_.ErrorDetails -and -not [string]::IsNullOrWhiteSpace($_.ErrorDetails.Message)) { $tpReuseError = $_.ErrorDetails.Message }
+            else { $tpReuseError = $_.Exception.Message }
+        }
+        if ($null -ne $tpReuseRaw) {
+            $tpReuseRaw | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "tp_reuse_chat.json") -Encoding UTF8
+        }
+        else {
+            $tpReuseError | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "tp_reuse_chat_error.txt") -Encoding UTF8
+            throw ("deterministic bus reuse transport failed: " + $tpReuseError)
+        }
+        if ([bool](Get-OptionalProperty -Object $tpReuseRaw -Name "needs_confirmation") -or -not [string]::IsNullOrWhiteSpace([string](Get-OptionalProperty -Object $tpReuseRaw -Name "plan_id"))) {
+            throw ("deterministic bus reuse parked a confirmation under full access")
+        }
+        $tpReuseConnectFxID = ""
+        $tpReuseRackTrackID = ""
+        foreach ($tpExecRow in @(Get-OptionalProperty -Object $tpReuseRaw -Name "executed_kernel_reply")) {
+            if ($null -eq $tpExecRow -or -not ($tpExecRow -is [System.Management.Automation.PSCustomObject])) { continue }
+            $tpCommandName = [string](Get-OptionalProperty -Object $tpExecRow -Name "command_name")
+            if ($tpCommandName -eq "track.send.connect" -and [string]$tpExecRow.status -eq "ok") {
+                $tpReuseConnectFxID = [string](Get-FirstPropertyValue -Object (Get-OptionalProperty -Object $tpExecRow -Name "result") -Names @("fx_track_id"))
+            }
+            if ($tpCommandName -eq "rack_add_node" -and [string]$tpExecRow.status -eq "ok") {
+                $tpReuseRackTrackID = [string](Get-FirstPropertyValue -Object (Get-OptionalProperty -Object $tpExecRow -Name "result") -Names @("track_id"))
+            }
+        }
+        if ([string]::IsNullOrWhiteSpace($tpReuseConnectFxID) -or [string]::IsNullOrWhiteSpace($tpReuseRackTrackID)) {
+            throw ("bus reuse leg must execute connect+load legs: " + ($tpReuseRaw | ConvertTo-Json -Depth 8 -Compress).Substring(0, 600))
+        }
+        if ($tpReuseConnectFxID -ne $tpRackTrackID -or $tpReuseRackTrackID -ne $tpRackTrackID) {
+            throw ("bus reuse must land on the EXISTING FX track " + $tpRackTrackID + " (connect=" + $tpReuseConnectFxID + " rack=" + $tpReuseRackTrackID + ")")
+        }
+        $tpReuseText = $tpReuseRaw | ConvertTo-Json -Depth 20 -Compress
+        if (-not $tpReuseText.Contains("总线拓扑已建立")) { throw ("bus reuse response missing the topology receipt text") }
+        Write-Ok ("E4 PASS: existing bus reused (guitar " + $tpGuitarID + " -> FX " + $tpReuseConnectFxID + " == E2 FX), no new track")
+        # E4 readback: BOTH edges (vocals from E2 + guitar from E4) on the same FX track.
+        $tpReuseList = & $tpInvoke "track.send.list" @{} 60
+        $tpReuseList | ConvertTo-Json -Depth 16 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "tp_reuse_send_list.json") -Encoding UTF8
+        if ([string]$tpReuseList.status -ne "ok") { throw ("track.send.list readback failed after reuse: " + ($tpReuseList | ConvertTo-Json -Depth 8 -Compress)) }
+        $tpVocalsEdgeSeen = $false
+        $tpGuitarEdgeSeen = $false
+        foreach ($tpEdgeRow in @(Get-OptionalProperty -Object (Get-OptionalProperty -Object $tpReuseList -Name "result") -Name "sends")) {
+            if ($null -eq $tpEdgeRow -or -not ($tpEdgeRow -is [System.Management.Automation.PSCustomObject])) { continue }
+            $tpEdgeFx = [string](Get-OptionalProperty -Object $tpEdgeRow -Name "fx_track_id")
+            $tpEdgeAmount = [double](Get-OptionalProperty -Object $tpEdgeRow -Name "amount_db")
+            if ([string](Get-OptionalProperty -Object $tpEdgeRow -Name "source_track_id") -eq $tpVocalsID -and $tpEdgeFx -eq $tpRackTrackID -and $tpEdgeAmount -eq -6.0) { $tpVocalsEdgeSeen = $true }
+            if ([string](Get-OptionalProperty -Object $tpEdgeRow -Name "source_track_id") -eq $tpGuitarID -and $tpEdgeFx -eq $tpRackTrackID -and $tpEdgeAmount -eq -6.0) { $tpGuitarEdgeSeen = $true }
+        }
+        if (-not $tpVocalsEdgeSeen -or -not $tpGuitarEdgeSeen) {
+            throw ("reuse readback must show BOTH edges on FX " + $tpRackTrackID + " at -6.0 (vocals=" + $tpVocalsEdgeSeen + " guitar=" + $tpGuitarEdgeSeen + "): " + ($tpReuseList | ConvertTo-Json -Depth 10 -Compress))
+        }
+        Write-Ok "E4 readback PASS: track.send.list shows vocals + guitar edges on the SAME reused FX track at -6.0 dB"
+
+        # ---------------- LEG E5: write-gate hallucination refusal (HARD) --
+        # TIMEFX-BUS-WRITEGATE-1: the topology write gate must refuse plans
+        # whose referenced tracks are absent from the observation disclosure
+        # (and not created by this proposal) BEFORE any kernel dispatch.
+        # Probe 1 = hallucinated SOURCE track id (create-form FX track is the
+        # proposal's own creation list and stays exempt); probe 2 = real
+        # source but hallucinated REUSE target. Both must come back refused
+        # (topology_write_gate_refused), execute zero legs, and leave the
+        # send topology unchanged (no "Hallu Bus" fx track ever created).
+        Write-Step "LEG E5 (write gate): hallucinated source + hallucinated reuse target -> refused, zero dispatch"
+        $tpHallucProbe = {
+            param([string]$ProbeName, [object]$PlanPayload, [string]$SelectedTrackID, [string]$SelectedTrackName, [string]$ExpectNeedle)
+            $tpProbeRaw = $null
+            $tpProbeError = ""
+            try {
+                $tpProbeRaw = Invoke-Json -Method POST -Uri $tpChatUri -Body @{
+                    conversation_id = ("dev_tp_hallu_" + $ProbeName + "_" + $tpStamp)
+                    message = "加载插件 FabFilter Pro-R 2 到 guitar 轨"
+                    context = @{
+                        agent_mode = "chat"
+                        use_legacy_chat = $true
+                        selected_track_id = $SelectedTrackID
+                        selected_track_name = $SelectedTrackName
+                        semantic_topology_plan = $PlanPayload
+                    }
+                } -TimeoutSec 300
+            }
+            catch {
+                $tpProbeRaw = $null
+                if ($null -ne $_.ErrorDetails -and -not [string]::IsNullOrWhiteSpace($_.ErrorDetails.Message)) { $tpProbeError = $_.ErrorDetails.Message }
+                else { $tpProbeError = $_.Exception.Message }
+            }
+            if ($null -ne $tpProbeRaw) {
+                $tpProbeRaw | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir ("tp_hallu_" + $ProbeName + "_chat.json")) -Encoding UTF8
+            }
+            else {
+                $tpProbeError | Set-Content -LiteralPath (Join-Path $ScenarioRunDir ("tp_hallu_" + $ProbeName + "_chat_error.txt")) -Encoding UTF8
+                throw ("hallucination probe " + $ProbeName + " transport failed: " + $tpProbeError)
+            }
+            if ([string](Get-OptionalProperty -Object $tpProbeRaw -Name "error") -ne "topology_write_gate_refused") {
+                throw ("hallucination probe " + $ProbeName + " must be refused with topology_write_gate_refused, got error=" + [string](Get-OptionalProperty -Object $tpProbeRaw -Name "error"))
+            }
+            $tpProbeReply = [string](Get-OptionalProperty -Object $tpProbeRaw -Name "reply")
+            if (-not $tpProbeReply.Contains($ExpectNeedle) -or -not $tpProbeReply.Contains("没有执行任何连接或装载")) {
+                throw ("hallucination probe " + $ProbeName + " refusal reply must name the hallucinated id and declare zero execution: " + $tpProbeReply)
+            }
+            if ([bool](Get-OptionalProperty -Object $tpProbeRaw -Name "needs_confirmation") -or -not [string]::IsNullOrWhiteSpace([string](Get-OptionalProperty -Object $tpProbeRaw -Name "plan_id"))) {
+                throw ("hallucination probe " + $ProbeName + " must not park a plan")
+            }
+            foreach ($tpExecRow in @(Get-OptionalProperty -Object $tpProbeRaw -Name "executed_kernel_reply")) {
+                if ($null -eq $tpExecRow -or -not ($tpExecRow -is [System.Management.Automation.PSCustomObject])) { continue }
+                $tpCommandName = [string](Get-OptionalProperty -Object $tpExecRow -Name "command_name")
+                if ($tpCommandName -eq "track.send.connect" -or $tpCommandName -eq "rack_add_node") {
+                    throw ("hallucination probe " + $ProbeName + " dispatched a write leg: " + $tpCommandName)
+                }
+            }
+        }
+        $tpHalluSourcePlan = @{
+            schema_version = "semantic_topology_plan.v1"
+            mode = "bus"
+            fx_track = @{ action = "create"; name = "Hallu Bus" }
+            loads = @()
+            sends = @(@{ source_track_id = "999999"; source_track_name = "ghost"; default_amount_db = -6.0 })
+            template_basis = "smoke_writegate_probe"
+        }
+        & $tpHallucProbe "source" $tpHalluSourcePlan $tpGuitarID "guitar" "999999"
+        Write-Ok "E5 probe 1 PASS: hallucinated source track refused before any dispatch"
+        $tpHalluTargetPlan = @{
+            schema_version = "semantic_topology_plan.v1"
+            mode = "bus"
+            fx_track = @{ action = "reuse"; name = "Reverb Bus"; track_id = "888888" }
+            loads = @()
+            sends = @(@{ source_track_id = $tpGuitarID; source_track_name = "guitar"; default_amount_db = -6.0 })
+            template_basis = "smoke_writegate_probe"
+        }
+        & $tpHallucProbe "target" $tpHalluTargetPlan $tpGuitarID "guitar" "888888"
+        Write-Ok "E5 probe 2 PASS: hallucinated reuse target refused before any dispatch"
+        # E5 readback: the refused create never happened -- no "Hallu Bus" fx track.
+        $tpHalluList = & $tpInvoke "track.send.list" @{} 60
+        $tpHalluList | ConvertTo-Json -Depth 16 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "tp_hallu_send_list.json") -Encoding UTF8
+        if ([string]$tpHalluList.status -ne "ok") { throw ("track.send.list readback failed after refusal probes") }
+        foreach ($tpFxRow in @(Get-OptionalProperty -Object (Get-OptionalProperty -Object $tpHalluList -Name "result") -Name "fx_tracks")) {
+            if ($null -eq $tpFxRow -or -not ($tpFxRow -is [System.Management.Automation.PSCustomObject])) { continue }
+            if (([string](Get-FirstPropertyValue -Object $tpFxRow -Names @("track_name", "name", "fx_name"))) -eq "Hallu Bus") {
+                throw ("refused create-form plan must NOT have created a Hallu Bus fx track")
+            }
+        }
+        Write-Ok "E5 readback PASS: send topology unchanged by the refusals (no Hallu Bus)"
+
         $tpSummary = [pscustomobject]@{
             scenario = "timefx_bus_topoplan"
             card = "TIMEFX-BUS-TOPOPLAN-1"
@@ -5488,7 +5671,14 @@ if ($ScenarioMode) {
             deterministic_inline_load = "pass"
             inline_source_load_track = $tpInlineRackTrack
             inline_zero_connect = "pass"
-            nl_probes_note = "NL journeys recorded: F-gate family x3 upstream (156/E territory); card faces pinned by E2/E3"
+            reuse_source_track_id = $tpGuitarID
+            reuse_fx_track_id = $tpReuseConnectFxID
+            bus_reuse_no_new_track = "pass"
+            bus_reuse_readback_both_edges = "pass"
+            writegate_hallucinated_source_refused = "pass"
+            writegate_hallucinated_target_refused = "pass"
+            writegate_zero_dispatch_readback = "pass"
+            nl_probes_note = "NL journeys recorded: F-gate family x3 upstream (156/E territory); card faces pinned by E2/E3/E4/E5"
             finished_at = (Get-Date).ToString("o")
         }
         $tpSummary | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $ScenarioRunDir "tp_summary.json") -Encoding UTF8

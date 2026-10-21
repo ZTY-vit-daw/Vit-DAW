@@ -2,11 +2,13 @@ package chat
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"testing"
 
 	"vit-daw-agent/internal/contextruntime/carriers"
 	"vit-daw-agent/internal/harness"
+	"vit-daw-agent/internal/kernel"
 	"vit-daw-agent/rules/ruleset"
 )
 
@@ -294,8 +296,10 @@ func TestSemanticTopologyPlanCardLinesContract(t *testing.T) {
 
 // ————— 装载链消费形态 —————
 
-// topologyFakeSender 按命令名回放内核回复（track.send.list / track.send.
-// connect / rack_add_node），并记录收到的命令供断言。
+// topologyFakeSender 按命令名回放内核回复（get_project_state / track.send.
+// list / track.send.connect / rack_add_node），并记录收到的命令供断言。
+// 工程态含 vocals/1032、piano/1027 与既有 FX 轨 Reverb Bus/2001（真实栈上
+// FX 轨即工程在册轨——reuse 场景的 send 目标必须在观察披露轨集内）。
 type topologyFakeSender struct {
 	commands []map[string]any
 }
@@ -304,8 +308,17 @@ func (f *topologyFakeSender) SendCommand(_ context.Context, cmd map[string]any) 
 	f.commands = append(f.commands, cmd)
 	name := firstStringFromMap(cmd, "cmd")
 	switch name {
+	case "get_project_state":
+		return map[string]any{
+			"status": "ok",
+			"tracks": []any{
+				map[string]any{"track_id": "1032", "track_name": "vocals"},
+				map[string]any{"track_id": "1027", "track_name": "piano"},
+				map[string]any{"track_id": "2001", "track_name": "Reverb Bus"},
+			},
+		}, "", nil
 	case "track.send.list":
-		return map[string]any{"status": "ok", "sends": []any{}, "fx_tracks": []any{}}, "", nil
+		return map[string]any{"status": "ok", "sends": []any{}, "fx_tracks": []any{map[string]any{"track_id": "2001", "name": "Reverb Bus"}}}, "", nil
 	case "track.send.connect":
 		return map[string]any{
 			"status": "ok", "source_track_id": cmd["source_track_id"],
@@ -319,11 +332,25 @@ func (f *topologyFakeSender) SendCommand(_ context.Context, cmd map[string]any) 
 	return map[string]any{"status": "error", "message": "unexpected command " + name}, "", nil
 }
 
+// topologyEQKernelTransport 把 fake sender 适配成 eqKernelTransport——写门
+// 观察态读取（semanticTopologyObservedState）经 eqKernelOverride 走确定性
+// fake get_project_state，不依赖 shadow 管线。
+type topologyEQKernelTransport struct{ inner harness.KernelSender }
+
+func (t topologyEQKernelTransport) SendCommand(ctx context.Context, cmd map[string]any) (map[string]any, string, error) {
+	return t.inner.SendCommand(ctx, cmd)
+}
+
+func (t topologyEQKernelTransport) SendVSPCommand(context.Context, string, map[string]any) (*kernel.VSPCommandResult, error) {
+	return nil, fmt.Errorf("vsp unsupported in topology test transport")
+}
+
 func topologyTestServer(sender harness.KernelSender) *Server {
 	return &Server{
-		harness:      harness.NewWithSender(sender, nil, nil),
-		pending:      map[string]PendingPlan{},
-		interactions: map[string]PendingInteraction{},
+		harness:          harness.NewWithSender(sender, nil, nil),
+		pending:          map[string]PendingPlan{},
+		interactions:     map[string]PendingInteraction{},
+		eqKernelOverride: topologyEQKernelTransport{inner: sender},
 	}
 }
 

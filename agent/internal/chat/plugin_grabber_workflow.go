@@ -266,6 +266,24 @@ func (s *Server) runSemanticTopologyBusLoadWorkflow(ctx context.Context, convers
 		err := fmt.Errorf("kernel client is nil")
 		return ChatResponse{ConversationID: conversationID, Reply: friendlyExecutionError(err), Error: err.Error()}
 	}
+	// TIMEFX-BUS-WRITEGATE-1 写门（计划构建面）：幻觉拓扑在停泊/执行之前
+	// 拒载——引用轨必须存在于观察披露（create 形态 FX 轨=本提案新建清单豁免）。
+	if gateErr := semanticTopologyWriteGateIssue(topologyPlan, s.semanticTopologyObservedState(ctx)); gateErr != nil {
+		return ChatResponse{
+			ConversationID: conversationID,
+			Reply:          gateErr.Error(),
+			Error:          "topology_write_gate_refused",
+			Workflow:       pluginGrabberLoadCommand,
+			WorkflowData: map[string]any{
+				"cmd":                          "plugin_grabber_load_and_get_params",
+				semanticTopologyPlanContextKey: semanticTopologyPlanPayload(topologyPlan),
+				"topology_write_gate":          "refused",
+				"mutation_performed":           false,
+			},
+			GoalStatus: string(agentruntime.StatusFailed),
+			StopReason: "semantic_topology_write_gate_refused",
+		}
+	}
 	args := workflowCommandArgs(workflowCmd)
 	pluginName := firstNonEmptyText(args, "plugin_name", "name")
 	pluginPath := firstNonEmptyText(args, "plugin_path", "path", "file_path")
@@ -906,11 +924,17 @@ func (s *Server) finishPluginGrabberLoadWorkflow(ctx context.Context, plan Pendi
 //  2. rack_add_node 到 connect 回执解析出的 FX 轨——装载 token 在此刻
 //     铸造（TrackID 绑定执行期 FX 轨 ID；PCA receipt 校验与确认期同源，
 //     不可伪造面不变）。
+//
+// TIMEFX-BUS-WRITEGATE-1 写门（派发面前）：派发 connect 前按当前观察披露
+// 重新核校引用轨——覆盖停泊计划确认窗的状态漂移与持久化往返后的计划。
 func (s *Server) executeSemanticTopologyBusLegs(ctx context.Context, plan PendingPlan, topologyPlan *semanticTopologyPlan) ([]map[string]any, error) {
 	replies := []map[string]any{}
 	send := topologyPlan.Sends[0]
 	if s == nil || s.harness == nil {
 		return replies, fmt.Errorf("harness 不可用，无法执行总线拓扑")
+	}
+	if gateErr := semanticTopologyWriteGateIssue(topologyPlan, s.semanticTopologyObservedState(ctx)); gateErr != nil {
+		return replies, gateErr
 	}
 	connectCommand := map[string]any{
 		"cmd":             "track.send.connect",
