@@ -3,7 +3,11 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
-- 2026-10-21 21:5x 起（预计 ≤90 分钟）/ **FS-LEDGER-CARRY-1(158) 真栈 chat 腿**（owner=GLM-5.3 L2 PC ZCode 执行会话，158 卡会话；worktree D:/Vit_DAW_wt_carry1@port/fs-ledger-carry-1@基线 612beb18+本卡未提交改动；被测 agent=worktree 构建 bin/VitAgent.exe SHA256 前 16=CDB3BB97D23CD973，含本卡 Go 改动；内核=K3 只读复用主检出 Release VitApp.exe 722A79D7A3F5…（21:49 哈希亲核一致，本卡零内核改动）；同会话双轮=M2 场次②轮1 话术+场次①轮1 主话术，LLM=真 deepseek 链；§8 预声明：1 run/次、确定性判定面=seed/carry 日志线、round1 未终态=llm_shape 类允许一次重跑、同确定性断点×2=止损；VIT_PROJECT_XML 指 run 目录工程副本+draft root 隔离，主检出 workspace 零触碰）
+- 2026-10-21 22:0x 起（预计 ≤30 分钟）/ **FE-SEND-EXTERNAL-REFRESH-1(161) 真栈 SendRouteGuiSmoke 腿**（owner=GLM-5.3 L2 PC ZCode 执行会话，161 卡会话；前端 worktree D:/Godot/project-vit-daw-frontend-sendext1@port/fe-send-external-refresh-1@10324d8（含本卡前端改动+扩展探针）；主仓构建/工件 worktree D:/Vit_DAW_wt_sendext1_stack@port/fe-send-external-refresh-1-stack=f39f595e（K3.2 腿分支续，Go 生产零改动）；被测 agent=worktree 构建（=main 代码）+内核=K3 只读复用主检出 build Release VitApp.exe 722A79D7A3F5…（22:0x 哈希亲核一致，本卡零内核改动）；§8 预声明：LLM=0（探针腿全确定性；chat 腿走脚本既有白名单话术非验收面）；成功=dev_agent_smoke -StartKernel -RestartAgent -SendRouteGuiSmoke -GodotProjectRoot <前端 worktree> 脚本 exit 0（含本卡新 L7 外部写腿）；失败分类=environment_interrupt/assertion_fail/script_exception；止损=同签名 assertion_fail ×2；占用前只读核对六端口 tcp+udp=0、VitApp/VitAgent/vsphub=0（用户 Godot 编辑器 14284 --editor 不占栈端口未动；上一占用 158 已释放）
+
+## 最近一次释放（2026-10-21 22:04 观察，FS-LEDGER-CARRY-1(158)）
+
+- 158 真栈 chat 腿占用（登记 fc7f690c，21:5x 起）——**161 会话 22:04 只读核对已释放**（六端口 tcp+udp=0、VitApp/VitAgent/vsphub=0）；释放复核记录与 run ID 由 158 会话按 §2.2 补录（原登记条目全文见 fc7f690c）。
 
 ### 事故自报（2026-10-21 21:5x，FE-SEND-EXTERNAL-REFRESH-1/161 会话）
 
