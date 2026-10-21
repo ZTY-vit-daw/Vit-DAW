@@ -1,0 +1,692 @@
+{
+	"schema_version": "acoustic_package_status.v0",
+	"updated_at": "2026-10-21T12:32:27.6996004Z",
+	"packages": [
+		{
+			"schema_version": "acoustic_package_status.v0",
+			"status": "stale",
+			"project_id": "vitproj_e2b99cf2de2d413cb3d385c9545483e5",
+			"track_id": "1032",
+			"clip_id": "1036",
+			"source_fingerprint": "rev_ebd907c049d8c640",
+			"source_revision": "rev_ebd907c049d8c640",
+			"clip_revision": "cliprev_ce05778fcb262f0a",
+			"analyzer_revision": "agent_lightweight_o1",
+			"source_path": "D:\\Vit_DAW_wt_named1\\coord\\runs\\FS-NAMED-TARGET-1\\fs_named_chat_20261021_2035\\fixture\\fixture_stems\\vocals.wav",
+			"duration_seconds": 2.2,
+			"source_identity": {
+				"analyzer_revision": "agent_lightweight_o1",
+				"clip_id": "1036",
+				"clip_revision": "cliprev_ce05778fcb262f0a",
+				"clip_start_seconds": 0,
+				"duration_seconds": 2.2,
+				"project_id": "vitproj_e2b99cf2de2d413cb3d385c9545483e5",
+				"source_fingerprint": "rev_ebd907c049d8c640",
+				"source_path": "D:\\Vit_DAW_wt_named1\\coord\\runs\\FS-NAMED-TARGET-1\\fs_named_chat_20261021_2035\\fixture\\fixture_stems\\vocals.wav",
+				"source_revision": "rev_ebd907c049d8c640",
+				"track_id": "1032"
+			},
+			"package_layers": {
+				"l1_static": {
+					"status": "stale",
+					"features": {
+						"peak_rms_summary": {
+							"status": "stale",
+							"source": "kernel_prepared_telemetry",
+							"progress": {
+								"updated_at": "2026-10-21T12:30:37.2034312Z",
+								"reason": "project_mismatch"
+							},
+							"ref": {
+								"clip_id": "1011",
+								"crest_db": 3.011,
+								"file_path": "D:\\Vit_DAW_wt_named1\\coord\\runs\\FS-NAMED-TARGET-1\\fs_named_chat_20261021_2035\\fixture\\fixture_stems\\bass.wav",
+								"headroom_db": 9.119,
+								"peak_abs": 0.349976,
+								"peak_dbfs": -9.119,
+								"request_id": "kernel_prepared_waveform_envelope_1011",
+								"rms": 0.247462,
+								"rms_dbfs": -12.13,
+								"track_id": "1007",
+								"updated_at": "2026-10-21T12:30:37.2034312Z"
+							},
+							"updated_at": "2026-10-21T12:30:37.2034312Z",
+							"reason": "project_mismatch"
+						},
+						"time_energy": {
+							"status": "stale",
+							"source": "kernel_prepared_telemetry",
+							"progress": {
+								"updated_at": "2026-10-21T12:30:37.2034312Z",
+								"reason": "project_mismatch"
+							},
+							"ref": {
+								"time_segment_count": 1,
+								"time_segments": [
+									{
+										"crest_db": 3.011,
+										"end_seconds": 2.2,
+										"energy_state": "high",
+										"peak_abs": 0.349976,
+										"peak_dbfs": -9.119,
+										"rms": 0.247462,
+										"rms_dbfs": -12.13,
+										"start_seconds": 0
+									}
+								]
+							},
+							"updated_at": "2026-10-21T12:30:37.2034312Z",
+							"reason": "project_mismatch"
+						},
+						"waveform_envelope": {
+							"status": "stale",
+							"source": "kernel_prepared_telemetry",
+							"progress": {
+								"updated_at": "2026-10-21T12:30:37.2034312Z",
+								"reason": "project_mismatch"
+							},
+							"updated_at": "2026-10-21T12:30:37.2034312Z",
+							"reason": "project_mismatch"
+						}
+					},
+					"updated_at": "2026-10-21T12:31:00.5883799Z"
+				},
+				"l2_realtime": {
+					"status": "deferred",
+					"features": {
+						"live_meter": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-21T12:31:00.5883799Z",
+								"reason": "phase_4_5_l2_realtime_requires_playback"
+							},
+							"updated_at": "2026-10-21T12:31:00.5883799Z",
+							"reason": "phase_4_5_l2_realtime_requires_playback"
+						},
+						"post_fx_meter": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-21T12:31:00.5883799Z",
+								"reason": "l2_render_probe_missing"
+							},
+							"updated_at": "2026-10-21T12:31:00.5883799Z",
+							"reason": "l2_render_probe_missing"
+						},
+						"realtime_spectrum": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-21T12:31:00.5883799Z",
+								"reason": "phase_4_5_l2_realtime_requires_playback"
+							},
+							"updated_at": "2026-10-21T12:31:00.5883799Z",
+							"reason": "phase_4_5_l2_realtime_requires_playback"
+						},
+						"realtime_stereo_correlation": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-21T12:31:00.5883799Z",
+								"reason": "phase_4_5_l2_realtime_requires_playback"
+							},
+							"updated_at": "2026-10-21T12:31:00.5883799Z",
+							"reason": "phase_4_5_l2_realtime_requires_playback"
+						},
+						"render_probe": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-21T12:31:00.5883799Z",
+								"reason": "l2_render_probe_missing"
+							},
+							"updated_at": "2026-10-21T12:31:00.5883799Z",
+							"reason": "l2_render_probe_missing"
+						}
+					},
+					"updated_at": "2026-10-21T12:31:00.5883799Z"
+				},
+				"l3_deep": {
+					"status": "stale",
+					"features": {
+						"band_energy_summary": {
+							"status": "stale",
+							"source": "mix.observe_read_first",
+							"progress": {
+								"updated_at": "2026-10-21T12:31:00.5888798Z",
+								"reason": "stale_feature_snapshot_for_current_request"
+							},
+							"updated_at": "2026-10-21T12:31:00.5888798Z",
+							"reason": "stale_feature_snapshot_for_current_request"
+						},
+						"loudness_summary": {
+							"status": "stale",
+							"source": "mix.observe_read_first",
+							"progress": {
+								"updated_at": "2026-10-21T12:31:00.5883799Z",
+								"reason": "incomplete_source_identity"
+							},
+							"updated_at": "2026-10-21T12:31:00.5883799Z",
+							"reason": "incomplete_source_identity"
+						},
+						"lufs_analysis": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-21T12:31:00.5883799Z",
+								"reason": "phase_5_deferred"
+							},
+							"updated_at": "2026-10-21T12:31:00.5883799Z",
+							"reason": "phase_5_deferred"
+						},
+						"masking_analysis": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-21T12:31:00.5883799Z",
+								"reason": "phase_5_deferred"
+							},
+							"updated_at": "2026-10-21T12:31:00.5883799Z",
+							"reason": "phase_5_deferred"
+						},
+						"reference_match": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-21T12:31:00.5883799Z",
+								"reason": "phase_5_deferred"
+							},
+							"updated_at": "2026-10-21T12:31:00.5883799Z",
+							"reason": "phase_5_deferred"
+						},
+						"spectrogram_tiles": {
+							"status": "stale",
+							"source": "mix.observe_read_first",
+							"progress": {
+								"updated_at": "2026-10-21T12:31:00.5883799Z",
+								"reason": "incomplete_source_identity"
+							},
+							"updated_at": "2026-10-21T12:31:00.5883799Z",
+							"reason": "incomplete_source_identity"
+						},
+						"stereo_relation_summary": {
+							"status": "stale",
+							"source": "mix.observe_read_first",
+							"progress": {
+								"updated_at": "2026-10-21T12:31:00.5888798Z",
+								"reason": "stale_feature_snapshot_for_current_request"
+							},
+							"updated_at": "2026-10-21T12:31:00.5888798Z",
+							"reason": "stale_feature_snapshot_for_current_request"
+						}
+					},
+					"updated_at": "2026-10-21T12:31:00.5883799Z"
+				}
+			},
+			"updated_at": "2026-10-21T12:31:00.5883799Z",
+			"audit": [
+				{
+					"source": "mix.observe_read_first",
+					"reason": "derived_from_feature_snapshot",
+					"updated_at": "2026-10-21T12:31:00.5883799Z"
+				},
+				{
+					"source": "acoustic_package_store",
+					"reason": "upsert",
+					"updated_at": "2026-10-21T12:31:00.5893824Z"
+				}
+			]
+		},
+		{
+			"schema_version": "acoustic_package_status.v0",
+			"status": "partial",
+			"project_id": "vitproj_e2b99cf2de2d413cb3d385c9545483e5",
+			"track_id": "1012",
+			"clip_id": "1016",
+			"source_fingerprint": "D:\\Vit_DAW_wt_named1\\coord\\runs\\FS-NAMED-TARGET-1\\fs_named_chat_20261021_2035\\fixture\\fixture_stems\\drums.wav|size=194084|mtime=1792585835089|length=2.2000",
+			"source_revision": "D:\\Vit_DAW_wt_named1\\coord\\runs\\FS-NAMED-TARGET-1\\fs_named_chat_20261021_2035\\fixture\\fixture_stems\\drums.wav|size=194084|mtime=1792585835089|length=2.2000",
+			"clip_revision": "clip=1016|track=1012|source=D:\\Vit_DAW_wt_named1\\coord\\runs\\FS-NAMED-TARGET-1\\fs_named_chat_20261021_2035\\fixture\\fixture_stems\\drums.wav|size=194084|mtime=1792585835089|length=2.2000|offset=0.0000|length=2.2000",
+			"render_revision": "l2rp.v1|tap=track_post_fader|mode=offline_probe|track=1012|clip=1016|source=D:\\Vit_DAW_wt_named1\\coord\\runs\\FS-NAMED-TARGET-1\\fs_named_chat_20261021_2035\\fixture\\fixture_stems\\drums.wav|size=194084|mtime=1792585835089|length=2.2000|clip_revision=clip=1016|track=1012|source=D:\\Vit_DAW_wt_named1\\coord\\runs\\FS-NAMED-TARGET-1\\fs_named_chat_20261021_2035\\fixture\\fixture_stems\\drums.wav|size=194084|mtime=1792585835089|length=2.2000|offset=0.0000|length=2.2000|range=0.0000-2.2000|tail=0.2500|track_state=41e5039fcbc9669c|clip_state=2063206f9b89ed77",
+			"analyzer_revision": "agent_lightweight_o1",
+			"source_path": "D:\\Vit_DAW_wt_named1\\coord\\runs\\FS-NAMED-TARGET-1\\fs_named_chat_20261021_2035\\fixture\\fixture_stems\\drums.wav",
+			"duration_seconds": 2.218,
+			"source_identity": {
+				"analyzer_revision": "agent_lightweight_o1",
+				"clip_id": "1016",
+				"clip_revision": "clip=1016|track=1012|source=D:\\Vit_DAW_wt_named1\\coord\\runs\\FS-NAMED-TARGET-1\\fs_named_chat_20261021_2035\\fixture\\fixture_stems\\drums.wav|size=194084|mtime=1792585835089|length=2.2000|offset=0.0000|length=2.2000",
+				"clip_start_seconds": 0,
+				"duration_seconds": 2.218,
+				"project_id": "vitproj_e2b99cf2de2d413cb3d385c9545483e5",
+				"render_revision": "l2rp.v1|tap=track_post_fader|mode=offline_probe|track=1012|clip=1016|source=D:\\Vit_DAW_wt_named1\\coord\\runs\\FS-NAMED-TARGET-1\\fs_named_chat_20261021_2035\\fixture\\fixture_stems\\drums.wav|size=194084|mtime=1792585835089|length=2.2000|clip_revision=clip=1016|track=1012|source=D:\\Vit_DAW_wt_named1\\coord\\runs\\FS-NAMED-TARGET-1\\fs_named_chat_20261021_2035\\fixture\\fixture_stems\\drums.wav|size=194084|mtime=1792585835089|length=2.2000|offset=0.0000|length=2.2000|range=0.0000-2.2000|tail=0.2500|track_state=41e5039fcbc9669c|clip_state=2063206f9b89ed77",
+				"source_fingerprint": "D:\\Vit_DAW_wt_named1\\coord\\runs\\FS-NAMED-TARGET-1\\fs_named_chat_20261021_2035\\fixture\\fixture_stems\\drums.wav|size=194084|mtime=1792585835089|length=2.2000",
+				"source_path": "D:\\Vit_DAW_wt_named1\\coord\\runs\\FS-NAMED-TARGET-1\\fs_named_chat_20261021_2035\\fixture\\fixture_stems\\drums.wav",
+				"source_revision": "D:\\Vit_DAW_wt_named1\\coord\\runs\\FS-NAMED-TARGET-1\\fs_named_chat_20261021_2035\\fixture\\fixture_stems\\drums.wav|size=194084|mtime=1792585835089|length=2.2000",
+				"track_id": "1012"
+			},
+			"package_layers": {
+				"l1_static": {
+					"status": "stale",
+					"features": {
+						"peak_rms_summary": {
+							"status": "stale",
+							"source": "kernel_prepared_telemetry",
+							"progress": {
+								"updated_at": "2026-10-21T12:30:37.2034312Z",
+								"reason": "project_mismatch"
+							},
+							"ref": {
+								"clip_id": "1011",
+								"crest_db": 3.011,
+								"file_path": "D:\\Vit_DAW_wt_named1\\coord\\runs\\FS-NAMED-TARGET-1\\fs_named_chat_20261021_2035\\fixture\\fixture_stems\\bass.wav",
+								"headroom_db": 9.119,
+								"peak_abs": 0.349976,
+								"peak_dbfs": -9.119,
+								"request_id": "kernel_prepared_waveform_envelope_1011",
+								"rms": 0.247462,
+								"rms_dbfs": -12.13,
+								"track_id": "1007",
+								"updated_at": "2026-10-21T12:30:37.2034312Z"
+							},
+							"updated_at": "2026-10-21T12:30:37.2034312Z",
+							"reason": "project_mismatch"
+						},
+						"time_energy": {
+							"status": "stale",
+							"source": "kernel_prepared_telemetry",
+							"progress": {
+								"updated_at": "2026-10-21T12:30:37.2034312Z",
+								"reason": "project_mismatch"
+							},
+							"ref": {
+								"time_segment_count": 1,
+								"time_segments": [
+									{
+										"crest_db": 3.011,
+										"end_seconds": 2.2,
+										"energy_state": "high",
+										"peak_abs": 0.349976,
+										"peak_dbfs": -9.119,
+										"rms": 0.247462,
+										"rms_dbfs": -12.13,
+										"start_seconds": 0
+									}
+								]
+							},
+							"updated_at": "2026-10-21T12:30:37.2034312Z",
+							"reason": "project_mismatch"
+						},
+						"waveform_envelope": {
+							"status": "stale",
+							"source": "kernel_prepared_telemetry",
+							"progress": {
+								"updated_at": "2026-10-21T12:30:37.2034312Z",
+								"reason": "project_mismatch"
+							},
+							"updated_at": "2026-10-21T12:30:37.2034312Z",
+							"reason": "project_mismatch"
+						}
+					},
+					"updated_at": "2026-10-21T12:32:27.6911013Z"
+				},
+				"l2_realtime": {
+					"status": "ready",
+					"features": {
+						"live_meter": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-21T12:32:06.0855147Z",
+								"reason": "phase_4_5_l2_realtime_requires_playback"
+							},
+							"updated_at": "2026-10-21T12:32:06.0855147Z",
+							"reason": "phase_4_5_l2_realtime_requires_playback"
+						},
+						"post_fx_meter": {
+							"status": "ready",
+							"source": "l2_render_probe",
+							"progress": {
+								"coverage_ratio": 1,
+								"updated_at": "2026-10-21T12:32:15.970829Z",
+								"reason": "ok"
+							},
+							"ref": {
+								"analyzed_range": {
+									"duration_seconds": 2.2,
+									"end_seconds": 2.2,
+									"start_seconds": 0
+								},
+								"analyzer_revision": "agent_lightweight_o1",
+								"balance_db": 0,
+								"balance_state": "centered",
+								"bands": {
+									"air": {
+										"coverage_ratio": 1,
+										"energy_db": -14.485180208614016,
+										"max_hz": 20000,
+										"min_hz": 6000,
+										"unit_energy": 4.679403492253179e-9
+									},
+									"bass": {
+										"coverage_ratio": 1,
+										"energy_db": 66.24454863843008,
+										"max_hz": 250,
+										"min_hz": 60,
+										"unit_energy": 0.553558316089217
+									},
+									"low_mid": {
+										"coverage_ratio": 1,
+										"energy_db": 14.979997011855986,
+										"max_hz": 500,
+										"min_hz": 250,
+										"unit_energy": 0.000004137216203004269
+									},
+									"mid": {
+										"coverage_ratio": 1,
+										"energy_db": 6.590579369759943,
+										"max_hz": 2000,
+										"min_hz": 500,
+										"unit_energy": 5.994686177680826e-7
+									},
+									"presence": {
+										"coverage_ratio": 1,
+										"energy_db": -8.732852808059299,
+										"max_hz": 6000,
+										"min_hz": 2000,
+										"unit_energy": 1.759637605962629e-8
+									},
+									"sub": {
+										"coverage_ratio": 1,
+										"energy_db": 65.3105159235801,
+										"max_hz": 60,
+										"min_hz": 20,
+										"unit_energy": 0.446436924950267
+									}
+								},
+								"channel_count": 2,
+								"clip_id": "1016",
+								"clip_revision": "clip=1016|track=1012|source=D:\\Vit_DAW_wt_named1\\coord\\runs\\FS-NAMED-TARGET-1\\fs_named_chat_20261021_2035\\fixture\\fixture_stems\\drums.wav|size=194084|mtime=1792585835089|length=2.2000|offset=0.0000|length=2.2000",
+								"correlation_estimate": 1,
+								"correlation_state": "highly_correlated",
+								"crest_db": 3.044999011343439,
+								"duration_seconds": 2.218,
+								"evidence_ref": "vit://dad.l2_render_probe/track:1012/t=all@l2rp.v1|tap=track_post_fader|mode=offline_probe|track=1012|clip=1016|source=D%3A\\Vit_DAW_wt_named1\\coord\\runs\\FS-NAMED-TARGET-1\\fs_named_chat_20261021_2035\\fixture\\fixture_stems\\drums.wav|size=194084|mtime=1792585835089|length=2.2000|clip_revision=clip=1016|track=1012|source=D%3A\\Vit_DAW_wt_named1\\coord\\runs\\FS-NAMED-TARGET-1\\fs_named_chat_20261021_2035\\fixture\\fixture_stems\\drums.wav|size=194084|mtime=1792585835089|length=2.2000|offset=0.0000|length=2.2000|range=0.0000-2.2000|tail=0.2500|track_state=41e5039fcbc9669c|clip_state=2063206f9b89ed77#-",
+								"feature_type": "l2_render_probe",
+								"file_path": "D:\\Vit_DAW_wt_named1\\coord\\runs\\FS-NAMED-TARGET-1\\fs_named_chat_20261021_2035\\fixture\\fixture_stems\\drums.wav",
+								"headroom_db": 6.936103161438021,
+								"layer": "l2_realtime",
+								"peak_abs": 0.449981689453125,
+								"peak_dbfs": -6.936103161438021,
+								"project_id": "vitproj_e2b99cf2de2d413cb3d385c9545483e5",
+								"quality_evidence": {
+									"coverage": 1,
+									"deterministic": true,
+									"latency_compensated": true,
+									"max_abs": 0.449981689453125,
+									"nan_inf_count": 0,
+									"nonzero": true,
+									"sum_abs": 55583.69128417969,
+									"tail_captured": true
+								},
+								"quality_status": "ready",
+								"reason": "ok",
+								"render_mode": "offline_probe",
+								"render_revision": "l2rp.v1|tap=track_post_fader|mode=offline_probe|track=1012|clip=1016|source=D:\\Vit_DAW_wt_named1\\coord\\runs\\FS-NAMED-TARGET-1\\fs_named_chat_20261021_2035\\fixture\\fixture_stems\\drums.wav|size=194084|mtime=1792585835089|length=2.2000|clip_revision=clip=1016|track=1012|source=D:\\Vit_DAW_wt_named1\\coord\\runs\\FS-NAMED-TARGET-1\\fs_named_chat_20261021_2035\\fixture\\fixture_stems\\drums.wav|size=194084|mtime=1792585835089|length=2.2000|offset=0.0000|length=2.2000|range=0.0000-2.2000|tail=0.2500|track_state=41e5039fcbc9669c|clip_state=2063206f9b89ed77",
+								"request_id": "mixboard_l2_render_probe_1012_20261021T123215.239717700",
+								"rms": 0.316916529475697,
+								"rms_dbfs": -9.98110217278146,
+								"sample_rate": 44100,
+								"schema_version": "dad_l2_render_probe.v1",
+								"source_fingerprint": "D:\\Vit_DAW_wt_named1\\coord\\runs\\FS-NAMED-TARGET-1\\fs_named_chat_20261021_2035\\fixture\\fixture_stems\\drums.wav|size=194084|mtime=1792585835089|length=2.2000",
+								"source_path": "D:\\Vit_DAW_wt_named1\\coord\\runs\\FS-NAMED-TARGET-1\\fs_named_chat_20261021_2035\\fixture\\fixture_stems\\drums.wav",
+								"source_revision": "D:\\Vit_DAW_wt_named1\\coord\\runs\\FS-NAMED-TARGET-1\\fs_named_chat_20261021_2035\\fixture\\fixture_stems\\drums.wav|size=194084|mtime=1792585835089|length=2.2000",
+								"status": "ready",
+								"tap_point": "track_post_fader",
+								"track_id": "1012",
+								"track_state_fingerprint": "trackstate_7523030b83b42824"
+							},
+							"updated_at": "2026-10-21T12:32:15.970829Z",
+							"reason": "ok"
+						},
+						"realtime_spectrum": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-21T12:32:06.0855147Z",
+								"reason": "phase_4_5_l2_realtime_requires_playback"
+							},
+							"updated_at": "2026-10-21T12:32:06.0855147Z",
+							"reason": "phase_4_5_l2_realtime_requires_playback"
+						},
+						"realtime_stereo_correlation": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-21T12:32:06.0855147Z",
+								"reason": "phase_4_5_l2_realtime_requires_playback"
+							},
+							"updated_at": "2026-10-21T12:32:06.0855147Z",
+							"reason": "phase_4_5_l2_realtime_requires_playback"
+						},
+						"render_probe": {
+							"status": "ready",
+							"source": "mix.observe_read_first",
+							"progress": {
+								"coverage_ratio": 1,
+								"updated_at": "2026-10-21T12:32:15.970829Z",
+								"reason": "ok"
+							},
+							"ref": {
+								"analyzed_range": {
+									"duration_seconds": 2.2,
+									"end_seconds": 2.2,
+									"start_seconds": 0
+								},
+								"analyzer_revision": "agent_lightweight_o1",
+								"balance_db": 0,
+								"balance_state": "centered",
+								"bands": {
+									"air": {
+										"coverage_ratio": 1,
+										"energy_db": -14.485180208614016,
+										"max_hz": 20000,
+										"min_hz": 6000,
+										"unit_energy": 4.679403492253179e-9
+									},
+									"bass": {
+										"coverage_ratio": 1,
+										"energy_db": 66.24454863843008,
+										"max_hz": 250,
+										"min_hz": 60,
+										"unit_energy": 0.553558316089217
+									},
+									"low_mid": {
+										"coverage_ratio": 1,
+										"energy_db": 14.979997011855986,
+										"max_hz": 500,
+										"min_hz": 250,
+										"unit_energy": 0.000004137216203004269
+									},
+									"mid": {
+										"coverage_ratio": 1,
+										"energy_db": 6.590579369759943,
+										"max_hz": 2000,
+										"min_hz": 500,
+										"unit_energy": 5.994686177680826e-7
+									},
+									"presence": {
+										"coverage_ratio": 1,
+										"energy_db": -8.732852808059299,
+										"max_hz": 6000,
+										"min_hz": 2000,
+										"unit_energy": 1.759637605962629e-8
+									},
+									"sub": {
+										"coverage_ratio": 1,
+										"energy_db": 65.3105159235801,
+										"max_hz": 60,
+										"min_hz": 20,
+										"unit_energy": 0.446436924950267
+									}
+								},
+								"channel_count": 2,
+								"clip_id": "1016",
+								"clip_revision": "clip=1016|track=1012|source=D:\\Vit_DAW_wt_named1\\coord\\runs\\FS-NAMED-TARGET-1\\fs_named_chat_20261021_2035\\fixture\\fixture_stems\\drums.wav|size=194084|mtime=1792585835089|length=2.2000|offset=0.0000|length=2.2000",
+								"correlation_estimate": 1,
+								"correlation_state": "highly_correlated",
+								"crest_db": 3.044999011343439,
+								"duration_seconds": 2.218,
+								"evidence_ref": "vit://dad.l2_render_probe/track:1012/t=all@l2rp.v1|tap=track_post_fader|mode=offline_probe|track=1012|clip=1016|source=D%3A\\Vit_DAW_wt_named1\\coord\\runs\\FS-NAMED-TARGET-1\\fs_named_chat_20261021_2035\\fixture\\fixture_stems\\drums.wav|size=194084|mtime=1792585835089|length=2.2000|clip_revision=clip=1016|track=1012|source=D%3A\\Vit_DAW_wt_named1\\coord\\runs\\FS-NAMED-TARGET-1\\fs_named_chat_20261021_2035\\fixture\\fixture_stems\\drums.wav|size=194084|mtime=1792585835089|length=2.2000|offset=0.0000|length=2.2000|range=0.0000-2.2000|tail=0.2500|track_state=41e5039fcbc9669c|clip_state=2063206f9b89ed77#-",
+								"feature_type": "l2_render_probe",
+								"file_path": "D:\\Vit_DAW_wt_named1\\coord\\runs\\FS-NAMED-TARGET-1\\fs_named_chat_20261021_2035\\fixture\\fixture_stems\\drums.wav",
+								"headroom_db": 6.936103161438021,
+								"layer": "l2_realtime",
+								"peak_abs": 0.449981689453125,
+								"peak_dbfs": -6.936103161438021,
+								"project_id": "vitproj_e2b99cf2de2d413cb3d385c9545483e5",
+								"quality_evidence": {
+									"coverage": 1,
+									"deterministic": true,
+									"latency_compensated": true,
+									"max_abs": 0.449981689453125,
+									"nan_inf_count": 0,
+									"nonzero": true,
+									"sum_abs": 55583.69128417969,
+									"tail_captured": true
+								},
+								"quality_status": "ready",
+								"reason": "ok",
+								"render_mode": "offline_probe",
+								"render_revision": "l2rp.v1|tap=track_post_fader|mode=offline_probe|track=1012|clip=1016|source=D:\\Vit_DAW_wt_named1\\coord\\runs\\FS-NAMED-TARGET-1\\fs_named_chat_20261021_2035\\fixture\\fixture_stems\\drums.wav|size=194084|mtime=1792585835089|length=2.2000|clip_revision=clip=1016|track=1012|source=D:\\Vit_DAW_wt_named1\\coord\\runs\\FS-NAMED-TARGET-1\\fs_named_chat_20261021_2035\\fixture\\fixture_stems\\drums.wav|size=194084|mtime=1792585835089|length=2.2000|offset=0.0000|length=2.2000|range=0.0000-2.2000|tail=0.2500|track_state=41e5039fcbc9669c|clip_state=2063206f9b89ed77",
+								"request_id": "mixboard_l2_render_probe_1012_20261021T123215.239717700",
+								"rms": 0.316916529475697,
+								"rms_dbfs": -9.98110217278146,
+								"sample_rate": 44100,
+								"schema_version": "dad_l2_render_probe.v1",
+								"source_fingerprint": "D:\\Vit_DAW_wt_named1\\coord\\runs\\FS-NAMED-TARGET-1\\fs_named_chat_20261021_2035\\fixture\\fixture_stems\\drums.wav|size=194084|mtime=1792585835089|length=2.2000",
+								"source_path": "D:\\Vit_DAW_wt_named1\\coord\\runs\\FS-NAMED-TARGET-1\\fs_named_chat_20261021_2035\\fixture\\fixture_stems\\drums.wav",
+								"source_revision": "D:\\Vit_DAW_wt_named1\\coord\\runs\\FS-NAMED-TARGET-1\\fs_named_chat_20261021_2035\\fixture\\fixture_stems\\drums.wav|size=194084|mtime=1792585835089|length=2.2000",
+								"status": "ready",
+								"tap_point": "track_post_fader",
+								"track_id": "1012",
+								"track_state_fingerprint": "trackstate_7523030b83b42824"
+							},
+							"updated_at": "2026-10-21T12:32:15.970829Z",
+							"reason": "ok"
+						}
+					},
+					"updated_at": "2026-10-21T12:32:27.6911013Z"
+				},
+				"l3_deep": {
+					"status": "stale",
+					"features": {
+						"band_energy_summary": {
+							"status": "stale",
+							"source": "mix.observe_read_first",
+							"progress": {
+								"updated_at": "2026-10-21T12:32:06.0860145Z",
+								"reason": "stale_feature_snapshot_for_current_request"
+							},
+							"updated_at": "2026-10-21T12:32:06.0860145Z",
+							"reason": "stale_feature_snapshot_for_current_request"
+						},
+						"loudness_summary": {
+							"status": "stale",
+							"source": "mix.observe_read_first",
+							"progress": {
+								"updated_at": "2026-10-21T12:32:06.0855147Z",
+								"reason": "incomplete_source_identity"
+							},
+							"updated_at": "2026-10-21T12:32:06.0855147Z",
+							"reason": "incomplete_source_identity"
+						},
+						"lufs_analysis": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-21T12:32:06.0855147Z",
+								"reason": "phase_5_deferred"
+							},
+							"updated_at": "2026-10-21T12:32:06.0855147Z",
+							"reason": "phase_5_deferred"
+						},
+						"masking_analysis": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-21T12:32:06.0855147Z",
+								"reason": "phase_5_deferred"
+							},
+							"updated_at": "2026-10-21T12:32:06.0855147Z",
+							"reason": "phase_5_deferred"
+						},
+						"reference_match": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-21T12:32:06.0855147Z",
+								"reason": "phase_5_deferred"
+							},
+							"updated_at": "2026-10-21T12:32:06.0855147Z",
+							"reason": "phase_5_deferred"
+						},
+						"spectrogram_tiles": {
+							"status": "stale",
+							"source": "mix.observe_read_first",
+							"progress": {
+								"updated_at": "2026-10-21T12:32:06.0855147Z",
+								"reason": "incomplete_source_identity"
+							},
+							"updated_at": "2026-10-21T12:32:06.0855147Z",
+							"reason": "incomplete_source_identity"
+						},
+						"stereo_relation_summary": {
+							"status": "stale",
+							"source": "mix.observe_read_first",
+							"progress": {
+								"updated_at": "2026-10-21T12:32:06.0860145Z",
+								"reason": "stale_feature_snapshot_for_current_request"
+							},
+							"updated_at": "2026-10-21T12:32:06.0860145Z",
+							"reason": "stale_feature_snapshot_for_current_request"
+						}
+					},
+					"updated_at": "2026-10-21T12:32:27.6911013Z"
+				}
+			},
+			"updated_at": "2026-10-21T12:32:27.6911013Z",
+			"audit": [
+				{
+					"source": "mix.observe_read_first",
+					"reason": "derived_from_feature_snapshot",
+					"updated_at": "2026-10-21T12:32:27.6911013Z"
+				},
+				{
+					"source": "mix.observe_read_first",
+					"reason": "derived_from_feature_snapshot",
+					"updated_at": "2026-10-21T12:32:15.970829Z"
+				},
+				{
+					"source": "mix.observe_read_first",
+					"reason": "derived_from_feature_snapshot",
+					"updated_at": "2026-10-21T12:32:06.0855147Z"
+				},
+				{
+					"source": "acoustic_package_store",
+					"reason": "upsert",
+					"updated_at": "2026-10-21T12:32:06.0860145Z"
+				},
+				{
+					"source": "acoustic_package_store",
+					"reason": "upsert",
+					"updated_at": "2026-10-21T12:32:15.9803309Z"
+				},
+				{
+					"source": "acoustic_package_store",
+					"reason": "upsert",
+					"updated_at": "2026-10-21T12:32:27.6996004Z"
+				}
+			]
+		}
+	]
+}
