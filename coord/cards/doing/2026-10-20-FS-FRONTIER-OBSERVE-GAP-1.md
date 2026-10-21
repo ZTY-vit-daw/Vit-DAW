@@ -26,6 +26,6 @@
 
 牵出 FS 状态机统一收敛（T10）级结构性问题 → 上交边界收窄（同 149 先例）。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：（2026-10-21 18:14 +0800 / origin/main=171640d5d91b4ede74b0ac92932a32cb3e7be7db / GLM-5.3 L2 PC 执行会话 ZCode（本会话，用户口令指定领取） / 分支=port/fs-frontier-observe-gap-1（worktree D:/Vit_DAW_wt_fsog1）+ 协调 worktree D:/Vit_DAW_wt_fsog1_coord（coord/fsog1-claim）/ 领取提交=本提交；领取核对：卡在 todo 派发已确认、依赖=无；doing 仅 GEN-SUNO-WEB-DESIGN-1（纯设计件）文件域零冲突；纯只读取证不占真栈（无需登记 PC-RUNTIME-STACK），156 与 154/155 合入后的 main 不相交可并行）
 - 回执：（结论文件 / 锚点清单 / 设计稿路径）
 - 验收：（裁定文件 / 验收 commit）
