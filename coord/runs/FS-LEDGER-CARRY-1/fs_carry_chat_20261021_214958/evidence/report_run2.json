@@ -1,0 +1,107 @@
+{
+ "card": "FS-LEDGER-CARRY-1",
+ "conversation_id": "fs_carry_chat_20261021_215610",
+ "started_at": "2026-10-21T21:56:10.310+08:00",
+ "agent_http": "http://127.0.0.1:7878",
+ "rounds": {
+  "round1": {
+   "round": "round1",
+   "prompt": "给人声加点空间感",
+   "turns_sent": 2,
+   "nudges_sent": 1,
+   "hops_driven": 0,
+   "settle_reason": "goal_terminal",
+   "goal_status": "completed",
+   "final_stop": "no_pending_mix_tick_candidate",
+   "stop_reasons": [
+    "limit_reached",
+    "no_pending_mix_tick_candidate"
+   ],
+   "goal_statuses": [
+    "waiting_continue",
+    "completed"
+   ],
+   "transport_errors": 0,
+   "card_hops": []
+  },
+  "round2": {
+   "round": "round2",
+   "prompt": "这条钢琴听着太干了，帮我弄润一点",
+   "turns_sent": 3,
+   "nudges_sent": 2,
+   "hops_driven": 0,
+   "settle_reason": "goal_terminal",
+   "goal_status": "completed",
+   "final_stop": "no_pending_mix_tick_candidate",
+   "stop_reasons": [
+    "d1_post_action_evaluation_required",
+    "d1_settlement_pending_mix_tick_refused",
+    "no_pending_mix_tick_candidate"
+   ],
+   "goal_statuses": [
+    "waiting_continue",
+    "waiting_continue",
+    "completed"
+   ],
+   "transport_errors": 0,
+   "card_hops": []
+  }
+ },
+ "gate": {
+  "seed_lines": [
+   "2026-10-21T21:56:20 [INFO] [free-state.seed] booked conversation=fs_carry_chat_20261021_215610 observation=obs_20261021T135620_2e45f9762ea9 receipt=ccbr_obs_20261021T135620_2e45f9762ea9 revision=15 scan_satisfied=true"
+  ],
+  "carry_lines": [],
+  "seed_booked": true,
+  "carry_booked": false,
+  "seed_scan_satisfied": true,
+  "carry_receipts": 0,
+  "round1_terminal": true,
+  "transport_errors": 0
+ },
+ "disclosed_tracks": [
+  {
+   "id": "1007",
+   "name": "bass"
+  },
+  {
+   "id": "1012",
+   "name": "drums"
+  },
+  {
+   "id": "1017",
+   "name": "guitar"
+  },
+  {
+   "id": "1022",
+   "name": "other"
+  },
+  {
+   "id": "1027",
+   "name": "piano"
+  },
+  {
+   "id": "1032",
+   "name": "vocals"
+  }
+ ],
+ "classification": "gate_face_missing_carry",
+ "finished_at": "2026-10-21T21:57:32.924+08:00",
+ "timeline": [
+  "round1 turn_1 send",
+  "round1 turn_1 stop=limit_reached goal=waiting_continue cards=0",
+  "round1 turn_2_nudge send",
+  "round1 turn_2_nudge stop=no_pending_mix_tick_candidate goal=completed cards=0",
+  "round2 turn_1 send",
+  "round2 turn_1 stop=d1_post_action_evaluation_required goal=waiting_continue cards=0",
+  "round2 turn_2_nudge send",
+  "round2 turn_2_nudge stop=d1_settlement_pending_mix_tick_refused goal=waiting_continue cards=0",
+  "round2 turn_3_nudge send",
+  "round2 turn_3_nudge stop=no_pending_mix_tick_candidate goal=completed cards=0"
+ ],
+ "logs": [
+  "fixture DAD ready (tracks=6)",
+  "fixture open ok: bass,drums,guitar,other,piano,vocals",
+  "authority bound full_project_access"
+ ]
+}

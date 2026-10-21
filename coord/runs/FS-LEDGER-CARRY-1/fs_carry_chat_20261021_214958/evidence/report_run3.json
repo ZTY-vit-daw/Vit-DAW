@@ -1,0 +1,99 @@
+{
+ "card": "FS-LEDGER-CARRY-1",
+ "conversation_id": "fs_carry_chat_20261021_215005",
+ "started_at": "2026-10-21T21:50:05.718+08:00",
+ "agent_http": "http://127.0.0.1:7878",
+ "rounds": {
+  "round1": {
+   "round": "round1",
+   "prompt": "给人声加点空间感",
+   "turns_sent": 2,
+   "nudges_sent": 1,
+   "hops_driven": 0,
+   "settle_reason": "goal_terminal",
+   "goal_status": "completed",
+   "final_stop": "no_pending_mix_tick_candidate",
+   "stop_reasons": [
+    "limit_reached",
+    "no_pending_mix_tick_candidate"
+   ],
+   "goal_statuses": [
+    "waiting_continue",
+    "completed"
+   ],
+   "transport_errors": 0,
+   "card_hops": []
+  },
+  "round2": {
+   "round": "round2",
+   "prompt": "有几轨听起来比较干，想给其中一条合适的轨加一点混响（衰减短些），不要用整体增益或 EQ 来解决。请先观察工程，再给一个有界的小步改进建议。",
+   "turns_sent": 1,
+   "nudges_sent": 0,
+   "hops_driven": 0,
+   "settle_reason": "goal_terminal",
+   "goal_status": "completed",
+   "final_stop": "semantic_dynamic_execution_completed",
+   "stop_reasons": [
+    "semantic_dynamic_execution_completed"
+   ],
+   "goal_statuses": [
+    "completed"
+   ],
+   "transport_errors": 0,
+   "card_hops": []
+  }
+ },
+ "gate": {
+  "seed_lines": [
+   "2026-10-21T21:50:17 [INFO] [free-state.seed] booked conversation=fs_carry_chat_20261021_215005 observation=obs_20261021T135017_c822c47ec2f1 receipt=ccbr_obs_20261021T135017_c822c47ec2f1 revision=6 scan_satisfied=true"
+  ],
+  "carry_lines": [],
+  "seed_booked": true,
+  "carry_booked": false,
+  "seed_scan_satisfied": true,
+  "carry_receipts": 0,
+  "round1_terminal": true,
+  "transport_errors": 0
+ },
+ "disclosed_tracks": [
+  {
+   "id": "1007",
+   "name": "bass"
+  },
+  {
+   "id": "1012",
+   "name": "drums"
+  },
+  {
+   "id": "1017",
+   "name": "guitar"
+  },
+  {
+   "id": "1022",
+   "name": "other"
+  },
+  {
+   "id": "1027",
+   "name": "piano"
+  },
+  {
+   "id": "1032",
+   "name": "vocals"
+  }
+ ],
+ "classification": "gate_face_missing_carry",
+ "finished_at": "2026-10-21T21:51:05.293+08:00",
+ "timeline": [
+  "round1 turn_1 send",
+  "round1 turn_1 stop=limit_reached goal=waiting_continue cards=0",
+  "round1 turn_2_nudge send",
+  "round1 turn_2_nudge stop=no_pending_mix_tick_candidate goal=completed cards=0",
+  "round2 turn_1 send",
+  "round2 turn_1 stop=semantic_dynamic_execution_completed goal=completed cards=0"
+ ],
+ "logs": [
+  "fixture DAD ready (tracks=6)",
+  "fixture open ok: bass,drums,guitar,other,piano,vocals",
+  "authority bound full_project_access"
+ ]
+}
