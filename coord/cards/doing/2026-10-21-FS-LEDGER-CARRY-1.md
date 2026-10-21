@@ -22,6 +22,6 @@
 
 两份 ledger schema 需统一才能工作（T10 邻接面，DESIGN §4-1）→ 停，只做 chat 侧搬运上交边界；种子观察牵动 agentloop 侧消费改动 → 锚点上交。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-21 晚窗 / origin/main=612beb18 / owner=GLM-5.3 L2 PC ZCode 执行会话（158 卡会话）/ 分支 port/fs-ledger-carry-1 / worktree D:/Vit_DAW_wt_carry1 / 领取提交=本条随协调分支 coord/carry1-claim 推 main（hash 见 git log 卡面路径）
 - 回执：（commit / 单测名单 / 真栈 run ID / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
