@@ -19,6 +19,6 @@
 
 boundary 分层与响应路由消费点语义冲突（发现第三个 boundary 值的既有用户面契约）→ 锚点上交。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-21 18:24 +0800 / origin/main=a2d3d596（=171640d5+155/156 领取提交，代码基线仍=171640d5）/ owner=GLM-5.3-Flash PC ZCode 执行会话（152/153 同会话顺序执行，用户口令指定领取）/ 分支=port/reply-face-boundary-layer-1（worktree D:/Vit_DAW_wt_rfbl1）+ 协调 worktree D:/Vit_DAW_wt_rfbl_stnd_coord（coord/rfbl-stnd-claim）/ 领取提交=本提交；领取核对：卡在 todo、派发已确认、151 已合入（93df0fcd，文件域串行前提满足）、doing 三卡（GEN-SUNO 设计件/155 send_route_workflow 域/156 取证只读）文件域零冲突
 - 回执：（commit / 测试名 / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）

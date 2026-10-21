@@ -15,6 +15,6 @@ healthy 停摆仍 exit 0（回归）+ 零投递形态 exit 1 且 verdict 行含�
 
 ps1 判定循环结构与规格行号漂移致改动面扩散 → 上交现状锚点。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-21 18:24 +0800 / origin/main=a2d3d596（=171640d5+155/156 领取提交，代码基线仍=171640d5）/ owner=GLM-5.3-Flash PC ZCode 执行会话（152/153 同会话顺序执行，用户口令指定领取）/ 分支=port/stallsmoke-no-delivery-class-1（worktree D:/Vit_DAW_wt_stnd1）+ 协调 worktree D:/Vit_DAW_wt_rfbl_stnd_coord（coord/rfbl-stnd-claim）/ 领取提交=本提交；领取核对同 152（同协调提交）；真栈自验时窗=实现与 stub 注入腿完成后，启栈前按 §2.2 只读核对进程/端口并登记（与 155 真栈腿错峰，以启栈前记录核对为准）
 - 回执：（commit / 回归+新形态工件 / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
