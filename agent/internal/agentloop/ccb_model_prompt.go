@@ -270,7 +270,7 @@ func messageLoopFreeStateGatePathDirective(state *runState) string {
 		rows = append(rows, "G3_project_scan=no usable mix scan receipt in the observation ledger — a qualified view is mix.multitrack_relationship or mix.frequency_relationship; a project-level structure view such as project.structure does not satisfy this gate")
 	}
 	if !gateG5(state) {
-		rows = append(rows, "G5_frontier_established=no candidate frontier in the closure — candidates are built from observation facts that disclose track-level candidates")
+		rows = append(rows, "G5_frontier_established=no candidate frontier in the closure — candidates are built from observation facts that disclose track-level candidates or from a track the user named in this loop (user_intent candidate)")
 	}
 	closure := messageLoopMapValue(state.input.Context["minimal_audio_closure"])
 	frontier := messageLoopMapValue(closure["hypothesis_frontier"])

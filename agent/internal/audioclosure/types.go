@@ -200,6 +200,12 @@ type Candidate struct {
 	TrackIDs            []string `json:"track_ids"`
 	TrackNames          []string `json:"track_names,omitempty"`
 	EvidenceRefs        []string `json:"evidence_refs,omitempty"`
+	// Source is the candidate provenance enum (FS-NAMED-TARGET-1): empty
+	// keeps meaning machine-derived (every pre-existing candidate carries no
+	// source) and "user_intent" marks the synthetic candidate folded from
+	// the user's own track naming. Unknown values fail closed at the
+	// chat-side gate projection and never reach an agentloop gate.
+	Source string `json:"source,omitempty"`
 }
 
 type CapabilityLink struct {

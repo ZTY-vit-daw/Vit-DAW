@@ -58,17 +58,26 @@ type freeStateActionRecord struct {
 // keeps one user intent intact while governed processor workflows pause for
 // confirmation and return their receipts on later HTTP turns.
 type freeStateReasoningLoop struct {
-	SchemaVersion               string                       `json:"schema_version"`
-	LoopID                      string                       `json:"loop_id"`
-	ConversationID              string                       `json:"conversation_id"`
-	GoalID                      string                       `json:"goal_id,omitempty"`
-	RunID                       string                       `json:"run_id,omitempty"`
-	AuthorityMode               experiment.AuthorityMode     `json:"authority_mode"`
-	Status                      string                       `json:"status"`
-	DecisionPhase               string                       `json:"decision_phase"`
-	OriginalIntent              string                       `json:"original_intent"`
-	ActiveIntent                string                       `json:"active_intent"`
-	TargetRef                   map[string]any               `json:"target_ref,omitempty"`
+	SchemaVersion  string                   `json:"schema_version"`
+	LoopID         string                   `json:"loop_id"`
+	ConversationID string                   `json:"conversation_id"`
+	GoalID         string                   `json:"goal_id,omitempty"`
+	RunID          string                   `json:"run_id,omitempty"`
+	AuthorityMode  experiment.AuthorityMode `json:"authority_mode"`
+	Status         string                   `json:"status"`
+	DecisionPhase  string                   `json:"decision_phase"`
+	OriginalIntent string                   `json:"original_intent"`
+	ActiveIntent   string                   `json:"active_intent"`
+	TargetRef      map[string]any           `json:"target_ref,omitempty"`
+	// UserNamedTarget is the FS-NAMED-TARGET-1 user-intent pointer: the
+	// track id resolved from the user's own words by deterministic name
+	// matching at prepare time (fixed alias families plus the live track
+	// inventory — never the semantic-entry classifier, 146 §②). Empty =
+	// unresolved, and an unresolved loop is byte-identical to the
+	// pre-FS-NAMED-TARGET-1 behavior (fail-open, no guessing). The closure
+	// fold merges it into the frontier as the user_intent synthetic
+	// candidate.
+	UserNamedTarget             string                       `json:"user_named_target,omitempty"`
 	Cycle                       int                          `json:"cycle"`
 	MaxCycles                   int                          `json:"max_cycles"`
 	CurrentRoundID              string                       `json:"current_round_id,omitempty"`
@@ -302,6 +311,16 @@ func (s *Server) prepareFreeStateReasoningContext(conversationID, userText strin
 	if runID != "" {
 		loop.RunID = runID
 	}
+	// FS-NAMED-TARGET-1: resolve the user's own track naming into the loop's
+	// deterministic user-intent pointer at the same prepare boundary. The
+	// resolution is mechanical and content-blind (fixed alias families plus
+	// live track names; it never touches the semantic-entry classifier,
+	// 146 §②) and fails open: a miss or an ambiguity leaves an already
+	// captured target untouched, so loops without a resolvable name keep the
+	// pre-FS-NAMED-TARGET-1 behavior byte-identically.
+	if resolved := s.resolveFreeStateUserNamedTarget(userText); resolved != "" {
+		loop.UserNamedTarget = resolved
+	}
 	// BOUNDARY-1 §1.1: evaluate the terminal-turn triggers at the one context
 	// binding boundary both the HTTP turn and every scheduler resume cross, so
 	// the lock lands before the next model slice runs and the reserved
@@ -359,6 +378,7 @@ func mergeFreeStateLoops(base, overlay freeStateReasoningLoop, overlayOK bool) f
 		{&out.GoalID, overlay.GoalID}, {&out.RunID, overlay.RunID},
 		{&out.DecisionPhase, overlay.DecisionPhase}, {&out.OriginalIntent, overlay.OriginalIntent},
 		{&out.ActiveIntent, overlay.ActiveIntent}, {&out.LastError, overlay.LastError},
+		{&out.UserNamedTarget, overlay.UserNamedTarget},
 	} {
 		if strings.TrimSpace(field.src) != "" {
 			*field.dst = field.src
@@ -643,6 +663,99 @@ func freeStateTargetRef(ctx map[string]any) map[string]any {
 		"track_id":   trackID,
 		"track_name": firstStringFromMap(ctx, "selected_track_name"),
 	}
+}
+
+// freeStateUserNamedAliasFamily is one family of the FS-NAMED-TARGET-1 fixed
+// alias table: when the user text carries one of the family's aliases, a
+// track whose name carries one of the family's keywords matches. The table
+// is closed machine vocabulary — no classifier, no LLM, no project-content
+// knowledge (C4: intent transport, not invention).
+type freeStateUserNamedAliasFamily struct {
+	Aliases  []string
+	Keywords []string
+}
+
+// freeStateUserNamedAliasFamilies covers the 「人声/伴奏/鼓组」 category the
+// C4 ruling named. Chinese aliases are multi-character only: a single-char
+// alias would substring-match inside unrelated words (鼓 inside 鼓励), and
+// guessing is exactly what fail-open forbids. Track-name keywords may be
+// shorter because they match against a machine-provided track name, not
+// free user text.
+var freeStateUserNamedAliasFamilies = []freeStateUserNamedAliasFamily{
+	{Aliases: []string{"人声", "主唱", "演唱", "vocal", "vocals", "vox"}, Keywords: []string{"vocal", "vox", "人声", "主唱", "演唱"}},
+	{Aliases: []string{"伴奏", "伴奏轨", "backing", "backing track", "accompaniment", "instrumental"}, Keywords: []string{"backing", "accomp", "instrumental", "伴奏"}},
+	{Aliases: []string{"鼓组", "鼓轨", "鼓声", "drums", "drum", "drum track", "percussion"}, Keywords: []string{"drum", "percuss", "打击乐", "鼓"}},
+}
+
+func freeStateUserNamedNormalizeText(text string) string {
+	return strings.ToLower(strings.TrimSpace(text))
+}
+
+func freeStateUserNamedTextContainsAny(text string, needles []string) bool {
+	for _, needle := range needles {
+		if needle = strings.TrimSpace(needle); needle != "" && strings.Contains(text, needle) {
+			return true
+		}
+	}
+	return false
+}
+
+// freeStateUserNamedTrackIsAudio mirrors the capacity-facts audio predicate
+// (capacityFactsFromProjectState): treatment candidates are audio tracks, so
+// folder/bus rows never win a name match.
+func freeStateUserNamedTrackIsAudio(track map[string]any) bool {
+	if contextBool(track, "is_audio_track") {
+		return true
+	}
+	trackType := strings.ToLower(firstStringFromMap(track, "track_type", "type"))
+	return strings.Contains(trackType, "audio") || strings.Contains(trackType, "hybrid")
+}
+
+// resolveFreeStateUserNamedTarget matches the user's own words against the
+// live track inventory by exact track-name containment plus the fixed alias
+// families, and returns a track id only when exactly one audio track
+// matches. Zero or multiple matches fail open to "" — never a guess. The
+// structural read follows the capacity-assessment precedent
+// (observeCapacityProjectFacts): server-side deterministic project-structure
+// read before the model turn, refreshed from the kernel when one is live.
+func (s *Server) resolveFreeStateUserNamedTarget(userText string) string {
+	if s == nil || s.harness == nil {
+		return ""
+	}
+	text := freeStateUserNamedNormalizeText(userText)
+	if text == "" {
+		return ""
+	}
+	if s.kernel != nil {
+		s.harness.RefreshShadow(context.Background(), "user_named_target_resolution")
+	}
+	state := s.harness.UserStateSummary(context.Background())
+	matched := map[string]bool{}
+	for _, track := range capacityRows(state["tracks"]) {
+		trackID := firstStringFromMap(track, "track_id", "id")
+		trackName := freeStateUserNamedNormalizeText(firstStringFromMap(track, "track_name", "name", "label"))
+		if trackID == "" || trackName == "" || !freeStateUserNamedTrackIsAudio(track) {
+			continue
+		}
+		if len([]rune(trackName)) >= 2 && strings.Contains(text, trackName) {
+			matched[trackID] = true
+			continue
+		}
+		for _, family := range freeStateUserNamedAliasFamilies {
+			if freeStateUserNamedTextContainsAny(text, family.Aliases) &&
+				freeStateUserNamedTextContainsAny(trackName, family.Keywords) {
+				matched[trackID] = true
+				break
+			}
+		}
+	}
+	if len(matched) != 1 {
+		return ""
+	}
+	for trackID := range matched {
+		return trackID
+	}
+	return ""
 }
 
 func (s *Server) storeFreeStateLoop(loop freeStateReasoningLoop) {

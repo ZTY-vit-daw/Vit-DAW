@@ -387,9 +387,41 @@ func bindAudioClosureContext(requestContext map[string]any, state audioclosure.S
 }
 
 func audioClosureStateMap(state audioclosure.State) map[string]any {
+	state.Frontier.Candidates = audioClosureGateAdmittedCandidates(state.Frontier.Candidates)
 	raw, _ := json.Marshal(state)
 	var out map[string]any
 	_ = json.Unmarshal(raw, &out)
+	return out
+}
+
+// audioClosureGateAdmittedCandidates is the FS-NAMED-TARGET-1 gate-side
+// fail-closed filter (C5). Every agentloop consumer of closure candidates —
+// the G5 frontier assertion, the candidate progression guard, the G6/G8
+// allowed-track derivation, and the candidate disclosure rows — reads the
+// frontier through the audioClosureStateMap projection. A candidate whose
+// source is neither the legacy machine provenance (empty) nor the
+// user_intent enum is not a machine candidate and never reaches the gate.
+// Copy-on-write: a clean candidate list is returned as-is, so the persisted
+// closure state is never mutated by a projection.
+func audioClosureGateAdmittedCandidates(candidates []audioclosure.Candidate) []audioclosure.Candidate {
+	dropped := false
+	for _, candidate := range candidates {
+		switch strings.TrimSpace(candidate.Source) {
+		case "", audioClosureCandidateSourceUserIntent:
+		default:
+			dropped = true
+		}
+	}
+	if !dropped {
+		return candidates
+	}
+	out := make([]audioclosure.Candidate, 0, len(candidates))
+	for _, candidate := range candidates {
+		switch strings.TrimSpace(candidate.Source) {
+		case "", audioClosureCandidateSourceUserIntent:
+			out = append(out, candidate)
+		}
+	}
 	return out
 }
 
@@ -657,7 +689,15 @@ func (s *Server) recordAudioClosureRound(state audioclosure.State, res agentloop
 		current = outcome.State
 	}
 	if !current.Terminal() && res.FreeStateDecision != nil {
-		frontier, actionability := audioClosureFrontier(current.Frontier, *res.FreeStateDecision, observations)
+		userNamedTarget := ""
+		// FS-NAMED-TARGET-1: only the closure's own in-flight loop may fold
+		// its user-named target — the same ownership gate as the ledger
+		// rehydration above (a settled loop from an earlier goal is audit
+		// history, never a live intent pointer).
+		if loop, loopOK := s.freeStateLoop(current.ConversationID); loopOK && audioClosureLoopOwnsRound(loop, current) {
+			userNamedTarget = strings.TrimSpace(loop.UserNamedTarget)
+		}
+		frontier, actionability := audioClosureFrontierWithUserNamedTarget(current.Frontier, *res.FreeStateDecision, observations, userNamedTarget)
 		next, _, err := driver.UpdateFrontier(current, current.Revision, frontier, actionability, time.Now().UTC())
 		if err != nil {
 			return current, err
@@ -1037,9 +1077,18 @@ func audioClosureObservationKey(state audioclosure.State, observation *agentloop
 }
 
 func audioClosureFrontier(existing audioclosure.HypothesisFrontier, decision agentloop.FreeStateDecision, observations []*agentloop.RecentObservation) (audioclosure.HypothesisFrontier, audioclosure.Actionability) {
+	return audioClosureFrontierWithUserNamedTarget(existing, decision, observations, "")
+}
+
+// audioClosureFrontierWithUserNamedTarget folds the frontier and then merges
+// the FS-NAMED-TARGET-1 user-intent candidate. An empty userNamedTarget
+// keeps the fold exactly the pre-FS-NAMED-TARGET-1 behavior (the admission
+// fallback in recordFreeStateAdmissionReceipt keeps the plain wrapper).
+func audioClosureFrontierWithUserNamedTarget(existing audioclosure.HypothesisFrontier, decision agentloop.FreeStateDecision, observations []*agentloop.RecentObservation, userNamedTarget string) (audioclosure.HypothesisFrontier, audioclosure.Actionability) {
 	status := strings.ToLower(strings.TrimSpace(decision.Status))
 	frontier := existing
 	frontier.Candidates = audioClosureCandidates(existing.Candidates, observations)
+	frontier.Candidates = audioClosureUserNamedCandidates(frontier.Candidates, userNamedTarget)
 	if selected := audioClosureSelectedCandidate(frontier.Candidates, observations); selected != "" {
 		frontier.CandidateID = selected
 	}
@@ -1109,6 +1158,41 @@ func audioClosureCandidates(existing []audioclosure.Candidate, observations []*a
 		out = append(out, candidate)
 	}
 	return out
+}
+
+// audioClosureCandidateSourceUserIntent is the FS-NAMED-TARGET-1 synthetic
+// candidate provenance: the candidate was folded from the user's own track
+// naming, not from machine-derived observation facts. The empty source keeps
+// meaning machine-derived (every pre-existing candidate); the gate-side
+// projection fails closed on any other value (C5).
+const audioClosureCandidateSourceUserIntent = "user_intent"
+
+// audioClosureUserNamedCandidates appends the FS-NAMED-TARGET-1 synthetic
+// candidate when the loop's deterministically resolved user-named track is
+// not covered by any existing candidate's track set (C4: the user's own
+// naming is intent transport, not runtime invention). The candidate carries
+// no observation id, view, issue type, or evidence refs — only the intent
+// pointer: id="user_named:"+track, source="user_intent",
+// track_ids=[track]. Deterministic id keeps it idempotent across folds; an
+// empty target is a no-op so every fold without a named target stays
+// byte-identical.
+func audioClosureUserNamedCandidates(candidates []audioclosure.Candidate, userNamedTarget string) []audioclosure.Candidate {
+	userNamedTarget = strings.TrimSpace(userNamedTarget)
+	if userNamedTarget == "" {
+		return candidates
+	}
+	for _, candidate := range candidates {
+		for _, trackID := range candidate.TrackIDs {
+			if strings.TrimSpace(trackID) == userNamedTarget {
+				return candidates
+			}
+		}
+	}
+	return append(candidates, audioclosure.Candidate{
+		ID:       "user_named:" + userNamedTarget,
+		Source:   audioClosureCandidateSourceUserIntent,
+		TrackIDs: []string{userNamedTarget},
+	})
 }
 
 // audioClosureCandidateViewIDs accepts both the compact CCB bundle emitted by
