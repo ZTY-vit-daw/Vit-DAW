@@ -1,0 +1,31 @@
+  "transaction_id": "tx_1792594130317726900_38",
+  "vsp_adapter": "phase2_kernel_reference"
+}
+CommandDispatcher: working-copy persist deferred to Project History (agent-governed mutation, deferred_total=1)
+Command executed: track.send.connect, result: {
+  "status": "ok",
+  "message": "Send route connected with new FX track",
+  "source_track_id": "1027",
+  "source_name": "piano",
+  "fx_track_id": "1037",
+  "fx_name": "Reverb Bus",
+  "amount_db": -6.0,
+  "send_bus": 0,
+  "return_bus": 1,
+  "created_fx_track": true,
+  "sends": [
+    {
+      "source_track_id": "1027",
+      "source_name": "piano",
+      "fx_track_id": "1037",
+      "fx_name": "Reverb Bus",
+      "amount_db": -6.0,
+      "send_bus": 0,
+      "return_bus": 1
+    }
+  ],
+  "dangling": [],
+  "fx_tracks": [
+    {
+      "track_id": "1037",
+      "name": "Reverb Bus",
