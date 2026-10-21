@@ -1,0 +1,61 @@
+  "client_id": "kernel.main",
+  "role": "k
+ZmqGateway: received command payload: {"channel":"command","client_id":"agent.main","command_timeout_ms":120000,"created_at":"2026-10-21T13:02:10Z","message_id":"msg_1792587730237362200_91","payload":{"command":"legacy.command","legacy":{"args":{"agent_action_id":"act_26c25dcfc10ecf16","confirmation":true,"confirmed":true,"goal_id":"goal_cac272d4d1e6804b","plugin_identifier":"VST3-Pro-R-4bc24482-78c01fa6","plugin_kind":"Effect","plugin_name":"Pro-R","plugin_path":"C:\\Program Files\\Common Files\\VST3\\FabFilter\\FabFilter Pro-R.vst3","run_id":"run_5012aa17d80957ae","tool_call_id":"tool_3122f882a599b137","track_id":"1037","undo_label":"Agent: rack_add_node","x":360,"y":260,"zone_id":"Z3"},"cmd":"rack_add_node"}},"request_id":"req_1792587730237362200_89","role":"agent","schema":"vsp.command.request.v1","session_id":"sess_kernel_1792587530398_385230489","trace_id":"trace_1792587730237362200_92","transaction_id":"tx_1792587730237362200_90","type":"command.request","vsp_version":"1.0"}
+ZmqGateway: command timeout budget ms=120000
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"channel":"command","client_id":"agent.main","command_timeout_ms":120000,"created_at":"2026-10-21T13:02:10Z","message_id":"msg_1792587730237362200_91","payload":{"command":"legacy.command","legacy":{"args":{"agent_action_id":"act_26c25dcfc10ecf16","confirmation":true,"confirmed":true,"goal_id":"goal_cac272d4d1e6804b","plugin_identifier":"VST3-Pro-R-4bc24482-78c01fa6","plugin_kind":"Effect","plugin_name":"Pro-R","plugin_path":"C:\\Program Files\\Common Files\\VST3\\FabFilter\\FabFilter Pro-R.vst3","run_id":"run_5012aa17d80957ae","tool_call_id":"tool_3122f882a599b137","track_id":"1037","undo_label":"Agent: rack_add_node","x":360,"y":260,"zone_id":"Z3"},"cmd":"rack_add_node"}},"request_id":"req_1792587730237362200_89","role":"agent","schema":"vsp.command.request.v1","session_id":"sess_kernel_1792587530398_385230489","trace_id":"trace_1792587730237362200_92","transaction_id":"tx_1792587730237362200_90","type":"command.request","vsp_version":"1.0"}
+Command received: {"channel":"command","client_id":"agent.main","command_timeout_ms":120000,"created_at":"2026-10-21T13:02:10Z","message_id":"msg_1792587730237362200_91","payload":{"command":"legacy.command","legacy":{"args":{"agent_action_id":"act_26c25dcfc10ecf16","confirmation":true,"confirmed":true,"goal_id":"goal_cac272d4d1e6804b","plugin_identifier":"VST3-Pro-R-4bc24482-78c01fa6","plugin_kind":"Effect","plugin_name":"Pro-R","plugin_path":"C:\\Program Files\\Common Files\\VST3\\FabFilter\\FabFilter Pro-R.vst3","run_id":"run_5012aa17d80957ae","tool_call_id":"tool_3122f882a599b137","track_id":"1037","undo_label":"Agent: rack_add_node","x":360,"y":260,"zone_id":"Z3"},"cmd":"rack_add_node"}},"request_id":"req_1792587730237362200_89","role":"agent","schema":"vsp.command.request.v1","session_id":"sess_kernel_1792587530398_385230489","trace_id":"trace_1792587730237362200_92","transaction_id":"tx_1792587730237362200_90","type":"command.request","vsp_version":"1.0"}
+Command received: {
+  "agent_action_id": "act_26c25dcfc10ecf16",
+  "confirmation": true,
+  "confirmed": true,
+  "goal_id": "goal_cac272d4d1e6804b",
+  "plugin_identifier": "VST3-Pro-R-4bc24482-78c01fa6",
+  "plugin_kind": "Effect",
+  "plugin_name": "Pro-R",
+  "plugin_path": "C:\\Program Files\\Common Files\\VST3\\FabFilter\\FabFilter Pro-R.vst3",
+  "run_id": "run_5012aa17d80957ae",
+  "tool_call_id": "tool_3122f882a599b137",
+  "track_id": "1037",
+  "undo_label": "Agent: rack_add_node",
+  "x": 360,
+  "y": 260,
+  "zone_id": "Z3",
+  "cmd": "rack_add_node",
+  "request_id": "req_1792587730237362200_89",
+  "transaction_id": "tx_1792587730237362200_90",
+  "vsp_adapter": "phase2_kernel_reference"
+}
+PluginRackControlService: fallback inserted rack instance on track 1037 rack=1044
+PluginRackControlService: resolveExternalPluginDescription/identifier plugin desc name=Pro-R format=VST3 path=C:\Program Files\Common Files\VST3\FabFilter\FabFilter Pro-R.vst3 uniqueId=2025856934 uid=2145746881 identifier=VST3-Pro-R-4bc24482-7fe57fc1 known_before=994 known_after=994 added=false
+PluginRackControlService: rack_add_node after addPlugin auto_connect=true plugin=Pro-R connections=[RACK_INPUT:1->1047:1, RACK_INPUT:2->1047:2, 1047:1->RACK_OUTPUT:1, 1047:2->RACK_OUTPUT:2, RACK_INPUT:0->1047:0, 1047:0->RACK_OUTPUT:0]
+CommandDispatcher: working-copy persist deferred to Project History (agent-governed mutation, deferred_total=2)
+Command executed: rack_add_node, result: {
+  "status": "ok",
+  "message": "Rack node added",
+  "track_id": "1037",
+  "rack_item_id": "1046",
+  "plugin_id": "1047",
+  "plugin_item_id": "1047",
+  "plugin_name": "Pro-R",
+  "plugin_identifier": "VST3-Pro-R-4bc24482-78c01fa6",
+  "zone_id": "Z3",
+  "clip_scope": "track",
+  "template_role": "other",
+  "plugin_instance_ready": true,
+  "plugin_load_state": "name=Pro-R id=1047 format=VST3 path=C:\\Program Files\\Common Files\\VST3\\FabFilter\\FabFilter Pro-R.vst3 enabled=true processing=true edit_should_load_plugins=true async=false load_error=",
+  "x": 360.0,
+  "y": 260.0,
+  "graph_revision": 1,
+  "graph_active_revision": 1,
+  "graph_pending_revision": 0,
+  "graph_last_retired_revision": 0,
+  "graph_retired_snapshot_count": 0,
+  "graph_last_diff_kind": "node_add",
+  "graph_last_diff_summary": "Added rack node Pro-R",
+  "graph_publish_mode": "context_rebuild_idle",
+  "graph_lifecycle_state": "active",
+  "graph_recent_changes": [
+    {
+      "revision": 1,
+      "kind": "node_add",

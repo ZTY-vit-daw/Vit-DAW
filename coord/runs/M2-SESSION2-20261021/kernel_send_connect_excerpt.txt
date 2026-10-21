@@ -1,0 +1,71 @@
+  "graph_last_diff_summary": "Blank project created",
+  "graph_publish_mode": "initialised",
+  "graph_lifecycle_state": "idle",
+  "graph_recent_changes": []
+}
+VitHeadlessService: command reply (truncated): {
+  "vsp_version": "1.0",
+  "schema": "vsp.state.snapshot.v1",
+  "message_id": "msg_kernel_1792587730122_152601163",
+  "session_id": "sess_kernel_1792587530398_385230489",
+  "client_id": "kernel.main",
+  "role": "k
+ZmqGateway: received command payload: {"channel":"command","client_id":"agent.main","command_timeout_ms":120000,"created_at":"2026-10-21T13:02:10Z","message_id":"msg_1792587730125571600_75","payload":{"command":"legacy.command","legacy":{"args":{"agent_action_id":"act_ec7917e913902142","auto_create_fx_track":"Reverb Bus","confirmation":true,"confirmed":true,"goal_id":"goal_cac272d4d1e6804b","run_id":"run_5012aa17d80957ae","source_track_id":"1017","tool_call_id":"tool_1e8eedfd8c2327e8","undo_label":"Agent: track.send.connect"},"cmd":"track.send.connect"}},"request_id":"req_1792587730125571600_73","role":"agent","schema":"vsp.command.request.v1","session_id":"sess_kernel_1792587530398_385230489","trace_id":"trace_1792587730125571600_76","transaction_id":"tx_1792587730125571600_74","type":"command.request","vsp_version":"1.0"}
+ZmqGateway: command timeout budget ms=120000
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"channel":"command","client_id":"agent.main","command_timeout_ms":120000,"created_at":"2026-10-21T13:02:10Z","message_id":"msg_1792587730125571600_75","payload":{"command":"legacy.command","legacy":{"args":{"agent_action_id":"act_ec7917e913902142","auto_create_fx_track":"Reverb Bus","confirmation":true,"confirmed":true,"goal_id":"goal_cac272d4d1e6804b","run_id":"run_5012aa17d80957ae","source_track_id":"1017","tool_call_id":"tool_1e8eedfd8c2327e8","undo_label":"Agent: track.send.connect"},"cmd":"track.send.connect"}},"request_id":"req_1792587730125571600_73","role":"agent","schema":"vsp.command.request.v1","session_id":"sess_kernel_1792587530398_385230489","trace_id":"trace_1792587730125571600_76","transaction_id":"tx_1792587730125571600_74","type":"command.request","vsp_version":"1.0"}
+Command received: {"channel":"command","client_id":"agent.main","command_timeout_ms":120000,"created_at":"2026-10-21T13:02:10Z","message_id":"msg_1792587730125571600_75","payload":{"command":"legacy.command","legacy":{"args":{"agent_action_id":"act_ec7917e913902142","auto_create_fx_track":"Reverb Bus","confirmation":true,"confirmed":true,"goal_id":"goal_cac272d4d1e6804b","run_id":"run_5012aa17d80957ae","source_track_id":"1017","tool_call_id":"tool_1e8eedfd8c2327e8","undo_label":"Agent: track.send.connect"},"cmd":"track.send.connect"}},"request_id":"req_1792587730125571600_73","role":"agent","schema":"vsp.command.request.v1","session_id":"sess_kernel_1792587530398_385230489","trace_id":"trace_1792587730125571600_76","transaction_id":"tx_1792587730125571600_74","type":"command.request","vsp_version":"1.0"}
+Command received: {
+  "agent_action_id": "act_ec7917e913902142",
+  "auto_create_fx_track": "Reverb Bus",
+  "confirmation": true,
+  "confirmed": true,
+  "goal_id": "goal_cac272d4d1e6804b",
+  "run_id": "run_5012aa17d80957ae",
+  "source_track_id": "1017",
+  "tool_call_id": "tool_1e8eedfd8c2327e8",
+  "undo_label": "Agent: track.send.connect",
+  "cmd": "track.send.connect",
+  "request_id": "req_1792587730125571600_73",
+  "transaction_id": "tx_1792587730125571600_74",
+  "vsp_adapter": "phase2_kernel_reference"
+}
+CommandDispatcher: working-copy persist deferred to Project History (agent-governed mutation, deferred_total=1)
+Command executed: track.send.connect, result: {
+  "status": "ok",
+  "message": "Send route connected with new FX track",
+  "source_track_id": "1017",
+  "source_name": "guitar",
+  "fx_track_id": "1037",
+  "fx_name": "Reverb Bus",
+  "amount_db": -6.0,
+  "send_bus": 0,
+  "return_bus": 1,
+  "created_fx_track": true,
+  "sends": [
+    {
+      "source_track_id": "1017",
+      "source_name": "guitar",
+      "fx_track_id": "1037",
+      "fx_name": "Reverb Bus",
+      "amount_db": -6.0,
+      "send_bus": 0,
+      "return_bus": 1
+    }
+  ],
+  "dangling": [],
+  "fx_tracks": [
+    {
+      "track_id": "1037",
+      "name": "Reverb Bus",
+      "send_bus": 0,
+      "return_bus": 1,
+      "source_count": 1
+    }
+  ],
+  "sidechain": []
+}
+VitHeadlessService: command reply (truncated): {
+  "vsp_version": "1.0",
+  "schema": "vsp.command.response.v1",
+  "message_id": "msg_kernel_1792587730131_553962549",
