@@ -3,8 +3,11 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
-<<<<<<< HEAD
-- 2026-10-21 22:0x 起（预计 ≤30 分钟）/ **FE-SEND-EXTERNAL-REFRESH-1(161) 真栈 SendRouteGuiSmoke 腿**（owner=GLM-5.3 L2 PC ZCode 执行会话，161 卡会话；前端 worktree D:/Godot/project-vit-daw-frontend-sendext1@port/fe-send-external-refresh-1@10324d8（含本卡前端改动+扩展探针）；主仓构建/工件 worktree D:/Vit_DAW_wt_sendext1_stack@port/fe-send-external-refresh-1-stack=f39f595e（K3.2 腿分支续，Go 生产零改动）；被测 agent=worktree 构建（=main 代码）+内核=K3 只读复用主检出 build Release VitApp.exe 722A79D7A3F5…（22:0x 哈希亲核一致，本卡零内核改动）；§8 预声明：LLM=0（探针腿全确定性；chat 腿走脚本既有白名单话术非验收面）；成功=dev_agent_smoke -StartKernel -RestartAgent -SendRouteGuiSmoke -GodotProjectRoot <前端 worktree> 脚本 exit 0（含本卡新 L7 外部写腿）；失败分类=environment_interrupt/assertion_fail/script_exception；止损=同签名 assertion_fail ×2；占用前只读核对六端口 tcp+udp=0、VitApp/VitAgent/vsphub=0（用户 Godot 编辑器 14284 --editor 不占栈端口未动；上一占用 158 已释放）
+- （空闲，2026-10-21 22:1x FE-SEND-EXTERNAL-REFRESH-1 释放复核在卷：六端口 tcp+udp=0、VitApp/VitAgent/vsphub=0；用户 Godot 编辑器 14284 未动）
+
+## 最近一次释放（2026-10-21 22:0x-22:1x +0800，FE-SEND-EXTERNAL-REFRESH-1）
+
+- 2026-10-21 22:0x 登记–22:1x 释放 / **FE-SEND-EXTERNAL-REFRESH-1(161) 真栈 SendRouteGuiSmoke 腿——一 run PASS exit 0**（owner=GLM-5.3 L2 PC ZCode 执行会话，161 卡会话；占用登记 2cc1ce1e）：run=**sendext1_gui_20261021_220842**，`dev_agent_smoke -StartKernel -RestartAgent -SendRouteGuiSmoke -KernelExe <主检出 build Release 722A79D7 哈希占用前亲核> -GodotProjectRoot <前端 worktree@10324d8>` **脚本 exit 0，真栈探针 33/33 PASS**（SUMMARY_JSON checks_failed=0）——K3 六腿 L1-L6 零回退 + **本卡新 L7 外部写腿 8 断言全过**（foreign request_id connect=agent 写同构→真实组件装配→project_loaded→生产 transport 拉取→**SEND 卡零用户操作自动出现+电平数值+repository 拓扑落库**，含 VSP 形态盲区复现基线）；chat/confirm 腿过（Strip Silence 两条 warn 非验收面既往形态）。被测 agent=stack worktree 构建（=main 代码，Go 零改动）+K3 内核只读。§8 记账：LLM=0；一次过（首轮 bash 吞反斜杠未起栈零副作用即改）。拆栈=脚本 finally 后残留本腿 VitApp 16432/VitAgent 12260（路径亲核）清杀→复核六端口 tcp+udp=0、三类栈进程=0；用户 Godot 编辑器 14284 全程未动。工件 coord/runs/FE-SEND-EXTERNAL-REFRESH-1/（随 port/fe-send-external-refresh-1-stack@86e854ba 入库待决策侧合入）。
 
 ## 最近一次释放（2026-10-21 22:05 +0800，FS-LEDGER-CARRY-1(158)）
 
