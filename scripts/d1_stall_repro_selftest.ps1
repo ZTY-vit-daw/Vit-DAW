@@ -64,11 +64,17 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"strings"
 	"time"
 )
+
+// form is baked at build time via -ldflags "-X main.form=<scenario>"; the
+// smoke script starts this binary with its own fixed argument list, so the
+// scenario cannot ride the command line.
+var form = "no_delivery"
 
 type stubState struct {
 	GoalStatus   string
@@ -78,14 +84,9 @@ type stubState struct {
 }
 
 func main() {
-	form := "no_delivery"
 	addr := "127.0.0.1:7878"
 	args := os.Args[1:]
 	for i := 0; i < len(args); i++ {
-		if args[i] == "-form" && i+1 < len(args) {
-			form = args[i+1]
-			i++
-		}
 		if args[i] == "-http" && i+1 < len(args) {
 			addr = args[i+1]
 			i++
@@ -112,7 +113,7 @@ func main() {
 
 	mux := http.NewServeMux()
 	writeJSON := func(w http.ResponseWriter, payload interface{}) {
-		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		_ = json.NewEncoder(w).Encode(payload)
 	}
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
@@ -179,21 +180,14 @@ $AgentStubSourcePath = Join-Path $StubDir "agent\main.go"
 $KernelStubSourcePath = Join-Path $StubDir "kernel\main.go"
 [System.IO.File]::WriteAllText($AgentStubSourcePath, $AgentStubSource)
 [System.IO.File]::WriteAllText($KernelStubSourcePath, $KernelStubSource)
-$AgentStubExe = Join-Path $StubDir "agent_stub.exe"
 $KernelStubExe = Join-Path $StubDir "kernel_stub.exe"
-Push-Location (Join-Path $StubDir "agent")
-try {
-    & go build -o $AgentStubExe main.go
-    if ($LASTEXITCODE -ne 0) { throw ("agent stub go build failed with exit code " + $LASTEXITCODE) }
-}
-finally { Pop-Location }
 Push-Location (Join-Path $StubDir "kernel")
 try {
     & go build -o $KernelStubExe main.go
     if ($LASTEXITCODE -ne 0) { throw ("kernel stub go build failed with exit code " + $LASTEXITCODE) }
 }
 finally { Pop-Location }
-Write-Ok ("stubs built: " + $AgentStubExe)
+Write-Ok ("kernel stub built: " + $KernelStubExe)
 
 $cases = @(
     @{ form = "no_delivery";          expectExit = 1; expectVerdict = "parked_owe_no_delivery" },
@@ -212,7 +206,12 @@ foreach ($case in $cases) {
     $smokeRunRoot = Join-Path $caseDir "smoke"
     $agentBin = Join-Path $smokeRunRoot "bin\VitAgent.d1stall.exe"
     New-Item -ItemType Directory -Force -Path (Split-Path -Parent $agentBin) | Out-Null
-    Copy-Item -LiteralPath $AgentStubExe -Destination $agentBin -Force
+    Push-Location (Join-Path $StubDir "agent")
+    try {
+        & go build -ldflags ("-X main.form=" + $form) -o $agentBin main.go
+        if ($LASTEXITCODE -ne 0) { throw ("agent stub go build failed for form " + $form + " with exit code " + $LASTEXITCODE) }
+    }
+    finally { Pop-Location }
 
     $output = & powershell -NoProfile -ExecutionPolicy Bypass -File $SmokeScript `
         -RepoRoot $RepoRoot `
