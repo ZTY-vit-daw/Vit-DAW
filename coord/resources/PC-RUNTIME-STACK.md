@@ -1,6 +1,10 @@
 # PC 真实运行栈占用记录
 本记录是共享卡池协作的资源登记面，操作协议见 [PROTOCOL.md](../PROTOCOL.md) §2.2。
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
+## 当前占用
+
+- （空闲，2026-10-21 20:3x FS-NAMED-TARGET-1 释放复核在卷：五端口 tcp+udp=0、四类进程=0）
+
 ## 最近一次释放（2026-10-21 20:3x +0800，FS-NAMED-TARGET-1）
 
 - 2026-10-21 20:29 登记–20:3x 释放 / **FS-NAMED-TARGET-1(157) 真栈 chat 腿——驱动 exit 0 判定面全过**（owner=GLM-5.3 L2 PC ZCode 执行会话，157 卡会话；worktree D:/Vit_DAW_wt_named1@port/fs-named-target-1@f6e69def；占用登记 e47e09e8）：run=**fs_named_chat_20261021_2035**，softguide_exp.py --arm B1 --variants A1,A3（146 逐字话术，146 分支驱动原件）驱动 exit 0 两轮全捕获——**F-gate 弹回签名零出现**（agent_last.log free_state_final_gate=0、candidate track set=0；146 B1 同话术 4+4 次）；**名字解析真栈命中** A1 人声→1032/A3 鼓组→1012（user_named_target 持久在卷）；**user_intent 合成 candidate 入 frontier**（A3 closure candidate_id=user_named:1012 被观察选中）；**指名轨观察 4 次 status=ok 零弹回**；**A3 到达提案面**（needs_experiment 提案+两枚鼓组观察在卷）；A1 指名轨唯一候选后诚实自报边界（合成 fixture 目标级视图不可用）非弹回。诚实上交两项非本卡域边界：A1 观察供应面（156 §① 同族）、A3 D1-S1 admission target 一致性门（109/151 族邻面）。被测=worktree 构建 agent SHA256 前 16=8ca2c8aa（含本卡 Go 改动）+K3 722A79D7 只读（20:29 哈希亲核）；LLM=A1/A3 各 1 轮真 deepseek 链（各 2 turn 含调度续跑，零交互卡零 transport error）。拆栈=owner 停 agent 14848/kernel 5148→复核五端口 tcp+udp=0、VitApp/VitAgent/vsphub/Godot=0。VIT_PROJECT_XML 指 run 目录工程副本，主检出/staging workspace 零触碰。工件 coord/runs/FS-NAMED-TARGET-1/fs_named_chat_20261021_2035/（RESULTS.md+判定面双源，随 port 分支入库）。
