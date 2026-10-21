@@ -1,0 +1,703 @@
+From 10324d831d772ec962783b2238a036b21cd84962 Mon Sep 17 00:00:00 2001
+From: ZTY-vit-daw <131217zty@gmail.com>
+Date: Wed, 21 Oct 2026 21:55:30 +0800
+Subject: [PATCH] =?UTF-8?q?feat(FE-SEND-EXTERNAL-REFRESH-1,=20card=20161):?=
+ =?UTF-8?q?=20agent/=E5=A4=96=E9=83=A8=E5=86=99=E5=90=8E=20send=20?=
+ =?UTF-8?q?=E6=8B=93=E6=89=91=20GUI=20=E8=87=AA=E5=8A=A8=E5=91=88=E7=8E=B0?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+M2 场次②盲区根因（代码取证）：①外部写不产生任何 GUI 侧 track.send.list 拉取——刷新唯一挂点=GUI 自身 send 命令回执；②更深一层=GUI 工程快照刷新走 VSP-first（agent hub 8787→内核紧凑快照），内核 normaliseTrackArray 白名单剥每轨 plugins，而 auxsend/auxreturn 只存在于 legacy plugins 数组——repository rack_nodes 对 rack-less 源轨恒空，SEND 卡即使重建视图也无数据可生成（用户实测视图重建仍不显示的机制解释）。
+
+修复（零新增 ProjectEventHub 信号，复用既有 project_loaded/send_topology_changed；禁全量轮询，全部冷却防抖）：
+- Vit_Graph_Rack：订阅 project_loaded（外部变化到达信号，141 同款链）→ track.send.list+list_tracks 双只读拉取；视图构建/重建（_apply_k3_snapshots）同挂两拉取；list_tracks 回执缓存每轨 send 路由插件条目（JSON 签名去抖）并入 load_nodes（merge_send_route_entries 按 plugin_item_id 去重，repository 行优先）；外部断开清空同链移除卡片；_vit_track_client 解析点同 _vit_rack_client 探针注入面。
+- rack_send_route_rules（纯函数，探针直断面）：send_route_plugin_entries_from_track_states（list_tracks 回执→每轨 auxsend/auxreturn 条目，fail-open）+ merge_send_route_entries。
+- track_client：list_track_plugin_states（list_tracks no-wait 只读拉取）。
+- mixer_dock_adapter：project_loaded→track_send_list 拉取（外部前缀 request_id）→回执 normalize+repository 落库+send_topology_changed 广播——机架视图不在场时 SEND 槽位/轨徽标也自动刷新（原唯一广播者=机架 _apply_send_topology）。
+
+探针：K3 探针 206→231（+25：合同 5+纯函数 6+场景 12 外部写→机架自动呈现含幂等/清空+场景 13 mixer 落库广播去抖）exit 0；stack 探针补 L7 外部写腿（foreign request_id connect→真实组件装配→project_loaded→生产 transport 拉取→SEND 卡零用户操作出现+repository 拓扑落库）。9 套回归零回退（4 rack+popup 111/111+shrink a/b/c）。
+---
+ app/kernel/clients/track_client.gd   |   7 ++
+ app/rack/Vit_Graph_Rack.gd           | 105 +++++++++++++++++++++
+ app/rack/rack_send_route_rules.gd    |  63 +++++++++++++
+ tools/probe_rack_sendroute_macro.gd  | 132 ++++++++++++++++++++++++++-
+ tools/stack_probe_sendroute_macro.gd | 120 +++++++++++++++++++++++-
+ vit_dock/views/mixer_dock_adapter.gd |  41 +++++++++
+ 6 files changed, 465 insertions(+), 3 deletions(-)
+
+diff --git a/app/kernel/clients/track_client.gd b/app/kernel/clients/track_client.gd
+index 93108b5..a895fc9 100644
+--- a/app/kernel/clients/track_client.gd
++++ b/app/kernel/clients/track_client.gd
+@@ -106,6 +106,13 @@ func route_wave_input_to_track(track_id: String, options: Dictionary = {}) -> Di
+ 	return await _client().send("route_wave_input_to_track", payload, ROUTE_TIMEOUT_SEC)
+ 
+ 
++## FE-SEND-EXTERNAL-REFRESH-1 (161)：list_tracks 的 no-wait 只读拉取——回执携带
++## 全轨插件表（含 auxsend/auxreturn 与其 type），供 send 路由插件条目快照；回执经
++## kernel_command_signal_bus 按 request_id 路由，返回队列成功的 request_id（空=未入队）。
++func list_track_plugin_states(request_id: String = "track_list_send_routes") -> String:
++	return _client().send_no_wait({"cmd": "list_tracks"}, request_id, int(TRACK_TIMEOUT_SEC * 1000.0))
++
++
+ func _client() -> Variant:
+ 	if command_client == null or not is_instance_valid(command_client):
+ 		command_client = _KERNEL_COMMAND_CLIENT_SCRIPT.new()
+diff --git a/app/rack/Vit_Graph_Rack.gd b/app/rack/Vit_Graph_Rack.gd
+index 9c800d9..865a703 100644
+--- a/app/rack/Vit_Graph_Rack.gd
++++ b/app/rack/Vit_Graph_Rack.gd
+@@ -22,6 +22,7 @@ const _RACK_PLUGIN_PAYLOAD_RULES_SCRIPT: Variant = preload("res://app/rack/rack_
+ const _RACK_CLIP_PLACEHOLDER_RULES_SCRIPT: Variant = preload("res://app/rack/rack_clip_placeholder_rules.gd")
+ const _RACK_PROJECT_STATE_READER_SCRIPT: Variant = preload("res://app/rack/rack_project_state_reader.gd")
+ const _RACK_CLIENT_SCRIPT: Variant = preload("res://app/kernel/clients/rack_client.gd")
++const _TRACK_CLIENT_SCRIPT: Variant = preload("res://app/kernel/clients/track_client.gd")
+ const _RACK_PLUGIN_SEARCH_POPUP_SCRIPT: Variant = preload("res://app/rack/rack_plugin_search_popup.gd")
+ const _RACK_PARAM_SURFACE_PANEL_FACTORY_SCRIPT: Variant = preload("res://app/rack/rack_param_surface_panel_factory.gd")
+ const _KERNEL_COMMAND_SIGNAL_BUS_SCRIPT: Variant = preload("res://app/kernel/clients/kernel_command_signal_bus.gd")
+@@ -302,6 +303,16 @@ var _send_topology: Dictionary = {"sends": [], "dangling": [], "fx_tracks": [],
+ var _send_topology_refresh_in_flight: bool = false
+ var _send_topology_last_request_msec: int = -1_000_000
+ const _SEND_TOPOLOGY_REFRESH_COOLDOWN_MSEC := 600
++## FE-SEND-EXTERNAL-REFRESH-1 (161)：外部写（agent 经内核）send 呈现——auxsend/auxreturn
++## 插件条目缓存（track_id -> [entry]）。VSP 紧凑快照剥每轨 plugins，SEND 卡数据源由
++## list_tracks 只读拉取补齐（冷却防轮询），load_nodes 时并入 plugins。
++var _send_route_plugin_entries_by_track: Dictionary = {}
++var _send_route_plugin_entries_signature: String = ""
++var _send_route_plugin_snapshot_in_flight: bool = false
++var _send_route_plugin_snapshot_last_msec: int = -1_000_000
++const _SEND_ROUTE_PLUGIN_SNAPSHOT_COOLDOWN_MSEC := 2000
++const _SEND_ROUTE_PLUGIN_SNAPSHOT_IN_FLIGHT_WINDOW_MSEC := 6000
++const _SEND_ROUTE_PLUGIN_SNAPSHOT_REQUEST_PREFIX := "track_list_send_routes"
+ ## 乐观 pending 发送（edge_key -> {label, expire_msec}）——选定即连后至内核确认回读前
+ ## 的过渡显示（rack_pending_edge_rules 同款 TTL 回滚语义）。
+ var _pending_send_edges: Dictionary = {}
+@@ -2144,6 +2155,61 @@ func _request_send_topology_refresh(force: bool = false) -> void:
+ 	_rack_diag_log("track_send_list queued")
+ 
+ 
++## FE-SEND-EXTERNAL-REFRESH-1 (161)：send 路由插件条目快照（list_tracks 只读拉取，
++## 冷却防轮询）。回执经 signal_bus 路由到 _on_track_list_send_routes_completed。
++func _request_send_route_plugin_snapshot(force: bool = false) -> void:
++	var now := Time.get_ticks_msec()
++	if not force:
++		if _send_route_plugin_snapshot_in_flight and now - _send_route_plugin_snapshot_last_msec < _SEND_ROUTE_PLUGIN_SNAPSHOT_IN_FLIGHT_WINDOW_MSEC:
++			return
++		if now - _send_route_plugin_snapshot_last_msec < _SEND_ROUTE_PLUGIN_SNAPSHOT_COOLDOWN_MSEC:
++			return
++	_send_route_plugin_snapshot_in_flight = true
++	_send_route_plugin_snapshot_last_msec = now
++	var track_client: Variant = _vit_track_client()
++	var queued: String = track_client.list_track_plugin_states(_SEND_ROUTE_PLUGIN_SNAPSHOT_REQUEST_PREFIX)
++	if queued.is_empty():
++		_send_route_plugin_snapshot_in_flight = false
++		return
++	_rack_diag_log("track_list_send_routes queued")
++
++
++## list_tracks 回执 → 每轨 send 路由条目缓存；绑定轨条目有变化（含外部断开清空）时
++## 重建画布（load_nodes 合并路径同一签名口径，无变化即 SKIP，不形成重建环）。
++func _on_track_list_send_routes_completed(request_id: String, reply: Dictionary, _cmd: Dictionary) -> void:
++	if not request_id.begins_with(_SEND_ROUTE_PLUGIN_SNAPSHOT_REQUEST_PREFIX):
++		return
++	_send_route_plugin_snapshot_in_flight = false
++	if str(reply.get("status", "")) != "ok":
++		return
++	var entries_by_track: Dictionary = _RACK_SEND_ROUTE_RULES_SCRIPT.send_route_plugin_entries_from_track_states(reply.get("tracks", []))
++	if JSON.stringify(entries_by_track) == _send_route_plugin_entries_signature:
++		return
++	_send_route_plugin_entries_by_track = entries_by_track
++	_send_route_plugin_entries_signature = JSON.stringify(entries_by_track)
++	var kid := str(_bound_kernel_track_id).strip_edges()
++	if kid.is_empty():
++		return
++	_reload_bound_track_with_send_routes()
++
++
++## 以 repository 插件行 + 外部快照条目重建当前绑定轨画布（外部写后 SEND 卡落地路径）。
++func _reload_bound_track_with_send_routes() -> void:
++	var kid := str(_bound_kernel_track_id).strip_edges()
++	if kid.is_empty():
++		return
++	var repo: Node = get_tree().get_first_node_in_group("project_repository")
++	if repo == null or not repo.has_method("get_rack_nodes"):
++		return
++	var plugins: Array = repo.call("get_rack_nodes", kid) as Array
++	if _send_route_plugin_entries_by_track.has(kid):
++		plugins = _RACK_SEND_ROUTE_RULES_SCRIPT.merge_send_route_entries(
++			plugins,
++			_send_route_plugin_entries_by_track.get(kid, []) as Array
++		)
++	load_nodes(str(_bound_scene_track_id).strip_edges(), plugins, kid)
++
++
+ func _apply_send_topology(topology: Dictionary, source_request_id: String = "") -> void:
+ 	_send_topology_refresh_in_flight = false
+ 	if topology.is_empty():
+@@ -2192,6 +2258,16 @@ func _bind_send_control_ipc_signals() -> void:
+ 	var timeout_cb := Callable(self, "_on_send_control_ipc_timed_out")
+ 	if _KERNEL_COMMAND_SIGNAL_BUS_SCRIPT.connect_command_completed(completed_cb):
+ 		_KERNEL_COMMAND_SIGNAL_BUS_SCRIPT.connect_command_timed_out(timeout_cb)
++	# FE-SEND-EXTERNAL-REFRESH-1 (161)：send 路由插件条目快照回执路由（list_tracks）。
++	var snapshot_cb := Callable(self, "_on_track_list_send_routes_completed")
++	if _KERNEL_COMMAND_SIGNAL_BUS_SCRIPT.connect_command_completed(snapshot_cb):
++		var snapshot_timeout_cb := Callable(self, "_on_track_list_send_routes_timed_out")
++		_KERNEL_COMMAND_SIGNAL_BUS_SCRIPT.connect_command_timed_out(snapshot_timeout_cb)
++
++
++func _on_track_list_send_routes_timed_out(request_id: String, _cmd: Dictionary) -> void:
++	if request_id.begins_with(_SEND_ROUTE_PLUGIN_SNAPSHOT_REQUEST_PREFIX):
++		_send_route_plugin_snapshot_in_flight = false
+ 
+ 
+ func _request_matches_send_or_control(request_id: String) -> bool:
+@@ -3618,6 +3694,14 @@ func load_nodes(scene_track_id: String, plugins: Array = [], kernel_track_id: St
+ 		var reg := get_tree().root.get_node_or_null("VitTrackIdRegistry")
+ 		if reg != null and reg.has_method("get_track_id"):
+ 			kid = str(reg.call("get_track_id", sid)).strip_edges()
++	# FE-SEND-EXTERNAL-REFRESH-1 (161)：并入外部快照 send 路由条目——VSP 紧凑快照剥每轨
++	# plugins 时 SEND 卡数据源的唯一补充；repository 行已在位（legacy 回拉）时按
++	# plugin_item_id 去重，合并结果进签名（SKIP 路径口径一致）。
++	if _send_route_plugin_entries_by_track.has(kid):
++		plugins = _RACK_SEND_ROUTE_RULES_SCRIPT.merge_send_route_entries(
++			plugins,
++			_send_route_plugin_entries_by_track.get(kid, []) as Array
++		)
+ 	var repo_ph: Node = get_tree().get_first_node_in_group("project_repository")
+ 	var placeholder_plan: Dictionary = _RACK_CLIP_PLACEHOLDER_RULES_SCRIPT.build_placeholder_plan(
+ 		repo_ph,
+@@ -3692,6 +3776,8 @@ func set_rack_edit_context(clip_ids: PackedStringArray) -> void:
+ 
+ ## K3：load_nodes 双路径共用的快照挂钩——send 拓扑（repository 缓存→节点标签）+
+ ## control_graph（repository 缓存→控制层卡）+ FX 来源列表 + 拓扑读回（冷却去抖）。
++## FE-SEND-EXTERNAL-REFRESH-1 (161)：视图构建/重建同挂 send 路由插件条目快照——
++## 外部写后视图重建时 auxsend 条目缺位的补充读源（与拓扑读回同冷却纪律）。
+ func _apply_k3_snapshots(kernel_track_id: String) -> void:
+ 	_refresh_send_topology_from_repository()
+ 	_refresh_control_graph_from_repository()
+@@ -3699,6 +3785,7 @@ func _apply_k3_snapshots(kernel_track_id: String) -> void:
+ 	_render_fx_source_list()
+ 	_update_send_route_node_labels()
+ 	call_deferred("_request_send_topology_refresh")
++	call_deferred("_request_send_route_plugin_snapshot")
+ 
+ 
+ func get_selected_plugin_id() -> String:
+@@ -3860,6 +3947,19 @@ func _bind_project_event_hub() -> void:
+ 		_project_event_hub.rack_ipc_operation_timed_out.connect(_on_rack_ipc_operation_timed_out)
+ 	if not _project_event_hub.rack_control_macros_changed.is_connected(_on_rack_control_macros_changed):
+ 		_project_event_hub.rack_control_macros_changed.connect(_on_rack_control_macros_changed)
++	# FE-SEND-EXTERNAL-REFRESH-1 (161)：外部变化到达信号——project_loaded 由 141 同款链
++	# 广播（delta_update 外部写→快照回拉 / GUI 结构命令完成），此时 agent 经内核写入的
++	# send 拓扑与 auxsend 条目 GUI 侧零感知，挂轻量只读拉取（冷却防轮询，禁全量硬刷）。
++	if not _project_event_hub.project_loaded.is_connected(_on_project_loaded_for_external_send_sync):
++		_project_event_hub.project_loaded.connect(_on_project_loaded_for_external_send_sync)
++
++
++## 外部变化到达：send 拓扑（track.send.list）+ send 路由插件条目（list_tracks）双拉取；
++## 回执经既有 signal_bus 路由（_apply_send_topology 落库并广播 send_topology_changed，
++## mixer 槽位/轨徽标同链刷新；插件条目增量重建本画布 SEND 卡）。
++func _on_project_loaded_for_external_send_sync(_snapshot: Dictionary) -> void:
++	_request_send_topology_refresh()
++	_request_send_route_plugin_snapshot()
+ 
+ 
+ func _on_rack_control_macros_changed(_macros: Dictionary, source_viewport_id: String) -> void:
+@@ -4355,6 +4455,11 @@ func _vit_rack_client() -> Variant:
+ 	return _RACK_CLIENT_SCRIPT.new()
+ 
+ 
++## FE-SEND-EXTERNAL-REFRESH-1 (161)：send 路由插件条目快照的客户端解析点（探针注入面）。
++func _vit_track_client() -> Variant:
++	return _TRACK_CLIENT_SCRIPT.new()
++
++
+ func _rack_command_queued(request_id: String, command_name: String) -> bool:
+ 	if request_id.strip_edges().is_empty():
+ 		push_warning("Vit_Graph_Rack: rack command unavailable: %s" % command_name)
+diff --git a/app/rack/rack_send_route_rules.gd b/app/rack/rack_send_route_rules.gd
+index 70a8080..3d9b0f4 100644
+--- a/app/rack/rack_send_route_rules.gd
++++ b/app/rack/rack_send_route_rules.gd
+@@ -149,6 +149,69 @@ static func sends_for_fx(topology: Dictionary, track_id: String) -> Array:
+ 	return out
+ 
+ 
++## FE-SEND-EXTERNAL-REFRESH-1 (161)：从 list_tracks 回执（{tracks: [{track_id/id,
++## plugins: [...]}]}）提取每轨 send 路由插件条目（auxsend/auxreturn 原样行，保留
++## plugin_item_id/type）。返回 {track_id: [entry, ...]}；形状异常返回空表（fail-open）。
++## 动机：VSP 紧凑快照（state_snapshot project.timeline）白名单剥每轨 plugins，SEND 卡
++## 的数据源 auxsend 条目只能从本拉取补齐。
++static func send_route_plugin_entries_from_track_states(tracks: Variant) -> Dictionary:
++	var out: Dictionary = {}
++	if typeof(tracks) != TYPE_ARRAY:
++		return out
++	for track_variant in tracks as Array:
++		if typeof(track_variant) != TYPE_DICTIONARY:
++			continue
++		var track: Dictionary = track_variant
++		var track_id := str(track.get("track_id", track.get("id", ""))).strip_edges()
++		if track_id.is_empty():
++			continue
++		var plugins_variant: Variant = track.get("plugins", [])
++		if typeof(plugins_variant) != TYPE_ARRAY:
++			continue
++		var entries: Array = []
++		for plugin_variant in plugins_variant as Array:
++			if typeof(plugin_variant) != TYPE_DICTIONARY:
++				continue
++			var plugin: Dictionary = plugin_variant
++			if is_send_route_entry(plugin):
++				entries.append(plugin.duplicate(true))
++		if not entries.is_empty():
++			out[track_id] = entries
++	return out
++
++
++## FE-SEND-EXTERNAL-REFRESH-1 (161)：repository 插件行 + 外部快照 send 路由条目合并——
++## 按 plugin_item_id 去重，repository 行优先（rack DAG 布局字段在位），快照条目按
++## list_tracks 原序追加（内核保证 SendOut 严格先于同对 SendIn）。
++static func merge_send_route_entries(plugins: Array, send_route_entries: Array) -> Array:
++	var out: Array = plugins.duplicate(true)
++	var known_ids: Dictionary = {}
++	for entry_variant in out:
++		if typeof(entry_variant) != TYPE_DICTIONARY:
++			continue
++		var entry: Dictionary = entry_variant
++		var item_id := _plugin_item_id_of_entry(entry)
++		if not item_id.is_empty():
++			known_ids[item_id] = true
++	for entry_variant in send_route_entries:
++		if typeof(entry_variant) != TYPE_DICTIONARY:
++			continue
++		var entry: Dictionary = entry_variant
++		var item_id := _plugin_item_id_of_entry(entry)
++		if not item_id.is_empty() and known_ids.has(item_id):
++			continue
++		out.append(entry.duplicate(true))
++	return out
++
++
++static func _plugin_item_id_of_entry(entry: Dictionary) -> String:
++	for key in ["plugin_item_id", "item_id", "plugin_id", "id"]:
++		var value := str(entry.get(key, "")).strip_edges()
++		if not value.is_empty():
++			return value
++	return ""
++
++
+ static func find_send(topology: Dictionary, source_track_id: String, fx_track_id: String) -> Dictionary:
+ 	var key := send_edge_key(source_track_id, fx_track_id)
+ 	for send_variant in topology.get("sends", []):
+diff --git a/tools/probe_rack_sendroute_macro.gd b/tools/probe_rack_sendroute_macro.gd
+index 9f2449c..b286663 100644
+--- a/tools/probe_rack_sendroute_macro.gd
++++ b/tools/probe_rack_sendroute_macro.gd
+@@ -30,8 +30,11 @@ const SELECTOR_PATH := "res://app/rack/rack_send_target_selector.gd"
+ const CONTROL_RULES_PATH := "res://app/rack/rack_control_layer_rules.gd"
+ const WIDGET_FACTORY_PATH := "res://app/rack/rack_control_widget_factory.gd"
+ const RACK_CLIENT_PATH := "res://app/kernel/clients/rack_client.gd"
++const TRACK_CLIENT_PATH := "res://app/kernel/clients/track_client.gd"
+ const PAYLOAD_RULES_PATH := "res://app/rack/rack_ipc_payload_rules.gd"
+ const EVENT_HUB_PATH := "res://vit_dock/core/project_event_hub.gd"
++const MIXER_ADAPTER_PATH := "res://vit_dock/views/mixer_dock_adapter.gd"
++const PROJECT_REPOSITORY_PATH := "res://vit_dock/core/project_repository.gd"
+ const STRIP_SCENE_PATH := "res://vit_dock/views/mixer/vit_mixer_channel_strip.tscn"
+ const TRACK_ROW_CONTROLLER_PATH := "res://app/tracks/track_scene/Track_Row_Controller.gd"
+ const TRACK_KIND_PATH := "res://app/tracks/vit_daw_track_kind.gd"
+@@ -50,6 +53,7 @@ var _fake_debug_flags: Node = null
+ var _probe_rack_script: GDScript = null
+ var _rack: Variant = null
+ var _fake_client: FakeRackClient = null
++var _fake_track_client: FakeTrackClient = null
+ var _fake_repo: FakeRepo = null
+ var _hub: Node = null
+ 
+@@ -60,6 +64,7 @@ func _initialize() -> void:
+ 	Engine.register_singleton("VitDebugFlags", _fake_debug_flags)
+ 	_static_contract_checks()
+ 	_suite_send_rules()
++	_suite_external_send_rules()
+ 	_suite_control_rules()
+ 	_suite_selector_filter()
+ 	_setup_scene_suite()
+@@ -161,6 +166,18 @@ func _static_contract_checks() -> void:
+ 	for method_name in ["set_fx_return_role", "_refresh_fx_return_role", "_ensure_fx_role_badge"]:
+ 		_check("contract track_row.%s" % method_name, track_row_instance != null and track_row_instance.has_method(method_name), method_name)
+ 
++	# ---- FE-SEND-EXTERNAL-REFRESH-1 (161)：外部写后 send 呈现链 ----
++	var track_client: Variant = load(TRACK_CLIENT_PATH)
++	var track_client_instance: Variant = track_client.new() if track_client != null else null
++	_check("contract track_client.list_track_plugin_states", track_client_instance != null and track_client_instance.has_method("list_track_plugin_states"), "method missing")
++	var rack_source := FileAccess.get_file_as_string(RACK_SCRIPT_PATH)
++	_check("contract rack project_loaded subscription wired", rack_source.contains("project_loaded.is_connected(_on_project_loaded_for_external_send_sync)") and rack_source.contains("func _on_project_loaded_for_external_send_sync"), "subscription missing")
++	_check("contract rack external pulls (topology + plugin snapshot)", rack_source.contains("func _request_send_route_plugin_snapshot") and rack_source.contains("func _on_track_list_send_routes_completed") and rack_source.contains("func _reload_bound_track_with_send_routes"), "pull methods missing")
++	_check("contract rack view-rebuild hooks both pulls", rack_source.contains("call_deferred(\"_request_send_topology_refresh\")\n\tcall_deferred(\"_request_send_route_plugin_snapshot\")"), "k3 snapshots hook missing")
++	_check("contract rack load merges send route entries", rack_source.contains("merge_send_route_entries("), "merge call missing")
++	var mixer_adapter_source := FileAccess.get_file_as_string(MIXER_ADAPTER_PATH)
++	_check("contract mixer adapter external topology pull", mixer_adapter_source.contains("_request_external_send_topology_refresh()") and mixer_adapter_source.contains("_SEND_TOPOLOGY_EXTERNAL_REQUEST_PREFIX") and mixer_adapter_source.contains("func _apply_external_send_topology_reply"), "mixer external chain missing")
++
+ 
+ func track_kind_script_has_effect_return(track_kind: Variant) -> bool:
+ 	if track_kind == null:
+@@ -239,6 +256,44 @@ func _suite_control_rules() -> void:
+ 	_check("control curve invert", is_equal_approx(float(rules.curve_apply("invert", 0.25, 0.0, 10.0)), 7.5), "invert quarter")
+ 
+ 
++# ==========================================================
++# ②+ FE-SEND-EXTERNAL-REFRESH-1 (161)：外部写后 send 呈现——纯函数面
++# ==========================================================
++func _suite_external_send_rules() -> void:
++	var rules: Variant = load(SEND_RULES_PATH)
++	# list_tracks 回执 → 每轨 send 路由条目（auxsend/auxreturn 保留、其他丢弃、id 别名、无 send 轨不入表）
++	var track_states := [
++		{"track_id": "1007", "plugins": [
++			{"plugin_item_id": "p_so", "name": "Aux Send", "type": "auxsend"},
++			{"plugin_item_id": "p_verb", "name": "ZamVerb", "type": "audio_fx"},
++		]},
++		{"id": "1013", "plugins": [
++			{"plugin_item_id": "p_si", "name": "Aux Return", "type": "auxreturn"},
++		]},
++		{"id": "1010", "plugins": []},
++		{"name": "no-id-track"},
++	]
++	var entries: Dictionary = rules.send_route_plugin_entries_from_track_states(track_states)
++	_check("ext entries kept per track", entries.has("1007") and entries.has("1013") and not entries.has("1010"), str(entries.keys()))
++	var src_entries: Array = entries.get("1007", []) as Array
++	_check("ext entries send-route only (others dropped)", src_entries.size() == 1 and str((src_entries[0] as Dictionary).get("plugin_item_id", "")) == "p_so", str(src_entries))
++	_check("ext entries malformed input fail-open empty", (rules.send_route_plugin_entries_from_track_states("bogus") as Dictionary).is_empty(), "non-array")
++	# repository 行 + 快照条目合并：去重（repository 优先）+ 尾部追加 + 空快照原样
++	var repo_rows := [
++		{"plugin_item_id": "p_verb", "name": "ZamVerb", "type": "audio_fx"},
++		{"plugin_item_id": "p_so", "name": "Aux Send (repo)", "type": "auxsend"},
++	]
++	var snapshot_rows := [
++		{"plugin_item_id": "p_so", "name": "Aux Send (snapshot)", "type": "auxsend"},
++		{"plugin_item_id": "p_si", "name": "Aux Return", "type": "auxreturn"},
++	]
++	var merged: Array = rules.merge_send_route_entries(repo_rows, snapshot_rows)
++	_check("ext merge dedupe keeps repository row", merged.size() == 3 and str((merged[1] as Dictionary).get("name", "")) == "Aux Send (repo)", str(merged))
++	_check("ext merge appends snapshot-only entry", str((merged[2] as Dictionary).get("plugin_item_id", "")) == "p_si", str(merged))
++	var merged_empty: Array = rules.merge_send_route_entries(repo_rows, [])
++	_check("ext merge empty snapshot noop", merged_empty.size() == repo_rows.size(), str(merged_empty.size()))
++
++
+ func _suite_selector_filter() -> void:
+ 	var selector: Variant = load(SELECTOR_PATH)
+ 	var rows := [
+@@ -281,12 +336,14 @@ func _setup_scene_suite() -> void:
+ 	_rack.name = "ProbeRack"
+ 	_fake_client = FakeRackClient.new()
+ 	_rack.fake_client = _fake_client
++	_fake_track_client = FakeTrackClient.new()
++	_rack.fake_track_client = _fake_track_client
+ 	_stage.add_child(_rack)
+ 
+ 
+ func _build_probe_rack() -> GDScript:
+ 	var script := GDScript.new()
+-	script.source_code = "extends \"%s\"\nvar fake_client = null\n\nfunc _vit_rack_client() -> Variant:\n\treturn fake_client\n" % RACK_SCRIPT_PATH
++	script.source_code = "extends \"%s\"\nvar fake_client = null\nvar fake_track_client = null\n\nfunc _vit_rack_client() -> Variant:\n\treturn fake_client\n\nfunc _vit_track_client() -> Variant:\n\treturn fake_track_client\n" % RACK_SCRIPT_PATH
+ 	if script.reload() != OK:
+ 		return null
+ 	return script
+@@ -500,6 +557,68 @@ func _run_scene_suite() -> void:
+ 		track_row_scene_instance.free()
+ 	_check("scene track row refresh reads repo is_fx_track", _fake_repo.is_fx_track_calls >= 0, "repo callable")
+ 
++	# --- 场景 12：FE-SEND-EXTERNAL-REFRESH-1 外部写→机架自动呈现 ---
++	# VSP 紧凑快照形态：repository rack_nodes 无 auxsend（FakeRepo.get_rack_nodes=[]）。
++	# 外部变化到达（project_loaded，141 同款链）→ 双只读拉取 → 插件条目回执 →
++	# 重建 → SEND 卡/电平数值自动出现（标签取 repo 拓扑）。M2 场次②盲区的 headless 复现+修复钉。
++	rack.load_nodes(FIXTURE_SOURCE_TRACK, [{"id": "p_verb", "plugin_item_id": "p_verb", "name": "ZamVerb", "type": "audio_fx"}], FIXTURE_SOURCE_TRACK)
++	_check("ext161 baseline no send node after VSP-shaped rebuild", _find_node_by_meta(rack, "vit_send_route_node", "vit_send_is_out", true) == null, "send node leaked")
++	rack._send_topology_refresh_in_flight = false
++	rack._send_topology_last_request_msec = -1_000_000
++	rack._send_route_plugin_snapshot_in_flight = false
++	rack._send_route_plugin_snapshot_last_msec = -1_000_000
++	rack._on_project_loaded_for_external_send_sync({})
++	_check("ext161 project_loaded queues topology pull", _collect_cmds("track.send.list").size() >= 1, "no topology pull")
++	_check("ext161 project_loaded queues plugin snapshot pull", _fake_track_client.cmds.size() >= 1, "no list_tracks pull")
++	var ext_reply := {"status": "ok", "tracks": [{"track_id": FIXTURE_SOURCE_TRACK, "plugins": [
++		{"plugin_item_id": "p_so_ext", "name": "Aux Send", "type": "auxsend"},
++		{"plugin_item_id": "p_verb", "name": "ZamVerb", "type": "audio_fx"},
++		{"plugin_item_id": "p_si_ext", "name": "Aux Return", "type": "auxreturn"},
++	]}]}
++	rack._on_track_list_send_routes_completed("track_list_send_routes", ext_reply, {})
++	var ext_send_out: GraphNode = _find_node_by_meta(rack, "vit_send_route_node", "vit_send_is_out", true)
++	var ext_send_in: GraphNode = _find_node_by_meta(rack, "vit_send_route_node", "vit_send_is_out", false)
++	_check("ext161 SendOut node auto-present", ext_send_out != null, "SendOut missing")
++	_check("ext161 SendIn node auto-present", ext_send_in != null, "SendIn missing")
++	if ext_send_out != null:
++		_check("ext161 SendOut label target+amount from topology", str(ext_send_out.title).contains("Reverb Bus") and str(ext_send_out.title).contains("-6.0"), str(ext_send_out.title))
++		_check("ext161 SendOut param port wired to external plugin id", rack._param_port_controls.has("p_so_ext|send level"), str(rack._param_port_controls.keys()))
++	var ext_node_count_before: int = rack.get_child_count()
++	rack._on_track_list_send_routes_completed("track_list_send_routes", ext_reply, {})
++	_check("ext161 duplicate reply idempotent (no rebuild)", rack.get_child_count() == ext_node_count_before, "rebuilt")
++	var ext_cleared := {"status": "ok", "tracks": [{"track_id": FIXTURE_SOURCE_TRACK, "plugins": []}]}
++	rack._on_track_list_send_routes_completed("track_list_send_routes", ext_cleared, {})
++	_check("ext161 cleared reply removes send nodes", _find_node_by_meta(rack, "vit_send_route_node", "vit_send_is_out", true) == null, "send node survived")
++
++	# --- 场景 13：FE-SEND-EXTERNAL-REFRESH-1 mixer 侧外部拓扑落库+广播 ---
++	# 机架视图不在场时 SEND 槽位数据源=repository（send_topology_changed 广播）——
++	# adapter._apply_external_send_topology_reply 落库+广播链（裸实例面，无场景树依赖）。
++	var mixer_adapter_script: Variant = load(MIXER_ADAPTER_PATH)
++	var bare_adapter: Variant = mixer_adapter_script.new() if mixer_adapter_script != null else null
++	_check("ext161 mixer adapter instantiable", bare_adapter != null and is_instance_valid(bare_adapter), "adapter.new() failed")
++	if bare_adapter != null:
++		var real_repo_script: Variant = load(PROJECT_REPOSITORY_PATH)
++		var bare_repo: Variant = real_repo_script.new()
++		bare_adapter._project_repository = bare_repo
++		var hub_variant: Variant = _hub
++		bare_adapter._project_event_hub = hub_variant
++		var hub_signal_seen := {"seen": false}
++		hub_variant.send_topology_changed.connect(func(_topology: Dictionary) -> void: hub_signal_seen["seen"] = true)
++		var list_shaped_reply := {
++			"status": "ok",
++			"sends": [{"source_track_id": FIXTURE_SOURCE_TRACK, "source_name": "vocals", "fx_track_id": FIXTURE_FX_TRACK, "fx_name": "Reverb Bus", "amount_db": -6.0, "send_bus": 2, "return_bus": 3}],
++			"dangling": [], "fx_tracks": [], "sidechain": [],
++		}
++		bare_adapter._apply_external_send_topology_reply(list_shaped_reply)
++		_check("ext161 mixer adapter stores topology in repository", (bare_repo.get_sends_for_source(FIXTURE_SOURCE_TRACK) as Array).size() == 1, "repo topology not stored")
++		_check("ext161 mixer adapter broadcasts send_topology_changed", bool(hub_signal_seen["seen"]), "hub signal not emitted")
++		# 同拓扑重复回执 → repository 签名去抖 → 不再广播（防抖钉）
++		hub_signal_seen["seen"] = false
++		bare_adapter._apply_external_send_topology_reply(list_shaped_reply)
++		_check("ext161 mixer adapter dedupe suppresses rebroadcast", not bool(hub_signal_seen["seen"]), "re-broadcast on same topology")
++		bare_adapter.free()
++		bare_repo.free()
++
+ 
+ ## K3.1③：侧栏 adapter 契约断言（adapter 场景树重、autoload 依赖——headless
+ ## 以源码文本钉接线面；运行时命令面已在场景 11 经 Vit_Graph_Rack 桥覆盖）。
+@@ -910,7 +1029,6 @@ class FakeRepo extends Node:
+ ## 假机架客户端：记录全部命令字典（命令构造面断言），不触达真实 ZMQ/信号总线。
+ class FakeRackClient extends RefCounted:
+ 	var cmds: Array = []
+-
+ 	func queue_command(payload: Dictionary, request_id: String = "", timeout_ms: int = 5000) -> String:
+ 		cmds.append(payload.duplicate(true))
+ 		return "probe_req_%s_%d" % [request_id if not request_id.is_empty() else "anon", cmds.size()]
+@@ -964,6 +1082,16 @@ class FakeRackClient extends RefCounted:
+ 		return _send_named("control_remove_node", payload, request_id)
+ 
+ 
++## FE-SEND-EXTERNAL-REFRESH-1 (161)：假轨道客户端（list_tracks 只读拉取捕获面）。
++class FakeTrackClient extends RefCounted:
++	var cmds: Array = []
++
++	func list_track_plugin_states(request_id: String = "track_list_send_routes") -> String:
++		var wire := {"cmd": "list_tracks"}
++		cmds.append(wire)
++		return "probe_req_%s_%d" % [request_id, cmds.size()]
++
++
+ ## 假 VitDebugFlags（-s 模式无 autoload：探针先例同款注入）。
+ class FakeDebugFlags extends Node:
+ 	var ui_log_enabled := false
+diff --git a/tools/stack_probe_sendroute_macro.gd b/tools/stack_probe_sendroute_macro.gd
+index b788732..a07a9d4 100644
+--- a/tools/stack_probe_sendroute_macro.gd
++++ b/tools/stack_probe_sendroute_macro.gd
+@@ -12,14 +12,23 @@ extends Node
+ ##   L4 set_amount（SEND 槽位同构 payload）→list 回读；
+ ##   L5 宏三步：control_add_macro→control_add_binding(SendOut send level 硬接线口同构
+ ##      payload)→control_set_macro_values→control_graph 快照核对+send amount dB 联动断言；
+-##   L6 disconnect（成对移除同构 payload）→list 归零+fx_released。
++##   L6 disconnect（成对移除同构 payload）→list 归零+fx_released；
++##   L7 FE-SEND-EXTERNAL-REFRESH-1（161）外部写→GUI 自动出现：外部 request_id（不带
++##      GUI 前缀，agent 经内核同构）connect →真实 GUI 组件装配（ProjectEventHub+
++##      ProjectRepository+Vit_Graph_Rack 实件）→工程快照刷新到达面（project_loaded
++##      广播，141 同款外部变化链）→机架自动拉取（track.send.list+list_tracks 生产
++##      transport）→SEND 卡/电平数值零用户操作出现+repository 拓扑落库。
+ ## 工件：PASS/FAIL 行打 stdout（ps1 捕获 console 落 run 目录）；摘要 JSON 打 stdout 尾行。
+ ## 用法（须先有 kernel+agent berth 在 5555/4445）：
+ ##   godot --headless --path <前端仓> res://tools/stack_probe_sendroute_macro.tscn
+ ## 退出码：0=全绿；1=断言失败；2=环境不可用。
+ 
+ const _KERNEL_COMMAND_CLIENT_SCRIPT: Variant = preload("res://app/kernel/clients/kernel_command_client.gd")
++const _KERNEL_COMMAND_SIGNAL_BUS_SCRIPT: Variant = preload("res://app/kernel/clients/kernel_command_signal_bus.gd")
+ const _PAYLOAD_RULES_SCRIPT: Variant = preload("res://app/rack/rack_ipc_payload_rules.gd")
++const _EVENT_HUB_SCRIPT: Variant = preload("res://vit_dock/core/project_event_hub.gd")
++const _PROJECT_REPOSITORY_SCRIPT: Variant = preload("res://vit_dock/core/project_repository.gd")
++const _GRAPH_RACK_SCRIPT: Variant = preload("res://app/rack/Vit_Graph_Rack.gd")
+ 
+ const _WATCHDOG_SEC := 150.0
+ ## K1 烟测同款确定性：FX 名带时间戳（上一腿 auto_create 留下的同名普通轨会使
+@@ -238,4 +247,113 @@ func _run_suite() -> void:
+ 	if str(topo4.get("status", "")) == "ok":
+ 		_check("L6 list empty after disconnect", (topo4.get("sends", []) as Array).is_empty() and (topo4.get("dangling", []) as Array).is_empty(), str(topo4.get("sends", [])))
+ 
++	# --- L7：FE-SEND-EXTERNAL-REFRESH-1（161）外部写→GUI 自动出现 ---
++	await _run_external_refresh_leg(source_id)
++
+ 	_finish()
++
++
++## L7：外部 request_id（不带 GUI 前缀，agent 经内核写同构）connect → 真实 GUI 组件装配
++## （ProjectEventHub + ProjectRepository + Vit_Graph_Rack 实件）→ 工程快照刷新到达面
++## （project_loaded 广播=真实 GUI 中 dock root 应用外部快照后的同一信号）→ 机架挂的
++## 轻量只读拉取（track.send.list + list_tracks，161 新挂点）经生产 transport 回执 →
++## SEND 卡与电平数值零用户操作自动出现 + repository 拓扑落库。
++## 边界：GUI 组件装配为探针内实件挂载（真实 dock root 不在 headless 探针域）——
++## project_loaded 广播即其在真实链路中的下游汇聚信号，同 141 探针先例。
++func _run_external_refresh_leg(source_id: String) -> void:
++	# ① 外部写（foreign request_id——GUI send 前缀零匹配，等价 agent 写路径）
++	var ext_request_id := "external_agent_write_l7"
++	var fx_name_ext := "%s Ext %d" % [_FX_NAME_PREFIX, Time.get_ticks_msec()]
++	var ext_wire: Dictionary = _PAYLOAD_RULES_SCRIPT.track_send_connect_auto_create_payload(source_id, fx_name_ext, -6.0)
++	ext_wire["cmd"] = "track.send.connect"
++	var ext_reply: Dictionary = await _send_no_wait_await_reply(ext_wire, ext_request_id, 8.0)
++	ext_reply = _require_ok("L7 external connect (foreign request id)", ext_reply)
++	if ext_reply.is_empty():
++		return
++	var ext_fx_id := str(ext_reply.get("fx_track_id", ""))
++	_check("L7 external connect created fx", bool(ext_reply.get("created_fx_track", false)) and not ext_fx_id.is_empty(), str(ext_reply))
++
++	# ② 真实 GUI 组件装配：hub + repository（VSP 紧凑快照形态——每轨无 plugins）+ 真机架
++	var stage := Node.new()
++	stage.name = "ExtRefreshProbeStage"
++	get_tree().root.add_child(stage)
++	var hub: Variant = _EVENT_HUB_SCRIPT.new()
++	stage.add_child(hub)
++	var repo: Variant = _PROJECT_REPOSITORY_SCRIPT.new()
++	stage.add_child(repo)
++	var applied := bool(repo.call("apply_kernel_project_state", {
++		"status": "ok",
++		"tracks": [{"track_id": source_id, "track_name": "ext-src", "track_type": "hybrid", "plugins": []}],
++	}))
++	_check("L7 VSP-shaped repository applied", applied, "apply_kernel_project_state rejected fixture")
++	var rack: Variant = _GRAPH_RACK_SCRIPT.new()
++	rack.name = "ExtRefreshProbeRack"
++	stage.add_child(rack)
++	await get_tree().process_frame
++	await get_tree().process_frame
++	rack.call("load_nodes", source_id, [], source_id)
++	var baseline_node: GraphNode = _rack_find_send_out(rack)
++	_check("L7 baseline no send node (VSP-shaped repo)", baseline_node == null, "send node present before external refresh")
++
++	# ③ 外部变化到达面：project_loaded 广播（rack 161 订阅点）
++	hub.project_loaded.emit(repo.call("get_project_snapshot"))
++
++	# ④ 轮询自动呈现（拉取→生产 transport 回执→落库/合并重建）
++	var topology_applied := false
++	var card_present := false
++	var card_title := ""
++	var deadline_msec := Time.get_ticks_msec() + 12000
++	while Time.get_ticks_msec() < deadline_msec and not card_present:
++		await get_tree().create_timer(0.25).timeout
++		var topo: Dictionary = repo.call("get_send_topology")
++		if not topology_applied and (topo.get("sends", []) as Array).size() >= 1:
++			topology_applied = true
++		var node: GraphNode = _rack_find_send_out(rack)
++		if node != null:
++			card_present = true
++			card_title = str(node.title)
++	_check("L7 topology auto-applied to repository", topology_applied, str(repo.call("get_send_topology")))
++	_check("L7 SendOut card auto-present (zero user action)", card_present, "card missing after project_loaded")
++	if card_present:
++		_check("L7 SendOut card amount label", card_title.contains("-6.0"), card_title)
++		var sends: Array = (repo.call("get_send_topology") as Dictionary).get("sends", []) as Array
++		if sends.size() >= 1:
++			var row: Dictionary = sends[0]
++			_check("L7 repository topology row source/fx", str(row.get("source_track_id", "")) == source_id and str(row.get("fx_track_id", "")) == ext_fx_id, str(row))
++
++	# ⑤ 清场：外部断开（foreign request_id 同构）+ 装配拆除
++	var cleanup_wire: Dictionary = _PAYLOAD_RULES_SCRIPT.track_send_disconnect_payload(source_id, ext_fx_id)
++	cleanup_wire["cmd"] = "track.send.disconnect"
++	await _send_no_wait_await_reply(cleanup_wire, "external_agent_cleanup_l7", 8.0)
++	stage.queue_free()
++	await get_tree().process_frame
++
++
++func _rack_find_send_out(rack: Node) -> GraphNode:
++	for child in rack.get_children():
++		var gn := child as GraphNode
++		if gn == null or not bool(gn.get_meta("vit_send_route_node", false)):
++			continue
++		if bool(gn.get_meta("vit_send_is_out", false)):
++			return gn
++	return null
++
++
++## 外部 request_id 发送 + 生产 signal_bus 等回执（不落 rack 拉取路径；回执仅探针核对用）。
++func _send_no_wait_await_reply(wire: Dictionary, request_id: String, timeout_sec: float) -> Dictionary:
++	if _client == null:
++		_client = _KERNEL_COMMAND_CLIENT_SCRIPT.new()
++	var reply_box := {"reply": {}}
++	var completed := func(rid: String, reply: Dictionary, _cmd: Dictionary) -> void:
++		if rid == request_id and (reply_box["reply"] as Dictionary).is_empty():
++			reply_box["reply"] = reply.duplicate(true)
++	_KERNEL_COMMAND_SIGNAL_BUS_SCRIPT.connect_command_completed(completed)
++	var queued: String = _client.send_no_wait(wire, request_id, int(timeout_sec * 1000.0))
++	if queued.is_empty():
++		_KERNEL_COMMAND_SIGNAL_BUS_SCRIPT.disconnect_command_completed(completed)
++		return {"status": "error", "message": "queue_failed"}
++	var deadline_msec := Time.get_ticks_msec() + int(timeout_sec * 1000.0)
++	while Time.get_ticks_msec() < deadline_msec and (reply_box["reply"] as Dictionary).is_empty():
++		await get_tree().create_timer(0.1).timeout
++	_KERNEL_COMMAND_SIGNAL_BUS_SCRIPT.disconnect_command_completed(completed)
++	return reply_box["reply"]
+diff --git a/vit_dock/views/mixer_dock_adapter.gd b/vit_dock/views/mixer_dock_adapter.gd
+index 58483cb..25b2450 100644
+--- a/vit_dock/views/mixer_dock_adapter.gd
++++ b/vit_dock/views/mixer_dock_adapter.gd
+@@ -538,6 +538,42 @@ func _on_project_loaded(_snapshot: Dictionary) -> void:
+ 	_refresh_track_group_toolbar()
+ 	_rebuild_strips()
+ 	_select_initial_strip_from_context()
++	_request_external_send_topology_refresh()
++
++
++# ==========================================
++# FE-SEND-EXTERNAL-REFRESH-1 (161)：外部写后 send 拓扑拉取（SEND 槽位数据源）
++# ==========================================
++## 机架视图不在场时 send_topology_changed 唯一发射者（机架 _apply_send_topology）缺位，
++## SEND 槽位/轨徽标停留旧拓扑。project_loaded（141 同款外部变化到达链）挂轻量
++## track.send.list 只读拉取；回执落库 repository 并广播，冷却防轮询。
++const _SEND_TOPOLOGY_EXTERNAL_REQUEST_PREFIX := "track_send_list_external"
++const _SEND_TOPOLOGY_EXTERNAL_COOLDOWN_MSEC := 1500
++const _RACK_CLIENT_SCRIPT: Variant = preload("res://app/kernel/clients/rack_client.gd")
++const _RACK_SEND_ROUTE_RULES_SCRIPT: Variant = preload("res://app/rack/rack_send_route_rules.gd")
++var _send_topology_external_last_msec: int = -1_000_000
++
++
++func _request_external_send_topology_refresh() -> void:
++	var now := Time.get_ticks_msec()
++	if now - _send_topology_external_last_msec < _SEND_TOPOLOGY_EXTERNAL_COOLDOWN_MSEC:
++		return
++	_send_topology_external_last_msec = now
++	var rack_client: Variant = _RACK_CLIENT_SCRIPT.new()
++	var queued: String = rack_client.track_send_list({}, _SEND_TOPOLOGY_EXTERNAL_REQUEST_PREFIX)
++	if queued.is_empty():
++		return
++	if not _ipc_bound:
++		var cb: Callable = Callable(self, "_on_ipc_command_completed")
++		_ipc_bound = _KERNEL_COMMAND_SIGNAL_BUS_SCRIPT.connect_command_completed(cb)
++
++
++func _apply_external_send_topology_reply(reply: Dictionary) -> void:
++	var topology: Dictionary = _RACK_SEND_ROUTE_RULES_SCRIPT.normalize_topology(reply)
++	if topology.is_empty() or _project_repository == null or not _project_repository.has_method("apply_send_topology"):
++		return
++	if _project_repository.call("apply_send_topology", topology) and _project_event_hub != null:
++		_project_event_hub.send_topology_changed.emit(topology)
+ 
+ 
+ func _on_track_focus_changed(track_id: String, _source_viewport_id: String) -> void:
+@@ -550,6 +586,11 @@ func _on_track_focus_changed(track_id: String, _source_viewport_id: String) -> v
+ func _on_ipc_command_completed(_rid: String, reply: Dictionary, _cmd: Dictionary) -> void:
+ 	if str(reply.get("status", "")) != "ok":
+ 		return
++	# FE-SEND-EXTERNAL-REFRESH-1 (161)：外部 send 拓扑拉取回执 → 落库+广播
++	# （机架视图同前缀也会处理，repository 签名去重双保险）。
++	if _rid.begins_with(_SEND_TOPOLOGY_EXTERNAL_REQUEST_PREFIX):
++		_apply_external_send_topology_reply(reply)
++		return
+ 	_apply_metering_if_present(reply)
+ 	_apply_volume_state_if_present(reply, _cmd)
+ 	var cmd_name := str(_cmd.get("cmd", "")).strip_edges()
+-- 
+2.53.0.windows.1
+
