@@ -35,6 +35,6 @@ agent/外部写后 send 拓扑自动呈现：①触发面——外部变化信�
 
 重新点选吉他轨+切走切回机架视图后 send **仍不出现**——「纯外部通知缺口」假设收窄：**视图重建路径同样不拉取 send 拓扑**（刷新唯一挂点=GUI 自身命令完成）。修复面=外部变化信号 + 视图构建/重建两处都要挂 `track.send.list` 拉取；仅补通知不补重建挂点不够。判定面证据见 [M2 场次②实录](../../runs/M2-SESSION2-20261021/SESSION.md)。
 
-- 领取：（时间 / origin hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-21 晚窗 / origin/main=39326111（612beb18 之上 158/160 两卡领取提交，文件域不交）/ owner=GLM-5.3 L2 PC ZCode 执行会话（161 卡会话）/ 分支 port/fe-send-external-refresh-1（前端仓，基线 0e244f0）/ worktree D:/Godot/project-vit-daw-frontend-sendext1 / 领取提交=本卡 todo→doing 提交（领取核对：卡仍在 todo、派发已确认、依赖=无、doing 三卡[158/160/GEN-SUNO] 文件域不交）
 - 回执：（commit / 真栈 run ID / 回归工件 / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
