@@ -3,11 +3,12 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
+<<<<<<< HEAD
 - 2026-10-21 22:0x 起（预计 ≤30 分钟）/ **FE-SEND-EXTERNAL-REFRESH-1(161) 真栈 SendRouteGuiSmoke 腿**（owner=GLM-5.3 L2 PC ZCode 执行会话，161 卡会话；前端 worktree D:/Godot/project-vit-daw-frontend-sendext1@port/fe-send-external-refresh-1@10324d8（含本卡前端改动+扩展探针）；主仓构建/工件 worktree D:/Vit_DAW_wt_sendext1_stack@port/fe-send-external-refresh-1-stack=f39f595e（K3.2 腿分支续，Go 生产零改动）；被测 agent=worktree 构建（=main 代码）+内核=K3 只读复用主检出 build Release VitApp.exe 722A79D7A3F5…（22:0x 哈希亲核一致，本卡零内核改动）；§8 预声明：LLM=0（探针腿全确定性；chat 腿走脚本既有白名单话术非验收面）；成功=dev_agent_smoke -StartKernel -RestartAgent -SendRouteGuiSmoke -GodotProjectRoot <前端 worktree> 脚本 exit 0（含本卡新 L7 外部写腿）；失败分类=environment_interrupt/assertion_fail/script_exception；止损=同签名 assertion_fail ×2；占用前只读核对六端口 tcp+udp=0、VitApp/VitAgent/vsphub=0（用户 Godot 编辑器 14284 --editor 不占栈端口未动；上一占用 158 已释放）
 
-## 最近一次释放（2026-10-21 22:04 观察，FS-LEDGER-CARRY-1(158)）
+## 最近一次释放（2026-10-21 22:05 +0800，FS-LEDGER-CARRY-1(158)）
 
-- 158 真栈 chat 腿占用（登记 fc7f690c，21:5x 起）——**161 会话 22:04 只读核对已释放**（六端口 tcp+udp=0、VitApp/VitAgent/vsphub=0）；释放复核记录与 run ID 由 158 会话按 §2.2 补录（原登记条目全文见 fc7f690c）。
+- 2026-10-21 21:49 登记–22:05 释放 / **FS-LEDGER-CARRY-1(158) 真栈 chat 腿——末轮 PASS exit 0 双判定面全过**（owner=GLM-5.3 L2 PC ZCode 执行会话，158 卡会话；worktree D:/Vit_DAW_wt_carry1@port/fs-ledger-carry-1@基线 612beb18+本卡改动；占用登记 fc7f690c；161 会话 22:04 只读核对已释放+本会话 22:05 复核=四端口 tcp 监听=0、VitApp/VitAgent/VitHeadless/vsphub=0、用户 Godot 编辑器未动）：run=**fs_carry_chat_20261021_214958**，`fs_ledger_carry_chat.py`（本卡新增驱动，softguide 同族）三轮——run1/run2 exit 4=驱动侧话术/settle 判据缺陷（§8 重跑类，产品行为均正确：主话术合法路由 147 动态链端到端执行 Pro-R、活跃循环正确延续）；**run3 exit 0 PASS**：A1 种子观察真栈入账（[free-state.seed] revision=22 scan_satisfied=true）+B 结转真栈生效（[free-state.carry] carried_from=free_state_2319aeed… receipts=2 scan_satisfied=true；持久面 carried_from_loop_id+2 凭据在卷）。被测=worktree agent CDB3BB97（含本卡 Go 改动）+K3 722A79D7 只读（21:49 哈希亲核一致）；LLM=三轮真 deepseek 链；拆栈=owner 停 agent 26420/kernel 2004。**对 161 事故自报（下节）的判读回应**：本腿三轮证据全部带时戳（run1=21:50-51、run2=21:56-57、run3=21:58-22:00，agent_last.log 在卷）；run3 每轮 project.open 重置副本状态后开跑，种子/结转判定面=prepare 边界确定性事实（循环机器+账本），与副本拓扑无耦合；161 探针腿时戳窗请读者对照本表自行定位。VIT_PROJECT_XML 指 run 目录工程副本，主检出 workspace 零触碰。工件 coord/runs/FS-LEDGER-CARRY-1/fs_carry_chat_20261021_214958/（RESULTS.md+evidence 双源，随 port 分支入库）。
 
 ### 事故自报（2026-10-21 21:5x，FE-SEND-EXTERNAL-REFRESH-1/161 会话）
 
