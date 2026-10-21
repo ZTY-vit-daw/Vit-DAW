@@ -100,7 +100,10 @@ func TestPluginRecommendationSelectionCardWithoutDisclosureStaysBackCompatible(t
 	}
 }
 
-func TestFullAccessSelectionReplyCarriesAdmissionBoundary(t *testing.T) {
+// FULLACCESS-REPLY-COPY-2 ①: the autonomous selection reports its choice in
+// the chat reply, but the honest admission boundary lives only on the
+// structured faces — the workflow_data disclosure must survive verbatim.
+func TestFullAccessSelectionReplyOmitsAdmissionBoundaryKeepsStructuredDisclosure(t *testing.T) {
 	server := New(nil, shadow.New(nil), nil)
 	plan, err := decodeAndValidatePluginRecommendationPlan(pluginRecommendationTestJSON(), "eq", "减少一些浑浊", pluginRecommendationTestCandidates())
 	if err != nil {
@@ -114,8 +117,56 @@ func TestFullAccessSelectionReplyCarriesAdmissionBoundary(t *testing.T) {
 	if !strings.Contains(resp.Reply, "主推荐") {
 		t.Fatalf("autonomous selection did not report the chosen candidate: %s", resp.Reply)
 	}
-	if !strings.Contains(resp.Reply, "准入边界：本机插件库检索到 40 款混响") || !strings.Contains(resp.Reply, "其余 39 款") {
-		t.Fatalf("autonomous selection reply omitted the admission boundary: %s", resp.Reply)
+	if strings.Contains(resp.Reply, "准入边界") {
+		t.Fatalf("chat reply body must not carry the admission boundary: %s", resp.Reply)
+	}
+	postContext := firstMapFromAny(resp.WorkflowData["semantic_post_load_request_context"])
+	disclosed := firstMapFromAny(postContext[pluginRecommendationAdmissionBoundaryKey])
+	if pluginRecommendationBoundaryCount(disclosed["catalog_face_count"]) != 40 ||
+		pluginRecommendationBoundaryCount(disclosed["admitted_count"]) != 1 {
+		t.Fatalf("autonomous selection lost the structured boundary disclosure: %#v", postContext)
+	}
+}
+
+// FULLACCESS-REPLY-COPY-2 ②: the typed-controller executed completion face is
+// Chinese, and its WorkflowData contract is unchanged.
+func TestSemanticDynamicExecutedCompletionReplyIsChinese(t *testing.T) {
+	receipt := map[string]any{"schema_version": semanticDynamicReceipt, "status": "executed", "ticket_id": "dyn-scc",
+		"family": processorintent.FamilyReverb, "processor_type": "reverb", "track_id": "1007", "plugin_id": "plugin-1",
+		"topology_generation": "generation-scc", "controller_result": map[string]any{"status": "exact", "atomic": true},
+		"rollback":                 map[string]any{"status": "not_needed", "verified": true},
+		"post_action_verification": map[string]any{"status": "pending_model_observation", "requires_fresh_observation": true, "view_selection": "model_owned", "server_injected_view": false}}
+	resp := semanticDynamicExecutedResponse(PendingInteraction{ConversationID: "conversation-scc", GoalID: "goal-scc", RunID: "run-scc"}, receipt)
+	if resp.Reply != semanticDynamicExecutedReply {
+		t.Fatalf("executed completion reply drifted:\n got: %s\nwant: %s", resp.Reply, semanticDynamicExecutedReply)
+	}
+	if resp.Reply != "类型化语义处理器调整已执行完成，带回读与事务证据。原目标标记完成前需要一次新的动作后观察。" {
+		t.Fatalf("executed completion reply is not the pinned Chinese copy: %s", resp.Reply)
+	}
+	if strings.Contains(resp.Reply, "typed semantic processor") || strings.Contains(resp.Reply, "fresh post-action observation") {
+		t.Fatalf("executed completion reply fell back to English: %s", resp.Reply)
+	}
+	if resp.Workflow != semanticDynamicWorkflow || resp.GoalStatus != string(agentruntime.StatusCompleted) ||
+		resp.StopReason != "semantic_dynamic_execution_completed" {
+		t.Fatalf("executed completion semantics changed: %#v", resp)
+	}
+	wantScalars := map[string]any{"schema_version": semanticDynamicSchema, "status": "executed", "planning_only": false, "mutation_authorized": true, "mutation_performed": true}
+	for key, want := range wantScalars {
+		if resp.WorkflowData[key] != want {
+			t.Fatalf("executed workflow_data %s changed: got %#v want %#v", key, resp.WorkflowData[key], want)
+		}
+	}
+	if len(resp.WorkflowData) != 7 {
+		t.Fatalf("executed workflow_data field set drifted: %#v", resp.WorkflowData)
+	}
+	executed := firstMapFromAny(resp.WorkflowData["execution_receipt"])
+	if executed["status"] != "executed" || executed["ticket_id"] != "dyn-scc" || executed["schema_version"] != semanticDynamicReceipt {
+		t.Fatalf("executed workflow_data lost the execution receipt: %#v", executed)
+	}
+	post := firstMapFromAny(resp.WorkflowData["post_action_verification"])
+	if firstStringFromMap(post, "status") != "pending_model_observation" || firstStringFromMap(post, "view_selection") != "model_owned" ||
+		!boolValue(post["requires_fresh_observation"]) || boolValue(post["server_injected_view"]) {
+		t.Fatalf("executed workflow_data post-action contract drifted: %#v", post)
 	}
 }
 
