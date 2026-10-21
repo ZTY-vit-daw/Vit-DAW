@@ -3,6 +3,8 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
+- 2026-10-21 20:29 +0800 登记 / **FS-NAMED-TARGET-1(157) 真栈 chat 腿**（owner=GLM-5.3 L2 PC ZCode 执行会话，157 卡会话；worktree D:/Vit_DAW_wt_named1@port/fs-named-target-1@f6e69def（含本卡 Go 改动）；占用登记=本 commit）：146 先例形态手动起栈（内核 K3 只读 + worktree 构建 agent）+ scripts/softguide_exp.py 驱动（146 分支原件，A1/A3 逐字复刻话术各一轮）。内核=只读复用 K3 D:/Vit_DAW/VitApp/build/VitApp_artefacts/Release/VitApp.exe SHA256=722A79D7A3F53797F5713209D812D8CE9F2888CB2A7E743286FA56B99629DFEC（登记时哈希亲核一致，本卡零内核改动）。登记前只读核对（20:29）：五端口（7878/5555/5556/8787/4445）tcp+udp 监听=0；VitApp/VitAgent/vsphub/Godot 运行态=0。§8 预声明：LLM=A1/A3 各 1 轮真 deepseek 链（话术=146 逐字）；成功条件=驱动捕获轮齐（exit 0）+判定面（F-gate 弹回签名零出现+user_named_target 捕获+user_intent candidate 入 frontier 披露）；失败分类=environment_interrupt/assertion_fail（判定面缺）/llm_settle_fail（模型行为面）；止损=同签名产品断言失败 ×2；miss 允许环境中断类重跑 1 次。VIT_PROJECT_XML 指 run 目录工程副本，主检出/staging workspace 零触碰。
+
 - 2026-10-21 18:38 +0800 登记 / **TIMEFX-BUS-WRITEGATE-1(155) 真栈烟测腿**（owner=GLM-5.3 L2 PC ZCode 执行会话，本卡会话；worktree D:/Vit_DAW_wt_writegate155@port/timefx-bus-writegate-1@e8cce9a6（含本卡 Go 改动）；占用登记=本 commit）：`dev_agent_smoke -StartKernel -RestartAgent -Scenario timefx_bus_topoplan`（154 场景扩腿版：E2 建轨/E2 连接/E2+E4 读回/E5 幻觉拒载四断言面+E3 inline 对照+E4 已有总线复用面；1 run+miss 允许 1 重跑，场景自带 §8 口径）。内核=只读复用 K3 `D:/Vit_DAW/VitApp/build/VitApp_artefacts/Release/VitApp.exe` SHA256=722A79D7A3F53797F5713209D812D8CE9F2888CB2A7E743286FA56B99629DFEC（18:38 哈希亲核一致，含 K1 send 命令族，本卡零内核改动；staging B6565DCF 早于 send 命令族禁用——154 run 233839 判明）。登记前只读核对（18:3x）：五端口（7878/5555/5556/8787/4445）tcp+udp 监听=0；VitApp/VitAgent/vsphub/Godot 运行态=0。登记附注：本文件在 93df0fcd 曾被陈旧版本覆盖（151 占用态回写、154/151 两条释放记录丢失）——本登记从 318805ec 历史版本恢复该两条释放记录于下方，进程/端口实测与历史释放结论一致。
 
 ## 最近一次释放（2026-10-21 19:1x +0800，STALLSMOKE-NO-DELIVERY-CLASS-1）
