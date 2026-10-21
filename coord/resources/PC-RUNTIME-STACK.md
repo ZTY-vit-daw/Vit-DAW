@@ -3,7 +3,7 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
-- （空闲，2026-10-21 20:3x FS-NAMED-TARGET-1 释放复核在卷：五端口 tcp+udp=0、四类进程=0）
+- 2026-10-21 21:5x 起（预计 ≤90 分钟）/ **FS-LEDGER-CARRY-1(158) 真栈 chat 腿**（owner=GLM-5.3 L2 PC ZCode 执行会话，158 卡会话；worktree D:/Vit_DAW_wt_carry1@port/fs-ledger-carry-1@基线 612beb18+本卡未提交改动；被测 agent=worktree 构建 bin/VitAgent.exe SHA256 前 16=CDB3BB97D23CD973，含本卡 Go 改动；内核=K3 只读复用主检出 Release VitApp.exe 722A79D7A3F5…（21:49 哈希亲核一致，本卡零内核改动）；同会话双轮=M2 场次②轮1 话术+场次①轮1 主话术，LLM=真 deepseek 链；§8 预声明：1 run/次、确定性判定面=seed/carry 日志线、round1 未终态=llm_shape 类允许一次重跑、同确定性断点×2=止损；VIT_PROJECT_XML 指 run 目录工程副本+draft root 隔离，主检出 workspace 零触碰）
 
 ## 最近一次释放（2026-10-21 20:3x +0800，FS-NAMED-TARGET-1）
 
