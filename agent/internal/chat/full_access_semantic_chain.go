@@ -143,9 +143,12 @@ func (s *Server) pluginRecommendationFullAccessSelectionResponse(conversationID,
 	resp := s.continuePluginRecommendationInteraction(context.Background(), interaction, "select_"+primary.CandidateKey)
 	resp.NeedsConfirmation = false
 	resp.InteractionRequests = nil
+	// FULLACCESS-REPLY-COPY-2: the honest admission boundary stays on the
+	// structured faces (workflow_data disclosure, selection card); the chat
+	// reply body must not carry it again (user ruling 2026-10-21).
 	resp.Reply = fmt.Sprintf("完全访问权限下我自主选择了主推荐：%s——%s。",
 		firstNonEmpty(candidate.Name, primary.CandidateKey), strings.TrimSpace(firstNonEmpty(primary.Reason, plan.Summary))) +
-		pluginRecommendationAdmissionBoundaryReplySuffix(requestContext) + "\n" + resp.Reply
+		"\n" + resp.Reply
 	resp.WorkflowData = mergeContext(resp.WorkflowData, map[string]any{
 		"authority_mode": authorityModeFull, "full_access_auto_authorized": true,
 		"recommendation_schema_version": pluginRecommendationSchema,

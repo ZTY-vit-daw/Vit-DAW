@@ -934,8 +934,18 @@ func (s *Server) executeSemanticDynamicTicket(ctx context.Context, interaction P
 			receipt["settlement_verified"] = false
 		}
 	}
-	response := ChatResponse{ConversationID: interaction.ConversationID, GoalID: interaction.GoalID, RunID: interaction.RunID, Reply: "The typed semantic processor adjustment completed with readback and transaction evidence. A fresh post-action observation is required before the original goal can be marked satisfied.", Workflow: semanticDynamicWorkflow, WorkflowData: map[string]any{"schema_version": semanticDynamicSchema, "status": "executed", "planning_only": false, "mutation_authorized": true, "mutation_performed": true, "execution_receipt": receipt, "post_action_verification": receipt["post_action_verification"]}, GoalStatus: string(agentruntime.StatusCompleted), StopReason: "semantic_dynamic_execution_completed"}
-	return response
+	return semanticDynamicExecutedResponse(interaction, receipt)
+}
+
+// semanticDynamicExecutedReply is the typed-controller completion face. The
+// goal deliberately stays open: only a fresh post-action observation
+// (model-owned view selection) may satisfy the original goal.
+const semanticDynamicExecutedReply = "类型化语义处理器调整已执行完成，带回读与事务证据。原目标标记完成前需要一次新的动作后观察。"
+
+// semanticDynamicExecutedResponse pins the executed-face WorkflowData contract;
+// the reply copy and the field set must not drift silently.
+func semanticDynamicExecutedResponse(interaction PendingInteraction, receipt map[string]any) ChatResponse {
+	return ChatResponse{ConversationID: interaction.ConversationID, GoalID: interaction.GoalID, RunID: interaction.RunID, Reply: semanticDynamicExecutedReply, Workflow: semanticDynamicWorkflow, WorkflowData: map[string]any{"schema_version": semanticDynamicSchema, "status": "executed", "planning_only": false, "mutation_authorized": true, "mutation_performed": true, "execution_receipt": receipt, "post_action_verification": receipt["post_action_verification"]}, GoalStatus: string(agentruntime.StatusCompleted), StopReason: "semantic_dynamic_execution_completed"}
 }
 
 func (s *Server) applySemanticDynamicController(ctx context.Context, spec semanticDynamicSpec, cmd, requestContext map[string]any) (map[string]any, error) {
