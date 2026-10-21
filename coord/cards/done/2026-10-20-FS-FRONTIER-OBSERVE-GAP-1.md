@@ -32,4 +32,4 @@
   - **新 finding**：观察供应非平稳——A1/A2 同请求消费正午相差 73 秒的两份持久观察（obs_T123522 vs obs_T123635/123642），band 行内容不同；frontier 内容是 ledger 供应的非平稳函数（工件回指：logs_sge1/agent_prompt_render.jsonl+arm/{A1,A2,A3}/events.json，弹回 4+4+1 条 stage=free_state_final_gate 在卷）。
   - **设计稿**：`coord/runs/FS-FRONTIER-OBSERVE-GAP-1/DESIGN.md`——三案对比（A1 种子观察/A2 结算门槛否决/B ledger 结转/C 指名轨并入）+组合建议（B+A1 同卡无争议先行；C 优先但挂 C4 红线扩展解释+C5 G5 措辞两个裁定为前置）+拆卡 156-IMPL-CARRY / 156-IMPL-NAMED / 156-REG-RESCHEDULE+§11 五项回归要求+T10 边界（两 ledger schema 不统一，停点写死 DESIGN §4）。
   - 停止条件未触发；锚点清单=RESULTS.md §①/§② 两张事实-锚点表。
-- 验收：（裁定文件 / 验收 commit）
+- 验收：2026-10-21 晚 / GLM 主管决策流 / **整卡 pass**：两缺口归因各有代码锚点+工件回指——缺口① F1-F9（frontier=三扫描视图 top-k band 行派生+守卫/G6/G8 三重封锁，工件回指 prompt_render 并集无 1032 实证）+缺口② L1-L5（active-only merge switch+空 ledger 畅通）；抽查锚点 freeStateCandidateScanViewIDs(audio_closure_controller.go:1270) 与 free_state_reasoning_loop.go:265-270 switch 属实；新发现「观察供应非平稳」（同请求相差 73 秒两份持久观察）在卷；三案对比+A2 否决理由（诚实边界契约）+T10 停止条件细则+§11 五项齐备；**C4/C5 主管裁定=认可**（C4 用户指名+机械名字解析=意图搬运非发明，fail-open 边界按设计稿；C5 G5 措辞扩展同步），实现卡 156-IMPL-NAMED/156-IMPL-CARRY/156-REG-RESCHEDULE 按设计稿 §3 开卡（NAMED 先行，CARRY 同文件串行随后）；验收 commit=本提交
