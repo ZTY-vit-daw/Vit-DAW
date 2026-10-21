@@ -25,6 +25,6 @@
 
 发现准入边界句还有第三处用户面消费点 → 锚点上交。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-21 晚窗 / origin/main=612beb18 / owner=GLM-5.3-flash（ZCode PC 执行会话，160 卡会话）/ 分支 port/fullaccess-reply-copy-2 / worktree D:/Vit_DAW_wt_farc2 / 领取提交=本条随协调分支 coord/farc2-claim 推 main（hash 见 git log 卡面路径）
 - 回执：（commit / 测试名 / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
