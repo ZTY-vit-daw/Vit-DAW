@@ -2137,15 +2137,45 @@ func freeStateCapabilityBlockedGatePhrase(failed []string) string {
 	return strings.Join(names, "/") + " " + count + "项准入检查未过"
 }
 
+// freeStateCapabilityBlockedReply picks the boundary face from the admission
+// receipt's boundary layer (146-L3). proposal_missing/proposal_invalid mean
+// the model declared the boundary before any governed proposal existed — the
+// gate audit of that proposal-less shape still records failed_gate_ids, so
+// the pre-layering order rendered a refusal of a proposal that was never made
+// and buried the model's actionable summary; those boundaries take the
+// decision.Summary face directly. admission_gate_failed keeps the gate
+// checklist face (the refusal of a real proposal is exactly what it states).
+// capability_boundary and any other boundary value keep the pre-layering
+// behavior: gate ids first, then the summary, then the neutral statement.
 func freeStateCapabilityBlockedReply(receipt map[string]any, decision *agentloop.FreeStateDecision) string {
 	const boundaryTail = "任务在能力边界停止：没有执行任何实验或修改，也不会自动重试。"
+	gateCopy := ""
 	if failed := freeStateCapabilityBlockedStringList(receipt["failed_gate_ids"]); len(failed) > 0 {
-		return "本次有界改进提案未通过自由态准入门（" + freeStateCapabilityBlockedGatePhrase(failed) + "），" + boundaryTail
+		gateCopy = "本次有界改进提案未通过自由态准入门（" + freeStateCapabilityBlockedGatePhrase(failed) + "），" + boundaryTail
 	}
-	if boundary := strings.TrimSpace(decision.Summary); boundary != "" {
-		return "自由态推理申报了能力边界（" + boundary + "）。" + boundaryTail
+	summaryCopy := ""
+	if summary := strings.TrimSpace(decision.Summary); summary != "" {
+		summaryCopy = "自由态推理申报了能力边界（" + summary + "）。" + boundaryTail
 	}
-	return "自由态推理在能力边界停止。" + boundaryTail
+	neutralCopy := "自由态推理在能力边界停止。" + boundaryTail
+	switch firstNonEmpty(firstStringFromMap(receipt, "boundary"), "capability_boundary") {
+	case "proposal_missing", "proposal_invalid":
+		if summaryCopy != "" {
+			return summaryCopy
+		}
+		return neutralCopy
+	case "admission_gate_failed":
+		if gateCopy != "" {
+			return gateCopy
+		}
+	}
+	if gateCopy != "" {
+		return gateCopy
+	}
+	if summaryCopy != "" {
+		return summaryCopy
+	}
+	return neutralCopy
 }
 
 // settledTurnFaceResponse presents a settled turn for the plain and the
