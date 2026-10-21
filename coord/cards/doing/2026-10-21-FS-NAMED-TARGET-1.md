@@ -27,6 +27,6 @@ prepare 时对 userText 做分类器之外的确定性名字解析（不进 sema
 
 两份 ledger schema 需统一才能工作（T10 邻接面，DESIGN §4-1 同款）→ 停；G5 措辞修订牵动门数量/顺序 → 锚点上交。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-21 晚窗 / origin/main=51826fce / owner=GLM-5.3 L2 PC ZCode 执行会话（157 卡会话）/ 分支 port/fs-named-target-1 / worktree D:/Vit_DAW_wt_named1 / 领取提交=本条随协调分支 coord/named-target-1-claim 推 main（hash 见 git log 卡面路径）
 - 回执：（commit / 单测名单 / 真栈 run ID / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
