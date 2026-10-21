@@ -9,6 +9,9 @@ classifies the chain terminal:
   parked_owe            evaluation unfinished; goal waiting_continue and the
                         conversation flow carries the explicit owed receipt -> exit 0
   parked_owe_silent     evaluation unfinished with zero text delivery        -> exit 1
+  parked_owe_no_delivery  goal parked waiting_continue but the delivery face
+                        died silently: zero chain_result events for the whole
+                        conversation (STALLSMOKE-NO-DELIVERY-CLASS-1)       -> exit 1
   defect_fake_complete  goal completed while task stays needs_experiment     -> exit 1
   chain_failed          honest failure terminal (not the stall shape)        -> exit 1
   timeout / env_failure                                                      -> exit 2
@@ -30,7 +33,8 @@ param(
     [int]$WaitSeconds = 30,
     [int]$KernelDwellSeconds = 60,
     [int]$ChainBudgetSeconds = 420,
-    [int]$PollSeconds = 10
+    [int]$PollSeconds = 10,
+    [int]$NoDeliveryCycles = 3
 )
 
 $ErrorActionPreference = "Stop"
@@ -203,6 +207,7 @@ try {
 
     $deadline = (Get-Date).AddSeconds($ChainBudgetSeconds)
     $verdict = ""
+    $noDeliveryStable = 0
     while ((Get-Date) -lt $deadline) {
         Start-Sleep -Seconds $PollSeconds
         $lastRuntime = Invoke-Json -Method GET -Url ($base + "/agent/runtime/status") -Body $null -TimeoutSec 30
@@ -222,6 +227,18 @@ try {
         if ($goalStatus -eq "waiting_continue" -and $live.Count -eq 0 -and $chainResults.Count -gt 0) {
             if ($body -like ("*" + $NeedleContinue + "*") -or $body -like ("*" + $NeedleUnfinished + "*")) { $verdict = "parked_owe" } else { $verdict = "parked_owe_silent" }
             break
+        }
+        # STALLSMOKE-NO-DELIVERY-CLASS-1: a parked goal with zero live
+        # continuations and zero chain_result events for the whole conversation
+        # is the silent delivery death (the owed receipt never fired), not an
+        # environment stall; classify it as a defect once the shape holds
+        # stable for $NoDeliveryCycles polls instead of letting it fall through
+        # to the timeout bucket.
+        if ($goalStatus -eq "waiting_continue" -and $live.Count -eq 0 -and $chainResults.Count -eq 0) {
+            $noDeliveryStable++
+            if ($noDeliveryStable -ge $NoDeliveryCycles) { $verdict = "parked_owe_no_delivery"; break }
+        } else {
+            $noDeliveryStable = 0
         }
     }
     if ([string]::IsNullOrWhiteSpace($verdict)) { $verdict = "timeout" }
@@ -306,6 +323,7 @@ switch ($outcome) {
     "finished" { exit 0 }
     "parked_owe" { exit 0 }
     "parked_owe_silent" { exit 1 }
+    "parked_owe_no_delivery" { exit 1 }
     "defect_fake_complete" { exit 1 }
     "chain_failed" { exit 1 }
     "chain_stopped" { exit 1 }
