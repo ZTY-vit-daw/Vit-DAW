@@ -1,0 +1,8 @@
+﻿legr run_root=D:/Vit_DAW_wt_stnd1/artifacts/d1_stall_legR/run_20261021_185458
+smoke_pid=20912
+preheat=invoked status=needs_confirmation
+smoke_exit=
+legr run_root=D:/Vit_DAW_wt_stnd1/artifacts/d1_stall_legR/run_20261021_185849
+smoke_pid=11316
+preheat=invoked status=ok
+smoke_exit=

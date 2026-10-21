@@ -1,0 +1,5 @@
+﻿PASS no_delivery verdict=parked_owe_no_delivery exit=1
+PASS parked_owe verdict=parked_owe exit=0
+PASS parked_owe_silent verdict=parked_owe_silent exit=1
+PASS finished verdict=finished exit=0
+PASS defect_fake_complete verdict=defect_fake_complete exit=1

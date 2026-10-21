@@ -1,0 +1,49 @@
+run_root=D:/Vit_DAW_wt_stnd1/artifacts/d1_stall_legR/run_20261021_185849
+head=e1210dc25bbeb210eaa273071ea6171afb0416b3
+git_status=
+
+== Prereq: ports 7878/5555/5556 must be free
+port_free=7878
+port_free=5555
+port_free=5556
+
+== Build VitAgent (isolated binary in run dir)
+agent_binary=D:\Vit_DAW_wt_stnd1\artifacts\d1_stall_legR\run_20261021_185849\bin\VitAgent.d1stall.exe size=37583872 mtime=2026-10-21T18:58:51.9231688+08:00
+
+== Start kernel
+kernel_binary=D:/Vit_DAW/VitApp/build/VitApp_artefacts/Release/VitApp.exe size=31768064 mtime=2026-10-19T18:15:05.8928555+08:00
+repo_default_project_sha256_before=947E4D00886F146F7DB082215BC8A69E1727A41D5EA339FA064DEE814E0D521C
+kernel_pid=32380
+ok: kernel up, pid=32380
+
+== Start agent (isolated draft root)
+agent_pid=17780
+ok: agent up, pid=17780
+s1_shadow_initialized=True track_count=6
+
+== Kernel warm-up dwell 60s
+
+== Full project access (auto-apply, no confirmation card)
+authority_mode=full_project_access
+
+== Drive the D1 chain prompt on d1stall_20261021_185953
+chat_goal_id=goal_66c039511c376277 goal_status=waiting_continue stop_reason=limit_reached
+ok: first slice: goal_status=waiting_continue stop=limit_reached
+poll goal=running task=observation_in_progress chain_results=0 live_continuations=1
+poll goal=running task=observation_in_progress chain_results=0 live_continuations=1
+poll goal=completed task=needs_experiment chain_results=0 live_continuations=0
+
+== Verdict: defect_fake_complete
+verdict=defect_fake_complete
+park1_settle_summary=False
+
+== Teardown
+stopped_agent_pid=17780
+stopped_kernel_pid=32380
+port_released=7878
+port_released=5555
+port_released=5556
+repo_default_project_sha256_after=947E4D00886F146F7DB082215BC8A69E1727A41D5EA339FA064DEE814E0D521C
+finished=2026-10-21T19:00:32.3944683+08:00
+
+D1_STALL_VERDICT defect_fake_complete

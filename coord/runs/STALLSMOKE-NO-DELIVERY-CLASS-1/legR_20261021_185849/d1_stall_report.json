@@ -1,0 +1,35 @@
+﻿{
+    "schema_version":  "d1_stall_repro.v1",
+    "run_root":  "D:/Vit_DAW_wt_stnd1/artifacts/d1_stall_legR/run_20261021_185849",
+    "conversation_id":  "d1stall_20261021_185953",
+    "verdict":  "defect_fake_complete",
+    "goal_status":  "completed",
+    "task_state":  "needs_experiment",
+    "chat_goal_status":  "waiting_continue",
+    "chat_stop_reason":  "limit_reached",
+    "park1_settle_summary":  false,
+    "trajectory":  {
+                       "turn_terminal_events":  1,
+                       "turn_ids":  [
+
+                                    ],
+                       "audition_ready":  0,
+                       "chain_result_count":  0
+                   },
+    "prereq":  [
+                   "run_root=D:/Vit_DAW_wt_stnd1/artifacts/d1_stall_legR/run_20261021_185849",
+                   "head=e1210dc25bbeb210eaa273071ea6171afb0416b3",
+                   "git_status=",
+                   "port_free=7878",
+                   "port_free=5555",
+                   "port_free=5556",
+                   "agent_binary=D:\\Vit_DAW_wt_stnd1\\artifacts\\d1_stall_legR\\run_20261021_185849\\bin\\VitAgent.d1stall.exe size=37583872 mtime=2026-10-21T18:58:51.9231688+08:00",
+                   "kernel_binary=D:/Vit_DAW/VitApp/build/VitApp_artefacts/Release/VitApp.exe size=31768064 mtime=2026-10-19T18:15:05.8928555+08:00",
+                   "repo_default_project_sha256_before=947E4D00886F146F7DB082215BC8A69E1727A41D5EA339FA064DEE814E0D521C",
+                   "kernel_pid=32380",
+                   "agent_pid=17780",
+                   "s1_shadow_initialized=True track_count=6",
+                   "authority_mode=full_project_access",
+                   "chat_goal_id=goal_66c039511c376277 goal_status=waiting_continue stop_reason=limit_reached"
+               ]
+}

@@ -1,0 +1,23 @@
+﻿run_root=C:\Users\timoz\AppData\Local\Temp\d1_stall_selftest_20261021_185223\case_finished\smoke
+head=07e0e3c9bc39c0ac381997482835720467cd2d02
+git_status= M scripts/d1_stall_repro_selftest.ps1
+port_free=7878
+port_free=5555
+port_free=5556
+agent_binary=C:\Users\timoz\AppData\Local\Temp\d1_stall_selftest_20261021_185223\case_finished\smoke\bin\VitAgent.d1stall.exe size=8673792 mtime=2026-10-21T18:52:47.0242617+08:00
+kernel_binary=C:\Users\timoz\AppData\Local\Temp\d1_stall_selftest_20261021_185223\stubs\kernel_stub.exe size=3448832 mtime=2026-10-21T18:52:24.1277841+08:00
+repo_default_project_sha256_before=947E4D00886F146F7DB082215BC8A69E1727A41D5EA339FA064DEE814E0D521C
+kernel_pid=31840
+agent_pid=33268
+s1_shadow_initialized=True track_count=6
+authority_mode=full_project_access
+chat_goal_id=goal_stub goal_status=completed stop_reason=stub_auto_park
+verdict=finished
+park1_settle_summary=False
+stopped_agent_pid=33268
+stopped_kernel_pid=31840
+port_released=7878
+port_released=5555
+port_released=5556
+repo_default_project_sha256_after=947E4D00886F146F7DB082215BC8A69E1727A41D5EA339FA064DEE814E0D521C
+finished=2026-10-21T18:52:52.1516503+08:00

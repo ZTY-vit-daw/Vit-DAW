@@ -1,0 +1,43 @@
+﻿run_root=C:\Users\timoz\AppData\Local\Temp\d1_stall_selftest_20261021_185223\case_parked_owe\smoke
+head=07e0e3c9bc39c0ac381997482835720467cd2d02
+git_status= M scripts/d1_stall_repro_selftest.ps1
+
+== Prereq: ports 7878/5555/5556 must be free
+port_free=7878
+port_free=5555
+port_free=5556
+agent_binary=C:\Users\timoz\AppData\Local\Temp\d1_stall_selftest_20261021_185223\case_parked_owe\smoke\bin\VitAgent.d1stall.exe size=8673792 mtime=2026-10-21T18:52:33.4366606+08:00
+
+== Start kernel
+kernel_binary=C:\Users\timoz\AppData\Local\Temp\d1_stall_selftest_20261021_185223\stubs\kernel_stub.exe size=3448832 mtime=2026-10-21T18:52:24.1277841+08:00
+repo_default_project_sha256_before=947E4D00886F146F7DB082215BC8A69E1727A41D5EA339FA064DEE814E0D521C
+kernel_pid=30216
+ok: kernel up, pid=30216
+
+== Start agent (isolated draft root)
+agent_pid=30256
+ok: agent up, pid=30256
+s1_shadow_initialized=True track_count=6
+
+== Full project access (auto-apply, no confirmation card)
+authority_mode=full_project_access
+
+== Drive the D1 chain prompt on d1stall_20261021_185235
+chat_goal_id=goal_stub goal_status=waiting_continue stop_reason=stub_auto_park
+ok: first slice: goal_status=waiting_continue stop=stub_auto_park
+poll goal=waiting_continue task=needs_experiment chain_results=1 live_continuations=0
+
+== Verdict: parked_owe
+verdict=parked_owe
+park1_settle_summary=False
+
+== Teardown
+stopped_agent_pid=30256
+stopped_kernel_pid=30216
+port_released=7878
+port_released=5555
+port_released=5556
+repo_default_project_sha256_after=947E4D00886F146F7DB082215BC8A69E1727A41D5EA339FA064DEE814E0D521C
+finished=2026-10-21T18:52:39.1759826+08:00
+
+D1_STALL_VERDICT parked_owe
