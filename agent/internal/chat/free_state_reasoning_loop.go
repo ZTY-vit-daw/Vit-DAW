@@ -16,6 +16,7 @@ import (
 	"vit-daw-agent/internal/config"
 	"vit-daw-agent/internal/contextruntime"
 	"vit-daw-agent/internal/experiment"
+	"vit-daw-agent/internal/harness"
 	"vit-daw-agent/internal/mixboard"
 	"vit-daw-agent/internal/orchestrationcontroller"
 	agentruntime "vit-daw-agent/internal/runtime"
@@ -24,9 +25,17 @@ import (
 )
 
 const (
-	freeStateReasoningLoopSchema           = "free_state_reasoning_loop.v1"
-	freeStateObservationLedgerSchema       = "free_state_observation_ledger.v1"
-	freeStateObservationLedgerLimit        = 24
+	freeStateReasoningLoopSchema     = "free_state_reasoning_loop.v1"
+	freeStateObservationLedgerSchema = "free_state_observation_ledger.v1"
+	freeStateObservationLedgerLimit  = 24
+	// freeStateSeedObservationSchema marks the FS-LEDGER-CARRY-1 A1 seed
+	// observation riding the loop: the server-issued project mix scan booked
+	// before the first model turn.
+	freeStateSeedObservationSchema = "free_state_seed_observation.v1"
+	// freeStateSeedObservationViewID is the one qualified scan view the server
+	// issues as the cold-start seed (DESIGN §1-A1: multitrack single shot;
+	// the spectral face stays for the model's GATE PATH turn).
+	freeStateSeedObservationViewID         = "mix.multitrack_relationship"
 	freeStateDefaultMaxCycles              = 6
 	freeStateMaxActionCount                = 6
 	freeStateMaxFamilyActionCount          = 2
@@ -77,7 +86,25 @@ type freeStateReasoningLoop struct {
 	// pre-FS-NAMED-TARGET-1 behavior (fail-open, no guessing). The closure
 	// fold merges it into the frontier as the user_intent synthetic
 	// candidate.
-	UserNamedTarget             string                       `json:"user_named_target,omitempty"`
+	UserNamedTarget string `json:"user_named_target,omitempty"`
+	// CarriedFromLoopID is the FS-LEDGER-CARRY-1 lineage pointer: the terminal
+	// predecessor loop whose observation ledger was seeded into this loop at
+	// the prepare new-loop boundary. Only the observation ledger is carried
+	// (mergeFreeStateLedgers semantics — observation receipts are engineering
+	// facts and cross loops); closure state, frontier candidates and
+	// observation budgets are task-local and never carried. The predecessor
+	// record itself stays terminal — lineage lives on the new loop, never a
+	// revival. Empty on cold start; absent on every pre-FS-LEDGER-CARRY-1
+	// record (§11 default: no carry, behavior unchanged).
+	CarriedFromLoopID string `json:"carried_from_loop_id,omitempty"`
+	// SeedObservation is the FS-LEDGER-CARRY-1 cold-start seed audit marker:
+	// the server-issued project mix scan observation booked into the loop's
+	// ledger before the first model turn, so a new loop never starts with an
+	// empty G3 face. Structural facts only (ids, revision, status). nil when
+	// no seed was needed (a carried ledger already satisfies G3) or when the
+	// observation machinery was unavailable — fail-open, the loop then starts
+	// exactly as before.
+	SeedObservation             map[string]any               `json:"seed_observation,omitempty"`
 	Cycle                       int                          `json:"cycle"`
 	MaxCycles                   int                          `json:"max_cycles"`
 	CurrentRoundID              string                       `json:"current_round_id,omitempty"`
@@ -298,6 +325,43 @@ func (s *Server) prepareFreeStateReasoningContext(conversationID, userText strin
 			MaxCycles:      freeStateDefaultMaxCycles,
 			CreatedAt:      now,
 			UpdatedAt:      now,
+		}
+		// FS-LEDGER-CARRY-1 (B): a terminal persisted predecessor seeds the new
+		// loop's observation ledger through the existing merge semantics —
+		// observation receipts are engineering facts and cross loops, while
+		// closure assumptions, frontier candidates and observation budgets are
+		// task-local and never carried. No freshness pre-filter: G7's
+		// revision-bound audit governs staleness, the carry only governs
+		// visibility. The predecessor record itself stays terminal; lineage is
+		// recorded on the new loop, never a revival.
+		if persistedOK && !freeStateLoopActive(persistedLoop) && len(persistedLoop.ObservationLedger) > 0 {
+			loop.ObservationLedger = mergeFreeStateLedgers(nil, persistedLoop.ObservationLedger)
+			loop.CarriedFromLoopID = persistedLoop.LoopID
+			if s.logger != nil {
+				s.logger.Info("[free-state.carry] conversation=%s carried_from_loop=%s receipts=%d scan_satisfied=%t",
+					conversationID, persistedLoop.LoopID,
+					len(freeStateMapRows(loop.ObservationLedger["receipts"])), freeStateLedgerHasUsableScan(loop.ObservationLedger))
+			}
+		}
+		// FS-LEDGER-CARRY-1 (A1): guarantee the new loop starts with a usable
+		// project scan face (G3). A carried ledger that already delivered a
+		// qualified scan needs nothing; otherwise the server issues one
+		// project-level multitrack scan before the first model turn (the same
+		// product-runtime-observes posture as the capacity facts read).
+		// Fail-open: a seed failure leaves the ordinary empty-ledger start
+		// untouched and never blocks the loop.
+		if !freeStateLedgerHasUsableScan(loop.ObservationLedger) {
+			if observation := s.issueFreeStateSeedObservation(conversationID, userText); observation != nil {
+				loop.ObservationLedger = mergeFreeStateObservationLedger(loop.ObservationLedger, observation, loop.Cycle)
+				loop.SeedObservation = freeStateSeedObservationMarker(observation, now)
+				if s.logger != nil {
+					audit := firstMapFromAny(observation.Summary["audit_receipt"])
+					s.logger.Info("[free-state.seed] booked conversation=%s observation=%s receipt=%s revision=%s scan_satisfied=%t",
+						conversationID, firstStringFromMap(observation.Summary, "observation_id"),
+						firstStringFromMap(audit, "receipt_id"), freeStateObservationProjectRevision(observation.Summary),
+						freeStateLedgerHasUsableScan(loop.ObservationLedger))
+				}
+			}
 		}
 		s.storeFreeStateLoop(loop)
 	}
@@ -756,6 +820,123 @@ func (s *Server) resolveFreeStateUserNamedTarget(userText string) string {
 		return trackID
 	}
 	return ""
+}
+
+// freeStateQualifiedScanViewIDs mirrors the agentloop G3 qualified scan view
+// set (free_stateProjectScanViews in free_state_gate.go). Kept as a separate
+// chat-side variable so a future catalog change stays a deliberate two-sided
+// edit, not a silent drift.
+var freeStateQualifiedScanViewIDs = []string{"mix.multitrack_relationship", "mix.frequency_relationship"}
+
+// freeStateLedgerHasUsableScan is the chat-side mirror of the agentloop G3
+// predicate (freeStateLedgerHasUsableScan): at least one usable receipt whose
+// qualified scan view was actually delivered (not trimmed by the disclosure
+// budget). FS-LEDGER-CARRY-1 uses it at the prepare boundary to decide whether
+// a cold-start seed observation is still needed; the agentloop gate itself
+// stays the admission authority.
+func freeStateLedgerHasUsableScan(ledger map[string]any) bool {
+	for _, row := range freeStateMapRows(ledger["receipts"]) {
+		switch strings.ToLower(strings.TrimSpace(firstStringFromMap(row, "status", "bundle_status"))) {
+		case "ready", "partial":
+		default:
+			continue
+		}
+		for _, viewID := range freeStateStringSlice(row["requested_views"]) {
+			for _, scan := range freeStateQualifiedScanViewIDs {
+				if strings.EqualFold(strings.TrimSpace(viewID), scan) &&
+					!freeStateScanViewOmittedByDisclosureBudget(row, scan) {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
+// issueFreeStateSeedObservation materializes the FS-LEDGER-CARRY-1 A1
+// cold-start seed: one server-issued project-level multitrack scan through the
+// ordinary CCB observation pipeline (same invoke path the C2 runtime uses; the
+// product runtime observes project structure before the model turns — DESIGN
+// §1-A1 posture). It returns nil on any failure (harness unavailable, invoke
+// error, rejected or undelivered bundle): seeding is fail-open and never
+// blocks the loop start.
+func (s *Server) issueFreeStateSeedObservation(conversationID, userText string) *agentloop.RecentObservation {
+	if s == nil || s.harness == nil {
+		return nil
+	}
+	goalText := strings.TrimSpace(userText)
+	if goalText == "" {
+		goalText = "free-state loop seed project scan"
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
+	defer cancel()
+	response, err := s.harness.Invoke(ctx, harness.InvokeRequest{
+		Tool: "ccb.observation_request",
+		Args: map[string]any{
+			"request_id": "fs_seed_" + sanitizeCanaryID(conversationID),
+			"view_ids":   []any{freeStateSeedObservationViewID},
+			"goal_text":  goalText,
+		},
+		Context:    map[string]any{"observation_only": true, "free_state_seed_observation": true},
+		Source:     "free_state_seed_observation",
+		Confirmed:  true,
+		ToolCallID: "fs_seed:" + sanitizeCanaryID(conversationID),
+	})
+	if err != nil {
+		if s.logger != nil {
+			s.logger.Warn("[free-state.seed] observation invoke failed conversation=%s err=%v", conversationID, err)
+		}
+		return nil
+	}
+	observation := freeStateSeedObservationFromResult(response.Result)
+	if observation == nil && s.logger != nil {
+		s.logger.Warn("[free-state.seed] observation unusable conversation=%s invoke_status=%s bundle_status=%s",
+			conversationID, response.Status, firstStringFromMap(firstMapFromAny(response.Result["bundle"]), "status"))
+	}
+	return observation
+}
+
+// freeStateSeedObservationFromResult projects a CCB observation invoke result
+// into the RecentObservation shape mergeFreeStateObservationLedger consumes
+// (the same bundle keys the agentloop observation summary keeps, plus the
+// audit receipt for durable receipt identity). Only a delivered bundle —
+// status ready|partial with an observation id — becomes a seed.
+func freeStateSeedObservationFromResult(result map[string]any) *agentloop.RecentObservation {
+	bundle := firstMapFromAny(result["bundle"])
+	if len(bundle) == 0 {
+		return nil
+	}
+	status := strings.ToLower(strings.TrimSpace(firstStringFromMap(bundle, "status")))
+	if status != "ready" && status != "partial" {
+		return nil
+	}
+	if strings.TrimSpace(firstStringFromMap(bundle, "observation_id")) == "" {
+		return nil
+	}
+	summary := cloneContext(bundle)
+	summary["status"] = status
+	summary["seed_observation"] = true
+	return &agentloop.RecentObservation{
+		Tool: "ccb.observation_request", CommandName: "ccb_observation_request",
+		Status: status, Summary: summary,
+	}
+}
+
+// freeStateSeedObservationMarker records the seed's structural identity on
+// the loop (audit lineage only; the ledger rows it produced carry the
+// evidence itself).
+func freeStateSeedObservationMarker(observation *agentloop.RecentObservation, now time.Time) map[string]any {
+	audit := firstMapFromAny(observation.Summary["audit_receipt"])
+	return nonEmptyFreeStateMap(map[string]any{
+		"schema_version":    freeStateSeedObservationSchema,
+		"view_id":           freeStateSeedObservationViewID,
+		"observation_id":    firstStringFromMap(observation.Summary, "observation_id"),
+		"receipt_id":        firstStringFromMap(audit, "receipt_id"),
+		"project_revision":  freeStateObservationProjectRevision(observation.Summary),
+		"status":            observation.Status,
+		"seed_requested_by": "product_runtime",
+		"issued_at":         now.UTC().Format(time.RFC3339Nano),
+	})
 }
 
 func (s *Server) storeFreeStateLoop(loop freeStateReasoningLoop) {

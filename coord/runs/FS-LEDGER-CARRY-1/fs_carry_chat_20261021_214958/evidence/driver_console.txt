@@ -1,0 +1,1 @@
+[fs-carry] classification=gate_face_missing_carry seed=True(True) carry=False(0) round1_terminal=True transport_errors=0

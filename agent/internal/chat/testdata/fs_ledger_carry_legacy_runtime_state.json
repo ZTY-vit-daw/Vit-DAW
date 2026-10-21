@@ -1,0 +1,1202 @@
+{
+  "schema_version": "vit_project_agent_runtime.v2",
+  "project_path": "D:\\Vit_DAW\\artifacts\\b13b_frontier\\20260913_105426\\agent_drafts\\draft_20260913T025429_6ed9e418\\Unsaved.vit",
+  "project_uuid": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb",
+  "saved_at": "2026-09-13T02:55:57.4185162Z",
+  "free_state_reasoning_loops": {
+    "b13b_20260913_105450": {
+      "schema_version": "free_state_reasoning_loop.v1",
+      "loop_id": "free_state_f665cb3169aa25ec",
+      "conversation_id": "b13b_20260913_105450",
+      "goal_id": "goal_8a07d2935d09ae43",
+      "run_id": "run_0924bce4754c6102",
+      "authority_mode": "full_access",
+      "status": "awaiting_experiment",
+      "decision_phase": "processor_selection",
+      "original_intent": "帮低音轨做个均衡实验，然后让我试听",
+      "active_intent": "让低音轨在其与鼓组/其他轨持续重叠的中高频段更容易被听清，改善低音线条的可辨识度，而不是判定当前混音有缺陷",
+      "target_ref": {
+        "id": "1007",
+        "kind": "track"
+      },
+      "cycle": 0,
+      "max_cycles": 6,
+      "current_round_id": "r_9a3a453c4610",
+      "current_phase": "fs8_experiment_verification",
+      "priority_queue": {
+        "schema_version": "free_state_priority_queue.v1",
+        "entries": [
+          {
+            "dimension": "level_headroom",
+            "priority_reason": "default_order",
+            "status": "open"
+          },
+          {
+            "dimension": "frequency_occupancy",
+            "priority_reason": "default_order",
+            "status": "closed"
+          },
+          {
+            "dimension": "dynamics",
+            "priority_reason": "default_order",
+            "status": "open"
+          },
+          {
+            "dimension": "stereo_space",
+            "priority_reason": "default_order",
+            "status": "open"
+          },
+          {
+            "dimension": "transient_event",
+            "priority_reason": "default_order",
+            "status": "open"
+          }
+        ]
+      },
+      "continuation_budget": 6,
+      "continuation_used": 4,
+      "observation_ids": [
+        "obs_20260913T025512_2015eb3c6d1f",
+        "obs_20260913T025518_32bd1e295e2f",
+        "obs_20260913T025538_2d73b7d8a006"
+      ],
+      "observation_receipts": [
+        {
+          "actual_executed_view_ids": [
+            "project.structure",
+            "mix.frequency_relationship"
+          ],
+          "freshness": {
+            "class": "current_observation",
+            "observed_at": "2026-09-13T02:55:12.9417834Z",
+            "project_epoch": "epoch_99a72bfe354079b8",
+            "project_revision": "1",
+            "project_uuid": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb",
+            "status": "ready"
+          },
+          "model_requested_view_ids": [
+            "project.structure",
+            "mix.frequency_relationship"
+          ],
+          "project_binding": {
+            "project_epoch": "epoch_99a72bfe354079b8",
+            "project_revision": "1",
+            "project_state_hash": "1dca17aade57cd66",
+            "project_uuid": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb"
+          },
+          "project_revision": "1",
+          "receipt_id": "ccbr_obs_20260913T025512_2015eb3c6d1f",
+          "requested_by": "model",
+          "schema_version": "ccb_observation_receipt.v1",
+          "scope": "full_project",
+          "status": "executed",
+          "view_set_matches": true
+        },
+        {
+          "actual_executed_view_ids": [
+            "track.timbre_frequency"
+          ],
+          "freshness": {
+            "class": "current_observation",
+            "observed_at": "2026-09-13T02:55:18.4465412Z",
+            "project_epoch": "epoch_99a72bfe354079b8",
+            "project_revision": "1",
+            "project_uuid": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb",
+            "status": "ready"
+          },
+          "model_requested_view_ids": [
+            "track.timbre_frequency"
+          ],
+          "project_binding": {
+            "project_epoch": "epoch_99a72bfe354079b8",
+            "project_revision": "1",
+            "project_state_hash": "1dca17aade57cd66",
+            "project_uuid": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb"
+          },
+          "project_revision": "1",
+          "receipt_id": "ccbr_obs_20260913T025518_32bd1e295e2f",
+          "requested_by": "model",
+          "schema_version": "ccb_observation_receipt.v1",
+          "scope": "selected_track",
+          "status": "executed",
+          "view_set_matches": true
+        },
+        {
+          "actual_executed_view_ids": [
+            "mix.masking_relationship",
+            "track.band_dynamics"
+          ],
+          "freshness": {
+            "class": "current_observation",
+            "observed_at": "2026-09-13T02:55:38.7052869Z",
+            "project_epoch": "epoch_99a72bfe354079b8",
+            "project_revision": "1",
+            "project_uuid": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb",
+            "status": "ready"
+          },
+          "model_requested_view_ids": [
+            "mix.masking_relationship",
+            "track.band_dynamics"
+          ],
+          "project_binding": {
+            "project_epoch": "epoch_99a72bfe354079b8",
+            "project_revision": "1",
+            "project_state_hash": "1dca17aade57cd66",
+            "project_uuid": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb"
+          },
+          "project_revision": "1",
+          "receipt_id": "ccbr_obs_20260913T025538_2d73b7d8a006",
+          "requested_by": "model",
+          "schema_version": "ccb_observation_receipt.v1",
+          "scope": "full_project_with_focus_track",
+          "status": "executed",
+          "view_set_matches": true
+        }
+      ],
+      "observation_ledger": {
+        "available_views": {
+          "mix.frequency_relationship": {
+            "audit_ref": {
+              "bundle_id": "ccbobs_obs_20260913T025512_2015eb3c6d1f",
+              "receipt_id": "ccbr_obs_20260913T025512_2015eb3c6d1f",
+              "receipt_schema": "ccb_observation_receipt.v1"
+            },
+            "conclusion": {
+              "digest_kind": "decision_digest",
+              "facts": {
+                "conflict_candidates": [],
+                "coverage": {
+                  "conflict_candidate_count": 0,
+                  "eligible_track_ratio": 0.833,
+                  "frequency_region_count": 0
+                },
+                "interpretation_limits": [],
+                "relationship_inputs": {
+                  "status": "partial",
+                  "tap_points": [
+                    "source_file_pre_fx"
+                  ],
+                  "track_count": 6,
+                  "usable_track_count": 5
+                },
+                "status": "suspect",
+                "tap_point": "source_file_pre_fx"
+              },
+              "projection_status": "partial"
+            },
+            "evidence_refs": [
+              "obs_20260913T025512_2015eb3c6d1f",
+              "evidence://16bc9f056603256ab33b4a00e8bcf70b87c909013ecca2c3ed106afeb726767f"
+            ],
+            "freshness": {
+              "class": "current_observation",
+              "observed_at": "2026-09-13T02:55:12.9417834Z",
+              "project_epoch": "epoch_99a72bfe354079b8",
+              "project_revision": "1",
+              "project_uuid": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb",
+              "status": "ready"
+            },
+            "limitations": [
+              "Band overlaps suggest frequency-relationship improvement candidates. This is plausible evidence for bounded experiments, not deterministic masking proof."
+            ],
+            "observation_id": "obs_20260913T025512_2015eb3c6d1f",
+            "project_epoch": "epoch_99a72bfe354079b8",
+            "project_revision": "1",
+            "project_uuid": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb",
+            "round": 0,
+            "status": "partial",
+            "tool_call_id": "tool_step_1",
+            "view_id": "mix.frequency_relationship"
+          },
+          "project.structure": {
+            "audit_ref": {
+              "bundle_id": "ccbobs_obs_20260913T025512_2015eb3c6d1f",
+              "receipt_id": "ccbr_obs_20260913T025512_2015eb3c6d1f",
+              "receipt_schema": "ccb_observation_receipt.v1"
+            },
+            "conclusion": {
+              "digest_kind": "decision_digest",
+              "facts": {
+                "active_track_count": 6,
+                "status": "ready",
+                "track_count": 6,
+                "tracks": [
+                  {
+                    "name": "bass",
+                    "role_guess": "bass",
+                    "track_id": "1007"
+                  },
+                  {
+                    "name": "drums",
+                    "role_guess": "drums",
+                    "track_id": "1012"
+                  },
+                  {
+                    "name": "guitar",
+                    "role_guess": "guitar",
+                    "track_id": "1017"
+                  },
+                  {
+                    "name": "other",
+                    "role_guess": "unknown",
+                    "track_id": "1022"
+                  },
+                  {
+                    "omitted_items": 1
+                  }
+                ]
+              },
+              "projection_status": "ready"
+            },
+            "evidence_refs": [
+              "obs_20260913T025512_2015eb3c6d1f",
+              "evidence://16bc9f056603256ab33b4a00e8bcf70b87c909013ecca2c3ed106afeb726767f"
+            ],
+            "freshness": {
+              "class": "current_observation",
+              "observed_at": "2026-09-13T02:55:12.9417834Z",
+              "project_epoch": "epoch_99a72bfe354079b8",
+              "project_revision": "1",
+              "project_uuid": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb",
+              "status": "ready"
+            },
+            "limitations": [
+              "Does not disclose a full TOM tree."
+            ],
+            "observation_id": "obs_20260913T025512_2015eb3c6d1f",
+            "project_epoch": "epoch_99a72bfe354079b8",
+            "project_revision": "1",
+            "project_uuid": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb",
+            "round": 0,
+            "status": "ready",
+            "tool_call_id": "tool_step_1",
+            "view_id": "project.structure"
+          },
+          "track:1007::mix.masking_relationship": {
+            "audit_ref": {
+              "bundle_id": "ccbobs_obs_20260913T025538_2d73b7d8a006",
+              "receipt_id": "ccbr_obs_20260913T025538_2d73b7d8a006",
+              "receipt_schema": "ccb_observation_receipt.v1"
+            },
+            "conclusion": {
+              "digest_kind": "decision_digest",
+              "facts": {
+                "candidate_only": true,
+                "candidates": [
+                  {
+                    "active_frame_count": 216,
+                    "band_id": "presence",
+                    "masker_track_id": "1012",
+                    "masker_track_name": "drums",
+                    "max_hz": 6000,
+                    "max_margin_db": 45.921,
+                    "median_margin_db": 30.612,
+                    "min_hz": 2000,
+                    "p90_margin_db": 41.49,
+                    "risk_coverage_ratio": 1,
+                    "risk_frame_count": 216,
+                    "target_track_id": "1007",
+                    "target_track_name": "bass"
+                  },
+                  {
+                    "active_frame_count": 216,
+                    "band_id": "presence",
+                    "masker_track_id": "1022",
+                    "masker_track_name": "other",
+                    "max_hz": 6000,
+                    "max_margin_db": 44.307,
+                    "median_margin_db": 32.176,
+                    "min_hz": 2000,
+                    "p90_margin_db": 40.309,
+                    "risk_coverage_ratio": 1,
+                    "risk_frame_count": 216,
+                    "target_track_id": "1007",
+                    "target_track_name": "bass"
+                  },
+                  {
+                    "active_frame_count": 216,
+                    "band_id": "air",
+                    "masker_track_id": "1022",
+                    "masker_track_name": "other",
+                    "max_hz": 20000,
+                    "max_margin_db": 36.684,
+                    "median_margin_db": 23.015,
+                    "min_hz": 6000,
+                    "p90_margin_db": 31.674,
+                    "risk_coverage_ratio": 1,
+                    "risk_frame_count": 216,
+                    "target_track_id": "1007",
+                    "target_track_name": "bass"
+                  },
+                  {
+                    "active_frame_count": 214,
+                    "band_id": "mid",
+                    "masker_track_id": "1022",
+                    "masker_track_name": "other",
+                    "max_hz": 2000,
+                    "max_margin_db": 48.61,
+                    "median_margin_db": 31.827,
+                    "min_hz": 500,
+                    "p90_margin_db": 41.428,
+                    "risk_coverage_ratio": 0.995,
+                    "risk_frame_count": 213,
+                    "target_track_id": "1007",
+                    "target_track_name": "bass"
+                  },
+                  {
+                    "omitted_items": 1
+                  }
+                ],
+                "conditions": {
+                  "analyzer_revision": "dad_l2_render_probe.masking_frames.v1",
+                  "frame_count_per_track": 216,
+                  "range_end_seconds": 20,
+                  "range_start_seconds": 0,
+                  "sample_rate": 44100,
+                  "synchronized": true,
+                  "tail_seconds": 0,
+                  "tap_point": "track_post_fader"
+                },
+                "coverage": {
+                  "candidate_count": 138,
+                  "candidates_truncated": true,
+                  "eligible_track_count": 6,
+                  "projected_candidate_count": 96,
+                  "track_count": 6
+                },
+                "freshness": "fresh",
+                "measurement_id": "mask_f58582df6255ec2629901312",
+                "model_version": "vit_relative_energetic_masking_risk.v1",
+                "status": "ready"
+              },
+              "projection_status": "ready"
+            },
+            "evidence_refs": [
+              "obs_20260913T025538_2d73b7d8a006",
+              "evidence://f8a928402f7258e7e63f026d8a5db70bcd4801056c3f9ac0a3a0503345954723"
+            ],
+            "freshness": {
+              "class": "current_observation",
+              "observed_at": "2026-09-13T02:55:38.7052869Z",
+              "project_epoch": "epoch_99a72bfe354079b8",
+              "project_revision": "1",
+              "project_uuid": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb",
+              "status": "ready"
+            },
+            "limitations": [
+              "Candidates are relative energetic-risk evidence showing directional energy relationships. Large consistent margins often indicate level-imbalance improvement opportunities; band-specific patterns may indicate frequency considerations. This is plausible evidence for bounded improvement hypotheses, not proof of defects."
+            ],
+            "observation_id": "obs_20260913T025538_2d73b7d8a006",
+            "project_epoch": "epoch_99a72bfe354079b8",
+            "project_revision": "1",
+            "project_uuid": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb",
+            "round": 0,
+            "status": "ready",
+            "target_ref": {
+              "id": "1007",
+              "kind": "track",
+              "label": "bass",
+              "source": "ccb_observation_binding",
+              "track_id": "1007",
+              "track_name": "bass"
+            },
+            "tool_call_id": "tool_step_1",
+            "view_id": "mix.masking_relationship"
+          },
+          "track:1007::track.band_dynamics": {
+            "audit_ref": {
+              "bundle_id": "ccbobs_obs_20260913T025538_2d73b7d8a006",
+              "receipt_id": "ccbr_obs_20260913T025538_2d73b7d8a006",
+              "receipt_schema": "ccb_observation_receipt.v1"
+            },
+            "conclusion": {
+              "digest_kind": "decision_digest",
+              "facts": {
+                "band_profile": {
+                  "second_strongest": {
+                    "energy_db": 48.734380896595894,
+                    "id": "sub",
+                    "status": "ready",
+                    "unit_energy": 0.139115600525819
+                  },
+                  "spread_db": 24.51336401738028,
+                  "strongest": {
+                    "energy_db": 56.462860226021746,
+                    "id": "bass",
+                    "status": "ready",
+                    "unit_energy": 0.824562856915592
+                  },
+                  "weakest": {
+                    "energy_db": 31.949496208641467,
+                    "id": "mid",
+                    "status": "ready",
+                    "unit_energy": 0.002916670479456
+                  }
+                },
+                "cross_band_relation_ready": false,
+                "per_band_crest_ready": false,
+                "status": "partial",
+                "time_varying_ready": false,
+                "trust_quality": {
+                  "can_support_behavior_observation": false,
+                  "can_support_family_selection": true,
+                  "can_support_post_action_evaluation": false,
+                  "can_support_source_description": true,
+                  "overall_status": "partial"
+                }
+              },
+              "projection_status": "partial"
+            },
+            "evidence_refs": [
+              "obs_20260913T025538_2d73b7d8a006",
+              "evidence://f8a928402f7258e7e63f026d8a5db70bcd4801056c3f9ac0a3a0503345954723"
+            ],
+            "freshness": {
+              "class": "current_observation",
+              "observed_at": "2026-09-13T02:55:38.7052869Z",
+              "project_epoch": "epoch_99a72bfe354079b8",
+              "project_revision": "1",
+              "project_uuid": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb",
+              "status": "ready"
+            },
+            "limitations": [
+              "Whole-window band energy does not establish per-band dynamics."
+            ],
+            "observation_id": "obs_20260913T025538_2d73b7d8a006",
+            "project_epoch": "epoch_99a72bfe354079b8",
+            "project_revision": "1",
+            "project_uuid": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb",
+            "round": 0,
+            "status": "partial",
+            "target_ref": {
+              "id": "1007",
+              "kind": "track",
+              "label": "bass",
+              "source": "ccb_observation_binding",
+              "track_id": "1007",
+              "track_name": "bass"
+            },
+            "tool_call_id": "tool_step_1",
+            "view_id": "track.band_dynamics"
+          },
+          "track:1007::track.timbre_frequency": {
+            "audit_ref": {
+              "bundle_id": "ccbobs_obs_20260913T025518_32bd1e295e2f",
+              "receipt_id": "ccbr_obs_20260913T025518_32bd1e295e2f",
+              "receipt_schema": "ccb_observation_receipt.v1"
+            },
+            "conclusion": {
+              "digest_kind": "decision_digest",
+              "facts": {
+                "band_profile": {
+                  "second_strongest": {
+                    "energy_db": 48.734380896595894,
+                    "id": "sub",
+                    "status": "ready",
+                    "unit_energy": 0.139115600525819
+                  },
+                  "spread_db": 50.64830001017708,
+                  "strongest": {
+                    "energy_db": 56.462860226021746,
+                    "id": "bass",
+                    "status": "ready",
+                    "unit_energy": 0.824562856915592
+                  },
+                  "weakest": {
+                    "energy_db": 5.814560215844664,
+                    "id": "air",
+                    "status": "ready",
+                    "unit_energy": 7.102214207129986e-06
+                  }
+                },
+                "status": "ready"
+              },
+              "projection_status": "ready"
+            },
+            "evidence_refs": [
+              "obs_20260913T025518_32bd1e295e2f",
+              "evidence://ad0e4bc2242a246e31cdab0ffb53aadcf238c75eb97fd6358f6557f673e2c892"
+            ],
+            "freshness": {
+              "class": "current_observation",
+              "observed_at": "2026-09-13T02:55:18.4465412Z",
+              "project_epoch": "epoch_99a72bfe354079b8",
+              "project_revision": "1",
+              "project_uuid": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb",
+              "status": "ready"
+            },
+            "limitations": [
+              "Not a raw spectrum or a static-EQ decision."
+            ],
+            "observation_id": "obs_20260913T025518_32bd1e295e2f",
+            "project_epoch": "epoch_99a72bfe354079b8",
+            "project_revision": "1",
+            "project_uuid": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb",
+            "round": 0,
+            "status": "ready",
+            "target_ref": {
+              "id": "1007",
+              "kind": "track",
+              "label": "bass",
+              "source": "ccb_observation_binding",
+              "track_id": "1007",
+              "track_name": "bass"
+            },
+            "tool_call_id": "tool_step_1",
+            "view_id": "track.timbre_frequency"
+          }
+        },
+        "receipt_count": 3,
+        "receipts": [
+          {
+            "evidence_refs": [
+              "obs_20260913T025512_2015eb3c6d1f",
+              "evidence://16bc9f056603256ab33b4a00e8bcf70b87c909013ecca2c3ed106afeb726767f"
+            ],
+            "freshness": {
+              "class": "current_observation",
+              "observed_at": "2026-09-13T02:55:12.9417834Z",
+              "project_epoch": "epoch_99a72bfe354079b8",
+              "project_revision": "1",
+              "project_uuid": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb",
+              "status": "ready"
+            },
+            "limitations": [
+              "mix.frequency_relationship: evidence status is partial"
+            ],
+            "observation_id": "obs_20260913T025512_2015eb3c6d1f",
+            "project_revision": "1",
+            "receipt_id": "ccbr_obs_20260913T025512_2015eb3c6d1f",
+            "receipt_schema": "ccb_observation_receipt.v1",
+            "requested_views": [
+              "mix.frequency_relationship",
+              "project.structure"
+            ],
+            "round": 2,
+            "status": "partial",
+            "target_ref": {
+              "id": "current",
+              "kind": "project",
+              "label": "Current project"
+            },
+            "tool_call_id": "tool_step_1"
+          },
+          {
+            "evidence_refs": [
+              "obs_20260913T025518_32bd1e295e2f",
+              "evidence://ad0e4bc2242a246e31cdab0ffb53aadcf238c75eb97fd6358f6557f673e2c892"
+            ],
+            "freshness": {
+              "class": "current_observation",
+              "observed_at": "2026-09-13T02:55:18.4465412Z",
+              "project_epoch": "epoch_99a72bfe354079b8",
+              "project_revision": "1",
+              "project_uuid": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb",
+              "status": "ready"
+            },
+            "observation_id": "obs_20260913T025518_32bd1e295e2f",
+            "project_revision": "1",
+            "receipt_id": "ccbr_obs_20260913T025518_32bd1e295e2f",
+            "receipt_schema": "ccb_observation_receipt.v1",
+            "requested_views": [
+              "track.timbre_frequency"
+            ],
+            "round": 3,
+            "status": "ready",
+            "target_ref": {
+              "id": "1007",
+              "kind": "track",
+              "label": "bass"
+            },
+            "tool_call_id": "tool_step_1"
+          },
+          {
+            "evidence_refs": [
+              "obs_20260913T025538_2d73b7d8a006",
+              "evidence://f8a928402f7258e7e63f026d8a5db70bcd4801056c3f9ac0a3a0503345954723"
+            ],
+            "freshness": {
+              "class": "current_observation",
+              "observed_at": "2026-09-13T02:55:38.7052869Z",
+              "project_epoch": "epoch_99a72bfe354079b8",
+              "project_revision": "1",
+              "project_uuid": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb",
+              "status": "ready"
+            },
+            "limitations": [
+              "track.band_dynamics: evidence status is partial"
+            ],
+            "observation_id": "obs_20260913T025538_2d73b7d8a006",
+            "project_revision": "1",
+            "receipt_id": "ccbr_obs_20260913T025538_2d73b7d8a006",
+            "receipt_schema": "ccb_observation_receipt.v1",
+            "requested_views": [
+              "mix.masking_relationship",
+              "track.band_dynamics"
+            ],
+            "round": 4,
+            "status": "partial",
+            "target_ref": {
+              "id": "1007",
+              "kind": "track",
+              "label": "bass"
+            },
+            "tool_call_id": "tool_step_1"
+          }
+        ],
+        "schema_version": "free_state_observation_ledger.v1",
+        "view_observation_count": 9,
+        "window_round": 2
+      },
+      "latest_observation": {
+        "tool_call_id": "tool_step_1",
+        "tool": "ccb.observation_request",
+        "command_name": "ccb_observation_request",
+        "status": "partial",
+        "summary": {
+          "actual_executed_view_ids": [
+            "mix.masking_relationship",
+            "track.band_dynamics"
+          ],
+          "audit_receipt": {
+            "receipt_id": "ccbr_obs_20260913T025538_2d73b7d8a006",
+            "schema_version": "ccb_observation_receipt.v1",
+            "status": "partial"
+          },
+          "evidence_refs": [
+            "evidence://f8a928402f7258e7e63f026d8a5db70bcd4801056c3f9ac0a3a0503345954723",
+            "obs_20260913T025538_2d73b7d8a006"
+          ],
+          "freshness": {
+            "class": "current_observation",
+            "observed_at": "2026-09-13T02:55:38.7052869Z",
+            "project_epoch": "epoch_99a72bfe354079b8",
+            "project_revision": "1",
+            "project_uuid": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb",
+            "status": "ready"
+          },
+          "limitations": [
+            "Candidates are relative energetic-risk evidence showing directional energy relationships. Large consistent margins often indicate level-imbalance improvement opportunities; band-specific patterns may indicate frequency considerations. This is plausible evidence for bounded improvement hypotheses, not proof of defects.",
+            "Whole-window band energy does not establish per-band dynamics."
+          ],
+          "observation_id": "obs_20260913T025538_2d73b7d8a006",
+          "requested_views": [
+            "mix.masking_relationship",
+            "track.band_dynamics"
+          ],
+          "schema_version": "ccb_observation_bundle.v1",
+          "status": "partial",
+          "target_ref": {
+            "id": "1007",
+            "kind": "track",
+            "label": "bass",
+            "source": "ccb_observation_binding",
+            "track_id": "1007",
+            "track_name": "bass"
+          },
+          "views": {
+            "mix.masking_relationship": {
+              "facts": {
+                "candidate_only": true,
+                "candidates": [
+                  {
+                    "active_frame_count": 216,
+                    "band_id": "presence",
+                    "masker_track_id": "1012",
+                    "masker_track_name": "drums",
+                    "max_hz": 6000,
+                    "max_margin_db": 45.921,
+                    "median_margin_db": 30.612,
+                    "min_hz": 2000,
+                    "p90_margin_db": 41.49,
+                    "risk_coverage_ratio": 1,
+                    "risk_frame_count": 216,
+                    "target_track_id": "1007",
+                    "target_track_name": "bass"
+                  },
+                  {
+                    "active_frame_count": 216,
+                    "band_id": "presence",
+                    "masker_track_id": "1022",
+                    "masker_track_name": "other",
+                    "max_hz": 6000,
+                    "max_margin_db": 44.307,
+                    "median_margin_db": 32.176,
+                    "min_hz": 2000,
+                    "p90_margin_db": 40.309,
+                    "risk_coverage_ratio": 1,
+                    "risk_frame_count": 216,
+                    "target_track_id": "1007",
+                    "target_track_name": "bass"
+                  },
+                  {
+                    "active_frame_count": 216,
+                    "band_id": "air",
+                    "masker_track_id": "1022",
+                    "masker_track_name": "other",
+                    "max_hz": 20000,
+                    "max_margin_db": 36.684,
+                    "median_margin_db": 23.015,
+                    "min_hz": 6000,
+                    "p90_margin_db": 31.674,
+                    "risk_coverage_ratio": 1,
+                    "risk_frame_count": 216,
+                    "target_track_id": "1007",
+                    "target_track_name": "bass"
+                  },
+                  {
+                    "active_frame_count": 214,
+                    "band_id": "mid",
+                    "masker_track_id": "1022",
+                    "masker_track_name": "other",
+                    "max_hz": 2000,
+                    "max_margin_db": 48.61,
+                    "median_margin_db": 31.827,
+                    "min_hz": 500,
+                    "p90_margin_db": 41.428,
+                    "risk_coverage_ratio": 0.995,
+                    "risk_frame_count": 213,
+                    "target_track_id": "1007",
+                    "target_track_name": "bass"
+                  },
+                  {
+                    "omitted_items": 1
+                  }
+                ],
+                "conditions": {
+                  "analyzer_revision": "dad_l2_render_probe.masking_frames.v1",
+                  "frame_count_per_track": 216,
+                  "range_end_seconds": 20,
+                  "range_start_seconds": 0,
+                  "sample_rate": 44100,
+                  "synchronized": true,
+                  "tail_seconds": 0,
+                  "tap_point": "track_post_fader"
+                },
+                "coverage": {
+                  "candidate_count": 138,
+                  "candidates_truncated": true,
+                  "eligible_track_count": 6,
+                  "projected_candidate_count": 96,
+                  "track_count": 6
+                },
+                "freshness": "fresh",
+                "measurement_id": "mask_f58582df6255ec2629901312",
+                "model_version": "vit_relative_energetic_masking_risk.v1",
+                "status": "ready"
+              },
+              "projection_status": "ready",
+              "status": "ready"
+            },
+            "track.band_dynamics": {
+              "facts": {
+                "band_profile": {
+                  "second_strongest": {
+                    "energy_db": 48.734380896595894,
+                    "id": "sub",
+                    "status": "ready",
+                    "unit_energy": 0.139115600525819
+                  },
+                  "spread_db": 24.51336401738028,
+                  "strongest": {
+                    "energy_db": 56.462860226021746,
+                    "id": "bass",
+                    "status": "ready",
+                    "unit_energy": 0.824562856915592
+                  },
+                  "weakest": {
+                    "energy_db": 31.949496208641467,
+                    "id": "mid",
+                    "status": "ready",
+                    "unit_energy": 0.002916670479456
+                  }
+                },
+                "cross_band_relation_ready": false,
+                "per_band_crest_ready": false,
+                "status": "partial",
+                "time_varying_ready": false,
+                "trust_quality": {
+                  "can_support_behavior_observation": false,
+                  "can_support_family_selection": true,
+                  "can_support_post_action_evaluation": false,
+                  "can_support_source_description": true,
+                  "overall_status": "partial"
+                }
+              },
+              "projection_status": "partial",
+              "status": "partial"
+            }
+          }
+        }
+      },
+      "latest_decision": {
+        "schema_version": "free_state_decision.v1",
+        "status": "needs_experiment",
+        "evidence_status": "plausible",
+        "summary": "以低音轨（track 1007）为焦点的跨轨遮蔽关系观测显示：鼓组在 2000–6000 Hz 对低音轨存在稳定的大余量关系（中位余量约 30.6 dB，覆盖 216 帧为 1.0），另一轨在 500–2000 Hz 与 2000–6000 Hz 也有类似稳定关系（中位余量约 31.8 dB / 32.2 dB）。这属于方向性的相对能量候选证据，不是已确认的缺陷，但足以支持一个有界、可逆的均衡实验：在低音轨该重叠频段做极小幅度提升，检查低音线条的可辨识度是否改善。",
+        "improvement_proposal": {
+          "schema_version": "improvement_proposal.v1",
+          "target": {
+            "id": "1007",
+            "kind": "track"
+          },
+          "evidence_refs": [
+            "obs_20260913T025538_2d73b7d8a006"
+          ],
+          "improvement_intent": "让低音轨在其与鼓组/其他轨持续重叠的中高频段更容易被听清，改善低音线条的可辨识度，而不是判定当前混音有缺陷",
+          "hypothesis": "对低音轨在约 2 kHz 处施加约 +1.0 dB 的宽 Q 小幅提升，可能降低该频段上低音轨相对于鼓组与其他轨的相对能量落差，使低音线条的轮廓在整体混音中更易被听到",
+          "expected_effect": "试听对比调整前后：低音线条的音符轮廓与咬字感是否更清楚，同时不产生刺耳或与鼓组争抢的感受",
+          "action_domain": "static_eq",
+          "action_kind": "static_eq_band_adjust",
+          "parameter_bounds": {
+            "frequency_hz": 2000,
+            "gain_db": 1,
+            "q": 1
+          },
+          "verification_plan": {
+            "experiment_budget": 1,
+            "max_action_attempts": 1
+          },
+          "confidence": 0.42,
+          "limitations": [
+            "候选来自相对能量遮蔽模型，属于方向性改进提示而非已确认的混音缺陷",
+            "观测窗口为开头 20 秒，未覆盖整曲",
+            "单一频段落点的选择基于当前可见的稳定重叠关系"
+          ]
+        }
+      },
+      "experiment": {
+        "schema_version": "vit.free_state_experiment_runtime.v1",
+        "turn_id": "turn:free_state_f665cb3169aa25ec",
+        "conversation_id": "b13b_20260913_105450",
+        "goal_id": "goal_8a07d2935d09ae43",
+        "run_id": "run_0924bce4754c6102",
+        "contract_id": "contract_task_b0e30fcf53d0dbcf",
+        "task_state": "needs_experiment",
+        "task_state_revision": 4,
+        "status": "running",
+        "original_intent": "帮低音轨做个均衡实验，然后让我试听",
+        "admission": {
+          "schema_version": "vit.free_state_experiment_runtime.v1",
+          "target_ref": {
+            "id": "1007",
+            "kind": "track"
+          },
+          "evidence_refs": [
+            "obs_20260913T025538_2d73b7d8a006"
+          ],
+          "hypothesis": "对低音轨在约 2 kHz 处施加约 +1.0 dB 的宽 Q 小幅提升，可能降低该频段上低音轨相对于鼓组与其他轨的相对能量落差，使低音线条的轮廓在整体混音中更易被听到",
+          "typed_action": {
+            "action_domain": "static_eq",
+            "action_kind": "static_eq_band_adjust",
+            "frequency_hz": 2000,
+            "gain_db": 1,
+            "q": 1
+          },
+          "diagnostic_dose_bounds": {
+            "bounds": {
+              "frequency_hz": 2000,
+              "gain_db": 1,
+              "q": 1
+            },
+            "gain_db": 1,
+            "max_action_attempts": 1,
+            "source": "proposal"
+          },
+          "retained_dose_bounds": {
+            "bounds": {
+              "frequency_hz": 2000,
+              "gain_db": 1,
+              "q": 1
+            },
+            "gain_db": 1,
+            "max_action_attempts": 1,
+            "source": "proposal"
+          },
+          "experiment_budget": 1,
+          "expected_effect": "试听对比调整前后：低音线条的音符轮廓与咬字感是否更清楚，同时不产生刺耳或与鼓组争抢的感受",
+          "verification_plan": {
+            "experiment_budget": 1,
+            "max_action_attempts": 1
+          },
+          "checkpoint_ref": "pending:free_state_f665cb3169aa25ec",
+          "rollback_plan": {
+            "kind": "agent_rollback_action",
+            "source": "existing_governed_rollback"
+          },
+          "authority_mode": "full_access"
+        },
+        "rounds": [
+          {
+            "round_id": "round-1-f3933b0423cb1a92",
+            "number": 1,
+            "status": "observing",
+            "phase": "observing",
+            "checkpoint_ref": "pending:free_state_f665cb3169aa25ec",
+            "project_revision": "1",
+            "requested_view_ids": [
+              "mix.masking_relationship",
+              "track.band_dynamics"
+            ],
+            "observations": [
+              {
+                "observation_id": "obs_20260913T025538_2d73b7d8a006",
+                "receipt_id": "ccbr_obs_20260913T025538_2d73b7d8a006",
+                "requested_view_ids": [
+                  "mix.masking_relationship",
+                  "track.band_dynamics"
+                ],
+                "executed_view_ids": [
+                  "mix.masking_relationship",
+                  "track.band_dynamics"
+                ],
+                "view_set_matches": true,
+                "fresh": true,
+                "post_action": false,
+                "project_revision": "1",
+                "evidence_refs": [
+                  "evidence://f8a928402f7258e7e63f026d8a5db70bcd4801056c3f9ac0a3a0503345954723",
+                  "obs_20260913T025538_2d73b7d8a006"
+                ],
+                "limitations": [
+                  "Candidates are relative energetic-risk evidence showing directional energy relationships. Large consistent margins often indicate level-imbalance improvement opportunities; band-specific patterns may indicate frequency considerations. This is plausible evidence for bounded improvement hypotheses, not proof of defects.",
+                  "Whole-window band energy does not establish per-band dynamics."
+                ],
+                "summary": {
+                  "actual_executed_view_ids": [
+                    "mix.masking_relationship",
+                    "track.band_dynamics"
+                  ],
+                  "audit_receipt": {
+                    "receipt_id": "ccbr_obs_20260913T025538_2d73b7d8a006",
+                    "schema_version": "ccb_observation_receipt.v1",
+                    "status": "partial"
+                  },
+                  "evidence_refs": [
+                    "evidence://f8a928402f7258e7e63f026d8a5db70bcd4801056c3f9ac0a3a0503345954723",
+                    "obs_20260913T025538_2d73b7d8a006"
+                  ],
+                  "freshness": {
+                    "class": "current_observation",
+                    "observed_at": "2026-09-13T02:55:38.7052869Z",
+                    "project_epoch": "epoch_99a72bfe354079b8",
+                    "project_revision": "1",
+                    "project_uuid": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb",
+                    "status": "ready"
+                  },
+                  "limitations": [
+                    "Candidates are relative energetic-risk evidence showing directional energy relationships. Large consistent margins often indicate level-imbalance improvement opportunities; band-specific patterns may indicate frequency considerations. This is plausible evidence for bounded improvement hypotheses, not proof of defects.",
+                    "Whole-window band energy does not establish per-band dynamics."
+                  ],
+                  "observation_id": "obs_20260913T025538_2d73b7d8a006",
+                  "requested_views": [
+                    "mix.masking_relationship",
+                    "track.band_dynamics"
+                  ],
+                  "schema_version": "ccb_observation_bundle.v1",
+                  "status": "partial",
+                  "target_ref": {
+                    "id": "1007",
+                    "kind": "track",
+                    "label": "bass",
+                    "source": "ccb_observation_binding",
+                    "track_id": "1007",
+                    "track_name": "bass"
+                  },
+                  "views": {
+                    "mix.masking_relationship": {
+                      "facts": {
+                        "candidate_only": true,
+                        "candidates": [
+                          {
+                            "active_frame_count": 216,
+                            "band_id": "presence",
+                            "masker_track_id": "1012",
+                            "masker_track_name": "drums",
+                            "max_hz": 6000,
+                            "max_margin_db": 45.921,
+                            "median_margin_db": 30.612,
+                            "min_hz": 2000,
+                            "p90_margin_db": 41.49,
+                            "risk_coverage_ratio": 1,
+                            "risk_frame_count": 216,
+                            "target_track_id": "1007",
+                            "target_track_name": "bass"
+                          },
+                          {
+                            "active_frame_count": 216,
+                            "band_id": "presence",
+                            "masker_track_id": "1022",
+                            "masker_track_name": "other",
+                            "max_hz": 6000,
+                            "max_margin_db": 44.307,
+                            "median_margin_db": 32.176,
+                            "min_hz": 2000,
+                            "p90_margin_db": 40.309,
+                            "risk_coverage_ratio": 1,
+                            "risk_frame_count": 216,
+                            "target_track_id": "1007",
+                            "target_track_name": "bass"
+                          },
+                          {
+                            "active_frame_count": 216,
+                            "band_id": "air",
+                            "masker_track_id": "1022",
+                            "masker_track_name": "other",
+                            "max_hz": 20000,
+                            "max_margin_db": 36.684,
+                            "median_margin_db": 23.015,
+                            "min_hz": 6000,
+                            "p90_margin_db": 31.674,
+                            "risk_coverage_ratio": 1,
+                            "risk_frame_count": 216,
+                            "target_track_id": "1007",
+                            "target_track_name": "bass"
+                          },
+                          {
+                            "active_frame_count": 214,
+                            "band_id": "mid",
+                            "masker_track_id": "1022",
+                            "masker_track_name": "other",
+                            "max_hz": 2000,
+                            "max_margin_db": 48.61,
+                            "median_margin_db": 31.827,
+                            "min_hz": 500,
+                            "p90_margin_db": 41.428,
+                            "risk_coverage_ratio": 0.995,
+                            "risk_frame_count": 213,
+                            "target_track_id": "1007",
+                            "target_track_name": "bass"
+                          },
+                          {
+                            "omitted_items": 1
+                          }
+                        ],
+                        "conditions": {
+                          "analyzer_revision": "dad_l2_render_probe.masking_frames.v1",
+                          "frame_count_per_track": 216,
+                          "range_end_seconds": 20,
+                          "range_start_seconds": 0,
+                          "sample_rate": 44100,
+                          "synchronized": true,
+                          "tail_seconds": 0,
+                          "tap_point": "track_post_fader"
+                        },
+                        "coverage": {
+                          "candidate_count": 138,
+                          "candidates_truncated": true,
+                          "eligible_track_count": 6,
+                          "projected_candidate_count": 96,
+                          "track_count": 6
+                        },
+                        "freshness": "fresh",
+                        "measurement_id": "mask_f58582df6255ec2629901312",
+                        "model_version": "vit_relative_energetic_masking_risk.v1",
+                        "status": "ready"
+                      },
+                      "projection_status": "ready",
+                      "status": "ready"
+                    },
+                    "track.band_dynamics": {
+                      "facts": {
+                        "band_profile": {
+                          "second_strongest": {
+                            "energy_db": 48.734380896595894,
+                            "id": "sub",
+                            "status": "ready",
+                            "unit_energy": 0.139115600525819
+                          },
+                          "spread_db": 24.51336401738028,
+                          "strongest": {
+                            "energy_db": 56.462860226021746,
+                            "id": "bass",
+                            "status": "ready",
+                            "unit_energy": 0.824562856915592
+                          },
+                          "weakest": {
+                            "energy_db": 31.949496208641467,
+                            "id": "mid",
+                            "status": "ready",
+                            "unit_energy": 0.002916670479456
+                          }
+                        },
+                        "cross_band_relation_ready": false,
+                        "per_band_crest_ready": false,
+                        "status": "partial",
+                        "time_varying_ready": false,
+                        "trust_quality": {
+                          "can_support_behavior_observation": false,
+                          "can_support_family_selection": true,
+                          "can_support_post_action_evaluation": false,
+                          "can_support_source_description": true,
+                          "overall_status": "partial"
+                        }
+                      },
+                      "projection_status": "partial",
+                      "status": "partial"
+                    }
+                  }
+                },
+                "recorded_at": "2026-09-13T02:55:56.2303019Z"
+              }
+            ],
+            "started_at": "2026-09-13T02:55:56.2303019Z",
+            "updated_at": "2026-09-13T02:55:56.2303019Z"
+          }
+        ],
+        "current_round_id": "round-1-f3933b0423cb1a92",
+        "project_revision": "1",
+        "last_trace_node_id": "trace-932b98687e4da2df",
+        "started_at": "2026-09-13T02:55:56.2058017Z",
+        "updated_at": "2026-09-13T02:55:56.2303019Z",
+        "settled_at": "0001-01-01T00:00:00Z"
+      },
+      "d1_state": {
+        "before_render": {
+          "bit_depth": 24,
+          "checkpoint_ref": "pending:free_state_f665cb3169aa25ec",
+          "completed_at": "2026-09-13T02:55:57.4175039Z",
+          "file_path": "D:\\Vit_DAW\\artifacts\\b13b_frontier\\20260913_105426\\agent_drafts\\draft_20260913T025429_6ed9e418\\.vit_agent\\vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb\\artifacts\\d1_s1\\turnfree_state_f665cb3169aa25ec\\before_revision_1.wav",
+          "job_id": "be18fcba4acd44ef88bbdd5acda7d5c7",
+          "phase": "before",
+          "preview_revision": "sha256:be86a4ce842b2d4f9f33273c70690bedf7fce04542edca2fd2f8caa213ff0a5a",
+          "project_revision": "1",
+          "range": "full_project",
+          "render_revision": "d1_render:turnfree_state_f665cb3169aa25ec:before:1:be86a4ce842b2d4f",
+          "schema_version": "vit.free_state_d1_render.v1",
+          "sha256": "be86a4ce842b2d4f9f33273c70690bedf7fce04542edca2fd2f8caa213ff0a5a",
+          "size_bytes": 5292784,
+          "started_at": "2026-09-13T02:55:56.7323158Z",
+          "status": "ready",
+          "use_master_plugins": true
+        }
+      },
+      "admission_receipt": {
+        "boundary": "admitted",
+        "candidate_id": "candidate:ddc9d5db47d91954",
+        "failed_gate_ids": null,
+        "gate_results": {
+          "G1_project_binding": "pass",
+          "G2_capacity_assessed": "pass",
+          "G3_project_scan": "pass",
+          "G4_dimension_closed": "pass",
+          "G5_frontier_established": "pass",
+          "G6_target_evidence": "pass",
+          "G7_fresh_revision_bound_refs": "pass",
+          "G8_target_consistency": "pass"
+        },
+        "project_revision": "",
+        "proposal_error": "",
+        "proposal_present": true,
+        "proposal_valid": true,
+        "recorded_at": "2026-09-13T02:55:56.1087573Z",
+        "schema_version": "free_state_admission_receipt.v1",
+        "status": "needs_experiment",
+        "target_evidence_ref": "obs_20260913T025518_32bd1e295e2f"
+      },
+      "requires_post_action_observation": false,
+      "created_at": "2026-09-13T02:54:56.7313027Z",
+      "updated_at": "2026-09-13T02:55:57.4175039Z"
+    }
+  }
+}
