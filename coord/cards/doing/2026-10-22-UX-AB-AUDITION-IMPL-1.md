@@ -19,9 +19,14 @@
 2. **判定第三身份通道**：接受（唯一新增服务端面，实验契约不动）。
 （两裁定待用户最终知情确认，实现卡可先行——若用户改轨级粒度，属后置卡不影响本卡。）
 
-## 文件域
+## 文件域（领取时按设计稿 §4 卡 A 核对固定）
 
-`agent/internal/chat/semantic_dynamic_workflow.go`（bracket 挂接）+`audition_events.go`（第三路由）+mix-tick 复用面邻域+单测。以设计稿 §4 分卡建议核对后固定写入卡面。越域即停。
+- `agent/internal/chat/semantic_dynamic_workflow.go`（executeSemanticDynamicTicket 挂点邻域）
+- `agent/internal/chat/semantic_dynamic_audition.go`（新增：bracket/mount/身份/判定落账，mix_tick_audition.go 模式）
+- `agent/internal/chat/audition_events.go`（handleAuditionJudgment 第三路由邻域）
+- `agent/internal/chat/server.go`（仅限 Server struct 新增复用缝字段，mix-tick server.go:61-64 先例）
+- `agent/internal/chat/semantic_dynamic_audition_test.go`（新增单测，既有测试文件零改动）
+- 零内核/零 webui/零 Godot；mix-tick 复用件（ensureD1Render 低层 helpers、d1AuditionCandidatesForAssignment、AuditionPrepare、emitAuditionEvent、auditionBlindSettingsFor、drawAuditionBlind）verbatim 共享不修改。越域即停。
 
 ## 验收标准
 
@@ -31,6 +36,6 @@
 
 bracket 时序与 settle/continuation 链冲突（写后仍有续行轮）→ 锚点上交（可能需 settle 后延迟 mount 变体）。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-22 22:18 +0800 / origin/main=1c76ee4c467c7c2040b2cd5bb502c903e871dfd8 / owner=GLM-5.3 L2 PC 执行会话（ZCode，174 卡会话，用户口令指定领取）/ 分支=port/ux-ab-audition-impl-1（worktree D:/Vit-DAW-aba174）+ 协调分支 coord/aba174-claim / worktree=D:/Vit-DAW-aba174 / 领取提交=coord/aba174-claim tip
 - 回执：（commit / 真栈 run ID / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
