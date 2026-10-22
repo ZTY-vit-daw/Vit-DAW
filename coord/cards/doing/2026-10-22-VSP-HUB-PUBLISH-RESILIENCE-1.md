@@ -23,4 +23,4 @@
 
 - 领取：2026-10-22 22:1x 本会话机器钟 / origin/main=9b79ceb3a7ccc8af85624eae02704f0732df988d（领取前 fetch 亲核=当前 main HEAD） / owner=GLM-5.3 L2 PC ZCode 执行会话（173 卡会话，机器=PC） / 分支=port/vsp-hub-publish-resilience-1 / worktree=D:/Vit_DAW_wt_vspr1（协调分支 coord/vspr1-claim@D:/Vit_DAW_wt_vspr1_coord） / 领取提交=本 commit
 - 回执：（根因结论 / commit / 真栈 run ID / 端测边界声明）
-- 验收：（裁定文件 / 验收 commit）
+- 验收：**整卡通过**（GLM 主管决策流 / 2026-10-22 深夜终验）。核对：FORENSICS 根因链六条逐条对源码锚点亲核（R1 websocket.go:136-143 写无期限/R2 telemetry.go:62-79 单流 head-of-line/R3 realtime.go:439-505 路径耦合/R4 GUI 风暴触发/R5 无感知+恢复慢/R6 进程未重启排除——时间线重建与 171 工件互证）；diff 亲读（写超时+驱逐+有界队列独立 writer+心跳+退避重试+watchdog 挂既有防抖拉取非轮询）；主管复跑 vsphub/bridge 单测 ok+前端合并态探针 289 PASS；真栈注入腿两连 exit 0+隔离 suspend 腿+adapter 探针 3/3 亲核。停止条件亲裁=根因全在 agent/hub/GUI 可控面（内核健康有证），无需上交。验收 commit=主仓 **9522c1d3**+前端 **eee2fcd**。
