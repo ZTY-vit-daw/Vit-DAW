@@ -11,7 +11,7 @@
 
 ## 文件域
 
-以取证结论固定（预期 `agent/internal/vsphub`/`agent/internal/vspclient`/发布重试面；前端兜底若涉前端仓另注）。开工时写入卡面。越域即停。
+已按取证结论固定（2026-10-22 22:1x 机器钟开工写入）：`agent/internal/vsphub/`（websocket/telemetry/realtime/hub/diagnostics/config+hub_test）、`agent/internal/bridge/vsp_realtime.go`+新增测试文件；前端兜底涉前端仓另注：`app/kernel/autoloads/vsp_realtime_adapter.gd`、`app/kernel/autoloads/telemetry_manager.gd`（D:\Godot\projectit-daw-frontend worktree）；真栈注入腿新增 `scripts/vsp_hub_resilience_smoke.ps1`（按现有 ps1 体系模式）；工件 `coord/runs/VSP-HUB-PUBLISH-RESILIENCE-1/`。越域即停。
 
 ## 验收标准
 
@@ -21,6 +21,6 @@
 
 停摆根因在内核或系统层（非 agent/hub 可控面）→ 锚点上交再裁定兜底边界。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-22 22:1x 本会话机器钟 / origin/main=9b79ceb3a7ccc8af85624eae02704f0732df988d（领取前 fetch 亲核=当前 main HEAD） / owner=GLM-5.3 L2 PC ZCode 执行会话（173 卡会话，机器=PC） / 分支=port/vsp-hub-publish-resilience-1 / worktree=D:/Vit_DAW_wt_vspr1（协调分支 coord/vspr1-claim@D:/Vit_DAW_wt_vspr1_coord） / 领取提交=本 commit
 - 回执：（根因结论 / commit / 真栈 run ID / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）

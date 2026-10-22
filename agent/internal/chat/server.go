@@ -62,6 +62,12 @@ type Server struct {
 	auditionCandidateDriver       auditionCandidateProjectDriver
 	auditionBlindDraw             func() bool // optional blind-session coin flip; nil draws from crypto/rand
 	mixTickAuditionRenderOverride func(ctx context.Context, phase, projectRevision string, plan *mixTickAuditionPlan) (map[string]any, error)
+	// semanticDynamicAuditionRenderOverride is the UX-AB-AUDITION-IMPL-1
+	// ordering-pin seam for the semantic-dynamic A/B bracket, mirroring
+	// mixTickAuditionRenderOverride: it replaces only what a phase render
+	// returns, never when it runs — the before/mutate/after order lives in
+	// runSemanticDynamicAuditionBracket alone.
+	semanticDynamicAuditionRenderOverride func(ctx context.Context, phase, projectRevision string, plan *semanticDynamicAuditionPlan) (map[string]any, error)
 	// carrierWorkspaceDir 是四层载体宿主目录（L1-4-IMPL-D；测试注入用；
 	// 空=DefaultCarrierWorkspaceDir 按运行目录解析）。
 	carrierWorkspaceDir             string
@@ -112,6 +118,7 @@ type Server struct {
 	conversationMemory                 map[string]agentloop.ExecutionMemory
 	pendingMixTicks                    map[string]agentloop.PendingMixTickCandidate
 	mixTickAuditions                   map[string]*mixTickAuditionRecord
+	semanticDynamicAuditions           map[string]*semanticDynamicAuditionRecord
 	pendingTreatments                  map[string]agentloop.MixTreatmentPending
 	freeStateLoops                     map[string]freeStateReasoningLoop
 	loudnessWatchConfig                *loudnesswatch.Config
@@ -566,6 +573,7 @@ func New(kernelClient *kernel.Client, shadowProject *shadow.Project, logger *log
 		conversationMemory:               map[string]agentloop.ExecutionMemory{},
 		pendingMixTicks:                  map[string]agentloop.PendingMixTickCandidate{},
 		mixTickAuditions:                 map[string]*mixTickAuditionRecord{},
+		semanticDynamicAuditions:         map[string]*semanticDynamicAuditionRecord{},
 		pendingTreatments:                map[string]agentloop.MixTreatmentPending{},
 		freeStateLoops:                   map[string]freeStateReasoningLoop{},
 		authorityMode:                    authorityModeManual,
