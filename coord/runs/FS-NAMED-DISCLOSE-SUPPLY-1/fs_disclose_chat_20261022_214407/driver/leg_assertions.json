@@ -1,0 +1,38 @@
+{
+ "variants": {
+  "A5": {
+   "conversation": "softguide_b1_A5_20261022_214632",
+   "user_named_target": "1032",
+   "machine_candidate_covers_1032": true,
+   "user_named_candidate_in_frontier": [
+    "user_named:1032"
+   ],
+   "render_turns": 4,
+   "render_turns_with_disclosure_row": [
+    2,
+    3
+   ],
+   "boundary_self_report_markers": [],
+   "goal_status": "waiting_continue",
+   "stop_reason": "limit_reached"
+  },
+  "B1": {
+   "conversation": "softguide_b1_B1_20261022_214725",
+   "user_named_target": "1032",
+   "machine_candidate_covers_1032": true,
+   "user_named_candidate_in_frontier": [
+    "user_named:1032"
+   ],
+   "render_turns": 4,
+   "render_turns_with_disclosure_row": [
+    2,
+    3
+   ],
+   "boundary_self_report_markers": [],
+   "goal_status": "waiting_continue",
+   "stop_reason": "limit_reached"
+  }
+ },
+ "failures": [],
+ "exit": 0
+}
