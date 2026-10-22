@@ -2415,6 +2415,28 @@ func freeStateNormalizedTrackTarget(target map[string]any) map[string]any {
 	})
 }
 
+// userNamedTargetRewriteContextKey rides the handover context when the
+// deterministic named pointer replaced the model-selected track at the
+// free-state → semantic-plan boundary (FS-NAMED-DYNAMIC-WIRE-1). The response
+// wrapper turns it into the mandatory user-facing disclosure.
+const userNamedTargetRewriteContextKey = "user_named_target_rewrite"
+
+// freeStateUserNamedTrackName reads the named track's display name from the
+// same kernel-sourced inventory the resolution read; an unreadable name
+// degrades to the bare-ID posture and never labels one track with another.
+func (s *Server) freeStateUserNamedTrackName(trackID string) string {
+	if s == nil || s.harness == nil || strings.TrimSpace(trackID) == "" {
+		return ""
+	}
+	state := s.harness.UserStateSummary(context.Background())
+	for _, track := range capacityRows(state["tracks"]) {
+		if firstStringFromMap(track, "track_id", "id") == trackID {
+			return strings.TrimSpace(firstStringFromMap(track, "track_name", "name", "label"))
+		}
+	}
+	return ""
+}
+
 func (s *Server) bindFreeStateAuthoritativeTrack(conversationID string, requestContext map[string]any) map[string]any {
 	loop, ok := s.freeStateLoop(conversationID)
 	if !ok || !freeStateLoopActive(loop) {
@@ -2429,14 +2451,37 @@ func (s *Server) bindFreeStateAuthoritativeTrack(conversationID string, requestC
 	if strings.EqualFold(firstStringFromMap(loop.TargetRef, "kind"), "track") {
 		trackID = firstNonEmpty(trackID, firstStringFromMap(loop.TargetRef, "id"))
 	}
+	trackName := firstStringFromMap(loop.TargetRef, "track_name", "label", "name")
+	// FS-NAMED-DYNAMIC-WIRE-1: the resolved user_named_target is the
+	// deterministic intent pointer (C4: 用户指名=意图搬运), so at this
+	// free-state → semantic-plan handover it owns the plan target ahead of the
+	// model-selected TargetRef track. Every plan face downstream (topology
+	// plan source, selection target_ref, dynamic controller binding) reads
+	// the bound selected_track_id, so one rewrite here carries the named
+	// track through the whole chain. A loop without the pointer keeps the
+	// pre-card binding byte-identically (fail-open); a model that already
+	// bound the named track binds without a rewrite marker.
+	modelTrackID := trackID
+	namedTrackID := strings.TrimSpace(loop.UserNamedTarget)
+	if namedTrackID != "" && namedTrackID != modelTrackID {
+		trackID = namedTrackID
+		trackName = s.freeStateUserNamedTrackName(namedTrackID)
+	}
 	if trackID == "" {
 		return requestContext
 	}
-	trackName := firstStringFromMap(loop.TargetRef, "track_name", "label", "name")
 	out := mergeContext(requestContext, map[string]any{
 		"selected_track_id":   trackID,
 		"selected_track_name": trackName,
 	})
+	if namedTrackID != "" && modelTrackID != "" && namedTrackID != modelTrackID {
+		out[userNamedTargetRewriteContextKey] = map[string]any{
+			"named_track_id":          namedTrackID,
+			"named_track_name":        trackName,
+			"model_selected_track_id": modelTrackID,
+			"applied_at":              "free_state_plan_target_binding",
+		}
+	}
 	if pluginTrackID := firstStringFromMap(out, "selected_plugin_track_id"); pluginTrackID != "" && pluginTrackID != trackID {
 		delete(out, "selected_plugin_id")
 		delete(out, "selected_plugin_name")
@@ -2603,12 +2648,39 @@ func (s *Server) bindFreeStateContextToResponse(resp ChatResponse, requestContex
 	if resp.WorkflowData == nil {
 		resp.WorkflowData = map[string]any{}
 	}
+	// FS-NAMED-DYNAMIC-WIRE-1: disclose a plan-target rewrite on every wrapped
+	// face of the turn — the sentence is a deterministic machine constant, so
+	// an inner continuation wrap plus this outer wrap dedupe by containment.
+	if marker := firstMapFromAny(requestContext[userNamedTargetRewriteContextKey]); len(marker) > 0 {
+		resp.WorkflowData[userNamedTargetRewriteContextKey] = cloneContext(marker)
+		if line := userNamedTargetRewriteDisclosure(marker); line != "" && !strings.Contains(resp.Reply, line) {
+			if strings.TrimSpace(resp.Reply) == "" {
+				resp.Reply = line
+			} else {
+				resp.Reply = resp.Reply + "\n" + line
+			}
+		}
+	}
 	ctx := cloneContext(firstMapFromAny(resp.WorkflowData["request_context"]))
 	ctx = mergeContext(ctx, requestContext)
 	ctx["free_state_reasoning_loop"] = freeStateLoopMap(loop)
 	resp.WorkflowData["request_context"] = ctx
 	resp.WorkflowData["free_state_reasoning_loop"] = freeStateLoopMap(loop)
 	return resp
+}
+
+// userNamedTargetRewriteDisclosure builds the deterministic disclosure line
+// for a named-target rewrite; the wording is machine-owned (never model
+// prose) so repeats are recognizable and dedupe on plain containment.
+func userNamedTargetRewriteDisclosure(marker map[string]any) string {
+	id := strings.TrimSpace(firstStringFromMap(marker, "named_track_id"))
+	if id == "" {
+		return ""
+	}
+	if name := strings.TrimSpace(firstStringFromMap(marker, "named_track_name")); name != "" {
+		return fmt.Sprintf("按你的指名，目标轨=%s/%s。", name, id)
+	}
+	return fmt.Sprintf("按你的指名，目标轨=%s。", id)
 }
 
 func freeStateEvidenceRefreshReason(resp ChatResponse) (string, bool) {
