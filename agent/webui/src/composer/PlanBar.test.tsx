@@ -200,3 +200,76 @@ describe("PlanBar 生命周期（PLANBAR-1 缺陷②：执行结束后停掉 / �
     expect(barSource).toMatch(/if \(planBarRetracted\(phase, elapsedMs\)\) return null/);
   });
 });
+
+// --------------------------------------------- WEBUI-PLANBAR-COMPLETED-1
+// 2026-10-21 场次③（用户目检+日志对照在卷）：动态链正常收工（goal completed+
+// chainEnded=true+journal 入账）后链活信号自然熄灭，PlanBar 误标灰态「已中断」
+// ——链活启发式不读 goal 终态。三态契约钉死：
+//   * 活链=现行态；正常完成=读快照 task.goal_status 终态（completed/stable）
+//     → terminal「已完成」，不降灰；真中断=无终态证据才 stale（fail-open）。
+//   * 数据源=trajectory 投影自带字段（task_runtime_trajectory.go 的 task.goal_status），
+//     缺字段的旧载荷维持 stale 现状，零回退。
+describe("PlanBar 三态（WEBUI-PLANBAR-COMPLETED-1：链正常完成不误标已中断）", () => {
+  function snapshotWithGoalStatus(goalStatus: string) {
+    const snapshot = mockTaskTrajectorySnapshot();
+    expect(snapshot).not.toBeNull();
+    return { ...snapshot!, task: { ...snapshot!.task, goal_status: goalStatus } };
+  }
+
+  it("相位分类：无活链非终态读 goal 终态——completed/stable=terminal，其余缺证据维持 stale", () => {
+    expect(planBarPhase("observation_in_progress", false, "completed")).toBe("terminal");
+    expect(planBarPhase("observation_in_progress", false, "stable")).toBe("terminal");
+    expect(planBarPhase("observation_in_progress", false, "running")).toBe("stale");
+    expect(planBarPhase("observation_in_progress", false, "")).toBe("stale");
+    // 缺参（旧调用形）=缺终态字段：fail-open 维持 stale（既有语义零回退）
+    expect(planBarPhase("observation_in_progress", false)).toBe("stale");
+    // 既有优先级不变：警示/等待/终态词汇压过 goal 终态，活链压过一切
+    expect(planBarPhase("settled", false, "")).toBe("terminal");
+    expect(planBarPhase("failed", true, "completed")).toBe("warning");
+    expect(planBarPhase("human_judgment_required", false, "completed")).toBe("waiting");
+    expect(planBarPhase("observation_in_progress", true, "completed")).toBe("live");
+  });
+
+  it("链正常完成（goal completed+语义态停非终态）：「已完成」终态呈现，不降灰已中断", () => {
+    const markup = renderToStaticMarkup(
+      <PlanBar snapshot={snapshotWithGoalStatus("completed")} chainLive={false} />
+    );
+    expect(markup).toContain('data-plan-phase="terminal"');
+    expect(markup).toContain("is-terminal");
+    expect(markup).toContain("已完成");
+    expect(markup).not.toContain("已中断");
+    expect(markup).not.toContain("正在观察工程");
+    expect(markup).not.toContain('class="spin"');
+    // 完成态沿用既有终态生命周期：有限时间收起，非常驻
+    expect(planBarRetracts("terminal")).toBe(true);
+  });
+
+  it("stable（agent 侧与 completed 同映射 TaskStatusSettled）同享完成呈现", () => {
+    const markup = renderToStaticMarkup(
+      <PlanBar snapshot={snapshotWithGoalStatus("stable")} chainLive={false} />
+    );
+    expect(markup).toContain('data-plan-phase="terminal"');
+    expect(markup).toContain("已完成");
+    expect(markup).not.toContain("已中断");
+  });
+
+  it("真中断（快照无 goal 终态/终态未到）：维持灰态「已中断」既有语义", () => {
+    for (const goalStatus of ["", "running"]) {
+      const markup = renderToStaticMarkup(
+        <PlanBar snapshot={snapshotWithGoalStatus(goalStatus)} chainLive={false} />
+      );
+      expect(markup).toContain('data-plan-phase="stale"');
+      expect(markup).toContain("已中断");
+      expect(markup).not.toContain("已完成");
+    }
+  });
+
+  it("活链：现行态不受 goal 终态字段影响", () => {
+    const live = renderToStaticMarkup(
+      <PlanBar snapshot={snapshotWithGoalStatus("running")} chainLive />
+    );
+    expect(live).toContain('data-plan-phase="live"');
+    expect(live).toContain("正在观察工程");
+    expect(live).not.toContain("已中断");
+  });
+});

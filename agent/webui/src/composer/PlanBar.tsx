@@ -39,13 +39,20 @@ const phaseClasses: Record<PlanBarPhase, string> = {
  * （terminalClass），仅非终态再按「有没有活链支撑」细分——有链=live（旋转
  * 图标 + 状态标签），无链=stale（灰态「已中断」，不再声称「正在观察」）。
  * 链活是调用侧信号（App：agentTurnRunning || trajectoryLive）。
+ * WEBUI-PLANBAR-COMPLETED-1（2026-10-21 场次③）：无活链非终态先读 goal 终态
+ * 证据（goalStatus=快照 task.goal_status，goal 状态机权威投影）——链正常收工
+ * （completed/stable，动态链终局可不写语义态）→ terminal「已完成」不降灰；
+ * 缺终态证据维持 stale（fail-open 现状，不假装正在观察）。
  */
-export function planBarPhase(state: string, chainLive: boolean): PlanBarPhase {
+export function planBarPhase(state: string, chainLive: boolean, goalStatus = ""): PlanBarPhase {
   const kind = terminalClass(state);
   if (kind === "is-warning") return "warning";
   if (kind === "is-terminal") return "terminal";
   if (kind === "is-waiting") return "waiting";
-  return chainLive ? "live" : "stale";
+  if (chainLive) return "live";
+  // stable 与 completed 在 agent 侧同映射 TaskStatusSettled（taskStatusFromGoal）
+  if (goalStatus === "completed" || goalStatus === "stable") return "terminal";
+  return "stale";
 }
 
 /** 上收起草表的两种相位：执行已经结束（终态 / 无活链陈旧态） */
@@ -65,7 +72,7 @@ export function PlanBar({ snapshot, goal = null, plan = null, defaultOpen = fals
   /** uiState.agent_plan 回退：current_step/status/summary */
   plan?: JsonRecord | null;
   defaultOpen?: boolean;
-  /** 链活信号（agentTurnRunning || trajectoryLive）；缺省视为有活链，显式 false 才降级为灰态「已中断」 */
+  /** 链活信号（agentTurnRunning || trajectoryLive）；缺省视为有活链，显式 false 且无 goal 终态证据才降级为灰态「已中断」 */
   chainLive?: boolean;
 }) {
   const [open, setOpen] = useState(defaultOpen);
@@ -77,9 +84,13 @@ export function PlanBar({ snapshot, goal = null, plan = null, defaultOpen = fals
   const task = snapshot ? snapshot.task : null;
   const semantic = snapshot ? snapshot.semantic : null;
   const statusRaw = semantic ? text(semantic.state) : (text(goalRec.status) || text(planRec.status));
+  // WEBUI-PLANBAR-COMPLETED-1：goal 终态随快照权威投影（task.goal_status）。
+  // 动态链正常收工时 goal 状态机已到 completed/stable，而语义态可停在非终态
+  // （owner_turn_closed 族终态转换不写语义态）——三态判定以 goal 终态为准。
+  const goalStatus = task ? text(task.goal_status) : "";
   const intent = task ? text(task.original_intent) : (text(goalRec.summary) || text(planRec.summary));
   const currentStep = localizeDisplayText(text(goalRec.current_step) || text(planRec.current_step));
-  const phase = planBarPhase(statusRaw, chainLive);
+  const phase = planBarPhase(statusRaw, chainLive, goalStatus);
   // 相位/快照/用户交互任一变化都重开时间表（新任务、新状态不再继承上一次的倒计时）
   const episodeKey = `${snapshot?.identity ?? ""}|${snapshot?.semanticRevision ?? 0}|${statusRaw}|${phase}|${dwellTick}`;
 
@@ -101,10 +112,13 @@ export function PlanBar({ snapshot, goal = null, plan = null, defaultOpen = fals
   if (planBarRetracted(phase, elapsedMs)) return null;
 
   const retiring = planBarRetracts(phase) && elapsedMs >= planBarDwellMs;
+  // goal 终态判成完成而状态词未及终态：呈现词汇收口到「已完成」，图标/标签
+  // 同步换终态词，避免绿勾配「正在观察」类活链文案的错位
+  const displayState = phase === "terminal" && terminalClass(statusRaw) !== "is-terminal" ? "completed" : statusRaw;
   // 无活链的非终态：不显示「正在观察」类 live 标签，只陈述已中断
   const stateLabel = phase === "stale"
     ? "已中断"
-    : semantic ? semanticLabel(statusRaw) : (statusLabel(statusRaw, "") || semanticLabel(statusRaw));
+    : semantic ? semanticLabel(displayState) : (statusLabel(displayState, "") || semanticLabel(displayState));
   // STATUSBAR-ID-1（用户裁定 2026-09-30，2026-10-02 并入 WEBUI-IA-REDESIGN-1）：
   // 执行状态栏不再显示哈希类任务 id 文本；完整 id 保留在 data-task-id 属性，
   // 调试走 DOM/网络面板查（零成本）。本条为单任务窄条，无需区分占位编号。
@@ -128,7 +142,7 @@ export function PlanBar({ snapshot, goal = null, plan = null, defaultOpen = fals
       >
         {phase === "stale"
           ? <CircleSlash size={15} aria-hidden="true" />
-          : <StateIcon state={statusRaw} />}
+          : <StateIcon state={displayState} />}
         <strong>{stateLabel}</strong>
         {intent && <span className="plan-bar-intent" title={intent}>{intent}</span>}
         {currentStep && <span className="plan-bar-step">{currentStep}</span>}
