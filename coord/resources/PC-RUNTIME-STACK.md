@@ -3,7 +3,7 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
-- 2026-10-22 23:36 本会话机器钟起 / **UX-AB-AUDITION-IMPL-1(174) 真栈补证腿——chat 场次④复刻**（owner=GLM-5.3 L2 PC 执行会话（ZCode，174 卡会话））：run=**coord/runs/UX-AB-AUDITION-IMPL-1/aba174_chat_20261022_233614/**（新目录不覆盖旧 run；被测件=主仓 agent/bin/VitAgent.exe SHA256 前缀 7538E6CE 含 174 改动、mtime 2026-10-22 23:18+kernel K3 722A79D7A3F53797+VspHub B10CC412）。机器=PC/占用端口 5555/5556/7878/8787（18787/4444/4445 顺带保护）。登记前核对：七端口 tcp listen=0（5555/5556/7878/8787/18787/4444/4445）、VitApp/VitAgent/VspHub/Godot 类进程=0（23:35 活体复核，origin/main 登记空闲一致）。
+- 2026-10-22 23:36 登记（09d03081）–2026-10-23 00:29 释放交接 / **UX-AB-AUDITION-IMPL-1(174) 真栈补证腿已拆栈收口**（owner=GLM-5.3 L2 PC 执行会话（ZCode，174 卡会话））：run=**coord/runs/UX-AB-AUDITION-IMPL-1/aba174_chat_20261022_233614**，teardown Stop exit 0 只杀自录 pid（29704/14268/23540 逐一核对 GONE）；腿结果=卡面验收面全 PASS（C 双 render 溯源/D 第三路由/E 盲测/F webui 契约/B 同轮事件）+stamp 子面结构性 FAIL 上交裁定。释放时活体=未登记新占用如实上交：00:21–00:24:58 起 VitApp 25312（D:\Vit_DAW\VitApp\build\VitApp_artefacts\Release）/VspHub 31916（主仓 agent\bin）/VitAgent 30956（主仓 agent\bin）/Godot 24004+28168（D:\Godot，00:26:59 快照，形态=手测链路，无 §2.2 登记）；00:29:01 复核：三件套+Godot 28168 已自行退出、七端口 tcp listen=0、仅余 Godot 24004（00:21:15 起，不占栈端口）。按 §2.2 上交主管/用户确认归属，不写空闲不终止任何进程。
 
 ## 本次释放（2026-10-22 22:4x–23:0x 本会话机器钟，VSP-HUB-PUBLISH-RESILIENCE-1(173)）
 
