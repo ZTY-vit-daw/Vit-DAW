@@ -3,7 +3,11 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
-- **占用中（2026-10-22 20:1x 登记）**：FE-SEND-UI-LIVE-CHAIN-1(171) 真实 UI 复现+断点定位腿（今晚错峰序首位，用户口令指定）——owner=GLM-5.3 L2 PC ZCode 执行会话（171 卡会话）；登记前预检=四类栈进程=0（VitApp/VitAgent/vsphub/VitHeadless；用户 Godot 编辑器 30564 --editor 在跑不动）+5555/5556/7878/7879/8787 tcp_listen/udp=0；预计含 -StartUI 真栈形态（Godot 前端拉起）；占用登记=coord/fe-send-ui-live-chain-1-claim 领取提交（FF 推共享 main）
+- （空闲，2026-10-22 22:2x FE-SEND-UI-LIVE-CHAIN-1(171) 释放复核：四端口 tcp=0、四类栈进程=0；**171 腿九 run 收口**——窗口态真 UI 复现/定位/修复终验全绿（详见下节），下一序位 170 A5 话术腿可进）
+
+## 最近一次释放（2026-10-22 20:1x–22:2x +0800，FE-SEND-UI-LIVE-CHAIN-1(171)）
+
+- 2026-10-22 20:1x 登记–22:2x 释放 / **FE-SEND-UI-LIVE-CHAIN-1(171) 真实 UI 复现+断点定位+修复终验——九 run 收口（四轮迭代+终验）**（owner=GLM-5.3 L2 PC ZCode 执行会话，171 卡会话；占用登记 2bc46406@coord/fe-send-ui-live-chain-1-claim）：手动 bringup 形态（kernel K3 722A79D7 只读+VspHub+agent 04D52490=用户手测会话同构建哈希亲核+Godot 4.6.1 console 窗口态真 UI，worktree project-vit-daw-frontend-senduichain1@2007cb1）；VIT_PROJECT_XML 指 run 目录工程副本（主检出 workspace default_project 零触碰亲核）。断点定位=前端消费链功能面完好+用户悬空窗=hub 停摆致写通知延迟 2m16s（agent 面锚点上交）+freed-object 修复（1516611@port/fe-send-ui-live-chain-1 已推）；终验 run sendui1_final_20261022_2210 全绿+freed=0+K3 289/289+popup 111/111。§8：LLM=0（写=agent 同构注入）。拆栈=owner 逐轮 Stop-Process 只杀自起 pid（2040/2050/2058/2110/2120/2132/2145/2158/final 九轮每轮核对）→末次复核四端口 tcp=0、VitApp/VitAgent/VspHub/Godot console=0（用户 Godot 编辑器 30564 全程未动）。工件 coord/runs/FE-SEND-UI-LIVE-CHAIN-1/（随 port 分支+卡面回执入库）。
 
 ## 最近一次释放（2026-10-22 19:1x–19:2x +0800，FE-SEND-UX-UNIFY-1）
 
