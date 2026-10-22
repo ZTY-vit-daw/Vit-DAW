@@ -1,0 +1,71 @@
+{
+ "conversation_id": "softguide_b1_authority_20261022_214627",
+ "task_id": "task_b072e96df2a2bd67",
+ "goal_id": "goal_10597461d266162a",
+ "run_id": "run_22d1c7ed2f5a22ca",
+ "original_intent": "/smoke authority",
+ "reply": "authority smoke: bound=full_project_access server=full_project_access",
+ "agent_mode": "default",
+ "needs_confirmation": false,
+ "goal_status": "completed",
+ "goal_summary": "/smoke authority",
+ "stop_reason": "authority_smoke_ok",
+ "project_history": {
+  "active_branch": "main",
+  "active_node_id": "n_20261022T134627_fe2fde21",
+  "active_worktree": "",
+  "available": true,
+  "branches": {
+   "main": "c_20261022T134627_e0dc6cc0"
+  },
+  "commit_count": 1,
+  "conversation_messages": [
+   {
+    "content": "/smoke authority",
+    "logical_message_id": "n_20261022T134627_2e7fc168",
+    "message_kind": "user",
+    "node_id": "n_20261022T134627_2e7fc168",
+    "role": "user"
+   },
+   {
+    "content": "authority smoke: bound=full_project_access server=full_project_access",
+    "logical_message_id": "n_20261022T134627_fe2fde21",
+    "message_kind": "assistant",
+    "node_id": "n_20261022T134627_fe2fde21",
+    "role": "assistant"
+   }
+  ],
+  "detached": false,
+  "draft": false,
+  "head": "c_20261022T134627_e0dc6cc0",
+  "initialized": true,
+  "project_label": "Unsaved",
+  "project_path": "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261022T134627_bbb80159\\Unsaved.vit",
+  "project_uuid": "vitproj_ff9d56bed961450cbf6c202bae2029da",
+  "refs": {
+   "refs/heads/main": "c_20261022T134627_e0dc6cc0"
+  },
+  "root_project_path": "",
+  "unsaved": false,
+  "warnings": [],
+  "worktrees": [
+   {
+    "commit_id": "c_20261022T134627_e0dc6cc0",
+    "created_at": "2026-10-22T13:46:27.7847014Z",
+    "is_root": true,
+    "label": "主工作树",
+    "name": "main",
+    "origin_commit_id": "c_20261022T134627_e0dc6cc0",
+    "path": "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261022T134627_bbb80159",
+    "project_file_path": "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261022T134627_bbb80159\\Unsaved.vit",
+    "project_path": "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261022T134627_bbb80159\\Unsaved.vit",
+    "root_project_path": "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261022T134627_bbb80159\\Unsaved.vit"
+   }
+  ]
+ },
+ "lifecycle": "durable",
+ "persistence": "project_history",
+ "message_kind": "assistant",
+ "turn_id": "run_22d1c7ed2f5a22ca",
+ "logical_message_id": "n_20261022T134627_fe2fde21"
+}
